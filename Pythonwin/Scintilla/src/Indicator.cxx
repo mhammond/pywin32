@@ -10,7 +10,7 @@
 #include "Scintilla.h"
 #include "Indicator.h"
 
-void Indicator::Draw(Surface *surface, PRectangle &rc) {
+void Indicator::Draw(Surface *surface, const PRectangle &rc, const PRectangle &rcLine) {
 	surface->PenColour(fore.allocated);
 	int ymid = (rc.bottom + rc.top) / 2;
 	if (style == INDIC_SQUIGGLE) {
@@ -55,6 +55,14 @@ void Indicator::Draw(Surface *surface, PRectangle &rc) {
 	} else if (style == INDIC_STRIKE) {
 		surface->MoveTo(rc.left, rc.top - 4);
 		surface->LineTo(rc.right, rc.top - 4);
+	} else if (style == INDIC_HIDDEN) {
+		// Draw nothing
+	} else if (style == INDIC_BOX) {
+		surface->MoveTo(rc.left, ymid+1);
+		surface->LineTo(rc.right, ymid+1);
+		surface->LineTo(rc.right, rcLine.top+1);
+		surface->LineTo(rc.left, rcLine.top+1);
+		surface->LineTo(rc.left, ymid+1);
 	} else {	// Either INDIC_PLAIN or unknown
 		surface->MoveTo(rc.left, ymid);
 		surface->LineTo(rc.right, ymid);

@@ -2,7 +2,7 @@
 /** @file PlatWin.cxx
  ** Implementation of platform facilities on Windows.
  **/
-// Copyright 1998-2002 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2003 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #include <stdlib.h>
@@ -21,9 +21,36 @@
 #include "Platform.h"
 #include "PlatformRes.h"
 #include "UniConversion.h"
+#include "XPM.h"
+
+#ifndef IDC_HAND
+#define IDC_HAND MAKEINTRESOURCE(32649)
+#endif
+
+// Take care of 32/64 bit pointers
+#ifdef GetWindowLongPtr
+static void *PointerFromWindow(HWND hWnd) {
+	return reinterpret_cast<void *>(::GetWindowLongPtr(hWnd, 0));
+}
+static void SetWindowPointer(HWND hWnd, void *ptr) {
+	::SetWindowLongPtr(hWnd, 0, reinterpret_cast<LONG_PTR>(ptr));
+}
+#else
+static void *PointerFromWindow(HWND hWnd) {
+	return reinterpret_cast<void *>(::GetWindowLong(hWnd, 0));
+}
+static void SetWindowPointer(HWND hWnd, void *ptr) {
+	::SetWindowLong(hWnd, 0, reinterpret_cast<LONG>(ptr));
+}
+#endif
 
 static CRITICAL_SECTION crPlatformLock;
 static HINSTANCE hinstPlatformRes = 0;
+static bool onNT = false;
+
+bool IsNT() {
+	return onNT;
+}
 
 Point Point::FromLong(long lpoint) {
 	return Point(static_cast<short>(LOWORD(lpoint)), static_cast<short>(HIWORD(lpoint)));
@@ -107,14 +134,14 @@ void Palette::Allocate(Window &) {
 	}
 }
 
-void SetLogFont(LOGFONT &lf, const char *faceName, int characterSet, int size, bool bold, bool italic) {
+static void SetLogFont(LOGFONT &lf, const char *faceName, int characterSet, int size, bool bold, bool italic) {
 	memset(&lf, 0, sizeof(lf));
 	// The negative is to allow for leading
 	lf.lfHeight = -(abs(size));
 	lf.lfWeight = bold ? FW_BOLD : FW_NORMAL;
 	lf.lfItalic = static_cast<BYTE>(italic ? 1 : 0);
 	lf.lfCharSet = static_cast<BYTE>(characterSet);
-	strcpy(lf.lfFaceName, faceName);
+	strncpy(lf.lfFaceName, faceName, sizeof(lf.lfFaceName));
 }
 
 /**
@@ -122,7 +149,7 @@ void SetLogFont(LOGFONT &lf, const char *faceName, int characterSet, int size, b
  * If one font is the same as another, its hash will be the same, but if the hash is the
  * same then they may still be different.
  */
-int HashFont(const char *faceName, int characterSet, int size, bool bold, bool italic) {
+static int HashFont(const char *faceName, int characterSet, int size, bool bold, bool italic) {
 	return
 		size ^
 		(characterSet << 10) ^
@@ -258,6 +285,9 @@ class SurfaceImpl : public Surface {
 	HBITMAP bitmap;
 	HBITMAP bitmapOld;
 	HPALETTE paletteOld;
+	int maxWidthMeasure;
+	int maxLenText;
+
 	void BrushColor(ColourAllocated back);
 	void SetFont(Font &font_);
 
@@ -268,9 +298,9 @@ public:
 	SurfaceImpl();
 	virtual ~SurfaceImpl();
 
-	void Init();
-	void Init(SurfaceID sid);
-	void InitPixMap(int width, int height, Surface *surface_);
+	void Init(WindowID wid);
+	void Init(SurfaceID sid, WindowID wid);
+	void InitPixMap(int width, int height, Surface *surface_, WindowID wid);
 
 	void Release();
 	bool Initialised();
@@ -289,6 +319,7 @@ public:
 
 	void DrawTextNoClip(PRectangle rc, Font &font_, int ybase, const char *s, int len, ColourAllocated fore, ColourAllocated back);
 	void DrawTextClipped(PRectangle rc, Font &font_, int ybase, const char *s, int len, ColourAllocated fore, ColourAllocated back);
+	void DrawTextTransparent(PRectangle rc, Font &font_, int ybase, const char *s, int len, ColourAllocated fore);
 	void MeasureWidths(Font &font_, const char *s, int len, int *positions);
 	int WidthText(Font &font_, const char *s, int len);
 	int WidthChar(Font &font_, char ch);
@@ -304,6 +335,7 @@ public:
 	void FlushCachedState();
 
 	void SetUnicodeMode(bool unicodeMode_);
+	void SetDBCSMode(int codePage);
 };
 
 SurfaceImpl::SurfaceImpl() :
@@ -314,6 +346,11 @@ SurfaceImpl::SurfaceImpl() :
 	font(0), 	fontOld(0),
 	bitmap(0), bitmapOld(0),
 	paletteOld(0) {
+	// Windows 9x has only a 16 bit coordinate system so break after 30000 pixels
+	maxWidthMeasure = IsNT() ? 1000000 : 30000;
+	// There appears to be a 16 bit string length limit in GDI on NT and a limit of
+	// 8192 characters on Windows 95.
+	maxLenText = IsNT() ? 65535 : 8192;
 }
 
 SurfaceImpl::~SurfaceImpl() {
@@ -347,7 +384,7 @@ void SurfaceImpl::Release() {
 	bitmap = 0;
 	if (paletteOld) {
 		// Fonts are not deleted as they are owned by a Palette object
-		::SelectPalette(reinterpret_cast<HDC>(hdc), 
+		::SelectPalette(reinterpret_cast<HDC>(hdc),
 			reinterpret_cast<HPALETTE>(paletteOld), TRUE);
 		paletteOld = 0;
 	}
@@ -362,20 +399,20 @@ bool SurfaceImpl::Initialised() {
 	return hdc != 0;
 }
 
-void SurfaceImpl::Init() {
+void SurfaceImpl::Init(WindowID) {
 	Release();
 	hdc = ::CreateCompatibleDC(NULL);
 	hdcOwned = true;
 	::SetTextAlign(reinterpret_cast<HDC>(hdc), TA_BASELINE);
 }
 
-void SurfaceImpl::Init(SurfaceID sid) {
+void SurfaceImpl::Init(SurfaceID sid, WindowID) {
 	Release();
 	hdc = reinterpret_cast<HDC>(sid);
 	::SetTextAlign(reinterpret_cast<HDC>(hdc), TA_BASELINE);
 }
 
-void SurfaceImpl::InitPixMap(int width, int height, Surface *surface_) {
+void SurfaceImpl::InitPixMap(int width, int height, Surface *surface_, WindowID) {
 	Release();
 	hdc = ::CreateCompatibleDC(static_cast<SurfaceImpl *>(surface_)->hdc);
 	hdcOwned = true;
@@ -482,14 +519,14 @@ void SurfaceImpl::Ellipse(PRectangle rc, ColourAllocated fore, ColourAllocated b
 }
 
 void SurfaceImpl::Copy(PRectangle rc, Point from, Surface &surfaceSource) {
-	::BitBlt(hdc, 
+	::BitBlt(hdc,
 		rc.left, rc.top, rc.Width(), rc.Height(),
 		static_cast<SurfaceImpl &>(surfaceSource).hdc, from.x, from.y, SRCCOPY);
 }
 
-#define MAX_US_LEN 5000
+#define MAX_US_LEN 10000
 
-void SurfaceImpl::DrawTextNoClip(PRectangle rc, Font &font_, int ybase, const char *s, int len, 
+void SurfaceImpl::DrawTextNoClip(PRectangle rc, Font &font_, int ybase, const char *s, int len,
 	ColourAllocated fore, ColourAllocated back) {
 	SetFont(font_);
 	::SetTextColor(hdc, fore.AsLong());
@@ -501,11 +538,12 @@ void SurfaceImpl::DrawTextNoClip(PRectangle rc, Font &font_, int ybase, const ch
 		tbuf[tlen] = L'\0';
 		::ExtTextOutW(hdc, rc.left, ybase, ETO_OPAQUE, &rcw, tbuf, tlen, NULL);
 	} else {
-		::ExtTextOut(hdc, rc.left, ybase, ETO_OPAQUE, &rcw, s, len, NULL);
+		::ExtTextOut(hdc, rc.left, ybase, ETO_OPAQUE, &rcw, s,
+			Platform::Minimum(len, maxLenText), NULL);
 	}
 }
 
-void SurfaceImpl::DrawTextClipped(PRectangle rc, Font &font_, int ybase, const char *s, int len, 
+void SurfaceImpl::DrawTextClipped(PRectangle rc, Font &font_, int ybase, const char *s, int len,
 	ColourAllocated fore, ColourAllocated back) {
 	SetFont(font_);
 	::SetTextColor(hdc, fore.AsLong());
@@ -517,7 +555,32 @@ void SurfaceImpl::DrawTextClipped(PRectangle rc, Font &font_, int ybase, const c
 		tbuf[tlen] = L'\0';
 		::ExtTextOutW(hdc, rc.left, ybase, ETO_OPAQUE | ETO_CLIPPED, &rcw, tbuf, tlen, NULL);
 	} else {
-		::ExtTextOut(hdc, rc.left, ybase, ETO_OPAQUE | ETO_CLIPPED, &rcw, s, len, NULL);
+		::ExtTextOut(hdc, rc.left, ybase, ETO_OPAQUE | ETO_CLIPPED, &rcw, s,
+			Platform::Minimum(len, maxLenText), NULL);
+	}
+}
+
+void SurfaceImpl::DrawTextTransparent(PRectangle rc, Font &font_, int ybase, const char *s, int len,
+	ColourAllocated fore) {
+	// Avoid drawing spaces in transparent mode
+	for (int i=0;i<len;i++) {
+		if (s[i] != ' ') {
+			SetFont(font_);
+			::SetTextColor(hdc, fore.AsLong());
+			::SetBkMode(hdc, TRANSPARENT);
+			RECT rcw = RectFromPRectangle(rc);
+			if (unicodeMode) {
+				wchar_t tbuf[MAX_US_LEN];
+				int tlen = UCS2FromUTF8(s, len, tbuf, sizeof(tbuf)/sizeof(wchar_t)-1);
+				tbuf[tlen] = L'\0';
+				::ExtTextOutW(hdc, rc.left, ybase, 0, &rcw, tbuf, tlen, NULL);
+			} else {
+				::ExtTextOut(hdc, rc.left, ybase, 0, &rcw, s,
+					Platform::Minimum(len,maxLenText), NULL);
+			}
+			::SetBkMode(hdc, OPAQUE);
+			return;
+		}
 	}
 }
 
@@ -530,7 +593,7 @@ int SurfaceImpl::WidthText(Font &font_, const char *s, int len) {
 		tbuf[tlen] = L'\0';
 		::GetTextExtentPoint32W(hdc, tbuf, tlen, &sz);
 	} else {
-		::GetTextExtentPoint32(hdc, s, len, &sz);
+		::GetTextExtentPoint32(hdc, s, Platform::Minimum(len, maxLenText), &sz);
 	}
 	return sz.cx;
 }
@@ -545,7 +608,7 @@ void SurfaceImpl::MeasureWidths(Font &font_, const char *s, int len, int *positi
 		tbuf[tlen] = L'\0';
 		int poses[MAX_US_LEN];
 		fit = tlen;
-		if (!::GetTextExtentExPointW(hdc, tbuf, tlen, 30000, &fit, poses, &sz)) {
+		if (!::GetTextExtentExPointW(hdc, tbuf, tlen, maxWidthMeasure, &fit, poses, &sz)) {
 			// Likely to have failed because on Windows 9x where function not available
 			// So measure the character widths by measuring each initial substring
 			// Turns a linear operation into a qudratic but seems fast enough on test files
@@ -558,7 +621,7 @@ void SurfaceImpl::MeasureWidths(Font &font_, const char *s, int len, int *positi
 		int ui=0;
 		const unsigned char *us = reinterpret_cast<const unsigned char *>(s);
 		int i=0;
-		while (i<fit) {
+		while (ui<fit) {
 			unsigned char uch = us[i];
 			positions[i++] = poses[ui];
 			if (uch >= 0x80) {
@@ -578,7 +641,8 @@ void SurfaceImpl::MeasureWidths(Font &font_, const char *s, int len, int *positi
 			positions[i++] = lastPos;
 		}
 	} else {
-		if (!::GetTextExtentExPoint(hdc, s, len, 30000, &fit, positions, &sz)) {
+		if (!::GetTextExtentExPoint(hdc, s, Platform::Minimum(len, maxLenText),
+			maxWidthMeasure, &fit, positions, &sz)) {
 			// Eeek - a NULL DC or other foolishness could cause this.
 			// The least we can do is set the positions to zero!
 			memset(positions, 0, len * sizeof(*positions));
@@ -647,7 +711,7 @@ int SurfaceImpl::SetPalette(Palette *pal, bool inBackGround) {
 	paletteOld = 0;
 	int changes = 0;
 	if (pal->allowRealization) {
-		paletteOld = ::SelectPalette(hdc, 
+		paletteOld = ::SelectPalette(hdc,
 			reinterpret_cast<HPALETTE>(pal->hpal), inBackGround);
 		changes = ::RealizePalette(hdc);
 	}
@@ -666,6 +730,10 @@ void SurfaceImpl::FlushCachedState() {
 
 void SurfaceImpl::SetUnicodeMode(bool unicodeMode_) {
 	unicodeMode=unicodeMode_;
+}
+
+void SurfaceImpl::SetDBCSMode(int) {
+	// No action on window as automatically handled by system.
 }
 
 Surface *Surface::Allocate() {
@@ -692,23 +760,36 @@ PRectangle Window::GetPosition() {
 }
 
 void Window::SetPosition(PRectangle rc) {
-	::SetWindowPos(reinterpret_cast<HWND>(id), 
-		0, rc.left, rc.top, rc.Width(), rc.Height(), 0);
+	::SetWindowPos(reinterpret_cast<HWND>(id),
+		0, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER|SWP_NOACTIVATE);
 }
 
-void Window::SetPositionRelative(PRectangle rc, Window) {
+void Window::SetPositionRelative(PRectangle rc, Window w) {
+	LONG style = ::GetWindowLong(reinterpret_cast<HWND>(id), GWL_STYLE);
+	if (style & WS_POPUP) {
+		RECT rcOther;
+		::GetWindowRect(reinterpret_cast<HWND>(w.GetID()), &rcOther);
+		rc.Move(rcOther.left, rcOther.top);
+		if (rc.left < 0) {
+			rc.Move(-rc.left,0);
+		}
+		if (rc.top < 0) {
+			rc.Move(0,-rc.top);
+		}
+	}
 	SetPosition(rc);
 }
 
 PRectangle Window::GetClientPosition() {
-	RECT rc;
-	::GetClientRect(reinterpret_cast<HWND>(id), &rc);
+	RECT rc={0,0,0,0};
+	if (id)
+		::GetClientRect(reinterpret_cast<HWND>(id), &rc);
 	return  PRectangle(rc.left, rc.top, rc.right, rc.bottom);
 }
 
 void Window::Show(bool show) {
 	if (show)
-		::ShowWindow(reinterpret_cast<HWND>(id), SW_SHOWNORMAL);
+		::ShowWindow(reinterpret_cast<HWND>(id), SW_SHOWNOACTIVATE);
 	else
 		::ShowWindow(reinterpret_cast<HWND>(id), SW_HIDE);
 }
@@ -748,6 +829,9 @@ void Window::SetCursor(Cursor curs) {
 	case cursorVert:
 		::SetCursor(::LoadCursor(NULL,IDC_SIZENS));
 		break;
+	case cursorHand:
+		::SetCursor(::LoadCursor(NULL,IDC_HAND));
+		break;
 	case cursorReverseArrow: {
 			if (!hinstPlatformRes)
 				hinstPlatformRes = ::GetModuleHandle("Scintilla");
@@ -755,7 +839,11 @@ void Window::SetCursor(Cursor curs) {
 				hinstPlatformRes = ::GetModuleHandle("SciLexer");
 			if (!hinstPlatformRes)
 				hinstPlatformRes = ::GetModuleHandle(NULL);
-			::SetCursor(::LoadCursor(hinstPlatformRes, MAKEINTRESOURCE(IDC_MARGIN)));
+			HCURSOR hcursor = ::LoadCursor(hinstPlatformRes, MAKEINTRESOURCE(IDC_MARGIN));
+			if (hcursor)
+				::SetCursor(hcursor);
+			else
+				::SetCursor(::LoadCursor(NULL,IDC_ARROW));
 		}
 		break;
 	case cursorArrow:
@@ -769,38 +857,146 @@ void Window::SetTitle(const char *s) {
 	::SetWindowText(reinterpret_cast<HWND>(id), s);
 }
 
-ListBox::ListBox() : desiredVisibleRows(5), maxItemCharacters(0), aveCharWidth(8) {
+class LineToType {
+	int *data;
+	int len;
+	int maximum;
+public:
+	LineToType() :data(0), len(0), maximum(0) {
+	}
+	~LineToType() {
+		Clear();
+	}
+	void Clear() {
+		delete []data;
+		data = 0;
+		len = 0;
+		maximum = 0;
+	}
+	void Add(int index, int value) {
+		if (index >= maximum) {
+			if (index >= len) {
+				int lenNew = (index+1) * 2;
+				int *dataNew = new int[lenNew];
+				for (int i=0; i<maximum; i++) {
+					dataNew[i] = data[i];
+				}
+				delete []data;
+				data = dataNew;
+				len = lenNew;
+			}
+			while (maximum < index) {
+				data[maximum] = 0;
+				maximum++;
+			}
+		}
+		data[index] = value;
+		if (index == maximum) {
+			maximum++;
+		}
+	}
+	int Get(int index) {
+		if (index < maximum) {
+			return data[index];
+		} else {
+			return 0;
+		}
+	}
+};
+
+const char ListBoxX_ClassName[] = "ListBoxX";
+
+ListBox::ListBox() {
 }
 
 ListBox::~ListBox() {
 }
 
-void ListBox::Create(Window &parent, int ctrlID) {
+class ListBoxX : public ListBox {
+	int lineHeight;
+	FontID fontCopy;
+	XPMSet xset;
+	LineToType ltt;
+	HWND lb;
+	bool unicodeMode;
+	int desiredVisibleRows;
+	unsigned int maxItemCharacters;
+	unsigned int aveCharWidth;
+public:
+	ListBoxX() : lineHeight(10), fontCopy(0), lb(0), unicodeMode(false),
+		desiredVisibleRows(5), maxItemCharacters(0), aveCharWidth(8){
+	}
+	virtual ~ListBoxX() {
+		if (fontCopy) {
+			::DeleteObject(fontCopy);
+			fontCopy = 0;
+		}
+	}
+	virtual void SetFont(Font &font);
+	virtual void Create(Window &parent, int ctrlID, int lineHeight_, bool unicodeMode_);
+	virtual void SetAverageCharWidth(int width);
+	virtual void SetVisibleRows(int rows);
+	virtual PRectangle GetDesiredRect();
+	int IconWidth();
+	virtual int CaretFromEdge();
+	virtual void Clear();
+	virtual void Append(char *s, int type = -1);
+	virtual int Length();
+	virtual void Select(int n);
+	virtual int GetSelection();
+	virtual int Find(const char *prefix);
+	virtual void GetValue(int n, char *value, int len);
+	virtual void RegisterImage(int type, const char *xpm_data);
+	virtual void ClearRegisteredImages();
+	virtual void SetDoubleClickAction(CallBackAction, void *) {
+	}
+	void Draw(DRAWITEMSTRUCT *pDrawItem);
+	long WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+	static long PASCAL StaticWndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+};
+
+ListBox *ListBox::Allocate() {
+	ListBoxX *lb = new ListBoxX();
+	return lb;
+}
+
+void ListBoxX::Create(Window &parent, int ctrlID, int lineHeight_, bool unicodeMode_) {
+	lineHeight = lineHeight_;
+	unicodeMode = unicodeMode_;
 	HINSTANCE hinstanceParent = GetWindowInstance(reinterpret_cast<HWND>(parent.GetID()));
 	id = ::CreateWindowEx(
-		WS_EX_WINDOWEDGE, "listbox", "",
-		WS_CHILD | WS_THICKFRAME | WS_VSCROLL | LBS_NOTIFY,
-		100,100, 150,80, reinterpret_cast<HWND>(parent.GetID()), 
+		WS_EX_WINDOWEDGE, ListBoxX_ClassName, "",
+		WS_CHILD | WS_THICKFRAME,
+		100,100, 150,80, reinterpret_cast<HWND>(parent.GetID()),
 		reinterpret_cast<HMENU>(ctrlID),
-		hinstanceParent, 
-		0);
+		hinstanceParent,
+		this);
+	lb = ::GetWindow(reinterpret_cast<HWND>(id), GW_CHILD);
 }
 
-void ListBox::SetFont(Font &font) {
-	Window::SetFont(font);
+void ListBoxX::SetFont(Font &font) {
+	LOGFONT lf;
+	if (0 != ::GetObject(font.GetID(), sizeof(lf), &lf)) {
+		if (fontCopy) {
+			::DeleteObject(fontCopy);
+			fontCopy = 0;
+		}
+		fontCopy = ::CreateFontIndirect(&lf);
+		::SendMessage(lb, WM_SETFONT, reinterpret_cast<WPARAM>(fontCopy), 0);
+	}
 }
 
-void ListBox::SetAverageCharWidth(int width) {
+void ListBoxX::SetAverageCharWidth(int width) {
 	aveCharWidth = width;
 }
 
-void ListBox::SetVisibleRows(int rows) {
+void ListBoxX::SetVisibleRows(int rows) {
 	desiredVisibleRows = rows;
 }
 
-PRectangle ListBox::GetDesiredRect() {
+PRectangle ListBoxX::GetDesiredRect() {
 	PRectangle rcDesired = GetPosition();
-	int itemHeight = Window_SendMessage(this, LB_GETITEMHEIGHT, 0);
+	int itemHeight = ::SendMessage(lb, LB_GETITEMHEIGHT, 0, 0);
 	int rows = Length();
 	if ((rows == 0) || (rows > desiredVisibleRows))
 		rows = desiredVisibleRows;
@@ -811,45 +1007,57 @@ PRectangle ListBox::GetDesiredRect() {
 		width = 12;
 	rcDesired.right = rcDesired.left + width * (aveCharWidth+aveCharWidth/3);
 	if (Length() > rows)
-		rcDesired.right = rcDesired.right + ::GetSystemMetrics(SM_CXVSCROLL);
+		rcDesired.right += ::GetSystemMetrics(SM_CXVSCROLL);
+	rcDesired.right += IconWidth();
 	return rcDesired;
 }
 
-void ListBox::Clear() {
-	Window_SendMessage(this, LB_RESETCONTENT);
-	maxItemCharacters = 0;
+int ListBoxX::IconWidth() {
+	return xset.GetWidth() + 2;
 }
 
-void ListBox::Append(char *s) {
-	Window_SendMessage(this, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(s));
+int ListBoxX::CaretFromEdge() {
+	return 4 + IconWidth();
+}
+
+void ListBoxX::Clear() {
+	::SendMessage(lb, LB_RESETCONTENT, 0, 0);
+	maxItemCharacters = 0;
+	ltt.Clear();
+}
+
+void ListBoxX::Append(char *s, int type) {
+	::SendMessage(lb, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(s));
 	unsigned int len = static_cast<unsigned int>(strlen(s));
 	if (maxItemCharacters < len)
 		maxItemCharacters = len;
+	int count = ::SendMessage(lb, LB_GETCOUNT, 0, 0);
+	ltt.Add(count-1, type);
 }
 
-int ListBox::Length() {
-	return Window_SendMessage(this, LB_GETCOUNT);
+int ListBoxX::Length() {
+	return ::SendMessage(lb, LB_GETCOUNT, 0, 0);
 }
 
-void ListBox::Select(int n) {
-	Window_SendMessage(this, LB_SETCURSEL, n);
+void ListBoxX::Select(int n) {
+	::SendMessage(lb, LB_SETCURSEL, n, 0);
 }
 
-int ListBox::GetSelection() {
-	return Window_SendMessage(this, LB_GETCURSEL);
+int ListBoxX::GetSelection() {
+	return ::SendMessage(lb, LB_GETCURSEL, 0, 0);
 }
 
-int ListBox::Find(const char *prefix) {
-	return Window_SendMessage(this, LB_FINDSTRING, static_cast<WPARAM>(-1),
+int ListBoxX::Find(const char *prefix) {
+	return ::SendMessage(lb, LB_FINDSTRING, static_cast<WPARAM>(-1),
 		reinterpret_cast<LPARAM>(prefix));
 }
 
-void ListBox::GetValue(int n, char *value, int len) {
-	int lenText = Window_SendMessage(this, LB_GETTEXTLEN, n);
+void ListBoxX::GetValue(int n, char *value, int len) {
+	int lenText = ::SendMessage(lb, LB_GETTEXTLEN, n, 0);
 	if ((len > 0) && (lenText > 0)){
 		char *text = new char[len+1];
 		if (text) {
-			Window_SendMessage(this, LB_GETTEXT, n, reinterpret_cast<LPARAM>(text));
+			::SendMessage(lb, LB_GETTEXT, n, reinterpret_cast<LPARAM>(text));
 			strncpy(value, text, len);
 			value[len-1] = '\0';
 			delete []text;
@@ -861,8 +1069,154 @@ void ListBox::GetValue(int n, char *value, int len) {
 	}
 }
 
-void ListBox::Sort() {
-	// Windows keeps sorted so no need to sort
+void ListBoxX::RegisterImage(int type, const char *xpm_data) {
+	xset.Add(type, xpm_data);
+}
+
+void ListBoxX::ClearRegisteredImages() {
+	xset.Clear();
+}
+
+void ListBoxX::Draw(DRAWITEMSTRUCT *pDrawItem) {
+	if ((pDrawItem->itemAction == ODA_SELECT) || (pDrawItem->itemAction == ODA_DRAWENTIRE)) {
+		char text[1000];
+		int len = ::SendMessage(pDrawItem->hwndItem, LB_GETTEXTLEN, pDrawItem->itemID, 0);
+		if (len < static_cast<int>(sizeof(text))) {
+			::SendMessage(pDrawItem->hwndItem, LB_GETTEXT, pDrawItem->itemID, reinterpret_cast<LPARAM>(text));
+		} else {
+			len = 0;
+			text[0] = '\0';
+		}
+		int pixId = ltt.Get(pDrawItem->itemID);
+		XPM *pxpm = xset.Get(pixId);
+		if (pDrawItem->itemState & ODS_SELECTED) {
+			::SetBkColor(pDrawItem->hDC, ::GetSysColor(COLOR_HIGHLIGHT));
+			::SetTextColor(pDrawItem->hDC, ::GetSysColor(COLOR_HIGHLIGHTTEXT));
+		} else {
+			::SetBkColor(pDrawItem->hDC, ::GetSysColor(COLOR_WINDOW));
+			::SetTextColor(pDrawItem->hDC, ::GetSysColor(COLOR_WINDOWTEXT));
+		}
+		int widthPix = xset.GetWidth() + 2;
+		if (unicodeMode) {
+			wchar_t tbuf[MAX_US_LEN];
+			int tlen = UCS2FromUTF8(text, len, tbuf, sizeof(tbuf)/sizeof(wchar_t)-1);
+			tbuf[tlen] = L'\0';
+			::ExtTextOutW(pDrawItem->hDC, pDrawItem->rcItem.left+widthPix+1, pDrawItem->rcItem.top,
+				ETO_OPAQUE, &(pDrawItem->rcItem), tbuf, tlen, NULL);
+		} else {
+			::ExtTextOut(pDrawItem->hDC, pDrawItem->rcItem.left+widthPix+1, pDrawItem->rcItem.top,
+				ETO_OPAQUE, &(pDrawItem->rcItem), text,
+				len, NULL);
+		}
+		if (pxpm) {
+			Surface *surfaceItem = Surface::Allocate();
+			if (surfaceItem) {
+				surfaceItem->Init(pDrawItem->hDC, pDrawItem->hwndItem);
+				//surfaceItem->SetUnicodeMode(unicodeMode);
+				//surfaceItem->SetDBCSMode(codePage);
+				int left = pDrawItem->rcItem.left;
+				PRectangle rc(left + 1, pDrawItem->rcItem.top,
+					left + 1 + widthPix, pDrawItem->rcItem.bottom);
+				pxpm->Draw(surfaceItem, rc);
+				delete surfaceItem;
+				::SetTextAlign(pDrawItem->hDC, TA_TOP);
+			}
+		}
+        if (pDrawItem->itemState & ODS_SELECTED) {
+			::DrawFocusRect(pDrawItem->hDC, &(pDrawItem->rcItem));
+        }
+	}
+}
+
+long ListBoxX::WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam) {
+	switch (iMessage) {
+	case WM_CREATE: {
+		HWND parent = ::GetParent(hWnd);
+		HINSTANCE hinstanceParent = GetWindowInstance(parent);
+		CREATESTRUCT *pCreate = reinterpret_cast<CREATESTRUCT *>(lParam);
+		::CreateWindowEx(
+			WS_EX_WINDOWEDGE, "listbox", "",
+			WS_CHILD | WS_VSCROLL | WS_VISIBLE |
+			LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_NOTIFY,
+			0, 0, 150,80, hWnd,
+			pCreate->hMenu,
+			hinstanceParent,
+			0);
+		}
+		break;
+	case WM_SIZE: {
+			HWND lb = ::GetWindow(hWnd, GW_CHILD);
+			::SetWindowPos(lb, 0, 0,0, LOWORD(lParam), HIWORD(lParam), 0);
+		}
+		break;
+	case WM_PAINT: {
+			PAINTSTRUCT ps;
+			::BeginPaint(hWnd, &ps);
+			::EndPaint(hWnd, &ps);
+		}
+		break;
+	case WM_COMMAND: {
+			HWND parent = ::GetParent(hWnd);
+			::SendMessage(parent, iMessage, wParam, lParam);
+		}
+		break;
+
+	case WM_MEASUREITEM: {
+			MEASUREITEMSTRUCT *pMeasureItem = reinterpret_cast<MEASUREITEMSTRUCT *>(lParam);
+			pMeasureItem->itemHeight = lineHeight;
+			if (pMeasureItem->itemHeight < static_cast<unsigned int>(xset.GetHeight())) {
+				pMeasureItem->itemHeight = xset.GetHeight();
+			}
+		}
+		break;
+	case WM_DRAWITEM:
+		Draw(reinterpret_cast<DRAWITEMSTRUCT *>(lParam));
+		break;
+	case WM_DESTROY:
+		::SetWindowLong(hWnd, 0, 0);
+		return ::DefWindowProc(hWnd, iMessage, wParam, lParam);
+	default:
+		return ::DefWindowProc(hWnd, iMessage, wParam, lParam);
+	}
+
+	return 0;
+}
+
+long PASCAL ListBoxX::StaticWndProc(
+    HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam) {
+	if (iMessage == WM_CREATE) {
+		CREATESTRUCT *pCreate = reinterpret_cast<CREATESTRUCT *>(lParam);
+		SetWindowPointer(hWnd, pCreate->lpCreateParams);
+	}
+	// Find C++ object associated with window.
+	ListBoxX *lbx = reinterpret_cast<ListBoxX *>(PointerFromWindow(hWnd));
+	if (lbx) {
+		return lbx->WndProc(hWnd, iMessage, wParam, lParam);
+	} else {
+		return ::DefWindowProc(hWnd, iMessage, wParam, lParam);
+	}
+}
+
+static bool ListBoxX_Register() {
+	WNDCLASSEX wndclassc;
+	wndclassc.cbSize = sizeof(wndclassc);
+	wndclassc.style = CS_GLOBALCLASS | CS_HREDRAW | CS_VREDRAW;
+	wndclassc.cbClsExtra = 0;
+	wndclassc.cbWndExtra = sizeof(ListBoxX *);
+	wndclassc.hInstance = hinstPlatformRes;
+	wndclassc.hIcon = NULL;
+	wndclassc.hbrBackground = NULL;
+	wndclassc.lpszMenuName = NULL;
+	wndclassc.lpfnWndProc = ListBoxX::StaticWndProc;
+	wndclassc.hCursor = ::LoadCursor(NULL, IDC_ARROW);
+	wndclassc.lpszClassName = ListBoxX_ClassName;
+	wndclassc.hIconSm = 0;
+
+	return ::RegisterClassEx(&wndclassc) != 0;
+}
+
+bool ListBoxX_Unregister() {
+	return ::UnregisterClass(ListBoxX_ClassName, hinstPlatformRes) != 0;
 }
 
 Menu::Menu() : id(0) {
@@ -880,8 +1234,8 @@ void Menu::Destroy() {
 }
 
 void Menu::Show(Point pt, Window &w) {
-	::TrackPopupMenu(reinterpret_cast<HMENU>(id), 
-		0, pt.x - 4, pt.y, 0, 
+	::TrackPopupMenu(reinterpret_cast<HMENU>(id),
+		0, pt.x - 4, pt.y, 0,
 		reinterpret_cast<HWND>(w.GetID()), NULL);
 	Destroy();
 }
@@ -933,6 +1287,37 @@ double ElapsedTime::Duration(bool reset) {
 	return result;
 }
 
+class DynamicLibraryImpl : public DynamicLibrary {
+protected:
+	HMODULE h;
+public:
+	DynamicLibraryImpl(const char *modulePath) {
+		h = ::LoadLibrary(modulePath);
+	}
+
+	virtual ~DynamicLibraryImpl() {
+		if (h != NULL)
+			::FreeLibrary(h);
+	}
+
+	// Use GetProcAddress to get a pointer to the relevant function.
+	virtual Function FindFunction(const char *name) {
+		if (h != NULL) {
+			return static_cast<Function>(
+				(void *)(::GetProcAddress(h, name)));
+		} else
+			return NULL;
+	}
+
+	virtual bool IsValid() {
+		return h != NULL;
+	}
+};
+
+DynamicLibrary *DynamicLibrary::Load(const char *modulePath) {
+	return static_cast<DynamicLibrary *>( new DynamicLibraryImpl(modulePath) );
+}
+
 ColourDesired Platform::Chrome() {
 	return ::GetSysColor(COLOR_3DFACE);
 }
@@ -953,6 +1338,10 @@ unsigned int Platform::DoubleClickTime() {
 	return ::GetDoubleClickTime();
 }
 
+bool Platform::MouseButtonBounce() {
+	return false;
+}
+
 void Platform::DebugDisplay(const char *s) {
 	::OutputDebugString(s);
 }
@@ -966,12 +1355,20 @@ long Platform::SendScintilla(WindowID w, unsigned int msg, unsigned long wParam,
 }
 
 long Platform::SendScintillaPointer(WindowID w, unsigned int msg, unsigned long wParam, void *lParam) {
-	return ::SendMessage(reinterpret_cast<HWND>(w), msg, wParam, 
+	return ::SendMessage(reinterpret_cast<HWND>(w), msg, wParam,
 		reinterpret_cast<LPARAM>(lParam));
 }
 
 bool Platform::IsDBCSLeadByte(int codePage, char ch) {
 	return ::IsDBCSLeadByteEx(codePage, ch) != 0;
+}
+
+int Platform::DBCSCharLength(int codePage, const char *s) {
+	return (::IsDBCSLeadByteEx(codePage, s[0]) != 0) ? 2 : 1;
+}
+
+int Platform::DBCSCharMaxLength() {
+	return 2;
 }
 
 // These are utility functions not really tied to a platform
@@ -1043,10 +1440,15 @@ int Platform::Clamp(int val, int minVal, int maxVal) {
 }
 
 void Platform_Initialise(void *hInstance) {
+	OSVERSIONINFO osv = {sizeof(OSVERSIONINFO),0,0,0,0,""};
+	::GetVersionEx(&osv);
+	onNT = osv.dwPlatformId == VER_PLATFORM_WIN32_NT;
 	::InitializeCriticalSection(&crPlatformLock);
 	hinstPlatformRes = reinterpret_cast<HINSTANCE>(hInstance);
+	ListBoxX_Register();
 }
 
 void Platform_Finalise() {
+	ListBoxX_Unregister();
 	::DeleteCriticalSection(&crPlatformLock);
 }

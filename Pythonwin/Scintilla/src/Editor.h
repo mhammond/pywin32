@@ -2,7 +2,7 @@
 /** @file Editor.h
  ** Defines the main editor class.
  **/
-// Copyright 1998-2002 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2003 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef EDITOR_H
@@ -33,6 +33,16 @@ public:
 
 /**
  */
+class Idler {
+public:
+	bool state;
+	IdlerID idlerID;
+
+	Idler();
+};
+
+/**
+ */
 class LineLayout {
 private:
 	friend class LineLayoutCache;
@@ -57,6 +67,10 @@ public:
 	char *indicators;
 	int *positions;
 	char bracePreviousStyles[2];
+
+	// Hotspot support
+	int hsStart;
+	int hsEnd;
 
 	// Wrapped line support
 	int widthLine;
@@ -111,6 +125,10 @@ public:
 	void Dispose(LineLayout *ll);
 };
 
+/**
+ * Hold a piece of text selected for copying or dragging.
+ * The text is expected to hold a terminating '\0'.
+ */
 class SelectionText {
 public:
 	char *s;
@@ -129,37 +147,18 @@ public:
 			len = 0;
 		rectangular = rectangular_;
 	}
-};
-
-/**
- * A smart pointer class to ensure Surfaces are set up and deleted correctly.
- */
-class AutoSurface {
-private:
-	Surface *surf;
-public:
-	AutoSurface(bool unicodeMode) {
-		surf = Surface::Allocate();
-		if (surf) {
-			surf->Init();
-			surf->SetUnicodeMode(unicodeMode);
+	void Copy(const char *s_, int len_, bool rectangular_=false) {
+		delete []s;
+		s = new char[len_];
+		if (s) {
+			len = len_;
+			for (int i = 0; i < len_; i++) {
+				s[i] = s_[i];
+			}
+		} else {
+			len = 0;
 		}
-	}
-	AutoSurface(SurfaceID sid, bool unicodeMode) {
-		surf = Surface::Allocate();
-		if (surf) {
-			surf->Init(sid);
-			surf->SetUnicodeMode(unicodeMode);
-		}
-	}
-	~AutoSurface() {
-		delete surf;
-	}
-	Surface *operator->() const {
-		return surf;
-	}
-	operator Surface *() const {
-		return surf;
+		rectangular = rectangular_;
 	}
 };
 
@@ -184,6 +183,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 
 	int printMagnification;
 	int printColourMode;
+	int printWrapState;
 	int cursorMode;
 	int controlCharSymbol;
 
@@ -196,11 +196,15 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	/** In bufferedDraw mode, graphics operations are drawn to a pixmap and then copied to
 	 * the screen. This avoids flashing but is about 30% slower. */
 	bool bufferedDraw;
+	/** In twoPhaseDraw mode, drawing is performed in two phases, first the background
+	* and then the foreground. This avoids chopping off characters that overlap the next run. */
+	bool twoPhaseDraw;
 
 	int xOffset;		///< Horizontal scrolled amount in pixels
 	int xCaretMargin;	///< Ensure this many pixels visible on both sides of caret
 	bool horizontalScrollBarVisible;
 	int scrollWidth;
+	bool verticalScrollBarVisible;
 	bool endAtLastLine;
 
 	Surface *pixmapLine;
@@ -217,6 +221,8 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	Timer timer;
 	Timer autoScrollTimer;
 	enum { autoScrollDelay = 200 };
+
+	Idler idler;
 
 	Point lastClick;
 	unsigned int lastClickTime;
@@ -254,9 +260,11 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	int modEventMask;
 
 	SelectionText drag;
-	enum { selStream, selRectangle, selRectangleFixed } selType;
-	int xStartSelect;
-	int xEndSelect;
+	enum selTypes { noSel, selStream, selRectangle, selLines };
+	selTypes selType;
+	bool moveExtendsSelection;
+	int xStartSelect;	///< x position of start of rectangular selection
+	int xEndSelect;		///< x position of end of rectangular selection
 	bool primarySelection;
 
 	int caretXPolicy;
@@ -275,10 +283,16 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	int foldFlags;
 	ContractionState cs;
 
+	// Hotspot support
+	int hsStart;
+	int hsEnd;
+
 	// Wrapping support
 	enum { eWrapNone, eWrapWord } wrapState;
+	bool backgroundWrapEnabled;
 	int wrapWidth;
 	int docLineLastWrapped;
+	int docLastLineToWrap;
 
 	Document *pdoc;
 
@@ -316,17 +330,20 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 
 	int CurrentPosition();
 	bool SelectionEmpty();
-	int SelectionStart(int line=-1);
-	int SelectionEnd(int line=-1);
+	int SelectionStart();
+	int SelectionEnd();
+	void InvalidateSelection(int currentPos_, int anchor_);
 	void SetSelection(int currentPos_, int anchor_);
 	void SetSelection(int currentPos_);
 	void SetEmptySelection(int currentPos_);
+	bool RangeContainsProtected(int start, int end) const;
+	bool SelectionContainsProtected();
 	int MovePositionOutsideChar(int pos, int moveDir, bool checkLineEnd=true);
-	int MovePositionTo(int newPos, bool extend=false, bool ensureVisible=true);
+	int MovePositionTo(int newPos, selTypes sel=noSel, bool ensureVisible=true);
 	int MovePositionSoVisible(int pos, int moveDir);
 	void SetLastXChosen();
 
-	void ScrollTo(int line);
+	void ScrollTo(int line, bool moveThumb=true);
 	virtual void ScrollText(int linesToMove);
 	void HorizontalScrollTo(int xPos);
 	void MoveCaretInsideView(bool ensureVisible=true);
@@ -336,16 +353,24 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	void DropCaret();
 	void InvalidateCaret();
 
-	void NeedWrapping(int docLineStartWrapping=0);
-	bool WrapLines();
+	void NeedWrapping(int docLineStartWrapping = 0, int docLineEndWrapping = 0x7ffffff);
+	bool WrapLines(bool fullWrap, int priorityWrapLineStart);
+	void LinesJoin();
+	void LinesSplit(int pixelWidth);
 
 	int SubstituteMarkerIfEmpty(int markerCheck, int markerDefault);
 	void PaintSelMargin(Surface *surface, PRectangle &rc);
 	LineLayout *RetrieveLineLayout(int lineNumber);
 	void LayoutLine(int line, Surface *surface, ViewStyle &vstyle, LineLayout *ll,
 		int width=LineLayout::wrapWidthInfinite);
+	ColourAllocated TextBackground(ViewStyle &vsDraw, bool overrideBackground, ColourAllocated background, bool inSelection, bool inHotspot, int styleMain, int i, LineLayout *ll);
+	void DrawIndentGuide(Surface *surface, int lineVisible, int lineHeight, int start, PRectangle rcSegment, bool highlight);
+	void DrawEOL(Surface *surface, ViewStyle &vsDraw, PRectangle rcLine, LineLayout *ll,
+		int line, int lineEnd, int xStart, int subLine, int subLineStart,
+		bool overrideBackground, ColourAllocated background);
 	void DrawLine(Surface *surface, ViewStyle &vsDraw, int line, int lineVisible, int xStart,
 		PRectangle rcLine, LineLayout *ll, int subLine=0);
+	void RefreshPixMaps(Surface *surfaceWindow);
 	void Paint(Surface *surfaceWindow, PRectangle rcArea);
 	long FormatRange(bool draw, RangeToFormat *pfr);
 	int TextWidth(int style, const char *text);
@@ -385,6 +410,8 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	void NotifySavePoint(bool isSavePoint);
 	void NotifyModifyAttempt();
 	virtual void NotifyDoubleClick(Point pt, bool shift);
+	void NotifyHotSpotClicked(int position, bool shift, bool ctrl, bool alt);
+	void NotifyHotSpotDoubleClicked(int position, bool shift, bool ctrl, bool alt);
 	void NotifyUpdateUI();
 	void NotifyPainted();
 	bool NotifyMarginClick(Point pt, bool shift, bool ctrl, bool alt);
@@ -400,12 +427,13 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	void NotifyStyleNeeded(Document *doc, void *userData, int endPos);
 	void NotifyMacroRecord(unsigned int iMessage, uptr_t wParam, sptr_t lParam);
 
-	void PageMove(int direction, bool extend=false);
+	void PageMove(int direction, selTypes sel=noSel, bool stuttered = false);
 	void ChangeCaseOfSelection(bool makeUpperCase);
 	void LineTranspose();
+	void LineDuplicate();
 	virtual void CancelModes();
 	void NewLine();
-	void CursorUpOrDown(int direction, bool extend=false);
+	void CursorUpOrDown(int direction, selTypes sel=noSel);
 	int StartEndDisplayLine(int pos, bool start);
 	virtual int KeyCommand(unsigned int iMessage);
 	virtual int KeyDefault(int /* key */, int /*modifiers*/);
@@ -422,10 +450,14 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	long SearchInTarget(const char *text, int length);
 	void GoToLine(int lineNo);
 
+	virtual void CopyToClipboard(const SelectionText &selectedText) = 0;
 	char *CopyRange(int start, int end);
+	void CopySelectionFromRange(SelectionText *ss, int start, int end);
 	void CopySelectionRange(SelectionText *ss);
+	void CopyRangeToClipboard(int start, int end);
+	void CopyText(int length, const char *text);
 	void SetDragPosition(int newPos);
-	void DisplayCursor(Window::Cursor c);
+	virtual void DisplayCursor(Window::Cursor c);
 	virtual void StartDrag();
 	void DropAt(int position, const char *value, bool moving, bool rectangular);
 	/** PositionInSelection returns 0 if position in selection, -1 if position before selection, and 1 if after.
@@ -440,7 +472,9 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	void ButtonUp(Point pt, unsigned int curTime, bool ctrl);
 
 	void Tick();
+	bool Idle();
 	virtual void SetTicking(bool on) = 0;
+	virtual bool SetIdle(bool) { return false; }
 	virtual void SetMouseCapture(bool on) = 0;
 	virtual bool HaveMouseCapture() = 0;
 	void SetFocusState(bool focusState);
@@ -456,6 +490,13 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	void EnsureLineVisible(int lineDoc, bool enforcePolicy);
 	int ReplaceTarget(bool replacePatterns, const char *text, int length=-1);
 
+	bool PositionIsHotspot(int position);
+	bool PointIsHotspot(Point pt);
+	void SetHotSpotRange(Point *pt);
+	void GetHotSpotRange(int& hsStart, int& hsEnd);
+
+	int CodePage() const;
+
 	virtual sptr_t DefWndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam) = 0;
 
 public:
@@ -465,6 +506,46 @@ public:
 	virtual sptr_t WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam);
 	// Public so scintilla_set_id can use it.
 	int ctrlID;
+	friend class AutoSurface;
+	friend class SelectionLineIterator;
+};
+
+/**
+ * A smart pointer class to ensure Surfaces are set up and deleted correctly.
+ */
+class AutoSurface {
+private:
+	Surface *surf;
+public:
+	AutoSurface(Editor *ed) : surf(0) {
+		if (ed->wMain.GetID()) {
+			surf = Surface::Allocate();
+			if (surf) {
+				surf->Init(ed->wMain.GetID());
+				surf->SetUnicodeMode(SC_CP_UTF8 == ed->CodePage());
+				surf->SetDBCSMode(ed->CodePage());
+			}
+		}
+	}
+	AutoSurface(SurfaceID sid, Editor *ed) : surf(0) {
+		if (ed->wMain.GetID()) {
+			surf = Surface::Allocate();
+			if (surf) {
+				surf->Init(sid, ed->wMain.GetID());
+				surf->SetUnicodeMode(SC_CP_UTF8 == ed->CodePage());
+				surf->SetDBCSMode(ed->CodePage());
+			}
+		}
+	}
+	~AutoSurface() {
+		delete surf;
+	}
+	Surface *operator->() const {
+		return surf;
+	}
+	operator Surface *() const {
+		return surf;
+	}
 };
 
 #endif

@@ -8,16 +8,24 @@
 #ifndef EXTERNALLEXER_H
 #define EXTERNALLEXER_H
 
-// External Lexer function definitions...
-typedef void (__stdcall *ExtLexerFunction)(unsigned int lexer, unsigned int startPos, int length, int initStyle,
-                  char *words[], WindowID window, char *props);
-typedef void (__stdcall *ExtFoldFunction)(unsigned int lexer, unsigned int startPos, int length, int initStyle,
-                  char *words[], WindowID window, char *props);
-typedef void* (__stdcall *GetLexerFunction)(unsigned int Index);
-typedef int (__stdcall *GetLexerCountFn)();
-typedef void (__stdcall *GetLexerNameFn)(unsigned int Index, char *name, int buflength);
+#if PLAT_WIN
+#define EXT_LEXER_DECL __stdcall
+#elif PLAT_GTK
+#define EXT_LEXER_DECL 
+#endif
 
-// Sub-class of LexerModule to use an external lexer.
+// External Lexer function definitions...
+typedef void (EXT_LEXER_DECL *ExtLexerFunction)(unsigned int lexer, unsigned int startPos, int length, int initStyle,
+                  char *words[], WindowID window, char *props);
+typedef void (EXT_LEXER_DECL *ExtFoldFunction)(unsigned int lexer, unsigned int startPos, int length, int initStyle,
+                  char *words[], WindowID window, char *props);
+typedef void* (EXT_LEXER_DECL *GetLexerFunction)(unsigned int Index);
+typedef int (EXT_LEXER_DECL *GetLexerCountFn)();
+typedef void (EXT_LEXER_DECL *GetLexerNameFn)(unsigned int Index, char *name, int buflength);
+
+//class DynamicLibrary;
+
+/// Sub-class of LexerModule to use an external lexer.
 class ExternalLexerModule : protected LexerModule {
 protected:
 	ExtLexerFunction fneLexer;
@@ -37,43 +45,46 @@ public:
 	virtual void SetExternal(ExtLexerFunction fLexer, ExtFoldFunction fFolder, int index);
 };
 
-// LexerMinder points to an ExternalLexerModule - so we don't leak them.
+/// LexerMinder points to an ExternalLexerModule - so we don't leak them.
 class LexerMinder {
 public:
 	ExternalLexerModule *self;
 	LexerMinder *next;
 };
 
-// LexerLibrary exists for every External Lexer DLL, contains LexerMinders.
+/// LexerLibrary exists for every External Lexer DLL, contains LexerMinders.
 class LexerLibrary {
+	DynamicLibrary	*lib;
+	LexerMinder		*first;
+	LexerMinder		*last;
+
 public:
-	LexerLibrary(LPCTSTR ModuleName);
+	LexerLibrary(const char* ModuleName);
 	~LexerLibrary();
 	void Release();
-	// Variables
+	
 	LexerLibrary	*next;
 	SString			m_sModuleName;
-private:
-	HMODULE m_hModule;
-	LexerMinder *first;
-	LexerMinder *last;
 };
 
-// LexerManager manages external lexers, contains LexerLibrarys.
+/// LexerManager manages external lexers, contains LexerLibrarys.
 class LexerManager {
-	friend class LMMinder;
 public:
-	LexerManager();
 	~LexerManager();
-	void Load();
+	
 	static LexerManager *GetInstance();
+	static void DeleteInstance();
+	
+	void Load(const char* path);
+	void Clear();
+
 private:
-	bool m_bLoaded;
-	void EnumerateLexers();
-	static int UseCount;
-	static LexerLibrary *first;
-	static LexerLibrary *last;
-	static LexerManager *firstlm;
+	LexerManager();
+	static LexerManager *theInstance;
+
+	void LoadLexerLibrary(const char* module);
+	LexerLibrary *first;
+	LexerLibrary *last;
 };
 
 class LMMinder {

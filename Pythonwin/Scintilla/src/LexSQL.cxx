@@ -23,7 +23,7 @@ static void classifyWordSQL(unsigned int start, unsigned int end, WordList &keyw
 	char s[100];
 	bool wordIsNumber = isdigit(styler[start]) || (styler[start] == '.');
 	for (unsigned int i = 0; i < end - start + 1 && i < 30; i++) {
-		s[i] = static_cast<char>(toupper(styler[start + i]));
+		s[i] = static_cast<char>(tolower(styler[start + i]));
 		s[i + 1] = '\0';
 	}
 	char chAttr = SCE_C_IDENTIFIER;
@@ -90,6 +90,9 @@ static void ColouriseSQLDoc(unsigned int startPos, int length,
 				state = SCE_C_COMMENTLINE;
 			} else if (ch == '\'') {
 				styler.ColourTo(i - 1, state);
+				state = SCE_C_CHARACTER;
+			} else if (ch == '"') {
+				styler.ColourTo(i - 1, state);
 				state = SCE_C_STRING;
 			} else if (isoperator(ch)) {
 				styler.ColourTo(i - 1, state);
@@ -104,6 +107,8 @@ static void ColouriseSQLDoc(unsigned int startPos, int length,
 				} else if (ch == '-' && chNext == '-') {
 					state = SCE_C_COMMENTLINE;
 				} else if (ch == '\'') {
+					state = SCE_C_CHARACTER;
+				} else if (ch == '"') {
 					state = SCE_C_STRING;
 				} else if (isoperator(ch)) {
 					styler.ColourTo(i, SCE_C_OPERATOR);
@@ -123,9 +128,21 @@ static void ColouriseSQLDoc(unsigned int startPos, int length,
 					styler.ColourTo(i - 1, state);
 					state = SCE_C_DEFAULT;
 				}
-			} else if (state == SCE_C_STRING) {
+			} else if (state == SCE_C_CHARACTER) {
 				if (ch == '\'') {
 					if ( chNext == '\'' ) {
+						i++;
+					} else {
+						styler.ColourTo(i, state);
+						state = SCE_C_DEFAULT;
+						i++;
+					}
+					ch = chNext;
+					chNext = styler.SafeGetCharAt(i + 1);
+				}
+			} else if (state == SCE_C_STRING) {
+				if (ch == '"') {
+					if (chNext == '"') {
 						i++;
 					} else {
 						styler.ColourTo(i, state);
@@ -142,6 +159,8 @@ static void ColouriseSQLDoc(unsigned int startPos, int length,
 				} else if (ch == '-' && chNext == '-') {
 					state = SCE_C_COMMENTLINE;
 				} else if (ch == '\'') {
+					state = SCE_C_CHARACTER;
+				} else if (ch == '"') {
 					state = SCE_C_STRING;
 				} else if (iswordstart(ch)) {
 					state = SCE_C_WORD;
@@ -155,4 +174,9 @@ static void ColouriseSQLDoc(unsigned int startPos, int length,
 	styler.ColourTo(lengthDoc - 1, state);
 }
 
-LexerModule lmSQL(SCLEX_SQL, ColouriseSQLDoc, "sql");
+static const char * const sqlWordListDesc[] = {
+	"Keywords",
+	0
+};
+
+LexerModule lmSQL(SCLEX_SQL, ColouriseSQLDoc, "sql", 0, sqlWordListDesc);

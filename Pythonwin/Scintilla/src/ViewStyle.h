@@ -59,6 +59,16 @@ public:
 	ColourPair whitespaceBackground;
 	ColourPair selbar;
 	ColourPair selbarlight;
+	bool foldmarginColourSet;
+	ColourPair foldmarginColour;
+	bool foldmarginHighlightColourSet;
+	ColourPair foldmarginHighlightColour;
+	bool hotspotForegroundSet;
+	ColourPair hotspotForeground;
+	bool hotspotBackgroundSet;
+	ColourPair hotspotBackground;
+	bool hotspotUnderline;
+	bool hotspotSingleLine;
 	/// Margins are ordered: Line Numbers, Selection Margin, Spacing Margin
 	enum { margins=3 };
 	int leftMarginWidth;	///< Spacing margin on left of text
@@ -78,7 +88,8 @@ public:
 	ColourPair edgecolour;
 	int edgeState;
 	int caretWidth;
-	
+	bool someStylesProtected;
+
 	ViewStyle();
 	ViewStyle(const ViewStyle &source);
 	~ViewStyle();
@@ -88,6 +99,7 @@ public:
 	void ResetDefaultStyle();
 	void ClearStyles();
 	void SetStyleFontName(int styleIndex, const char *name);
+	bool ProtectionActive() const;
 };
 
 #endif

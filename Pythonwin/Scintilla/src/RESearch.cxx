@@ -10,11 +10,11 @@
  *      Dept. of Computer Science
  *      York University
  *
- * Original code available from http://www.cs.yorku.ca/~oz/ 
+ * Original code available from http://www.cs.yorku.ca/~oz/
  * Translation to C++ by Neil Hodgson neilh@scintilla.org
  * Removed all use of register.
  * Converted to modern function prototypes.
- * Put all global/static variables into an object so this code can be 
+ * Put all global/static variables into an object so this code can be
  * used from multiple threads etc.
  *
  * These routines are the PUBLIC DOMAIN equivalents of regex
@@ -27,54 +27,8 @@
  * see Henry Spencer's regexp routines, or GNU Emacs pattern
  * matching module.
  *
- * Modification history:
+ * Modification history removed.
  *
- * $Log$
- * Revision 1.6  2001/04/29 13:32:10  nyamatongwe
- * Addition of new target methods - versions of ReplaceTarget that take counted
- * strings to allow for nulls, SearchInTarget and Get/SetSearchFlags to use a
- * series of calls rather than a structure.
- * Handling of \000 in search and replace.
- * Handling of /escapes within character ranges of regular expressions.
- * Some handling of bare ^ and $ regular expressions.
- *
- * Revision 1.5  2001/04/20 07:36:09  nyamatongwe
- * Removed DEBUG code that failed to compile on GTK+.
- *
- * Revision 1.4  2001/04/13 03:52:13  nyamatongwe
- * Added URL to find original code to comments.
- *
- * Revision 1.3  2001/04/06 12:24:21  nyamatongwe
- * Made regular expression searching work on a line by line basis, made ^ and
- * $ work, made [set] work, and added a case insensitive option.
- *
- * Revision 1.2  2001/04/05 01:58:04  nyamatongwe
- * Replace target functionality to make find and replace operations faster
- * by diminishing screen updates and allow for \d patterns in the replacement
- * text.
- *
- * Revision 1.1  2001/04/04 12:52:44  nyamatongwe
- * Moved to public domain regular expresion implementation.
- *
- * Revision 1.4  1991/10/17  03:56:42  oz
- * miscellaneous changes, small cleanups etc.
- *
- * Revision 1.3  1989/04/01  14:18:09  oz
- * Change all references to a dfa: this is actually an nfa.
- *
- * Revision 1.2  88/08/28  15:36:04  oz
- * Use a complement bitmap to represent NCL.
- * This removes the need to have seperate 
- * code in the PMatch case block - it is 
- * just CCL code now.
- * 
- * Use the actual CCL code in the CLO
- * section of PMatch. No need for a recursive
- * PMatch call.
- * 
- * Use a bitmap table to set char bits in an
- * 8-bit chunk.
- * 
  * Interfaces:
  *      RESearch::Compile:        compile a regular expression into a NFA.
  *
@@ -104,7 +58,7 @@
  *			void re_fail(msg, op)
  *			char *msg;
  *			char op;
- *  
+ *
  * Regular Expressions:
  *
  *      [1]     char    matches itself, unless it is a special
@@ -114,20 +68,20 @@
  *
  *      [3]     \       matches the character following it, except
  *			when followed by a left or right round bracket,
- *			a digit 1 to 9 or a left or right angle bracket. 
+ *			a digit 1 to 9 or a left or right angle bracket.
  *			(see [7], [8] and [9])
- *			It is used as an escape character for all 
+ *			It is used as an escape character for all
  *			other meta-characters, and itself. When used
  *			in a set ([4]), it is treated as an ordinary
  *			character.
  *
  *      [4]     [set]   matches one of the characters in the set.
  *                      If the first character in the set is "^",
- *                      it matches a character NOT in the set, i.e. 
- *			complements the set. A shorthand S-E is 
- *			used to specify a set of characters S upto 
- *			E, inclusive. The special characters "]" and 
- *			"-" have no special meaning if they appear 
+ *                      it matches a character NOT in the set, i.e.
+ *			complements the set. A shorthand S-E is
+ *			used to specify a set of characters S upto
+ *			E, inclusive. The special characters "]" and
+ *			"-" have no special meaning if they appear
  *			as the first chars in the set.
  *                      examples:        match:
  *
@@ -192,8 +146,8 @@
  * Notes:
  *
  *	This implementation uses a bit-set representation for character
- *	classes for speed and compactness. Each character is represented 
- *	by one bit in a 128-bit block. Thus, CCL always takes a 
+ *	classes for speed and compactness. Each character is represented
+ *	by one bit in a 128-bit block. Thus, CCL always takes a
  *	constant 16 bytes in the internal nfa, and RESearch::Execute does a single
  *	bit comparison to locate the character in the set.
  *
@@ -203,7 +157,7 @@
  *	compile:	CHR f CHR o CLO CHR o END CLO ANY END END
  *	matches:	fo foo fooo foobar fobar foxx ...
  *
- *	pattern:	fo[ob]a[rz]	
+ *	pattern:	fo[ob]a[rz]
  *	compile:	CHR f CHR o CCL bitset CHR a CCL bitset END
  *	matches:	fobar fooar fobaz fooaz
  *
@@ -243,7 +197,7 @@
  * The following defines are not meant to be changeable.
  * They are for readability only.
  */
-#define BLKIND	0170
+#define BLKIND	0370
 #define BITIND	07
 
 #define ASCIIB	0177
@@ -251,7 +205,7 @@
 const char bitarr[] = {1,2,4,8,16,32,64,'\200'};
 
 #define badpat(x)	(*nfa = END, x)
- 
+
 RESearch::RESearch() {
 	Init();
 }
@@ -329,10 +283,11 @@ const char escapeValue(char ch) {
 	return 0;
 }
 
-const char *RESearch::Compile(const char *pat, int length, bool caseSensitive) {
+const char *RESearch::Compile(const char *pat, int length, bool caseSensitive, bool posix) {
 	char *mp=nfa;          /* nfa pointer       */
 	char *lp;              /* saved pointer..   */
 	char *sp=nfa;          /* another one..     */
+    char *mpMax = mp + MAXNFA - BITBLK - 10;
 
 	int tagi = 0;          /* tag stack index   */
 	int tagc = 1;          /* actual tag count  */
@@ -340,7 +295,7 @@ const char *RESearch::Compile(const char *pat, int length, bool caseSensitive) {
 	int n;
 	char mask;		/* xor mask -CCL/NCL */
 	int c1, c2;
-		
+
 	if (!pat || !length)
 		if (sta)
 			return 0;
@@ -350,6 +305,8 @@ const char *RESearch::Compile(const char *pat, int length, bool caseSensitive) {
 
 	const char *p=pat;               /* pattern pointer   */
 	for (int i=0; i<length; i++, p++) {
+		if (mp > mpMax)
+			return badpat("Pattern too long");
 		lp = mp;
 		switch(*p) {
 
@@ -380,7 +337,7 @@ const char *RESearch::Compile(const char *pat, int length, bool caseSensitive) {
 
 			i++;
 			if (*++p == '^') {
-				mask = '\377';	
+				mask = '\377';
 				i++;
 				p++;
 			} else
@@ -424,7 +381,7 @@ const char *RESearch::Compile(const char *pat, int length, bool caseSensitive) {
 
 			for (n = 0; n < BITBLK; bittab[n++] = (char) 0)
 				*mp++ = static_cast<char>(mask ^ bittab[n]);
-	
+
 			break;
 
 		case '*':               /* match 0 or more.. */
@@ -464,25 +421,6 @@ const char *RESearch::Compile(const char *pat, int length, bool caseSensitive) {
 			i++;
 			switch(*++p) {
 
-			case '(':
-				if (tagc < MAXTAG) {
-					tagstk[++tagi] = tagc;
-					*mp++ = BOT;
-					*mp++ = static_cast<char>(tagc++);
-				}
-				else
-					return badpat("Too many \\(\\) pairs");
-				break;
-			case ')':
-				if (*sp == BOT)
-					return badpat("Null pattern inside \\(\\)");
-				if (tagi > 0) {
-					*mp++ = static_cast<char>(EOT);
-					*mp++ = static_cast<char>(tagstk[tagi--]);
-				}
-				else
-					return badpat("Unmatched \\)");
-				break;
 			case '<':
 				*mp++ = BOW;
 				break;
@@ -521,13 +459,49 @@ const char *RESearch::Compile(const char *pat, int length, bool caseSensitive) {
 				*mp++ = escapeValue(*p);
 				break;
 			default:
-				*mp++ = CHR;
-				*mp++ = *p;
+				if (!posix && *p == '(') {
+					if (tagc < MAXTAG) {
+						tagstk[++tagi] = tagc;
+						*mp++ = BOT;
+						*mp++ = static_cast<char>(tagc++);
+					}
+					else
+						return badpat("Too many \\(\\) pairs");
+				} else if (!posix && *p == ')') {
+					if (*sp == BOT)
+						return badpat("Null pattern inside \\(\\)");
+					if (tagi > 0) {
+						*mp++ = static_cast<char>(EOT);
+						*mp++ = static_cast<char>(tagstk[tagi--]);
+					}
+					else
+						return badpat("Unmatched \\)");
+				} else {
+					*mp++ = CHR;
+					*mp++ = *p;
+				}
 			}
 			break;
 
 		default :               /* an ordinary char  */
-			if (caseSensitive) {
+			if (posix && *p == '(') {
+				if (tagc < MAXTAG) {
+					tagstk[++tagi] = tagc;
+					*mp++ = BOT;
+					*mp++ = static_cast<char>(tagc++);
+				}
+				else
+					return badpat("Too many () pairs");
+			} else if (posix && *p == ')') {
+				if (*sp == BOT)
+					return badpat("Null pattern inside ()");
+				if (tagi > 0) {
+					*mp++ = static_cast<char>(EOT);
+					*mp++ = static_cast<char>(tagstk[tagi--]);
+				}
+				else
+					return badpat("Unmatched )");
+			} else if (caseSensitive) {
 				*mp++ = CHR;
 				*mp++ = *p;
 			} else {
@@ -542,7 +516,7 @@ const char *RESearch::Compile(const char *pat, int length, bool caseSensitive) {
 		sp = lp;
 	}
 	if (tagi > 0)
-		return badpat("Unmatched \\(");
+		return badpat((posix ? "Unmatched (" : "Unmatched \\("));
 	*mp = END;
 	sta = OKP;
 	return 0;
@@ -552,7 +526,7 @@ const char *RESearch::Compile(const char *pat, int length, bool caseSensitive) {
  * RESearch::Execute:
  * 	execute nfa to find a match.
  *
- *	special cases: (nfa[0])	
+ *	special cases: (nfa[0])
  *		BOL
  *			Match only once, starting from the
  *			beginning.
@@ -577,7 +551,7 @@ int RESearch::Execute(CharacterIndexer &ci, int lp, int endp) {
 
 	bol = lp;
 	failure = 0;
-	
+
 	Clear();
 
 	switch(*ap) {
@@ -618,7 +592,7 @@ int RESearch::Execute(CharacterIndexer &ci, int lp, int endp) {
 	return 1;
 }
 
-/* 
+/*
  * PMatch: internal routine for the hard part
  *
  * 	This code is partly snarfed from an early grep written by
@@ -644,7 +618,7 @@ int RESearch::Execute(CharacterIndexer &ci, int lp, int endp) {
  *
  *	At the end of a successful match, bopat[n] and eopat[n]
  *	are set to the beginning and end of subpatterns matched
- *	by tagged expressions (n = 1 to 9).	
+ *	by tagged expressions (n = 1 to 9).
  *
  */
 
@@ -655,23 +629,23 @@ extern void re_fail(char *,char);
  * and EOW. the reason for not using ctype macros is that we can
  * let the user add into our own table. see RESearch::ModifyWord. This table
  * is not in the bitset form, since we may wish to extend it in the
- * future for other character classifications. 
+ * future for other character classifications.
  *
  *	TRUE for 0-9 A-Z a-z _
  */
 static char chrtyp[MAXCHR] = {
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 
-	0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 0, 0,
+	0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 0, 0, 0, 0, 1, 0, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 0, 0, 0, 0, 0
 	};
 
@@ -685,7 +659,7 @@ static char chrtyp[MAXCHR] = {
 
 #define ANYSKIP	2 	/* [CLO] ANY END ...	     */
 #define CHRSKIP	3	/* [CLO] CHR chr END ...     */
-#define CCLSKIP 18	/* [CLO] CCL 16bytes END ... */
+#define CCLSKIP 34	/* [CLO] CCL 32bytes END ... */
 
 int RESearch::PMatch(CharacterIndexer &ci, int lp, int endp, char *ap) {
 	int op, c, n;
@@ -793,10 +767,10 @@ int RESearch::PMatch(CharacterIndexer &ci, int lp, int endp, char *ap) {
  *	the compact bitset representation for the default table]
  */
 
-static char deftab[16] = {	
-	0, 0, 0, 0, 0, 0, '\377', 003, '\376', '\377', '\377', '\207',  
-	'\376', '\377', '\377', 007 
-}; 
+static char deftab[16] = {
+	0, 0, 0, 0, 0, 0, '\377', 003, '\376', '\377', '\377', '\207',
+	'\376', '\377', '\377', 007
+};
 
 void RESearch::ModifyWord(char *s) {
 	int i;
@@ -843,7 +817,7 @@ int RESearch::Substitute(CharacterIndexer &ci, char *src, char *dst) {
 				pin = c - '0';
 				break;
 			}
-			
+
 		default:
 			*dst++ = c;
 			continue;
