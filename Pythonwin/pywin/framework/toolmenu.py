@@ -29,7 +29,7 @@ def LoadToolMenuItems():
 		if menu=="":
 			break
 		cmd = win32ui.GetProfileVal("Tools Menu\\%s" % lookNo, "Command", "")
-		items.append(menu, cmd)
+		items.append((menu, cmd))
 		lookNo = lookNo + 1
 
 	if len(items)==0: 
@@ -172,7 +172,7 @@ class ToolMenuPropPage(dialog.PropertyPage):
 		itemLook = 0
 		while 1:
 			try:
-				items.append( self.listControl.GetItemText(itemLook, 0), self.listControl.GetItemText(itemLook, 1) )
+				items.append( ( self.listControl.GetItemText(itemLook, 0), self.listControl.GetItemText(itemLook, 1) ) )
 			except win32ui.error:
 				# no more items!
 				break

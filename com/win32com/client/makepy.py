@@ -147,7 +147,7 @@ def GetTypeLibsForSpec(arg):
 			tlb = pythoncom.LoadTypeLib(arg)
 			spec = selecttlb.TypelibSpec(None, 0,0,0)
 			spec.FromTypelib(tlb, arg)
-			typelibs.append(tlb, spec)
+			typelibs.append((tlb, spec))
 		except pythoncom.com_error:
 			# See if it is a description
 			tlbs = selecttlb.FindTlbsWithDescription(arg)
@@ -161,7 +161,7 @@ def GetTypeLibsForSpec(arg):
 				spec.major = attr[3]
 				spec.minor = attr[4]
 				spec.lcid = attr[1]
-				typelibs.append(tlb, spec)
+				typelibs.append((tlb, spec))
 		return typelibs
 	except pythoncom.com_error:
 		t,v,tb=sys.exc_info()

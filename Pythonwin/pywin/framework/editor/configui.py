@@ -34,7 +34,7 @@ class EditorPropertyPage(dialog.PropertyPage):
 	def _AddEditorOption(self, idd, typ, optionName, defaultVal):
 		self.AddDDX(idd, optionName, typ)
 		self[optionName] = GetEditorOption(optionName, defaultVal)
-		self.autooptions.append(optionName, defaultVal)
+		self.autooptions.append((optionName, defaultVal))
 
 	def OnInitDialog(self):
 		for name, val in self.autooptions:

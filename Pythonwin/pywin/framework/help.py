@@ -41,7 +41,7 @@ def ListAllHelpFiles():
 			try:
 				helpDesc = win32api.RegEnumKey(key, keyNo)
 				helpFile = win32api.RegQueryValue(key, helpDesc)
-				retList.append(helpDesc, helpFile)
+				retList.append((helpDesc, helpFile))
 				keyNo = keyNo + 1
 			except win32api.error, (code, fn, desc):
 				import winerror

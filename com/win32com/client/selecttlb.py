@@ -50,7 +50,7 @@ def EnumKeys(root):
 		except win32api.error:
 			val = None
 			
-		ret.append(item, val)
+		ret.append((item, val))
 		index = index + 1
 	return ret
 

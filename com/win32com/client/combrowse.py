@@ -170,7 +170,7 @@ class HLIRegisteredTypeLibrary(HLICOM):
 							except win32api.error:
 								break
 							fname = win32api.RegQueryValue(lcidkey, platform)
-							collected.append(lcid, platform, fname)	
+							collected.append((lcid, platform, fname))
 							lcidnum = lcidnum + 1
 						win32api.RegCloseKey(lcidkey)
 					except ValueError:
