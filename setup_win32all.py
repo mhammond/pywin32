@@ -274,7 +274,7 @@ class my_build_ext(build_ext):
             extra = os.path.join(sdk_dir, 'include')
             if extra not in self.include_dirs and os.path.isdir(extra):
                 self.include_dirs.insert(0, extra)
-            extra = os.path.join(sys.exec_prefix, 'lib')
+            extra = os.path.join(sdk_dir, 'lib')
             if extra not in self.library_dirs and os.path.isdir(extra):
                 self.library_dirs.insert(0, extra)
         else:
@@ -716,19 +716,20 @@ class my_compiler(msvccompiler.MSVCCompiler):
     def _setup_compile(self, *args):
         macros, objects, extra, pp_opts, build = \
                msvccompiler.MSVCCompiler._setup_compile(self, *args)
-        build_order = ".i .mc .rc .cpp".split()
-        decorated = [(build_order.index(ext.lower()), obj, (src, ext))
-                     for obj, (src, ext) in build.items()]
-        decorated.sort()
-        items = [item[1:] for item in decorated]
-        # The compiler itself only calls ".items" - leverage that, so that
-        # when it does, the list is in the correct order.
-        class OnlyItems:
-            def __init__(self, items):
-                self._items = items
-            def items(self):
-                return self._items
-        build = OnlyItems(items)
+        if sys.hexversion < 0x02040000:
+            build_order = ".i .mc .rc .cpp".split()
+            decorated = [(build_order.index(ext.lower()), obj, (src, ext))
+                         for obj, (src, ext) in build.items()]
+            decorated.sort()
+            items = [item[1:] for item in decorated]
+            # The compiler itself only calls ".items" - leverage that, so that
+            # when it does, the list is in the correct order.
+            class OnlyItems:
+                def __init__(self, items):
+                    self._items = items
+                def items(self):
+                    return self._items
+            build = OnlyItems(items)
         return macros, objects, extra, pp_opts, build
         
 ################################################################
@@ -1077,6 +1078,7 @@ dist = setup(name="pywin32",
                 # Active Scripting test and demos.
                 'com/win32comext/axscript/test/*',
                 'com/win32comext/axscript/Demos/*',
+                'com/win32comext/mapi/demos/*.py',
                 'com/win32comext/shell/test/*.py',
                 'com/win32comext/shell/demos/servers/*.py',
                 'com/win32comext/shell/demos/*.py',
