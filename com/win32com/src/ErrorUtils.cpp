@@ -468,7 +468,7 @@ void PyCom_StreamMessage(const char *pszMessageText)
 	// weve already resolved them, so we gotta do it the hard way
 	PyObject *pyfile = PySys_GetObject("stderr");
 	if (pyfile)
-		PyFile_WriteString(pszMessageText, pyfile);
+		PyFile_WriteString((char *)pszMessageText, pyfile);
 }
 
 void VLogF(const TCHAR *fmt, va_list argptr)
