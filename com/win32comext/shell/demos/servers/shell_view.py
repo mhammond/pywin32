@@ -180,7 +180,7 @@ class ShellFolderFileSystem(ShellFolderBase):
             pidl = pidl[0] # ??
             typ, name = pidl.split('\0')
             flags = shellcon.SHGFI_ATTRIBUTES 
-            info = shell.SHGetFileInfo(name, 0, flags)
+            rc, info = shell.SHGetFileInfo(name, 0, flags)
             hIcon, iIcon, dwAttr, name, typeName = info
             # All our items, even files, have sub-items
             extras = shellcon.SFGAO_HASSUBFOLDER | \
