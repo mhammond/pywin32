@@ -219,9 +219,12 @@ static PyObject *PySHGetSpecialFolderPath(PyObject *self, PyObject *args)
 			&bCreate)) // @pyparm int|bCreate|0|Should the path be created.
 		return NULL;
 
-	typedef HRESULT (WINAPI * PFNSHGetSpecialFolderPath)(HWND, LPWSTR,  int, BOOL );
+	typedef BOOL (WINAPI * PFNSHGetSpecialFolderPath)(HWND, LPWSTR,  int, BOOL );
 
-	// @comm This method is only available in shell version 4.71.  If the function is not available, a COM Exception with HRESULT=E_NOTIMPL will be raised.
+	// @comm This method is only available in shell version 4.71.  If the 
+	// function is not available, a COM Exception with HRESULT=E_NOTIMPL 
+	// will be raised.  If the function fails, a COM Exception with 
+	// HRESULT=E_FAIL will be raised.
 	HMODULE hmod = GetModuleHandle("shell32.dll");
 	PFNSHGetSpecialFolderPath pfnSHGetSpecialFolderPath = (PFNSHGetSpecialFolderPath)GetProcAddress(hmod, "SHGetSpecialFolderPathW");
 	if (pfnSHGetSpecialFolderPath==NULL)
@@ -229,10 +232,10 @@ static PyObject *PySHGetSpecialFolderPath(PyObject *self, PyObject *args)
 
 	WCHAR buf[MAX_PATH+1];
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = (*pfnSHGetSpecialFolderPath)(hwndOwner, buf, nFolder, bCreate);
+	BOOL ok = (*pfnSHGetSpecialFolderPath)(hwndOwner, buf, nFolder, bCreate);
 	PY_INTERFACE_POSTCALL;
-	if (FAILED(hr))
-		return OleSetOleError(hr);
+	if (!ok)
+		return OleSetOleError(E_FAIL);
 	return PyWinObject_FromWCHAR(buf);
 }
 
