@@ -2337,40 +2337,10 @@ static BOOL (WINAPI *pfnGetVolumeNameForVolumeMountPointW)(LPCWSTR, LPCWSTR, DWO
 static BOOL (WINAPI *pfnSetVolumeMountPointW)(LPCWSTR, LPCWSTR) = NULL;
 static BOOL (WINAPI *pfnDeleteVolumeMountPointW)(LPCWSTR) = NULL;
 static BOOL (WINAPI *pfnCreateHardLinkW)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES ) = NULL;
+static BOOL (WINAPI *pfnEncryptFile)(WCHAR *)=NULL;
+static BOOL (WINAPI *pfnDecryptFile)(WCHAR *)=NULL;
+static BOOL (WINAPI *pfnEncryptionDisable)(WCHAR *, BOOL)=NULL;
 
-#define VOLUME_POINTERS_NON_NULL \
-            (pfnGetVolumeNameForVolumeMountPointW != NULL && \
-            pfnSetVolumeMountPointW != NULL && \
-            pfnDeleteVolumeMountPointW != NULL && \
-            pfnCreateHardLinkW != NULL)
-
-static BOOL _CheckVolumePfns()
-{
-    // Do a LoadLibrary for the function pointers, as these are
-    // win2k specific.
-    if (!VOLUME_POINTERS_NON_NULL) {
-
-        HMODULE hMod = GetModuleHandle("kernel32.dll");
-        if (hMod==0) {
-            PyWin_SetAPIError("GetModuleHandle", E_HANDLE);
-            return FALSE;
-        }
-
-        FARPROC fp = GetProcAddress(hMod, "GetVolumeNameForVolumeMountPointW");
-        if (fp) pfnGetVolumeNameForVolumeMountPointW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR, DWORD))(fp);
-
-        fp = GetProcAddress(hMod, "SetVolumeMountPointW");
-        if (fp) pfnSetVolumeMountPointW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR))(fp);
-
-        fp = GetProcAddress(hMod, "DeleteVolumeMountPointW");
-        if (fp) pfnDeleteVolumeMountPointW = (BOOL (WINAPI *)(LPCWSTR))(fp);
-
-        fp = GetProcAddress(hMod, "CreateHardLinkW");
-        if (fp) pfnCreateHardLinkW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES))(fp);
-
-    }
-    return VOLUME_POINTERS_NON_NULL;
-}
 
 // @pyswig <o PyUnicode>|SetVolumeMountPoint|Mounts the specified volume at the specified volume mount point.
 static PyObject*
@@ -2390,9 +2360,9 @@ py_SetVolumeMountPoint(PyObject *self, PyObject *args)
     WCHAR *volume = NULL;
     WCHAR *mount_point = NULL;
     WCHAR volume_name[50];
+	if ((pfnSetVolumeMountPointW==NULL)||(pfnGetVolumeNameForVolumeMountPointW==NULL))
+		return PyErr_Format(PyExc_NotImplementedError,"SetVolumeMountPoint not supported by this version of Windows");
 
-    if (!_CheckVolumePfns())
-        return NULL;
     if (!PyArg_ParseTuple(args,"OO", &mount_point_obj, &volume_obj))
         return NULL;
 
@@ -2424,7 +2394,6 @@ cleanup:
     return ret;
 }
 
-
 // @pyswig |DeleteVolumeMountPoint|Unmounts the volume from the specified volume mount point.
 static PyObject*
 py_DeleteVolumeMountPoint(PyObject *self, PyObject *args)
@@ -2440,8 +2409,8 @@ py_DeleteVolumeMountPoint(PyObject *self, PyObject *args)
     PyObject *mount_point_obj = NULL;
     WCHAR *mount_point = NULL;
 
-    if (!_CheckVolumePfns())
-        return NULL;
+    if (pfnDeleteVolumeMountPointW==NULL)
+        return PyErr_Format(PyExc_NotImplementedError,"DeleteVolumeMountPoint not supported by this version of Windows");
 
     if (!PyArg_ParseTuple(args,"O", &mount_point_obj))
         return NULL;
@@ -2451,7 +2420,6 @@ py_DeleteVolumeMountPoint(PyObject *self, PyObject *args)
         goto cleanup;
     }
 
-    assert(pfnDeleteVolumeMountPointW);
     if (!(*pfnDeleteVolumeMountPointW)(mount_point)){
         PyWin_SetAPIError("DeleteVolumeMountPoint");
     }
@@ -2469,7 +2437,7 @@ static PyObject*
 py_CreateHardLink(PyObject *self, PyObject *args)
 {
     // @comm  An NTFS hard link is similar to a POSIX hard link.
-    // <nl>This function reates a second directory entry for an existing file, can be different name in
+    // <nl>This function creates a second directory entry for an existing file, can be different name in
     // same directory or any name in a different directory.
     // Both file paths must be on the same NTFS volume.<nl>To remove the link, simply delete 
     // it and the original file will still remain.
@@ -2490,9 +2458,8 @@ py_CreateHardLink(PyObject *self, PyObject *args)
     WCHAR *existing_file = NULL;
     SECURITY_ATTRIBUTES *sa;
 
-    if (!_CheckVolumePfns())
-        return NULL;
-
+    if (pfnCreateHardLinkW==NULL)
+        return PyErr_Format(PyExc_NotImplementedError,"CreateHardLink not supported by this version of Windows");
     if (!PyArg_ParseTuple(args,"OO|O", &new_file_obj, &existing_file_obj, &sa_obj))
         return NULL;
 
@@ -2511,7 +2478,6 @@ py_CreateHardLink(PyObject *self, PyObject *args)
         goto cleanup;
     }
 
-    assert(pfnCreateHardLinkW);
     if (!((*pfnCreateHardLinkW)(new_file, existing_file, sa))){
         PyWin_SetAPIError("CreateHardLink");
         goto cleanup;
@@ -2524,11 +2490,150 @@ cleanup:
     return ret;
 }
 
+// @pyswig <o PyUnicode>|GetVolumeNameForVolumeMountPoint|Returns unique volume name (Win2k or later)
+static PyObject*
+py_GetVolumeNameForVolumeMountPoint(PyObject *self, PyObject *args)
+{
+    // @pyparm string|mountPoint||Volume mount point or root drive - trailing backslash required
+    PyObject *ret=NULL;
+    PyObject *obvolume_name = NULL, *obmount_point = NULL;
+
+    WCHAR *mount_point = NULL;
+    WCHAR volume_name[50];
+    if (pfnGetVolumeNameForVolumeMountPointW==NULL)
+        return PyErr_Format(PyExc_NotImplementedError,"GetVolumeNameForVolumeMountPoint not supported by this version of Windows");
+
+    if (!PyArg_ParseTuple(args,"O", &obmount_point))
+        return NULL;
+
+    if (!PyWinObject_AsWCHAR(obmount_point, &mount_point, false)){
+        PyErr_SetString(PyExc_TypeError,"Mount point must be string or unicode");
+        goto cleanup;
+    }
+
+    assert(pfnGetVolumeNameForVolumeMountPointW);
+    if (!(*pfnGetVolumeNameForVolumeMountPointW)(mount_point, volume_name, sizeof(volume_name)/sizeof(volume_name[0])))
+        PyWin_SetAPIError("GetVolumeNameForVolumeMountPoint");
+	else
+        ret=PyWinObject_FromWCHAR(volume_name);
+cleanup:
+	PyWinObject_FreeWCHAR(mount_point);
+	return ret;
+}
+
+// @pyswig |EncryptFile|Encrypts specified file (requires Win2k or higher and NTFS)
+static PyObject*
+py_EncryptFile(PyObject *self, PyObject *args)
+{
+    // @pyparm string/unicode|filename||File to encrypt
+
+    PyObject *ret=NULL, *obfname=NULL;
+    WCHAR *fname = NULL;
+	if (pfnEncryptFile==NULL)
+		return PyErr_Format(PyExc_NotImplementedError,"EncryptFile not supported by this version of Windows");
+    if (!PyArg_ParseTuple(args,"O", &obfname))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
+        return NULL;
+	if (!(*pfnEncryptFile)(fname))
+        PyWin_SetAPIError("EncryptFile");
+    else
+        ret=Py_None;
+    PyWinObject_FreeWCHAR(fname);
+    Py_XINCREF(ret);
+    return ret;
+}
+
+// @pyswig |DecryptFile|Decrypts specified file (requires Win2k or higher and NTFS)
+static PyObject*
+py_DecryptFile(PyObject *self, PyObject *args)
+{
+    // @pyparm string/unicode|filename||File to decrypt
+    PyObject *ret=NULL, *obfname=NULL;
+    WCHAR *fname = NULL;
+	if (pfnDecryptFile==NULL)
+		return PyErr_Format(PyExc_NotImplementedError,"DecryptFile not supported by this version of Windows");
+    if (!PyArg_ParseTuple(args,"O", &obfname))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
+        return NULL;
+	if (!(*pfnDecryptFile)(fname))
+        PyWin_SetAPIError("DecryptFile");
+    else
+        ret=Py_None;
+    PyWinObject_FreeWCHAR(fname);
+    Py_XINCREF(ret);
+    return ret;
+}
+
+// @pyswig |EncryptionDisable|Enables/disables encryption for a directory (requires Win2k or higher and NTFS)
+static PyObject*
+py_EncryptionDisable(PyObject *self, PyObject *args)
+{
+    // @pyparm string/unicode|DirName||Directory to enable or disable
+	// @pyparm boolean|Disable||Set to False to enable encryption
+    PyObject *ret=NULL, *obfname=NULL;
+    WCHAR *fname = NULL;
+	BOOL Disable;
+	if (pfnEncryptionDisable==NULL)
+		return PyErr_Format(PyExc_NotImplementedError,"EncryptionDisable not supported by this version of Windows");
+    if (!PyArg_ParseTuple(args,"Oi", &obfname, &Disable))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
+        return NULL;
+	if (!(*pfnEncryptionDisable)(fname,Disable))
+        PyWin_SetAPIError("EncryptionDisable");
+    else
+        ret=Py_None;
+    PyWinObject_FreeWCHAR(fname);
+    Py_XINCREF(ret);
+    return ret;
+}
+
 %}
+
 %native (SetVolumeMountPoint) py_SetVolumeMountPoint;
 %native (DeleteVolumeMountPoint) py_DeleteVolumeMountPoint;
 %native (CreateHardLink) py_CreateHardLink;
+%native (GetVolumeNameForVolumeMountPoint) py_GetVolumeNameForVolumeMountPoint;
+
 // end of win2k volume mount functions.
+%native (EncryptFile) py_EncryptFile;
+%native (DecryptFile) py_DecryptFile;
+%native (EncryptionDisable) py_EncryptionDisable;
+
+
+%init %{
+	HMODULE hmodule;
+	FARPROC fp;
+
+	hmodule=LoadLibrary("AdvAPI32.dll");
+	if (hmodule){
+		fp=GetProcAddress(hmodule,"EncryptFileW");
+		if (fp) pfnEncryptFile=(BOOL (WINAPI *)(WCHAR *))(fp);
+
+		fp=GetProcAddress(hmodule,"DecryptFileW");
+		if (fp) pfnDecryptFile=(BOOL (WINAPI *)(WCHAR *))(fp);
+
+		fp=GetProcAddress(hmodule,"EncryptionDisable");
+		if (fp) pfnEncryptionDisable=(BOOL (WINAPI *)(WCHAR *, BOOL))(fp);
+		}
+
+	hmodule = GetModuleHandle("kernel32.dll");
+	if (hmodule){
+        fp = GetProcAddress(hmodule, "GetVolumeNameForVolumeMountPointW");
+        if (fp) pfnGetVolumeNameForVolumeMountPointW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR, DWORD))(fp);
+
+        fp = GetProcAddress(hmodule, "SetVolumeMountPointW");
+        if (fp) pfnSetVolumeMountPointW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR))(fp);
+
+        fp = GetProcAddress(hmodule, "DeleteVolumeMountPointW");
+        if (fp) pfnDeleteVolumeMountPointW = (BOOL (WINAPI *)(LPCWSTR))(fp);
+
+        fp = GetProcAddress(hmodule, "CreateHardLinkW");
+        if (fp) pfnCreateHardLinkW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES))(fp);
+		}
+%}
 
 #define EV_BREAK EV_BREAK // A break was detected on input. 
 #define EV_CTS EV_CTS // The CTS (clear-to-send) signal changed state. 
