@@ -144,19 +144,20 @@ PyIActiveScript::~PyIActiveScript()
 /* static */ PyObject *PyIActiveScript::AddNamedItem(PyObject *self, PyObject *args)
 {
 	PY_INTERFACE_METHOD;
-	const char *pstrName;
+	PyObject *obName;
 	int flags;
-	if ( !PyArg_ParseTuple(args, "si:AddNamedItem", &pstrName, &flags) )
-		return NULL;
-
 	IActiveScript *pIAS = GetI(self);
 	if ( pIAS == NULL )
 		return NULL;
-
-	USES_CONVERSION;
+	if ( !PyArg_ParseTuple(args, "Oi:AddNamedItem", &obName, &flags) )
+		return NULL;
+	OLECHAR *name;
+	if (!PyWinObject_AsWCHAR(obName, &name))
+		return NULL;
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIAS->AddNamedItem(A2OLE(pstrName), (DWORD)flags);
+	HRESULT hr = pIAS->AddNamedItem(name, (DWORD)flags);
 	PY_INTERFACE_POSTCALL;
+	PyWinObject_FreeWCHAR(name);
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self, hr);
 
@@ -207,7 +208,6 @@ PyIActiveScript::~PyIActiveScript()
 	if (!PyWinObject_AsBstr(obItemName, &pstrItemName, TRUE))
 		return NULL;
 
-	USES_CONVERSION;
 	IDispatch *pdisp;
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = pIAS->GetScriptDispatch(pstrItemName, &pdisp);

@@ -36,130 +36,167 @@ PyIActiveScriptParse::~PyIActiveScriptParse()
 
 /* static */ PyObject *PyIActiveScriptParse::AddScriptlet(PyObject *self, PyObject *args)
 {
-	const char *defaultName;
-	const char *code;
-	const char *itemName;
-	const char *subItemName;
-	const char *eventName;
-	const char *delimiter;
+	HRESULT hr;
+	PyObject *ret = NULL;
+	PyObject *obDefaultName, *obCode, *obItemName, *obSubItemName,
+	          *obEventName, *obDelimiter;
 	int sourceContextCookie;
 	int startingLineNumber;
 	int flags;
-	if ( !PyArg_ParseTuple(args, "zsszsziii:AddScriptlet",
-						   &defaultName,
-						   &code,
-						   &itemName,
-						   &subItemName,
-						   &eventName,
-						   &delimiter,
+	IActiveScriptParse *pIASP = GetI(self);
+	if ( pIASP == NULL )
+		return NULL;
+	if ( !PyArg_ParseTuple(args, "OOOOOOiii:AddScriptlet",
+						   &obDefaultName,
+						   &obCode,
+						   &obItemName,
+						   &obSubItemName,
+						   &obEventName,
+						   &obDelimiter,
 						   &sourceContextCookie,
 						   &startingLineNumber,
 						   &flags) )
 		return NULL;
-
-	IActiveScriptParse *pIASP = GetI(self);
-	if ( pIASP == NULL )
-		return NULL;
-
-	USES_CONVERSION;
 	BSTR bstrName;
 	EXCEPINFO excepInfo;
 	memset(&excepInfo, 0, sizeof excepInfo);
+	WCHAR *defaultName = NULL,
+		  *code = NULL,
+		  *itemName = NULL,
+		  *subItemName = NULL,
+		  *eventName = NULL,
+		  *delimiter = NULL;
+	if (!PyWinObject_AsWCHAR(obDefaultName, &defaultName, TRUE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(obCode, &code, FALSE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(obItemName, &itemName, FALSE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(obSubItemName, &subItemName, TRUE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(obEventName, &eventName, FALSE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(obDelimiter, &delimiter, TRUE))
+		goto done;
+	{
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIASP->AddScriptlet(A2OLE(defaultName),
-									 A2OLE(code),
-									 A2OLE(itemName),
-									 A2OLE(subItemName),
-									 A2OLE(eventName),
-									 A2OLE(delimiter),
+	hr = pIASP->AddScriptlet(defaultName,
+									 code,
+									 itemName,
+									 subItemName,
+									 eventName,
+									 delimiter,
 									 (DWORD)sourceContextCookie,
 									 (ULONG)startingLineNumber,
 									 (DWORD)flags,
 									 &bstrName,
 									 &excepInfo);
 	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyExceptionFromEXCEPINFO(hr, &excepInfo);
-
-	return MakeBstrToObj(bstrName);
+	}
+	if ( FAILED(hr) ) {
+		PyCom_BuildPyExceptionFromEXCEPINFO(hr, &excepInfo);
+		goto done;
+	}
+	ret = MakeBstrToObj(bstrName);
+done:
+	PyWinObject_FreeWCHAR(defaultName);
+	PyWinObject_FreeWCHAR(code);
+	PyWinObject_FreeWCHAR(itemName);
+	PyWinObject_FreeWCHAR(subItemName);
+	PyWinObject_FreeWCHAR(eventName);
+	PyWinObject_FreeWCHAR(delimiter);
+	return ret;
 }
 
 /* static */ PyObject *PyIActiveScriptParse::ParseScriptText(PyObject *self, PyObject *args)
 {
-	const char *code;
-	const char *itemName;
+	PyObject *result = NULL;
+	PyObject *obCode, *obItemName, *obDelimiter;
+	WCHAR *code = NULL;
+	WCHAR *itemName = NULL;
 	PyObject *obContext;
-	const char *delimiter;
+	WCHAR *delimiter = NULL;
 	int sourceContextCookie;
 	int startingLineNumber;
 	int flags;
 	// Special handling for bWantResult.  If not specified, then
 	// it looks at the flags for a reasonable default.  If specified
 	// the flag is not used at all.
-	BOOL bWantResult = -1;
-	if ( !PyArg_ParseTuple(args, "szOziii|i:ParseScriptText",
-						   &code,
-						   &itemName,
+	BOOL bWantResult = (BOOL)-1;
+	IActiveScriptParse *pIASP = GetI(self);
+	if ( pIASP == NULL )
+		return NULL;
+	if ( !PyArg_ParseTuple(args, "OOOOiii|i:ParseScriptText",
+						   &obCode,
+						   &obItemName,
 						   &obContext,
-						   &delimiter,
+						   &obDelimiter,
 						   &sourceContextCookie,
 						   &startingLineNumber,
 						   &flags,
 						   &bWantResult) )
 		return NULL;
+	IUnknown *punkContext = NULL;
+	VARIANT *pResult = NULL;
+	VARIANT varResult;
+	EXCEPINFO excepInfo;
+	memset(&excepInfo, 0, sizeof excepInfo);
+	HRESULT hr ;
+	if (!PyWinObject_AsWCHAR(obCode, &code, FALSE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(obItemName, &itemName, TRUE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(obDelimiter, &delimiter, TRUE))
+		goto done;
+
 	if (bWantResult==-1)
 		bWantResult = (flags & SCRIPTTEXT_ISEXPRESSION) != 0;
-
-	IActiveScriptParse *pIASP = GetI(self);
-	if ( pIASP == NULL )
-		return NULL;
-
-	IUnknown *punkContext = NULL;
 	if ( obContext != Py_None )
 	{
 		if ( !PyIBase::is_object(obContext, &PyIUnknown::type) )
 		{
 			PyErr_SetString(PyExc_ValueError, "argument is not a PyIUnknown");
-			return NULL;
+			goto done;
 		}
 		punkContext = PyIUnknown::GetI(obContext);
 		if ( !punkContext )
-			return NULL;
+			goto done;
 		/* note: we don't explicitly hold a reference to punkContext */
 	}
-
-	USES_CONVERSION;
-	VARIANT *pResult = NULL;
-	VARIANT varResult;
 	if (bWantResult) {
 		pResult = &varResult;
 		VariantInit(&varResult);
 	}
-
-	EXCEPINFO excepInfo;
-	memset(&excepInfo, 0, sizeof excepInfo);
+	{
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIASP->ParseScriptText(A2OLE(code),
-										A2OLE(itemName),
+	hr = pIASP->ParseScriptText(code,
+										itemName,
 										punkContext,
-										A2OLE(delimiter),
+										delimiter,
 										(DWORD)sourceContextCookie,
 										(ULONG)startingLineNumber,
 										(DWORD)flags,
 										pResult,
 										&excepInfo);
 	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyExceptionFromEXCEPINFO(hr, &excepInfo);
+	}
+	if ( FAILED(hr) ) {
+		PyCom_BuildPyExceptionFromEXCEPINFO(hr, &excepInfo);
+		goto done;
+	}
 
 	if (bWantResult) {
-		PyObject *result = PyCom_PyObjectFromVariant(&varResult);
+		result = PyCom_PyObjectFromVariant(&varResult);
 		VariantClear(&varResult);
-		return result;
 	} else {
 		Py_INCREF(Py_None);
-		return Py_None;
+		result = Py_None;
 	}
+done:
+	PyWinObject_FreeWCHAR(code);
+	PyWinObject_FreeWCHAR(itemName);
+	PyWinObject_FreeWCHAR(delimiter);
+	return result;
 }
 
 static struct PyMethodDef PyIActiveScriptParse_methods[] =

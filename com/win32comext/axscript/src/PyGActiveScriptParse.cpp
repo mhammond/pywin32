@@ -31,26 +31,29 @@ STDMETHODIMP PyGActiveScriptParse::AddScriptlet(
             /* [out] */ EXCEPINFO __RPC_FAR *pexcepinfo)
 {
 	PY_GATEWAY_METHOD;
-	USES_CONVERSION;
+	PyObject *obDefaultName = PyWinObject_FromOLECHAR(pstrDefaultName);
+	PyObject *obCode = PyWinObject_FromOLECHAR(pstrCode);
+	PyObject *obItemName = PyWinObject_FromOLECHAR(pstrItemName);
+	PyObject *obSubItemName = PyWinObject_FromOLECHAR(pstrSubItemName);
+	PyObject *obEventName = PyWinObject_FromOLECHAR(pstrEventName);
+	PyObject *obDelimiter = PyWinObject_FromOLECHAR(pstrDelimiter);
 	PyObject *result;
 	HRESULT hr = InvokeGatewayViaPolicy(this, "AddScriptlet", pexcepinfo, &result,
-                                                        "ssssssii",
-                                                        OLE2CT(pstrDefaultName),
-                                                        OLE2CT(pstrCode),
-                                                        OLE2CT(pstrItemName),
-                                                        OLE2CT(pstrSubItemName),
-                                                        OLE2CT(pstrEventName),
-                                                        OLE2CT(pstrDelimiter),
+                                                        "NNNNNNii",
+                                                        obDefaultName,
+                                                        obCode,
+                                                        obItemName,
+                                                        obSubItemName,
+                                                        obEventName,
+                                                        obDelimiter,
                                                         dwSourceContextCookie,
                                                         ulStartingLineNumber);
 	if (FAILED(hr)) return hr;
-	if (result && PyString_Check(result)) {
-		*pbstrName = A2BSTR(PyString_AS_STRING((PyStringObject*)result));
-	}
-	Py_DECREF(result);
-	return S_OK;
+	PyWinObject_AsBstr(result, pbstrName, FALSE);
+	Py_XDECREF(result);
+	return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
 }
-        
+
 STDMETHODIMP PyGActiveScriptParse::ParseScriptText( 
             /* [in] */ LPCOLESTR pstrCode,
             /* [in] */ LPCOLESTR pstrItemName,
@@ -63,7 +66,6 @@ STDMETHODIMP PyGActiveScriptParse::ParseScriptText(
             /* [out] */ EXCEPINFO __RPC_FAR *pexcepinfo)
 {
 	PY_GATEWAY_METHOD;
-	USES_CONVERSION;
 	PyObject *context = PyCom_PyObjectFromIUnknown(punkContext, IID_IUnknown, TRUE);
 	if (context==NULL) {
 		PyCom_ExcepInfoFromPyException(pexcepinfo);
@@ -71,13 +73,16 @@ STDMETHODIMP PyGActiveScriptParse::ParseScriptText(
 	}
 	PyObject *result = NULL;
 	BOOL bWantResult = pvarResult!=NULL;
+	PyObject *obCode = PyWinObject_FromOLECHAR(pstrCode);
+	PyObject *obItemName = PyWinObject_FromOLECHAR(pstrItemName);
+	PyObject *obDelimiter = PyWinObject_FromOLECHAR(pstrDelimiter);
 	
 	HRESULT hr = InvokeGatewayViaPolicy(this, "ParseScriptText", pexcepinfo, &result,
-											"ssOsiiii",
-											OLE2CT(pstrCode),
-											OLE2CT(pstrItemName),
+											"NNONiiii",
+											obCode,
+											obItemName,
 											context,
-											OLE2CT(pstrDelimiter),
+											obDelimiter,
 											dwSourceContextCookie,
 											ulStartingLineNumber,
 											dwFlags,

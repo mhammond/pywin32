@@ -5,29 +5,25 @@
 
 #include <limits.h>
 
+#if defined(MAINWIN) && defined(_POSIX_C_SOURCE)
+#	undef _POSIX_C_SOURCE
+#endif
+
 #include <Python.h>
 
+#ifndef MS_WINCE // win32 wont need that soon?
 // Must come after Python headers.
-#include <atlbase.h>
+#include <windows.h>
+#endif
+
+#include <Python.h>
 
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
-
-#if _ATL_VER < 0x0200
-typedef EXCEPINFO UserEXCEPINFO;
-typedef VARIANT UserVARIANT;
-typedef BSTR UserBSTR;
-#endif
 
 // NOTE - The standard "activscp.h" header is not good enough -
 // need to use the IE4 SDK or MSVC6 etc.
 #include "activscp.h"
 #include "objsafe.h"
-
-#if _ATL_VER < 0x0200
-# include "datapath.h"
-#endif
-
-#include "multinfo.h"
 #include "AXScript.h"
 

@@ -29,11 +29,11 @@ STDMETHODIMP PyGActiveScriptSite::GetItemInfo(
 		 ((dwReturnMask & SCRIPTINFO_ITYPEINFO) && ppti == NULL) )
 		return E_POINTER;
 
-	USES_CONVERSION;
 	PyObject *result;
+	PyObject *obName = PyWinObject_FromOLECHAR(pstrName);
 	HRESULT hr = InvokeViaPolicy("GetItemInfo", &result,
-										 "zi",
-										 OLE2A(pstrName),
+										 "Ni",
+										 obName,
 										 (int)dwReturnMask);
 	if (FAILED(hr))
 		return hr;
@@ -104,17 +104,9 @@ STDMETHODIMP PyGActiveScriptSite::GetDocVersionString(
 	HRESULT hr = InvokeViaPolicy("GetDocVersionString", &result, NULL);
 	if (FAILED(hr))
 		return hr;
-
-	if ( !PyString_Check(result) )
-	{
-		Py_DECREF(result);
-		return E_NOTIMPL;
-	}
-		
-	USES_CONVERSION;
-	*pbstrVersion = A2BSTR(PyString_AS_STRING((PyStringObject *)result));
-	Py_DECREF(result);
-	return hr;
+	PyWinObject_AsBstr(result, pbstrVersion, FALSE);
+	Py_XDECREF(result);
+	return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
 }
 
 STDMETHODIMP PyGActiveScriptSite::OnScriptTerminate(

@@ -71,10 +71,10 @@ STDMETHODIMP PyGActiveScript::AddNamedItem(
 	)
 {
 	PY_GATEWAY_METHOD;
-	USES_CONVERSION;
+	PyObject *obName = PyWinObject_FromOLECHAR(pstrName);
 	return InvokeViaPolicy(	"AddNamedItem", NULL, 
-											"si",
-											OLE2CT(pstrName),
+											"Ni",
+											obName,
 											dwFlags);
 }
 
@@ -100,7 +100,6 @@ STDMETHODIMP PyGActiveScript::GetScriptDispatch(
 	if (ppdisp==NULL)
 		return E_POINTER;
 	PY_GATEWAY_METHOD;
-	USES_CONVERSION;
 	*ppdisp = NULL;
 	PyObject *result = NULL;
 	PyObject *obItemName = PyWinObject_FromOLECHAR(pstrItemName);

@@ -42,21 +42,22 @@ PyObject *PyIActiveScriptSite::GetLCID(PyObject *self, PyObject *args)
 PyObject *PyIActiveScriptSite::GetItemInfo(PyObject *self, PyObject *args)
 {
 	PY_INTERFACE_METHOD;
-	USES_CONVERSION;
-	const char *name;
+	PyObject *obName;
 	int mask;
-	if (!PyArg_ParseTuple(args, "si:GetItemInfo", &name, &mask))
-		return NULL;
-
 	IActiveScriptSite *pMySite = GetI(self);
 	if (pMySite==NULL) return NULL;
-
+	if (!PyArg_ParseTuple(args, "Oi:GetItemInfo", &obName, &mask))
+		return NULL;
+	OLECHAR *name;
+	if (!PyWinObject_AsWCHAR(obName, &name))
+		return NULL;
 	IUnknown *punk = NULL;
 	ITypeInfo *ptype = NULL;
 
 	PY_INTERFACE_PRECALL;
-	SCODE sc = pMySite->GetItemInfo(T2COLE(name), mask, &punk, &ptype);
+	SCODE sc = pMySite->GetItemInfo(name, mask, &punk, &ptype);
 	PY_INTERFACE_POSTCALL;
+	PyWinObject_FreeWCHAR(name);
 	if (FAILED(sc))
 		return SetPythonCOMError(self, sc);
 	PyObject *obDispatch = PyCom_PyObjectFromIUnknown(punk, IID_IUnknown);
