@@ -908,7 +908,7 @@ static PyObject *pythoncom_CoInitializeEx(PyObject *self, PyObject *args)
 	Py_INCREF(Py_None);
 	return Py_None;
 	// @comm There is no need to call this for the main Python thread, as it is called
-	// automatically by pythoncom (using sys.co_initflags as the param, or COINIT_APARTMENTTHREADED
+	// automatically by pythoncom (using sys.coinit_flags as the param, or COINIT_APARTMENTTHREADED
 	// if sys.coinit_flags does not exist).
 	// <nl>You must call this manually if you create a thread which wishes to use COM.
 }
@@ -1236,6 +1236,48 @@ static PyObject *pythoncom_EnableQuitMessage(PyObject *self, PyObject *args)
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+
+static PyObject *pythoncom_OleLoadPicture(PyObject *, PyObject *args)
+{
+	PyObject *ret = NULL;
+	PyObject *obStream, *obIIDAPI, *obIIDRet = NULL;
+	LONG size;
+	BOOL runMode;
+	if (!PyArg_ParseTuple(args, "OiiO|O", &obStream, &size, &runMode, &obIIDAPI, &obIIDRet)) {
+		return NULL;
+	}
+
+	IUnknown *pUnk = NULL;
+	IStream* pStream = NULL;
+	IID iidAPI, iidRet;
+	HRESULT hr;
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obStream, IID_IStream, (void **)&pStream, FALSE))
+		goto done;
+
+	if (!PyWinObject_AsIID(obIIDAPI, &iidAPI))
+		goto done;
+	if (obIIDRet == NULL)
+		iidRet = iidAPI;
+	else {
+		if (!PyWinObject_AsIID(obIIDRet, &iidRet))
+			goto done;
+	}
+	Py_BEGIN_ALLOW_THREADS
+	hr = ::OleLoadPicture(pStream, size, runMode, iidAPI, (LPVOID*)&pUnk);
+	Py_END_ALLOW_THREADS
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	ret = PyCom_PyObjectFromIUnknown(pUnk, iidRet, FALSE);
+done:
+	if (pStream)
+		pStream->Release();
+	return ret;
+}
+
+
+
 /* List of module functions */
 // @module pythoncom|A module, encapsulating the OLE automation API
 static struct PyMethodDef pythoncom_methods[]=
@@ -1294,6 +1336,7 @@ static struct PyMethodDef pythoncom_methods[]=
 #endif // MS_WINCE
 	{ "new",                 pythoncom_new, 1 },
 	{ "New",                 pythoncom_new, 1 },                 // @pymeth New|Create a new instance of an OLE automation server.
+	{ "OleLoadPicture",      pythoncom_OleLoadPicture, 1 },      // @pymeth OleLoadPicture|Creates a new picture object and initializes it from the contents of a stream.
 #ifndef MS_WINCE
 	{ "ProgIDFromCLSID",     pythoncom_progidfromclsid, 1 },     // @pymeth ProgIDFromCLSID|Converts a CLSID string to a progID.
 #endif // MS_WINCE
