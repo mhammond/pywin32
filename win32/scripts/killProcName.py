@@ -18,7 +18,7 @@ def killProcName(procname):
 	# "refresh", allowing us to kill processes created since this was run
 	# for the first time.
 	try:
-		win32pdhutil.GetPerformanceAttributes('Process','IDProcess',procname)
+		win32pdhutil.GetPerformanceAttributes('Process','ID Process',procname)
 	except:
 		pass
 
