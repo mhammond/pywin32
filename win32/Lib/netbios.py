@@ -258,14 +258,14 @@ def ACTION_HEADER():
     return NCBStruct(ACTION_HEADER_ITEMS)
 
 if __name__=='__main__':
+    # code ported from "HOWTO: Get the MAC Address for an Ethernet Adapter"
+    # MS KB ID: Q118623 
     ncb = NCB()
     ncb.Command = NCBENUM
     la_enum = LANA_ENUM()
     ncb.Buffer = la_enum
     rc = Netbios(ncb)
     if rc != 0: raise RuntimeError, "Unexpected result %d" % (rc,)
-    print "have", la_enum.length
-    print "0=", ord(la_enum.lana[0]), "1=", ord(la_enum.lana[1])
     for i in range(la_enum.length):
         ncb.Reset()
         ncb.Command = NCBRESET
