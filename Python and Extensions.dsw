@@ -63,8 +63,20 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
-    Project_Dep_Name PyWinTypes
+    Project_Dep_Name PythonService servicemanager
     End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "PythonService servicemanager"=".\win32\PythonService servicemanager.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
 }}}
 
 ###############################################################################
