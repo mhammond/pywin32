@@ -7,7 +7,7 @@ import win32ras
 class ConnectionError(Exception):
 	pass
 	
-def Connect(rasEntryName, numRetries = 5, userName = "", password = ""):
+def Connect(rasEntryName, numRetries = 5):
 	"""Make a connection to the specified RAS entry.
 	
 	Returns a tuple of (bool, handle) on success.
@@ -22,10 +22,16 @@ def Connect(rasEntryName, numRetries = 5, userName = "", password = ""):
 			print "Already connected to", rasEntryName
 			return 0, info[0]
 
+	dial_params, have_pw = win32ras.GetEntryDialParams(None, rasEntryName)
+	if not have_pw:
+		print "Error: The password is not saved for this connection"
+		print "Please connect manually selecting the 'save password' option and try again"
+		sys.exit(1)
+
 	print "Connecting to", rasEntryName, "..."
 	retryCount = numRetries
 	while retryCount > 0:
-		rasHandle, errCode = win32ras.Dial(None, None, (rasEntryName,"","",userName, password), None)
+		rasHandle, errCode = win32ras.Dial(None, None, dial_params, None)
 		if win32ras.IsHandleValid(rasHandle):
 			bValid = 1
 			break

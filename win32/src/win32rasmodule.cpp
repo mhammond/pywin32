@@ -11,6 +11,10 @@ generates Windows .hlp files.
 
 ******************************************************************/
 
+#ifndef WINVER
+#define WINVER 0x500
+#endif
+
 #include "windows.h"
 #include "ras.h"
 #include "raserror.h"
@@ -36,6 +40,7 @@ PyObject *ReturnError(char *msg, char *fnName = NULL, DWORD code = 0)
 	SetError(msg, fnName, code);
 	return NULL;
 }
+extern "C" __declspec(dllexport)
 PyObject *ReturnRasError(char *fnName, long err = 0)
 {
 	const int bufSize = 512;
@@ -66,8 +71,198 @@ PyObject *ReturnRasError(char *fnName, long err = 0)
 	return NULL;
 }
 
+// Helpers external so I can avoid LoadLibraries of
+// the win2k only functions.
+typedef BOOL (*PFNPyWinObject_AsRASEAPUSERIDENTITY)(PyObject *ob, RASEAPUSERIDENTITY **pp);
+
+BOOL myPyWinObject_AsRASEAPUSERIDENTITY( PyObject *ob, RASEAPUSERIDENTITY **pp)
+{
+	static PFNPyWinObject_AsRASEAPUSERIDENTITY pfnPyWinObject_AsRASEAPUSERIDENTITY = NULL;
+	if (pfnPyWinObject_AsRASEAPUSERIDENTITY == NULL) {
+#ifdef _DEBUG
+		HMODULE hmod = GetModuleHandle("win2kras_d.pyd");
+#else
+		HMODULE hmod = GetModuleHandle("win2kras.pyd");
+#endif
+		if (hmod==NULL) {
+			// _should_ have been imported to get the RASEAPUSERIDENTITY in the first place!
+			PyErr_SetString(PyExc_RuntimeError, "Can not locate the 'win2kras' module - has it been imported?");
+			return FALSE;
+		}
+		pfnPyWinObject_AsRASEAPUSERIDENTITY = 
+			(PFNPyWinObject_AsRASEAPUSERIDENTITY)GetProcAddress(hmod, "PyWinObject_AsRASEAPUSERIDENTITY");
+	}
+	if (pfnPyWinObject_AsRASEAPUSERIDENTITY==NULL) {
+		PyErr_SetString(PyExc_RuntimeError, "Can not locate the 'PyWinObject_AsRASEAPUSERIDENTITY' function in the 'win2kras' module");
+		return FALSE;
+	}
+	return (*pfnPyWinObject_AsRASEAPUSERIDENTITY)(ob, pp);
+}
+////////////////////////////////////////////////////////////
+//
+// RASDIALEXTENSIONS support
+//
+class PyRASDIALEXTENSIONS : public PyObject
+{
+public:
+	PyRASDIALEXTENSIONS(void);
+	~PyRASDIALEXTENSIONS();
+
+	/* Python support */
+	static void deallocFunc(PyObject *ob);
+
+	static PyObject *getattr(PyObject *self, char *name);
+	static int setattr(PyObject *self, char *name, PyObject *v);
+	static PyTypeObject type;
+	RASDIALEXTENSIONS m_ext;
+	PyObject *m_pyeap;
+};
+
+#define PyRASDIALEXTENSIONS_Check(ob)	((ob)->ob_type == &PyRASDIALEXTENSIONS::type)
+
+// @object RASDIALEXTENSIONS|An object that describes a Win32 RASDIALPARAMS structure
+BOOL PyWinObject_AsRASDIALEXTENSIONS(PyObject *ob, RASDIALEXTENSIONS **ppRASDIALEXTENSIONS, BOOL bNoneOK /*= TRUE*/)
+{
+	if (bNoneOK && ob==Py_None) {
+		*ppRASDIALEXTENSIONS = NULL;
+	} else if (!PyRASDIALEXTENSIONS_Check(ob)) {
+		PyErr_SetString(PyExc_TypeError, "The object is not a PyRASDIALEXTENSIONS object");
+		return FALSE;
+	} else {
+		*ppRASDIALEXTENSIONS = &((PyRASDIALEXTENSIONS *)ob)->m_ext;
+	}
+	return TRUE;
+}
+
+PyObject *PyWinObject_NewRASDIALEXTENSIONS(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ""))
+		return NULL;
+	return new PyRASDIALEXTENSIONS();
+}
+
+PyTypeObject PyRASDIALEXTENSIONS::type =
+{
+	PyObject_HEAD_INIT(&PyType_Type)
+	0,
+	"PyRASDIALEXTENSIONS",
+	sizeof(PyRASDIALEXTENSIONS),
+	0,
+	PyRASDIALEXTENSIONS::deallocFunc,		/* tp_dealloc */
+	0,		/* tp_print */
+	PyRASDIALEXTENSIONS::getattr,				/* tp_getattr */
+	PyRASDIALEXTENSIONS::setattr,				/* tp_setattr */
+	0,	/* tp_compare */
+	0,						/* tp_repr */
+	0,						/* tp_as_number */
+	0,	/* tp_as_sequence */
+	0,						/* tp_as_mapping */
+	0,
+	0,						/* tp_call */
+	0,		/* tp_str */
+	0,		/*tp_getattro*/
+	0,		/*tp_setattro*/
+	0,	/*tp_as_buffer*/
+};
+
+
+PyRASDIALEXTENSIONS::PyRASDIALEXTENSIONS()
+{
+	ob_type = &type;
+	_Py_NewReference(this);
+	m_pyeap = Py_None;
+	Py_INCREF(Py_None);
+	memset(&m_ext, 0, sizeof(m_ext));
+}
+
+PyRASDIALEXTENSIONS::~PyRASDIALEXTENSIONS()
+{
+	Py_DECREF(m_pyeap);
+}
+
+PyObject *PyRASDIALEXTENSIONS::getattr(PyObject *self, char *name)
+{
+	PyRASDIALEXTENSIONS *py = (PyRASDIALEXTENSIONS *)self;
+	// @prop integer|dwfOptions|(fOptions may also be used)
+	if (strcmp(name, "dwfOptions")==0 || strcmp(name, "fOptions")==0)
+		return PyInt_FromLong( py->m_ext.dwfOptions);
+	// @prop integer|hwndParent|
+	else if (strcmp(name, "hwndParent")==0)
+		return PyLong_FromVoidPtr( py->m_ext.hwndParent );
+	// @prop integer|reserved|
+	else if (strcmp(name, "reserved")==0)
+		return PyInt_FromLong(py->m_ext.reserved);
+#if (WINVER >= 0x500)
+	// @prop integer|reserved1|
+	else if (strcmp(name, "reserved1")==0)
+		return PyInt_FromLong( py->m_ext.reserved1);
+	// @prop <o RASEAPINFO>|RasEapInfo|
+	else if (strcmp(name, "RasEapInfo")==0) {
+		Py_INCREF(py->m_pyeap);
+		return py->m_pyeap;
+	}
+#endif
+	return PyErr_Format(PyExc_AttributeError, "RASDIALEXTENSIONS objects have no attribute '%s'", name);
+}
+
+int PyRASDIALEXTENSIONS::setattr(PyObject *self, char *name, PyObject *val)
+{
+	if (val == NULL) {
+		PyErr_SetString(PyExc_AttributeError, "can't delete OVERLAPPED attributes");
+		return -1;
+	}
+	PyRASDIALEXTENSIONS *py = (PyRASDIALEXTENSIONS *)self;
+	if (strcmp(name, "dwfOptions")==0 || strcmp(name, "fOptions")==0) {
+		if (!PyInt_Check(val)) {
+			PyErr_SetString(PyExc_ValueError, "options must be an integer");
+			return -1;
+		}
+		py->m_ext.dwfOptions = PyInt_AsLong(val);
+	} else if (strcmp(name, "hwndParent")==0) {
+		void *v = PyLong_AsVoidPtr( val );
+		if (PyErr_Occurred()) return -1;
+		py->m_ext.hwndParent = (HWND)v;
+	} else if (strcmp(name, "reserved")==0) {
+		long v = PyInt_AsLong( val );
+		if (PyErr_Occurred()) return -1;
+		py->m_ext.reserved = v;
+	}
+#if (WINVER >= 0x500)
+	else if (strcmp(name, "reserved1")==0) {
+		long v = PyLong_AsLong( val );
+		if (PyErr_Occurred()) return -1;
+		py->m_ext.reserved1 = v;
+	} else if (strcmp(name, "RasEapInfo")==0) {
+		RASEAPUSERIDENTITY *temp;
+		if (!myPyWinObject_AsRASEAPUSERIDENTITY(val, &temp))
+			return -1;
+		py->m_ext.RasEapInfo.dwSizeofEapInfo = temp->dwSizeofEapInfo;
+		py->m_ext.RasEapInfo.pbEapInfo = temp->pbEapInfo;
+		Py_DECREF(py->m_pyeap);
+		py->m_pyeap = val;
+		Py_INCREF(val);
+	}
+#endif
+	else {
+		PyErr_Format(PyExc_AttributeError, "RASDIALEXTENSIONS objects have no attribute '%s'", name);
+		return -1;
+	}
+	return 0;
+}
+
+/*static*/ void PyRASDIALEXTENSIONS::deallocFunc(PyObject *ob)
+{
+	delete (PyRASDIALEXTENSIONS *)ob;
+}
+
+////////////////////////////////////////////////////////////
+//
+// RASDIALPARAMS support
+//
+
+
 // @object RASDIALPARAMS|A tuple that describes a Win32 RASDIALPARAMS structure
-// @comm When used as a paramater, RASDIALPARAMS must be a sequence, of up to
+// @comm When used as a parameter, RASDIALPARAMS must be a sequence, of up to
 // 6 items long.  All items must be strings - None is not allowed.
 // <nl>When this is returned from a RAS function, all six fields will exist.
 // <nl>RAS will often accept an empty string to mean "default" - ie, passing
@@ -187,7 +382,7 @@ PyRasCreatePhonebookEntry( PyObject *self, PyObject *args )
 	          &fileName )) // @pyparm string|fileName|None|Specifies the filename of the phonebook entry.  Currently this is ignored.
 		return NULL;
 	if (hwnd != 0 && !IsWindow((HWND)hwnd))
-		return ReturnError("The first paramater must be a valid window handle", "<CreatePhonebookEntry param conversion>");
+		return ReturnError("The first parameter must be a valid window handle", "<CreatePhonebookEntry param conversion>");
 	if ((rc=RasCreatePhonebookEntry((HWND)hwnd, fileName )))
 		return ReturnRasError("RasCreatePhonebookEntry",rc);	// @pyseeapi RasCreatePhonebookEntry
 	Py_INCREF(Py_None);
@@ -199,25 +394,24 @@ static PyObject *
 PyRasDial( PyObject *self, PyObject *args )
 {
 	DWORD rc;
-	char *ignored;
-//	PyObject *obExtensions;
+	PyObject *obExtensions;
 	PyObject *obParams;
 	PyObject *obCallback;
 	RASDIALPARAMS dialParams;
+	RASDIALEXTENSIONS *dialExts;
 	LPTSTR fileName;
 	HRASCONN hRas = (HRASCONN)0;
 
-	if (!PyArg_ParseTuple(args, "zzOO:Dial", 
-	          &ignored,  // @pyparm (tuple)|RasDialExtensions||Ignored - must be None - a placeholder for future RASDIALEXTENSIONS support.
+	if (!PyArg_ParseTuple(args, "OzOO:Dial", 
+	          &obExtensions,  // @pyparm <o PyRASDIALEXTENSIONS>|dialExtensions||An object providing the RASDIALEXTENSIONS information, or None
 	          &fileName, // @pyparm string|fileName||Specifies the filename of the phonebook entry, or None.  Ignored on Win95.
 	          &obParams,  // @pyparm <o RASDIALPARAMS>|RasDialParams||A tuple describing a RASDIALPARAMS structure.
 			  &obCallback))// @pyparm method or hwnd|callback||The method to be called when RAS events occur, or None.  If not None, the function must have the signature of <om win32ras.RasDialFunc1>
 		return NULL;
-	if (ignored) {
-		PyErr_SetString(PyExc_TypeError, "You must pass None as the first param");
-		return NULL;
-	}
 	if (!PyObjectToRasDialParams( obParams, &dialParams ))
+		return NULL;
+
+	if (!PyWinObject_AsRASDIALEXTENSIONS( obExtensions, &dialExts, TRUE ))
 		return NULL;
 
 	DWORD notType = 0;
@@ -250,7 +444,7 @@ PyRasDial( PyObject *self, PyObject *args )
 
 	// @pyseeapi RasDial
 	Py_BEGIN_ALLOW_THREADS
-	rc=RasDial( NULL, fileName, &dialParams, notType, pNotification, &hRas );
+	rc=RasDial( dialExts, fileName, &dialParams, notType, pNotification, &hRas );
 	Py_END_ALLOW_THREADS
 	if (hRas==0 && notType==1) {
 		PyDict_DelItem(obHandleMap, Py_None);
@@ -279,7 +473,7 @@ PyRasEditPhonebookEntry( PyObject *self, PyObject *args )
 	          &entryName )) // @pyparm string|entryName|None|Specifies the name of the phonebook entry to edit
 		return NULL;
 	if (hwnd != 0 && !IsWindow((HWND)hwnd))
-		return ReturnError("The first paramater must be a valid window handle", "<EditPhonebookEntry param parsing>");
+		return ReturnError("The first parameter must be a valid window handle", "<EditPhonebookEntry param parsing>");
 	Py_BEGIN_ALLOW_THREADS
 	rc=RasEditPhonebookEntry((HWND)hwnd, fileName, entryName );
 	Py_END_ALLOW_THREADS
@@ -401,7 +595,7 @@ PyRasGetConnectStatus( PyObject *self, PyObject *args )
 	return Py_BuildValue("(iiss)", cs.rasconnstate, cs.dwError, cs.szDeviceType, cs.szDeviceName);
 }
 
-// @pymethod (s,s,s,s,s,s),i|win32ras|GetEntryDialParams|Returns a tuple with the most recently set dial paramaters for the specified entry.
+// @pymethod (s,s,s,s,s,s),i|win32ras|GetEntryDialParams|Returns a tuple with the most recently set dial parameters for the specified entry.
 static PyObject *
 PyRasGetEntryDialParams( PyObject *self, PyObject *args )
 {
@@ -477,7 +671,7 @@ PyRasIsHandleValid( PyObject *self, PyObject *args )
 }
 
 
-// @pymethod |win32ras|SetEntryDialParams|Sets the dial paramaters for the specified entry.
+// @pymethod |win32ras|SetEntryDialParams|Sets the dial parameters for the specified entry.
 static PyObject *
 PyRasSetEntryDialParams( PyObject *self, PyObject *args )
 {
@@ -513,11 +707,12 @@ static struct PyMethodDef win32ras_functions[] = {
 	{"EnumConnections",             PyRasEnumConnections, METH_VARARGS}, // @pymeth EnumConnections|Returns a list of tuples, one for each active connection.
 	{"EnumEntries",                 PyRasEnumEntries, METH_VARARGS}, // @pymeth EnumEntries|Returns a list of tuples, one for each phonebook entry.
 	{"GetConnectStatus",            PyRasGetConnectStatus, METH_VARARGS}, // @pymeth GetConnectStatus|Returns a tuple with connection information.
-	{"GetEntryDialParams",          PyRasGetEntryDialParams, METH_VARARGS}, // @pymeth GetEntryDialParams|Returns a tuple with the most recently set dial paramaters for the specified entry.
+	{"GetEntryDialParams",          PyRasGetEntryDialParams, METH_VARARGS}, // @pymeth GetEntryDialParams|Returns a tuple with the most recently set dial parameters for the specified entry.
 	{"GetErrorString",              PyRasGetErrorString, METH_VARARGS}, // @pymeth GetErrorString|Returns an error string for a RAS error code.
 	{"HangUp",                      PyRasHangUp, METH_VARARGS}, // @pymeth HangUp|Terminates a remote access session.
 	{"IsHandleValid",				PyRasIsHandleValid, METH_VARARGS}, // @pymeth IsHandleValid|Indicates if the given RAS handle is valid.
-	{"SetEntryDialParams",          PyRasSetEntryDialParams, METH_VARARGS}, // @pymeth SetEntryDialParams|Sets the dial paramaters for the specified entry.
+	{"SetEntryDialParams",          PyRasSetEntryDialParams, METH_VARARGS}, // @pymeth SetEntryDialParams|Sets the dial parameters for the specified entry.
+	{"RASDIALEXTENSIONS",           PyWinObject_NewRASDIALEXTENSIONS, METH_VARARGS}, // @pymeth RASDIALEXTENSIONS|Creates a new <RASDIALEXTENSIONS> object
 	{NULL,			NULL}
 };
 
@@ -542,8 +737,8 @@ int AddConstant(PyObject *dict, char *key, long value)
 
 static int AddConstants(PyObject *dict)
 {
-	int rc;
-	ADD_CONSTANT(RASCS_OpenPort); // @const win32ras|RASCS_OpenPort|Constant for RAS state.
+    int rc;
+    ADD_CONSTANT(RASCS_OpenPort); // @const win32ras|RASCS_OpenPort|Constant for RAS state.
     ADD_CONSTANT(RASCS_PortOpened); // @const win32ras|RASCS_PortOpened|Constant for RAS state.
     ADD_CONSTANT(RASCS_ConnectDevice); // @const win32ras|RASCS_ConnectDevice|Constant for RAS state.
     ADD_CONSTANT(RASCS_DeviceConnected); // @const win32ras|RASCS_DeviceConnected|Constant for RAS state.
@@ -569,9 +764,9 @@ static int AddConstants(PyObject *dict)
     ADD_CONSTANT(RASCS_RetryAuthentication); // @const win32ras|RASCS_RetryAuthentication|Constant for RAS state.
     ADD_CONSTANT(RASCS_CallbackSetByCaller); // @const win32ras|RASCS_CallbackSetByCaller|Constant for RAS state.
     ADD_CONSTANT(RASCS_PasswordExpired); // @const win32ras|RASCS_PasswordExpired|Constant for RAS state.
-	ADD_CONSTANT(RASCS_Connected); // @const win32ras|RASCS_Connected|Constant for RAS state.
+    ADD_CONSTANT(RASCS_Connected); // @const win32ras|RASCS_Connected|Constant for RAS state.
     ADD_CONSTANT(RASCS_Disconnected); // @const win32ras|RASCS_Disconnected|Constant for RAS state.
-	return 0;
+    return 0;
 }
 
 extern "C" __declspec(dllexport) void
