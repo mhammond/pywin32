@@ -50,8 +50,14 @@ def MakeOutputWindow():
 	if outputWindow is None:
 		title = "Python Trace Collector"
 		# queueingFlag doesnt matter, as all output will come from new thread
-		
 		outputWindow = WindowOutput(title, title)
+		# Let people know what this does!
+		msg = """\
+# This window will display output from any programs that import win32traceutil
+# win32com servers registered with '--debug' are in this category.
+"""
+		outputWindow.write(msg)
+	# force existing window open
 	outputWindow.write('')
 	return outputWindow
 
