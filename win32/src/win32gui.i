@@ -779,9 +779,9 @@ static PyObject *PyCallWindowProc(PyObject *self, PyObject *args)
 %native (CallWindowProc) PyCallWindowProc;
 
 %{
-static BOOL make_param(PyObject *ob, long *pl)
+static BOOL make_param(PyObject *ob, LPARAM *pl)
 {
-	long &l = *pl;
+	LPARAM &l = *pl;
 	if (ob==NULL || ob==Py_None)
 		l = 0;
 	else
@@ -798,8 +798,9 @@ static BOOL make_param(PyObject *ob, long *pl)
 		l = PyInt_AsLong(ob);
 	else {
 		PyBufferProcs *pb = ob->ob_type->tp_as_buffer;
-		if (pb != NULL && pb->bf_getwritebuffer)
-			l = (long)pb->bf_getwritebuffer;
+		if (pb != NULL && pb->bf_getreadbuffer)
+			if(-1 == pb->bf_getreadbuffer(ob,0,(void **)&l))
+				return FALSE;
 		else {
 			PyErr_SetString(PyExc_TypeError, "Must be a" TCHAR_DESC ", int, or buffer object");
 			return FALSE;
@@ -820,7 +821,9 @@ static PyObject *PySendMessage(PyObject *self, PyObject *args)
 	UINT msg;
 	if (!PyArg_ParseTuple(args, "li|OO", &hwnd, &msg, &obwparam, &oblparam))
 		return NULL;
-	long wparam, lparam;
+	// Bit of guessing for win64 here.
+	// Assume LPARAM is larger than WPARAM, and can hold a pointer.
+	LPARAM wparam, lparam;
 	if (!make_param(obwparam, &wparam))
 		return NULL;
 	if (!make_param(oblparam, &lparam))
