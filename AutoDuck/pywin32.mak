@@ -46,6 +46,7 @@ WIN32COM_SOURCE = \
 	  $(WIN32COMEXT_DIR)\axcontrol\src\*.cpp \
 	  $(WIN32COMEXT_DIR)\shell\src\*.cpp \
 	  $(WIN32COMEXT_DIR)\internet\src\*.cpp \
+	  $(WIN32COMEXT_DIR)\taskscheduler\src\*.cpp \
 	  $(WIN32COM_DIR)\src\include\*.h \
 	  $(MAPI_DIR)\src\*.cpp \
 	  $(GENDIR)\mapi.d \
