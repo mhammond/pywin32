@@ -49,10 +49,12 @@ PyObject *PyIExtractIcon::Extract(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIEI, IID_IExtractIcon );
+	if (hr==S_FALSE)
+		return Py_BuildValue("OO", Py_None, Py_None);
 	return Py_BuildValue("ii", hiconLarge, hiconSmall);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+	// @rdesc The result is (hicon_large, hicon_small), or
+	// (None,None) if the underlying function returns S_FALSE, indicating
+	// the calling application should extract it.
 }
 
 // @pymethod |PyIExtractIcon|GetIconLocation|Description of GetIconLocation.
@@ -82,7 +84,7 @@ PyObject *PyIExtractIcon::GetIconLocation(PyObject *self, PyObject *args)
 	}
 	PyObject *retStr = PyWinObject_FromTCHAR(buf);
 	free(buf);
-	return Py_BuildValue("Nii", retStr, iIndex, flags);
+	return Py_BuildValue("iNii", hr, retStr, iIndex, flags);
 }
 
 // @object PyIExtractIcon|Description of the interface
@@ -122,7 +124,6 @@ STDMETHODIMP PyGExtractIcon::Extract(
 		hr = PyCom_HandlePythonFailureToCOM();
 	}
 	Py_DECREF(result);
-	printf("hresult is %x\n", hr);
 	return hr;
 }
 
