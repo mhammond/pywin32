@@ -1,12 +1,34 @@
 #include "stdafx.h"
 #include "PythonCOM.h"
 
+#ifdef LINK_AGAINST_RECORDINFO
 // Helpers to avoid linking directly to these newer functions
 static const IID g_IID_IRecordInfo = IID_IRecordInfo;
 HRESULT PySafeArrayGetRecordInfo( SAFEARRAY *  psa, IRecordInfo **  prinfo )
 {
 	return SafeArrayGetRecordInfo(psa, prinfo);
 }
+#else
+
+// IID_IRecordInfo = {0000002F-0000-0000-C000-000000000046}
+EXTERN_C const GUID g_IID_IRecordInfo \
+                = { 0x2f, 0, 0, { 0xC0,0,0,0,0,0,0,0x46 } };
+
+HRESULT PySafeArrayGetRecordInfo( SAFEARRAY *  psa, IRecordInfo **  prinfo )
+{
+	static HRESULT (STDAPICALLTYPE *pfnSAGRI)(SAFEARRAY *, IRecordInfo **) = NULL;
+	if (pfnSAGRI==NULL) {
+		HMODULE hmod = GetModuleHandle("oleaut32.dll");
+		if (hmod==NULL)
+			return E_NOTIMPL;
+		pfnSAGRI = (HRESULT (STDAPICALLTYPE *)(SAFEARRAY *, IRecordInfo **))
+			GetProcAddress(hmod, "SafeArrayGetRecordInfo");
+		if (pfnSAGRI==NULL)
+			return E_NOTIMPL;
+	}
+	return (*pfnSAGRI)(psa, prinfo);
+}
+#endif // LINK_AGAINST_RECORDINFO
 
 // The owner of the record buffer - many records may point here!
 class PyRecordBuffer
