@@ -1,0 +1,2377 @@
+[token]
+.output=doc,rtf
+.token=^p,\par 
+.token=^t,\tab 
+.token=\,\\
+.token={,\{
+.token=},\}
+.highcharmask=\'%x
+
+.output=help,rtf
+.token=^p,\par 
+.token=^t,\tab 
+.token=\,\\
+.token={,\{
+.token=},\}
+.highcharmask=\'%x
+
+[extension]
+
+; Filename extension types
+; .ext=<extension_text>, c|asm|bas
+
+.ext=c,c
+.ext=cpp,c
+.ext=cxx,c
+.ext=inl,c
+.ext=d,c
+.ext=h,c
+.ext=hpp,c
+.ext=hxx,c
+.ext=asm,asm
+.ext=bas,bas
+.ext=mst,bas
+.ext=frm,bas
+.ext=inc,bas
+.ext=java,c
+
+[constant]
+
+; String constants
+; .output=doc|help|both
+; .define=<constant_name>, <constant_text>
+
+.output=both
+.define=build,dev
+.define=reset,\pard\plain 
+.define=title,Help
+.define=doc_header,Autoduck Output
+.define=par,\par 
+.define=cb,{\b 
+.define=cbe,}
+.define=ci,{\i 
+.define=cie,}
+.define=page,\page 
+;
+; Help constants
+;
+.output=help
+.define=header,\s243\li-1800\sl210\tqr\tx6960 \b\f2\fs19\lang1033 
+.define=heading_4,\s251\sb160\sa40\sl280 \b\f2\lang1033 
+.define=heading_3,\s252\li240\sb160\sa40\sl340 \b\f2\lang1033 
+.define=heading_2,\s253\li240\sb160\sa60\sl380 \b\f0\fs28\lang1033 
+.define=heading_1,\s254\li240\sb200\sa80\sl440 \b\f0\fs36\lang1033 
+.define=normal,\li240\sa160\sl240 \f2\fs20\lang1033 
+.define=table_text,\f2\fs20\lang1033 
+.define=ex,\s28\li240\sl220\tx732\tx1224\tx1716\tx2208\tx2700\tx3192\tx3684\tx4176\tx4668\tx5160\tx5652\tx6144\tx6636\tx7128\tx7620 \f17\fs20\lang1033 
+.define=header_rule,\s44\li-1770\ri30\sb50\sl-80\brdrt\brdrs\brdrw15\brdrcf2 \fs12\lang1033 
+.define=rh1,\s45\li240\sl440\keep\keepn \b\f2\fs34\lang1033 
+.define=rmh,\s46\li240\sb20\sl220 \b\f2\fs21\lang1033 
+.define=term1,\s50\li240\sl240 \f2\fs20\lang1033 
+.define=term2,\s53\li480\sl240 \f2\fs20\lang1033 
+.define=term3,\s53\li720\sl240 \f2\fs20\lang1033 
+.define=def1,\s54\li480\sa80\sl240 \f2\fs20\lang1033 
+.define=def2,\s55\li720\sa80\sl240 \f2\fs20\lang1033 
+.define=def3,\s55\li960\sa80\sl240 \f2\fs20\lang1033 
+.define=def4,\fi-2880\li2880\sa160 \tx2880\tx6930 \fs21\lang1033
+.define=rule,\s57\li-1770\ri30\sb280\sa160\sl120\brdrb\brdrs\brdrw15 \fs8\cf8\lang1033 
+.define=indexlink,\s93\sl240\li240 \f2\fs20\lang1033 
+;
+; Doc constants
+;
+.output=doc
+.define=header,\s243\li-1800\sl-210\tqr\tx6960 \b\f2\fs19\lang1033 
+.define=heading_4,\s251\sb160\sa40\sl-280\keepn \b\f2\lang1033 
+.define=heading_3,\s252\sb160\sa40\sl-340\keepn \b\f2\fs30\lang1033 
+.define=heading_2,\s253\li-1800\sb160\sa60\sl-380\keepn \b\f0\fs34\lang1033 
+.define=heading_1,\s254\li-1800\sb200\sa80\sl-440\keepn \b\f0\fs40\lang1033 
+.define=normal,\sa160\sl240 \fs21\lang1033 
+.define=ex,\s28\sl-220\tx380\tx760\tx1140\tx1520\tx1900\tx2280\tx2660\tx3040\tx3420\tx3800 \f19\fs16\lang1033 
+.define=header_rule,\s44\li-1770\ri30\sb50\sl-80\brdrt\brdrs\brdrw15\brdrcf2 \fs12\lang1033 
+.define=rh1,\s45\li-1800\sa180\sl-440\keepn\tx0 \b\f2\fs40\up8\lang1033 
+.define=rmh,\s46\sb20\sl-220\keepn\pvpara\phpg\posy0\absw1560\dxfrtext240\dfrmtxtx240\dfrmtxty240 \b\f2\fs21\lang1033 
+.define=term1,\s50\sl-240\keepn \f0\fs21\lang1033 
+.define=term2,\s53\li280\sl-240\keepn \f0\fs21\lang1033 
+.define=def1,\s54\li280\sa80\sl-240 \f0\fs21\lang1033 
+.define=def2,\s55\li560\sa80\sl-240 \f0\fs21\lang1033 
+.define=rule,\s57\li-1770\ri30\sb280\sa250\sl-120\keepn\brdrb\brdrs\brdrw15\brdrcf2 \fs8\cf8\lang1033 
+.define=Table_Text,\s25\sa80\widctlpar\intbl \f4\fs21\lang1024 \sbasedon0\snext25 
+.define=indexlink,\s93\sl240 \fs21\lang1033 
+
+[file]
+; ********************************************
+; Help file headers
+; ********************************************
+.output=help
+.pre={\rtf1\ansi \deff0\deflang1033
+
+{\fonttbl
+{\f0\froman Times New Roman;}
+{\f1\froman Symbol;}
+{\f2\fswiss Arial;}
+{\f3\froman Times Roman;}
+{\f4\fnil Univers;}
+{\f5\fnil Univers Medium Condensed;}
+{\f6\fnil Univers Condensed;}
+{\f7\fswiss LetterGothic;}
+{\f8\fdecor ZapfDingbats;}
+{\f9\fnil Lucida Stars;}
+{\f10\fswiss Helvetica-Narrow;}
+{\f11\fswiss CB Univers 67 CondensedBold;}
+{\f12\froman Times;}
+{\f13\fmodern Letter Gothic MS;}
+{\f14\fswiss C Univers 57 Condensed;}
+{\f15\fnil MSIcons;}
+{\f16\fswiss Arial Narrow;}
+{\f17\fmodern Courier;}
+{\f18\fnil Wingdings;}
+}
+
+{\colortbl;
+\red0\green0\blue0;
+\red0\green0\blue255;
+\red0\green255\blue255;
+\red0\green255\blue0;
+\red255\green0\blue255;
+\red255\green0\blue0;
+\red255\green255\blue0;
+\red255\green255\blue255;
+\red0\green0\blue127;
+\red0\green127\blue127;
+\red0\green127\blue0;
+\red127\green0\blue127;
+\red127\green0\blue0;
+\red127\green127\blue0;
+\red127\green127\blue127;
+\red192\green192\blue192;
+}
+
+{\stylesheet
+{$(header)header;}
+{$(heading_4)heading 4;}
+{$(heading_3)heading 3;}
+{$(heading_2)heading 2;}
+{$(heading_1)heading 1;}
+{$(normal)Normal;}
+{$(ex)Ex;}
+{$(header_rule)header rule;}
+{$(rh1)Rh1;}
+{$(rmh)Rmh;}
+{$(term1)Term1;}
+{$(term2)Term2;}
+{$(def1)Def1;}
+{$(def2)Def2;}
+{$(rule)Rule;}
+{$(indexlink)Index Link;}
+{$(table_text)Table Text;}
+}
+
+\paperw12240\paperh15840\margl3330\margr1530\margt-2540\margb-2220\gutter420 
+\facingp\deftab280\widowctrl\ftnbj 
+
+\sectd \binfsxn1\binsxn1\linex0\headery1990\footery360\endnhere\titlepg 
+
+{\headerl $(reset)$(header)
+{\field\flddirty{\*\fldinst PAGE}{\fldrslt 4}}{\expnd50  }$(doc_header) - $!d\par 
+$(reset)$(header_rule)\par }
+
+{\headerr $(reset)$(header)
+\tab $(doc_header) - $!d{\expnd50   }
+{\field\flddirty{\*\fldinst PAGE}{\fldrslt 3}}
+\par $(reset)$(header_rule)
+\par }
+
+.post=}
+
+; ********************************************
+; Doc file headers
+; ********************************************
+.output=doc
+.pre={\rtf1\ansi \deff0\deflang1033
+
+{\fonttbl
+{\f0\froman Times New Roman;}
+{\f2\fswiss Arial;}
+{\f19\fmodern\fcharset0\fprq1 Courier New;}
+}
+
+{\colortbl;
+\red0\green0\blue0;
+\red0\green0\blue255;
+\red0\green255\blue255;
+\red0\green255\blue0;
+\red255\green0\blue255;
+\red255\green0\blue0;
+\red255\green255\blue0;
+\red255\green255\blue255;
+\red0\green0\blue127;
+\red0\green127\blue127;
+\red0\green127\blue0;
+\red127\green0\blue127;
+\red127\green0\blue0;
+\red127\green127\blue0;
+\red127\green127\blue127;
+\red192\green192\blue192;
+}
+
+
+{\stylesheet
+{$(header)header;}
+{$(heading_4)heading 4;}
+{$(heading_3)heading 3;}
+{$(heading_2)heading 2;}
+{$(heading_1)heading 1;}
+{\*\cs10 \additive Default Paragraph Font;}
+{$(normal)Normal;}
+{$(ex)Ex;}
+{$(header_rule)header rule;}
+{$(rh1)Rh1;}
+{$(rmh)Rmh;}
+{$(term1)Term1;}
+{$(term2)Term2;}
+{$(def1)Def1;}
+{$(def2)Def2;}
+{$(rule)Rule;}
+{$(indexlink)Index Link;}
+{$(table_text)Table Text;}
+}
+
+\paperw12240\paperh15840\margl3330\margr1530\margt-2540\margb-2220\gutter420 
+\facingp\deftab280\widowctrl\ftnbj 
+
+\sectd \binfsxn1\binsxn1\linex0\headery1990\footery360\endnhere\titlepg 
+
+{\headerl $(reset)$(header)
+{\field\flddirty{\*\fldinst PAGE}{\fldrslt 4}}{\expnd50  }$(doc_header) - $!d\par 
+$(reset)$(header_rule)\par }
+
+{\headerr $(reset)$(header)
+\tab $(doc_header) - $!d{\expnd50   }
+{\field\flddirty{\*\fldinst PAGE}{\fldrslt 3}}
+\par $(reset)$(header_rule)
+\par }
+
+.post=}
+
+[topic]
+;
+; *****************************************
+; Java Topics
+; *****************************************
+
+; FOR DOC OUTPUT *****************
+
+; [<modifier>] class <class name> [extends <class name>] [implements <interface name> [, <interface name>]]
+; the implements list is tagged as a separate set of @jimp paragraph tags.
+
+.tag=jclass, doc, 5, 20, $2
+.parsesource=jclass
+.pre=$(reset)$(rule)$(par)
+$(reset)$(heading_1)$!n class$(par)
+$(reset)$(normal)$[jclass]$(par)
+$(reset)$(normal)$5$(par)
+$(reset)$(normal)Defined in: $!P$(par)
+
+
+; // [<modifier list>] <type name> <method name> [throws <class name>] (parameter list)
+; // @jmethod [<modifier list>] | <type name> | <class name> | <method name> | [<throws class name>] | description
+
+.tag=jmethod, doc, 6, 20, $3.$4
+.order=rdesc jparm comm ex
+.pre=$(reset)$(rule)$(par)
+$(reset)$(heading_1)$!n method$(par)
+$(reset)$(normal)$[jmethod]$(par)
+$(reset)$(normal)$6$(par)
+$(reset)$(normal)Defined in: $!P$(par)
+
+; FOR HELP OUTPUT *****************
+
+.tag=jclass, help, 5, 20, $2
+.parsesource=jclass
+.pre=$(page)
+$(reset)$(heading_1)
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K classes; $!n}
++{\footnote + classes:0000} 
+$!n class$(par)
+$(reset)$(normal)$[jclass]$(par)
+$(reset)$(normal)$5$(par)
+$(reset)$(normal)Defined in: $!P$(par)
+
+.tag=jmethod, help, 6, 20, $3.$4
+.order=rdesc jparm comm ex
+.pre=$(page)
+$(reset)$(heading_1)
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K methods; $!n}
++{\footnote + methods:0000} 
+$!n method$(par)
+$(reset)$(normal)$[jmethod]$(par)
+$(reset)$(normal)$6$(par)
+$(reset)$(normal)Defined in: $!P$(par)
+
+
+;
+; *****************************************
+; Basic Topics
+; *****************************************
+
+.tag=bfunc,doc, 4, 20, $2
+.order=rdesc bparm comm ex
+.parsesource=bfunc
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$2\par 
+$[bfunc]
+$(reset)$(normal)$4\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+
+.tag=bfunc, help, 4, 20, $2
+.order=rdesc bparm comm ex
+.parsesource=bfunc
+.pre=\page 
+$(reset)$(heading_1)
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K functions; $!n}
++{\footnote + functions:0000} 
+$2\par 
+$[bfunc]
+$(reset)$(normal)$4\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+
+.tag=bsub,doc, 3, 20, $2
+.order=rdesc bparm comm ex
+.parsesource=bsub
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$2\par 
+$[bsub]
+$(reset)$(normal)$3\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+
+.tag=bsub, help, 3, 20, $2
+.order=rdesc bparm comm ex
+.parsesource=bsub
+.pre=\page 
+$(reset)$(heading_1)
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K functions; $!n}
++{\footnote + functions:0000} 
+$2\par 
+$[bsub]
+$(reset)$(normal)$3\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+.tag=btype, doc, 3, 20, $2
+.order=bfield comm ex
+.parsesource=btype
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$2\par 
+$[bstruct]
+$(reset)$(normal)$3\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+
+.tag=btype, help, 3, 20, $2
+.order=bfield comm ex
+.parsesource=btype
+.pre=\page 
+$(reset)$(heading_1)
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K functions; $!n}
++{\footnote + functions:0000} 
+$2\par 
+$[bstruct]
+$(reset)$(normal)$3\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+;
+; ***********************************************************
+; C Language topics
+; ***********************************************************
+
+; Functions
+
+.tag=func, doc, 3, 20, $2
+.order=syntax rdesc parm parmvar comm ex
+.parsesource=function
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$2\par 
+$[function]
+$(reset)$(normal)$3\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+.tag=func, help, 3, 20, $2
+.order=syntax rdesc parm parmvar comm ex
+.parsesource=function
+.pre=\page 
+$(reset)$(heading_1)
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K functions; $!n}
++{\footnote + functions:0000} 
+$2\par 
+$[function]
+$(reset)$(normal)$3\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+; Functions
+
+.tag=cb, doc, 3, 20, $2
+.order=syntax rdesc parm parmvar comm ex
+.parsesource=function
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$2\par 
+$[function]
+$(reset)$(normal)$3\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+.tag=cb, help, 3, 20, $2
+.order=syntax rdesc parm parmvar comm ex
+.parsesource=function
+.pre=\page 
+$(reset)$(heading_1)
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K callback functions; functions; $!n callback function}
++{\footnote + functions:0000} 
+$2\par 
+$[function]
+$(reset)$(normal)$3\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+; Messages
+
+.tag=msg, doc, 2, 30, $1
+.order=rdesc parm comm ex
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$1\par 
+$(reset)$(normal)$2\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+.tag=msg, help, 2, 30, $1
+.order=rdesc parm comm ex
+.pre=\page $(reset)$(heading_1)
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K messages; $!n}
++{\footnote + messages:0000} 
+$1\par 
+$(reset)$(normal)$2\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+; Constants
+
+.tag=const, doc, 3, 30, $2
+.order=comm ex
+.parsesource=constant
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$2 constant\par 
+$(reset)$(normal)$[constant]\par 
+$(reset)$(normal)Defined in: $!P\par 
+$(reset)$(normal)$3\par 
+
+.tag=const, help, 3, 30, $2
+.order=comm ex
+.parsesource=constant
+.pre=\page $(reset)$(heading_1)
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K constants; $!n constant}
++{\footnote + constants:0000} 
+$2 constant\par 
+$(reset)$(normal)$[constant]\par 
+$(reset)$(normal)Defined in: $!P\par 
+$(reset)$(normal)$3\par 
+
+; Data types (typedefs, etc.)
+
+.tag=type, doc, 2, 50, $1
+.order=field comm ex
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$1\par 
+$(reset)$(normal)$2\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+.tag=type, help, 2, 50, $1
+.order=field comm ex
+.pre=\page 
+$(reset)$(heading_1)
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K types; typedefs; $1}
++{\footnote + struct:0000} 
+$1\par 
+$(reset)$(normal)$2\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+; Structures
+
+.tag=struct, doc, 2, 50, $1
+.parsesource=struct
+.order=field comm ex
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$1 Structure\par 
+$[structure]
+$(reset)$(normal)$2\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+.tag=struct, help, 2, 50, $1
+.parsesource=struct
+.order=field comm ex
+.pre=\page 
+$(reset)$(heading_1)
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K types; structures; $1}
++{\footnote + struct:0000} 
+$1 Structure\par 
+$[structure]
+$(reset)$(normal)$2\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+; Modules
+
+.tag=module, doc, 2, 10, $1
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)Module $1\par 
+$(reset)$(normal)Filename: $!P\par 
+$(reset)$(rmh)Description\par 
+$(reset)$(normal)$2\par 
+
+.tag=module, help, 2, 10, $1
+.pre=\page 
+$(reset)$(heading_1)
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K modules; $1}
++{\footnote + overviews:0000} 
+Module $1\par 
+$(reset)$(normal)Filename: $!P\par 
+$(reset)$(rmh)Description\par 
+$(reset)$(normal)$2\par 
+
+; Enumeration Types
+
+.tag=enum, doc, 2, 50, $1
+.parsesource=enum
+.order=emem comm ex
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$1\par 
+$[enum]
+$(reset)$(normal)$2\par
+$(reset)$(normal)Defined in: $!P\par 
+
+.tag=enum, help, 2, 50, $1
+.order=emem comm ex
+.parsesource=enum
+.pre=\page $(reset)$(heading_1)
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K types; enumeration types; $1}
++{\footnote + types:0000} 
+$(reset)$(heading_1)$1\par
+$[enum]
+$(reset)$(normal)$2\par
+$(reset)$(normal)Defined in: $!P\par 
+
+; ***********************************************************
+; C++ Language topics
+; ***********************************************************
+
+; Classes
+
+.tag=class, doc, 2, 20, $1
+.parsesource=class
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$1 Class\par 
+$[class]
+$(reset)$(normal)$2\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+.tag=class, help, 2, 20, $1
+.parsesource=class
+.pre=\page
+$(reset)$(heading_1)
+##{\footnote ## $!c}
+$${\footnote $$ $!n (class)}
+K{\footnote K classes; $!n}
++{\footnote + classes:0000} 
+$1 Class\par 
+$[class]
+$(reset)$(normal)$2\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+; Member Classes
+
+.tag=mclass, doc, 3, 20, $1::$2
+.parsesource=class
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$!n Class\par 
+$[mclass]
+$(reset)$(normal)$3\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+.tag=mclass, help, 3, 20, $1::$2
+.parsesource=class
+.pre=\page
+$(reset)$(heading_1)
+##{\footnote ## $!c}
+$${\footnote $$ $!n (class)}
+K{\footnote K classes; $!n}
++{\footnote + classes:0000} 
+$!n Class\par 
+$[mclass]
+$(reset)$(normal)$3\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+; Member functions
+
+.tag=mfunc, doc, 4, 20, $2::$3
+.context=$2::$3
+.order=syntax rdesc parm comm ex
+.parsesource=memberfunction
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$2::$3\par 
+$[mfunction]
+$(reset)$(normal)$4\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+.tag=mfunc, help, 4, 20, $2::$3
+.context=$2::$3
+.order=syntax rdesc parm comm ex
+.parsesource=memberfunction
+.pre=\page 
+$(reset)$(heading_1)
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K functions; member functions; class member functions; $3; $!n}
++{\footnote + functions:0000} 
+$2::$3\par 
+$[mfunction]
+$(reset)$(normal)$4\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+; Member data
+
+.tag=mdata, doc, 4, 20, $2::$3
+.order=comm ex
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$2::$3\par 
+$[mdata]
+$(reset)$(normal)$4\par 
+
+.tag=mdata, help, 4, 20, $2::$3
+.order=comm ex
+.pre=\page 
+$(reset)$(heading_1)
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K member data; class member data; $2::$3}
++{\footnote + functions:0000} 
+$2::$3\par 
+$[mdata]
+$(reset)$(normal)$4\par 
+
+; Member structure
+
+.tag=mstruct, doc, 3, 50, $1::$2
+.order=field comm ex
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$1::$2 Structure\par 
+$[structure]
+$(reset)$(normal)$3\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+.tag=mstruct, help, 3, 50, $1::$2
+.order=field comm ex
+.pre=\page 
+$(reset)$(heading_1)
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K types; structures; $!n}
++{\footnote + struct:0000} 
+$1::$2 Structure\par 
+$[structure]
+$(reset)$(normal)$3\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+; Member enumerations
+;
+.tag=menum, doc, 3, 50, $1::$2
+.order=emem comm ex
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$1::$2\par 
+$[enum]
+$(reset)$(normal)$3\par
+$(reset)$(normal)Defined in: $!P\par 
+
+.tag=menum, help, 3, 50, $1::$2
+.order=emem comm ex
+.pre=\page $(reset)$(heading_1)
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K types; enumeration types; $1; $!n}
++{\footnote + types:0000} 
+$(reset)$(heading_1)$!n\par
+$[enum]
+$(reset)$(normal)$3\par
+$(reset)$(normal)Defined in: $!P\par 
+;
+
+;
+; ***********************************************************
+; OLE topics
+; ***********************************************************
+
+; Objects
+; @object	Point2D | Represents a two-dimensional coordinate.
+
+.tag=object, doc, 2, 20, $1
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$1 Object\par
+$(reset)$(rmh)Description\par 
+$(reset)$(normal)$2\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+.tag=object, help, 2, 20, $1
+.pre=\page 
+##{\footnote ## $!c}
+$${\footnote $$ $1 object}
+K{\footnote K OLE objects; objects; $1 object}
++{\footnote + OLE:0000} 
+$(reset)$(heading_1)$1 Object\par
+$(reset)$(normal)$2\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+; Abstract objects
+
+.tag=abstract, doc, 2, 20, $1
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$1 Abstract Object\par
+$(reset)$(rmh)Description\par 
+$(reset)$(normal)$2\par 
+
+.tag=abstract, help, 2, 20, $1
+.pre=\page 
+##{\footnote ## $!c}
+$${\footnote $$ $1 abstract object}
+K{\footnote K abstract objects; $1 abstract object; $1 object}
++{\footnote + OLE:0000} 
+$(reset)$(heading_1)$1 Abstract Object\par
+$(reset)$(normal)$2\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+; Interfaces
+
+.tag=interface, doc, 2, 20, $1
+.context=$1_int
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$1 Interface\par
+$(reset)$(normal)$2\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+.tag=interface, help, 2, 20, $1
+.context=$1_int
+.pre=\page 
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K OLE interfaces; interfaces; $!n interface}
++{\footnote + OLE:0000} 
+$(reset)$(heading_1)$!n\par
+$(reset)$(normal)$2\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+; Object methods
+
+.tag=method, doc, 4, 20, $2::$3
+.context=$2::$3_meth
+.order=rvalue rdesc parm comm ex
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$2::$3 Method\par 
+$[method]
+$(reset)$(normal)$4\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+.tag=method, help, 4, 20, $2::$3
+.context=$2::$3_meth
+.order=rvalue rdesc parm comm ex
+.pre=\page 
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K interface methods; methods; $3 method;$!n method}
++{\footnote + OLE:0000} 
+$(reset)$(heading_1)$!n\par 
+$[method]
+$(reset)$(normal)$4\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+; Object properties
+
+.tag=property, doc, 4, 20, $2::$3
+.order=rdesc comm ex
+.context=$2::$3_prop
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$2::$3 Property\par
+$(reset)$(rmh)Data Type\par 
+$(reset)$(normal){\b $1}\par 
+$(reset)$(rmh)Description\par 
+$(reset)$(normal)$4\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+.tag=property, help, 4, 20, $2::$3
+.order=rdesc comm ex
+.context=$2::$3_prop
+.pre=\page 
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K OLE object properties; properties; $3 property;$!n property}
++{\footnote + OLE:0000} 
+$(reset)$(heading_1)$!n\par 
+$(reset)$(rmh)Data Type\par 
+$(reset)$(normal){\b $1}\par 
+$(reset)$(rmh)Description\par 
+$(reset)$(normal)$4\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+; Object events
+
+.tag=event, doc, 3, 20, $1::$2
+.context=$1::$2_event
+.order=parm comm ex
+.pre=$(reset)$(rule)\par 
+$(reset)$(heading_1)$!n\par
+$[event]
+$(reset)$(rmh)Description\par 
+$(reset)$(normal)$3\par 
+$(reset)$(normal)Defined in: $!P\par 
+
+.tag=event, help, 3, 20, $1::$2
+.context=$1::$2_event
+.order=parm comm ex
+.pre=\page 
+##{\footnote ## $!c}
+$${\footnote $$ $!n}
+K{\footnote K OLE object events; events; $2 event;$!n event}
++{\footnote + OLE:0000} 
+$(reset)$(heading_1)$1::$2 Event\par 
+$[event]
+$(reset)$(rmh)Description\par 
+$(reset)$(normal)$3\par 
+$(reset)$(normal)Defined in: $!P\par 
+;
+; ***********************************************************
+; Overview Topics
+; ***********************************************************
+
+.tag=topic, doc, 2, 5, $1
+.pre=\pard\plain $(heading_1)$1\par 
+\pard\plain $(normal)$2\par 
+
+.tag=topic, help, 2, 5, $1
+.pre=\page \pard\plain $(heading_1)
+##{\footnote ## #1}
+$${\footnote $$ $1}
+K{\footnote K $1}
++{\footnote + overviews:0000} 
+$1\par 
+\pard\plain $(normal)$2\par 
+
+;
+; ***********************************************************
+; Contents topics
+; ***********************************************************
+
+.tag=Contents1, doc, 2, 0, __aaa$1
+.pre=$(reset)$(heading_1)$1\par 
+$(reset)$(indexlink)$2\par 
+
+.tag=contents1, help, 2, 0, __aaa$1
+.pre=\pard\plain $(heading_1)
+##{\footnote ## #1}
+$${\footnote $$ $1}
+K{\footnote K $1}
++{\footnote + Contents:0000} 
+$1\par 
+$(reset)$(indexlink)$2\par 
+
+.tag=Contents2, doc, 2, 0, _aaa$1
+.pre=$(reset)$(heading_1)$1\par 
+$(reset)$(indexlink)$2\par 
+
+.tag=contents2, help, 2, 0, _aaa$1
+.pre=\page $(reset)$(heading_1)
+##{\footnote ## #1}
+$${\footnote $$ $1}
+K{\footnote K $1}
++{\footnote + Contents:0000} 
+$1\par 
+$(reset)$(indexlink)$2\par 
+
+; ***********************************************************************
+; ***********************************************************************
+; Paragraph section
+
+[paragraph]
+;
+; ***********************************************************
+; Java tags
+; ***********************************************************
+
+; *** for PRINT **************************
+
+; // [<modifier list>] <type name> <method name> [throws <class name>] (parameter list)
+.tag=jmeth, both, 6, 1
+.parsesource=jmethod
+.pre=$(reset)$(rmh)Methods$(par)
+.format=$(reset)$(term1)$(cb)$[jmodifier]$[jmtype]$[jmlinkname]$[jthrowsp]$5$(cbe)$(par)
+$(reset)$(def1)$6$(par)
+.map=jmethod,$1,$2,$t.2,$3,$4,$6
+
+
+; Parameters
+.tag=jparm, doc, 3, 1
+.parsesource=jparameter
+.pre=$(reset)$(rmh)Parameters$(par)
+.format=$(reset)$(term1)$(ci)$2$(cie)$(par)
+$(reset)$(def1)$3$(par)
+
+
+;
+; ***********************************************************
+; Basic tags
+; ***********************************************************
+;
+.tag=bparm, both, 4, 1
+.parsesource=bparameter
+.pre=$(reset)$(rmh)Parameters\par 
+.format=$(reset)$(term1){\i $2}\par 
+$(reset)$(def1)$4\par 
+
+.tag=bfield, both, 3, 1
+.parsesource=bfield
+.pre=$(reset)$(rmh)Fields\par 
+.format=$(reset)$(term1)$1\par 
+$(reset)$(def1)$3\par 
+
+
+
+;
+; ***********************************************************
+; C Tags
+; ***********************************************************
+
+; Parameters
+.tag=parm, both, 3, 1
+.parsesource=parameter
+.pre=$(reset)$(rmh)Parameters\par 
+.format=$(reset)$(term1){\i $2}\par 
+$(reset)$(def1)$3\par 
+
+; Optional Parameters
+.tag=parmopt, both, 4, 1
+.parsesource=parameteropt
+.pre=$[parmopthead]
+.format=$(reset)$(term1){\i $2}\par 
+$(reset)$(def1)$4\par 
+
+; Variable length parameter list
+.tag=parmvar, both, 1, 1
+.pre=$(reset)$(rmh)Parameters\par 
+.format=$(reset)$(term1){\b ...}\par 
+$(reset)$(def1)$1\par 
+
+; Class template arguments 
+.tag=tcarg, both, 3, 1
+.parsesource=parameter
+.pre=$(reset)$(rmh)Class Template Arguments\par 
+.format=$(reset)$(term1){\i $2}\par 
+$(reset)$(def1)$3\par 
+
+; Function template arguments 
+.tag=tfarg, both, 3, 1
+.parsesource=parameter
+.pre=$(reset)$(rmh)Function Template Arguments\par 
+.format=$(reset)$(term1){\i $2}\par 
+$(reset)$(def1)$3\par 
+
+.tag=field, both, 3, 1
+.parsesource=field
+.pre=$(reset)$(rmh)Members\par 
+.format=$(reset)$(term1){\b $2}\par 
+$(reset)$(def1)$3\par 
+
+.tag=flag, both, 2, 2
+.format=$(reset)$(term2)$1\par 
+$(reset)$(def2)$2\par 
+
+.tag=rdesc, both, 1, 1
+.pre=$(reset)$(rmh)Return Value\par 
+.format=$(reset)$(normal)$1\par 
+
+.tag=emem, both, 2, 1
+.parsesource=emem
+.pre=\pard\plain $(rmh)Members\par 
+.format=\pard\plain $(term1){\b $1}\par 
+\pard\plain $(def1)$2\par 
+
+.tag=field, both, 3, 1
+.parsesource=parameter
+.pre=$(reset)$(rmh)Members\par 
+.format=$(reset)$(term1){\b $2}\par 
+$(reset)$(def1)$3\par 
+
+; Global variables
+.tag=globalv, help, 3, 1
+.parsesource=parameter
+.pre=$(reset)$(rmh)Global Variables\par 
+.format=$(reset)$(term1){\uldb $1}{\v $1} {\b $2}\par 
+$(reset)$(def1)$3\par 
+.if=exists($1)
+
+.tag=globalv, both, 3, 1
+.parsesource=parameter
+.pre=$(reset)$(rmh)Global Variables\par 
+.format=$(reset)$(term1){\b $1 $2}\par 
+$(reset)$(def1)$3\par 
+;
+; ***********************************************************
+; Misc Tags
+; ***********************************************************
+
+.tag=comm, both, 1, 1
+.pre=$(reset)$(rmh)Comments\par 
+.format=$(reset)$(normal)$1\par 
+
+.tag=xref, both, 1, 1
+.pre=$(reset)$(rmh)See Also\par 
+.format=$(reset)$(normal)$1\par 
+
+.tag=ex, both, 2, 1, 1
+.pre=$(reset)$(rmh)Example\par 
+.format=$(reset)$(normal)$1\par 
+$(reset)$(ex)$2\par 
+$(reset)$(ex)\par 
+
+.tag=iex, both, 1, 8, 1
+.format=$(reset)$(ex)$1\par 
+$(reset)$(ex)\par 
+
+.tag=devnote, both, 1, 1
+.pre=$(reset)$(rmh)\cf6 Developer Notes\par 
+.format=$(reset)$(normal)\cf6 $1\par 
+
+.tag=todo, both, 1, 1
+.pre=$(reset)$(rmh)\cf6 To Do\par 
+.format=$(reset)$(normal)\cf6 $1\par 
+
+.tag=syntax, both, 1, 1
+.pre=\pard\plain $(rmh)Syntax\par 
+.format=\pard\plain $(normal)$1\par 
+
+;
+; ***********************************************************
+; C++ Tags
+; ***********************************************************
+
+.tag=access, both, 1, 1
+.pre=$(reset)$(rmh)Class Members\par 
+.format=$(reset)$(normal){\b $1}\par 
+
+.tag=fr, help, 2, 1
+.parsesource=friend
+.pre=$(reset)$(rmh)Class Friends\par 
+.format=$(reset)$(normal){\uldb $1}{\v #1}{\b :}  $2\par 
+.if=exists($1)
+
+.tag=fr, both, 2, 1
+.parsesource=friend
+.pre=$(reset)$(rmh)Class Friends\par 
+.format=$(reset)$(normal){\b $1:}  $2\par 
+
+;@CMEMBER
+; Replacement for @member - uses automatic parsing, 4 fields
+
+; link name and type - data member
+
+.tag=cmember, help, 4, 2
+.pre=$[classhdr]
+.format=$(reset)$(term1){\uldb $1}{\v #1} {\uldb $2}{\v #class.1__#2}\par 
+$(reset)$(def1)$4\par 
+
+.if=exists($class.1::$<2),fieldempty(3),exists($1)
+.parsesource=classmember
+.map=mfunc,$1,$t.1,$2,$4
+.map=menum,$t.1,$2,$4
+.map=mstruct,$t.1,$2,$4
+.map=mclass,$t.1,$2,$4
+
+; link name and type - function member
+
+.tag=cmember, help, 4, 2
+.pre=$[classhdr]
+.format=$(reset)$(term1){\uldb $1}{\v #1} {\uldb $2}{\v #class.1__#2}{\b $3}\par 
+$(reset)$(def1)$4\par 
+
+.if=exists($class.1::$<2),exists($1)
+.parsesource=classmember
+
+; link name - data member
+
+.tag=cmember, help, 4, 2
+.pre=$[classhdr]
+.format=$(reset)$(term1){\b $1} {\uldb $2}{\v #class.1__#2}\par 
+$(reset)$(def1)$4\par 
+
+.if=exists($class.1::$<2),fieldempty(3)
+.parsesource=classmember
+
+; link name - function member, no return value
+
+.tag=cmember, help, 4, 2
+.pre=$[classhdr]
+.format=$(reset)$(term1){\uldb $2}{\v #class.1__#2}{\b $3}\par 
+$(reset)$(def1)$4\par 
+
+.if=exists($class.1::$<2),fieldempty(1)
+.parsesource=classmember
+
+; link name - function member
+
+.tag=cmember, help, 4, 2
+.pre=$[classhdr]
+.format=$(reset)$(term1){\b $1} {\uldb $2}{\v #class.1__#2}{\b $3}\par 
+$(reset)$(def1)$4\par 
+
+.if=exists($class.1::$<2)
+.parsesource=classmember
+
+; no links or doc - data member
+
+.tag=cmember, both, 4, 2
+.pre=$[classhdr]
+.format=$(reset)$(term1){\b $1 $2}\par 
+$(reset)$(def1)$4\par 
+
+.parsesource=classmember
+.if=fieldempty(3)
+.map=mfunc,$1,$t.1,$2,$4
+.map=menum,$t.1,$2,$4
+.map=mstruct,$t.1,$2,$4
+.map=mclass,$t.1,$2,$4
+
+; no links or doc - function member, no return value
+
+.tag=cmember, both, 4, 2
+.pre=$[classhdr]
+.format=$(reset)$(term1){\b $2$3}\par 
+$(reset)$(def1)$4\par 
+
+.parsesource=classmember
+.if=fieldempty(1)
+
+; no links or doc - function member
+
+.tag=cmember, both, 4, 2
+.pre=$[classhdr]
+.format=$(reset)$(term1){\b $1 $2$3}\par 
+$(reset)$(def1)$4\par 
+
+.parsesource=classmember
+
+; Old @member tag
+
+.tag=member, help, 2, 2
+.format=$(reset)$(term1){\uldb $1}{\v #class.1__#1}\par 
+$(reset)$(def1)$2\par 
+.if=exists($class.1::$1)
+
+.tag=member, both, 2, 2
+.format=$(reset)$(term1){\b $1}\par 
+$(reset)$(def1)$2\par 
+
+; used to specify base classes for a C++ class
+;
+; in an "@interface" topic we actually show the base class.
+; in an "@class" topic the base class shows up in the diagram.
+
+.tag=base, help, 2, 1
+.pre=$(reset)$(rmh)Based On\par 
+.format=$(reset)$(normal){\uldb $2}{\v $2_int}\par 
+.if=exists($2_int), tagexists(interface)
+
+.tag=base, both, 2, 1
+.pre=$(reset)$(rmh)Based On\par 
+.format=$(reset)$(normal){\b $2}\par 
+.if=tagexists(interface)
+
+.tag=base, both, 2, 1
+.format=
+
+; used to add "const" keyword to end of member function diagram
+
+.tag=this, both, 1, 1
+.format=
+
+;
+; ***********************************************************
+; OLE Tags
+; ***********************************************************
+
+; *** Methods ***
+
+;link type and name
+
+.tag=meth, help, 3, 1
+.map=method,$1,$t.1,$2,$3
+.parsesource=method
+.pre=$(reset)$(rmh)Methods\par 
+.format=$(reset)$(term1){\uldb $1}{\v #1} {\uldb $2}{\v I#interface.1__#2_meth}\par 
+$(reset)$(def1)$3\par 
+.if=exists($1),exists($interface.1::$2_meth)
+
+; link name
+
+.tag=meth, help, 3, 1
+.parsesource=method
+.pre=$(reset)$(rmh)Methods\par 
+.format=$(reset)$(term1){\b $1} {\uldb $2}{\v #interface.1__#2_meth}\par 
+$(reset)$(def1)$3\par 
+.if=exists($interface.1::$2_meth)
+
+; link type only
+
+.tag=meth, help, 3, 1
+.parsesource=method
+.pre=$(reset)$(rmh)Methods\par 
+.format=$(reset)$(term1){\uldb $1}{\v #1} {\b $2}\par 
+$(reset)$(def1)$3\par 
+.if=exists($1)
+
+; no links or doc
+
+.tag=meth, both, 3, 1
+.parsesource=method
+.map=method,$1,$t.1,$2,$3
+.pre=$(reset)$(rmh)Methods\par 
+.format=$(reset)$(term1){\b $1 $2}\par 
+$(reset)$(def1)$3\par 
+
+; *** Properties ***
+
+;link type and name, if type is an interface
+
+.tag=prop, help, 3, 1
+.map=property,$1,$t.1,$2,$3
+.parsesource=method
+.pre=$(reset)$(rmh)Properties\par 
+.format=$(reset)$(term1){\uldb $1}{\v #1_int} {\uldb $2}{\v #interface.1__#2_prop}\par 
+$(reset)$(def1)$3\par 
+.if=tagexists(interface),exists($1_int),exists($interface.1::$2_prop)
+
+;link type and name
+
+.tag=prop, help, 3, 1
+.parsesource=method
+.pre=$(reset)$(rmh)Properties\par 
+.format=$(reset)$(term1){\uldb $1}{\v #1} {\uldb $2}{\v #interface.1__#2_prop}\par 
+$(reset)$(def1)$3\par 
+.if=exists($1),exists($interface.1::$2_prop)
+
+;link name only
+
+.tag=prop, help, 3, 1
+.parsesource=method
+.pre=$(reset)$(rmh)Properties\par 
+.format=$(reset)$(term1){\b $1} {\uldb $2}{\v #interface.1__#2_prop}\par 
+$(reset)$(def1)$3\par 
+.if=exists($interface.1::$2_prop)
+
+; link type only, if type is an interface
+
+.tag=prop, help, 3, 1
+.parsesource=method
+.pre=$(reset)$(rmh)Properties\par 
+.format=$(reset)$(term1){\uldb $1}{\v #1_int} {\b $2}\par 
+$(reset)$(def1)$3\par 
+.if=exists($1_int)
+
+; link type only
+
+.tag=prop, help, 3, 1
+.parsesource=method
+.pre=$(reset)$(rmh)Properties\par 
+.format=$(reset)$(term1){\uldb $1}{\v #1} {\b $2}\par 
+$(reset)$(def1)$3\par 
+.if=exists($1)
+
+; link neither, or doc
+
+.tag=prop, both, 3, 1
+.parsesource=method
+.map=property,$1,$t.1,$2,$3
+.pre=$(reset)$(rmh)Properties\par 
+.format=$(reset)$(term1){\b $1 $2}\par 
+$(reset)$(def1)$3\par 
+
+; *** Events *** 
+
+;link name
+
+.tag=eve, help, 2, 1
+.parsesource=method
+.map=event,$t.1,$1,$2
+.pre=$(reset)$(rmh)Events\par 
+.format=$(reset)$(term1){\uldb $1}{\v #interface.1__#1_event}\par 
+$(reset)$(def1)$2\par 
+.if= exists($interface.1::$1_event)
+
+; no link, or doc
+
+.tag=eve, both, 2, 1
+.parsesource=method
+.map=event,$t.1,$1,$2
+.pre=$(reset)$(rmh)Events\par 
+.format=$(reset)$(term1){\b $1}\par 
+$(reset)$(def1)$2\par 
+
+.tag=rvalue, doc, 2, 1
+.pre=$(reset)$(rmh)Return Codes\par
+\trowd \trgaph72\trleft-72 \cellx3078\cellx7038 
+.format=$(reset)\intbl$(table_text){\fs18 $1\cell $2\cell }\pard \intbl \row 
+.post=$(reset)\li240\sa0\sl240 \f2\fs20\lang1033 \par 
+
+.tag=rvalue, help, 2, 1
+.pre=$(reset)$(rmh)Return Codes\par
+\trowd \trgaph108\trleft162 \cellx2430\cellx8748 
+.format=$(reset)\intbl $(table_text){\fs16 $1}\cell $2\cell \pard \intbl \row 
+.post=$(reset)$(normal)\par 
+
+; link interface name
+
+.tag=supint, help, 2, 1
+.pre=$(reset)$(rmh)Supported Interfaces\par 
+.format=$(reset)$(term1){\uldb $1}{\v #1_int}\par 
+$(reset)$(def1)$2\par 
+.if=exists($1_int)
+
+; no link, or doc
+
+.tag=supint, both, 2, 1
+.pre=$(reset)$(rmh)Supported Interfaces\par 
+.format=$(reset)$(term1){\b $1}\par 
+$(reset)$(def1)$2\par 
+
+; link interface name
+
+.tag=reqint, help, 2, 1
+.pre=$(reset)$(rmh)Required Interfaces\par 
+.format=$(reset)$(term1){\uldb $1}{\v #1_int}\par 
+$(reset)$(def1)$2\par 
+.if=exists($1_int)
+
+; no link, or doc
+
+.tag=reqint, both, 2, 1
+.pre=$(reset)$(rmh)Required Interfaces\par 
+.format=$(reset)$(term1){\b $1}\par 
+$(reset)$(def1)$2\par 
+
+; link interface name
+
+.tag=optint, help, 2, 1
+.pre=$(reset)$(rmh)Optional Interfaces\par 
+.format=$(reset)$(term1){\uldb $1}{\v #1_int}\par 
+$(reset)$(def1)$2\par 
+.if=exists($1_int)
+
+; no link, or doc
+
+.tag=optint, both, 2, 1
+.pre=$(reset)$(rmh)Optional Interfaces\par 
+.format=$(reset)$(term1){\b $1}\par 
+$(reset)$(def1)$2\par 
+
+; Interfaces/objects that support a property or method
+
+.tag=supby, both, 1, 1
+.pre=$(reset)$(rmh)Supported By\par 
+.format=$(reset)$(normal){\b $1}\par 
+
+; Interfaces that an object expects to consume
+
+.tag=consumes, both, 1, 1
+.pre=$(reset)$(rmh)Consumes\par 
+.format=$(reset)$(normal){\b $1}\par 
+
+; Abstract object types to which an abstract object type belongs
+
+.tag=is, both, 1, 1
+.pre=$(reset)$(rmh)Is A\par 
+.format=$(reset)$(normal){\b $1}\par 
+
+; Aggregates
+
+; link interface name
+
+.tag=aggregates, help, 2, 1
+.pre=$(reset)$(rmh)Aggregated Objects\par 
+.format=$(reset)$(term1){\uldb $1}{\v #1}\par 
+$(reset)$(def1)$2\par 
+.if=exists($1)
+
+; no link, or doc
+
+.tag=aggregates, both, 2, 1
+.pre=$(reset)$(rmh)Aggregated Objects\par 
+.format=$(reset)$(term1){\b $1}\par 
+$(reset)$(def1)$2\par 
+
+; ******************************************
+; Miscellaneous tags
+; ******************************************
+
+.tag=normal,both,1,1
+.format=$(reset)$(normal)$1\par 
+
+.tag=head1, both, 2, 1
+.if=fieldempty(2)
+.format=$(reset)$(heading_1)$1\par 
+
+.tag=head2, both, 2, 1
+.if=fieldempty(2)
+.format=$(reset)$(heading_1)$1\par 
+
+.tag=head3, both, 2, 1
+.if=fieldempty(2)
+.format=$(reset)$(heading_3)$1\par 
+
+.tag=head1, both, 2, 1
+.format=$(reset)$(heading_1)$1\par 
+$(reset)$(normal)$2\par 
+
+.tag=head2, both, 2, 1
+.format=$(reset)$(heading_1)$1\par 
+$(reset)$(normal)$2\par 
+
+.tag=head3, both, 2, 1
+.format=$(reset)$(heading_3)$1\par 
+$(reset)$(normal)$2\par 
+
+.tag=group, both, 1, 8
+.format=$(reset)$(heading_3)$1\par 
+
+.tag=end, both, 0, 8
+.format=
+
+; ******************************************
+; Index tags
+; ******************************************
+
+.tag=index, both, 2, 1
+.format=$(reset)$(indexlink)$[index:$1:$2]\par 
+
+.tag=subindex,help,1,1
+.format=$(reset)$(indexlink){\uldb $1}{\v #1}\par 
+.post=$(reset)\li140\sl240 \f2\fs10\lang1033 \par 
+
+.tag=subindex,doc,1,1
+.format=$(reset)$(indexlink)$1\par 
+
+[text]
+
+; ******************************************
+; Symbols
+; ******************************************
+
+.tag=cp, both, 0
+.format=\'a9 
+.tag=tm, both, 0
+.format=\'99 
+.tag=rtm, both, 0
+.format=\'ae 
+.tag=en-, doc, 0
+.format=\endash 
+.tag=en-, help, 0
+.format=\'97 
+.tag=em-, doc, 0
+.format=\emdash 
+.tag=em-, help, 0
+.format=\'96 
+.tag=lq, doc, 0
+.format=\ldblquote 
+.tag=lq, help, 0
+.format=\'91 
+.tag=rq, doc, 0
+.format=\rdblquote 
+.tag=rq, help, 0
+.format=\'92 
+.tag=gt, both, 0
+.format=>
+.tag=lt, both, 0
+.format=<
+.tag=tab, both, 0
+.format=\tab 
+.tag=nl, both, 0
+.format=\line 
+.tag=cmt, both, 0
+.format=//
+;
+; ******************************************
+; Build elements
+; ******************************************
+.tag=date,both,0
+.format=$!d
+.tag=filename,both,0
+.format=$!F
+.tag=filepath,both,0
+.format=$!P
+.tag=tname,both,0
+.format=$!n
+.tag=tcontext,both,0
+.format=$!c
+
+;
+; ******************************************
+; Graphics
+; ******************************************
+.tag=bmp, help, 1
+.format=\{bmc $1\}
+.tag=bmp, doc, 1
+.format={\field{\*\fldinst  INCLUDEPICTURE $1 \\* MERGEFORMAT }}
+;
+; ******************************************
+; Functions
+; ******************************************
+
+.tag=f, help, 1
+.format={\b $1}
+.if=$1=$func.2
+
+.tag=f, help, 1
+.format={\uldb $1}{\v !Klink($1)}
+.if=exists($1)
+
+.tag=f, both, 1
+.format={\b $1}
+;
+; ******************************************
+; Messages
+; ******************************************
+
+.tag=m, help, 1
+.format=$1
+.if=$1=$msg.1
+
+.tag=m, help, 1
+.format={\uldb $1}{\v !Klink($1)}
+.if=exists($1)
+
+.tag=m, both, 1
+.format=$1
+;
+; ******************************************
+; Structures
+; ******************************************
+
+.tag=t, help, 1
+.format={\b $1}
+.if=$1=$struct.1
+
+.tag=t, help, 1
+.format={\b $1}
+.if=$1=$enum.1
+
+.tag=t, help, 1
+.format={\uldb $1}{\v !Klink($1)}
+.if=exists($1)
+
+.tag=t, both, 1
+.format={\b $1}
+;
+; ******************************************
+; Parameters
+; ******************************************
+
+.tag=p, both, 1
+.format={\i $1}
+;
+; ******************************************
+; Structure and Enumeration Elements
+; ******************************************
+
+.tag=e, help, 2
+.format={\b $2}
+.if=$1=$struct.1
+.tag=e, help, 2
+.format={\b $2}
+.if=$1=$enum.1
+.tag=e, help, 2
+.format={\uldb $2}{\v !Klink($1)}
+.if=exists($1)
+.tag=e, both, 2
+.format={\b $2}
+
+;
+; ******************************************
+; Classes
+; ******************************************
+
+.tag=c, help, 1
+.format={\b $1}
+.if=$1=$class.1
+.tag=c, help, 1
+.format={\uldb $1}{\v !Klink($1)}
+.if=exists($1)
+.tag=c, both, 1
+.format={\b $1}
+
+;
+; ******************************************
+; Enumerations
+; ******************************************
+
+.tag=enum, help, 2
+.format={\b $1}
+.if=$1=$enum.1,fieldempty(2)
+.tag=enum, help, 2
+.format={\uldb $1}{\v !Klink($1)}
+.if=exists($1),fieldempty(2)
+.tag=enum, both, 2
+.format={\b $1},fieldempty(2)
+
+.tag=enum, help, 2
+.format={\b $2::$1}
+.if=$1=$enum.1
+.tag=enum, help, 2
+.format={\uldb $2::$1}{\v !Klink($2::$1)}
+.if=exists($2__$1)
+.tag=enum, both, 2
+.format={\b $2::$1}
+;
+; ******************************************
+; Member Functions
+; ******************************************
+
+; circular reference, make bold
+;
+.tag=mf, help, 2
+.format={\b $2}
+.if=fieldempty(1),$2=$mfunc.3
+.if=$1=$mfunc.2,$2=$mfunc.3
+
+; same class, different function, link target exists: omit class name & link
+;
+.tag=mf, help, 2
+.format={\uldb $2}{\v !Klink($class.1$mfunc.2$mdata.2::$2)}
+.if=fieldempty(1),exists($class.1$mfunc.2$mdata.2::$2)
+.if=exists($1::$2),$1=$class.1$mfunc.2$mdata.2
+
+; different class, link target exists: output class::function & link
+;
+.tag=mf, help, 2
+.format={\uldb $1::$2}{\v !Klink($1::$2)}
+.if=exists($1::$2)
+
+; same class, no link target: omit class name & bold
+;
+.tag=mf, both, 2
+.format={\b $2}
+.if=fieldempty(1)
+.if=$1=$class.1$mfunc.2$mdata.2
+
+; nothing to link to, within different class
+;
+.tag=mf, both, 2
+.format={\b $1::$2}
+;
+; ******************************************
+; Member data
+; ******************************************
+
+; circular reference, make bold
+;
+.tag=md, help, 2
+.format={\b $2}
+.if=fieldempty(1),$2=$mdata.3
+.if=$1=$mfunc.2,$2=$mdata.3
+
+; same class, different function, link target exists: omit class name & link
+;
+.tag=md, help, 2
+.format={\uldb $2}{\v !KLink($class.1$mfunc.2$mdata.2::$2)}
+.if=fieldempty(1),exists($class.1$mfunc.2$mdata.2::$2)
+.if=exists($1::$2),$1=$class.1$mfunc.2$mdata.2
+
+; different class, link target exists: output class::function & link
+;
+.tag=md, help, 2
+.format={\uldb $1::$2}{\v !KLink($1::$2)}
+.if=exists($1::$2)
+
+; same class, no link target: omit class name & bold
+;
+.tag=md, both, 2
+.format={\b $2}
+.if=fieldempty(1)
+.if=$1=$class.1$mfunc.2$mdata.2
+
+; nothing to link to, within different class
+;
+.tag=md, both, 2
+.format={\b $1::$2}
+
+;
+; ******************************************
+; OLE Objects
+; ******************************************
+
+.tag=o, help, 1
+.format={\b $1}
+.if=$1=$abstract.1$object.1
+.tag=o, help, 1
+.format={\uldb $1}{\v !Klink($1 object)}
+.if=exists($1)
+.tag=o, both, 1
+.format={\b $1}
+;
+; ******************************************
+; OLE Interfaces
+; ******************************************
+
+.tag=i, help, 1
+.format={\b $1}
+.if=$1=$interface.1
+.tag=i, help, 1
+.format={\uldb $1}{\v !KLink($1 interface)}
+.if=exists($1_int)
+.tag=i, both, 1
+.format={\b $1}
+;
+; ******************************************
+; OLE Methods
+; ******************************************
+
+; circular reference, make bold
+; example: <om .Bar> appearing in @method ret|IFoo|Bar
+
+.tag=om, help, 2
+.format={\b $2}
+.if=tagexists(method),fieldempty(1),$2=$method.3
+.if=$1=$method.2,$2=$method.3
+
+; @abstract or @object tag, empty field, link 
+; example: <om .Bar> appearing in @abstract Foo or @object Foo
+
+.tag=om, help, 2
+.format={\uldb $2}{\v !Klink(I$abstract.1$object.1::$2 method)}
+.if=tagexists(object),fieldempty(1),exists(I$object.1::$2_meth)
+.if=tagexists(abstract),fieldempty(1),exists(I$abstract.1::$2_meth)
+
+; @method, @interface, @property, @event, empty field, link
+; example: <om .Bar> appearing in @interface IFoo
+
+.tag=om, help, 2
+.format={\uldb $2}{\v !Klink($method.2$property.2$interface.1$event.1::$2 method)}
+.if=fieldempty(1),exists($method.2$property.2$interface.1$event.1::$2_meth)
+
+; @object, @abstract, same object, link
+; example: <om IFoo.Bar> appearing in @object Foo
+
+.tag=om, help, 2
+.format={\uldb $2}{\v !Klink(I$object.1$abstract.1::$2 method)}
+.if=tagexists(object),$1=I$object.1,exists(I$object.1::$2_meth)
+.if=tagexists(abstract),$1=I$abstract.1,exists(I$abstract.1::$2_meth)
+
+; @method, @interface, @property, @event, same interface, link
+; example: <om IFoo.Bar> appearing in @method ret|IFoo|Bar
+
+.tag=om, help, 2
+.format={\uldb $2}{\v !Klink($method.2$property.2$interface.1$event.1::$2 method)}
+.if=$1=$method.2$property.2$interface.1$event.1,exists($method.2$property.2$interface.1$event.1::$2_meth)
+
+; different interface, link
+; example: <om IFoo.Bar> appearing in @method ret|IBar|Foo
+
+.tag=om, help, 2
+.format={\uldb $1::$2}{\v !Klink($1::$2 method)}
+.if=exists($1::$2_meth)
+
+; same interface, no link
+; example: <om IFoo.Bar> appearing in @method ret|IBar|Foo but no
+;               IFoo::Bar defined
+
+.tag=om, both, 2
+.format={\b $2}
+.if=tagexists(object),$1=I$object.1
+.if=tagexists(abstract),$1=I$abstract.1
+.if=$1=$method.2$property.2$interface.1$event.1
+.if=fieldempty(1)
+
+; default: both fields, 
+; example: <om IFoo.Bar> output with "IFoo.Bar" in bold
+.tag=om, both, 2
+.format={\b $1::$2}
+
+;
+; ******************************************
+; OLE Properties
+; ******************************************
+
+; circular reference, make bold
+; example: <op .Bar> appearing in @property type|IFoo|Bar
+
+.tag=op, help, 2
+.format={\b $2}
+.if=tagexists(property),fieldempty(1),$2=$property.3
+.if=$1=$property.2,$2=$property.3
+
+; @abstract or @object tag, empty field, link 
+; example: <op .Bar> appearing in @abstract Foo or @object Foo
+
+.tag=op, help, 2
+.format={\uldb $2}{\v !Klink(I$abstract.1$object.1::$2 property)}
+.if=tagexists(object),fieldempty(1),exists(I$object.1::$2_prop)
+.if=tagexists(abstract),fieldempty(1),exists(I$abstract.1::$2_prop)
+
+; @method, @interface, @property, @event, empty field, link
+; example: <op .Bar> appearing in @interface IFoo
+
+.tag=op, help, 2
+.format={\uldb $2}{\v !Klink($method.2$property.2$interface.1$event.1::$2 property)}
+.if=fieldempty(1),exists($method.2$property.2$interface.1$event.1::$2_prop)
+
+; @object, @abstract, same object, link
+; example: <op IFoo.Bar> appearing in @object Foo
+
+.tag=op, help, 2
+.format={\uldb $2}{\v !Klink(I$object.1$abstract.1::$2 property)}
+.if=tagexists(object),$1=I$object.1,exists(I$object.1::$2_prop)
+.if=tagexists(abstract),$1=I$abstract.1,exists(I$abstract.1::$2_prop)
+
+; @method, @interface, @property, @event, same interface, link
+; example: <op IFoo.Bar> appearing in @method ret|IFoo|Bar
+
+.tag=op, help, 2
+.format={\uldb $2}{\v !Klink($method.2$property.2$interface.1$event.1::$2 property)}
+.if=$1=$method.2$property.2$interface.1$event.1,exists($method.2$property.2$interface.1$event.1::$2_prop)
+
+; different interface, link
+; example: <op IFoo.Bar> appearing in @method ret|IBar|Foo
+
+.tag=op, help, 2
+.format={\uldb $1::$2}{\v !Klink($1::$2 property)}
+.if=exists($1::$2_prop)
+
+; same interface, no link
+; example: <op IFoo.Bar> appearing in @method ret|IBar|Foo but no
+;               IFoo::Bar defined
+
+.tag=op, both, 2
+.format={\b $2}
+.if=tagexists(object),$1=I$object.1
+.if=tagexists(abstract),$1=I$abstract.1
+.if=$1=$method.2$property.2$interface.1$event.1
+.if=fieldempty(1)
+
+; default: both fields, 
+; example: <op IFoo.Bar> output with "IFoo.Bar" in bold
+.tag=op, both, 2
+.format={\b $1::$2}
+
+; ******************************************
+; OLE Events
+; ******************************************
+; See "OLE Methods" for descriptions/examples of each block
+
+; circular reference
+
+.tag=oe, help, 2
+.format={\b $2}
+.if=fieldempty(1),$2=$event.1
+.if=$1=$event.1,$2=$event.2
+
+; link, ref. same interface within @object, @abstract, 
+; omit interface prefix
+
+.tag=oe, help, 2
+.format={\uldb $2}{\v !Klink(I$abstract.1$object.1::$2 event)}
+.if=tagexists(object),fieldempty(1),exists(I$object.1::$2_event)
+.if=tagexists(abstract),fieldempty(1),exists(I$abstract.1::$2_event)
+.if=tagexists(object),$1=I$object.1,exists(I$object.1::$2_event)
+.if=tagexists(abstract),$1=I$abstract.1,exists(I$abstract.1::$2_event)
+
+; link, ref. same interface within @method, @property, @interface, @event
+; omit interface prefix
+
+.tag=oe, help, 2
+.format={\uldb $2}{\v !Klink($event.1$method.2$property.2$interface.1::$2 event)}
+.if=fieldempty(1),exists($event.1$method.2$property.2$interface.1::$2_event)
+.if=$1=$event.1$method.2$property.2$interface.1,exists($1::$2_event)
+
+; no link, ref. same interface
+; omit interface prefix
+
+.tag=oe, both, 2
+.format={\b $2}
+.if=fieldempty(1)
+.if=$1=I$object.1$abstract.1
+.if=$1=$method.2$property.2$interface.1$event.1
+
+; link
+.tag=oe, help, 2
+.format={\uldb $1::$2}{\v !Klink($1::$2 event)}
+.if=exists($1::$2_event)
+
+;
+; default
+.tag=oe, both, 2
+.format={\b $1::$2}
+
+; ******************************************
+; Misc weirdness
+; ******************************************
+.tag=index, both, 2
+.format=$[index:$1:$2]
+
+.tag=y, both, 1
+.format={\i $1}
+
+.tag=l, both, 1
+.format=$1
+.if=$1=$topic.1
+
+.tag=l, help, 1
+.format={\uldb $1}{\v !Klink($1)}
+
+[diagram]
+
+; Visual Basic type diagram
+
+.tag=bstruct, both, bfield
+.pre=\pard \plain $(ex)$[bmod]Type\par 
+.post=End Type\par 
+\par 
+.format=$[bfield]\par 
+
+.tag=bfield, both, none
+.if=fieldempty(2)
+.pre=\tab $1
+.format=
+
+.tag=bfield, both, none
+.pre=\tab $1 As $2
+.format=
+
+; Visual Basic subroutine diagram
+
+.tag=bfunc, both, bparm
+.pre=\pard \plain $(normal)$[bmod]{\b Function} {\b $2(}
+.post={\b )}$[btype]\par
+.formatfirst=$[bparm]
+.format={\b , }$[bparm]
+
+.tag=bsub, both, bparm
+.pre=\pard \plain $(normal)$[bmod]{\b Sub} {\b $2(}
+.post={\b )}\par
+.formatfirst=$[bparm]
+.format={\b , }$[bparm]
+
+.tag=bparm, both, none
+.if=fieldempty(1)
+.pre={\i $2}$[btype]
+.format=
+
+.tag=bparm, both, none
+.pre={\b $1} {\i $2}$[btype]
+.format=
+
+.tag=bparm, both, none
+.if=fieldempty(1)
+.format=
+.pre={\i $2} {\b As $3}
+
+.tag=bparm, both, none
+.format=
+.pre={\b $1} {\i $2} {\b As $3}
+
+
+
+.tag=bmod, both, bmod
+.if=fieldempty(1)
+.format=
+
+.tag=bmod, both, bmod
+.format=
+.pre={\b $1} 
+
+.tag=btype, both, btype
+.if=fieldempty(3)
+.format=
+
+.tag=btype, both, btype
+.format=
+.pre= {\b As $3}
+
+
+.tag=parmopthead, both, parm
+.cancelifpresent=parm
+.pre=$(reset)$(rmh)Parameters\par 
+.format=
+
+.tag=parmopt, both, parmopt
+.cancelifpresent=syntax
+.format={\b , $1} {\i $2} {\b = $3}
+.if=tagexists(parm)
+
+.tag=parmopt, both, parmopt
+.cancelifpresent=syntax
+.formatfirst={\b $1} {\i $2} {\b = $3}
+.format={\b , $1} {\i $2} {\b = $3}
+
+; *** Function diagram ******
+;
+; No return value, parameters
+
+.tag=function, both, parm
+.cancelifpresent=syntax
+.pre=\pard \plain $(normal)$[ftemplate]{\b $1} {\b $2(}
+.post=$[parmopt]$[vararg]{\b ) $this.1}\par
+.formatfirst={\b $1} {\i $2}
+.format={\b , $1} {\i $2}
+.if=fieldempty(1), tagexists(parm)
+.if=fieldempty(1), tagexists(parmopt)
+
+; No return value, no parameters
+
+.tag=function, both, parm
+.cancelifpresent=syntax
+.pre=\pard \plain $(normal)$[ftemplate]{\b $2(void}
+.post=$[parmopt]$[vararg]{\b ) $this.1}\par
+.format=
+.if=fieldempty(1)
+
+; Return value, parameters
+;
+.tag=function, both, parm
+.cancelifpresent=syntax
+.pre=\pard \plain $(normal)$[ftemplate]{\b $1} {\b $2(}
+.post=$[parmopt]$[vararg]{\b ) $this.1}\par
+.formatfirst={\b $1} {\i $2}
+.format={\b , $1} {\i $2}
+.if=tagexists(parm)
+.if=tagexists(parmopt)
+
+; Return value, no parameters
+;
+.tag=function, both, parm
+.cancelifpresent=syntax
+.pre=\pard \plain $(normal)$[ftemplate]{\b $1} {\b $2(void}
+.post=$[parmopt]$[vararg]{\b ) $this.1}\par
+.format=
+;
+
+; *** Member Functions ******
+
+; No return value, parameters
+
+.tag=mfunction, both, parm
+.cancelifpresent=syntax
+.pre=\pard \plain $(normal)$[template]{\b $2}$[tcarg]{\b ::$3$[tfarg](}
+.post=$[parmopt]$[vararg]{\b ) $this.1}\par
+.formatfirst={\b $1} {\i $2}
+.format={\b , $1} {\i $2}
+.if=fieldempty(1), tagexists(parm)
+.if=fieldempty(1), tagexists(parmopt)
+
+; No return value, no parameters
+
+.tag=mfunction, both, parm
+.cancelifpresent=syntax
+.pre=\pard \plain $(normal)$[template]{\b $2}$[tcarg]{\b ::$3$[tfarg](void}
+.post=$[parmopt]$[vararg]{\b ) $this.1}\par
+.format=
+.if=fieldempty(1)
+
+; Return value, parameters
+;
+.tag=mfunction, both, parm
+.cancelifpresent=syntax
+.pre=\pard \plain $(normal)$[template]{\b $1} {\b $2}$[tcarg]{\b ::$3$[tfarg](}
+.post=$[parmopt]$[vararg]{\b ) $this.1}\par
+.formatfirst={\b $1} {\i $2}
+.format={\b , $1} {\i $2}
+.if=tagexists(parm)
+.if=tagexists(parmopt)
+
+; Return value, no parameters
+;
+.tag=mfunction, both, parm
+.cancelifpresent=syntax
+.pre=\pard \plain $(normal)$[template]{\b $1} {\b $2}$[tcarg]{\b ::$3$[tfarg](void}
+.post=$[parmopt]$[vararg]{\b ) $this.1}\par
+.format=
+;
+
+; **** OLE2 Method ********
+
+.tag=method, both, parm
+.cancelifpresent=syntax
+.pre=\pard \plain $(normal){\b $1 $3(}
+.post={\b )}\par
+.formatfirst={\b $1} {\i $2}
+.format={\b , $1} {\i $2}
+
+; **** OLE2 Event ********
+
+.tag=event, both, parm
+.cancelifpresent=syntax
+.pre=\pard \plain $(normal){\b $1(}
+.post={\b )}\par
+.formatfirst={\b $1} {\i $2}
+.format={\b , $1} {\i $2}
+
+; **** Structure ********
+
+.tag=structure, both, field
+.pre=$(reset)$(ex)typedef struct \{\par 
+.format=$(reset)$(ex)\tab $1 $2;\par 
+.post=$(reset)$(ex)\} $1;\par 
+$(reset)$(ex)\par 
+
+; **** Enumeration ********
+
+.tag=enum, both, emem
+.pre=$(reset)$(ex)enum $1 \{\par 
+.formatfirst=$(reset)$(ex)\tab $1
+.format=,\par 
+$(reset)$(ex)\tab $1
+.post=\par 
+$(reset)$(ex)\};\par 
+$(reset)$(ex)\par 
+
+; **** Class *****************
+
+.tag=class, both, base
+.pre=$(reset)$(normal)$[template]{\b class $1}
+.formatfirst={\b : $1 $2}
+.format={\b , $1 $2}
+.post=\par 
+
+; **** Member Class *****************
+
+.tag=mclass, both, base
+.pre=$(reset)$(normal)$[template]{\b class $1::$2}
+.formatfirst={\b : $1 $2}
+.format={\b , $1 $2}
+.post=\par 
+
+; **** Template specification for classes or member functions
+
+.tag=template, both, tcarg
+.pre={\b template <}
+.formatfirst={\b $1 }{\i $2}
+.format=, {\b $1 }{\i $2}
+.post={\b >}\line 
+.if=tagexists(tcarg)
+
+.tag=template, both, tcarg
+.format=
+
+; **** Template specification for functions
+
+.tag=ftemplate, both, tfarg
+.pre={\b template <}
+.formatfirst={\b $1 }{\i $2}
+.format=, {\b $1 }{\i $2}
+.post={\b >}\line 
+.if=tagexists(tfarg)
+
+.tag=ftemplate, both, tfarg
+.format=
+
+; **** member function args list
+
+.tag=tcarg, both, tcarg
+.pre={\b <}
+.formatfirst={\i $2}
+.format={\b , }{\i $2}
+.post={\b >}
+.if=tagexists(tcarg)
+
+.tag=tcarg, both, targ
+.format=
+
+; **** function args list
+
+.tag=tfarg, both, tfarg
+.pre={\b <}
+.formatfirst={\b $1} {\i $2}
+.format={\b , }{\b $1} {\i $2}
+.post={\b >}
+.if=tagexists(tfarg)
+
+.tag=tfarg, both, tfarg
+.format=
+
+; ****** function variable args
+.tag=vararg, both, parmvar
+.format={\b , ...}
+.if=tagexists(parmvar)
+
+; ****** function variable args
+.tag=vararg, both, parmvar
+.format=
+
+; ****** Member data diagram
+
+.tag=mdata, help, parm
+.cancelifpresent=syntax
+.pre=$(reset)$(normal){\uldb $1}{\v $1} {\uldb $2}{\v $2}{\b ::$3}
+.post=\par
+.format=
+.if=exists($1),exists($2)
+
+.tag=mdata, help, parm
+.cancelifpresent=syntax
+.pre=$(reset)$(normal){\b $1} {\uldb $2}{\v $2}{\b ::$3}
+.post=\par
+.format=
+.if=exists($2)
+
+.tag=mdata, help, parm
+.cancelifpresent=syntax
+.pre=$(reset)$(normal){\uldb $1}{\v $1} {\b $2}{\b ::$3}
+.post=\par
+.format=
+.if=exists($1)
+
+.tag=mdata, both, parm
+.cancelifpresent=syntax
+.pre=$(reset)$(normal){\b $1 $2::$3}
+.post=\par
+.format=
+
+.tag=classhdr, both, parm
+.cancelifpresent=access
+.pre=$(reset)$(rmh)Class Members\par 
+.format=
+
+.tag=constant, both, parm
+.pre={\b ##define $2}
+.format=
+.if=$const.1=#define
+
+.tag=constant, both, parm
+.pre={\b const $1 $2;}
+.format=
+
+
+
+
+; **** Java class *******************
+
+; public class updatecontrols extends Applet implements Bananalet, Pearlet, Cotlet
+
+.tag=jclass, both, parm ; <parm> is unused
+
+.pre=$(cb)$[jmodifier]class $2$[jextends]$[jimplements]$(cbe)
+.format=
+
+.tag=jmodifier, both, parm ; <parm> is unused
+.format=
+.if=fieldempty(1)
+
+.tag=jmodifier, both, parm ; <parm> is unused
+.pre=$1 
+.format=
+
+.tag=jextends, both, parm ; <parm> is unused
+.format=
+.if=fieldempty(3)
+
+.tag=jextends, both, parm ; <parm> is unused
+.pre= extends $3
+.format=
+
+.tag=jimplements, both, parm ; <parm> is unused
+.format=
+.if=fieldempty(4)
+
+.tag=jimplements, both, parm ; <parm> is unused
+.pre= implements $4
+.format=
+
+;---------------------------------------------
+; for diagram in jmethod topic tag
+; 
+.tag=jthrows, both, parm ; <parm> is unused
+.format=
+.if=fieldempty(5)
+
+.tag=jthrows, both, parm ; <parm> is unused
+.pre= throws $5
+.format=
+;---------------------------------------------
+
+;---------------------------------------------
+; for diagram in jmethod paragraph tag
+; 
+.tag=jthrowsp, both, parm ; <parm> is unused
+.format=
+.if=fieldempty(4)
+
+.tag=jthrowsp, both, parm ; <parm> is unused
+.pre= throws $4
+.format=
+;---------------------------------------------
+
+; public class updatecontrols extends Applet implements Bananalet, Pearlet, Cotlet
+
+.tag=jmeth, both, jparm
+.pre=$(cb)$[jmodifier]$2 $3$[jthrows]$4
+.format=
+.post=$(cbe)
+
+.tag=jmethod, both, jparm
+.pre=$(cb)$[jmodifier]$2 $4$[jthrows]($(cbe)
+.formatfirst=$(cb)$1$(cbe) $(ci)$2$(cie)
+.format=$(cb), $1$(cbe) $(ci)$2$(cie)
+.post=$(cb))$(cbe)
+
+.tag=jmtype, both, parm ; <parm> is unused
+.pre= 
+.if=fieldempty(2)
+
+.tag=jmtype, both, parm ; <parm> is unused
+.pre=$2 
+
+.tag=jmlinkname, help, parm ; <parm> is unused
+.if=exists($jclass.2::$3)
+.pre={\uldb $3}{\v #jclass.2__#3}
+
+.tag=jmlinkname, both, parm ; <parm> is unused
+.pre=$3
+
+
+
+
+
+
+
+
+
+
+[index]
+.output=help
+.format=$(reset)$(indexlink){\uldb $!n}{\v $!c}\par 
+
+.output=doc
+.format=$(reset)$(indexlink)$!n\par 
+
