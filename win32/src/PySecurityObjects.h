@@ -75,6 +75,7 @@ public:
 
 	static void deallocFunc(PyObject *ob);
 	static int compareFunc(PyObject *ob1, PyObject *ob2);
+	static PyObject *strFunc(PyObject *ob);
 
 	static PyObject *getattr(PyObject *self, char *name);
 	static int setattr(PyObject *self, char *name, PyObject *v);

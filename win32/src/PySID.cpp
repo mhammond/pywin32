@@ -160,7 +160,7 @@ PYWINTYPES_EXPORT PyTypeObject PySIDType =
 	0,						/* tp_as_mapping */
 	0,
 	0,						/* tp_call */
-	0,		/* tp_str */
+	PySID::strFunc,		/* tp_str */
 };
 
 
@@ -227,4 +227,104 @@ int PySID::compareFunc(PyObject *ob1, PyObject *ob2)
 	delete (PySID *)ob;
 }
 
+// NOTE:  This function taken from KB Q131320.
+BOOL GetTextualSid( 
+
+    PSID pSid,          // binary Sid
+    LPTSTR TextualSid,  // buffer for Textual representaion of Sid
+    LPDWORD dwBufferLen // required/provided TextualSid buffersize
+    )
+{ 
+    PSID_IDENTIFIER_AUTHORITY psia;
+    DWORD dwSubAuthorities;
+    DWORD dwSidRev=SID_REVISION;
+    DWORD dwCounter;
+    DWORD dwSidSize;
+
+    // 
+    // test if Sid passed in is valid
+    // 
+    if(!IsValidSid(pSid)) return FALSE;
+
+    // obtain SidIdentifierAuthority
+    psia=GetSidIdentifierAuthority(pSid);
+
+    // obtain sidsubauthority count
+    dwSubAuthorities=*GetSidSubAuthorityCount(pSid);
+
+    // 
+    // compute buffer length
+    // S-SID_REVISION- + identifierauthority- + subauthorities- + NULL
+    // 
+    dwSidSize=(15 + 12 + (12 * dwSubAuthorities) + 1) * sizeof(TCHAR);
+
+    // 
+    // check provided buffer length.
+    // If not large enough, indicate proper size and setlasterror
+    // 
+    if (*dwBufferLen < dwSidSize)
+    {
+        *dwBufferLen = dwSidSize;
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return FALSE;
+    }
+
+    // 
+    // prepare S-SID_REVISION-
+    // 
+    dwSidSize=wsprintf(TextualSid, TEXT("S-%lu-"), dwSidRev );
+
+    // 
+    // prepare SidIdentifierAuthority
+    // 
+    if ( (psia->Value[0] != 0) || (psia->Value[1] != 0) )
+    {
+        dwSidSize+=wsprintf(TextualSid + lstrlen(TextualSid),
+                    TEXT("0x%02hx%02hx%02hx%02hx%02hx%02hx"),
+                    (USHORT)psia->Value[0],
+                    (USHORT)psia->Value[1],
+                    (USHORT)psia->Value[2],
+                    (USHORT)psia->Value[3],
+                    (USHORT)psia->Value[4],
+                    (USHORT)psia->Value[5]);
+    }
+    else
+    {
+        dwSidSize+=wsprintf(TextualSid + lstrlen(TextualSid),
+                    TEXT("%lu"),
+                    (ULONG)(psia->Value[5]      )   +
+                    (ULONG)(psia->Value[4] <<  8)   +
+                    (ULONG)(psia->Value[3] << 16)   +
+                    (ULONG)(psia->Value[2] << 24)   );
+    }
+
+    // 
+    // loop through SidSubAuthorities
+    // 
+    for (dwCounter=0 ; dwCounter < dwSubAuthorities ; dwCounter++)
+    {
+        dwSidSize+=wsprintf(TextualSid + dwSidSize, TEXT("-%lu"),
+                    *GetSidSubAuthority(pSid, dwCounter) );
+    }
+
+    return TRUE;
+} 
+
+/* static */ PyObject *PySID::strFunc(PyObject *ob)
+{
+	PySID *pySid = (PySID *)ob;
+	PSID psid = pySid->m_psid;
+	DWORD bufSize = 0;
+	GetTextualSid(psid, NULL, &bufSize); // max size, NOT actual size!
+	if (GetLastError()!=ERROR_INSUFFICIENT_BUFFER) {
+		return PyString_FromString("PySID: Invalid SID");
+	}
+	// Space for the "PySID:" prefix.
+	const char *prefix = "PySID:";
+	char *buf = (char *)malloc(strlen(prefix)+bufSize);
+	if (buf==NULL) return PyErr_NoMemory();
+	strcpy(buf, prefix);
+	GetTextualSid(psid, buf+strlen(prefix), &bufSize);
+	return PyString_FromString(buf);
+}
 #endif /* MS_WINCE */
