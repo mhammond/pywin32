@@ -145,6 +145,20 @@ class my_build_ext(build_ext):
         if self.mingw32:
             self.libraries.append("stdc++")
 
+    def _why_cant_build_extension(self, ext):
+        # Return None, or a reason it can't be built.
+        common_dirs = self.compiler.library_dirs
+        common_dirs += os.environ.get("LIB").split(os.pathsep)
+        for lib in ext.libraries:
+            if self.found_libraries.has_key(lib.lower()):
+                continue
+            for dir in common_dirs + ext.library_dirs:
+                if os.path.isfile(os.path.join(dir, lib + ".lib")):
+                    self.found_libraries[lib.lower()] = True
+                    break
+            else:
+                return "No library '%s'" % lib
+
     def build_extensions(self):
         # Is there a better way than this?
         # Just one GUIDS.CPP and it gives trouble on mainwin too
@@ -154,6 +168,15 @@ class my_build_ext(build_ext):
         if ".CPP" not in self.compiler.src_extensions:
             self.compiler._cpp_extensions.append(".CPP")
             self.compiler.src_extensions.append(".CPP")
+
+        # First, sanity-check the 'extensions' list
+        self.check_extensions_list(self.extensions)
+
+        self.found_libraries = {}        
+        self.excluded_extensions = [] # list of (ext, why)
+
+        # Here we hack a "pywin32" directory into the mix.  Distutils
+        # doesn't seem to like the concept of multiple top-level directories.
         assert self.package is None
         for ext in self.extensions:
             try:
@@ -163,6 +186,20 @@ class my_build_ext(build_ext):
             self.build_extension(ext)
 
     def build_extension(self, ext):
+        # It is well known that some of these extensions are difficult to
+        # build, requiring various hard-to-track libraries etc.  So we
+        # check the extension list for the extra libraries explicitly
+        # listed.  We then search for this library the same way the C
+        # compiler would - if we can't find a  library, we exclude the
+        # extension from the build.
+        # Note we can't do this in advance, as some of the .lib files
+        # we depend on may be built as part of the process - thus we can
+        # only check an extension's lib files as we are building it.
+        why = self._why_cant_build_extension(ext)
+        if why is not None:
+            self.excluded_extensions.append((ext, why))
+            return
+
         # some source files are compiled for different extensions
         # with special defines. So we cannot use a shared
         # directory for objects, we must use a special one for each extension.
@@ -332,27 +369,27 @@ pythoncom = WinExt_system32('pythoncom',
                    )
 com_extensions = [pythoncom]
 com_extensions += [
-###    WinExt_win32com('adsi', libraries="ACTIVEDS ADSIID"),
+    WinExt_win32com('adsi', libraries="ACTIVEDS ADSIID"),
     WinExt_win32com('axcontrol'),
     WinExt_win32com('axscript',
             dsp_file=r"com\Active Scripting.dsp",
             extra_compile_args = ['-DPY_BUILD_AXSCRIPT'],
     ),
-###    WinExt_win32com('axdebug',
-###            dsp_file=r"com\Active Debugging.dsp",
-###            libraries="axscript msdbg",
-###    ),
+    WinExt_win32com('axdebug',
+            dsp_file=r"com\Active Debugging.dsp",
+            libraries="axscript msdbg",
+    ),
     WinExt_win32com('internet'),
-###    WinExt_win32com('mapi', libraries="mapi32"),
-###    WinExt_win32com_mapi('exchange',
-###                         libraries="""MBLOGON ADDRLKUP mapi32 exchinst                         
-###                                      EDKCFG EDKUTILS EDKMAPI
-###                                      ACLCLS version""",
-###                         extra_link_args=["/nodefaultlib:libc"]),
-###    WinExt_win32com_mapi('exchdapi',
-###                         libraries="""DAPI ADDRLKUP exchinst EDKCFG EDKUTILS
-###                                      EDKMAPI mapi32 version""",
-###                         extra_link_args=["/nodefaultlib:libc"]),
+    WinExt_win32com('mapi', libraries="mapi32"),
+    WinExt_win32com_mapi('exchange',
+                         libraries="""MBLOGON ADDRLKUP mapi32 exchinst                         
+                                      EDKCFG EDKUTILS EDKMAPI
+                                      ACLCLS version""",
+                         extra_link_args=["/nodefaultlib:libc"]),
+    WinExt_win32com_mapi('exchdapi',
+                         libraries="""DAPI ADDRLKUP exchinst EDKCFG EDKUTILS
+                                      EDKMAPI mapi32 version""",
+                         extra_link_args=["/nodefaultlib:libc"]),
     WinExt_win32com('shell', libraries='shell32')
 ]
 
@@ -360,13 +397,13 @@ pythonwin_extensions = [
     WinExt_pythonwin("win32ui",
                      extra_compile_args =
                         ['-DBUILD_PYW']),
-###    WinExt_pythonwin("win32uiole"),
+    WinExt_pythonwin("win32uiole"),
     WinExt_pythonwin("dde"),
 ]
 
 ################################################################
 
-setup(name="pywin32",
+dist = setup(name="pywin32",
       version="version",
       description="Python for Window Extensions",
       long_description="",
@@ -425,3 +462,13 @@ setup(name="pywin32",
                 'Pythonwin.tools',
                 ],
       )
+# If we did any extension building...
+if dist.command_obj.has_key('build_ext'):
+    # Print the list of extension modules we skipped building.
+    excluded_extensions = dist.command_obj['build_ext'].excluded_extensions
+    if excluded_extensions:
+        print "*** NOTE: The following extensions were NOT built:"
+        for ext, why in excluded_extensions:
+            print " %s: %s" % (ext.name, why)
+    else:
+        print "All extension modules built OK"
