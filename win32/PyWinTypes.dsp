@@ -34,7 +34,6 @@ CFG=PyWinTypes - Win32 Debug
 # PROP AllowPerConfigDependencies 0
 # PROP Scc_ProjName ""$/Python/win32", CDAAAAAA"
 # PROP Scc_LocalPath "."
-# PROP WCE_FormatVersion "6.0"
 
 !IF  "$(CFG)" == "PyWinTypes - Win32 Release"
 
@@ -66,7 +65,7 @@ LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e600000" /subsystem:windows /dll /pdb:"Build\System\PyWinTypes15.pdb" /machine:I386 /out:"Build\System\PyWinTypes15.dll" /implib:"Build\PyWinTypes.lib"
 # SUBTRACT LINK32 /pdb:none /debug
-# Begin Custom Build
+# Begin Custom Build - copy to system32
 ProjDir=.
 TargetPath=.\Build\System\PyWinTypes15.dll
 TargetName=PyWinTypes15
@@ -74,9 +73,8 @@ InputPath=.\Build\System\PyWinTypes15.dll
 SOURCE="$(InputPath)"
 
 "$(ProjDir)\$(TargetName).flg" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy $(TargetPath) %SYSTEMROOT%\System32\. 
-	echo Done > $(ProjDir)\$(TargetName).flg 
-	
+	copy $(TargetPath) %SYSTEMROOT%\System32\. && echo Done >                                      $(ProjDir)\$(TargetName).flg
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 Debug"
@@ -109,7 +107,7 @@ LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e600000" /subsystem:windows /dll /pdb:"Build\System\PyWinTypes15_d.pdb" /debug /machine:I386 /out:"Build\System\PyWinTypes15_d.dll" /implib:"Build\PyWinTypes_d.lib" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
-# Begin Custom Build
+# Begin Custom Build - copy to system32
 ProjDir=.
 TargetPath=.\Build\System\PyWinTypes15_d.dll
 TargetName=PyWinTypes15_d
@@ -117,9 +115,8 @@ InputPath=.\Build\System\PyWinTypes15_d.dll
 SOURCE="$(InputPath)"
 
 "$(ProjDir)\$(TargetName).flg" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy $(TargetPath) %SYSTEMROOT%\System32\. 
-	echo Done > $(ProjDir)\$(TargetName).flg 
-	
+	copy $(TargetPath) %SYSTEMROOT%\System32\. && echo Done >                                      $(ProjDir)\$(TargetName).flg
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE MIPS) Release"
@@ -136,25 +133,25 @@ SOURCE="$(InputPath)"
 # PROP Intermediate_Dir "Build\Temp\pywintypes\ce\mips\Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-PFILE=pfile.exe
-# ADD BASE PFILE COPY
-# ADD PFILE COPY
-CPP=clmips.exe
-# ADD BASE CPP /nologo /ML /W3 /Zi /O2 /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "BUILD_PYWINTYPES" /D "STRICT" /YX /FD /c
-# ADD CPP /nologo /M$(CECrtMT) /W3 /O1 /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=200 /D "UNICODE" /D "BUILD_PYWINTYPES" /D "STRICT" /YX /FD /c
-RSC=rc.exe
-# ADD BASE RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-# ADD RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib commctrl.lib coredll.lib /nologo /dll /pdb:"Build\System\PyWinTypes15.pdb" /debug /machine:MIPS /out:"Build\System\PyWinTypes15.dll" /implib:"Build\PyWinTypes.lib"
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 coredll.lib ole32.lib oleaut32.lib /nologo /dll /machine:MIPS /nodefaultlib:"$(CENoDefaultLib)" /out:"Build\ce\mips\PyWinTypes15.dll" /implib:"Build\ce\mips\PyWinTypes.lib" /subsystem:windowsce,1.0
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+RSC=rc.exe
+# ADD BASE RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+# ADD RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+CPP=clmips.exe
+# ADD BASE CPP /nologo /ML /W3 /Zi /O2 /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "BUILD_PYWINTYPES" /D "STRICT" /YX /FD /c
+# ADD CPP /nologo /M$(CECrtMT) /W3 /O1 /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=200 /D "UNICODE" /D "BUILD_PYWINTYPES" /D "STRICT" /YX /FD /c
+PFILE=pfile.exe
+# ADD BASE PFILE COPY
+# ADD PFILE COPY
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE x86em) Debug"
 
@@ -170,26 +167,26 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Build\Temp\pywintypes\ce\x86em\Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-EMPFILE=empfile.exe
-# ADD BASE EMPFILE COPY
-# ADD EMPFILE COPY
-CPP=cl.exe
-# ADD BASE CPP /nologo /ML /W3 /Gm /Zi /O2 /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "NDEBUG" /D "x86" /D "i486" /D "_x86_" /D "BUILD_PYWINTYPES" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /Gm /Zi /Od /D "DEBUG" /D "_DEBUG" /D "_WIN32_WCE_EMULATION" /D UNDER_CE=200 /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=200 /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "x86" /D "i486" /D "_x86_" /D "BUILD_PYWINTYPES" /YX /FD /c
-RSC=rc.exe
-# ADD BASE RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
-# ADD RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib commctrl.lib coredll.lib /nologo /base:"0x1e600000" /subsystem:windows /dll /pdb:"Build\System\PyWinTypes15.pdb" /debug /machine:IX86 /out:"Build\System\PyWinTypes15.dll" /implib:"Build\PyWinTypes.lib"
 # SUBTRACT BASE LINK32 /pdb:none
 # ADD LINK32 coredll.lib /nologo /base:"0x1e600000" /entry:"_DllMainCRTStartup@12" /subsystem:windows /dll /debug /machine:IX86 /nodefaultlib:"$(CENoDefaultLib)" /out:"Build\ce\x86em\PyWinTypes15_d.dll" /implib:"Build\ce\x86em\PyWinTypes_d.lib"
 # SUBTRACT LINK32 /pdb:none
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+RSC=rc.exe
+# ADD BASE RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
+# ADD RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
+CPP=cl.exe
+# ADD BASE CPP /nologo /ML /W3 /Gm /Zi /O2 /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "NDEBUG" /D "x86" /D "i486" /D "_x86_" /D "BUILD_PYWINTYPES" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /Gm /Zi /Od /D "DEBUG" /D "_DEBUG" /D "_WIN32_WCE_EMULATION" /D UNDER_CE=200 /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=200 /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "x86" /D "i486" /D "_x86_" /D "BUILD_PYWINTYPES" /YX /FD /c
+EMPFILE=empfile.exe
+# ADD BASE EMPFILE COPY
+# ADD EMPFILE COPY
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE x86em) Release"
 
@@ -205,26 +202,26 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Build\Temp\pywintypes\ce\x86em\Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-EMPFILE=empfile.exe
-# ADD BASE EMPFILE COPY
-# ADD EMPFILE COPY
-CPP=cl.exe
-# ADD BASE CPP /nologo /MT /W3 /Gm /Zi /Od /D "DEBUG" /D "_DEBUG" /D "_WIN32_WCE_EMULATION" /D UNDER_CE=200 /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=200 /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "x86" /D "i486" /D "_x86_" /D "BUILD_PYWINTYPES" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /O1 /D "NDEBUG" /D "_WIN32_WCE_EMULATION" /D UNDER_CE=200 /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=200 /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "x86" /D "i486" /D "_x86_" /D "BUILD_PYWINTYPES" /YX /FD /c
-RSC=rc.exe
-# ADD BASE RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
-# ADD RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 winsockm.lib commctrl.lib coredll.lib corelibc.lib ole32m.lib oleautm.lib uuid.lib /nologo /base:"0x1e600000" /subsystem:windows /dll /pdb:"Build\System\PyWinTypes15.pdb" /debug /machine:IX86 /nodefaultlib:"libcmt.lib" /out:"Build\ce\x86\PyWinTypes_d.dll"
 # SUBTRACT BASE LINK32 /pdb:none
 # ADD LINK32 coredll.lib corelibc.lib /nologo /base:"0x1e600000" /subsystem:windows /dll /machine:IX86 /nodefaultlib:"libcmt.lib" /nodefaultlib:"$(CENoDefaultLib)" /out:"Build\ce\x86em\PyWinTypes15.dll" /implib:"Build\ce\x86em\PyWinTypes.lib"
 # SUBTRACT LINK32 /pdb:none
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+RSC=rc.exe
+# ADD BASE RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
+# ADD RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
+CPP=cl.exe
+# ADD BASE CPP /nologo /MT /W3 /Gm /Zi /Od /D "DEBUG" /D "_DEBUG" /D "_WIN32_WCE_EMULATION" /D UNDER_CE=200 /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=200 /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "x86" /D "i486" /D "_x86_" /D "BUILD_PYWINTYPES" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /O1 /D "NDEBUG" /D "_WIN32_WCE_EMULATION" /D UNDER_CE=200 /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=200 /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "x86" /D "i486" /D "_x86_" /D "BUILD_PYWINTYPES" /YX /FD /c
+EMPFILE=empfile.exe
+# ADD BASE EMPFILE COPY
+# ADD EMPFILE COPY
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE MIPS) Debug"
 
@@ -240,26 +237,26 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Build\temp\pywintypes\ce\mips\Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-PFILE=pfile.exe
-# ADD BASE PFILE COPY
-# ADD PFILE COPY
-CPP=clmips.exe
-# ADD BASE CPP /nologo /MT /W3 /Zi /O1 /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=200 /D "UNICODE" /D "BUILD_PYWINTYPES" /D "STRICT" /YX /FD /c
-# ADD CPP /nologo /M$(CECrtMT) /W3 /Zi /Od /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "_DEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=200 /D "UNICODE" /D "BUILD_PYWINTYPES" /D "STRICT" /YX /FD /c
-RSC=rc.exe
-# ADD BASE RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-# ADD RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 coredll.lib /nologo /dll /pdb:"Build\System\PyWinTypes15.pdb" /debug /machine:MIPS /out:"Build\ce\mips\PyWinTypes15.dll" /implib:"Build\ce\mips\PyWinTypes.lib" /subsystem:windowsce
 # SUBTRACT BASE LINK32 /pdb:none
 # ADD LINK32 coredll.lib ole32.lib oleaut32.lib /nologo /dll /debug /machine:MIPS /nodefaultlib:"$(CENoDefaultLib)" /out:"Build\ce\mips\PyWinTypes15_d.dll" /implib:"Build\ce\mips\PyWinTypes_d.lib" /subsystem:windowsce
 # SUBTRACT LINK32 /pdb:none
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+RSC=rc.exe
+# ADD BASE RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+# ADD RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+CPP=clmips.exe
+# ADD BASE CPP /nologo /MT /W3 /Zi /O1 /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=200 /D "UNICODE" /D "BUILD_PYWINTYPES" /D "STRICT" /YX /FD /c
+# ADD CPP /nologo /M$(CECrtMT) /W3 /Zi /Od /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "_DEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=200 /D "UNICODE" /D "BUILD_PYWINTYPES" /D "STRICT" /YX /FD /c
+PFILE=pfile.exe
+# ADD BASE PFILE COPY
+# ADD PFILE COPY
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Debug"
 
@@ -275,26 +272,26 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Build\Temp\pywintypes\ce\sh\Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-PFILE=pfile.exe
-# ADD BASE PFILE COPY
-# ADD PFILE COPY
-CPP=shcl.exe
-# ADD BASE CPP /nologo /ML /W3 /Zi /Od /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "DEBUG" /YX /FD /c
-# ADD CPP /nologo /M$(CECrtMT) /W3 /Zi /Od /D "BUILD_PYWINTYPES" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "_DEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /YX /FD /c
-RSC=rc.exe
-# ADD BASE RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-# ADD RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 commctrl.lib coredll.lib /nologo /dll /debug /machine:SH3 /out:"Build\ce\mips\PyWinTypes15_d.dll" /implib:"Build\ce\mips\PyWinTypes_d.lib" /subsystem:windowsce
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 commctrl.lib coredll.lib /nologo /dll /debug /machine:SH3 /nodefaultlib:"$(CENoDefaultLib)" /out:"Build\ce\sh\PyWinTypes15_d.dll" /implib:"Build\ce\sh\PyWinTypes_d.lib" /subsystem:windowsce
 # SUBTRACT LINK32 /pdb:none
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+RSC=rc.exe
+# ADD BASE RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+# ADD RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+CPP=shcl.exe
+# ADD BASE CPP /nologo /ML /W3 /Zi /Od /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "DEBUG" /YX /FD /c
+# ADD CPP /nologo /M$(CECrtMT) /W3 /Zi /Od /D "BUILD_PYWINTYPES" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "_DEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /YX /FD /c
+PFILE=pfile.exe
+# ADD BASE PFILE COPY
+# ADD PFILE COPY
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Release"
 
@@ -310,26 +307,26 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Build\Temp\pywintypes\ce\sh\Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-PFILE=pfile.exe
-# ADD BASE PFILE COPY
-# ADD PFILE COPY
-CPP=shcl.exe
-# ADD BASE CPP /nologo /ML /W3 /O1 /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D "UNICODE" /D UNDER_CE=200 /YX /FD /c
-# ADD CPP /nologo /M$(CECrtMT) /W3 /O1 /D "BUILD_PYWINTYPES" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D "UNICODE" /D UNDER_CE=200 /YX /FD /c
-RSC=rc.exe
-# ADD BASE RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-# ADD RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 commctrl.lib coredll.lib /nologo /dll /machine:SH3 /out:"Build\ce\mips\PyWinTypes15.dll" /implib:"Build\ce\mips\PyWinTypes.lib" /subsystem:windowsce,1.0
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 commctrl.lib coredll.lib /nologo /dll /machine:SH3 /nodefaultlib:"$(CENoDefaultLib)" /out:"Build\ce\sh\PyWinTypes15.dll" /implib:"Build\ce\sh\PyWinTypes.lib" /subsystem:windowsce,1.0
 # SUBTRACT LINK32 /pdb:none
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+RSC=rc.exe
+# ADD BASE RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+# ADD RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+CPP=shcl.exe
+# ADD BASE CPP /nologo /ML /W3 /O1 /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D "UNICODE" /D UNDER_CE=200 /YX /FD /c
+# ADD CPP /nologo /M$(CECrtMT) /W3 /O1 /D "BUILD_PYWINTYPES" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D "UNICODE" /D UNDER_CE=200 /YX /FD /c
+PFILE=pfile.exe
+# ADD BASE PFILE COPY
+# ADD PFILE COPY
 
 !ENDIF 
 
@@ -356,9 +353,6 @@ SOURCE=.\src\PyACL.cpp
 DEP_CPP_PYACL=\
 	".\src\PySecurityObjects.h"\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYACL=\
 	".\angeobject.h"\
@@ -388,6 +382,7 @@ NODEP_CPP_PYACL=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -397,6 +392,7 @@ NODEP_CPP_PYACL=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE x86em) Debug"
@@ -408,11 +404,11 @@ NODEP_CPP_PYACL=\
 DEP_CPP_PYACL=\
 	".\src\PySecurityObjects.h"\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYACL=\
 	".\src\Python.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Debug"
@@ -420,11 +416,11 @@ NODEP_CPP_PYACL=\
 DEP_CPP_PYACL=\
 	".\src\PySecurityObjects.h"\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYACL=\
 	".\src\Python.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Release"
@@ -432,9 +428,6 @@ NODEP_CPP_PYACL=\
 DEP_CPP_PYACL=\
 	".\src\PySecurityObjects.h"\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYACL=\
 	".\angeobject.h"\
@@ -464,6 +457,7 @@ NODEP_CPP_PYACL=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -473,6 +467,7 @@ NODEP_CPP_PYACL=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
@@ -490,9 +485,6 @@ SOURCE=.\src\PyHANDLE.cpp
 
 DEP_CPP_PYHAN=\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYHAN=\
 	".\angeobject.h"\
@@ -523,6 +515,7 @@ NODEP_CPP_PYHAN=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -532,6 +525,7 @@ NODEP_CPP_PYHAN=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE x86em) Debug"
@@ -542,33 +536,30 @@ NODEP_CPP_PYHAN=\
 
 DEP_CPP_PYHAN=\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYHAN=\
 	".\src\Python.h"\
 	".\src\structmember.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Debug"
 
 DEP_CPP_PYHAN=\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYHAN=\
 	".\src\Python.h"\
 	".\src\structmember.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Release"
 
 DEP_CPP_PYHAN=\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYHAN=\
 	".\angeobject.h"\
@@ -599,6 +590,7 @@ NODEP_CPP_PYHAN=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -608,6 +600,7 @@ NODEP_CPP_PYHAN=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
@@ -625,9 +618,6 @@ SOURCE=.\src\PyIID.cpp
 
 DEP_CPP_PYIID=\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYIID=\
 	".\angeobject.h"\
@@ -657,6 +647,7 @@ NODEP_CPP_PYIID=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -666,6 +657,7 @@ NODEP_CPP_PYIID=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE x86em) Debug"
@@ -676,31 +668,28 @@ NODEP_CPP_PYIID=\
 
 DEP_CPP_PYIID=\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYIID=\
 	".\src\Python.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Debug"
 
 DEP_CPP_PYIID=\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYIID=\
 	".\src\Python.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Release"
 
 DEP_CPP_PYIID=\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYIID=\
 	".\angeobject.h"\
@@ -730,6 +719,7 @@ NODEP_CPP_PYIID=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -739,6 +729,7 @@ NODEP_CPP_PYIID=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
@@ -754,11 +745,6 @@ SOURCE=.\src\PyLARGE_INTEGER.cpp
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE MIPS) Release"
 
-DEP_CPP_PYLAR=\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	
 NODEP_CPP_PYLAR=\
 	".\angeobject.h"\
 	".\atchlevel.h"\
@@ -788,6 +774,7 @@ NODEP_CPP_PYLAR=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -797,6 +784,7 @@ NODEP_CPP_PYLAR=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE x86em) Debug"
@@ -805,33 +793,24 @@ NODEP_CPP_PYLAR=\
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE MIPS) Debug"
 
-DEP_CPP_PYLAR=\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	
 NODEP_CPP_PYLAR=\
 	".\src\longintrepr.h"\
 	".\src\Python.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Debug"
 
-DEP_CPP_PYLAR=\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	
 NODEP_CPP_PYLAR=\
 	".\src\longintrepr.h"\
 	".\src\Python.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Release"
 
-DEP_CPP_PYLAR=\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	
 NODEP_CPP_PYLAR=\
 	".\angeobject.h"\
 	".\atchlevel.h"\
@@ -861,6 +840,7 @@ NODEP_CPP_PYLAR=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -870,6 +850,7 @@ NODEP_CPP_PYLAR=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
@@ -887,9 +868,6 @@ SOURCE=.\src\PyOVERLAPPED.cpp
 
 DEP_CPP_PYOVE=\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYOVE=\
 	".\angeobject.h"\
@@ -920,6 +898,7 @@ NODEP_CPP_PYOVE=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -929,6 +908,7 @@ NODEP_CPP_PYOVE=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE x86em) Debug"
@@ -939,33 +919,30 @@ NODEP_CPP_PYOVE=\
 
 DEP_CPP_PYOVE=\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYOVE=\
 	".\src\Python.h"\
 	".\src\structmember.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Debug"
 
 DEP_CPP_PYOVE=\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYOVE=\
 	".\src\Python.h"\
 	".\src\structmember.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Release"
 
 DEP_CPP_PYOVE=\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYOVE=\
 	".\angeobject.h"\
@@ -996,6 +973,7 @@ NODEP_CPP_PYOVE=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -1005,6 +983,7 @@ NODEP_CPP_PYOVE=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
@@ -1023,9 +1002,6 @@ SOURCE=.\src\PySECURITY_ATTRIBUTES.cpp
 DEP_CPP_PYSEC=\
 	".\src\PySecurityObjects.h"\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYSEC=\
 	".\angeobject.h"\
@@ -1056,6 +1032,7 @@ NODEP_CPP_PYSEC=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -1065,6 +1042,7 @@ NODEP_CPP_PYSEC=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE x86em) Debug"
@@ -1076,12 +1054,12 @@ NODEP_CPP_PYSEC=\
 DEP_CPP_PYSEC=\
 	".\src\PySecurityObjects.h"\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYSEC=\
 	".\src\Python.h"\
 	".\src\structmember.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Debug"
@@ -1089,12 +1067,12 @@ NODEP_CPP_PYSEC=\
 DEP_CPP_PYSEC=\
 	".\src\PySecurityObjects.h"\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYSEC=\
 	".\src\Python.h"\
 	".\src\structmember.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Release"
@@ -1102,9 +1080,6 @@ NODEP_CPP_PYSEC=\
 DEP_CPP_PYSEC=\
 	".\src\PySecurityObjects.h"\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYSEC=\
 	".\angeobject.h"\
@@ -1135,6 +1110,7 @@ NODEP_CPP_PYSEC=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -1144,6 +1120,7 @@ NODEP_CPP_PYSEC=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
@@ -1162,9 +1139,6 @@ SOURCE=.\src\PySECURITY_DESCRIPTOR.cpp
 DEP_CPP_PYSECU=\
 	".\src\PySecurityObjects.h"\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYSECU=\
 	".\angeobject.h"\
@@ -1195,6 +1169,7 @@ NODEP_CPP_PYSECU=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -1204,6 +1179,7 @@ NODEP_CPP_PYSECU=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE x86em) Debug"
@@ -1215,12 +1191,12 @@ NODEP_CPP_PYSECU=\
 DEP_CPP_PYSECU=\
 	".\src\PySecurityObjects.h"\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYSECU=\
 	".\src\Python.h"\
 	".\src\structmember.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Debug"
@@ -1228,12 +1204,12 @@ NODEP_CPP_PYSECU=\
 DEP_CPP_PYSECU=\
 	".\src\PySecurityObjects.h"\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYSECU=\
 	".\src\Python.h"\
 	".\src\structmember.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Release"
@@ -1241,9 +1217,6 @@ NODEP_CPP_PYSECU=\
 DEP_CPP_PYSECU=\
 	".\src\PySecurityObjects.h"\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYSECU=\
 	".\angeobject.h"\
@@ -1274,6 +1247,7 @@ NODEP_CPP_PYSECU=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -1283,6 +1257,7 @@ NODEP_CPP_PYSECU=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
@@ -1305,9 +1280,6 @@ SOURCE=.\src\PySID.cpp
 DEP_CPP_PYSID=\
 	".\src\PySecurityObjects.h"\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYSID=\
 	".\angeobject.h"\
@@ -1337,6 +1309,7 @@ NODEP_CPP_PYSID=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -1346,6 +1319,7 @@ NODEP_CPP_PYSID=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE x86em) Debug"
@@ -1357,11 +1331,11 @@ NODEP_CPP_PYSID=\
 DEP_CPP_PYSID=\
 	".\src\PySecurityObjects.h"\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYSID=\
 	".\src\Python.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Debug"
@@ -1369,11 +1343,11 @@ NODEP_CPP_PYSID=\
 DEP_CPP_PYSID=\
 	".\src\PySecurityObjects.h"\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYSID=\
 	".\src\Python.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Release"
@@ -1381,9 +1355,6 @@ NODEP_CPP_PYSID=\
 DEP_CPP_PYSID=\
 	".\src\PySecurityObjects.h"\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYSID=\
 	".\angeobject.h"\
@@ -1413,6 +1384,7 @@ NODEP_CPP_PYSID=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -1422,6 +1394,7 @@ NODEP_CPP_PYSID=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
@@ -1439,9 +1412,6 @@ SOURCE=.\src\PyTime.cpp
 
 DEP_CPP_PYTIM=\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYTIM=\
 	".\angeobject.h"\
@@ -1471,6 +1441,7 @@ NODEP_CPP_PYTIM=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -1480,6 +1451,7 @@ NODEP_CPP_PYTIM=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE x86em) Debug"
@@ -1490,31 +1462,28 @@ NODEP_CPP_PYTIM=\
 
 DEP_CPP_PYTIM=\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYTIM=\
 	".\src\Python.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Debug"
 
 DEP_CPP_PYTIM=\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYTIM=\
 	".\src\Python.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Release"
 
 DEP_CPP_PYTIM=\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYTIM=\
 	".\angeobject.h"\
@@ -1544,6 +1513,7 @@ NODEP_CPP_PYTIM=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -1553,6 +1523,7 @@ NODEP_CPP_PYTIM=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
@@ -1570,9 +1541,6 @@ SOURCE=.\src\PyUnicode.cpp
 
 DEP_CPP_PYUNI=\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYUNI=\
 	".\angeobject.h"\
@@ -1602,6 +1570,7 @@ NODEP_CPP_PYUNI=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -1611,6 +1580,7 @@ NODEP_CPP_PYUNI=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE x86em) Debug"
@@ -1621,31 +1591,28 @@ NODEP_CPP_PYUNI=\
 
 DEP_CPP_PYUNI=\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYUNI=\
 	".\src\Python.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Debug"
 
 DEP_CPP_PYUNI=\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYUNI=\
 	".\src\Python.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Release"
 
 DEP_CPP_PYUNI=\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYUNI=\
 	".\angeobject.h"\
@@ -1675,6 +1642,7 @@ NODEP_CPP_PYUNI=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -1684,6 +1652,7 @@ NODEP_CPP_PYUNI=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
@@ -1710,9 +1679,6 @@ SOURCE=.\src\PyWinTypesmodule.cpp
 DEP_CPP_PYWIN=\
 	".\src\PySecurityObjects.h"\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYWIN=\
 	".\angeobject.h"\
@@ -1742,6 +1708,7 @@ NODEP_CPP_PYWIN=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -1751,6 +1718,7 @@ NODEP_CPP_PYWIN=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE x86em) Debug"
@@ -1762,11 +1730,11 @@ NODEP_CPP_PYWIN=\
 DEP_CPP_PYWIN=\
 	".\src\PySecurityObjects.h"\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYWIN=\
 	".\src\Python.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Debug"
@@ -1774,11 +1742,11 @@ NODEP_CPP_PYWIN=\
 DEP_CPP_PYWIN=\
 	".\src\PySecurityObjects.h"\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYWIN=\
 	".\src\Python.h"\
 	".\src\unicodeobject.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Release"
@@ -1786,9 +1754,6 @@ NODEP_CPP_PYWIN=\
 DEP_CPP_PYWIN=\
 	".\src\PySecurityObjects.h"\
 	".\src\PyWinObjects.h"\
-	{$(INCLUDE)}"eval.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_PYWIN=\
 	".\angeobject.h"\
@@ -1818,6 +1783,7 @@ NODEP_CPP_PYWIN=\
 	".\ufferobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
+	".\val.h"\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
@@ -1827,6 +1793,7 @@ NODEP_CPP_PYWIN=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
