@@ -355,16 +355,21 @@ PyObject *PyCom_BuildPyException(HRESULT errorhr, IUnknown *pUnk /* = NULL */, R
 		HRESULT hr;
 		Py_BEGIN_ALLOW_THREADS
 		hr = pUnk->QueryInterface(IID_ISupportErrorInfo, (void **)&pSEI);
-		Py_END_ALLOW_THREADS
 		if (SUCCEEDED(hr)) {
 			hr = pSEI->InterfaceSupportsErrorInfo(iid);
 			pSEI->Release(); // Finished with this object
 		}
+		Py_END_ALLOW_THREADS
 		if (SUCCEEDED(hr)) {
 			IErrorInfo *pEI;
-			if (GetErrorInfo(0, &pEI)==S_OK) {
+			Py_BEGIN_ALLOW_THREADS
+			hr=GetErrorInfo(0, &pEI);
+			Py_END_ALLOW_THREADS
+			if (hr==S_OK) {
 				obEI = PyCom_PyObjectFromIErrorInfo(pEI, errorhr);
+				Py_BEGIN_ALLOW_THREADS
 				pEI->Release();
+				Py_END_ALLOW_THREADS
 			}
 		}
 	}
@@ -468,17 +473,29 @@ static PyObject *PyCom_PyObjectFromIErrorInfo(IErrorInfo *pEI, HRESULT errorhr)
 	PyObject *obDesc;
 	PyObject *obSource;
 	PyObject *obHelpFile;
-	if (pEI->GetDescription(&desc)!=S_OK) {
+
+	HRESULT hr;
+
+	Py_BEGIN_ALLOW_THREADS
+	hr=pEI->GetDescription(&desc);
+	Py_END_ALLOW_THREADS
+	if (hr!=S_OK) {
 		obDesc = Py_None;
 		Py_INCREF(obDesc);
 	} else
 		obDesc = MakeBstrToObj(desc);
-	if (pEI->GetSource(&source)!=S_OK) {
+	Py_BEGIN_ALLOW_THREADS
+	hr=pEI->GetSource(&source);
+	Py_END_ALLOW_THREADS
+	if (hr!=S_OK) {
 		obSource = Py_None;
 		Py_INCREF(obSource);
 	} else
 		obSource = MakeBstrToObj(source);
-	if (pEI->GetHelpFile(&helpfile)!=S_OK) {
+	Py_BEGIN_ALLOW_THREADS
+	hr=pEI->GetHelpFile(&helpfile);
+	Py_END_ALLOW_THREADS
+	if (hr!=S_OK) {
 		obHelpFile = Py_None;
 		Py_INCREF(obHelpFile);
 	} else
