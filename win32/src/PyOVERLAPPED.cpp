@@ -1,12 +1,10 @@
 //
 // @doc
 
-#include "windows.h"
-#include "Python.h"
-#include "structmember.h"
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include "assert.h"
+#include "structmember.h"
 
 // @pymethod <o PyOVERLAPPED>|pywintypes|OVERLAPPED|Creates a new OVERLAPPED object
 PyObject *PyWinMethod_NewOVERLAPPED(PyObject *self, PyObject *args)

@@ -1,12 +1,11 @@
 //
 // @doc
 
-#include "Python.h"
-#ifndef MS_WINCE /* This source is not included for WinCE */
-#include "windows.h"
 #include "PyWinTypes.h"
+
 #include "PyWinObjects.h"
 #include "PySecurityObjects.h"
+#ifndef MS_WINCE /* This source is not included for WinCE */
 #include "accctrl.h"
 #include "aclapi.h"
 

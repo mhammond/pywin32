@@ -1,11 +1,9 @@
 //
 // @doc
 
-#include "windows.h"
-#include "Python.h"
-#include "structmember.h"
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
+#include "structmember.h"
 
 // @pymethod <o PyHANDLE>|pywintypes|HANDLE|Creates a new HANDLE object
 PyObject *PyWinMethod_NewHANDLE(PyObject *self, PyObject *args)

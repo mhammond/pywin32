@@ -2,29 +2,31 @@
 #ifndef __PYWINTYPES_H__
 #define __PYWINTYPES_H__
 
-/* DAA: restore macros for building under CE */
-#ifndef IN
-#define IN
-#endif
-#ifdef OUT
-#undef OUT
-#endif
-#ifndef OUT
-#define OUT
+// If building under a GCC, tweak what we need.
+#if defined(__GNUC__) && defined(_POSIX_C_SOURCE)
+    // python.h complains if _POSIX_C_SOURCE is already defined
+#	undef _POSIX_C_SOURCE
 #endif
 
+// Python.h and Windows.h both protect themselves from multiple
+// includes - so it is safe to do here (and provides a handy
+// choke point for #include vagaries
+#include "Python.h"
+#include "windows.h"
 // Do we want to use the builtin Unicode object?
 // If defined, we use the standard builtin type.
 // If not define, we have our own Unicode type
 // (but that doesnt work seamlessly with PyString objects)
 
-// For 1.6 builds, this will be ON.
+// For 1.6+ builds, this will be ON.
 // For 1.5 builds, this will be OFF
 #if (PY_VERSION_HEX >= 0x01060000)
 #define PYWIN_USE_PYUNICODE
 #endif
 
-
+// *** NOTE *** FREEZE_PYWINTYPES is deprecated.  It used to be used
+// by the 'freeze' tool, but now py2exe etc do a far better job, and 
+// don't require a custom built pywintypes DLL.
 #ifdef FREEZE_PYWINTYPES
 	/* The pywintypes module is being included in a frozen .EXE/.DLL */
 #	define PYWINTYPES_EXPORT
@@ -47,12 +49,25 @@
 
 #include <tchar.h>
 #ifdef MS_WINCE
+// These macros caused grief on CE once (do they still?)
+#	ifndef IN
+#		define IN
+#	endif
+#	ifdef OUT
+#		undef OUT
+#	endif
+#	ifndef OUT
+#		define OUT
+#	endif
 // Having trouble making these work for Palm PCs??
-#ifndef PYWIN_HPC /* Palm PC */
-#define NO_PYWINTYPES_TIME
-#define NO_PYWINTYPES_IID
-#define NO_PYWINTYPES_BSTR
-#endif
+// NOTE: These are old - for Windows CE 1 devices, and well
+// before the PPC platform.  It is unlikely recent CE toolkits
+// still need all this magic.
+#	ifndef PYWIN_HPC /* Palm PC */
+#		define NO_PYWINTYPES_TIME
+#		define NO_PYWINTYPES_IID
+#		define NO_PYWINTYPES_BSTR
+#	endif
 #endif // MS_WINCE
 /*
 ** Error/Exception handling

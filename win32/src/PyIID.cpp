@@ -3,8 +3,6 @@
 //
 // @doc
 
-#include "windows.h"
-#include "Python.h"
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 

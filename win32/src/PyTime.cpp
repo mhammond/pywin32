@@ -2,8 +2,6 @@
 // PyTime.cpp -- date/time type for Python
 //
 // @doc
-#include "windows.h"
-#include "Python.h"
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #ifndef MS_WINCE

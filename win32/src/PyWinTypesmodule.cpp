@@ -12,13 +12,10 @@ generates Windows .hlp files.
 
 ******************************************************************/
 
-#include "windows.h"
-#include "malloc.h"
-
-#include "Python.h"
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include "PySecurityObjects.h"
+#include "malloc.h"
 
 PyObject * PyWinExc_ApiError = NULL;
 PyObject * PyWinExc_COMError = NULL;

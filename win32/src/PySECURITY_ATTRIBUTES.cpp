@@ -1,12 +1,10 @@
 //
 // @doc
 
-#include "windows.h"
-#include "Python.h"
-#include "structmember.h"
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include "PySecurityObjects.h"
+#include "structmember.h"
 
 #ifdef MS_WINCE 
 

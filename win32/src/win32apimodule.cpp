@@ -12,12 +12,6 @@ generates Windows .hlp files.
 
 ******************************************************************/
 
-#include "windows.h"
-
-#define Py_USE_NEW_NAMES
-
-
-#include "Python.h"
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 

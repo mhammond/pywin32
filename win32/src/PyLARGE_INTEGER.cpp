@@ -21,8 +21,6 @@
 
 // Hopefully Python will formalise an API for this?
 
-#include "windows.h"
-#include "Python.h"
 #include "PyWinTypes.h"
 #include "longintrepr.h"
 
