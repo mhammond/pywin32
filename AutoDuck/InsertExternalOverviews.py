@@ -1,0 +1,62 @@
+import os
+import sys
+import string
+
+"""
+Replace: <!--index:extopics-->
+With:    <LI><A HREF="<context>">Topic Name</A>
+         <LI><A HREF="<context2>">Topic Name2</A>
+Note: The replacement string must be on one line.
+Usage:
+      AdExtTopics.py htmlfile ext_overviewfile
+"""
+
+def processFile(input, out, extLinksHTML, extTopicHTML):
+  while 1:
+    line = input.readline()
+    if not line:
+      break
+    line = string.replace(line, "<!--index:exlinks-->", extLinksHTML)
+    line = string.replace(line, "<!--index:extopics-->", extTopicHTML)
+    out.write(line + "\n")
+    
+def genHTML(doc):
+  s = ""
+  for cat in doc:
+      s = s + "<H3>%s</H3>\n" % (cat.label,)
+      dict = {}
+      for item in  cat.overviewItems.items:
+          dict[item.name] = item.href
+      keys = dict.keys()
+      keys.sort()
+      for k in keys:
+        s = s + '<LI><A HREF="html/%s">%s</A>\n' % (dict[k], k)
+  return s
+
+def genLinksHTML(doc):
+  s = ""
+  for link in doc.links:
+    s = s + '<LI><A HREF="%s">%s</A>\n' % (link.href, link.name)
+  return s
+
+import document_object
+
+def main():
+  if len(sys.argv) != 2:
+    print "Invalid args"
+    sys.exit(1)
+  file = sys.argv[1]
+  input = open(file, "r")
+  out = open(file + ".2", "w")
+  doc = document_object.GetDocument()
+  linksHTML = genLinksHTML(doc)
+  extTopicHTML = genHTML(doc)
+  processFile(input, out, linksHTML, extTopicHTML)
+  input.close()
+  out.close()
+  sCmd = 'del "%s"' % file
+  os.unlink(file)
+  os.rename(file+".2", file)
+
+if __name__ == "__main__":
+  main()

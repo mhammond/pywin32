@@ -72,7 +72,10 @@ def handle_globs(lGlobs):
     lRelativeFiles.append(file[len(sCommonPrefix):])
   return (lRelativeFiles, lFiles)
 
+import document_object
+
 def main():
+  doc = document_object.GetDocument()
   output = os.path.abspath(sys.argv[1])
   target = sys.argv[2]
   f = open(output + ".hhp", "w")
@@ -80,7 +83,10 @@ def main():
   if len(sys.argv) > 2:
     # sys.argv[3] == html_dir
     # sys.argv[4:] == html_files (globbed)
-    html_dir = os.path.abspath(sys.argv[3])
+    output_dir = os.path.abspath(sys.argv[3])
+    html_dir = os.path.abspath(os.path.join(output_dir, "html"))
+    if not os.path.isdir(html_dir):
+      os.makedirs(html_dir)
     lGlobs   = sys.argv[4:]
     lDestFiles, lSrcFiles = handle_globs(lGlobs)
     # ensure HTML Help build directory exists.
@@ -101,7 +107,12 @@ def main():
 
     for file in lDestFiles:
       html_files = html_files + '%s\\%s\n' % (html_dir, file)
-    
+
+  for cat in doc:
+    html_files = html_files + '%s\\%s.html\n' % (output_dir, cat.id)
+    for suffix in "_overview _modules _objects".split():
+      html_files = html_files + '%s\\%s%s.html\n' % (output_dir, cat.id, suffix)
+
   f.write(sHHPFormat % { "output" : output, "target" : target,
                          "html_files" : html_files })
   f.close()

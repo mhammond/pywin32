@@ -10,14 +10,7 @@ echo Can not locate HHC.EXE - please set the HHC environment to point to the .ex
 goto xit
 
 :doit
-nmake -E -f com.mak %1 %2 %3 %4 %5
-if errorlevel 1 goto xit
-nmake -E -f win32.mak %1 %2 %3 %4 %5
-if errorlevel 1 goto xit
-nmake -E -f pythonwin.mak %1 %2 %3 %4 %5
-if errorlevel 1 goto xit
-rem Make the combined chm.
-nmake -E -f bundle.mak %1 %2 %3 %4 %5
+nmake -E -f pywin32.mak %1 %2 %3 %4 %5
 
 :xit
 

@@ -1,0 +1,29 @@
+<document>
+    <links>
+        <item name="Python Web Site" href="http://www.python.org"/>
+        <item name="Python for Win32 Extensions Site" href="http://starship.python.net/crew/mhammond"/>
+        <item name="Python for Win32 mailing list" href="http://mail.python.org/mailman/listinfo/python-win32"/>
+        <item name="Paul Boddie's Python COM tutorial" href="http://thor.prohosting.com/~pboddie/Python/COM.html"/>
+    </links>
+    <category id="win32" label="Win32 API">
+        <overviews>
+            <item name="Getting process info (with some COM thrown it!)" href="win32/help/process_info.html"/>
+            <item name="Windows NT/2000 Networking with the win32net module" href="win32/help/win32net.html"/>
+            <item name="Directory permissions with GetNamedSecurityInfo" href="win32/help/security_directories.html"/>
+        </overviews>
+    </category>
+    <category id="com" label="Python COM">
+        <overviews>
+            <item name="Quick-Starts to Python and COM" href="com/win32com/HTML/docindex.html"/>
+            <item name="win32com readme" href="com/win32com/readme.htm"/>
+            <item name="ADSI and Python" href="com/help/adsi.html"/>
+        </overviews>
+    </category>
+    <category id="pythonwin" label="Pythonwin and win32ui">
+        <overviews>
+            <item name="Pythonwin Debugger documentation" href="pythonwin/doc/debugger/index.html"/>
+            <item name="The Pythonwin environment" href="pythonwin/doc/guienvironment.html"/>
+            <item name="Pythonwin readme" href="pythonwin/readme.html"/>
+        </overviews>
+    </category>
+</document>

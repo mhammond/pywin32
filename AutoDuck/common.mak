@@ -3,9 +3,6 @@
 $(GENDIR):
 	@if not exist $(GENDIR)\. md $(GENDIR)
 
-"$(GENDIR)\$(HTML_DIR)":
-	@if not exist $(GENDIR)\$(HTML_DIR)\. md "$(GENDIR)\$(HTML_DIR)"
-
 cleanad:
     if exist "$(GENDIR)\*.rtf" del "$(GENDIR)\*.rtf"
     if exist "$(GENDIR)\*.hpj" del "$(GENDIR)\*.hpj"
@@ -19,7 +16,7 @@ cleanad:
 	if exist "$(GENDIR)\*.dump" del "$(GENDIR)\*.dump"
 	if exist "$(GENDIR)\*.hhk" del "$(GENDIR)\*.hhk"
 	if exist "$(GENDIR)\*.hhc" del "$(GENDIR)\*.hhc"
-	if exist "$(GENDIR)\$(HTML_DIR)\*" rd /s /q "$(GENDIR)\$(HTML_DIR)"
+	if exist "$(GENDIR)\html\*" rd /s /q "$(GENDIR)\html"
 
 # Generate a Help file
 
@@ -54,19 +51,19 @@ cleanad:
 
 # Generate an HTML Help file.
 
-"$(GENDIR)\$(TARGET).hhp" : BuildHHP.py $(HTML_FILES) "$(GENDIR)\$(HTML_DIR)"
-	BuildHHP.py "$(GENDIR)\$(TARGET)" "$(TARGET)" "$(GENDIR)\$(HTML_DIR)" $(HTML_FILES)
+"$(GENDIR)\$(TARGET).hhp" : BuildHHP.py $(DOCUMENT_FILE) $(HTML_FILES)
+	BuildHHP.py "$(GENDIR)\$(TARGET)" "$(TARGET)" "$(GENDIR)" $(HTML_FILES)
 
-"$(GENDIR)\$(TARGET).html" "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).idx" : $(SOURCE) pyhtml.fmt "$(GENDIR)\$(TARGET).hhlog" AutoDuckPostProcess.py $(EXT_TOPICS)
+"$(GENDIR)\$(TARGET).html" "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).idx" : $(SOURCE) pyhtml.fmt "$(GENDIR)\$(TARGET).hhlog" InsertExternalOverviews.py $(DOCUMENT_FILE) 
 	@echo Running autoduck for the .html
 	@$(ADHTMLFMT) $(ADHTML) /t$(ADTAB) $(SOURCE)
-	AutoDuckPostProcess.py "$(GENDIR)\$(TARGET).html" "$(EXT_TOPICS)"
+	InsertExternalOverviews.py "$(GENDIR)\$(TARGET).html"
 
 "$(GENDIR)\$(TARGET).hhk" : "$(GENDIR)\$(TARGET).idx" "$(GENDIR)\$(TARGET).idx" TOCToHHK.py
 	TOCToHHK.py "$(GENDIR)\$(TARGET).idx" "$(GENDIR)\$(TARGET).hhk"
 
-"$(GENDIR)\$(TARGET).hhc" : "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).dump" Dump2HHC.py "$(EXT_TOPICS)"
-	Dump2HHC.py "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).hhc" "$(TITLE)" "$(TARGET)" "$(EXT_TOPICS)"
+#"$(GENDIR)\$(TARGET).hhc" : "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).dump" Dump2HHC.py $(EXT_TOPICS)
+#	Dump2HHC.py "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).hhc" "$(TITLE)" "$(TARGET)" $(EXT_TOPICS)
 
 "..\$(TARGET).chm" : $(SOURCE) "$(GENDIR)\$(TARGET).html" "$(GENDIR)\$(TARGET).hhc" "$(GENDIR)\$(TARGET).hhk" "$(GENDIR)\$(TARGET).hhp"
 	-$(HHC) "$(GENDIR)\$(TARGET).hhp"

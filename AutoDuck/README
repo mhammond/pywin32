@@ -1,4 +1,4 @@
-Building the HTML Help documentation requires a special version of AutoDuck available at http://lima.mudlib.org/~rassilon/autoduck.
+Just run MAKE.BAT to build the documentation.
 
-Bill
-rassilon@lima.mudlib.org
+Main focus these days is on the .chm file - a single .chm
+provides the best documentation solution.

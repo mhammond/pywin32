@@ -95,6 +95,9 @@
 <BODY>
 <H1>$(title)</H1>
 <P>
+<H2>External Resources</H2>
+<!--index:exlinks-->
+<P>
 <!-- <LI><A HREF="overviews.html">Overviews</A> -->
 <H2>Python Objects</H2>
 <LI><A HREF="modules.html">Modules</A>
