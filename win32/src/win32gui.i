@@ -287,6 +287,32 @@ typedef int UINT;
 %typemap(python,in) POINT *BOTH = POINT *INPUT;
 %typemap(python,argout) POINT *BOTH = POINT *OUTPUT;
 
+%typemap(python,argout) ICONINFO *OUTPUT {
+    PyObject *o;
+    o = Py_BuildValue("lllll", $source->fIcon, $source->xHotspot,
+	                 $source->yHotspot, $source->hbmMask, $source->hbmColor);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
+      Py_DECREF(Py_None);
+      $target = o;
+    } else {
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
+	Py_XDECREF(o2);
+      }
+      PyList_Append($target,o);
+      Py_XDECREF(o);
+    }
+}
+
+%typemap(python,ignore) ICONINFO *OUTPUT(ICONINFO temp)
+{
+  $target = &temp;
+}
+
 %typemap(python,except) LRESULT {
       Py_BEGIN_ALLOW_THREADS
       $function
@@ -1944,6 +1970,15 @@ HBITMAP CreateCompatibleBitmap(
   int nHeight     // @pyparm int|height||height of bitmap, in pixels
 );
 
+// @pyswig HBITMAP|CreateBitmap|Creates a bitmap
+HBITMAP CreateBitmap(
+  int nWidth,         // @pyparm int|width||bitmap width, in pixels
+  int nHeight,        // @pyparm int|height||bitmap height, in pixels
+  UINT cPlanes,       // @pyparm int|cPlanes||number of color planes
+  UINT cBitsPerPel,   // @pyparm int|cBitsPerPixel||number of bits to identify color
+  NULL_ONLY null // @pyparm None|bitmap bits||Must be None
+);
+
 // @pyswig HGDIOBJ|SelectObject|Selects an object into the specified device context (DC). The new object replaces the previous object of the same type. 
 HGDIOBJ SelectObject(
   HDC hdc,        // @pyparm int|hdc||handle to DC
@@ -2467,6 +2502,11 @@ done:
 // @pyparm int|hicon||The icon to destroy.
 BOOLAPI DestroyIcon( HICON hicon);
 
+// @pyswig tuple|GetIconInfo|
+// @pyparm int|hicon||The icon to query
+// @rdesc The result is a tuple of (fIcon, xHotspot, yHotspot, hbmMask, hbmColor)
+// The hbmMask and hbmColor items are bitmaps created for the caller, so must be freed.
+BOOLAPI GetIconInfo( HICON hicon, ICONINFO *OUTPUT);
 
 // @pyswig |ScreenToClient|Convert screen coordinates to client coords
 BOOLAPI ScreenToClient(HWND hWnd,POINT *BOTH);
@@ -2526,6 +2566,9 @@ int GetMenuState(HMENU hMenu, UINT uID, UINT flags);
 
 // @pyswig |SetMenuDefaultItem|
 BOOLAPI SetMenuDefaultItem(HMENU hMenu, UINT flags, UINT fByPos);
+
+// @pyswig |GetMenuDefaultItem|
+int GetMenuDefaultItem(HMENU hMenu, UINT fByPos, UINT flags);
 
 // @pyswig |AppendMenu|
 BOOLAPI AppendMenu(HMENU hMenu, UINT uFlags, UINT uIDNewItem, TCHAR *lpNewItem);
