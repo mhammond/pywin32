@@ -108,6 +108,14 @@
 
 #endif // MS_WINCE
 
+#ifdef __MINGW32__
+// Special Mingw32 considerations.
+#define NO_PYCOM_IDISPATCHEX
+#define NO_PYCOM_IPROVIDECLASSINFO
+#define __try try
+#define __except catch
+
+#endif // __MINGW32__
 
 #include <PyWinTypes.h> // Standard Win32 Types
 
@@ -481,7 +489,7 @@ protected:
 	PyIProvideClassInfo2(IUnknown *pdisp);
 	~PyIProvideClassInfo2();
 };
-#endif NO_PYCOM_IPROVIDECLASSINFO
+#endif //NO_PYCOM_IPROVIDECLASSINFO
 
 /////////////////////////////////////////////////////////////////////////////
 // class PyITypeInfo

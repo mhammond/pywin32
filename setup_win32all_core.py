@@ -175,6 +175,9 @@ class my_build_ext(build_ext):
         build_ext.finalize_options(self)
 
         self.library_dirs.append(self.build_temp)
+        self.mingw32 = (self.compiler == "mingw32")
+        if self.mingw32:
+            self.libraries.append("stdc++")
 
     def build_extension(self, ext):
         # some source files are compiled for different extensions
@@ -190,12 +193,17 @@ class my_build_ext(build_ext):
             # copy the .lib-file created to the original name.
             name = REGNAMES.get(ext.name, ext.name)
             from distutils.file_util import copy_file, move_file
+            extra = ''
             if self.debug:
-                extra = '_d.lib'
+                extra = '_d'
+            if self.mingw32:
+                prefix = 'lib'
+                extra = extra + '.a'
             else:
-                extra = '.lib'
-            src = os.path.join(self.build_temp, name + extra)
-            dst = os.path.join(self.build_temp, "..", ext.name + extra)
+                prefix = ''
+                extra = extra + '.lib'
+            src = os.path.join(self.build_temp, prefix + name + extra)
+            dst = os.path.join(self.build_temp, "..", prefix + ext.name + extra)
             self.copy_file(src, dst)#, update=1)
 
         finally:
