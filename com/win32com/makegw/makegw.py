@@ -230,10 +230,10 @@ PyObject *Py%(interfacename)s::%(method)s(PyObject *self, PyObject *args)
 '''	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = p%(ptr)s->%(method)s(%(argsCOM)s );
-%(cleanup)s
 	PY_INTERFACE_POSTCALL;
+%(cleanup)s
 	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, p%(ptr)s, %(interfacename)s );
+		return PyCom_BuildPyException(hr, p%(ptr)s, IID_%(interfacename)s );
 ''' % strdict)
     codePre = codePost = formatChars = codeVarsPass = codeDecl = ""
     for arg in method.args:
@@ -291,7 +291,7 @@ class %s : public %s, public %s
 {
 protected:
 	%s(PyObject *instance) : %s(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(%s, %s, IID_%s, %s)
+	PYGATEWAY_MAKE_SUPPORT2(%s, %s, IID_%s, %s)
 
 ''' % (gname, base_name, name, gname, base_name, gname, name, name, base_name))
   if interface.base != "IUnknown":
