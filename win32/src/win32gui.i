@@ -54,6 +54,12 @@ typedef long HWND
 %apply HDC {long};
 typedef long HDC
 
+%apply HBRUSH {long};
+typedef long HBRUSH
+
+%apply HRGN {long};
+typedef long HRGN
+
 %apply HIMAGELIST {long};
 typedef long HIMAGELIST
 
@@ -2062,34 +2068,102 @@ BOOLAPI ClientToScreen(HWND hWnd,POINT *BOTH);
 
 BOOL GetOpenFileName(OPENFILENAME *INPUT);
 
-%typemap (python, in) MENUITEMINFO *INPUT (int size, char buffer[200]){
-	size = sizeof(MENUITEMINFO);
-	$source = PyObject_Str($source);
-	if ( (! PyString_Check($source)) || ((size != PyString_GET_SIZE($source)) && 
-			(size+4 != PyString_GET_SIZE($source))) ) {
-		sprintf(buffer, "Argument must be a %d-byte string", size);
-		PyErr_SetString(PyExc_TypeError, buffer);
-		return NULL;
-	}
-	$target = ( MENUITEMINFO * )PyString_AS_STRING($source);
-}
 #ifndef MS_WINCE
+
+%typemap (python, in) MENUITEMINFO *INPUT (int target_size){
+	if (0 != PyObject_AsReadBuffer($source, (const void **)&$target, &target_size))
+		return NULL;
+	if (sizeof MENUITEMINFO != target_size)
+		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string/buffer (got %d bytes)", sizeof MENUITEMINFO, target_size);
+}
+
+%typemap (python,in) MENUITEMINFO *BOTH(int target_size) {
+	if (0 != PyObject_AsWriteBuffer($source, (void **)&$target, &target_size))
+		return NULL;
+	if (sizeof MENUITEMINFO != target_size)
+		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte buffer (got %d bytes)", sizeof MENUITEMINFO, target_size);
+}
+
+// @pyswig |InsertMenuItem|Inserts a menu item
+// @pyparm int|hMenu||
+// @pyparm int|fByPosition||
+// @pyparm buffer|menuItem||A string or buffer in the format of a MENUITEMINFO structure.
 BOOLAPI InsertMenuItem(HMENU hMenu, UINT uItem, BOOL fByPosition, MENUITEMINFO *INPUT);
+
+// @pyswig |SetMenuItemInfo|Sets menu information
+// @pyparm int|hMenu||
+// @pyparm int|fByPosition||
+// @pyparm buffer|menuItem||A string or buffer in the format of a MENUITEMINFO structure.
+BOOLAPI SetMenuItemInfo(HMENU hMenu, UINT uItem, BOOL fByPosition, MENUITEMINFO *INPUT);
+
+// @pyswig |GetMenuItemInfo|Gets menu information
+// @pyparm int|hMenu||
+// @pyparm int|fByPosition||
+// @pyparm buffer|menuItem||A string or buffer in the format of a MENUITEMINFO structure.
+BOOLAPI GetMenuItemInfo(HMENU hMenu, UINT uItem, BOOL fByPosition, MENUITEMINFO *BOTH);
+
 #endif
+
+// @pyswig int|GetMenuItemCount|
+int GetMenuItemCount(HMENU hMenu);
+
+// @pyswig int|GetMenuItemRect|
+int GetMenuItemRect(HWND hWnd, HMENU hMenu, UINT uItem, RECT *OUTPUT);
+
+// @pyswig int|GetMenuState|
+int GetMenuState(HMENU hMenu, UINT uID, UINT flags);
+
+// @pyswig |SetMenuDefaultItem|
+BOOLAPI SetMenuDefaultItem(HMENU hMenu, UINT flags, UINT fByPos);
+
+// @pyswig |AppendMenu|
 BOOLAPI AppendMenu(HMENU hMenu, UINT uFlags, UINT uIDNewItem, TCHAR *lpNewItem);
+
+// @pyswig |InsertMenu|
 BOOLAPI InsertMenu(HMENU hMenu, UINT uPosition, UINT uFlags, UINT uIDNewItem, TCHAR *INPUT_NULLOK);
 
-/*
+// @pyswig |EnableMenuItem|
+BOOLAPI EnableMenuItem(HMENU hMenu, UINT uIDEnableItem, UINT uEnable);
+
+// @pyswig int|CheckMenuItem|
+int CheckMenuItem(HMENU hMenu, UINT uIDCheckItem, UINT uCheck);
+
+// @pyswig |ModifyMenu|Changes an existing menu item. This function is used to specify the content, appearance, and behavior of the menu item.
+BOOLAPI ModifyMenu(
+  HMENU hMnu, // @pyparm int|hMnu||handle to menu
+  UINT uPosition, // @pyparm int|uPosition||menu item to modify
+  UINT uFlags,          // @pyparm int|uFlags||options
+  UINT uIDNewItem,  // @pyparm int|uIDNewItem||identifier, menu, or submenu
+  LPCTSTR lpNewItem     // @pyparm string|newItem||menu item content
+);
+
+// @pyswig int|GetMenuItemID|Retrieves the menu item identifier of a menu item located at the specified position in a menu. 
+UINT GetMenuItemID(
+  HMENU hMenu,  // @pyparm int|hMenu||handle to menu
+  int nPos      // @pyparm int|nPos||position of menu item
+ );
+
+// @pyswig |SetMenuItemBitmaps|Associates the specified bitmap with a menu item. Whether the menu item is selected or clear, the system displays the appropriate bitmap next to the menu item.
+BOOLAPI SetMenuItemBitmaps(
+  HMENU hMenu,               // @pyparm int|hMenu||handle to menu
+  UINT uPosition,            // @pyparm int|uPosition||menu item
+  UINT uFlags,               // @pyparm int|uFlags||options
+  HBITMAP hBitmapUnchecked,  // @pyparm int|hBitmapUnchecked||handle to unchecked bitmap
+  HBITMAP hBitmapChecked     // @pyparm int|hBitmapChecked||handle to checked bitmap
+);
+
+
 BOOLAPI DrawFocusRect(HDC hDC,  RECT *INPUT);
 int DrawText(HDC hDC, LPCTSTR lpString, int nCount, RECT *INPUT, UINT uFormat);
-HDC BeginPaint(HWND hwnd, LPPAINTSTRUCT lpPaint);
-BOOLAPI EndPaint(HWND hWnd,  PAINTSTRUCT *lpPaint); 
-BOOLAPI DrawEdge(HDC hdc, LPRECT qrc, UINT edge, UINT grfFlags); 
+BOOLAPI DrawEdge(HDC hdc, RECT *INPUT, UINT edge, UINT grfFlags); 
 int FillRect(HDC hDC,   RECT *INPUT, HBRUSH hbr);
-int FrameRect(HDC hDC,   RECT *INPUT, HBRUSH hbr);
-int GetUpdateRgn(HWND hWnd, HRGN hRgn, BOOL bErase);
 DWORD GetSysColor(int nIndex);
 BOOLAPI InvalidateRect(HWND hWnd,  RECT *INPUT, BOOL bErase);
+int FrameRect(HDC hDC,   RECT *INPUT, HBRUSH hbr);
+int GetUpdateRgn(HWND hWnd, HRGN hRgn, BOOL bErase);
+/*
+HDC BeginPaint(HWND hwnd, LPPAINTSTRUCT lpPaint);
+BOOLAPI EndPaint(HWND hWnd,  PAINTSTRUCT *lpPaint); 
 */
 
 // @pyswig int|CreateWindowEx|Creates a new window with Extended Style.
@@ -2164,9 +2238,6 @@ int ReleaseDC(
 	HWND hWnd,  // @pyparm int|hWnd||handle to window
 	HDC hDC     // @pyparm int|hDC||handle to device context
 ); 
-
-%apply HRGN {long};
-typedef long HRGN
 
 //  |SystemParametersInfo|queries or sets system-wide parameters. This function can also update the user profile while setting a parameter. 
 /**
