@@ -248,7 +248,7 @@ class HLIDict(HLIPythonObject):
 		keys.sort()
 		for key in keys:
 			ob = self.myobject[key]
-			ret.append(MakeHLI( ob, key ) )
+			ret.append(MakeHLI( ob, str(key) ) )
 		self.InsertDocString(ret)
 		return ret
 
