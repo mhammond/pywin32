@@ -529,7 +529,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
     if tlb_guid is None:
       return []
     tlb_major, tlb_minor = getattr(self._obj_, '_typelib_version_', (1,0))
-    tlb = pythoncom.LoadRegTypeLib(tlb_guid, tlb_major, tlb_minor, lcid)
+    tlb = pythoncom.LoadRegTypeLib(tlb_guid, tlb_major, tlb_minor)
     typecomp = tlb.GetTypeComp()
     # Not 100% sure what semantics we should use for the default interface.
     # Look for the first name in _com_interfaces_ that exists in the typelib.
