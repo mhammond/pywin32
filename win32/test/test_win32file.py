@@ -6,7 +6,10 @@ import tempfile
 
 class TestSimpleOps(unittest.TestCase):
     def testSimpleFiles(self):
-        fd, filename = tempfile.mkstemp()
+        try:
+            fd, filename = tempfile.mkstemp()
+        except AttributeError:
+            self.fail("This test requires Python 2.3 or later")
         os.close(fd)
         os.unlink(filename)
         handle = win32file.CreateFile(filename, win32file.GENERIC_WRITE, 0, None, win32con.CREATE_NEW, 0, None)
