@@ -1767,6 +1767,7 @@ extern PyObject *PyCProgressCtrl_create(PyObject *self, PyObject *args);
 extern PyObject *PyCSliderCtrl_create(PyObject *self, PyObject *args);
 extern PyObject *PyCStatusBarCtrl_create(PyObject *self, PyObject *args);
 extern PyObject *PyCToolBarCtrl_create(PyObject *self, PyObject *args);
+extern PyObject *PyCToolTipCtrl_create(PyObject *self, PyObject *args);
 extern PyObject *ui_window_create(PyObject *self, PyObject *args);
 extern PyObject *PyCImageList_Create(PyObject *self, PyObject *args);
 extern PyObject *PyCRichEditCtrl_create(PyObject *self, PyObject *args);
@@ -1830,6 +1831,7 @@ static struct PyMethodDef ui_functions[] = {
 	{"CreateFont",				PyCFont::create,	1}, // @pymeth CreateFont|Creates a <o PyCFont> object.
 	{"CreateToolBar",			PyCToolBar::create,	1}, // @pymeth CreateToolBar|Creates a toolbar object.
 	{"CreateToolBarCtrl",		PyCToolBarCtrl_create,	1}, // @pymeth CreateToolBar|Creates a toolbar object.
+	{"CreateToolTipCtrl",		PyCToolTipCtrl_create,	1}, // @pymeth CreateToolTip|Creates a tooltip control object.
 	{"CreateThread",            PyCWinThread::create, 1}, // @pymeth CreateThread|Creates a <o PyCWinThread> object.
 	{"CreateView",				PyCScrollView::create,		1}, // @pymeth CreateView|Creates a <o PyCView> object.
 	{"CreateEditView",			PyCEditView::create,	1}, // @pymeth CreateEditView|Creates an <o PyCEditView> object.
