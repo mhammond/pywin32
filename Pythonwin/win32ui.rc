@@ -759,8 +759,8 @@ BEGIN
     LTEXT           "Size of recent file list",IDC_STATIC,7,14,73,12
     EDITTEXT        IDC_EDIT4,87,12,29,12,ES_AUTOHSCROLL
     CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_SETBUDDYINT | 
-                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,119,15,10,
-                    14
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
+                    UDS_HOTTRACK,119,15,10,14
     GROUPBOX        "Interactive Window",IDC_STATIC,134,7,114,103
     CONTROL         "&Show at startup",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,141,16,72,10
@@ -846,6 +846,59 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,12,9,114,11
     CONTROL         "Stop at exceptions",IDC_CHECK2,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,12,20,75,11
+END
+
+IDD_PP_TOOLMENU DIALOG DISCARDABLE  0, 0, 246, 121
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Tools Menu"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_LIST1,"SysListView32",LVS_REPORT | 
+                    LVS_EDITLABELS | WS_BORDER | WS_TABSTOP,7,7,174,90
+    LTEXT           "Python command",IDC_STATIC,7,103,65,10
+    EDITTEXT        IDC_EDIT2,85,101,154,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Move &up",IDC_BUTTON1,189,7,50,14
+    PUSHBUTTON      "Move &down",IDC_BUTTON2,189,24,50,14
+    PUSHBUTTON      "&New",IDC_BUTTON3,189,65,50,14
+    PUSHBUTTON      "De&lete",IDC_BUTTON4,189,81,50,14
+END
+
+IDD_PP_TABS DIALOG DISCARDABLE  0, 0, 256, 122
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Tabs and Whitespace"
+FONT 8, "MS Sans Serif"
+BEGIN
+    GROUPBOX        "",IDC_STATIC,7,0,242,65
+    LTEXT           "&Tab size",IDC_STATIC,14,8,42,13
+    EDITTEXT        IDC_TAB_SIZE,71,8,42,12,ES_AUTOHSCROLL
+    CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
+                    UDS_HOTTRACK,112,11,11,14
+    LTEXT           "&Indent Size",IDC_STATIC,14,24,42,10
+    EDITTEXT        IDC_INDENT_SIZE,71,24,42,12,ES_AUTOHSCROLL
+    CONTROL         "Spin1",IDC_SPIN2,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
+                    UDS_HOTTRACK,113,25,11,14
+    CONTROL         "Use &Python smart indentation?",IDC_USE_SMART_TABS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,39,113,10
+    CONTROL         "View whitespace",IDC_VIEW_WHITESPACE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,14,50,83,12
+    CONTROL         "Insert spaces",IDC_RADIO1,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP | WS_TABSTOP,141,11,82,11
+    CONTROL         "Keep tabs",IDC_USE_TABS,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,141,27,82,11
+    CONTROL         "View end of line markers",IDC_VIEW_EOL,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,141,50,97,12
+    GROUPBOX        "Tab-Timmy",IDC_STATIC,7,67,242,48
+    CONTROL         "Dont show inconsistent indentation",IDC_TABTIMMY_NONE,
+                    "Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,14,
+                    76,122,12
+    CONTROL         "Show as indicator",IDC_TABTIMMY_IND,"Button",
+                    BS_AUTORADIOBUTTON,14,88,105,13
+    CONTROL         "Show as background color",IDC_TABTIMMY_BG,"Button",
+                    BS_AUTORADIOBUTTON | WS_DISABLED,14,100,105,13
+    COMBOBOX        IDC_COMBO1,141,88,56,63,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
 END
 
 
@@ -964,6 +1017,26 @@ BEGIN
         VERTGUIDE, 127
         VERTGUIDE, 205
         HORZGUIDE, 100
+    END
+
+    IDD_PP_TOOLMENU, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 239
+        VERTGUIDE, 181
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 113
+    END
+
+    IDD_PP_TABS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 249
+        VERTGUIDE, 14
+        VERTGUIDE, 141
+        TOPMARGIN, 1
+        BOTTOMMARGIN, 115
+        HORZGUIDE, 50
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -1217,108 +1290,6 @@ BEGIN
 END
 
 #endif    // English (U.S.) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-// English (Australia) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENA)
-#ifdef _WIN32
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_AUS
-#pragma code_page(1252)
-#endif //_WIN32
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
-IDD_PP_TOOLMENU DIALOG DISCARDABLE  0, 0, 246, 121
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Tools Menu"
-FONT 8, "MS Sans Serif"
-BEGIN
-    CONTROL         "List1",IDC_LIST1,"SysListView32",LVS_REPORT | 
-                    LVS_EDITLABELS | WS_BORDER | WS_TABSTOP,7,7,174,90
-    LTEXT           "Python command",IDC_STATIC,7,103,65,10
-    EDITTEXT        IDC_EDIT2,85,101,154,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "Move &up",IDC_BUTTON1,189,7,50,14
-    PUSHBUTTON      "Move &down",IDC_BUTTON2,189,24,50,14
-    PUSHBUTTON      "&New",IDC_BUTTON3,189,65,50,14
-    PUSHBUTTON      "De&lete",IDC_BUTTON4,189,81,50,14
-END
-
-IDD_PP_TABS DIALOG DISCARDABLE  0, 0, 256, 122
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Tabs and Whitespace"
-FONT 8, "MS Sans Serif"
-BEGIN
-    GROUPBOX        "",IDC_STATIC,7,0,242,65
-    LTEXT           "&Tab size",IDC_STATIC,14,8,42,13
-    EDITTEXT        IDC_TAB_SIZE,71,8,42,12,ES_AUTOHSCROLL
-    CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_SETBUDDYINT | 
-                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
-                    UDS_HOTTRACK,112,11,11,14
-    LTEXT           "&Indent Size",IDC_STATIC,14,24,42,10
-    EDITTEXT        IDC_INDENT_SIZE,71,24,42,12,ES_AUTOHSCROLL
-    CONTROL         "Spin1",IDC_SPIN2,"msctls_updown32",UDS_SETBUDDYINT | 
-                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
-                    UDS_HOTTRACK,113,25,11,14
-    CONTROL         "Use &Python smart indentation?",IDC_USE_SMART_TABS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,39,113,10
-    CONTROL         "View whitespace",IDC_VIEW_WHITESPACE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,14,50,83,12
-    CONTROL         "Insert spaces",IDC_RADIO1,"Button",BS_AUTORADIOBUTTON | 
-                    WS_GROUP | WS_TABSTOP,141,11,82,11
-    CONTROL         "Keep tabs",IDC_USE_TABS,"Button",BS_AUTORADIOBUTTON | 
-                    WS_TABSTOP,141,27,82,11
-    CONTROL         "View end of line markers",IDC_VIEW_EOL,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,141,50,97,12
-    GROUPBOX        "Tab-Timmy",IDC_STATIC,7,67,242,48
-    CONTROL         "Dont show inconsistent indentation",IDC_TABTIMMY_NONE,
-                    "Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,14,
-                    76,122,12
-    CONTROL         "Show as indicator",IDC_TABTIMMY_IND,"Button",
-                    BS_AUTORADIOBUTTON,14,88,105,13
-    CONTROL         "Show as background color",IDC_TABTIMMY_BG,"Button",
-                    BS_AUTORADIOBUTTON | WS_DISABLED,14,100,105,13
-    COMBOBOX        IDC_COMBO1,141,88,56,63,CBS_DROPDOWNLIST | WS_VSCROLL | 
-                    WS_TABSTOP
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE 
-BEGIN
-    IDD_PP_TOOLMENU, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 239
-        VERTGUIDE, 181
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 113
-    END
-
-    IDD_PP_TABS, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 249
-        VERTGUIDE, 14
-        VERTGUIDE, 141
-        TOPMARGIN, 1
-        BOTTOMMARGIN, 115
-        HORZGUIDE, 50
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-#endif    // English (Australia) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
