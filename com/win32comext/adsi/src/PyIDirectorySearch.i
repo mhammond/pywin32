@@ -143,8 +143,8 @@ PyObject *PyIDirectorySearch::GetColumn(PyObject *self, PyObject *args)
             }
             ret = Py_BuildValue("NiN", PyWinObject_FromWCHAR(col.pszAttrName), col.dwADsType, values);
         }
+		_swig_self->FreeColumn(&col);
 	}
-    _swig_self->FreeColumn(&col);
     PyWinObject_FreeWCHAR(szName);
 	return ret;
 }
