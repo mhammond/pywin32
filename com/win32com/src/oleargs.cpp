@@ -6,9 +6,6 @@
 
 extern void PyCom_LogF(const TCHAR *fmt, ...);
 
-static BOOL PyCom_SAFEARRAYFromPyObject(PyObject *obj, SAFEARRAY **ppSA, VARENUM vt = VT_VARIANT);
-static PyObject *PyCom_PyObjectFromSAFEARRAY(SAFEARRAY *psa, VARENUM vt = VT_VARIANT );
-
 // A little helper just for this file
 static PyObject* OleSetTypeError(char *msg)
 {

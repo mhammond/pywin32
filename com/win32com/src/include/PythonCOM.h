@@ -214,6 +214,10 @@ PYCOM_EXPORT PyObject *PyCom_PyObjectFromVariant(const VARIANT *var);
 // Other conversion helpers...
 PYCOM_EXPORT PyObject *PyCom_PyObjectFromSTATSTG(STATSTG *pStat);
 PYCOM_EXPORT BOOL PyCom_PyObjectAsSTATSTG(PyObject *ob, STATSTG *pStat, DWORD flags = 0);
+PYCOM_EXPORT BOOL PyCom_SAFEARRAYFromPyObject(PyObject *obj, SAFEARRAY **ppSA, VARENUM vt = VT_VARIANT);
+PYCOM_EXPORT PyObject *PyCom_PyObjectFromSAFEARRAY(SAFEARRAY *psa, VARENUM vt = VT_VARIANT );
+
+
 
 /* Functions for Initializing COM, and also letting the core know about it!
 */
