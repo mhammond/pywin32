@@ -349,6 +349,10 @@ class my_build_ext(build_ext):
                     return "No library '%s'" % lib
                 self.found_libraries[lib.lower()] = found
             patched_libs.append(os.path.splitext(os.path.basename(found))[0])
+        # axdebug struggles under debug builds - worry about that when I care :)
+        if sys.hexversion < 0x2040000 and ext.name == 'axdebug' and self.debug:
+            return "axdebug doesn't build in VC6 debug builds (irony!)"
+        
         # We update the .libraries list with the resolved library name.
         # This is really only so "_d" works.
         ext.libraries = patched_libs
@@ -420,14 +424,18 @@ class my_build_ext(build_ext):
                     os.path.join(self.build_lib, "pythonwin"))
 
         # Copy cpp lib files needed to create Python COM extensions
-        clib_files = (['win32', 'pywintypes.lib'],
-                      ['win32com', 'pythoncom.lib'])
+        clib_files = (['win32', 'pywintypes%s.lib'],
+                      ['win32com', 'pythoncom%s.lib'])
         for clib_file in clib_files:
             target_dir = os.path.join(self.build_lib, clib_file[0], "libs")
             if not os.path.exists(target_dir):
                 self.mkpath(target_dir)
+            suffix = ""
+            if self.debug:
+                suffix = "_d"
+            fname = clib_file[1] % suffix
             self.copy_file(
-                    os.path.join(self.build_temp, clib_file[1]), target_dir)
+                    os.path.join(self.build_temp, fname), target_dir)
 
     def build_exefile(self, ext):
         from types import ListType, TupleType
@@ -945,6 +953,7 @@ swig_interface_parents = {
     'PyIADsContainer':      'IDispatch',
     'PyIADsUser':           'IDispatch',
     'PyIDirectoryObject':   '',
+    'PyIDirectorySearch':   '',
 }
 
 # A list of modules that can also be built for Windows CE.  These generate
