@@ -55,10 +55,10 @@ def walk(arg, dirname, names):
     for pat in g_patterns:
       if fnmatch.fnmatch(name, pat):
         # Handle the "_d" thing.
-	base, ext = os.path.splitext(name)
+        pathname = os.path.join(dirname, name)
+        base, ext = os.path.splitext(name)
         if base[-2:]=='_d':
           name = base[:-2] + ext
-        pathname = os.path.join(dirname, name)
         is_dll = 1				### do something real, someday
         if descriptions.has_key(os.path.normcase(name)):
           desc = descriptions[os.path.normcase(name)]
