@@ -1362,6 +1362,79 @@ static PyObject *pythoncom_OleFlushClipboard(PyObject *, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod |pythoncom|RegisterDragDrop|Registers the specified window as
+// one that can be the target of an OLE drag-and-drop operation and
+// specifies the <om PyIDropTarget> instance to use for drop operations.
+static PyObject *pythoncom_RegisterDragDrop(PyObject *, PyObject *args)
+{
+	PyObject *obd;
+	HWND hwnd;
+	if (!PyArg_ParseTuple(args, "lO:RegisterDragDrop", &hwnd, &obd))
+		return NULL;
+	IDropTarget *dt;
+	if (!PyCom_InterfaceFromPyObject(obd, IID_IDropTarget, (void**)&dt, FALSE))
+		return NULL;
+	HRESULT hr;
+	Py_BEGIN_ALLOW_THREADS
+	hr = ::RegisterDragDrop(hwnd, dt);
+	Py_END_ALLOW_THREADS
+	dt->Release();
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		return NULL;
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod |pythoncom|RevokeDragDrop|Revokes the registration of the
+// specified application window as a potential target for OLE drag-and-drop
+// operations.
+static PyObject *pythoncom_RevokeDragDrop(PyObject *, PyObject *args)
+{
+	HWND hwnd;
+	if (!PyArg_ParseTuple(args, "l:RevokeDragDrop", &hwnd))
+		return NULL;
+	HRESULT hr;
+	Py_BEGIN_ALLOW_THREADS
+	hr = ::RevokeDragDrop(hwnd);
+	Py_END_ALLOW_THREADS
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		return NULL;
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod |pythoncom|DoDragDrop|Carries out an OLE drag and drop operation.
+static PyObject *pythoncom_DoDragDrop(PyObject *, PyObject *args)
+{
+	PyObject *obdo, *obds;
+	DWORD effects;
+	if (!PyArg_ParseTuple(args, "OOl:DoDragDrop", &obdo, &obds, &effects))
+		return NULL;
+	IDropSource *ds;
+	if (!PyCom_InterfaceFromPyObject(obds, IID_IDropSource, (void**)&ds, FALSE))
+		return NULL;
+	IDataObject *dob;
+	if (!PyCom_InterfaceFromPyObject(obdo, IID_IDataObject, (void**)&dob, FALSE)) {
+		ds->Release();
+		return NULL;
+	}
+	HRESULT hr;
+	DWORD retEffect = 0;
+	Py_BEGIN_ALLOW_THREADS
+	hr = ::DoDragDrop(dob, ds, effects, &retEffect);
+	Py_END_ALLOW_THREADS
+	ds->Release();
+	dob->Release();
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		return NULL;
+	}
+	return PyInt_FromLong(retEffect);
+}
 
 
 /* List of module functions */
@@ -1443,6 +1516,9 @@ static struct PyMethodDef pythoncom_methods[]=
 #ifndef MS_WINCE
 	{ "RegisterActiveObject",pythoncom_RegisterActiveObject, 1 }, // @pymeth RegisterActiveObject|Register an object as the active object for its class
 	{ "RevokeActiveObject",  pythoncom_RevokeActiveObject, 1 },   // @pymeth RevokeActiveObject|Ends an object’s status as active.
+	{ "RegisterDragDrop",    pythoncom_RegisterDragDrop, 1}, // @pymeth RegisterDragDrop|Registers the specified window as one that can be the target of an OLE drag-and-drop operation.
+	{ "RevokeDragDrop",      pythoncom_RevokeDragDrop, 1}, // @pymeth RevokeDragDrop|Revokes the specified window as the target of an OLE drag-and-drop operation.
+	{ "DoDragDrop",          pythoncom_DoDragDrop, 1}, // @pymeth DoDragDrop|Carries out an OLE drag and drop operation.
 #endif // MS_WINCE
 	{ "StgCreateDocfile",      pythoncom_StgCreateDocfile, 1 },       // @pymeth StgCreateDocfile|Creates a new compound file storage object using the OLE-provided compound file implementation for the <o PyIStorage> interface.
 	{ "StgCreateDocfileOnILockBytes",      pythoncom_StgCreateDocfileOnILockBytes, 1 }, // @pymeth StgCreateDocfileOnILockBytes|Creates a new compound file storage object using the OLE-provided compound file implementation for the <o PyIStorage> interface.
