@@ -3231,17 +3231,18 @@ PyCFrameWnd_CreateWindow(PyObject *self, PyObject *args)
 	PyObject *obRect = Py_None;
 	PyObject *obParent = Py_None;
 	PyObject *obContext = Py_None;
-	char *szClass=NULL, *szTitle=NULL,*szMenuName=NULL;
+	PyObject *obMenuID = Py_None;
+	char *szClass=NULL, *szTitle=NULL;
 	DWORD styleEx=0;
 	DWORD style = WS_VISIBLE | WS_OVERLAPPEDWINDOW;
-	if(!PyArg_ParseTuple(args, "zs|lOOOzl:Create",
+	if(!PyArg_ParseTuple(args, "zs|lOOOOl:Create",
 		&szClass, // @pyparm string|wndClass||The window class name, or None
 		&szTitle, // @pyparm string|title||The window title
 		&style, // @pyparm int|style| WS_VISIBLE \| WS_OVERLAPPEDWINDOW|The window style
 		&obRect, // @pyparm int, int, int, int|rect|None|The default rectangle
 		&obParent, // @pyparm parent|<o PyCWnd>|None|The parent window
 		&obContext,// @pyparm tuple|createContext|None|A tuple representing a CREATECONTEXT structure.
-		&szMenuName,// @pyparm string|pszMenuName||The string id for the menu.
+		&obMenuID,// @pyparm string or int|menuId||The string or integer id for the menu.
         &styleEx)) // @pyparm int|styleEx||The extended style of the window being created.
 		return NULL;
 
@@ -3265,6 +3266,16 @@ PyCFrameWnd_CreateWindow(PyObject *self, PyObject *args)
 		pParent = GetFramePtr(obParent);
 		if (pParent==NULL)
 			RETURN_TYPE_ERR("The parent window is not a valid PyFrameWnd");
+		}
+	char *szMenuName = NULL;
+	if (obMenuID != Py_None)
+		{
+		if (PyInt_Check(obMenuID))
+			szMenuName = MAKEINTRESOURCE(PyInt_AsLong(obMenuID));
+		else if (PyString_Check(obMenuID))
+			szMenuName = PyString_AsString(obMenuID);
+		else
+			RETURN_TYPE_ERR("The menu id must be an integer or string");
 		}
 
 	GUI_BGN_SAVE;
