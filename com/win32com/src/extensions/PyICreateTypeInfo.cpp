@@ -350,6 +350,7 @@ PyObject *PyICreateTypeInfo::SetFuncAndParamNames(PyObject *self, PyObject *args
 		PyErr_SetString(PyExc_TypeError, "The names param must be a sequence of strings/unicodes");
 		return NULL;
 	}
+	PyErr_Clear(); // clear the exception set by PyWinObject_AsBstr
 	if (!PySequence_Check(obrgszNames)) {
 		PyErr_SetString(PyExc_TypeError, "The names param must be a sequence of strings/unicodes");
 		return NULL;
