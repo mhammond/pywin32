@@ -4,6 +4,8 @@
 #include "shell_pch.h"
 #include "PyIShellFolder.h"
 
+extern void *PyShell_AllocMem(ULONG cb);
+
 // @doc - This file contains autoduck documentation
 // ---------------------------------------------------
 //
@@ -278,19 +280,25 @@ PyObject *PyIShellFolder::GetUIObjectOf(PyObject *self, PyObject *args)
 	// @pyparm <o PyIDL>|pidl||Description for pidl
 	// @pyparm <o PyIID>|riid||Description for riid
 	// @pyparm int|rgfInOut||Description for rgfInOut
+	// @pyparm <o PyIID>|iidout|None|The IID to wrap the result in.  If not specified, riid is used.
 	PyObject *obpidl;
 	PyObject *obriid;
+	PyObject *obiidout = NULL;
 	HWND hwndOwner;
 	UINT cidl;
 	LPCITEMIDLIST *pidl;
-	IID riid;
+	IID riid, iidout;
 	UINT rgfInOut;
 	void * out;
-	if ( !PyArg_ParseTuple(args, "lOOl:GetUIObjectOf", &hwndOwner, &obpidl, &obriid, &rgfInOut) )
+	if ( !PyArg_ParseTuple(args, "lOOl|O:GetUIObjectOf", &hwndOwner, &obpidl, &obriid, &rgfInOut, &obiidout) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
 	if (bPythonIsHappy && !PyObject_AsPIDLArray(obpidl, &cidl, &pidl)) bPythonIsHappy = FALSE;
 	if (!PyWinObject_AsIID(obriid, &riid)) bPythonIsHappy = FALSE;
+	if (obiidout==NULL)
+		iidout = riid;
+	else
+		if (!PyWinObject_AsIID(obiidout, &iidout)) bPythonIsHappy = FALSE;
 	if (!bPythonIsHappy) return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
@@ -303,7 +311,7 @@ PyObject *PyIShellFolder::GetUIObjectOf(PyObject *self, PyObject *args)
 		return PyCom_BuildPyException(hr, pISF, IID_IShellFolder );
 	PyObject *obout;
 
-	obout = PyCom_PyObjectFromIUnknown((IUnknown *)out, riid, FALSE);
+	obout = PyCom_PyObjectFromIUnknown((IUnknown *)out, iidout, FALSE);
 	PyObject *pyretval = Py_BuildValue("lO", rgfInOut, obout);
 	Py_XDECREF(obout);
 	return pyretval;
@@ -423,10 +431,14 @@ STDMETHODIMP PyGShellFolder::ParseDisplayName(
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	PyObject *obppidl;
-	if (!PyArg_ParseTuple(result, "lOl" , pchEaten, &obppidl, pdwAttributes)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	ULONG chEaten, dwAttributes;
+	if (!PyArg_ParseTuple(result, "lOl" , &chEaten, &obppidl, &dwAttributes)) 
+		return PyCom_SetAndLogCOMErrorFromPyException("ParseDisplayName", IID_IShellFolder);
 	BOOL bPythonIsHappy = TRUE;
 	if (bPythonIsHappy && !PyObject_AsPIDL(obppidl, ppidl)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!bPythonIsHappy) hr = PyCom_SetAndLogCOMErrorFromPyException("ParseDisplayName", IID_IShellFolder);
+	if (pchEaten) *pchEaten = chEaten;
+	if (pdwAttributes) *pdwAttributes = dwAttributes;
 	Py_DECREF(result);
 	return hr;
 }
@@ -441,12 +453,8 @@ STDMETHODIMP PyGShellFolder::EnumObjects(
 	HRESULT hr=InvokeViaPolicy("EnumObjects", &result, "ll", hwndOwner, grfFlags);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
-	PyObject *obppeidl;
-	if (!PyArg_Parse(result, "O" , &obppeidl)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obppeidl, IID_IEnumIDList, (void **)&ppeidl, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	PyCom_InterfaceFromPyInstanceOrObject(result, IID_IEnumIDList, (void **)ppeidl, FALSE /* bNoneOK */);
+	hr = PyCom_SetAndLogCOMErrorFromPyException("EnumObjects", IID_IShellFolder);
 	Py_DECREF(result);
 	return hr;
 }
@@ -457,6 +465,7 @@ STDMETHODIMP PyGShellFolder::BindToObject(
 		/* [unique][in] */ REFIID riid,
 		/* [out] */ void ** out)
 {
+	static const char *szMethodName = "BindToObject";
 	PY_GATEWAY_METHOD;
 	PyObject *obpidl;
 	PyObject *obpbcReserved;
@@ -465,18 +474,14 @@ STDMETHODIMP PyGShellFolder::BindToObject(
 	obpbcReserved = PyCom_PyObjectFromIUnknown(pbcReserved, IID_IBindCtx, TRUE);
 	obriid = PyWinObject_FromIID(riid);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("BindToObject", &result, "OOO", obpidl, obpbcReserved, obriid);
+	HRESULT hr=InvokeViaPolicy(szMethodName, &result, "OOO", obpidl, obpbcReserved, obriid);
 	Py_XDECREF(obpidl);
 	Py_XDECREF(obpbcReserved);
 	Py_XDECREF(obriid);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
-	PyObject *obout;
-	if (!PyArg_Parse(result, "O" , &obout)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obout, IID_IUnknown, (void **)&out, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	PyCom_InterfaceFromPyInstanceOrObject(result, riid, out, FALSE /* bNoneOK */);
+	hr = PyCom_SetAndLogCOMErrorFromPyException(szMethodName, IID_IShellFolder);
 	Py_DECREF(result);
 	return hr;
 }
@@ -487,6 +492,7 @@ STDMETHODIMP PyGShellFolder::BindToStorage(
 		/* [unique][in] */ REFIID riid,
 		/* [out] */ void **ppRet)
 {
+	static const char *szMethodName = "BindToStorage";
 	PY_GATEWAY_METHOD;
 	PyObject *obpidl;
 	PyObject *obpbcReserved;
@@ -495,18 +501,14 @@ STDMETHODIMP PyGShellFolder::BindToStorage(
 	obpbcReserved = PyCom_PyObjectFromIUnknown(pbcReserved, IID_IBindCtx, TRUE);
 	obriid = PyWinObject_FromIID(riid);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("BindToStorage", &result, "OOO", obpidl, obpbcReserved, obriid);
+	HRESULT hr=InvokeViaPolicy(szMethodName, &result, "OOO", obpidl, obpbcReserved, obriid);
 	Py_XDECREF(obpidl);
 	Py_XDECREF(obpbcReserved);
 	Py_XDECREF(obriid);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
-	PyObject *obout;
-	if (!PyArg_Parse(result, "O" , &obout)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obout, riid, ppRet, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	PyCom_InterfaceFromPyInstanceOrObject(result, riid, ppRet, FALSE /* bNoneOK */);
+	hr = PyCom_SetAndLogCOMErrorFromPyException(szMethodName, IID_IShellFolder);
 	Py_DECREF(result);
 	return hr;
 }
@@ -521,9 +523,14 @@ STDMETHODIMP PyGShellFolder::CompareIDs(
 	PyObject *obpidl2;
 	obpidl1 = PyObject_FromPIDL(pidl1, FALSE);
 	obpidl2 = PyObject_FromPIDL(pidl2, FALSE);
-	HRESULT hr=InvokeViaPolicy("CompareIDs", NULL, "lOO", lparam, obpidl1, obpidl2);
+	PyObject *result;
+	HRESULT hr=InvokeViaPolicy("CompareIDs", &result, "lOO", lparam, obpidl1, obpidl2);
 	Py_XDECREF(obpidl1);
 	Py_XDECREF(obpidl2);
+	if (FAILED(hr)) return hr;
+	if (PyInt_Check(result))
+		hr = MAKE_HRESULT(SEVERITY_SUCCESS, 0, PyInt_AsLong(result));
+	Py_DECREF(result);
 	return hr;
 }
 
@@ -532,20 +539,17 @@ STDMETHODIMP PyGShellFolder::CreateViewObject(
 		/* [unique][in] */ REFIID riid,
 		/* [out] */ void **ppRet)
 {
+	static const char *szMethodName = "CreateViewObject";
 	PY_GATEWAY_METHOD;
 	PyObject *obriid;
 	obriid = PyWinObject_FromIID(riid);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("CreateViewObject", &result, "lO", hwndOwner, obriid);
+	HRESULT hr=InvokeViaPolicy(szMethodName, &result, "lO", hwndOwner, obriid);
 	Py_XDECREF(obriid);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
-	PyObject *obout;
-	if (!PyArg_Parse(result, "O" , &obout)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obout, riid, ppRet, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	PyCom_InterfaceFromPyInstanceOrObject(result, riid, ppRet, FALSE /* bNoneOK */);
+	hr = PyCom_SetAndLogCOMErrorFromPyException(szMethodName, IID_IShellFolder);
 	Py_DECREF(result);
 	return hr;
 }
@@ -563,7 +567,8 @@ STDMETHODIMP PyGShellFolder::GetAttributesOf(
 	Py_XDECREF(obpidl);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
-	if (!PyArg_Parse(result, "l" , rgfInOut)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!PyArg_Parse(result, "l" , rgfInOut))
+		hr = PyCom_SetAndLogCOMErrorFromPyException("GetAttributesOf", IID_IShellFolder);
 	Py_DECREF(result);
 	return hr;
 }
@@ -576,23 +581,26 @@ STDMETHODIMP PyGShellFolder::GetUIObjectOf(
 		/* [unique][in][out] */ UINT * rgfInOut,
 		/* [out] */ void ** ppRet)
 {
+	static const char *szMethodName = "GetUIObjectOf";
 	PY_GATEWAY_METHOD;
 	PyObject *obpidl;
 	PyObject *obriid;
 	obpidl = PyObject_FromPIDLArray(cidl, apidl);
 	obriid = PyWinObject_FromIID(riid);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetUIObjectOf", &result, "lOOl", hwndOwner, obpidl, obriid, rgfInOut);
+	HRESULT hr=InvokeViaPolicy(szMethodName, &result, "lOOl", hwndOwner, obpidl, obriid, rgfInOut);
 	Py_XDECREF(obpidl);
 	Py_XDECREF(obriid);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	PyObject *obout;
-	if (!PyArg_ParseTuple(result, "lO" , rgfInOut, &obout)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	UINT inout;
+	if (!PyArg_ParseTuple(result, "lO" , &inout, &obout)) return PyCom_SetAndLogCOMErrorFromPyException(szMethodName, IID_IShellFolder);
 	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obout, IID_IUnknown, ppRet, FALSE/* bNoneOK */))
+	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obout, riid, ppRet, FALSE/* bNoneOK */))
 		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!bPythonIsHappy) hr = PyCom_SetAndLogCOMErrorFromPyException(szMethodName, IID_IShellFolder);
+	if (rgfInOut) *rgfInOut = inout;
 	Py_DECREF(result);
 	return hr;
 }
@@ -602,16 +610,20 @@ STDMETHODIMP PyGShellFolder::GetDisplayNameOf(
 		/* [unique][in] */ DWORD uFlags,
 		/* [out] */ STRRET __RPC_FAR * out)
 {
+	static const char *szMethodName = "GetDisplayNameOf";
+	if (!out)
+		return E_POINTER;
 	PY_GATEWAY_METHOD;
 	PyObject *obpidl;
 	obpidl = PyObject_FromPIDL(pidl, FALSE);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetDisplayNameOf", &result, "Ol", obpidl, uFlags);
+	HRESULT hr=InvokeViaPolicy(szMethodName, &result, "Ol", obpidl, uFlags);
 	Py_XDECREF(obpidl);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
-// *** The output argument out of type "STRRET __RPC_FAR *" was not processed ***
-//     The type 'STRRET' (out) is unknown.
+	out->uType = STRRET_WSTR;
+	if (!PyWinObject_AsPfnAllocatedWCHAR(result, PyShell_AllocMem, &out->pOleStr))
+		hr = PyCom_SetAndLogCOMErrorFromPyException(szMethodName, IID_IShellFolder);
 	Py_DECREF(result);
 	return hr;
 }
@@ -623,17 +635,20 @@ STDMETHODIMP PyGShellFolder::SetNameOf(
 		/* [in] */ SHGDNF uFlags,
 		/* [out] */ LPITEMIDLIST *ppidlOut)
 {
+	static const char *szMethodName = "SetNameOf";
 	PY_GATEWAY_METHOD;
 	PyObject *obpidl;
 	PyObject *oblpszName;
 	obpidl = PyObject_FromPIDL(pidl, FALSE);
 	oblpszName = MakeOLECHARToObj(pszName);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("SetNameOf", &result, "lOOl", hwnd, obpidl, oblpszName, uFlags);
+	HRESULT hr=InvokeViaPolicy(szMethodName, &result, "lOOl", hwnd, obpidl, oblpszName, uFlags);
 	Py_XDECREF(obpidl);
 	Py_XDECREF(oblpszName);
-
+	if (FAILED(hr)) return hr;
 	PyObject_AsPIDL(result, ppidlOut, FALSE);
-	return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	hr = PyCom_SetAndLogCOMErrorFromPyException(szMethodName, IID_IShellFolder);
+	Py_DECREF(result);
+	return hr;
 }
 
