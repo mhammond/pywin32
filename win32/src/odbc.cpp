@@ -1244,6 +1244,7 @@ static PyObject *odbcCurExec(PyObject *self, PyObject *args)
 	if (!sqlbuf)
 	{
 		Py_DECREF(cur->description);
+                cur->description = NULL;
 		OutOfMemory();
 		return NULL;
 	}
@@ -1597,6 +1598,10 @@ static PyObject *cursorGetAttr(PyObject *self,
 	}
 	if (!strcmp(name, "description"))
 	{
+		if (!cursor(self)->description) {
+			Py_INCREF(Py_None);
+			return Py_None;
+		}
 		Py_INCREF(cursor(self)->description);
 		return cursor(self)->description;
 	}
