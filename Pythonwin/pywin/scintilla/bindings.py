@@ -3,6 +3,7 @@ import string
 import win32ui
 import win32api
 import win32con
+import keycodes
 import sys
 
 HANDLER_ARGS_GUESS=0
@@ -155,7 +156,6 @@ class BindingsManager:
 
 	def fire_key_event(self, msg):
 		key = msg[2]
-#		print key, `chr(key)`
 		keyState = 0
 		if win32api.GetKeyState(win32con.VK_CONTROL) & 0x8000:
 			keyState = keyState | win32con.RIGHT_CTRL_PRESSED | win32con.LEFT_CTRL_PRESSED
@@ -165,5 +165,12 @@ class BindingsManager:
 			keyState = keyState | win32con.LEFT_ALT_PRESSED | win32con.RIGHT_ALT_PRESSED
 		keyinfo = key, keyState
 		event = self.keymap.get( keyinfo )
-		if event is None: return 1
+		if event is None:
+			key = win32ui.TranslateVirtualKey(key)
+			if key:
+				key = keycodes.get_scan_code(key[0])
+				keyinfo = key, keyState
+				event = self.keymap.get( keyinfo )
+			if event is None:
+				return 1
 		return self.fire(event, None)
