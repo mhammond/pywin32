@@ -1888,6 +1888,7 @@ int AddConstants(PyObject *dict)
 	ADD_CONSTANT(IDD_PP_DEBUGGER); // @const win32ui|IDD_PP_DEBUGGER|
 	ADD_CONSTANT(IDD_PP_FORMAT); 	  // @const win32ui|IDD_PP_FORMAT|Id of built in 'Format' property page
 	ADD_CONSTANT(IDD_PP_IDE);    // @const win32ui|IDD_PP_IDE|Id of built in 'IDE' property page
+	ADD_CONSTANT(IDD_PP_TABS); 	  // @const win32ui|IDD_PP_TABS|Id of built in 'Tabs and Whitespace' property page
 	ADD_CONSTANT(IDD_PP_TOOLMENU);    // @const win32ui|IDD_PP_TOOLMENU|Id of built in 'ToolsMenu' property page
 	ADD_CONSTANT(IDD_SIMPLE_INPUT);	  // @const win32ui|IDD_SIMPLE_INPUT|Id of built in 'Simple Input' property page.
 	ADD_CONSTANT(IDD_SET_TABSTOPS);  // @const win32ui|IDD_SET_TABSTOPS|Id of built in 'Set Tab Stops' dialog
@@ -1920,8 +1921,14 @@ int AddConstants(PyObject *dict)
 	ADD_CONSTANT(IDC_EDIT4);// @const win32ui|IDC_EDIT4|
 	ADD_CONSTANT(IDC_EDIT_TABS);// @const win32ui|IDC_EDIT_TABS|
 	ADD_CONSTANT(IDC_EDITOR_COLOR); // @const win32ui|IDC_EDIT_COLOE|
+	ADD_CONSTANT(IDC_FOLD_SHOW_LINES);
+	ADD_CONSTANT(IDC_FOLD_ENABLE);
+	ADD_CONSTANT(IDC_FOLD_ON_OPEN);
 	ADD_CONSTANT(IDC_INDENT_SIZE);// @const win32ui|IDC_INDENT_SIZE|
 	ADD_CONSTANT(IDC_KEYBOARD_CONFIG); // @const win32ui|IDC_KEYBOARD_CONFIG|
+	ADD_CONSTANT(IDC_MARGIN_LINENUMBER);
+	ADD_CONSTANT(IDC_MARGIN_FOLD);
+	ADD_CONSTANT(IDC_MARGIN_MARKER);
 	ADD_CONSTANT(IDC_LIST1);// @const win32ui|IDC_LIST1|
 	ADD_CONSTANT(IDC_PROMPT_TABS);// @const win32ui|IDC_PROMPT_TABS|
 	ADD_CONSTANT(IDC_PROMPT1);// @const win32ui|IDC_PROMPT1|
@@ -1930,7 +1937,11 @@ int AddConstants(PyObject *dict)
 	ADD_CONSTANT(IDC_PROMPT4);// @const win32ui|IDC_PROMPT4|
 	ADD_CONSTANT(IDC_RADIO1);// @const win32ui|IDC_RADIO1|
 	ADD_CONSTANT(IDC_RADIO2);// @const win32ui|IDC_RADIO2|
+	ADD_CONSTANT(IDC_TABTIMMY_NONE);
+	ADD_CONSTANT(IDC_TABTIMMY_IND);
+	ADD_CONSTANT(IDC_TABTIMMY_BG);
 	ADD_CONSTANT(IDC_VIEW_WHITESPACE);// @const win32ui|IDC_VIEW_WHITESPACE|
+	ADD_CONSTANT(IDC_VIEW_EOL);
 	ADD_CONSTANT(IDC_AUTOCOMPLETE); // @const win32ui|IDC_AUTOCOMPLETE|
 	ADD_CONSTANT(IDC_CALLTIPS); // @const win32ui|IDC_CALLTIPS|
 
@@ -1946,88 +1957,93 @@ int AddConstants(PyObject *dict)
 	ADD_CONSTANT(ID_INDICATOR_COLNUM);// @const win32ui|ID_INDICATOR_COLNUM|
 	
 	ADD_CONSTANT(ID_FILE_NEW);// @const win32ui|ID_FILE_NEW|
-    ADD_CONSTANT(ID_FILE_OPEN);// @const win32ui|ID_FILE_OPEN|
-    ADD_CONSTANT(ID_FILE_CLOSE);// @const win32ui|ID_FILE_CLOSE|
+	ADD_CONSTANT(ID_FILE_OPEN);// @const win32ui|ID_FILE_OPEN|
+	ADD_CONSTANT(ID_FILE_CLOSE);// @const win32ui|ID_FILE_CLOSE|
 	ADD_CONSTANT(ID_FILE_RUN);// @const win32ui|ID_FILE_RUN|
 	ADD_CONSTANT(ID_FILE_IMPORT);// @const win32ui|ID_FILE_IMPORT|
-    ADD_CONSTANT(ID_FILE_LOCATE);// @const win32ui|ID_FILE_LOCATE|
-    ADD_CONSTANT(ID_FILE_CHECK);// @const win32ui|ID_FILE_CHECK|
-    ADD_CONSTANT(ID_FILE_SAVE);// @const win32ui|ID_FILE_SAVE|
-    ADD_CONSTANT(ID_FILE_SAVE_AS);// @const win32ui|ID_FILE_SAVE_AS|
-    ADD_CONSTANT(ID_FILE_SAVE_ALL);// @const win32ui|ID_FILE_SAVE_ALL|
-	
-    ADD_CONSTANT(ID_FILE_PAGE_SETUP);// @const win32ui|ID_FILE_PAGE_SETUP|
-    ADD_CONSTANT(ID_FILE_PRINT_SETUP);// @const win32ui|ID_FILE_PRINT_SETUP|
-    ADD_CONSTANT(ID_FILE_PRINT);// @const win32ui|ID_FILE_PRINT|
-    ADD_CONSTANT(ID_FILE_PRINT_PREVIEW);// @const win32ui|ID_FILE_PRINT_PREVIEW|
+	ADD_CONSTANT(ID_FILE_LOCATE);// @const win32ui|ID_FILE_LOCATE|
+	ADD_CONSTANT(ID_FILE_CHECK);// @const win32ui|ID_FILE_CHECK|
+	ADD_CONSTANT(ID_FILE_SAVE);// @const win32ui|ID_FILE_SAVE|
+	ADD_CONSTANT(ID_FILE_SAVE_AS);// @const win32ui|ID_FILE_SAVE_AS|
+	ADD_CONSTANT(ID_FILE_SAVE_ALL);// @const win32ui|ID_FILE_SAVE_ALL|
+
+	ADD_CONSTANT(ID_FILE_PAGE_SETUP);// @const win32ui|ID_FILE_PAGE_SETUP|
+	ADD_CONSTANT(ID_FILE_PRINT_SETUP);// @const win32ui|ID_FILE_PRINT_SETUP|
+	ADD_CONSTANT(ID_FILE_PRINT);// @const win32ui|ID_FILE_PRINT|
+	ADD_CONSTANT(ID_FILE_PRINT_PREVIEW);// @const win32ui|ID_FILE_PRINT_PREVIEW|
 	ADD_CONSTANT(ID_HELP_PYTHON);// @const win32ui|ID_HELP_PYTHON|
 	ADD_CONSTANT(ID_HELP_GUI_REF);// @const win32ui|ID_HELP_GUI_REF|
 	ADD_CONSTANT(ID_HELP_OTHER);// @const win32ui|ID_HELP_OTHER|
-    ADD_CONSTANT(ID_APP_ABOUT);// @const win32ui|ID_APP_ABOUT|
-    ADD_CONSTANT(ID_APP_EXIT);// @const win32ui|ID_APP_EXIT|
-    ADD_CONSTANT(ID_FILE_MRU_FILE1);// @const win32ui|ID_FILE_MRU_FILE1|
-    ADD_CONSTANT(ID_FILE_MRU_FILE2);// @const win32ui|ID_FILE_MRU_FILE2|
-    ADD_CONSTANT(ID_FILE_MRU_FILE3);// @const win32ui|ID_FILE_MRU_FILE3|
-    ADD_CONSTANT(ID_FILE_MRU_FILE4);// @const win32ui|ID_FILE_MRU_FILE4|
-    ADD_CONSTANT(ID_VIEW_BROWSE);// @const win32ui|ID_VIEW_BROWSE|
-    ADD_CONSTANT(ID_VIEW_FIXED_FONT);// @const win32ui|ID_VIEW_FIXED_FONT|
-    ADD_CONSTANT(ID_VIEW_INTERACTIVE);// @const win32ui|ID_VIEW_INTERACTIVE|
+	ADD_CONSTANT(ID_APP_ABOUT);// @const win32ui|ID_APP_ABOUT|
+	ADD_CONSTANT(ID_APP_EXIT);// @const win32ui|ID_APP_EXIT|
+	ADD_CONSTANT(ID_FILE_MRU_FILE1);// @const win32ui|ID_FILE_MRU_FILE1|
+	ADD_CONSTANT(ID_FILE_MRU_FILE2);// @const win32ui|ID_FILE_MRU_FILE2|
+	ADD_CONSTANT(ID_FILE_MRU_FILE3);// @const win32ui|ID_FILE_MRU_FILE3|
+	ADD_CONSTANT(ID_FILE_MRU_FILE4);// @const win32ui|ID_FILE_MRU_FILE4|
+	ADD_CONSTANT(ID_VIEW_BROWSE);// @const win32ui|ID_VIEW_BROWSE|
+	ADD_CONSTANT(ID_VIEW_FIXED_FONT);// @const win32ui|ID_VIEW_FIXED_FONT|
+	ADD_CONSTANT(ID_VIEW_INTERACTIVE);// @const win32ui|ID_VIEW_INTERACTIVE|
 	ADD_CONSTANT(ID_VIEW_OPTIONS); // @const win32ui|ID_VIEW_OPTIONS|
 	ADD_CONSTANT(ID_VIEW_TOOLBAR_DBG); // @const win32ui|ID_VIEW_TOOLBAR_DBG|
 	ADD_CONSTANT(ID_VIEW_WHITESPACE); // @const win32ui|ID_VIEW_WHITESPACE|
 	ADD_CONSTANT(ID_VIEW_EOL); // @const win32ui|ID_VIEW_EOL|
-    ADD_CONSTANT(ID_NEXT_PANE);// @const win32ui|ID_NEXT_PANE|
-    ADD_CONSTANT(ID_PREV_PANE);// @const win32ui|ID_PREV_PANE|
-    ADD_CONSTANT(ID_WINDOW_NEW);// @const win32ui|ID_WINDOW_NEW|
-    ADD_CONSTANT(ID_WINDOW_ARRANGE);// @const win32ui|ID_WINDOW_ARRANGE|
-    ADD_CONSTANT(ID_WINDOW_CASCADE);// @const win32ui|ID_WINDOW_CASCADE|
-    ADD_CONSTANT(ID_WINDOW_TILE_HORZ);// @const win32ui|ID_WINDOW_TILE_HORZ|
-    ADD_CONSTANT(ID_WINDOW_TILE_VERT);// @const win32ui|ID_WINDOW_TILE_VERT|
-    ADD_CONSTANT(ID_WINDOW_SPLIT);// @const win32ui|ID_WINDOW_SPLIT|
-    ADD_CONSTANT(ID_EDIT_CLEAR);// @const win32ui|ID_EDIT_CLEAR|
-    ADD_CONSTANT(ID_EDIT_CLEAR_ALL);// @const win32ui|ID_EDIT_CLEAR_ALL|
-    ADD_CONSTANT(ID_EDIT_COPY);// @const win32ui|ID_EDIT_COPY|
-    ADD_CONSTANT(ID_EDIT_CUT);// @const win32ui|ID_EDIT_CUT|
-    ADD_CONSTANT(ID_EDIT_FIND);// @const win32ui|ID_EDIT_FIND|
+	ADD_CONSTANT(ID_VIEW_FOLD_EXPAND); // @const win32ui|ID_VIEW_EXPAND|
+	ADD_CONSTANT(ID_VIEW_FOLD_EXPAND_ALL); // @const win32ui|ID_VIEW_EXPAND_ALL|
+	ADD_CONSTANT(ID_VIEW_FOLD_COLLAPSE); // @const win32ui|ID_VIEW_COLLAPSE|
+	ADD_CONSTANT(ID_VIEW_FOLD_COLLAPSE_ALL); // @const win32ui|ID_VIEW_COLLAPSE_ALL|
+	ADD_CONSTANT(ID_VIEW_FOLD_TOPLEVEL); // @const win32ui|ID_VIEW_FOLD_TOPLEVEL|
+	ADD_CONSTANT(ID_NEXT_PANE);// @const win32ui|ID_NEXT_PANE|
+	ADD_CONSTANT(ID_PREV_PANE);// @const win32ui|ID_PREV_PANE|
+	ADD_CONSTANT(ID_WINDOW_NEW);// @const win32ui|ID_WINDOW_NEW|
+	ADD_CONSTANT(ID_WINDOW_ARRANGE);// @const win32ui|ID_WINDOW_ARRANGE|
+	ADD_CONSTANT(ID_WINDOW_CASCADE);// @const win32ui|ID_WINDOW_CASCADE|
+	ADD_CONSTANT(ID_WINDOW_TILE_HORZ);// @const win32ui|ID_WINDOW_TILE_HORZ|
+	ADD_CONSTANT(ID_WINDOW_TILE_VERT);// @const win32ui|ID_WINDOW_TILE_VERT|
+	ADD_CONSTANT(ID_WINDOW_SPLIT);// @const win32ui|ID_WINDOW_SPLIT|
+	ADD_CONSTANT(ID_EDIT_CLEAR);// @const win32ui|ID_EDIT_CLEAR|
+	ADD_CONSTANT(ID_EDIT_CLEAR_ALL);// @const win32ui|ID_EDIT_CLEAR_ALL|
+	ADD_CONSTANT(ID_EDIT_COPY);// @const win32ui|ID_EDIT_COPY|
+	ADD_CONSTANT(ID_EDIT_CUT);// @const win32ui|ID_EDIT_CUT|
+	ADD_CONSTANT(ID_EDIT_FIND);// @const win32ui|ID_EDIT_FIND|
 	ADD_CONSTANT(ID_EDIT_GOTO_LINE); // @const win32ui|ID_EDIT_GOTO_LINE|
-    ADD_CONSTANT(ID_EDIT_PASTE);// @const win32ui|ID_EDIT_PASTE|
-    ADD_CONSTANT(ID_EDIT_REPEAT);// @const win32ui|ID_EDIT_REPEAT|
-    ADD_CONSTANT(ID_EDIT_REPLACE);// @const win32ui|ID_EDIT_REPLACE|
-    ADD_CONSTANT(ID_EDIT_SELECT_ALL);// @const win32ui|ID_EDIT_SELECT_ALL|
-    ADD_CONSTANT(ID_EDIT_SELECT_BLOCK);// @const win32ui|ID_EDIT_SELECT_BLOCK|
-    ADD_CONSTANT(ID_EDIT_UNDO);// @const win32ui|ID_EDIT_UNDO|
-    ADD_CONSTANT(ID_EDIT_REDO);// @const win32ui|ID_EDIT_REDO|
-    ADD_CONSTANT(ID_VIEW_TOOLBAR);// @const win32ui|ID_VIEW_TOOLBAR|
-    ADD_CONSTANT(ID_VIEW_STATUS_BAR);// @const win32ui|ID_VIEW_STATUS_BAR|
-    ADD_CONSTANT(ID_SEPARATOR);// @const win32ui|ID_SEPARATOR|
+	ADD_CONSTANT(ID_EDIT_PASTE);// @const win32ui|ID_EDIT_PASTE|
+	ADD_CONSTANT(ID_EDIT_REPEAT);// @const win32ui|ID_EDIT_REPEAT|
+	ADD_CONSTANT(ID_EDIT_REPLACE);// @const win32ui|ID_EDIT_REPLACE|
+	ADD_CONSTANT(ID_EDIT_SELECT_ALL);// @const win32ui|ID_EDIT_SELECT_ALL|
+	ADD_CONSTANT(ID_EDIT_SELECT_BLOCK);// @const win32ui|ID_EDIT_SELECT_BLOCK|
+	ADD_CONSTANT(ID_EDIT_UNDO);// @const win32ui|ID_EDIT_UNDO|
+	ADD_CONSTANT(ID_EDIT_REDO);// @const win32ui|ID_EDIT_REDO|
+	ADD_CONSTANT(ID_VIEW_TOOLBAR);// @const win32ui|ID_VIEW_TOOLBAR|
+	ADD_CONSTANT(ID_VIEW_STATUS_BAR);// @const win32ui|ID_VIEW_STATUS_BAR|
+	ADD_CONSTANT(ID_SEPARATOR);// @const win32ui|ID_SEPARATOR|
 
 	ADD_CONSTANT(IDR_DEBUGGER); // @const win32ui|IDR_DEBUGGER|
 	ADD_CONSTANT(IDR_PYTHONTYPE_CNTR_IP);// @const win32ui|IDR_PYTHONTYPE_CNTR_IP|
-    ADD_CONSTANT(IDR_MAINFRAME);// @const win32ui|IDR_MAINFRAME|
-    ADD_CONSTANT(IDR_PYTHONTYPE);// @const win32ui|IDR_PYTHONTYPE|
-    ADD_CONSTANT(IDR_PYTHONCONTYPE);// @const win32ui|IDR_PYTHONCONTYPE|
-    ADD_CONSTANT(IDR_TEXTTYPE);// @const win32ui|IDR_TEXTTYPE|
+	ADD_CONSTANT(IDR_MAINFRAME);// @const win32ui|IDR_MAINFRAME|
+	ADD_CONSTANT(IDR_PYTHONTYPE);// @const win32ui|IDR_PYTHONTYPE|
+	ADD_CONSTANT(IDR_PYTHONCONTYPE);// @const win32ui|IDR_PYTHONCONTYPE|
+	ADD_CONSTANT(IDR_TEXTTYPE);// @const win32ui|IDR_TEXTTYPE|
 	ADD_CONSTANT(IDR_CNTR_INPLACE);// @const win32ui|IDR_CNTR_INPLACE|
-    ADD_ENUM(CDocTemplate,windowTitle);// @const win32ui|CDocTemplate_windowTitle|
-    ADD_ENUM(CDocTemplate,docName);// @const win32ui|CDocTemplate_docName|
-    ADD_ENUM(CDocTemplate,fileNewName);// @const win32ui|CDocTemplate_fileNewName|
-    ADD_ENUM(CDocTemplate,filterName);// @const win32ui|CDocTemplate_filterName|
-    ADD_ENUM(CDocTemplate,filterExt);// @const win32ui|CDocTemplate_filterExt|
-    ADD_ENUM(CDocTemplate,regFileTypeId);// @const win32ui|CDocTemplate_regFileTypeId|
-    ADD_ENUM(CDocTemplate,regFileTypeName);// @const win32ui|CDocTemplate_regFileTypeName|
+	ADD_ENUM(CDocTemplate,windowTitle);// @const win32ui|CDocTemplate_windowTitle|
+	ADD_ENUM(CDocTemplate,docName);// @const win32ui|CDocTemplate_docName|
+	ADD_ENUM(CDocTemplate,fileNewName);// @const win32ui|CDocTemplate_fileNewName|
+	ADD_ENUM(CDocTemplate,filterName);// @const win32ui|CDocTemplate_filterName|
+	ADD_ENUM(CDocTemplate,filterExt);// @const win32ui|CDocTemplate_filterExt|
+	ADD_ENUM(CDocTemplate,regFileTypeId);// @const win32ui|CDocTemplate_regFileTypeId|
+	ADD_ENUM(CDocTemplate,regFileTypeName);// @const win32ui|CDocTemplate_regFileTypeName|
 
-    ADD_ENUM3(CDocTemplate, Confidence, noAttempt); // @const win32ui|CDocTemplate_Confidence_noAttempt|
-    ADD_ENUM3(CDocTemplate, Confidence, maybeAttemptForeign); // @const win32ui|CDocTemplate_Confidence_maybeAttemptForeign|
-    ADD_ENUM3(CDocTemplate, Confidence, maybeAttemptNative); // @const win32ui|CDocTemplate_Confidence_maybeAttemptNative|
-    ADD_ENUM3(CDocTemplate, Confidence, yesAttemptForeign); // @const win32ui|CDocTemplate_Confidence_yesAttemptForeign|
-    ADD_ENUM3(CDocTemplate, Confidence, yesAttemptNative); // @const win32ui|CDocTemplate_Confidence_yesAttemptNative|
-    ADD_ENUM3(CDocTemplate, Confidence, yesAlreadyOpen); // @const win32ui|CDocTemplate_Confidence_yesAlreadyOpen|
+	ADD_ENUM3(CDocTemplate, Confidence, noAttempt); // @const win32ui|CDocTemplate_Confidence_noAttempt|
+	ADD_ENUM3(CDocTemplate, Confidence, maybeAttemptForeign); // @const win32ui|CDocTemplate_Confidence_maybeAttemptForeign|
+	ADD_ENUM3(CDocTemplate, Confidence, maybeAttemptNative); // @const win32ui|CDocTemplate_Confidence_maybeAttemptNative|
+	ADD_ENUM3(CDocTemplate, Confidence, yesAttemptForeign); // @const win32ui|CDocTemplate_Confidence_yesAttemptForeign|
+	ADD_ENUM3(CDocTemplate, Confidence, yesAttemptNative); // @const win32ui|CDocTemplate_Confidence_yesAttemptNative|
+	ADD_ENUM3(CDocTemplate, Confidence, yesAlreadyOpen); // @const win32ui|CDocTemplate_Confidence_yesAlreadyOpen|
 
-    ADD_ENUM(CRichEditView,WrapNone);// @const win32ui|CRichEditView_WrapNone|
-    ADD_ENUM(CRichEditView,WrapToWindow);// @const win32ui|CRichEditView_WrapToWindow|
-    ADD_ENUM(CRichEditView,WrapToTargetDevice);// @const win32ui|CRichEditView_WrapToTargetDevice|
+	ADD_ENUM(CRichEditView,WrapNone);// @const win32ui|CRichEditView_WrapNone|
+	ADD_ENUM(CRichEditView,WrapToWindow);// @const win32ui|CRichEditView_WrapToWindow|
+	ADD_ENUM(CRichEditView,WrapToTargetDevice);// @const win32ui|CRichEditView_WrapToTargetDevice|
 
-    ADD_CONSTANT(PD_ALLPAGES); // @const win32ui|PD_ALLPAGES|The default flag that indicates that the All radio button is initially selected. This flag is used as a placeholder to indicate that the PD_PAGENUMS and PD_SELECTION flags are not specified. 
+	ADD_CONSTANT(PD_ALLPAGES); // @const win32ui|PD_ALLPAGES|The default flag that indicates that the All radio button is initially selected. This flag is used as a placeholder to indicate that the PD_PAGENUMS and PD_SELECTION flags are not specified. 
 	ADD_CONSTANT(PD_COLLATE); // @const win32ui|PD_COLLATE|If this flag is set, the Collate check box is checked. If this flag is set when the PrintDlg function returns, the application must simulate collation of multiple copies. For more information, see the description of the PD_USEDEVMODECOPIESANDCOLLATE flag. 
 	ADD_CONSTANT(PD_DISABLEPRINTTOFILE); // @const win32ui|PD_DISABLEPRINTTOFILE|Disables the Print to File check box.
 	ADD_CONSTANT(PD_ENABLEPRINTHOOK); // @const win32ui|PD_ENABLEPRINTHOOK|Enables the hook procedure specified in the lpfnPrintHook member. This enables the hook procedure for the Print dialog box.

@@ -26,6 +26,7 @@
 #define IDD_PP_EDITOR                   11153
 #define IDD_PP_IDE                      11155
 #define IDD_PP_TOOLMENU                 11156
+#define IDD_PP_TABS                     11160
 #define ID_HELP_OTHER                   14950
 #define IDC_HEADER                      15000
 #define IDC_FOOTER                      15001
@@ -75,6 +76,7 @@
 #define IDC_SPIN2                       15057
 #define IDC_COMBO1                      15058
 #define IDC_AUTO_RELOAD                 15059
+#define IDC_SPIN3                       15060
 #define IDC_RADIO1                      15061
 #define IDC_RADIO2                      15062
 #define IDC_ABOUT_VERSION               15062
@@ -84,11 +86,21 @@
 #define IDC_CHECK2                      15067
 #define IDC_BUTTON4                     15068
 #define IDC_VIEW_WHITESPACE             15070
+#define IDC_FOLD_SHOW_LINES             15070
 #define IDC_AUTOCOMPLETE                15071
+#define IDC_VIEW_EOL                    15071
 #define IDC_CALLTIPS                    15072
 #define IDC_EDITOR_COLOR                15073
+#define IDC_FOLD_ON_OPEN                15073
 #define IDC_KEYBOARD_CONFIG             15074
 #define IDC_COMBO2                      15076
+#define IDC_TABTIMMY_NONE               15077
+#define IDC_TABTIMMY_BG                 15078
+#define IDC_FOLD_ENABLE                 15078
+#define IDC_TABTIMMY_IND                15079
+#define IDC_MARGIN_MARKER               15080
+#define IDC_MARGIN_LINENUMBER           15081
+#define IDC_MARGIN_FOLD                 15082
 #define IDC_DBG_ADD                     16004
 #define IDC_DBG_CLEAR                   16006
 #define IDC_DBG_CLOSE                   16010
@@ -116,6 +128,10 @@
 #define IDC_DBG_STACK                   36888
 #define IDC_DBG_BREAKPOINTS             36889
 #define ID_VIEW_EOL                     36894
+#define ID_VIEW_FOLD_EXPAND             36895
+#define ID_VIEW_FOLD_EXPAND_ALL         36896
+#define ID_VIEW_FOLD_COLLAPSE_ALL       36897
+#define ID_VIEW_FOLD_COLLAPSE           36898
 #define IDC_DBG_WATCH                   40002
 #define IDS_DEBUG_RELEASE_MISMATCH      57346
 #define ID_EDIT_GOTO_LINE               57638
@@ -126,9 +142,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        11160
-#define _APS_NEXT_COMMAND_VALUE         36895
-#define _APS_NEXT_CONTROL_VALUE         15077
+#define _APS_NEXT_RESOURCE_VALUE        11161
+#define _APS_NEXT_COMMAND_VALUE         36900
+#define _APS_NEXT_CONTROL_VALUE         15084
 #define _APS_NEXT_SYMED_VALUE           11152
 #endif
 #endif

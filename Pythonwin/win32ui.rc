@@ -153,7 +153,7 @@ BEGIN
         MENUITEM "Chec&k\tCtrl+Shift+C",        ID_FILE_CHECK
         MENUITEM SEPARATOR
         MENUITEM "&Print...\tCtrl+P",           ID_FILE_PRINT
-        MENUITEM "Print Pre&view",              ID_FILE_PRINT_PREVIEW
+        MENUITEM "Print Previe&w",              ID_FILE_PRINT_PREVIEW
         MENUITEM "Page Se&tup...",              ID_PAGE_SETUP
         MENUITEM "P&rint Setup...",             ID_FILE_PRINT_SETUP
         MENUITEM SEPARATOR
@@ -173,7 +173,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Find...\tAlt+F3",            ID_EDIT_FIND
         MENUITEM "Find &Next\tF3",              ID_EDIT_REPEAT
-        MENUITEM "&Replace...",                 ID_EDIT_REPLACE
+        MENUITEM "R&eplace...\tCtrl+H",         ID_EDIT_REPLACE
         MENUITEM SEPARATOR
         MENUITEM "&Goto Line...\tCtrl+G",       ID_EDIT_GOTO_LINE
         MENUITEM "Select &All",                 ID_EDIT_SELECT_ALL
@@ -192,12 +192,22 @@ BEGIN
         MENUITEM "&End-of-line markers",        ID_VIEW_EOL
         MENUITEM "&Fixed Font",                 ID_VIEW_FIXED_FONT
         MENUITEM "&Options...",                 ID_VIEW_OPTIONS
+        POPUP "Fol&ding"
+        BEGIN
+            MENUITEM "E&xpand\tKeypad-Plus",        ID_VIEW_FOLD_EXPAND
+            MENUITEM "&Collapse\tKeypad-Minus",     ID_VIEW_FOLD_COLLAPSE
+            MENUITEM "&Expand all\tAlt-Keypad-Plus", ID_VIEW_FOLD_EXPAND_ALL
+            MENUITEM "Collapse &All\tAlt-Keypad-Minus", 
+                                                    ID_VIEW_FOLD_COLLAPSE_ALL
+
+        END
     END
     POPUP "&Window"
     BEGIN
         MENUITEM "&Cascade",                    ID_WINDOW_CASCADE
         MENUITEM "&Tile",                       ID_WINDOW_TILE_HORZ
         MENUITEM "&Arrange Icons",              ID_WINDOW_ARRANGE
+        MENUITEM "&Split",                      ID_WINDOW_SPLIT
     END
     POPUP "&Help"
     BEGIN
@@ -257,7 +267,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Find...\tAlt+F3",            ID_EDIT_FIND
         MENUITEM "Find &Next\tF3",              ID_EDIT_REPEAT
-        MENUITEM "&Replace...",                 ID_EDIT_REPLACE
+        MENUITEM "R&eplace...\tCtrl+H",         ID_EDIT_REPLACE
         MENUITEM SEPARATOR
         MENUITEM "&Goto Line...\tCtrl+G",       ID_EDIT_GOTO_LINE
         MENUITEM "Select &All",                 ID_EDIT_SELECT_ALL
@@ -446,6 +456,7 @@ BEGIN
     "C",            ID_FILE_CHECK,          VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
     "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
+    "H",            ID_EDIT_REPLACE,        VIRTKEY, CONTROL, NOINVERT
     "I",            ID_FILE_IMPORT,         VIRTKEY, CONTROL, NOINVERT
     "L",            ID_FILE_LOCATE,         VIRTKEY, CONTROL, NOINVERT
     "N",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
@@ -477,6 +488,7 @@ BEGIN
     "C",            ID_FILE_CHECK,          VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
     "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
+    "H",            ID_EDIT_REPLACE,        VIRTKEY, CONTROL, NOINVERT
     "I",            ID_FILE_IMPORT,         VIRTKEY, CONTROL, NOINVERT
     "L",            ID_FILE_LOCATE,         VIRTKEY, CONTROL, NOINVERT
     "N",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
@@ -700,42 +712,45 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Editor"
 FONT 8, "MS Sans Serif"
 BEGIN
-    GROUPBOX        "Python",IDC_STATIC,7,7,123,41
-    CONTROL         "View &Whitespace",IDC_VIEW_WHITESPACE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,14,15,105,9
+    GROUPBOX        "",IDC_STATIC,7,7,125,55
     CONTROL         "&Auto-complete attributes",IDC_AUTOCOMPLETE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,14,26,105,9
+                    BS_AUTOCHECKBOX | WS_TABSTOP,14,17,99,8
     CONTROL         "Show &calltips",IDC_CALLTIPS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,14,37,105,9
-    GROUPBOX        "Indenting",IDC_STATIC,7,52,123,62
-    CONTROL         "&Use TAB characters?",IDC_USE_TABS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,14,60,100,10
-    CONTROL         "Use &Python smart tabs?",IDC_USE_SMART_TABS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,14,70,100,10
-    LTEXT           "&Tab size",IDC_STATIC,14,82,42,13
-    EDITTEXT        IDC_TAB_SIZE,72,82,42,12,ES_AUTOHSCROLL
-    CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_SETBUDDYINT | 
-                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
-                    UDS_HOTTRACK,114,80,11,14
-    LTEXT           "&Indent Size",IDC_STATIC,14,98,42,10
-    EDITTEXT        IDC_INDENT_SIZE,72,97,42,12,ES_AUTOHSCROLL
+                    WS_TABSTOP,14,30,93,9
+    LTEXT           "&Keyboard",IDC_STATIC,14,46,32,10
+    COMBOBOX        IDC_KEYBOARD_CONFIG,65,44,47,37,CBS_DROPDOWNLIST | 
+                    CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Margin Widths",IDC_STATIC,136,7,112,55
+    LTEXT           "Line Numbers",IDC_STATIC,142,17,51,8
+    EDITTEXT        IDC_MARGIN_LINENUMBER,207,14,33,13,ES_AUTOHSCROLL
     CONTROL         "Spin1",IDC_SPIN2,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
-                    UDS_HOTTRACK,114,97,11,14
-    GROUPBOX        "Editor",IDC_STATIC,135,7,113,41
-    GROUPBOX        "External File Support",IDC_STATIC,135,52,113,62
+                    UDS_HOTTRACK,237,12,11,13
+    LTEXT           "Markers",IDC_STATIC,144,31,49,8
+    EDITTEXT        IDC_MARGIN_MARKER,207,29,33,12,ES_AUTOHSCROLL
+    CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
+                    UDS_HOTTRACK,237,25,11,14
+    LTEXT           "Folding",IDC_STATIC,144,46,49,8
+    EDITTEXT        IDC_MARGIN_FOLD,207,44,33,12,ES_AUTOHSCROLL
+    CONTROL         "Spin1",IDC_SPIN3,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
+                    UDS_HOTTRACK,237,39,11,15
+    GROUPBOX        "Folding",IDC_STATIC,7,64,125,50
+    CONTROL         "Enable folding",IDC_FOLD_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,14,75,93,8
+    CONTROL         "Show fold lines",IDC_FOLD_SHOW_LINES,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,14,86,93,8
+    CONTROL         "Fold top-level when opening",IDC_FOLD_ON_OPEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,14,98,108,8
+    GROUPBOX        "External File Support",IDC_STATIC,136,64,112,50
     CONTROL         "Auto &reload changed file",IDC_AUTO_RELOAD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,142,59,98,11
+                    BS_AUTOCHECKBOX | WS_TABSTOP,144,73,96,11
     CONTROL         "&VSS Integration",IDC_VSS_INTEGRATE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,142,70,98,11
-    LTEXT           "&Backups",IDC_STATIC,142,83,32,10
-    COMBOBOX        IDC_COMBO1,191,83,49,41,CBS_DROPDOWN | WS_VSCROLL | 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,144,86,96,11
+    LTEXT           "&Backups",IDC_STATIC,144,99,32,10
+    COMBOBOX        IDC_COMBO1,191,99,49,41,CBS_DROPDOWN | WS_VSCROLL | 
                     WS_TABSTOP
-    CONTROL         "&Color Editor",IDC_EDITOR_COLOR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,142,17,51,10
-    COMBOBOX        IDC_KEYBOARD_CONFIG,193,33,47,37,CBS_DROPDOWNLIST | 
-                    CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "&Keyboard",IDC_STATIC,142,33,32,10
 END
 
 IDD_PP_IDE DIALOG DISCARDABLE  0, 0, 255, 117
@@ -801,23 +816,26 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Format"
 FONT 8, "MS Sans Serif"
 BEGIN
-    LISTBOX         IDC_LIST1,130,5,120,75,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+    LISTBOX         IDC_LIST1,130,5,120,72,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
                     WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Format",IDC_STATIC,130,81,120,41
+    GROUPBOX        "Format",IDC_STATIC,130,78,120,44
     CONTROL         "Fixed Width",IDC_RADIO1,"Button",BS_AUTORADIOBUTTON | 
-                    WS_GROUP,15,91,55,10
-    GROUPBOX        "Default Font",IDC_STATIC,7,81,120,41
-    PUSHBUTTON      "Define...",IDC_BUTTON1,78,90,44,12
+                    WS_GROUP,15,89,55,10
+    GROUPBOX        "Default Font",IDC_STATIC,7,78,120,44
+    PUSHBUTTON      "Define...",IDC_BUTTON1,78,87,44,12
     CONTROL         "Proportional",IDC_RADIO2,"Button",BS_AUTORADIOBUTTON,15,
-                    107,55,8
-    PUSHBUTTON      "Define...",IDC_BUTTON2,78,107,44,12
-    PUSHBUTTON      "Define...",IDC_BUTTON3,200,107,44,12
-    CONTROL         "Use default",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,134,107,55,8
-    COMBOBOX        IDC_COMBO1,134,90,50,63,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    103,55,8
+    PUSHBUTTON      "Define...",IDC_BUTTON2,78,103,44,12
+    PUSHBUTTON      "Define...",IDC_BUTTON3,196,101,48,10
+    CONTROL         "Default font",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,134,101,59,8
+    COMBOBOX        IDC_COMBO1,134,86,50,63,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    COMBOBOX        IDC_COMBO2,194,90,50,63,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    COMBOBOX        IDC_COMBO2,194,86,50,63,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
+    CONTROL         "Default b/g",IDC_CHECK2,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,134,112,59,8
+    PUSHBUTTON      "Define...",IDC_BUTTON4,195,112,49,10
 END
 
 IDD_PP_DEBUGGER DIALOG DISCARDABLE  0, 0, 251, 102
@@ -909,21 +927,16 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 248
         VERTGUIDE, 14
-        VERTGUIDE, 114
-        VERTGUIDE, 130
-        VERTGUIDE, 135
-        VERTGUIDE, 142
+        VERTGUIDE, 132
+        VERTGUIDE, 136
+        VERTGUIDE, 144
         VERTGUIDE, 193
         VERTGUIDE, 240
         TOPMARGIN, 7
         BOTTOMMARGIN, 114
-        HORZGUIDE, 17
-        HORZGUIDE, 33
-        HORZGUIDE, 48
-        HORZGUIDE, 52
-        HORZGUIDE, 70
-        HORZGUIDE, 83
-        HORZGUIDE, 97
+        HORZGUIDE, 12
+        HORZGUIDE, 62
+        HORZGUIDE, 64
     END
 
     IDD_PP_IDE, DIALOG
@@ -941,8 +954,8 @@ BEGIN
         VERTGUIDE, 244
         TOPMARGIN, 5
         BOTTOMMARGIN, 122
-        HORZGUIDE, 90
-        HORZGUIDE, 107
+        HORZGUIDE, 87
+        HORZGUIDE, 103
     END
 
     IDD_PP_DEBUGGER, DIALOG
@@ -1174,6 +1187,7 @@ BEGIN
     IDC_DBG_STACK           "Show/Hide the stack view\nStack view"
     IDC_DBG_BREAKPOINTS     "Show/Hide the breakpoints list\nBreakpoint list"
     ID_VIEW_EOL             "Show or hide end-of-line markers\nView end-of-lines"
+    ID_VIEW_FOLD_EXPAND     "Expand the current fold.\nExpand"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1194,6 +1208,14 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDC_DBG_WATCH           "Add/Remove a watch entry\nWatch"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_FOLD_EXPAND_ALL "Expand all currently collapsed folds.\nExpand all"
+    ID_VIEW_FOLD_COLLAPSE_ALL 
+                            "Collapse all currently expanded folds.\nCollapse all"
+    ID_VIEW_FOLD_COLLAPSE   "Collapse the current fold.\nCollapse"
 END
 
 #endif    // English (U.S.) resources
@@ -1229,6 +1251,44 @@ BEGIN
     PUSHBUTTON      "De&lete",IDC_BUTTON4,189,81,50,14
 END
 
+IDD_PP_TABS DIALOG DISCARDABLE  0, 0, 256, 122
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Tabs and Whitespace"
+FONT 8, "MS Sans Serif"
+BEGIN
+    GROUPBOX        "",IDC_STATIC,7,0,242,65
+    LTEXT           "&Tab size",IDC_STATIC,14,8,42,13
+    EDITTEXT        IDC_TAB_SIZE,71,8,42,12,ES_AUTOHSCROLL
+    CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
+                    UDS_HOTTRACK,112,11,11,14
+    LTEXT           "&Indent Size",IDC_STATIC,14,24,42,10
+    EDITTEXT        IDC_INDENT_SIZE,71,24,42,12,ES_AUTOHSCROLL
+    CONTROL         "Spin1",IDC_SPIN2,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
+                    UDS_HOTTRACK,113,25,11,14
+    CONTROL         "Use &Python smart indentation?",IDC_USE_SMART_TABS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,39,113,10
+    CONTROL         "View whitespace",IDC_VIEW_WHITESPACE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,14,50,83,12
+    CONTROL         "Insert spaces",IDC_RADIO1,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP | WS_TABSTOP,141,11,82,11
+    CONTROL         "Keep tabs",IDC_USE_TABS,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,141,27,82,11
+    CONTROL         "View end of line markers",IDC_VIEW_EOL,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,141,50,97,12
+    GROUPBOX        "Tab-Timmy",IDC_STATIC,7,67,242,48
+    CONTROL         "Dont show inconsistent indentation",IDC_TABTIMMY_NONE,
+                    "Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,14,
+                    76,122,12
+    CONTROL         "Show as indicator",IDC_TABTIMMY_IND,"Button",
+                    BS_AUTORADIOBUTTON,14,88,105,13
+    CONTROL         "Show as background color",IDC_TABTIMMY_BG,"Button",
+                    BS_AUTORADIOBUTTON | WS_DISABLED,14,100,105,13
+    COMBOBOX        IDC_COMBO1,141,88,56,63,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1245,6 +1305,17 @@ BEGIN
         VERTGUIDE, 181
         TOPMARGIN, 7
         BOTTOMMARGIN, 113
+    END
+
+    IDD_PP_TABS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 249
+        VERTGUIDE, 14
+        VERTGUIDE, 141
+        TOPMARGIN, 1
+        BOTTOMMARGIN, 115
+        HORZGUIDE, 50
     END
 END
 #endif    // APSTUDIO_INVOKED
