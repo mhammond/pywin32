@@ -10,6 +10,8 @@
 #undef PyHANDLE
 #include "PyWinObjects.h"
 static BOOL (WINAPI *fpQueryServiceStatusEx)(SC_HANDLE,SC_STATUS_TYPE,LPBYTE,DWORD,LPDWORD) = NULL;
+// according to msdn, 256 is limit for service names and service display names
+#define MAX_SERVICE_NAME_LEN 256   
 %}
 
 %init %{
@@ -834,12 +836,17 @@ PyObject *MyStartService( SC_HANDLE scHandle, PyObject *serviceArgs )
 
 // These 3 function contributed by Curt Hagenlocher
 
+// @pyswig (tuple,...)|EnumServicesStatus|Returns a tuple of status info for each service that meets specified criteria
+// @comm Returns a sequence of tuples representing ENUM_SERVICE_STATUS structs: (ServiceName, DisplayName, <o SERVICE_STATUS>)
 %native (EnumServicesStatus) MyEnumServicesStatus;
 
 %{
 static PyObject *MyEnumServicesStatus(PyObject *self, PyObject *args)
 {
-	SC_HANDLE hscm;
+	// @pyparm int|hSCManager||Handle to service control manager as returned by <om win32service.OpenSCManager>
+	// @pyparm int|ServiceType|SERVICE_WIN32|Types of services to enumerate (SERVICE_DRIVER and/or SERVICE_WIN32)
+	// @pyparm int|ServiceState|SERVICE_STATE_ALL|Limits to services in specified state
+	SC_HANDLE hscm;		
 	DWORD serviceType = SERVICE_WIN32;
 	DWORD serviceState = SERVICE_STATE_ALL;
 	if (!PyArg_ParseTuple(args, "l|ll:EnumServicesStatus", &hscm, &serviceType, &serviceState))
@@ -898,10 +905,14 @@ static PyObject *MyEnumServicesStatus(PyObject *self, PyObject *args)
 }
 %}
 
+// @pyswig (tuple,...)|EnumDependentServices|Lists services that depend on a service
+// @comm Returns a sequence of tuples representing ENUM_SERVICE_STATUS structs: (ServiceName, DisplayName, <o SERVICE_STATUS>)
 %native (EnumDependentServices) MyEnumDependentServices;
 %{
 static PyObject *MyEnumDependentServices(PyObject *self, PyObject *args)
 {
+	// @pyparm int|hService||Handle to service for which to list dependent services (as returned by <om win32service.OpenService>)
+	// @pyparm int|ServiceState|SERVICE_STATE_ALL|Limits to services in specified state - One of SERVICE_STATE_ALL, SERVICE_ACTIVE, SERVICE_INACTIVE
 	SC_HANDLE hsc;
 	DWORD serviceState = SERVICE_STATE_ALL;
 	if (!PyArg_ParseTuple(args, "l|l:EnumDependentServices", &hsc, &serviceState))
@@ -960,11 +971,15 @@ static PyObject *MyEnumDependentServices(PyObject *self, PyObject *args)
 }
 %}
 
+// @pyswig tuple|QueryServiceConfig|Retrieves configuration parameters for a service
+// @comm Returns a tuple representing a QUERY_SERVICE_CONFIG struct:
+//   (ServiceType, StartType, ErrorControl, BinaryPathName, LoadOrderGroup, TagId, Dependencies, ServiceStartName, DisplayName)
 %native (QueryServiceConfig) MyQueryServiceConfig;
 
 %{
 static PyObject *MyQueryServiceConfig(PyObject *self, PyObject *args)
 {
+	// @pyparm int|hService||Service handle as returned by <om win32service.OpenService>
 	SC_HANDLE hsc;
 	if (!PyArg_ParseTuple(args, "l:QueryServiceConfig", &hsc))
 	{
@@ -1190,10 +1205,60 @@ PyObject *MyQueryServiceObjectSecurity(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig <o SERVICE_STATUS>|SetServiceStatus|Sets a service status
+// @pyswig <o PyUNICODE>|GetServiceKeyName|Translates a service display name into its registry key name
+%native (GetServiceKeyName) MyGetServiceKeyName;
+%{
+PyObject *MyGetServiceKeyName(PyObject *self, PyObject *args)
+{
+	// @pyparm int|hSCManager||Handle to service control manager as returned by <om win32service.OpenSCManager>
+	// @pyparm <o PyUNICODE>|DisplayName||Display name of a service
+	SC_HANDLE h;
+	WCHAR *displayname;
+	WCHAR keyname[MAX_SERVICE_NAME_LEN];
+	DWORD bufsize=MAX_SERVICE_NAME_LEN;
+	PyObject *obdisplayname, *ret=NULL;
+	if (!PyArg_ParseTuple(args,"lO", &h, &obdisplayname))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obdisplayname, &displayname, FALSE))
+		return NULL;
+	if (!GetServiceKeyNameW(h, displayname, keyname, &bufsize))
+		PyWin_SetAPIError("GetServiceKeyName");
+	else
+		ret=PyWinObject_FromWCHAR(keyname, bufsize);
+	PyWinObject_FreeWCHAR(displayname);
+	return ret;
+}
+%}
+
+// @pyswig <o PyUNICODE>|GetServiceDisplayName|Translates an internal service name into its display name
+%native (GetServiceDisplayName) MyGetServiceDisplayName;
+%{
+PyObject *MyGetServiceDisplayName(PyObject *self, PyObject *args)
+{
+	// @pyparm int|hSCManager||Handle to service control manager as returned by <om win32service.OpenSCManager>
+	// @pyparm <o PyUNICODE>|ServiceName||Name of service
+	SC_HANDLE h;
+	WCHAR *keyname;
+	WCHAR displayname[MAX_SERVICE_NAME_LEN];
+	DWORD bufsize=MAX_SERVICE_NAME_LEN;
+	PyObject *obkeyname, *ret=NULL;
+	if (!PyArg_ParseTuple(args,"lO", &h, &obkeyname))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obkeyname, &keyname, FALSE))
+		return NULL;
+	if (!GetServiceDisplayNameW(h, keyname, displayname, &bufsize))
+		PyWin_SetAPIError("GetServiceDisplayName");
+	else
+		ret=PyWinObject_FromWCHAR(displayname);
+	PyWinObject_FreeWCHAR(keyname);
+	return ret;
+}
+%}
+
+// @pyswig |SetServiceStatus|Sets a service status
 BOOLAPI SetServiceStatus(
 	SERVICE_STATUS_HANDLE hSCManager, // @pyparm int|scHandle||Handle to set
-	SERVICE_STATUS *inServiceStatus); // @pyparm object|serviceStatus||The new status
+	SERVICE_STATUS *inServiceStatus); // @pyparm <o SERVICE_STATUS>|serviceStatus||The new status
 
 // @pyswig <o SERVICE_STATUS>|ControlService|Sends a control message to a service.
 // @rdesc The result is the new service status.
