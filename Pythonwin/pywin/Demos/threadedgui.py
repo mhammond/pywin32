@@ -148,7 +148,7 @@ def Demo():
 	f.Create("Font Demo")
 
 def ThreadedDemo():
-	rect = win32ui.GetMainFrame().GetClientRect()
+	rect = win32ui.GetMainFrame().GetMDIClient().GetClientRect()
 	rect = rect[0], rect[3]*3/4, rect[2]/4, rect[3]
 	incr = rect[2]
 	for i in range(4):
