@@ -14,9 +14,9 @@
 #include "Python.h"
 #include "intobject.h"
 
-// Python 1.5.2 doesn't have PyObject_New
-// PyObject_NEW is not *quite* as safe, but seem to work fine
-// (as all win32all for 1.5.2 used it!
+/* Python 1.5.2 doesn't have PyObject_New
+   PyObject_NEW is not *quite* as safe, but seem to work fine
+   (as all win32all for 1.5.2 used it! */
 #ifndef PyObject_New 
 #define PyObject_New PyObject_NEW
 #endif
@@ -54,7 +54,7 @@ static PyObject *makeDbiTypeTP(PyObject *args, PyTypeObject *ty)
 static void dbiDealloc(PyObject *self)
 {
 	Py_DECREF(((DbiContainer *) self)->objectOf);
-#ifdef PyObject_Del // see top of file for 1.5.2 comments
+#ifdef PyObject_Del /* see top of file for 1.5.2 comments */
 	PyObject_Del(self);
 #else
 	PyMem_Free(self);
@@ -63,7 +63,7 @@ static void dbiDealloc(PyObject *self)
 
 static PyMethodDef noMethods[] =
 {
-	0, 0
+	{0, 0}
 };
 
 static PyObject *dbiGetAttr
@@ -84,7 +84,7 @@ static PyObject *dbiGetAttr
 static PyObject *dateStr(PyObject *o)
 {
 	long l = PyInt_AsLong(dbiValue(o));
-	return PyString_FromStringAndSize(ctime(&l), 24); // less \n
+	return PyString_FromStringAndSize(ctime(&l), 24); /* less \n */
 }
 
 #define delg(a) dbiValue(a)->ob_type->tp_as_number
@@ -265,12 +265,14 @@ static PyMethodDef globalMethods[] =
 	{0,     0}        /* Sentinel */
 };
 
-void initdbi()
+PyMODINIT_FUNC
+initdbi()
 {
 	PyObject *m = Py_InitModule("dbi", globalMethods);
+	PyObject *d;
 	if (!m) /* Eeek - some serious error! */
 		return;
-	PyObject *d = PyModule_GetDict(m);
+	d = PyModule_GetDict(m);
 	if (!d) return; /* Another serious error!*/
 	PyDict_SetItemString(d, "STRING",
 						 DbiString = PyString_FromString("STRING"));
