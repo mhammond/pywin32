@@ -27,12 +27,8 @@ It is typically run automatically by COM, passing as arguments
 The ProgID or CLSID of the Python Server(s) to be hosted
 """
 
-def main():
-	if len(sys.argv)==1:
-		win32api.MessageBox(0, usage, "Python COM Server")
-		sys.exit(1)
-	
-	infos = factory.RegisterClassFactories( sys.argv[1:] )
+def serve(clsids):
+	infos = factory.RegisterClassFactories(clsids)
 
 	pythoncom.EnableQuitMessage(win32api.GetCurrentThreadId())	
 	pythoncom.CoResumeClassObjects()
@@ -42,8 +38,12 @@ def main():
 	factory.RevokeClassFactories( infos )
 	
 	pythoncom.CoUninitialize()
+	
+def main():
+	if len(sys.argv)==1:
+		win32api.MessageBox(0, usage, "Python COM Server")
+		sys.exit(1)
+	serve(sys.argv[1:])
 
-	
-	
 if __name__=='__main__':
 	main()
