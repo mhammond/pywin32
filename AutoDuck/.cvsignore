@@ -21,3 +21,4 @@ pycvs
 *.plg
 *.pyd
 temp-*
+#*#
