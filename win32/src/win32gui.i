@@ -1366,6 +1366,19 @@ HWND GetDlgItem( HWND hDlg, int nIDDlgItem );
 // @pyswig HWND|SetDlgItemText|Sets the text for a window or control
 BOOLAPI SetDlgItemText( HWND hDlg, int nIDDlgItem, TCHAR *text ); 
 
+// @pyswig HWND|GetNextDlgTabItem|Retrieves a handle to the first control that has the WS_TABSTOP style that precedes (or follows) the specified control.
+HWND GetNextDlgTabItem(
+	HWND hDlg,       // @pyparm int|hDlg||handle to dialog box
+	HWND hCtl,       // @pyparm int|hCtl||handle to known control
+	BOOL bPrevious); // @pyparm int|bPrevious||direction flag
+
+// @pyswig HWND|GetNextDlgGroupItem|Retrieves a handle to the first control in a group of controls that precedes (or follows) the specified control in a dialog box.
+HWND GetNextDlgGroupItem(
+	HWND hDlg,       // @pyparm int|hDlg||handle to dialog box
+	HWND hCtl,       // @pyparm int|hCtl||handle to known control
+	BOOL bPrevious); // @pyparm int|bPrevious||direction flag
+
+
 // @pyswig |SetWindowText|Sets the window text.
 BOOLAPI SetWindowText(HWND hwnd, TCHAR *text);
 
