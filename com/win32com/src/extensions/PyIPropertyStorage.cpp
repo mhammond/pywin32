@@ -240,25 +240,6 @@ void PyObject_FreePROPIDs(PROPID *pFree, ULONG)
 	delete [] pFree;
 }
 
-PyObject *PyObject_FromSTATPROPSETSTG(STATPROPSETSTG *pStg) 
-{
-	if (pStg==NULL) {
-		Py_INCREF(Py_None);
-		return Py_None;
-	}
-	PyObject *obfmtid = PyWinObject_FromIID(pStg->fmtid);
-	PyObject *obclsid = PyWinObject_FromIID(pStg->clsid);
-	PyObject *obmtime = PyWinObject_FromFILETIME(pStg->mtime);
-	PyObject *obctime = PyWinObject_FromFILETIME(pStg->ctime);
-	PyObject *obatime = PyWinObject_FromFILETIME(pStg->atime);
-	PyObject *ret = Py_BuildValue("OOiOOO", obfmtid, obclsid, pStg->grfFlags, obmtime, obctime, obatime);
-	Py_XDECREF(obclsid);
-	Py_XDECREF(obfmtid);
-	Py_XDECREF(obmtime);
-	Py_XDECREF(obctime);
-	Py_XDECREF(obatime);
-	return ret;
-}
 //
 // Interface Implementation
 
@@ -667,7 +648,7 @@ PyObject *PyIPropertyStorage::Stat(PyObject *self, PyObject *args)
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIPS, IID_IPropertyStorage);
-	return PyObject_FromSTATPROPSETSTG(&p);
+	return PyCom_PyObjectFromSTATPROPSETSTG(&p);
 }
 
 // @object PyIPropertyStorage|Description of the interface

@@ -15,7 +15,11 @@ generates Windows .hlp files.
 #include "PythonCOMServer.h"
 #include "PyFactory.h"
 
+extern HRESULT (WINAPI *myStgOpenStorageEx)(WCHAR *, DWORD, DWORD, DWORD, 
+				STGOPTIONS *, void *, REFIID, void **);
+
 extern int PyCom_RegisterCoreIIDs(PyObject *dict);
+
 extern int PyCom_RegisterCoreSupport(void);
 
 extern PyObject  *pythoncom_IsGatewayRegistered(PyObject *self, PyObject *args);
@@ -31,6 +35,7 @@ PyObject *PyCom_InternalError = NULL;
 
 // Storage related functions.
 extern PyObject *pythoncom_StgOpenStorage(PyObject *self, PyObject *args);
+extern PyObject *pythoncom_StgOpenStorageEx(PyObject *self, PyObject *args);
 #ifndef MS_WINCE
 extern PyObject *pythoncom_StgIsStorageFile(PyObject *self, PyObject *args);
 #endif // MS_WINCE
@@ -1466,6 +1471,7 @@ static struct PyMethodDef pythoncom_methods[]=
 #endif // MS_WINCE
 	{ "STGMEDIUM",           Py_NewSTGMEDIUM, 1}, // @pymeth STGMEDIUM|Creates a new <o PySTGMEDIUM> object suitable for the <o PyIDataObject> interface.
 	{ "StgOpenStorage",      pythoncom_StgOpenStorage, 1 },       // @pymeth StgOpenStorage|Opens an existing root storage object in the file system.
+	{ "StgOpenStorageEx",    pythoncom_StgOpenStorageEx, 1 },       // @pymeth StgOpenStorageEx|Access IStorage and IPropertySetStorage interfaces for normal files
 	{ "TYPEATTR",            Py_NewTYPEATTR, 1}, // @pymeth TYPEATTR|Returns a new <o TYPEATTR> object.
 	{ "VARDESC",             Py_NewVARDESC, 1}, // @pymeth VARDESC|Returns a new <o VARDESC> object.
 	{ "WrapObject",          pythoncom_WrapObject, 1 }, // @pymeth WrapObject|Wraps an object in a gateway.
@@ -1867,9 +1873,34 @@ extern "C" __declspec(dllexport) void initpythoncom()
 		AddConstant(dict, "CLSCTX_SERVER", CLSCTX_INPROC_SERVER| CLSCTX_LOCAL_SERVER );
 		AddConstant(dict, "dcom", 0 );
 	}
+
+	PyObject *obfmtid=NULL;
+	obfmtid=PyWinObject_FromIID(FMTID_DocSummaryInformation);
+	PyDict_SetItemString(dict,"FMTID_DocSummaryInformation",obfmtid);
+	Py_DECREF(obfmtid);
+	obfmtid=PyWinObject_FromIID(FMTID_SummaryInformation);
+	PyDict_SetItemString(dict,"FMTID_SummaryInformation",obfmtid);
+	Py_DECREF(obfmtid);
+	obfmtid=PyWinObject_FromIID(FMTID_UserDefinedProperties);
+	PyDict_SetItemString(dict,"FMTID_UserDefinedProperties",obfmtid);
+	Py_DECREF(obfmtid);
+	// obfmtid=PyWinObject_FromIID(FMTID_MediaFileSummaryInfo);
+	// PyDict_SetItemString(dict,"FMTID_MediaFileSummaryInfo",obfmtid);
+	// Py_DECREF(obfmtid);
+
+	myStgOpenStorageEx=NULL;
+	HMODULE hmodule=GetModuleHandle("Ole32.dll");
+	if (hmodule!=NULL){
+		FARPROC fp = GetProcAddress(hmodule,"StgOpenStorageEx");
+		if (fp!=NULL)
+			myStgOpenStorageEx=(HRESULT (WINAPI *)(WCHAR *, DWORD, DWORD, DWORD, 
+				STGOPTIONS *, void *, REFIID, void **))(fp);
+		}
+
 	// @prop int|dcom|1 if the system is DCOM aware, else 0.  Only Win95 without DCOM extensions should return 0
 
 	// ### ALL THE @PROPERTY TAGS MUST COME AFTER THE LAST @PROP TAG!!
 	// @property int|pythoncom|frozen|1 if the host is a frozen program, else 0
 	// @property int|pythoncom|dcom|1 if the system is DCOM aware, else 0.  Only Win95 without DCOM extensions should return 0
 }
+

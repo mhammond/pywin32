@@ -45,6 +45,7 @@ generates Windows .hlp files.
 #include "PyIPropertyStorage.h"
 #include "PyIPropertySetStorage.h"
 #include "PyIEnumSTATPROPSTG.h"
+#include "PyIEnumSTATPROPSETSTG.h"
 #include "PyIEnumFORMATETC.h"
 #include "PyIDataObject.h"
 #include "PyIOleWindow.h"
@@ -237,6 +238,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_CLIENT_ONLY( EnumMoniker),
 #ifndef NO_PYCOM_ENUMSTATPROPSTG
 	PYCOM_INTERFACE_CLIENT_ONLY( EnumSTATPROPSTG),
+	PYCOM_INTERFACE_CLIENT_ONLY( EnumSTATPROPSETSTG),
 #endif // NO_PYCOM_ENUMSTATPROPSTG
 	PYCOM_INTERFACE_FULL       ( EnumSTATSTG),
 	PYCOM_INTERFACE_FULL       ( EnumVARIANT),

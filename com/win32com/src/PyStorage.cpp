@@ -3,9 +3,13 @@
 */
 
 #include "stdafx.h"
-
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
+
+
+HRESULT (WINAPI *myStgOpenStorageEx)(WCHAR *, DWORD, DWORD, DWORD, 
+				STGOPTIONS *, void *, REFIID, void **);
+
 // @doc
 
 // @pymethod <o PyIID>|pythoncom|ReadClassStg|Reads a CLSID from a storage object.
@@ -152,4 +156,47 @@ PyObject *pythoncom_StgOpenStorage(PyObject *self, PyObject *args)
 	if (FAILED(hr)) return PyCom_BuildPyException(hr);
 	return PyCom_PyObjectFromIUnknown(pResult, IID_IStorage, FALSE);
 }
+
+// @pymethod <o PyIStorage>|pythoncom|StgOpenStorageEx|Advanced version of StgOpenStorage, win2k or better
+PyObject *pythoncom_StgOpenStorageEx(PyObject *self, PyObject *args)
+{
+	if (myStgOpenStorageEx==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"StgOpenStorageEx not supported by this version of Windows");
+		return NULL;
+		}
+	PyObject *obfname=NULL, *obriid=NULL, *obstgoptions=NULL;
+	WCHAR *fname;
+	DWORD mode=0, attrs=0;
+	VOID *reserved=NULL;
+	DWORD stgfmt;
+	IID riid;
+	STGOPTIONS *pstgoptions=NULL;
+	HRESULT err;
+	void *intptr;
+	if (!PyArg_ParseTuple(args, "OiiiO|O:StgOpenStorageEx",
+		&obfname, //@pyparm string|name||Name of the stream or file to open
+		&mode, // @pyparm int|grfmode||open flags
+		&stgfmt, // @pyparm int|stgfmt||Storage format (STGFMT_STORAGE,STGFMT_FILE,STGFMT_ANY, or STGFMT_DOCFILE)
+		&attrs, // @pyparm int|grfAttrs||Reserved, must be 0
+		&obriid, // @pyparm IID|riid||Interface id to return, IStorage or IPropertySetStorage
+		&obstgoptions)) //@pyparm <o dict>|pStgOptions||Dictionary representing STGOPTIONS struct (only used with STGFMT_DOCFILE)
+		return NULL;
+	if (!PyWinObject_AsIID(obriid, &riid))
+		return NULL;
+	if(!PyCom_PyObjectAsSTGOPTIONS(obstgoptions, &pstgoptions))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obfname,&fname))
+		return NULL;
+
+	PY_INTERFACE_PRECALL;
+	err = (*myStgOpenStorageEx)(fname, mode, stgfmt, attrs, NULL, reserved, riid, &intptr);
+	PY_INTERFACE_POSTCALL;
+	if (pstgoptions)
+		delete(pstgoptions);
+	PyWinObject_FreeWCHAR(fname);
+	if (FAILED(err))
+		return PyCom_BuildPyException(err);
+	return PyCom_PyObjectFromIUnknown((IUnknown *)intptr, riid, FALSE);
+}
+
 

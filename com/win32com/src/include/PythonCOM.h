@@ -237,7 +237,8 @@ PYCOM_EXPORT PyObject *PyCom_PyObjectFromSTATSTG(STATSTG *pStat);
 PYCOM_EXPORT BOOL PyCom_PyObjectAsSTATSTG(PyObject *ob, STATSTG *pStat, DWORD flags = 0);
 PYCOM_EXPORT BOOL PyCom_SAFEARRAYFromPyObject(PyObject *obj, SAFEARRAY **ppSA, VARENUM vt = VT_VARIANT);
 PYCOM_EXPORT PyObject *PyCom_PyObjectFromSAFEARRAY(SAFEARRAY *psa, VARENUM vt = VT_VARIANT );
-
+PYCOM_EXPORT BOOL PyCom_PyObjectAsSTGOPTIONS(PyObject *obstgoptions, STGOPTIONS **ppstgoptions);
+PYCOM_EXPORT PyObject *PyCom_PyObjectFromSTATPROPSETSTG(STATPROPSETSTG *pStat);
 
 
 /* Functions for Initializing COM, and also letting the core know about it!

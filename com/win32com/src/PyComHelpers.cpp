@@ -290,3 +290,65 @@ BOOL PyCom_PyObjectAsSTATSTG(PyObject *ob, STATSTG *pStat, DWORD flags /* = 0 */
 		return FALSE;
 	return TRUE;
 }
+
+BOOL PyCom_PyObjectAsSTGOPTIONS(PyObject *obstgoptions, STGOPTIONS **ppstgoptions)
+{
+	static char *stgmembers[]={"Version","reserved","SectorSize","TemplateFile",0};
+	char *explain_format="STGOPTIONS must be a dictionary containing "\
+			"{Version:int,reserved:0,SectorSize:int,TemplateFile:unicode}";
+	PyObject *dummy_tuple=NULL;
+	BOOL ret;
+
+	if ((obstgoptions==Py_None)||(obstgoptions==NULL)){
+		*ppstgoptions=NULL;
+		return TRUE;
+		}
+	if (!PyDict_Check(obstgoptions)){
+		PyErr_SetString(PyExc_TypeError,explain_format);
+		return FALSE;
+		}
+
+	*ppstgoptions=new(STGOPTIONS);
+	if (*ppstgoptions==NULL){
+		PyErr_SetString(PyExc_MemoryError,"PyObjectAsSTGOPTIONS: Out of memory");
+		return FALSE;
+		}
+	(*ppstgoptions)->usVersion=2;
+	(*ppstgoptions)->reserved=0;
+	(*ppstgoptions)->ulSectorSize=512;
+	(*ppstgoptions)->pwcsTemplateFile=NULL;
+	dummy_tuple=PyTuple_New(0);
+	ret=PyArg_ParseTupleAndKeywords(dummy_tuple, obstgoptions, "|lllu", stgmembers, 
+		&(*ppstgoptions)->usVersion,
+		&(*ppstgoptions)->reserved, 
+		&(*ppstgoptions)->ulSectorSize,
+		&(*ppstgoptions)->pwcsTemplateFile);
+	Py_DECREF(dummy_tuple);
+	if (!ret){
+		PyErr_Clear();
+		PyErr_SetString(PyExc_TypeError,explain_format);
+		delete(*ppstgoptions);
+		*ppstgoptions=NULL;
+		}
+	return ret;
+}
+
+PyObject *PyCom_PyObjectFromSTATPROPSETSTG(STATPROPSETSTG *pStg) 
+{
+	if (pStg==NULL) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+	PyObject *obfmtid = PyWinObject_FromIID(pStg->fmtid);
+	PyObject *obclsid = PyWinObject_FromIID(pStg->clsid);
+	PyObject *obmtime = PyWinObject_FromFILETIME(pStg->mtime);
+	PyObject *obctime = PyWinObject_FromFILETIME(pStg->ctime);
+	PyObject *obatime = PyWinObject_FromFILETIME(pStg->atime);
+	PyObject *ret = Py_BuildValue("OOiOOO", obfmtid, obclsid, pStg->grfFlags, obmtime, obctime, obatime);
+	Py_XDECREF(obfmtid);
+	Py_XDECREF(obclsid);
+	Py_XDECREF(obmtime);
+	Py_XDECREF(obctime);
+	Py_XDECREF(obatime);
+	return ret;
+}
