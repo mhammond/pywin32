@@ -53,7 +53,6 @@ exists.
 @flag Keypad-Plus|If the current line is a collapsed fold, expand it (see <t Folding>)
 @flag Alt-Keypad-Plus|Expand all folds in the current file (see <t Folding>)
 @flag Keypad-Minus|If the current line is an expanded fold, collapse it (see <t Folding>)
-@flag Alt-Keypad-Minus|Collapse all folds in the current file. regardless of how deep the fold. (see <t Folding>)
 @flag Alt-Keypad-Minus|Collapse all folds in the current file. regardless of how deep the fold becomes. (see <t Folding>)
 @flag Keypad-Multiply|Expand or collapse all top-level folds in the current file.  No second level or deeper folds are changed.
 If the first fold in the file is collapsed, all top-level folds are opened.  Otherwise, all top-level folds are collapsed (see <t Folding>)
