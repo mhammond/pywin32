@@ -25,6 +25,9 @@ generates Windows .hlp files.
 
 #include "math.h" // for some of the date stuff...
 
+#define SECURITY_WIN32 // required by below
+#include "Security.h"  // for GetUserNameEx
+
 #define DllExport   _declspec(dllexport)
 
 // Identical to PyW32_BEGIN_ALLOW_THREADS except no script "{" !!!
@@ -32,6 +35,8 @@ generates Windows .hlp files.
 #define PyW32_BEGIN_ALLOW_THREADS PyThreadState *_save = PyEval_SaveThread();
 #define PyW32_END_ALLOW_THREADS PyEval_RestoreThread(_save);
 #define PyW32_BLOCK_THREADS Py_BLOCK_THREADS
+
+static BOOL (WINAPI *myGetUserNameEx)(EXTENDED_NAME_FORMAT, LPWSTR, PULONG)=NULL;
 
 /* error helper */
 PyObject *ReturnError(char *msg, char *fnName = NULL)
@@ -758,6 +763,39 @@ PyGetUserName (PyObject *self, PyObject *args)
 	if (GetUserName(buf, &size)==0)
 		return ReturnAPIError("GetUserName");
 	return Py_BuildValue("s", buf);
+}
+ 
+// @pymethod string|win32api|GetUserNameEx|Returns the current user name in format from EXTENDED_NAME_FORMAT enum
+static PyObject *
+PyGetUserNameEx (PyObject *self, PyObject *args)
+{
+	if (myGetUserNameEx==NULL)
+		return ReturnError("GetUserNameEx is not supported on current platform","GetUserNameEx");
+
+	WCHAR *formattedname=NULL;
+	EXTENDED_NAME_FORMAT fmt;
+	PyObject *ret = NULL;
+	ULONG nSize=0;
+	if (!PyArg_ParseTuple (args, "i:GetUserNameEx", &fmt))
+		return NULL;
+	// @pyseeapi GetUserNameEx
+	if (!myGetUserNameEx(fmt,formattedname,&nSize)){
+		// returned string includes trailing null, so should always fail with 0 len
+		if (GetLastError()!=ERROR_MORE_DATA){
+			PyWin_SetAPIError("GetUserNameEx");
+			goto done;
+			}
+		formattedname=(WCHAR *)malloc(nSize*sizeof(WCHAR));
+		if (!myGetUserNameEx(fmt,formattedname,&nSize)){
+			PyWin_SetAPIError("GetUserNameEx");
+			goto done;
+			}
+		}
+	ret=PyWinObject_FromWCHAR(formattedname);
+	done:
+	if (formattedname!=NULL)
+		free(formattedname);
+	return ret;
 }
 
 // @pymethod string|win32api|GetDomainName|Returns the current domain name
@@ -3850,6 +3888,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetCommandLine",		PyGetCommandLine,   1}, // @pymeth GetCommandLine|Return the application's command line.
 	{"GetComputerName",     PyGetComputerName,  1}, // @pymeth GetComputerName|Returns the local computer name
 	{"GetUserName",         PyGetUserName,  1},     // @pymeth GetUserName|Returns the current user name.
+	{"GetUserNameEx",       PyGetUserNameEx,  1},     // @pymeth GetUserNameEx|Returns the current user name in format specified by Name* constants
 	{"GetCursorPos",		PyGetCursorPos,   1},   // @pymeth GetCursorPos|Returns the position of the cursor, in screen co-ordinates.
 	{"GetCurrentThread",    PyGetCurrentThread,   1}, // @pymeth GetCurrentThread|Returns a pseudohandle for the current thread.
 	{"GetCurrentThreadId",  PyGetCurrentThreadId,   1}, // @pymeth GetCurrentThreadId|Returns the thread ID for the current thread.
@@ -3984,4 +4023,24 @@ initwin32api(void)
 		       PyInt_FromLong(STD_OUTPUT_HANDLE));
   PyDict_SetItemString(dict,"STD_ERROR_HANDLE",
 		       PyInt_FromLong(STD_ERROR_HANDLE));
-}
+
+  PyDict_SetItemString(dict,"NameUnknown",PyInt_FromLong(NameUnknown));
+  PyDict_SetItemString(dict,"NameFullyQualifiedDN",PyInt_FromLong(NameFullyQualifiedDN));
+  PyDict_SetItemString(dict,"NameSamCompatible",PyInt_FromLong(NameSamCompatible));
+  PyDict_SetItemString(dict,"NameDisplay",PyInt_FromLong(NameDisplay));
+  PyDict_SetItemString(dict,"NameUniqueId",PyInt_FromLong(NameUniqueId));
+  PyDict_SetItemString(dict,"NameCanonical",PyInt_FromLong(NameCanonical));
+  PyDict_SetItemString(dict,"NameUserPrincipal",PyInt_FromLong(NameUserPrincipal));
+  PyDict_SetItemString(dict,"NameCanonicalEx",PyInt_FromLong(NameCanonicalEx));
+  PyDict_SetItemString(dict,"NameServicePrincipal",PyInt_FromLong(NameServicePrincipal));
+
+  HMODULE hmodule = LoadLibrary("secur32.dll");
+  if (hmodule!=NULL){
+    FARPROC fp = GetProcAddress(hmodule,"GetUserNameExW");
+    if (fp!=NULL)
+		myGetUserNameEx=(BOOL (WINAPI *)(EXTENDED_NAME_FORMAT, LPWSTR, PULONG))(fp);
+	}
+}  
+  
+  
+  
