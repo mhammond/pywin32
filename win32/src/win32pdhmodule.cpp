@@ -308,14 +308,18 @@ static PyObject *PyEnumObjectItems(PyObject *self, PyObject *args)
 		for (szTemp = szCounterListBuffer;
 			*szTemp != 0;
 			szTemp += lstrlen(szTemp) + 1) {
-				PyList_Append(retCounter, PyString_FromString(szTemp));
+				PyObject *obTemp = PyString_FromString(szTemp);
+				PyList_Append(retCounter, obTemp);
+				Py_XDECREF(obTemp);
 		}
 	PyObject *retInstance = PyList_New(0);
 	if (szInstanceListBuffer)
 		for (szTemp = szInstanceListBuffer;
 			*szTemp != 0;
 			szTemp += lstrlen(szTemp) + 1) {
-				PyList_Append(retInstance, PyString_FromString(szTemp));
+				PyObject *obTemp = PyString_FromString(szTemp);
+				PyList_Append(retInstance, obTemp);
+				Py_XDECREF(obTemp);
 		}
 	PyObject *rc = Py_BuildValue("OO", retCounter, retInstance);
 	Py_XDECREF(retCounter);
