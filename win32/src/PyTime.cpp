@@ -29,6 +29,14 @@ WINOLEAUTAPI_(INT) SystemTimeToVariantTime(LPSYSTEMTIME lpSystemTime, DOUBLE* pv
 WINOLEAUTAPI_(INT) VariantTimeToSystemTime(DOUBLE vtime, LPSYSTEMTIME lpSystemTime);
 #endif
 
+static WORD SequenceIndexAsWORD(PyObject *seq, int index)
+{
+	PyObject *t = PySequence_GetItem(seq, index);
+	int ret = t ? PyInt_AsLong(t) : -1;
+	Py_XDECREF(t);
+	return (WORD)ret;
+}
+
 // @pymethod <o PyTime>|pywintypes|Time|Creates a new time object.
 PyObject *PyWinMethod_NewTime(PyObject *self, PyObject *args)
 {
@@ -63,18 +71,24 @@ PyObject *PyWinMethod_NewTime(PyObject *self, PyObject *args)
 
 		result = new PyTime(t);
 	}
-	else if ( PyTuple_Check(timeOb) )
+	else if ( PySequence_Check(timeOb) )
 	{
+		PyErr_Clear(); // ensure stale errors don't trip us.
+		if (PySequence_Length(timeOb) < 6)
+			return PyErr_Format(PyExc_ValueError, "time tuple must have at least 6 elements");
 		SYSTEMTIME	st = {
-			(WORD)PyInt_AsLong(PyTuple_GET_ITEM(timeOb, 0)),
-			(WORD)PyInt_AsLong(PyTuple_GET_ITEM(timeOb, 1)),
+			SequenceIndexAsWORD(timeOb, 0),
+			SequenceIndexAsWORD(timeOb, 1),
 			0,
-			(WORD)PyInt_AsLong(PyTuple_GET_ITEM(timeOb, 2)),
-			(WORD)PyInt_AsLong(PyTuple_GET_ITEM(timeOb, 3)),
-			(WORD)PyInt_AsLong(PyTuple_GET_ITEM(timeOb, 4)),
-			(WORD)PyInt_AsLong(PyTuple_GET_ITEM(timeOb, 5)),
+			SequenceIndexAsWORD(timeOb, 2),
+			SequenceIndexAsWORD(timeOb, 3),
+			SequenceIndexAsWORD(timeOb, 4),
+			SequenceIndexAsWORD(timeOb, 5),
 			0
 		};
+		// A Python time tuple has 9 entries.  We allow a 10th to specify ms
+		if (PySequence_Length(timeOb) > 9)
+			st.wMilliseconds = SequenceIndexAsWORD(timeOb, 9);
 		if ( !PyErr_Occurred() )
 			result = new PyTime(st);
 	}
