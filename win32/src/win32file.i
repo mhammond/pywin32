@@ -226,7 +226,7 @@ PyHANDLE CreateFileW(
 
 #ifndef MS_WINCE
 // @pyswig <o PyHANDLE>|CreateIoCompletionPort|Can associate an instance of an opened file with a newly created or an existing input/output (I/O) completion port; or it can create an I/O completion port without associating it with a file.
-HANDLE CreateIoCompletionPort (
+PyHANDLE CreateIoCompletionPort (
   HANDLE FileHandle,              // @pyparm <o PyHANDLE>|handle||file handle to associate with the I/O completion port
   HANDLE INPUT_NULLOK,  // @pyparm <o PyHANDLE>|existing||handle to the I/O completion port
   DWORD CompletionKey,            // @pyparm int|completionKey||per-file completion key for I/O completion packets
@@ -1535,6 +1535,12 @@ static PyObject *PyReadDirectoryChangesW(PyObject *self, PyObject *args)
 		goto done;
 	}
 	ret = PyObject_FromFILE_NOTIFY_INFORMATION(buffer, bytes_returned);
+    // @rdesc The result is a list of (action, filename)
+    // @comm The FILE_NOTIFY_INFORMATION structure used by this function
+    // is variable length, depending on the length of the filename.
+    // The size of the buffer must be at least 6 bytes long + the length
+    // of the filenames returned.  The number of notifications that can be
+    // returned for a given buffer size depends on the filename lengths.
 done:
 	free(buffer);
 	return ret;
