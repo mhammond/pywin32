@@ -27,4 +27,9 @@
             <item name="Pythonwin readme" href="pythonwin/readme.html"/>
         </overviews>
     </category>
+    <category id="isapi" label="ISAPI filters and extensions">
+        <overviews>
+            <item name="Introduction to Python ISAPI support" href="pyisapi/doc/isapi.html"/>
+        </overviews>
+    </category>
 </document>
