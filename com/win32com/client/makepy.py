@@ -324,7 +324,7 @@ def main():
 		f = None
 
 	for arg in args:
-		GenerateFromTypeLibSpec(arg, f, verboseLevel = verboseLevel, bForDemand = bForDemand, bHiddenSpec = hiddenSpec)
+		GenerateFromTypeLibSpec(arg, f, verboseLevel = verboseLevel, bForDemand = bForDemand, bBuildHidden = hiddenSpec)
 
 	if f:	
 		f.close()
