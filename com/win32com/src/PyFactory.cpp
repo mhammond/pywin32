@@ -125,6 +125,9 @@ STDMETHODIMP CPyFactory::CreateNewPythonInstance(REFCLSID rclsid, REFCLSID rReqi
 	if ( !LoadGatewayModule(&pPyModule) )
 		return E_FAIL;
 
+	// zap any existing errors so we can reliably check for errors
+	// after object creation.
+	PyErr_Clear();
 	PyObject *obiid = PyWinObject_FromIID(rclsid);
 	PyObject *obReqiid = PyWinObject_FromIID(rReqiid);
 	if ( !obiid || !obReqiid)
@@ -137,15 +140,14 @@ STDMETHODIMP CPyFactory::CreateNewPythonInstance(REFCLSID rclsid, REFCLSID rReqi
 	}
 
 	*ppNewInstance = PyObject_CallMethod(pPyModule, "CreateInstance",
-										 "OO", obiid, obReqiid);
+	                                     "OO", obiid, obReqiid);
+	// Check the error state before DECREFs, otherwise they may
+	// change the error state.
+	HRESULT hr = PyCom_SetCOMErrorFromPyException(IID_IClassFactory);
 	Py_DECREF(obiid);
 	Py_DECREF(obReqiid);
 	Py_DECREF(pPyModule);
 
-
-	HRESULT hr = PyCom_SetCOMErrorFromPyException(IID_IClassFactory);
-//	if ( !*ppNewInstance )PyRun_SimpleString("import traceback;traceback.print_exc()");
-//	PyErr_Clear();	/* ### what to do with exceptions? ... */
 
 	if ( !*ppNewInstance )
 	{
