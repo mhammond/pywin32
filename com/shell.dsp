@@ -146,6 +146,22 @@ SOURCE=.\win32comext\shell\src\PyIShellFolder.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32comext\shell\src\PyIShellIcon.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIShellIconOverlay.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIShellIconOverlayIdentifier.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIShellIconOverlayManager.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32comext\shell\src\PyIShellLink.cpp
 # End Source File
 # Begin Source File
@@ -211,6 +227,22 @@ SOURCE=.\win32comext\shell\src\PyIShellExtInit.h
 # Begin Source File
 
 SOURCE=.\win32comext\shell\src\PyIShellFolder.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIShellIcon.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIShellIconOverlay.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIShellIconOverlayIdentifier.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIShellIconOverlayManager.h
 # End Source File
 # Begin Source File
 

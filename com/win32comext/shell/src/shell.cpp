@@ -22,6 +22,10 @@ generates Windows .hlp files.
 #include "PyICopyHook.h"
 #include "PyIOleWindow.h"
 #include "PyIShellView.h"
+#include "PyIShellIcon.h"
+#include "PyIShellIconOverlay.h"
+#include "PyIShellIconOverlayManager.h"
+#include "PyIShellIconOverlayIdentifier.h"
 #include "PyIShellBrowser.h"
 #include "PyIBrowserFrameOptions.h"
 #include "PyIPersist.h"
@@ -1935,7 +1939,7 @@ done:
 	return ret;
 }
 
-// @pymethod <o PyIQueryAssociations|shell|AssocCreate|Creates a <o PyIQueryAssociations> object
+// @pymethod <o PyIQueryAssociations>|shell|AssocCreate|Creates a <o PyIQueryAssociations> object
 static PyObject *PyAssocCreate(PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ":AssocCreate"))
@@ -2009,6 +2013,10 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_IID_ONLY		  (ExtractIconW),
 	PYCOM_INTERFACE_FULL(ShellExtInit),
 	PYCOM_INTERFACE_FULL(ShellFolder),
+	PYCOM_INTERFACE_FULL(ShellIcon),
+	PYCOM_INTERFACE_FULL(ShellIconOverlay),
+	PYCOM_INTERFACE_FULL(ShellIconOverlayIdentifier),
+	PYCOM_INTERFACE_FULL(ShellIconOverlayManager),
 	PYCOM_INTERFACE_FULL(ShellView),
 	PYCOM_INTERFACE_FULL(ShellBrowser),
 	PYCOM_INTERFACE_FULL(EnumIDList),
