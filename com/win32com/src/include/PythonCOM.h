@@ -117,6 +117,7 @@
 #define NO_PYCOM_IPROPERTYSTORAGE
 #define __try try
 #define __except catch
+#include <olectl.h>
 
 #endif // __MINGW32__
 
