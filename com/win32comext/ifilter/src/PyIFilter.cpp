@@ -111,7 +111,7 @@ PyObject *PyIFilter::GetText(PyObject *self, PyObject *args)
 		return NULL;
 
 	HRESULT hr;
-	if (nBufSize = 0)
+	if (nBufSize == 0)
 		nBufSize = 8192; // 8k default
 
 	WCHAR *wBuffer = (WCHAR *)PyMem_Malloc((nBufSize+1)*sizeof(WCHAR));
