@@ -63,6 +63,9 @@ typedef long HRGN
 %apply HIMAGELIST {long};
 typedef long HIMAGELIST
 
+%apply HACCEL {long};
+typedef long HACCEL
+
 %apply COLORREF {long};
 typedef long COLORREF
 
@@ -82,17 +85,18 @@ typedef int UINT;
 }
 
 %typemap(python,in) MSG *INPUT {
-    if (PyArg_ParseTuple($source, "(iiiii(ii))",
+    $target = (MSG *)calloc(1, sizeof(MSG));
+    if (!PyArg_ParseTuple($source, "iiiii(ii):MSG param for $name",
             &$target->hwnd,
             &$target->message,
             &$target->wParam,
             &$target->lParam,
             &$target->time,
             &$target->pt.x,
-            &$target->pt.y))
-        return PyErr_Format(PyExc_TypeError, "%s: This param must be a tuple of format 'iiiii(ii)'", "$name");
+            &$target->pt.y)) {
+        return NULL;
+    }
 }
-    
 %typemap(python,ignore) RECT *OUTPUT(RECT temp)
 {
   $target = &temp;
@@ -1458,6 +1462,59 @@ HCURSOR SetCursor(
 	HCURSOR hc // @pyparm int|hcursor||
 );
 
+// @pyswig HACCEL|CreateAcceleratorTable|Creates an accelerator table
+%{
+PyObject *PyCreateAcceleratorTable(PyObject *self, PyObject *args)
+{
+    int num, i;
+    ACCEL *accels = NULL;
+    PyObject *ret = NULL;
+    PyObject *obAccels;
+    HACCEL ha;
+    // @pyparm ( (int, int, int), ...)|accels||A sequence of (fVirt, key, cmd),
+    // as per the Win32 ACCEL structure.
+    if (!PyArg_ParseTuple(args, "O:CreateAcceleratorTable", &obAccels))
+        return NULL;
+    if (!PySequence_Check(obAccels))
+        return PyErr_Format(PyExc_TypeError, "accels must be a sequence of tuples (got '%s')",
+                            obAccels->ob_type->tp_name);
+    num = PySequence_Length(obAccels);
+    if (num==0) {
+        PyErr_SetString(PyExc_ValueError, "Can't create an accelerator with zero items");
+        goto done;
+    }
+    accels = (ACCEL *)malloc(num * sizeof(ACCEL));
+    if (!accels) {
+        PyErr_NoMemory();
+        goto done;
+    }
+    for (i=0;i<num;i++) {
+        ACCEL *p = accels+i;
+        PyObject *ob = PySequence_GetItem(obAccels, i);
+        if (!ob) goto done;
+        if (!PyArg_ParseTuple(ob, "BHH:ACCEL", &p->fVirt, &p->key, &p->cmd)) {
+            Py_DECREF(ob);
+            goto done;
+        }
+        Py_DECREF(ob);
+    }
+    ha = ::CreateAcceleratorTable(accels, num);
+    if (ha)
+        ret = PyLong_FromVoidPtr((void *)ha);
+    else
+        PyWin_SetAPIError("CreateAcceleratorTable");
+done:
+    if (accels)
+        free(accels);
+    return ret;
+}
+%}
+%native (CreateAcceleratorTable) PyCreateAcceleratorTable;
+
+// @pyswig |DestroyAccleratorTable|Destroys an accelerator table
+// @pyparm int|haccel||
+BOOLAPI DestroyAcceleratorTable(HACCEL haccel);
+
 // @pyswig HMENU|LoadMenu|Loads a menu
 HMENU LoadMenu(HINSTANCE hInst, RESOURCE_ID name);
 
@@ -1812,15 +1869,25 @@ static PyObject *PyPumpWaitingMessages(PyObject *self, PyObject *args)
 %native (PumpWaitingMessages) PyPumpWaitingMessages;
 
 // @pyswig int|TranslateMessage|
+// @pyparm MSG|msg||
 BOOL TranslateMessage(MSG *INPUT);
 
 // @pyswig int|DispatchMessage|
+// @pyparm MSG|msg||
 LRESULT DispatchMessage(MSG *INPUT);
+
+// @pyswig int|TranslateAccelerator|
+int TranslateAccelerator(
+    HWND hwnd, // @pyparm int|hwnd||
+    HACCEL haccel, // @pyparm int|haccel||
+    MSG *INPUT // @pyparm MSG|msg||
+);
 
 // DELETE ME!
 %{
 static PyObject *Unicode(PyObject *self, PyObject *args)
 {
+	PyErr_Warn(PyExc_PendingDeprecationWarning, "win32gui.Unicode will die!");
 	char *text;
 	if (!PyArg_ParseTuple(args, "s", &text))
 		return NULL;
