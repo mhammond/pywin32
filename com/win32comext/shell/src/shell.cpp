@@ -23,10 +23,7 @@ generates Windows .hlp files.
 #include "PyIOleWindow.h"
 #include "PyIShellView.h"
 #include "PyIShellBrowser.h"
-/* It appears this was undocumented, and vanished in MSVC7. */
-#ifdef HAVE_BROWSER_FRAME_OPTIONS
 #include "PyIBrowserFrameOptions.h"
-#endif /* HAVE_BROWSER_FRAME_OPTIONS */
 #include "PyIPersist.h"
 #include "PyIPersistFolder.h"
 #include "PyIColumnProvider.h"
@@ -206,26 +203,29 @@ PyObject *PyObject_FromPIDLArray(UINT cidl, LPCITEMIDLIST *pidl)
 
 PyObject *PyWinObject_FromRESOURCESTRING(LPCSTR str)
 {
-	if (!str) {
-		Py_INCREF(Py_None);
-		return Py_None;
-	}
 	if (HIWORD(str)==0)
 		return PyInt_FromLong(LOWORD(str));
 	return PyString_FromString(str);
 }
 
-BOOL PyObject_AsCMINVOKECOMMANDINFO(PyObject *ob, CMINVOKECOMMANDINFO **ppci)
+BOOL PyObject_AsCMINVOKECOMMANDINFO(PyObject *ob, CMINVOKECOMMANDINFO *pci)
 {
-	*ppci = NULL;
-	PyErr_SetString(PyExc_NotImplementedError, "CMINVOKECOMMANDINFO not yet supported");
-	return FALSE;
+	PyObject *obVerb;
+	if (!PyArg_ParseTuple(ob, "iiOzziii", &pci->fMask, &pci->hwnd, 
+	                                 &obVerb, &pci->lpParameters, &pci->lpDirectory, 
+	                                 &pci->nShow, &pci->dwHotKey, &pci->hIcon))
+		return FALSE;
+	if (!PyInt_Check(obVerb)) {
+		PyErr_Format(PyExc_TypeError, "verb must be an int (strings not yet supported)");
+		return FALSE;
+	}
+	pci->lpVerb = MAKEINTRESOURCE(PyInt_AsLong(obVerb));
+	return TRUE;
 }
 void PyObject_FreeCMINVOKECOMMANDINFO( CMINVOKECOMMANDINFO *pci )
 {
-	if (pci)
-		free(pci);
 }
+
 static PyObject *PyString_FromMaybeNullString(const char *sz)
 {
 	if (sz)
@@ -367,7 +367,7 @@ BOOL PyObject_AsSHCOLUMNINIT(PyObject *ob, SHCOLUMNINIT *p)
 	if (!PyArg_ParseTuple(ob, "iiO:SHCOLUMNINIT tuple",
 	     &p->dwFlags, &p->dwReserved, &obName))
 		return FALSE;
-	return COPY_TO_WCHAR(ob, p->wszFolder);
+	return COPY_TO_WCHAR(obName, p->wszFolder);
 }
 
 PyObject *PyObject_FromSHCOLUMNINIT(LPCSHCOLUMNINIT p)
@@ -412,11 +412,21 @@ done:
 	return rc;
 }
 
-BOOL PyObject_AsSHCOLUMNDATA(PyObject *, SHCOLUMNDATA *)
+BOOL PyObject_AsSHCOLUMNDATA(PyObject *ob, SHCOLUMNDATA *p)
 {
-	PyErr_SetString(PyExc_NotImplementedError, 
-	                "Not sure how to handle SHCOLUMNDATA pwszExt, and we don't need this anyway :)");
-	return FALSE;
+	PyObject *obExt, *obFile;
+	if (!PyArg_ParseTuple(ob, "iiiOO:SHCOLUMNDATA tuple",
+	     &p->dwFlags, &p->dwFileAttributes, &p->dwReserved,
+		 &obExt, &obFile))
+		return FALSE;
+	if (!PyWinObject_AsWCHAR(obExt, &p->pwszExt, FALSE))
+		return FALSE;
+	return COPY_TO_WCHAR(obFile, p->wszFile);
+}
+
+void PyObject_FreeSHCOLUMNDATA(SHCOLUMNDATA *p)
+{
+	PyWinObject_FreeWCHAR(p->pwszExt);
 }
 
 PyObject *PyObject_FromSHCOLUMNDATA(LPCSHCOLUMNDATA p)
@@ -982,9 +992,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL(ShellView),
 	PYCOM_INTERFACE_FULL(ShellBrowser),
 	PYCOM_INTERFACE_FULL(EnumIDList),
-#ifdef HAVE_BROWSER_FRAME_OPTIONS
 	PYCOM_INTERFACE_FULL(BrowserFrameOptions),
-#endif /* HAVE_BROWSER_FRAME_OPTIONS */
 	PYCOM_INTERFACE_FULL(PersistFolder),
 	PYCOM_INTERFACE_FULL(ColumnProvider),
 	// IID_ICopyHook doesn't exist - hack it up
