@@ -291,10 +291,16 @@ def Record(name, object):
   import gencache
   object = gencache.EnsureDispatch(object._oleobj_)
   module = sys.modules[object.__class__.__module__]
+  # to allow us to work correctly with "demand generated" code,
+  # we must use the typelib CLSID to obtain the module
+  # (otherwise we get the sub-module for the object, which
+  # does not hold the records)
+  # thus, package may be module, or may be module's parent if demand generated.
+  package = gencache.GetModuleForTypelib(module.CLSID, module.LCID, module.MajorVersion, module.MinorVersion)
   try:
-    struct_guid = module.RecordMap[name]
+    struct_guid = package.RecordMap[name]
   except KeyError:
-    raise ValueError, "The structure '%s' is not defined in module '%s'" % (name, module)
+    raise ValueError, "The structure '%s' is not defined in module '%s'" % (name, package)
 
   return pythoncom.GetRecordFromGuids(module.CLSID, module.MajorVersion, module.MinorVersion, module.LCID, struct_guid)
 
