@@ -102,51 +102,7 @@ inline HKEY Win32uiHostGlue::GetRegistryRootKey()
 	return ver.dwPlatformId == VER_PLATFORM_WIN32s ? HKEY_CLASSES_ROOT : HKEY_LOCAL_MACHINE;
 }
 
-/******
-If we really need to reinstate this, we should get the current version of Python
-by calling "LoadLibrary" for Python15.dll, and get the version from that!
 
-inline BOOL Win32uiHostGlue::RegisterModule(HMODULE hModule, const char *moduleName)
-{
-	char fname[MAX_PATH];
-	if (GetModuleFileName(hModule, fname, sizeof(fname))==0) {
-		TRACE("RegisterModule failed due to GetModuleFileName() error %d\n", GetLastError());
-		return FALSE;
-	}
-	return RegisterModule(fname, moduleName);
-}
-
-inline BOOL Win32uiHostGlue::RegisterModule(const char *fname, const char *moduleName)
-{
-	const char *keyRootName = "Software\\Python\\PythonCore\\";
-	char keyBuf[256];
-	char version[10];
-	strcpy(keyBuf, keyRootName);
-	// Indirect through "CurrentVersion" - must read it.
-	strcat(keyBuf, "CurrentVersion");
-	long retSize = sizeof(version);
-	HKEY hkey = GetRegistryRootKey();
-	if (RegQueryValue(hkey, keyBuf, version, &retSize)!=ERROR_SUCCESS) {
-		TRACE("RegisterModule failed due to RegQueryValue() error %d\n", GetLastError());
-		return FALSE;
-	}
-	// Build key to write.
-	strcpy(keyBuf, keyRootName);
-	strcat(keyBuf, version);
-	strcat(keyBuf, "\\Modules\\");
-	strcat(keyBuf, moduleName);
-#ifdef _DEBUG
-	strcat(keyBuf, "\\Debug");
-#endif
-	if (RegSetValue(hkey,
-	                keyBuf, REG_SZ, 
-					fname, strlen(fname))!=ERROR_SUCCESS) {
-		TRACE("RegisterModule failed due to RegSetValue() error %d\n", GetLastError());
-		return FALSE;
-	}
-	return TRUE;
-}
-****/
 #ifndef LINK_WITH_WIN32UI
 inline BOOL Win32uiHostGlue::DynamicApplicationInit(const char *cmd, const char *additionalPaths)
 {
@@ -167,16 +123,19 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const char *cmd, const char 
 		return FALSE;
 	}
 	HMODULE hModCore = NULL;
-	for (int i=5;i<10;i++) {
+	for (int i=15;i<40;i++) {
 		char fname[20];
 #ifdef _DEBUG
-		wsprintf(fname, "Python1%d_d.dll", i);
+		wsprintf(fname, "Python%d_d.dll", i);
 #else
-		wsprintf(fname, "Python1%d.dll", i);
+		wsprintf(fname, "Python%d.dll", i);
 #endif
 		hModCore = GetModuleHandle(fname);
 		if (hModCore)
 			break;
+		// No point searching for 1.6->2.0!
+		if (i==15)
+			i = 20;
 	}
 	if (hModCore==NULL) {
 		AfxMessageBox("Can not locate the Python DLL");

@@ -18,14 +18,16 @@ generates Windows .hlp files.
 inline void*GetPythonOleProcAddress(const char *procName)
 {
 	HMODULE hMod = NULL;
-	for (int i=9;hMod==NULL && i>4;i--) {
+	for (int i=15;hMod==NULL && i<40;i++) {
 		char buf[20];
 #ifdef _DEBUG
-		wsprintf(buf, "PythonCOM1%d_d.dll", i);
+		wsprintf(buf, "PythonCOM%d_d.dll", i);
 #else
-		wsprintf(buf, "PythonCOM1%d.dll", i);
+		wsprintf(buf, "PythonCOM%d.dll", i);
 #endif
 		hMod = GetModuleHandle(buf);
+		if (i==15) // No 16->19.
+			i = 20;
 	}
 	if (hMod) {
 		void *rc = GetProcAddress(hMod, procName);
