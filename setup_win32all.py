@@ -293,7 +293,7 @@ class my_build_ext(build_ext):
                    "version 0x%x is installed." \
                    % (ext.windows_h_version, self.windows_h_version)
 
-        common_dirs = self.compiler.library_dirs
+        common_dirs = self.compiler.library_dirs[:]
         common_dirs += os.environ.get("LIB").split(os.pathsep)
         patched_libs = []
         for lib in ext.libraries:
@@ -719,6 +719,7 @@ for info in (
         ("win32service", "advapi32 oleaut32", True, 0x0500),
         ("win32trace", "advapi32", False),
         ("win32wnet", "netapi32 mpr", False),
+        ("win32inet", "wininet", False),
     ):
 
     name, lib_names, is_unicode = info[:3]

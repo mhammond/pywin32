@@ -35,7 +35,8 @@ WIN32_SOURCE = $(WIN32_SOURCE_DIR)/*.cpp \
 	  $(WIN32_SOURCE_DIR)/win32print/*.cpp \
 	  $(GENDIR)/win32evtlog.d $(GENDIR)/win32event.d $(GENDIR)/win32file.d \
 	  $(GENDIR)/win32service.d $(GENDIR)/win32pipe.d $(GENDIR)/win32security.d \
-	  $(GENDIR)/win32process.d $(GENDIR)/wincerapi.d $(GENDIR)/win32gui.d
+	  $(GENDIR)/win32process.d $(GENDIR)/wincerapi.d $(GENDIR)/win32gui.d \
+	  $(GENDIR)/win32inet.d
 
 WIN32COM_SOURCE = \
 	  $(WIN32COM_DIR)\src\*.cpp \
@@ -104,6 +105,9 @@ clean: cleanad
 ##
 ## win32 generated
 ##
+$(GENDIR)/win32inet.d: $(WIN32_SOURCE_DIR)/win32inet.i
+	$(PYTHON) makedfromi.py -o$*.d $(WIN32_SOURCE_DIR)/$(*B).i
+    
 $(GENDIR)/win32file.d: $(WIN32_SOURCE_DIR)/win32file.i
 	$(PYTHON) makedfromi.py -o$*.d $(WIN32_SOURCE_DIR)/$(*B).i
 
