@@ -510,6 +510,7 @@ static HRESULT invoke_finish(
 			// Do the conversion thang
 			ob = PyTuple_GetItem(userResult, ituple);
 			if (!ob) goto done;
+			Py_INCREF(ob); // tuple fetch doesnt do this!
 			// Need to use the ArgHelper to get correct BYREF semantics.
 			PythonOleArgHelper arghelper;
 			arghelper.m_reqdType = V_VT(pv);
