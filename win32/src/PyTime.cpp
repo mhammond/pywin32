@@ -159,7 +159,7 @@ PyObject *PyTime::Format(PyObject *self, PyObject *args)
 		if (!PyWinObject_AsTCHAR(obFormat, &fmt))
 			return NULL;
 	}
-	TCHAR szBuffer[128];
+	TCHAR szBuffer[256];
 	PyTime *pTime = (PyTime *)self;
 
 	SYSTEMTIME	st;
@@ -177,8 +177,16 @@ PyObject *PyTime::Format(PyObject *self, PyObject *args)
 	tm.tm_mon = st.wMonth - 1;
 	tm.tm_year = st.wYear - 1900;
 	tm.tm_isdst = -1;	/* have the library figure it out */
+	/* converting to time_t and back allows us to calculate
+	 * tm.tm_wday (day of week) and tm.tm_yday (day of year)
+	 * though day of week is available as st.wDayOfWeek, day of year is not in st
+	 */
+	time_t time = mktime(&tm);
+	tm = *localtime(&time);
+	// tm.tm_wday = st.wDayOfWeek;
+	// tm.tm_yday = st.  day of year;
 
-	if (!_tcsftime(szBuffer, 128/*_countof()*/, fmt, &tm))
+	if (!_tcsftime(szBuffer, 256/*_countof()*/, fmt, &tm))
 		szBuffer[0] = '\0'; // Better error?
 	PyObject *rc = PyWinObject_FromTCHAR(szBuffer);
 	if (bFreeString) PyWinObject_FreeTCHAR(fmt);
