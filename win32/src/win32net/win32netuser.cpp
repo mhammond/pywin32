@@ -282,13 +282,13 @@ PyObject *PyNetUserModalsGet(PyObject *self, PyObject *args)
 	return PyDoGetModalsInfo(self, args, NetUserModalsGet, "NetUserModalsGet", user_modals_infos);
 }
 
-// @pymethod dict|win32net|NetUserModalsGet|Retrieves global user information on a server.
+// @pymethod |win32net|NetUserModalsSet|Sets global user parameters on a server.
 PyObject *PyNetUserModalsSet(PyObject *self, PyObject *args) 
 {
 	// @pyparm string/<o PyUnicode>|server||The name of the server, or None.
 	// @pyparm int|level||The information level contained in the data
 	// @pyparm mapping|data||A dictionary holding the data in the format of <o PyUSER_MODALS_INFO_*>.
-	// @pyseeapi NetUserModalsGet
+	// @pyseeapi NetUserModalsSet
 	return PyDoSetModalsInfo(self, args, NetUserModalsSet, "NetUserModalsSet", user_modals_infos);
 }
 
