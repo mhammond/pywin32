@@ -203,7 +203,13 @@ static void PyCom_FreeUntypedDISPPARAMS( DISPPARAMS *pParm )
 PyObject * PyIDispatch::Invoke(PyObject *self, PyObject *args)
 {
 	/* Invoke(dispid, lcid, wflags, bResultWanted, arg1, arg2...) */
+	// should be no need to clear this error - but for the next few release
+	// I will keep it in place for release builds, and assert in debug
+#ifdef _DEBUG
+	assert(!PyErr_Occurred());
+#else
 	PyErr_Clear();
+#endif
 	int argc = PyObject_Length(args);
 	if ( argc == -1 )
 		return NULL;
