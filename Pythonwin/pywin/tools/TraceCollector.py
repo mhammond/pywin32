@@ -17,7 +17,8 @@ def CollectorThread(stopEvent, file):
 		while 1:
 			rc = win32event.WaitForMultipleObjects((handle, stopEvent), 0, win32event.INFINITE)
 			if rc == win32event.WAIT_OBJECT_0:
-				file.write(win32trace.read())
+				# About the only char we can't live with is \0!
+				file.write(win32trace.read().replace("\0", "<null>"))
 			else:
 				# Stop event
 				break
