@@ -43,7 +43,7 @@ PyObject *PyIOleControl::GetControlInfo(PyObject *self, PyObject *args)
 		return OleSetOleError(hr);
 
 	// TODO - Build this array!!
-	return Py_BuildValue("ii", Py_None, ci.dwFlags);
+	return Py_BuildValue("Oi", Py_None, ci.dwFlags);
 }
 
 // @pymethod |PyIOleControl|OnMnemonic|Description of OnMnemonic.
