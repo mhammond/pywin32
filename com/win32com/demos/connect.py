@@ -38,6 +38,8 @@ class ConnectableClient:
 	# that the first method in _public_methods_ gets 1000.
 	# Normally some explicit DISPID->Method mapping is required.
 	_public_methods_ = ["OnDoneIt"]
+	def __init__(self):
+		self.last_event_arg = None
 	# A client must implement QI, and respond to a query for the Event interface.
 	# In addition, it must provide a COM object (which server.util.wrap) does.
 	def _query_interface_(self, iid):
@@ -47,21 +49,34 @@ class ConnectableClient:
 		if iid==IID_IConnectDemoEvents: return win32com.server.util.wrap(self)
 	# And here is our event method which gets called.
 	def OnDoneIt(self, arg):
-		print "OnDoneIt with ", repr(arg)
+		self.last_event_arg = arg
+
+def CheckEvent(server, client, val, verbose):
+	client.last_event_arg = None
+	server.DoIt(val)
+	if client.last_event_arg != val:
+		raise RuntimeError, "Sent %r, but got back %r" % (val, client.last_event_arg)
+	if verbose:
+		print "Sent and received %r" % val
 
 # A simple test script for all this.
 # In the real world, it is likely that the code controlling the server
 # will be in the same class as that getting the notifications.
-def test():
+def test(verbose=0):
 	import win32com.client.dynamic, win32com.client.connect
 	import win32com.server.policy
 	server = win32com.client.dynamic.Dispatch(win32com.server.util.wrap(ConnectableServer()))
 	connection = win32com.client.connect.SimpleConnection()
-	connection.Connect(server, ConnectableClient(),IID_IConnectDemoEvents)
-	server.DoIt("Hello")
-	server.DoIt("Here is a null>"+chr(0)+"<")
+	client = ConnectableClient()
+	connection.Connect(server, client, IID_IConnectDemoEvents)
+	CheckEvent(server, client, "Hello", verbose)
+	CheckEvent(server, client, "Here is a null>"+chr(0)+"<", verbose)
+	CheckEvent(server, client, u"Here is a null>"+unichr(0)+"<", verbose)
+	val = unicode("test-\xe0\xf2", "latin-1") # 2 latin characters.
+	CheckEvent(server, client, val, verbose)
+	if verbose:
+		print "Everything seemed to work!"
 	# Aggressive memory leak checking (ie, do nothing!) :-)  All should cleanup OK???
 
 if __name__=='__main__':
-	test()
-
+	test(1)
