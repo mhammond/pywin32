@@ -275,7 +275,7 @@ PyObject *PyIShellFolder::GetAttributesOf(PyObject *self, PyObject *args)
 	return PyInt_FromLong(rgfInOut);
 }
 
-// @pymethod |PyIShellFolder|GetUIObjectOf|Description of GetUIObjectOf.
+// @pymethod int, <o PyIUnknown>|PyIShellFolder|GetUIObjectOf|Description of GetUIObjectOf.
 PyObject *PyIShellFolder::GetUIObjectOf(PyObject *self, PyObject *args)
 {
 	IShellFolder *pISF = GetI(self);
