@@ -30,7 +30,7 @@ SOURCE  = $(SOURCE_DIR)/*.cpp \
 	  $(SOURCE_DIR)/win32print/*.cpp \
 	  $(GENDIR)/win32evtlog.d $(GENDIR)/win32event.d $(GENDIR)/win32file.d \
 	  $(GENDIR)/win32service.d $(GENDIR)/win32pipe.d $(GENDIR)/win32security.d \
-	  $(GENDIR)/win32process.d $(GENDIR)/wincerapi.d
+	  $(GENDIR)/win32process.d $(GENDIR)/wincerapi.d $(GENDIR)/win32gui.d
 
 # Help and Doc targets
 all: help htmlhlp
@@ -65,6 +65,9 @@ $(GENDIR)/win32process.d: $(SOURCE_DIR)/$(*B).i
 	makedfromi.py -o$*.d $(SOURCE_DIR)/$(*B).i
 
 $(GENDIR)/wincerapi.d: $(SOURCE_DIR)/$(*B).i
+	makedfromi.py -o$*.d $(SOURCE_DIR)/$(*B).i
+
+$(GENDIR)/win32gui.d: $(SOURCE_DIR)/$(*B).i
 	makedfromi.py -o$*.d $(SOURCE_DIR)/$(*B).i
 
 !include "common.mak"
