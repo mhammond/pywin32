@@ -263,6 +263,21 @@ def TestVTable():
 	testee = pythoncom.CoCreateInstance("Python.Test.PyCOMTest", None, pythoncom.CLSCTX_ALL, pythoncom.IID_IUnknown)
 	tester.TestMyInterface(testee)
 
+	# We once crashed creating our object with the native interface as
+	# the first IID specified.  We must do it _after_ the tests, so that
+	# Python has already had the gateway registered from last run.
+	iid = pythoncom.InterfaceNames["IPyCOMTest"]
+	clsid = "Python.Test.PyCOMTest"
+	clsctx = pythoncom.CLSCTX_SERVER
+	try:
+		testee = pythoncom.CoCreateInstance(clsid, None, clsctx, iid)
+	except TypeError:
+		# Python can't actually _use_ this interface yet, so this is
+		# "expected".  Any COM error is not.
+		pass
+
+	
+
 def TestAll():
 	try:
 		# Make sure server installed

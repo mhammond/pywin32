@@ -537,10 +537,29 @@ static HRESULT CreateRegisteredTearOff(PyObject *pPyInstance, PyGatewayBase *bas
 		_ASSERTE(FALSE);
 		return E_NOINTERFACE;
 	}
+	// If the base object is NULL, we must create one now.
+	// Our base _must_ be a PyGateway to keep identity rules etc.
+	BOOL bCreatedBase = FALSE;
+	if (base == NULL) {
+		PY_INTERFACE_PRECALL;
+		HRESULT hr = PyCom_MakeRegisteredGatewayObject(IID_IUnknown, 
+		                                               pPyInstance,
+		                                               NULL,
+		                                               (void **)&base);
+		PY_INTERFACE_POSTCALL;
+		if (FAILED(hr))
+			return hr;
+		bCreatedBase = TRUE;
+	}
 
 	// Do all of the grunt work.
 	*ppResult = CreateTearOff(pPyInstance, base, obVTable);
 	Py_DECREF(obVTable);
+	if (bCreatedBase) {
+		PY_INTERFACE_PRECALL;
+		base->Release();
+		PY_INTERFACE_POSTCALL;
+	}
 	if (*ppResult == NULL)
 		return E_FAIL;
 	return S_OK;
