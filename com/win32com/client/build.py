@@ -491,6 +491,13 @@ def _BuildArgList(fdesc, names):
 
 valid_identifier_chars = string.letters + string.digits + "_"
 
+def demunge_leading_underscores(className):
+	i = 0
+	while className[i] == "_":
+		i += 1
+	assert i >= 2, "Should only be here with names starting with '__'"
+	return className[i-1:] + className[:i-1]
+
 # Given a "public name" (eg, the name of a class, function, etc)
 # make sure it is a legal (and reasonable!) Python name.
 def MakePublicAttributeName(className, is_global = False):
@@ -502,7 +509,7 @@ def MakePublicAttributeName(className, is_global = False):
 	# if is_global is True, then the name is a global variable that may
 	# overwrite a builtin - eg, "None"
 	if className[:2]=='__':
-		return className[1:] + '_' # First '_' moved at the end.
+		return demunge_leading_underscores(className)
 	elif iskeyword(className): # all keywords are lower case
 		return string.capitalize(className)
 	elif is_global and __builtins__.has_key(className):
