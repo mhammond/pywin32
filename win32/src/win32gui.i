@@ -1,12 +1,20 @@
 /* File : win32gui.i */
 // @doc
 
+%ifdef WINXPGUI
+%module winxpgui // A module which provides an interface to the native win32 GUI
+%else
 %module win32gui // A module which provides an interface to the native win32 GUI
-// alch begin 29/04/2004 to enable balloon notifications in Shell_NotifyIcon
+%endif
+
 %{
-#define _WIN32_IE 0x0501
+#define _WIN32_IE 0x0501 // to enable balloon notifications in Shell_NotifyIcon
+#ifdef WINXPGUI
+// This changes the entire world for XP!
+#define ISOLATION_AWARE_ENABLED 1
+#endif
+
 %}
-// alch end
 %include "typemaps.i"
 %include "pywintypes.i"
 
@@ -29,13 +37,23 @@ static	HWND	hDialogCurrent = NULL;	// see MS TID Q71450 and PumpMessages for thi
 
 extern HGLOBAL MakeResourceFromDlgList(PyObject *tmpl);
 extern PyObject *MakeDlgListFromResource(HGLOBAL res);
-
+HINSTANCE g_dllhandle;
 
 %}
 
 // Written to the module init function.
 %init %{
 PyEval_InitThreads(); /* Start the interpreter's thread-awareness */
+PyDict_SetItemString(d, "dllhandle", PyLong_FromVoidPtr(g_dllhandle));
+%}
+
+%{
+extern "C" __declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
+{
+	if ( dwReason == DLL_PROCESS_ATTACH )
+		g_dllhandle = hInstance;
+	return TRUE;
+}
 %}
 
 %apply HCURSOR {long};
@@ -2754,6 +2772,21 @@ PyGetClassName(PyObject *self, PyObject *args)
 }
 %}
 %native (GetClassName) PyGetClassName;
+
+// @pyswig int|WindowFromPoint|Retrieves a handle to the window that contains the specified point.
+// @pyparm (int, int)|point||The point.
+HWND WindowFromPoint(POINT INPUT);
+
+// @pyswig int|ChildWindowFromPoint|Determines which, if any, of the child windows belonging to a parent window contains the specified point.
+// @pyparm int|hwndParent||The parent.
+// @pyparm (int, int)|point||The point.
+HWND ChildWindowFromPoint(HWND INPUT, POINT INPUT);
+
+// @pyswig int|ChildWindowFromPoint|Determines which, if any, of the child windows belonging to a parent window contains the specified point.
+// @pyparm int|hwndParent||The parent.
+// @pyparm (int, int)|point||The point.
+// @pyparm int|flags||Specifies which child windows to skip. This parameter can be one or more of the CWP_* constants.
+HWND ChildWindowFromPointEx(HWND INPUT, POINT INPUT, int flags);
 
 // Sorting for controls
 %{
