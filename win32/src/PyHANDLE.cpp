@@ -190,19 +190,25 @@ BOOL PyHANDLE::Close(void)
 			// PITA, as it makes it hard to debug whatever we are here
 			// for (unless we are here to debug this!).  So we break into
 			// the debugger, which gives the developer the option of continuing
-			rc = FALSE;
-			::SetLastError(ERROR_INVALID_HANDLE);
-
-			// reset this in the debugger if you want to stop at
-			// every one - we reset it to false after first hit
 			static bool is_first_exception = true;
 			static bool break_on_exception = true;
+			// It *seems* that handles that raise an exception under
+			// the debugger actually *succeed* calling Close running normally.
+			static bool raise_python_exception = false;
 			if (break_on_exception) {
 				if (is_first_exception)
 					break_on_exception = false;
 				DebugBreak();
+				// reset 'break_on_exception' to true if you want to
+				// continue breaking on every invalid handle exception
+
+				// set 'raise_python_exception' to true to send the exception to Python.
 			}
 			is_first_exception = false;
+			if (raise_python_exception) {
+				rc = FALSE;
+				::SetLastError(ERROR_INVALID_HANDLE);
+			}
 		}
 #endif // Py_DEBUG
 		Py_END_ALLOW_THREADS
@@ -343,9 +349,11 @@ char *failMsg = "bad operand type";
 
 /*static*/ void PyHANDLE::deallocFunc(PyObject *ob)
 {
-	// Call virtual method Close
+	// Python will print a strange message if we leave pending exceptions in destructors,
+	// but we don't want to supress exceptions as generally that is evil (supressing
+	// ours is bad enough, but supressing existing ones is nasty).
+	// For now, we call it a Python bug that the message is printed.
 	((PyHANDLE *)ob)->Close();
-    PyErr_Clear(); // can not leave pending exceptions in destructors.
 	delete (PyHANDLE *)ob;
 }
 
