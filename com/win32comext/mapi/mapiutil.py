@@ -10,7 +10,7 @@ def GetPropTagName(pt):
 		for name, value in mapitags.__dict__.items():
 			if name[:3] == 'PR_':
 				prTable[value] = name
-	return prTable.get(pt)
+	return prTable.get(pt, hex(pt))
 
 mapiErrorTable = {}
 def GetScodeString(hr):
@@ -32,7 +32,6 @@ def GetMapiTypeName(propType):
 	rawType = propType & ~mapitags.MV_FLAG
 	return ptTable.get(rawType, str(hex(rawType)))
 
-
 def GetProperties(obj, propList):
 	"""Given a MAPI object and a list of properties, return a list of property values.
 	
@@ -53,7 +52,7 @@ def GetProperties(obj, propList):
 		if type(prop)!=IntType:	# Integer
 			props = ( (mapi.PS_PUBLIC_STRINGS, prop), )
 			propIds = obj.GetIDsFromNames(props, 0)
-			prop = mapitags.PROP_TAG( mapitags.PT_UNICODE, mapitags.PROP_ID(propIds[0]))
+			prop = mapitags.PROP_TAG( mapitags.PT_UNSPECIFIED, mapitags.PROP_ID(propIds[0]))
 		realPropList.append(prop)
 		
 	hr, data = obj.GetProps(realPropList,0)
@@ -65,16 +64,47 @@ def GetProperties(obj, propList):
 	else:
 		return data[0][1]
 
+def GetAllProperties(obj, make_tag_names = True):
+	tags = obj.GetPropList(0)
+	hr, data = obj.GetProps(tags)
+	ret = []
+	for tag, val in data:
+		if make_tag_names:
+			hr, tags, array = obj.GetNamesFromIDs( (tag,) )
+			if type(array[0][1])==type(u''):
+				name = array[0][1]
+			else:
+				name = GetPropTagName(tag)
+		else:
+			name = tag
+		ret.append((name, val))
+	return ret
+
+_MapiTypeMap = {
+    type(0.0): mapitags.PT_DOUBLE,
+    type(0): mapitags.PT_I4,
+    type(''): mapitags.PT_STRING8,
+    type(u''): mapitags.PT_UNICODE,
+    type(None): mapitags.PT_UNSPECIFIED,
+    # In Python 2.2.2, bool isn't a distinct type (type(1==1) is type(0)).
+}
+
 def SetPropertyValue(obj, prop, val):
 	if type(prop)!=IntType:
 		props = ( (mapi.PS_PUBLIC_STRINGS, prop), )
 		propIds = obj.GetIDsFromNames(props, mapi.MAPI_CREATE)
-		prop = mapitags.PROP_TAG( mapitags.PT_UNICODE, mapitags.PROP_ID(propIds[0]))
+		if val == (1==1) or val == (1==0):
+			type_tag = mapitags.PT_BOOLEAN
+		else:
+			type_tag = _MapiTypeMap.get(type(val))
+			if type_tag is None:
+				raise ValueError, "Don't know what to do with '%r' ('%s')" % (val, type(val))
+		prop = mapitags.PROP_TAG( type_tag, mapitags.PROP_ID(propIds[0]))
 	if val is None:
 		# Delete the property
 		obj.DeleteProps((prop,))
 	else:
-		obj.SetProps(((prop,val),),0)
+		obj.SetProps(((prop,val),))
 
 def SetProperties( msg, propDict):
 	""" Given a Python dictionary, set the objects properties.
