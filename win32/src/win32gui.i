@@ -2,9 +2,13 @@
 // @doc
 
 %ifdef WINXPGUI
-%module winxpgui // A module which provides an interface to the native win32 GUI
+%module winxpgui 
 %else
-%module win32gui // A module which provides an interface to the native win32 GUI
+%module win32gui // A module which provides an interface to the native win32
+                 // GUI API.<nl>Note that a module <o winxpgui> also exists, 
+                 // which has the same methods as win32gui, but has an XP
+                 // manifest and is setup for side-by-side sharing support for
+                 // certain system DLLs, notably commctl32.
 %endif
 
 %{
@@ -39,7 +43,62 @@ extern HGLOBAL MakeResourceFromDlgList(PyObject *tmpl);
 extern PyObject *MakeDlgListFromResource(HGLOBAL res);
 HINSTANCE g_dllhandle;
 
+static PyObject *logger = NULL;
+
+void HandleError(char *prefix)
+{
+	BOOL do_stderr = TRUE;
+	if (logger) {
+		PyObject *exc_typ = NULL, *exc_val = NULL, *exc_tb = NULL;
+		PyErr_Fetch( &exc_typ, &exc_val, &exc_tb);
+
+		PyObject *kw = PyDict_New();
+		PyObject *exc_info = Py_BuildValue("OOO", exc_typ, exc_val, exc_tb);
+		if (kw)
+			PyDict_SetItemString(kw, "exc_info", exc_info);
+		Py_XDECREF(exc_info);
+		PyObject *args = Py_BuildValue("(s)", prefix);
+		PyObject *method = PyObject_GetAttrString(logger, "error");
+		PyObject *result = NULL;
+		if (method && kw && args)
+			result = PyObject_Call(method, args, kw);
+		Py_XDECREF(method);
+		Py_XDECREF(kw);
+		Py_XDECREF(args);
+		if (result) {
+			do_stderr = FALSE;
+			Py_DECREF(result);
+		}
+	}
+	if (do_stderr) {
+		PySys_WriteStderr(prefix);
+		PySys_WriteStderr("\n");
+		PyErr_Print();
+	}
+}
+
+// @pyswig |set_logger|Sets a logger object for exceptions and error information
+// @comm Once a logger has been set for the module, unhandled exceptions, such as
+// from a window's WNDPROC, will be written (via logger.exception()) to the log
+// instead of to stderr.
+// <nl>Note that using this with the Python 2.3 logging package will prevent the
+// traceback from being written to the log.  However, it is possible to use
+// the Python 2.4 logging package directly with Python 2.3
+PyObject *set_logger(PyObject *self, PyObject *args)
+{
+	Py_XDECREF(logger);
+	logger = NULL;
+	// @pyparm object|logger||A logger object, generally from the standard logger package.
+	if (!PyArg_ParseTuple(args, "O|set_logger", &logger))
+		return NULL;
+	if (logger==Py_None)
+		logger = NULL;
+	Py_XINCREF(logger);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
 %}
+%native (set_logger) set_logger;
 
 // Written to the module init function.
 %init %{
@@ -70,6 +129,9 @@ typedef long HICON
 
 %apply HBITMAP {long};
 typedef long HBITMAP
+
+%apply HGDIOBJ {long};
+typedef long HGDIOBJ
 
 %apply HWND {long};
 typedef long HWND
@@ -291,7 +353,7 @@ BOOL PyWndProc_Call(PyObject *obFuncOrMap, HWND hWnd, UINT uMsg, WPARAM wParam, 
 		Py_DECREF(ret);
 	}
 	else
-		PyErr_Print();
+		HandleError("Python WNDPROC handler failed");
 	*prc = rc;
 	return TRUE;
 }
@@ -824,12 +886,14 @@ static PyObject *PyMakeBuffer(PyObject *self, PyObject *args)
 %native (PyMakeBuffer) PyMakeBuffer;
 
 %{
-// @pyswig object|PyGetString|Returns a string object from an address (null terminated)
+// @pyswig object|PyGetString|Returns a string object from an address.
 static PyObject *PyGetString(PyObject *self, PyObject *args)
 {
 	TCHAR *addr = 0;
 	int len = -1;
-	// @pyparm int|addr||Address of the memory to reference (must be null terminated)
+	// @pyparm int|addr||Address of the memory to reference
+	// @pyparm int|len||Number of characters to read.  If not specified, the
+	// string must be NULL terminated.
 	if (!PyArg_ParseTuple(args, "l|i:PyGetString",&addr, &len))
 		return NULL;
 
@@ -1640,6 +1704,31 @@ HICON LoadIcon(HINSTANCE hInst, RESOURCE_ID name);
 // @pyparm int|hicon||Existing icon
 HICON CopyIcon(HICON hicon);
 
+// @pyswig |DrawIcon|Draws an icon or cursor into the specified device context.
+// To specify additional drawing options, use the <om win32gui.DrawIconEx> function. 
+BOOLAPI DrawIcon(
+  HDC hDC,      // @pyparm int|hDC||handle to DC
+  int X,        // @pyparm int|X||x-coordinate of upper-left corner
+  int Y,        // @pyparm int|Y||y-coordinate of upper-left corner
+  HICON hIcon   // @pyparm int|hicon||handle to icon
+);
+
+// @pyswig |DrawIconEx|Draws an icon or cursor into the specified device context,
+// performing the specified raster operations, and stretching or compressing the
+// icon or cursor as specified.
+BOOLAPI DrawIconEx(
+  HDC hdc,                   // @pyparm int|hDC||handle to device context
+  int xLeft,                 // @pyparm int|xLeft||x-coord of upper left corner
+  int yTop,                  // @pyparm int|yTop||y-coord of upper left corner
+  HICON hIcon,               // @pyparm int|hIcon||handle to icon
+  int cxWidth,               // @pyparm int|cxWidth||icon width
+  int cyWidth,               // @pyparm int|cyWidth||icon height
+  int istepIfAniCur,        // @pyparm int|istepIfAniCur||frame index, animated cursor
+  HBRUSH hbrFlickerFreeDraw, // @pyparm int|hbrFlickerFreeDraw||handle to background brush
+  int diFlags               // @pyparm int|diFlags||icon-drawing flags
+);
+
+
 // @pyswig HANDLE|LoadImage|Loads a bitmap, cursor or icon
 HANDLE LoadImage(HINSTANCE hInst, // @pyparm int|hinst||Handle to an instance of the module that contains the image to be loaded. To load an OEM image, set this parameter to zero. 
 				 RESOURCE_ID name, // @pyparm int/string|name||Specifies the image to load. If the hInst parameter is non-zero and the fuLoad parameter omits LR_LOADFROMFILE, name specifies the image resource in the hInst module. If the image resource is to be loaded by name, the name parameter is a string that contains the name of the image resource.
@@ -1837,6 +1926,30 @@ BOOLAPI GetClientRect(HWND hWnd, RECT *OUTPUT);
 // @pyswig HDC|GetDC|Gets the device context for the window.
 // @pyparm int|hwnd||The handle to the window
 HDC GetDC(  HWND hWnd );
+
+// @pyswig |DeleteDC|Deletes a DC
+BOOLAPI DeleteDC(
+    HDC dc // @pyparm int|hdc||The source DC
+);
+
+// @pyswig HDC|CreateCompatibleDC|Creates a memory device context (DC) compatible with the specified device. 
+HDC CreateCompatibleDC(
+  HDC hdc   // @pyparm int|dc||handle to DC
+);
+
+// @pyswig HBITMAP|CreateCompatibleBitmap|Creates a bitmap compatible with the device that is associated with the specified device context. 
+HBITMAP CreateCompatibleBitmap(
+  HDC hdc,        // @pyparm int|hdc||handle to DC
+  int nWidth,     // @pyparm int|width||width of bitmap, in pixels
+  int nHeight     // @pyparm int|height||height of bitmap, in pixels
+);
+
+// @pyswig HGDIOBJ|SelectObject|Selects an object into the specified device context (DC). The new object replaces the previous object of the same type. 
+HGDIOBJ SelectObject(
+  HDC hdc,        // @pyparm int|hdc||handle to DC
+  HGDIOBJ object     // @pyparm int|object||The GDI object
+);
+
 
 #ifndef MS_WINCE
 HINSTANCE GetModuleHandle(TCHAR *INPUT_NULLOK);
@@ -2466,7 +2579,9 @@ BOOLAPI DrawFocusRect(HDC hDC,  RECT *INPUT);
 int DrawText(HDC hDC, LPCTSTR lpString, int nCount, RECT *INPUT, UINT uFormat);
 BOOLAPI DrawEdge(HDC hdc, RECT *INPUT, UINT edge, UINT grfFlags); 
 int FillRect(HDC hDC,   RECT *INPUT, HBRUSH hbr);
+HBRUSH CreateSolidBrush(COLORREF color);
 DWORD GetSysColor(int nIndex);
+HBRUSH GetSysColorBrush(int nIndex);
 BOOLAPI InvalidateRect(HWND hWnd,  RECT *INPUT_NULLOK , BOOL bErase);
 int FrameRect(HDC hDC,   RECT *INPUT, HBRUSH hbr);
 int GetUpdateRgn(HWND hWnd, HRGN hRgn, BOOL bErase);
@@ -2830,10 +2945,8 @@ static int CALLBACK PySortFunc(
 	}
 	rc = PyInt_AsLong(result);
 done:
-	if (PyErr_Occurred()) {
-		PySys_WriteStderr("ListView sort callback failed!\n");
-		PyErr_Print();
-	}
+	if (PyErr_Occurred())
+		HandleError("ListView sort callback failed!");
 	Py_XDECREF(args);
 	Py_XDECREF(result);
 	PyGILState_Release(state);
