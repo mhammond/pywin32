@@ -979,7 +979,7 @@ BOOL PyWinObject_AsWCHAR(PyObject *stringObject, WCHAR **pResult, BOOL bNoneOK /
 	{
 		resultLen = PyUnicode_Size(stringObject);
 		size_t cb = sizeof(WCHAR) * (resultLen+1);
-		*pResult = (WCHAR *)malloc(cb);
+		*pResult = (WCHAR *)PyMem_Malloc(cb);
 		if (*pResult==NULL) {
 			PyErr_SetString(PyExc_MemoryError, "Allocating WCHAR array");
 			return FALSE;
