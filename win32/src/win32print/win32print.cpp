@@ -100,6 +100,67 @@ static PyObject *PyClosePrinter(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+static PyObject *PyWinObject_FromPRINTER_INFO(LPBYTE printer_info, DWORD level)
+{
+	switch (level){
+		case 1:
+			PRINTER_INFO_1 *pi1;
+			pi1=(PRINTER_INFO_1 *)printer_info;
+			return Py_BuildValue("{s:l,s:s,s:s,s:s}",
+				"Flags",pi1->Flags, "pDescription",pi1->pDescription,
+				"pName",pi1->pName, "pComment",pi1->pComment);
+		case 2:
+			PRINTER_INFO_2 *pi2;
+			pi2=(PRINTER_INFO_2 *)printer_info;
+			return Py_BuildValue("{s:s,s:s,s:s,s:s,s:s,s:s,s:s,s:O&,s:s,s:s,s:s,s:s,s:O&,s:i,s:i,s:i,s:i,s:i,s:i,s:i,s:i}",
+				"pServerName",pi2->pServerName, "pPrinterName",pi2->pPrinterName,
+				"pShareName",pi2->pShareName, "pPortName",pi2->pPortName,
+				"pDriverName",pi2->pDriverName, "pComment",pi2->pComment,
+				"pLocation",pi2->pLocation, "pDevMode",PyWinObject_FromDEVMODE,pi2->pDevMode,
+				"pSepFile", pi2->pSepFile, "pPrintProcessor",pi2->pPrintProcessor,
+				"pDatatype",pi2->pDatatype, "pParameters",pi2->pParameters,
+				"pSecurityDescriptor",PyWinObject_FromSECURITY_DESCRIPTOR,pi2->pSecurityDescriptor,
+				"Attributes",pi2->Attributes, "Priority",pi2->Priority,
+				"DefaultPriority",pi2->DefaultPriority,
+				"StartTime",pi2->StartTime, "UntilTime",pi2->UntilTime,
+				"Status",pi2->Status, "cJobs",pi2->cJobs, "AveragePPM",pi2->AveragePPM);
+		case 3:
+			PRINTER_INFO_3 *pi3;
+			pi3=(PRINTER_INFO_3 *)printer_info;
+			return Py_BuildValue("{s:O&}","pSecurityDescriptor",PyWinObject_FromSECURITY_DESCRIPTOR,pi3->pSecurityDescriptor);
+		case 4:
+			PRINTER_INFO_4 *pi4;
+			pi4=(PRINTER_INFO_4 *)printer_info;
+			return Py_BuildValue("{s:s,s:s,s:l}",
+				"pPrinterName",pi4->pPrinterName,
+				"pServerName",pi4->pServerName, 
+				"Attributes",pi4->Attributes);
+		case 5:
+			PRINTER_INFO_5 *pi5;
+			pi5=(PRINTER_INFO_5 *)printer_info;
+			return Py_BuildValue("{s:s,s:s,s:l,s:l,s:l}",
+				"pPrinterName",pi5->pPrinterName,
+				"pPortName",pi5->pPortName,
+				"Attributes",pi5->Attributes,
+				"DeviceNotSelectedTimeout",pi5->DeviceNotSelectedTimeout,
+				"TransmissionRetryTimeout",pi5->TransmissionRetryTimeout);
+		case 7:
+			PRINTER_INFO_7 *pi7;
+			pi7=(PRINTER_INFO_7 *)printer_info;
+			return Py_BuildValue("{s:s,s:l}","ObjectGUID",pi7->pszObjectGUID, "Action",pi7->dwAction);
+		case 8:   // global printer defaults
+			PRINTER_INFO_8 *pi8;
+			pi8=(PRINTER_INFO_8 *)printer_info;
+			return Py_BuildValue("{s:O&}","pDevMode", PyWinObject_FromDEVMODE, pi8->pDevMode);
+		case 9:  // per user printer defaults
+			PRINTER_INFO_9 *pi9;
+			pi9=(PRINTER_INFO_9 *)printer_info;
+			return Py_BuildValue("{s:O&}","pDevMode", PyWinObject_FromDEVMODE, pi9->pDevMode);
+		default:
+			return PyErr_Format(PyExc_NotImplementedError,"Level %d is not supported",level);
+		}
+}
+
 // @pymethod dict|win32print|GetPrinter|Retrieves information about a printer
 // @rdesc Returns a dictionary containing PRINTER_INFO_* data for level, or
 //  returns a tuple of PRINTER_INFO_2 data if no level is passed in.
@@ -110,6 +171,7 @@ static PyObject *PyGetPrinter(PyObject *self, PyObject *args)
 	BOOL backward_compat;
 	LPBYTE buf=NULL;
 	PyObject *rc=NULL;
+	PRINTER_INFO_2 *pi2;
 	// @comm Original implementation used level 2 only and returned a tuple
 	// Pass single arg as indicator to use old behaviour for backward compatibility
 	if (PyArg_ParseTuple(args, "i:GetPrinter", 
@@ -134,79 +196,17 @@ static PyObject *PyGetPrinter(PyObject *self, PyObject *args)
 		free(buf);
 		return PyWin_SetAPIError("GetPrinter");
 	}
-	switch (level){
-		case 1:
-			PRINTER_INFO_1 *pi1;
-			pi1=(PRINTER_INFO_1 *)buf;
-			rc=Py_BuildValue("{s:l,s:s,s:s,s:s}",
-				"Flags",pi1->Flags, "pDescription",pi1->pDescription,
-				"pName",pi1->pName, "pComment",pi1->pComment); 
-			break;
-		case 2:
-			PRINTER_INFO_2 *pi2;
-			pi2=(PRINTER_INFO_2 *)buf;
-			if (backward_compat)
-				rc = Py_BuildValue("ssssssszssssziiiiiiii",
-					pi2->pServerName, pi2->pPrinterName, 	pi2->pShareName, pi2->pPortName,
-					pi2->pDriverName, pi2->pComment, pi2->pLocation, NULL, pi2->pSepFile,
-					pi2->pPrintProcessor, pi2->pDatatype, pi2->pParameters, NULL,
-					pi2->Attributes, pi2->Priority, pi2->DefaultPriority, pi2->StartTime, pi2->UntilTime,
-					pi2->Status, pi2->cJobs, pi2->AveragePPM);
-			else
-				rc = Py_BuildValue("{s:s,s:s,s:s,s:s,s:s,s:s,s:s,s:O&,s:s,s:s,s:s,s:s,s:O&,s:i,s:i,s:i,s:i,s:i,s:i,s:i,s:i}",
-					"pServerName",pi2->pServerName, "pPrinterName",pi2->pPrinterName,
-					"pShareName",pi2->pShareName, "pPortName",pi2->pPortName,
-					"pDriverName",pi2->pDriverName, "pComment",pi2->pComment,
-					"pLocation",pi2->pLocation, "pDevMode",PyWinObject_FromDEVMODE,pi2->pDevMode,
-					"pSepFile", pi2->pSepFile, "pPrintProcessor",pi2->pPrintProcessor,
-					"pDatatype",pi2->pDatatype, "pParameters",pi2->pParameters,
-					"pSecurityDescriptor",PyWinObject_FromSECURITY_DESCRIPTOR,pi2->pSecurityDescriptor,
-					"Attributes",pi2->Attributes, "Priority",pi2->Priority,
-					"DefaultPriority",pi2->DefaultPriority,
-					"StartTime",pi2->StartTime, "UntilTime",pi2->UntilTime,
-					"Status",pi2->Status, "cJobs",pi2->cJobs, "AveragePPM",pi2->AveragePPM);
-			break;
-		case 3:
-			PRINTER_INFO_3 *pi3;
-			pi3=(PRINTER_INFO_3 *)buf;
-			rc = Py_BuildValue("{s:O&}","pSecurityDescriptor",PyWinObject_FromSECURITY_DESCRIPTOR,pi3->pSecurityDescriptor);
-			break;
-		case 4:
-			PRINTER_INFO_4 *pi4;
-			pi4=(PRINTER_INFO_4 *)buf;
-			rc = Py_BuildValue("{s:s,s:s,s:l}",
-				"pPrinterName",pi4->pPrinterName,
-				"pServerName",pi4->pServerName, 
-				"Attributes",pi4->Attributes);
-			break;
-		case 5:
-			PRINTER_INFO_5 *pi5;
-			pi5=(PRINTER_INFO_5 *)buf;
-			rc = Py_BuildValue("{s:s,s:s,s:l,s:l,s:l}",
-				"pPrinterName",pi5->pPrinterName,
-				"pPortName",pi5->pPortName,
-				"Attributes",pi5->Attributes,
-				"DeviceNotSelectedTimeout",pi5->DeviceNotSelectedTimeout,
-				"TransmissionRetryTimeout",pi5->TransmissionRetryTimeout);
-			break;
-		case 7:
-			PRINTER_INFO_7 *pi7;
-			pi7=(PRINTER_INFO_7 *)buf;
-			rc=Py_BuildValue("{s:s,s:l}","ObjectGUID",pi7->pszObjectGUID, "Action",pi7->dwAction);
-			break;
-		case 8:   // global printer defaults
-			PRINTER_INFO_8 *pi8;
-			pi8=(PRINTER_INFO_8 *)buf;
-			rc=Py_BuildValue("{s:O&}","pDevMode", PyWinObject_FromDEVMODE, pi8->pDevMode);
-			break;
-		case 9:  // per user printer defaults
-			PRINTER_INFO_9 *pi9;
-			pi9=(PRINTER_INFO_9 *)buf;
-			rc=Py_BuildValue("{s:O&}","pDevMode", PyWinObject_FromDEVMODE, pi9->pDevMode);
-			break;
-		default:
-			PyErr_Format(PyExc_NotImplementedError,"Level %d is not supported",level);
+	if (backward_compat){
+		pi2=(PRINTER_INFO_2 *)buf;
+		rc = Py_BuildValue("ssssssszssssziiiiiiii",
+			pi2->pServerName, pi2->pPrinterName, 	pi2->pShareName, pi2->pPortName,
+			pi2->pDriverName, pi2->pComment, pi2->pLocation, NULL, pi2->pSepFile,
+			pi2->pPrintProcessor, pi2->pDatatype, pi2->pParameters, NULL,
+			pi2->Attributes, pi2->Priority, pi2->DefaultPriority, pi2->StartTime, pi2->UntilTime,
+			pi2->Status, pi2->cJobs, pi2->AveragePPM);
 		}
+	else
+		rc = PyWinObject_FromPRINTER_INFO(buf, level);
 	free(buf);
 	return rc;
 }
@@ -482,6 +482,9 @@ static PyObject *PySetDefaultPrinter(PyObject *self, PyObject *args)
 
 
 // @pymethod tuple|win32print|EnumPrinters|Enumerates printers, print servers, domains and print providers.
+// @comm Use Flags=PRINTER_ENUM_NAME, Name=None, Level=1 to enumerate print providers.<nl>
+// Use Flags=PRINTER_ENUM_NAME, Name=\\servername, Level=2 or 5 to list printers on another server.<nl>
+// See MSDN docs for EnumPrinters for other specific combinations
 static PyObject *PyEnumPrinters(PyObject *self, PyObject *args)
 {
 	DWORD flags;
@@ -491,18 +494,21 @@ static PyObject *PyEnumPrinters(PyObject *self, PyObject *args)
 	DWORD bufneeded;
 	DWORD printersreturned;
 	char *name= NULL;
-	DWORD i;	
-
+	DWORD i;
+	PyObject *ret=NULL, *obprinter_info;
+	static size_t printer_info_offset[]={
+		sizeof(PRINTER_INFO_1),sizeof(PRINTER_INFO_2),sizeof(PRINTER_INFO_3),
+		sizeof(PRINTER_INFO_4),sizeof(PRINTER_INFO_5),sizeof(PRINTER_INFO_6),
+		sizeof(PRINTER_INFO_7),sizeof(PRINTER_INFO_8),sizeof(PRINTER_INFO_9)
+		};
 	if (!PyArg_ParseTuple(args, "i|zi:EnumPrinters", 
-					&flags,   // @pyparm int|flag|| types of printer objects to enumerate (PRINTER_ENUM_*).
+					&flags,   // @pyparm int|flags||types of printer objects to enumerate (combination of PRINTER_ENUM_* constants).
 					&name,    // @pyparm string|name|None|name of printer object.
-					&level))  // @pyparm int|level|1|type of printer info structure (only PRINTER_INFO_1 is supported)			      
+					&level))  // @pyparm int|level|1|type of printer info structure (Levels 1,2,4,5 supported)
 		return NULL;
-	if (level != 1)
-	{
-		PyErr_SetString(PyExc_ValueError, "This information level is not supported");
-		return NULL;
-	}
+	if (level<1 || level>9)
+		return PyErr_Format(PyExc_ValueError,"Level %d is not supported", level);
+
 	// if call with NULL buffer succeeds, there's nothing to enumerate
 	if (EnumPrinters(flags, name, level, NULL, 0, &bufneeded, &printersreturned))
 		return PyTuple_New(0);
@@ -510,26 +516,32 @@ static PyObject *PyEnumPrinters(PyObject *self, PyObject *args)
 		return PyWin_SetAPIError("EnumPrinters");
 	bufsize= bufneeded;
 	if (NULL == (buf= (BYTE *)malloc(bufsize)))
-	{
-		PyErr_SetString(PyExc_MemoryError, "Malloc failed.");
-		return NULL;
-	}
+		return PyErr_Format(PyExc_MemoryError,"EnumPrinters: unable to allocate %d bytes", bufsize);
 
+	// @rdesc Level 1 returns a tuple of tuples for backward compatibility.
+	// Each individual element is a tuple of (flags, description, name, comment)<nl>
+	// All other levels return a tuple of dictionaries representing PRINTER_INFO_* structures
 	if (!EnumPrinters(flags, name, level, buf, bufsize, &bufneeded, &printersreturned))
-	{
-		free(buf);
-		return PyWin_SetAPIError("EnumPrinters");
-	}
-
-	PyObject *ret = PyTuple_New(printersreturned);
-	        // rdesc The result is a tuple of tuples; one for each printer enumerated.
-	        // Each individual element is a tuple of (flags, description, name, comment)
-	for (i= 0; i < printersreturned; i++)
-	{
-		PRINTER_INFO_1 *info;
-		info= (PRINTER_INFO_1 *)(buf + i * sizeof(PRINTER_INFO_1));
-		PyTuple_SetItem(ret, i, Py_BuildValue("isss", (int)info->Flags, info->pDescription, info->pName, info->pComment));
-	}
+		PyWin_SetAPIError("EnumPrinters");
+	else{
+		ret=PyTuple_New(printersreturned);
+		if (ret!=NULL)
+			for (i= 0; i < printersreturned; i++){
+				if (level==1){
+					PRINTER_INFO_1 *info;
+					info= (PRINTER_INFO_1 *)(buf + i * sizeof(PRINTER_INFO_1));
+					obprinter_info=Py_BuildValue("isss", (int)info->Flags, info->pDescription, info->pName, info->pComment);
+					}
+				else
+					obprinter_info=PyWinObject_FromPRINTER_INFO(buf + i * printer_info_offset[level-1], level);
+				if (obprinter_info==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SET_ITEM(ret, i, obprinter_info);
+				}
+		}
 	free(buf);
 	return ret;
 }
