@@ -83,6 +83,7 @@ class HierList(object.Object):
 		parent.HookNotify(self.OnTreeItemExpanding, commctrl.TVN_ITEMEXPANDING)
 		parent.HookNotify(self.OnTreeItemSelChanged, commctrl.TVN_SELCHANGED)
 		parent.HookNotify(self.OnTreeItemDoubleClick, commctrl.NM_DBLCLK)
+		self.notify_parent = parent
 
 		if self.root:
 			self.AcceptRoot(self.root)
@@ -94,11 +95,12 @@ class HierList(object.Object):
 		self.filledItemHandlesMap = {}
 		
 	def HierTerm(self):
-		self.DeleteAllItems()
-		parent = self.GetParentFrame()
+		# Dont want notifies as we kill the list.
+		parent = self.notify_parent # GetParentFrame()
 		parent.HookNotify(None, commctrl.TVN_ITEMEXPANDING)
 		parent.HookNotify(None, commctrl.TVN_SELCHANGED)
 		parent.HookNotify(None, commctrl.NM_DBLCLK)
+		self.DeleteAllItems()
 		self.list = None
 
 	def OnTreeItemDoubleClick(self,(hwndFrom, idFrom, code), extra):
