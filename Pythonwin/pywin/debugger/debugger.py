@@ -101,6 +101,9 @@ class NoStackAvailableItem(HierListItem):
 class HierStackRoot(HierListItem):
 	def __init__( self, debugger ):
 		HierListItem.__init__(self, debugger, None)
+		self.last_stack = []
+##	def __del__(self):
+##		print "HierStackRoot dieing"
 	def GetSubList(self):
 		debugger = self.myobject
 #		print self.debugger.stack, self.debugger.curframe
@@ -108,14 +111,17 @@ class HierStackRoot(HierListItem):
 		if debugger.debuggerState==DBGSTATE_BREAK:
 			stackUse=debugger.stack[:]
 			stackUse.reverse()
+			self.last_stack = []
 			for frame, lineno in stackUse:
-				ret.append( HierFrameItem( frame, debugger ) )
+				self.last_stack.append( (frame, lineno) )
 				if frame is debugger.userbotframe: # Dont bother showing frames below our bottom frame.
 					break
-		elif debugger.debuggerState==DBGSTATE_NOT_DEBUGGING:
-			ret.append(NoStackAvailableItem('<nothing is being debugged>'))
-		else:
-			ret.append(NoStackAvailableItem('<stack not available while running>'))
+		for frame, lineno in self.last_stack:
+			ret.append( HierFrameItem( frame, debugger ) )
+##		elif debugger.debuggerState==DBGSTATE_NOT_DEBUGGING:
+##			ret.append(NoStackAvailableItem('<nothing is being debugged>'))
+##		else:
+##			ret.append(NoStackAvailableItem('<stack not available while running>'))
 		return ret
 	def GetText(self):
 		return 'root item'
@@ -130,8 +136,8 @@ class HierListDebugger(hierlist.HierListWithItems):
 	def Setup(self):
 		root = HierStackRoot(self.debugger)
 		self.AcceptRoot(root)
-	def Refresh(self):
-		self.Setup()
+#	def Refresh(self):
+#		self.Setup()
 
 class DebuggerWindow(window.Wnd):
 	def GetDefRect(self):
@@ -169,8 +175,10 @@ class DebuggerStackWindow(DebuggerWindow):
 	def __init__(self, debugger):
 		DebuggerWindow.__init__(self, win32ui.CreateTreeCtrl())
 		self.list = HierListDebugger(debugger)
+		self.listOK = 1
 	def SaveState(self):
-		pass
+		self.list.DeleteAllItems()
+		self.listOK = 0
 	def CreateWindow(self, parent):
 		style = win32con.WS_CHILD | win32con.WS_VISIBLE | win32con.WS_BORDER | commctrl.TVS_HASLINES | commctrl.TVS_LINESATROOT | commctrl.TVS_HASBUTTONS
 		self._obj_.CreateWindow(style, self.GetDefRect(), parent, win32ui.IDC_LIST1)
@@ -180,7 +188,11 @@ class DebuggerStackWindow(DebuggerWindow):
 		self.list.Setup()
 
 	def RespondDebuggerState(self, state):
-		self.list.Refresh()
+		if not self.listOK:
+			self.listOK = 1
+			self.list.Setup()
+		else:			
+			self.list.Refresh()
 
 	def RespondDebuggerData(self):
 		try:
