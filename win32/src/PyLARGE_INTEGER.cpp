@@ -26,6 +26,10 @@
 #include "PyWinTypes.h"
 #include "longintrepr.h"
 
+#ifdef __MINGW32__
+#define __int64 long long
+#endif
+
 #ifdef PYWIN_NO_PYTHON_LONG_LONG
 /* If we either dont have, or dont want to use, Python's native
    64bit integer support.
@@ -118,7 +122,7 @@ BOOL PyLong_AsTwoInts(PyObject *ob, int *hiint, unsigned *loint)
 	}
 	// Otherwize a long integer.
 	__int64 newval = PyLong_AsLongLong(ob);
-	if (newval==(_int64)-1)
+	if (newval==(__int64)-1)
 		return FALSE;
 	if (hiint) *hiint=(int)(newval>>32);
 	if (loint) *loint=(unsigned)newval; // just lob the top 32 bits off!

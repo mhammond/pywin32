@@ -144,10 +144,14 @@ PyObject * PyIUnknown::repr()
 #endif
 			ob->m_obj = NULL;
 		}
+#ifdef __MINGW32__
+		catch(...)
+#else
 		__except( EXCEPTION_EXECUTE_HANDLER )
+#endif
 		{
 			PyEval_RestoreThread(_save);
-			LogF(_T("Exception occured:\n\tTry to release object at adress 0x%08x\n\twhich was already destroyed"), ob->m_obj);
+			LogF(_T("Exception occured:\n\tTry to release object at address 0x%08x\n\twhich was already destroyed"), ob->m_obj);
 			ob->m_obj = NULL;
 			return;
 		}

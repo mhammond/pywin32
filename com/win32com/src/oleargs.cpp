@@ -658,7 +658,7 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
 /* Helper - Convert the specified dimension of the specified safe array to
    a Python object (a tuple)
 */
-static PyObject *PyCom_PyObjectFromSAFEARRAYBuildDimension(SAFEARRAY *psa, VARENUM vt, UINT dimNo, UINT nDims, long *arrayIndices)
+PyObject *PyCom_PyObjectFromSAFEARRAYBuildDimension(SAFEARRAY *psa, VARENUM vt, UINT dimNo, UINT nDims, long *arrayIndices)
 {
 	long lb, ub;
 	HRESULT hres = SafeArrayGetLBound(psa, dimNo, &lb);
@@ -732,7 +732,7 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYBuildDimension(SAFEARRAY *psa, VAREN
 /* Actual doer - Convert the specified safe array to a Python object - either a
    single tuple, or a tuples of tuples for each dimension
 */
-static PyObject *PyCom_PyObjectFromSAFEARRAY(SAFEARRAY *psa, VARENUM vt /* = VT_VARIANT */)
+PyObject *PyCom_PyObjectFromSAFEARRAY(SAFEARRAY *psa, VARENUM vt /* = VT_VARIANT */)
 {
 	// Our caller must has resolved all byref and array references.
 	if (vt & VT_ARRAY || vt & VT_BYREF) {
@@ -843,9 +843,7 @@ BOOL PythonOleArgHelper::ParseTypeInformation(PyObject *reqdObjectTuple)
 BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject *reqdObjectTuple)
 {
 	// Check my logic still holds up - basically we cant call this twice on the same object.
-#ifndef MS_WINCE // No _ASSERTE on CE - who cares!
-	_ASSERTE(m_convertDirection==POAH_CONVERT_UNKNOWN || m_convertDirection==POAH_CONVERT_FROM_VARIANT);
-#endif
+	assert(m_convertDirection==POAH_CONVERT_UNKNOWN || m_convertDirection==POAH_CONVERT_FROM_VARIANT);
 	// If this is the "driving" conversion, then we allocate buffers.
 	// Otherwise, we are simply filling in the buffers as provided by the caller.
 	BOOL bCreateBuffers = (m_convertDirection==POAH_CONVERT_UNKNOWN);
@@ -868,9 +866,9 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 		if (m_reqdType & VT_BYREF) {
 			if (!VALID_BYREF_MISSING(obj)) {
 				bool bNewArray = (V_VT(var) & ~VT_TYPEMASK)!= (VT_BYREF | VT_ARRAY);
-				_ASSERTE(m_arrayBuf==NULL); // shouldn't be anything else here!
+				assert(m_arrayBuf==NULL); // shouldn't be anything else here!
 				if (bNewArray) {
-					_ASSERTE(V_VT(var)==VT_EMPTY); // should we clear anything else?
+					assert(V_VT(var)==VT_EMPTY); // should we clear anything else?
 					V_ARRAYREF(var) = &m_arrayBuf;
 				}
 				// else m_arrayBuf remains NULL, and we reuse existing array.
@@ -884,13 +882,13 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 				// it alone.
 				if (V_VT(var)==VT_EMPTY) {
 					var->vt = m_reqdType;
-					_ASSERTE(m_arrayBuf==NULL); // shouldn't be anything else here!
+					assert(m_arrayBuf==NULL); // shouldn't be anything else here!
 					V_ARRAYREF(var) = &m_arrayBuf;
 				}
-				_ASSERTE(V_VT(var) | VT_ARRAY);
+				assert(V_VT(var) | VT_ARRAY);
 			}
 		} else {
-			_ASSERTE(V_VT(var)==VT_EMPTY || V_ARRAY(var)==NULL); // Probably a mem leak - the existing array should be cleared!
+			assert(V_VT(var)==VT_EMPTY || V_ARRAY(var)==NULL); // Probably a mem leak - the existing array should be cleared!
 			if (!PyCom_SAFEARRAYFromPyObject(obj, &V_ARRAY(var), rawVT))
 				return FALSE;
 			V_VT(var) = m_reqdType;
@@ -1192,9 +1190,7 @@ PyObject *PythonOleArgHelper::MakeVariantToObj(VARIANT *var)
 	// happen later.  In this case, remember the buffer for the Variant
 
 	// Check my logic still holds up - basically we cant call this twice on the same object.
-#ifndef MS_WINCE
-	_ASSERTE(m_convertDirection==POAH_CONVERT_UNKNOWN || m_convertDirection==POAH_CONVERT_FROM_PYOBJECT);
-#endif
+	assert(m_convertDirection==POAH_CONVERT_UNKNOWN || m_convertDirection==POAH_CONVERT_FROM_PYOBJECT);
 	// If this is the "driving" conversion, then the callers owns the buffers - we just use-em
 	if (m_convertDirection==POAH_CONVERT_UNKNOWN) {
 		m_convertDirection = POAH_CONVERT_FROM_VARIANT;

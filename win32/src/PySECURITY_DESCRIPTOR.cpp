@@ -213,7 +213,7 @@ PySECURITY_DESCRIPTOR::PySECURITY_DESCRIPTOR(const SECURITY_DESCRIPTOR *psd, uns
 {
 	ob_type = &PySECURITY_DESCRIPTORType;
 	_Py_NewReference(this);
-	if (cb==0) cb = GetSecurityDescriptorLength((void *)psd);
+	if (cb==0) cb = GetSecurityDescriptorLength((SECURITY_DESCRIPTOR *)psd);
 	m_psd = (SECURITY_DESCRIPTOR *)malloc(cb);
 	memcpy(m_psd, psd, cb);
 	m_obACL= NULL;
