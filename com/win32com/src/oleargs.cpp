@@ -152,8 +152,12 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 	*/
 	if (V_VT(var) == VT_EMPTY) {
 		// Must ensure we have a Python error set if we fail!
-		if (!PyErr_Occurred())
-			PyErr_Format(PyExc_TypeError, "Objects of type '%s' can not be converted to a COM VARIANT", obj->ob_type->tp_name);
+		if (!PyErr_Occurred()) {
+			char *extraMessage = "";
+			if (obj->ob_type->tp_as_buffer && obj->ob_type->tp_as_buffer->bf_getreadbuffer)
+				extraMessage = " (but obtaining the buffer() of this object could)";
+			PyErr_Format(PyExc_TypeError, "Objects of type '%s' can not be converted to a COM VARIANT%s", obj->ob_type->tp_name, extraMessage);
+		}
 		return FALSE;
 	}
 	return TRUE;
@@ -319,7 +323,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
 	// See if we can take a short-cut for byte arrays - if
 	// so, we can copy the entire dimension in one hit
 	// (only support single segment buffers for now)
-	if (dimNo==nDims && vt==VT_UI1 || vt==VT_I1 && obj->ob_type->tp_as_buffer) {
+	if (dimNo==nDims && vt==VT_UI1 && obj->ob_type->tp_as_buffer) {
 		PyBufferProcs *pb = obj->ob_type->tp_as_buffer;
 		int bufSize;
 		if (pb->bf_getreadbuffer && 
@@ -413,9 +417,9 @@ static BOOL PyCom_SAFEARRAYFromPyObject(PyObject *obj, SAFEARRAY **ppSA, VARENUM
 	LONG cDims = 0;
 	PyObject *obItemCheck = obj;
 	Py_INCREF(obItemCheck);
-	// Dont allow arb. seq - we dont want strings to qualify...
-	while (obItemCheck && (PyList_Check(obItemCheck) || PyTuple_Check(obItemCheck))) {
-		if (PySequence_Length(obItemCheck)) {
+	// Allow arbitary sequences, but not strings or Unicode objects.
+	while (obItemCheck && PySequence_Check(obItemCheck) && !PyString_Check(obItemCheck) && !PyUnicode_Check(obItemCheck)) {
+		if (!PyBuffer_Check(obItemCheck) && PySequence_Length(obItemCheck)) {
 			PyObject *obSave = obItemCheck;
 			obItemCheck = PySequence_GetItem(obItemCheck,0);
 			Py_DECREF(obSave);
@@ -428,7 +432,7 @@ static BOOL PyCom_SAFEARRAYFromPyObject(PyObject *obj, SAFEARRAY **ppSA, VARENUM
 	Py_XDECREF(obItemCheck);
 
 	if (cDims==0) {
-		OleSetTypeError("Objects for SAFEARRAYS must be sequences (of sequences)");
+		OleSetTypeError("Objects for SAFEARRAYS must be sequences (of sequences), or a buffer object.");
 		return FALSE;
 	}
 
@@ -583,6 +587,40 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYBuildDimension(SAFEARRAY *psa, VAREN
 	hres = SafeArrayGetUBound(psa, dimNo, &ub);
 	if (FAILED(hres))
 		return OleSetOleError(hres);
+	// First we take a shortcut for VT_UI1 (ie, binary) buffers.
+	if (vt==VT_UI1) {
+		void *ob_buf, *sa_buf;
+		HRESULT hres = SafeArrayAccessData(psa,&sa_buf);
+		if (FAILED(hres))
+			return OleSetOleError(hres);
+		long cElems = ub-lb+1;
+		long dataSize = cElems * sizeof(unsigned char);
+		PyObject *ret = PyBuffer_New(dataSize);
+		if (ret!=NULL) {
+			// Access the buffer object using the buffer interfaces.
+			PyBufferProcs *pb = ret->ob_type->tp_as_buffer;
+			if (!pb->bf_getwritebuffer ||
+			    !pb->bf_getsegcount ||
+			    (*pb->bf_getsegcount)(ret, NULL)!=1) {
+				PyErr_SetString(PyExc_RuntimeError, "New buffer has no buffer interfaces!!");
+				SafeArrayUnaccessData(psa);
+				Py_DECREF(ret);
+				return NULL;
+			}
+			long count = pb->bf_getwritebuffer(ret, 0, &ob_buf);
+			if (count != cElems) {
+				PyErr_SetString(PyExc_RuntimeError, "buffer size is not what we created!");
+				SafeArrayUnaccessData(psa);
+				Py_DECREF(ret);
+				return NULL;
+			}
+			memcpy(ob_buf, sa_buf, dataSize);
+		}
+		SafeArrayUnaccessData(psa);
+		return ret;
+	}
+	// Normal SAFEARRAY case returning a tuple.
+
 	PyObject *retTuple = PyTuple_New(ub-lb+1);
 	if (retTuple==NULL) return FALSE;
 	int tupleIndex=0;
