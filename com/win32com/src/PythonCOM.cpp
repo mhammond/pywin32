@@ -283,7 +283,7 @@ static PyObject *pythoncom_CoInitializeSecurity(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsSECURITY_DESCRIPTOR(obSD, &pSD, /*BOOL bNoneOK = */TRUE))
 		return NULL;
 
-	if (obAuthSvc==NULL)
+	if (obAuthSvc==Py_None)
 		cAuthSvc = (DWORD)-1;
 	else if (PySequence_Check(obAuthSvc)) {
 		cAuthSvc = 0;
@@ -1306,13 +1306,14 @@ static PyObject *pythoncom_OleSetClipboard(PyObject *, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:OleSetClipboard", &obd))
 		return NULL;
 	IDataObject *pd;
-	if (!PyCom_InterfaceFromPyObject(obd, IID_IDataObject, (void**)&pd, FALSE))
+	if (!PyCom_InterfaceFromPyObject(obd, IID_IDataObject, (void**)&pd, TRUE))
 		return NULL;
 	HRESULT hr;
 	Py_BEGIN_ALLOW_THREADS
 	hr = ::OleSetClipboard(pd);
 	Py_END_ALLOW_THREADS
-	pd->Release();
+        if (pd)
+	    pd->Release();
 	if (FAILED(hr)) {
 		PyCom_BuildPyException(hr);
 		return NULL;
@@ -1436,6 +1437,25 @@ static PyObject *pythoncom_DoDragDrop(PyObject *, PyObject *args)
 	return PyInt_FromLong(retEffect);
 }
 
+// @pymethod |pythoncom|OleInitialize|Calls OleInitialized - this should rarely
+// be needed, although some clipboard operations insist this is called rather
+// than <om pythoncom.CoInitialize>
+static PyObject *pythoncom_OleInitialize(PyObject *, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":OleInitialize"))
+		return NULL;
+	HRESULT hr;
+	Py_BEGIN_ALLOW_THREADS
+	hr = ::OleInitialize(NULL);
+	Py_END_ALLOW_THREADS
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		return NULL;
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 
 /* List of module functions */
 // @module pythoncom|A module, encapsulating the OLE automation API
@@ -1495,6 +1515,7 @@ static struct PyMethodDef pythoncom_methods[]=
 #endif // MS_WINCE
 	{ "new",                 pythoncom_new, 1 },
 	{ "New",                 pythoncom_new, 1 },                 // @pymeth New|Create a new instance of an OLE automation server.
+	{ "OleInitialize",       pythoncom_OleInitialize, 1},      // @pymeth OleInitialize|
 	{ "OleGetClipboard",     pythoncom_OleGetClipboard, 1},      // @pymeth OleGetClipboard|Retrieves a data object that you can use to access the contents of the clipboard.
 	{ "OleFlushClipboard",   pythoncom_OleFlushClipboard, 1},   // @pymeth OleFlushClipboard|Carries out the clipboard shutdown sequence. It also releases the IDataObject pointer that was placed on the clipboard by the <om pythoncom.OleSetClipboard> function.
 	{ "OleIsCurrentClipboard",pythoncom_OleIsCurrentClipboard, 1}, // @pymeth OleIsCurrentClipboard|Determines whether the data object pointer previously placed on the clipboard by the OleSetClipboard function is still on the clipboard.
