@@ -548,21 +548,23 @@ PyObject *PyITypeLib::GetLibAttr()
 		return PyCom_BuildPyException(sc, pMyTypeLib, IID_ITypeLib);
 
 	PyObject *obIID = PyWinObject_FromIID(attr->guid);
-	PyObject *ret = Py_BuildValue("Oiiiii",
-		obIID,              // @tupleitem 0|<o PyIID>|IID|The IID for the library
-		attr->lcid,         // @tupleitem 1|int|lcid|The default locale ID for the library
-		attr->syskind,      // @tupleitem 2|int|syskind|Identifies the target operating system platform
-		attr->wMajorVerNum,	// @tupleitem 3|int|majorVersion|The major version number of the library
-		attr->wMinorVerNum,	// @tupleitem 4|int|minorVersion|The minor version number of the library
-		attr->wLibFlags);	// @tupleitem 5|int|flags|Flags for the library.
+	PyObject *ret = NULL;
+	if (obIID!=NULL) {
+		ret = Py_BuildValue("Oiiiii",
+			obIID,              // @tupleitem 0|<o PyIID>|IID|The IID for the library
+			attr->lcid,         // @tupleitem 1|int|lcid|The default locale ID for the library
+			attr->syskind,      // @tupleitem 2|int|syskind|Identifies the target operating system platform
+			attr->wMajorVerNum,	// @tupleitem 3|int|majorVersion|The major version number of the library
+			attr->wMinorVerNum,	// @tupleitem 4|int|minorVersion|The minor version number of the library
+			attr->wLibFlags);	// @tupleitem 5|int|flags|Flags for the library.
 
-	Py_DECREF(obIID);
+		Py_DECREF(obIID);
+	}
 	{
 	PY_INTERFACE_PRECALL;
 	pMyTypeLib->ReleaseTLibAttr(attr);
 	PY_INTERFACE_POSTCALL;
 	}
-
 	return ret;
 }
 
