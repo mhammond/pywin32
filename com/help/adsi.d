@@ -9,31 +9,35 @@ http://www.microsoft.com/windows/server/Technical/directory/adsilinks.asp.
 Microsoft has documentation for using languages other than python in the
 sdk.
 
-@comm <nl>Before doing anything else you need to go through the next two steps:
+@comm Before doing anything else you need to go through the next two steps:
 
-<nl>
 @flagh Task|Description
 @flag Create the Global Providers object|adsiNameSpaces =
 win32com.client.Dispatch('ADsNameSpaces')
 @flag Now get the LDAP Provider object|ldapNameSpace =
 adsiNameSpaces.getobject("","LDAP:") 
 
-@comm <nl>Now you have to decide how you want to access the exchange server. I
-have chosen to authenticate in which case you need to use opendsobject
+@comm Now you have to decide how you want to access the exchange server. I
+have chosen to authenticate, in which case you need to use OpenDSObject()
 
-@flag The login and domain|logon_ex='cn=wilma, dc=bedrock'
-@flag password|password='dino'
-@flag now login|myDSObject =
+@flagh Task|Description
+@flag Specify the login and domain|logon_ex='cn=wilma, dc=bedrock'
+@flag Specify the password|password='dino'
+@flag Login to the server|myDSObject =
 ldapNameSpace.OpenDSObject(ex_path,logon_ex,password,0)
-<nl>So what is this ex_path in the login?
-<nl>It is the resource you are trying to access, for example:
-@flag a specific
-user|ex_path="LDAP://server/cn=fredflintsone,cn=Recipients,ou=rubble,o=bedro
-ck" 
-@flag a mailing
-list|ex_path="LDAP://server/cn=bedrock,cn=Recipients,ou=rubble,o=bedrock"
-@flag all of
-Recipients|ex_path="LDAP://server/cn=Recipients,ou=rubble,o=bedrock"
+
+@comm Note -- the fourth argument to opendsobject has various options for how
+to authenticate.  For example, if you use 1 instead of zero, it should
+either use NTLM or Kerberos for authentication.  For more information,
+check out: http://msdn.microsoft.com/library/psdk/adsi/if_core_3uic.htm
+
+<nl>The ex_path in the above example specifies the resource you are trying to access.  For example:
+@flag A specific user|
+ex_path="LDAP://server/cn=fredflintsone,cn=Recipients,ou=rubble,o=bedrock" 
+@flag A mailing list|
+ex_path="LDAP://server/cn=bedrock,cn=Recipients,ou=rubble,o=bedrock"
+@flag All Recipients|
+ex_path="LDAP://server/cn=Recipients,ou=rubble,o=bedrock"
 
 
 @ex Accessing and Modifying a user:|
@@ -110,6 +114,10 @@ list_member='cn='+user+',cn=Recipients,ou='+ou+',o='+o
 append_list=[list_member]
 dsobj.putEx(3,'Member',append_list);
 dsobj.SetInfo()
+
+
+<nl>Have a great time with programming with python!
+<nl>|John Nielsen   nielsenjf@my-deja.com       
 
 
 */
