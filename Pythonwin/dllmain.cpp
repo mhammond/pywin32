@@ -53,6 +53,15 @@ private:
 			else
 				return CWinApp::OnCmdMsg (nID, nCode, pExtra, pHandlerInfo);
 		}
+	// special idle handling to ignore WM_TIMER messages
+	// (mainly for Scintilla until it uses WM_SYSTIMER messages)
+	virtual BOOL IsIdleMessage(MSG *pmsg)
+	{
+		BOOL is = CWinApp::IsIdleMessage(pmsg);
+		if (is) is = pmsg->message != WM_TIMER;
+		return is;
+	}
+
 	BOOL m_bIsConsoleWindow;
 
 };

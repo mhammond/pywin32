@@ -70,6 +70,15 @@ int CPythonWinApp::ExitInstance()
 	return rc;
 }
 
+// special idle handling to ignore WM_TIMER messages
+// (mainly for Scintilla until it uses WM_SYSTIMER messages)
+BOOL CPythonWinApp::IsIdleMessage(MSG *pmsg)
+{
+	BOOL is = CWinApp::IsIdleMessage(pmsg);
+	if (is) is = pmsg->message != WM_TIMER;
+	return is;
+}
+
 BOOL
 CPythonWinApp::OnCmdMsg (UINT nID, int nCode,
 			 void* pExtra, AFX_CMDHANDLERINFO*pHandlerInfo)

@@ -31,6 +31,7 @@ private:
 	virtual int ExitInstance();
 	virtual BOOL OnIdle( LONG );
 	virtual int Run(void);
+	virtual BOOL IsIdleMessage(MSG *pmsg);
 
 // Implementation
 //	CPtrList idleHookList;
