@@ -283,6 +283,167 @@ done:
 }
 %}
 
+%{/* from MS knowledge base article Q198907
+    GetBinarySid() accepts a buffer that contains the textual
+    representation of a SID. This function returns NULL
+    if it fails. If the SID can be constructed successfully,
+    a valid binary SID is returned. 
+
+    This function requires TCHAR.H and the C runtime library.
+
+    The following are macros defined in TCHAR.H that allow this
+    function to be compiled with or without UNICODE defined. To
+    replace these macros with direct calls to their corresponding
+    ANSI functions first make sure this module is not compiled
+    with UNICODE (or _UNICODE) defined.
+
+      TCHAR           ANSI
+     _stscanf() ->   sscanf()
+     _tcschr()  ->   strchr()
+
+*/ 
+
+PSID GetBinarySid(
+    LPTSTR TextualSid  // Buffer for Textual representation of SID.
+    )
+{
+    PSID  pSid = 0;
+    SID_IDENTIFIER_AUTHORITY identAuthority;
+    TCHAR buffer[1024];
+    int   i;
+
+    LPTSTR ptr, ptr1;
+
+
+    BYTE  nByteAuthorityCount = 0;
+    DWORD dwSubAuthority[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+
+    ZeroMemory(&identAuthority, sizeof(identAuthority));
+
+    lstrcpy(buffer, TextualSid);
+
+    // S-SID_REVISION- + identifierauthority- + subauthorities- + NULL
+
+    // Skip S
+    if (!(ptr = _tcschr(buffer, _T('-'))))
+    {
+        return pSid;
+    }
+
+    // Skip -
+    ptr++;
+
+    // Skip SID_REVISION
+    if (!(ptr = _tcschr(ptr, _T('-'))))
+    {
+        return pSid;
+    }
+
+    // Skip -
+    ptr++;
+
+    // Skip identifierauthority
+    if (!(ptr1 = _tcschr(ptr, _T('-'))))
+    {
+        return pSid;
+    }
+    *ptr1= 0;
+
+    if ((*ptr == '0') && (*(ptr+1) == 'x'))
+    {
+        _stscanf(ptr, _T("0x%02hx%02hx%02hx%02hx%02hx%02hx"),
+            &identAuthority.Value[0],
+            &identAuthority.Value[1],
+            &identAuthority.Value[2],
+            &identAuthority.Value[3],
+            &identAuthority.Value[4],
+            &identAuthority.Value[5]);
+    }
+    else
+    {
+        DWORD value;
+
+        _stscanf(ptr, _T("%lu"), &value);
+
+        identAuthority.Value[5] = (BYTE)(value & 0x000000FF);
+        identAuthority.Value[4] = (BYTE)(value & 0x0000FF00) >> 8;
+        identAuthority.Value[3] = (BYTE)(value & 0x00FF0000) >> 16;
+        identAuthority.Value[2] = (BYTE)(value & 0xFF000000) >> 24;
+    }
+
+    // Skip -
+    *ptr1 = '-';
+    ptr = ptr1;
+    ptr1++;
+
+    for (i = 0; i < 8; i++)
+    {
+        // get subauthority
+        if (!(ptr = _tcschr(ptr, '-')))
+        {
+            break;
+        }
+        *ptr=0;
+        ptr++;
+        nByteAuthorityCount++;
+    }
+
+    for (i = 0; i < nByteAuthorityCount; i++)
+    {
+        // Get subauthority.
+        _stscanf(ptr1, _T("%lu"), &dwSubAuthority[i]);
+        ptr1 += lstrlen(ptr1) + 1;
+    }
+
+    if (!AllocateAndInitializeSid(&identAuthority,
+        nByteAuthorityCount,
+        dwSubAuthority[0],
+        dwSubAuthority[1],
+        dwSubAuthority[2],
+        dwSubAuthority[3],
+        dwSubAuthority[4],
+        dwSubAuthority[5],
+        dwSubAuthority[6],
+        dwSubAuthority[7],
+        &pSid))
+    {
+        pSid = 0;
+    }
+
+    return pSid;
+} 
+%}
+
+%{
+// @pyswig <o PySID>|GetBinarySid|Accepts a SID string (eg: S-1-5-32-544) and returns the SID as a PySID object.
+static PyObject *PyGetBinarySid (PyObject *self, PyObject *args)
+{
+	PyObject *obTextualSid; // @pyparm string|SID||Textual representation of a SID. Textual SID example: S-1-5-32-544
+	TCHAR *TextualSid= NULL;
+	PSID pSid;
+	PyObject *obSid;
+	
+	if (!PyArg_ParseTuple(args, "O:GetBinarySid",
+		&obTextualSid))	
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obTextualSid, &TextualSid))
+	{
+		PyErr_SetString(PyExc_ValueError, "Textual SID invalid");
+		return NULL;
+	}
+	if (NULL == (pSid= GetBinarySid(TextualSid)))
+	{
+		PyErr_SetString(PyExc_ValueError, "SID conversion failed");
+		return NULL;
+	}
+	PyWinObject_FreeTCHAR(TextualSid);
+
+	obSid= new PySID(pSid, 1);
+	return obSid;
+}
+%}
+%native(GetBinarySid) PyGetBinarySid;
+
 %native(SetSecurityInfo) SetSecurityInfo;
 %{
 PyObject *SetSecurityInfo(PyObject *self, PyObject *args)
