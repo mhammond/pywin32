@@ -47,7 +47,7 @@ class EditorFrame(pywin.framework.window.MDIChildWnd):
         # an editor (ie, scintilla) view
         # Look for the splitter opened the most!
         if self.sub_splitter is None:
-            return self.GetFirstView()
+            return self.GetDlgItem(win32ui.AFX_IDW_PANE_FIRST)
         v1 = self.sub_splitter.GetPane(0,0)
         v2 = self.sub_splitter.GetPane(1,0)
         r1 = v1.GetWindowRect()
