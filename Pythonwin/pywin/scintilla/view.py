@@ -19,6 +19,7 @@ import keycodes
 import regex
 import struct
 import re
+import os
 
 is_platform_unicode = win32api.GetVersionEx()[3] == win32con.VER_PLATFORM_WIN32_NT
 
@@ -123,6 +124,12 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 	def OnDestroy(self, msg):
 		self.SendScintilla = None
 		return docview.CtrlView.OnDestroy(self, msg)
+
+	def _MakeColorizer(self):
+		ext = os.path.splitext(self.GetDocument().GetPathName())[1]
+		import formatter
+		return formatter.BuiltinPythonSourceFormatter(self, ext)
+
 	
 #	def SendScintilla(self, msg, w=0, l=0):
 #		return self._obj_.SendMessage(msg, w, l)
