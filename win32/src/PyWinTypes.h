@@ -439,6 +439,8 @@ extern PYWINTYPES_EXPORT void PyWinGlobals_Free();
 
 #endif
 
+extern PYWINTYPES_EXPORT void PyWin_MakePendingCalls();
+
 class CEnterLeavePython {
 public:
 	CEnterLeavePython() {
@@ -446,6 +448,23 @@ public:
 #ifndef PYCOM_USE_FREE_THREAD
 		PyWinInterpreterLock_Acquire();
 #endif
+		if (created) {
+			// If pending python calls are waiting as we enter Python,
+			// it will generally mean an asynch signal handler, etc.
+			// We can either call it here, or wait for Python to call it
+			// as part of its "every 'n' opcodes" check.  If we wait for
+			// Python to check it and the pending call raises an exception,
+			// then it is _our_ code that will fail - this is unfair,
+			// as the signal was raised before we were entered - indeed,
+			// we may be directly responding to the signal!
+			// Thus, we flush all the pending calls here, and report any
+			// exceptions via our normal exception reporting mechanism.
+			// (of which we don't have, but not to worry... :)
+			// We can then execute our code in the knowledge that only
+			// signals raised _while_ we are executing will cause exceptions.
+			PyWin_MakePendingCalls();
+		}
+
 	}
 	~CEnterLeavePython() {
 	// The interpreter state must be cleared

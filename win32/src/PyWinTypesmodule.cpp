@@ -31,6 +31,23 @@ const GUID GUID_NULL \
                 = { 0, 0, 0, { 0, 0,  0,  0,  0,  0,  0,  0 } };
 #endif
 
+// See comments in pywintypes.h for why we need this!
+void PyWin_MakePendingCalls()
+{
+	while (1) {
+		int rc = Py_MakePendingCalls();
+		if (rc == 0)
+			break;
+		// An exception - just report it as normal.
+		// Note that a traceback is very unlikely!
+		// XXX - need somewhere reasonable for these to go!!
+		fprintf(stderr, "Unhandled exception detected before entering Python.\n");
+		PyErr_Clear();
+		// And loop around again until we are told everything is done!
+	}
+}
+
+
 BOOL PySocket_AsSOCKET
 //-------------------------------------------------------------------------
 // Helper function for dealing with socket arguments.
