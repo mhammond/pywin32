@@ -369,7 +369,7 @@ inline BOOL PyWinObject_AsAutoFreeBstr(PyObject *stringObject, PyWin_AutoFreeBst
 {
 	BSTR bs;
 	if (!PyWinObject_AsBstr(stringObject, &bs, bNoneOK))
-		return NULL;
+		return FALSE;
 	pResult->SetBstr(bs);
 	return TRUE;
 }
