@@ -135,7 +135,8 @@ BOOL PyWinObject_AsString(PyObject *stringObject, char **pResult, BOOL bNoneOK /
 		stringObject = tempObject = PyUnicode_EncodeMBCS(PyUnicode_AS_UNICODE(stringObject), PyUnicode_GET_SIZE(stringObject), NULL);
 
 	if (!PyString_Check(stringObject)) {
-		PyErr_SetString(PyExc_TypeError, "The object must be a string or unicode object");
+		PyErr_Format(PyExc_TypeError, "The object must be a string or unicode object (got '%s')",
+					 stringObject->ob_type->tp_name);
 		return FALSE;
 	}
 	char *temp = PyString_AsString(stringObject);
