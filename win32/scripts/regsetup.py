@@ -234,7 +234,8 @@ def LocatePythonCore(searchPaths):
 	corePath = None
         suffix = IsDebug()
 	for path in presearchPaths:
-		if FileExists(os.path.join(path, "parser%s.dll" % suffix)):
+		if FileExists(os.path.join(path, "parser%s.dll" % suffix)) or \
+		   FileExists(os.path.join(path, "parser%s.pyd" % suffix)):
 			corePath = path
 			break
 	if corePath is None and searchPaths is not None:
