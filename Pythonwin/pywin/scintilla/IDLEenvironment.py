@@ -22,14 +22,12 @@ def GetIDLEModule(module):
 		# First get it from Pythonwin it is exists.
 		modname = "pywin.idle." + module
 		__import__(modname)
-	except ImportError:
-		# See if I can import it directly (IDLE is probably on the path)
-		modname = module
-		try:
-			__import__(modname)
-		except ImportError:
-			win32ui.MessageBox("The IDLE extension '%s' can not be located.\r\n\r\nPlease correct the installation and restart the application." % module)
-			return None
+	except ImportError, details:
+		msg = "The IDLE extension '%s' can not be located.\r\n\r\n" \
+			  "Please correct the installation and restart the" \
+			  " application.\r\n\r\n%s" % (module, details)
+		win32ui.MessageBox(msg)
+		return None
 	mod=sys.modules[modname]
 	mod.TclError = TextError # A hack that can go soon!
 	return mod
