@@ -23,6 +23,7 @@
 import sys, string, regex
 from pywin.mfc import docview
 from pywin.framework import app, window
+from pywintypes import UnicodeType
 import win32ui, win32api, win32con
 import Queue
 
@@ -42,6 +43,7 @@ class flags:
 #WindowOutputDocumentParent=docview.Document
 import pywin.scintilla.document
 from pywin.scintilla import scintillacon
+from pywin.scintilla.view import is_platform_unicode
 
 WindowOutputDocumentParent=pywin.scintilla.document.CScintillaDocument
 class WindowOutputDocument(WindowOutputDocumentParent):
@@ -426,7 +428,15 @@ class WindowOutput(docview.DocTemplate):
 		rc = 0
 		while max > 0:
 			try:
-				items.append(self.outputQueue.get_nowait())
+				item = self.outputQueue.get_nowait()
+				if is_platform_unicode:
+					if type(item) != UnicodeType:
+					# Assume an MBCS (ie, default windows locale) input string
+						item = unicode(item, "mbcs")
+					item = item.encode("utf-8") # What scintilla uses.
+				else:
+					item = str(item)
+				items.append(item)
 			except Queue.Empty:
 				rc = 1
 				break
