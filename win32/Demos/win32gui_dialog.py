@@ -119,7 +119,7 @@ class LVCOLUMN(_WIN32MASKEDSTRUCT):
         ("iOrder", "i", 0, commctrl.LVCF_ORDER),
     ]
 
-class DemoWindow:
+class DemoWindowBase:
     def __init__(self):
         win32gui.InitCommonControls()
         self.hinst = win32gui.dllhandle
@@ -172,12 +172,6 @@ class DemoWindow:
 ##        dlg.append(['SysListView32', "Title", IDC_LISTBOX, (5, 505, 200, 200), s])
 
         return dlg
-
-    def CreateWindow(self):
-        self._DoCreate(win32gui.CreateDialogIndirect)
-
-    def DoModal(self):
-        return self._DoCreate(win32gui.DialogBoxIndirect)
 
     def _DoCreate(self, fn):
         message_map = {
@@ -262,13 +256,6 @@ class DemoWindow:
         l,t,r,b = win32gui.GetClientRect(self.hwnd)
         self._DoSize(r-l,b-t, 1)
 
-    def OnClose(self, hwnd, msg, wparam, lparam):
-        win32gui.EndDialog(hwnd, 0)
-
-    def OnDestroy(self, hwnd, msg, wparam, lparam):
-        print "OnDestroy"
-        win32gui.PostQuitMessage(0) # Terminate the app.
-
     def _DoSize(self, cx, cy, repaint = 1):
         # right-justify the textbox.
         ctrl = win32gui.GetDlgItem(self.hwnd, IDC_SEARCHTEXT)
@@ -339,12 +326,47 @@ class DemoWindow:
             sel = win32gui.SendMessage(self.hwndList, commctrl.LVM_GETNEXTITEM, -1, commctrl.LVNI_SELECTED)
             print "The selected item is", sel+1
 
-def DemoModal():
-    w=DemoWindow()
-    w.DoModal()
-##    w.CreateWindow()
-##    win32gui.PumpMessages()
-##    # Not sure how to kill this loop.
+    # These function differ based on how the window is used, so may be overridden
+    def OnClose(self, hwnd, msg, wparam, lparam):
+        raise NotImplementedError
 
+    def OnDestroy(self, hwnd, msg, wparam, lparam):
+        pass
+
+# An implementation suitable for use with the Win32 Window functions (ie, not
+# a true dialog)
+class DemoWindow(DemoWindowBase):
+    def CreateWindow(self):
+        # Create the window via CreateDialogBoxIndirect - it can then
+        # work as a "normal" window, once a message loop is established.
+        self._DoCreate(win32gui.CreateDialogIndirect)
+
+    def OnClose(self, hwnd, msg, wparam, lparam):
+        win32gui.DestroyWindow(hwnd)
+
+    # We need to arrange to a WM_QUIT message to be sent to our
+    # PumpMessages() loop.
+    def OnDestroy(self, hwnd, msg, wparam, lparam):
+        win32gui.PostQuitMessage(0) # Terminate the app.
+
+# An implementation suitable for use with the Win32 Dialog functions.
+class DemoDialog(DemoWindowBase):
+    def DoModal(self):
+        return self._DoCreate(win32gui.DialogBoxIndirect)
+
+    def OnClose(self, hwnd, msg, wparam, lparam):
+        win32gui.EndDialog(hwnd, 0)
+
+def DemoModal():
+    w=DemoDialog()
+    w.DoModal()
+
+def DemoCreateWindow():
+    w=DemoWindow()
+    w.CreateWindow()
+    # PumpMessages runs until PostQuitMessage() is called by someone.
+    win32gui.PumpMessages()
+    
 if __name__=='__main__':
     DemoModal()
+    DemoCreateWindow()
