@@ -107,15 +107,9 @@ void CPythonEngine::FindModuleName()
 	else {
 		// find out where our DLL/EXE module lives
 		// NOTE: the long file name does not get returned (don't know why)
-		if (!g_IsFrozen) {
-			::GetModuleFileName(g_hInstance, szFilePath, sizeof(szFilePath));
-			::_splitpath( szFilePath, NULL, NULL, szBase, NULL);
-			module_name = szBase + 1; // skip first char.
-		} else {
-			// When frozen, the module is always called 'PyISAPI_config'
-			strcpy(szBase, "pyISAPI_config.py");
-			module_name = szBase;
-		}
+		::GetModuleFileName(g_hInstance, szFilePath, sizeof(szFilePath));
+		::_splitpath( szFilePath, NULL, NULL, szBase, NULL);
+		module_name = szBase + 1; // skip first char.
 	}
 	strncpy(m_module_name, module_name, sizeof(m_module_name)/sizeof(m_module_name[0]));
 }

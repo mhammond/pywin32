@@ -331,16 +331,15 @@ def GetLoaderModuleName(mod_name):
     if hasattr(sys, "frozen"):
         # What to do?  The .dll knows its name, but this is likely to be
         # executed via a .exe, which does not know.
-        # For now, we strip everything past the last underscore in the
-        # executable name - this will work so long as you don't override
-        # the dest_base for the DLL itself.
-        base, ext = os.path.splitext(os.path.abspath(sys.argv[0]))
+        base, ext = os.path.splitext(mod_name)
         path, base = os.path.split(base)
-        try:
-            base = base[:base.rindex("_")]
-        except ValueError:
-            pass
-        dll_name = os.path.join(path, base + ".dll")
+        # handle the common case of 'foo.exe'/'foow.exe'
+        if base.endswith('w'):
+            base = base[:-1]
+        # For py2exe, we have '_foo.dll' as the standard pyisapi loader - but
+        # 'foo.dll' is what we use (it just delegates).
+        # So no leading '_' on the installed name.
+        dll_name = os.path.abspath(os.path.join(path, base + ".dll"))
     else:
         base, ext = os.path.splitext(mod_name)
         path, base = os.path.split(base)
