@@ -110,6 +110,9 @@ PYWINTYPES_EXPORT void PyWinObject_FreeBstr(BSTR pResult);
 
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromBstr(const BSTR bstr, BOOL takeOwnership=FALSE);
 
+// Convert a "char *" to a BSTR - free via ::SysFreeString()
+PYWINTYPES_EXPORT BSTR PyWin_String_AsBstr(const char *str);
+
 #endif // NO_PYWINTYPES_BSTR
 
 // Given a string or Unicode object, get WCHAR characters.
@@ -123,6 +126,7 @@ PYWINTYPES_EXPORT void PyWinObject_FreeWCHAR(BSTR pResult);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsString(PyObject *stringObject, char **pResult, BOOL bNoneOK = FALSE, DWORD *pResultLen = NULL);
 // And free it when finished.
 PYWINTYPES_EXPORT void PyWinObject_FreeString(char *pResult);
+PYWINTYPES_EXPORT void PyWinObject_FreeString(WCHAR *pResult);
 
 /* ANSI/Unicode Support */
 /* If UNICODE defined, will be a BSTR - otherwise a char *
@@ -157,6 +161,10 @@ PYWINTYPES_EXPORT void PyWinObject_FreeTaskAllocatedWCHAR(WCHAR * str);
 // String conversion - These must also be freed with PyWinObject_FreeString
 PYWINTYPES_EXPORT BOOL PyWin_WCHAR_AsString(WCHAR *input, DWORD inLen, char **pResult);
 PYWINTYPES_EXPORT BOOL PyWin_Bstr_AsString(BSTR input, char **pResult);
+PYWINTYPES_EXPORT BOOL PyWin_String_AsWCHAR(char *input, DWORD inLen, WCHAR **pResult);
+
+PYWINTYPES_EXPORT void PyWinObject_FreeString(char *str);
+PYWINTYPES_EXPORT void PyWinObject_FreeString(WCHAR *str);
 
 /*
 ** LARGE_INTEGER objects
