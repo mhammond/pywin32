@@ -143,7 +143,44 @@ BOOL PyWinObject_AsSYSTEMTIME(PyObject *ob, SYSTEMTIME *pDate)
 #define SECS_PER_DAY	(24.0 * 60.0 * 60.0)
 
 #ifndef MS_WINCE
+
+/* the following code is taken from Python 2.3 Modules/datetimemodule.c
+ * it is used for calculating day of the year for PyTime::Format
+ */
+
+static int _days_before_month[] = {
+        0, /* unused; this vector uses 1-based indexing */
+        0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334
+};
+
+/* year -> 1 if leap year, else 0. */
+static int is_leap(int year)
+{
+        /* Cast year to unsigned.  The result is the same either way, but
+         * C can generate faster code for unsigned mod than for signed
+         * mod (especially for % 4 -- a good compiler should just grab
+         * the last 2 bits when the LHS is unsigned).
+         */
+        const unsigned int ayear = (unsigned int)year;
+        return ayear % 4 == 0 && (ayear % 100 != 0 || ayear % 400 == 0);
+}
+
+/* year, month -> number of days in year preceeding first day of month */
+static int
+days_before_month(int year, int month)
+{
+        int days;
+
+        assert(month >= 1);
+        assert(month <= 12);
+        days = _days_before_month[month];
+        if (month > 2 && is_leap(year))
+                ++days;
+        return days;
+}
+
 // @pymethod <o PyUnicode>|PyTime|Format|Formats the time value.
+
 PyObject *PyTime::Format(PyObject *self, PyObject *args)
 {
 	PyObject *obFormat = NULL;
@@ -174,22 +211,24 @@ PyObject *PyTime::Format(PyObject *self, PyObject *args)
 	tm.tm_mday = st.wDay;
 	tm.tm_mon = st.wMonth - 1;
 	tm.tm_year = st.wYear - 1900;
-	tm.tm_isdst = -1;	/* have the library figure it out */
-	/* converting to time_t and back allows us to calculate
-	 * tm.tm_wday (day of week) and tm.tm_yday (day of year)
-	 * though day of week is available as st.wDayOfWeek, day of year is not in st
-	 */
-	time_t time = mktime(&tm);
-        /* We need a better way to format, but for now we have to live inside
-           the limitations of localtime()
-        */
-        struct tm *local = localtime(&time);
-        if (local==NULL)
-            return PyErr_Format(PyExc_ValueError, "The time value is too early to be formatted");
 
-	tm = *local;
-	// tm.tm_wday = st.wDayOfWeek;
-	// tm.tm_yday = st.  day of year;
+	/* Ask windows for the current is_dst flag */
+	TIME_ZONE_INFORMATION tzinfo;
+	switch (GetTimeZoneInformation(&tzinfo)) {
+		case TIME_ZONE_ID_STANDARD:
+			tm.tm_isdst = 0;
+			break;
+		case TIME_ZONE_ID_DAYLIGHT:
+			tm.tm_isdst = 1;
+			break;
+		default:
+			tm.tm_isdst = -1;
+			break;
+	}
+	/* tm_wday: day of week (0-6) sunday=0 : weekday(y, m, d) */
+	/* tm_yday: day of year (0-365) january 1=0: days_before_month(y, m) + d */
+	tm.tm_wday = st.wDayOfWeek;
+	tm.tm_yday = days_before_month(st.wYear, st.wMonth) + st.wDay - 1;
 
 	if (!_tcsftime(szBuffer, 256/*_countof()*/, fmt, &tm))
 		szBuffer[0] = '\0'; // Better error?
