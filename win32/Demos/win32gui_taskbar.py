@@ -8,6 +8,7 @@ class MainWindow:
 	def __init__(self):
 		message_map = {
 			win32con.WM_DESTROY: self.OnDestroy,
+			win32con.WM_COMMAND: self.OnCommand,
 			win32con.WM_USER+20 : self.OnTaskbarNotify,
 		}
 		# Register the Window class.
@@ -43,7 +44,24 @@ class MainWindow:
 		elif lparam==win32con.WM_LBUTTONDBLCLK:
 			print "You double-clicked me - goodbye"
 			PostQuitMessage(0)
+		elif lparam==win32con.WM_RBUTTONUP:
+			print "You right clicked me."
+			menu = CreatePopupMenu()
+			AppendMenu( menu, win32con.MF_STRING, 1024, "Say Hello")
+			AppendMenu( menu, win32con.MF_STRING, 1025, "Exit program" )
+			pos = GetCursorPos()
+			TrackPopupMenu(menu, win32con.TPM_LEFTALIGN, pos[0], pos[1], 0, self.hwnd, None)
 		return 1
+
+	def OnCommand(self, hwnd, msg, wparam, lparam):
+		id = LOWORD(wparam)
+		if id == 1024:
+			print "Hello"
+		elif id == 1025:
+			print "Goodbye"
+			PostQuitMessage(0)
+		else:
+			print "Unknown command -", id
 
 def main():
 	w=MainWindow()
