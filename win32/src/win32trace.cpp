@@ -39,7 +39,7 @@ See - I told you the implementation was simple :-)
 
 
 
-const size_t BUFFER_SIZE = 0x10000; // Includes size integer.
+const size_t BUFFER_SIZE = 0x20000; // Includes size integer.
 const char *MAP_OBJECT_NAME = "PythonTraceOutputMapping";
 const char *MUTEX_OBJECT_NAME = "PythonTraceOutputMutex";
 const char *EVENT_OBJECT_NAME = "PythonTraceOutputEvent";
@@ -300,7 +300,19 @@ BOOL PyTraceObject::WriteData(const char *data, unsigned len)
     const char *data_this = data;
     while (len) {
         unsigned len_this = min(len, BUFFER_SIZE/2);
-        if (GetMyMutex()) {
+        BOOL ok = GetMyMutex();
+        if (ok) {
+            size_t *pLen = (size_t *)pMapBaseWrite;
+            size_t sizeLeft = (BUFFER_SIZE-sizeof(size_t)) - *pLen;
+            // If less than double we need left, wait for it to empty, or .1 sec.
+            if (sizeLeft < len_this * 2) {
+                ReleaseMyMutex();
+                SetEvent(hEvent);
+                WaitForSingleObject(hEventEmpty, 100);
+                ok = GetMyMutex();
+            }
+        }
+        if (ok) {
             size_t *pLen = (size_t *)pMapBaseWrite;
             char *buffer = (char *)(((size_t *)pMapBaseWrite)+1);
 
@@ -313,12 +325,6 @@ BOOL PyTraceObject::WriteData(const char *data, unsigned len)
             SetEvent(hEvent);
             data_this += len_this;
             len -= len_this;
-            if (len) {
-                // If we had to split up the data, we can have little sleep
-                // to let a reader grab the data (but if a reader empties us
-                // before the timeout, then we wake up)
-                WaitForSingleObject(hEventEmpty, 10);
-            }
         }
     }
     Py_END_ALLOW_THREADS
