@@ -1,0 +1,9 @@
+#
+# MANIFEST.in
+#
+# Manifest template for creating the pywin32 source distribution.
+
+include MANIFEST.in
+include pythonwin/Scintilla/*
+include win32/src/*.h
+include com/win32com/src/*.h
