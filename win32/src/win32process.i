@@ -554,7 +554,7 @@ PyObject *MyCreateProcess(
 	SECURITY_ATTRIBUTES *INPUT_NULLOK, // @pyparm <o PySECURITY_ATTRIBUTES>|processAttributes||process security attributes, or None
 	SECURITY_ATTRIBUTES *INPUT_NULLOK, // @pyparm <o PySECURITY_ATTRIBUTES>|threadAttributes||thread security attributes, or None
 	BOOL bInheritHandles, // @pyparm int|bInheritHandles||handle inheritance flag
-	DWORD dwCreationFlags, // @pyparm int|dwCreationFlags||creation flags.  May be a combination of the following values:
+	DWORD dwCreationFlags, // @pyparm int|dwCreationFlags||creation flags.  May be a combination of the following values from the win32con module:
 			// @flagh Value|Meaning
 			// @flag CREATE_BREAKAWAY_FROM_JOB|Windows 2000: The child processes of a process associated with a job are not associated with the job. 
 			// If the calling process is not associated with a job, this flag has no effect. If the calling process is associated with a job, the job must set the JOB_OBJECT_LIMIT_BREAKAWAY_OK limit or CreateProcess will fail. 
