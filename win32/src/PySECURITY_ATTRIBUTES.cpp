@@ -80,6 +80,10 @@ PyObject *PySECURITY_ATTRIBUTES::SetSecurityDescriptorDacl(PyObject *self, PyObj
 		return NULL;
 	if (!::SetSecurityDescriptorDacl(&This->m_sd, bPresent, pacl, bDefaulted))
 		return PyWin_SetAPIError("SetSecurityDescriptorDacl");
+	// prevent obACL getting gc'd while This->m_sd holds pointer to pacl.
+	Py_XDECREF(This->m_obACL);
+	This->m_obACL= obACL;
+	Py_INCREF(This->m_obACL);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -128,6 +132,7 @@ PySECURITY_ATTRIBUTES::PySECURITY_ATTRIBUTES(void)
 	m_sa.nLength = sizeof(SECURITY_ATTRIBUTES);
 	m_sa.lpSecurityDescriptor = &m_sd;
 	m_sa.bInheritHandle = TRUE;
+	m_obACL = NULL;
 	::InitializeSecurityDescriptor(&m_sd, SECURITY_DESCRIPTOR_REVISION);
 }
 
@@ -136,9 +141,14 @@ PySECURITY_ATTRIBUTES::PySECURITY_ATTRIBUTES(const SECURITY_ATTRIBUTES &sa)
 	ob_type = &PySECURITY_ATTRIBUTESType;
 	_Py_NewReference(this);
 	m_sa = sa;
+	m_obACL = NULL;
 	::InitializeSecurityDescriptor(&m_sd, SECURITY_DESCRIPTOR_REVISION);
 }
 
+PySECURITY_ATTRIBUTES::~PySECURITY_ATTRIBUTES()
+{
+	Py_XDECREF( m_obACL );
+}
 
 PyObject *PySECURITY_ATTRIBUTES::getattr(PyObject *self, char *name)
 {

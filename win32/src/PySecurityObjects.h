@@ -11,6 +11,7 @@ public:
 
 	PySECURITY_ATTRIBUTES(void);
 	PySECURITY_ATTRIBUTES(const SECURITY_ATTRIBUTES &);
+	~PySECURITY_ATTRIBUTES(void);
 
 	/* Python support */
 	int compare(PyObject *ob);
@@ -34,6 +35,7 @@ public:
 protected:
 	SECURITY_ATTRIBUTES m_sa;
 	SECURITY_DESCRIPTOR m_sd;
+	PyObject *m_obACL; // call to SetSecurityDescriptorDacl incref's then stores pyACL
 };
 
 
