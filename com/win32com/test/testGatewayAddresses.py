@@ -30,7 +30,7 @@
 # "whenever you return an _object_ from _query_interface_(), you must return the
 # same object each time for a given IID.  Note that you must return the same
 # _wrapped_ object
-# you 
+# you
 # The rest are tested here.
 
 
@@ -43,93 +43,92 @@ numErrors = 0
 
 # Check that the 2 objects both have identical COM pointers.
 def CheckSameCOMObject(ob1, ob2):
-	addr1 = string.split(repr(ob1))[6][:-1]
-	addr2 = string.split(repr(ob2))[6][:-1]
-	return addr1==addr2
+    addr1 = string.split(repr(ob1))[6][:-1]
+    addr2 = string.split(repr(ob2))[6][:-1]
+    return addr1==addr2
 
 # Check that the objects conform to COM identity rules.
 def CheckObjectIdentity(ob1, ob2):
-	u1 = ob1.QueryInterface(pythoncom.IID_IUnknown)
-	u2 = ob2.QueryInterface(pythoncom.IID_IUnknown)
-	return CheckSameCOMObject(u1, u2)
+    u1 = ob1.QueryInterface(pythoncom.IID_IUnknown)
+    u2 = ob2.QueryInterface(pythoncom.IID_IUnknown)
+    return CheckSameCOMObject(u1, u2)
 
 def FailObjectIdentity(ob1, ob2, when):
-	if not CheckObjectIdentity(ob1, ob2):
-		global numErrors
-		numErrors = numErrors + 1
-		print when, "are not identical (%s, %s)" % (`ob1`, `ob2`)
+    if not CheckObjectIdentity(ob1, ob2):
+        global numErrors
+        numErrors = numErrors + 1
+        print when, "are not identical (%s, %s)" % (`ob1`, `ob2`)
 
 
 class Dummy:
-	_public_methods_ = [] # We never attempt to make a call on this object.
-	_com_interfaces_ = [pythoncom.IID_IPersistStorage]
+    _public_methods_ = [] # We never attempt to make a call on this object.
+    _com_interfaces_ = [pythoncom.IID_IPersistStorage]
 
 class Dummy2:
-	_public_methods_ = [] # We never attempt to make a call on this object.
-	_com_interfaces_ = [pythoncom.IID_IPersistStorage, pythoncom.IID_IExternalConnection]
+    _public_methods_ = [] # We never attempt to make a call on this object.
+    _com_interfaces_ = [pythoncom.IID_IPersistStorage, pythoncom.IID_IExternalConnection]
 
 class DeletgatedDummy:
-	_public_methods_ = []
+    _public_methods_ = []
 
 class Dummy3:
-	_public_methods_ = [] # We never attempt to make a call on this object.
-	_com_interfaces_ = [pythoncom.IID_IPersistStorage]
-	def _query_interface_(self, iid):
-		if iid==pythoncom.IID_IExternalConnection:
-			# This will NEVER work - can only wrap the object once!
-			return wrap(DelegatedDummy())
+    _public_methods_ = [] # We never attempt to make a call on this object.
+    _com_interfaces_ = [pythoncom.IID_IPersistStorage]
+    def _query_interface_(self, iid):
+        if iid==pythoncom.IID_IExternalConnection:
+            # This will NEVER work - can only wrap the object once!
+            return wrap(DelegatedDummy())
 
-def TestGatewayInheritance():	
-	# By default, wrap() creates and discards a temporary object.
-	# This is not necessary, but just the current implementation of wrap.
-	# As the object is correctly discarded, it doesnt affect this test.
-	o = wrap(Dummy(), pythoncom.IID_IPersistStorage)
-	o2 = o.QueryInterface(pythoncom.IID_IUnknown)
-	FailObjectIdentity(o, o2, "IID_IPersistStorage->IID_IUnknown")
+def TestGatewayInheritance():
+    # By default, wrap() creates and discards a temporary object.
+    # This is not necessary, but just the current implementation of wrap.
+    # As the object is correctly discarded, it doesnt affect this test.
+    o = wrap(Dummy(), pythoncom.IID_IPersistStorage)
+    o2 = o.QueryInterface(pythoncom.IID_IUnknown)
+    FailObjectIdentity(o, o2, "IID_IPersistStorage->IID_IUnknown")
 
-	o3 = o2.QueryInterface(pythoncom.IID_IDispatch)
+    o3 = o2.QueryInterface(pythoncom.IID_IDispatch)
 
-	FailObjectIdentity(o2, o3, "IID_IUnknown->IID_IDispatch")
-	FailObjectIdentity(o, o3, "IID_IPersistStorage->IID_IDispatch")
+    FailObjectIdentity(o2, o3, "IID_IUnknown->IID_IDispatch")
+    FailObjectIdentity(o, o3, "IID_IPersistStorage->IID_IDispatch")
 
-	o4 = o3.QueryInterface(pythoncom.IID_IPersistStorage)
-	FailObjectIdentity(o, o4, "IID_IPersistStorage->IID_IPersistStorage(2)")
-	FailObjectIdentity(o2, o4, "IID_IUnknown->IID_IPersistStorage(2)")
-	FailObjectIdentity(o3, o4, "IID_IDispatch->IID_IPersistStorage(2)")
+    o4 = o3.QueryInterface(pythoncom.IID_IPersistStorage)
+    FailObjectIdentity(o, o4, "IID_IPersistStorage->IID_IPersistStorage(2)")
+    FailObjectIdentity(o2, o4, "IID_IUnknown->IID_IPersistStorage(2)")
+    FailObjectIdentity(o3, o4, "IID_IDispatch->IID_IPersistStorage(2)")
 
 
-	o5 = o4.QueryInterface(pythoncom.IID_IPersist)
-	FailObjectIdentity(o, o5, "IID_IPersistStorage->IID_IPersist")
-	FailObjectIdentity(o2, o5, "IID_IUnknown->IID_IPersist")
-	FailObjectIdentity(o3, o5, "IID_IDispatch->IID_IPersist")
-	FailObjectIdentity(o4, o5, "IID_IPersistStorage(2)->IID_IPersist")
-	
+    o5 = o4.QueryInterface(pythoncom.IID_IPersist)
+    FailObjectIdentity(o, o5, "IID_IPersistStorage->IID_IPersist")
+    FailObjectIdentity(o2, o5, "IID_IUnknown->IID_IPersist")
+    FailObjectIdentity(o3, o5, "IID_IDispatch->IID_IPersist")
+    FailObjectIdentity(o4, o5, "IID_IPersistStorage(2)->IID_IPersist")
+
 def TestMultiInterface():
-	o = wrap(Dummy2(), pythoncom.IID_IPersistStorage)
-	o2 = o.QueryInterface(pythoncom.IID_IExternalConnection)
+    o = wrap(Dummy2(), pythoncom.IID_IPersistStorage)
+    o2 = o.QueryInterface(pythoncom.IID_IExternalConnection)
 
-	FailObjectIdentity(o, o2, "IID_IPersistStorage->IID_IExternalConnection")
+    FailObjectIdentity(o, o2, "IID_IPersistStorage->IID_IExternalConnection")
 
-	# Make the same QI again, to make sure it is stable.
-	o22 = o.QueryInterface(pythoncom.IID_IExternalConnection)
-	FailObjectIdentity(o, o22, "IID_IPersistStorage->IID_IExternalConnection")
-	FailObjectIdentity(o2, o22, "IID_IPersistStorage->IID_IExternalConnection (stability)")
+    # Make the same QI again, to make sure it is stable.
+    o22 = o.QueryInterface(pythoncom.IID_IExternalConnection)
+    FailObjectIdentity(o, o22, "IID_IPersistStorage->IID_IExternalConnection")
+    FailObjectIdentity(o2, o22, "IID_IPersistStorage->IID_IExternalConnection (stability)")
 
-	o3 = o2.QueryInterface(pythoncom.IID_IPersistStorage)
-	FailObjectIdentity(o2, o3, "IID_IExternalConnection->IID_IPersistStorage")
-	FailObjectIdentity(o, o3, "IID_IPersistStorage->IID_IExternalConnection->IID_IPersistStorage")
+    o3 = o2.QueryInterface(pythoncom.IID_IPersistStorage)
+    FailObjectIdentity(o2, o3, "IID_IExternalConnection->IID_IPersistStorage")
+    FailObjectIdentity(o, o3, "IID_IPersistStorage->IID_IExternalConnection->IID_IPersistStorage")
 
 
 def test():
-	TestGatewayInheritance()
-	TestMultiInterface()
-	if numErrors==0:
-		print "Worked ok"
-	else:
-		print "There were", numErrors, "errors."
+    TestGatewayInheritance()
+    TestMultiInterface()
+    if numErrors==0:
+        print "Worked ok"
+    else:
+        print "There were", numErrors, "errors."
 
-	
+
 if __name__=='__main__':
-	test()
-	CheckClean()
-
+    test()
+    CheckClean()

@@ -4,7 +4,7 @@
 #
 # * When a Python COM object is called via IDispatch, the nominated
 #   scode is placed in the exception tuple, and the HRESULT is
-#   DISP_E_EXCEPTION 
+#   DISP_E_EXCEPTION
 # * When the same interface is called via IWhatever, the
 #   nominated  scode is returned directly (with the scode also
 #   reflected in the exception tuple)
@@ -85,4 +85,3 @@ if __name__=='__main__':
     test()
     from util import CheckClean
     CheckClean()
-
