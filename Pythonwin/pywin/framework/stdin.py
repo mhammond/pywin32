@@ -161,7 +161,6 @@ Sell you soul to the devil, baby
             raise 'EOF'
         return result
     
-    global get_input_line
     get_input_line = fake_raw_input
 
     # Some completely inadequate tests, just to make sure the code's not totally broken    
