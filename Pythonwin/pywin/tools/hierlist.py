@@ -16,6 +16,7 @@
 
 import win32ui 
 import win32con
+import win32api
 from win32api import RGB
 
 from pywin.mfc import object, window, docview, dialog
@@ -47,7 +48,7 @@ class HierDialog(dialog.Dialog):
 
 class HierList(object.Object):
 	def __init__(self, root, bitmapID = win32ui.IDB_HIERFOLDERS, listBoxId = None, bitmapMask = None): # used to create object.
-		self.list = self._obj_ = None
+		self.list = None
 		self.bitmapID = bitmapID
 		self.root = root
 		self.listBoxId = listBoxId
@@ -57,8 +58,7 @@ class HierList(object.Object):
 	def ItemFromHandle(self, handle):
 		return self.itemHandleMap[handle]
 	def SetStyle(self, newStyle):
-		import win32api
-		hwnd = self._obj_.GetSafeHwnd()
+		hwnd = self.list.GetSafeHwnd()
 		style = win32api.GetWindowLong(hwnd, win32con.GWL_STYLE);
 		win32api.SetWindowLong(hwnd, win32con.GWL_STYLE, (style | newStyle) )
 
@@ -72,9 +72,9 @@ class HierList(object.Object):
 		self.imageList = win32ui.CreateImageList(self.bitmapID, 16, 0, bitmapMask)
 		if listControl is None:
 			if self.listBoxId is None: self.listBoxId = win32ui.IDC_LIST1
-			self.list = self._obj_ = parent.GetDlgItem(self.listBoxId)
+			self.list = parent.GetDlgItem(self.listBoxId)
 		else:
-			self.list = self._obj_ = listControl
+			self.list = listControl
 			lbid = listControl.GetDlgCtrlID()
 			assert self.listBoxId is None or self.listBoxId == lbid, "An invalid listbox control ID has been specified (specified as %s, but exists as %s)" % (self.listBoxId, lbid)
 			self.listBoxId = lbid
@@ -105,7 +105,7 @@ class HierList(object.Object):
 
 	def OnTreeItemDoubleClick(self,(hwndFrom, idFrom, code), extra):
 		if idFrom != self.listBoxId: return None
-		item = self.itemHandleMap[self._obj_.GetSelectedItem()]
+		item = self.itemHandleMap[self.list.GetSelectedItem()]
 		self.TakeDefaultAction(item)
 		return 1
 
