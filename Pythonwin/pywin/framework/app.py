@@ -343,6 +343,11 @@ class AboutBox(dialog.Dialog):
 		if ver is None:
 			ver = ""
 		self.SetDlgItemText(win32ui.IDC_ABOUT_VERSION, ver)
+		self.HookCommand(self.OnButHomePage, win32ui.IDC_BUTTON1)
+
+	def OnButHomePage(self, id, code):
+		if code == win32con.BN_CLICKED:
+			win32api.ShellExecute(0, "open", "http://starship.python.net/crew/mhammond/win32", None, "", 1)
 
 def Win32RawInput(prompt=None):
 	"Provide raw_input() for gui apps"
