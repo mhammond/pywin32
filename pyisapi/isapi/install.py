@@ -7,6 +7,7 @@ from win32com.client import GetObject, Dispatch
 from win32com.client.gencache import EnsureModule, EnsureDispatch
 import pythoncom
 import winerror
+import traceback
 
 _APP_INPROC  = 0;
 _APP_OUTPROC = 1;
@@ -78,6 +79,8 @@ class ISAPIParameters:
     # Description = None
     Filters = []
     VirtualDirs = []
+    def __init__(self, **kw):
+        self.__dict__.update(kw)
 
 verbose = 1 # The level - 0 is quiet.
 def log(level, what):
@@ -94,8 +97,9 @@ def _GetWin32ErrorCode(com_exc):
         raise
     return winerror.SCODE_CODE(hr)
 
-class ItemNotFound(Exception): pass
-class ConfigurationError(Exception): pass
+class InstallationError(Exception): pass
+class ItemNotFound(InstallationError): pass
+class ConfigurationError(InstallationError): pass
 
 def FindWebServiceObject(class_name = None, obj_name = None):
     #webService = adsi.ADsGetObject(_IIS_OBJECT, adsi.IID_IADsContainer)
@@ -122,9 +126,10 @@ def FindADSIObject(adsiObject, clsName, objName):
             return child
     raise ItemNotFound, "ADSI object %s.%s" % (clsName, objName)
 
-def CreateVirtualDir(webRootDir, params):
+def CreateVirtualDir(webRootDir, params, options):
     if not params.Name:
         raise ConfigurationError, "No Name param"
+    _CallHook(params, "PreInstall", options)
     try:
         newDir = webRootDir.Create(_IIS_WEBVIRTUALDIR, params.Name)
     except pythoncom.com_error, details:
@@ -139,6 +144,7 @@ def CreateVirtualDir(webRootDir, params):
         log(2, "Updating existing directory '%s'..." % (params.Name,));
     else:
         log(2, "Creating new directory '%s'..." % (params.Name,))
+        
         friendly = params.Description or params.Name
         newDir.AppFriendlyName = friendly
         path = params.Path or webRootDir.Path
@@ -176,10 +182,12 @@ def CreateVirtualDir(webRootDir, params):
         raise ConfigurationError, \
               "Unknown ScriptMapUpdate option '%s'" % (params.ScriptMapUpdate,)
     newDir.SetInfo()
+    _CallHook(params, "PostInstall", options, newDir)
     log(1, "Configured Virtual Directory: %s" % (params.Name,))
     return newDir
 
-def CreateISAPIFilter(webServer, filterParams):
+def CreateISAPIFilter(webServer, filterParams, options):
+    _CallHook(filterParams, "PreInstall", options)
     filters = FindADSIObject(webServer, _IIS_FILTERS, "Filters")
     try:
         newFilter = filters.Create(_IIS_FILTER, filterParams.Name)
@@ -198,10 +206,12 @@ def CreateISAPIFilter(webServer, filterParams):
         load_order.append(filterParams.Name)
         filters.FilterLoadOrder = ",".join(load_order)
         filters.SetInfo()
+    _CallHook(filterParams, "PostInstall", options, newFilter)
     log (1, "Configured Filter: %s" % (filterParams.Name,))
     return newFilter
 
-def DeleteISAPIFilter(webServer, filterParams):
+def DeleteISAPIFilter(webServer, filterParams, options):
+    _CallHook(filterParams, "PreRemove", options)
     filters = FindADSIObject(webServer, _IIS_FILTERS, "Filters")
     try:
         newFilter = filters.Delete(_IIS_FILTER, filterParams.Name)
@@ -217,6 +227,7 @@ def DeleteISAPIFilter(webServer, filterParams):
             load_order.remove(filterParams.Path)
             filters.FilterLoadOrder = ",".join(load_order)
             filters.SetInfo()
+    _CallHook(filterParams, "PostRemove", options)
     log (1, "Deleted Filter: %s" % (filterParams.Name,))
 
 def CheckLoaderModule(dll_name):
@@ -245,33 +256,56 @@ def CheckLoaderModule(dll_name):
     else:
         log(2, "%s is up to date." % (dll_name,))
 
-def Install(params):
-    server_name = _DEFAULT_SERVER_NAME
-    web_service = FindWebServiceObject()
-    server = FindWebServer(server_name)
-    root = FindADSIObject(server, _IIS_WEBVIRTUALDIR, "Root")
-    for vd in params.VirtualDirs:
-        CreateVirtualDir(root, vd)
-    for filter_def in params.Filters:
-        f = CreateISAPIFilter(server, filter_def)
+def _CallHook(ob, hook_name, options, *extra_args):
+    func = getattr(ob, hook_name, None)
+    if func is not None:
+        args = (ob,options) + extra_args
+        func(*args)
 
-def Uninstall(params):    
+def Install(params, options):
+    server_name = _DEFAULT_SERVER_NAME
+    _CallHook(params, "PreInstall", options)
+    web_service = FindWebServiceObject()
+    server = FindWebServer(server_name)
+    root = FindADSIObject(server, _IIS_WEBVIRTUALDIR, "Root")
+    for vd in params.VirtualDirs:
+        CreateVirtualDir(root, vd, options)
+        
+    for filter_def in params.Filters:
+        f = CreateISAPIFilter(server, filter_def, options)
+    _CallHook(params, "PostInstall", options)
+
+def Uninstall(params, options):
+    _CallHook(params, "PreRemove", options)
     server_name = _DEFAULT_SERVER_NAME
     web_service = FindWebServiceObject()
     server = FindWebServer(server_name)
     root = FindADSIObject(server, _IIS_WEBVIRTUALDIR, "Root")
     for vd in params.VirtualDirs:
+        _CallHook(vd, "PreRemove", options)
+        # Find the virtual dir, and unload it.  This should stop the app
+        # immediately, rather than needing to restart IIS.
+        try:
+            d = FindADSIObject(root, _IIS_WEBVIRTUALDIR, vd.Name)
+        except ItemNotFound:
+            # This can happen when the VD has not yet been loaded
+            pass
+        else:
+            d.AppUnload()
+            log (2, "Unloaded Virtual Directory: %s" % (vd.Name,))
+        # Now actually delete the directory.
         try:
             newDir = root.Delete(_IIS_WEBVIRTUALDIR, vd.Name)
         except pythoncom.com_error, details:
             rc = _GetWin32ErrorCode(details)
             if rc != winerror.ERROR_PATH_NOT_FOUND:
                 raise
+        _CallHook(vd, "PostRemove", options)
         log (1, "Deleted Virtual Directory: %s" % (vd.Name,))
 
-
     for filter_def in params.Filters:
-        DeleteISAPIFilter(server, filter_def)
+        DeleteISAPIFilter(server, filter_def, options)
+    _CallHook(params, "PostRemove", options)
 
 # Patch up any missing module names in the params, replacing them with
 # the DLL name that hosts this extension/filter.
@@ -312,7 +346,7 @@ def GetLoaderModuleName(mod_name):
         CheckLoaderModule(dll_name)
     return dll_name
 
-def InstallModule(conf_module_name, params):
+def InstallModule(conf_module_name, params, options):
     if not hasattr(sys, "frozen"):
         conf_module_name = os.path.abspath(conf_module_name)
         if not os.path.isfile(conf_module_name):
@@ -320,41 +354,87 @@ def InstallModule(conf_module_name, params):
 
     loader_dll = GetLoaderModuleName(conf_module_name)
     _PatchParamsModule(params, loader_dll)
-    Install(params)
+    Install(params, options)
 
-def UninstallModule(conf_module_name, params):
+def UninstallModule(conf_module_name, params, options):
     loader_dll = GetLoaderModuleName(conf_module_name)
     _PatchParamsModule(params, loader_dll, False)
-    Uninstall(params)
+    Uninstall(params, options)
+
+standard_arguments = {
+    "install" : "Install the extension",
+    "remove"  : "Remove the extension"
+}
 
 # Later we will probably need arguments that allow us to change the
 # name of the default server, etc - ie, at the moment, we only work
 # when the WWW server is named _DEFAULT_SERVER_NAME ("Default Web Site")
-def HandleCommandLine(params, argv=None, conf_module_name = None):
+#
+# We support 2 ways of extending our command-line/install support.
+# * Many of the installation items allow you to specify "PreInstall",
+#   "PostInstall", "PreRemove" and "PostRemove" hooks
+#   All hooks are called with the 'params' object being operated on, and
+#   the 'optparser' options for this session (ie, the command-line options)
+#   PostInstall for VirtualDirectories and Filters both have an additional
+#   param - the ADSI object just created.
+# * You can pass your own option parser for us to use, and/or define a map
+#   with your own custom arg handlers.  It is a map of 'arg'->function.
+#   The function is called with (options, log_fn, arg).  The function's
+#   docstring is used in the usage output.
+def HandleCommandLine(params, argv=None, conf_module_name = None,
+                      default_arg = "install",
+                      opt_parser = None, custom_arg_handlers = {}):
     global verbose
     from optparse import OptionParser
 
     argv = argv or sys.argv
     conf_module_name = conf_module_name or sys.argv[0]
     
-    parser = OptionParser(usage="%prog [options] [install|remove]")
+    if opt_parser is None:
+        # Build our own parser.
+        parser = OptionParser(usage='')
+    else:
+        # The caller is providing their own filter, presumably with their
+        # own options all setup.
+        parser = opt_parser
+
+    # build a usage string if we don't have one.
+    if not parser.get_usage():
+        all_args = standard_arguments.copy()
+        for arg, handler in custom_arg_handlers.items():
+            all_args[arg] = handler.__doc__
+        arg_names = "|".join(all_args.keys())
+        usage_string = "%prog [options] [" + arg_names + "]\n"
+        usage_string += "commands:\n"
+        for arg, desc in all_args.items():
+            usage_string += " %-10s: %s" % (arg, desc) + "\n"
+        parser.set_usage(usage_string[:-1])
+
     parser.add_option("-q", "--quiet",
                       action="store_false", dest="verbose", default=True,
                       help="don't print status messages to stdout")
-    parser.add_option("-v", "--verbosity",
+    parser.add_option("-v", "--verbosity", action="count",
                       dest="verbose", default=1,
                       help="set the verbosity of status messages")
 
     (options, args) = parser.parse_args(argv[1:])
     verbose = options.verbose
     if not args:
-        args = ["install"]
-    for arg in args:
-        if arg == "install":
-            InstallModule(conf_module_name, params)
-            log(1, "Installation complete.")
-        elif arg in ["remove", "uninstall"]:
-            UninstallModule(conf_module_name, params)
-            log(1, "Uninstallation complete.")
-        else:
-            parser.error("Invalid arg '%s'" % (arg,))
+        args = [default_arg]
+    try:
+        for arg in args:
+            if arg == "install":
+                InstallModule(conf_module_name, params, options)
+                log(1, "Installation complete.")
+            elif arg in ["remove", "uninstall"]:
+                UninstallModule(conf_module_name, params, options)
+                log(1, "Uninstallation complete.")
+            else:
+                handler = custom_arg_handlers.get(arg, None)
+                if handler is None:
+                    parser.error("Invalid arg '%s'" % (arg,))
+                handler(options, log, arg)
+    except InstallationError, details:
+        if options.verbose > 1:
+            traceback.print_exc()
+        print "%s: %s" % (details.__class__.__name__, details)
