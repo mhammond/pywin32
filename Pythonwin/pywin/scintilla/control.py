@@ -152,6 +152,10 @@ class ScintillaControlInterface:
 	def SCISetFoldFlags(self, flags):
 		self.SendScintilla(SCI_SETFOLDFLAGS, flags)
 	# Markers
+	def SCIMarkerDefineAll(self, markerNum, markerType, fore, back):
+		self.SCIMarkerDefine(markerNum, markerType)
+		self.SCIMarkerSetFore(markerNum, fore)
+		self.SCIMarkerSetBack(markerNum, back)
 	def SCIMarkerDefine(self, markerNum, markerType):
 		self.SendScintilla(SCI_MARKERDEFINE, markerNum, markerType)
 	def SCIMarkerSetFore(self, markerNum, fore):
@@ -241,6 +245,10 @@ class ScintillaControlInterface:
 		return self.SendScintilla(SCI_GETDOCPOINTER)
 	def SCISetDocPointer(self, p):
 		return self.SendScintilla(SCI_SETDOCPOINTER, 0, p)
+	def SCISetWrapMode(self, mode):
+		return self.SendScintilla(SCI_SETWRAPMODE, mode)
+	def SCIGetWrapMode(self):
+		return self.SendScintilla(SCI_GETWRAPMODE)
 
 class CScintillaEditInterface(ScintillaControlInterface):
 	def close(self):
