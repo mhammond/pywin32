@@ -41,7 +41,7 @@ sys.appargv = sys.argv[:]
 if len(sys.argv)>=2 and strop.lower(sys.argv[0])=='/app': 
 	import cmdline
 	moduleName = cmdline.FixArgFileName(sys.argv[1])
-	sys.appargvoffset = 1
+	sys.appargvoffset = 2
 	newargv=sys.argv[sys.appargvoffset:]
 #	newargv.insert(0, sys.argv[0])
 	sys.argv = newargv
