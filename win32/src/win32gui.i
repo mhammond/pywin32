@@ -84,11 +84,11 @@ typedef int UINT;
     RECT r;
 	if (PyTuple_Check($source)) {
 		if (PyArg_ParseTuple($source, "llll", &r.left, &r.top, &r.right, &r.bottom) == 0) {
-			return PyWin_SetAPIError("$name");
+			return PyErr_Format(PyExc_TypeError, "%s: This param must be a tuple of four integers", "$name");
 		}
 		$target = &r;
-    } else {
-        return PyWin_SetAPIError("$name");
+	} else {
+		return PyErr_Format(PyExc_TypeError, "%s: This param must be a tuple of four integers", "$name");
 	}
 }
 
@@ -96,7 +96,7 @@ typedef int UINT;
     RECT r;
 	if (PyTuple_Check($source)) {
 		if (PyArg_ParseTuple($source, "llll", &r.left, &r.top, &r.right, &r.bottom) == 0) {
-			return PyWin_SetAPIError("$name");
+			return PyErr_Format(PyExc_TypeError, "%s: This param must be a tuple of four integers or None", "$name");
 		}
 		$target = &r;
 	} else {
@@ -115,7 +115,7 @@ typedef int UINT;
 	if ($source == Py_None) {
         $target = NULL;
     } else {
-        return PyWin_SetAPIError("$name");
+		return PyErr_Format(PyExc_TypeError, "%s: This HRGN must currently be None", "$name");
 	}
 }
 
@@ -168,11 +168,11 @@ typedef int UINT;
     POINT r;
 	if (PyTuple_Check($source)) {
 		if (PyArg_ParseTuple($source, "ll", &r.x, &r.y) == 0) {
-			return PyWin_SetAPIError("$name");
+			return PyErr_Format(PyExc_TypeError, "%s: a POINT must be a tuple of integers", "$name");
 		}
 		$target = &r;
     } else {
-        return PyWin_SetAPIError("$name");
+		return PyErr_Format(PyExc_TypeError, "%s: a POINT must be a tuple of integers", "$name");
 	}
 }
 
@@ -313,18 +313,22 @@ BOOL CALLBACK PyDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			hDialogCurrent = hWnd;
 	}
 	// If our HWND is in the map, then call it.
-	PyObject *key = PyInt_FromLong((long)hWnd);
-	PyObject *obInfo = g_DLGMap ? PyDict_GetItem(g_DLGMap, key) : NULL;
-	Py_DECREF(key);
-	MYWNDPROC oldWndProc = NULL;
 	PyObject *obFunc = NULL;
-	if (obInfo!=NULL) { // Is one of ours!
-		obFunc = PyTuple_GET_ITEM(obInfo, 0);
-		PyObject *obOldWndProc = PyTuple_GET_ITEM(obInfo, 1);
-		oldWndProc = (MYWNDPROC)PyInt_AsLong(obOldWndProc);
-	}
-	if (obFunc != NULL)
+	MYWNDPROC oldWndProc = NULL;
+	if (g_DLGMap) {
+		CEnterLeavePython _celp; // sigh - we need to rationalize these locks.
+		PyObject *key = PyInt_FromLong((long)hWnd);
+		PyObject *obInfo = PyDict_GetItem(g_DLGMap, key);
+		Py_XDECREF(key);
+		if (obInfo!=NULL) { // Is one of ours!
+			obFunc = PyTuple_GET_ITEM(obInfo, 0);
+			PyObject *obOldWndProc = PyTuple_GET_ITEM(obInfo, 1);
+			oldWndProc = (MYWNDPROC)PyInt_AsLong(obOldWndProc);
+		}
+	} // lock released.
+	if (obFunc)
 		rc = PyWndProc_Call(obFunc, oldWndProc, hWnd, uMsg, wParam, lParam);
+
 #ifdef WM_NCDESTROY
 	if (uMsg==WM_NCDESTROY) {
 #else // CE doesnt have this message!
