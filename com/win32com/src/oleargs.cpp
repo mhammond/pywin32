@@ -1045,7 +1045,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 		break;
 	case VT_BOOL:
 		if ((obUse=PyNumber_Int(obj))==NULL) BREAK_FALSE
-		V_BOOL(var) = (VARIANT_BOOL)PyInt_AsLong(obUse);
+		V_BOOL(var) = PyInt_AsLong(obUse) ? VARIANT_TRUE : VARIANT_FALSE;
 		break;
 	case VT_BOOL | VT_BYREF:
 		if (bCreateBuffers)

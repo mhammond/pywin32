@@ -472,7 +472,7 @@ PyObject * dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 			{
 				goto Error;
 			}
-			*pbool = (VARIANT_BOOL)PyInt_AsLong(obUse);
+			*pbool = PyInt_AsLong(obUse) ? VARIANT_TRUE : VARIANT_FALSE;
 			break;
 		}
 		case VT_R8 | VT_BYREF:
