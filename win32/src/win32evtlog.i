@@ -86,7 +86,7 @@ PyTypeObject PyEventLogRecordType =
 	{"ClosingRecordNumber",T_INT,     OFF(ClosingRecordNumber)}, // @prop integer|ClosingRecordNumber|
 	{"SourceName",         T_OBJECT,  OFF(SourceName)}, // @prop <o PyUnicode>|SourceName|
 	{"StringInserts",      T_OBJECT,  OFF(StringInserts)}, // @prop (<o PyUnicode>,...)|StringInserts|
-	{"Sids",               T_OBJECT,  OFF(Sids)}, // @prop <o PySIDS>|Sids|
+	{"Sid",                T_OBJECT,  OFF(Sids)}, // @prop <o PySID>|SID|
 	{"Data",               T_OBJECT,  OFF(Data)}, // @prop string|Data|
 	{"ComputerName",       T_OBJECT,  OFF(ComputerName)}, // @prop <o PyUnicode>|ComputerName|
 	{NULL}
@@ -127,8 +127,12 @@ PyEventLogRecord::PyEventLogRecord(EVENTLOGRECORD *pEvt)
 	TimeGenerated = PyWinTimeObject_FromLong(pEvt->TimeGenerated);
 	TimeWritten = PyWinTimeObject_FromLong(pEvt->TimeWritten);
 
-	Sids = Py_None; // Till we support em!
-	Py_INCREF(Sids);
+	if (pEvt->UserSidLength==0) {
+		Sids = Py_None; // No SID in this record.
+		Py_INCREF(Sids);
+	} else {
+		Sids = PyWinObject_FromSID( (PSID)(((BYTE *)pEvt) + pEvt->UserSidOffset));
+	}
 
 	Data = PyString_FromStringAndSize(((char *)pEvt)+pEvt->DataOffset, pEvt->DataLength);
 
@@ -174,46 +178,6 @@ PyObject *MakeEventLogObject( BYTE *buf, DWORD numBytes )
 	if (ret==NULL) return NULL;
 	while (numBytes>0) {
 		EVENTLOGRECORD *pEvt = (EVENTLOGRECORD *)buf;
-/***		PyObject *stringsObject;
-		if (pEvt->NumStrings==0) {
-			stringsObject = Py_None;
-			Py_INCREF(Py_None);
-		} else {
-			stringsObject = PyTuple_New(pEvt->NumStrings);
-			if (stringsObject==NULL) {
-				Py_DECREF(ret);
-				return NULL;
-			}
-			WCHAR *stringOffset = (WCHAR *) (((BYTE *)pEvt) + pEvt->StringOffset);
-			for (DWORD stringNo = 0;stringNo<pEvt->NumStrings;stringNo++) {
-				PyTuple_SET_ITEM( stringsObject, (int)stringNo, PyWinObject_FromWCHAR(stringOffset));
-				stringOffset = stringOffset + (wcslen(stringOffset)) + 1;
-			}
-		}
-		PyObject *obSids = Py_None; // Till we support em!
-		Py_INCREF(obSids);
-		PyObject *obData = PyString_FromStringAndSize((char *)buf+pEvt->DataOffset, pEvt->DataLength);
-		WCHAR *sourceName = (WCHAR *)(((BYTE *)buf) + sizeof(EVENTLOGRECORD));
-		PyObject *obSourceName = PyWinObject_FromWCHAR(sourceName);
-		PyObject *subItem = Py_BuildValue("llllliOOiilOO",
-			pEvt->Reserved,
-			pEvt->RecordNumber,
-			pEvt->TimeGenerated,
-			pEvt->TimeWritten,
-			pEvt->EventID,
-			pEvt->EventType,
-			obSourceName,
-			stringsObject,
-			pEvt->EventCategory,
-			pEvt->ReservedFlags,
-			pEvt->ClosingRecordNumber,
-			obSids,
-			obData);
-		Py_XDECREF(obSourceName);
-		Py_XDECREF(obData);
-		Py_XDECREF(obSids);
-		Py_XDECREF(stringsObject);
-***/
 		PyObject *subItem = new PyEventLogRecord(pEvt);
 		if (subItem==NULL) {
 			Py_DECREF(ret);
