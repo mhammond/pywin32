@@ -505,7 +505,7 @@ class COMScript:
 	#
 	# IActiveScript
 	def SetScriptSite(self, site):
-		if self.scriptSite: raise Exception(scode=winerror.E_UNEXPECTED)
+		# We should still work with an existing site (or so MSXML believes :)
 		self.scriptSite = site
 		import traceback
 		try:
@@ -536,9 +536,18 @@ class COMScript:
 	def SetScriptState(self, state):
 #		trace("SetScriptState with %d - currentstate = %d" % (state,self.scriptState))
 		if state == self.scriptState: return
-		if self.scriptState==axscript.SCRIPTSTATE_CLOSED:
+		if state==axscript.SCRIPTSTATE_UNINITIALIZED:
+			if self.scriptState in [axscript.SCRIPTSTATE_CONNECTED, axscript.SCRIPTSTATE_DISCONNECTED]:
+				self.Stop()
+			if self.scriptState in [axscript.SCRIPTSTATE_CONNECTED, axscript.SCRIPTSTATE_DISCONNECTED,axscript.SCRIPTSTATE_STARTED]:
+				self.Reset()
+			self.scriptState = state
+
+		# If closed, allow no other state transitions
+		elif self.scriptState==axscript.SCRIPTSTATE_CLOSED:
 			raise Exception(scode=winerror.E_INVALIDARG)
-		if state==axscript.SCRIPTSTATE_INITIALIZED:
+
+		elif state==axscript.SCRIPTSTATE_INITIALIZED:
 			if self.scriptState in [axscript.SCRIPTSTATE_CONNECTED, axscript.SCRIPTSTATE_DISCONNECTED]:
 				self.Stop()
 			if self.scriptState in [axscript.SCRIPTSTATE_CONNECTED, axscript.SCRIPTSTATE_DISCONNECTED,axscript.SCRIPTSTATE_STARTED]:
