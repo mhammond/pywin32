@@ -45,21 +45,31 @@ def __import_pywin32_system_module__(modname, globs):
             raise ImportError, \
                   "Module '%s' isn't in frozen sys.path %s" % (modname, sys.path)
     else:
-        search_dirs = [sys.prefix] + \
-                      os.environ.get("PATH", "").split(os.pathsep)
-        for d in search_dirs:
-            found = os.path.join(d, filename)
-            if os.path.isfile(found):
-                break
-        else:
-            # Eeek - can't find on the path.  Try "LoadLibrary", as it
-            # has slightly different semantics than a simple sys.path search
-            # XXX - OK, we *don't* try LoadLibrary - if we can't find it, 
-            # there is an excellent change Windows can't find it, and
-            # the attempt to bring in win32api *needs* Windows to find it.
-            # If Windows can't find it, it displays a dialog trying to 
-            # import win32api, which is not what we want!
-            raise ImportError, "Can not locate " + filename
+        # If there is a version in our Python directory, use that
+        # (it may not be on the PATH, so may fail to be loaded by win32api)
+        # Non-admin installs will have the system files there.
+        found = None
+        if os.path.isfile(os.path.join(sys.prefix, filename)):
+            found = os.path.join(sys.prefix, filename)
+        # Allow Windows to find it.  We have tried various other tricks,
+        # but in some cases, we ended up with *2* versions of the libraries
+        # loaded - the one found by Windows when doing a later "import win32*",
+        # and the one we found here.
+        # A remaining trick would be to simulate LoadLibrary(), using the
+        # registry to determine the system32 directory.  However, Python
+        # 2.2 doesn't have sys.getwindowsversion(), which is kinda needed
+        # to determine the correct places to look.
+
+        # The downside of this is that we need to use win32api, and this
+        # depends on pywintypesxx.dll, which may be what we are trying to
+        # find!  If this fails, we get a dialog box, followed by the import
+        # error.  The dialog box is undesirable, but should only happen
+        # when something is badly broken, and is a less harmful side-effect
+        # than loading the DLL twice!
+        if found is None:
+            import win32api # failure here means Windows can't find it either!
+            found = win32api.GetModuleFileName(win32api.LoadLibrary(filename))
+
     # Python can load the module
     mod = imp.load_module(modname, None, found, 
                           ('.dll', 'rb', imp.C_EXTENSION))
