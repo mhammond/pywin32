@@ -445,7 +445,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
   def _wrap_(self, ob):
     MappedWrapPolicy._wrap_(self, ob)
     if not hasattr(ob, '_public_methods_'):
-      raise error, "Object does not support DesignatedWrapPolicy"
+      raise error, "Object does not support DesignatedWrapPolicy, as it does not have an _public_methods_ attribute."
 
     # Copy existing _dispid_to_func_ entries to _name_to_dispid_
     for dispid, name in self._dispid_to_func_.items():
