@@ -3,9 +3,7 @@
 # If you desire, you can also run this from inside Pythonwin, in which
 # case it will do the demo inside the Pythonwin environment.
 
-# NOTE - The same was contributed by Roger Burnham, and works fine for him.
-# MHammond cant make it work (ie, it wont bring up the Print dialog for me.
-# However I suspect a local problem rather than anything in the code.
+# This sample was contributed by Roger Burnham.
 
 from pywin.mfc import docview, dialog, afxres
 from pywin.framework import app
@@ -169,11 +167,9 @@ class ImagePrintDialog(dialog.PrintDialog):
         self['mag'] = mag
 
     def OnInitDialog(self):
-        dialog.PrintDialog.OnInitDialog(self)
         self.magCtl = self.GetDlgItem(IDC_PRINT_MAG_EDIT)
         self.magCtl.SetWindowText(`self['mag']`)
-        return 1
-    
+        return dialog.PrintDialog.OnInitDialog(self)
     def OnOK(self):
         dialog.PrintDialog.OnOK(self)
         strMag = self.magCtl.GetWindowText()
