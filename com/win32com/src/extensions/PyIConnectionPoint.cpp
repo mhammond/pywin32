@@ -76,6 +76,7 @@ PyObject *PyIConnectionPoint::Advise(PyObject *self, PyObject *args)
 	DWORD cookie;
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = pICP->Advise( pUnk, &cookie );
+	pUnk->Release();
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
