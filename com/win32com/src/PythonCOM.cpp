@@ -1092,6 +1092,40 @@ static PyObject *pythoncom_CoCreateFreeThreadedMarshaler(PyObject *self, PyObjec
 
 #endif // MS_WINCE
 
+// @pymethod |pythoncom|OleLoad|Loads into memory an object nested within a specified storage object.
+static PyObject *pythoncom_OleLoad(PyObject *self, PyObject* args)
+{
+	PyObject *obStorage, *obIID, *obSite;
+	if ( !PyArg_ParseTuple(args, "OO:OleLoad",
+		&obStorage, // @pyparm <o PyIStorage>|storage||The storage object from which to load
+		&obIID, // @pyparm <o PyIID>|iid||The IID if the interface to load.
+		&obSite)) // @pyparm <o PyIOleClientSite>|site|The client site for the object.
+		return NULL;
+
+	IID iid;
+	if (!PyWinObject_AsIID(obIID, &iid))
+		return NULL;
+
+	IStorage *pStorage;
+	if (!PyCom_InterfaceFromPyObject(obStorage, IID_IStorage, (void **)&pStorage, FALSE))
+		return NULL;
+	IOleClientSite *pSite;
+	if (!PyCom_InterfaceFromPyObject(obSite, IID_IOleClientSite, (void **)&pSite, TRUE)) {
+		pStorage->Release();
+		return NULL;
+	}
+
+	IUnknown *pUnk;
+	PY_INTERFACE_PRECALL;
+	HRESULT hr = OleLoad(pStorage, iid, pSite, (void **)&pUnk);
+	pStorage->Release();
+	pSite->Release();
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	return PyCom_PyObjectFromIUnknown(pUnk, iid, /*BOOL bAddRef*/ FALSE);
+}
+
 // @pymethod |pythoncom|OleLoadFromStream|Load an object from an IStream.
 static PyObject *pythoncom_OleLoadFromStream(PyObject *self, PyObject* args)
 {
@@ -1336,7 +1370,10 @@ static struct PyMethodDef pythoncom_methods[]=
 #endif // MS_WINCE
 	{ "new",                 pythoncom_new, 1 },
 	{ "New",                 pythoncom_new, 1 },                 // @pymeth New|Create a new instance of an OLE automation server.
+	{ "OleLoadFromStream",   pythoncom_OleLoadFromStream, 1},    // @pymeth OleLoadFromStream|Load an object from an IStream.
+	{ "OleSaveToStream",     pythoncom_OleSaveToStream, 1},      // @pymeth Save an object to an IStream.
 	{ "OleLoadPicture",      pythoncom_OleLoadPicture, 1 },      // @pymeth OleLoadPicture|Creates a new picture object and initializes it from the contents of a stream.
+	{ "OleLoad",             pythoncom_OleLoad, 1 },             // @pymeth OleLoad|Loads into memory an object nested within a specified storage object.
 #ifndef MS_WINCE
 	{ "ProgIDFromCLSID",     pythoncom_progidfromclsid, 1 },     // @pymeth ProgIDFromCLSID|Converts a CLSID string to a progID.
 #endif // MS_WINCE
