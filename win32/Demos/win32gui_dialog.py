@@ -142,19 +142,19 @@ class DemoWindow:
 
         # ID label and text box
         dlg.append([130, "Enter something", -1, (5, 5, 200, 9), cs | win32con.SS_LEFT])
-        s = cs | win32con.WS_TABSTOP | win32con.WS_BORDER 
+        s = cs | win32con.WS_TABSTOP | win32con.WS_BORDER
         dlg.append(['EDIT', None, IDC_SEARCHTEXT, (5, 15, 200, 12), s])
 
         # Search/Display Buttons
         # (x positions don't matter here)
-        s = cs | win32con.WS_TABSTOP 
+        s = cs | win32con.WS_TABSTOP
         dlg.append([128, "Fill List", IDC_BUTTON_SEARCH, (5, 35, 50, 14), s | win32con.BS_DEFPUSHBUTTON])
         s = win32con.BS_PUSHBUTTON | s
         dlg.append([128, "Display", IDC_BUTTON_DISPLAY, (100, 35, 50, 14), s])
 
         # List control.
         # Can't make this work :(
-##        s = cs | win32con.WS_TABSTOP 
+##        s = cs | win32con.WS_TABSTOP
 ##        dlg.append(['SysListView32', "Title", IDC_LISTBOX, (5, 505, 200, 200), s])
 
         return dlg
@@ -184,11 +184,11 @@ class DemoWindow:
         child_style = win32con.WS_CHILD | win32con.WS_VISIBLE | win32con.WS_BORDER | win32con.WS_HSCROLL | win32con.WS_VSCROLL
         child_style |= commctrl.LVS_SINGLESEL | commctrl.LVS_SHOWSELALWAYS | commctrl.LVS_REPORT
         self.hwndList = win32gui.CreateWindow("SysListView32", None, child_style, 0, 0, 100, 100, self.hwnd, IDC_LISTBOX, self.hinst, None)
-        
+
         child_ex_style = win32gui.SendMessage(self.hwndList, commctrl.LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
         child_ex_style |= commctrl.LVS_EX_FULLROWSELECT
         win32gui.SendMessage(self.hwndList, commctrl.LVM_SETEXTENDEDLISTVIEWSTYLE, 0, child_ex_style)
-        
+
         # Setup the list control columns.
         lvc = LVCOLUMN(mask = commctrl.LVCF_FMT | commctrl.LVCF_WIDTH | commctrl.LVCF_TEXT | commctrl.LVCF_SUBITEM)
         lvc.fmt = commctrl.LVCFMT_LEFT

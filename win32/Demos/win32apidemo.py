@@ -5,7 +5,7 @@ import win32api, win32con
 
 # GetTimeZoneInformation
 rc, tzinfo = win32api.GetTimeZoneInformation()
-if rc == win32con.TIME_ZONE_ID_DAYLIGHT:  
+if rc == win32con.TIME_ZONE_ID_DAYLIGHT:
     tz_str = tzinfo[4]
     tz_time = tzinfo[5]
 else:

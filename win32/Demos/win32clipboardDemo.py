@@ -45,7 +45,7 @@ def TestText():
         got = GetClipboardData(win32con.CF_OEMTEXT)
         assert  got == text, "Didnt get the correct result back - '%r'." % (got,)
 
-        # Unicode tests        
+        # Unicode tests
         EmptyClipboard()
         text = u"Hello from Python unicode"
         # Now set the Unicode value
@@ -61,7 +61,7 @@ def TestText():
 
     OpenClipboard()
     try:
-        
+
         # Make sure I can still get the text.
         got = GetClipboardData(win32con.CF_TEXT)
         assert  got == text, "Didnt get the correct result back - '%r'." % (got,)
@@ -70,7 +70,7 @@ def TestText():
         assert type(got)==types.UnicodeType, "Didnt get the correct result back - '%r'." % (got,)
         got = GetClipboardData(win32con.CF_OEMTEXT)
         assert  got == text, "Didnt get the correct result back - '%r'." % (got,)
-        print "Clipboard text tests worked correctly"       
+        print "Clipboard text tests worked correctly"
     finally:
         CloseClipboard()
 
@@ -92,7 +92,7 @@ def TestClipboardEnum():
                     n = "unknown (%s)" % (enum,)
 
             print "Have format", n
-        print "Clipboard enumerator tests worked correctly"       
+        print "Clipboard enumerator tests worked correctly"
     finally:
         CloseClipboard()
 
@@ -115,11 +115,11 @@ def TestCustomFormat():
         loaded_object = cPickle.loads(data)
         assert cPickle.loads(data) == pickled_object, "Didnt get the correct data!"
 
-        print "Clipboard custom format tests worked correctly"       
+        print "Clipboard custom format tests worked correctly"
     finally:
         CloseClipboard()
-    
-    
+
+
 if __name__=='__main__':
     TestEmptyClipboard()
     TestText()
@@ -127,4 +127,3 @@ if __name__=='__main__':
     TestClipboardEnum()
     # And leave it empty at the end!
     TestEmptyClipboard()
-    

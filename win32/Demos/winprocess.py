@@ -22,7 +22,7 @@ def logonUser(loginString):
     """
     Login as specified user and return handle.
     loginString:  'Domain\nUser\nPassword'; for local
-        login use . or empty string as domain 
+        login use . or empty string as domain
         e.g. '.\nadministrator\nsecret_password'
     """
     domain, user, passwd = loginString.split('\n')
@@ -127,7 +127,7 @@ class Process:
         if self.wait(gracePeriod) != win32event.WAIT_OBJECT_0:
             win32process.TerminateProcess(self.hProcess, 0)
             win32api.Sleep(100) # wait for resources to be released
-            
+
     def __close__(self, hwnd, dummy):
         """
         EnumWindows callback - sends WM_CLOSE to any window
@@ -136,14 +136,14 @@ class Process:
         TId, PId = win32process.GetWindowThreadProcessId(hwnd)
         if PId == self.PId:
             win32gui.PostMessage(hwnd, win32con.WM_CLOSE, 0, 0)
-        
+
     def exitCode(self):
         """
         Return process exit code.
         """
         return win32process.GetExitCodeProcess(self.hProcess)
-    
-    
+
+
 def run(cmd, mSec=None, stdin=None, stdout=None, stderr=None, **kw):
     """
     Run cmd as a child process and return exit code.
