@@ -11,7 +11,7 @@ def GenerateAndRunOldStyle():
 	finally:
 		GenTestScripts.CleanAll()
 
-def Prepare():
+def CleanGenerated():
 	import win32com, shutil
 	if os.path.isdir(win32com.__gen_path__):
 		print "Deleting files from %s" % (win32com.__gen_path__)
@@ -30,7 +30,7 @@ if __name__=='__main__':
 	except ValueError:
 		print "Usage: testall [level], where level is 1, 2 or 3 (default 1, fulltest=3)"
 
-	Prepare()
+	CleanGenerated()
 
 	import win32com.test.util
 	capture = win32com.test.util.CaptureWriter()
@@ -143,4 +143,4 @@ if __name__=='__main__':
 	print "Tests completed."
 	CheckClean()
 	pythoncom.CoUninitialize()
-
+	CleanGenerated()
