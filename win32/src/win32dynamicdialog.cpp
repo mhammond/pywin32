@@ -1,5 +1,9 @@
 /*
- * win32dlgdyn.cpp - Dynamic dialog creation
+ * win32dynamicdialog.cpp - Dynamic dialog creation
+ *
+ * Originally part of Pythonwin as win32dlgdyn.cpp, then moved into
+ * win32\src\win32dynamicdialog.cpp, and shared between Pythonwin
+ * and the lighter-weight win32gui module.
  *
  * Copyright (C) 1995 by Motek Information Systems, Beverly Hills, CA, USA
  *
@@ -25,9 +29,32 @@
 
 // @doc - Autoduck!
 
-#include "stdafx.h"
+#ifdef WIN32GUI	// being compiled from WIN32GUI
+#define	PYW_EXPORT 
+#include "python.h"
+#undef PyHANDLE
+#include <windows.h>
+#include "commctrl.h"
+#include "windowsx.h" // For edit control hacks.
 
-#include "win32dlgdyn.h"
+#ifdef MS_WINCE
+#include "winbase.h"
+#endif
+#include "pywintypes.h"
+#include "pywinobjects.h"
+#include "tchar.h"
+
+#define	BASED_CODE
+#define	ASSERT(a)
+
+#define RETURN_TYPE_ERR(err)	do {PyErr_SetString(PyExc_TypeError,err);return NULL;} while (0)
+#define RETURN_ERR(err)			do {PyErr_SetString(PyExc_ValueError,err);return NULL;} while (0)
+
+#else	// else being compiled from WIN32UI
+#include "..\..\pythonwin\stdafx.h"
+#endif
+
+#include "win32dynamicdialog.h"
 
 #ifdef WIN32
 #define _RES(x) L ## x
@@ -609,7 +636,7 @@ static CPythonDialogTemplate *ParseDlgHdrList(PyObject *tmpl)
 	// @flag DS_FIXEDSYS|Causes the dialog box to use the SYSTEM_FIXED_FONT instead of the default SYSTEM_FONT. SYSTEM_FIXED_FONT is a monospace font compatible with the System font in Windows versions earlier than 3.0. 
 	// @flag DS_LOCALEDIT|Applies to 16-bit applications only. This style directs edit controls in the dialog box to allocate memory from the application's data segment. Otherwise, edit controls allocate storage from a global memory object. 
 	// @flag DS_MODALFRAME|Creates a dialog box with a modal dialog-box frame that can be combined with a title bar and System menu by specifying the WS_CAPTION and WS_SYSMENU styles. 
-	// @flag DS_NOFAILCREATE|Windows 95 only: Creates the dialog box even if errors occur - for example, if a child window cannot be created or if the system cannot create a special data segment for an edit control. 
+	// @flag DS_NOFAILCREATE|Windows 95 only: Creates the dialog box even if errors occur - for example, if a child window cannot be created or if the system cannot create a special data segment for an edit control. 
 	// @flag DS_NOIDLEMSG|Suppresses WM_ENTERIDLE messages that Windows would otherwise send to the owner of the dialog box while the dialog box is displayed. 
 	// @flag DS_SETFOREGROUND|Causes the system to use the SetForegroundWindow function to bring the dialog box to the foreground. 
 	// @flag DS_SYSMODAL|Creates a system-modal dialog box. This style causes the dialog box to have the WS_EX_TOPMOST style, but otherwise has no effect on the dialog box or the behavior of other windows in the system when the dialog box is displayed. 

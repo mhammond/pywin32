@@ -409,19 +409,6 @@ SOURCE=.\win32dlgbar.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\win32dlgdyn.cpp
-
-!IF  "$(CFG)" == "win32ui - Win32 Release"
-
-# ADD CPP /YX"stdafx.h"
-
-!ELSEIF  "$(CFG)" == "win32ui - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
 SOURCE=.\win32dll.cpp
 
 !IF  "$(CFG)" == "win32ui - Win32 Release"
@@ -442,6 +429,21 @@ SOURCE=.\win32doc.cpp
 # ADD CPP /YX"stdafx.h"
 
 !ELSEIF  "$(CFG)" == "win32ui - Win32 Debug"
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=..\win32\src\win32dynamicdialog.cpp
+
+!IF  "$(CFG)" == "win32ui - Win32 Release"
+
+# SUBTRACT CPP /YX
+
+!ELSEIF  "$(CFG)" == "win32ui - Win32 Debug"
+
+# SUBTRACT CPP /YX /Yc /Yu
 
 !ENDIF 
 

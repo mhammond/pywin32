@@ -19,6 +19,13 @@
 static PyObject *g_AtomMap = NULL; // Mapping class atoms to Python WNDPROC
 static PyObject *g_HWNDMap = NULL; // Mapping HWND to Python WNDPROC
 static PyObject *g_DLGMap = NULL;  // Mapping Dialog HWND to Python WNDPROC
+
+static	HWND	hDialogCurrent = NULL;	// see MS TID Q71450 and PumpMessages for this
+
+extern HGLOBAL MakeResourceFromDlgList(PyObject *tmpl);
+extern PyObject *MakeDlgListFromResource(HGLOBAL res);
+
+
 %}
 
 // Written to the module init function.
@@ -38,11 +45,20 @@ typedef long HMENU
 %apply HICON {long};
 typedef long HICON
 
+%apply HBITMAP {long};
+typedef long HBITMAP
+
 %apply HWND {long};
 typedef long HWND
 
 %apply HDC {long};
 typedef long HDC
+
+%apply HIMAGELIST {long};
+typedef long HIMAGELIST
+
+%apply COLORREF {long};
+typedef long COLORREF
 
 typedef long WPARAM;
 typedef long LPARAM;
@@ -123,6 +139,47 @@ typedef int UINT;
     }
 }
 
+%typemap(python,argout) POINT *OUTPUT {
+    PyObject *o;
+    o = Py_BuildValue("ll", $source->x, $source->y);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
+      Py_DECREF(Py_None);
+      $target = o;
+    } else {
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
+	Py_XDECREF(o2);
+      }
+      PyList_Append($target,o);
+      Py_XDECREF(o);
+    }
+}
+
+%typemap(python,ignore) POINT *OUTPUT(POINT temp)
+{
+  $target = &temp;
+}
+
+%typemap(python,in) POINT *INPUT {
+    POINT r;
+	if (PyTuple_Check($source)) {
+		if (PyArg_ParseTuple($source, "ll", &r.x, &r.y) == 0) {
+			return PyWin_SetAPIError("$name");
+		}
+		$target = &r;
+    } else {
+        return PyWin_SetAPIError("$name");
+	}
+}
+
+
+%typemap(python,in) POINT *BOTH = POINT *INPUT;
+%typemap(python,argout) POINT *BOTH = POINT *OUTPUT;
+
 %typemap(python,except) LRESULT {
       Py_BEGIN_ALLOW_THREADS
       $function
@@ -135,7 +192,7 @@ typedef int UINT;
       Py_END_ALLOW_THREADS
 }
 
-%typemap(python,except) HWND, HDC, HMENU, HICON {
+%typemap(python,except) HWND, HDC, HMENU, HICON, HBITMAP, HIMAGELIST {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -194,7 +251,7 @@ LRESULT PyWndProc_Call(PyObject *obFuncOrMap, MYWNDPROC oldWndProc, HWND hWnd, U
 			rc = PyInt_AsLong(ret);
 		Py_DECREF(ret);
 	}
-// else
+//	else
 //		PyErr_Print();
 	return rc;
 }
@@ -238,6 +295,7 @@ BOOL CALLBACK PyDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	if (uMsg==WM_INITDIALOG) {
 		// The lparam is our PyObject.
 		// Put our HWND in the map.
+		CEnterLeavePython _celp;		// GET THE GLOBAL INTERP LOCK IN THIS BLOCK
 		PyObject *obTuple = (PyObject *)lParam;
 		PyObject *obWndProc = PyTuple_GET_ITEM(obTuple, 0);
 		// Replace the lParam with the one the user specified.
@@ -251,6 +309,11 @@ BOOL CALLBACK PyDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		Py_DECREF(key);
 		Py_DECREF(value);
 		rc = TRUE;
+	} else if(uMsg == WM_ACTIVATE) {	// see MS TID Q71450 and PumpMessages
+		if(0 == wParam)
+			hDialogCurrent = NULL;
+		else
+			hDialogCurrent = hWnd;
 	}
 	// If our HWND is in the map, then call it.
 	PyObject *key = PyInt_FromLong((long)hWnd);
@@ -272,8 +335,10 @@ BOOL CALLBACK PyDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 #endif
 		CEnterLeavePython _celp;
 		PyObject *key = PyInt_FromLong((long)hWnd);
-		if (PyDict_DelItem(g_DLGMap, key) != 0)
-			PyErr_Clear();
+
+		if (g_DLGMap != NULL)
+			if (PyDict_DelItem(g_DLGMap, key) != 0)
+				PyErr_Clear();
 		Py_DECREF(key);
 	}
 	return rc;
@@ -654,6 +719,143 @@ static PyObject *PyGetObject(PyObject *self, PyObject *args)
 %}
 %native (GetObject) PyGetObject;
 
+%{
+// @pyswig object|PyMakeBuffer|Returns a buffer object from addr,len or just len
+static PyObject *PyMakeBuffer(PyObject *self, PyObject *args)
+{
+	long len,addr = 0;
+	// @pyparm int|len||length of the buffer object
+	// @pyparm int|addr||Address of the memory to reference
+	if (!PyArg_ParseTuple(args, "l|l:PyMakeBuffer", &len,&addr))
+		return NULL;
+
+	if(0 == addr) 
+		return PyBuffer_New(len);
+	else
+		return PyBuffer_FromMemory((void *) addr, len);
+
+}
+%}
+%native (PyMakeBuffer) PyMakeBuffer;
+
+%{
+// @pyswig object|PyGetString|Returns a string object from an address (null terminated)
+static PyObject *PyGetString(PyObject *self, PyObject *args)
+{
+	TCHAR *addr = 0;
+	// @pyparm int|addr||Address of the memory to reference (must be null terminated)
+	if (!PyArg_ParseTuple(args, "l:PyGetString",&addr))
+		return NULL;
+
+	int len = _tcslen(addr);
+
+    if (len == 0) return PyUnicodeObject_FromString("");
+	return PyWinObject_FromTCHAR(addr, len);
+
+}
+%}
+%native (PyGetString) PyGetString;
+
+%{
+// @pyswig object|PySetString|Copies a string to an address (null terminated)
+static PyObject *PySetString(PyObject *self, PyObject *args)
+{
+	TCHAR *addr = 0;
+	PyObject *str;
+	TCHAR *source;
+	long maxLen = 0;
+
+	// @pyparm int|addr||Address of the memory to reference 
+	// @pyparm str|String||The string to copy
+	// @pyparm int|maxLen||Maximum number of chars to copy (optional)
+	if (!PyArg_ParseTuple(args, "lO|l:PySetString",&addr,&str,&maxLen))
+		return NULL;
+
+	if (!PyWinObject_AsTCHAR(str, &source)) {
+		PyErr_SetString(PyExc_TypeError,"String must by string type");
+		return NULL;
+	}
+
+	if(maxLen)
+		_tcsncpy( addr, source, maxLen);
+	else
+		_tcscpy(addr,source);
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+%native (PySetString) PySetString;
+
+
+
+
+%{
+// @pyswig object|PyGetArraySignedLong|Returns a signed long from an array object at specified index
+static PyObject *PyGetArraySignedLong(PyObject *self, PyObject *args)
+{
+	PyObject *ob;
+	int offset;
+	int maxlen;
+
+	// @pyparm array|array||array object to use
+	// @pyparm int|index||index of offset
+	if (!PyArg_ParseTuple(args, "Oi:PyGetArraySignedLong",&ob,&offset))
+		return NULL;
+
+	PyBufferProcs *pb = ob->ob_type->tp_as_buffer;
+	if (pb != NULL && pb->bf_getreadbuffer) {
+		long *l;
+		maxlen = pb->bf_getreadbuffer(ob,0,(void **) &l);
+		if(-1 == maxlen) {
+			PyErr_SetString(PyExc_ValueError,"Could not get array address");
+			return NULL;
+		}
+		if(offset * sizeof(*l) > (unsigned)maxlen) {
+			PyErr_SetString(PyExc_ValueError,"array index out of bounds");
+			return NULL;
+		}
+		return PyInt_FromLong(l[offset]);
+
+	} else {
+			PyErr_SetString(PyExc_TypeError,"array passed is not an array");
+			return NULL;
+	}
+}
+%}
+%native (PyGetArraySignedLong) PyGetArraySignedLong;
+
+%{
+// @pyswig object|PyGetBufferAddressAndLen|Returns a buffer object address and len
+static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
+{
+	PyObject *O = NULL;
+	void *addr = NULL;
+	int len = 0;
+
+	// @pyparm int|obj||the buffer object
+	if (!PyArg_ParseTuple(args, "O:PyGetBufferAddressAndLen", &O))
+		return NULL;
+
+	if(!PyBuffer_Check(O)) {
+		PyErr_SetString(PyExc_TypeError,"item must be a buffer type");
+		return NULL;
+	}
+
+	PyBufferProcs *pb = O->ob_type->tp_as_buffer;
+	if (NULL != pb  && NULL != pb->bf_getreadbuffer) 
+		len = pb->bf_getreadbuffer(O,0,&addr);
+
+	if(NULL == addr) {
+		PyErr_SetString(PyExc_ValueError,"Could not get buffer address");
+		return NULL;
+	}
+	return Py_BuildValue("ll",(long) addr, len);
+}
+%}
+%native (PyGetBufferAddressAndLen) PyGetBufferAddressAndLen;
+
+
 %typedef TCHAR *STRING_OR_ATOM
 
 %typemap(python,in) STRING_OR_ATOM {
@@ -779,9 +981,9 @@ static PyObject *PyCallWindowProc(PyObject *self, PyObject *args)
 %native (CallWindowProc) PyCallWindowProc;
 
 %{
-static BOOL make_param(PyObject *ob, LPARAM *pl)
+static BOOL make_param(PyObject *ob, long *pl)
 {
-	LPARAM &l = *pl;
+	long &l = *pl;
 	if (ob==NULL || ob==Py_None)
 		l = 0;
 	else
@@ -798,10 +1000,10 @@ static BOOL make_param(PyObject *ob, LPARAM *pl)
 		l = PyInt_AsLong(ob);
 	else {
 		PyBufferProcs *pb = ob->ob_type->tp_as_buffer;
-		if (pb != NULL && pb->bf_getreadbuffer)
-			if(-1 == pb->bf_getreadbuffer(ob,0,(void **)&l))
+		if (pb != NULL && pb->bf_getreadbuffer) {
+			if(-1 == pb->bf_getreadbuffer(ob,0,(void **) &l))
 				return FALSE;
-		else {
+		} else {
 			PyErr_SetString(PyExc_TypeError, "Must be a" TCHAR_DESC ", int, or buffer object");
 			return FALSE;
 		}
@@ -821,13 +1023,12 @@ static PyObject *PySendMessage(PyObject *self, PyObject *args)
 	UINT msg;
 	if (!PyArg_ParseTuple(args, "li|OO", &hwnd, &msg, &obwparam, &oblparam))
 		return NULL;
-	// Bit of guessing for win64 here.
-	// Assume LPARAM is larger than WPARAM, and can hold a pointer.
-	LPARAM wparam, lparam;
+	long wparam, lparam;
 	if (!make_param(obwparam, &wparam))
 		return NULL;
 	if (!make_param(oblparam, &lparam))
 		return NULL;
+
 	LRESULT rc;
     Py_BEGIN_ALLOW_THREADS
 	rc = SendMessage((HWND)hwnd, msg, wparam, lparam);
@@ -899,6 +1100,80 @@ static PyObject *PyDialogBox(PyObject *self, PyObject *args)
 // @pyswig int|DialogBoxParam|See <om win32gui.DialogBox>
 %native (DialogBoxParam) PyDialogBox;
 
+
+
+// @pyswig int|DialogBoxIndirect|Creates a modal dialog box from a template, see <om win32ui.CreateDialogIndirect>
+%{
+static PyObject *PyDialogBoxIndirect(PyObject *self, PyObject *args)
+{
+	/// XXX - todo - add support for a dialogproc!
+	long hinst, hwnd, param=0;
+	PyObject *obList, *obDlgProc;
+	BOOL bFreeString = FALSE;
+	if (!PyArg_ParseTuple(args, "lOlO|l", &hinst, &obList, &hwnd, &obDlgProc, &param))
+		return NULL;
+	
+	HGLOBAL h = MakeResourceFromDlgList(obList);
+	if (h == NULL)
+		return NULL;
+
+	PyObject *obExtra = Py_BuildValue("Ol", obDlgProc, param);
+
+	int rc;
+    Py_BEGIN_ALLOW_THREADS
+	HGLOBAL templ = (HGLOBAL) GlobalLock(h);
+	rc = DialogBoxIndirectParam((HINSTANCE)hinst, (const DLGTEMPLATE *) templ, (HWND)hwnd, PyDlgProc, (LPARAM)obExtra);
+	GlobalUnlock(h);
+	GlobalFree(h);
+    Py_END_ALLOW_THREADS
+	Py_DECREF(obExtra);
+	if (rc==-1)
+		return PyWin_SetAPIError("DialogBoxIndirect");
+
+	return PyInt_FromLong(rc);
+}
+%}
+%native (DialogBoxIndirect) PyDialogBoxIndirect;
+// @pyswig int|DialogBoxIndirectParam|See <om win32gui.DialogBoxIndirect>
+%native (DialogBoxIndirectParam) PyDialogBoxIndirect;
+
+
+// @pyswig int|CreateDialogIndirect|Creates a modeless dialog box from a template, see <om win32ui.CreateDialogIndirect>
+%{
+static PyObject *PyCreateDialogIndirect(PyObject *self, PyObject *args)
+{
+	/// XXX - todo - add support for a dialogproc!
+	long hinst, hwnd, param=0;
+	PyObject *obList, *obDlgProc;
+	BOOL bFreeString = FALSE;
+	if (!PyArg_ParseTuple(args, "lOlO|l", &hinst, &obList, &hwnd, &obDlgProc, &param))
+		return NULL;
+	
+	HGLOBAL h = MakeResourceFromDlgList(obList);
+	if (h == NULL)
+		return NULL;
+
+	PyObject *obExtra = Py_BuildValue("Ol", obDlgProc, param);
+
+	HWND rc;
+    Py_BEGIN_ALLOW_THREADS
+	HGLOBAL templ = (HGLOBAL) GlobalLock(h);
+	rc = CreateDialogIndirectParam((HINSTANCE)hinst, (const DLGTEMPLATE *) templ, (HWND)hwnd, PyDlgProc, (LPARAM)obExtra);
+	GlobalUnlock(h);
+	GlobalFree(h);
+    Py_END_ALLOW_THREADS
+	Py_DECREF(obExtra);
+	if (NULL == rc)
+		return PyWin_SetAPIError("CreateDialogIndirect");
+
+	return PyInt_FromLong((long) rc);
+
+}
+%}
+%native (CreateDialogIndirect) PyCreateDialogIndirect;
+// @pyswig int|DialogBoxIndirectParam|See <om win32gui.CreateDialogIndirect>
+%native (CreateDialogIndirectParam) PyCreateDialogIndirect;
+
 // @pyswig |EndDialog|Ends a dialog box.
 BOOLAPI EndDialog( HWND hwnd, int result );
 
@@ -956,6 +1231,78 @@ BOOLAPI SetMenu( HWND hwnd, HMENU hmenu );
 
 // @pyswig HCURSOR|LoadIcon|Loads an icon
 HICON LoadIcon(HINSTANCE hInst, RESOURCE_ID name);
+
+// @pyswig HANDLE|LoadImage|Loads a bitmap, cursor or icon
+HANDLE LoadImage(HINSTANCE hInst, RESOURCE_ID name, UINT type,
+				 int cxDesired, int cyDesired, UINT fuLoad);
+
+#define	IMAGE_BITMAP	IMAGE_BITMAP
+#define	IMAGE_CURSOR	IMAGE_CURSOR
+#define	IMAGE_ICON		IMAGE_ICON
+
+#define	LR_DEFAULTCOLOR	LR_DEFAULTCOLOR
+#define	LR_CREATEDIBSECTION	LR_CREATEDIBSECTION
+#define	LR_DEFAULTSIZE	LR_DEFAULTSIZE
+#define	LR_LOADFROMFILE	LR_LOADFROMFILE
+#define	LR_LOADMAP3DCOLORS	LR_LOADMAP3DCOLORS
+#define	LR_LOADTRANSPARENT	LR_LOADTRANSPARENT
+#define	LR_MONOCHROME	LR_MONOCHROME
+#define	LR_SHARED	LR_SHARED
+#define	LR_VGACOLOR	LR_VGACOLOR
+
+// @pyswig HIMAGELIST|ImageList_Create|Create an image list
+HIMAGELIST ImageList_Create(int cx, int cy, UINT flags, int cInitial, int cGrow);
+
+
+#define	ILC_COLOR	ILC_COLOR
+#define	ILC_COLOR4	ILC_COLOR4
+#define	ILC_COLOR8	ILC_COLOR8
+#define	ILC_COLOR16	ILC_COLOR16
+#define	ILC_COLOR24	ILC_COLOR24
+#define	ILC_COLOR32	ILC_COLOR32
+#define	ILC_COLORDDB	ILC_COLORDDB
+#define	ILC_MASK	ILC_MASK
+
+// @pyswig BOOL |ImageList_Destroy|Destroy an imagelist
+BOOLAPI ImageList_Destroy(HIMAGELIST himl);
+
+// @pyswig BOOL |ImageList_Draw|Draw an image on an HDC
+BOOLAPI ImageList_Draw(HIMAGELIST himl,int i,HDC hdcDst, int x, int y, UINT fStyle);
+
+#define	ILD_BLEND25	ILD_BLEND25
+#define	ILD_FOCUS	ILD_FOCUS
+#define	ILD_BLEND50	ILD_BLEND50
+#define	ILD_SELECTED	ILD_SELECTED
+#define	ILD_BLEND	ILD_BLEND
+#define	ILD_MASK	ILD_MASK
+#define	ILD_NORMAL	ILD_NORMAL
+#define	ILD_TRANSPARENT	ILD_TRANSPARENT
+
+// @pyswig HICON|ImageList_GetIcon|Extract an icon from an imagelist
+HICON ImageList_GetIcon(HIMAGELIST himl, int i, UINT flag);
+
+// @pyswig int|ImageList_GetImageCount|Return count of images in imagelist
+int ImageList_GetImageCount(HIMAGELIST himl);
+
+// @pyswig HANDLE|ImageList_LoadImage|Loads bitmaps, cursors or icons, creates imagelist
+HIMAGELIST ImageList_LoadImage(HINSTANCE hInst, RESOURCE_ID name,
+				 int cx, int cGrow, COLORREF crMask, UINT uType, UINT uFlags);
+
+// @pyswig BOOL|ImageList_Remove|Remove an image from an imagelist
+BOOLAPI ImageList_Remove(HIMAGELIST himl, int i);
+
+// @pyswig BOOL|ImageList_Replace|Replace an image in an imagelist with a bitmap image
+int ImageList_Replace(HIMAGELIST himl, int i, HBITMAP hbmImage, HBITMAP hbmMask);
+
+// @pyswig BOOL|ImageList_ReplaceIcon|Replace an image in an imagelist with an icon image
+int ImageList_ReplaceIcon(HIMAGELIST himl, int i, HICON hicon);
+
+// @pyswig COLORREF|ImageList_SetBkColor|Set the background color for the imagelist
+COLORREF ImageList_SetBkColor(HIMAGELIST himl,COLORREF clrbk);
+
+#define	CLR_NONE	CLR_NONE
+
+
 
 // @pyswig int|MessageBox|Displays a message box
 // @pyparm int|parent||The parent window
@@ -1146,27 +1493,34 @@ static PyObject *PyUnregisterClass(PyObject *self, PyObject *args)
 
 %{
 // @pyswig |PumpMessages|Runs a message loop until a WM_QUIT message is received.
+// @rdesc Returns exit code from PostQuitMessage when a WM_QUIT message is received
 static PyObject *PyPumpMessages(PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ""))
 		return NULL;
 
-    Py_BEGIN_ALLOW_THREADS
 	MSG msg;
 	int rc;
+
+    Py_BEGIN_ALLOW_THREADS
 	while ((rc=GetMessage(&msg, 0, 0, 0))==1) {
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
+		if(NULL == hDialogCurrent || !IsDialogMessage(hDialogCurrent,&msg)) {
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
 	}
     Py_END_ALLOW_THREADS
 
-	Py_INCREF(Py_None);
-	return Py_None;
+	if (-1 == rc)
+		return PyWin_SetAPIError("GetMessage");
+
+	return PyInt_FromLong(msg.wParam);
+
 	// @xref <om win32gui.PumpWaitingMessages>
 }
 
 // @pyswig int|PumpWaitingMessages|Pumps all waiting messages for the current thread.
-// @rdesc Returns 1 if a WM_QUIT message was received, else 0
+// @rdesc Returns non-zero (exit code from PostQuitMessage) if a WM_QUIT message was received, else 0
 static PyObject *PyPumpWaitingMessages(PyObject *self, PyObject *args)
 {
 	UINT firstMsg = 0, lastMsg = 0;
@@ -1182,11 +1536,17 @@ static PyObject *PyPumpWaitingMessages(PyObject *self, PyObject *args)
 	while (PeekMessage(&msg, NULL, firstMsg, lastMsg, PM_REMOVE)) {
 		// If it's a quit message, we're out of here.
 		if (msg.message == WM_QUIT) {
-			result = 1;
+			if(0 != msg.wParam)
+				result = msg.wParam;
+			else
+				result = 1;
 			break;
 		}
 		// Otherwise, dispatch the message.
-		DispatchMessage(&msg); 
+		if(NULL == hDialogCurrent || !IsDialogMessage(hDialogCurrent,&msg)) {
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
 	} // End of PeekMessage while loop
 	// @xref <om win32gui.PumpMessages>
 	Py_END_ALLOW_THREADS
@@ -1402,6 +1762,30 @@ HMENU CreateMenu();
 // @pyswig int|CreatePopupMenu|
 // @rdesc The result is a HMENU to the new menu.
 HMENU CreatePopupMenu(); 
+
+
+// @pyswig int|TrackPopupMenu|Display popup shortcut menu
+// @pyparm int|hmenu||The handle to the menu
+// @pyparm uint|flags||flags
+// @pyparm int|x||x pos
+// @pyparm int|y||y pos
+// @pyparm int|reserved||reserved
+// @pyparm hwnd|hwnd||owner window
+// @pyparm REC|prcRect||Pointer to rec (can be None)
+
+LRESULT TrackPopupMenu(HMENU hmenu, UINT flags, int x, int y, int reserved, HWND hwnd, const RECT *INPUT_NULLOK);
+
+#define	TPM_CENTERALIGN	TPM_CENTERALIGN
+#define	TPM_LEFTALIGN	TPM_LEFTALIGN
+#define	TPM_RIGHTALIGN	TPM_RIGHTALIGN
+#define	TPM_BOTTOMALIGN	TPM_BOTTOMALIGN
+#define	TPM_TOPALIGN	TPM_TOPALIGN
+#define	TPM_VCENTERALIGN	TPM_VCENTERALIGN
+#define	TPM_NONOTIFY	TPM_NONOTIFY
+#define	TPM_RETURNCMD	TPM_RETURNCMD
+#define	TPM_LEFTBUTTON	TPM_LEFTBUTTON
+#define	TPM_RIGHTBUTTON	TPM_RIGHTBUTTON
+
 %{
 #include "commdlg.h"
 
@@ -1440,6 +1824,16 @@ HICON ExtractIcon(HINSTANCE hinst, TCHAR *modName, UINT index);
 BOOLAPI DestroyIcon( HICON hicon);
 
 
+// @pyswig |GetCursorPos|retrieves the cursor's position, in screen coordinates. 
+
+BOOLAPI GetCursorPos(POINT *OUTPUT);
+
+// @pyswig |ScreenToClient|Convert screen coordinates to client coords
+BOOLAPI ScreenToClient(HWND hWnd,POINT *BOTH);
+
+// @pyswig |ClientToScreen|Convert client coordinates to screen coords
+BOOLAPI ClientToScreen(HWND hWnd,POINT *BOTH);
+
 // @pyswig int|GetOpenFileName|Creates an Open dialog box that lets the user specify the drive, directory, and the name of a file or set of files to open.
 // @rdesc If the user presses OK, the function returns TRUE.  Otherwise, use CommDlgExtendedError for error details.
 
@@ -1448,7 +1842,8 @@ BOOL GetOpenFileName(OPENFILENAME *INPUT);
 %typemap (python, in) MENUITEMINFO *INPUT (int size, char buffer[200]){
 	size = sizeof(MENUITEMINFO);
 	$source = PyObject_Str($source);
-	if ( (! PyString_Check($source)) || (size != PyString_GET_SIZE($source)) ) {
+	if ( (! PyString_Check($source)) || ((size != PyString_GET_SIZE($source)) && 
+			(size+4 != PyString_GET_SIZE($source))) ) {
 		sprintf(buffer, "Argument must be a %d-byte string", size);
 		PyErr_SetString(PyExc_TypeError, buffer);
 		return NULL;
@@ -1501,7 +1896,6 @@ HWND SetParent(
 ); 
 
 // @pyswig |GetCursorPos|retrieves the cursor's position, in screen coordinates. 
-
 BOOLAPI GetCursorPos(
   LPPOINT lpPoint   // @pyparm int, int|point||address of structure for cursor position
 );

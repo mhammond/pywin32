@@ -51,7 +51,7 @@ CFG=win32gui - Win32 Debug
 F90=df.exe
 CPP=cl.exe
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "__WIN32__" /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "__WIN32__" /D "WIN32GUI" /YX /FD /c
 MTL=midl.exe
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o /win32 "NUL"
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o /win32 "NUL"
@@ -82,7 +82,7 @@ LINK32=link.exe
 F90=df.exe
 CPP=cl.exe
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MDd /W3 /GX /ZI /Od /D "WIN32" /D "DEBUG" /D "_DEBUG" /D "_WINDOWS" /D "__WIN32__" /YX /FD /c
+# ADD CPP /nologo /MDd /W3 /GX /ZI /Od /D "DEBUG" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "__WIN32__" /D "WIN32GUI" /YX /FD /c
 MTL=midl.exe
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o /win32 "NUL"
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o /win32 "NUL"
@@ -109,24 +109,24 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Build\Temp\win32file\ce\x86em\Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-EMPFILE=empfile.exe
-# ADD BASE EMPFILE COPY
-# ADD EMPFILE COPY
-CPP=cl.exe
-# ADD BASE CPP /nologo /ML /W3 /O2 /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "NDEBUG" /D "x86" /D "i486" /D "_x86_" /YX /c
-# ADD CPP /nologo /MT /W3 /O1 /D "_UNICODE" /D "WIN32" /D "STRICT" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "NDEBUG" /D "x86" /D "i486" /D "_x86_" /D "UNICODE" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D UNDER_CE=$(CEVersion) /D "__WIN32__" /YX /c
-RSC=rc.exe
-# ADD BASE RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
-# ADD RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 commctrl.lib coredll.lib /nologo /subsystem:windows /dll /machine:I386 /windowsce:emulation
 # ADD LINK32 commdlg.lib commctrl.lib coredll.lib /nologo /subsystem:windows /dll /machine:I386 /nodefaultlib:"$(CENoDefaultLib)" /out:"Build\ce\x86em\win32gui.pyd" /windowsce:emulation
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+RSC=rc.exe
+# ADD BASE RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
+# ADD RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
+CPP=cl.exe
+# ADD BASE CPP /nologo /ML /W3 /O2 /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "NDEBUG" /D "x86" /D "i486" /D "_x86_" /YX /c
+# ADD CPP /nologo /MT /W3 /O1 /D "_UNICODE" /D "WIN32" /D "STRICT" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "NDEBUG" /D "x86" /D "i486" /D "_x86_" /D "UNICODE" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D UNDER_CE=$(CEVersion) /D "__WIN32__" /YX /c
+EMPFILE=empfile.exe
+# ADD BASE EMPFILE COPY
+# ADD EMPFILE COPY
 
 !ELSEIF  "$(CFG)" == "win32gui - Win32 (WCE x86em) Debug"
 
@@ -141,25 +141,25 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Build\Temp\win32gui\ce\x86em\Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-EMPFILE=empfile.exe
-# ADD BASE EMPFILE COPY
-# ADD EMPFILE COPY
-CPP=cl.exe
-# ADD BASE CPP /nologo /MLd /W3 /Gm /Zi /Od /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "_DEBUG" /D "x86" /D "i486" /D "_x86_" /YX /c
-# ADD CPP /nologo /MT /W3 /Gm /Zi /Od /D "_UNICODE" /D "WIN32" /D "STRICT" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "DEBUG" /D "_DEBUG" /D "x86" /D "i486" /D "_x86_" /D "UNICODE" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D UNDER_CE=$(CEVersion) /D "__WIN32__" /YX /c
-RSC=rc.exe
-# ADD BASE RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "_DEBUG" /d "x86" /d "i486" /d "_x86_"
-# ADD RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "_DEBUG" /d "x86" /d "i486" /d "_x86_"
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
-# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 commctrl.lib coredll.lib /nologo /subsystem:windows /dll /debug /machine:I386 /windowsce:emulation
 # ADD LINK32 commdlg.lib commctrl.lib coredll.lib /nologo /entry:"_DllMainCRTStartup@12" /dll /debug /machine:I386 /nodefaultlib:"$(CENoDefaultLib)" /out:"Build\ce\x86em\win32gui_d.pyd" /windowsce:emulation
 # SUBTRACT LINK32 /pdb:none
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+RSC=rc.exe
+# ADD BASE RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "_DEBUG" /d "x86" /d "i486" /d "_x86_"
+# ADD RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "_DEBUG" /d "x86" /d "i486" /d "_x86_"
+CPP=cl.exe
+# ADD BASE CPP /nologo /MLd /W3 /Gm /Zi /Od /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "_DEBUG" /D "x86" /D "i486" /D "_x86_" /YX /c
+# ADD CPP /nologo /MT /W3 /Gm /Zi /Od /D "_UNICODE" /D "WIN32" /D "STRICT" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "DEBUG" /D "_DEBUG" /D "x86" /D "i486" /D "_x86_" /D "UNICODE" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D UNDER_CE=$(CEVersion) /D "__WIN32__" /YX /c
+EMPFILE=empfile.exe
+# ADD BASE EMPFILE COPY
+# ADD EMPFILE COPY
 
 !ELSEIF  "$(CFG)" == "win32gui - Win32 (WCE MIPS) Release"
 
@@ -174,26 +174,26 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Build\Temp\win32event\ce\mips\Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-PFILE=pfile.exe
-# ADD BASE PFILE COPY
-# ADD PFILE COPY
-CPP=clmips.exe
-# ADD BASE CPP /nologo /ML /W3 /O2 /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /YX /QMRWCE /c
-# ADD CPP /nologo /M$(CECrtMT) /W3 /O1 /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D "UNICODE" /D "_UNICODE" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D UNDER_CE=$(CEVersion) /D "__WIN32__" /YX /QMRWCE /c
-RSC=rc.exe
-# ADD BASE RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-# ADD RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 commctrl.lib coredll.lib /nologo /dll /machine:MIPS /subsystem:$(CESubsystem)
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 commdlg.lib commctrl.lib coredll.lib /nologo /dll /machine:MIPS /nodefaultlib:"$(CENoDefaultLib)" /out:"Build\ce\mips\win32gui.pyd" /subsystem:windowsce,1.0
 # SUBTRACT LINK32 /pdb:none
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+RSC=rc.exe
+# ADD BASE RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+# ADD RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+CPP=clmips.exe
+# ADD BASE CPP /nologo /ML /W3 /O2 /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /YX /QMRWCE /c
+# ADD CPP /nologo /M$(CECrtMT) /W3 /O1 /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D "UNICODE" /D "_UNICODE" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D UNDER_CE=$(CEVersion) /D "__WIN32__" /YX /QMRWCE /c
+PFILE=pfile.exe
+# ADD BASE PFILE COPY
+# ADD PFILE COPY
 
 !ELSEIF  "$(CFG)" == "win32gui - Win32 (WCE MIPS) Debug"
 
@@ -208,26 +208,26 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Build\Temp\win32gui\ce\mips\Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-PFILE=pfile.exe
-# ADD BASE PFILE COPY
-# ADD PFILE COPY
-CPP=clmips.exe
-# ADD BASE CPP /nologo /MLd /W3 /Zi /Od /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /YX /QMRWCE /c
-# ADD CPP /nologo /M$(CECrtMT) /W3 /Zi /Od /D "_UNICODE" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D UNDER_CE=$(CEVersion) /D "__WIN32__" /D "_DEBUG" /D "DEBUG" /D "MIPS" /D "_MIPS_" /D "UNICODE" /YX /c
-RSC=rc.exe
-# ADD BASE RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "DEBUG"
-# ADD RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "DEBUG"
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
-# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 commctrl.lib coredll.lib /nologo /dll /debug /machine:MIPS /subsystem:$(CESubsystem)
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 commdlg.lib commctrl.lib coredll.lib /nologo /dll /debug /machine:MIPS /nodefaultlib:"$(CENoDefaultLib)" /out:"Build\ce\mips\win32gui_d.pyd" /subsystem:$(CESubsystem)
 # SUBTRACT LINK32 /pdb:none /nodefaultlib
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+RSC=rc.exe
+# ADD BASE RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "DEBUG"
+# ADD RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "DEBUG"
+CPP=clmips.exe
+# ADD BASE CPP /nologo /MLd /W3 /Zi /Od /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /YX /QMRWCE /c
+# ADD CPP /nologo /M$(CECrtMT) /W3 /Zi /Od /D "_UNICODE" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D UNDER_CE=$(CEVersion) /D "__WIN32__" /D "_DEBUG" /D "DEBUG" /D "MIPS" /D "_MIPS_" /D "UNICODE" /YX /c
+PFILE=pfile.exe
+# ADD BASE PFILE COPY
+# ADD PFILE COPY
 
 !ELSEIF  "$(CFG)" == "win32gui - Win32 (WCE SH3) Release"
 
@@ -242,26 +242,26 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Build\Temp\win32gui\ce\sh\Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-PFILE=pfile.exe
-# ADD BASE PFILE COPY
-# ADD PFILE COPY
-CPP=shcl.exe
-# ADD BASE CPP /nologo /ML /W3 /O2 /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /YX /c
-# ADD CPP /nologo /M$(CECrtMT) /W3 /O1 /D "NDEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D "UNICODE" /D "_UNICODE" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D UNDER_CE=$(CEVersion) /D "__WIN32__" /YX /c
-RSC=rc.exe
-# ADD BASE RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-# ADD RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 commctrl.lib coredll.lib /nologo /dll /machine:SH3 /subsystem:$(CESubsystem)
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 commdlg.lib commctrl.lib coredll.lib /nologo /dll /machine:SH3 /nodefaultlib:"$(CENoDefaultLib)" /out:"Build\ce\sh\win32gui.pyd" /subsystem:$(CESubsystem)
 # SUBTRACT LINK32 /pdb:none /nodefaultlib
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+RSC=rc.exe
+# ADD BASE RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+# ADD RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+CPP=shcl.exe
+# ADD BASE CPP /nologo /ML /W3 /O2 /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /YX /c
+# ADD CPP /nologo /M$(CECrtMT) /W3 /O1 /D "NDEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D "UNICODE" /D "_UNICODE" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D UNDER_CE=$(CEVersion) /D "__WIN32__" /YX /c
+PFILE=pfile.exe
+# ADD BASE PFILE COPY
+# ADD PFILE COPY
 
 !ELSEIF  "$(CFG)" == "win32gui - Win32 (WCE SH3) Debug"
 
@@ -276,26 +276,26 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Build\Temp\win32gui\ce\sh\Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-PFILE=pfile.exe
-# ADD BASE PFILE COPY
-# ADD PFILE COPY
-CPP=shcl.exe
-# ADD BASE CPP /nologo /MLd /W3 /Zi /Od /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /YX /c
-# ADD CPP /nologo /M$(CECrtDebug) /W3 /Zi /Od /D "_UNICODE" /D "__WIN32__" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "_DEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /YX /c
-RSC=rc.exe
-# ADD BASE RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "DEBUG"
-# ADD RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "DEBUG"
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
-# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 commctrl.lib coredll.lib /nologo /dll /debug /machine:SH3 /subsystem:$(CESubsystem)
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 commdlg.lib commctrl.lib coredll.lib /nologo /dll /debug /machine:SH3 /nodefaultlib:"$(CENoDefaultLib)" /out:"Build\ce\sh\win32gui_d.pyd" /subsystem:$(CESubsystem)
 # SUBTRACT LINK32 /pdb:none /nodefaultlib
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+RSC=rc.exe
+# ADD BASE RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "DEBUG"
+# ADD RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "DEBUG"
+CPP=shcl.exe
+# ADD BASE CPP /nologo /MLd /W3 /Zi /Od /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /YX /c
+# ADD CPP /nologo /M$(CECrtDebug) /W3 /Zi /Od /D "_UNICODE" /D "__WIN32__" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "_DEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /YX /c
+PFILE=pfile.exe
+# ADD BASE PFILE COPY
+# ADD PFILE COPY
 
 !ENDIF 
 
@@ -309,6 +309,29 @@ LINK32=link.exe
 # Name "win32gui - Win32 (WCE MIPS) Debug"
 # Name "win32gui - Win32 (WCE SH3) Release"
 # Name "win32gui - Win32 (WCE SH3) Debug"
+# Begin Source File
+
+SOURCE=.\src\win32dynamicdialog.cpp
+
+!IF  "$(CFG)" == "win32gui - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "win32gui - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "win32gui - Win32 (WCE x86em) Release"
+
+!ELSEIF  "$(CFG)" == "win32gui - Win32 (WCE x86em) Debug"
+
+!ELSEIF  "$(CFG)" == "win32gui - Win32 (WCE MIPS) Release"
+
+!ELSEIF  "$(CFG)" == "win32gui - Win32 (WCE MIPS) Debug"
+
+!ELSEIF  "$(CFG)" == "win32gui - Win32 (WCE SH3) Release"
+
+!ELSEIF  "$(CFG)" == "win32gui - Win32 (WCE SH3) Debug"
+
+!ENDIF 
+
+# End Source File
 # Begin Source File
 
 SOURCE=.\src\win32gui.i
