@@ -494,6 +494,11 @@ static BOOL PyCom_SAFEARRAYFromPyObjectEx(PyObject *obj, SAFEARRAY **ppSA, bool 
 					PyErr_Clear();
 					break;
 				}
+			} else {
+				// it is a sequence, but has zero items - can't search
+				// any deeper for another dimension
+				Py_XDECREF(obItemCheck);
+				obItemCheck = NULL;
 			}
 		} else {
 			Py_XDECREF(obItemCheck);
