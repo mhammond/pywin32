@@ -385,11 +385,10 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
   // @pyseeapi GetClipboardData
   // @pyseeapi Standard Clipboard Formats
 
-  // @rdesc If the function succeeds, the return value is the handle of a
-  // clipboard object in the specified format.<nl>
-  // If the function fails, win32api.error is raised with the GetLastError
-  // info.
-
+  // @rdesc If the function succeeds, the return value is either a Unicode object
+  // (if format is CF_UNICODETEXT), otherwise a string object.  Depending on
+  // format (eg, CF_METAFILEPICT) the string may contain raw data bytes.<nl>
+  // If the function fails, the standard win32api.error exception is raised.
 }
 
 
