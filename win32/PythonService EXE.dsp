@@ -54,7 +54,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1eb00000" /subsystem:console /debug /machine:I386 /out:"Build\PythonService.exe"
+# ADD LINK32 Advapi32.lib /nologo /subsystem:console /debug /machine:I386 /out:"Build\PythonService.exe" /libpath:"./Build"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "PythonService EXE - Win32 Debug"
@@ -82,7 +82,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1eb00000" /subsystem:console /debug /machine:I386 /out:"Build\PythonService_d.exe" /pdbtype:sept
+# ADD LINK32 Advapi32.lib /nologo /subsystem:console /debug /machine:I386 /out:"Build\PythonService_d.exe" /pdbtype:sept /libpath:"./Build"
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
@@ -94,53 +94,6 @@ LINK32=link.exe
 # Begin Source File
 
 SOURCE=.\src\PythonService.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\src\PythonServiceMessages.mc
-
-!IF  "$(CFG)" == "PythonService EXE - Win32 Release"
-
-# Begin Custom Build - Compiling messages
-InputDir=.\src
-IntDir=.\Build\Temp\PythonServiceExe\Release
-InputPath=.\src\PythonServiceMessages.mc
-InputName=PythonServiceMessages
-
-BuildCmds= \
-	mc -h $(InputDir) -r $(IntDir) $(InputPath) \
-	rc $(IntDir)\$(InputName).rc \
-	
-
-"$(IntDir)\$(InputName).res" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"$(InputDir)\$(InputName).h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "PythonService EXE - Win32 Debug"
-
-# Begin Custom Build - Compiling messages
-InputDir=.\src
-IntDir=.\Build\Temp\PythonServiceExe\Debug
-InputPath=.\src\PythonServiceMessages.mc
-InputName=PythonServiceMessages
-
-BuildCmds= \
-	mc -h $(InputDir) -r $(IntDir) $(InputPath) \
-	rc $(IntDir)\$(InputName).rc \
-	
-
-"$(IntDir)\$(InputName).res" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"$(InputDir)\$(InputName).h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-# End Custom Build
-
-!ENDIF 
-
 # End Source File
 # End Target
 # End Project
