@@ -2302,7 +2302,7 @@ PyRegQueryValue( PyObject *self, PyObject *args )
 
 	long rc;
 	char *retBuf;
-	long bufSize;
+	long bufSize = 0;
 	// @pyparm <o PyHKEY>/int|key||An already open key, or any one of the following win32con constants:<nl>HKEY_CLASSES_ROOT<nl>HKEY_CURRENT_USER<nl>HKEY_LOCAL_MACHINE<nl>HKEY_USERS
 	// @pyparm string|subKey||The name of the subkey with which the value is associated.
 	// If this parameter is None or empty, the function retrieves the value set by the <om win32api.RegSetValue> method for the key identified by key. 
@@ -2333,7 +2333,7 @@ PyRegQueryValueEx( PyObject *self, PyObject *args )
 
 	long rc;
 	char *retBuf;
-	DWORD bufSize;
+	DWORD bufSize = 0;
 	DWORD typ;
 
 	// @pyparm <o PyHKEY>/int|key||An already open key, or any one of the following win32con constants:<nl>HKEY_CLASSES_ROOT<nl>HKEY_CURRENT_USER<nl>HKEY_LOCAL_MACHINE<nl>HKEY_USERS
