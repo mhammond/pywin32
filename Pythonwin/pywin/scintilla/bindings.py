@@ -166,8 +166,10 @@ class BindingsManager:
 		keyinfo = key, keyState
 		event = self.keymap.get( keyinfo )
 		if event is None:
+			# Translate the raw scancode into an Ascii character.
 			key = win32ui.TranslateVirtualKey(key)
 			if key:
+				# Then back to a "normalized" scan-code.
 				key = keycodes.get_scan_code(key[0])
 				keyinfo = key, keyState
 				event = self.keymap.get( keyinfo )
