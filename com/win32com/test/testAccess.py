@@ -90,6 +90,9 @@ def CreateTestAccessDatabase(dbname = None):
         raise RuntimeError, "Unexpected record is last - makes bookmark test pointless!"
 
     tab1.Bookmark = bk
+    if tab1.Bookmark != bk:
+        raise RuntimeError, "The bookmark data is not the same"
+
     if tab1.Fields("First Name").Value != "Mark":
         raise RuntimeError, "The bookmark did not reset the record pointer correctly"
 
