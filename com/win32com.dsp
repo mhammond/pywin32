@@ -169,6 +169,10 @@ SOURCE=.\win32com\src\PyRecord.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32com\src\extensions\PySTGMEDIUM.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32com\src\PyStorage.cpp
 # End Source File
 # Begin Source File
@@ -274,6 +278,10 @@ SOURCE=.\win32com\src\extensions\PyICreateTypeLib.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32com\src\extensions\PyIDataObject.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32com\src\extensions\PyIEnumCATEGORYINFO.cpp
 # End Source File
 # Begin Source File
@@ -286,7 +294,15 @@ SOURCE=.\win32com\src\extensions\PyIEnumConnections.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32com\src\extensions\PyIEnumFORMATETC.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32com\src\extensions\PyIEnumGUID.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32com\src\extensions\PyIEnumSTATPROPSETSTG.cpp
 # End Source File
 # Begin Source File
 
@@ -315,6 +331,10 @@ SOURCE=.\win32com\src\extensions\PyILockBytes.cpp
 # Begin Source File
 
 SOURCE=.\win32com\src\extensions\PyIMoniker.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32com\src\extensions\PyIOleWindow.cpp
 # End Source File
 # Begin Source File
 
@@ -430,6 +450,10 @@ SOURCE=.\win32com\src\include\PyICatRegister.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32com\src\include\PyIDataObject.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32com\src\include\PyIEnumConnectionPoints.h
 # End Source File
 # Begin Source File
@@ -438,7 +462,15 @@ SOURCE=.\win32com\src\include\PyIEnumConnections.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32com\src\include\PyIEnumFORMATETC.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32com\src\include\PyIEnumGUID.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32com\src\include\PyIEnumSTATPROPSETSTG.h
 # End Source File
 # Begin Source File
 
@@ -459,6 +491,10 @@ SOURCE=.\win32com\src\include\PyILockBytes.h
 # Begin Source File
 
 SOURCE=.\win32com\src\include\PyIMoniker.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32com\src\include\PyIOleWindow.h
 # End Source File
 # Begin Source File
 
