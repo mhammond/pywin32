@@ -267,8 +267,13 @@ def install():
                 # non-admin install - always goes in this user's start menu.
                 fldr = get_special_folder_path("CSIDL_PROGRAMS")
 
-            vi = sys.version_info
-            fldr = os.path.join(fldr, "Python %d.%d" % (vi[0], vi[1]))
+            try:
+                install_group = _winreg.QueryValue(get_root_hkey(),
+                                                   root_key_name + "\\InstallPath\\InstallGroup")
+            except OSError:
+                vi = sys.version_info
+                install_group = "Python %d.%d" % (vi[0], vi[1])
+            fldr = os.path.join(fldr, install_group)
             if not os.path.isdir(fldr):
                 os.mkdir(fldr)
 
@@ -288,6 +293,25 @@ def install():
         except Exception, details:
             if verbose:
                 print details
+
+    # Check the MFC dll exists - it is doesn't, point them at it
+    # (I should install it, but its a bit tricky with distutils)
+    # Unfortunately, this is quite likely on Windows XP and MFC71.dll
+    if sys.hexversion < 0x2040000:
+        mfc_dll = "mfc42.dll"
+    else:
+        mfc_dll = "mfc71.dll"
+    try:
+        win32api.SearchPath(None, mfc_dll)
+    except win32api.error:
+        print "*" * 20, "WARNING", "*" * 20
+        print "It appears that the MFC DLL '%s' is not installed" % (mfc_dll,)
+        print "Pythonwin will not work without this DLL, and I haven't had the"
+        print "time to package it in with the installer."
+        print
+        print "You can download this DLL from:"
+        print "http://starship.python.net/crew/mhammond/win32/"
+        print "*" * 50
 
     print "The pywin32 extensions were successfully installed."
 
