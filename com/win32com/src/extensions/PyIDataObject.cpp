@@ -325,7 +325,7 @@ STDMETHODIMP PyGDataObject::GetData(
 	PyObject *obpformatetcIn = PyObject_FromFORMATETC(pformatetcIn);
 	if (obpformatetcIn==NULL) return PyCom_HandlePythonFailureToCOM();
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetData", &result, "O", obpformatetcIn);
+	HRESULT hr=InvokeViaPolicy("GetData", &result, "(O)", obpformatetcIn);
 	Py_DECREF(obpformatetcIn);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
@@ -347,7 +347,7 @@ STDMETHODIMP PyGDataObject::GetDataHere(
 	PyObject *obpformatetc = PyObject_FromFORMATETC(pformatetc);
 	if (obpformatetc==NULL) return PyCom_HandlePythonFailureToCOM();
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetDataHere", &result, "O", obpformatetc);
+	HRESULT hr=InvokeViaPolicy("GetDataHere", &result, "(O)", obpformatetc);
 	Py_DECREF(obpformatetc);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
@@ -367,7 +367,7 @@ STDMETHODIMP PyGDataObject::QueryGetData(
 	PY_GATEWAY_METHOD;
 	PyObject *obpformatetc = PyObject_FromFORMATETC(pformatetc);
 	if (obpformatetc==NULL) return PyCom_HandlePythonFailureToCOM();
-	HRESULT hr=InvokeViaPolicy("QueryGetData", NULL, "O", obpformatetc);
+	HRESULT hr=InvokeViaPolicy("QueryGetData", NULL, "(O)", obpformatetc);
 	Py_DECREF(obpformatetc);
 	return hr;
 }
@@ -380,7 +380,7 @@ STDMETHODIMP PyGDataObject::GetCanonicalFormatEtc(
 	PyObject *obpformatectIn = PyObject_FromFORMATETC(pformatectIn);
 	if (obpformatectIn==NULL) return PyCom_HandlePythonFailureToCOM();
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetCanonicalFormatEtc", &result, "O", obpformatectIn);
+	HRESULT hr=InvokeViaPolicy("GetCanonicalFormatEtc", &result, "(O)", obpformatectIn);
 	Py_DECREF(obpformatectIn);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
