@@ -17,7 +17,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.2.8" # Written to generated file.
+makepy_version = "0.2.9" # Written to generated file.
 
 # This map is used purely for the users benefit -it shows the
 # raw, underlying type of Alias/Enums, etc.  The COM implementation
