@@ -120,10 +120,12 @@ public:
 	// called that many times. Similarly for redo.
 	bool CanUndo() const;
 	int StartUndo();
-	const Action &UndoStep();
+	const Action &GetUndoStep() const;
+	void CompletedUndoStep();
 	bool CanRedo() const;
 	int StartRedo();
-	const Action &RedoStep();
+	const Action &GetRedoStep() const;
+	void CompletedRedoStep();
 };
 
 // Holder for an expandable array of characters that supports undo and line markers
@@ -207,10 +209,12 @@ public:
 	// called that many times. Similarly for redo.
 	bool CanUndo();
 	int StartUndo();
-	const Action &UndoStep();
+	const Action &GetUndoStep() const;
+	void PerformUndoStep();
 	bool CanRedo();
 	int StartRedo();
-	const Action &RedoStep();
+	const Action &GetRedoStep() const;
+	void PerformRedoStep();
 	
 	int SetLineState(int line, int state);
 	int GetLineState(int line);

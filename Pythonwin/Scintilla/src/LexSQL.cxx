@@ -50,7 +50,7 @@ static void ColouriseSQLDoc(unsigned int startPos, int length,
 	char chNext = styler[startPos];
 	styler.StartSegment(startPos);
 	unsigned int lengthDoc = startPos + length;
-	for (unsigned int i = startPos; i <= lengthDoc; i++) {
+	for (unsigned int i = startPos; i < lengthDoc; i++) {
 		char ch = chNext;
 		chNext = styler.SafeGetCharAt(i + 1);
 

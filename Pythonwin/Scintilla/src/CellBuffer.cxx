@@ -191,11 +191,23 @@ void LineVector::InsertValue(int pos, int value) {
 		}
 	}
 	lines++;
-	for (int i = lines + 1; i > pos; i--) {
+	for (int i = lines; i > pos; i--) {
 		linesData[i] = linesData[i - 1];
 	}
 	linesData[pos].startPosition = value;
 	linesData[pos].handleSet = 0;
+	if (levels) {
+		for (int j = lines; j > pos; j--) {
+			levels[j] = levels[j - 1];
+		}
+		if (pos == 0) {
+			levels[pos] = SC_FOLDLEVELBASE;
+		} else if (pos == (lines-1)) {	// Last line will not be a folder
+			levels[pos] = SC_FOLDLEVELBASE;
+		} else {
+			levels[pos] = levels[pos-1];
+		}
+	}
 }
 
 void LineVector::SetValue(int pos, int value) {
@@ -220,6 +232,15 @@ void LineVector::Remove(int pos) {
 	}
 	for (int i = pos; i < lines; i++) {
 		linesData[i] = linesData[i + 1];
+	}
+	if (levels) {
+        // Level information merges back onto previous line
+        int posAbove = pos-1;
+        if (posAbove < 0)
+            posAbove = 0;
+		for (int j = posAbove; j < lines; j++) {
+			levels[j] = levels[j + 1];
+		}
 	}
 	lines--;
 }
@@ -505,8 +526,12 @@ int UndoHistory::StartUndo() {
 	return currentAction - act;
 }
 
-const Action &UndoHistory::UndoStep() {
-	return actions[currentAction--];
+const Action &UndoHistory::GetUndoStep() const {
+	return actions[currentAction];
+}
+
+void UndoHistory::CompletedUndoStep() {
+	currentAction--;
 }
 
 bool UndoHistory::CanRedo() const {
@@ -526,15 +551,19 @@ int UndoHistory::StartRedo() {
 	return act - currentAction;
 }
 
-const Action &UndoHistory::RedoStep() {
-	return actions[currentAction++];
+const Action &UndoHistory::GetRedoStep() const {
+	return actions[currentAction];
+}
+
+void UndoHistory::CompletedRedoStep() {
+	currentAction++;
 }
 
 CellBuffer::CellBuffer(int initialLength) {
 	body = new char[initialLength];
 	size = initialLength;
 	length = 0;
-	part1len = 0;
+	part1len = 0;   
 	gaplen = initialLength;
 	part2body = body + gaplen;
 	readOnly = false;
@@ -953,8 +982,12 @@ int CellBuffer::StartUndo() {
 	return uh.StartUndo();
 }
 
-const Action &CellBuffer::UndoStep() {
-	const Action &actionStep = uh.UndoStep();
+const Action &CellBuffer::GetUndoStep() const {
+	return uh.GetUndoStep();
+}
+
+void CellBuffer::PerformUndoStep() {
+	const Action &actionStep = uh.GetUndoStep();
 	if (actionStep.at == insertAction) {
 		BasicDeleteChars(actionStep.position, actionStep.lenData*2);
 	} else if (actionStep.at == removeAction) {
@@ -966,7 +999,7 @@ const Action &CellBuffer::UndoStep() {
 		BasicInsertString(actionStep.position, styledData, actionStep.lenData*2);
 		delete []styledData;
 	}
-	return actionStep;
+    uh.CompletedUndoStep();
 }
 
 bool CellBuffer::CanRedo() {
@@ -977,8 +1010,12 @@ int CellBuffer::StartRedo() {
 	return uh.StartRedo();
 }
 
-const Action &CellBuffer::RedoStep() {
-	const Action &actionStep = uh.RedoStep();
+const Action &CellBuffer::GetRedoStep() const {
+	return uh.GetRedoStep();
+}
+
+void CellBuffer::PerformRedoStep() {
+	const Action &actionStep = uh.GetRedoStep();
 	if (actionStep.at == insertAction) {
 		char *styledData = new char[actionStep.lenData * 2];
 		for (int i = 0; i < actionStep.lenData; i++) {
@@ -990,7 +1027,7 @@ const Action &CellBuffer::RedoStep() {
 	} else if (actionStep.at == removeAction) {
 		BasicDeleteChars(actionStep.position, actionStep.lenData*2);
 	}
-	return actionStep;
+    uh.CompletedRedoStep();
 }
 
 int CellBuffer::SetLineState(int line, int state) {

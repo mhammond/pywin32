@@ -503,6 +503,19 @@ void Editor::HorizontalScrollTo(int xPos) {
 	Redraw();
 }
 
+void Editor::MoveCaretInsideView() {
+	PRectangle rcClient = GetTextRectangle();
+	Point pt = LocationFromPosition(currentPos);
+	if (pt.y < rcClient.top) {
+		MovePositionTo(PositionFromLocation(
+		                   Point(lastXChosen, rcClient.top)));
+	} else if ((pt.y + vs.lineHeight - 1) > rcClient.bottom) {
+		int yOfLastLineFullyDisplayed = rcClient.top + (LinesOnScreen()-1) * vs.lineHeight;
+		MovePositionTo(PositionFromLocation(
+		                   Point(lastXChosen, rcClient.top + yOfLastLineFullyDisplayed)));
+	}
+}
+
 void Editor::EnsureCaretVisible(bool useMargin) {
 	//Platform::DebugPrintf("EnsureCaretVisible %d\n", xOffset);
 	PRectangle rcClient = GetTextRectangle();
@@ -1090,9 +1103,10 @@ void Editor::Paint(Surface *surfaceWindow, PRectangle rcArea) {
 			
 			// Draw the Caret
 			if (line == lineCaret) {
-				int xposCaret = ll.positions[posCaret - posLineStart] + xStart;
+				int offset = Platform::Minimum(posCaret - posLineStart, LineLayout::maxLineLength);
+				int xposCaret = ll.positions[offset] + xStart;
 				int widthOverstrikeCaret =
-				    ll.positions[posCaret - posLineStart + 1] - ll.positions[posCaret - posLineStart];
+				    ll.positions[offset + 1] - ll.positions[offset];
 				if (posCaret == pdoc->Length())	// At end of document
 					widthOverstrikeCaret = vs.aveCharWidth;
 				if ((posCaret - posLineStart) >= ll.numCharsInLine)	// At end of line
@@ -1599,13 +1613,17 @@ void Editor::NotifyModified(Document*, DocModification mh, void *) {
 					}
 				}
 			}
+			if (mh.modificationType & SC_MOD_BEFOREINSERT) {
+				NotifyNeedShown(mh.position, 0);
+            } else if (mh.modificationType & SC_MOD_BEFOREDELETE) {
+				NotifyNeedShown(mh.position, mh.length);
+            }
 			if (mh.linesAdded != 0) {
 
 				// Update contraction state for inserted and removed lines
 				// lineOfPos should be calculated in context of state before modification, shouldn't it
 				int lineOfPos = pdoc->LineFromPosition(mh.position);
 				if (mh.linesAdded > 0) {
-					NotifyNeedShown(mh.position, mh.length);
 					cs.InsertLines(lineOfPos, mh.linesAdded);
 				} else {
 					cs.DeleteLines(lineOfPos, -mh.linesAdded);
@@ -1825,6 +1843,7 @@ int Editor::KeyCommand(UINT iMessage) {
 		break;
 	case SCI_LINESCROLLDOWN:
 		ScrollTo(topLine + 1);
+		MoveCaretInsideView();
 		break;
 	case SCI_LINEUP:
 		MovePositionTo(PositionFromLocation(
@@ -1836,6 +1855,7 @@ int Editor::KeyCommand(UINT iMessage) {
 		break;
 	case SCI_LINESCROLLUP:
 		ScrollTo(topLine - 1);
+		MoveCaretInsideView();
 		break;
 	case SCI_CHARLEFT:
 		if (SelectionEmpty()) {
@@ -2888,19 +2908,20 @@ LRESULT Editor::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 		//		EM_GETPUNCTUATION
 		//		EM_SETPUNCTUATION
 		//		EM_GETTHUMB
+		//		EM_SETTARGETDEVICE
 
 		// Not supported but should be:
 		//		EM_GETEVENTMASK
 		//		EM_SETEVENTMASK
 		//		For printing:
 		//			EM_DISPLAYBAND
-		//			EM_SETTARGETDEVICE
 
 	case EM_CANUNDO:
 		return pdoc->CanUndo() ? TRUE : FALSE;
 
 	case EM_UNDO:
 		Undo();
+		SetLastXChosen();
 		break;
 
 	case EM_EMPTYUNDOBUFFER:
@@ -2935,12 +2956,6 @@ LRESULT Editor::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 
 	case EM_GETMODIFY:
 		return !pdoc->IsSavePoint();
-
-	case EM_SETMODIFY:
-		// Not really supported now that there is the save point stuff
-		//pdoc->isModified = wParam;
-		//return pdoc->isModified;
-		return false;
 
 	case EM_GETRECT:
 		if (lParam == 0)
@@ -3004,22 +3019,6 @@ LRESULT Editor::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 			}
 			return iChar;
 		}
-
-	case EM_GETWORDBREAKPROC:
-		return 0;
-
-	case EM_SETWORDBREAKPROC:
-		break;
-
-	case EM_LIMITTEXT:
-		// wParam holds the number of characters control should be limited to
-		break;
-
-	case EM_GETLIMITTEXT:
-		return 0xffffffff;
-
-	case EM_GETOLEINTERFACE:
-		return 0;
 
 	case EM_LINEFROMCHAR:
 		if (static_cast<int>(wParam) < 0)
@@ -3089,9 +3088,6 @@ LRESULT Editor::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 	case EM_SETREADONLY:
 		pdoc->SetReadOnly(wParam);
 		return TRUE;
-
-	case EM_SETRECT:
-		break;
 
 	case EM_CANPASTE:
 		return 1;
@@ -3838,6 +3834,14 @@ LRESULT Editor::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 		Redraw();
 		break;
 
+	case SCI_SETZOOM:
+		vs.zoomLevel = wParam;
+		InvalidateStyleRedraw();
+		break;
+
+	case SCI_GETZOOM:
+		return vs.zoomLevel;
+	
 	case SCI_GETEDGECOLUMN:
 		return theEdge;
 		

@@ -264,6 +264,10 @@ int Surface::LogPixelsY() {
 	return ::GetDeviceCaps(hdc, LOGPIXELSY);
 }
 
+int Surface::DeviceHeightFont(int points) {
+	return ::MulDiv(points, LogPixelsY(), 72);
+}
+
 void Surface::MoveTo(int x_, int y_) {
 	::MoveToEx(hdc, x_, y_, 0);
 }
@@ -360,18 +364,10 @@ int Surface::WidthText(Font &font_, const char *s, int len) {
 	SetFont(font_);
 	SIZE sz={0,0};
 	if (unicodeMode) {
-		int fit = 0;
 		wchar_t tbuf[MAX_US_LEN];
 		int tlen = UCS2FromUTF8(s, len, tbuf, sizeof(tbuf)/sizeof(wchar_t));
 		tbuf[tlen] = L'\0';
-		fit = tlen;
-		//::GetTextExtentPoint32W(hdc, tbuf, tlen, &sz);
-		if (!::GetTextExtentExPointW(hdc, tbuf, tlen, 30000, &fit, NULL, &sz)) {
-			DWORD dw = GetLastError();
-			Platform::DebugPrintf("Error for 1 GTEEPW %d\n", dw);
-		} else {
-			//Platform::DebugPrintf("OK 1 GTEEPW %d\n", len);
-		}
+		::GetTextExtentPoint32W(hdc, tbuf, tlen, &sz);
 	} else {
 		::GetTextExtentPoint32(hdc, s, len, &sz);
 	}
@@ -388,13 +384,16 @@ void Surface::MeasureWidths(Font &font_, const char *s, int len, int *positions)
 		tbuf[tlen] = L'\0';
 		int poses[MAX_US_LEN];
 		fit = tlen;
-		SetLastError(0);
 		if (!::GetTextExtentExPointW(hdc, tbuf, tlen, 30000, &fit, poses, &sz)) {
-			DWORD dw = GetLastError();
-			Platform::DebugPrintf("Error for GTEEPW %d\n", dw);
-		} else {
-			//Platform::DebugPrintf("OK GTEEPW %d\n", len);
+			// Likely to have failed because on Windows 9x where function not available
+			// So measure the character widths by measuring each initial substring
+			// Turns a linear operation into a qudratic but seems fast enough on test files
+			for (int widthSS=0; widthSS < tlen; widthSS++) { 
+				::GetTextExtentPoint32W(hdc, tbuf, widthSS+1, &sz);
+				poses[widthSS] = sz.cx;
+			}
 		}
+		// Map the widths given for UCS-2 characters back onto the UTF-8 input string
 		int ui=0;
 		const unsigned char *us = reinterpret_cast<const unsigned char *>(s);
 		int i=0;

@@ -261,7 +261,7 @@ static void ColouriseHyperTextDoc(unsigned int startPos, int length, int initSty
 	char chPrev2 = ' ';
 	styler.StartSegment(startPos);
 	int lengthDoc = startPos + length;
-	for (int i = startPos; i <= lengthDoc; i++) {
+	for (int i = startPos; i < lengthDoc; i++) {
 		char ch = styler[i];
 		char chNext = styler.SafeGetCharAt(i + 1);
 		char chNext2 = styler.SafeGetCharAt(i + 2);

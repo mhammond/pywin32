@@ -220,6 +220,16 @@ public:
 		line(0),
 		foldLevelNow(0),
 		foldLevelPrev(0) {}
+
+    DocModification(int modificationType_, const Action &act, int linesAdded_=0) :
+		modificationType(modificationType_),
+		position(act.position / 2),
+		length(act.lenData),
+		linesAdded(linesAdded_),
+		text(act.data),
+		line(0),
+		foldLevelNow(0),
+		foldLevelPrev(0) {}
 };
 
 // A class that wants to receive notifications from a Document must be derived from DocWatcher 

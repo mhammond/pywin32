@@ -44,14 +44,18 @@ static bool IsPyComment(Accessor &styler, int pos, int len) {
 static void ColourisePyDoc(unsigned int startPos, int length, int initStyle, 
 						   WordList *keywordlists[], Accessor &styler) {
 
-	int endDoc = startPos + length;
-	
+	int lengthDoc = startPos + length;
+
 	// Backtrack to previous line in case need to fix its fold status or tab whinging
 	int lineCurrent = styler.GetLine(startPos);
 	if (startPos > 0) {
 		if (lineCurrent > 0) {
 			lineCurrent--;
 			startPos = styler.LineStart(lineCurrent);
+			if (startPos == 0)
+				initStyle = SCE_P_DEFAULT;
+			else 
+				initStyle = styler.StyleAt(startPos-1);
 		}
 	}
 	
@@ -79,7 +83,7 @@ static void ColourisePyDoc(unsigned int startPos, int length, int initStyle,
 	char chNext = styler[startPos];
 	styler.StartSegment(startPos);
 	bool atStartLine = true;
-	for (int i = startPos; i <= endDoc; i++) {
+	for (int i = startPos; i < lengthDoc; i++) {
 	
 		if (atStartLine) {
 			char chBad = static_cast<char>(64);
@@ -102,7 +106,7 @@ static void ColourisePyDoc(unsigned int startPos, int length, int initStyle,
 		chNext = styler.SafeGetCharAt(i + 1);
 		char chNext2 = styler.SafeGetCharAt(i + 2);
 		
-		if ((ch == '\r' && chNext != '\n') || (ch == '\n') || (i == endDoc)) {
+		if ((ch == '\r' && chNext != '\n') || (ch == '\n') || (i == lengthDoc)) {
 			if ((state == SCE_P_DEFAULT) || (state == SCE_P_TRIPLE) || (state == SCE_P_TRIPLEDOUBLE)) {
 				// Perform colourisation of white space and triple quoted strings at end of each line to allow
 				// tab marking to work inside white space and triple quoted strings
@@ -261,9 +265,9 @@ static void ColourisePyDoc(unsigned int startPos, int length, int initStyle,
 		chPrev = ch;
 	}
 	if (state == SCE_P_WORD) {
-		ClassifyWordPy(styler.GetStartSegment(), endDoc, keywords, styler, prevWord);
+		ClassifyWordPy(styler.GetStartSegment(), lengthDoc, keywords, styler, prevWord);
 	} else {
-		styler.ColourTo(endDoc, state);
+		styler.ColourTo(lengthDoc, state);
 	}
 }
 

@@ -410,36 +410,9 @@ LRESULT ScintillaWin::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 		} else
 			return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
 
-	case WM_CHAR: {
-			char utfval[4]="\0\0\0";
-			if (IsUnicodeMode()) {
-				if ((wParam > 0xff) || (!iscntrl(wParam))) {
-					int inputCodePage = InputCodePage();
-					char ansiChars[3];
-					ansiChars[0] = static_cast<char>(wParam);
-					ansiChars[1] = '\0';
-					ansiChars[2] = '\0';
-					wchar_t wcs[2];
-					//int nRet = 
-					::MultiByteToWideChar(inputCodePage, 0, ansiChars, 1, wcs, 1);
-					wchar_t uchar = wcs[0];
-					unsigned int len = UTF8Length(&uchar, 1);
-					UTF8FromUCS2(&uchar, 1, utfval, len);
-					utfval[len] = '\0';
-					AddCharUTF(utfval,len);
-					/*
-					wchar_t uchar = wParam;
-					unsigned int len = UTF8Length(&uchar, 1);
-					UTF8FromUCS2(&uchar, 1, utfval, len);
-					utfval[len] = '\0';
-					AddCharUTF(utfval,len);
-					*/
-				}
-			} else {
-				if (!iscntrl(wParam&0xff)) {
-					AddChar(static_cast<char>(wParam&0xff));
-				}
-			}
+	case WM_CHAR:
+		if (!iscntrl(wParam&0xff)) {
+			AddChar(static_cast<char>(wParam&0xff));
 		}
 		return 1;
 
@@ -500,11 +473,11 @@ LRESULT ScintillaWin::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 		break;
 
 	case WM_IME_STARTCOMPOSITION: 	// dbcs
-		//ImeStartComposition();
+		ImeStartComposition();
 		return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
 
 	case WM_IME_ENDCOMPOSITION: 	// dbcs
-		//ImeEndComposition();
+		ImeEndComposition();
 		return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
 		
 	case WM_IME_COMPOSITION:
@@ -519,15 +492,13 @@ LRESULT ScintillaWin::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 			if (inputCodePage) {
 				char utfval[4]="\0\0\0";
 				char ansiChars[3];
-				ansiChars[0] = static_cast<char>(wParam & 0xff);
-				ansiChars[1] = static_cast<char>(wParam >> 8);
+				ansiChars[0] = HIBYTE(wParam);
+				ansiChars[1] = LOBYTE(wParam);
 				ansiChars[2] = '\0';
 				wchar_t wcs[2];
 				nRet = ::MultiByteToWideChar(inputCodePage, 0, ansiChars, 2, wcs, 1);
-				wchar_t uchar = wcs[0];
-				uchar = wParam;
-				unsigned int len = UTF8Length(&uchar, 1);
-				UTF8FromUCS2(&uchar, 1, utfval, len);
+				unsigned int len = UTF8Length(wcs, 1);
+				UTF8FromUCS2(wcs, 1, utfval, len);
 				utfval[len] = '\0';
 				AddCharUTF(utfval,len);
 			}
@@ -1081,6 +1052,7 @@ void ScintillaWin::ImeStartComposition() {
 			if (sizeZoomed <= 2)	// Hangs if sizeZoomed <= 1
 				sizeZoomed = 2;
 			Surface surface;
+			surface.Init();
 			int deviceHeight = (sizeZoomed * surface.LogPixelsY()) / 72;
 			// The negative is to allow for leading
 			lf.lfHeight = -(abs(deviceHeight));

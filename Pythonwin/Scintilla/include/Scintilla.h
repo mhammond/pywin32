@@ -89,7 +89,6 @@ extern "C" {
 
 #define SCI_GETVIEWWS SCI_START + 20
 #define SCI_SETVIEWWS SCI_START + 21
-#define SCI_CHANGEPOSITION SCI_START + 22
 #define SCI_GOTOLINE SCI_START + 24
 #define SCI_GOTOPOS SCI_START + 25
 #define SCI_SETANCHOR SCI_START + 26
@@ -339,6 +338,8 @@ extern "C" {
 #define SCI_LINESONSCREEN SCI_START + 370
 #define SCI_USEPOPUP SCI_START + 371
 #define SCI_SELECTIONISRECTANGLE SCI_START + 372
+#define SCI_SETZOOM SCI_START + 373
+#define SCI_GETZOOM SCI_START + 374
 
 // GTK+ Specific
 #define SCI_GRABFOCUS SCI_START + 400
@@ -371,8 +372,10 @@ typedef void (tMacroRecorder)(UINT iMessage, WPARAM wParam, LPARAM lParam,
 #define SC_PERFORMED_REDO 0x40
 #define SC_LASTSTEPINUNDOREDO 0x100
 #define SC_MOD_CHANGEMARKER 0x200
+#define SC_MOD_BEFOREINSERT 0x400
+#define SC_MOD_BEFOREDELETE 0x800
 
-#define SC_MODEVENTMASKALL 0x377
+#define SC_MODEVENTMASKALL 0xF77
 
 struct SCNotification {
 	NMHDR nmhdr;
@@ -422,6 +425,8 @@ void Scintilla_RegisterClasses(HINSTANCE hInstance);
 // To enable these features define INCLUDE_DEPRECATED_FEATURES
 
 #ifdef INCLUDE_DEPRECATED_FEATURES
+
+#define SCI_CHANGEPOSITION SCI_START + 22
 
 // Default style settings. These are deprecated and will be removed in a future version.
 #define SCI_SETFORE SCI_START + 60

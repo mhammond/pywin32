@@ -342,15 +342,22 @@ void Document::DeleteChars(int pos, int len) {
 	if (enteredCount == 0) {
 		enteredCount++;
 		if (!cb.IsReadOnly()) {
+			NotifyModified(
+                DocModification(
+                    SC_MOD_BEFOREDELETE | SC_PERFORMED_USER, 
+                    pos, len, 
+                    0, 0));
 			int prevLinesTotal = LinesTotal();
 			bool startSavePoint = cb.IsSavePoint();
 			const char *text = cb.DeleteChars(pos*2, len * 2);
 			if (startSavePoint && cb.IsCollectingUndo())
 				NotifySavePoint(!startSavePoint);
 			ModifiedAt(pos);
-			int modFlags = SC_MOD_DELETETEXT | SC_PERFORMED_USER;
-			DocModification mh(modFlags, pos, len, LinesTotal() - prevLinesTotal, text);
-			NotifyModified(mh);
+			NotifyModified(
+                DocModification(
+                    SC_MOD_DELETETEXT | SC_PERFORMED_USER, 
+                    pos, len, 
+                    LinesTotal() - prevLinesTotal, text));
 		}
 		enteredCount--;
 	}
@@ -365,16 +372,22 @@ void Document::InsertStyledString(int position, char *s, int insertLength) {
 	if (enteredCount == 0) {
 		enteredCount++;
 		if (!cb.IsReadOnly()) {
+			NotifyModified(
+                DocModification(
+                    SC_MOD_BEFOREINSERT | SC_PERFORMED_USER, 
+                    position / 2, insertLength / 2, 
+                    0, 0));
 			int prevLinesTotal = LinesTotal();
 			bool startSavePoint = cb.IsSavePoint();
 			const char *text = cb.InsertString(position, s, insertLength);
 			if (startSavePoint && cb.IsCollectingUndo())
 				NotifySavePoint(!startSavePoint);
 			ModifiedAt(position / 2);
-	
-			int modFlags = SC_MOD_INSERTTEXT | SC_PERFORMED_USER;
-			DocModification mh(modFlags, position / 2, insertLength / 2, LinesTotal() - prevLinesTotal, text);
-			NotifyModified(mh);
+			NotifyModified(
+                DocModification(
+                    SC_MOD_INSERTTEXT | SC_PERFORMED_USER, 
+                    position / 2, insertLength / 2, 
+                    LinesTotal() - prevLinesTotal, text));
 		}
 		enteredCount--;
 	}
@@ -389,7 +402,15 @@ int Document::Undo() {
 		//Platform::DebugPrintf("Steps=%d\n", steps);
 		for (int step=0; step<steps; step++) {
 			int prevLinesTotal = LinesTotal();
-			const Action &action = cb.UndoStep();
+			const Action &action = cb.GetUndoStep();
+			if (action.at == removeAction) {
+			    NotifyModified(DocModification(
+                    SC_MOD_BEFOREINSERT | SC_PERFORMED_UNDO, action));
+            } else {
+			    NotifyModified(DocModification(
+                    SC_MOD_BEFOREDELETE | SC_PERFORMED_UNDO, action));
+            }
+			cb.PerformUndoStep();
 			int cellPosition = action.position / 2;
 			ModifiedAt(cellPosition);
 			newPos = cellPosition;
@@ -424,10 +445,17 @@ int Document::Redo() {
 		int steps = cb.StartRedo();
 		for (int step=0; step<steps; step++) {
 			int prevLinesTotal = LinesTotal();
-			const Action &action = cb.RedoStep();
-			int cellPosition = action.position / 2;
-			ModifiedAt(cellPosition);
-			newPos = cellPosition;
+			const Action &action = cb.GetRedoStep();
+			if (action.at == insertAction) {
+			    NotifyModified(DocModification(
+                    SC_MOD_BEFOREINSERT | SC_PERFORMED_REDO, action));
+            } else {
+			    NotifyModified(DocModification(
+                    SC_MOD_BEFOREDELETE | SC_PERFORMED_REDO, action));
+            }
+			cb.PerformRedoStep();
+			ModifiedAt(action.position / 2);
+			newPos = action.position / 2;
 			
 			int modFlags = SC_PERFORMED_REDO;
 			if (action.at == insertAction) {
@@ -438,7 +466,8 @@ int Document::Redo() {
 			}
 			if (step == steps-1)
 				modFlags |= SC_LASTSTEPINUNDOREDO;
-			NotifyModified(DocModification(modFlags, cellPosition, action.lenData, 
+			NotifyModified(
+                DocModification(modFlags, action.position / 2, action.lenData, 
 				LinesTotal() - prevLinesTotal, action.data));
 		}
 	

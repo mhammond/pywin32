@@ -110,7 +110,7 @@ static void ColourisePerlDoc(unsigned int startPos, int length, int initStyle,
 	char chPrev = ' ';
 	char chNext = styler[startPos];
 	styler.StartSegment(startPos);
-	for (int i = startPos; i <= lengthDoc; i++) {
+	for (int i = startPos; i < lengthDoc; i++) {
 		char ch = chNext;
 		chNext = styler.SafeGetCharAt(i + 1);
 		char chNext2 = styler.SafeGetCharAt(i + 2);

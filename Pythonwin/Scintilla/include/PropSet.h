@@ -75,7 +75,7 @@ public:
 		else
 			return 0;
 	}
-	char operator[](int i) {
+	char operator[](int i) const {
 		if (s)
 			return s[i];
 		else
@@ -95,7 +95,7 @@ public:
 		}
 		return *this;
 	}
-	int value() {
+	int value() const {
 		if (s)
 			return atoi(s);
 		else 
