@@ -9,7 +9,8 @@ dialogs and other Windows UI resources.
 """
 __author__="Adam Walker"
 
-import sys, os, shlex
+import sys, os, shlex, stat
+import pprint
 import win32con
 import commctrl
 
@@ -469,25 +470,27 @@ def Parse(rc_name, h_name = None):
         rc_file.close()
     return rcp
 
-def GenerateFrozenResource(inputFilename, outputFilename):
+def GenerateFrozenResource(rc_name, output_name, h_name = None):
     """Converts an .rc windows resource source file into a python source file
        with the same basic public interface as the rest of this module.
        Particularly useful for py2exe or other 'freeze' type solutions,
        where a frozen .py file can be used inplace of a real .rc file.
     """
-    rcp = rcparser.ParseDialogs(inputFilename)
-    in_stat = os.stat(inputFilename)
+    rcp = Parse(rc_name, h_name)
+    in_stat = os.stat(rc_name)
 
-    out = open(outputFilename, "wt")
-    out.write("#%s\n" % outputFilename)
-    out.write("#This is a generated file. Please edit %s instead.\n" % inputFilename)
+    out = open(output_name, "wt")
+    out.write("#%s\n" % output_name)
+    out.write("#This is a generated file. Please edit %s instead.\n" % rc_name)
     out.write("_rc_size_=%d\n_rc_mtime_=%d\n" % (in_stat[stat.ST_SIZE], in_stat[stat.ST_MTIME]))
     out.write("class FakeParser:\n")
-    out.write("\tdialogs = "+repr(rcp.dialogs)+"\n")
-    out.write("\tids = "+repr(rcp.ids)+"\n")
-    out.write("\tnames = "+repr(rcp.names)+"\n")
-    out.write("\tbitmaps = "+repr(rcp.bitmaps)+"\n")
-    out.write("def ParseDialogs(s):\n")
+
+    for name in "dialogs", "ids", "names", "bitmaps", "icons", "stringTable":
+        out.write("\t%s = \\\n" % (name,))
+        pprint.pprint(getattr(rcp, name), out)
+        out.write("\n")
+
+    out.write("def Parse(s):\n")
     out.write("\treturn FakeParser()\n")
     out.close()
 
