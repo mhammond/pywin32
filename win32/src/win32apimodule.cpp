@@ -3723,6 +3723,31 @@ PyObject *Pykeybd_event(PyObject *self, PyObject *args)
   Py_INCREF(Py_None);
   return Py_None;
 }
+//
+// @pymethod |win32api|mouse_event|Simulate a mouse event
+PyObject *Pymouse_event(PyObject *self, PyObject *args)
+{
+  DWORD dwFlags;
+  DWORD dx;
+  DWORD dy;
+  DWORD dwData = 0;
+  DWORD dwExtraInfo = 0;
+
+  if (!PyArg_ParseTuple(args, "iii|ii:mouse_event",
+           &dwFlags,  // @pyparm DWORD|dwFlags|0|Flags specifying various function options
+           &dx,     // @pyparm DWORD|dx||Horizontal position of mouse
+           &dy,     // @pyparm DWORD|dy||Vertical position of mouse
+           &dwData,    // @pyparm DWORD|dwData||Flag specific parameter
+           &dwExtraInfo)) // @pyparm DWORD|dwExtraInfo|0|Additional data associated with mouse event
+
+    return NULL;
+  // @pyseeapi mouse_event
+  PyW32_BEGIN_ALLOW_THREADS
+  ::mouse_event(dwFlags,dx,dy,dwData,dwExtraInfo);
+  PyW32_END_ALLOW_THREADS
+  Py_INCREF(Py_None);
+  return Py_None;
+}
 
 /* List of functions exported by this module */
 // @module win32api|A module, encapsulating the Windows Win32 API.
@@ -3800,6 +3825,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetUserDefaultLCID",  PyGetUserDefaultLCID,1}, // @pymeth GetUserDefaultLCID|Retrieves the user default locale identifier.
 	{"InitiateSystemShutdown",  PyInitiateSystemShutdown,1}, // @pymeth InitiateSystemShutdown|Initiates a shutdown and optional restart of the specified computer. 
 	{"keybd_event",         Pykeybd_event, 1}, // @pymeth keybd_event|Simulate a keyboard event
+	{"mouse_event",         Pymouse_event, 1}, // @pymeth mouse_event|Simulate a mouse event
 	{"LoadCursor",          PyLoadCursor, 1}, // @pymeth LoadCursor|Loads a cursor.
 	{"LoadLibrary",	        PyLoadLibrary,1}, // @pymeth LoadLibrary|Loads the specified DLL, and returns the handle.
 	{"LoadLibraryEx",	    PyLoadLibraryEx,1}, // @pymeth LoadLibraryEx|Loads the specified DLL, and returns the handle.
