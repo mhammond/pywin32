@@ -213,6 +213,7 @@ BOOL PyWinObject_AsTRUSTEE(PyObject *obtrustee, TRUSTEE_W *ptrustee)
 					}
 				break;
 				}
+#if WINVER >= 0x0501
 			case TRUSTEE_IS_OBJECTS_AND_SID:
 			case TRUSTEE_IS_OBJECTS_AND_NAME:{
 				// still need to add TRUSTEE_IS_OBJECTS_AND_SID and TRUSTEE_IS_OBJECTS_AND_NAME
@@ -220,6 +221,11 @@ BOOL PyWinObject_AsTRUSTEE(PyObject *obtrustee, TRUSTEE_W *ptrustee)
 				bsuccess=FALSE;
 				break;
 				}
+#else
+			#pragma message( \
+				"NOTE: You are building with an early Platform SDK - not all" \
+				"TRUSTEE operations on SIDs will be supported")
+#endif // WINVER
 			default:{
 				PyErr_SetString(PyExc_ValueError, "Invalid value for TrusteeForm");
 				bsuccess=FALSE;
