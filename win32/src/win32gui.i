@@ -1099,6 +1099,16 @@ static PyObject *PyCallWindowProc(PyObject *self, PyObject *args)
 %}
 %native (CallWindowProc) PyCallWindowProc;
 
+%typemap(python,in) WPARAM {
+   if (!make_param($source, (long *)&$target))
+       return NULL;
+}
+
+%typemap(python,in) LPARAM {
+   if (!make_param($source, (long *)&$target))
+       return NULL;
+}
+
 %{
 static BOOL make_param(PyObject *ob, long *pl)
 {
@@ -2747,6 +2757,7 @@ PyGetClassName(PyObject *self, PyObject *args)
 
 // Sorting for controls
 %{
+#if (PY_VERSION_HEX >= 0x02030000) // PyGILState only in 2.3+
 
 // Callbacks
 struct PySortCallback {
@@ -2851,6 +2862,20 @@ PyListView_SortItemsEx(PyObject *self, PyObject *args)
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+#else // PYVERSION
+static PyObject *PyListView_SortItemsEx(PyObject *self, PyObject *args)
+{
+	PyErr_SetString(PyExc_NotImplementedError,
+	                "This requires Python 2.3 or greater");
+	return NULL;
+}
+static PyObject *PyListView_SortItems(PyObject *self, PyObject *args)
+{
+	PyErr_SetString(PyExc_NotImplementedError,
+	                "This requires Python 2.3 or greater");
+	return NULL;
+}
+#endif // PYVERSION 2.3+
 %}
 
 %native (ListView_SortItems) PyListView_SortItems;
