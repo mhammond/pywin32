@@ -23,7 +23,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.4.5" # Written to generated file.
+makepy_version = "0.4.6" # Written to generated file.
 
 GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
@@ -229,27 +229,18 @@ class VTableItem(build.VTableItem, WritableItem):
         for v in self.vtableFuncs:
             chunks = []
             names, dispid, desc = v
-            name = names[0]
-            named_params = names[1:]
-            invkind = desc[4]
             arg_desc = desc[2]
-            ret_desc = desc[8]
 
-            chunks.append("\t(%s, %d, %d, (" % (repr(name), dispid, invkind))
+            arg_reprs = []
             for arg in arg_desc:
-                chunks.append("(%d,%d," % (arg[0], arg[1]))
                 defval = build.MakeDefaultArgRepr(arg)
-                if defval is None:
-                    chunks.append("None, ")
-                else:
-                    chunks.append(defval + ", ")
                 if arg[3] is None:
-                    chunks.append("None")
+                    arg3_repr = None
                 else:
-                    chunks.append(repr(arg[3]))
-                chunks.append("),")
-            chunks.append("), %s, %s)," % (repr(ret_desc), repr(named_params)))
-            #chunks.append(' # vtable entry %d' % (desc[7]/4,) )
+                    arg3_repr = repr(arg[3])
+                arg_reprs.append((arg[0], arg[1], defval, arg3_repr))
+            desc = desc[:2] + (arg_reprs,) + desc[3:]
+            chunks.append("\t(%r, %d, %r)," % (names, dispid, desc))
             print "".join(chunks)
         print "]"
         print
