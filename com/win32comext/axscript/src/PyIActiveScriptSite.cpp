@@ -165,6 +165,9 @@ PyObject *PyIActiveScriptSite::OnScriptError(PyObject *self, PyObject *args)
 	SCODE sc = pMySite->OnScriptError(pASE);
 	pASE->Release();
 	PY_INTERFACE_POSTCALL;
+	// no idea why, but under ASP, OnScriptError() will often return
+	// with a KeyboardInterrup set!
+	PyWin_MakePendingCalls();
 	if (sc != E_FAIL && FAILED(sc)) // E_FAIL is documented as a normal retval.
 		return SetPythonCOMError(self, sc);
 	return PyInt_FromLong(sc);
