@@ -260,6 +260,11 @@ PYCOM_EXPORT PyObject *PyCom_PyObjectFromIUnknown(IUnknown *punk, REFIID riid, B
 PYCOM_EXPORT BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var);
 PYCOM_EXPORT PyObject *PyCom_PyObjectFromVariant(const VARIANT *var);
 
+// PROPVARIANT
+PYCOM_EXPORT PyObject *PyObject_FromPROPVARIANT( PROPVARIANT *pVar );
+PYCOM_EXPORT PyObject *PyObject_FromPROPVARIANTs( PROPVARIANT *pVars, ULONG cVars );
+PYCOM_EXPORT BOOL PyObject_AsPROPVARIANT(PyObject *ob, PROPVARIANT *pVar);
+
 // Other conversion helpers...
 PYCOM_EXPORT PyObject *PyCom_PyObjectFromSTATSTG(STATSTG *pStat);
 PYCOM_EXPORT BOOL PyCom_PyObjectAsSTATSTG(PyObject *ob, STATSTG *pStat, DWORD flags = 0);
