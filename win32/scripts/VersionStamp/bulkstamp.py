@@ -32,7 +32,6 @@
 
 import sys
 import os
-import regex
 import verstamp
 import fnmatch
 import string
