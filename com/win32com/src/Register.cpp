@@ -48,6 +48,8 @@ generates Windows .hlp files.
 #include "PyIEnumSTATPROPSETSTG.h"
 #include "PyIEnumFORMATETC.h"
 #include "PyIDataObject.h"
+#include "PyIDropSource.h"
+#include "PyIDropTarget.h"
 #include "PyIOleWindow.h"
 
 //PyObject *CLSIDMapping;  // Maps CLSIDs onto PyClassObjects
@@ -226,6 +228,8 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_CLIENT_ONLY( CreateTypeInfo),
 	PYCOM_INTERFACE_CLIENT_ONLY( CreateTypeLib),
 	PYCOM_INTERFACE_FULL       ( DataObject ),
+	PYCOM_INTERFACE_FULL       ( DropSource),
+	PYCOM_INTERFACE_FULL       ( DropTarget),
 #ifndef NO_PYCOM_IENUMCATEGORYINFO
 	PYCOM_INTERFACE_CLIENT_ONLY( EnumCATEGORYINFO),
 #endif // NO_PYCOM_IENUMCATEGORYINFO
