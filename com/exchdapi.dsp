@@ -108,7 +108,7 @@ InputPath=.\win32comext\mapi\src\exchdapi.i
 InputName=exchdapi
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	%SWIG_EXE% -dnone -python -c++ -o $(InputName).cpp $(InputName).i
+	..\swig.bat $(InputDir) -dnone -python -c++ -o $(InputName).cpp $(InputName).i
 
 # End Custom Build
 
