@@ -241,7 +241,7 @@ def DispatchWithEvents(clsid, user_event_class):
   """
   # Create/Get the object.
   disp = Dispatch(clsid)
-  if not disp.__dict__.get("CLSID"): # Eeek - no makepy support - try and build it.
+  if not disp.__class__.__dict__.get("CLSID"): # Eeek - no makepy support - try and build it.
     try:
       ti = disp._oleobj_.GetTypeInfo()
       disp_clsid = ti.GetTypeAttr()[0]
@@ -293,7 +293,7 @@ def WithEvents(disp, user_event_class):
   circular reference problems that the simple proxy doesn't deal with
   """
   disp = Dispatch(disp)
-  if not disp.__dict__.get("CLSID"): # Eeek - no makepy support - try and build it.
+  if not disp.__class__.__dict__.get("CLSID"): # Eeek - no makepy support - try and build it.
     try:
       ti = disp._oleobj_.GetTypeInfo()
       disp_clsid = ti.GetTypeAttr()[0]
