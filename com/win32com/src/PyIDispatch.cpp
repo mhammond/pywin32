@@ -333,7 +333,9 @@ PyObject * PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
 		for ( i = 0; i < (UINT)argTypesLen; i++ ) {
 			if (!ArgHelpers[i].ParseTypeInformation(PyTuple_GET_ITEM(argsElemDescArray,i)))
 				goto error;
-			if (i<(UINT)numArgs)
+			// We ignore "in" params specified as "Missing", but
+			// for byref (ie, "IsOut") args we still must process it.
+			if (i<(UINT)numArgs || ArgHelpers[i].m_bIsOut)
 				numArgArray++;
 		}
 	}
