@@ -47,6 +47,7 @@ def debug_attr_print(*args):
 
 # get the dispatch type in use.
 dispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
+iunkType = pythoncom.TypeIIDs[pythoncom.IID_IUnknown]
 _StringOrUnicodeType=[StringType, UnicodeType]
 _GoodDispatchType=[StringType,IIDType,UnicodeType]
 _defaultDispatchItem=build.DispatchItem
@@ -220,6 +221,13 @@ class CDispatch:
 		return Dispatch(ob, userName, UnicodeToString=UnicodeToString)
 
 	def _get_good_single_object_(self,ob,userName = None, ReturnCLSID=None):
+		if iunkType==type(ob):
+			try:
+				ob = ob.QueryInterface(pythoncom.IID_IDispatch)
+				# If this works, we then enter the "is dispatch" test below.
+			except pythoncom.com_error:
+				# It is an IUnknown, but not an IDispatch, so just let it through.
+				pass
 		if dispatchType==type(ob):
 			# make a new instance of (probably this) class.
 			return self._wrap_dispatch_(ob, userName, ReturnCLSID)
