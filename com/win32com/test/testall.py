@@ -1,5 +1,5 @@
 import win32ui
-import sys, os
+import sys, os, string
 import pythoncom
 import win32com.client
 from util import CheckClean
@@ -76,12 +76,13 @@ if __name__=='__main__':
 	finally:
 		capture.release()
 
-#	try:
-#		import testPyComTest
-#		testPyComTest.TestAll()
-#	except RuntimeError, why:
-#		print why
-	print "testPyComTest.py can not be tested from here..."
+	# Execute testPyComTest in its own process so it can play
+	# with the Python thread state
+	import win32pipe
+	data = win32pipe.popen(sys.executable + " testPyComTest.py -q").read() 
+	data = string.strip(data)
+	# lf -> cr/lf
+	print string.join(string.split(data, "\n"), "\r\n")
 
 	import errorSemantics
 	errorSemantics.test()
