@@ -368,6 +368,22 @@ class CDispatch:
 			pass
 		return res
 
+	def _FlagAsMethod(self, *methodNames):
+		"""Flag these attribute names as being methods.
+		Some objects do not correctly differentiate methods and
+		properties, leading to problems when calling these methods.
+
+		Specifically, trying to say: ob.SomeFunc()
+		may yield an exception "None object is not callable"
+		In this case, an attempt to fetch the *property*has worked
+		and returned None, rather than indicating it is really a method.
+		Calling: ob._FlagAsMethod("SomeFunc")
+		should then allow this to work.
+		"""
+		for name in methodNames:
+			details = build.MapEntry(self.__AttrToID__(name), (name,))
+			self._olerepr_.mapFuncs[name] = details
+
 	def __AttrToID__(self,attr):
 			debug_attr_print("Calling GetIDsOfNames for property %s in Dispatch container %s" % (attr, self._username_))
 			return self._oleobj_.GetIDsOfNames(0,attr)
