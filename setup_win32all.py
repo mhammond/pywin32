@@ -74,7 +74,8 @@ class WinExt (Extension):
                   export_symbols=None,
                   export_symbol_file=None,
                   dsp_file=None,
-                  pch_header=None
+                  pch_header=None,
+                  windows_h_version=None, # min version of windows.h needed.
                  ):
         assert dsp_file or sources, "Either dsp_file or sources must be specified"
         libary_dirs = library_dirs,
@@ -91,6 +92,7 @@ class WinExt (Extension):
             sources.extend(self.get_source_files(dsp_file))
             
         self.pch_header = pch_header
+        self.windows_h_version = windows_h_version
         Extension.__init__ (self, name, sources,
                             include_dirs,
                             define_macros,
@@ -182,6 +184,7 @@ class my_build_ext(build_ext):
 
     def finalize_options(self):
         build_ext.finalize_options(self)
+        self.windows_h_version = None
         # The pywintypes library is created in the build_temp
         # directory, so we need to add this to library_dirs
         self.library_dirs.append(self.build_temp)
@@ -191,6 +194,32 @@ class my_build_ext(build_ext):
 
     def _why_cant_build_extension(self, ext):
         # Return None, or a reason it can't be built.
+        if self.windows_h_version is None:
+            include_dirs = self.compiler.include_dirs + \
+                           os.environ.get("INCLUDE").split(os.pathsep)
+            for d in include_dirs:
+                look = os.path.join(d, "WINDOWS.H")
+                if os.path.isfile(look):
+                    # read the fist 100 lines, looking for #define WINVER 0xNN
+                    reob = re.compile("#define\WWINVER\W(0x[0-9a-fA-F]+)")
+                    f = open(look, "r")
+                    for i in range(100):
+                        line = f.readline()
+                        match = reob.match(line)
+                        if match is not None:
+                            self.windows_h_version = int(match.group(1), 16)
+                            log.info("Found WINDOWS.H version 0x%x in %s" \
+                                     % (self.windows_h_version, d))
+                            break
+                if self.windows_h_version is not None:
+                    break
+            else:
+                raise RuntimeError, "Can't find a version in Windows.h"
+        if ext.windows_h_version > self.windows_h_version:
+            return "WINDOWS.H with version 0x%x is required, but only " \
+                   "version 0x%x is installed." \
+                   % (ext.windows_h_version, self.windows_h_version)
+
         common_dirs = self.compiler.library_dirs
         common_dirs += os.environ.get("LIB").split(os.pathsep)
         patched_libs = []
@@ -540,13 +569,13 @@ win32_extensions.append(
         ),
     )
 
-for name, lib_names, is_unicode in (
+for info in (
         ("dbi", "", False),
         ("mmapfile", "", False),
         ("odbc", "odbc32 odbccp32 dbi", False),
         ("perfmon", "", True),
         ("timer", "user32", False),
-        ("win2kras", "rasapi32", False),
+        ("win2kras", "rasapi32", False, 0x0500),
         ("win32api", "user32 advapi32 shell32 version", False),
         ("win32file", "oleaut32", False),
         ("win32event", "user32", False),
@@ -568,12 +597,18 @@ for name, lib_names, is_unicode in (
         ("win32wnet", "netapi32 mpr", False),
     ):
 
+    name, lib_names, is_unicode = info[:3]
+    if len(info)>3:
+        windows_h_ver = info[3]
+    else:
+        windows_h_ver = None
     extra_compile_args = []
     if is_unicode:
         extra_compile_args = ['-DUNICODE', '-D_UNICODE', '-DWINNT']
     ext = WinExt_win32(name, 
                  libraries=lib_names,
-                 extra_compile_args = extra_compile_args)
+                 extra_compile_args = extra_compile_args,
+                 windows_h_version = windows_h_ver)
     win32_extensions.append(ext)
 
 # The few that need slightly special treatment
@@ -721,7 +756,7 @@ def convert_optional_data_files(files):
         except RuntimeError, details:
             if not str(details).startswith("No file"):
                 raise
-            print 'NOTE: Optional file %s not found - skipping' % file
+            log.info('NOTE: Optional file %s not found - skipping' % file)
         else:
             ret.append(temp[0])
     return ret
