@@ -56,6 +56,35 @@ static BOOL ReportError(DWORD, LPCTSTR *inserts = NULL, WORD errorType = EVENTLO
 
 #define MAX_SERVICES 10
 
+// 2K/XP support newer service registration functions that enable multiple
+// service support, but NT does not.  Depending on the run time environment,
+// we adjust the number of services we can support as well as which
+// registration and service control functions to use.  We leave a hard
+// reference to the older function to ensure that we can at least fall back
+// to that if something goes wrong with the dynamic identification.
+
+// If we can locate the newer registration function on startup, this will be
+// increased to MAX_SERVICES
+DWORD g_maxServices = 1;
+
+#if(WINVER < 0x0500)
+// SDK probably doesn't define LPHANDLER_FUNCTION_EX, so do it ourselves.
+typedef DWORD (WINAPI *LPHANDLER_FUNCTION_EX)(
+    DWORD    dwControl,
+    DWORD    dwEventType,
+    LPVOID   lpEventData,
+    LPVOID   lpContext
+    );
+#endif
+
+typedef SERVICE_STATUS_HANDLE
+        (WINAPI *REGSVC_EX_FN)(LPCTSTR lpServiceName,
+                               LPHANDLER_FUNCTION_EX lpHandlerProc,
+                               LPVOID lpContext);
+
+REGSVC_EX_FN g_RegisterServiceCtrlHandlerEx = NULL;
+
+
 typedef struct {
 	PyObject *klass; // The Python class we instantiate as the service.
 	SERVICE_STATUS_HANDLE   sshStatusHandle; // the handle for this service.
@@ -67,8 +96,8 @@ typedef struct {
 DWORD g_serviceProcessFlags = 0; 
 
 // The global SCM dispatch table.  A trailing NULL indicates to the SCM
-// how many are used - as we add new entries, we null the next.
-static SERVICE_TABLE_ENTRY   DispatchTable[MAX_SERVICES] = 
+// how many are used, so we allocate one extra for this sentinal
+static SERVICE_TABLE_ENTRY   DispatchTable[MAX_SERVICES+1] = 
 { 
     { NULL,              NULL         } 
 }; 
@@ -81,6 +110,7 @@ static PY_SERVICE_TABLE_ENTRY PythonServiceTable[MAX_SERVICES];
 VOID WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv);
 BOOL WINAPI DebugControlHandler ( DWORD dwCtrlType );
 DWORD WINAPI service_ctrl_ex(DWORD, DWORD, LPVOID, LPVOID);
+VOID WINAPI service_ctrl(DWORD);
 
 BOOL RegisterPythonServiceExe(void);
 
@@ -276,7 +306,13 @@ static PyObject *PyRegisterServiceCtrlHandler(PyObject *self, PyObject *args)
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
-	pe->sshStatusHandle = RegisterServiceCtrlHandlerEx(szName, service_ctrl_ex, pe);
+        if (g_RegisterServiceCtrlHandlerEx) {
+            // Use 2K/XP extended registration if available
+            pe->sshStatusHandle = g_RegisterServiceCtrlHandlerEx(szName, service_ctrl_ex, pe);
+        } else {
+            // Otherwise fall back to NT
+            pe->sshStatusHandle = RegisterServiceCtrlHandler(szName, service_ctrl);
+        }
 	PyWinObject_FreeWCHAR(szName);
 	PyObject *rc;
 	if (pe->sshStatusHandle==0) {
@@ -474,6 +510,7 @@ static int AddConstant(PyObject *dict, const char *key, long value)
 extern "C" __declspec(dllexport) void
 initservicemanager(void)
 {
+  HMODULE advapi32_module;
   PyObject *dict, *module;
   module = Py_InitModule("servicemanager", servicemanager_functions);
   if (!module) /* Eeek - some serious error! */
@@ -502,6 +539,22 @@ initservicemanager(void)
   ADD_CONSTANT(EVENTLOG_AUDIT_SUCCESS);
   ADD_CONSTANT(EVENTLOG_AUDIT_FAILURE);
   PyWinGlobals_Ensure();
+
+  // Check if we can use the newer control handler registration function
+  // which permits us to support multiple services.  This should be available
+  // on 2K/XP systems.
+
+  // We already have a hard dependency on advapi32, so it shouldn't
+  // be possible for us not to load it, but we'll play it safe.
+  if ((advapi32_module = LoadLibrary(_T("advapi32"))) != NULL) {
+      g_RegisterServiceCtrlHandlerEx =
+          (REGSVC_EX_FN)GetProcAddress(advapi32_module,
+                                       "RegisterServiceCtrlHandlerExW");
+      // If we found it, go ahead and increase our number of services supported
+      if (g_RegisterServiceCtrlHandlerEx != NULL) {
+          g_maxServices = MAX_SERVICES;
+      }
+  }
 }
 
 // Couple of helpers for the service manager
@@ -795,13 +848,15 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
 			ReportPythonError(E_PYS_NOT_CONTROL_HANDLER);
 		// else no instance - an error has already been reported.
 		if (!bServiceDebug)
-			// Note - we upgraded this to the win2k only "Ex" function.
-			// If this was a problem for someone, you could do a LoadLibrary
-			// RegisterServiceCtrlHandlerEx(), and if that fails, fallback to
-			// RegisterServiceCtrlHandler(), manually passing the first entry
-			// of our PY_SERVICE_TABLE_ENTRY table.  You would also need to
-			// insist that only 1 service is being hosted.
-			pe->sshStatusHandle = RegisterServiceCtrlHandlerEx( lpszArgv[0], service_ctrl_ex, pe);
+			if (g_RegisterServiceCtrlHandlerEx) {
+				// Use 2K/XP extended registration if available
+				pe->sshStatusHandle = g_RegisterServiceCtrlHandlerEx(lpszArgv[0],
+				                                        service_ctrl_ex, pe);
+			} else {
+				// Otherwise fall back to NT
+				pe->sshStatusHandle = RegisterServiceCtrlHandler(lpszArgv[0],
+				                                                 service_ctrl);
+			}
 	}
 	// No instance - we can't start.
 	if (!instance) {
@@ -839,15 +894,13 @@ cleanup:
 }
 
 // The service control handler - receives async notifications from the
-// SCM, and delegates to the Python instance.
-DWORD WINAPI service_ctrl_ex(
-	  DWORD dwCtrlCode,     // requested control code
-	  DWORD dwEventType,   // event type
-	  LPVOID lpEventData,  // event data
-	  LPVOID lpContext     // user-defined context data
-	  )
+// SCM, and delegates to the Python instance.  One of service_ctrl
+// or service_ctrl_ex are used as entry points depending on whether
+// we are running on NT or 2K/XP.
+
+DWORD WINAPI dispatchServiceCtrl(DWORD dwCtrlCode,
+                                 PY_SERVICE_TABLE_ENTRY *pse)
 {
-	PY_SERVICE_TABLE_ENTRY *pse = (PY_SERVICE_TABLE_ENTRY *)lpContext;
 	if (pse->obServiceCtrlHandler==NULL) { // Python is in error.
 		if (!bServiceDebug)
 			SetServiceStatus( pse->sshStatusHandle, &errorStatus );
@@ -869,6 +922,24 @@ DWORD WINAPI service_ctrl_ex(
 
 	Py_XDECREF(result);
 	return dwResult;
+}
+
+DWORD WINAPI service_ctrl_ex(
+	  DWORD dwCtrlCode,     // requested control code
+	  DWORD dwEventType,   // event type
+	  LPVOID lpEventData,  // event data
+	  LPVOID lpContext     // user-defined context data
+	  )
+{
+	PY_SERVICE_TABLE_ENTRY *pse = (PY_SERVICE_TABLE_ENTRY *)lpContext;
+        return dispatchServiceCtrl(dwCtrlCode, pse);
+}
+
+VOID WINAPI service_ctrl(
+	  DWORD dwCtrlCode     // requested control code
+	  )
+{
+    dispatchServiceCtrl(dwCtrlCode, &PythonServiceTable[0]);
 }
 
 
