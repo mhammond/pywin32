@@ -8,6 +8,7 @@ This is a parser for Windows .rc files, which are text files which define
 dialogs and other Windows UI resources.
 """
 __author__="Adam Walker"
+__version__="0.10"
 
 import sys, os, shlex, stat
 import pprint
@@ -26,16 +27,22 @@ _controlMap = {"DEFPUSHBUTTON":0x80,
                "SCROLLBAR":0x84,
                "COMBOBOX":0x85,
                "EDITTEXT":0x81,
+               "ICON":0x82,
+               "RICHEDIT":"RichEdit20A"
                }
 
-_addDefaults = {"EDITTEXT":win32con.WS_BORDER,
+_addDefaults = {"EDITTEXT":win32con.WS_BORDER | win32con.WS_TABSTOP,
                 "GROUPBOX":win32con.BS_GROUPBOX,
                 "LTEXT":win32con.SS_LEFT,
-                "DEFPUSHBUTTON":win32con.BS_DEFPUSHBUTTON,
+                "DEFPUSHBUTTON":win32con.BS_DEFPUSHBUTTON | win32con.WS_TABSTOP,
+                "PUSHBUTTON": win32con.WS_TABSTOP,
                 "CTEXT":win32con.SS_CENTER,
-                "RTEXT":win32con.SS_RIGHT}
+                "RTEXT":win32con.SS_RIGHT,
+                "ICON":win32con.SS_ICON}
 
 defaultControlStyle = win32con.WS_CHILD | win32con.WS_VISIBLE
+defaultControlStyleEx = 0
+
 class DialogDef:
     name = ""
     id = 0
@@ -74,6 +81,7 @@ class ControlDef:
     subType = ""
     idNum = 0
     style = defaultControlStyle
+    styleEx = defaultControlStyleEx
     label = ""
     x = 0
     y = 0
@@ -81,6 +89,7 @@ class ControlDef:
     h = 0
     def __init__(self):
         self.styles = []
+        self.stylesEx = []
     def toString(self):
         s = "<Control id:"+self.id+" controlType:"+self.controlType+" subType:"+self.subType\
             +" idNum:"+str(self.idNum)+" style:"+str(self.style)+" styles:"+str(self.styles)+" label:"+self.label\
@@ -90,11 +99,9 @@ class ControlDef:
         ct = self.controlType
         if "CONTROL"==ct:
             ct = self.subType
-        if ct in _addDefaults:
-            self.style |= _addDefaults[ct]
         if ct in _controlMap:
             ct = _controlMap[ct]
-        t = [ct, self.label, self.idNum, (self.x, self.y, self.w, self.h), self.style]
+        t = [ct, self.label, self.idNum, (self.x, self.y, self.w, self.h), self.style, self.styleEx]
         #print t
         return t
 
@@ -112,6 +119,7 @@ class RCParser:
     token = ""
 
     def __init__(self):
+        self.ungot = False
         self.ids = {"IDC_STATIC": -1}
         self.names = {-1:"IDC_STATIC"}
         self.bitmaps = {}
@@ -123,11 +131,18 @@ class RCParser:
             print args
 
     def getToken(self):
+        if self.ungot:
+            self.ungot = False
+            self.debug("getToken returns (ungot):", self.token)
+            return self.token
         self.token = self.lex.get_token()
         self.debug("getToken returns:", self.token)
         if self.token=="":
             self.token = None
         return self.token
+
+    def ungetToken(self):
+        self.ungot = True
 
     def getCheckToken(self, expected):
         tok = self.getToken()
@@ -137,6 +152,34 @@ class RCParser:
     def getCommaToken(self):
         return self.getCheckToken(",")
 
+    # Return the *current* token as a number, only consuming a token
+    # if it is the negative-sign.
+    def currentNumberToken(self):
+        mult = 1
+        if self.token=='-':
+            mult = -1
+            self.getToken()
+        return int(self.token) * mult
+
+    # Return the *current* token as a string literal (ie, self.token will be a
+    # quote.  consumes all tokens until the end of the string
+    def currentQuotedString(self):
+        # Handle quoted strings - pity shlex doesn't handle it.
+        assert self.token.startswith('"'), self.token
+        bits = [self.token]
+        while 1:
+            tok = self.getToken()
+            if not tok.startswith('"'):
+                self.ungetToken()
+                break
+            bits.append(tok)
+        sval = "".join(bits)[1:-1] # Remove end quotes.            
+        # Fixup quotes in the body, and all (some?) quoted characters back
+        # to their raw value.
+        for i, o in ('""', '"'), ("\\r", "\r"), ("\\n", "\n"), ("\\t", "\t"):
+            sval = sval.replace(i, o)
+        return sval
+        
     def load(self, rcstream):
         """
         RCParser.loadDialogs(rcFileName) -> None
@@ -168,9 +211,13 @@ class RCParser:
                     i = int(lex.get_token())
                     self.ids[n] = i
                     if self.names.has_key(i):
+                        # Dupe ID really isn't a problem - most consumers
+                        # want to go from name->id, and this is OK.
+                        # It means you can't go from id->name though.
+                        pass
                         # ignore AppStudio special ones
-                        if not n.startswith("_APS_"):
-                            print "Duplicate id",i,"for",n,"is", self.names[i]
+                        #if not n.startswith("_APS_"):
+                        #    print "Duplicate id",i,"for",n,"is", self.names[i]
                     else:
                         self.names[i] = n
                     if self.next_id<=i:
@@ -219,20 +266,23 @@ class RCParser:
                     self.debug("Dispatching '%s'" % (self.token,))
                     rp(resource_id)
                 else:
+                    # We don't know what the resource type is, but we
+                    # have already consumed the next, which can cause problems,
+                    # so push it back.
                     self.debug("Skipping top-level '%s'" % base_token)
+                    self.ungetToken()
 
     def addId(self, id_name):
         if id_name in self.ids:
             id = self.ids[id_name]
         else:
-            # IDOK and IDCANCEL are special - if a real resource has a value
-            # of OK or CANCEL (1 or 2), we still want the user's name.
-            if id_name == "IDOK":
-                self.ids[id_name] = win32con.IDOK
-                return win32con.IDOK
-            if id_name == "IDCANCEL":
-                self.ids[id_name] = win32con.IDCANCEL
-                return win32con.IDCANCEL
+            # IDOK, IDCANCEL etc are special - if a real resource has this value
+            for n in ["IDOK","IDCANCEL","IDYES","IDNO", "IDABORT"]:
+                if id_name == n:
+                    v = getattr(win32con, n)
+                    self.ids[n] = v
+                    self.names[v] = n
+                    return v
             id = self.next_id
             self.next_id += 1
             self.ids[id_name] = id
@@ -254,21 +304,13 @@ class RCParser:
     def parse_stringtable(self):
         while self.getToken() != "BEGIN":
             pass
-        self.getToken()
         while 1:
+            self.getToken()
             if self.token == "END":
                 break
             sid = self.token
-            # Handle quoted strings - pity shlex doesn't handle it.
-            bits = [self.getToken()]
-            while 1:
-                tok = self.getToken()
-                if not tok.startswith('"'):
-                    break
-                bits.append(tok)
-            sval = "".join(bits)[1:-1] # and remove end quotes.
-            sval = sval.replace('""', '"') # And fixup quotes in the body
-            sd = StringDef(sid, self.addId(sid), sval)
+            self.getToken()
+            sd = StringDef(sid, self.addId(sid), self.currentQuotedString())
             self.stringTable[sid] = sd
 
     def parse_bitmap(self, name):
@@ -279,11 +321,8 @@ class RCParser:
 
     def parse_bitmap_or_icon(self, name, dic):
         self.getToken()
-        if self.token=="DISCARDABLE":
+        while not self.token.startswith('"'):
             self.getToken()
-        if self.token=="MOVEABLE":
-            self.getToken() # PURE
-            self.getToken() # bmpname
         bmf = self.token[1:-1] # quotes
         dic[name] = bmf
 
@@ -383,36 +422,53 @@ class RCParser:
             self.getToken()
     def controls(self, dlg):
         if self.token=="BEGIN": self.getToken()
+        # All controls look vaguely like:
+        # TYPE [text, ] Control_id, l, t, r, b [, style]
+        # .rc parser documents all control types as:
+        # CHECKBOX, COMBOBOX, CONTROL, CTEXT, DEFPUSHBUTTON, EDITTEXT, GROUPBOX,
+        # ICON, LISTBOX, LTEXT, PUSHBUTTON, RADIOBUTTON, RTEXT, SCROLLBAR
+        without_text = ["EDITTEXT", "COMBOBOX", "LISTBOX", "SCROLLBAR"]
         while self.token!="END":
             control = ControlDef()
             control.controlType = self.token;
-            #print self.token
             self.getToken()
-            if self.token[0:1]=='"':
-                control.label = self.token[1:-1]
+            if control.controlType not in without_text:
+                if self.token[0:1]=='"':
+                    control.label = self.currentQuotedString()
+                # Some funny controls, like icons and picture controls use
+                # the "window text" as extra resource ID (ie, the ID of the
+                # icon itself).  This may be either a literal, or an ID string.
+                elif self.token=="-" or self.token.isdigit():
+                    control.label = str(self.currentNumberToken())
+                else:
+                    # An ID - use the numeric equiv.
+                    control.label = str(self.addId(self.token))
                 self.getCommaToken()
                 self.getToken()
-            elif self.token.isdigit():
-                control.label = self.token
-                self.getCommaToken()
-                self.getToken()
-            # msvc seems to occasionally replace "IDC_STATIC" with -1
-            if self.token=='-':
-                if self.getToken() != '1':
-                    raise RuntimeError, \
-                          "Negative literal in rc script (other than -1) - don't know what to do"
-                self.token = "IDC_STATIC"
-            control.id = self.token
-            control.idNum = self.addId(control.id)
+            # Control IDs may be "names" or literal ints
+            if self.token=="-" or self.token.isdigit():
+                control.id = self.currentNumberToken()
+                control.idNum = control.id
+            else:
+                # name of an ID
+                control.id = self.token
+                control.idNum = self.addId(control.id)
             self.getCommaToken()
+
             if control.controlType == "CONTROL":
                 self.getToken()
                 control.subType = self.token[1:-1]
+                thisDefaultStyle = defaultControlStyle | \
+                                   _addDefaults.get(control.subType, 0)
                 # Styles
                 self.getCommaToken()
                 self.getToken()
-                control.style, control.styles = self.styles([], defaultControlStyle)
-                #self.getToken() #,
+                control.style, control.styles = self.styles([], thisDefaultStyle)
+            else:
+                thisDefaultStyle = defaultControlStyle | \
+                                   _addDefaults.get(control.controlType, 0)
+                # incase no style is specified.
+                control.style = thisDefaultStyle
             # Rect
             control.x = int(self.getToken())
             self.getCommaToken()
@@ -425,7 +481,10 @@ class RCParser:
             self.getToken()
             if self.token==",":
                 self.getToken()
-                control.style, control.styles = self.styles([], defaultControlStyle)
+                control.style, control.styles = self.styles([], thisDefaultStyle)
+            if self.token==",":
+                self.getToken()
+                control.styleEx, control.stylesEx = self.styles([], defaultControlStyleEx)
             #print control.toString()
             dlg.controls.append(control)
 
@@ -482,6 +541,7 @@ def GenerateFrozenResource(rc_name, output_name, h_name = None):
     out = open(output_name, "wt")
     out.write("#%s\n" % output_name)
     out.write("#This is a generated file. Please edit %s instead.\n" % rc_name)
+    out.write("__version__=%r\n" % __version__)
     out.write("_rc_size_=%d\n_rc_mtime_=%d\n" % (in_stat[stat.ST_SIZE], in_stat[stat.ST_MTIME]))
     out.write("class FakeParser:\n")
 
