@@ -7,7 +7,7 @@ class PYCOM_EXPORT PyIEnumMoniker : public PyIUnknown
 {
 public:
 	MAKE_PYCOM_CTOR(PyIEnumMoniker);
-	static PyComTypeObject type;
+	static PyComEnumTypeObject type;
 	static IEnumMoniker *GetI(PyObject *self);
 
 	static PyObject *Next(PyObject *self, PyObject *args);
@@ -25,7 +25,7 @@ class PYCOM_EXPORT PyIMoniker : public PyIPersistStream
 {
 public:
 	MAKE_PYCOM_CTOR(PyIMoniker);
-	static PyComTypeObject type;
+	static PyComEnumProviderTypeObject type;
 	static IMoniker *GetI(PyObject *self);
 
 	static PyObject *BindToObject(PyObject *self, PyObject *args);

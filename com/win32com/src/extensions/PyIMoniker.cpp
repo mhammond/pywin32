@@ -57,7 +57,7 @@ PyObject *PyIEnumMoniker::Next(PyObject *self, PyObject *args)
 	{
 		for ( i = celtFetched; i--; )
 		{
-			PyObject *ob = PyCom_PyObjectFromIUnknown(rgVar[i], IID_IMoniker, TRUE);
+			PyObject *ob = PyCom_PyObjectFromIUnknown(rgVar[i], IID_IMoniker, FALSE);
 			if ( ob == NULL )
 			{
 				Py_DECREF(result);
@@ -138,7 +138,7 @@ static struct PyMethodDef PyIEnumMoniker_methods[] =
 	{NULL,  NULL}        
 };
 
-PyComTypeObject PyIEnumMoniker::type("PyIEnumMoniker",
+PyComEnumTypeObject PyIEnumMoniker::type("PyIEnumMoniker",
                  &PyIUnknown::type, // @base PyIEnumMoniker|PyIUnknown
                  sizeof(PyIEnumMoniker),
                  PyIEnumMoniker_methods,
@@ -343,9 +343,9 @@ PyObject *PyIMoniker::ComposeWith(PyObject *self, PyObject *args)
 // @pymethod <o PyIEnumMoniker>|PyIMoniker|Enum|Supplies an enumerator that can enumerate the components of a composite moniker.
 PyObject *PyIMoniker::Enum(PyObject *self, PyObject *args)
 {
-	// @pyparm int|fForward||If TRUE, enumerates the monikers from left to right. If FALSE, enumerates from right to left.
-	int fForward;
-	if (!PyArg_ParseTuple(args, "i:Enum", &fForward))
+	// @pyparm int|fForward|True|If TRUE, enumerates the monikers from left to right. If FALSE, enumerates from right to left.
+	int fForward = TRUE;
+	if (!PyArg_ParseTuple(args, "|i:Enum", &fForward))
 		return NULL;
 
 	IMoniker *pMy = GetI(self);
@@ -431,8 +431,9 @@ static struct PyMethodDef PyIMoniker_methods[] =
 	{NULL,  NULL}        
 };
 
-PyComTypeObject PyIMoniker::type("PyIMoniker",
+PyComEnumProviderTypeObject PyIMoniker::type("PyIMoniker",
                  &PyIPersistStream::type,  // @base PyIMoniker|PyIPersistStream
                  sizeof(PyIMoniker),
                  PyIMoniker_methods,
-				 GET_PYCOM_CTOR(PyIMoniker));
+                 GET_PYCOM_CTOR(PyIMoniker),
+                 "Enum");
