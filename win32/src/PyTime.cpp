@@ -299,20 +299,22 @@ PyTime::PyTime(long t)
 
 #else
 	/* "Normal" Win32 handling */
-	struct tm *ptm = localtime(&t);
-
-	SYSTEMTIME st = {
-		ptm->tm_year + 1900,
-		ptm->tm_mon + 1,
-		ptm->tm_wday,
-		ptm->tm_mday,
-		ptm->tm_hour,
-		ptm->tm_min,
-		ptm->tm_sec,
-		0
-	};
 	m_time = 0;
-	(void)SystemTimeToVariantTime(&st, &m_time);
+	struct tm *ptm = localtime(&t);
+	if (ptm != NULL) { // otherwise an invalid integer
+
+		SYSTEMTIME st = {
+			ptm->tm_year + 1900,
+			ptm->tm_mon + 1,
+			ptm->tm_wday,
+			ptm->tm_mday,
+			ptm->tm_hour,
+			ptm->tm_min,
+			ptm->tm_sec,
+			0
+		};
+		(void)SystemTimeToVariantTime(&st, &m_time);
+	}
 #endif /* MS_WINCE */
 }
 
