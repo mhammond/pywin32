@@ -1,7 +1,7 @@
 # distutils setup-script for win32all core dlls, currently only
 # pywintypes and pythoncom.
 #
-# Thomas Heller, startet in 2000 or so.
+# Thomas Heller, started in 2000 or so.
 
 from distutils.core import setup, Extension, Command
 from distutils.command.install_lib import install_lib
