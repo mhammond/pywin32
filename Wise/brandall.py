@@ -44,8 +44,8 @@ def doit():
 	if not brandPythonwin.doit(desc, auto, bRebrand, build):
 		return
 
-	import stampwise
-	stampwise.UpdateWiseExeName("win32all.wse", "win32all-%s.exe" % (build) )
+	import stampWise
+	stampWise.UpdateWiseExeName("win32all.wse", "win32all-%s.exe" % (build) )
 
 	import brandutils
 	subst_dict = {"build_no" : build }
