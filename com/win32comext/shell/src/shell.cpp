@@ -339,11 +339,14 @@ BOOL PyObject_AsCMINVOKECOMMANDINFO(PyObject *ob, CMINVOKECOMMANDINFO *pci)
 	                                 &obVerb, &pci->lpParameters, &pci->lpDirectory, 
 	                                 &pci->nShow, &pci->dwHotKey, &pci->hIcon))
 		return FALSE;
-	if (!PyInt_Check(obVerb)) {
-		PyErr_Format(PyExc_TypeError, "verb must be an int (strings not yet supported)");
+	if (PyString_Check(obVerb)) {
+		pci->lpVerb = PyString_AsString(obVerb);
+	} else if (PyInt_Check(obVerb)) {
+		pci->lpVerb = MAKEINTRESOURCE(PyInt_AsLong(obVerb));
+	} else {
+		PyErr_Format(PyExc_TypeError, "verb must be an int or string");
 		return FALSE;
 	}
-	pci->lpVerb = MAKEINTRESOURCE(PyInt_AsLong(obVerb));
 	return TRUE;
 }
 void PyObject_FreeCMINVOKECOMMANDINFO( CMINVOKECOMMANDINFO *pci )
@@ -576,6 +579,23 @@ PyObject *PyObject_FromSHFILEINFO(SHFILEINFO *p)
 	                              obDisplayName, obTypeName);
 }
 
+
+BOOL PyObject_AsOLEMENUGROUPWIDTHS( PyObject *oblpMenuWidths, OLEMENUGROUPWIDTHS *pWidths)
+{
+	return PyArg_ParseTuple(oblpMenuWidths, "iiiiii",
+							&pWidths->width[0], &pWidths->width[1],
+							&pWidths->width[2], &pWidths->width[3],
+							&pWidths->width[4], &pWidths->width[5]) != NULL;
+}
+
+PyObject *PyObject_FromOLEMENUGROUPWIDTHS(OLEMENUGROUPWIDTHS *pWidths)
+{
+	return Py_BuildValue("(iiiiii)",
+						 pWidths->width[0], pWidths->width[1],
+						 pWidths->width[2], pWidths->width[3],
+						 pWidths->width[4], pWidths->width[5]);
+}
+
 //////////////////////////////////////////////////
 //
 // WIN32_FIND_DATA implementation.
@@ -745,7 +765,7 @@ static PyObject *PySHGetSpecialFolderLocation(PyObject *self, PyObject *args)
 	return rc;
 }
 
-// @pymethod <o SHFILEINFO>|shell|SHGetFileInfo|Retrieves information about an object in the file system, such as a file, a folder, a directory, or a drive root.
+// @pymethod int, <o SHFILEINFO>|shell|SHGetFileInfo|Retrieves information about an object in the file system, such as a file, a folder, a directory, or a drive root.
 static PyObject *PySHGetFileInfo(PyObject *self, PyObject *args)
 {
 	PyObject *ret = NULL;
@@ -753,7 +773,7 @@ static PyObject *PySHGetFileInfo(PyObject *self, PyObject *args)
 	TCHAR *name = NULL;
 	LPITEMIDLIST pidl = NULL;
 	TCHAR *pidl_or_name;
-	int attr, flags, info_attrs;
+	int attr, flags, info_attrs=0;
 	BOOL ok;
 	if (!PyArg_ParseTuple(args, "Oii|i", 
 			&obName, // @pyparm string/<o PIDL>|name||The path and file name. Both absolute 
@@ -771,7 +791,7 @@ static PyObject *PySHGetFileInfo(PyObject *self, PyObject *args)
 					 // <nl>This string can use either short (the 8.3 form) or long file names.
 			&attr, // @pyparm int|dwFileAttributes||Combination of one or more file attribute flags (FILE_ATTRIBUTE_ values). If uFlags does not include the SHGFI_USEFILEATTRIBUTES flag, this parameter is ignored.
 			&flags, // @pyparm int|uFlags||Flags that specify the file information to retrieve.  See MSDN for details
-			&info_attrs)) // @pyparm int|infoAttrs|0|Flags copued to the SHFILEINFO.dwAttributes member - useful when flags contains SHGFI_ATTR_SPECIFIED
+			&info_attrs)) // @pyparm int|infoAttrs|0|Flags copied to the SHFILEINFO.dwAttributes member - useful when flags contains SHGFI_ATTR_SPECIFIED
 		return NULL;
 	if (flags & SHGFI_PIDL) {
 		ok = PyObject_AsPIDL(obName, &pidl, FALSE);
@@ -786,13 +806,9 @@ static PyObject *PySHGetFileInfo(PyObject *self, PyObject *args)
 	memset(&info, 0, sizeof(info));
 	info.dwAttributes = info_attrs;
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = SHGetFileInfo(name, attr, &info, sizeof(info), flags);
+	DWORD dw = SHGetFileInfo(name, attr, &info, sizeof(info), flags);
 	PY_INTERFACE_POSTCALL;
-	if (FAILED(hr)) {
-		OleSetOleError(hr);
-		goto done;
-	}
-	ret = PyObject_FromSHFILEINFO(&info);
+	ret = Py_BuildValue("iN", dw, PyObject_FromSHFILEINFO(&info));
 done:
 	if (name) PyWinObject_FreeTCHAR(name);
 	if (pidl) PyObject_FreePIDL(pidl);
@@ -970,8 +986,8 @@ static PyObject *PySHChangeNotify(PyObject *self, PyObject *args)
 {
 	LONG wEventID;
 	UINT flags;
-	PyObject *ob1, *ob2;
-	if(!PyArg_ParseTuple(args, "iiOO:SHChangeNotify", 
+	PyObject *ob1, *ob2 = Py_None;
+	if(!PyArg_ParseTuple(args, "iiO|O:SHChangeNotify", 
 			&wEventID, 
 			&flags, 
 			&ob1, 
@@ -979,14 +995,14 @@ static PyObject *PySHChangeNotify(PyObject *self, PyObject *args)
 		return NULL;
 
 	void *p1, *p2;
-	if (flags & SHCNF_DWORD) {
+	if (flags == SHCNF_DWORD) {
 		if (!PyInt_Check(ob1) || !(ob2==Py_None || PyInt_Check(ob2))) {
 			PyErr_SetString(PyExc_TypeError, "SHCNF_DWORD is set - items must be integers");
 			return NULL;
 		}
 		p1 = (void *)PyInt_AsLong(ob1);
 		p2 = (void *)(ob2==Py_None ? NULL : PyInt_AsLong(ob2));
-	} else if (flags & SHCNF_IDLIST) {
+	} else if (flags == SHCNF_IDLIST) {
 		ITEMIDLIST *pidl1, *pidl2;
 		if (!PyObject_AsPIDL(ob1, &pidl1, FALSE))
 			return NULL;
@@ -996,7 +1012,7 @@ static PyObject *PySHChangeNotify(PyObject *self, PyObject *args)
 		}
 		p1 = (void *)pidl1;
 		p2 = (void *)pidl2;
-	} else if (flags & SHCNF_PATH || flags & SHCNF_PRINTER) {
+	} else if (flags == SHCNF_PATH || flags == SHCNF_PRINTER) {
 		if (!PyString_Check(ob1) || !(ob2==Py_None || PyString_Check(ob2))) {
 			PyErr_SetString(PyExc_TypeError, "SHCNF_PATH/PRINTER is set - items must be strings");
 			return NULL;
@@ -1014,6 +1030,77 @@ static PyObject *PySHChangeNotify(PyObject *self, PyObject *args)
 		PyObject_FreePIDL((ITEMIDLIST *)p1);
 		PyObject_FreePIDL((ITEMIDLIST *)p2);
 	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod int|shell|SHChangeNotifyRegister|Registers a window that receives notifications from the file system or shell.
+static PyObject *PySHChangeNotifyRegister(PyObject *self, PyObject *args)
+{
+	typedef ULONG (WINAPI * PFNSHChangeNotifyRegister)(HWND hwnd,
+									int fSources,
+									LONG fEvents,
+									UINT wMsg,
+									int cEntries,
+									SHChangeNotifyEntry *pfsne);
+
+	HMODULE hmod = GetModuleHandle(TEXT("shell32.dll"));
+	PFNSHChangeNotifyRegister pfnSHChangeNotifyRegister = NULL;
+	// This isn't always exported by name - but by ordinal 2!!
+	if (hmod) pfnSHChangeNotifyRegister=(PFNSHChangeNotifyRegister)GetProcAddress(hmod, MAKEINTRESOURCE(2));
+	if (pfnSHChangeNotifyRegister==NULL)
+		return OleSetOleError(E_NOTIMPL);
+	// The SDK says of the array of entries:
+	// "This array should always be set to one when calling SHChangeNotifyRegister or
+	//  SHChangeNotifyDeregister will not work properly."
+	// Therefore, we support just one item in the array - and don't require it
+	// to be an array!
+	HWND hwnd;
+	int sources;
+    LONG events;
+    UINT msg;
+	PyObject *obPIDL;
+	SHChangeNotifyEntry entry;
+	if(!PyArg_ParseTuple(args, "iiii(Oi):SHChangeNotifyRegister",
+			&hwnd, // @pyparm int|hwnd||Handle to the window that receives the change or notification messages.
+			&sources, // @pyparm int|sources||One or more values that indicate the type of events for which to receive notifications.
+			&events, // @pyparm int|events||Change notification events for which to receive notification.
+			&msg,  // @pyparm int|msg||Message to be posted to the window procedure.
+			&obPIDL,
+			&entry.fRecursive))
+		return NULL;
+
+	if (!PyObject_AsPIDL(obPIDL, (ITEMIDLIST **)&entry.pidl, TRUE))
+		return NULL;
+	ULONG rc;
+	PY_INTERFACE_PRECALL;
+	rc = (*pfnSHChangeNotifyRegister)(hwnd, sources, events, msg, 1, &entry);
+	PY_INTERFACE_POSTCALL;
+	PyObject_FreePIDL(entry.pidl);
+	return PyInt_FromLong(rc);
+}
+
+// @pymethod |shell|SHChangeNotifyDeregister|Unregisters the client's window process from receiving notification events
+static PyObject *PySHChangeNotifyDeregister(PyObject *self, PyObject *args)
+{
+	typedef BOOL (WINAPI * PFNSHChangeNotifyDeregister)(LONG uid);
+	HMODULE hmod = GetModuleHandle(TEXT("shell32.dll"));
+	PFNSHChangeNotifyDeregister pfnSHChangeNotifyDeregister = NULL;
+	// This isn't always exported by name - but by ordinal 4!!
+	if (hmod) pfnSHChangeNotifyDeregister=(PFNSHChangeNotifyDeregister)GetProcAddress(hmod, MAKEINTRESOURCE(4));
+	if (pfnSHChangeNotifyDeregister==NULL)
+		return OleSetOleError(E_NOTIMPL);
+    LONG id;
+	if(!PyArg_ParseTuple(args, "i:SHChangeNotifyDeregister",
+			&id)) // @pyparm int|id||The registration identifier (ID) returned by <om shell.SHChangeNotifyRegister>.
+		return NULL;
+
+	BOOL rc;
+	PY_INTERFACE_PRECALL;
+	rc = (*pfnSHChangeNotifyDeregister)(id);
+	PY_INTERFACE_POSTCALL;
+	if (!rc)
+		return OleSetOleError(E_FAIL);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -1151,6 +1238,8 @@ static struct PyMethodDef shell_methods[]=
     { "SHGetDesktopFolder", PySHGetDesktopFolder, 1}, // @pymeth SHGetDesktopFolder|Retrieves the <o PyIShellFolder> interface for the desktop folder, which is the root of the shell's namespace. 
     { "SHUpdateImage", PySHUpdateImage, 1}, // @pymeth SHUpdateImage|Notifies the shell that an image in the system image list has changed.
     { "SHChangeNotify", PySHChangeNotify, 1}, // @pymeth SHChangeNotify|Notifies the system of an event that an application has performed.
+	{ "SHChangeNotifyRegister", PySHChangeNotifyRegister, 1}, // @pymeth SHChangeNotifyRegister|Registers a window that receives notifications from the file system or shell.
+	{ "SHChangeNotifyDeregister", PySHChangeNotifyDeregister, 1}, // @pymeth SHChangeNotifyDeregister|Unregisters the client's window process from receiving notification events
 	{ "SHGetInstanceExplorer", PySHGetInstanceExplorer, 1}, // @pymeth SHGetInstanceExplorer|Allows components that run in a Web browser (Iexplore.exe) or a nondefault Windows® Explorer (Explorer.exe) process to hold a reference to the process. The components can use the reference to prevent the process from closing prematurely.
 	{ "StringAsCIDA", PyStringAsCIDA, 1}, // @pymeth StringAsCIDA|Given a CIDA as a raw string, return pidl_folder, [pidl_children, ...]
 	{ "CIDAAsString", PyCIDAAsString, 1}, // @pymeth CIDAAsString|Given a (pidl, child_pidls) object, return a CIDA as a string
