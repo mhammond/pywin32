@@ -593,13 +593,14 @@ static PyObject *pythoncom_UnwrapObject(PyObject *self, PyObject *args)
 
 	// Unwrapper does not need thread state management
 	// Ie PY_INTERFACE_PRE/POSTCALL;
+	HRESULT hr;
 	IInternalUnwrapPythonObject *pUnwrapper;
-	if (S_OK!=((PyIUnknown *)ob)->m_obj->QueryInterface(IID_IInternalUnwrapPythonObject, (void **)&pUnwrapper)) {
-		PyErr_SetString(PyExc_ValueError, "argument is not a Python gateway");
+	if (S_OK!=(hr=((PyIUnknown *)ob)->m_obj->QueryInterface(IID_IInternalUnwrapPythonObject, (void **)&pUnwrapper))) {
+		PyErr_Format(PyExc_ValueError, "argument is not a Python gateway (0x%x)", hr);
 		return NULL;
 	}
 	PyObject *retval;
-	HRESULT hr = pUnwrapper->Unwrap(&retval);
+	pUnwrapper->Unwrap(&retval);
 	pUnwrapper->Release();
 	if (S_OK!=hr)
 		return OleSetOleError(hr);
