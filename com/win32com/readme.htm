@@ -1,74 +1,8 @@
-<html xmlns:v="urn:schemas-microsoft-com:vml"
-xmlns:o="urn:schemas-microsoft-com:office:office"
-xmlns:w="urn:schemas-microsoft-com:office:word"
-xmlns="http://www.w3.org/TR/REC-html40">
+<html>
 
 <head>
-<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
-<meta name=ProgId content=FrontPage.Editor.Document>
-<meta name=Generator content="Microsoft FrontPage 4.0">
-<meta name=Originator content="Microsoft Word 9">
-<link rel=File-List href="./readme_files/filelist.xml">
-<link rel=Edit-Time-Data href="./readme_files/editdata.mso">
-<!--[if !mso]>
-<style>
-v\:* {behavior:url(#default#VML);}
-o\:* {behavior:url(#default#VML);}
-w\:* {behavior:url(#default#VML);}
-.shape {behavior:url(#default#VML);}
-</style>
-<![endif]-->
 <title>win32com Readme</title>
-<style>
-<!--
- /* Style Definitions */
-p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{mso-style-parent:"";
-	margin:0cm;
-	margin-bottom:.0001pt;
-	mso-pagination:widow-orphan;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-a:link, span.MsoHyperlink
-	{color:blue;
-	text-decoration:underline;
-	text-underline:single;}
-a:visited, span.MsoHyperlinkFollowed
-	{color:purple;
-	text-decoration:underline;
-	text-underline:single;}
-p
-	{font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-code
-	{mso-ascii-font-family:"Courier New";
-	mso-fareast-font-family:"Courier New";
-	mso-hansi-font-family:"Courier New";
-	mso-bidi-font-family:"Courier New";}
-pre
-	{margin:0cm;
-	margin-bottom:.0001pt;
-	font-size:10.0pt;
-	font-family:"Courier New";
-	mso-fareast-font-family:"Courier New";}
-@page Section1
-	{size:595.3pt 841.9pt;
-	margin:72.0pt 90.0pt 72.0pt 90.0pt;
-	mso-header-margin:35.4pt;
-	mso-footer-margin:35.4pt;
-	mso-paper-source:0;}
-div.Section1
-	{page:Section1;}
--->
-</style>
-<meta name=Template content="C:\Program Files\Microsoft Office\Office\html.dot">
 </head>
-
-<body lang=EN-AU link=blue vlink=purple style='tab-interval:36.0pt'>
-
-<div class=Section1>
 
 <p><img width=551 height=99 id="_x0000_i1025" src="html\image\pycom_blowing.gif"
 alt="Python and COM - Blowing the others away"></p>
@@ -78,15 +12,47 @@ alt="Python and COM - Blowing the others away"></p>
 <p>This is the readme for win32com. Please check out the <a
 href="html\docindex.html">win32com documentation index</a></p>
 
-<p><a href="win32com.txt">The release notes</a> is where we do a poor job of
-keeping a list of significant enhancements and changes at the C/C++ level
-(yeah, right!) and also contains the log from the source control system.</p>
-
 <p>The <a href="test\.">win32com\test directory</a> contains some interesting
 scripts (and a new <a href="test\readme.txt">readme.txt</a>). Although these
 are used for testing, they do show a variety of COM techniques.</p>
 
 <h3>Recent Changes</h3>
+
+<h4>win32all-133 changes</h4>
+
+<p>Bug fixes!&nbsp; We now have an option to honour the hidden attribute on
+objects.&nbsp; This currently defaults to off, so nothing should break.</p>
+
+<h4>win32all-130-132 changes</h4>
+
+<p>Bug fixes.&nbsp; Structures can be created quite simply, using <i>win32com.client.Record()</i>
+- see its docstring for details.</p>
+
+<p>See also the <a href="#OlderChanges">older changes</a>.</p>
+
+<h3>ActiveX Scripting </h3>
+
+<p>This release contains full support for Python as an ActiveX Scripting Engine
+and Host. Check out the <a
+href="..\win32comext\axscript\demos\client\ie\demo.htm">ActiveX Scripting Demos</a>
+(which includes information on registering the engine)</p>
+
+<p>There is also support for Python as an ActiveX Scripting Host.</p>
+
+<p>Active Debugging seems to be fully functional.</p>
+
+<h3>Known bugs and problems...</h3>
+
+<p>Certain servers may hang at shutdown if all COM client objects not released
+- notably, MSOffice. Eg, if a Python program that is talking to excel raises an
+exception and exits, the Python program will be hung. There are no known leaks
+in win32com, but there is also no attempt at automatic object cleanup. All
+standard Python caveats about references apply! Note this is a
+&quot;feature&quot; of COM, and not a bug in win32com. You can use the function
+<i>pythoncom._GetInterfaceCount()</i> to determine how many COM objects are
+held by Python as your program terminates - this should return zero.</p>
+
+<h3><a name=OlderChanges>Even Older Changes</a></h3>
 
 <h4>win32all-129 changes</h4>
 
@@ -165,8 +131,8 @@ libraries marked as hidden.</p>
 
 <h4>win32all-125 fixes.</h4>
 
-<p>Better support for DCOM via <code><span style='font-size:10.0pt;font-family:
-"Courier New"'>win32com.client.DispathEx(progId, machineName=None, …)</span></code>.
+<p>Better support for DCOM via <code>win32com.client.DispathEx(progId,
+machineName=None, …)</code>.
 Small DCOM demo in <i>win32com\test\testDCOM.py</i>.</p>
 
 <p>Registration of COM servers has been made a little simpler, and the
@@ -185,32 +151,6 @@ expect this soon.</p>
 <p>Robin Becker has dramatically increased the speed of COM accessing certain
 objects (notably MSOffice) when not using <i>makepy</i>.</p>
 
-<p>See also the <a href="#OlderChanges">older changes</a>.</p>
-
-<h3>ActiveX Scripting </h3>
-
-<p>This release contains full support for Python as an ActiveX Scripting Engine
-and Host. Check out the <a
-href="..\win32comext\axscript\demos\client\ie\demo.htm">ActiveX Scripting Demos</a>
-(which includes information on registering the engine)</p>
-
-<p>There is also support for Python as an ActiveX Scripting Host.</p>
-
-<p>Active Debugging seems to be fully functional.</p>
-
-<h3>Known bugs and problems...</h3>
-
-<p>Certain servers may hang at shutdown if all COM client objects not released
-- notably, MSOffice. Eg, if a Python program that is talking to excel raises an
-exception and exits, the Python program will be hung. There are no known leaks
-in win32com, but there is also no attempt at automatic object cleanup. All
-standard Python caveats about references apply! Note this is a
-&quot;feature&quot; of COM, and not a bug in win32com. You can use the function
-<i>pythoncom._GetInterfaceCount()</i> to determine how many COM objects are
-held by Python as your program terminates - this should return zero.</p>
-
-<h3><a name=OlderChanges>Even Older Changes</a></h3>
-
 <h4>Build 123 and earlier changes.</h4>
 
 <p>Active Debugging should now be <b><i>nearly</i></b> capable of debugging
@@ -220,7 +160,8 @@ installed. Visual Interdev version 6 is one such debugger, or a free debugger
 can be found at <a href="http://msdn.microsoft.com/scripting">http://msdn.microsoft.com/scripting</a><br>
 To debug Python scripts, use the following commands:</p>
 
-<pre>from win32com.axscript import debugger</pre><pre>debugger.Break()</pre>
+<pre>from win32com.axscript import debugger
+debugger.Break()</pre>
 
 <p>This currently has some problems – most notable is that modules imported
 after debugging has commenced does not work. It also occasionally crashes :-(
@@ -257,9 +198,5 @@ No old code should break, but in the future the &quot;old style&quot; of using
 COM constants will be removed. <a href="html\QuickStartClientCom.html">This is
 all documented in the Client Side Quick Start documentation</a>. Also made a
 few minor changes to the <i>bGuiProgress</i> param.</p>
-
-</div>
-
-</body>
 
 </html>
