@@ -25,7 +25,11 @@ def GetIDLEModule(module):
 	except ImportError:
 		# See if I can import it directly (IDLE is probably on the path)
 		modname = module
-		__import__(modname)
+		try:
+			__import__(modname)
+		except ImportError:
+			win32ui.MessageBox("The IDLE extension '%s' can not be located.\r\n\r\nPlease correct the installation and restart the application." % module)
+			return None
 	mod=sys.modules[modname]
 	mod.TclError = TextError # A hack that can go soon!
 	return mod
@@ -53,7 +57,9 @@ class IDLEEditorWindow:
 	def IDLEExtension(self, extension):
 		ext = self.extensions.get(extension)
 		if ext is not None: return ext
-		klass = getattr(GetIDLEModule(extension), extension)
+		mod = GetIDLEModule(extension)
+		if mod is None: return None
+		klass = getattr(mod, extension)
 		ext = self.extensions[extension] = klass(self)
 		# Find and bind all the events defined in the extension.
 		events = filter(lambda item: item[-6:]=="_event", dir(klass))

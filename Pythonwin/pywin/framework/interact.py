@@ -323,7 +323,10 @@ class InteractiveCore:
 		# Hook menu command (executed when a menu item with that ID is selected from a menu/toolbar
 		self.HookCommand(self.OnSelectBlock, win32ui.ID_EDIT_SELECT_BLOCK)
 		mod = pywin.scintilla.IDLEenvironment.GetIDLEModule("IdleHistory")
-		self.history = mod.History(self.idle.text, "\n" + sys.ps2)
+		if mod is not None:
+			self.history = mod.History(self.idle.text, "\n" + sys.ps2)
+		else:
+			self.history = None
 		# hack for now for event handling.
 
 	# GetBlockBoundary takes a line number, and will return the
@@ -456,7 +459,8 @@ class InteractiveCore:
 #					lastLine = self.DoGetLine(self.GetLineCount()-1)
 #					if lastLine: self.write("\n")
 #					self.write(sys.ps1)
-					self.history.history_store(source)
+					if self.history is not None:
+						self.history.history_store(source)
 					self.AppendToPrompt([])
 					win32ui.SetStatusText(win32ui.LoadString(afxres.AFX_IDS_IDLEMESSAGE))
 #					win32ui.SetStatusText('Successfully executed statement')
