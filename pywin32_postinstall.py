@@ -123,9 +123,12 @@ def install():
     # Register our demo COM objects.
     RegisterCOMObjects()
     # Register the .chm help file.
-    SetPyKeyVal("Help\\Pythonwin Reference",
-                None,
-                os.path.join(lib_dir, "PyWin32.chm"))
+    chm_file = os.path.join(lib_dir, "PyWin32.chm")
+    if os.path.isfile(chm_file):
+        SetPyKeyVal("Help\\Pythonwin Reference", None, chm_file)
+    else:
+        print "NOTE: PyWin32.chm can not be located, so has not " \
+              "been registered"
     # Create the win32com\gen_py directory.
     make_dir = os.path.join(lib_dir, "win32com", "gen_py")
     if not os.path.isdir(make_dir):
