@@ -6,11 +6,14 @@
 # dispatch object, the known class will be used.  This contrasts
 # with dynamic.Dispatch behaviour, where dynamic objects are always used.
 import dynamic, CLSIDToClass, pythoncom
+import pywintypes
 
-def Dispatch(dispatch, userName = None, resultCLSID = None, typeinfo = None, UnicodeToString=1, clsctx = pythoncom.CLSCTX_SERVER):
-  """Creates a Dispatch based COM object.
+def __WrapDispatch(dispatch, userName = None, resultCLSID = None, typeinfo = None, \
+                  UnicodeToString = 1, clsctx = pythoncom.CLSCTX_SERVER):
   """
-  dispatch, userName = dynamic._GetGoodDispatchAndUserName(dispatch,userName,clsctx)
+    Helper function to return a makepy generated class for a CLSID if it exists,
+    otherwise cope by using CDispatch.
+  """
   if resultCLSID is None:
     try:
       typeinfo = dispatch.GetTypeInfo()
@@ -37,6 +40,60 @@ def Dispatch(dispatch, userName = None, resultCLSID = None, typeinfo = None, Uni
   # Return a "dynamic" object - best we can do!
   return dynamic.Dispatch(dispatch, userName, CDispatch, typeinfo, UnicodeToString=UnicodeToString,clsctx=clsctx)
 
+
+def GetObject(Pathname = None, Class = None, clsctx = None):
+  """
+    Mimic VB's GetObject() function.
+
+    ob = GetObject(Class = "ProgID") or GetObject(Class = clsid) will
+    connect to an already running instance of the COM object.
+    
+    ob = GetObject(r"c:\blah\blah\foo.xls") (aka the COM moniker syntax)
+    will return a ready to use Python wrapping of the required COM object.
+
+    Note: You must specifiy one or the other of these arguments. I know
+    this isn't pretty, but it is what VB does. Blech. If you don't
+    I'll throw ValueError at you. :)
+    
+    This will most likely throw pythoncom.com_error if anything fails.
+  """
+  resultCLSID = None
+  
+  if clsctx is None:
+    clsctx = pythoncom.CLSCTX_ALL
+    
+  if (Pathname is None and Class is None) or \
+     (Pathname is not None and Class is not None):
+    raise ValueError, "You must specify a value for Pathname or Class, but not both."
+
+  if Class is not None:
+    return GetActiveObject(Class, clsctx)
+  else:
+    return Moniker(Pathname, clsctx)    
+
+def GetActiveObject(Class, clsctx = pythoncom.CLSCTX_ALL):
+  """
+    Python friendly version of GetObject's ProgID/CLSID functionality.
+  """  
+  resultCLSID = pywintypes.IID(Class)
+  dispatch = pythoncom.GetActiveObject(resultCLSID)
+  dispatch = dispatch.QueryInterface(pythoncom.IID_IDispatch)
+  return __WrapDispatch(dispatch, Class, resultCLSID = resultCLSID, clsctx = pythoncom.CLSCTX_ALL)
+
+def Moniker(Pathname, clsctx = pythoncom.CLSCTX_ALL):
+  """
+    Python friendly version of GetObject's moniker functionality.
+  """
+  moniker, i, bindCtx = pythoncom.MkParseDisplayName(Pathname)
+  dispatch = moniker.BindToObject(bindCtx, None, pythoncom.IID_IDispatch)
+  return __WrapDispatch(dispatch, Pathname, clsctx = clsctx)
+  
+def Dispatch(dispatch, userName = None, resultCLSID = None, typeinfo = None, UnicodeToString=1, clsctx = pythoncom.CLSCTX_SERVER):
+  """Creates a Dispatch based COM object.
+  """
+  dispatch, userName = dynamic._GetGoodDispatchAndUserName(dispatch,userName,clsctx)
+  return __WrapDispatch(dispatch, userName, resultCLSID, typeinfo, UnicodeToString, clsctx)
+
 def DispatchEx(clsid, machine=None, userName = None, resultCLSID = None, typeinfo = None, UnicodeToString=1, clsctx = None):
   """Creates a Dispatch based COM object on a specific machine.
   """
@@ -55,7 +112,11 @@ def DispatchEx(clsid, machine=None, userName = None, resultCLSID = None, typeinf
   return Dispatch(dispatch, userName, resultCLSID, typeinfo, UnicodeToString=UnicodeToString, clsctx=clsctx)
 
 class CDispatch(dynamic.CDispatch):
-  """The dynamic class used as a last resort.
+  """
+    The dynamic class used as a last resort.
+    The purpose of this overriding of dynamic.CDispatch is to perpetuate the policy
+    of using the makepy generated wrapper Python class instead of dynamic.CDispatch
+    if/when possible.
   """
   def _wrap_dispatch_(self, ob, userName = None, returnCLSID = None, UnicodeToString = 1):
     return Dispatch(ob, userName, returnCLSID,None,UnicodeToString)
