@@ -331,8 +331,7 @@ STDMETHODIMP PyGDataObject::GetData(
 	// Process the Python results, and convert back to the real params
 	if (PySTGMEDIUM_Check(result)) {
 		PySTGMEDIUM *pym = (PySTGMEDIUM *)result;
-		memcpy(pmedium, &pym->medium, sizeof(STGMEDIUM));
-		pym->DropOwnership();
+		pym->CopyTo(pmedium);
 	}
 	hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
 	Py_DECREF(result);

@@ -127,6 +127,7 @@ public:
 
 	void DropOwnership(void);
 	void Close(void);
+	BOOL CopyTo(STGMEDIUM *pDest);
 	static void deallocFunc(PyObject *ob);
 	static PyObject *getattr(PyObject *self, char *name);
 	STGMEDIUM medium;

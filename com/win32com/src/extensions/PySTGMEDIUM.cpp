@@ -135,6 +135,63 @@ void PySTGMEDIUM::DropOwnership()
 	memset(&medium, 0, sizeof(medium));
 }
 
+BOOL PySTGMEDIUM::CopyTo(STGMEDIUM *pDest)
+{
+	assert(pDest->tymed==0);
+	switch (medium.tymed) {
+		// we can't just copy these handles, and there is no easy way I see
+		// to generically duplicate them.  There is a CopyStgMedium function,
+		// but is part of IE, not of OLE.
+		case TYMED_GDI:
+			PyErr_SetString(PyExc_ValueError, "don't know how to copy these objects");
+			return FALSE;
+			// is it ok to just copy these handles?
+			pDest->hBitmap = medium.hBitmap;
+			break;
+		case TYMED_MFPICT:
+			pDest->hMetaFilePict = medium.hMetaFilePict;
+			break;
+		case TYMED_ENHMF:
+			pDest->hEnhMetaFile = medium.hEnhMetaFile;
+			break;
+		case TYMED_HGLOBAL: {
+			UINT cb = GlobalSize(medium.hGlobal);
+			pDest->hGlobal = GlobalAlloc(GMEM_FIXED, cb);
+			if (!pDest->hGlobal) {
+				PyErr_NoMemory();
+				return FALSE;
+			}
+			memcpy(pDest->hGlobal, medium.hGlobal, cb);
+			break;
+		}
+		case TYMED_FILE:
+			if (medium.lpszFileName) {
+				int cch = wcslen(medium.lpszFileName) + 1;
+				if (!(pDest->lpszFileName = (WCHAR *)CoTaskMemAlloc(sizeof(WCHAR) * cch))) {
+					PyErr_NoMemory();
+					return FALSE;
+				}
+				wcsncpy(pDest->lpszFileName, medium.lpszFileName, cch);
+			}
+			break;
+		case TYMED_ISTREAM:
+			pDest->pstm = medium.pstm;
+			if (pDest->pstm) pDest->pstm->AddRef();
+			break;
+		case TYMED_ISTORAGE:
+			pDest->pstg = medium.pstg;
+			if (pDest->pstg) pDest->pstg->AddRef();
+			break;
+		case TYMED_NULL:
+			// nothing to do
+			break;
+		default:
+			PyErr_Format(PyExc_ValueError, "Unknown tymed value '%d'", medium.tymed);
+			return FALSE;
+	}
+	pDest->tymed = medium.tymed;
+	return TRUE;
+}
 void PySTGMEDIUM::Close()
 {
 	if (medium.tymed) {
