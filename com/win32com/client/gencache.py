@@ -353,7 +353,16 @@ def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bVal
 			except ImportError:
 				module = None
 				minor = tlbAttr[4]
-		if bValidateFile:
+		if module is not None and bValidateFile:
+			try:
+				typLibPath = pythoncom.QueryPathOfRegTypeLib(typelibCLSID, major, minor, lcid)
+				tlbAttributes = pythoncom.LoadRegTypeLib(typelibCLSID, major, minor, lcid).GetLibAttr()
+			except pythoncom.com_error:
+				# We have a module, but no type lib - we should still
+				# run with what we have though - the typelib may not be
+				# deployed here.
+				bValidateFile = 0
+		if module is not None and bValidateFile:
 			filePathPrefix  = "%s\\%s" % (GetGeneratePath(), GetGeneratedFileName(typelibCLSID, lcid, major, minor))
 			filePath = filePathPrefix + ".py"
 			filePathPyc = filePathPrefix + ".py"
@@ -370,7 +379,7 @@ def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bVal
 			##print module.MinorVersion
 			# If we have a differing MinorVersion or genpy has bumped versions, update the file
 			import genpy
-			if module is not None and (module.MinorVersion != tlbAttributes[4] or genpy.makepy_version != module.makepy_version):
+			if module.MinorVersion != tlbAttributes[4] or genpy.makepy_version != module.makepy_version:
 				#print "Version skew: %d, %d" % (module.MinorVersion, tlbAttributes[4])
 				# try to erase the bad file from the cache
 				try:
@@ -388,30 +397,29 @@ def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bVal
 				module = None
 				bReloadNeeded = 1
 			else:
-				if module is not None:
-					minor = module.MinorVersion
-					filePathPrefix  = "%s\\%s" % (GetGeneratePath(), GetGeneratedFileName(typelibCLSID, lcid, major, minor))
-					filePath = filePathPrefix + ".py"
-					filePathPyc = filePathPrefix + ".pyc"
-					#print "Trying py stat: ", filePath
-					fModTimeSet = 0
+				minor = module.MinorVersion
+				filePathPrefix  = "%s\\%s" % (GetGeneratePath(), GetGeneratedFileName(typelibCLSID, lcid, major, minor))
+				filePath = filePathPrefix + ".py"
+				filePathPyc = filePathPrefix + ".pyc"
+				#print "Trying py stat: ", filePath
+				fModTimeSet = 0
+				try:
+					pyModTime = os.stat(filePath)[8]
+					fModTimeSet = 1
+				except os.error, e:
+					# If .py file fails, try .pyc file
+					#print "Trying pyc stat", filePathPyc
 					try:
-						pyModTime = os.stat(filePath)[8]
+						pyModTime = os.stat(filePathPyc)[8]
 						fModTimeSet = 1
 					except os.error, e:
-						# If .py file fails, try .pyc file
-						#print "Trying pyc stat", filePathPyc
-						try:
-							pyModTime = os.stat(filePathPyc)[8]
-							fModTimeSet = 1
-						except os.error, e:
-							pass
-					#print "Trying stat typelib", pyModTime
-					#print str(typLibPath)
-					typLibModTime = os.stat(str(typLibPath[:-1]))[8]
-					if fModTimeSet and (typLibModTime > pyModTime):
-						bReloadNeeded = 1
-						module = None
+						pass
+				#print "Trying stat typelib", pyModTime
+				#print str(typLibPath)
+				typLibModTime = os.stat(str(typLibPath[:-1]))[8]
+				if fModTimeSet and (typLibModTime > pyModTime):
+					bReloadNeeded = 1
+					module = None
 	except (ImportError, os.error):	
 		module = None
 	if module is None:
