@@ -2402,6 +2402,12 @@ static PyObject *PyHtmlHelp( PyObject *self, PyObject *args )
     return NULL;
 
   if (PyString_Check(fileOb)) {
+    /* The API function will crash with a huge filename, and that could
+      open an exploit hole */
+    if (PyString_Size(fileOb) >= _MAX_PATH)
+      return PyErr_Format(PyExc_ValueError,
+                          "string of length %d is too large for this function",
+                          PyString_Size(fileOb) );
     file = PyString_AsString(fileOb);
   } else if (fileOb == Py_None) {
     file = NULL;
