@@ -1005,7 +1005,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 		break;
 	case VT_I1:
 		if ((obUse=PyNumber_Int(obj))==NULL) BREAK_FALSE
-		V_I1(var) = (BYTE)PyInt_AsLong(obUse);
+		V_I1(var) = (CHAR)PyInt_AsLong(obUse);
 		break;
 	case VT_I1 | VT_BYREF:
 		if (bCreateBuffers)
@@ -1013,7 +1013,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 
 		if (!VALID_BYREF_MISSING(obj)) {
 			if ((obUse=PyNumber_Int(obj))==NULL) BREAK_FALSE
-			*V_I1REF(var) = (BYTE)PyInt_AsLong(obUse);
+			*V_I1REF(var) = (CHAR)PyInt_AsLong(obUse);
 		} else
 			*V_I1REF(var) = 0;
 		break;
@@ -1033,7 +1033,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 		break;
 	case VT_BOOL:
 		if ((obUse=PyNumber_Int(obj))==NULL) BREAK_FALSE
-		V_BOOL(var) = (BOOL)PyInt_AsLong(obUse);
+		V_BOOL(var) = (VARIANT_BOOL)PyInt_AsLong(obUse);
 		break;
 	case VT_BOOL | VT_BYREF:
 		if (bCreateBuffers)
