@@ -32,6 +32,7 @@ generates Windows .hlp files.
 #include "win32RichEdit.h"
 #include "win32RichEditDocTemplate.h"
 #include "win32dlgbar.h"
+#include "win32rgn.h"
 #ifdef HIER_LIST
 #include "win32hl.h"
 #endif
@@ -1817,6 +1818,8 @@ static struct PyMethodDef ui_functions[] = {
 	{"CreatePropertyPage",		PyCPropertyPage::create,		1}, // @pymeth CreatePropertyPage|Creates a <o PyCPropertyPage> object.
 	{"CreatePropertyPageIndirect", PyCPropertyPage::createIndirect, 1}, // @pymeth CreatePropertyPageIndirect|Creates a <o PyCPropertyPage> object from a template.
 	{"CreatePropertySheet",		PyCPropertySheet::create,	1}, // @pymeth CreatePropertySheet|Creates a <o PyCPropertySheet> object
+	{"CreateRectRgn",           PyCRgn::create_rect_rgn,	1}, // @pymeth CreateRectRgn|Initializes a Mo PyCRgn> to a rectangle
+	{"CreateRgn",               PyCRgn::create,	1}, // @pymeth CreateRgn|Creates a new <o PyCRgn> object.
 	{"CreateRichEditCtrl",	    PyCRichEditCtrl_create,	1}, // @pymeth CreateRichEditCtrl|Creates a rich edit control.
 	{"CreateRichEditDocTemplate", PyCRichEditDocTemplate::create, 1}, // @pymeth CreateRichEditDocTemplate|Create a <o PyCRichEditDocTemplate> object.
 	{"CreateRichEditView",		PyCRichEditView::create,	1}, // @pymeth CreateRichEditView|Creates a <o PyCRichEditView> object.
