@@ -39,8 +39,10 @@ PyObject *PyIEnumRemoteDebugApplications::Next(PyObject *self, PyObject *args)
 		return NULL;
 
 	IRemoteDebugApplication **rgVar = new IRemoteDebugApplication *[celt];
-	if ( rgVar == NULL )
-		return OleSetMemoryError("allocating result IRemoteDebugApplications");
+	if ( rgVar == NULL ) {
+		PyErr_SetString(PyExc_MemoryError, "allocating result IRemoteDebugApplications");
+		return NULL;
+	}
 
 	int i;
 /*	for ( i = celt; i--; )
@@ -196,7 +198,7 @@ STDMETHODIMP PyGEnumRemoteDebugApplications::Next(
 		{
 			Py_DECREF(ob);
 			Py_DECREF(result);
-			return PyCom_SetFromSimple(E_OUTOFMEMORY, IID_IEnumRemoteDebugApplications);
+			return PyCom_SetCOMErrorFromPyException(IID_IEnumRemoteDebugApplications);
 		}
 		Py_DECREF(ob);
 	}
@@ -208,7 +210,7 @@ STDMETHODIMP PyGEnumRemoteDebugApplications::Next(
   error:
 	PyErr_Clear();	// just in case
 	Py_DECREF(result);
-	return PyCom_SetFromSimple(E_FAIL, IID_IEnumRemoteDebugApplications);
+	return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumRemoteDebugApplications, "Next() did not return a sequence of objects");
 }
 
 STDMETHODIMP PyGEnumRemoteDebugApplications::Skip( 
@@ -241,7 +243,7 @@ STDMETHODIMP PyGEnumRemoteDebugApplications::Clone(
 	{
 		/* the wrong kind of object was returned to us */
 		Py_DECREF(result);
-		return PyCom_SetFromSimple(E_FAIL, IID_IEnumRemoteDebugApplications);
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumRemoteDebugApplications);
 	}
 
 	/*
@@ -253,7 +255,7 @@ STDMETHODIMP PyGEnumRemoteDebugApplications::Clone(
 	{
 		/* damn. the object was released. */
 		Py_DECREF(result);
-		return PyCom_SetFromSimple(E_FAIL, IID_IEnumRemoteDebugApplications);
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumRemoteDebugApplications);
 	}
 
 	/*
@@ -267,5 +269,5 @@ STDMETHODIMP PyGEnumRemoteDebugApplications::Clone(
 	/* done with the result; this DECREF is also for <punk> */
 	Py_DECREF(result);
 
-	return PyCom_SetFromSimple(hr, IID_IEnumRemoteDebugApplications);
+	return PyCom_SetCOMErrorFromSimple(hr, IID_IEnumRemoteDebugApplications);
 }

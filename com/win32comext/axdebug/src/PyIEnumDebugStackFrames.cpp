@@ -40,8 +40,10 @@ PyObject *PyIEnumDebugStackFrames::Next(PyObject *self, PyObject *args)
 		return NULL;
 
 	DebugStackFrameDescriptor *rgVar = new DebugStackFrameDescriptor [celt];
-	if ( rgVar == NULL )
-		return OleSetMemoryError("allocating result IDebugStackFrameDescriptor");
+	if ( rgVar == NULL ) {
+		PyErr_SetString(PyExc_MemoryError, "allocating result IDebugStackFrameDescriptor");
+		return NULL;
+	}
 
 	int i;
 /*	for ( i = celt; i--; )
@@ -212,7 +214,7 @@ STDMETHODIMP PyGEnumDebugStackFrames::Next(
 		{
 			Py_DECREF(ob);
 			Py_DECREF(result);
-			return PyCom_SetFromSimple(E_OUTOFMEMORY, IID_IEnumDebugStackFrames);
+			return PyCom_SetCOMErrorFromPyException(IID_IEnumDebugStackFrames);
 		}
 		Py_DECREF(ob);
 	}
@@ -222,8 +224,8 @@ STDMETHODIMP PyGEnumDebugStackFrames::Next(
 	return len < (int)celt ? S_FALSE : S_OK;
 
   error:
-	hr = PyErr_Occurred() ? PyCom_SetFromPyException(IID_IEnumDebugStackFrames)
-		                          : PyCom_SetFromSimple(E_FAIL, IID_IEnumDebugStackFrames);
+	hr = PyErr_Occurred() ? PyCom_SetCOMErrorFromPyException(IID_IEnumDebugStackFrames)
+		                          : PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumDebugStackFrames);
 	Py_DECREF(result);
 	return hr;
 }
@@ -258,7 +260,7 @@ STDMETHODIMP PyGEnumDebugStackFrames::Clone(
 	{
 		/* the wrong kind of object was returned to us */
 		Py_DECREF(result);
-		return PyCom_SetFromSimple(E_FAIL, IID_IEnumDebugStackFrames);
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumDebugStackFrames);
 	}
 
 	/*
@@ -270,7 +272,7 @@ STDMETHODIMP PyGEnumDebugStackFrames::Clone(
 	{
 		/* damn. the object was released. */
 		Py_DECREF(result);
-		return PyCom_SetFromSimple(E_FAIL, IID_IEnumDebugStackFrames);
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumDebugStackFrames);
 	}
 
 	/*
@@ -284,5 +286,5 @@ STDMETHODIMP PyGEnumDebugStackFrames::Clone(
 	/* done with the result; this DECREF is also for <punk> */
 	Py_DECREF(result);
 
-	return PyCom_SetFromSimple(hr, IID_IEnumDebugStackFrames);
+	return PyCom_SetCOMErrorFromSimple(hr, IID_IEnumDebugStackFrames);
 }

@@ -38,8 +38,10 @@ PyObject *PyIEnumDebugExpressionContexts::Next(PyObject *self, PyObject *args)
 		return NULL;
 
 	IDebugExpressionContext **rgVar = new IDebugExpressionContext *[celt];
-	if ( rgVar == NULL )
-		return OleSetMemoryError("allocating result DebugExpressionContextss");
+	if ( rgVar == NULL ) {
+		PyErr_SetString(PyExc_MemoryError, "allocating result DebugExpressionContexts");
+		return NULL;
+	}
 
 	int i;
 /*	for ( i = celt; i--; )
@@ -193,7 +195,7 @@ STDMETHODIMP PyGEnumDebugExpressionContexts::Next(
 		if ( !PyCom_InterfaceFromPyObject(ob, IID_IDebugExpressionContext, (void **)&rgVar[i], FALSE) )
 		{
 			Py_DECREF(result);
-			return PyCom_SetFromSimple(E_OUTOFMEMORY, IID_IEnumDebugExpressionContexts);
+			return PyCom_SetCOMErrorFromPyException(IID_IEnumDebugExpressionContexts);
 		}
 	}
 
@@ -204,7 +206,7 @@ STDMETHODIMP PyGEnumDebugExpressionContexts::Next(
   error:
 	PyErr_Clear();	// just in case
 	Py_DECREF(result);
-	return PyCom_SetFromSimple(E_FAIL, IID_IEnumDebugExpressionContexts);
+	return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumDebugExpressionContexts, "Next() did not return a sequence of objects");
 }
 
 STDMETHODIMP PyGEnumDebugExpressionContexts::Skip( 
@@ -237,7 +239,7 @@ STDMETHODIMP PyGEnumDebugExpressionContexts::Clone(
 	{
 		/* the wrong kind of object was returned to us */
 		Py_DECREF(result);
-		return PyCom_SetFromSimple(E_FAIL, IID_IEnumDebugExpressionContexts);
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumDebugExpressionContexts);
 	}
 
 	/*
@@ -249,7 +251,7 @@ STDMETHODIMP PyGEnumDebugExpressionContexts::Clone(
 	{
 		/* damn. the object was released. */
 		Py_DECREF(result);
-		return PyCom_SetFromSimple(E_FAIL, IID_IEnumDebugExpressionContexts);
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumDebugExpressionContexts);
 	}
 
 	/*
@@ -263,5 +265,5 @@ STDMETHODIMP PyGEnumDebugExpressionContexts::Clone(
 	/* done with the result; this DECREF is also for <punk> */
 	Py_DECREF(result);
 
-	return PyCom_SetFromSimple(hr, IID_IEnumDebugExpressionContexts);
+	return PyCom_SetCOMErrorFromSimple(hr, IID_IEnumDebugExpressionContexts);
 }

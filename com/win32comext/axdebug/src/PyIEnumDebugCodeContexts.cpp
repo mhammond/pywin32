@@ -40,8 +40,10 @@ PyObject *PyIEnumDebugCodeContexts::Next(PyObject *self, PyObject *args)
 		return NULL;
 
 	IDebugCodeContext **rgVar = new IDebugCodeContext *[celt];
-	if ( rgVar == NULL )
-		return OleSetMemoryError("allocating result DebugCodeContextss");
+	if ( rgVar == NULL ) {
+		PyErr_SetString(PyExc_MemoryError, "allocating result DebugCodeContexts");
+		return NULL;
+	}
 
 	int i;
 /*	for ( i = celt; i--; )
@@ -196,7 +198,7 @@ STDMETHODIMP PyGEnumDebugCodeContexts::Next(
 		{
 			Py_DECREF(ob);
 			Py_DECREF(result);
-			return PyCom_SetFromSimple(E_OUTOFMEMORY, IID_IEnumDebugCodeContexts);
+			return PyCom_SetCOMErrorFromPyException(IID_IEnumDebugCodeContexts);
 		}
 		Py_DECREF(ob);
 	}
@@ -208,7 +210,7 @@ STDMETHODIMP PyGEnumDebugCodeContexts::Next(
   error:
 	PyErr_Clear();	// just in case
 	Py_DECREF(result);
-	return PyCom_SetFromSimple(E_FAIL, IID_IEnumDebugCodeContexts);
+	return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumDebugCodeContexts, "Next() did not return a sequence of objects");
 }
 
 STDMETHODIMP PyGEnumDebugCodeContexts::Skip( 
@@ -241,7 +243,7 @@ STDMETHODIMP PyGEnumDebugCodeContexts::Clone(
 	{
 		/* the wrong kind of object was returned to us */
 		Py_DECREF(result);
-		return PyCom_SetFromSimple(E_FAIL, IID_IEnumDebugCodeContexts);
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumDebugCodeContexts);
 	}
 
 	/*
@@ -253,7 +255,7 @@ STDMETHODIMP PyGEnumDebugCodeContexts::Clone(
 	{
 		/* damn. the object was released. */
 		Py_DECREF(result);
-		return PyCom_SetFromSimple(E_FAIL, IID_IEnumDebugCodeContexts);
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumDebugCodeContexts);
 	}
 
 	/*
@@ -267,5 +269,5 @@ STDMETHODIMP PyGEnumDebugCodeContexts::Clone(
 	/* done with the result; this DECREF is also for <punk> */
 	Py_DECREF(result);
 
-	return PyCom_SetFromSimple(hr, IID_IEnumDebugCodeContexts);
+	return PyCom_SetCOMErrorFromSimple(hr, IID_IEnumDebugCodeContexts);
 }

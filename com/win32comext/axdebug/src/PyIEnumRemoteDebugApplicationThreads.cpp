@@ -40,8 +40,10 @@ PyObject *PyIEnumRemoteDebugApplicationThreads::Next(PyObject *self, PyObject *a
 		return NULL;
 
 	IRemoteDebugApplicationThread **rgVar = new IRemoteDebugApplicationThread *[celt];
-	if ( rgVar == NULL )
-		return OleSetMemoryError("allocating result RemoteDebugApplicationThreadss");
+	if ( rgVar == NULL ) {
+		PyErr_SetString(PyExc_MemoryError, "allocating result RemoteDebugApplicationThreadss");
+		return NULL;
+	}
 
 	int i;
 /*	for ( i = celt; i--; )
@@ -196,7 +198,7 @@ STDMETHODIMP PyGEnumRemoteDebugApplicationThreads::Next(
 		{
 			Py_DECREF(ob);
 			Py_DECREF(result);
-			return PyCom_SetFromSimple(E_OUTOFMEMORY, IID_IEnumRemoteDebugApplicationThreads);
+			return PyCom_SetCOMErrorFromPyException(IID_IEnumRemoteDebugApplicationThreads);
 		}
 		Py_DECREF(ob);
 	}
@@ -208,7 +210,7 @@ STDMETHODIMP PyGEnumRemoteDebugApplicationThreads::Next(
   error:
 	PyErr_Clear();	// just in case
 	Py_DECREF(result);
-	return PyCom_SetFromSimple(E_FAIL, IID_IEnumRemoteDebugApplicationThreads);
+	return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumRemoteDebugApplicationThreads);
 }
 
 STDMETHODIMP PyGEnumRemoteDebugApplicationThreads::Skip( 
@@ -241,7 +243,7 @@ STDMETHODIMP PyGEnumRemoteDebugApplicationThreads::Clone(
 	{
 		/* the wrong kind of object was returned to us */
 		Py_DECREF(result);
-		return PyCom_SetFromSimple(E_FAIL, IID_IEnumRemoteDebugApplicationThreads);
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumRemoteDebugApplicationThreads);
 	}
 
 	/*
@@ -253,7 +255,7 @@ STDMETHODIMP PyGEnumRemoteDebugApplicationThreads::Clone(
 	{
 		/* damn. the object was released. */
 		Py_DECREF(result);
-		return PyCom_SetFromSimple(E_FAIL, IID_IEnumRemoteDebugApplicationThreads);
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumRemoteDebugApplicationThreads);
 	}
 
 	/*
@@ -267,5 +269,5 @@ STDMETHODIMP PyGEnumRemoteDebugApplicationThreads::Clone(
 	/* done with the result; this DECREF is also for <punk> */
 	Py_DECREF(result);
 
-	return PyCom_SetFromSimple(hr, IID_IEnumRemoteDebugApplicationThreads);
+	return PyCom_SetCOMErrorFromSimple(hr, IID_IEnumRemoteDebugApplicationThreads);
 }

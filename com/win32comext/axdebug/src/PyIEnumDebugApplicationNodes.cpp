@@ -40,8 +40,11 @@ PyObject *PyIEnumDebugApplicationNodes::Next(PyObject *self, PyObject *args)
 		return NULL;
 
 	IDebugApplicationNode **rgVar = new IDebugApplicationNode *[celt];
-	if ( rgVar == NULL )
-		return OleSetMemoryError("allocating result DebugApplicationNodess");
+	if ( rgVar == NULL ) {
+		PyErr_SetString(PyExc_MemoryError, "allocating result DebugApplicationNodes");
+		return NULL;
+	}
+
 
 	int i;
 /*	for ( i = celt; i--; )
@@ -196,7 +199,7 @@ STDMETHODIMP PyGEnumDebugApplicationNodes::Next(
 		{
 			Py_DECREF(ob);
 			Py_DECREF(result);
-			return PyCom_SetFromSimple(E_OUTOFMEMORY, IID_IEnumDebugApplicationNodes);
+			return PyCom_SetCOMErrorFromPyException(IID_IEnumDebugApplicationNodes);
 		}
 		Py_DECREF(ob);
 	}
@@ -208,7 +211,7 @@ STDMETHODIMP PyGEnumDebugApplicationNodes::Next(
   error:
 	PyErr_Clear();	// just in case
 	Py_DECREF(result);
-	return PyCom_SetFromSimple(E_FAIL, IID_IEnumDebugApplicationNodes);
+	return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumDebugApplicationNodes);
 }
 
 STDMETHODIMP PyGEnumDebugApplicationNodes::Skip( 
@@ -241,7 +244,7 @@ STDMETHODIMP PyGEnumDebugApplicationNodes::Clone(
 	{
 		/* the wrong kind of object was returned to us */
 		Py_DECREF(result);
-		return PyCom_SetFromSimple(E_FAIL, IID_IEnumDebugApplicationNodes);
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumDebugApplicationNodes);
 	}
 
 	/*
@@ -253,7 +256,7 @@ STDMETHODIMP PyGEnumDebugApplicationNodes::Clone(
 	{
 		/* damn. the object was released. */
 		Py_DECREF(result);
-		return PyCom_SetFromSimple(E_FAIL, IID_IEnumDebugApplicationNodes);
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumDebugApplicationNodes);
 	}
 
 	/*
@@ -267,5 +270,5 @@ STDMETHODIMP PyGEnumDebugApplicationNodes::Clone(
 	/* done with the result; this DECREF is also for <punk> */
 	Py_DECREF(result);
 
-	return PyCom_SetFromSimple(hr, IID_IEnumDebugApplicationNodes);
+	return PyCom_SetCOMErrorFromSimple(hr, IID_IEnumDebugApplicationNodes);
 }
