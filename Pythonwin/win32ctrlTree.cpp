@@ -707,6 +707,16 @@ PyObject *PyCTreeCtrl_CreateDragImage( PyObject *self, PyObject *args )
 	return ui_assoc_object::make(PyCImageList::type, pIL)->GetGoodRet();
 }
 
+// @pymethod <o PyCToolTopCtrl>|PyCTreeCtrl|GetToolTips|Returns the tooltip control
+PyObject *PyCTreeCtrl_GetToolTips( PyObject *self, PyObject *args ) 
+{
+	CTreeCtrl *pList = GetTreeCtrl(self);
+	if (!pList) return NULL;
+	CHECK_NO_ARGS2(args,"GetToolTips");
+	CToolTipCtrl*ret = pList->GetToolTips();
+	return ui_assoc_object::make( PyCToolTipCtrl::type, ret)->GetGoodRet();
+}
+
 // @pymethod (int, int)|PyCTreeCtrl|HitTest|Determines which tree view item, if any, is at a specified position.
 PyObject *PyCTreeCtrl_HitTest( PyObject *self, PyObject *args )
 {
@@ -760,6 +770,7 @@ static struct PyMethodDef PyCTreeCtrl_methods[] = {
 	{"GetSelectedItem",PyCTreeCtrl_GetSelectedItem,  1}, // @pymeth GetSelectedItem|Retrieves the currently selected tree view item.
 	{"GetDropHilightItem",PyCTreeCtrl_GetDropHilightItem,  1}, // @pymeth GetDropHilightItem|Retrieves the target of a drag-and-drop operation.
 	{"GetRootItem",       PyCTreeCtrl_GetRootItem,  1}, // @pymeth GetRootItem|Retrieves the root of the specified tree view item.
+	{"GetToolTips",       PyCTreeCtrl_GetToolTips,  1}, // @pymeth GetToolTips|Returns the tooltip control
 	{"GetItem",           PyCTreeCtrl_GetItem,  1}, // @pymeth GetItem|Retrieves the details of an items attributes.
 	{"SetItem",           PyCTreeCtrl_SetItem, 1}, // @pymeth SetItem|Sets some of all of an items attributes.
 	{"GetItemState",      PyCTreeCtrl_GetItemState,  1}, // @pymeth GetItemState|Retrieves the state of an item.

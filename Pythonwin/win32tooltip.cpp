@@ -160,12 +160,32 @@ PyCToolTipCtrl_add_tool(PyObject *self, PyObject *args)
 	}
 
 
+// @pymethod int|PyCToolTipCtrl|SetMaxTipWidth|
+static PyObject *
+PyCToolTipCtrl_set_max_tip_width(PyObject *self, PyObject *args)
+	{
+	int width;
+	if (!PyArg_ParseTuple(args, "i:SetMaxTipWidth", 
+			   &width)) // @pyparm int|width||The new width
+		return NULL;
+
+	CToolTipCtrl *pTTC = GetToolTipCtrl(self);
+	if (!pTTC)return NULL;
+
+	GUI_BGN_SAVE;
+	int rc = pTTC->SetMaxTipWidth(width);
+	GUI_END_SAVE;
+	return PyInt_FromLong(rc);
+}
+
+
 
 // @object PyCToolTipCtrl|A windows tooltip control.  Encapsulates an MFC <c CToolTipCtrl> class.  Derived from <o PyCControl>.
 static struct PyMethodDef PyCToolTipCtrl_methods[] = {
 	{"CreateWindow",    PyCToolTipCtrl_create_window,1}, // @pymeth CreateWindow|Creates the window for a new progress bar object.
 	{"UpdateTipText", PyCToolTipCtrl_update_tip_text, 1}, // @pymeth UpdateTipText|Update the tool tip text for a control's tools
 	{"AddTool", PyCToolTipCtrl_add_tool, 1}, // @pymeth AddTool|Adds a tool to tooltip control.
+	{"SetMaxTipWidth", PyCToolTipCtrl_set_max_tip_width, 1}, // @pymeth SetMaxTipWidth|
 	{NULL,				NULL}
 };
 
