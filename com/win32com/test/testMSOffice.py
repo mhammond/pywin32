@@ -40,15 +40,10 @@ def TestWord():
 		word = win32com.client.Dispatch("Word.Basic")
 		TestWord7(word)
 	
-	try:
-		print "Starting MSWord for generated test"
-		# Typelib, lcid, major and minor for the typelib
-		if gencache.EnsureModule("{00020905-0000-0000-C000-000000000046}", 1033, 8, 1, bForDemand=1) is None :
-			raise ImportError, "Can not load the Word8 typelibrary."
-		word = win32com.client.Dispatch("Word.Application.8")
-		TestWord8(word)
-	except ImportError, details:
-		print "Can not test MSWord8 -", details
+	print "Starting MSWord for generated test"
+	from win32com.client import gencache
+	word = gencache.EnsureDispatch("Word.Application.8")
+	TestWord8(word)
 
 def TestWord7(word):
 	word.FileNew()
@@ -69,8 +64,9 @@ def TestWord8(word):
 		wrange.InsertAfter("Hello from Python %d\n" % i)
 	paras = doc.Paragraphs
 	for i in range(len(paras)):
-		paras[i]().Font.ColorIndex = i+1
-		paras[i]().Font.Size = 12 + (4 * i)
+		p = paras[i]()
+		p.Font.ColorIndex = i+1
+		p.Font.Size = 12 + (4 * i)
 	# XXX - note that
 	# for para in paras:
 	# 	para().Font...
