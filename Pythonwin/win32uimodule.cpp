@@ -1690,6 +1690,17 @@ static PyObject *ui_init_rich_edit(PyObject *self, PyObject *args)
 	RETURN_NONE;
 }
 
+// @pymethod int|win32ui|GetDeviceCaps|Calls the API version of GetDeviceCaps.  See also <om PyCDC.GetDeviceCaps>
+static PyObject *ui_get_device_caps( PyObject *, PyObject *args )
+{
+	// @pyparm int|hdc||
+	// @pyparm int|index||
+	int hdc, index;
+	if (!PyArg_ParseTuple(args, "ii", &hdc, &index))
+		return NULL;
+	return PyInt_FromLong( ::GetDeviceCaps( (HDC)hdc, index) );
+}
+
 extern PyObject *ui_get_dialog_resource( PyObject *, PyObject *args );
 extern PyObject *ui_create_app( PyObject *, PyObject *args );
 extern PyObject *ui_get_app( PyObject *, PyObject *args );
@@ -1778,6 +1789,7 @@ static struct PyMethodDef ui_functions[] = {
 	{"GetAppRegistryKey",       ui_get_app_registry_key, 1}, // @pymeth GetAppRegistryKey|Returns the registry key for the application.
 	{"GetBytes",                ui_get_bytes, 1}, // @pymeth GetBytes|Gets raw bytes from memory
 	{"GetCommandLine",			ui_get_command_line,	1}, // @pymeth GetCommandLine|Returns the command line for hte application.
+	{"GetDeviceCaps",           ui_get_device_caps, 1}, // @pymeth GetDeviceCaps|Calls the API version of GetDeviceCaps.  See also <om PyCDC.GetDeviceCaps>
 	{"GetFileTitle",            ui_get_file_title, 1}, // @pymeth GetFileTitle|Given a file name, return its title
 	{"GetFocus",				PyCWnd::GetFocus, 1}, // @pymeth GetFocus|Retrieves the window with the focus.
 	{"GetForegroundWindow",		PyCWnd::GetForegroundWindow, 1}, // @pymeth GetForegroundWindow|Retrieves the foreground window.
