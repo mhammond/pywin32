@@ -34,7 +34,9 @@ error = "VB Test Error"
 class TestObject:
 	_public_methods_ = ["CallbackVoidOneByRef","CallbackResultOneByRef", "CallbackVoidTwoByRef",
 					    "CallbackString","CallbackResultOneByRefButReturnNone",
-						"CallbackVoidOneByRefButReturnNone",
+					    "CallbackVoidOneByRefButReturnNone",
+					    "CallbackArrayResult", "CallbackArrayResultOneArrayByRef",
+					    "CallbackArrayResultWrongSize"
 					   ]
 	def CallbackVoidOneByRef(self, intVal):
 		return intVal + 1
@@ -44,6 +46,23 @@ class TestObject:
 		return int1+int2, int1-int2
 	def CallbackString(self, strVal):
 		return 0, strVal + " has visited Python"
+	def CallbackArrayResult(self, arrayVal):
+		ret = []
+		for i in arrayVal:
+			ret.append(i+1)
+		# returning as a list forces it be processed as a single result
+		# (rather than a tuple, where it may be interpreted as
+		# multiple results for byref unpacking)
+		return ret
+	def CallbackArrayResultWrongSize(self, arrayVal):
+		return list(arrayVal[:-1])
+	def CallbackArrayResultOneArrayByRef(self, arrayVal):
+		ret = []
+		for i in arrayVal:
+			ret.append(i+1)
+		# See above for list processing.
+		return list(arrayVal), ret
+	
 	def CallbackResultOneByRefButReturnNone(self, intVal):
 		return
 	def CallbackVoidOneByRefButReturnNone(self, intVal):
@@ -65,6 +84,10 @@ def TestVB( vbtest, bUseGenerated ):
 	vbtest.VariantProperty = "Hello from Python"
 	if vbtest.VariantProperty != "Hello from Python":
 		raise error, "Could not set the variant string property correctly."
+	vbtest.VariantProperty = (1.0, 2.0, 3.0)
+	if vbtest.VariantProperty != (1.0, 2.0, 3.0):
+		raise error, "Could not set the variant property to an array of floats correctly - '%s'." % (vbtest.VariantProperty,)
+	
 
 	# Try and use a safe array (note that the VB code has this declared as a VARIANT
 	# and I cant work out how to force it to use native arrays!
@@ -93,8 +116,7 @@ def TestVB( vbtest, bUseGenerated ):
 		# COM objects can be stored ByRef.
 
 		# A "set" type property - only works for generated.
-		print "Skipping CollectionProperty - dont know how to make"
-		print " VB recognize an object as a collection"
+		print "Skipping CollectionProperty - how does VB recognize a collection object??"
 #		vbtest.CollectionProperty = NewCollection((1,2,"3", "Four"))
 #		if vbtest.CollectionProperty != (1,2,"3", "Four"):
 #			raise error, "Could not set the Collection property correctly - got back " + str(vbtest.CollectionProperty)
@@ -129,8 +151,17 @@ def TestVB( vbtest, bUseGenerated ):
 
 		# Can't test IncrementVariantParam with the param omitted as it
 		# it not declared in the VB code as "Optional"
+		useDispatcher = None
+##		import win32com.server.dispatcher
+##		useDispatcher = win32com.server.dispatcher.DefaultDebugDispatcher
+		callback_ob = wrap(TestObject(), useDispatcher = useDispatcher)
+		vbtest.DoSomeCallbacks(callback_ob)
 
-		vbtest.DoSomeCallbacks(wrap(TestObject()))
+		# Check we fail gracefully for byref safearray results with incorrect size.
+		try:
+			vbtest.DoCallbackSafeArraySizeFail(callback_ob)
+		except pythoncom.com_error, (hr, msg, exc, arg):
+			assert exc[1] == "Python COM Server Internal Error", "Didnt get the correct exception - '%s'" % (exc,)
 
 	ret = vbtest.PassIntByVal(1)
 	if ret != 2:
@@ -206,7 +237,13 @@ def TestStructs(vbtest):
 	s2 = vbtest.GetStructFunc()
 	assert s==s2
 	vbtest.SetStructSub(s2)
-	
+
+	# Create a new structure, and set its elements.
+	s = win32com.client.Record("VBStruct", vbtest)
+	assert s.int_val == 0, "new struct inst initialized correctly!"
+	s.int_val = -1
+	vbtest.SetStructSub(s)
+	assert vbtest.GetStructFunc().int_val == -1, "new struct didnt make the round trip!"
 	# Finally, test stand-alone structure arrays.
 	s_array = vbtest.StructArrayProperty
 	assert s_array is None, "Expected None from the uninitialized VB array"
@@ -219,7 +256,17 @@ def TestStructs(vbtest):
 		assert s_array[i].sub_val.array_val[0].int_val == i
 		assert s_array[i].sub_val.array_val[1].int_val == i+1
 		assert s_array[i].sub_val.array_val[2].int_val == i+2
+
+	# Some error type checks.
+	try:
+		s.bad_attribute
+		raise RuntimeError, "Could get a bad attribute"
+	except AttributeError:
+		pass
+	m = s.__members__
+	assert m[0]=="int_val" and m[1]=="str_val" and m[2]=="ob_val" and m[3]=="sub_val"
 		
+	# NOTE - a COM error is _not_ acceptable here!
 	print "Struct/Record tests passed"
 
 def DoTestAll():
@@ -234,6 +281,7 @@ def TestAll():
 		raise RuntimeError, "This must be run in debug mode - we use assert!"
 	try:
 		DoTestAll()
+		print "All tests appear to have worked!"
 	except:
 		traceback.print_exc()
 

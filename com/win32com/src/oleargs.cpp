@@ -11,6 +11,11 @@ extern PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa);
 extern BOOL PyObject_AsVARIANTRecordInfo(PyObject *ob, VARIANT *pv);
 extern BOOL PyRecord_Check(PyObject *ob);
 
+// Do BYREF array's get the existing array backfilled with new elements
+// (new behaviour that VB seems to want), or allocate a completely
+// new array (old behaviour)
+#define BYREF_ARRAY_USE_EXISTING_ARRAY
+
 // A little helper just for this file
 static PyObject* OleSetTypeError(char *msg)
 {
@@ -150,6 +155,7 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 	// So make sure this check is after anything else which qualifies.
 	else if (PySequence_Check(obj))
 	{
+		V_ARRAY(var) = NULL; // not a valid, existing array.
 		if (!PyCom_SAFEARRAYFromPyObject(obj, &V_ARRAY(var)))
 			return FALSE;
 		V_VT(var) = VT_ARRAY | VT_VARIANT;
@@ -434,14 +440,20 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
 	return ok;
 }
 
-static BOOL PyCom_SAFEARRAYFromPyObject(PyObject *obj, SAFEARRAY **ppSA, VARENUM vt /*= VT_VARIANT*/)
+
+static BOOL PyCom_SAFEARRAYFromPyObjectEx(PyObject *obj, SAFEARRAY **ppSA, bool bAllocNewArray, VARENUM vt)
 {
+	if (bAllocNewArray) {
+		_ASSERTE(*ppSA==NULL); // Probably a mem leak - the existing array should be cleared!
+	}
 	// Seek down searching for total dimension count.
 	// Item zero of each element will do for now
 	// (as all must be same)
 	// First we _will_ allow None here (just dont use it if it crashes :-)
 	if (obj==Py_None) {
-		*ppSA = NULL;
+		if (bAllocNewArray)
+			*ppSA = NULL;
+		// Otherwise we leave it alone!
 		return TRUE;
 	}
 	LONG cDims = 0;
@@ -460,8 +472,10 @@ static BOOL PyCom_SAFEARRAYFromPyObject(PyObject *obj, SAFEARRAY **ppSA, VARENUM
 				PyErr_Clear();
 				break;
 			}
-		} else
+		} else {
+			Py_XDECREF(obItemCheck);
 			obItemCheck = NULL;
+		}
 		cDims = cDims + 1;
 	}
 	Py_XDECREF(obItemCheck);
@@ -469,6 +483,12 @@ static BOOL PyCom_SAFEARRAYFromPyObject(PyObject *obj, SAFEARRAY **ppSA, VARENUM
 	if (cDims==0) {
 		OleSetTypeError("Objects for SAFEARRAYS must be sequences (of sequences), or a buffer object.");
 		return FALSE;
+	}
+	if (!bAllocNewArray) {
+		if (SafeArrayGetDim(*ppSA) != (unsigned)cDims) {
+			PyErr_SetString(PyExc_ValueError, "When refilling a safe array, the sequence must have the same number of dimensions as the existing array.");
+			return FALSE;
+		}
 	}
 
 	SAFEARRAYBOUND* pBounds = new SAFEARRAYBOUND[cDims];
@@ -479,39 +499,57 @@ static BOOL PyCom_SAFEARRAYFromPyObject(PyObject *obj, SAFEARRAY **ppSA, VARENUM
 	for (LONG dimLook = 1;dimLook <= cDims;dimLook++) {
 		pBounds[dimLook-1].lLbound = 0; // always!
 		pBounds[dimLook-1].cElements = PySequence_Length(obItemCheck);
+		if (!bAllocNewArray) {
+			LONG exist_lbound, exist_ubound;
+			SafeArrayGetLBound(*ppSA, dimLook, &exist_lbound);
+			SafeArrayGetUBound(*ppSA, dimLook, &exist_ubound);
+			if ((unsigned long)(exist_ubound - exist_lbound + 1) != pBounds[dimLook-1].cElements) {
+				PyErr_SetString(PyExc_ValueError, "When refilling a safe array, the sequences must be the same length as the existing array.");
+				Py_XDECREF(obItemCheck);
+				delete [] pBounds;
+				return FALSE;
+			}
+		}
 		PyObject *obSave = obItemCheck;
 		if (pBounds[dimLook-1].cElements) {
 			obItemCheck = PySequence_GetItem(obItemCheck,0);
 			Py_DECREF(obSave);
 			if (obItemCheck==NULL) {
+				Py_XDECREF(obItemCheck);
 				delete [] pBounds;
 				return FALSE;
 			}
-		} else {
-			obItemCheck = NULL;
 		}
 	}
 	Py_XDECREF(obItemCheck);
 
-	// OK - Finally can create the array...
-	SAFEARRAY FAR* psa = SafeArrayCreate(vt, cDims, pBounds);
-	if ( psa == NULL ) {
-		delete pBounds;
-		PyErr_SetString(PyExc_MemoryError, "CreatingSafeArray");
-		return FALSE;
+	if (bAllocNewArray) {
+		// OK - Finally can create the array...
+		*ppSA = SafeArrayCreate(vt, cDims, pBounds);
+		if ( *ppSA == NULL ) {
+			delete pBounds;
+			PyErr_SetString(PyExc_MemoryError, "CreatingSafeArray");
+			return FALSE;
+		}
 	}
+
 	LONG *indices = new LONG[cDims];
 	// Get the data
 
-	BOOL bOK = PyCom_SAFEARRAYFromPyObjectBuildDimension(obj, psa, vt, 1, cDims, pBounds, indices);
-	if (bOK)
-		*ppSA = psa;
-	else
-		SafeArrayDestroy(psa);
+	BOOL bOK = PyCom_SAFEARRAYFromPyObjectBuildDimension(obj, *ppSA, vt, 1, cDims, pBounds, indices);
+	if (!bOK && bAllocNewArray && *ppSA) {
+		SafeArrayDestroy(*ppSA);
+		*ppSA = NULL;
+	}
 	delete [] indices;
 	delete [] pBounds;
 
 	return bOK;
+}
+
+BOOL PyCom_SAFEARRAYFromPyObject(PyObject *obj, SAFEARRAY **ppSA, VARENUM vt /*= VT_VARIANT*/)
+{
+	return PyCom_SAFEARRAYFromPyObjectEx(obj, ppSA, true, vt);
 }
 
 ///////////////////////////
@@ -724,6 +762,7 @@ PythonOleArgHelper::~PythonOleArgHelper()
 	if (m_reqdType & VT_ARRAY) {
 		// Array datatype - cleanup (but how?)
 		if (m_reqdType & VT_BYREF) {
+#ifndef BYREF_ARRAY_USE_EXISTING_ARRAY
 			// We own array pointer - free it.
 			if (m_arrayBuf) {
 				HRESULT	hr = SafeArrayDestroy(m_arrayBuf);
@@ -733,6 +772,7 @@ PythonOleArgHelper::~PythonOleArgHelper()
 				}
 #endif
 			} // have array pointer
+#endif // BYREF_ARRAY_USE_EXISTING_ARRAY
 		} // BYREF array.
 	} else {
 		switch (m_reqdType) {
@@ -810,6 +850,24 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 		VARENUM rawVT = (VARENUM)(m_reqdType & VT_TYPEMASK);
 		if (m_reqdType & VT_BYREF) {
 			if (!VALID_BYREF_MISSING(obj)) {
+#ifdef BYREF_ARRAY_USE_EXISTING_ARRAY
+				bool bNewArray = (V_VT(var) & ~VT_TYPEMASK)!= (VT_BYREF | VT_ARRAY);
+				_ASSERTE(m_arrayBuf==NULL); // shouldn't be anything else here!
+				if (bNewArray) {
+					_ASSERTE(V_VT(var)==VT_EMPTY); // should we clear anything else?
+					m_arrayBuf = NULL;
+					V_ARRAYREF(var) = &m_arrayBuf;
+				}
+				// else m_arrayBuf remains NULL, and we reuse existing array.
+				V_VT(var) = m_reqdType;
+				// Refill the existing array.
+				if (!PyCom_SAFEARRAYFromPyObjectEx(obj, V_ARRAYREF(var), bNewArray, rawVT))
+					return FALSE;
+			} else {
+				// Do nothing - leave the existing array alone.
+
+#else // not BYREF_ARRAY_USE_EXISTING_ARRAY
+				// XXX - We should almost certainly destroy the existing array!?!?
 				if (!PyCom_SAFEARRAYFromPyObject(obj, &m_arrayBuf, rawVT))
 					return FALSE;
 				V_VT(var) = m_reqdType;
@@ -821,6 +879,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 				rgsabound[0].cElements = 1;
 				m_arrayBuf = SafeArrayCreate(rawVT, 1, rgsabound);
 				V_ARRAYREF(var) = &m_arrayBuf;
+#endif // BYREF_ARRAY_USE_EXISTING_ARRAY
 			}
 		} else {
 			if (!PyCom_SAFEARRAYFromPyObject(obj, &V_ARRAY(var), rawVT))

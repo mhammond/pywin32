@@ -217,23 +217,23 @@ Public Sub IncrementVariantParam(ByRef varVal As Variant)
 End Sub
 
 Public Function TakeByRefObject(ByRef ob As Object) As Object
-    set TakeByRefObject = ob
+    Set TakeByRefObject = ob
 End Function
 
 Public Function TakeByValObject(ByVal ob As Object) As Object
-    set TakeByValObject = ob
+    Set TakeByValObject = ob
 End Function
 
-Public Sub MakeStructArrayProperty(n as Integer)
-    redim mvarStructArrayProperty(n)
-    dim i as integer
-    for i = 0 to n
-    	mvarStructArrayProperty(i).int_val = i
-    	mvarStructArrayProperty(i).sub_val.int_val = i
-    	mvarStructArrayProperty(i).sub_val.array_val(0).int_val = i
-    	mvarStructArrayProperty(i).sub_val.array_val(1).int_val = i+1
-    	mvarStructArrayProperty(i).sub_val.array_val(2).int_val = i+2
-    next
+Public Sub MakeStructArrayProperty(n As Integer)
+    ReDim mvarStructArrayProperty(n)
+    Dim i As Integer
+    For i = 0 To n
+        mvarStructArrayProperty(i).int_val = i
+        mvarStructArrayProperty(i).sub_val.int_val = i
+        mvarStructArrayProperty(i).sub_val.array_val(0).int_val = i
+        mvarStructArrayProperty(i).sub_val.array_val(1).int_val = i + 1
+        mvarStructArrayProperty(i).sub_val.array_val(2).int_val = i + 2
+    Next
 End Sub
 
 Public Sub DoSomeCallbacks(ob As Object)
@@ -241,7 +241,11 @@ Public Sub DoSomeCallbacks(ob As Object)
     Dim s As String
     Dim ret As Integer
     Dim variantResult As Variant
-    On Error GoTo failed
+    Dim rg(1) As Integer
+    Dim rgv(1) As Variant
+    Dim rg_new As Variant
+    Rem On Error GoTo failed    ' Dont really need this - error is correctly propogated back to Python!
+    
     Rem Can check byrefs for gateways here, as VB passes all params byref!
     i = 99
     ret = ob.CallbackResultOneByRef(i)
@@ -263,9 +267,32 @@ Public Sub DoSomeCallbacks(ob As Object)
     ' and Python sets the Variant to NULL - but VB doesnt complain!
     ob.CallbackVoidOneByRefButReturnNone i
     If i <> 100 Then MsgBox "After CallbackVoidOneByRefButReturnNone, the param was in error - was " & i & " but expected 100"
+    rgv(0) = 0
+    rgv(1) = 1
+    ' NOTE - MUST use subroutine syntax to get byrefs passed!
+    ob.CallbackArrayResult rgv
+    If rgv(0) <> 1 Or rgv(1) <> 2 Then MsgBox "CallbackArrayResult (sub, variant) failed - (" & rgv(0) & "," & rgv(1) & ")!!"
+    rg(0) = 0
+    rg(1) = 1
+    ob.CallbackArrayResult rg
+    If rg(0) <> 1 Or rg(1) <> 2 Then MsgBox "CallbackArrayResult (sub) failed - (" & rg(0) & "," & rg(1) & ")!!"
+    rg_new = ob.CallbackArrayResultOneArrayByRef(rg)
+    ' rg_new should now be rg before the call.
+    If rg_new(0) <> 1 Or rg_new(1) <> 2 Then MsgBox "CallbackArrayResultOneArrayByRef - result wrong - - (" & rg_new(0) & "," & rg_new(1) & ")!!"
+    ' The byref array gets incremented.
+    ' EEEK - this doesnt work.
+    ' Cos we are using function call syntax, the array is _not_ passed byref!!!
+    'If rg(0) <> 1 Or rg(1) <> 2 Then MsgBox "CallbackArrayResultOneArrayByRef - byref param wrong - - (" & rg(0) & "," & rg(1) & ")!!"
     Exit Sub
 failed:
     MsgBox ("Calling back into Python failed" & Chr(11) & Err.Description)
     Err.Raise Err.Number
 End Sub
 
+Public Sub DoCallbackSafeArraySizeFail(ob As Object)
+    Dim rg(1) As Integer
+    rg(0) = 0
+    rg(1) = 1
+    ob.CallbackArrayResultWrongSize rg
+    Err.Raise Err.Message = "Expecting Python have failed!"
+End Sub
