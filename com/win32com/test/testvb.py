@@ -7,6 +7,7 @@ import winerror
 import pythoncom, win32com.client, win32com.client.dynamic, win32com.client.gencache
 from win32com.server.util import NewCollection, wrap
 import string
+import util
 
 importMsg = """\
 **** VB Test harness is not installed ***
@@ -439,9 +440,13 @@ def TestAll():
         print "TestAll() failed!!"
         traceback.print_exc()
 
-if __name__=='__main__':
-    from util import CheckClean
-    TestAll()
-    CheckClean()
+# Make this test run under our test suite to leak tests etc work
+def suite():
+    import unittest
+    test = util.CapturingFunctionTestCase(TestAll, description="VB tests")
+    suite = unittest.TestSuite()
+    suite.addTest(test)
+    return suite
 
-    pythoncom.CoUninitialize()
+if __name__=='__main__':
+    util.testmain()
