@@ -462,8 +462,9 @@ class Debugger(debugger_parent):
 		for id, klass, float in DebuggerDialogInfos:
 			try:
 				tb = frame.GetControlBar(id)
-				tb.dialog.SaveState()
-				frame.ShowControlBar(tb, 0, 1)
+				if tb.dialog is not None: # We may never have actually been shown.
+					tb.dialog.SaveState()
+					frame.ShowControlBar(tb, 0, 1)
 			except win32ui.error:
 				pass
 
