@@ -8,7 +8,7 @@
 programming and be able to have it run? In many cases python offers
 just that.Python offers easy, fast development, yet is still close
 enough to C++ to be recognizable. For example, compare python's class
-mechanism and exception handeling. With the perspective of being a
+mechanism and exception handling. With the perspective of being a
 light overview, we'll look at some details of development of a raw C++
 COM component and compare that to python development. What is
 interesting to focus on, is not how their different, but how they are
