@@ -18,3 +18,4 @@ dist
 *.GID
 *.suo
 temp-*
+PyWin32.kpf
