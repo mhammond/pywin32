@@ -116,6 +116,8 @@ class WinExt (Extension):
         if dsp_file:
             sources = sources or []
             sources.extend(self.get_source_files(dsp_file))
+        extra_link_args = extra_link_args or []
+        extra_link_args.append("/MACHINE:ix86")
         # Some of our swigged files behave differently in distutils vs
         # MSVC based builds.  Always define DISTUTILS_BUILD so they can tell.
         define_macros = define_macros or []
