@@ -3107,7 +3107,7 @@ static struct PyMethodDef PyCWnd_methods[] = {
 	{"OnQueryDragIcon",		ui_window_on_query_drag_icon,   1}, // @pymeth OnQueryDragIcon|Calls the default MFC OnQueryDragIcon handler.
 	{"OnQueryNewPalette",   ui_window_on_query_new_palette, 1}, // @pymeth OnQueryNewPalette|Calls the underlying MFC OnQueryNewPalette method.
 	{"OnSetCursor",         ui_window_on_set_cursor,        1}, // @pymeth OnSetCursor|Calls the default MFC OnSetCursor message
-	{"OnMouseActicate",     ui_window_on_mouse_activate,    1}, // @pymeth OnMouseActivate|Calls the default MFC OnMouseActicate message
+	{"OnMouseActivate",     ui_window_on_mouse_activate,    1}, // @pymeth OnMouseActivate|Calls the default MFC OnMouseActicate message
 	{"OnWndMsg",            ui_window_on_wnd_msg,           1}, // @pymeth OnWndMsg|Calls the default MFC Window Message handler.
 	{"PreCreateWindow",     ui_window_pre_create_window,    1}, // @pymeth PreCreateWindow|Calls the underlying MFC PreCreateWindow method.
 	{"PumpWaitingMessages", ui_window_pump_waiting_messages,1}, // @pymeth PumpWaitingMessages|Calls the Peek/Dispatch loop on the wnd.
