@@ -126,7 +126,8 @@ def GenerateSupport():
 	# dao
 	gencache.EnsureModule("{00025E01-0000-0000-C000-000000000046}", 0, 4, 0)
 	# Access
-	gencache.EnsureModule("{4AFFC9A0-5F99-101B-AF4E-00AA003F0F07}", 0, 8, 0)
+#	gencache.EnsureModule("{4AFFC9A0-5F99-101B-AF4E-00AA003F0F07}", 0, 8, 0)
+	gencache.EnsureDispatch("Access.Application")
 
 def DumpAccessInfo(dbname):
 	amod = gencache.GetModuleForProgID("Access.Application")
