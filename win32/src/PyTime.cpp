@@ -180,7 +180,14 @@ PyObject *PyTime::Format(PyObject *self, PyObject *args)
 	 * though day of week is available as st.wDayOfWeek, day of year is not in st
 	 */
 	time_t time = mktime(&tm);
-	tm = *localtime(&time);
+        /* We need a better way to format, but for now we have to live inside
+           the limitations of localtime()
+        */
+        struct tm *local = localtime(&time);
+        if (local==NULL)
+            return PyErr_Format(PyExc_ValueError, "The time value is too early to be formatted");
+
+	tm = *local;
 	// tm.tm_wday = st.wDayOfWeek;
 	// tm.tm_yday = st.  day of year;
 
