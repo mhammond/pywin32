@@ -63,7 +63,17 @@ def Test():
 	if win32file.GetFileSize(h) != newSize:
 		print "WARNING: Truncated file does not have the expected size!"
 		print "Reported size is", win32file.GetFileSize(h), "but expected to be", newSize
-	
+
+	# GetFileAttributesEx/GetFileAttributesExW tests.
+	if win32file.GetFileAttributesEx(testName) != win32file.GetFileAttributesExW(testName):
+		print "ERROR: Expected GetFileAttributesEx and GetFileAttributesExW to return the same data"
+
+	attr, ct, at, wt, size = win32file.GetFileAttributesEx(testName)
+	if size != newSize:
+		print "ERROR: Expected GetFileAttributesEx to return the same size as GetFileSize()"
+	if attr != win32file.GetFileAttributes(testName):
+		print "ERROR: Expected GetFileAttributesEx to return the same attributes as GetFileAttributes"
+		
 	h = None # Close the file by removing the last reference to the handle!
 	
 	if os.path.isfile(testName):
