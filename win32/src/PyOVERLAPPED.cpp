@@ -91,6 +91,7 @@ PyOVERLAPPED::PyOVERLAPPED(const sMyOverlapped *pO)
 	ob_type = &PyOVERLAPPEDType;
 	_Py_NewReference(this);
 	m_overlapped = *pO;
+	Py_XINCREF(m_overlapped.obState);
 	m_obHandle = NULL;
 }
 
