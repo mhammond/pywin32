@@ -293,6 +293,9 @@ def PackLVITEM(item=None, subItem=None, state=None, stateMask=None, text=None, i
     mask, state = _GetMaskAndVal(state, 0, mask, commctrl.LVIF_STATE)
     if not mask & commctrl.LVIF_STATE:
         stateMask = 0
+    else:
+        if stateMask is None:
+            stateMask = state
     mask, text = _GetMaskAndVal(text, None, mask, commctrl.LVIF_TEXT)
     mask, image = _GetMaskAndVal(image, 0, mask, commctrl.LVIF_IMAGE)
     mask, param = _GetMaskAndVal(param, 0, mask, commctrl.LVIF_PARAM)
