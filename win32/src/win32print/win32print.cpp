@@ -1086,38 +1086,45 @@ static PyObject *PyDocumentProperties(PyObject *self, PyObject *args)
 	return PyInt_FromLong(ret);
 }
 
-// @pymethod (string,...)|win32print|EnumPrintProcessors|List printer processors for specified server and environment
+// @pymethod (<o PyUnicode>,...)|win32print|EnumPrintProcessors|List printer processors for specified server and environment
 static PyObject *PyEnumPrintProcessors(PyObject *self, PyObject *args)
 {
-	PRINTPROCESSOR_INFO_1 *info=NULL; // currently only level that exists
+	PRINTPROCESSOR_INFO_1W *info=NULL; // currently only level that exists
 	LPBYTE buf=NULL;
-	char *servername=NULL, *environment=NULL;
+	WCHAR *servername=NULL, *environment=NULL;
+	PyObject *observername=Py_None, *obenvironment=Py_None;
 	DWORD level=1, bufsize=0, bytes_needed, return_cnt;
-	PyObject *ret, *tuple_item;
-	// @pyparm string|Server|None|Name of print server, use None for local machine
-	// @pyparm string|Environment|None|Environment - eg 'Windows NT x86' - use None for current client environment
-	if (!PyArg_ParseTuple(args,"|zz:EnumPrintProcessors", &servername, &environment))
+	PyObject *ret=NULL, *tuple_item;
+	// @pyparm string/<o PyUnicode>|Server|None|Name of print server, use None for local machine
+	// @pyparm string/<o PyUnicode>|Environment|None|Environment - eg 'Windows NT x86' - use None for current client environment
+	if (!PyArg_ParseTuple(args,"|OO:EnumPrintProcessors", &observername, &obenvironment))
 		return NULL;
-
-	EnumPrintProcessors(servername, environment, level, buf, bufsize, &bytes_needed, &return_cnt);
+	if (!PyWinObject_AsWCHAR(observername, &servername, TRUE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(obenvironment, &environment, TRUE))
+		goto done;
+	if (EnumPrintProcessorsW(servername, environment, level, buf, bufsize, &bytes_needed, &return_cnt)){
+		ret=PyTuple_New(0);
+		goto done;
+		}
 	if (bytes_needed==0){
 		PyWin_SetAPIError("EnumPrintProcessors");
-		return NULL;
+		goto done;
 		}
 	buf=(LPBYTE)malloc(bytes_needed);
 	if (buf==NULL){
 		PyErr_Format(PyExc_MemoryError,"EnumPrintProcessors: unable to allocate buffer of size %d", bytes_needed);
-		return NULL;
+		goto done;
 		}
 	bufsize=bytes_needed;
-	if (!EnumPrintProcessors(servername, environment, level, buf, bufsize, &bytes_needed, &return_cnt))
+	if (!EnumPrintProcessorsW(servername, environment, level, buf, bufsize, &bytes_needed, &return_cnt))
 		PyWin_SetAPIError("EnumPrintProcessors");
 	else{
 		ret=PyTuple_New(return_cnt);
 		if (ret!=NULL){
-			info=(PRINTPROCESSOR_INFO_1 *)buf;
+			info=(PRINTPROCESSOR_INFO_1W *)buf;
 			for (DWORD buf_ind=0; buf_ind<return_cnt; buf_ind++){
-				tuple_item=PyString_FromString(info->pName);
+				tuple_item=PyWinObject_FromWCHAR(info->pName);
 				if (tuple_item==NULL){
 					Py_DECREF(ret);
 					ret=NULL;
@@ -1128,7 +1135,13 @@ static PyObject *PyEnumPrintProcessors(PyObject *self, PyObject *args)
 				}
 			}
 		}
-	free(buf);
+done:
+	if (buf!=NULL)
+		free(buf);
+	if (servername!=NULL)
+		PyWinObject_FreeWCHAR(servername);
+	if (environment!=NULL)
+		PyWinObject_FreeWCHAR(environment);
 	return ret;
 }
 
