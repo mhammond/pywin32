@@ -2598,7 +2598,12 @@ py_EncryptionDisable(PyObject *self, PyObject *args)
     return ret;
 }
 
-// @pyswig int|FileEncryptionStatus|Requires Windows 2000 or higher - Returns FILE_ENCRYPTABLE, FILE_IS_ENCRYPTED, FILE_SYSTEM_ATTR, FILE_ROOT_DIR, FILE_SYSTEM_DIR, FILE_UNKNOWN, FILE_SYSTEM_NOT_SUPPORT, FILE_USER_DISALLOWED, or FILE_READ_ONLY 
+// @pyswig int|FileEncryptionStatus|retrieves the encryption status of the specified file.
+// @rdesc The result is documented as being one of FILE_ENCRYPTABLE,
+// FILE_IS_ENCRYPTED, FILE_SYSTEM_ATTR, FILE_ROOT_DIR, FILE_SYSTEM_DIR,
+// FILE_UNKNOWN, FILE_SYSTEM_NOT_SUPPORT, FILE_USER_DISALLOWED,
+// or FILE_READ_ONLY 
+// @comm Requires Windows 2000 or higher.
 static PyObject*
 py_FileEncryptionStatus(PyObject *self, PyObject *args)
 {
@@ -2917,7 +2922,8 @@ py_QueryUsersOnEncryptedFile(PyObject *self, PyObject *args)
 	return ret;
 }
 
-// @pyswig (<o PySID>,string,unicode)|QueryRecoveryAgentsOnEncryptedFile|Lists recovery agents for file as a tuple of tuples - ((SID, certificate hash blob, display info),....)
+// @pyswig (<o PySID>,string,unicode)|QueryRecoveryAgentsOnEncryptedFile|Lists recovery agents for file as a tuple of tuples.
+// @rdesc The result is a tuple of tuples - ((SID, certificate hash blob, display info),....)
 static PyObject*
 py_QueryRecoveryAgentsOnEncryptedFile(PyObject *self, PyObject *args)
 {
@@ -2985,8 +2991,11 @@ py_RemoveUsersFromEncryptedFile(PyObject *self, PyObject *args)
 static PyObject*
 py_AddUsersToEncryptedFile(PyObject *self, PyObject *args)
 {
-    // @pyparm string/unicode|FileName||File that additional users will be allowed to decrypt
-	// @pyparm ((<o PySID>,string,int),...)|pUsers||Sequence representing ENCRYPTION_CERTIFICATE_LIST - elements are sequences consisting of users' Sid, encoded EFS certficate (user must export a .cer to obtain this data), and encoding type (usually 1 for X509_ASN_ENCODING)
+	// @pyparm string/unicode|FileName||File that additional users will be allowed to decrypt
+	// @pyparm ((<o PySID>,string,int),...)|pUsers||Sequence representing
+	// ENCRYPTION_CERTIFICATE_LIST - elements are sequences consisting of
+	// users' Sid, encoded EFS certficate (user must export a .cer to obtain
+	// this data), and encoding type (usually 1 for X509_ASN_ENCODING)
 	if (pfnAddUsersToEncryptedFile==NULL)
 		return PyErr_Format(PyExc_NotImplementedError,"AddUsersToEncryptedFile not supported by this version of Windows");
 	PyObject *ret=NULL, *obfname=NULL, *obecl=NULL;
