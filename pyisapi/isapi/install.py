@@ -207,7 +207,18 @@ def CreateDirectory(params, options):
 def CreateISAPIFilter(filterParams, options):
     server = FindWebServer(options, filterParams.Server)
     _CallHook(filterParams, "PreInstall", options)
-    filters = GetObject(server+"/Filters")
+    try:
+        filters = GetObject(server+"/Filters")
+    except pythoncom.com_error, (hr, msg, exc, arg):
+        # Brand new sites don't have the '/Filters' collection - create it.
+        # Any errors other than 'not found' we shouldn't ignore.
+        if winerror.HRESULT_FACILITY(hr) != winerror.FACILITY_WIN32 or \
+           winerror.HRESULT_CODE(hr) != winerror.ERROR_PATH_NOT_FOUND:
+            raise
+        server_ob = GetObject(server)
+        filters = server_ob.Create(_IIS_FILTERS, "Filters")
+        filters.FilterLoadOrder = ""
+        filters.SetInfo()
     try:
         newFilter = filters.Create(_IIS_FILTER, filterParams.Name)
         log(2, "Created new ISAPI filter...")
