@@ -390,7 +390,6 @@ static struct PyMethodDef PyIShellBrowser_methods[] =
 	{ "SendControlMsg", PyIShellBrowser::SendControlMsg, 1 }, // @pymeth SendControlMsg|Description of SendControlMsg
 	{ "QueryActiveShellView", PyIShellBrowser::QueryActiveShellView, 1 }, // @pymeth QueryActiveShellView|Description of QueryActiveShellView
 	{ "OnViewWindowActive", PyIShellBrowser::OnViewWindowActive, 1 }, // @pymeth OnViewWindowActive|Description of OnViewWindowActive
-//	{ "SetToolbarItems", PyIShellBrowser::SetToolbarItems, 1 }, // @pymeth SetToolbarItems|Description of SetToolbarItems
 	{ NULL }
 };
 

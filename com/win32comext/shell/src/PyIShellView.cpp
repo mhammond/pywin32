@@ -304,7 +304,6 @@ static struct PyMethodDef PyIShellView_methods[] =
 	{ "CreateViewWindow", PyIShellView::CreateViewWindow, 1 }, // @pymeth CreateViewWindow|Description of CreateViewWindow
 	{ "DestroyViewWindow", PyIShellView::DestroyViewWindow, 1 }, // @pymeth DestroyViewWindow|Description of DestroyViewWindow
 	{ "GetCurrentInfo", PyIShellView::GetCurrentInfo, 1 }, // @pymeth GetCurrentInfo|Description of GetCurrentInfo
-//	{ "AddPropertySheetPages", PyIShellView::AddPropertySheetPages, 1 }, // @pymeth AddPropertySheetPages|Description of AddPropertySheetPages
 	{ "SaveViewState", PyIShellView::SaveViewState, 1 }, // @pymeth SaveViewState|Description of SaveViewState
 	{ "SelectItem", PyIShellView::SelectItem, 1 }, // @pymeth SelectItem|Description of SelectItem
 	{ "GetItemObject", PyIShellView::GetItemObject, 1 }, // @pymeth GetItemObject|Description of GetItemObject
