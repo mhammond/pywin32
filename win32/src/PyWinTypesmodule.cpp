@@ -412,7 +412,7 @@ void PyWinGlobals_Ensure()
 {
 	PyWinInterpreterState_Ensure();
 	if (PyWinExc_ApiError==NULL) {
-		PyWinExc_ApiError = PyErr_NewException("pywintypes.api_error", NULL, NULL);
+		PyWinExc_ApiError = PyErr_NewException("pywintypes.error", NULL, NULL);
 		PyWinExc_COMError = PyErr_NewException("pywintypes.com_error", NULL, NULL);
 	}
 }
