@@ -9,7 +9,7 @@ import string
 import traceback
 
 import win32com.test.util
-from win32com.client import makepy, selecttlb
+from win32com.client import makepy, selecttlb, gencache
 import pythoncom
 import winerror
 
@@ -21,6 +21,7 @@ def TestBuildAll(verbose = 1):
             print "%s (%s)" % (info.desc, info.dll)
         try:
             makepy.GenerateFromTypeLibSpec(info)
+#          sys.stderr.write("Attr typeflags for coclass referenced object %s=%d (%d), typekind=%d\n" % (name, refAttr.wTypeFlags, refAttr.wTypeFlags & pythoncom.TYPEFLAG_FDUAL,refAttr.typekind))
             num += 1
         except pythoncom.com_error, details:
             # Ignore these 2 errors, as the are very common and can obscure
@@ -35,6 +36,13 @@ def TestBuildAll(verbose = 1):
         except:
             print "Failed:", info.desc
             traceback.print_exc()
+        if makepy.bForDemandDefault:
+            # This only builds enums etc by default - build each
+            # interface manually
+            tinfo = (info.clsid, info.lcid, info.major, info.minor)
+            mod = gencache.EnsureModule(info.clsid, info.lcid, info.major, info.minor)
+            for name in mod.NamesToIIDMap.keys():
+                makepy.GenerateChildFromTypeLibSpec(name, tinfo)
     return num
 
 def TestAll(verbose = 0):
