@@ -2,6 +2,11 @@ import string
 import re
 import sys
 
+try:
+    from types import UnicodeType
+except ImportError:
+    from pywintypes import UnicodeType
+
 # Reason last stmt is continued (or C_NONE if it's not).
 C_NONE, C_BACKSLASH, C_STRING, C_BRACKET = range(4)
 
@@ -113,7 +118,7 @@ class Parser:
 
     def set_str(self, str):
         assert len(str) == 0 or str[-1] == '\n'
-        if type(str) == type(u""):
+        if type(str) == UnicodeType:
             # The parse functions have no idea what to do with Unicode, so
             # replace all Unicode characters with "x".  This is "safe"
             # so long as the only characters germane to parsing the structure
