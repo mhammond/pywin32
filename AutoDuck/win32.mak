@@ -16,10 +16,10 @@ HELP_DIR   = ../win32/help
 # for building of the .CHM file.
 HTML_DIR = win32
 # Extraneous HTML files to include into the .CHM:
-HTML_FILES = 
+HTML_FILES = $(HELP_DIR)\*.html
 
 # Non-autoduck overview topics data file:
-EXT_TOPICS = noOverviews.dat
+EXT_TOPICS = win32Overviews.dat
 
 SOURCE  = $(SOURCE_DIR)/*.cpp \
 	  $(SOURCE_DIR)/*.h \
