@@ -1,22 +1,15 @@
 # -*- Mode: Python; tab-width: 4 -*-
 #
-# Note that this demo will NOT run from Python.exe - this is simply
-# because the demo sets up a timer, then exits - if run from Python, the
-# process terminates before the first timer event fires.
-# AFAIK, there are _no_ Pythonwin requirements for the timer - just this demo!
-#
-# To run this demo, start Pythonwin, open this file, and select "File/Run",
-# and press "Enter".  The interactive window will respond with:
-# >>> import timer_demo
-# x = 0
-# x = 1
-# x = 2
-# (etc...)
 
 # This module, and the timer.pyd core timer support, were written by
 # Sam Rushing (rushing@nightmare.com)
 
 import timer
+import time
+
+# Timers are based on Windows messages.  So we need
+# to do the event-loop thing!
+import win32event, win32gui
 
 # glork holds a simple counter for us.
 
@@ -26,6 +19,9 @@ class glork:
 		self.x = 0
 		self.max = max
 		self.id = timer.set_timer (delay, self.increment)
+		# Could use the threading module, but this is
+		# a win32 extension test after all! :-)
+		self.event = win32event.CreateEvent(None, 0, 0, None)
 
 	def increment (self, id, time):
 		print 'x = %d' % self.x
@@ -35,12 +31,37 @@ class glork:
 		if self.x > self.max:
 			# we could have used 'self.id' here, too
 			timer.kill_timer (id)
+			win32event.SetEvent(self.event)
 
 # create a counter that will count from '1' thru '10', incrementing
 # once a second, and then stop.
 
 def demo (delay=1000, stop=10):
 	g = glork(delay, stop)
+	# Timers are message based - so we need
+	# To run a message loop while waiting for our timers
+	# to expire.
+	start_time = time.time()
+	while 1:
+		# We can't simply give a timeout of 30 seconds, as
+		# we may continouusly be recieving other input messages,
+		# and therefore never expire.
+		rc = win32event.MsgWaitForMultipleObjects(
+			(g.event,), # list of objects
+			0, # wait all
+			win32event.QS_ALLEVENTS, # type of input
+			500) # timeout
+		if rc == win32event.WAIT_OBJECT_0:
+			# Event signalled.
+			break
+		elif rc == win32event.WAIT_OBJECT_0+1:
+			# Message waiting.
+			if win32gui.PumpWaitingMessages():
+				raise RuntimeError, "We got an unexpected WM_QUIT message!"
+		else:
+			# This wait timed-out.
+			if time.time()-start_time > 30:
+				raise RuntimeError, "We timed out waiting for the timers to expire!"
 
 if __name__=='__main__':
 	demo()
