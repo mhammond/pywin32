@@ -124,183 +124,6 @@
 #endif // MS_WINCE
 
 #ifndef MS_WINCE /* Not on CE */
-%{
-// @object PyOVERLAPPEDReadBuffer|A Python object, representing a buffer for overlapped IO.
-// @comm A PyOVERLAPPEDReadBuffer object is used when performing an overlapped "Read" operation.
-// A <o PyOVERLAPPED> structure created via <om win32file.AllocateReadBuffer> and is passed to 
-// (or possibly just created by) <om win32file.ReadFile>.
-// This buffer is then filled during the IO operation.  See the <om win32file.ReadFile> documentation
-// for more information.
-class PyOVERLAPPEDReadBuffer : public PyObject
-{
-public:
-	UINT m_size;
-	char *m_buffer;
-
-	PyOVERLAPPEDReadBuffer(UINT size);
-	~PyOVERLAPPEDReadBuffer();
-
-	/* Python support */
-	PyObject * item(int index);
-	PyObject * slice(int start, int end);
-	PyObject *asStr(void);
-	int print(FILE *fp, int flags);
-	PyObject *repr();
-
-	static void deallocFunc(PyObject *ob);
-	static PyObject * strFunc(PyObject *ob);
-	static int printFunc(PyObject *ob, FILE *fp, int flags);
-	static PyObject * reprFunc(PyObject *ob);
-	static int lengthFunc(PyObject *ob);
-	static PyObject * itemFunc(PyObject *ob1, int index);
-	static PyObject * sliceFunc(PyObject *ob1, int start, int end);
-};
-
-
-static PySequenceMethods PyOVERLAPPEDReadBuffer_SequenceMethods = {
-	(inquiry)PyOVERLAPPEDReadBuffer::lengthFunc,			/*sq_length*/
-	0,		/*sq_concat*/
-	0, 		/*sq_repeat*/
-	(intargfunc)PyOVERLAPPEDReadBuffer::itemFunc,		/*sq_item*/
-	(intintargfunc)PyOVERLAPPEDReadBuffer::sliceFunc,	/*sq_slice*/
-	0,		/*sq_ass_item*/
-	0,		/*sq_ass_slice*/
-};
-
-PyTypeObject PyOVERLAPPEDReadBufferType =
-{
-	PyObject_HEAD_INIT(&PyType_Type)
-	0,
-	"PyOVERLAPPEDReadBuffer",
-	sizeof(PyOVERLAPPEDReadBuffer),
-	0,
-	PyOVERLAPPEDReadBuffer::deallocFunc,		/* tp_dealloc */
-	// @pymeth __print__|Used when the object is printed.
-	PyOVERLAPPEDReadBuffer::printFunc,		/* tp_print */
-	0,						/* tp_getattr */
-	0,						/* tp_setattr */
-	0,						/* tp_compare */
-	// @pymeth __repr__|Used when repr(object) is used.
-	PyOVERLAPPEDReadBuffer::reprFunc,	/* tp_repr */
-	0,						/* tp_as_number */
-	&PyOVERLAPPEDReadBuffer_SequenceMethods,	/* tp_as_sequence */
-	0,						/* tp_as_mapping */
-	0,						/* tp_hash */
-	0,						/* tp_call */
-	// @pymeth __str__|Used when an the complete data is required
-	PyOVERLAPPEDReadBuffer::strFunc,		/* tp_str */
-};
-
-PyOVERLAPPEDReadBuffer::PyOVERLAPPEDReadBuffer(UINT nSize)
-{
-	ob_type = &PyOVERLAPPEDReadBufferType;
-	_Py_NewReference(this);
-	m_size = nSize;
-	m_buffer = (char *)malloc(nSize);
-	if (m_buffer) memset(m_buffer, 0, nSize);
-}
-
-PyOVERLAPPEDReadBuffer::~PyOVERLAPPEDReadBuffer(void)
-{
-	if (m_buffer) free(m_buffer);
-}
-
-PyObject * PyOVERLAPPEDReadBuffer::item(int index)
-{
-	if ( index < 0 || (UINT)index >= m_size )
-	{
-		PyErr_SetString(PyExc_IndexError, "buffer index out of range");
-		return NULL;
-	}
-	return PyString_FromStringAndSize(m_buffer+index, 1);
-}
-
-PyObject * PyOVERLAPPEDReadBuffer::slice(int start, int end)
-{
-	if ( start < 0 )
-		start = 0;
-	if ( end < 0 )
-		end = 0;
-	if ( (UINT)end > m_size )
-		end = m_size;
-	if ( end <= start )
-		return PyString_FromString("");
-	return PyString_FromStringAndSize(m_buffer+start, end-start);
-}
-
-PyObject * PyOVERLAPPEDReadBuffer::asStr(void)
-{
-	return PyString_FromStringAndSize(m_buffer, m_size);
-}
-
-int PyOVERLAPPEDReadBuffer::print(FILE *fp, int flags)
-{
-	char resBuf[64];
-	wsprintf(resBuf, "<PyOVERLAPPEDReadBuf of %d bytes>", m_size);
-    // ### ACK! Python uses a non-debug runtime. We can't use stream
-	// ### functions when in DEBUG mode!!  (we link against a different
-	// ### runtime library)  Hack it by getting Python to do the print!
-	//
-	// ### - Double Ack - Always use the hack!
-// #ifdef _DEBUG
-	PyObject *ob = PyString_FromString(resBuf);
-	PyObject_Print(ob, fp, flags|Py_PRINT_RAW);
-	Py_DECREF(ob);
-/***#else
-	fputs(resBuf, fp);
-// #endif
-***/
-	return 0;
-}
-
-PyObject *PyOVERLAPPEDReadBuffer::repr()
-{
-	char resBuf[64];
-	wsprintf(resBuf, "<PyOVERLAPPEDReadBuf of %d bytes>", m_size);
-	return PyString_FromString(resBuf);
-}
-
-/*static*/ void PyOVERLAPPEDReadBuffer::deallocFunc(PyObject *ob)
-{
-	delete (PyOVERLAPPEDReadBuffer *)ob;
-}
-
-// @pymethod |PyOVERLAPPEDReadBuffer|__str__|Used when a (8-bit) string representation of the Unicode object is required.
- PyObject * PyOVERLAPPEDReadBuffer::strFunc(PyObject *ob)
-{
-	return ((PyOVERLAPPEDReadBuffer *)ob)->asStr();
-}
-
-// @pymethod |PyOVERLAPPEDReadBuffer|__print__|Used when the Unicode object is printed.
-int PyOVERLAPPEDReadBuffer::printFunc(PyObject *ob, FILE *fp, int flags)
-{
-	return ((PyOVERLAPPEDReadBuffer *)ob)->print(fp, flags);
-}
-
-// @pymethod |PyOVERLAPPEDReadBuffer|__repr__|Used when repr(object) is used.
-PyObject *PyOVERLAPPEDReadBuffer::reprFunc(PyObject *ob)
-{
-	// @comm Note the format is L'string' and that the string portion
-	// is currently not escaped, as Python does for normal strings.
-	return ((PyOVERLAPPEDReadBuffer *)ob)->repr();
-}
-
-int PyOVERLAPPEDReadBuffer::lengthFunc(PyObject *ob)
-{
-	return (int) ((PyOVERLAPPEDReadBuffer *)ob)->m_size;
-}
-
-PyObject * PyOVERLAPPEDReadBuffer::itemFunc(PyObject *ob, int index)
-{
-	return ((PyOVERLAPPEDReadBuffer *)ob)->item(index);
-}
-
-PyObject * PyOVERLAPPEDReadBuffer::sliceFunc(PyObject *ob, int start, int end)
-{
-	return ((PyOVERLAPPEDReadBuffer *)ob)->slice(start, end);
-}
-%}
-
 
 // @pyswig int|AreFileApisANSI|Determines whether a set of Win32 file functions is using the ANSI or OEM character set code page. This function is useful for 8-bit console input and output operations.
 BOOL AreFileApisANSI(void);
@@ -533,7 +356,7 @@ PyObject *MyAllocateReadBuffer(PyObject *self, PyObject *args)
 	// @pyparm int|bufSize||The size of the buffer to allocate.
 	if (!PyArg_ParseTuple(args, "i", &bufSize))
 		return NULL;
-	return new PyOVERLAPPEDReadBuffer(bufSize);
+	return PyBuffer_New(bufSize);
 }
 %}
 
@@ -574,22 +397,21 @@ PyObject *MyReadFile(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(obhFile, &hFile))
 		return NULL;
 
-	void *buf;
-#ifndef MS_WINCE
-	PyOVERLAPPEDReadBuffer *pORB = NULL;
-#else
+	void *buf = NULL;
 	PyObject *pORB = NULL;
-#endif
+	PyBufferProcs *pb = NULL;
+
 	if (PyInt_Check(obBuf)) {
 		bufSize = PyInt_AsLong(obBuf);
 #ifndef MS_WINCE
 		if (pOverlapped) {
-			pORB = new PyOVERLAPPEDReadBuffer(bufSize);
+			pORB = PyBuffer_New(bufSize);
 			if (pORB==NULL) {
 				PyErr_SetString(PyExc_MemoryError, "Allocating read buffer");
 				return NULL;
 			}
-			buf = pORB->m_buffer;
+			pb = pORB->ob_type->tp_as_buffer;
+			(*pb->bf_getreadbuffer)(pORB, 0, &buf);
 		} else {
 #endif
 			buf = malloc(bufSize);
@@ -603,15 +425,15 @@ PyObject *MyReadFile(PyObject *self, PyObject *args)
 		}
 	} 
 #ifndef MS_WINCE
-	else if (obBuf->ob_type==&PyOVERLAPPEDReadBufferType){
-		pORB = (PyOVERLAPPEDReadBuffer *)obBuf;
+	else if (obBuf->ob_type->tp_as_buffer){
+		pb = pORB->ob_type->tp_as_buffer;
+		pORB = obBuf;
 		Py_INCREF(pORB);
-		buf = pORB->m_buffer;
-		bufSize = pORB->m_size;
+		bufSize = (*pb->bf_getreadbuffer)(pORB, 0, &buf);
 	}
 #endif // MS_WINCE
 	 else {
-		PyErr_SetString(PyExc_TypeError, "Second param must be an integer of a PyOVERLAPPEDReadBuffer object");
+		PyErr_SetString(PyExc_TypeError, "Second param must be an integer of a buffer object");
 		return NULL;
 	}
 
@@ -660,6 +482,7 @@ PyObject *MyWriteFile(PyObject *self, PyObject *args)
 	DWORD writeSize;
 	PyObject *obWriteData;
 	PyObject *obOverlapped = NULL;
+	PyBufferProcs *pb = NULL;
 
 	if (!PyArg_ParseTuple(args, "OO|O:Write", 
 		&obhFile, // @pyparm <o PyHANDLE>/int|hFile||Handle to the file
@@ -671,9 +494,9 @@ PyObject *MyWriteFile(PyObject *self, PyObject *args)
 		writeSize = PyString_Size(obWriteData);
 	} 
 #ifndef MS_WINCE
-	else if (obWriteData->ob_type==&PyOVERLAPPEDReadBufferType) {
-		writeData = ((PyOVERLAPPEDReadBuffer *)(obWriteData))->m_buffer;
-		writeSize = ((PyOVERLAPPEDReadBuffer *)(obWriteData))->m_size;
+	else if (obWriteData->ob_type->tp_as_buffer) {
+		pb = obWriteData->ob_type->tp_as_buffer;
+		writeSize = (*pb->bf_getreadbuffer)(obWriteData, 0, (void **)&writeData);
 	} 
 #endif // MS_WINCE
 	else {
@@ -823,7 +646,7 @@ static PyObject *myGetQueuedCompletionStatus(PyObject *self, PyObject *args)
 	UINT errCode;
     Py_BEGIN_ALLOW_THREADS
 	BOOL ok = GetQueuedCompletionStatus(handle, &bytes, &key, &pOverlapped, timeout);
-	errCode = ok ? 0 : GetLastError();
+	errCode = ok ? ok : GetLastError();
     Py_END_ALLOW_THREADS
 	PyObject *obOverlapped = PyWinObject_FromOVERLAPPED(pOverlapped);
 	PyObject *rc = Py_BuildValue("illO", errCode, bytes, key, obOverlapped);
@@ -1078,20 +901,21 @@ static PyObject *MyAcceptEx
 	PyObject *obListening = NULL;
 	PyObject *obAccepting = NULL;
 	PyObject *obBuf = NULL;
-	PyOVERLAPPEDReadBuffer *pORB = NULL;
+	PyObject *pORB = NULL;
 	void *buf = NULL;
 	DWORD cBytesRecvd = 0;
 	int rc;
 	int iMinBufferSize = (sizeof(SOCKADDR_IN) + 16) * 2;
 	WSAPROTOCOL_INFO wsProtInfo;
 	UINT cbSize = sizeof(wsProtInfo);
+	PyBufferProcs *pb = NULL;
 
 	if (!PyArg_ParseTuple(
 		args,
 		"OOOO:AcceptEx",
 		&obListening, // @pyparm <o PySocket>/int|sListening||Socket that had listen() called on.
 		&obAccepting, // @pyparm <o PySocket>/int|sAccepting||Socket that will be used as the incoming connection.
-		&obBuf, // @pyparm <o PyOVERLAPPEDReadBuffer>|buffer||Buffer to read incoming data and connection point information into. This buffer MUST be big enough to recieve your connection endpoints... AF_INET sockets need to be at least 64 bytes. The correct minimum of the buffer is determined by the protocol family that the listening socket is using.
+		&obBuf, // @pyparm <o buffer>|buffer||Buffer to read incoming data and connection point information into. This buffer MUST be big enough to recieve your connection endpoints... AF_INET sockets need to be at least 64 bytes. The correct minimum of the buffer is determined by the protocol family that the listening socket is using.
 		&obOverlapped)) // @pyparm <o PyOVERLAPPED>|ol||An overlapped structure
 	{
 		return NULL;
@@ -1135,12 +959,12 @@ static PyObject *MyAcceptEx
 		return NULL;
 	}
 
-	if (obBuf->ob_type==&PyOVERLAPPEDReadBufferType)
+	if (obBuf->ob_type->tp_as_buffer)
 	{
-		pORB = (PyOVERLAPPEDReadBuffer *)obBuf;
+		pORB = obBuf;
 		Py_INCREF(pORB);
-		buf = pORB->m_buffer;
-		dwBufSize = pORB->m_size;
+		pb = pORB->ob_type->tp_as_buffer;
+		dwBufSize = (*pb->bf_getreadbuffer)(pORB, 0, &buf);
 		if (dwBufSize < (DWORD)iMinBufferSize )
 		{
 			PyErr_Format(
@@ -1152,7 +976,7 @@ static PyObject *MyAcceptEx
 	}
 	else
 	{
-		PyErr_SetString(PyExc_TypeError, "Second param must be a PyOVERLAPPEDReadBuffer object");
+		PyErr_SetString(PyExc_TypeError, "Second param must be a buffer object");
 		return NULL;
 	}
 
@@ -1255,13 +1079,14 @@ PyObject *MyGetAcceptExSockaddrs
 	SOCKADDR *psaddrLocal = NULL;
 	SOCKADDR *psaddrRemote = NULL;
 	void *buf = NULL;
-	PyOVERLAPPEDReadBuffer *pORB = NULL;
+	PyObject *pORB = NULL;
 	INT cbLocal = 0;
 	INT cbRemote = 0;
 	SOCKADDR_IN *psaddrIN = NULL;
 	PyObject *obTemp = NULL;
 	int rc;
 	DWORD dwBufSize;
+	PyBufferProcs *pb = NULL;
 
 	if (!PyArg_ParseTuple(
 		args,
@@ -1294,12 +1119,12 @@ PyObject *MyGetAcceptExSockaddrs
 	}
 	iMinBufferSize = (wsProtInfo.iMaxSockAddr + 16) * 2;
 
-	if (obBuf->ob_type==&PyOVERLAPPEDReadBufferType)
+	if (obBuf->ob_type->tp_as_buffer)
 	{
-		pORB = (PyOVERLAPPEDReadBuffer *)obBuf;
+		pORB = obBuf;
 		Py_INCREF(pORB);
-		buf = pORB->m_buffer;
-		dwBufSize = pORB->m_size;
+		pb = pORB->ob_type->tp_as_buffer;
+		dwBufSize = (*pb->bf_getreadbuffer)(pORB, 0, &buf);
 		if (dwBufSize < (DWORD)iMinBufferSize )
 		{
 			PyErr_Format(
@@ -1311,7 +1136,7 @@ PyObject *MyGetAcceptExSockaddrs
 	}
 	else
 	{
-		PyErr_SetString(PyExc_TypeError, "Second param must be a PyOVERLAPPEDReadBuffer object");
+		PyErr_SetString(PyExc_TypeError, "Second param must be a buffer object");
 		return NULL;
 	}
 
@@ -1319,7 +1144,7 @@ PyObject *MyGetAcceptExSockaddrs
 	Py_BEGIN_ALLOW_THREADS
 	GetAcceptExSockaddrs(
 		buf,
-		pORB->m_size - iMinBufferSize,
+		dwBufSize - iMinBufferSize,
 		cbLocal,
 		cbRemote,
 		&psaddrLocal,
@@ -1376,4 +1201,289 @@ Error:
 
 
 %}
+
+%{
+PyObject* MyWSAEventSelect
+(
+	SOCKET *s, 
+	PyHANDLE hEvent,
+	LONG lNetworkEvents
+)
+{
+	int rc;
+	Py_BEGIN_ALLOW_THREADS;
+	rc = WSAEventSelect(*s, hEvent, lNetworkEvents);
+	Py_END_ALLOW_THREADS;
+	if (rc == SOCKET_ERROR)
+	{
+		PyWin_SetAPIError("WSAEventSelect", WSAGetLastError());
+		return NULL;
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+%}
+
+// @pyswig |WSAEventSelect|Specifies an event object to be associated with the supplied set of FD_XXXX network events.
+%name(WSAEventSelect) PyObject *MyWSAEventSelect
+(
+	SOCKET *s, // @pyparm <o PySocket>|socket||socket to attach to the event
+	PyHANDLE hEvent, // @pyparm <o PyHandle>|hEvent||Event handle for the socket to become attached to.
+	LONG lNetworkEvents // @pyparm int|networkEvents||A bitmask of network events that will cause hEvent to be signaled. e.g. (FD_CLOSE \| FD_READ)
+);
+
+%native(WSASend) MyWSASend;
+%native(WSARecv) MyWSARecv;
+
+%{
+// @pyswig (rc, cBytesSent)|WSASend|Winsock send() equivalent function for Overlapped I/O.
+PyObject *MyWSASend
+(
+	PyObject *self,
+	PyObject *args
+)
+{
+	SOCKET s;
+	PyObject *obSocket = NULL;
+	WSABUF wsBuf;
+	DWORD cbSent = 0;
+	OVERLAPPED *pOverlapped = NULL;
+	int rc = 0;
+	PyObject *rv = NULL;
+	PyObject *obTemp = NULL;
+	PyObject *obBuf = NULL;
+	PyObject *obOverlapped = NULL;
+	DWORD dwFlags;
+	PyBufferProcs *pb = NULL;
+
+	if (!PyArg_ParseTuple(
+		args,
+		"OOO|i:WSASend",
+		&obSocket, // @pyparm <o PySocket>/int|s||Socket to send data on.
+		&obBuf, // @pyparm string/<o buffer>|buffer||Buffer to send data from.
+		&obOverlapped, // @pyparm <o PyOVERLAPPED>|ol||An overlapped structure
+		&dwFlags)) // @pyparm int|dwFlags||Optional send flags.
+	{
+		return NULL;
+	}
+
+	if (!PySocket_AsSOCKET(obSocket, &s))
+	{
+		return NULL;
+	}
+
+	if (!PyWinObject_AsOVERLAPPED(obOverlapped, &pOverlapped))
+	{
+		return NULL;
+	}
+
+	if (PyString_Check(obBuf))
+	{
+		wsBuf.buf = PyString_AS_STRING(obBuf);
+		wsBuf.len = PyString_GET_SIZE(obBuf);
+	}
+	else if (obBuf->ob_type->tp_as_buffer)
+	{
+		Py_INCREF(obBuf);
+		pb = obBuf->ob_type->tp_as_buffer;
+		wsBuf.len = (*pb->bf_getreadbuffer)(obBuf, 0, (void **)&wsBuf.buf);
+	}
+	else
+	{
+		PyErr_SetString(PyExc_TypeError, "Second param must be a buffer object or a string.");
+		return NULL;
+	}
+
+	Py_BEGIN_ALLOW_THREADS;
+	rc = WSASend(
+		s,
+		&wsBuf,
+		1,
+		&cbSent,
+		dwFlags,
+		pOverlapped,
+		NULL);
+	Py_END_ALLOW_THREADS;
+
+	if (rc == SOCKET_ERROR)
+	{
+		rc = WSAGetLastError();
+		if (rc != ERROR_IO_PENDING)
+		{
+			PyWin_SetAPIError("WSASend", rc);
+			goto Error;
+		}
+	}
+
+	rv = PyTuple_New(2);
+	if (rv == NULL)
+	{
+		goto Error;
+	}
+
+	obTemp = PyInt_FromLong(rc);
+	if (obTemp == NULL)
+	{
+		goto Error;
+	}
+	PyTuple_SET_ITEM(rv, 0, obTemp);
+	obTemp = NULL;
+
+	obTemp = PyInt_FromLong(cbSent);
+	if (obTemp == NULL)
+	{
+		goto Error;
+	}
+	PyTuple_SET_ITEM(rv, 1, obTemp);
+	obTemp = NULL;
+
+Cleanup:
+	return rv;
+Error:
+	Py_XDECREF(obBuf);
+	Py_XDECREF(rv);
+	rv = NULL;
+	goto Cleanup;
+}
+
+// @pyswig (rc, cBytesRecvd)|WSASend|Winsock recv() equivalent function for Overlapped I/O.
+PyObject *MyWSARecv
+(
+	PyObject *self,
+	PyObject *args
+)
+{
+	SOCKET s;
+	PyObject *obSocket = NULL;
+	WSABUF wsBuf;
+	DWORD cbRecvd = 0;
+	OVERLAPPED *pOverlapped = NULL;
+	int rc = 0;
+	PyObject *rv = NULL;
+	PyObject *obTemp = NULL;
+	PyObject *obBuf = NULL;
+	PyObject *obOverlapped = NULL;
+	DWORD dwFlags = 0;
+	PyBufferProcs *pb = NULL;
+
+	if (!PyArg_ParseTuple(
+		args,
+		"OOO|i:WSARecv",
+		&obSocket, // @pyparm <o PySocket>/int|s||Socket to send data on.
+		&obBuf, // @pyparm <o buffer>|buffer||Buffer to send data from.
+		&obOverlapped, // @pyparm <o PyOVERLAPPED>|ol||An overlapped structure
+		&dwFlags)) // @pyparm int|dwFlags||Optional reception flags.
+	{
+		return NULL;
+	}
+
+	if (!PySocket_AsSOCKET(obSocket, &s))
+	{
+		return NULL;
+	}
+
+	if (!PyWinObject_AsOVERLAPPED(obOverlapped, &pOverlapped))
+	{
+		return NULL;
+	}
+
+	if (obBuf->ob_type->tp_as_buffer)
+	{
+		Py_INCREF(obBuf);
+		pb = obBuf->ob_type->tp_as_buffer;
+		wsBuf.len = (*pb->bf_getreadbuffer)(obBuf, 0, (void **)&wsBuf.buf);
+	}
+	else
+	{
+		PyErr_SetString(PyExc_TypeError, "Second param must be a PyOVERLAPPEDReadBuffer object");
+		return NULL;
+	}
+
+	Py_BEGIN_ALLOW_THREADS;
+	rc = WSARecv(
+		s,
+		&wsBuf,
+		1,
+		&cbRecvd,
+		&dwFlags,
+		pOverlapped,
+		NULL);
+	Py_END_ALLOW_THREADS;
+
+	if (rc == SOCKET_ERROR)
+	{
+		rc = WSAGetLastError();
+		if (rc != ERROR_IO_PENDING)
+		{
+			PyWin_SetAPIError("WSASend", rc);
+			goto Error;
+		}
+	}
+
+	rv = PyTuple_New(2);
+	if (rv == NULL)
+	{
+		goto Error;
+	}
+
+	obTemp = PyInt_FromLong(rc);
+	if (obTemp == NULL)
+	{
+		goto Error;
+	}
+	PyTuple_SET_ITEM(rv, 0, obTemp);
+	obTemp = NULL;
+
+	obTemp = PyInt_FromLong(cbRecvd);
+	if (obTemp == NULL)
+	{
+		goto Error;
+	}
+	PyTuple_SET_ITEM(rv, 1, obTemp);
+	obTemp = NULL;
+
+Cleanup:
+	return rv;
+Error:
+	Py_DECREF(obBuf);
+	Py_XDECREF(rv);
+	rv = NULL;
+	goto Cleanup;
+}
+
+
+%}
+
+#define SO_UPDATE_ACCEPT_CONTEXT SO_UPDATE_ACCEPT_CONTEXT
+#define SO_CONNECT_TIME SO_CONNECT_TIME
+
+#define WSAEWOULDBLOCK WSAEWOULDBLOCK
+#define WSAENETDOWN WSAENETDOWN
+#define WSAENOTCONN WSAENOTCONN
+#define WSAEINTR WSAEINTR
+#define WSAEINPROGRESS WSAEINPROGRESS
+#define WSAENETRESET WSAENETRESET
+#define WSAENOTSOCK WSAENOTSOCK
+#define WSAEFAULT WSAEFAULT
+#define WSAEOPNOTSUPP WSAEOPNOTSUPP
+#define WSAESHUTDOWN WSAESHUTDOWN
+#define WSAEMSGSIZE WSAEMSGSIZE
+#define WSAEINVAL WSAEINVAL
+#define WSAECONNABORTED WSAECONNABORTED
+#define WSAECONNRESET WSAECONNRESET
+#define WSAEDISCON WSAEDISCON
+#define WSA_IO_PENDING WSA_IO_PENDING
+#define WSA_OPERATION_ABORTED WSA_OPERATION_ABORTED
+#define FD_READ FD_READ
+#define FD_WRITE FD_WRITE
+#define FD_OOB FD_OOB
+#define FD_ACCEPT FD_ACCEPT
+#define FD_CONNECT FD_CONNECT
+#define FD_CLOSE FD_CLOSE
+#define FD_QOS FD_QOS
+#define FD_GROUP_QOS FD_GROUP_QOS
+#define FD_ROUTING_INTERFACE_CHANGE FD_ROUTING_INTERFACE_CHANGE
+#define FD_ADDRESS_LIST_CHANGE FD_ADDRESS_LIST_CHANGE
+
 #endif // MS_WINCE

@@ -121,13 +121,18 @@ public:
 };
 #endif // NO_PYWINTYPES_TIME
 
+typedef struct PYWINTYPES_EXPORT _sMyOverlapped : public OVERLAPPED
+{
+	PyObject *obState;
+} sMyOverlapped;
+
 class PYWINTYPES_EXPORT PyOVERLAPPED : public PyObject
 {
 public:
 	OVERLAPPED *GetOverlapped() {return &m_overlapped;}
 
 	PyOVERLAPPED(void);
-	PyOVERLAPPED(const OVERLAPPED *);
+	PyOVERLAPPED(const sMyOverlapped *);
 	~PyOVERLAPPED();
 
 	/* Python support */
@@ -143,7 +148,7 @@ public:
 #pragma warning( default : 4251 )
 
 protected:
-	OVERLAPPED m_overlapped;
+	sMyOverlapped m_overlapped;
 	PyObject *m_obHandle;
 };
 

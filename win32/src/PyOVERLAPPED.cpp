@@ -38,7 +38,7 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromOVERLAPPED(const OVERLAPPED *pOverla
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
-	PyObject *ret = new PyOVERLAPPED(pOverlapped);
+	PyObject *ret = new PyOVERLAPPED((sMyOverlapped *)pOverlapped);
 	if(ret==NULL)
 		PyErr_SetString(PyExc_MemoryError, "Allocating pOverlapped");
 	return ret;
@@ -71,11 +71,12 @@ PYWINTYPES_EXPORT PyTypeObject PyOVERLAPPEDType =
 /*static*/ struct memberlist PyOVERLAPPED::memberlist[] = {
 	{"Internal",    T_INT,      OFF(m_overlapped.Internal)}, // @prop integer|Internal|Reserved for operating system use.
 	{"InternalHigh",T_INT,      OFF(m_overlapped.InternalHigh)}, // @prop integer|InternalHigh|Reserved for operating system use.
-	{"Offset",      T_INT,      OFF(m_overlapped.Offset)}, // @prop integer|Offset|Specifies a file position at which to start the transfer. The file position is a byte offset from the start of the file. The calling process sets this member before calling the ReadFile or WriteFile function. This member is ignored when reading from or writing to named pipes and communications devices.
+	{"Offset",      T_INT,      OFF(m_overlapped.Offset)}, // @prop integer|Offset|Specifies a file position at which to start the transfer. The file position is a byte offset from the start of the file. The calling process sets this member before calling the ReadFile or WriteFile function. This member is ignored when reading from or writing to named pipes and communications devices.
 	{"OffsetHigh",  T_INT,      OFF(m_overlapped.OffsetHigh)}, // @prop integer|OffsetHigh|Specifies the high word of the byte offset at which to start the transfer.
 	{NULL}
 };
-// @prop integer/<o PyHANDLE>|hEvent|Identifies an event set to the signaled state when the transfer has been completed. The calling process sets this member before calling the <om win32file.ReadFile>, <om win32file.WriteFile>, <om win32pipe.ConnectNamedPipe>, or <om win32pipe.TransactNamedPipe> function.
+// @prop integer/<o PyHANDLE>|hEvent|Identifies an event set to the signaled state when the transfer has been completed. The calling process sets this member before calling the <om win32file.ReadFile>, <om win32file.WriteFile>, <om win32pipe.ConnectNamedPipe>, or <om win32pipe.TransactNamedPipe> function.
+// @prop <Python object>|object|Any python object that you want to attach to your overlapped I/O request.
 
 PyOVERLAPPED::PyOVERLAPPED(void)
 {
@@ -85,7 +86,7 @@ PyOVERLAPPED::PyOVERLAPPED(void)
 	m_obHandle = NULL;
 }
 
-PyOVERLAPPED::PyOVERLAPPED(const OVERLAPPED *pO)
+PyOVERLAPPED::PyOVERLAPPED(const sMyOverlapped *pO)
 {
 	ob_type = &PyOVERLAPPEDType;
 	_Py_NewReference(this);
@@ -96,6 +97,7 @@ PyOVERLAPPED::PyOVERLAPPED(const OVERLAPPED *pO)
 PyOVERLAPPED::~PyOVERLAPPED(void)
 {
 	Py_XDECREF(m_obHandle);
+	Py_XDECREF(m_overlapped.obState);
 }
 
 int PyOVERLAPPED::compare(PyObject *ob)
@@ -111,13 +113,7 @@ int PyOVERLAPPED::compareFunc(PyObject *ob1, PyObject *ob2)
 
 PyObject *PyOVERLAPPED::getattr(PyObject *self, char *name)
 {
-/*	PyObject *res;
-
-	res = findmethod(PyOVERLAPPED_methods, self, name);
-	if (res != NULL)
-		return res;
-	PyErr_Clear();*/
-	// @prop integer/<o PyHANDLE>|hEvent|Identifies an event set to the signaled state when the transfer has been completed. The calling process sets this member before calling the <om win32file.ReadFile>, <om win32file.WriteFile>, <om win32pipe.ConnectNamedPipe>, or <om win32pipe.TransactNamedPipe> function.
+	// @prop integer/<o PyHANDLE>|hEvent|Identifies an event set to the signaled state when the transfer has been completed. The calling process sets this member before calling the <om win32file.ReadFile>, <om win32file.WriteFile>, <om win32pipe.ConnectNamedPipe>, or <om win32pipe.TransactNamedPipe> function.
 	if (strcmp("hEvent", name)==0) {
 		PyOVERLAPPED *pO = (PyOVERLAPPED *)self;
 		if (pO->m_obHandle) {
@@ -125,6 +121,19 @@ PyObject *PyOVERLAPPED::getattr(PyObject *self, char *name)
 			return pO->m_obHandle;
 		}
 		return PyInt_FromLong((long)pO->m_overlapped.hEvent);
+	}
+// @prop <Python object>|object|Any python object that you want to attach to your overlapped I/O request.
+	else if (strcmp("object", name) == 0)
+	{
+		PyOVERLAPPED *pO = (PyOVERLAPPED *)self;
+			
+		if (pO->m_overlapped.obState)
+		{
+			Py_INCREF(pO->m_overlapped.obState);
+			return pO->m_overlapped.obState;
+		}
+		Py_INCREF(Py_None);
+		return Py_None;
 	}
 	return PyMember_Get((char *)self, memberlist, name);
 }
@@ -146,6 +155,14 @@ int PyOVERLAPPED::setattr(PyObject *self, char *name, PyObject *v)
 		} else if (PyInt_Check(v)) {
 			pO->m_overlapped.hEvent = (HANDLE)PyInt_AsLong(v);
 		}
+		return 0;
+	}
+	else if (strcmp("object", name) == 0)
+	{
+		PyOVERLAPPED *pO = (PyOVERLAPPED *)self;
+		Py_XDECREF(pO->m_overlapped.obState);
+		Py_INCREF(v);
+		pO->m_overlapped.obState = v;
 		return 0;
 	}
 	return PyMember_Set((char *)self, memberlist, name, v);

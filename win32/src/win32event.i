@@ -22,7 +22,9 @@
 #define WAIT_ABANDONED_0 WAIT_ABANDONED_0
 
 #define WAIT_TIMEOUT WAIT_TIMEOUT
-#define WAIT_IO_COMPLETION WAIT_IO_COMPLETION 
+#define WAIT_IO_COMPLETION WAIT_IO_COMPLETION
+
+#define MAXIMUM_WAIT_OBJECTS MAXIMUM_WAIT_OBJECTS
 
 #define INFINITE INFINITE
 
@@ -54,9 +56,9 @@
 
 #define EVENT_ALL_ACCESS EVENT_ALL_ACCESS // Specifies all possible access flags for the event object. 
  
-#define EVENT_MODIFY_STATE EVENT_MODIFY_STATE // Enables use of the event handle in the SetEvent and ResetEvent functions to modify the event's state. 
+#define EVENT_MODIFY_STATE EVENT_MODIFY_STATE // Enables use of the event handle in the SetEvent and ResetEvent functions to modify the event’s state. 
  
-#define SYNCHRONIZE SYNCHRONIZE // Windows NT only: Enables use of the event handle in any of the wait functions to wait for the event's state to be signaled.
+#define SYNCHRONIZE SYNCHRONIZE // Windows NT only: Enables use of the event handle in any of the wait functions to wait for the event’s state to be signaled.
 
 #if(_WIN32_WINNT >= 0x0400)
 // XXX - WTF?
@@ -381,57 +383,4 @@ DWORD_WAITAPI WaitForSingleObjectEx(
     DWORD dwMilliseconds, // @pyparm int|milliseconds||time-out interval in milliseconds  
     BOOL bAlertable // @pyparm int|bAlertable||alertable wait flag.
    );
-#endif
-
-#ifndef MS_WINCE
-%{
-#pragma comment(lib,"ws2_32.lib") // too lazy to change the project file :-)
-%}
-// Socket Event stuff from Bill Tutt.
-
-%{
-PyObject* MyWSAEventSelect
-(
-	SOCKET *s, 
-	PyHANDLE hEvent,
-	LONG lNetworkEvents
-)
-{
-	int rc;
-	Py_BEGIN_ALLOW_THREADS;
-	rc = WSAEventSelect(*s, hEvent, lNetworkEvents);
-	Py_END_ALLOW_THREADS;
-	if (rc == SOCKET_ERROR)
-	{
-		PyWin_SetAPIError("WSAEventSelect", WSAGetLastError());
-		return NULL;
-	}
-	Py_INCREF(Py_None);
-	return Py_None;
-}
-
-%}
-
-// @pyswig |WSAEventSelect|Specifies an event object to be associated with the supplied set of FD_XXXX network events.
-%name(WSAEventSelect) PyObject *MyWSAEventSelect
-(
-	SOCKET *s, // @pyparm <o PySocket>|socket||socket to attach to the event
-	PyHANDLE hEvent, // @pyparm <o PyHandle>|hEvent||Event handle for the socket to become attached to.
-	LONG lNetworkEvents // @pyparm int|networkEvents||A bitmask of network events that will cause hEvent to be signaled. e.g. (FD_CLOSE \| FD_READ)
-);
-
-#define SO_UPDATE_ACCEPT_CONTEXT SO_UPDATE_ACCEPT_CONTEXT
-#define SO_CONNECT_TIME SO_CONNECT_TIME
-
-#define WSAEWOULDBLOCK WSAEWOULDBLOCK
-#define FD_READ FD_READ
-#define FD_WRITE FD_WRITE
-#define FD_OOB FD_OOB
-#define FD_ACCEPT FD_ACCEPT
-#define FD_CONNECT FD_CONNECT
-#define FD_CLOSE FD_CLOSE
-#define FD_QOS FD_QOS
-#define FD_GROUP_QOS FD_GROUP_QOS
-#define FD_ROUTING_INTERFACE_CHANGE FD_ROUTING_INTERFACE_CHANGE
-#define FD_ADDRESS_LIST_CHANGE FD_ADDRESS_LIST_CHANGE
 #endif /* MS_WINCE */
