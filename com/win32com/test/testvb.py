@@ -97,6 +97,23 @@ def TestVB( vbtest, bUseGenerated ):
 	vbtest.ArrayProperty = arrayData
 	if vbtest.ArrayProperty != arrayData:
 		raise error, "Could not set the array data correctly - got back " + str(vbtest.ArrayProperty)
+	# Floats
+	arrayData = (1.0, 2.0, 3.0)
+	vbtest.ArrayProperty = arrayData
+	assert vbtest.ArrayProperty == arrayData, "Could not set the array data correctly - got back '%s'" % (vbtest.ArrayProperty,)
+	# Strings.
+	arrayData = tuple(string.split("Hello from Python"))
+	vbtest.ArrayProperty = arrayData
+	assert vbtest.ArrayProperty == arrayData, "Could not set the array data correctly - got back '%s'" % (vbtest.ArrayProperty,)
+	# Date and Time?
+	# COM objects.
+	arrayData = (vbtest, vbtest)
+	vbtest.ArrayProperty = arrayData
+	assert vbtest.ArrayProperty == arrayData, "Could not set the array data correctly - got back '%s'" % (vbtest.ArrayProperty,)
+	# Mixed
+	arrayData = (1, 2.0, "3")
+	vbtest.ArrayProperty = arrayData
+	assert vbtest.ArrayProperty == arrayData, "Could not set the array data correctly - got back '%s'" % (vbtest.ArrayProperty,)
 
 	TestStructs(vbtest)
 
@@ -134,6 +151,18 @@ def TestVB( vbtest, bUseGenerated ):
 			raise error, "The safe array data was not what we expected - got " + str(resultData)
 		if testData != list(byRefParam):
 			raise error, "The safe array data was not what we expected - got " + str(byRefParam)
+		testData = [1.0, 2.0, 3.0]
+		resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
+		assert testData == list(byRefParam)
+		assert testData == list(resultData)
+		testData = ["hi", "from", "Python"]
+		resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
+		assert testData == list(byRefParam)
+		assert testData == list(resultData)
+		testData = [1, 2.0, "3"]
+		resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
+		assert testData == list(byRefParam)
+		assert testData == list(resultData)
 
 		# These are sub's that have a single byref param
 		# Result should be just the byref.
