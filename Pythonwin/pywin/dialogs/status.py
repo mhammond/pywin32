@@ -5,6 +5,7 @@ import threading
 import win32ui
 import win32con
 import win32api
+import time
 
 def MakeProgressDlgTemplate(caption, staticText = ""):
     style = (win32con.DS_MODALFRAME |
@@ -183,7 +184,17 @@ def StatusProgressDialog(title, msg = "", maxticks = 100, parent = None):
 def ThreadedStatusProgressDialog(title, msg = "", maxticks = 100):
 	t = ProgressThread(title, msg, maxticks)
 	t.CreateThread()
-	t.createdEvent.wait(10) # timeout if things go terribly wrong.
+	# Need to run a basic "PumpWaitingMessages" loop just incase we are
+	# running inside Pythonwin.
+	# Basic timeout incase things go terribly wrong.  Ideally we should use
+	# win32event.MsgWaitForMultipleObjects(), but we use a threading module
+	# event - so use a dumb strategy
+	end_time = time.time() + 10
+	while time.time() < end_time:
+		if t.createdEvent.isSet():
+			break
+		win32ui.PumpWaitingMessages()
+		time.sleep(0.1)
 	return t.dialog
 
 def demo():
