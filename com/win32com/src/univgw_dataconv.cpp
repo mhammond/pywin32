@@ -699,10 +699,10 @@ PyObject * dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
 					// Preserve VT_BYREF or VT_ARRAY
 					vtArgType = VT_UI4 | (vtArgType & VT_TYPEMASK);
 				}
-				var.vt = vtArgType;
+				V_VT(&var) = vtArgType;
 				// Copy the data into the variant...
-				SizeOfVT(var.vt, (int *)&cb, NULL);
-				memcpy(&var.lVal, pb, cb);
+				SizeOfVT(V_VT(&var), (int *)&cb, NULL);
+				memcpy(&V_I4(&var), pb, cb);
 				// Convert it into a PyObject:
 				obArg = PyCom_PyObjectFromVariant(&var);
 				break;

@@ -902,7 +902,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 				// If not, it may be an "out" param getting filled, so we leave
 				// it alone.
 				if (V_VT(var)==VT_EMPTY) {
-					var->vt = m_reqdType;
+					V_VT(var) = m_reqdType;
 					assert(m_arrayBuf==NULL); // shouldn't be anything else here!
 					V_ARRAYREF(var) = &m_arrayBuf;
 				}
@@ -1198,7 +1198,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 	}
 	Py_XDECREF(obUse);
 	if (rc)
-		var->vt = m_reqdType;
+		V_VT(var) = m_reqdType;
 	return rc;
 }
 
