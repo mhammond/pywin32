@@ -18,6 +18,11 @@ from win32pipe import *
 from win32api import *
 from ntsecuritycon import *
 
+# Old versions of the service framework would not let you import this
+# module at the top-level.  Now you can, and can check 'Debugging()' and
+# 'RunningAsService()' to check your context.
+import servicemanager
+
 import traceback
 import thread
 
@@ -102,7 +107,6 @@ class TestPipeService(win32serviceutil.ServiceFramework):
     def SvcDoRun(self):
         # Write an event log record - in debug mode we will also
         # see this message printed.
-        import servicemanager
         servicemanager.LogMsg(
                 servicemanager.EVENTLOG_INFORMATION_TYPE,
                 servicemanager.PYS_SERVICE_STARTED,
