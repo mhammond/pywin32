@@ -857,8 +857,9 @@ static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
 
 
 %typedef TCHAR *STRING_OR_ATOM
+%typedef TCHAR *STRING_OR_ATOM_CW
 
-%typemap(python,in) STRING_OR_ATOM {
+%typemap(python,in) STRING_OR_ATOM, STRING_OR_ATOM_CW {
 	if (PyWinObject_AsTCHAR($source, &$target, TRUE))
 		;
 	else { 
@@ -872,7 +873,8 @@ static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
 	}
 }
 
-%typemap(python,freearg) STRING_OR_ATOM {
+// A hack for CreateWindow - need to post-process...
+%typemap(python,freearg) STRING_OR_ATOM_CW {
 	if (PyUnicode_Check($target) || PyString_Check($target))
 		PyWinObject_FreeTCHAR($source);
 	else {
@@ -1317,7 +1319,7 @@ BOOLAPI MessageBeep(UINT type);
 
 // @pyswig int|CreateWindow|Creates a new window.
 HWND CreateWindow( 
-	STRING_OR_ATOM lpClassName, // @pyparm int/string|className||
+	STRING_OR_ATOM_CW lpClassName, // @pyparm int/string|className||
 	TCHAR *INPUT_NULLOK, // @pyparm string|windowTitle||
 	DWORD dwStyle, // @pyparm int|style||The style for the window.
 	int x,  // @pyparm int|x||
@@ -1864,7 +1866,7 @@ BOOLAPI InvalidateRect(HWND hWnd,  RECT *INPUT, BOOL bErase);
 // @pyswig int|CreateWindowEx|Creates a new window with Extended Style.
 HWND CreateWindowEx( 
 	DWORD dwExStyle,      // @pyparm int|dwExStyle||extended window style
-	STRING_OR_ATOM lpClassName, // @pyparm int/string|className||
+	STRING_OR_ATOM_CW lpClassName, // @pyparm int/string|className||
 	TCHAR *INPUT_NULLOK, // @pyparm string|windowTitle||
 	DWORD dwStyle, // @pyparm int|style||The style for the window.
 	int x,  // @pyparm int|x||
