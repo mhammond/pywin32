@@ -525,3 +525,17 @@ def EIRESID(x): return (-1 * (int)(x))
 # Some manually added ones
 CSIDL_COMMON_APPDATA = 35
 CSIDL_LOCAL_APPDATA = 28
+
+SHCONTF_FOLDERS         = 32 # for shell browser
+SHCONTF_NONFOLDERS      = 64 # for default view
+SHCONTF_INCLUDEHIDDEN   = 128 # for hidden/system objects
+
+SHGDN_NORMAL            = 0        # default (display purpose)
+SHGDN_INFOLDER          = 1        # displayed under a folder (relative)
+SHGDN_INCLUDE_NONFILESYS = 0x2000   # if not set, display names for shell name space items that are not in the file system will fail.
+SHGDN_FORADDRESSBAR     = 0x4000   # for displaying in the address (drives dropdown) bar
+SHGDN_FORPARSING        = 0x8000   # for ParseDisplayName or path
+
+SHCONTF_FOLDERS         = 32       # for shell browser
+SHCONTF_NONFOLDERS      = 64       # for default view
+SHCONTF_INCLUDEHIDDEN   = 128      # for hidden/system objects
