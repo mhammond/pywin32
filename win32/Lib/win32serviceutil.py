@@ -23,7 +23,13 @@ def LocatePythonServiceExe(exeName = None):
     if os.path.isfile(exeName): return win32api.GetFullPathName(exeName)
     baseName = os.path.splitext(os.path.basename(exeName))[0]
     try:
-        return win32api.RegQueryValue(win32con.HKEY_LOCAL_MACHINE, "Software\\Python\\%s\\%s" % (baseName, sys.winver))
+        exeName = win32api.RegQueryValue(win32con.HKEY_LOCAL_MACHINE,
+                                         "Software\\Python\\%s\\%s" % (baseName, sys.winver))
+        if os.path.isfile(exeName):
+            return exeName
+        raise RuntimeError, "The executable '%s' is registered as the Python " \
+                            "service exe, but it does not exist as specified" \
+                            % exeName
     except win32api.error:
         # OK - not there - lets go a-searchin'
         for path in sys.path:
@@ -212,11 +218,12 @@ def ChangeServiceConfig(pythonClassString, serviceName, startType = None, errorC
 
 def InstallPythonClassString(pythonClassString, serviceName):
     # Now setup our Python specific entries.
-    key = win32api.RegCreateKey(win32con.HKEY_LOCAL_MACHINE, "System\\CurrentControlSet\\Services\\%s\\PythonClass" % serviceName)
-    try:
-        win32api.RegSetValue(key, None, win32con.REG_SZ, pythonClassString);
-    finally:
-        win32api.RegCloseKey(key)
+    if pythonClassString:
+        key = win32api.RegCreateKey(win32con.HKEY_LOCAL_MACHINE, "System\\CurrentControlSet\\Services\\%s\\PythonClass" % serviceName)
+        try:
+            win32api.RegSetValue(key, None, win32con.REG_SZ, pythonClassString);
+        finally:
+            win32api.RegCloseKey(key)
 
 # Utility functions for Services, to allow persistant properties.
 def SetServiceCustomOption(serviceName, option, value):
@@ -425,7 +432,7 @@ def usage():
     print " --username domain\username : The Username the service is to run under"
     print " --password password : The password for the username"
     print " --startup [manual|auto|disabled] : How the service starts, default = manual"
-    print " --interactive : Allow the service to interactive with the desktop."
+    print " --interactive : Allow the service to interact with the desktop."
     sys.exit(1)
 
 def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstallOptions = "", customOptionHandler = None):
