@@ -158,7 +158,13 @@ def GetTypeLibsForSpec(arg):
 			if len(tlbs)==0:
 				print "Could not locate a type library matching '%s'" % (arg)
 			for spec in tlbs:
-				tlb = pythoncom.LoadRegTypeLib(spec.clsid, spec.major, spec.minor, spec.lcid)
+				# Version numbers not always reliable if enumerated from registry.
+				# (as some libs use hex, other's dont.  Both examples from MS, of course.)
+				if spec.dll is None:
+					tlb = pythoncom.LoadRegTypeLib(spec.clsid, spec.major, spec.minor, spec.lcid)
+				else:
+					tlb = pythoncom.LoadTypeLib(spec.dll)
+				
 				# We have a typelib, but it may not be exactly what we specified
 				# (due to automatic version matching of COM).  So we query what we really have!
 				attr = tlb.GetLibAttr()
@@ -190,7 +196,11 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 		spec.FromTypelib(tlb, str(typelibCLSID))
 		typelibs = [(tlb, spec)]
 	elif type(typelibInfo)==types.InstanceType:
-		tlb = pythoncom.LoadRegTypeLib(typelibInfo.clsid, typelibInfo.major, typelibInfo.minor, typelibInfo.lcid)
+		if typelibInfo.dll is None:
+			# Version numbers not always reliable if enumerated from registry.
+			tlb = pythoncom.LoadRegTypeLib(typelibInfo.clsid, typelibInfo.major, typelibInfo.minor, typelibInfo.lcid)
+		else:
+			tlb = pythoncom.LoadTypeLib(typelibInfo.dll)
 		typelibs = [(tlb, typelibInfo)]
 	elif hasattr(typelibInfo, "GetLibAttr"):
 		# A real typelib object!
