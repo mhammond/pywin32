@@ -422,7 +422,6 @@ py_get_clipboard_owner(PyObject* self, PyObject* args)
 }
 
 
-#if(WINVER >= 0x0500)
 //*****************************************************************************
 //
 // @pymethod int|win32clipboard|GetClipboardSequenceNumber|The
@@ -436,8 +435,19 @@ py_get_clipboard_sequence_number(PyObject* self, PyObject* args)
   CHECK_NO_ARGS2(args, "GetClipboardSequenceNumber");
 
   DWORD rc;
+  typedef HRESULT (WINAPI * PFNGetClipboardSequenceNumber)();
+
+  // @comm This method is not available on some early Windows (eg 95) machines.
+  HMODULE hmod = LoadLibrary("user32.dll");
+  PFNGetClipboardSequenceNumber pfnGetClipboardSequenceNumber = NULL;
+  if (hmod) pfnGetClipboardSequenceNumber=(PFNGetClipboardSequenceNumber)GetProcAddress(hmod, "GetClipboardSequenceNumber");
+  if (pfnGetClipboardSequenceNumber==NULL) {
+    if (hmod) FreeLibrary(hmod);
+    return PyErr_Format(PyExc_RuntimeError, "This version of Windows does not support this function");
+  }
   Py_BEGIN_ALLOW_THREADS;
-  rc = GetClipboardSequenceNumber();
+  rc = (*pfnGetClipboardSequenceNumber)();
+  if (hmod) FreeLibrary(hmod);
   Py_END_ALLOW_THREADS;
 
   return (Py_BuildValue("i", (int)rc));
@@ -457,8 +467,6 @@ py_get_clipboard_sequence_number(PyObject* self, PyObject* args)
   // returns zero. 
 
 }
-#endif /* WINVER >= 0x0500 */
-
 
 //*****************************************************************************
 //
@@ -951,11 +959,9 @@ static struct PyMethodDef clipboard_functions[] = {
   // owner of the clipboard. 
   {"GetClipboardOwner", py_get_clipboard_owner, 1},
 
-#if(WINVER >= 0x0500)
   // @pymeth GetClipboardSequenceNumber|Returns the clipboard sequence number
   // for the current window station. 
   {"GetClipboardSequenceNumber", py_get_clipboard_sequence_number, 1},
-#endif /* WINVER >= 0x0500 */
 
   // @pymeth GetClipboardViewer|Retrieves the handle of the first window in
   // the clipboard viewer chain. 
