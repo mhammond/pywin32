@@ -1,6 +1,8 @@
 // Scintilla source code edit control
-// WinDefs.h - the subset of definitions from Windows needed by Scintilla for GTK+
-// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
+/** @file WinDefs.h
+ ** The subset of definitions from Windows needed by Scintilla for GTK+.
+ **/
+// Copyright 1998-2001 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef WINDEFS_H

@@ -1,6 +1,8 @@
 // Scintilla source code edit control
-// ViewStyle.cxx - store information on how the document is to be viewed
-// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
+/** @file ViewStyle.cxx
+ ** Store information on how the document is to be viewed.
+ **/
+// Copyright 1998-2001 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #include <string.h>
@@ -73,6 +75,8 @@ ViewStyle::ViewStyle(const ViewStyle &source) {
 	selbar.desired = source.selbar.desired;
 	selbarlight.desired = source.selbarlight.desired;
 	caretcolour.desired = source.caretcolour.desired;
+	showCaretLineBackground = source.showCaretLineBackground;
+	caretLineBackground.desired = source.caretLineBackground.desired;
 	edgecolour.desired = source.edgecolour.desired;
 	edgeState = source.edgeState;
 	caretWidth = source.caretWidth;
@@ -120,8 +124,9 @@ void ViewStyle::Init() {
 	selbarlight.desired = Platform::ChromeHighlight();
 	styles[STYLE_LINENUMBER].fore.desired = Colour(0, 0, 0);
 	styles[STYLE_LINENUMBER].back.desired = Platform::Chrome();
-	//caretcolour.desired = Colour(0xff, 0, 0);
 	caretcolour.desired = Colour(0, 0, 0);
+	showCaretLineBackground = false;
+	caretLineBackground.desired = Colour(0xff, 0xff, 0);
 	edgecolour.desired = Colour(0xc0, 0xc0, 0xc0);
 	edgeState = EDGE_NONE;
 	caretWidth = 1;
@@ -174,6 +179,7 @@ void ViewStyle::RefreshColourPalette(Palette &pal, bool want) {
 	pal.WantFind(selbar, want);
 	pal.WantFind(selbarlight, want);
 	pal.WantFind(caretcolour, want);
+	pal.WantFind(caretLineBackground, want);
 	pal.WantFind(edgecolour, want);
 }
 

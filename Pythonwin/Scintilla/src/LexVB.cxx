@@ -1,13 +1,15 @@
-// SciTE - Scintilla based Text Editor
-// LexVB.cxx - lexer for Visual Basic and VBScript
-// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
+// Scintilla source code edit control
+/** @file LexVB.cxx
+ ** Lexer for Visual Basic and VBScript.
+ **/
+// Copyright 1998-2001 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
-#include <stdlib.h> 
-#include <string.h> 
-#include <ctype.h> 
-#include <stdio.h> 
-#include <stdarg.h> 
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 #include "Platform.h"
 
@@ -47,7 +49,7 @@ static void ColouriseVBDoc(unsigned int startPos, int length, int initStyle,
                            WordList *keywordlists[], Accessor &styler) {
 
 	WordList &keywords = *keywordlists[0];
-	
+
 	styler.StartAt(startPos);
 
 	int visibleChars = 0;
@@ -73,7 +75,7 @@ static void ColouriseVBDoc(unsigned int startPos, int length, int initStyle,
 			}
 			visibleChars = 0;
 		}
-		if (!isspace(ch))
+		if (!isspacechar(ch))
 			visibleChars++;
 
 		if (state == SCE_C_DEFAULT) {
@@ -136,4 +138,4 @@ static void ColouriseVBDoc(unsigned int startPos, int length, int initStyle,
 	styler.ColourTo(lengthDoc, state);
 }
 
-LexerModule lmVB(SCLEX_VB, ColouriseVBDoc);
+LexerModule lmVB(SCLEX_VB, ColouriseVBDoc, "vb");
