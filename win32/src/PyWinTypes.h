@@ -227,6 +227,18 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromULARGE_INTEGER(ULARGE_INTEGER &val);
 
 PyObject *PyLong_FromI64(__int64 ival);
 BOOL PyLong_AsI64(PyObject *val, __int64 *lval);
+
+// Some boolean helpers for Python 2.2 and earlier
+#if (PY_VERSION_HEX < 0x02030000 && !defined(PYWIN_NO_BOOL_FROM_LONG))
+// PyBool_FromLong only in 2.3 and later
+inline PyObject *PyBool_FromLong(long v)
+{
+	PyObject *ret= v ? Py_True : Py_False;
+	Py_INCREF(ret);
+    return ret;
+}
+#endif
+
 /*
 ** OVERLAPPED Object and API
 */
