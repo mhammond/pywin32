@@ -21,4 +21,7 @@ pycvs
 *.pyd
 *.hlp
 *.chm
+*.chw
+*.GID
+*.suo
 temp-*
