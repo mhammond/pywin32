@@ -74,6 +74,69 @@ class PIDLTester(win32com.test.util.TestCase):
         self._rtCIDA(["\0"], [ ["\0"] ])
         self._rtCIDA(["\1"], [ ["\2"] ])
         self._rtCIDA(["\0"], [ ["\0"], ["\1"], ["\2"] ])
-        
+
+class FileOperationTester(win32com.test.util.TestCase):
+    def setUp(self):
+        import tempfile
+        self.src_name = os.path.join(tempfile.gettempdir(), "pywin32_testshell")
+        self.dest_name = os.path.join(tempfile.gettempdir(), "pywin32_testshell_dest")
+        self.test_data = "Hello from\0Python"
+        f=file(self.src_name, "wb")
+        f.write(self.test_data)
+        f.close()
+        try:
+            os.unlink(self.dest_name)
+        except os.error:
+            pass
+
+    def tearDown(self):
+        for fname in (self.src_name, self.dest_name):
+            if os.path.isfile(fname):
+                os.unlink(fname)
+
+    def testCopy(self):
+        s = (0, # hwnd,
+             FO_COPY, #operation
+             self.src_name,
+             self.dest_name)
+
+        rc, aborted = shell.SHFileOperation(s)
+        self.failUnless(not aborted)
+        self.failUnlessEqual(0, rc)
+        self.failUnless(os.path.isfile(self.src_name))
+        self.failUnless(os.path.isfile(self.dest_name))
+
+    def testRename(self):
+        s = (0, # hwnd,
+             FO_RENAME, #operation
+             self.src_name,
+             self.dest_name)
+        rc, aborted = shell.SHFileOperation(s)
+        self.failUnless(not aborted)
+        self.failUnlessEqual(0, rc)
+        self.failUnless(os.path.isfile(self.dest_name))
+        self.failUnless(not os.path.isfile(self.src_name))
+
+    def testMove(self):
+        s = (0, # hwnd,
+             FO_MOVE, #operation
+             self.src_name,
+             self.dest_name)
+        rc, aborted = shell.SHFileOperation(s)
+        self.failUnless(not aborted)
+        self.failUnlessEqual(0, rc)
+        self.failUnless(os.path.isfile(self.dest_name))
+        self.failUnless(not os.path.isfile(self.src_name))
+
+    def testDelete(self):
+        s = (0, # hwnd,
+             FO_DELETE, #operation
+             self.src_name, None,
+             FOF_NOCONFIRMATION)
+        rc, aborted = shell.SHFileOperation(s)
+        self.failUnless(not aborted)
+        self.failUnlessEqual(0, rc)
+        self.failUnless(not os.path.isfile(self.src_name))
+
 if __name__=='__main__':
     unittest.main()
