@@ -22,13 +22,14 @@ PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args)
 			// @pyparmalt2 <o SID_IDENTIFIER_AUTHORITY>|idAuthority||The identifier authority.
 			// @pyparmalt2 [int, ...]|subAuthorities||A list of sub authorities.
 			SID_IDENTIFIER_AUTHORITY sid_ia;
-			PyObject *obSubs;
+			PyObject *obSubs, *obSubsTuple;
+			unsigned long sub0, sub1, sub2, sub3, sub4, sub5, sub6, sub7;
+
 			if (!PyArg_ParseTuple(args, "(bbbbbb)O:SID", 
 				&sid_ia.Value[0], &sid_ia.Value[1],&sid_ia.Value[2],
 				&sid_ia.Value[3],&sid_ia.Value[4],&sid_ia.Value[5],
 				&obSubs))
 				return NULL;
-			unsigned long sub0, sub1, sub2, sub3, sub4, sub5, sub6, sub7;
 			if (!PySequence_Check(obSubs)) {
 				PyErr_SetString(PyExc_TypeError, "sub authorities must be a sequence of integers.");
 				return NULL;
@@ -38,19 +39,16 @@ PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args)
 				PyErr_SetString(PyExc_TypeError, "sub authorities sequence size must be <= 8");
 				return NULL;
 			}
-#define GET_SUB(i) if (i<numSubs) { \
-			PyObject *t = PySequence_GetItem(obSubs, i);\
-			sub##i = PyLong_AsUnsignedLong(t);\
-			Py_XDECREF(t);\
-		}
-			GET_SUB(0);
-			GET_SUB(1);
-			GET_SUB(2);
-			GET_SUB(3);
-			GET_SUB(4);
-			GET_SUB(5);
-			GET_SUB(6);
-			GET_SUB(7);
+			obSubsTuple=PySequence_Tuple(obSubs);
+			if (!obSubsTuple)
+				return NULL;
+			BOOL bSuccess=PyArg_ParseTuple(obSubsTuple, "|llllllll:SID",
+				&sub0, &sub1, &sub2, &sub3, &sub4, &sub5, &sub6, &sub7);
+			Py_DECREF(obSubsTuple);
+			if (!bSuccess){
+				PyErr_SetString(PyExc_TypeError, "sub authorities must be a sequence of integers.");
+				return NULL;
+				}
 			PSID pNew;
 			if (!AllocateAndInitializeSid(&sid_ia, numSubs, sub0, sub1, sub2, sub3, sub4, sub5, sub6, sub7, &pNew))
 				return PyWin_SetAPIError("AllocateAndInitializeSid");
