@@ -258,7 +258,7 @@ class ArgFormatterBSTR(ArgFormatterPythonCOM):
 		return "\tob%s = MakeBstrToObj(%s);\n" % \
 			   (self.arg.name, notdirected)
 	def GetBuildForInterfacePostCode(self):
-		return "\tSysFreeString(%s); % (self.arg.name,) + \
+		return "\tSysFreeString(%s);\n" % (self.arg.name,) + \
 		       ArgFormatterPythonCOM.GetBuildForInterfacePostCode(self)
 	def GetBuildForGatewayPostCode(self):
 		return "\tPy_XDECREF(ob%s);\n" % self.arg.name
