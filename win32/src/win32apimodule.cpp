@@ -625,11 +625,7 @@ PyFormatMessageW(PyObject *self, PyObject *args)
 		pSource = (void *)hSource;
 	}
 	else if (flags & FORMAT_MESSAGE_FROM_STRING) {
-		if (!PyUnicode_Check(obSource)) {
-			PyErr_SetString(PyExc_TypeError, "Flags has FORMAT_MESSAGE_FROM_STRING, but object not a Unicode object");
-			goto cleanup;
-		}
-		if (!PyWinObject_AsBstr(obSource, &szSource))
+		if (!PyWinObject_AsWCHAR(obSource, &szSource))
 			goto cleanup;
 		pSource = (void *)szSource;
 	} else
@@ -654,7 +650,7 @@ PyFormatMessageW(PyObject *self, PyObject *args)
 				PyErr_SetString(PyExc_TypeError, "Inserts must be sequence of UnicodeObjects");
 				goto cleanup;
 			}
-			if (!PyWinObject_AsBstr(subObject, pInserts+i)) {
+			if (!PyWinObject_AsWCHAR(subObject, pInserts+i)) {
 				goto cleanup;
 			}
 			Py_DECREF(subObject);
@@ -678,9 +674,10 @@ PyFormatMessageW(PyObject *self, PyObject *args)
 cleanup:
 	if (pInserts) {
 		for (i=0;i<numInserts;i++)
-			SysFreeString(pInserts[i]);
+			PyWinObject_FreeWCHAR(pInserts[i]);
 		free(pInserts);
 	}
+	PyWinObject_FreeWCHAR(szSource);
 	if (resultBuf)
 		LocalFree(resultBuf);
 	return rc;
@@ -3661,7 +3658,7 @@ static PyObject * PyUpdateResource(PyObject *self, PyObject *args)
 	LPWSTR lpType;
 	if ( PyInt_Check(obType) )
 		lpType = MAKEINTRESOURCEW(PyInt_AS_LONG((PyIntObject *)obType));
-	else if (PyWinObject_AsBstr(obType, &lpType) )
+	else if (PyWinObject_AsWCHAR(obType, &lpType) )
 		bFreeType = TRUE;
 	else
 		return ReturnError("Bad type for resource type.", "UpdateResource");
@@ -3669,7 +3666,7 @@ static PyObject * PyUpdateResource(PyObject *self, PyObject *args)
 	LPWSTR lpName;
 	if ( PyInt_Check(obName) )
 		lpName = MAKEINTRESOURCEW(PyInt_AS_LONG((PyIntObject *)obName));
-	else if ( PyWinObject_AsBstr(obName, &lpName) )
+	else if ( PyWinObject_AsWCHAR(obName, &lpName) )
 		bFreeName = TRUE;
 	else {
 		if (bFreeType) PyWinObject_FreeBstr(lpType);
@@ -3677,8 +3674,8 @@ static PyObject * PyUpdateResource(PyObject *self, PyObject *args)
 	}
 
 	BOOL ok = UpdateResourceW(hUpdate, lpType, lpName, wLanguage, lpData, cbData);
-	if (bFreeType) PyWinObject_FreeBstr(lpType);
-	if (bFreeName) PyWinObject_FreeBstr(lpName);
+	if (bFreeType) PyWinObject_FreeWCHAR(lpType);
+	if (bFreeName) PyWinObject_FreeWCHAR(lpName);
 	if ( !ok )
 		return ReturnAPIError("UpdateResource");
 
