@@ -674,14 +674,18 @@ static PyObject *PySHChangeNotify(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @pymethod string/int|shell|DragQueryFile|Notifies the shell that an image in the system image list has changed.
+// @pymethod string/int|shell|DragQueryFile|Notifies the shell that an 
+// image in the system image list has changed.
+// @rdesc If the value for index is -1, the result is the number of 
+// filenames available, otherwise the result is a string with the
+// requested filename.
 static PyObject *PyDragQueryFile(PyObject *self, PyObject *args)
 {
 	int iglobal;
 	UINT index;
 	if(!PyArg_ParseTuple(args, "ii:DragQueryFile", 
-			&iglobal, 
-			&index))
+			&iglobal, // @pyparm int|hglobal||The HGLOBAL object - generally obtained via the 'data_handle' property of a <o PySTGMEDIUM> object.
+			&index)) // @pyparm int|index||The index to retrieve.  If -1, the result if an integer representing the valid index values.
 		return NULL;
 	HDROP hglobal = (HDROP)iglobal;
 	if (index==0xFFFFFFFF) {
@@ -705,7 +709,7 @@ static PyObject *PyDragQueryPoint(PyObject *self, PyObject *args)
 {
 	int iglobal;
 	if(!PyArg_ParseTuple(args, "i:DragQueryFile", 
-			&iglobal))
+			&iglobal)) // @pyparm int|hglobal||The HGLOBAL object - generally obtained the 'data_handle' property of a <o PySTGMEDIUM>
 		return NULL;
 	HDROP hglobal = (HDROP)iglobal;
 	POINT pt;
