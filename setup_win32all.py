@@ -61,6 +61,11 @@ try:
     this_file = __file__
 except NameError:
     this_file = sys.argv[0]
+
+# We get upset if the cwd is not our source dir, but it is a PITA to
+# insist people manually CD there first!
+if os.path.dirname(this_file):
+    os.chdir(os.path.dirname(this_file))
     
 class WinExt (Extension):
     # Base class for all win32 extensions, with some predefined
