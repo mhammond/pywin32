@@ -8,8 +8,6 @@ sys.path.append(r"..\win32\scripts\VersionStamp")
 
 import brandWin32, brandWin32com, brandPythonwin
 
-#import pythoncom
-
 def doit():
 	desc = None
 	auto=0
@@ -86,6 +84,11 @@ def doit():
 		if not os.path.isfile(wse_name):
 			print "Can not find '%s' - can not generate installation" % wse_name
 			return
+		target_name = "win32all-" + str(build) + ".exe"
+		if os.path.isfile(target_name):
+			print "WARNING: %s already exists - press ENTER to have it killed anyway" % target_name
+			raw_input()
+
 		defines_str = ""
 		for d in defines:
 			defines_str += "/D" + d + " "
