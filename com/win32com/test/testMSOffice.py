@@ -43,9 +43,7 @@ def TestWord():
 	try:
 		print "Starting MSWord for generated test"
 		# Typelib, lcid, major and minor for the typelib
-		if gencache.EnsureModule("{00020905-0000-0000-C000-000000000046}", 1033, 8, 0, bForDemand=1) is None :
-# This should not be necessary - Office 2000 should have the same library ID, just different version numbers??
-#		   and gencache.EnsureModule('{91493440-5A91-11CF-8700-00AA0060263B}', 0, 2,14) is None: # Office 2000
+		if gencache.EnsureModule("{00020905-0000-0000-C000-000000000046}", 1033, 8, 1, bForDemand=1) is None :
 			raise ImportError, "Can not load the Word8 typelibrary."
 		word = win32com.client.Dispatch("Word.Application.8")
 		TestWord8(word)
