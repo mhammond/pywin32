@@ -82,17 +82,22 @@ PyObject *PyCom_PyObjectFromIUnknown(IUnknown *punk, REFIID riid, BOOL bAddRef /
 	Py_DECREF(obiid);
 	if (createType==NULL) {
 		PyErr_Clear();
-		return OleSetTypeError("There is no interface object registered that supports this IID");
+		PyErr_SetString(PyExc_TypeError, "There is no interface object registered that supports this IID");
+		return NULL;
 	}
 
 	// ensure the object we fetched is actually one of our interface types
-	if ( !PyComTypeObject::is_interface_type(createType) )
-		return OleSetTypeError("The Python IID map is invalid - the value is not an interface type object");
+	if ( !PyComTypeObject::is_interface_type(createType) ) {
+		PyErr_SetString(PyExc_TypeError, "The Python IID map is invalid - the value is not an interface type object");
+		return NULL;
+	}
 
 	// we can now safely cast the thing to a PyComTypeObject and use it
 	PyComTypeObject *myCreateType = (PyComTypeObject *)createType;
-	if (myCreateType->ctor==NULL)
-		return OleSetTypeError("The type does not declare a PyCom constructor");
+	if (myCreateType->ctor==NULL) {
+		PyErr_SetString(PyExc_TypeError, "The type does not declare a PyCom constructor");
+		return NULL;
+	}
 
 	PyIUnknown *ret = (*myCreateType->ctor)(punk);
 #ifdef _DEBUG_LIFETIMES
@@ -128,7 +133,7 @@ BOOL PyCom_InterfaceFromPyObject(PyObject *ob, REFIID iid, LPVOID *ppv, BOOL bNo
 	{
 		// don't overwrite an error message
 		if ( !PyErr_Occurred() )
-			OleSetTypeError("the Python object is invalid");
+			PyErr_SetString(PyExc_TypeError, "The Python object is invalid");
 		return FALSE;
 	}
 	if ( ob == Py_None )
@@ -140,7 +145,7 @@ BOOL PyCom_InterfaceFromPyObject(PyObject *ob, REFIID iid, LPVOID *ppv, BOOL bNo
 		}
 		else
 		{
-			OleSetTypeError("None is not a invalid interface object in this context");
+			PyErr_SetString(PyExc_TypeError, "None is not a invalid interface object in this context");
 			return FALSE;
 		}
 	}
@@ -160,7 +165,7 @@ BOOL PyCom_InterfaceFromPyObject(PyObject *ob, REFIID iid, LPVOID *ppv, BOOL bNo
 	Py_END_ALLOW_THREADS
 	if ( FAILED(hr) )
 	{
-		OleSetOleError(hr);
+		PyCom_BuildPyException(hr);
 		return FALSE;
 	}
 	/* note: the QI added a ref for the return value */
@@ -272,7 +277,7 @@ BOOL PyCom_PyObjectAsSTATSTG(PyObject *ob, STATSTG *pStat, DWORD flags /* = 0 */
 	if (!PyWinObject_AsULARGE_INTEGER(obSize, &pStat->cbSize))
 		return FALSE;
 	if (!PyTime_Check(obmtime) || !PyTime_Check(obctime) || !PyTime_Check(obatime)) {
-		OleSetTypeError("The time entries in a STATSTG tuple must be PyTime objects");
+		PyErr_SetString(PyExc_TypeError, "The time entries in a STATSTG tuple must be PyTime objects");
 		return FALSE;
 	}
 	if (!((PyTime *)obmtime)->GetTime(&pStat->mtime))

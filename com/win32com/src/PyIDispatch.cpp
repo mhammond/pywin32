@@ -4,6 +4,13 @@
 #include "stdafx.h"
 #include "PythonCOM.h"
 
+// A little helper just for this file
+static PyObject* OleSetTypeError(char *msg)
+{
+	PyErr_SetString(PyExc_TypeError, msg);
+	return NULL;
+}
+
 static BOOL HandledDispatchFailure(HRESULT hr, EXCEPINFO *einfo, UINT nArgErr, UINT cArgs)
 {
 	if ( hr == DISP_E_EXCEPTION )
@@ -13,7 +20,7 @@ static BOOL HandledDispatchFailure(HRESULT hr, EXCEPINFO *einfo, UINT nArgErr, U
 			nArgErr = -1;
 		else
 			nArgErr = cArgs - nArgErr;	/* convert to usable index */
-		OleSetOleError(hr, einfo, nArgErr);
+		PyCom_BuildPyExceptionFromEXCEPINFO(hr, einfo, nArgErr);
 		return TRUE;
 	}
 
@@ -23,7 +30,7 @@ static BOOL HandledDispatchFailure(HRESULT hr, EXCEPINFO *einfo, UINT nArgErr, U
 			nArgErr = -1;
 		else
 			nArgErr = cArgs - nArgErr;	/* convert to usable index */
-		OleSetOleError(hr, NULL, nArgErr);
+		PyCom_BuildPyExceptionFromEXCEPINFO(hr, NULL, nArgErr);
 		return TRUE;
 	}
 	return FALSE;
@@ -110,7 +117,7 @@ PyObject *PyIDispatch::GetIDsOfNames(PyObject *self, PyObject *args)
 	delete [] rgszNames;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMyDispatch, IID_IDispatch);
 
 	PyObject *result;
 
@@ -319,7 +326,10 @@ PyObject * PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
 
 	if (argTypesLen>0) {
 		ArgHelpers = new PythonOleArgHelper[argTypesLen]; // new may! except.
-		if (ArgHelpers==NULL) return OleSetMemoryError("Allocating ArgHelpers array");
+		if (ArgHelpers==NULL) {
+			PyErr_SetString(PyExc_MemoryError, "Allocating ArgHelpers array");
+			return NULL;
+		}
 		for ( i = 0; i < (UINT)argTypesLen; i++ ) {
 			if (!ArgHelpers[i].ParseTypeInformation(PyTuple_GET_ITEM(argsElemDescArray,i)))
 				goto error;
@@ -336,7 +346,7 @@ PyObject * PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
 	if ( dispparams.cArgs ) {
 		dispparams.rgvarg = new VARIANTARG[dispparams.cArgs];
 		if (dispparams.rgvarg==NULL) {
-			OleSetMemoryError("Allocating dispparams.rgvarg array");
+			PyErr_SetString(PyExc_MemoryError, "Allocating dispparams.rgvarg array");
 			goto error;
 		}
 
@@ -362,7 +372,7 @@ PyObject * PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
 	}
 
 	if (!resultArgHelper.ParseTypeInformation(resultElemDesc)) {
-		OleSetError("The return type information could not be parsed");
+		PyCom_BuildInternalPyException("The return type information could not be parsed");
 		goto error;
 	}
 
@@ -458,7 +468,7 @@ PyObject *PyIDispatch::GetTypeInfo(PyObject *self, PyObject *args)
 	SCODE sc = pMyDispatch->GetTypeInfo(0, locale, &pti);
 	PY_INTERFACE_POSTCALL;
 	if (sc!=S_OK) // S_OK is only acceptable result.
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc, pMyDispatch, IID_IDispatch);
 	return PyCom_PyObjectFromIUnknown(pti, IID_ITypeInfo);
 }
 
@@ -475,7 +485,7 @@ PyObject *PyIDispatch::GetTypeInfoCount(PyObject *self, PyObject *args)
 	HRESULT hr = pMyDispatch->GetTypeInfoCount(&ret);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMyDispatch, IID_IDispatch);
 	return Py_BuildValue("i", ret);
 }
 

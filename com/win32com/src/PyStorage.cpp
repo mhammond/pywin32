@@ -23,7 +23,7 @@ PyObject *pythoncom_ReadClassStg(PyObject *self, PyObject *args)
 	HRESULT hr = ReadClassStg(pStorage, &clsidRet);
 	pStorage->Release();
 	PY_INTERFACE_POSTCALL;
-	if (FAILED(hr)) return OleSetOleError(hr);
+	if (FAILED(hr)) return PyCom_BuildPyException(hr);
 	return PyWinObject_FromIID(clsidRet);
 }
 // @pymethod |pythoncom|WriteClassStg|Writes a CLSID to a storage.
@@ -48,7 +48,7 @@ PyObject *pythoncom_WriteClassStg(PyObject *self, PyObject *args)
 	HRESULT hr = WriteClassStg(pStorage, clsid);
 	pStorage->Release();
 	PY_INTERFACE_POSTCALL;
-	if (FAILED(hr)) return OleSetOleError(hr);
+	if (FAILED(hr)) return PyCom_BuildPyException(hr);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -73,7 +73,7 @@ PyObject *pythoncom_StgCreateDocfile(PyObject *self, PyObject *args)
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = StgCreateDocfile(bstrName, mode, reserved, &pResult);
 	PY_INTERFACE_POSTCALL;
-	if (FAILED(hr)) return OleSetOleError(hr);
+	if (FAILED(hr)) return PyCom_BuildPyException(hr);
 	return PyCom_PyObjectFromIUnknown(pResult, IID_IStorage, FALSE);
 }
 
@@ -98,7 +98,7 @@ PyObject *pythoncom_StgCreateDocfileOnILockBytes(PyObject *self, PyObject *args)
 	HRESULT hr = StgCreateDocfileOnILockBytes(plb, mode, reserved, &pResult);
 	plb->Release();
 	PY_INTERFACE_POSTCALL;
-	if (FAILED(hr)) return OleSetOleError(hr);
+	if (FAILED(hr)) return PyCom_BuildPyException(hr);
 	return PyCom_PyObjectFromIUnknown(pResult, IID_IStorage, FALSE);
 }
 
@@ -116,7 +116,7 @@ PyObject *pythoncom_StgIsStorageFile(PyObject *self, PyObject *args)
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = StgIsStorageFile(bstrName);
 	PY_INTERFACE_POSTCALL;
-	if (FAILED(hr)) return OleSetOleError(hr);
+	if (FAILED(hr)) return PyCom_BuildPyException(hr);
 	// @rdesc The return value is 1 if a storage file, else 0
 	return PyInt_FromLong(hr==0);
 }
@@ -149,7 +149,7 @@ PyObject *pythoncom_StgOpenStorage(PyObject *self, PyObject *args)
 	HRESULT hr = StgOpenStorage(bstrName, pOther, mode, NULL, reserved, &pResult);
 	if (pOther) pOther->Release();
 	PY_INTERFACE_POSTCALL;
-	if (FAILED(hr)) return OleSetOleError(hr);
+	if (FAILED(hr)) return PyCom_BuildPyException(hr);
 	return PyCom_PyObjectFromIUnknown(pResult, IID_IStorage, FALSE);
 }
 

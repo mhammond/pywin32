@@ -143,7 +143,7 @@ STDMETHODIMP CPyFactory::CreateNewPythonInstance(REFCLSID rclsid, REFCLSID rReqi
 	Py_DECREF(pPyModule);
 
 
-	HRESULT hr = PyCom_HandlePythonFailureToCOM();
+	HRESULT hr = PyCom_SetCOMErrorFromPyException(IID_IClassFactory);
 //	if ( !*ppNewInstance )PyRun_SimpleString("import traceback;traceback.print_exc()");
 //	PyErr_Clear();	/* ### what to do with exceptions? ... */
 

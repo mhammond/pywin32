@@ -53,7 +53,7 @@ PyObject *PyIClassFactory::CreateInstance(PyObject *self, PyObject *args)
 	if (pUnk) pUnk->Release();
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pClassFactory, IID_IClassFactory);
 	// @rdesc The result object will always be derived from PyIUnknown, but will be of the
 	// type specified by iid.
 	return PyCom_PyObjectFromIUnknown(pRet, iid);
@@ -72,7 +72,7 @@ PyObject *PyIClassFactory::LockServer(PyObject *self, PyObject *args)
 	HRESULT hr = pClassFactory->LockServer(bInc);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pClassFactory, IID_IClassFactory);
 	Py_INCREF(Py_None);
 	return Py_None;
 }

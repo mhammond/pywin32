@@ -381,7 +381,7 @@ HRESULT DoRegisterUnregister(LPCSTR fileName, int argc, char **argv)
 	
 		if (PyRun_SimpleFile(fp, (char *)fileName) != 0) {
 			// Convert the Python error to a HRESULT.
-			hr = PyCom_HandlePythonFailureToCOM();
+			hr = PyCom_SetCOMErrorFromPyException();
 		}
 	} // End scope.
 #ifdef MS_WINCE

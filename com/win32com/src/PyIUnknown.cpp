@@ -113,12 +113,12 @@ PyObject * PyIUnknown::repr()
 /*static*/ IUnknown *PyIUnknown::GetI(PyObject *self)
 {
 	if (self==NULL) {
-		OleSetError("The Python object is invalid");
+		PyCom_BuildInternalPyException("The Python object is invalid");
 		return NULL;
 	}
 	PyIUnknown *pPyUnk = (PyIUnknown *)self;
 	if (pPyUnk->m_obj==NULL) {
-		OleSetError(szErrMsgObjectReleased);
+		PyCom_BuildInternalPyException(szErrMsgObjectReleased);
 		return NULL;
 	}
 	return pPyUnk->m_obj;
@@ -218,7 +218,7 @@ PyObject *PyIUnknown::QueryInterface(PyObject *self, PyObject *args)
 
 	/* Note that this failure may include E_NOINTERFACE */
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMyUnknown, IID_IUnknown);
 
 	/* Return a type based on the IID (with no extra ref) */
 	PyObject *rc = PyCom_PyObjectFromIUnknown(punk, iid, FALSE);

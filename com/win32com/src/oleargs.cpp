@@ -9,10 +9,17 @@ extern void PyCom_LogF(const TCHAR *fmt, ...);
 static BOOL PyCom_SAFEARRAYFromPyObject(PyObject *obj, SAFEARRAY **ppSA, VARENUM vt = VT_VARIANT);
 static PyObject *PyCom_PyObjectFromSAFEARRAY(SAFEARRAY *psa, VARENUM vt = VT_VARIANT );
 
+// A little helper just for this file
+static PyObject* OleSetTypeError(char *msg)
+{
+	PyErr_SetString(PyExc_TypeError, msg);
+	return NULL;
+}
+
 #ifdef UNICODE
 // In a Unicode environment, we provide a helper that
 // converts the argument to a string before raising the error.
-PyObject* OleSetTypeErrorW(TCHAR *msg)
+static PyObject* OleSetTypeErrorW(TCHAR *msg)
 {
 	PyObject *obMsg = PyString_FromUnicode(msg);
 	if (obMsg) {
@@ -42,7 +49,7 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 	if ( PyString_Check(obj) || PyUnicode_Check(obj) )
 	{
 		if ( !PyWinObject_AsBstr(obj, &V_BSTR(var)) ) {
-			OleSetMemoryError("Making BSTR for variant");
+			PyErr_SetString(PyExc_MemoryError, "Making BSTR for variant");
 			return FALSE;
 		}
 		V_VT(var) = VT_BSTR;
@@ -337,7 +344,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
 			void *ob_buf, *sa_buf;
 			HRESULT hr = SafeArrayAccessData(pSA,&sa_buf);
 			if (FAILED(hr)) {
-				OleSetOleError(hr);
+				PyCom_BuildPyException(hr);
 				return FALSE;
 			}
 			pb->bf_getreadbuffer(obj, 0, &ob_buf);
@@ -391,7 +398,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
 				HRESULT hr = SafeArrayPutElement(pSA, pIndices, pvData);
 				VariantClear(&element);
 				if ( FAILED(hr) ) {
-					OleSetError("Could not set the SAFEARRAY element");
+					PyCom_BuildInternalPyException("Could not set the SAFEARRAY element");
 					ok = FALSE;
 				}
 			}
@@ -467,7 +474,7 @@ static BOOL PyCom_SAFEARRAYFromPyObject(PyObject *obj, SAFEARRAY **ppSA, VARENUM
 	SAFEARRAY FAR* psa = SafeArrayCreate(vt, cDims, pBounds);
 	if ( psa == NULL ) {
 		delete pBounds;
-		OleSetMemoryError("CreatingSafeArray");
+		PyErr_SetString(PyExc_MemoryError, "CreatingSafeArray");
 		return FALSE;
 	}
 	LONG *indices = new LONG[cDims];
@@ -572,7 +579,7 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
 			OleSetTypeError("The VARIANT type is not supported for SAFEARRAYS");
 	}
 	if (FAILED(hres)) {
-		OleSetOleError(hres);
+		PyCom_BuildPyException(hres);
 		Py_XDECREF(subitem);
 		subitem =  NULL;
 	}
@@ -588,16 +595,16 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYBuildDimension(SAFEARRAY *psa, VAREN
 	long lb, ub;
 	HRESULT hres = SafeArrayGetLBound(psa, dimNo, &lb);
 	if (FAILED(hres))
-		return OleSetOleError(hres);
+		return PyCom_BuildPyException(hres);
 	hres = SafeArrayGetUBound(psa, dimNo, &ub);
 	if (FAILED(hres))
-		return OleSetOleError(hres);
+		return PyCom_BuildPyException(hres);
 	// First we take a shortcut for VT_UI1 (ie, binary) buffers.
 	if (vt==VT_UI1) {
 		void *ob_buf, *sa_buf;
 		HRESULT hres = SafeArrayAccessData(psa,&sa_buf);
 		if (FAILED(hres))
-			return OleSetOleError(hres);
+			return PyCom_BuildPyException(hres);
 		long cElems = ub-lb+1;
 		long dataSize = cElems * sizeof(unsigned char);
 		PyObject *ret = PyBuffer_New(dataSize);
