@@ -7,7 +7,7 @@ error = win32api.error # The error the evtlog module raises.
 
 langid = win32api.MAKELANGID(win32con.LANG_NEUTRAL, win32con.SUBLANG_NEUTRAL)
 
-def AddSourceToRegistry(appName, msgDLL, eventLogType = "Application", eventLogFlags = None):
+def AddSourceToRegistry(appName, msgDLL = None, eventLogType = "Application", eventLogFlags = None):
   """Add a source of messages to the event log.
 
   Allows Python program to register a custom source of messages in the
@@ -26,6 +26,9 @@ def AddSourceToRegistry(appName, msgDLL, eventLogType = "Application", eventLogF
   # new source name to the registry by opening a new registry subkey
   # under the Application key and adding registry values to the new
   # subkey. 
+
+  if msgDLL is None:
+    msgDLL = win32evtlog.__file__
 
   # Create a new key for our application 
   hkey = win32api.RegCreateKey(win32con.HKEY_LOCAL_MACHINE, \
