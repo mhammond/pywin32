@@ -857,7 +857,6 @@ static PyObject* ITypeCompBind( ITypeComp* pTC, OLECHAR* S, unsigned short w )
 	BINDPTR			BP;
 	PyObject*		ret;
 	unsigned long	hashval = 0;
-
 	PY_INTERFACE_PRECALL;
 #ifndef MS_WINCE
 	// appears in the headers for CE, but wont link!?
@@ -868,26 +867,47 @@ static PyObject* ITypeCompBind( ITypeComp* pTC, OLECHAR* S, unsigned short w )
 	if (FAILED(sc))
 		return PyCom_BuildPyException(sc);
 	switch(DK){
-		case DESCKIND_NONE:
-			Py_INCREF(Py_None);
-			ret = Py_None;
-			break;
 		case DESCKIND_FUNCDESC:
 			ret = PyObject_FromFUNCDESC(BP.lpfuncdesc);
+			pI->ReleaseFuncDesc(BP.lpfuncdesc);
 			break;
 		case DESCKIND_VARDESC:
 			ret = PyObject_FromVARDESC(BP.lpvardesc);
+			pI->ReleaseVarDesc(BP.lpvardesc);
 			break;
 		case DESCKIND_TYPECOMP:
-			ret = PyCom_PyObjectFromIUnknown(BP.lptcomp, IID_ITypeComp);
+			ret = PyCom_PyObjectFromIUnknown(BP.lptcomp, IID_ITypeComp, FALSE);
 			break;
 		case DESCKIND_IMPLICITAPPOBJ:
 			ITypeComp* pTC2;
 			pI->GetTypeComp(&pTC2);
-			ret = Py_BuildValue("(OO)", PyObject_FromVARDESC(BP.lpvardesc), ITypeCompBind(pTC2,S,w));
+			ret = PyTuple_New(2);
+			if (ret) {
+				// NOTE: SET_ITEM consumes the refcounts.
+				PyTuple_SET_ITEM( ret, 0, PyObject_FromVARDESC(BP.lpvardesc) );
+				PyTuple_SET_ITEM( ret, 1, ITypeCompBind(pTC2,S,w) );
+			}
+			pTC2->Release();
+			pI->ReleaseVarDesc(BP.lpvardesc);
+			break;
+
+		case DESCKIND_NONE:
+		default:
+			Py_INCREF(Py_None);
+			ret = Py_None;
 			break;
 		}
-	return Py_BuildValue( "(iO)", (int)DK, ret );
+	if (pI)
+		pI->Release();
+	if (ret == NULL)
+		return NULL;
+	PyObject *real_ret = PyTuple_New(2);
+	if (real_ret==NULL)
+		return NULL;
+	// NOTE: SET_ITEM consumes the refcounts.
+	PyTuple_SET_ITEM(real_ret, 0, PyInt_FromLong(DK) );
+	PyTuple_SET_ITEM(real_ret, 1, ret );
+	return real_ret;
 }
 
 PyObject *PyITypeComp::Bind(OLECHAR* s,unsigned short w)
