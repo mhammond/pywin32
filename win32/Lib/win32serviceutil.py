@@ -433,6 +433,9 @@ def usage():
     print " --password password : The password for the username"
     print " --startup [manual|auto|disabled] : How the service starts, default = manual"
     print " --interactive : Allow the service to interact with the desktop."
+    print " --perfmonini file: .ini file to use for registering performance monitor data"
+    print " --perfmondll file: .dll file to use when querying the service for"
+    print "   performance data, default = perfmondata.dll"
     sys.exit(1)
 
 def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstallOptions = "", customOptionHandler = None):
