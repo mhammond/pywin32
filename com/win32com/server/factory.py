@@ -14,7 +14,7 @@ def RegisterClassFactories(clsids, flags = None, clsctx = None):
 		if clsid[0] not in ['-', '/']:
 			factory = pythoncom.MakePyFactory(clsid)
 			regId = pythoncom.CoRegisterClassObject(clsid, factory, clsctx, flags)
-			ret.append(factory, regId)
+			ret.append((factory, regId))
 	return ret
 
 def RevokeClassFactories(infos):
