@@ -3671,6 +3671,21 @@ static PyObject * PyEndUpdateResource(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+BOOL PyWinObject_AsResourceID(PyObject *ob, long *resource_id)
+{
+	// resource names and types can be either string pointers or long ints
+	if (PyWinObject_AsWCHAR(ob, (WCHAR **)resource_id))
+		return TRUE;
+	PyErr_Clear();
+	if (PyInt_Check(ob)){
+		*resource_id=PyInt_AsLong(ob);
+		return TRUE;
+		}
+	PyErr_Clear();
+	PyErr_SetString(PyExc_TypeError, "Resource name/type must be integer or string");
+	return FALSE;
+}
+
 BOOL CALLBACK EnumResProc(HMODULE module, LPCSTR type, LPSTR name, PyObject
 *param)
 {
@@ -3688,6 +3703,7 @@ BOOL CALLBACK EnumResProc(HMODULE module, LPCSTR type, LPSTR name, PyObject
 		pyname = PyString_FromString(name);
 	}
 	PyList_Append(param, pyname);
+	Py_DECREF(pyname);
 	return TRUE;
 }
 
@@ -3725,6 +3741,87 @@ PyObject *PyEnumResourceNames(PyObject *, PyObject *args)
 	return result;
 }
 
+BOOL CALLBACK EnumResourceTypesProc(HMODULE hmodule, WCHAR* typname, PyObject *ret)
+{
+	PyObject *obname=NULL;
+	if (IS_INTRESOURCE(typname))
+		obname=PyInt_FromLong((LONG)typname);
+	else
+		obname=PyWinObject_FromWCHAR(typname);
+	if (obname==NULL)
+		return FALSE;
+	PyList_Append(ret, obname);
+	Py_DECREF(obname);
+	return TRUE;
+}
+
+// @pymethod [<o PyUnicode>,...]|win32api|EnumResourceTypes|Return name or integer id of all resource types contained in module
+PyObject *PyEnumResourceTypes(PyObject *, PyObject *args)
+{
+	PyObject *ret=NULL, *pyhandle=NULL;
+	HMODULE hmodule;
+
+	// @pyparm <o PyHandle>|hmodule||The handle to the module to enumerate.
+	if (!PyArg_ParseTuple(args, "O:EnumResourceTypes", &pyhandle))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(pyhandle, (void **)&hmodule))
+		return NULL;
+	ret=PyList_New(0);
+	if(!EnumResourceTypesW(hmodule, 
+			reinterpret_cast<ENUMRESTYPEPROCW>(EnumResourceTypesProc),
+			reinterpret_cast<LONG>(ret))){
+		Py_DECREF(ret);
+		ret=NULL;
+		PyWin_SetAPIError("EnumResourceTypes",GetLastError());
+		}
+	return ret;
+}
+
+BOOL CALLBACK EnumResourceLanguagesProc(HMODULE hmodule, WCHAR* typname, WCHAR *resname, WORD wIDLanguage, PyObject *ret)
+{
+	long resid;
+	resid=wIDLanguage;
+	PyObject *oblangid = PyInt_FromLong(resid);
+	PyList_Append(ret, oblangid);
+	Py_DECREF(oblangid);
+	return TRUE;
+}
+
+// @pymethod [<o PyUnicode>,...]|win32api|EnumResourceLanguages|List languages for a resource
+PyObject *PyEnumResourceLanguages(PyObject *, PyObject *args)
+{
+	PyObject *ret=NULL, *pyhandle=NULL;
+	HMODULE hmodule;
+	WCHAR *resname=NULL, *typname=NULL;
+	PyObject *obresname=NULL, *obtypname=NULL;
+		// @pyparm <o PyHandle>|hmodule||Handle to the module that contains resource
+		// @pyparm string/unicode/int|lpType||Resource type, can be string or integer
+		// @pyparm string/unicode/int|lpName||Resource name, can be string or integer
+	if (!PyArg_ParseTuple(args, "OOO:EnumResourceLanguages", &pyhandle, &obtypname, &obresname))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(pyhandle, (void **)&hmodule))
+		return NULL;
+	if(!PyWinObject_AsResourceID(obtypname,(long *)&typname))
+		goto done;
+	if(!PyWinObject_AsResourceID(obresname,(long *)&resname))
+		goto done;
+	ret=PyList_New(0);
+	if(!EnumResourceLanguagesW(hmodule,
+			typname,
+			resname,
+			reinterpret_cast<ENUMRESLANGPROCW>(EnumResourceLanguagesProc),
+			reinterpret_cast<LONG>(ret))){
+		Py_DECREF(ret);
+		ret=NULL;
+		PyWin_SetAPIError("EnumResourceLanguages",GetLastError());
+		}
+done:
+	if ((typname!=NULL)&&(!IS_INTRESOURCE(typname)))
+		PyWinObject_FreeWCHAR(typname);
+	if ((resname!=NULL)&&(!IS_INTRESOURCE(resname)))
+		PyWinObject_FreeWCHAR(resname);
+	return ret;
+}
 
 // @pymethod <o PyUnicode>|win32api|Unicode|Creates a new Unicode object
 PYWINTYPES_EXPORT PyObject *PyWin_NewUnicode(PyObject *self, PyObject *args);
@@ -4078,7 +4175,9 @@ static struct PyMethodDef win32api_functions[] = {
 	{"DragFinish",			PyDragFinish,       1}, // @pymeth DragFinish|Free memory associated with dropped files.
 	{"DuplicateHandle",     PyDuplicateHandle,  1}, // @pymeth DuplicateHandle|Duplicates a handle.
 	{"EndUpdateResource",   PyEndUpdateResource, 1 }, // @pymeth EndUpdateResource|Ends a resource update cycle of a PE file.
+	{"EnumResourceLanguages",   PyEnumResourceLanguages, 1 }, // @pymeth EnumResourceLanguages|List languages for specified resource
 	{"EnumResourceNames",   PyEnumResourceNames, 1 }, // @pymeth EnumResourceNames|Enumerates all the resources of the specified type from the nominated file.
+	{"EnumResourceTypes",   PyEnumResourceTypes, 1 }, // @pymeth EnumResourceTypes|Return list of all resource types contained in module
 	{"ExpandEnvironmentStrings",PyExpandEnvironmentStrings, 1}, // @pymeth ExpandEnvironmentStrings|Expands environment-variable strings and replaces them with their defined values. 
 	{"ExitWindows",         PyExitWindows,      1}, // @pymeth ExitWindows|Logs off the current user
 	{"ExitWindowsEx",       PyExitWindowsEx,      1}, // @pymeth ExitWindowsEx|either logs off the current user, shuts down the system, or shuts down and restarts the system.
@@ -4293,4 +4392,5 @@ initwin32api(void)
   
   
   
+
 
