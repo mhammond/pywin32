@@ -2,7 +2,7 @@
 
 import unittest
 
-import win32api, win32con, win32event
+import win32api, win32con, win32event, winerror
 import sys, os
 
 class CurrentUserTestCase(unittest.TestCase):
@@ -74,10 +74,28 @@ class FileNames(unittest.TestCase):
         long_name = win32api.GetLongPathName(short_name)
         self.failUnless(long_name==fname, \
                         "Expected long name ('%s') to be original name ('%s')" % (long_name, fname))
+        self.failUnlessEqual(long_name, win32api.GetLongPathNameW(short_name))
         long_name = win32api.GetLongPathNameW(short_name)
         self.failUnless(type(long_name)==unicode, "GetLongPathNameW returned type '%s'" % (type(long_name),))
         self.failUnless(long_name==fname, \
                         "Expected long name ('%s') to be original name ('%s')" % (long_name, fname))
+
+    def testLongLongPathNames(self):
+        # We need filename where the FQN is > 256 - simplest way is to create a
+        # 250 character directory in the cwd.
+        import win32file
+        basename = "a" * 250
+        fname = "\\\\?\\" + os.path.join(os.getcwd(), basename)
+        try:
+            win32file.CreateDirectoryW(fname, None)
+        except win32api.error, details:
+            if details[0]!=winerror.ERROR_ALREADY_EXISTS:
+                raise
+        try:
+            long_name = win32api.GetLongPathNameW(fname)
+            self.failUnlessEqual(long_name, fname)
+        finally:
+            win32file.RemoveDirectory(fname)
 
 class FormatMessage(unittest.TestCase):
     def test_FromString(self):

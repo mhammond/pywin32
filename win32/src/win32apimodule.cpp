@@ -1604,6 +1604,7 @@ PyGetLongPathNameW (PyObject *self, PyObject *args)
 {
 	WCHAR pathBuf[MAX_PATH];
 	WCHAR *fileName;
+	PyObject *obLongPathNameW = NULL;
 	if (!myGetLongPathNameW)
 		PyErr_SetString(PyExc_NotImplementedError, "GetLongPathNameW does not exist in this version of Windows");
 	// @pyparm string|fileName||The file name.
@@ -1613,16 +1614,44 @@ PyGetLongPathNameW (PyObject *self, PyObject *args)
 	if (!PyWinObject_AsWCHAR(obFileName, &fileName))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
-	BOOL ok = (*myGetLongPathNameW)(fileName, pathBuf, sizeof(pathBuf)/sizeof(pathBuf[0]));
+	DWORD length = (*myGetLongPathNameW)(fileName, pathBuf, sizeof(pathBuf)/sizeof(pathBuf[0]));
 	PyW32_END_ALLOW_THREADS
+	if (length)
+	{
+		if (length < sizeof(pathBuf)/sizeof(pathBuf[0]))
+			obLongPathNameW = PyWinObject_FromWCHAR(pathBuf);
+		else
+		{
+			// retry with a buffer that is big enough.  Now we know the
+			// size and that it is big, avoid double-handling.
+			Py_UNICODE *buf;
+			// The length is the buffer needed, which includes the NULL.
+			// PyUnicode_FromUnicode adds one.
+			obLongPathNameW = PyUnicode_FromUnicode(NULL, length-1);
+			if (!obLongPathNameW) {
+				PyWinObject_FreeWCHAR(fileName);
+				return NULL;
+			}
+			buf = PyUnicode_AS_UNICODE(obLongPathNameW);
+			PyW32_BEGIN_ALLOW_THREADS
+			DWORD length2 = (*myGetLongPathNameW)(fileName, buf, length);
+			PyW32_END_ALLOW_THREADS
+			if (length2==0) {
+				Py_DECREF(obLongPathNameW);
+				obLongPathNameW = NULL;
+			}
+			// On success, it is the number of chars copied *not* including
+			// the NULL.  Check this is true.
+			assert(length2+1==length);
+		}
+	}
 	PyWinObject_FreeWCHAR(fileName);
-	if (!ok)
-		return ReturnAPIError("GetLongPathName");
-	return PyWinObject_FromWCHAR(pathBuf);
+	if(!obLongPathNameW)
+		return ReturnAPIError("GetLongPathNameW");
+	return obLongPathNameW;
 	// @comm This function may raise a NotImplementedError exception if the version
 	// of Windows does not support this function.
 }
-
 
 // @pymethod string|win32api|GetTickCount|Returns the number of milliseconds since windows started.
 static PyObject *
