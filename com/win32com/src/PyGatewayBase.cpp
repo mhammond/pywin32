@@ -910,7 +910,7 @@ STDMETHODIMP PyGatewayBase::InvokeViaPolicy(
 
 	if (result==NULL)
 		PyCom_LogNonServerError("Python error calling method %s\n", szMethodName);
-	HRESULT hr = PyCom_SetCOMErrorFromPyException(GetIID());
+	HRESULT hr = PyCom_SetAndLogCOMErrorFromPyException(szMethodName, GetIID());
 
 	if ( ppResult )
 		*ppResult = result;
