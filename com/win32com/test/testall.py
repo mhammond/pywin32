@@ -2,6 +2,7 @@ import sys, os, string
 import pythoncom
 import win32com.client
 from util import CheckClean
+import traceback
 
 def GenerateAndRunOldStyle():
     import GenTestScripts
@@ -19,6 +20,22 @@ def CleanGenerated():
     import win32com.client.gencache
     win32com.client.gencache.__init__() # Reset
 
+def _test_with_import(capture, module_name, fn_name, desc):
+    try:
+        mod = __import__(module_name)
+    except (ImportError, pythoncom.com_error):
+        print "The '%s' test can not be run - failed to import test module" % desc
+        return
+    capture.capture()
+    try:
+        func = getattr(mod, fn_name)
+        func()
+        capture.release()
+        print "%s generated %d lines of output" % (desc, capture.get_num_lines_captured())
+    except:
+        traceback.print_exc()
+        capture.release()
+        print "***** %s test FAILED after %d lines of output" % (desc, capture.get_num_lines_captured())
 
 if __name__=='__main__':
     # default to "quick" test.  2==medium, 3==full
@@ -43,38 +60,15 @@ if __name__=='__main__':
         import testMSOfficeEvents
         testMSOfficeEvents.test()
 
-        capture.capture()
-        try:
-            import testAccess
-            testAccess.test()
-            capture.release()
-            print "MSAccess test generated %d lines of output" % capture.get_num_lines_captured()
-        finally:
-            capture.release()
+        _test_with_import(capture, "testAccess", "test", "MS Access")
 
-    try:
-        import testExchange
-    except (ImportError, pythoncom.com_error):
-        print "The Exchange Server tests can not be run..."
-        testExchange = None
-    if testExchange is not None:
-        capture.capture()
-        testExchange.test()
-        capture.release()
-        print "testExchange test generated %d lines of output" % capture.get_num_lines_captured()
+        import testExplorer
+        testExplorer.TestAll()
 
-    import testExplorer
-    testExplorer.TestAll()
+        _test_with_import(capture, "testExchange", "test", "MS Exchange")
 
-
-    capture.capture()
-    try:
-        import testStreams
-        testStreams.test()
-        capture.release()
-        print "testStreams test generated %d lines of output" % capture.get_num_lines_captured()
-    finally:
-        capture.release()
+    _test_with_import(capture, "testStreams", "test", "Streams")
+    _test_with_import(capture, "testWMI", "test", "WMI")
 
     # Execute testPyComTest in its own process so it can play
     # with the Python thread state
