@@ -52,9 +52,7 @@ PyObject *PyIContextMenu::QueryContextMenu(PyObject *self, PyObject *args)
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pICM, IID_IContextMenu );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+	return PyInt_FromLong(hr);
 }
 
 // @pymethod |PyIContextMenu|InvokeCommand|Description of InvokeCommand.
@@ -63,17 +61,17 @@ PyObject *PyIContextMenu::InvokeCommand(PyObject *self, PyObject *args)
 	IContextMenu *pICM = GetI(self);
 	if ( pICM == NULL )
 		return NULL;
-	CMINVOKECOMMANDINFO *lpici;
+	CMINVOKECOMMANDINFO ci;
 	PyObject *oblpici;
 	if ( !PyArg_ParseTuple(args, "O:InvokeCommand", &oblpici) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsCMINVOKECOMMANDINFO( oblpici, &lpici )) bPythonIsHappy = FALSE;
+	if (bPythonIsHappy && !PyObject_AsCMINVOKECOMMANDINFO( oblpici, &ci )) bPythonIsHappy = FALSE;
 	if (!bPythonIsHappy) return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	hr = pICM->InvokeCommand( lpici );
-	PyObject_FreeCMINVOKECOMMANDINFO(lpici);
+	hr = pICM->InvokeCommand( &ci );
+	PyObject_FreeCMINVOKECOMMANDINFO(&ci);
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
@@ -153,9 +151,6 @@ STDMETHODIMP PyGContextMenu::InvokeCommand(
 		/* [unique][in] */ CMINVOKECOMMANDINFO __RPC_FAR * lpici)
 {
 	PY_GATEWAY_METHOD;
-// *** The input argument lpici of type "CMINVOKECOMMANDINFO __RPC_FAR *" was not processed ***
-//   - Please ensure this conversion function exists, and is appropriate
-//   - The type 'CMINVOKECOMMANDINFO' (lpici) is unknown.
 	PyObject *oblpici = PyObject_FromCMINVOKECOMMANDINFO(lpici);
 	if (oblpici==NULL) return PyCom_HandlePythonFailureToCOM();
 	HRESULT hr=InvokeViaPolicy("InvokeCommand", NULL, "(O)", oblpici);
