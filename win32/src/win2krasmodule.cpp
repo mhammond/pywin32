@@ -206,7 +206,14 @@ initwin2kras(void)
 #else
 	const char *modName = "win32ras.pyd";
 #endif
+	// We insist on win32ras being imported - but the least we
+	// can do is attempt the import ourselves!
 	HMODULE hmod = GetModuleHandle(modName);
+	if (hmod==NULL) {
+		PyObject *tempMod = PyImport_ImportModule("win32ras");
+		Py_XDECREF(tempMod);
+		hmod = GetModuleHandle(modName);
+	}
 	if (hmod==NULL) {
 		PyErr_SetString(PyExc_RuntimeError, "You must import 'win32ras' before importing this module");
 		return;
