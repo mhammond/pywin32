@@ -43,15 +43,16 @@ conversion is required.
 /* error helper - GetLastError() is provided, but this is for exceptions */
 PyObject *ReturnNetError(char *fnName, long err /*=0*/)
 {
+	static HMODULE hModule=NULL;
+	if (hModule==NULL)
+		hModule = LoadLibraryEx(
+			TEXT("netmsg.dll"),
+			NULL,
+			LOAD_LIBRARY_AS_DATAFILE);
+
 	if (err==0) err = GetLastError();
 	if(err >= NERR_BASE && err <= MAX_NERR) {
-		HMODULE hModule;
-        hModule = LoadLibraryEx(
-            TEXT("netmsg.dll"),
-            NULL,
-            LOAD_LIBRARY_AS_DATAFILE
-            );
-        if(hModule != NULL) {
+		if(hModule != NULL) {
 			DWORD dwFormatFlags = FORMAT_MESSAGE_ALLOCATE_BUFFER |
 			                      FORMAT_MESSAGE_IGNORE_INSERTS |
 								  FORMAT_MESSAGE_FROM_HMODULE |
@@ -598,6 +599,124 @@ done:
 	return ret;
 }
 
+// @pymethod |win32net|NetMessageNameAdd|Adds a message alias for specified machine
+PyObject *PyNetMessageNameAdd(PyObject *self, PyObject *args)
+{
+	NET_API_STATUS err;
+	WCHAR *server=NULL, *alias=NULL;
+	PyObject *observer=NULL, *obalias=NULL, *ret=NULL;
+	// @pyparm str/unicode|server||Name of server on which to execute - leading backslashes required on NT - local machine used if None
+	// @pyparm str/unicode|msgname||Message alias to add, 15 characters max
+	if (!PyArg_ParseTuple(args,"OO:NetMessageNameAdd",&observer,&obalias))
+		goto done;
+	if (!PyWinObject_AsWCHAR(observer,&server,TRUE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(obalias,&alias,FALSE))
+		goto done;
+
+	err=NetMessageNameAdd(server, alias);
+	if (err==NERR_Success){
+		Py_INCREF(Py_None);
+		ret=Py_None;
+		}
+	else
+		ReturnNetError("NetMessageNameAdd",err);
+done:
+	if (server!=NULL)
+		PyWinObject_FreeWCHAR(server);
+	if (alias!=NULL)
+		PyWinObject_FreeWCHAR(alias);
+	return ret;
+}
+
+// @pymethod |win32net|NetMessageNameDel|Removes a message alias for specified machine
+PyObject *PyNetMessageNameDel(PyObject *self, PyObject *args)
+{
+	NET_API_STATUS err;
+	WCHAR *server=NULL, *alias=NULL;
+	PyObject *observer=NULL, *obalias=NULL, *ret=NULL;
+	// @pyparm str/unicode|server||Name of server on which to execute - leading backslashes required on NT - local machine used if None
+	// @pyparm str/unicode|msgname||Message alias to delete for specified machine
+	if (!PyArg_ParseTuple(args,"OO:NetMessageNameDel",&observer,&obalias))
+		goto done;
+	if (!PyWinObject_AsWCHAR(observer,&server,TRUE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(obalias,&alias,FALSE))
+		goto done;
+
+	err=NetMessageNameDel(server, alias);
+	if (err==NERR_Success){
+		Py_INCREF(Py_None);
+		ret=Py_None;
+		}
+	else
+		ReturnNetError("NetMessageNameDel",err);
+done:
+	if (server!=NULL)
+		PyWinObject_FreeWCHAR(server);
+	if (alias!=NULL)
+		PyWinObject_FreeWCHAR(alias);
+	return ret;
+}
+
+// @pymethod |win32net|NetMessageNameEnum|Lists aliases for a computer
+PyObject *PyNetMessageNameEnum(PyObject *self, PyObject *args)
+{
+	NET_API_STATUS err=ERROR_MORE_DATA;
+	DWORD maxlen=MAX_PREFERRED_LENGTH, level=0;
+#ifdef Py_DEBUG
+	maxlen=128;
+#endif
+	DWORD entriesread=0, totalentries=0, resume_handle=0;
+	DWORD msg_ind;
+	WCHAR *server=NULL;
+	BYTE *buf;
+	MSG_INFO_0 *pmsg0;
+	PyObject *observer=NULL, *ret=NULL, *msg_item=NULL;
+	if (!PyArg_ParseTuple(args,"|O:NetMessageNameEnum",&observer))
+		return NULL;
+	// @pyparm str/unicode|Server||Name of server on which to execute - leading backslashes required on NT - local machine used if None
+	if (observer!=NULL)
+		if (!PyWinObject_AsWCHAR(observer,&server,TRUE))
+			return NULL;
+
+	ret=PyList_New(0);
+	if (!ret)
+		return NULL;
+	while (TRUE){
+		buf=NULL;
+		err=NetMessageNameEnum(server,level,&buf,maxlen,&entriesread,&totalentries,&resume_handle);
+		if ((err==NERR_Success)||(err==ERROR_MORE_DATA)){
+			pmsg0=(MSG_INFO_0 *)buf;
+			for (msg_ind=0;msg_ind<entriesread;msg_ind++){
+				msg_item=PyWinObject_FromWCHAR(pmsg0->msgi0_name);
+				if (!msg_item){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyList_Append(ret,msg_item);
+				Py_DECREF(msg_item);
+				pmsg0++;
+				}
+			}
+		else{
+			ReturnNetError("NetMessageNameEnum",err);
+			Py_DECREF(ret);
+			ret=NULL;
+			}
+		if (buf)
+			NetApiBufferFree(buf);
+		// With certain buffer size/return size combinations, function can actually return
+		// ERROR_MORE_DATA when done, while setting resume_handle to 0, resulting in an infinite
+		// loop if you use only the return code
+		if ((ret==NULL)||(resume_handle==0))
+			break;
+		}
+	if (server!=NULL)
+		PyWinObject_FreeWCHAR(server);
+	return ret;
+}
 
 PyObject *PyDoSetInfo(PyObject *self, PyObject *args, PFNSETINFO pfn, char *fnname, PyNET_STRUCT *pInfos)
 {
@@ -958,6 +1077,9 @@ static struct PyMethodDef win32net_functions[] = {
 	{"NetLocalGroupSetMembers", PyNetLocalGroupSetMembers,  1}, // @pymeth NetLocalGroupSetMembers|Sets the members of a local group.  Any existing members not listed are removed.
 
 	{"NetMessageBufferSend",	PyNetMessageBufferSend,		1}, // @pymeth NetMessageBufferSend|sends a string to a registered message alias.
+	{"NetMessageNameAdd",		PyNetMessageNameAdd,		1}, // @pymeth NetMessageNameAdd|Add a message alias for a computer
+	{"NetMessageNameDel",		PyNetMessageNameDel,		1}, // @pymeth NetMessageNameDel|Removes a message alias
+	{"NetMessageNameEnum",		PyNetMessageNameEnum,		1}, // @pymeth NetMessageNameEnum|List message aliases for a computer
 
 	{"NetServerEnum",           PyNetServerEnum,            1}, // @pymeth NetServerEnum|Retrieves information about all servers of a specific type
 	{"NetServerGetInfo",        PyNetServerGetInfo,         1}, // @pymeth NetServerGetInfo|Retrieves information about a particular server.
