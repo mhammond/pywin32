@@ -82,7 +82,7 @@ def main():
         os.makedirs(os.path.split(file)[0])
       except:
         pass
-      sCmd = "copy %s %s > NULL" % (lSrcFiles[i], file)
+      sCmd = "copy %s %s > NUL" % (lSrcFiles[i], file)
       os.system(sCmd)
       
     for file in lDestFiles:
