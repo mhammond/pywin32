@@ -7,6 +7,12 @@ is nothing more than the command line handler and public interface.
 The makepy command line etc handling is also getting large enough in its own right!
 """
 
+# NOTE - now supports a "demand" mechanism - the top-level is a package, and
+# each class etc can be made individually.
+# This should eventually become the default.
+# Then the old non-package technique should be removed.
+# There should be no b/w compat issues, and will just help clean the code.
+# This will be done once the new "demand" mechanism gets a good workout.
 import os
 import sys
 import string
@@ -17,7 +23,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.3.2" # Written to generated file.
+makepy_version = "0.3.3" # Written to generated file.
 
 GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
@@ -399,7 +405,10 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 print line
             print "\t# str(ob) and int(ob) will use __call__"
             print "\tdef __str__(self, *args):"
-            print "\t\treturn str(apply( self.__call__, args))"
+            print "\t\ttry:"
+            print "\t\t\treturn str(apply( self.__call__, args))"
+            print "\t\texcept pythoncom.com_error:"
+            print "\t\t\treturn repr(self)"
             print "\tdef __int__(self, *args):"
             print "\t\treturn int(apply( self.__call__, args))"
             
@@ -610,9 +619,9 @@ class Generator:
             oleItems[dispItem.clsid] = dispItem
           if flags & pythoncom.IMPLTYPEFLAG_FSOURCE:
             dispItem.bIsSink = 1
-            sources.append(dispItem, flags, dual)
+            sources.append((dispItem, flags, dual))
           else:
-            interfaces.append(dispItem, flags, dual)
+            interfaces.append((dispItem, flags, dual))
 
         newItem = CoClassItem(info, attr, doc, sources, interfaces)
         oleItems[newItem.clsid] = newItem
@@ -642,8 +651,11 @@ class Generator:
     docDesc = ""
     if moduleDoc[1]:
       docDesc = moduleDoc[1]
-    print '# Created by makepy.py version %s from %s' % (makepy_version,os.path.split(self.sourceFilename)[1])
-    print '# On date: %s' % time.ctime(time.time())
+
+    print '# Created by makepy.py version %s' % (makepy_version,)
+    if self.sourceFilename:
+        print "# From type library '%s'" % (os.path.split(self.sourceFilename)[1],)
+    print '# On %s' % time.ctime(time.time())
 #    print '#\n# Command line used:', string.join(sys.argv[1:]," ")
 
 
@@ -652,9 +664,6 @@ class Generator:
     print 'makepy_version =', `makepy_version`
     print
     print 'import win32com.client.CLSIDToClass, pythoncom'
-    print 'from types import TupleType'
-    if self.bUnicodeToString:
-        print 'from pywintypes import UnicodeType'
     print
     print '# The following 3 lines may need tweaking for the particular server'
     print '# Candidates are pythoncom.Missing and pythoncom.Empty'
@@ -772,58 +781,9 @@ class Generator:
     oleitem.WriteClass(self)
     print 'win32com.client.CLSIDToClass.RegisterCLSID( "%s", %s )' % (oleitem.clsid, oleitem.python_name)
 
-
   def checkWriteDispatchBaseClass(self):
     if not self.bHaveWrittenDispatchBaseClass:
-      print "_PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]"
-      print
-      print "class DispatchBaseClass:"
-      print '\tdef __init__(self, oobj=None):'
-      print '\t\tif oobj is None:'
-      print '\t\t\toobj = pythoncom.new(self.CLSID)'
-      print '\t\telif type(self) == type(oobj): # An instance'
-      print '\t\t\toobj = oobj._oleobj_.QueryInterface(self.CLSID, pythoncom.IID_IDispatch) # Must be a valid COM instance'
-      print '\t\tself.__dict__["_oleobj_"] = oobj # so we dont call __setattr__'
-      # Provide a prettier name than the CLSID
-      print '\tdef __repr__(self):'
-      print '\t\treturn "<win32com.gen_py.%s.%s>" % (__doc__, self.__class__.__name__)'
-      print
-
-      print '\tdef _ApplyTypes_(self, dispid, wFlags, retType, argTypes, user, resultCLSID, *args):'
-      print '\t\treturn self._get_good_object_(apply(self._oleobj_.InvokeTypes, (dispid, LCID, wFlags, retType, argTypes) + args), user, resultCLSID)'
-      print
-
-      # Create . operators for the class.
-      print '\tdef __getattr__(self, attr):'
-      print '\t\ttry:'
-      print '\t\t\targs=self._prop_map_get_[attr]'
-      print '\t\texcept KeyError:'
-      print '\t\t\traise AttributeError, attr'
-      print '\t\treturn apply(self._ApplyTypes_, args)'
-      print
-      print '\tdef __setattr__(self, attr, value):'
-      print '\t\tif self.__dict__.has_key(attr): self.__dict__[attr] = value; return'
-      print '\t\ttry:'
-      print '\t\t\targs, defArgs=self._prop_map_put_[attr]'
-      print '\t\texcept KeyError:'
-      print '\t\t\traise AttributeError, attr'
-      print '\t\tapply(self._oleobj_.Invoke, args + (value,) + defArgs)'
-      
-      print "\tdef _get_good_single_object_(self, obj, obUserName=None, resultCLSID=None):"
-      print "\t\tif _PyIDispatchType==type(obj):"
-      print "\t\t\treturn win32com.client.Dispatch(obj, obUserName, resultCLSID, UnicodeToString=%d)" % (self.bUnicodeToString)
-      if self.bUnicodeToString:
-        print "\t\telif UnicodeType==type(obj):"
-        print "\t\t\treturn str(obj)"
-      print "\t\treturn obj"
-      print "\tdef _get_good_object_(self, obj, obUserName=None, resultCLSID=None):"
-      print "\t\tif obj is None:"
-      print "\t\t\treturn None"
-      print "\t\telif type(obj)==TupleType:"
-      print "\t\t\treturn tuple(map(lambda o, s=self, oun=obUserName, rc=resultCLSID: s._get_good_single_object_(o, oun, rc),  obj))"
-      print "\t\telse:"
-      print "\t\t\treturn self._get_good_single_object_(obj, obUserName, resultCLSID)"
-      print
+      print "from win32com.client import DispatchBaseClass"
       self.bHaveWrittenDispatchBaseClass = 1
 
   def checkWriteCoClassBaseClass(self):
@@ -858,12 +818,11 @@ class Generator:
     # Nota base class as such...
       if not self.bHaveWrittenEventBaseClass:
         print "# Little helper to transform event arguments to more usable objects."
-        print "import win32com.client"
         print "from pywintypes import UnicodeType"
         print "dispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]"
         print "def transformarg(arg):"
         print "\tif type(arg)==dispatchType:"
-        print "\t\treturn win32com.client.Dispatch(arg)"
+        print "\t\treturn Dispatch(arg)"
         print "\telif type(arg)==UnicodeType:"
         print "\t\treturn str(arg)"
         print "\treturn arg"
