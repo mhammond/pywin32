@@ -88,7 +88,6 @@ def TestVB( vbtest, bUseGenerated ):
     if vbtest.VariantProperty != (1.0, 2.0, 3.0):
         raise error, "Could not set the variant property to an array of floats correctly - '%s'." % (vbtest.VariantProperty,)
 
-
     # Try and use a safe array (note that the VB code has this declared as a VARIANT
     # and I cant work out how to force it to use native arrays!
     # (NOTE Python will convert incoming arrays to tuples, so we pass a tuple, even tho
@@ -160,12 +159,6 @@ def TestVB( vbtest, bUseGenerated ):
         assert testData == list(resultData)
         testData = ["hi", "from", "Python"]
         resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
-        # Seamless Unicode only in 1.6!
-        try:
-            unicode
-        except NameError : # No builtin named Unicode!
-            byRefParam = map(str, byRefParam)
-            resultData = map(str, resultData)
         assert testData == list(byRefParam), "Expected '%s', got '%s'" % (testData, list(byRefParam))
         assert testData == list(resultData), "Expected '%s', got '%s'" % (testData, list(resultData))
         # This time, instead of an explicit str() for 1.5, we just
@@ -201,6 +194,7 @@ def TestVB( vbtest, bUseGenerated ):
         vbtest.DoSomeCallbacks(callback_ob)
 
         # Check we fail gracefully for byref safearray results with incorrect size.
+        print "Expecting a 'ValueError' exception to follow:"
         try:
             vbtest.DoCallbackSafeArraySizeFail(callback_ob)
         except pythoncom.com_error, (hr, msg, exc, arg):
@@ -227,6 +221,7 @@ def TestVB( vbtest, bUseGenerated ):
 def TestStructs(vbtest):
     try:
         vbtest.IntProperty = "One"
+        raise error, "Should have failed by now"
     except pythoncom.com_error, (hr, desc, exc, argErr):
         if hr != winerror.DISP_E_TYPEMISMATCH:
             raise error, "Expected DISP_E_TYPEMISMATCH"
@@ -336,6 +331,7 @@ def TestAll():
         DoTestAll()
         print "All tests appear to have worked!"
     except:
+        print "TestAll() failed!!"
         traceback.print_exc()
 
 if __name__=='__main__':
