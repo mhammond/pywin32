@@ -404,7 +404,7 @@ static struct PyMethodDef ui_doc_methods[] = {
 	{NULL,			NULL}		/* sentinel */
 };
 ui_type_CObject PyCDocument::type("PyCDocument", 
-								  &PyCCmdTarget::type, 
+								  &PyCCmdTarget::type, // @base PyCDocument|PyCCmdTarget
 								  RUNTIME_CLASS(CDocument), 
 								  sizeof(PyCDocument), 
 								  ui_doc_methods, 

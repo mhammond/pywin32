@@ -3152,7 +3152,7 @@ CString PyCWnd::repr()
 }
 
 ui_type_CObject PyCWnd::type("PyCWnd", 
-							 &PyCCmdTarget::type, 
+							 &PyCCmdTarget::type, // @base PyCWnd|PyCCmdTarget
 							 RUNTIME_CLASS(CWnd), 
 							 sizeof(PyCWnd), 
 							 PyCWnd_methods, 
@@ -3737,7 +3737,7 @@ static struct PyMethodDef PyCFrameWnd_methods[] = {
 };
 
 ui_type_CObject PyCFrameWnd::type("PyCFrameWnd", 
-								  &PyCWnd::type, 
+								  &PyCWnd::type, // @base PyCFrameWnd|PyCWnd
 								  RUNTIME_CLASS(CFrameWnd),
 								  sizeof(PyCFrameWnd), 
 								  PyCFrameWnd_methods, 
@@ -3909,7 +3909,7 @@ static struct PyMethodDef PyCMDIFrameWnd_methods[] = {
 };
 
 ui_type_CObject PyCMDIFrameWnd::type("PyCMDIFrameWnd", 
-									 &PyCFrameWnd::type, 
+									 &PyCFrameWnd::type, // @base PyCMDIFrameWnd|PyCFrameWnd
 									 RUNTIME_CLASS(CMDIFrameWnd), 
 									 sizeof(PyCMDIFrameWnd), 
 									 PyCMDIFrameWnd_methods, 
@@ -4087,7 +4087,7 @@ static struct PyMethodDef PyCMDIChildWnd_methods[] = {
 };
 
 ui_type_CObject PyCMDIChildWnd::type("PyCMDIChildWnd", 
-									 &PyCFrameWnd::type, 
+									 &PyCFrameWnd::type, // @base PyCMDIChildWnd|PyCFrameWnd
 									 RUNTIME_CLASS(CMDIChildWnd), 
 									 sizeof(PyCMDIChildWnd), 
 									 PyCMDIChildWnd_methods, 

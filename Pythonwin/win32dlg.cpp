@@ -721,7 +721,7 @@ static struct PyMethodDef ui_dialog_methods[] = {
 };
 
 ui_type_CObject PyCDialog::type("PyCDialog", 
-								&PyCWnd::type, 
+								&PyCWnd::type, // @base PyCDialog|PyCWnd
 								RUNTIME_CLASS(CDialog), 
 								sizeof(PyCDialog), 
 								ui_dialog_methods, 
@@ -958,7 +958,7 @@ static struct PyMethodDef ui_file_dialog_methods[] = {
 };
 
 ui_type_CObject PyCFileDialog::type("PyCFileDialog", 
-									&PyCCommonDialog::type, 
+									&PyCCommonDialog::type, // @base PyCFileDialog|PyCCommonDialog
 									RUNTIME_CLASS(CFileDialog), 
 									sizeof(PyCFileDialog), 
 									ui_file_dialog_methods, 
@@ -1156,7 +1156,7 @@ static struct PyMethodDef ui_font_dialog_methods[] = {
 };
 
 ui_type_CObject PyCFontDialog::type("PyCFontDialog", 
-									&PyCCommonDialog::type, 
+									&PyCCommonDialog::type, // @base PyCFontDialog|PyCCommonDialog
 									RUNTIME_CLASS(CFontDialog), 
 									sizeof(PyCFontDialog), 
 									ui_font_dialog_methods, 
@@ -1264,7 +1264,7 @@ static struct PyMethodDef ui_color_dialog_methods[] = {
 };
 
 ui_type_CObject PyCColorDialog::type("PyCColorDialog", 
-									 &PyCCommonDialog::type, 
+									 &PyCCommonDialog::type, // @base PyCColorDialog|PyCCommonDialog
 									 RUNTIME_CLASS(CColorDialog), 
 									 sizeof(PyCColorDialog), 
 									 ui_color_dialog_methods, 
@@ -1368,7 +1368,7 @@ static struct PyMethodDef ui_print_dialog_methods[] = {
 };
 
 ui_type_CObject PyCPrintDialog::type("PyCPrintDialog", 
-                                           &PyCCommonDialog::type, 
+                                           &PyCCommonDialog::type, // @base PyCPrintDialog|PyCCommonDialog
                                            RUNTIME_CLASS(CPrintDialog),
                                            sizeof(PyCPrintDialog), 
                                            ui_print_dialog_methods, 

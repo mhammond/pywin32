@@ -381,7 +381,7 @@ static struct PyMethodDef PyCView_methods[] = {
 
 // View type
 ui_type_CObject PyCView::type("PyCView", 
-							  &PyCWnd::type, 
+							  &PyCWnd::type, // @base PyCView|PyCWnd
 							  RUNTIME_CLASS(CView), 
 							  sizeof(PyCView), 
 							  PyCView_methods, 
@@ -597,7 +597,7 @@ static struct PyMethodDef PyCScrollView_methods[] = {
 
 // View type
 ui_type_CObject PyCScrollView::type("PyCScrollView", 
-							  &PyCView::type, 
+							  &PyCView::type, // @base PyCScrollView|PyCView
 							  RUNTIME_CLASS(CScrollView), 
 							  sizeof(PyCScrollView), 
 							  PyCScrollView_methods, 
@@ -650,7 +650,7 @@ static struct PyMethodDef PyCCtrlView_methods[] = {
 };
 
 PyCCtrlView_Type PyCCtrlView::type("PyCCtrlView", 
-								&PyCView::type,
+								&PyCView::type, // @base PyCCtrlView|PyCView
 								&PyCWnd::type,
 								RUNTIME_CLASS(CCtrlView), 
 								sizeof(PyCCtrlView), 
@@ -893,6 +893,7 @@ static struct PyMethodDef ui_edit_window_methods[] = {
 	{NULL, NULL}
 };
 
+// @base PyCEditView|PyCCtrlView
 PyCCtrlView_Type PyCEditView::type("PyCEditView", &PyCCtrlView::type, &PyCEdit::type, RUNTIME_CLASS(CEditView), sizeof(PyCEditView), ui_edit_window_methods, GET_PY_CTOR(PyCEditView));
 
 /////////////////////////////////////////////////////////////////////
@@ -970,7 +971,7 @@ static struct PyMethodDef ui_list_view_methods[] = {
 };
 
 PyCCtrlView_Type PyCListView::type("PyCListView", 
-								   &PyCCtrlView::type, 
+								   &PyCCtrlView::type, // @base PyCListView|PyCCtrlView
 								   &PyCListCtrl::type, 
 								   RUNTIME_CLASS(CListView), 
 								   sizeof(PyCListView), 
@@ -1051,8 +1052,8 @@ static struct PyMethodDef ui_tree_view_methods[] = {
 };
 
 PyCCtrlView_Type PyCTreeView::type("PyCTreeView", 
-								   &PyCCtrlView::type, 
-								   &PyCTreeCtrl::type, 
+								   &PyCCtrlView::type, // @base PyCTreeView|PyCCtrlView
+								   &PyCTreeCtrl::type,
 								   RUNTIME_CLASS(CTreeView), 
 								   sizeof(PyCTreeView), 
 								   ui_tree_view_methods, 
@@ -1115,7 +1116,7 @@ static struct PyMethodDef PyCFormView_methods[] = {
 };
 
 ui_type_CObject PyCFormView::type("PyCFormView", 
-								&PyCView::type,
+								&PyCView::type, // @base PyCFormView|PyCView
 								RUNTIME_CLASS(CFormView), 
 								sizeof(PyCFormView), 
 								PyCFormView_methods, 
