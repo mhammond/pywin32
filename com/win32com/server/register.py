@@ -116,14 +116,14 @@ def _find_localserver_module():
   except os.error:
     # See if we have a compiled extension
     if __debug__:
-      ext = ".pyo"
-    else:
       ext = ".pyc"
-    pyfile = os.path.join(path, baseName + ".py")
+    else:
+      ext = ".pyo"
+    pyfile = os.path.join(path, baseName + ext)
     try:
       os.stat(pyfile)
     except os.error:
-      raise RuntimeError, "Can not locate the Python file '%s'" % baseName
+      raise RuntimeError, "Can not locate the Python module 'win32com.server.%s'" % baseName
   return pyfile
 
 def RegisterServer(clsid, 
@@ -265,12 +265,12 @@ def GetUnregisterServerKeys(clsid, progID=None, verProgID=None, customKeys = Non
   ret = [("CLSID\\%s" % str(clsid), win32con.HKEY_CLASSES_ROOT)]
   # remove the versioned ProgID registration
   if verProgID:
-    ret.append(verProgID, win32con.HKEY_CLASSES_ROOT)
+    ret.append((verProgID, win32con.HKEY_CLASSES_ROOT))
   # blow away the independent ProgID. we can't leave it since we just
   # torched the class.
   ### could potentially check the CLSID... ?
   if progID:
-    ret.append(progID, win32con.HKEY_CLASSES_ROOT)
+    ret.append((progID, win32con.HKEY_CLASSES_ROOT))
   # The DCOM config tool may write settings to the AppID key for our CLSID
   ret.append( ("AppID\\%s" % str(clsid), win32con.HKEY_CLASSES_ROOT) )
   # Any custom keys?
