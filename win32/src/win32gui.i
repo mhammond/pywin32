@@ -104,6 +104,7 @@ PyObject *set_logger(PyObject *self, PyObject *args)
 %init %{
 PyEval_InitThreads(); /* Start the interpreter's thread-awareness */
 PyDict_SetItemString(d, "dllhandle", PyLong_FromVoidPtr(g_dllhandle));
+PyDict_SetItemString(d, "error", PyWinExc_ApiError);
 %}
 
 %{
@@ -1131,6 +1132,13 @@ PyObject *PyFlashWindowEx(PyObject *self, PyObject *args)
 }
 %}
 %native(FlashWindowEx) PyFlashWindowEx;
+
+// @pyswig |AnimateWindow|Enables you to produce special effects when showing or hiding windows. There are three types of animation: roll, slide, and alpha-blended fade.
+BOOLAPI AnimateWindow(
+  HWND hwnd,     // @pyparm int|hwnd||handle to window
+  DWORD dwTime,  // @pyparm int|dwTime||duration of animation
+  DWORD dwFlags  // @pyparm int|dwFlags||animation type
+);
 
 // @pyswig int|GetWindowLong|
 // @pyparm int|hwnd||
