@@ -903,7 +903,8 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 			m_varBuf = new VARIANT;
 			VariantInit(m_varBuf);
 			V_VARIANTREF(var) = m_varBuf;
-		}
+		} else
+			VariantClear(var);
 		if (!VALID_BYREF_MISSING(obj)) {
 			PyCom_VariantFromPyObject(obj, V_VARIANTREF(var));
 		} else {
