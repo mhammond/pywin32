@@ -278,7 +278,10 @@ class CScintillaEditInterface(ScintillaControlInterface):
 		
 	def LineIndex(self, line):
 		return self.SendScintilla(win32con.EM_LINEINDEX, line)
-		
+
+	def ScrollCaret(self):
+		return self.SendScintilla(win32con.EM_SCROLLCARET)
+
 	def GetCurLineNumber(self):
 		return self.LineFromChar(self.SCIGetCurrentPos())
 		
