@@ -142,8 +142,7 @@ def RegisterServer(clsid,
                    threadingModel="both",
                    policy=None,
                    catids=[], other={},
-                   # Default is to register in Python categories when not frozen
-                   addPyComCat=not hasattr(sys, 'frozen'),
+                   addPyComCat=None,
                    dispatcher = None,
                    clsctx = None,
                    addnPath = None,
@@ -163,7 +162,9 @@ def RegisterServer(clsid,
      catids -- A list of category ID's this object belongs in.
      other -- A dictionary of extra items to be registered.
      addPyComCat -- A flag indicating if the object should be added to the list
-              of Python servers installed on the machine.
+              of Python servers installed on the machine.  If None (the default)
+              then it will be registered when running from python source, but
+              not registered if running in a frozen environment.
      dispatcher -- The dispatcher to use when creating this object.
      clsctx -- One of the CLSCTX_* constants.
      addnPath -- An additional path the COM framework will add to sys.path
@@ -254,6 +255,8 @@ def RegisterServer(clsid,
   else:
     _remove_key(keyNameRoot + "\\PythonCOMPath")
 
+  if addPyComCat is None:
+    addPyComCat = pythoncom.frozen == 0
   if addPyComCat:
     catids = catids + [ CATID_PythonCOMServer ]
 
@@ -370,7 +373,8 @@ def RegisterClasses(*classes, **flags):
     policySpec = _get(cls, '_reg_policy_spec_')
     clsctx = _get(cls, '_reg_clsctx_')
     tlb_filename = _get(cls, '_reg_typelib_filename_')
-    addPyComCat = not _get(cls, '_reg_disable_pycomcat_', 0)
+    # default to being a COM category only when not frozen.
+    addPyComCat = not _get(cls, '_reg_disable_pycomcat_', pythoncom.frozen!=0)
     addnPath = None
     if debugging:
       # If the class has a debugging dispatcher specified, use it, otherwise
@@ -387,9 +391,6 @@ def RegisterClasses(*classes, **flags):
       options['Debugging'] = "0"
 
     if spec is None:
-      # Always write out path - the policy may or may not need it
-      scriptDir = os.path.split(sys.argv[0])[0]
-      if not scriptDir: scriptDir = "."
       moduleName = cls.__module__
       if moduleName == '__main__':
         # Use argv[0] to determine the module name.
@@ -401,7 +402,11 @@ def RegisterClasses(*classes, **flags):
           raise TypeError, "Can't locate the script hosting the COM object - please set _reg_class_spec_ in your object"
 
       spec = moduleName + "." + cls.__name__
-      addnPath = win32api.GetFullPathName(scriptDir)
+      # Frozen apps don't need their directory on sys.path
+      if not pythoncom.frozen:
+        scriptDir = os.path.split(sys.argv[0])[0]
+        if not scriptDir: scriptDir = "."
+        addnPath = win32api.GetFullPathName(scriptDir)
 
     RegisterServer(clsid, spec, desc, progID, verProgID, defIcon,
                    threadingModel, policySpec, catids, options,
@@ -486,12 +491,13 @@ def RegisterPyComCategory():
                                 0x0409,
                                 "Python COM Server") ] )
 
-try:
-  win32api.RegQueryValue(win32con.HKEY_CLASSES_ROOT,
-                         'Component Categories\\%s' % CATID_PythonCOMServer)
-except win32api.error:
+if not pythoncom.frozen:
   try:
-    RegisterPyComCategory()
-  except pythoncom.error: # Error with the COM category manager - oh well.
-    pass    
+    win32api.RegQueryValue(win32con.HKEY_CLASSES_ROOT,
+                           'Component Categories\\%s' % CATID_PythonCOMServer)
+  except win32api.error:
+    try:
+      RegisterPyComCategory()
+    except pythoncom.error: # Error with the COM category manager - oh well.
+      pass    
 
