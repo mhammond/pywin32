@@ -78,11 +78,14 @@ def _CalcTypeSize(typeTuple):
         # Its a pointer.
         cb = _univgw.SizeOfVT(pythoncom.VT_PTR)[1]
     elif t == pythoncom.VT_RECORD:
-        try:
-            import warnings
-            warnings.warn("warning: records are known to not work for vtable interfaces")
-        except ImportError:
-            print "warning: records are known to not work for vtable interfaces"
+        # Just because a type library uses records doesn't mean the user
+        # is trying to.  We need to better place to warn about this, but it
+        # isn't here.
+        #try:
+        #    import warnings
+        #    warnings.warn("warning: records are known to not work for vtable interfaces")
+        #except ImportError:
+        #    print "warning: records are known to not work for vtable interfaces"
         cb = _univgw.SizeOfVT(pythoncom.VT_PTR)[1]
         #cb = typeInfo.GetTypeAttr().cbSizeInstance
     else:
