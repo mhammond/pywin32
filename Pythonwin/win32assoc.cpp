@@ -259,10 +259,12 @@ PyObject *ui_assoc_object::GetGoodRet()
 		return this;
 }
 
-/*static*/ ui_assoc_object *ui_assoc_object::make( ui_type &makeType, void *search )
+/*static*/ ui_assoc_object *ui_assoc_object::make( ui_type &makeType, void *search, bool skipLookup )
 {
 	ASSERT(search); // really only a C++ problem.
-	ui_assoc_object* ret = (ui_assoc_object*)handleMgr.GetAssocObject(search);
+	ui_assoc_object* ret=NULL;
+	if (!skipLookup)
+		ret = (ui_assoc_object*) handleMgr.GetAssocObject(search);
 	if (ret) {
 		if (!ret->is_uiobject(&makeType))
 			RETURN_ERR("Internal error - existing object is not of same type as requested new object");

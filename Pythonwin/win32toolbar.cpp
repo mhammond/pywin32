@@ -820,8 +820,13 @@ PyObject *PyCToolBar_GetToolBarCtrl( PyObject *self, PyObject *args )
 	CToolBar *pToolBar = PyCToolBar::GetToolBar(self);
 	if (!pToolBar) return NULL;
 
-	CToolBarCtrl &pTBC = pToolBar->GetToolBarCtrl();
-	return ui_assoc_object::make (PyCToolBarCtrl::type, pTBC)->GetGoodRet();
+	CToolBarCtrl &rTBC = pToolBar->GetToolBarCtrl();
+	// Note that below we take the address of rTBC because it's a reference and not a pointer
+	// and ui_assoc_object::make expects a pointer.
+	// We need to create a new class and not do a map lookup because in MFC CToolBarCtrl is
+	// simply a casted CToolBarCtrl (afxext.inl) so the lookup will return the PyCToolBar object
+	// which will fail the type tests.
+	return ui_assoc_object::make (PyCToolBarCtrl::type, &rTBC, true)->GetGoodRet();
 }
 
 // @object PyCToolBar|A class which encapsulates an MFC <o CToolBar>.  Derived from a <o PyCControlBar> object.
@@ -912,7 +917,10 @@ PyCToolBarCtrl::~PyCToolBarCtrl()
 
 /* static */ CToolBarCtrl *GetToolBarCtrl (PyObject *self)
 {
-	return (CToolBarCtrl *)ui_assoc_CObject::GetGoodCppObject( self, &PyCToolBarCtrl::type);
+	// note we can only ask for a CWnd since the same object can be both
+	// a PyCToolBar and a PyCToolBarCtrl instance and their only common
+	// base class is PyCWnd. Otherwise the RTTI call will fail
+	return (CToolBarCtrl *)PyCWnd::GetPythonGenericWnd(self);
 }
 
 // @pymethod <o PyCToolBarCtrl>|win32ui|CreateToolBarCtrl|Creates a toolbar control object.  <om PyCToolBarCtrl.CreateWindow> creates the actual control.
@@ -1473,10 +1481,16 @@ PyCStatusBar::create (PyObject *self, PyObject *args)
   PyObject *parent;
   int style = WS_CHILD | WS_VISIBLE | CBRS_BOTTOM;
   int id = AFX_IDW_STATUS_BAR;
-  if (!PyArg_ParseTuple (args,"O|ii:CreateStatusBar", 
-            &parent, 	// @pyparm <o PyCWnd>|parent||The parent window for the status bar.
+  int ctrlStyle = 0;
+  if (!PyArg_ParseTuple (args,"O|iii:CreateStatusBar", 
+            &parent,    // @pyparm <o PyCWnd>|parent||The parent window for the status bar.
             &style,     // @pyparm int|style|afxres.WS_CHILD \| afxres.WS_VISIBLE \| afxres.CBRS_BOTTOM|The style for the status bar.
-			&id))        // @pyparm int|windowId|afxres.AFX_IDW_STATUS_BAR|The child window ID.
+            &id,        // @pyparm int|windowId|afxres.AFX_IDW_STATUS_BAR|The child window ID.
+            &ctrlStyle)) // @pyparm int|ctrlStype|0|Additional styles for the creation of the embedded <o PyCStatusBarCtrl> object.
+                         // <nl>Status bar styles supported are:<nl>commctrl.SBARS_SIZEGRIP - The status bar control includes a 
+                         // sizing grip at the right end of the status bar. A sizing grip is similar to a sizing border; 
+                         // it is a rectangular area that the user can click and drag to resize the parent window.
+                         // <nl>commctrl.SBT_TOOLTIPS - The status bar supports tooltips.
     return NULL;
   if (!ui_base_class::is_uiobject (parent, &PyCWnd::type))
     {
@@ -1493,14 +1507,54 @@ PyCStatusBar::create (PyObject *self, PyObject *args)
 
   BOOL ok;
   GUI_BGN_SAVE;
-  ok = sb->Create (frame, style, id);
+  ok = sb->CreateEx (frame, ctrlStyle, style, id);  // @pyseemfc CStatusBar|CreateEx
   GUI_END_SAVE;
   if (!ok) {
 	  delete sb;
-	  RETURN_API_ERR("CStatusBar.Create");
+	  RETURN_API_ERR("CStatusBar.CreateEx");
   }
   sb->m_bAutoDelete = TRUE;  // let MFC handle deletion??? really?? Cloned from toolbar - not so sure about status bar!!
   return ui_assoc_object::make (PyCStatusBar::type, sb)->GetGoodRet();
+}
+
+// @pymethod (id, style, width)|PyCStatusBar|GetPaneInfo|Returns the id, style, and width of the indicator pane at the location specified by index.
+PyObject *
+PyCStatusBar_GetPaneInfo( PyObject *self, PyObject *args )
+{
+	CStatusBar *pStatusBar = PyCStatusBar::GetStatusBar(self);
+	if (!pStatusBar) return NULL;
+
+	UINT nIndex;
+	if (!PyArg_ParseTuple (args,"i:GetPaneInfo",
+		&nIndex))	// @pyparm int|index||Index of the pane whose information is to be retrieved.
+	return NULL;
+
+	UINT nID;
+	UINT nStyle;
+	int cxWidth;
+
+	GUI_BGN_SAVE;
+	pStatusBar->GetPaneInfo(nIndex, nID, nStyle, cxWidth);  // @pyseemfc CStatusBar|GetPaneInfo
+	GUI_END_SAVE;
+
+	return Py_BuildValue ("(iii)", nID, nStyle, cxWidth);
+}
+
+// @pymethod <o PyCStatusBarCtrl>|PyCStatusBar|GetStatusBarCtrl|Gets the statusbar control object for the statusbar.
+PyObject *
+PyCStatusBar_GetStatusBarCtrl( PyObject *self, PyObject *args )
+{
+	CHECK_NO_ARGS (args);
+	CStatusBar *pStatusBar = PyCStatusBar::GetStatusBar(self);
+	if (!pStatusBar) return NULL;
+
+	CStatusBarCtrl &rSBC = pStatusBar->GetStatusBarCtrl();  // @pyseemfc CStatusBar|GetStatusBarCtrl
+	// Note that below we take the address of rTBC because it's a reference and not a pointer
+	// and ui_assoc_object::make expects a pointer.
+	// We need to create a new class and not do a map lookup because in MFC CToolBarCtrl is
+	// simply a casted CToolBarCtrl (afxext.inl) so the lookup will return the PyCToolBar object
+	// which will fail the type tests.
+	return ui_assoc_object::make (PyCStatusBarCtrl::type, &rSBC, true)->GetGoodRet();
 }
 
 // @pymethod |PyCStatusBar|SetIndicators|Sets each indicator's ID.
@@ -1536,11 +1590,39 @@ PyCStatusBar_SetIndicators(PyObject *self, PyObject *args)
 	RETURN_NONE;
 }
 
+// @pymethod |PyCStatusBar|SetPaneInfo|Sets the specified indicator pane to a new ID, style, and width.
+PyObject *
+PyCStatusBar_SetPaneInfo( PyObject *self, PyObject *args )
+{
+	CStatusBar *pStatusBar = PyCStatusBar::GetStatusBar(self);
+	if (!pStatusBar) return NULL;
+
+	UINT nIndex;
+	UINT nID;
+	UINT nStyle;
+	int cxWidth;
+	if (!PyArg_ParseTuple (args,"iiii:SetPaneInfo",
+		&nIndex,	// @pyparm int|index||Index of the indicator pane whose style is to be set.
+		&nID,		// @pyparm int|id||New ID for the indicator pane.
+		&nStyle,	// @pyparm int|style||New style for the indicator pane.<nl>The following indicator styles are supported:<nl>afxres.SBPS_NOBORDERS - No 3-D border around the pane.<nl>afxres.SBPS_POPOUT - Reverse border so that text "pops out."<nl>afxres.SBPS_DISABLED - Do not draw text.<nl>afxres.SBPS_STRETCH - Stretch pane to fill unused space. Only one pane per status bar can have this style.<nl>afxres.SBPS_NORMAL - No stretch, borders, or pop-out.
+		&cxWidth))	// @pyparm int|width||New width for the indicator pane.
+	return NULL;
+
+	GUI_BGN_SAVE;
+	pStatusBar->SetPaneInfo(nIndex, nID, nStyle, cxWidth);  // @pyseemfc CStatusBar|SetPaneInfo
+	GUI_END_SAVE;
+
+	RETURN_NONE;
+}
+
 // @object PyCStatusBar|A class which encapsulates an MFC <o CStatusBar>.  Derived from a <o PyCControlBar> object.
 static struct PyMethodDef 
 PyCStatusBar_methods[] =
 {
+	{"GetPaneInfo", PyCStatusBar_GetPaneInfo, 1}, // @pymeth GetPaneInfo|Returns indicator ID, style, and width for a given pane index.
+	{"GetStatusBarCtrl", PyCStatusBar_GetStatusBarCtrl, 1}, // @pymeth GetStatusBarCtrl|Returns the status bar control object associated with the status bar.
 	{"SetIndicators", PyCStatusBar_SetIndicators, 1}, // @pymeth SetIndicators|Sets each indicator's ID.
+	{"SetPaneInfo", PyCStatusBar_SetPaneInfo, 1}, // @pymeth SetPaneInfo|Sets indicator ID, style, and width for a given pane index.
 	{ NULL,			NULL }
 };
 

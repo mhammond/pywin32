@@ -43,7 +43,7 @@ private:
 class PYW_EXPORT ui_assoc_object : public ui_base_class{
 public:	// some probably shouldnt be, but...
 	PyObject *GetGoodRet();
-	static ui_assoc_object *make( ui_type &makeType, void * search );
+	static ui_assoc_object *make( ui_type &makeType, void * search, bool skipLookup=false );
 
 	// Given a C++ object, return a PyObject associated (map lookup)
 	static ui_assoc_object *GetPyObject(void *search);
