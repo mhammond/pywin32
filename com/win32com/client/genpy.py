@@ -106,7 +106,15 @@ class RecordItem(build.OleItem, WritableItem):
   typename = "RECORD"
 
   def __init__(self, typeInfo, typeAttr, doc=None, bForUser=1):
+##    sys.stderr.write("Record %s: size %s\n" % (doc,typeAttr.cbSizeInstance))
+##    sys.stderr.write(" cVars = %s\n" % (typeAttr.cVars,))
+##    for i in range(typeAttr.cVars):
+##        vdesc = typeInfo.GetVarDesc(i)
+##        sys.stderr.write(" Var %d has value %s, type %d, desc=%s\n" % (i, vdesc.value, vdesc.varkind, vdesc.elemdescVar))
+##        sys.stderr.write(" Doc is %s\n" % (typeInfo.GetDocumentation(vdesc.memid),))
+
     build.OleItem.__init__(self, doc)
+    self.clsid = typeAttr[0]
 
   def WriteClass(self, generator):
     pass
@@ -186,10 +194,10 @@ class EnumerationItem(build.OleItem, WritableItem):
       name = typeinfo.GetNames(vdesc[0])[0]
       self.mapVars[name] = build.MapEntry(vdesc)
 
-  def WriteEnumerationHeaders(self, aliasItems):
-    enumName = self.doc[0]
-    print "%s=constants # Compatibility with previous versions." % (enumName)
-    WriteAliasesForItem(self, aliasItems)
+##  def WriteEnumerationHeaders(self, aliasItems):
+##    enumName = self.doc[0]
+##    print "%s=constants # Compatibility with previous versions." % (enumName)
+##    WriteAliasesForItem(self, aliasItems)
     
   def WriteEnumerationItems(self):
     enumName = self.doc[0]
@@ -555,7 +563,7 @@ class Generator:
   def BuildOleItemsFromType(self, look_name = None):
     oleItems = {}
     enumItems = {}
-    aliasItems = {}
+    recordItems = {}
     for i in xrange(self.typelib.GetTypeInfoCount()):
       info = self.typelib.GetTypeInfo(i)
       infotype = self.typelib.GetTypeInfoType(i)
@@ -591,11 +599,10 @@ class Generator:
       elif infotype == pythoncom.TKIND_RECORD or infotype == pythoncom.TKIND_UNION:
         if look_name is not None: continue
         newItem = RecordItem(info, attr, doc)
-        ### where to put the newItem ??
+        recordItems[newItem.clsid] = newItem
       elif infotype == pythoncom.TKIND_ALIAS:
-        if look_name is not None: continue
-        newItem = AliasItem(info, attr, doc)
-        aliasItems[newItem.doc[0]] = newItem
+        # We dont care about alias' - handled intrinsicly.
+        continue
       elif infotype == pythoncom.TKIND_COCLASS:
         # try to find the source and dispinterfaces for the coclass
         # We no longer generate specific OCX support for the CoClass, as there
@@ -628,7 +635,7 @@ class Generator:
       else:
         self.progress.LogWarning("Unknown TKIND found: %d" % infotype)
   
-    return oleItems, enumItems, aliasItems
+    return oleItems, enumItems, recordItems
 
   def generate(self, file, is_for_demand = 0):
     if is_for_demand:
@@ -688,7 +695,7 @@ class Generator:
 
     self.do_gen_file_header()
 
-    oleItems, enumItems, aliasItems = self.BuildOleItemsFromType()
+    oleItems, enumItems, recordItems = self.BuildOleItemsFromType()
 
     self.progress.SetDescription("Generating...", len(oleItems.values())+len(enumItems.values()))
 
@@ -699,11 +706,8 @@ class Generator:
         list.sort()
         for oleitem in list:
             oleitem.WriteEnumerationItems()
+            self.progress.Tick()
         print
-        print    
-        for oleitem in list:
-          self.progress.Tick()
-          oleitem.WriteEnumerationHeaders(aliasItems)
 
     if self.generate_type == GEN_FULL:
       list = oleItems.values()
@@ -712,11 +716,12 @@ class Generator:
         self.progress.Tick()
         oleitem.WriteClass(self)
 
-#    list = aliasItems.values()
-#    if list:
-#      print "# The following Aliases have been generated for informational purposes only"
-#      for oleitem in list:
-#        oleitem.WriteAliasCode(aliasItems)
+    print 'RecordMap = {'
+    list = recordItems.values()
+    for record in list:
+        print "\t%s: %s," % (`record.doc[0]`, `str(record.clsid)`)
+    print "}"
+    print
 
     # Write out _all_ my generated CLSID's in the map
     if self.generate_type == GEN_FULL:
@@ -747,12 +752,12 @@ class Generator:
     la = self.typelib.GetLibAttr()
     lcid = la[1]
     clsid = la[0]
-    major=la[2]
+    major=la[3]
     minor=la[4]
     self.base_mod_name = "win32com.gen_py." + str(clsid)[1:-1] + "x%sx%sx%s" % (lcid, major, minor)
     try:
-      oleItems, enumItems, aliasItems = self.BuildOleItemsFromType(child)
-      assert len(enumItems)==0 and len(aliasItems)==0, "Not expecting anything other than oleitems"
+      oleItems, enumItems, recordItems = self.BuildOleItemsFromType(child)
+      assert len(enumItems)==0 and len(recordItems)==0, "Not expecting anything other than oleitems"
       assert len(oleItems)>0, "Could not find the name '%s'" % (child,)
       list = oleItems.values()
       self.progress.SetDescription("Generating...", len(oleItems.values()))

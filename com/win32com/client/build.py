@@ -25,6 +25,7 @@ import pythoncom
 from pywintypes import UnicodeType
 
 error = "PythonCOM.Client.Build error"
+class NotSupportedException(Exception): pass # Raised when we cant support a param type.
 DropIndirection="DropIndirection"
 
 NoTranslateTypes = [
@@ -170,12 +171,20 @@ class DispatchItem(OleItem):
 
 		invkind = fdesc.invkind
 
-		# Translate any Alias or Enums in result.
-		fdesc.rettype, resultCLSID, resultDoc = _ResolveUserDefined(fdesc.rettype, typeinfo)
+		# We need to translate any Alias', Enums, structs etc in result and args
+		typerepr, flag, defval = fdesc.rettype
+#		sys.stderr.write("%s result - %s -> " % (name, typerepr))
+		typerepr, resultCLSID, resultDoc = _ResolveType(typerepr, typeinfo)
+#		sys.stderr.write("%s\n" % (typerepr,))
+		fdesc.rettype = typerepr, flag, defval
 		# Translate any Alias or Enums in argument list.
-		argList = []			
+		argList = []
 		for argDesc in fdesc.args:
-			argList.append(_ResolveUserDefined(argDesc, typeinfo)[0])
+			typerepr, flag, defval = argDesc
+#			sys.stderr.write("%s arg - %s -> " % (name, typerepr))
+			argDesc = _ResolveType(typerepr, typeinfo)[0], flag, defval
+#			sys.stderr.write("%s\n" % (argDesc[0],))
+			argList.append(argDesc)
 		fdesc.args = tuple(argList)
 
 		hidden = (funcflags & pythoncom.FUNCFLAG_FHIDDEN) != 0
@@ -226,7 +235,9 @@ class DispatchItem(OleItem):
 			id = fdesc.memid
 			names = typeinfo.GetNames(id)
 			# Translate any Alias or Enums in result.
-			fdesc.elemdescVar, resultCLSID, resultDoc = _ResolveUserDefined(fdesc.elemdescVar, typeinfo)
+			typerepr, flags, defval = fdesc.elemdescVar
+			typerepr, resultCLSID, resultDoc = _ResolveType(typerepr, typeinfo)
+			fdesc.elemdescVar = typerepr, flags, defval
 			doc = None
 			try:
 				if bForUser: doc = typeinfo.GetDocumentation(id)
@@ -323,8 +334,14 @@ class DispatchItem(OleItem):
 		# Strip the default values from the arg desc
 		retDesc = fdesc[8][:2]
 		argsDesc = tuple(map(lambda what: what[:2], fdesc[2]))
+		# The runtime translation of the return types is expensive, so when we know the
+		# return type of the function, there is no need to check the type at runtime.
+		# To qualify, this function must return a "simple" type, and have no byref args.
+		# Check if we have byrefs or anything in the args which mean we still need a translate.
+		param_flags = map(lambda what: what[1], fdesc[2])
+		bad_params = filter(lambda flag: flag & (pythoncom.PARAMFLAG_FOUT | pythoncom.PARAMFLAG_FRETVAL)!=0, param_flags)
 		s = None
-		if len(retDesc)==2 and retDesc[1]==0:
+		if len(bad_params)==0 and len(retDesc)==2 and retDesc[1]==0:
 			rd = retDesc[0]
 			if NoTranslateMap.has_key(rd):
 				s = '%s\treturn self._oleobj_.InvokeTypes(0x%x, LCID, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, argsDesc, _BuildArgList(fdesc, names))
@@ -374,67 +391,61 @@ class LazyDispatchItem(DispatchItem):
 		self.clsid = attr[0]
 		DispatchItem.__init__(self, None, attr, doc, 0)
 		
+typeSubstMap = {
+	pythoncom.VT_INT: pythoncom.VT_I4,
+	pythoncom.VT_UINT: pythoncom.VT_I4,
+	pythoncom.VT_HRESULT: pythoncom.VT_I4,
+}
 
-def _DoResolveType(typeinfo, hrefResult):
-  resultTypeInfo = typeinfo.GetRefTypeInfo(hrefResult)
-  resultAttr = resultTypeInfo.GetTypeAttr()
-  typeKind = resultAttr[5]
-  if typeKind == pythoncom.TKIND_ALIAS:
-    ai = resultAttr[14]
-    if type(ai)==type(0):
-      return ai, resultTypeInfo
-    if type(ai)==type(()):
-      return _DoResolveType(resultTypeInfo, ai[1])
-    return None
+def _ResolveType(typerepr, itypeinfo):
+	# Resolve VT_USERDEFINED (often aliases or typed IDispatches)
+#	sys.stderr.write("- resolving %s - " % (typerepr,))
 
-  elif typeKind == pythoncom.TKIND_ENUM or \
-       typeKind == pythoncom.TKIND_MODULE:
-    # For now, assume Long
-    return pythoncom.VT_I4, None
+	if type(typerepr)==types.TupleType:
+		indir_vt, subrepr = typerepr
+		if indir_vt == pythoncom.VT_PTR:
+			# If it is a VT_PTR to a VT_USERDEFINED that is an IDispatch/IUnknown,
+			# then it resolves to simply the object.
+			# Otherwise, it becomes a ByRef of the resolved type
+			# We need to drop an indirection level on pointer to user defined interfaces.
+			# eg, (VT_PTR, (VT_USERDEFINED, somehandle)) needs to become VT_DISPATCH
+			# only when "somehandle" is an object.
+			# but (VT_PTR, (VT_USERDEFINED, otherhandle)) doesnt get the indirection dropped.
+			was_user = type(subrepr)==types.TupleType and subrepr[0]==pythoncom.VT_USERDEFINED
+			subrepr, sub_clsid, sub_doc = _ResolveType(subrepr, itypeinfo)
+			if was_user and subrepr in [pythoncom.VT_DISPATCH, pythoncom.VT_UNKNOWN, pythoncom.VT_RECORD]:
+				# Drop the VT_PTR indirection
+				return subrepr, sub_clsid, sub_doc
+			# Change PTR indirection to byref
+			return subrepr | pythoncom.VT_BYREF, sub_clsid, sub_doc
+		if indir_vt == pythoncom.VT_SAFEARRAY:
+			# resolve the array element, and convert to VT_ARRAY
+			subrepr, sub_clsid, sub_doc = _ResolveType(subrepr, itypeinfo)
+			return pythoncom.VT_ARRAY | subrepr, sub_clsid, sub_doc
 
-  elif typeKind == pythoncom.TKIND_DISPATCH or \
-       typeKind == pythoncom.TKIND_INTERFACE:
-    return pythoncom.VT_DISPATCH, resultTypeInfo
+		if indir_vt == pythoncom.VT_USERDEFINED:
+			resultTypeInfo = itypeinfo.GetRefTypeInfo(subrepr)
+			resultAttr = resultTypeInfo.GetTypeAttr()
+			typeKind = resultAttr.typekind
+			if typeKind == pythoncom.TKIND_ALIAS:
+				tdesc = resultAttr.tdescAlias
+				return _ResolveType(tdesc, resultTypeInfo)
 
-  elif typeKind == pythoncom.TKIND_COCLASS:
-    # Should get default?
-    return pythoncom.VT_DISPATCH, resultTypeInfo
+			elif typeKind in [pythoncom.TKIND_ENUM, pythoncom.TKIND_MODULE]:
+				# For now, assume Long
+				return pythoncom.VT_I4, None, None
 
-def _DoResolveTypeTuple(typeTuple, typeinfo):
-  t = typeTuple
-  if type(t) != types.TupleType:
-    return t, None, None
-  if type(t[0]) == types.IntType and type(t[1]) == types.IntType:
-    if t[0]==pythoncom.VT_USERDEFINED:
-      # Have href.
-      rc = _DoResolveType(typeinfo, t[1])
-      if rc is None: return t, None, None
-      retType, retTypeInfo = rc
-      if retTypeInfo:
-              retCLSID = retTypeInfo.GetTypeAttr()[0]
-              retDocumentation = retTypeInfo.GetDocumentation(-1)
-      else:
-              retCLSID = retDocumentation = None
-      if retType==pythoncom.VT_DISPATCH and retCLSID:
-              raise DropIndirection, (retType, retCLSID, retDocumentation)
-      return retType, retCLSID, retDocumentation
-  if type(t[1])==types.TupleType:	
-    try:
-      resolved, ret2, ret3 = _DoResolveTypeTuple(t[1],typeinfo)
-      return (t[0],resolved), ret2, ret3
-    except DropIndirection, (resolved, ret2, ret3):
-      return (resolved), ret2, ret3
-
-  return t, None, None
-		
-def _ResolveUserDefined(typeTuple, typeinfo):
-  "Resolve VT_USERDEFINED (often aliases or typed IDispatches)"
-  realTypeTuple, inOut, default = typeTuple
-  try:
-    resolved, ret2, ret3 = _DoResolveTypeTuple(realTypeTuple, typeinfo)
-  except DropIndirection, det:
-    resolved, ret2, ret3 = det
-  return (resolved, inOut, default), ret2, ret3
+			elif typeKind in [pythoncom.TKIND_DISPATCH,
+							  pythoncom.TKIND_INTERFACE,
+							  pythoncom.TKIND_COCLASS]:
+				# XXX - should probably get default interface for CO_CLASS???
+				clsid = resultTypeInfo.GetTypeAttr()[0]
+				retdoc = resultTypeInfo.GetDocumentation(-1)
+				return pythoncom.VT_DISPATCH, clsid, retdoc
+			elif typeKind == pythoncom.TKIND_RECORD:
+				return pythoncom.VT_RECORD, None, None
+			raise NotSupportedException("Can not resolve alias or user-defined type")
+	return typeSubstMap.get(typerepr,typerepr), None, None
 
 def _BuildArgList(fdesc, names):
     "Builds list of args to the underlying Invoke method."
@@ -476,11 +487,13 @@ def MakeDefaultArgRepr(defArgVal):
     # something strange - assume is in param.
     inOut = pythoncom.PARAMFLAG_FIN
 
-  if not inOut==pythoncom.PARAMFLAG_NONE and not (inOut & pythoncom.PARAMFLAG_FIN):
-    # If it is not an inout param, override default to "None".
-    # This allows us to "hide" out params.
-    return "None"
-  elif inOut & pythoncom.PARAMFLAG_FHASDEFAULT:
+## XXX - this is clearly not correct.  Many params do not have [in] specified -
+## XXX  at worst, we want to check specifically for FOUT being set, but I can't see why!?
+##  if not inOut==pythoncom.PARAMFLAG_NONE and not (inOut & pythoncom.PARAMFLAG_FIN):
+##    # If it is not an inout param, override default to "None".
+##    # This allows us to "hide" out params.
+##    return "None"
+  if inOut & pythoncom.PARAMFLAG_FHASDEFAULT:
     # hack for Unicode until it repr's better.
     val = defArgVal[2]
     if type(val) is UnicodeType:
@@ -505,7 +518,7 @@ def BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg
       namedArg = argName is not None
     except IndexError:
       namedArg = 0
-    if not namedArg: argName = "arg%d" % (arg+1)
+    if not namedArg: argName = "arg%d" % (arg)
       
     # See if the IDL specified a default value
     defArgVal = MakeDefaultArgRepr(fdesc[2][arg])
