@@ -133,7 +133,7 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
 			
 		info = self.tlb.GetTypeInfo(pos)
 		attr = info.GetTypeAttr()
-		infos.append(('Attributes', repr(attr)))
+		infos.append(('Attributes', str(attr)))
 			
 		for j in range(attr[8]):
 			flags = info.GetImplTypeFlags(j)
