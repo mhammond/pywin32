@@ -154,7 +154,6 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Print...\tCtrl+P",           ID_FILE_PRINT
         MENUITEM "Print Previe&w",              ID_FILE_PRINT_PREVIEW
-        MENUITEM "Page Se&tup...",              ID_PAGE_SETUP
         MENUITEM "P&rint Setup...",             ID_FILE_PRINT_SETUP
         MENUITEM SEPARATOR
         MENUITEM "Recent File",                 ID_FILE_MRU_FILE1, GRAYED
@@ -197,9 +196,10 @@ BEGIN
             MENUITEM "E&xpand\tKeypad-Plus",        ID_VIEW_FOLD_EXPAND
             MENUITEM "&Collapse\tKeypad-Minus",     ID_VIEW_FOLD_COLLAPSE
             MENUITEM "&Expand all\tAlt-Keypad-Plus", ID_VIEW_FOLD_EXPAND_ALL
-            MENUITEM "Collapse &All\tAlt-Keypad-Minus", 
+            MENUITEM "Collapse &all\tAlt-Keypad-Minus", 
                                                     ID_VIEW_FOLD_COLLAPSE_ALL
 
+            MENUITEM "Toggle top-level\tKeypad-*",  ID_VIEW_FOLD_TOPLEVEL
         END
     END
     POPUP "&Window"
@@ -248,7 +248,6 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Print...\tCtrl+P",           ID_FILE_PRINT
         MENUITEM "Print Pre&view",              ID_FILE_PRINT_PREVIEW
-        MENUITEM "Page Se&tup...",              ID_PAGE_SETUP
         MENUITEM "P&rint Setup...",             ID_FILE_PRINT_SETUP
         MENUITEM SEPARATOR
         MENUITEM "Recent File",                 ID_FILE_MRU_FILE1, GRAYED
@@ -321,7 +320,6 @@ BEGIN
         MENUITEM "&Import..\tCtrl+I",           ID_FILE_IMPORT
         MENUITEM "&Print...\tCtrl+P",           ID_FILE_PRINT
         MENUITEM "Print Pre&view",              ID_FILE_PRINT_PREVIEW
-        MENUITEM "Page Se&tup...",              ID_PAGE_SETUP
         MENUITEM "P&rint Setup...",             ID_FILE_PRINT_SETUP
         MENUITEM SEPARATOR
         MENUITEM "Recent File",                 ID_FILE_MRU_FILE1, GRAYED
@@ -1199,8 +1197,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_DBG_ADD             "Add/Remove a breakpoint\nAdd/Remove"
-    IDC_DBG_CLEAR           "Clear all breakpoints\nClear All"
+    IDC_DBG_ADD             "Add or Remove a breakpoint\nToggle Breakpoint"
+    IDC_DBG_CLEAR           "Clear all breakpoints\nClear All Breakpoints"
     IDC_DBG_CLOSE           "Close the debugger\nClose"
     IDC_DBG_STEP            "Step into the current statement\nStep"
 END
