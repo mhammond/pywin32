@@ -360,7 +360,7 @@ static PyObject *_PyPopen(char *cmdstring, int mode, int n)
 	    char *m1, *m2;
 	    PyObject *p1, *p2;
 	    
-	    if (mode && _O_TEXT)
+	    if (mode & _O_TEXT)
 		{
 			m1="r";
 			m2="w";
@@ -395,7 +395,7 @@ static PyObject *_PyPopen(char *cmdstring, int mode, int n)
 	    char *m1, *m2;
 	    PyObject *p1, *p2, *p3;
 	    
-	    if (mode && _O_TEXT)
+	    if (mode & _O_TEXT)
 		{
 			m1="r";
 			m2="w";
