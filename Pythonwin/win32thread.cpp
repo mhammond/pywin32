@@ -52,7 +52,8 @@ public:
 		if (helper.HaveHandler() && helper.call()) {
 			BOOL ret;
 			helper.retval(ret);
-			return ret;
+			// The main app InitInstance assumes a zero return.
+			return (ret==0);
 		} else
 			return CWinThread::InitInstance();
 	}
