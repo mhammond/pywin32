@@ -238,15 +238,11 @@ STDMETHODIMP PyGDebugStackFrame::GetDebugProperty(
 	PY_GATEWAY_METHOD;
 	if (ppdp==NULL) return E_POINTER;
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetThread", &result);
+	HRESULT hr=InvokeViaPolicy("GetDebugProperty", &result);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
-	PyObject *obppdp;
-	if (!PyArg_Parse(result, "O" , &obppdp)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obppdp, IID_IDebugProperty, (void **)ppdp, FALSE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!PyCom_InterfaceFromPyInstanceOrObject(result, IID_IDebugProperty, (void **)ppdp, FALSE /* bNoneOK */))
+		hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
 	Py_DECREF(result);
 	return hr;
 }
