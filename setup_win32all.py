@@ -770,7 +770,7 @@ com_extensions += [
     ),
     WinExt_win32com('axdebug',
             dsp_file=r"com\Active Debugging.dsp",
-            libraries="axscript msdbg",
+            libraries="axscript msdbg", # ad1.lib should work, but fails in debug?
             pch_header = "stdafx.h",
     ),
     WinExt_win32com('internet'),
@@ -785,6 +785,7 @@ com_extensions += [
                          extra_link_args=["/nodefaultlib:libc"]),
     WinExt_win32com('shell', libraries='shell32', pch_header="shell_pch.h"),
     WinExt_win32com('taskscheduler', libraries='mstask'),
+    WinExt_win32com('ifilter', libraries='ntquery'),
 ]
 
 pythonwin_extensions = [
@@ -917,6 +918,7 @@ packages=['win32com',
 
           'win32comext.shell',
           'win32comext.mapi',
+          'win32comext.ifilter',
           'win32comext.internet',
           'win32comext.axcontrol',
           'win32comext.taskscheduler',
@@ -996,6 +998,7 @@ dist = setup(name="pywin32",
                 'com/win32comext/shell/demos/servers/*.py',
                 'com/win32comext/shell/demos/*.py',
                 'com/win32comext/taskscheduler/test/*.py',
+                'com/win32comext/ifilter/demo/*.py',
                  ]) +
                 # And data files convert_data_files can't handle.
                 [
