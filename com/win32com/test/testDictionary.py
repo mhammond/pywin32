@@ -36,7 +36,7 @@ def TestDict(quiet=0):
 	TestDictAgainst(dict, checkDict)
 
 	try:
-		print dict
+		dict()
 		raise error, "default method with no args worked when it shouldnt have!"
 	except pythoncom.com_error, (hr, desc, exc, argErr):
 		if hr != winerror.DISP_E_BADPARAMCOUNT:

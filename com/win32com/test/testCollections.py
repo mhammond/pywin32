@@ -85,7 +85,7 @@ def TestEnum(quiet=0):
 #	TestEnumAgainst(o, check)
 
 	try:
-		print o
+		o()
 		raise error, "default method with no args worked when it shouldnt have!"
 	except pythoncom.com_error, (hr, desc, exc, argErr):
 		if hr != winerror.DISP_E_BADPARAMCOUNT:
@@ -98,7 +98,6 @@ def TestEnum(quiet=0):
 		if hr != winerror.DISP_E_TYPEMISMATCH:
 			raise error, "Expected DISP_E_TYPEMISMATCH - got %d (%s)" % (hr, desc)
 
-			
 	# Remove the sublist for this test!
 	try:
 		o.Remove(o.Count())
