@@ -39,4 +39,3 @@ class MDIFrameWnd(FrameWnd):
 		if wnd is None:
 			wnd=win32ui.CreateMDIFrame()
 		FrameWnd.__init__(self, wnd)
-		self.HookMessage(self.OnDestroy, win32con.WM_DESTROY)
