@@ -32,6 +32,7 @@ protected:
 	virtual BOOL 	DoFileSave();
 	virtual BOOL	DoSave(LPCTSTR lpszPathName, BOOL bReplace=TRUE);
 	virtual void	PreCloseFrame( CFrameWnd *pWnd );
+	virtual void    OnChangedViewList();
 
 // Generated message map functions
 protected:
@@ -225,6 +226,19 @@ BOOL CPythonDocTemp<P>::SaveModified()
 			return ret;
 	}
 	return FALSE;
+}
+template <class P>
+void CPythonDocTemp<P>::OnChangedViewList()
+{
+	// @pyvirtual int|PyCDocument|OnChangedViewList|Called by the MFC architecture when after a view is attached.
+	// @xref <om PyCDocument.OnChangedViewList>
+	// @comm If a handler is defined for this function, the base (MFC) function will not
+	// be called.  If necessary, the handler must call this function explicitely.
+	CVirtualHelper helper( "OnChangedViewList", this );
+	if (helper.HaveHandler() && helper.call()) {
+		return;
+	}
+	P::OnChangedViewList();
 }
 
 /////////////////////////////////////////////////////////////////////////////
