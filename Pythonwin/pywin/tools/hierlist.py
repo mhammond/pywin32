@@ -106,6 +106,7 @@ class HierList(object.Object):
 		parent.HookNotify(None, commctrl.NM_DBLCLK)
 		self.DeleteAllItems()
 		self.list = None
+		self.notify_parent = None # Break a possible cycle
 
 	def OnTreeItemDoubleClick(self,(hwndFrom, idFrom, code), extra):
 		if idFrom != self.listBoxId: return None
