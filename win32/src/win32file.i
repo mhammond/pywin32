@@ -2111,7 +2111,7 @@ static PyObject *MyWaitCommEvent(PyObject *self, PyObject *args)
 
 	BOOL ok;
 	Py_BEGIN_ALLOW_THREADS
-	ok = WaitCommEvent(handle, &mask, 
+	ok = WaitCommEvent(handle, pmask, 
 	                   pyoverlapped ? pyoverlapped->GetOverlapped() : NULL);
 	Py_END_ALLOW_THREADS
 	DWORD rc = ok ? 0 : GetLastError();
