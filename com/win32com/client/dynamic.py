@@ -151,7 +151,7 @@ class CDispatch:
 			invkind, dispid = pythoncom.DISPATCH_METHOD | pythoncom.DISPATCH_PROPERTYGET, pythoncom.DISPID_VALUE
 		if invkind is not None:
 			allArgs = (dispid,LCID,invkind,1) + args
-			return self._get_good_object_(apply(self._oleobj_.Invoke,allArgs),self._olerepr_.defaultDispatchName,None)
+			return self._get_good_object_(self._oleobj_.Invoke(*allArgs),self._olerepr_.defaultDispatchName,None)
 		raise TypeError, "This dispatch object does not define a default method"
 
 	def __nonzero__(self):
@@ -218,7 +218,7 @@ class CDispatch:
 			invkind, dispid = pythoncom.DISPATCH_PROPERTYPUT | pythoncom.DISPATCH_PROPERTYPUTREF, pythoncom.DISPID_VALUE
 		if invkind is not None:
 			allArgs = (dispid,LCID,invkind,0,index) + args
-			return self._get_good_object_(apply(self._oleobj_.Invoke,allArgs),self._olerepr_.defaultDispatchName,None)
+			return self._get_good_object_(self._oleobj_.Invoke(*allArgs),self._olerepr_.defaultDispatchName,None)
 		raise TypeError, "This dispatch object does not define a default method"
 
 	def _find_dispatch_type_(self, methodName):
@@ -237,7 +237,7 @@ class CDispatch:
 		return pythoncom.DISPATCH_METHOD | pythoncom.DISPATCH_PROPERTYGET, dispid
 
 	def _ApplyTypes_(self, dispid, wFlags, retType, argTypes, user, resultCLSID, *args):
-		result = apply(self._oleobj_.InvokeTypes, (dispid, LCID, wFlags, retType, argTypes) + args)
+		result = self._oleobj_.InvokeTypes(*(dispid, LCID, wFlags, retType, argTypes) + args)
 		return self._get_good_object_(result, user, resultCLSID)
 
 	def _wrap_dispatch_(self, ob, userName = None, returnCLSID = None, UnicodeToString = NeedUnicodeConversions):
@@ -315,7 +315,7 @@ class CDispatch:
 		try:
 			item = self._olerepr_.mapFuncs[name]
 			dispId = item.dispid
-			return self._get_good_object_(apply( self._oleobj_.Invoke, (dispId, LCID, item.desc[4], 0 ) + (args) ))
+			return self._get_good_object_(self._oleobj_.Invoke(*(dispId, LCID, item.desc[4], 0) + (args) ))
 		except KeyError:
 			raise AttributeError, name
 		
