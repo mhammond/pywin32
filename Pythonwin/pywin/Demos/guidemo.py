@@ -9,7 +9,6 @@ demos = [ \
 #	('Font', 'import fontdemo;fontdemo.FontDemo()'),
 	('Open GL Demo', 'import openGLDemo;openGLDemo.test()'),
 	('Threaded GUI', 'import threadedgui;threadedgui.ThreadedDemo()'),
-	('HTML Rich Text', 'import htmlrichedit;htmlrichedit.test()'),
 	('Tree View Demo', 'import hiertest;hiertest.demoboth()'),
 	('3-Way Splitter Window', 'import splittst;splittst.demo()'),
 	('Custom Toolbars and Tooltips', 'import toolbar;toolbar.test()'),
