@@ -81,6 +81,18 @@ typedef int UINT;
 	$target = NULL;
 }
 
+%typemap(python,in) MSG *INPUT {
+    if (PyArg_ParseTuple($source, "(iiiii(ii))",
+            &$target->hwnd,
+            &$target->message,
+            &$target->wParam,
+            &$target->lParam,
+            &$target->time,
+            &$target->pt.x,
+            &$target->pt.y))
+        return PyErr_Format(PyExc_TypeError, "%s: This param must be a tuple of format 'iiiii(ii)'", "$name");
+}
+    
 %typemap(python,ignore) RECT *OUTPUT(RECT temp)
 {
   $target = &temp;
@@ -798,8 +810,12 @@ static PyObject *PyGetString(PyObject *self, PyObject *args)
 		len = _tcslen(addr);
 
     if (len == 0) return PyUnicodeObject_FromString("");
-	return PyWinObject_FromTCHAR(addr, len);
-
+    if (IsBadReadPtr(addr, len)) {
+        PyErr_SetString(PyExc_ValueError,
+                        "The value is not a valid address for reading");
+        return NULL;
+    }
+    return PyWinObject_FromTCHAR(addr, len);
 }
 %}
 %native (PyGetString) PyGetString;
@@ -824,11 +840,15 @@ static PyObject *PySetString(PyObject *self, PyObject *args)
 		return NULL;
 	}
 
-	if(maxLen)
-		_tcsncpy( addr, source, maxLen);
-	else
-		_tcscpy(addr,source);
+    if (!maxLen)
+        maxLen = _tcslen(source)+1;
 
+    if (IsBadWritePtr(addr, maxLen)) {
+        PyErr_SetString(PyExc_ValueError,
+                        "The value is not a valid address for writing");
+        return NULL;
+    }
+    _tcsncpy( addr, source, maxLen);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -1791,6 +1811,12 @@ static PyObject *PyPumpWaitingMessages(PyObject *self, PyObject *args)
 %native (PumpMessages) PyPumpMessages;
 %native (PumpWaitingMessages) PyPumpWaitingMessages;
 
+// @pyswig int|TranslateMessage|
+BOOL TranslateMessage(MSG *INPUT);
+
+// @pyswig int|DispatchMessage|
+LRESULT DispatchMessage(MSG *INPUT);
+
 // DELETE ME!
 %{
 static PyObject *Unicode(PyObject *self, PyObject *args)
@@ -2054,6 +2080,68 @@ DWORD CommDlgExtendedError(void);
 // @rdesc The result is a HICON.
 HICON ExtractIcon(HINSTANCE hinst, TCHAR *modName, UINT index);
 
+// @pyswig int|ExtractIconEx|
+// @pyparm string|moduleName||
+// @pyparm int|index||
+// @pyparm int|numIcons|1|
+// @comm You must destroy each icon handle returned by calling the <om win32gui.DestroyIcon> function. 
+// @rdesc If index==-1, the result is an integer with the number of icons in
+// the file, otherwise it is 2 arrays of icon handles.
+%{
+static PyObject *PyExtractIconEx(PyObject *self, PyObject *args)
+{
+    int i;
+	char *fname;
+    int index, nicons=1, nicons_got;
+	if (!PyArg_ParseTuple(args, "si|i", &fname, &index, &nicons))
+		return NULL;
+    if (index==-1) {
+        nicons = ExtractIconEx(fname, index, NULL, NULL, 0);
+        return PyInt_FromLong(nicons);
+    }
+    if (nicons<=0)
+        return PyErr_Format(PyExc_ValueError, "Must supply a valid number of icons to fetch.");
+    HICON *rgLarge = NULL;
+    HICON *rgSmall = NULL;
+    PyObject *ret = NULL;
+    PyObject *objects_large = NULL;
+    PyObject *objects_small = NULL;
+    rgLarge = (HICON *)calloc(nicons, sizeof(HICON));
+    if (rgLarge==NULL) {
+        PyErr_NoMemory();
+        goto done;
+    }
+    rgSmall = (HICON *)calloc(nicons, sizeof(HICON));
+    if (rgSmall==NULL) {
+        PyErr_NoMemory();
+        goto done;
+    }
+    nicons_got = ExtractIconEx(fname, index, rgLarge, rgSmall, nicons);
+    if (nicons_got==-1) {
+        PyWin_SetAPIError("ExtractIconEx");
+        goto done;
+    }
+    // Asking for 1 always says it got 2!?
+    nicons = min(nicons, nicons_got);
+    objects_large = PyList_New(nicons);
+    if (!objects_large) goto done;
+    objects_small = PyList_New(nicons);
+    if (!objects_small) goto done;
+    for (i=0;i<nicons;i++) {
+        PyList_SET_ITEM(objects_large, i, PyInt_FromLong((long)rgLarge[i]));
+        PyList_SET_ITEM(objects_small, i, PyInt_FromLong((long)rgSmall[i]));
+    }
+    ret = Py_BuildValue("OO", objects_large, objects_small);
+done:
+    Py_XDECREF(objects_large);
+    Py_XDECREF(objects_small);
+    if (rgLarge) free(rgLarge);
+    if (rgSmall) free(rgSmall);
+    return ret;
+}
+%}
+%native (ExtractIconEx) PyExtractIconEx;
+
 // @pyswig |DestroyIcon|
 // @pyparm int|hicon||The icon to destroy.
 BOOLAPI DestroyIcon( HICON hicon);
@@ -2152,6 +2240,17 @@ BOOLAPI SetMenuItemBitmaps(
   UINT uFlags,               // @pyparm int|uFlags||options
   HBITMAP hBitmapUnchecked,  // @pyparm int|hBitmapUnchecked||handle to unchecked bitmap
   HBITMAP hBitmapChecked     // @pyparm int|hBitmapChecked||handle to checked bitmap
+);
+
+// @pyswig |CheckMenuRadioItem|Checks a specified menu item and makes it a
+// radio item. At the same time, the function clears all other menu items in
+// the associated group and clears the radio-item type flag for those items.
+BOOLAPI CheckMenuRadioItem(
+  HMENU hMenu,               // @pyparm int|hMenu||handle to menu
+  UINT idFirst,  // @pyparm int|idFirst||identifier or position of first item
+  UINT idLast,  // @pyparm int|idLast||identifier or position of last item
+  UINT idCheck,  // @pyparm int|idCheck||identifier or position of item to check
+  UINT uFlags               // @pyparm int|uFlags||options
 );
 
 
