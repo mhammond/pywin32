@@ -51,6 +51,11 @@ except NameError:
     True=0==0
     False=1==0
 
+try:
+    this_file = __file__
+except NameError:
+    this_file = sys.argv[0]
+    
 class WinExt (Extension):
     # Base class for all win32 extensions, with some predefined
     # library and include dirs, and predefined windows libraries.
@@ -119,6 +124,17 @@ class WinExt (Extension):
                 if os.path.splitext(fields[1])[1].lower() in ['.cpp', '.c', '.i', '.rc', '.mc']:
                     pathname = os.path.normpath(os.path.join(dsp_path, fields[1]))
                     result.append(pathname)
+
+        # Sort the sources so that (for example) the .mc file is processed first,
+        # building this may create files included by other source files.
+        # Note that this requires a patch to distutils' ccompiler classes so that
+        # they build the sources in the order given.
+        build_order = ".i .mc .rc .cpp".split()
+        decorated = [(build_order.index(os.path.splitext(fname)[-1].lower()), fname)
+                     for fname in result]
+        decorated.sort()
+        result = [item[1] for item in decorated]
+
         return result
 
 class WinExt_pythonwin(WinExt):
@@ -642,6 +658,9 @@ swig_interface_parents = {
     'PyIMsgStore':          'IMAPIProp',
     'PyIProfAdmin':         '',
     'PyIProfSect':          'IMAPIProp',
+    # exchange and exchdapi
+    'exchange':             None,
+    'exchdapi':             None,
     # ADSI
     'adsi':                 None, # module
     'PyIADsContainer':      'IDispatch',
@@ -693,7 +712,19 @@ def convert_data_files(files):
         path_use = os.path.join(base_dir, path_use)
         ret.append( (path_use, files_use))
     return ret
-   
+
+def convert_optional_data_files(files):
+    ret = []
+    for file in files:
+        try:
+            temp = convert_data_files([file])
+        except RuntimeError, details:
+            if not str(details).startswith("No file"):
+                raise
+            print 'NOTE: Optional file %s not found - skipping' % file
+        else:
+            ret.append(temp[0])
+    return ret
 
 ################################################################
 if len(sys.argv)==1:
@@ -755,8 +786,10 @@ dist = setup(name="pywin32",
 
       py_modules = expand_modules("win32\\lib"),
 
-      data_files=convert_data_files([
-                'pywin32.chm',
+      data_files=convert_optional_data_files([
+                'PyWin32.chm',
+                ]) + 
+      convert_data_files([
                 'pythonwin/pywin/*.cfg',
                 'pythonwin/license.txt',
                 'win32/license.txt',
@@ -776,7 +809,7 @@ dist = setup(name="pywin32",
                 'com/win32comext/axscript/demos/client/ie/*',
                 'com/win32comext/axscript/demos/client/wsh/*',
                 'com/win32comext/axscript/demos/client/asp/*',
-                 ]) + \
+                 ]) +
                 # And data files convert_data_files can't handle.
                 [
                     ('Lib/site-packages\\win32com', ('com/License.txt',)),
