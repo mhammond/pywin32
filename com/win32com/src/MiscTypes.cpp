@@ -112,12 +112,48 @@ PyComTypeObject::~PyComTypeObject()
 PyComEnumTypeObject::PyComEnumTypeObject( const char *name, PyComTypeObject *pBase, int typeSize, struct PyMethodDef* methodList, PyIUnknown * (* thector)(IUnknown *)) :
 	PyComTypeObject( name, pBase, typeSize, methodList, thector)
 {
-	tp_iter = PyIEnum::iter;
-	tp_iternext = PyIEnum::iternext;
+	tp_iter = iter;
+	tp_iternext = iternext;
 	tp_flags |= Py_TPFLAGS_HAVE_ITER;
 }
 
-	// Our type for IEnum provider interfaces
+// PyIEnum iter methods - generic for any "standard" COM IEnum interface, but
+// if the object provides a real one, we use it.
+PyObject *PyComEnumTypeObject::iter(PyObject *self)
+{
+	assert(!PyErr_Occurred());
+	PyObject *rc = ((PyIBase *)self)->iter();
+	if (rc || PyErr_Occurred())
+		return rc;
+	Py_INCREF(self);
+	return self;
+}
+
+PyObject *PyComEnumTypeObject::iternext(PyObject *self)
+{
+	PyObject *ret = ((PyIBase *)self)->iter();
+	if (ret || PyErr_Occurred())
+		return ret;
+	PyObject *method = PyObject_GetAttrString(self, "Next");
+	if (!method)
+		return NULL;
+	PyObject *args=Py_BuildValue("(i)", 1);
+	PyObject *result = PyObject_Call(method, args, NULL);
+	Py_DECREF(method);
+	Py_DECREF(args);
+	if (!result)
+		return NULL;
+	if (PySequence_Length(result)==0){
+		PyErr_SetNone(PyExc_StopIteration);
+		ret = NULL;
+	} else
+		ret = PySequence_GetItem(result, 0);
+	Py_DECREF(result);
+	return ret;
+}
+
+
+// Our type for IEnum provider interfaces
 PyComEnumProviderTypeObject::PyComEnumProviderTypeObject( 
                                         const char *name, 
                                         PyComTypeObject *pBase, 
@@ -128,10 +164,41 @@ PyComEnumProviderTypeObject::PyComEnumProviderTypeObject(
 	PyComTypeObject( name, pBase, typeSize, methodList, thector),
 	enum_method_name(penum_method_name)
 {
-	tp_iter = PyIEnumProvider::iter;
+	tp_iter = iter;
 	// tp_iternext remains NULL
 	tp_flags |= Py_TPFLAGS_HAVE_ITER;
 }
+
+// PyIEnumProvider iter methods - generic for COM object that can provide an IEnum*
+// interface via a method call taking no args.
+PyObject *PyComEnumProviderTypeObject::iter(PyObject *self)
+{
+	PyObject *result = ((PyIBase *)self)->iter();
+	if (result || PyErr_Occurred())
+		return result;
+	PyComEnumProviderTypeObject *t = (PyComEnumProviderTypeObject *)self->ob_type;
+	PyObject *method = PyObject_GetAttrString(self, (char *)t->enum_method_name);
+	if (!method)
+		return NULL;
+	PyObject *args=PyTuple_New(0);
+	result = PyObject_Call(method, args, NULL);
+	Py_DECREF(method);
+	Py_DECREF(args);
+	if (result==Py_None) {
+		// If we returned None for the iterator (but there is
+		// no error) then we simulate an empty iterator
+		// Otherwise we get:
+		// TypeError: iter() returned non-iterator of type 'NoneType'
+		Py_DECREF(result);
+		PyObject *dummy = PyTuple_New(0);
+		if (!dummy)
+			return NULL;
+		result = PySeqIter_New(dummy);
+		Py_DECREF(dummy);
+	}
+	return result;
+}
+
 
 /////////////////////////////////////////////////////////////////////////////
 // class PyOleEmpty

@@ -164,12 +164,15 @@ public:
 	                             struct PyMethodDef* methodList, 
 	                             PyIUnknown* (* thector)(IUnknown *),
 	                             const char *enum_method_name);
+	static PyObject *iter(PyObject *self);
 	const char *enum_method_name;
 };
 
 // A type used for PyIEnum interfaces
 class PYCOM_EXPORT PyComEnumTypeObject : public PyComTypeObject {
 public:
+	static PyObject *iter(PyObject *self);
+	static PyObject *iternext(PyObject *self);
 	PyComEnumTypeObject( const char *name, PyComTypeObject *pBaseType, int typeSize, struct PyMethodDef* methodList, PyIUnknown* (* thector)(IUnknown *)  );
 };
 
@@ -184,6 +187,10 @@ public:
 	virtual int setattr(char *name, PyObject *v);
 	virtual PyObject *repr();
 	virtual int compare(PyObject *other) {return (int)this-int(other);}
+	// These iter are a little special, in that returning NULL means
+	// use the implementation in the type
+	virtual PyObject *iter() {return NULL;}
+	virtual PyObject *iternext() {return NULL;}
 	static struct PyMethodDef PyIBase::empty_methods[];
 protected:
 	PyIBase();
@@ -412,32 +419,6 @@ public:
 protected:
 	PyIUnknown(IUnknown *punk);
 	~PyIUnknown();
-};
-
-/////////////////////////////////////////////////////////////////////////////
-// class PyIEnum - base for all Python interfaces implement IEnum*
-class PYCOM_EXPORT PyIEnum : public PyIUnknown
-{
-protected:
-	PyIEnum(IUnknown *punk) : PyIUnknown(punk) {;}
-public:
-	virtual PyObject *iter();
-	virtual PyObject *iternext();
-	static PyObject *iter(PyObject *self) {return ((PyIEnum *)self)->iter();}
-	static PyObject *iternext(PyObject *self) {return ((PyIEnum *)self)->iternext();}
-
-};
-
-/////////////////////////////////////////////////////////////////////////////
-// class PyIEnum - base for all Python interfaces that can provide an
-// IEnum* via a method
-class PYCOM_EXPORT PyIEnumProvider : public PyIUnknown
-{
-protected:
-	PyIEnumProvider(IUnknown *punk) : PyIUnknown(punk) {;}
-public:
-	virtual PyObject *iter();
-	static PyObject *iter(PyObject *self) {return ((PyIEnumProvider *)self)->iter();}
 };
 
 /////////////////////////////////////////////////////////////////////////////
