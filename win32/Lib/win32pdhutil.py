@@ -109,7 +109,7 @@ def test():
 	
 	
 if __name__=='__main__':
-#	ShowAllProcesses()
+	ShowAllProcesses()
 #	test()
 	print "Browsing for counters..."
 	browse()
