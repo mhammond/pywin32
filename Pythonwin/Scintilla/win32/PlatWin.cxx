@@ -419,6 +419,12 @@ void Surface::SetClip(PRectangle rc) {
 	::IntersectClipRect(hdc, rc.left, rc.top, rc.right, rc.bottom);
 }
 
+void Surface::FlushCachedState() {
+	pen = 0;
+	brush = 0;
+	font = 0;
+}
+
 Window::~Window() {
 }
 

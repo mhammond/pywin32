@@ -279,6 +279,11 @@ extern "C" {
 #define SCI_ZOOMOUT SCI_START + 334
 #define SCI_DELWORDLEFT SCI_START + 335
 #define SCI_DELWORDRIGHT SCI_START + 336
+#define SCI_LINECUT SCI_START + 337
+#define SCI_LINEDELETE SCI_START + 338
+#define SCI_LINETRANSPOSE SCI_START + 339
+#define SCI_LOWERCASE SCI_START + 340
+#define SCI_UPPERCASE SCI_START + 341
 
 #define SCI_LINELENGTH SCI_START + 350
 #define SCI_BRACEHIGHLIGHT SCI_START + 351
@@ -311,6 +316,8 @@ extern "C" {
                            // OR this with CARET_SLOP to reposition whenever outside slop border
 
 #define SCI_SETCARETPOLICY SCI_START + 369
+#define SCI_LINESONSCREEN SCI_START + 370
+#define SCI_USEPOPUP SCI_START + 371
 
 // GTK+ Specific
 #define SCI_GRABFOCUS SCI_START + 400
@@ -342,6 +349,7 @@ typedef void (tMacroRecorder)(UINT iMessage, WPARAM wParam, LPARAM lParam,
 #define SC_PERFORMED_UNDO 0x20
 #define SC_PERFORMED_REDO 0x40
 #define SC_LASTSTEPINUNDOREDO 0x100
+#define SC_MOD_CHANGEMARKER 0x200
 
 #define SC_MODEVENTMASKALL 0x377
 

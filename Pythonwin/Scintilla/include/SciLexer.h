@@ -47,7 +47,7 @@
 #define SCE_C_WORD 5
 #define SCE_C_STRING 6
 #define SCE_C_CHARACTER 7
-#define SCE_C_PUNTUATION 8
+#define SCE_C_UUID 8
 #define SCE_C_PREPROCESSOR 9
 #define SCE_C_OPERATOR 10
 #define SCE_C_IDENTIFIER 11

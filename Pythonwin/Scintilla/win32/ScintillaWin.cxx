@@ -448,7 +448,9 @@ LRESULT ScintillaWin::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 
 	case WM_CONTEXTMENU:
 #ifdef TOTAL_CONTROL
-		ContextMenu(Point::FromLong(lParam));
+		if (displayPopupMenu) {
+			ContextMenu(Point::FromLong(lParam));
+		}
 #endif
 		break;
 
@@ -527,7 +529,7 @@ bool ScintillaWin::ModifyScrollBars(int nMax, int nPage) {
 	sci.fMask = SIF_PAGE | SIF_RANGE;
 	BOOL bz = ::GetScrollInfo(wMain.GetID(), SB_VERT, &sci);
 	if ((sci.nMin != 0) || (sci.nMax != pdoc->LinesTotal()) ||
-	        (sci.nPage != (pdoc->LinesTotal() - MaxScrollPos() + 1)) ||
+	        (sci.nPage != static_cast<unsigned int>(pdoc->LinesTotal() - MaxScrollPos() + 1)) ||
 	        (sci.nPos != 0)) {
 		//Platform::DebugPrintf("Scroll info changed %d %d %d %d %d\n",
 		//	sci.nMin, sci.nMax, sci.nPage, sci.nPos, sci.nTrackPos);

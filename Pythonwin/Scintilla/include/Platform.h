@@ -292,6 +292,7 @@ public:
 	
 	int SetPalette(Palette *pal, bool inBackGround);
 	void SetClip(PRectangle rc);
+	void FlushCachedState();
 };
 
 // Class to hide the details of window manipulation

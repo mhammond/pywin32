@@ -10,14 +10,16 @@
 #include "Style.h"
 
 Style::Style() {
-	aliasOfDefaultFont = false;
+	aliasOfDefaultFont = true;
 	Clear(Colour(0,0,0), Colour(0xff,0xff,0xff),
 	        Platform::DefaultFontSize(), 0,
 		false, false, false);
 }
 	
 Style::~Style() {
-	if (!aliasOfDefaultFont)
+	if (aliasOfDefaultFont)
+		font.SetID(0);
+	else
 		font.Release();
 	aliasOfDefaultFont = false;
 }
@@ -25,17 +27,14 @@ Style::~Style() {
 Style &Style::operator=(const Style &source) {
 	if (this == &source)
 		return *this;
-	// Crash:
-	*(char *)0 = 1;
 	Clear(Colour(0,0,0), Colour(0xff,0xff,0xff),
-	        Platform::DefaultFontSize(), 0,
+	        0, 0,
 		false, false, false);
 	fore.desired = source.fore.desired;
 	back.desired = source.back.desired;
 	bold = source.bold;
 	italic = source.italic;
 	size = source.size;
-	fontName = source.fontName;
 	eolFilled = source.eolFilled;
 	return *this;
 }
@@ -49,10 +48,10 @@ void Style::Clear(Colour fore_, Colour back_, int size_, const char *fontName_,
 	size = size_;
 	fontName = fontName_;
 	eolFilled = eolFilled_;
-	if (!aliasOfDefaultFont)
-		font.Release();
-	else 
+	if (aliasOfDefaultFont)
 		font.SetID(0);
+	else 
+		font.Release();
 	aliasOfDefaultFont = false;
 }
 
@@ -75,13 +74,18 @@ void Style::Realise(Surface &surface, int zoomLevel, Style *defaultStyle) {
 	if (sizeZoomed <= 2)	// Hangs if sizeZoomed <= 1
 		sizeZoomed = 2;
 
-	font.Release();		
+	if (aliasOfDefaultFont)
+		font.SetID(0);
+	else 
+		font.Release();		
 	int deviceHeight = (sizeZoomed * surface.LogPixelsY()) / 72;
 	aliasOfDefaultFont = defaultStyle && EquivalentFontTo(defaultStyle);
 	if (aliasOfDefaultFont) {
 		font.SetID(defaultStyle->font.GetID());
 	} else if (fontName) {
 		font.Create(fontName, deviceHeight, bold, italic);
+	} else {
+		font.SetID(0);
 	}
 
 	ascent = surface.Ascent(font);
