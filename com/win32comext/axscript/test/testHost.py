@@ -6,11 +6,22 @@ import pythoncom
 from win32com.server import util, connect
 import win32com.server.policy
 
+import unittest
+import win32com.test.util
+
+verbose = "-v" in sys.argv
+
 class MySite(axsite.AXSite):
+  def __init__(self, *args):
+    self.seen_exception = 0
+    axsite.AXSite.__init__(self, *args)
 
   def OnScriptError(self, error):
     exc = error.GetExceptionInfo()
     context, line, char = error.GetSourcePosition()
+    self.seen_exception = 1
+    if not verbose:
+      return
     print " >Exception:", exc[1]
     try:
       st = error.GetSourceLineText()
@@ -23,16 +34,16 @@ class MySite(axsite.AXSite):
 
 class MyCollection(util.Collection):
 	def _NewEnum(self):
-		print "Making new Enumerator"
 		return util.Collection._NewEnum(self)
 
 class Test:
-  _public_methods_ = [ 'echo' ]
-  _public_attrs_ = ['collection', 'verbose']
+  _public_methods_ = [ 'echo', 'fail' ]
+  _public_attrs_ = ['collection']
   def __init__(self):
-    self.verbose = 0
+    self.verbose = verbose
     self.collection = util.wrap( MyCollection( [1,'Two',3] ))
     self.last = ""
+    self.fail_called = 0
 #    self._connect_server_ = TestConnectServer(self)
 
   def echo(self, *args):
@@ -41,6 +52,13 @@ class Test:
       for arg in args:
         print arg,
       print
+
+  def fail(self, *args):
+    print "**** fail() called ***"
+    for arg in args:
+      print arg,
+    print
+    self.fail_called = 1
 #    self._connect_server_.Broadcast(last)
 
 
@@ -71,24 +89,36 @@ sub hello(arg1)
 end sub
   
 sub testcollection
-   test.verbose = 1
+   if test.collection.Item(0) <> 1 then
+     test.fail("Index 0 was wrong")
+   end if
+   if test.collection.Item(1) <> "Two" then
+     test.fail("Index 1 was wrong")
+   end if
+   if test.collection.Item(2) <> 3 then
+     test.fail("Index 2 was wrong")
+   end if
+   num = 0
    for each item in test.collection
-     test.echo "Collection item is", item
+     num = num + 1
    next
+   if num <> 3 then
+     test.fail("Collection didn't have 3 items")
+   end if
 end sub
 """
 PyScript = """\
-print "PyScript is being parsed..."
 prop = "Property Value"
 def hello(arg1):
    test.echo(arg1)
-   pass
    
 def testcollection():
-   test.verbose = 1
 #   test.collection[1] = "New one"
+   got = []
    for item in test.collection:
-     test.echo("Collection item is", item)
+     got.append(item)
+   if got != [1, "Two", 3]:
+     test.fail("Didn't get the collection")
    pass
 """
 
@@ -112,81 +142,72 @@ def _CheckEngineState(engine, name, state):
     state_name = state_map.get(state, str(state))
     raise RuntimeError, "Warning - engine %s has state %s, but expected %s" % (name, got_name, state_name)
 
-def TestEngine(engineName, code, bShouldWork = 1):
-  echoer = Test()
-  model = {
-    'test' : util.wrap(echoer),
-    }
-
-  site = MySite(model)
-  engine = site._AddEngine(engineName)
-  _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_INITIALIZED)
-  engine.AddCode(code)
-  engine.Start()
-  _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_STARTED)
-
-  if not bShouldWork: return
-  # Now call into the scripts IDispatch
-  from win32com.client.dynamic import Dispatch
-  ob = Dispatch(engine.GetScriptDispatch())
-  try:
-    ob.hello("Goober")
-  except pythoncom.com_error, exc:
-    print "***** Calling 'hello' failed", exc
-    return
-  if echoer.last != "Goober":
-    print "***** Function call didnt set value correctly", `echoer.last`
-    
-  if str(ob.prop) != "Property Value":
-    print "***** Property Value not correct - ", `ob.prop`
-
-  ob.testcollection()
-
-  # Now make sure my engines can evaluate stuff.
-  result = engine.eParse.ParseScriptText("1+1", None, None, None, 0, 0, axscript.SCRIPTTEXT_ISEXPRESSION)
-  if result != 2:
-    print "Engine could not evaluate '1+1' - said the result was", result
-
-  # re-initialize to make sure it transitions back to initialized again.
-  engine.SetScriptState(axscript.SCRIPTSTATE_INITIALIZED)
-  _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_INITIALIZED)
-  engine.Start()
-  _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_STARTED)
+class EngineTester(win32com.test.util.TestCase):
+  def _TestEngine(self, engineName, code, bShouldWork = 1):
+    echoer = Test()
+    model = {
+      'test' : util.wrap(echoer),
+      }
+    try:
+      try:
+        site = MySite(model)
+        engine = site._AddEngine(engineName)
+        _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_INITIALIZED)
+        engine.AddCode(code)
+        engine.Start()
+        _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_STARTED)
+      finally:
+        if bShouldWork:
+          self.failUnless(not site.seen_exception, "Script site should not have seen an exception")
+        else:
+          self.failUnless(site.seen_exception, "Script site should have seen an exception")
+      self.failUnless(not echoer.fail_called, "Fail should not have been called")
+      # Now call into the scripts IDispatch
+      from win32com.client.dynamic import Dispatch
+      ob = Dispatch(engine.GetScriptDispatch())
+      ob.hello("Goober")
+      self.assertEqual(echoer.last, "Goober")
   
-  # Transition back to initialized, then through connected too.
-  engine.SetScriptState(axscript.SCRIPTSTATE_INITIALIZED)
-  _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_INITIALIZED)
-  engine.SetScriptState(axscript.SCRIPTSTATE_CONNECTED)
-  _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_CONNECTED)
-  engine.SetScriptState(axscript.SCRIPTSTATE_INITIALIZED)
-  _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_INITIALIZED)
-
-  engine.SetScriptState(axscript.SCRIPTSTATE_CONNECTED)
-  _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_CONNECTED)
-  engine.SetScriptState(axscript.SCRIPTSTATE_DISCONNECTED)
-  _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_DISCONNECTED)
-  engine.Close()
-  #_CheckEngineState(site, engineName, axscript.SCRIPTSTATE_CLOSED)
+      self.assertEqual(str(ob.prop), "Property Value")
+      ob.testcollection()
+      self.failUnless(not echoer.fail_called, "Fail should not have been called")
   
-
-def dotestall():
-  TestEngine("VBScript", VBScript)
-  TestEngine("Python", PyScript)
-  print "Testing Exceptions"
-  try:
-    TestEngine("Python", ErrScript, 0)
-  except pythoncom.com_error:
-    pass
+      # Now make sure my engines can evaluate stuff.
+      result = engine.eParse.ParseScriptText("1+1", None, None, None, 0, 0, axscript.SCRIPTTEXT_ISEXPRESSION)
+      self.assertEqual(result, 2)
+      # re-initialize to make sure it transitions back to initialized again.
+      engine.SetScriptState(axscript.SCRIPTSTATE_INITIALIZED)
+      _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_INITIALIZED)
+      engine.Start()
+      _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_STARTED)
+      
+      # Transition back to initialized, then through connected too.
+      engine.SetScriptState(axscript.SCRIPTSTATE_INITIALIZED)
+      _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_INITIALIZED)
+      engine.SetScriptState(axscript.SCRIPTSTATE_CONNECTED)
+      _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_CONNECTED)
+      engine.SetScriptState(axscript.SCRIPTSTATE_INITIALIZED)
+      _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_INITIALIZED)
     
-  try:
-    TestEngine("VBScript", ErrScript, 0)
-  except pythoncom.com_error:
-    pass
+      engine.SetScriptState(axscript.SCRIPTSTATE_CONNECTED)
+      _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_CONNECTED)
+      engine.SetScriptState(axscript.SCRIPTSTATE_DISCONNECTED)
+      _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_DISCONNECTED)
+    finally:
+      engine.Close()
+      engine = None
+      site = None
 
-def testall():
-  dotestall()
-  pythoncom.CoUninitialize()
-  print "AXScript Host worked correctly - %d/%d COM objects left alive." % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
+  def testVB(self):
+    self._TestEngine("VBScript", VBScript)
+  def testPython(self):
+    self._TestEngine("Python", PyScript)
+  def testVBExceptions(self):
+    self.assertRaises(pythoncom.com_error,
+                      self._TestEngine, "VBScript", ErrScript, 0)
+  def testPythonExceptions(self):
+    self.assertRaises(pythoncom.com_error,
+                      self._TestEngine, "Python", ErrScript, 0)
 
 if __name__ == '__main__':
-	testall()
+  unittest.main()
