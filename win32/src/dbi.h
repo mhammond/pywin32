@@ -11,21 +11,21 @@
 #ifndef DBI_H
 #define DBI_H
 
-int dbiIsDate(const PyObject *o);
-int dbiIsRaw(const PyObject *o);
-int dbiIsRowId(const PyObject *o);
-
-/* These do not INCREF */
-PyObject *dbiValue(PyObject *o);  
-PyObject *dbiMakeDate(PyObject *contents);
-PyObject *dbiMakeRaw(PyObject *contents);
-PyObject *dbiMakeRowId(PyObject *contents);
-
 #ifdef DBI_EXPORT
     #define CALLCONV(RTYPE) __declspec(dllexport) RTYPE
 #else
     #define CALLCONV(RTYPE) __declspec(dllimport) RTYPE
 #endif
+
+CALLCONV(int) dbiIsDate(const PyObject *o);
+CALLCONV(int) dbiIsRaw(const PyObject *o);
+CALLCONV(int) dbiIsRowId(const PyObject *o);
+
+/* These do not INCREF */
+CALLCONV(PyObject) *dbiValue(PyObject *o);  
+CALLCONV(PyObject) *dbiMakeDate(PyObject *contents);
+CALLCONV(PyObject) *dbiMakeRaw(PyObject *contents);
+CALLCONV(PyObject) *dbiMakeRowId(PyObject *contents);
 
 CALLCONV(PyObject)*DbiString;
 CALLCONV(PyObject)*DbiRaw;

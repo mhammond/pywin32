@@ -37,7 +37,7 @@ static PyObject *makeDbiTypeTP(PyObject *args, PyTypeObject *ty)
   
 	if (PyArg_ParseTuple(args, "O", &ob))
 	{
-		dbt = PyObject_NEW(DbiContainer, ty);
+		dbt = PyObject_New(DbiContainer, ty);
 		dbt->objectOf = ob;
 		Py_INCREF(ob);
 	}
@@ -47,7 +47,7 @@ static PyObject *makeDbiTypeTP(PyObject *args, PyTypeObject *ty)
 static void dbiDealloc(PyObject *self)
 {
 	Py_DECREF(((DbiContainer *) self)->objectOf);
-	PyMem_DEL(self);
+	PyObject_Del(self);
 }
 
 static PyMethodDef noMethods[] =

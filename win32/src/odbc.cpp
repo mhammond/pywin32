@@ -342,7 +342,7 @@ static PyObject *odbcCursor(PyObject *self, PyObject *args)
 		}
 	}
 
-	cursorObject *cur = PyObject_NEW(cursorObject, &Cursor_Type);
+	cursorObject *cur = PyObject_New(cursorObject, &Cursor_Type);
 	if (cur == NULL)
 		return NULL;
 
@@ -355,7 +355,7 @@ static PyObject *odbcCursor(PyObject *self, PyObject *args)
 	if (unsuccessful(SQLAllocStmt(conn->hdbc, &cur->hstmt)))
 	{
 		connectionError(cur->my_conx, "OPEN");
-		PyMem_DEL(cur);
+		PyObject_Del(cur);
 		return 0;
 	}
 	cur->my_conx = conn;
@@ -397,7 +397,7 @@ static void connectionDealloc(PyObject *self)
 {
 	SQLDisconnect(connection(self)->hdbc);
 	SQLFreeConnect(connection(self)->hdbc);
-	PyMem_DEL(self);
+	PyObject_Del(self);
 }
 
 static void deleteOutput(cursorObject *cur)
@@ -448,7 +448,7 @@ static void cursorDealloc(PyObject *self)
 	{
 		Py_DECREF(cur->description);
 	}
-	PyMem_DEL(self);
+	PyObject_Del(self);
 }
 
 
@@ -1637,7 +1637,7 @@ static PyObject *odbcLogon(PyObject *self, PyObject *args)
 		return NULL;
 	}
 
-	conn = PyObject_NEW(connectionObject, &Connection_Type);
+	conn = PyObject_New(connectionObject, &Connection_Type);
 	if (!conn)
 	{
 		return NULL;
@@ -1648,7 +1648,7 @@ static PyObject *odbcLogon(PyObject *self, PyObject *args)
 	if (unsuccessful(SQLAllocConnect(Env, &conn->hdbc)))
 	{
 		connectionError(conn, "ALLOCATION");
-		PyMem_DEL(conn);
+		PyObject_Del(conn);
 		return 0;
 	}
 
@@ -1656,7 +1656,7 @@ static PyObject *odbcLogon(PyObject *self, PyObject *args)
 
 	if (doConnect(conn))
 	{
-		PyMem_DEL(conn);
+		PyObject_Del(conn);
 		return 0;
 	}
 
