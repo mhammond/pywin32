@@ -1,6 +1,6 @@
 # Magic utility that "redirects" to pywintypesxx.dll
 
-def __import(modname):
+def __import_pywin32_system_module__(modname, globs):
     # *sigh* - non-admin installs will not have pywintypesxx.dll in the 
     # system directory, so 'import win32api' will fail looking
     # for pywintypes - the exact DLL we are trying to load!
@@ -19,6 +19,10 @@ def __import(modname):
         # If we are running from a frozen program (py2exe, McMillan, freeze)
         # then we try and load the DLL from our sys.path
         for look in sys.path:
+            # If the sys.path entry is a (presumably) .zip file, use the
+            # directory 
+            if os.path.isfile(look):
+                look = os.path.dirname(look)            
             found = os.path.join(look, filename)
             if os.path.isfile(found):
                 break
@@ -37,7 +41,7 @@ def __import(modname):
     # Python can load the module
     mod = imp.load_module(modname, None, found, ('.dll', 'rb', imp.C_EXTENSION))
     # and fill our namespace with it.
-    globals().update(mod.__dict__)
+    globs.update(mod.__dict__)
 
-__import("pywintypes")
-del __import
+__import_pywin32_system_module__("pywintypes", globals())
+
