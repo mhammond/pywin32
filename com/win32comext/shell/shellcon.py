@@ -522,4 +522,6 @@ ABE_RIGHT = 2
 ABE_BOTTOM = 3
 def EIRESID(x): return (-1 * (int)(x))
 
-
+# Some manually added ones
+CSIDL_COMMON_APPDATA = 0x23
+CSIDL_LOCAL_APPDATA = 0x1c
