@@ -42,7 +42,6 @@ from distutils.command.install_lib import install_lib
 from distutils.command.build_ext import build_ext
 from distutils.command.install_data import install_data
 from distutils.dep_util import newer_group
-from distutils import log
 from distutils import dir_util, file_util
 from distutils.sysconfig import get_python_lib
 from distutils.filelist import FileList
@@ -57,6 +56,16 @@ try:
 except NameError:
     True=0==0
     False=1==0
+# nor distutils.log
+try:
+    from distutils import log
+except ImportError:
+    class Log:
+        def debug(self, msg, *args):
+            print msg % args
+        def info(self, msg, *args):
+            print msg % args
+    log = Log()
 
 try:
     this_file = __file__
@@ -242,6 +251,14 @@ class my_build_ext(build_ext):
         self.mingw32 = (self.compiler == "mingw32")
         if self.mingw32:
             self.libraries.append("stdc++")
+        # Python 2.2 distutils doesn't handle the 'PC'/PCBuild directory for
+        # us (it only exists if building from the source tree)
+        extra = os.path.join(sys.exec_prefix, 'PC')
+        if extra not in self.include_dirs and os.path.isdir(extra):
+            self.include_dirs.append(extra)
+        extra = os.path.join(sys.exec_prefix, 'PCBuild')
+        if extra not in self.library_dirs and os.path.isdir(extra):
+            self.library_dirs.append(os.path.join(extra))
 
     def _why_cant_build_extension(self, ext):
         # Return None, or a reason it can't be built.
@@ -384,6 +401,8 @@ class my_build_ext(build_ext):
         else:
             ext_filename = os.path.join(self.build_lib,
                                         self.get_ext_filename(fullname))
+        if not hasattr(ext, "depends"):
+            ext.depends = [] # 2.2 doesn't have this
         depends = sources + ext.depends
         if not (self.force or newer_group(depends, ext_filename, 'newer')):
             log.debug("skipping '%s' executable (up-to-date)", ext.name)
@@ -415,14 +434,16 @@ class my_build_ext(build_ext):
         macros = ext.define_macros[:]
         for undef in ext.undef_macros:
             macros.append((undef,))
-
-        objects = self.compiler.compile(sources,
-                                        output_dir=self.build_temp,
-                                        macros=macros,
-                                        include_dirs=ext.include_dirs,
-                                        debug=self.debug,
-                                        extra_postargs=extra_args,
-                                        depends=ext.depends)
+        # 2.2 has no 'depends' param.
+        kw = {'output_dir': self.build_temp,
+              'macros': macros,
+              'include_dirs': ext.include_dirs,
+              'debug': self.debug,
+              'extra_postargs': extra_args
+        }
+        if sys.version_info > (2,3):
+            kw["depends"] = ext.depends
+        objects = self.compiler.compile(sources, **kw)
 
         # XXX -- this is a Vile HACK!
         #
@@ -442,19 +463,22 @@ class my_build_ext(build_ext):
             objects.extend(ext.extra_objects)
         extra_args = ext.extra_link_args or []
 
-        # Detect target language, if not provided
-        language = ext.language or self.compiler.detect_language(sources)
+        # 2.2 has no 'language' support
+        kw = { 'libraries': self.get_libraries(ext),
+               'library_dirs': ext.library_dirs,
+               'runtime_library_dirs': ext.runtime_library_dirs,
+               'extra_postargs': extra_args,
+               'debug': self.debug,
+               'build_temp': self.build_temp,
+        }
+        if sys.version_info > (2,3):
+            # Detect target language, if not provided
+            language = ext.language or self.compiler.detect_language(sources)
+            kw["target_lang"] = language
 
         self.compiler.link(
             "executable",
-            objects, ext_filename,
-            libraries=self.get_libraries(ext),
-            library_dirs=ext.library_dirs,
-            runtime_library_dirs=ext.runtime_library_dirs,
-            extra_postargs=extra_args,
-            debug=self.debug,
-            build_temp=self.build_temp,
-            target_lang=language)
+            objects, ext_filename, **kw)
         
     def build_extension(self, ext):
         # It is well known that some of these extensions are difficult to
@@ -474,15 +498,19 @@ class my_build_ext(build_ext):
         if not self.mingw32 and ext.pch_header:
             ext.extra_compile_args = ext.extra_compile_args or []
             ext.extra_compile_args.append("/YX"+ext.pch_header)
+            pch_name = os.path.join(self.build_temp, ext.name) + ".pch"
+            ext.extra_compile_args.append("/Fp"+pch_name)
 
         # some source files are compiled for different extensions
         # with special defines. So we cannot use a shared
         # directory for objects, we must use a special one for each extension.
         old_build_temp = self.build_temp
+        if sys.version_info < (2,3):
+            # 2.3+ - Wrong dir, numbered name
+            self.build_temp = os.path.join(self.build_temp, ext.name)
         self.swig_cpp = True
         try:
             build_ext.build_extension(self, ext)
-
             # XXX This has to be changed for mingw32
             extra = self.debug and "_d.lib" or ".lib"
             if ext.name in ("pywintypes", "pythoncom"):
@@ -492,16 +520,23 @@ class my_build_ext(build_ext):
                 name2 = "%s%s" % (ext.name, extra)
             else:
                 name1 = name2 = ext.name + extra
-            # MSVCCompiler constructs the .lib file in the same directory
-            # as the first source file's object file:
+            # The compiler always creates 'pywintypes22.lib', whereas we
+            # actually want 'pywintypes.lib' - copy it over.
+            # Worse: 2.3+ MSVCCompiler constructs the .lib file in the same
+            # directory as the first source file's object file:
             #    os.path.dirname(objects[0])
-            # but we want it in the (old) build_temp directory
-            src = os.path.join(self.build_temp,
+            # rather than in the self.build_temp directory
+            if sys.version_info > (2,3):
+                # 2.3+ - Wrong dir, numbered name
+                src = os.path.join(old_build_temp,
                                os.path.dirname(ext.sources[0]),
                                name1)
+            else:
+                # 2.2 it is in the right dir, just with the 'numbered' named.
+                src = os.path.join(self.build_temp, name1)
             dst = os.path.join(old_build_temp, name2)
-            self.copy_file(src, dst)#, update=1)
-
+            if os.path.abspath(src) != os.path.abspath(dst):
+                self.copy_file(src, dst)#, update=1)
         finally:
             self.build_temp = old_build_temp
 
@@ -830,10 +865,52 @@ if len(sys.argv)==1:
     print __doc__
     print "Standard usage information follows:"
 
+packages=['win32com',
+          'win32com.client',
+          'win32com.demos',
+          'win32com.makegw',
+          'win32com.server',
+          'win32com.servers',
+          'win32com.test',
+
+          'win32comext.axscript',
+          'win32comext.axscript.client',
+          'win32comext.axscript.server',
+
+          'win32comext.axdebug',
+
+          'win32comext.shell',
+          'win32comext.mapi',
+          'win32comext.internet',
+          'win32comext.axcontrol',
+
+          'Pythonwin.pywin',
+          'Pythonwin.pywin.debugger',
+          'Pythonwin.pywin.dialogs',
+          'Pythonwin.pywin.docking',
+          'Pythonwin.pywin.framework',
+          'Pythonwin.pywin.framework.editor',
+          'Pythonwin.pywin.framework.editor.color',
+          'Pythonwin.pywin.idle',
+          'Pythonwin.pywin.mfc',
+          'Pythonwin.pywin.scintilla',
+          'Pythonwin.pywin.tools',
+          ]
+
+# Python 2.2 distutils can't handle py_modules *and* packages,
+# but putting 'win32.lib' as a package whinges there is no __init__
+if sys.version_info < (2,3):
+    packages.append('win32.lib')
+    py_modules = None
+else:
+    py_modules = expand_modules("win32\\lib")
+
 dist = setup(name="pywin32",
-      version="version",
+      version="200",
       description="Python for Window Extensions",
-      long_description="",
+      long_description="Includes access to much of the Win32 API, the "
+                       "ability to create and use COM objects, and the "
+                       "Pythonwin environment",
       author="Mark Hammond (et al)",
       author_email = "mhammond@users.sourceforge.net",
       url="http://sourceforge.net/projects/pywin32/",
@@ -851,39 +928,8 @@ dist = setup(name="pywin32",
       package_dir = {"win32com": "com/win32com",
                      "win32comext": "com/win32comext",
                      "Pythonwin": "Pythonwin"},
-      packages=['win32com',
-                'win32com.client',
-                'win32com.demos',
-                'win32com.makegw',
-                'win32com.server',
-                'win32com.servers',
-                'win32com.test',
-
-                'win32comext.axscript',
-                'win32comext.axscript.client',
-                'win32comext.axscript.server',
-
-                'win32comext.axdebug',
-
-                'win32comext.shell',
-                'win32comext.mapi',
-                'win32comext.internet',
-                'win32comext.axcontrol',
-
-                'Pythonwin.pywin',
-                'Pythonwin.pywin.debugger',
-                'Pythonwin.pywin.dialogs',
-                'Pythonwin.pywin.docking',
-                'Pythonwin.pywin.framework',
-                'Pythonwin.pywin.framework.editor',
-                'Pythonwin.pywin.framework.editor.color',
-                'Pythonwin.pywin.idle',
-                'Pythonwin.pywin.mfc',
-                'Pythonwin.pywin.scintilla',
-                'Pythonwin.pywin.tools',
-                ],
-
-      py_modules = expand_modules("win32\\lib"),
+      packages = packages,
+      py_modules = py_modules,
 
       data_files=convert_optional_data_files([
                 'PyWin32.chm',
