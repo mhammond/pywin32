@@ -205,7 +205,21 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 	if progressInstance is None:
 		try:
 			if not bForDemand: # Only go for GUI progress if not doing a demand-import
-				progressInstance = GUIProgress(verboseLevel)
+				# Win9x console programs don't seem to like our GUI!
+				# (Actually, NT/2k wouldnt object to having them threaded - later!)
+				import win32api, win32con
+				if win32api.GetVersionEx()[3]==win32con.VER_PLATFORM_WIN32_NT:
+					bMakeGuiProgress = 1
+				else:
+					try:
+						win32api.GetConsoleTitle()
+						# Have a console - can't handle GUI
+						bMakeGuiProgress = 0
+					except win32api.error:
+						# no console - we can have a GUI
+						bMakeGuiProgress = 1
+				if bMakeGuiProgress:
+					progressInstance = GUIProgress(verboseLevel)
 		except ImportError: # No Pythonwin GUI around.
 			pass
 	if progressInstance is None:
