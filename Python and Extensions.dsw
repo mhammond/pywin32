@@ -351,6 +351,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "ifilter"=.\com\ifilter.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "internet"=.\com\internet.dsp - Package Owner=<4>
 
 Package=<5>
@@ -627,6 +639,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "win32inet"=.\win32\win32inet.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "win32lz"=.\win32\win32lz.dsp - Package Owner=<4>
 
 Package=<5>
@@ -836,18 +860,6 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name PyWinTypes
     End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "win32inet"=.\win32\win32inet.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
 }}}
 
 ###############################################################################
