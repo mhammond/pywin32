@@ -14,6 +14,7 @@ demos = [ \
 	('3-Way Splitter Window', 'import splittst;splittst.demo()'),
 	('Custom Toolbars and Tooltips', 'import toolbar;toolbar.test()'),
 	('Progress Bar', 'import progressbar;progressbar.demo()'),
+	('Slider Control', 'import sliderdemo;sliderdemo.demo()'),
 	('Dynamic window creation', 'import createwin;createwin.demo()'),
 	('Various Dialog demos', 'import dlgtest;dlgtest.demo()'),
 	('OCX Control Demo', 'from ocx import ocxtest;ocxtest.demo()'),
