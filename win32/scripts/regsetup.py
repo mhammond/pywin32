@@ -232,21 +232,20 @@ def LocatePythonCore(searchPaths):
 		raise error, "The core Python library could not be located."
 
 	corePath = None
-        suffix = IsDebug()
+	suffix = IsDebug()
 	for path in presearchPaths:
-		if FileExists(os.path.join(path, "parser%s.dll" % suffix)) or \
-		   FileExists(os.path.join(path, "parser%s.pyd" % suffix)):
+		if FileExists(os.path.join(path, "parser%s.pyd" % suffix)):
 			corePath = path
 			break
 	if corePath is None and searchPaths is not None:
-		corePath = LocatePath("parser%s.dll" % suffix, searchPaths)
+		corePath = LocatePath("parser%s.pyd" % suffix, searchPaths)
 	if corePath is None:
 		raise error, "The core Python path could not be located."
 
 	installPath = win32api.GetFullPathName(os.path.join(libPath, ".."))
 	return installPath, [libPath, corePath]
 
-def FindRegisterPackage(packageName, knownFile, searchPaths):
+def FindRegisterPackage(packageName, knownFile, searchPaths, registryAppName = None):
 	"""Find and Register a package.
 
 	   Assumes the core registry setup correctly.
@@ -260,12 +259,13 @@ def FindRegisterPackage(packageName, knownFile, searchPaths):
 	if not packageName: raise error, "A package name must be supplied"
 	corePaths = string.split(regutil.GetRegisteredNamedPath(None),";")
 	if not searchPaths: searchPaths = corePaths
+	registryAppName = registryAppName or packageName
 	try:
 		pathLook, pathAdd = FindPackagePath(packageName, knownFile, searchPaths)
 		if pathAdd is not None:
 			if pathAdd in corePaths:
 				pathAdd = ""
-			regutil.RegisterNamedPath(packageName, pathAdd)
+			regutil.RegisterNamedPath(registryAppName, pathAdd)
 		return pathLook
 	except error, details:
 		print "*** The %s package could not be registered - %s" % (packageName, details)
@@ -369,7 +369,7 @@ def SetupCore(searchPaths):
 	win32paths = win32api.GetFullPathName( os.path.split(win32api.__file__)[0]) + ";" + \
 	             win32api.GetFullPathName( os.path.split(LocateFileName("win32con.py;win32con.pyc", sys.path ) )[0] )
 
-        suffix = IsDebug()
+	suffix = IsDebug()
 	FindRegisterModule("pywintypes", "pywintypes15%s.dll" % suffix, [".", win32api.GetSystemDirectory()])
 	regutil.RegisterNamedPath("win32",win32paths)
 
@@ -381,7 +381,7 @@ def RegisterShellInfo(searchPaths):
 	   (ie, SetupCore() has been previously successfully run)
 	"""
 	import regutil, win32con
-        suffix = IsDebug()
+	suffix = IsDebug()
 	# Set up a pointer to the .exe's
 	exePath = FindRegisterPythonExe("Python%s.exe" % suffix, searchPaths)
 	regutil.SetRegistryDefaultValue(".py", "Python.File", win32con.HKEY_CLASSES_ROOT)
@@ -398,8 +398,8 @@ def RegisterPythonwin(searchPaths):
 	"""Knows how to register Pythonwin components
 	"""
 	import regutil
-        suffix = IsDebug()
-	FindRegisterApp("Pythonwin", "docview.py", searchPaths)
+	suffix = IsDebug()
+#	FindRegisterApp("Pythonwin", "docview.py", searchPaths)
 	FindRegisterHelpFile("Pythonwin.hlp", searchPaths, "Pythonwin Reference")
 	
 	FindRegisterPythonExe("pythonwin%s.exe" % suffix, searchPaths, "Pythonwin%s.exe" % suffix)
@@ -410,8 +410,9 @@ def RegisterPythonwin(searchPaths):
 	regutil.RegisterShellCommand("Edit", QuotedFileName(fnamePythonwin)+" /edit %1")
 	regutil.RegisterDDECommand("Edit", "Pythonwin", "System", '[self.OpenDocumentFile(r"%1")]')
 
-	FindRegisterModule("win32ui", "win32ui%s.pyd" % suffix, searchPaths)
-	FindRegisterModule("win32uiole", "win32uiole%s.pyd" % suffix, searchPaths)
+	FindRegisterPackage("pywin", "__init__.py", searchPaths, "Pythonwin")
+#	FindRegisterModule("win32ui", "win32ui%s.pyd" % suffix, searchPaths)
+#	FindRegisterModule("win32uiole", "win32uiole%s.pyd" % suffix, searchPaths)
 	
 	regutil.RegisterFileExtensions(defPyIcon=fnamePythonwin+",0", 
 	                               defPycIcon = fnamePythonwin+",5",
@@ -424,7 +425,7 @@ def UnregisterPythonwin():
 	regutil.UnregisterNamedPath("Pythonwin")
 	regutil.UnregisterHelpFile("Pythonwin.hlp")
 
-        suffix = IsDebug()
+	suffix = IsDebug()
 	regutil.UnregisterPythonExe("pythonwin%s.exe" % suffix)
 	
 	#regutil.UnregisterShellCommand("Edit")
@@ -441,7 +442,7 @@ def RegisterWin32com(searchPaths):
 	corePath = FindRegisterPackage("win32com", "olectl.py", searchPaths)
 	if corePath:
 		FindRegisterHelpFile("win32com.hlp", searchPaths + [corePath+"\\win32com"], "Python COM Reference")
-                suffix = IsDebug()
+		suffix = IsDebug()
 		FindRegisterModule("pythoncom", "pythoncom15%s.dll" % suffix, [win32api.GetSystemDirectory(), '.'])
 
 usage = """\
