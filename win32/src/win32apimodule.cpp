@@ -415,7 +415,7 @@ PyFindFiles(PyObject *self, PyObject *args)
 		ok=::FindNextFile(hFind, &findData);
 	}
 	ok = (GetLastError()==ERROR_NO_MORE_FILES);
-	// @pyseeapi CloseHandle
+	// @pyseeapi FindClose
 	::FindClose(hFind);
 	if (!ok) {
 		Py_DECREF(retList);
