@@ -332,7 +332,7 @@ def EnsureDispatch(prog_id, bForDemand = 0):
 			import CLSIDToClass
 			disp_class = CLSIDToClass.GetClass(str(disp_clsid))
 			disp = disp_class(disp._oleobj_)
-		except "pythoncom.com_error":
+		except pythoncom.com_error:
 			raise TypeError, "This COM object can not automate the makepy process - please run makepy manually for this object"
 	return disp
 
