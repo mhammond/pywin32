@@ -172,10 +172,10 @@ def parseTopics(cat, input):
                 assert len(fields[0]) == 0 and len(fields[1]) == 0, fields
                 if top2.type == "pymeth":
                     top2.name = fields[2]
-                    top2.context = "%s__%s_meth.html" % (top.name, top2.name)
+                    top2.context = "%s__%s_meth.html" % (_urlescape(top.name), top2.name)
                 elif top2.type == "prop":
                     top2.name = fields[3]
-                    top2.context = "%s__%s_prop.html" % (top.name, top2.name)
+                    top2.context = "%s__%s_prop.html" % (_urlescape(top.name), top2.name)
                 else:
                     # and loop....
                     line = input.readline()
@@ -196,6 +196,17 @@ def parseTopics(cat, input):
                 line = line[:-1]
                 fields = string.split(line, "\t")
             d[top.name] = top
+
+def _urlescape(name):
+    """Escape the given name for inclusion in a URL.
+    
+    Escaping is done in the manner in which AutoDuck(?) seems to be doing
+    it.
+    """
+    name = name.replace(' ', '_')\
+               .replace('(', '.28')\
+               .replace(')', '.29')
+    return name
 
 def _genCategoryHTMLFromDict(dict, output):
     keys = dict.keys()
