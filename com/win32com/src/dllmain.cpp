@@ -172,7 +172,7 @@ extern int PyCom_UnregisterCoreSupport(void);
 #endif
 
 #ifndef MS_WINCE
-DLLMAIN_DECL extern "C" 
+extern "C" DLLMAIN_DECL
 BOOL WINAPI DLLMAIN(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 #else
 DLLMAIN_DECL
