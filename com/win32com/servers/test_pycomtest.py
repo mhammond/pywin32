@@ -60,7 +60,7 @@ class PyCOMTest:
 		raise COMException(hresult=winerror.E_NOTIMPL)
 
 	def SetIntSafeArray(self, ints):
-		raise COMException(hresult=winerror.E_NOTIMPL)
+		return len(ints)
 
 	def SetVarArgs(self, *args):
 		raise COMException(hresult=winerror.E_NOTIMPL)
@@ -108,6 +108,9 @@ class PyCOMTest:
 
 	def TestOptionals2(self, dval, strval='', sval=1):
 		raise COMException(hresult=winerror.E_NOTIMPL)
+
+	def CheckVariantSafeArray(self, data):
+		return 1
 
 if __name__ == '__main__':
 	import win32com.server.register
