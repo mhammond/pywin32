@@ -11,12 +11,16 @@ bool EqualCaseInsensitive(const char *a, const char *b);
 // Define another string class.
 // While it would be 'better' to use std::string, that doubles the executable size.
 
-inline char *StringDup(const char *s) {
+inline char *StringDup(const char *s, int len=-1) {
 	if (!s)
 		return 0;
-	char *sNew = new char[strlen(s) + 1];
-	if (sNew)
-		strcpy(sNew, s);
+    if (len == -1)
+        len = strlen(s);
+	char *sNew = new char[len + 1];
+    if (sNew) {
+		strncpy(sNew, s, len);
+        sNew[len] = '\0';
+    }
 	return sNew;
 }
 
@@ -103,58 +107,33 @@ public:
 	}
 };
 
+struct Property {
+    unsigned int hash;
+	char *key;
+    char *val;
+    Property *next;
+    Property() : hash(0), key(0), val(0), next(0) {}
+};
+
 class PropSet {
 private:
-	char **vals;
-	int size;
-	int used;
+    enum { hashRoots=31 };
+    Property *props[hashRoots];
 public:
 	PropSet *superPS;
 	PropSet();
 	~PropSet();
-	void EnsureCanAddEntry();
 	void Set(const char *key, const char *val);
 	void Set(char *keyval);
 	SString Get(const char *key);
+    SString GetExpanded(const char *key);
+    SString Expand(const char *withvars);
 	int GetInt(const char *key, int defaultValue=0);
 	SString GetWild(const char *keybase, const char *filename);
 	SString GetNewExpand(const char *keybase, const char *filename);
 	void Clear();
-	void ReadFromMemory(const char *data, int len);
-	void Read(const char *filename);
-};
-
-// This is a fixed length list of strings suitable for display  in combo boxes
-// as a memory of user entries
-template<int sz>
-class EntryMemory {
-	SString entries[sz];
-public:
-	void Insert(SString s) {
-		for (int i=0;i<sz;i++) {
-			if (entries[i] == s) {
-				for (int j=i;j>0;j--) {
-					entries[j] = entries[j-1];
-				}
-				entries[0] = s;
-				return;
-			}
-		}
-		for (int k=sz-1;k>0;k--) {
-			entries[k] = entries[k-1];
-		}
-		entries[0] = s;
-	}
-	int Length() const {
-		int len = 0;
-		for (int i=0;i<sz;i++)
-			if (entries[i].length())
-				len++;
-		return len;
-	}
-	SString At(int n) const {
-		return entries[n];
-	}
+	void ReadFromMemory(const char *data, int len, const char *directoryForImports=0);
+	void Read(const char *filename, const char *directoryForImports);
 };
 
 class WordList {

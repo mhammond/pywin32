@@ -27,6 +27,7 @@ with Linux or /usr/local if built from source. If Gnome is not installed
 line like "make prefix=/opt" but the same value should be used for both make 
 and make install as this location is compiled into the executable. The global 
 properties file is installed at $prefix/share/scite/SciTEGlobal.properties.
+The language specific properties files are also installed into this directory.
 
 If Gnome is installed then a .desktop file and icon are installed into the 
 correct Gnome places so that SciTE will be in the Gnome Applications menu.

@@ -201,8 +201,8 @@ bool Document::IsCrLf(int pos) {
 	return (cb.CharAt(pos) == '\r') && (cb.CharAt(pos + 1) == '\n');
 }
 
-bool Document::IsDBCS(int pos) {
 #if PLAT_WIN
+bool Document::IsDBCS(int pos) {
 	if (dbcsCodePage) {
 		if (SC_CP_UTF8 == dbcsCodePage) {
 			unsigned char ch = static_cast<unsigned char>(cb.CharAt(pos));
@@ -224,10 +224,14 @@ bool Document::IsDBCS(int pos) {
 		}
 	}
 	return false;
-#else
-	return false;
-#endif
 }
+#else
+// PLAT_GTK or PLAT_WX
+// TODO: support DBCS under GTK+ and WX
+bool Document::IsDBCS(int) {
+	return false;
+}
+#endif
 
 int Document::LenChar(int pos) {
 	if (IsCrLf(pos)) {

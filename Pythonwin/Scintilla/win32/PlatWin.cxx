@@ -121,6 +121,105 @@ void Palette::Allocate(Window &) {
 	}
 }
 
+void SetLogFont(LOGFONT &lf, const char *faceName, int characterSet, int size, bool bold, bool italic) {
+	memset(&lf, 0, sizeof(lf));
+	// The negative is to allow for leading
+	lf.lfHeight = -(abs(size));
+	lf.lfWeight = bold ? FW_BOLD : FW_NORMAL;
+	lf.lfItalic = static_cast<BYTE>(italic ? 1 : 0);
+	lf.lfCharSet = static_cast<BYTE>(characterSet);
+	strcpy(lf.lfFaceName, faceName);
+}
+
+// Create a hash from the parameters for a font to allow easy checking for identity.
+// If one font is the same as another, its hash will be the same, but if the hash is the 
+// same then they may still be different.
+int HashFont(const char *faceName, int characterSet, int size, bool bold, bool italic) {
+    return 
+        size ^
+        (characterSet << 10) ^
+        (bold ? 0x10000000 : 0) ^
+        (italic ? 0x20000000 : 0) ^
+        faceName[0];
+}
+
+class FontCached : Font {
+	FontCached *next;
+	int usage;
+	LOGFONT lf;
+    int hash;
+	FontCached(const char *faceName_, int characterSet_, int size_, bool bold_, bool italic_);
+	~FontCached() {}
+    bool SameAs(const char *faceName_, int characterSet_, int size_, bool bold_, bool italic_);
+	virtual void Release();
+		
+	static FontCached *first;
+public:
+	static FontID FindOrCreate(const char *faceName_, int characterSet_, int size_, bool bold_, bool italic_);
+	static void ReleaseId(FontID id_);
+};
+
+FontCached *FontCached::first = 0;
+
+FontCached::FontCached(const char *faceName_, int characterSet_, int size_, bool bold_, bool italic_) : 
+    next(0), usage(0), hash(0) {
+    SetLogFont(lf, faceName_, characterSet_, size_, bold_, italic_);
+    hash = HashFont(faceName_, characterSet_, size_, bold_, italic_);
+	id = ::CreateFontIndirect(&lf);
+	usage = 1;
+}
+
+bool FontCached::SameAs(const char *faceName_, int characterSet_, int size_, bool bold_, bool italic_) {
+	return 
+        (lf.lfHeight == -(abs(size_))) &&
+		(lf.lfWeight == (bold_ ? FW_BOLD : FW_NORMAL)) &&
+		(lf.lfItalic == static_cast<BYTE>(italic_ ? 1 : 0)) &&
+		(lf.lfCharSet == characterSet_) &&
+		0 == strcmp(lf.lfFaceName,faceName_);
+}
+
+void FontCached::Release() {
+	if (id)
+		::DeleteObject(id);
+    id = 0;
+}
+
+FontID FontCached::FindOrCreate(const char *faceName_, int characterSet_, int size_, bool bold_, bool italic_) {
+    int hashFind = HashFont(faceName_, characterSet_, size_, bold_, italic_);
+	for (FontCached *cur=first; cur; cur=cur->next) {
+        if ((cur->hash == hashFind) && 
+            cur->SameAs(faceName_, characterSet_, size_, bold_, italic_)) {
+			cur->usage++;
+			return cur->id;
+		}
+	}
+	FontCached *fc = new FontCached(faceName_, characterSet_, size_, bold_, italic_);
+	if (fc) {
+		fc->next = first;
+		first = fc;
+		return fc->id;
+	} else {
+		return 0;
+	}
+}
+
+void FontCached::ReleaseId(FontID id_) {
+	FontCached **pcur=&first;
+	for (FontCached *cur=first; cur; cur=cur->next) {
+		if (cur->id == id_) {
+			cur->usage--;
+			if (cur->usage == 0) {
+				*pcur = cur->next;
+                cur->Release();
+				cur->next = 0;
+				delete cur;
+			}
+			return;
+		}
+		pcur=&cur->next;
+	}
+}
+
 Font::Font() {
 	id = 0;
 }
@@ -128,24 +227,28 @@ Font::Font() {
 Font::~Font() {
 }
 
+#define FONTS_CACHED
+
 void Font::Create(const char *faceName, int characterSet, int size, bool bold, bool italic) {
+#ifndef FONTS_CACHED
 	Release();
 	
 	LOGFONT lf;
-	memset(&lf, 0, sizeof(lf));
-	// The negative is to allow for leading
-	lf.lfHeight = -(abs(size));
-	lf.lfWeight = bold ? FW_BOLD : FW_NORMAL;
-	lf.lfItalic = static_cast<BYTE>(italic ? 1 : 0);
-	lf.lfCharSet = characterSet;
-	strcpy(lf.lfFaceName, faceName);
-
-	id = ::CreateFontIndirect(&lf);
+    SetLogFont(lf, faceName, characterSet, size, bold, italic);
+    id = ::CreateFontIndirect(&lf);
+#else
+	id = FontCached::FindOrCreate(faceName, characterSet, size, bold, italic);
+#endif
 }
 
 void Font::Release() {
+#ifndef FONTS_CACHED
 	if (id)
 		::DeleteObject(id);
+#else
+	if (id)
+		FontCached::ReleaseId(id);
+#endif
 	id = 0;
 }
 
@@ -595,7 +698,7 @@ HINSTANCE Window::GetInstance() {
 		::GetWindowLong(id,GWL_HINSTANCE));
 }
 
-ListBox::ListBox() {
+ListBox::ListBox() : desiredVisibleRows(5), maxItemCharacters(0), aveCharWidth(8) {
 }
 
 ListBox::~ListBox() {
@@ -603,18 +706,51 @@ ListBox::~ListBox() {
 
 void ListBox::Create(Window &parent, int ctrlID) {
 	id = ::CreateWindowEx(
-                WS_EX_CLIENTEDGE, "listbox", "",
-       		WS_CHILD|WS_BORDER|WS_VSCROLL|LBS_SORT|LBS_NOTIFY,
+                WS_EX_WINDOWEDGE, "listbox", "",
+       		WS_CHILD | WS_THICKFRAME | WS_VSCROLL | LBS_SORT | LBS_NOTIFY,
        		100,100, 150,80, parent.GetID(), reinterpret_cast<HMENU>(ctrlID), 
 		parent.GetInstance(), 0);
 }
 
+void ListBox::SetFont(Font &font) {
+	Window::SetFont(font);
+}
+
+void ListBox::SetAverageCharWidth(int width) {
+    aveCharWidth = width;
+}
+
+void ListBox::SetVisibleRows(int rows) {
+	desiredVisibleRows = rows;
+}
+
+PRectangle ListBox::GetDesiredRect() {
+	PRectangle rcDesired = GetPosition();
+	int itemHeight = SendMessage(LB_GETITEMHEIGHT, 0);
+	int rows = Length();
+	if ((rows == 0) || (rows > desiredVisibleRows))
+		rows = desiredVisibleRows;
+	// The +6 allows for borders
+	rcDesired.bottom = rcDesired.top + 6 + itemHeight * rows;
+    int width = maxItemCharacters;
+    if (width < 12)
+        width = 12;
+	rcDesired.right = rcDesired.left + width * (aveCharWidth+aveCharWidth/3);
+    if (Length() > rows)
+        rcDesired.right = rcDesired.right + GetSystemMetrics(SM_CXVSCROLL);
+	return rcDesired;
+}
+
 void ListBox::Clear() {
 	SendMessage(LB_RESETCONTENT);
+    maxItemCharacters = 0;
 }
 
 void ListBox::Append(char *s) {
 	SendMessage(LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(s));
+    size_t len = strlen(s);
+    if (maxItemCharacters < len)
+        maxItemCharacters = len;
 }
 
 int ListBox::Length() {
@@ -630,7 +766,8 @@ int ListBox::GetSelection() {
 }
 
 int ListBox::Find(const char *prefix) {
-	return SendMessage(LB_FINDSTRING, 0, reinterpret_cast<LPARAM>(prefix));
+	return SendMessage(LB_FINDSTRING, static_cast<WPARAM>(-1), 
+        reinterpret_cast<LPARAM>(prefix));
 }
 
 void ListBox::GetValue(int n, char *value, int len) {

@@ -50,6 +50,7 @@ static void ColouriseVBDoc(unsigned int startPos, int length, int initStyle,
 	
 	styler.StartAt(startPos);
 
+	int visibleChars = 0;
 	int state = initStyle;
 	char chNext = styler[startPos];
 	styler.StartSegment(startPos);
@@ -64,6 +65,17 @@ static void ColouriseVBDoc(unsigned int startPos, int length, int initStyle,
 			continue;
 		}
 
+		if (ch == '\r' || ch == '\n') {
+			// End of line
+			if (state == SCE_C_COMMENTLINE || state == SCE_C_PREPROCESSOR) {
+				styler.ColourTo(i - 1, state);
+				state = SCE_C_DEFAULT;
+			}
+			visibleChars = 0;
+		}
+		if (!isspace(ch))
+			visibleChars++;
+
 		if (state == SCE_C_DEFAULT) {
 			if (iswordstart(ch)) {
 				styler.ColourTo(i - 1, state);
@@ -74,7 +86,8 @@ static void ColouriseVBDoc(unsigned int startPos, int length, int initStyle,
 			} else if (ch == '\"') {
 				styler.ColourTo(i - 1, state);
 				state = SCE_C_STRING;
-			} else if (ch == '#') {
+			} else if (ch == '#' && visibleChars == 1) {
+				// Preprocessor commands are alone on their line
 				styler.ColourTo(i - 1, state);
 				state = SCE_C_PREPROCESSOR;
 			} else if (ch == '&' && tolower(chNext) == 'h') {
@@ -99,12 +112,7 @@ static void ColouriseVBDoc(unsigned int startPos, int length, int initStyle,
 				}
 			}
 		} else {
-			if (state == SCE_C_COMMENTLINE) {
-				if (ch == '\r' || ch == '\n') {
-					styler.ColourTo(i - 1, state);
-					state = SCE_C_DEFAULT;
-				}
-			} else if (state == SCE_C_STRING) {
+			if (state == SCE_C_STRING) {
 				// VB doubles quotes to preserve them
 				if (ch == '\"') {
 					styler.ColourTo(i, state);
@@ -112,11 +120,6 @@ static void ColouriseVBDoc(unsigned int startPos, int length, int initStyle,
 					i++;
 					ch = chNext;
 					chNext = styler.SafeGetCharAt(i + 1);
-				}
-			} else if (state == SCE_C_PREPROCESSOR) {
-				if (ch == '\r' || ch == '\n') {
-					styler.ColourTo(i - 1, state);
-					state = SCE_C_DEFAULT;
 				}
 			}
 			if (state == SCE_C_DEFAULT) {    // One of the above succeeded

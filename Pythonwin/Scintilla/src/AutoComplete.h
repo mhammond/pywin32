@@ -14,6 +14,8 @@ public:
 	ListBox lb;
 	int posStart;
 	int startLen;
+	// Should autocompletion be canceled if editor's currentPos <= startPos?
+	bool cancelAtStartPos;
 	
 	AutoComplete();
 	~AutoComplete();
@@ -33,7 +35,7 @@ public:
 	char GetSeparator();
 	
 	// The list string contains a sequence of words separated by the separator character
-	int SetList(const char *list);
+	void SetList(const char *list);
 	
 	void Show();
 	void Cancel();

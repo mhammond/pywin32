@@ -9,15 +9,13 @@
 // Compile-time configuration options
 #define MACRO_SUPPORT 1  // Comment out to remove macro hooks
 
-#if PLAT_WX || PLAT_GTK
-#include "WinDefs.h"
-#endif
-
 #if PLAT_WIN
 #ifdef STATIC_BUILD
 void Scintilla_RegisterClasses(HINSTANCE hInstance);
 #endif
 #endif
+
+typedef long (*SciFnDirect)(long ptr, unsigned int iMessage, unsigned long wParam, long lParam);
 
 // Start of section which could be automatically generated from Scintilla.iface
 
@@ -33,6 +31,7 @@ void Scintilla_RegisterClasses(HINSTANCE hInstance);
 #define SCI_ADDSTYLEDTEXT SCI_START + 2
 #define SCI_INSERTTEXT SCI_START + 3
 #define SCI_CLEARALL SCI_START + 4
+#define SCI_CLEARDOCUMENTSTYLE SCI_START + 5
 #define SCI_GETLENGTH SCI_START + 6
 #define SCI_GETCHARAT SCI_START + 7
 #define SCI_GETCURRENTPOS SCI_START + 8
@@ -55,6 +54,7 @@ void Scintilla_RegisterClasses(HINSTANCE hInstance);
 	
 #define SCI_GETVIEWWS SCI_START + 20
 #define SCI_SETVIEWWS SCI_START + 21
+#define SCI_POSITIONFROMPOINT SCI_START + 22
 #define SCI_GOTOLINE SCI_START + 24
 #define SCI_GOTOPOS SCI_START + 25
 #define SCI_SETANCHOR SCI_START + 26
@@ -208,6 +208,8 @@ void Scintilla_RegisterClasses(HINSTANCE hInstance);
 #define SCI_AUTOCSETSEPARATOR SCI_START + 106
 #define SCI_AUTOCGETSEPARATOR SCI_START + 107
 #define SCI_AUTOCSELECT SCI_START + 108
+#define SCI_AUTOCSETCANCELATSTART SCI_START + 110
+#define SCI_AUTOCGETCANCELATSTART SCI_START + 111
 
 #define SCI_GETTABWIDTH SCI_START + 121
 #define SCI_SETINDENT SCI_START + 122
@@ -236,6 +238,54 @@ void Scintilla_RegisterClasses(HINSTANCE hInstance);
 #define SCI_GETSELECTIONSTART SCI_START + 143
 #define SCI_SETSELECTIONEND SCI_START + 144
 #define SCI_GETSELECTIONEND SCI_START + 145
+#define SCI_SETPRINTMAGNIFICATION SCI_START + 146
+#define SCI_GETPRINTMAGNIFICATION SCI_START + 147
+
+#define SC_PRINT_NORMAL 0
+#define SC_PRINT_INVERTLIGHT 1
+#define SC_PRINT_BLACKONWHITE 2
+
+#define SCI_SETPRINTCOLOURMODE SCI_START + 148
+#define SCI_GETPRINTCOLOURMODE SCI_START + 149
+
+#define SCI_FINDTEXT SCI_START + 150
+#define SCI_FORMATRANGE SCI_START + 151
+#define SCI_GETFIRSTVISIBLELINE SCI_START + 152
+#define SCI_GETLINE SCI_START + 153
+#define SCI_GETLINECOUNT SCI_START + 154
+#define SCI_SETMARGINLEFT SCI_START + 155
+#define SCI_GETMARGINLEFT SCI_START + 156
+#define SCI_SETMARGINRIGHT SCI_START + 157
+#define SCI_GETMARGINRIGHT SCI_START + 158
+#define SCI_GETMODIFY SCI_START + 159
+#define SCI_SETSEL SCI_START + 160
+#define SCI_GETSELTEXT SCI_START + 161
+#define SCI_GETTEXTRANGE SCI_START + 162
+#define SCI_HIDESELECTION SCI_START + 163
+#define SCI_POINTXFROMPOSITION SCI_START + 164
+#define SCI_POINTYFROMPOSITION SCI_START + 165
+#define SCI_LINEFROMPOSITION SCI_START + 166
+#define SCI_POSITIONFROMLINE SCI_START + 167
+#define SCI_LINESCROLL SCI_START + 168
+#define SCI_SCROLLCARET SCI_START + 169
+#define SCI_REPLACESEL SCI_START + 170
+#define SCI_SETREADONLY SCI_START + 171
+
+#define SCI_NULL SCI_START + 172
+#define SCI_CANPASTE SCI_START + 173
+#define SCI_CANUNDO SCI_START + 174
+#define SCI_EMPTYUNDOBUFFER SCI_START + 175
+#define SCI_UNDO SCI_START + 176
+#define SCI_CUT SCI_START + 177
+#define SCI_COPY SCI_START + 178
+#define SCI_PASTE SCI_START + 179
+#define SCI_CLEAR SCI_START + 180
+#define SCI_SETTEXT SCI_START + 181
+#define SCI_GETTEXT SCI_START + 182
+#define SCI_GETTEXTLENGTH SCI_START + 183
+
+#define SCI_GETDIRECTFUNCTION SCI_START + 184
+#define SCI_GETDIRECTPOINTER SCI_START + 185
 
 #define SCI_CALLTIPSHOW SCI_START + 200
 #define SCI_CALLTIPCANCEL SCI_START + 201
@@ -358,8 +408,8 @@ void Scintilla_RegisterClasses(HINSTANCE hInstance);
 
 // Optional module for macro recording
 #ifdef MACRO_SUPPORT
-typedef void (tMacroRecorder)(UINT iMessage, WPARAM wParam, LPARAM lParam, 
-                              void *userData);
+typedef void (tMacroRecorder)(unsigned int iMessage, unsigned long wParam, 
+	long lParam, void *userData);
 #define SCI_STARTRECORD SCI_OPTIONAL_START + 1
 #define SCI_STOPRECORD SCI_OPTIONAL_START + 2
 #endif
@@ -408,10 +458,60 @@ typedef void (tMacroRecorder)(UINT iMessage, WPARAM wParam, LPARAM lParam,
 #define SCN_MARGINCLICK 2010
 #define SCN_NEEDSHOWN 2011
 
+// For compatibility, these go through the COMMAND notification rather than NOTIFY
+// and have exactly the same values as the EN_* constants.
+#define SCEN_CHANGE 768
+#define SCEN_SETFOCUS 512
+#define SCEN_KILLFOCUS 256
+
 // End of definitions that could be generated from Scintilla.iface
 
+// These structures are defined to be exactly the same shape as the Win32
+// CHARRANGE, TEXTRANGE, FINDTEXTEX, FORMATRANGE, and NMHDR structs.
+// So older code that treats Scintilla as a RichEdit will work.
+
+struct CharacterRange {
+	long cpMin;
+	long cpMax;
+};
+
+struct TextRange {
+	CharacterRange chrg;
+	char *lpstrText;
+};
+
+struct TextToFind {
+	CharacterRange chrg;
+	char *lpstrText;
+	CharacterRange chrgText;
+};
+
+#ifdef PLATFORM_H
+
+// This structure is used in printing and requires some of the graphics types 
+// from Platform.h.  Not needed by most client code.
+
+struct RangeToFormat {
+	SurfaceID hdc;
+	SurfaceID hdcTarget;
+	PRectangle rc;
+	PRectangle rcPage;
+	CharacterRange chrg;
+};
+
+#endif
+
+struct NotifyHeader {
+    // hwndFrom is really an environment specifc window handle or pointer
+    // but most clients of Scintilla.h do not have this type visible.
+	//WindowID hwndFrom;
+	void *hwndFrom; 
+	unsigned int idFrom;
+	unsigned int code;
+};
+
 struct SCNotification {
-	NMHDR nmhdr;
+	NotifyHeader nmhdr;
 	int position;			// SCN_STYLENEEDED, SCN_MODIFIED
 	int ch;					// SCN_CHARADDED, SCN_KEY
 	int modifiers;			// SCN_KEY
@@ -431,6 +531,36 @@ struct SCNotification {
 };
 
 #define SC_MASK_FOLDERS ((1<<SC_MARKNUM_FOLDER) | (1<<SC_MARKNUM_FOLDEROPEN))
+
+#define SCFIND_MATCHCASE	4
+#define SCFIND_WHOLEWORD 2
+#define SCFIND_DOWN 1
+
+// Symbolic key codes
+// ASCII and other printable characters below 256
+// Extended keys above 300
+
+#define SCK_DOWN 300
+#define SCK_UP 301
+#define SCK_LEFT 302
+#define SCK_RIGHT 303
+#define SCK_HOME 304
+#define SCK_END 305
+#define SCK_PRIOR 306
+#define SCK_NEXT 307
+#define SCK_DELETE 308
+#define SCK_INSERT 309
+#define SCK_ESCAPE 7
+#define SCK_BACK 8
+#define SCK_TAB 9
+#define SCK_RETURN 13
+#define SCK_ADD 310
+#define SCK_SUBTRACT 311
+#define SCK_DIVIDE 312
+
+#define SCMOD_SHIFT 1
+#define SCMOD_CTRL 2
+#define SCMOD_ALT 4
 
 // Deprecation section listing all API features that are deprecated and will
 // will be removed completely in a future version.

@@ -156,6 +156,7 @@ public:
 
 	int SetLevel(int line, int level);
 	int GetLevel(int line) { return cb.GetLevel(line); }
+	void ClearLevels() { cb.ClearLevels(); }
 	int GetLastChild(int lineParent, int level=-1);
 	int GetFoldParent(int line);
 
@@ -164,7 +165,7 @@ public:
 	int NextWordStart(int pos, int delta);
 	int Length() { return cb.Length(); }
 	long FindText(int minPos, int maxPos, const char *s, bool caseSensitive, bool word);
-	long FindText(WORD iMessage,WPARAM wParam,LPARAM lParam);
+	long FindText(int iMessage, unsigned long wParam, long lParam);
 	int LinesTotal();
 	
 	void ChangeCase(Range r, bool makeUpperCase);

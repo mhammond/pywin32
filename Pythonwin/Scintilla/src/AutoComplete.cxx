@@ -11,11 +11,11 @@
 #include "AutoComplete.h"
 
 AutoComplete::AutoComplete() {
-	lb = 0;
 	active = false;
 	posStart = 0;
 	strcpy(stopChars, "");
 	separator = ' ';
+	cancelAtStartPos = true;
 }
 
 AutoComplete::~AutoComplete() {
@@ -53,8 +53,7 @@ char AutoComplete::GetSeparator() {
 	return separator;
 }
 
-int AutoComplete::SetList(const char *list) {
-	int maxStrLen = 12;
+void AutoComplete::SetList(const char *list) {
 	lb.Clear();
 	char *words = new char[strlen(list) + 1];
 	if (words) {
@@ -65,18 +64,15 @@ int AutoComplete::SetList(const char *list) {
 			if (words[i] == separator) {
 				words[i] = '\0';
 				lb.Append(startword);
-				maxStrLen = Platform::Maximum(maxStrLen, strlen(startword));
 				startword = words + i + 1;
 			}
 		}
 		if (startword) {
 			lb.Append(startword);
-			maxStrLen = Platform::Maximum(maxStrLen, strlen(startword));
 		}
 		delete []words;
 	}
 	lb.Sort();
-	return maxStrLen;
 }
 
 void AutoComplete::Show() {
@@ -87,7 +83,6 @@ void AutoComplete::Show() {
 void AutoComplete::Cancel() {
 	if (lb.Created()) {
 		lb.Destroy();
-		lb = 0;
 		active = false;
 	}
 }

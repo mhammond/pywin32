@@ -15,7 +15,7 @@ DIR_BIN=..\bin
 COMPONENT = $(DIR_BIN)\Scintilla.dll
 LEXCOMPONENT = $(DIR_BIN)\SciLexer.dll
 
-LDFLAGS = KERNEL32.lib USER32.lib GDI32.lib COMDLG32.lib COMCTL32.lib ADVAPI32.lib IMM32.lib SHELL32.LIB OLE32.LIB
+LDFLAGS = KERNEL32.lib USER32.lib GDI32.lib IMM32.lib OLE32.LIB
 INCLUDEDIRS=-I ../include -I ../src
 CXXFLAGS = /TP /W4
 
@@ -54,7 +54,7 @@ LEXOBJS	= $(DIR_O)\LexCPP.obj \
 	$(DIR_O)\LexVB.obj
 
 $(COMPONENT): $(SOBJS) $(DIR_O)\ScintRes.res
-	$(LD) /DLL /OUT:$@ $(SOBJS) $(DIR_O)\ScintRes.res $(LDFLAGS)
+	$(LD) /DLL /opt:nowin98 /OUT:$@ $(SOBJS) $(DIR_O)\ScintRes.res $(LDFLAGS)
 	
 LOBJS	= $(DIR_O)\ScintillaWinL.obj $(DIR_O)\ScintillaBaseL.obj \
 	$(DIR_O)\Editor.obj $(DIR_O)\Document.obj \
@@ -69,7 +69,7 @@ $(DIR_O)\ScintRes.res : ScintRes.rc
 	$(RC) /fo$@ $(*B).rc
 
 $(LEXCOMPONENT): $(LOBJS) $(DIR_O)\ScintRes.res
-	$(LD) /DLL /OUT:$@ $(LOBJS) $(DIR_O)\ScintRes.res $(LDFLAGS)
+	$(LD) /DLL /opt:nowin98 /OUT:$@ $(LOBJS) $(DIR_O)\ScintRes.res $(LDFLAGS)
 	
 $(DIR_O)\AutoComplete.obj: ..\src\AutoComplete.cxx ..\include\Platform.h ..\src\AutoComplete.h
 	$(CC) $(INCLUDEDIRS) $(CXXFLAGS) /Fo$@ /c ..\src\$(@B).cxx

@@ -114,14 +114,16 @@ class ScintillaWin :
 	virtual void Initialise();
 	virtual void Finalise();
 
+	static LRESULT DirectFunction(
+		    ScintillaWin *sci, UINT iMessage, WPARAM wParam, LPARAM lParam);
 	static LRESULT PASCAL SWndProc(
 		    HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 	static LRESULT PASCAL CTWndProc(
 		    HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 	virtual void StartDrag();
-	virtual LRESULT WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam);
-	virtual LRESULT DefWndProc(UINT iMessage, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT WndProc(unsigned int iMessage, unsigned long wParam, long lParam);
+	virtual LRESULT DefWndProc(unsigned int iMessage, unsigned long wParam, long lParam);
 	virtual void SetTicking(bool on);
 	virtual void SetMouseCapture(bool on);
 	virtual bool HaveMouseCapture();
@@ -183,7 +185,6 @@ public:
 HINSTANCE ScintillaWin::hInstance = 0;
 
 ScintillaWin::ScintillaWin(HWND hwnd) {
-::SetThreadLocale(MAKELCID(932, SORT_DEFAULT));
 
 	capturedMouse = false;
 
@@ -259,7 +260,31 @@ static int InputCodePage() {
 	return atoi(sCodePage);
 }
 
-LRESULT ScintillaWin::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
+// Map the key codes to their equivalent SCK_ form
+static int KeyTranslate(int keyIn) {
+	switch (keyIn) {
+		case VK_DOWN:		return SCK_DOWN;
+		case VK_UP:		return SCK_UP;
+		case VK_LEFT:		return SCK_LEFT;
+		case VK_RIGHT:		return SCK_RIGHT;
+		case VK_HOME:		return SCK_HOME;
+		case VK_END:		return SCK_END;
+		case VK_PRIOR:		return SCK_PRIOR;
+		case VK_NEXT:		return SCK_NEXT;
+		case VK_DELETE:	return SCK_DELETE;
+		case VK_INSERT:		return SCK_INSERT;
+		case VK_ESCAPE:	return SCK_ESCAPE;
+		case VK_BACK:		return SCK_BACK;
+		case VK_TAB:		return SCK_TAB;
+		case VK_RETURN:	return SCK_RETURN;
+		case VK_ADD:		return SCK_ADD;
+		case VK_SUBTRACT:	return SCK_SUBTRACT;
+		case VK_DIVIDE:		return SCK_DIVIDE;
+		default:			return keyIn;
+	}
+}
+
+LRESULT ScintillaWin::WndProc(unsigned int iMessage, unsigned long wParam, long lParam) {
 	switch (iMessage) {
 
 	case WM_CREATE:
@@ -346,7 +371,7 @@ LRESULT ScintillaWin::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 		// i.e. if datazoomed out only class structures are visible, when datazooming in the control
 		// structures appear, then eventually the individual statements...)
 		if (wParam & MK_SHIFT) {
-			return DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
+            return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
 		}
 
 		// Either SCROLL or ZOOM. We handle the wheel steppings calculation
@@ -423,25 +448,26 @@ LRESULT ScintillaWin::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 
 	case WM_CHAR:
 		if (!iscntrl(wParam&0xff)) {
-            if (IsUnicodeMode()) {
-                AddCharBytes(static_cast<char>(wParam&0xff));
-            } else {
-			    AddChar(static_cast<char>(wParam&0xff));
-            }
+			if (IsUnicodeMode()) {
+				AddCharBytes(static_cast<char>(wParam&0xff));
+			} else {
+				AddChar(static_cast<char>(wParam&0xff));
+			}
 		}
 		return 1;
 
 	case WM_KEYDOWN: {
 		//Platform::DebugPrintf("S keydown %d %x %x %x %x\n",iMessage, wParam, lParam, ::IsKeyDown(VK_SHIFT), ::IsKeyDown(VK_CONTROL));
-			int ret = KeyDown(wParam, Platform::IsKeyDown(VK_SHIFT),
-		               Platform::IsKeyDown(VK_CONTROL), false);
+			int ret = KeyDown(KeyTranslate(wParam), 
+				Platform::IsKeyDown(VK_SHIFT),
+		               	Platform::IsKeyDown(VK_CONTROL), false);
 			if (!ret)
-				return DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
+                		return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
 			break;
 		}
 
 	case WM_IME_KEYDOWN:
-			return DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
+        	return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
 
 	case WM_KEYUP:
 		//Platform::DebugPrintf("S keyup %d %x %x\n",iMessage, wParam, lParam);
@@ -538,18 +564,38 @@ LRESULT ScintillaWin::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 		return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
 
 	case WM_ERASEBKGND:
+        	return 1;   // Avoid any background erasure as whole window painted. 
+
+        // These are not handled in Scintilla and its faster to dispatch them here.
+        // Also moves time out to here so profile doesn't count lots of empty message calls.
+    	case WM_MOVE:
+    	case WM_MOUSEACTIVATE:
 	case WM_NCHITTEST:
+    	case WM_NCCALCSIZE:
 	case WM_NCPAINT:
+    	case WM_NCMOUSEMOVE:
+    	case WM_NCLBUTTONDOWN:
+    	case WM_CAPTURECHANGED:
+    	case WM_IME_SETCONTEXT:
+    	case WM_IME_NOTIFY:
+    	case WM_SYSCOMMAND:
+    	case WM_WINDOWPOSCHANGING:
+    	case WM_WINDOWPOSCHANGED:
 		return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
 
+	case SCI_GETDIRECTFUNCTION:
+		return reinterpret_cast<LRESULT>(DirectFunction);
+	
+	case SCI_GETDIRECTPOINTER:
+		return reinterpret_cast<LRESULT>(this);
+
 	default:
-		//return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
-		return ScintillaBase::WndProc(iMessage, wParam, lParam);
+	    return ScintillaBase::WndProc(iMessage, wParam, lParam);
 	}
 	return 0l;
 }
 
-LRESULT ScintillaWin::DefWndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
+long ScintillaWin::DefWndProc(unsigned int iMessage, unsigned long wParam, long lParam) {
 	return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
 }
 
@@ -632,13 +678,13 @@ bool ScintillaWin::ModifyScrollBars(int nMax, int nPage) {
 
 void ScintillaWin::NotifyChange() {
 	::SendMessage(GetParent(wMain.GetID()), WM_COMMAND,
-	        MAKELONG(wMain.GetDlgCtrlID(), EN_CHANGE), 
+	        MAKELONG(wMain.GetDlgCtrlID(), SCEN_CHANGE), 
 		reinterpret_cast<LPARAM>(wMain.GetID()));
 }
 
 void ScintillaWin::NotifyFocus(bool focus) {
 	::SendMessage(GetParent(wMain.GetID()), WM_COMMAND,
-	        MAKELONG(wMain.GetDlgCtrlID(), focus ? EN_SETFOCUS : EN_KILLFOCUS), 
+	        MAKELONG(wMain.GetDlgCtrlID(), focus ? SCEN_SETFOCUS : SCEN_KILLFOCUS), 
 		reinterpret_cast<LPARAM>(wMain.GetID()));
 }
 
@@ -1167,6 +1213,8 @@ void ScintillaWin::ScrollMessage(WPARAM wParam) {
 
 void ScintillaWin::HorizontalScrollMessage(WPARAM wParam) {
 	int xPos = xOffset;
+	PRectangle rcText = GetTextRectangle();
+	int pageWidth = rcText.Width() * 2 / 3;
 	switch (LoWord(wParam)) {
 	case SB_LINEUP:
 		xPos -= 20;
@@ -1175,10 +1223,10 @@ void ScintillaWin::HorizontalScrollMessage(WPARAM wParam) {
 		xPos += 20;
 		break;
 	case SB_PAGEUP:
-		xPos -= 200;
+		xPos -= pageWidth;
 		break;
 	case SB_PAGEDOWN:
-		xPos += 200;
+		xPos += pageWidth;
 		break;
 	case SB_TOP:
 		xPos = 0;
@@ -1419,8 +1467,6 @@ static BOOL IsNT() {
 void ScintillaWin::Register(HINSTANCE hInstance_) {
 
 	hInstance = hInstance_;
-
-	InitCommonControls();
 #if 0
 	// Register the Scintilla class
 	if (IsNT()) {
@@ -1494,12 +1540,12 @@ LRESULT PASCAL ScintillaWin::CTWndProc(
 			              reinterpret_cast<LONG>(pCreate->lpCreateParams));
 			return 0;
 		} else {
-			return DefWindowProc(hWnd, iMessage, wParam, lParam);
+            		return ::DefWindowProc(hWnd, iMessage, wParam, lParam);
 		}
 	} else {
 		if (iMessage == WM_DESTROY) {
 			SetWindowLong(hWnd, 0, 0);
-			return DefWindowProc(hWnd, iMessage, wParam, lParam);
+            		return ::DefWindowProc(hWnd, iMessage, wParam, lParam);
 		} else if (iMessage == WM_PAINT) {
 			PAINTSTRUCT ps;
 			::BeginPaint(hWnd, &ps);
@@ -1510,11 +1556,16 @@ LRESULT PASCAL ScintillaWin::CTWndProc(
 			::EndPaint(hWnd, &ps);
 			return 0;
 		} else {
-			return DefWindowProc(hWnd, iMessage, wParam, lParam);
+            		return ::DefWindowProc(hWnd, iMessage, wParam, lParam);
 		}
 	}
 }
 
+LRESULT ScintillaWin::DirectFunction(
+    ScintillaWin *sci, UINT iMessage, WPARAM wParam, LPARAM lParam) {
+	return sci->WndProc(iMessage, wParam, lParam);
+}
+	    
 LRESULT PASCAL ScintillaWin::SWndProc(
     HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam) {
 	//Platform::DebugPrintf("S W:%x M:%x WP:%x L:%x\n", hWnd, iMessage, wParam, lParam);
@@ -1529,14 +1580,14 @@ LRESULT PASCAL ScintillaWin::SWndProc(
 			SetWindowLong(hWnd, 0, reinterpret_cast<LONG>(sci));
 			return sci->WndProc(iMessage, wParam, lParam);
 		} else {
-			return DefWindowProc(hWnd, iMessage, wParam, lParam);
+            return ::DefWindowProc(hWnd, iMessage, wParam, lParam);
 		}
 	} else {
 		if (iMessage == WM_DESTROY) {
 			sci->Finalise();
 			delete sci;
 			SetWindowLong(hWnd, 0, 0);
-			return DefWindowProc(hWnd, iMessage, wParam, lParam);
+            return ::DefWindowProc(hWnd, iMessage, wParam, lParam);
 		} else {
 			return sci->WndProc(iMessage, wParam, lParam);
 		}

@@ -24,6 +24,16 @@ bool EqualCaseInsensitive(const char *a, const char *b) {
 #endif
 }
 
+inline unsigned int HashString(const char *s) {
+    unsigned int ret = 0;
+    while (*s) {
+        ret <<= 4;
+        ret ^= *s;
+        s++;
+    }
+    return ret;
+}
+
 // Get a line of input. If end of line escaped with '\\' then continue reading.
 static bool GetFullLine(const char *&fpc, int &lenData, char *s, int len) {
 	bool continuation = true;
@@ -56,47 +66,39 @@ static bool GetFullLine(const char *&fpc, int &lenData, char *s, int len) {
 
 PropSet::PropSet() {
 	superPS = 0;
-	size = 10;
-	used = 0;
-	vals = new char * [size];
+    for (int root=0; root < hashRoots; root++)
+        props[root] = 0;
 }
 
 PropSet::~PropSet() {
 	superPS = 0;
 	Clear();
-	delete []vals;
-}
-
-void PropSet::EnsureCanAddEntry() {
-	if (used >= size - 2) {
-		int newsize = size + 10;
-		char **newvals = new char * [newsize];
-
-		for (int i = 0; i < used; i++) {
-			newvals[i] = vals[i];
-		}
-		delete []vals;
-		vals = newvals;
-		size = newsize;
-	}
 }
 
 void PropSet::Set(const char *key, const char *val) {
-	EnsureCanAddEntry();
-	for (int i = 0; i < used; i += 2) {
-		if (0 == strcmp(vals[i], key)) {
+    unsigned int hash = HashString(key);
+	for (Property *p=props[hash % hashRoots]; p; p=p->next) {
+		if ((hash == p->hash) && (0 == strcmp(p->key, key))) {
 			// Replace current value
-			delete [](vals[i + 1]);
-			vals[i + 1] = StringDup(val);
+			delete [](p->val);
+			p->val = StringDup(val);
 			return;
 		}
 	}
 	// Not found
-	vals[used++] = StringDup(key);
-	vals[used++] = StringDup(val);
+    Property *pNew = new Property;
+    if (pNew) {
+        pNew->hash = HashString(key);
+	    pNew->key = StringDup(key);
+	    pNew->val = StringDup(val);
+	    pNew->next = props[hash % hashRoots];
+        props[hash % hashRoots] = pNew;
+    }
 }
 
 void PropSet::Set(char *keyval) {
+    while (isspace(*keyval))
+        keyval++;
 	char *eqat = strchr(keyval, '=');
 	if (eqat) {
 		*eqat = '\0';
@@ -106,17 +108,48 @@ void PropSet::Set(char *keyval) {
 }
 
 SString PropSet::Get(const char *key) {
-	for (int i = 0; i < used; i += 2) {
-		if (0 == strcmp(vals[i], key)) {
-			return vals[i + 1];
-		}
-	}
+    unsigned int hash = HashString(key);
+	for (Property *p=props[hash % hashRoots]; p; p=p->next) {
+		if ((hash == p->hash) && (0 == strcmp(p->key, key))) {
+            return p->val;
+        }
+    }
 	if (superPS) {
 		// Failed here, so try in base property set
 		return superPS->Get(key);
 	} else {
 		return "";
 	}
+}
+
+SString PropSet::GetExpanded(const char *key) {
+    SString val = Get(key);
+    return Expand(val.c_str());
+}
+
+SString PropSet::Expand(const char *withvars) {
+	char *base = StringDup(withvars);
+	char *cpvar = strstr(base, "$(");
+	while (cpvar) {
+		char *cpendvar = strchr(cpvar, ')');
+		if (cpendvar) {
+			int lenvar = cpendvar - cpvar - 2;  	// Subtract the $()
+			char *var = StringDup(cpvar+2, lenvar);
+			SString val = GetExpanded(var);
+			int newlenbase = strlen(base) + val.length() - lenvar;
+			char *newbase = new char[newlenbase];
+			strncpy(newbase, base, cpvar - base);
+			strcpy(newbase + (cpvar - base), val.c_str());
+			strcpy(newbase + (cpvar - base) + val.length(), cpendvar + 1);
+			delete []var;
+			delete []base;
+			base = newbase;
+		}
+		cpvar = strstr(base, "$(");
+	}
+	SString sret = base;
+	delete []base;
+	return sret;
 }
 
 int PropSet::GetInt(const char *key, int defaultValue) {
@@ -127,7 +160,7 @@ int PropSet::GetInt(const char *key, int defaultValue) {
 		return defaultValue;
 }
 
-bool isprefix(const char *target, const char *prefix) {
+inline bool isprefix(const char *target, const char *prefix) {
 	while (*target && *prefix) {
 		if (*target != *prefix)
 			return false;
@@ -153,54 +186,56 @@ bool issuffix(const char *target, const char *suffix) {
 }
 
 SString PropSet::GetWild(const char *keybase, const char *filename) {
-	for (int i = 0; i < used; i += 2) {
-		if (isprefix(vals[i], keybase)) {
-			char *orgkeyfile = vals[i] + strlen(keybase);
-			char *keyfile = NULL;
+    for (int root=0; root < hashRoots; root++) {
+	    for (Property *p=props[root]; p; p=p->next) {
+		    if (isprefix(p->key, keybase)) {
+			    char *orgkeyfile = p->key + strlen(keybase);
+			    char *keyfile = NULL;
 
-			if (strstr(orgkeyfile, "$(") == orgkeyfile) {
-				char *cpendvar = strchr(orgkeyfile, ')');
-				if (cpendvar) {
-					*cpendvar = '\0';
-					SString s = Get(orgkeyfile + 2);
-					*cpendvar= ')';
-					keyfile = strdup(s.c_str());
-				}
-			}
-			char *keyptr = keyfile;
+			    if (strstr(orgkeyfile, "$(") == orgkeyfile) {
+				    char *cpendvar = strchr(orgkeyfile, ')');
+				    if (cpendvar) {
+					    *cpendvar = '\0';
+					    SString s = Get(orgkeyfile + 2);
+					    *cpendvar= ')';
+					    keyfile = strdup(s.c_str());
+				    }
+			    }
+			    char *keyptr = keyfile;
 
-			if (keyfile == NULL)
-				keyfile = orgkeyfile;
+			    if (keyfile == NULL)
+				    keyfile = orgkeyfile;
 
-			for (; ; ) {
-				char *del = strchr(keyfile, ';');
-				if (del == NULL)
-					del = keyfile + strlen(keyfile);
-				char delchr = *del;
-				*del = '\0';
-				if (*keyfile == '*') {
-					if (issuffix(filename, keyfile + 1)) {
-						*del = delchr;
-						free(keyptr);
-						return vals[i + 1];
-					}
-				} else if (0 == strcmp(keyfile, filename)) {
-					*del = delchr;
-					free(keyptr);
-					return vals[i + 1];
-				}
-				if (delchr == '\0')
-					break;
-				*del = delchr;
-				keyfile = del + 1;
-			}
-			free(keyptr);
+			    for (; ; ) {
+				    char *del = strchr(keyfile, ';');
+				    if (del == NULL)
+					    del = keyfile + strlen(keyfile);
+				    char delchr = *del;
+				    *del = '\0';
+				    if (*keyfile == '*') {
+					    if (issuffix(filename, keyfile + 1)) {
+						    *del = delchr;
+						    free(keyptr);
+						    return p->val;
+					    }
+				    } else if (0 == strcmp(keyfile, filename)) {
+					    *del = delchr;
+					    free(keyptr);
+					    return p->val;
+				    }
+				    if (delchr == '\0')
+					    break;
+				    *del = delchr;
+				    keyfile = del + 1;
+			    }
+			    free(keyptr);
 
-			if (0 == strcmp(vals[i], keybase)) {
-				return vals[i + 1];
-			}
-		}
-	}
+			    if (0 == strcmp(p->key, keybase)) {
+				    return p->val;
+			    }
+		    }
+	    }
+    }
 	if (superPS) {
 		// Failed here, so try in base property set
 		return superPS->GetWild(keybase, filename);
@@ -216,9 +251,7 @@ SString PropSet::GetNewExpand(const char *keybase, const char *filename) {
 		char *cpendvar = strchr(cpvar, ')');
 		if (cpendvar) {
 			int lenvar = cpendvar - cpvar - 2;  	// Subtract the $()
-			char *var = new char[lenvar + 1];
-			strncpy(var, cpvar + 2, lenvar);
-			var[lenvar] = '\0';
+			char *var = StringDup(cpvar+2, lenvar);
 			SString val = GetWild(var, filename);
 			int newlenbase = strlen(base) + val.length() - lenvar;
 			char *newbase = new char[newlenbase];
@@ -237,36 +270,54 @@ SString PropSet::GetNewExpand(const char *keybase, const char *filename) {
 }
 
 void PropSet::Clear() {
-	for (int i = 0; i < used; i++) {
-		delete [](vals[i]);
-		vals[i] = 0;
-	}
-	used = 0;
+    for (int root=0; root < hashRoots; root++) {
+        Property *p=props[root];
+	    while (p) {
+            Property *pNext=p->next;
+		    p->hash = 0;
+		    delete p->key;
+		    p->key = 0;
+		    delete p->val;
+		    p->val = 0;
+            delete p;
+            p = pNext;
+        }
+        props[root] = 0;
+    }
 }
 
-void PropSet::ReadFromMemory(const char *data, int len) {
-	if (len > 0) {
-		const char *pd = data;
-		char linebuf[60000];
-		while (GetFullLine(pd, len, linebuf, sizeof(linebuf))) {
-			if (isalpha(linebuf[0]))
-				Set(linebuf);
-		}
-		// If there is a final line:
-		if (isalpha(linebuf[0]))
+void PropSet::ReadFromMemory(const char *data, int len, const char *directoryForImports) {
+	const char *pd = data;
+	char linebuf[60000];
+	bool ifIsTrue = true;
+	while (len > 0) {
+		GetFullLine(pd, len, linebuf, sizeof(linebuf));
+		if (isalpha(linebuf[0]))    // If clause ends with first non-indented line
+			ifIsTrue = true;
+		if (isprefix(linebuf, "if ")) {
+			const char *expr = linebuf + strlen("if") + 1;
+			ifIsTrue = GetInt(expr);
+		} else if (isprefix(linebuf, "import ") && directoryForImports) {
+			char importPath[1024];
+			strcpy(importPath, directoryForImports);
+			strcat(importPath, linebuf + strlen("import") + 1);
+			strcat(importPath, ".properties");
+            		Read(importPath,directoryForImports);
+		} else if (isalpha(linebuf[0])) {
 			Set(linebuf);
+		} else if (isspace(linebuf[0]) && ifIsTrue) {
+			Set(linebuf);
+		}
 	}
 }
 
-void PropSet::Read(const char *filename) {
-	//printf("Opening properties <%s>\n", filename);
-	Clear();
+void PropSet::Read(const char *filename, const char *directoryForImports) {
 	char propsData[60000];
 	FILE *rcfile = fopen(filename, "rb");
 	if (rcfile) {
 		int lenFile = fread(propsData, 1, sizeof(propsData), rcfile);
 		fclose(rcfile);
-		ReadFromMemory(propsData, lenFile);
+		ReadFromMemory(propsData, lenFile, directoryForImports);
 	} else {
 		//printf("Could not open <%s>\n", filename);
 	}

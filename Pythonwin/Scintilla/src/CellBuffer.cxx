@@ -119,7 +119,11 @@ void MarkerHandleSet::CombineWith(MarkerHandleSet *other) {
 LineVector::LineVector() {
 	linesData = 0;
 	lines = 0;
+    size = 0;
 	levels = 0;
+    sizeLevels = 0;
+	handleCurrent = 1;
+
 	Init();
 }
 
@@ -180,6 +184,12 @@ void LineVector::ExpandLevels(int sizeNew) {
 		Platform::DebugPrintf("No memory available\n");
 		// TODO: Blow up
 	}
+}
+
+void LineVector::ClearLevels() {
+	delete []levels;
+	levels = 0;
+    sizeLevels = 0;
 }
 
 void LineVector::InsertValue(int pos, int value) {
@@ -1066,3 +1076,6 @@ int CellBuffer::GetLevel(int line) {
 	}
 }
 
+void CellBuffer::ClearLevels() {
+    lv.ClearLevels();
+}
