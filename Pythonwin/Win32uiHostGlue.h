@@ -210,7 +210,8 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const char *cmd, const char 
 		OutputDebugString("WARNING - win32uiHostGlue could not load the entry point for ApplicationInit\n");
 		rc = FALSE;
 	}
-	FreeLibrary(hModWin32ui);
+	// We must not free the win32ui module, as we
+	// still hold function pointers to it!
 	return rc;
 }
 #else

@@ -2146,6 +2146,14 @@ initwin32ui(void)
   PyObject *dllhandle = PyInt_FromLong((long)hWin32uiDll);
   PyDict_SetItemString(dict, "dllhandle", dllhandle);
   Py_XDECREF(dllhandle);
+  // Ensure we have a __file__ attribute (Python itself normally
+  // adds one, but if this is called not as part of the standard
+  // import process, we dont have one!
+  char pathName[MAX_PATH];
+  GetModuleFileName(hWin32uiDll, pathName, sizeof(pathName)/sizeof(pathName[0]));
+  PyObject *obPathName = PyString_FromString(pathName);
+  PyDict_SetItemString(dict, "__file__", obPathName);
+  Py_XDECREF(obPathName);
 
   HookWindowsMessages();	// need to be notified of certain events...
   AddConstants(dict);
@@ -2263,7 +2271,11 @@ extern "C" PYW_EXPORT BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, char *
 #else
 	bool bDebug = false;
 #endif
-	PyWinGlobals_Ensure();
+	// We need to ensure that _this_ instance of
+	// win32ui is attached to Python - otherwise there is
+	// a risk that when Python does "import win32ui", it
+	// will locate a different one, causing obvious grief!
+	initwin32ui();
 
 	// Set sys.argv if not already done!
 	PyObject *argv = PySys_GetObject("argv");
