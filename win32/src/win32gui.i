@@ -1345,7 +1345,7 @@ static PyObject *PyGetWindowText(PyObject *self, PyObject *args)
     int len;
    
 	TCHAR buffer[512];
-	// @pyparam int|hwnd||The handle to the window
+	// @pyparm int|hwnd||The handle to the window
 	if (!PyArg_ParseTuple(args, "l", &hwnd))
 		return NULL;
     len = GetWindowText(hwnd, buffer, sizeof(buffer)/sizeof(TCHAR));

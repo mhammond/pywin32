@@ -136,11 +136,11 @@ PyTypeObject PyDCB::type =
   {"ByteSize", T_BYTE, OFF(m_DCB.ByteSize)},           // @prop integer|ByteSize|number of bits/byte, 4-8 
   {"Parity", T_BYTE, OFF(m_DCB.Parity)},             // @prop integer|Parity|0-4=no,odd,even,mark,space 
   {"StopBits", T_BYTE, OFF(m_DCB.StopBits)},           // @prop integer|StopBits|0,1,2 = 1, 1.5, 2 
-  {"XonChar", T_CHAR, OFF(m_DCB.XonChar)},            // @prop integer|XonChar|Tx and Rx XON character 
-  {"XoffChar", T_CHAR, OFF(m_DCB.XoffChar)},           // @prop integer|XoffChar|Tx and Rx XOFF character 
-  {"ErrorChar", T_CHAR, OFF(m_DCB.ErrorChar)},          // @prop integer|ErrorChar|error replacement character 
-  {"EofChar", T_CHAR, OFF(m_DCB.EofChar)},            // @prop integer|EofChar|end of input character 
-  {"EvtChar", T_CHAR, OFF(m_DCB.EvtChar)},            // @prop integer|EvtChar|received event character 
+  {"XonChar", T_CHAR, OFF(m_DCB.XonChar)},            // @prop character|XonChar|Tx and Rx XON character 
+  {"XoffChar", T_CHAR, OFF(m_DCB.XoffChar)},           // @prop character|XoffChar|Tx and Rx XOFF character 
+  {"ErrorChar", T_CHAR, OFF(m_DCB.ErrorChar)},          // @prop character|ErrorChar|error replacement character 
+  {"EofChar", T_CHAR, OFF(m_DCB.EofChar)},            // @prop character|EofChar|end of input character 
+  {"EvtChar", T_CHAR, OFF(m_DCB.EvtChar)},            // @prop character|EvtChar|received event character 
   {"wReserved1", T_WORD, OFF(m_DCB.wReserved1)},         // @prop integer|wReserved1|reserved; do not use 
   {NULL}
 };

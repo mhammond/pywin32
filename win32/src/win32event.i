@@ -378,6 +378,12 @@ DWORD_WAITAPI WaitForSingleObject(
     PyHANDLE hHandle,	// @pyparm <o PyHANDLE>|hHandle||handle of object to wait for 
     DWORD dwMilliseconds 	// @pyparm int|milliseconds||time-out interval in milliseconds  
    );
+// @rdesc If the function succeeds, the return value indicates the event that caused the function to return. This value can be one of the following. 
+// @flagh Value|Meaning
+// @flag WAIT_ABANDONED|The specified object is a mutex object that was not released by the thread that owned the mutex object before the owning thread terminated. Ownership of the mutex object is granted to the calling thread, and the mutex is set to nonsignaled. 
+// @flag WAIT_OBJECT_0|The state of the specified object is signaled. 
+// @flag WAIT_TIMEOUT|The time-out interval elapsed, and the object's state is nonsignaled. 
+
 
 #ifndef MS_WINCE
 // @pyswig int|WaitForSingleObjectEx|Returns when an event is signalled
@@ -386,4 +392,5 @@ DWORD_WAITAPI WaitForSingleObjectEx(
     DWORD dwMilliseconds, // @pyparm int|milliseconds||time-out interval in milliseconds  
     BOOL bAlertable // @pyparm int|bAlertable||alertable wait flag.
    );
+// @rdesc See <om win32event.WaitForSingleObject> for return values.   
 #endif /* MS_WINCE */

@@ -332,7 +332,7 @@ BOOLAPI FindNextChangeNotification(
 #endif // MS_WINCE
 
 %{
-// @pyswig list|win32api|FindFilesW|Retrieves a list of matching filenames, using the Windows Unicode API.  An interface to the API FindFirstFileW/FindNextFileW/Find close functions.
+// @pyswig list|FindFilesW|Retrieves a list of matching filenames, using the Windows Unicode API.  An interface to the API FindFirstFileW/FindNextFileW/Find close functions.
 static PyObject *
 PyFindFilesW(PyObject *self, PyObject *args)
 {
@@ -454,10 +454,10 @@ BOOLAPI GetDiskFreeSpaceEx(
     ULARGE_INTEGER *OUTPUT,
     ULARGE_INTEGER *OUTPUT 
 // @rdesc The result is a tuple of long integers:
-// @tupleitem 0|long integer|The total number of free bytes on the disk that are available to the user associated with the calling thread.
-// @tupleitem 1|long integer|The total number of bytes on the disk that are available to the user associated with the calling thread.
+// @tupleitem 0|long integer|freeBytes|The total number of free bytes on the disk that are available to the user associated with the calling thread.
+// @tupleitem 1|long integer|totalBytes|The total number of bytes on the disk that are available to the user associated with the calling thread.
 // Windows 2000: If per-user quotas are in use, this value may be less than the total number of bytes on the disk. 
-// @tupleitem 2|long integer|The total number of free bytes on the disk. 
+// @tupleitem 2|long integer|totalFreeBytes|The total number of free bytes on the disk. 
 );
 
 // @pyswig int|GetDriveType|Determines whether a disk drive is a removable, fixed, CD-ROM, RAM disk, or network drive. 
