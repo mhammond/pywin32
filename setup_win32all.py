@@ -1,4 +1,4 @@
-build_number=202
+build_number=203
 # Putting buildno at the top prevents automatic __doc__ assignment, and
 # I *want* the build number at the top :)
 __doc__="""This is a distutils setup-script for win32all
@@ -108,6 +108,7 @@ class WinExt (Extension):
                   pch_header=None,
                   windows_h_version=None, # min version of windows.h needed.
                   extra_swig_commands=None,
+                  is_regular_dll=False, # regular Windows DLL?
                   # list of headers which may not be installed forcing us to
                   # skip this extension
                   optional_headers=[],
@@ -135,6 +136,7 @@ class WinExt (Extension):
         self.extra_swig_commands = extra_swig_commands or []
         self.windows_h_version = windows_h_version
         self.optional_headers = optional_headers
+        self.is_regular_dll = is_regular_dll
         Extension.__init__ (self, name, sources,
                             include_dirs,
                             define_macros,
@@ -198,6 +200,10 @@ class WinExt_win32(WinExt):
         WinExt.__init__(self, name, **kw)
     def get_pywin32_dir(self):
         return "win32"
+
+class WinExt_ISAPI(WinExt):
+    def get_pywin32_dir(self):
+        return "isapi"
 
 # Note this is used only for "win32com extensions", not pythoncom
 # itself - thus, output is "win32comext"
@@ -631,10 +637,13 @@ class my_build_ext(build_ext):
         elif name.endswith("pythonwin.Pythonwin"):
             extra = self.debug and "_d.exe" or ".exe"
             return r"pythonwin\Pythonwin" + extra
+        elif name.endswith("isapi.PyISAPI_loader"):
+            extra = self.debug and "_d.dll" or ".dll"
+            return r"isapi\PyISAPI_loader" + extra
         return build_ext.get_ext_filename(self, name)
 
     def get_export_symbols(self, ext):
-        if ext.name.endswith("perfmondata"):
+        if ext.is_regular_dll:
             return ext.export_symbols
         return build_ext.get_export_symbols(self, ext)
 
@@ -715,7 +724,7 @@ class my_build_ext(build_ext):
             # *always* regenerate the .cpp files, meaning every future
             # build for any platform sees these as dirty.
             # This could probably go once we generate .cpp into the temp dir.
-            if newer(os.path.abspath(source), os.path.abspath(target)):
+            if self.force or newer(os.path.abspath(source), os.path.abspath(target)):
                 swig_cmd.extend(["-o",
                                  os.path.abspath(target),
                                  os.path.abspath(source)])
@@ -797,6 +806,7 @@ win32_extensions.append(
                  libraries="advapi32",
                  extra_compile_args=["-DUNICODE", "-D_UNICODE", "-DWINNT"],
                  export_symbol_file = "win32/src/PerfMon/perfmondata.def",
+                 is_regular_dll = 1,
         ),
     )
 
@@ -862,7 +872,7 @@ win32_extensions += [
                                  '-DWINNT', '-DPYSERVICE_BUILD_DLL'],
            libraries = "user32 ole32 advapi32 shell32",
            dsp_file = r"win32\Pythonservice servicemanager.dsp",
-           windows_h_version = 0x500)
+           windows_h_version = 0x500),
 ]
 
 # The COM modules.
@@ -912,6 +922,22 @@ pythonwin_extensions = [
     WinExt_pythonwin("win32uiole", pch_header="stdafxole.h",
                      windows_h_version = 0x500),
     WinExt_pythonwin("dde", pch_header="stdafxdde.h"),
+]
+
+other_extensions = [
+    WinExt_ISAPI('PyISAPI_loader',
+           sources=[os.path.join("isapi", "src", s) for s in
+                   """PyExtensionObjects.cpp PyFilterObjects.cpp
+                      pyISAPI.cpp PythonEng.cpp StdAfx.cpp
+                      Utils.cpp
+                   """.split()],
+           pch_header = "StdAfx.h",
+           is_regular_dll = 1,
+           export_symbols = """HttpExtensionProc GetExtensionVersion
+                               TerminateExtension GetFilterVersion
+                               HttpFilterProc TerminateFilter
+                               PyISAPISetOptions""".split(),
+           ),
 ]
 
 W32_exe_files = [
@@ -1055,6 +1081,7 @@ packages=['win32com',
           'pythonwin.pywin.mfc',
           'pythonwin.pywin.scintilla',
           'pythonwin.pywin.tools',
+          'isapi',
           ]
 
 # Python 2.2 distutils can't handle py_modules *and* packages,
@@ -1089,11 +1116,12 @@ dist = setup(name="pywin32",
 
       scripts = ["pywin32_postinstall.py"],
 
-      ext_modules = win32_extensions + com_extensions + pythonwin_extensions,
+      ext_modules = win32_extensions + com_extensions + pythonwin_extensions + \
+                    other_extensions,
 
       package_dir = {"win32com": "com/win32com",
                      "win32comext": "com/win32comext",
-                     "pythonwin": "pythonwin"},
+                     "pythonwin": "pythonwin",},
       packages = packages,
       py_modules = py_modules,
 
@@ -1115,6 +1143,7 @@ dist = setup(name="pywin32",
                 'com/win32com/test/*',
                 # win32com docs
                 'com/win32com/HTML/*',
+                'com/win32comext/adsi/demos/*',
                 # Active Scripting test and demos.
                 'com/win32comext/axscript/test/*',
                 'com/win32comext/axscript/Demos/*',
@@ -1124,6 +1153,12 @@ dist = setup(name="pywin32",
                 'com/win32comext/shell/demos/*.py',
                 'com/win32comext/taskscheduler/test/*.py',
                 'com/win32comext/ifilter/demo/*.py',
+                'isapi/*.txt',
+                'isapi/samples/*.py',
+                'isapi/samples/*.txt',
+                'isapi/doc/*.html',
+                'isapi/test/*.py',
+                'isapi/test/*.txt',
                  ]) +
                 # The headers and .lib files
                 [

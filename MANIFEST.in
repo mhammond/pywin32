@@ -11,6 +11,7 @@ include win32/scripts/*.py
 include win32/test/*.py
 include win32/Demos/*.py
 include win32/src/*.h
+include win32/src/*.manifest
 include win32/src/PerfMon/perfmondata.def
 include win32/src/dbi.def
 include win32/*.dsp
@@ -40,13 +41,19 @@ include com/win32comext/axscript/demos/client/ie/*.gif
 include com/win32comext/axscript/demos/client/wsh/*.pys
 include com/win32comext/axdebug/src/*.h
 include com/win32comext/adsi/src/*.h
+include com/win32comext/adsi/demos/*.py
 include com/win32comext/axcontrol/src/*.h
 include com/win32comext/internet/src/*.h
 include com/win32comext/mapi/src/*.h
 include com/win32comext/shell/src/*.h
+include com/win32comext/mapi/demos/*.py
 include com/win32comext/shell/demos/servers/*.py
 include com/win32comext/shell/demos/*.py
+include com/win32comext/shell/test/*.py
 include com/win32comext/taskscheduler/src/*.h
+include com/win32comext/taskscheduler/test/*.py
+include com/win32comext/ifilter/src/*.h
+include com/win32comext/ifilter/demo/*.py
 
 # Pythonwin
 include pythonwin/pythonwin.cpp
@@ -59,6 +66,11 @@ include pythonwin/res/*.ICO
 include pythonwin/res/*.bmp
 include pythonwin/res/*.BMP
 include pythonwin/pywin/*.cfg
+include pythonwin/pywin/Demos/*.py
+include pythonwin/pywin/Demos/*.txt
+include pythonwin/pywin/Demos/app/*.py
+include pythonwin/pywin/Demos/app/*.txt
+include pythonwin/pywin/Demos/ocx/*.py
 include pythonwin/License.txt
 # scintilla
 include pythonwin/Scintilla/README*
@@ -73,6 +85,16 @@ include pythonwin/Scintilla/win32/*.rc
 include pythonwin/Scintilla/win32/*.def
 include pythonwin/Scintilla/win32/*.mak
 include pythonwin/Scintilla/win32/*.cur
+
+# ISAPI
+include isapi/doc/*.html
+include isapi/*.txt
+include isapi/samples/*.py
+include isapi/samples/*.txt
+include isapi/test/*.py
+include isapi/test/*.txt
+
+include isapi/src/*.h
 
 # Other tools
 include SWIG/swig.exe
