@@ -674,10 +674,51 @@ static PyObject *PySHChangeNotify(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod string/int|shell|DragQueryFile|Notifies the shell that an image in the system image list has changed.
+static PyObject *PyDragQueryFile(PyObject *self, PyObject *args)
+{
+	int iglobal;
+	UINT index;
+	if(!PyArg_ParseTuple(args, "ii:DragQueryFile", 
+			&iglobal, 
+			&index))
+		return NULL;
+	HDROP hglobal = (HDROP)iglobal;
+	if (index==0xFFFFFFFF) {
+		return PyInt_FromLong(DragQueryFile(hglobal, index, NULL, 0));
+	}
+	// get the buffer size
+	UINT nchars = DragQueryFile(hglobal, index, NULL, 0)+2;
+	TCHAR *sz = (TCHAR *)malloc(nchars * sizeof(TCHAR));
+	if (sz==NULL)
+		return PyErr_NoMemory();
+	nchars = ::DragQueryFile(hglobal, index, sz, nchars);
+	PyObject *ret = PyWinObject_FromTCHAR(sz, nchars);
+	free(sz);
+	return ret;
+}
+
+// @pymethod int, (int,int)|shell|DragQueryPoint|Retrieves the position of the mouse pointer at the time a file was dropped during a drag-and-drop operation.
+// @rdesc The first item of the return tuple is True if the drop occurred in the client area of the window, or False if the drop did not occur in the client area of the window.
+// @comm The window for which coordinates are returned is the window that received the WM_DROPFILES message
+static PyObject *PyDragQueryPoint(PyObject *self, PyObject *args)
+{
+	int iglobal;
+	if(!PyArg_ParseTuple(args, "i:DragQueryFile", 
+			&iglobal))
+		return NULL;
+	HDROP hglobal = (HDROP)iglobal;
+	POINT pt;
+	BOOL result = ::DragQueryPoint(hglobal, &pt);
+	return Py_BuildValue("O(ii)", result ? Py_True : Py_False, pt.x, pt.y);
+}
+
 /* List of module functions */
 // @module shell|A module, encapsulating the ActiveX Control interfaces
 static struct PyMethodDef shell_methods[]=
 {
+    { "DragQueryFile",    PyDragQueryFile, 1 }, // @pymeth DragQueryFile|Retrieves the file names of dropped files that have resulted from a successful drag-and-drop operation.
+	{ "DragQueryPoint",   PyDragQueryPoint, 1}, // @pymeth DragQueryPoint|Retrieves the position of the mouse pointer at the time a file was dropped during a drag-and-drop operation.
     { "SHGetPathFromIDList",    PySHGetPathFromIDList, 1 }, // @pymeth SHGetPathFromIDList|Converts an <o PyIDL> to a path.
     { "SHBrowseForFolder",    PySHBrowseForFolder, 1 }, // @pymeth SHBrowseForFolder|Displays a dialog box that enables the user to select a shell folder.
     { "SHGetFolderPath", PySHGetFolderPath, 1 }, // @pymeth SHGetFolderPath|Retrieves the path of a folder.
@@ -751,14 +792,13 @@ extern "C" __declspec(dllexport) void initshell()
 	PyCom_RegisterExtensionSupport(dict, g_interfaceSupportData, sizeof(g_interfaceSupportData)/sizeof(PyCom_InterfaceSupportInfo));
 
 	ADD_CONSTANT(SLR_NO_UI);
-// Some of these are win2k only...
-//	ADD_CONSTANT(SLR_NOLINKINFO);
-//	ADD_CONSTANT(SLR_INVOKE_MSI);
+	ADD_CONSTANT(SLR_NOLINKINFO);
+	ADD_CONSTANT(SLR_INVOKE_MSI);
     ADD_CONSTANT(SLR_ANY_MATCH);
     ADD_CONSTANT(SLR_UPDATE);
     ADD_CONSTANT(SLR_NOUPDATE);
-//	ADD_CONSTANT(SLR_NOSEARCH);
-//	ADD_CONSTANT(SLR_NOTRACK);
+	ADD_CONSTANT(SLR_NOSEARCH);
+	ADD_CONSTANT(SLR_NOTRACK);
     ADD_CONSTANT(SLGP_SHORTPATH);
     ADD_CONSTANT(SLGP_UNCPRIORITY);
     ADD_CONSTANT(SLGP_RAWPATH);
