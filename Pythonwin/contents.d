@@ -26,12 +26,12 @@ provided with Pythonwin are:
 will complete based on all words in the current file - eg, "string"
 would be likely to result assuming the code has an "import string"
 statement.  Pressing the key again expands to the next match.
-@flag .|Auto expand the attribute.  Eg, typing "string." will display a listbox with the contents of the string module.
+@flag .|Auto expand the attribute.  Eg, typing "string." will display a listbox with the contents of the string module.  Select an item with TAB or the mouse.
 @flag Alt+I|Toggle focus to/from the interactive window.
 
 @flagh Builtin Keystrokes|Keystrokes built into Scintilla
-@flag Ctrl+Keypad+Plus|Zoom-in for the current window (builtin to Scintilla)
-@flag Ctrl+Keypad+Minus|Zoom-out for the current window (builtin to Scintilla)
+@flag Ctrl+Keypad+Plus|Zoom-in for the current window.  Non True-Type fonts may require multiple presses.
+@flag Ctrl+Keypad+Minus|Zoom-out for the current window.  Non True-Type fonts may require multiple presses.
 @flag Ctrl+Backspace|Delete the word to the left of the cursor.
 @flag Ctrl+Z|Undo
 @flag Ctrl+Y|Redo
@@ -39,8 +39,7 @@ statement.  Pressing the key again expands to the next match.
 @flag Ctrl+C|Copy
 @flag Ctrl+V|Paste
 @flag Ctrl+A|Select All
-@flag Ctrl+L|Cut the current line
-@flag Ctrl+Shift+L|Delete the corrent line
+@flag Ctrl+Shift+L|Delete the current line
 @flag Ctrl+T|Transpose (swap) the current line with the line above
 @flag Ctrl+U|Convert the selection to lower case
 @flag Ctrl+Shift+U|Convert the selection to upper case
@@ -56,12 +55,11 @@ statement.  Pressing the key again expands to the next match.
 @flag Alt+5|Tabify the selected region.
 <nl>
 @flag Alt+6|Untabify the selected region.
-@flag BackSpace|Remove one indent to the left.
+@flag BackSpace|Remove selected region or one character or indent to the left.
 @flag Ctrl+T|Toggle the use of tabs for the current file (after confirmation)
 @flag Alt+U|Change the indent width for the current file.
 @flag Enter|Insert a newline and indent.
-@flag Tab|Insert an indent, or perform a block indent if a selection
-exists.
+@flag Tab|Insert an indent, perform a block indent if a selection exists, or accept an attribute selection.
 @flag Shift-Tab|Block dedent the selection
 <nl>
 @flag F6|Toggle view when editor splitter is open.
