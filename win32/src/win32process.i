@@ -217,6 +217,7 @@ int PySTARTUPINFO::setattr(PyObject *self, char *name, PyObject *v)
 			Py_XDECREF(pO->m_obTitle);
 			pO->m_obTitle = v;
 			Py_INCREF(v);
+			return 0;
 		} else
 			return -1;
 	}
