@@ -173,7 +173,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
 		# Enable Unicode if we can
 		if is_platform_unicode:
-			self.SendScintilla(SCI_SETCODEPAGE, 65001, 0)
+			self.SendScintilla(SCI_SETCODEPAGE, SC_CP_UTF8, 0)
 		# Create margins
 		self.SendScintilla(SCI_SETMARGINTYPEN, 1, SC_MARGIN_SYMBOL);
 		self.SendScintilla(SCI_SETMARGINMASKN, 1, 0xF);
