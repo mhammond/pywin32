@@ -65,7 +65,7 @@ PyObject *PyIEnum%(enumtype)s::Next(PyObject *self, PyObject *args)
 	%(arraydeclare)s
 	if ( rgVar == NULL ) {
 		PyErr_SetString(PyExc_MemoryError, "allocating result %(enumtype)ss");
-		return NULL
+		return NULL;
 	}
 
 	int i;
@@ -74,7 +74,9 @@ PyObject *PyIEnum%(enumtype)s::Next(PyObject *self, PyObject *args)
 */
 
 	ULONG celtFetched = 0;
+	PY_INTERFACE_PRECALL;
 	HRESULT hr = pIE%(enumtype)s->Next(celt, rgVar, &celtFetched);
+	PY_INTERFACE_POSTCALL;
 	if (  HRESULT_CODE(hr) != ERROR_NO_MORE_ITEMS && FAILED(hr) )
 	{
 		delete [] rgVar;
@@ -115,7 +117,9 @@ PyObject *PyIEnum%(enumtype)s::Skip(PyObject *self, PyObject *args)
 	if ( pIE%(enumtype)s == NULL )
 		return NULL;
 
+	PY_INTERFACE_PRECALL;
 	HRESULT hr = pIE%(enumtype)s->Skip(celt);
+	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIE%(enumtype)s, IID_IE%(enumtype)s);
 
@@ -133,7 +137,9 @@ PyObject *PyIEnum%(enumtype)s::Reset(PyObject *self, PyObject *args)
 	if ( pIE%(enumtype)s == NULL )
 		return NULL;
 
+	PY_INTERFACE_PRECALL;
 	HRESULT hr = pIE%(enumtype)s->Reset();
+	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIE%(enumtype)s, IID_IE%(enumtype)s);
 
@@ -152,7 +158,9 @@ PyObject *PyIEnum%(enumtype)s::Clone(PyObject *self, PyObject *args)
 		return NULL;
 
 	IEnum%(enumtype)s *pClone;
+	PY_INTERFACE_PRECALL;
 	HRESULT hr = pIE%(enumtype)s->Clone(&pClone);
+	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIE%(enumtype)s, IID_IE%(enumtype)s);
 
@@ -247,7 +255,7 @@ STDMETHODIMP PyGEnum%(enumtype)s::Next(
   error:
 	PyErr_Clear();	// just in case
 	Py_DECREF(result);
-	return PyCom_SetCOMErrorFromSimple(E_FAIL, "Next() did not return a sequence of objects", IID_IEnum%(enumtype)s);
+	return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnum%(enumtype)s, "Next() did not return a sequence of objects");
 }
 
 STDMETHODIMP PyGEnum%(enumtype)s::Skip( 
