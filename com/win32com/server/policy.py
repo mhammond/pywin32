@@ -455,7 +455,9 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
       tlb_major, tlb_minor = getattr(ob, '_typelib_version_', (1,0))
       tlb_lcid = getattr(ob, '_typelib_lcid_', 0)
       from win32com import universal
-      universal_data = universal.RegisterInterfaces(tlb_guid, tlb_lcid, tlb_major, tlb_minor)
+      interfaces = getattr(ob, '_com_interfaces_', None)
+      universal_data = universal.RegisterInterfaces(tlb_guid, tlb_lcid,
+                                       tlb_major, tlb_minor, interfaces)
     else:
       universal_data = []
     MappedWrapPolicy._wrap_(self, ob)
