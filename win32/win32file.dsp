@@ -34,7 +34,6 @@ CFG=win32file - Win32 Debug
 # PROP AllowPerConfigDependencies 0
 # PROP Scc_ProjName ""$/Python/win32", OGAAAAAA"
 # PROP Scc_LocalPath "."
-# PROP WCE_FormatVersion "6.0"
 
 !IF  "$(CFG)" == "win32file - Win32 Release"
 
@@ -64,7 +63,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e700000" /subsystem:windows /dll /debug /machine:I386 /out:"Build\win32file.pyd"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e700000" /subsystem:windows /dll /debug /machine:I386 /out:"Build\win32file.pyd" /libpath:".\Build"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "win32file - Win32 Debug"
@@ -95,7 +94,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e700000" /subsystem:windows /dll /debug /machine:I386 /out:"Build\win32file_d.pyd" /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e700000" /subsystem:windows /dll /debug /machine:I386 /out:"Build\win32file_d.pyd" /pdbtype:sept /libpath:".\Build"
 
 !ELSEIF  "$(CFG)" == "win32file - Win32 (WCE x86em) Debug"
 
@@ -352,9 +351,7 @@ InputName=win32file
 !ELSEIF  "$(CFG)" == "win32file - Win32 (WCE x86em) Debug"
 
 # Begin Custom Build - Invoking SWIG...
-InputDir=.\src
-InputPath=.\src\win32file.i
-InputName=win32file
+InputDir=.\src	InputPath=.\src\win32file.i	InputName=win32file	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	cd $(InputDir) 
@@ -365,9 +362,7 @@ InputName=win32file
 !ELSEIF  "$(CFG)" == "win32file - Win32 (WCE x86em) Release"
 
 # Begin Custom Build - Invoking SWIG...
-InputDir=.\src
-InputPath=.\src\win32file.i
-InputName=win32file
+InputDir=.\src	InputPath=.\src\win32file.i	InputName=win32file	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	cd $(InputDir) 
@@ -378,9 +373,7 @@ InputName=win32file
 !ELSEIF  "$(CFG)" == "win32file - Win32 (WCE SH3) Debug"
 
 # Begin Custom Build - Invoking SWIG...
-InputDir=.\src
-InputPath=.\src\win32file.i
-InputName=win32file
+InputDir=.\src	InputPath=.\src\win32file.i	InputName=win32file	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	cd $(InputDir) 
@@ -391,9 +384,7 @@ InputName=win32file
 !ELSEIF  "$(CFG)" == "win32file - Win32 (WCE MIPS) Debug"
 
 # Begin Custom Build - Invoking SWIG...
-InputDir=.\src
-InputPath=.\src\win32file.i
-InputName=win32file
+InputDir=.\src	InputPath=.\src\win32file.i	InputName=win32file	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	cd $(InputDir) 
@@ -404,9 +395,7 @@ InputName=win32file
 !ELSEIF  "$(CFG)" == "win32file - Win32 (WCE SH3) Release"
 
 # Begin Custom Build - Invoking SWIG...
-InputDir=.\src
-InputPath=.\src\win32file.i
-InputName=win32file
+InputDir=.\src	InputPath=.\src\win32file.i	InputName=win32file	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	cd $(InputDir) 
@@ -417,9 +406,7 @@ InputName=win32file
 !ELSEIF  "$(CFG)" == "win32file - Win32 (WCE MIPS) Release"
 
 # Begin Custom Build - Invoking SWIG...
-InputDir=.\src
-InputPath=.\src\win32file.i
-InputName=win32file
+InputDir=.\src	InputPath=.\src\win32file.i	InputName=win32file	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	cd $(InputDir) 
@@ -446,20 +433,18 @@ SOURCE=.\src\win32filemodule.cpp
 
 DEP_CPP_WIN32=\
 	".\src\win32filemodule_win32.cpp"\
-	".\src\win32filemodule_wince.cpp"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_WIN32=\
 	".\src\Python.h"\
 	".\src\unicodeobject.h"\
+	".\src\win32filemodule_wince.cpp"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32file - Win32 (WCE MIPS) Debug"
 
 DEP_CPP_WIN32=\
 	".\src\win32filemodule_win32.cpp"\
-	".\src\win32filemodule_wince.cpp"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_WIN32=\
 	".\angeobject.h"\
@@ -487,6 +472,7 @@ NODEP_CPP_WIN32=\
 	".\onfig.h"\
 	".\ongobject.h"\
 	".\raceback.h"\
+	".\src\win32filemodule_wince.cpp"\
 	".\tringobject.h"\
 	".\ufferobject.h"\
 	".\uncobject.h"\
@@ -500,14 +486,13 @@ NODEP_CPP_WIN32=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32file - Win32 (WCE SH3) Release"
 
 DEP_CPP_WIN32=\
 	".\src\win32filemodule_win32.cpp"\
-	".\src\win32filemodule_wince.cpp"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_WIN32=\
 	".\angeobject.h"\
@@ -533,6 +518,7 @@ NODEP_CPP_WIN32=\
 	".\ongobject.h"\
 	".\raceback.h"\
 	".\rtapi.h"\
+	".\src\win32filemodule_wince.cpp"\
 	".\tringobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
@@ -547,14 +533,13 @@ NODEP_CPP_WIN32=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32file - Win32 (WCE MIPS) Release"
 
 DEP_CPP_WIN32=\
 	".\src\win32filemodule_win32.cpp"\
-	".\src\win32filemodule_wince.cpp"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_WIN32=\
 	".\angeobject.h"\
@@ -580,6 +565,7 @@ NODEP_CPP_WIN32=\
 	".\ongobject.h"\
 	".\raceback.h"\
 	".\rtapi.h"\
+	".\src\win32filemodule_wince.cpp"\
 	".\tringobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
@@ -594,6 +580,7 @@ NODEP_CPP_WIN32=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
