@@ -145,4 +145,4 @@ PyComTypeObject PyIEnumGUID::type("PyIEnumGUID",
                  PyIEnumGUID_methods,
 				 GET_PYCOM_CTOR(PyIEnumGUID));
 
-#endif NO_PYCOM_IENUMGUID
+#endif // NO_PYCOM_IENUMGUID

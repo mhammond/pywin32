@@ -87,4 +87,4 @@ STDMETHODIMP PyGServiceProvider::QueryService(REFGUID guidService, REFIID riid, 
 	return PyCom_HandlePythonFailureToCOM();
 }
 
-#endif NO_PYCOM_ISERVICEPROVIDER
+#endif // NO_PYCOM_ISERVICEPROVIDER

@@ -48,4 +48,4 @@ protected:
 
 };
 
-#endif __PYIPERSISTSTREAM_H__
+#endif // __PYIPERSISTSTREAM_H__

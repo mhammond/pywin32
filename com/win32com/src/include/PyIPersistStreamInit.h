@@ -44,4 +44,4 @@ protected:
 	STDMETHOD(InitNew)(void);
 };
 
-#endif __PYIPERSISTSTREAMINIT_H__
+#endif // __PYIPERSISTSTREAMINIT_H__

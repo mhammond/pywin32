@@ -18,4 +18,4 @@ protected:
 	PyICatRegister(IUnknown *pdisp);
 	~PyICatRegister();
 };
-#endif NO_PYCOM_ICATREGISTER
+#endif // NO_PYCOM_ICATREGISTER

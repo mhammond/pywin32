@@ -36,4 +36,4 @@ protected:
 
 #pragma warning(default : 4275 )
 
-#endif __PYIPERSIST_H__
+#endif // __PYIPERSIST_H__
