@@ -35,18 +35,8 @@ static WORD SequenceIndexAsWORD(PyObject *seq, int index)
 	return (WORD)ret;
 }
 
-// @pymethod <o PyTime>|pywintypes|Time|Creates a new time object.
-PyObject *PyWinMethod_NewTime(PyObject *self, PyObject *args)
+PyObject *PyWin_NewTime(PyObject *timeOb)
 {
-	PyObject *timeOb;
-	// @pyparm object|timeRepr||An integer/float/tuple time representation.
-	// @comm Note that the parameter can be any object that supports
-	// int(object) - for example , another PyTime object.
-	// <nl>The integer should be as defined by the Python time module.
-	// See the description of the <o PyTime> object for more information.
-	if ( !PyArg_ParseTuple(args, "O", &timeOb) )
-		return NULL;
-
 	PyObject *result = NULL;
 /*****	  Commented out temporarily
 	if ( PyFloat_Check(timeOb) )
@@ -99,12 +89,24 @@ PyObject *PyWinMethod_NewTime(PyObject *self, PyObject *args)
 			result = new PyTime(st);
 	}
 	else
-	{
-		PyErr_BadArgument();
-		return NULL;
-	}
-
+		return PyErr_Format(PyExc_TypeError, "Objects of type '%s' can not be used as a time object",
+							timeOb->ob_type->tp_name);
 	return result;
+}
+
+// @pymethod <o PyTime>|pywintypes|Time|Creates a new time object.
+PyObject *PyWinMethod_NewTime(PyObject *self, PyObject *args)
+{
+	PyObject *timeOb;
+	// @pyparm object|timeRepr||An integer/float/tuple time representation.
+	// @comm Note that the parameter can be any object that supports
+	// int(object) - for example , another PyTime object.
+	// <nl>The integer should be as defined by the Python time module.
+	// See the description of the <o PyTime> object for more information.
+	if ( !PyArg_ParseTuple(args, "O", &timeOb) )
+		return NULL;
+
+	return PyWin_NewTime(timeOb);
 }
 
 PyObject *PyWinObject_FromSYSTEMTIME(const SYSTEMTIME &t)
@@ -126,28 +128,43 @@ PyObject *PyWinTimeObject_FromLong(long t)
 
 BOOL PyWinObject_AsDATE(PyObject *ob, DATE *pDate)
 {
+	PyObject *newref = NULL;
+	BOOL rc;
 	if (!PyTime_Check(ob)) {
-		PyErr_SetString(PyExc_TypeError, "The object is not a PyTime object");
-		return FALSE;
+		if (!(ob = PyWin_NewTime(ob)))
+			return FALSE;
+		newref = ob;
 	}
-	return ((PyTime *)ob)->GetTime(pDate);
+	rc = ((PyTime *)ob)->GetTime(pDate);
+	Py_XDECREF(newref);
+	return rc;
 }
 
 BOOL PyWinObject_AsFILETIME(PyObject *ob,	FILETIME *pDate)
 {
+	PyObject *newref = NULL;
+	BOOL rc;
 	if (!PyTime_Check(ob)) {
-		PyErr_SetString(PyExc_TypeError, "The object is not a PyTime object");
-		return FALSE;
+		if (!(ob = PyWin_NewTime(ob)))
+			return FALSE;
+		newref = ob;
 	}
-	return ((PyTime *)ob)->GetTime(pDate);
+	rc = ((PyTime *)ob)->GetTime(pDate);
+	Py_XDECREF(newref);
+	return rc;
 }
 BOOL PyWinObject_AsSYSTEMTIME(PyObject *ob, SYSTEMTIME *pDate)
 {
+	PyObject *newref = NULL;
+	BOOL rc;
 	if (!PyTime_Check(ob)) {
-		PyErr_SetString(PyExc_TypeError, "The object is not a PyTime object");
-		return FALSE;
+		if (!(ob = PyWin_NewTime(ob)))
+			return FALSE;
+		newref = ob;
 	}
-	return ((PyTime *)ob)->GetTime(pDate);
+	rc = ((PyTime *)ob)->GetTime(pDate);
+	Py_XDECREF(newref);
+	return rc;
 }
 
 
