@@ -232,6 +232,26 @@ def _DoTestCollection(vbtest, col_name, expected):
         check.append(item)
     if check != list(expected):
         raise error, "Collection %s didn't have %r (had %r)" % (col_name, expected, check)
+    # Just looping over the collection again works (ie, is restartable)
+    check = []
+    for item in c:
+        check.append(item)
+    if check != list(expected):
+        raise error, "Collection 2nd time around %s didn't have %r (had %r)" % (col_name, expected, check)
+    # Check we can get it via iter()
+    i = iter(getattr(vbtest, col_name))
+    check = []
+    for item in i:
+        check.append(item)
+    if check != list(expected):
+        raise error, "Collection iterator %s didn't have %r 2nd time around (had %r)" % (col_name, expected, check)
+    # but an iterator is not restartable
+    check = []
+    for item in i:
+        check.append(item)
+    if check != []:
+        raise error, "2nd time around Collection iterator %s wasn't empty (had %r)" % (col_name, check)
+
     # Check len()==Count()
     c = getattr(vbtest, col_name)
     if len(c) != _getcount(c):
