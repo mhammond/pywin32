@@ -97,26 +97,6 @@ def FindAppPath(appName, knownFileName, searchPaths):
 			return os.path.abspath(pathLook)
 	raise error, "The file %s can not be located for application %s" % (knownFileName, appName)
 
-def FindRegisteredModule(moduleName, possibleRealNames, searchPaths):
-	"""Find a registered module.
-
-         First place looked is the registry for an existing entry.  Then
-         the searchPaths are searched.
-         
-	   Returns the full path to the .exe or None if the current registered entry is OK.
-      """
-	import win32api, regutil, string
-	try:
-		fname = win32api.RegQueryValue(regutil.GetRootKey(), \
-		               regutil.BuildDefaultPythonKey() + "\\Modules\\%s" % moduleName)
-
-		if FileExists(fname):
-			return None # Nothing extra needed
-
-	except win32api.error:
-		pass
-	return LocateFileName(possibleRealNames, searchPaths)
-
 def FindPythonExe(exeAlias, possibleRealNames, searchPaths):
 	"""Find an exe.
 
@@ -298,19 +278,6 @@ def FindRegisterApp(appName, knownFiles, searchPaths):
 
 	regutil.RegisterNamedPath(appName, string.join(paths,";"))
 
-def FindRegisterModule(modName, actualFileNames, searchPaths):
-	"""Find and Register a module.
-
-	   Assumes the core registry setup correctly.
-	"""
-	import regutil
-	try:
-		fname = FindRegisteredModule(modName, actualFileNames, searchPaths)
-		if fname is not None:
-			regutil.RegisterModule(modName, fname)
-	except error, details:
-		print "*** ", details
-
 def FindRegisterPythonExe(exeAlias, searchPaths, actualFileNames = None):
 	"""Find and Register a Python exe (not necessarily *the* python.exe)
 
@@ -375,7 +342,6 @@ def SetupCore(searchPaths):
 	suffix = IsDebug()
 	ver_str = hex(sys.hexversion)[2] + hex(sys.hexversion)[4]
 	# pywintypes now has a .py stub
-	FindRegisterModule("pywintypes", "pywintypes%s%s.dll" % (ver_str, suffix), [".", win32api.GetSystemDirectory()])
 	regutil.RegisterNamedPath("win32",win32paths)
 
 
@@ -418,8 +384,6 @@ def RegisterPythonwin(searchPaths):
 	regutil.RegisterDDECommand("Edit", "Pythonwin", "System", '[self.OpenDocumentFile(r"%1")]')
 
 	FindRegisterPackage("pywin", "__init__.py", searchPaths, "Pythonwin")
-#	FindRegisterModule("win32ui", "win32ui%s.pyd" % suffix, searchPaths)
-#	FindRegisterModule("win32uiole", "win32uiole%s.pyd" % suffix, searchPaths)
 	
 	regutil.RegisterFileExtensions(defPyIcon=fnamePythonwin+",0", 
 	                               defPycIcon = fnamePythonwin+",5",
@@ -452,8 +416,6 @@ def RegisterWin32com(searchPaths):
 		FindRegisterHelpFile("PyWin32.chm", searchPaths + [corePath+"\\win32com"], "Python COM Reference")
 		suffix = IsDebug()
 		ver_str = hex(sys.hexversion)[2] + hex(sys.hexversion)[4]
-		# pythoncom now has a .py stub
-		FindRegisterModule("pythoncom", "pythoncom%s%s.dll" % (ver_str, suffix), [win32api.GetSystemDirectory(), '.'])
 
 usage = """\
 regsetup.py - Setup/maintain the registry for Python apps.
@@ -591,14 +553,6 @@ if __name__=='__main__':
 			if o=='--unpythonwin':
 				print "Unregistering Pythonwin"
 				UnregisterPythonwin()
-			if o=='-m':
-				import os
-				print "Registering module",a
-				FindRegisterModule(os.path.splitext(a)[0],a, searchPaths)
-			if o=='--umodule':
-				import os, regutil
-				print "Unregistering module",a
-				regutil.UnregisterModule(os.path.splitext(a)[0])
 			if o=='-p':
 				print "Registering package", a
 				FindRegisterPackage(a,None,searchPaths)
