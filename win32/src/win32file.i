@@ -431,7 +431,7 @@ PyObject *MyReadFile(PyObject *self, PyObject *args)
 	} 
 #ifndef MS_WINCE
 	else if (obBuf->ob_type->tp_as_buffer){
-		pb = pORB->ob_type->tp_as_buffer;
+		pb = obBuf->ob_type->tp_as_buffer;
 		pORB = obBuf;
 		Py_INCREF(pORB);
 		bufSize = (*pb->bf_getreadbuffer)(pORB, 0, &buf);
