@@ -3,12 +3,13 @@
 #
 
 import struct
-import univgw
 import pythoncom
 from win32com.server import util
 import traceback
 import winerror
 import time
+
+univgw = pythoncom._univgw
 
 class Definition:
     "Completely defines a COM interface."
