@@ -1376,6 +1376,36 @@ BOOLAPI OpenThreadToken(
   PyHANDLE *OUTPUT
 );
 
+%{
+// @pyswig <o PyHandle>|SetThreadToken|Assigns an impersonation token to a thread. The function 
+// can also cause a thread to stop using an impersonation token.
+static PyObject *PySetThreadToken(PyObject *self, PyObject *args)
+{
+	PyObject *obThread, *obToken;
+	if (!PyArg_ParseTuple(args, "OO", &obThread, &obToken))
+		return NULL;
+    HANDLE *phThread;
+	HANDLE hThread, hToken;
+    // Special handling for None here - this means pass a NULL pointer.
+    if (obThread == Py_None)
+        phThread = NULL;
+    else {
+        if (!PyWinObject_AsHANDLE(obThread, &hThread, FALSE))
+            return NULL;
+        phThread = &hThread;
+    }
+	if (!PyWinObject_AsHANDLE(obToken, &hToken, TRUE))
+		return NULL;
+	BOOL ok;
+	ok = SetThreadToken(phThread, hToken);
+	if (!ok)
+		return PyWin_SetAPIError("SetThreadToken");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+%native(SetThreadToken) PySetThreadToken;
+
 // @pyswig <o PySECURITY_DESCRIPTOR>|GetFileSecurity|Obtains specified information about the security of a file or directory. The information obtained is constrained by the caller's access rights and privileges.
 %native(GetFileSecurity) MyGetFileSecurity;
 %{
