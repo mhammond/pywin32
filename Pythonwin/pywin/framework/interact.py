@@ -188,18 +188,26 @@ class InteractiveFormatter(FormatterParent):
 		stylePyStart = None
 		if start > 1:
 			# Likely we are being asked to color from the start of the line.
-			# The character before should be '\n', and formatted EOL
-			# The character before is the continued Python style
-			# (or an interactive style).  If the Python style is a string style, then we continue
-			# the style, otherwise we reset to the default style to account for the '\n' which
-			# we hide from the Python formatter.
+			# We find the last formatted character on the previous line.
+			# If TQString, we continue it.  Otherwise, we reset.
 			look = start -1
 			while look and self.scintilla.SCIGetCharAt(look) in '\n\r':
 				look = look - 1
-			if look and look < start-1:
+			if look and look < start-1: # Did we find a char before the \n\r sets?
 				strstyle = self.GetStringStyle(look)
+				quote_char = None
 				if strstyle is not None:
-					stylePyStart = strstyle.name
+					if strstyle.name == pywin.scintilla.formatter.STYLE_TQSSTRING:
+						quote_char = "'"
+					elif strstyle.name == pywin.scintilla.formatter.STYLE_TQDSTRING:
+						quote_char = '"'
+					if quote_char is not None:
+						# It is a TQS.  If the TQS is not terminated, we
+						# carry the style through.
+						if look > 2:
+							look_str = self.scintilla.SCIGetCharAt(look-2) + self.scintilla.SCIGetCharAt(look-1) + self.scintilla.SCIGetCharAt(look)
+							if look_str != quote_char * 3:
+								stylePyStart = strstyle.name
 		if stylePyStart is None: stylePyStart =  pywin.scintilla.formatter.STYLE_DEFAULT
 
 		if start > 0:
@@ -393,9 +401,6 @@ class InteractiveCore:
 	#
 	# Enter key handler
 	#
-	def ProcessEnterEvent(self, event ):
-		return self._ProcessEnterEvent(event)
-
 	def ProcessEnterEvent(self, event ):
 		self.SCICancel()
 		# First, check for an error message
