@@ -616,22 +616,6 @@ static PyObject *pythoncom_GetFacilityString(PyObject *self, PyObject *args)
 	return Py_BuildValue("z", GetFacilityString(scode) );
 }
 
-static PyObject *pythoncom_RecoverFromID(PyObject *self, PyObject *args)
-{
-	int p = 0;
-
-	if ( !PyArg_ParseTuple(args, "i", &p) )
-		return NULL;
-
-	if ( !p )
-	{
-		Py_INCREF(Py_None);
-		return Py_None;
-	}
-
-	return (PyObject *)p;
-}
-
 // @pymethod <o PyIDispatch>|pythoncom|UnwrapObject|Unwraps a Python instance in a gateway object.
 static PyObject *pythoncom_UnwrapObject(PyObject *self, PyObject *args)
 {
@@ -1454,7 +1438,6 @@ static struct PyMethodDef pythoncom_methods[]=
 	{ "QueryPathOfRegTypeLib",pythoncom_querypathofregtypelib, 1}, // @pymeth QueryPathOfRegTypeLib|Retrieves the path of a registered type library
 #endif // MS_WINCE
 	{ "ReadClassStg",        pythoncom_ReadClassStg, 1}, // @pymeth ReadClassStg|Reads a CLSID from a storage object
-	{ "RecoverFromID",       pythoncom_RecoverFromID, 1 },
 	{ "RegisterTypeLib",     pythoncom_registertypelib, 1}, // @pymeth RegisterTypeLib|Adds information about a type library to the system registry.
 	{ "UnRegisterTypeLib",     pythoncom_unregistertypelib, 1}, // @pymeth UnRegisterTypeLib|Removes a type library from the system registry.
 #ifndef MS_WINCE
