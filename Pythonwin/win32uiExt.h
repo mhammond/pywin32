@@ -698,7 +698,6 @@ public:
 			T::OnPrepareDC (pDC, pInfo);
 			return;
 		}
-		T::OnPrepareDC (pDC, pInfo);
 		helper.call (pDC, pInfo);
 		// @pyparm <o PyCDC>|dc||The DC object.
 		// @pyparm <o PyCPrintInfo>|pInfo||The print info object.
@@ -838,7 +837,7 @@ public:
 	afx_msg LRESULT HandleInitDialog(WPARAM, LPARAM) {
                 PreInitDialog();
 		BOOL result = Default();
-		CVirtualHelper helper( "OnInitDialog", this );
+		CVirtualHelper helper( "HandleInitDialog", this );
                 BOOL hresult;
 		if (helper.HaveHandler()) {
                   if (helper.call())
