@@ -293,8 +293,8 @@ PyObject * PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
 	DISPID dispid = PyInt_AsLong(PyTuple_GET_ITEM(args, 0)); // @pyparm int|dispid||The dispid to use.  Please see <om PyIDispatch.Invoke>.
 	LCID lcid = PyInt_AsLong(PyTuple_GET_ITEM(args, 1)); // @pyparm int|lcid||The locale ID.  Please see <om PyIDispatch.Invoke>.
 	UINT wFlags = PyInt_AsLong(PyTuple_GET_ITEM(args, 2)); // @pyparm int|wFlags||Flags for the call.  Please see <om PyIDispatch.Invoke>.
-	PyObject *resultElemDesc = PyTuple_GET_ITEM(args, 3); // @pyparm  (tuple, ...)|typeDesc||A sequence of tuples describing the types of the parameters for the function.
-	PyObject *argsElemDescArray = PyTuple_GET_ITEM(args, 4); // @pyparm tuple|resultTypeDesc||A tuple describing the type of the result.
+	PyObject *resultElemDesc = PyTuple_GET_ITEM(args, 3); // @pyparm tuple|resultTypeDesc||A tuple describing the type of the result.
+	PyObject *argsElemDescArray = PyTuple_GET_ITEM(args, 4); // @pyparm  (tuple, ...)|typeDesc||A sequence of tuples describing the types of the parameters for the function.
 	// @pyparm object, ...|args||The args to the function.
 	if ( PyErr_Occurred() )
 		return NULL;
