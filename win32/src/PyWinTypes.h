@@ -448,13 +448,19 @@ public:
 #endif
 	}
 	~CEnterLeavePython() {
+	// The interpreter state must be cleared
+	// _before_ we release the lock, as some of
+	// the sys. attributes cleared (eg, the current exception)
+	// may need the lock to invoke their destructors - 
+	// specifically, when exc_value is a class instance, and
+	// the exception holds the last reference!
+		if ( created )
+			PyWinThreadState_Clear();
 #ifndef PYCOM_USE_FREE_THREAD
 		PyWinInterpreterLock_Release();
 #endif
-		if ( created ) {
-			PyWinThreadState_Clear();
+		if ( created )
 			PyWinThreadState_Free();
-		}
 	}
 private:
 	BOOL created;
