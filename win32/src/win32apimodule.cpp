@@ -3270,10 +3270,10 @@ static PyObject *PyOpenProcess(PyObject *self, PyObject *args)
 {
 	DWORD pid, reqdAccess;
 	BOOL inherit;
-	if (!PyArg_ParseTuple(args, "iii:OpenProcess",
+	if (!PyArg_ParseTuple(args, "iil:OpenProcess",
 			&reqdAccess, // @pyparm int|reqdAccess||The required access.
 			&inherit,    // @pyparm int|bInherit||Specifies whether the returned handle can be inherited by a new process created by the current process. If TRUE, the handle is inheritable.
-	        &pid)) // @pyparm int|pid||The process ID
+			&pid)) // @pyparm int|pid||The process ID
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
 	HANDLE handle = OpenProcess(reqdAccess, inherit, pid);
