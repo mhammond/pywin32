@@ -55,6 +55,10 @@ class Formatter:
 		self.bUseFixed = 1
 		self.styles = {} # Indexed by name
 		self.styles_by_id = {} # Indexed by allocated ID.
+		self.SetStyles()
+
+	def SetStyles(self):
+		assert 0, "You must override this"
 
 	def GetSampleText(self):
 		return "Sample Text for the Format Dialog"
@@ -212,10 +216,6 @@ opfmt	= (0, 1, 200, 0, 0)
 idfmt		= (0, 0, 200, 0, 0)
 
 class PythonSourceFormatter(Formatter):
-	def __init__(self, scintilla):
-		Formatter.__init__(self, scintilla)
-		self.SetStyles()
-
 	def GetSampleText(self):
 		return "class Sample(Super):\n  def Fn(self):\n    # A bitOPy\n    dest = 'dest.html'\n    timeOut = 1024\n\ta = a + 1\n"
 
@@ -236,6 +236,7 @@ class PythonSourceFormatter(Formatter):
 		self.RegisterStyle( Style(STYLE_OPERATOR, opfmt ) )
 		self.RegisterStyle( Style(STYLE_IDENTIFIER, idfmt ) )
 
+	# Used by the IDLE extensions to quickly determine if a character is a string.
 	def GetStringStyle(self, pos):
 		style = self.styles_by_id[self.scintilla.SCIGetStyleAt(pos)]
 		if style.name in STRING_STYLES:
