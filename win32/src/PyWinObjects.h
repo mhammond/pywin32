@@ -133,8 +133,9 @@ public:
 	{
 	public:
 		PyObject *obState;
-		sMyOverlapped() {obState=NULL;}
-		sMyOverlapped(const OVERLAPPED &o) : OVERLAPPED(o) {obState=NULL;}
+		DWORD  dwValue;
+		sMyOverlapped() {obState=NULL;dwValue=0;}
+		sMyOverlapped(const OVERLAPPED &o) : OVERLAPPED(o) {obState=NULL;dwValue=0;}
 	};
 
 	OVERLAPPED *GetOverlapped() {return &m_overlapped;}
@@ -154,8 +155,6 @@ public:
 #pragma warning( disable : 4251 )
 	static struct memberlist memberlist[];
 #pragma warning( default : 4251 )
-
-protected:
 	sMyOverlapped m_overlapped;
 	PyObject *m_obHandle;
 };
