@@ -6,6 +6,13 @@ import unittest
 
 class TestSSPI(unittest.TestCase):
 
+    def assertRaisesHRESULT(self, hr, func, *args):
+        try:
+            return func(*args)
+            raise RuntimeError, "expecting %s failure" % (hr,)
+        except win32security.error, (hr_got, func, msg):
+            self.failUnlessEqual(hr_got, hr)
+
     def _doAuth(self, pkg_name):
         sspiclient=sspi.ClientAuth(pkg_name,targetspn=win32api.GetUserName())
         sspiserver=sspi.ServerAuth(pkg_name)
@@ -45,8 +52,11 @@ class TestSSPI(unittest.TestCase):
         sspiserver.ctxt.DecryptMessage(encbuf,1)
         self.failUnlessEqual(msg, encbuf[0].Buffer)
         # and test the higher-level functions
-        self.assertEqual(sspiserver.decrypt(sspiclient.encrypt("hello")), "hello")
-        self.assertEqual(sspiclient.decrypt(sspiserver.encrypt("hello")), "hello")
+        data, sig = sspiclient.encrypt("hello")
+        self.assertEqual(sspiserver.decrypt(data, sig), "hello")
+
+        data, sig = sspiserver.encrypt("hello")
+        self.assertEqual(sspiclient.decrypt(data, sig), "hello")
 
     def testEncryptNTLM(self):
         self._doTestEncrypt("NTLM")
@@ -66,18 +76,45 @@ class TestSSPI(unittest.TestCase):
         sigbuf.append(win32security.SecBufferType(len(msg), sspicon.SECBUFFER_DATA))
         sigbuf.append(win32security.SecBufferType(sigsize, sspicon.SECBUFFER_TOKEN))
         sigbuf[0].Buffer=msg
-        sspiclient.ctxt.MakeSignature(0,sigbuf,1)
-        sspiserver.ctxt.VerifySignature(sigbuf,1)
+        sspiclient.ctxt.MakeSignature(0,sigbuf,0)
+        sspiserver.ctxt.VerifySignature(sigbuf,0)
         # and test the higher-level functions
-        self.assertEqual(sspiserver.unsign(sspiclient.sign("hello")), "hello")
+        sspiclient.next_seq_num = 1
+        sspiserver.next_seq_num = 1
+        key = sspiclient.sign("hello")
+        sspiserver.verify("hello", key)
+        key = sspiclient.sign("hello")
+        self.assertRaisesHRESULT(sspicon.SEC_E_MESSAGE_ALTERED,
+                                 sspiserver.verify, "hellox", key)
+
         # and the other way
-        self.assertEqual(sspiclient.unsign(sspiserver.sign("hello")), "hello")
+        key = sspiserver.sign("hello")
+        sspiclient.verify("hello", key)
+        key = sspiserver.sign("hello")
+        self.assertRaisesHRESULT(sspicon.SEC_E_MESSAGE_ALTERED,
+                                 sspiclient.verify, "hellox", key)
 
     def testSignNTLM(self):
         self._doTestSign("NTLM")
     
     def testSignKerberos(self):
         self._doTestSign("Kerberos")
+
+    def testSequenceSign(self):
+        # Only Kerberos supports sequence detection.
+        sspiclient, sspiserver = self._doAuth("Kerberos")
+        key = sspiclient.sign("hello")
+        sspiclient.sign("hello")
+        self.assertRaisesHRESULT(sspicon.SEC_E_OUT_OF_SEQUENCE,
+                                 sspiserver.verify, 'hello', key)
+
+    def testSequenceEncrypt(self):
+        # Only Kerberos supports sequence detection.
+        sspiclient, sspiserver = self._doAuth("Kerberos")
+        blob, key = sspiclient.encrypt("hello",)
+        blob, key = sspiclient.encrypt("hello")
+        self.assertRaisesHRESULT(sspicon.SEC_E_OUT_OF_SEQUENCE,
+                                 sspiserver.decrypt, blob, key)
 
 if __name__=='__main__':
     unittest.main()

@@ -1,5 +1,8 @@
 # Demonstrates how to validate a password.
 # See also MSKB article Q180548
+#
+# To use with Kerberos you need to jump through the 'targetspn' hoops.
+
 import win32security
 import sys
 from sspi import ClientAuth, ServerAuth

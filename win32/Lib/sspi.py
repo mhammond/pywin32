@@ -7,11 +7,15 @@ a number of complex flags and constants that need to be used - in most
 cases, there are reasonable defaults.
 
 These classes attempt to hide these details from you until you really need
-to know.
+to know.  They are not designed to handle all cases, just the common ones.
+If you need finer control than offered here, just use the win32security
+functions directly.
 """
 # Based on Roger Upole's sspi demos.
 # $Id$
 import win32security, sspicon
+
+error = win32security.error
 
 try:
     True, False
@@ -24,11 +28,24 @@ class _BaseAuth(object):
         self.reset()
 
     def reset(self):
+        """Reset everything to an unauthorized state"""
         self.ctxt = None
         self.authenticated = False
+        # The next seq_num for an encrypt/sign operation
+        self.next_seq_num = 0
+
+    def _get_next_seq_num(self):
+        """Get the next sequence number for a transmission.  Default
+        implementation is to increment a counter
+        """
+        ret = self.next_seq_num
+        self.next_seq_num = self.next_seq_num + 1
+        return ret
 
     def encrypt(self, data):
-        """Encrypt a string, returning a string suitable for transmission"""
+        """Encrypt a string, returning a tuple of (encrypted_data, encryption_data).
+        These can be passed to decrypt to get back the original string.
+        """
         pkg_size_info=self.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
         trailersize=pkg_size_info['SecurityTrailer']
 
@@ -36,28 +53,23 @@ class _BaseAuth(object):
         encbuf.append(win32security.SecBufferType(len(data), sspicon.SECBUFFER_DATA))
         encbuf.append(win32security.SecBufferType(trailersize, sspicon.SECBUFFER_TOKEN))
         encbuf[0].Buffer=data
-        self.ctxt.EncryptMessage(0,encbuf,1)
-        # And return all buffers as a string
-        return "".join([b.Buffer for b in encbuf])
+        self.ctxt.EncryptMessage(0,encbuf,self._get_next_seq_num())
+        return encbuf[0].Buffer, encbuf[1].Buffer
 
-    def decrypt(self, data):
+    def decrypt(self, data, trailer):
         """Decrypt a previously encrypted string, returning the orignal data"""
-        pkg_size_info=self.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
-        trailersize=pkg_size_info['SecurityTrailer']
-        msgsize = len(data)-trailersize
-        assert msgsize >= 0, "trailer is %d bytes, but data only %d long" \
-                             % (trailersize, len(data))
-
         encbuf=win32security.SecBufferDescType()
-        encbuf.append(win32security.SecBufferType(msgsize, sspicon.SECBUFFER_DATA))
-        encbuf.append(win32security.SecBufferType(trailersize, sspicon.SECBUFFER_TOKEN))
-        encbuf[0].Buffer=data[:msgsize]
-        encbuf[1].Buffer=data[msgsize:]
-        self.ctxt.DecryptMessage(encbuf,1)
+        encbuf.append(win32security.SecBufferType(len(data), sspicon.SECBUFFER_DATA))
+        encbuf.append(win32security.SecBufferType(len(trailer), sspicon.SECBUFFER_TOKEN))
+        encbuf[0].Buffer=data
+        encbuf[1].Buffer=trailer
+        self.ctxt.DecryptMessage(encbuf,self._get_next_seq_num())
         return encbuf[0].Buffer
 
     def sign(self, data):
-        """sign a string suitable for transmission.
+        """sign a string suitable for transmission, returning the signature.
+        Passing the data and signature to verify will determine if the data
+        is unchanged.
         """
         pkg_size_info=self.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
         sigsize=pkg_size_info['MaxSignature']
@@ -66,27 +78,20 @@ class _BaseAuth(object):
         sigbuf.append(win32security.SecBufferType(sigsize, sspicon.SECBUFFER_TOKEN))
         sigbuf[0].Buffer=data
 
-        self.ctxt.MakeSignature(0,sigbuf,1)
-        # And return all buffers as a string
-        return "".join([b.Buffer for b in sigbuf])
+        self.ctxt.MakeSignature(0,sigbuf,self._get_next_seq_num())
+        return sigbuf[1].Buffer
 
-    def unsign(self, data):
-        """Takes a message as a 'signed' string, verifies the signature and
-        returns the original data"""
-        pkg_size_info=self.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
-        sigsize=pkg_size_info['MaxSignature']
-        msgsize = len(data)-sigsize
-        assert msgsize >= 0, "signature is %d bytes, but data only %d long" \
-                             % (sigsize, len(data))
+    def verify(self, data, sig):
+        """Verifies data and its signature.  If verification fails, an sspi.error
+        will be raised.
+        """
         sigbuf=win32security.SecBufferDescType()
-        sigbuf.append(win32security.SecBufferType(msgsize, sspicon.SECBUFFER_DATA))
-        sigbuf.append(win32security.SecBufferType(sigsize, sspicon.SECBUFFER_TOKEN))
+        sigbuf.append(win32security.SecBufferType(len(data), sspicon.SECBUFFER_DATA))
+        sigbuf.append(win32security.SecBufferType(len(sig), sspicon.SECBUFFER_TOKEN))
 
-        sigbuf[0].Buffer=data[:msgsize]
-        sigbuf[1].Buffer=data[msgsize:]
-        self.ctxt.VerifySignature(sigbuf,1)
-        return sigbuf[0].Buffer
-
+        sigbuf[0].Buffer=data
+        sigbuf[1].Buffer=sig
+        self.ctxt.VerifySignature(sigbuf,self._get_next_seq_num())
 
 class ClientAuth(_BaseAuth):
     """Manages the client side of an SSPI authentication handshake
@@ -218,7 +223,9 @@ if __name__=='__main__':
         err, sec_buffer = sspiserver.authorize(sec_buffer)
         if err==0:
             break
-    assert sspiserver.unsign(sspiclient.sign("hello")) == "hello"
-    assert sspiserver.decrypt(sspiclient.encrypt("hello")) == "hello"
+    sig = sspiclient.sign("hello")
+    sspiserver.verify("hello", sig)
+
+    data, key = sspiclient.encrypt("hello")
+    assert sspiserver.decrypt(data, key) == "hello"
     print "cool!"
- 
