@@ -86,7 +86,7 @@ PyTypeObject PyEventLogRecordType =
 	{"ClosingRecordNumber",T_INT,     OFF(ClosingRecordNumber)}, // @prop integer|ClosingRecordNumber|
 	{"SourceName",         T_OBJECT,  OFF(SourceName)}, // @prop <o PyUnicode>|SourceName|
 	{"StringInserts",      T_OBJECT,  OFF(StringInserts)}, // @prop (<o PyUnicode>,...)|StringInserts|
-	{"Sid",                T_OBJECT,  OFF(Sids)}, // @prop <o PySID>|SID|
+	{"Sid",                T_OBJECT,  OFF(Sids)}, // @prop <o PySID>|Sid|
 	{"Data",               T_OBJECT,  OFF(Data)}, // @prop string|Data|
 	{"ComputerName",       T_OBJECT,  OFF(ComputerName)}, // @prop <o PyUnicode>|ComputerName|
 	{NULL}
