@@ -5,7 +5,8 @@
 // # include "PyIScheduledWorkItem.h"
 # include "PyITask.h"
 # include "PyITaskTrigger.h"
-
+# include "PyIProvideTaskPage.h"
+ 
 static struct PyMethodDef taskscheduler_methods[]=
 {
 NULL
@@ -19,7 +20,8 @@ static const PyCom_InterfaceSupportInfo register_data[] =
 	PYCOM_INTERFACE_CLSID_ONLY ( CTask ),
 	PYCOM_INTERFACE_CLIENT_ONLY( Task ),
 	PYCOM_INTERFACE_CLIENT_ONLY( TaskTrigger ),
-	PYCOM_INTERFACE_CLIENT_ONLY( ScheduledWorkItem )
+	PYCOM_INTERFACE_CLIENT_ONLY( ScheduledWorkItem ),
+	PYCOM_INTERFACE_CLIENT_ONLY( ProvideTaskPage )
 };
 
 extern "C" __declspec(dllexport) void inittaskscheduler()
@@ -49,7 +51,6 @@ extern "C" __declspec(dllexport) void inittaskscheduler()
 	PyModule_AddIntConstant(module,"TASK_TRIGGER_FLAG_HAS_END_DATE", TASK_TRIGGER_FLAG_HAS_END_DATE);
 	PyModule_AddIntConstant(module,"TASK_TRIGGER_FLAG_KILL_AT_DURATION_END", TASK_TRIGGER_FLAG_KILL_AT_DURATION_END);
 	PyModule_AddIntConstant(module,"TASK_TRIGGER_FLAG_DISABLED", TASK_TRIGGER_FLAG_DISABLED);
-
 
 	// task statuses from msterr.h
 	PyModule_AddIntConstant(module,"SCHED_S_TASK_READY", SCHED_S_TASK_READY);
@@ -125,4 +126,10 @@ extern "C" __declspec(dllexport) void inittaskscheduler()
 	PyModule_AddIntConstant(module,"TASK_THIRD_WEEK", TASK_THIRD_WEEK);
 	PyModule_AddIntConstant(module,"TASK_FOURTH_WEEK", TASK_FOURTH_WEEK);
 	PyModule_AddIntConstant(module,"TASK_LAST_WEEK", TASK_LAST_WEEK);
+
+	// property sheet identifiers
+	PyModule_AddIntConstant(module,"TASKPAGE_TASK", TASKPAGE_TASK);
+	PyModule_AddIntConstant(module,"TASKPAGE_SCHEDULE", TASKPAGE_SCHEDULE);
+	PyModule_AddIntConstant(module,"TASKPAGE_SETTINGS", TASKPAGE_SETTINGS);
+
 }
