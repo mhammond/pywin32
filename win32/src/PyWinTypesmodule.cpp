@@ -490,18 +490,9 @@ void initpywintypes(void)
   PyDict_SetItemString(dict, "OVERLAPPEDType", (PyObject *)&PyHANDLEType);
 }
 
-#ifndef BUILD_FREEZE
-#define DLLMAIN DllMain
-#define DLLMAIN_DECL
-#else
-#define DLLMAIN DllMainpywintypes
-#define DLLMAIN_DECL __declspec(dllexport)
-#endif
-
 #ifndef MS_WINCE
-extern "C" 
+extern "C" __declspec(dllexport)
 #endif
-DLLMAIN_DECL
 BOOL WINAPI DLLMAIN(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
 	switch (dwReason) {
