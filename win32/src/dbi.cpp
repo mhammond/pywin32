@@ -81,6 +81,13 @@ static PyObject *dbiGetAttr
 	return Py_FindMethod(noMethods, self, name);
 }
 
+static PyObject *dbiRawStr(PyObject *self)
+{
+	PyObject *val = dbiValue(self);
+	Py_INCREF(val);
+	return val;
+}
+
 static PyObject *dateStr(PyObject *o)
 {
 	long l = PyInt_AsLong(dbiValue(o));
@@ -202,7 +209,7 @@ static PyTypeObject DbiRaw_Type =
 	0,                    /**tp_as_mapping */
 	0,                    /*tp_hash */
 	0,                    /*tp_call */
-	dbiValue              /*tp_str */
+	dbiRawStr             /*tp_str */
 };
 
 static PyTypeObject DbiRowId_Type =
