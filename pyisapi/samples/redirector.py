@@ -3,7 +3,7 @@
 #
 # Please see README.txt in this directory, and specifically the
 # information about the "loader" DLL - installing this sample will create
-# "redirector.dll" in the current directory.  The readme explains this.
+# "_redirector.dll" in the current directory.  The readme explains this.
 
 # Executing this script (or any server config script) will install the extension
 # into your web server. As the server executes, the PyISAPI framework will load
@@ -29,16 +29,13 @@
 
 from isapi import isapicon, threaded_extension
 from isapi.simple import SimpleFilter
+import sys
 import traceback
 import urllib
 
-# If we have no console (eg, am running from inside IIS), redirect output
-# somewhere useful - in this case, the standard win32 trace collector.
-import win32api
-try:
-    win32api.GetConsoleTitle()
-except win32api.error:
-    # No console - redirect
+# sys.isapidllhandle will exist when we are loaded by the IIS framework.
+# In this case we redirect our output to the win32traceutil collector.
+if hasattr(sys, "isapidllhandle"):
     import win32traceutil
 
 # The site we are proxying.
