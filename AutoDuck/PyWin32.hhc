@@ -11,6 +11,7 @@
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="Python Win32 Extension Help">
 		<param name="ImageNumber" value="1">
+        <param name="Local" value="PyWin32.html">
 		</OBJECT>
 	<OBJECT type="text/sitemap">
 		<param name="Merge" value="PythonWin.hhc">
