@@ -1,13 +1,6 @@
+MANIFEST
 build
-calldll
-datetime
-imaging-1.0
-installer
-jpython*
-shared*
-xml
-documenttemplate
-pycvs
+dist
 *.exe
 *.zip
 *.WSM
