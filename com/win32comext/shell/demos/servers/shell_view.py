@@ -8,7 +8,43 @@
 #   methods selectable.  Selecting a Python file, or a class/method, will
 #   display the file using Scintilla.
 # Known problems:
-# * Classes and methods don't have icons
+# * Classes and methods don't have icons - this is a demo, so we keep it small
+#   See icon_handler.py for examples of how to work with icons.
+#
+#
+# Notes on PIDLs
+# PIDLS are complicated, but fairly well documented in MSDN.  If you need to
+# do much with these shell extensions, you must understand their concept.
+# Here is a short-course, as it applies to this sample:
+# A PIDL identifies an item, much in the same way that a filename does
+# (however, the shell is not limited to displaying "files").
+# An "ItemID" is a single string, each being an item in the hierarchy.
+# A "PIDL" is a list of these strings.
+# All shell etc functions work with PIDLs, so even in the case where
+# an ItemID is conceptually used, a 1-item list is always used.
+# Conceptually, think of:
+#    pidl = pathname.split("\\") # pidl is a list of "parent" items.
+#    # each item is a string 'item id', but these are ever used directly
+# As there is no concept of passing a single item, to open a file using only
+# a relative filename, conceptually you would say:
+#   open_file([filename]) # Pass a single-itemed relative "PIDL"
+# and continuing the analogy, a "listdir" type function would return a list
+# of single-itemed lists - each list containing the relative PIDL of the child.
+#
+# Each PIDL entry is a binary string, and may contain any character.  For
+# PIDLs not created by you, they can not be interpreted - they are just
+# blobs.  PIDLs created by you (ie, children of your IShellFolder) can
+# store and interpret the string however makes most sense for your application.
+# (but within PIDL rules - they must be persistable, etc)
+# There is no reason that pickled strings, for example, couldn't be used
+# as an EntryID.
+# This application takes a simple approach - each PIDL is a string of form
+# "directory\0directory_name", "file\0file_name" or
+# "object\0file_name\0class_name[.method_name"
+# The first string in each example is literal (ie, the word 'directory',
+# 'file' or 'object', and every other string is variable.  We use '\0' as
+# a field sep just 'cos we can (and 'cos it can't possibly conflict with the
+# string content)
 
 import sys, os
 import thread
@@ -21,6 +57,8 @@ from win32com.server.exception import COMException
 from win32com.util import IIDToInterfaceName
 from pywin.scintilla import scintillacon
 
+# Set this to 1 to cause debug version to be registered and used.  A debug
+# version will spew output to win32traceutil.
 debug=0
 
 # Helper function to get a system IShellFolder interface, and the PIDL within
@@ -208,7 +246,13 @@ class ShellFolderFile(ShellFolderBase):
     def GetDisplayNameOf(self, pidl, flags):
         assert len(pidl)==1, "Expecting relative PIDL"
         typ, fname, obname = pidl[0].split('\0')
-        return obname
+        fqname = os.path.splitext(fname)[0] + "." + obname
+        if flags & shellcon.SHGDN_INFOLDER:
+            ret = obname
+        else: # SHGDN_NORMAL is the default
+            ret = fqname
+        # No need to look at the SHGDN_FOR* modifiers.
+        return ret
 
     def CreateViewObject(self, hwnd, iid):
         return wrap(ScintillaShellView(hwnd, self.path), useDispatcher=debug>0)
@@ -245,8 +289,14 @@ class ShellFolderObject(ShellFolderBase):
     def GetDisplayNameOf(self, pidl, flags):
         assert len(pidl)==1, "Expecting relative PIDL"
         typ, fname, obname = pidl[0].split('\0')
-        class_name, method_name = obname.split('.')
-        return method_name
+        class_name, method_name = obname.split(".")
+        fqname = os.path.splitext(fname)[0] + "." + obname
+        if flags & shellcon.SHGDN_INFOLDER:
+            ret = method_name
+        else: # SHGDN_NORMAL is the default
+            ret = fqname
+        # No need to look at the SHGDN_FOR* modifiers.
+        return ret
     def GetAttributesOf(self, pidls, attrFlags):
         ret_flags = -1
         for pidl in pidls:
@@ -258,6 +308,7 @@ class ShellFolderObject(ShellFolderBase):
 
 # The "Root" folder of our namespace.  As all children are directories,
 # it is derived from ShellFolderFileSystem
+# This is the only COM object actually registered and externally created.
 class ShellFolderRoot(ShellFolderFileSystem):
     _reg_progid_ = "Python.ShellExtension.Folder"
     _reg_desc_ = "Python Path Shell Browser"
@@ -265,6 +316,9 @@ class ShellFolderRoot(ShellFolderFileSystem):
     def GetClassID(self):
         return self._reg_clsid_
     def Initialize(self, pidl):
+        # This is the PIDL of us, as created by the shell.  This is our
+        # top-level ID.  All other items under us have PIDLs defined
+        # by us - see the notes at the top of the file.
         #print "Initialize called with pidl", repr(pidl)
         pass
     def CreateViewObject(self, hwnd, iid):
@@ -275,7 +329,8 @@ class ShellFolderRoot(ShellFolderFileSystem):
                        useDispatcher=(debug>0))
 
 # A Simple shell view implementation
-# Our shell extension.
+# This uses scintilla to display a filename, and optionally jump to a line
+# number.
 class ScintillaShellView:
     _public_methods_ = IShellView_Methods
     _com_interfaces_ = [pythoncom.IID_IOleWindow,
@@ -288,7 +343,6 @@ class ScintillaShellView:
         self.hwnd = None
     def _SendSci(self, msg, wparam=0, lparam=0):
         return win32gui.SendMessage(self.hwnd, msg, wparam, lparam)
-
    # IShellView
     def CreateViewWindow(self, prev, settings, browser, rect):
         print "CreateViewWindow", prev, settings, browser, rect
@@ -317,10 +371,9 @@ class ScintillaShellView:
 
         self._SetupLexer()
         self._SendSci(scintillacon.SCI_SETTEXT, 0, file_data)
-        self._SendSci(scintillacon.SCI_COLOURISE, 0, -1)
         if self.lineno != None:
             self._SendSci(scintillacon.SCI_GOTOLINE, self.lineno)
-        print "Made scintilla", self.hwnd
+        print "Scintilla's hwnd is", self.hwnd
 
     def _SetupLexer(self):
         h = self.hwnd
@@ -342,7 +395,6 @@ class ScintillaShellView:
                  ]
         self._SendSci(scintillacon.SCI_SETLEXER, scintillacon.SCLEX_PYTHON, 0)
         self._SendSci(scintillacon.SCI_SETSTYLEBITS, 5)
-        print "Got back lexer", win32gui.SendMessage(self.hwnd, scintillacon.SCI_GETLEXER)
         baseFormat = (-402653169, 0, 200, 0, 0, 0, 49, 'Courier New')
         for f, bg, stylenum in styles:
             self._SendSci(scintillacon.SCI_STYLESETFORE, stylenum, f[4])
