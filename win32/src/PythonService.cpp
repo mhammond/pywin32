@@ -346,7 +346,7 @@ static PyObject *PyStartServiceCtrlDispatcher(PyObject *self)
 	return Py_None;
 }
 
-// @pymethod |Initialize|Initialize the module for hosting a service.  This is generally called automatically
+// @pymethod |servicemanager|Initialize|Initialize the module for hosting a service.  This is generally called automatically
 static PyObject *PyServiceInitialize(PyObject *self, PyObject *args)
 {
 	PyObject *nameOb = Py_None, *fileOb = Py_None;
@@ -367,7 +367,7 @@ static PyObject *PyServiceInitialize(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @pymethod |Finalize|
+// @pymethod |servicemanager|Finalize|
 static PyObject *PyServiceFinalize(PyObject *self)
 {
 	PythonService_Finalize();
@@ -375,7 +375,7 @@ static PyObject *PyServiceFinalize(PyObject *self)
 	return Py_None;
 }
 
-// @pymethod |PrepareToHostSingle|Prepare for hosting a single service in this EXE
+// @pymethod |servicemanager|PrepareToHostSingle|Prepare for hosting a single service in this EXE
 static PyObject *PyPrepareToHostSingle(PyObject *self, PyObject *args)
 {
 	PyObject *klass = Py_None;
@@ -392,7 +392,7 @@ static PyObject *PyPrepareToHostSingle(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @pymethod |PrepareToHostMultiple|Prepare for hosting a multiple services in this EXE
+// @pymethod |servicemanager|PrepareToHostMultiple|Prepare for hosting a multiple services in this EXE
 static PyObject *PyPrepareToHostMultiple(PyObject *self, PyObject *args)
 {
 	PyObject *klass, *obSvcName;
