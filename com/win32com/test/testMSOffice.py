@@ -96,7 +96,7 @@ def TextExcel(xl):
 	xl.Visible = 1
 	if not xl.Visible: raise error, "Visible property not true."
 
-	if string.atoi(xl.Version[0])>=8:
+	if int(xl.Version[0])>=8:
 		xl.Workbooks.Add()
 	else:
 		xl.Workbooks().Add()
