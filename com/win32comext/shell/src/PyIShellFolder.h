@@ -9,7 +9,9 @@ class PyIShellFolder : public PyIUnknown
 public:
 	MAKE_PYCOM_CTOR(PyIShellFolder);
 	static IShellFolder *GetI(PyObject *self);
-	static PyComTypeObject type;
+	static PyComEnumProviderTypeObject type;
+
+	virtual PyObject *iter();
 
 	// The Python methods
 	static PyObject *ParseDisplayName(PyObject *self, PyObject *args);

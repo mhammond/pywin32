@@ -25,6 +25,13 @@ PyIEnumIDList::~PyIEnumIDList()
 }
 
 PyObject *
+PyIEnumIDList::iter()
+{
+	Py_INCREF(this);
+	return this;
+}
+
+PyObject *
 PyIEnumIDList::iternext()
 {
 	ULONG celtFetched = 0;
