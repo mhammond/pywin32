@@ -859,7 +859,6 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 		VARENUM rawVT = (VARENUM)(m_reqdType & VT_TYPEMASK);
 		if (m_reqdType & VT_BYREF) {
 			if (!VALID_BYREF_MISSING(obj)) {
-#ifdef BYREF_ARRAY_USE_EXISTING_ARRAY
 				bool bNewArray = (V_VT(var) & ~VT_TYPEMASK)!= (VT_BYREF | VT_ARRAY);
 				_ASSERTE(m_arrayBuf==NULL); // shouldn't be anything else here!
 				if (bNewArray) {
@@ -872,22 +871,15 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 				if (!PyCom_SAFEARRAYFromPyObjectEx(obj, V_ARRAYREF(var), bNewArray, rawVT))
 					return FALSE;
 			} else {
-				// Do nothing - leave the existing array alone.
-
-#else // not BYREF_ARRAY_USE_EXISTING_ARRAY
-				// XXX - We should almost certainly destroy the existing array!?!?
-				if (!PyCom_SAFEARRAYFromPyObject(obj, &m_arrayBuf, rawVT))
-					return FALSE;
-				V_VT(var) = m_reqdType;
-				V_ARRAYREF(var) = &m_arrayBuf;
-			} else {
-				V_VT(var) = m_reqdType;
-				SAFEARRAYBOUND rgsabound[1];
-				rgsabound[0].lLbound = 0;
-				rgsabound[0].cElements = 1;
-				m_arrayBuf = SafeArrayCreate(rawVT, 1, rgsabound);
-				V_ARRAYREF(var) = &m_arrayBuf;
-#endif // BYREF_ARRAY_USE_EXISTING_ARRAY
+				// If the variant is brand new (ie, VT_EMPTY), set it to VT_ARRAY
+				// If not, it may be an "out" param getting filled, so we leave
+				// it alone.
+				if (V_VT(var)==VT_EMPTY) {
+					var->vt = m_reqdType;
+					_ASSERTE(m_arrayBuf==NULL); // shouldn't be anything else here!
+					V_ARRAYREF(var) = &m_arrayBuf;
+				}
+				_ASSERTE(V_VT(var) | VT_ARRAY);
 			}
 		} else {
 			_ASSERTE(V_VT(var)==VT_EMPTY || V_ARRAY(var)==NULL); // Probably a mem leak - the existing array should be cleared!
