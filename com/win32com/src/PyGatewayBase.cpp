@@ -672,11 +672,11 @@ STDMETHODIMP PyGatewayBase::InvokeEx(DISPID id, LCID lcid, WORD wFlags, DISPPARA
 			// OK - we will let it through.
 		}
 	}
+	PY_GATEWAY_METHOD;
 	PyObject *obISP = PyCom_PyObjectFromIUnknown(pspCaller, IID_IServiceProvider, TRUE);
 	if (obISP==NULL)
 		return GetIDispatchErrorResult(pexcepinfo);
 
-	PY_GATEWAY_METHOD;
 	PyObject *argList;
 	PyObject *py_lcid;
 	hr = invoke_setup(params, lcid, &argList, &py_lcid);
