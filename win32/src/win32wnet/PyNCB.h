@@ -29,6 +29,7 @@ public:
 	PyNCB();
 	PyNCB(const NCB *);
 	~PyNCB();
+	void Reset();
 
 	static void	deallocFunc(PyObject *ob);
 	static PyObject *getattr(PyObject *self, char *name);
@@ -40,9 +41,10 @@ public:
 #pragma warning( default : 4251 )
 
 	
-protected:
 	NCB	m_ncb;
 	DWORD dwStatus;		// status of this object (used during copy construct)
+	PyObject *m_obuserbuffer;   // The object the user gave us for the buffer
+	PyObject *m_obbuffer;   // The actual object providing the buffer.
 };
 
 extern __declspec(dllexport) PyTypeObject PyNCBType;

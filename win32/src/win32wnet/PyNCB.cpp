@@ -59,8 +59,22 @@ __declspec(dllexport)PyTypeObject PyNCBType =
 	0,							/* tp_str */
 };
 
-#define OFF(e) offsetof(PyNCB, e)
+static PyObject *PyNCB_Reset(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":Reset"))
+		return NULL;
+	PyNCB *pyncb = (PyNCB *)self;
+	pyncb->Reset();
+	Py_INCREF(Py_None);
+	return Py_None;
+}
 
+static struct PyMethodDef PyUnicode_methods[] = {
+	{ "Reset",	PyNCB_Reset,	METH_VARARGS },
+	{ NULL },
+};
+
+#define OFF(e) offsetof(PyNCB, e)
 struct memberlist PyNCB::memberlist[] =
 {
 	{"Command",	T_UBYTE,	OFF(m_ncb.ncb_command),	0},
@@ -88,7 +102,8 @@ PyNCB::PyNCB()
 	_Py_NewReference(this);
 	memset(&m_ncb, 0, sizeof(m_ncb));
 	dwStatus = 0;
-	
+	m_obbuffer = NULL;
+	m_obuserbuffer = NULL;
 };
 /*************************************************************
 * Creates a new NCB structure from the passed in version.
@@ -134,18 +149,25 @@ PyNCB::PyNCB(const NCB *pNCB)	// place holder
 
 // not sure about supporting this parameter!
     m_ncb.ncb_post = pNCB->ncb_post; 
+    m_obbuffer = NULL;
+    m_obuserbuffer = NULL;
 };
 
 PyNCB::~PyNCB()
 {
+	Reset();
 };
 
-
+void PyNCB::Reset()
+{
+	memset(&m_ncb, 0, sizeof(m_ncb) );
+	Py_XDECREF(m_obbuffer);
+	Py_XDECREF(m_obuserbuffer);
+	m_obbuffer = NULL;
+	m_obuserbuffer = NULL;
+}
 void PyNCB::deallocFunc(PyObject *ob)
 {
-//	NCB * pNCB;
-//	pNCB = ((PyNCB *)ob)->GetNCB();	// close the duplicated handle, if any
-//	CloseHandle(pNCB->ncb_event);
 	delete (PyNCB *)ob;
 };
 
@@ -178,8 +200,26 @@ PyObject *PyNCB::getattr(PyObject *self, char *name)
 		TempString[16] = '\0';
 		return(PyString_FromString(strncpy((char *)TempString,(char *)This->m_ncb.ncb_name,NCBNAMSZ)));
 	}
-	else
-		return PyMember_Get((char *)self, memberlist, name);
+	else if(strcmp(name, "Buffer") == 0)
+	{
+		if (This->m_obuserbuffer != NULL) {
+			Py_INCREF(This->m_obuserbuffer);
+			return This->m_obuserbuffer;
+		}
+		if (This->m_ncb.ncb_buffer==NULL) {
+			Py_INCREF(Py_None);
+			return Py_None;
+		}
+		return PyBuffer_FromMemory(This->m_ncb.ncb_buffer, This->m_ncb.ncb_length);
+	}
+	else {
+		PyObject *ret = PyMember_Get((char *)self, memberlist, name);
+		if (ret==NULL) {
+			PyErr_Clear();
+			ret = Py_FindMethod(PyUnicode_methods, self, name);
+		}
+		return ret;
+	}
 };
 
 /********************************************************************/
@@ -193,7 +233,6 @@ int PyNCB::setattr(PyObject *self, char *name, PyObject *v)
 // the following specific string attributes can be set
 	if (PyString_Check(v))
 	{
-		_ASSERT(FALSE);
 		PyNCB *This = (PyNCB *)self;
 
 		if (strcmp(name, "Callname") == 0)
@@ -223,14 +262,45 @@ int PyNCB::setattr(PyObject *self, char *name, PyObject *v)
 
 			return 0;
 		}
-		else
-		{
-			PyErr_SetString(PyExc_AttributeError, "The attribute is not a PyNETRESOURCE string");
-			return -1;
-		}
-
 
 	} // PyString_Check
+	if (strcmp(name, "Buffer") == 0)
+	{
+		PyNCB *This = (PyNCB *)self;
+		PyObject *ob_buf = v;
+		if (PyInstance_Check(v)) {
+			ob_buf = PyObject_GetAttrString(v, "_buffer_");
+			if (ob_buf==NULL) {
+				PyErr_Clear();
+				PyErr_SetString(PyExc_TypeError, "The instance must have a _buffer_ attribute");
+				return -1;
+			}
+		}
+		PyBufferProcs *pb = ob_buf->ob_type->tp_as_buffer;
+		if ( pb == NULL || pb->bf_getwritebuffer == NULL ||
+			pb->bf_getsegcount == NULL ) {
+				PyErr_SetString(PyExc_TypeError, "The object must support the write-buffer interface");
+				return -1;
+		}
+		if ( (*pb->bf_getsegcount)(ob_buf, NULL) != 1 ) {
+			PyErr_SetString(PyExc_TypeError, "The object must be a single-segment write-buffer");
+			return -1;
+		}
+		This->m_ncb.ncb_length = pb->bf_getwritebuffer(ob_buf, 0, (void **)&This->m_ncb.ncb_buffer);
+		if (This->m_ncb.ncb_length==-1) {
+			This->m_ncb.ncb_length = 0;
+			return -1;
+		}
+		Py_XDECREF(This->m_obbuffer);
+		Py_XDECREF(This->m_obuserbuffer);
+		This->m_obbuffer = ob_buf;
+		Py_INCREF(ob_buf);
+		This->m_obuserbuffer = v;
+		Py_INCREF(v);
+		if (ob_buf != v)
+			Py_DECREF(ob_buf); // for the temp refcount from the GetAttrString
+		return 0;
+	}
 
 
 

@@ -411,10 +411,36 @@ PyWNetGetResourceInformation(PyObject *self, PyObject *args)
 }
 #endif
 
+//static
+PyObject *
+PyWinMethod_Netbios(PyObject *self, PyObject *args)
+{
+	PyObject *obncb;
+	if (!PyArg_ParseTuple(args, "O!:Netbios", &PyNCBType, &obncb))
+		return NULL;
+	PyNCB *pyncb = (PyNCB *)obncb;
+	UCHAR rc;
+	Py_BEGIN_ALLOW_THREADS
+	rc = Netbios(&pyncb->m_ncb);
+	Py_END_ALLOW_THREADS
+	return PyInt_FromLong((long)rc);
+}
+
+PyObject *
+PyWinMethod_NCBBuffer(PyObject *self, PyObject *args)
+{
+	int size;
+	if (!PyArg_ParseTuple(args, "i:NCBBuffer", &size))
+		return NULL;
+	return PyBuffer_New(size);
+}
+
 /* List of functions exported by this module */
 static PyMethodDef win32wnet_functions[] = {
 	{"NETRESOURCE",				PyWinMethod_NewNETRESOURCE,	1,	"NETRESOURCE Structure Object. x=NETRESOURCE() to instantiate"},
 	{"NCB",						PyWinMethod_NewNCB,			1,	"NCB Netbios command structure Object"},
+	{"NCBBuffer",					PyWinMethod_NCBBuffer,			1,	"Creates a memory buffer"},
+	{"Netbios",					PyWinMethod_Netbios,			1,	"Calls the windows Netbios function"},
 	{"WNetAddConnection2",		PyWNetAddConnection2,		1,	"type,localname,remotename,provider,username,password (does not use NETRESOURCE)"},
 	{"WNetCancelConnection2",	PyWNetCancelConnection2,	1,	"localname,dwflags,bforce"},
 	{"WNetOpenEnum",			PyWNetOpenEnum,				1,	"dwScope,dwType,dwUsage,NETRESOURCE - returns PyHANDLE"},
