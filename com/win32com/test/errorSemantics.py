@@ -34,6 +34,7 @@ class TestServer:
 
 def test():
     # Call via a native interface.
+    print "***** NOTE: Two tracebacks below this is normal"
     com_server = wrap(TestServer(), pythoncom.IID_IStream)
     try:
         com_server.Clone()
@@ -77,6 +78,7 @@ def test():
         if exc[1] != "Python COM Server Internal Error":
             raise error("The description in the exception tuple did not yield the correct string", com_exc)
 
+    print "***** NOTE: Two tracebacks above this is normal"
     print "Error semantics worked."
 
 if __name__=='__main__':
