@@ -296,6 +296,12 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
 			result = PyWinObject_FromDATE(V_DATE(&varValue));
 			break;
 
+	    case VT_CY:
+			// Cheesy support browwored from:
+			// PyIPropertyStorage.cpp.
+			result = Py_BuildValue("ll", varValue.cyVal.Hi, varValue.cyVal.Lo);
+			break;
+
 		default:
 			{
 				HRESULT hr = VariantChangeType(&varValue, &varValue, 0, VT_BSTR);
