@@ -4,6 +4,8 @@
 #include "shell_pch.h"
 #include "PyIShellLink.h"
 
+// We should not be using this!
+#define OleSetOleError PyCom_BuildPyException
 
 PyObject *PyObject_FromWIN32_FIND_DATA(WIN32_FIND_DATA &findData);
 

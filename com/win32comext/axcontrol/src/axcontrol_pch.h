@@ -14,3 +14,6 @@ extern PyObject *PyObject_FromLOGPALETTE(LOGPALETTE *pLP);
 extern BOOL PyObject_AsDVTARGETDEVICE( PyObject *ob, DVTARGETDEVICE **pptd );
 extern void PyObject_FreeDVTARGETDEVICE( DVTARGETDEVICE *ptd );
 extern PyObject *PyObject_FromDVTARGETDEVICE(DVTARGETDEVICE *pTD);
+
+// We should not be using this!
+#define OleSetOleError PyCom_BuildPyException

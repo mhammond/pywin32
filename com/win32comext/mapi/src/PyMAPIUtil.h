@@ -1,5 +1,8 @@
 // PyMapiUtil.h
 
+// We should not be using this!
+#define OleSetOleError PyCom_BuildPyException
+
 PyObject *PyMAPIObject_FromTypedUnknown( ULONG typ, IUnknown *pUnk, BOOL bAddRef);
 
 /* Create (and free) a SBinaryArray from a PyObject */

@@ -14,3 +14,6 @@ PyObject *PyObject_FromPROTOCOLDATA(PROTOCOLDATA *pPD);
 
 BOOL PyObject_AsBINDINFO(PyObject *ob, BINDINFO *pPD);
 PyObject *PyObject_FromBINDINFO(BINDINFO *pPD);
+
+// We should not be using this!
+#define OleSetOleError PyCom_BuildPyException

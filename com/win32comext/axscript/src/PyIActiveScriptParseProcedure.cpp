@@ -78,7 +78,7 @@ PyObject *PyIActiveScriptParseProcedure::ParseProcedureText(PyObject *self, PyOb
 	SysFreeString(pstrDelimiter);
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 
 	return PyCom_PyObjectFromIUnknown(ppdisp, IID_IDispatch, FALSE);
 }

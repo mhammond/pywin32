@@ -143,11 +143,11 @@ STDMETHODIMP PyGOleControl::GetControlInfo(
 	pCI->cAccel = 0;
 	PyObject *obAccel;
 	if ( !PyArg_ParseTuple(result, "(Oi):GetControlInfo", &obAccel, &pCI->dwFlags))
-		hr = PyCom_HandlePythonFailureToCOM();
+		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetControlInfo");
 	else {
 		if (obAccel!= Py_None) {
 			PyErr_SetString(PyExc_TypeError, "Only None is supported for ControlInfo.");
-			hr = PyCom_HandlePythonFailureToCOM();
+			hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetControlInfo");
 		}
 	}
 	Py_DECREF(result);

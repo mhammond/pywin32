@@ -46,7 +46,7 @@ PyObject *PyISpecifyPropertyPages::GetPages(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 
 	PyObject *opages=PyTuple_New(pages.cElems);
     if(!opages)

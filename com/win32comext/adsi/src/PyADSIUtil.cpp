@@ -75,7 +75,7 @@ PyObject *OleSetADSIError(HRESULT hr, IUnknown *pUnk, REFIID iid)
 		}
 	}
 	// Do the normal thing.
-	return OleSetOleError(hr, pUnk, iid);
+	return PyCom_BuildPyException(hr, pUnk, iid);
 }
 
 
