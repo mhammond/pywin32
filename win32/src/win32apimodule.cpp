@@ -3365,6 +3365,32 @@ PyLOBYTE(PyObject *self, PyObject *args)
 	// @comm This is simply a wrapper to a C++ macro.
 }
 
+// @pymethod int|win32api|MAKEWORD|creates a WORD value by concatenating the specified values.
+static PyObject *
+PyMAKEWORD(PyObject *self, PyObject *args)
+{
+	int hi, lo;
+	if (!PyArg_ParseTuple(args, "ii:MAKEWORD", 
+	          &lo,  // @pyparm int|low||Specifies the low-order byte of the new value. 
+	          &hi)) // @pyparm int|high||Specifies the high-order byte of the new value. 
+		return NULL;
+	return Py_BuildValue("i", (int)MAKEWORD(lo, hi));
+	// @comm This is simply a wrapper to a C++ macro.
+}
+
+// @pymethod int|win32api|MAKELONG|creates a LONG value by concatenating the specified values.
+static PyObject *
+PyMAKELONG(PyObject *self, PyObject *args)
+{
+	int hi, lo;
+	if (!PyArg_ParseTuple(args, "ii:MAKELONG", 
+	          &lo,  // @pyparm int|low||Specifies the low-order byte of the new value. 
+	          &hi)) // @pyparm int|high||Specifies the high-order byte of the new value. 
+		return NULL;
+	return Py_BuildValue("i", (long)MAKELONG(lo, hi));
+	// @comm This is simply a wrapper to a C++ macro.
+}
+
 // @pymethod int|win32api|RGB|An interface to the win32api RGB macro.
 static PyObject *
 PyRGB(PyObject *self, PyObject *args)
@@ -4362,6 +4388,8 @@ static struct PyMethodDef win32api_functions[] = {
 	{"LOWORD",              PyLOWORD,           1}, // @pymeth LOWORD|An interface to the win32api LOWORD macro.
 	{"RGB",                 PyRGB,              1}, // @pymeth RGB|An interface to the win32api RGB macro.
 	{"MAKELANGID",          PyMAKELANGID,       1}, // @pymeth MAKELANGID|Creates a language identifier from a primary language identifier and a sublanguage identifier.
+	{"MAKEWORD",            PyMAKEWORD,         1}, // @pymeth MAKEWORD|creates a WORD value by concatenating the specified values.
+	{"MAKELONG",            PyMAKELONG,         1}, // @pymeth MAKELONG|creates a LONG value by concatenating the specified values.
 	{NULL,			NULL}
 };
 
