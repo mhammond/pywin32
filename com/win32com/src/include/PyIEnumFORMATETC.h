@@ -11,7 +11,6 @@ public:
 	static IEnumFORMATETC *GetI(PyObject *self);
 	static PyComTypeObject type;
 
-	virtual PyObject *iter();
 	virtual PyObject *iternext();
 
 	// The Python methods

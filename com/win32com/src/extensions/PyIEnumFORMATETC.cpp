@@ -29,12 +29,6 @@ PyIEnumFORMATETC::~PyIEnumFORMATETC()
 	return (IEnumFORMATETC *)PyIUnknown::GetI(self);
 }
 
-PyObject *
-PyIEnumFORMATETC::iter()
-{
-	Py_INCREF(this);
-	return this;
-}
 
 PyObject *
 PyIEnumFORMATETC::iternext()
