@@ -10,6 +10,12 @@ from distutils.dep_util import newer_group
 from distutils import log
 import os, string, sys
 
+try:
+    True; False
+except NameError:
+    True=0==0
+    False=1==0
+
 class WinExt (Extension):
     # Base class for all win32 extensions, with some predefined
     # library and include dirs, and predefined windows libraries.
@@ -106,6 +112,7 @@ class my_build_ext(build_ext):
         # with special defines. So we cannot use a shared
         # directory for objects, we must use a special one for each extension.
         old_build_temp = self.build_temp
+        self.swig_cpp = True
         try:
             self.build_temp = os.path.join(self.build_temp, ext.name)
 
@@ -203,31 +210,62 @@ pythoncom = WinExt('pythoncom',
                    extra_compile_args = ['-DBUILD_PYTHONCOM'],
                    )
 
-win32api = WinExt('win32api',
-                  dsp_file = r"win32\win32api.dsp")
-
-win32file = WinExt('win32file',
-                  dsp_file = r"win32\win32file.dsp")
-
-win32event = WinExt('win32event',
-                  dsp_file = r"win32\win32event.dsp")
+win32_extensions = []
+for name, lib_names, is_unicode in (
+        ("win2kras", "rasapi32", False),
+        ("win32api", "", False),
+        ("win32file", "", False),
+        ("win32event", "", False),
+        ("win32clipboard", "gdi32", False),
+        ("win32evtlog", "", False),
+        # win32gui handled below
+        ("win32help", "htmlhelp", False),
+        ("win32lz", "lz32", False),
+        ("win32net", "netapi32", True),
+        ("win32pdh", "", False),
+        ("win32pipe", "", False),
+        # win32popenWin9x later
+        ("win32print", "winspool", False),
+        ("win32process", "", False),
+        ("win32ras", "rasapi32", False),
+        ("win32security", "", True),
+        ("win32service", "", True),
+        ("win32trace", "", False),
+        ("win32wnet", "netapi32 mpr", False),
+    ):
+    
+    extra_compile_args = []
+    if is_unicode:
+        extra_compile_args = ['-DUNICODE', '-D_UNICODE', '-DWINNT']
+    ext = WinExt(name, 
+                 dsp_file = "win32\\" + name + ".dsp",
+                 libraries=lib_names.split(),
+                 extra_compile_args = extra_compile_args)
+    win32_extensions.append(ext)
+# The few that need slightly special treatment
+win32_extensions += [
+    WinExt("win32gui", 
+           dsp_file=r"win32\\win32gui.dsp",
+           libraries=["gdi32", "comdlg32", "comctl32"],
+           extra_compile_args=["-DWIN32GUI"]
+        ),
+]
 
 ################################################################
 
 setup(name="PyWinTypes",
-      version="version?",
-      description="python windows extensions",
+      version="version",
+      description="Python for Window Extensions",
       long_description="",
-      author="Mark Hammond (et al?)",
-      author_email = "Markh@activestate.com",
+      author="Mark Hammond (et al)",
+      author_email = "mhammond@skippinet.com.au",
       url="http://starship.python.net/crew/mhammond/",
-      license="???",
-
+      license="PSA",
       cmdclass = { #'install_lib': my_install_lib,
                    'build_ext': my_build_ext,
                    },
 
-      ext_modules = [pywintypes, win32api, win32file, win32event, pythoncom],
+      ext_modules = [pywintypes, pythoncom] + win32_extensions,
 
 ##      packages=['win32',
     
