@@ -52,16 +52,11 @@ class HierListCLBRItem(hierlist.HierListItem):
 
 class HierListCLBRClass(HierListCLBRItem):
     def __init__(self, clbrclass, suffix = ""):
-        try:
-            name = clbrclass.name
-            file = clbrclass.file
-            lineno = clbrclass.lineno
-            self.super = clbrclass.super
-            self.methods = clbrclass.methods
-        except AttributeError:
-            name = clbrclass
-            file = lineno = None
-            self.super = []; self.methods = {}
+        name = clbrclass.name
+        file = clbrclass.file
+        lineno = clbrclass.lineno
+        self.super = clbrclass.super
+        self.methods = clbrclass.methods
         HierListCLBRItem.__init__(self, name, file, lineno, suffix)
     def __cmp__(self,other):
         ret = cmp(self.name,other.name)
@@ -85,7 +80,12 @@ class HierListCLBRClass(HierListCLBRItem):
     def GetBitmapColumn(self):
         return 21
 
-class HierListCLBRFunction(HierListCLBRClass):
+class HierListCLBRFunction(HierListCLBRItem):
+    def __init__(self, clbrfunc, suffix = ""):
+        name = clbrfunc.name
+        file = clbrfunc.file
+        lineno = clbrfunc.lineno
+        HierListCLBRItem.__init__(self, name, file, lineno, suffix)
     def GetBitmapColumn(self):
         return 22
 
