@@ -52,7 +52,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386
-# ADD LINK32 /nologo /base:"0x1e400000" /version:0.9 /subsystem:windows /dll /debug /machine:I386 /out:"Build\win32ui.pyd"
+# ADD LINK32 /nologo /base:"0x1e400000" /version:0.9 /subsystem:windows /dll /debug /machine:I386 /out:"Build\win32ui.pyd" /libpath:"..\win32\build"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "win32ui - Win32 Debug"
@@ -78,7 +78,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386
-# ADD LINK32 /nologo /base:"0x1e400000" /version:0.9 /subsystem:windows /dll /debug /machine:I386 /out:"Build\win32ui_d.pyd"
+# ADD LINK32 /nologo /base:"0x1e400000" /version:0.9 /subsystem:windows /dll /debug /machine:I386 /out:"Build\win32ui_d.pyd" /libpath:"..\win32\build"
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
