@@ -65,7 +65,7 @@ PyIDataObject::~PyIDataObject()
 	return (IDataObject *)PyIUnknown::GetI(self);
 }
 
-// @pymethod |PyIDataObject|GetData|Description of GetData.
+// @pymethod <o PySTGMEDIUM>|PyIDataObject|GetData|Description of GetData.
 PyObject *PyIDataObject::GetData(PyObject *self, PyObject *args)
 {
 	IDataObject *pIDO = GetI(self);
@@ -92,7 +92,7 @@ PyObject *PyIDataObject::GetData(PyObject *self, PyObject *args)
 	return pymedium;
 }
 
-// @pymethod |PyIDataObject|GetDataHere|Description of GetDataHere.
+// @pymethod <o PySTGMEDIUM>|PyIDataObject|GetDataHere|Description of GetDataHere.
 PyObject *PyIDataObject::GetDataHere(PyObject *self, PyObject *args)
 {
 	IDataObject *pIDO = GetI(self);
@@ -203,7 +203,7 @@ PyObject *PyIDataObject::SetData(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @pymethod |PyIDataObject|EnumFormatEtc|Description of EnumFormatEtc.
+// @pymethod <o PyIEnumFORMATETC>|PyIDataObject|EnumFormatEtc|Description of EnumFormatEtc.
 PyObject *PyIDataObject::EnumFormatEtc(PyObject *self, PyObject *args)
 {
 	IDataObject *pIDO = GetI(self);
@@ -224,7 +224,7 @@ PyObject *PyIDataObject::EnumFormatEtc(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(ppenumFormatEtc, IID_IEnumFORMATETC, FALSE);
 }
 
-// @pymethod |PyIDataObject|DAdvise|Description of DAdvise.
+// @pymethod int|PyIDataObject|DAdvise|Description of DAdvise.
 PyObject *PyIDataObject::DAdvise(PyObject *self, PyObject *args)
 {
 	IDataObject *pIDO = GetI(self);
@@ -276,7 +276,7 @@ PyObject *PyIDataObject::DUnadvise(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @pymethod |PyIDataObject|EnumDAdvise|Description of EnumDAdvise.
+// @pymethod <o PyIEnumSTATDATA>|PyIDataObject|EnumDAdvise|Description of EnumDAdvise.
 PyObject *PyIDataObject::EnumDAdvise(PyObject *self, PyObject *args)
 {
 	IDataObject *pIDO = GetI(self);
