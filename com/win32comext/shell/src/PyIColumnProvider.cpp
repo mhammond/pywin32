@@ -14,6 +14,8 @@ extern BOOL PyObject_AsSHCOLUMNID(PyObject *, SHCOLUMNID *);
 extern PyObject *PyObject_FromSHCOLUMNID(LPCSHCOLUMNID);
 
 extern BOOL PyObject_AsSHCOLUMNDATA(PyObject *, SHCOLUMNDATA *);
+void PyObject_FreeSHCOLUMNDATA(SHCOLUMNDATA *p);
+
 extern PyObject *PyObject_FromSHCOLUMNDATA(LPCSHCOLUMNDATA);
 
 // @doc - This file contains autoduck documentation
@@ -79,6 +81,10 @@ PyObject *PyIColumnProvider::GetColumnInfo(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pICP, IID_IColumnProvider );
+	if (hr==S_FALSE) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	return PyObject_FromSHCOLUMNINFO(&psci);
 }
 
@@ -106,7 +112,7 @@ PyObject *PyIColumnProvider::GetItemData(PyObject *self, PyObject *args)
 	PY_INTERFACE_PRECALL;
 	hr = pICP->GetItemData( &pscid, &pscd, &varData );
 	PY_INTERFACE_POSTCALL;
-
+	PyObject_FreeSHCOLUMNDATA(&pscd);
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pICP, IID_IColumnProvider );
 	PyObject *obRet = PyCom_PyObjectFromVariant(&varData);
