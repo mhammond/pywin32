@@ -265,7 +265,7 @@ static PyMethodDef globalMethods[] =
 	{0,     0}        /* Sentinel */
 };
 
-PyMODINIT_FUNC
+__declspec(dllexport) void
 initdbi()
 {
 	PyObject *m = Py_InitModule("dbi", globalMethods);
