@@ -41,6 +41,10 @@ BOOL PyWinObject_AsSECURITY_DESCRIPTOR(PyObject *ob, SECURITY_DESCRIPTOR **ppSEC
 
 PyObject *PyWinObject_FromSECURITY_DESCRIPTOR(SECURITY_DESCRIPTOR *psd, unsigned cb /*=0*/)
 {
+	if (psd==NULL) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	return new PySECURITY_DESCRIPTOR(psd, cb);
 }
 
