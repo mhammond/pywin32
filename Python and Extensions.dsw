@@ -444,7 +444,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "python20"="..\Python-cvs\PCbuild\python20.dsp" - Package Owner=<4>
+Project: "pythoncore"="..\python-cvs\PCbuild\pythoncore.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
