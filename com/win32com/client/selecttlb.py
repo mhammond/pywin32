@@ -78,9 +78,10 @@ def EnumTlbs(excludeFlags = 0):
 					key4 = win32api.RegOpenKey(win32con.HKEY_CLASSES_ROOT, "Typelib\\%s\\%s\\%s" % (iid, version, lcid))
 					for platform, dll in EnumKeys(key4):
 						if platform=="win32":
-							major, minor = string.split(version, '.')
-							major = string.atoi(major, 16)
-							minor = string.atoi(minor, 16)
+							major = string.split(version, '.', 1)
+							if len(major) < 2:
+								major.append('0')
+							major, minor = string.atoi(major[0], 16), string.atoi(major[1], 16)
 							lcid = string.atoi(lcid,16)
 							spec = TypelibSpec(iid, lcid, major, minor, flags)
 							spec.desc = tlbdesc
