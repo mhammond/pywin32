@@ -76,9 +76,23 @@ def _LoadDicts():
 		zip_file = win32com.__gen_path__[:zip_pos+4]
 		zip_path = win32com.__gen_path__[zip_pos+5:]
 		zip_path = os.path.join(zip_path, "dicts.dat").replace("\\", "/")
-		zf = zipfile.ZipFile(zip_file)
-		f = cStringIO.StringIO(zf.read(zip_path))
-		zf.close()
+		try:
+			zf = zipfile.ZipFile(zip_file)
+			f = cStringIO.StringIO(zf.read(zip_path))
+			zf.close()
+		except IOError:
+			# Our gencache is in a .zip file (and almost certainly readonly)
+			# but no dicts file.  That actually needn't be fatal for a frozen
+			# application.  Assuming they call "EnsureModule" with the same
+			# typelib IDs they have been frozen with, that EnsureModule will
+			# correctly re-build the dicts on the fly.  However, objects that
+			# rely on the gencache but have not done an EnsureModule will
+			# fail (but their apps are likely to fail running from source
+			# with a clean gencache anyway, as then they would be getting
+			# Dynamic objects until the cache is built - so the best answer
+			# for these apps is to call EnsureModule, rather than freezing
+			# the dict)
+			return
 	else:
 		# NOTE: IOError on file open must be caught by caller.
 		f = open(os.path.join(win32com.__gen_path__, "dicts.dat"), "rb")
@@ -233,7 +247,13 @@ def GetModuleForTypelib(typelibCLSID, lcid, major, minor):
 	lcid -- Integer LCID for the library.
 	"""
 	modName = GetGeneratedFileName(typelibCLSID, lcid, major, minor)
-	return _GetModule(modName)
+	mod = _GetModule(modName)
+	# If the import worked, it doesn't mean we have actually added this
+	# module to our cache though - check that here.
+	if not mod.__dict__.has_key("_in_gencache_"):
+		AddModuleToCache(typelibCLSID, lcid, major, minor)
+		assert mod.__dict__.has_key("_in_gencache_")
+	return mod
 
 def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = None, bGUIProgress = None, bForDemand = bForDemandDefault, bBuildHidden = 1):
 	"""Generate support for a type library.
@@ -515,6 +535,9 @@ def AddModuleToCache(typelibclsid, lcid, major, minor, verbose = 1, bFlushNow = 
 	"""
 	fname = GetGeneratedFileName(typelibclsid, lcid, major, minor)
 	mod = _GetModule(fname)
+	assert not mod.__dict__.has_key("_in_gencache_"), \
+		   "This module has already been processed by this process"
+	mod._in_gencache_ = 1
 	dict = mod.CLSIDToClassMap
 	info = str(typelibclsid), lcid, major, minor
 	for clsid, cls in dict.items():
@@ -656,7 +679,3 @@ if __name__=='__main__':
 			Rebuild(verbose)
 		if opt=='-q':
 			verbose = 0
-
-#if __name__=='__main__':
-#	print "Rebuilding cache..."
-#	Rebuild(1)		
