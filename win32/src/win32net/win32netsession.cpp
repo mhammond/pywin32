@@ -1,3 +1,4 @@
+// @doc
 // Implemented and contributed by Roger Upole.
 #include "stdio.h"
 #include "assert.h"
@@ -9,14 +10,21 @@
 #include "PyWinTypes.h"
 #include "win32net.h"
 
+
+// @pymethod (dict,...)|win32net|NetSessionEnum|Returns network sessions for a server, limited to single client and/or user if specified.
 PyObject *
 PyNetSessionEnum(PyObject *self, PyObject *args)
 {
-	PyObject *server_name_obj =NULL;
+	// @pyparm int|level||Level of information requested, currently accepts 0, 1, 2, 10, and 502
+	// @pyparm string/<o PyUnicode>|server|None|The name of the server for which to list sessions, local machine assumed if None
+	// @pyparm string/<o PyUnicode>|client|None|Name of client computer, or None to list all computer sessions
+	// @pyparm string/<o PyUnicode>|username|None|User name, or None to list all connected users
+	// @rdesc Returns a sequence of dictionaries representing SESSION_INFO_* structs, depending on level specified
+	PyObject *server_name_obj = Py_None;
 	LPTSTR server_name = NULL;
-	PyObject *client_name_obj = NULL;
+	PyObject *client_name_obj = Py_None;
 	LPTSTR client_name = NULL;
-	PyObject *user_name_obj =NULL;
+	PyObject *user_name_obj = Py_None;
 	LPTSTR user_name = NULL;
 
 	PyObject *ret_list =NULL;
@@ -42,31 +50,25 @@ PyNetSessionEnum(PyObject *self, PyObject *args)
 	DWORD i;
 
 	NET_API_STATUS nStatus;
-	long rc;
-    long info_lvl;
+	long info_lvl;
 
-    if (!PyArg_ParseTuple(args, "iO|OO", &info_lvl, &server_name_obj, &client_name_obj, &user_name_obj))
+	if (!PyArg_ParseTuple(args, "i|OOO", &info_lvl, &server_name_obj, &client_name_obj, &user_name_obj))
 		return NULL;
-    if ((info_lvl != 0) && (info_lvl != 1) && (info_lvl !=2) && 
+	if ((info_lvl != 0) && (info_lvl != 1) && (info_lvl !=2) && 
 		(info_lvl != 10) && (info_lvl != 502)){
 		PyErr_SetString(PyExc_ValueError,"Invalid level for NetSessionEnum");
 		return NULL;
 	}
+	
+	if (!PyWinObject_AsWCHAR(server_name_obj, &server_name, TRUE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(client_name_obj, &client_name, TRUE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(user_name_obj, &user_name, TRUE))
+		goto done;
 
-	rc = PyWinObject_AsWCHAR(server_name_obj, &server_name, TRUE);
-	if (PyTuple_Size(args)>2){
-		rc = PyWinObject_AsWCHAR(client_name_obj, &client_name, TRUE);
-		// wprintf(client_name);
-		}
-
-	if (PyTuple_Size(args)>3){
-		rc = PyWinObject_AsWCHAR(user_name_obj, &user_name, TRUE);
-		// wprintf(user_name);
-		}
-
-
-   ret_list = PyList_New(0);
-   switch (info_lvl){
+	ret_list = PyList_New(0);
+	switch (info_lvl){
    		case 0: {
 			do{
 			    Py_BEGIN_ALLOW_THREADS
@@ -263,7 +265,9 @@ PyNetSessionEnum(PyObject *self, PyObject *args)
 		}
 	}
 
-	PyWinObject_FreeWCHAR(server_name);
+done:
+	if (server_name != NULL)
+		PyWinObject_FreeWCHAR(server_name);
 	if (client_name != NULL)
 		PyWinObject_FreeWCHAR(client_name);
 	if (user_name != NULL)
@@ -271,52 +275,58 @@ PyNetSessionEnum(PyObject *self, PyObject *args)
 	return ret_list;
 }
 
+// @pymethod |win32net|NetSessionDel|Disconnects network connections on a server
 PyObject *
 PyNetSessionDel(PyObject *self, PyObject *args)
 
 {
-	PyObject *server_name_obj =NULL;
+	// @pyparm string/<o PyUnicode>|server||The name of the server on which to operate, local machine assumed if None or blank
+	// @pyparm string/<o PyUnicode>|client|None|Name of client computer, or None
+	// @pyparm string/<o PyUnicode>|username|None|User name, or None for all connected users
+	// @rdesc Returns None on success
+	PyObject *server_name_obj = Py_None;
 	LPTSTR server_name = NULL;
-	PyObject *client_name_obj = NULL;
+	PyObject *client_name_obj = Py_None;
 	LPTSTR client_name = NULL;
-	PyObject *user_name_obj =NULL;
+	PyObject *user_name_obj = Py_None;
 	LPTSTR user_name = NULL;
 	NET_API_STATUS nStatus;
-	long rc;
+	PyObject *ret=NULL;
 
-
-    if (!PyArg_ParseTuple(args, "O|OO", &server_name_obj, &client_name_obj, &user_name_obj))
+	if (!PyArg_ParseTuple(args, "|OOO", &server_name_obj, &client_name_obj, &user_name_obj))
 		return NULL;
 
-	rc = PyWinObject_AsWCHAR(server_name_obj, &server_name, TRUE);
-	if (PyTuple_Size(args)>1)
-		rc = PyWinObject_AsWCHAR(client_name_obj, &client_name, TRUE);
-	if (PyTuple_Size(args)>2)
-		rc = PyWinObject_AsWCHAR(user_name_obj, &user_name, TRUE);
-
-   Py_BEGIN_ALLOW_THREADS
-   nStatus = NetSessionDel(server_name, client_name, user_name);
-   Py_END_ALLOW_THREADS
-
-    PyWinObject_FreeWCHAR(server_name);
+	if (PyWinObject_AsWCHAR(server_name_obj, &server_name, TRUE)
+		&&PyWinObject_AsWCHAR(client_name_obj, &client_name, TRUE)
+		&&PyWinObject_AsWCHAR(user_name_obj, &user_name, TRUE)){
+		Py_BEGIN_ALLOW_THREADS
+		nStatus = NetSessionDel(server_name, client_name, user_name);
+		Py_END_ALLOW_THREADS
+		if (nStatus == NERR_Success){
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		else
+			ReturnNetError("NetSessionDel",nStatus);
+		}
+	if (server_name != NULL)
+	    PyWinObject_FreeWCHAR(server_name);
 	if (client_name != NULL)
 		PyWinObject_FreeWCHAR(client_name);
 	if (user_name != NULL)
 		PyWinObject_FreeWCHAR(user_name);
-
-   if (nStatus == NERR_Success){
-	 Py_INCREF(Py_None);
-     return Py_None;
-	}
-   else{
-	 ReturnNetError("NetSessionDel",nStatus);
-     return NULL;
-   }
+	return ret;
 }
 
+// @pymethod dict|win32net|NetSessionGetInfo|Returns information for a network session from specified client
 PyObject *
 PyNetSessionGetInfo(PyObject *self, PyObject *args)
 {
+	// @pyparm int|level||Level of information requested, currently accepts 0, 1, 2, 10, and 502
+	// @pyparm string/<o PyUnicode>|server||The name of the server on which to operate, None or blank assumes local machine
+	// @pyparm string/<o PyUnicode>|client||Name of client computer
+	// @pyparm string/<o PyUnicode>|username||User that established session
+	// @rdesc Returns a dictionary representing a SESSION_INFO_* struct, depending on level specified
 	PyObject *server_name_obj =NULL;
 	LPTSTR server_name = NULL;
 	PyObject *client_name_obj = NULL;
@@ -331,8 +341,6 @@ PyNetSessionGetInfo(PyObject *self, PyObject *args)
 	LPSESSION_INFO_10 pTmpBuf10;
 	LPSESSION_INFO_502 pTmpBuf502;
 	NET_API_STATUS nStatus;
-
-	long rc;
 	long info_lvl;
 
 	if (!PyArg_ParseTuple(args, "iOOO", &info_lvl, &server_name_obj, &client_name_obj, &user_name_obj))
@@ -342,9 +350,12 @@ PyNetSessionGetInfo(PyObject *self, PyObject *args)
 		return NULL;
 	}
 
-	rc = PyWinObject_AsWCHAR(server_name_obj, &server_name, FALSE);
-	rc = PyWinObject_AsWCHAR(client_name_obj, &client_name, FALSE);
-	rc = PyWinObject_AsWCHAR(user_name_obj, &user_name, FALSE);
+	if (!PyWinObject_AsWCHAR(server_name_obj, &server_name, TRUE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(client_name_obj, &client_name, FALSE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(user_name_obj, &user_name, FALSE))
+		goto done;
 
 	switch (info_lvl){
 		case 0: {
@@ -458,9 +469,12 @@ PyNetSessionGetInfo(PyObject *self, PyObject *args)
 			}		
 		}
 	}
-
-	PyWinObject_FreeWCHAR(server_name);
-	PyWinObject_FreeWCHAR(client_name);
-	PyWinObject_FreeWCHAR(user_name);
+done:
+	if (server_name!=NULL)
+		PyWinObject_FreeWCHAR(server_name);
+	if (client_name!=NULL)
+		PyWinObject_FreeWCHAR(client_name);
+	if (user_name!=NULL)
+		PyWinObject_FreeWCHAR(user_name);
 	return ret_dict;
 }
