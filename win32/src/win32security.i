@@ -3185,7 +3185,7 @@ static PyObject *PyLsaCallAuthenticationPackage(PyObject *self, PyObject *args)
 			if (!PyWinObject_AsLARGE_INTEGER(obinputbuf,(LARGE_INTEGER *)&((PKERB_QUERY_TKT_CACHE_REQUEST)inputbuf)->LogonId))
 				goto done;
 			break;
-		// @flag KerbPurgeTicketCacheMessage|(long, <o PyUnicode>, <o PyUnicode) - tuple containing (LogonId, ServerName, RealmName)
+		// @flag KerbPurgeTicketCacheMessage|(long, <o PyUnicode>, <o PyUnicode>) - tuple containing (LogonId, ServerName, RealmName)
 		case KerbPurgeTicketCacheMessage:
 			PyObject *obLogonId, *obServerName, *obRealmName;
 			inputbuflen=sizeof(KERB_PURGE_TKT_CACHE_REQUEST);
