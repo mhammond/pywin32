@@ -6,14 +6,14 @@ import win32api, types, pythoncom, time
 import sys, os, win32com, win32com.client.connect
 from win32com.test.util import CheckClean
 from win32com.client import constants
+import win32com
+from util import RegisterPythonServer
 
 importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 
 error = "testPyCOMTest error"
 
 # This test uses a Python implemented COM server - ensure correctly registered.
-from util import RegisterPythonServer
-import win32com
 RegisterPythonServer(os.path.join(win32com.__path__[0], "servers", "test_pycomtest.py"))
 
 from win32com.client import gencache
@@ -23,8 +23,6 @@ except pythoncom.com_error:
     print "The PyCOMTest module can not be located or generated."
     print importMsg
     raise RuntimeError, importMsg
-
-import sys
 
 # We had a bg where RegisterInterfaces would fail if gencache had 
 # already been run - exercise that here
@@ -318,15 +316,12 @@ def TestQueryInterface(long_lived_server = 0, iterations=5):
         tester.TestQueryInterface()
 
 def TestMultiVTable():
-    # Ideally we should be able to do this test multiple times,
-    # however at the moment the second call generates an invalid
-    # memory read to bubble up out of python. Set the range
-    # to 1 to pass this test, i.e. for i in range(1)
-    for i in range(2):
+    # We used to crash running this the second time - do it a few times
+    for i in range(3):
         progress("Testing VTables in-process #%d..." % (i+1))
         TestVTable(pythoncom.CLSCTX_INPROC_SERVER)
 
-    for i in range(2):
+    for i in range(3):
         progress("Testing VTables out-of-process #%d..." % (i+1))
         TestVTable(pythoncom.CLSCTX_LOCAL_SERVER)
 
@@ -371,4 +366,5 @@ if __name__=='__main__':
     TestAll()
     CheckClean()
     pythoncom.CoUninitialize()
-    print "C++ test harness worked OK."
+    if verbose:
+        print "C++ test harness worked OK."
