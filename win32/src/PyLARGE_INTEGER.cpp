@@ -175,7 +175,10 @@ BOOL PyWinObject_AsULARGE_INTEGER(PyObject *ob, ULARGE_INTEGER *pResult)
 }
 PyObject *PyWinObject_FromLARGE_INTEGER(LARGE_INTEGER &val)
 {
-	if (val.HighPart==0)
+	// NOTE: The max _signed_ positive integer is the largest we 
+	// can return as a simple Python integer.
+	// TODO - XXX - this assumes 32 bit integers (but dont LARGE_INTEGER's?)
+	if (val.HighPart==0 && !(val.LowPart & 0x80000000))
 		return PyInt_FromLong(val.LowPart);
 	else
 		return PyLong_FromI64(val.QuadPart);
