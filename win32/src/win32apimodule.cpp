@@ -437,6 +437,16 @@ PyFindFirstChangeNotification(PyObject *self, PyObject *args)
 	DWORD dwFilter;
 	BOOL subDirs;
 	PyObject *obPathName;
+	// @pyparm string|pathName||Specifies the path of the directory to watch. 
+	// @pyparm int|bSubDirs||Specifies whether the function will monitor the directory or the directory tree. If this parameter is TRUE, the function monitors the directory tree rooted at the specified directory; if it is FALSE, it monitors only the specified directory
+	// @pyparm int|filter||Specifies the filter conditions that satisfy a change notification wait. This parameter can be one or more of the following values:
+	// @flagh Value|Meaning
+	// @flag FILE_NOTIFY_CHANGE_FILE_NAME|Any file name change in the watched directory or subtree causes a change notification wait operation to return. Changes include renaming, creating, or deleting a file name. 
+	// @flag FILE_NOTIFY_CHANGE_DIR_NAME|Any directory-name change in the watched directory or subtree causes a change notification wait operation to return. Changes include creating or deleting a directory. 
+	// @flag FILE_NOTIFY_CHANGE_ATTRIBUTES|Any attribute change in the watched directory or subtree causes a change notification wait operation to return. 
+	// @flag FILE_NOTIFY_CHANGE_SIZE|Any file-size change in the watched directory or subtree causes a change notification wait operation to return. The operating system detects a change in file size only when the file is written to the disk. For operating systems that use extensive caching, detection occurs only when the cache is sufficiently flushed. 
+	// @flag FILE_NOTIFY_CHANGE_LAST_WRITE|Any change to the last write-time of files in the watched directory or subtree causes a change notification wait operation to return. The operating system detects a change to the last write-time only when the file is written to the disk. For operating systems that use extensive caching, detection occurs only when the cache is sufficiently flushed. 
+	// @flag FILE_NOTIFY_CHANGE_SECURITY|Any security-descriptor change in the watched directory or subtree causes a change notification wait operation to return 
 	if (!PyArg_ParseTuple(args, "Oil", &obPathName, &subDirs, &dwFilter))
 		return NULL;
 	TCHAR *pathName;
@@ -456,6 +466,7 @@ static PyObject *
 PyFindNextChangeNotification(PyObject *self, PyObject *args)
 {
 	HANDLE h;
+	// @pyparm int|handle||The handle returned from <om win32api.FindFirstChangeNotification>
 	if (!PyArg_ParseTuple(args, "l", &h))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
@@ -472,6 +483,7 @@ static PyObject *
 PyFindCloseChangeNotification(PyObject *self, PyObject *args)
 {
 	HANDLE h;
+	// @pyparm int|handle||The handle returned from <om win32api.FindFirstChangeNotification>
 	if (!PyArg_ParseTuple(args, "l", &h))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
@@ -1615,11 +1627,11 @@ PyGetVersionEx(PyObject * self, PyObject * args)
 		return ReturnAPIError("GetVersionEx");
 	return Py_BuildValue("iiiis",
 	// @rdesc The return value is a tuple with the following information.<nl>
-		         ver.dwMajorVersion, // majorVersion - Identifies the major version number of the operating system.<nl>
-				 ver.dwMinorVersion, //	minorVersion - Identifies the minor version number of the operating system.<nl>
-				 ver.dwBuildNumber,  //	buildNumber - Identifies the build number of the operating system in the low-order word. (The high-order word contains the major and minor version numbers.)<nl>
-				 ver.dwPlatformId, // platformId - Identifies the platform supported by the operating system.  May be one of VER_PLATFORM_WIN32s, VER_PLATFORM_WIN32_WINDOWS or VER_PLATFORM_WIN32_NT<nl>
-				 ver.szCSDVersion); // version - Contains a string that provides arbitrary additional information about the operating system.
+		         ver.dwMajorVersion, // @tupleitem 0|int|majorVersion|Identifies the major version number of the operating system.<nl>
+				 ver.dwMinorVersion, //	@tupleitem 1|int|minorVersion|Identifies the minor version number of the operating system.<nl>
+				 ver.dwBuildNumber,  //	@tupleitem 2|int|buildNumber|Identifies the build number of the operating system in the low-order word. (The high-order word contains the major and minor version numbers.)<nl>
+				 ver.dwPlatformId, // @tupleitem 3|int|platformId|Identifies the platform supported by the operating system.  May be one of VER_PLATFORM_WIN32s, VER_PLATFORM_WIN32_WINDOWS or VER_PLATFORM_WIN32_NT<nl>
+				 ver.szCSDVersion); // @tupleitem 4|string|version|Contains arbitrary additional information about the operating system.
 }
 
 // @pymethod tuple|win32api|GetVolumeInformation|Returns information about a file system and colume whose root directory is specified.
@@ -3067,7 +3079,7 @@ PySetSystemTime (PyObject * self, PyObject * args)
   int result;
 
   if (!PyArg_ParseTuple (args,
-       "iiiiiiii",
+       "hhhhhhhh",
        &t.wYear,   	// @pyparm int|year||
        &t.wMonth, // @pyparm int|month||
        &t.wDayOfWeek, // @pyparm int|dayOfWeek||
