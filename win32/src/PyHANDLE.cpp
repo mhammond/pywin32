@@ -192,7 +192,9 @@ BOOL PyHANDLE::Close(void)
 
 int PyHANDLE::compare(PyObject *ob)
 {
-	return (long)m_handle - (long)((PyHANDLE *)ob)->m_handle;
+	
+	return  m_handle == ((PyHANDLE *)ob)->m_handle ? 0 :
+		(m_handle < ((PyHANDLE *)ob)->m_handle ? -1 : 1);
 }
 
 long PyHANDLE::asLong(void)
