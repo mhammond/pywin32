@@ -140,6 +140,9 @@ typedef unsigned long ULONG;
 		return NULL;
 }
 
+%typemap(python,in) WCHAR *inNullWideString = OLECHAR *inNullWideString;
+%typemap(python,in) WCHAR *INPUT_NULLOK = WCHAR *inNullWideString;
+
 %typemap(python,freearg) OLECHAR *, WCHAR *{
 	// Wide string cleanup
 	SysFreeString($source);
