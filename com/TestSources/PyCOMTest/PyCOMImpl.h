@@ -55,10 +55,15 @@ END_COM_MAP()
 	STDMETHOD(Test2)(QsAttribute, QsAttribute *);
 	STDMETHOD(Test3)(TestAttributes1, TestAttributes1 *);
 	STDMETHOD(Test4)(TestAttributes2, TestAttributes2 *);
+	STDMETHOD(Test5)(TestAttributes1 *);
 	STDMETHOD(GetSetInterface)(IPyCOMTest *ininterface, IPyCOMTest **outinterface);
+	STDMETHOD(GetSetInterfaceArray)(SAFEARRAY *pin, SAFEARRAY **pout);
+
 	STDMETHOD(GetMultipleInterfaces)(IPyCOMTest **outinterface1, IPyCOMTest **outinterface2);
 	STDMETHOD(GetSetDispatch)(IDispatch *indisp, IDispatch **outdisp);
 	STDMETHOD(GetSetUnknown)(IUnknown *inunk, IUnknown **outunk);
+	STDMETHOD(TakeByRefTypedDispatch)(IPyCOMTest **inout);
+	STDMETHOD(TakeByRefDispatch)(IDispatch **inout);
 	STDMETHOD(SetIntSafeArray)(SAFEARRAY* ints, int *retSize);
 	STDMETHOD(SetVariantSafeArray)(SAFEARRAY* vars, int *retSize);
 	STDMETHOD(GetSafeArrays)(SAFEARRAY** attrs,
@@ -72,6 +77,10 @@ END_COM_MAP()
 
 	// method to broadcast a call on the current connections
 	STDMETHOD(Fire)(long  nID);
+	STDMETHOD(TestOptionals)(BSTR strArg, short sarg, long larg, double darg, SAFEARRAY **pRet);
+	STDMETHOD(TestOptionals2)(double dval, BSTR strval, short sval, SAFEARRAY **pRet);
+	STDMETHOD(GetStruct)(TestStruct1 *ret);
+
 	// info associated to each session
 	struct PyCOMTestSessionData
 	{

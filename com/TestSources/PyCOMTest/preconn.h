@@ -2,6 +2,8 @@
 //      or project specific include files that are used frequently,
 //      but are changed infrequently
 
+#define _WIN32_WINNT 0x0400
+#define _WIN32_DCOM
 
 #include <atlbase.h>
 //You may derive a class from CComModule and use it if you want to override

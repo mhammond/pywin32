@@ -54,7 +54,12 @@ library PyCOMTestLib
 	enum TestAttributes3{ // Note missing the enum name.
 		TestAttr3,
 	};
-
+	// Some test structures
+	typedef [uuid(7a4ce6a7-7959-4e85-a3c0-b41442ff0f67)]
+	struct _TestStruct1 {
+		int int_value;
+		BSTR str_value;
+	} TestStruct1;
 
 	// Test enumerators.
    [
@@ -159,12 +164,16 @@ library PyCOMTestLib
 		HRESULT Test2([in] QsAttribute inval, [out, retval] QsAttribute* retval);
 		HRESULT Test3([in] TestAttributes1 inval, [out, retval] TestAttributes1* retval);
 		HRESULT Test4([in] TestAttributes2 inval, [out, retval] TestAttributes2* retval);
+		HRESULT Test5([in, out] TestAttributes1 *inout);
 
 		// Test IDispatch in and byref.
 		HRESULT GetSetInterface([in] IPyCOMTest *ininterface, [out, retval] IPyCOMTest **outinterface);
+		HRESULT GetSetInterfaceArray([in] SAFEARRAY(IPyCOMTest) ininterface, [out, retval] SAFEARRAY(IPyCOMTest) *outinterface);
 		HRESULT GetMultipleInterfaces([out] IPyCOMTest **outinterface1, [out] IPyCOMTest **outinterface2);
 		HRESULT GetSetDispatch([in] IDispatch *indisp, [out, retval] IDispatch **outdisp);
 		HRESULT GetSetUnknown([in] IUnknown *inunk, [out, retval] IUnknown **outunk);
+		HRESULT TakeByRefTypedDispatch([in, out] IPyCOMTest **inout);
+		HRESULT TakeByRefDispatch([in, out] IDispatch **inout);
 
 		// Test Safe arrays - simple, then alias, enum
 		HRESULT SetIntSafeArray([in] SAFEARRAY(int) ints, [out, retval]int *resultSize);
@@ -178,6 +187,17 @@ library PyCOMTestLib
 		[vararg] HRESULT SetVarArgs([in]SAFEARRAY(VARIANT) vars);
 		HRESULT GetLastVarArgs([out, retval]SAFEARRAY(VARIANT) *result);
 		HRESULT Fire([in]long nId);
+        HRESULT TestOptionals( [in,optional,defaultvalue("def")] BSTR strArg,
+							   [in,optional,defaultvalue(0)] short sval,
+							   [in,optional,defaultvalue(1)] long lval, 
+							   [in,optional,defaultvalue(3.14)] double dval,
+							   [out,retval] SAFEARRAY(VARIANT) *pret );
+        HRESULT TestOptionals2( 
+							   double dval, 
+							   [optional, defaultvalue("")] BSTR strval, 
+							   [optional, defaultvalue(1)] short sval,
+							   [out,retval] SAFEARRAY(VARIANT) *pret );
+		HRESULT GetStruct([out, retval]TestStruct1 *ret);
 	};
 
 	// Define a new class to test how Python handles derived interfaces!

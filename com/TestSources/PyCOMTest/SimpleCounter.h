@@ -31,7 +31,6 @@ public:
    STDMETHOD(put_TestProperty2)( long propval1, long propval2, long propval3) {return S_OK;}
    STDMETHOD(get_TestPropertyWithDef)(long arg, long *ret) {*ret=arg;return S_OK;}
    STDMETHOD(get_TestPropertyNoDef)(long arg, long *ret) {*ret=arg;return S_OK;}
-
 //ISupportErrorInfo
    STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
    {

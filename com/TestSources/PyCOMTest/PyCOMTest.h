@@ -2,7 +2,7 @@
 
 
 /* File created by MIDL compiler version 5.01.0164 */
-/* at Mon May 03 12:51:44 1999
+/* at Wed Mar 08 19:06:37 2000
  */
 /* Compiler settings for PyCOMTest.idl:
     Os (OptLev=s), W1, Zp8, env=Win32, ms_ext, c_ext
@@ -148,6 +148,12 @@ enum tagQsAttribute
 enum TestAttributes3
     {	TestAttr3	= 0
     };
+typedef /* [uuid] */ struct  _TestStruct1
+    {
+    int int_value;
+    BSTR str_value;
+    }	TestStruct1;
+
 
 EXTERN_C const IID LIBID_PyCOMTestLib;
 
@@ -733,9 +739,16 @@ EXTERN_C const IID IID_IPyCOMTest;
             /* [in] */ TestAttributes2 inval,
             /* [retval][out] */ TestAttributes2 __RPC_FAR *retval) = 0;
         
+        virtual HRESULT STDMETHODCALLTYPE Test5( 
+            /* [out][in] */ TestAttributes1 __RPC_FAR *inout) = 0;
+        
         virtual HRESULT STDMETHODCALLTYPE GetSetInterface( 
             /* [in] */ IPyCOMTest __RPC_FAR *ininterface,
             /* [retval][out] */ IPyCOMTest __RPC_FAR *__RPC_FAR *outinterface) = 0;
+        
+        virtual HRESULT STDMETHODCALLTYPE GetSetInterfaceArray( 
+            /* [in] */ SAFEARRAY __RPC_FAR * ininterface,
+            /* [retval][out] */ SAFEARRAY __RPC_FAR * __RPC_FAR *outinterface) = 0;
         
         virtual HRESULT STDMETHODCALLTYPE GetMultipleInterfaces( 
             /* [out] */ IPyCOMTest __RPC_FAR *__RPC_FAR *outinterface1,
@@ -748,6 +761,12 @@ EXTERN_C const IID IID_IPyCOMTest;
         virtual HRESULT STDMETHODCALLTYPE GetSetUnknown( 
             /* [in] */ IUnknown __RPC_FAR *inunk,
             /* [retval][out] */ IUnknown __RPC_FAR *__RPC_FAR *outunk) = 0;
+        
+        virtual HRESULT STDMETHODCALLTYPE TakeByRefTypedDispatch( 
+            /* [out][in] */ IPyCOMTest __RPC_FAR *__RPC_FAR *inout) = 0;
+        
+        virtual HRESULT STDMETHODCALLTYPE TakeByRefDispatch( 
+            /* [out][in] */ IDispatch __RPC_FAR *__RPC_FAR *inout) = 0;
         
         virtual HRESULT STDMETHODCALLTYPE SetIntSafeArray( 
             /* [in] */ SAFEARRAY __RPC_FAR * ints,
@@ -776,6 +795,22 @@ EXTERN_C const IID IID_IPyCOMTest;
         
         virtual HRESULT STDMETHODCALLTYPE Fire( 
             /* [in] */ long nId) = 0;
+        
+        virtual HRESULT STDMETHODCALLTYPE TestOptionals( 
+            /* [defaultvalue][optional][in] */ BSTR strArg,
+            /* [defaultvalue][optional][in] */ short sval,
+            /* [defaultvalue][optional][in] */ long lval,
+            /* [defaultvalue][optional][in] */ double dval,
+            /* [retval][out] */ SAFEARRAY __RPC_FAR * __RPC_FAR *pret) = 0;
+        
+        virtual HRESULT STDMETHODCALLTYPE TestOptionals2( 
+            double dval,
+            /* [defaultvalue][optional] */ BSTR strval,
+            /* [defaultvalue][optional] */ short sval,
+            /* [retval][out] */ SAFEARRAY __RPC_FAR * __RPC_FAR *pret) = 0;
+        
+        virtual HRESULT STDMETHODCALLTYPE GetStruct( 
+            /* [retval][out] */ TestStruct1 __RPC_FAR *ret) = 0;
         
     };
     
@@ -857,10 +892,19 @@ EXTERN_C const IID IID_IPyCOMTest;
             /* [in] */ TestAttributes2 inval,
             /* [retval][out] */ TestAttributes2 __RPC_FAR *retval);
         
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *Test5 )( 
+            IPyCOMTest __RPC_FAR * This,
+            /* [out][in] */ TestAttributes1 __RPC_FAR *inout);
+        
         HRESULT ( STDMETHODCALLTYPE __RPC_FAR *GetSetInterface )( 
             IPyCOMTest __RPC_FAR * This,
             /* [in] */ IPyCOMTest __RPC_FAR *ininterface,
             /* [retval][out] */ IPyCOMTest __RPC_FAR *__RPC_FAR *outinterface);
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *GetSetInterfaceArray )( 
+            IPyCOMTest __RPC_FAR * This,
+            /* [in] */ SAFEARRAY __RPC_FAR * ininterface,
+            /* [retval][out] */ SAFEARRAY __RPC_FAR * __RPC_FAR *outinterface);
         
         HRESULT ( STDMETHODCALLTYPE __RPC_FAR *GetMultipleInterfaces )( 
             IPyCOMTest __RPC_FAR * This,
@@ -876,6 +920,14 @@ EXTERN_C const IID IID_IPyCOMTest;
             IPyCOMTest __RPC_FAR * This,
             /* [in] */ IUnknown __RPC_FAR *inunk,
             /* [retval][out] */ IUnknown __RPC_FAR *__RPC_FAR *outunk);
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *TakeByRefTypedDispatch )( 
+            IPyCOMTest __RPC_FAR * This,
+            /* [out][in] */ IPyCOMTest __RPC_FAR *__RPC_FAR *inout);
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *TakeByRefDispatch )( 
+            IPyCOMTest __RPC_FAR * This,
+            /* [out][in] */ IDispatch __RPC_FAR *__RPC_FAR *inout);
         
         HRESULT ( STDMETHODCALLTYPE __RPC_FAR *SetIntSafeArray )( 
             IPyCOMTest __RPC_FAR * This,
@@ -912,6 +964,25 @@ EXTERN_C const IID IID_IPyCOMTest;
         HRESULT ( STDMETHODCALLTYPE __RPC_FAR *Fire )( 
             IPyCOMTest __RPC_FAR * This,
             /* [in] */ long nId);
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *TestOptionals )( 
+            IPyCOMTest __RPC_FAR * This,
+            /* [defaultvalue][optional][in] */ BSTR strArg,
+            /* [defaultvalue][optional][in] */ short sval,
+            /* [defaultvalue][optional][in] */ long lval,
+            /* [defaultvalue][optional][in] */ double dval,
+            /* [retval][out] */ SAFEARRAY __RPC_FAR * __RPC_FAR *pret);
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *TestOptionals2 )( 
+            IPyCOMTest __RPC_FAR * This,
+            double dval,
+            /* [defaultvalue][optional] */ BSTR strval,
+            /* [defaultvalue][optional] */ short sval,
+            /* [retval][out] */ SAFEARRAY __RPC_FAR * __RPC_FAR *pret);
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *GetStruct )( 
+            IPyCOMTest __RPC_FAR * This,
+            /* [retval][out] */ TestStruct1 __RPC_FAR *ret);
         
         END_INTERFACE
     } IPyCOMTestVtbl;
@@ -970,8 +1041,14 @@ EXTERN_C const IID IID_IPyCOMTest;
 #define IPyCOMTest_Test4(This,inval,retval)	\
     (This)->lpVtbl -> Test4(This,inval,retval)
 
+#define IPyCOMTest_Test5(This,inout)	\
+    (This)->lpVtbl -> Test5(This,inout)
+
 #define IPyCOMTest_GetSetInterface(This,ininterface,outinterface)	\
     (This)->lpVtbl -> GetSetInterface(This,ininterface,outinterface)
+
+#define IPyCOMTest_GetSetInterfaceArray(This,ininterface,outinterface)	\
+    (This)->lpVtbl -> GetSetInterfaceArray(This,ininterface,outinterface)
 
 #define IPyCOMTest_GetMultipleInterfaces(This,outinterface1,outinterface2)	\
     (This)->lpVtbl -> GetMultipleInterfaces(This,outinterface1,outinterface2)
@@ -981,6 +1058,12 @@ EXTERN_C const IID IID_IPyCOMTest;
 
 #define IPyCOMTest_GetSetUnknown(This,inunk,outunk)	\
     (This)->lpVtbl -> GetSetUnknown(This,inunk,outunk)
+
+#define IPyCOMTest_TakeByRefTypedDispatch(This,inout)	\
+    (This)->lpVtbl -> TakeByRefTypedDispatch(This,inout)
+
+#define IPyCOMTest_TakeByRefDispatch(This,inout)	\
+    (This)->lpVtbl -> TakeByRefDispatch(This,inout)
 
 #define IPyCOMTest_SetIntSafeArray(This,ints,resultSize)	\
     (This)->lpVtbl -> SetIntSafeArray(This,ints,resultSize)
@@ -1005,6 +1088,15 @@ EXTERN_C const IID IID_IPyCOMTest;
 
 #define IPyCOMTest_Fire(This,nId)	\
     (This)->lpVtbl -> Fire(This,nId)
+
+#define IPyCOMTest_TestOptionals(This,strArg,sval,lval,dval,pret)	\
+    (This)->lpVtbl -> TestOptionals(This,strArg,sval,lval,dval,pret)
+
+#define IPyCOMTest_TestOptionals2(This,dval,strval,sval,pret)	\
+    (This)->lpVtbl -> TestOptionals2(This,dval,strval,sval,pret)
+
+#define IPyCOMTest_GetStruct(This,ret)	\
+    (This)->lpVtbl -> GetStruct(This,ret)
 
 #endif /* COBJMACROS */
 
@@ -1101,6 +1193,18 @@ void __RPC_STUB IPyCOMTest_Test4_Stub(
     DWORD *_pdwStubPhase);
 
 
+HRESULT STDMETHODCALLTYPE IPyCOMTest_Test5_Proxy( 
+    IPyCOMTest __RPC_FAR * This,
+    /* [out][in] */ TestAttributes1 __RPC_FAR *inout);
+
+
+void __RPC_STUB IPyCOMTest_Test5_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
 HRESULT STDMETHODCALLTYPE IPyCOMTest_GetSetInterface_Proxy( 
     IPyCOMTest __RPC_FAR * This,
     /* [in] */ IPyCOMTest __RPC_FAR *ininterface,
@@ -1108,6 +1212,19 @@ HRESULT STDMETHODCALLTYPE IPyCOMTest_GetSetInterface_Proxy(
 
 
 void __RPC_STUB IPyCOMTest_GetSetInterface_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+HRESULT STDMETHODCALLTYPE IPyCOMTest_GetSetInterfaceArray_Proxy( 
+    IPyCOMTest __RPC_FAR * This,
+    /* [in] */ SAFEARRAY __RPC_FAR * ininterface,
+    /* [retval][out] */ SAFEARRAY __RPC_FAR * __RPC_FAR *outinterface);
+
+
+void __RPC_STUB IPyCOMTest_GetSetInterfaceArray_Stub(
     IRpcStubBuffer *This,
     IRpcChannelBuffer *_pRpcChannelBuffer,
     PRPC_MESSAGE _pRpcMessage,
@@ -1147,6 +1264,30 @@ HRESULT STDMETHODCALLTYPE IPyCOMTest_GetSetUnknown_Proxy(
 
 
 void __RPC_STUB IPyCOMTest_GetSetUnknown_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+HRESULT STDMETHODCALLTYPE IPyCOMTest_TakeByRefTypedDispatch_Proxy( 
+    IPyCOMTest __RPC_FAR * This,
+    /* [out][in] */ IPyCOMTest __RPC_FAR *__RPC_FAR *inout);
+
+
+void __RPC_STUB IPyCOMTest_TakeByRefTypedDispatch_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+HRESULT STDMETHODCALLTYPE IPyCOMTest_TakeByRefDispatch_Proxy( 
+    IPyCOMTest __RPC_FAR * This,
+    /* [out][in] */ IDispatch __RPC_FAR *__RPC_FAR *inout);
+
+
+void __RPC_STUB IPyCOMTest_TakeByRefDispatch_Stub(
     IRpcStubBuffer *This,
     IRpcChannelBuffer *_pRpcChannelBuffer,
     PRPC_MESSAGE _pRpcMessage,
@@ -1247,6 +1388,49 @@ HRESULT STDMETHODCALLTYPE IPyCOMTest_Fire_Proxy(
 
 
 void __RPC_STUB IPyCOMTest_Fire_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+HRESULT STDMETHODCALLTYPE IPyCOMTest_TestOptionals_Proxy( 
+    IPyCOMTest __RPC_FAR * This,
+    /* [defaultvalue][optional][in] */ BSTR strArg,
+    /* [defaultvalue][optional][in] */ short sval,
+    /* [defaultvalue][optional][in] */ long lval,
+    /* [defaultvalue][optional][in] */ double dval,
+    /* [retval][out] */ SAFEARRAY __RPC_FAR * __RPC_FAR *pret);
+
+
+void __RPC_STUB IPyCOMTest_TestOptionals_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+HRESULT STDMETHODCALLTYPE IPyCOMTest_TestOptionals2_Proxy( 
+    IPyCOMTest __RPC_FAR * This,
+    double dval,
+    /* [defaultvalue][optional] */ BSTR strval,
+    /* [defaultvalue][optional] */ short sval,
+    /* [retval][out] */ SAFEARRAY __RPC_FAR * __RPC_FAR *pret);
+
+
+void __RPC_STUB IPyCOMTest_TestOptionals2_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+HRESULT STDMETHODCALLTYPE IPyCOMTest_GetStruct_Proxy( 
+    IPyCOMTest __RPC_FAR * This,
+    /* [retval][out] */ TestStruct1 __RPC_FAR *ret);
+
+
+void __RPC_STUB IPyCOMTest_GetStruct_Stub(
     IRpcStubBuffer *This,
     IRpcChannelBuffer *_pRpcChannelBuffer,
     PRPC_MESSAGE _pRpcMessage,
@@ -1364,10 +1548,19 @@ EXTERN_C const IID IID_IPyCOMTest2;
             /* [in] */ TestAttributes2 inval,
             /* [retval][out] */ TestAttributes2 __RPC_FAR *retval);
         
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *Test5 )( 
+            IPyCOMTest2 __RPC_FAR * This,
+            /* [out][in] */ TestAttributes1 __RPC_FAR *inout);
+        
         HRESULT ( STDMETHODCALLTYPE __RPC_FAR *GetSetInterface )( 
             IPyCOMTest2 __RPC_FAR * This,
             /* [in] */ IPyCOMTest __RPC_FAR *ininterface,
             /* [retval][out] */ IPyCOMTest __RPC_FAR *__RPC_FAR *outinterface);
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *GetSetInterfaceArray )( 
+            IPyCOMTest2 __RPC_FAR * This,
+            /* [in] */ SAFEARRAY __RPC_FAR * ininterface,
+            /* [retval][out] */ SAFEARRAY __RPC_FAR * __RPC_FAR *outinterface);
         
         HRESULT ( STDMETHODCALLTYPE __RPC_FAR *GetMultipleInterfaces )( 
             IPyCOMTest2 __RPC_FAR * This,
@@ -1383,6 +1576,14 @@ EXTERN_C const IID IID_IPyCOMTest2;
             IPyCOMTest2 __RPC_FAR * This,
             /* [in] */ IUnknown __RPC_FAR *inunk,
             /* [retval][out] */ IUnknown __RPC_FAR *__RPC_FAR *outunk);
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *TakeByRefTypedDispatch )( 
+            IPyCOMTest2 __RPC_FAR * This,
+            /* [out][in] */ IPyCOMTest __RPC_FAR *__RPC_FAR *inout);
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *TakeByRefDispatch )( 
+            IPyCOMTest2 __RPC_FAR * This,
+            /* [out][in] */ IDispatch __RPC_FAR *__RPC_FAR *inout);
         
         HRESULT ( STDMETHODCALLTYPE __RPC_FAR *SetIntSafeArray )( 
             IPyCOMTest2 __RPC_FAR * This,
@@ -1419,6 +1620,25 @@ EXTERN_C const IID IID_IPyCOMTest2;
         HRESULT ( STDMETHODCALLTYPE __RPC_FAR *Fire )( 
             IPyCOMTest2 __RPC_FAR * This,
             /* [in] */ long nId);
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *TestOptionals )( 
+            IPyCOMTest2 __RPC_FAR * This,
+            /* [defaultvalue][optional][in] */ BSTR strArg,
+            /* [defaultvalue][optional][in] */ short sval,
+            /* [defaultvalue][optional][in] */ long lval,
+            /* [defaultvalue][optional][in] */ double dval,
+            /* [retval][out] */ SAFEARRAY __RPC_FAR * __RPC_FAR *pret);
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *TestOptionals2 )( 
+            IPyCOMTest2 __RPC_FAR * This,
+            double dval,
+            /* [defaultvalue][optional] */ BSTR strval,
+            /* [defaultvalue][optional] */ short sval,
+            /* [retval][out] */ SAFEARRAY __RPC_FAR * __RPC_FAR *pret);
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *GetStruct )( 
+            IPyCOMTest2 __RPC_FAR * This,
+            /* [retval][out] */ TestStruct1 __RPC_FAR *ret);
         
         HRESULT ( STDMETHODCALLTYPE __RPC_FAR *TestDerived )( 
             IPyCOMTest2 __RPC_FAR * This,
@@ -1482,8 +1702,14 @@ EXTERN_C const IID IID_IPyCOMTest2;
 #define IPyCOMTest2_Test4(This,inval,retval)	\
     (This)->lpVtbl -> Test4(This,inval,retval)
 
+#define IPyCOMTest2_Test5(This,inout)	\
+    (This)->lpVtbl -> Test5(This,inout)
+
 #define IPyCOMTest2_GetSetInterface(This,ininterface,outinterface)	\
     (This)->lpVtbl -> GetSetInterface(This,ininterface,outinterface)
+
+#define IPyCOMTest2_GetSetInterfaceArray(This,ininterface,outinterface)	\
+    (This)->lpVtbl -> GetSetInterfaceArray(This,ininterface,outinterface)
 
 #define IPyCOMTest2_GetMultipleInterfaces(This,outinterface1,outinterface2)	\
     (This)->lpVtbl -> GetMultipleInterfaces(This,outinterface1,outinterface2)
@@ -1493,6 +1719,12 @@ EXTERN_C const IID IID_IPyCOMTest2;
 
 #define IPyCOMTest2_GetSetUnknown(This,inunk,outunk)	\
     (This)->lpVtbl -> GetSetUnknown(This,inunk,outunk)
+
+#define IPyCOMTest2_TakeByRefTypedDispatch(This,inout)	\
+    (This)->lpVtbl -> TakeByRefTypedDispatch(This,inout)
+
+#define IPyCOMTest2_TakeByRefDispatch(This,inout)	\
+    (This)->lpVtbl -> TakeByRefDispatch(This,inout)
 
 #define IPyCOMTest2_SetIntSafeArray(This,ints,resultSize)	\
     (This)->lpVtbl -> SetIntSafeArray(This,ints,resultSize)
@@ -1517,6 +1749,15 @@ EXTERN_C const IID IID_IPyCOMTest2;
 
 #define IPyCOMTest2_Fire(This,nId)	\
     (This)->lpVtbl -> Fire(This,nId)
+
+#define IPyCOMTest2_TestOptionals(This,strArg,sval,lval,dval,pret)	\
+    (This)->lpVtbl -> TestOptionals(This,strArg,sval,lval,dval,pret)
+
+#define IPyCOMTest2_TestOptionals2(This,dval,strval,sval,pret)	\
+    (This)->lpVtbl -> TestOptionals2(This,dval,strval,sval,pret)
+
+#define IPyCOMTest2_GetStruct(This,ret)	\
+    (This)->lpVtbl -> GetStruct(This,ret)
 
 
 #define IPyCOMTest2_TestDerived(This,inval,retval)	\

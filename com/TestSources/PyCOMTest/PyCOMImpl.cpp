@@ -4,6 +4,7 @@
 #include "PyCOMTest.h"
 #include "PyCOMImpl.h"
 #include "SimpleCounter.h"
+#include "objbase.h"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -140,6 +141,11 @@ STDMETHODIMP CPyCOMTest::Test4(TestAttributes2 in,TestAttributes2* out)
 	return S_OK;
 }
 
+STDMETHODIMP CPyCOMTest::Test5(TestAttributes1 *inout)
+{
+	return S_OK;
+}
+
 STDMETHODIMP CPyCOMTest::GetSetInterface(IPyCOMTest *ininterface, IPyCOMTest **outinterface)
 {
 	if (outinterface==NULL) return E_POINTER;
@@ -147,6 +153,11 @@ STDMETHODIMP CPyCOMTest::GetSetInterface(IPyCOMTest *ininterface, IPyCOMTest **o
 	// Looks like I should definately AddRef() :-)
 	ininterface->AddRef();
 	return S_OK;
+}
+
+STDMETHODIMP CPyCOMTest::GetSetInterfaceArray(SAFEARRAY *pin, SAFEARRAY **pout)
+{
+	return E_NOTIMPL;
 }
 
 STDMETHODIMP CPyCOMTest::GetMultipleInterfaces(IPyCOMTest **outinterface1, IPyCOMTest **outinterface2)
@@ -171,6 +182,15 @@ STDMETHODIMP CPyCOMTest::GetSetUnknown(IUnknown *inunk, IUnknown **outunk)
 {
 	*outunk = inunk;
 	inunk->AddRef();
+	return S_OK;
+}
+
+STDMETHODIMP CPyCOMTest::TakeByRefTypedDispatch(IPyCOMTest **inout)
+{
+	return S_OK;
+}
+STDMETHODIMP CPyCOMTest::TakeByRefDispatch(IDispatch **inout)
+{
 	return S_OK;
 }
 
@@ -303,4 +323,56 @@ HRESULT CPyCOMTest::Fire(long nID)
 	}
 	Unlock();
 	return hr;
+}
+
+HRESULT CPyCOMTest::TestOptionals(BSTR strArg, short sarg, long larg, double darg, SAFEARRAY **pRet) 
+{
+	HRESULT hr = S_OK;
+	SAFEARRAY *psa;
+	SAFEARRAYBOUND rgsabound[1] = { 4, 0 };
+	psa = SafeArrayCreate(VT_VARIANT, 1, rgsabound);
+	CComVariant v(strArg);
+	long ix[1];
+	ix[0] = 0;
+	SafeArrayPutElement(psa, ix, &v);
+	v = sarg;
+	ix[0] = 1;
+	SafeArrayPutElement(psa, ix, &v);
+	v = larg;
+	ix[0] = 2;
+	SafeArrayPutElement(psa, ix, &v);
+	v = darg;
+	ix[0] = 3;
+	SafeArrayPutElement(psa, ix, &v);
+	*pRet = psa;
+	return hr;
+}
+
+HRESULT CPyCOMTest::TestOptionals2(double dval, BSTR strval, short sval, SAFEARRAY **pRet)
+{
+	HRESULT hr = S_OK;
+	SAFEARRAY *psa;
+	SAFEARRAYBOUND rgsabound[1] = { 3, 0 };
+	psa = SafeArrayCreate(VT_VARIANT, 1, rgsabound);
+	long ix[1];
+	CComVariant v(dval);
+	ix[0] = 0;
+	SafeArrayPutElement(psa, ix, &v);
+	v = strval;
+	ix[0] = 1;
+	SafeArrayPutElement(psa, ix, &v);
+	v = sval;
+	ix[0] = 2;
+	SafeArrayPutElement(psa, ix, &v);
+	*pRet = psa;
+	return hr;
+}
+
+HRESULT CPyCOMTest::GetStruct(TestStruct1 *ret)
+{
+	TestStruct1 r;
+	r.int_value = 99;
+	r.str_value = SysAllocString(L"Hello from C++");
+	*ret = r;
+	return S_OK;
 }
