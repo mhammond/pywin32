@@ -12,6 +12,9 @@ NeedUnicodeConversions = not hasattr(__builtin__, "unicode")
 import dynamic, gencache, pythoncom
 import sys
 import pywintypes
+from types import TupleType
+from pywintypes import UnicodeType
+_PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 
 
 def __WrapDispatch(dispatch, userName = None, resultCLSID = None, typeinfo = None, \
@@ -118,6 +121,39 @@ class CDispatch(dynamic.CDispatch):
   """
   def _wrap_dispatch_(self, ob, userName = None, returnCLSID = None, UnicodeToString = NeedUnicodeConversions):
     return Dispatch(ob, userName, returnCLSID,None,UnicodeToString)
+
+def CastTo(ob, target):
+    """'Cast' a COM object to another interface"""
+    # todo - should support target being an IID
+    if hasattr(target, "index"): # string like
+    # for now, we assume makepy for this to work.
+        if not ob.__class__.__dict__.has_key("CLSID"):
+            # Eeek - no makepy support - try and build it.
+            ob = gencache.EnsureDispatch(ob)
+        if not ob.__class__.__dict__.has_key("CLSID"):
+            raise ValueError, "Must be a makepy-able object for this to work"
+        clsid = ob.CLSID
+        # Lots of hoops to support "demand-build" - ie, generating
+        # code for an interface first time it is used.  We assume the
+        # interface name exists in the same library as the object.
+        # This is generally the case - only referenced typelibs may be
+        # a problem, and we can handle that later.  Maybe <wink>
+        # So get the generated module for the library itself, then
+        # find the interface CLSID there.
+        mod = gencache.GetModuleForCLSID(clsid)
+        # Get the 'root' module.
+        mod = gencache.GetModuleForTypelib(mod.CLSID, mod.LCID,
+                                           mod.MajorVersion, mod.MinorVersion)
+        # Find the CLSID of the target
+        target_clsid = mod.NamesToIIDMap.get(target)
+        if target_clsid is None:
+            raise ValueError, "The interface name '%s' does not appear in the " \
+                              "same library as object '%r'" % (target, ob)
+        mod = gencache.GetModuleForCLSID(target_clsid)
+        target_class = getattr(mod, target)
+        # resolve coclass to interface
+        target_class = getattr(target_class, "default_interface", target_class)
+        return target_class(ob) # auto QI magic happens
 
 class Constants:
   """A container for generated COM constants.
@@ -288,10 +324,7 @@ def getevents(clsid):
       except AttributeError:
         return None
 
-############################################
-# The base of all makepy generated classes
-############################################
-
+# A Record object, as used by the COM struct support
 def Record(name, object):
   """Creates a new record object, given the name of the record,
   and an object from the same type library.
@@ -321,11 +354,9 @@ def Record(name, object):
   return pythoncom.GetRecordFromGuids(module.CLSID, module.MajorVersion, module.MinorVersion, module.LCID, struct_guid)
 
 
-_PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
-from types import TupleType
-from pywintypes import UnicodeType
-
-
+############################################
+# The base of all makepy generated classes
+############################################
 class DispatchBaseClass:
 	def __init__(self, oobj=None):
 		if oobj is None:
@@ -353,7 +384,7 @@ class DispatchBaseClass:
 				mod_name = sys.modules[self.__class__.__module__].__name__
 		except KeyError:
 		  mod_name = "win32com.gen_py.unknown"
-		return "<%s.%s>" % (mod_name, self.__class__.__name__)
+		return "<%s.%s instance at 0x%s>" % (mod_name, self.__class__.__name__, id(self))
 	# Delegate comparison to the oleobjs, as they know how to do identity.
 	def __cmp__(self, other):
 		other = getattr(other, "_oleobj_", other)
