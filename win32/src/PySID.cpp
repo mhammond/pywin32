@@ -25,7 +25,7 @@ PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args)
 			// @pyparmalt2 [int, ...]|subAuthorities||A list of sub authorities.
 			SID_IDENTIFIER_AUTHORITY sid_ia;
 			PyObject *obSubs;
-			if (!PyArg_ParseTuple(args, "(bbbbbb)O:Initialize", 
+			if (!PyArg_ParseTuple(args, "(bbbbbb)O:SID", 
 				&sid_ia.Value[0], &sid_ia.Value[1],&sid_ia.Value[2],
 				&sid_ia.Value[3],&sid_ia.Value[4],&sid_ia.Value[5],
 				&obSubs))
