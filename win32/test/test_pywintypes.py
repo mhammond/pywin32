@@ -21,6 +21,14 @@ class TestCase(unittest.TestCase):
         except ValueError:
             return
 
+    def testGUID(self):
+        s = "{00020400-0000-0000-C000-000000000046}"
+        iid = pywintypes.IID(s)
+        iid2 = pywintypes.IID(buffer(iid), True)
+        self.assertEquals(iid, iid2)
+        self.assertRaises(ValueError, pywintypes.IID, '00', True) # too short
+        self.assertRaises(TypeError, pywintypes.IID, 0, True) # no buffer
+
 if __name__ == '__main__':
     unittest.main()
 
