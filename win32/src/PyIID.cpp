@@ -37,6 +37,7 @@ PyObject *PyWinMethod_NewIID(PyObject *self, PyObject *args)
 		}
 #endif
 	}
+	PyWinObject_FreeBstr(bstrIID);
 	/* iid -> PyObject */
 	return PyWinObject_FromIID(iid);
 }
