@@ -1,8 +1,10 @@
 # No cancel button.
 
-from pywin.mfc import dialog
+from pywin.mfc import dialog, thread
+import threading
 import win32ui
 import win32con
+import win32api
 
 def MakeProgressDlgTemplate(caption, staticText = ""):
     style = (win32con.DS_MODALFRAME |
@@ -69,26 +71,120 @@ class CStatusProgressDialog(dialog.Dialog):
 	def Tick(self):
 		if self.pbar is not None:
 			self.pbar.StepIt()
-			win32ui.PumpWaitingMessages(0, -1)
 
 	def SetTitle(self, text):
 		self.SetWindowText(text)
-			
+
 	def SetText(self, text):
 		self.SetDlgItemText(1000, text)
-      
+
 	def Set(self, pos, max = None):
 		if self.pbar is not None:
 			self.pbar.SetPos(pos)
-			win32ui.PumpWaitingMessages(0, -1)
 			if max is not None:
 				self.pbar.SetRange(0, max)
+
+# a progress dialog created in a new thread - especially suitable for
+# console apps with no message loop.
+MYWM_SETTITLE = win32con.WM_USER+10
+MYWM_SETMSG = win32con.WM_USER+11
+MYWM_TICK = win32con.WM_USER+12
+MYWM_SETMAXTICKS = win32con.WM_USER+13
+MYWM_SET = win32con.WM_USER+14
+
+class CThreadedStatusProcessDialog(CStatusProgressDialog):
+	def __init__(self, title, msg = "", maxticks = 100, tickincr = 1):
+		self.title = title
+		self.msg = msg
+		self.threadid = win32api.GetCurrentThreadId()
+		CStatusProgressDialog.__init__(self, title, msg, maxticks, tickincr)
+
+	def OnInitDialog(self):
+		rc = CStatusProgressDialog.OnInitDialog(self)
+		self.HookMessage(self.OnTitle, MYWM_SETTITLE)
+		self.HookMessage(self.OnMsg, MYWM_SETMSG)
+		self.HookMessage(self.OnTick, MYWM_TICK)
+		self.HookMessage(self.OnMaxTicks, MYWM_SETMAXTICKS)
+		self.HookMessage(self.OnSet, MYWM_SET)
+		return rc
+
+	def _Send(self, msg):
+		try:
+			self.PostMessage(msg)
+		except win32ui.error:
+			# the user closed the window - but this does not cancel the
+			# process - so just ignore it.
+			pass
+
+	def OnTitle(self, msg):
+		CStatusProgressDialog.SetTitle(self, self.title)
+
+	def OnMsg(self, msg):
+		CStatusProgressDialog.SetText(self, self.msg)
+
+	def OnTick(self, msg):
+		CStatusProgressDialog.Tick(self)
+
+	def OnMaxTicks(self, msg):
+		CStatusProgressDialog.SetMaxTicks(self, self.maxticks)
+
+	def OnSet(self, msg):
+		CStatusProgressDialog.Set(self, self.pos, self.max)
+
+	def Close(self):
+		assert self.threadid, "No thread!"
+		win32api.PostThreadMessage(self.threadid, win32con.WM_QUIT, 0, 0)
+
+	def SetMaxTicks(self, maxticks):
+		self.maxticks = maxticks
+		self._Send(MYWM_SETMAXTICKS)
+	def SetTitle(self, title):
+		self.title = title
+		self._Send(MYWM_SETTITLE)
+	def SetText(self, text):
+		self.msg = text
+		self._Send(MYWM_SETMSG)
+	def Tick(self):
+		self._Send(MYWM_TICK)
+	def Set(self, pos, max = None):
+		self.pos = pos
+		self.max = max
+		self._Send(MYWM_SET)
+
+class ProgressThread(thread.WinThread):
+	def __init__(self,  title, msg = "", maxticks = 100, tickincr = 1):
+		self.title = title
+		self.msg = msg
+		self.maxticks = maxticks
+		self.tickincr = tickincr
+		self.dialog = None
+		thread.WinThread.__init__(self)
+		self.createdEvent = threading.Event()
+
+	def InitInstance(self):
+		self.dialog = CThreadedStatusProcessDialog( self.title, self.msg, self.maxticks, self.tickincr)
+		self.dialog.CreateWindow()
+		try:
+			self.dialog.SetForegroundWindow()
+		except win32ui.error:
+			pass
+		self.createdEvent.set()
+		return thread.WinThread.InitInstance(self)
+
+	def ExitInstance(self):
+		return 0
 
 
 def StatusProgressDialog(title, msg = "", maxticks = 100, parent = None):
 	d = CStatusProgressDialog (title, msg, maxticks)
 	d.CreateWindow (parent)
 	return d
+
+def ThreadedStatusProgressDialog(title, msg = "", maxticks = 100):
+	t = ProgressThread(title, msg, maxticks)
+	t.CreateThread()
+	t.createdEvent.wait(10) # timeout if things go terribly wrong.
+	return t.dialog
 
 def demo():
 	d = StatusProgressDialog("A Demo", "Doing something...")
@@ -101,6 +197,19 @@ def demo():
 		win32api.Sleep(20)
 		d.Tick()
 	d.Close()
-	
+
+def thread_demo():
+	d = ThreadedStatusProgressDialog("A threaded demo", "Doing something")
+	import win32api
+	for i in range(100):
+		if i == 50:
+			d.SetText("Getting there...")
+		if i==90:
+			d.SetText("Nearly done...")
+		win32api.Sleep(20)
+		d.Tick()
+	d.Close()
+
 if __name__=='__main__':
-	demo()
+	thread_demo()
+	#demo()
