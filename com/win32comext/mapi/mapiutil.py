@@ -91,7 +91,7 @@ def SetProperties( msg, propDict):
 	# First pass over the properties we should get IDs for.
 	for key, val in propDict.items():
 		if type(key) in [StringType, UnicodeType]:
-			newProps.append(mapi.PS_PUBLIC_STRINGS, key)
+			newProps.append((mapi.PS_PUBLIC_STRINGS, key))
 	# Query for the new IDs
 	if newProps: newIds = msg.GetIDsFromNames(newProps, mapi.MAPI_CREATE)
 	newIdNo = 0
@@ -109,6 +109,6 @@ def SetProperties( msg, propDict):
 				raise ValueError, "The type of object %s(%s) can not be written" % (`val`,type_val)
 			key = mapitags.PROP_TAG(tagType, mapitags.PROP_ID(newIds[newIdNo]))
 			newIdNo = newIdNo + 1
-		newProps.append( key, val)
+		newProps.append( (key, val) )
 	msg.SetProps(newProps)
 
