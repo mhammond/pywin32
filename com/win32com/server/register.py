@@ -88,7 +88,10 @@ def _cat_registrar():
 def _find_localserver_exe(mustfind):
   # First a concession for freeze...
   if pythoncom.frozen: return win32api.GetShortPathName(sys.executable)
-  exeBaseName = "pythonw.exe"
+  if pythoncom.__file__.find("_d") < 0:
+    exeBaseName = "pythonw.exe"
+  else:
+    exeBaseName = "pythonw_d.exe"
   # First see if in the same directory as this .EXE
   exeName = os.path.join( os.path.split(sys.executable)[0], exeBaseName )
   try:
