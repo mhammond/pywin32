@@ -7,11 +7,12 @@ b="Hello"
 
 <SCRIPT LANGUAGE="Python">
 import win32traceutil
+import sys
 print "Hello"
 a="Hi there"
 print "Location is", document.location
 document.write("Hello", " from version ", 2, " of the Python AXScript Engine","<P>")
-document.writeln("Hello again")
+document.writeln("This is Python", sys.version)
 
 </SCRIPT>
 
@@ -33,7 +34,7 @@ print "Hello from in the form"
    <INPUT NAME="Button3" TYPE="Button" VALUE="Click for URL" OnClick="MyForm.Text2.value=document.location" LANGUAGE="Python">
    <INPUT TYPE="TEXT" SIZE=25 NAME="Text2">
    <INPUT NAME="Button4" TYPE="Button" VALUE="Call global fn" OnClick="foo1()" LANGUAGE="Python">
-   <INPUT_NAME="Button5" TYPE="Button" VALUE="Script for... Test">
+   <INPUT NAME="Button5" TYPE="Button" VALUE="Script for... Test">
 <script for="Button5" event="onClick" language="Python">
 print "HelloThere";
 window.alert("Hello")
@@ -55,7 +56,22 @@ And here is a second form
    <INPUT NAME="ButRExec" TYPE="Button" VALUE="RExec fail" OnClick="import win32api;win32api.MessageBox(0,'Oops')" LANGUAGE="Python">
    <INPUT NAME="ButRExec2" TYPE="Button" VALUE="RExec fail 2" OnClick="import sys,win32traceutil;print sys.modules;from win32com.client import dynamic;import win32com.client.dynamic, pythoncom, win32com.client;o=win32com.client.Dispatch('Word.Application')" LANGUAGE="Python">
    <INPUT NAME="ButVB" TYPE="Button" VALUE="VBScript Button" OnClick='alert("Hi from VBScript")'>
+   <INPUT NAME="ButCallChain" TYPE="Button" VALUE="Multi-Language call" OnClick='CallPython()'>
 </FORM><BR>
+
+<SCRIPT LANGUAGE="VBScript">
+function CallPython()
+	alert("Hello from VB - Im about to call Python!")
+	PythonGlobalFunction()
+end function
+</SCRIPT>
+
+<SCRIPT LANGUAGE="JScript">
+function JScriptFunction()
+{
+  alert("Hello from JScript");
+}
+</SCRIPT>
 
 <SCRIPT LANGUAGE="Python">
 x=13
@@ -67,10 +83,18 @@ def foo1():
    alert ("Hello from AXCode")
    print "Y is ",y
 
+def PythonGlobalFunction():
+	window.alert("Hello from Python - Im about to call JScript!")
+	window.JScriptFunction()
+
 def Window_OnLoad():
 	print "X is", x
 	print "a is", a
-	print "MyForm is", `MyForm`
+#	print "------ GLOBALS ----------"
+#	for n,v in globals().items():
+#		print n,'=',v
+	print "MyForm is", MyForm
+	print "MyForm is repr", `MyForm`
 	print "MyForm.Button1 is", `MyForm.Button1`
 	MyForm.Button1.Value = "Python Rules!"
 	Form2.Button1.value = "Form2!"
