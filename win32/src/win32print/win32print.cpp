@@ -19,20 +19,28 @@ generates Windows .hlp files.
 #include "PyWinObjects.h"
 #include <stdarg.h>
 
+#define CHECK_PFN(fname)if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);
+
 typedef BOOL (WINAPI *EnumFormsfunc)(HANDLE,DWORD,LPBYTE,DWORD,LPDWORD,LPDWORD);
-static EnumFormsfunc enumforms=NULL;
+static EnumFormsfunc pfnEnumForms=NULL;
 typedef BOOL (WINAPI *AddFormfunc)(HANDLE,DWORD,LPBYTE);
-static AddFormfunc addform=NULL;
+static AddFormfunc pfnAddForm=NULL;
 typedef BOOL (WINAPI *DeleteFormfunc)(HANDLE, LPWSTR);
-static DeleteFormfunc deleteform=NULL;
+static DeleteFormfunc pfnDeleteForm=NULL;
 typedef BOOL (WINAPI *GetFormfunc)(HANDLE,LPWSTR,DWORD,LPBYTE,DWORD,LPDWORD);
-static GetFormfunc getform=NULL;
+static GetFormfunc pfnGetForm=NULL;
 typedef BOOL (WINAPI *SetFormfunc)(HANDLE, LPWSTR, DWORD, LPBYTE);
-static SetFormfunc setform=NULL;
+static SetFormfunc pfnSetForm=NULL;
 typedef BOOL (WINAPI *AddJobfunc)(HANDLE,DWORD,LPBYTE,DWORD,LPDWORD);
-static AddJobfunc addjob=NULL;
+static AddJobfunc pfnAddJob=NULL;
 typedef BOOL (WINAPI *ScheduleJobfunc)(HANDLE, DWORD);
-static ScheduleJobfunc schedulejob=NULL;
+static ScheduleJobfunc pfnScheduleJob=NULL;
+typedef BOOL (WINAPI * EnumPortsfunc)(LPWSTR,DWORD,LPBYTE,DWORD,LPDWORD,LPDWORD);
+static EnumPortsfunc pfnEnumPorts=NULL;
+static EnumPortsfunc pfnEnumMonitors=NULL; // same args as EnumPorts
+typedef BOOL (WINAPI *GetPrintProcessorDirectoryfunc)(LPWSTR,LPWSTR,DWORD,LPBYTE,DWORD,LPDWORD);
+static GetPrintProcessorDirectoryfunc pfnGetPrintProcessorDirectory=NULL;
+static GetPrintProcessorDirectoryfunc pfnGetPrinterDriverDirectory=NULL;  // same as GetPrintProcessorDirectory
 
 static PyObject *dummy_tuple=NULL;
 
@@ -1008,6 +1016,8 @@ BOOL PytoJob(DWORD level, PyObject *pyjobinfo, LPBYTE *pbuf)
 
 
 // @pymethod None|win32print|SetJob|Pause, cancel, resume, set priority levels on a print job.
+// @comm If printer is not opened with at least PRINTER_ACCESS_ADMINISTER access, 'Position' member of
+// JOB_INFO_1 and JOB_INFO_2 must be set to JOB_POSITION_UNSPECIFIED
 static PyObject *PySetJob(PyObject *self, PyObject *args)
 {
 	HANDLE hprinter;
@@ -1393,13 +1403,11 @@ static PyObject *PyEnumForms(PyObject *self, PyObject *args)
 	DWORD level=1, bufsize=0, bytes_needed=0, return_cnt, buf_ind;
 	FORM_INFO_1W *fi1;
 	LPBYTE buf=NULL;
-	if (enumforms==NULL){
-		PyErr_SetString(PyExc_NotImplementedError,"EnumForms does not exist on this version of Windows");
-		return NULL;
-		}
+	CHECK_PFN(EnumForms);
+
 	if (!PyArg_ParseTuple(args,"l:EnumForms",&hprinter))
 		return NULL;
-	(*enumforms)(hprinter, level, buf, bufsize, &bytes_needed, &return_cnt);
+	(*pfnEnumForms)(hprinter, level, buf, bufsize, &bytes_needed, &return_cnt);
 	if (bytes_needed==0){
 		PyWin_SetAPIError("EnumForms");
 		goto done;
@@ -1410,8 +1418,8 @@ static PyObject *PyEnumForms(PyObject *self, PyObject *args)
 		goto done;
 		}
 	bufsize=bytes_needed;
-	if (!(*enumforms)(hprinter, level, buf, bufsize, &bytes_needed, &return_cnt)){
-		PyWin_SetAPIError("EnumPrintProcessors");
+	if (!(*pfnEnumForms)(hprinter, level, buf, bufsize, &bytes_needed, &return_cnt)){
+		PyWin_SetAPIError("EnumForms");
 		goto done;
 		}
 	ret=PyTuple_New(return_cnt);
@@ -1494,13 +1502,11 @@ static PyObject *PyAddForm(PyObject *self, PyObject *args)
 	// @rdesc Returns None on success, throws an exception otherwise
 	FORM_INFO_1W fi1;
 	HANDLE hprinter;
-	if (addform==NULL){
-		PyErr_SetString(PyExc_NotImplementedError,"AddForm does not exist on this version of Windows");
-		return NULL;
-		}
+	CHECK_PFN(AddForm);
+
 	if (!PyArg_ParseTuple(args, "lO&:AddForm", &hprinter, PyWinObject_AsFORM_INFO_1, &fi1))
 		return NULL;
-	if (!(*addform)(hprinter, 1, (LPBYTE)&fi1))
+	if (!(*pfnAddForm)(hprinter, 1, (LPBYTE)&fi1))
 		return PyWin_SetAPIError("AddForm");
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -1514,14 +1520,11 @@ static PyObject *PyDeleteForm(PyObject *self, PyObject *args)
 	// @rdesc Returns None on success, throws an exception otherwise
 	HANDLE hprinter;
 	WCHAR *formname;
-	if (deleteform==NULL){
-		PyErr_SetString(PyExc_NotImplementedError,"DeleteForm does not exist on this version of Windows");
-		return NULL;
-		}
+	CHECK_PFN(DeleteForm);
 
 	if (!PyArg_ParseTuple(args, "lu:DeleteForm", &hprinter, &formname))
 		return NULL;
-	if (!(*deleteform)(hprinter, formname))
+	if (!(*pfnDeleteForm)(hprinter, formname))
 		return PyWin_SetAPIError("DeleteForm");
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -1538,21 +1541,18 @@ static PyObject *PyGetForm(PyObject *self, PyObject *args)
 	FORM_INFO_1W *fi1=NULL;
 	LPBYTE buf=NULL;
 	PyObject *ret=NULL;
+	CHECK_PFN(GetForm);
 
-	if (getform==NULL){
-		PyErr_SetString(PyExc_NotImplementedError,"GetForm does not exist on this version of Windows");
-		return NULL;
-		}
 	if (!PyArg_ParseTuple(args,"lu:GetForm", &hprinter, &formname))
 		return NULL;
-	(*getform)(hprinter, formname, level, buf, bufsize, &bytes_needed);
+	(*pfnGetForm)(hprinter, formname, level, buf, bufsize, &bytes_needed);
 	if (bytes_needed==0)
 		return PyWin_SetAPIError("GetForm");
 	buf=(LPBYTE)malloc(bytes_needed);
 	if (buf==NULL)
 		return PyErr_Format(PyExc_MemoryError,"GetForm: Unable to allocate %d bytes",bytes_needed);
 	bufsize=bytes_needed;
-	if (!(*getform)(hprinter, formname, level, buf, bufsize, &bytes_needed))
+	if (!(*pfnGetForm)(hprinter, formname, level, buf, bufsize, &bytes_needed))
 		PyWin_SetAPIError("GetForm");
 	else{
 		fi1=(FORM_INFO_1W *)buf;
@@ -1572,13 +1572,11 @@ static PyObject *PySetForm(PyObject *self, PyObject *args)
 	FORM_INFO_1W fi1;
 	HANDLE hprinter;
 	WCHAR *formname;
-	if (setform==NULL){
-		PyErr_SetString(PyExc_NotImplementedError,"SetForm does not exist on this version of Windows");
-		return NULL;
-		}
+	CHECK_PFN(SetForm);
+
 	if (!PyArg_ParseTuple(args, "luO&:SetForm", &hprinter, &formname, PyWinObject_AsFORM_INFO_1, &fi1))
 		return NULL;
-	if (!(*setform)(hprinter, formname, 1, (LPBYTE)&fi1))
+	if (!(*pfnSetForm)(hprinter, formname, 1, (LPBYTE)&fi1))
 		return PyWin_SetAPIError("SetForm");
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -1594,10 +1592,7 @@ static PyObject *PyAddJob(PyObject *self, PyObject *args)
 	LPBYTE buf=NULL;
 	PyObject *ret=NULL;
 	BOOL bsuccess;
-	if (addjob==NULL){
-		PyErr_SetString(PyExc_NotImplementedError,"AddJob does not exist on this version of Windows");
-		return NULL;
-		}
+	CHECK_PFN(AddJob);
 
 	if (!PyArg_ParseTuple(args,"l:AddJob", &hprinter))
 		return NULL;
@@ -1605,7 +1600,7 @@ static PyObject *PyAddJob(PyObject *self, PyObject *args)
 	buf=(LPBYTE)malloc(bufsize);
 	if (buf==NULL)
 		return PyErr_Format(PyExc_MemoryError,"AddJob: unable to allocate %d bytes",bufsize);
-	bsuccess=(*addjob)(hprinter, level, buf, bufsize, &bytes_needed);
+	bsuccess=(*pfnAddJob)(hprinter, level, buf, bufsize, &bytes_needed);
 	if (!bsuccess)
 		if (bytes_needed > bufsize){
 			free(buf);
@@ -1613,7 +1608,7 @@ static PyObject *PyAddJob(PyObject *self, PyObject *args)
 			if (buf==NULL)
 				return PyErr_Format(PyExc_MemoryError,"AddJob: unable to allocate %d bytes",bytes_needed);
 			bufsize=bytes_needed;
-			bsuccess=(*addjob)(hprinter, level, buf, bufsize, &bytes_needed);
+			bsuccess=(*pfnAddJob)(hprinter, level, buf, bufsize, &bytes_needed);
 			}
 	if (!bsuccess)
 		PyWin_SetAPIError("AddJob");
@@ -1631,14 +1626,11 @@ static PyObject *PyScheduleJob(PyObject *self, PyObject *args)
 	// @pyparm int|JobId||Job Id as returned by <om win32print.AddJob>
 	HANDLE hprinter;
 	DWORD jobid;
-	if (schedulejob==NULL){
-		PyErr_SetString(PyExc_NotImplementedError,"ScheduleJob does not exist on this version of Windows");
-		return NULL;
-		}
+	CHECK_PFN(ScheduleJob);
 
 	if (!PyArg_ParseTuple(args,"ll:ScheduleJob", &hprinter, &jobid))
 		return NULL;
-	if (!(*schedulejob)(hprinter, jobid)){
+	if (!(*pfnScheduleJob)(hprinter, jobid)){
 		PyWin_SetAPIError("ScheduleJob");
 		return NULL;
 		}
@@ -1888,6 +1880,295 @@ static PyObject *PyDeviceCapabilities(PyObject *self, PyObject *args)
 	return ret;
 }
 
+// @pymethod (dict,...)|win32print|EnumMonitors|Lists installed printer port monitors
+static PyObject *PyEnumMonitors(PyObject *self, PyObject *args)
+{
+	// @pyparm str/<o PyUnicode>|Name||Name of server, use None for local machine
+	// @pyparm int|Level||Level of information to return, 1 and 2 supported
+	// @rdesc Returns a sequence of dicts representing MONITOR_INFO_* structures depending on level
+	PyObject *ret=NULL, *tuple_item, *observer_name;
+	WCHAR *server_name=NULL;
+	DWORD level, bufsize=0, bytes_needed=0, return_cnt, buf_ind;
+	LPBYTE buf=NULL;
+	CHECK_PFN(EnumMonitors);
+
+	if (!PyArg_ParseTuple(args,"Ol:EnumMonitors", &observer_name, &level))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(observer_name, &server_name, TRUE))
+		return NULL;
+	(*pfnEnumMonitors)(server_name, level, buf, bufsize, &bytes_needed, &return_cnt);
+	if (bytes_needed==0){
+		PyWin_SetAPIError("EnumMonitors");
+		goto done;
+		}
+	buf=(LPBYTE)malloc(bytes_needed);
+	if (buf==NULL){
+		PyErr_Format(PyExc_MemoryError,"EnumMonitors: unable to allocate buffer of size %d", bytes_needed);
+		goto done;
+		}
+	bufsize=bytes_needed;
+	if (!(*pfnEnumMonitors)(server_name, level, buf, bufsize, &bytes_needed, &return_cnt)){
+		PyWin_SetAPIError("EnumMonitors");
+		goto done;
+		}
+	ret=PyTuple_New(return_cnt);
+	if (ret==NULL)
+		goto done;
+	switch (level){
+		case 1:{
+			MONITOR_INFO_1W *mi1;
+			mi1=(MONITOR_INFO_1W *)buf;
+			for (buf_ind=0; buf_ind<return_cnt; buf_ind++){
+				tuple_item=Py_BuildValue("{s:u}","Name",mi1->pName);
+				if (tuple_item==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SetItem(ret,buf_ind,tuple_item);
+				mi1++;
+				}
+			break;
+			}
+		case 2:{
+			MONITOR_INFO_2W *mi2;
+			mi2=(MONITOR_INFO_2W *)buf;
+			for (buf_ind=0; buf_ind<return_cnt; buf_ind++){
+				tuple_item=Py_BuildValue("{s:u,s:u,s:u}", "Name",mi2->pName,
+					"Environment",mi2->pEnvironment, "DLLName",mi2->pDLLName);
+				if (tuple_item==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SetItem(ret,buf_ind,tuple_item);
+				mi2++;
+				}
+			break;
+			}
+		default:
+			PyErr_Format(PyExc_NotImplementedError,"EnumMonitors: Level %d is not supported", level);
+		}
+done:
+	if (server_name!=NULL)
+		PyWinObject_FreeWCHAR(server_name);
+	if (buf!=NULL)
+		free(buf);
+	return ret;
+}
+
+// @pymethod (dict,...)|win32print|EnumPorts|Lists printer port on a server
+static PyObject *PyEnumPorts(PyObject *self, PyObject *args)
+{
+	// @pyparm str/<o PyUnicode>|Name||Name of server, use None for local machine
+	// @pyparm int|Level||Level of information to return, 1 and 2 supported
+	// @rdesc Returns a sequence of dicts representing PORT_INFO_* structures depending on level
+	PyObject *ret=NULL, *tuple_item, *observer_name;
+	WCHAR *server_name=NULL;
+	DWORD level, bufsize=0, bytes_needed=0, return_cnt, buf_ind;
+	LPBYTE buf=NULL;
+	CHECK_PFN(EnumPorts);
+
+	if (!PyArg_ParseTuple(args,"Ol:EnumPorts", &observer_name, &level))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(observer_name, &server_name, TRUE))
+		return NULL;
+	(*pfnEnumPorts)(server_name, level, buf, bufsize, &bytes_needed, &return_cnt);
+	if (bytes_needed==0){
+		PyWin_SetAPIError("EnumPorts");
+		goto done;
+		}
+	buf=(LPBYTE)malloc(bytes_needed);
+	if (buf==NULL){
+		PyErr_Format(PyExc_MemoryError,"EnumPorts: unable to allocate buffer of size %d", bytes_needed);
+		goto done;
+		}
+	bufsize=bytes_needed;
+	if (!(*pfnEnumPorts)(server_name, level, buf, bufsize, &bytes_needed, &return_cnt)){
+		PyWin_SetAPIError("EnumPorts");
+		goto done;
+		}
+	ret=PyTuple_New(return_cnt);
+	if (ret==NULL)
+		goto done;
+	switch (level){
+		case 1:{
+			PORT_INFO_1W *pi1;
+			pi1=(PORT_INFO_1W *)buf;
+			for (buf_ind=0; buf_ind<return_cnt; buf_ind++){
+				tuple_item=Py_BuildValue("{s:u}","Name",pi1->pName);
+				if (tuple_item==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SetItem(ret,buf_ind,tuple_item);
+				pi1++;
+				}
+			break;
+			}
+		case 2:{
+			PORT_INFO_2W *pi2;
+			pi2=(PORT_INFO_2W *)buf;
+			for (buf_ind=0; buf_ind<return_cnt; buf_ind++){
+				tuple_item=Py_BuildValue("{s:u,s:u,s:u,s:l,s:l}", "Name",pi2->pPortName,
+					"MonitorName",pi2->pMonitorName, "Description",pi2->pDescription,
+					"PortType",pi2->fPortType, "Reserved",pi2->Reserved);
+				if (tuple_item==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SetItem(ret,buf_ind,tuple_item);
+				pi2++;
+				}
+			break;
+			}
+		default:
+			PyErr_Format(PyExc_NotImplementedError,"EnumPorts: Level %d is not supported", level);
+		}
+done:
+	if (server_name!=NULL)
+		PyWinObject_FreeWCHAR(server_name);
+	if (buf!=NULL)
+		free(buf);
+	return ret;
+}
+
+// @pymethod <o PyUnicode>|win32print|GetPrintProcessorDirectory|Returns the directory where print processor files reside
+static PyObject *PyGetPrintProcessorDirectory(PyObject *self, PyObject *args)
+{
+	// @pyparm str/<o PyUnicode>|Name||Name of server, use None for local machine
+	// @pyparm str/<o PyUnicode>|Environment||Environment - eg 'Windows NT x86' - use None for current client environment
+	PyObject *ret=NULL, *observer_name=Py_None, *obenvironment=Py_None;
+	WCHAR *server_name=NULL, *environment=NULL;
+	DWORD level=1, bufsize=0, bytes_needed=0, bytes_returned=0;
+	LPBYTE buf=NULL;
+	CHECK_PFN(GetPrintProcessorDirectory);
+
+	if (!PyArg_ParseTuple(args,"|OO:GetPrintProcessorDirectory", &observer_name, &obenvironment))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(observer_name, &server_name, TRUE))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obenvironment, &environment, TRUE))
+		return NULL;
+
+	(*pfnGetPrintProcessorDirectory)(server_name, environment, level, buf, bufsize, &bytes_needed);
+	if (bytes_needed==0){
+		PyWin_SetAPIError("GetPrintProcessorDirectory");
+		goto done;
+		}
+	buf=(LPBYTE)malloc(bytes_needed);
+	if (buf==NULL){
+		PyErr_Format(PyExc_MemoryError,"GetPrintProcessorDirectory: unable to allocate buffer of size %d", bytes_needed);
+		goto done;
+		}
+	bufsize=bytes_needed;
+	if (!(*pfnGetPrintProcessorDirectory)(server_name, environment, level, buf, bufsize, &bytes_needed))
+		PyWin_SetAPIError("GetPrintProcessorDirectory");
+	else
+		ret=PyWinObject_FromWCHAR((WCHAR *)buf);
+done:
+	if (server_name!=NULL)
+		PyWinObject_FreeWCHAR(server_name);
+	if (environment!=NULL)
+		PyWinObject_FreeWCHAR(environment);
+	if (buf!=NULL)
+		free(buf);
+	return ret;
+}
+
+// @pymethod <o PyUnicode>|win32print|GetPrinterDriverDirectory|Returns the directory where printer drivers are installed
+static PyObject *PyGetPrinterDriverDirectory(PyObject *self, PyObject *args)
+{
+	// @pyparm str/<o PyUnicode>|Name||Name of server, use None for local machine
+	// @pyparm str/<o PyUnicode>|Environment||Environment - eg 'Windows NT x86' - use None for current client environment
+	PyObject *ret=NULL, *observer_name=Py_None, *obenvironment=Py_None;
+	WCHAR *server_name=NULL, *environment=NULL;
+	DWORD level=1, bufsize=0, bytes_needed=0, bytes_returned=0;
+	LPBYTE buf=NULL;
+	CHECK_PFN(GetPrinterDriverDirectory);
+
+	if (!PyArg_ParseTuple(args,"|OO:GetPrinterDriverDirectory", &observer_name, &obenvironment))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(observer_name, &server_name, TRUE))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obenvironment, &environment, TRUE))
+		return NULL;
+
+	(*pfnGetPrinterDriverDirectory)(server_name, environment, level, buf, bufsize, &bytes_needed);
+	if (bytes_needed==0){
+		PyWin_SetAPIError("GetPrinterDriverDirectory");
+		goto done;
+		}
+	buf=(LPBYTE)malloc(bytes_needed);
+	if (buf==NULL){
+		PyErr_Format(PyExc_MemoryError,"GetPrinterDriverDirectory: unable to allocate buffer of size %d", bytes_needed);
+		goto done;
+		}
+	bufsize=bytes_needed;
+	if (!(*pfnGetPrinterDriverDirectory)(server_name, environment, level, buf, bufsize, &bytes_needed))
+		PyWin_SetAPIError("GetPrinterDriverDirectory");
+	else
+		ret=PyWinObject_FromWCHAR((WCHAR *)buf);
+done:
+	if (server_name!=NULL)
+		PyWinObject_FreeWCHAR(server_name);
+	if (environment!=NULL)
+		PyWinObject_FreeWCHAR(environment);
+	if (buf!=NULL)
+		free(buf);
+	return ret;
+}
+
+// @pymethod int|win32print|AddPrinter|Installs a printer on a server
+// @rdesc Returns a handle to the new printer
+static PyObject *PyAddPrinter(PyObject *self, PyObject *args)
+{
+	HANDLE hprinter;
+	LPBYTE buf=NULL;
+	DWORD level;
+	PyObject *obinfo;
+	char *server_name;
+	// @pyparm string|Name||Name of server on which to install printer, None indicates local machine
+	// @pyparm int|Level||Level of data contained in pPrinter, only level 2 currently supported
+	// @pyparm dict|pPrinter||PRINTER_INFO_2 dict as returned by <om win32print.GetPrinter>
+	// @comm pPrinterName, pPortName, pDriverName, and pPrintProcessor are required
+	if (!PyArg_ParseTuple(args, "zlO:AddPrinter", &server_name, &level, &obinfo))
+		return NULL;
+	if (level!=2){
+		PyErr_SetString(PyExc_ValueError,"AddPrinter only accepts level 2");
+		return NULL;
+		}
+	if (!PyWinObject_AsPRINTER_INFO(level, obinfo, &buf))
+		return NULL;
+	hprinter=AddPrinter(server_name, level, buf);
+	if (buf!=NULL)
+		free(buf);
+	if (hprinter==NULL){
+		PyWin_SetAPIError("AddPrinter");
+		return NULL;
+		}
+	return Py_BuildValue("l",hprinter);
+}
+
+// @pymethod |win32print|DeletePrinter|Deletes an existing printer
+// @comm Printer handle must be opened for PRINTER_ACCESS_ADMINISTER
+// If there are any pending print jobs for the printer, actual deletion does not happen until they are done
+static PyObject *PyDeletePrinter(PyObject *self, PyObject *args)
+{
+	// @pyparm int|hPrinter||Handle to printer as returned by <om win32print.OpenPrinter> or <om win32print.AddPrinter>
+	HANDLE hprinter;
+	if (!PyArg_ParseTuple(args, "l:DeletePrinter", &hprinter))
+		return NULL;
+	if (!DeletePrinter(hprinter)){
+		PyWin_SetAPIError("DeletePrinter");
+		return NULL;
+		}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 /* List of functions exported by this module */
 // @module win32print|A module, encapsulating the Windows Win32 API.
 static struct PyMethodDef win32print_functions[] = {
@@ -1926,6 +2207,12 @@ static struct PyMethodDef win32print_functions[] = {
 	{"AddJob", PyAddJob, 1}, //@pymeth AddJob|Adds a job to be spooled to a printer queue
 	{"ScheduleJob", PyScheduleJob, 1}, //@pymeth ScheduleJob|Schedules a spooled job to be printed
 	{"DeviceCapabilities", PyDeviceCapabilities, 1}, //@pymeth DeviceCapabilities|Queries a printer for its capabilities
+	{"EnumMonitors", PyEnumMonitors, 1}, //@pymeth EnumMonitors|Lists installed printer port monitors
+	{"EnumPorts", PyEnumPorts, 1}, //@pymeth EnumPorts|Lists printer ports on a server
+	{"GetPrintProcessorDirectory", PyGetPrintProcessorDirectory, 1}, //@pymeth GetPrintProcessorDirectory|Returns the directory where print processor files reside
+	{"GetPrinterDriverDirectory", PyGetPrinterDriverDirectory, 1}, //@pymeth GetPrinterDriverDirectory|Returns the directory where printer drivers are installed
+	{"AddPrinter", PyAddPrinter, 1}, //@pymeth AddPrinter|Adds a new printer on a server
+	{"DeletePrinter", PyDeletePrinter, 1}, //@pymeth DeletePrinter|Deletes an existing printer
 	{ NULL }
 };
 
@@ -2066,30 +2353,25 @@ initwin32print(void)
   AddConstant(dict, "DSPRINT_PENDING",DSPRINT_PENDING);
   AddConstant(dict, "DSPRINT_REPUBLISH",DSPRINT_REPUBLISH);
 
-  FARPROC fp;
+  // port types from PORT_INFO_2
+  AddConstant(dict, "PORT_TYPE_WRITE",PORT_TYPE_WRITE);
+  AddConstant(dict, "PORT_TYPE_READ",PORT_TYPE_READ);
+  AddConstant(dict, "PORT_TYPE_REDIRECTED",PORT_TYPE_REDIRECTED);
+  AddConstant(dict, "PORT_TYPE_NET_ATTACHED",PORT_TYPE_NET_ATTACHED);
+
   HMODULE hmodule=LoadLibrary("winspool.drv");
   if (hmodule!=NULL){
-	fp=GetProcAddress(hmodule,"EnumFormsW");
-	if (fp!=NULL)
-		enumforms=(EnumFormsfunc)fp;
-	fp=GetProcAddress(hmodule,"AddFormW");
-	if (fp!=NULL)
-		addform=(AddFormfunc)fp;
-	fp=GetProcAddress(hmodule,"DeleteFormW");
-	if (fp!=NULL)
-		deleteform=(DeleteFormfunc)fp;
-	fp=GetProcAddress(hmodule,"GetFormW");
-	if (fp!=NULL)
-		getform=(GetFormfunc)fp;
-	fp=GetProcAddress(hmodule,"SetFormW");
-	if (fp!=NULL)
-		setform=(SetFormfunc)fp;
-	fp=GetProcAddress(hmodule,"AddJobW");
-	if (fp!=NULL)
-		addjob=(AddJobfunc)fp;
-	fp=GetProcAddress(hmodule,"ScheduleJob");
-	if (fp!=NULL)
-		schedulejob=(ScheduleJobfunc)fp;
+	pfnEnumForms=(EnumFormsfunc)GetProcAddress(hmodule,"EnumFormsW");
+	pfnAddForm=(AddFormfunc)GetProcAddress(hmodule,"AddFormW");
+	pfnDeleteForm=(DeleteFormfunc)GetProcAddress(hmodule,"DeleteFormW");
+	pfnGetForm=(GetFormfunc)GetProcAddress(hmodule,"GetFormW");
+	pfnSetForm=(SetFormfunc)GetProcAddress(hmodule,"SetFormW");
+	pfnAddJob=(AddJobfunc)GetProcAddress(hmodule,"AddJobW");
+	pfnScheduleJob=(ScheduleJobfunc)GetProcAddress(hmodule,"ScheduleJob");
+	pfnEnumPorts=(EnumPortsfunc)GetProcAddress(hmodule,"EnumPortsW");
+	pfnEnumMonitors=(EnumPortsfunc)GetProcAddress(hmodule,"EnumMonitorsW");
+	pfnGetPrintProcessorDirectory=(GetPrintProcessorDirectoryfunc)GetProcAddress(hmodule,"GetPrintProcessorDirectoryW");
+	pfnGetPrinterDriverDirectory=(GetPrintProcessorDirectoryfunc)GetProcAddress(hmodule,"GetPrinterDriverDirectoryW");
   }
   dummy_tuple=PyTuple_New(0);
 }
