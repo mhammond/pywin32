@@ -83,6 +83,9 @@ if __name__=='__main__':
 #		print why
 	print "testPyComTest.py can not be tested from here..."
 
+	import errorSemantics
+	errorSemantics.test()
+
 	import policySemantics
 	policySemantics.TestAll()
 
