@@ -11,6 +11,8 @@ public:
 	static IEnumVARIANT *GetI(PyObject *self);
 	static PyComTypeObject type;
 
+	virtual PyObject *iternext();
+
 	// The Python methods
 	static PyObject *Next(PyObject *self, PyObject *args);
 	static PyObject *Skip(PyObject *self, PyObject *args);
