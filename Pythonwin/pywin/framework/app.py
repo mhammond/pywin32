@@ -331,16 +331,17 @@ class AboutBox(dialog.Dialog):
 		text = "Pythonwin - Python IDE and GUI Framework for Windows.\n\n%s\n\nPython is %s\n\n%s\n\n%s\n\n%s" % (win32ui.copyright, sys.copyright, scintilla, idle, contributors)
 		self.SetDlgItemText(win32ui.IDC_EDIT1, text)
 		# Get the build number - written by installers.
-		# See if we are Part of Active Python
-		ver = _GetRegistryValue("SOFTWARE\\ActiveState\\ActivePython", "CurrentVersion")
+		# win32all build number
+		ver = _GetRegistryValue("SOFTWARE\\Python\\Pythonwin\\Build", None)
 		if ver is not None:
-			ver = "ActivePython build %s" % (ver,)
-		else:
-			ver = _GetRegistryValue("SOFTWARE\\Python\\Pythonwin\\Build", None)
+			ver = "win32all build %s" % (ver,)
+		if ver is None:
+			# See if we are Part of Active Python
+			ver = _GetRegistryValue("SOFTWARE\\ActiveState\\ActivePython", "CurrentVersion")
 			if ver is not None:
-				ver = "win32all build %s" % (ver,)
-			else:
-				ver = ""
+				ver = "ActivePython build %s" % (ver,)
+		if ver is None:
+			ver = ""
 		self.SetDlgItemText(win32ui.IDC_ABOUT_VERSION, ver)
 
 def Win32RawInput(prompt=None):
