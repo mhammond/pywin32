@@ -2,6 +2,14 @@
 
 #include "stdafx.h"
 
+extern HRESULT InvokeGatewayViaPolicy(
+    PyGatewayBase *pGateway,
+	const char *szMethodName,
+	EXCEPINFO *pei,
+	PyObject **ppResult /* = NULL */,
+	const char *szFormat /* = NULL */,
+	...);
+
 	// IActiveScriptParse
 STDMETHODIMP PyGActiveScriptParse::InitNew(void)
 {
@@ -25,7 +33,7 @@ STDMETHODIMP PyGActiveScriptParse::AddScriptlet(
 	PY_GATEWAY_METHOD;
 	USES_CONVERSION;
 	PyObject *result;
-	HRESULT hr = InvokeViaPolicy("AddScriptlet", &result,
+	HRESULT hr = InvokeGatewayViaPolicy(this, "AddScriptlet", pexcepinfo, &result,
                                                         "ssssssii",
                                                         OLE2CT(pstrDefaultName),
                                                         OLE2CT(pstrCode),
@@ -40,7 +48,7 @@ STDMETHODIMP PyGActiveScriptParse::AddScriptlet(
 		*pbstrName = A2BSTR(PyString_AS_STRING((PyStringObject*)result));
 	}
 	Py_DECREF(result);
-	return PyCom_HandlePythonFailureToCOM(pexcepinfo);
+	return S_OK;
 }
         
 STDMETHODIMP PyGActiveScriptParse::ParseScriptText( 
@@ -57,12 +65,14 @@ STDMETHODIMP PyGActiveScriptParse::ParseScriptText(
 	PY_GATEWAY_METHOD;
 	USES_CONVERSION;
 	PyObject *context = PyCom_PyObjectFromIUnknown(punkContext, IID_IUnknown, TRUE);
+	if (context==NULL) {
+		PyCom_ExcepInfoFromPyException(pexcepinfo);
+		return DISP_E_EXCEPTION;
+	}
 	PyObject *result = NULL;
 	BOOL bWantResult = pvarResult!=NULL;
 	
-	HRESULT hr = PyCom_HandlePythonFailureToCOM(pexcepinfo);
-	if (FAILED(hr)) return hr;
-	hr = InvokeViaPolicy(			"ParseScriptText", &result,
+	HRESULT hr = InvokeGatewayViaPolicy(this, "ParseScriptText", pexcepinfo, &result,
 											"ssOsiiii",
 											OLE2CT(pstrCode),
 											OLE2CT(pstrItemName),
@@ -73,6 +83,11 @@ STDMETHODIMP PyGActiveScriptParse::ParseScriptText(
 											dwFlags,
 											bWantResult);
 	if (FAILED(hr)) return hr;
-	if (pvarResult) PyCom_VariantFromPyObject(result, pvarResult);
-	return PyCom_HandlePythonFailureToCOM(pexcepinfo);
+	if (pvarResult) {
+		if (!PyCom_VariantFromPyObject(result, pvarResult)) {
+			PyCom_ExcepInfoFromPyException(pexcepinfo);
+			hr = DISP_E_EXCEPTION;
+		}
+	}
+	return hr;
 }

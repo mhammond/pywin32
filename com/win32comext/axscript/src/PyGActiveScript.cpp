@@ -22,7 +22,7 @@ STDMETHODIMP PyGActiveScript::GetScriptSite(
 	*ppvSiteObject = NULL;
 	PyObject *obIID = PyWinObject_FromIID(iid);
 	if (!obIID)
-		return PyCom_SetFromSimple(E_OUTOFMEMORY, GetIID());
+		return PyCom_SetCOMErrorFromPyException(GetIID());
 
 	PyObject *result = NULL;
 	HRESULT hr = InvokeViaPolicy("GetScriptSite", &result, "O", obIID);
@@ -114,7 +114,7 @@ STDMETHODIMP PyGActiveScript::GetScriptDispatch(
 	if (result)
 		PyCom_InterfaceFromPyObject(result, IID_IDispatch, (void **)ppdisp, FALSE);
 	if (PyErr_Occurred())
-		hr = PyCom_SetFromPyException();
+		hr = PyCom_SetCOMErrorFromPyException(GetIID());
 	Py_XDECREF(result);
 	return hr;
 }
@@ -132,10 +132,10 @@ STDMETHODIMP PyGActiveScript::GetCurrentScriptThreadID(
 	if (PyInt_Check(result)) {
 		*pstidThread = PyInt_AsLong(result);
 		if (PyErr_Occurred())
-			hr = PyCom_SetFromPyException();
+			hr = PyCom_SetCOMErrorFromPyException(GetIID());
 	}
 	else
-		hr = PyCom_SetFromSimple(E_FAIL, GetIID());
+		hr = PyCom_SetCOMErrorFromSimple(E_FAIL, GetIID(), "Python did not return an integer");
 
 	Py_XDECREF(result);
 	return hr;
@@ -154,10 +154,10 @@ STDMETHODIMP PyGActiveScript::GetScriptThreadID(
 	if (PyInt_Check(result)) {
 		*pstidThread = PyInt_AsLong(result);
 		if (PyErr_Occurred())
-			hr = PyCom_SetFromPyException();
+			hr = PyCom_SetCOMErrorFromPyException(GetIID());
 	}
 	else
-		hr = PyCom_SetFromSimple(E_FAIL, GetIID());
+		hr = PyCom_SetCOMErrorFromSimple(E_FAIL, GetIID(), "Python didnt return an integer");
 	return hr;
 }
 
@@ -178,7 +178,7 @@ STDMETHODIMP PyGActiveScript::GetScriptThreadState(
 			hr = PyCom_HandlePythonFailureToCOM();
 	}
 	else
-		hr = PyCom_SetFromSimple(E_FAIL, GetIID());
+		hr = PyCom_SetCOMErrorFromSimple(E_FAIL, GetIID(), "Python did not return an integer");
 	Py_XDECREF(result);
 	return hr;
 }
@@ -205,7 +205,7 @@ STDMETHODIMP PyGActiveScript::Clone(
 											NULL);
 	if (FAILED(hr)) return hr;
 	if (!PyCom_InterfaceFromPyObject(result, IID_IActiveScript, (void **)ppscript, FALSE))
-		hr = PyCom_SetFromPyException();
+		hr = PyCom_SetCOMErrorFromPyException(GetIID());
 	Py_XDECREF(result);
 	return hr;
 }

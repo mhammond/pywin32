@@ -11,7 +11,7 @@ STDMETHODIMP PyGActiveScriptError::GetExceptionInfo(EXCEPINFO FAR *pexcepinfo)
 		return hr;
 
 	if (!PyCom_ExcepInfoFromPyObject(result, pexcepinfo))
-		hr = PyCom_SetFromPyException();
+		hr = E_FAIL;
 
 	Py_DECREF(result);
 	return hr;
@@ -27,7 +27,7 @@ STDMETHODIMP PyGActiveScriptError::GetSourcePosition(DWORD *pdwSourceContext, UL
 		return hr;
 
 	if (!PyArg_ParseTuple(result, "iii", pdwSourceContext, pulLineNumber, plCharacterPosition))
-		hr = PyCom_SetFromPyException();
+		hr = PyCom_SetCOMErrorFromPyException(GetIID());
 	Py_DECREF(result);
 	return hr;
 }
@@ -42,7 +42,7 @@ STDMETHODIMP PyGActiveScriptError::GetSourceLineText(BSTR *pbstrSourceLine)
 		return hr;
 
 	if (!PyWinObject_AsBstr(result, pbstrSourceLine, TRUE))
-		hr = PyCom_SetFromPyException();
+		hr = PyCom_SetCOMErrorFromPyException(GetIID());
 
 	Py_DECREF(result);
 	return hr;

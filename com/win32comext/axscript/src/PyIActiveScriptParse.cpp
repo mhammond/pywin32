@@ -79,7 +79,7 @@ PyIActiveScriptParse::~PyIActiveScriptParse()
 									 &excepInfo);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr, &excepInfo);
+		return PyCom_BuildPyExceptionFromEXCEPINFO(hr, &excepInfo);
 
 	return MakeBstrToObj(bstrName);
 }
@@ -150,7 +150,7 @@ PyIActiveScriptParse::~PyIActiveScriptParse()
 										&excepInfo);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr, &excepInfo);
+		return PyCom_BuildPyExceptionFromEXCEPINFO(hr, &excepInfo);
 
 	if (bWantResult) {
 		PyObject *result = PyCom_PyObjectFromVariant(&varResult);

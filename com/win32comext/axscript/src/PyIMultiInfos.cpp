@@ -88,7 +88,8 @@ PyObject *PyIProvideMultipleClassInfo::GetInfoOfIndex(PyObject *self, PyObject *
 			return SetPythonCOMError(self, sc);
 		return PyWinObject_FromIID(iid);
 	}
-	return OleSetTypeError("The flags param is invalid.  Note that you can not 'or' flags together - retrieve each element individually");
+	PyErr_SetString(PyExc_TypeError, "The flags param is invalid.  Note that you can not 'or' flags together - retrieve each element individually");
+	return NULL;
 }
 
 // @object PyIProvideMultipleClassInfo|
