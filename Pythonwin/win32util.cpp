@@ -1061,9 +1061,6 @@ ui_type_CObject &UITypeFromHWnd( HWND hwnd )
 // reference neutral.
 CString GetReprText( PyObject *objectUse )
 {
-	// special case for integers first.
-	if (PyInt_Check(objectUse))
-		return (int)PyInt_AsLong(objectUse);
 	PyObject *s;
 	if (PyString_Check(objectUse))  // if it is a string, then no need to repr it
 		s = objectUse;              // and repr on a string may mangle it (eg
