@@ -16,7 +16,7 @@ item: Global
   Patch Flags=0000000000000001
   Patch Threshold=85
   Patch Memory=4000
-  EXE Filename=win32all-131.exe
+  EXE Filename=win32all-132.exe
   Code Sign Name=Python Win32 combined extensions
   Code Sign Info=skippinet.com.au
   Variable Name1=_WISE_
@@ -835,14 +835,14 @@ item: Compiler Variable If
   Value=1
 end
 item: Install File
-  Source=l:\src\pythonex\win32\Build\System\PyWinTypes%PYVER_NODOT%.dll
-  Destination=%SYSDLL_PATH%\PyWinTypes%PYVER_NODOT%.dll
+  Source=l:\src\pythonex\win32\Build\System\PyWinTypes15.dll
+  Destination=%SYSDLL_PATH%\PyWinTypes15.dll
   Description=Core COM Extension DLL
   Flags=0000001000000011
 end
 item: Install File
-  Source=l:\src\pythonex\com\Build\System\PythonCOM%PYVER_NODOT%.dll
-  Destination=%SYSDLL_PATH%\PythonCOM%PYVER_NODOT%.dll
+  Source=l:\src\pythonex\com\Build\System\PythonCOM15.dll
+  Destination=%SYSDLL_PATH%\PythonCOM15.dll
   Description=Core COM Extension DLL
   Flags=0000001000000011
 end
