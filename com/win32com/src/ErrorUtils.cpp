@@ -150,7 +150,11 @@ static BOOL PyCom_ExcepInfoFromServerExceptionInstance(PyObject *v, EXCEPINFO *p
 
 	ob = PyObject_GetAttrString(v, "code");
 	if (ob && ob != Py_None) {
-		pExcepInfo->wCode = (unsigned short)PyInt_AsLong(PyNumber_Int(ob));
+		PyObject *temp = PyNumber_Int(ob);
+		if (temp) {
+			pExcepInfo->wCode = (unsigned short)PyInt_AsLong(temp);
+			Py_DECREF(temp);
+		} // XXX - else - what to do here, apart from call the user a moron :-)
 	}
 	else
 		PyErr_Clear();
@@ -158,7 +162,13 @@ static BOOL PyCom_ExcepInfoFromServerExceptionInstance(PyObject *v, EXCEPINFO *p
 
 	ob = PyObject_GetAttrString(v, "scode");
 	if (ob && ob != Py_None) {
-		pExcepInfo->scode = PyInt_AsLong(PyNumber_Int(ob));
+		PyObject *temp = PyNumber_Int(ob);
+		if (temp) {
+			pExcepInfo->scode = PyInt_AsLong(temp);
+			Py_DECREF(temp);
+		} else
+			// XXX - again, should we call the user a moron?
+			pExcepInfo->scode = E_FAIL;
 	}
 	else
 		PyErr_Clear();
