@@ -2045,18 +2045,19 @@ static PyObject *ui_dc_polyline (PyObject *self, PyObject *args)
   CDC *pDC = ui_dc_object::GetDC(self);
   if (!pDC)
 	return NULL;
+  // @pyparm [(x, y), ...]|points||A sequence of points
   if (!PyArg_ParseTuple(args,
 						"O:Polyline",
 						&point_list)) {
 	return NULL;
-  } else if (!PyList_Check(point_list)) {
-	return NULL;
+  } else if (!PySequence_Check(point_list)) {
+	RETURN_TYPE_ERR("Argument must be a list of points");
   } else {
 	// Convert the list of point tuples into an array of POINT structs
-	int num = PyList_Size (point_list);
+	int num = PySequence_Length(point_list);
 	POINT * point_array = new POINT[num];
 	for (int i=0; i < num; i++) {
-	  PyObject * point_tuple = PyList_GetItem (point_list, i);
+	  PyObject * point_tuple = PySequence_GetItem (point_list, i);
 	  if (!PyTuple_Check (point_tuple) || PyTuple_Size (point_tuple) != 2) {
 		PyErr_SetString (PyExc_ValueError,
 						 "point list must be a list of (x,y) tuples");
