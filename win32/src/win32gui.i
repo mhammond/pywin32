@@ -915,8 +915,9 @@ static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
 		if (PyInt_Check($source))
 			$target = (LPTSTR) PyInt_AsLong($source);
 		else {
-			PyErr_SetString(PyExc_TypeError, "Must pass an integer or a string");
-			return NULL;
+			return PyErr_Format(PyExc_TypeError, 
+			                    "Must pass an integer or a string (got '%s')",
+			                    $source->ob_type->tp_name);
 		}
 	}
 }
@@ -1002,8 +1003,9 @@ static PyObject *PySetWindowLong(PyObject *self, PyObject *args)
 		}
 		default:
 			if (!PyInt_Check(ob)) {
-				PyErr_SetString(PyExc_TypeError, "object must be an integer");
-				return NULL;
+				return PyErr_Format(PyExc_TypeError, 
+				                    "object must be an integer (got '%s')",
+				                    ob->ob_type->tp_name);
 			}
 			l = PyInt_AsLong(ob);
 	}
