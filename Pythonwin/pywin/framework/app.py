@@ -308,6 +308,18 @@ class CApp(thread.WinApp):
 		dlg=AboutBox()
 		dlg.DoModal()
 
+def _GetRegistryValue(key, val, default = None):
+	# val is registry value - None for default val.
+	try:
+		hkey = win32api.RegOpenKey(win32con.HKEY_CURRENT_USER, key)
+		return win32api.RegQueryValueEx(hkey, val)[0]
+	except win32api.error:
+		try:
+			hkey = win32api.RegOpenKey(win32con.HKEY_LOCAL_MACHINE, key)
+			return win32api.RegQueryValueEx(hkey, val)[0]
+		except win32api.error:
+			return default
+
 scintilla = "Scintilla is Copyright 1998-2000 Neil Hodgson (http://www.scintilla.org)"
 idle = "This program uses IDLE extensions by Guido van Rossum, Tim Peters and others."
 contributors = "Thanks to the following people for making significant contributions: Sam Rushing, Curt Hagenlocher, Dave Brennan, Roger Burnham, Gordon McMillan, Neil Hodgson. (let me know if I have forgotten you!)"
@@ -318,15 +330,18 @@ class AboutBox(dialog.Dialog):
 	def OnInitDialog(self):
 		text = "Pythonwin - Python IDE and GUI Framework for Windows.\n\n%s\n\nPython is %s\n\n%s\n\n%s\n\n%s" % (win32ui.copyright, sys.copyright, scintilla, idle, contributors)
 		self.SetDlgItemText(win32ui.IDC_EDIT1, text)
-		# Get the build number
-		try:
-			ver = win32api.RegQueryValue(win32con.HKEY_LOCAL_MACHINE, "SOFTWARE\\Python\\Pythonwin\\Build")
-		except win32api.error:
-			try:
-				ver = win32api.RegQueryValue(win32con.HKEY_CURRENT_USER, "SOFTWARE\\Python\\Pythonwin\\Build")
-			except win32api.error:
-				ver = "number is unknown"
-		self.SetDlgItemText(win32ui.IDC_ABOUT_VERSION, "Pythonwin build " + str(ver))
+		# Get the build number - written by installers.
+		# See if we are Part of Active Python
+		ver = _GetRegistryValue("SOFTWARE\\ActiveState\\ActivePython", "CurrentVersion")
+		if ver is not None:
+			ver = "ActivePython build %s" % (ver,)
+		else:
+			ver = _GetRegistryValue("SOFTWARE\\Python\\Pythonwin\\Build", None)
+			if ver is not None:
+				ver = "win32all build %s" % (ver,)
+			else:
+				ver = ""
+		self.SetDlgItemText(win32ui.IDC_ABOUT_VERSION, ver)
 
 def Win32RawInput(prompt=None):
 	"Provide raw_input() for gui apps"
