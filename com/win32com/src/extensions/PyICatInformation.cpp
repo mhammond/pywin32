@@ -40,7 +40,7 @@ PyObject *PyICatInformation::EnumCategories(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->EnumCategories(lcid, &pEnum);
 	PY_INTERFACE_POSTCALL;
 	if (S_OK!=hr) // S_OK only acceptable
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_ICatInformation);
 	return PyCom_PyObjectFromIUnknown(pEnum, IID_IEnumCATEGORYINFO, FALSE);
 }
 
@@ -107,7 +107,7 @@ PyObject *PyICatInformation::EnumClassesOfCategories(PyObject *self, PyObject *a
 	PY_INTERFACE_POSTCALL;
 	delete pIDs;
 	if (S_OK!=hr) // S_OK only acceptable
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_ICatInformation);
 	return PyCom_PyObjectFromIUnknown(pEnum, IID_IEnumGUID, FALSE);
 }
 
@@ -133,7 +133,7 @@ PyObject *PyICatInformation::GetCategoryDesc(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->GetCategoryDesc(id, lcid, &pResult);
 	PY_INTERFACE_POSTCALL;
 	if (S_OK!=hr) // S_OK only acceptable
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_ICatInformation);
 	// @comm The return type is a true PyString, not a Uniocode object.
 	// @todo Upgrade the return type to be Unicode.  Should wait until Python has Unicode support.
 

@@ -117,7 +117,7 @@ PyObject *PyICatRegister::RegisterCategories(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	delete [] infos;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICR, IID_ICatRegister);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -145,7 +145,7 @@ PyObject *PyICatRegister::UnRegisterCategories(PyObject *self, PyObject *args)
 	DeleteCATIDs(pids);
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICR, IID_ICatRegister);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -181,7 +181,7 @@ PyObject *PyICatRegister::RegisterClassImplCategories(PyObject *self, PyObject *
 
 	DeleteCATIDs(pids);
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICR, IID_ICatRegister);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -217,7 +217,7 @@ PyObject *PyICatRegister::UnRegisterClassImplCategories(PyObject *self, PyObject
 
 	DeleteCATIDs(pids);
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICR, IID_ICatRegister);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -253,7 +253,7 @@ PyObject *PyICatRegister::RegisterClassReqCategories(PyObject *self, PyObject *a
 
 	DeleteCATIDs(pids);
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICR, IID_ICatRegister);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -289,7 +289,7 @@ PyObject *PyICatRegister::UnRegisterClassReqCategories(PyObject *self, PyObject 
 
 	DeleteCATIDs(pids);
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICR, IID_ICatRegister);
 
 	Py_INCREF(Py_None);
 	return Py_None;

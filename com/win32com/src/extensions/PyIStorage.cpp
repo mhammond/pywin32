@@ -53,7 +53,7 @@ PyObject *PyIStorage::CreateStream(PyObject *self, PyObject *args)
 	PyWinObject_FreeBstr(bstrName);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 
 	return PyCom_PyObjectFromIUnknown(ppstm, IID_IStream, FALSE);
 }
@@ -84,7 +84,7 @@ PyObject *PyIStorage::OpenStream(PyObject *self, PyObject *args)
 	PyWinObject_FreeBstr(name);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 
 	return PyCom_PyObjectFromIUnknown(ppstm, IID_IStream, FALSE);
 }
@@ -115,7 +115,7 @@ PyObject *PyIStorage::CreateStorage(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	PyWinObject_FreeBstr(name);
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 
 	return PyCom_PyObjectFromIUnknown(ppstg, IID_IStorage, FALSE);
 }
@@ -156,7 +156,7 @@ PyObject *PyIStorage::OpenStorage(PyObject *self, PyObject *args)
 	PyWinObject_FreeBstr(bstrName);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 
 	return PyCom_PyObjectFromIUnknown(ppstg, IID_IStorage, FALSE);
 }
@@ -183,12 +183,16 @@ PyObject *PyIStorage::CopyTo(PyObject *self, PyObject *args)
 	if (obSeqExclude==Py_None)
 		pExclude = NULL;
 	else {
-		if (!PySequence_Check(obSeqExclude))
-			return OleSetTypeError("Argument 1 must be a sequence of IID's, or None");
+		if (!PySequence_Check(obSeqExclude)) {
+			PyErr_SetString(PyExc_TypeError, "Argument 1 must be a sequence of IID's, or None");
+			return NULL;
+		}
 		ciidExclude = PySequence_Length(obSeqExclude);
 		pExclude = new IID[ciidExclude];
-		if (pExclude==NULL) 
-			return OleSetMemoryError("Allocating array of IID's");
+		if (pExclude==NULL) {
+			PyErr_SetString(PyExc_MemoryError, "Allocating array of IID's");
+			return NULL;
+		}
 		for (DWORD i=0;i<ciidExclude;i++) {
 			PyObject *ob = PySequence_GetItem(obSeqExclude, (int)i);
 			BOOL ok = PyWinObject_AsIID(ob, pExclude+i);
@@ -214,7 +218,7 @@ PyObject *PyIStorage::CopyTo(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -250,7 +254,7 @@ PyObject *PyIStorage::MoveElementTo(PyObject *self, PyObject *args)
 	PyWinObject_FreeBstr(bstrName);
 	PyWinObject_FreeBstr(bstrNewName);
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -272,7 +276,7 @@ PyObject *PyIStorage::Commit(PyObject *self, PyObject *args)
 	HRESULT hr = pIS->Commit( grfCommitFlags );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -290,7 +294,7 @@ PyObject *PyIStorage::Revert(PyObject *self, PyObject *args)
 	HRESULT hr = pIS->Revert( );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -315,7 +319,7 @@ PyObject *PyIStorage::EnumElements(PyObject *self, PyObject *args)
 	HRESULT hr = pIS->EnumElements( reserved1, NULL, reserved3, &ppenum );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 
 	PyObject *obppenum = PyCom_PyObjectFromIUnknown(ppenum, IID_IEnumSTATSTG, FALSE);
 	PyObject *pyretval = Py_BuildValue("O", obppenum);
@@ -342,7 +346,7 @@ PyObject *PyIStorage::DestroyElement(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	PyWinObject_FreeBstr(bstrName);
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -371,7 +375,7 @@ PyObject *PyIStorage::RenameElement(PyObject *self, PyObject *args)
 	PyWinObject_FreeBstr(bstrNewName);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -398,20 +402,26 @@ PyObject *PyIStorage::SetElementTimes(PyObject *self, PyObject *args)
 	FILETIME *pmtime=NULL, mtime;
 	if (obpctime!=Py_None) {
 		pctime = &ctime;
-		if (!PyTime_Check(obpctime))
-			return OleSetTypeError("The argument must be a PyTime object");
+		if (!PyTime_Check(obpctime)) {
+			PyErr_SetString(PyExc_TypeError, "The argument must be a PyTime object");
+			return NULL;
+		}
 		if (!((PyTime *)obpctime)->GetTime(pctime)) return NULL;
 	}
 	if (obpatime != Py_None) {
 		patime = &atime;
-		if (!PyTime_Check(obpatime))
-			return OleSetTypeError("The argument must be a PyTime object");
+		if (!PyTime_Check(obpatime)) {
+			PyErr_SetString(PyExc_TypeError, "The argument must be a PyTime object");
+			return NULL;
+		}
 		if (!((PyTime *)obpatime)->GetTime(patime)) return NULL;
 	}
 	if (obpmtime != Py_None) {
 		pmtime = &mtime;
-		if (!PyTime_Check(obpmtime))
-			return OleSetTypeError("The argument must be a PyTime object");
+		if (!PyTime_Check(obpmtime)) {
+			PyErr_SetString(PyExc_TypeError, "The argument must be a PyTime object");
+			return NULL;
+		}
 		if (!((PyTime *)obpmtime)->GetTime(pmtime)) return NULL;
 	}
 	BSTR bstrName;
@@ -422,7 +432,7 @@ PyObject *PyIStorage::SetElementTimes(PyObject *self, PyObject *args)
 	PyWinObject_FreeBstr(bstrName);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -445,7 +455,7 @@ PyObject *PyIStorage::SetClass(PyObject *self, PyObject *args)
 	HRESULT hr = pIS->SetClass( clsid );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -467,7 +477,7 @@ PyObject *PyIStorage::SetStateBits(PyObject *self, PyObject *args)
 	HRESULT hr = pIS->SetStateBits( grfStateBits, grfMask );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -488,7 +498,7 @@ PyObject *PyIStorage::Stat(PyObject *self, PyObject *args)
 	HRESULT hr = pIS->Stat( &pstatstg, grfStatFlag );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIS, IID_IStorage);
 
 	PyObject *obpstatstg = PyCom_PyObjectFromSTATSTG(&pstatstg);
 	// STATSTG doco says our responsibility to free

@@ -40,7 +40,7 @@ STDMETHODIMP PyGEnumVARIANT::Next(
 		{
 			Py_DECREF(ob);
 			Py_DECREF(result);
-			return PyCom_SetFromSimple(E_OUTOFMEMORY, IID_IEnumVARIANT);
+			return PyCom_SetCOMErrorFromPyException(IID_IEnumVARIANT);
 		}
 		Py_DECREF(ob);
 	}
@@ -53,7 +53,7 @@ STDMETHODIMP PyGEnumVARIANT::Next(
 	PyErr_Clear();	// just in case
 	LogF(_T("PyGEnumVariant::Next got a bad return value"));
 	Py_DECREF(result);
-	return PyCom_SetFromSimple(E_FAIL, IID_IEnumVARIANT);
+	return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumVARIANT, "Next() did not return a sequence of objects");
 }
 
 STDMETHODIMP PyGEnumVARIANT::Skip( 
@@ -86,7 +86,7 @@ STDMETHODIMP PyGEnumVARIANT::Clone(
 	{
 		/* the wrong kind of object was returned to us */
 		Py_DECREF(result);
-		return PyCom_SetFromSimple(E_FAIL, IID_IEnumVARIANT);
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumVARIANT);
 	}
 
 	/*
@@ -98,7 +98,7 @@ STDMETHODIMP PyGEnumVARIANT::Clone(
 	{
 		/* damn. the object was released. */
 		Py_DECREF(result);
-		return PyCom_SetFromSimple(E_FAIL, IID_IEnumVARIANT);
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumVARIANT);
 	}
 
 	/*
@@ -112,5 +112,5 @@ STDMETHODIMP PyGEnumVARIANT::Clone(
 	/* done with the result; this DECREF is also for <punk> */
 	Py_DECREF(result);
 
-	return PyCom_SetFromSimple(hr, IID_IEnumVARIANT);
+	return PyCom_SetCOMErrorFromSimple(hr, IID_IEnumVARIANT);
 }

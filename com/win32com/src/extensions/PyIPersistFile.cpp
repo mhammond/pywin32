@@ -69,7 +69,7 @@ PyObject *PyIPersistFile::Load(PyObject *self, PyObject *args)
 	SysFreeString(pszFileName);
 
 	if ( FAILED(hr) )
-		return OleSetExtendedOleError(hr, pIPF, IID_IPersistFile);
+		return PyCom_BuildPyException(hr, pIPF, IID_IPersistFile);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -98,7 +98,7 @@ PyObject *PyIPersistFile::Save(PyObject *self, PyObject *args)
 	SysFreeString(pszFileName);
 
 	if ( FAILED(hr) )
-		return OleSetExtendedOleError(hr, pIPF, IID_IPersistFile);
+		return PyCom_BuildPyException(hr, pIPF, IID_IPersistFile);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -125,7 +125,7 @@ PyObject *PyIPersistFile::SaveCompleted(PyObject *self, PyObject *args)
 	SysFreeString(pszFileName);
 
 	if ( FAILED(hr) )
-		return OleSetExtendedOleError(hr, pIPF, IID_IPersistFile);
+		return PyCom_BuildPyException(hr, pIPF, IID_IPersistFile);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -146,7 +146,7 @@ PyObject *PyIPersistFile::GetCurFile(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetExtendedOleError(hr, pIPF, IID_IPersistFile);
+		return PyCom_BuildPyException(hr, pIPF, IID_IPersistFile);
 	PyObject *obppszFileName;
 
 	obppszFileName = MakeOLECHARToObj(ppszFileName);

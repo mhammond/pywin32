@@ -304,7 +304,7 @@ PyObject *PyIPropertyStorage::ReadMultiple(PyObject *self, PyObject *args)
 
 	PyObject *rc;
 	if ( FAILED(hr) )
-		rc = OleSetOleError(hr);
+		rc = PyCom_BuildPyException(hr, pIPS, IID_IPropertyStorage);
 	else
 		rc = PyObject_FromPROPVARIANTs(pPropVars, cProps);
 
@@ -357,7 +357,7 @@ PyObject *PyIPropertyStorage::WriteMultiple(PyObject *self, PyObject *args)
 	PyObject_FreePROPVARIANTs(pVals, cVals);
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPS, IID_IPropertyStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -387,7 +387,7 @@ PyObject *PyIPropertyStorage::DeleteMultiple(PyObject *self, PyObject *args)
 	PyObject_FreePROPSPECs(pProps, cProps);
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPS, IID_IPropertyStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -418,7 +418,7 @@ PyObject *PyIPropertyStorage::ReadPropertyNames(PyObject *self, PyObject *args)
 
 	PyObject *rc;
 	if ( FAILED(hr) )
-		rc = OleSetOleError(hr);
+		rc = PyCom_BuildPyException(hr, pIPS, IID_IPropertyStorage);
 	else {
 		rc = PyTuple_New(cProps);
 		for (ULONG i=0;i<cProps;i++)
@@ -474,7 +474,7 @@ PyObject *PyIPropertyStorage::WritePropertyNames(PyObject *self, PyObject *args)
 	}
 
 	if ( FAILED(hr) )
-		rc = OleSetOleError(hr);
+		rc = PyCom_BuildPyException(hr, pIPS, IID_IPropertyStorage);
 	else {
 		rc = PyTuple_New(cProps);
 		for (ULONG i=0;i<cProps;i++)
@@ -513,7 +513,7 @@ PyObject *PyIPropertyStorage::DeletePropertyNames(PyObject *self, PyObject *args
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPS, IID_IPropertyStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -535,7 +535,7 @@ PyObject *PyIPropertyStorage::Commit(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPS, IID_IPropertyStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -555,7 +555,7 @@ PyObject *PyIPropertyStorage::Revert(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPS, IID_IPropertyStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -576,7 +576,7 @@ PyObject *PyIPropertyStorage::Enum(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPS, IID_IPropertyStorage);
 	PyObject *obppenum;
 
 	obppenum = PyCom_PyObjectFromIUnknown(ppenum, IID_IEnumSTATPROPSTG, FALSE);
@@ -616,7 +616,7 @@ PyObject *PyIPropertyStorage::SetTimes(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPS, IID_IPropertyStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -642,7 +642,7 @@ PyObject *PyIPropertyStorage::SetClass(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPS, IID_IPropertyStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -663,7 +663,7 @@ PyObject *PyIPropertyStorage::Stat(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPS, IID_IPropertyStorage);
 	return PyObject_FromSTATPROPSETSTG(&p);
 }
 

@@ -37,7 +37,7 @@ PyObject *PyIPersistStreamInit::InitNew(PyObject *self, PyObject *args)
 	HRESULT hr = pIPSI->InitNew();
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPSI, IID_IPersistStreamInit);
 
 	Py_INCREF(Py_None);
 	return Py_None;

@@ -36,8 +36,10 @@ PyObject *PyIEnumMoniker::Next(PyObject *self, PyObject *args)
 	if (pMy==NULL) return NULL;
 
 	IMoniker **rgVar = new IMoniker *[celt];
-	if ( rgVar == NULL )
-		return OleSetMemoryError("allocating result IMoniker *s");
+	if ( rgVar == NULL ) {
+		PyErr_SetString(PyExc_MemoryError, "allocating result IMoniker *s");
+		return NULL;
+	}
 
 	int i;
 	ULONG celtFetched;
@@ -47,7 +49,7 @@ PyObject *PyIEnumMoniker::Next(PyObject *self, PyObject *args)
 	if ( FAILED(hr) )
 	{
 		delete [] rgVar;
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	}
 
 	PyObject *result = PyTuple_New(celtFetched);
@@ -86,7 +88,7 @@ PyObject *PyIEnumMoniker::Skip(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->Skip(num);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -103,7 +105,7 @@ PyObject *PyIEnumMoniker::Reset(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->Reset();
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -122,7 +124,7 @@ PyObject *PyIEnumMoniker::Clone(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->Clone(&pNew);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	return PyCom_PyObjectFromIUnknown(pNew, IID_IEnumMoniker, FALSE);
 }
 
@@ -205,7 +207,7 @@ PyObject *PyIMoniker::BindToObject(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if (S_OK!=hr) // S_OK only acceptable
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IMoniker);
 	return PyCom_PyObjectFromIUnknown((IUnknown *)pResult, iid, FALSE );
 }
 
@@ -257,7 +259,7 @@ PyObject *PyIMoniker::BindToStorage(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if (S_OK!=hr) // S_OK only acceptable
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IMoniker);
 	return PyCom_PyObjectFromIUnknown((IUnknown *)pResult, iid, FALSE );
 }
 
@@ -293,7 +295,7 @@ PyObject *PyIMoniker::GetDisplayName(PyObject *self, PyObject *args)
 	if (pMonLeft) pMonLeft->Release();
 	PY_INTERFACE_POSTCALL;
 	if (S_OK!=hr) // S_OK only acceptable
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IMoniker);
 	PyObject *obResult = PyString_FromUnicode(result);
 
 	IMalloc *pMalloc = NULL;
@@ -332,7 +334,7 @@ PyObject *PyIMoniker::ComposeWith(PyObject *self, PyObject *args)
 	pmkRight->Release();
 	PY_INTERFACE_POSTCALL;
 	if (S_OK!=hr) // S_OK only acceptable
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IMoniker);
 	return PyCom_PyObjectFromIUnknown(pResult, IID_IMoniker, FALSE );
 }
 
@@ -350,7 +352,7 @@ PyObject *PyIMoniker::Enum(PyObject *self, PyObject *args)
 	IEnumMoniker *pResult = NULL;
 	HRESULT hr = pMy->Enum(fForward, &pResult);
 	if (S_OK!=hr)
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IMoniker);
 	return PyCom_PyObjectFromIUnknown(pResult, IID_IEnumMoniker, FALSE );
 }
 
@@ -374,7 +376,7 @@ PyObject *PyIMoniker::IsEqual(PyObject *self, PyObject *args)
 	pOther->Release();
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IMoniker);
 	return PyInt_FromLong(hr);
 }
 
@@ -392,7 +394,7 @@ PyObject *PyIMoniker::IsSystemMoniker(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->IsSystemMoniker(&mksys);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IMoniker);
 	return PyInt_FromLong(mksys);
 }
 
@@ -409,7 +411,7 @@ PyObject *PyIMoniker::Hash(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->Hash(&result);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IMoniker);
 	return PyInt_FromLong(result);
 }
 

@@ -38,7 +38,7 @@ PyObject *PyIPersistStream::IsDirty(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->IsDirty();
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IPersistStream);
 
 	// anything but S_FALSE means dirty.
 	return PyInt_FromLong(hr != S_FALSE);
@@ -66,7 +66,7 @@ PyObject *PyIPersistStream::Load(PyObject *self, PyObject *args)
 	pStream->Release();
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IPersistStream);
 	Py_INCREF(Py_None);
 	return Py_None;
 	// @comm This method loads an object from its associated stream. The seek pointer is set as it was in the most recent <om PyIPersistStream.Save> method. This method can seek and read from the stream, but cannot write to it.
@@ -94,7 +94,7 @@ PyObject *PyIPersistStream::Save(PyObject *self, PyObject *args)
 	pStream->Release();
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IPersistStream);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -113,7 +113,7 @@ PyObject *PyIPersistStream::GetSizeMax(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->GetSizeMax(&result);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IPersistStream);
 	return PyWinObject_FromULARGE_INTEGER(result);
 }
 

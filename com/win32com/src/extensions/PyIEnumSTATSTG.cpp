@@ -40,8 +40,10 @@ PyObject *PyIEnumSTATSTG::Next(PyObject *self, PyObject *args)
 		return NULL;
 
 	STATSTG *rgVar = new STATSTG[celt];
-	if ( rgVar == NULL )
-		return OleSetMemoryError("allocating result STATSTGs");
+	if ( rgVar == NULL ) {
+		PyErr_SetString(PyExc_MemoryError, "allocating result STATSTGs");
+		return NULL;
+	}
 
 	int i;
 /*	for ( i = celt; i--; )
@@ -55,7 +57,7 @@ PyObject *PyIEnumSTATSTG::Next(PyObject *self, PyObject *args)
 	if ( FAILED(hr) )
 	{
 		delete [] rgVar;
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	}
 
 	PyObject *result = PyTuple_New(celtFetched);
@@ -96,7 +98,7 @@ PyObject *PyIEnumSTATSTG::Skip(PyObject *self, PyObject *args)
 	HRESULT hr = pIESTATSTG->Skip(celt);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -116,7 +118,7 @@ PyObject *PyIEnumSTATSTG::Reset(PyObject *self, PyObject *args)
 	HRESULT hr = pIESTATSTG->Reset();
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -137,7 +139,7 @@ PyObject *PyIEnumSTATSTG::Clone(PyObject *self, PyObject *args)
 	HRESULT hr = pIESTATSTG->Clone(&pClone);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 
 	return PyCom_PyObjectFromIUnknown(pClone, IID_IEnumSTATSTG, FALSE);
 }
@@ -195,7 +197,7 @@ STDMETHODIMP PyGEnumSTATSTG::Next(
 		if ( !PyCom_PyObjectAsSTATSTG(ob, &rgVar[i]) )
 		{
 			Py_DECREF(result);
-			return PyCom_SetFromSimple(E_OUTOFMEMORY, IID_IEnumSTATSTG);
+			return PyCom_SetCOMErrorFromPyException(IID_IEnumSTATSTG);
 		}
 	}
 
@@ -206,7 +208,7 @@ STDMETHODIMP PyGEnumSTATSTG::Next(
   error:
 	PyErr_Clear();	// just in case
 	Py_DECREF(result);
-	return PyCom_SetFromSimple(E_FAIL, IID_IEnumSTATSTG);
+	return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumSTATSTG, "Next() did not return a sequence of objects");
 }
 
 STDMETHODIMP PyGEnumSTATSTG::Skip( 
@@ -239,7 +241,7 @@ STDMETHODIMP PyGEnumSTATSTG::Clone(
 	{
 		/* the wrong kind of object was returned to us */
 		Py_DECREF(result);
-		return PyCom_SetFromSimple(E_FAIL, IID_IEnumSTATSTG);
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumSTATSTG);
 	}
 
 	/*
@@ -251,7 +253,7 @@ STDMETHODIMP PyGEnumSTATSTG::Clone(
 	{
 		/* damn. the object was released. */
 		Py_DECREF(result);
-		return PyCom_SetFromSimple(E_FAIL, IID_IEnumSTATSTG);
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumSTATSTG);
 	}
 
 	/*
@@ -265,5 +267,5 @@ STDMETHODIMP PyGEnumSTATSTG::Clone(
 	/* done with the result; this DECREF is also for <punk> */
 	Py_DECREF(result);
 
-	return PyCom_SetFromSimple(hr, IID_IEnumSTATSTG);
+	return PyCom_SetCOMErrorFromSimple(hr, IID_IEnumSTATSTG);
 }

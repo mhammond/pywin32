@@ -37,8 +37,10 @@ PyObject *PyIEnumGUID::Next(PyObject *self, PyObject *args)
 	if (pMy==NULL) return NULL;
 
 	GUID *rgVar = new GUID[celt];
-	if ( rgVar == NULL )
-		return OleSetMemoryError("allocating result GUIDs");
+	if ( rgVar == NULL ) {
+		PyErr_SetString(PyExc_MemoryError, "allocating result GUIDs");
+		return NULL;
+	}
 
 	int i;
 	ULONG celtFetched;
@@ -48,7 +50,7 @@ PyObject *PyIEnumGUID::Next(PyObject *self, PyObject *args)
 	if ( FAILED(hr) )
 	{
 		delete [] rgVar;
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	}
 
 	PyObject *result = PyTuple_New(celtFetched);
@@ -87,7 +89,7 @@ PyObject *PyIEnumGUID::Skip(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->Skip(num);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -104,7 +106,7 @@ PyObject *PyIEnumGUID::Reset(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->Reset();
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -123,7 +125,7 @@ PyObject *PyIEnumGUID::Clone(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->Clone(&pNew);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	return PyCom_PyObjectFromIUnknown(pNew, IID_IEnumGUID, FALSE);
 }
 

@@ -6,10 +6,7 @@
 STDMETHODIMP PyGPersistPropertyBag::InitNew(void)
 {
 	PY_GATEWAY_METHOD;
-	PyObject *result = DispatchViaPolicy("InitNew", NULL);
-	HRESULT hr = PyCom_HandlePythonFailureToCOM();
-	Py_XDECREF(result);
-	return hr;
+	return InvokeViaPolicy("InitNew", NULL, NULL);
 }
 
 STDMETHODIMP PyGPersistPropertyBag::Load(
@@ -27,7 +24,7 @@ STDMETHODIMP PyGPersistPropertyBag::Load(
 	{
 		obLog = PyCom_PyObjectFromIUnknown(pErrorLog, IID_IErrorLog, TRUE);
 		if ( !obLog )
-			return PyCom_HandlePythonFailureToCOM();
+			return PyCom_SetCOMErrorFromPyException(GetIID());
 	}
 	else
 	{
@@ -38,16 +35,14 @@ STDMETHODIMP PyGPersistPropertyBag::Load(
 	PyObject *obBag = PyCom_PyObjectFromIUnknown(pPropBag, IID_IPropertyBag, TRUE);
 	if ( !obBag )
 	{
-		hr = PyCom_HandlePythonFailureToCOM();
+		hr = PyCom_SetCOMErrorFromPyException(GetIID());
 		Py_DECREF(obLog);
 		return hr;
 	}
 
-	PyObject *result = DispatchViaPolicy("Load", "OO", obBag, obLog);
-	hr = PyCom_HandlePythonFailureToCOM();
+	hr = InvokeViaPolicy("Load", NULL, "OO", obBag, obLog);
 	Py_DECREF(obBag);
 	Py_DECREF(obLog);
-	Py_XDECREF(result);
 	return hr;
 }
 
@@ -62,16 +57,15 @@ STDMETHODIMP PyGPersistPropertyBag::Save(
 	PY_GATEWAY_METHOD;
 	PyObject *obBag = PyCom_PyObjectFromIUnknown(pPropBag, IID_IPropertyBag, TRUE);
 	if ( !obBag )
-		return PyCom_HandlePythonFailureToCOM();
+		return PyCom_SetCOMErrorFromPyException(GetIID());
 
-	PyObject *result = DispatchViaPolicy("Save",
-										 "Oii",
-										 obBag,
-										 (int)fClearDirty,
-										 (int)fSaveAllProperties);
-	HRESULT hr = PyCom_HandlePythonFailureToCOM();
+	HRESULT hr = InvokeViaPolicy("Save",
+								 NULL,
+								 "Oii",
+								 obBag,
+								 (int)fClearDirty,
+								 (int)fSaveAllProperties);
 	Py_DECREF(obBag);
-	Py_XDECREF(result);
 	return hr;
 }
 

@@ -35,7 +35,7 @@ PyObject *PyIProvideClassInfo::GetClassInfo(PyObject *self, PyObject *args)
 	SCODE sc = pMy->GetClassInfo(&pti);
 	PY_INTERFACE_POSTCALL;
 	if (S_OK!=sc) // S_OK only acceptable
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc, pMy, IID_IProvideClassInfo);
 	return PyCom_PyObjectFromIUnknown(pti, IID_ITypeInfo);
 }
 
@@ -88,7 +88,7 @@ PyObject *PyIProvideClassInfo2::GetGUID(PyObject *self, PyObject *args)
 	SCODE sc = pMyInfo->GetGUID(flags, &guid);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc, pMyInfo, IID_IProvideClassInfo2);
 	return PyWinObject_FromIID(guid);
 }
 

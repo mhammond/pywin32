@@ -47,7 +47,7 @@ PyObject *PyICreateTypeInfo::SetGuid(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -69,7 +69,7 @@ PyObject *PyICreateTypeInfo::SetTypeFlags(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -96,7 +96,7 @@ PyObject *PyICreateTypeInfo::SetDocString(PyObject *self, PyObject *args)
 	SysFreeString(pStrDoc);
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -118,7 +118,7 @@ PyObject *PyICreateTypeInfo::SetHelpContext(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -142,7 +142,7 @@ PyObject *PyICreateTypeInfo::SetVersion(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -170,7 +170,7 @@ PyObject *PyICreateTypeInfo::AddRefTypeInfo(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	return PyInt_FromLong(hRefType);
 }
 
@@ -197,7 +197,7 @@ PyObject *PyICreateTypeInfo::AddFuncDesc(PyObject *self, PyObject *args)
 	PyObject_FreeFUNCDESC(pFuncDesc);
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -221,7 +221,7 @@ PyObject *PyICreateTypeInfo::AddImplType(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -245,7 +245,7 @@ PyObject *PyICreateTypeInfo::SetImplTypeFlags(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -267,7 +267,7 @@ PyObject *PyICreateTypeInfo::SetAlignment(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -294,7 +294,7 @@ PyObject *PyICreateTypeInfo::SetSchema(PyObject *self, PyObject *args)
 	SysFreeString(pStrSchema);
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -322,7 +322,7 @@ PyObject *PyICreateTypeInfo::AddVarDesc(PyObject *self, PyObject *args)
 
 	PyObject_FreeVARDESC(pVarDesc);
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -381,7 +381,7 @@ PyObject *PyICreateTypeInfo::SetFuncAndParamNames(PyObject *self, PyObject *args
 	delete pNames;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -409,7 +409,7 @@ PyObject *PyICreateTypeInfo::SetVarName(PyObject *self, PyObject *args)
 	SysFreeString(szName);
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -436,7 +436,7 @@ PyObject *PyICreateTypeInfo::SetTypeDescAlias(PyObject *self, PyObject *args)
 	PyObject_FreeTYPEDESC(pTDescAlias);
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -470,7 +470,7 @@ PyObject *PyICreateTypeInfo::DefineFuncAsDllEntry(PyObject *self, PyObject *args
 	SysFreeString(szProcName);
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -499,7 +499,7 @@ PyObject *PyICreateTypeInfo::SetFuncDocString(PyObject *self, PyObject *args)
 	SysFreeString(szDocString);
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -528,7 +528,7 @@ PyObject *PyICreateTypeInfo::SetVarDocString(PyObject *self, PyObject *args)
 	SysFreeString(szDocString);
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -552,7 +552,7 @@ PyObject *PyICreateTypeInfo::SetFuncHelpContext(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -576,7 +576,7 @@ PyObject *PyICreateTypeInfo::SetVarHelpContext(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -604,7 +604,7 @@ PyObject *PyICreateTypeInfo::SetMops(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -631,7 +631,7 @@ PyObject *PyICreateTypeInfo::SetTypeIdldesc(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -651,7 +651,7 @@ PyObject *PyICreateTypeInfo::LayOut(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
 	Py_INCREF(Py_None);
 	return Py_None;
 

@@ -39,8 +39,10 @@ PyObject *PyIEnumCATEGORYINFO::Next(PyObject *self, PyObject *args)
 
 
 	CATEGORYINFO *rgVar = new CATEGORYINFO[celt];
-	if ( rgVar == NULL )
-		return OleSetMemoryError("allocating result CATEGORYINFOs");
+	if ( rgVar == NULL ) {
+		PyErr_SetString(PyExc_MemoryError, "allocating result CATEGORYINFOs");
+		return NULL;
+	}
 
 	int i;
 	for ( i = celt; i--; )
@@ -53,7 +55,7 @@ PyObject *PyIEnumCATEGORYINFO::Next(PyObject *self, PyObject *args)
 	if ( HRESULT_CODE(hr) != ERROR_NO_MORE_ITEMS && FAILED(hr) )
 	{
 		delete [] rgVar;
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	}
 
 	PyObject *result = PyTuple_New(celtFetched);
@@ -91,7 +93,7 @@ PyObject *PyIEnumCATEGORYINFO::Skip(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->Skip(num);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -108,7 +110,7 @@ PyObject *PyIEnumCATEGORYINFO::Reset(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->Reset();
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -127,7 +129,7 @@ PyObject *PyIEnumCATEGORYINFO::Clone(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->Clone(&pNew);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	return PyCom_PyObjectFromIUnknown(pNew, IID_IEnumCATEGORYINFO, FALSE);
 }
 

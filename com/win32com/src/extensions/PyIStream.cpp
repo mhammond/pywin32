@@ -44,7 +44,7 @@ PyObject *PyIStream::Read(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	PyObject *result;
 	if (FAILED(hr))
-		result = OleSetOleError(hr);
+		result = PyCom_BuildPyException(hr, pMy, IID_IStream);
 	else
 		result = PyString_FromStringAndSize(buffer, read);
 	delete buffer;
@@ -68,7 +68,7 @@ PyObject *PyIStream::Write(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->Write(strValue, strSize, NULL);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IStream);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -93,7 +93,7 @@ PyObject *PyIStream::Seek(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->Seek(offset, origin, &newPos);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IStream);
 	return PyWinObject_FromULARGE_INTEGER(newPos);
 }
 
@@ -115,7 +115,7 @@ PyObject *PyIStream::SetSize(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->SetSize(newSize);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IStream);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -143,7 +143,7 @@ PyObject *PyIStream::CopyTo(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->CopyTo(pStream, cb, NULL, &written);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IStream);
 	// @rdesc The return value is the number of bytes actually written.
 	return PyWinObject_FromULARGE_INTEGER(written);
 }
@@ -162,7 +162,7 @@ PyObject *PyIStream::Commit(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->Commit(flags);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IStream);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -179,7 +179,7 @@ PyObject *PyIStream::Revert(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->Revert();
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IStream);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -207,7 +207,7 @@ PyObject *PyIStream::LockRegion(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->LockRegion(offset, cb, lockType);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IStream);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -235,7 +235,7 @@ PyObject *PyIStream::UnlockRegion(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->UnlockRegion(offset, cb, lockType);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IStream);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -252,7 +252,7 @@ PyObject *PyIStream::Clone(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->Clone(&pNewStream);
 	PY_INTERFACE_POSTCALL;
 	if (S_OK!=hr) // S_OK only acceptable
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IStream);
 	return PyCom_PyObjectFromIUnknown(pNewStream, IID_IStream, FALSE);
 }
 
@@ -271,7 +271,7 @@ PyObject *PyIStream::Stat(PyObject *self, PyObject *args)
 	HRESULT hr = pIS->Stat( &pstatstg, grfStatFlag );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIS, IID_IStream);
 
 	PyObject *obpstatstg = PyCom_PyObjectFromSTATSTG(&pstatstg);
 	// STATSTG doco says our responsibility to free

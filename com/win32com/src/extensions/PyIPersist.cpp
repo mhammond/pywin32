@@ -35,7 +35,7 @@ PyObject *PyIPersist::GetClassID(PyObject *self, PyObject *args)
 	HRESULT hr = pIP->GetClassID(&clsid);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIP, IID_IPersist);
 
 	return PyWinObject_FromIID(clsid);
 }

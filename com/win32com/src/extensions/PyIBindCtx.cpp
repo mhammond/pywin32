@@ -33,7 +33,7 @@ PyObject *PyIBindCtx::GetRunningObjectTable(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->GetRunningObjectTable(&pROT);
 	PY_INTERFACE_POSTCALL;
 	if (S_OK!=hr)
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IRunningObjectTable);
 	return PyCom_PyObjectFromIUnknown(pROT, IID_IRunningObjectTable, FALSE);
 }
 

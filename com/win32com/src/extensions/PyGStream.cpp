@@ -9,7 +9,7 @@ STDMETHODIMP PyGStream::Read(
             /* [out] */ ULONG __RPC_FAR *pcbRead)
 {
 	if ( pv == NULL )
-		return PyCom_SetFromSimple(E_POINTER, GetIID());
+		return PyCom_SetCOMErrorFromSimple(E_POINTER, GetIID());
 
 	PY_GATEWAY_METHOD;
 	PyObject *result;
@@ -32,7 +32,7 @@ STDMETHODIMP PyGStream::Read(
 	}
 
 	Py_DECREF(result);
-	return PyCom_SetFromSimple(hr, GetIID());
+	return PyCom_SetCOMErrorFromPyException(GetIID());
 }
 
 STDMETHODIMP PyGStream::Write(
@@ -41,7 +41,7 @@ STDMETHODIMP PyGStream::Write(
             /* [out] */ ULONG __RPC_FAR *pcbWritten)
 {
 	if ( pv == NULL )
-		return PyCom_SetFromSimple(E_POINTER, GetIID());
+		return PyCom_SetCOMErrorFromSimple(E_POINTER, GetIID());
 
 	PY_GATEWAY_METHOD;
 	PyObject *result;
@@ -52,10 +52,7 @@ STDMETHODIMP PyGStream::Write(
 	int cbWritten = PyInt_AsLong(result);
 	Py_DECREF(result);
 	if ( cbWritten == -1 )
-	{
-		PyErr_Clear();
-		return PyCom_SetFromSimple(E_FAIL, GetIID());
-	}
+		return PyCom_SetCOMErrorFromPyException(GetIID());
 	if ( pcbWritten != NULL )
 		*pcbWritten = cbWritten;
 

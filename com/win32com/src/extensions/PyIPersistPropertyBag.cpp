@@ -33,7 +33,7 @@ PyObject *PyIPersistPropertyBag::InitNew(PyObject *self, PyObject *args)
 	HRESULT hr = pIPPB->InitNew();
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPPB, IID_IPersistPropertyBag);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -69,7 +69,7 @@ PyObject *PyIPersistPropertyBag::Load(PyObject *self, PyObject *args)
 	pIEL->Release();
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPPB, IID_IPersistPropertyBag);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -97,7 +97,7 @@ PyObject *PyIPersistPropertyBag::Save(PyObject *self, PyObject *args)
 	pIPB->Release();
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPPB, IID_IPersistPropertyBag);
 
 	Py_INCREF(Py_None);
 	return Py_None;

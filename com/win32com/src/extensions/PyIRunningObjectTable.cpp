@@ -42,7 +42,7 @@ PyObject *PyIRunningObjectTable::IsRunning(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->IsRunning(pMoniker);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IRunningObjectTable);
 	return PyInt_FromLong(hr);
 	// @rvalue S_OK (ie, 0)|The object identified by objectName is running. 
 	// @rvalue S_FALSE (ie, 1)|There is no entry for objectName in the ROT, or that the object it identifies is no longer running (in which case, the entry is revoked). 
@@ -67,7 +67,7 @@ PyObject *PyIRunningObjectTable::GetObject(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->GetObject(pMoniker, &punk);
 	PY_INTERFACE_POSTCALL;
 	if (S_OK!=hr) // S_OK only acceptable
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IRunningObjectTable);
 	return PyCom_PyObjectFromIUnknown(punk, IID_IUnknown, FALSE);
 }
 
@@ -85,7 +85,7 @@ PyObject *PyIRunningObjectTable::EnumRunning(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->EnumRunning(&pEnumMoniker);
 	PY_INTERFACE_POSTCALL;
 	if (S_OK!=hr) // S_OK only acceptable
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IRunningObjectTable);
 	return PyCom_PyObjectFromIUnknown(pEnumMoniker, IID_IEnumMoniker, FALSE);
 }
 

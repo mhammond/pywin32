@@ -48,7 +48,7 @@ PyObject *PyILockBytes::ReadAt(PyObject *self, PyObject *args)
 	HRESULT hr = pILB->ReadAt( ulOffset, pv, cb, &pcbRead );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pILB, IID_ILockBytes);
 
 	// @comm The result is a binary buffer returned in a string.
 	PyObject *pyretval = PyString_FromStringAndSize(pv, pcbRead);
@@ -77,7 +77,7 @@ PyObject *PyILockBytes::WriteAt(PyObject *self, PyObject *args)
 	HRESULT hr = pILB->WriteAt( ulOffset, pv, cb, &pcbWritten );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pILB, IID_ILockBytes);
 
 	// @rdesc The result is the number of bytes actually written.
 	PyObject *pyretval = Py_BuildValue("i", pcbWritten);
@@ -96,7 +96,7 @@ PyObject *PyILockBytes::Flush(PyObject *self, PyObject *args)
 	HRESULT hr = pILB->Flush( );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pILB, IID_ILockBytes);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -120,7 +120,7 @@ PyObject *PyILockBytes::SetSize(PyObject *self, PyObject *args)
 	HRESULT hr = pILB->SetSize( cb );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pILB, IID_ILockBytes);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -150,7 +150,7 @@ PyObject *PyILockBytes::LockRegion(PyObject *self, PyObject *args)
 	HRESULT hr = pILB->LockRegion( libOffset, cb, dwLockType );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pILB, IID_ILockBytes);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -180,7 +180,7 @@ PyObject *PyILockBytes::UnlockRegion(PyObject *self, PyObject *args)
 	HRESULT hr = pILB->UnlockRegion( libOffset, cb, dwLockType );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pILB, IID_ILockBytes);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -201,7 +201,7 @@ PyObject *PyILockBytes::Stat(PyObject *self, PyObject *args)
 	HRESULT hr = pILB->Stat( &pstatstg, grfStatFlag );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pILB, IID_ILockBytes);
 
 	PyObject *obpstatstg = PyCom_PyObjectFromSTATSTG(&pstatstg);
 	// STATSTG doco says our responsibility to free
@@ -262,7 +262,7 @@ STDMETHODIMP PyGLockBytes::ReadAt(
 		*pcbRead = len;
 	hr = S_OK;
 	Py_DECREF(result);
-	return PyCom_SetFromSimple(hr, GetIID());
+	return PyCom_SetCOMErrorFromSimple(hr, GetIID());
 }
 
 STDMETHODIMP PyGLockBytes::WriteAt(
@@ -286,7 +286,7 @@ STDMETHODIMP PyGLockBytes::WriteAt(
 	if ( cbWritten == -1 )
 	{
 		PyErr_Clear();
-		return PyCom_SetFromSimple(E_FAIL, GetIID());
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, GetIID());
 	}
 	if ( pcbWritten != NULL )
 		*pcbWritten = cbWritten;

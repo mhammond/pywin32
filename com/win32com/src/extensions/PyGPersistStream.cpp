@@ -24,7 +24,7 @@ STDMETHODIMP PyGPersistStream::Load(
             /* [unique][in] */ IStream __RPC_FAR *pStm)
 {
 	if ( pStm == NULL )
-		return PyCom_SetFromSimple(E_POINTER, GetIID());
+		return PyCom_SetCOMErrorFromSimple(E_POINTER, GetIID());
 
 	HRESULT hr;
 	PY_GATEWAY_METHOD;
@@ -32,7 +32,7 @@ STDMETHODIMP PyGPersistStream::Load(
 
 	obStm = PyCom_PyObjectFromIUnknown(pStm, IID_IStream, TRUE);
 	if ( obStm == NULL )
-		hr = PyCom_SetFromPyException(GetIID());
+		hr = PyCom_SetCOMErrorFromPyException(GetIID());
 	else
 	{
 		hr = InvokeViaPolicy("Load", NULL, "O", obStm);
@@ -46,7 +46,7 @@ STDMETHODIMP PyGPersistStream::Save(
             /* [in] */ BOOL fClearDirty)
 {
 	if ( pStm == NULL )
-		return PyCom_SetFromSimple(E_POINTER, GetIID());
+		return PyCom_SetCOMErrorFromSimple(E_POINTER, GetIID());
 
 	HRESULT hr;
 	PY_GATEWAY_METHOD;
@@ -54,7 +54,7 @@ STDMETHODIMP PyGPersistStream::Save(
 
 	obStm = PyCom_PyObjectFromIUnknown(pStm, IID_IStream, TRUE);
 	if ( obStm == NULL)
-		hr = PyCom_SetFromPyException(GetIID());
+		hr = PyCom_SetCOMErrorFromPyException(GetIID());
 	else
 	{
 		hr = InvokeViaPolicy("Save", NULL, "Oi", obStm, (int)fClearDirty);
@@ -67,7 +67,7 @@ STDMETHODIMP PyGPersistStream::GetSizeMax(
             /* [out] */ ULARGE_INTEGER __RPC_FAR *pcbSize)
 {
 	if ( pcbSize == NULL )
-		return PyCom_SetFromSimple(E_POINTER, GetIID());
+		return PyCom_SetCOMErrorFromSimple(E_POINTER, GetIID());
 
 	HRESULT hr;
 	PY_GATEWAY_METHOD;

@@ -34,7 +34,7 @@ PyObject *PyIPersistStorage::IsDirty(PyObject *self, PyObject *args)
 	HRESULT hr = pIPS->IsDirty( );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPS, IID_IPersistStorage);
 	return PyInt_FromLong(hr);
 	// @rvalue S_OK (ie, 0)|The object has changed since it was last saved. 
 	// @rvalue S_FALSE (ie, 1)|The object has not changed since the last save. 
@@ -58,7 +58,7 @@ PyObject *PyIPersistStorage::InitNew(PyObject *self, PyObject *args)
 	pStg->Release();
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPS, IID_IPersistStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -81,7 +81,7 @@ PyObject *PyIPersistStorage::Load(PyObject *self, PyObject *args)
 	pStg->Release();
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPS, IID_IPersistStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -108,7 +108,7 @@ PyObject *PyIPersistStorage::Save(PyObject *self, PyObject *args)
 	pStgSave->Release();
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPS, IID_IPersistStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -131,7 +131,7 @@ PyObject *PyIPersistStorage::SaveCompleted(PyObject *self, PyObject *args)
 	pStgNew->Release();
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPS, IID_IPersistStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -147,7 +147,7 @@ PyObject *PyIPersistStorage::HandsOffStorage(PyObject *self, PyObject *args)
 	HRESULT hr = pIPS->HandsOffStorage( );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPS, IID_IPersistStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 }

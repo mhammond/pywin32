@@ -30,8 +30,10 @@ PyObject *PyIEnumVARIANT::Next(PyObject *self, PyObject *args)
 		return NULL;
 
 	VARIANT *rgVar = new VARIANT[celt];
-	if ( rgVar == NULL )
-		return OleSetMemoryError("allocating result VARIANTs");
+	if ( rgVar == NULL ) {
+		PyErr_SetString(PyExc_MemoryError, "allocating result VARIANTs");
+		return NULL;
+	}
 
 	int i;
 	for ( i = celt; i--; )
@@ -44,7 +46,7 @@ PyObject *PyIEnumVARIANT::Next(PyObject *self, PyObject *args)
 	if ( FAILED(hr) )
 	{
 		delete [] rgVar;
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	}
 
 	PyObject *result = PyTuple_New(celtFetched);
@@ -88,7 +90,7 @@ PyObject *PyIEnumVARIANT::Skip(PyObject *self, PyObject *args)
 	HRESULT hr = pIEVARIANT->Skip(celt);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -108,7 +110,7 @@ PyObject *PyIEnumVARIANT::Reset(PyObject *self, PyObject *args)
 	HRESULT hr = pIEVARIANT->Reset();
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -129,7 +131,7 @@ PyObject *PyIEnumVARIANT::Clone(PyObject *self, PyObject *args)
 	HRESULT hr = pIEVARIANT->Clone(&pClone);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 
 	return PyCom_PyObjectFromIUnknown(pClone, IID_IEnumVARIANT, FALSE);
 }

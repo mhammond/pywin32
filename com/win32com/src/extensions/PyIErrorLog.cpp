@@ -53,7 +53,7 @@ PyObject *PyIErrorLog::AddError(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	PyWinObject_FreeBstr(propName);
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIEL, IID_IErrorLog);
 
 	Py_INCREF(Py_None);
 	return Py_None;

@@ -45,7 +45,7 @@ PyObject *PyITypeInfo::GetContainingTypeLib()
 	unsigned index;
 	SCODE sc = pMyTypeInfo->GetContainingTypeLib(&ptlib, &index);
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc, pMyTypeInfo, IID_ITypeInfo);
 
 	PyObject *ret = PyTuple_New(2);
 	PyTuple_SetItem(ret, 0, PyCom_PyObjectFromIUnknown(ptlib, IID_ITypeLib));
@@ -63,7 +63,7 @@ PyObject *PyITypeInfo::GetImplTypeFlags(int index)
 	SCODE sc = pMyTypeInfo->GetImplTypeFlags(index, &implFlags);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc, pMyTypeInfo, IID_ITypeInfo);
 
 	return Py_BuildValue("i", implFlags);
 }
@@ -79,7 +79,7 @@ PyObject *PyITypeInfo::GetDocumentation(MEMBERID id)
 	SCODE sc = pMyTypeInfo->GetDocumentation(id, &name, &docstring, &helpctx, &helpfile);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc, pMyTypeInfo, IID_ITypeInfo);
 
 	// NOTE - These BSTR's seem not to have a reasonable length.
 	// Specifically, DAO3032 leaves crap at the end if we use
@@ -143,7 +143,7 @@ PyObject *PyITypeInfo::GetFuncDesc(int index)
 	SCODE sc = pMyTypeInfo->GetFuncDesc(index, &desc);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc, pMyTypeInfo, IID_ITypeInfo);
 	return BuildFUNCDESC(pMyTypeInfo,desc);
 }
 /**********88
@@ -157,7 +157,7 @@ PyObject *PyITypeInfo::GetIDsOfNames(OLECHAR FAR* FAR* names, int count)
 	if (FAILED(sc))
 	{
 		delete [] ids;
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc, pMyTypeInfo, IID_ITypeInfo);
 	}
 
 	PyObject *ret = PyTuple_New(count);
@@ -178,7 +178,7 @@ PyObject *PyITypeInfo::GetNames(MEMBERID id)
 	SCODE sc = pMyTypeInfo->GetNames(id, names, 256, &len);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc, pMyTypeInfo, IID_ITypeInfo);
 
 	PyObject *ret = PyTuple_New(len);
 	for (unsigned i = 0; i < len; i++)
@@ -201,7 +201,7 @@ PyObject *PyITypeInfo::GetTypeAttr()
 	SCODE sc = pMyTypeInfo->GetTypeAttr(&attr);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc, pMyTypeInfo, IID_ITypeInfo);
 
 /*	
 	PyObject *obIID = PyWinObject_FromIID(attr->guid);
@@ -258,7 +258,7 @@ PyObject *PyITypeInfo::GetVarDesc(int index)
 	SCODE sc = pMyTypeInfo->GetVarDesc(index, &desc);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc, pMyTypeInfo, IID_ITypeInfo);
 	PyObject *ret = PyObject_FromVARDESC(desc);
 	{
 	PY_INTERFACE_PRECALL;
@@ -277,7 +277,7 @@ PyObject *PyITypeInfo::GetRefTypeInfo(HREFTYPE href)
 	SCODE sc = pMyTypeInfo->GetRefTypeInfo(href, &pti);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc, pMyTypeInfo, IID_ITypeInfo);
 	return new PyITypeInfo(pti);
 }
 
@@ -290,7 +290,7 @@ PyObject *PyITypeInfo::GetRefTypeOfImplType(int index)
 	SCODE sc = pMyTypeInfo->GetRefTypeOfImplType(index, &href);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc, pMyTypeInfo, IID_ITypeInfo);
 	return Py_BuildValue("i", href);
 }
 
@@ -303,7 +303,7 @@ PyObject *PyITypeInfo::GetTypeComp()
 	SCODE sc = pMyTypeInfo->GetTypeComp(&ptc);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc, pMyTypeInfo, IID_ITypeInfo);
 
 	return PyCom_PyObjectFromIUnknown(ptc, IID_ITypeComp);
 }
@@ -408,8 +408,10 @@ static PyObject *typeinfo_getidsofnames(PyObject *self, PyObject *args)
 	int argc = PyObject_Length(args);
 	if ( argc == -1 )
 		return NULL;
-	if ( argc < 1 )
-		return OleSetTypeError("At least one argument must be supplied");
+	if ( argc < 1 ) {
+		PyErr_SetString(PyExc_TypeError, "At least one argument must be supplied");
+		return NULL;
+	}
 	LCID lcid = LOCALE_SYSTEM_DEFAULT;
 	UINT offset = 0;
 	if ( argc > 1 )
@@ -458,7 +460,7 @@ static PyObject *typeinfo_getidsofnames(PyObject *self, PyObject *args)
 	delete [] rgszNames;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pti, IID_ITypeInfo);
 
 	PyObject *result;
 
@@ -543,7 +545,7 @@ PyObject *PyITypeLib::GetLibAttr()
 	SCODE sc = pMyTypeLib->GetLibAttr(&attr);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc, pMyTypeLib, IID_ITypeLib);
 
 	PyObject *obIID = PyWinObject_FromIID(attr->guid);
 	PyObject *ret = Py_BuildValue("Oiiiii",
@@ -575,7 +577,7 @@ PyObject *PyITypeLib::GetDocumentation(int pos)
 	SCODE sc = pMyTypeLib->GetDocumentation(pos, &name, &docstring, &helpctx, &helpfile);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc, pMyTypeLib, IID_ITypeLib);
 
 	PyObject *obName = MakeOLECHARToObj(name);
 	PyObject *obDocstring = MakeOLECHARToObj(docstring);
@@ -600,7 +602,7 @@ PyObject *PyITypeLib::GetTypeInfo(int pos)
 	SCODE sc = pMyTypeLib->GetTypeInfo(pos, &pti);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc, pMyTypeLib, IID_ITypeLib);
 
 	return PyCom_PyObjectFromIUnknown(pti, IID_ITypeInfo);
 }
@@ -624,7 +626,7 @@ PyObject *PyITypeLib::GetTypeInfoOfGuid(REFGUID guid)
 	HRESULT hr = pMyTypeLib->GetTypeInfoOfGuid(guid, &pti);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMyTypeLib, IID_ITypeLib);
 	return PyCom_PyObjectFromIUnknown(pti, IID_ITypeInfo);
 }
 
@@ -637,7 +639,7 @@ PyObject *PyITypeLib::GetTypeInfoType(int pos)
 	SCODE sc = pMyTypeLib->GetTypeInfoType(pos, &tkind);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc, pMyTypeLib, IID_ITypeLib);
 
 	return PyInt_FromLong(tkind);
 }
@@ -737,7 +739,7 @@ PyObject *pythoncom_loadtypelib(PyObject *self, PyObject *args)
 	PyWinObject_FreeBstr(bstrName);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc);
 
 	return PyCom_PyObjectFromIUnknown(ptl, IID_ITypeLib);
 }
@@ -764,7 +766,7 @@ PyObject *pythoncom_loadregtypelib(PyObject *self, PyObject *args)
 	SCODE sc = LoadRegTypeLib(clsid, major, minor, lcid, &ptl);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc);
 
 	return PyCom_PyObjectFromIUnknown(ptl, IID_ITypeLib);
 	// @comm LoadRegTypeLib compares the requested version numbers against those found in the system registry, and takes one of the following actions:<nl>
@@ -800,7 +802,7 @@ PyObject *pythoncom_querypathofregtypelib(PyObject *self, PyObject *args)
 	HRESULT hr = QueryPathOfRegTypeLib(clsid, major, minor, lcid, &result);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	return PyWinObject_FromBstr( result, TRUE );
 }
 #endif
@@ -863,7 +865,7 @@ static PyObject* ITypeCompBind( ITypeComp* pTC, OLECHAR* S, unsigned short w )
 	SCODE sc = pTC->Bind(S, hashval,w, &pI, &DK, &BP);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc);
 	switch(DK){
 		case DESCKIND_NONE:
 			Py_INCREF(Py_None);

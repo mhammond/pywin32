@@ -45,7 +45,7 @@ PyObject *PyIServiceProvider::QueryService(PyObject *self, PyObject *args)
 	HRESULT hr = pMy->QueryService(clsid, iid, (void **)&pv);
 	PY_INTERFACE_POSTCALL;
 	if (S_OK!=hr)
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pMy, IID_IServiceProvider);
 	return PyCom_PyObjectFromIUnknown(pv, iid, /* bAddRef = */FALSE);
 }
 

@@ -7,7 +7,7 @@ STDMETHODIMP PyGPersist::GetClassID(
             /* [out] */ CLSID __RPC_FAR *pClassID)
 {
 	if ( pClassID == NULL )
-		return PyCom_SetFromSimple(E_POINTER, GetIID());
+		return PyCom_SetCOMErrorFromSimple(E_POINTER, GetIID());
 
 	HRESULT hr;
 	PY_GATEWAY_METHOD;
@@ -19,7 +19,7 @@ STDMETHODIMP PyGPersist::GetClassID(
 		Py_DECREF(result);
 
 		// register the error if necessary
-		PyCom_SetFromSimple(hr, GetIID());
+		PyCom_SetCOMErrorFromPyException(GetIID());
 	}
 	return hr;
 }

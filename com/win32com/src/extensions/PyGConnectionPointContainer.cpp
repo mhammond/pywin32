@@ -11,10 +11,7 @@ STDMETHODIMP PyGConnectionPointContainer::EnumConnectionPoints(IEnumConnectionPo
 {
 /*	
 	PY_GATEWAY_METHOD;
-	PyObject *result = DispatchViaPolicy("EnumConnectionPoints", NULL);
-	HRESULT hr = PyCom_HandlePythonFailureToCOM();
-	Py_XDECREF(result);
-	return hr;
+	return InvokeViaPolicy("EnumConnectionPoints", NULL, NULL);
 */
 	return E_NOTIMPL;
 }
@@ -25,12 +22,13 @@ STDMETHODIMP PyGConnectionPointContainer::FindConnectionPoint(REFIID riid, IConn
 	if (ppCP==NULL) return E_POINTER;
 	*ppCP = NULL;
 	PyObject *obIID = PyWinObject_FromIID(riid);
-	PyObject *result = DispatchViaPolicy("FindConnectionPoint", "O", obIID);
+	PyObject *result;
+	HRESULT hr = InvokeViaPolicy("FindConnectionPoint", &result, "O", obIID);
 	Py_XDECREF(obIID);
-	if (result)
-		PyCom_InterfaceFromPyObject(result, IID_IConnectionPoint, (void **)ppCP);
+	if (FAILED(hr)) return hr;
+	if (result != Py_None && !PyCom_InterfaceFromPyObject(result, IID_IConnectionPoint, (void **)ppCP))
+		hr = PyCom_SetCOMErrorFromPyException(GetIID());
 	Py_XDECREF(result);
-	HRESULT hr = PyCom_HandlePythonFailureToCOM();
 	return (hr==S_OK && *ppCP==NULL) ? CONNECT_E_NOCONNECTION : hr;
 }
 

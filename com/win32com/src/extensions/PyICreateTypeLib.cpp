@@ -50,7 +50,7 @@ PyObject *PyICreateTypeLib::CreateTypeInfo(PyObject *self, PyObject *args)
 	SysFreeString(szName);
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib);
 	return PyCom_PyObjectFromIUnknown(ppCTInfo, IID_ICreateTypeInfo, FALSE);
 }
 
@@ -75,7 +75,7 @@ PyObject *PyICreateTypeLib::SetName(PyObject *self, PyObject *args)
 	SysFreeString(szName);
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -99,7 +99,7 @@ PyObject *PyICreateTypeLib::SetVersion(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -125,7 +125,7 @@ PyObject *PyICreateTypeLib::SetGuid(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -152,7 +152,7 @@ PyObject *PyICreateTypeLib::SetDocString(PyObject *self, PyObject *args)
 	SysFreeString(szDoc);
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -179,7 +179,7 @@ PyObject *PyICreateTypeLib::SetHelpFileName(PyObject *self, PyObject *args)
 	SysFreeString(szHelpFileName);
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -201,7 +201,7 @@ PyObject *PyICreateTypeLib::SetHelpContext(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -222,7 +222,7 @@ PyObject *PyICreateTypeLib::SetLcid(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -244,7 +244,7 @@ PyObject *PyICreateTypeLib::SetLibFlags(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -264,7 +264,7 @@ PyObject *PyICreateTypeLib::SaveAllChanges(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pICTL, IID_ICreateTypeLib);
 	Py_INCREF(Py_None);
 	return Py_None;
 

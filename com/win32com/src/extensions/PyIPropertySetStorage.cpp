@@ -56,7 +56,7 @@ PyObject *PyIPropertySetStorage::Create(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPSS, IID_IPropertySetStorage);
 
 	return PyCom_PyObjectFromIUnknown(ppprstg, IID_IPropertyStorage, FALSE);
 }
@@ -84,7 +84,7 @@ PyObject *PyIPropertySetStorage::Open(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPSS, IID_IPropertySetStorage);
 
 	return PyCom_PyObjectFromIUnknown(ppprstg, IID_IPropertyStorage, FALSE);
 }
@@ -109,7 +109,7 @@ PyObject *PyIPropertySetStorage::Delete(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPSS, IID_IPropertySetStorage);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -130,7 +130,7 @@ PyObject *PyIPropertySetStorage::Enum(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPSS, IID_IPropertySetStorage);
 
 	return PyCom_PyObjectFromIUnknown(ppenum, IID_IEnumSTATPROPSETSTG, FALSE);
 }

@@ -17,7 +17,7 @@ STDMETHODIMP PyGPropertyBag::Read(
 	{
 		obLog = PyCom_PyObjectFromIUnknown(pErrorLog, IID_IErrorLog, TRUE);
 		if ( !obLog )
-			return PyCom_HandlePythonFailureToCOM();
+			return PyCom_SetCOMErrorFromPyException(GetIID());
 	}
 	else
 	{
@@ -26,22 +26,22 @@ STDMETHODIMP PyGPropertyBag::Read(
 	}
 
 	PyObject *obName = PyString_FromUnicode(pszPropName); // keep with string for b/w compat.
-	PyObject *result = DispatchViaPolicy("Read",
-										 "OiO",
-										 obName,
-										 (int)V_VT(pVar),
-										 obLog);
+	PyObject *result;
+	HRESULT hr = InvokeViaPolicy("Read",
+									&result,
+									"OiO",
+									obName,
+									(int)V_VT(pVar),
+									obLog);
 
-	HRESULT hr = PyCom_HandlePythonFailureToCOM();
 	Py_DECREF(obLog);
 	Py_XDECREF(obName);
-	if ( !result )
-		return hr;
+	if (FAILED(hr)) return hr;
+	if (!PyCom_VariantFromPyObject(result, pVar))
+		hr = PyCom_SetCOMErrorFromPyException(GetIID());
 
-	BOOL ok = PyCom_VariantFromPyObject(result, pVar);
 	Py_DECREF(result);
-
-	return ok ? S_OK : E_FAIL;
+	return hr;
 }
 
 STDMETHODIMP PyGPropertyBag::Write(
@@ -54,16 +54,15 @@ STDMETHODIMP PyGPropertyBag::Write(
 	PY_GATEWAY_METHOD;
 	PyObject *value = PyCom_PyObjectFromVariant(pVar);
 	if ( !value )
-		return PyCom_HandlePythonFailureToCOM();
+		return PyCom_SetCOMErrorFromPyException(GetIID());
 
 	PyObject *obName = PyString_FromUnicode(pszPropName); // keep with string for b/w compat.
-	PyObject *result = DispatchViaPolicy("Write",
-										 "OO",
-										 obName,
-										 value);
-	HRESULT hr = PyCom_HandlePythonFailureToCOM();
+	HRESULT hr = InvokeViaPolicy("Write",
+									NULL,
+									"OO",
+									obName,
+									value);
 	Py_DECREF(value);
-	Py_XDECREF(result);
 	Py_XDECREF(obName);
 	return hr;
 }

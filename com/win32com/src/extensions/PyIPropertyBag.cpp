@@ -54,7 +54,7 @@ PyObject *PyIPropertyBag::Read(PyObject *self, PyObject *args)
 	PyWinObject_FreeBstr(bstrName);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPB, IID_IPropertyBag);
 
 	PyObject *result = PyCom_PyObjectFromVariant(&var);
 	VariantClear(&var);
@@ -89,7 +89,7 @@ PyObject *PyIPropertyBag::Write(PyObject *self, PyObject *args)
 	PyWinObject_FreeBstr(bstrName);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIPB, IID_IPropertyBag);
 
 	Py_INCREF(Py_None);
 	return Py_None;

@@ -13,18 +13,17 @@ STDMETHODIMP PyGErrorLog::AddError(
 	PY_GATEWAY_METHOD;
 	PyObject *obExcepInfo = PyCom_PyObjectFromExcepInfo(pExcepInfo);
 	if ( !obExcepInfo )
-		return PyCom_HandlePythonFailureToCOM();
+		return PyCom_SetCOMErrorFromPyException(GetIID());
 
 	// We use a string object for B/W compatibility.
 	PyObject *obName = PyString_FromUnicode(pszPropName);
-	PyObject *result = DispatchViaPolicy("AddError",
-										 "OO",
-										 obName,
-										 obExcepInfo);
-	HRESULT hr = PyCom_HandlePythonFailureToCOM();
+	HRESULT hr = InvokeViaPolicy("AddError",
+									 NULL,
+									 "OO",
+									 obName,
+									 obExcepInfo);
 	Py_DECREF(obExcepInfo);
 	Py_XDECREF(obName);
-	Py_XDECREF(result);
 	return hr;
 }
 
