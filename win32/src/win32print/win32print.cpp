@@ -20,7 +20,17 @@ generates Windows .hlp files.
 #include <stdarg.h>
 
 typedef BOOL (WINAPI *EnumFormsfunc)(HANDLE,DWORD,LPBYTE,DWORD,LPDWORD,LPDWORD);
-EnumFormsfunc enumforms=NULL;
+static EnumFormsfunc enumforms=NULL;
+typedef BOOL (WINAPI *AddFormfunc)(HANDLE,DWORD,LPBYTE);
+static AddFormfunc addform=NULL;
+typedef BOOL (WINAPI *DeleteFormfunc)(HANDLE, LPWSTR);
+static DeleteFormfunc deleteform=NULL;
+typedef BOOL (WINAPI *GetFormfunc)(HANDLE,LPWSTR,DWORD,LPBYTE,DWORD,LPDWORD);
+static GetFormfunc getform=NULL;
+typedef BOOL (WINAPI *SetFormfunc)(HANDLE, LPWSTR, DWORD, LPBYTE);
+static SetFormfunc setform=NULL;
+
+static PyObject *dummy_tuple=NULL;
 
 // Printer stuff.
 // @pymethod int|win32print|OpenPrinter|Retrieves a handle to a printer.
@@ -1024,7 +1034,23 @@ done:
 	return ret;
 }
 
-// @pymethod (dict,...)|win32print|EnumForms|Lists forms for a printer
+PyObject *PyWin_Object_FromFORM_INFO_1(FORM_INFO_1W *fi1)
+{
+	if (fi1==NULL){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	return Py_BuildValue("{s:l,s:u,s:{s:l,s:l},s:{s:l,s:l,s:l,s:l}}",
+		"Flags", fi1->Flags,
+		"Name", fi1->pName,
+		"Size", 
+			"cx", fi1->Size.cx, "cy", fi1->Size.cy,
+		"ImageableArea", 
+			"left", fi1->ImageableArea.left, "top", fi1->ImageableArea.top,
+			"right", fi1->ImageableArea.right, "bottom", fi1->ImageableArea.bottom);
+}
+
+// @pymethod (<o FORM_INFO_1>,...)|win32print|EnumForms|Lists forms for a printer
 static PyObject *PyEnumForms(PyObject *self, PyObject *args)
 {
 	// @pyparm int|hprinter||Printer handle as returned by <om win32print.OpenPrinter>
@@ -1038,7 +1064,7 @@ static PyObject *PyEnumForms(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_NotImplementedError,"EnumForms does not exist on this version of Windows");
 		return NULL;
 		}
-	if (!PyArg_ParseTuple(args,"i:EnumForms",&hprinter))
+	if (!PyArg_ParseTuple(args,"l:EnumForms",&hprinter))
 		return NULL;
 	(*enumforms)(hprinter, level, buf, bufsize, &bytes_needed, &return_cnt);
 	if (bytes_needed==0){
@@ -1060,14 +1086,7 @@ static PyObject *PyEnumForms(PyObject *self, PyObject *args)
 		goto done;
 	fi1=(FORM_INFO_1W *)buf;
 	for (DWORD buf_ind=0; buf_ind<return_cnt; buf_ind++){
-		tuple_item=Py_BuildValue("{s:l,s:u,s:{s:l,s:l},s:{s:l,s:l,s:l,s:l}}",
-			"Flags", fi1->Flags,
-			"Name", fi1->pName,
-			"Size", 
-				"cx", fi1->Size.cx, "cy", fi1->Size.cy,
-			"ImageableArea", 
-				"left", fi1->ImageableArea.left, "top", fi1->ImageableArea.top,
-				"right", fi1->ImageableArea.right, "bottom", fi1->ImageableArea.bottom);
+		tuple_item=PyWin_Object_FromFORM_INFO_1(fi1);
 		if (tuple_item==NULL){
 			Py_DECREF(ret);
 			ret=NULL;
@@ -1080,6 +1099,156 @@ done:
 	if (buf!=NULL)
 		free(buf);
 	return ret;
+}
+
+BOOL PyWinObject_AsRECTL(PyObject *obrectl, RECTL *rectl)
+{
+	static char *rectl_keys[]={"left","top","right","bottom",0};
+	static char* err_msg="RECTL must be a dictionary containing {left:int, top:int, right:int, bottom:int}";
+	if (obrectl->ob_type!=&PyDict_Type){
+		PyErr_SetString(PyExc_TypeError,err_msg);
+		return FALSE;
+		}
+	if (PyArg_ParseTupleAndKeywords(dummy_tuple, obrectl, "llll", rectl_keys,
+		&rectl->left, &rectl->top, &rectl->right, &rectl->bottom))
+		return TRUE;
+
+	PyErr_Clear();
+	PyErr_SetString(PyExc_TypeError, err_msg);
+	return FALSE;
+
+}
+
+BOOL PyWinObject_AsSIZEL(PyObject *obsizel, SIZEL *sizel)
+{
+	static char *sizel_keys[]={"cx","cy",0};
+	static char* err_msg="SIZEL must be a dictionary containing {cx:int, cy:int}";
+	if (obsizel->ob_type!=&PyDict_Type){
+		PyErr_SetString(PyExc_TypeError,err_msg);
+		return FALSE;
+		}
+	if (PyArg_ParseTupleAndKeywords(dummy_tuple, obsizel, "ll", sizel_keys, &sizel->cx, &sizel->cy))
+		return TRUE;
+
+	PyErr_Clear();
+	PyErr_SetString(PyExc_TypeError, err_msg);
+	return FALSE;
+}
+
+// @object FORM_INFO_1|A dictionary containing FORM_INFO_1W data
+// @prop int|Flags|FORM_USER, FORM_BUILTIN, or FORM_PRINTER
+// @prop <o PyUnicode>|Name|Name of form
+// @prop dict|Size|A dictionary representing a SIZEL structure {'cx':int,'cy':int}
+// @prop dict|ImageableArea|A dictionary representing a RECTL structure {'left':int, 'top':int, 'right':int, 'bottom':int}
+
+BOOL PyWinObject_AsFORM_INFO_1(PyObject *obform, FORM_INFO_1W *fi1)
+{
+	static char *form_keys[]={"Flags","Name","Size","ImageableArea",0};
+	static char* err_msg="FORM_INFO_1 must be a dictionary containing {Flags:int, Name:unicode, Size:dict, ImageableArea:dict}";
+	if (obform->ob_type!=&PyDict_Type){
+		PyErr_SetString(PyExc_TypeError,err_msg);
+		return FALSE;
+		}
+	return PyArg_ParseTupleAndKeywords(dummy_tuple, obform, "luO&O&:FORM_INFO_1", form_keys, &fi1->Flags, &fi1->pName, 
+		PyWinObject_AsSIZEL, &fi1->Size, PyWinObject_AsRECTL, &fi1->ImageableArea);
+}
+
+// @pymethod |win32print|AddForm|Adds a form for a printer
+static PyObject *PyAddForm(PyObject *self, PyObject *args)
+{
+	// @pyparm int|hprinter||Printer handle as returned by <om win32print.OpenPrinter>
+	// @pyparm dict|Form||<o FORM_INFO_1> dictionary
+	// @rdesc Returns None on success, throws an exception otherwise
+	FORM_INFO_1W fi1;
+	HANDLE hprinter;
+	if (addform==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"AddForm does not exist on this version of Windows");
+		return NULL;
+		}
+	if (!PyArg_ParseTuple(args, "lO&:AddForm", &hprinter, PyWinObject_AsFORM_INFO_1, &fi1))
+		return NULL;
+	if (!(*addform)(hprinter, 1, (LPBYTE)&fi1))
+		return PyWin_SetAPIError("AddForm");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod |win32print|DeleteForm|Deletes a form defined for a printer
+static PyObject *PyDeleteForm(PyObject *self, PyObject *args)
+{
+	// @pyparm int|hprinter||Printer handle as returned by <om win32print.OpenPrinter>
+	// @pyparm <o PyUnicode>|FormName||Name of form to be deleted
+	// @rdesc Returns None on success, throws an exception otherwise
+	HANDLE hprinter;
+	WCHAR *formname;
+	if (deleteform==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"DeleteForm does not exist on this version of Windows");
+		return NULL;
+		}
+
+	if (!PyArg_ParseTuple(args, "lu:DeleteForm", &hprinter, &formname))
+		return NULL;
+	if (!(*deleteform)(hprinter, formname))
+		return PyWin_SetAPIError("DeleteForm");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+// @pymethod |win32print|GetForm|Retrieves information about a form defined for a printer
+static PyObject *PyGetForm(PyObject *self, PyObject *args)
+{
+	// @pyparm int|hprinter||Printer handle as returned by <om win32print.OpenPrinter>
+	// @pyparm <o PyUnicode>|FormName||Name of form for which to retrieve info
+	// @rdesc Returns a <o FORM_INFO_1> dict
+	HANDLE hprinter;
+	WCHAR *formname;
+	DWORD level=1, bufsize=0, bytes_needed=0;
+	FORM_INFO_1W *fi1=NULL;
+	LPBYTE buf=NULL;
+	PyObject *ret=NULL;
+
+	if (getform==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"GetForm does not exist on this version of Windows");
+		return NULL;
+		}
+	if (!PyArg_ParseTuple(args,"lu:GetForm", &hprinter, &formname))
+		return NULL;
+	(*getform)(hprinter, formname, level, buf, bufsize, &bytes_needed);
+	if (bytes_needed==0)
+		return PyWin_SetAPIError("GetForm");
+	buf=(LPBYTE)malloc(bytes_needed);
+	if (buf==NULL)
+		return PyErr_Format(PyExc_MemoryError,"GetForm: Unable to allocate %d bytes",bytes_needed);
+	bufsize=bytes_needed;
+	if (!(*getform)(hprinter, formname, level, buf, bufsize, &bytes_needed))
+		PyWin_SetAPIError("GetForm");
+	else{
+		fi1=(FORM_INFO_1W *)buf;
+		ret=PyWin_Object_FromFORM_INFO_1(fi1);
+		}
+	free(buf);
+	return ret;
+}
+
+// @pymethod |win32print|SetForm|Change information for a form
+static PyObject *PySetForm(PyObject *self, PyObject *args)
+{
+	// @pyparm int|hprinter||Printer handle as returned by <om win32print.OpenPrinter>
+	// @pyparm <o PyUnicode>|FormName||Name of form
+	// @pyparm dict|Form||<o FORM_INFO_1> dictionary
+	// @rdesc Returns None on success
+	FORM_INFO_1W fi1;
+	HANDLE hprinter;
+	WCHAR *formname;
+	if (setform==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"SetForm does not exist on this version of Windows");
+		return NULL;
+		}
+	if (!PyArg_ParseTuple(args, "luO&:SetForm", &hprinter, &formname, PyWinObject_AsFORM_INFO_1, &fi1))
+		return NULL;
+	if (!(*setform)(hprinter, formname, 1, (LPBYTE)&fi1))
+		return PyWin_SetAPIError("SetForm");
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 
@@ -1113,6 +1282,10 @@ static struct PyMethodDef win32print_functions[] = {
 	{"EnumPrintProcessorDatatypes", PyEnumPrintProcessorDatatypes, 1}, //@pymeth EnumPrintProcessorDatatypes|Lists data types that specified print provider supports
 	{"EnumPrinterDrivers", PyEnumPrinterDrivers, 1}, //@pymeth EnumPrinterDrivers|Lists installed printer drivers
 	{"EnumForms", PyEnumForms, 1}, //@pymeth EnumForms|Lists forms for a printer
+	{"AddForm", PyAddForm, 1}, //@pymeth AddForm|Adds a form for a printer
+	{"DeleteForm", PyDeleteForm, 1}, //@pymeth DeleteForm|Deletes a form defined for a printer
+	{"GetForm", PyGetForm, 1}, //@pymeth GetForm|Retrieves information about a defined form
+	{"SetForm", PySetForm, 1}, //@pymeth SetForm|Change information for a form
 	{ NULL }
 };
 
@@ -1171,12 +1344,28 @@ initwin32print(void)
   AddConstant(dict, "JOB_POSITION_UNSPECIFIED", JOB_POSITION_UNSPECIFIED);
   AddConstant(dict, "DI_APPBANDING", DI_APPBANDING);
   AddConstant(dict, "DI_ROPS_READ_DESTINATION", DI_ROPS_READ_DESTINATION);
+  AddConstant(dict, "FORM_USER", FORM_USER);
+  AddConstant(dict, "FORM_BUILTIN", FORM_BUILTIN);
+  AddConstant(dict, "FORM_PRINTER", FORM_PRINTER);
 
   FARPROC fp;
   HMODULE hmodule=LoadLibrary("winspool.drv");
   if (hmodule!=NULL){
-	  fp=GetProcAddress(hmodule,"EnumFormsW");
-	  if (fp!=NULL)
-		  enumforms=(EnumFormsfunc)fp;
-	}
+	fp=GetProcAddress(hmodule,"EnumFormsW");
+	if (fp!=NULL)
+		enumforms=(EnumFormsfunc)fp;
+	fp=GetProcAddress(hmodule,"AddFormW");
+	if (fp!=NULL)
+		addform=(AddFormfunc)fp;
+	fp=GetProcAddress(hmodule,"DeleteFormW");
+	if (fp!=NULL)
+		deleteform=(DeleteFormfunc)fp;
+	fp=GetProcAddress(hmodule,"GetFormW");
+	if (fp!=NULL)
+		getform=(GetFormfunc)fp;
+	fp=GetProcAddress(hmodule,"SetFormW");
+	if (fp!=NULL)
+		setform=(SetFormfunc)fp;
+  }
+  dummy_tuple=PyTuple_New(0);
 }
