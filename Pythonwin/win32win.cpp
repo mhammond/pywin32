@@ -284,7 +284,7 @@ ui_window_create_window(PyObject *self, PyObject *args)
 			   // @pyparm (left, top, right, bottom)|rect||The size and position of the window.
 			   &obParent, // @pyparm <o PyCWnd>|parent||The parent window of the new window..
 			   &id, // @pyparm int|id||The control's ID. 
-			   &contextObject)) // @pyparm object|context||A CreateContext object.
+			   &contextObject)) // @pyparm object|context|None|A CreateContext object.
 		return NULL;
 
 	CWnd *pParent;
@@ -333,7 +333,7 @@ ui_window_create_window_ex(PyObject *self, PyObject *args)
 			  // @pyparm (left, top, right, bottom)|rect||The size and position of the window.
 			  &obParent, // @pyparm <o PyCWnd>|parent||The parent window of the new window..
 			  &id, // @pyparm int|id||The control's ID. 
-			  &csObject)) // @pyparm <o CREATESTRUCT>|createStruct||A CreateStruct object (ie, a tuple)
+			  &csObject)) // @pyparm <o CREATESTRUCT>|createStruct|None|A CreateStruct object (ie, a tuple)
 		return NULL;
 
 	CREATESTRUCT cs;
@@ -571,22 +571,26 @@ void PyCWnd::DoKillAssoc( BOOL bDestructing /*= FALSE*/ )
 	PyCCmdTarget::DoKillAssoc(bDestructing);
 	if (bManualDelete || bDidSubclass) {
 		CWnd *pWnd = GetWndPtr(this);	// get pointer before killing it.
-		if (bDidSubclass) {
-//			pWnd->Detach();
-			pWnd->UnsubclassWindow();
-			bDidSubclass = FALSE;
-		}
-// DONT detach - bDidSubclass is only logic needed.
-//		if (pWnd->GetSafeHwnd()) {
-//			TRACE("Warning - DoKillAssoc detaching from existing window\n");
-//			pWnd->Detach();
-//		}
-		if (bManualDelete) {
-			// Release the lock while we destroy the object.
-			GUI_BGN_SAVE;
-			delete pWnd;
-			GUI_END_SAVE;
-			bManualDelete = FALSE;
+		if (!pWnd)
+			PyErr_Clear();
+		else {
+			if (bDidSubclass) {
+	//			pWnd->Detach();
+				pWnd->UnsubclassWindow();
+				bDidSubclass = FALSE;
+			}
+	// DONT detach - bDidSubclass is only logic needed.
+	//		if (pWnd->GetSafeHwnd()) {
+	//			TRACE("Warning - DoKillAssoc detaching from existing window\n");
+	//			pWnd->Detach();
+	//		}
+			if (bManualDelete) {
+				// Release the lock while we destroy the object.
+				GUI_BGN_SAVE;
+				delete pWnd;
+				GUI_END_SAVE;
+				bManualDelete = FALSE;
+			}
 		}
 	}
 }
@@ -1015,6 +1019,7 @@ ui_window_get_dlg_item(PyObject *self, PyObject *args)
 	CWnd *pWnd = GetWndPtr(self);
 	if (!pWnd)
 		return NULL;
+	CHECK_HWND_VALID(pWnd);
 	GUI_BGN_SAVE;
 	CWnd *pChild = pWnd->GetDlgItem(id);
 	GUI_END_SAVE;
@@ -1037,6 +1042,7 @@ ui_window_get_dlg_item_text(PyObject *self, PyObject *args)
 	if (!pWnd)
 		return NULL;
 	CString csRet;
+	CHECK_HWND_VALID(pWnd);
 	GUI_BGN_SAVE;
 	pWnd->GetDlgItemText(id, csRet);
 	GUI_END_SAVE;
@@ -1058,6 +1064,7 @@ ui_window_get_dlg_item_int(PyObject *self, PyObject *args)
 	CWnd *pWnd = GetWndPtr(self);
 	if (!pWnd)
 		return NULL;
+	CHECK_HWND_VALID(pWnd);
 	BOOL bWorked;
 	GUI_BGN_SAVE;
 	int res = (int)pWnd->GetDlgItemInt(id, &bWorked, bUnsigned);
@@ -1859,8 +1866,8 @@ ui_window_post_message(PyObject *self, PyObject *args)
 	LPARAM lParam=0;
 	if (!PyArg_ParseTuple(args, "i|ii:PostMessage", 
 	          &message, // @pyparm int|idMessage||The ID of the message to post.
-	          &wParam,  // @pyparm int|wParam||The wParam for the message
-	          &lParam)) // @pyparm int|lParam||The lParam for the message
+	          &wParam,  // @pyparm int|wParam|0|The wParam for the message
+	          &lParam)) // @pyparm int|lParam|0|The lParam for the message
 		return NULL;
 	// @pyseemfc CWnd|PostMessage
 	CHECK_HWND_VALID(pWnd);
@@ -2156,8 +2163,8 @@ ui_window_send_message(PyObject *self, PyObject *args)
 	int lParam=0;
 	if (!PyArg_ParseTuple(args, "i|ii:SendMessage",
 		      &message, // @pyparm int|idMessage||The ID of the message to send.
-	          &wParam,  // @pyparm int|wParam||The wParam for the message
-	          &lParam)) // @pyparm int|lParam||The lParam for the message
+	          &wParam,  // @pyparm int|wParam|0|The wParam for the message
+	          &lParam)) // @pyparm int|lParam|0|The lParam for the message
 
 		return NULL;
 	int rc;
@@ -2180,8 +2187,8 @@ ui_window_send_message_to_desc(PyObject *self, PyObject *args)
 	BOOL bDeep = TRUE;
 	if (!PyArg_ParseTuple(args, "i|iii:SendMessageToDescendants", 
 		      &message, // @pyparm int|idMessage||The ID of the message to send.
-	          &wParam,  // @pyparm int|wParam||The wParam for the message
-	          &lParam,  // @pyparm int|lParam||The lParam for the message
+	          &wParam,  // @pyparm int|wParam|0|The wParam for the message
+	          &lParam,  // @pyparm int|lParam|0|The lParam for the message
 	          &bDeep))  // @pyparm int|bDeep|1|Indicates if the message should be recursively sent to all children
 		return NULL;
 	GUI_BGN_SAVE;
@@ -3438,7 +3445,7 @@ PyCFrameWnd_FloatControlBar(PyObject *self, PyObject *args)
 	CPoint pt;
 	if (!PyArg_ParseTuple(args,"O(ii)|i:FloatControlBar", 
 		       &ob, // @pyparm <o PyCControlBar>|controlBar||The control bar to dock.
-			   &pt.x, &pt.y, // @pyparm x,y|int, int||he location, in screen coordinates, where the top left corner of the control bar will be placed.
+			   &pt.x, &pt.y, // @pyparm x,y|int, int||The location, in screen coordinates, where the top left corner of the control bar will be placed.
 			   &style)) // @pyparm int|style|CBRS_ALIGN_TOP|Determines which sides of the frame window to consider for docking.
 		return NULL;
 	CControlBar *pControlBar = PyCControlBar::GetControlBar(ob);
