@@ -213,6 +213,7 @@ typedef int UINT;
 // Returns TRUE if a call was made (and the rc is in the param)
 // Returns FALSE if nothing could be done (so the caller should probably
 // call its default)
+// NOTE: assumes thread state already acquired.
 BOOL PyWndProc_Call(PyObject *obFuncOrMap, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *prc)
 {
 	// oldWndProc may be:
@@ -222,9 +223,6 @@ BOOL PyWndProc_Call(PyObject *obFuncOrMap, HWND hWnd, UINT uMsg, WPARAM wParam, 
 
 	PyObject *obFunc = NULL;
 	if (obFuncOrMap!=NULL) {
-		// Acquiring the thread lock is quite expensive
-		// It would be nice to avoid!
-		CEnterLeavePython _celp;
 		if (PyDict_Check(obFuncOrMap)) {
 			PyObject *key = PyInt_FromLong(uMsg);
 			obFunc = PyDict_GetItem(obFuncOrMap, key);
@@ -237,7 +235,6 @@ BOOL PyWndProc_Call(PyObject *obFuncOrMap, HWND hWnd, UINT uMsg, WPARAM wParam, 
 		return FALSE;
 	}
 	// We are dispatching to Python...
-	CEnterLeavePython _celp;
 	PyObject *args = Py_BuildValue("llll", hWnd, uMsg, wParam, lParam);
 	PyObject *ret = PyObject_CallObject(obFunc, args);
 	Py_DECREF(args);
@@ -257,8 +254,11 @@ LRESULT CALLBACK PyWndProcClass(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 {
 	PyObject *obFunc = (PyObject *)GetClassLong( hWnd, 0);
 	LRESULT rc = 0;
-	if (!PyWndProc_Call(obFunc, hWnd, uMsg, wParam, lParam, &rc))
+	CEnterLeavePython _celp;
+	if (!PyWndProc_Call(obFunc, hWnd, uMsg, wParam, lParam, &rc)) {
+		_celp.release();
 		rc = DefWindowProc(hWnd, uMsg, wParam, lParam);
+	}
 	return rc;
 }
 
@@ -266,13 +266,17 @@ LRESULT CALLBACK PyDlgProcClass(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 {
 	PyObject *obFunc = (PyObject *)GetClassLong( hWnd, 0);
 	LRESULT rc = 0;
-	if (!PyWndProc_Call(obFunc, hWnd, uMsg, wParam, lParam, &rc))
+	CEnterLeavePython _celp;
+	if (!PyWndProc_Call(obFunc, hWnd, uMsg, wParam, lParam, &rc)) {
+		_celp.release();
 		rc = DefDlgProc(hWnd, uMsg, wParam, lParam);
+	}
 	return rc;
 }
 
 LRESULT CALLBACK PyWndProcHWND(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	CEnterLeavePython _celp;
 	PyObject *key = PyInt_FromLong((long)hWnd);
 	PyObject *obInfo = PyDict_GetItem(g_HWNDMap, key);
 	Py_DECREF(key);
@@ -285,15 +289,17 @@ LRESULT CALLBACK PyWndProcHWND(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 	}
 	LRESULT rc = 0;
 	if (!PyWndProc_Call(obFunc, hWnd, uMsg, wParam, lParam, &rc))
-		if (oldWndProc)
+		if (oldWndProc) {
+			_celp.release();
 			rc = CallWindowProc(oldWndProc, hWnd, uMsg, wParam, lParam);
+		}
 
 #ifdef WM_NCDESTROY
 	if (uMsg==WM_NCDESTROY) {
 #else // CE doesnt have this message!
 	if (uMsg==WM_DESTROY) {
 #endif
-		CEnterLeavePython _celp;
+		_celp.acquire(); // in case we released above - safe if already acquired.
 		PyObject *key = PyInt_FromLong((long)hWnd);
 		if (PyDict_DelItem(g_HWNDMap, key) != 0)
 			PyErr_Clear();
@@ -305,10 +311,10 @@ LRESULT CALLBACK PyWndProcHWND(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 BOOL CALLBACK PyDlgProcHDLG(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	BOOL rc = FALSE;
+	CEnterLeavePython _celp;
 	if (uMsg==WM_INITDIALOG) {
 		// The lparam is our PyObject.
 		// Put our HWND in the map.
-		CEnterLeavePython _celp;		// GET THE GLOBAL INTERP LOCK IN THIS BLOCK
 		PyObject *obTuple = (PyObject *)lParam;
 		PyObject *obWndProc = PyTuple_GET_ITEM(obTuple, 0);
 		// Replace the lParam with the one the user specified.
@@ -330,11 +336,10 @@ BOOL CALLBACK PyDlgProcHDLG(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	// If our HWND is in the map, then call it.
 	PyObject *obFunc = NULL;
 	if (g_DLGMap) {
-		CEnterLeavePython _celp; // sigh - we need to rationalize these locks.
 		PyObject *key = PyInt_FromLong((long)hWnd);
 		obFunc = PyDict_GetItem(g_DLGMap, key);
 		Py_XDECREF(key);
-	} // lock released.
+	}
 	if (obFunc) {
 		LRESULT lrc;
 		if (PyWndProc_Call(obFunc, hWnd, uMsg, wParam, lParam, &lrc))
@@ -346,7 +351,6 @@ BOOL CALLBACK PyDlgProcHDLG(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 #else // CE doesnt have this message!
 	if (uMsg==WM_DESTROY) {
 #endif
-		CEnterLeavePython _celp;
 		PyObject *key = PyInt_FromLong((long)hWnd);
 
 		if (g_DLGMap != NULL)
