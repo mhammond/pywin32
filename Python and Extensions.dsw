@@ -249,9 +249,6 @@ Package=<4>
     Project_Dep_Name win32wnet
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name wincerapi
-    End Project Dependency
-    Begin Project Dependency
     Project_Dep_Name win32clipboard
     End Project Dependency
     Begin Project Dependency
@@ -817,21 +814,6 @@ Package=<4>
 ###############################################################################
 
 Project: "win32wnet"=.\win32\win32wnet.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name PyWinTypes
-    End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "wincerapi"=.\win32\wincerapi.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
