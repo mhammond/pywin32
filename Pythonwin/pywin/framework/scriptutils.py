@@ -270,8 +270,14 @@ def RunScript(defName=None, defArgs=None, bShowDialog = 1, debuggingType=None):
 	sys.argv = ParseArgs(args)
 	sys.argv.insert(0, script)
 	# sys.path[0] is the path of the script
-	oldPath0 = sys.path[0:1]
-	sys.path[0] = os.path.split(script)[0]
+	oldPath0 = sys.path[0]
+	newPath0 = os.path.split(script)[0]
+	if not oldPath0: # if sys.path[0] is empty
+		sys.path[0] = newPath0
+		insertedPath0 = 0
+	else:
+		sys.path.insert(0, newPath0)
+		insertedPath0 = 1
 	bWorked = 0
 	win32ui.DoWaitCursor(1)
 	base = os.path.split(script)[1]
@@ -329,7 +335,10 @@ def RunScript(defName=None, defArgs=None, bShowDialog = 1, debuggingType=None):
 		if debuggingType == RS_DEBUGGER_PM:
 			debugger.pm()
 	sys.argv = oldArgv
-	sys.path[0] = oldPath0
+	if insertedPath0:
+		del sys.path[0]
+	else:
+		sys.path[0] = oldPath0
 	f.close()
 	if bWorked:
 		win32ui.SetStatusText("Script '%s' returned exit code %s" %(script, exitCode))
