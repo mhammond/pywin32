@@ -228,8 +228,8 @@ end
 item: End Block
 end
 item: Install File
-  Source=f:\src\pythonex\Python Win32 Extensions.hlp
-  Destination=%INSTDIR%\Help\Python Win32 Extensions.hlp
+  Source=f:\src\pythonex\PythonWin32Extensions.hlp
+  Destination=%INSTDIR%\Help\PythonWin32Extensions.hlp
   Description=Help Files
   Flags=0000000000000010
 end
@@ -240,7 +240,8 @@ end
 item: Edit Registry
   Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Help\Win32 Extensions
-  New Value=%INSTDIR%\Help\Python Win32 Extensions.hlp
+  New Value=%INSTDIR%\Help\PythonWin32Extensions.hlp
+  New Value=
   Root=2
 end
 item: Else Statement
@@ -248,7 +249,8 @@ end
 item: Edit Registry
   Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Help\Win32 Extensions
-  New Value=%INSTDIR%\Help\Python Win32 Extensions.hlp
+  New Value=%INSTDIR%\Help\PythonWin32Extensions.hlp
+  New Value=
   Root=1
 end
 item: End Block
