@@ -1176,6 +1176,7 @@ dist = setup(name="pywin32",
                     # pythoncom.py doesn't quite fit anywhere else.
                     # Note we don't get an auto .pyc - but who cares?
                     ('', ('com/pythoncom.py',)),
+                    ('', ('pywin32.pth',)),
                 ],
       )
 

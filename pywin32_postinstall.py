@@ -128,21 +128,15 @@ def RegisterCOMObjects(register = 1):
 def install():
     import distutils.sysconfig
     import traceback
+    # The .pth file is now installed as a regular file.
     # Create the .pth file in the site-packages dir, and use only relative paths
     lib_dir = distutils.sysconfig.get_python_lib(plat_specific=1)
-    # Used to write this directly to sys.prefix - clobber it.
+    # We used to write a .pth directly to sys.prefix - clobber it.
     if os.path.isfile(os.path.join(sys.prefix, "pywin32.pth")):
         os.unlink(os.path.join(sys.prefix, "pywin32.pth"))
-    fname = os.path.join(lib_dir, "pywin32.pth")
-    if verbose:
-        print "Creating .PTH file %s" % fname
-    pthfile = open(fname, "w")
-    # Register the file with the uninstaller
-    file_created(fname)
+    # The .pth may be new and therefore not loaded in this session.
+    # Setup the paths just in case.
     for name in "win32 win32\\lib Pythonwin".split():
-        # Create entries for the PTH file, and at the same time
-        # add the directory to sys.path so we can load win32api below.
-        pthfile.write(name + "\n")
         sys.path.append(os.path.join(lib_dir, name))
     # It is possible people with old versions installed with still have 
     # pywintypes and pythoncom registered.  We no longer need this, and stale

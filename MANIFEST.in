@@ -4,6 +4,7 @@
 # Manifest template for creating the pywin32 source distribution.
 
 include MANIFEST.in
+include pywin32.pth
 # Core win32 stuff
 include win32/src/*.rc
 include win32/src/win32popenWin9x.cpp
