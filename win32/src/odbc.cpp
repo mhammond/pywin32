@@ -1614,11 +1614,14 @@ static void parseInfo(connectionObject *conn, const char *c)
 		else
 		{
 			conn->uid[0] = 0;
+			conn->pwd[0] = 0;
 		}
 	}
 	else
 	{
 		strncpy(conn->dsn, c, sizeof(conn->dsn));
+		conn->uid[0] = 0;
+		conn->pwd[0] = 0;
 	}
 }
 
