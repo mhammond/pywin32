@@ -18,9 +18,9 @@ class Control(window.Wnd):
 	def _GetEventMap(self):
 		return self.default_source._dispid_to_func_
 
-	def CreateControl(self, windowTitle, style, rect, parent, id):
+	def CreateControl(self, windowTitle, style, rect, parent, id, lic_string=None):
 		clsid = str(self._GetControlCLSID())
-		self.__dict__["_obj_"] = win32ui.CreateControl(clsid, windowTitle, style, rect, parent, id)
+		self.__dict__["_obj_"] = win32ui.CreateControl(clsid, windowTitle, style, rect, parent, id, lic_string)
 		klass = self._GetDispatchClass()
 		dispobj = klass(win32uiole.GetIDispatchForWindow(self._obj_))
 		self.HookOleEvents()
