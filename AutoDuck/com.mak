@@ -19,7 +19,7 @@ HELP_DIR = ../com/help
 # for building of the .CHM file.
 HTML_DIR = win32com
 # Extraneous HTML files to include into the .CHM:
-HTML_FILES = $(WIN32COM_DIR)/HTML/*.html $(WIN32COM_DIR)/HTML/image/*
+HTML_FILES = $(WIN32COM_DIR)/*.htm* $(WIN32COM_DIR)/HTML/*.html $(WIN32COM_DIR)/HTML/image/*
 
 # Non-autoduck overview topics data file:
 EXT_TOPICS = comOverviews.dat
