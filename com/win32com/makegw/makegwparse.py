@@ -258,7 +258,8 @@ class ArgFormatterBSTR(ArgFormatterPythonCOM):
 		return "\tob%s = MakeBstrToObj(%s);\n" % \
 			   (self.arg.name, notdirected)
 	def GetBuildForInterfacePostCode(self):
-		return "\tSysFreeString(%s);\n" % self.arg.name
+		return "\tSysFreeString(%s); % (self.arg.name,) + \
+		       ArgFormatterPythonCOM.GetBuildForInterfacePostCode(self)
 	def GetBuildForGatewayPostCode(self):
 		return "\tPy_XDECREF(ob%s);\n" % self.arg.name
 
@@ -281,7 +282,8 @@ class ArgFormatterOLECHAR(ArgFormatterPythonCOM):
 			   (self.arg.name, notdirected)
 	def GetBuildForInterfacePostCode(self):
 		# memory returned into an OLECHAR should be freed
-		return "\tCoTaskMemFree(%s);\n" % self.arg.name
+		return "\tCoTaskMemFree(%s);\n" % (self.arg.name,) + \
+		       ArgFormatterPythonCOM.GetBuildForInterfacePostCode(self)
 	def GetBuildForGatewayPostCode(self):
 		return "\tPy_XDECREF(ob%s);\n" % self.arg.name
 
@@ -319,10 +321,11 @@ class ArgFormatterTime(ArgFormatterPythonCOM):
 		return "\tob%s = new PyTime(%s);\n" % (self.arg.name, notdirected)
 	def GetBuildForInterfacePostCode(self):
 		### hack to determine if we need to free stuff
+		ret = ''
 		if self.builtinIndirection + self.arg.indirectionLevel > 1:
 			# memory returned into an OLECHAR should be freed
-			return "\tCoTaskMemFree(%s);\n" % self.arg.name
-		return ''
+			ret = "\tCoTaskMemFree(%s);\n" % self.arg.name
+		return ret + ArgFormatterPythonCOM.GetBuildForInterfacePostCode(self)
 
 class ArgFormatterSTATSTG(ArgFormatterPythonCOM):
 	def _GetPythonTypeDesc(self):
