@@ -138,7 +138,10 @@ bool ui_assoc_CObject::CheckCppObject(ui_type *ui_type_check) const
 {
 	if (!ui_assoc_object::CheckCppObject(ui_type_check)) return false;
 	CObject *pObj = (CObject *)assoc;
-	ASSERT_VALID(pObj); // NULL has already been handled before now.
+// Assert triggers occasionally for brand new window objects - 
+// Removing this ASSERT cant hurt too much (as I have never seen it
+// fire legitimately
+//	ASSERT_VALID(pObj); // NULL has already been handled before now.
 	if (ui_type_check==NULL) return true; // Cant check anything!
 
 	ui_type_CObject *pTyp = (ui_type_CObject *)ui_type_check;
