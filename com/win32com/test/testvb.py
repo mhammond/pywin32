@@ -27,6 +27,11 @@ except pythoncom.com_error:
 
 import traceback
 
+# for debugging
+useDispatcher = None
+##  import win32com.server.dispatcher
+##  useDispatcher = win32com.server.dispatcher.DefaultDebugDispatcher
+
 error = "VB Test Error"
 
 # Set up a COM object that VB will do some callbacks on.  This is used
@@ -88,32 +93,7 @@ def TestVB( vbtest, bUseGenerated ):
     if vbtest.VariantProperty != (1.0, 2.0, 3.0):
         raise error, "Could not set the variant property to an array of floats correctly - '%s'." % (vbtest.VariantProperty,)
 
-    # Try and use a safe array (note that the VB code has this declared as a VARIANT
-    # and I cant work out how to force it to use native arrays!
-    # (NOTE Python will convert incoming arrays to tuples, so we pass a tuple, even tho
-    # a list works fine - just makes it easier for us to compare the result!
-    arrayData = tuple(range(1,100))
-    vbtest.ArrayProperty = arrayData
-    if vbtest.ArrayProperty != arrayData:
-        raise error, "Could not set the array data correctly - got back " + str(vbtest.ArrayProperty)
-    # Floats
-    arrayData = (1.0, 2.0, 3.0)
-    vbtest.ArrayProperty = arrayData
-    assert vbtest.ArrayProperty == arrayData, "Could not set the array data correctly - got back '%s'" % (vbtest.ArrayProperty,)
-    # Strings.
-    arrayData = tuple(string.split("Hello from Python"))
-    vbtest.ArrayProperty = arrayData
-    assert vbtest.ArrayProperty == arrayData, "Could not set the array data correctly - got back '%s'" % (vbtest.ArrayProperty,)
-    # Date and Time?
-    # COM objects.
-    arrayData = (vbtest, vbtest)
-    vbtest.ArrayProperty = arrayData
-    assert vbtest.ArrayProperty == arrayData, "Could not set the array data correctly - got back '%s'" % (vbtest.ArrayProperty,)
-    # Mixed
-    arrayData = (1, 2.0, "3")
-    vbtest.ArrayProperty = arrayData
-    assert vbtest.ArrayProperty == arrayData, "Could not set the array data correctly - got back '%s'" % (vbtest.ArrayProperty,)
-
+    TestArrays(vbtest, bUseGenerated)
     TestStructs(vbtest)
     TestCollections(vbtest)
 
@@ -133,41 +113,11 @@ def TestVB( vbtest, bUseGenerated ):
         # COM objects can be stored ByRef.
 
         # A "set" type property - only works for generated.
-        print "Skipping CollectionProperty - how does VB recognize a collection object??"
+        # VB recognizes a collection via a few "private" interfaces that we
+        # could later build support in for.
 #               vbtest.CollectionProperty = NewCollection((1,2,"3", "Four"))
 #               if vbtest.CollectionProperty != (1,2,"3", "Four"):
 #                       raise error, "Could not set the Collection property correctly - got back " + str(vbtest.CollectionProperty)
-
-        # This one is a bit strange!  The array param is "ByRef", as VB insists.
-        # The function itself also _returns_ the arram param.
-        # Therefore, Python sees _2_ result values - one for the result,
-        # and one for the byref.
-        testData = string.split("Mark was here")
-        resultData, byRefParam = vbtest.PassSAFEARRAY(testData)
-        # Un unicode everything (only 1.5.2)
-        try:
-            unicode
-        except NameError : # No builtin named Unicode!
-            resultData = map(str, resultData)
-            byRefParam = map(str, byRefParam)
-        if testData != list(resultData):
-            raise error, "The safe array data was not what we expected - got " + str(resultData)
-        if testData != list(byRefParam):
-            raise error, "The safe array data was not what we expected - got " + str(byRefParam)
-        testData = [1.0, 2.0, 3.0]
-        resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
-        assert testData == list(byRefParam)
-        assert testData == list(resultData)
-        testData = ["hi", "from", "Python"]
-        resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
-        assert testData == list(byRefParam), "Expected '%s', got '%s'" % (testData, list(byRefParam))
-        assert testData == list(resultData), "Expected '%s', got '%s'" % (testData, list(resultData))
-        # This time, instead of an explicit str() for 1.5, we just
-        # pass Unicode, so the result should compare equal
-        testData = [1, 2.0, pythoncom.Unicode("3")]
-        resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
-        assert testData == list(byRefParam)
-        assert testData == list(resultData)
 
         # These are sub's that have a single byref param
         # Result should be just the byref.
@@ -188,18 +138,8 @@ def TestVB( vbtest, bUseGenerated ):
 
         # Can't test IncrementVariantParam with the param omitted as it
         # it not declared in the VB code as "Optional"
-        useDispatcher = None
-##              import win32com.server.dispatcher
-##              useDispatcher = win32com.server.dispatcher.DefaultDebugDispatcher
         callback_ob = wrap(TestObject(), useDispatcher = useDispatcher)
         vbtest.DoSomeCallbacks(callback_ob)
-
-        # Check we fail gracefully for byref safearray results with incorrect size.
-        print "Expecting a 'ValueError' exception to follow:"
-        try:
-            vbtest.DoCallbackSafeArraySizeFail(callback_ob)
-        except pythoncom.com_error, (hr, msg, exc, arg):
-            assert exc[1] == "Python COM Server Internal Error", "Didnt get the correct exception - '%s'" % (exc,)
 
     ret = vbtest.PassIntByVal(1)
     if ret != 2:
@@ -286,6 +226,100 @@ def TestCollections(vbtest):
     vbtest.EnumerableCollectionProperty.Add("Two")
     vbtest.EnumerableCollectionProperty.Add("3")
     _DoTestCollection(vbtest, "EnumerableCollectionProperty", [1,"Two", "3"])
+
+def _DoTestArray(vbtest, data, expected_exception = None):
+    try:
+        vbtest.ArrayProperty = data
+        if expected_exception is not None:
+            raise error, "Expected '%s'" % expected_exception
+    except expected_exception:
+        return
+    got = vbtest.ArrayProperty
+    if got != data:
+        raise error, \
+              "Could not set the array data correctly - got %r, expected %r" \
+              % (got, data)
+
+def TestArrays(vbtest, bUseGenerated):
+    # Try and use a safe array (note that the VB code has this declared as a VARIANT
+    # and I cant work out how to force it to use native arrays!
+    # (NOTE Python will convert incoming arrays to tuples, so we pass a tuple, even tho
+    # a list works fine - just makes it easier for us to compare the result!
+    _DoTestArray(vbtest, tuple(range(1,100)))
+    # Floats
+    _DoTestArray(vbtest, (1.0, 2.0, 3.0))
+    # Strings.
+    _DoTestArray(vbtest, tuple(string.split("Hello from Python")))
+    # Date and Time?
+    # COM objects.
+    _DoTestArray(vbtest, (vbtest, vbtest))
+    # Mixed
+    _DoTestArray(vbtest, (1, 2.0, "3"))
+    # Array alements containing other arrays
+    _DoTestArray(vbtest, (1,(vbtest, vbtest),("3","4")))
+    # Multi-dimensional
+    _DoTestArray(vbtest, (( (1,2,3), (4,5,6) )))
+    _DoTestArray(vbtest, (( (vbtest,vbtest,vbtest), (vbtest,vbtest,vbtest) )))
+    # Another dimension!
+    arrayData = ( ((1,2),(3,4),(5,6)), ((7,8),(9,10),(11,12)) )
+    arrayData = ( ((vbtest,vbtest),(vbtest,vbtest),(vbtest,vbtest)),
+                  ((vbtest,vbtest),(vbtest,vbtest),(vbtest,vbtest)) )
+    _DoTestArray(vbtest, arrayData)
+
+    # Check that when a '__getitem__ that fails' object is the first item
+    # in the structure, we don't mistake it for a sequence.
+    _DoTestArray(vbtest, (vbtest, 2.0, "3"))
+    _DoTestArray(vbtest, (1, 2.0, vbtest))
+
+    # Pass bad data - first item wrong size
+    arrayData = ( ((1,2,1),(3,4),(5,6)), ((7,8),(9,10),(11,12)) )
+    _DoTestArray(vbtest, arrayData, TypeError)
+    arrayData = ( ((vbtest,vbtest),), ((vbtest,),))
+    _DoTestArray(vbtest, arrayData, TypeError)
+    # Pass bad data - last item wrong size
+    arrayData = ( ((1,2),(3,4),(5,6,8)), ((7,8),(9,10),(11,12)) )
+    _DoTestArray(vbtest, arrayData, TypeError)
+    
+    # byref safearray results with incorrect size.
+    callback_ob = wrap(TestObject(), useDispatcher = useDispatcher)
+    print "** Expecting a 'ValueError' exception to be printed next:"
+    try:
+        vbtest.DoCallbackSafeArraySizeFail(callback_ob)
+    except pythoncom.com_error, (hr, msg, exc, arg):
+        assert exc[1] == "Python COM Server Internal Error", "Didnt get the correct exception - '%s'" % (exc,)
+        
+    if bUseGenerated:
+        # This one is a bit strange!  The array param is "ByRef", as VB insists.
+        # The function itself also _returns_ the arram param.
+        # Therefore, Python sees _2_ result values - one for the result,
+        # and one for the byref.
+        testData = string.split("Mark was here")
+        resultData, byRefParam = vbtest.PassSAFEARRAY(testData)
+        # Un unicode everything (only 1.5.2)
+        try:
+            unicode
+        except NameError : # No builtin named Unicode!
+            resultData = map(str, resultData)
+            byRefParam = map(str, byRefParam)
+        if testData != list(resultData):
+            raise error, "The safe array data was not what we expected - got " + str(resultData)
+        if testData != list(byRefParam):
+            raise error, "The safe array data was not what we expected - got " + str(byRefParam)
+        testData = [1.0, 2.0, 3.0]
+        resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
+        assert testData == list(byRefParam)
+        assert testData == list(resultData)
+        testData = ["hi", "from", "Python"]
+        resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
+        assert testData == list(byRefParam), "Expected '%s', got '%s'" % (testData, list(byRefParam))
+        assert testData == list(resultData), "Expected '%s', got '%s'" % (testData, list(resultData))
+        # This time, instead of an explicit str() for 1.5, we just
+        # pass Unicode, so the result should compare equal
+        testData = [1, 2.0, pythoncom.Unicode("3")]
+        resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
+        assert testData == list(byRefParam)
+        assert testData == list(resultData)
+    print "Array tests passed"
 
 def TestStructs(vbtest):
     try:
