@@ -8,7 +8,7 @@ item: Global
   Japanese Font Size=10
   Start Gradient=0 0 255
   End Gradient=0 0 0
-  Windows Flags=00000100000011010010110100011000
+  Windows Flags=00000100000010010010110100011000
   Log Pathname=%MAINDIR%\W32INST.LOG
   Message Font=MS Sans Serif
   Font Size=8
@@ -17,7 +17,7 @@ item: Global
   Patch Flags=0000000000000001
   Patch Threshold=85
   Patch Memory=4000
-  EXE Filename=win32all-153.exe
+  EXE Filename=win32all-154.exe
   Code Sign Name=Python Win32 combined extensions
   Code Sign Info=skippinet.com.au
   Crystal Format=10111100101100000010001001001001

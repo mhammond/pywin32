@@ -4,7 +4,7 @@ import win32api, os, string
 from brandutils import *
 
 
-def doit(buildDesc = None, auto=0, bRebrand = 0, build=None):
+def doit(pyver=sys.winver, buildDesc = None, auto=0, bRebrand = 0, build=None):
 	path=win32api.GetFullPathName("..\\com\\Build")
 	projectName = "$/Python/Python COM"
 	
@@ -14,7 +14,7 @@ def doit(buildDesc = None, auto=0, bRebrand = 0, build=None):
 		return
 
 	import bulkstamp
-	major, minor = string.split(sys.winver, ".")
+	major, minor = string.split(pyver, ".")
 	bulkstamp.scan( build, path, "desc.txt", major=major, minor=minor )
 	subst_dict = {"vss_label" : build }
 #	SubstituteVSSInFile(projectName, os.path.join(path,"..\\win32com\\changes.txt"), "win32com.txt")
