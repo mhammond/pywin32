@@ -12,6 +12,7 @@ htmlhelp_handle = None
 html_help_command_translators = {
 	win32con.HELP_CONTENTS : 1, # HH_DISPLAY_TOC
 	win32con.HELP_CONTEXT : 15, # HH_HELP_CONTEXT
+	win32con.HELP_FINDER : 1, # HH_DISPLAY_TOC
 }
 
 def FinalizeHelp():
