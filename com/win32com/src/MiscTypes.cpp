@@ -26,11 +26,11 @@ static PyTypeObject PyInterfaceType_Type = {
 	0,			/*tp_hash*/
 	0,			/*tp_call*/
 	0,			/*tp_str*/
-	0,			/*tp_xxx1*/
-	0,			/*tp_xxx2*/
-	0,			/*tp_xxx3*/
-	0,			/*tp_xxx4*/
-	"Define the behavior of a PythonCOM Interface type.",
+	0,			/*tp_getattro */
+	0,			/*tp_setattro */
+	0,			/* tp_as_buffer */
+	0,			/* tp_flags */
+	"Define the behavior of a PythonCOM Interface type.",          /* tp_doc */
 };
 
 PyComTypeObject::PyComTypeObject( const char *name, PyComTypeObject *pBase, int typeSize, struct PyMethodDef* methodList, PyIUnknown * (* thector)(IUnknown *))
@@ -52,6 +52,22 @@ PyComTypeObject::PyComTypeObject( const char *name, PyComTypeObject *pBase, int 
 		PyIBase::cmp,										/*tp_compare*/
 		(reprfunc)PyIBase::repr,							/*tp_repr*/
     	0,													/*tp_as_number*/
+		0,			/*tp_as_sequence*/
+		0,			/*tp_as_mapping*/
+		0,			/*tp_hash*/
+		0,			/*tp_call*/
+		0,			/*tp_str*/
+		0,			/*tp_getattro */
+		0,			/*tp_setattro */
+		0,			/* tp_as_buffer */
+		Py_TPFLAGS_HAVE_ITER,			/* tp_flags */
+		0,          /* tp_doc */
+		0,    /* tp_traverse */
+		0,                              /* tp_clear */
+		0,                              /* tp_richcompare */
+		0,                              /* tp_weaklistoffset */
+		PyIBase::iter,		/* tp_iter */
+		PyIBase::iternext        /* tp_iternext */
 	};
 
 	*((PyTypeObject *)this) = type_template;

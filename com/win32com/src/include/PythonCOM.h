@@ -164,6 +164,8 @@ public:
 	virtual int setattr(char *name, PyObject *v);
 	virtual PyObject *repr();
 	virtual int compare(PyObject *other) {return (int)this-int(other);}
+	virtual PyObject *iter();
+	virtual PyObject *iternext();
 
 	static struct PyMethodDef PyIBase::empty_methods[];
 protected:
@@ -178,7 +180,8 @@ public:
 	static PyObject *getattr(PyObject *self, char *name);
 	static int setattr(PyObject *op, char *name, PyObject *v);
 	static int cmp(PyObject *ob1, PyObject *ob2);
-
+	static PyObject *iter(PyObject *self);
+	static PyObject *iternext(PyObject *self);
 };
 
 /* Special Type objects */
