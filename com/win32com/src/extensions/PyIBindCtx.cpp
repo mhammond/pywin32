@@ -27,7 +27,7 @@ PyObject *PyIBindCtx::GetRunningObjectTable(PyObject *self, PyObject *args)
 	if ( !PyArg_ParseTuple(args, ":GetRunningObjectTable") )
 		return NULL;
 	IBindCtx *pMy = GetI(self);
-	if (pMy) return NULL;
+	if (!pMy) return NULL;
 	IRunningObjectTable *pROT;
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = pMy->GetRunningObjectTable(&pROT);
