@@ -299,6 +299,12 @@ class FileWatchingThread(pywin.mfc.thread.WinThread):
 				self.RefreshEvent()
 			else:
 				win32api.PostMessage(self.hwnd, MSG_CHECK_EXTERNAL_FILE, 0, 0)
-				win32api.FindNextChangeNotification(self.watchEvent)
+				try:
+					# If the directory has been removed underneath us, we get this error.
+					win32api.FindNextChangeNotification(self.watchEvent)
+				except win32api.error, (rc, fn, msg):
+					print "Can not watch file", self.doc.GetPathName(), "for changes -", msg
+					break
+
 		# close a circular reference
 		self.doc = None
