@@ -90,10 +90,11 @@ BEGIN
         MENUITEM "&Run...\tCtrl+R",             ID_FILE_RUN
         POPUP "&Debug"
         BEGIN
-            MENUITEM "&Go",                         IDC_DBG_GO
-            MENUITEM "Step &in",                    IDC_DBG_STEP
-            MENUITEM "Step &out",                   IDC_DBG_STEPOUT
-            MENUITEM "&Stop",                       IDC_DBG_CLOSE
+            MENUITEM "&Go\tF5",                     IDC_DBG_GO
+            MENUITEM "Step &in\tF11",               IDC_DBG_STEP
+            MENUITEM "Step &out\tF10",              IDC_DBG_STEPOUT
+            MENUITEM "&Stop\tShift+F5",             IDC_DBG_CLOSE
+            MENUITEM "Toggle Breakpoint\tF9",       IDC_DBG_ADD
         END
         MENUITEM SEPARATOR
         MENUITEM "P&rint Setup...",             ID_FILE_PRINT_SETUP
@@ -142,10 +143,11 @@ BEGIN
         MENUITEM "&Run...\tCtrl+R",             ID_FILE_RUN
         POPUP "&Debug"
         BEGIN
-            MENUITEM "&Go",                         IDC_DBG_GO
-            MENUITEM "Step &in",                    IDC_DBG_STEP
-            MENUITEM "Step &out",                   IDC_DBG_STEPOUT
-            MENUITEM "&Stop",                       IDC_DBG_CLOSE
+            MENUITEM "&Go\tF5",                     IDC_DBG_GO
+            MENUITEM "Step &in\tF11",               IDC_DBG_STEP
+            MENUITEM "Step &out\tF10",              IDC_DBG_STEPOUT
+            MENUITEM "&Stop\tShift+F5",             IDC_DBG_CLOSE
+            MENUITEM "Toggle Breakpoint\tF9",       IDC_DBG_ADD
         END
         MENUITEM "&Import..\tCtrl+I",           ID_FILE_IMPORT
         MENUITEM "Chec&k\tCtrl+Shift+C",        ID_FILE_CHECK
@@ -223,10 +225,11 @@ BEGIN
         MENUITEM "&Run...\tCtrl+R",             ID_FILE_RUN
         POPUP "&Debug"
         BEGIN
-            MENUITEM "&Go",                         IDC_DBG_GO
-            MENUITEM "Step &in",                    IDC_DBG_STEP
-            MENUITEM "Step &out",                   IDC_DBG_STEPOUT
-            MENUITEM "&Stop",                       IDC_DBG_CLOSE
+            MENUITEM "&Go\tF5",                     IDC_DBG_GO
+            MENUITEM "Step &in\tF11",               IDC_DBG_STEP
+            MENUITEM "Step &out\tF10",              IDC_DBG_STEPOUT
+            MENUITEM "&Stop\tShift+F5",             IDC_DBG_CLOSE
+            MENUITEM "Toggle Breakpoint\tF9",       IDC_DBG_ADD
         END
         MENUITEM "&Import..\tCtrl+I",           ID_FILE_IMPORT
         MENUITEM "Chec&k\tCtrl+Shift+C",        ID_FILE_CHECK
@@ -361,10 +364,11 @@ BEGIN
         MENUITEM "&Run...\tCtrl+R",             ID_FILE_RUN
         POPUP "&Debug"
         BEGIN
-            MENUITEM "&Go",                         IDC_DBG_GO
-            MENUITEM "Step &in",                    IDC_DBG_STEP
-            MENUITEM "Step &out",                   IDC_DBG_STEPOUT
-            MENUITEM "&Stop",                       IDC_DBG_CLOSE
+            MENUITEM "&Go\tF5",                     IDC_DBG_GO
+            MENUITEM "Step &in\tF11",               IDC_DBG_STEP
+            MENUITEM "Step &out\tF10",              IDC_DBG_STEPOUT
+            MENUITEM "&Stop\tShift+F5",             IDC_DBG_CLOSE
+            MENUITEM "Toggle Breakpoint\tF9",       IDC_DBG_ADD
         END
         MENUITEM SEPARATOR
         MENUITEM "P&rint Setup...",             ID_FILE_PRINT_SETUP
@@ -849,7 +853,8 @@ BEGIN
     BUTTON      ID_EDIT_COPY
     BUTTON      ID_EDIT_PASTE
     SEPARATOR
-    BUTTON      ID_FILE_PRINT
+    BUTTON      ID_FILE_PRINT_PREVIEW
+    BUTTON      ID_FILE_PRINT_DIRECT
     SEPARATOR
     BUTTON      ID_HELP_INDEX
     SEPARATOR
