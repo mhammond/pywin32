@@ -971,7 +971,7 @@ int PythonService_main(int argc, char **argv)
 			printf("%s - Python Service Manager\n", argv[0]);
 			printf("Options:\n");
 #ifndef BUILD_FREEZE
-			printf(" -register - register the EXE - this must be done at least once.\n");
+			printf(" -register - register the EXE - this should generally not be necessary.\n");
 #endif
 		    printf(" -debug servicename [parms] - debug the Python service.\n");
 		    printf("\nNOTE: You do not start the service using this program - start the\n");
@@ -1139,8 +1139,8 @@ static BOOL RegisterPythonServiceExe(void)
 		printf("Registration failed due to GetModuleFileName() failing (error %d)\n", GetLastError());
 		return FALSE;
 	}
-	if (!Py_IsInitialized())
-		Py_Initialize();
+	assert (Py_IsInitialized());
+	CEnterLeavePython _celp;
 	// Register this specific EXE against this specific DLL version
 	PyObject *obVerString = PySys_GetObject("winver");
 	if (obVerString==NULL || !PyString_Check(obVerString)) {
