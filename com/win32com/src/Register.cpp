@@ -104,6 +104,7 @@ HRESULT PyCom_RegisterGatewayObject(REFIID iid, pfnPyGatewayConstructor ctor, co
 			return E_FAIL;
 		}
 		if (PyDict_SetItem(g_obPyCom_MapGatewayIIDToName, keyObject, valueObject)!=0) {
+			Py_DECREF(valueObject);
 			Py_DECREF(keyObject);
 			return E_FAIL;
 		}
@@ -118,6 +119,7 @@ HRESULT PyCom_RegisterGatewayObject(REFIID iid, pfnPyGatewayConstructor ctor, co
 		}
 		// Note we reuse the key as the value, and value as the key!
 		if (PyDict_SetItem(g_obPyCom_MapInterfaceNameToIID, valueObject, keyObject)!=0) {
+			Py_DECREF(valueObject);
 			Py_DECREF(keyObject);
 			return E_FAIL;
 		}
@@ -175,9 +177,9 @@ int PyCom_IsGatewayRegistered(REFIID iid)
 	{
 		return 0;
 	}
-	return PyMapping_HasKey(
-		g_obPyCom_MapServerIIDToGateway,
-		keyObject);
+	int rc = PyMapping_HasKey(g_obPyCom_MapServerIIDToGateway, keyObject);
+	Py_DECREF(keyObject);
+	return rc;
 }
 
 // @pymethod int|pythoncom|IsGatewayRegistered|Returns true if a gateway has been registered for the given IID 
