@@ -274,20 +274,21 @@ PYWINTYPES_EXPORT PyTypeObject PyTimeType =
 	sizeof(PyTime),
 	0,
 	PyTime::deallocFunc,		/* tp_dealloc */
-	// @pymeth __print__|Used when the time object is printed.
-	PyTime::printFunc,		/* tp_print */
+	NULL,		/* tp_print */
 	PyTime::getattrFunc,	/* tp_getattr */
 	0,						/* tp_setattr */
 	// @pymeth __cmp__|Used when time objects are compared.
 	PyTime::compareFunc,	/* tp_compare */
-	0,						/* tp_repr */
+	// @pymeth __repr__|Used for repr(ob)
+	PyTime::reprFunc, 	/* tp_repr */
 	&PyTime_NumberMethods,	/* tp_as_number */
 	0,						/* tp_as_sequence */
 	0,						/* tp_as_mapping */
 	// @pymeth __hash__|Used when the hash value of an time object is required
 	PyTime::hashFunc,		/* tp_hash */
 	0,						/* tp_call */
-	//PyTime::strFunc,		/* tp_str */
+	// @pymeth __str__|Used for str(ob)
+	PyTime::strFunc,		/* tp_str */
 };
 
 PyTime::PyTime(DATE t)
@@ -384,6 +385,15 @@ BOOL PyTime::GetTime(SYSTEMTIME *pDate)
 	return TRUE;
 }
 
+PyObject *PyTime::str()
+{
+	// Just re-use 'Format()'.
+	PyObject *args = PyTuple_New(0);
+	PyObject *ret = Format(this, args);
+	Py_XDECREF(args);
+	return ret;
+}
+
 int PyTime::compare(PyObject *ob)
 {
 	DATE time2 = ((PyTime *)ob)->m_time;
@@ -441,7 +451,7 @@ long PyTime::asLong(void)
 #endif
 }
 
-int PyTime::print(FILE *fp, int flags)
+PyObject *PyTime::repr()
 {
 	TCHAR dateBuf[128];
 	TCHAR timeBuf[128];
@@ -471,22 +481,7 @@ int PyTime::print(FILE *fp, int flags)
 
 	TCHAR resBuf[160];
 	wsprintf(resBuf, _T("<PyTime:%s %s>"), dateBuf, timeBuf);
-	//
-    // ### ACK! Python uses a non-debug runtime. We can't use stream
-	// ### functions when in DEBUG mode!!  (we link against a different
-	// ### runtime library)  Hack it by getting Python to do the print!
-	//
-	// ### - Double Ack - Always use the hack!
-//#ifdef _DEBUG
-	PyObject *ob = PyString_FromTCHAR(resBuf);
-	PyObject_Print(ob, fp, flags|Py_PRINT_RAW);
-	Py_DECREF(ob);
-/***
-#else
-	fputs(resBuf, fp);
-#endif
-***/
-	return 0;
+	return PyString_FromTCHAR(resBuf);
 }
 
 PyObject *PyTime::getattr(char *name)
@@ -559,6 +554,12 @@ PyObject *PyTime::getattr(char *name)
 	delete (PyTime *)ob;
 }
 
+// @pymethod string|PyTime|__str__|Used when a (8-bit) string representation of the time object is required.
+ PyObject * PyTime::strFunc(PyObject *ob)
+{
+	return ((PyTime *)ob)->str();
+}
+
 // @pymethod int|PyTime|__cmp__|Used when time objects are compared.
 int PyTime::compareFunc(PyObject *ob1, PyObject *ob2)
 {
@@ -570,6 +571,7 @@ long PyTime::hashFunc(PyObject *ob)
 {
 	return ((PyTime *)ob)->hash();
 }
+
 
 // @pymethod |PyTime|__nonzero__|Used for detecting true/false.
 /*static*/ int PyTime::nonzeroFunc(PyObject *ob)
@@ -597,10 +599,10 @@ long PyTime::hashFunc(PyObject *ob)
 	return PyFloat_FromDouble(result);
 }
 
-// @pymethod |PyTime|__print__|Used when the time object is printed.
-int PyTime::printFunc(PyObject *ob, FILE *fp, int flags)
+// @pymethod |PyTime|__repr__|
+PyObject *PyTime::reprFunc(PyObject *ob)
 {
-	return ((PyTime *)ob)->print(fp, flags);
+	return ((PyTime *)ob)->repr();
 }
 
 // @pymethod |PyTime|__getattr__|Used to get an attribute of the object.

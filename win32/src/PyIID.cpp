@@ -129,13 +129,13 @@ PYWINTYPES_EXPORT PyTypeObject PyIIDType =
 	sizeof(PyIID),
 	0,
 	PyIID::deallocFunc,		/* tp_dealloc */
-	// @pymeth __print__|Used when the IID object is printed.
-	PyIID::printFunc,		/* tp_print */
+	0,				/* tp_print */
 	0,						/* tp_getattr */
 	0,						/* tp_setattr */
 	// @pymeth __cmp__|Used when IID objects are compared.
 	PyIID::compareFunc,		/* tp_compare */
-	0,						/* tp_repr */
+	// @pymeth __repr__|Used whenever a repr() is called for the object
+	PyIID::reprFunc,				/* tp_repr */
 	0,						/* tp_as_number */
 	0,						/* tp_as_sequence */
 	0,						/* tp_as_mapping */
@@ -175,32 +175,6 @@ int PyIID::compare(PyObject *ob)
 	return memcmp(&m_iid, &((PyIID *)ob)->m_iid, sizeof(m_iid));
 }
 
-int PyIID::print(FILE *fp, int flags)
-{
-	OLECHAR oleRes[128];
-	StringFromGUID2(m_iid, oleRes, sizeof(oleRes));
-//	USES_CONVERSION;
-
-	TCHAR buf[128];
-	wsprintf(buf, _T("<iid:%ws>"), oleRes);
-
-	//
-    // ### ACK! Python uses a non-debug runtime. We can't use stream
-	// ### functions when in DEBUG mode!!  (we link against a different
-	// ### runtime library)  Hack it by getting Python to do the print!
-	//
-	// ### - Double Ack - Always use the hack!
-// #ifdef _DEBUG
-	PyObject *ob = PyString_FromTCHAR(buf);
-	PyObject_Print(ob, fp, flags|Py_PRINT_RAW);
-	Py_DECREF(ob);
-//#else
-///	fputs(buf, fp);
-//#endif
-
-	return 0;
-}
-
 long PyIID::hash(void)
 {
 	DWORD n[4];
@@ -217,16 +191,20 @@ PyObject *PyIID::str(void)
 	return PyWinStringObject_FromIID(m_iid);
 }
 
+PyObject *PyIID::repr(void)
+{
+	OLECHAR oleRes[128];
+	StringFromGUID2(m_iid, oleRes, sizeof(oleRes));
+	TCHAR buf[128];
+	wsprintf(buf, _T("IID('%ws')"), oleRes);
+	return PyString_FromString(buf);
+}
+
 /*static*/ void PyIID::deallocFunc(PyObject *ob)
 {
 	delete (PyIID *)ob;
 }
 
-// @pymethod |PyIID|__print__|Used when the IID object is printed.
-int PyIID::printFunc(PyObject *ob, FILE *fp, int flags)
-{
-	return ((PyIID *)ob)->print(fp, flags);
-}
 // @pymethod int|PyIID|__cmp__|Used when IID objects are compared.
 int PyIID::compareFunc(PyObject *ob1, PyObject *ob2)
 {
@@ -241,5 +219,10 @@ long PyIID::hashFunc(PyObject *ob)
 PyObject * PyIID::strFunc(PyObject *ob)
 {
 	return ((PyIID *)ob)->str();
+}
+// @pymethod string|PyIID|__repr__|
+PyObject * PyIID::reprFunc(PyObject *ob)
+{
+	return ((PyIID *)ob)->repr();
 }
 #endif // NO_PYWINTYPES_IID

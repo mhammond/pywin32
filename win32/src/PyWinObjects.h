@@ -67,15 +67,16 @@ public:
 
 	/* Python support */
 	int compare(PyObject *ob);
-	int print(FILE *fp, int flags);
 	long hash(void);
 	PyObject *str(void);
+	PyObject *repr(void);
 
 	static void deallocFunc(PyObject *ob);
 	static int printFunc(PyObject *ob, FILE *fp, int flags);
 	static int compareFunc(PyObject *ob1, PyObject *ob2);
 	static long hashFunc(PyObject *ob);
 	static PyObject * strFunc(PyObject *ob);
+	static PyObject * reprFunc(PyObject *ob);
 };
 #endif // NO_PYWINTYPES_IID
 
@@ -97,6 +98,8 @@ public:
 	BOOL GetTime(SYSTEMTIME *pDate);
 
 	/* Python support */
+	PyObject *str();
+	PyObject *repr();
 	int compare(PyObject *ob);
 	int print(FILE *fp, int flags);
 	PyObject *getattr(char *name);
@@ -116,6 +119,8 @@ public:
 	static int nonzeroFunc(PyObject *ob);
 	static PyObject * intFunc(PyObject *ob);
 	static PyObject * floatFunc(PyObject *ob);
+	static PyObject * strFunc(PyObject *ob);
+	static PyObject * reprFunc(PyObject *ob);
 	// Methods
 	static PyObject *Format(PyObject *self, PyObject *args);
 };
