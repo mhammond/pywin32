@@ -4,6 +4,30 @@
 //
 // Interface Declaration
 
+/* It appears this was undocumented, and vanished in MSVC7
+   But the Win2k shell always QIs for it - we don't *need* it,
+   but everything is happier when we do have it
+*/
+
+#ifndef __IBrowserFrameOptions_INTERFACE_DEFINED__
+#define __IBrowserFrameOptions_INTERFACE_DEFINED__
+
+typedef DWORD BROWSERFRAMEOPTIONS;
+EXTERN_C const IID IID_IBrowserFrameOptions;
+
+MIDL_INTERFACE("10DF43C8-1DBE-11d3-8B34-006097DF5BD4")
+#define NEED_IID_IBrowserFrameOptions
+IBrowserFrameOptions : public IUnknown
+{
+public:
+    virtual HRESULT STDMETHODCALLTYPE GetFrameOptions( 
+        /* [in] */ BROWSERFRAMEOPTIONS dwMask,
+        /* [out] */ BROWSERFRAMEOPTIONS *pdwOptions) = 0;
+    
+};
+#endif /* __IBrowserFrameOptions_INTERFACE_DEFINED__ */
+
+
 class PyIBrowserFrameOptions : public PyIUnknown
 {
 public:

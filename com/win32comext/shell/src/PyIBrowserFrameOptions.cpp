@@ -3,10 +3,11 @@
 
 #include "shell_pch.h"
 
-/* It appears this was undocumented, and vanished in MSVC7. */
-#ifdef HAVE_BROWSER_FRAME_OPTIONS
-
 #include "PyIBrowserFrameOptions.h"
+
+#ifdef NEED_IID_IBrowserFrameOptions
+const GUID IID_IBrowserFrameOptions = { 0x10DF43C8, 0x1DBE, 0x11d3, { 0x8b, 0x34, 0x00, 0x60, 0x97, 0xdf, 0x5b, 0xd4 } };
+#endif
 
 // @doc - This file contains autoduck documentation
 // ---------------------------------------------------
@@ -75,4 +76,3 @@ STDMETHODIMP PyGBrowserFrameOptions::GetFrameOptions(
 	return hr;
 }
 
-#endif // HAVE_BROWSER_FRAME_OPTIONS
