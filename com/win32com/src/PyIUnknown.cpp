@@ -144,7 +144,7 @@ PyObject * PyIUnknown::repr()
 #endif
 			ob->m_obj = NULL;
 		}
-#ifdef __MINGW32__
+#if defined(__MINGW32__) || defined(MAINWIN)
 		catch(...)
 #else
 		__except( EXCEPTION_EXECUTE_HANDLER )
