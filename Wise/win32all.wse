@@ -16,7 +16,7 @@ item: Global
   Patch Flags=0000000000000001
   Patch Threshold=85
   Patch Memory=4000
-  EXE Filename=win32all-130.exe
+  EXE Filename=win32all-131.exe
   Code Sign Name=Python Win32 combined extensions
   Code Sign Info=skippinet.com.au
   Variable Name1=_WISE_
@@ -183,21 +183,6 @@ item: Set Variable
   Value=%PY_INST_PATH%
   Flags=00001100
 end
-item: Compiler Variable If
-  Variable=PYTHON_15
-  Value=1
-end
-item: Set Variable
-  Variable=SYSDLL_PATH
-  Value=%SYS32%
-end
-item: Compiler Variable Else
-end
-item: Copy Local File
-  Source=%MAINDIR%\Python16.dll
-  Destination=%SYS32%\Python16.dll
-  Flags=0000000001100010
-end
 item: Set Variable
   Variable=SYSDLL_PATH
   Value=%SYS32%
@@ -205,8 +190,6 @@ end
 remarked item: Set Variable
   Variable=SYSDLL_PATH
   Value=%MAINDIR%
-end
-item: Compiler Variable End
 end
 item: Set Variable
   Variable=DISABLED
