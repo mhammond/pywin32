@@ -1,5 +1,6 @@
 /*
 ** Universal gateway module
+** Written by Bill Tutt and Greg Stein.
 */
 
 #include "stdafx.h"
@@ -24,12 +25,6 @@ typedef struct gw_vtbl
 
 	PyObject *	dispatcher;	// dispatcher from the COM2Py thunk definition
 	
-	// Python CObject that owns freeing this object.
-	// This is here so that the method function pointer array
-	// exists as long as the tear off interface does.
-	// This is also here so that the tear off interfaces have the absolute
-	// minimum state necessary.
-	PyObject *  obVTable;   
 	IID			iid;		// the IID of this interface
 	UINT		cMethod;	// count of methods
 	UINT		cReservedMethods;	// number of reserved methods; 3 for IUnknown, 7 for IDispatch.
@@ -44,6 +39,7 @@ typedef struct gw_vtbl
 typedef struct gw_object
 {
 	pfnGWMethod *					vtbl;
+	PyObject *  				    obVTable;   // reference to vtable
 	IInternalUnwrapPythonObject *	punk;		// the identity interface
 	LONG							cRef;
 
@@ -266,7 +262,7 @@ static STDMETHODIMP_(ULONG) univgw_Release(gw_object * _this)
 	{
 		_this->punk->Release();
 		CEnterLeavePython _celp;
-		Py_DECREF(GET_DEFN(_this)->obVTable);
+		Py_DECREF(_this->obVTable);
 		free(_this);
 		return 0;
 	}
@@ -378,11 +374,9 @@ static PyObject * univgw_CreateVTable(PyObject *self, PyObject *args)
 	memset(vtbl, 0, size);
 
 	vtbl->magic = GW_VTBL_MAGIC;
-	Py_INCREF(obDef);
 	vtbl->iid = iid;
 	vtbl->cMethod = count;
 	vtbl->cReservedMethods = numReservedVtables;
-	vtbl->obVTable = NULL;
 
 	vtbl->dispatcher = PyObject_GetAttrString(obDef, "dispatch");
 	if ( vtbl->dispatcher == NULL )
@@ -432,12 +426,6 @@ static PyObject * univgw_CreateVTable(PyObject *self, PyObject *args)
 		free_vtbl(vtbl);
 		return NULL;
 	}
-	
-	// Stick the CObject into the vtable itself
-	// so that the tear off interfaces can INCREF/DECREF it at
-	// their own whim.
-	vtbl->obVTable = result;
-	Py_INCREF(result); // the vtable's reference.
 	return result;
 
   error:
@@ -473,11 +461,10 @@ static IUnknown *CreateTearOff
 	punk->vtbl = vtbl->methods;
 	punk->punk = (IInternalUnwrapPythonObject *)gatewayBase;
 	punk->punk->AddRef();
+	punk->obVTable = obVTable;
+	Py_INCREF(obVTable);
 	// we start with one reference (the object we return)
 	punk->cRef = 1;
-	// Make sure the vtbl doesn't go away before we do.
-	Py_INCREF(vtbl->obVTable);
-
 	return (IUnknown *)punk;	
 }
 
@@ -522,10 +509,7 @@ static PyObject * univgw_CreateTearOff(PyObject *self, PyObject *args)
 		PY_INTERFACE_POSTCALL;
 	}
 	if (!punk)
-	{
-		Py_DECREF(obVTable);
 		return NULL;
-	}
 
 	// Convert to a PyObject.
 	return PyCom_PyObjectFromIUnknown((IUnknown *)punk, iidInterface, FALSE);
