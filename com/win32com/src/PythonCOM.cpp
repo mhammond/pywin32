@@ -1099,7 +1099,7 @@ static PyObject *pythoncom_OleLoad(PyObject *self, PyObject* args)
 	if ( !PyArg_ParseTuple(args, "OO:OleLoad",
 		&obStorage, // @pyparm <o PyIStorage>|storage||The storage object from which to load
 		&obIID, // @pyparm <o PyIID>|iid||The IID if the interface to load.
-		&obSite)) // @pyparm <o PyIOleClientSite>|site|The client site for the object.
+		&obSite)) // @pyparm <o PyIOleClientSite>|site||The client site for the object.
 		return NULL;
 
 	IID iid;
@@ -1371,7 +1371,7 @@ static struct PyMethodDef pythoncom_methods[]=
 	{ "new",                 pythoncom_new, 1 },
 	{ "New",                 pythoncom_new, 1 },                 // @pymeth New|Create a new instance of an OLE automation server.
 	{ "OleLoadFromStream",   pythoncom_OleLoadFromStream, 1},    // @pymeth OleLoadFromStream|Load an object from an IStream.
-	{ "OleSaveToStream",     pythoncom_OleSaveToStream, 1},      // @pymeth Save an object to an IStream.
+	{ "OleSaveToStream",     pythoncom_OleSaveToStream, 1},      // @pymeth OleSaveToStream|Save an object to an IStream.
 	{ "OleLoadPicture",      pythoncom_OleLoadPicture, 1 },      // @pymeth OleLoadPicture|Creates a new picture object and initializes it from the contents of a stream.
 	{ "OleLoad",             pythoncom_OleLoad, 1 },             // @pymeth OleLoad|Loads into memory an object nested within a specified storage object.
 #ifndef MS_WINCE
