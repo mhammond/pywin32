@@ -566,13 +566,14 @@ class CoClassItem(build.OleItem, WritableItem):
     for item, flag in self.sources:
       if flag & pythoncom.IMPLTYPEFLAG_FDEFAULT:
         defItem = item
-      # check if non-dispatchable - if so no real Python class has been written.  Write the iid as a string instead.
-      if item.bIsDispatch: key = item.python_name
+      # If we have written a Python class, reference the name - 
+      # otherwise just the IID.
+      if item.bWritten: key = item.python_name
       else: key = repr(str(item.clsid)) # really the iid.
       print >> stream, '\t\t%s,' % (key)
     print >> stream, '\t]'
     if defItem:
-      if defItem.bIsDispatch: defName = defItem.python_name
+      if defItem.bWritten: defName = defItem.python_name
       else: defName = repr(str(defItem.clsid)) # really the iid.
       print >> stream, '\tdefault_source = %s' % (defName,)
     print >> stream, '\tcoclass_interfaces = ['
@@ -580,13 +581,13 @@ class CoClassItem(build.OleItem, WritableItem):
     for item, flag in self.interfaces:
       if flag & pythoncom.IMPLTYPEFLAG_FDEFAULT: # and dual:
         defItem = item
-      # check if non-dispatchable - if so no real Python class has been written.  Write the iid as a string instead.
-      if item.bIsDispatch: key = item.python_name
+      # If we have written a class, refeence its name, otherwise the IID
+      if item.bWritten: key = item.python_name
       else: key = repr(str(item.clsid)) # really the iid.
       print >> stream, '\t\t%s,' % (key,)
     print >> stream, '\t]'
     if defItem:
-      if defItem.bIsDispatch: defName = defItem.python_name
+      if defItem.bWritten: defName = defItem.python_name
       else: defName = repr(str(defItem.clsid)) # really the iid.
       print >> stream, '\tdefault_interface = %s' % (defName,)
     self.bWritten = 1
@@ -852,7 +853,7 @@ class Generator:
     if self.generate_type == GEN_FULL:
       print >> stream, 'CLSIDToClassMap = {'
       for item in oleItems.values():
-          if item is not None and item.bWritten and item.bIsDispatch:
+          if item is not None and item.bWritten:
               print >> stream, "\t'%s' : %s," % (str(item.clsid), item.python_name)
       print >> stream, '}'
       print >> stream, 'CLSIDToPackageMap = {}'
@@ -985,7 +986,7 @@ class Generator:
     self.progress.SetDescription("Building definitions from type library...")
     self.do_gen_file_header()
     oleitem.WriteClass(self)
-    if oleitem.bIsDispatch:
+    if oleitem.bWritten:
         print >> self.file, 'win32com.client.CLSIDToClass.RegisterCLSID( "%s", %s )' % (oleitem.clsid, oleitem.python_name)
 
   def checkWriteDispatchBaseClass(self):
