@@ -18,8 +18,18 @@ silent = 0
 # Verbosity of output messages.
 verbose = 1
 
-def file_created(file):
-    pass
+try:
+    # When this script is run from inside the bdist_wininst installer,
+    # file_created() and directory_created() are additional builtin
+    # functions which write lines to Python23\pywin32-install.log. This is
+    # a list of actions for the uninstaller, the format is inspired by what
+    # the Wise installer also creates.
+    file_created
+except NameError:
+    def file_created(file):
+        pass
+    def directory_created(directory):
+        pass
 
 def AbortRetryIgnore(desc, func, *args):
     import win32api, win32con
@@ -134,6 +144,7 @@ def install():
     if not os.path.isdir(make_dir):
         if verbose:
             print "Creating directory", make_dir
+        directory_created(make_dir)
         os.mkdir(make_dir)
 
     print "The pywin32 extensions were successfully installed."
@@ -152,6 +163,15 @@ Additional Options:
   -quiet    : Don't display progress messages.
 """
     print msg.strip() % os.path.basename(sys.argv[0])
+
+# NOTE: If this script is run from inside the bdist_wininst created
+# binary installer or uninstaller, the command line args are either
+# '-install' or '-remove'.
+
+# Important: From inside the binary installer this script MUST NOT
+# call sys.exit() or raise SystemExit, otherwise not only this script
+# but also the installer will terminate! (Is there a way to prevent
+# this from the bdist_wininst C code?)
 
 if __name__=='__main__':
     if len(sys.argv)==1:
@@ -177,6 +197,8 @@ if __name__=='__main__':
             silent = 1
         elif arg == "-quiet":
             verbose = 0
+        elif arg == "-remove":
+            break # we do nothing for now
         else:
             print "Unknown option:", arg
             usage()
