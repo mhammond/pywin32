@@ -24,7 +24,7 @@ class PyGPersistStreamInit : public PyGPersistStream, public IPersistStreamInit
 {
 protected:
 	PyGPersistStreamInit(PyObject *instance) : PyGPersistStream(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGPersistStreamInit, IPersistStreamInit, IID_IPersistStreamInit)
+	PYGATEWAY_MAKE_SUPPORT2(PyGPersistStreamInit, IPersistStreamInit, IID_IPersistStreamInit, PyGPersistStream)
 	// IPersist
 	STDMETHOD(GetClassID)(CLSID FAR *pClassID) {return PyGPersistStream::GetClassID(pClassID);}
 

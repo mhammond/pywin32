@@ -29,10 +29,10 @@ protected:
 class PyGPersistFile : public PyGPersist, public IPersistFile
 {
 protected:
+	PYGATEWAY_MAKE_SUPPORT2(PyGPersistFile, IPersistFile, IID_IPersistFile, PyGPersist)
 	PyGPersistFile(PyObject *instance) : PyGPersist(instance) {;}
 	// IPersist
-
-	static PyObject *GetClassID(PyObject *self, PyObject *args);
+	STDMETHOD(GetClassID)(CLSID FAR *pClassID) {return PyGPersist::GetClassID(pClassID);}
 
 	// IPersistFile
 	STDMETHOD(IsDirty)(
