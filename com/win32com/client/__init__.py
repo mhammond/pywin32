@@ -311,7 +311,16 @@ class DispatchBaseClass:
 		if oobj is None:
 			oobj = pythoncom.new(self.CLSID)
 		elif type(self) == type(oobj): # An instance
-			oobj = oobj._oleobj_.QueryInterface(self.CLSID, pythoncom.IID_IDispatch) # Must be a valid COM instance
+			try:
+				oobj = oobj._oleobj_.QueryInterface(self.CLSID, pythoncom.IID_IDispatch) # Must be a valid COM instance
+			except pythoncom.com_error, details:
+				import winerror
+				# Some stupid objects fail here, even tho it is _already_ IDispatch!!??
+				# Eg, Lotus notes.
+				# So just let it use the existing object if E_NOINTERFACE
+				if details[0] != winerror.E_NOINTERFACE:
+					raise
+				oobj = oobj._oleobj_
 		self.__dict__["_oleobj_"] = oobj # so we dont call __setattr__
 	# Provide a prettier name than the CLSID
 	def __repr__(self):
