@@ -31,6 +31,7 @@ win32popenWin9x.exe	Python popen helper for Windows 9x
 win32print.pyd	Python win32 Printer extension
 win32process.pyd	Python Win32 Thread and Process extensions
 win32ras.pyd	Python Remote Access extensions
+win2kras.pyd	Python Remote Access extensions for Windows 2000
 win32security.pyd	Python NT Security extensions
 win32service.pyd	Python NT Service extensions
 win32trace.pyd	Python tracing
