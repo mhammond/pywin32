@@ -6,15 +6,100 @@
 %{
   /* Used to validate access modes in win32pipe.win32pipe() */
 #include "fcntl.h"
+
 %}
 
 %include "typemaps.i"
 %include "pywin32.i"
 
+%{
+
+// Global used to determine if Win9x win32pipe hack is necessary.
+bool g_fUsingWin9x;
+CHAR g_szModulePath[_MAX_PATH + 2];
+
+/////////////////////////////////////////////////////////////////////////////
+// DLL Entry Point
+
+extern "C"
+BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
+{
+	DWORD cbModuleFilename;
+	CHAR *psz = NULL;
+
+	if (dwReason == DLL_PROCESS_ATTACH)
+	{
+	    // Note: GetModuleFileName will write nSize + 1 characters
+	    // to get the null terminator.
+	    cbModuleFilename = GetModuleFileName(
+		    hInstance,
+		    g_szModulePath,
+		    sizeof(g_szModulePath) - 1);
+	    if (0 == cbModuleFilename)
+	    {
+//		    hr = HRESULT_FROM_WIN32(GetLastError());
+//		    ErrorTrace(hr);
+		    return FALSE;
+	    }
+
+	    if ((sizeof(g_szModulePath) - 1) == cbModuleFilename)
+	    {
+		    // Note: This should never happen
+//		    hr = HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER);
+//		    ErrorTrace(hr);
+		    return FALSE;
+	    }
+
+		// Start from the end of the string and insert a '\0' after the first '\\' you find.
+		psz = g_szModulePath + strlen(g_szModulePath) - 1;
+		while (psz > g_szModulePath && *psz != '\\')
+		{
+			psz--;
+		}
+
+		if (*psz == '\\')
+		{
+			psz++;
+			*psz = '\0';
+		}
+		else
+		{
+			// Something wierd happened. :(
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
+
+%}
+
 %init %{
 	// All errors raised by this module are of this type.
 	Py_INCREF(PyWinExc_ApiError);
 	PyDict_SetItemString(d, "error", PyWinExc_ApiError);
+
+	// Setup g_fUsingWin9x correctly...
+	{
+		OSVERSIONINFO osvi;
+
+		memset(&osvi, 0, sizeof(osvi));
+		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+		
+		if (!GetVersionEx(&osvi))
+		{
+			PyWin_SetAPIError("GetVersionEx");
+		}
+
+		if (osvi.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
+		{
+			g_fUsingWin9x = TRUE;
+		}
+		else
+		{
+			g_fUsingWin9x = FALSE;
+		}
+	}
 %}
 
 %{

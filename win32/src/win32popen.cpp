@@ -10,6 +10,9 @@
 
 #define DllExport   _declspec(dllexport)
 
+extern bool g_fUsingWin9x;
+extern CHAR g_szModulePath[];	
+
 // These tell _PyPopen() wether to return 1, 2, or 3 file objects.
 #define POPEN_1 1
 #define POPEN_2 2
@@ -25,53 +28,33 @@ PyObject *PyPopen(PyObject *self, PyObject *args)
 {
 	char *cmdstring;
 	char *mode="r";
-	char title[128];
 	int bufsize=-1;
 	PyObject *f,*s;
-	FILE *fp;
+	int tm=0;
   
 	if (!PyArg_ParseTuple(args, "s|s:popen",
 						  &cmdstring,    // @pyparm string|cmdstring||The cmdstring to pass to the shell
 						  &mode))        // @pyparm string|mode||Either 'r' or 'w'
 		return NULL;
-	s=PyTuple_New(0);
-	// Call GetConsoleTitle to see if we have a console or not.
-	if (GetConsoleTitle(title,sizeof(title))!=0)
-    {
-		Py_BEGIN_ALLOW_THREADS
-			fp = _popen(cmdstring, mode);
-		Py_END_ALLOW_THREADS
-	
-			if (fp == NULL)
-				return PyErr_SetFromErrno(PyExc_RuntimeError);
-		f = PyFile_FromFile(fp, cmdstring, mode, _pclose);
-		if (f != NULL)
-		{
-			//PyFile_SetBufSize(f, 0);
-			setvbuf(fp, NULL, _IONBF, 0);
-		}
-    }
+
+	s = PyTuple_New(0);
+      
+	if (*mode == 'r')
+		tm = _O_RDONLY;
+	else if (*mode != 'w')
+	{
+		PyErr_SetString(PyExc_ValueError, "mode must be 'r' or 'w'");
+		return NULL;
+	}
 	else
-    {
-		int tm=0;
-      
-		if (*mode == 'r')
-			tm = _O_RDONLY;
-		else if (*mode != 'w')
-		{
-			PyErr_SetString(PyExc_ValueError, "mode must be 'r' or 'w'");
-			return NULL;
-		}
-		else
-			tm = _O_WRONLY;
-      
-		if (*(mode+1) == 't')
-			f = _PyPopen(cmdstring, tm | _O_TEXT , POPEN_1);
-		else if (*(mode+1) == 'b')
-			f = _PyPopen(cmdstring, tm | _O_BINARY , POPEN_1);
-		else
-			f = _PyPopen(cmdstring, tm | _O_TEXT, POPEN_1);
-    }
+		tm = _O_WRONLY;
+     
+	if (*(mode+1) == 't')
+		f = _PyPopen(cmdstring, tm | _O_TEXT , POPEN_1);
+	else if (*(mode+1) == 'b')
+		f = _PyPopen(cmdstring, tm | _O_BINARY , POPEN_1);
+	else
+		f = _PyPopen(cmdstring, tm | _O_TEXT, POPEN_1);
   
 	return f;
   
@@ -174,20 +157,41 @@ static int _PyPopenCreateProcess(char *cmdstring,
 	PROCESS_INFORMATION piProcInfo;
 	STARTUPINFO siStartInfo;
 	char *s1,*s2, *s3=" /c ";
+	const char *szConsoleSpawn = "consspawn.exe \"";
 	int i;
 	int x;
 
-	if (i=GetEnvironmentVariable("COMSPEC",NULL,0))
+	if (i = GetEnvironmentVariable("COMSPEC",NULL,0))
     {
-		s1=(char *)_alloca(i);
-		if (!(x=GetEnvironmentVariable("COMSPEC",s1,i)))
+		s1 = (char *)_alloca(i);
+		if (!(x = GetEnvironmentVariable("COMSPEC", s1, i)))
 			return x;
-		x=i+strlen(s3)+strlen(cmdstring)+1;
-		s2=(char *)_alloca(x);
-		ZeroMemory(s2, x);
-		strcat(s2,s1);
-		strcat(s2,s3);
-		strcat(s2,cmdstring);
+		if (!g_fUsingWin9x)
+		{
+			x = i + strlen(s3) + strlen(cmdstring) + 1;
+			s2 = (char *)_alloca(x);
+			ZeroMemory(s2, x);
+			sprintf(s2, "%s%s%s", s1, s3, cmdstring);
+		}
+		else
+		{
+			//
+			// Oh gag, we're on Win9x. Use the workaround listed in
+			// KB: Q150956
+			//
+			x = i + strlen(s3) + strlen(cmdstring) + 1 + strlen(g_szModulePath) + 
+				strlen(szConsoleSpawn) + 1;
+			s2 = (char *)_alloca(x);
+			ZeroMemory(s2, x);
+			sprintf(
+				s2,
+				"%s%s%s%s%s\"",
+				g_szModulePath,
+				szConsoleSpawn,
+				s1,
+				s3,
+				cmdstring);
+		}
     }
 	// Could be an else here to try cmd.exe / command.com in the path
 	// Now we'll just error out..
@@ -195,12 +199,12 @@ static int _PyPopenCreateProcess(char *cmdstring,
 		return -1;
   
 	ZeroMemory( &siStartInfo, sizeof(STARTUPINFO));
-	siStartInfo.cb=sizeof(STARTUPINFO);
-	siStartInfo.dwFlags=STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
-	siStartInfo.hStdInput=hStdin;
-	siStartInfo.hStdOutput=hStdout;
-	siStartInfo.hStdError=hStderr;
-	siStartInfo.wShowWindow=SW_HIDE;
+	siStartInfo.cb = sizeof(STARTUPINFO);
+	siStartInfo.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+	siStartInfo.hStdInput = hStdin;
+	siStartInfo.hStdOutput = hStdout;
+	siStartInfo.hStdError = hStderr;
+	siStartInfo.wShowWindow = SW_HIDE;
 	if ( CreateProcess(NULL,
 					   s2,
 					   NULL,
@@ -235,7 +239,7 @@ static PyObject *_PyPopen(char *cmdstring, int mode, int n)
 
 	saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
 	saAttr.bInheritHandle = TRUE;
-	saAttr.lpSecurityDescriptor =NULL;
+	saAttr.lpSecurityDescriptor = NULL;
 
 	if (!CreatePipe(&hChildStdinRd, &hChildStdinWr, &saAttr, 0))
 		return PyWin_SetAPIError("CreatePipe");
@@ -270,7 +274,7 @@ static PyObject *_PyPopen(char *cmdstring, int mode, int n)
 	// that we're using.
 	CloseHandle(hChildStdoutRd);
 
-	if (n!=POPEN_4)
+	if (n != POPEN_4)
 	{
 		if (!CreatePipe(&hChildStderrRd, &hChildStderrWr, &saAttr, 0))
 			return PyWin_SetAPIError("CreatePipe");
@@ -291,39 +295,42 @@ static PyObject *_PyPopen(char *cmdstring, int mode, int n)
 		{
 		case _O_WRONLY | _O_TEXT:
 			// Case for writing to child Stdin in text mode.
-			fd1=_open_osfhandle((long)hChildStdinWrDup, mode);
-			f1=_fdopen(fd1, "w");
-			f=PyFile_FromFile(f1, cmdstring, "w", fclose);
+			fd1 = _open_osfhandle((long)hChildStdinWrDup, mode);
+			f1 = _fdopen(fd1, "w");
+			f = PyFile_FromFile(f1, cmdstring, "w", fclose);
 			PyFile_SetBufSize(f, 0);
 			// We don't care about these pipes anymore, so close them.
 			CloseHandle(hChildStdoutRdDup);
 			CloseHandle(hChildStderrRdDup);
 			break;
+
 		case _O_RDONLY | _O_TEXT:
 			// Case for reading from child Stdout in text mode.
-			fd1=_open_osfhandle((long)hChildStdoutRdDup, mode);
-			f1=_fdopen(fd1, "r");
-			f=PyFile_FromFile(f1, cmdstring, "r", fclose);
+			fd1 = _open_osfhandle((long)hChildStdoutRdDup, mode);
+			f1 = _fdopen(fd1, "r");
+			f = PyFile_FromFile(f1, cmdstring, "r", fclose);
 			PyFile_SetBufSize(f, 0);
 			// We don't care about these pipes anymore, so close them.
 			CloseHandle(hChildStdinWrDup);
 			CloseHandle(hChildStderrRdDup);
 			break;
+
 		case _O_RDONLY | _O_BINARY:
 			// Case for readinig from child Stdout in binary mode.
-			fd1=_open_osfhandle((long)hChildStdoutRdDup, mode);
-			f1=_fdopen(fd1, "rb");
-			f=PyFile_FromFile(f1, cmdstring, "rb", fclose);
+			fd1 = _open_osfhandle((long)hChildStdoutRdDup, mode);
+			f1 = _fdopen(fd1, "rb");
+			f = PyFile_FromFile(f1, cmdstring, "rb", fclose);
 			PyFile_SetBufSize(f, 0);
 			// We don't care about these pipes anymore, so close them.
 			CloseHandle(hChildStdinWrDup);
 			CloseHandle(hChildStderrRdDup);
 			break;
+
 		case _O_WRONLY | _O_BINARY:
 			// Case for writing to child Stdin in binary mode.
-			fd1=_open_osfhandle((long)hChildStdinWrDup, mode);
-			f1=_fdopen(fd1, "wb");
-			f=PyFile_FromFile(f1, cmdstring, "wb", fclose);
+			fd1 = _open_osfhandle((long)hChildStdinWrDup, mode);
+			f1 = _fdopen(fd1, "wb");
+			f = PyFile_FromFile(f1, cmdstring, "wb", fclose);
 			PyFile_SetBufSize(f, 0);
 			// We don't care about these pipes anymore, so close them.
 			CloseHandle(hChildStdoutRdDup);
@@ -348,17 +355,20 @@ static PyObject *_PyPopen(char *cmdstring, int mode, int n)
 			m1="rb";
 			m2="wb";
 		}
-	    fd1=_open_osfhandle((long)hChildStdinWrDup, mode);
-	    f1=_fdopen(fd1, m2);
-	    fd2=_open_osfhandle((long)hChildStdoutRdDup, mode);
-	    f2=_fdopen(fd2, m1);
-	    p1=PyFile_FromFile(f1, cmdstring, m2, fclose);
+
+	    fd1 = _open_osfhandle((long)hChildStdinWrDup, mode);
+	    f1 = _fdopen(fd1, m2);
+	    fd2 = _open_osfhandle((long)hChildStdoutRdDup, mode);
+	    f2 = _fdopen(fd2, m1);
+	    p1 = PyFile_FromFile(f1, cmdstring, m2, fclose);
 		PyFile_SetBufSize(p1, 0);
-	    p2=PyFile_FromFile(f2, cmdstring, m1, fclose);
+	    p2 = PyFile_FromFile(f2, cmdstring, m1, fclose);
 		PyFile_SetBufSize(p2, 0);
-	    if (n!=4)
+
+	    if (n != 4)
 			CloseHandle(hChildStderrRdDup);
-	    f=Py_BuildValue("OO",p1,p2);
+
+	    f = Py_BuildValue("OO",p1,p2);
 	    break;
 	}
 	
@@ -377,24 +387,25 @@ static PyObject *_PyPopen(char *cmdstring, int mode, int n)
 			m1="rb";
 			m2="wb";
 		}
-	    fd1=_open_osfhandle((long)hChildStdinWrDup, mode);
-	    f1=_fdopen(fd1, m2);
-		fd2=_open_osfhandle((long)hChildStdoutRdDup, mode);
-	    f2=_fdopen(fd2, m1);
-		fd3=_open_osfhandle((long)hChildStderrRdDup, mode);
-	    f3=_fdopen(fd3, m1);
-	    p1=PyFile_FromFile(f1, cmdstring, m2, fclose);
-	    p2=PyFile_FromFile(f2, cmdstring, m1, fclose);
-	    p3=PyFile_FromFile(f3, cmdstring, m1, fclose);
+
+	    fd1 = _open_osfhandle((long)hChildStdinWrDup, mode);
+	    f1 = _fdopen(fd1, m2);
+		fd2 = _open_osfhandle((long)hChildStdoutRdDup, mode);
+	    f2 = _fdopen(fd2, m1);
+		fd3 = _open_osfhandle((long)hChildStderrRdDup, mode);
+	    f3 = _fdopen(fd3, m1);
+	    p1 = PyFile_FromFile(f1, cmdstring, m2, fclose);
+	    p2 = PyFile_FromFile(f2, cmdstring, m1, fclose);
+	    p3 = PyFile_FromFile(f3, cmdstring, m1, fclose);
 		PyFile_SetBufSize(p1, 0);
 		PyFile_SetBufSize(p2, 0);
 		PyFile_SetBufSize(p3, 0);
-	    f=Py_BuildValue("OOO",p1,p2,p3);
+	    f = Py_BuildValue("OOO",p1,p2,p3);
 	    break;
 	}
 	}
 
-	if (n==POPEN_4)
+	if (n == POPEN_4)
 	{
 		if (!_PyPopenCreateProcess(cmdstring,
 								   hChildStdinRd,
@@ -422,7 +433,7 @@ static PyObject *_PyPopen(char *cmdstring, int mode, int n)
 	if (!CloseHandle(hChildStdoutWr))
 		return PyWin_SetAPIError("CloseHandle");
       
-	if ((n!=4) && (!CloseHandle(hChildStderrWr)))
+	if ((n != 4) && (!CloseHandle(hChildStderrWr)))
 		return PyWin_SetAPIError("CloseHandle");
 
 	return f;
