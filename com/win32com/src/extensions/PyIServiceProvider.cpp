@@ -38,9 +38,9 @@ PyObject *PyIServiceProvider::QueryService(PyObject *self, PyObject *args)
         return NULL;
 
 	IServiceProvider *pMy = GetI(self);
-	if (pMy) return NULL;
+	if (!pMy) return NULL;
 
-    IUnknown *pv;
+	IUnknown *pv;
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = pMy->QueryService(clsid, iid, (void **)&pv);
 	PY_INTERFACE_POSTCALL;
