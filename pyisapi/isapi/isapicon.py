@@ -1,3 +1,4 @@
+"""Constants needed by ISAPI filters and extensions."""
 #  ======================================================================
 #  Copyright 2002-2003 by Blackdog Software Pty Ltd.
 # 

@@ -1,4 +1,4 @@
-# Installation utilities for Python ISAPI filters and extensions
+"""Installation utilities for Python ISAPI filters and extensions."""
 
 # this code adapted from "Tomcat JK2 ISAPI redirector", part of Apache
 # Created July 2004, Mark Hammond.
@@ -394,6 +394,16 @@ standard_arguments = {
 def HandleCommandLine(params, argv=None, conf_module_name = None,
                       default_arg = "install",
                       opt_parser = None, custom_arg_handlers = {}):
+    """Perform installation or removal of an ISAPI filter or extension.
+    
+    This module handles standard command-line options and configuration
+    information, and installs, removes or updates the configuration of an
+    ISAPI filter or extension.
+    
+    You must pass your configuration information in params - all other
+    arguments are optional, and allow you to configure the installation
+    process.
+    """
     global verbose
     from optparse import OptionParser
 
