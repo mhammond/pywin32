@@ -37,7 +37,7 @@ def _test_with_import(capture, module_name, fn_name, desc):
         capture.release()
         print "***** %s test FAILED after %d lines of output" % (desc, capture.get_num_lines_captured())
 
-unittest_modules = "testIterators".split()
+unittest_modules = "testIterators testvbscript_regexp".split()
 
 if __name__=='__main__':
     # default to "quick" test.  2==medium, 3==full
