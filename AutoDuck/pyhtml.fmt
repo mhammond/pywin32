@@ -376,15 +376,25 @@ $(def1)$3$(par)
 ; @tupleitem tuple_index|name|type|description
 .tag=tupleitem, html, 4, 1
 .pre=$(rmh)Items$(rmhe)$(par)
-.format=$(term1)[$1] $(ci)$2$(cie) : $3$(par)
-$(def1)$4$(par)
+.format=$(deflist)$(term1)[$1] $(ci)$2$(cie) : $3$(par)
+$(def1)$4$(par)$(deflist_e)
 
 ; flags
 .tag=flagh, html, 2, 2
-.format=$(term2)$(cb)$1$(cbe)&nbsp;&nbsp;&nbsp;&nbsp;$(def2)$(cb)$2$(cbe)$(par)
+.format=$(par)<TABLE COLS=2 WIDTH="100%" CELLSPACING=15>
+<TR>
+   <TD>
+       $(cb)$1$(cbe)
+   </TD>
+   <TD>
+       $(cb)$2$(cbe)
+   </TD>
+</TR>
+<TR><TD><HR></TD><TD><HR></TD></TR>
 
 .tag=flag, html, 2, 2
-.format=$(term2)$1$(par)$(def2)$2$(par)
+.post=</TABLE>
+.format=<TR><TD>$1</TD><TD>$2</TD></TR>
 
 ; Parameters
 .tag=pyvirtual, html, 4, 1
