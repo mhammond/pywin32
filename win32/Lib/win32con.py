@@ -4497,3 +4497,24 @@ CTRL_SHUTDOWN_EVENT = 6
 MOUSE_MOVED   = 1
 DOUBLE_CLICK  = 2
 MOUSE_WHEELED = 4
+
+# GetUserNameEx/GetComputerNameEx
+NameUnknown = 0
+NameFullyQualifiedDN = 1
+NameSamCompatible = 2
+NameDisplay = 3
+NameUniqueId = 6
+NameCanonical = 7
+NameUserPrincipal = 8
+NameCanonicalEx = 9
+NameServicePrincipal = 10
+NameDnsDomain = 12
+
+ComputerNameNetBIOS = 0
+ComputerNameDnsHostname = 1
+ComputerNameDnsDomain = 2
+ComputerNameDnsFullyQualified = 3
+ComputerNamePhysicalNetBIOS = 4
+ComputerNamePhysicalDnsHostname = 5
+ComputerNamePhysicalDnsDomain = 6
+ComputerNamePhysicalDnsFullyQualified = 7
