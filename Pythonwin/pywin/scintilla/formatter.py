@@ -65,7 +65,23 @@ class FormatterBase:
 		self.bUseFixed = 1
 		self.styles = {} # Indexed by name
 		self.styles_by_id = {} # Indexed by allocated ID.
+		# Default Background
+		self.default_background = None
+		self._LoadBackground()
+
 		self.SetStyles()
+	
+
+	def _LoadBackground( self ):
+		#load default background
+		bg = int( self.LoadPreference( "Default Background", -1 ) )
+		if bg != -1:
+			self.default_background = bg
+		if self.default_background is None:
+			self.default_background = win32api.RGB( 0xff, 0xff, 0xff )
+
+	def GetDefaultBackground( self ):
+		return self.default_background
 
 	def HookFormatter(self, parent = None):
 		raise NotImplementedError
@@ -123,7 +139,7 @@ class FormatterBase:
 		if style.background is not None:
 			scintilla.SCIStyleSetBack(stylenum, style.background)
 		else:
-			scintilla.SCIStyleSetBack(stylenum, win32api.RGB(0xff, 0xff, 0xff))
+			scintilla.SCIStyleSetBack(stylenum, self.GetDefaultBackground() )
 		scintilla.SCIStyleSetEOLFilled(stylenum, 1) # Only needed for unclosed strings.
 
 	def GetStyleByNum(self, stylenum):
@@ -148,6 +164,7 @@ class FormatterBase:
 		self.baseFormatFixed = eval(self.LoadPreference("Base Format Fixed", str(self.baseFormatFixed)))
 		self.baseFormatProp = eval(self.LoadPreference("Base Format Proportional", str(self.baseFormatProp)))
 		self.bUseFixed = int(self.LoadPreference("Use Fixed", 1))
+
 		for style in self.styles.values():
 			new = self.LoadPreference(style.name, str(style.format))
 			try:
@@ -155,6 +172,9 @@ class FormatterBase:
 				bg = int(self.LoadPreference(style.name + " background", -1))
 				if bg != -1:
 					style.background = bg
+				if style.background == self.default_background:
+					style.background = None
+					
 			except:
 				print "Error loading style data for", style.name
 
@@ -168,8 +188,10 @@ class FormatterBase:
 		for style in self.styles.values():
 			if style.aliased is None:
 				self.SavePreference(style.name, str(style.format))
-				bg_name = style.name + " background"
-				self.SavePreference(bg_name, style.background) # May be None
+				if style.background is not None:
+					bg_name = style.name + " background"
+					self.SavePreference(bg_name, style.background) # May be None
+					
 	def SavePreference(self, name, value):
 		if value is None:
 			hkey = win32ui.GetAppRegistryKey()

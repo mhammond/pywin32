@@ -13,7 +13,12 @@ from scintillacon import *
 paletteVGA = ( ("Black",0,0,0), ("Navy",0,0,128), ("Green",0,128,0), ("Cyan",0,128,128), 
 	("Maroon",128,0,0), ("Purple",128,0,128), ("Olive",128,128,0), ("Gray",128,128,128), 
 	("Silver",192,192,192), ("Blue",0,0,255), ("Lime",0,255,0), ("Aqua",0,255,255), 
-	("Red",255,0,0), ("Fuchsia",255,0,255), ("Yellow",255,255,0), ("White",255,255,255) )
+	("Red",255,0,0), ("Fuchsia",255,0,255), ("Yellow",255,255,0), ("White",255,255,255),
+# and a few others will generally be possible.
+	("DarkGrey", 64,64,64 ), ("PurpleBlue",64,64,192), ("DarkGreen",0,96,0),
+	("DarkOlive",128,128,64), ("MediumBlue",0,0,192), ("DarkNavy",0,0,96),
+	("Magenta",96,0,96), ("OffWhite", 255,255,220 ), ("LightPurple",220,220,255),
+)
 
 def BGR(b,g,r):		# Colors in font definitions are integers made up of Blue, Green, and Red bytes
     return b*256*256 + g*256 + r
@@ -171,7 +176,7 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 			self.GetDlgItem(win32ui.IDC_BUTTON4).EnableWindow(not isDef)
 			if isDef: # Being reset to the default color
 				style = self.GetSelectedStyle()
-				style.background = win32api.RGB(0xff, 0xff, 0xff)
+				style.background = None
 				self.UpdateUIForStyle(style)
 				self.scintilla.ApplyFormattingStyles(0)
 			else:
@@ -198,9 +203,11 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 			sel = -1
 		self.cbo.SetCurSel(sel)
 		self.butIsDefault.SetCheck(style.IsBasedOnDefault())
-		white = win32api.RGB(0xff, 0xff, 0xff) # Need to rethink this b/g stuff if we ever support other than white :-)
-		self.butIsDefaultBackground.SetCheck(style.background is None or style.background == white)
 		self.GetDlgItem(win32ui.IDC_BUTTON3).EnableWindow(not style.IsBasedOnDefault())
+
+		self.butIsDefaultBackground.SetCheck(style.background is None)
+		self.GetDlgItem(win32ui.IDC_BUTTON4).EnableWindow(style.background is not None)
+		
 		bold = format[1] & win32con.CFE_BOLD != 0; italic = format[1] & win32con.CFE_ITALIC != 0
 		self.cboBoldItalic.SetCurSel( bold*2 + italic )
 
