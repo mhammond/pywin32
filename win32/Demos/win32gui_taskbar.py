@@ -43,7 +43,7 @@ class MainWindow:
 			print "You clicked me."
 		elif lparam==win32con.WM_LBUTTONDBLCLK:
 			print "You double-clicked me - goodbye"
-			PostQuitMessage(0)
+			DestroyWindow(self.hwnd)
 		elif lparam==win32con.WM_RBUTTONUP:
 			print "You right clicked me."
 			menu = CreatePopupMenu()
@@ -59,7 +59,7 @@ class MainWindow:
 			print "Hello"
 		elif id == 1025:
 			print "Goodbye"
-			PostQuitMessage(0)
+			DestroyWindow(self.hwnd)
 		else:
 			print "Unknown command -", id
 
