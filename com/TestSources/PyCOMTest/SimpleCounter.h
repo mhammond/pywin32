@@ -34,7 +34,7 @@ public:
 //ISupportErrorInfo
    STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid)
    {
-      return (InlineIsEqualGUID(IID_ISimpleCounter,riid))
+    return (::InlineIsEqualGUID(IID_ISimpleCounter,riid))
                ? S_OK
                : S_FALSE;
    }

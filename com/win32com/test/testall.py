@@ -32,13 +32,13 @@ def CleanGenerated():
     import win32com.client.gencache
     win32com.client.gencache.__init__() # Reset
 
-def ExecuteSilentlyIfOK(cmd):
+def ExecuteSilentlyIfOK(cmd, testcase):
     f = os.popen(cmd)
     data = f.read()
     rc = f.close()
     if rc:
         print data
-        self.fail("Executing '%s' failed (%d)" % (cmd, rc))
+        testcase.fail("Executing '%s' failed (%d)" % (cmd, rc))
     return data.strip()
 
 class PyCOMTest(TestCase):
@@ -47,7 +47,7 @@ class PyCOMTest(TestCase):
         # with the Python thread state
         fname = os.path.join(os.path.dirname(this_file), "testPyComTest.py")
         cmd = '%s "%s" -q 2>&1' % (sys.executable, fname)
-        data = ExecuteSilentlyIfOK(cmd)
+        data = ExecuteSilentlyIfOK(cmd, self)
         if data:
             print "** testPyCOMTest generated unexpected output"
             # lf -> cr/lf
@@ -63,14 +63,14 @@ class PippoTest(TestCase):
             python = sys.executable
         fname = os.path.join(os.path.dirname(this_file), "testPippo.py")
         cmd = '%s "%s" 2>&1' % (python, fname)
-        ExecuteSilentlyIfOK(cmd)
+        ExecuteSilentlyIfOK(cmd, self)
 
 unittest_modules = [
         # Level 1 tests.
         """testIterators testvbscript_regexp testStorage 
           testStreams testWMI policySemantics testShell testROT
           testAXScript testxslt testDictionary testCollections
-          testServers errorSemantics.test testvb.TestAll
+          testServers errorSemantics.test testvb.TestAll testArrays
         """.split(),
         # Level 2 tests.
         """testMSOffice.TestAll testMSOfficeEvents.test testAccess.test

@@ -95,6 +95,7 @@ END
 //
 
 IDR_PYCOMTEST              REGISTRY MOVEABLE PURE  "PyCOMTest.rgs"
+IDR_ARRAYTEST              REGISTRY MOVEABLE PURE  "ArrayTest.rgs"
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -11,6 +11,7 @@
 #include "PyCOMTest.h"
 #include "PyCOMImpl.h"
 #include "SimpleCounter.h"
+#include "DSCArrayTest.h"
 
 #define IID_DEFINED
 #include "PyCOMTest_i.c"
@@ -22,6 +23,7 @@ BEGIN_OBJECT_MAP(ObjectMap)
 	OBJECT_ENTRY(CLSID_CoPyCOMTest, CPyCOMTest)
 	OBJECT_ENTRY(CLSID_CoPyCOMTest2, CPyCOMTest2)
 	OBJECT_ENTRY(CLSID_CoSimpleCounter, CSimpleCounter)
+	OBJECT_ENTRY(CLSID_ArrayTest, DSCArrayTest)
 END_OBJECT_MAP()
 
 /////////////////////////////////////////////////////////////////////////////

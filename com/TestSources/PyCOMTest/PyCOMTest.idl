@@ -303,5 +303,28 @@ library PyCOMTestLib
 		[default] interface IPyCOMTestNoDispatch;
 		[default, source] dispinterface IPyCOMTestNoDispatchEvent; // use same events for now.
 	};
+	// Some array tests, from Stefan Schukat
+	[
+		object,
+		uuid(974f29b3-4e58-4654-9f85-4491d7a2418c),
+		dual,
+		helpstring("PyCOMTest IArrayTest Interface"),
+		pointer_default(unique)
+	]
+	interface IArrayTest : IDispatch
+	{
+		[propget, id(1), helpstring("property Array")] HRESULT Array([out, retval] VARIANT *pVal);
+		[propput, id(1), helpstring("property Array")] HRESULT Array([in] VARIANT newVal);
+		[id(2), helpstring("method ReturnSampleArray")] HRESULT ReturnSampleArray([out, retval] VARIANT *pVal);
+	};
+	[
+		uuid(f1a51873-24e9-47ed-ae71-925462c5fe3b),
+		helpstring("PyCOMTest ArrayTest Class")
+	]
+	coclass ArrayTest
+	{
+		[default] interface IArrayTest;
+	};
+	
 };
 

@@ -123,7 +123,7 @@ class PYCOM_EXPORT PySTGMEDIUM : public PyObject
 {
 public:
 	PySTGMEDIUM(STGMEDIUM *pS = NULL);
-	virtual ~PySTGMEDIUM(void);
+	~PySTGMEDIUM(void);
 
 	void DropOwnership(void);
 	void Close(void);

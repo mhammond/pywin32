@@ -5,6 +5,7 @@
 #define IDS_PYCOMTEST_DESC	1
 
 #define IDR_PYCOMTEST	1
+#define IDR_ARRAYTEST 2
 
 
 // Next default values for new objects

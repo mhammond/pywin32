@@ -195,10 +195,10 @@ PyObject *PyIDataObject::SetData(PyObject *self, PyObject *args)
 	PY_INTERFACE_PRECALL;
 	hr = pIDO->SetData( &formatetc, &pymedium->medium, fRelease );
 	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIDO, IID_IDataObject );
 	if (fRelease)
 		pymedium->DropOwnership();
+	if ( FAILED(hr) )
+		return PyCom_BuildPyException(hr, pIDO, IID_IDataObject );
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -399,7 +399,9 @@ STDMETHODIMP PyGDataObject::SetData(
 	if (obpformatetc==NULL) return PyCom_HandlePythonFailureToCOM();
 	PySTGMEDIUM *obmedium = PyObject_FromSTGMEDIUM(pmedium);
 	if (obmedium==NULL) return PyCom_HandlePythonFailureToCOM();
-	HRESULT hr=InvokeViaPolicy("SetData", NULL, "OOi", obpformatetc, obmedium, fRelease);
+        // PySTGMEDIUM should be the exact same pointer as PyObject
+        assert((void *)(PyObject *)obmedium==(void *)obmedium);
+	HRESULT hr=InvokeViaPolicy("SetData", NULL, "OOi", obpformatetc, (PyObject *)obmedium, fRelease);
 	if (!fRelease)
 		obmedium->DropOwnership();
 	Py_DECREF(obpformatetc);

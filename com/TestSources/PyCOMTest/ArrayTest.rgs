@@ -1,0 +1,26 @@
+HKCR
+{
+	PyCOMTest.ArrayTest.1 = s 'PythonCOM ArrayTest Class'
+	{
+		CLSID = s '{f1a51873-24e9-47ed-ae71-925462c5fe3b}'
+	}
+	PyCOMTest.ArrayTest = s 'PythonCOM ArrayTest Class'
+	{
+		CLSID = s '{f1a51873-24e9-47ed-ae71-925462c5fe3b}'
+		CurVer = s 'PyCOMTest.ArrayTest.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {f1a51873-24e9-47ed-ae71-925462c5fe3b} = s 'ArrayTest Class'
+		{
+			ProgID = s 'PyCOMTest.ArrayTest.1'
+			VersionIndependentProgID = s 'PyCOMTest.ArrayTest'
+			ForceRemove 'Programmable'
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Apartment'
+			}
+			'TypeLib' = s '{6bcdcb60-5605-11d0-ae5f-cadd4c000000}'
+		}
+	}
+}

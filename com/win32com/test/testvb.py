@@ -271,14 +271,16 @@ def TestArrays(vbtest, bUseGenerated):
     _DoTestArray(vbtest, (vbtest, 2.0, "3"))
     _DoTestArray(vbtest, (1, 2.0, vbtest))
 
-    # Pass bad data - first item wrong size
+    # Pass arbitrarily sized arrays - these used to fail, but thanks to 
+    # Stefan Schukat, they now work!
+    expected_exception = None
     arrayData = ( ((1,2,1),(3,4),(5,6)), ((7,8),(9,10),(11,12)) )
-    _DoTestArray(vbtest, arrayData, TypeError)
+    _DoTestArray(vbtest, arrayData, expected_exception)
     arrayData = ( ((vbtest,vbtest),), ((vbtest,),))
-    _DoTestArray(vbtest, arrayData, TypeError)
+    _DoTestArray(vbtest, arrayData, expected_exception)
     # Pass bad data - last item wrong size
     arrayData = ( ((1,2),(3,4),(5,6,8)), ((7,8),(9,10),(11,12)) )
-    _DoTestArray(vbtest, arrayData, TypeError)
+    _DoTestArray(vbtest, arrayData, expected_exception)
     
     # byref safearray results with incorrect size.
     callback_ob = wrap(TestObject(), useDispatcher = useDispatcher)

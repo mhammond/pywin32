@@ -190,6 +190,10 @@ SOURCE="$(InputPath)"
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;hpj;bat;for;f90"
 # Begin Source File
 
+SOURCE=.\ArrayTest.rgs
+# End Source File
+# Begin Source File
+
 SOURCE=.\Connect.cpp
 # End Source File
 # Begin Source File
@@ -199,6 +203,10 @@ SOURCE=.\Connect.def
 # Begin Source File
 
 SOURCE=.\Connect.rc
+# End Source File
+# Begin Source File
+
+SOURCE=.\DSCArrayTest.cpp
 # End Source File
 # Begin Source File
 
@@ -304,6 +312,10 @@ SOURCE=.\SimpleCounter.cpp
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl;fi;fd"
+# Begin Source File
+
+SOURCE=.\DSCArrayTest.h
+# End Source File
 # Begin Source File
 
 SOURCE=.\preconn.h
