@@ -39,7 +39,7 @@ void PyShell_FreeMem(void *p)
 	}
 }
 
-void *PyShell_AllocMem(size_t cb)
+void *PyShell_AllocMem(ULONG cb)
 {
 	IMalloc *pMalloc;
 	if (SHGetMalloc(&pMalloc)==S_OK) {
@@ -71,12 +71,23 @@ UINT PyShell_ILGetSize(LPCITEMIDLIST pidl)
 
 PyObject *PyObject_FromPIDL(LPCITEMIDLIST pidl, BOOL bFreeSystemPIDL)
 {
-	PyObject *ret = PyString_FromStringAndSize((char *)pidl, PyShell_ILGetSize(pidl) );
+	PyObject *ret = PyList_New(0);
+	if (ret) {
+		while (pidl->mkid.cb) {
+			// cb includes sizeof(cb) itself - so string len is cb-sizeof(cb)
+			PyObject *sub = PyString_FromStringAndSize((char *)pidl->mkid.abID, pidl->mkid.cb-sizeof(pidl->mkid.cb));
+			if (sub) {
+				PyList_Append(ret, sub);
+				Py_DECREF(sub);
+			}
+			pidl = _ILNext(pidl);
+		}
+	}
 	if (bFreeSystemPIDL)
 		PyShell_FreeMem( (void *)pidl);
 	return ret;
 }
-// @object PyIDL|A Python representation of an IDL.  Implemented as a Python string.
+// @object PyIDL|A Python representation of an IDL.  Implemented as list of Python strings.
 BOOL PyObject_AsPIDL(PyObject *ob, ITEMIDLIST **ppidl, BOOL bNoneOK /*= FALSE*/)
 {
 	if (ob==Py_None) {
@@ -87,20 +98,51 @@ BOOL PyObject_AsPIDL(PyObject *ob, ITEMIDLIST **ppidl, BOOL bNoneOK /*= FALSE*/)
 		*ppidl = NULL;
 		return TRUE;
 	}
-	if (!PyString_Check(ob)) {
-		PyErr_SetString(PyExc_TypeError, "Only strings and None are valid ITEMIDLIST objects.");
+	if (!PySequence_Check(ob) || PyString_Check(ob)) {
+		PyErr_Format(PyExc_TypeError, "Only sequences (but not strings) are valid ITEMIDLIST objects (got %s).", ob->ob_type->tp_name);
 		return FALSE;
 	}
-	size_t cb = PyString_Size(ob);
-	void *buf = PyShell_AllocMem( cb );
-	if (buf==NULL) {
-		PyErr_SetString(PyExc_MemoryError, "allocating memory for a PIDL");
+	UINT num_items = (unsigned)PySequence_Length(ob);
+	// first pass over the sequence to determine number of bytes.
+	UINT cbTotal = sizeof((*ppidl)->mkid.cb);	// Null terminator
+	UINT i;
+	for (i=0;i<num_items;i++) {
+		PyObject *sub = PySequence_GetItem(ob, i);
+		if (!sub)
+			return FALSE;
+		if (!PyString_Check(sub)) {
+			PyErr_Format(PyExc_TypeError, "ITEMIDLIST sub-items must be strings (got %s)", sub->ob_type->tp_name);
+			Py_DECREF(sub);
+			return FALSE;
+		}
+		cbTotal += sizeof((*ppidl)->mkid.cb) + PyString_GET_SIZE(sub);
+		Py_DECREF(sub);
+	}
+	// Now again, filling our buffer.
+	void *buf = PyShell_AllocMem( cbTotal );
+	if (!buf) {
+		PyErr_NoMemory();
 		return FALSE;
 	}
-	memcpy( buf, PyString_AsString(ob), cb);
+	LPITEMIDLIST pidl = (LPITEMIDLIST)buf;
+	for (i=0;i<num_items;i++) {
+		PyObject *sub = PySequence_GetItem(ob, i);
+		if (!sub)
+			return FALSE;
+		if (!PyString_Check(sub)) {
+			PyErr_Format(PyExc_TypeError, "ITEMIDLIST sub-items must be strings (got %s)", sub->ob_type->tp_name);
+			Py_DECREF(sub);
+			return FALSE;
+		}
+		pidl->mkid.cb = PyString_GET_SIZE(sub) + sizeof(pidl->mkid.cb);
+		memcpy(pidl->mkid.abID, PyString_AS_STRING(sub), PyString_GET_SIZE(sub));
+		pidl = _ILNext(pidl);
+	}
+	pidl->mkid.cb = 0;
 	*ppidl = (LPITEMIDLIST)buf;
 	return TRUE;
 }
+
 void PyObject_FreePIDL( LPCITEMIDLIST pidl )
 {
 	PyShell_FreeMem( (void *)pidl);
@@ -387,6 +429,16 @@ PyObject *PyObject_FromSHCOLUMNDATA(LPCSHCOLUMNDATA p)
 	                     obExt, obFile);
 }
 
+// @object SHFILEINFO|A tuple representing a SHFILEINFO structure
+// Represented as a tuple of (hIcon, iIcon, dwAttributes, displayName, typeName)
+PyObject *PyObject_FromSHFILEINFO(SHFILEINFO *p)
+{
+	PyObject *obDisplayName = PyWinObject_FromTCHAR(p->szDisplayName);
+	PyObject *obTypeName = PyWinObject_FromTCHAR(p->szTypeName);
+	return Py_BuildValue("iiiNN", p->hIcon, p->iIcon, p->dwAttributes, 
+	                              obDisplayName, obTypeName);
+}
+
 //////////////////////////////////////////////////
 //
 // WIN32_FIND_DATA implementation.
@@ -554,6 +606,60 @@ static PyObject *PySHGetSpecialFolderLocation(PyObject *self, PyObject *args)
 		return OleSetOleError(hr);
 	PyObject *rc = PyObject_FromPIDL(pidl, TRUE);
 	return rc;
+}
+
+// @pymethod <o SHFILEINFO>|shell|SHGetFileInfo|Retrieves information about an object in the file system, such as a file, a folder, a directory, or a drive root.
+static PyObject *PySHGetFileInfo(PyObject *self, PyObject *args)
+{
+	PyObject *ret = NULL;
+	PyObject *obName;
+	TCHAR *name = NULL;
+	LPITEMIDLIST pidl = NULL;
+	TCHAR *pidl_or_name;
+	int attr, flags, info_attrs;
+	BOOL ok;
+	if (!PyArg_ParseTuple(args, "Oii|i", 
+			&obName, // @pyparm string/<o PIDL>|name||The path and file name. Both absolute 
+					 // and relative paths are valid.
+					 // <nl>If the uFlags parameter includes the SHGFI_PIDL flag, this parameter 
+					 // must be a valid <o PIDL> object that uniquely identifies the file within 
+					 // the shell's namespace. The PIDL must be a fully qualified PIDL. 
+					 // Relative PIDLs are not allowed.
+					 // <nl>If the uFlags parameter includes the SHGFI_USEFILEATTRIBUTES flag, this parameter does not have to be a valid file name. 
+					 // The function will proceed as if the file exists with the specified name 
+					 // and with the file attributes passed in the dwFileAttributes parameter. 
+					 // This allows you to obtain information about a file type by passing 
+					 // just the extension for pszPath and passing FILE_ATTRIBUTE_NORMAL 
+					 // in dwFileAttributes.
+					 // <nl>This string can use either short (the 8.3 form) or long file names.
+			&attr, // @pyparm int|dwFileAttributes||Combination of one or more file attribute flags (FILE_ATTRIBUTE_ values). If uFlags does not include the SHGFI_USEFILEATTRIBUTES flag, this parameter is ignored.
+			&flags, // @pyparm int|uFlags||Flags that specify the file information to retrieve.  See MSDN for details
+			&info_attrs)) // @pyparm int|infoAttrs|0|Flags copued to the SHFILEINFO.dwAttributes member - useful when flags contains SHGFI_ATTR_SPECIFIED
+		return NULL;
+	if (flags & SHGFI_PIDL) {
+		ok = PyObject_AsPIDL(obName, &pidl, FALSE);
+		pidl_or_name = (TCHAR *)pidl;
+	} else {
+		ok = PyWinObject_AsTCHAR(obName, &name, FALSE);
+		pidl_or_name = name;
+	}
+	if (!ok)
+		return NULL;
+	SHFILEINFO info;
+	memset(&info, 0, sizeof(info));
+	info.dwAttributes = info_attrs;
+	PY_INTERFACE_PRECALL;
+	HRESULT hr = SHGetFileInfo(name, attr, &info, sizeof(info), flags);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr)) {
+		OleSetOleError(hr);
+		goto done;
+	}
+	ret = PyObject_FromSHFILEINFO(&info);
+done:
+	if (name) PyWinObject_FreeTCHAR(name);
+	if (pidl) PyObject_FreePIDL(pidl);
+	return ret;
 }
 
 // @pymethod string/<o PyUnicode>|shell|SHGetFolderPath|Retrieves the path of a folder. 
@@ -818,6 +924,26 @@ static PyObject *PyDragQueryPoint(PyObject *self, PyObject *args)
 	return Py_BuildValue("O(ii)", result ? Py_True : Py_False, pt.x, pt.y);
 }
 
+// @pymethod <o PyIUnknown>|SHGetInstanceExplorer|Allows components that run in a Web browser (Iexplore.exe) or a nondefault Windows® Explorer (Explorer.exe) process to hold a reference to the process. The components can use the reference to prevent the process from closing prematurely.
+static PyObject *PySHGetInstanceExplorer(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":SHGetInstanceExplorer"))
+		return NULL;
+	IUnknown *pUnk = NULL;
+	HRESULT hr = SHGetInstanceExplorer(&pUnk);
+	if (FAILED(hr))
+		return OleSetOleError(hr);
+	return PyCom_PyObjectFromIUnknown(pUnk, IID_IUnknown, FALSE);
+	// @comm SHGetInstanceExplorer succeeds only if it is called from within 
+	// an Explorer.exe or Iexplorer.exe process. It is typically used by 
+	// components that run in the context of the Web browser (Iexplore.exe). 
+	// However, it is also useful when Explorer.exe has been configured to 
+	// run all folders in a second process. SHGetInstanceExplorer fails if 
+	// the component is running in the default Explorer.exe process. There 
+	// is no need to hold a reference to this process, as it is shut down 
+	// only when the user logs out.
+}
+
 /* List of module functions */
 // @module shell|A module, encapsulating the ActiveX Control interfaces
 static struct PyMethodDef shell_methods[]=
@@ -826,6 +952,7 @@ static struct PyMethodDef shell_methods[]=
 	{ "DragQueryPoint",   PyDragQueryPoint, 1}, // @pymeth DragQueryPoint|Retrieves the position of the mouse pointer at the time a file was dropped during a drag-and-drop operation.
     { "SHGetPathFromIDList",    PySHGetPathFromIDList, 1 }, // @pymeth SHGetPathFromIDList|Converts an <o PyIDL> to a path.
     { "SHBrowseForFolder",    PySHBrowseForFolder, 1 }, // @pymeth SHBrowseForFolder|Displays a dialog box that enables the user to select a shell folder.
+	{ "SHGetFileInfo",        PySHGetFileInfo, 1}, // @pymeth SHGetFileInfo|Retrieves information about an object in the file system, such as a file, a folder, a directory, or a drive root.
     { "SHGetFolderPath", PySHGetFolderPath, 1 }, // @pymeth SHGetFolderPath|Retrieves the path of a folder.
     { "SHGetFolderLocation", PySHGetFolderLocation, 1 }, // @pymeth SHGetFolderLocation|Retrieves the <o PyIDL> of a folder.
     { "SHGetSpecialFolderPath", PySHGetSpecialFolderPath, 1 }, // @pymeth SHGetSpecialFolderPath|Retrieves the path of a special folder.
@@ -836,6 +963,7 @@ static struct PyMethodDef shell_methods[]=
     { "SHGetDesktopFolder", PySHGetDesktopFolder, 1}, // @pymeth SHGetDesktopFolder|Retrieves the <o PyIShellFolder> interface for the desktop folder, which is the root of the shell's namespace. 
     { "SHUpdateImage", PySHUpdateImage, 1}, // @pymeth SHUpdateImage|Notifies the shell that an image in the system image list has changed.
     { "SHChangeNotify", PySHChangeNotify, 1}, // @pymeth SHChangeNotify|Notifies the system of an event that an application has performed.
+	{ "SHGetInstanceExplorer", PySHGetInstanceExplorer, 1}, // @pymeth SHGetInstanceExplorer|Allows components that run in a Web browser (Iexplore.exe) or a nondefault Windows® Explorer (Explorer.exe) process to hold a reference to the process. The components can use the reference to prevent the process from closing prematurely.
 	{ NULL, NULL },
 };
 
