@@ -102,8 +102,8 @@ InputPath=.\src\win32security.i
 InputName=win32security
 
 "$(InputDir)\$(InputName)module.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module.cpp $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -dnone -c++ -o $(InputName)module.cpp $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32security - Win32 Debug"
@@ -114,8 +114,8 @@ InputPath=.\src\win32security.i
 InputName=win32security
 
 "$(InputDir)\$(InputName)module.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module.cpp $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -dnone -c++ -o $(InputName)module.cpp $(InputName).i
+
 # End Custom Build
 
 !ENDIF 

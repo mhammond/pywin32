@@ -105,8 +105,8 @@ InputPath=.\src\win32pipe.i
 InputName=win32pipe
 
 "$(InputDir)\$(InputName)module.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module.cpp $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -dnone -c++ -o $(InputName)module.cpp $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32pipe - Win32 Debug"
@@ -117,8 +117,8 @@ InputPath=.\src\win32pipe.i
 InputName=win32pipe
 
 "$(InputDir)\$(InputName)module.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module.cpp $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -dnone -c++ -o $(InputName)module.cpp $(InputName).i
+
 # End Custom Build
 
 !ENDIF 

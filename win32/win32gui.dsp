@@ -106,7 +106,7 @@ InputPath=.\src\win32gui.i
 InputName=win32gui
 
 "$(InputDir)\$(InputName)module_win32.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module_win32.cpp $(InputName).i
+	..\swig.bat $(InputDir) -python -dnone -c++ -o $(InputName)module_win32.cpp $(InputName).i
 
 # End Custom Build
 
@@ -118,7 +118,7 @@ InputPath=.\src\win32gui.i
 InputName=win32gui
 
 "$(InputDir)\$(InputName)module_win32.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module_win32.cpp $(InputName).i
+	..\swig.bat $(InputDir) -python -dnone -c++ -o $(InputName)module_win32.cpp $(InputName).i
 
 # End Custom Build
 

@@ -103,8 +103,8 @@ InputPath=.\src\win32service.i
 InputName=win32service
 
 "$(InputDir)\$(InputName)module.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module.cpp $(InputName).i 
-	
+	..\swig.bat $(InputDir) -dnone -python -c++ -o $(InputName)module.cpp $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32service - Win32 Debug"
@@ -115,8 +115,8 @@ InputPath=.\src\win32service.i
 InputName=win32service
 
 "$(InputDir)\$(InputName)module.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module.cpp $(InputName).i 
-	
+	..\swig.bat $(InputDir) -dnone -python -c++ -o $(InputName)module.cpp $(InputName).i
+
 # End Custom Build
 
 !ENDIF 
