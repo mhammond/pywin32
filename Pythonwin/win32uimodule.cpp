@@ -1734,6 +1734,7 @@ static PyObject *ui_translate_vk(PyObject *, PyObject *args)
 	return PyString_FromStringAndSize(result, nc);
 }
 
+/** Seems to have problems on 9x for some people (not me, though?)
 // @pymethod <o PyUnicode>/None|win32ui|TranslateVirtualKeyW|
 static PyObject *ui_translate_vkW(PyObject *, PyObject *args)
 {
@@ -1754,6 +1755,7 @@ static PyObject *ui_translate_vkW(PyObject *, PyObject *args)
 	}
 	return PyWinObject_FromWCHAR(result, nc);
 }
+**/
 
 extern PyObject *ui_get_dialog_resource( PyObject *, PyObject *args );
 extern PyObject *ui_create_app( PyObject *, PyObject *args );
@@ -1888,7 +1890,7 @@ static struct PyMethodDef ui_functions[] = {
 	{"StopDebuggerPump",		ui_stop_debugger_pump,	1}, // @pymeth StopDebuggerPump|Stops the debugger message pump.
 	{"TranslateMessage",            ui_translate_message, 1}, // @pymeth TranslateMessage|Calls ::TranslateMessage.
 	{"TranslateVirtualKey",         ui_translate_vk, 1}, // @pymeth TranslateVirtualKey|Translates a virtual key.
-	{"TranslateVirtualKeyW",        ui_translate_vkW, 1},// @pymeth TranslateVirtualKeyW|Translates a virtual key.
+//	{"TranslateVirtualKeyW",        ui_translate_vkW, 1},// @pymeth TranslateVirtualKeyW|Translates a virtual key.
 	{"WinHelp",					ui_win_help,	1}, // @pymeth WinHelp|Invokes the Window Help engine.
 	{"WriteProfileVal",			ui_write_profile_val,	1}, // @pymeth WriteProfileVal|Writes a value to the INI file.
 
