@@ -495,7 +495,7 @@ static PyObject *MySetFileSecurity(PyObject *self, PyObject *args)
 	SECURITY_DESCRIPTOR *psd;
 	if (!PyWinObject_AsSECURITY_DESCRIPTOR(obsd, &psd))
 		goto done;
-	if (!SetFileSecurity(fname, info, psd))
+	if (!SetFileSecurity(fname, info, psd)) {
 		PyWin_SetAPIError("SetFileSecurity");
 		goto done;
 	}
