@@ -583,7 +583,8 @@ PyObject * dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 		default:
 			// could try default, but this error indicates we need to
 			// beef up the VARIANT support, rather than default.
-			PyErr_SetString(PyExc_TypeError, "The VARIANT type is unknown.");
+			PyErr_Format(PyExc_TypeError, "The VARIANT type is unknown (0x%x).",
+			             vtArgType);
 			goto Error;
 		}
 		
