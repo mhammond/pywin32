@@ -29,7 +29,7 @@
     </category>
     <category id="isapi" label="ISAPI filters and extensions">
         <overviews>
-            <item name="Introduction to Python ISAPI support" href="pyisapi/doc/isapi.html"/>
+            <item name="Introduction to Python ISAPI support" href="isapi/doc/isapi.html"/>
         </overviews>
     </category>
 </document>

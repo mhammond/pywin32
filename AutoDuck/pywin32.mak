@@ -17,7 +17,7 @@ ADSI_DIR = $(WIN32COMEXT_DIR)/adsi
 WIN32COM_HELP_DIR = ../com/help
 
 PYTHONWIN_DIR = ../pythonwin
-ISAPI_DIR = ../pyisapi
+ISAPI_DIR = ../isapi
 ISAPI_SOURCE_DIR = $(ISAPI_DIR)/src
 
 
