@@ -53,12 +53,17 @@ HRESULT CreateMessage(
 
 // @pyswig |CopyMessages|Copies the specified messages
 HRESULT CopyMessages(
-	SBinaryArray *INPUT,
-	IID *INPUT_NULLOK,    // lpInterface
-	IMAPIFolder *INPUT,
-	unsigned long ulUIParam,
-	IMAPIProgress *INPUT_NULLOK,
-	unsigned long ulFlags);
+	SBinaryArray *INPUT, // @pyparm <o SBinaryArray>|msgs||
+	IID *INPUT_NULLOK,    // @pyparm <o PyIID>|iid||IID representing the interface to be used to access the destination folder.  Should usually be None.
+	IMAPIFolder *INPUT, // @pyparm <o PyIMAPIFolder>|folder||The destination folder
+	unsigned long ulUIParam, // @pyparm long|ulUIParam||Handle of the parent window for any dialog boxes or windows this method displays.
+	IMAPIProgress *INPUT_NULLOK, // @pyparm <o PyIMAPIProgress>|progress||A progress object, or None
+	unsigned long ulFlags); // @pyparm int|flags||A bitmask of
+	// @flagh Mask|Description
+	// @flag MAPI_DECLINE_OK|Informs the message store provider to immediately return MAPI_E_DECLINE_COPY if it implements CopyMessage by calling the support object's IMAPISupport::DoCopyTo or IMAPISupport::DoCopyProps method. 
+	// @flag MESSAGE_DIALOG |Displays a progress indicator as the operation proceeds. 
+	// @flag MESSAGE_MOVE|The message or messages are to be moved rather than copied. If MESSAGE_MOVE is not set, the messages are copied. 
+
 
 // @pyswig |DeleteMessages|Deletes the specified messages.
 HRESULT DeleteMessages(
