@@ -1,97 +1,35 @@
-# Test/Demo the native win32 file API for Python.
-import win32file, win32api, pywintypes, win32event
+# This is a "demo" of win32file - it used to be more a test case than a 
+# demo, so has been moved to the test directory.
+
+# Please contribute your favourite simple little demo.
+import win32file, win32api, win32con
 import os
-import time
 
-# todo: Add more tests/demos to make this truly useful!
-def OverlappedTest():
-    # Create a file in the %TEMP% directory.
-    testName = os.path.join( win32api.GetTempPath(), "win32filetest.dat" )
-    desiredAccess = win32file.GENERIC_WRITE
-    overlapped = pywintypes.OVERLAPPED()
-    evt = win32event.CreateEvent(None, 0, 0, None)
-    overlapped.hEvent = evt
-    # Create the file and write shit-loads of data to it.
-    h = win32file.CreateFile( testName, desiredAccess, 0, None, win32file.CREATE_ALWAYS, 0, 0)
-    chunk_data = "z" * 0x8000
-    num_loops = 512
-    expected_size = num_loops * len(chunk_data)
-    for i in range(num_loops):
-        win32file.WriteFile(h, chunk_data, overlapped)
-        win32event.WaitForSingleObject(overlapped.hEvent, win32event.INFINITE)
-        overlapped.Offset = overlapped.Offset + len(chunk_data)
-    h.Close()
-    # Now read the data back overlapped
-    overlapped = pywintypes.OVERLAPPED()
-    evt = win32event.CreateEvent(None, 0, 0, None)
-    overlapped.hEvent = evt
-    desiredAccess = win32file.GENERIC_READ
-    h = win32file.CreateFile( testName, desiredAccess, 0, None, win32file.OPEN_EXISTING, 0, 0)
-    buffer = win32file.AllocateReadBuffer(0xFFFF)
-    while 1:
-        try:
-            hr, data = win32file.ReadFile(h, buffer, overlapped)
-            win32event.WaitForSingleObject(overlapped.hEvent, win32event.INFINITE)
-            overlapped.Offset = overlapped.Offset + len(data)
-
-            assert data is buffer, "Unexpected result from ReadFile - should be the same buffer we passed it"
-        except win32api.error:
-            break
-    h.Close()
-# A simple test using normal read/write operations.
-def Test():
-    # Create a file in the %TEMP% directory.
-    testName = os.path.join( win32api.GetTempPath(), "win32filetest.dat" )
-    desiredAccess = win32file.GENERIC_READ | win32file.GENERIC_WRITE
-    # Set a flag to delete the file automatically when it is closed.
-    fileFlags = win32file.FILE_FLAG_DELETE_ON_CLOSE
-    h = win32file.CreateFile( testName, desiredAccess, win32file.FILE_SHARE_READ, None, win32file.CREATE_ALWAYS, fileFlags, 0)
-
-    # Write a known number of bytes to the file.
-    data = "z" * 1025
-
-    win32file.WriteFile(h, data)
-
-    if win32file.GetFileSize(h) != len(data):
-        print "WARNING: Written file does not have the same size as the length of the data in it!"
-        print "Reported size is", win32file.GetFileSize(h), "but expected to be", len(data)
-
-    # Ensure we can read the data back.
-    win32file.SetFilePointer(h, 0, win32file.FILE_BEGIN)
-    hr, read_data = win32file.ReadFile(h, len(data)+10) # + 10 to get anything extra
-    if hr != 0:
-        print "WARNING: ReadFile returned", hr
-
-    if read_data != data:
-        print "WARNING: Read data is not what we wrote!"
-        print "Wrote:", repr(data)
-        print "Got  :", repr(read_data)
-
-    # Now truncate the file at 1/2 its existing size.
-    newSize = len(data)/2
-    win32file.SetFilePointer(h, newSize, win32file.FILE_BEGIN)
-    win32file.SetEndOfFile(h)
-    if win32file.GetFileSize(h) != newSize:
-        print "WARNING: Truncated file does not have the expected size!"
-        print "Reported size is", win32file.GetFileSize(h), "but expected to be", newSize
-
-    # GetFileAttributesEx/GetFileAttributesExW tests.
-    if win32file.GetFileAttributesEx(testName) != win32file.GetFileAttributesExW(testName):
-        print "ERROR: Expected GetFileAttributesEx and GetFileAttributesExW to return the same data"
-
-    attr, ct, at, wt, size = win32file.GetFileAttributesEx(testName)
-    if size != newSize:
-        print "ERROR: Expected GetFileAttributesEx to return the same size as GetFileSize()"
-    if attr != win32file.GetFileAttributes(testName):
-        print "ERROR: Expected GetFileAttributesEx to return the same attributes as GetFileAttributes"
-
-    h = None # Close the file by removing the last reference to the handle!
-
-    if os.path.isfile(testName):
-        print "WARNING: After closing the file, it still exists!"
-
+# A very simple demo - note that this does no more than you can do with 
+# builtin Python file objects, so for something as simple as this, you
+# generally *should* use builtin Python objects.  Only use win32file etc
+# when you need win32 specific features not available in Python.
+def SimpleFileDemo():
+    testName = os.path.join( win32api.GetTempPath(), "win32file_demo_test_file")
+    if os.path.exists(testName): os.unlink(testName)
+    # Open the file for writing.
+    handle = win32file.CreateFile(testName, 
+                                  win32file.GENERIC_WRITE, 
+                                  0, 
+                                  None, 
+                                  win32con.CREATE_NEW, 
+                                  0, 
+                                  None)
+    test_data = "Hello\0there"
+    win32file.WriteFile(handle, test_data)
+    handle.Close()
+    # Open it for reading.
+    handle = win32file.CreateFile(testName, win32file.GENERIC_READ, 0, None, win32con.OPEN_EXISTING, 0, None)
+    rc, data = win32file.ReadFile(handle, 1024)
+    handle.Close()
+    if data == test_data:
+        print "Successfully wrote and read a file"
+    os.unlink(testName)
 
 if __name__=='__main__':
-    Test()
-    OverlappedTest()
-    print "Successfully performed some basic tests of win32file!"
+    SimpleFileDemo()
