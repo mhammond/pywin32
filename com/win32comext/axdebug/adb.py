@@ -50,6 +50,7 @@ class Adb(bdb.Bdb,gateways.RemoteDebugApplicationEvents):
 	def __init__(self):
 		self.debugApplication = None
 		self.debuggingThread = None
+		self.debuggingThreadStateHandle = None
 		self.stackSnifferCookie = self.stackSniffer = None
 		self.codeContainerProvider = None
 		self.debuggingThread = None
@@ -63,7 +64,12 @@ class Adb(bdb.Bdb,gateways.RemoteDebugApplicationEvents):
 		bdb.Bdb.__init__(self)
 		self._threadprotectlock = thread.allocate_lock()
 		self.reset()
-		
+
+	def canonic(self, fname):
+		if fname[0]=='<':
+			return fname
+		return bdb.Bdb.canonic(fname)
+
 	def reset(self):
 		traceenter("adb.reset")
 		bdb.Bdb.reset(self)
@@ -99,6 +105,7 @@ class Adb(bdb.Bdb,gateways.RemoteDebugApplicationEvents):
 		elif self.breakFlags==axdebug.APPBREAKFLAG_STEP:
 			self.breakReason = axdebug.BREAKREASON_STEP
 		else:
+			print "Calling base 'break_here' with", self.breaks
 			if bdb.Bdb.break_here(self, frame):
 				self.breakReason = axdebug.BREAKREASON_BREAKPOINT
 		return self.breakReason is not None
@@ -151,7 +158,7 @@ class Adb(bdb.Bdb,gateways.RemoteDebugApplicationEvents):
 		# then trace it, otherwise run at full speed.
 		if self.codeContainerProvider.FromFileName(frame.f_code.co_filename) is None:
 			trace("dispatch_call has no document for", _dumpf(frame), "- skipping trace!")
-			sys.settrace(None)
+##			sys.settrace(None)
 			return None
 		return self.trace_dispatch
 		
@@ -272,9 +279,10 @@ class Adb(bdb.Bdb,gateways.RemoteDebugApplicationEvents):
 			self.logicalbotframe = None
 			self.debuggingThread = None
 			self.currentframe = None
+			self.debuggingThreadStateHandle = None
 			return
 
-		self.logbotframe, self.stopframe, self.currentframe = self.recursiveData[0]
+		self.logbotframe, self.stopframe, self.currentframe, self.debuggingThreadStateHandle = self.recursiveData[0]
 		self.recursiveData = self.recursiveData[1:]
 		
 	def SetupAXDebugging(self, baseFrame = None, userFrame = None):
@@ -300,7 +308,7 @@ class Adb(bdb.Bdb,gateways.RemoteDebugApplicationEvents):
 					trace("SetupAXDebugging called on other thread - ignored!")
 					return
 				# push our context.
-				self.recursiveData.insert(0, (self.logicalbotframe,self.stopframe, self.currentframe))
+				self.recursiveData.insert(0, (self.logicalbotframe,self.stopframe, self.currentframe,self.debuggingThreadStateHandle))
 		finally:
 			self._threadprotectlock.release()
 
@@ -309,6 +317,7 @@ class Adb(bdb.Bdb,gateways.RemoteDebugApplicationEvents):
 		self.stopframe = userFrame
 		self.logicalbotframe = baseFrame
 		self.currentframe = None
+		self.debuggingThreadStateHandle = axdebug.GetThreadStateHandle()
 
 		self._BreakFlagsChanged()
 		
@@ -342,6 +351,7 @@ class Adb(bdb.Bdb,gateways.RemoteDebugApplicationEvents):
 		
 	def _BreakFlagsChanged(self):
 		traceenter("_BreakFlagsChanged to %s with our thread = %s, and debugging thread = %s" % (self.breakFlags, self.debuggingThread, win32api.GetCurrentThreadId()))
+		trace("_BreakFlagsChanged has breaks", self.breaks)
 		# If a request comes on our debugging thread, then do it now!
 #		if self.debuggingThread!=win32api.GetCurrentThreadId():
 #			return
@@ -356,18 +366,28 @@ class Adb(bdb.Bdb,gateways.RemoteDebugApplicationEvents):
 				#  immediate break we desire.)
 				self.logicalbotframe.f_trace = self.trace_dispatch
 			else:
-				trace("BreakFlagsChanged, but no logical bot frame!")
+				trace("BreakFlagsChanged, but no bottom frame")
 				if self.stopframe is not None:
 					self.stopframe.f_trace = self.trace_dispatch
-				
-	
+			# If we have the thread-state for the thread being debugged, then
+			# we dynamically set its trace function - it is possible that the thread
+			# being debugged is in a blocked call (eg, a message box) and we
+			# want to hit the debugger the instant we return
+		if self.debuggingThreadStateHandle is not None and \
+		   self.breakFlags and \
+		   self.debuggingThread != win32api.GetCurrentThreadId():
+			axdebug.SetThreadStateTrace(self.debuggingThreadStateHandle, self.trace_dispatch)
 	def _OnSetBreakPoint(self, key, codeContext, bps, lineNo):
 		traceenter("_OnSetBreakPoint", self, key, codeContext, bps, lineNo)
 		if bps==axdebug.BREAKPOINT_ENABLED:
-			self.set_break(key, lineNo)
+			problem = self.set_break(key, lineNo)
+			if problem:
+				print "*** set_break failed -", problem
+			trace("_OnSetBreakPoint just set BP and has breaks", self.breaks)
 		else:
 			self.clear_break(key, lineNo)
 		self._BreakFlagsChanged()
+		trace("_OnSetBreakPoint leaving with breaks", self.breaks)
 
 def Debugger():
 	global g_adb
