@@ -86,9 +86,16 @@ with a Query object, but it provides task-oriented functions for a
 number of common one-off tasks.
 
 If you can access the MS Developers Network Library, you can find
-information about the PDH API as MS describes it.  In general the
-Python version of the API is just a wrapper around the Query-based
-version of this API (as far as I can see), so you can learn what
+information about the PDH API as MS describes it.  For a background article,
+try:
+http://msdn.microsoft.com/library/en-us/dnperfmo/html/msdn_pdhlib.asp
+
+The reference guide for the PDH API was last spotted at:
+http://msdn.microsoft.com/library/en-us/perfmon/base/using_the_pdh_interface.asp
+
+
+In general the Python version of the API is just a wrapper around the
+Query-based version of this API (as far as I can see), so you can learn what
 you need to from there.  From what I understand, the MSDN Online 
 resources are available for the price of signing up for them.  I can't
 guarantee how long that's supposed to last. (Or anything for that
