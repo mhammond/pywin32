@@ -759,6 +759,46 @@ PyObject *PyObject_FromWIN32_FIND_DATA(WIN32_FIND_DATA &findData)
 	return ret;
 }
 
+// Callback for BrowseForFolder
+struct PyCallback {
+	PyObject *fn;
+	PyObject *data;
+};
+
+static int CALLBACK PyBrowseCallbackProc(
+    HWND hwnd, 
+    UINT uMsg, 
+    LPARAM lParam, 
+    LPARAM lpData
+    )
+{
+	int rc = 0;
+	PyObject *result = NULL;
+	PyObject *args = NULL;
+	PyGILState_STATE state = PyGILState_Ensure();
+	PyCallback *pc = (PyCallback *)lpData;
+	if (!pc) {
+		PySys_WriteStderr("SHBrowseForFolder callback with no data!\n");
+		goto done;
+	}
+	assert(!PyErr_Occurred());
+	args = Py_BuildValue("lilO", hwnd, uMsg, lParam, pc->data);
+	if (!args) goto done;
+	result = PyEval_CallObject(pc->fn, args);
+	// API says must return 0, but there might be a good reason.
+	if (result && PyInt_Check(result))
+		rc = PyInt_AsLong(result);
+done:
+	if (PyErr_Occurred()) {
+		PySys_WriteStderr("SHBrowseForFolder callback failed!\n");
+		PyErr_Print();
+	}
+	Py_XDECREF(args);
+	Py_XDECREF(result);
+	PyGILState_Release(state);
+	return rc;
+}
+
 //////////////////////////////////////////////////////////////
 //
 // The methods
@@ -772,23 +812,32 @@ static PyObject *PySHBrowseForFolder( PyObject *self, PyObject *args)
 	PyObject *rc = NULL;
 	PyObject *obPIDL = Py_None;
 	PyObject *obTitle = Py_None;
-	PyObject *none_for_now = Py_None;
+	PyObject *obcb = Py_None;
+	PyObject *obcbparam = Py_None;
 	TCHAR retPath[MAX_PATH];
 	bi.pszDisplayName = retPath;
 	LPITEMIDLIST pl = NULL;
+	PyCallback pycb;
 
-	if(!PyArg_ParseTuple(args, "|lOOlOl:SHBrowseForFolder",
+	if(!PyArg_ParseTuple(args, "|lOOlOO:SHBrowseForFolder",
 			&bi.hwndOwner, // @pyparm int|hwndOwner|0|
 			&obPIDL,		// @pyparm <o PyIDL>|pidlRoot|None|
 			&obTitle,		// @pyparm <o Unicode>/string|title|None|
 			&bi.ulFlags,	// @pyparm int|flags|0|
-			&none_for_now,  // @pyparm object|callback||Not yet supported - must be None
-			&bi.lParam))   // @pyparm int|callbackParam|0|
+			&obcb,  // @pyparm object|callback|None|A callable object to be used as the callback, or None
+			&obcbparam))   // @pyparm object|callback_data|None|An object passed to the callback function
 		return NULL;
-	if (none_for_now != Py_None) {
-		PyErr_SetString(PyExc_TypeError, "Callback item must be None");
-		goto done;
-	}
+
+	if (obcb != Py_None) {
+		if (!PyCallable_Check(obcb)) {
+			PyErr_SetString(PyExc_TypeError, "Callback item must None or a callable object");
+			goto done;
+		}
+		pycb.fn = obcb;
+		pycb.data = obcbparam;
+		bi.lParam = (LPARAM)&pycb;
+		bi.lpfn = PyBrowseCallbackProc;
+	} // else bi.lParam/lpfn remains 0
 	if (!PyObject_AsPIDL(obPIDL, (LPITEMIDLIST *)&bi.pidlRoot, TRUE))
 		goto done;
 
@@ -818,6 +867,11 @@ done:
 	if (bi.pidlRoot) PyObject_FreePIDL(bi.pidlRoot);
 	if (bi.lpszTitle) PyWinObject_FreeTCHAR((TCHAR *)bi.lpszTitle);
 	return rc;
+	// @comm If you provide a callback function, it should take 4 args:
+	// hwnd, msg, lp, data.  Data will be whatever you passed as callback_data,
+	// and the rest are integers.  See the Microsoft documentation for
+	// SHBrowseForFolder, or the browse_for_folder.py shell sample for more
+	information.
 }
 
 // @pymethod string/<o PyUnicode>|shell|SHGetPathFromIDList|Converts an IDLIST to a path.
@@ -1346,6 +1400,16 @@ static PyObject *PyStringAsPIDL(PyObject *self, PyObject *args)
 	return PyObject_FromPIDL((LPCITEMIDLIST)szPIDL, FALSE);
 }	
 
+// @pymethod <o PIDL>|shell|AddressAsPIDL|Given the address of a PIDL in memory, return a PIDL object (ie, a list of strings)
+static PyObject *PyAddressAsPIDL(PyObject *self, PyObject *args)
+{
+	long lpidl;
+	// @pyparm int|address||The address of the PIDL
+	if (!PyArg_ParseTuple(args, "l:AddressAsPIDL", &lpidl))
+		return NULL;
+	return PyObject_FromPIDL((LPCITEMIDLIST)lpidl, FALSE);
+}	
+
 // @pymethod <o PIDL>, list|shell|StringAsCIDA|Given a CIDA as a raw string, return the folder PIDL and list of children
 static PyObject *PyStringAsCIDA(PyObject *self, PyObject *args)
 {
@@ -1396,6 +1460,7 @@ static struct PyMethodDef shell_methods[]=
 	{ "StringAsCIDA", PyStringAsCIDA, 1}, // @pymeth StringAsCIDA|Given a CIDA as a raw string, return pidl_folder, [pidl_children, ...]
 	{ "CIDAAsString", PyCIDAAsString, 1}, // @pymeth CIDAAsString|Given a (pidl, child_pidls) object, return a CIDA as a string
 	{ "StringAsPIDL", PyStringAsPIDL, 1}, // @pymeth StringAsPIDL|Given a PIDL as a raw string, return a PIDL object (ie, a list of strings)
+	{ "AddressAsPIDL", PyAddressAsPIDL, 1}, // @pymeth AddressAsPIDL|Given the address of a PIDL, return a PIDL object (ie, a list of strings)
 	{ "PIDLAsString", PyPIDLAsString, 1}, // @pymeth PIDLAsString|Given a PIDL object, return the raw PIDL bytes as a string
 	{ NULL, NULL },
 };
@@ -1456,6 +1521,7 @@ extern "C" __declspec(dllexport) void initshell()
 	PyObject *dict = PyModule_GetDict(oModule);
 	if (!dict) return; /* Another serious error!*/
 
+	PyDict_SetItemString(dict, "error", PyWinExc_COMError);
 	// Register all of our interfaces, gateways and IIDs.
 	PyCom_RegisterExtensionSupport(dict, g_interfaceSupportData, sizeof(g_interfaceSupportData)/sizeof(PyCom_InterfaceSupportInfo));
 
