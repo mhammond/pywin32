@@ -130,6 +130,12 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 		V_VT(var) = VT_DATE;
 		PyWinObject_AsDATE(obj, &(V_DATE(var)));
 	}
+	else if (PyBuffer_Check(obj)) {
+		// We have a buffer object - convert to safe array of VT_UI1
+		if (!PyCom_SAFEARRAYFromPyObject(obj, &V_ARRAY(var), VT_UI1))
+			return FALSE;
+		V_VT(var) = VT_ARRAY | VT_UI1;
+	}
 	// NOTE: PySequence_Check may return true for instance objects,
 	// or ANY object with a __len__ attribute.
 	// So make sure this check is after anything else which qualifies.
@@ -307,8 +313,36 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
 {
 	LONG numElements = pBounds[dimNo-1].cElements;
 	if ((LONG)PySequence_Length(obj)!=numElements) {
-		OleSetTypeError("All dimensions must be a tuple of the same size");
+		OleSetTypeError("All dimensions must be a sequence of the same size");
 		return FALSE;
+	}
+	// See if we can take a short-cut for byte arrays - if
+	// so, we can copy the entire dimension in one hit
+	// (only support single segment buffers for now)
+	if (dimNo==nDims && vt==VT_UI1 || vt==VT_I1 && obj->ob_type->tp_as_buffer) {
+		PyBufferProcs *pb = obj->ob_type->tp_as_buffer;
+		int bufSize;
+		if (pb->bf_getreadbuffer && 
+			pb->bf_getsegcount &&
+			(*pb->bf_getsegcount)(obj, &bufSize)==1) 
+		{
+			if (bufSize != numElements) {
+				OleSetTypeError("Internal error - the buffer length is not the sequence length!");
+				return FALSE;
+			}
+			void *ob_buf, *sa_buf;
+			HRESULT hr = SafeArrayAccessData(pSA,&sa_buf);
+			if (FAILED(hr)) {
+				OleSetOleError(hr);
+				return FALSE;
+			}
+			pb->bf_getreadbuffer(obj, 0, &ob_buf);
+			memcpy(sa_buf, ob_buf, bufSize);
+			SafeArrayUnaccessData(pSA);
+			// All done without a single loop :-)
+			return TRUE;
+		}
+		// Otherwise just fall through into the standard mechanisms
 	}
 	BOOL ok = TRUE;
 	for (int index=0;index<(int)numElements && ok;index++) {
@@ -371,6 +405,11 @@ static BOOL PyCom_SAFEARRAYFromPyObject(PyObject *obj, SAFEARRAY **ppSA, VARENUM
 	// Seek down searching for total dimension count.
 	// Item zero of each element will do for now
 	// (as all must be same)
+	// First we _will_ allow None here (just dont use it if it crashes :-)
+	if (obj==Py_None) {
+		*ppSA = NULL;
+		return TRUE;
+	}
 	LONG cDims = 0;
 	PyObject *obItemCheck = obj;
 	Py_INCREF(obItemCheck);
@@ -995,7 +1034,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 		break;
 	case VT_DISPATCH:
 		V_DISPATCH(var) = NULL;
-		if (!PyCom_InterfaceFromPyInstanceOrObject(obj, IID_IDispatch, (void **)&V_DISPATCH(var), FALSE))
+		if (!PyCom_InterfaceFromPyInstanceOrObject(obj, IID_IDispatch, (void **)&V_DISPATCH(var), TRUE))
 			BREAK_FALSE;
 		// COM Reference added by InterfaceFrom...
 		break;
@@ -1014,7 +1053,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 		break;
 	case VT_UNKNOWN:
 		V_UNKNOWN(var) = NULL;
-		if (!PyCom_InterfaceFromPyInstanceOrObject(obj, IID_IUnknown, (void **)&V_UNKNOWN(var), FALSE))
+		if (!PyCom_InterfaceFromPyInstanceOrObject(obj, IID_IUnknown, (void **)&V_UNKNOWN(var), TRUE))
 			BREAK_FALSE;
 		// COM Reference added by InterfaceFrom...
 		break;
