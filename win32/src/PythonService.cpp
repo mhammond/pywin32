@@ -35,6 +35,7 @@ PYSERVICE_EXPORT int PythonService_main(int argc, char **argv);
 
 TCHAR g_szEventSourceName[MAX_PATH] = _T("Python Service");
 BOOL bServiceDebug = FALSE;
+BOOL bServiceRunning = FALSE;
 
 // Globals
 HINSTANCE g_hdll = 0; // remains zero in the exe stub.
@@ -67,7 +68,7 @@ DWORD g_serviceProcessFlags = 0;
 
 // The global SCM dispatch table.  A trailing NULL indicates to the SCM
 // how many are used - as we add new entries, we null the next.
-static SERVICE_TABLE_ENTRY   DispatchTable[] = 
+static SERVICE_TABLE_ENTRY   DispatchTable[MAX_SERVICES] = 
 { 
     { NULL,              NULL         } 
 }; 
@@ -320,6 +321,17 @@ static PyObject *PyDebugging(PyObject *self, PyObject *args)
 	return rc;
 }
 
+// @pymethod True/False|servicemanager|RunningAsService|Indicates if the code is
+// being executed as a service.
+static PyObject *PyRunningAsService(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":RunningAsService"))
+		return NULL;
+	PyObject *rc = bServiceRunning ? Py_True : Py_False;
+	Py_INCREF(rc);
+	return rc;
+}
+
 // @pymethod int|servicemanager|PumpWaitingMessages|Pumps all waiting messages.
 // @rdesc Returns 1 if a WM_QUIT message was received, else 0
 static PyObject *PyPumpWaitingMessages(PyObject *self, PyObject *args)
@@ -441,6 +453,7 @@ static struct PyMethodDef servicemanager_functions[] = {
 	{"Finalize",                   (PyCFunction)PyServiceFinalize, METH_NOARGS}, // @pymeth Finalize|
 	{"PrepareToHostSingle",        PyPrepareToHostSingle, 1}, // @pymeth  PrepareToHostSingle|
 	{"PrepareToHostMultiple",      PyPrepareToHostMultiple, 1}, // @pymeth  PrepareToHostMultiple|
+	{"RunningAsService",           PyRunningAsService, 1}, // @pymeth RunningAsService|Indicates if the code is running as a service.
 	{NULL}
 };
 
@@ -735,9 +748,17 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
 	PyObject *instance = NULL;
 	PyObject *start = NULL;
 
+	bServiceRunning = TRUE;
 	if (bServiceDebug)
 		SetConsoleCtrlHandler( DebugControlHandler, TRUE );
 
+	// NOTE: If possible, we want to always call RegisterServiceCtrlHandlerEx,
+	// even in error situations.  Otherwise Windows will get a little upset
+	// and turn us into a zombie.  Grabbing the service handle and reporting
+	// an error condition works correctly, whereas exiting doesn't.
+	// Note also that in the usual, non-error case,
+	// RegisterServiceCtrlHandlerEx is actually called via the Python code
+	// (servicemanager.RegisterServiceCtrlHandler), not via us.
 	CEnterLeavePython _celp;
 	PY_SERVICE_TABLE_ENTRY *pe;
 	if (g_serviceProcessFlags == SERVICE_WIN32_OWN_PROCESS) {
@@ -752,10 +773,13 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
 	if (!pe) {
 		LPTSTR  lpszStrings[] = {lpszArgv[0], NULL};
 		ReportError(E_PYS_NO_SERVICE, (LPCTSTR *)lpszStrings);
+		// This is still yucky and will send us zombie.  It should never happen
+		// and needs too much of a reorg to fix.
 		goto cleanup;
 	}
 	assert(pe->sshStatusHandle==0); // should have no scm handle yet.
-	instance = LoadPythonServiceInstance(pe->klass, dwArgc, lpszArgv);
+	if (pe->klass) // avoid an extra redundant log message.
+		instance = LoadPythonServiceInstance(pe->klass, dwArgc, lpszArgv);
 	// If Python has not yet registered the service control handler, then
 	// we are in serious trouble - it is likely the service will enter a 
 	// zombie state, where it wont do anything, but you can not start 
@@ -763,10 +787,13 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
 	// getting a handle, so we can immediately tell Windows the service 
 	// is rooted (that is a technical term!)
 	if (!bServiceDebug && pe->sshStatusHandle==0) {
-		// If Python seemed to init OK, but hasnt done what we expect,
-		// report an error, as we are gunna fail!
+		// If we don't have a pe->sshStatusHandle(), then the Python code
+		// failed to register itself with the SCM.
+		// If we have an instance, it means that instance simply neglected
+		// to do the right thing - report that as an error.
 		if (instance) 
 			ReportPythonError(E_PYS_NOT_CONTROL_HANDLER);
+		// else no instance - an error has already been reported.
 		if (!bServiceDebug)
 			// Note - we upgraded this to the win2k only "Ex" function.
 			// If this was a problem for someone, you could do a LoadLibrary
@@ -1010,12 +1037,12 @@ PyObject *LoadPythonServiceClass(char *svcInitString)
 		PyObject *obPath = PySys_GetObject("path");
 		if (obPath==NULL) {
 				ReportPythonError(PYS_E_NO_SYS_PATH);
-				return FALSE;
+				return NULL;
 		}
 		PyObject *obNew = PyString_FromString(valueBuf);
 		if (obNew==NULL) {
 			ReportPythonError(PYS_E_NO_MEMORY_FOR_SYS_PATH);
-			return FALSE;
+			return NULL;
 		}
 		PyList_Append(obPath, obNew);
 		Py_DECREF(obNew);
