@@ -443,9 +443,8 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
 
 static BOOL PyCom_SAFEARRAYFromPyObjectEx(PyObject *obj, SAFEARRAY **ppSA, bool bAllocNewArray, VARENUM vt)
 {
-	if (bAllocNewArray) {
-		_ASSERTE(*ppSA==NULL); // Probably a mem leak - the existing array should be cleared!
-	}
+	// NOTE: We make no attempt to validate or free any existing array if asked to allocate a new one!
+
 	// Seek down searching for total dimension count.
 	// Item zero of each element will do for now
 	// (as all must be same)
@@ -865,7 +864,6 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 				_ASSERTE(m_arrayBuf==NULL); // shouldn't be anything else here!
 				if (bNewArray) {
 					_ASSERTE(V_VT(var)==VT_EMPTY); // should we clear anything else?
-					m_arrayBuf = NULL;
 					V_ARRAYREF(var) = &m_arrayBuf;
 				}
 				// else m_arrayBuf remains NULL, and we reuse existing array.
@@ -892,6 +890,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 #endif // BYREF_ARRAY_USE_EXISTING_ARRAY
 			}
 		} else {
+			_ASSERTE(V_VT(var)==VT_EMPTY || V_ARRAY(var)==NULL); // Probably a mem leak - the existing array should be cleared!
 			if (!PyCom_SAFEARRAYFromPyObject(obj, &V_ARRAY(var), rawVT))
 				return FALSE;
 			V_VT(var) = m_reqdType;
