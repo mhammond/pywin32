@@ -3,6 +3,10 @@
 
 #ifndef MS_WINCE /* Not on CE */
 
+extern BOOL (WINAPI *addaccessallowedaceex)(PACL, DWORD, DWORD, DWORD, PSID);
+extern BOOL (WINAPI *addaccessdeniedaceex)(PACL, DWORD, DWORD, DWORD, PSID);
+extern BOOL (WINAPI *addauditaccessaceex)(PACL, DWORD, DWORD, DWORD, PSID, BOOL, BOOL);
+
 // To do - rationalize PySECURITY_ATTRIBUTES and SECURITY_DESCRIPTOR
 // objects.
 class PYWINTYPES_EXPORT PySECURITY_ATTRIBUTES : public PyObject
@@ -156,8 +160,11 @@ public:
 	static PyObject *Initialize(PyObject *self, PyObject *args);
 	static PyObject *IsValid(PyObject *self, PyObject *args);
 	static PyObject *AddAccessAllowedAce(PyObject *self, PyObject *args);
+	static PyObject *AddAccessAllowedAceEx(PyObject *self, PyObject *args);
 	static PyObject *AddAccessDeniedAce(PyObject *self, PyObject *args);
+	static PyObject *AddAccessDeniedAceEx(PyObject *self, PyObject *args);
 	static PyObject *AddAuditAccessAce(PyObject *self, PyObject *args);
+	static PyObject *AddAuditAccessAceEx(PyObject *self, PyObject *args);
 	static PyObject *GetAclSize(PyObject *self, PyObject *args);
 	static PyObject *GetAclRevision(PyObject *self, PyObject *args);
 	static PyObject *GetAceCount(PyObject *self, PyObject *args);

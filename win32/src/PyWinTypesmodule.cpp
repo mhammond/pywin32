@@ -485,6 +485,8 @@ void initpywintypes(void)
 #endif
   PyDict_SetItemString(dict, "HANDLEType", (PyObject *)&PyHANDLEType);
   PyDict_SetItemString(dict, "OVERLAPPEDType", (PyObject *)&PyHANDLEType);
+
+
 }
 
 #ifndef MS_WINCE
@@ -492,6 +494,23 @@ extern "C" __declspec(dllexport)
 #endif
 BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
+	FARPROC fp;
+	// dll usually will already be loaded
+	HMODULE hmodule=GetModuleHandle("AdvAPI32.dll");
+	if (hmodule==NULL)
+		hmodule=LoadLibrary("AdvAPI32.dll");
+	if (hmodule){
+		fp=GetProcAddress(hmodule,"AddAccessAllowedAceEx");
+		if (fp)
+			addaccessallowedaceex=(BOOL (WINAPI *)(PACL, DWORD, DWORD, DWORD, PSID))(fp);
+		fp=GetProcAddress(hmodule,"AddAccessDeniedAceEx");
+		if (fp)
+			addaccessdeniedaceex=(BOOL (WINAPI *)(PACL, DWORD, DWORD, DWORD, PSID))(fp);
+		fp=GetProcAddress(hmodule,"AddAuditAccessAceEx");
+		if (fp)
+			addauditaccessaceex=(BOOL (WINAPI *)(PACL, DWORD, DWORD, DWORD, PSID, BOOL, BOOL))(fp);
+		}
+
 	switch (dwReason) {
 		case DLL_PROCESS_ATTACH: {
 			/*
