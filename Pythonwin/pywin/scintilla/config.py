@@ -18,6 +18,7 @@ import types
 import traceback
 import pywin
 import glob
+import imp
 
 debugging = 0
 if debugging:
@@ -27,7 +28,7 @@ if debugging:
 else:
     trace = lambda *args: None
 
-compiled_config_version = 1
+compiled_config_version = 2
 
 def split_line(line, lineno):
     comment_pos = string.find(line, "#")
@@ -83,14 +84,17 @@ class ConfigManager:
                 cf = open(compiled_name, "rb")
                 try:
                     ver = marshal.load(cf)
-                    size = marshal.load(cf)
-                    mtime = marshal.load(cf)
-                    if compiled_config_version == ver and \
-                       src_stat[stat.ST_MTIME] == mtime and \
-                       src_stat[stat.ST_SIZE] == size:
-                        self.cache = marshal.load(cf)
-                        trace("Configuration loaded cached", compiled_name)
-                        return # We are ready to roll!
+                    ok = compiled_config_version == ver
+                    if ok:
+                        magic = marshal.load(cf)
+                        size = marshal.load(cf)
+                        mtime = marshal.load(cf)
+                        if magic == imp.get_magic() and \
+                           src_stat[stat.ST_MTIME] == mtime and \
+                           src_stat[stat.ST_SIZE] == size:
+                            self.cache = marshal.load(cf)
+                            trace("Configuration loaded cached", compiled_name)
+                            return # We are ready to roll!
                 finally:
                     cf.close()
             except (os.error, IOError, EOFError):
@@ -128,6 +132,7 @@ class ConfigManager:
             try:
                 cf = open(compiled_name, "wb")
                 marshal.dump(compiled_config_version, cf)
+                marshal.dump(imp.get_magic(), cf)
                 marshal.dump(src_stat[stat.ST_SIZE], cf)
                 marshal.dump(src_stat[stat.ST_MTIME], cf)
                 marshal.dump(self.cache, cf)
