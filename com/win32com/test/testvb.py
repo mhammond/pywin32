@@ -180,8 +180,11 @@ def TestVB( vbtest, bUseGenerated ):
 		if vbtest.IncrementIntegerParam(1) != 2:
 			raise error, "Could not pass an integer byref"
 
-		if vbtest.IncrementIntegerParam() != 1:
-			raise error, "Could not pass an omitted integer byref"
+# Sigh - we cant have *both* "ommited byref" and optional args
+# We really have to opt that args nominated as optional work as optional
+# rather than simply all byrefs working as optional.
+#		if vbtest.IncrementIntegerParam() != 1:
+#			raise error, "Could not pass an omitted integer byref"
 
 		if vbtest.IncrementVariantParam(1) != 2:
 			raise error, "Could not pass an int VARIANT byref:"+str(vbtest.IncrementVariantParam(1))
@@ -215,9 +218,10 @@ def TestVB( vbtest, bUseGenerated ):
 		if ret != (1,2):
 			raise error, "Could not increment the integer - "+str(ret)
 		# Check you can leave a byref arg blank.
-		ret = vbtest.PassIntByRef()
-		if ret != (0,1):
-			raise error, "Could not increment the integer with default arg- "+str(ret)
+# see above
+#		ret = vbtest.PassIntByRef()
+#		if ret != (0,1):
+#			raise error, "Could not increment the integer with default arg- "+str(ret)
 
 def TestStructs(vbtest):
 	try:
