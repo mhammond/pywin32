@@ -373,6 +373,8 @@ static void PyService_InitPython()
 #ifdef BUILD_FREEZE
 	PyWinFreeze_ExeInit();
 #endif
+	// Ensure we are set for threading.
+	PyEval_InitThreads();
 	PyWinGlobals_Ensure();
 	PySys_SetArgv(__argc, __argv);
 
