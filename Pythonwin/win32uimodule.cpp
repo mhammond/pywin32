@@ -2167,10 +2167,18 @@ extern HINSTANCE hWin32uiDll; // Handle to this DLL, from dllmain.cpp
 extern "C" __declspec(dllexport) void
 initwin32ui(void)
 {
+  // XXX - hack alert!
+  // Win9x manages to wind up in here twice when used from a console - 
+  // CheckGoodWinApp() winds up re-initializing - so when we return
+  // we see if we already did init, and get out.
+  // Would be nice to solve this properly, but Win9x is a bitch to debug :(
+  static bool bInitialized = false;
   if (!CheckGoodWinApp()) {
 	  PyErr_SetString(PyExc_RuntimeError, "The win32ui module could not initialize the application object.");
 	  return;
   }
+  if (bInitialized)
+    return;
   PyWinGlobals_Ensure();
   PyObject *dict, *module;
   module = Py_InitModule(uiModName, ui_functions);
@@ -2213,6 +2221,7 @@ initwin32ui(void)
   PyDict_SetItem(dict,mapName, typeDict);
   Py_XDECREF(mapName);
   Py_XDECREF(typeDict);
+  bInitialized = true;
 }
 
 // Utilities for glue support.
