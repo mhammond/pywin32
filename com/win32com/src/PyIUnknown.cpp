@@ -151,8 +151,11 @@ PyObject * PyIUnknown::repr()
 #endif
 		{
 			PyEval_RestoreThread(_save);
-			LogF(_T("Exception occured:\n\tTry to release object at address 0x%08x\n\twhich was already destroyed"), ob->m_obj);
+			LogF(_T("Win32 exception occurred releasing IUnknown at 0x%08x"), ob->m_obj);
 			ob->m_obj = NULL;
+#ifdef _DEBUG
+			DebugBreak();
+#endif
 			return;
 		}
 	}
