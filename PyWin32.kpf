@@ -8,8 +8,6 @@
 </preference-set>
 <file name="build_for_version.bat" url="build_for_version.bat">
 </file>
-<file name="setup_win32all_core.py" url="setup_win32all_core.py">
-</file>
 <file name="set_for_version.py" url="set_for_version.py">
 </file>
 <folder name="com" url="com">
@@ -426,6 +424,8 @@
 <file name="testPersist.py" url="com/win32com/test/testPersist.py">
 </file>
 <file name="testPyComTest.py" url="com/win32com/test/testPyComTest.py">
+<preference-set id="">
+</preference-set>
 </file>
 <file name="testPyScriptlet.js" url="com/win32com/test/testPyScriptlet.js">
 </file>
@@ -469,6 +469,14 @@
 <file name="__init__.py" url="com/win32com/test/__init__.py">
 </file>
 <file name="testIterators.py" url="com/win32com/test/testIterators.py">
+</file>
+<file name="testROT.py" url="com/win32com/test/testROT.py">
+</file>
+<file name="testvbscript_regexp.py" url="com/win32com/test/testvbscript_regexp.py">
+</file>
+<file name="testStorage.py" url="com/win32com/test/testStorage.py">
+</file>
+<file name="testShell.py" url="com/win32com/test/testShell.py">
 </file>
 </folder>
 </folder>
@@ -1940,12 +1948,11 @@
 <preference-set id="">
 <preference-set id="Invocations">
 <preference-set id="Python">
-  <string id="userEnvironment"></string>
   <string id="postparams"></string>
+  <string id="userEnvironment"></string>
   <string id="getparams"></string>
   <boolean id="use-console">0</boolean>
   <string id="mpostparams"></string>
-  <boolean id="sim-cgi">0</boolean>
   <string id="filename">E:\src\pythonex\win32\test\testall.py</string>
   <string id="request-method">GET</string>
   <string id="params"></string>
@@ -1954,6 +1961,7 @@
   <string id="documentRoot"></string>
   <string id="cookieparams"></string>
   <boolean id="show-dialog">1</boolean>
+  <boolean id="sim-cgi">0</boolean>
   <string id="cwd"></string>
 </preference-set>
 </preference-set>
@@ -1961,4 +1969,8 @@
 </file>
 </folder>
 </folder>
+<file name="pywin32_postinstall.py" url="pywin32_postinstall.py">
+</file>
+<file name="setup_win32all.py" url="setup_win32all.py">
+</file>
 </project>
