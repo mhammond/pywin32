@@ -40,53 +40,8 @@ conversion is required.
 /*****************************************************************************/
 /* error helpers */
 
-/* error helper - GetLastError() is provided, but this is for exceptions */
 PyObject *ReturnNetError(char *fnName, long err /*=0*/)
 {
-	static HMODULE hModule=NULL;
-	if (hModule==NULL)
-		hModule = LoadLibraryEx(
-			TEXT("netmsg.dll"),
-			NULL,
-			LOAD_LIBRARY_AS_DATAFILE);
-
-	if (err==0) err = GetLastError();
-	if(err >= NERR_BASE && err <= MAX_NERR) {
-		if(hModule != NULL) {
-			DWORD dwFormatFlags = FORMAT_MESSAGE_ALLOCATE_BUFFER |
-			                      FORMAT_MESSAGE_IGNORE_INSERTS |
-								  FORMAT_MESSAGE_FROM_HMODULE |
-								  FORMAT_MESSAGE_FROM_SYSTEM |
-								  FORMAT_MESSAGE_ALLOCATE_BUFFER;
-
-			// call FormatMessage() to allow for message text to be acquired
-			// from the system or the supplied module handle    //
-			WCHAR *szMessage;
-			DWORD dwResult;
-			if(dwResult=FormatMessage(
-				dwFormatFlags,
-				hModule, // module to get message from (NULL == system)
-				err,
-				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // default language
-				(LPTSTR) &szMessage,        
-				0,        
-				NULL)) {
-				// remove the \r\n, like the real API
-				if (dwResult>2)
-					szMessage[dwResult-2]=_T('\0');
-				PyObject *str = PyString_FromUnicode(szMessage);
-				LocalFree(szMessage);
-				PyObject *v = Py_BuildValue("(izO)", err, fnName, str );
-				Py_DECREF(str);
-				if (v != NULL) {
-					PyErr_SetObject(PyWinExc_ApiError, v);
-					Py_DECREF(v);
-					return NULL;
-				}
-
-			}
-		}
-	}
 	return PyWin_SetAPIError(fnName, err);
 };
 
@@ -1149,8 +1104,11 @@ initwin32net(void)
   PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
   PyDict_SetItemString(dict, "SERVICE_SERVER", PyUnicode_FromWideChar(SERVICE_SERVER,wcslen(SERVICE_SERVER)));
   PyDict_SetItemString(dict, "SERVICE_WORKSTATION", PyUnicode_FromWideChar(SERVICE_WORKSTATION,wcslen(SERVICE_WORKSTATION)));
-  
-  Py_INCREF(PyWinExc_ApiError);
+
+  HMODULE hmod = LoadLibraryEx(TEXT("netmsg.dll"), NULL, LOAD_LIBRARY_AS_DATAFILE);
+  PyWin_RegisterErrorMessageModule(NERR_BASE,
+                                   MAX_NERR,
+                                   hmod);
   AddConstant(dict, "USE_NOFORCE", USE_NOFORCE);
   AddConstant(dict, "USE_FORCE", USE_FORCE);
   AddConstant(dict, "USE_LOTS_OF_FORCE", USE_LOTS_OF_FORCE);
