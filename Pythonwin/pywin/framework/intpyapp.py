@@ -143,8 +143,8 @@ class InteractivePythonApp(app.CApp):
 				traceback.print_exc()
 
 	def InitInstance(self):
-		# Allow "/nodde" to optimize this!
-		if "/nodde" not in sys.argv:
+		# Allow "/nodde" and "/newinstance to optimize this!
+		if "/nodde" not in sys.argv and "/newinstance" not in sys.argv:
 			if self.InitDDE():
 				return 1 # A remote DDE client is doing it for us!
 		else:
@@ -208,7 +208,7 @@ class InteractivePythonApp(app.CApp):
 		# If we are going to talk to a remote app via DDE, then
 		# activate it!
 		if dde is not None: dde.Exec("self.Activate()")
-		if len(args) and args[0]=='/nodde': del args[0] # already handled.
+		if len(args) and args[0] in ['/nodde','/newinstance']: del args[0] # already handled.
 		if len(args)<1 or not args[0]: # argv[0]=='' when started without args, just like Python.exe!
 			return
 		try:
