@@ -188,3 +188,28 @@ def NewCollection(seq, cls=Collection):
                               pythoncom.IID_IDispatch,
                               pythoncom.IID_IDispatch)
 
+class FileStream:
+  _public_methods_ = [ 'Read', 'Write', 'Clone', 'CopyTo', 'Seek' ]
+  _com_interfaces_ = [ pythoncom.IID_IStream ]
+
+  def __init__(self, file):
+    self.file = file
+
+  def Read(self, amount):
+    return self.file.read(amount)
+
+  def Write(self, data):
+    self.file.write(data)
+
+  def Clone(self):
+    return self._wrap(self.__class__(self.file))
+
+  def CopyTo(self, dest, cb):
+    dest.Write(file.read(cb))
+
+  def Seek(self, offset, origin):
+    # how convient that the 'origin' values are the same as the CRT :)
+    self.file.seek(offset, origin)
+
+  def _wrap(self, ob):
+    return wrap(ob)
