@@ -282,6 +282,14 @@ SOURCE=.\win32com\src\extensions\PyIDataObject.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32com\src\extensions\PyIDropSource.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32com\src\extensions\PyIDropTarget.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32com\src\extensions\PyIEnumCATEGORYINFO.cpp
 # End Source File
 # Begin Source File
@@ -451,6 +459,14 @@ SOURCE=.\win32com\src\include\PyICatRegister.h
 # Begin Source File
 
 SOURCE=.\win32com\src\include\PyIDataObject.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32com\src\include\PyIDropSource.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32com\src\include\PyIDropTarget.h
 # End Source File
 # Begin Source File
 
