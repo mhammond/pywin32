@@ -509,6 +509,7 @@ public:
 	static ITypeComp *GetI(PyObject *self);
 	
 	PyObject *Bind(OLECHAR* szName, unsigned short wflags);
+	PyObject *BindType(OLECHAR* szName);
 
 protected:
 	PyITypeComp(IUnknown *);
@@ -532,6 +533,7 @@ public:
 	PyObject *GetTypeInfoCount();
 	PyObject *GetTypeInfoOfGuid(REFGUID guid);
 	PyObject *GetTypeInfoType(int pos);
+	PyObject *GetTypeComp();
 
 protected:
 	PyITypeLib(IUnknown *);

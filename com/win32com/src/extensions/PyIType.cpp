@@ -491,7 +491,7 @@ static PyObject *typeinfo_getidsofnames(PyObject *self, PyObject *args)
 	return result;
 }
 
-// @pymethod <o PyITypeComp>|PyITypeInfo|GetTypeComp|Retrieves the corrsponding type to DESCKIND mapping.
+// @pymethod <o PyITypeComp>|PyITypeInfo|GetTypeComp|Retrieves a <o ITypeComp> object for Name to VARDESC/FUNCDESC mapping.
 static PyObject *typeinfo_gettypecomp(PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ":GetTypeComp"))
@@ -646,6 +646,20 @@ PyObject *PyITypeLib::GetTypeInfoType(int pos)
 	return PyInt_FromLong(tkind);
 }
 
+PyObject *PyITypeLib::GetTypeComp()
+{
+	ITypeLib *pMyTypeLib = GetI(this);
+	ITypeComp *ptc;
+	if (pMyTypeLib==NULL) return NULL;
+	PY_INTERFACE_PRECALL;
+	SCODE sc = pMyTypeLib->GetTypeComp(&ptc);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(sc))
+		return PyCom_BuildPyException(sc, pMyTypeLib, IID_ITypeLib);
+
+	return PyCom_PyObjectFromIUnknown(ptc, IID_ITypeComp);
+}
+
 // @pymethod <o TLIBATTR>|PyITypeLib|GetLibAttr|Retrieves the libraries attributes
 static PyObject *typelib_getattr(PyObject *self, PyObject *args)
 {
@@ -706,11 +720,20 @@ static PyObject *typelib_getinfotype(PyObject *self, PyObject *args)
 	return ((PyITypeLib*)self)->GetTypeInfoType(pos);
 }
 
+// @pymethod <o PyITypeComp>|PyITypeLib|GetTypeComp|Retrieves a <o ITypeComp> object for Name to VARDESC/FUNCDESC mapping.
+static PyObject *typelib_gettypecomp(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":GetTypeComp"))
+		return NULL;
+	return ((PyITypeLib*)self)->GetTypeComp();
+}
+
 // @object PyITypeLib|An object that implements the ITypeLib interface.
 static struct PyMethodDef PyITypeLib_methods[] =
 {
 	{ "GetDocumentation", typelib_getdocs, 1 }, // @pymeth GetDocumentation|Retrieves documentation information about the library.
 	{ "GetLibAttr",       typelib_getattr, 1 }, // @pymeth GetLibAttr|Retrieves the libraries attributes
+	{ "GetTypeComp",      typelib_gettypecomp, 1 }, // @pymeth GetTypeComp|Retrieves a <o ITypeComp> object for Name to VARDESC/FUNCDESC mapping.
 	{ "GetTypeInfo",      typelib_getinfo, 1 }, // @pymeth GetTypeInfo|Retrieves the specified type description in the library.
 	{ "GetTypeInfoCount", typelib_getinfocnt, 1 }, // @pymeth GetTypeInfoCount|Retrieves the number of <o PyITypeInfo>s in the type library.
 	{ "GetTypeInfoOfGuid",typelib_gettypeinfoofguid,1}, // @pymeth GetTypeInfoOfGuid|Retrieves the type info of the specified GUID.
@@ -881,7 +904,7 @@ static PyObject *typecomp_bind(PyObject *self, PyObject *args)
 	PyObject *obS;
 	int		w=0;
 	// @pyparm string|szName||The name to bind to
-	// @pyparm int|wflags||the bind flags
+	// @pyparm int|wflags|0|the bind flags
 	if (!PyArg_ParseTuple(args, "O|i:Bind", &obS, &w))
 		return NULL;
 	BSTR bstrS;
@@ -892,10 +915,26 @@ static PyObject *typecomp_bind(PyObject *self, PyObject *args)
 	return rc;
 }
 
+// @pymethod <o DESCKIND>|PyITypeComp|BindType|binds to a type
+static PyObject *typecomp_bindtype(PyObject *self, PyObject *args)
+{
+	PyObject *obS;
+	// @pyparm string|szName||The name to bind to
+	if (!PyArg_ParseTuple(args, "O:BindType", &obS))
+		return NULL;
+	BSTR bstrS;
+	if (!PyWinObject_AsBstr(obS, &bstrS))
+		return NULL;
+	PyObject *rc = ((PyITypeComp*)self)->BindType(bstrS);
+	PyWinObject_FreeBstr(bstrS);
+	return rc;
+}
+
 // @object PyITypeComp|An object that implements the ITypeComp interface.
 static struct PyMethodDef PyITypeComp_methods[] =
 {
-	{ "Bind", typecomp_bind, 1 }, // @pymeth bind|Retrieves specified binding description.
+	{ "Bind", typecomp_bind, 1 }, // @pymeth Bind|Retrieves specified binding description.
+	{ "BindType", typecomp_bindtype, 1 }, // @pymeth BindType|Retrieves specified binding description for a type
 	{NULL,  NULL}          /* sentinel */
 };
 
@@ -969,3 +1008,26 @@ PyObject *PyITypeComp::Bind(OLECHAR* s,unsigned short w)
 {
 	return ITypeCompBind(GetI(this),s,w);
 }
+
+PyObject *PyITypeComp::BindType(OLECHAR* s)
+{
+	ITypeInfo*		pI = NULL;
+	ITypeComp*		pC = NULL;
+	PyObject*		ret;
+	unsigned long	hashval = 0;
+	ITypeComp *pTC = GetI(this);
+	PY_INTERFACE_PRECALL;
+#ifndef MS_WINCE
+	// appears in the headers for CE, but wont link!?
+	hashval = LHashValOfNameSys(SYS_WIN32,LOCALE_USER_DEFAULT,s);
+#endif
+	SCODE sc = pTC->BindType(s, hashval,&pI, &pC);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(sc))
+		return PyCom_BuildPyException(sc);
+	ret = PyTuple_New(2);
+	PyTuple_SET_ITEM(ret, 0, PyCom_PyObjectFromIUnknown(pI, IID_ITypeInfo, FALSE));
+	PyTuple_SET_ITEM(ret, 1, PyCom_PyObjectFromIUnknown(pC, IID_ITypeComp, FALSE));
+	return ret;
+}
+
