@@ -96,13 +96,19 @@ void CProtectedWinThread::PumpMessages()
 	// for tracking the idle time state
 	BOOL bIdle = TRUE;
 	LONG lIdleCount = 0;
+#if _MFC_VER >= 0x0710
+	_AFX_THREAD_STATE* pState = AfxGetThreadState();
+	MSG &msgCur = pState->m_msgCur;
+#else
+	MSG &msgCur = m_msgCur;
+#endif /* _MFC_VER_ */	
 
 	// acquire and dispatch messages until a WM_QUIT message is received.
 	for (;;)
 	{
 		// phase1: check to see if we can do idle work
 		while (bIdle &&
-			!::PeekMessage(&m_msgCur, NULL, NULL, NULL, PM_NOREMOVE))
+			!::PeekMessage(&msgCur, NULL, NULL, NULL, PM_NOREMOVE))
 		{
 			// call OnIdle while in bIdle state
 			if (!OnIdle(lIdleCount++))
@@ -113,20 +119,20 @@ void CProtectedWinThread::PumpMessages()
 		{
 			// pump message, but quit on WM_QUIT
 			if (!PumpMessage()) {
-#ifdef _DEBUG
+#if defined(_DEBUG) && _MFC_VER < 0x0710
 				m_nDisablePumpCount--; // application must NOT die
 #endif
 				return;
 			}
 
 			// reset "no idle" state after pumping "normal" message
-			if (IsIdleMessage(&m_msgCur))
+			if (IsIdleMessage(&msgCur))
 			{
 				bIdle = TRUE;
 				lIdleCount = 0;
 			}
 
-		} while (::PeekMessage(&m_msgCur, NULL, NULL, NULL, PM_NOREMOVE));
+		} while (::PeekMessage(&msgCur, NULL, NULL, NULL, PM_NOREMOVE));
 	}
 
 	ASSERT(FALSE);  // not reachable
@@ -143,21 +149,6 @@ bool CProtectedWinThread::PumpWaitingMessages(UINT firstMsg, UINT lastMsg)
 		::DispatchMessage(&msg);
 	}
 	return bHaveQuit;
-/**************88
-	while(::PeekMessage(&m_msgCur, NULL, NULL, NULL, PM_NOREMOVE))
-		if (!PumpMessage()) {
-			// if got a close message, must send it back down.
-#ifdef _DEBUG
-			m_nDisablePumpCount--; // hack!
-#endif
-			PostQuitMessage(0);
-			return;
-		}
-	    // let MFC do its idle processing
-    LONG lIdle = 0;
-    while ( AfxGetApp()->OnIdle(lIdle++ ) )
-        ;  
-********/
 }
 unsigned int ThreadWorkerEntryPoint( LPVOID lpvoid )
 {

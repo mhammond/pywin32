@@ -1905,9 +1905,16 @@ PyCSliderCtrl_verify_pos(PyObject *self, PyObject *args)
 	CSliderCtrl *pSC = GetSliderCtrl(self);
 	if (!pSC)
 		return NULL;
+#if _MFC_VER >= 0x0710
+	// This just vanished in VS7
+	PyErr_SetString(PyExc_NotImplementedError,
+					"VerifyPos does not appear in this version of MFC");
+	return NULL;
+#else
 	GUI_BGN_SAVE;
 	pSC->VerifyPos();
 	GUI_END_SAVE;
+#endif
 	RETURN_NONE;
 }
 

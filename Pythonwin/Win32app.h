@@ -25,7 +25,7 @@ public:
 
 	static ui_type_CObject type;
 	MAKE_PY_CTOR(PyCWinApp)
-	static void cleanup();
+	virtual void cleanup();
 };
 
 
@@ -52,8 +52,11 @@ public:
 	CWnd *GetMainFrame () {return m_pMainWnd;}
 	void SetMainFrame (CWnd *pWnd) {m_pMainWnd = pWnd;}
 	CDocument *FindOpenDocument (const char *lpszFileName);
+// warning C4996: 'xxx' was declared deprecated
+#pragma warning( disable : 4996 )
 	BOOL Enable3dControls() {return CWinApp::Enable3dControls();}
 	void SetDialogBkColor(COLORREF clrCtlBk, COLORREF clrCtlText) { CWinApp::SetDialogBkColor(clrCtlBk, clrCtlText);}
+#pragma warning( default : 4996 )
 	BOOL HaveLoadStdProfileSettings() {return m_pRecentFileList!=NULL;}
 	void LoadStdProfileSettings(UINT max) {CWinApp::LoadStdProfileSettings(max);}
 	void SetRegistryKey(LPCTSTR key) {CWinApp::SetRegistryKey(key);}

@@ -292,7 +292,7 @@ public:
 		}
 		return T::OnNcHitTest(pt);
 	}
-    afx_msg UINT OnSetCursor(CWnd *pWnd, UINT ht, UINT msg) {
+    afx_msg BOOL OnSetCursor(CWnd *pWnd, UINT ht, UINT msg) {
 		// @pyvirtual int|PyCWnd|OnSetCursor|Called for the WM_SETCURSOR message.
 		// @xref <om PyCWnd.OnSetCursor>
 		CVirtualHelper helper( "OnSetCursor", this );
@@ -358,9 +358,12 @@ private: \
 	static const AFX_MSGMAP_ENTRY _messageEntries[];
 protected: \
 	static AFX_DATA const AFX_MSGMAP messageMap; 
-
 	static const AFX_MSGMAP* PASCAL _GetBaseMessageMap() {
+#if _MFC_VER >= 0x0700
+		return T::GetThisMessageMap();
+#else
 		return &T::messageMap;
+#endif /* _MFC_VER */
 	}
 	virtual const AFX_MSGMAP* GetMessageMap() const {
 		return &messageMap;
@@ -946,7 +949,11 @@ protected: \
 	static AFX_DATA const AFX_MSGMAP messageMap; 
 
 	static const AFX_MSGMAP* PASCAL _GetBaseMessageMap() {
+#if _MFC_VER >= 0x0700
+		return T::GetThisMessageMap();
+#else
 		return &T::messageMap;
+#endif
 	}
 	virtual const AFX_MSGMAP* GetMessageMap() const {
 		return &messageMap;

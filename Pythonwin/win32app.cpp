@@ -405,6 +405,7 @@ ui_type_CObject PyCWinApp::type("PyCWinApp",
 
 void PyCWinApp::cleanup()
 {
+	PyCWinThread::cleanup();
 	// total hack!
 	while (pExistingAppObject)
 		DODECREF(pExistingAppObject); // this may delete it.

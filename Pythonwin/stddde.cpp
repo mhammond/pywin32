@@ -953,7 +953,7 @@ void CALLBACK _target_proc(int BARF) {
 //
 // Gaah - it took me two days to realize that I need "offset" here
 //
-__declspec ( naked ) _template() {
+__declspec ( naked ) void _template() {
 	__asm {
 		pop eax  // save the return addr
 		push offset _template  // stuff the parameter in
