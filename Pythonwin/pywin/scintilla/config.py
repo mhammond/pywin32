@@ -61,6 +61,7 @@ def find_config_files():
 
 class ConfigManager:
     def __init__(self, f):
+        self.filename = "unknown"
         self.last_error = None
         self.key_to_events = {}
         if hasattr(f, "readline"):
