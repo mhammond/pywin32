@@ -41,10 +41,10 @@ def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names = None):
     else:
         # Cool - can used cached info.
         if not interface_names:
-            interface_names = mod.VTablesNamesToCLSIDMap.keys()
+            interface_names = mod.VTablesNamesToIIDMap.keys()
         for name in interface_names:
             try:
-                iid = mod.VTablesNamesToCLSIDMap[name]
+                iid = mod.VTablesNamesToIIDMap[name]
             except KeyError:
                 raise ValueError, "Interface '%s' does not exist in this cached typelib" % (name,)
 #            print "Processing interface", name
@@ -61,15 +61,15 @@ def _doCreateVTable(iid, interface_name, is_dispatch, method_defs):
 
 def _CalcTypeSize(typeTuple):
     t = typeTuple[0]
-    if t & pythoncom.VT_BYREF:
+    if t & (pythoncom.VT_BYREF | pythoncom.VT_ARRAY):
         # Its a pointer.
         cb = _univgw.SizeOfVT(pythoncom.VT_PTR)[1]
     elif t == pythoncom.VT_RECORD:
         try:
             import warnings
-            warnings.warn("assuming records always pass pointers (they wont work for other reasons anyway!")
+            warnings.warn("warning: records are known to not work for vtable interfaces")
         except ImportError:
-            print "warning: assuming records always pass pointers (they wont work for other reasons anyway!"
+            print "warning: records are known to not work for vtable interfaces"
         cb = _univgw.SizeOfVT(pythoncom.VT_PTR)[1]
         #cb = typeInfo.GetTypeAttr().cbSizeInstance
     else:
@@ -139,7 +139,6 @@ class Definition:
                  ReadFromInTuple=_univgw.ReadFromInTuple,
                  WriteFromOutTuple=_univgw.WriteFromOutTuple):
         "Dispatch a call to an interface method."
-#        import pywin.debugger;pywin.debugger.brk()
         meth = self._methods[index]
         # Infer S_OK if they don't return anything bizarre.
         hr = 0 
