@@ -138,6 +138,9 @@ extern PyObject *PyPopen4(PyObject *self, PyObject  *args);
 // @pymeth GetNamedPipeHandleState|Returns the state of a named pipe.
 %native(GetNamedPipeHandleState) MyGetNamedPipeHandleState;
 
+// @pymeth SetNamedPipeHandleState|Sets the state of a named pipe.
+%native(SetNamedPipeHandleState) MySetNamedPipeHandleState;
+
 // @pymeth ConnectNamedPipe|Connects to a named pipe
 %native(ConnectNamedPipe) MyConnectNamedPipe;
 
@@ -208,6 +211,34 @@ PyObject *MyGetNamedPipeHandleState(PyObject *self, PyObject *args)
 	Py_DECREF(obCollectDataTimeout);
 	Py_DECREF(obName);
 	return rc;
+}
+
+// @pyswig |SetNamedPipeHandleState|Sets the state of the named pipe.
+PyObject *MySetNamedPipeHandleState(PyObject *self, PyObject *args)
+{
+	HANDLE hNamedPipe;
+	unsigned long Mode;
+	unsigned long MaxCollectionCount;
+	unsigned long CollectDataTimeout;
+	PyObject *obhNamedPipe;
+
+	// @pyparm <o PyHANDLE>|hPipe||The handle to the pipe.
+	// @pyparm int|Mode||The pipe read mode.
+	// @pyparm int|MaxCollectionCount||Maximum bytes collected before transmission to the server.
+	// @pyparm int|CollectDataTimeout||Maximum time to wait, in milliseconds, before transmission to server.
+
+	if (!PyArg_ParseTuple(args, "Oiii:SetNamedPipeHandleState", 
+			      &obhNamedPipe, &Mode, 
+			      &MaxCollectionCount, &CollectDataTimeout))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
+		return NULL;
+
+	if (!SetNamedPipeHandleState(hNamedPipe, &Mode, &MaxCollectionCount,
+				     &CollectDataTimeout)) 
+		return PyWin_SetAPIError("SetNamedPipeHandleState");
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 // @pyswig int|ConnectNamedPipe|Connects to a named pipe
