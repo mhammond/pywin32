@@ -81,4 +81,6 @@ def test():
 
 if __name__=='__main__':
     test()
+    from util import CheckClean
+    CheckClean()
 
