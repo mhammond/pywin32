@@ -2,7 +2,7 @@
 /** @file PropSet.cxx
  ** A Java style properties file module.
  **/
-// Copyright 1998-2001 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2002 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 // Maintain a dictionary of properties
@@ -24,6 +24,10 @@ static inline char MakeUpperCase(char ch) {
 		return ch;
 	else
 		return static_cast<char>(ch - 'a' + 'A');
+}
+
+static inline bool IsLetter(char ch) {
+	return ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'));
 }
 
 int CompareCaseInsensitive(const char *a, const char *b) {
@@ -532,6 +536,20 @@ bool WordList::InList(const char *s) {
 			j++;
 		}
 	}
+	j = starts['^'];
+	if (j >= 0) {
+		while (words[j][0] == '^') {
+			const char *a = words[j] + 1;
+			const char *b = s;
+			while (*a && *a == *b) {
+				a++;
+				b++;
+			}
+			if (!*a)
+				return true;
+			j++;
+		}
+	}
 	return false;
 }
 
@@ -541,7 +559,7 @@ bool WordList::InList(const char *s) {
  * The length of the word to compare is passed too.
  * Letter case can be ignored or preserved (default).
  */
-const char *WordList::GetNearestWord(const char *wordStart, int searchLen /*= -1*/, bool ignoreCase /*= false*/) {
+const char *WordList::GetNearestWord(const char *wordStart, int searchLen /*= -1*/, bool ignoreCase /*= false*/, SString wordCharacters /*='/0' */) {
 	int start = 0; // lower bound of the api array block to search
 	int end = len - 1; // upper bound of the api array block to search
 	int pivot; // index of api array element just being compared
@@ -559,8 +577,8 @@ const char *WordList::GetNearestWord(const char *wordStart, int searchLen /*= -1
 			pivot = (start + end) >> 1;
 			word = wordsNoCase[pivot];
 			cond = CompareNCaseInsensitive(wordStart, word, searchLen);
-			if (!cond && nonFuncChar(word[searchLen])) // maybe there should be a "non-word character" test here?
-				return word; // result must not be freed with free()
+			if (!cond && (!wordCharacters.contains(word[searchLen])))
+					return word; // result must not be freed with free()
 			else if (cond > 0)
 				start = pivot + 1;
 			else if (cond <= 0)
@@ -571,7 +589,7 @@ const char *WordList::GetNearestWord(const char *wordStart, int searchLen /*= -1
 			pivot = (start + end) >> 1;
 			word = words[pivot];
 			cond = strncmp(wordStart, word, searchLen);
-			if (!cond && nonFuncChar(word[searchLen])) // maybe there should be a "non-word character" test here?
+			if (!cond && (!wordCharacters.contains(word[searchLen])))
 				return word; // result must not be freed with free()
 			else if (cond > 0)
 				start = pivot + 1;
@@ -632,8 +650,6 @@ char *WordList::GetNearestWords(
 	int end = len - 1; // upper bound of the api array block to search
 	int pivot; // index of api array element just being compared
 	int cond; // comparison result (in the sense of strcmp() result)
-	int oldpivot; // pivot storage to be able to browse the api array upwards and then downwards
-	const char *word; // api array element just being compared
 
 	if (0 == words)
 		return NULL;
@@ -642,66 +658,56 @@ char *WordList::GetNearestWords(
 		SortWordList(words, wordsNoCase, len);
 	}
 	if (ignoreCase) {
-		while (start <= end) { // binary searching loop
-			pivot = (start + end) >> 1;
-			word = wordsNoCase[pivot];
-			cond = CompareNCaseInsensitive(wordStart, word, searchLen);
+		while (start <= end) { // Binary searching loop
+			pivot = (start + end) / 2;
+			cond = CompareNCaseInsensitive(wordStart, wordsNoCase[pivot], searchLen);
 			if (!cond) {
-				oldpivot = pivot;
-				do { // browse sequentially the rest after the hit
-					wordlen = LengthWord(word, otherSeparator) + 1;
-					wordsNear.append(word, wordlen, ' ');
-					if (++pivot > end)
-						break;
-					word = wordsNoCase[pivot];
-				} while (!CompareNCaseInsensitive(wordStart, word, searchLen));
-
-				pivot = oldpivot;
-				for (;;) { // browse sequentially the rest before the hit
-					if (--pivot < start)
-						break;
-					word = wordsNoCase[pivot];
-					if (CompareNCaseInsensitive(wordStart, word, searchLen))
-						break;
-					wordlen = LengthWord(word, otherSeparator) + 1;
-					wordsNear.append(word, wordlen, ' ');
+				// Find first match
+				while ((pivot > start) &&
+					(0 == CompareNCaseInsensitive(wordStart, 
+						wordsNoCase[pivot-1], searchLen))) {
+					--pivot;
+				}
+				// Grab each match
+				while ((pivot <= end) &&
+					(0 == CompareNCaseInsensitive(wordStart, 
+						wordsNoCase[pivot], searchLen))) {
+					wordlen = LengthWord(wordsNoCase[pivot], otherSeparator) + 1;
+					wordsNear.append(wordsNoCase[pivot], wordlen, ' ');
+					++pivot;
 				}
 				return wordsNear.detach();
-			} else if (cond < 0)
+			} else if (cond < 0) {
 				end = pivot - 1;
-			else if (cond > 0)
+			} else if (cond > 0) {
 				start = pivot + 1;
+			}
 		}
-	} else {	// preserve the letter case
-		while (start <= end) { // binary searching loop
-			pivot = (start + end) >> 1;
-			word = words[pivot];
-			cond = strncmp(wordStart, word, searchLen);
+	} else {	// Preserve the letter case
+		while (start <= end) { // Binary searching loop
+			pivot = (start + end) / 2;
+			cond = strncmp(wordStart, words[pivot], searchLen);
 			if (!cond) {
-				oldpivot = pivot;
-				do { // browse sequentially the rest after the hit
-					wordlen = LengthWord(word, otherSeparator) + 1;
-					wordsNear.append(word, wordlen, ' ');
-					if (++pivot > end)
-						break;
-					word = words[pivot];
-				} while (!strncmp(wordStart, word, searchLen));
-
-				pivot = oldpivot;
-				for (;;) { // browse sequentially the rest before the hit
-					if (--pivot < start)
-						break;
-					word = words[pivot];
-					if (strncmp(wordStart, word, searchLen))
-						break;
-					wordlen = LengthWord(word, otherSeparator) + 1;
-					wordsNear.append(word, wordlen, ' ');
+				// Find first match
+				while ((pivot > start) &&
+					(0 == strncmp(wordStart, 
+						words[pivot-1], searchLen))) { 
+					--pivot;
+				}
+				// Grab each match
+				while ((pivot <= end) &&
+					(0 == strncmp(wordStart, 
+						words[pivot], searchLen))) { 
+					wordlen = LengthWord(words[pivot], otherSeparator) + 1;
+					wordsNear.append(words[pivot], wordlen, ' ');
+					++pivot;
 				}
 				return wordsNear.detach();
-			} else if (cond < 0)
+			} else if (cond < 0) {
 				end = pivot - 1;
-			else if (cond > 0)
+			} else if (cond > 0) {
 				start = pivot + 1;
+			}
 		}
 	}
 	return NULL;

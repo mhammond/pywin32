@@ -15,25 +15,32 @@ typedef void (*LexerFunction)(unsigned int startPos, int lengthDoc, int initStyl
  */
 class LexerModule {
 protected:
-	LexerModule *next;
+	const LexerModule *next;
 	int language;
-	const char *languageName;
 	LexerFunction fnLexer;
 	LexerFunction fnFolder;
-	
-	static LexerModule *base;
+	const char * const * wordListDescriptions;
+
+	static const LexerModule *base;
 	static int nextLanguage;
 
 public:
+	const char *languageName;
 	LexerModule(int language_, LexerFunction fnLexer_, 
-		const char *languageName_=0, LexerFunction fnFolder_=0);
-	int GetLanguage() { return language; }
+		const char *languageName_=0, LexerFunction fnFolder_=0,
+		const char * const wordListDescriptions_[] = NULL);
+	int GetLanguage() const { return language; }
+
+	// -1 is returned if no WordList information is available
+	int GetNumWordLists() const;
+	const char *GetWordListDescription(int index) const;
+
 	virtual void Lex(unsigned int startPos, int lengthDoc, int initStyle,
-                  WordList *keywordlists[], Accessor &styler);
+                  WordList *keywordlists[], Accessor &styler) const;
 	virtual void Fold(unsigned int startPos, int lengthDoc, int initStyle,
-                  WordList *keywordlists[], Accessor &styler);
-	static LexerModule *Find(int language);
-	static LexerModule *Find(const char *languageName);
+                  WordList *keywordlists[], Accessor &styler) const;
+	static const LexerModule *Find(int language);
+	static const LexerModule *Find(const char *languageName);
 };
 
 /**

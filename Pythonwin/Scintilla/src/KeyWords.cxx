@@ -2,7 +2,7 @@
 /** @file KeyWords.cxx
  ** Colourise for particular languages.
  **/
-// Copyright 1998-2001 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2002 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #include <stdlib.h>
@@ -19,15 +19,17 @@
 #include "Scintilla.h"
 #include "SciLexer.h"
 
-LexerModule *LexerModule::base = 0;
+const LexerModule *LexerModule::base = 0;
 int LexerModule::nextLanguage = SCLEX_AUTOMATIC+1;
 
 LexerModule::LexerModule(int language_, LexerFunction fnLexer_,
-	const char *languageName_, LexerFunction fnFolder_) :
+	const char *languageName_, LexerFunction fnFolder_,
+	const char * const wordListDescriptions_[]) :
 	language(language_), 
-	languageName(languageName_), 
 	fnLexer(fnLexer_), 
-	fnFolder(fnFolder_) {
+	fnFolder(fnFolder_), 
+	wordListDescriptions(wordListDescriptions_), 
+	languageName(languageName_) {
 	next = base;
 	base = this;
 	if (language == SCLEX_AUTOMATIC) {
@@ -36,8 +38,33 @@ LexerModule::LexerModule(int language_, LexerFunction fnLexer_,
 	}
 }
 
-LexerModule *LexerModule::Find(int language) {
-	LexerModule *lm = base;
+int LexerModule::GetNumWordLists() const {
+	if (wordListDescriptions == NULL) {
+		return -1;
+	} else {
+		int numWordLists = 0;
+
+		while (wordListDescriptions[numWordLists]) {
+			++numWordLists;
+		}
+
+		return numWordLists;
+	}
+}
+
+const char * LexerModule::GetWordListDescription(int index) const {
+	static const char *emptyStr = "";
+
+	PLATFORM_ASSERT(index < GetNumWordLists());
+	if (index >= GetNumWordLists()) {
+		return emptyStr;
+	} else {
+		return wordListDescriptions[index];
+ 	}
+}
+ 
+const LexerModule *LexerModule::Find(int language) {
+	const LexerModule *lm = base;
 	while (lm) {
 		if (lm->language == language) {
 			return lm;
@@ -47,9 +74,9 @@ LexerModule *LexerModule::Find(int language) {
 	return 0;
 }
 
-LexerModule *LexerModule::Find(const char *languageName) {
+const LexerModule *LexerModule::Find(const char *languageName) {
 	if (languageName) {
-		LexerModule *lm = base;
+		const LexerModule *lm = base;
 		while (lm) {
 			if (lm->languageName && 0 == strcmp(lm->languageName, languageName)) {
 				return lm;
@@ -61,15 +88,28 @@ LexerModule *LexerModule::Find(const char *languageName) {
 }
 
 void LexerModule::Lex(unsigned int startPos, int lengthDoc, int initStyle,
-	  WordList *keywordlists[], Accessor &styler) {
+	  WordList *keywordlists[], Accessor &styler) const {
 	if (fnLexer)
 		fnLexer(startPos, lengthDoc, initStyle, keywordlists, styler);
 }
 
 void LexerModule::Fold(unsigned int startPos, int lengthDoc, int initStyle,
-	  WordList *keywordlists[], Accessor &styler) {
-	if (fnFolder)
+	  WordList *keywordlists[], Accessor &styler) const {
+	if (fnFolder) {
+		int lineCurrent = styler.GetLine(startPos);
+		// Move back one line in case deletion wrecked current line fold state
+		if (lineCurrent > 0) {
+			lineCurrent--;
+			int newStartPos = styler.LineStart(lineCurrent);
+			lengthDoc += startPos - newStartPos;
+			startPos = newStartPos;
+			initStyle = 0;
+			if (startPos > 0) {
+				initStyle = styler.StyleAt(startPos - 1);
+			}
+		}
 		fnFolder(startPos, lengthDoc, initStyle, keywordlists, styler);
+	}
 }
 
 static void ColouriseNullDoc(unsigned int startPos, int length, int, WordList *[],
@@ -84,50 +124,55 @@ static void ColouriseNullDoc(unsigned int startPos, int length, int, WordList *[
 
 LexerModule lmNull(SCLEX_NULL, ColouriseNullDoc, "null");
 
-#ifdef __vms
-
-// The following code forces a reference to all of the Scintilla lexers.
-// If we don't do something like this, then the linker tends to "optimize"
-// them away. (eric@sourcegear.com)
-
-// Taken from wxWindow's stc.cpp. Walter.
-
+// Alternative historical name for Scintilla_LinkLexers
 int wxForceScintillaLexers(void) {
-  extern LexerModule lmAda;
-  extern LexerModule lmCPP;
-  extern LexerModule lmHTML;
-  extern LexerModule lmXML;
-  extern LexerModule lmProps;
-  extern LexerModule lmErrorList;
-  extern LexerModule lmMake;
-  extern LexerModule lmBatch;
-  extern LexerModule lmPerl;
-  extern LexerModule lmPython;
-  extern LexerModule lmSQL;
-  extern LexerModule lmVB;
-  extern LexerModule lmRuby;
-
-  if (
-      &lmAda
-      && &lmCPP
-      && &lmHTML
-      && &lmXML
-      && &lmProps
-      && &lmErrorList
-      && &lmMake
-      && &lmBatch
-      && &lmPerl
-      && &lmPython
-      && &lmSQL
-      && &lmVB
-      && &lmRuby      
-      )
-    {
-      return 1;
-    }
-  else
-    {
-      return 0;
-    }
+	return Scintilla_LinkLexers();
 }
-#endif
+
+// Shorten the code that declares a lexer and ensures it is linked in by calling a method.
+#define LINK_LEXER(lexer) \
+	extern LexerModule lexer; \
+	lexer.GetLanguage();
+
+// To add or remove a lexer, add or remove its file and run LexGen.py.
+
+// Force a reference to all of the Scintilla lexers so that the linker will
+// not remove the code of the lexers.
+int Scintilla_LinkLexers() {
+//++Autogenerated -- run src/LexGen.py to regenerate
+//**\(\tLINK_LEXER(\*);\n\)
+	LINK_LEXER(lmAda);
+	LINK_LEXER(lmAVE);
+	LINK_LEXER(lmBaan);
+	LINK_LEXER(lmBullant);
+	LINK_LEXER(lmConf);
+	LINK_LEXER(lmCPP);
+	LINK_LEXER(lmTCL);
+	LINK_LEXER(lmNncrontab);
+	LINK_LEXER(lmEiffel);
+	LINK_LEXER(lmEiffelkw);
+	LINK_LEXER(lmHTML);
+	LINK_LEXER(lmXML);
+	LINK_LEXER(lmASP);
+	LINK_LEXER(lmPHP);
+	LINK_LEXER(lmLISP);
+	LINK_LEXER(lmLua);
+	LINK_LEXER(lmMatlab);
+	LINK_LEXER(lmBatch);
+	LINK_LEXER(lmDiff);
+	LINK_LEXER(lmProps);
+	LINK_LEXER(lmMake);
+	LINK_LEXER(lmErrorList);
+	LINK_LEXER(lmLatex);
+	LINK_LEXER(lmPascal);
+	LINK_LEXER(lmPerl);
+	LINK_LEXER(lmPython);
+	LINK_LEXER(lmRuby);
+	LINK_LEXER(lmSQL);
+	LINK_LEXER(lmVB);
+	LINK_LEXER(lmVBScript);
+
+//--Autogenerated -- end of automatically generated section
+
+	return 1;
+}

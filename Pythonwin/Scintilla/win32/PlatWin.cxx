@@ -2,7 +2,7 @@
 /** @file PlatWin.cxx
  ** Implementation of platform facilities on Windows.
  **/
-// Copyright 1998-2001 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2002 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #include <stdlib.h>
@@ -10,10 +10,19 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <time.h>
+
+#define _WIN32_WINNT  0x0400
+#include <windows.h>
+#include <commctrl.h>
+#include <richedit.h>
 
 #include "Platform.h"
 #include "PlatformRes.h"
 #include "UniConversion.h"
+
+static CRITICAL_SECTION crPlatformLock;
+static HINSTANCE hinstPlatformRes = 0;
 
 Point Point::FromLong(long lpoint) {
 	return Point(static_cast<short>(LOWORD(lpoint)), static_cast<short>(HIWORD(lpoint)));
@@ -22,34 +31,6 @@ Point Point::FromLong(long lpoint) {
 static RECT RectFromPRectangle(PRectangle prc) {
 	RECT rc = {prc.left, prc.top, prc.right, prc.bottom};
 	return rc;
-}
-
-Colour::Colour(long lcol) {
-	co = lcol;
-}
-
-Colour::Colour(unsigned int red, unsigned int green, unsigned int blue) {
-	co = RGB(red, green, blue);
-}
-
-bool Colour::operator==(const Colour &other) const {
-	return co == other.co;
-}
-
-long Colour::AsLong() const {
-	return co;
-}
-
-unsigned int Colour::GetRed() {
-	return co & 0xff;
-}
-
-unsigned int Colour::GetGreen() {
-	return (co >> 8) & 0xff;
-}
-
-unsigned int Colour::GetBlue() {
-	return (co >> 16) & 0xff;
 }
 
 Palette::Palette() {
@@ -83,7 +64,7 @@ void Palette::WantFind(ColourPair &cp, bool want) {
 
 		if (used < numEntries) {
 			entries[used].desired = cp.desired;
-			entries[used].allocated = cp.desired;
+			entries[used].allocated.Set(cp.desired.AsLong());
 			used++;
 		}
 	} else {
@@ -93,7 +74,7 @@ void Palette::WantFind(ColourPair &cp, bool want) {
 				return;
 			}
 		}
-		cp.allocated = cp.desired;
+		cp.allocated.Set(cp.desired.AsLong());
 	}
 }
 
@@ -108,12 +89,12 @@ void Palette::Allocate(Window &) {
 		logpal->palVersion = 0x300;
 		logpal->palNumEntries = static_cast<WORD>(used);
 		for (int iPal=0;iPal<used;iPal++) {
-			Colour desired = entries[iPal].desired;
+			ColourDesired desired = entries[iPal].desired;
 			logpal->palPalEntry[iPal].peRed   = static_cast<BYTE>(desired.GetRed());
 			logpal->palPalEntry[iPal].peGreen = static_cast<BYTE>(desired.GetGreen());
 			logpal->palPalEntry[iPal].peBlue  = static_cast<BYTE>(desired.GetBlue());
-			entries[iPal].allocated =
-				PALETTERGB(desired.GetRed(), desired.GetGreen(), desired.GetBlue());
+			entries[iPal].allocated.Set(
+				PALETTERGB(desired.GetRed(), desired.GetGreen(), desired.GetBlue()));
 			// PC_NOCOLLAPSE means exact colours allocated even when in background this means other windows
 			// are less likely to get their colours and also flashes more when switching windows
 			logpal->palPalEntry[iPal].peFlags = PC_NOCOLLAPSE;
@@ -141,12 +122,12 @@ void SetLogFont(LOGFONT &lf, const char *faceName, int characterSet, int size, b
  * same then they may still be different.
  */
 int HashFont(const char *faceName, int characterSet, int size, bool bold, bool italic) {
-    return
-        size ^
-        (characterSet << 10) ^
-        (bold ? 0x10000000 : 0) ^
-        (italic ? 0x20000000 : 0) ^
-        faceName[0];
+	return
+		size ^
+		(characterSet << 10) ^
+		(bold ? 0x10000000 : 0) ^
+		(italic ? 0x20000000 : 0) ^
+		faceName[0];
 }
 
 class FontCached : Font {
@@ -168,16 +149,16 @@ public:
 FontCached *FontCached::first = 0;
 
 FontCached::FontCached(const char *faceName_, int characterSet_, int size_, bool bold_, bool italic_) :
-    next(0), usage(0), hash(0) {
-    SetLogFont(lf, faceName_, characterSet_, size_, bold_, italic_);
-    hash = HashFont(faceName_, characterSet_, size_, bold_, italic_);
+	next(0), usage(0), hash(0) {
+	::SetLogFont(lf, faceName_, characterSet_, size_, bold_, italic_);
+	hash = HashFont(faceName_, characterSet_, size_, bold_, italic_);
 	id = ::CreateFontIndirect(&lf);
 	usage = 1;
 }
 
 bool FontCached::SameAs(const char *faceName_, int characterSet_, int size_, bool bold_, bool italic_) {
 	return
-        (lf.lfHeight == -(abs(size_))) &&
+		(lf.lfHeight == -(abs(size_))) &&
 		(lf.lfWeight == (bold_ ? FW_BOLD : FW_NORMAL)) &&
 		(lf.lfItalic == static_cast<BYTE>(italic_ ? 1 : 0)) &&
 		(lf.lfCharSet == characterSet_) &&
@@ -187,43 +168,49 @@ bool FontCached::SameAs(const char *faceName_, int characterSet_, int size_, boo
 void FontCached::Release() {
 	if (id)
 		::DeleteObject(id);
-    id = 0;
+	id = 0;
 }
 
 FontID FontCached::FindOrCreate(const char *faceName_, int characterSet_, int size_, bool bold_, bool italic_) {
-    int hashFind = HashFont(faceName_, characterSet_, size_, bold_, italic_);
+	FontID ret = 0;
+	::EnterCriticalSection(&crPlatformLock);
+	int hashFind = HashFont(faceName_, characterSet_, size_, bold_, italic_);
 	for (FontCached *cur=first; cur; cur=cur->next) {
-        if ((cur->hash == hashFind) &&
-            cur->SameAs(faceName_, characterSet_, size_, bold_, italic_)) {
+		if ((cur->hash == hashFind) &&
+			cur->SameAs(faceName_, characterSet_, size_, bold_, italic_)) {
 			cur->usage++;
-			return cur->id;
+			ret = cur->id;
 		}
 	}
-	FontCached *fc = new FontCached(faceName_, characterSet_, size_, bold_, italic_);
-	if (fc) {
-		fc->next = first;
-		first = fc;
-		return fc->id;
-	} else {
-		return 0;
+	if (ret == 0) {
+		FontCached *fc = new FontCached(faceName_, characterSet_, size_, bold_, italic_);
+		if (fc) {
+			fc->next = first;
+			first = fc;
+			ret = fc->id;
+		}
 	}
+	::LeaveCriticalSection(&crPlatformLock);
+	return ret;
 }
 
 void FontCached::ReleaseId(FontID id_) {
+	::EnterCriticalSection(&crPlatformLock);
 	FontCached **pcur=&first;
 	for (FontCached *cur=first; cur; cur=cur->next) {
 		if (cur->id == id_) {
 			cur->usage--;
 			if (cur->usage == 0) {
 				*pcur = cur->next;
-                cur->Release();
+				cur->Release();
 				cur->next = 0;
 				delete cur;
 			}
-			return;
+			break;
 		}
 		pcur=&cur->next;
 	}
+	::LeaveCriticalSection(&crPlatformLock);
 }
 
 Font::Font() {
@@ -236,12 +223,11 @@ Font::~Font() {
 #define FONTS_CACHED
 
 void Font::Create(const char *faceName, int characterSet, int size, bool bold, bool italic) {
-#ifndef FONTS_CACHED
 	Release();
-
+#ifndef FONTS_CACHED
 	LOGFONT lf;
-    SetLogFont(lf, faceName, characterSet, size, bold, italic);
-    id = ::CreateFontIndirect(&lf);
+	::SetLogFont(lf, faceName, characterSet, size, bold, italic);
+	id = ::CreateFontIndirect(&lf);
 #else
 	id = FontCached::FindOrCreate(faceName, characterSet, size, bold, italic);
 #endif
@@ -258,7 +244,68 @@ void Font::Release() {
 	id = 0;
 }
 
-Surface::Surface() :
+class SurfaceImpl : public Surface {
+	bool unicodeMode;
+	HDC hdc;
+	bool hdcOwned;
+	HPEN pen;
+	HPEN penOld;
+	HBRUSH brush;
+	HBRUSH brushOld;
+	HFONT font;
+	HFONT fontOld;
+	HBITMAP bitmap;
+	HBITMAP bitmapOld;
+	HPALETTE paletteOld;
+	void BrushColor(ColourAllocated back);
+	void SetFont(Font &font_);
+
+	// Private so SurfaceImpl objects can not be copied
+	SurfaceImpl(const SurfaceImpl &) : Surface() {}
+	SurfaceImpl &operator=(const SurfaceImpl &) { return *this; }
+public:
+	SurfaceImpl();
+	virtual ~SurfaceImpl();
+
+	void Init();
+	void Init(SurfaceID sid);
+	void InitPixMap(int width, int height, Surface *surface_);
+
+	void Release();
+	bool Initialised();
+	void PenColour(ColourAllocated fore);
+	int LogPixelsY();
+	int DeviceHeightFont(int points);
+	void MoveTo(int x_, int y_);
+	void LineTo(int x_, int y_);
+	void Polygon(Point *pts, int npts, ColourAllocated fore, ColourAllocated back);
+	void RectangleDraw(PRectangle rc, ColourAllocated fore, ColourAllocated back);
+	void FillRectangle(PRectangle rc, ColourAllocated back);
+	void FillRectangle(PRectangle rc, Surface &surfacePattern);
+	void RoundedRectangle(PRectangle rc, ColourAllocated fore, ColourAllocated back);
+	void Ellipse(PRectangle rc, ColourAllocated fore, ColourAllocated back);
+	void Copy(PRectangle rc, Point from, Surface &surfaceSource);
+
+	void DrawTextNoClip(PRectangle rc, Font &font_, int ybase, const char *s, int len, ColourAllocated fore, ColourAllocated back);
+	void DrawTextClipped(PRectangle rc, Font &font_, int ybase, const char *s, int len, ColourAllocated fore, ColourAllocated back);
+	void MeasureWidths(Font &font_, const char *s, int len, int *positions);
+	int WidthText(Font &font_, const char *s, int len);
+	int WidthChar(Font &font_, char ch);
+	int Ascent(Font &font_);
+	int Descent(Font &font_);
+	int InternalLeading(Font &font_);
+	int ExternalLeading(Font &font_);
+	int Height(Font &font_);
+	int AverageCharWidth(Font &font_);
+
+	int SetPalette(Palette *pal, bool inBackGround);
+	void SetClip(PRectangle rc);
+	void FlushCachedState();
+
+	void SetUnicodeMode(bool unicodeMode_);
+};
+
+SurfaceImpl::SurfaceImpl() :
 	unicodeMode(false),
 	hdc(0), 	hdcOwned(false),
 	pen(0), 	penOld(0),
@@ -268,74 +315,75 @@ Surface::Surface() :
 	paletteOld(0) {
 }
 
-Surface::~Surface() {
+SurfaceImpl::~SurfaceImpl() {
 	Release();
 }
 
-void Surface::Release() {
+void SurfaceImpl::Release() {
 	if (penOld) {
-		::SelectObject(hdc, penOld);
+		::SelectObject(reinterpret_cast<HDC>(hdc), penOld);
 		::DeleteObject(pen);
 		penOld = 0;
 	}
 	pen = 0;
 	if (brushOld) {
-		::SelectObject(hdc, brushOld);
+		::SelectObject(reinterpret_cast<HDC>(hdc), brushOld);
 		::DeleteObject(brush);
 		brushOld = 0;
 	}
 	brush = 0;
 	if (fontOld) {
 		// Fonts are not deleted as they are owned by a Font object
-		::SelectObject(hdc, fontOld);
+		::SelectObject(reinterpret_cast<HDC>(hdc), fontOld);
 		fontOld = 0;
 	}
 	font =0;
 	if (bitmapOld) {
-		::SelectObject(hdc, bitmapOld);
+		::SelectObject(reinterpret_cast<HDC>(hdc), bitmapOld);
 		::DeleteObject(bitmap);
 		bitmapOld = 0;
 	}
 	bitmap = 0;
 	if (paletteOld) {
 		// Fonts are not deleted as they are owned by a Palette object
-		::SelectPalette(hdc, paletteOld, TRUE);
+		::SelectPalette(reinterpret_cast<HDC>(hdc), 
+			reinterpret_cast<HPALETTE>(paletteOld), TRUE);
 		paletteOld = 0;
 	}
 	if (hdcOwned) {
-		::DeleteDC(hdc);
+		::DeleteDC(reinterpret_cast<HDC>(hdc));
 		hdc = 0;
 		hdcOwned = false;
 	}
 }
 
-bool Surface::Initialised() {
-	return hdc;
+bool SurfaceImpl::Initialised() {
+	return hdc != 0;
 }
 
-void Surface::Init() {
+void SurfaceImpl::Init() {
 	Release();
 	hdc = ::CreateCompatibleDC(NULL);
 	hdcOwned = true;
-	::SetTextAlign(hdc, TA_BASELINE);
+	::SetTextAlign(reinterpret_cast<HDC>(hdc), TA_BASELINE);
 }
 
-void Surface::Init(SurfaceID sid) {
+void SurfaceImpl::Init(SurfaceID sid) {
 	Release();
-	hdc = sid;
-	::SetTextAlign(hdc, TA_BASELINE);
+	hdc = reinterpret_cast<HDC>(sid);
+	::SetTextAlign(reinterpret_cast<HDC>(hdc), TA_BASELINE);
 }
 
-void Surface::InitPixMap(int width, int height, Surface *surface_) {
+void SurfaceImpl::InitPixMap(int width, int height, Surface *surface_) {
 	Release();
-	hdc = ::CreateCompatibleDC(surface_->hdc);
+	hdc = ::CreateCompatibleDC(static_cast<SurfaceImpl *>(surface_)->hdc);
 	hdcOwned = true;
-	bitmap = ::CreateCompatibleBitmap(surface_->hdc, width, height);
+	bitmap = ::CreateCompatibleBitmap(static_cast<SurfaceImpl *>(surface_)->hdc, width, height);
 	bitmapOld = static_cast<HBITMAP>(::SelectObject(hdc, bitmap));
-	::SetTextAlign(hdc, TA_BASELINE);
+	::SetTextAlign(reinterpret_cast<HDC>(hdc), TA_BASELINE);
 }
 
-void Surface::PenColour(Colour fore) {
+void SurfaceImpl::PenColour(ColourAllocated fore) {
 	if (pen) {
 		::SelectObject(hdc, penOld);
 		::DeleteObject(pen);
@@ -343,10 +391,10 @@ void Surface::PenColour(Colour fore) {
 		penOld = 0;
 	}
 	pen = ::CreatePen(0,1,fore.AsLong());
-	penOld = static_cast<HPEN>(::SelectObject(hdc, pen));
+	penOld = static_cast<HPEN>(::SelectObject(reinterpret_cast<HDC>(hdc), pen));
 }
 
-void Surface::BrushColor(Colour back) {
+void SurfaceImpl::BrushColor(ColourAllocated back) {
 	if (brush) {
 		::SelectObject(hdc, brushOld);
 		::DeleteObject(brush);
@@ -354,52 +402,51 @@ void Surface::BrushColor(Colour back) {
 		brushOld = 0;
 	}
 	// Only ever want pure, non-dithered brushes
-	Colour colourNearest = ::GetNearestColor(hdc, back.AsLong());
+	ColourAllocated colourNearest = ::GetNearestColor(hdc, back.AsLong());
 	brush = ::CreateSolidBrush(colourNearest.AsLong());
 	brushOld = static_cast<HBRUSH>(::SelectObject(hdc, brush));
 }
 
-void Surface::SetFont(Font &font_) {
+void SurfaceImpl::SetFont(Font &font_) {
 	if (font_.GetID() != font) {
 		if (fontOld) {
 			::SelectObject(hdc, font_.GetID());
 		} else {
 			fontOld = static_cast<HFONT>(::SelectObject(hdc, font_.GetID()));
 		}
-		font = font_.GetID();
+		font = reinterpret_cast<HFONT>(font_.GetID());
 	}
 }
 
-int Surface::LogPixelsY() {
+int SurfaceImpl::LogPixelsY() {
 	return ::GetDeviceCaps(hdc, LOGPIXELSY);
 }
 
-int Surface::DeviceHeightFont(int points) {
+int SurfaceImpl::DeviceHeightFont(int points) {
 	return ::MulDiv(points, LogPixelsY(), 72);
 }
 
-void Surface::MoveTo(int x_, int y_) {
+void SurfaceImpl::MoveTo(int x_, int y_) {
 	::MoveToEx(hdc, x_, y_, 0);
 }
 
-void Surface::LineTo(int x_, int y_) {
+void SurfaceImpl::LineTo(int x_, int y_) {
 	::LineTo(hdc, x_, y_);
 }
 
-void Surface::Polygon(Point *pts, int npts, Colour fore,
-                      Colour back) {
+void SurfaceImpl::Polygon(Point *pts, int npts, ColourAllocated fore, ColourAllocated back) {
 	PenColour(fore);
 	BrushColor(back);
 	::Polygon(hdc, reinterpret_cast<POINT *>(pts), npts);
 }
 
-void Surface::RectangleDraw(PRectangle rc, Colour fore, Colour back) {
+void SurfaceImpl::RectangleDraw(PRectangle rc, ColourAllocated fore, ColourAllocated back) {
 	PenColour(fore);
 	BrushColor(back);
 	::Rectangle(hdc, rc.left, rc.top, rc.right, rc.bottom);
 }
 
-void Surface::FillRectangle(PRectangle rc, Colour back) {
+void SurfaceImpl::FillRectangle(PRectangle rc, ColourAllocated back) {
 	// Using ExtTextOut rather than a FillRect ensures that no dithering occurs.
 	// There is no need to allocate a brush either.
 	RECT rcw = RectFromPRectangle(rc);
@@ -407,10 +454,10 @@ void Surface::FillRectangle(PRectangle rc, Colour back) {
 	::ExtTextOut(hdc, rc.left, rc.top, ETO_OPAQUE, &rcw, "", 0, NULL);
 }
 
-void Surface::FillRectangle(PRectangle rc, Surface &surfacePattern) {
+void SurfaceImpl::FillRectangle(PRectangle rc, Surface &surfacePattern) {
 	HBRUSH br;
-	if (surfacePattern.bitmap)
-		br = ::CreatePatternBrush(surfacePattern.bitmap);
+	if (static_cast<SurfaceImpl &>(surfacePattern).bitmap)
+		br = ::CreatePatternBrush(static_cast<SurfaceImpl &>(surfacePattern).bitmap);
 	else	// Something is wrong so display in red
 		br = ::CreateSolidBrush(RGB(0xff, 0, 0));
 	RECT rcw = RectFromPRectangle(rc);
@@ -418,29 +465,31 @@ void Surface::FillRectangle(PRectangle rc, Surface &surfacePattern) {
 	::DeleteObject(br);
 }
 
-void Surface::RoundedRectangle(PRectangle rc, Colour fore, Colour back) {
+void SurfaceImpl::RoundedRectangle(PRectangle rc, ColourAllocated fore, ColourAllocated back) {
 	PenColour(fore);
 	BrushColor(back);
 	::RoundRect(hdc,
-          	rc.left + 1, rc.top,
-          	rc.right - 1, rc.bottom,
-          	8, 8 );
+		rc.left + 1, rc.top,
+		rc.right - 1, rc.bottom,
+		8, 8 );
 }
 
-void Surface::Ellipse(PRectangle rc, Colour fore, Colour back) {
+void SurfaceImpl::Ellipse(PRectangle rc, ColourAllocated fore, ColourAllocated back) {
 	PenColour(fore);
 	BrushColor(back);
 	::Ellipse(hdc, rc.left, rc.top, rc.right, rc.bottom);
 }
 
-void Surface::Copy(PRectangle rc, Point from, Surface &surfaceSource) {
-	::BitBlt(hdc, rc.left, rc.top, rc.Width(), rc.Height(),
-		surfaceSource.hdc, from.x, from.y, SRCCOPY);
+void SurfaceImpl::Copy(PRectangle rc, Point from, Surface &surfaceSource) {
+	::BitBlt(hdc, 
+		rc.left, rc.top, rc.Width(), rc.Height(),
+		static_cast<SurfaceImpl &>(surfaceSource).hdc, from.x, from.y, SRCCOPY);
 }
 
 #define MAX_US_LEN 5000
 
-void Surface::DrawText(PRectangle rc, Font &font_, int ybase, const char *s, int len, Colour fore, Colour back) {
+void SurfaceImpl::DrawTextNoClip(PRectangle rc, Font &font_, int ybase, const char *s, int len, 
+	ColourAllocated fore, ColourAllocated back) {
 	SetFont(font_);
 	::SetTextColor(hdc, fore.AsLong());
 	::SetBkColor(hdc, back.AsLong());
@@ -455,7 +504,8 @@ void Surface::DrawText(PRectangle rc, Font &font_, int ybase, const char *s, int
 	}
 }
 
-void Surface::DrawTextClipped(PRectangle rc, Font &font_, int ybase, const char *s, int len, Colour fore, Colour back) {
+void SurfaceImpl::DrawTextClipped(PRectangle rc, Font &font_, int ybase, const char *s, int len, 
+	ColourAllocated fore, ColourAllocated back) {
 	SetFont(font_);
 	::SetTextColor(hdc, fore.AsLong());
 	::SetBkColor(hdc, back.AsLong());
@@ -470,7 +520,7 @@ void Surface::DrawTextClipped(PRectangle rc, Font &font_, int ybase, const char 
 	}
 }
 
-int Surface::WidthText(Font &font_, const char *s, int len) {
+int SurfaceImpl::WidthText(Font &font_, const char *s, int len) {
 	SetFont(font_);
 	SIZE sz={0,0};
 	if (unicodeMode) {
@@ -484,7 +534,7 @@ int Surface::WidthText(Font &font_, const char *s, int len) {
 	return sz.cx;
 }
 
-void Surface::MeasureWidths(Font &font_, const char *s, int len, int *positions) {
+void SurfaceImpl::MeasureWidths(Font &font_, const char *s, int len, int *positions) {
 	SetFont(font_);
 	SIZE sz={0,0};
 	int fit = 0;
@@ -520,86 +570,99 @@ void Surface::MeasureWidths(Font &font_, const char *s, int len, int *positions)
 			}
 			ui++;
 		}
-		positions[i] = sz.cx;
 	} else {
 		if (!::GetTextExtentExPoint(hdc, s, len, 30000, &fit, positions, &sz)) {
 			// Eeek - a NULL DC or other foolishness could cause this.
 			// The least we can do is set the positions to zero!
 			memset(positions, 0, len * sizeof(*positions));
+		} else if (fit < len) {
+			// For some reason, such as an incomplete DBCS character
+			// Not all the positions are filled in so make them equal to end.
+			for (int i=fit;i<len;i++)
+				positions[i] = positions[fit-1];
 		}
 	}
 }
 
-int Surface::WidthChar(Font &font_, char ch) {
+int SurfaceImpl::WidthChar(Font &font_, char ch) {
 	SetFont(font_);
 	SIZE sz;
 	::GetTextExtentPoint32(hdc, &ch, 1, &sz);
 	return sz.cx;
 }
 
-int Surface::Ascent(Font &font_) {
+int SurfaceImpl::Ascent(Font &font_) {
 	SetFont(font_);
 	TEXTMETRIC tm;
 	::GetTextMetrics(hdc, &tm);
 	return tm.tmAscent;
 }
 
-int Surface::Descent(Font &font_) {
+int SurfaceImpl::Descent(Font &font_) {
 	SetFont(font_);
 	TEXTMETRIC tm;
 	::GetTextMetrics(hdc, &tm);
 	return tm.tmDescent;
 }
 
-int Surface::InternalLeading(Font &font_) {
+int SurfaceImpl::InternalLeading(Font &font_) {
 	SetFont(font_);
 	TEXTMETRIC tm;
 	::GetTextMetrics(hdc, &tm);
 	return tm.tmInternalLeading;
 }
 
-int Surface::ExternalLeading(Font &font_) {
+int SurfaceImpl::ExternalLeading(Font &font_) {
 	SetFont(font_);
 	TEXTMETRIC tm;
 	::GetTextMetrics(hdc, &tm);
 	return tm.tmExternalLeading;
 }
 
-int Surface::Height(Font &font_) {
+int SurfaceImpl::Height(Font &font_) {
 	SetFont(font_);
 	TEXTMETRIC tm;
 	::GetTextMetrics(hdc, &tm);
 	return tm.tmHeight;
 }
 
-int Surface::AverageCharWidth(Font &font_) {
+int SurfaceImpl::AverageCharWidth(Font &font_) {
 	SetFont(font_);
 	TEXTMETRIC tm;
 	::GetTextMetrics(hdc, &tm);
 	return tm.tmAveCharWidth;
 }
 
-int Surface::SetPalette(Palette *pal, bool inBackGround) {
+int SurfaceImpl::SetPalette(Palette *pal, bool inBackGround) {
 	if (paletteOld) {
-		::SelectPalette(hdc,paletteOld,TRUE);
+		::SelectPalette(hdc, paletteOld, TRUE);
 	}
 	paletteOld = 0;
 	int changes = 0;
 	if (pal->allowRealization) {
-		paletteOld = ::SelectPalette(hdc, pal->hpal, inBackGround);
+		paletteOld = ::SelectPalette(hdc, 
+			reinterpret_cast<HPALETTE>(pal->hpal), inBackGround);
 		changes = ::RealizePalette(hdc);
 	}
 	return changes;
 }
 
-void Surface::SetClip(PRectangle rc) {
+void SurfaceImpl::SetClip(PRectangle rc) {
 	::IntersectClipRect(hdc, rc.left, rc.top, rc.right, rc.bottom);
 }
 
-void Surface::FlushCachedState() {
+void SurfaceImpl::FlushCachedState() {
 	pen = 0;
 	brush = 0;
 	font = 0;
+}
+
+void SurfaceImpl::SetUnicodeMode(bool unicodeMode_) {
+	unicodeMode=unicodeMode_;
+}
+
+Surface *Surface::Allocate() {
+	return new SurfaceImpl;
 }
 
 Window::~Window() {
@@ -607,7 +670,7 @@ Window::~Window() {
 
 void Window::Destroy() {
 	if (id)
-		::DestroyWindow(id);
+		::DestroyWindow(reinterpret_cast<HWND>(id));
 	id = 0;
 }
 
@@ -617,12 +680,13 @@ bool Window::HasFocus() {
 
 PRectangle Window::GetPosition() {
 	RECT rc;
-	::GetWindowRect(id, &rc);
+	::GetWindowRect(reinterpret_cast<HWND>(id), &rc);
 	return PRectangle(rc.left, rc.top, rc.right, rc.bottom);
 }
 
 void Window::SetPosition(PRectangle rc) {
-	::SetWindowPos(id, 0, rc.left, rc.top, rc.Width(), rc.Height(), 0);
+	::SetWindowPos(reinterpret_cast<HWND>(id), 
+		0, rc.left, rc.top, rc.Width(), rc.Height(), 0);
 }
 
 void Window::SetPositionRelative(PRectangle rc, Window) {
@@ -631,40 +695,39 @@ void Window::SetPositionRelative(PRectangle rc, Window) {
 
 PRectangle Window::GetClientPosition() {
 	RECT rc;
-	::GetClientRect(id, &rc);
+	::GetClientRect(reinterpret_cast<HWND>(id), &rc);
 	return  PRectangle(rc.left, rc.top, rc.right, rc.bottom);
 }
 
 void Window::Show(bool show) {
 	if (show)
-		::ShowWindow(id, SW_SHOWNORMAL);
+		::ShowWindow(reinterpret_cast<HWND>(id), SW_SHOWNORMAL);
 	else
-		::ShowWindow(id, SW_HIDE);
+		::ShowWindow(reinterpret_cast<HWND>(id), SW_HIDE);
 }
 
 void Window::InvalidateAll() {
-	::InvalidateRect(id, NULL, FALSE);
+	::InvalidateRect(reinterpret_cast<HWND>(id), NULL, FALSE);
 }
 
 void Window::InvalidateRectangle(PRectangle rc) {
 	RECT rcw = RectFromPRectangle(rc);
-	::InvalidateRect(id, &rcw, FALSE);
+	::InvalidateRect(reinterpret_cast<HWND>(id), &rcw, FALSE);
+}
+
+static LRESULT Window_SendMessage(Window *w, UINT msg, WPARAM wParam=0, LPARAM lParam=0) {
+	return ::SendMessage(reinterpret_cast<HWND>(w->GetID()), msg, wParam, lParam);
 }
 
 void Window::SetFont(Font &font) {
-	SendMessage(WM_SETFONT,
+	Window_SendMessage(this, WM_SETFONT,
 		reinterpret_cast<WPARAM>(font.GetID()), 0);
 }
-
-static HINSTANCE hinstPlatformRes = 0;
 
 void Window::SetCursor(Cursor curs) {
 	switch (curs) {
 	case cursorText:
 		::SetCursor(::LoadCursor(NULL,IDC_IBEAM));
-		break;
-	case cursorArrow:
-		::SetCursor(::LoadCursor(NULL,IDC_ARROW));
 		break;
 	case cursorUp:
 		::SetCursor(::LoadCursor(NULL,IDC_UPARROW));
@@ -680,35 +743,23 @@ void Window::SetCursor(Cursor curs) {
 		break;
 	case cursorReverseArrow: {
 			if (!hinstPlatformRes)
-				hinstPlatformRes = GetModuleHandle("Scintilla");
+				hinstPlatformRes = ::GetModuleHandle("Scintilla");
 			if (!hinstPlatformRes)
-				hinstPlatformRes = GetModuleHandle("SciLexer");
+				hinstPlatformRes = ::GetModuleHandle("SciLexer");
 			if (!hinstPlatformRes)
-				hinstPlatformRes = GetModuleHandle(NULL);
+				hinstPlatformRes = ::GetModuleHandle(NULL);
 			::SetCursor(::LoadCursor(hinstPlatformRes, MAKEINTRESOURCE(IDC_MARGIN)));
 		}
+		break;
+	case cursorArrow:
+	case cursorInvalid:	// Should not occur, but just in case.
+		::SetCursor(::LoadCursor(NULL,IDC_ARROW));
 		break;
 	}
 }
 
 void Window::SetTitle(const char *s) {
-	::SetWindowText(id, s);
-}
-
-LRESULT Window::SendMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
-	if (id)
-		return ::SendMessage(id, msg, wParam, lParam);
-	else
-		return 0;
-}
-
-int Window::GetDlgCtrlID() {
-	return ::GetDlgCtrlID(id);
-}
-
-HINSTANCE Window::GetInstance() {
-	return reinterpret_cast<HINSTANCE>(
-		::GetWindowLong(id,GWL_HINSTANCE));
+	::SetWindowText(reinterpret_cast<HWND>(id), s);
 }
 
 ListBox::ListBox() : desiredVisibleRows(5), maxItemCharacters(0), aveCharWidth(8) {
@@ -718,11 +769,15 @@ ListBox::~ListBox() {
 }
 
 void ListBox::Create(Window &parent, int ctrlID) {
+	HINSTANCE hinstanceParent = reinterpret_cast<HINSTANCE>(
+		::GetWindowLong(reinterpret_cast<HWND>(parent.GetID()),GWL_HINSTANCE));
 	id = ::CreateWindowEx(
-                WS_EX_WINDOWEDGE, "listbox", "",
-       		WS_CHILD | WS_THICKFRAME | WS_VSCROLL | LBS_SORT | LBS_NOTIFY,
-       		100,100, 150,80, parent.GetID(), reinterpret_cast<HMENU>(ctrlID),
-		parent.GetInstance(), 0);
+		WS_EX_WINDOWEDGE, "listbox", "",
+		WS_CHILD | WS_THICKFRAME | WS_VSCROLL | LBS_NOTIFY,
+		100,100, 150,80, reinterpret_cast<HWND>(parent.GetID()), 
+		reinterpret_cast<HMENU>(ctrlID),
+		hinstanceParent, 
+		0);
 }
 
 void ListBox::SetFont(Font &font) {
@@ -730,7 +785,7 @@ void ListBox::SetFont(Font &font) {
 }
 
 void ListBox::SetAverageCharWidth(int width) {
-    aveCharWidth = width;
+	aveCharWidth = width;
 }
 
 void ListBox::SetVisibleRows(int rows) {
@@ -739,56 +794,56 @@ void ListBox::SetVisibleRows(int rows) {
 
 PRectangle ListBox::GetDesiredRect() {
 	PRectangle rcDesired = GetPosition();
-	int itemHeight = SendMessage(LB_GETITEMHEIGHT, 0);
+	int itemHeight = Window_SendMessage(this, LB_GETITEMHEIGHT, 0);
 	int rows = Length();
 	if ((rows == 0) || (rows > desiredVisibleRows))
 		rows = desiredVisibleRows;
 	// The +6 allows for borders
 	rcDesired.bottom = rcDesired.top + 6 + itemHeight * rows;
-    int width = maxItemCharacters;
-    if (width < 12)
-        width = 12;
+	int width = maxItemCharacters;
+	if (width < 12)
+		width = 12;
 	rcDesired.right = rcDesired.left + width * (aveCharWidth+aveCharWidth/3);
-    if (Length() > rows)
-        rcDesired.right = rcDesired.right + GetSystemMetrics(SM_CXVSCROLL);
+	if (Length() > rows)
+		rcDesired.right = rcDesired.right + ::GetSystemMetrics(SM_CXVSCROLL);
 	return rcDesired;
 }
 
 void ListBox::Clear() {
-	SendMessage(LB_RESETCONTENT);
-    maxItemCharacters = 0;
+	Window_SendMessage(this, LB_RESETCONTENT);
+	maxItemCharacters = 0;
 }
 
 void ListBox::Append(char *s) {
-	SendMessage(LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(s));
-    size_t len = strlen(s);
-    if (maxItemCharacters < len)
-        maxItemCharacters = len;
+	Window_SendMessage(this, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(s));
+	size_t len = strlen(s);
+	if (maxItemCharacters < len)
+		maxItemCharacters = len;
 }
 
 int ListBox::Length() {
-	return SendMessage(LB_GETCOUNT);
+	return Window_SendMessage(this, LB_GETCOUNT);
 }
 
 void ListBox::Select(int n) {
-	SendMessage(LB_SETCURSEL, n);
+	Window_SendMessage(this, LB_SETCURSEL, n);
 }
 
 int ListBox::GetSelection() {
-	return SendMessage(LB_GETCURSEL);
+	return Window_SendMessage(this, LB_GETCURSEL);
 }
 
 int ListBox::Find(const char *prefix) {
-	return SendMessage(LB_FINDSTRING, static_cast<WPARAM>(-1),
-        reinterpret_cast<LPARAM>(prefix));
+	return Window_SendMessage(this, LB_FINDSTRING, static_cast<WPARAM>(-1),
+		reinterpret_cast<LPARAM>(prefix));
 }
 
 void ListBox::GetValue(int n, char *value, int len) {
-	int lenText = SendMessage(LB_GETTEXTLEN, n);
+	int lenText = Window_SendMessage(this, LB_GETTEXTLEN, n);
 	if ((len > 0) && (lenText > 0)){
 		char *text = new char[len+1];
 		if (text) {
-			SendMessage(LB_GETTEXT, n, reinterpret_cast<LPARAM>(text));
+			Window_SendMessage(this, LB_GETTEXT, n, reinterpret_cast<LPARAM>(text));
 			strncpy(value, text, len);
 			value[len-1] = '\0';
 			delete []text;
@@ -814,20 +869,69 @@ void Menu::CreatePopUp() {
 
 void Menu::Destroy() {
 	if (id)
-		::DestroyMenu(id);
+		::DestroyMenu(reinterpret_cast<HMENU>(id));
 	id = 0;
 }
 
 void Menu::Show(Point pt, Window &w) {
-	::TrackPopupMenu(id, 0, pt.x - 4, pt.y, 0, w.GetID(), NULL);
+	::TrackPopupMenu(reinterpret_cast<HMENU>(id), 
+		0, pt.x - 4, pt.y, 0, 
+		reinterpret_cast<HWND>(w.GetID()), NULL);
 	Destroy();
 }
 
-Colour Platform::Chrome() {
+static bool initialisedET = false;
+static bool usePerformanceCounter = false;
+static LARGE_INTEGER frequency;
+
+ElapsedTime::ElapsedTime() {
+	if (!initialisedET) {
+		usePerformanceCounter = ::QueryPerformanceFrequency(&frequency) != 0;
+		initialisedET = true;
+	}
+	if (usePerformanceCounter) {
+		LARGE_INTEGER timeVal;
+		::QueryPerformanceCounter(&timeVal);
+		bigBit = timeVal.HighPart;
+		littleBit = timeVal.LowPart;
+	} else {
+		bigBit = clock();
+	}
+}
+
+double ElapsedTime::Duration(bool reset) {
+	double result;
+	long endBigBit;
+	long endLittleBit;
+
+	if (usePerformanceCounter) {
+		LARGE_INTEGER lEnd;
+		::QueryPerformanceCounter(&lEnd);
+		endBigBit = lEnd.HighPart;
+		endLittleBit = lEnd.LowPart;
+		LARGE_INTEGER lBegin;
+		lBegin.HighPart = bigBit;
+		lBegin.LowPart = littleBit;
+		double elapsed = lEnd.QuadPart - lBegin.QuadPart;
+		result = elapsed / static_cast<double>(frequency.QuadPart);
+	} else {
+		endBigBit = clock();
+		endLittleBit = 0;
+		double elapsed = endBigBit - bigBit;
+		result = elapsed / CLOCKS_PER_SEC;
+	}
+	if (reset) {
+		bigBit = endBigBit;
+		littleBit = endLittleBit;
+	}
+	return result;
+}
+
+ColourDesired Platform::Chrome() {
 	return ::GetSysColor(COLOR_3DFACE);
 }
 
-Colour Platform::ChromeHighlight() {
+ColourDesired Platform::ChromeHighlight() {
 	return ::GetSysColor(COLOR_3DHIGHLIGHT);
 }
 
@@ -848,11 +952,15 @@ void Platform::DebugDisplay(const char *s) {
 }
 
 bool Platform::IsKeyDown(int key) {
-	return ::GetKeyState(key) & 0x80000000;
+	return (::GetKeyState(key) & 0x80000000) != 0;
 }
 
 long Platform::SendScintilla(WindowID w, unsigned int msg, unsigned long wParam, long lParam) {
-	return ::SendMessage(w, msg, wParam, lParam);
+	return ::SendMessage(reinterpret_cast<HWND>(w), msg, wParam, lParam);
+}
+
+bool Platform::IsDBCSLeadByte(int codePage, char ch) {
+	return ::IsDBCSLeadByteEx(codePage, ch) != 0;
 }
 
 // These are utility functions not really tied to a platform
@@ -921,4 +1029,13 @@ int Platform::Clamp(int val, int minVal, int maxVal) {
 	if (val < minVal)
 		val = minVal;
 	return val;
+}
+
+void Platform_Initialise(void *hInstance) {
+	::InitializeCriticalSection(&crPlatformLock);
+	hinstPlatformRes = reinterpret_cast<HINSTANCE>(hInstance);
+}
+
+void Platform_Finalise() {
+	::DeleteCriticalSection(&crPlatformLock);
 }

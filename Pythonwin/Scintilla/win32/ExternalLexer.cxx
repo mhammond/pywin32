@@ -9,8 +9,11 @@
 #include <stdio.h> 
 #include <ctype.h> 
 
-#include "SciLexer.h"
+#define _WIN32_WINNT  0x0400
+#include <windows.h>
+
 #include "Platform.h"
+#include "SciLexer.h"
 #include "PropSet.h"
 #include "Accessor.h"
 #include "DocumentAccessor.h"
@@ -21,6 +24,7 @@
 int LexerManager::UseCount = 0;
 LexerLibrary *LexerManager::first = NULL;
 LexerLibrary *LexerManager::last = NULL;
+LexerManager *LexerManager::firstlm = NULL;
 
 //------------------------------------------
 //
@@ -58,7 +62,7 @@ void DeleteWLStrings(char *strs[]) {
 }
 
 void ExternalLexerModule::Lex(unsigned int startPos, int lengthDoc, int initStyle,
-                              WordList *keywordlists[], Accessor &styler) {
+                              WordList *keywordlists[], Accessor &styler) const {
 	if (!fneLexer)
 		return ;
 
@@ -77,7 +81,7 @@ void ExternalLexerModule::Lex(unsigned int startPos, int lengthDoc, int initStyl
 }
 
 void ExternalLexerModule::Fold(unsigned int startPos, int lengthDoc, int initStyle,
-                               WordList *keywordlists[], Accessor &styler) {
+                               WordList *keywordlists[], Accessor &styler) const {
 	if (!fneFolder)
 		return ;
 
@@ -210,7 +214,8 @@ LexerManager::LexerManager() {
 	
 	UseCount++;
 	if (1 == UseCount) {
-		EnumerateLexers();
+		firstlm = this;
+		m_bLoaded = false;
 	}
 }
 
@@ -235,20 +240,18 @@ void LexerManager::EnumerateLexers() {
 	}
 
 	SString sPattern(sPath);
-
-	sPattern.append("*.lexer");
+	sPattern += "*.lexer";
 
 	hFind = FindFirstFile(sPattern.c_str(), &FindFileData);
 	if (hFind != INVALID_HANDLE_VALUE) {
 		//Found the first file...
 		BOOL found = TRUE;
-		LexerLibrary *lib = NULL;
 		SString to_open;
 
 		while (found) {
-			to_open.assign(sPath);
+			to_open = sPath;
 			to_open += FindFileData.cFileName;
-			lib = new LexerLibrary(to_open.c_str());
+			LexerLibrary *lib = new LexerLibrary(to_open.c_str());
 			if (NULL != first) {
 				last->next = lib;
 				last = lib;
@@ -280,4 +283,31 @@ LexerManager::~LexerManager() {
 			last = NULL;
 		}
 	}
+	if (this == firstlm)
+		firstlm = NULL;
 }
+
+void LexerManager::Load()
+{
+	if(!m_bLoaded)
+	{
+		m_bLoaded = true;
+		EnumerateLexers();
+	}
+}
+
+// Return a LexerManager, or create one and then return it.
+LexerManager *LexerManager::GetInstance() {
+	if(!firstlm)
+		firstlm = new LexerManager;
+	return firstlm;
+}
+
+LMMinder::~LMMinder()
+{
+	LexerManager *rem = LexerManager::firstlm;
+	if(rem)
+		delete rem;
+}
+
+LMMinder minder;

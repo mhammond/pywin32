@@ -656,7 +656,12 @@ static void ColourisePerlDoc(unsigned int startPos, int length, int initStyle,
 		}
 		chPrev = ch;
 	}
-	styler.ColourTo(lengthDoc, state);
+	styler.ColourTo(lengthDoc - 1, state);
 }
 
-LexerModule lmPerl(SCLEX_PERL, ColourisePerlDoc, "perl");
+static const char * const perlWordListDesc[] = {
+	"Perl keywords",
+	0
+};
+
+LexerModule lmPerl(SCLEX_PERL, ColourisePerlDoc, "perl", 0, perlWordListDesc);

@@ -2,7 +2,7 @@
 /** @file Document.cxx
  ** Text document that handles notifications, DBCS, styling, words and end of line.
  **/
-// Copyright 1998-2001 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2002 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #include <stdlib.h>
@@ -19,7 +19,7 @@
 #include "RESearch.h"
 
 // This is ASCII specific but is safe with chars >= 0x80
-inline bool isspacechar(unsigned char ch) {
+static inline bool isspacechar(unsigned char ch) {
 	return (ch == ' ') || ((ch >= 0x09) && (ch <= 0x0d));
 }
 
@@ -33,12 +33,10 @@ Document::Document() {
 	dbcsCodePage = 0;
 	stylingBits = 5;
 	stylingBitsMask = 0x1F;
-	stylingPos = 0;
 	stylingMask = 0;
-	for (int ch = 0; ch < 256; ch++) {
-		wordchars[ch] = isalnum(ch) || ch == '_';
-	}
+	SetWordChars(0);
 	endStyled = 0;
+	styleClock = 0;
 	enteredCount = 0;
 	enteredReadOnlyCount = 0;
 	tabInChars = 8;
@@ -183,7 +181,7 @@ int Document::GetLastChild(int lineParent, int level) {
 	if (lineMaxSubord > lineParent) {
 		if (level > (GetLevel(lineMaxSubord + 1) & SC_FOLDLEVELNUMBERMASK)) {
 			// Have chewed up some whitespace that belongs to a parent so seek back
-			if ((lineMaxSubord > lineParent) && (GetLevel(lineMaxSubord) & SC_FOLDLEVELWHITEFLAG)) {
+			if (GetLevel(lineMaxSubord) & SC_FOLDLEVELWHITEFLAG) {
 				lineMaxSubord--;
 			}
 		}
@@ -220,7 +218,6 @@ bool Document::IsCrLf(int pos) {
 	return (cb.CharAt(pos) == '\r') && (cb.CharAt(pos + 1) == '\n');
 }
 
-#if PLAT_WIN
 bool Document::IsDBCS(int pos) {
 	if (dbcsCodePage) {
 		if (SC_CP_UTF8 == dbcsCodePage) {
@@ -233,7 +230,7 @@ bool Document::IsDBCS(int pos) {
 			while (startLine > 0 && cb.CharAt(startLine) != '\r' && cb.CharAt(startLine) != '\n')
 				startLine--;
 			while (startLine <= pos) {
-				if (IsDBCSLeadByteEx(dbcsCodePage, cb.CharAt(startLine))) {
+				if (Platform::IsDBCSLeadByte(dbcsCodePage, cb.CharAt(startLine))) {
 					startLine++;
 					if (startLine >= pos)
 						return true;
@@ -244,13 +241,6 @@ bool Document::IsDBCS(int pos) {
 	}
 	return false;
 }
-#else
-// PLAT_GTK or PLAT_WX
-// TODO: support DBCS under GTK+ and WX
-bool Document::IsDBCS(int) {
-	return false;
-}
-#endif
 
 int Document::LenChar(int pos) {
 	if (IsCrLf(pos)) {
@@ -303,7 +293,6 @@ int Document::MovePositionOutsideChar(int pos, int moveDir, bool checkLineEnd) {
 
 	// Not between CR and LF
 
-#if PLAT_WIN
 	if (dbcsCodePage) {
 		if (SC_CP_UTF8 == dbcsCodePage) {
 			unsigned char ch = static_cast<unsigned char>(cb.CharAt(pos));
@@ -325,12 +314,11 @@ int Document::MovePositionOutsideChar(int pos, int moveDir, bool checkLineEnd) {
 			while (startLine < pos) {
 				if (atLeadByte)
 					atLeadByte = false;
-				else if (IsDBCSLeadByteEx(dbcsCodePage, cb.CharAt(startLine)))
+				else if (Platform::IsDBCSLeadByte(dbcsCodePage, cb.CharAt(startLine)))
 					atLeadByte = true;
 				else
 					atLeadByte = false;
 				startLine++;
-				//Platform::DebugPrintf("DBCS %s\n", atlead ? "D" : "-");
 			}
 
 
@@ -343,7 +331,6 @@ int Document::MovePositionOutsideChar(int pos, int moveDir, bool checkLineEnd) {
 			}
 		}
 	}
-#endif
 
 	return pos;
 }
@@ -357,9 +344,11 @@ void Document::ModifiedAt(int pos) {
 // SetStyleAt does not change the persistent state of a document
 
 // Unlike Undo, Redo, and InsertStyledString, the pos argument is a cell number not a char number
-void Document::DeleteChars(int pos, int len) {
+bool Document::DeleteChars(int pos, int len) {
+	if (len == 0)
+		return false;
 	if ((pos + len) > Length())
-		return ;
+		return false;
 	if (cb.IsReadOnly() && enteredReadOnlyCount == 0) {
 		enteredReadOnlyCount++;
 		NotifyModifyAttempt();
@@ -378,7 +367,10 @@ void Document::DeleteChars(int pos, int len) {
 			const char *text = cb.DeleteChars(pos * 2, len * 2);
 			if (startSavePoint && cb.IsCollectingUndo())
 				NotifySavePoint(!startSavePoint);
-			ModifiedAt(pos);
+			if ((pos < Length()) || (pos == 0))
+				ModifiedAt(pos);
+			else
+				ModifiedAt(pos-1);
 			NotifyModified(
 			    DocModification(
 			        SC_MOD_DELETETEXT | SC_PERFORMED_USER,
@@ -387,9 +379,10 @@ void Document::DeleteChars(int pos, int len) {
 		}
 		enteredCount--;
 	}
+	return !cb.IsReadOnly();
 }
 
-void Document::InsertStyledString(int position, char *s, int insertLength) {
+bool Document::InsertStyledString(int position, char *s, int insertLength) {
 	if (cb.IsReadOnly() && enteredReadOnlyCount == 0) {
 		enteredReadOnlyCount++;
 		NotifyModifyAttempt();
@@ -417,6 +410,7 @@ void Document::InsertStyledString(int position, char *s, int insertLength) {
 		}
 		enteredCount--;
 	}
+	return !cb.IsReadOnly();
 }
 
 int Document::Undo() {
@@ -505,29 +499,31 @@ int Document::Redo() {
 	return newPos;
 }
 
-void Document::InsertChar(int pos, char ch) {
+bool Document::InsertChar(int pos, char ch) {
 	char chs[2];
 	chs[0] = ch;
 	chs[1] = 0;
-	InsertStyledString(pos*2, chs, 2);
+	return InsertStyledString(pos*2, chs, 2);
 }
 
 // Insert a null terminated string
-void Document::InsertString(int position, const char *s) {
-	InsertString(position, s, strlen(s));
+bool Document::InsertString(int position, const char *s) {
+	return InsertString(position, s, strlen(s));
 }
 
 // Insert a string with a length
-void Document::InsertString(int position, const char *s, int insertLength) {
+bool Document::InsertString(int position, const char *s, int insertLength) {
+	bool changed = false;
 	char *sWithStyle = new char[insertLength * 2];
 	if (sWithStyle) {
 		for (int i = 0; i < insertLength; i++) {
 			sWithStyle[i*2] = s[i];
 			sWithStyle[i*2 + 1] = 0;
 		}
-		InsertStyledString(position*2, sWithStyle, insertLength*2);
+		changed = InsertStyledString(position*2, sWithStyle, insertLength*2);
 		delete []sWithStyle;
 	}
+	return changed;
 }
 
 void Document::ChangeChar(int pos, char ch) {
@@ -539,22 +535,18 @@ void Document::DelChar(int pos) {
 	DeleteChars(pos, LenChar(pos));
 }
 
-int Document::DelCharBack(int pos) {
+void Document::DelCharBack(int pos) {
 	if (pos <= 0) {
-		return pos;
+		return;
 	} else if (IsCrLf(pos - 2)) {
 		DeleteChars(pos - 2, 2);
-		return pos - 2;
 	} else if (SC_CP_UTF8 == dbcsCodePage) {
 		int startChar = MovePositionOutsideChar(pos - 1, -1, false);
 		DeleteChars(startChar, pos - startChar);
-		return startChar;
 	} else if (IsDBCS(pos - 1)) {
 		DeleteChars(pos - 2, 2);
-		return pos - 2;
 	} else {
 		DeleteChars(pos - 1, 1);
-		return pos - 1;
 	}
 }
 
@@ -630,19 +622,44 @@ int Document::GetColumn(int pos) {
 	int column = 0;
 	int line = LineFromPosition(pos);
 	if ((line >= 0) && (line < LinesTotal())) {
-		for (int i = LineStart(line);i < pos;i++) {
+		for (int i = LineStart(line);i < pos;) {
 			char ch = cb.CharAt(i);
-			if (ch == '\t')
+			if (ch == '\t') {
 				column = NextTab(column, tabInChars);
-			else if (ch == '\r')
+				i++;
+			} else if (ch == '\r') {
 				return column;
-			else if (ch == '\n')
+			} else if (ch == '\n') {
 				return column;
-			else
+			} else {
 				column++;
+				i = MovePositionOutsideChar(i + 1, 1);
+			}
 		}
 	}
 	return column;
+}
+
+int Document::FindColumn(int line, int column) {
+	int position = LineStart(line);
+	int columnCurrent = 0;
+	if ((line >= 0) && (line < LinesTotal())) {
+		while (columnCurrent < column) {
+			char ch = cb.CharAt(position);
+			if (ch == '\t') {
+				columnCurrent = NextTab(columnCurrent, tabInChars);
+				position++;
+			} else if (ch == '\r') {
+				return position;
+			} else if (ch == '\n') {
+				return position;
+			} else {
+				columnCurrent++;
+				position = MovePositionOutsideChar(position + 1, 1);
+			}
+		}
+	}
+	return position;
 }
 
 void Document::Indent(bool forwards, int lineBottom, int lineTop) {
@@ -696,72 +713,88 @@ void Document::ConvertLineEnds(int eolModeSet) {
 	EndUndoAction();
 }
 
-bool Document::IsWordChar(unsigned char ch) {
-	if ((SC_CP_UTF8 == dbcsCodePage) && (ch > 0x80))
-		return true;
-	return wordchars[ch];
+Document::charClassification Document::WordCharClass(unsigned char ch) {
+	if ((SC_CP_UTF8 == dbcsCodePage) && (ch >= 0x80))
+		return ccWord;
+	return charClass[ch];
 }
 
-int Document::ExtendWordSelect(int pos, int delta) {
+/**
+ * Used by commmands that want to select whole words.
+ * Finds the start of word at pos when delta < 0 or the end of the word when delta >= 0.
+ */
+int Document::ExtendWordSelect(int pos, int delta, bool onlyWordCharacters) {
+	charClassification ccStart = ccWord;
 	if (delta < 0) {
-		while (pos > 0 && IsWordChar(cb.CharAt(pos - 1)))
+		if (!onlyWordCharacters)
+			ccStart = WordCharClass(cb.CharAt(pos-1));
+		while (pos > 0 && (WordCharClass(cb.CharAt(pos - 1)) == ccStart))
 			pos--;
 	} else {
-		while (pos < (Length()) && IsWordChar(cb.CharAt(pos)))
-			pos++;
-	}
-	return pos;
-}
-
-int Document::NextWordStart(int pos, int delta) {
-	if (delta < 0) {
-		while (pos > 0 && (cb.CharAt(pos - 1) == ' ' || cb.CharAt(pos - 1) == '\t'))
-			pos--;
-		if (isspacechar(cb.CharAt(pos - 1))) {	// Back up to previous line
-			while (pos > 0 && isspacechar(cb.CharAt(pos - 1)))
-				pos--;
-		} else {
-			bool startAtWordChar = IsWordChar(cb.CharAt(pos - 1));
-			while (pos > 0 && !isspacechar(cb.CharAt(pos - 1)) && (startAtWordChar == IsWordChar(cb.CharAt(pos - 1))))
-				pos--;
-		}
-	} else {
-		bool startAtWordChar = IsWordChar(cb.CharAt(pos));
-		while (pos < (Length()) && isspacechar(cb.CharAt(pos)))
-			pos++;
-		while (pos < (Length()) && !isspacechar(cb.CharAt(pos)) && (startAtWordChar == IsWordChar(cb.CharAt(pos))))
-			pos++;
-		while (pos < (Length()) && (cb.CharAt(pos) == ' ' || cb.CharAt(pos) == '\t'))
+		if (!onlyWordCharacters)
+			ccStart = WordCharClass(cb.CharAt(pos));
+		while (pos < (Length()) && (WordCharClass(cb.CharAt(pos)) == ccStart))
 			pos++;
 	}
 	return pos;
 }
 
 /**
- * Check that the character before the given position
- * is not a word character.
+ * Find the start of the next word in either a forward (delta >= 0) or backwards direction 
+ * (delta < 0).
+ * This is looking for a transition between character classes although there is also some
+ * additional movement to transit white space.
+ * Used by cursor movement by word commands.
+ */
+int Document::NextWordStart(int pos, int delta) {
+	if (delta < 0) {
+		while (pos > 0 && (WordCharClass(cb.CharAt(pos - 1)) == ccSpace))
+			pos--;
+		if (pos > 0) {
+			charClassification ccStart = WordCharClass(cb.CharAt(pos-1));
+			while (pos > 0 && (WordCharClass(cb.CharAt(pos - 1)) == ccStart)) {
+				pos--;
+			}
+		}
+	} else {
+		charClassification ccStart = WordCharClass(cb.CharAt(pos));
+		while (pos < (Length()) && (WordCharClass(cb.CharAt(pos)) == ccStart))
+			pos++;
+		while (pos < (Length()) && (WordCharClass(cb.CharAt(pos)) == ccSpace))
+			pos++;
+	}
+	return pos;
+}
+
+/**
+ * Check that the character at the given position is a word or punctuation character and that
+ * the previous character is of a different character class.
  */
 bool Document::IsWordStartAt(int pos) {
 	if (pos > 0) {
-		return !IsWordChar(CharAt(pos - 1));
+		charClassification ccPos = WordCharClass(CharAt(pos));
+		return (ccPos == ccWord || ccPos == ccPunctuation) &&
+			(ccPos != WordCharClass(CharAt(pos - 1)));
 	}
 	return true;
 }
 
 /**
- * Check that the character after the given position
- * is not a word character.
+ * Check that the character at the given position is a word or punctuation character and that
+ * the next character is of a different character class.
  */
 bool Document::IsWordEndAt(int pos) {
 	if (pos < Length() - 1) {
-		return !IsWordChar(CharAt(pos));
+		charClassification ccPrev = WordCharClass(CharAt(pos-1));
+		return (ccPrev == ccWord || ccPrev == ccPunctuation) &&
+			(ccPrev != WordCharClass(CharAt(pos)));
 	}
 	return true;
 }
 
 /**
- * Check that the given range is delimited by
- * non word characters.
+ * Check that the given range is has transitions between character classes at both 
+ * ends and where the characters on the inside are word or punctuation characters.
  */
 bool Document::IsWordAt(int start, int end) {
 	return IsWordStartAt(start) && IsWordEndAt(end);
@@ -1014,16 +1047,22 @@ void Document::ChangeCase(Range r, bool makeUpperCase) {
 void Document::SetWordChars(unsigned char *chars) {
 	int ch;
 	for (ch = 0; ch < 256; ch++) {
-		wordchars[ch] = false;
+		if (ch == '\r' || ch == '\n')
+			charClass[ch] = ccNewLine;
+		else if (ch < 0x20 || ch == ' ')
+			charClass[ch] = ccSpace;
+		else
+			charClass[ch] = ccPunctuation;
 	}
 	if (chars) {
 		while (*chars) {
-			wordchars[*chars] = true;
+			charClass[*chars] = ccWord;
 			chars++;
 		}
 	} else {
 		for (ch = 0; ch < 256; ch++) {
-			wordchars[ch] = isalnum(ch) || ch == '_';
+			if (ch >= 0x80 || isalnum(ch) || ch == '_') 
+				charClass[ch] = ccWord;
 		}
 	}
 }
@@ -1038,21 +1077,20 @@ void Document::SetStylingBits(int bits) {
 }
 
 void Document::StartStyling(int position, char mask) {
-	stylingPos = position;
 	stylingMask = mask;
+	endStyled = position;
 }
 
 void Document::SetStyleFor(int length, char style) {
 	if (enteredCount == 0) {
 		enteredCount++;
 		int prevEndStyled = endStyled;
-		if (cb.SetStyleFor(stylingPos, length, style, stylingMask)) {
+		if (cb.SetStyleFor(endStyled, length, style, stylingMask)) {
 			DocModification mh(SC_MOD_CHANGESTYLE | SC_PERFORMED_USER,
 			                   prevEndStyled, length);
 			NotifyModified(mh);
 		}
-		stylingPos += length;
-		endStyled = stylingPos;
+		endStyled += length;
 		enteredCount--;
 	}
 }
@@ -1062,12 +1100,12 @@ void Document::SetStyles(int length, char *styles) {
 		enteredCount++;
 		int prevEndStyled = endStyled;
 		bool didChange = false;
-		for (int iPos = 0; iPos < length; iPos++, stylingPos++) {
-			if (cb.SetStyleAt(stylingPos, styles[iPos], stylingMask)) {
+		for (int iPos = 0; iPos < length; iPos++, endStyled++) {
+			PLATFORM_ASSERT(endStyled < Length());
+			if (cb.SetStyleAt(endStyled, styles[iPos], stylingMask)) {
 				didChange = true;
 			}
 		}
-		endStyled = stylingPos;
 		if (didChange) {
 			DocModification mh(SC_MOD_CHANGESTYLE | SC_PERFORMED_USER,
 			                   prevEndStyled, endStyled - prevEndStyled);
@@ -1078,6 +1116,12 @@ void Document::SetStyles(int length, char *styles) {
 }
 
 bool Document::EnsureStyledTo(int pos) {
+	if (pos > GetEndStyled()) {
+		styleClock++;
+		if (styleClock > 0x100000) {
+			styleClock = 0;
+		}
+	}
 	// Ask the watchers to style, and stop as soon as one responds.
 	for (int i = 0; pos > GetEndStyled() && i < lenWatchers; i++)
 		watchers[i].watcher->NotifyStyleNeeded(this, watchers[i].userData, pos);
@@ -1147,7 +1191,7 @@ void Document::NotifyModified(DocModification mh) {
 }
 
 bool Document::IsWordPartSeparator(char ch) {
-	return ispunct(ch) && IsWordChar(ch);
+	return ispunct(ch) && (WordCharClass(ch) == ccWord);
 }
 
 int Document::WordPartLeft(int pos) {

@@ -19,37 +19,9 @@
 #include "Scintilla.h"
 #include "SciLexer.h"
 
-/* Returns true if the "as" word that begins at start follows an import statement */
-static bool IsImportAs(unsigned int start, Accessor &styler) {
-	unsigned int i;
-	unsigned int j;
-	char s[10];
-
-	/* Find any import before start but after any statement terminator or quote */
-	i = start;
-	while (i > 0) {
-		char ch = styler[i - 1];
-
-		if (ch == '\n' || ch == '\r' || ch == ';' || ch == '\'' || ch == '"' || ch == '`')
-			break;
-		if (ch == 't' && i > 5) {
-			for (j = 0; j < 6; j++)
-				s[j] = styler[(i - 6) + j];
-			s[j] = '\0';
-			if (strcmp(s, "require") == 0)
-				return true;
-			// if (strcmp(s, "include") == 0)
-			//	return true;
-		}
-		i--;
-	}
-
-        return false;
-}
-
 static void ClassifyWordRb(unsigned int start, unsigned int end, WordList &keywords, Accessor &styler, char *prevWord) {
 	char s[100];
-	bool wordIsNumber = isdigit(styler[start]);
+	bool wordIsNumber = isdigit(styler[start]) != 0;
 	for (unsigned int i = 0; i < end - start + 1 && i < 30; i++) {
 		s[i] = styler[start + i];
 		s[i + 1] = '\0';
@@ -64,8 +36,6 @@ static void ClassifyWordRb(unsigned int start, unsigned int end, WordList &keywo
 	else if (wordIsNumber)
 		chAttr = SCE_P_NUMBER;
 	else if (keywords.InList(s))
-		chAttr = SCE_P_WORD;
-	else if (strcmp(s, "as") == 0 && IsImportAs(start, styler))
 		chAttr = SCE_P_WORD;
 	// make sure that dot-qualifiers inside the word are lexed correct
 	else for (unsigned int i = 0; i < end - start + 1; i++) {
@@ -233,7 +203,13 @@ static void ColouriseRbDoc(unsigned int startPos, int length, int initStyle,
 			} else if (ch == '#') {
 				styler.ColourTo(i - 1, state);
 				state = chNext == '#' ? SCE_P_COMMENTBLOCK : SCE_P_COMMENTLINE;
-			} else if (IsRbStringStart(ch, chNext, chNext2)) {
+			} else if (ch == '=' && chNext == 'b') {
+				// =begin indicates the start of a comment (doc) block
+				if(styler.SafeGetCharAt(i + 2) == 'e' && styler.SafeGetCharAt(i + 3) == 'g' && styler.SafeGetCharAt(i + 4) == 'i' && styler.SafeGetCharAt(i + 5) == 'n') {
+					styler.ColourTo(i - 1, state);
+					state = SCE_P_TRIPLEDOUBLE; //SCE_C_COMMENT;
+				}
+			}  else if (IsRbStringStart(ch, chNext, chNext2)) {
 				styler.ColourTo(i - 1, state);
 				state = GetRbStringState(styler, i, &nextIndex);
 				if (nextIndex != i + 1) {
@@ -245,8 +221,8 @@ static void ColouriseRbDoc(unsigned int startPos, int length, int initStyle,
 			} else if (isoperator(ch)) {
 				styler.ColourTo(i - 1, state);
 				styler.ColourTo(i, SCE_P_OPERATOR);
-			}
-		} else if (state == SCE_P_WORD) {
+			} 
+			} else if (state == SCE_P_WORD) {
 			if (!iswordchar(ch)) {
 				ClassifyWordRb(styler.GetStartSegment(), i - 1, keywords, styler, prevWord);
 				state = SCE_P_DEFAULT;
@@ -305,9 +281,12 @@ static void ColouriseRbDoc(unsigned int startPos, int length, int initStyle,
 					state = SCE_P_DEFAULT;
 				}
 			} else if (state == SCE_P_TRIPLEDOUBLE) {
-				if (ch == '\"' && chPrev == '\"' && chPrev2 == '\"') {
-					styler.ColourTo(i, state);
-					state = SCE_P_DEFAULT;
+				// =end terminates the comment block
+				if (ch == 'd' && chPrev == 'n' && chPrev2 == 'e') {
+					if  (styler.SafeGetCharAt(i - 3) == '=') {
+						styler.ColourTo(i, state);
+						state = SCE_P_DEFAULT;
+					}
 				}
 			}
 		}
@@ -315,9 +294,9 @@ static void ColouriseRbDoc(unsigned int startPos, int length, int initStyle,
 		chPrev = ch;
 	}
 	if (state == SCE_P_WORD) {
-		ClassifyWordRb(styler.GetStartSegment(), lengthDoc, keywords, styler, prevWord);
+		ClassifyWordRb(styler.GetStartSegment(), lengthDoc-1, keywords, styler, prevWord);
 	} else {
-		styler.ColourTo(lengthDoc, state);
+		styler.ColourTo(lengthDoc-1, state);
 	}
 }
 

@@ -15,7 +15,7 @@
 #include "Style.h"
 #include "ViewStyle.h"
 
-MarginStyle::MarginStyle() : 
+MarginStyle::MarginStyle() :
 	symbol(false), width(16), mask(0xffffffff), sensitive(false) {
 }
 
@@ -66,7 +66,7 @@ ViewStyle::ViewStyle(const ViewStyle &source) {
 	for (int ind=0;ind<=INDIC_MAX;ind++) {
 		indicators[ind] = source.indicators[ind];
 	}
-	
+
 	selforeset = source.selforeset;
 	selforeground.desired = source.selforeground.desired;
 	selbackset = source.selbackset;
@@ -92,7 +92,7 @@ ViewStyle::ViewStyle(const ViewStyle &source) {
 	viewWhitespace = source.viewWhitespace;
 	viewIndentationGuides = source.viewIndentationGuides;
 	viewEOL = source.viewEOL;
-	showMarkedLines = source.showMarkedLines;		
+	showMarkedLines = source.showMarkedLines;
 }
 
 ViewStyle::~ViewStyle() {
@@ -101,13 +101,13 @@ ViewStyle::~ViewStyle() {
 void ViewStyle::Init() {
 	fontNames.Clear();
 	ResetDefaultStyle();
-	
+
 	indicators[0].style = INDIC_SQUIGGLE;
-	indicators[0].fore = Colour(0, 0x7f, 0);
+	indicators[0].fore = ColourDesired(0, 0x7f, 0);
 	indicators[1].style = INDIC_TT;
-	indicators[1].fore = Colour(0, 0, 0xff);
+	indicators[1].fore = ColourDesired(0, 0, 0xff);
 	indicators[2].style = INDIC_PLAIN;
-	indicators[2].fore = Colour(0xff, 0, 0);
+	indicators[2].fore = ColourDesired(0xff, 0, 0);
 
 	lineHeight = 1;
 	maxAscent = 1;
@@ -116,21 +116,21 @@ void ViewStyle::Init() {
 	spaceWidth = 8;
 
 	selforeset = false;
-	selforeground.desired = Colour(0xff, 0, 0);
+	selforeground.desired = ColourDesired(0xff, 0, 0);
 	selbackset = true;
-	selbackground.desired = Colour(0xc0, 0xc0, 0xc0);
-	selbackground2.desired = Colour(0xb0, 0xb0, 0xb0);
+	selbackground.desired = ColourDesired(0xc0, 0xc0, 0xc0);
+	selbackground2.desired = ColourDesired(0xb0, 0xb0, 0xb0);
 	selbar.desired = Platform::Chrome();
 	selbarlight.desired = Platform::ChromeHighlight();
-	styles[STYLE_LINENUMBER].fore.desired = Colour(0, 0, 0);
+	styles[STYLE_LINENUMBER].fore.desired = ColourDesired(0, 0, 0);
 	styles[STYLE_LINENUMBER].back.desired = Platform::Chrome();
-	caretcolour.desired = Colour(0, 0, 0);
+	caretcolour.desired = ColourDesired(0, 0, 0);
 	showCaretLineBackground = false;
-	caretLineBackground.desired = Colour(0xff, 0xff, 0);
-	edgecolour.desired = Colour(0xc0, 0xc0, 0xc0);
+	caretLineBackground.desired = ColourDesired(0xff, 0xff, 0);
+	edgecolour.desired = ColourDesired(0xc0, 0xc0, 0xc0);
 	edgeState = EDGE_NONE;
 	caretWidth = 1;
-	
+
 	leftMarginWidth = 1;
 	rightMarginWidth = 1;
 	ms[0].symbol = false;
@@ -198,7 +198,7 @@ void ViewStyle::Refresh(Surface &surface) {
 				maxDescent = styles[i].descent;
 		}
 	}
-	
+
 	lineHeight = maxAscent + maxDescent;
 	aveCharWidth = styles[STYLE_DEFAULT].aveCharWidth;
 	spaceWidth = styles[STYLE_DEFAULT].spaceWidth;
@@ -215,27 +215,18 @@ void ViewStyle::Refresh(Surface &surface) {
 }
 
 void ViewStyle::ResetDefaultStyle() {
-	styles[STYLE_DEFAULT].Clear(Colour(0,0,0), Colour(0xff,0xff,0xff),
-	        Platform::DefaultFontSize(), fontNames.Save(Platform::DefaultFont()), 
+	styles[STYLE_DEFAULT].Clear(ColourDesired(0,0,0), 
+		ColourDesired(0xff,0xff,0xff),
+	        Platform::DefaultFontSize(), fontNames.Save(Platform::DefaultFont()),
 		SC_CHARSET_DEFAULT,
-		false, false, false, false, true);
+		false, false, false, false, Style::caseMixed, true, true);
 }
 
 void ViewStyle::ClearStyles() {
 	// Reset all styles to be like the default style
 	for (unsigned int i=0;i<(sizeof(styles)/sizeof(styles[0]));i++) {
 		if (i != STYLE_DEFAULT) {
-			styles[i].Clear(
-				styles[STYLE_DEFAULT].fore.desired, 
-				styles[STYLE_DEFAULT].back.desired, 
-				styles[STYLE_DEFAULT].size, 
-				styles[STYLE_DEFAULT].fontName, 
-				styles[STYLE_DEFAULT].characterSet, 
-				styles[STYLE_DEFAULT].bold, 
-				styles[STYLE_DEFAULT].italic,
-				styles[STYLE_DEFAULT].eolFilled,
-				styles[STYLE_DEFAULT].underline,
-				styles[STYLE_DEFAULT].visible);
+			styles[i].ClearTo(styles[STYLE_DEFAULT]);
 		}
 	}
 	styles[STYLE_LINENUMBER].back.desired = Platform::Chrome();

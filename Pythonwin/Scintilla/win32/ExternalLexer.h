@@ -31,9 +31,9 @@ public:
 		languageName = name;
 	};
 	virtual void Lex(unsigned int startPos, int lengthDoc, int initStyle,
-					WordList *keywordlists[], Accessor &styler);
+					WordList *keywordlists[], Accessor &styler) const;
 	virtual void Fold(unsigned int startPos, int lengthDoc, int initStyle,
-					WordList *keywordlists[], Accessor &styler);
+					WordList *keywordlists[], Accessor &styler) const;
 	virtual void SetExternal(ExtLexerFunction fLexer, ExtFoldFunction fFolder, int index);
 };
 
@@ -61,14 +61,24 @@ private:
 
 // LexerManager manages external lexers, contains LexerLibrarys.
 class LexerManager {
+	friend class LMMinder;
 public:
 	LexerManager();
 	~LexerManager();
+	void Load();
+	static LexerManager *GetInstance();
 private:
+	bool m_bLoaded;
 	void EnumerateLexers();
 	static int UseCount;
 	static LexerLibrary *first;
 	static LexerLibrary *last;
+	static LexerManager *firstlm;
+};
+
+class LMMinder {
+public:
+	~LMMinder();
 };
 
 #endif
