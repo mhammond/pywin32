@@ -502,6 +502,15 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 			# How is this for a hack!
 			namespace = sys.modules.copy()
 			namespace.update(__main__.__dict__)
+			# Get the debugger's context.
+			try:
+				from pywin.framework import interact
+				if interact.edit is not None and interact.edit.currentView is not None:
+					globs, locs = interact.edit.currentView.GetContext()[:2]
+					if globs: namespace.update(globs)
+					if locs: namespace.update(locs)
+			except ImportError:
+				pass
 			try:
 				return eval(left, namespace)
 			except:
