@@ -201,7 +201,15 @@ class BasicWrapPolicy:
       raise error, "The object is not correctly registered - %s key can not be read" % (regSpec % clsid)
     myob = call_func(classSpec)
     self._wrap_(myob)
-    return pythoncom.WrapObject(self, reqIID)
+    try:
+      return pythoncom.WrapObject(self, reqIID)
+    except pythoncom.com_error, (hr, desc, exc, arg):
+      from win32com.util import IIDToInterfaceName
+      desc = "The object '%r' was created, but does not support the " \
+             "interface '%s'(%s): %s" \
+             % (myob, IIDToInterfaceName(reqIID), reqIID, desc)
+      raise pythoncom.com_error, (hr, desc, exc, arg)
+
 
   def _wrap_(self, object):
     """Wraps up the specified object.
