@@ -115,7 +115,7 @@ class dirpath:
 # Group(1) is the filename, group(2) is the lineno.
 #regexGrepResult=regex.compile("^\\([a-zA-Z]:.*\\)(\\([0-9]+\\))")
 
-regexGrepResult=re.compile("^\\([a-zA-Z]:[^(]*\\)(\\([0-9]+\\))")
+regexGrep=re.compile(r"^([a-zA-Z]:[^(]*)\(([0-9]+)\)")
 
 #these are the atom numbers defined by Windows for basic dialog controls
 
@@ -319,7 +319,8 @@ class GrepView(docview.RichEditView):
 
 	def OnLDblClick(self,params):
 		line = self.GetLine()
-		if regexGrepResult.match(line) > 0:
+		regexGrepResult = regexGrep.match(line)
+		if regexGrepResult:
 			fname = regexGrepResult.group(1)
 			line = string.atoi(regexGrepResult.group(2))
 			scriptutils.JumpToDocument(fname, line)
@@ -331,7 +332,8 @@ class GrepView(docview.RichEditView):
 		flags=win32con.MF_STRING|win32con.MF_ENABLED
 		lineno = self._obj_.LineFromChar(-1)	#selection or current line
 		line = self._obj_.GetLine(lineno)
-		if regexGrepResult.match(line) > 0:
+		regexGrepResult = regexGrep.match(line)
+		if regexGrepResult:
 			self.fnm = regexGrepResult.group(1)
 			self.lnnum = string.atoi(regexGrepResult.group(2))
 			menu.AppendMenu(flags, ID_OPEN_FILE, "&Open "+self.fnm)
