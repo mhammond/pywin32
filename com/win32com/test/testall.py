@@ -13,14 +13,12 @@ def GenerateAndRunOldStyle():
 		GenTestScripts.CleanAll()
 
 def Prepare():
-	import win32com, glob
-	files = glob.glob(win32com.__gen_path__+"\\*")
-	print "Deleting %d files from %s" % (len(files),win32com.__gen_path__)
-	for f in files:
-		os.unlink(f)
+	import win32com, shutil
+	print "Deleting files from %s" % (win32com.__gen_path__)
+	shutil.rmtree(win32com.__gen_path__)
 	import win32com.client.gencache
 	win32com.client.gencache.__init__() # Reset
-	
+
 	
 if __name__=='__main__':
 	# default to "quick" test.  2==medium, 3==full
@@ -51,13 +49,15 @@ if __name__=='__main__':
 		finally:
 			capture.release()
 
+	try:
+		import testExchange
+	except (ImportError, pythoncom.com_error):
+		print "The Exchange Server tests can not be run..."
+		testExchange = None
+	if testExchange is not None:
 		capture.capture()
 		try:
-			try:
-				import testExchange
 				testExchange.test()
-			except ImportError:
-				print "The Exchange Server tests can not be run..."
 			capture.release()
 			print "testExchange test generated %d lines of output" % capture.get_num_lines_captured()
 		finally:

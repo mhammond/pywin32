@@ -143,7 +143,11 @@ def DumpAccessInfo(dbname):
 def test(dbname = None):
 	if dbname is None:
 		# We need makepy support to create a database (just for the constants!)
-		GenerateSupport()
+		try:
+			GenerateSupport()
+		except pythoncom.com_error:
+			print "*** Can not import the MSAccess type libraries - tests skipped"
+			return
 		dbname = CreateTestAccessDatabase()
 		print "A test database at '%s' was created" % dbname
 
