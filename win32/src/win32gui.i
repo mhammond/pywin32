@@ -1123,8 +1123,16 @@ PyObject *PyFlashWindowEx(PyObject *self, PyObject *args)
 	// @pyparm int|dwTimeout||
 	if (!PyArg_ParseTuple(args, "iiii", &f.hwnd, &f.dwFlags, &f.uCount, &f.dwTimeout))
 		return NULL;
+    // not on NT
+    HMODULE hmod = GetModuleHandle("user32");
+    BOOL (WINAPI *pfnFW)(PFLASHWINFO) = NULL;
+    if (hmod)
+        pfnFW = (BOOL (WINAPI *)(PFLASHWINFO))GetProcAddress(hmod, "FlashWindowEx");
+    if (pfnFW==NULL)
+        return PyErr_Format(PyExc_NotImplementedError,
+                            "FlashWindowsEx is not supported on this version of windows");
 	Py_BEGIN_ALLOW_THREADS
-	rc = FlashWindowEx(&f);
+	rc = (*pfnFW)(&f);
 	Py_END_ALLOW_THREADS
 	ret = rc ? Py_True : Py_False;
 	Py_INCREF(ret);
