@@ -15,8 +15,24 @@ PyObject *PyWinMethod_NewIID(PyObject *self, PyObject *args)
 	IID iid;
 
 	// @pyparm string/Unicode|iidString||A string representation of an IID, or a ProgID.
-	if ( !PyArg_ParseTuple(args, "O", &obIID) )
+	// @pyparm bool|is_bytes|False|Indicates if the first param is actually the bytes of an IID structure.
+	int isBytes = FALSE;
+	if ( !PyArg_ParseTuple(args, "O|i", &obIID, &isBytes) )
 		return NULL;
+	if (isBytes) {
+		const void *buf;
+		int cb;
+		if (!PyObject_CheckReadBuffer(obIID))
+			return PyErr_Format(PyExc_TypeError, "object must be a read-buffer to read the CLSID bytes");
+		if (PyObject_AsReadBuffer(obIID, &buf, &cb))
+			return NULL;
+		if (cb<sizeof(IID))
+			return PyErr_Format(PyExc_ValueError,
+								"string too small - must be at least %d bytes (got %d)",
+								sizeof(IID), cb);
+		iid = *((IID *)buf);
+		return PyWinObject_FromIID(iid);
+	}
 	// Already an IID? Return self.
 	if ( PyIID_Check(obIID) ) {
 		Py_INCREF(obIID);
@@ -114,6 +130,31 @@ PyObject *PyWinUnicodeObject_FromIID(const IID &riid)
 	return PyWinObject_FromOLECHAR(oleRes);
 }
 
+static int getreadbuf(PyObject *self, int index, const void **ptr)
+{
+	if ( index != 0 ) {
+		PyErr_SetString(PyExc_SystemError,
+				"accessing non-existent IID segment");
+		return -1;
+	}
+	PyIID *pyiid = (PyIID *)self;
+	*ptr = &pyiid->m_iid;
+	return sizeof(IID);
+}
+
+static int getsegcount(PyObject *self, int *lenp)
+{
+	if ( lenp )
+		*lenp = sizeof(IID);
+	return 1;
+}
+
+static PyBufferProcs PyIID_as_buffer = {
+	(getreadbufferproc)getreadbuf,
+	(getwritebufferproc)0,
+	(getsegcountproc)getsegcount,
+	(getcharbufferproc)0,
+};
 
 // @object PyIID|A Python object, representing an IID/CLSID.
 // <nl>All pythoncom functions that return a CLSID/IID will return one of these
@@ -142,6 +183,10 @@ PYWINTYPES_EXPORT PyTypeObject PyIIDType =
 	0,						/* tp_call */
 	// @pymeth __str__|Used whenever a string representation of the IID is required.
 	PyIID::strFunc,			/* tp_str */
+	0,		/*tp_getattro*/
+	0,		/*tp_setattro*/
+	// @comm Note that IID objects support the buffer interface.  Thus buffer(iid) can be used to obtain the raw bytes.
+	&PyIID_as_buffer,	/*tp_as_buffer*/
 };
 
 PyIID::PyIID(REFIID riid)
