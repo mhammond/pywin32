@@ -15,8 +15,7 @@ class CrashingTestCase(unittest.TestCase):
         try:
             EmptyClipboard()
             # This used to crash - now correctly raises type error.
-            self.assertRaises(TypeError,
-                              SetClipboardData, 0, obj )
+            self.assertRaises(TypeError, SetClipboardData, 0, obj )
         finally:
             CloseClipboard()
 
