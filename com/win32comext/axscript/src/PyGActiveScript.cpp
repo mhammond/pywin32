@@ -85,6 +85,7 @@ STDMETHODIMP PyGActiveScript::AddTypeLib(
 		/* [in]  */ DWORD dwFlags
 	)
 {
+	PY_GATEWAY_METHOD;
 	PyObject *obIID = PyWinObject_FromIID(rguidTypeLib);
 	HRESULT hr =  InvokeViaPolicy("AddTypeLib", NULL, "Olll", obIID, dwMajor, dwMinor, dwFlags);
 	Py_XDECREF(obIID);
