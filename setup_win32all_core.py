@@ -212,6 +212,7 @@ pythoncom = WinExt('pythoncom',
 
 win32_extensions = []
 for name, lib_names, is_unicode in (
+        ("perfmon", "", True),
         ("win2kras", "rasapi32", False),
         ("win32api", "", False),
         ("win32file", "", False),
@@ -233,7 +234,7 @@ for name, lib_names, is_unicode in (
         ("win32trace", "", False),
         ("win32wnet", "netapi32 mpr", False),
     ):
-    
+
     extra_compile_args = []
     if is_unicode:
         extra_compile_args = ['-DUNICODE', '-D_UNICODE', '-DWINNT']
@@ -249,8 +250,11 @@ win32_extensions += [
            libraries=["gdi32", "comdlg32", "comctl32"],
            extra_compile_args=["-DWIN32GUI"]
         ),
+    WinExt('servicemanager',
+           extra_compile_args = ['-DUNICODE', '-D_UNICODE', 
+                                 '-DWINNT', '-DPYSERVICE_BUILD_DLL'],
+           dsp_file = r"win32\Pythonservice servicemanager.dsp")
 ]
-
 ################################################################
 
 setup(name="PyWinTypes",
