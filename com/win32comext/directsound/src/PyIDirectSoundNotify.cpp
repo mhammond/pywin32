@@ -21,7 +21,7 @@ PyIDirectSoundNotify::~PyIDirectSoundNotify()
 	// triggered below
 	SafeRelease(this);
 
-	// This may trigger IDirectSOund::Release
+	// This may trigger IDirectSound::Release
 	if (m_DS)
 		Py_DECREF(m_DS);
 }
