@@ -452,9 +452,12 @@ extern PYWINTYPES_EXPORT void PyWinGlobals_Free();
 
 extern PYWINTYPES_EXPORT void PyWin_MakePendingCalls();
 
-//#define USE_PY_AUTOTHREADSTATE
+// For 2.3, use the PyGILState_ calls
+#if (PY_VERSION_HEX >= 0x02030000)
+#define PYWIN_USE_GILSTATE
+#endif
 
-#ifndef USE_PY_AUTOTHREADSTATE
+#ifndef PYWIN_USE_GILSTATE
 
 class CEnterLeavePython {
 public:
@@ -514,7 +517,7 @@ private:
 	BOOL acquired;
 };
 
-#else // USE_PY_AUTOTHREADSTATE
+#else // PYWIN_USE_GILSTATE
 
 class CEnterLeavePython {
 public:
@@ -522,18 +525,18 @@ public:
 		acquire();
 	}
 	void acquire(void) {
-		state = PyAutoThreadState_Ensure();
+		state = PyGILState_Ensure();
 	}
 	~CEnterLeavePython() {
 		release();
 	}
 	void release(void) {
-		PyAutoThreadState_Release(state);
+		PyGILState_Release(state);
 	}
 private:
-	PyAutoThreadState_State state;
+	PyGILState_STATE state;
 };
-#endif // USE_PY_AUTOTHREADSTATE
+#endif // PYWIN_USE_GILSTATE
 
 #endif // __PYWINTYPES_H__
 
