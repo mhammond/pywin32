@@ -115,6 +115,7 @@
 #define ID_FILE_SAVE_ALL                36882
 #define IDC_DBG_STACK                   36888
 #define IDC_DBG_BREAKPOINTS             36889
+#define ID_VIEW_EOL                     36894
 #define IDC_DBG_WATCH                   40002
 #define IDS_DEBUG_RELEASE_MISMATCH      57346
 #define ID_EDIT_GOTO_LINE               57638
@@ -126,7 +127,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        11160
-#define _APS_NEXT_COMMAND_VALUE         36894
+#define _APS_NEXT_COMMAND_VALUE         36895
 #define _APS_NEXT_CONTROL_VALUE         15077
 #define _APS_NEXT_SYMED_VALUE           11152
 #endif

@@ -189,6 +189,7 @@ BEGIN
         MENUITEM "&Interactive Window",         ID_VIEW_INTERACTIVE
         MENUITEM SEPARATOR
         MENUITEM "&Whitespace",                 ID_VIEW_WHITESPACE
+        MENUITEM "&End-of-line markers",        ID_VIEW_EOL
         MENUITEM "&Fixed Font",                 ID_VIEW_FIXED_FONT
         MENUITEM "&Options...",                 ID_VIEW_OPTIONS
     END
@@ -273,6 +274,7 @@ BEGIN
         MENUITEM "&Interactive Window",         ID_VIEW_INTERACTIVE
         MENUITEM SEPARATOR
         MENUITEM "&Whitespace",                 ID_VIEW_WHITESPACE
+        MENUITEM "&End-of-line markers",        ID_VIEW_EOL
         MENUITEM "&Fixed Font",                 ID_VIEW_FIXED_FONT
         MENUITEM "&Options...",                 ID_VIEW_OPTIONS
     END
@@ -1171,6 +1173,7 @@ BEGIN
     ID_FILE_SAVE_ALL        "Save all open files\nSave All"
     IDC_DBG_STACK           "Show/Hide the stack view\nStack view"
     IDC_DBG_BREAKPOINTS     "Show/Hide the breakpoints list\nBreakpoint list"
+    ID_VIEW_EOL             "Show or hide end-of-line markers\nView end-of-lines"
 END
 
 STRINGTABLE DISCARDABLE 
