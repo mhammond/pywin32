@@ -65,6 +65,17 @@ PyObject *MakeOLECHARToObj(const OLECHAR * str)
 	return PyString_FromUnicode(str);
 }
 
+// If PyCom_PyObjectFromIUnknown is called with bAddRef==FALSE, the 
+// caller is asking us to take ownership of the COM reference.  If we
+// fail to create a Python object, we must release the reference.
+#define POFIU_RELEASE_ON_FAILURE \
+	if (!bAddRef) { \
+			PY_INTERFACE_PRECALL; \
+			punk->Release(); \
+			PY_INTERFACE_POSTCALL; \
+		}
+
+
 // Interface conversions
 PyObject *PyCom_PyObjectFromIUnknown(IUnknown *punk, REFIID riid, BOOL bAddRef /* = FALSE */)
 {
@@ -83,12 +94,14 @@ PyObject *PyCom_PyObjectFromIUnknown(IUnknown *punk, REFIID riid, BOOL bAddRef /
 	if (createType==NULL) {
 		PyErr_Clear();
 		PyErr_SetString(PyExc_TypeError, "There is no interface object registered that supports this IID");
+		POFIU_RELEASE_ON_FAILURE
 		return NULL;
 	}
 
 	// ensure the object we fetched is actually one of our interface types
 	if ( !PyComTypeObject::is_interface_type(createType) ) {
 		PyErr_SetString(PyExc_TypeError, "The Python IID map is invalid - the value is not an interface type object");
+		POFIU_RELEASE_ON_FAILURE
 		return NULL;
 	}
 
@@ -96,6 +109,7 @@ PyObject *PyCom_PyObjectFromIUnknown(IUnknown *punk, REFIID riid, BOOL bAddRef /
 	PyComTypeObject *myCreateType = (PyComTypeObject *)createType;
 	if (myCreateType->ctor==NULL) {
 		PyErr_SetString(PyExc_TypeError, "The type does not declare a PyCom constructor");
+		POFIU_RELEASE_ON_FAILURE
 		return NULL;
 	}
 
