@@ -423,8 +423,13 @@ static BOOL PyCom_SAFEARRAYFromPyObject(PyObject *obj, SAFEARRAY **ppSA, VARENUM
 			PyObject *obSave = obItemCheck;
 			obItemCheck = PySequence_GetItem(obItemCheck,0);
 			Py_DECREF(obSave);
-			if (obItemCheck==NULL)
-				return FALSE;
+			if (obItemCheck==NULL) {
+				// Says it is a sequence, but getting the item failed.
+				// (eg, may be a COM instance that has __getitem__, but fails when attempting)
+				// Ignore the error, and pretend it is not a sequence.
+				PyErr_Clear();
+				break;
+			}
 		} else
 			obItemCheck = NULL;
 		cDims = cDims + 1;
