@@ -56,7 +56,7 @@ PyObject *PyICatInformation::EnumClassesOfCategories(PyObject *self, PyObject *a
 	ICatInformation *pMy = GetI(self);
 	if (pMy==NULL) return NULL;
 
-	ULONG cImplemented = (ULONG)-1;
+	ULONG cImplemented = (ULONG)0;
 	GUID *pIDs = NULL;
 	if (listImplemented!=Py_None) {
 		if (!PySequence_Check(listImplemented)) {
@@ -77,7 +77,7 @@ PyObject *PyICatInformation::EnumClassesOfCategories(PyObject *self, PyObject *a
 		}
 	}
 
-	ULONG cRequired = (ULONG)-1;
+	ULONG cRequired = (ULONG)0;
 	GUID iidTemp;
 	GUID *pIDsReqd = &iidTemp;
 	if (listRequired!=Py_None) {
