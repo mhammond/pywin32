@@ -760,7 +760,7 @@ class Generator:
     # encodings were giving me grief with McMillan's Installer
     # until I get to the bottom of this, don't generate
     # a coding line when frozen.
-    if not hasattr(sys, "frozen"):
+    if not hasattr(sys, "frozen") and sys.platform.startswith("win"):
         print >> self.file, '# -*- coding: mbcs -*-' # Is this always correct?
     print >> self.file, '# Created by makepy.py version %s' % (makepy_version,)
     print >> self.file, '# By python version %s' % (sys.version,)
