@@ -30,6 +30,29 @@ typedef long FLAGS;
       }
 }
 
+// HRESULT_KEEP_INFO will raise an exception on failure,
+// but still return the hresult to the caller
+//typedef long HRESULT_KEEP_INFO;
+%typedef long HRESULT_KEEP_INFO;
+
+%typemap(python,out) HRESULT_KEEP_INFO {
+	$target = PyInt_FromLong($source);
+}
+
+%typemap(python,except) HRESULT_KEEP_INFO {
+      Py_BEGIN_ALLOW_THREADS
+      $function
+      Py_END_ALLOW_THREADS
+      if (FAILED($source))  {
+           $cleanup
+#ifdef SWIG_THIS_IID
+           return PyCom_BuildPyException($source, _swig_self,  SWIG_THIS_IID);
+#else
+           return PyCom_BuildPyException($source);
+#endif
+      }
+}
+
 %typemap(python,in) IID *INPUT(IID temp)
 {
 	$target = &temp;
