@@ -16,7 +16,9 @@ goto set
 :not_set
 if not exist ..\swig\swig.exe goto not_found
 rem Pull a trick to convert the path to a full path.
-for %%Iterator in (..\swig\swig.exe) do set SWIG_EXE=%%~fIteratorfor /D %%Iterator in (..\swig\swig_lib) do set SWIG_LIB=%%~fIterator
+for %%Iterator in (..\swig\swig.exe) do set SWIG_EXE=%%~fIterator
+for /D %%Iterator in (..\swig\swig_lib) do set SWIG_LIB=%%~fIterator
+
 :set
 cd %1
 %SWIG_EXE% %2 %3 %4 %5 %6 %7 %8 %9
