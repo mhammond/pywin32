@@ -333,12 +333,8 @@ PyObject * PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
 		for ( i = 0; i < (UINT)argTypesLen; i++ ) {
 			if (!ArgHelpers[i].ParseTypeInformation(PyTuple_GET_ITEM(argsElemDescArray,i)))
 				goto error;
-			// This hack seems necessary to allow me to remove another hack in oleargs.cpp!!
-			// If the arg presented is a BYREF VARIANT, then ignore it.
-			// (The hack I can remove is that BYREF VARIANTS can now work, except for this oddity.
-			// Removing this hack means MSWord "documents.Add()" fails with a type error??
-			if (i<(UINT)numArgs || (ArgHelpers[i].m_reqdType != (VT_VARIANT|VT_BYREF) && ArgHelpers[i].m_bByRef))
-				numArgArray = i+1;
+			if (i<(UINT)numArgs)
+				numArgArray++;
 		}
 	}
 
@@ -412,7 +408,7 @@ PyObject * PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
 		if (pVarResultUse)
 			retSize++;
 		for (UINT arg=0;arg<numArgArray;arg++)
-			if (ArgHelpers[arg].m_bByRef)
+			if (ArgHelpers[arg].m_bIsOut)
 				retSize++;
 		if (retSize==0) {  // result is None.
 			result = Py_None;
@@ -422,7 +418,7 @@ PyObject * PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
 				result = resultArgHelper.MakeVariantToObj(pVarResultUse);
 			} else { // only result in one of the params - seek it.
 				for (UINT arg=0;arg<numArgArray;arg++) {
-					if (ArgHelpers[arg].m_bByRef) {
+					if (ArgHelpers[arg].m_bIsOut) {
 						result = ArgHelpers[arg].MakeVariantToObj(dispparams.rgvarg+(numArgArray-arg-1));
 						break;
 					}
@@ -436,7 +432,7 @@ PyObject * PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
 			}
 			// Loop over all the args, reverse order, setting the byrefs.
 			for (int arg=numArgArray-1;arg>=0;arg--)
-				if (ArgHelpers[numArgArray-arg-1].m_bByRef)
+				if (ArgHelpers[numArgArray-arg-1].m_bIsOut)
 					PyTuple_SetItem(result, tupleItem++, ArgHelpers[numArgArray-arg-1].MakeVariantToObj(dispparams.rgvarg+(arg)));
 		}
 	}

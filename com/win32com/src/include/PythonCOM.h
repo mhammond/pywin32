@@ -610,7 +610,7 @@ public:
 
 	VARTYPE m_reqdType;
 	BOOL m_bParsedTypeInfo;
-	BOOL m_bByRef;
+	BOOL m_bIsOut;
 	POAH_CONVERT_DIRECTION m_convertDirection;
 	union {
 		void *m_pValueHolder;

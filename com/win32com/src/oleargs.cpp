@@ -748,7 +748,7 @@ PythonOleArgHelper::PythonOleArgHelper()
 {
 	// First wipe myself out to zero!
 	memset(this, 0, sizeof(*this));
-	m_bByRef = FALSE;
+	m_bIsOut = FALSE;
 	m_reqdType = VT_VARIANT;
 	m_bParsedTypeInfo = FALSE;
 	m_convertDirection = POAH_CONVERT_UNKNOWN;
@@ -815,7 +815,17 @@ BOOL PythonOleArgHelper::ParseTypeInformation(PyObject *reqdObjectTuple)
 	if (typeDesc==NULL) return FALSE;
 	m_reqdType = (VARTYPE)PyInt_AsLong(typeDesc);
 	if (PyErr_Occurred()) return FALSE;
-	m_bByRef = (m_reqdType & VT_BYREF) != 0;
+	PyObject *paramFlags = PyTuple_GetItem(reqdObjectTuple, 1);
+	if (paramFlags==NULL) return FALSE;
+	DWORD pf = (DWORD)PyInt_AsLong(paramFlags);
+	if (PyErr_Occurred()) return FALSE;
+	// If we have _no_ param flags, use the BYREF-ness of the param
+	// to determine if we are possibly an out param.
+	// If we have any flags, assume they are all valid.
+	if (pf==0)
+		m_bIsOut = (m_reqdType & VT_BYREF) != 0;
+	else
+		m_bIsOut = (pf & (PARAMFLAG_FOUT | PARAMFLAG_FRETVAL)) != 0;
 	m_bParsedTypeInfo = TRUE;
 	return TRUE;
 }
@@ -1178,7 +1188,7 @@ PyObject *PythonOleArgHelper::MakeVariantToObj(VARIANT *var)
 	// If this is the "driving" conversion, then the callers owns the buffers - we just use-em
 	if (m_convertDirection==POAH_CONVERT_UNKNOWN) {
 		m_convertDirection = POAH_CONVERT_FROM_VARIANT;
-		m_bByRef = V_ISBYREF(var);
+		m_bIsOut = V_ISBYREF(var); // assume byref args are out params.
 		m_reqdType = V_VT(var);
 	}
 
@@ -1242,7 +1252,7 @@ BOOL PyCom_MakeOlePythonCall(PyObject *handler, DISPPARAMS FAR* params, VARIANT 
 
 			// Params are reverse order - loop from the back.
 			for (unsigned int param=params->cArgs;param!=0;param--) {
-				if (pHelpers[param-1].m_bByRef) {
+				if (pHelpers[param-1].m_bIsOut) {
 					PyObject *val = PyTuple_GetItem(result, retNumber);
 					pHelpers[param-1].MakeObjToVariant(val, params->rgvarg+param-1, NULL);
 					retNumber++;
