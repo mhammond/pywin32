@@ -28,7 +28,7 @@ class EditorPropertyPage(dialog.PropertyPage):
 		self._AddEditorOption(win32ui.IDC_MARGIN_LINENUMBER, "i", "Line Number Margin Width", 0)
 		self._AddEditorOption(win32ui.IDC_RADIO1, "i", "MarkersInMargin", None)
 		self._AddEditorOption(win32ui.IDC_MARGIN_MARKER, "i", "Marker Margin Width", None)
-		self["Marker Margin Width"] = GetEditorOption("Marker Margin Width", 14)
+		self["Marker Margin Width"] = GetEditorOption("Marker Margin Width", 16)
 
 		# Folding		
 		self._AddEditorOption(win32ui.IDC_MARGIN_FOLD, "i", "Fold Margin Width", 20)
@@ -125,7 +125,7 @@ class EditorPropertyPage(dialog.PropertyPage):
 		self.GetDlgItem(win32ui.IDC_MARGIN_MARKER).EnableWindow(widthEnabled)
 		self.UpdateData() # Ensure self[] is up to date with the control data.
 		if widthEnabled and self["Marker Margin Width"] == 0:
-			self["Marker Margin Width"] = 14
+			self["Marker Margin Width"] = 16
 			self.UpdateData(0) # Ensure control up to date with self[]
 
 		# Right edge
@@ -141,7 +141,7 @@ class EditorPropertyPage(dialog.PropertyPage):
 		for name, defVal in self.autooptions:
 			SetEditorOption(name, self[name])
 		# Margin width gets handled differently.
-		if self['MarkersInMargin']:
+		if self['MarkersInMargin'] == 0:
 			SetEditorOption("Marker Margin Width", self["Marker Margin Width"])
 		else:
 			SetEditorOption("Marker Margin Width", 0)
