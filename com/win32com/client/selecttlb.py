@@ -1,7 +1,7 @@
 """Utilities for selecting and enumerating the Type Libraries installed on the system
 """
 
-import win32api, win32con, string
+import win32api, win32con, string, pythoncom
 
 class TypelibSpec:
 	def __init__(self, clsid, lcid, major, minor, flags=0):
@@ -27,7 +27,14 @@ class TypelibSpec:
 		if rc==0:
 			rc = cmp(self.major, other.minor)
 		return rc
-		
+
+	def Resolve(self):
+		if self.dll is None:
+			return 0
+		tlb = pythoncom.LoadTypeLib(self.dll)
+		self.FromTypelib(tlb, None)
+		return 1
+
 	def FromTypelib(self, typelib, dllName = None):
 		la = typelib.GetLibAttr()
 		self.clsid = str(la[0])
@@ -65,9 +72,23 @@ def EnumTlbs(excludeFlags = 0):
 	iids = EnumKeys(key)
 	results = []
 	for iid, crap in iids:
-		key2 = win32api.RegOpenKey(win32con.HKEY_CLASSES_ROOT, "Typelib\\%s" % (iid))
+		key2 = win32api.RegOpenKey(key, str(iid))
 		for version, tlbdesc in EnumKeys(key2):
-			key3 = win32api.RegOpenKey(win32con.HKEY_CLASSES_ROOT, "Typelib\\%s\\%s" % (iid, version))
+			major_minor = string.split(version, '.', 1)
+			if len(major_minor) < 2:
+				major_minor.append('0')
+			try:
+				# For some reason, this code used to assume the values were hex.
+				# This seems to not be true - particularly for CDO 1.21
+				# *sigh* - it appears there are no rules here at all, so when we need
+				# to know the info, we must load the tlb by filename and request it.
+				# The Resolve() method on the TypelibSpec does this.
+				major = int(major_minor[0])
+				minor = int(major_minor[1])
+			except ValueError: # crap in the registry!
+				continue
+			
+			key3 = win32api.RegOpenKey(key2, str(version))
 			try:
 				# The "FLAGS" are at this point
 				flags = int(win32api.RegQueryValue(key3, "FLAGS"))
@@ -75,22 +96,24 @@ def EnumTlbs(excludeFlags = 0):
 				flags = 0
 			if flags & excludeFlags==0:
 				for lcid, crap in EnumKeys(key3):
-					key4 = win32api.RegOpenKey(win32con.HKEY_CLASSES_ROOT, "Typelib\\%s\\%s\\%s" % (iid, version, lcid))
-					for platform, dll in EnumKeys(key4):
-						if platform=="win32":
-							major = string.split(version, '.', 1)
-							if len(major) < 2:
-								major.append('0')
-							try:
-								major, minor = string.atoi(major[0], 16), string.atoi(major[1], 16)
-								lcid = string.atoi(lcid,16)
-							except ValueError: # crap in the registry!
-								continue
-							spec = TypelibSpec(iid, lcid, major, minor, flags)
-							spec.desc = tlbdesc
-							spec.ver_desc = tlbdesc + " (" + version + ")"
-							spec.dll = dll
-							results.append(spec)
+					try:
+						lcid = int(lcid)
+					except ValueError: # crap in the registry!
+						continue
+					# Only care about "{lcid}\win32" key - jump straight there.
+					try:
+						key4 = win32api.RegOpenKey(key3, "%s\win32" % (lcid,))
+					except win32api.error:
+						continue
+					try:
+						dll = win32api.RegQueryValue(key4, None)
+					except win32api.error:
+						dll = None
+					spec = TypelibSpec(iid, lcid, major, minor, flags)
+					spec.dll = dll
+					spec.desc = tlbdesc
+					spec.ver_desc = tlbdesc + " (" + version + ")"
+					results.append(spec)
 	return results
 
 def FindTlbsWithDescription(desc):
