@@ -4,19 +4,7 @@ $(GENDIR):
 	@if not exist $(GENDIR)\. md $(GENDIR)
 
 cleanad:
-    if exist "$(GENDIR)\*.rtf" del "$(GENDIR)\*.rtf"
-    if exist "$(GENDIR)\*.hpj" del "$(GENDIR)\*.hpj"
-    if exist "$(GENDIR)\*.log" del "$(GENDIR)\*.log"
-	if exist "$(GENDIR)\*.hlog" del "$(GENDIR)\*.hlog"
-	if exist "$(GENDIR)\*.hhlog" del "$(GENDIR)\*.hhlog"
-    if exist "$(GENDIR)\*.doc" del "$(GENDIR)\*.doc"
-    if exist "$(GENDIR)\*.hlp" del "$(GENDIR)\*.hlp"
-	if exist "$(GENDIR)\*.html" del "$(GENDIR)\*.html"
-	if exist "$(GENDIR)\*.idx"  del "$(GENDIR)\*.idx"
-	if exist "$(GENDIR)\*.dump" del "$(GENDIR)\*.dump"
-	if exist "$(GENDIR)\*.hhk" del "$(GENDIR)\*.hhk"
-	if exist "$(GENDIR)\*.hhc" del "$(GENDIR)\*.hhc"
-	if exist "$(GENDIR)\html\*" rd /s /q "$(GENDIR)\html"
+    if exist "$(GENDIR)\*" del "$(GENDIR)\*" /q
 
 # Generate a Help file
 
