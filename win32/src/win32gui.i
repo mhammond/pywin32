@@ -1183,6 +1183,33 @@ static PyObject *PyEnumWindows(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pyswig |EnumThreadWindows|Enumerates all top-level windows associated with a thread on the screen by passing the handle to each window, in turn, to an application-defined callback function. EnumThreadWindows continues until the last top-level window associated with the thread is enumerated or the callback function returns FALSE
+static PyObject *PyEnumThreadWindows(PyObject *self, PyObject *args)
+{
+	BOOL rc;
+	PyObject *obFunc, *obOther;
+	DWORD dwThreadId;
+	// @pyparm int|dwThreadId||The id of the thread for which the windows need to be enumerated.
+	// @pyparm object|callback||A Python function to be used as the callback.
+	// @pyparm object|extra||Any python object - this is passed to the callback function as the second param (first is the hwnd).
+	if (!PyArg_ParseTuple(args, "lOO", &dwThreadId, &obFunc, &obOther))
+		return NULL;
+	if (!PyCallable_Check(obFunc)) {
+		PyErr_SetString(PyExc_TypeError, "Second param must be a callable object");
+		return NULL;
+	}
+	PyEnumWindowsCallback cb;
+	cb.func = obFunc;
+	cb.extra = obOther;
+    Py_BEGIN_ALLOW_THREADS
+	rc = EnumThreadWindows(dwThreadId, PyEnumWindowsProc, (LPARAM)&cb);
+    Py_END_ALLOW_THREADS
+	if (!rc)
+		return PyWin_SetAPIError("EnumThreadWindows");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 // @pyswig |EnumChildWindows|Enumerates the child windows that belong to the specified parent window by passing the handle to each child window, in turn, to an application-defined callback function. EnumChildWindows continues until the last child window is enumerated or the callback function returns FALSE.
 static PyObject *PyEnumChildWindows(PyObject *self, PyObject *args)
 {
@@ -1212,6 +1239,7 @@ static PyObject *PyEnumChildWindows(PyObject *self, PyObject *args)
 
 %}
 %native (EnumWindows) PyEnumWindows;
+%native (EnumThreadWindows) PyEnumThreadWindows;
 %native (EnumChildWindows) PyEnumChildWindows;
 
 
