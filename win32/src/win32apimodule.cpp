@@ -1848,6 +1848,74 @@ PyGetSysColor (PyObject *self, PyObject *args)
   // @rdesc The return value is a windows RGB color representation.
 }
 
+// @pymethod |win32api|SetSysColors|Changes color of various window elements
+static PyObject *PySetSysColors(PyObject *self, PyObject *args)
+{
+	int element_cnt=NULL, element_ind;
+	int *elements=NULL, *element;
+	COLORREF *rgbs=NULL, *rgb;
+	PyObject *obelements, *obelement, *obrgbs, *ret=NULL;
+	
+	// @pyparm tuple|Elements||A tuple of ints, COLOR_* constants indicating which window element to change
+	// @pyparm tuple|RgbValues||An equal length tuple of ints representing RGB values (see <om win32api.RGB>)
+	if (!PyArg_ParseTuple(args, "OO:SetSysColors", &obelements, &obrgbs))
+		return NULL;
+	if (!PyTuple_Check(obelements)||!PyTuple_Check(obrgbs)
+		||((element_cnt=PyTuple_Size(obelements))!=PyTuple_Size(obrgbs))){
+		PyErr_SetString(PyExc_TypeError,"SetSysColors: Arguments must be equal length tuples of ints");
+		return NULL;
+		}
+		
+	elements=(int *)malloc(element_cnt*sizeof(int));
+	if (elements==NULL){
+		PyErr_Format(PyExc_MemoryError,"SetSysColors: Unable to allocate array of %d ints",element_cnt);
+		goto done;
+		}
+	rgbs=(COLORREF *)malloc(element_cnt*sizeof(COLORREF));
+	if (rgbs==NULL){
+		PyErr_Format(PyExc_MemoryError,"SetSysColors: Unable to allocate array of %d COLORREF's",element_cnt);
+		goto done;
+		}
+
+	rgb=rgbs;
+	element=elements;
+	for (element_ind=0;element_ind<element_cnt;element_ind++){
+		obelement=PyTuple_GetItem(obelements,element_ind);
+		if (obelement==NULL)
+			goto done;
+		*element=PyLong_AsLong(obelement);
+		if ((*element==-1) && PyErr_Occurred()){
+			PyErr_Clear();
+			PyErr_SetString(PyExc_TypeError,"Color element must be an int");
+			goto done;
+			}
+		obelement=PyTuple_GetItem(obrgbs,element_ind);
+		if (obelement==NULL)
+			goto done;
+		*rgb=PyLong_AsLong(obelement);
+		if ((*rgb==-1) && PyErr_Occurred()){
+			PyErr_Clear();
+			PyErr_SetString(PyExc_TypeError,"RGB value must be an int");
+			goto done;
+			}
+		element++;
+		rgb++;
+		}
+	if (!SetSysColors(element_cnt, elements, rgbs))
+		PyWin_SetAPIError("SetSysColors");
+	else{
+		Py_INCREF(Py_None);
+		ret=Py_None;
+		}
+
+	done:
+	if (elements!=NULL)
+		free(elements);
+	if (rgbs!=NULL)
+		free(rgbs);
+	return ret;
+}
+
 // @pymethod string|win32api|GetSystemDirectory|Returns the path of the Windows system directory.
 static PyObject *
 PyGetSystemDirectory (PyObject *self, PyObject *args)
@@ -4624,6 +4692,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"SetCursorPos",		PySetCursorPos,1}, // @pymeth SetCursorPos|The SetCursorPos function moves the cursor to the specified screen coordinates.
 	{"SetErrorMode",        PySetErrorMode, 1}, // @pymeth SetErrorMode|Controls whether the system will handle the specified types of serious errors, or whether the process will handle them.
 	{"SetFileAttributes",   PySetFileAttributes,1}, // @pymeth SetFileAttributes|Sets the named file's attributes.
+	{"SetSysColors",		PySetSysColors,      1}, // @pymeth SetSysColors|Changes color of various window elements
 	{"SetSystemTime",		PySetSystemTime,	1},	// @pymeth SetSystemTime|Sets the system time.	
 	{"SetClassLong",       PySetClassLong,1}, // @pymeth SetClassLong|Replaces the specified 32-bit (long) value at the specified offset into the extra class memory for the window.
 	{"SetClassWord",       PySetClassWord,1}, // @pymeth SetClassWord|Replaces the specified 32-bit (long) value at the specified offset into the extra class memory for the window.
