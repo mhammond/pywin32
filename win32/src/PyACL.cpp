@@ -5,7 +5,9 @@
 
 #include "PyWinObjects.h"
 #include "PySecurityObjects.h"
-#ifndef MS_WINCE /* This source is not included for WinCE */
+
+#ifndef NO_PYWINTYPES_SECURITY
+
 #include "accctrl.h"
 #include "aclapi.h"
 
@@ -890,4 +892,4 @@ PyObject *PyACL::getattr(PyObject *self, char *name)
 	delete (PyACL *)ob;
 }
 
-#endif /* MS_WINCE */
+#endif /* NO_PYWINTYPES_SECURITY */

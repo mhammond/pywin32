@@ -1,7 +1,11 @@
 // Security objects
 // Much of the security support written by Roger Upole <rwupole@msn.com>
 
-#ifndef MS_WINCE /* Not on CE */
+#ifdef MS_WINCE
+#	define NO_PYWINTYPES_SECURITY /* This source is not included for WinCE */
+#endif 
+
+#ifndef NO_PYWINTYPES_SECURITY
 
 extern BOOL (WINAPI *addaccessallowedaceex)(PACL, DWORD, DWORD, DWORD, PSID);
 extern BOOL (WINAPI *addaccessdeniedaceex)(PACL, DWORD, DWORD, DWORD, PSID);
@@ -186,4 +190,4 @@ protected:
 	int bufSize;
 };
 
-#endif // MS_WINCE
+#endif // NO_PYWINTYPES_SECURITY 

@@ -391,11 +391,13 @@ static struct PyMethodDef pywintypes_functions[] = {
 #endif
 #ifndef MS_WINCE
 	{"CreateGuid",  PyWin_CreateGuid, 1 },      // @pymeth CreateGuid|Creates a new, unique GUIID.
+#endif // MS_WINCE
+#ifndef NO_PYWINTYPES_SECURITY
 	{"ACL",         PyWinMethod_NewACL, 1 },      // @pymeth ACL|Creates a new <o PyACL> object.
 	{"SID",         PyWinMethod_NewSID, 1 },      // @pymeth SID|Creates a new <o PySID> object.
 	{"SECURITY_ATTRIBUTES",         PyWinMethod_NewSECURITY_ATTRIBUTES, 1 },      // @pymeth SECURITY_ATTRIBUTES|Creates a new <o PySECURITY_ATTRIBUTES> object.
 	{"SECURITY_DESCRIPTOR",         PyWinMethod_NewSECURITY_DESCRIPTOR, 1 },      // @pymeth SECURITY_DESCRIPTOR|Creates a new <o PySECURITY_DESCRIPTOR> object.
-#endif
+#endif // NO_PYWINTYPES_SECURITY
 	{"HANDLE",      PyWinMethod_NewHANDLE, 1 },      // @pymeth HANDLE|Creates a new <o PyHANDLE> object.
 	{"HKEY",        PyWinMethod_NewHKEY, 1 },      // @pymeth HKEY|Creates a new <o PyHKEY> object.
 #ifdef TRACE_THREADSTATE
@@ -478,7 +480,7 @@ void initpywintypes(void)
   PyDict_SetItemString(dict, "IIDType", (PyObject *)&PyIIDType);
 #endif // NO_PYWINTYPES_IID
   PyDict_SetItemString(dict, "UnicodeType", (PyObject *)&PyUnicodeType);
-#ifndef MS_WINCE
+#ifndef NO_PYWINTYPES_SECURITY
   PyDict_SetItemString(dict, "SECURITY_ATTRIBUTESType", (PyObject *)&PySECURITY_ATTRIBUTESType);
   PyDict_SetItemString(dict, "SIDType", (PyObject *)&PySIDType);
   PyDict_SetItemString(dict, "ACLType", (PyObject *)&PyACLType);
@@ -494,6 +496,7 @@ extern "C" __declspec(dllexport)
 #endif
 BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
+#ifndef NO_PYWINTYPES_SECURITY
 	FARPROC fp;
 	// dll usually will already be loaded
 	HMODULE hmodule=GetModuleHandle("AdvAPI32.dll");
@@ -510,7 +513,7 @@ BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 		if (fp)
 			addauditaccessaceex=(BOOL (WINAPI *)(PACL, DWORD, DWORD, DWORD, PSID, BOOL, BOOL))(fp);
 		}
-
+#endif // NO_PYWINTYPES_SECURITY
 	switch (dwReason) {
 		case DLL_PROCESS_ATTACH: {
 			/*
