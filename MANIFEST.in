@@ -45,6 +45,7 @@ include com/win32comext/internet/src/*.h
 include com/win32comext/mapi/src/*.h
 include com/win32comext/shell/src/*.h
 include com/win32comext/shell/demos/servers/*.py
+include com/win32comext/shell/demos/*.py
 include com/win32comext/taskscheduler/src/*.h
 
 # Pythonwin

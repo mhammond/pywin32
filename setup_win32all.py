@@ -993,6 +993,7 @@ dist = setup(name="pywin32",
                 'com/win32comext/axscript/Demos/*',
                 'com/win32comext/shell/test/*.py',
                 'com/win32comext/shell/demos/servers/*.py',
+                'com/win32comext/shell/demos/*.py',
                 'com/win32comext/taskscheduler/test/*.py',
                  ]) +
                 # And data files convert_data_files can't handle.
