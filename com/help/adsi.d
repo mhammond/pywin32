@@ -38,7 +38,7 @@ Recipients|ex_path="LDAP://server/cn=Recipients,ou=rubble,o=bedrock"
 
 @ex Accessing and Modifying a user:|
 ex_path="LDAP://server/cn=fredflint,cn=Recipients,ou=rubble,o=bedrock"
-myDSObject = ldapNameSpace.OpenDSObjec(ex_path,logon_ex,password,0)
+myDSObject = ldapNameSpace.OpenDSObject(ex_path,logon_ex,password,0)
 myDSObject.Getinfo()
 # To access a user's data try:
 attribute = myDSObject.Get('Extension-Attribute-1')
@@ -60,7 +60,7 @@ myDSObject.Setinfo()
 ex_path="LDAP://server/cn=Recipients,ou=rubble,o=bedrock"
 logon_ex='cn=wilma,dc=bedrock'
 password='dino'
-myDSObject = ldapNameSpace.OpenDSObjec(ex_path,logon_ex,password,0) 
+myDSObject = ldapNameSpace.OpenDSObject(ex_path,logon_ex,password,0) 
 newobj = myDSObject.create("OrganizationalPerson", "cn=betty")
 newobj.put('MailPreferenceOption', 0)
 # etc . . . add whatever else you want. There are a few required fields. 
