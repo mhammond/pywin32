@@ -9,7 +9,7 @@ com_error = pythoncom.com_error
 _univgw = pythoncom._univgw
 
 # Make it clear to the user they are playing with fire ATM ;-)
-msg = "win32com.universal is a very new module - it probably has bugs, and the interface may change in the future.  Use at your own risk!"
+msg = "win32com.universal argument passing support is incomplete - only types covered in win32com.servers.test_pycomtest are supported"
 try:
     import warnings
     warnings.warn(msg)
