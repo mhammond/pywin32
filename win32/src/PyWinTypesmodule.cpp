@@ -226,17 +226,63 @@ static PyObject *_GetLockStats(PyObject *, PyObject *)
 
 #endif
 
+// Support the fact that error messages can come from any number of DLLs.
+// wininet certainly does.  The win32net and MAPI modules could probably 
+// also take advantage of this,
+struct error_message_module {
+    DWORD firstError;
+    DWORD lastError;
+    HMODULE hmodule;
+};
+
+// just allow a limit of 10 for now!
+#define MAX_MESSAGE_MODULES 10
+static error_message_module error_message_modules[MAX_MESSAGE_MODULES];
+static int num_message_modules = 0;
+
+BOOL PyWin_RegisterErrorMessageModule(DWORD first, DWORD last, HINSTANCE hmod)
+{
+	if (num_message_modules>=MAX_MESSAGE_MODULES) {
+		assert(0); // need a either bump the limit, or make a real implementation!
+		return FALSE;
+	}
+	error_message_modules[num_message_modules].firstError = first;
+	error_message_modules[num_message_modules].lastError = last;
+	error_message_modules[num_message_modules].hmodule = hmod;
+	num_message_modules += 1;
+	return TRUE;
+}
+
+HINSTANCE PyWin_GetErrorMessageModule(DWORD err)
+{
+	int i;
+	for (i=0;i<num_message_modules;i++) {
+		if ((DWORD)err >= error_message_modules[i].firstError && 
+			(DWORD)err <= error_message_modules[i].lastError) {
+			return error_message_modules[i].hmodule;
+		}
+	}
+	return NULL;
+}
+
 /* error helper - GetLastError() is provided, but this is for exceptions */
 PyObject *PyWin_SetAPIError(char *fnName, long err /*= 0*/)
 {
-	const int bufSize = 512;
-	TCHAR buf[bufSize];
 	DWORD errorCode = err == 0 ? GetLastError() : err;
-	BOOL bHaveMessage = FALSE;
+	DWORD flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | \
+	              FORMAT_MESSAGE_IGNORE_INSERTS;
+	// try and find the hmodule providing this error.
+	HMODULE hmodule = PyWin_GetErrorMessageModule(errorCode);
+	if (hmodule)
+		flags |= FORMAT_MESSAGE_FROM_HMODULE;
+	TCHAR *buf = NULL;
+	BOOL free_buf = TRUE;
 	if (errorCode)
-		bHaveMessage = ::FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, 0, buf, bufSize, NULL )>0;
-	if (!bHaveMessage)
-		_tcscpy(buf,_T("No error message is available"));
+		::FormatMessage(flags, hmodule, errorCode, 0, (LPTSTR)&buf, 0, NULL );
+	if (!buf) {
+		buf = _T("No error message is available");
+		free_buf = FALSE;
+	}
 	/* strip trailing cr/lf */
 	int end = _tcslen(buf)-1;
 	if (end>1 && (buf[end-1]==_T('\n') || buf[end-1]==_T('\r')))
@@ -245,6 +291,8 @@ PyObject *PyWin_SetAPIError(char *fnName, long err /*= 0*/)
 		if (end>0 && (buf[end]==_T('\n') || buf[end]==_T('\r')))
 			buf[end]=_T('\0');
 	PyObject *obBuf = PyString_FromTCHAR(buf);
+	if (free_buf && buf)
+		LocalFree(buf);
 	PyObject *v = Py_BuildValue("(isO)", errorCode, fnName, obBuf);
 	Py_XDECREF(obBuf);
 	if (v != NULL) {
