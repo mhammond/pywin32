@@ -526,7 +526,10 @@ PyObject *MyCreateProcess(
 		dwCreationFlags |= CREATE_UNICODE_ENVIRONMENT;
 #endif //MS_WINCE
 
-	BOOL ok = CreateProcess(appName, cmdLine, psaP, psaT, bInheritHandles, dwCreationFlags, pEnv, directory, si, &pi);
+	BOOL ok;
+	Py_BEGIN_ALLOW_THREADS
+	ok = CreateProcess(appName, cmdLine, psaP, psaT, bInheritHandles, dwCreationFlags, pEnv, directory, si, &pi);
+    Py_END_ALLOW_THREADS
 
 	free(pEnv);
 
@@ -586,7 +589,10 @@ PyObject *MyCreateProcessAsUser(
 	if (bEnvIsUnicode)
 		dwCreationFlags |= CREATE_UNICODE_ENVIRONMENT;
 
-	BOOL ok = CreateProcessAsUser(h, appName, cmdLine, psaP, psaT, bInheritHandles, dwCreationFlags, pEnv, directory, si, &pi);
+	BOOL ok;
+	Py_BEGIN_ALLOW_THREADS
+	ok = CreateProcessAsUser(h, appName, cmdLine, psaP, psaT, bInheritHandles, dwCreationFlags, pEnv, directory, si, &pi);
+	Py_END_ALLOW_THREADS
 	
 	free(pEnv);
 
