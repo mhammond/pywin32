@@ -48,20 +48,47 @@ public:
 	CPythonEngine();
 	~CPythonEngine();
 	bool InitMainInterp(void);
-	void ShutdownInterp(void);
-	bool LoadHandler(char *factory_name);
-	PyObject *GetHandler() {return m_handler;}
-	bool SetCallback(const char *callbackName);
-	PyObject *Callback(const char *szFormat, ...);
+	char m_module_name[_MAX_FNAME];
+	static PyObject *          m_reload_exception;
 protected:
+
 	bool AddToPythonPath(LPCTSTR pPathName);
-	PyObject *m_handler;
+	void FindModuleName();
 	// couple of vars used to ensure that we intialis exactly once
 	static CRITICAL_SECTION m_initLock;
 	static bool m_haveInit;
-	PyObject *          m_callback;
 };
 
+typedef enum {
+	HANDLER_INIT,
+	HANDLER_DO,
+	HANDLER_TERM,
+} HANDLER_TYPE;
+
+class CPythonHandler
+{
+public:
+	CPythonHandler();
+	bool Init(CPythonEngine *engine,
+			  const char *factory, const char *nameinit, const char *namedo,
+			  const char *nameterm);
+	void Term();
+	PyObject *Callback(HANDLER_TYPE typ, const char *szFormat, ...);
+protected:
+	PyObject *DoCallback(HANDLER_TYPE typ, PyObject *args);
+	
+	bool LoadHandler(bool reload);
+	bool CPythonHandler::CheckCallback(const char *cbname, PyObject **cb);
+	const char *m_namefactory;
+	const char *m_nameinit;
+	const char *m_namedo;
+	const char *m_nameterm;
+	PyObject *m_callback_init; // reference to instance methods.87
+	PyObject *m_callback_do;
+	PyObject *m_callback_term;
+	PyObject *m_handler; // reference to the class instance.
+	CPythonEngine *m_engine;
+};
 // general error handler
 
 void ExtensionError(CControlBlock *pcb, LPCTSTR errmsg);

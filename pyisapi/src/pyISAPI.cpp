@@ -31,8 +31,20 @@
 #include "pyExtensionObjects.h"
 #include "pyFilterObjects.h"
 
+static const char *name_ext_factory = "__ExtensionFactory__";
+static const char *name_ext_init = "GetExtensionVersion";
+static const char *name_ext_do = "HttpExtensionProc";
+static const char *name_ext_term = "TerminateExtension";
+
+static const char *name_filter_factory = "__FilterFactory__";
+static const char *name_filter_init = "GetFilterVersion";
+static const char *name_filter_do = "HttpFilterProc";
+static const char *name_filter_term = "TerminateFilter";
+
 static CPythonEngine pyEngine;
-static CPythonEngine pyFilterEngine;
+static CPythonHandler filterHandler;
+static CPythonHandler extensionHandler;
+
 
 bool g_IsFrozen = false;
 char g_CallbackModuleName[_MAX_PATH + _MAX_FNAME] = "";
@@ -51,27 +63,20 @@ void WINAPI PyISAPISetOptions(const char *modname, BOOL is_frozen)
 BOOL WINAPI GetExtensionVersion(HSE_VERSION_INFO *pVer)
 {
 	pVer->dwExtensionVersion = MAKELONG( HSE_VERSION_MINOR, HSE_VERSION_MAJOR );
-
-	// stage 1: ensure Python ready to go
-	if (!pyEngine.InitMainInterp()){
-		TRACE("Unable to initialse python interpreter");
-		return false;
-	}
-	if (!pyEngine.LoadHandler("__ExtensionFactory__")) {
-		// LoadHandler has reported any errors to Python.
+	// ensure our handler ready to go
+	if (!extensionHandler.Init(&pyEngine, name_ext_factory,
+							   name_ext_init, name_ext_do, name_ext_term)) {
+		// already have reported any errors to Python.
 		TRACE("Unable to load Python handler");
 		return false;
 	}
-	if (!pyEngine.SetCallback("GetExtensionVersion"))
-		return FALSE;
-
 	PyObject *resultobject = NULL;
 	bool bRetStatus = true;
 	PyGILState_STATE state = PyGILState_Ensure();
 
 	// create the Python object
 	PyVERSION_INFO *pyVO = new PyVERSION_INFO(pVer);
-	resultobject = pyEngine.Callback("N", pyVO);
+	resultobject = extensionHandler.Callback(HANDLER_INIT, "N", pyVO);
 	if (! resultobject) {
 		ExtensionError(NULL, "Extension version function failed!");
 		bRetStatus = false;
@@ -87,8 +92,6 @@ BOOL WINAPI GetExtensionVersion(HSE_VERSION_INFO *pVer)
 	}
 	Py_XDECREF(resultobject);
 	PyGILState_Release(state);
-	if (bRetStatus)
-		bRetStatus = pyEngine.SetCallback("HttpExtensionProc");
 	return bRetStatus;
 }
 
@@ -98,7 +101,7 @@ DWORD WINAPI HttpExtensionProc(EXTENSION_CONTROL_BLOCK *pECB)
 	PyGILState_STATE state = PyGILState_Ensure();
 	CControlBlock * pcb = new CControlBlock(pECB);
 	PyECB *pyECB = new PyECB(pcb);
-	PyObject *resultobject = pyEngine.Callback("N", pyECB);
+	PyObject *resultobject = extensionHandler.Callback(HANDLER_DO, "N", pyECB);
 	if (! resultobject) {
 		ExtensionError(pcb, "HttpExtensionProc function failed!");
 		result = HSE_STATUS_ERROR;
@@ -118,41 +121,40 @@ DWORD WINAPI HttpExtensionProc(EXTENSION_CONTROL_BLOCK *pECB)
 BOOL WINAPI TerminateExtension(DWORD dwFlags)
 {
 	// extension is being terminated
-	BOOL bRetStatus = pyEngine.SetCallback("TerminateExtension");
-	if (bRetStatus) {
-		PyGILState_STATE state = PyGILState_Ensure();
-		PyObject *resultobject = pyEngine.Callback("i", dwFlags);
-		if (! resultobject) {
-			FilterError(NULL, "Extension term function failed!");
-			bRetStatus = false;
-		} else {
-			if (resultobject == Py_None)
-				bRetStatus = TRUE;
-			else if (PyInt_Check(resultobject))
-				bRetStatus = PyInt_AsLong(resultobject) ? true : false;
-			else {
-				FilterError(NULL, "Extension term should return an int, or None");
-				bRetStatus = FALSE;
-			}
+	BOOL bRetStatus;
+	PyGILState_STATE state = PyGILState_Ensure();
+	PyObject *resultobject = extensionHandler.Callback(HANDLER_TERM, "i", dwFlags);
+	if (! resultobject) {
+		ExtensionError(NULL, "Extension term function failed!");
+		bRetStatus = false;
+	} else {
+		if (resultobject == Py_None)
+			bRetStatus = TRUE;
+		else if (PyInt_Check(resultobject))
+			bRetStatus = PyInt_AsLong(resultobject) ? true : false;
+		else {
+			ExtensionError(NULL, "Extension term should return an int, or None");
+			bRetStatus = FALSE;
 		}
-		Py_XDECREF(resultobject);
-		PyGILState_Release(state);
 	}
+	Py_XDECREF(resultobject);
+	PyGILState_Release(state);
+	extensionHandler.Term();
 	return bRetStatus;
 }
 
 BOOL WINAPI GetFilterVersion(HTTP_FILTER_VERSION *pVer)
 {
 	pVer->dwFilterVersion = HTTP_FILTER_REVISION;
-	if (!pyFilterEngine.InitMainInterp() ||
-		!pyFilterEngine.LoadHandler("__FilterFactory__"))
-		return FALSE;
-	if (!pyFilterEngine.SetCallback("GetFilterVersion"))
+	// ensure our handler ready to go
+	if (!filterHandler.Init(&pyEngine, name_filter_factory,
+	                        name_filter_init, name_filter_do, name_filter_term))
+		// error already imported.
 		return FALSE;
 
 	PyGILState_STATE state = PyGILState_Ensure();
 	PyFILTER_VERSION *pyFV = new PyFILTER_VERSION(pVer);
-	PyObject *resultobject = pyFilterEngine.Callback("N", pyFV);
+	PyObject *resultobject = filterHandler.Callback(HANDLER_INIT, "N", pyFV);
 	BOOL bRetStatus;
 	if (! resultobject) {
 		FilterError(NULL, "Filter version function failed!");
@@ -169,29 +171,20 @@ BOOL WINAPI GetFilterVersion(HTTP_FILTER_VERSION *pVer)
 	}
 	Py_XDECREF(resultobject);
 	PyGILState_Release(state);
-	if (bRetStatus)
-		// All future callbacks are the filter proc!
-		bRetStatus = pyFilterEngine.SetCallback("HttpFilterProc");
-
 	return bRetStatus;
-	/* Specify the types and order of notification */
-	// Need to call Python so it can set all this.
-//	pVer->dwFlags = (SF_NOTIFY_PREPROC_HEADERS | SF_NOTIFY_NONSECURE_PORT | SF_NOTIFY_URL_MAP |  SF_NOTIFY_SEND_RAW_DATA | SF_NOTIFY_ORDER_DEFAULT);
-//	strcpy(pVer->lpszFilterDesc, "Python sample filter");
-//	return true;
 }
 
 DWORD WINAPI HttpFilterProc(HTTP_FILTER_CONTEXT *phfc, DWORD NotificationType, VOID *pvData)
 {
 	DWORD action;
 	PyGILState_STATE state = PyGILState_Ensure();
-	
+
 	PyObject *resultobject = NULL;
 
 	// create the Python object
 	CFilterContext fc(phfc, NotificationType, pvData);
 	PyHFC *pyHFC = new PyHFC(&fc);
-	resultobject = pyFilterEngine.Callback("O", pyHFC);
+	resultobject = filterHandler.Callback(HANDLER_DO, "O", pyHFC);
 	if (! resultobject) {
 		FilterError(&fc, "Filter function failed!");
 		action = SF_STATUS_REQ_ERROR;
@@ -215,11 +208,9 @@ DWORD WINAPI HttpFilterProc(HTTP_FILTER_CONTEXT *phfc, DWORD NotificationType, V
 
 BOOL WINAPI TerminateFilter(DWORD status)
 {
-	if (!pyFilterEngine.SetCallback("TerminateFilter"))
-		return FALSE;
 	BOOL bRetStatus;
 	PyGILState_STATE state = PyGILState_Ensure();
-	PyObject *resultobject = pyFilterEngine.Callback("i", status);
+	PyObject *resultobject = filterHandler.Callback(HANDLER_TERM, "i", status);
 	if (! resultobject) {
 		FilterError(NULL, "Filter version function failed!");
 		bRetStatus = false;
@@ -236,7 +227,7 @@ BOOL WINAPI TerminateFilter(DWORD status)
 	Py_XDECREF(resultobject);
 	PyGILState_Release(state);
 	// filter is being terminated
-	pyFilterEngine.ShutdownInterp();
+	filterHandler.Term();
 	return bRetStatus;
 }
 

@@ -42,8 +42,9 @@ extern char g_CallbackModuleName[_MAX_PATH + _MAX_FNAME];
 
 CRITICAL_SECTION CPythonEngine::m_initLock;
 bool CPythonEngine::m_haveInit = false;
+PyObject *          CPythonEngine::m_reload_exception = NULL;
 
-CPythonEngine::CPythonEngine() : m_handler(0), m_callback(0)
+CPythonEngine::CPythonEngine()
 {
 	InitializeCriticalSection(&m_initLock);
 }
@@ -79,22 +80,24 @@ bool CPythonEngine::InitMainInterp(void)
 		PyObject *obh = PyLong_FromVoidPtr(g_hInstance);
 		PySys_SetObject("isapidllhandle", obh);
 		Py_XDECREF(obh);
-		
+		// Locate the special exception we use to trigger a reload.
+		PyObject *isapi_package = PyImport_ImportModule("isapi");
+		if (isapi_package)
+			m_reload_exception = PyObject_GetAttrString(isapi_package,
+														"InternalReloadException");
+		Py_XDECREF(isapi_package);
 		PyGILState_Release(old_state);
+		FindModuleName();
 		m_haveInit = true;
 	}
 	return true;
 }
 
-bool CPythonEngine::LoadHandler(char *factory_name)
+void CPythonEngine::FindModuleName()
 {
-	PyObject *m;
 	TCHAR szFilePath[_MAX_PATH];
 	TCHAR szBase[_MAX_FNAME];
-	TCHAR szErrBuf[1024];
 	TCHAR *module_name;
-	
-	assert(m_handler==NULL); // should only be called once.
 
 	// If a name for the module has been magically setup (eg, via a frozen
 	// app), then use it.  Otherwise, assume it is the DLL name without the
@@ -114,87 +117,7 @@ bool CPythonEngine::LoadHandler(char *factory_name)
 			module_name = szBase;
 		}
 	}
-	PyGILState_STATE old_state = PyGILState_Ensure();
-	if (!(m = PyImport_ImportModule(module_name))) {
-		_snprintf(szErrBuf, sizeof(szErrBuf)/sizeof(szErrBuf[0]), 
-				  "Failed to import callback module '%s'", module_name);
-		ExtensionError(NULL, szErrBuf);
-	}
-	if (m) {
-		if (!((m_handler = PyObject_CallMethod(m, factory_name, NULL)))) {
-			_snprintf(szErrBuf, sizeof(szErrBuf)/sizeof(szErrBuf[0]), 
-			          "Factory function '%s' failed", factory_name);
-			ExtensionError(NULL, szErrBuf);
-		}
-		Py_DECREF(m);
-    }
-	PyGILState_Release(old_state);
-	return m_handler != NULL;
-}
-
-// Set the current 'callback' - all future callbacks will be made to
-// the fetched method.
-bool CPythonEngine::SetCallback(const char *cbname)
-{
-	assert(m_handler);
-	if (!m_handler)
-		return NULL;
-
-	PyGILState_STATE old_state = PyGILState_Ensure();
-	
-	Py_XDECREF(m_callback);
-	m_callback = PyObject_GetAttrString(m_handler, (char *)cbname);
-	if (!m_callback)
-		ExtensionError(NULL, "Failed to locate the callback");
-	PyGILState_Release(old_state);
-	return m_callback != NULL;
-}
-
-// NOTE: Caller must setup and release thread-state - as we return a PyObject,
-// the caller must at least Py_DECREF it, so must hold the lock.
-PyObject *CPythonEngine::Callback(
-	const char *format /* = NULL */,
-	...
-	)
-{
-	assert(m_callback);
-	if (!m_callback)
-		return NULL;
-
-	va_list va;
-	PyObject *args, *retval;
-
-	if (format && *format) {
-		va_start(va, format);
-		args = Py_VaBuildValue((char *)format, va);
-		va_end(va);
-	}
-	else
-		args = PyTuple_New(0);
-
-	if (args == NULL)
-		return NULL;
-
-	if (!PyTuple_Check(args)) {
-		PyObject *a;
-
-		a = PyTuple_New(1);
-		if (a == NULL)
-			return NULL;
-		if (PyTuple_SetItem(a, 0, args) < 0)
-			return NULL;
-		args = a;
-	}
-	retval = PyObject_Call(m_callback, args, NULL);
-	Py_DECREF(args);
-	return retval;
-
-}
-
-void CPythonEngine::ShutdownInterp(void)
-{
-	// never shut down - Python leaks badly and has other
-	// side effects if you repeatedly Init then Term
+	strncpy(m_module_name, module_name, sizeof(m_module_name)/sizeof(m_module_name[0]));
 }
 
 bool CPythonEngine::AddToPythonPath(LPCTSTR pPathName)
@@ -223,6 +146,195 @@ bool CPythonEngine::AddToPythonPath(LPCTSTR pPathName)
 
 	Py_XDECREF(obNew);
 	return true;
+}
+
+///////////////////////////////////////////////////////////////////////
+//
+// The callback manager
+//
+CPythonHandler::CPythonHandler() :
+	m_namefactory(0),
+	m_nameinit(0),
+	m_namedo(0),
+	m_nameterm(0),
+	m_callback_init(0),
+	m_callback_do(0),
+	m_callback_term(0),
+	m_handler(0)
+{
+		return;
+}
+
+bool CPythonHandler::Init(
+		CPythonEngine *engine,
+		const char *factory, const char *nameinit, const char *namedo,
+		const char *nameterm)
+{
+	if (!engine->InitMainInterp())
+		return false;
+	m_nameinit = nameinit;
+	m_namedo = namedo;
+	m_nameterm = nameterm;
+	m_namefactory = factory;
+	m_engine = engine;
+	return LoadHandler(false);
+}
+
+bool CPythonHandler::LoadHandler(bool reload)
+{
+	char szErrBuf[1024];
+	PyObject *m;
+	PyGILState_STATE old_state = PyGILState_Ensure();
+	m = PyImport_ImportModule(m_engine->m_module_name);
+	if (m && reload) {
+		PyObject *m_orig = m;
+		m = PyImport_ReloadModule(m);
+		Py_DECREF(m_orig);
+	}
+	if (!m) {
+		_snprintf(szErrBuf, sizeof(szErrBuf)/sizeof(szErrBuf[0]), 
+				  "Failed to import callback module '%s'", m_engine->m_module_name);
+		ExtensionError(NULL, szErrBuf);
+	}
+	if (m) {
+		Py_XDECREF(m_handler);
+		if (!((m_handler = PyObject_CallMethod(m, (char *)m_namefactory, NULL)))) {
+			_snprintf(szErrBuf, sizeof(szErrBuf)/sizeof(szErrBuf[0]), 
+			          "Factory function '%s' failed", m_namefactory);
+			ExtensionError(NULL, szErrBuf);
+		}
+		Py_DECREF(m);
+    }
+	PyGILState_Release(old_state);
+	return m_handler != NULL;
+}
+
+
+bool CPythonHandler::CheckCallback(const char *cbname, PyObject **cb)
+{
+	if (*cb!=NULL)
+		return true; // already have the callback.
+
+	PyGILState_STATE old_state = PyGILState_Ensure();
+	if (!m_handler) {
+		PyErr_SetString(PyExc_RuntimeError, "The handler failed to load");
+		return false;
+	}
+	*cb = PyObject_GetAttrString(m_handler, (char *)cbname);
+	if (!*cb)
+		ExtensionError(NULL, "Failed to locate the callback");
+	PyGILState_Release(old_state);
+	return (*cb) != NULL;
+}
+
+// NOTE: Caller must setup and release thread-state - as we return a PyObject,
+// the caller must at least Py_DECREF it, so must hold the lock.
+PyObject *CPythonHandler::DoCallback(
+	HANDLER_TYPE typ,
+	PyObject *args
+	)
+{
+	PyObject **ppcb;
+	const char *cb_name;
+	switch(typ) {
+		case HANDLER_INIT:
+			ppcb = &m_callback_init;
+			cb_name = m_nameinit;
+			break;
+		case HANDLER_TERM:
+			ppcb = &m_callback_term;
+			cb_name = m_nameterm;
+			break;
+		default:
+			ppcb = &m_callback_do;
+			cb_name = m_namedo;
+			break;
+	}
+	if (!CheckCallback(cb_name, ppcb))
+		return NULL;
+
+	return PyObject_Call(*ppcb, args, NULL);
+}
+
+PyObject *CPythonHandler::Callback(
+	HANDLER_TYPE typ,
+	const char *format /* = NULL */,
+	...
+	)
+{
+	va_list va;
+	PyObject *args;
+
+	if (format && *format) {
+		va_start(va, format);
+		args = Py_VaBuildValue((char *)format, va);
+		va_end(va);
+	}
+	else
+		args = PyTuple_New(0);
+
+	if (args == NULL)
+		return NULL;
+
+	if (!PyTuple_Check(args)) {
+		PyObject *a;
+
+		a = PyTuple_New(1);
+		if (a == NULL)
+			return NULL;
+		if (PyTuple_SetItem(a, 0, args) < 0)
+			return NULL;
+		args = a;
+	}
+
+	PyObject *ret = DoCallback(typ, args);
+	if (!ret) {
+		if (m_engine->m_reload_exception &&
+			PyErr_ExceptionMatches(m_engine->m_reload_exception)) {
+			PyErr_Clear();
+			// Need to call term first
+			PyObject *temp_args = Py_BuildValue("(i)", 0);
+			ret = DoCallback(HANDLER_TERM, temp_args);
+			Py_XDECREF(temp_args);
+			if (!ret) {
+				ExtensionError(NULL, "Terminating for reload failed");
+				PyErr_Clear();
+			}
+			Py_XDECREF(ret);
+			// Now force the reload and refresh of all callbacks.
+			if (!LoadHandler(true))
+				return NULL;
+			Py_XDECREF(m_callback_init);
+			m_callback_init = NULL;
+			Py_XDECREF(m_callback_do);
+			m_callback_do = NULL;
+			Py_XDECREF(m_callback_term);
+			m_callback_term = NULL;
+			// call init again
+			temp_args = Py_BuildValue("(z)", NULL);
+			ret = DoCallback(HANDLER_INIT, temp_args);
+			Py_XDECREF(temp_args);
+			if (!ret) {
+				ExtensionError(NULL, "Reinitializing after import failed");
+				PyErr_Clear();
+			}
+			Py_XDECREF(ret);
+			// And make the original call again.
+			ret = DoCallback(typ, args);			
+		}
+	}
+	Py_DECREF(args);
+	return ret;
+
+}
+
+void CPythonHandler::Term(void)
+{
+	// never shut down - Python leaks badly and has other
+	// side effects if you repeatedly Init then Term
+	Py_XDECREF(m_callback_init);
+	Py_XDECREF(m_callback_do);
+	Py_XDECREF(m_callback_term);
 }
 
 //////////////////////////////////////////////////////////////////////////////
