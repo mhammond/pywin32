@@ -1,13 +1,22 @@
-# distutils setup-script for win32all core dlls, currently only
-# pywintypes and pythoncom.
+# distutils setup-script for win32all
 #
 # Thomas Heller, started in 2000 or so.
+#
+# Things known to be missing:
+# * Commented "data files"
+# * Install of .exe/.dlls - most .exe files go next to python.exe
+# * "dbi" was built as .dll, as odbc depends on it.  does it work?
+# * create win32com\gen_py directory post install.
+# * Installing the 2 system DLLs to the system directory (just notice post-
+#   setup script does this - maybe do this on std "install" too?
 
 from distutils.core import setup, Extension, Command
 from distutils.command.install_lib import install_lib
 from distutils.command.build_ext import build_ext
 from distutils.dep_util import newer_group
 from distutils import log
+from distutils.sysconfig import get_python_lib
+from distutils.filelist import FileList
 import os, string, sys
 
 # Python 2.2 has no True/False
@@ -530,6 +539,36 @@ W32_exe_files = [
                  libraries = "user32"),
     WinExt_pythonwin("Pythonwin", extra_link_args=["/SUBSYSTEM:WINDOWS"]),
     ]
+
+# XXX - incomplete, but checking in to avoid conflicts with Thomas ;)
+# NOTE: somewhat counter-intuitively, a result list a-la:
+#  [('Lib/site-packages\\Pythonwin', ('Pythonwin/license.txt',)),]
+# will 'do the right thing' in terms of installing licence.txt into
+# 'Lib/site-packages/Pythonwin/licence.txt'.  I intent exploiting this to
+# get 'com/wincom/whatever' installed to 'win32com/whatever'
+def convert_data_files(files):
+    ret = []
+    for file in files:
+        if file.find("*") >= 0:
+            continue
+            flist = FileList(os.path.dirname(file))
+            if not flist.include_pattern(os.path.basename(file)):
+                raise RuntimeError, "No files match '%s'" % file
+            found = flist.files
+        else:
+            if not os.path.isfile(file):
+                raise RuntimeError, "No file '%s'" % file
+            path = os.path.join("Lib/site-packages", os.path.dirname(file))
+            ret.append( (path, (file,)) )
+            continue
+# xxx - incomplete, but semi-working, and going to bed :)
+#            found = [file]
+        ret.append( ("Lib/site-packages", found) )
+        
+    print ret
+    return ret
+   
+
 ################################################################
 
 dist = setup(name="pywin32",
@@ -554,6 +593,21 @@ dist = setup(name="pywin32",
                      "win32comext": "com/win32comext",
                      "Pythonwin": "Pythonwin"},
 
+      data_files=convert_data_files([
+                'Pythonwin/pywin/*.cfg',
+                'pywin32.chm',
+                'Pythonwin/license.txt',
+                'win32/license.txt',
+                # win32com readme (doesn't work for cvt_data_files)
+                # win32com/license
+                # win32com test - *.txt, *.py, *.vbs, *.js, *.sct, *.xsl
+                # win32com HTML\*
+                # win32com HTML\image\*
+                # win32comext\axscript\test - *.py, *.vbs, *.pys
+                # win32comext\axscript\demos\ie\*.*
+                # win32comext\axscript\demos\wsh\*.*
+                # win32comext\axscript\demos\asp\*.*
+                 ]),
       packages=['win32',
                 'win32com',
                 'win32com.client',
@@ -599,11 +653,14 @@ dist = setup(name="pywin32",
       )
 # If we did any extension building...
 if dist.command_obj.has_key('build_ext'):
+    what_string = "built"
+    if dist.command_obj.has_key('install'): # just to be purdy
+        what_string += "/installed"
     # Print the list of extension modules we skipped building.
     excluded_extensions = dist.command_obj['build_ext'].excluded_extensions
     if excluded_extensions:
-        print "*** NOTE: The following extensions were NOT built:"
+        print "*** NOTE: The following extensions were NOT %s:" % what_string
         for ext, why in excluded_extensions:
             print " %s: %s" % (ext.name, why)
     else:
-        print "All extension modules built OK"
+        print "All extension modules %s OK" % (what_string,)
