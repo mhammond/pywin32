@@ -2,8 +2,8 @@
 <!-- Komodo Project File - DO NOT EDIT -->
 <project kpf_version="2" name="PyWin32">
 <preference-set id="">
-  <string id="import_exclude_matches">*.*~;*.bak;*.tmp;CVS;.#*;*.pyo;*.pyc;*.dsp</string>
   <string id="import_dirname">E:\src\pythonex</string>
+  <string id="import_exclude_matches">*.*~;*.bak;*.tmp;CVS;.#*;*.pyo;*.pyc;*.dsp</string>
   <string id="import_include_matches">*.c;*.cpp;*.h;*.def;*.mc;*.py;*.bat;*.txt;*.vbs;*.js;*.x*;*.i;</string>
 </preference-set>
 <file name="build_for_version.bat" url="build_for_version.bat">
@@ -13,6 +13,8 @@
 <file name="set_for_version.py" url="set_for_version.py">
 </file>
 <folder name="com" url="com">
+<preference-set id="">
+</preference-set>
 <file name="changes.txt" url="com/changes.txt">
 </file>
 <file name="License.txt" url="com/License.txt">
@@ -44,6 +46,8 @@
 </folder>
 </folder>
 <folder name="win32com" url="com/win32com">
+<preference-set id="">
+</preference-set>
 <file name="changes.txt" url="com/win32com/changes.txt">
 </file>
 <file name="olectl.py" url="com/win32com/olectl.py">
@@ -371,6 +375,8 @@
 </folder>
 </folder>
 <folder name="test" url="com/win32com/test">
+<preference-set id="">
+</preference-set>
 <file name="daodump.py" url="com/win32com/test/daodump.py">
 </file>
 <file name="errorSemantics.py" url="com/win32com/test/errorSemantics.py">
@@ -427,9 +433,28 @@
 </file>
 <file name="testStreams.py" url="com/win32com/test/testStreams.py">
 </file>
-<file name="testuniv.py" url="com/win32com/test/testuniv.py">
-</file>
 <file name="testvb.py" url="com/win32com/test/testvb.py">
+<preference-set id="">
+<preference-set id="Invocations">
+<preference-set id="Python">
+  <string id="postparams"></string>
+  <string id="userEnvironment"></string>
+  <string id="getparams"></string>
+  <boolean id="use-console">0</boolean>
+  <string id="mpostparams"></string>
+  <boolean id="show-dialog">1</boolean>
+  <string id="request-method">GET</string>
+  <string id="params"></string>
+  <string id="userCGIEnvironment"></string>
+  <string id="posttype">application/x-www-form-urlencoded</string>
+  <string id="documentRoot"></string>
+  <string id="cookieparams"></string>
+  <string id="filename">E:\src\pythonex\com\win32com\test\testvb.py</string>
+  <boolean id="sim-cgi">0</boolean>
+  <string id="cwd"></string>
+</preference-set>
+</preference-set>
+</preference-set>
 </file>
 <file name="testWMI.py" url="com/win32com/test/testWMI.py">
 </file>
@@ -442,6 +467,8 @@
 <file name="util.py" url="com/win32com/test/util.py">
 </file>
 <file name="__init__.py" url="com/win32com/test/__init__.py">
+</file>
+<file name="testIterators.py" url="com/win32com/test/testIterators.py">
 </file>
 </folder>
 </folder>
@@ -1628,20 +1655,20 @@
 <preference-set id="">
 <preference-set id="Invocations">
 <preference-set id="Python">
-  <string id="userEnvironment"></string>
   <string id="postparams"></string>
   <string id="getparams"></string>
   <boolean id="use-console">0</boolean>
-  <string id="mpostparams"></string>
-  <boolean id="sim-cgi">0</boolean>
   <string id="filename">E:\src\pythonex\win32\Demos\win32gui_menu.py</string>
+  <string id="mpostparams"></string>
+  <boolean id="show-dialog">1</boolean>
   <string id="request-method">GET</string>
   <string id="params"></string>
   <string id="userCGIEnvironment"></string>
   <string id="posttype">application/x-www-form-urlencoded</string>
   <string id="documentRoot"></string>
   <string id="cookieparams"></string>
-  <boolean id="show-dialog">1</boolean>
+  <string id="userEnvironment"></string>
+  <boolean id="sim-cgi">0</boolean>
   <string id="cwd"></string>
 </preference-set>
 </preference-set>
@@ -1891,6 +1918,8 @@
 </folder>
 </folder>
 <folder name="test" url="win32/test">
+<preference-set id="">
+</preference-set>
 <file name="handles.py" url="win32/test/handles.py">
 </file>
 <file name="test_clipboard.py" url="win32/test/test_clipboard.py">
@@ -1906,6 +1935,29 @@
 <file name="test_win32trace.py" url="win32/test/test_win32trace.py">
 </file>
 <file name="test_win32wnet.py" url="win32/test/test_win32wnet.py">
+</file>
+<file name="testall.py" url="win32/test/testall.py">
+<preference-set id="">
+<preference-set id="Invocations">
+<preference-set id="Python">
+  <string id="userEnvironment"></string>
+  <string id="postparams"></string>
+  <string id="getparams"></string>
+  <boolean id="use-console">0</boolean>
+  <string id="mpostparams"></string>
+  <boolean id="sim-cgi">0</boolean>
+  <string id="filename">E:\src\pythonex\win32\test\testall.py</string>
+  <string id="request-method">GET</string>
+  <string id="params"></string>
+  <string id="userCGIEnvironment"></string>
+  <string id="posttype">application/x-www-form-urlencoded</string>
+  <string id="documentRoot"></string>
+  <string id="cookieparams"></string>
+  <boolean id="show-dialog">1</boolean>
+  <string id="cwd"></string>
+</preference-set>
+</preference-set>
+</preference-set>
 </file>
 </folder>
 </folder>
