@@ -6,10 +6,8 @@
 
 !IFDEF DEBUG
 DIR_O = ..\Build\Temp\Scintilla\Debug
-SCINTILLA_DLL = ..\..\Build\Scintilla_d.dll
 !ELSE
 DIR_O = ..\Build\Temp\Scintilla\Release
-SCINTILLA_DLL = ..\..\Build\Scintilla.dll
 !ENDIF
 
 DIR_BIN = ..\Build
@@ -17,8 +15,18 @@ DIR_BIN = ..\Build
 DIR_PYTHON=\src\python-cvs
 
 # Relative to the subdirectory for the sub-makefile
+!ifndef SUB_DIR_BIN
 SUB_DIR_BIN = ..\$(DIR_BIN)
+!endif
+!ifndef SUB_DIR_O
 SUB_DIR_O=..\$(DIR_O)
+!endif
+
+!IFDEF DEBUG
+SCINTILLA_DLL = $(SUB_DIR_BIN)\Scintilla_d.dll
+!ELSE
+SCINTILLA_DLL = $(SUB_DIR_BIN)\Scintilla.dll
+!ENDIF
 
 all: ..\pywin\scintilla\scintillacon.py Scintilla
 
