@@ -150,7 +150,7 @@ private:
 
 // B/W compat hack for gateways.
 #define PyCom_HandlePythonFailureToCOM() \
-	PyCom_SetAndLogCOMErrorFromPyExceptionEx(this->m_pPyObject, "gateway method", GetIID())
+	PyCom_SetAndLogCOMErrorFromPyExceptionEx(this->m_pPyObject, "<unknown>", GetIID())
 
 // F/W compat hack for gateways!  Must be careful about updating
 // PyGatewayBase vtable, so a slightly older pythoncomXX.dll will work

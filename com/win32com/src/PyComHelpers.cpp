@@ -159,7 +159,7 @@ BOOL PyCom_InterfaceFromPyObject(PyObject *ob, REFIID iid, LPVOID *ppv, BOOL bNo
 		}
 		else
 		{
-			PyErr_SetString(PyExc_TypeError, "None is not a invalid interface object in this context");
+			PyErr_SetString(PyExc_TypeError, "None is not a valid interface object in this context");
 			return FALSE;
 		}
 	}
