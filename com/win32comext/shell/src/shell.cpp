@@ -927,7 +927,7 @@ static PyObject *PyDragQueryPoint(PyObject *self, PyObject *args)
 	return Py_BuildValue("O(ii)", result ? Py_True : Py_False, pt.x, pt.y);
 }
 
-// @pymethod <o PyIUnknown>|SHGetInstanceExplorer|Allows components that run in a Web browser (Iexplore.exe) or a nondefault Windows® Explorer (Explorer.exe) process to hold a reference to the process. The components can use the reference to prevent the process from closing prematurely.
+// @pymethod <o PyIUnknown>|shell|SHGetInstanceExplorer|Allows components that run in a Web browser (Iexplore.exe) or a nondefault Windows Explorer (Explorer.exe) process to hold a reference to the process. The components can use the reference to prevent the process from closing prematurely.
 static PyObject *PySHGetInstanceExplorer(PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ":SHGetInstanceExplorer"))
