@@ -147,6 +147,11 @@ DWORD APIENTRY OpenPerformanceData( LPWSTR lpDeviceNames )
 	DWORD size;
 	DWORD type;
 	TCHAR registryKeyName[MAX_PATH];
+	TCHAR szFileMapping[MAX_PATH+10];
+
+	_tcscpy(szFileMapping, _T("Global\\"));
+	_tcscat(szFileMapping, szModuleName);
+
 	//
     //  Since SCREG is multi-threaded and will call this routine in
     //  order to service remote performance queries, this library
@@ -163,7 +168,7 @@ DWORD APIENTRY OpenPerformanceData( LPWSTR lpDeviceNames )
         // open shared memory used by application to pass performance values
         hSharedMemory = OpenFileMapping(FILE_MAP_READ,
                                 FALSE,
-						        szModuleName);
+						        szFileMapping);
 
         pCounterBlock = NULL;   
 		// initialize pointer to memory

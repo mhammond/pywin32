@@ -41,16 +41,24 @@ BOOL MappingManager::CheckStatus()
 
 BOOL MappingManager::Init(const TCHAR *szServiceName, const TCHAR *szMappingName /* = NULL */, const TCHAR *szEventSourceName /* = NULL */)
 {
+	TCHAR szGlobalMapping[MAX_PATH+10];
+
+
 	if (szMappingName==NULL)
 		szMappingName = szServiceName;
 	if (szEventSourceName==NULL)
 		szEventSourceName = szServiceName;
+
+
+	_tcscpy(szGlobalMapping, _T("Global\\"));
+	_tcscat(szGlobalMapping, szMappingName);
+
 	m_hMappedObject = CreateFileMapping((HANDLE)0xFFFFFFFF,
 						NULL,
 						PAGE_READWRITE,
 						0,
 						4096,
-						szMappingName);
+						szGlobalMapping);
 	if (m_hMappedObject == NULL) {
 		PyWin_SetAPIError("CreateFileMapping");
 		return FALSE;
