@@ -50,6 +50,8 @@ import selecttlb
 import gencache
 from win32com.client import NeedUnicodeConversions
 
+bForDemandDefault = False # Default value of bForDemand - toggle this to change the world - see also gencache.py
+
 error = "makepy.error"
 
 def usage():
@@ -171,7 +173,7 @@ def GetTypeLibsForSpec(arg):
 		tb = None # Storing tb in a local is a cycle!
 		sys.exit(1)
 
-def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progressInstance = None, bUnicodeToString=NeedUnicodeConversions, bQuiet = None, bGUIProgress = None, bForDemand = 0, bBuildHidden = 1):
+def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progressInstance = None, bUnicodeToString=NeedUnicodeConversions, bQuiet = None, bGUIProgress = None, bForDemand = bForDemandDefault, bBuildHidden = 1):
 	if bQuiet is not None or bGUIProgress is not None:
 		print "Please dont use the bQuiet or bGUIProgress params"
 		print "use the 'verboseLevel', and 'progressClass' params"
@@ -301,7 +303,7 @@ def main():
 	outputName = None
 	verboseLevel = 1
 	doit = 1
-	bForDemand = 0
+	bForDemand = bForDemandDefault
 	try:
 		opts, args = getopt.getopt(sys.argv[1:], 'vo:huiqd')
 		for o,v in opts:
@@ -323,7 +325,7 @@ def main():
 						ShowInfo(arg)
 				doit = 0
 			elif o=='-d':
-				bForDemand = 1
+				bForDemand = not bForDemand
 
 	except (getopt.error, error), msg:
 		sys.stderr.write (str(msg) + "\n")
