@@ -170,7 +170,7 @@ static struct PyMethodDef PyIEnumFORMATETC_methods[] =
 	{ NULL }
 };
 
-PyComTypeObject PyIEnumFORMATETC::type("PyIEnumFORMATETC",
+PyComEnumTypeObject PyIEnumFORMATETC::type("PyIEnumFORMATETC",
 		&PyIUnknown::type,
 		sizeof(PyIEnumFORMATETC),
 		PyIEnumFORMATETC_methods,

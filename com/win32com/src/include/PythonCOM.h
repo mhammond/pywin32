@@ -153,6 +153,12 @@ public:
 	PyIUnknown * (* ctor)(IUnknown *);
 };
 
+// A type used for PyIEnum interfaces
+class PYCOM_EXPORT PyComEnumTypeObject : public PyComTypeObject {
+public:
+	PyComEnumTypeObject( const char *name, PyComTypeObject *pBaseType, int typeSize, struct PyMethodDef* methodList, PyIUnknown* (* thector)(IUnknown *)  );
+};
+
 // Very very base class - not COM specific - Should exist in the
 // Python core somewhere, IMO.
 class PYCOM_EXPORT PyIBase : 
@@ -164,7 +170,7 @@ public:
 	virtual int setattr(char *name, PyObject *v);
 	virtual PyObject *repr();
 	virtual int compare(PyObject *other) {return (int)this-int(other);}
-	virtual PyObject *iter();
+	virtual PyObject *iter() {Py_INCREF(this);return this;}
 	virtual PyObject *iternext();
 
 	static struct PyMethodDef PyIBase::empty_methods[];
@@ -180,7 +186,7 @@ public:
 	static PyObject *getattro(PyObject *self, PyObject *name);
 	static int setattr(PyObject *op, char *name, PyObject *v);
 	static int cmp(PyObject *ob1, PyObject *ob2);
-	static PyObject *iter(PyObject *self) {return PyObject_SelfIter(self);}
+	static PyObject *iter(PyObject *self);
 	static PyObject *iternext(PyObject *self);
 };
 

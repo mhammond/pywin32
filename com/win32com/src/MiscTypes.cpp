@@ -64,14 +64,14 @@ PyComTypeObject::PyComTypeObject( const char *name, PyComTypeObject *pBase, int 
 		PyIBase::getattro, /* tp_getattro */
 		0,			/*tp_setattro */
 		0,			/* tp_as_buffer */
-		Py_TPFLAGS_HAVE_ITER,			/* tp_flags */
+		0,			/* tp_flags */
 		0,          /* tp_doc */
 		0,    /* tp_traverse */
 		0,                              /* tp_clear */
 		0,                              /* tp_richcompare */
 		0,                              /* tp_weaklistoffset */
-		PyIBase::iter,		/* tp_iter */
-		PyIBase::iternext,        /* tp_iternext */
+		0,					/* tp_iter */
+		0,					/* tp_iternext */
 		0,					/* tp_methods */	
 		0,					/* tp_members */
 		0,					/* tp_getset */
@@ -106,6 +106,15 @@ PyComTypeObject::~PyComTypeObject()
 	return ob->ob_type == &PyType_Type && 
 	       ((PyTypeObject *)ob)->tp_base == &PyInterfaceType_Type;
 #endif
+}
+
+// Our type for IEnum* interfaces
+PyComEnumTypeObject::PyComEnumTypeObject( const char *name, PyComTypeObject *pBase, int typeSize, struct PyMethodDef* methodList, PyIUnknown * (* thector)(IUnknown *)) :
+	PyComTypeObject( name, pBase, typeSize, methodList, thector)
+{
+		tp_iter = PyIBase::iter;
+		tp_iternext = PyIBase::iternext;
+		tp_flags |= Py_TPFLAGS_HAVE_ITER;
 }
 
 /////////////////////////////////////////////////////////////////////////////

@@ -9,7 +9,7 @@ class PYCOM_EXPORT PyIEnumVARIANT : public PyIUnknown
 public:
 	MAKE_PYCOM_CTOR(PyIEnumVARIANT);
 	static IEnumVARIANT *GetI(PyObject *self);
-	static PyComTypeObject type;
+	static PyComEnumTypeObject type;
 
 	virtual PyObject *iternext();
 

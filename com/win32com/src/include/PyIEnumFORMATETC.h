@@ -9,7 +9,7 @@ class PyIEnumFORMATETC : public PyIUnknown
 public:
 	MAKE_PYCOM_CTOR(PyIEnumFORMATETC);
 	static IEnumFORMATETC *GetI(PyObject *self);
-	static PyComTypeObject type;
+	static PyComEnumTypeObject type;
 
 	virtual PyObject *iternext();
 

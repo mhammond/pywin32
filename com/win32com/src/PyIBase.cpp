@@ -59,13 +59,6 @@ PyIBase::iternext()
 	return PyErr_Format(PyExc_RuntimeError,
 			"iternext must be overridden by objects supporting enumeration (type '%s').", ob_type->tp_name);
 }
-PyObject *
-PyIBase::iter()
-{
-	return PyErr_Format(PyExc_TypeError,
-			"COM objects of type '%s' can not be iterated.", ob_type->tp_name);
-}
-
 
 /*static*/int PyIBase::setattr(PyObject *op, char *name, PyObject *v)
 {
@@ -100,6 +93,11 @@ PyObject * PyIBase::repr()
 /*static*/ int PyIBase::cmp(PyObject *ob1, PyObject *ob2)
 {
 	return ((PyIBase *)ob1)->compare(ob2);
+}
+
+/*static*/ PyObject *PyIBase::iter(PyObject *self)
+{
+	return ((PyIBase *)self)->iter();
 }
 
 /*static*/ PyObject *PyIBase::iternext(PyObject *self)

@@ -170,7 +170,7 @@ static struct PyMethodDef PyIEnumVARIANT_methods[] =
 	{ NULL }
 };
 
-PyComTypeObject PyIEnumVARIANT::type("PyIEnumVARIANT",
+PyComEnumTypeObject PyIEnumVARIANT::type("PyIEnumVARIANT",
 		&PyIUnknown::type, // @base PyIEnumVariant|PyIUnknown
 		sizeof(PyIEnumVARIANT),
 		PyIEnumVARIANT_methods,
