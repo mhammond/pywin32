@@ -203,6 +203,65 @@ BOOLAPI DefineDosDevice(
 BOOLAPI DeleteFile(TCHAR *fileName);
 // @pyparm <o PyUnicode>|fileName||The filename to delete
 
+%{
+// @pyswig int|DeviceIoControl|Call DeviceIoControl
+PyObject *MyDeviceIoControl(PyObject *self, PyObject *args)
+{
+    OVERLAPPED *pOverlapped;
+    PyObject *obhFile;
+    HANDLE hDevice;
+    DWORD readSize;
+    PyObject *obOverlapped = NULL;
+
+    DWORD dwIoControlCode;
+    char *writeData;
+    DWORD writeSize;
+
+    if (!PyArg_ParseTuple(args, "Ols#l|O:DeviceIoControl", 
+        &obhFile, // @pyparm int|hFile||Handle to the file
+        &dwIoControlCode, // @pyparm int|dwIoControlCode||IOControl Code to use.
+        &writeData, &writeSize, // @pyparm string|data||The data to write.
+        &readSize, // @pyparm int|readSize||Size of the buffer to create for the read.
+        &obOverlapped)) // @pyparm <o PyOVERLAPPED>|ol|None|An overlapped structure
+        return NULL;
+    if (obOverlapped==NULL)
+        pOverlapped = NULL;
+    else {
+        if (!PyWinObject_AsOVERLAPPED(obOverlapped, &pOverlapped))
+            return NULL;
+    }
+    if (!PyWinObject_AsHANDLE(obhFile, &hDevice))
+        return NULL;
+
+    void *readData = malloc(readSize);
+    DWORD numRead;
+    BOOL ok;
+    Py_BEGIN_ALLOW_THREADS
+
+    ok = DeviceIoControl(hDevice,
+                         dwIoControlCode,
+                         writeData,
+                         writeSize,
+                         readData, 
+                         readSize, 
+                         &numRead,
+                         pOverlapped);
+
+    Py_END_ALLOW_THREADS
+    if (!ok) {
+        free(readData);
+        return PyWin_SetAPIError("DeviceIoControl");
+    }
+    
+    PyObject *result = PyString_FromStringAndSize((char *)readData, numRead);
+    free(readData);
+    return result;
+}
+%}
+
+%native(DeviceIoControl) MyDeviceIoControl;
+
+
 //FileIOCompletionRoutine	
 
 // @pyswig |FindClose|Closes a handle opened with <om win32file.FindOpen>
