@@ -58,6 +58,10 @@ class MainFrame(app.MainFrame):
 			pass
 		self.SaveBarState("ToolbarDefault")
 		self.SetActiveView(None) # Otherwise MFC's OnClose may _not_ prompt for save.
+
+		from pywin.framework import help
+		help.FinalizeHelp()
+		
 		return self._obj_.OnClose()
 	def OnCommand(self, wparam, lparam):
 		# By default, the current MDI child frame will process WM_COMMAND
@@ -379,7 +383,12 @@ class InteractivePythonApp(app.CApp):
 		for page in pages:
 			sheet.AddPage(page)
 
-		sheet.DoModal()
+		if sheet.DoModal()==win32con.IDOK:
+			win32ui.SetStatusText("Applying configuration changes...", 1)
+			win32ui.DoWaitCursor(1)
+			# Tell every Window in our app that win.ini has changed!
+			win32ui.GetMainFrame().SendMessageToDescendants(win32con.WM_WININICHANGE, 0, 0)
+			win32ui.DoWaitCursor(0)
 
 	def OnInteractiveWindow(self, id, code):
 		# toggle the existing state.
