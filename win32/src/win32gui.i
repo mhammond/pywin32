@@ -2771,54 +2771,44 @@ int ScrollWindowEx(
 // @comm When passed from Python, it must have the addn mask attribute, but all other items may be None, or not exist.
 BOOL ParseSCROLLINFOTuple( PyObject *args, SCROLLINFO *pInfo)
 {
-	PyObject *ob;
+	static char *err_msg="SCROLLINFO must be a tuple of 1-6 ints";
+	PyObject *obMin=Py_None, *obMax=Py_None, *obPage=Py_None, *obPos=Py_None, *obTrackPos=Py_None;
 	int len = PyTuple_Size(args);
-	if (len<1 || len > 5) {
-		PyErr_SetString(PyExc_TypeError, "SCROLLINFO tuple has invalid size");
+	if (len<1 || len > 6) {
+		PyErr_SetString(PyExc_TypeError, err_msg);
+		return FALSE;
+	}
+	if (!PyArg_ParseTuple(args, "l|OOOOO", &pInfo->fMask, &obMin, &obMax, &obPage, &obPos, &obTrackPos)){
+		PyErr_SetString(PyExc_TypeError, err_msg);
 		return FALSE;
 	}
 	PyErr_Clear(); // clear any errors, so I can detect my own.
-	// 0 - mask.
-	if ((ob=PyTuple_GetItem(args, 0))==NULL)
-		return FALSE;
-	pInfo->fMask = (UINT)PyInt_AsLong(ob);
 	// 1/2 - nMin/nMax
-	if (len==2) {
+	if ((obMin==Py_None && obMax!=Py_None) || (obMin!=Py_None && obMax==Py_None)){
 		PyErr_SetString(PyExc_TypeError, "SCROLLINFO - Both min and max, or neither, must be provided.");
 		return FALSE;
 	}
-	if (len<3) return TRUE;
-	if ((ob=PyTuple_GetItem(args, 1))==NULL)
-		return FALSE;
-	if (ob != Py_None) {
-		pInfo->fMask |= SIF_RANGE;
-		pInfo->nMin = PyInt_AsLong(ob);
-		if ((ob=PyTuple_GetItem(args, 2))==NULL)
+	if (obMin!=Py_None){
+		if (((pInfo->nMin=PyInt_AsLong(obMin))==-1)&&PyErr_Occurred())
 			return FALSE;
-		pInfo->nMax = PyInt_AsLong(ob);
+		if (((pInfo->nMax=PyInt_AsLong(obMax))==-1)&&PyErr_Occurred())
+			return FALSE;
+		pInfo->fMask |= SIF_RANGE;
 	}
-	// 3 == nPage.
-	if (len<4) return TRUE;
-	if ((ob=PyTuple_GetItem(args, 3))==NULL)
-		return FALSE;
-	if (ob != Py_None) {
-		pInfo->fMask |=SIF_PAGE;
-		pInfo->nPage = PyInt_AsLong(ob);
+	if (obPage!=Py_None){
+		if (((pInfo->nPage=PyInt_AsLong(obPage))==-1)&&PyErr_Occurred())
+			return FALSE;
+		pInfo->fMask |= SIF_PAGE;
 	}
-	// 4 == nPos
-	if (len<5) return TRUE;
-	if ((ob=PyTuple_GetItem(args, 4))==NULL)
-		return FALSE;
-	if (ob != Py_None) {
-		pInfo->fMask |=SIF_POS;
-		pInfo->nPos = PyInt_AsLong(ob);
+	if (obPos!=Py_None){
+		if (((pInfo->nPos=PyInt_AsLong(obPos))==-1)&&PyErr_Occurred())
+			return FALSE;
+		pInfo->fMask |= SIF_POS;
 	}
-	// 5 == trackpos
-	if (len<6) return TRUE;
-	if ((ob=PyTuple_GetItem(args, 5))==NULL)
-		return FALSE;
-	if (ob != Py_None) {
-		pInfo->nTrackPos = PyInt_AsLong(ob);
+	if (obTrackPos!=Py_None){
+		if (((pInfo->nTrackPos=PyInt_AsLong(obTrackPos))==-1)&&PyErr_Occurred())
+			return FALSE;
+		pInfo->fMask |= SIF_TRACKPOS;
 	}
 	return TRUE;
 }
@@ -2872,10 +2862,9 @@ static PyObject *PySetScrollInfo(PyObject *self, PyObject *args) {
 	}
 	SCROLLINFO info;
 	info.cbSize = sizeof(SCROLLINFO);
-	if (ParseSCROLLINFOTuple(obInfo, &info) == 0) {
-		PyWin_SetAPIError("SetScrollInfo");
+	if (ParseSCROLLINFOTuple(obInfo, &info) == 0)
 		return NULL;
-	}
+
 	GUI_BGN_SAVE;
 	int rc = SetScrollInfo(hwnd, nBar, &info, bRedraw);
 	GUI_END_SAVE;
@@ -3069,3 +3058,27 @@ static PyObject *PyListView_SortItems(PyObject *self, PyObject *args)
 
 %native (ListView_SortItems) PyListView_SortItems;
 %native (ListView_SortItemsEx) PyListView_SortItemsEx;
+
+// @pyswig int|CreateDC|Creates a device context for a printer or display device
+%native (CreateDC) PyCreateDC;
+%{
+static PyObject *PyCreateDC(PyObject *self, PyObject *args)
+{
+	PDEVMODE pdevmode;
+	PyObject *obdevmode=NULL;
+	char *driver, *device, *dummyoutput=NULL;
+	HDC hdc;
+	// @pyparm string|Driver||Name of display or print provider, usually DISPLAY or WINSPOOL
+	// @pyparm string|Device||Name of specific device, eg printer name returned from GetDefaultPrinter
+	// @pyparm <o PyDEVMODE>|InitData||A PyDEVMODE that specifies printing parameters, use None for printer defaults
+	if (!PyArg_ParseTuple(args, "szO", &driver, &device, &obdevmode))
+		return NULL;
+	if (!PyWinObject_AsDEVMODE(obdevmode, &pdevmode, TRUE))
+		return NULL;
+	hdc=CreateDC(driver, device, dummyoutput, pdevmode);
+	if (hdc!=NULL)
+		return Py_BuildValue("l",hdc);
+	PyWin_SetAPIError("CreateDC",GetLastError());
+	return NULL;
+}
+%}
