@@ -435,8 +435,14 @@ class my_build_ext(build_ext):
         macros = ext.define_macros[:]
         for undef in ext.undef_macros:
             macros.append((undef,))
+        # Note: custom 'output_dir' needed due to servicemanager.pyd and
+        # pythonservice.exe being built from the same .cpp file - without
+        # this, distutils gets confused, as they both try and use the same
+        # .obj.
+        output_dir = os.path.join(self.build_temp, ext.name)
+        print "OD is", output_dir
         # 2.2 has no 'depends' param.
-        kw = {'output_dir': self.build_temp,
+        kw = {'output_dir': output_dir,
               'macros': macros,
               'include_dirs': ext.include_dirs,
               'debug': self.debug,
@@ -480,7 +486,8 @@ class my_build_ext(build_ext):
         self.compiler.link(
             "executable",
             objects, ext_filename, **kw)
-        
+
+
     def build_extension(self, ext):
         # It is well known that some of these extensions are difficult to
         # build, requiring various hard-to-track libraries etc.  So we
@@ -555,6 +562,9 @@ class my_build_ext(build_ext):
         elif name.endswith("win32.win32popenWin9x"):
             extra = self.debug and "_d.exe" or ".exe"
             return r"win32\win32popenWin9x" + extra
+        elif name.endswith("win32.pythonservice"):
+            extra = self.debug and "_d.exe" or ".exe"
+            return r"win32\pythonservice" + extra
         elif name.endswith("pythonwin.Pythonwin"):
             extra = self.debug and "_d.exe" or ".exe"
             return r"pythonwin\Pythonwin" + extra
@@ -764,7 +774,8 @@ com_extensions += [
                          libraries="""DAPI ADDRLKUP exchinst EDKCFG EDKUTILS
                                       EDKMAPI mapi32 version""",
                          extra_link_args=["/nodefaultlib:libc"]),
-    WinExt_win32com('shell', libraries='shell32', pch_header="shell_pch.h")
+    WinExt_win32com('shell', libraries='shell32', pch_header="shell_pch.h"),
+    WinExt_win32com('taskscheduler', libraries='mstask'),
 ]
 
 pythonwin_extensions = [
@@ -778,6 +789,11 @@ pythonwin_extensions = [
 W32_exe_files = [
     WinExt_win32("win32popenWin9x",
                  libraries = "user32"),
+    WinExt_win32("pythonservice",
+                 dsp_file = "win32/PythonService EXE.dsp",
+                 extra_compile_args = ['-DUNICODE', '-D_UNICODE', '-DWINNT'],
+                 extra_link_args=["/SUBSYSTEM:CONSOLE"],
+                 libraries = "user32 advapi32 ole32 shell32"),
     WinExt_pythonwin("Pythonwin", extra_link_args=["/SUBSYSTEM:WINDOWS"]),
     ]
 
@@ -894,6 +910,7 @@ packages=['win32com',
           'win32comext.mapi',
           'win32comext.internet',
           'win32comext.axcontrol',
+          'win32comext.taskscheduler',
 
           'pythonwin.pywin',
           'pythonwin.pywin.debugger',
