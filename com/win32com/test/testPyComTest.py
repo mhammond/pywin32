@@ -145,7 +145,7 @@ def TestGenerated():
     if o.GetLastVarArgs() != ("Hi", "There", "From", "Python", 1):
         raise error, "VarArgs failed -" + str(o.GetLastVarArgs())
     if verbose: print "Checking getting/passing IUnknown"
-    if type(o.GetSetUnknown(o)) !=pythoncom.TypeIIDs[pythoncom.IID_IUnknown]:
+    if o.GetSetUnknown(o) != o:
         raise error, "GetSetUnknown failed"
     if verbose: print "Checking getting/passing IDispatch"
     if type(o.GetSetDispatch(o)) !=types.InstanceType:
