@@ -924,8 +924,11 @@ pythonwin_extensions = [
     WinExt_pythonwin("dde", pch_header="stdafxdde.h"),
 ]
 
-other_extensions = [
-    WinExt_ISAPI('PyISAPI_loader',
+other_extensions = []
+if sys.hexversion >= 0x2030000:
+    # GILState stuff too hard pre 2.3!
+    other_extensions.append(
+        WinExt_ISAPI('PyISAPI_loader',
            sources=[os.path.join("isapi", "src", s) for s in
                    """PyExtensionObjects.cpp PyFilterObjects.cpp
                       pyISAPI.cpp PythonEng.cpp StdAfx.cpp
@@ -937,8 +940,8 @@ other_extensions = [
                                TerminateExtension GetFilterVersion
                                HttpFilterProc TerminateFilter
                                PyISAPISetOptions""".split(),
-           ),
-]
+           )
+    )
 
 W32_exe_files = [
     WinExt_win32("win32popenWin9x",
@@ -1093,7 +1096,7 @@ else:
     py_modules = expand_modules("win32\\lib")
 
 dist = setup(name="pywin32",
-      version=build_number,
+      version=str(build_number),
       description="Python for Window Extensions",
       long_description="Python extensions for Microsoft Windows\n"
                        "Provides access to much of the Win32 API, the\n"
