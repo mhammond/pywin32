@@ -424,6 +424,20 @@ typedef int UINT;
 	}
 }
 
+// @object TRACKMOUSEEVENT|A tuple of (dwFlags, hwndTrack, dwHoverTime)
+%typemap(python,in) TRACKMOUSEEVENT *INPUT {
+    TRACKMOUSEEVENT e;
+	e.cbSize = sizeof e;
+	if (PyTuple_Check($source)) {
+		if (PyArg_ParseTuple($source, "lll", &e.dwFlags, &e.hwndTrack, &e.dwHoverTime) == 0) {
+			return PyErr_Format(PyExc_TypeError, "%s: a TRACKMOUSEEVENT must be a tuple of 3 integers", "$name");
+		}
+		$target = &e;
+    } else {
+		return PyErr_Format(PyExc_TypeError, "%s: a TRACKMOUSEEVENT must be a tuple of 3 integers", "$name");
+	}
+}
+
 %typemap(python,except) LRESULT {
       Py_BEGIN_ALLOW_THREADS
       $function
@@ -1749,6 +1763,10 @@ BOOLAPI EndDialog( HWND hwnd, int result );
 // @pyswig HWND|GetDlgItem|Retrieves the handle to a control in the specified dialog box. 
 HWND GetDlgItem( HWND hDlg, int nIDDlgItem ); 
 
+// @pyswig int|GetDlgCtrlID|Retrieves the identifier of the specified control.
+// @pyparm int|hwnd||The handle to the control
+HWND GetDlgCtrlID( HWND hwnd);
+
 // @pyswig HWND|SetDlgItemText|Sets the text for a window or control
 BOOLAPI SetDlgItemText( HWND hDlg, int nIDDlgItem, TCHAR *text ); 
 
@@ -2963,6 +2981,9 @@ BOOLAPI ReleaseCapture();
 HWND GetCapture();
 // @pyswig |SetCapture|Captures the mouse for the specified window.
 BOOLAPI SetCapture(HWND hWnd);
+// @pyswig |_TrackMouseEvent|Posts messages when the mouse pointer leaves a window or hovers over a window for a specified amount of time.
+// @pyparm <o TRACKMOUSEEVENT>|tme||
+BOOLAPI _TrackMouseEvent(TRACKMOUSEEVENT *INPUT);
 
 // @pyswig int|ReleaseDC|Releases a device context.
 int ReleaseDC(
