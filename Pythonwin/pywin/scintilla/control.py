@@ -57,9 +57,7 @@ class ScintillaControlInterface:
 									 margin = margin)
 
 	def SCIAddText(self, text):
-		sma = array.array('c', text)
-		(a,l) = sma.buffer_info()
-		self.SendScintilla(SCI_ADDTEXT, l, a)
+		self.SendMessage(SCI_ADDTEXT, buffer(text))
 	def SCIAddStyledText(self, text, style = None):
 		# If style is None, text is assumed to be a "native" Scintilla buffer.
 		# If style is specified, text is a normal string, and the style is
@@ -67,9 +65,7 @@ class ScintillaControlInterface:
 		if style is not None:
 			text = map(lambda char, style=style: char+chr(style), text)
 			text = string.join(text, '')
-		sma = array.array("c", text)
-		(a,l) = sma.buffer_info()
-		self.SendScintilla(SCI_ADDSTYLEDTEXT, l, a)
+		self.SendMessage(SCI_ADDSTYLEDTEXT, buffer(text))
 	def SCIInsertText(self, text, pos=-1):
 		sma = array.array('c', text+"\0")
 		(a,l) = sma.buffer_info()
@@ -275,7 +271,7 @@ class CScintillaEditInterface(ScintillaControlInterface):
 
 	def LineFromChar(self, charPos=-1):
 		if charPos==-1: charPos = self.GetSel()[0]
-		assert charPos >= 0 and charPos <= self.GetTextLength(), "The charPos postion is invalid"
+		assert charPos >= 0 and charPos <= self.GetTextLength(), "The charPos postion (%s) is invalid (max=%s)" % (charPos, self.GetTextLength())
 		#return self.SendScintilla(EM_EXLINEFROMCHAR, charPos)
 		# EM_EXLINEFROMCHAR puts charPos in lParam, not wParam
 		return self.SendScintilla(EM_EXLINEFROMCHAR, 0, charPos)
