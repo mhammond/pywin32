@@ -11,7 +11,6 @@ generates Windows .hlp files.
 
 #include "stdafx.h"
 #include <objbase.h>
-#include "olectl.h"
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
 #include "PyFactory.h"
@@ -1297,46 +1296,7 @@ static PyObject *pythoncom_EnableQuitMessage(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-static PyObject *pythoncom_OleLoadPicture(PyObject *, PyObject *args)
-{
-	PyObject *ret = NULL;
-	PyObject *obStream, *obIIDAPI, *obIIDRet = NULL;
-	LONG size;
-	BOOL runMode;
-	if (!PyArg_ParseTuple(args, "OiiO|O", &obStream, &size, &runMode, &obIIDAPI, &obIIDRet)) {
-		return NULL;
-	}
-
-	IUnknown *pUnk = NULL;
-	IStream* pStream = NULL;
-	IID iidAPI, iidRet;
-	HRESULT hr;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obStream, IID_IStream, (void **)&pStream, FALSE))
-		goto done;
-
-	if (!PyWinObject_AsIID(obIIDAPI, &iidAPI))
-		goto done;
-	if (obIIDRet == NULL)
-		iidRet = iidAPI;
-	else {
-		if (!PyWinObject_AsIID(obIIDRet, &iidRet))
-			goto done;
-	}
-	Py_BEGIN_ALLOW_THREADS
-	hr = ::OleLoadPicture(pStream, size, runMode, iidAPI, (LPVOID*)&pUnk);
-	Py_END_ALLOW_THREADS
-	if (FAILED(hr)) {
-		PyCom_BuildPyException(hr);
-		goto done;
-	}
-	ret = PyCom_PyObjectFromIUnknown(pUnk, iidRet, FALSE);
-done:
-	if (pStream)
-		pStream->Release();
-	return ret;
-}
-
-// @pymeth <o PyIDataObject>|OleGetClipboard|Retrieves a data object that you can use to access the contents of the clipboard.
+// @pymethod <o PyIDataObject>|pythoncom|OleGetClipboard|Retrieves a data object that you can use to access the contents of the clipboard.
 static PyObject *pythoncom_OleGetClipboard(PyObject *, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ":OleGetClipboard"))
@@ -1353,7 +1313,7 @@ static PyObject *pythoncom_OleGetClipboard(PyObject *, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(pd, IID_IDataObject, FALSE);
 }
 
-// @pymeth |OleSetClipboard|Places a pointer to a specific data object onto the clipboard. This makes the data object accessible to the OleGetClipboard function.
+// @pymethod |pythoncom|OleSetClipboard|Places a pointer to a specific data object onto the clipboard. This makes the data object accessible to the OleGetClipboard function.
 static PyObject *pythoncom_OleSetClipboard(PyObject *, PyObject *args)
 {
 	PyObject *obd;
@@ -1375,7 +1335,7 @@ static PyObject *pythoncom_OleSetClipboard(PyObject *, PyObject *args)
 	return Py_None;
 }
 
-// @pymeth true/false|OleIsCurrentClipboard|Determines whether the data object pointer previously placed on the clipboard by the OleSetClipboard function is still on the clipboard.
+// @pymethod true/false|pythoncom|OleIsCurrentClipboard|Determines whether the data object pointer previously placed on the clipboard by the OleSetClipboard function is still on the clipboard.
 static PyObject *pythoncom_OleIsCurrentClipboard(PyObject *, PyObject *args)
 {
 	PyObject *obd;
@@ -1398,7 +1358,7 @@ static PyObject *pythoncom_OleIsCurrentClipboard(PyObject *, PyObject *args)
 	return ret;
 }
 
-// @pymeth |OleFlushClipboard|Carries out the clipboard shutdown sequence. It also releases the IDataObject pointer that was placed on the clipboard by the <om pythoncom.OleSetClipboard> function.
+// @pymethod |pythoncom|OleFlushClipboard|Carries out the clipboard shutdown sequence. It also releases the IDataObject pointer that was placed on the clipboard by the <om pythoncom.OleSetClipboard> function.
 static PyObject *pythoncom_OleFlushClipboard(PyObject *, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ":OleFlushClipboard"))
@@ -1482,7 +1442,6 @@ static struct PyMethodDef pythoncom_methods[]=
 	{ "OleSetClipboard",     pythoncom_OleSetClipboard, 1},      // @pymeth OleSetClipboard|Places a pointer to a specific data object onto the clipboard. This makes the data object accessible to the OleGetClipboard function.
 	{ "OleLoadFromStream",   pythoncom_OleLoadFromStream, 1},    // @pymeth OleLoadFromStream|Load an object from an IStream.
 	{ "OleSaveToStream",     pythoncom_OleSaveToStream, 1},      // @pymeth OleSaveToStream|Save an object to an IStream.
-	{ "OleLoadPicture",      pythoncom_OleLoadPicture, 1 },      // @pymeth OleLoadPicture|Creates a new picture object and initializes it from the contents of a stream.
 	{ "OleLoad",             pythoncom_OleLoad, 1 },             // @pymeth OleLoad|Loads into memory an object nested within a specified storage object.
 #ifndef MS_WINCE
 	{ "ProgIDFromCLSID",     pythoncom_progidfromclsid, 1 },     // @pymeth ProgIDFromCLSID|Converts a CLSID string to a progID.
