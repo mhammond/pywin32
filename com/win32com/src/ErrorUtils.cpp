@@ -9,6 +9,16 @@
 #endif
 
 static const char *szBadStringObject = "<Bad String Object>";
+extern PyObject *PyCom_InternalError;
+
+void GetScodeString(SCODE sc, TCHAR *buf, int bufSize);
+LPCSTR GetScodeRangeString(SCODE sc);
+LPCSTR GetSeverityString(SCODE sc);
+LPCSTR GetFacilityString(SCODE sc);
+
+#if defined(MS_WINCE) && !defined(_ASSERTE) // No _ASSERTE on CE - who cares!
+	#define _ASSERTE(condition)
+#endif
 
 // This module uses an ATL utility "A2BSTR".
 // If this is not available, we provide one of our own
@@ -30,20 +40,28 @@ BSTR A2BSTR(const char *buf)
 #	define USES_CONVERSION
 #endif
 
-#define pycom_Error PyWinExc_COMError
-
 static const EXCEPINFO nullExcepInfo = { 0 };
-PyObject *PyCom_PyObjectFromIErrorInfo(IErrorInfo *);
+static PyObject *PyCom_PyObjectFromIErrorInfo(IErrorInfo *, HRESULT errorhr);
 
-static HRESULT PyCom_ExcepInfoFromPyException(EXCEPINFO *pExcepInfo)
+////////////////////////////////////////////////////////////////////////
+//
+// Server Side Errors - translate a Python exception to COM error information
+//
+////////////////////////////////////////////////////////////////////////
+
+// Generically fills an EXCEP_INFO.  The scode in the EXCEPINFO
+// is the HRESULT as nominated by the user.  This function returns
+// DISP_E_EXCEPTION
+void PyCom_ExcepInfoFromPyException(EXCEPINFO *pExcepInfo)
 {
 	USES_CONVERSION;
-	/* whenever we fill out an EXCEPINFO, return DISP_E_EXCEPTION */
-	HRESULT hr = DISP_E_EXCEPTION;
+	// If the caller did not provide a valid exception info, get out now!
+	if (pExcepInfo==NULL)
+		return;
 	PyObject *exception, *v, *tb;
 	*pExcepInfo = nullExcepInfo;
 	PyErr_Fetch(&exception, &v, &tb);
-	if (PyCom_ExcepInfoFromPyObject(v, pExcepInfo, &hr))
+	if (PyCom_ExcepInfoFromPyObject(v, pExcepInfo, NULL))
 	{
 		// done.
 	}
@@ -68,9 +86,12 @@ static HRESULT PyCom_ExcepInfoFromPyException(EXCEPINFO *pExcepInfo)
 		pExcepInfo->bstrDescription = A2BSTR(tempBuf);
 		pExcepInfo->bstrSource = A2BSTR("Python COM Server Internal Error");
 
-		/* would be nice to check the exception for well-known ones such
-		   as E_OUTOFMEMORY, but that's for another time... */
-		pExcepInfo->scode = E_FAIL;
+		// Map some well known exceptions to specific HRESULTs
+		if (PyErr_GivenExceptionMatches(v, PyExc_MemoryError))
+			pExcepInfo->scode = E_OUTOFMEMORY;
+		else
+			// Any other common Python exceptions we should map?
+			pExcepInfo->scode = E_FAIL;
 
 		delete [] tempBuf;
 		Py_XDECREF(obException);
@@ -80,48 +101,16 @@ static HRESULT PyCom_ExcepInfoFromPyException(EXCEPINFO *pExcepInfo)
 	Py_XDECREF(exception);
 	Py_XDECREF(v);
 	PyErr_Clear();
-
-	return hr;
 }
 
-// A Pythoncom.com_error exception.
-static BOOL PyCom_ExcepInfoFromPyTuple(PyObject *obExcepInfo, EXCEPINFO *pexcepInfo)
-{
-	USES_CONVERSION;
-	int code;
-	const char *source;
-	const char *description;
-	const char *helpFile;
-	int helpContext;
-	int scode;
-	if ( !PyArg_ParseTuple(obExcepInfo, "izzzii:ExceptionInfo",
-						   &code,
-						   &source,
-						   &description,
-						   &helpFile,
-						   &helpContext,
-						   &scode) )
-		return FALSE;
-
-	pexcepInfo->wCode = code;
-	pexcepInfo->wReserved = 0;
-	pexcepInfo->bstrSource = A2BSTR(source);
-	pexcepInfo->bstrDescription = A2BSTR(description);
-	pexcepInfo->bstrHelpFile = A2BSTR(helpFile);
-	pexcepInfo->dwHelpContext = helpContext;
-	pexcepInfo->pvReserved = 0;
-	pexcepInfo->pfnDeferredFillIn = NULL;
-	pexcepInfo->scode = scode;
-
-	return TRUE;
-}
-
-static BOOL PyCom_ExcepInfoFromPyInstance(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *phresult)
+static BOOL PyCom_ExcepInfoFromServerExceptionInstance(PyObject *v, EXCEPINFO *pExcepInfo)
 {
 	USES_CONVERSION;
 	BSTR temp;
 
-	// Caller now ensures it is a PythonCOM exception
+	_ASSERTE(v != NULL);
+	_ASSERTE(pExcepInfo != NULL);
+
 	PyObject *ob = PyObject_GetAttrString(v, "description");
 	if (ob && ob != Py_None) {
 		if ( !PyWinObject_AsBstr(ob, &temp) )
@@ -129,7 +118,7 @@ static BOOL PyCom_ExcepInfoFromPyInstance(PyObject *v, EXCEPINFO *pExcepInfo, HR
 		else
 			pExcepInfo->bstrDescription = temp;
 	} else {
-//		pExcepInfo->bstrDescription = A2BSTR("<No description available>");
+		// No description - leave it empty.
 		PyErr_Clear();
 	}
 	Py_XDECREF(ob);
@@ -167,9 +156,6 @@ static BOOL PyCom_ExcepInfoFromPyInstance(PyObject *v, EXCEPINFO *pExcepInfo, HR
 	ob = PyObject_GetAttrString(v, "scode");
 	if (ob && ob != Py_None) {
 		pExcepInfo->scode = PyInt_AsLong(PyNumber_Int(ob));
-		// HRESULT==SCODE, unless otherwise specified
-		if (phresult)
-			*phresult = PyInt_AsLong(PyNumber_Int(ob));
 	}
 	else
 		PyErr_Clear();
@@ -182,22 +168,17 @@ static BOOL PyCom_ExcepInfoFromPyInstance(PyObject *v, EXCEPINFO *pExcepInfo, HR
 	else
 		PyErr_Clear();
 	Py_XDECREF(ob);
-
-	if (phresult) {
-		ob = PyObject_GetAttrString(v, "hresult");
-		if (ob && ob != Py_None) {
-			*phresult = PyInt_AsLong(PyNumber_Int(ob));
-		}
-		else
-			PyErr_Clear();
-		Py_XDECREF(ob);
-	}
-
 	return TRUE;
 }
 
+// Fill an exception info from a specific COM error raised by the
+// Python code.  If the Python exception is not a specific COM error
+// (ie, pythoncom.com_error, or a COM server exception instance)
+// then return FALSE.
 BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *phresult)
 {
+	_ASSERTE(v != NULL);
+	_ASSERTE(pExcepInfo != NULL);
 	if (v==NULL || pExcepInfo==NULL)
 		return FALSE;
 
@@ -221,126 +202,194 @@ BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *ph
 				Py_DECREF(ob);
 			}
 		}
-		// item[1] is a description, which we dont need.
+		// item[1] is the scode description, which we dont need.
 		ob = PySequence_GetItem(v, 2);
-		if (ob) PyCom_ExcepInfoFromPyTuple(ob, pExcepInfo);
-		Py_XDECREF(ob);
+		if (ob) {
+			USES_CONVERSION;
+			int code, helpContext, scode;
+			const char *source, *description, *helpFile;
+			if ( !PyArg_ParseTuple(ob, "izzzii:ExceptionInfo",
+								   &code,
+								   &source,
+								   &description,
+								   &helpFile,
+								   &helpContext,
+								   &scode) ) {
+				Py_DECREF(ob);
+				return FALSE;
+			}
+			pExcepInfo->wCode = code;
+			pExcepInfo->wReserved = 0;
+			pExcepInfo->bstrSource = A2BSTR(source);
+			pExcepInfo->bstrDescription = A2BSTR(description);
+			pExcepInfo->bstrHelpFile = A2BSTR(helpFile);
+			pExcepInfo->dwHelpContext = helpContext;
+			pExcepInfo->pvReserved = 0;
+			pExcepInfo->pfnDeferredFillIn = NULL;
+			pExcepInfo->scode = scode;
+			Py_DECREF(ob);
+		}
 		return TRUE;
 	} else {
 		// Server side error
-		return PyCom_ExcepInfoFromPyInstance(v, pExcepInfo, phresult);
+		BOOL ok = PyCom_ExcepInfoFromServerExceptionInstance(v, pExcepInfo);
+		if (ok && phresult)
+			*phresult = pExcepInfo->scode;
+		return ok;
 	}
 }
 
-
-HRESULT PyCom_HandlePythonFailureToCOM(EXCEPINFO *pExcepInfo /*= NULL*/)
+// Given an EXCEPINFO, register the error information with the
+// IErrorInfo interface.
+BOOL PyCom_SetCOMErrorFromExcepInfo(const EXCEPINFO *pexcepinfo, REFIID riid)
 {
-	if ( !PyErr_Occurred() )
+	ICreateErrorInfo *pICEI;
+	HRESULT hr = CreateErrorInfo(&pICEI);
+	if ( SUCCEEDED(hr) )
 	{
-		if ( pExcepInfo )
-			*pExcepInfo = nullExcepInfo;
-		return S_OK;
-	}
+		pICEI->SetGUID(riid);
+		pICEI->SetHelpContext(pexcepinfo->dwHelpContext);
+		if ( pexcepinfo->bstrDescription )
+			pICEI->SetDescription(pexcepinfo->bstrDescription);
+		if ( pexcepinfo->bstrHelpFile )
+			pICEI->SetHelpFile(pexcepinfo->bstrHelpFile);
+		if ( pexcepinfo->bstrSource )
+			pICEI->SetSource(pexcepinfo->bstrSource);
 
-	if ( pExcepInfo )
-		return PyCom_ExcepInfoFromPyException(pExcepInfo);
-
-	/*
-	** Look for an exception value that is an instance with an "scode"
-	** attribute on it.  Otherwise, look for an exception that we raised.
-	** Extract the HRESULT from it; otherwise, default to DISP_E_EXCEPTION.
-	*/
-	HRESULT hr = DISP_E_EXCEPTION;
-	PyObject *exception, *v, *tb;
-	PyErr_Fetch(&exception, &v, &tb);
-	// Let a COM error bubble through
-	// NOTE: This is an instance, so must be checked before
-	// the generic IsInstance() check.
-	if ( exception == PyWinExc_COMError )
-	{
-		PyObject *ob = PySequence_GetItem(v, 0);
-		if (ob) 
-			hr = PyInt_AsLong(PyTuple_GET_ITEM(v, 0));
-		else
-			hr = E_FAIL; //  This is pretty serious!
-		Py_XDECREF(ob);
-	}
-	// It is a COM exception raised by Python code?
-	else if ( PyInstance_Check(v) )
-	{
-		PyObject *ob = PyObject_GetAttrString(v, "scode");
-		if ( ob && ob != Py_None)
+		IErrorInfo *pIEI;
+		Py_BEGIN_ALLOW_THREADS
+		hr = pICEI->QueryInterface(IID_IErrorInfo, (LPVOID*) &pIEI);
+		Py_END_ALLOW_THREADS
+		if ( SUCCEEDED(hr) )
 		{
-			hr = PyInt_AsLong(PyNumber_Int(ob));
+			SetErrorInfo(0, pIEI);
+			pIEI->Release();
 		}
-		Py_XDECREF(ob);
+		pICEI->Release();			
 	}
-#ifdef DEBUG
-	else
-	{
-		PyErr_Restore(exception, v, tb);
-//		PyRun_SimpleString("import traceback;traceback.print_exc()");
-		tb = exception = v = NULL;
-	}
-#endif
-
-	// errors may have occurred above. clear them!
-	PyErr_Clear();
-
-	// clean up exception objects.
-	Py_XDECREF(tb);
-	Py_XDECREF(exception);
-	Py_XDECREF(v);
-
-	return hr;
+	return SUCCEEDED(hr);
 }
 
-PyObject *OleSetExtendedOleError(HRESULT errorhr, IUnknown *pUnk, REFIID iid)
+void PyCom_CleanupExcepInfo(EXCEPINFO *pexcepinfo)
 {
+	if ( pexcepinfo->bstrDescription ) {
+		SysFreeString(pexcepinfo->bstrDescription);
+		pexcepinfo->bstrDescription = NULL;
+	}
+	if ( pexcepinfo->bstrHelpFile ) {
+		SysFreeString(pexcepinfo->bstrHelpFile);
+		pexcepinfo->bstrHelpFile = NULL;
+	}
+	if ( pexcepinfo->bstrSource ) {
+		SysFreeString(pexcepinfo->bstrSource);
+		pexcepinfo->bstrSource = NULL;
+	}
+}
+
+HRESULT PyCom_SetCOMErrorFromSimple(HRESULT hr, REFIID riid /* = IID_NULL */, const char *description /* = NULL*/)
+{
+	// fast path...
+	if ( hr == S_OK )
+		return S_OK;
+
+	// If you specify a description you should also specify the IID
+	_ASSERTE(riid != IID_NULL || description==NULL);
+	// Reset the error info for this thread.  "Inside OLE2" says we
+	// can call IErrorInfo with NULL, but the COM documentation doesnt mention it.
+	BSTR bstrDesc = NULL;
+	if (description) bstrDesc = A2BSTR(description);
+
+	EXCEPINFO einfo = {
+		0,		// wCode
+		0,		// wReserved
+		NULL,	// bstrSource
+		bstrDesc,	// bstrDescription
+		NULL,	// bstrHelpFile
+		0,		// dwHelpContext
+		NULL,	// pvReserved
+		NULL,	// pfnDeferredFillIn
+		hr		// scode
+	};
+	HRESULT ret = PyCom_SetCOMErrorFromExcepInfo(&einfo, riid);
+	PyCom_CleanupExcepInfo(&einfo);
+	return ret;
+}
+
+PYCOM_EXPORT HRESULT PyCom_SetCOMErrorFromPyException(REFIID riid /* = IID_NULL */)
+{
+	if (!PyErr_Occurred())
+		// No error occurred
+		return S_OK;
+
+	EXCEPINFO einfo;
+	PyCom_ExcepInfoFromPyException(&einfo);
+
+	// force this to a failure just in case we couldn't extract a proper
+	// error value
+	if ( einfo.scode == S_OK )
+		einfo.scode = E_FAIL;
+
+	PyCom_SetCOMErrorFromExcepInfo(&einfo, riid);
+	PyCom_CleanupExcepInfo(&einfo);
+	return einfo.scode;
+}
+
+////////////////////////////////////////////////////////////////////////
+//
+// Client Side Errors - translate a COM failure to a Python exception
+//
+////////////////////////////////////////////////////////////////////////
+PyObject *PyCom_BuildPyException(HRESULT errorhr, IUnknown *pUnk /* = NULL */, REFIID iid /* = IID_NULL */)
+{
+	PyObject *obEI = NULL;
+	char scodeStringBuf[512];
+	GetScodeString(errorhr, scodeStringBuf, sizeof(scodeStringBuf));
+
 #ifndef MS_WINCE // WINCE doesnt appear to have GetErrorInfo() - compiled, but doesnt link!
-	// See if it supports error info.
-	ISupportErrorInfo *pSEI;
-	HRESULT hr;
-	Py_BEGIN_ALLOW_THREADS
-	hr = pUnk->QueryInterface(IID_ISupportErrorInfo, (void **)&pSEI);
-	Py_END_ALLOW_THREADS
-	if (FAILED(hr))
-		return OleSetOleError(errorhr);
-	hr = pSEI->InterfaceSupportsErrorInfo(iid);
-	pSEI->Release(); // Finished with this object
-	if (hr!=S_OK)
-		return OleSetOleError(errorhr);
-	IErrorInfo *pEI;
-	if (GetErrorInfo(0, &pEI)!=S_OK)
-		return OleSetOleError(errorhr);
-
-	char buf[512];
-	GetScodeString(errorhr, buf, sizeof(buf));
-
-	PyObject *obEI = PyCom_PyObjectFromIErrorInfo(pEI);
-	pEI->Release();
-
-	PyObject *evalue = Py_BuildValue("isOO", errorhr, buf, obEI, Py_None);
+	if (pUnk != NULL) {
+		_ASSERTE(iid != IID_NULL); // If you pass an IUnknown, you should pass the specific IID.
+		// See if it supports error info.
+		ISupportErrorInfo *pSEI;
+		HRESULT hr;
+		Py_BEGIN_ALLOW_THREADS
+		hr = pUnk->QueryInterface(IID_ISupportErrorInfo, (void **)&pSEI);
+		Py_END_ALLOW_THREADS
+		if (SUCCEEDED(hr)) {
+			hr = pSEI->InterfaceSupportsErrorInfo(iid);
+			pSEI->Release(); // Finished with this object
+		}
+		if (SUCCEEDED(hr)) {
+			IErrorInfo *pEI;
+			if (GetErrorInfo(0, &pEI)==S_OK) {
+				obEI = PyCom_PyObjectFromIErrorInfo(pEI, errorhr);
+				pEI->Release();
+			}
+		}
+	}
+#endif // MS_WINCE
+	if (obEI==NULL)	{
+		obEI = Py_None;
+		Py_INCREF(Py_None);
+	}
+	PyObject *evalue = Py_BuildValue("isOO", errorhr, scodeStringBuf, obEI, Py_None);
 	Py_DECREF(obEI);
 
 	PyErr_SetObject(PyWinExc_COMError, evalue);
 	Py_XDECREF(evalue);
-
 	return NULL;
-#else
-	return OleSetOleError(errorhr);
-#endif // MS_WINCE
 }
 
-PyObject* OleSetOleError(HRESULT hr, EXCEPINFO *pexcepInfo /* = NULL */, UINT nArgErr /* = -1 */)
+// Uses the HRESULT and an EXCEPINFO structure to create and
+// set a pythoncom.com_error.
+// Used rarely - currently by IDispatch and IActiveScriptParse* interfaces.
+PyObject* PyCom_BuildPyExceptionFromEXCEPINFO(HRESULT hr, EXCEPINFO *pexcepInfo /* = NULL */, UINT nArgErr /* = -1 */)
 {
 	TCHAR buf[512];
-	if ((hr==S_OK || hr==DISP_E_EXCEPTION) && pexcepInfo && pexcepInfo->scode)
-		hr = pexcepInfo->scode;
 	GetScodeString(hr, buf, sizeof(buf)/sizeof(TCHAR));
 	PyObject *obScodeString = PyString_FromTCHAR(buf);
 	PyObject *evalue;
 	PyObject *obArg;
+
 	if ( nArgErr != -1 ) {
 		obArg = PyInt_FromLong(nArgErr);
 	} else {
@@ -363,9 +412,7 @@ PyObject* OleSetOleError(HRESULT hr, EXCEPINFO *pexcepInfo /* = NULL */, UINT nA
 			evalue = NULL;
 
 		/* done with the exception, free it */
-		SysFreeString(pexcepInfo->bstrSource);
-		SysFreeString(pexcepInfo->bstrDescription);
-		SysFreeString(pexcepInfo->bstrHelpFile);
+		PyCom_CleanupExcepInfo(pexcepInfo);
 	}
 	Py_DECREF(obArg);
 	PyErr_SetObject(PyWinExc_COMError, evalue);
@@ -374,24 +421,88 @@ PyObject* OleSetOleError(HRESULT hr, EXCEPINFO *pexcepInfo /* = NULL */, UINT nA
 	return NULL;
 }
 
-PyObject* OleSetError(char *msg)
+PyObject* PyCom_BuildInternalPyException(char *msg)
 {
-	PyErr_SetString(pycom_Error, msg);
+	PyErr_SetString(PyCom_InternalError, msg);
 	return NULL;
 }
 
-PyObject* OleSetTypeError(char *msg)
+PyObject *PyCom_PyObjectFromExcepInfo(const EXCEPINFO *pexcepInfo)
 {
-	PyErr_SetString(PyExc_TypeError, msg);
-	return NULL;
+	EXCEPINFO filledIn;
+
+	// Do a deferred fill-in if necessary
+	if ( pexcepInfo->pfnDeferredFillIn )
+	{
+		filledIn = *pexcepInfo;
+		(*pexcepInfo->pfnDeferredFillIn)(&filledIn);
+		pexcepInfo = &filledIn;
+	}
+
+	 // ### should these by PyUnicode values?  Still strings for compatibility.
+	PyObject *obSource = PyString_FromUnicode(pexcepInfo->bstrSource);
+	PyObject *obDescription = PyString_FromUnicode(pexcepInfo->bstrDescription);
+	PyObject *obHelpFile = PyString_FromUnicode(pexcepInfo->bstrHelpFile);
+	PyObject *rc = Py_BuildValue("iOOOii",
+						 (int)pexcepInfo->wCode,
+						 obSource,
+						 obDescription,
+						 obHelpFile,
+						 (int)pexcepInfo->dwHelpContext,
+						 (int)pexcepInfo->scode);
+	Py_XDECREF(obSource);
+	Py_XDECREF(obDescription);
+	Py_XDECREF(obHelpFile);
+	return rc;
 }
 
-PyObject* OleSetMemoryError(char *doingWhat)
+// NOTE - This MUST return the same object format as the above function
+static PyObject *PyCom_PyObjectFromIErrorInfo(IErrorInfo *pEI, HRESULT errorhr)
 {
-	PyErr_SetString(PyExc_MemoryError, doingWhat);
-	return NULL;
+	USES_CONVERSION;
+	BSTR desc;
+	BSTR source;
+	BSTR helpfile;
+	PyObject *obDesc;
+	PyObject *obSource;
+	PyObject *obHelpFile;
+	if (pEI->GetDescription(&desc)!=S_OK) {
+		obDesc = Py_None;
+		Py_INCREF(obDesc);
+	} else
+		obDesc = MakeBstrToObj(desc);
+	if (pEI->GetSource(&source)!=S_OK) {
+		obSource = Py_None;
+		Py_INCREF(obSource);
+	} else
+		obSource = MakeBstrToObj(source);
+	if (pEI->GetHelpFile(&helpfile)!=S_OK) {
+		obHelpFile = Py_None;
+		Py_INCREF(obHelpFile);
+	} else
+		obHelpFile = MakeBstrToObj(helpfile);
+	DWORD helpContext = 0;
+	pEI->GetHelpContext(&helpContext);
+	PyObject *ret = Py_BuildValue("iOOOii",
+						 0, // wCode remains zero, as scode holds our data.
+						 // ### should these by PyUnicode values?
+						 obSource,
+						 obDesc,
+						 obHelpFile,
+						 (int)helpContext,
+						 errorhr);
+	Py_XDECREF(obSource);
+	Py_XDECREF(obDesc);
+	Py_XDECREF(obHelpFile);
+	return ret;
 }
 
+
+////////////////////////////////////////////////////////////////////////
+//
+// Error string helpers - get SCODE, FACILITY etc strings
+//
+////////////////////////////////////////////////////////////////////////
 #define _countof(array) (sizeof(array)/sizeof(array[0]))
 
 void GetScodeString(HRESULT hr, LPTSTR buf, int bufSize)
@@ -835,152 +946,4 @@ LPCSTR GetFacilityString(HRESULT hr)
 				return "<Unknown Facility>";
 		}
 	return rgszFACILITY[HRESULT_FACILITY(hr)];
-}
-
-// NOTE - This MUST return the same object as the above function
-PyObject *PyCom_PyObjectFromExcepInfo(const EXCEPINFO *pexcepInfo)
-{
-	EXCEPINFO filledIn;
-
-	// Do a deferred fill-in if necessary
-	if ( pexcepInfo->pfnDeferredFillIn )
-	{
-		filledIn = *pexcepInfo;
-		(*pexcepInfo->pfnDeferredFillIn)(&filledIn);
-		pexcepInfo = &filledIn;
-	}
-
-	 // ### should these by PyUnicode values?  Still strings for compatibility.
-	PyObject *obSource = PyString_FromUnicode(pexcepInfo->bstrSource);
-	PyObject *obDescription = PyString_FromUnicode(pexcepInfo->bstrDescription);
-	PyObject *obHelpFile = PyString_FromUnicode(pexcepInfo->bstrHelpFile);
-	PyObject *rc = Py_BuildValue("iOOOii",
-						 (int)pexcepInfo->wCode,
-						 obSource,
-						 obDescription,
-						 obHelpFile,
-						 (int)pexcepInfo->dwHelpContext,
-						 (int)pexcepInfo->scode);
-	Py_XDECREF(obSource);
-	Py_XDECREF(obDescription);
-	Py_XDECREF(obHelpFile);
-	return rc;
-}
-
-// NOTE - This MUST return the same object as the above function
-PyObject *PyCom_PyObjectFromIErrorInfo(IErrorInfo *pEI)
-{
-	USES_CONVERSION;
-	BSTR desc;
-	BSTR source;
-	BSTR helpfile;
-	PyObject *obDesc;
-	PyObject *obSource;
-	PyObject *obHelpFile;
-	if (pEI->GetDescription(&desc)!=S_OK) {
-		obDesc = Py_None;
-		Py_INCREF(obDesc);
-	} else
-		obDesc = MakeBstrToObj(desc);
-	if (pEI->GetDescription(&source)!=S_OK) {
-		obSource = Py_None;
-		Py_INCREF(obSource);
-	} else
-		obSource = MakeBstrToObj(source);
-	if (pEI->GetHelpFile(&helpfile)!=S_OK) {
-		obHelpFile = Py_None;
-		Py_INCREF(obHelpFile);
-	} else
-		obHelpFile = MakeBstrToObj(helpfile);
-	DWORD helpContext = 0;
-	pEI->GetHelpContext(&helpContext);
-	PyObject *ret = Py_BuildValue("iOOOii",
-						 DISP_E_EXCEPTION,
-						 // ### should these by PyUnicode values?
-						 obSource,
-						 obDesc,
-						 obHelpFile,
-						 (int)helpContext,
-						 DISP_E_EXCEPTION);
-	Py_XDECREF(obSource);
-	Py_XDECREF(obDesc);
-	Py_XDECREF(obHelpFile);
-	return ret;
-}
-
-PYCOM_EXPORT HRESULT PyCom_SetFromExcepInfo(const EXCEPINFO *pexcepinfo, REFIID riid /* = IID_NULL */)
-{
-	ICreateErrorInfo *pICEI;
-	HRESULT hr = CreateErrorInfo(&pICEI);
-	if ( SUCCEEDED(hr) )
-	{
-		pICEI->SetGUID(riid);
-		pICEI->SetHelpContext(pexcepinfo->dwHelpContext);
-		if ( pexcepinfo->bstrDescription )
-			pICEI->SetDescription(pexcepinfo->bstrDescription);
-		if ( pexcepinfo->bstrHelpFile )
-			pICEI->SetHelpFile(pexcepinfo->bstrHelpFile);
-		if ( pexcepinfo->bstrSource )
-			pICEI->SetSource(pexcepinfo->bstrSource);
-
-		IErrorInfo *pIEI;
-		Py_BEGIN_ALLOW_THREADS
-		hr = pICEI->QueryInterface(IID_IErrorInfo, (LPVOID*) &pIEI);
-		Py_END_ALLOW_THREADS
-		if ( SUCCEEDED(hr) )
-		{
-			SetErrorInfo(0, pIEI);
-			pIEI->Release();
-		}
-		pICEI->Release();			
-	}
-
-	return pexcepinfo->scode;
-}
-
-HRESULT PyCom_SetFromSimple(HRESULT hr, REFIID riid /* = IID_NULL */)
-{
-	// fast path...
-	if ( hr == S_OK )
-		return S_OK;
-
-	EXCEPINFO einfo = {
-		0,		// wCode
-		0,		// wReserved
-		NULL,	// bstrSource
-		NULL,	// bstrDescription
-		NULL,	// bstrHelpFile
-		0,		// dwHelpContext
-		NULL,	// pvReserved
-		NULL,	// pfnDeferredFillIn
-		hr		// scode
-	};
-	return PyCom_SetFromExcepInfo(&einfo, riid);
-}
-
-PYCOM_EXPORT HRESULT PyCom_SetFromPyException(REFIID riid /* = IID_NULL */)
-{
-	EXCEPINFO einfo;
-	HRESULT hr = PyCom_HandlePythonFailureToCOM(&einfo);
-
-	// No error occurred
-	if ( hr == S_OK )
-		return S_OK;
-
-	// force this to a failure just in case we couldn't extract a proper
-	// error value
-	if ( einfo.scode == S_OK )
-		einfo.scode = E_FAIL;
-
-	// returns the real result code (not DISP_E_EXCEPTION)
-	hr = PyCom_SetFromExcepInfo(&einfo, riid);
-
-	if ( einfo.bstrDescription )
-		SysFreeString(einfo.bstrDescription);
-	if ( einfo.bstrHelpFile )
-		SysFreeString(einfo.bstrHelpFile);
-	if ( einfo.bstrSource )
-		SysFreeString(einfo.bstrSource);
-
-	return hr;
 }
