@@ -229,7 +229,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
 
     def WriteClass(self, generator):
       wTypeFlags = self.type_attr.wTypeFlags
-      if not self.bIsDispatch:
+      if not self.bIsDispatch and not self.type_attr.typekind == pythoncom.TKIND_DISPATCH:
           return
       # This is pretty screwey - now we have vtable support we
       # should probably rethink this (ie, maybe write both sides for sinks, etc)
