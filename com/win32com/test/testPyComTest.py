@@ -3,13 +3,18 @@
 
 import sys; sys.coinit_flags=0 # Must be free-threaded!
 import win32api, types, pythoncom, time
-import sys, win32com, win32com.client.connect
+import sys, os, win32com, win32com.client.connect
 from win32com.test.util import CheckClean
 from win32com.client import constants
 
 importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 
 error = "testPyCOMTest error"
+
+# This test uses a Python implemented COM server - ensure correctly registered.
+from util import RegisterPythonServer
+import win32com
+RegisterPythonServer(os.path.join(win32com.__path__[0], "servers", "test_pycomtest.py"))
 
 from win32com.client import gencache
 try:
