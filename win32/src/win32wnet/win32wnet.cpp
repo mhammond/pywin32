@@ -100,7 +100,7 @@ PyWNetAddConnection2 (PyObject *self, PyObject *args)
 	DWORD	ErrorNo;		// holds the returned error number, if any
 	DWORD	flags = 0; // @pyparm int|flags|0|Specifies a DWORD value that describes connection options. The following value is currently defined.
 	// @flagh Value|Meaning
-	// @flag CONNECT_UPDATE_PROFILE The network resource connection should be remembered. 
+	// @flag CONNECT_UPDATE_PROFILE|The network resource connection should be remembered. 
 	// <nl>If this bit flag is set, the operating system automatically attempts to restore the connection when the user logs on.
 	// <nl>The operating system remembers only successful connections that redirect local devices. It does not remember connections that are unsuccessful or deviceless connections. (A deviceless connection occurs when the lpLocalName member is NULL or points to an empty string.)
 	// <nl>If this bit flag is clear, the operating system does not automatically restore the connection at logon.
