@@ -801,6 +801,7 @@ class Debugger(debugger_parent):
 		if fw is not frame:
 			self.oldForeground = fw
 #			fw.EnableWindow(0) Leave enabled for now?
+			self.oldFrameEnableState = frame.IsWindowEnabled()
 			frame.EnableWindow(1)
 		if self.inForcedGUI and not frame.IsWindowVisible():
 			frame.ShowWindow(win32con.SW_SHOW)
@@ -815,7 +816,7 @@ class Debugger(debugger_parent):
 		"""Called as the GUI is about to finish any interaction with the user
 		   Returns non zero if we are allowed to stop interacting"""
 		if self.oldForeground is not None:
-			win32ui.GetMainFrame().EnableWindow(0)
+			win32ui.GetMainFrame().EnableWindow(self.oldFrameEnableState)
 			self.oldForeground.EnableWindow(1)
 #			self.oldForeground.SetForegroundWindow() - fails??
 		if not self.inForcedGUI:
