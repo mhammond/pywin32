@@ -8,7 +8,7 @@ This is a parser for Windows .rc files, which are text files which define
 dialogs and other Windows UI resources.
 """
 __author__="Adam Walker"
-__version__="0.10"
+__version__="0.11"
 
 import sys, os, shlex, stat
 import pprint
@@ -363,7 +363,7 @@ class RCParser:
         self.dialogs[name] = dlg.createDialogTemplate()
 
     def dialogStyle(self, dlg):
-        dlg.style, dlg.styles = self.styles( [], win32con.WS_VISIBLE | win32con.DS_SETFONT)
+        dlg.style, dlg.styles = self.styles( [], win32con.DS_SETFONT)
     def dialogExStyle(self, dlg):
         self.getToken()
         dlg.styleEx, dlg.stylesEx = self.styles( [], 0)
