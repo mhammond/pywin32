@@ -86,8 +86,6 @@ def _cat_registrar():
     )
     
 def _find_localserver_exe(mustfind):
-  # First a concession for freeze...
-  if pythoncom.frozen: return win32api.GetShortPathName(sys.executable)
   if pythoncom.__file__.find("_d") < 0:
     exeBaseName = "pythonw.exe"
   else:
@@ -181,7 +179,19 @@ def RegisterServer(clsid,
   # Also register as an "Application" so DCOM etc all see us.
   _set_string("AppID\\%s" % clsid, progID)
   # Depending on contexts requested, register the specified server type.
-  if not clsctx or clsctx & pythoncom.CLSCTX_INPROC_SERVER:
+  # Set default clsctx.
+  if not clsctx:
+    clsctx = pythoncom.CLSCTX_INPROC_SERVER & pythoncom.CLSCTX_LOCAL_SERVER
+  # And if we are frozen, ignore the ones that don't make sense in this
+  # context.
+  if pythoncom.frozen:
+    assert sys.frozen, "pythoncom is frozen, but sys.frozen is not set - don't know the context!"
+    if sys.frozen == "dll":
+      clsctx = clsctx & pythoncom.CLSCTX_INPROC_SERVER
+    else:
+      clsctx = clsctx & pythoncom.CLSCTX_LOCAL_SERVER
+  # Now setup based on the clsctx left over.
+  if clsctx & pythoncom.CLSCTX_INPROC_SERVER:
     # get the module to use for registration.
     # nod to Gordon's installer - if sys.frozen and sys.frozendllhandle
     # exist, then we are being registered via a DLL - use this DLL as the
@@ -199,22 +209,24 @@ def RegisterServer(clsid,
                  { None : dllName,
                    "ThreadingModel" : threadingModel,
                    })
-  else: # Remove an old InProcServer32 registration
+  else: # Remove any old InProcServer32 registrations
     _remove_key(keyNameRoot + "\\InprocServer32")
 
-  if not clsctx or clsctx & pythoncom.CLSCTX_LOCAL_SERVER:
-    exeName = _find_localserver_exe(clsctx)
-    if exeName:
-      exeName = win32api.GetShortPathName(exeName)
-      if not pythoncom.frozen:
-        pyfile = _find_localserver_module()
-        pyfile_insert = ' "%s"' % (pyfile)
-      else:
-        pyfile_insert = ''
-      _set_string(keyNameRoot + '\\LocalServer32', '%s%s %s' % (exeName, pyfile_insert, str(clsid)))
+  if clsctx & pythoncom.CLSCTX_LOCAL_SERVER:
+    if pythoncom.frozen:
+      # If we are frozen, we write "{exe} /Automate", just
+      # like "normal" .EXEs do
+      exeName = win32api.GetShortPathName(sys.executable)
+      command = '%s /Automate' % (exeName,)
     else:
-      sys.stderr.write("Warning:  Can not locate a host .EXE for the COM server\nThe server will not be registered with LocalServer32 support.")
-  else: # Remove an old LocalServer32 registration
+      # Running from .py sources - we need to write
+      # 'python.exe win32com\server\localserver.py {clsid}"
+      exeName = _find_localserver_exe(1)
+      exeName = win32api.GetShortPathName(exeName)
+      pyfile = _find_localserver_module()
+      command = '%s "%s" %s' % (exeName, pyfile, str(clsid))
+    _set_string(keyNameRoot + '\\LocalServer32', command)
+  else: # Remove any old LocalServer32 registrations
     _remove_key(keyNameRoot + "\\LocalServer32")
 
   if pythonInstString:
