@@ -55,7 +55,8 @@ BOOL PyWinObject_AsTaskAllocatedWCHAR(PyObject *stringObject, WCHAR **ppResult, 
 			rc = FALSE;
 		}
 	} else {
-		PyErr_SetString(PyExc_TypeError, "The object can not be converted to a Unicode object");
+		const char *tp_name = stringObject && stringObject->ob_type ? stringObject->ob_type->tp_name : "<NULL!!>";
+		PyErr_Format(PyExc_TypeError, "Objects of type '%s' can not be converted to Unicode.", tp_name);
 		rc = FALSE;
 	}
 	if (rc && !ppResult) {
@@ -288,7 +289,8 @@ BOOL PyWinObject_AsString(PyObject *stringObject, char **pResult, BOOL bNoneOK /
 			rc = FALSE;
 		}
 	} else {
-		PyErr_SetString(PyExc_TypeError, "The object can not be converted to a string object");
+		const char *tp_name = stringObject && stringObject->ob_type ? stringObject->ob_type->tp_name : "<NULL!!>";
+		PyErr_Format(PyExc_TypeError, "Objects of type '%s' can not be converted to Unicode.", tp_name);
 		rc = FALSE;
 	}
 	if (rc && !pResult) {
@@ -895,7 +897,8 @@ BOOL PyWinObject_AsBstr(PyObject *stringObject, BSTR *pResult, BOOL bNoneOK /*= 
 			rc = FALSE;
 		}
 	} else {
-		PyErr_SetString(PyExc_TypeError, "The object can not be converted to a Unicode object");
+		const char *tp_name = stringObject && stringObject->ob_type ? stringObject->ob_type->tp_name : "<NULL!!>";
+		PyErr_Format(PyExc_TypeError, "Objects of type '%s' can not be converted to Unicode.", tp_name);
 		rc = FALSE;
 	}
 	if (rc && !pResult) {
@@ -957,7 +960,8 @@ BOOL PyWinObject_AsWCHAR(PyObject *stringObject, WCHAR **pResult, BOOL bNoneOK /
 			rc = FALSE;
 		}
 	} else {
-		PyErr_SetString(PyExc_TypeError, "The object can not be converted to a Unicode object");
+		const char *tp_name = stringObject && stringObject->ob_type ? stringObject->ob_type->tp_name : "<NULL!!>";
+		PyErr_Format(PyExc_TypeError, "Objects of type '%s' can not be converted to Unicode.", tp_name);
 		rc = FALSE;
 	}
 	if (rc && pResultLen) *pResultLen = resultLen;
