@@ -70,21 +70,29 @@ class SyntEditView(SyntEditViewParent):
 
 		# Define the markers
 #		self.SCIMarkerDeleteAll()
-		self.SCIMarkerDefine(MARKER_BOOKMARK, SC_MARK_ROUNDRECT)
-		self.SCIMarkerSetBack(MARKER_BOOKMARK, win32api.RGB(0, 0xff, 0xff))
-		self.SCIMarkerSetFore(MARKER_BOOKMARK, win32api.RGB(0x0, 0x0, 0x0))
+		self.SCIMarkerDefineAll(MARKER_BOOKMARK, SC_MARK_ROUNDRECT, win32api.RGB(0x0, 0x0, 0x0), win32api.RGB(0, 0xff, 0xff))
 
 		self.SCIMarkerDefine(MARKER_CURRENT, SC_MARK_ARROW)
 		self.SCIMarkerSetBack(MARKER_CURRENT, win32api.RGB(0xff, 0xff, 0x00))
 
 		# Define the folding markers
-		self.SCIMarkerDefine(SC_MARKNUM_FOLDEROPEN, SC_MARK_MINUS)
-		self.SCIMarkerSetFore(SC_MARKNUM_FOLDEROPEN, win32api.RGB(0xff, 0xff, 0xff))
-		self.SCIMarkerSetBack(SC_MARKNUM_FOLDEROPEN, win32api.RGB(0, 0, 0))
-		self.SCIMarkerDefine(SC_MARKNUM_FOLDER, SC_MARK_PLUS)
-		self.SCIMarkerSetFore(SC_MARKNUM_FOLDER, win32api.RGB(0xff, 0xff, 0xff))
-		self.SCIMarkerSetBack(SC_MARKNUM_FOLDER, win32api.RGB(0, 0, 0))
-
+		if 1: #traditional markers
+			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDEROPEN, SC_MARK_MINUS, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDER, SC_MARK_PLUS, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDERSUB, SC_MARK_EMPTY, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDERTAIL, SC_MARK_EMPTY, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDEREND, SC_MARK_EMPTY, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDEROPENMID, SC_MARK_EMPTY, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_EMPTY, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+		else: # curved markers
+			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDEROPEN, SC_MARK_CIRCLEMINUS, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDER, SC_MARK_CIRCLEPLUS, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDERTAIL, SC_MARK_LCORNERCURVE, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDEREND, SC_MARK_CIRCLEPLUSCONNECTED, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDEROPENMID, SC_MARK_CIRCLEMINUSCONNECTED, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNERCURVE, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+		
 		self.SCIMarkerDefine(MARKER_BREAKPOINT, SC_MARK_CIRCLE)
 		# Marker background depends on debugger state
 		self.SCIMarkerSetFore(MARKER_BREAKPOINT, win32api.RGB(0x0, 0, 0))
