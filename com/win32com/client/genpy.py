@@ -872,7 +872,7 @@ class Generator:
       oleItems = {}
       vtableItems = {}
       infos = self.CollectOleItemInfosFromType()
-      found = False
+      found = 0
       for type_info_tuple in infos:
         info, infotype, doc, attr = type_info_tuple
         if infotype == pythoncom.TKIND_COCLASS:
@@ -882,7 +882,7 @@ class Generator:
                 # OK, check the child interfaces
                 for info, info_type, refType, doc, refAttr, flags in child_infos:
                     if doc[0] == child:
-                        found = True
+                        found = 1
                         break
             if found:
                 oleItems[coClassItem.clsid] = coClassItem
@@ -894,7 +894,7 @@ class Generator:
           info, infotype, doc, attr = type_info_tuple
           if infotype in [pythoncom.TKIND_INTERFACE, pythoncom.TKIND_DISPATCH]:
             if doc[0]==child:
-              found = True
+              found = 1
               oleItem, vtableItem = self._Build_Interface(type_info_tuple)
               oleItems[clsid] = oleItem # Even "None" goes in here.
               if vtableItem is not None:

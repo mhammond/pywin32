@@ -27,7 +27,7 @@ import glob
 import traceback
 import CLSIDToClass
 
-bForDemandDefault = False # Default value of bForDemand - toggle this to change the world - see also makepy.py
+bForDemandDefault = 0 # Default value of bForDemand - toggle this to change the world - see also makepy.py
 
 # The global dictionary
 clsidToTypelib = {}

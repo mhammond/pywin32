@@ -50,7 +50,7 @@ import selecttlb
 import gencache
 from win32com.client import NeedUnicodeConversions
 
-bForDemandDefault = False # Default value of bForDemand - toggle this to change the world - see also gencache.py
+bForDemandDefault = 0 # Default value of bForDemand - toggle this to change the world - see also gencache.py
 
 error = "makepy.error"
 
