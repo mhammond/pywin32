@@ -307,6 +307,8 @@ class GrepView(docview.RichEditView):
 
 	def OnInitialUpdate(self):
 		rc = self._obj_.OnInitialUpdate()
+		format = (-402653169, 0, 200, 0, 0, 0, 49, 'Courier New')
+		self.SetDefaultCharFormat(format)
 		return rc
 
 	def HookHandlers(self):
