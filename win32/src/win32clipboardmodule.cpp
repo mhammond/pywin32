@@ -887,7 +887,9 @@ extern "C" __declspec(dllexport) void
 initwin32clipboard(void)
 {
   PyObject *dict, *module;
+  PyWinGlobals_Ensure();
   module = Py_InitModule("win32clipboard", clipboard_functions);
   dict = PyModule_GetDict(module);
+  Py_INCREF(PyWinExc_ApiError);
   PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
 }
