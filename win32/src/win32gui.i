@@ -210,7 +210,10 @@ typedef int UINT;
 #define MYWNDPROC FARPROC
 #endif
 
-LRESULT PyWndProc_Call(PyObject *obFuncOrMap, MYWNDPROC oldWndProc, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+// Returns TRUE if a call was made (and the rc is in the param)
+// Returns FALSE if nothing could be done (so the caller should probably
+// call its default)
+BOOL PyWndProc_Call(PyObject *obFuncOrMap, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *prc)
 {
 	// oldWndProc may be:
 	//  NULL : Call DefWindowProc
@@ -226,16 +229,12 @@ LRESULT PyWndProc_Call(PyObject *obFuncOrMap, MYWNDPROC oldWndProc, HWND hWnd, U
 			PyObject *key = PyInt_FromLong(uMsg);
 			obFunc = PyDict_GetItem(obFuncOrMap, key);
 			Py_DECREF(key);
-		} else
+		} else {
 			obFunc = obFuncOrMap;
+		}
 	}
 	if (obFunc==NULL) {
-		if (oldWndProc) {
-			if (oldWndProc != (MYWNDPROC)-1)
-				return CallWindowProc(oldWndProc, hWnd, uMsg, wParam, lParam);
-			return FALSE; // DialogProc
-			}
-		return DefWindowProc(hWnd, uMsg, wParam, lParam);
+		return FALSE;
 	}
 	// We are dispatching to Python...
 	CEnterLeavePython _celp;
@@ -250,13 +249,25 @@ LRESULT PyWndProc_Call(PyObject *obFuncOrMap, MYWNDPROC oldWndProc, HWND hWnd, U
 	}
 	else
 		PyErr_Print();
-	return rc;
+	*prc = rc;
+	return TRUE;
 }
 
 LRESULT CALLBACK PyWndProcClass(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	PyObject *obFunc = (PyObject *)GetClassLong( hWnd, 0);
-	return PyWndProc_Call(obFunc, NULL, hWnd, uMsg, wParam, lParam);
+	LRESULT rc = 0;
+	PyWndProc_Call(obFunc, hWnd, uMsg, wParam, lParam, &rc);
+	return rc;
+}
+
+LRESULT CALLBACK PyDlgProcClass(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	PyObject *obFunc = (PyObject *)GetClassLong( hWnd, 0);
+	LRESULT rc = 0;
+	if (!PyWndProc_Call(obFunc, hWnd, uMsg, wParam, lParam, &rc))
+		rc = DefDlgProc(hWnd, uMsg, wParam, lParam);
+	return rc;
 }
 
 LRESULT CALLBACK PyWndProcHWND(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -271,7 +282,11 @@ LRESULT CALLBACK PyWndProcHWND(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 		PyObject *obOldWndProc = PyTuple_GET_ITEM(obInfo, 1);
 		oldWndProc = (MYWNDPROC)PyInt_AsLong(obOldWndProc);
 	}
-	LRESULT rc = PyWndProc_Call(obFunc, oldWndProc, hWnd, uMsg, wParam, lParam);
+	LRESULT rc = 0;
+	if (!PyWndProc_Call(obFunc, hWnd, uMsg, wParam, lParam, &rc))
+		if (oldWndProc)
+			rc = CallWindowProc(oldWndProc, hWnd, uMsg, wParam, lParam);
+
 #ifdef WM_NCDESTROY
 	if (uMsg==WM_NCDESTROY) {
 #else // CE doesnt have this message!
@@ -286,7 +301,7 @@ LRESULT CALLBACK PyWndProcHWND(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 	return rc;
 }
 
-BOOL CALLBACK PyDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+BOOL CALLBACK PyDlgProcHDLG(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	BOOL rc = FALSE;
 	if (uMsg==WM_INITDIALOG) {
@@ -298,13 +313,12 @@ BOOL CALLBACK PyDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		// Replace the lParam with the one the user specified.
 		lParam = PyInt_AsLong( PyTuple_GET_ITEM(obTuple, 1) );
 		PyObject *key = PyInt_FromLong((long)hWnd);
-		PyObject *value = Py_BuildValue("Ol", obWndProc, -1);
 		if (g_DLGMap==NULL)
 			g_DLGMap = PyDict_New();
-
-		PyDict_SetItem(g_DLGMap, key, value);
+		if (g_DLGMap)
+			PyDict_SetItem(g_DLGMap, key, obWndProc);
 		Py_DECREF(key);
-		Py_DECREF(value);
+		// obWndProc has no reference.
 		rc = TRUE;
 	} else if(uMsg == WM_ACTIVATE) {	// see MS TID Q71450 and PumpMessages
 		if(0 == wParam)
@@ -314,20 +328,17 @@ BOOL CALLBACK PyDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 	// If our HWND is in the map, then call it.
 	PyObject *obFunc = NULL;
-	MYWNDPROC oldWndProc = NULL;
 	if (g_DLGMap) {
 		CEnterLeavePython _celp; // sigh - we need to rationalize these locks.
 		PyObject *key = PyInt_FromLong((long)hWnd);
-		PyObject *obInfo = PyDict_GetItem(g_DLGMap, key);
+		obFunc = PyDict_GetItem(g_DLGMap, key);
 		Py_XDECREF(key);
-		if (obInfo!=NULL) { // Is one of ours!
-			obFunc = PyTuple_GET_ITEM(obInfo, 0);
-			PyObject *obOldWndProc = PyTuple_GET_ITEM(obInfo, 1);
-			oldWndProc = (MYWNDPROC)PyInt_AsLong(obOldWndProc);
-		}
 	} // lock released.
-	if (obFunc)
-		rc = PyWndProc_Call(obFunc, oldWndProc, hWnd, uMsg, wParam, lParam);
+	if (obFunc) {
+		LRESULT lrc;
+		if (PyWndProc_Call(obFunc, hWnd, uMsg, wParam, lParam, &lrc))
+			rc = (BOOL)lrc;
+	}
 
 #ifdef WM_NCDESTROY
 	if (uMsg==WM_NCDESTROY) {
@@ -357,6 +368,7 @@ public:
 	~PyWNDCLASS();
 
 	/* Python support */
+	static PyObject *meth_SetDialogProc(PyObject *self, PyObject *args);
 
 	static void deallocFunc(PyObject *ob);
 
@@ -408,6 +420,21 @@ PyTypeObject PyWNDCLASSType =
 	{NULL}	/* Sentinel */
 };
 
+static PyObject *meth_SetDialogProc(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":SetDialogProc"))
+		return NULL;
+	PyWNDCLASS *pW = (PyWNDCLASS *)self;
+	pW->m_WNDCLASS.lpfnWndProc = (WNDPROC)PyDlgProcClass;
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+static struct PyMethodDef PyWNDCLASS_methods[] = {
+	{"SetDialogProc",     meth_SetDialogProc, 1}, 	// @pymeth SetDialogProc|Sets the WNDCLASS to be for a dialog box.
+	{NULL}
+};
+
 
 PyWNDCLASS::PyWNDCLASS()
 {
@@ -428,8 +455,11 @@ PyWNDCLASS::~PyWNDCLASS(void)
 
 PyObject *PyWNDCLASS::getattr(PyObject *self, char *name)
 {
+	PyObject *ret = Py_FindMethod(PyWNDCLASS_methods, self, name);
+	if (ret != NULL)
+		return ret;
+	PyErr_Clear();
 	PyWNDCLASS *pW = (PyWNDCLASS *)self;
-	PyObject *ret;
 	// @prop string/<o PyUnicode>|lpszMenuName|
 	// @prop string/<o PyUnicode>|lpszClassName|
 	// @prop function|lpfnWndProc|
@@ -512,6 +542,7 @@ static PyObject *MakeWNDCLASS(PyObject *self, PyObject *args)
 		return NULL;
 	return new PyWNDCLASS();
 }
+
 %}
 %native (WNDCLASS) MakeWNDCLASS;
 
@@ -1167,7 +1198,7 @@ static PyObject *PyDialogBox(PyObject *self, PyObject *args)
 
 	int rc;
     Py_BEGIN_ALLOW_THREADS
-	rc = DialogBoxParam((HINSTANCE)hinst, resid, (HWND)hwnd, PyDlgProc, (LPARAM)obExtra);
+	rc = DialogBoxParam((HINSTANCE)hinst, resid, (HWND)hwnd, PyDlgProcHDLG, (LPARAM)obExtra);
     Py_END_ALLOW_THREADS
 	Py_DECREF(obExtra);
 	if (bFreeString)
@@ -1204,7 +1235,7 @@ static PyObject *PyDialogBoxIndirect(PyObject *self, PyObject *args)
 	int rc;
     Py_BEGIN_ALLOW_THREADS
 	HGLOBAL templ = (HGLOBAL) GlobalLock(h);
-	rc = DialogBoxIndirectParam((HINSTANCE)hinst, (const DLGTEMPLATE *) templ, (HWND)hwnd, PyDlgProc, (LPARAM)obExtra);
+	rc = DialogBoxIndirectParam((HINSTANCE)hinst, (const DLGTEMPLATE *) templ, (HWND)hwnd, PyDlgProcHDLG, (LPARAM)obExtra);
 	GlobalUnlock(h);
 	GlobalFree(h);
     Py_END_ALLOW_THREADS
@@ -1240,7 +1271,7 @@ static PyObject *PyCreateDialogIndirect(PyObject *self, PyObject *args)
 	HWND rc;
     Py_BEGIN_ALLOW_THREADS
 	HGLOBAL templ = (HGLOBAL) GlobalLock(h);
-	rc = CreateDialogIndirectParam((HINSTANCE)hinst, (const DLGTEMPLATE *) templ, (HWND)hwnd, PyDlgProc, (LPARAM)obExtra);
+	rc = CreateDialogIndirectParam((HINSTANCE)hinst, (const DLGTEMPLATE *) templ, (HWND)hwnd, PyDlgProcHDLG, (LPARAM)obExtra);
 	GlobalUnlock(h);
 	GlobalFree(h);
     Py_END_ALLOW_THREADS
