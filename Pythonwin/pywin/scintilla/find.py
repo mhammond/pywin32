@@ -60,13 +60,12 @@ def FindNext():
 def _GetControl(control=None):
 	if control is None:
 		control = scriptutils.GetActiveEditControl()
-	if control is None:
-		raise RuntimeError, "Cant find the window to search in!"
 	return control
 
 def _FindIt(control, searchParams):
 	global lastSearch
 	control = _GetControl(control)
+	if control is None: return FOUND_NOTHING
 
 	# Move to the next char, so we find the next one.
 	flags = 0
@@ -147,7 +146,7 @@ def _ReplaceIt(control):
 	control = _GetControl(control)
 	statusText = "Can not find '%s'." % lastSearch.findText
 	rc = FOUND_NOTHING
-	if lastSearch.sel != (-1,-1):
+	if control is not None and lastSearch.sel != (-1,-1):
 		control.ReplaceSel(lastSearch.replaceText)
 		rc = FindNext()
 		if rc !=FOUND_NOTHING:
@@ -255,7 +254,7 @@ class ReplaceDialog(FindReplaceDialog):
 		ft = self.editFindText.GetWindowText()
 		control = _GetControl()
 #		bCanReplace = len(ft)>0 and control.GetSelText() == ft
-		bCanReplace = lastSearch.sel == control.GetSel()
+		bCanReplace = control is not None and lastSearch.sel == control.GetSel()
 		self.butReplace.EnableWindow(bCanReplace)
 #		self.butReplaceAll.EnableWindow(bCanReplace)
 
@@ -275,16 +274,17 @@ class ReplaceDialog(FindReplaceDialog):
 
 	def OnReplaceAll(self, id, code):
 		control = _GetControl(None)
-		control.SetSel(0)
-		num = 0
-		if self.DoFindNext() == FOUND_NORMAL:
-			lastSearch.replaceText = self.editReplaceText.GetWindowText()
-			while _ReplaceIt(control) == FOUND_NORMAL:
-				num = num + 1
+		if control is not None:
+			control.SetSel(0)
+			num = 0
+			if self.DoFindNext() == FOUND_NORMAL:
+				lastSearch.replaceText = self.editReplaceText.GetWindowText()
+				while _ReplaceIt(control) == FOUND_NORMAL:
+					num = num + 1
 
-		win32ui.SetStatusText("Replaced %d occurrences" % num)
-		if num > 0 and not self.butKeepDialogOpen.GetCheck():
-			self.DestroyWindow()
+			win32ui.SetStatusText("Replaced %d occurrences" % num)
+			if num > 0 and not self.butKeepDialogOpen.GetCheck():
+				self.DestroyWindow()
 
 if __name__=='__main__':
 	ShowFindDialog()
