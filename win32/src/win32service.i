@@ -9,7 +9,14 @@
 %{
 #undef PyHANDLE
 #include "PyWinObjects.h"
-static BOOL (WINAPI *fpQueryServiceStatusEx)(SC_HANDLE,SC_STATUS_TYPE,LPBYTE,DWORD,LPDWORD) = NULL;
+
+typedef BOOL (WINAPI *QueryServiceStatusExfunc)(SC_HANDLE,SC_STATUS_TYPE,LPBYTE,DWORD,LPDWORD);
+QueryServiceStatusExfunc fpQueryServiceStatusEx=NULL;
+typedef BOOL (WINAPI *ChangeServiceConfig2func)(SC_HANDLE,DWORD,LPVOID);
+ChangeServiceConfig2func fpChangeServiceConfig2=NULL;
+typedef BOOL (WINAPI *QueryServiceConfig2func)(SC_HANDLE,DWORD,LPBYTE,DWORD,LPDWORD);
+QueryServiceConfig2func fpQueryServiceConfig2=NULL;
+
 // according to msdn, 256 is limit for service names and service display names
 #define MAX_SERVICE_NAME_LEN 256   
 %}
@@ -28,7 +35,13 @@ static BOOL (WINAPI *fpQueryServiceStatusEx)(SC_HANDLE,SC_STATUS_TYPE,LPBYTE,DWO
 	if (hmod!=NULL){
 		fp=GetProcAddress(hmod,"QueryServiceStatusEx");
 		if (fp!=NULL)
-			fpQueryServiceStatusEx=(BOOL (WINAPI *)(SC_HANDLE,SC_STATUS_TYPE,LPBYTE,DWORD,LPDWORD))fp;
+			fpQueryServiceStatusEx=(QueryServiceStatusExfunc)fp;
+		fp=GetProcAddress(hmod,"ChangeServiceConfig2W");
+		if (fp!=NULL)
+			fpChangeServiceConfig2=(ChangeServiceConfig2func)fp;
+		fp=GetProcAddress(hmod,"QueryServiceConfig2W");
+		if (fp!=NULL)
+			fpQueryServiceConfig2=(QueryServiceConfig2func)fp;
 		}
 %}
 
@@ -393,7 +406,7 @@ PyObject *PyEnumWindowStations(PyObject *self, PyObject *args)
 %}
 
 // @pyswig |GetUserObjectInformation|Returns specified type of info about a window station or desktop
-// @comm Return type is dependent on UOI_* constant passed in
+// @rdesc Return type is dependent on UOI_* constant passed in
 %native(GetUserObjectInformation) PyGetUserObjectInformation;
 %{
 PyObject *PyGetUserObjectInformation(PyObject *self, PyObject *args)
@@ -838,7 +851,7 @@ PyObject *MyStartService( SC_HANDLE scHandle, PyObject *serviceArgs )
 // These 3 function contributed by Curt Hagenlocher
 
 // @pyswig (tuple,...)|EnumServicesStatus|Returns a tuple of status info for each service that meets specified criteria
-// @comm Returns a sequence of tuples representing ENUM_SERVICE_STATUS structs: (ServiceName, DisplayName, <o SERVICE_STATUS>)
+// @rdesc Returns a sequence of tuples representing ENUM_SERVICE_STATUS structs: (ServiceName, DisplayName, <o SERVICE_STATUS>)
 %native (EnumServicesStatus) MyEnumServicesStatus;
 
 %{
@@ -907,7 +920,7 @@ static PyObject *MyEnumServicesStatus(PyObject *self, PyObject *args)
 %}
 
 // @pyswig (tuple,...)|EnumDependentServices|Lists services that depend on a service
-// @comm Returns a sequence of tuples representing ENUM_SERVICE_STATUS structs: (ServiceName, DisplayName, <o SERVICE_STATUS>)
+// @rdesc Returns a sequence of tuples representing ENUM_SERVICE_STATUS structs: (ServiceName, DisplayName, <o SERVICE_STATUS>)
 %native (EnumDependentServices) MyEnumDependentServices;
 %{
 static PyObject *MyEnumDependentServices(PyObject *self, PyObject *args)
@@ -973,7 +986,7 @@ static PyObject *MyEnumDependentServices(PyObject *self, PyObject *args)
 %}
 
 // @pyswig tuple|QueryServiceConfig|Retrieves configuration parameters for a service
-// @comm Returns a tuple representing a QUERY_SERVICE_CONFIG struct:
+// @rdesc Returns a tuple representing a QUERY_SERVICE_CONFIG struct:
 //   (ServiceType, StartType, ErrorControl, BinaryPathName, LoadOrderGroup, TagId, Dependencies, ServiceStartName, DisplayName)
 %native (QueryServiceConfig) MyQueryServiceConfig;
 
@@ -1348,6 +1361,222 @@ static PyObject *PyQueryServiceLockStatus(PyObject *self, PyObject *args)
 %}
 %native (QueryServiceLockStatus) PyQueryServiceLockStatus;
 
+// @object SC_ACTION|Tuple of 2 ints (Type,Delay) used to represent an SC_ACTION structure
+// @prop int|Type|One of SC_ACTION_NONE, SC_ACTION_REBOOT, SC_ACTION_RESTART, SC_ACTION_RUN_COMMAND
+// @prop int|Delay|Time delay before specified action is taken (in milliseconds) 
+
+// @object SERVICE_FAILURE_ACTIONS|A dictionary representing a SERVICE_FAILURE_ACTIONS structure
+// @prop int|ResetPeriod|Indicates how many seconds to wait to reset the failure count, can be INFINITE
+// @prop str/<o PyUnicode>|RebootMsg|Message displayed when reboot action is taken
+// @prop str/<o PyUnicode>|Command|Command line to execute for SC_ACTION_RUN_COMMAND
+// @prop tuple|Actions|A tuple of <o SC_ACTION> tuples
+
+%{
+BOOL PyWinObject_AsSC_ACTION(PyObject *obAction, SC_ACTION *Action)
+{
+	static char* err="SC_ACTION must be a tuple of 2 ints (Type, Delay)";
+	if (!PyTuple_Check(obAction)){
+		PyErr_SetString(PyExc_TypeError,err);
+		return FALSE;
+		}
+	if (!PyArg_ParseTuple(obAction,"ll", &Action->Type, &Action->Delay)){
+		PyErr_Clear();
+		PyErr_SetString(PyExc_TypeError,err);
+		return FALSE;
+		}
+	return TRUE;
+}
+
+BOOL PyWinObject_AsSC_ACTIONS(PyObject *obActions, SC_ACTION **ppActions, LPDWORD cActions)
+{
+	static char* err="SC_ACTIONS must be a tuple of 2-tuples ((int, int),...)";
+	DWORD action_ind;
+	BOOL ret=TRUE;
+	SC_ACTION *pAction;
+	if (obActions==Py_None){
+		*ppActions=NULL;
+		return TRUE;
+		}
+	if (!PyTuple_Check(obActions)){
+		PyErr_SetString(PyExc_TypeError,err);
+		return FALSE;
+		}
+	*cActions=PyTuple_Size(obActions);
+	*ppActions=(SC_ACTION *)malloc(*cActions*sizeof(SC_ACTION));
+	if (*ppActions==NULL){
+		PyErr_Format(PyExc_MemoryError,"Unable to allocate %d SC_ACTION structures", *cActions);
+		return FALSE;
+		}
+	pAction=*ppActions;
+	for (action_ind=0;action_ind<*cActions;action_ind++){
+		ret=PyWinObject_AsSC_ACTION(PyTuple_GET_ITEM(obActions, action_ind), pAction);
+		if (!ret){
+			free(*ppActions);
+			*ppActions=NULL;
+			*cActions=0;
+			break;
+			}
+		pAction++;
+		}
+	return ret;
+}
+
+void PyWinObject_FreeSERVICE_FAILURE_ACTIONS(LPSERVICE_FAILURE_ACTIONSW psfa)
+{
+	if (psfa->lpRebootMsg!=NULL)
+		PyWinObject_FreeWCHAR(psfa->lpRebootMsg);
+	if (psfa->lpCommand!=NULL)
+		PyWinObject_FreeWCHAR(psfa->lpCommand);
+	if (psfa->lpsaActions!=NULL)
+		free(psfa->lpsaActions);
+}
+
+BOOL PyWinObject_AsSERVICE_FAILURE_ACTIONS(PyObject *obinfo, LPSERVICE_FAILURE_ACTIONSW psfa)
+{
+	static char *sfa_keys[]={"ResetPeriod","RebootMsg","Command","Actions",0};
+	static char *err="SERVICE_FAILURE_ACTIONS must be a dictionary containing {'ResetPeriod':int,'RebootMsg':unicode,'lpCommand':unicode,'Actions':sequence of 2 tuples(int,int)";
+	PyObject *dummy_tuple, *obActions, *obRebootMsg, *obCommand;
+	BOOL ret;
+	ZeroMemory(psfa, sizeof(SERVICE_FAILURE_ACTIONSW));
+	if (!PyDict_Check(obinfo)){
+		PyErr_SetString(PyExc_TypeError,err);
+		return FALSE;
+		}
+	dummy_tuple=PyTuple_New(0);
+	if (dummy_tuple==NULL)
+		return FALSE;
+	ret=PyArg_ParseTupleAndKeywords(dummy_tuple, obinfo, "lOOO:SERVICE_FAILURE_ACTIONS", sfa_keys,
+		&psfa->dwResetPeriod, &obRebootMsg, &obCommand, &obActions);
+	Py_DECREF(dummy_tuple);
+	if (!ret){
+		PyErr_Clear();
+		PyErr_SetString(PyExc_TypeError,err);
+		return FALSE;
+		}
+	if (PyWinObject_AsWCHAR(obRebootMsg, &psfa->lpRebootMsg, TRUE)
+		&&PyWinObject_AsWCHAR(obCommand,   &psfa->lpCommand,   TRUE)
+		&&PyWinObject_AsSC_ACTIONS(obActions,&psfa->lpsaActions, &psfa->cActions))
+		return TRUE;
+	PyWinObject_FreeSERVICE_FAILURE_ACTIONS(psfa);
+	return FALSE;
+}
+
+PyObject *PyWinObject_FromSERVICE_FAILURE_ACTIONS(LPSERVICE_FAILURE_ACTIONSW psfa)
+{
+	PyObject *obActions, *obAction;
+	SC_ACTION *pAction;
+	DWORD action_ind;
+	obActions=PyTuple_New(psfa->cActions);
+	if (obActions==NULL)
+		return NULL;
+	pAction=psfa->lpsaActions;
+	for (action_ind=0;action_ind<psfa->cActions;action_ind++){
+		obAction=Py_BuildValue("ll",pAction->Type,pAction->Delay);
+		if (obAction==NULL){
+			Py_DECREF(obActions);
+			return NULL;
+			}
+		PyTuple_SET_ITEM(obActions, action_ind, obAction);
+		pAction++;
+		}
+	return Py_BuildValue("{s:l,s:u,s:u,s:N}",
+		"ResetPeriod", psfa->dwResetPeriod,
+		"RebootMsg", psfa->lpRebootMsg,
+		"Command", psfa->lpCommand,
+		"Actions", obActions);
+}
+
+%}
+
+// @pyswig |ChangeServiceConfig2|Modifies service parameters that were introduced in Windows 2000
+%native (ChangeServiceConfig2) PyChangeServiceConfig2;
+%{
+PyObject *PyChangeServiceConfig2(PyObject *self, PyObject *args)
+{
+	if (fpChangeServiceConfig2==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"ChangeServiceConfig2 is not available on this operating system");
+		return NULL;
+		}
+	SC_HANDLE hService;
+	DWORD level;
+	BOOL bsuccess;
+	SERVICE_DESCRIPTIONW description_buf;
+	SERVICE_FAILURE_ACTIONSW failure_actions_buf;
+	PyObject *obinfo;
+	// @pyparm int|hService||Service handle as returned by <om win32service.OpenService>
+	// @pyparm int|InfoLevel||Indicates type of config parameters being set, one of SERVICE_CONFIG_DESCRIPTION or SERVICE_CONFIG_FAILURE_ACTIONS
+	// @pyparm object|info||For SERVICE_CONFIG_DESCRIPTION a string  For SERVICE_CONFIG_FAILURE_ACTIONS a <o SERVICE_FAILURE_ACTIONS> dictionary 
+	if (!PyArg_ParseTuple(args,"llO:ChangeServiceConfig2", &hService, &level, &obinfo))
+		return NULL;
+	switch (level){
+		case SERVICE_CONFIG_DESCRIPTION:
+			if (!PyWinObject_AsWCHAR(obinfo,&description_buf.lpDescription,TRUE))
+				return NULL;
+			bsuccess=(*fpChangeServiceConfig2)(hService,level, (LPVOID)&description_buf);
+			PyWinObject_FreeWCHAR(description_buf.lpDescription);
+			break;
+		case SERVICE_CONFIG_FAILURE_ACTIONS:
+			if (!PyWinObject_AsSERVICE_FAILURE_ACTIONS(obinfo, &failure_actions_buf))
+				return NULL;
+			bsuccess=(*fpChangeServiceConfig2)(hService,level, (LPVOID)&failure_actions_buf);
+			PyWinObject_FreeSERVICE_FAILURE_ACTIONS(&failure_actions_buf);
+			break;
+		default:
+			return PyErr_Format(PyExc_ValueError,"Info type %d is not supported",level);
+		}
+	if (!bsuccess)
+		return PyWin_SetAPIError("ChangeServiceConfig2");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+
+// @pyswig |QueryServiceConfig2|Retrieves advanced service configuration options
+// @rdesc Returns a unicode string for SERVICE_CONFIG_DESCRIPTION, or a <o SERVICE_FAILURE_ACTIONS> dict for SERVICE_CONFIG_FAILURE_ACTIONS
+%native (QueryServiceConfig2) PyQueryServiceConfig2;
+%{
+PyObject *PyQueryServiceConfig2(PyObject *self, PyObject *args)
+{
+	if (fpQueryServiceConfig2==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"QueryServiceConfig2 is not available on this operating system");
+		return NULL;
+		}
+	SC_HANDLE hService;
+	DWORD level, bytes_needed=0, bufsize=0;
+	LPBYTE buf=NULL;
+	PyObject *ret=NULL;
+	// @pyparm int|hService||Service handle as returned by <om win32service.OpenService>
+	// @pyparm int|InfoLevel||SERVICE_CONFIG_DESCRIPTION or SERVICE_CONFIG_FAILURE_ACTIONS
+	if (!PyArg_ParseTuple(args,"ll:QueryServiceConfig2", &hService, &level))
+		return NULL;
+	(*fpQueryServiceConfig2)(hService, level, buf, bufsize, &bytes_needed);
+	if (bytes_needed==0){
+		PyWin_SetAPIError("QueryServiceConfig2");
+		return NULL;
+		}
+	buf=(LPBYTE)malloc(bytes_needed);
+	if (buf==NULL)
+		return PyErr_Format(PyExc_MemoryError,"QueryServiceConfig2: Unable to allocate buffer of %d bytes",bytes_needed);
+	bufsize=bytes_needed;
+	if ((*fpQueryServiceConfig2)(hService, level, buf, bufsize, &bytes_needed))
+		switch(level){
+			case SERVICE_CONFIG_DESCRIPTION:
+				ret=PyWinObject_FromWCHAR(((SERVICE_DESCRIPTIONW *)buf)->lpDescription);
+				break;
+			case SERVICE_CONFIG_FAILURE_ACTIONS:
+				ret=PyWinObject_FromSERVICE_FAILURE_ACTIONS((LPSERVICE_FAILURE_ACTIONSW)buf);
+				break;
+			default:
+				PyErr_Format(PyExc_NotImplementedError,"QueryServiceConfig2: Level %d is not supported", level);
+			}
+	else
+		PyWin_SetAPIError("QueryServiceConfig2");
+	free(buf);
+	return ret;
+}
+%}
+
+
 #define SERVICE_WIN32 SERVICE_WIN32
 
 #define SERVICE_DRIVER SERVICE_DRIVER
@@ -1484,3 +1713,11 @@ static PyObject *PyQueryServiceLockStatus(PyObject *self, PyObject *args)
 #define WSF_VISIBLE WSF_VISIBLE
 #define DF_ALLOWOTHERACCOUNTHOOK DF_ALLOWOTHERACCOUNTHOOK
 // #define CWF_CREATE_ONLY CWF_CREATE_ONLY 
+
+#define SERVICE_CONFIG_DESCRIPTION SERVICE_CONFIG_DESCRIPTION
+#define SERVICE_CONFIG_FAILURE_ACTIONS SERVICE_CONFIG_FAILURE_ACTIONS
+#define SC_ACTION_NONE SC_ACTION_NONE
+#define SC_ACTION_REBOOT SC_ACTION_REBOOT
+#define SC_ACTION_RESTART SC_ACTION_RESTART
+#define SC_ACTION_RUN_COMMAND SC_ACTION_RUN_COMMAND
+
