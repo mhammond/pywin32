@@ -1084,7 +1084,7 @@ BOOL CALLBACK PyEnumWindowsProc(
 	return result;
 }
 
-// @pyswig |EnumWindows|enumerates all top-level windows on the screen by passing the handle to each window, in turn, to an application-defined callback function. EnumWindows continues until the last top-level window is enumerated or the callback function returns FALSE
+// @pyswig |EnumWindows|Enumerates all top-level windows on the screen by passing the handle to each window, in turn, to an application-defined callback function. EnumWindows continues until the last top-level window is enumerated or the callback function returns FALSE
 static PyObject *PyEnumWindows(PyObject *self, PyObject *args)
 {
 	BOOL rc;
@@ -1109,8 +1109,36 @@ static PyObject *PyEnumWindows(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pyswig |EnumChildWindows|Enumerates the child windows that belong to the specified parent window by passing the handle to each child window, in turn, to an application-defined callback function. EnumChildWindows continues until the last child window is enumerated or the callback function returns FALSE.
+static PyObject *PyEnumChildWindows(PyObject *self, PyObject *args)
+{
+	BOOL rc;
+	PyObject *obFunc, *obOther;
+	long hwnd;
+	// @pyparm int|hwnd||The handle to the window to enumerate.
+	// @pyparm object|callback||A Python function to be used as the callback.
+	// @pyparm object|extra||Any python object - this is passed to the callback function as the second param (first is the hwnd).
+	if (!PyArg_ParseTuple(args, "lOO", &hwnd, &obFunc, &obOther))
+		return NULL;
+	if (!PyCallable_Check(obFunc)) {
+		PyErr_SetString(PyExc_TypeError, "First param must be a callable object");
+		return NULL;
+	}
+	PyEnumWindowsCallback cb;
+	cb.func = obFunc;
+	cb.extra = obOther;
+    Py_BEGIN_ALLOW_THREADS
+	rc = EnumChildWindows((HWND)hwnd, PyEnumWindowsProc, (LPARAM)&cb);
+    Py_END_ALLOW_THREADS
+	if (!rc)
+		return PyWin_SetAPIError("EnumChildWindows");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 %}
 %native (EnumWindows) PyEnumWindows;
+%native (EnumChildWindows) PyEnumChildWindows;
 
 
 // @pyswig int|DialogBox|Creates a modal dialog box.
@@ -1247,6 +1275,7 @@ static PyObject *PyGetWindowText(PyObject *self, PyObject *args)
     int len;
    
 	TCHAR buffer[512];
+	// @pyparam int|hwnd||The handle to the window
 	if (!PyArg_ParseTuple(args, "l", &hwnd))
 		return NULL;
     len = GetWindowText(hwnd, buffer, sizeof(buffer)/sizeof(TCHAR));
