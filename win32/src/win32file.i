@@ -59,6 +59,8 @@
  
 #define FILE_ATTRIBUTE_ARCHIVE FILE_ATTRIBUTE_ARCHIVE 
 // The file should be archived. Applications use this attribute to mark files for backup or removal.
+#define FILE_ATTRIBUTE_DIRECTORY FILE_ATTRIBUTE_DIRECTORY
+// The file is a directory
 #define FILE_ATTRIBUTE_COMPRESSED FILE_ATTRIBUTE_COMPRESSED 
 // The file or directory is compressed. For a file, this means that all of the data in the file is compressed. For a directory, this means that compression is the default for newly created files and subdirectories.
 #define FILE_ATTRIBUTE_HIDDEN FILE_ATTRIBUTE_HIDDEN 
@@ -490,6 +492,7 @@ PyTypeObject FindFileIterator_Type = {
  	0,					/* tp_clear */
 	0,					/* tp_richcompare */
 	0,					/* tp_weaklistoffset */
+#if (PY_VERSION_HEX >= 0x02030000) // Iterators only in 2.3+
 	PyObject_SelfIter,	/* tp_iter */
 	(iternextfunc)ffi_iternext,		/* tp_iternext */
 	0,					/* tp_methods */
@@ -499,6 +502,7 @@ PyTypeObject FindFileIterator_Type = {
 	0,					/* tp_dict */
 	0,					/* tp_descr_get */
 	0,					/* tp_descr_set */
+#endif // PY_VERSION
 };
 
 // @pyswig iterator|FindFilesIterator|Returns an interator based on
