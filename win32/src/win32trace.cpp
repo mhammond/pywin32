@@ -40,10 +40,10 @@ See - I told you the implementation was simple :-)
 
 
 const size_t BUFFER_SIZE = 0x20000; // Includes size integer.
-const char *MAP_OBJECT_NAME = "PythonTraceOutputMapping";
-const char *MUTEX_OBJECT_NAME = "PythonTraceOutputMutex";
-const char *EVENT_OBJECT_NAME = "PythonTraceOutputEvent";
-const char *EVENT_EMPTY_OBJECT_NAME = "PythonTraceOutputEmptyEvent";
+const char *MAP_OBJECT_NAME = "Global\\PythonTraceOutputMapping";
+const char *MUTEX_OBJECT_NAME = "Global\\PythonTraceOutputMutex";
+const char *EVENT_OBJECT_NAME = "Global\\PythonTraceOutputEvent";
+const char *EVENT_EMPTY_OBJECT_NAME = "Global\\PythonTraceOutputEmptyEvent";
 
 // no const because of python api, this is the name of the entry
 // in the sys module that we store our PyTraceObject pointer
