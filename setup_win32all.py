@@ -4,12 +4,16 @@ To build the win32all extensions, simply execute:
   python setup_win32all.py -q build
 
 These extensions require a number of libraries to build, some of which may
-require your to install special SDKs or toolkits.  This script will attempt
-to build as many as it can, and at the end of the build, will report any 
-extension modules that could not be built and why.  Not being able to build
-the MAPI or ActiveScripting related projects is common.
-If you don't use these extensions, you can ignore these warnings; if you do
-use them, you must install the correct libraries.
+require you to install special SDKs or toolkits.  This script will attempt
+to build as many as it can, and at the end of the build will report any 
+extension modules that could not be built and why.  Early versions of
+certain Windows headers will also cause certain modules to be skipped (in
+general, the latest "Platform SDK" from:
+  http://www.microsoft.com/msdownload/platformsdk/sdkupdate
+should be used.
+
+If you don't use the extensions that fail to build, you can ignore these
+warnings; if you do use them, you must install the correct libraries.
 
 To install the win32all extensions, execute:
   python setup_win32all.py -q install
@@ -18,12 +22,12 @@ This will install the built extensions into your site-packages directory,
 and create an appropriate .pth file, and should leave everything ready to use.
 There should be no need to modify the registry.
 
-To build or install debug (_d) versions of these extensions, pass the "--debug"
+To build or install debug (_d) versions of these extensions, ensure you have
+built or installed a debug version of Python itself, then pass the "--debug"
 flag to the build command - eg:
   python setup_win32all.py -q build --debug
 or to build and install a debug version:
   python setup_win32all.py -q build --debug install
-you must have built (or installed) a debug version of Python for this to work.
 """
 # Thomas Heller, started in 2000 or so.
 #
@@ -888,10 +892,11 @@ if dist.command_obj.has_key('build_ext'):
 # process has terminated (as distutils imports win32api!), so we must use
 # some 'no wait' executor - spawn seems fine!  We pass the PID of this
 # process so the child will wait for us.
+# XXX - hmm - a closer look at distutils shows it only uses win32api
+# if _winreg fails - and this never should.  Need to revisit this!
 if not dist.dry_run and dist.command_obj.has_key('install') \
        and not dist.command_obj.has_key('bdist_wininst'):
-    # What executable to use?  This one I guess.  Maybe I could just import
-    # as a module and execute?
+    # What executable to use?  This one I guess.
     filename = os.path.join(
                   os.path.dirname(sys.argv[0]), "pywin32_postinstall.py")
     if not os.path.isfile(filename):
