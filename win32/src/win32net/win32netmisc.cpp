@@ -1103,7 +1103,7 @@ done:
 	// @pyseeapi NetWkstaTransportDel
 }
 
-// @pymethod (list|win32net|NetServerDiskEnum|Retrieves the list of disk drives on a server.
+// @pymethod list|win32net|NetServerDiskEnum|Retrieves the list of disk drives on a server.
 // @rdesc The result is a list of drives on the server
 PyObject *
 PyNetServerDiskEnum(PyObject *self, PyObject *args)
@@ -1154,6 +1154,8 @@ done:
 	// @pyseeapi NetServerDiskEnum
 }
 
+// @pymethod dict|win32net|NetStatisticsGet|Retrieves network statistics for specified service on specified machine
+// @rdesc The result is a dictionary representing a STAT_SERVER_0 or STAT_WORKSTATION_0 struct
 PyObject *
 PyNetStatisticsGet(PyObject *self, PyObject *args)
 {
@@ -1264,5 +1266,49 @@ PyNetStatisticsGet(PyObject *self, PyObject *args)
 		PyWinObject_FreeWCHAR(service);
 	if (buf != NULL)
 		NetApiBufferFree(buf);
+	return ret;
+}
+
+extern "C" NetValidateNamefunc pfnNetValidateName=NULL;
+// @pymethod |win32net|NetValidateName|Checks that domain/machine/workgroup name is valid for given context
+// @rdesc Returns none if valid, exception if not
+// @comm If Account and Password aren't passed, current logon credentials are used
+PyObject *
+PyNetValidateName(PyObject *self, PyObject *args)
+{
+	// @pyparm string/<o PyUnicode>|Server||Name of server on which to execute (None or blank uses local)
+	// @pyparm string/<o PyUnicode>|Name||Machine, domain, or workgroup name to validate
+	// @pyparm int|NameType||Type of name to validate - from NETSETUP_NAME_TYPE enum (win32net.NetSetup*)
+	// @pyparm string/<o PyUnicode>|Account|None|Account name to use while validating, current security context is used if not specified
+	// @pyparm string/<o PyUnicode>|Password|None|Password for Account
+	PyObject *obServer, *obName, *obAccount=Py_None, *obPassword=Py_None, *ret=NULL;
+	WCHAR *Server=NULL, *Name=NULL, *Account=NULL, *Password=NULL;
+	NET_API_STATUS err;
+	NETSETUP_NAME_TYPE NameType;
+	if (pfnNetValidateName==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"NetValidateName does not exist on this platform");
+		return NULL;
+		}
+	if (!PyArg_ParseTuple(args, "OOl|OO",&obServer, &obName, &NameType, &obAccount, &obPassword))
+		return NULL;
+	if (PyWinObject_AsWCHAR(obServer, &Server, TRUE)
+		&&PyWinObject_AsWCHAR(obName, &Name, FALSE)
+		&&PyWinObject_AsWCHAR(obAccount, &Account, TRUE)
+		&&PyWinObject_AsWCHAR(obPassword, &Password, TRUE)){
+		err=(*pfnNetValidateName)(Server, Name, Account, Password, NameType);
+		if (err==NERR_Success)
+			ret=Py_None;
+		else
+			ReturnNetError("NetValidateName", err);
+		}
+	if (Server)
+		PyWinObject_FreeWCHAR(Server);
+	if (Name)
+		PyWinObject_FreeWCHAR(Name);
+	if (Account)
+		PyWinObject_FreeWCHAR(Account);
+	if (Password)
+		PyWinObject_FreeWCHAR(Password);
+	Py_XINCREF(ret);
 	return ret;
 }

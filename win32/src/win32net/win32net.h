@@ -59,3 +59,6 @@ typedef DWORD (__stdcall *PFNDEL)(LPCWSTR, LPCWSTR);
 PyObject *PyDoDel(PyObject *self, PyObject *args, PFNDEL pfn, char *fnname);
 
 PyObject *PyDoGroupDelMembers(PyObject *self, PyObject *args);
+
+typedef NET_API_STATUS (NET_API_FUNCTION *NetValidateNamefunc)(LPCWSTR, LPCWSTR, LPCWSTR, LPCWSTR, NETSETUP_NAME_TYPE);
+extern NetValidateNamefunc pfnNetValidateName;

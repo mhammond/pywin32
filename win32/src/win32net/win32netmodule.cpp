@@ -37,6 +37,7 @@ conversion is required.
 #include "win32net.h"
 
 #include "assert.h"
+
 /*****************************************************************************/
 /* error helpers */
 
@@ -1007,6 +1008,7 @@ extern PyObject * PyNetSessionGetInfo(PyObject *self, PyObject *args);
 extern PyObject * PyNetFileEnum(PyObject *self, PyObject *args);
 extern PyObject * PyNetFileClose(PyObject *self, PyObject *args);
 extern PyObject * PyNetFileGetInfo(PyObject *self, PyObject *args);
+extern PyObject * PyNetValidateName(PyObject *self, PyObject *args);
 
 /* List of functions exported by this module */
 // @module win32net|A module encapsulating the Windows Network API.
@@ -1082,6 +1084,7 @@ static struct PyMethodDef win32net_functions[] = {
 	{"NetFileClose",            PyNetFileClose,            1}, // @pymeth NetFileClose|Closes file for specified server and file id.
 	{"NetFileGetInfo",          PyNetFileGetInfo,          1}, // @pymeth NetFileGetInfo|Get info about files open on the server.
 	{"NetStatisticsGet",		PyNetStatisticsGet,		   1}, // @pymeth NetStatisticsGet|Return server or workstation stats
+	{"NetValidateName",			PyNetValidateName,		   1}, // @pymeth NetValidateName|Verify that computer/domain name is valid for given context
 	{NULL,			NULL}
 };
 
@@ -1112,4 +1115,10 @@ initwin32net(void)
   AddConstant(dict, "USE_NOFORCE", USE_NOFORCE);
   AddConstant(dict, "USE_FORCE", USE_FORCE);
   AddConstant(dict, "USE_LOTS_OF_FORCE", USE_LOTS_OF_FORCE);
+
+  HMODULE hmodule=GetModuleHandle(_T("netapi32"));
+  if (hmodule==NULL)
+	  hmodule=LoadLibrary(_T("netapi32"));
+  if (hmodule!=NULL)
+	  pfnNetValidateName=(NetValidateNamefunc)GetProcAddress(hmodule,"NetValidateName");
 }
