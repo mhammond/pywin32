@@ -404,6 +404,7 @@ PyObject *PyIShellBrowser::SetToolbarItems(PyObject *self, PyObject *args)
 
 }
 
+// @object PyIShellBrowser|Exposed by Windows Explorer and the Open File common dialog box to provide services for namespace extensions.
 static struct PyMethodDef PyIShellBrowser_methods[] =
 {
 	{ "InsertMenusSB", PyIShellBrowser::InsertMenusSB, 1 }, // @pymeth InsertMenusSB|Description of InsertMenusSB

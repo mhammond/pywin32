@@ -93,7 +93,7 @@ HRESULT QueryColumns(
 	SPropTagArray **OUTPUT
 );
 
-// @pyswig|Abort|Stops any asynchronous operations currently in progress for the table. 
+// @pyswig |Abort|Stops any asynchronous operations currently in progress for the table. 
 HRESULT Abort();
 
 // @pyswig |FreeBookmark|Releases the memory associated with a bookmark. 
