@@ -458,7 +458,11 @@ class Debugger(debugger_parent):
 		SetInteractiveContext(None, None)
 
 		frame = win32ui.GetMainFrame()
-		frame.SaveBarState("ToolbarDebugging")
+# See bug [ 944506 ] PythonWin Menus don't work
+# This relieves most of the symptoms, but I'd love
+# to know what is going on.  Sounds alot like
+# Q151446, but that is for MFC4, and doesn't fix it.
+#		frame.SaveBarState("ToolbarDebugging")
 		# Hide the debuger toolbars (as they wont normally form part of the main toolbar state.
 		for id, klass, float in DebuggerDialogInfos:
 			try:
