@@ -233,7 +233,7 @@ PyObject *Py%(interfacename)s::%(method)s(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 %(cleanup)s
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, p%(ptr)s, %(interfacename)s );
 ''' % strdict)
     codePre = codePost = formatChars = codeVarsPass = codeDecl = ""
     for arg in method.args:

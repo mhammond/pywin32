@@ -63,8 +63,10 @@ PyObject *PyIEnum%(enumtype)s::Next(PyObject *self, PyObject *args)
 		return NULL;
 
 	%(arraydeclare)s
-	if ( rgVar == NULL )
-		return OleSetMemoryError("allocating result %(enumtype)ss");
+	if ( rgVar == NULL ) {
+		PyErr_SetString(PyExc_MemoryError, "allocating result %(enumtype)ss");
+		return NULL
+	}
 
 	int i;
 /*	for ( i = celt; i--; )
@@ -76,7 +78,7 @@ PyObject *PyIEnum%(enumtype)s::Next(PyObject *self, PyObject *args)
 	if (  HRESULT_CODE(hr) != ERROR_NO_MORE_ITEMS && FAILED(hr) )
 	{
 		delete [] rgVar;
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr,pIE%(enumtype)s, IID_IE%(enumtype)s);
 	}
 
 	PyObject *result = PyTuple_New(celtFetched);
@@ -115,7 +117,7 @@ PyObject *PyIEnum%(enumtype)s::Skip(PyObject *self, PyObject *args)
 
 	HRESULT hr = pIE%(enumtype)s->Skip(celt);
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIE%(enumtype)s, IID_IE%(enumtype)s);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -133,7 +135,7 @@ PyObject *PyIEnum%(enumtype)s::Reset(PyObject *self, PyObject *args)
 
 	HRESULT hr = pIE%(enumtype)s->Reset();
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIE%(enumtype)s, IID_IE%(enumtype)s);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -152,7 +154,7 @@ PyObject *PyIEnum%(enumtype)s::Clone(PyObject *self, PyObject *args)
 	IEnum%(enumtype)s *pClone;
 	HRESULT hr = pIE%(enumtype)s->Clone(&pClone);
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr, pIE%(enumtype)s, IID_IE%(enumtype)s);
 
 	return PyCom_PyObjectFromIUnknown(pClone, IID_IEnum%(enumtype)s, FALSE);
 }
@@ -234,7 +236,7 @@ STDMETHODIMP PyGEnum%(enumtype)s::Next(
 		%(converter)s
 		{
 			Py_DECREF(result);
-			return PyCom_SetFromSimple(E_OUTOFMEMORY, IID_IEnum%(enumtype)s);
+			return PyCom_SetCOMErrorFromPyException(IID_IEnum%(enumtype)s);
 		}
 	}
 
@@ -245,7 +247,7 @@ STDMETHODIMP PyGEnum%(enumtype)s::Next(
   error:
 	PyErr_Clear();	// just in case
 	Py_DECREF(result);
-	return PyCom_SetFromSimple(E_FAIL, IID_IEnum%(enumtype)s);
+	return PyCom_SetCOMErrorFromSimple(E_FAIL, "Next() did not return a sequence of objects", IID_IEnum%(enumtype)s);
 }
 
 STDMETHODIMP PyGEnum%(enumtype)s::Skip( 
@@ -278,7 +280,7 @@ STDMETHODIMP PyGEnum%(enumtype)s::Clone(
 	{
 		/* the wrong kind of object was returned to us */
 		Py_DECREF(result);
-		return PyCom_SetFromSimple(E_FAIL, IID_IEnum%(enumtype)s);
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnum%(enumtype)s);
 	}
 
 	/*
@@ -290,7 +292,7 @@ STDMETHODIMP PyGEnum%(enumtype)s::Clone(
 	{
 		/* damn. the object was released. */
 		Py_DECREF(result);
-		return PyCom_SetFromSimple(E_FAIL, IID_IEnum%(enumtype)s);
+		return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnum%(enumtype)s);
 	}
 
 	/*
@@ -302,6 +304,6 @@ STDMETHODIMP PyGEnum%(enumtype)s::Clone(
 	/* done with the result; this DECREF is also for <punk> */
 	Py_DECREF(result);
 
-	return PyCom_SetFromSimple(hr, IID_IEnum%(enumtype)s);
+	return PyCom_SetCOMErrorFromSimple(hr, IID_IEnum%(enumtype)s, "Python could not convert the result from Next() into the required COM interface");
 }
 ''' % locals())

@@ -229,7 +229,7 @@ class ArgFormatterTime(ArgFormatterPythonCOM):
 	def GetParsePostCode(self):
 		# variable was declared with only the builtinIndirection
                 ### NOTE: this is an [in] ... so use only builtin
-		return '\tif (!PyTime_Check(ob%s)) {\n\t\tOleSetTypeError("The argument must be a PyTime object");\n\t\tbPythonIsHappy = FALSE;\n\t}\n\tif (!((PyTime *)ob%s)->GetTime(%s)) bPythonIsHappy = FALSE;\n' % (self.arg.name, self.arg.name, self.GetIndirectedArgName(self.builtinIndirection, 1))
+		return '\tif (!PyTime_Check(ob%s)) {\n\t\tPyErr_SetString(PyExc_TypeError, "The argument must be a PyTime object");\n\t\tbPythonIsHappy = FALSE;\n\t}\n\tif (!((PyTime *)ob%s)->GetTime(%s)) bPythonIsHappy = FALSE;\n' % (self.arg.name, self.arg.name, self.GetIndirectedArgName(self.builtinIndirection, 1))
 	def GetBuildForInterfacePreCode(self):
 		### use just the builtinIndirection again...
 		notdirected = self.GetIndirectedArgName(self.builtinIndirection,0)
