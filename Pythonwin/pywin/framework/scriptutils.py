@@ -442,49 +442,36 @@ def CheckFile():
 
 def RunTabNanny(filename):
 	import cStringIO
-	tabnanny = FindPythonTool("tabnanny.py")
+	tabnanny = FindTabNanny()
 	if tabnanny is None:
 		win32ui.MessageBox("The TabNanny is not around, so the children can run amok!" )
 		return
 		
-	# We "import" the tab nanny, so we run faster next time:
-	tabnannyhome, tabnannybase = os.path.split(tabnanny)
-	tabnannybase = os.path.splitext(tabnannybase)[0]
-	# Put tab nanny at the top of the path.
-	sys.path.insert(0, tabnannyhome)
+	# Capture the tab-nanny output
+	newout = cStringIO.StringIO()
+	old_out = sys.stderr, sys.stdout
+	sys.stderr = sys.stdout = newout
 	try:
-		tn = __import__(tabnannybase)
-		# Capture the tab-nanny output
-		newout = cStringIO.StringIO()
-		old_out = sys.stderr, sys.stdout
-		sys.stderr = sys.stdout = newout
-		try:
-			tn.check(filename)
-		finally:
-			# Restore output
-			sys.stderr, sys.stdout = old_out
-		data = newout.getvalue()
-		if data:
-			try:
-				lineno = string.split(data)[1]
-				lineno = int(lineno)
-				_JumpToPosition(filename, lineno)
-				try: # Try and display whitespace
-					GetActiveEditControl().SCISetViewWS(1)
-				except:
-					pass
-				win32ui.SetStatusText("The TabNanny found trouble at line %d" % lineno)
-			except (IndexError, TypeError, ValueError):
-				print "The tab nanny complained, but I cant see where!"
-				print data
-
-			return 0
-		else:
-			return 1
-
+		tabnanny.check(filename)
 	finally:
-		# remove the tab-nanny from the path
-		del sys.path[0]
+		# Restore output
+		sys.stderr, sys.stdout = old_out
+	data = newout.getvalue()
+	if data:
+		try:
+			lineno = string.split(data)[1]
+			lineno = int(lineno)
+			_JumpToPosition(filename, lineno)
+			try: # Try and display whitespace
+				GetActiveEditControl().SCISetViewWS(1)
+			except:
+				pass
+			win32ui.SetStatusText("The TabNanny found trouble at line %d" % lineno)
+		except (IndexError, TypeError, ValueError):
+			print "The tab nanny complained, but I cant see where!"
+			print data
+		return 0
+	return 1
 
 def _JumpToPosition(fileName, lineno, col = 1):
 	JumpToDocument(fileName, lineno, col)
@@ -537,8 +524,14 @@ def _HandlePythonFailure(what, syntaxErrorPathName = None):
 		traceback.print_exc()
 		win32ui.SetStatusText('Failed to ' + what + ' - ' + str(details) )
 
-# Find a Python "tool" - ie, a file in the Python Tools/Scripts directory.
-def FindPythonTool(filename):
+# Find the Python TabNanny in either the standard library or the Python Tools/Scripts directory.
+def FindTabNanny():
+	try:
+		return __import__("tabnanny")
+	except ImportError:
+		pass
+	# OK - not in the standard library - go looking.
+	filename = "tabnanny.py"
 	try:
 		path = win32api.RegQueryValue(win32con.HKEY_LOCAL_MACHINE, "SOFTWARE\\Python\\PythonCore\\%s\\InstallPath" % (sys.winver))
 	except win32api.error:
@@ -548,11 +541,19 @@ def FindPythonTool(filename):
 	fname = os.path.join(path, "Tools\\Scripts\\%s" % filename)
 	try:
 		os.stat(fname)
-		return fname
 	except os.error:
-		print "WARNING - The Python registry's 'InstallPath' setting does not appear valid"
-		print "          The file '%s' can not be located in path '%s'" % (filename, path)
+		print "WARNING - The file '%s' can not be located in path '%s'" % (filename, path)
 		return None
+
+	tabnannyhome, tabnannybase = os.path.split(tabnanny)
+	tabnannybase = os.path.splitext(tabnannybase)[0]
+	# Put tab nanny at the top of the path.
+	sys.path.insert(0, tabnannyhome)
+	try:
+		return __import__(tabnannybase)
+	finally:
+		# remove the tab-nanny from the path
+		del sys.path[0]
 		
 def LocatePythonFile( fileName, bBrowseIfDir = 1 ):
 	" Given a file name, return a fully qualified file name, or None "
