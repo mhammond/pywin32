@@ -342,6 +342,32 @@ PyObject *PyRecord::tp_getattr(PyObject *self, char *name)
 	PyObject *res;
 	PyRecord *pyrec = (PyRecord *)self;
 
+	if (strcmp(name, "__members__")==0) {
+		ULONG cnames = 0;
+		HRESULT hr = pyrec->pri->GetFieldNames(&cnames, NULL);
+		if (FAILED(hr))
+			return PyCom_BuildPyException(hr, pyrec->pri, g_IID_IRecordInfo);
+		BSTR *strs = (BSTR *)malloc(sizeof(BSTR) * cnames);
+		if (strs==NULL)
+			return PyErr_NoMemory();
+		hr = pyrec->pri->GetFieldNames(&cnames, strs);
+		if (FAILED(hr)) {
+			free(strs);
+			return PyCom_BuildPyException(hr, pyrec->pri, g_IID_IRecordInfo);
+		}
+		PyObject *ret = PyList_New(cnames);
+		for (ULONG i=0;i<cnames && ret != NULL;i++) {
+			PyObject *item = PyString_FromUnicode(strs[i]);
+			SysFreeString(strs[i]);
+			if (item==NULL) {
+				Py_DECREF(ret);
+				ret = NULL;
+			} else
+				PyList_SET_ITEM(ret, i, item); // ref count swallowed.
+		}
+		free(strs);
+		return ret;
+	}
 	res = Py_FindMethod(PyRecord_methods, self, name);
 	if (res != NULL)
 		return res;
@@ -354,8 +380,12 @@ PyObject *PyRecord::tp_getattr(PyObject *self, char *name)
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = pyrec->pri->GetFieldNoCopy(pyrec->pdata, A2W(name), &vret, &sub_data);
 	PY_INTERFACE_POSTCALL;
-	if (FAILED(hr))
+	if (FAILED(hr)) {
+		if (hr == TYPE_E_FIELDNOTFOUND)
+			return PyErr_Format(PyExc_AttributeError,
+				"This record has no field named '%s'", name);
 		return PyCom_BuildPyException(hr, pyrec->pri, g_IID_IRecordInfo);
+	}
 
 	// Short-circuit sub-structs and arrays here, so we dont allocate a new chunk
 	// of memory and copy it - we need sub-structs to persist.
