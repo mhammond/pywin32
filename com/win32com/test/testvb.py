@@ -144,9 +144,12 @@ def TestVB( vbtest, bUseGenerated ):
 		# and one for the byref.
 		testData = string.split("Mark was here")
 		resultData, byRefParam = vbtest.PassSAFEARRAY(testData)
-		# Un unicode everything.
-		resultData = map(str, resultData)
-		byRefParam = map(str, byRefParam)
+		# Un unicode everything (only 1.5.2)
+		try:
+			unicode
+		except NameError : # No builtin named Unicode!
+			resultData = map(str, resultData)
+			byRefParam = map(str, byRefParam)
 		if testData != list(resultData):
 			raise error, "The safe array data was not what we expected - got " + str(resultData)
 		if testData != list(byRefParam):
@@ -157,9 +160,17 @@ def TestVB( vbtest, bUseGenerated ):
 		assert testData == list(resultData)
 		testData = ["hi", "from", "Python"]
 		resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
-		assert testData == list(byRefParam)
-		assert testData == list(resultData)
-		testData = [1, 2.0, "3"]
+		# Seamless Unicode only in 1.6!
+		try:
+			unicode
+		except NameError : # No builtin named Unicode!
+			byRefParam = map(str, byRefParam)
+			resultData = map(str, resultData)
+		assert testData == list(byRefParam), "Expected '%s', got '%s'" % (testData, list(byRefParam))
+		assert testData == list(resultData), "Expected '%s', got '%s'" % (testData, list(resultData))
+		# This time, instead of an explicit str() for 1.5, we just
+		# pass Unicode, so the result should compare equal
+		testData = [1, 2.0, pythoncom.Unicode("3")]
 		resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
 		assert testData == list(byRefParam)
 		assert testData == list(resultData)
