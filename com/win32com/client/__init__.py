@@ -358,7 +358,7 @@ class DispatchBaseClass:
 	def _get_good_single_object_(self, obj, obUserName=None, resultCLSID=None):
 		if _PyIDispatchType==type(obj):
 			return Dispatch(obj, obUserName, resultCLSID, UnicodeToString=NeedUnicodeConversions)
-		elif UnicodeType==type(obj):
+		elif NeedUnicodeConversions and UnicodeType==type(obj):
 			return str(obj)
 		return obj
 	def _get_good_object_(self, obj, obUserName=None, resultCLSID=None):
