@@ -14,6 +14,7 @@ char_ranges = [
     ("'", 183),
     ('"', 188),
     ("~", 66),
+    ("!\"#$%&'()", -25),
 ]
 
 key_name_to_code = {}
@@ -147,6 +148,11 @@ def test2():
     _pkn("alt+return")
     _pkn("Alt+/")
     _pkn("Alt+BadKeyName")
+    _pkn("A")
+    _pkn("(")
+    _pkn("Ctrl+(")
+    _pkn("{")
+    _pkn("!")
 
 if __name__=='__main__':
     test2()
