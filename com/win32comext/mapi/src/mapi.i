@@ -430,6 +430,9 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 
 #define TABLE_SORT_DESCEND TABLE_SORT_DESCEND // The table should be sorted in descending order. 
 
+#define TBL_ALL_COLUMNS TBL_ALL_COLUMNS  // The table should return all available columns. 
+
+
 // @object MAPIINIT_0|A MAPIINIT_0 is represented as a tuple of:
 // @tupleitem 0|int|version|This must be MAPI_INIT_VERSION.
 // @tupleitem 1|int|flags|MAPI initlization flags.
