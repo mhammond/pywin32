@@ -281,7 +281,7 @@ PyObject *PyNetUserEnum(PyObject *self, PyObject *args)
 	PyObject *ret = NULL;
 	PyNET_STRUCT *pInfo;
 	DWORD err;
-	DWORD dwPrefLen = 4096;
+	DWORD dwPrefLen = MAX_PREFERRED_LENGTH;
 	DWORD level;
 	DWORD filter = FILTER_NORMAL_ACCOUNT;
 	BOOL ok = FALSE;
@@ -294,7 +294,7 @@ PyObject *PyNetUserEnum(PyObject *self, PyObject *args)
 	// @pyparm int|level||The level of data required.
 	// @pyparm int|filter|win32netcon.FILTER_NORMAL_ACCOUNT|The types of accounts to enumerate.
 	// @pyparm int|resumeHandle|0|A resume handle.  See the return description for more information.
-	// @pyparm int|prefLen|4096|The preferred length of the data buffer.
+	// @pyparm int|prefLen|MAX_PREFERRED_LENGTH|The preferred length of the data buffer.
 	if (!PyArg_ParseTuple(args, "Oii|ii", &obServer, &level, &filter, &resumeHandle, &dwPrefLen))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obServer, &szServer, TRUE))
@@ -385,7 +385,7 @@ done:
 PyObject *
 PyNetUserGetGroups( PyObject *self, PyObject *args)
 {
-	DWORD dwBuffsize = 128 * 1024;	
+	DWORD dwBuffsize = MAX_PREFERRED_LENGTH;	
 	PyWin_AutoFreeBstr	wzServerName;		// storage for incoming servername string pointer
 	PyWin_AutoFreeBstr	wzUserName;			// incoming username
 	PyObject *		obServerName;

@@ -308,7 +308,7 @@ PyObject *PyDoSimpleEnum(PyObject *self, PyObject *args, PFNSIMPLEENUM pfn, char
 	PyObject *ret = NULL;
 	PyNET_STRUCT *pInfo;
 	DWORD err;
-	DWORD dwPrefLen = 4096;
+	DWORD dwPrefLen = MAX_PREFERRED_LENGTH;
 	DWORD level;
 	BOOL ok = FALSE;
 	DWORD resumeHandle = 0;

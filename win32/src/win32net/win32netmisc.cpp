@@ -285,7 +285,7 @@ static PyObject *PyNetShareEnum1(char *szServerName)
 	USES_CONVERSION;
 
 	DWORD dwLevel = 1;
-	DWORD dwMaxLen = 64 * 1024;
+	DWORD dwMaxLen = MAX_PREFERRED_LENGTH;
 	NET_API_STATUS Errno;
 	DWORD dwCount, dwMaxCount, dwResume = 0;
 	SHARE_INFO_1 *lpBuffer;
@@ -357,7 +357,7 @@ PyNetShareEnum(PyObject *self, PyObject *args)
 	// @pyparm string/<o PyUnicode>|server||The name of the server, or None.
 	// @pyparm int|level||The level of data required.
 	// @pyparm int|resumeHandle|0|A resume handle.  See the return description for more information.
-	// @pyparm int|prefLen|4096|The preferred length of the data buffer.
+	// @pyparm int|prefLen|MAX_PREFERRED_LENGTH|The preferred length of the data buffer.
 	// @pyseeapi NetShareEnum
 	// param 1 is not declared as const :-(
 	PFNSIMPLEENUM pfn = (PFNSIMPLEENUM)&NetShareEnum;
@@ -675,7 +675,7 @@ PyNetServerEnum(PyObject *self, PyObject *args)
 	PyObject *ret = NULL;
 	PyNET_STRUCT *pInfo;
 	DWORD err;
-	DWORD dwPrefLen = 4096;
+	DWORD dwPrefLen = MAX_PREFERRED_LENGTH;
 	DWORD level;
 	BOOL ok = FALSE;
 	DWORD resumeHandle = 0;
@@ -688,7 +688,7 @@ PyNetServerEnum(PyObject *self, PyObject *args)
 	// @pyparm int|type|SV_TYPE_ALL|Type of server to return - one of the SV_TYPE_* constants.
 	// @pyparm string/<o PyUnicode>|domain|None|The domain to enumerate, or None for the current domain.
 	// @pyparm int|resumeHandle|0|A resume handle.  See the return description for more information.
-	// @pyparm int|prefLen|4096|The preferred length of the data buffer.
+	// @pyparm int|prefLen|MAX_PREFERRED_LENGTH|The preferred length of the data buffer.
 	if (!PyArg_ParseTuple(args, "Oi|iOii", &obServer, &level, &serverType, &obDomain, &resumeHandle, &dwPrefLen))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obServer, &szServer, TRUE))
@@ -818,7 +818,7 @@ PyNetWkstaUserEnum(PyObject *self, PyObject *args)
 	PyObject *ret = NULL;
 	PyNET_STRUCT *pInfo;
 	DWORD err;
-	DWORD dwPrefLen = 4096;
+	DWORD dwPrefLen = MAX_PREFERRED_LENGTH;
 	DWORD level;
 	BOOL ok = FALSE;
 	DWORD resumeHandle = 0;
@@ -829,7 +829,7 @@ PyNetWkstaUserEnum(PyObject *self, PyObject *args)
 	// @pyparm string/<o PyUnicode>|server||The name of the server to execute on, or None.
 	// @pyparm int|level||The level of data required.
 	// @pyparm int|resumeHandle|0|A resume handle.  See the return description for more information.
-	// @pyparm int|prefLen|4096|The preferred length of the data buffer.
+	// @pyparm int|prefLen|MAX_PREFERRED_LENGTH|The preferred length of the data buffer.
 	if (!PyArg_ParseTuple(args, "Oi|ii", &obServer, &level, &resumeHandle, &dwPrefLen))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obServer, &szServer, TRUE))
@@ -959,7 +959,7 @@ PyNetWkstaTransportEnum(PyObject *self, PyObject *args)
 	PyObject *ret = NULL;
 	PyNET_STRUCT *pInfo;
 	DWORD err;
-	DWORD dwPrefLen = 4096;
+	DWORD dwPrefLen = MAX_PREFERRED_LENGTH;
 	DWORD level;
 	BOOL ok = FALSE;
 	DWORD resumeHandle = 0;
@@ -970,7 +970,7 @@ PyNetWkstaTransportEnum(PyObject *self, PyObject *args)
 	// @pyparm string/<o PyUnicode>|server||The name of the server to execute on, or None.
 	// @pyparm int|level||The level of data required.
 	// @pyparm int|resumeHandle|0|A resume handle.  See the return description for more information.
-	// @pyparm int|prefLen|4096|The preferred length of the data buffer.
+	// @pyparm int|prefLen|MAX_PREFERRED_LENGTH|The preferred length of the data buffer.
 	if (!PyArg_ParseTuple(args, "Oi|ii", &obServer, &level, &resumeHandle, &dwPrefLen))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obServer, &szServer, TRUE))

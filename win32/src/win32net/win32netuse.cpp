@@ -163,7 +163,7 @@ PyNetUseEnum(PyObject *self, PyObject *args)
 	PyObject *ret = NULL;
 	PyNET_STRUCT *pInfo;
 	DWORD err;
-	DWORD dwPrefLen = 4096;
+	DWORD dwPrefLen = MAX_PREFERRED_LENGTH;
 	DWORD level;
 	BOOL ok = FALSE;
 	DWORD resumeHandle = 0;
@@ -175,7 +175,7 @@ PyNetUseEnum(PyObject *self, PyObject *args)
 	// @pyparm int|level||The level of data required. Currently levels 0, 1 and
 	// 2 are supported.
 	// @pyparm int|resumeHandle|0|A resume handle.  See the return description for more information.
-	// @pyparm int|prefLen|4096|The preferred length of the data buffer.
+	// @pyparm int|prefLen|MAX_PREFERRED_LENGTH|The preferred length of the data buffer.
 	if (!PyArg_ParseTuple(args, "Oi|ii", &obServer, &level, &resumeHandle, &dwPrefLen))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obServer, &szServer, TRUE))

@@ -277,7 +277,7 @@ PyObject *PyNetGroupEnum(PyObject *self, PyObject *args)
 	// @pyparm string/<o PyUnicode>|server||The name of the server, or None.
 	// @pyparm int|level||The level of data required.
 	// @pyparm int|resumeHandle|0|A resume handle.  See the return description for more information.
-	// @pyparm int|prefLen|4096|The preferred length of the data buffer.
+	// @pyparm int|prefLen|MAX_PREFERRED_LENGTH|The preferred length of the data buffer.
 	// @pyseeapi NetGroupEnum
 	return PyDoSimpleEnum(self, args, &NetGroupEnum, "NetGroupEnum", group_infos);
 }
@@ -367,7 +367,7 @@ PyObject *PyNetLocalGroupEnum(PyObject *self, PyObject *args)
 	// @pyparm string/<o PyUnicode>|server||The name of the server, or None.
 	// @pyparm int|level||The level of data required.
 	// @pyparm int|resumeHandle|0|A resume handle.  See the return description for more information.
-	// @pyparm int|prefLen|4096|The preferred length of the data buffer.
+	// @pyparm int|prefLen|MAX_PREFERRED_LENGTH|The preferred length of the data buffer.
 	// @pyseeapi NetLocalGroupEnum
 	return PyDoSimpleEnum(self, args, &NetLocalGroupEnum, "NetLocalGroupEnum", localgroup_infos);
 }
