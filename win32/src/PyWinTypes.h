@@ -452,6 +452,10 @@ extern PYWINTYPES_EXPORT void PyWinGlobals_Free();
 
 extern PYWINTYPES_EXPORT void PyWin_MakePendingCalls();
 
+//#define USE_PY_AUTOTHREADSTATE
+
+#ifndef USE_PY_AUTOTHREADSTATE
+
 class CEnterLeavePython {
 public:
 	CEnterLeavePython() {
@@ -510,6 +514,26 @@ private:
 	BOOL acquired;
 };
 
+#else // USE_PY_AUTOTHREADSTATE
+
+class CEnterLeavePython {
+public:
+	CEnterLeavePython() {
+		acquire();
+	}
+	void acquire(void) {
+		state = PyAutoThreadState_Ensure();
+	}
+	~CEnterLeavePython() {
+		release();
+	}
+	void release(void) {
+		PyAutoThreadState_Release(state);
+	}
+private:
+	PyAutoThreadState_State state;
+};
+#endif // USE_PY_AUTOTHREADSTATE
 
 #endif // __PYWINTYPES_H__
 
