@@ -18,6 +18,7 @@ class SearchParams:
 			self.__dict__['matchCase'] = 0
 			self.__dict__['matchWords'] = 0
 			self.__dict__['acrossFiles'] = 0
+			self.__dict__['remember'] = 1
 			self.__dict__['sel'] = (-1,-1)
 			self.__dict__['keepDialogOpen']=0
 		else:
@@ -29,7 +30,7 @@ class SearchParams:
 		self.__dict__[attr]=val
 
 curDialog = None
-lastSearch = SearchParams()
+lastSearch = defaultSearch = SearchParams()
 
 def ShowFindDialog():
 	_ShowDialog(FindDialog)
@@ -63,7 +64,7 @@ def _GetControl(control=None):
 	return control
 
 def _FindIt(control, searchParams):
-	global lastSearch
+	global lastSearch, defaultSearch
 	control = _GetControl(control)
 	if control is None: return FOUND_NOTHING
 
@@ -140,6 +141,8 @@ def _FindIt(control, searchParams):
 	if rc != FOUND_NOTHING:
 		lastSearch.sel = foundSel
 
+	if lastSearch.remember:
+		defaultSearch = lastSearch
 	return rc
 
 def _ReplaceIt(control):
@@ -165,14 +168,16 @@ class FindReplaceDialog(dialog.Dialog):
 		self.butMatchCase = self.GetDlgItem(107)
 		self.butKeepDialogOpen = self.GetDlgItem(115)
 		self.butAcrossFiles = self.GetDlgItem(116)
+		self.butRemember = self.GetDlgItem(117)
 
-		self.editFindText.SetWindowText(lastSearch.findText)
+		self.editFindText.SetWindowText(defaultSearch.findText)
 		self.editFindText.SetSel(0, -2)
 		self.editFindText.SetFocus()
-		self.butMatchWords.SetCheck(lastSearch.matchWords)
-		self.butMatchCase.SetCheck(lastSearch.matchCase)
-		self.butKeepDialogOpen.SetCheck(lastSearch.keepDialogOpen)
-		self.butAcrossFiles.SetCheck(lastSearch.acrossFiles)
+		self.butMatchWords.SetCheck(defaultSearch.matchWords)
+		self.butMatchCase.SetCheck(defaultSearch.matchCase)
+		self.butKeepDialogOpen.SetCheck(defaultSearch.keepDialogOpen)
+		self.butAcrossFiles.SetCheck(defaultSearch.acrossFiles)
+		self.butRemember.SetCheck(defaultSearch.remember)
 		return dialog.Dialog.OnInitDialog(self)
 
 	def OnDestroy(self, msg):
@@ -186,6 +191,7 @@ class FindReplaceDialog(dialog.Dialog):
 		params.matchCase = self.butMatchCase.GetCheck()
 		params.matchWords = self.butMatchWords.GetCheck()
 		params.acrossFiles = self.butAcrossFiles.GetCheck()
+		params.remember = self.butRemember.GetCheck()
 		return _FindIt(None, params)
 	
 	def OnFindNext(self, id, code):
@@ -200,13 +206,14 @@ class FindDialog(FindReplaceDialog):
 		style = win32con.DS_MODALFRAME | win32con.WS_POPUP | win32con.WS_VISIBLE | win32con.WS_CAPTION | win32con.WS_SYSMENU | win32con.DS_SETFONT
 		visible = win32con.WS_CHILD | win32con.WS_VISIBLE
 		dt = [
-			["Find", (0, 2, 240, 65), style, None, (8, "MS Sans Serif")],
+			["Find", (0, 2, 240, 75), style, None, (8, "MS Sans Serif")],
 			["Static", "Fi&nd What:", 101, (5, 8, 40, 10), visible],
 			["Edit", "", 102, (50, 7, 120, 12), visible | win32con.WS_BORDER | win32con.WS_TABSTOP],
 			["Button", "Match &whole word only", 105, (5, 23, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "Match &case", 107, (5, 33, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "Keep &dialog open", 115, (5, 43, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "Across &open files", 116, (5, 52, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
+			["Button", "&Remember as default search", 117, (5, 61, 150, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "&Find Next", 109, (185, 5, 50, 14), visible | win32con.BS_DEFPUSHBUTTON | win32con.WS_TABSTOP],
 			["Button", "Cancel", win32con.IDCANCEL, (185, 23, 50, 14), visible | win32con.WS_TABSTOP],
 		]
@@ -217,7 +224,7 @@ class ReplaceDialog(FindReplaceDialog):
 		style = win32con.DS_MODALFRAME | win32con.WS_POPUP | win32con.WS_VISIBLE | win32con.WS_CAPTION | win32con.WS_SYSMENU | win32con.DS_SETFONT
 		visible = win32con.WS_CHILD | win32con.WS_VISIBLE
 		dt = [
-			["Replace", (0, 2, 240, 85), style, None, (8, "MS Sans Serif")],
+			["Replace", (0, 2, 240, 95), style, None, (8, "MS Sans Serif")],
 			["Static", "Fi&nd What:", 101, (5, 8, 40, 10), visible],
 			["Edit", "", 102, (60, 7, 110, 12), visible | win32con.WS_BORDER | win32con.WS_TABSTOP],
 			["Static", "Re&place with:", 103, (5, 25, 50, 10), visible],
@@ -226,6 +233,7 @@ class ReplaceDialog(FindReplaceDialog):
 			["Button", "Match &case", 107, (5, 52, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "Keep &dialog open", 115, (5, 62, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "Across &open files", 116, (5, 72, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
+			["Button", "&Remember as default search", 117, (5, 81, 150, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "&Find Next", 109, (185, 5, 50, 14), visible | win32con.BS_DEFPUSHBUTTON | win32con.WS_TABSTOP],
 			["Button", "&Replace", 110, (185, 23, 50, 14), visible | win32con.WS_TABSTOP],
 			["Button", "Replace &All", 111, (185, 41, 50, 14), visible | win32con.WS_TABSTOP],
