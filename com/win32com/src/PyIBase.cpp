@@ -30,28 +30,42 @@ BOOL PyIBase::is_object(PyComTypeObject *which)
 }
 
 /*static*/PyObject *
-PyIBase::getattr(PyObject *self, char *name)
+PyIBase::getattro(PyObject *self, PyObject *name)
 {
-	return ((PyIBase *)self)->getattr(name);
+	if (PyString_Check(name)) {
+		PyObject *rc = ((PyIBase *)self)->getattr(PyString_AsString(name));
+		if (rc)
+			return rc;
+		PyErr_Clear();
+	}
+	// Using PyObject_GenericGetAttr allows some special type magic
+	// (ie, 
+#ifdef OLD_PYTHON_TYPES
+	PyErr_SetObject(PyExc_AttributeError, name);
+	return NULL;
+#else
+	return PyObject_GenericGetAttr(self, name);
+#endif
 }
+
 PyObject *
 PyIBase::getattr(char *name)
 {
 	return Py_FindMethodInChain(&((PyComTypeObject *)ob_type)->chain, this, name);
 }
 PyObject *
+PyIBase::iternext()
+{
+	return PyErr_Format(PyExc_RuntimeError,
+			"iternext must be overridden by objects supporting enumeration (type '%s').", ob_type->tp_name);
+}
+PyObject *
 PyIBase::iter()
 {
 	return PyErr_Format(PyExc_TypeError,
 			"COM objects of type '%s' can not be iterated.", ob_type->tp_name);
-	return NULL;
 }
-PyObject *
-PyIBase::iternext()
-{
-	PyErr_SetString(PyExc_RuntimeError, "not iterable");
-	return NULL;
-}
+
 
 /*static*/int PyIBase::setattr(PyObject *op, char *name, PyObject *v)
 {
@@ -86,11 +100,6 @@ PyObject * PyIBase::repr()
 /*static*/ int PyIBase::cmp(PyObject *ob1, PyObject *ob2)
 {
 	return ((PyIBase *)ob1)->compare(ob2);
-}
-
-/*static*/ PyObject *PyIBase::iter(PyObject *self)
-{
-	return ((PyIBase *)self)->iter();
 }
 
 /*static*/ PyObject *PyIBase::iternext(PyObject *self)

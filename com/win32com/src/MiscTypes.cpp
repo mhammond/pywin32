@@ -16,20 +16,20 @@ static PyTypeObject PyInterfaceType_Type = {
 	0,			/* Item size for varobject */
 	0,			/*tp_dealloc*/
 	0,			/*tp_print*/
-	PyType_Type.tp_getattr, /*tp_getattr*/
+	0, /*tp_getattr*/
 	0,			/*tp_setattr*/
 	0,			/*tp_compare*/
-	PyType_Type.tp_repr,	/*tp_repr*/
+	0,	/*tp_repr*/
 	0,			/*tp_as_number*/
 	0,			/*tp_as_sequence*/
 	0,			/*tp_as_mapping*/
 	0,			/*tp_hash*/
 	0,			/*tp_call*/
 	0,			/*tp_str*/
-	0,			/*tp_getattro */
+	PyObject_GenericGetAttr,			/*tp_getattro */
 	0,			/*tp_setattro */
 	0,			/* tp_as_buffer */
-	0,			/* tp_flags */
+	Py_TPFLAGS_DEFAULT,			/* tp_flags */
 	"Define the behavior of a PythonCOM Interface type.",          /* tp_doc */
 };
 
@@ -39,7 +39,11 @@ PyComTypeObject::PyComTypeObject( const char *name, PyComTypeObject *pBase, int 
 // to gurantee order of static object construction, I went this way.  This is 
 // probably better, as is forces _all_ python objects have the same type sig.
 	static const PyTypeObject type_template = {
+#ifdef OLD_PYTHON_TYPES
 		PyObject_HEAD_INIT(&PyInterfaceType_Type)
+#else
+		PyObject_HEAD_INIT(&PyType_Type)
+#endif
 		0,													/*ob_size*/
 		"PythonComTypeTemplate",							/*tp_name*/
 		sizeof(PyIBase), 									/*tp_basicsize*/
@@ -47,7 +51,7 @@ PyComTypeObject::PyComTypeObject( const char *name, PyComTypeObject *pBase, int 
 		/* methods */
 		(destructor) PyIBase::dealloc, 						/*tp_dealloc*/
 		0,													/*tp_print*/
-		(getattrfunc) PyIBase::getattr, 					/*tp_getattr*/
+		0, 					/*tp_getattr*/
 		(setattrfunc) PyIBase::setattr,						/*tp_setattr*/
 		PyIBase::cmp,										/*tp_compare*/
 		(reprfunc)PyIBase::repr,							/*tp_repr*/
@@ -57,7 +61,7 @@ PyComTypeObject::PyComTypeObject( const char *name, PyComTypeObject *pBase, int 
 		0,			/*tp_hash*/
 		0,			/*tp_call*/
 		0,			/*tp_str*/
-		0,			/*tp_getattro */
+		PyIBase::getattro, /* tp_getattro */
 		0,			/*tp_setattro */
 		0,			/* tp_as_buffer */
 		Py_TPFLAGS_HAVE_ITER,			/* tp_flags */
@@ -67,7 +71,15 @@ PyComTypeObject::PyComTypeObject( const char *name, PyComTypeObject *pBase, int 
 		0,                              /* tp_richcompare */
 		0,                              /* tp_weaklistoffset */
 		PyIBase::iter,		/* tp_iter */
-		PyIBase::iternext        /* tp_iternext */
+		PyIBase::iternext,        /* tp_iternext */
+		0,					/* tp_methods */	
+		0,					/* tp_members */
+		0,					/* tp_getset */
+#ifdef OLD_PYTHON_TYPES
+		0,					/* tp_base */
+#else
+		&PyInterfaceType_Type,
+#endif
 	};
 
 	*((PyTypeObject *)this) = type_template;
@@ -88,7 +100,12 @@ PyComTypeObject::~PyComTypeObject()
 
 /* static */ BOOL PyComTypeObject::is_interface_type(const PyObject *ob)
 {
+#ifdef OLD_PYTHON_TYPES
 	return ob->ob_type == &PyInterfaceType_Type;
+#else
+	return ob->ob_type == &PyType_Type && 
+	       ((PyTypeObject *)ob)->tp_base == &PyInterfaceType_Type;
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////

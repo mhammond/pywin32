@@ -177,10 +177,10 @@ public:
 	BOOL is_object(PyComTypeObject *which);
 	static void dealloc(PyObject *ob);
 	static PyObject *repr(PyObject *ob);
-	static PyObject *getattr(PyObject *self, char *name);
+	static PyObject *getattro(PyObject *self, PyObject *name);
 	static int setattr(PyObject *op, char *name, PyObject *v);
 	static int cmp(PyObject *ob1, PyObject *ob2);
-	static PyObject *iter(PyObject *self);
+	static PyObject *iter(PyObject *self) {return PyObject_SelfIter(self);}
 	static PyObject *iternext(PyObject *self);
 };
 
