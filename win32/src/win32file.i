@@ -2340,6 +2340,13 @@ static BOOL (WINAPI *pfnCreateHardLinkW)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES
 static BOOL (WINAPI *pfnEncryptFile)(WCHAR *)=NULL;
 static BOOL (WINAPI *pfnDecryptFile)(WCHAR *)=NULL;
 static BOOL (WINAPI *pfnEncryptionDisable)(WCHAR *, BOOL)=NULL;
+static BOOL (WINAPI *pfnFileEncryptionStatus)(WCHAR *, LPDWORD)=NULL;
+static DWORD (WINAPI *pfnQueryUsersOnEncryptedFile)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST *)=NULL;
+static BOOL (WINAPI *pfnFreeEncryptionCertificateHashList)(PENCRYPTION_CERTIFICATE_HASH_LIST)=NULL;
+static DWORD (WINAPI *pfnQueryRecoveryAgentsOnEncryptedFile)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST *)=NULL;
+static DWORD (WINAPI *pfnRemoveUsersFromEncryptedFile)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST)=NULL;
+static DWORD (WINAPI *pfnAddUsersToEncryptedFile)(WCHAR *, PENCRYPTION_CERTIFICATE_LIST)=NULL;
+
 
 
 // @pyswig <o PyUnicode>|SetVolumeMountPoint|Mounts the specified volume at the specified volume mount point.
@@ -2521,6 +2528,7 @@ cleanup:
 	return ret;
 }
 
+
 // @pyswig |EncryptFile|Encrypts specified file (requires Win2k or higher and NTFS)
 static PyObject*
 py_EncryptFile(PyObject *self, PyObject *args)
@@ -2590,6 +2598,421 @@ py_EncryptionDisable(PyObject *self, PyObject *args)
     return ret;
 }
 
+// @pyswig int|FileEncryptionStatus|Requires Windows 2000 or higher - Returns FILE_ENCRYPTABLE, FILE_IS_ENCRYPTED, FILE_SYSTEM_ATTR, FILE_ROOT_DIR, FILE_SYSTEM_DIR, FILE_UNKNOWN, FILE_SYSTEM_NOT_SUPPORT, FILE_USER_DISALLOWED, or FILE_READ_ONLY 
+static PyObject*
+py_FileEncryptionStatus(PyObject *self, PyObject *args)
+{
+    // @pyparm string/unicode|FileName||file to query
+    PyObject *ret=NULL, *obfname=NULL;
+    WCHAR *fname = NULL;
+	DWORD Status=0;
+	if (pfnFileEncryptionStatus==NULL)
+		return PyErr_Format(PyExc_NotImplementedError,"FileEncryptionStatus not supported by this version of Windows");
+    if (!PyArg_ParseTuple(args,"O", &obfname))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
+        return NULL;
+	if (!(*pfnFileEncryptionStatus)(fname, &Status))
+        PyWin_SetAPIError("FileEncryptionStatus");
+    else
+        ret=Py_BuildValue("i",Status);
+    PyWinObject_FreeWCHAR(fname);
+    return ret;
+}
+
+void PyWinObject_FreePENCRYPTION_CERTIFICATE_LIST(PENCRYPTION_CERTIFICATE_LIST pecl)
+{
+	DWORD cert_ind=0;
+	PENCRYPTION_CERTIFICATE *ppec=NULL;
+	if (pecl->pUsers != NULL){
+		ppec=pecl->pUsers;
+		for (cert_ind=0;cert_ind<pecl->nUsers;cert_ind++){
+			if (*ppec != NULL){
+				if ((*ppec)->pCertBlob != NULL)
+					free ((*ppec)->pCertBlob);
+					// don't free PENCRYPTION_CERTIFICATE->pCertBlob->pbData or PENCRYPTION_CERTIFICATE->pUserSid,
+					// both have internal pointers from Python string and Sid objects
+				free (*ppec);
+				}
+			ppec++;
+			}	
+		free(pecl->pUsers);
+		}
+}
+
+void PyWinObject_FreePENCRYPTION_CERTIFICATE_HASH_LIST(PENCRYPTION_CERTIFICATE_HASH_LIST pechl)
+{
+	DWORD hash_ind=0;
+	PENCRYPTION_CERTIFICATE_HASH *ppech=NULL;
+	if (pechl->pUsers != NULL){
+		ppech=pechl->pUsers;
+		for (hash_ind=0;hash_ind<pechl->nCert_Hash;hash_ind++){
+			if (*ppech != NULL){
+				// PENCRYPTION_CERTIFICATE_HASH->pHash->pbData and PENCRYPTION_CERTIFICATE_HASH->pUserSid
+				// will be freed when corresponding python objects are deallocated
+				if ((*ppech)->lpDisplayInformation != NULL)
+					PyWinObject_FreeWCHAR((*ppech)->lpDisplayInformation);
+				if ((*ppech)->pHash != NULL)
+					free ((*ppech)->pHash);
+				free (*ppech);
+				}
+			ppech++;
+			}	
+		free(pechl->pUsers);
+		}
+}
+
+PyObject *PyWinObject_FromPENCRYPTION_CERTIFICATE_LIST(PENCRYPTION_CERTIFICATE_LIST pecl)
+{
+	DWORD user_cnt;
+	PENCRYPTION_CERTIFICATE *user_item=NULL;
+	PyObject *obsid=NULL, *ret_item=NULL;
+	PyObject *ret=PyTuple_New(pecl->nUsers);
+	if (!ret){
+		PyErr_SetString(PyExc_MemoryError,"PyWinObject_FromPENCRYPTION_CERTIFICATE_LIST: unable to allocate return tuple");
+		return NULL;
+		}
+	user_item=pecl->pUsers;
+	for (user_cnt=0; user_cnt < pecl->nUsers; user_cnt++){
+		obsid=PyWinObject_FromSID((*user_item)->pUserSid);
+		ret_item=Py_BuildValue("Ns#", obsid, (*user_item)->pCertBlob->pbData,(*user_item)->pCertBlob->cbData);
+		if (!ret_item){
+			PyErr_SetString(PyExc_MemoryError,"PyWinObject_FromPENCRYPTION_CERTIFICATE_LIST: unable to allocate tuple item");
+			Py_DECREF(ret);
+			return NULL;
+			}
+		PyTuple_SetItem(ret, user_cnt, ret_item);
+		user_item++;
+		}
+	return ret;
+}
+
+PyObject *PyWinObject_FromPENCRYPTION_CERTIFICATE_HASH_LIST(PENCRYPTION_CERTIFICATE_HASH_LIST pechl)
+{
+	DWORD user_cnt;
+	PENCRYPTION_CERTIFICATE_HASH *user_item=NULL;
+	PyObject *obsid=NULL, *obDisplayInformation=NULL, *ret_item=NULL;
+	PyObject *ret=PyTuple_New(pechl->nCert_Hash);
+	if (!ret){
+		PyErr_SetString(PyExc_MemoryError,"PyWinObject_FromPENCRYPTION_CERTIFICATE_HASH_LIST: unable to allocate return tuple");
+		return NULL;
+		}
+	user_item=pechl->pUsers;
+	for (user_cnt=0; user_cnt < pechl->nCert_Hash; user_cnt++){
+		obsid=PyWinObject_FromSID((*user_item)->pUserSid);
+		obDisplayInformation=PyWinObject_FromWCHAR((*user_item)->lpDisplayInformation);
+		if (!obDisplayInformation){
+			Py_DECREF(ret);
+			return NULL;
+			}
+		ret_item=Py_BuildValue("Ns#N", obsid, (*user_item)->pHash->pbData,(*user_item)->pHash->cbData, obDisplayInformation);
+		if (!ret_item){
+			PyErr_SetString(PyExc_MemoryError,"PyWinObject_FromPENCRYPTION_CERTIFICATE_HASH_LIST: unable to allocate tuple item");
+			Py_DECREF(ret);
+			return NULL;
+			}
+		PyTuple_SetItem(ret, user_cnt, ret_item);
+		user_item++;
+		}
+	return ret;
+}
+
+BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_LIST(PyObject *obcert_list, PENCRYPTION_CERTIFICATE_LIST pecl)
+{	
+	char *format_msg="ENCRYPTION_CERTIFICATE_LIST must be represented as a sequence of sequences of (PySID, str, int dwCertEncodingType )";
+	BOOL bSuccess=TRUE;
+	DWORD cert_cnt=0, cert_ind=0;
+	PENCRYPTION_CERTIFICATE *ppec=NULL;
+	PyObject *obcert=NULL;
+	PyObject *obsid=NULL, *obcert_member=NULL;
+
+	if (!PySequence_Check(obcert_list)){
+		PyErr_SetString(PyExc_TypeError,format_msg);
+		return FALSE;
+		}
+	cert_cnt=PySequence_Length(obcert_list);
+	pecl->nUsers=cert_cnt;
+	ppec=(PENCRYPTION_CERTIFICATE *)malloc(cert_cnt*sizeof(PENCRYPTION_CERTIFICATE));
+	if (ppec==NULL){
+		PyErr_SetString(PyExc_MemoryError,"PyWinObject_AsENCRYPTION_CERTIFICATE_LIST: unable to allocate hash list");
+		return NULL;
+		}
+	ZeroMemory(ppec,cert_cnt*sizeof(PENCRYPTION_CERTIFICATE));
+	pecl->pUsers=ppec;
+
+	for (cert_ind=0;cert_ind<cert_cnt;cert_ind++){
+		obcert=PySequence_GetItem(obcert_list, cert_ind);
+		if (!PySequence_Check(obcert)){
+			PyErr_SetString(PyExc_TypeError,format_msg);
+			bSuccess=FALSE;
+			}
+		if (bSuccess)
+			if (PySequence_Length(obcert)!=3){
+				PyErr_SetString(PyExc_TypeError,format_msg);
+				bSuccess=FALSE;
+				}
+		if (bSuccess){
+			*ppec=new(ENCRYPTION_CERTIFICATE);
+			if (*ppec==NULL){
+				PyErr_SetString(PyExc_MemoryError,"PyWinObject_AsENCRYPTION_CERTIFICATE_LIST: unable to allocate ENCRYPTION_CERTIFICATE");
+				bSuccess=FALSE;
+				}
+			}
+		if (bSuccess){
+			ZeroMemory(*ppec,sizeof(ENCRYPTION_CERTIFICATE));
+			(*ppec)->cbTotalLength=sizeof(ENCRYPTION_CERTIFICATE);
+			obcert_member=PySequence_GetItem(obcert,0);
+			bSuccess=PyWinObject_AsSID(obcert_member, (PSID *)&((*ppec)->pUserSid));
+			Py_DECREF(obcert_member);
+			}
+
+		if (bSuccess){
+			(*ppec)->pCertBlob=new(EFS_CERTIFICATE_BLOB);
+			if ((*ppec)->pCertBlob==NULL){
+				PyErr_SetString(PyExc_MemoryError,"PyWinObject_AsENCRYPTION_CERTIFICATE_LIST: unable to allocate EFS_CERTIFICATE_BLOB");
+				bSuccess=FALSE;
+				}
+			}
+		if (bSuccess){
+			ZeroMemory((*ppec)->pCertBlob,sizeof(EFS_CERTIFICATE_BLOB));
+			obcert_member=PySequence_GetItem(obcert,1);
+			if (!PyInt_Check(obcert_member)){
+				PyErr_SetString(PyExc_TypeError,"Second item (dwCertEncodingType) of ENCRYPTION_CERTIFICATE must be an integer");
+				bSuccess=FALSE;
+				}
+			else
+				(*ppec)->pCertBlob->dwCertEncodingType=PyInt_AsLong(obcert_member);
+			Py_DECREF(obcert_member);
+			}
+
+		if (bSuccess){
+			obcert_member=PySequence_GetItem(obcert,2);
+			if (PyString_AsStringAndSize(obcert_member, 
+					(char **)&((*ppec)->pCertBlob->pbData), 
+					(int *)  &((*ppec)->pCertBlob->cbData))==-1){
+				PyErr_SetString(PyExc_TypeError,"Third item of ENCRYPTION_CERTIFICATE must be a string containing encoded certificate data");
+				bSuccess=FALSE;
+				}
+			Py_DECREF(obcert_member);
+			}
+		Py_DECREF(obcert);
+		if (!bSuccess)
+			break;
+		ppec++;
+		}
+	return bSuccess;
+}
+
+BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_HASH_LIST(PyObject *obhash_list, PENCRYPTION_CERTIFICATE_HASH_LIST pechl)
+{
+	char *err_msg="ENCRYPTION_CERTIFICATE_HASH_LIST must be represented as a sequence of sequences of (PySID, string, unicode)";
+	BOOL bSuccess=TRUE;
+	DWORD hash_cnt=0, hash_ind=0;
+	PENCRYPTION_CERTIFICATE_HASH *ppech=NULL;
+	PyObject *obsid=NULL, *obDisplayInformation=NULL, *obhash=NULL;
+	PyObject *obhash_item=NULL;
+
+	if (!PySequence_Check(obhash_list)){
+		PyErr_SetString(PyExc_TypeError,err_msg);
+		return FALSE;
+		}
+	hash_cnt=PySequence_Length(obhash_list);
+	pechl->nCert_Hash=hash_cnt;
+	ppech=(PENCRYPTION_CERTIFICATE_HASH *)malloc(hash_cnt*sizeof(PENCRYPTION_CERTIFICATE_HASH));
+	if (ppech==NULL){
+		PyErr_SetString(PyExc_MemoryError,"PyWinObject_AsENCRYPTION_CERTIFICATE_HASH_LIST: unable to allocate ENCRYPTION_CERTIFICATE_HASH_LIST");
+		return FALSE;
+		}
+	ZeroMemory(ppech,hash_cnt*sizeof(PENCRYPTION_CERTIFICATE_HASH));
+	pechl->pUsers=ppech;
+
+	for (hash_ind=0;hash_ind<hash_cnt;hash_ind++){
+		obhash=PySequence_GetItem(obhash_list, hash_ind);
+		if (!PySequence_Check(obhash)){
+			PyErr_SetString(PyExc_TypeError,err_msg);
+			bSuccess=FALSE;
+			}
+		if (bSuccess)
+			if (PySequence_Length(obhash)!=3){
+				PyErr_SetString(PyExc_TypeError,err_msg);
+				bSuccess=FALSE;
+				}
+		if (bSuccess){
+			*ppech=new(ENCRYPTION_CERTIFICATE_HASH);
+			if (*ppech==NULL){
+				PyErr_SetString(PyExc_MemoryError,"PyWinObject_AsPENCRYPTION_CERTIFICATE_HASH_LIST: unable to allocate EMCRYPTION_CERTIFICATE_HASH");
+				bSuccess=FALSE;
+				}
+			}
+		if (bSuccess){
+			ZeroMemory(*ppech,sizeof(ENCRYPTION_CERTIFICATE_HASH));
+			(*ppech)->cbTotalLength=sizeof(ENCRYPTION_CERTIFICATE_HASH);
+			obhash_item=PySequence_GetItem(obhash,0);
+			bSuccess=PyWinObject_AsSID(obhash_item, (PSID *)&((*ppech)->pUserSid));
+			Py_DECREF(obhash_item);
+			}
+
+		if (bSuccess){
+			(*ppech)->pHash=new(EFS_HASH_BLOB);
+			if ((*ppech)->pHash==NULL){
+				PyErr_SetString(PyExc_MemoryError,"PyWinObject_AsPENCRYPTION_CERTIFICATE_HASH_LIST: unable to allocate EFS_HASH_BLOB");
+				bSuccess=FALSE;
+				}
+			}
+
+		if (bSuccess){
+			ZeroMemory((*ppech)->pHash,sizeof(EFS_HASH_BLOB));
+			obhash_item=PySequence_GetItem(obhash,1);
+			if (PyString_AsStringAndSize(obhash_item, 
+				(char **)&((*ppech)->pHash->pbData), 
+				(int *)  &((*ppech)->pHash->cbData))==-1){
+				PyErr_SetString(PyExc_TypeError,"Second item of ENCRYPTION_CERTIFICATE_HASH tuple must be a string containing encoded certificate data");
+				bSuccess=FALSE;
+				}
+			Py_DECREF(obhash_item);
+			}
+
+		if (bSuccess){
+			obhash_item=PySequence_GetItem(obhash,2);
+			bSuccess=PyWinObject_AsWCHAR(obhash_item, &(*ppech)->lpDisplayInformation);
+			Py_DECREF(obhash_item);
+			}
+		Py_DECREF(obhash);
+		if (!bSuccess)
+			break;
+		ppech++;
+		}
+	return bSuccess;
+}
+
+
+// @pyswig (<o PySID>,string,unicode)|QueryUsersOnEncryptedFile|Returns list of users for an encrypted file as tuples of (SID, certificate hash blob, display info)
+static PyObject*
+py_QueryUsersOnEncryptedFile(PyObject *self, PyObject *args)
+{
+    // @pyparm string/unicode|FileName||file to query
+	if ((pfnQueryUsersOnEncryptedFile==NULL)||(pfnFreeEncryptionCertificateHashList==NULL))
+		return PyErr_Format(PyExc_NotImplementedError,"QueryUsersOnEncryptedFile not supported by this version of Windows");
+	PyObject *ret=NULL, *obfname=NULL, *ret_item=NULL;
+	WCHAR *fname=NULL;
+	DWORD err=0;
+	PyObject *obsid=NULL, *obDisplayInformation=NULL;
+	PENCRYPTION_CERTIFICATE_HASH_LIST pechl=NULL;
+
+	if (!PyArg_ParseTuple(args,"O:QueryUsersOnEncryptedFile", &obfname))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
+		return NULL;
+
+	err=(*pfnQueryUsersOnEncryptedFile)(fname, &pechl);
+	if (err != ERROR_SUCCESS)
+		PyWin_SetAPIError("QueryUsersOnEncryptedFile",err);
+	else
+		ret=PyWinObject_FromPENCRYPTION_CERTIFICATE_HASH_LIST(pechl);
+
+	if (fname!=NULL)
+		PyWinObject_FreeWCHAR(fname);
+	if (pechl!=NULL)
+		(*pfnFreeEncryptionCertificateHashList)(pechl);
+	return ret;
+}
+
+// @pyswig (<o PySID>,string,unicode)|QueryRecoveryAgentsOnEncryptedFile|Lists recovery agents for file as a tuple of tuples - ((SID, certificate hash blob, display info),....)
+static PyObject*
+py_QueryRecoveryAgentsOnEncryptedFile(PyObject *self, PyObject *args)
+{
+    // @pyparm string/unicode|FileName||file to query
+	if ((pfnQueryRecoveryAgentsOnEncryptedFile==NULL)||(pfnFreeEncryptionCertificateHashList==NULL))
+		return PyErr_Format(PyExc_NotImplementedError,"QueryRecoveryAgentsOnEncryptedFile not supported by this version of Windows");
+	PyObject *ret=NULL, *obfname=NULL, *ret_item=NULL;
+	WCHAR *fname=NULL;
+	DWORD user_cnt=0, err=0;
+	PyObject *obsid=NULL, *obDisplayInformation=NULL;
+	PENCRYPTION_CERTIFICATE_HASH_LIST pechl=NULL;
+	PENCRYPTION_CERTIFICATE_HASH *user_item=NULL;
+	if (!PyArg_ParseTuple(args,"O:QueryRecoveryAgentsOnEncryptedFile", &obfname))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
+		return NULL;
+
+	err=(*pfnQueryRecoveryAgentsOnEncryptedFile)(fname, &pechl);
+	if (err != ERROR_SUCCESS)
+		PyWin_SetAPIError("QueryRecoveryAgentsOnEncryptedFile",err);
+	else
+		ret=PyWinObject_FromPENCRYPTION_CERTIFICATE_HASH_LIST(pechl);
+
+	if (fname!=NULL)
+	    PyWinObject_FreeWCHAR(fname);
+	if (pechl!=NULL)
+		(*pfnFreeEncryptionCertificateHashList)(pechl);
+    return ret;
+}
+
+// @pyswig |RemoveUsersFromEncryptedFile|Removes specified certificates from file - if certificate is not found, it is ignored
+static PyObject*
+py_RemoveUsersFromEncryptedFile(PyObject *self, PyObject *args)
+{
+    // @pyparm string/unicode|FileName||File from which to remove users
+	// @pyparm ((<o PySID>,string,unicode),...)|pHashes||Sequence representing an ENCRYPTION_CERTIFICATE_HASH_LIST structure, as returned by QueryUsersOnEncryptedFile
+	if (pfnRemoveUsersFromEncryptedFile==NULL)
+		return PyErr_Format(PyExc_NotImplementedError,"RemoveUsersFromEncryptedFile not supported by this version of Windows");
+	PyObject *ret=NULL, *obfname=NULL, *obechl=NULL;
+	WCHAR *fname=NULL;
+	DWORD err=0;
+	ENCRYPTION_CERTIFICATE_HASH_LIST echl;
+	ZeroMemory(&echl,sizeof(ENCRYPTION_CERTIFICATE_HASH_LIST));
+	if (!PyArg_ParseTuple(args,"OO:RemoveUsersFromEncryptedFile", &obfname, &obechl))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
+		return NULL;
+	if (!PyWinObject_AsPENCRYPTION_CERTIFICATE_HASH_LIST(obechl,&echl))
+		goto done;
+
+	err=(*pfnRemoveUsersFromEncryptedFile)(fname, &echl);
+	if (err != ERROR_SUCCESS)
+		PyWin_SetAPIError("RemoveUsersFromEncryptedFile",err);
+	else
+		ret=Py_None;
+	done:
+	PyWinObject_FreePENCRYPTION_CERTIFICATE_HASH_LIST(&echl);
+	if (fname!=NULL)
+		PyWinObject_FreeWCHAR(fname);
+	Py_XINCREF(ret);
+    return ret;
+}
+
+// @pyswig |AddUsersToEncryptedFile|Allows user identified by SID and EFS certificate access to decrypt specified file
+static PyObject*
+py_AddUsersToEncryptedFile(PyObject *self, PyObject *args)
+{
+    // @pyparm string/unicode|FileName||File that additional users will be allowed to decrypt
+	// @pyparm ((<o PySID>,string,int),...)|pUsers||Sequence representing ENCRYPTION_CERTIFICATE_LIST - elements are sequences consisting of users' Sid, encoded EFS certficate (user must export a .cer to obtain this data), and encoding type (usually 1 for X509_ASN_ENCODING)
+	if (pfnAddUsersToEncryptedFile==NULL)
+		return PyErr_Format(PyExc_NotImplementedError,"AddUsersToEncryptedFile not supported by this version of Windows");
+	PyObject *ret=NULL, *obfname=NULL, *obecl=NULL;
+	WCHAR *fname=NULL;
+	DWORD err=0;
+	ENCRYPTION_CERTIFICATE_LIST ecl;
+	ZeroMemory(&ecl,sizeof(ENCRYPTION_CERTIFICATE_LIST));
+	if (!PyArg_ParseTuple(args,"OO:AddUsersToEncryptedFile", &obfname, &obecl))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
+		return NULL;
+	if (!PyWinObject_AsPENCRYPTION_CERTIFICATE_LIST(obecl,&ecl))
+		return NULL;
+
+	err=(*pfnAddUsersToEncryptedFile)(fname, &ecl);
+	if (err != ERROR_SUCCESS)
+		PyWin_SetAPIError("AddUsersToEncryptedFile",err);
+	else
+		ret=Py_None;
+	if (fname!=NULL)
+	    PyWinObject_FreeWCHAR(fname);
+	PyWinObject_FreePENCRYPTION_CERTIFICATE_LIST(&ecl);
+	Py_XINCREF(ret);
+    return ret;
+}
+
 %}
 
 %native (SetVolumeMountPoint) py_SetVolumeMountPoint;
@@ -2601,7 +3024,11 @@ py_EncryptionDisable(PyObject *self, PyObject *args)
 %native (EncryptFile) py_EncryptFile;
 %native (DecryptFile) py_DecryptFile;
 %native (EncryptionDisable) py_EncryptionDisable;
-
+%native (FileEncryptionStatus) py_FileEncryptionStatus;
+%native (QueryUsersOnEncryptedFile) py_QueryUsersOnEncryptedFile;
+%native (QueryRecoveryAgentsOnEncryptedFile) py_QueryRecoveryAgentsOnEncryptedFile;
+%native (RemoveUsersFromEncryptedFile) py_RemoveUsersFromEncryptedFile;
+%native (AddUsersToEncryptedFile) py_AddUsersToEncryptedFile;
 
 %init %{
 	HMODULE hmodule;
@@ -2617,7 +3044,26 @@ py_EncryptionDisable(PyObject *self, PyObject *args)
 
 		fp=GetProcAddress(hmodule,"EncryptionDisable");
 		if (fp) pfnEncryptionDisable=(BOOL (WINAPI *)(WCHAR *, BOOL))(fp);
+
+		fp=GetProcAddress(hmodule,"FileEncryptionStatusW");
+		if (fp) pfnFileEncryptionStatus=(BOOL (WINAPI *)(WCHAR *, LPDWORD))(fp);
+
+		fp=GetProcAddress(hmodule,"QueryUsersOnEncryptedFile");
+		if (fp) pfnQueryUsersOnEncryptedFile=(DWORD (WINAPI *)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST *))(fp);
+
+		fp=GetProcAddress(hmodule,"FreeEncryptionCertificateHashList");
+		if (fp) pfnFreeEncryptionCertificateHashList=(BOOL (WINAPI *)(PENCRYPTION_CERTIFICATE_HASH_LIST))(fp);
+
+		fp=GetProcAddress(hmodule,"QueryRecoveryAgentsOnEncryptedFile");
+		if (fp) pfnQueryRecoveryAgentsOnEncryptedFile=(DWORD (WINAPI *)(WCHAR *,PENCRYPTION_CERTIFICATE_HASH_LIST *))(fp);
+
+		fp=GetProcAddress(hmodule,"RemoveUsersFromEncryptedFile");
+		if (fp) pfnRemoveUsersFromEncryptedFile=(DWORD (WINAPI *)(WCHAR *,PENCRYPTION_CERTIFICATE_HASH_LIST))(fp);
+
+		fp=GetProcAddress(hmodule,"AddUsersToEncryptedFile");
+		if (fp) pfnAddUsersToEncryptedFile=(DWORD (WINAPI *)(WCHAR *,PENCRYPTION_CERTIFICATE_LIST))(fp);
 		}
+
 
 	hmodule = GetModuleHandle("kernel32.dll");
 	if (hmodule){
@@ -2687,4 +3133,12 @@ py_EncryptionDisable(PyObject *self, PyObject *args)
 #define PURGE_TXCLEAR PURGE_TXCLEAR // Clears the output buffer (if the device driver has one). 
 #define PURGE_RXCLEAR PURGE_RXCLEAR // Clears the input buffer (if the device driver has one). 
 
-
+#define FILE_ENCRYPTABLE FILE_ENCRYPTABLE
+#define FILE_IS_ENCRYPTED FILE_IS_ENCRYPTED
+#define FILE_SYSTEM_ATTR FILE_SYSTEM_ATTR
+#define FILE_ROOT_DIR FILE_ROOT_DIR
+#define FILE_SYSTEM_DIR FILE_SYSTEM_DIR
+#define FILE_UNKNOWN FILE_UNKNOWN
+#define FILE_SYSTEM_NOT_SUPPORT FILE_SYSTEM_NOT_SUPPORT
+#define FILE_USER_DISALLOWED FILE_USER_DISALLOWED
+#define FILE_READ_ONLY FILE_READ_ONLY
