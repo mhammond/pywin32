@@ -1260,7 +1260,7 @@ static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "OiO", 
 		&obth,        // @pyparm <o PyHANDLE>|handle||Handle to an access token to be modified
 		(long *)&typ, // @pyparm int|TokenInformationClass||Specifies a value from the TOKEN_INFORMATION_CLASS enumerated type identifying the type of information the function retrieves.
-		&obinfo))     // @pyparm <o>|obinfo||PyACL, PySID, or int depending on type parm
+		&obinfo))     // @pyparm <o PyACL>|obinfo||PyACL, PySID, or int depending on type parm
 		return NULL;
 
 	if (!PyWinObject_AsHANDLE(obth, &th, FALSE ))
