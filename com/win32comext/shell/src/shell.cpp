@@ -27,6 +27,7 @@ generates Windows .hlp files.
 #include "PyIPersist.h"
 #include "PyIPersistFolder.h"
 #include "PyIColumnProvider.h"
+#include "PyIDropTargetHelper.h"
 
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
 
@@ -58,21 +59,22 @@ UINT PyShell_ILGetSize(LPCITEMIDLIST pidl)
     UINT cbTotal = 0;
     if (pidl)
     {
-		cbTotal += sizeof(pidl->mkid.cb);	// Null terminator
+		cbTotal += sizeof(pidl->mkid.cb);	// "Null" (ie, 0 .cb) terminator
 		while (pidl->mkid.cb)
 		{
 		    cbTotal += pidl->mkid.cb;
 		    pidl = _ILNext(pidl);
 		}
     }
-
     return cbTotal;
 }
 
 PyObject *PyObject_FromPIDL(LPCITEMIDLIST pidl, BOOL bFreeSystemPIDL)
 {
 	PyObject *ret = PyList_New(0);
-	if (ret) {
+	if (!ret)
+		return NULL;
+	__try {
 		while (pidl->mkid.cb) {
 			// cb includes sizeof(cb) itself - so string len is cb-sizeof(cb)
 			PyObject *sub = PyString_FromStringAndSize((char *)pidl->mkid.abID, pidl->mkid.cb-sizeof(pidl->mkid.cb));
@@ -83,12 +85,23 @@ PyObject *PyObject_FromPIDL(LPCITEMIDLIST pidl, BOOL bFreeSystemPIDL)
 			pidl = _ILNext(pidl);
 		}
 	}
+#if defined(__MINGW32__) || defined(MAINWIN)
+		catch(...)
+#else
+		__except( EXCEPTION_EXECUTE_HANDLER )
+#endif
+	{
+		Py_DECREF(ret);
+		PyErr_SetString(PyExc_ValueError, "This string is an invalid PIDL (win32 exception unpacking)");
+		ret = NULL;
+	}
 	if (bFreeSystemPIDL)
 		PyShell_FreeMem( (void *)pidl);
 	return ret;
 }
+
 // @object PyIDL|A Python representation of an IDL.  Implemented as list of Python strings.
-BOOL PyObject_AsPIDL(PyObject *ob, ITEMIDLIST **ppidl, BOOL bNoneOK /*= FALSE*/)
+BOOL PyObject_AsPIDL(PyObject *ob, ITEMIDLIST **ppidl, BOOL bNoneOK /*= FALSE*/, UINT *pcb /* = NULL */)
 {
 	if (ob==Py_None) {
 		if (!bNoneOK) {
@@ -140,6 +153,7 @@ BOOL PyObject_AsPIDL(PyObject *ob, ITEMIDLIST **ppidl, BOOL bNoneOK /*= FALSE*/)
 	}
 	pidl->mkid.cb = 0;
 	*ppidl = (LPITEMIDLIST)buf;
+	if (pcb) *pcb = cbTotal;
 	return TRUE;
 }
 
@@ -200,6 +214,116 @@ PyObject *PyObject_FromPIDLArray(UINT cidl, LPCITEMIDLIST *pidl)
 	return ob;
 }
 
+// See MSDN http://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc/platform/shell/programmersguide/shell_basics/shell_basics_programming/transferring/clipboard.asp
+// (or search MSDN for "CFSTR_SHELLIDLIST"
+#define GetPIDLFolder(pida) (LPCITEMIDLIST)(((LPBYTE)pida)+(pida)->aoffset[0])
+#define GetPIDLItem(pida, i) (LPCITEMIDLIST)(((LPBYTE)pida)+(pida)->aoffset[i+1])
+PyObject *PyObject_FromCIDA(CIDA *pida)
+{
+	unsigned int i;
+	PyObject *ret = NULL;
+	PyObject *obItems = NULL;
+	PyObject *obFolder = PyObject_FromPIDL(GetPIDLFolder(pida), FALSE);
+	if (obFolder==NULL)
+		goto done;
+	// cidl == Number of PIDLs that are being transferred, *not* counting the parent folder
+	obItems = PyList_New(pida->cidl);
+	for (i=0;i<pida->cidl;i++) {
+		PyObject *obChild = PyObject_FromPIDL(GetPIDLItem(pida, i), FALSE);
+		if (obChild==NULL)
+			goto done;
+		PyList_SET_ITEM(obItems, i, obChild);
+	}
+	assert(obFolder && obItems);
+	ret = Py_BuildValue("OO", obFolder, obItems);
+done:
+	Py_XDECREF(obItems);
+	Py_XDECREF(obFolder);
+	return ret;
+}
+
+struct PyCIDAHelper {
+	ITEMIDLIST *pidl;
+	UINT pidl_size;
+};
+
+PyObject *PyObject_AsCIDA(PyObject *ob)
+{
+	PyObject *obParent, *obKids;
+	PyObject *ret = NULL;
+	ITEMIDLIST *pidlParent = NULL;
+	UINT cbParent;
+	PyCIDAHelper *pKids = NULL;
+	int nKids = 0;
+	int i;
+	if (!PyArg_ParseTuple(ob, "OO:CIDA", &obParent, &obKids))
+		return NULL;
+	if (!PyObject_AsPIDL(obParent, &pidlParent, FALSE, &cbParent))
+		goto done;
+	if (!PySequence_Check(obKids)) {
+		PyErr_Format(PyExc_ValueError,
+					 "Kids must be a sequence if PIDLs (not %s)",
+					 obKids->ob_type->tp_name);
+		goto done;
+	}
+	nKids = PySequence_Length(obKids);
+	if (nKids==-1)
+		goto done;
+	pKids = (PyCIDAHelper *)malloc(sizeof(PyCIDAHelper) * nKids);
+	if (pKids==NULL) {
+		PyErr_NoMemory();
+		goto done;
+	}
+	memset(pKids, 0, sizeof(PyCIDAHelper) * nKids);
+	for (i=0;i<nKids;i++) {
+		BOOL ok;
+		PyObject *obKid = PySequence_GetItem(obKids, i);
+		if (!obKids)
+			goto done;
+		ok = PyObject_AsPIDL(obKid, &pKids[i].pidl, FALSE, &pKids[i].pidl_size);
+		Py_DECREF(obKid);
+		if (!ok)
+			goto done;
+	}
+	/* Calculate size of final buffer. */
+	{ /* temp scope for new locals */
+	UINT nbytes, pidl_offset;
+	LPBYTE pidl_buf;
+	CIDA *pcida;
+	// count, plus array of offsets.
+	nbytes = pidl_offset = sizeof(UINT) + (sizeof(UINT) * (nKids+1));
+	// The parent.
+	nbytes += cbParent;
+	// and each kid.
+	for (i=0;i<nKids;i++)
+		nbytes += pKids[i].pidl_size;
+	ret = PyString_FromStringAndSize(NULL, nbytes);
+	pcida = (CIDA *)PyString_AS_STRING(ret);
+	pcida->cidl = nKids; // not counting parent.
+	pidl_buf = ((LPBYTE)pcida) + pidl_offset;
+	pcida->aoffset[0] = pidl_offset;
+	memcpy(pidl_buf, pidlParent, cbParent);
+	pidl_buf += cbParent;
+	pidl_offset += cbParent;
+	for (i=0;i<nKids;i++) {
+		pcida->aoffset[i+1] = pidl_offset;
+		memcpy(pidl_buf, pKids[i].pidl, pKids[i].pidl_size);
+		pidl_offset += pKids[i].pidl_size;
+		pidl_buf += pKids[i].pidl_size;
+	}
+	assert(pidl_buf == ((LPBYTE)pcida) + nbytes);
+	} // end temp scope
+done:
+	if (pidlParent) PyObject_FreePIDL(pidlParent);
+	if (pKids) {
+		for (i=0;i<nKids;i++) {
+			if (pKids[i].pidl)
+				PyObject_FreePIDL(pKids[i].pidl);
+		}
+		free(pKids);
+	}
+	return ret;
+}
 
 PyObject *PyWinObject_FromRESOURCESTRING(LPCSTR str)
 {
@@ -561,7 +685,7 @@ static PyObject *PySHGetPathFromIDList(PyObject *self, PyObject *args)
 	BOOL ok = SHGetPathFromIDList(pidl, buffer);
 	PY_INTERFACE_POSTCALL;
 	if (!ok) {
-		PyWin_SetAPIError("SHGetPathFromIDList");
+		OleSetOleError(E_FAIL);
 		rc = NULL;
 	} else
 		rc = PyWinObject_FromTCHAR(buffer);
@@ -957,6 +1081,57 @@ static PyObject *PySHGetInstanceExplorer(PyObject *self, PyObject *args)
 	// only when the user logs out.
 }
 
+// @pymethod string|shell|PIDLAsString|Given a PIDL object, return the raw PIDL bytes as a string
+static PyObject *PyPIDLAsString(PyObject *self, PyObject *args)
+{
+	PyObject *obPIDL;
+	// @pyparm <o PIDL>|pidl||The PIDL object (ie, a list of strings)
+	if (!PyArg_ParseTuple(args, "O:PIDLAsString", &obPIDL))
+		return NULL;
+	ITEMIDLIST *ppidls;
+	if (!PyObject_AsPIDL(obPIDL, &ppidls, FALSE))
+		return NULL;
+	PyObject *ret = PyString_FromStringAndSize((char *)ppidls,
+											   PyShell_ILGetSize(ppidls));
+	PyShell_FreeMem(ppidls);
+	return ret;
+}
+
+// @pymethod <o PIDL>|shell|StringAsPIDL|Given a PIDL as a raw string, return a PIDL object (ie, a list of strings)
+static PyObject *PyStringAsPIDL(PyObject *self, PyObject *args)
+{
+	char *szPIDL;
+	int pidllen;
+	// @pyparm string|pidl||The PIDL as a raw string.
+	if (!PyArg_ParseTuple(args, "s#:StringAsPIDL", &szPIDL, &pidllen))
+		return NULL;
+	return PyObject_FromPIDL((LPCITEMIDLIST)szPIDL, FALSE);
+}	
+
+// @pymethod <o PIDL>, list|shell|StringAsCIDA|Given a CIDA as a raw string, return the folder PIDL and list of children
+static PyObject *PyStringAsCIDA(PyObject *self, PyObject *args)
+{
+	char *szCIDA;
+	int pidllen;
+	// @pyparm string|pidl||The PIDL as a raw string.
+	if (!PyArg_ParseTuple(args, "s#:StringAsCIDA", &szCIDA, &pidllen))
+		return NULL;
+	return PyObject_FromCIDA((CIDA *)szCIDA);
+	// @rdesc The result is the PIDL of the folder, and a list of child PIDLs.
+}
+
+// @pymethod string|shell|CIDAAsString|Given a (pidl, child_pidls) object, return a CIDA as a string
+static PyObject *PyCIDAAsString(PyObject *self, PyObject *args)
+{
+	PyObject *obCIDA;
+	// @pyparm string|pidl||The PIDL as a raw string.
+	if (!PyArg_ParseTuple(args, "O:CIDAAsString", &obCIDA))
+		return NULL;
+	return PyObject_AsCIDA(obCIDA);
+	// @rdesc The result is a string with the CIDA bytes.
+}
+
+
 /* List of module functions */
 // @module shell|A module, encapsulating the ActiveX Control interfaces
 static struct PyMethodDef shell_methods[]=
@@ -977,6 +1152,10 @@ static struct PyMethodDef shell_methods[]=
     { "SHUpdateImage", PySHUpdateImage, 1}, // @pymeth SHUpdateImage|Notifies the shell that an image in the system image list has changed.
     { "SHChangeNotify", PySHChangeNotify, 1}, // @pymeth SHChangeNotify|Notifies the system of an event that an application has performed.
 	{ "SHGetInstanceExplorer", PySHGetInstanceExplorer, 1}, // @pymeth SHGetInstanceExplorer|Allows components that run in a Web browser (Iexplore.exe) or a nondefault Windows® Explorer (Explorer.exe) process to hold a reference to the process. The components can use the reference to prevent the process from closing prematurely.
+	{ "StringAsCIDA", PyStringAsCIDA, 1}, // @pymeth StringAsCIDA|Given a CIDA as a raw string, return pidl_folder, [pidl_children, ...]
+	{ "CIDAAsString", PyCIDAAsString, 1}, // @pymeth CIDAAsString|Given a (pidl, child_pidls) object, return a CIDA as a string
+	{ "StringAsPIDL", PyStringAsPIDL, 1}, // @pymeth StringAsPIDL|Given a PIDL as a raw string, return a PIDL object (ie, a list of strings)
+	{ "PIDLAsString", PyPIDLAsString, 1}, // @pymeth PIDLAsString|Given a PIDL object, return the raw PIDL bytes as a string
 	{ NULL, NULL },
 };
 
@@ -995,6 +1174,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL(BrowserFrameOptions),
 	PYCOM_INTERFACE_FULL(PersistFolder),
 	PYCOM_INTERFACE_FULL(ColumnProvider),
+	PYCOM_INTERFACE_FULL(DropTargetHelper),
 	// IID_ICopyHook doesn't exist - hack it up
 	{ &IID_IShellCopyHook, "IShellCopyHook", "IID_IShellCopyHook", &PyICopyHook::type, GET_PYGATEWAY_CTOR(PyGCopyHook) },
 	{ &IID_IShellCopyHook, "ICopyHook", "IID_ICopyHook", NULL, NULL  },
@@ -1066,7 +1246,8 @@ extern "C" __declspec(dllexport) void initshell()
 	ADD_IID(CLSID_ControlPanel);
 	ADD_IID(CLSID_Printers);
 	ADD_IID(CLSID_MyDocuments);
-
+	ADD_IID(CLSID_DragDropHelper);
+	
 	ADD_IID(FMTID_Intshcut);
 	ADD_IID(FMTID_InternetSite);
 
