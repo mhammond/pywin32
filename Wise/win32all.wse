@@ -17,7 +17,7 @@ item: Global
   Patch Flags=0000000000000001
   Patch Threshold=85
   Patch Memory=4000
-  EXE Filename=win32all-149.exe
+  EXE Filename=win32all-150.exe
   Code Sign Name=Python Win32 combined extensions
   Code Sign Info=skippinet.com.au
   Crystal Format=10111100101100000010001001001001
@@ -1388,6 +1388,12 @@ item: Remark
   Text=win32com
 end
 item: Install File
+  Source=f:\src\pythonex\com\pythoncom.py
+  Destination=%MAINDIR%\pythoncom.py
+  Description=COM Support files
+  Flags=0000000000000010
+end
+item: Install File
   Source=f:\src\pythonex\com\win32com\*.txt
   Destination=%INSTDIR%
   Description=COM Readme
@@ -1407,12 +1413,6 @@ item: Install File
   Source=f:\src\pythonex\com\License.txt
   Destination=%INSTDIR%\License.txt
   Description=COM License
-  Flags=0000000000000010
-end
-item: Install File
-  Source=f:\src\pythonex\com\pythoncom.py
-  Destination=%INSTDIR%\pythoncom.py
-  Description=COM Support files
   Flags=0000000000000010
 end
 item: Install File
