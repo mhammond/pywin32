@@ -108,6 +108,8 @@ class SimpleProgress(genpy.GeneratorProgress):
 
 class GUIProgress(SimpleProgress):
 	def __init__(self, verboseLevel):
+		# Import some modules we need to we can trap failure now.
+		import win32ui, pywin
 		SimpleProgress.__init__(self, verboseLevel)
 		self.dialog = None
 		
@@ -187,7 +189,10 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 		typelibs = GetTypeLibsForSpec(typelibInfo)
 
 	if progressInstance is None:
-		progressInstance = GUIProgress(verboseLevel)
+		try:
+			progressInstance = GUIProgress(verboseLevel)
+		except ImportError: # No Pythonwin GUI around.
+			progressInstance = SimpleProgress(verboseLevel)
 		
 	progress = progressInstance
 
