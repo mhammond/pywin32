@@ -457,7 +457,26 @@ typedef HANDLE PyHANDLE;
     }
 }
 
+//---------------------------------------------------------------------------
+//
+// SOCKET support.
+//
+//---------------------------------------------------------------------------
+%typemap(python,in) SOCKET *(SOCKET sockettemp)
+{
+	$target = &sockettemp;
+	if (!PySocket_AsSOCKET($source, $target))
+	{
+		return NULL;
+	}
+}
 
+
+//---------------------------------------------------------------------------
+//
+// Module initialization
+//
+//---------------------------------------------------------------------------
 %init %{
 #ifndef SWIG_PYTHONCOM
 /* This code only valid if non COM SWIG builds */
