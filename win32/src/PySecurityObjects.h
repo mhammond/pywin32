@@ -38,8 +38,6 @@ public:
 
 protected:
 	SECURITY_ATTRIBUTES m_sa;
-	SECURITY_DESCRIPTOR m_sd;
-	PyObject *m_obACL; // call to SetSecurityDescriptorDacl incref's then stores pyACL
 };
 
 
@@ -172,6 +170,8 @@ public:
 	static PyObject *DeleteAce(PyObject *self, PyObject *args);
 	static PyObject *PyGetExplicitEntriesFromAcl(PyObject *self, PyObject *args);
 	static PyObject *PySetEntriesInAcl(PyObject *self, PyObject *args);
+	static PyObject *PyGetEffectiveRightsFromAcl(PyObject *self, PyObject *args);
+	static PyObject *PyGetAuditedPermissionsFromAcl(PyObject *self, PyObject *args);
 
 #ifdef _MSC_VER
 #pragma warning( disable : 4251 )

@@ -122,214 +122,174 @@ BOOL _ReorderACL(PACL pacl)
 		return ret;
 }
 
-BOOL PyWinObject_AsTRUSTEE(PyObject *ob, TRUSTEE *ptrustee)
+PyObject *mapping_to_dict(PyObject* mapping)
 {
-	PyObject *dict_item;
-	char* err_msg="Trustee must be a dictionary containing {MultipleTrustee,MultipleTrusteeOperation,TrusteeForm,TrusteeType,Identifier}";
-	if (!PyMapping_Check(ob)){
-		PyErr_SetString(PyExc_TypeError,err_msg);
-		return FALSE;
+	PyObject *items=NULL, *item=NULL, *new_dict=NULL;
+	if (PyDict_Check(mapping)){
+		Py_INCREF(mapping);
+		return mapping;
 		}
-	/* Multiple trustees not currently supported according to SDK
-	dict_item=PyMapping_GetItemString(ob,"MultipleTrustee");
-	if (dict_item==NULL || dict_item==Py_None){
-		PyErr_Clear();
-		ptrustee->pMultipleTrustee=NULL;
+	if (!PyMapping_Check(mapping)){
+		PyErr_SetString(PyExc_TypeError,"Object must be a mapping (dictionary, class instance, etc");
+		return NULL;
 		}
-	else
-		// hope nobody ever creates one that chains back to itself......
-		if (!PyWinObject_AsTRUSTEE(dict_item, ptrustee->pMultipleTrustee, FALSE))
-			return FALSE;
-	Py_XDECREF(dict_item);
 
-	dict_item=PyMapping_GetItemString(ob,"MultipleTrusteeOperation");
-	if (dict_item==NULL || dict_item==Py_None){
-		PyErr_Clear();
-		ptrustee->MultipleTrusteeOperation=NO_MULTIPLE_TRUSTEE;
-		}
-	else{
-		if(!PyInt_Check(dict_item)){
-			PyErr_SetString(PyExc_TypeError,"MultipleTrusteeOperation must be an int from MULTIPLE_TRUSTEE_OPERATION enum");
-			Py_DECREF(dict_item);
-			return FALSE;
+	//any generic mapping (theoretically) - tested using class that defines its own items method
+	items=PyMapping_Items(mapping);
+	if (items!=NULL){
+		new_dict=PyDict_New();
+		if (new_dict!=NULL){
+			for (int item_ind=0;item_ind<PySequence_Length(items);item_ind++){
+				item=PySequence_GetItem(items,item_ind);
+				PyDict_SetItem(new_dict,PyTuple_GetItem(item,0),PyTuple_GetItem(item,1));
+				Py_DECREF(item);
+				}
 			}
-		ptrustee->MultipleTrusteeOperation=(MULTIPLE_TRUSTEE_OPERATION)PyLong_AsLong(dict_item);
+		Py_DECREF(items);
+		return new_dict;
 		}
-	Py_XDECREF(dict_item);
+
+	PyErr_Clear();
+	// PyMapping_Items doesn't work for class instances (no "items" method ????)
+	new_dict=PyObject_GetAttrString(mapping,"__dict__");
+	return new_dict;
+}
+
+void PyWinObject_FreeTRUSTEE(PTRUSTEE_W ptrustee)
+{
+	if ((ptrustee->TrusteeForm==TRUSTEE_IS_NAME)&&(ptrustee->ptstrName!=NULL))
+		PyWinObject_FreeWCHAR(ptrustee->ptstrName);
+	/*
+	if (ptrustee->pMultipleTrustee!=NULL){
+		PyWinObject_FreeTRUSTEE(ptrustee->pMultipleTrustee);
+		free(ptrustee->pMultipleTrustee);
+		}
 	*/
+  }
+
+BOOL PyWinObject_AsTRUSTEE(PyObject *obtrustee, TRUSTEE_W *ptrustee)
+{
+	static char *trustee_items[]={"TrusteeForm","TrusteeType","Identifier","MultipleTrustee","MultipleTrusteeOperation",0};
+	static char* err_msg="Trustee must be a dictionary containing {MultipleTrustee,MultipleTrusteeOperation,TrusteeForm,TrusteeType,Identifier}";
+	BOOL bsuccess=TRUE;
+	PyObject *obMultipleTrustee=Py_None, *obIdentifier=NULL;
+	PyObject *trustee_dict=mapping_to_dict(obtrustee);
+	if (trustee_dict==NULL)
+		return FALSE;
+
+	ZeroMemory(ptrustee,sizeof(TRUSTEE_W));
 	ptrustee->MultipleTrusteeOperation=NO_MULTIPLE_TRUSTEE;
 	ptrustee->pMultipleTrustee=NULL;
-	dict_item=PyMapping_GetItemString(ob,"TrusteeForm");
-	if (dict_item==NULL){
+	PyObject *dummy_tuple=PyTuple_New(0);
+	bsuccess=PyArg_ParseTupleAndKeywords(dummy_tuple, trustee_dict, "llO|Ol", trustee_items, 
+		&ptrustee->TrusteeForm, &ptrustee->TrusteeType, &obIdentifier, &obMultipleTrustee, &ptrustee->MultipleTrusteeOperation);
+	Py_DECREF(dummy_tuple);
+	if (!bsuccess)
 		PyErr_SetString(PyExc_TypeError,err_msg);
-		return FALSE;
+	else{
+		ptrustee->MultipleTrusteeOperation=NO_MULTIPLE_TRUSTEE;
+		ptrustee->pMultipleTrustee=NULL;
+		/* Multiple trustees not currently supported according to SDK
+		if ((obMultipleTrustee!=NULL)&&(obMultipleTrustee!=Py_None)){
+			// hope nobody ever creates one that chains back to itself......
+			ptrustee->pMultipleTrustee=new(TRUSTEE_W);
+			bsuccess=(PyWinObject_AsTRUSTEE(obMultipleTrustee,ptrustee->pMultipleTrustee));
+			}
+		*/
+		switch (ptrustee->TrusteeForm){
+			case TRUSTEE_IS_SID:{
+				if (!PyWinObject_AsSID(obIdentifier,(PSID *)&ptrustee->ptstrName,FALSE)){
+					PyErr_SetString(PyExc_TypeError,"Identifier must be PySID object when TrusteeForm = TRUSTEE_IS_SID");
+					bsuccess=FALSE;
+					}
+				break;
+				}
+			case TRUSTEE_IS_NAME:{
+				if (!PyWinObject_AsWCHAR(obIdentifier,&ptrustee->ptstrName,FALSE)){
+					PyErr_SetString(PyExc_TypeError,"Identifier must be string/unicode when TrusteeForm = TRUSTEE_IS_NAME");
+					bsuccess=FALSE;
+					}
+				break;
+				}
+			case TRUSTEE_IS_OBJECTS_AND_SID:
+			case TRUSTEE_IS_OBJECTS_AND_NAME:{
+				// still need to add TRUSTEE_IS_OBJECTS_AND_SID and TRUSTEE_IS_OBJECTS_AND_NAME
+				PyErr_SetString(PyExc_NotImplementedError, "TrusteeForm not yet supported");
+				bsuccess=FALSE;
+				break;
+				}
+			default:{
+				PyErr_SetString(PyExc_ValueError, "Invalid value for TrusteeForm");
+				bsuccess=FALSE;
+				}
+			}
 		}
-	if(!PyInt_Check(dict_item)){
-		PyErr_SetString(PyExc_TypeError,"TrusteeForm must be an int from TRUSTEE_FORM enum");
-		Py_DECREF(dict_item);
-		return FALSE;
-		}
-	ptrustee->TrusteeForm=(TRUSTEE_FORM)PyLong_AsLong(dict_item);
-	Py_DECREF(dict_item);
+	Py_DECREF(trustee_dict);
+	return bsuccess;
+}
 
-	dict_item=PyMapping_GetItemString(ob,"TrusteeType");
-	if (dict_item==NULL){
-		PyErr_SetString(PyExc_TypeError,err_msg);
-		return FALSE;
-		}
-	if(!PyInt_Check(dict_item)){
-		PyErr_SetString(PyExc_TypeError,"TrusteeType must be an int from TRUSTEE_TYPE enum");
-		Py_DECREF(dict_item);
-		return FALSE;
-		}
-	ptrustee->TrusteeType=(TRUSTEE_TYPE)PyLong_AsLong(dict_item);
-	Py_DECREF(dict_item);
-
-	dict_item=PyMapping_GetItemString(ob,"Identifier");
-	if (dict_item==NULL){
-		PyErr_SetString(PyExc_TypeError,err_msg);
-		return FALSE;
-		}
-
+PyObject *PyWinObject_FromTRUSTEE(TRUSTEE_W *ptrustee)
+{
+	PyObject *obIdentifier=NULL;
 	switch (ptrustee->TrusteeForm){
 		case TRUSTEE_IS_SID:{
-			if (!PyWinObject_AsSID(dict_item,(PSID *)&ptrustee->ptstrName,FALSE)){
-				Py_DECREF(dict_item);
-				return FALSE;
-				}
+			obIdentifier=PyWinObject_FromSID(ptrustee->ptstrName);
 			break;
 			}
 		case TRUSTEE_IS_NAME:{
-			if (!PyString_Check(dict_item)){
-				PyErr_SetString(PyExc_TypeError,"Identifier must be a string when TrusteeForm = TRUSTEE_IS_NAME");
-				Py_DECREF(dict_item);
-				return FALSE;
-				}
-			ptrustee->ptstrName=PyString_AsString(dict_item);
+			obIdentifier=PyWinObject_FromWCHAR(ptrustee->ptstrName);
 			break;
 			}		
-		default:{
+		case TRUSTEE_IS_OBJECTS_AND_SID:
+		case TRUSTEE_IS_OBJECTS_AND_NAME:{
 			PyErr_SetString(PyExc_NotImplementedError, "TrusteeForm not yet supported");
-			Py_DECREF(dict_item);
+			return FALSE;
+			}
+		default:{
+			PyErr_SetString(PyExc_ValueError, "Invalid value for TrusteeForm");
 			return FALSE;
 			}
 		}
-	Py_DECREF(dict_item);
-	return TRUE;
+	if (!obIdentifier)
+		return NULL;
+	return Py_BuildValue("{s:O,s:l,s:l,s:l,s:N}",
+		"MultipleTrustee",Py_None,
+		"MultipleTrusteeOperation",NO_MULTIPLE_TRUSTEE,
+		"TrusteeForm",ptrustee->TrusteeForm,
+		"TrusteeType",ptrustee->TrusteeType,
+		"Identifier",obIdentifier);
 }
 
-PyObject *PyWinObject_FromTRUSTEE(TRUSTEE *ptrustee)
+BOOL PyWinObject_AsEXPLICIT_ACCESS(PyObject *ob, PEXPLICIT_ACCESS_W pexpl)
 {
-	PyObject *ret = PyDict_New();
-	PyObject *dict_item;
-	// first 2 members are not currently used
-	PyDict_SetItemString(ret,"MultipleTrustee",Py_None);
-	dict_item=PyLong_FromDouble(NO_MULTIPLE_TRUSTEE);
-	PyDict_SetItemString(ret,"MultipleTrusteeOperation",dict_item);
-	Py_DECREF(dict_item);
-	dict_item=PyLong_FromDouble(ptrustee->TrusteeForm);
-	PyDict_SetItemString(ret,"TrusteeForm",dict_item);
-	Py_DECREF(dict_item);
-	dict_item=PyLong_FromDouble(ptrustee->TrusteeType);
-	PyDict_SetItemString(ret,"TrusteeType",dict_item);
-	Py_DECREF(dict_item);
-	switch (ptrustee->TrusteeForm){
-		case TRUSTEE_IS_SID:{
-			dict_item=PyWinObject_FromSID(ptrustee->ptstrName);
-			break;
-			}
-		case TRUSTEE_IS_NAME:{
-			dict_item=PyString_FromString(ptrustee->ptstrName);
-			break;
-			}		
-		default:{
-			PyErr_SetString(PyExc_NotImplementedError, "Not yet implemented");
-			return NULL;
-			}
-		}
-	PyDict_SetItemString(ret,"Identifier",dict_item);
-	Py_DECREF(dict_item);
-	return ret;
-}
-
-BOOL PyWinObject_AsEXPLICIT_ACCESS(PyObject *ob, PEXPLICIT_ACCESS pexpl)
-{
-	PyObject *dict_item=NULL;
-	char* err_msg="EXPLICIT_ACCESS must be a dictionary containing {AccessPermissions,AccessMode,Inheritance,Trustee}";
-	if (!PyMapping_Check(ob)){
+	static char *expl_items[]={"AccessPermissions","AccessMode","Inheritance","Trustee",0};
+	static char* err_msg="EXPLICIT_ACCESS must be a dictionary containing {AccessPermissions:int,AccessMode:int,Inheritance:int,Trustee:dict}";
+	PyObject *expl_dict=NULL, *obtrustee=NULL;
+	BOOL bsuccess=FALSE;
+	ZeroMemory(pexpl,sizeof(EXPLICIT_ACCESS_W));
+	expl_dict=mapping_to_dict(ob);
+	if (expl_dict==NULL)
+		return FALSE;
+	PyObject *dummy_tuple=PyTuple_New(0);
+	bsuccess=PyArg_ParseTupleAndKeywords(dummy_tuple, expl_dict, "lllO", expl_items, 
+		&pexpl->grfAccessPermissions, &pexpl->grfAccessMode, &pexpl->grfInheritance, &obtrustee);
+	Py_DECREF(dummy_tuple);
+	if (!bsuccess)
 		PyErr_SetString(PyExc_TypeError,err_msg);
-		return FALSE;
-		}
-	dict_item=PyMapping_GetItemString(ob,"AccessPermissions");
-	if (dict_item==NULL){
-		PyErr_SetString(PyExc_TypeError,err_msg);
-		return FALSE;
-		}
-	if(!PyInt_Check(dict_item)){
-		PyErr_SetString(PyExc_TypeError,"AccessPermissions must be an int");
-		Py_DECREF(dict_item);
-		return FALSE;
-		}
-	pexpl->grfAccessPermissions=PyLong_AsLong(dict_item);
-	Py_DECREF(dict_item);
-
-	dict_item=PyMapping_GetItemString(ob,"AccessMode");
-	if (dict_item==NULL){
-		PyErr_SetString(PyExc_TypeError,err_msg);
-		return FALSE;
-		}
-	if(!PyInt_Check(dict_item)){
-		PyErr_SetString(PyExc_TypeError,"AccessMode must be an int from ACCESS_MODE enum");
-		Py_DECREF(dict_item);
-		return FALSE;
-		}
-	pexpl->grfAccessMode=(ACCESS_MODE)PyLong_AsLong(dict_item);
-	Py_DECREF(dict_item);
-
-	dict_item=PyMapping_GetItemString(ob,"Inheritance");
-	if (dict_item==NULL){
-		PyErr_SetString(PyExc_TypeError,err_msg);
-		return FALSE;
-		}
-	if(!PyInt_Check(dict_item)){
-		PyErr_SetString(PyExc_TypeError,"Inheritance must be an int (combination of ace flags");
-		Py_DECREF(dict_item);
-		return FALSE;
-		}
-	pexpl->grfInheritance=PyLong_AsLong(dict_item);
-	Py_DECREF(dict_item);
-
-	dict_item=PyMapping_GetItemString(ob,"Trustee");
-	if (dict_item==NULL){
-		PyErr_SetString(PyExc_TypeError,err_msg);
-		return FALSE;
-		}
-	if (!PyWinObject_AsTRUSTEE(dict_item,&pexpl->Trustee)){
-		Py_DECREF(dict_item);
-		return FALSE;
-		}
-	Py_DECREF(dict_item);
-	return TRUE;
+	else
+		bsuccess=PyWinObject_AsTRUSTEE(obtrustee, &pexpl->Trustee);
+	Py_DECREF(expl_dict);
+	return bsuccess;
 }
 
 
-PyObject *PyWinObject_FromEXPLICIT_ACCESS(EXPLICIT_ACCESS *pexpl)
+PyObject *PyWinObject_FromEXPLICIT_ACCESS(EXPLICIT_ACCESS_W *pexpl)
 {
-	PyObject *ret = PyDict_New();
-	PyObject *dict_item;
-	dict_item=PyLong_FromDouble(pexpl->grfAccessPermissions);
-	PyDict_SetItemString(ret,"AccessPermissions",dict_item);
-	Py_DECREF(dict_item);
-	dict_item=PyLong_FromDouble(pexpl->grfAccessMode);
-	PyDict_SetItemString(ret,"AccessMode",dict_item);
-	Py_DECREF(dict_item);
-	dict_item=PyLong_FromDouble(pexpl->grfInheritance);
-	PyDict_SetItemString(ret,"Inheritance",dict_item);
-	Py_DECREF(dict_item);
-    dict_item=PyWinObject_FromTRUSTEE(&(pexpl->Trustee));
-	PyDict_SetItemString(ret,"Trustee",dict_item);
-	Py_DECREF(dict_item);
-    return ret;
+	return Py_BuildValue("{s:l,s:l,s:l,s:N}",
+	"AccessPermissions",pexpl->grfAccessPermissions,
+	"AccessMode",pexpl->grfAccessMode,
+	"Inheritance",pexpl->grfInheritance,
+	"Trustee",PyWinObject_FromTRUSTEE(&(pexpl->Trustee)));
 }
 
 PyObject *PyACL::PyGetExplicitEntriesFromAcl(PyObject *self, PyObject *args)
@@ -337,20 +297,27 @@ PyObject *PyACL::PyGetExplicitEntriesFromAcl(PyObject *self, PyObject *args)
 	PyACL *This = (PyACL *)self;
 	PyObject *ret=NULL;
 	PyObject *obexpl;
-	PEXPLICIT_ACCESS pList,pListstart = NULL;
+	PEXPLICIT_ACCESS_W pList,pListstart = NULL;
 	DWORD access_cnt = 0;
 	DWORD access_ind, err;
-	err = ::GetExplicitEntriesFromAcl(This->GetACL(), &access_cnt, &pListstart);
+	err = ::GetExplicitEntriesFromAclW(This->GetACL(), &access_cnt, &pListstart);
 	if (err != ERROR_SUCCESS)
 		return PyWin_SetAPIError("GetExplicitEntriesFromAcl",err);
 	ret = PyTuple_New(access_cnt);
+	if (!ret)
+		goto done;
 	pList=pListstart;
 	for (access_ind=0; access_ind<access_cnt; access_ind++){
 		obexpl = PyWinObject_FromEXPLICIT_ACCESS(pList);
+		if (!obexpl){
+			Py_DECREF(ret);
+			ret=NULL;
+			goto done;
+			}
 		PyTuple_SetItem(ret, access_ind, obexpl);
-		// Py_DECREF(obexpl);
 		pList++;
 		}
+	done:
 	LocalFree(pListstart);
 	return ret;
 }
@@ -743,11 +710,11 @@ PyObject *PyACL::DeleteAce(PyObject *self, PyObject *args)
 PyObject *PyACL::PySetEntriesInAcl(PyObject *self, PyObject *args)
 {
 	PyObject *ret=NULL;
-	PEXPLICIT_ACCESS pexpl=NULL, pexpl_start=NULL;
+	PEXPLICIT_ACCESS_W pexpl=NULL, pexpl_start=NULL;
 	ACL *new_acl=NULL;
 	PyACL *This = (PyACL *)self;
 	PyObject *obexpl=NULL, *obexpl_list=NULL;
-	unsigned long expl_cnt, expl_ind;
+	unsigned long expl_cnt=0, expl_ind=0;
 	DWORD err;
 	if (!PyArg_ParseTuple(args, "O:SetEntriesInAcl", &obexpl_list))
 		return NULL;
@@ -756,7 +723,13 @@ PyObject *PyACL::PySetEntriesInAcl(PyObject *self, PyObject *args)
 		return NULL;
 		}
 	expl_cnt=PySequence_Length(obexpl_list);
-	pexpl_start=(EXPLICIT_ACCESS *)calloc(expl_cnt, sizeof(EXPLICIT_ACCESS));
+	DWORD bytes_allocated=expl_cnt*sizeof(EXPLICIT_ACCESS_W);
+	pexpl_start = (PEXPLICIT_ACCESS_W)malloc(bytes_allocated);
+	ZeroMemory(pexpl_start,bytes_allocated);
+	if (pexpl_start==NULL){
+		PyErr_SetString(PyExc_MemoryError,"SetEntriesInAcl: unable to allocate EXPLICIT_ACCESS_W");
+		goto done;
+		}
 	pexpl=pexpl_start;
 	for (expl_ind=0; expl_ind<expl_cnt; expl_ind++){
 		obexpl = PySequence_GetItem(obexpl_list,expl_ind);
@@ -767,7 +740,7 @@ PyObject *PyACL::PySetEntriesInAcl(PyObject *self, PyObject *args)
 		Py_DECREF(obexpl);
 		pexpl++;
 		}
-	err = ::SetEntriesInAcl(expl_cnt,pexpl_start,This->GetACL(),&new_acl);
+	err = ::SetEntriesInAclW(expl_cnt,pexpl_start,This->GetACL(),&new_acl);
 	if (err!=ERROR_SUCCESS){
 		PyWin_SetAPIError("SetEntriesInAcl",err);
 		goto done;
@@ -775,14 +748,68 @@ PyObject *PyACL::PySetEntriesInAcl(PyObject *self, PyObject *args)
 	This->SetACL(new_acl);
 	ret=Py_None;
 	done:
-		if (pexpl_start!=NULL)
-			free(pexpl_start);
-		if (new_acl)
-			LocalFree(new_acl);
-		Py_XINCREF(ret);
-		return ret;
+	// have to free WCHAR name from trustee structures also
+	if (pexpl_start!=NULL){
+		pexpl=pexpl_start;
+		for (expl_ind=0; expl_ind<expl_cnt; expl_ind++){
+			PyWinObject_FreeTRUSTEE(&pexpl->Trustee);
+			pexpl++;
+			}
+		free(pexpl_start);
+		}
+	if (new_acl)
+		LocalFree(new_acl);
+	Py_XINCREF(ret);
+	return ret;
 }
 
+// @pymethod ACCESS_MASK|PyACL|GetEffectiveRightsFromAcl|Return access rights (ACCESS_MASK) that the ACL grants to specified trustee
+PyObject *PyACL::PyGetEffectiveRightsFromAcl(PyObject *self, PyObject *args)
+{
+	DWORD err=0;
+	ACCESS_MASK access_mask=0;
+	PyACL *This = (PyACL *)self;
+	PyObject *ret=NULL, *obTrustee=NULL;
+	TRUSTEE_W trustee;
+	// @pyparm <o Dict>|trustee||Dictionary representing a TRUSTEE structure
+	if (!PyArg_ParseTuple(args, "O:GetEffectiveRightsFromAcl", &obTrustee))
+		return NULL;
+	if (!PyWinObject_AsTRUSTEE(obTrustee, &trustee))
+		return NULL;
+	err=GetEffectiveRightsFromAclW(This->GetACL(), &trustee, &access_mask);
+	if (err!=ERROR_SUCCESS)
+		PyWin_SetAPIError("GetEffectiveRightsFromAcl",err);
+	else
+		ret=Py_BuildValue("l",access_mask);
+	PyWinObject_FreeTRUSTEE(&trustee);
+	return ret;
+}
+
+// @pymethod (SuccessfulAuditedRights,FailedAuditRights)|PyACL|GetAuditedPermissionsFromAcl|Return types of access for which ACL will generate an audit event for specified trustee
+// @comm This function is known to return the success and failure access masks in the the wrong order
+//       on Windows 2000 service pack 4.  Problem has been reported to Microsoft.
+PyObject *PyACL::PyGetAuditedPermissionsFromAcl(PyObject *self, PyObject *args)
+{
+	DWORD err=0;
+	ACCESS_MASK success_mask=0,fail_mask=0;
+	PyACL *This = (PyACL *)self;
+	ACL *pacl=This->GetACL();
+	PyObject *ret=NULL, *obTrustee=NULL;
+	TRUSTEE_W trustee;
+	// @pyparm <o Dict>|trustee||Dictionary representing a TRUSTEE structure
+	if (!PyArg_ParseTuple(args, "O:GetAuditedPermissionsFromAcl", &obTrustee))
+		return NULL;
+	if (!PyWinObject_AsTRUSTEE(obTrustee, &trustee))
+		return NULL;
+	// ???? SDK docs say the success mask is first, but on Win2k sp4 they're returned in the opposite order ????
+	err=GetAuditedPermissionsFromAclW(This->GetACL(), &trustee, &success_mask, &fail_mask);
+	if (err!=ERROR_SUCCESS)
+		PyWin_SetAPIError("GetAuditedPermissionsFromAcl",err);
+	else
+		ret=Py_BuildValue("ll",success_mask,fail_mask);
+	PyWinObject_FreeTRUSTEE(&trustee);
+	return ret;
+}
 
 // @object PyACL|A Python object, representing a ACL structure
 static struct PyMethodDef PyACL_methods[] = {
@@ -801,6 +828,8 @@ static struct PyMethodDef PyACL_methods[] = {
 	{"DeleteAce", PyACL::DeleteAce, 1},  // @pymeth DeleteAce|Delete an access-control entry (ACE) from an ACL
 	{"GetExplicitEntriesFromAcl", PyACL::PyGetExplicitEntriesFromAcl, 1},  // @pymeth GetExplicitEntriesFromAcl|Retrieve list of EXPLICIT_ACCESSs from the ACL
 	{"SetEntriesInAcl", PyACL::PySetEntriesInAcl, 1},  // @pymeth SetEntriesInAcl|Adds a list of EXPLICIT_ACCESSs to an ACL
+	{"GetEffectiveRightsFromAcl",PyACL::PyGetEffectiveRightsFromAcl, 1}, //@pymeth GetEffectiveRightsFromAcl|Return access rights (ACCESS_MASK) that the ACL grants to specified trustee
+	{"GetAuditedPermissionsFromAcl",PyACL::PyGetAuditedPermissionsFromAcl, 1}, //@pymeth GetAuditedPermissionsFromAcl|Return types of access for which ACL will generate an audit event for specified trustee
 	{NULL}
 };
 
