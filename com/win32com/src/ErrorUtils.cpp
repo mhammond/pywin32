@@ -179,7 +179,11 @@ static BOOL PyCom_ExcepInfoFromServerExceptionInstance(PyObject *v, EXCEPINFO *p
 
 	ob = PyObject_GetAttrString(v, "helpcontext");
 	if (ob && ob != Py_None) {
-		pExcepInfo->dwHelpContext = PyInt_AsLong(PyNumber_Int(ob));
+		PyObject *temp = PyNumber_Int(ob);
+		if (temp) {
+			pExcepInfo->dwHelpContext = (unsigned short)PyInt_AsLong(temp);
+			Py_DECREF(temp);
+		}
 	}
 	else
 		PyErr_Clear();
@@ -495,24 +499,31 @@ static PyObject *PyCom_PyObjectFromIErrorInfo(IErrorInfo *pEI, HRESULT errorhr)
 	if (hr!=S_OK) {
 		obDesc = Py_None;
 		Py_INCREF(obDesc);
-	} else
+	} else {
 		obDesc = MakeBstrToObj(desc);
+		SysFreeString(desc);
+	}
+
 	Py_BEGIN_ALLOW_THREADS
 	hr=pEI->GetSource(&source);
 	Py_END_ALLOW_THREADS
 	if (hr!=S_OK) {
 		obSource = Py_None;
 		Py_INCREF(obSource);
-	} else
+	} else {
 		obSource = MakeBstrToObj(source);
+		SysFreeString(source);
+	}
 	Py_BEGIN_ALLOW_THREADS
 	hr=pEI->GetHelpFile(&helpfile);
 	Py_END_ALLOW_THREADS
 	if (hr!=S_OK) {
 		obHelpFile = Py_None;
 		Py_INCREF(obHelpFile);
-	} else
+	} else {
 		obHelpFile = MakeBstrToObj(helpfile);
+		SysFreeString(helpfile);
+	}
 	DWORD helpContext = 0;
 	pEI->GetHelpContext(&helpContext);
 	PyObject *ret = Py_BuildValue("iOOOii",
