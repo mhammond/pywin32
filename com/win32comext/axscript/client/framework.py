@@ -594,13 +594,14 @@ class COMScript:
 		return self.threadState
 
 	def AddTypeLib(self, uuid, major, minor, flags):
-		raise Exception("Not Implemented")	
+		# We dont use it, but may as well return S_OK.
+		return
 
 	def InterruptScriptThread(self, state, flags):
-		raise Exception("Not Implemented")
+		raise Exception("Not Implemented", scode=winerror.E_NOTIMPL)
 
 	def Clone(self):
-		raise Exception("Not Implemented")
+		raise Exception("Not Implemented", scode=winerror.E_NOTIMPL)
 	#
 	# IObjectSafety
 
