@@ -14,7 +14,7 @@ generates Windows .hlp files.
 */
 #include "stdafx.h"
 
-CAssocManager PyCCmdTarget::handleMgr;
+CAssocManager ui_assoc_object::handleMgr;
 
 CAssocManager::CAssocManager()
 {
