@@ -28,6 +28,7 @@ generates Windows .hlp files.
 #include "PyIPersistFolder.h"
 #include "PyIColumnProvider.h"
 #include "PyIDropTargetHelper.h"
+#include "PyIAsyncOperation.h"
 
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
 
@@ -401,7 +402,7 @@ PyObject *PyWinObject_FromRESOURCESTRING(LPCSTR str)
 BOOL PyObject_AsCMINVOKECOMMANDINFO(PyObject *ob, CMINVOKECOMMANDINFO *pci)
 {
 	PyObject *obVerb;
-	if (!PyArg_ParseTuple(ob, "iiOzziii", &pci->fMask, &pci->hwnd, 
+	if (!PyArg_ParseTuple(ob, "iiOzziii:CMINVOKECOMMANDINFO tuple", &pci->fMask, &pci->hwnd, 
 	                                 &obVerb, &pci->lpParameters, &pci->lpDirectory, 
 	                                 &pci->nShow, &pci->dwHotKey, &pci->hIcon))
 		return FALSE;
@@ -809,11 +810,14 @@ PyObject *PyObject_FromWIN32_FIND_DATA(WIN32_FIND_DATA &findData)
 	return ret;
 }
 
+#if (PY_VERSION_HEX >= 0x02030000) // PyGILState only in 2.3+
+
 // Callback for BrowseForFolder
 struct PyCallback {
 	PyObject *fn;
 	PyObject *data;
 };
+
 
 static int CALLBACK PyBrowseCallbackProc(
     HWND hwnd, 
@@ -849,6 +853,7 @@ done:
 	return rc;
 }
 
+#endif // PY_VERSION_HEX
 //////////////////////////////////////////////////////////////
 //
 // The methods
@@ -867,7 +872,9 @@ static PyObject *PySHBrowseForFolder( PyObject *self, PyObject *args)
 	TCHAR retPath[MAX_PATH];
 	bi.pszDisplayName = retPath;
 	LPITEMIDLIST pl = NULL;
+#if (PY_VERSION_HEX >= 0x02030000) // PyGILState only in 2.3+
 	PyCallback pycb;
+#endif
 
 	if(!PyArg_ParseTuple(args, "|lOOlOO:SHBrowseForFolder",
 			&bi.hwndOwner, // @pyparm int|hwndOwner|0|
@@ -879,6 +886,7 @@ static PyObject *PySHBrowseForFolder( PyObject *self, PyObject *args)
 		return NULL;
 
 	if (obcb != Py_None) {
+#if (PY_VERSION_HEX >= 0x02030000) // PyGILState only in 2.3+
 		if (!PyCallable_Check(obcb)) {
 			PyErr_SetString(PyExc_TypeError, "Callback item must None or a callable object");
 			goto done;
@@ -887,6 +895,12 @@ static PyObject *PySHBrowseForFolder( PyObject *self, PyObject *args)
 		pycb.data = obcbparam;
 		bi.lParam = (LPARAM)&pycb;
 		bi.lpfn = PyBrowseCallbackProc;
+#else // PY_VERSION_HEX
+		PyErr_SetString(PyExc_NotImplementedError,
+						"Callbacks can only be specified in Python 2.3+");
+		return NULL;
+#endif // PY_VERSION_HEX
+		
 	} // else bi.lParam/lpfn remains 0
 	if (!PyObject_AsPIDL(obPIDL, (LPITEMIDLIST *)&bi.pidlRoot, TRUE))
 		goto done;
@@ -1963,6 +1977,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_IID_ONLY		  (ShellLinkA),
 	PYCOM_INTERFACE_CLSID_ONLY		  (ShellLink),
 	PYCOM_INTERFACE_IID_ONLY		  (ShellLinkW),
+	PYCOM_INTERFACE_FULL(AsyncOperation),
 	PYCOM_INTERFACE_FULL(ContextMenu),
 	PYCOM_INTERFACE_FULL(ExtractIcon),
 	PYCOM_INTERFACE_IID_ONLY		  (ExtractIconW),
