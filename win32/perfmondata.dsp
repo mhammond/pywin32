@@ -25,7 +25,6 @@ CFG=perfmondata - Win32 Debug
 # PROP AllowPerConfigDependencies 0
 # PROP Scc_ProjName ""$/Python/win32/PerfMon", PNCAAAAA"
 # PROP Scc_LocalPath "."
-# PROP WCE_FormatVersion ""
 CPP=cl.exe
 MTL=midl.exe
 RSC=rc.exe
@@ -39,7 +38,7 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Build\Release"
+# PROP Output_Dir "Build"
 # PROP Intermediate_Dir "Build\Temp\perfmon\Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
@@ -55,7 +54,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /pdb:"Build\perfmondata.pdb" /debug /machine:I386 /def:".\src\perfmon\perfmondata.def" /out:"Build\perfmondata.dll" /implib:"Build\perfmondata.lib"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /def:".\src\perfmon\perfmondata.def"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "perfmondata - Win32 Debug"
@@ -67,7 +66,7 @@ LINK32=link.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Build\Debug"
+# PROP Output_Dir "Build"
 # PROP Intermediate_Dir "Build\Temp\perfmondata\Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
@@ -83,7 +82,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /pdb:"Build\perfmondata_d.pdb" /debug /machine:I386 /out:"Build\perfmondata_d.dll" /implib:"Build\perfmondata_d.lib" /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /out:"Build\perfmondata_d.dll" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
