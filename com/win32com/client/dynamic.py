@@ -26,6 +26,8 @@ import build
 from types import StringType, IntType, TupleType, ListType
 from pywintypes import UnicodeType, IIDType
 
+import win32com.client # Needed as code we eval() references it.
+
 debugging=0			# General debugging
 debugging_attr=0	# Debugging dynamic attribute lookups.
 
