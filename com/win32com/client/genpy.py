@@ -23,7 +23,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.4.4" # Written to generated file.
+makepy_version = "0.4.5" # Written to generated file.
 
 GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
@@ -470,20 +470,20 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 ret = self.MakeFuncMethod(entry,'__call__')
             else:
                 typename = "property"
-                ret = [ "\tdef __call__(self):\n\t\treturn apply(self._ApplyTypes_, %s )" % propArgs]
+                ret = [ "\tdef __call__(self):\n\t\treturn self._ApplyTypes_(*%s)" % propArgs]
             print "\t# Default %s for this class is '%s'" % (typename, entry.names[0])
             for line in ret:
                 print line
             print "\t# str(ob) and int(ob) will use __call__"
             print "\tdef __unicode__(self, *args):"
             print "\t\ttry:"
-            print "\t\t\treturn unicode(apply( self.__call__, args))"
+            print "\t\t\treturn unicode(self.__call__(*args))"
             print "\t\texcept pythoncom.com_error:"
             print "\t\t\treturn repr(self)"
             print "\tdef __str__(self, *args):"
-            print "\t\treturn str(apply(self.__unicode__, args))"
+            print "\t\treturn str(self.__unicode__(*args))"
             print "\tdef __int__(self, *args):"
-            print "\t\treturn int(apply( self.__call__, args))"
+            print "\t\treturn int(self.__call__(*args))"
             
 
         if specialItems["_newenum"]:
@@ -506,7 +506,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 entry, invoketype, propArgs = specialItems["item"]
                 print '\t#This class has Item property/method which may take args - allow indexed access'
                 print '\tdef __getitem__(self, item):'
-                print '\t\treturn self._get_good_object_(apply(self._oleobj_.Invoke, (%d, LCID, %d, 1, item)), "Item")' % (entry.desc[0], invoketype)
+                print '\t\treturn self._get_good_object_(self._oleobj_.Invoke(*(%d, LCID, %d, 1, item)), "Item")' % (entry.desc[0], invoketype)
         if specialItems["count"]:
             entry, invoketype, propArgs = specialItems["count"]
             if propArgs is None:
@@ -514,7 +514,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 ret = self.MakeFuncMethod(entry,'__len__')
             else:
                 typename = "property"
-                ret = [ "\tdef __len__(self):\n\t\treturn apply(self._ApplyTypes_, %s )" % propArgs]
+                ret = [ "\tdef __len__(self):\n\t\treturn self._ApplyTypes_(*%s)" % propArgs]
             print "\t#This class has Count() %s - allow len(ob) to provide this" % (typename)
             for line in ret:
                 print line
