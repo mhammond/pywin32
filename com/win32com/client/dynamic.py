@@ -242,12 +242,10 @@ class CDispatch:
 #			print "Method code for %s is:\n" % self._username_, methodCode
 #			self._print_details_()
 			codeObject = compile(methodCode, "<COMObject %s>" % self._username_,"exec")
-			# We must adjust the name for the map, as it may have been mangled if
-			# a keyword or otherwise illegal.
-			name = build.MakePublicAttributeName(name)
 			# Exec the code object
 			tempNameSpace = {}
 			exec codeObject in globals(), tempNameSpace # self.__dict__, self.__dict__
+			name = methodName
 			# Save the function in map.
 			fn = self._builtMethods_[name] = tempNameSpace[name]
 			newMeth = new.instancemethod(fn, self, self.__class__)

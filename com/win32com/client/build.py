@@ -36,6 +36,7 @@ class MapEntry:
 		else:
 			self.dispid = desc_or_id[0]
 			self.desc = desc_or_id
+
 		self.names = names
 		self.doc = doc
 		self.resultCLSID = resultCLSID
@@ -62,6 +63,10 @@ class OleItem:
 
   def __init__(self, doc=None):
     self.doc = doc
+    if self.doc:
+        self.python_name = MakePublicAttributeName(self.doc[0])
+    else:
+        self.python_name = None
     self.bWritten = 0
     self.clsid = None
 
@@ -402,23 +407,14 @@ def _ResolveUserDefined(typeTuple, typeinfo):
   return (resolved, inOut, default), ret2, ret3
 
 def _BuildArgList(fdesc, names):
-  "Builds list of args to the underlying Invoke method."
-  str = ''
+    "Builds list of args to the underlying Invoke method."
+    # Word has TypeInfo for Insert() method, but says "no args"
+    numArgs = max(fdesc[6], len(fdesc[2]))
+    names = map(MakePublicAttributeName, names[1:])
+    while len(names) < numArgs:
+        names.append("arg%d" % (len(names),))
+    return "," + string.join(names, ", ")
 
-  # Word has TypeInfo for Insert() method, but says "no args"
-  numArgs = max(fdesc[6], len(fdesc[2]))
-
-  for arg in xrange(numArgs):
-    try:
-      argName = names[arg+1]
-      if argName is not None:
-        argName = MakePublicAttributeName(argName)
-    except IndexError:
-      argName = None
-    if argName is None:
-      argName = "arg%d" % (arg+1)
-    str = str + ', ' + argName
-  return str
 
 valid_identifier_chars = string.letters + string.digits + "_"
 
@@ -428,7 +424,7 @@ def MakePublicAttributeName(className):
 	# Given a class attribute that needs to be public, but Python munges
 	# convert it.
 	if className[:2]=='__' and className[-2:]!='__':
-		return className[1]
+		return className[1:]
 	elif iskeyword(className):
 		return string.capitalize(className)
 	# Strip non printable chars
