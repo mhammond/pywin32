@@ -774,6 +774,25 @@ $(ex)$(par)
 .tag=l, html, 1
 .format=<A HREF="#1.html">$1</A>
 
+; ******************************************
+; Structures
+; ******************************************
+
+.tag=t, html, 1
+.format=$(cb)$1$(cbe)
+.if=$1=$struct.1
+
+.tag=t, html, 1
+.format=$(cb)$1$(cbe)
+.if=$1=$enum.1
+
+.tag=t, html, 1
+.format=<A HREF="#1.html">$1</A>
+.if=exists($1)
+
+.tag=t, html, 1
+.format=$(cb)$1$(cbe)
+
 [diagram]
 
 ;OLE method
