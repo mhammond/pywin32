@@ -94,6 +94,10 @@ LINK32=link.exe
 # PROP Default_Filter "cxx;cpp;c"
 # Begin Source File
 
+SOURCE=.\win32comext\shell\src\PyIAsyncOperation.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32comext\shell\src\PyIBrowserFrameOptions.cpp
 # End Source File
 # Begin Source File
@@ -152,6 +156,10 @@ SOURCE=.\win32comext\shell\src\shell.cpp
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h"
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIAsyncOperation.h
+# End Source File
 # Begin Source File
 
 SOURCE=.\win32comext\shell\src\PyIBrowserFrameOptions.h
