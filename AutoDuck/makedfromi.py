@@ -69,29 +69,49 @@ def make_doc_summary(inFile, outFile):
 			
 		lineNo = lineNo + 1
 
-	# Dump in different order
-	if g_com_parent:
-		modName = "Py" + modName
-		
-	for (meth, extras) in methods:
-		fields = string.split(meth,'|')
-		if len(fields)<>3:
-			print "**Error - %s does not have enough fields" % meth
-		outFile.write("\n// @pymethod %s|%s|%s|%s\n" % (fields[0],modName,fields[1], fields[2]))
-		for extra in extras:
-			outFile.write(extra)
+	# autoduck seems to crash when > ~97 methods.  Loop multiple times, 
+	# creating a synthetic module name when this happens.
+	max_methods = 90
+	# native ones first - hopefully never more than 90 of them!
+	assert len(nativeMethods) < max_methods
+	method_num = len(nativeMethods)
+	chunk_number = 0
+	while 1:
+		these_methods = methods[method_num:method_num+max_methods]
+		if not these_methods:
+			break
+		thisModName = modName
+		if g_com_parent:
+			thisModName = "Py" + modName
+		if chunk_number == 0:
+			pass
+		elif chunk_number == 1:
+			thisModName = thisModName + " (more)"
+		else:
+			thisModName = thisModName + " (more %d)" % (chunk_number+1,)
 
-	if g_com_parent:
-		outFile.write("\n// @object %s|%s" % (modName,modDoc))
-		outFile.write("\n// <nl>Derived from <o %s>\n" % (g_com_parent))
-	else:
-		outFile.write("\n// @module %s|%s\n" % (modName,modDoc))
+		for (meth, extras) in these_methods:
+			fields = string.split(meth,'|')
+			if len(fields)<>3:
+				print "**Error - %s does not have enough fields" % meth
+			outFile.write("\n// @pymethod %s|%s|%s|%s\n" % (fields[0],thisModName,fields[1], fields[2]))
+			for extra in extras:
+				outFile.write(extra)
+		if g_com_parent:
+			outFile.write("\n// @object %s|%s" % (thisModName,modDoc))
+			outFile.write("\n// <nl>Derived from <o %s>\n" % (g_com_parent))
+		else:
+			outFile.write("\n// @module %s|%s\n" % (thisModName,modDoc))
+		for (meth, extras) in these_methods:
+			fields = string.split(meth,'|')
+			outFile.write("// @pymeth %s|%s\n" % (fields[1], fields[2]))
+		if chunk_number == 0:
+			for meth in nativeMethods:
+				outFile.write(meth)
+				outFile.write("\n")
+		chunk_number += 1
+		method_num += max_methods
 
-	for (meth, extras) in methods:
-		fields = string.split(meth,'|')
-		outFile.write("// @pymeth %s|%s\n" % (fields[1], fields[2]))
-	for meth in nativeMethods:
-		outFile.write(meth)
 	outFile.write("\n")
 	for (cname, doc) in constants:
 		outFile.write("// @const %s|%s|%s\n" % (modName, cname, doc) )
