@@ -36,6 +36,7 @@ typedef int COMPUTER_NAME_FORMAT;
 
 static BOOL (WINAPI *myGetUserNameEx)(EXTENDED_NAME_FORMAT, LPWSTR, PULONG)=NULL;
 static BOOL (WINAPI *myGetComputerNameEx)(COMPUTER_NAME_FORMAT, LPWSTR, LPDWORD)=NULL;
+static BOOL (WINAPI *myGetComputerObjectName)(EXTENDED_NAME_FORMAT, LPWSTR, LPDWORD)=NULL;
 static BOOL (WINAPI *myGetLongPathNameA)(LPCSTR, LPSTR, DWORD)=NULL;
 static BOOL (WINAPI *myGetLongPathNameW)(LPCWSTR, LPWSTR, DWORD)=NULL;
 
@@ -780,6 +781,39 @@ PyGetComputerNameEx(PyObject *self, PyObject *args)
 		return PyErr_NoMemory();
 	if (!myGetComputerNameEx(fmt,formattedname,&nSize)){
 		PyWin_SetAPIError("GetComputerNameEx");
+		goto done;
+	}
+	ret=PyWinObject_FromWCHAR(formattedname);
+	done:
+	if (formattedname!=NULL)
+		free(formattedname);
+	return ret;
+}
+
+// @pymethod string|win32api|GetComputerObjectName|Retrieves the local computer's name in a specified format.
+static PyObject *
+PyGetComputerObjectName(PyObject *self, PyObject *args)
+{
+	if (myGetComputerObjectName==NULL)
+		return ReturnError("GetComputerObjectName is not supported on current platform","GetComputerNameEx");
+
+	WCHAR *formattedname=NULL;
+	EXTENDED_NAME_FORMAT fmt;
+	PyObject *ret = NULL;
+	ULONG nSize=0;
+	if (!PyArg_ParseTuple (args, "i:GetComputerObjectName", &fmt))
+		return NULL;
+	// @pyseeapi GetComputerObjectName
+	// We always get into trouble with WinXP vs 2k error codes.
+	// Simply assume that if we have a size, the function gave us the correct one.
+	myGetComputerObjectName(fmt,formattedname,&nSize);
+	if (!nSize)
+		return PyWin_SetAPIError("GetComputerObjectName");
+	formattedname=(WCHAR *)malloc(nSize*sizeof(WCHAR));
+	if (!formattedname)
+		return PyErr_NoMemory();
+	if (!myGetComputerObjectName(fmt,formattedname,&nSize)){
+		PyWin_SetAPIError("GetComputerObjectName");
 		goto done;
 	}
 	ret=PyWinObject_FromWCHAR(formattedname);
@@ -4391,6 +4425,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetCommandLine",		PyGetCommandLine,   1}, // @pymeth GetCommandLine|Return the application's command line.
 	{"GetComputerName",     PyGetComputerName,  1}, // @pymeth GetComputerName|Returns the local computer name
 	{"GetComputerNameEx",   PyGetComputerNameEx,  1}, // @pymeth GetComputerNameEx|Retrieves a NetBIOS or DNS name associated with the local computer
+	{"GetComputerObjectName",PyGetComputerObjectName,  1}, // @pymeth GetComputerObjectName|Retrieves the local computer's name in a specified format
 	{"GetUserName",         PyGetUserName,  1},     // @pymeth GetUserName|Returns the current user name.
 	{"GetUserNameEx",       PyGetUserNameEx,  1},     // @pymeth GetUserNameEx|Returns the current user name in format specified by Name* constants
 	{"GetCursorPos",		PyGetCursorPos,   1},   // @pymeth GetCursorPos|Returns the position of the cursor, in screen co-ordinates.
@@ -4588,6 +4623,9 @@ initwin32api(void)
     FARPROC fp = GetProcAddress(hmodule,"GetUserNameExW");
     if (fp!=NULL)
       myGetUserNameEx=(BOOL (WINAPI *)(EXTENDED_NAME_FORMAT, LPWSTR, PULONG))(fp);
+    fp = GetProcAddress(hmodule,"GetComputerObjectNameW");
+    if (fp!=NULL)
+      myGetComputerObjectName=(BOOL (WINAPI *)(EXTENDED_NAME_FORMAT, LPWSTR, PULONG))(fp);
   }
   hmodule = LoadLibrary("kernel32.dll");
   if (hmodule!=NULL){
