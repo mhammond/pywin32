@@ -68,7 +68,7 @@ PyObject *PyIPersistStorage::Load(PyObject *self, PyObject *args)
 	IPersistStorage *pIPS = GetI(self);
 	if ( pIPS == NULL )
 		return NULL;
-	// @pyparm <o PyIStorage>|PyIStorage||Existing storage for the object.
+	// @pyparm <o PyIStorage>|storage||Existing storage for the object.
 	PyObject * obIStorage;
 	if ( !PyArg_ParseTuple(args, "O:Load", &obIStorage) )
 		return NULL;

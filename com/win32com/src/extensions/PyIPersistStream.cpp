@@ -53,7 +53,7 @@ PyObject *PyIPersistStream::Load(PyObject *self, PyObject *args)
 	if (pMy==NULL) return NULL;
 
 	PyObject *obStream;
-	// @pyparm <o PyIStorage>|PyStream||Stream object to load from.
+	// @pyparm <o PyIStream>|stream||Stream object to load from.
 	if (!PyArg_ParseTuple(args, "O:Load", &obStream))
 		return NULL;
 
