@@ -1165,7 +1165,7 @@ static PyObject *PySHAddToRecentDocs(PyObject *self, PyObject *args)
 }
 
 
-// @pymethod <o PyIDL>|shell|SHEmptyRecycleBin|Empties the recycle bin on the specified drive.
+// @pymethod |shell|SHEmptyRecycleBin|Empties the recycle bin on the specified drive.
 static PyObject *PySHEmptyRecycleBin(PyObject *self, PyObject *args)
 {
 	HWND hwnd;
@@ -1177,7 +1177,7 @@ static PyObject *PySHEmptyRecycleBin(PyObject *self, PyObject *args)
 			&flags)) // @pyparm int|flags||One of the SHERB_* values.
 		return NULL;
 
-	typedef HRESULT (* PFNSHEmptyRecycleBin)(HWND, LPSTR, DWORD );
+	typedef HRESULT (WINAPI * PFNSHEmptyRecycleBin)(HWND, LPSTR, DWORD );
 	// @comm This method is only available in shell version 4.71.  If the function is not available, a COM Exception with HRESULT=E_NOTIMPL will be raised.
 	HMODULE hmod = GetModuleHandle(TEXT("shell32.dll"));
 	PFNSHEmptyRecycleBin pfnSHEmptyRecycleBin = (PFNSHEmptyRecycleBin)GetProcAddress(hmod, "SHEmptyRecycleBinA");
