@@ -40,7 +40,7 @@ versionRedirectMap = {}
 # and we really do need a "read-only" concept anyway.
 # We don't want to use isdir() though, as we have always gracefully
 # created this directory when we could.
-is_readonly = win32com.__gen_path__.find(".zip\\") >= 0
+is_readonly = getattr(win32com, "__loader__", None) or (1 == 0)
 
 # A dictionary of ITypeLibrary objects for demand generation explicitly handed to us
 # Keyed by usual clsid, lcid, major, minor
@@ -70,17 +70,22 @@ def _SaveDicts():
 def _LoadDicts():
 	import cPickle
 	# Load the dictionary from a .zip file if that is where we live.
-	zip_pos = win32com.__gen_path__.find(".zip\\")
-	if zip_pos >= 0:
-		import zipfile, cStringIO
-		zip_file = win32com.__gen_path__[:zip_pos+4]
-		zip_path = win32com.__gen_path__[zip_pos+5:]
-		zip_path = os.path.join(zip_path, "dicts.dat").replace("\\", "/")
+	if hasattr(win32com, "__loader__"):
+		import cStringIO
+		loader = win32com.__loader__
+		arc_path = loader.archive
+		dicts_path = os.path.join(win32com.__gen_path__, "dicts.dat")
+		if dicts_path.startswith(arc_path):
+			dicts_path = dicts_path[len(arc_path)+1:]
+		else:
+			# Hm. See below.
+			return
 		try:
-			zf = zipfile.ZipFile(zip_file)
-			f = cStringIO.StringIO(zf.read(zip_path))
-			zf.close()
-		except KeyError:
+			data = loader.get_data(dicts_path)
+		except AttributeError:
+			# The __loader__ has no get_data method.  See below.
+			return
+		except IOError:
 			# Our gencache is in a .zip file (and almost certainly readonly)
 			# but no dicts file.  That actually needn't be fatal for a frozen
 			# application.  Assuming they call "EnsureModule" with the same
@@ -93,6 +98,7 @@ def _LoadDicts():
 			# for these apps is to call EnsureModule, rather than freezing
 			# the dict)
 			return
+		f = cStringIO.StringIO(data)
 	else:
 		# NOTE: IOError on file open must be caught by caller.
 		f = open(os.path.join(win32com.__gen_path__, "dicts.dat"), "rb")
