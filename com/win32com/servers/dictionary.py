@@ -133,7 +133,7 @@ class DictionaryPolicy(policy.BasicWrapPolicy):
 
 def Register():
   from win32com.server.register import UseCommandLine
-  UseCommandLine(DictionaryPolicy)
+  return UseCommandLine(DictionaryPolicy)
 
 if __name__ == '__main__':
   Register()
