@@ -1,5 +1,5 @@
 Unless stated in the specfic source file, this work is
-Copyright (c) 1994-2000, Mark Hammond 
+Copyright (c) 1994-2001, Mark Hammond 
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without 

@@ -1620,7 +1620,7 @@ Error:
 
 // The communications related functions.
 // The COMM port enhancements were added by Mark Hammond, and are
-// (c) 2000, ActiveState Tools Corp.
+// (c) 2000-2001, ActiveState Tools Corp.
 
 %{
 // The comms port helpers.
