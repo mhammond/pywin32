@@ -6,7 +6,7 @@ class Tools:
   _public_methods_ = [ 'reload', 'adddir', 'echo', 'sleep' ]
 
   def reload(self, module):
-    if type(module) == type('') and sys.modules.has_key(module):
+    if sys.modules.has_key(module):
       reload(sys.modules[module])
       return "reload succeeded."
     return "no reload performed."
