@@ -23,6 +23,7 @@ class EditorDocumentBase(ParentEditorDocument):
 		self.bAutoReload = GetEditorOption("Auto Reload", 1)
 		self.bDeclinedReload = 0 # Has the user declined to reload.
 		self.fileStat = None
+		self.bReportedFileNotFound = 0
 
 		# what sort of bak file should I create.
 		# default to write to %temp%/bak/filename.ext
@@ -124,9 +125,13 @@ class EditorDocumentBase(ParentEditorDocument):
 		try:
 			newstat = os.stat(self.GetPathName())
 		except os.error, (code, msg):
-			print "The file '%s' is open for editing, but\nchecking it for changes caused the error: %s" % (self.GetPathName(), msg)
-			self.bDeclinedReload = 1
+			if not self.bReportedFileNotFound:
+				print "The file '%s' is open for editing, but\nchecking it for changes caused the error: %s" % (self.GetPathName(), msg)
+				self.bReportedFileNotFound = 1
 			return
+		if self.bReportedFileNotFound:
+			print "The file '%s' has re-appeared - continuing to watch for changes..." % (self.GetPathName(),)
+			self.bReportedFileNotFound = 0 # Once found again we want to start complaining.
 		changed = (self.fileStat is None) or \
 			self.fileStat[0] != newstat[0] or \
 			self.fileStat[6] != newstat[6] or \
