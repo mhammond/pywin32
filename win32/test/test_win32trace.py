@@ -10,7 +10,7 @@ if __name__=='__main__':
 else:
     this_file = __file__
 
-def CheckNoOtherWriters():
+def CheckNoOtherReaders():
     win32trace.write("Hi")
     time.sleep(0.05)
     if win32trace.read() != "Hi":
@@ -141,7 +141,7 @@ class TestMultipleThreadsWriting(unittest.TestCase):
         WriterThread.BucketCount = self.BucketCount        
         win32trace.InitRead()
         win32trace.InitWrite()
-        CheckNoOtherWriters()
+        CheckNoOtherReaders()
         self.threads = [WriterThread() for each in range(self.FullBucket)]
         self.buckets = range(self.BucketCount)
         for each in self.buckets:
@@ -211,9 +211,9 @@ class TraceWriteProcess:
     def start(self):
         procHandle, threadHandle, procId, threadId  = win32process.CreateProcess(
             None, # appName
-            'python.exe %s /run_test_process %s %s' % (this_file,
-                                                       self.BucketCount,
-                                                       self.threadCount),
+            'python.exe "%s" /run_test_process %s %s' % (this_file,
+                                                         self.BucketCount,
+                                                         self.threadCount),
             None, # process security
             None, # thread security
             0, # inherit handles
@@ -306,4 +306,12 @@ if __name__ == '__main__':
     if sys.argv[1:2]==["/run_test_process"]:
         _RunAsTestProcess()
         sys.exit(0)
+    # If some other win32traceutil reader is running, these tests fail
+    # badly (as the other reader sometimes sees the output!)
+    win32trace.InitRead()
+    win32trace.InitWrite()
+    CheckNoOtherReaders()
+    # reset state so test env is back to normal
+    win32trace.TermRead()
+    win32trace.TermWrite()
     unittest.main()
