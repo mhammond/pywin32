@@ -457,22 +457,28 @@ class DispatchBaseClass:
 		except KeyError:
 			raise AttributeError, "'%s' object has no attribute '%s'" % (repr(self), attr)
 		self._oleobj_.Invoke(*(args + (value,) + defArgs))
-	# XXX - These should be consolidated with dynamic.py versions.
 	def _get_good_single_object_(self, obj, obUserName=None, resultCLSID=None):
-		if _PyIDispatchType==type(obj):
-			return Dispatch(obj, obUserName, resultCLSID, UnicodeToString=NeedUnicodeConversions)
-		elif NeedUnicodeConversions and UnicodeType==type(obj):
-			return str(obj)
-		return obj
+		return _get_good_single_object_(obj, obUserName, resultCLSID)
 	def _get_good_object_(self, obj, obUserName=None, resultCLSID=None):
-		if obj is None:
-			return None
-		elif type(obj)==TupleType:
-			obUserNameTuple = (obUserName,) * len(obj)
-			resultCLSIDTuple = (resultCLSID,) * len(obj)
-			return tuple(map(self._get_good_object_, obj, obUserNameTuple, resultCLSIDTuple))
-		else:
-			return self._get_good_single_object_(obj, obUserName, resultCLSID)
+		return _get_good_object_(obj, obUserName, resultCLSID)
+
+# XXX - These should be consolidated with dynamic.py versions.
+def _get_good_single_object_(obj, obUserName=None, resultCLSID=None):
+	if _PyIDispatchType==type(obj):
+		return Dispatch(obj, obUserName, resultCLSID, UnicodeToString=NeedUnicodeConversions)
+	elif NeedUnicodeConversions and UnicodeType==type(obj):
+		return str(obj)
+	return obj
+
+def _get_good_object_(obj, obUserName=None, resultCLSID=None):
+	if obj is None:
+		return None
+	elif type(obj)==TupleType:
+		obUserNameTuple = (obUserName,) * len(obj)
+		resultCLSIDTuple = (resultCLSID,) * len(obj)
+		return tuple(map(_get_good_object_, obj, obUserNameTuple, resultCLSIDTuple))
+	else:
+		return _get_good_single_object_(obj, obUserName, resultCLSID)
 
 class CoClassBaseClass:
 	def __init__(self, oobj=None):
