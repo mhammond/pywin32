@@ -183,6 +183,11 @@ def DispatchWithEvents(clsid, user_event_class):
   If this is not suitable, see the getevents function for an alternative
   technique of handling events.
 
+  Object Lifetimes:  Whenever the object returned from this function is
+  cleaned-up by Python, the events will be disconnected from
+  the COM object.  This is almost always what should happen,
+  but see the documentation for getevents() for more details.
+
   Example:
 
   >>> class IEEvents:
@@ -228,7 +233,17 @@ def getevents(clsid):
     appropriate support classes have been generated for the com server
     that you will be handling events from.
 
-    Beware of creating circular references: this will happen if your
+    Beware of COM circular references.  When the Events class is connected
+    to the COM object, the COM object itself keeps a reference to the Python
+    events class.  Thus, neither the Events instance or the COM object will
+    ever die by themselves.  The 'close' method on the events instance
+    must be called to break this chain and allow standard Python collection
+    rules to manage object lifetimes.  Note that DispatchWithEvents() does
+    work around this problem by the use of a proxy object, but if you use
+    the getevents() function yourself, you must make your own arrangements
+    to manage this circular reference issue.
+
+    Beware of creating Python circular references: this will happen if your
     handler has a reference to an object that has a reference back to
     the event source. Call the 'close' method to break the chain.
     
