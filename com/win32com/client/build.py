@@ -4,7 +4,7 @@ This module is used by both the @dynamic@ and @makepy@ modules to build
 all knowledge of a COM object.
 
 This module contains classes which contain the actual knowledge of the object.
-This include paramater and return type information, the COM dispid and CLSID, etc.
+This include parameter and return type information, the COM dispid and CLSID, etc.
 
 Other modules may use this information to generate .py files, use the information
 dynamically, or possibly even generate .html documentation for objects.
