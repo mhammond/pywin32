@@ -8,6 +8,9 @@
 // @doc - This file contains autoduck documentation
 // ---------------------------------------------------
 //
+extern BOOL PyObject_AsOLEMENUGROUPWIDTHS( PyObject *oblpMenuWidths, OLEMENUGROUPWIDTHS *pWidths);
+PyObject *PyObject_FromOLEMENUGROUPWIDTHS(OLEMENUGROUPWIDTHS *p);
+
 // Interface Implementation
 
 PyIShellBrowser::PyIShellBrowser(IUnknown *pdisp):
@@ -24,7 +27,7 @@ PyIShellBrowser::~PyIShellBrowser()
 {
 	return (IShellBrowser *)PyIOleWindow::GetI(self);
 }
-/*
+
 // @pymethod |PyIShellBrowser|InsertMenusSB|Description of InsertMenusSB.
 PyObject *PyIShellBrowser::InsertMenusSB(PyObject *self, PyObject *args)
 {
@@ -32,35 +35,26 @@ PyObject *PyIShellBrowser::InsertMenusSB(PyObject *self, PyObject *args)
 	if ( pISB == NULL )
 		return NULL;
 	// @pyparm int|hmenuShared||Description for hmenuShared
-// *** The input argument lpMenuWidths of type "LPOLEMENUGROUPWIDTHS" was not processed ***
-//     Please check the conversion function is appropriate and exists!
-	LPOLEMENUGROUPWIDTHS lpMenuWidths;
-	PyObject *oblpMenuWidths;
+	OLEMENUGROUPWIDTHS menuWidths;
+	PyObject *obMenuWidths;
 	// @pyparm <o PyLPOLEMENUGROUPWIDTHS>|lpMenuWidths||Description for lpMenuWidths
 	INT ihmenuShared;
 	HMENU hmenuShared;
-	if ( !PyArg_ParseTuple(args, "iO:InsertMenusSB", &ihmenuShared, &oblpMenuWidths) )
+	if ( !PyArg_ParseTuple(args, "iO:InsertMenusSB", &ihmenuShared, &obMenuWidths) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
-	hmenuShared = ihmenuShared;
-	if (bPythonIsHappy && !PyObject_AsLPOLEMENUGROUPWIDTHS( oblpMenuWidths, &lpMenuWidths )) bPythonIsHappy = FALSE;
+	hmenuShared = (HMENU)ihmenuShared;
+	if (bPythonIsHappy && !PyObject_AsOLEMENUGROUPWIDTHS( obMenuWidths, &menuWidths )) bPythonIsHappy = FALSE;
 	if (!bPythonIsHappy) return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	hr = pISB->InsertMenusSB( hmenuShared, lpMenuWidths );
-	PyObject_FreeLPOLEMENUGROUPWIDTHS(lpMenuWidths);
-
+	hr = pISB->InsertMenusSB( hmenuShared, &menuWidths );
 	PY_INTERFACE_POSTCALL;
-
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pISB, IID_IShellBrowser );
-// *** The output argument lpMenuWidths of type "LPOLEMENUGROUPWIDTHS" was not processed ***
-//     The type 'LPOLEMENUGROUPWIDTHS' (lpMenuWidths) is unknown.
-	Py_INCREF(Py_None);
-	return Py_None;
-
+	return PyObject_FromOLEMENUGROUPWIDTHS(&menuWidths);
 }
-*/
+
 // @pymethod |PyIShellBrowser|SetMenuSB|Description of SetMenuSB.
 PyObject *PyIShellBrowser::SetMenuSB(PyObject *self, PyObject *args)
 {
@@ -378,7 +372,7 @@ PyObject *PyIShellBrowser::SetToolbarItems(PyObject *self, PyObject *args)
 // @object PyIShellBrowser|Description of the interface
 static struct PyMethodDef PyIShellBrowser_methods[] =
 {
-//	{ "InsertMenusSB", PyIShellBrowser::InsertMenusSB, 1 }, // @pymeth InsertMenusSB|Description of InsertMenusSB
+	{ "InsertMenusSB", PyIShellBrowser::InsertMenusSB, 1 }, // @pymeth InsertMenusSB|Description of InsertMenusSB
 	{ "SetMenuSB", PyIShellBrowser::SetMenuSB, 1 }, // @pymeth SetMenuSB|Description of SetMenuSB
 	{ "RemoveMenusSB", PyIShellBrowser::RemoveMenusSB, 1 }, // @pymeth RemoveMenusSB|Description of RemoveMenusSB
 	{ "SetStatusTextSB", PyIShellBrowser::SetStatusTextSB, 1 }, // @pymeth SetStatusTextSB|Description of SetStatusTextSB
@@ -408,18 +402,15 @@ STDMETHODIMP PyGShellBrowser::InsertMenusSB(
 		/* [out][in] */ LPOLEMENUGROUPWIDTHS lpMenuWidths)
 {
 	PY_GATEWAY_METHOD;
-// *** The input argument lpMenuWidths of type "LPOLEMENUGROUPWIDTHS" was not processed ***
-//   - Please ensure this conversion function exists, and is appropriate
-//   - The type 'LPOLEMENUGROUPWIDTHS' (lpMenuWidths) is unknown.
-	PyObject *oblpMenuWidths = Py_None; //PyObject_FromLPOLEMENUGROUPWIDTHS(lpMenuWidths);
-	Py_INCREF(Py_None);
+	PyObject *oblpMenuWidths = PyObject_FromOLEMENUGROUPWIDTHS(lpMenuWidths);
 	if (oblpMenuWidths==NULL) return PyCom_HandlePythonFailureToCOM();
 	PyObject *result;
 	HRESULT hr=InvokeViaPolicy("InsertMenusSB", &result, "iO", hmenuShared, oblpMenuWidths);
 	Py_DECREF(oblpMenuWidths);
 	if (FAILED(hr)) return hr;
+	PyObject_AsOLEMENUGROUPWIDTHS(result, lpMenuWidths);
 	Py_DECREF(result);
-	return hr;
+	return PyCom_SetCOMErrorFromPyException(GetIID());
 }
 
 STDMETHODIMP PyGShellBrowser::SetMenuSB(
