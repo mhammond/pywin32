@@ -80,6 +80,10 @@ void PyWinObject_FreeTaskAllocatedWCHAR(WCHAR * str)
 /* Implement our Windows Unicode API using the Python widestring object */
 PyObject *PyUnicodeObject_FromString(const char *string)
 {
+	if (string==NULL) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	return (PyObject *)PyUnicode_DecodeMBCS(string, strlen(string), NULL);
 }
 
@@ -163,6 +167,10 @@ PyObject *PyWinObject_FromOLECHAR(const OLECHAR * str)
 
 PyObject *PyString_FromUnicode( const OLECHAR *str )
 {
+	if (str==NULL) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	PyObject *uo = PyWinObject_FromOLECHAR(str);
 	return PyUnicode_EncodeMBCS(PyUnicode_AS_UNICODE(uo), PyUnicode_GET_SIZE(uo), NULL);
 }
