@@ -27,6 +27,9 @@ PyIShellFolder::~PyIShellFolder()
 }
 
 // @pymethod |PyIShellFolder|ParseDisplayName|Description of ParseDisplayName.
+// @rdesc The result is a tuple of cchEaten, pidl, attr.
+// cchEaten will have been initialized to -1, and may or may not be changed
+// for the return value.
 PyObject *PyIShellFolder::ParseDisplayName(PyObject *self, PyObject *args)
 {
 	IShellFolder *pISF = GetI(self);
@@ -40,10 +43,11 @@ PyObject *PyIShellFolder::ParseDisplayName(PyObject *self, PyObject *args)
 	HWND hwndOwner;
 	IBindCtx * pbcReserved;
 	LPOLESTR lpszDisplayName;
-	ULONG pchEaten;
+	ULONG pchEaten = (ULONG)-1;
 	ITEMIDLIST *ppidl;
-	ULONG pdwAttributes;
-	if ( !PyArg_ParseTuple(args, "lOO:ParseDisplayName", &hwndOwner, &obpbcReserved, &oblpszDisplayName) )
+	ULONG pdwAttributes = -1;
+	if ( !PyArg_ParseTuple(args, "lOO|l:ParseDisplayName", &hwndOwner, &obpbcReserved,
+						   &oblpszDisplayName, &pdwAttributes) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
 	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obpbcReserved, IID_IBindCtx, (void **)&pbcReserved, TRUE /* bNoneOK */))
@@ -52,7 +56,8 @@ PyObject *PyIShellFolder::ParseDisplayName(PyObject *self, PyObject *args)
 	if (!bPythonIsHappy) return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	hr = pISF->ParseDisplayName( hwndOwner, pbcReserved, lpszDisplayName, &pchEaten, &ppidl, &pdwAttributes );
+	hr = pISF->ParseDisplayName(hwndOwner, pbcReserved, lpszDisplayName, &pchEaten,
+								&ppidl, &pdwAttributes );
 	if (pbcReserved) pbcReserved->Release();
 	SysFreeString(lpszDisplayName);
 
@@ -423,7 +428,9 @@ STDMETHODIMP PyGShellFolder::ParseDisplayName(
 	obpbcReserved = PyCom_PyObjectFromIUnknown(pbcReserved, IID_IBindCtx, TRUE);
 	oblpszDisplayName = MakeOLECHARToObj(lpszDisplayName);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("ParseDisplayName", &result, "lOO", hwndOwner, obpbcReserved, oblpszDisplayName);
+	HRESULT hr=InvokeViaPolicy("ParseDisplayName", &result, "lOOl", hwndOwner,
+							   obpbcReserved,
+							   oblpszDisplayName, pdwAttributes ? *pdwAttributes : 0);
 	Py_XDECREF(obpbcReserved);
 	Py_XDECREF(oblpszDisplayName);
 	if (FAILED(hr)) return hr;
