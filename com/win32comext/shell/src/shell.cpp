@@ -255,7 +255,7 @@ PyObject *PyObject_FromSTRRET(STRRET *ps, ITEMIDLIST *pidl, BOOL bFree)
 //
 // WIN32_FIND_DATA implementation.
 // NOTE: Cloned from win32api.cpp
-PyObject *PyObject_FromWIN32_FIND_DATA(WIN32_FIND_DATAA &findData)
+PyObject *PyObject_FromWIN32_FIND_DATA(WIN32_FIND_DATA &findData)
 {
 	PyObject *obCreateTime = PyWinObject_FromFILETIME(findData.ftCreationTime);
 	PyObject *obAccessTime = PyWinObject_FromFILETIME(findData.ftLastAccessTime);
@@ -263,7 +263,7 @@ PyObject *PyObject_FromWIN32_FIND_DATA(WIN32_FIND_DATAA &findData)
 	if (obCreateTime==NULL || obAccessTime==NULL || obWriteTime==NULL)
 		return NULL;
 
-	PyObject *ret = Py_BuildValue("lOOOllllss",
+	PyObject *ret = Py_BuildValue("lOOOllllNN",
 		// @rdesc The return value is a list of tuples, in the same format as the WIN32_FIND_DATA structure:
 			findData.dwFileAttributes, // @tupleitem 0|int|attributes|File Attributes.  A combination of the win32com.FILE_ATTRIBUTE_* flags.
 			obCreateTime, // @tupleitem 1|<o PyTime>|createTime|File creation time.
@@ -273,8 +273,8 @@ PyObject *PyObject_FromWIN32_FIND_DATA(WIN32_FIND_DATAA &findData)
     		findData.nFileSizeLow,	// @tupleitem 5|int|nFileSizeLow|low order word of file size.
     		findData.dwReserved0,	// @tupleitem 6|int|reserved0|Reserved.
     		findData.dwReserved1,   // @tupleitem 7|int|reserved1|Reserved.
-    		findData.cFileName,		// @tupleitem 8|string|fileName|The name of the file.
-    		findData.cAlternateFileName ); // @tupleitem 9|string|alternateFilename|Alternative name of the file, expressed in 8.3 format.
+    		PyWinObject_FromTCHAR(findData.cFileName),		// @tupleitem 8|string|fileName|The name of the file.
+    		PyWinObject_FromTCHAR(findData.cAlternateFileName) ); // @tupleitem 9|string|alternateFilename|Alternative name of the file, expressed in 8.3 format.
 	Py_DECREF(obCreateTime);
 	Py_DECREF(obAccessTime);
 	Py_DECREF(obWriteTime);
@@ -345,7 +345,7 @@ done:
 // @pymethod string/<o PyUnicode>|shell|SHGetPathFromIDList|Converts an IDLIST to a path.
 static PyObject *PySHGetPathFromIDList(PyObject *self, PyObject *args)
 {
-	char buffer[MAX_PATH];
+	TCHAR buffer[MAX_PATH];
 	PyObject *rc;
 	LPITEMIDLIST pidl;
 	PyObject *obPidl;
@@ -386,7 +386,7 @@ static PyObject *PySHGetSpecialFolderPath(PyObject *self, PyObject *args)
 	// function is not available, a COM Exception with HRESULT=E_NOTIMPL 
 	// will be raised.  If the function fails, a COM Exception with 
 	// HRESULT=E_FAIL will be raised.
-	HMODULE hmod = GetModuleHandle("shell32.dll");
+	HMODULE hmod = GetModuleHandle(TEXT("shell32.dll"));
 	PFNSHGetSpecialFolderPath pfnSHGetSpecialFolderPath = (PFNSHGetSpecialFolderPath)GetProcAddress(hmod, "SHGetSpecialFolderPathW");
 	if (pfnSHGetSpecialFolderPath==NULL)
 		return OleSetOleError(E_NOTIMPL);
@@ -442,7 +442,7 @@ static PyObject *PySHGetFolderPath(PyObject *self, PyObject *args)
 	typedef HRESULT (WINAPI * PFNSHGetFolderPath)(HWND, int, HANDLE, DWORD, LPWSTR);
 
 	// @comm This method is only available if you have shfolder.dll installed, included with certain shell updates.
-	HMODULE hmod = LoadLibrary("shfolder.dll");
+	HMODULE hmod = LoadLibrary(TEXT("shfolder.dll"));
 	PFNSHGetFolderPath pfnSHGetFolderPath = NULL;
 	if (hmod) pfnSHGetFolderPath=(PFNSHGetFolderPath)GetProcAddress(hmod, "SHGetFolderPathW");
 	if (pfnSHGetFolderPath==NULL) {
@@ -485,7 +485,7 @@ static PyObject *PySHGetFolderLocation(PyObject *self, PyObject *args)
 	typedef HRESULT (WINAPI * PFNSHGetFolderLocation)(HWND, int, LPITEMIDLIST *);
 
 	// @comm This method is only available if you have a late version of shfolder.dll installed, included with certain shell updates.
-	HMODULE hmod = LoadLibrary("shfolder.dll");
+	HMODULE hmod = LoadLibrary(TEXT("shfolder.dll"));
 	PFNSHGetFolderLocation pfnSHGetFolderLocation = NULL;
 	if (hmod) pfnSHGetFolderLocation=(PFNSHGetFolderLocation)GetProcAddress(hmod, "SHGetFolderLocationW");
 	if (pfnSHGetFolderLocation==NULL) {
@@ -534,7 +534,7 @@ static PyObject *PySHEmptyRecycleBin(PyObject *self, PyObject *args)
 
 	typedef HRESULT (* PFNSHEmptyRecycleBin)(HWND, LPSTR, DWORD );
 	// @comm This method is only available in shell version 4.71.  If the function is not available, a COM Exception with HRESULT=E_NOTIMPL will be raised.
-	HMODULE hmod = GetModuleHandle("shell32.dll");
+	HMODULE hmod = GetModuleHandle(TEXT("shell32.dll"));
 	PFNSHEmptyRecycleBin pfnSHEmptyRecycleBin = (PFNSHEmptyRecycleBin)GetProcAddress(hmod, "SHEmptyRecycleBinA");
 	if (pfnSHEmptyRecycleBin==NULL)
 		return OleSetOleError(E_NOTIMPL);
@@ -565,19 +565,23 @@ static PyObject *PySHGetDesktopFolder(PyObject *self, PyObject *args)
 // @pymethod |shell|SHUpdateImage|Notifies the shell that an image in the system image list has changed.
 static PyObject *PySHUpdateImage(PyObject *self, PyObject *args)
 {
-	char *szHash;
+	PyObject *obHash;
 	UINT flags;
 	int index, imageIndex;
-	if(!PyArg_ParseTuple(args, "siii:SHUpdateImage", 
-			&szHash, 
+	if(!PyArg_ParseTuple(args, "Oiii:SHUpdateImage", 
+			&obHash, 
 			&index, 
 			&flags, 
 			&imageIndex))
 		return NULL;
 
+	TCHAR *szHash;
+	if (!PyWinObject_AsTCHAR(obHash, &szHash))
+		return NULL;
 	PY_INTERFACE_PRECALL;
 	SHUpdateImage(szHash, index, flags, imageIndex);
 	PY_INTERFACE_POSTCALL;
+	PyWinObject_FreeTCHAR(szHash);
 	Py_INCREF(Py_None);
 	return Py_None;
 }

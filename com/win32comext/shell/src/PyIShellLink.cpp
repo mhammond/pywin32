@@ -5,7 +5,7 @@
 #include "PyIShellLink.h"
 
 
-PyObject *PyObject_FromWIN32_FIND_DATA(WIN32_FIND_DATAA &findData);
+PyObject *PyObject_FromWIN32_FIND_DATA(WIN32_FIND_DATA &findData);
 
 
 // @doc - This file contains autoduck documentation
@@ -34,7 +34,7 @@ PyObject *PyIShellLink::GetPath(PyObject *self, PyObject *args)
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
-	WIN32_FIND_DATAA fd;
+	WIN32_FIND_DATA fd;
 	// @pyparm int|fFlags||One of the following values:
 	// @flagh Value|Description
 	// @flag SLGP_SHORTPATH|Retrieves the standard short (8.3 format) file name.  
@@ -46,7 +46,7 @@ PyObject *PyIShellLink::GetPath(PyObject *self, PyObject *args)
 	if ( !PyArg_ParseTuple(args, "l|i:GetPath", &fFlags, &cchMaxPath) )
 		return NULL;
 	HRESULT hr;
-	char *pszFile = (char *)malloc(cchMaxPath);
+	TCHAR *pszFile = (TCHAR *)malloc(cchMaxPath * sizeof(TCHAR));
 	if (pszFile==NULL) {
 		PyErr_SetString(PyExc_MemoryError, "allocating string buffer");
 		return NULL;
@@ -60,8 +60,8 @@ PyObject *PyIShellLink::GetPath(PyObject *self, PyObject *args)
 		return OleSetOleError(hr);
 	}
 	PyObject *obFD = PyObject_FromWIN32_FIND_DATA(fd);
-	PyObject *ret = Py_BuildValue("sO", pszFile, obFD);
-	Py_XDECREF(obFD);
+	PyObject *obFile = PyWinObject_FromTCHAR(pszFile);
+	PyObject *ret = Py_BuildValue("NN", obFile, obFD);
 	free(pszFile);
 	return ret;
 }
@@ -122,7 +122,7 @@ PyObject *PyIShellLink::GetDescription(PyObject *self, PyObject *args)
 	if ( !PyArg_ParseTuple(args, "|i:GetDescription", &cchMaxName) )
 		return NULL;
 	HRESULT hr;
-	char *pszName = (char *)malloc(cchMaxName * sizeof(char) );
+	TCHAR *pszName = (TCHAR *)malloc(cchMaxName * sizeof(TCHAR) );
 	if (pszName==NULL) {
 		PyErr_SetString(PyExc_MemoryError, "allocating string buffer");
 		return NULL;
@@ -135,7 +135,7 @@ PyObject *PyIShellLink::GetDescription(PyObject *self, PyObject *args)
 	if ( FAILED(hr) )
 		ret = OleSetOleError(hr);
 	else
-		ret = PyString_FromString(pszName);
+		ret = PyWinObject_FromTCHAR(pszName);
 	free(pszName);
 	return ret;
 }
@@ -146,13 +146,17 @@ PyObject *PyIShellLink::SetDescription(PyObject *self, PyObject *args)
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
-	char *pszName;
-	if ( !PyArg_ParseTuple(args, "s:SetDescription", &pszName) )
+	PyObject *obName;
+	if ( !PyArg_ParseTuple(args, "O:SetDescription", &obName) )
+		return NULL;
+	TCHAR *pszName;
+	if (!PyWinObject_AsTCHAR(obName, &pszName))
 		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISL->SetDescription( pszName );
 	PY_INTERFACE_POSTCALL;
+	PyWinObject_FreeTCHAR(pszName);
 
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
@@ -171,7 +175,7 @@ PyObject *PyIShellLink::GetWorkingDirectory(PyObject *self, PyObject *args)
 	if ( !PyArg_ParseTuple(args, "|i:GetWorkingDirectory", &cchMaxName) )
 		return NULL;
 	HRESULT hr;
-	char *pszName = (char *)malloc(cchMaxName * sizeof(char) );
+	TCHAR *pszName = (TCHAR *)malloc(cchMaxName * sizeof(TCHAR) );
 	if (pszName==NULL) {
 		PyErr_SetString(PyExc_MemoryError, "allocating string buffer");
 		return NULL;
@@ -184,7 +188,7 @@ PyObject *PyIShellLink::GetWorkingDirectory(PyObject *self, PyObject *args)
 	if ( FAILED(hr) )
 		ret = OleSetOleError(hr);
 	else
-		ret = PyString_FromString(pszName);
+		ret = PyWinObject_FromTCHAR(pszName);
 	free(pszName);
 	return ret;
 }
@@ -195,13 +199,17 @@ PyObject *PyIShellLink::SetWorkingDirectory(PyObject *self, PyObject *args)
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
-	LPCSTR pszDir;
-	if ( !PyArg_ParseTuple(args, "s:SetWorkingDirectory", &pszDir) )
+	PyObject *obName;
+	if ( !PyArg_ParseTuple(args, "O:SetWorkingDirectory", &obName) )
+		return NULL;
+	TCHAR *pszName;
+	if (!PyWinObject_AsTCHAR(obName, &pszName))
 		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	hr = pISL->SetWorkingDirectory( pszDir );
+	hr = pISL->SetWorkingDirectory( pszName );
 	PY_INTERFACE_POSTCALL;
+	PyWinObject_FreeTCHAR(pszName);
 
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
@@ -221,7 +229,7 @@ PyObject *PyIShellLink::GetArguments(PyObject *self, PyObject *args)
 	if ( !PyArg_ParseTuple(args, "|i:GetArguments", &cchMaxName) )
 		return NULL;
 	HRESULT hr;
-	char *pszName = (char *)malloc(cchMaxName * sizeof(char) );
+	TCHAR *pszName = (TCHAR *)malloc(cchMaxName * sizeof(TCHAR) );
 	if (pszName==NULL) {
 		PyErr_SetString(PyExc_MemoryError, "allocating string buffer");
 		return NULL;
@@ -234,7 +242,7 @@ PyObject *PyIShellLink::GetArguments(PyObject *self, PyObject *args)
 	if ( FAILED(hr) )
 		ret = OleSetOleError(hr);
 	else
-		ret = PyString_FromString(pszName);
+		ret = PyWinObject_FromTCHAR(pszName);
 	free(pszName);
 	return ret;
 }
@@ -245,14 +253,18 @@ PyObject *PyIShellLink::SetArguments(PyObject *self, PyObject *args)
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
-	LPCSTR pszArgs;
+	PyObject *obArgs;
 	// @pyparm string|args||The new arguments.
-	if ( !PyArg_ParseTuple(args, "s:SetArguments", &pszArgs) )
+	if ( !PyArg_ParseTuple(args, "O:SetArguments", &obArgs) )
+		return NULL;
+	TCHAR *pszArgs;
+	if (!PyWinObject_AsTCHAR(obArgs, &pszArgs))
 		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISL->SetArguments( pszArgs );
 	PY_INTERFACE_POSTCALL;
+	PyWinObject_FreeTCHAR(pszArgs);
 
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
@@ -355,7 +367,7 @@ PyObject *PyIShellLink::GetIconLocation(PyObject *self, PyObject *args)
 	int cchIconPath = _MAX_PATH;
 	if ( !PyArg_ParseTuple(args, "|i:GetIconLocation", &cchIconPath) )
 		return NULL;
-	char *pszIconPath = (char *)malloc(cchIconPath * sizeof(char) );
+	TCHAR *pszIconPath = (TCHAR *)malloc(cchIconPath * sizeof(TCHAR) );
 	if (pszIconPath==NULL) {
 		PyErr_SetString(PyExc_MemoryError, "allocating string buffer");
 		return NULL;
@@ -370,7 +382,7 @@ PyObject *PyIShellLink::GetIconLocation(PyObject *self, PyObject *args)
 	if ( FAILED(hr) )
 		ret = OleSetOleError(hr);
 	else
-		ret = Py_BuildValue("si", pszIconPath, iIcon);
+		ret = Py_BuildValue("Ni", PyWinObject_FromTCHAR(pszIconPath), iIcon);
 	free(pszIconPath);
 	return ret;
 }
@@ -381,16 +393,20 @@ PyObject *PyIShellLink::SetIconLocation(PyObject *self, PyObject *args)
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
-	LPCSTR pszIconPath;
+	PyObject *obIconPath;
 	// @pyparm string|iconPath||Path to the file with the icon.
 	// @pyparm int|iIcon||Index of the icon.
 	int iIcon;
-	if ( !PyArg_ParseTuple(args, "si:SetIconLocation", &pszIconPath, &iIcon) )
+	if ( !PyArg_ParseTuple(args, "Oi:SetIconLocation", &obIconPath, &iIcon) )
+		return NULL;
+	TCHAR *pszIconPath;
+	if (!PyWinObject_AsTCHAR(obIconPath, &pszIconPath))
 		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISL->SetIconLocation( pszIconPath, iIcon );
 	PY_INTERFACE_POSTCALL;
+	PyWinObject_FreeTCHAR(pszIconPath);
 
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
@@ -405,16 +421,20 @@ PyObject *PyIShellLink::SetRelativePath(PyObject *self, PyObject *args)
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
-	LPCSTR pszPathRel;
+	PyObject *obPathRel;
 	// @pyparm string|relPath||The relative path.
 	// @pyparm int|reserved|0|Reserved - must be zero.
 	DWORD dwReserved = 0;
-	if ( !PyArg_ParseTuple(args, "s|l:SetRelativePath", &pszPathRel, &dwReserved) )
+	if ( !PyArg_ParseTuple(args, "O|l:SetRelativePath", &obPathRel, &dwReserved) )
+		return NULL;
+	TCHAR *pszPathRel;
+	if (!PyWinObject_AsTCHAR(obPathRel, &pszPathRel))
 		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISL->SetRelativePath( pszPathRel, dwReserved );
 	PY_INTERFACE_POSTCALL;
+	PyWinObject_FreeTCHAR(pszPathRel);
 
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
@@ -474,13 +494,16 @@ PyObject *PyIShellLink::SetPath(PyObject *self, PyObject *args)
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
-	LPCSTR pszFile;
-	// @pyparm string|path||The path and filename of the link.
-	if ( !PyArg_ParseTuple(args, "s:SetPath", &pszFile) )
+	PyObject *obName;
+	if ( !PyArg_ParseTuple(args, "O:SetDescription", &obName) )
 		return NULL;
+	TCHAR *pszName;
+	if (!PyWinObject_AsTCHAR(obName, &pszName))
+		return NULL;
+	// @pyparm string|path||The path and filename of the link.
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	hr = pISL->SetPath( pszFile );
+	hr = pISL->SetPath( pszName );
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
