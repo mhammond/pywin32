@@ -21,6 +21,7 @@ CFG=PyWise - Win32 Debug
 !MESSAGE "PyWise - Win32 Debug" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "PyWise - Win32 Python 16 Release" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "PyWise - Win32 Python 20 Release" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "PyWise - Win32 Python 21 Release" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE 
 
 # Begin Project
@@ -139,6 +140,35 @@ LINK32=link.exe
 # ADD BASE LINK32 ..\..\..\Python-cvs\pcbuild\python16.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386 /out:"Build\Release\PyWise16.dll"
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386 /out:"Build\Release\PyWise20.dll"
 
+!ELSEIF  "$(CFG)" == "PyWise - Win32 Python 21 Release"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "PyWise___Win32_Python_21_Release"
+# PROP BASE Intermediate_Dir "PyWise___Win32_Python_21_Release"
+# PROP BASE Ignore_Export_Lib 0
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "Build\Temp"
+# PROP Intermediate_Dir "Build\Temp\Release21"
+# PROP Ignore_Export_Lib 0
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c
+# SUBTRACT BASE CPP /Fr
+# ADD CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c
+# SUBTRACT CPP /Fr
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
+# ADD BASE RSC /l 0x409 /d "NDEBUG"
+# ADD RSC /l 0x409 /d "NDEBUG"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386 /out:"Build\Release\PyWise20.dll"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386 /out:"Build\Release\PyWise21.dll"
+
 !ENDIF 
 
 # Begin Target
@@ -147,6 +177,7 @@ LINK32=link.exe
 # Name "PyWise - Win32 Debug"
 # Name "PyWise - Win32 Python 16 Release"
 # Name "PyWise - Win32 Python 20 Release"
+# Name "PyWise - Win32 Python 21 Release"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;hpj;bat;for;f90"
