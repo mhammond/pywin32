@@ -11,6 +11,14 @@
 
 #include "PyIMAPIProp.h"
 
+// A little helper just for this file
+static PyObject* OleSetTypeError(char *msg)
+{
+	PyErr_SetString(PyExc_TypeError, msg);
+	return NULL;
+}
+
+
 PyIMAPIProp::PyIMAPIProp(IUnknown *pDisp) :
 	PyIUnknown(pDisp)
 {
@@ -159,7 +167,7 @@ PyObject *PyIMAPIProp::CopyTo(PyObject *self, PyObject *args)
 		ciidExclude = PySequence_Length(obIIDExclude);
 		pExclude = new IID[ciidExclude];
 		if (pExclude==NULL) {
-			OleSetMemoryError("Allocating array of IID's");
+			PyErr_SetString(PyExc_MemoryError, "Allocating array of IID's");
 			goto error;
 		}
 		for (ULONG i=0;i<ciidExclude;i++) {
