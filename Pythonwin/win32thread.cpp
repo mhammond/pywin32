@@ -119,8 +119,12 @@ void CProtectedWinThread::PumpMessages()
 		{
 			// pump message, but quit on WM_QUIT
 			if (!PumpMessage()) {
-#if defined(_DEBUG) && _MFC_VER < 0x0710
+#if defined(_DEBUG)
+#	if _MFC_VER < 0x0710
 				m_nDisablePumpCount--; // application must NOT die
+#	else
+				pState->m_nDisablePumpCount--; // application must NOT die
+#	endif
 #endif
 				return;
 			}
