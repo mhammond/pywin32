@@ -47,6 +47,7 @@ generates Windows .hlp files.
 #include "PyIEnumSTATPROPSTG.h"
 #include "PyIEnumFORMATETC.h"
 #include "PyIDataObject.h"
+#include "PyIOleWindow.h"
 
 //PyObject *CLSIDMapping;  // Maps CLSIDs onto PyClassObjects
 PyObject *g_obPyCom_MapIIDToType = NULL; // map of IID's to client types.
@@ -244,6 +245,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL       ( LockBytes),
 	PYCOM_INTERFACE_IID_ONLY   ( Marshal ),
 	PYCOM_INTERFACE_CLIENT_ONLY( Moniker),
+	PYCOM_INTERFACE_FULL       ( OleWindow),
 	PYCOM_INTERFACE_FULL       ( Persist),
 	PYCOM_INTERFACE_FULL       ( PersistFile),
 	PYCOM_INTERFACE_FULL       ( PersistPropertyBag),
