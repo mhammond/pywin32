@@ -981,6 +981,29 @@ PyObject *PyGetDiskFreeSpace (PyObject *self, PyObject *args)
   // the total number of free clusters on the disk and the total number of clusters on the disk.
   // <nl>If the function fails, an error is returned.
 }
+
+// @pymethod tuple|win32api|GetDiskFreeSpaceEx|Retrieves information about the specified disk, including the amount of free space available.
+PyObject *PyGetDiskFreeSpaceEx (PyObject *self, PyObject *args)
+{
+  char *path = NULL;
+  // @pyparm string|rootPath||Specifies the root directory of the disk to return information about. If rootPath is None, the method uses the root of the current directory. 
+  if (!PyArg_ParseTuple (args, "|z:GetDiskFreeSpaceEx", &path))
+	return NULL;
+  ULARGE_INTEGER freeBytes, totalBytes, totalFree;
+  // @pyseeapi GetDiskFreeSpaceEx
+  PyW32_BEGIN_ALLOW_THREADS
+  BOOL ok = ::GetDiskFreeSpaceEx(path, &freeBytes, &totalBytes, &totalFree);
+  PyW32_END_ALLOW_THREADS
+  if (!ok)
+	return ReturnAPIError("GetDiskSpaceFreeEx");
+  return Py_BuildValue ("LLL",  freeBytes, totalBytes, totalFree);
+  // @rdesc The return value is a tuple of 3 integers, containing
+  // the number of free bytes available
+  // the total number of bytes available on disk
+  // the total number of free bytes on disk
+  // the above values may be less, if user-quotas are in effect
+  // <nl>If the function fails, an error is returned.
+}
 // @pymethod int|win32api|GetAsyncKeyState|Retrieves the status of the specified key.
 static PyObject *
 PyGetAsyncKeyState(PyObject * self, PyObject * args)
@@ -3834,6 +3857,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetCurrentProcess",   PyGetCurrentProcess,   1}, // @pymeth GetCurrentProcess|Returns a pseudohandle for the current process.
 	{"GetConsoleTitle",		PyGetConsoleTitle,  1}, // @pymeth GetConsoleTitle|Return the application's console title.
 	{"GetDiskFreeSpace",	PyGetDiskFreeSpace, 1}, // @pymeth GetDiskFreeSpace|Retrieves information about a disk.
+	{"GetDiskFreeSpaceEx",	PyGetDiskFreeSpaceEx, 1}, // @pymeth GetDiskFreeSpaceEx|Retrieves information about a disk.
 	{"GetDomainName",		PyGetDomainName, 1}, 	// @pymeth GetDomainName|Returns the current domain name
 	{"GetEnvironmentVariable", PyGetEnvironmentVariable, 1}, // @pymeth GetEnvironmentVariable|Retrieves the value of an environment variable.
 	{"GetFileAttributes",   PyGetFileAttributes,1}, // @pymeth GetFileAttributes|Retrieves the attributes for the named file.
