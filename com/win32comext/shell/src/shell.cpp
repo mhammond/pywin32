@@ -26,6 +26,7 @@ generates Windows .hlp files.
 #include "PyIBrowserFrameOptions.h"
 #include "PyIPersist.h"
 #include "PyIPersistFolder.h"
+#include "PyIColumnProvider.h"
 
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
 
@@ -284,6 +285,106 @@ BOOL PyObject_AsRECT( PyObject *ob, RECT *r)
 PyObject *PyObject_FromRECT(const RECT *r)
 {
 	return Py_BuildValue("iiii", r->left, r->top, r->right, r->bottom);
+}
+
+static BOOL _CopyToWCHAR(PyObject *ob, WCHAR *buf, unsigned buf_size)
+{
+	WCHAR *sz;
+	if (!PyWinObject_AsWCHAR(ob, &sz, FALSE))
+		return FALSE;
+	wcsncpy(buf, sz, buf_size);
+	buf[buf_size-1] = L'\0';
+	PyWinObject_FreeWCHAR(sz);
+	return TRUE;
+}
+#define COPY_TO_WCHAR(ob, buf) _CopyToWCHAR((ob), (buf), sizeof((buf))/sizeof((buf)[0]))
+
+BOOL PyObject_AsSHCOLUMNID(PyObject *ob, SHCOLUMNID *p)
+{
+	PyObject *obGUID;
+	if (!PyArg_ParseTuple(ob, "Oi:SHCOLUMNID tuple",
+	     &obGUID, &p->pid))
+		return FALSE;
+	return PyWinObject_AsIID(obGUID, &p->fmtid);
+}
+
+PyObject *PyObject_FromSHCOLUMNID(LPCSHCOLUMNID p)
+{
+	PyObject *obIID = PyWinObject_FromIID(p->fmtid);
+	if (!obIID)
+		return NULL;
+	return Py_BuildValue("Ni", obIID, p->pid);
+}
+
+BOOL PyObject_AsSHCOLUMNINIT(PyObject *ob, SHCOLUMNINIT *p)
+{
+	PyObject *obName;
+	if (!PyArg_ParseTuple(ob, "iiO:SHCOLUMNINIT tuple",
+	     &p->dwFlags, &p->dwReserved, &obName))
+		return FALSE;
+	return COPY_TO_WCHAR(ob, p->wszFolder);
+}
+
+PyObject *PyObject_FromSHCOLUMNINIT(LPCSHCOLUMNINIT p)
+{
+	PyObject *obName = PyWinObject_FromWCHAR(p->wszFolder);
+	if (!obName)
+		return NULL;
+	return Py_BuildValue("iiN", p->dwFlags, p->dwReserved, obName);
+}
+
+BOOL PyObject_AsSHCOLUMNINFO(PyObject *ob, SHCOLUMNINFO *p)
+{
+	PyObject *obID, *obTitle, *obDescription;
+	if (!PyArg_ParseTuple(ob, "OiiiiOO:SHCOLUMNINFO tuple",
+	     &obID, &p->vt, &p->fmt, &p->cChars, &p->csFlags,
+	     &obTitle, &obDescription))
+		return FALSE;
+	if (!PyObject_AsSHCOLUMNID(obID, &p->scid))
+		return FALSE;
+	if (!COPY_TO_WCHAR(obTitle, p->wszTitle))
+		return FALSE;
+	if (!COPY_TO_WCHAR(obDescription, p->wszDescription))
+		return FALSE;
+	return TRUE;
+}
+PyObject *PyObject_FromSHCOLUMNINFO(LPCSHCOLUMNINFO p)
+{
+	PyObject *rc = NULL, *obID = NULL;
+	PyObject *obDescription = NULL, *obTitle = NULL;
+	obID = PyObject_FromSHCOLUMNID(&p->scid);
+	if (!obID) goto done;
+	obTitle = PyWinObject_FromWCHAR(p->wszTitle);
+	if (!obTitle) goto done;
+	obDescription = PyWinObject_FromWCHAR(p->wszDescription);
+	if (!obDescription) goto done;
+	rc = Py_BuildValue("OiiiiOO", obID, p->vt, p->fmt, p->cChars, 
+	                   p->csFlags, obTitle, obDescription);
+done:
+	Py_XDECREF(obID);
+	Py_XDECREF(obDescription);
+	Py_XDECREF(obTitle);
+	return rc;
+}
+
+BOOL PyObject_AsSHCOLUMNDATA(PyObject *, SHCOLUMNDATA *)
+{
+	PyErr_SetString(PyExc_NotImplementedError, 
+	                "Not sure how to handle SHCOLUMNDATA pwszExt, and we don't need this anyway :)");
+	return FALSE;
+}
+
+PyObject *PyObject_FromSHCOLUMNDATA(LPCSHCOLUMNDATA p)
+{
+	PyObject *obFile = PyWinObject_FromWCHAR(p->wszFile);
+	if (!obFile) return NULL;
+	PyObject *obExt = PyWinObject_FromWCHAR(p->pwszExt);
+	if (!obExt) {
+		Py_DECREF(obFile);
+		return NULL;
+	}
+	return Py_BuildValue("iiiNN", p->dwFlags, p->dwFileAttributes, p->dwReserved,
+	                     obExt, obFile);
 }
 
 //////////////////////////////////////////////////
@@ -752,6 +853,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL(EnumIDList),
 	PYCOM_INTERFACE_FULL(BrowserFrameOptions),
 	PYCOM_INTERFACE_FULL(PersistFolder),
+	PYCOM_INTERFACE_FULL(ColumnProvider),
 	// IID_ICopyHook doesn't exist - hack it up
 	{ &IID_IShellCopyHook, "IShellCopyHook", "IID_IShellCopyHook", &PyICopyHook::type, GET_PYGATEWAY_CTOR(PyGCopyHook) },
 	{ &IID_IShellCopyHook, "ICopyHook", "IID_ICopyHook", NULL, NULL  },
@@ -811,4 +913,48 @@ extern "C" __declspec(dllexport) void initshell()
 	ADD_CONSTANT(HOTKEYF_EXT);
 	ADD_CONSTANT(HOTKEYF_SHIFT);
 	ADD_IID(CLSID_ShellLink);
+	ADD_IID(CLSID_ShellDesktop);
+	ADD_IID(CLSID_NetworkPlaces);
+	ADD_IID(CLSID_NetworkDomain);
+	ADD_IID(CLSID_NetworkServer);
+	ADD_IID(CLSID_NetworkShare);
+	ADD_IID(CLSID_MyComputer);
+	ADD_IID(CLSID_Internet);
+	ADD_IID(CLSID_ShellFSFolder);
+	ADD_IID(CLSID_RecycleBin);
+	ADD_IID(CLSID_ControlPanel);
+	ADD_IID(CLSID_Printers);
+	ADD_IID(CLSID_MyDocuments);
+
+	ADD_IID(FMTID_Intshcut);
+	ADD_IID(FMTID_InternetSite);
+
+	ADD_IID(CGID_Explorer);
+	ADD_IID(CGID_ShellDocView);
+
+#if (_WIN32_IE >= 0x0400)
+	ADD_IID(CGID_ShellServiceObject);
+	ADD_IID(CGID_ExplorerBarDoc);
+#else
+#	pragma message("Please update your SDK headers - IE5 features missing!")
+#endif
+
+#if (_WIN32_IE >= 0x0500)
+
+	ADD_IID(FMTID_ShellDetails);
+	ADD_IID(FMTID_Storage);
+	ADD_IID(FMTID_ImageProperties);
+	ADD_IID(FMTID_Displaced);
+	ADD_IID(FMTID_Briefcase);
+	ADD_IID(FMTID_Misc);
+	ADD_IID(FMTID_WebView);
+	ADD_IID(FMTID_AudioSummaryInformation);
+	ADD_IID(FMTID_Volume);
+	ADD_IID(FMTID_Query);
+	ADD_IID(FMTID_SummaryInformation);
+	ADD_IID(FMTID_MediaFileSummaryInformation);
+	ADD_IID(FMTID_ImageSummaryInformation);
+#else
+#	pragma message("Please update your SDK headers - IE5 features missing!")
+#endif
 }
