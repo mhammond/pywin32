@@ -1221,6 +1221,28 @@ static PyObject *pythoncom_CreateTypeLib(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(pcti, IID_ICreateTypeLib, FALSE);
 }
 
+
+// @pymethod <o ICreateTypeLib2>|pythoncom|CreateTypeLib2|Provides access to a new object instance that supports the ICreateTypeLib2 interface.
+static PyObject *pythoncom_CreateTypeLib2(PyObject *self, PyObject *args)
+{
+	long syskind;
+	PyObject *obfname;
+	if (!PyArg_ParseTuple(args, "lO", &syskind, &obfname))
+		return NULL;
+	BSTR fname;
+	if (!PyWinObject_AsBstr(obfname, &fname))
+		return NULL;
+	ICreateTypeLib2 *pcti = NULL;
+	PY_INTERFACE_PRECALL;
+	HRESULT hr = CreateTypeLib2((SYSKIND)syskind, fname, &pcti);
+	PY_INTERFACE_POSTCALL;
+	PyWinObject_FreeBstr(fname);
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	return PyCom_PyObjectFromIUnknown(pcti, IID_ICreateTypeLib2, FALSE);
+}
+
+
 // @pymethod int|pythoncom|PumpWaitingMessages|Pumps all waiting messages for the current thread.
 // @comm It is sometimes necessary for a COM thread to have a message loop.  This function
 // can be used with <om win32event.MsgWaitForMultipleObjects> to pump all messages
@@ -1489,6 +1511,7 @@ static struct PyMethodDef pythoncom_methods[]=
 	{ "CreateFileMoniker",   pythoncom_CreateFileMoniker, 1 }, // @pymeth CreateFileMoniker|Creates a file moniker given a file name.
 	{ "CreatePointerMoniker", pythoncom_CreatePointerMoniker, 1 }, // @pymeth CreatePointerMoniker|Creates a pointer moniker based on a pointer to an object.
 	{ "CreateTypeLib",       pythoncom_CreateTypeLib, 1}, // @pymeth CreateTypeLib|Provides access to a new object instance that supports the ICreateTypeLib interface.
+	{ "CreateTypeLib2",       pythoncom_CreateTypeLib2, 1}, // @pymeth CreateTypeLib2|Provides access to a new object instance that supports the ICreateTypeLib2 interface.
 #endif // MS_WINCE
 	{ "EnableQuitMessage",   pythoncom_EnableQuitMessage, 1 }, // @pymeth EnableQuitMessage|Indicates the thread PythonCOM should post a WM_QUIT message to.
 	{ "FUNCDESC",            Py_NewFUNCDESC, 1}, // @pymeth FUNCDESC|Returns a new <o FUNCDESC> object.

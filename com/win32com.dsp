@@ -278,6 +278,10 @@ SOURCE=.\win32com\src\extensions\PyICreateTypeLib.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32com\src\extensions\PyICreateTypeLib2.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32com\src\extensions\PyIDataObject.cpp
 # End Source File
 # Begin Source File

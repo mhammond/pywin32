@@ -229,6 +229,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL       ( ConnectionPointContainer),
 	PYCOM_INTERFACE_CLIENT_ONLY( CreateTypeInfo),
 	PYCOM_INTERFACE_CLIENT_ONLY( CreateTypeLib),
+	PYCOM_INTERFACE_CLIENT_ONLY( CreateTypeLib2),
 	PYCOM_INTERFACE_FULL       ( DataObject ),
 	PYCOM_INTERFACE_FULL       ( DropSource),
 	PYCOM_INTERFACE_FULL       ( DropTarget),
