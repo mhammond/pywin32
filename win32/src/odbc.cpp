@@ -1,8 +1,12 @@
 /*
-  odbcmodule.c
+  odbc.cpp
+  $Id$
 
   Donated to the Python community by EShop, who can not
   support it!
+  
+  Note that this can be built on non-Windows systems by a C (not C++)
+  compiler, so should avoid C++ constructs and comments.
 
  */
 /* @doc - this file contains autoduck documentation in the comments. */
@@ -18,6 +22,12 @@
 #include <import.h>
 
 #include <time.h>
+
+#ifndef _cplusplus
+#define bool int
+#define true 1
+#define false 0
+#endif
 
 /* Python 1.5.2 doesn't have PyObject_New
    PyObject_NEW is not *quite* as safe, but seem to work fine
@@ -1262,8 +1272,9 @@ static PyObject *odbcCurExec(PyObject *self, PyObject *args)
 
 	if (rows)
 	{
+		int i;
 		/* handle insert cases... */
-		for(int i = 0; i < PySequence_Length(rows); i++)
+		for(i = 0; i < PySequence_Length(rows); i++)
 		{
 			inputvars = PySequence_GetItem(rows, i);
 			if (!PySequence_Check(inputvars))
