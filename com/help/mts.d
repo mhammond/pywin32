@@ -27,11 +27,14 @@ overwrite the changes MTS did. To create a package, open up the
 Transaction Server Explorer from the Option Pack, go to My Computer ->
 Packages Installed, right click and select new and create an empty
 package. From there you can call the package whatever you want and let
-it run as whomever. Then open up the package you created, right click on
-Components, select New Component, and finally select Import components
-that are already registered, from which you highlight your python
-component it provides in the list. You can also right click on Roles
-in your package to create a role you can put users or groups in.
+it run as whomever. Then open up the package you created, right click
+on Components, select New Component, and finally select Import
+components that are already registered, from which you highlight your
+python component it provides in the list. You can also right click on
+Roles in your package to create a role you can put users or groups
+in. The last thing you need to do is right-click on your component in
+the package, select properties, and finally transaction. Then select
+the radio button next to: 'Requires a transaction'.
 
 <nl>As stated before, this example is interested in ObjectContext. The
 ObjectContext interface is like a friend doing things on your
@@ -102,39 +105,28 @@ class Mts:
 		mtsobj = win32com.client.Dispatch("MTXAS.AppServer.1")
 		mts=mtsobj.GetObjectContext()
 
-		if mts == None:
+		if mts is None:
 			#com obj -- no mts
 			result='error: mts not available'
 		else:
-		#mts is available
-		#first check if they are in the right role	
-		if mts.IsCallerInRole('bedrock'):
-			moms={'wilma':'bambam','betty':'pebbles'}
-			person=str(person) #convert from unicode to string
-			if moms.has_key(person):
-				mts.SetComplete()
-				result=moms[person]
+			#mts is available
+			#first check if they are in the right role	
+			if mts.IsCallerInRole('bedrock'):
+				moms={'wilma':'bambam','betty':'pebbles'}
+				person=str(person) #convert from unicode to string
+				if moms.has_key(person):
+					mts.SetComplete()
+					result=moms[person]
+				else:
+					result='not in bedrock'
+					mts.SetAbort()
 			else:
-				result='not in bedrock'
-				mts.SetAbort()
-		else:
-			result='sorry can't let you know'
+				result='sorry can't let you know'
 		return result
-def Reg():
-	#don't use this after you import into MTS
-	import win32com.server.register
-	win32com.server.register.UseCommandLine(Mts)
-
-def UnReg():
-	from win32com.server.register import UnregisterServer
-	UnregisterServer(Mts()._reg_clsid_)
 
 if __name__=='__main__':
-	import sys
-	if "/unreg" in sys.argv:
-		UnReg()
-	else:
-		Reg()
+	import win32com.server.register
+	win32com.server.register.UseCommandLine(Mts)
 		
 
 @ex Have a great time with programming with python!

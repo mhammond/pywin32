@@ -9,17 +9,16 @@ http://www.microsoft.com/windows/server/Technical/directory/adsilinks.asp.
 Microsoft has documentation for using languages other than python in the
 sdk.
 
-<nl>This documentation was generously provided by John F Nielson (nielsenjf@my-deja.com)
-
-<nl>Before doing anything else you need to go through the next two steps:
+@comm <nl>Before doing anything else you need to go through the next two steps:
 
 <nl>
+@flagh Task|Description
 @flag Create the Global Providers object|adsiNameSpaces =
 win32com.client.Dispatch('ADsNameSpaces')
 @flag Now get the LDAP Provider object|ldapNameSpace =
 adsiNameSpaces.getobject("","LDAP:") 
 
-<nl>Now you have to decide how you want to access the exchange server. I
+@comm <nl>Now you have to decide how you want to access the exchange server. I
 have chosen to authenticate in which case you need to use opendsobject
 
 @flag The login and domain|logon_ex='cn=wilma, dc=bedrock'
@@ -74,6 +73,31 @@ newobj.put('NT-Security-Descriptor',assoc_nt)
 newobj.put('NT-Security-Descriptor',nt_security)
 newobj.SetInfo  
 
+@ex Deleting an account from  exchange|
+#Here we connect to Recipients and then
+#delete a user
+#This is an example with more generic code:
+#data is a dictionary that contains info
+#that may be dynamic like the domain,
+#admin login, or exchange server
+#notice I am using a try/except clause here
+#to catch any exceptions
+try:
+  #ADSI here       
+  # Create the Global Providers object
+  logon_ex='cn='+data['NT_admin']+', dc='+data['NT_domain']+',cn=admin'
+  ex_list_path="LDAP://"+data['EX_site_srv']+"/cn=Recipients,ou="\
+	+data['ou']+",o="+data['o']
+  adsi = win32com.client.Dispatch('ADsNameSpaces')
+  #
+  # Now get the LDAP Provider object 
+  ldap = adsi.getobject("","LDAP:")
+  dsobj = ldap.OpenDSObject(ex_list_path,logon_ex,data['NT_password'],0);
+  dsobj.Getinfo()
+  dsobj.Delete("OrganizationalPerson", "cn="+login)
+  dsobj.Setinfo()
+except:
+  print 'Error deleting '+login, sys.exc_type , sys.exc_value
 
 @ex Adding to a distribution list|
 # I've added code here to make it a more generic example
