@@ -50,25 +50,26 @@ def make_doc_summary(inFile, outFile):
 					modName = string.strip(extra[0][7:])
 					modDoc, lineNo = GetComments(line, lineNo, lines)
 				lineNo += 1
-			elif line[:10]=="// @pyswig":
-				doc, lineNo = GetComments(line, lineNo, lines)
-				curMethod = doc[8:], []
-				methods.append(curMethod)
-			elif line[:11]=="// @pymeth ":
-				doc, lineNo = GetComments(line, lineNo, lines)
-				nativeMethods.append(line+doc)
 			elif line[:7]=="#define" and not bInRawBlock:
 				cname = string.split(line)[1]
 				doc, lineNo = GetComments(line, lineNo, lines)
 				constants.append((cname, doc))
-			else:
-				pos = string.find(line, '// @')
-				if pos>=0:
+			elif line[:2]=="//":
+				rest = line[2:].strip()
+				if rest.startswith("@pyswig"):
 					doc, lineNo = GetComments(line, lineNo, lines)
-					if curMethod:
-						curMethod[1].append("// " + doc + '\n')
-					else:
-						extra_tags.append("// " + doc + '\n')
+					curMethod = doc[8:], []
+					methods.append(curMethod)
+				elif rest.startswith("@pymeth "):
+					doc, lineNo = GetComments(line, lineNo, lines)
+					nativeMethods.append(line+doc)
+				else:
+					if rest.startswith("@"):
+						doc, lineNo = GetComments(line, lineNo, lines)
+						if curMethod:
+							curMethod[1].append("// " + doc + '\n')
+						else:
+							extra_tags.append("// " + doc + '\n')
 		except:
 			print "Line %d is badly formed - %s" % (lineNo, str(sys.exc_value))
 			
