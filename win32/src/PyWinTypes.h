@@ -171,7 +171,7 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromOLECHAR(const OLECHAR * str, int num
 
 #ifndef MS_WINCE
 // String support for buffers allocated via a function of your choice.
-PYWINTYPES_EXPORT PyWinObject_AsPfnAllocatedWCHAR(PyObject *stringObject, 
+PYWINTYPES_EXPORT BOOL PyWinObject_AsPfnAllocatedWCHAR(PyObject *stringObject, 
                                                   void *(*pfnAllocator)(ULONG), 
                                                   WCHAR **ppResult, 
                                                   BOOL bNoneOK = FALSE,
