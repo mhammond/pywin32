@@ -2,6 +2,10 @@
 # This version supports hosting by IE - however, due to Python's
 # rexec module being neither completely trusted nor private, it is
 # *not* enabled by default.
+# As of Python 2.2, rexec is simply not available - thus, if you use this,
+# a HTML page can do almost *anything* at all on your machine.
+
+# You almost certainly do NOT want to use thus!
 
 import pythoncom
 from win32com.axscript import axscript
@@ -31,4 +35,9 @@ class PyScriptRExec(pyscript.PyScript):
 		       axscript.INTERFACESAFE_FOR_UNTRUSTED_CALLER
 
 if __name__=='__main__':
+	print "WARNING: By registering this engine, you are giving remote HTML code"
+	print "the ability to execute *any* code on your system."
+	print
+	print "You almost certainly do NOT want to do this."
+	print "You have been warned, and are doing this at your own (significant) risk"
 	pyscript.Register(PyScriptRExec)

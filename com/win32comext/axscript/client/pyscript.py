@@ -260,10 +260,13 @@ class PyScript(framework.COMScript):
 		
 	def RegisterNamedItem(self, item):
 		if self.rexec_env is None:
-			if self.safetyOptions & (axscript.INTERFACESAFE_FOR_UNTRUSTED_DATA | axscript.INTERFACESAFE_FOR_UNTRUSTED_CALLER):
-				# Use RExec.
-				self.rexec_env = AXRExec(self.globalNameSpaceModule)
-			else:
+			# RExec is not available in 2.2+.  If we get here for IE, the
+			# user has explicitly run axscript_rexec, so is choosing to
+			# take this risk.
+#			if self.safetyOptions & (axscript.INTERFACESAFE_FOR_UNTRUSTED_DATA | axscript.INTERFACESAFE_FOR_UNTRUSTED_CALLER):
+#				# Use RExec.
+#				self.rexec_env = AXRExec(self.globalNameSpaceModule)
+#			else:
 				# DONT use RExec.
 				self.rexec_env = AXNotRExec(self.globalNameSpaceModule)
 
