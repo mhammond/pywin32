@@ -85,6 +85,16 @@ class WinExt (Extension):
                     result.append(pathname)
         return result
 
+class WinExt_pythonwin(WinExt):
+    def __init__ (self, name, **kw):
+        if not kw.has_key("dsp_file"):
+            kw["dsp_file"] = "pythonwin/" + name + ".dsp"
+        kw.setdefault("extra_compile_args", []).extend(
+                            ['-D_AFXDLL', '-D_AFXEXT','-D_MBCS'])
+        WinExt.__init__(self, name, **kw)
+    def get_pywin32_dir(self):
+        return "pythonwin"
+
 class WinExt_win32(WinExt):
     def __init__ (self, name, **kw):
         if not kw.has_key("dsp_file"):
@@ -326,6 +336,14 @@ com_extensions += [
                          extra_link_args=["/nodefaultlib:libc"]),
     WinExt_win32com('shell', libraries='shell32')
 ]
+
+pythonwin_extensions = [
+    WinExt_pythonwin("win32ui",
+                     extra_compile_args =
+                        ['-DBUILD_PYW']),
+    WinExt_pythonwin("win32uiole"),
+    WinExt_pythonwin("dde"),
+]
 ################################################################
 
 setup(name="pywin32",
@@ -340,7 +358,7 @@ setup(name="pywin32",
                    'build_ext': my_build_ext,
                    },
 
-      ext_modules = win32_extensions + com_extensions,
+      ext_modules = win32_extensions + com_extensions + pythonwin_extensions,
 
 ##      packages=['win32',
     
