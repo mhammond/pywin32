@@ -510,7 +510,7 @@ PyObject *PyCDialog::createIndirect( PyObject *, PyObject *args )
 		ret->hTemplate = (HGLOBAL)GlobalLock(h);
 	}
 	return ret;
-	// @ comm The code for Dynamic Dialogs was supplied by Curt Hagenlocher \<chi@earthlink.net\>.  These notes are also from Curt.<nl>
+	// @ comm The code for Dynamic Dialogs was supplied by Curt Hagenlocher \<curt@hagenlocher.org\>.  These notes are also from Curt.<nl>
 	// Error checking is thorough but cryptic.  More intelligent error messages could be produced.<nl>
 	// obList is a list containing one or more further lists.  The first of these is a description of 
 	// the dialog box itself.  The others are descriptions of the children (ie, the controls).<nl><nl>

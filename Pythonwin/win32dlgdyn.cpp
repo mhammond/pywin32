@@ -20,7 +20,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  *
- * Author: Curt Hagenlocher <chi@earthlink.net>
+ * Author: Curt Hagenlocher <curt@hagenlocher.org>
  */
 
 // @doc - Autoduck!
