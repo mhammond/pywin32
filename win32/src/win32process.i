@@ -15,6 +15,9 @@
 %include "typemaps.i"
 %include "pywin32.i"
 
+%apply HWND {long};
+typedef long HWND
+
 %{
 #include "structmember.h"
 
@@ -672,7 +675,13 @@ BOOLAPI GetProcessAffinityMask(
 DWORD GetProcessVersion(
 	DWORD ProcessId  // @pyparm int|processId||identifier specifying the process of interest.
 );
- 
+
+// @pyswig int|GetCurrentProcess|Retrieves a pseudo handle for the current process. 
+DWORD GetCurrentProcess();
+
+// @pyswig int|GetCurrentProcessId|Retrieves the process identifier of the calling process.
+DWORD GetCurrentProcessId();
+
 #ifndef MS_WINCE
 // @pyswig <o PySTARTUPINFO>|GetStartupInfo|Retrieves the contents of the STARTUPINFO structure that was specified when the calling process was created.
 void GetStartupInfo(
@@ -696,6 +705,13 @@ BOOLAPI GetExitCodeThread(
 BOOLAPI GetExitCodeProcess(
 	HANDLE hThread, // @pyparm <o PyHANDLE>|handle||handle to the process
 	DWORD *OUTPUT
+);
+
+// @pyswig int, int|GetWindowThreadProcessId|Retrieves the identifier of the thread and process that created the specified window.
+long GetWindowThreadProcessId(
+	HWND hwnd, // @pyparm int|hwnd||handle to the window
+	DWORD *OUTPUT
+    // @rdesc The result is a tuple of (threadId, processId)
 );
 
 // @pyswig |SetThreadPriority|
