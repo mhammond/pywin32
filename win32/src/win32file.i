@@ -1788,7 +1788,7 @@ BOOLAPI SetCommState(
 	DCB *dcb // @pyparm <o PyDCB>|dcb||The control settings.
 );
 
-// @pyswig ClearCommBreak|Restores character transmission for a specified communications device and places the transmission line in a nonbreak state
+// @pyswig |ClearCommBreak|Restores character transmission for a specified communications device and places the transmission line in a nonbreak state
 BOOLAPI ClearCommBreak(
 	PyHANDLE handle // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
 );
@@ -1834,7 +1834,7 @@ BOOLAPI PurgeComm(
 	// @flag PURGE_RXCLEAR|Clears the input buffer (if the device driver has one). 
 );
 
-// @pyswig SetCommBreak|Suspends character transmission for a specified communications device and places the transmission line in a break state until the <om win32file.ClearCommBreak> function is called. 
+// @pyswig |SetCommBreak|Suspends character transmission for a specified communications device and places the transmission line in a break state until the <om win32file.ClearCommBreak> function is called. 
 BOOLAPI SetCommBreak(
 	PyHANDLE handle // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
 );

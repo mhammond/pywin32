@@ -574,7 +574,7 @@ PyObject *MyCreateProcess(
 			// @flag DEBUG_PROCESS|If this flag is set, the calling process is treated as a debugger, and the new process is debugged. The system notifies the debugger of all debug events that occur in the process being debugged. 
 			// If you create a process with this flag set, only the calling thread (the thread that called CreateProcess) can call the WaitForDebugEvent function.
 			// Windows 95/98: This flag is not valid if the new process is a 16-bit application. 
-			// @flag DEBUG_ONLY_THIS_PROCESS If this flag is not set and the calling process is being debugged, the new process becomes another process being debugged by the calling process's debugger. If the calling process is not a process being debugged, no debugging-related actions occur. 
+			// @flag DEBUG_ONLY_THIS_PROCESS|If this flag is not set and the calling process is being debugged, the new process becomes another process being debugged by the calling process's debugger. If the calling process is not a process being debugged, no debugging-related actions occur. 
 			// @flag DETACHED_PROCESS|For console processes, the new process does not have access to the console of the parent process. The new process can call the AllocConsole function at a later time to create a new console. This flag cannot be used with the CREATE_NEW_CONSOLE flag. 
 			
 			

@@ -9,7 +9,13 @@
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 
-// COMMTIMEOUTS - small enough we can use a tuple!
+// Small enough we can use a tuple!
+// @object COMMTIMEOUTS|A tuple representing a COMMTIMEOUTS structure.
+// @tupleitem 0|int|ReadIntervalTimeout| 
+// @tupleitem 1|int|ReadTotalTimeoutMultiplier| 
+// @tupleitem 2|int|ReadTotalTimeoutConstant| 
+// @tupleitem 3|int|WriteTotalTimeoutMultiplier| 
+// @tupleitem 4|int|WriteTotalTimeoutConstant| 
 PyObject *PyWinObject_FromCOMMTIMEOUTS( COMMTIMEOUTS *p)
 {
 	return Py_BuildValue("iiiii",
