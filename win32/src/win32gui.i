@@ -2470,7 +2470,6 @@ int ScrollWindowEx(
 // this member.
 // @comm When passed to Python, will always be a tuple of size 6, and items may be None if not available.
 // @comm When passed from Python, it must have the addn mask attribute, but all other items may be None, or not exist.
-// <nl>userob is any Python object at all, but no reference count is kept, so you must ensure the object remains referenced throught the lists life.
 BOOL ParseSCROLLINFOTuple( PyObject *args, SCROLLINFO *pInfo)
 {
 	PyObject *ob;
@@ -2556,6 +2555,7 @@ PyObject *MakeSCROLLINFOTuple(SCROLLINFO *pInfo)
 }
 
 // @pyswig |SetScrollInfo|Sets information about a scroll-bar
+// @rdesc  Returns an int with the current position of the scroll box.
 static PyObject *PySetScrollInfo(PyObject *self, PyObject *args) {
 	int nBar;
 	HWND hwnd;
@@ -2578,13 +2578,9 @@ static PyObject *PySetScrollInfo(PyObject *self, PyObject *args) {
 		return NULL;
 	}
 	GUI_BGN_SAVE;
-	BOOL ok = SetScrollInfo(hwnd, nBar, &info, bRedraw);
+	int rc = SetScrollInfo(hwnd, nBar, &info, bRedraw);
 	GUI_END_SAVE;
-	if (!ok) {
-		PyWin_SetAPIError("SetScrollInfo");
-		return NULL;
-	}
-	RETURN_NONE;
+	return PyInt_FromLong(rc);
 }
 %}
 %native (SetScrollInfo) PySetScrollInfo;
@@ -2596,17 +2592,22 @@ PyGetScrollInfo (PyObject *self, PyObject *args)
 {
 	HWND hwnd;
 	int nBar;
-	// @pyparm int|nBar||The scroll bar to examine.  Can be one of win32con.SB_BOTH, win32con.SB_VERT or win32con.SB_HORZ
+	UINT fMask = SIF_ALL;
+	// @pyparm int|hwnd||The handle to the window.
+	// @pyparm int|nBar||The scroll bar to examine.  Can be one of win32con.SB_CTL, win32con.SB_VERT or win32con.SB_HORZ
 	// @pyparm int|mask|SIF_ALL|The mask for attributes to retrieve.
-	if (!PyArg_ParseTuple(args, "li:GetScrollInfo", &hwnd, &nBar))
+	if (!PyArg_ParseTuple(args, "li|i:GetScrollInfo", &hwnd, &nBar, &fMask))
 		return NULL;
 	SCROLLINFO info;
 	info.cbSize = sizeof(SCROLLINFO);
+	info.fMask = fMask;
 	GUI_BGN_SAVE;
 	BOOL ok = GetScrollInfo(hwnd, nBar, &info);
 	GUI_END_SAVE;
-	if (!ok)
+	if (!ok) {
 		PyWin_SetAPIError("GetScrollInfo");
+		return NULL;
+	}
 	return MakeSCROLLINFOTuple(&info);
 }
 %}
