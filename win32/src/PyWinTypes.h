@@ -35,14 +35,15 @@
 #else
 		/* This module uses pywintypesxx.dll */
 #		define PYWINTYPES_EXPORT __declspec(dllimport)
-
-#		if defined(DEBUG) || defined(_DEBUG)
-#			pragma comment(lib,"pywintypes_d.lib")
-#		else
-#			pragma comment(lib,"pywintypes.lib")
-#		endif
-#	endif
-#endif
+#		if defined(_MSC_VER)
+#			if defined(DEBUG) || defined(_DEBUG)
+#				pragma comment(lib,"pywintypes_d.lib")
+#			else
+#				pragma comment(lib,"pywintypes.lib")
+#			endif // DEBUG/_DEBUG
+#		endif // _MSC_VER
+#	endif // BUILD_PYWINTYPES
+#endif // FREEZE_PYWINTYPES
 
 #include <tchar.h>
 #ifdef MS_WINCE
