@@ -4,9 +4,7 @@
 
 %{
 #ifndef MS_WINCE
-#define _WIN32_WINNT 0x0400
 #include "process.h"
-//#include "assert.h"
 #endif
 #include "windows.h"
 #include "Psapi.h"
@@ -1320,12 +1318,8 @@ PyObject *PySetProcessShutdownParameters(PyObject *self, PyObject *args)
 #ifndef MS_WINCE
 #define DETACHED_PROCESS DETACHED_PROCESS // For console processes, the new process does not have access to the console of the parent process. The new process can call the AllocConsole function at a later time to create a new console. This flag cannot be used with the CREATE_NEW_CONSOLE flag. 
 
-#ifdef ABOVE_NORMAL_PRIORITY_CLASS
 #define ABOVE_NORMAL_PRIORITY_CLASS ABOVE_NORMAL_PRIORITY_CLASS // Windows 2000: Indicates a process that has priority above NORMAL_PRIORITY_CLASS but below HIGH_PRIORITY_CLASS.
-#endif /* ABOVE_NORMAL_PRIORITY_CLASS */
-#ifdef BELOW_NORMAL_PRIORITY_CLASS
 #define BELOW_NORMAL_PRIORITY_CLASS BELOW_NORMAL_PRIORITY_CLASS // Windows 2000: Indicates a process that has priority above IDLE_PRIORITY_CLASS but below NORMAL_PRIORITY_CLASS.
-#endif
 #define HIGH_PRIORITY_CLASS HIGH_PRIORITY_CLASS // Indicates a process that performs time-critical tasks that must be executed immediately for it to run correctly. The threads of a high-priority class process preempt the threads of normal-priority or idle-priority class processes. An example is the Task List, which must respond quickly when called by the user, regardless of the load on the system. Use extreme care when using the high-priority class, because a high-priority class CPU-bound application can use nearly all available cycles. 
 #define IDLE_PRIORITY_CLASS IDLE_PRIORITY_CLASS // Indicates a process whose threads run only when the system is idle and are preempted by the threads of any process running in a higher priority class. An example is a screen saver. The idle priority class is inherited by child processes. 
 #define NORMAL_PRIORITY_CLASS NORMAL_PRIORITY_CLASS // Indicates a normal process with no special scheduling needs. 
@@ -1341,7 +1335,7 @@ PyObject *PySetProcessShutdownParameters(PyObject *self, PyObject *args)
 // This flag is only valid for console applications running on an x86 computer.
  
 #define STARTF_USECOUNTCHARS STARTF_USECOUNTCHARS
-// If this value is not specified, the dwXCountChars and dwYCountChars members are ignored. 
+// If this value is not specified, the dwXCountChars and dwYCountChars members are ignored.
 #define STARTF_USEFILLATTRIBUTE STARTF_USEFILLATTRIBUTE
 // If this value is not specified, the dwFillAttribute member is ignored. 
 #define STARTF_USEPOSITION STARTF_USEPOSITION
