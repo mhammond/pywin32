@@ -85,6 +85,7 @@ PyNetSessionEnum(PyObject *self, PyObject *args)
 				}	
 				else{
 					ReturnNetError("NetSessionEnum",nStatus);
+					Py_XDECREF(ret_list);
 					ret_list=NULL;
 				}
 				if (pBuf0 != NULL){
@@ -123,6 +124,7 @@ PyNetSessionEnum(PyObject *self, PyObject *args)
 			
 				else{
 					ReturnNetError("NetSessionEnum",nStatus);
+					Py_XDECREF(ret_list);
 					ret_list=NULL;
 				}
 				if (pBuf1 != NULL){
@@ -197,6 +199,7 @@ PyNetSessionEnum(PyObject *self, PyObject *args)
 				
 				else{
 					ReturnNetError("NetSessionEnum",nStatus);
+					Py_XDECREF(ret_list);
 					ret_list=NULL;
 				}
 				if (pBuf10 != NULL){
@@ -214,12 +217,12 @@ PyNetSessionEnum(PyObject *self, PyObject *args)
 		case 502: {
 			do{
 				nStatus = NetSessionEnum(server_name, client_name, user_name, info_lvl,
-         			(LPBYTE*)&pBuf502, buff_len, &dwEntriesRead, &dwTotalEntries, &dwResumeHandle);
-      			if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA)){
-         			if ((pTmpBuf502 = pBuf502) != NULL){
-            			for (i = 0; (i < dwEntriesRead); i++){
-			   				PyObject* curr_sess_dict  = Py_BuildValue("{s:u,s:u,s:i,s:i,s:i,s:i,s:u,s:u}",
-				   				"client_name", pTmpBuf502->sesi502_cname,
+				(LPBYTE*)&pBuf502, buff_len, &dwEntriesRead, &dwTotalEntries, &dwResumeHandle);
+				if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA)){
+					if ((pTmpBuf502 = pBuf502) != NULL){
+						for (i = 0; (i < dwEntriesRead); i++){
+							PyObject* curr_sess_dict  = Py_BuildValue("{s:u,s:u,s:i,s:i,s:i,s:i,s:u,s:u}",
+								"client_name", pTmpBuf502->sesi502_cname,
 								"user_name", pTmpBuf502->sesi502_username,
 								"num_opens", pTmpBuf502->sesi502_num_opens,
 								"active_time", pTmpBuf502->sesi502_time,
@@ -230,19 +233,20 @@ PyNetSessionEnum(PyObject *self, PyObject *args)
 							PyList_Append (ret_list, curr_sess_dict);
 							Py_DECREF(curr_sess_dict);
 							pTmpBuf502++;
-	            		}
+						}
 					}
 				}
 				else{
 					ReturnNetError("NetSessionEnum",nStatus);
+					Py_XDECREF(ret_list);
 					ret_list=NULL;
 				}
 				if (pBuf502 != NULL){
-		  			NetApiBufferFree(pBuf502);
-		  			pBuf502 = NULL;
+					NetApiBufferFree(pBuf502);
+					pBuf502 = NULL;
 				}
 			}
-   			while (nStatus == ERROR_MORE_DATA);
+			while (nStatus == ERROR_MORE_DATA);
 			if (pBuf502 != NULL)
 				NetApiBufferFree(pBuf502);
 
@@ -254,8 +258,6 @@ PyNetSessionEnum(PyObject *self, PyObject *args)
 		PyWinObject_FreeWCHAR(client_name);
 	if (user_name != NULL)
 		PyWinObject_FreeWCHAR(user_name);
-    if (ret_list != NULL)
-		Py_INCREF(ret_list);
 	return ret_list;
 }
 
@@ -298,4 +300,144 @@ PyNetSessionDel(PyObject *self, PyObject *args)
 	 ReturnNetError("NetSessionDel",nStatus);
      return NULL;
    }
+}
+
+PyObject *
+PyNetSessionGetInfo(PyObject *self, PyObject *args)
+{
+	PyObject *server_name_obj =NULL;
+	LPTSTR server_name = NULL;
+	PyObject *client_name_obj = NULL;
+	LPTSTR client_name = NULL;
+	PyObject *user_name_obj =NULL;
+	LPTSTR user_name = NULL;
+	PyObject *ret_dict =NULL;
+
+	LPSESSION_INFO_0 pTmpBuf0;
+	LPSESSION_INFO_1 pTmpBuf1;
+	LPSESSION_INFO_2 pTmpBuf2;
+	LPSESSION_INFO_10 pTmpBuf10;
+	LPSESSION_INFO_502 pTmpBuf502;
+	NET_API_STATUS nStatus;
+
+	long rc;
+	long info_lvl;
+
+	if (!PyArg_ParseTuple(args, "iOOO", &info_lvl, &server_name_obj, &client_name_obj, &user_name_obj))
+		return NULL;
+	if ((info_lvl != 0) && (info_lvl != 1) && (info_lvl !=2) && (info_lvl != 10) && (info_lvl != 502)){
+		PyErr_SetString(PyExc_ValueError,"Invalid level for NetSessionGetInfo");
+		return NULL;
+	}
+
+	rc = PyWinObject_AsWCHAR(server_name_obj, &server_name, FALSE);
+	rc = PyWinObject_AsWCHAR(client_name_obj, &client_name, FALSE);
+	rc = PyWinObject_AsWCHAR(user_name_obj, &user_name, FALSE);
+
+	switch (info_lvl){
+		case 0: {
+			nStatus = NetSessionGetInfo(server_name, client_name, user_name, info_lvl, (LPBYTE*)&pTmpBuf0);
+			if (nStatus == NERR_Success)
+				ret_dict = Py_BuildValue("{s:u}", "client_name", pTmpBuf0->sesi0_cname);
+			else{
+				ReturnNetError("NetSessionGetInfo",nStatus);
+				ret_dict=NULL;
+			}
+			if (pTmpBuf0 != NULL){
+				NetApiBufferFree(pTmpBuf0);
+				pTmpBuf0 = NULL;
+			}
+			break;
+		}
+
+		case 1:{
+			nStatus = NetSessionGetInfo(server_name, client_name, user_name, info_lvl, (LPBYTE*)&pTmpBuf1);
+			if (nStatus == NERR_Success)
+				ret_dict = Py_BuildValue("{s:u,s:u,s:i,s:i,s:i,s:i}",
+					"client_name", pTmpBuf1->sesi1_cname,
+					"user_name", pTmpBuf1->sesi1_username,
+					"num_opens", pTmpBuf1->sesi1_num_opens,
+					"active_time", pTmpBuf1->sesi1_time,
+					"idle_time", pTmpBuf1->sesi1_idle_time,
+					"user_flags", pTmpBuf1->sesi1_user_flags);
+			else{
+				ReturnNetError("NetSessionGetInfo",nStatus);
+				ret_dict=NULL;
+			}
+			if (pTmpBuf1 != NULL){
+				NetApiBufferFree(pTmpBuf1);
+				pTmpBuf1 = NULL;
+			}
+			break;
+		}
+
+		case 2:{
+			nStatus = NetSessionGetInfo(server_name, client_name, user_name, info_lvl, (LPBYTE*)&pTmpBuf2);
+			if (nStatus == NERR_Success)
+				ret_dict = Py_BuildValue("{s:u,s:u,s:i,s:i,s:i,s:i,s:u}",
+					"client_name", pTmpBuf2->sesi2_cname,
+					"user_name", pTmpBuf2->sesi2_username,
+					"num_opens", pTmpBuf2->sesi2_num_opens,
+					"active_time", pTmpBuf2->sesi2_time,
+					"idle_time", pTmpBuf2->sesi2_idle_time,
+					"user_flags", pTmpBuf2->sesi2_user_flags,
+					"client_type", pTmpBuf2->sesi2_cltype_name);
+			else{
+				ReturnNetError("NetSessionGetInfo",nStatus);
+				ret_dict=NULL;
+			}
+			if (pTmpBuf2 != NULL){
+				NetApiBufferFree(pTmpBuf2);
+				pTmpBuf2 = NULL;
+			}
+			break;
+		}
+
+		case 10:{
+			nStatus = NetSessionGetInfo(server_name, client_name, user_name, info_lvl, (LPBYTE*)&pTmpBuf10);
+			if (nStatus == NERR_Success)
+				ret_dict = Py_BuildValue("{s:u,s:u,s:i,s:i}",
+					"client_name", pTmpBuf10->sesi10_cname,
+					"user_name", pTmpBuf10->sesi10_username,
+					"active_time", pTmpBuf10->sesi10_time,
+					"idle_time", pTmpBuf10->sesi10_idle_time);
+			else{
+				ReturnNetError("NetSessionGetInfo",nStatus);
+				ret_dict=NULL;
+			}
+			if (pTmpBuf10 != NULL){
+				NetApiBufferFree(pTmpBuf10);
+				pTmpBuf10 = NULL;
+			}
+			break;
+		}
+
+
+		case 502:{
+			nStatus = NetSessionGetInfo(server_name, client_name, user_name, info_lvl, (LPBYTE*)&pTmpBuf502);
+			if (nStatus == NERR_Success)
+				ret_dict = Py_BuildValue("{s:u,s:u,s:i,s:i,s:i,s:i,s:u,s:u}",
+					"client_name", pTmpBuf502->sesi502_cname,
+					"user_name", pTmpBuf502->sesi502_username,
+					"num_opens", pTmpBuf502->sesi502_num_opens,
+					"active_time", pTmpBuf502->sesi502_time,
+					"idle_time", pTmpBuf502->sesi502_idle_time,
+					"user_flags", pTmpBuf502->sesi502_user_flags,
+					"client_type", pTmpBuf502->sesi502_cltype_name,
+					"transport", pTmpBuf502->sesi502_transport);
+			else{
+				ReturnNetError("NetSessionGetInfo",nStatus);
+				ret_dict=NULL;
+			}
+			if (pTmpBuf502 != NULL){
+				NetApiBufferFree(pTmpBuf502);
+				pTmpBuf502 = NULL;
+			}		
+		}
+	}
+
+	PyWinObject_FreeWCHAR(server_name);
+	PyWinObject_FreeWCHAR(client_name);
+	PyWinObject_FreeWCHAR(user_name);
+	return ret_dict;
 }

@@ -922,8 +922,10 @@ extern PyObject * PyNetUseEnum(PyObject *self, PyObject *args);
 extern PyObject * PyNetUseGetInfo(PyObject *self, PyObject *args);
 extern PyObject * PyNetSessionEnum(PyObject *self, PyObject *args);
 extern PyObject * PyNetSessionDel(PyObject *self, PyObject *args);
+extern PyObject * PyNetSessionGetInfo(PyObject *self, PyObject *args);
 extern PyObject * PyNetFileEnum(PyObject *self, PyObject *args);
 extern PyObject * PyNetFileClose(PyObject *self, PyObject *args);
+extern PyObject * PyNetFileGetInfo(PyObject *self, PyObject *args);
 
 /* List of functions exported by this module */
 // @module win32net|A module encapsulating the Windows Network API.
@@ -990,10 +992,11 @@ static struct PyMethodDef win32net_functions[] = {
 	{"NetGetDCName",            PyNetGetDCName,            1}, // @pymeth NetGetDCName|Returns the name of the primary domain controller (PDC).
 
 	{"NetSessionEnum",          PyNetSessionEnum,          1}, // @pymeth NetSessionEnum|Returns network session for the server, limited to single client and/or user if specified.
-	{"NetSessionDel",           PyNetSessionDel,          1}, // @pymeth NetSessionDel|Delete network session for specified server, client computer and user. Returns None on success.
-	{"NetFileEnum",				PyNetFileEnum,          1}, // @pymeth NetFileEnum|Returns open file resources for server (single client and/or user may also be passed as criteria).
-	{"NetFileClose",			PyNetFileClose,          1}, // @pymeth NetFileClose|Closes file for specified server and file id.
-
+	{"NetSessionDel",           PyNetSessionDel,           1}, // @pymeth NetSessionDel|Delete network session for specified server, client computer and user. Returns None on success.
+	{"NetSessionGetInfo",       PyNetSessionGetInfo,       1}, // @pymeth NetSessionGetInfo|Get network session information.
+	{"NetFileEnum",             PyNetFileEnum,             1}, // @pymeth NetFileEnum|Returns open file resources for server (single client and/or user may also be passed as criteria).
+	{"NetFileClose",            PyNetFileClose,            1}, // @pymeth NetFileClose|Closes file for specified server and file id.
+	{"NetFileGetInfo",          PyNetFileGetInfo,          1}, // @pymeth NetFileGetInfo|Get info about files open on the server.
 	{NULL,			NULL}
 };
 
