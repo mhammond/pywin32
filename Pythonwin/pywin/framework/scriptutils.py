@@ -545,7 +545,7 @@ def FindTabNanny():
 		print "WARNING - The file '%s' can not be located in path '%s'" % (filename, path)
 		return None
 
-	tabnannyhome, tabnannybase = os.path.split(tabnanny)
+	tabnannyhome, tabnannybase = os.path.split(fname)
 	tabnannybase = os.path.splitext(tabnannybase)[0]
 	# Put tab nanny at the top of the path.
 	sys.path.insert(0, tabnannyhome)
