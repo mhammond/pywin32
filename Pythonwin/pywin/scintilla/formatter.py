@@ -493,8 +493,28 @@ class PythonSourceFormatter(Formatter):
 			else:
 				self.ColorSeg(startSeg, lengthDoc-1, state)
 
+
+# These taken from the SciTE properties file.
+source_formatter_extensions = [
+	( string.split(".py .pys .pyw"), scintillacon.SCLEX_PYTHON ),
+	( string.split(".html .htm .asp .shtml"), scintillacon.SCLEX_HTML ),
+	( string.split("c .cc .cpp .cxx .h .hh .hpp .hxx .idl .odl .php3 .phtml .inc"),scintillacon.SCLEX_CPP ),
+	( string.split(".vbs .frm .ctl .cls"), scintillacon.SCLEX_VB ),
+	( string.split(".pl .pm .cgi .pod"), scintillacon.SCLEX_PERL ),
+	( string.split(".sql .spec .body .sps .spb .sf .sp"), scintillacon.SCLEX_SQL ),
+	( string.split(".tex .sty"), scintillacon.SCLEX_LATEX ),
+	( string.split(".xml"), scintillacon.SCLEX_XML ),
+	( string.split(".err"), scintillacon.SCLEX_ERRORLIST ),
+	( string.split(".mak"), scintillacon.SCLEX_MAKEFILE ),
+	( string.split(".bat .cmd"), scintillacon.SCLEX_BATCH ),
+]
+
 class BuiltinSourceFormatter(FormatterBase):
 	# A class that represents a formatter built-in to Scintilla
+	def __init__(self, scintilla, ext):
+		self.ext = ext
+		FormatterBase.__init__(self, scintilla)
+
 	def Colorize(self, start=0, end=-1):
 		self.scintilla.SendScintilla(scintillacon.SCI_COLOURISE, start, end)
 	def RegisterStyle(self, style, stylenum = None):
@@ -509,15 +529,21 @@ class BuiltinSourceFormatter(FormatterBase):
 
 	def HookFormatter(self, parent = None):
 		sc = self.scintilla
-		sc.SendScintilla(scintillacon.SCI_SETLEXER, self.sci_lexer_name)
+		for exts, formatter in source_formatter_extensions:
+			if self.ext in exts:
+				formatter_use = formatter
+				break
+		else:
+			formatter_use = scintillacon.SCLEX_PYTHON
+		sc.SendScintilla(scintillacon.SCI_SETLEXER, formatter_use)
 		keywords = string.join(kwlist)
 		sc.SCISetKeywords(keywords)
 
 class BuiltinPythonSourceFormatter(BuiltinSourceFormatter):
 	sci_lexer_name = scintillacon.SCLEX_PYTHON
 	string_style_names = STRING_STYLES
-	def __init__(self, sc):
-		BuiltinSourceFormatter.__init__(self, sc)
+	def __init__(self, sc, ext = ".py"):
+		BuiltinSourceFormatter.__init__(self, sc, ext)
 	def SetStyles(self):
 		for name, format, bg, sc_id in PYTHON_STYLES:
 			self.RegisterStyle( Style(name, format, bg), sc_id )
