@@ -643,7 +643,7 @@ def Rebuild(verbose = 1):
 		try:
 			AddModuleToCache(iid, lcid, major, minor, verbose, 0)
 		except:
-			print "Could not add module %s - %s: %s" % (name, sys.exc_info()[0],sys.exc_info()[1])
+			print "Could not add module %s - %s: %s" % (info, sys.exc_info()[0],sys.exc_info()[1])
 	if verbose and len(infos): # Dont bother reporting this when directory is empty!
 		print "Done."
 	_SaveDicts()
