@@ -222,7 +222,7 @@ class HLICoClass(HLITypeLibEntry):
 			flags = typeinfo.GetImplTypeFlags(j)
 			refType = typeinfo.GetRefTypeInfo(typeinfo.GetRefTypeOfImplType(j))
 			refAttr = refType.GetTypeAttr()
-	      	ret.append(browser.MakeHLI(refAttr[0], "Name=%s, Flags = %d" % (refAttr[0], flags)))
+			ret.append(browser.MakeHLI(refAttr[0], "Name=%s, Flags = %d" % (refAttr[0], flags)))
 		return ret
 
 
@@ -520,4 +520,4 @@ if __name__=='__main__':
 	ng = pythoncom._GetGatewayCount()
 	if ni or ng:
 		print "Warning - exiting with %d/%d objects alive" % (ni,ng)
-	
+
