@@ -416,7 +416,7 @@ def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bVal
 						pass
 				#print "Trying stat typelib", pyModTime
 				#print str(typLibPath)
-				typLibModTime = os.stat(str(typLibPath[:-1]))[8]
+				typLibModTime = os.stat(typLibPath[:-1])[8]
 				if fModTimeSet and (typLibModTime > pyModTime):
 					bReloadNeeded = 1
 					module = None
