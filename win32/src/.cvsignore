@@ -1,0 +1,13 @@
+PythonServiceMessages.h
+*_wrap.doc
+win32eventmodule_win*.cpp
+win32evtlog_messages.h
+win32evtlogmodule.cpp
+win32filemodule_win*.cpp
+win32guimodule_win*.cpp
+win32pipemodule.cpp
+win32processmodule_win*.cpp
+win32securitymodule.cpp
+win32service_messages.h
+win32servicemodule.cpp
+wincerapimodule.cpp
