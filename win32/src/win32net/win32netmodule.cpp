@@ -324,9 +324,20 @@ PyObject *PyDoSimpleEnum(PyObject *self, PyObject *args, PFNSIMPLEENUM pfn, char
 	if (!FindNET_STRUCT(level, pInfos, &pInfo))
 		goto done;
 
-    Py_BEGIN_ALLOW_THREADS
-	err = (*pfn)(szServer, level, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
-    Py_END_ALLOW_THREADS
+	Py_BEGIN_ALLOW_THREADS
+	/* Bad resume handles etc can cause access violations here - catch them. */
+	__try {
+		err = (*pfn)(szServer, level, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
+	}
+#if defined(__MINGW32__) || defined(MAINWIN)
+		catch(...)
+#else
+		__except( EXCEPTION_EXECUTE_HANDLER )
+#endif
+	{
+		err = ERROR_INVALID_PARAMETER;
+	}
+	Py_END_ALLOW_THREADS
 	if (err!=0 && err != ERROR_MORE_DATA) {
 		ReturnNetError(fnname,err);
 		goto done;
