@@ -264,7 +264,7 @@ py_enum_clipboard_formats(PyObject* self, PyObject* args)
 
 //*****************************************************************************
 //
-// @pymethod int|win32clipboard|GetClipboardData|The GetClipboardData function
+// @pymethod string/unicode|win32clipboard|GetClipboardData|The GetClipboardData function
 // retrieves data from the clipboard in a specified format. The clipboard
 // must have been opened previously.
 
@@ -994,6 +994,52 @@ static struct PyMethodDef clipboard_functions[] = {
 };
 
 
+static int AddConstant(PyObject *dict, char *key, long value)
+{
+	PyObject *okey = PyString_FromString(key);
+	PyObject *oval = PyInt_FromLong(value);
+	if (!okey || !oval) {
+		Py_XDECREF(okey);
+		Py_XDECREF(oval);
+		return 1;
+	}
+	int rc = PyDict_SetItem(dict,okey, oval);
+	Py_XDECREF(okey);
+	Py_XDECREF(oval);
+	return rc;
+}
+
+#define ADD_CONSTANT(tok) if (rc=AddConstant(dict,#tok, tok)) return rc
+
+static int AddConstants(PyObject *dict)
+{
+	int rc;
+	ADD_CONSTANT(CF_TEXT);
+	ADD_CONSTANT(CF_BITMAP);
+	ADD_CONSTANT(CF_METAFILEPICT);
+	ADD_CONSTANT(CF_SYLK);
+	ADD_CONSTANT(CF_DIF);
+	ADD_CONSTANT(CF_TIFF);
+	ADD_CONSTANT(CF_OEMTEXT);
+	ADD_CONSTANT(CF_DIB);
+	ADD_CONSTANT(CF_PALETTE);
+	ADD_CONSTANT(CF_PENDATA);
+	ADD_CONSTANT(CF_RIFF);
+	ADD_CONSTANT(CF_WAVE);
+	ADD_CONSTANT(CF_UNICODETEXT);
+	ADD_CONSTANT(CF_ENHMETAFILE);
+	ADD_CONSTANT(CF_HDROP);
+	ADD_CONSTANT(CF_LOCALE);
+	ADD_CONSTANT(CF_MAX);
+	ADD_CONSTANT(CF_OWNERDISPLAY);
+	ADD_CONSTANT(CF_DSPTEXT);
+	ADD_CONSTANT(CF_DSPBITMAP);
+	ADD_CONSTANT(CF_DSPMETAFILEPICT);
+	ADD_CONSTANT(CF_DSPENHMETAFILE);
+	return 0;
+}
+
+
 extern "C" __declspec(dllexport) void
 initwin32clipboard(void)
 {
@@ -1001,6 +1047,7 @@ initwin32clipboard(void)
   module = Py_InitModule("win32clipboard", clipboard_functions);
   dict = PyModule_GetDict(module);
   PyWinGlobals_Ensure();
+  AddConstants(dict);
   Py_INCREF(PyWinExc_ApiError);
   PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
 }
