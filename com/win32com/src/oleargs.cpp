@@ -1134,7 +1134,6 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 		// COM Reference added by InterfaceFrom...
 		break;
 	case VT_DATE:
-		if ( !PyTime_Check(obj) ) BREAK_FALSE;
 		if ( !PyWinObject_AsDATE(obj, &V_DATE(var) ) ) BREAK_FALSE;
 		break;
 	case VT_DATE | VT_BYREF:
