@@ -283,6 +283,30 @@ def getevents(clsid):
 ############################################
 # The base of all makepy generated classes
 ############################################
+
+def Record(name, object):
+  """Creates a new record object, given the name of the record,
+  and an object from the same type library.
+
+  Example usage would be:
+    app = win32com.client.Dispatch("Some.Application")
+    point = win32com.client.Record("SomeAppPoint", app)
+    point.x = 0
+    point.y = 0
+    app.MoveTo(point)
+  """
+  # XXX - to do - probably should allow "object" to already be a module object.
+  import gencache
+  object = gencache.EnsureDispatch(object._oleobj_)
+  module = sys.modules[object.__class__.__module__]
+  try:
+    struct_guid = module.RecordMap[name]
+  except KeyError:
+    raise ValueError, "The structure '%s' is not defined in module '%s'" % (name, module)
+
+  return pythoncom.GetRecordFromGuids(module.CLSID, module.MajorVersion, module.MinorVersion, module.LCID, struct_guid)
+
+
 _PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 from types import TupleType
 from pywintypes import UnicodeType
@@ -315,9 +339,8 @@ class DispatchBaseClass:
 		return self._get_good_object_(apply(self._oleobj_.InvokeTypes, (dispid, 0, wFlags, retType, argTypes) + args), user, resultCLSID)
 
 	def __getattr__(self, attr):
-		try:
-			args=self._prop_map_get_[attr]
-		except KeyError:
+		args=self._prop_map_get_.get(attr)
+		if args is None:
 			raise AttributeError, attr
 		return apply(self._ApplyTypes_, args)
 
