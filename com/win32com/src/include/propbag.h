@@ -83,7 +83,7 @@ class PyGPersistPropertyBag : public PyGPersist, public IPersistPropertyBag
 {
 protected:
 	PyGPersistPropertyBag(PyObject *instance) : PyGPersist(instance) { ; }
-	PYGATEWAY_MAKE_SUPPORT(PyGPersistPropertyBag, IPersistPropertyBag, IID_IPersistPropertyBag)
+	PYGATEWAY_MAKE_SUPPORT2(PyGPersistPropertyBag, IPersistPropertyBag, IID_IPersistPropertyBag, PyGPersist)
 
 	// IPersist
 	STDMETHOD(GetClassID)(CLSID FAR *pClassID) {return PyGPersist::GetClassID(pClassID);}
