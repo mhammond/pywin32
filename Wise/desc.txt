@@ -1,0 +1,61 @@
+#
+# Description file for all the DLLs and EXEs.
+#
+
+product		Python extension
+major		1
+minor		5
+
+pywintypes15.dll	Common Python types for win32
+dbi.dll		Database utilities for the ODBC module
+dde.pyd		Python Dynamic Data Exchange extensions
+mmapfile.pyd	Python Memory Mapped File extension
+odbc.pyd	Python ODBC Extensions.
+pythonservice.exe	Python Service Dispatcher Exe
+timer.pyd	Python Win32 Timers support
+win32api.pyd	Python Win32 API extensions
+win32clipboard.pyd	Python Win32 Clipboard extensions
+win32event.pyd	Python Win32 Event extensions
+win32evtlog.pyd	Python Event Log extensions
+win32file.pyd	Python File API extensions
+win32gui.pyd	Python interface to the Win32 GUI API
+win32help.pyd	Python interface to the Win32 Help API
+win32lz.pyd	Python LZ compression extensions
+win32net.pyd	Python Win32 Networking and Administration extensions
+win32pdh.pyd	Python Win32 Performance Data Helper
+win32pipe.pyd	Python Pipe API extensions.
+win32popenWin9x.exe	Python popen helper for Windows 9x
+win32print.pyd	Python win32 Printer extension
+win32process.pyd	Python Win32 Thread and Process extensions
+win32ras.pyd	Python Remote Access extensions
+win32security.pyd	Python NT Security extensions
+win32service.pyd	Python NT Service extensions
+win32trace.pyd	Python tracing
+win32wnet.pyd	Python interface to Windows Networking functions
+axscript.pyd	Python ActiveX Scripting Support
+pythonwin.exe	Pythonwin main executable
+win32ui.pyd	Python MFC extensions
+win32uiole.pyd	Python MFC OLE extensions
+
+pythoncom15.dll	Python COM Extensions core
+dcom.pyd	Temporary DCOM test
+exchdapi.pyd	Python MS-Exchange Directory extension
+mapi.pyd	Python MAPI extension
+exchange.pyd	Python Exchange Server Extension
+axdebug.pyd	Python ActiveX Debugging extension
+axsdebug.pyd	Python ActiveX Script Debugging extension
+axscript.pyd	Python ActiveX Scripting extension
+axcontrol.pyd	Python ActiveX Controls extension
+internet.pyd	Python ActiveX Internet extension
+shell.pyd	Python ActiveX Shell extension
+
+perfmon.pyd	Python interface to Performance Monitor
+perfmondata.dll	DLL for capturing Python perfmon data
+
+resources.dll	Sample resource-only DLL for Pythonwin
+
+wincerapi.pyd	Python interface to the CE Remote API
+
+win32popenwin9x.exe	Python helper to support popen() on Windows 9x
+
+scintilla.dll	Editor control used by Pythonwin
