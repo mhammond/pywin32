@@ -420,6 +420,7 @@ def _BuildArgList(fdesc, names):
     str = str + ', ' + argName
   return str
 
+valid_identifier_chars = string.letters + string.digits + "_"
 
 # Given a "public name" (eg, the name of a class, function, etc)
 # make sure it is a legal (and reasonable!) Python name.
@@ -431,7 +432,7 @@ def MakePublicAttributeName(className):
 	elif iskeyword(className):
 		return string.capitalize(className)
 	# Strip non printable chars
-	return filter( lambda char: ' ' < char < chr(128), className)
+	return filter( lambda char: char in valid_identifier_chars, className)
 
 # Given a default value passed by a type library, return a string with
 # an appropriate repr() for the type.
