@@ -21,7 +21,6 @@ if sys.hexversion < 0x02040000:
 
 import threading
 import traceback
-import sys
 
 ISAPI_REQUEST = 1
 ISAPI_SHUTDOWN = 2
