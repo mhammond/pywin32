@@ -72,7 +72,11 @@ class FormatterBase:
 
 	# Used by the IDLE extensions to quickly determine if a character is a string.
 	def GetStringStyle(self, pos):
-		style = self.styles_by_id[self.scintilla.SCIGetStyleAt(pos)]
+		try:
+			style = self.styles_by_id[self.scintilla.SCIGetStyleAt(pos)]
+		except KeyError:
+			# A style we dont know about - probably not even a .py file - can't be a string
+			return None			
 		if style.name in self.string_style_names:
 			return style
 		return None
