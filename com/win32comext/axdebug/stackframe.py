@@ -104,7 +104,8 @@ class DebugStackFrame(gateways.DebugStackFrame):
 			return "Python ActiveX Scripting Engine"
 		else:
 			return "Python"
-
+	def GetDebugProperty(self):
+		return _wrap(StackFrameDebugProperty(self.frame), axdebug.IID_IDebugProperty)
 
 class DebugStackFrameSniffer:
 	_public_methods_ = ["EnumStackFrames"]
@@ -117,3 +118,30 @@ class DebugStackFrameSniffer:
 	def EnumStackFrames(self):
 		trace("DebugStackFrameSniffer.EnumStackFrames called")
 		return _wrap(EnumDebugStackFrames(self.debugger), axdebug.IID_IEnumDebugStackFrames)
+
+# A DebugProperty for a stack frame.
+class StackFrameDebugProperty:
+	_com_interfaces_ = [axdebug.IID_IDebugProperty]
+	_public_methods_ = ['GetPropertyInfo', 'GetExtendedInfo', 'SetValueAsString', 
+	                    'EnumMembers', 'GetParent'
+	]
+	def __init__(self, frame):
+		self.frame = frame
+		
+	def GetPropertyInfo(self, dwFieldSpec, nRadix):
+		RaiseNotImpl("StackFrameDebugProperty::GetPropertyInfo")
+	def GetExtendedInfo(self): ### Note - not in the framework.
+		RaiseNotImpl("StackFrameDebugProperty::GetExtendedInfo")
+
+	def SetValueAsString(self, value, radix):
+		#
+		RaiseNotImpl("DebugProperty::SetValueAsString")
+		
+	def EnumMembers(self, dwFieldSpec, nRadix, iid):
+		print "EnumMembers", dwFieldSpec, nRadix, iid
+		import expressions
+		return expressions.MakeEnumDebugProperty(self.frame.f_locals, dwFieldSpec, nRadix, iid)
+
+	def GetParent(self):
+		# return IDebugProperty
+		RaiseNotImpl("DebugProperty::GetParent")

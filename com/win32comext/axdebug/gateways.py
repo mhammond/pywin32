@@ -260,7 +260,7 @@ class DebugCodeContext:
 
 class DebugStackFrame:
 	"""Abstraction representing a logical stack frame on the stack of a thread."""
-	_public_methods_ = [ 'GetCodeContext', 'GetDescriptionString', 'GetLanguageString', 'GetThread']
+	_public_methods_ = [ 'GetCodeContext', 'GetDescriptionString', 'GetLanguageString', 'GetThread', 'GetDebugProperty']
 	_com_interfaces_ = [ axdebug.IID_IDebugStackFrame ]
 	def __init__(self):
 		pass
@@ -288,6 +288,8 @@ class DebugStackFrame:
 		Result must be a IDebugApplicationThread
 		"""
 		RaiseNotImpl("GetThread")
+	def GetDebugProperty(self):
+		RaiseNotImpl("GetDebugProperty")
 
 
 class DebugDocumentHost:
