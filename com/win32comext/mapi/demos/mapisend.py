@@ -3,7 +3,7 @@
 """module to send mail with Extended MAPI using the pywin32 mapi wrappers..."""
 
 # this was based on Jason Hattingh's C++ code at http://www.codeproject.com/internet/mapadmin.asp
-# written by David Fraser <davidf@sjsoft.com> and Stephen Emslie <stephene@sjsoft.com>
+# written by David Fraser <davidf at sjsoft.com> and Stephen Emslie <stephene at sjsoft.com>
 # you can test this by changing the variables at the bottom and running from the command line
 
 from win32com.mapi import mapi
@@ -25,13 +25,14 @@ def SendEMAPIMail(Subject="", Message="", SendTo=None, SendCC=None, SendBCC=None
     messagestorestable = session.GetMsgStoresTable(0)
     messagestorestable.SetColumns((mapitags.PR_ENTRYID, mapitags.PR_DISPLAY_NAME_A, mapitags.PR_DEFAULT_STORE),0)
 
-    while (True):
+    while True:
         rows = messagestorestable.QueryRows(1, 0)
+        #if this is the last row then stop
         if len(rows) != 1:
             break
         row = rows[0]
-        propertyid, propertyvalue = row[0]
-        if (propertyid == mapitags.PR_DEFAULT_STORE and propertyvalue == True):
+        #if this is the default store then stop
+        if ((mapitags.PR_DEFAULT_STORE,True) in row):
             break
 
     # unpack the row and open the message store
@@ -41,6 +42,9 @@ def SendEMAPIMail(Subject="", Message="", SendTo=None, SendCC=None, SendBCC=None
     # get the outbox
     hr, props = msgstore.GetProps((mapitags.PR_IPM_OUTBOX_ENTRYID), 0)
     (tag, eid) = props[0]
+    #check for errors
+    if mapitags.PROP_TYPE(tag) == mapitags.PT_ERROR:
+        raise TypeError,'got PT_ERROR instead of PT_BINARY: %s'%eid
     outboxfolder = msgstore.OpenEntry(eid,None,mapi.MAPI_BEST_ACCESS)
 
     # create the message and the addrlist
@@ -75,8 +79,7 @@ def SendEMAPIMail(Subject="", Message="", SendTo=None, SendCC=None, SendBCC=None
 if __name__ == '__main__':
    MAPIProfile = ""
    # Change this to a valid email address to test
-   SendTo = "an.invalid@address"
+   SendTo = "an.invalid at address"
    SendMessage = "testing one two three"
    SendSubject = "Testing Extended MAPI!!"
    SendEMAPIMail(SendSubject, SendMessage, SendTo, MAPIProfile=MAPIProfile)
-
