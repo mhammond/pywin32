@@ -152,6 +152,9 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name univgw
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name adsi
+    End Project Dependency
 }}}
 
 ###############################################################################
