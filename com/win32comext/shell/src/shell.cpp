@@ -1520,8 +1520,7 @@ static PyObject *PySHGetSettings(PyObject *self, PyObject *args)
 
 	// @comm This method is only available in shell version 4.71.  If the 
 	// function is not available, a COM Exception with HRESULT=E_NOTIMPL 
-	// will be raised.  If the function fails, a COM Exception with 
-	// HRESULT=E_FAIL will be raised.
+	// will be raised.
 	HMODULE hmod = GetModuleHandle(TEXT("shell32.dll"));
 	PFNSHGetSettings pfnSHGetSettings = (PFNSHGetSettings)GetProcAddress(hmod, "SHGetSettings");
 	if (pfnSHGetSettings==NULL)
