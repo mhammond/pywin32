@@ -415,80 +415,141 @@ static HRESULT invoke_setup(
 }
 
 static HRESULT invoke_finish(
-	PyObject *result,
-	VARIANT FAR* pVarResult,
-	UINT FAR* puArgErr /* May be NULL */
+	PyObject *result, /* The PyObject returned from the Python call */
+	VARIANT FAR* pVarResult, /* Result variant passed by the caller */
+	UINT FAR* puArgErr, /* May be NULL */
+	EXCEPINFO *einfo, /* Exception info passed by the caller */
+	REFIID iid, /* Should be IID_IDispatch or IID_IDispatchEx */
+	DISPPARAMS *pDispParams, /* the params passed to Invoke so byrefs can be handled */
+	bool bAllowHRAndArgErr /* Invoke() or InvokeEx() functionality? */
 	)
 {
-	HRESULT hr;
+	HRESULT hr = S_OK;
+	PyObject *ob = NULL;
+	PyObject *userResult = NULL;
 
-	if ( PyNumber_Check(result) )
+	if (bAllowHRAndArgErr) 
 	{
-		hr = PyInt_AsLong(result);
-		Py_DECREF(result);
-		return hr;
-	}
-	if ( !PySequence_Check(result) )
-	{
-		Py_DECREF(result);
-		return E_FAIL;
-	}
-
-	PyObject *ob = PySequence_GetItem(result, 0);
-	if ( !ob )
-	{
-		PyErr_Clear();	/* ### what to do with exceptions? ... */
-		Py_DECREF(result);
-		return E_FAIL;
-	}
-	hr = PyInt_AsLong(ob);
-	Py_DECREF(ob);
-
-	int count = PyObject_Length(result);
-	if ( count > 0 )
-	{
-		if ( puArgErr )
+		// We are expecting a tuple of (hresult, argErr, userResult)
+		// or a simple HRESULT.
+		if ( PyNumber_Check(result) )
 		{
-			ob = PySequence_GetItem(result, 1);
-			if ( !ob )
-			{
-				PyErr_Clear();	/* ### what to do with exceptions? ... */
-				Py_DECREF(result);
-				return E_FAIL;
-			}
-
-			*puArgErr = PyInt_AsLong(ob);
-			Py_DECREF(ob);
+			hr = PyInt_AsLong(result);
+			Py_DECREF(result);
+			return hr;
+		}
+		if ( !PySequence_Check(result) )
+		{
+			Py_DECREF(result);
+			return PyCom_SetCOMErrorFromSimple( E_FAIL, iid, "The Python function did not return the correct type");
 		}
 
+		PyObject *ob = PySequence_GetItem(result, 0);
+		if ( !ob )
+			goto done;
+		hr = PyInt_AsLong(ob);
+		Py_DECREF(ob);
+		ob = NULL;
+
+		int count = PyObject_Length(result);
+		if ( count > 0 )
+		{
+			if ( puArgErr )
+			{
+				ob = PySequence_GetItem(result, 1);
+				if ( !ob ) goto done;
+
+				*puArgErr = PyInt_AsLong(ob);
+				Py_DECREF(ob);
+				ob = NULL;
+			}
+			if ( count > 1) {
+				userResult = PySequence_GetItem(result, 2);
+				if (!userResult) goto done;
+			}
+		}
+	} else {
+		// We are expecting only the actual result.
+		userResult = result;
+		Py_INCREF(userResult);
+	}
+	
+	// If the actual result specified is not a tuple,
+	// then the user may be specifying either the function result,
+	// or one of the byrefs.
+	// NOTE: We use a specific tuple check rather than a sequence
+	// check to avoid strings, and also to allow lists to _not_ qualify
+	// here - otherwise returning an array of objects would be difficult.
+	if (PyTuple_Check(userResult)) {
+		unsigned cUserResult = PyTuple_Size(userResult);
+		unsigned firstByRef = 0;
 		if ( pVarResult )
 		{
-			ob = PySequence_GetItem(result, 2);
-			if ( !ob )
-			{
-				PyErr_Clear();	/* ### what to do with exceptions? ... */
-				Py_DECREF(result);
-				return E_FAIL;
-			}
-
-			BOOL success = PyCom_VariantFromPyObject(ob, pVarResult);
-			/* for now: */ PyErr_Clear();
-			if ( !success )
-			{
-				PyErr_Clear();
-				hr = E_FAIL;
-			}
+			ob = PySequence_GetItem(userResult, 0);
+			if (!ob) goto done;
+			if (!PyCom_VariantFromPyObject(ob, pVarResult)) goto done;
 			Py_DECREF(ob);
+			ob = NULL;
+			firstByRef = 1;
 		}
+		// Now loop over the params, and set any byref's
+		unsigned ituple = firstByRef;
+		unsigned idispparam;
+		// args are in reverse order
+		for (idispparam=pDispParams->cArgs;idispparam>0;idispparam--) {
+			// If we havent been given enough values, then we are done.
+			if (ituple >= cUserResult)
+				break;
+			VARIANT *pv = pDispParams->rgvarg+idispparam-1;
+			// If this param is not byref, try the following one.
+			if (!V_ISBYREF(pv))
+				continue;
+			// Do the conversion thang
+			ob = PyTuple_GetItem(userResult, ituple);
+			if (!ob) goto done;
+			// Need to use the ArgHelper to get correct BYREF semantics.
+			PythonOleArgHelper arghelper;
+			arghelper.m_reqdType = V_VT(pv);
+			arghelper.m_convertDirection = POAH_CONVERT_FROM_VARIANT;
+			if (!arghelper.MakeObjToVariant(ob, pv)) goto done;
+			ituple++;
+			Py_DECREF(ob);
+			ob = NULL;
+		}
+	} else {
+		// Result is not a tuple - check if result or
+		// first byref we are trying to set.
+		if (pVarResult) {
+			PyCom_VariantFromPyObject(userResult, pVarResult);
+			// If a Python error, it remains set for handling below...
+		} else {
+			// Single value for the first byref we find.
+			unsigned idispparam;
+			// args are in reverse order
+			for (idispparam=pDispParams->cArgs;idispparam>0;idispparam--) {
+				VARIANT *pv = pDispParams->rgvarg+idispparam-1;
+				if (!V_ISBYREF(pv))
+					continue;
 
-		if ( count > 3 )
-		{
-			/* ### copy extra results into associated [out] params */
+				PythonOleArgHelper arghelper;
+				arghelper.m_reqdType = V_VT(pv);
+				arghelper.m_convertDirection = POAH_CONVERT_FROM_VARIANT;
+				arghelper.MakeObjToVariant(userResult, pv);
+				// If a Python error, it remains set for handling below...
+				break;
+			}
 		}
 	}
+done:
+	// handle the error before the PyObject cleanups just
+	// incase one of these objects destructs and in the process
+	// clears the Python error condition.
+	if (PyErr_Occurred())
+		hr = GetIDispatchErrorResult(einfo);
 
 	Py_DECREF(result);
-
+	Py_XDECREF(userResult);
+	Py_XDECREF(ob);
 	return hr;
 }
 
@@ -512,13 +573,21 @@ STDMETHODIMP PyGatewayBase::Invoke(
 	if ( pVarResult )
 		V_VT(pVarResult) = VT_EMPTY;
 
-	/* ### for now: no named args unless it is a PUT operation */
+	/* ### for now: no named args unless it is a PUT operation,
+	   ### OR all args are named args, and have contiguous DISPIDs
+	*/
 	if ( params->cNamedArgs )
 	{
-		if ( params->cNamedArgs > 1 )
-			return DISP_E_NONAMEDARGS;
-		if ( params->rgdispidNamedArgs[0] != DISPID_PROPERTYPUT )
-			return DISP_E_NONAMEDARGS;
+		if ( params->cNamedArgs != 1 || params->rgdispidNamedArgs[0] != DISPID_PROPERTYPUT ) {
+			if (params->cArgs != params->cNamedArgs)
+				// Not all named args.
+				return DISP_E_NONAMEDARGS;
+			unsigned int argCheck;
+			for (argCheck=0;argCheck<params->cNamedArgs;argCheck++)
+				if (params->rgdispidNamedArgs[argCheck] != (DISPID)argCheck)
+					return DISP_E_NONAMEDARGS;
+			// OK - we will let it through.
+		}
 	}
 	PY_GATEWAY_METHOD;
 	PyObject *argList;
@@ -538,7 +607,7 @@ STDMETHODIMP PyGatewayBase::Invoke(
 		if ( result==NULL )
 			return GetIDispatchErrorResult(pexcepinfo);
 		else
-			hr = invoke_finish(result, pVarResult, puArgErr);
+			hr = invoke_finish(result, pVarResult, puArgErr, pexcepinfo, IID_IDispatch, params, true);
 	}
 	return hr;
 }
@@ -583,13 +652,21 @@ STDMETHODIMP PyGatewayBase::InvokeEx(DISPID id, LCID lcid, WORD wFlags, DISPPARA
 	if ( pVarResult )
 		V_VT(pVarResult) = VT_EMPTY;
 
-	/* ### for now: no named args unless it is a PUT operation */
+	/* ### for now: no named args unless it is a PUT operation,
+	   ### OR all args are named args, and have contiguous DISPIDs
+	*/
 	if ( params->cNamedArgs )
 	{
-		if ( params->cNamedArgs > 1 )
-			return DISP_E_NONAMEDARGS;
-		if ( params->rgdispidNamedArgs[0] != DISPID_PROPERTYPUT )
-			return DISP_E_NONAMEDARGS;
+		if ( params->cNamedArgs != 1 || params->rgdispidNamedArgs[0] != DISPID_PROPERTYPUT ) {
+			if (params->cArgs != params->cNamedArgs)
+				// Not all named args.
+				return DISP_E_NONAMEDARGS;
+			unsigned int argCheck;
+			for (argCheck=0;argCheck<params->cNamedArgs;argCheck++)
+				if (params->rgdispidNamedArgs[argCheck] != (DISPID)argCheck)
+					return DISP_E_NONAMEDARGS;
+			// OK - we will let it through.
+		}
 	}
 	PyObject *obISP = PyCom_PyObjectFromIUnknown(pspCaller, IID_IServiceProvider, TRUE);
 	if (obISP==NULL)
@@ -614,19 +691,7 @@ STDMETHODIMP PyGatewayBase::InvokeEx(DISPID id, LCID lcid, WORD wFlags, DISPPARA
 		if ( result==NULL )
 			hr = GetIDispatchErrorResult(pexcepinfo);
 		else {
-			// Done use invoke_finish, as we no longer support exceptions and
-			// nArgErr coming back.
-//			hr = invoke_finish(result, pVarResult, NULL);
-			BOOL success = pVarResult ? 
-					PyCom_VariantFromPyObject(result, pVarResult) :
-					TRUE;
-
-			if ( !success )
-			{
-				PyErr_Clear();
-				hr = E_FAIL;
-			}
-			Py_DECREF(result);
+			hr = invoke_finish(result, pVarResult, NULL, pexcepinfo, IID_IDispatchEx, params, false);
 		}
 	}
 	Py_DECREF(obISP);
