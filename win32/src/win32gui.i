@@ -1408,10 +1408,6 @@ BOOLAPI GetClientRect(HWND hWnd, RECT *OUTPUT);
 // @pyparm int|hwnd||The handle to the window
 HDC GetDC(  HWND hWnd );
 
-// @pyswig HWND|GetParent|Gets the parent window.
-// @pyparm int|hwnd||The handle to the window
-HWND GetParent(HWND hWnd);
-
 #ifndef MS_WINCE
 HINSTANCE GetModuleHandle(TCHAR *INPUT_NULLOK);
 #endif
@@ -1824,10 +1820,6 @@ HICON ExtractIcon(HINSTANCE hinst, TCHAR *modName, UINT index);
 BOOLAPI DestroyIcon( HICON hicon);
 
 
-// @pyswig |GetCursorPos|retrieves the cursor's position, in screen coordinates. 
-
-BOOLAPI GetCursorPos(POINT *OUTPUT);
-
 // @pyswig |ScreenToClient|Convert screen coordinates to client coords
 BOOLAPI ScreenToClient(HWND hWnd,POINT *BOTH);
 
@@ -1867,6 +1859,7 @@ int FrameRect(HDC hDC,   RECT *INPUT, HBRUSH hbr);
 int GetUpdateRgn(HWND hWnd, HRGN hRgn, BOOL bErase);
 DWORD GetSysColor(int nIndex);
 BOOLAPI InvalidateRect(HWND hWnd,  RECT *INPUT, BOOL bErase);
+*/
 
 // @pyswig int|CreateWindowEx|Creates a new window with Extended Style.
 HWND CreateWindowEx( 
@@ -1897,7 +1890,7 @@ HWND SetParent(
 
 // @pyswig |GetCursorPos|retrieves the cursor's position, in screen coordinates. 
 BOOLAPI GetCursorPos(
-  LPPOINT lpPoint   // @pyparm int, int|point||address of structure for cursor position
+  POINT *OUTPUT   // @pyparm int, int|point||address of structure for cursor position
 );
  
 // @pyswig int|GetDesktopWindow|returns the desktop window 
@@ -1938,15 +1931,15 @@ int ReleaseDC(
 %apply HRGN {long};
 typedef long HRGN
 
-// @pyswig |SystemParametersInfo|queries or sets system-wide parameters. This function can also update the user profile while setting a parameter. 
-
+//  |SystemParametersInfo|queries or sets system-wide parameters. This function can also update the user profile while setting a parameter. 
+/**
 BOOLAPI SystemParametersInfo(  
 	UINT uiAction, // @pyparm int|uiAction||system parameter to query or set
 	UINT uiParam,  // @pyparm int|uiParam||depends on action to be taken
 	PVOID pvParam, // @pyparm int|pvParam||depends on action to be taken
 	UINT fWinIni   // @pyparm int|fWinIni||user profile update flag
 	);
-
+**/
 
 // @pyswig |CreateCaret|
 BOOLAPI CreateCaret(
@@ -1958,8 +1951,6 @@ BOOLAPI CreateCaret(
 
 // @pyswig |DestroyCaret|
 BOOLAPI DestroyCaret();
-
-*/
 
 // @pyswig int|ScrollWindowEx|scrolls the content of the specified window's client area. 
 int ScrollWindowEx(
