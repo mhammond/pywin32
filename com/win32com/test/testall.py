@@ -31,24 +31,39 @@ def CleanGenerated():
         shutil.rmtree(win32com.__gen_path__)
     import win32com.client.gencache
     win32com.client.gencache.__init__() # Reset
-  
+
+def ExecuteSilentlyIfOK(cmd):
+    f = os.popen(cmd)
+    data = f.read()
+    rc = f.close()
+    if rc:
+        print data
+        self.fail("Executing '%s' failed (%d)" % (cmd, rc))
+    return data.strip()
+
 class PyCOMTest(TestCase):
     def testit(self):
         # Execute testPyComTest in its own process so it can play
         # with the Python thread state
         fname = os.path.join(os.path.dirname(this_file), "testPyComTest.py")
         cmd = '%s "%s" -q 2>&1' % (sys.executable, fname)
-        f = os.popen(cmd)
-        data = f.read()
-        rc = f.close()
-        if rc:
-            print data
-            self.fail("Executing '%s' failed (%d)" % (cmd, rc))
-        data = string.strip(data)
+        data = ExecuteSilentlyIfOK(cmd)
         if data:
             print "** testPyCOMTest generated unexpected output"
             # lf -> cr/lf
             print string.join(string.split(data, "\n"), "\r\n")
+
+class PippoTest(TestCase):
+    def testit(self):
+        # Execute pippo via python_d, so it can refcount check.
+        exe_dir = os.path.dirname(sys.executable)
+        python = os.path.join(exe_dir, "python_d.exe")
+        if not os.path.isfile(python):
+            print "Can't find python_d (but pippo would prefer it!)"
+            python = sys.executable
+        fname = os.path.join(os.path.dirname(this_file), "testPippo.py")
+        cmd = '%s "%s" 2>&1' % (python, fname)
+        ExecuteSilentlyIfOK(cmd)
 
 unittest_modules = [
         # Level 1 tests.
@@ -85,6 +100,7 @@ custom_test_cases = [
         # Level 1 tests.
         [
             PyCOMTest,
+            PippoTest,
         ],
         # Level 2 tests.
         [
