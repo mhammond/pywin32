@@ -877,7 +877,7 @@ done:
 }
 
 /* Other misc functions */
-// @method <o PyUnicode>|win32net|NetGetDCName|Returns the name of the primary domain controller (PDC).
+// @pymethod <o PyUnicode>|win32net|NetGetDCName|Returns the name of the primary domain controller (PDC).
 PyObject *PyNetGetDCName(PyObject *self, PyObject *args)
 {
 	PyObject *obServer = Py_None, *obDomain = Py_None;
@@ -908,7 +908,7 @@ done:
 	return ret;
 }
 
-// @method <o PyUnicode>|win32net|NetGetAnyDCName|Returns the name of any domain controller trusted by the specified server.
+// @pymethod <o PyUnicode>|win32net|NetGetAnyDCName|Returns the name of any domain controller trusted by the specified server.
 PyObject *PyNetGetAnyDCName(PyObject *self, PyObject *args)
 {
 	PyObject *obServer = Py_None, *obDomain = Py_None;
