@@ -4,7 +4,7 @@ rem Batch file for locating and executing SWIG.
 rem SWIG binaries are kept under source control,
 rem so this batch file should find that version.
 
-if "%SWIG_EXE%==" goto not_set
+if "%SWIG_EXE%"=="" goto not_set
 if not exist %SWIG_EXE% goto not_set
 
 echo NOTE: The build process has changed (hopefully for the better!)
