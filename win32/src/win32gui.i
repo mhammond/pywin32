@@ -1062,6 +1062,57 @@ BOOLAPI PostThreadMessage(DWORD dwThreadId, UINT msg, WPARAM wParam, LPARAM lPar
 // @pyparm int|lparam||An integer whose value depends on the message
 LRESULT DefWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+%{
+struct PyEnumWindowsCallback {
+	PyObject *func;
+	PyObject *extra;
+};
+
+BOOL CALLBACK PyEnumWindowsProc(
+  HWND hwnd,      // handle to parent window
+  LPARAM lParam   // application-defined value
+) {
+	BOOL result = TRUE;
+	PyEnumWindowsCallback *cb = (PyEnumWindowsCallback *)lParam;
+	CEnterLeavePython _celp;
+	PyObject *args = Py_BuildValue("(iO)", hwnd, cb->extra);
+	PyObject *ret = PyEval_CallObject(cb->func, args);
+	Py_XDECREF(args);
+	if (ret && PyInt_Check(ret))
+		result = PyInt_AsLong(ret);
+	Py_XDECREF(ret);
+	return result;
+}
+
+// @pyswig |EnumWindows|enumerates all top-level windows on the screen by passing the handle to each window, in turn, to an application-defined callback function. EnumWindows continues until the last top-level window is enumerated or the callback function returns FALSE
+static PyObject *PyEnumWindows(PyObject *self, PyObject *args)
+{
+	BOOL rc;
+	PyObject *obFunc, *obOther;
+	// @pyparm object|callback||A Python function to be used as the callback.
+	// @pyparm object|extra||Any python object - this is passed to the callback function as the second param (first is the hwnd).
+	if (!PyArg_ParseTuple(args, "OO", &obFunc, &obOther))
+		return NULL;
+	if (!PyCallable_Check(obFunc)) {
+		PyErr_SetString(PyExc_TypeError, "First param must be a callable object");
+		return NULL;
+	}
+	PyEnumWindowsCallback cb;
+	cb.func = obFunc;
+	cb.extra = obOther;
+    Py_BEGIN_ALLOW_THREADS
+	rc = EnumWindows(PyEnumWindowsProc, (LPARAM)&cb);
+    Py_END_ALLOW_THREADS
+	if (!rc)
+		return PyWin_SetAPIError("EnumWindows");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+%}
+%native (EnumWindows) PyEnumWindows;
+
+
 // @pyswig int|DialogBox|Creates a modal dialog box.
 %{
 static PyObject *PyDialogBox(PyObject *self, PyObject *args)
