@@ -137,7 +137,7 @@ def _GetCommandLine(exeName, exeArgs):
     else:
         return exeName
 
-def InstallService(pythonClassString, serviceName, displayName, startType = None, errorControl = None, bRunInteractive = 0, serviceDeps = None, userName = None, password = None, exeName = None, perfMonIni = None, perfMonDll = None, exeArgs = None):
+def InstallService(pythonClassString, serviceName, displayName, startType = None, errorControl = None, bRunInteractive = 0, serviceDeps = None, userName = None, password = None, exeName = None, perfMonIni = None, perfMonDll = None, exeArgs = None, description = None):
     # Handle the default arguments.
     if startType is None:
         startType = win32service.SERVICE_DEMAND_START
@@ -164,6 +164,11 @@ def InstallService(pythonClassString, serviceName, displayName, startType = None
                     serviceDeps,
                     userName,
                     password)
+        if description is not None:
+            try:
+                win32service.ChangeServiceConfig2(hs,win32service.SERVICE_CONFIG_DESCRIPTION,description)
+            except NotImplementedError:
+                pass    ## ChangeServiceConfig2 and description do not exist on NT
         win32service.CloseServiceHandle(hs)
     finally:
         win32service.CloseServiceHandle(hscm)
@@ -172,7 +177,7 @@ def InstallService(pythonClassString, serviceName, displayName, startType = None
     if perfMonIni is not None:
         InstallPerfmonForService(serviceName, perfMonIni, perfMonDll)
 
-def ChangeServiceConfig(pythonClassString, serviceName, startType = None, errorControl = None, bRunInteractive = 0, serviceDeps = None, userName = None, password = None, exeName = None, displayName = None, perfMonIni = None, perfMonDll = None, exeArgs = None):
+def ChangeServiceConfig(pythonClassString, serviceName, startType = None, errorControl = None, bRunInteractive = 0, serviceDeps = None, userName = None, password = None, exeName = None, displayName = None, perfMonIni = None, perfMonDll = None, exeArgs = None, description = None):
     # Before doing anything, remove any perfmon counters.
     try:
         import perfmon
@@ -206,7 +211,13 @@ def ChangeServiceConfig(pythonClassString, serviceName, startType = None, errorC
                 serviceDeps,
                 userName,
                 password,
-                    displayName)
+                displayName)
+            if description is not None:
+                try:
+                    win32service.ChangeServiceConfig2(hs,win32service.SERVICE_CONFIG_DESCRIPTION,description)
+                except NotImplementedError:
+                    pass    ## ChangeServiceConfig2 and description do not exist on NT
+
         finally:
             win32service.CloseServiceHandle(hs)
     finally:
@@ -561,13 +572,17 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
             exeArgs = cls._exe_args_
         except AttributeError:
             exeArgs = None
+        try:
+            description = cls._svc_description_
+        except AttributeError:
+            description = None
         print "Installing service %s to Python class %s" % (serviceName,serviceClassString)
         # Note that we install the service before calling the custom option
         # handler, so if the custom handler fails, we have an installed service (from NT's POV)
         # but is unlikely to work, as the Python code controlling it failed.  Therefore
         # we remove the service if the first bit works, but the second doesnt!
         try:
-            InstallService(serviceClassString, serviceName, serviceDisplayName, serviceDeps = serviceDeps, startType=startup, bRunInteractive=interactive, userName=userName,password=password, exeName=exeName, perfMonIni=perfMonIni,perfMonDll=perfMonDll,exeArgs=exeArgs)
+            InstallService(serviceClassString, serviceName, serviceDisplayName, serviceDeps = serviceDeps, startType=startup, bRunInteractive=interactive, userName=userName,password=password, exeName=exeName, perfMonIni=perfMonIni,perfMonDll=perfMonDll,exeArgs=exeArgs,description=description)
             if customOptionHandler:
                 apply( customOptionHandler, (opts,) )
             print "Service installed"
@@ -604,9 +619,13 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
             exeArgs = cls._exe_args_
         except AttributeError:
             exeArgs = None
+        try:
+            description=cls._svc_description_
+        except AttributeError:
+            description=None
         print "Changing service configuration"
         try:
-            ChangeServiceConfig(serviceClassString, serviceName, serviceDeps = serviceDeps, startType=startup, bRunInteractive=interactive, userName=userName,password=password, exeName=exeName, displayName = serviceDisplayName, perfMonIni=perfMonIni,perfMonDll=perfMonDll,exeArgs=exeArgs)
+            ChangeServiceConfig(serviceClassString, serviceName, serviceDeps = serviceDeps, startType=startup, bRunInteractive=interactive, userName=userName,password=password, exeName=exeName, displayName = serviceDisplayName, perfMonIni=perfMonIni,perfMonDll=perfMonDll,exeArgs=exeArgs,description=description)
             print "Service updated"
         except win32service.error, (hr, fn, msg):
             print "Error changing service configuration: %s (%d)" % (msg,hr)
@@ -650,6 +669,7 @@ class ServiceFramework:
     _svc_deps_ = None        # sequence of service names on which this depends
     _exe_name_ = None        # Default to PythonService.exe
     _exe_args_ = None        # Default to no arguments
+    _svc_description_ = None # Only exists on Windows 2000 or later, ignored on windows NT
 
     def __init__(self, args):
         import servicemanager

@@ -35,6 +35,8 @@ def ApplyIgnoreError(fn, args):
 class TestPipeService(win32serviceutil.ServiceFramework):
     _svc_name_ = "PyPipeTestService"
     _svc_display_name_ = "Python Pipe Test Service"
+    _svc_description_ = "Tests Python service framework by receiving and echoing messages over a named pipe"
+
     def __init__(self, args):
         win32serviceutil.ServiceFramework.__init__(self, args)
         self.hWaitStop = CreateEvent(None, 0, 0, None)
