@@ -48,13 +48,24 @@ def Test():
     h = win32file.CreateFile( testName, desiredAccess, win32file.FILE_SHARE_READ, None, win32file.CREATE_ALWAYS, fileFlags, 0)
 
     # Write a known number of bytes to the file.
-    data = "z" * 1024
+    data = "z" * 1025
 
     win32file.WriteFile(h, data)
 
     if win32file.GetFileSize(h) != len(data):
         print "WARNING: Written file does not have the same size as the length of the data in it!"
         print "Reported size is", win32file.GetFileSize(h), "but expected to be", len(data)
+
+    # Ensure we can read the data back.
+    win32file.SetFilePointer(h, 0, win32file.FILE_BEGIN)
+    hr, read_data = win32file.ReadFile(h, len(data)+10) # + 10 to get anything extra
+    if hr != 0:
+        print "WARNING: ReadFile returned", hr
+
+    if read_data != data:
+        print "WARNING: Read data is not what we wrote!"
+        print "Wrote:", repr(data)
+        print "Got  :", repr(read_data)
 
     # Now truncate the file at 1/2 its existing size.
     newSize = len(data)/2
