@@ -105,7 +105,6 @@ if __name__=='__main__':
 
 
     import testAXScript
-    testAXScript.RegisterEngine()
     testAXScript.TestAll()
 
     # testxslt uses the axscript engine too.

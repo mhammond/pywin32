@@ -29,6 +29,7 @@ def TestCScript(verbose = 1):
         print "Execution of CScript failed"
 
 def TestAll(verbose = 1):
+    RegisterEngine()
     TestHost(verbose)
     TestCScript(verbose)
 
