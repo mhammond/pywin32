@@ -20,7 +20,7 @@ class ShellExtension:
     _reg_progid_ = "Python.ShellExtension.ContextMenu"
     _reg_desc_ = "Python Sample Shell Extension (context menu)"
     _reg_clsid_ = "{CED0336C-C9EE-4a7f-8D7F-C660393C381F}"
-    _com_interfaces_ = [shell.IID_IShellExtInit, shell.IID_IContextMenu, shell.IID_IExtractIcon, pythoncom.IID_IPersistFile]
+    _com_interfaces_ = [shell.IID_IShellExtInit, shell.IID_IContextMenu]
     _public_methods_ = IContextMenu_Methods + IShellExtInit_Methods
 
     def Initialize(self, folder, dataobj, hkey):
