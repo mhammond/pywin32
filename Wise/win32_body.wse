@@ -227,11 +227,25 @@ item: Install File
   Description=Help Files
   Flags=0000000000000010
 end
+item: If/While Statement
+  Variable=USE_HKLM
+  Value=1
+end
 item: Edit Registry
   Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Help\Win32 Extensions
   New Value=%INSTDIR%\Help\Python Win32 Extensions.hlp
   Root=2
+end
+item: Else Statement
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\Help\Win32 Extensions
+  New Value=%INSTDIR%\Help\Python Win32 Extensions.hlp
+  Root=1
+end
+item: End Block
 end
 item: Add Text to INSTALL.LOG
   Text=File Copy: %INSTDIR%\Help\Python Win32 Extensions.fts
@@ -302,11 +316,25 @@ item: Install File
   Description=win32 extension demos
   Flags=0000000100000010
 end
+item: If/While Statement
+  Variable=USE_HKLM
+  Value=1
+end
 item: Edit Registry
   Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\PythonPath\win32
   New Value=%INSTDIR%;%INSTDIR%\lib
   Root=2
+end
+item: Else Statement
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\PythonPath\win32
+  New Value=%INSTDIR%;%INSTDIR%\lib
+  Root=1
+end
+item: End Block
 end
 item: Compiler Variable If
   Variable=_COMBINEDINST_

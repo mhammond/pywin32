@@ -340,6 +340,10 @@ end
 item: Remark
   Text=Write the registry keys
 end
+item: If/While Statement
+  Variable=USE_HKLM
+  Value=1
+end
 item: Edit Registry
   Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\PythonPath\win32com
@@ -352,6 +356,23 @@ item: Edit Registry
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Help\Python COM Reference
   New Value=%INSTDIR%\win32com.hlp
   Root=2
+end
+item: Else Statement
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\PythonPath\win32com
+  New Value=%MAINDIR%
+  New Value=
+  Root=1
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\Help\Python COM Reference
+  New Value=%INSTDIR%\win32com.hlp
+  Root=1
+end
+item: End Block
 end
 item: Remark
   Text=Add the registry key that support auto-register

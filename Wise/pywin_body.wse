@@ -26,12 +26,27 @@ item: Install File
   Description=Core COM Extension DLL
   Flags=0000001000010011
 end
+item: If/While Statement
+  Variable=USE_HKLM
+  Value=1
+end
 item: Edit Registry
   Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\pywintypes
   New Value=%SYS32%\PyWinTypes%PYVER_NODOT%.dll
   New Value=
   Root=2
+end
+item: Else Statement
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\pywintypes
+  New Value=%SYS32%\PyWinTypes%PYVER_NODOT%.dll
+  New Value=
+  Root=1
+end
+item: End Block
 end
 item: Compiler Variable End
 end
@@ -93,11 +108,25 @@ item: Install File
   Description=Extension modules
   Flags=0000000000000011
 end
+item: If/While Statement
+  Variable=USE_HKLM
+  Value=1
+end
 item: Edit Registry
   Total Keys=1
   Key=Software\Microsoft\Windows\CurrentVersion\App Paths\Pythonwin.exe
   New Value=%INSTDIR%\Pythonwin.exe
   Root=2
+end
+item: Else Statement
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Microsoft\Windows\CurrentVersion\App Paths\Pythonwin.exe
+  New Value=%INSTDIR%\Pythonwin.exe
+  Root=1
+end
+item: End Block
 end
 item: If/While Statement
   Variable=ADD_EDIT_MENU
@@ -133,11 +162,25 @@ item: Install File
   Description=Help files
   Flags=0000000100000010
 end
+item: If/While Statement
+  Variable=USE_HKLM
+  Value=1
+end
 item: Edit Registry
   Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Help\Pythonwin Reference
   New Value=%INSTDIR%\Help\Pythonwin.hlp
   Root=2
+end
+item: Else Statement
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\Help\Pythonwin Reference
+  New Value=%INSTDIR%\Help\Pythonwin.hlp
+  Root=1
+end
+item: End Block
 end
 item: Install File
   Source=l:\src\pythonex\pythonwin\readme.html
@@ -162,6 +205,10 @@ end
 item: Self-Register OCXs/DLLs
   Description=Updating System Configuration, Please Wait...
 end
+item: If/While Statement
+  Variable=USE_HKLM
+  Value=1
+end
 item: Edit Registry
   Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\PythonPath\Pythonwin
@@ -173,6 +220,22 @@ item: Edit Registry
   Key=Software\Python\Pythonwin\Build
   New Value=%BUILD_NO%
   Root=2
+end
+item: Else Statement
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\PythonPath\Pythonwin
+  New Value=%INSTDIR%
+  Root=1
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Python\Pythonwin\Build
+  New Value=%BUILD_NO%
+  Root=1
+end
+item: End Block
 end
 item: Add Text to INSTALL.LOG
   Text=RegDB TREE: SOFTWARE\Python %PYVER_DOTTED%\Python for Win32

@@ -16,7 +16,7 @@ item: Global
   Patch Flags=0000000000000001
   Patch Threshold=85
   Patch Memory=4000
-  EXE Filename=win32all-133.exe
+  EXE Filename=win32all-134.exe
   Code Sign Name=Python Win32 combined extensions
   Code Sign Info=skippinet.com.au
   Variable Name1=_WISE_
@@ -28,39 +28,51 @@ item: Global
   Variable Name3=_EXE_OS_TYPE_
   Variable Default3=WIN32
   Variable Flags3=00001000
-  Variable Name4=PYTHON_15
-  Variable Description4=Is this a Python 1.5 build?
-  Variable Default4=0
-  Variable Values4=0
-  Variable Values4=1
+  Variable Name4=PYVER_DOTTED
+  Variable Description4=Python version number
+  Variable Default4=2.0
+  Variable Values4=1.5
+  Variable Values4=1.6
+  Variable Values4=2.0
   Variable Flags4=00000010
+  Variable Name5=PYVER_NODOT
+  Variable Description5=Python version number, without a dot.
+  Variable Default5=20
+  Variable Values5=15
+  Variable Values5=16
+  Variable Values5=20
+  Variable Flags5=00000010
 end
 item: Open/Close INSTALL.LOG
   Flags=00000001
 end
-item: Compiler Variable If
-  Variable=PYTHON_15
-  Value=1
-end
-item: Set Variable
+remarked item: Compiler Variable If
   Variable=PYVER_DOTTED
   Value=1.5
 end
-item: Set Variable
+remarked item: Set Variable
   Variable=PYVER_NODOT
   Value=15
 end
-item: Compiler Variable Else
+remarked item: Compiler Variable Else
 end
-item: Set Variable
+remarked item: Compiler Variable If
   Variable=PYVER_DOTTED
   Value=1.6
 end
-item: Set Variable
+remarked item: Set Variable
   Variable=PYVER_NODOT
   Value=16
 end
-item: Compiler Variable End
+remarked item: Compiler Variable Else
+end
+remarked item: Set Variable
+  Variable=PYVER_NODOT
+  Value=20
+end
+remarked item: Compiler Variable End
+end
+remarked item: Compiler Variable End
 end
 item: Remark
   Text=Main Python related variables.
@@ -108,29 +120,54 @@ item: Get Registry Key Value
   Default=%GROUP%
   Flags=00000100
 end
+item: Set Variable
+  Variable=USE_HKLM
+  Value=1
+end
 item: If/While Statement
   Variable=PY_INST_PATH
 end
-item: Compiler Variable If
+item: Remark
+  Text=Old 1.5.1 support - we can drop this!
+end
+remarked item: Compiler Variable If
   Variable=PYTHON_15
   Value=1
 end
-item: Set Variable
+remarked item: Set Variable
   Variable=PY_REG_VERSION
   Value=1.5.1
 end
-item: Get Registry Key Value
+remarked item: Get Registry Key Value
   Variable=PY_INST_PATH
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\InstallPath
   Flags=00000100
 end
-item: Get Registry Key Value
+remarked item: Get Registry Key Value
   Variable=GROUP
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\InstallPath\InstallGroup
   Default=%GROUP%
   Flags=00000100
 end
-item: Compiler Variable End
+remarked item: Compiler Variable End
+end
+item: Remark
+  Text=Check HKEY_CURRENT_USER too.
+end
+item: Get Registry Key Value
+  Variable=PY_INST_PATH
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\InstallPath
+  Flags=00000010
+end
+item: Get Registry Key Value
+  Variable=GROUP
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\InstallPath\InstallGroup
+  Default=%GROUP%
+  Flags=00000010
+end
+item: Set Variable
+  Variable=USE_HKLM
+  Value=0
 end
 item: If/While Statement
   Variable=PY_INST_PATH
@@ -213,8 +250,8 @@ item: Get Registry Key Value
   Flags=00000100
 end
 item: Compiler Variable If
-  Variable=PYTHON_15
-  Value=1
+  Variable=PYVER_DOTTED
+  Value=1.5
 end
 item: Remark
   Text=Older 1.5 versions used this key.
@@ -830,37 +867,53 @@ remarked item: Install File
   Destination=%MAINDIR%\Pythonwin\win32dbg.py
   Flags=0000000000000010
 end
-item: Compiler Variable If
+remarked item: Compiler Variable If
   Variable=PYTHON_15
   Value=1
 end
-item: Install File
+remarked item: Install File
   Source=l:\src\pythonex\win32\Build\System\PyWinTypes15.dll
   Destination=%SYSDLL_PATH%\PyWinTypes15.dll
   Description=Core COM Extension DLL
   Flags=0000001000000011
 end
-item: Install File
+remarked item: Install File
   Source=l:\src\pythonex\com\Build\System\PythonCOM15.dll
   Destination=%SYSDLL_PATH%\PythonCOM15.dll
   Description=Core COM Extension DLL
   Flags=0000001000000011
 end
-item: Compiler Variable Else
+remarked item: Compiler Variable Else
 end
-item: Install File
+remarked item: Install File
   Source=l:\src\pythonex\win32\Build\System\PyWinTypes16.dll
   Destination=%SYSDLL_PATH%\PyWinTypes16.dll
   Description=Core COM Extension DLL
   Flags=0000000000000011
 end
-item: Install File
+remarked item: Install File
   Source=l:\src\pythonex\com\Build\System\PythonCOM16.dll
   Destination=%SYSDLL_PATH%\PythonCOM16.dll
   Description=Core COM Extension DLL
   Flags=0000000000000011
 end
-item: Compiler Variable End
+remarked item: Compiler Variable End
+end
+item: Install File
+  Source=l:\src\pythonex\win32\Build\System\PyWinTypes%PYVER_NODOT%.dll
+  Destination=%SYSDLL_PATH%\PyWinTypes%PYVER_NODOT%.dll
+  Description=Core COM Extension DLL
+  Flags=0000000000000010
+end
+item: Install File
+  Source=l:\src\pythonex\com\Build\System\PythonCOM%PYVER_NODOT%.dll
+  Destination=%SYSDLL_PATH%\PythonCOM%PYVER_NODOT%.dll
+  Description=Core COM Extension DLL
+  Flags=0000000000000010
+end
+item: If/While Statement
+  Variable=USE_HKLM
+  Value=1
 end
 item: Edit Registry
   Total Keys=1
@@ -875,6 +928,24 @@ item: Edit Registry
   New Value=%SYSDLL_PATH%\PyWinTypes%PYVER_NODOT%.dll
   New Value=
   Root=2
+end
+item: Else Statement
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\pythoncom
+  New Value=%SYSDLL_PATH%\pythoncom%PYVER_NODOT%.dll
+  New Value=
+  Root=1
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\pywintypes
+  New Value=%SYSDLL_PATH%\PyWinTypes%PYVER_NODOT%.dll
+  New Value=
+  Root=1
+end
+item: End Block
 end
 item: Remark
   Text=Uninstall support
@@ -936,8 +1007,8 @@ item: Install File
   Flags=0000000000100010
 end
 item: Compiler Variable If
-  Variable=PYTHON_15
-  Value=1
+  Variable=PYVER_DOTTED
+  Value=1.5
 end
 item: Install File
   Source=l:\src\pythonex\Wise\PyWise\Build\Release\PyWise.dll
@@ -963,12 +1034,12 @@ end
 item: Compiler Variable Else
 end
 item: Install File
-  Source=l:\src\pythonex\Wise\PyWise\Build\Release\PyWise16.dll
-  Destination=%MAINDIR%\PyWise16.dll
+  Source=l:\src\pythonex\Wise\PyWise\Build\Release\PyWise%PYVER_NODOT%.dll
+  Destination=%MAINDIR%\PyWise%PYVER_NODOT%.dll
   Flags=0000000000100010
 end
 item: Call DLL Function
-  Pathname=%MAINDIR%\PyWise16.dll
+  Pathname=%MAINDIR%\PyWise%PYVER_NODOT%.dll
   Function Name=Wise_CallObject
   Variables Added=DISPLAY_MSG
   Parameter=%TEMP%\FinishInstall.CompileAllAndRegisterCOM|winerror=%MAINDIR%\win32\lib|%MAINDIR%\win32;%MAINDIR%\win32com;%MAINDIR%\win32comext;%MAINDIR%\Pythonwin
@@ -992,8 +1063,8 @@ item: Delete File
   Pathname=%TEMP%\FinishInstall.pyc
 end
 item: Compiler Variable If
-  Variable=PYTHON_15
-  Value=1
+  Variable=PYVER_DOTTED
+  Value=1.5
 end
 item: Delete File
   Pathname=%TEMP%\PyWise.dll
@@ -1001,7 +1072,7 @@ end
 item: Compiler Variable Else
 end
 item: Delete File
-  Pathname=%MAINDIR%\PyWise16.dll
+  Pathname=%MAINDIR%\PyWise%PYVER_NODOT%.dll
 end
 item: Compiler Variable End
 end
