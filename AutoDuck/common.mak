@@ -19,6 +19,7 @@ cleanad:
 	if exist "$(GENDIR)\*.dump" del "$(GENDIR)\*.dump"
 	if exist "$(GENDIR)\*.hhk" del "$(GENDIR)\*.hhk"
 	if exist "$(GENDIR)\*.hhc" del "$(GENDIR)\*.hhc"
+	if exist "$(GENDIR)\$(HTML_DIR)\*" rd /s /q "$(GENDIR)\$(HTML_DIR)"
 
 # Generate a Help file
 
@@ -56,18 +57,20 @@ cleanad:
 "$(GENDIR)\$(TARGET).hhp" : BuildHHP.py $(HTML_FILES) "$(GENDIR)\$(HTML_DIR)"
 	BuildHHP.py "$(GENDIR)\$(TARGET)" "$(TARGET)" "$(GENDIR)\$(HTML_DIR)" $(HTML_FILES)
 
-"$(GENDIR)\$(TARGET).html" "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).idx" : $(SOURCE) pyhtml.fmt "$(GENDIR)\$(TARGET).hhlog"
+"$(GENDIR)\$(TARGET).html" "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).idx" : $(SOURCE) pyhtml.fmt "$(GENDIR)\$(TARGET).hhlog" AutoDuckPostProcess.py $(EXT_TOPICS)
 	@echo Running autoduck for the .html
 	@$(ADHTMLFMT) $(ADHTML) /t$(ADTAB) $(SOURCE)
+	AutoDuckPostProcess.py "$(GENDIR)\$(TARGET).html" "$(EXT_TOPICS)"
 
 "$(GENDIR)\$(TARGET).hhk" : "$(GENDIR)\$(TARGET).idx" "$(GENDIR)\$(TARGET).idx" TOCToHHK.py
 	TOCToHHK.py "$(GENDIR)\$(TARGET).idx" "$(GENDIR)\$(TARGET).hhk"
 
-"$(GENDIR)\$(TARGET).hhc" : "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).dump" Dump2HHC.py
-	Dump2HHC.py "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).hhc" "$(TITLE)" "$(TARGET)" 
+"$(GENDIR)\$(TARGET).hhc" : "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).dump" Dump2HHC.py "$(EXT_TOPICS)"
+	Dump2HHC.py "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).hhc" "$(TITLE)" "$(TARGET)" "$(EXT_TOPICS)"
 
 "..\$(TARGET).chm" : $(SOURCE) "$(GENDIR)\$(TARGET).html" "$(GENDIR)\$(TARGET).hhc" "$(GENDIR)\$(TARGET).hhk" "$(GENDIR)\$(TARGET).hhp"
 	-$(HHC) "$(GENDIR)\$(TARGET).hhp"
 	if exist "..\$(TARGET).chm" del "..\$(TARGET).chm"
-	move "$(GENDIR)\$(TARGET).chm" "..\$(TARGET).chm" 
+	move "$(GENDIR)\$(TARGET).chm" "..\$(TARGET).chm"
+
 

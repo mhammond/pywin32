@@ -108,7 +108,7 @@
 <LI><A HREF="structsnenum.html">Structs and Enums</A>
 -->
 <H2>Overviews and other documentation</H2>
-$[index:topic]
+$[index:topic]<!--index:extopics-->
 <LI><A HREF="constants.html">Constants</A>
 
 <p>Help file built: $!d</p>
@@ -116,7 +116,7 @@ $[index:topic]
 $(node_b0)overviews.html$(node_b1)Overviews$(node_e)
 <H2>Overviews</H2>
 $[index:topic]
-
+<!--index:extopics-->
 $(node_b0)modules.html$(node_b1)Modules$(node_e)
 <H1>Modules</H1>
 $[index:module]

@@ -11,6 +11,16 @@ DOCHDR  = $(TARGET) Reference
 
 SOURCE_DIR = ../win32/src
 HELP_DIR   = ../win32/help
+
+# Name of the subdirectory to copy $(HTML_FILES) into
+# for building of the .CHM file.
+HTML_DIR = win32
+# Extraneous HTML files to include into the .CHM:
+HTML_FILES = 
+
+# Non-autoduck overview topics data file:
+EXT_TOPICS = noOverviews.dat
+
 SOURCE  = $(SOURCE_DIR)/*.cpp \
 	  $(SOURCE_DIR)/*.h \
 	  $(HELP_DIR)/*.d \

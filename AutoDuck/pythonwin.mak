@@ -10,11 +10,15 @@ TITLE   = $(TARGET) Help
 DOCHDR  = $(TARGET) Reference
 
 SOURCE_DIR = ../pythonwin
+
 # Name of the subdirectory to copy $(HTML_FILES) into
 # for building of the .CHM file.
 HTML_DIR = pythonwin
 # Extraneous HTML files to include into the .CHM:
 HTML_FILES = $(SOURCE_DIR)/doc/*
+
+# Non-autoduck overview topics data file:
+EXT_TOPICS = noOverviews.dat
 
 SOURCE  = $(SOURCE_DIR)\contents.d $(SOURCE_DIR)\*.cpp $(SOURCE_DIR)\*.h 
 
