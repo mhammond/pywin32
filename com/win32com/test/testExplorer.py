@@ -7,6 +7,7 @@ import win32com.client.dynamic
 import win32api
 import glob
 import pythoncom
+from util import CheckClean
 
 bVisibleEventFired = 0
 
@@ -16,12 +17,23 @@ class ExplorerEvents:
 		bVisibleEventFired = 1
 
 def TestExplorerEvents():
+	global bVisibleEventFired
 	iexplore = win32com.client.DispatchWithEvents("InternetExplorer.Application", ExplorerEvents)
 	iexplore.Visible = 1
 	if not bVisibleEventFired:
 		raise RuntimeError, "The IE event did not appear to fire!"
 	iexplore.Quit()
 	iexplore = None
+
+	bVisibleEventFired = 0
+	ie = win32com.client.Dispatch("InternetExplorer.Application")
+	ie_events = win32com.client.DispatchWithEvents(ie, ExplorerEvents)
+	ie.Visible = 1
+	if not bVisibleEventFired:
+		raise RuntimeError, "The IE event did not appear to fire!"
+	ie.Quit()
+	ie = None
+	print "IE Event tests worked."
 
 
 def TestExplorer(iexplore):
@@ -56,11 +68,11 @@ def TestAll():
 		gencache.EnsureModule("{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}", 0, 1, 1)
 		iexplore = win32com.client.Dispatch("InternetExplorer.Application")
 		TestExplorer(iexplore)
-		
 
 	finally:
 		iexplore = None
 
 if __name__=='__main__':
 	TestAll()
+	CheckClean()
 
