@@ -1,6 +1,7 @@
 import sys, os
 import unittest
 import win32rcparser
+import win32con
 
 class TestParser(unittest.TestCase):
     def setUp(self):
@@ -16,6 +17,32 @@ class TestParser(unittest.TestCase):
                              ]:
             got = self.resources.stringTable[sid].value
             self.assertEqual(got, expected)
+
+    def testStandardIds(self):
+        for idc in "IDOK IDCANCEL".split():
+            correct = getattr(win32con, idc)
+            self.assertEqual(self.resources.names[correct], idc)
+            self.assertEqual(self.resources.ids[idc], correct)
+
+    def testTabStop(self):
+        d = self.resources.dialogs["IDD_TEST_DIALOG2"]
+        tabstop_names = ["IDC_EDIT1", "IDOK"] # should have WS_TABSTOP
+        tabstop_ids = [self.resources.ids[name] for name in tabstop_names]
+        notabstop_names = ["IDC_EDIT2"] # should have WS_TABSTOP
+        notabstop_ids = [self.resources.ids[name] for name in notabstop_names]
+        num_ok = 0
+        for cdef in d[1:]: # skip dlgdef
+            #print cdef
+            cid = cdef[2]
+            style = cdef[-2]
+            styleex = cdef[-1]
+            if cid in tabstop_ids:
+                self.failUnlessEqual(style & win32con.WS_TABSTOP, win32con.WS_TABSTOP)
+                num_ok += 1
+            elif cid in notabstop_ids:
+                self.failUnlessEqual(style & win32con.WS_TABSTOP, 0)
+                num_ok += 1
+        self.failUnlessEqual(num_ok, len(tabstop_ids) + len(notabstop_ids))
 
 if __name__=='__main__':
     unittest.main()
