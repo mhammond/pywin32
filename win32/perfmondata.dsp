@@ -140,10 +140,10 @@ BuildCmds= \
 "src\PerfMon\PyPerfMsgs.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
    $(BuildCmds)
 
-"src\$(IntDir)\msg00001.bin" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"$(IntDir)\msg00001.bin" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
    $(BuildCmds)
 
-"src\$(IntDir)\PyPerfMsgs.rc" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"$(IntDir)\PyPerfMsgs.rc" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
    $(BuildCmds)
 # End Custom Build
 
