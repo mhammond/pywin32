@@ -8,7 +8,7 @@
 #include <PythonCOMServer.h>
 #include <shlobj.h>
 
-BOOL PyObject_AsPIDL(PyObject *ob, LPITEMIDLIST *ppidl, BOOL bNoneOK = FALSE);
+BOOL PyObject_AsPIDL(PyObject *ob, LPITEMIDLIST *ppidl, BOOL bNoneOK = FALSE, UINT *pcb = NULL);
 PyObject *PyObject_FromPIDL(LPCITEMIDLIST pidl, BOOL bFreeSystemPIDL);
 void PyObject_FreePIDL( LPCITEMIDLIST pidl );
 
