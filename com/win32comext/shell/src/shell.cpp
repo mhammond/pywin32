@@ -156,6 +156,7 @@ BOOL PyObject_AsPIDL(PyObject *ob, ITEMIDLIST **ppidl, BOOL bNoneOK /*= FALSE*/,
 		}
 		pidl->mkid.cb = PyString_GET_SIZE(sub) + sizeof(pidl->mkid.cb);
 		memcpy(pidl->mkid.abID, PyString_AS_STRING(sub), PyString_GET_SIZE(sub));
+		Py_DECREF(sub);
 		pidl = _ILNext(pidl);
 	}
 	pidl->mkid.cb = 0;
@@ -1325,11 +1326,11 @@ static PyObject *PyPIDLAsString(PyObject *self, PyObject *args)
 	// @pyparm <o PIDL>|pidl||The PIDL object (ie, a list of strings)
 	if (!PyArg_ParseTuple(args, "O:PIDLAsString", &obPIDL))
 		return NULL;
+	UINT cb;
 	ITEMIDLIST *ppidls;
-	if (!PyObject_AsPIDL(obPIDL, &ppidls, FALSE))
+	if (!PyObject_AsPIDL(obPIDL, &ppidls, FALSE, &cb))
 		return NULL;
-	PyObject *ret = PyString_FromStringAndSize((char *)ppidls,
-											   PyShell_ILGetSize(ppidls));
+	PyObject *ret = PyString_FromStringAndSize((char *)ppidls, cb);
 	PyShell_FreeMem(ppidls);
 	return ret;
 }
