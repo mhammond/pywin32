@@ -20,6 +20,8 @@ LPCSTR GetFacilityString(SCODE sc);
 static const EXCEPINFO nullExcepInfo = { 0 };
 static PyObject *PyCom_PyObjectFromIErrorInfo(IErrorInfo *, HRESULT errorhr);
 
+static const char *traceback_prefix = "Traceback (most recent call last):\n";
+
 ////////////////////////////////////////////////////////////////////////
 //
 // Server Side Errors - translate a Python exception to COM error information
@@ -345,6 +347,15 @@ PYCOM_EXPORT HRESULT PyCom_SetAndLogCOMErrorFromPyException(const char *methodNa
 	return PyCom_SetCOMErrorFromPyException(riid);
 }
 
+PYCOM_EXPORT HRESULT PyCom_SetAndLogCOMErrorFromPyExceptionEx(PyObject *provider, const char *methodName, REFIID riid /* = IID_NULL */)
+{
+	if (!PyErr_Occurred())
+		// No error occurred
+		return S_OK;
+	PyCom_LoggerNonServerException(provider, "Unexpected exception in gateway method '%s'", methodName);
+	return PyCom_SetCOMErrorFromPyException(riid);
+}
+
 ////////////////////////////////////////////////////////////////////////
 // Some logging functions
 ////////////////////////////////////////////////////////////////////////
@@ -457,6 +468,46 @@ void PyCom_StreamMessage(const char *pszMessageText)
 			fprintf(stdout, "%s", pszMessageText);
 	PyErr_Restore(typ, val, tb);
 }
+BOOL VLogF_Logger(PyObject *logger, const char *log_method,
+				  const TCHAR *prefix, const TCHAR *fmt, va_list argptr)
+{
+	// Protected by Python lock
+	static TCHAR buff[8196];
+	int buf_len = sizeof(buff) / sizeof(buff[0]);
+	int prefix_len = strlen(prefix);
+	assert(prefix_len<100);
+	strcpy(buff, prefix);
+	wvsprintf(buff+prefix_len, fmt, argptr);
+
+	PyObject *exc_typ = NULL, *exc_val = NULL, *exc_tb = NULL;
+	PyErr_Fetch( &exc_typ, &exc_val, &exc_tb);
+
+	// Python 2.3 has an issue in that attempting to make the call with
+	// an exception set causes the call itself to fail - but
+	// 2.3's logger provides no way of passing the exception!
+	// We make no attempt to worm around this - if you really want this feature
+	// in Python 2.3, simply use the Python 2.4 logging package (or at least
+	// a logger from that package)
+	PyObject *kw = PyDict_New();
+	PyObject *exc_info = Py_BuildValue("OOO", exc_typ, exc_val, exc_tb);
+	if (kw)
+		PyDict_SetItemString(kw, "exc_info", exc_info);
+	Py_XDECREF(exc_info);
+	PyObject *args = Py_BuildValue("(s)", buff);
+	PyObject *method = PyObject_GetAttrString(logger, (char *)log_method);
+	PyObject *result = NULL;
+	if (method && kw && args)
+		result = PyObject_Call(method, args, kw);
+	Py_XDECREF(method);
+	Py_XDECREF(kw);
+	Py_XDECREF(args);
+	if (!result)
+		PyErr_Print();
+	BOOL rc = result != NULL;
+	Py_XDECREF(result);
+	PyErr_Restore( exc_typ, exc_val, exc_tb);
+	return rc;
+}
 
 void VLogF(const TCHAR *fmt, va_list argptr)
 {
@@ -483,7 +534,7 @@ void _LogException(PyObject *exc_typ, PyObject *exc_val, PyObject *exc_tb)
 		if (szTraceback == NULL)
 			PyCom_StreamMessage("Can't get the traceback info!");
 		else {
-			PyCom_StreamMessage("Traceback (most recent call last):\n");
+			PyCom_StreamMessage(traceback_prefix);
 			PyCom_StreamMessage(szTraceback);
 			PyMem_Free((void *)szTraceback);
 		}
@@ -506,47 +557,99 @@ void _LogException(PyObject *exc_typ, PyObject *exc_val, PyObject *exc_tb)
 	PyCom_StreamMessage("\n");
 }
 
-PYCOM_EXPORT 
-void PyCom_LogError(const char *fmt, ...)
+void _DoLogError(const char *fmt, va_list argptr)
 {
-	va_list marker;
-	va_start(marker, fmt);
 	PyCom_StreamMessage("pythoncom error: ");
-	VLogF(fmt, marker);
+	VLogF(fmt, argptr);
 	PyCom_StreamMessage("\n");
 	// If we have a Python exception, also log that:
 	PyObject *exc_typ = NULL, *exc_val = NULL, *exc_tb = NULL;
 	PyErr_Fetch( &exc_typ, &exc_val, &exc_tb);
 	if (exc_typ) {
 		PyErr_NormalizeException( &exc_typ, &exc_val, &exc_tb);
+		PyCom_StreamMessage("\n");
 		_LogException(exc_typ, exc_val, exc_tb);
 	}
 	PyErr_Restore(exc_typ, exc_val, exc_tb);
 }
 
-
 PYCOM_EXPORT 
-void PyCom_LogNonServerError(const char *fmt, ...)
+void PyCom_LogError(const char *fmt, ...)
 {
-	// See if our gateway exception
+	va_list marker;
+	va_start(marker, fmt);
+	_DoLogError(fmt, marker);
+}
+
+BOOL IsNonServerErrorCurrent() {
+	BOOL rc = FALSE;
 	PyObject *exc_typ = NULL, *exc_val = NULL, *exc_tb = NULL;
 	PyErr_Fetch( &exc_typ, &exc_val, &exc_tb);
 	if (exc_typ) {
 		PyErr_NormalizeException( &exc_typ, &exc_val, &exc_tb);
-		if (!PyErr_GivenExceptionMatches(exc_val, PyWinExc_COMError) ||
-		   ((PyInstance_Check(exc_val) && 
-		     (PyObject *)(((PyInstanceObject *)exc_val)->in_class)==PyWinExc_COMError))) {
-			va_list marker;
-			va_start(marker, fmt);
-			PyCom_StreamMessage("pythoncom error: ");
-			VLogF(fmt, marker);
-			PyCom_StreamMessage("\n");
-			_LogException(exc_typ, exc_val, exc_tb);
-		}
+		rc = (!PyErr_GivenExceptionMatches(exc_val, PyWinExc_COMError) ||
+		     ((PyInstance_Check(exc_val) && 
+		      (PyObject *)(((PyInstanceObject *)exc_val)->in_class)==PyWinExc_COMError)));
 	}
 	PyErr_Restore(exc_typ, exc_val, exc_tb);
+	return rc;
 }
 
+PYCOM_EXPORT 
+void PyCom_LogNonServerError(const char *fmt, ...)
+{
+	// If any error other than our explicit 'com server error' is current,
+	// assume it is unintended, and log it.
+	if (IsNonServerErrorCurrent()) {
+		va_list marker;
+		va_start(marker, fmt);
+		_DoLogError(fmt, marker);
+	}
+}
+
+void _DoLogger(PyObject *logProvider, char *log_method, const char *fmt, va_list argptr)
+{
+	PyObject *exc_typ = NULL, *exc_val = NULL, *exc_tb = NULL;
+	PyErr_Fetch( &exc_typ, &exc_val, &exc_tb);
+	PyObject *logger = NULL;
+	if (logProvider)
+		logger = PyObject_CallMethod(logProvider, "_GetLogger_", NULL);
+	if (logger == NULL) {
+		PyObject *mod = PyImport_ImportModule("win32com");
+		if (mod) {
+			logger = PyObject_GetAttrString(mod, "logger");
+			Py_DECREF(mod);
+		}
+	}
+	// Returning a logger of None means "no logger"
+	if (logger == Py_None) {
+		Py_DECREF(logger);
+		logger = NULL;
+	}
+	PyErr_Restore(exc_typ, exc_val, exc_tb);
+	if (!logger ||
+		!VLogF_Logger(logger, log_method, "pythoncom error: ", fmt, argptr))
+		// No logger, or logger error - normal stdout stream.
+		_DoLogError(fmt, argptr);
+	Py_XDECREF(logger);
+}
+
+PYCOM_EXPORT void PyCom_LoggerException(PyObject *logProvider, const char *fmt, ...)
+{
+	va_list marker;
+	va_start(marker, fmt);
+	_DoLogger(logProvider, "error", fmt, marker);
+}
+
+PYCOM_EXPORT 
+void PyCom_LoggerNonServerException(PyObject *logProvider, const char *fmt, ...)
+{
+	if (!IsNonServerErrorCurrent())
+		return;
+	va_list marker;
+	va_start(marker, fmt);
+	_DoLogger(logProvider, "error", fmt, marker);
+}
 
 ////////////////////////////////////////////////////////////////////////
 //

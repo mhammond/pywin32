@@ -22,7 +22,7 @@ LONG _PyCom_GetGatewayCount(void)
 }
 
 // Helper function to handle the IDispatch results
-static HRESULT GetIDispatchErrorResult(EXCEPINFO *pexcepinfo)
+static HRESULT GetIDispatchErrorResult(PyObject *logProvider, EXCEPINFO *pexcepinfo)
 {
 	HRESULT hr;
 	EXCEPINFO tei;
@@ -33,7 +33,7 @@ static HRESULT GetIDispatchErrorResult(EXCEPINFO *pexcepinfo)
 	} else
 		bCleanupExcepInfo = FALSE;
 	// Log the error
-	PyCom_LogNonServerError("Python error invoking COM method.");
+	PyCom_LoggerNonServerException(logProvider, "Python error invoking COM method.");
 
 	// Fill the EXCEPINFO with the details.
 	PyCom_ExcepInfoFromPyException(pexcepinfo);
@@ -443,6 +443,7 @@ static HRESULT invoke_setup(
 }
 
 static HRESULT invoke_finish(
+	PyObject *dispatcher, /* The dispatcher for the gateway */
 	PyObject *result, /* The PyObject returned from the Python call */
 	VARIANT FAR* pVarResult, /* Result variant passed by the caller */
 	UINT FAR* puArgErr, /* May be NULL */
@@ -577,7 +578,7 @@ done:
 	// incase one of these objects destructs and in the process
 	// clears the Python error condition.
 	if (PyErr_Occurred())
-		hr = GetIDispatchErrorResult(einfo);
+		hr = GetIDispatchErrorResult(dispatcher, einfo);
 
 	Py_DECREF(result);
 	Py_XDECREF(userResult);
@@ -637,9 +638,9 @@ STDMETHODIMP PyGatewayBase::Invoke(
 		Py_DECREF(py_lcid);
 
 		if ( result==NULL )
-			return GetIDispatchErrorResult(pexcepinfo);
+			return GetIDispatchErrorResult(m_pPyObject, pexcepinfo);
 		else
-			hr = invoke_finish(result, pVarResult, puArgErr, pexcepinfo, IID_IDispatch, params, true);
+			hr = invoke_finish(m_pPyObject, result, pVarResult, puArgErr, pexcepinfo, IID_IDispatch, params, true);
 	}
 	return hr;
 }
@@ -703,7 +704,7 @@ STDMETHODIMP PyGatewayBase::InvokeEx(DISPID id, LCID lcid, WORD wFlags, DISPPARA
 	PY_GATEWAY_METHOD;
 	PyObject *obISP = PyCom_PyObjectFromIUnknown(pspCaller, IID_IServiceProvider, TRUE);
 	if (obISP==NULL)
-		return GetIDispatchErrorResult(pexcepinfo);
+		return GetIDispatchErrorResult(m_pPyObject, pexcepinfo);
 
 	PyObject *argList;
 	PyObject *py_lcid;
@@ -721,9 +722,9 @@ STDMETHODIMP PyGatewayBase::InvokeEx(DISPID id, LCID lcid, WORD wFlags, DISPPARA
 		Py_DECREF(py_lcid);
 
 		if ( result==NULL )
-			hr = GetIDispatchErrorResult(pexcepinfo);
+			hr = GetIDispatchErrorResult(m_pPyObject, pexcepinfo);
 		else {
-			hr = invoke_finish(result, pVarResult, NULL, pexcepinfo, IID_IDispatchEx, params, false);
+			hr = invoke_finish(m_pPyObject, result, pVarResult, NULL, pexcepinfo, IID_IDispatchEx, params, false);
 		}
 	}
 	Py_DECREF(obISP);
@@ -908,9 +909,7 @@ STDMETHODIMP PyGatewayBase::InvokeViaPolicy(
 	PyObject *result = do_dispatch(m_pPyObject, szMethodName, szFormat, va);
 	va_end(va);
 
-	if (result==NULL)
-		PyCom_LogNonServerError("Python error calling method %s\n", szMethodName);
-	HRESULT hr = PyCom_SetAndLogCOMErrorFromPyException(szMethodName, GetIID());
+	HRESULT hr = PyCom_SetAndLogCOMErrorFromPyExceptionEx(m_pPyObject, szMethodName, GetIID());
 
 	if ( ppResult )
 		*ppResult = result;

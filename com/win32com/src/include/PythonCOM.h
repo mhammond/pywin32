@@ -313,6 +313,18 @@ PYCOM_EXPORT void PyCom_LogError(const char *fmt, ...);
 // Log an error if not a COM Server exception, including traceback.
 PYCOM_EXPORT void PyCom_LogNonServerError(const char *fmt, ...);
 
+// Log an error to a Python logger object if one can be found, or
+// to stderr if no log available.
+// If logProvider is not NULL, we will call a "_GetLogger_()" method on it.
+// If logProvider is NULL, we attempt to fetch "win32com.logger".
+// If they do not exist, return None, or raise an error fetching them
+// (or even writing to them once fetched), the message still goes to stderr.
+// NOTE: By default, win32com does *not* provide a logger.
+PYCOM_EXPORT void PyCom_LoggerNonServerException(PyObject *logProvider,
+											     const char *fmt, ...);
+
+PYCOM_EXPORT void PyCom_LoggerException(PyObject *logProvider, const char *fmt, ...);
+
 // Write a raw string to the error device.
 PYCOM_EXPORT void PyCom_StreamMessage(const char *msg);
 
@@ -326,6 +338,7 @@ PYCOM_EXPORT void PyCom_StreamMessage(const char *msg);
 
 // Set a COM exception, logging the exception if not an explicitly raised 'server' exception
 PYCOM_EXPORT HRESULT PyCom_SetAndLogCOMErrorFromPyException(const char *methodName, REFIID riid /* = IID_NULL */);
+PYCOM_EXPORT HRESULT PyCom_SetAndLogCOMErrorFromPyExceptionEx(PyObject *provider, const char *methodName, REFIID riid /* = IID_NULL */);
 
 // Used in gateways to SetErrorInfo() with a simple HRESULT, then return it.
 // The description is generally only useful for debugging purposes,
