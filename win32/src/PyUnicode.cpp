@@ -75,9 +75,6 @@ void PyWinObject_FreeTaskAllocatedWCHAR(WCHAR * str)
 
 #if defined(PYWIN_USE_PYUNICODE)
 
-// Remove this message once it no longer surprises us :-)
-#pragma message("Using Python built-in Unicode object")
-
 /* Implement our Windows Unicode API using the Python widestring object */
 PyObject *PyUnicodeObject_FromString(const char *string)
 {

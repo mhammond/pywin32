@@ -51,9 +51,11 @@ HRESULT PyCom_MakeRegisteredGatewayObject(REFIID iid, PyObject *instance, PyGate
 
 #define GET_PYGATEWAY_CTOR(classname) classname::PyGatewayConstruct
 
+#ifdef _MSC_VER
 // Disable an OK warning...
 #pragma warning( disable : 4275 )
 // warning C4275: non dll-interface struct 'IDispatch' used as base for dll-interface class 'PyGatewayBase'
+#endif // _MSC_VER
 
 // Helper interface for fetching a Python object from a gateway
 
@@ -142,7 +144,9 @@ private:
 	LONG m_cRef;
 };
 
+#ifdef _MSC_VER
 #pragma warning(default : 4275 )
+#endif // _MSC_VER
 
 // B/W compat hack for gateways.
 #define PyCom_HandlePythonFailureToCOM() PyCom_SetCOMErrorFromPyException(GetIID())

@@ -168,12 +168,14 @@ BOOL WINAPI DLLMAIN(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 	return TRUE;    // ok
 }
 
+#ifdef _MSC_VER
 // Wierd problems with optimizer.  When anyone
 // calls this, things go very strange.  Debugger indicates
 // all params are wierd etc..  
 // Only release mode, of course :-(  Dunno what optimization!
 // Compiler version 11.00.7022
 #pragma optimize ("", off)
+#endif // _MSC_VER
 
 
 // Some clients or COM extensions (notably MAPI) are _very_
@@ -220,7 +222,9 @@ HRESULT PyCom_CoInitializeEx(LPVOID reserved, DWORD dwInit)
 	}
 	return hr;
 }
+#ifdef _MSC_VER
 #pragma optimize ("", on)
+#endif // _MSC_VER
 
 
 HRESULT PyCom_CoInitialize(LPVOID reserved)

@@ -152,9 +152,13 @@ public:
 
 	static PyObject *getattr(PyObject *self, char *name);
 	static int setattr(PyObject *self, char *name, PyObject *v);
+#ifdef _MSC_VER
 #pragma warning( disable : 4251 )
+#endif // _MSC_VER
 	static struct memberlist memberlist[];
+#ifdef _MSC_VER
 #pragma warning( default : 4251 )
+#endif // _MSC_VER
 	sMyOverlapped m_overlapped;
 	PyObject *m_obHandle;
 };
@@ -193,9 +197,13 @@ public:
 
 	static PyObject *getattr(PyObject *self, char *name);
 	static int setattr(PyObject *self, char *name, PyObject *v);
+#ifdef _MSC_VER
 #pragma warning( disable : 4251 )
+#endif // _MSC_VER
 	static struct memberlist memberlist[];
+#ifdef _MSC_VER
 #pragma warning( default : 4251 )
+#endif // _MSC_VER
 
 protected:
 	HANDLE m_handle;

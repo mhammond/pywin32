@@ -23,9 +23,13 @@ public:
 	static PyObject *Initialize(PyObject *self, PyObject *args);
 	static PyObject *SetSecurityDescriptorDacl(PyObject *self, PyObject *args);
 
+#ifdef _MSC_VER
 #pragma warning( disable : 4251 )
+#endif // _MSC_VER
 	static struct memberlist memberlist[];
+#ifdef _MSC_VER
 #pragma warning( default : 4251 )
+#endif // _MSC_VER
 
 protected:
 	SECURITY_ATTRIBUTES m_sa;
@@ -59,9 +63,13 @@ public:
 	static PyObject *GetSecurityDescriptorDacl(PyObject *self, PyObject *args);
 
 
+#ifdef _MSC_VER
 #pragma warning( disable : 4251 )
+#endif // _MSC_VER
 	static struct memberlist memberlist[];
+#ifdef _MSC_VER
 #pragma warning( default : 4251 )
+#endif // _MSC_VER
 
 protected:
 	SECURITY_DESCRIPTOR *m_psd;
@@ -94,9 +102,13 @@ public:
 	static PyObject *IsValid(PyObject *self, PyObject *args);
 	static PyObject *SetSubAuthority(PyObject *self, PyObject *args);
 
+#ifdef _MSC_VER
 #pragma warning( disable : 4251 )
+#endif // _MSC_VER
 	static struct memberlist memberlist[];
+#ifdef _MSC_VER
 #pragma warning( default : 4251 )
+#endif // _MSC_VER
 
 protected:
 	PSID m_psid;
@@ -128,9 +140,13 @@ public:
 	static PyObject *GetAceCount(PyObject *self, PyObject *args);
 	static PyObject *GetAce(PyObject *self, PyObject *args);
 
+#ifdef _MSC_VER
 #pragma warning( disable : 4251 )
+#endif // _MSC_VER
 	static struct memberlist memberlist[];
+#ifdef _MSC_VER
 #pragma warning( default : 4251 )
+#endif // _MSC_VER
 
 protected:
 	void *buf;

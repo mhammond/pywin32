@@ -83,7 +83,9 @@ BOOL PyCom_HasDCom()
 #endif
 }
 
+#ifdef _MSC_VER
 #pragma optimize ("y", off)
+#endif // _MSC_VER
 // This optimisation seems to screw things in release builds...
 
 /* MODULE FUNCTIONS: pythoncom */
@@ -120,10 +122,14 @@ static PyObject *pythoncom_CoCreateInstance(PyObject *self, PyObject *args)
 		return PyCom_BuildPyException(sc);
 	return PyCom_PyObjectFromIUnknown(result, iid);
 }
+#ifdef _MSC_VER
 #pragma optimize ("", on)
+#endif // _MSC_VER
 
 #ifndef MS_WINCE
+#ifdef _MSC_VER
 #pragma optimize ("", off)
+#endif // _MSC_VER
 // @pymethod <o PyIUnknown>|pythoncom|CoCreateInstanceEx|Create a new instance of an OLE automation server possibly on a remote machine.
 static PyObject *pythoncom_CoCreateInstanceEx(PyObject *self, PyObject *args)
 {
@@ -241,7 +247,9 @@ done:
 	delete [] mqi;
 	return result;
 }
+#ifdef _MSC_VER
 #pragma optimize ("", on)
+#endif // _MSC_VER
 
 // @pymethod |pythoncom|CoInitializeSecurity|Registers security and sets the default security values. 
 static PyObject *pythoncom_CoInitializeSecurity(PyObject *self, PyObject *args)
@@ -296,7 +304,9 @@ static PyObject *pythoncom_CoInitializeSecurity(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+#ifdef _MSC_VER
 #pragma optimize ("y", off)
+#endif // _MSC_VER
 // @pymethod int|pythoncom|CoRegisterClassObject|Registers an EXE class object with OLE so other applications can connect to it.
 static PyObject *pythoncom_CoRegisterClassObject(PyObject *self, PyObject *args)
 {
@@ -348,10 +358,10 @@ static PyObject *pythoncom_CoRevokeClassObject(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-#pragma optimize ("", on)
-
 // I cont understand this compiler :-(
+#ifdef _MSC_VER
 #pragma optimize ("", off)
+#endif // _MSC_VER
 // @pymethod |pythoncom|CoResumeClassObjects|Called by a server that can register multiple class objects to inform the OLE SCM about all registered classes, and permits activation requests for those class objects.
 static PyObject *pythoncom_CoResumeClassObjects(PyObject *self, PyObject *args)
 {
@@ -373,7 +383,9 @@ static PyObject *pythoncom_CoResumeClassObjects(PyObject *self, PyObject *args)
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+#ifdef _MSC_VER
 #pragma optimize ("", on)
+#endif // _MSC_VER
 
 // @pymethod |pythoncom|CoTreatAsClass|Establishes or removes an emulation, in which objects of one class are treated as objects of a different class.
 static PyObject *pythoncom_CoTreatAsClass(PyObject *self, PyObject *args)
