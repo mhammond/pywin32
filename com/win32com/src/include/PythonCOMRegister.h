@@ -25,7 +25,7 @@ typedef struct
 #define PYCOM_INTERFACE_CLSID_ONLY(ifc)	{ &CLSID_##ifc, "CLSID_" #ifc,  "CLSID_" #ifc, NULL, NULL  }
 #define PYCOM_INTERFACE_CATID_ONLY(ifc)	{ &CATID_##ifc, "CATID_" #ifc,  "CATID_" #ifc, NULL, NULL  }
 #define PYCOM_INTERFACE_CLIENT_ONLY(ifc)	{ &IID_I##ifc, "I" #ifc, "IID_I" #ifc, &PyI##ifc::type, NULL }
-#define PYCOM_INTERFACE_SERVER_ONLY(ifc)	{ &IID_I##ifc, "I" #ifc, "IID_I" #ifc, NULL, &IID_I##ifc, GET_PYGATEWAY_CTOR(PyG##ifc)}
+#define PYCOM_INTERFACE_SERVER_ONLY(ifc)	{ &IID_I##ifc, "I" #ifc, "IID_I" #ifc, NULL, GET_PYGATEWAY_CTOR(PyG##ifc)}
 #define PYCOM_INTERFACE_FULL(ifc)	{ &IID_I##ifc, "I" #ifc, "IID_I" #ifc, &PyI##ifc::type, GET_PYGATEWAY_CTOR(PyG##ifc)}
 
 // Prototypes for the register functions
