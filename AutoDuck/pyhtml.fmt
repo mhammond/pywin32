@@ -30,7 +30,7 @@
 ; .define=<constant_name>, <constant_text>
 
 .output=html
-.define=MARK_HAMMOND,Mark Hammond (MHammond@skippinet.com.au)
+.define=MARK_HAMMOND,Mark Hammond (MarkH@ActiveState.com)
 .define=title,Help
 .define=doc_header,Autoduck Output
 .define=cb,<B>

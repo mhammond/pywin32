@@ -6,7 +6,7 @@
 ; Following tags are used:
 [constant]
 .output=both
-.define=MARK_HAMMOND,Mark Hammond (MHammond@skippinet.com.au)
+.define=MARK_HAMMOND,Mark Hammond (MarkH@ActiveState.com)
 .define=hang,\pard\plain \fi-1134\li1134\sa120\nowidctlpar\widctlpar\adjustright \fs22\cgrid
 
 

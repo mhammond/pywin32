@@ -15,10 +15,10 @@ SOURCE_DIR = ../pythonwin
 # for building of the .CHM file.
 HTML_DIR = pythonwin
 # Extraneous HTML files to include into the .CHM:
-HTML_FILES = $(SOURCE_DIR)/doc/*
+HTML_FILES = $(SOURCE_DIR)/readme.html $(SOURCE_DIR)/doc/* $(SOURCE_DIR)/doc/debugger/*
 
 # Non-autoduck overview topics data file:
-EXT_TOPICS = noOverviews.dat
+EXT_TOPICS = pythonwinOverviews.dat
 
 SOURCE  = $(SOURCE_DIR)\contents.d $(SOURCE_DIR)\*.cpp $(SOURCE_DIR)\*.h 
 

@@ -44,8 +44,8 @@ def parseOverview(input):
   line = input.readline()
   if line == '':
     return None
-  # chop
-  line = line[:-1]
+  # chop (but final line may not be \n terminated!)
+  line = string.strip(line)
   fields = string.split(line, "\t")
   while len(fields) > 0:
     assert len(fields) == 2, fields
@@ -62,8 +62,8 @@ def parseOverview(input):
     line = input.readline()
     if line == '':
       return
-    # chop
-    line = line[:-1]
+    # chop (but final line may not be \n terminated!)
+    line = string.strip(line)
     # split
     fields = string.split(line, "\t")
 
