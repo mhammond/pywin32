@@ -28,7 +28,7 @@ PyIPersistStream::~PyIPersistStream()
 // @pymethod int|PyIPersistStream|IsDirty|Checks the object for changes since it was last saved.
 PyObject *PyIPersistStream::IsDirty(PyObject *self, PyObject *args)
 {
-	if (!PyArg_ParseTuple(args, ":GetClassInfo"))
+	if (!PyArg_ParseTuple(args, ":IsDirty"))
 		return NULL;
 
 	IPersistStream *pMy = GetI(self);

@@ -68,7 +68,7 @@ class Adb(bdb.Bdb,gateways.RemoteDebugApplicationEvents):
 	def canonic(self, fname):
 		if fname[0]=='<':
 			return fname
-		return bdb.Bdb.canonic(fname)
+		return bdb.Bdb.canonic(self, fname)
 
 	def reset(self):
 		traceenter("adb.reset")
@@ -115,7 +115,7 @@ class Adb(bdb.Bdb,gateways.RemoteDebugApplicationEvents):
 		if self.breakFlags==axdebug.APPBREAKFLAG_DEBUGGER_HALT:
 			self.breakReason = axdebug.BREAKREASON_DEBUGGER_HALT
 			return 1
-		rc = abd.Adb.break_anywhere(self, frame)
+		rc = bdb.Bdb.break_anywhere(self, frame)
 		tracev("break_anywhere",_dumpf(frame),"returning",rc)
 		return rc
 

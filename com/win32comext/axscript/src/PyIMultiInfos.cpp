@@ -74,8 +74,8 @@ PyObject *PyIProvideMultipleClassInfo::GetInfoOfIndex(PyObject *self, PyObject *
 		IID iid;
 		PY_INTERFACE_PRECALL;
 		SCODE sc = pMyInfo->GetInfoOfIndex(item, flags, NULL, NULL, NULL, &iid, NULL);
-		if (FAILED(sc))
 		PY_INTERFACE_POSTCALL;
+		if (FAILED(sc))
 			return SetPythonCOMError(self, sc);
 		return PyWinObject_FromIID(iid);
 	}
