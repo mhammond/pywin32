@@ -232,6 +232,7 @@ BOOL PyWndProc_Call(PyObject *obFuncOrMap, HWND hWnd, UINT uMsg, WPARAM wParam, 
 		}
 	}
 	if (obFunc==NULL) {
+		PyErr_Clear();
 		return FALSE;
 	}
 	// We are dispatching to Python...
@@ -339,6 +340,8 @@ BOOL CALLBACK PyDlgProcHDLG(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		PyObject *key = PyInt_FromLong((long)hWnd);
 		obFunc = PyDict_GetItem(g_DLGMap, key);
 		Py_XDECREF(key);
+		if (!obFunc)
+			PyErr_Clear();
 	}
 	if (obFunc) {
 		LRESULT lrc;
@@ -780,11 +783,13 @@ static PyObject *PyMakeBuffer(PyObject *self, PyObject *args)
 static PyObject *PyGetString(PyObject *self, PyObject *args)
 {
 	TCHAR *addr = 0;
+	int len = -1;
 	// @pyparm int|addr||Address of the memory to reference (must be null terminated)
-	if (!PyArg_ParseTuple(args, "l:PyGetString",&addr))
+	if (!PyArg_ParseTuple(args, "l|i:PyGetString",&addr, &len))
 		return NULL;
 
-	int len = _tcslen(addr);
+	if (len==-1)
+		len = _tcslen(addr);
 
     if (len == 0) return PyUnicodeObject_FromString("");
 	return PyWinObject_FromTCHAR(addr, len);
@@ -1358,6 +1363,9 @@ static PyObject *PyCreateDialogIndirect(PyObject *self, PyObject *args)
 %native (CreateDialogIndirectParam) PyCreateDialogIndirect;
 
 // @pyswig |EndDialog|Ends a dialog box.
+// @pyparm int|hwnd||Handle to the window.
+// @pyparm int|result||result
+
 BOOLAPI EndDialog( HWND hwnd, int result );
 
 // @pyswig HWND|GetDlgItem|Retrieves the handle to a control in the specified dialog box. 
@@ -1447,6 +1455,13 @@ HANDLE LoadImage(HINSTANCE hInst, RESOURCE_ID name, UINT type,
 #define	LR_SHARED	LR_SHARED
 #define	LR_VGACOLOR	LR_VGACOLOR
 
+// @pyswig int|ImageList_Add|Adds an image or images to an image list. 
+// @rdesc Returns the index of the first new image if successful, or -1 otherwise. 
+int ImageList_Add(HIMAGELIST himl, // @pyswig int|himl||Handle to the image list. 
+                  HBITMAP hbmImage, // @pyswig int|hbmImage||Handle to the bitmap that contains the image or images. The number of images is inferred from the width of the bitmap. 
+				  HBITMAP hbmMask); // @pyswig int|hbmMask||Handle to the bitmap that contains the mask. If no mask is used with the image list, this parameter is ignored
+
+
 // @pyswig HIMAGELIST|ImageList_Create|Create an image list
 HIMAGELIST ImageList_Create(int cx, int cy, UINT flags, int cInitial, int cGrow);
 
@@ -1484,6 +1499,10 @@ int ImageList_GetImageCount(HIMAGELIST himl);
 // @pyswig HANDLE|ImageList_LoadImage|Loads bitmaps, cursors or icons, creates imagelist
 HIMAGELIST ImageList_LoadImage(HINSTANCE hInst, RESOURCE_ID name,
 				 int cx, int cGrow, COLORREF crMask, UINT uType, UINT uFlags);
+
+// @pyswig HANDLE|ImageList_LoadBitmap|Creates an image list from the specified bitmap resource.
+HIMAGELIST ImageList_LoadBitmap(HINSTANCE hInst, TCHAR *name,
+				 int cx, int cGrow, COLORREF crMask);
 
 // @pyswig BOOL|ImageList_Remove|Remove an image from an imagelist
 BOOLAPI ImageList_Remove(HIMAGELIST himl, int i);
@@ -1889,6 +1908,7 @@ static PyObject *PyEdit_GetLine(PyObject *self, PyObject *args)
 %}
 %native (Edit_GetLine) PyEdit_GetLine;
 
+
 #ifdef MS_WINCE
 %{
 // Where oh where has this function gone, oh where oh where can it be?
@@ -2104,12 +2124,18 @@ HDC GetWindowDC(
 ); 
 
 // @pyswig |IsIconic|determines whether the specified window is minimized (iconic).
-BOOLAPI IsIconic(  HWND hWnd   // @pyparm int|hWnd||handle to window
+BOOL IsIconic(  HWND hWnd   // @pyparm int|hWnd||handle to window
 ); 
 
 
 // @pyswig |IsWindow|determines whether the specified window handle identifies an existing window.
-BOOLAPI IsWindow(  HWND hWnd   // @pyparm int|hWnd||handle to window
+BOOL IsWindow(  HWND hWnd   // @pyparm int|hWnd||handle to window
+); 
+
+// @pyswig |IsChild|Tests whether a window is a child window or descendant window of a specified parent window
+BOOL IsIconic(  
+	HWND hWndParent,   // @pyparm int|hWndParent||handle to parent window
+	HWND hWnd   // @pyparm int|hWnd||handle to window to test
 ); 
 
 // @pyswig |ReleaseCapture|Releases the moust capture for a window.
