@@ -27,7 +27,6 @@ item: Install File
   Flags=0000001000010011
 end
 item: Edit Registry
-  Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\pywintypes
   New Value=%SYS32%\PyWinTypes15.dll
   Root=2
@@ -38,6 +37,12 @@ item: Compiler Variable End
 end
 item: Install File
   Source=l:\src\pythonex\pythonwin\pywin\*.py
+  Destination=%INSTDIR%\pywin
+  Description=Library files
+  Flags=0000000100000010
+end
+item: Install File
+  Source=l:\src\pythonex\pythonwin\pywin\*.cfg
   Destination=%INSTDIR%\pywin
   Description=Library files
   Flags=0000000100000010
@@ -87,23 +92,17 @@ item: Install File
   Flags=0000001000000011
 end
 item: Edit Registry
-  Total Keys=1
   Key=Software\Microsoft\Windows\CurrentVersion\App Paths\Pythonwin.exe
   New Value=%INSTDIR%\Pythonwin.exe
-  New Value=
   Root=2
 end
 item: Edit Registry
-  Total Keys=1
   Key=Python.File\shell\Edit\command
   New Value=%INSTDIR%\pythonwin.exe /edit "%%1"
-  New Value=
 end
 item: Edit Registry
-  Total Keys=1
   Key=Python.NoConFile\shell\Edit\command
   New Value=%INSTDIR%\pythonwin.exe /edit "%%1"
-  New Value=
 end
 item: Install File
   Source=l:\src\pythonex\pythonwin\Build\win32ui.pyd
@@ -112,7 +111,6 @@ item: Install File
   Flags=0000001000000011
 end
 item: Edit Registry
-  Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\win32ui
   New Value=%INSTDIR%\win32ui.pyd
   Root=2
@@ -124,7 +122,6 @@ item: Install File
   Flags=0000000100000011
 end
 item: Edit Registry
-  Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\win32uiole
   New Value=%INSTDIR%\win32uiole.pyd
   Root=2
@@ -136,7 +133,6 @@ item: Install File
   Flags=0000000100000010
 end
 item: Edit Registry
-  Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Help\Pythonwin Reference
   New Value=%INSTDIR%\Help\Pythonwin.hlp
   Root=2
@@ -156,6 +152,12 @@ end
 item: Add Text to INSTALL.LOG
   Text=File Copy: %INSTDIR%\Help\Pythonwin.fts
 end
+item: Add Text to INSTALL.LOG
+  Text=File Copy: %INSTDIR%\pywin\default.cfc
+end
+item: Add Text to INSTALL.LOG
+  Text=File Copy: %INSTDIR%\pywin\idle.cfc
+end
 item: Install File
   Source=l:\src\pythonex\SharedDlls\MFC42.DLL
   Destination=%SYS32%\MFC42.DLL
@@ -165,13 +167,11 @@ item: Self-Register OCXs/DLLs
   Description=Updating System Configuration, Please Wait...
 end
 item: Edit Registry
-  Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\PythonPath\Pythonwin
   New Value=%INSTDIR%
   Root=2
 end
 item: Edit Registry
-  Total Keys=1
   Key=Software\Python\Pythonwin\Build
   New Value=%BUILD_NO%
   Root=2

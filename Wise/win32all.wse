@@ -16,11 +16,11 @@ item: Global
   Patch Flags=0000000000000001
   Patch Threshold=85
   Patch Memory=4000
-  EXE Filename=win32all-127.exe
+  EXE Filename=win32all-128.exe
   Code Sign Name=Python Win32 combined extensions
   Code Sign Info=skippinet.com.au
   Variable Name1=_WISE_
-  Variable Default1=C:\Program Files\Wise
+  Variable Default1=L:\Program Files\Wise
   Variable Name2=_COMBINEDINST_
   Variable Default2=1
   Variable Name3=_EXE_OS_TYPE_
@@ -48,25 +48,7 @@ item: Set Variable
   Value=Pythonwin 1.5
 end
 item: Include Script
-  Pathname=pywin_ver.wse
-end
-item: Set Variable
-  Variable=BUILD_PYWIN
-  Value=%build_no%
-end
-item: Include Script
-  Pathname=win32com_ver.wse
-end
-item: Set Variable
-  Variable=BUILD_WIN32COM
-  Value=%build_no%
-end
-item: Include Script
-  Pathname=win32_ver.wse
-end
-item: Set Variable
-  Variable=BUILD_WIN32
-  Value=%build_no%
+  Pathname=L:\src\pythonex\Wise\win32all_ver.wse
 end
 item: Check if File/Dir Exists
   Pathname=%SYS%
@@ -200,7 +182,9 @@ item: If/While Statement
 end
 item: Display Message
   Title=Previous version installed.
-  Text=A previous version of this software is already installed.  Would you like to uninstall this now?
+  Text=A previous version of this software is already installed.  It is recommended that you uninstall before continuing.
+  Text=
+  Text=Would you like to uninstall this now?
   Flags=00001101
 end
 item: Parse String
@@ -252,7 +236,6 @@ item: End Block
 end
 item: Check if File/Dir Exists
   Pathname=%SYS32%\pywintypes15.dll
-  Title=Existing system file found
   Flags=00000100
 end
 item: Display Message
@@ -282,7 +265,6 @@ item: End Block
 end
 item: Check if File/Dir Exists
   Pathname=%SYS32%\pythoncom15.dll
-  Title=Existing system file found
   Flags=00000100
 end
 item: Display Message
@@ -377,14 +359,15 @@ item: Custom Dialog Set
       Text Italian=&Annulla
     end
     item: Static
-      Rectangle=86 42 256 131
+      Rectangle=86 42 256 146
       Create Flags=01010000000000000000000000000000
-      Text=This installation program will install all the Python Win32 extensions onto your system.
+      Text=This installation program will install all the Python Win32 extensions build %BUILD_NO% onto your system.
       Text=
       Text=This release includes:
-      Text=- Win32 Extensions build %BUILD_WIN32%
-      Text=- COM Extensions build %BUILD_WIN32COM%
-      Text=- Pythonwin build %BUILD_PYWIN%
+      Text=- Win32 Extensions
+      Text=- COM Extensions, including Active Scripting
+      Text=- Pythonwin
+      Text=
       Text=
       Text=Press the Next button to start the installation. You can press the Exit Setup button now if you do not want to install the Python extensions at this time.
       Text French=Ce programme d'installation va installer %APPTITLE%.
@@ -736,6 +719,11 @@ end
 item: End Block
 end
 item: Set Variable
+  Variable=INST_LOG_PATH
+  Value=%MAINDIR%
+  Flags=00010100
+end
+item: Set Variable
   Variable=MAINDIR
   Value=%MAINDIR%
   Flags=00001100
@@ -749,10 +737,6 @@ item: Set Variable
   Variable=INSTDIR
   Value=%MAINDIR%\win32
 end
-item: Set Variable
-  Variable=BUILD_NO
-  Value=%BUILD_WIN32%
-end
 item: Include Script
   Pathname=win32_body.wse
 end
@@ -764,20 +748,12 @@ item: Set Variable
   Variable=EXTDIR
   Value=%MAINDIR%\win32comext
 end
-item: Set Variable
-  Variable=BUILD_NO
-  Value=%BUILD_WIN32COM%
-end
 item: Include Script
   Pathname=win32com_body.wse
 end
 item: Set Variable
   Variable=INSTDIR
   Value=%MAINDIR%\Pythonwin
-end
-item: Set Variable
-  Variable=BUILD_NO
-  Value=%BUILD_PYWIN%
 end
 item: Include Script
   Pathname=pywin_body.wse
@@ -800,13 +776,11 @@ item: Install File
   Flags=0000001000010011
 end
 item: Edit Registry
-  Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\pythoncom
   New Value=%SYS32%\pythoncom15.dll
   Root=2
 end
 item: Edit Registry
-  Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\pywintypes
   New Value=%SYS32%\PyWinTypes15.dll
   Root=2
@@ -836,26 +810,18 @@ item: Set Variable
   Value=%UNINSTALL_PATH%
   Flags=00010100
 end
-item: Set Variable
-  Variable=INST_LOG_PATH
-  Value=%_LOGFILE_PATH_%
-  Flags=00010100
-end
 item: Check Configuration
   Flags=10111011
 end
 item: Edit Registry
-  Total Keys=1
   Key=Software\Microsoft\Windows\CurrentVersion\Uninstall\%APPTITLE%
   New Value=%APPTITLE%
   Value Name=DisplayName
   Root=2
 end
 item: Edit Registry
-  Total Keys=1
   Key=Software\Microsoft\Windows\CurrentVersion\Uninstall\%APPTITLE%
-  New Value=%UNINSTALL_PATH% %INST_LOG_PATH%
-  New Value=
+  New Value=%UNINSTALL_PATH% %INST_LOG_PATH%\w32inst.log
   Value Name=UninstallString
   Root=2
 end

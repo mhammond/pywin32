@@ -288,6 +288,12 @@ item: Install File
   Flags=0000000000000010
 end
 item: Install File
+  Source=l:\src\pythonex\com\win32comext\shell\test\*.py
+  Destination=%EXTDIR%\shell\test
+  Description=ActiveX Shell Extension files
+  Flags=0000000000000010
+end
+item: Install File
   Source=l:\src\pythonex\com\Build\shell.pyd
   Destination=%EXTDIR%\shell\shell.pyd
   Description=ActiveX Shell Extension files

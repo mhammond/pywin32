@@ -228,10 +228,8 @@ item: Install File
   Flags=0000000000000010
 end
 item: Edit Registry
-  Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Help\Win32 Extensions
   New Value=%INSTDIR%\Help\Python Win32 Extensions.hlp
-  New Value=
   Root=2
 end
 item: Add Text to INSTALL.LOG
@@ -292,7 +290,7 @@ item: Install File
   Flags=0000000100000010
 end
 item: Install File
-  Source=l:\src\pythonex\win32\scripts\*,*
+  Source=l:\src\pythonex\win32\scripts\*.*
   Destination=%INSTDIR%\scripts
   Description=win32 extension demos
   Flags=0000000100000010
@@ -304,10 +302,8 @@ item: Install File
   Flags=0000000100000010
 end
 item: Edit Registry
-  Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\PythonPath\win32
   New Value=%INSTDIR%;%INSTDIR%\lib
-  New Value=
   Root=2
 end
 item: Compiler Variable If
@@ -315,7 +311,6 @@ item: Compiler Variable If
   Value=0
 end
 item: Edit Registry
-  Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\pywintypes
   New Value=%SYS32%\PyWinTypes15.dll
   Root=2
