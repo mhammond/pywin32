@@ -2360,6 +2360,38 @@ PyCStatusBarCtrl_set_text(PyObject *self, PyObject *args)
 	RETURN_NONE;
 }
 
+// @pymethod |PyCStatusBarCtrl|SetTipText|Sets the tooltip text for a pane in a status bar. The status bar must have been created with the afxres.SBT_TOOLTIPS control style to enable ToolTips.
+
+PyObject *
+PyCStatusBarCtrl_set_tip_text(PyObject *self, PyObject *args)
+{
+	int nPane;
+	char *buf;
+
+	CStatusBarCtrl *pSB = GetStatusBarCtrl(self);
+
+	if (!pSB)
+		return NULL;
+
+	// @pyparm int|nPane||The zero-based index of status bar pane to receive the tooltip text.
+	// @pyparm string|text||The string containing the tooltip text.
+
+	// @comm Pay attention, this tooltip text is ONLY displayed in two situations:
+	// <nl>1. When the corresponding pane in the status bar contains only an icon.
+	// <nl>2. When the corresponding pane in the status bar contains text that is truncated due to the size of the pane.
+	// <nl>To make the tooltip appear even if the text is not truncated, you could add additional spaces to the end of the pane text.
+
+	if (!PyArg_ParseTuple(args,
+				  "is:SetTipText", &nPane, &buf))
+		return NULL;
+
+	GUI_BGN_SAVE;
+	pSB->SetTipText (nPane, buf);  // @pyseemfc CStatusBarCtrl|SetTipText
+	GUI_END_SAVE;
+
+	RETURN_NONE;
+}
+
 // @object PyCStatusBarCtrl|A windows progress bar control.  Encapsulates an MFC <c CStatusBarCtrl> class.  Derived from <o PyCControl>.
 static struct PyMethodDef PyCStatusBarCtrl_methods[] = {
 	{"CreateWindow",    PyCStatusBarCtrl_create_window,1}, // @pymeth CreateWindow|Creates the window for a new progress bar object.
@@ -2372,6 +2404,7 @@ static struct PyMethodDef PyCStatusBarCtrl_methods[] = {
 	{"SetMinHeight", PyCStatusBarCtrl_set_min_height, 1}, // @pymeth SetMinHeight|Set the minimum height of a status bar control's drawing area.
 	{"SetParts", PyCStatusBarCtrl_set_parts, 1}, // @pymeth SetParts|Sets the number of parts in a status bar control and the coordinate of the right edge of each part.
 	{"SetText", PyCStatusBarCtrl_set_text, 1}, // @pymeth SetText|Set the text in the given part of a status bar control.
+	{"SetTipText", PyCStatusBarCtrl_set_tip_text, 1}, // @pymeth SetTipText|Sets the tooltip text for a pane in a status bar.
 	{NULL,				NULL}
 };
 
