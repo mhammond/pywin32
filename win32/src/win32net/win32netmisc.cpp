@@ -910,7 +910,7 @@ PyNetWkstaSetInfo(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsWCHAR(obServer, &szServer, TRUE))
 		goto done;
 
-	if (!FindNET_STRUCT(typ, server_infos, &pInfo))
+	if (!FindNET_STRUCT(typ, wksta_infos, &pInfo))
 		goto done;
 
 	if (!PyObject_AsNET_STRUCT(obData, pInfo, &buf))
