@@ -8,9 +8,13 @@ class SimpleConnection:
 		self.cookie = None
 		if not coInstance is None:
 			self.Connect(coInstance , eventInstance, eventCLSID)
-	
+
 	def __del__(self):
-		self.Disconnect()
+		try:
+			self.Disconnect()
+		except pythoncom.error:
+			# Ignore disconnection as we are torn down.
+			pass
 
 	def _wrap(self, obj):
 		return win32com.server.util.wrap(obj)
