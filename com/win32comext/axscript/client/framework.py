@@ -23,6 +23,15 @@ SCRIPTTEXT_ISPERSISTENT = 0x00000040
 from win32com.server.exception import Exception, IsCOMServerException
 import error # ax.client.error
 
+state_map = {
+	axscript.SCRIPTSTATE_UNINITIALIZED: "SCRIPTSTATE_UNINITIALIZED",
+	axscript.SCRIPTSTATE_INITIALIZED: "SCRIPTSTATE_INITIALIZED",
+	axscript.SCRIPTSTATE_STARTED: "SCRIPTSTATE_STARTED",
+	axscript.SCRIPTSTATE_CONNECTED: "SCRIPTSTATE_CONNECTED",
+	axscript.SCRIPTSTATE_DISCONNECTED: "SCRIPTSTATE_DISCONNECTED",
+	axscript.SCRIPTSTATE_CLOSED: "SCRIPTSTATE_CLOSED",
+}
+
 def profile(fn, *args):
 	import profile
 	prof = profile.Profile()
@@ -56,6 +65,16 @@ class SafeOutput:
 def MakeValidSysOuts():
 	if not isinstance(sys.stdout, SafeOutput):
 		sys.stdout = sys.stderr = SafeOutput()
+		# and for the sake of working around something I can't understand...
+		# prevent keyboard interrupts from killing IIS
+		import signal
+		def noOp(a,b):
+			# it would be nice to get to the bottom of this, so a warning to
+			# the debug console can't hurt.
+			print "WARNING: Ignoring keyboard interrupt from ActiveScripting engine"
+		# If someone else has already redirected, then assume they know what they are doing!
+		if signal.getsignal(signal.SIGINT) == signal.default_int_handler:
+			signal.signal(signal.SIGINT, noOp)
 
 def trace(*args):
 	"""A function used instead of "print" for debugging output.
@@ -145,7 +164,7 @@ class EventSink:
 			event = self.events[dispid]
 		except:
 			raise Exception(scode=winerror.DISP_E_MEMBERNOTFOUND)
-##		print "Invoke for ", event, "on", self.myScriptItem, " - calling",  self.myInvokeMethod
+		#print "Invoke for ", event, "on", self.myScriptItem, " - calling",  self.myInvokeMethod
 		return self.myInvokeMethod(self.myScriptItem, event, lcid, wFlags, args)
 
 	def GetSourceTypeInfo(self, typeinfo):
@@ -230,12 +249,16 @@ class ScriptItem:
 		return "<%s at %d: %s%s>" % (self.__class__.__name__, id(self), self.name,flagsDesc)
 
 	def _dump_(self, level):
-		flagsDesc = ""
+		flagDescs = []
 		if self.flags is not None and self.flags & axscript.SCRIPTITEM_GLOBALMEMBERS:
-			flagsDesc = "GLOBAL!"
-		if self.flags is None or self.flags & axscript.SCRIPTITEM_GLOBALMEMBERS == 0:
-			flagsDesc = "NOT VISIBLE!"
-		print " " * level, "Name=", self.name, ", flagsDesc=", flagsDesc, self
+			flagDescs.append("GLOBAL!")
+		if self.flags is None or self.flags & axscript.SCRIPTITEM_ISVISIBLE == 0:
+			flagDescs.append("NOT VISIBLE")
+		if self.flags is not None and self.flags & axscript.SCRIPTITEM_ISSOURCE:
+			flagDescs.append("EVENT SINK")
+		if self.flags is not None and self.flags & axscript.SCRIPTITEM_CODEONLY:
+			flagDescs.append("CODE ONLY")
+		print " " * level, "Name=", self.name, ", flags=", "/".join(flagDescs), self
 		for subItem in self.subItems.values():
 			subItem._dump_(level+1)
 
@@ -393,13 +416,22 @@ class ScriptItem:
 							# We found a sub-object.
 							names = typeinfo.GetNames(dispid);
 							result = self.dispatch.Invoke(dispid, 0x0, pythoncom.DISPATCH_PROPERTYGET, 1)
+							# IE has an interesting problem - there are lots of synonyms for the same object.  Eg
+							# in a simple form, "window.top", "window.window", "window.parent", "window.self"
+							# all refer to the same object.  Our event implementation code does not differentiate
+							# eg, "window_onload" will fire for *all* objects named "window".  Thus,
+							# "window" and "window.window" will fire the same event handler :(
+							# One option would be to check if the sub-object is indeed the
+							# parent object - however, this would stop "top_onload" from firing,
+							# as no event handler for "top" would work.
+							# I think we simply need to connect to a *single* event handler.
+							# As use in IE is deprecated, I am not solving this now.
 							if type(result)==pythoncom.TypeIIDs[pythoncom.IID_IDispatch]:
 								name = names[0]
 								subObj = self.GetCreateSubItem(self, name, result, axscript.SCRIPTITEM_ISVISIBLE)
+								#print "subobj", name, "flags are", subObj.flags, "mydisp=", self.dispatch, "result disp=", result, "compare=", self.dispatch==result
 								subObj.BuildEvents()
-
 								subObj.Register()
-
 						except pythoncom.com_error:
 							pass
 
@@ -463,7 +495,6 @@ class COMScript:
 		self.safetyOptions = 0
 		self.lcid = 0
 		self.subItems = {}
-		self.persistLoaded = 0
 		self.scriptCodeBlocks = {}
 
 	def _query_interface_(self, iid):
@@ -474,12 +505,8 @@ class COMScript:
 
 	# IActiveScriptParse
 	def InitNew(self):
-		if self.persistLoaded:
-			raise Exception(scode=winerror.E_UNEXPECTED)
-
-		self.persistLoaded = 1
 		if self.scriptSite is not None:
-			self.ChangeScriptState(axscript.SCRIPTSTATE_INITIALIZED)
+			self.SetScriptState(axscript.SCRIPTSTATE_INITIALIZED)
 
 	def AddScriptlet(self, defaultName, code, itemName, subItemName, eventName, delimiter, sourceContextCookie, startLineNumber):
 #		trace ("AddScriptlet", defaultName, code, itemName, subItemName, eventName, delimiter, sourceContextCookie, startLineNumber)
@@ -536,16 +563,14 @@ class COMScript:
 			self.lcid = site.GetLCID() 
 		except pythoncom.com_error:
 			self.lcid = win32api.GetUserDefaultLCID()
-		self.ResetNamedItems()
-		if self.persistLoaded:
-			self.ChangeScriptState(axscript.SCRIPTSTATE_INITIALIZED)
+		self.Reset()
 
 	def GetScriptSite(self, iid):
 		if self.scriptSite is None: raise Exception(scode=winerror.S_FALSE)
 		return self.scriptSite.QueryInterface(iid)
 
 	def SetScriptState(self, state):
-#		trace("SetScriptState with %d - currentstate = %d" % (state,self.scriptState))
+		#print "SetScriptState with %s - currentstate = %s" % (state_map.get(state),state_map.get(self.scriptState))
 		if state == self.scriptState: return
 		# If closed, allow no other state transitions
 		if self.scriptState==axscript.SCRIPTSTATE_CLOSED:
@@ -555,12 +580,10 @@ class COMScript:
 			# Re-initialize - shutdown then reset.
 			if self.scriptState in [axscript.SCRIPTSTATE_CONNECTED, axscript.SCRIPTSTATE_STARTED]:
 				self.Stop()
-			if self.scriptState == axscript.SCRIPTSTATE_DISCONNECTED:
-				self.Reset()
 		elif state==axscript.SCRIPTSTATE_STARTED:
 			if self.scriptState == axscript.SCRIPTSTATE_CONNECTED:
-				self.Stop()
-			if self.scriptState in [axscript.SCRIPTSTATE_DISCONNECTED, axscript.SCRIPTSTATE_UNINITIALIZED]:
+				self.Disconnect()
+			if self.scriptState == axscript.SCRIPTSTATE_DISCONNECTED:
 				self.Reset()
 			self.Run()
 			self.ChangeScriptState(axscript.SCRIPTSTATE_STARTED)
@@ -577,8 +600,10 @@ class COMScript:
 		elif state==axscript.SCRIPTSTATE_CLOSED:
 			self.Close()
 		elif state==axscript.SCRIPTSTATE_UNINITIALIZED:
-			if self.scriptState in [axscript.SCRIPTSTATE_CONNECTED, axscript.SCRIPTSTATE_STARTED]:
+			if self.scriptState == axscript.SCRIPTSTATE_STARTED:
 				self.Stop()
+			if self.scriptState == axscript.SCRIPTSTATE_CONNECTED:
+				self.Disconnect()
 			if self.scriptState == axscript.SCRIPTSTATE_DISCONNECTED:
 				self.Reset()
 			self.ChangeScriptState(state)
@@ -747,8 +772,8 @@ class COMScript:
 
 	def Stop(self):
 		# Stop all executing scripts, and disconnect.
-		self.CheckConnectedOrDisconnected()
-		self.Disconnect()
+		if self.scriptState == axscript.SCRIPTSTATE_CONNECTED:
+			self.Disconnect()
 		# script state remains disconnected.
 
 	def Disconnect(self):
@@ -778,6 +803,7 @@ class COMScript:
 		self.ChangeScriptState(axscript.SCRIPTSTATE_INITIALIZED)
 
 	def ChangeScriptState(self, state):
+		#print "  ChangeScriptState with %s - currentstate = %s" % (state_map.get(state),state_map.get(self.scriptState))
 		self.DisableInterrupts()
 		try:
 			self.scriptState = state
@@ -886,16 +912,18 @@ class COMScript:
 		exception = error.AXScriptException(self, \
 		                       codeBlock, exc_type, exc_value, exc_traceback)
 
+		# Ensure the traceback doesnt cause a cycle.
+		exc_traceback = None
 		result_exception = error.ProcessAXScriptException(self.scriptSite, self.debugManager, exception)
 		if result_exception is not None:
 			self.scriptSite.OnScriptTerminate(None, result_exception)
 			# reset ourselves to 'connected' so further events continue to fire.
 			self.SetScriptState(axscript.SCRIPTSTATE_CONNECTED)
-		# Ensure the traceback doesnt cause a cycle.
-		exc_traceback = None
-		raise result_exception
-		
-		
+			raise result_exception
+		# I think that in some cases this should just return - but the code
+		# that could return None above is disabled, so it never happens.
+		RaiseAssert(winerror.E_UNEXPECTED, "Don't have an exception to raise to the caller!")
+
 	def BeginScriptedSection(self):
 		if self.scriptSite is None:
 			raise Exception(E_UNEXPECTED)
