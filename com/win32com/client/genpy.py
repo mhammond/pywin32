@@ -23,7 +23,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.4.91" # Written to generated file.
+makepy_version = "0.4.92" # Written to generated file.
 
 GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
@@ -408,7 +408,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     if entry.desc[0]==pythoncom.DISPID_NEWENUM:
                         continue 
 
-                print >> stream, '\t\t"%s": %s,' % (key, mapEntry)
+                print >> stream, '\t\t"%s": %s,' % (build.MakePublicAttributeName(key), mapEntry)
         names = self.propMapGet.keys(); names.sort()
         for key in names:
             entry = self.propMapGet[key]
@@ -432,7 +432,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     # "normally".  This is a mess!
                     if entry.desc[0]==pythoncom.DISPID_NEWENUM:
                         continue 
-                print >> stream, '\t\t"%s": %s,' % (key, mapEntry)
+                print >> stream, '\t\t"%s": %s,' % (build.MakePublicAttributeName(key), mapEntry)
 
         print >> stream, "\t}"
 
@@ -450,7 +450,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     defArgDesc = ""
                 else:
                     defArgDesc = defArgDesc + ","
-                print >> stream, '\t\t"%s" : ((%s, LCID, %d, 0),(%s)),' % (key, details[0], pythoncom.DISPATCH_PROPERTYPUT, defArgDesc)
+                print >> stream, '\t\t"%s" : ((%s, LCID, %d, 0),(%s)),' % (build.MakePublicAttributeName(key), details[0], pythoncom.DISPATCH_PROPERTYPUT, defArgDesc)
 
         names = self.propMapPut.keys(); names.sort()
         for key in names:
@@ -458,7 +458,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
             if generator.bBuildHidden or not entry.hidden:
                 details = entry.desc
                 defArgDesc = MakeDefaultArgsForPropertyPut(details[2])
-                print >> stream, '\t\t"%s": ((%s, LCID, %d, 0),%s),' % (key, details[0], details[4], defArgDesc)
+                print >> stream, '\t\t"%s": ((%s, LCID, %d, 0),%s),' % (build.MakePublicAttributeName(key), details[0], details[4], defArgDesc)
         print >> stream, "\t}"
         
         if specialItems["value"]:
