@@ -68,9 +68,9 @@ def _CreateEvents():
 		name_parts = string.split(name, "_")[1:]
 		name_parts = map(string.capitalize, name_parts)
 		event  =string.join(name_parts,'')
-		event_commands.append(event, val)
+		event_commands.append((event, val))
 	for name, id in _extra_event_commands:
-		event_commands.append(name, id)
+		event_commands.append((name, id))
 
 _CreateEvents()
 del _event_commands; del _extra_event_commands
@@ -504,10 +504,12 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		if dc.IsPrinting():
 			# Check if we are beyond the end.
 			# (only do this when actually printing, else messes up print preview!)
-			if not pInfo.GetPreview() and self.starts is not None and self.starts[pInfo.GetCurPage()] >= self.GetTextLength():
-				# All finished.
-				pInfo.SetContinuePrinting(0)
-				return
+			if not pInfo.GetPreview() and self.starts is not None:
+				prevPage = pInfo.GetCurPage() - 1
+				if prevPage > 0 and self.starts[prevPage] >= self.GetTextLength():
+					# All finished.
+					pInfo.SetContinuePrinting(0)
+					return
 			dc.SetMapMode(win32con.MM_TEXT);
 
 	def OnPreparePrinting(self, pInfo):
