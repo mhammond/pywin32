@@ -441,7 +441,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "python16"="..\Python-cvs\PCbuild\python16.dsp" - Package Owner=<4>
+Project: "python20"="..\Python-cvs\PCbuild\python20.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
