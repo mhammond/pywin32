@@ -335,7 +335,8 @@ class DispatchBaseClass:
 		return "<%s.%s>" % (mod_name, self.__class__.__name__)
 	# Delegate comparison to the oleobjs, as they know how to do identity.
 	def __cmp__(self, other):
-		return cmp(self._oleobj_, other._oleobj_)
+		other = getattr(other, "_oleobj_", other)
+		return cmp(self._oleobj_, other)
 
 	def _ApplyTypes_(self, dispid, wFlags, retType, argTypes, user, resultCLSID, *args):
 		return self._get_good_object_(apply(self._oleobj_.InvokeTypes, (dispid, 0, wFlags, retType, argTypes) + args), user, resultCLSID)

@@ -170,7 +170,8 @@ class CDispatch:
 
 	# Delegate comparison to the oleobjs, as they know how to do identity.
 	def __cmp__(self, other):
-		return cmp(self._oleobj_, other._oleobj_)
+		other = getattr(other, "_oleobj_", other)
+		return cmp(self._oleobj_, other)
 
 	def __int__(self):
 		return int(self.__call__())
