@@ -2,8 +2,9 @@
 
 # To demostrate:
 # * Execute this script to register the context menu.
-# * Open Windows Explorer, and browse to a directory with a .py file.
-# * Note the pretty, random selection of icons!
+# * Open Windows Explorer
+# * Attempt to move or copy a directory.
+# * Note our hook's dialog is displayed.
 import sys, os
 import pythoncom
 from win32com.shell import shell, shellcon
