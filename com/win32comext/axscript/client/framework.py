@@ -25,6 +25,17 @@ INTERFACE_USES_SECURITY_MANAGER = 0x00000008 # Object knows to use IInternetHost
 from win32com.server.exception import Exception, IsCOMServerException
 import error # ax.client.error
 
+def profile(fn, *args):
+	import profile
+	prof = profile.Profile()
+	try:
+		return prof.runcall(fn, *args)
+	finally:
+		import pstats
+		# Damn - really want to send this to Excel!
+		#      width, list = pstats.Stats(prof).strip_dirs().get_print_list([])
+		pstats.Stats(prof).strip_dirs().sort_stats("time").print_stats()
+
 class SafeOutput:
 	softspace=1
 	def __init__(self, redir=None):
@@ -187,7 +198,10 @@ class EventSink:
 		self.connection = win32com.client.connect.SimpleConnection(self.coDispatch, self, self.iid)
 	def Disconnect(self):
 		if self.connection:
-			self.connection.Disconnect()
+			try:
+				self.connection.Disconnect()
+			except pythoncom.com_error:
+				pass # Ignore disconnection errors.
 			self.connection = None
 
 class ScriptItem:
@@ -214,7 +228,9 @@ class ScriptItem:
 		flagsDesc = ""
 		if self.flags is not None and self.flags & axscript.SCRIPTITEM_GLOBALMEMBERS:
 			flagsDesc = "GLOBAL!"
-		print " " * level, self.name, flagsDesc, self
+		if self.flags is None or self.flags & axscript.SCRIPTITEM_GLOBALMEMBERS == 0:
+			flagsDesc = "NOT VISIBLE!"
+		print " " * level, "Name=", self.name, ", flagsDesc=", flagsDesc, self
 		for subItem in self.subItems.values():
 			subItem._dump_(level+1)
 
@@ -253,7 +269,7 @@ class ScriptItem:
 		return self.flags & axscript.SCRIPTITEM_GLOBALMEMBERS
 
 	def IsVisible(self):
-		return self.flags & axscript.SCRIPTITEM_ISVISIBLE
+		return (self.flags & (axscript.SCRIPTITEM_ISVISIBLE | axscript.SCRIPTITEM_ISSOURCE)) != 0
 
 	def GetEngine(self):
 		item = self
@@ -420,8 +436,8 @@ class COMScript:
 	This class implements the required COM interfaces for ActiveX scripting.
 	"""
 	_public_methods_ = IActiveScriptMethods + IActiveScriptParseMethods + IObjectSafetyMethods + IActiveScriptParseProcedureMethods
-	_com_interfaces_ = [axscript.IID_IActiveScript, axscript.IID_IActiveScriptParse, axscript.IID_IObjectSafety] # axscript.IID_IActiveScriptParseProcedure]
-	
+	_com_interfaces_ = [axscript.IID_IActiveScript, axscript.IID_IActiveScriptParse, axscript.IID_IObjectSafety] #, axscript.IID_IActiveScriptParseProcedure]
+
 	def __init__(self):
 		# Make sure we can print/trace wihout an exception!
 		MakeValidSysOuts()
@@ -442,7 +458,7 @@ class COMScript:
 			return self.debugManager._query_interface_for_debugger_(iid)
 #		trace("ScriptEngine QI - unknown IID", iid)
 		return 0
-	#
+
 	# IActiveScriptParse
 	def InitNew(self):
 		if self.persistLoaded:
@@ -451,7 +467,7 @@ class COMScript:
 		self.persistLoaded = 1
 		if self.scriptSite is not None:
 			self.ChangeScriptState(axscript.SCRIPTSTATE_INITIALIZED)
-			
+
 	def AddScriptlet(self, defaultName, code, itemName, subItemName, eventName, delimiter, sourceContextCookie, startLineNumber):
 #		trace ("AddScriptlet", defaultName, code, itemName, subItemName, eventName, delimiter, sourceContextCookie, startLineNumber)
 		self.DoAddScriptlet(defaultName, str(code), itemName, subItemName, eventName, delimiter,sourceContextCookie, startLineNumber)
@@ -469,11 +485,20 @@ class COMScript:
 			# About to execute the code.
 			self.RegisterNewNamedItems()
 		return self.DoParseScriptText(str(code), sourceContextCookie, startLineNumber, bWantResult, flags)
-						
+
 	#
 	# IActiveScriptParseProcedure
 	def ParseProcedureText( self, code, formalParams, procName, itemName, unkContext, delimiter, contextCookie, startingLineNumber, flags):
 		trace("ParseProcedureText", code, formalParams, procName, itemName, unkContext, delimiter, contextCookie, startingLineNumber, flags)
+		# NOTE - this is never called, as we have disabled this interface.
+		# Problem is, once enabled all even code comes via here, rather than AddScriptlet.
+		# However, the "procName" is always an empty string - ie, itemName is the object whose event we are handling,
+		# but no idea what the specific event is!?
+		# Problem is disabling this block is that AddScriptlet is _not_ passed
+		# <SCRIPT for="whatever" event="onClick" language="Python">
+		# (but even for those blocks, the "onClick" information is still missing!?!?!?)
+
+#		self.DoAddScriptlet(None, str(code), itemName, subItemName, eventName, delimiter,sourceContextCookie, startLineNumber)
 		return None
 	#
 	# IActiveScript
