@@ -6,11 +6,6 @@ NOTE: The Network API for NT uses UNICODE.  Therefore, you
 can not simply pass python strings to the API functioms - some
 conversion is required.
 
-To make my life easier, I include MFC, and use the
-A2W/W2A style macros.  No MFC code should be linked in
-(afaik!)
-
-
 	Note: The NET functions have their own set of error codes in  2100-2200
 	range.  The system error functions do not always apply.
 	i.e. GetLastError may be useless.
@@ -40,11 +35,6 @@ A2W/W2A style macros.  No MFC code should be linked in
 #include "Python.h"
 #include "PyWinTypes.h"
 #include "win32net.h"
-
-#include "atlbase.h"
-#ifndef BUILD_FREEZE
-#include "atlconv.cpp"
-#endif
 
 #include "assert.h"
 /*****************************************************************************/
@@ -140,24 +130,30 @@ void PyObject_FreeNET_STRUCT(PyNET_STRUCT *pI, BYTE *pBuf)
 }
 BOOL PyObject_AsNET_STRUCT( PyObject *ob, PyNET_STRUCT *pI, BYTE **ppRet )
 {
-	USES_CONVERSION;
-	TCHAR errBuf[120];
 	BOOL ok = FALSE;
 	if (!PyMapping_Check(ob)) {
 		PyErr_SetString(PyExc_TypeError, "The object must be a mapping");
+		return FALSE;
 	}
+	char *szAttrName = NULL;
 	// allocate the structure, and wipe it to zero.
 	BYTE *buf = (BYTE *)malloc(pI->structsize);
 	memset(buf, 0, pI->structsize);
 	PyNET_STRUCT_ITEM *pItem;
 	for( pItem=pI->entries;pItem->attrname != NULL;pItem++) {
-		PyObject *subob = PyMapping_GetItemString(ob, T2A(pItem->attrname));
+		if (szAttrName) {
+			PyWinObject_FreeString(szAttrName);
+			szAttrName = NULL;
+		}
+		if (!PyWin_WCHAR_AsString(pItem->attrname, -1, &szAttrName))
+			goto done;
+		PyObject *subob = PyMapping_GetItemString(ob, szAttrName);
+
 		if (subob==NULL) {
 			PyErr_Clear();
 			// See if it is OK.
 			if (pItem->reqd) {
-				wsprintf(errBuf, _T("The mapping does not have the required attribute '%s'"), pItem->attrname);
-				PyErr_SetString(PyExc_ValueError, T2A(errBuf));
+				PyErr_Format(PyExc_ValueError, "The mapping does not have the required attribute '%s'", szAttrName);
 				goto done;
 			}
 		} else {
@@ -172,8 +168,7 @@ BOOL PyObject_AsNET_STRUCT( PyObject *ob, PyNET_STRUCT *pI, BYTE **ppRet )
 					break;
 				case NSI_DWORD:
 					if (!PyInt_Check(subob)) {
-						wsprintf(errBuf, _T("The mapping attribute '%s' must be an integer"), pItem->attrname);
-						PyErr_SetString(PyExc_TypeError, T2A(errBuf));
+						PyErr_Format(PyExc_TypeError, "The mapping attribute '%s' must be an integer", szAttrName);
 						Py_DECREF(subob);
 						goto done;
 					}
@@ -181,8 +176,7 @@ BOOL PyObject_AsNET_STRUCT( PyObject *ob, PyNET_STRUCT *pI, BYTE **ppRet )
 					break;
 				case NSI_LONG:
 					if (!PyInt_Check(subob)) {
-						wsprintf(errBuf, _T("The mapping attribute '%s' must be an integer"), pItem->attrname);
-						PyErr_SetString(PyExc_TypeError, T2A(errBuf));
+						PyErr_Format(PyExc_TypeError, "The mapping attribute '%s' must be an integer", szAttrName);
 						Py_DECREF(subob);
 						goto done;
 					}
@@ -190,8 +184,7 @@ BOOL PyObject_AsNET_STRUCT( PyObject *ob, PyNET_STRUCT *pI, BYTE **ppRet )
 					break;
 				case NSI_BOOL:
 					if (!PyInt_Check(subob)) {
-						wsprintf(errBuf, _T("The mapping attribute '%s' must be an integer"), pItem->attrname);
-						PyErr_SetString(PyExc_TypeError, T2A(errBuf));
+						PyErr_Format(PyExc_TypeError, "The mapping attribute '%s' must be an integer", szAttrName);
 						Py_DECREF(subob);
 						goto done;
 					}
@@ -200,8 +193,7 @@ BOOL PyObject_AsNET_STRUCT( PyObject *ob, PyNET_STRUCT *pI, BYTE **ppRet )
 				case NSI_HOURS:
 					if (subob != Py_None) {
 						if (!PyString_Check(subob) || PyString_Size(subob)!=21) {
-							wsprintf(errBuf, _T("The mapping attribute '%s' must be a string of exactly length 21"), pItem->attrname);
-							PyErr_SetString(PyExc_TypeError, T2A(errBuf));
+							PyErr_Format(PyExc_TypeError, "The mapping attribute '%s' must be a string of exactly length 21", szAttrName);
 							Py_DECREF(subob);
 							goto done;
 						}
@@ -244,6 +236,7 @@ BOOL PyObject_AsNET_STRUCT( PyObject *ob, PyNET_STRUCT *pI, BYTE **ppRet )
 	}
 	ok = TRUE;
 done:
+	if (szAttrName) PyWinObject_FreeString(szAttrName);
 	if (!ok ) {
 		PyObject_FreeNET_STRUCT(pI, buf);
 		return FALSE;
@@ -254,7 +247,6 @@ done:
 
 PyObject *PyObject_FromNET_STRUCT(PyNET_STRUCT *pI, BYTE *buf)
 {
-	USES_CONVERSION;
 	PyObject *ret = PyDict_New();
 	PyNET_STRUCT_ITEM *pItem;
 	for( pItem=pI->entries;pItem->attrname != NULL;pItem++) {
@@ -297,8 +289,14 @@ PyObject *PyObject_FromNET_STRUCT(PyNET_STRUCT *pI, BYTE *buf)
 			Py_DECREF(ret);
 			return NULL;
 		}
-		PyMapping_SetItemString(ret, T2A(pItem->attrname), newObj);
+		char *szAttrName;
+		if (!PyWin_WCHAR_AsString(pItem->attrname, -1, &szAttrName)) {
+			Py_DECREF(ret);
+			return NULL;
+		}
+		PyMapping_SetItemString(ret, szAttrName, newObj);
 		Py_DECREF(newObj);
+		PyWinObject_FreeString(szAttrName);
 	}
 	return ret;
 }

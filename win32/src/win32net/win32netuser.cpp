@@ -385,19 +385,22 @@ done:
 PyObject *
 PyNetUserGetGroups( PyObject *self, PyObject *args)
 {
-	USES_CONVERSION;
 	DWORD dwBuffsize = 128 * 1024;	
-	LPSTR	szServerName;		// storage for incoming servername string pointer
-	LPSTR	szUserName;			// incoming username
+	PyWin_AutoFreeBstr	wzServerName;		// storage for incoming servername string pointer
+	PyWin_AutoFreeBstr	wzUserName;			// incoming username
+	PyObject *		obServerName;
+	PyObject *              obUserName;
 
 	
-	if (!PyArg_ParseTuple(args, "zs:NetUserGetGroups",
-			&szServerName, // @pyparm string|serverName||The name of the remote server on which the function is to execute. None or an empty string specifies the server program running on the local computer.
-			&szUserName)) // @pyparm string|userName||The name of the user to search for in each group account.
+	if (!PyArg_ParseTuple(args, "OO:NetUserGetGroups",
+			&obServerName, // @pyparm string|serverName||The name of the remote server on which the function is to execute. None or an empty string specifies the server program running on the local computer.
+			&obUserName)) // @pyparm string|userName||The name of the user to search for in each group account.
 		return NULL;
 
-	LPWSTR wzServerName = A2W(szServerName);
-	LPWSTR wzUserName = A2W(szUserName);
+	if (!PyWinObject_AsAutoFreeBstr(obServerName, &wzServerName, TRUE))
+		return NULL;
+	if (!PyWinObject_AsAutoFreeBstr(obUserName, &wzUserName, FALSE))
+		return NULL;
 
 	DWORD dwMaxCount, dwCount;		// see the win32api call for how these are used.
 	GROUP_USERS_INFO_1 *lpBuffer;
@@ -409,8 +412,8 @@ PyNetUserGetGroups( PyObject *self, PyObject *args)
 	if (pRetlist==NULL) return NULL; // did we err?
 	
 	Py_BEGIN_ALLOW_THREADS
-	Errno = NetUserGetGroups(wzServerName, wzUserName, 1, (LPBYTE *)&lpBuffer, dwBuffsize, &dwCount, &dwMaxCount);
-    Py_END_ALLOW_THREADS
+	Errno = NetUserGetGroups((BSTR)wzServerName, (BSTR)wzUserName, 1, (LPBYTE *)&lpBuffer, dwBuffsize, &dwCount, &dwMaxCount);
+	Py_END_ALLOW_THREADS
 
 	if (Errno == NERR_Success)	// if no error, then build the list
 	{
@@ -421,7 +424,9 @@ PyNetUserGetGroups( PyObject *self, PyObject *args)
 		{
 			do
 			{
-				PyObject *t_ob = Py_BuildValue("(si)",W2A(p_nr->grui1_name), p_nr->grui1_attributes);	
+				PyObject *obName = PyWinObject_FromWCHAR(p_nr->grui1_name);
+				PyObject *t_ob = Py_BuildValue("(Oi)",obName, p_nr->grui1_attributes);	
+				Py_XDECREF(obName);
 
 				int listerr = PyList_Append(pRetlist,t_ob);				// append our obj...Append does an INCREF!
 				Py_DECREF(t_ob);
@@ -460,21 +465,23 @@ PyNetUserGetGroups( PyObject *self, PyObject *args)
 PyObject *
 PyNetUserGetLocalGroups( PyObject *self, PyObject *args)
 {
-	USES_CONVERSION;
-
 	DWORD dwFlags = LG_INCLUDE_INDIRECT;
 	DWORD dwBuffsize = 0xFFFFFFFF;	// request it all baby! 
-	LPSTR	szServerName;		// storage for incoming domain string pointer
-	LPSTR	szUserName;			// incoming username
+	PyWin_AutoFreeBstr wzServerName;		// storage for incoming domain string pointer
+	PyWin_AutoFreeBstr wzUserName;			// incoming username
+	PyObject *obServerName;
+	PyObject *obUserName;
 
-	if (!PyArg_ParseTuple(args, "zs|i:NetUserGetLocalGroups",
-			&szServerName, // @pyparm string|serverName||The name of the remote server on which the function is to execute. None or an empty string specifies the server program running on the local computer.
-			&szUserName, // @pyparm string|userName||The name of the user to search for in each group account. This parameter can be of the form \<UserName\>, in which case the username is expected to be found on servername. The user name can also be of the form \<DomainName\>\\\<UserName\> in which case \<DomainName\> is associated with servername and \<UserName\> is expected to be to be found on that domain. 
+	if (!PyArg_ParseTuple(args, "OO|i:NetUserGetLocalGroups",
+			&obServerName, // @pyparm string|serverName||The name of the remote server on which the function is to execute. None or an empty string specifies the server program running on the local computer.
+			&obUserName, // @pyparm string|userName||The name of the user to search for in each group account. This parameter can be of the form \<UserName\>, in which case the username is expected to be found on servername. The user name can also be of the form \<DomainName\>\\\<UserName\> in which case \<DomainName\> is associated with servername and \<UserName\> is expected to be to be found on that domain. 
 			&dwFlags)) // @pyparm int|flags|LG_INCLUDE_INDIRECT|Flags for the call.
 		return NULL;
 
-	LPWSTR wzServerName = A2W(szServerName);
-	LPWSTR wzUserName = A2W(szUserName);
+	if (!PyWinObject_AsAutoFreeBstr(obServerName, &wzServerName, TRUE))
+		return NULL;
+	if (!PyWinObject_AsAutoFreeBstr(obUserName, &wzUserName, FALSE))
+		return NULL;
 
 	DWORD dwMaxCount, dwCount;		// see the win32api call for how these are used.
 	LOCALGROUP_USERS_INFO_0 *lpBuffer;
@@ -498,7 +505,7 @@ PyNetUserGetLocalGroups( PyObject *self, PyObject *args)
 		{
 			do
 			{
-				PyObject *t_ob = PyString_FromString(W2A(p_nr->lgrui0_name));	// Convert to Ascii and then to Python String
+				PyObject *t_ob = PyWinObject_FromWCHAR(p_nr->lgrui0_name);
 
 				int listerr = PyList_Append(pRetlist,t_ob);				// append our obj...Append does an INCREF!
 
