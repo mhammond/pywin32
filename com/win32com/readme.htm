@@ -18,7 +18,15 @@ are used for testing, they do show a variety of COM techniques.</p>
 
 <h3>Recent Changes</h3>
 
-<h4>win32all-141</h4>
+<h4>win32all-143</h4>
+
+<p>ActiveScripting inside IE has been disabled by default.&nbsp; This is due to
+a <a href="http://starship.python.net/crew/mhammond/win32/PrivacyProblem.html">privacy
+concern</a> discovered in the engine.&nbsp; If you wish to re-enable this
+feature, you must execute:<br>
+<code>z:\&gt; win32comext\axscript\client\pyscript_rexec.py</code></p>
+
+<h4>win32all-142</h4>
 <p>Build for Python 2.2.  Note that ActiveDebugging will not work in this release -
 you will not be able to debug Python programs using the Microsoft Debuggers inside
 ActiveScripting apps (such as IE, ASP)</p>
