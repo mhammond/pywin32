@@ -22,6 +22,7 @@ class category:
         self.objects = {}
         self.overviewTopics = {}
         self.extOverviewTopics = {}
+        self.constants = {}
 
     def process(self):
         d = self.extOverviewTopics
@@ -80,7 +81,7 @@ def parseTopics(cat, input):
     # repeat tag/field section until the next topicname\tcontext line.
 
     # tagnames we care about:
-    lTags = ["module", "object", "topic"]
+    lTags = ["module", "object", "topic", "const"]
     line = input.readline()
     if line == '':
         return
@@ -135,8 +136,13 @@ def parseTopics(cat, input):
               d = cat.objects
             elif top.type == "topic":
               d = cat.overviewTopics
+            elif top.type == "const":
+              d = cat.constants
+            else:
+                raise RuntimeError, "What is '%s'" % (top.type,)
 
-            assert not d.has_key(top.name), "Duplicate named module/object/topic detected: " + top.name
+            if d.has_key(top.name):
+                print "Duplicate named %s detected: %s" % (top.type, top.name)
 
             # Skip the property fields line for module/object
             line = input.readline()
@@ -244,8 +250,9 @@ def genCategoryHTML(output_dir, cats):
         _genOneCategoryHTML(output_dir, cat, "Overviews", "_overview", cat.extOverviewTopics, cat.overviewTopics)
         _genOneCategoryHTML(output_dir, cat, "Modules", "_modules", cat.modules)
         _genOneCategoryHTML(output_dir, cat, "Objects", "_objects", cat.objects)
+        _genOneCategoryHTML(output_dir, cat, "Constants", "_constants", cat.constants)
 
-def _genItemsFromDict(dict, cat, output, target):
+def _genItemsFromDict(dict, cat, output, target, do_children = 1):
     CHM = "mk:@MSITStore:%s.chm::/" % target
     keys = dict.keys()
     keys.sort()
@@ -259,6 +266,8 @@ def _genItemsFromDict(dict, cat, output, target):
              <param name="Local" value="%(CHM)s%(context)s">
              </OBJECT>
       ''' % locals())
+      if not do_children:
+          continue
       if len(dict[k].contains) > 0:
         output.write("<UL>")
       containees = copy.copy(dict[k].contains)
@@ -338,7 +347,8 @@ def genTOC(cats, output, title, target):
                     <param name="Local" value="%(CHM)s%(cat_id)s_objects.html">
                     </OBJECT>
                 <UL>''' % locals())
-        _genItemsFromDict(cat.objects, cat, output, target)
+        # Dont show 'children' for objects - params etc don't need their own child nodes!
+        _genItemsFromDict(cat.objects, cat, output, target, do_children=0)
         output.write('''
                 </UL>''')
         # Constants
@@ -346,9 +356,13 @@ def genTOC(cats, output, title, target):
     <LI> <OBJECT type="text/sitemap">
          <param name="Name" value="Constants">
          <param name="ImageNumber" value="1">
-         <param name="Local" value="%(CHM)sconstants.html">
+         <param name="Local" value="%(CHM)s%(cat_id)s_constants.html">
          </OBJECT>
-''' % { "CHM" : CHM})
+           <UL>
+''' % locals())
+        _genItemsFromDict(cat.constants, cat, output, target)
+        output.write("""
+           </UL>""")
         # Finish this category
         output.write('''
         </UL>''')
