@@ -250,7 +250,7 @@ PyObject *PyIShellView::SelectItem(PyObject *self, PyObject *args)
 	if ( !PyArg_ParseTuple(args, "Oi:SelectItem", &obpidlItem, &iuFlags) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsPIDL(obpidlItem, &pidlItem)) bPythonIsHappy = FALSE;
+	if (bPythonIsHappy && !PyObject_AsPIDL(obpidlItem, &pidlItem, TRUE)) bPythonIsHappy = FALSE;
 	uFlags = iuFlags;
 	if (!bPythonIsHappy) return NULL;
 	HRESULT hr;
