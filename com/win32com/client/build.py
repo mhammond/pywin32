@@ -252,8 +252,11 @@ class DispatchItem(OleItem):
 				fdesc = (fdesc[0], None, None, None, pythoncom.INVOKE_PROPERTYGET, )
 			else:
 				map = self.propMap
-
-			map[names[0]] = MapEntry(tuple(fdesc), names, doc, resultCLSID, resultDoc)
+			# Check if the element is hidden.
+			hidden = 0
+			if hasattr(fdesc,"wVarFlags"):
+				hidden = (fdesc.wVarFlags & 0x40) != 0 # VARFLAG_FHIDDEN
+			map[names[0]] = MapEntry(tuple(fdesc), names, doc, resultCLSID, resultDoc, hidden)
 			return (names[0],map)
 		else:
 			return None
@@ -431,7 +434,6 @@ def _ResolveType(typerepr, itypeinfo):
 			if typeKind == pythoncom.TKIND_ALIAS:
 				tdesc = resultAttr.tdescAlias
 				return _ResolveType(tdesc, resultTypeInfo)
-
 			elif typeKind in [pythoncom.TKIND_ENUM, pythoncom.TKIND_MODULE]:
 				# For now, assume Long
 				return pythoncom.VT_I4, None, None
@@ -443,6 +445,7 @@ def _ResolveType(typerepr, itypeinfo):
 				clsid = resultTypeInfo.GetTypeAttr()[0]
 				retdoc = resultTypeInfo.GetDocumentation(-1)
 				return pythoncom.VT_DISPATCH, clsid, retdoc
+
 			elif typeKind == pythoncom.TKIND_RECORD:
 				return pythoncom.VT_RECORD, None, None
 			raise NotSupportedException("Can not resolve alias or user-defined type")
@@ -460,7 +463,6 @@ def _BuildArgList(fdesc, names):
     while len(names) < numArgs:
         names.append("arg%d" % (len(names),))
     return "," + string.join(names, ", ")
-
 
 valid_identifier_chars = string.letters + string.digits + "_"
 

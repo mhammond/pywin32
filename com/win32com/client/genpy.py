@@ -23,7 +23,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.3.3" # Written to generated file.
+makepy_version = "0.3.4" # Written to generated file.
 
 GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
@@ -330,48 +330,49 @@ class DispatchItem(build.DispatchItem, WritableItem):
         names = self.propMap.keys(); names.sort()
         for key in names:
             entry = self.propMap[key]
-            resultName = entry.GetResultName()
-            if resultName:
-                print "\t\t# Property '%s' is an object of type '%s'" % (key, resultName)
-            lkey = string.lower(key)
-            details = entry.desc
-            resultDesc = details[2]
-            argDesc = ()
-            mapEntry = MakeMapLineEntry(details[0], pythoncom.DISPATCH_PROPERTYGET, resultDesc, argDesc, key, entry.GetResultCLSIDStr())
-            
-            if entry.desc[0]==pythoncom.DISPID_VALUE:
-                lkey = "value"
-            elif entry.desc[0]==pythoncom.DISPID_NEWENUM:
-                # XXX - should DISPATCH_METHOD in the next line use the invtype?
-                specialItems["_newenum"] = (entry, pythoncom.DISPATCH_METHOD, mapEntry)
-                continue # Dont build this one now!
-            else:
+            if generator.bBuildHidden or not entry.hidden:
+                resultName = entry.GetResultName()
+                if resultName:
+                    print "\t\t# Property '%s' is an object of type '%s'" % (key, resultName)
                 lkey = string.lower(key)
-            if specialItems.has_key(lkey) and specialItems[lkey] is None: # remember if a special one.
-                specialItems[lkey] = (entry, pythoncom.DISPATCH_PROPERTYGET, mapEntry)
+                details = entry.desc
+                resultDesc = details[2]
+                argDesc = ()
+                mapEntry = MakeMapLineEntry(details[0], pythoncom.DISPATCH_PROPERTYGET, resultDesc, argDesc, key, entry.GetResultCLSIDStr())
+            
+                if entry.desc[0]==pythoncom.DISPID_VALUE:
+                    lkey = "value"
+                elif entry.desc[0]==pythoncom.DISPID_NEWENUM:
+                    # XXX - should DISPATCH_METHOD in the next line use the invtype?
+                    specialItems["_newenum"] = (entry, pythoncom.DISPATCH_METHOD, mapEntry)
+                    continue # Dont build this one now!
+                else:
+                    lkey = string.lower(key)
+                if specialItems.has_key(lkey) and specialItems[lkey] is None: # remember if a special one.
+                    specialItems[lkey] = (entry, pythoncom.DISPATCH_PROPERTYGET, mapEntry)
 
-            print '\t\t"%s": %s,' % (key, mapEntry)
-
+                print '\t\t"%s": %s,' % (key, mapEntry)
         names = self.propMapGet.keys(); names.sort()
         for key in names:
             entry = self.propMapGet[key]
-            if entry.GetResultName():
-                print "\t\t# Method '%s' returns object of type '%s'" % (key, entry.GetResultName())
-            details = entry.desc
-            lkey = string.lower(key)
-            argDesc = details[2]
-            resultDesc = details[8]
-            mapEntry = MakeMapLineEntry(details[0], pythoncom.DISPATCH_PROPERTYGET, resultDesc, argDesc, key, entry.GetResultCLSIDStr())
-            if entry.desc[0]==pythoncom.DISPID_VALUE:
-                lkey = "value"
-            elif entry.desc[0]==pythoncom.DISPID_NEWENUM:
-                specialItems["_newenum"] = (entry, pythoncom.DISPATCH_METHOD, mapEntry)
-                continue # Dont build this one now!
-            else:
+            if generator.bBuildHidden or not entry.hidden:
+                if entry.GetResultName():
+                    print "\t\t# Method '%s' returns object of type '%s'" % (key, entry.GetResultName())
+                details = entry.desc
                 lkey = string.lower(key)
-            if specialItems.has_key(lkey) and specialItems[lkey] is None: # remember if a special one.
-                specialItems[lkey]=(entry, pythoncom.DISPATCH_PROPERTYGET, mapEntry)
-            print '\t\t"%s": %s,' % (key, mapEntry)
+                argDesc = details[2]
+                resultDesc = details[8]
+                mapEntry = MakeMapLineEntry(details[0], pythoncom.DISPATCH_PROPERTYGET, resultDesc, argDesc, key, entry.GetResultCLSIDStr())
+                if entry.desc[0]==pythoncom.DISPID_VALUE:
+                    lkey = "value"
+                elif entry.desc[0]==pythoncom.DISPID_NEWENUM:
+                    specialItems["_newenum"] = (entry, pythoncom.DISPATCH_METHOD, mapEntry)
+                    continue # Dont build this one now!
+                else:
+                    lkey = string.lower(key)
+                if specialItems.has_key(lkey) and specialItems[lkey] is None: # remember if a special one.
+                    specialItems[lkey]=(entry, pythoncom.DISPATCH_PROPERTYGET, mapEntry)
+                print '\t\t"%s": %s,' % (key, mapEntry)
 
         print "\t}"
 
@@ -380,24 +381,24 @@ class DispatchItem(build.DispatchItem, WritableItem):
         names = self.propMap.keys(); names.sort()
         for key in names:
             entry = self.propMap[key]
-            lkey=string.lower(key)
-            details = entry.desc
-#           if specialItems.has_key(lkey):
-#               specialItems[lkey] = (entry, details[4], 0)
-            # If default arg is None, write an empty tuple
-            defArgDesc = build.MakeDefaultArgRepr(details[2])
-            if defArgDesc is None:
-                defArgDesc = ""
-            else:
-                defArgDesc = defArgDesc + ","
-            print '\t\t"%s" : ((%s, LCID, %d, 0),(%s)),' % (key, details[0], pythoncom.DISPATCH_PROPERTYPUT, defArgDesc)
+            if generator.bBuildHidden or not entry.hidden:
+                lkey=string.lower(key)
+                details = entry.desc
+                # If default arg is None, write an empty tuple
+                defArgDesc = build.MakeDefaultArgRepr(details[2])
+                if defArgDesc is None:
+                    defArgDesc = ""
+                else:
+                    defArgDesc = defArgDesc + ","
+                print '\t\t"%s" : ((%s, LCID, %d, 0),(%s)),' % (key, details[0], pythoncom.DISPATCH_PROPERTYPUT, defArgDesc)
 
         names = self.propMapPut.keys(); names.sort()
         for key in names:
             entry = self.propMapPut[key]
-            details = entry.desc
-            defArgDesc = MakeDefaultArgsForPropertyPut(details[2])
-            print '\t\t"%s": ((%s, LCID, %d, 0),%s),' % (key, details[0], details[4], defArgDesc)
+            if generator.bBuildHidden or not entry.hidden:
+                details = entry.desc
+                defArgDesc = MakeDefaultArgsForPropertyPut(details[2])
+                print '\t\t"%s": ((%s, LCID, %d, 0),%s),' % (key, details[0], details[4], defArgDesc)
         print "\t}"
         
         if specialItems["value"]:
@@ -423,12 +424,10 @@ class DispatchItem(build.DispatchItem, WritableItem):
 
         if specialItems["_newenum"]:
             enumEntry, invoketype, propArgs = specialItems["_newenum"]
-            # If we have a default entry, assume enumerator is of same type
-#           if defEntry:
-#               resultCLSID = defEntry.GetResultCLSIDStr()
-#           else:
-#               resultCLSID = "None"
             resultCLSID = enumEntry.GetResultCLSIDStr()
+            # If we dont have a good CLSID for the enum result, assume it is the same as the Item() method.
+            if resultCLSID == "None" and self.mapFuncs.has_key("Item"):
+                resultCLSID = self.mapFuncs["Item"].GetResultCLSIDStr()
             print '\tdef _NewEnum(self):'
             print '\t\t"Create an enumerator from this object"'
             print '\t\treturn win32com.client.util.WrapEnum(self._oleobj_.InvokeTypes(%d,LCID,%d,(13, 10),()),%s)' % (pythoncom.DISPID_NEWENUM, enumEntry.desc[4], resultCLSID)
@@ -545,9 +544,9 @@ class GeneratorProgress:
         pass
     def Close(self):
         pass
-            
+
 class Generator:
-  def __init__(self, typelib, sourceFilename, progressObject, bBuildHidden=0, bUnicodeToString=0):
+  def __init__(self, typelib, sourceFilename, progressObject, bBuildHidden=1, bUnicodeToString=0):
     self.bHaveWrittenDispatchBaseClass = 0
     self.bHaveWrittenCoClassBaseClass = 0
     self.bHaveWrittenEventBaseClass = 0
@@ -574,7 +573,10 @@ class Generator:
         if look_name is not None: continue
         newItem = EnumerationItem(info, attr, doc)
         enumItems[newItem.doc[0]] = newItem
-      elif infotype in [pythoncom.TKIND_DISPATCH, pythoncom.TKIND_INTERFACE]:
+      # We never hide interfaces (MSAccess, for example, nominates interfaces as
+      # hidden, assuming that you only ever use them via the CoClass)
+      elif (infotype in [pythoncom.TKIND_DISPATCH, pythoncom.TKIND_INTERFACE]) and \
+            not ((0 != pythoncom.TYPEFLAG_FHIDDEN & attr[11]) and not self.bBuildHidden): 
         if infotype==pythoncom.TKIND_INTERFACE:
           # For now we believe this flag.  It appears we could also
           # look down the cImplTypes for IDispatch, but this is simpler.

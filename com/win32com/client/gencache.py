@@ -182,7 +182,7 @@ def GetModuleForTypelib(typelibCLSID, lcid, major, minor):
 	return _GetModule(modName)
 
 
-def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = None, bGUIProgress = None, bForDemand = 0):
+def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = None, bGUIProgress = None, bForDemand = 0, bBuildHidden = 1):
 	"""Generate support for a type library.
 	
 	Given the IID, LCID and version information for a type library, generate
@@ -203,12 +203,12 @@ def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = No
 
 	import makepy
 	try:
-		makepy.GenerateFromTypeLibSpec( (typelibCLSID, lcid, major, minor), progressInstance=progressInstance, bForDemand = bForDemand)
+		makepy.GenerateFromTypeLibSpec( (typelibCLSID, lcid, major, minor), progressInstance=progressInstance, bForDemand = bForDemand, bBuildHidden = bBuildHidden)
 	except pywintypes.com_error:
 		return None
 	return GetModuleForTypelib(typelibCLSID, lcid, major, minor)
 
-def MakeModuleForTypelibInterface(typelib_ob, progressInstance = None, bForDemand = 0):
+def MakeModuleForTypelibInterface(typelib_ob, progressInstance = None, bForDemand = 0, bBuildHidden = 1):
 	"""Generate support for a type library.
 	
 	Given a PyITypeLib interface generate and import the necessary support files.  This is useful
@@ -224,7 +224,7 @@ def MakeModuleForTypelibInterface(typelib_ob, progressInstance = None, bForDeman
 	"""
 	import makepy
 	try:
-		makepy.GenerateFromTypeLibSpec( typelib_ob, progressInstance=progressInstance, bForDemand = bForDemand)
+		makepy.GenerateFromTypeLibSpec( typelib_ob, progressInstance=progressInstance, bForDemand = bForDemand, bBuildHidden = bBuildHidden)
 	except pywintypes.com_error:
 		return None
 	tla = typelib_ob.GetLibAttr()
@@ -234,7 +234,7 @@ def MakeModuleForTypelibInterface(typelib_ob, progressInstance = None, bForDeman
 	minor = tla[4]
 	return GetModuleForTypelib(guid, lcid, major, minor)
 
-def EnsureModuleForTypelibInterface(typelib_ob, progressInstance = None, bForDemand = 0):
+def EnsureModuleForTypelibInterface(typelib_ob, progressInstance = None, bForDemand = 0, bBuildHidden = 1):
 	"""Check we have support for a type library, generating if not.
 	
 	Given a PyITypeLib interface generate and import the necessary
@@ -259,9 +259,9 @@ def EnsureModuleForTypelibInterface(typelib_ob, progressInstance = None, bForDem
 	except ImportError:
 		pass
 	# Generate it.
-	return MakeModuleForTypelibInterface(typelib_ob, progressInstance, bForDemand)
+	return MakeModuleForTypelibInterface(typelib_ob, progressInstance, bForDemand, bBuildHidden)
 
-def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bValidateFile=1, bForDemand = 0):
+def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bValidateFile=1, bForDemand = 0, bBuildHidden = 1):
 	"""Ensure Python support is loaded for a type library, generating if necessary.
 	
 	Given the IID, LCID and version information for a type library, check and if
@@ -280,6 +280,8 @@ def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bVal
 	progressInstance -- Instance to use as progress indicator, or None to
 	                    use the GUI progress bar.
 	bValidateFile -- Whether or not to perform cache validation or not
+	bForDemand -- Should a complete generation happen now, or on demand?
+	bBuildHidden -- Should hidden members/attributes etc be generated?
 	"""
 	bReloadNeeded = 0
 	try:
@@ -363,7 +365,7 @@ def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bVal
 		module = None
 	if module is None:
 		#print "Rebuilding: ", major, minor
-		module = MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance, bForDemand = bForDemand)
+		module = MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance, bForDemand = bForDemand, bBuildHidden = bBuildHidden)
 		# If we replaced something, reload it
 		if bReloadNeeded:
 			module = reload(module)

@@ -26,8 +26,9 @@ Usage:
   makepy.py [-h] [-x0|1] [-u] [-o filename] [-d] [typelib, ...]
   
   typelib -- A TLB, DLL, OCX, Description, or possibly something else.
-  -h    -- Generate hidden methods.
-  -u    -- Do not convert all Unicode objects to strings.
+  -h    -- Do not generate hidden methods.
+  -u    -- Python 1.5 and earlier: Do not convert all Unicode objects to strings.
+           Python 1.6 and later: Do convert all Unicode objects to strings.
   -o outputFile -- Generate to named file - dont generate to standard directory.
   -i [typelib] -- Show info for specified typelib, or select the typelib if not specified.
   -v    -- Verbose output
@@ -170,8 +171,7 @@ def GetTypeLibsForSpec(arg):
 		tb = None # Storing tb in a local is a cycle!
 		sys.exit(1)
 
-
-def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progressInstance = None, bUnicodeToString=NeedUnicodeConversions, bQuiet = None, bGUIProgress = None, bForDemand = 0 ):
+def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progressInstance = None, bUnicodeToString=NeedUnicodeConversions, bQuiet = None, bGUIProgress = None, bForDemand = 0, bBuildHidden = 1):
 	if bQuiet is not None or bGUIProgress is not None:
 		print "Please dont use the bQuiet or bGUIProgress params"
 		print "use the 'verboseLevel', and 'progressClass' params"
@@ -235,7 +235,8 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 		else:
 			fileUse = file
 
-		gen = genpy.Generator(typelib, info.dll, progress, bUnicodeToString=bUnicodeToString)
+		gen = genpy.Generator(typelib, info.dll, progress, bUnicodeToString=bUnicodeToString, bBuildHidden=bBuildHidden)
+
 		gen.generate(fileUse, bForDemand)
 		
 		if file is None:
@@ -272,7 +273,7 @@ def GenerateChildFromTypeLibSpec(child, typelibInfo, verboseLevel = None, progre
 
 def main():
 	import getopt
-	hiddenSpec = 0
+	hiddenSpec = 1
 	bUnicodeToString = NeedUnicodeConversions
 	outputName = None
 	verboseLevel = 1
@@ -282,7 +283,7 @@ def main():
 		opts, args = getopt.getopt(sys.argv[1:], 'vo:huiqd')
 		for o,v in opts:
 			if o=='-h':
-				hiddenSpec = 1
+				hiddenSpec = 0
 			elif o=='-u':
 				bUnicodeToString = not NeedUnicodeConversions
 			elif o=='-o':
@@ -323,7 +324,7 @@ def main():
 		f = None
 
 	for arg in args:
-		GenerateFromTypeLibSpec(arg, f, verboseLevel = verboseLevel, bForDemand = bForDemand)
+		GenerateFromTypeLibSpec(arg, f, verboseLevel = verboseLevel, bForDemand = bForDemand, bHiddenSpec = hiddenSpec)
 
 	if f:	
 		f.close()
