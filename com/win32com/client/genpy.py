@@ -84,7 +84,6 @@ def WriteSinkEventMap(obj):
     print '\t_dispid_to_func_ = {'
     for name, entry in obj.propMapGet.items() + obj.propMapPut.items() + obj.mapFuncs.items():
         fdesc = entry.desc
-        id = fdesc[0]
         print '\t\t%9d : "%s",' % (entry.desc[0], MakeEventMethodName(entry.names[0]))
     print '\t\t}'
     
@@ -228,7 +227,6 @@ class DispatchItem(build.DispatchItem, WritableItem):
         self.type_attr = attr
 
     def WriteClass(self, generator):
-      wTypeFlags = self.type_attr.wTypeFlags
       if not self.bIsDispatch and not self.type_attr.typekind == pythoncom.TKIND_DISPATCH:
           return
       # This is pretty screwey - now we have vtable support we
@@ -302,7 +300,6 @@ class DispatchItem(build.DispatchItem, WritableItem):
         print "\t# If you create handlers, they should have the following prototypes:"
         for name, entry in self.propMapGet.items() + self.propMapPut.items() + self.mapFuncs.items():
             fdesc = entry.desc
-            id = fdesc[0]
             methName = MakeEventMethodName(entry.names[0])
             print '#\tdef ' + methName + '(self' + build.BuildCallList(fdesc, entry.names, "defaultNamedOptArg", "defaultNamedNotOptArg","defaultUnnamedArg") + '):'
             if entry.doc and entry.doc[1]: print '#\t\t' + build._safeQuotedString(entry.doc[1])
@@ -310,7 +307,6 @@ class DispatchItem(build.DispatchItem, WritableItem):
         self.bWritten = 1
 
     def WriteClassBody(self, generator):
-        doc = self.doc
         # Write in alpha order.
         names = self.mapFuncs.keys()
         names.sort()
@@ -589,7 +585,6 @@ class Generator:
       infotype = self.typelib.GetTypeInfoType(i)
       doc = self.typelib.GetDocumentation(i)
       attr = info.GetTypeAttr()
-      itemClass = None
       if infotype == pythoncom.TKIND_ENUM or infotype == pythoncom.TKIND_MODULE:
         if look_name is not None: continue
         newItem = EnumerationItem(info, attr, doc)
@@ -639,8 +634,6 @@ class Generator:
           flags = info.GetImplTypeFlags(j)
           refType = info.GetRefTypeInfo(info.GetRefTypeOfImplType(j))
           refAttr = refType.GetTypeAttr()
-          isSource = flags & pythoncom.IMPLTYPEFLAG_FSOURCE
-          name = build.MakePublicAttributeName(refType.GetDocumentation(-1)[0])
 #          sys.stderr.write("Attr typeflags for coclass referenced object %s=%d (%d), typekind=%d\n" % (name, refAttr.wTypeFlags, refAttr.wTypeFlags & pythoncom.TYPEFLAG_FDUAL,refAttr.typekind))
           if refAttr.typekind == pythoncom.TKIND_DISPATCH:
               if oleItems.has_key(refAttr[0]):

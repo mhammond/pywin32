@@ -398,7 +398,7 @@ def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bVal
 						#print "Trying pyc stat", filePathPyc
 						try:
 							pyModTime = os.stat(filePathPyc)[8]
-							fModtimeSet = 1
+							fModTimeSet = 1
 						except os.error, e:
 							pass
 					#print "Trying stat typelib", pyModTime
@@ -508,7 +508,6 @@ def _Dump():
 		name = os.path.splitext(os.path.split(file)[1])[0]
 		if name[0] != '_':
 			mod = _GetModule(name)
-			info = SplitGeneratedFileName(name)
 			print "%s - %s" % (mod.__doc__, name)
 
 	

@@ -380,10 +380,8 @@ class DispatchItem(OleItem):
 		argPrefix = "self"
 		if bMakeClass:
 			linePrefix = "\t"
-			defArg = "defaultArg"
 		else:
 			linePrefix = ""
-			defArg = "pythoncom.Missing"
 		ret.append(linePrefix + 'def ' + name + '(' + argPrefix + ', *args):')
 		if doc and doc[1]: ret.append(linePrefix + '\t' + _safeQuotedString(doc[1]))
 		if fdesc:

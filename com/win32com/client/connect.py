@@ -19,7 +19,7 @@ class SimpleConnection:
 	def _wrap(self, obj):
 		return win32com.server.util.wrap(obj)
 
-	def Connect(self, coInstance, eventInstance, eventCLSID = None, dispatcher = None):
+	def Connect(self, coInstance, eventInstance, eventCLSID = None):
 		try:
 			oleobj = coInstance._oleobj_
 		except AttributeError:

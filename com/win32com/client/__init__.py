@@ -57,8 +57,6 @@ def GetObject(Pathname = None, Class = None, clsctx = None):
     
     This will most likely throw pythoncom.com_error if anything fails.
   """
-  resultCLSID = None
-  
   if clsctx is None:
     clsctx = pythoncom.CLSCTX_ALL
     
@@ -78,7 +76,7 @@ def GetActiveObject(Class, clsctx = pythoncom.CLSCTX_ALL):
   resultCLSID = pywintypes.IID(Class)
   dispatch = pythoncom.GetActiveObject(resultCLSID)
   dispatch = dispatch.QueryInterface(pythoncom.IID_IDispatch)
-  return __WrapDispatch(dispatch, Class, resultCLSID = resultCLSID, clsctx = pythoncom.CLSCTX_ALL)
+  return __WrapDispatch(dispatch, Class, resultCLSID = resultCLSID, clsctx = clsctx)
 
 def Moniker(Pathname, clsctx = pythoncom.CLSCTX_ALL):
   """
@@ -163,7 +161,7 @@ class EventsProxy:
   def __getattr__(self, attr):
     return getattr(self._obj_, attr)
   def __setattr__(self, attr, val):
-    return setattr(self._obj_, attr, val)
+    setattr(self._obj_, attr, val)
 
 def DispatchWithEvents(clsid, user_event_class):
   """Create a COM object that can fire events to a user defined class.
