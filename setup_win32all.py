@@ -260,6 +260,7 @@ class my_build_ext(build_ext):
         extra = os.path.join(sys.exec_prefix, 'PCBuild')
         if extra not in self.library_dirs and os.path.isdir(extra):
             self.library_dirs.append(os.path.join(extra))
+        self.excluded_extensions = [] # list of (ext, why)
 
     def _why_cant_build_extension(self, ext):
         # Return None, or a reason it can't be built.
@@ -320,7 +321,6 @@ class my_build_ext(build_ext):
         self.check_extensions_list(self.extensions)
 
         self.found_libraries = {}        
-        self.excluded_extensions = [] # list of (ext, why)
 
         # Here we hack a "pywin32" directory (one of 'win32', 'win32com',
         # 'pythonwin' etc), as distutils doesn't seem to like the concept
@@ -371,7 +371,7 @@ class my_build_ext(build_ext):
             base_name = "scintilla.dll"
         file_util.copy_file(
                     os.path.join(self.build_temp, "scintilla", base_name),
-                    os.path.join(self.build_lib, "Pythonwin"),
+                    os.path.join(self.build_lib, "pythonwin"),
                     verbose = self.verbose, dry_run = self.dry_run)
 
     def build_exefile(self, ext):
@@ -827,9 +827,9 @@ def expand_modules(module_dir):
     return [os.path.splitext(name)[0] for name in flist.files]
 
 # NOTE: somewhat counter-intuitively, a result list a-la:
-#  [('Lib/site-packages\\Pythonwin', ('Pythonwin/license.txt',)),]
+#  [('Lib/site-packages\\pythonwin', ('pythonwin/license.txt',)),]
 # will 'do the right thing' in terms of installing licence.txt into
-# 'Lib/site-packages/Pythonwin/licence.txt'.  We exploit this to
+# 'Lib/site-packages/pythonwin/licence.txt'.  We exploit this to
 # get 'com/win32com/whatever' installed to 'win32com/whatever'
 def convert_data_files(files):
     ret = []
@@ -841,6 +841,8 @@ def convert_data_files(files):
             flist.include_pattern(os.path.basename(file))
             # We never want CVS
             flist.exclude_pattern(re.compile(".*\\\\CVS\\\\"), is_regex=1)
+            flist.exclude_pattern("*.pyc")
+            flist.exclude_pattern("*.pyo")
             if not flist.files:
                 raise RuntimeError, "No files match '%s'" % file
             files_use = flist.files
@@ -848,10 +850,11 @@ def convert_data_files(files):
             if not os.path.isfile(file):
                 raise RuntimeError, "No file '%s'" % file
             files_use = (file,)
-        path_use = os.path.dirname(file)
-        if path_use.startswith("com/") or path_use.startswith("com\\"):
-            path_use = path_use[4:]
-        ret.append( (path_use, files_use))
+        for fname in files_use:
+            path_use = os.path.dirname(fname)
+            if path_use.startswith("com/") or path_use.startswith("com\\"):
+                path_use = path_use[4:]
+            ret.append( (path_use, (fname,)))
     return ret
 
 def convert_optional_data_files(files):
@@ -892,17 +895,17 @@ packages=['win32com',
           'win32comext.internet',
           'win32comext.axcontrol',
 
-          'Pythonwin.pywin',
-          'Pythonwin.pywin.debugger',
-          'Pythonwin.pywin.dialogs',
-          'Pythonwin.pywin.docking',
-          'Pythonwin.pywin.framework',
-          'Pythonwin.pywin.framework.editor',
-          'Pythonwin.pywin.framework.editor.color',
-          'Pythonwin.pywin.idle',
-          'Pythonwin.pywin.mfc',
-          'Pythonwin.pywin.scintilla',
-          'Pythonwin.pywin.tools',
+          'pythonwin.pywin',
+          'pythonwin.pywin.debugger',
+          'pythonwin.pywin.dialogs',
+          'pythonwin.pywin.docking',
+          'pythonwin.pywin.framework',
+          'pythonwin.pywin.framework.editor',
+          'pythonwin.pywin.framework.editor.color',
+          'pythonwin.pywin.idle',
+          'pythonwin.pywin.mfc',
+          'pythonwin.pywin.scintilla',
+          'pythonwin.pywin.tools',
           ]
 
 # Python 2.2 distutils can't handle py_modules *and* packages,
@@ -941,7 +944,7 @@ dist = setup(name="pywin32",
 
       package_dir = {"win32com": "com/win32com",
                      "win32comext": "com/win32comext",
-                     "Pythonwin": "Pythonwin"},
+                     "pythonwin": "pythonwin"},
       packages = packages,
       py_modules = py_modules,
 
@@ -952,26 +955,17 @@ dist = setup(name="pywin32",
                 'pythonwin/pywin/*.cfg',
                 'pythonwin/license.txt',
                 'win32/license.txt',
-                'win32/scripts/*.py',
-                'win32/scripts/VersionStamp/*.py',
-                'win32/test/*.py',
+                'win32/scripts/*',
+                'win32/test/*',
+                'win32/Demos/*',
                 'com/win32com/readme.htm',
                 # win32com test utility files.
-                'com/win32com/test/*.txt',
-                'com/win32com/test/*.vbs',
-                'com/win32com/test/*.js',
-                'com/win32com/test/*.sct',
-                'com/win32com/test/*.xsl',
+                'com/win32com/test/*',
                 # win32com docs
                 'com/win32com/HTML/*',
-                'com/win32com/HTML/image/*',
                 # Active Scripting test and demos.
-                'com/win32comext/axscript/test/*.py',
-                'com/win32comext/axscript/test/*.vbs',
-                'com/win32comext/axscript/test/*.pys',
-                'com/win32comext/axscript/demos/client/ie/*',
-                'com/win32comext/axscript/demos/client/wsh/*',
-                'com/win32comext/axscript/demos/client/asp/*',
+                'com/win32comext/axscript/test/*',
+                'com/win32comext/axscript/Demos/*',
                  ]) +
                 # And data files convert_data_files can't handle.
                 [
@@ -988,13 +982,14 @@ if dist.command_obj.has_key('build_ext'):
     if dist.command_obj.has_key('install'): # just to be purdy
         what_string += "/installed"
     # Print the list of extension modules we skipped building.
-    excluded_extensions = dist.command_obj['build_ext'].excluded_extensions
-    if excluded_extensions:
-        print "*** NOTE: The following extensions were NOT %s:" % what_string
-        for ext, why in excluded_extensions:
-            print " %s: %s" % (ext.name, why)
-    else:
-        print "All extension modules %s OK" % (what_string,)
+    if dist.command_obj.has_key('build_ext'):
+        excluded_extensions = dist.command_obj['build_ext'].excluded_extensions
+        if excluded_extensions:
+            print "*** NOTE: The following extensions were NOT %s:" % what_string
+            for ext, why in excluded_extensions:
+                print " %s: %s" % (ext.name, why)
+        else:
+            print "All extension modules %s OK" % (what_string,)
 
 # Custom script we run at the end of installing - this is the same script
 # run by bdist_wininst, but the standard 'install' command doesn't seem
