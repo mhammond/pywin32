@@ -113,7 +113,7 @@ class TestThread(thread.WinThread):
 		self.child = FontWindow()
 		self.child.Create("FontDemo", win32con.WS_CHILD | win32con.WS_VISIBLE, rect, self.parentWindow)
 		self.SetMainFrame(self.child)
-		return 1
+		return thread.WinThread.InitInstance(self)
 
 	def ExitInstance(self):
 		return 0
