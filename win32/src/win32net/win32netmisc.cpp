@@ -419,7 +419,9 @@ PyObject *PyNetShareDel(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsWCHAR(obName, &szName, FALSE))
 		goto done;
 
+	Py_BEGIN_ALLOW_THREADS
 	err = NetShareDel(szServer, szName, reserved);
+	Py_END_ALLOW_THREADS
 	if (err) {
 		ReturnNetError("NetShareDel",err);	
 		goto done;
@@ -452,7 +454,9 @@ PyNetShareCheck(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsWCHAR(obName, &deviceName, FALSE))
 		goto done;
 
+	Py_BEGIN_ALLOW_THREADS
 	err = NetShareCheck(szServer, deviceName, &type);
+	Py_END_ALLOW_THREADS
 	if (err) {
 		if (err == NERR_DeviceNotShared) {
 			ret = Py_BuildValue("(iO)", 0, Py_None);
@@ -695,7 +699,9 @@ PyNetServerEnum(PyObject *self, PyObject *args)
 	if (!FindNET_STRUCT(level, server_infos, &pInfo))
 		goto done;
 
+	Py_BEGIN_ALLOW_THREADS
 	err = NetServerEnum(szServer, level, &buf, dwPrefLen, &numRead, &totalEntries, serverType, szDomain, &resumeHandle);
+	Py_END_ALLOW_THREADS
 	if (err!=0 && err != ERROR_MORE_DATA) {
 		ReturnNetError("NetServerEnum",err);
 		goto done;
@@ -741,7 +747,9 @@ PyNetServerGetInfo(PyObject *self, PyObject *args)
 		goto done;
 	if (!FindNET_STRUCT(typ, server_infos, &pInfo))
 		goto done;
+    Py_BEGIN_ALLOW_THREADS
 	err = NetServerGetInfo(szServer, typ, &buf);
+    Py_END_ALLOW_THREADS
 	if (err) {
 		ReturnNetError("NetServerGetInfo",err);
 		goto done;
@@ -781,7 +789,9 @@ PyNetServerSetInfo(PyObject *self, PyObject *args)
 	if (!PyObject_AsNET_STRUCT(obData, pInfo, &buf))
 		goto done;
 
+	Py_BEGIN_ALLOW_THREADS
 	err = NetServerSetInfo(szServer, typ, buf, NULL);
+	Py_END_ALLOW_THREADS
 	if (err) {
 		ReturnNetError("NetServerSetInfo",err);	
 		goto done;
@@ -830,7 +840,9 @@ PyNetWkstaUserEnum(PyObject *self, PyObject *args)
 	if (!FindNET_STRUCT(level, wktau_infos, &pInfo))
 		goto done;
 
+	Py_BEGIN_ALLOW_THREADS
 	err = NetWkstaUserEnum(szServer, level, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
+	Py_END_ALLOW_THREADS
 	if (err!=0 && err != ERROR_MORE_DATA) {
 		ReturnNetError("NetWkstaUserEnum",err);
 		goto done;
@@ -876,7 +888,9 @@ PyNetWkstaGetInfo(PyObject *self, PyObject *args)
 		goto done;
 	if (!FindNET_STRUCT(typ, wksta_infos, &pInfo))
 		goto done;
+	Py_BEGIN_ALLOW_THREADS
 	err = NetWkstaGetInfo(szServer, typ, &buf);
+	Py_END_ALLOW_THREADS
 	if (err) {
 		ReturnNetError("NetWkstaGetInfo",err);
 		goto done;
@@ -916,7 +930,9 @@ PyNetWkstaSetInfo(PyObject *self, PyObject *args)
 	if (!PyObject_AsNET_STRUCT(obData, pInfo, &buf))
 		goto done;
 
+	Py_BEGIN_ALLOW_THREADS
 	err = NetWkstaSetInfo(szServer, typ, buf, NULL);
+	Py_END_ALLOW_THREADS
 	if (err) {
 		ReturnNetError("NetWkstaSetInfo",err);	
 		goto done;
@@ -965,7 +981,9 @@ PyNetWkstaTransportEnum(PyObject *self, PyObject *args)
 	if (!FindNET_STRUCT(level, wkstransport_infos, &pInfo))
 		goto done;
 
+	Py_BEGIN_ALLOW_THREADS
 	err = NetWkstaTransportEnum(szServer, level, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
+	Py_END_ALLOW_THREADS
 	if (err!=0 && err != ERROR_MORE_DATA) {
 		ReturnNetError("NetWkstaTransportEnum",err);
 		goto done;
@@ -1017,7 +1035,9 @@ PyNetWkstaTransportAdd(PyObject *self, PyObject *args)
 	if (!PyObject_AsNET_STRUCT(obData, pInfo, &buf))
 		goto done;
 
+	Py_BEGIN_ALLOW_THREADS
 	err = NetWkstaTransportAdd(szServer, typ, buf, NULL);
+	Py_END_ALLOW_THREADS
 	if (err) {
 		ReturnNetError("NetWkstaTransportAdd",err);	
 		goto done;
@@ -1051,7 +1071,9 @@ PyNetWkstaTransportDel(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsWCHAR(obTransport, &szTransport, TRUE))
 		goto done;
 
+	Py_BEGIN_ALLOW_THREADS
 	err = NetWkstaTransportDel(szServer, szTransport, ucond);
+	Py_END_ALLOW_THREADS
 	if (err) {
 		ReturnNetError("NetWkstaTransportDel",err);	
 		goto done;
@@ -1096,7 +1118,9 @@ PyNetServerDiskEnum(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsWCHAR(obDomain, &szDomain, TRUE))
 		goto done;
 
+	Py_BEGIN_ALLOW_THREADS
 	err = NetServerDiskEnum(szServer, level, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
+	Py_END_ALLOW_THREADS
 	if (err!=0 && err != ERROR_MORE_DATA) {
 		ReturnNetError("NetServerDiskEnum",err);
 		goto done;
