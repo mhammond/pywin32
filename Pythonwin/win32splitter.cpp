@@ -130,13 +130,24 @@ PyObject *ui_splitter_create_view( PyObject *self, PyObject *args )
 	extern void PyWin_SetViewDocument(CView *pView, CDocument *pDoc);
 	PyWin_SetViewDocument(pView, NULL);
 
-	int rc;
-	GUI_BGN_SAVE;
-	rc = wnd->CreateView(row, col, NULL, CSize(width, height), &context); // @pyseemfc CSplitterWnd|CreateView
-	GUI_END_SAVE;
-	if (!rc)
-		return NULL;	// except set.
+	// no thread state - CreateView is implemented by us and manages this.
+	if (!wnd->CreateView(row, col, NULL, CSize(width, height), &context)) // @pyseemfc CSplitterWnd|CreateView
+		return NULL;	// exception set.
 	RETURN_NONE;
+}
+
+// @pymethod int|PyCSplitterWnd|DoKeyboardSplit|
+PyObject *ui_splitter_do_kb_split( PyObject *self, PyObject *args )
+{
+	CPythonSplitter *wnd = PyCSplitterWnd::GetSplitterObject(self);
+	if (!wnd)
+		return NULL;
+	CHECK_NO_ARGS2(args, DoKeyboardSplit);
+	BOOL rc;
+	GUI_BGN_SAVE;
+	rc = wnd->DoKeyboardSplit();
+	GUI_END_SAVE;
+	return PyInt_FromLong(rc);
 }
 
 // @pymethod <o PyCWnd>|PyCSplitterWnd|GetPane|Returns the <o PyCView> associated with the specified pane.
@@ -198,6 +209,25 @@ PyObject *ui_splitter_set_column_info( PyObject *self, PyObject *args )
 	RETURN_NONE;
 }
 
+// @pymethod |PyCSplitterWnd|IdFromRowCol|Gets the child window ID for the specified child.
+PyObject *ui_splitter_id_from_row_col( PyObject *self, PyObject *args )
+{
+	CPythonSplitter *wnd = PyCSplitterWnd::GetSplitterObject(self);
+	if (!wnd)
+		return NULL;
+	int row, col;
+	if (!PyArg_ParseTuple(args,"ii:IdFromRowCol",
+	          &row,    // @pyparm int|row||The row in the splitter.
+	          &col))  // @pyparm int|col||The col in the splitter
+		return NULL;
+
+	int rc;
+	GUI_BGN_SAVE;
+	rc = wnd->IdFromRowCol(row, col);
+	GUI_END_SAVE;
+	return PyInt_FromLong(rc);
+}
+
 // @object PyCSplitterWnd|A class which encapsulates an MFC <o CSplitterWnd>. Derived from a <o PyCWnd> object.
 static struct PyMethodDef ui_splitter_window_methods[] = {
 	{"GetPane",				ui_splitter_get_pane,	1}, // @pymeth GetPane|Returns the <o PyCWnd> object associated with a splitter window pane.
@@ -206,6 +236,8 @@ static struct PyMethodDef ui_splitter_window_methods[] = {
 	{"CreateStatic",		ui_splitter_create_static,	1}, // @pymeth CreateStatic|Creates a static splitter window.
 	{"SetColumnInfo",		ui_splitter_set_column_info,1}, // @pymeth SetColumnInfo|Sets a new minimum height and ideal height for a column
 	{"SetRowInfo",			ui_splitter_set_row_info,	1}, // @pymeth SetRowInfo|Sets a new minimum height and ideal height for a row.
+	{"IdFromRowCol",                ui_splitter_id_from_row_col,    1}, // @pymeth IdFromRowCol|Gets the child window ID for the specified child.
+	{"DoKeyboardSplit",             ui_splitter_do_kb_split,        1}, // @pymeth DoKeyboardSplit|
 	{NULL,			NULL}
 };
 
@@ -231,10 +263,22 @@ BOOL CPythonSplitter::CreateView(int row, int col,
 	// NOTE NOTE NOTE
 	// This is basically cloned from MFC CSplitterWnd::CreateView (winsplit.cpp)
 	ASSERT_VALID(this);
-	ASSERT(row >= 0 && row < m_nRows);
-	ASSERT(col >= 0 && col < m_nCols);
+	if (!(row >= 0 && row < m_nRows)) {
+		PyErr_Format(PyExc_IndexError, "Row number %d is invalid - must be from 0-%d", row, m_nRows-1);
+		return FALSE;
+	}
+	if (!(col >= 0 && col < m_nCols)) {
+		PyErr_Format(PyExc_IndexError, "Column number %d is invalid - must be from 0-%d", col, m_nCols-1);
+		return FALSE;
+	}
 //	ASSERT(pViewClass != NULL);
-	if (GetDlgItem(IdFromRowCol(row, col)) != NULL) {
+	CWnd *child;
+	{
+		GUI_BGN_SAVE;
+		child = GetDlgItem(IdFromRowCol(row, col));
+		GUI_END_SAVE;
+	}
+	if (child != NULL) {
 		PyErr_SetString(ui_module_error, "CreateView - pane already exists");
 		return FALSE;
 	}
@@ -257,8 +301,10 @@ BOOL CPythonSplitter::CreateView(int row, int col,
 	// Create with the right size (wrong position)
 	CRect rect(CPoint(0,0), sizeInit);
 	BOOL ok;
+	GUI_BGN_SAVE;
 	ok = pWnd->Create(NULL, NULL, dwStyle,
 		rect, this, IdFromRowCol(row, col), pContext);
+	GUI_END_SAVE;
 	if (!ok)
 	{
 		PyErr_SetString(ui_module_error, "CreateView: couldn't create client pane for splitter");
