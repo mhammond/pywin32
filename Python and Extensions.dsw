@@ -251,6 +251,9 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name win32help
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win2kras
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -502,6 +505,21 @@ Package=<4>
 {{{
     Begin Project Dependency
     Project_Dep_Name win32com
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "win2kras"=.\win32\win2kras.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
     End Project Dependency
 }}}
 

@@ -126,6 +126,12 @@ item: Install File
   Flags=0000000000000011
 end
 item: Install File
+  Source=l:\src\pythonex\win32\Build\win2kras.pyd
+  Destination=%INSTDIR%\win2kras.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
   Source=l:\src\pythonex\win32\Build\win32ras.pyd
   Destination=%INSTDIR%\win32ras.pyd
   Description=win32 extension files
