@@ -5,6 +5,21 @@ import time
 import os
 import sys
 
+if __name__=='__main__':
+    this_file = sys.argv[0]
+else:
+    this_file = __file__
+
+def CheckNoOtherWriters():
+    win32trace.write("Hi")
+    time.sleep(0.05)
+    if win32trace.read() != "Hi":
+        # Reset everything so following tests still fail with this error!S
+        win32trace.TermRead()
+        win32trace.TermWrite()
+        raise RuntimeError, "An existing win32trace reader appears to be " \
+                            "running - please stop this process and try again"
+
 class TestInitOps(unittest.TestCase):
     def tearDown(self):
         try:
@@ -126,6 +141,7 @@ class TestMultipleThreadsWriting(unittest.TestCase):
         WriterThread.BucketCount = self.BucketCount        
         win32trace.InitRead()
         win32trace.InitWrite()
+        CheckNoOtherWriters()
         self.threads = [WriterThread() for each in range(self.FullBucket)]
         self.buckets = range(self.BucketCount)
         for each in self.buckets:
@@ -195,7 +211,7 @@ class TraceWriteProcess:
     def start(self):
         procHandle, threadHandle, procId, threadId  = win32process.CreateProcess(
             None, # appName
-            'python.exe %s /run_test_process %s %s' % (sys.argv[0],
+            'python.exe %s /run_test_process %s %s' % (this_file,
                                                        self.BucketCount,
                                                        self.threadCount),
             None, # process security
