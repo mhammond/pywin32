@@ -59,7 +59,6 @@ BOOL PySocket_AsSOCKET
 )
 {
 	PyObject *o = NULL;
-	PyObject *t = NULL;
 	PyObject *out = NULL;
 
 	if (PyInt_Check(obSocket))
@@ -529,7 +528,7 @@ BOOL WINAPI DLLMAIN(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 			        This code actually makes mo assumptions about it, but the
 					comment remains true!
 
-			/*
+			**
 			** For various process-level global locks.  Strictly speaking, this
 			** could throw a C++ exception, but we don't care to trap that.
 			*/
