@@ -580,7 +580,7 @@ static PyObject *PyGetFormattedCounterValue(PyObject *self, PyObject *args)
 	DWORD format;
 	if (!PyArg_ParseTuple(args, "ii:GetFormattedCounterValue", 
 			&handle, // @pyparm int|handle||Handle to the counter
-			&format)) // @ int|format||Format of result.  Can be PDH_FMT_DOUBLE, PDH_FMT_LARGE, PDH_FMT_LONG and or'd with PDH_FMT_NOSCALE, PDH_FMT_1000
+			&format)) // @pyparm int|format||Format of result.  Can be PDH_FMT_DOUBLE, PDH_FMT_LARGE, PDH_FMT_LONG and or'd with PDH_FMT_NOSCALE, PDH_FMT_1000
 
 		return NULL;
 	DWORD type;
