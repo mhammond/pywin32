@@ -162,6 +162,18 @@ def TestGenerated():
     if o.GetSetInterface(o).__class__ != o.__class__:
         raise error, "GetSetDispatch failed"
 
+    # Pass some non-sequence objects to our array decoder, and watch it fail.
+    try:
+        o.SetVariantSafeArray("foo")
+        raise error, "Expected a type error"
+    except TypeError:
+        pass
+    try:
+        o.SetVariantSafeArray(666)
+        raise error, "Expected a type error"
+    except TypeError:
+        pass
+
     o.GetSimpleSafeArray(None)
     TestApplyResult(o.GetSimpleSafeArray, (None,), tuple(range(10)))
     resultCheck = tuple(range(5)), tuple(range(10)), tuple(range(20))
