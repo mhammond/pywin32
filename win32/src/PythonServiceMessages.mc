@@ -124,8 +124,10 @@ Python could find the service class in the module
 .
 MessageId=0x6
 Severity=Error
-SymbolicName=E_UNUSED
+SymbolicName=E_PYS_NO_SERVICE
 Language=English
+An attempt was made to start the service '%1', but this service
+is not hosted in this process.
 .
 
 MessageId=0x7
@@ -188,6 +190,15 @@ Could not get the sys.path from Python.
 %n%2: %3
 .
 
+MessageId=0xE
+Severity=Error
+SymbolicName=PYS_E_NO_SERVICEMANAGER
+Language=English
+Could not locate the Python servicemanager.
+%n%1
+%n%2: %3
+.
+
 
 MessageId=0x80
 Severity=Error
@@ -235,7 +246,6 @@ Language=English
 Could not find the service's PythonClass entry in the registry
 Error %1 - %2
 .
-
 
 MessageId=0xF000
 Severity=Error
