@@ -214,35 +214,44 @@ BOOL ReadData(char **ppResult, int *retSize, int waitMilliseconds)
 	}
 	if (waitMilliseconds!=0) {
 		HANDLE hEvent = (HANDLE)obEvent->asLong();
-		if (WaitForSingleObject(hEvent, waitMilliseconds)==WAIT_FAILED) {
+		DWORD rc;
+		Py_BEGIN_ALLOW_THREADS
+		rc = WaitForSingleObject(hEvent, waitMilliseconds);
+		Py_END_ALLOW_THREADS
+		if (rc==WAIT_FAILED) {
 			PyWin_SetAPIError("WaitForSingleObject", GetLastError());
 			return FALSE;
 		}
 	}
 
-	if (!GetMyMutex())
-		return FALSE;
+	BOOL rc = FALSE;
+	char *result = NULL;
+	Py_BEGIN_ALLOW_THREADS
+	if (GetMyMutex()) {
 
-	size_t *pLen = (size_t *)pMapBaseRead;
-	char *buffer = (char *)(((size_t *)pMapBaseRead)+1);
+		size_t *pLen = (size_t *)pMapBaseRead;
+		char *buffer = (char *)(((size_t *)pMapBaseRead)+1);
 
-	char *result = (char *)malloc(*pLen + 1);
-	if (result==NULL) {
-		ReleaseMyMutex();
-		PyErr_SetString(PyExc_MemoryError, "Allocating buffer for trace data");
-		return FALSE;
+		result = (char *)malloc(*pLen + 1);
+		if (result) {
+			memcpy(result, buffer, *pLen);
+			result[*pLen] = '\0';
+			*retSize = *pLen;
+			*pLen = 0;
+		}
+		rc = ReleaseMyMutex();
 	}
-	memcpy(result, buffer, *pLen);
-	result[*pLen] = '\0';
-	*retSize = *pLen;
-	*pLen = 0;
-
-	if (!ReleaseMyMutex()) {
+	Py_END_ALLOW_THREADS
+	if (!rc && result) {
 		free(result);
-		return FALSE;
 	}
-	*ppResult = result;
-	return TRUE;
+	if (rc && result==NULL) {
+		PyErr_SetString(PyExc_MemoryError, "Allocating buffer for trace data");
+		rc = FALSE;
+	}
+	if (rc)
+		*ppResult = result;
+	return rc;
 }
 
 static PyObject *win32trace_InitRead(PyObject *self, PyObject *args)
@@ -312,10 +321,7 @@ static PyObject *win32trace_read(PyObject *self, PyObject *args)
 		return NULL;
 	int len;
 	char *data;
-	BOOL ok;
-	Py_BEGIN_ALLOW_THREADS
-	ok = ReadData(&data, &len, 0);
-	Py_END_ALLOW_THREADS
+	BOOL ok = ReadData(&data, &len, 0);
 	if (!ok)
 		return NULL;
 	PyObject *result = PyString_FromStringAndSize(data, len);
@@ -330,10 +336,7 @@ static PyObject *win32trace_blockingread(PyObject *self, PyObject *args)
 		return NULL;
 	int len;
 	char *data;
-	BOOL ok;
-	Py_BEGIN_ALLOW_THREADS
-	ok = ReadData(&data, &len, milliSeconds);
-	Py_END_ALLOW_THREADS
+	BOOL ok = ReadData(&data, &len, milliSeconds);
 	if (!ok)
 		return NULL;
 	PyObject *result = PyString_FromStringAndSize(data, len);
