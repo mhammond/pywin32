@@ -8,13 +8,14 @@ import unittest
 from win32com.client.gencache import EnsureDispatch
 from win32com.client import Dispatch
 import win32com.server.util
+import win32com.test.util
 import pythoncom
 
 def yield_iter(iter):
     while 1:
         yield iter.next()
 
-class _BaseTestCase(unittest.TestCase):
+class _BaseTestCase(win32com.test.util.TestCase):
     def test_enumvariant_vb(self):
         ob, iter = self.iter_factory()
         got=[]

@@ -16,9 +16,10 @@ from win32com.server.exception import COMException
 from win32com.server.util import wrap
 from win32com.client import Dispatch
 import winerror
+from win32com.test.util import CaptureWriter
 
 class error(Exception):
-    def __init__(self, msg, com_exception):
+    def __init__(self, msg, com_exception=None):
         Exception.__init__(self, msg, str(com_exception))
 
 # Our COM server.
@@ -34,7 +35,6 @@ class TestServer:
 
 def test():
     # Call via a native interface.
-    print "***** NOTE: Two tracebacks below this is normal"
     com_server = wrap(TestServer(), pythoncom.IID_IStream)
     try:
         com_server.Clone()
@@ -46,14 +46,22 @@ def test():
             raise error("The scode element of the exception tuple did not yield the correct scode", com_exc)
         if exc[2] != "Not today":
             raise error("The description in the exception tuple did not yield the correct string", com_exc)
+    cap = CaptureWriter()
     try:
-        com_server.Commit(0)
+        cap.capture()
+        try:
+            com_server.Commit(0)
+        finally:
+            cap.release()
     except pythoncom.com_error, com_exc:
         hr, desc, exc, argErr = com_exc
         if hr != winerror.E_FAIL:
             raise error("The hresult was not E_FAIL for an internal error", com_exc)
         if exc[1] != "Python COM Server Internal Error":
             raise error("The description in the exception tuple did not yield the correct string", com_exc)
+    # Check we saw a traceback in stderr
+    if cap.get_captured().find("Traceback")<0:
+        raise error("Could not find a traceback in stderr: %r" % (cap.get_captured(),))
 
     # Now do it all again, but using IDispatch
     com_server = Dispatch(wrap(TestServer()))
@@ -67,8 +75,14 @@ def test():
             raise error("The scode element of the exception tuple did not yield the correct scode", com_exc)
         if exc[2] != "Not today":
             raise error("The description in the exception tuple did not yield the correct string", com_exc)
+
+    cap.clear()
     try:
-        com_server.Commit(0)
+        cap.capture()
+        try:
+            com_server.Commit(0)
+        finally:
+            cap.release()
     except pythoncom.com_error, com_exc:
         hr, desc, exc, argErr = com_exc
         if hr != winerror.DISP_E_EXCEPTION:
@@ -77,11 +91,12 @@ def test():
             raise error("The scode element of the exception tuple did not yield the correct scode", com_exc)
         if exc[1] != "Python COM Server Internal Error":
             raise error("The description in the exception tuple did not yield the correct string", com_exc)
-
-    print "***** NOTE: Two tracebacks above this is normal"
-    print "Error semantics worked."
+    # Check we saw a traceback in stderr
+    if cap.get_captured().find("Traceback")<0:
+        raise error("Could not find a traceback in stderr: %r" % (cap.get_captured(),))
 
 if __name__=='__main__':
     test()
     from util import CheckClean
     CheckClean()
+    print "error semantic tests worked"

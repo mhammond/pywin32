@@ -4,8 +4,9 @@
 # and enumerators.
 #
 # Also has the side effect of testing some of the PythonCOM error semantics.
-
+import sys
 import win32com.server.util
+import win32com.test.util
 import win32com.client
 import traceback
 import pythoncom
@@ -13,6 +14,7 @@ import pywintypes
 import winerror
 L=pywintypes.Unicode
 
+import unittest
 
 error = "collection test error"
 
@@ -50,7 +52,9 @@ def TestEnumAgainst(o,check):
             raise error, "Using indexing gave the incorrect value"
 
 
-def TestEnum(quiet=0):
+def TestEnum(quiet=None):
+    if quiet is None:
+        quiet = not "-v" in sys.argv
     if not quiet: print "Simple enum test"
     o = MakeTestEnum()
     check = [1,'Two',3]
@@ -107,7 +111,7 @@ def TestEnum(quiet=0):
             raise error, "Expected DISP_E_BADINDEX - got %d (%s)" % (hr, desc)
 
     # Test an empty collection
-    print "Empty collection test"
+    if not quiet: print "Empty collection test"
     o = MakeEmptyEnum()
     for item in o:
         raise error, "Empty list performed an iteration"
@@ -131,14 +135,9 @@ def TestEnum(quiet=0):
         if hr != winerror.DISP_E_BADINDEX:
             raise error, "Expected DISP_E_BADINDEX - got %d (%s)" % (hr, desc)
 
-
-
-def doit():
-    try:
+class TestCase(win32com.test.util.TestCase):
+    def testEnum(self):
         TestEnum()
-    except:
-        traceback.print_exc()
 
 if __name__=='__main__':
-    doit()
-    print "Worked OK with %d/%d" % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
+    unittest.main()

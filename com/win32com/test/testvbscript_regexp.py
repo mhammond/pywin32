@@ -1,8 +1,9 @@
 import unittest
 from win32com.client.gencache import EnsureDispatch
 from win32com.client.dynamic import DumbDispatch
+import win32com.test.util
 
-class RegexTest(unittest.TestCase):
+class RegexTest(win32com.test.util.TestCase):
     def _CheckMatches(self, match, expected):
         found = []
         for imatch in match:

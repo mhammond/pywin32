@@ -1,51 +1,39 @@
 import pythoncom, win32com.client.dynamic, sys
-from util import CheckClean
-
-def TestInterp(interp):
-    if interp.Eval("1+1") <> 2:
-        raise ValueError, "The interpreter returned the wrong result."
-    try:
-        interp.Eval(1+1)
-        raise ValueError, "The interpreter did not raise an exception"
-    except pythoncom.com_error, details:
-        import winerror
-        if details[0]!=winerror.DISP_E_TYPEMISMATCH:
-            raise ValueError, "The interpreter exception was not winerror.DISP_E_TYPEMISMATCH."
+import winerror
+import win32com.test.util
+import unittest
 
 def TestConnections():
     import win32com.demos.connect
     win32com.demos.connect.test()
 
-def TestAllInterps():
-    # Ensure the correct version registered.
-    import win32com.servers.interp
-    win32com.servers.interp.Register()
+class InterpCase(win32com.test.util.TestCase):
+    def setUp(self):
+        # Ensure the correct version registered.
+        from win32com.servers.interp import Interpreter
+        import win32com.server.register
+        win32com.server.register.RegisterClasses(Interpreter, quiet=1)
 
-    numInterps = 0
-    try:
-        interp = win32com.client.dynamic.Dispatch("Python.Interpreter")
-    except pythoncom.com_error:
-        print "**** - The Python.Interpreter DLL test server is not available"
-        interp = None
-    if interp:
-        numInterps = numInterps + 1
-        TestInterp(interp)
+    def _testInterp(self, interp):
+        self.assertEquals(interp.Eval("1+1"), 2)
+        self.assertRaisesCOM_HRESULT(winerror.DISP_E_TYPEMISMATCH,
+                                     interp.Eval, 2)
 
-    try:
+    def testInproc(self):
+        interp = win32com.client.dynamic.Dispatch("Python.Interpreter", clsctx = pythoncom.CLSCTX_INPROC)
+        self._testInterp(interp)
+
+    def testLocalServer(self):
         interp = win32com.client.dynamic.Dispatch("Python.Interpreter", clsctx = pythoncom.CLSCTX_LOCAL_SERVER)
-    except pythoncom.com_error:
-        print "**** - The Python.Interpreter EXE test server is not available"
-        interp = None
-    if interp:
-        numInterps = numInterps + 1
-        TestInterp(interp)
+        self._testInterp(interp)
+    
+    def testAny(self):
+        interp = win32com.client.dynamic.Dispatch("Python.Interpreter")
+        self._testInterp(interp)
 
-    print "The %d available Python.Interpreter objects worked OK." % (numInterps)
-
-def TestAll():
-    TestAllInterps()
-    TestConnections()
-
+class ConnectionsTestCase(win32com.test.util.TestCase):
+    def testConnections(self):
+        TestConnections()
+    
 if __name__=='__main__':
-    TestAll()
-    CheckClean()
+    unittest.main('testServers')

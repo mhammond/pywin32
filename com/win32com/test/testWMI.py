@@ -1,8 +1,9 @@
 from win32com.client import GetObject
+import win32com.test.util
 
 import unittest
 
-class Simple(unittest.TestCase):
+class Simple(win32com.test.util.TestCase):
     def testit(self):
         cses = GetObject("WinMgMts:").InstancesOf("Win32_Process")
         vals = []

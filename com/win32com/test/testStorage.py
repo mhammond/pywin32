@@ -1,9 +1,10 @@
 from win32com import storagecon
 import pythoncom, os, win32api
+import win32com.test.util
 
 import unittest
 
-class TestEnum(unittest.TestCase):
+class TestEnum(win32com.test.util.TestCase):
     def testit(self):
         fname, tmp = win32api.GetTempFileName(win32api.GetTempPath(),'stg')
         m=storagecon.STGM_READWRITE | storagecon.STGM_SHARE_EXCLUSIVE

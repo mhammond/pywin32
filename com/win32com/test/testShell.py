@@ -6,7 +6,9 @@ from win32com.shell import shell
 from win32com.shell.shellcon import *
 from win32com.storagecon import *
 
-class ShellTester(unittest.TestCase):
+import win32com.test.util
+
+class ShellTester(win32com.test.util.TestCase):
     def testShellLink(self):
         desktop = str(shell.SHGetSpecialFolderPath(0, CSIDL_DESKTOP))
         num = 0

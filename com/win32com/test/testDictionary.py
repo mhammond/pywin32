@@ -1,7 +1,8 @@
 # testDictionary.py
 #
-
+import sys
 import win32com.server.util
+import win32com.test.util
 import win32com.client
 import traceback
 import pythoncom
@@ -9,6 +10,7 @@ import pywintypes
 import winerror
 L=pywintypes.Unicode
 
+import unittest
 
 error = "dictionary test error"
 
@@ -21,13 +23,15 @@ def TestDictAgainst(dict,check):
             raise error, "Indexing for '%s' gave the incorrect value - %s/%s" % (`key`, `dict[key]`, `check[key]`)
 
 # Ensure we have the correct version registered.
-def Register():
-    import win32com.servers.dictionary
-    win32com.servers.dictionary.Register()
+def Register(quiet):
+    import win32com.server.register
+    from win32com.servers.dictionary import DictionaryPolicy
+    win32com.server.register.RegisterClasses(DictionaryPolicy, quiet=quiet)
 
-
-def TestDict(quiet=0):
-    Register()
+def TestDict(quiet=None):
+    if quiet is None:
+        quiet = not "-v" in sys.argv
+    Register(quiet)
 
     if not quiet: print "Simple enum test"
     dict = MakeTestDictionary()
@@ -68,12 +72,9 @@ def TestDict(quiet=0):
     if not quiet:
         print "Python.Dictionary tests complete."
 
-def doit():
-    try:
+class TestCase(win32com.test.util.TestCase):
+    def testDict(self):
         TestDict()
-    except:
-        traceback.print_exc()
 
 if __name__=='__main__':
-    doit()
-    print "Worked OK with %d/%d" % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
+    unittest.main()

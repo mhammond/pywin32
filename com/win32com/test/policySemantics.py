@@ -2,6 +2,7 @@ import win32com.server.util
 import win32com.client
 import pythoncom
 import winerror
+import win32com.test.util
 
 import unittest
 
@@ -66,7 +67,7 @@ def SemanticTest(ob):
         raise Error, "Evaluate returned", rc
 
 
-class Tester(unittest.TestCase):
+class Tester(win32com.test.util.TestCase):
     def setUp(self):
         debug=0
         import win32com.server.dispatcher

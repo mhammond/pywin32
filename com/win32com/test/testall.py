@@ -1,10 +1,14 @@
 import sys, os, string
 import pythoncom
 import win32com.client
-from util import CheckClean
+from util import CheckClean, TestCase, CapturingFunctionTestCase
+import win32com.test.util
 import traceback
+import getopt
 
 import unittest
+
+verbosity = 1 # default unittest verbosity.
 
 try:
     this_file = __file__
@@ -22,29 +26,13 @@ def GenerateAndRunOldStyle():
 def CleanGenerated():
     import win32com, shutil
     if os.path.isdir(win32com.__gen_path__):
-        print "Deleting files from %s" % (win32com.__gen_path__)
+        if verbosity > 1:
+            print "Deleting files from %s" % (win32com.__gen_path__)
         shutil.rmtree(win32com.__gen_path__)
     import win32com.client.gencache
     win32com.client.gencache.__init__() # Reset
-
-def _test_with_import(capture, module_name, fn_name, desc):
-    try:
-        mod = __import__(module_name)
-    except (ImportError, pythoncom.com_error):
-        print "The '%s' test can not be run - failed to import test module" % desc
-        return
-    capture.capture()
-    try:
-        func = getattr(mod, fn_name)
-        func()
-        capture.release()
-        print "%s generated %d lines of output" % (desc, capture.get_num_lines_captured())
-    except:
-        traceback.print_exc()
-        capture.release()
-        print "***** %s test FAILED after %d lines of output" % (desc, capture.get_num_lines_captured())
-
-class PyCOMTest(unittest.TestCase):
+  
+class PyCOMTest(TestCase):
     def testit(self):
         # Execute testPyComTest in its own process so it can play
         # with the Python thread state
@@ -62,107 +50,138 @@ class PyCOMTest(unittest.TestCase):
             # lf -> cr/lf
             print string.join(string.split(data, "\n"), "\r\n")
 
-unittest_modules = """testIterators testvbscript_regexp testStorage 
-                      testStreams testWMI policySemantics testShell testROT
-                   """.split()
+unittest_modules = [
+        # Level 1 tests.
+        """testIterators testvbscript_regexp testStorage 
+          testStreams testWMI policySemantics testShell testROT
+          testAXScript testxslt testDictionary testCollections
+          testServers errorSemantics.test testvb.TestAll
+        """.split(),
+        # Level 2 tests.
+        """testMSOffice.TestAll testMSOfficeEvents.test testAccess.test
+           testExplorer.TestAll testExchange.test
+        """.split(),
+        # Level 3 tests.
+        """testmakepy.TestAll
+        """.split()
+]
 
-if __name__=='__main__':
-    # default to "quick" test.  2==medium, 3==full
-    testLevel = 1
+output_checked_programs = [
+        # Level 1 tests.
+        [
+            ("cscript.exe /nologo testInterp.vbs", "VBScript test worked OK"),
+            ("cscript.exe /nologo testDictionary.vbs",
+                         "VBScript has successfully tested Python.Dictionary"),
+        ],
+        # Level 2 tests.
+        [
+        ],
+        # Level 3 tests
+        [
+        ],
+]
+
+custom_test_cases = [
+        # Level 1 tests.
+        [
+            PyCOMTest,
+        ],
+        # Level 2 tests.
+        [
+        ],
+        # Level 3 tests
+        [
+        ],
+]
+
+def get_test_mod_and_func(test_name, import_failures):
+    if test_name.find(".")>0:
+        mod_name, func_name = test_name.split(".")
+    else:
+        mod_name = test_name
+        func_name = None
     try:
-        if len(sys.argv)>1:
-            testLevel = int(sys.argv[1])
-    except ValueError:
-        print "Usage: testall [level], where level is 1, 2 or 3 (default 1, fulltest=3)"
-
-    CleanGenerated()
-
-    verbosity = 1
-    if "-v" in sys.argv: verbosity += 1
-    testRunner = unittest.TextTestRunner(verbosity=verbosity)
-    suite = unittest.TestSuite()
-    for mod_name in unittest_modules:
         mod = __import__(mod_name)
-        if hasattr(mod, "suite"):
-            test = mod.suite()
-        else:
-            test = unittest.defaultTestLoader.loadTestsFromModule(mod)
-        suite.addTest(test)
-    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(PyCOMTest))
-    result = testRunner.run(suite)
+    except:
+        import_failures.append((mod_name, sys.exc_info()[:2]))
+        return None, None
+    if func_name is None:
+        func = None
+    else:
+        func = getattr(mod, func_name)
+    return mod, func
 
-    import win32com.test.util
-    capture = win32com.test.util.CaptureWriter()
+# Return a test suite all loaded with the tests we want to run
+def make_test_suite(test_level = 1):
+    suite = unittest.TestSuite()
+    import_failures = []
+    for i in range(testLevel):
+        for mod_name in unittest_modules[i]:
+            mod, func = get_test_mod_and_func(mod_name, import_failures)
+            if mod is None:
+                continue
+            if func is not None:
+                test = win32com.test.util.CapturingFunctionTestCase(func,
+                                                     description=mod_name)
+            else:
+                if hasattr(mod, "suite"):
+                    test = mod.suite()
+                else:
+                    test = unittest.defaultTestLoader.loadTestsFromModule(mod)
+            assert test.countTestCases() > 0, "No tests loaded from %r" % mod
+            suite.addTest(test)
+        for cmd, output in output_checked_programs[i]:
+            suite.addTest(win32com.test.util.ShellTestCase(cmd, output))
 
-    if testLevel>1:
+        for test_class in custom_test_cases[i]:
+            suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(test_class))
+    return suite, import_failures
 
-        import testMSOffice
-        testMSOffice.TestAll()
-
-        import testMSOfficeEvents
-        testMSOfficeEvents.test()
-
-        _test_with_import(capture, "testAccess", "test", "MS Access")
-
-        import testExplorer
-        testExplorer.TestAll()
-
-        _test_with_import(capture, "testExchange", "test", "MS Exchange")
-
-    import errorSemantics
-    errorSemantics.test()
-
+def usage(why):
+    print why
+    print
+    print "win32com test suite"
+    print "usage: testall [-v] test_level"
+    print "  where test_level is an integer 1-3.  Level 1 tests are quick,"
+    print "  level 2 tests invoke Word, IE etc, level 3 take ages!"
+    sys.exit(1)
+    
+if __name__=='__main__':
     try:
-        import testvb
-        testvb.TestAll()
-    except RuntimeError, why:
-        print why
-
-    import testAXScript
-    testAXScript.TestAll()
-
-    # testxslt uses the axscript engine too.
-    import testxslt
-    testxslt.TestAll()
-
-    import testCollections
-    testCollections.TestEnum(1)
-
-    import testDictionary
-    testDictionary.TestDict(1)
-
-    import testServers
-    testServers.TestAll()
-
-    # Test VBScript and JScript which call back into Python
-    cscript_tests = string.split("testInterp.vbs testDictionary.vbs")
-
-    # Note that this test assumes 'Testpys.sct' has been previously registered.
-    # To register this test, simply run 'regsvr32.exe Testpys.sct'
-    try:
-        # First check our test object has actually been installed.
-        win32com.client.Dispatch("TestPys.Scriptlet")
-        # If it worked, append it to the tests.
-        cscript_tests.append("testPyScriptlet.js")
-    except pythoncom.error:
-        print "Can not test 'Scriptlets' - has Scriptlets been installed and 'Testpys.sct' been registered???"
-
-    for test in cscript_tests:
-        cmd_line = "cscript.exe " + test
-        print "Running:", cmd_line
-        rc = os.system(cmd_line)
-        if rc:
-            print "***** Test Failed:", cmd_line
-
-    if testLevel>2:
-
-        import testmakepy
-        print "Running makepy over every registered typelib..."
-        testmakepy.TestAll(0)
-
-    print "Tests completed."
+        opts, args = getopt.getopt(sys.argv[1:], "v")
+    except getopt.error, why:
+        usage(why)
+    for opt, val in opts:
+        if opt=='-v':
+            verbosity += 1
+    testLevel = 1 # default to quick test
+    test_names = []
+    for arg in args:
+        try:
+            testLevel = int(arg)
+            if testLevel < 0 or testLevel > 3:
+                raise ValueError, "Only levels 1-3 are supported"
+        except ValueError:
+            test_names.append(arg)
+    if test_names:
+        usage("Test names are not supported yet")
+    CleanGenerated()
+    
+    suite, import_failures = make_test_suite(testLevel)
+    if verbosity:
+        print "Executing level %d tests - %d test cases will be run" \
+                % (testLevel, suite.countTestCases())
+    testRunner = unittest.TextTestRunner(verbosity=verbosity)
+    testResult = testRunner.run(suite)
+    if import_failures:
+        testResult.stream.writeln("*** The following test modules could not be imported ***")
+        for mod_name, (exc_type, exc_val) in import_failures:
+            desc = testResult._exc_info_to_string( (exc_type, exc_val, None) )
+            testResult.stream.write("%s: %s" % (mod_name, desc))
+        testResult.stream.writeln("*** %d test(s) could not be run ***" % len(import_failures))
+    
     # re-print unit-test error here so it is noticed
-    if not result.wasSuccessful():
+    if not testResult.wasSuccessful():
         print "*" * 20, "- unittest tests FAILED"
     
     CheckClean()

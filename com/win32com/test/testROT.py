@@ -1,7 +1,8 @@
 import pythoncom
 import unittest
+import win32com.test.util
 
-class TestROT(unittest.TestCase):
+class TestROT(win32com.test.util.TestCase):
     def testit(self):
         ctx = pythoncom.CreateBindCtx()
         rot = pythoncom.GetRunningObjectTable()

@@ -1,6 +1,6 @@
 import pythoncom
 import win32com.server.util
-import util
+import win32com.test.util
 
 import unittest
 
@@ -47,7 +47,7 @@ class Stream:
         return len(data)
 
 
-class StreamTest(unittest.TestCase):
+class StreamTest(win32com.test.util.TestCase):
     def _readWrite(self, data, write_stream, read_stream = None):
         if read_stream is None: read_stream = write_stream
         write_stream.Write(data)
@@ -84,4 +84,3 @@ class StreamTest(unittest.TestCase):
 
 if __name__=='__main__':
     unittest.main()
-    util.CheckClean()
