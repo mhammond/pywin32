@@ -14,7 +14,7 @@ def OpenHelpFile(fileName, helpCmd = None, helpArg = None):
 	try:
 		ext = os.path.splitext(fileName)[1]
 		if string.lower(ext) == ".hlp":
-			if helpCmd is None: helpCmd = win32con.HELP_FINDER
+			if helpCmd is None: helpCmd = win32con.HELP_CONTENTS
 			win32api.WinHelp( win32ui.GetMainFrame().GetSafeHwnd(), fileName, helpCmd, helpArg)
 		else:
 			# Hope that the extension is registered, and we know what to do!
