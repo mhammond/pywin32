@@ -54,7 +54,7 @@ def fast_readline(self):
 
 try:
 	GetIDLEModule("AutoIndent").IndentSearcher.readline = fast_readline
-except ImportError:
+except AttributeError: # GetIDLEModule may return None
 	pass
 
 # A class that attempts to emulate an IDLE editor window.
