@@ -39,5 +39,7 @@ PYCOM_EXPORT int PyCom_RegisterExtensionSupport( PyObject *dict, const PyCom_Int
 PYCOM_EXPORT int PyCom_RegisterClientType(PyTypeObject *typeOb, const GUID *guid);
 
 HRESULT PYCOM_EXPORT PyCom_RegisterGatewayObject(REFIID iid, pfnPyGatewayConstructor ctor, const char *interfaceName);
+PYCOM_EXPORT int PyCom_IsGatewayRegistered(REFIID iid);
+
 
 #endif /* __PYTHONCOMREGISTER_H__ */
