@@ -181,7 +181,7 @@ def RegisterServer(clsid,
   # Depending on contexts requested, register the specified server type.
   # Set default clsctx.
   if not clsctx:
-    clsctx = pythoncom.CLSCTX_INPROC_SERVER & pythoncom.CLSCTX_LOCAL_SERVER
+    clsctx = pythoncom.CLSCTX_INPROC_SERVER | pythoncom.CLSCTX_LOCAL_SERVER
   # And if we are frozen, ignore the ones that don't make sense in this
   # context.
   if pythoncom.frozen:
