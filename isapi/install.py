@@ -157,6 +157,11 @@ def CreateDirectory(params, options):
             raise
         newDir = GetObject(FindPath(options, params.Server, params.Name))
         log(2, "Updating existing directory '%s'..." % (params.Name,))
+        if newDir.Class != keyType:
+            log(2, "but it has the wrong class (is %s, expecting %s) - recreating" \
+                   % (newDir.Class, keyType))
+            webDir.Delete(newDir.Class, newDir.Name)
+            newDir = webDir.Create(keyType, name)
     else:
         log(2, "Creating new directory '%s'..." % (params.Name,))
         
@@ -308,13 +313,27 @@ def Uninstall(params, options):
         _CallHook(vd, "PreRemove", options)
         try:
             directory = GetObject(FindPath(options, vd.Server, vd.Name))
-            directory.AppUnload()
-            parent = GetObject(directory.Parent)
-            parent.Delete(directory.Class, directory.Name)
         except pythoncom.com_error, details:
             rc = _GetWin32ErrorCode(details)
             if rc != winerror.ERROR_PATH_NOT_FOUND:
                 raise
+            log(2, "VirtualDirectory '%s' did not exist" % vd.Name)
+            directory = None
+        if directory is not None:
+            # Be robust should IIS get upset about unloading.
+            try:
+                directory.AppUnLoad()
+            except:
+                exc_val = sys.exc_info()[1]
+                log(2, "AppUnLoad() for %s failed: %s" % (vd.Name, exc_val))
+            # Continue trying to delete it.
+            try:
+                parent = GetObject(directory.Parent)
+                parent.Delete(directory.Class, directory.Name)
+            except:
+                exc_val = sys.exc_info()[1]
+                log(1, "Failed to remove directory %s: %s" % (vd.Name, exc_val))
+
         _CallHook(vd, "PostRemove", options)
         log (1, "Deleted Virtual Directory: %s" % (vd.Name,))
 
@@ -336,7 +355,7 @@ def _PatchParamsModule(params, dll_name, file_must_exist = True):
         for sm in d.ScriptMaps:
             if sm.Module is None: sm.Module = dll_name
 
-def GetLoaderModuleName(mod_name):
+def GetLoaderModuleName(mod_name, check_module = None):
     # find the name of the DLL hosting us.
     # By default, this is "_{module_base_name}.dll"
     if hasattr(sys, "frozen"):
@@ -356,7 +375,8 @@ def GetLoaderModuleName(mod_name):
         path, base = os.path.split(base)
         dll_name = os.path.abspath(os.path.join(path, "_" + base + ".dll"))
     # Check we actually have it.
-    if not hasattr(sys, "frozen"):
+    if check_module is None: check_module = not hasattr(sys, "frozen")
+    if check_module:
         CheckLoaderModule(dll_name)
     return dll_name
 
@@ -371,7 +391,7 @@ def InstallModule(conf_module_name, params, options):
     Install(params, options)
 
 def UninstallModule(conf_module_name, params, options):
-    loader_dll = GetLoaderModuleName(conf_module_name)
+    loader_dll = GetLoaderModuleName(conf_module_name, False)
     _PatchParamsModule(params, loader_dll, False)
     Uninstall(params, options)
 
