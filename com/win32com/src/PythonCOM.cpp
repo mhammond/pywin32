@@ -944,7 +944,7 @@ static PyObject *pythoncom_RegisterActiveObject(PyObject *self, PyObject *args)
                                 &dwflags)) return NULL;
 
     if (!PyWinObject_AsIID(obclsid, &clsid)) return NULL;
-    if (!PyCom_InterfaceFromPyInstanceOrObject(obunk, IID_IUnknown, (void **)&punk)) return NULL;
+    if (!PyCom_InterfaceFromPyInstanceOrObject(obunk, IID_IUnknown, (void **)&punk), FALSE) return NULL;
 
 	PY_INTERFACE_PRECALL;
     hr = RegisterActiveObject(punk, clsid, dwflags, &dwkey);
