@@ -98,7 +98,7 @@ PyObject *PyWinStringObject_FromIID(const IID &riid)
 		return NULL;
 	}
 	char *szResult;
-	if (!PyWin_WCHAR_AsString(oleRes, -1, &szResult))
+	if (!PyWin_WCHAR_AsString(oleRes, (DWORD)-1, &szResult))
 		return NULL;
 	PyObject *rc = PyString_FromString(szResult);
 	PyWinObject_FreeString(szResult);
