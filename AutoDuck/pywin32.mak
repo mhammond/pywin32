@@ -1,7 +1,9 @@
 !include "common_top.mak"
 
 TARGET  = PyWin32
-GENDIR  = ..\build\Temp\Help
+GENDIR  = ..\build\temp.autoduck
+# how to get back to the build dir from $GENDIR
+MYDIR_FROM_GENDIR  = ..\..\AutoDuck
 TITLE   = Python for Win32 Extensions Help
 DOCHDR  = Python for Win32 Extensions Reference
 
@@ -36,7 +38,8 @@ WIN32_SOURCE = $(WIN32_SOURCE_DIR)/*.cpp \
 	  $(GENDIR)/win32evtlog.d $(GENDIR)/win32event.d $(GENDIR)/win32file.d \
 	  $(GENDIR)/win32service.d $(GENDIR)/win32pipe.d $(GENDIR)/win32security.d \
 	  $(GENDIR)/win32process.d $(GENDIR)/wincerapi.d $(GENDIR)/win32gui.d \
-	  $(GENDIR)/win32inet.d
+	  $(GENDIR)/win32inet.d \
+	  winxpgui.d
 
 WIN32COM_SOURCE = \
 	  $(WIN32COM_DIR)\src\*.cpp \

@@ -31,7 +31,7 @@ cleanad:
     $(HC) $(TARGET).hpj
     if exist "..\..\..\$(TARGET).hlp" del "..\..\..\$(TARGET).hlp" 
     move "$(TARGET).hlp" "..\..\..\$(TARGET).hlp"
-    cd ..\..\..\AutoDuck
+    cd $(MYDIR_FROM_GENDIR)
 
 # Generate a topic log file
 
