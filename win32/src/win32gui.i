@@ -2,6 +2,11 @@
 // @doc
 
 %module win32gui // A module which provides an interface to the native win32 GUI
+// alch begin 29/04/2004 to enable balloon notifications in Shell_NotifyIcon
+%{
+#define _WIN32_IE 0x0501
+%}
+// alch end
 %include "typemaps.i"
 %include "pywintypes.i"
 
@@ -1978,10 +1983,14 @@ PyLOWORD(PyObject *self, PyObject *args)
 %{
 BOOL PyObject_AsNOTIFYICONDATA(PyObject *ob, NOTIFYICONDATA *pnid)
 {
-	PyObject *obTip=NULL;
+	PyObject *obTip=NULL, *obInfo=NULL, *obInfoTitle=NULL;
 	memset(pnid, 0, sizeof(*pnid));
 	pnid->cbSize = sizeof(*pnid);
-	if (!PyArg_ParseTuple(ob, "l|iiilO:NOTIFYICONDATA tuple", &pnid->hWnd, &pnid->uID, &pnid->uFlags, &pnid->uCallbackMessage, &pnid->hIcon, &obTip))
+	if (!PyArg_ParseTuple(ob, "l|iiilOOiOi:NOTIFYICONDATA tuple", 
+	                     &pnid->hWnd, &pnid->uID, &pnid->uFlags, 
+	                     &pnid->uCallbackMessage, &pnid->hIcon, &obTip, 
+	                     &obInfo, &pnid->uTimeout, &obInfoTitle, 
+	                     &pnid->dwInfoFlags))
 		return FALSE;
 	if (obTip) {
 		TCHAR *szTip;
@@ -1990,12 +1999,32 @@ BOOL PyObject_AsNOTIFYICONDATA(PyObject *ob, NOTIFYICONDATA *pnid)
 		_tcsncpy(pnid->szTip, szTip, sizeof(pnid->szTip)/sizeof(TCHAR));
 		PyWinObject_FreeTCHAR(szTip);
 	}
+	if (obInfo) {
+		TCHAR *szInfo;
+		if (!PyWinObject_AsTCHAR(obInfo, &szInfo))
+			return NULL;
+		_tcsncpy(pnid->szInfo, szInfo, sizeof(pnid->szInfo)/sizeof(TCHAR));
+		PyWinObject_FreeTCHAR(szInfo);
+	}
+	if (obInfoTitle) {
+		TCHAR *szInfoTitle;
+		if (!PyWinObject_AsTCHAR(obInfoTitle, &szInfoTitle))
+			return NULL;
+		_tcsncpy(pnid->szInfoTitle, szInfoTitle, sizeof(pnid->szInfoTitle)/sizeof(TCHAR));
+		PyWinObject_FreeTCHAR(szInfoTitle);
+	}
 	return TRUE;
 }
 %}
 #define NIF_ICON NIF_ICON
 #define NIF_MESSAGE NIF_MESSAGE
 #define NIF_TIP NIF_TIP
+#define NIF_INFO NIF_INFO
+#define NIIF_WARNING NIIF_WARNING
+#define NIIF_ERROR NIIF_ERROR
+#define NIIF_NONE NIIF_NONE
+#define NIIF_INFO NIIF_INFO
+
 #define NIM_ADD NIM_ADD // Adds an icon to the status area. 
 #define NIM_DELETE  NIM_DELETE // Deletes an icon from the status area. 
 #define NIM_MODIFY  NIM_MODIFY // Modifies an icon in the status area.  
