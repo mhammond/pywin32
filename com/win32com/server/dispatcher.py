@@ -117,7 +117,7 @@ class DispatcherTrace(DispatcherBase):
   def _QueryInterface_(self, iid):
     rc = DispatcherBase._QueryInterface_(self, iid)
     if not rc:
-      self._trace_("in %s._QueryInterface_ with unsupported IID %s (%s)\n" % (`self.policy._obj_`, IIDToInterfaceName(iid),iid))
+      self._trace_("in %s._QueryInterface_ with unsupported IID %s (%s)" % (`self.policy._obj_`, IIDToInterfaceName(iid),iid))
     return rc
 
   def _GetIDsOfNames_(self, names, lcid):
@@ -133,7 +133,7 @@ class DispatcherTrace(DispatcherBase):
     return DispatcherBase._GetDispID_(self, name, fdex)
 
   def _InvokeEx_(self, dispid, lcid, wFlags, args, kwargs, serviceProvider):
-    self._trace_("in _InvokeEx_ with", dispid, lcid, wFlags, args, kwargs, serviceProvider)
+    self._trace_("in %r._InvokeEx_-%s%r [%x,%s,%r]" % (self.policy._obj_, dispid, args, wFlags, lcid, serviceProvider))
     return DispatcherBase._InvokeEx_(self, dispid, lcid, wFlags, args, kwargs, serviceProvider)
  
   def _DeleteMemberByName_(self, name, fdex):
