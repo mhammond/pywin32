@@ -684,6 +684,25 @@ cleanup:
 	return rc;
 }
 
+// @pymethod int|win32api|GenerateConsoleCtrlEvent|Send a specified signal to a console process group that shares the console associated with the calling process.
+static PyObject *
+PyGenerateConsoleCtrlEvent (PyObject *self, PyObject *args)
+{
+	DWORD dwControlEvent, dwProcessGroupId;
+	if (!PyArg_ParseTuple(args,"ll:GenerateConsoleCtrlEvent",
+		&dwControlEvent, 	// @pyparm int|controlEvent||Signal to generate.
+		&dwProcessGroupId)) 	// @pyparm int|processGroupId||Process group to get signal.
+		return NULL;
+	// @pyseeapi GenerateConsoleCtrlEvent
+	PyW32_BEGIN_ALLOW_THREADS
+	BOOL ok = GenerateConsoleCtrlEvent(dwControlEvent, dwProcessGroupId);
+	PyW32_END_ALLOW_THREADS
+	if (!ok)
+		return ReturnAPIError("GenerateConsoleCtrlEvent");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 // @pymethod int|win32api|GetLogicalDrives|Returns a bitmask representing the currently available disk drives.
 static PyObject *
 PyGetLogicalDrives (PyObject *self, PyObject *args)
@@ -3777,6 +3796,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"FormatMessage",		PyFormatMessage,    1}, // @pymeth FormatMessage|Return an error message string.
 	{"FormatMessageW",		PyFormatMessageW,    1}, // @pymeth FormatMessageW|Return an error message string (as a Unicode object).
 	{"FreeLibrary",			PyFreeLibrary,1},       // @pymeth FreeLibrary|Decrements the reference count of the loaded dynamic-link library (DLL) module.
+	{"GenerateConsoleCtrlEvent",	PyGenerateConsoleCtrlEvent,  1}, // @pymeth GenerateConsoleCtrlEvent|Send a specified signal to a console process group that shares the console associated with the calling process.
 	{"GetAsyncKeyState",	PyGetAsyncKeyState,1}, // @pymeth GetAsyncKeyState|Retrieves the asynch state of a virtual key code.
 	{"GetCommandLine",		PyGetCommandLine,   1}, // @pymeth GetCommandLine|Return the application's command line.
 	{"GetComputerName",     PyGetComputerName,  1}, // @pymeth GetComputerName|Returns the local computer name
