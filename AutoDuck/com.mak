@@ -12,6 +12,7 @@ DOCHDR  = $(TARGET) Reference
 WIN32COM_DIR = ../com/win32com
 WIN32COMEXT_DIR = ../com/win32comext
 MAPI_DIR = $(WIN32COMEXT_DIR)/mapi
+ADSI_DIR = $(WIN32COMEXT_DIR)/adsi
 HELP_DIR = ../com/help
 
 # Name of the subdirectory to copy $(HTML_FILES) into
@@ -51,6 +52,12 @@ SOURCE  = $(WIN32COM_DIR)\src\*.cpp \
 	$(GENDIR)\PyIProfSect.d \
 	$(GENDIR)\exchange.d \
 	$(GENDIR)\exchdapi.d \
+	$(ADSI_DIR)\src\*.cpp \
+	$(GENDIR)\adsi.d \
+	$(GENDIR)\PyIADsContainer.d \
+	$(GENDIR)\PyIADsUser.d \
+	$(GENDIR)\PyIDirectoryObject.d \
+
 
 
 # Help and Doc targets
@@ -119,6 +126,20 @@ $(GENDIR)\exchange.d: $(MAPI_DIR)/src/$(*B).i
 # Exchange stuff.
 $(GENDIR)\exchdapi.d: $(MAPI_DIR)/src/$(*B).i
 	makedfromi.py -o$*.d $(MAPI_DIR)/src/$(*B).i
+
+# ADSI
+$(GENDIR)\adsi.d: $(ADSI_DIR)/src/$(*B).i
+	makedfromi.py -o$*.d $(ADSI_DIR)/src/$(*B).i
+
+$(GENDIR)\PyIADsContainer.d: $(ADSI_DIR)/src/$(*B).i
+	makedfromi.py -o$*.d $(ADSI_DIR)/src/$(*B).i
+
+$(GENDIR)\PyIADsUser.d: $(ADSI_DIR)/src/$(*B).i
+	makedfromi.py -o$*.d $(ADSI_DIR)/src/$(*B).i
+
+$(GENDIR)\PyIDirectoryObject.d: $(ADSI_DIR)/src/$(*B).i
+	makedfromi.py -o$*.d $(ADSI_DIR)/src/$(*B).i
+
 
 !include "common.mak"
 
