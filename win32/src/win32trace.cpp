@@ -29,6 +29,7 @@ See - I told you the implementation was simple :-)
 
 #include "windows.h"
 #include "Python.h"
+#include "structmember.h"
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 
@@ -67,6 +68,7 @@ public:
     BOOL CloseWriteMap();
     BOOL WriteData(const char *data, unsigned len);
     BOOL ReadData(char **ppResult, int *retSize, int waitMilliseconds);
+    int fSoftSpace;
 }; // PyTraceObject
 
 static void PyTraceObject_dealloc(PyObject* self)
@@ -139,6 +141,13 @@ static PyMethodDef PyTraceObject_methods[] = {
     {0, 0},
 }; // PyTraceObject_methods
 
+#define OFF(x) offsetof(PyTraceObject, x)
+
+static PyMemberDef PyTraceObject_members[] = {
+    {"softspace",	T_INT,		OFF(fSoftSpace), 0,
+          "flag indicating that a space needs to be printed; used by print"},
+    {NULL}	/* Sentinel */
+};
 
 static PyTypeObject PyTraceObjectType = {
     PyObject_HEAD_INIT(&PyType_Type)
@@ -173,7 +182,7 @@ static PyTypeObject PyTraceObjectType = {
     0, // tp_iter
     0, // iternext
     PyTraceObject_methods,
-    0, // tp_members
+    PyTraceObject_members, // tp_members
     0, // tp_getsetlist
 
 }; // PyTraceObjectType
@@ -269,6 +278,7 @@ void PyTraceObject::Initialize()
     hMapFileWrite = NULL;
     pMapBaseRead = NULL;
     pMapBaseWrite = NULL;
+	fSoftSpace = 0;
 }
 
 
