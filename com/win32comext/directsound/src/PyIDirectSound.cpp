@@ -61,7 +61,7 @@ PyObject *PyIDirectSound::Initialize(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIDirectSound|SetCooperativeLevel|Description of SetCooperativeLevel.
+// @pymethod |PyIDirectSound|SetCooperativeLevel|The IDirectSound::SetCooperativeLevel method sets the cooperative level of the application for this sound device.
 PyObject *PyIDirectSound::SetCooperativeLevel(PyObject *self, PyObject *args)
 {
 	int level;
@@ -107,7 +107,7 @@ PyObject *PyIDirectSound::SetCooperativeLevel(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIDirectSound|CreateSoundBuffer|Description of CreateSoundBuffer.
+// @pymethod |PyIDirectSound|CreateSoundBuffer|The IDirectSound::CreateSoundBuffer method creates a DirectSoundBuffer object to hold a sequence of audio samples.
 PyObject *PyIDirectSound::CreateSoundBuffer(PyObject *self, PyObject *args)
 {
 	PyObject *obDSBD = NULL;
@@ -151,7 +151,7 @@ PyObject *PyIDirectSound::CreateSoundBuffer(PyObject *self, PyObject *args)
 	return rc;
 }
 
-// @pymethod |PyIDirectSound|GetCaps|Description of GetCaps.
+// @pymethod |PyIDirectSound|GetCaps|The GetCaps method retrieves the capabilities of the hardware device that is represented by the DirectSound object. See <l DSCAPS contants>.
 PyObject *PyIDirectSound::GetCaps(PyObject *self, PyObject *args)
 {
 	IDirectSound *pIDS = GetI(self);
@@ -176,7 +176,7 @@ PyObject *PyIDirectSound::GetCaps(PyObject *self, PyObject *args)
 	return caps;
 }
 
-// @pymethod |PyIDirectSound|Compact|Description of Compact.
+// @pymethod |PyIDirectSound|Compact|The Compact method moves the unused portions of on-board sound memory, if any, to a contiguous block so that the largest portion of free memory will be available.
 PyObject *PyIDirectSound::Compact(PyObject *self, PyObject *args)
 {
 	IDirectSound *pIDS = GetI(self);
@@ -200,7 +200,7 @@ PyObject *PyIDirectSound::Compact(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @pymethod |PyIDirectSound|GetSpeakerConfig|Description of GetSpeakerConfig.
+// @pymethod |PyIDirectSound|GetSpeakerConfig|The GetSpeakerConfig method retrieves the speaker configuration.
 PyObject *PyIDirectSound::GetSpeakerConfig(PyObject *self, PyObject *args)
 {
 	IDirectSound *pIDS = GetI(self);
@@ -224,7 +224,7 @@ PyObject *PyIDirectSound::GetSpeakerConfig(PyObject *self, PyObject *args)
 	return PyInt_FromLong(config);
 }
 
-// @pymethod |PyIDirectSound|SetSpeakerConfig|Description of SetSpeakerConfig.
+// @pymethod |PyIDirectSound|SetSpeakerConfig|The SetSpeakerConfig method specifies the speaker configuration of the DirectSound object.
 PyObject *PyIDirectSound::SetSpeakerConfig(PyObject *self, PyObject *args)
 {
 	DWORD config;
