@@ -1,4 +1,4 @@
-// This file implements the IDirectSound Interface for Python.
+// This file implements the IDirectSoundCaptureBuffer Interface for Python.
 
 #include "directsound_pch.h"
 #include "PySoundObjects.h"

@@ -1,4 +1,4 @@
-// This file declares the IDirectSound Interface for Python.
+// This file declares the IDirectSoundCapture Interface for Python.
 // ---------------------------------------------------
 //
 // Interface Declaration
