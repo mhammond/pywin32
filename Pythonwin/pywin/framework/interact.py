@@ -536,9 +536,13 @@ class InteractiveCore:
 	def WindowBackEvent(self, event):
 		parent = self.GetParentFrame()
 		if parent == win32ui.GetMainFrame():
-			# It it docked.
-			wnd, isactive = parent.MDIGetActive()
-			wnd.SetFocus()
+			# It is docked.
+			try:
+				wnd, isactive = parent.MDIGetActive()
+				wnd.SetFocus()
+			except win32ui.error:
+				# No MDI window active!
+				pass
 		else:
 			# Normal Window
 			try:
