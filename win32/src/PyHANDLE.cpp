@@ -52,7 +52,7 @@ BOOL PyWinObject_CloseHANDLE(PyObject *obHandle)
 		if (!ok)
 			PyWin_SetAPIError("CloseHandle");
 	} else {
-		PyErr_SetString(PyExc_TypeError, "A handle must be a HANDLE object or an integer");
+		PyErr_Format(PyExc_TypeError, "A handle must be a HANDLE object or an integer (got %s)", obHandle->ob_type->tp_name);
 		return FALSE;
 	}
 	return ok;
@@ -349,12 +349,18 @@ char *failMsg = "bad operand type";
 
 /*static*/ void PyHANDLE::deallocFunc(PyObject *ob)
 {
-	// Python will print a strange message if we leave pending exceptions in destructors,
-	// but we don't want to supress exceptions as generally that is evil (supressing
-	// ours is bad enough, but supressing existing ones is nasty).
-	// For now, we call it a Python bug that the message is printed.
+	// This can be delicate.  Setting an exception in a destructor is evil
+	// (as it will cause gc to die with a fatal error, and if that doesn't
+	// happen, make unrelated code appear to fail with the exception.)
+	// Clearing any existing exceptions that may be set is also evil, as 
+	// we may be destructing as part of unwinding the stack handling an 
+	// existing exception. Therefore, we "push" any existing exception 
+	// contexts, and restoring it clobbers any we raise.
+	PyObject *typ, *val, *tb;
+	PyErr_Fetch(&typ, &val, &tb);
 	((PyHANDLE *)ob)->Close();
 	delete (PyHANDLE *)ob;
+	PyErr_Restore(typ, val, tb);
 }
 
 
