@@ -1,0 +1,214 @@
+[Version]               ; required section
+Signature = "$Windows NT$"
+Provider = "Python"
+CESignature = "$Windows CE$"
+
+[CEStrings]                ; required section
+AppName = 1.5.2
+InstallDir = %CE1%\Python ; %CE1%=\Program Files 
+
+[CEDevice.SH3]   
+ProcessorType = 10003      ; SH3 processor
+
+[CEDevice.MIPS] 
+ProcessorType = 4000       ; MIPS processor
+
+[DefaultInstall]           ; required section
+AddReg = RegSettings.All
+;CEShortcuts = Shortcuts.All
+
+[DefaultInstall.SH3]
+CopyFiles = Files.PythonLib, Files.PythonScripts, SysFiles.SH3, ExtensionFiles.SH3
+CEShortcuts = Shortcuts.SH3
+
+[DefaultInstall.MIPS]
+CopyFiles = Files.PythonLib, Files.PythonScripts, SysFiles.MIPS, ExtensionFiles.MIPS
+CEShortcuts = Shortcuts.MIPS
+
+[SourceDisksNames]         ; required section
+1 = ,"Python Library",,Data\Lib
+2 = ,"Python Scripts",,Data\Scripts
+
+[SourceDisksNames.SH3]
+3 = ,"SH3 System Files",,Data\System\SH
+4 = ,"SH3 Extensions",,Data\DLLs\SH
+
+[SourceDisksNames.MIPS]
+3 = ,"MIPS System Files",,Data\System\mips
+4 = ,"MIPS Extensions",,Data\DLLs\mips
+
+[SourceDisksFiles]         ; required section
+; Python Files - Library Files - Source Disks - Start
+ceshell.pyc = 1
+win32con.pyc = 1
+win32error.pyc = 1
+StringIO.pyc = 1
+base64.pyc = 1
+code.pyc = 1
+codeop.pyc = 1
+copy.pyc = 1
+copy_reg.pyc = 1
+exceptions.pyc = 1
+ftplib.pyc = 1
+getopt.pyc = 1
+httplib.pyc = 1
+keyword.pyc = 1
+linecache.pyc = 1
+mimetools.pyc = 1
+ntpath.pyc = 1
+os.pyc = 1
+pickle.pyc = 1
+re.pyc = 1
+regsub.pyc = 1
+rfc822.pyc = 1
+site.pyc = 1
+smtplib.pyc = 1
+stat.pyc = 1
+string.pyc = 1
+tempfile.pyc = 1
+threading.pyc = 1
+traceback.pyc = 1
+types.pyc = 1
+socket.pyc = 1
+; Python Files - Library Files - Source Disks - End
+
+; Python Files - Script Files - Source Disks - Start
+ceTaskbarDemo.py = 2
+ceTaskbarDemo.pyc = 2
+; Python Files - Script Files - Source Disks - End
+
+[SourceDisksFiles.SH3]
+; Python Files - System Files - Source Disks - Start
+Python15.dll = 3
+Python.exe = 3
+pywintypes15.dll = 3
+; Python Files - System Files - Source Disks - End
+
+; Python Files - Extension Files - Source Disks - Start
+win32db.pyd = 4
+win32event.pyd = 4
+win32file.pyd = 4
+win32gui.pyd = 4
+win32process.pyd = 4
+; Python Files - Extension Files - Source Disks - End
+
+[SourceDisksFiles.MIPS]
+; Python Files - System Files - Source Disks - Start
+Python15.dll = 3
+Python.exe = 3
+pywintypes15.dll = 3
+; Python Files - System Files - Source Disks - End
+
+; Python Files - Extension Files - Source Disks - Start
+win32db.pyd = 4
+win32event.pyd = 4
+win32file.pyd = 4
+win32gui.pyd = 4
+win32process.pyd = 4
+; Python Files - Extension Files - Source Disks - End
+
+[DestinationDirs]           ; required section
+;Shortcuts.All = 0,%CE3%    ; \Windows\Desktop
+Shortcuts.MIPS = 0,%CE11%    
+Shortcuts.SH3 = 0,%CE11%
+Files.PythonLib = 0,%InstallDir%\Lib
+Files.PythonScripts = 0,%InstallDir%\Scripts
+SysFiles.SH3 = 0,%CE2%     ; %CE2%=\Windows 
+SysFiles.MIPS = 0,%CE2%
+ExtensionFiles.SH3 = 0,%InstallDir%\Lib
+ExtensionFiles.MIPS = 0,%InstallDir%\Lib
+DefaultDestDir = 0,%InstallDir%
+
+;[Strings]                  ; optional section
+reg_path = Software\Python\PythonCore
+
+;[Shortcuts.All]
+;Python,0,python.exe,%CE17%
+
+[Shortcuts.SH3]
+Python,0,python.exe,
+
+[Shortcuts.MIPS]
+Python,0,python.exe,
+
+[RegSettings.All]
+HKCR,.py,,0x00000000,pyFile    
+HKCR,pyFile\Shell\Open\Command,,0x00000000,"\Windows\Python.exe ""%%1""
+HKCR,.pyc,,0x00000000,pycFile    
+HKCR,pycFile\Shell\Open\Command,,0x00000000,"\Windows\Python.exe ""%%1"""
+HKLM,Software\Python\PythonCore\1.5\PythonPath,,0x00000000,"%InstallDir%\Lib;%InstallDir%"
+
+[Files.PythonLib]
+; Python Files - Library Files - Files - Start
+ceshell.pyc,,,0
+win32con.pyc,,,0
+win32error.pyc,,,0
+StringIO.pyc,,,0
+base64.pyc,,,0
+code.pyc,,,0
+codeop.pyc,,,0
+copy.pyc,,,0
+copy_reg.pyc,,,0
+exceptions.pyc,,,0
+ftplib.pyc,,,0
+getopt.pyc,,,0
+httplib.pyc,,,0
+keyword.pyc,,,0
+linecache.pyc,,,0
+mimetools.pyc,,,0
+ntpath.pyc,,,0
+os.pyc,,,0
+pickle.pyc,,,0
+re.pyc,,,0
+regsub.pyc,,,0
+rfc822.pyc,,,0
+site.pyc,,,0
+smtplib.pyc,,,0
+stat.pyc,,,0
+string.pyc,,,0
+tempfile.pyc,,,0
+threading.pyc,,,0
+traceback.pyc,,,0
+types.pyc,,,0
+socket.pyc,,,0
+; Python Files - Library Files - Files - End
+
+[Files.PythonScripts]
+; Python Files - Script Files - Files - Start
+ceTaskbarDemo.py,,,0
+ceTaskbarDemo.pyc,,,0
+; Python Files - Script Files - Files - End
+
+[SysFiles.SH3]
+; Python Files - System Files - Files - Start
+Python15.dll,,,0
+Python.exe,,,0
+pywintypes15.dll,,,0
+; Python Files - System Files - Files - End
+
+[ExtensionFiles.SH3]
+; Python Files - Extension Files - Files - Start
+win32db.pyd,,,0
+win32event.pyd,,,0
+win32file.pyd,,,0
+win32gui.pyd,,,0
+win32process.pyd,,,0
+; Python Files - Extension Files - Files - End
+
+[SysFiles.MIPS]
+; Python Files - System Files - Files - Start
+Python15.dll,,,0
+Python.exe,,,0
+pywintypes15.dll,,,0
+; Python Files - System Files - Files - End
+
+[ExtensionFiles.MIPS]
+; Python Files - Extension Files - Files - Start
+win32db.pyd,,,0
+win32event.pyd,,,0
+win32file.pyd,,,0
+win32gui.pyd,,,0
+win32process.pyd,,,0
+; Python Files - Extension Files - Files - End
+
+
