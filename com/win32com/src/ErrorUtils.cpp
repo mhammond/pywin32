@@ -253,22 +253,26 @@ HRESULT PyCom_HandlePythonFailureToCOM(EXCEPINFO *pExcepInfo /*= NULL*/)
 	HRESULT hr = DISP_E_EXCEPTION;
 	PyObject *exception, *v, *tb;
 	PyErr_Fetch(&exception, &v, &tb);
-	if ( PyInstance_Check(v) )
-	{
-		PyObject *ob = PyObject_GetAttrString(v, "scode");
-		if ( ob && ob != Py_None)
-		{
-			hr = PyInt_AsLong(PyNumber_Int(ob));
-		}
-		Py_XDECREF(ob);
-	}
-	else if ( exception == PyWinExc_COMError )
+	// Let a COM error bubble through
+	// NOTE: This is an instance, so must be checked before
+	// the generic IsInstance() check.
+	if ( exception == PyWinExc_COMError )
 	{
 		PyObject *ob = PySequence_GetItem(v, 0);
 		if (ob) 
 			hr = PyInt_AsLong(PyTuple_GET_ITEM(v, 0));
 		else
 			hr = E_FAIL; //  This is pretty serious!
+		Py_XDECREF(ob);
+	}
+	// It is a COM exception raised by Python code?
+	else if ( PyInstance_Check(v) )
+	{
+		PyObject *ob = PyObject_GetAttrString(v, "scode");
+		if ( ob && ob != Py_None)
+		{
+			hr = PyInt_AsLong(PyNumber_Int(ob));
+		}
 		Py_XDECREF(ob);
 	}
 #ifdef DEBUG
@@ -293,42 +297,39 @@ HRESULT PyCom_HandlePythonFailureToCOM(EXCEPINFO *pExcepInfo /*= NULL*/)
 
 PyObject *OleSetExtendedOleError(HRESULT errorhr, IUnknown *pUnk, REFIID iid)
 {
-	// ### I think we need to test this for ALL errors...
 #ifndef MS_WINCE // WINCE doesnt appear to have GetErrorInfo() - compiled, but doesnt link!
-	if ( errorhr==DISP_E_EXCEPTION )
-	{
-		// See if it supports error info.
-		ISupportErrorInfo *pSEI;
-		HRESULT hr;
-		Py_BEGIN_ALLOW_THREADS
-		hr = pUnk->QueryInterface(IID_ISupportErrorInfo, (void **)&pSEI);
-		Py_END_ALLOW_THREADS
-		if (FAILED(hr))
-			return OleSetOleError(errorhr);
-		hr = pSEI->InterfaceSupportsErrorInfo(iid);
-		pSEI->Release(); // Finished with this object
-		if (hr!=S_OK)
-			return OleSetOleError(errorhr);
-		IErrorInfo *pEI;
-		if (GetErrorInfo(0, &pEI)!=S_OK)
-			return OleSetOleError(errorhr);
+	// See if it supports error info.
+	ISupportErrorInfo *pSEI;
+	HRESULT hr;
+	Py_BEGIN_ALLOW_THREADS
+	hr = pUnk->QueryInterface(IID_ISupportErrorInfo, (void **)&pSEI);
+	Py_END_ALLOW_THREADS
+	if (FAILED(hr))
+		return OleSetOleError(errorhr);
+	hr = pSEI->InterfaceSupportsErrorInfo(iid);
+	pSEI->Release(); // Finished with this object
+	if (hr!=S_OK)
+		return OleSetOleError(errorhr);
+	IErrorInfo *pEI;
+	if (GetErrorInfo(0, &pEI)!=S_OK)
+		return OleSetOleError(errorhr);
 
-		char buf[512];
-		GetScodeString(errorhr, buf, sizeof(buf));
+	char buf[512];
+	GetScodeString(errorhr, buf, sizeof(buf));
 
-		PyObject *obEI = PyCom_PyObjectFromIErrorInfo(pEI);
-		pEI->Release();
+	PyObject *obEI = PyCom_PyObjectFromIErrorInfo(pEI);
+	pEI->Release();
 
-		PyObject *evalue = Py_BuildValue("isOO", errorhr, buf, obEI, Py_None);
-		Py_DECREF(obEI);
+	PyObject *evalue = Py_BuildValue("isOO", errorhr, buf, obEI, Py_None);
+	Py_DECREF(obEI);
 
-		PyErr_SetObject(PyWinExc_COMError, evalue);
-		Py_XDECREF(evalue);
+	PyErr_SetObject(PyWinExc_COMError, evalue);
+	Py_XDECREF(evalue);
 
-		return NULL;
-	}
-#endif // MS_WINCE
+	return NULL;
+#else
 	return OleSetOleError(errorhr);
+#endif // MS_WINCE
 }
 
 PyObject* OleSetOleError(HRESULT hr, EXCEPINFO *pexcepInfo /* = NULL */, UINT nArgErr /* = -1 */)
