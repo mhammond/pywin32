@@ -275,12 +275,18 @@ PyComTypeObject Py%(name)s::type("Py%(name)s",
 ''' % locals())
 
 def _write_gw_h(f, interface):
-  gname = 'PyG' + interface.name[1:]
+  if interface.name[0] == "I":
+    gname = 'PyG' + interface.name[1:]
+  else:
+    gname = 'PyG' + interface.name
   name = interface.name
   if interface.base == "IUnknown" or interface.base == "IDispatch":
     base_name = "PyGatewayBase"
   else:
-    base_name = 'PyG' + interface.base[1:]
+    if interface.base[0] == "I":
+      base_name = 'PyG' + interface.base[1:]
+    else:
+      base_name = 'PyG' + interface.base
   f.write(\
 '''\
 // ---------------------------------------------------
@@ -315,12 +321,18 @@ protected:
   f.close()
 
 def _write_gw_cpp(f, interface):
-  gname = 'PyG' + interface.name[1:]
+  if interface.name[0] == "I":
+    gname = 'PyG' + interface.name[1:]
+  else:
+    gname = 'PyG' + interface.name
   name = interface.name
   if interface.base == "IUnknown" or interface.base == "IDispatch":
     base_name = "PyGatewayBase"
   else:
-    base_name = 'PyG' + interface.base[1:]
+    if interface.base[0] == "I":
+      base_name = 'PyG' + interface.base[1:]
+    else:
+      base_name = 'PyG' + interface.base
   f.write('''\
 // ---------------------------------------------------
 //
