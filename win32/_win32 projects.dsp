@@ -29,16 +29,16 @@ CFG=_win32 projects - Win32 Debug
 !IF  "$(CFG)" == "_win32 projects - Win32 Release"
 
 # PROP BASE Use_Debug_Libraries 0
-# PROP BASE Output_Dir "Release"
-# PROP BASE Intermediate_Dir "Release"
+# PROP BASE Output_Dir "Build"
+# PROP BASE Intermediate_Dir "Build\Temp"
 # PROP BASE Cmd_Line "NMAKE /f "_win32 projects.mak""
 # PROP BASE Rebuild_Opt "/a"
 # PROP BASE Target_File "_win32 projects.exe"
 # PROP BASE Bsc_Name "_win32 projects.bsc"
 # PROP BASE Target_Dir ""
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
-# PROP Intermediate_Dir "Release"
+# PROP Output_Dir "Build"
+# PROP Intermediate_Dir "Build\Temp"
 # PROP Cmd_Line ""
 # PROP Rebuild_Opt ""
 # PROP Target_File "_win32 projects.exe"
@@ -48,16 +48,16 @@ CFG=_win32 projects - Win32 Debug
 !ELSEIF  "$(CFG)" == "_win32 projects - Win32 Debug"
 
 # PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "Debug"
-# PROP BASE Intermediate_Dir "Debug"
+# PROP BASE Output_Dir "Build"
+# PROP BASE Intermediate_Dir "Build\Temp"
 # PROP BASE Cmd_Line "NMAKE /f "_win32 projects.mak""
 # PROP BASE Rebuild_Opt "/a"
 # PROP BASE Target_File "_win32 projects.exe"
 # PROP BASE Bsc_Name "_win32 projects.bsc"
 # PROP BASE Target_Dir ""
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Debug"
-# PROP Intermediate_Dir "Debug"
+# PROP Output_Dir "Build"
+# PROP Intermediate_Dir "Build"
 # PROP Cmd_Line ""
 # PROP Rebuild_Opt ""
 # PROP Bsc_Name ""

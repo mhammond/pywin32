@@ -33,8 +33,8 @@ RSC=rc.exe
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
-# PROP BASE Output_Dir "Release"
-# PROP BASE Intermediate_Dir "Release"
+# PROP BASE Output_Dir "Build"
+# PROP BASE Intermediate_Dir "Build\Temp\win32evtlog\Release"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
@@ -54,15 +54,15 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386
-# ADD LINK32 Build\Temp\win32evtlog\Release\win32evtlog_messages.res kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e900000" /subsystem:windows /dll /debug /machine:I386 /out:"Build\win32evtlog.pyd"
+# ADD LINK32 Build\Temp\win32evtlog\Release\win32evtlog_messages.res kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e900000" /subsystem:windows /dll /debug /machine:I386 /out:"Build\win32evtlog.pyd" /libpath:"./Build"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "win32evtlog - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "Debug"
-# PROP BASE Intermediate_Dir "Debug"
+# PROP BASE Output_Dir "Build"
+# PROP BASE Intermediate_Dir "Build\Temp\win32evtlog\Debug"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
@@ -82,7 +82,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 Build\Temp\win32evtlog\Debug\win32evtlog_messages.res kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e900000" /subsystem:windows /dll /debug /machine:I386 /out:"Build\win32evtlog_d.pyd" /pdbtype:sept
+# ADD LINK32 Build\Temp\win32evtlog\Debug\win32evtlog_messages.res kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e900000" /subsystem:windows /dll /debug /machine:I386 /out:"Build\win32evtlog_d.pyd" /pdbtype:sept /libpath:"./Build"
 
 !ENDIF 
 
