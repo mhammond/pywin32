@@ -23,7 +23,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.4.7" # Written to generated file.
+makepy_version = "0.4.8" # Written to generated file.
 
 GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
@@ -496,7 +496,6 @@ class DispatchItem(build.DispatchItem, WritableItem):
             print '\tdef __getitem__(self, index):'
             print '\t\t"Allow this class to be accessed as a collection"'
             print "\t\tif not self.__dict__.has_key('_enum_'):"
-            print "\t\t\timport win32com.client.util"
             print "\t\t\tself.__dict__['_enum_'] = self._NewEnum()"
             print "\t\treturn self._enum_.__getitem__(index)"
         else: # Not an Enumerator, but may be an "Item/Count" based collection
@@ -777,6 +776,7 @@ class Generator:
         print >> self.file, 'python_version = 0x0 # Presumably Python 1.5.2 - 0x0 is not a problem'
     print>> self.file
     print >> self.file, 'import win32com.client.CLSIDToClass, pythoncom'
+    print >> self.file, 'import win32com.client.util'
     print >> self.file, 'from pywintypes import IID'
     print >> self.file, 'from win32com.client import Dispatch'
     print>> self.file
