@@ -780,7 +780,8 @@ class COMScript:
 		# Stop all executing scripts, and disconnect.
 		if self.scriptState == axscript.SCRIPTSTATE_CONNECTED:
 			self.Disconnect()
-		# script state remains disconnected.
+		# Reset back to initialized.
+		self.Reset()
 
 	def Disconnect(self):
 		self.CheckConnectedOrDisconnected()
