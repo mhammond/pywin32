@@ -46,6 +46,13 @@ class FilterParameters:
     Description = None
     Path = None
     Server = None
+    # Params that control if/how AddExtensionFile is called.
+    AddExtensionFile = True
+    AddExtensionFile_Enabled = True
+    AddExtensionFile_GroupID = None # defaults to Name
+    AddExtensionFile_CanDelete = True
+    AddExtensionFile_Description = None # defaults to Description.
+
     def __init__(self, **kw):
         self.__dict__.update(kw)
 
@@ -65,6 +72,7 @@ class VirtualDirParameters:
     ScriptMaps       = []
     ScriptMapUpdate = "end" # can be 'start', 'end', 'replace'
     Server = None
+    
     def __init__(self, **kw):
         self.__dict__.update(kw)
 
@@ -73,6 +81,12 @@ class ScriptMapParams:
     Module = None
     Flags = 5
     Verbs = ""
+    # Params that control if/how AddExtensionFile is called.
+    AddExtensionFile = True
+    AddExtensionFile_Enabled = True
+    AddExtensionFile_GroupID = None # defaults to Name
+    AddExtensionFile_CanDelete = True
+    AddExtensionFile_Description = None # defaults to Description.
     def __init__(self, **kw):
         self.__dict__.update(kw)
 
@@ -279,6 +293,60 @@ def DeleteISAPIFilter(filterParams, options):
     _CallHook(filterParams, "PostRemove", options)
     log (1, "Deleted Filter: %s" % (filterParams.Name,))
 
+def _AddExtensionFile(module, def_groupid, def_desc, params, options):
+    group_id = params.AddExtensionFile_GroupID or def_groupid
+    desc = params.AddExtensionFile_Description or def_desc
+    try:
+        ob = GetObject(_IIS_OBJECT)
+        ob.AddExtensionFile(module,
+                            params.AddExtensionFile_Enabled,
+                            group_id,
+                            params.AddExtensionFile_CanDelete,
+                            desc)
+        log(2, "Added extension file '%s' (%s)" % (module, desc))
+    except pythoncom.com_error, details:
+        # IIS5 always fails.  Probably should upgrade this to
+        # complain more loudly if IIS6 fails.
+        log(2, "Failed to add extension file '%s': %s" % (module, details))
+
+def AddExtensionFiles(params, options):
+    """Register the modules used by the filters/extensions as a trusted
+    'extension module' - required by the default IIS6 security settings."""
+    # Add each module only once.
+    added = {}
+    for vd in params.VirtualDirs:
+        for smp in vd.ScriptMaps:
+            if not added.has_key(smp.Module) and smp.AddExtensionFile:
+                _AddExtensionFile(smp.Module, vd.Name, vd.Description, smp,
+                                  options)
+                added[smp.Module] = True
+
+    for fd in params.Filters:
+        if not added.has_key(fd.Path) and fd.AddExtensionFile:
+            _AddExtensionFile(fd.Path, fd.Name, fd.Description, fd, options)
+            added[fd.Path] = True
+
+def _DeleteExtensionFileRecord(module, options):
+    try:
+        ob = GetObject(_IIS_OBJECT)
+        ob.DeleteExtensionFileRecord(module)
+        log(2, "Deleted extension file record for '%s'" % module)
+    except pythoncom.com_error, details:
+        log(2, "Failed to remove extension file '%s': %s" % (module, details))
+
+def DeleteExtensionFileRecords(params, options):
+    deleted = {} # only remove each .dll once.
+    for vd in params.VirtualDirs:
+        for smp in vd.ScriptMaps:
+            if not deleted.has_key(smp.Module) and smp.AddExtensionFile:
+                _DeleteExtensionFileRecord(smp.Module, options)
+                deleted[smp.Module] = True
+
+    for filter_def in params.Filters:
+        if not deleted.has_key(filter_def.Path) and filter_def.AddExtensionFile:
+            _DeleteExtensionFileRecord(filter_def.Path, options)
+            deleted[filter_def.Path] = True
+
 def CheckLoaderModule(dll_name):
     suffix = ""
     if is_debug_build: suffix = "_d"
@@ -318,10 +386,16 @@ def Install(params, options):
         
     for filter_def in params.Filters:
         CreateISAPIFilter(filter_def, options)
+
+    AddExtensionFiles(params, options)
+
     _CallHook(params, "PostInstall", options)
 
 def Uninstall(params, options):
     _CallHook(params, "PreRemove", options)
+    
+    DeleteExtensionFileRecords(params, options)
+    
     for vd in params.VirtualDirs:
         _CallHook(vd, "PreRemove", options)
         try:
