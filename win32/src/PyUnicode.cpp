@@ -180,7 +180,7 @@ void PyWinObject_FreeString(WCHAR *str)
 BSTR PyWin_String_AsBstr(const char *value)
 {
 	if (value==NULL || *value=='\0')
-		return SysAllocStringLen(L'', 0);
+		return SysAllocStringLen(L"", 0);
 	/* use MultiByteToWideChar() as a "good" strlen() */
 	/* NOTE: this will include the null-term in the length */
 	int cchWideChar = MultiByteToWideChar(CP_ACP, 0, value, -1, NULL, 0);
