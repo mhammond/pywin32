@@ -404,7 +404,9 @@ static PyObject *PyEnumObjects(PyObject *self, PyObject *args)
 		for (szTemp = szObjectListBuffer;
 			*szTemp != 0;
 			szTemp += lstrlen(szTemp) + 1) {
-				PyList_Append(retObject, PyString_FromString(szTemp));
+				PyObject *obTemp = PyString_FromString(szTemp);
+				PyList_Append(retObject, obTemp);
+				Py_XDECREF(obTemp);
 		}
 	free(szObjectListBuffer);
 	Py_INCREF(retObject);
@@ -752,7 +754,9 @@ static PyObject *PyExpandCounterPath(PyObject *self, PyObject *args)
 	else {
 		rc = PyList_New(0);
 		for (char *szTemp = buf;*szTemp != 0;szTemp += lstrlen(szTemp) + 1) {
-			PyList_Append(rc, PyString_FromString(szTemp));
+			PyObject *obTemp = PyString_FromString(szTemp);
+			PyList_Append(rc, obTemp);
+			Py_XDECREF(obTemp);
 		}
 	}
 	PyWinObject_FreeTCHAR(path);
