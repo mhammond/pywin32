@@ -191,7 +191,6 @@ BEGIN
         MENUITEM "Indentation &guides",         ID_VIEW_INDENTATIONGUIDES
         MENUITEM "&End-of-line markers",        ID_VIEW_EOL
         MENUITEM "&Fixed Font",                 ID_VIEW_FIXED_FONT
-        MENUITEM "&Options...",                 ID_VIEW_OPTIONS
         POPUP "Fol&ding"
         BEGIN
             MENUITEM "E&xpand\tKeypad-Plus",        ID_VIEW_FOLD_EXPAND
@@ -202,6 +201,7 @@ BEGIN
 
             MENUITEM "Toggle top-level\tKeypad-*",  ID_VIEW_FOLD_TOPLEVEL
         END
+        MENUITEM "&Options...",                 ID_VIEW_OPTIONS
     END
     POPUP "&Window"
     BEGIN
