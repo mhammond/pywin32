@@ -21,6 +21,23 @@ LONG _PyCom_GetGatewayCount(void)
 	return cGateways;
 }
 
+// Helper function to handle the IDispatch results
+static HRESULT GetIDispatchErrorResult(EXCEPINFO *pexcepinfo)
+{
+	HRESULT hr;
+	// Fill the EXCEPINFO with the details.
+	PyCom_ExcepInfoFromPyException(pexcepinfo);
+	// If the Python code is returning an IDispatch error,
+	// return it directly (making the excepinfo available via
+	// ISupportErrorIno.
+	if (HRESULT_FACILITY(pexcepinfo->scode)==FACILITY_DISPATCH) {
+		PyCom_SetCOMErrorFromExcepInfo(pexcepinfo, IID_IDispatch);
+		PyCom_CleanupExcepInfo(pexcepinfo);
+		hr = pexcepinfo->scode;
+	} else
+		hr = DISP_E_EXCEPTION; // and the EXCEPINFO remains valid.
+	return hr;
+}
 /////////////////////////////////////////////////////////////////////////////
 //
 void *PyGatewayBase::ThisAsIID(IID iid)
@@ -269,7 +286,7 @@ static HRESULT getids_finish(
 	)
 {
 	if ( !result )
-		return PyCom_HandlePythonFailureToCOM();
+		return PyCom_SetCOMErrorFromPyException(IID_IDispatch);
 
 	if ( !PySequence_Check(result) )
 	{
@@ -509,7 +526,7 @@ STDMETHODIMP PyGatewayBase::Invoke(
 		Py_DECREF(py_lcid);
 
 		if ( result==NULL )
-			hr = PyCom_HandlePythonFailureToCOM(pexcepinfo);
+			return GetIDispatchErrorResult(pexcepinfo);
 		else
 			hr = invoke_finish(result, pVarResult, puArgErr);
 	}
@@ -529,7 +546,7 @@ STDMETHODIMP PyGatewayBase::GetDispID(BSTR bstrName, DWORD grfdex, DISPID *pid)
 #endif
 	PY_GATEWAY_METHOD;
 	PyObject *obName = PyWinObject_FromBstr(bstrName, FALSE);
-	if (obName==NULL) return PyCom_SetFromPyException(IID_IDispatchEx);
+	if (obName==NULL) return PyCom_SetCOMErrorFromPyException(IID_IDispatchEx);
 
 	PyObject *result = PyObject_CallMethod(m_pPyObject,
 											   "_GetDispID_",
@@ -542,7 +559,7 @@ STDMETHODIMP PyGatewayBase::GetDispID(BSTR bstrName, DWORD grfdex, DISPID *pid)
 			PyErr_SetString(PyExc_TypeError, "_GetDispID_ must return an integer object");
 		Py_DECREF(result);
 	}
-	return PyCom_SetFromPyException(IID_IDispatchEx);
+	return PyCom_SetCOMErrorFromPyException(IID_IDispatchEx);
 }
 
 STDMETHODIMP PyGatewayBase::InvokeEx(DISPID id, LCID lcid, WORD wFlags, DISPPARAMS *params, VARIANT *pVarResult, EXCEPINFO *pexcepinfo, IServiceProvider *pspCaller)
@@ -566,7 +583,7 @@ STDMETHODIMP PyGatewayBase::InvokeEx(DISPID id, LCID lcid, WORD wFlags, DISPPARA
 	}
 	PyObject *obISP = PyCom_PyObjectFromIUnknown(pspCaller, IID_IServiceProvider, TRUE);
 	if (obISP==NULL)
-		return PyCom_HandlePythonFailureToCOM(pexcepinfo);
+		return GetIDispatchErrorResult(pexcepinfo);
 
 	PY_GATEWAY_METHOD;
 	PyObject *argList;
@@ -585,7 +602,7 @@ STDMETHODIMP PyGatewayBase::InvokeEx(DISPID id, LCID lcid, WORD wFlags, DISPPARA
 		Py_DECREF(py_lcid);
 
 		if ( result==NULL )
-			hr = PyCom_HandlePythonFailureToCOM(pexcepinfo);
+			hr = GetIDispatchErrorResult(pexcepinfo);
 		else {
 			// Done use invoke_finish, as we no longer support exceptions and
 			// nArgErr coming back.
@@ -614,14 +631,14 @@ STDMETHODIMP PyGatewayBase::DeleteMemberByName(BSTR bstr, DWORD grfdex)
 #endif
 	PY_GATEWAY_METHOD;
 	PyObject *obName = PyWinObject_FromBstr(bstr, FALSE);
-	if (obName==NULL) return PyCom_SetFromPyException(IID_IDispatchEx);
+	if (obName==NULL) return PyCom_SetCOMErrorFromPyException(IID_IDispatchEx);
 
 	PyObject *result = PyObject_CallMethod(m_pPyObject,
 											   "_DeleteMemberByName_",
 											   "Ol", obName, grfdex);
 	Py_DECREF(obName);
 	Py_XDECREF(result);
-	return PyCom_SetFromPyException(IID_IDispatchEx);
+	return PyCom_SetCOMErrorFromPyException(IID_IDispatchEx);
 }
 
 
@@ -635,7 +652,7 @@ STDMETHODIMP PyGatewayBase::DeleteMemberByDispID(DISPID id)
 											   "_DeleteMemberByDispID_",
 											   "l", id);
 	Py_XDECREF(result);
-	return PyCom_SetFromPyException(IID_IDispatchEx);
+	return PyCom_SetCOMErrorFromPyException(IID_IDispatchEx);
 }
 
 
@@ -655,7 +672,7 @@ STDMETHODIMP PyGatewayBase::GetMemberProperties(DISPID id, DWORD grfdexFetch, DW
 			PyErr_SetString(PyExc_TypeError, "GetMemberProperties must return an integer object");
 		Py_DECREF(result);
 	}
-	return PyCom_SetFromPyException(IID_IDispatchEx);
+	return PyCom_SetCOMErrorFromPyException(IID_IDispatchEx);
 }
 
 
@@ -672,7 +689,7 @@ STDMETHODIMP PyGatewayBase::GetMemberName(DISPID id, BSTR *pbstrName)
 		PyWinObject_AsBstr(result, pbstrName);
 		Py_DECREF(result);
 	}
-	return PyCom_SetFromPyException(IID_IDispatchEx);
+	return PyCom_SetCOMErrorFromPyException(IID_IDispatchEx);
 }
 
 
@@ -692,7 +709,7 @@ STDMETHODIMP PyGatewayBase::GetNextDispID(DWORD grfdex, DISPID id, DISPID *pid)
 			PyErr_SetString(PyExc_TypeError, "GetNextDispID must return an integer object");
 		Py_DECREF(result);
 	}
-	return PyCom_SetFromPyException(IID_IDispatchEx);
+	return PyCom_SetCOMErrorFromPyException(IID_IDispatchEx);
 }
 
 
@@ -709,7 +726,7 @@ STDMETHODIMP PyGatewayBase::GetNameSpaceParent(IUnknown **ppunk)
 		PyCom_InterfaceFromPyInstanceOrObject(result, IID_IUnknown, (void **)ppunk, /* bNoneOK=*/FALSE);
 		Py_DECREF(result);
 	}
-	return PyCom_SetFromPyException(IID_IDispatchEx);
+	return PyCom_SetCOMErrorFromPyException(IID_IDispatchEx);
 }
 
 #endif // NO_PYCOM_IDISPATCHEX
@@ -767,22 +784,6 @@ static PyObject *do_dispatch(
 	return result;
 }
 
-PyObject *PyGatewayBase::DispatchViaPolicy(const char *szMethodName, const char *szFormat, ...)
-{
-	va_list va;
-
-	if ( !m_pPyObject || !szMethodName )
-    {
-		return OleSetTypeError("The argument is invalid");
-    }
-
-	va_start(va, szFormat);
-	PyObject *result = do_dispatch(m_pPyObject, szMethodName, szFormat, va);
-	va_end(va);
-
-	return result;
-}
-
 STDMETHODIMP PyGatewayBase::InvokeViaPolicy(
 	const char *szMethodName,
 	PyObject **ppResult /* = NULL */,
@@ -799,7 +800,7 @@ STDMETHODIMP PyGatewayBase::InvokeViaPolicy(
 	PyObject *result = do_dispatch(m_pPyObject, szMethodName, szFormat, va);
 	va_end(va);
 
-	HRESULT hr = PyCom_SetFromPyException(GetIID());
+	HRESULT hr = PyCom_SetCOMErrorFromPyException(GetIID());
 
 	if ( ppResult )
 		*ppResult = result;
