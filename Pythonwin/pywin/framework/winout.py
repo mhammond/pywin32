@@ -266,6 +266,13 @@ class WindowOutputViewScintilla(pywin.scintilla.view.CScintillaView, WindowOutpu
 		if atEnd:
 			self.SetSel(self.GetTextLength())
 
+	def SetWordWrap(self, bWrapOn = 1):
+		if bWrapOn:
+			wrap_mode = scintillacon.SC_WRAP_WORD
+		else:
+			wrap_mode = scintillacon.SC_WRAP_NONE
+		self.SCISetWrapMode(wrap_mode)
+
 	def _MakeColorizer(self):
 		return None # No colorizer for me!
 

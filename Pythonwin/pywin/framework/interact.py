@@ -567,6 +567,7 @@ class InteractiveView(InteractiveCore, winout.WindowOutputView):
 		return InteractiveFormatter(self)
 	def OnInitialUpdate(self):
 		winout.WindowOutputView.OnInitialUpdate(self)
+		self.SetWordWrap()
 		self.Init()
 	def HookHandlers(self):
 		winout.WindowOutputView.HookHandlers(self)
