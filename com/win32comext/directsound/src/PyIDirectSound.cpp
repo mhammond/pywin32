@@ -33,7 +33,9 @@ PyObject *PyIDirectSound::Initialize(PyObject *self, PyObject *args)
 	IDirectSound *pIDS = GetI(self);
 	if ( pIDS == NULL )
 		return NULL;
-	if ( !PyArg_ParseTuple(args, "|O:Initialize", &obGUID) )
+	if ( !PyArg_ParseTuple(args, "|O:Initialize", 
+		&obGUID) )  // @pyparm <o PyIID>|guid||Globally unique identifier (GUID) specifying the sound driver to which this DirectSound object binds. Pass None to select the primary sound driver. 
+
 		return NULL;
 
 	GUID guid;
@@ -71,7 +73,9 @@ PyObject *PyIDirectSound::SetCooperativeLevel(PyObject *self, PyObject *args)
 	IDirectSound *pIDS = GetI(self);
 	if ( pIDS == NULL )
 		return NULL;
-	if ( !PyArg_ParseTuple(args, "Oi:SetCooperativeLevel", &obHWND, &level) )
+	if ( !PyArg_ParseTuple(args, "Oi:SetCooperativeLevel", 
+		&obHWND, // @pyparm int|hwnd||Window handle to the application or None.
+		&level) ) // @pyparm int|level||Requested priority level. See the DSSCL constants.
 		return NULL;
 
 	if (obHWND == Py_None)
@@ -233,7 +237,8 @@ PyObject *PyIDirectSound::SetSpeakerConfig(PyObject *self, PyObject *args)
 	IDirectSound *pIDS = GetI(self);
 	if ( pIDS == NULL )
 		return NULL;
-	if ( !PyArg_ParseTuple(args, "i:SetSpeakerConfig", &config) )
+	if ( !PyArg_ParseTuple(args, "i:SetSpeakerConfig", 
+		&config) ) // @pyparm int|dwSpeakerConfig||Speaker configuration of the specified DirectSound object. See the DSSPEAKER constants.
 		return NULL;
 
 
