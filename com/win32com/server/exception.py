@@ -30,23 +30,23 @@ class COMException(pythoncom.com_error):
 	server.
 	"""
 	def __init__(self, description = None, scode = None,
-	             source = None, helpfile = None, helpContext = None,
-	             desc = None, hresult = None):
+				 source = None, helpfile = None, helpContext = None,
+				 desc = None, hresult = None):
 		"""Initialize an exception
 		**Params**
 
 		description -- A string description for the exception.
 		scode -- An integer scode to be returned to the server, if necessary.
-		         The pythoncom framework defaults this to be DISP_E_EXCEPTION if not specified otherwise.
+		The pythoncom framework defaults this to be DISP_E_EXCEPTION if not specified otherwise.
 		source -- A string which identifies the source of the error.
 		helpfile -- A string which points to a help file which contains details on the error.
 		helpContext -- An integer context in the help file.
 		desc -- A short-cut for description.
-        hresult -- A short-cut for scode.
+		hresult -- A short-cut for scode.
 		"""
 
 		# convert a WIN32 error into an HRESULT
-        scode = scode or hresult
+		scode = scode or hresult
 		if scode and scode != 1: # We dont want S_FALSE mapped!
 			if scode >= -32768 and scode < 32768:
 				# this is HRESULT_FROM_WIN32()
