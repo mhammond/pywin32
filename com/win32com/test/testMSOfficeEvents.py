@@ -30,10 +30,21 @@ def TestExcel():
             # the only ByRef - Cancel.
                 return 1
 
+    class WorkbookEvents:
+        def OnActivate(self):
+            print "workbook OnActivate"
+        def OnBeforeRightClick(self, Target, Cancel):
+            print "It's a Worksheet Event"
+
     e = DispatchWithEvents("Excel.Application", ExcelEvents)
     e.seen_events = {}
     e.Visible=1
-    e.Workbooks.Add()
+    book = e.Workbooks.Add()
+    book = DispatchWithEvents(book, WorkbookEvents)
+    print "Have book", book
+#    sheet = e.Worksheets(1)
+#    sheet = DispatchWithEvents(sheet, WorksheetEvents)
+    
     print "Double-click in a few of the Excel cells..."
     print "Press any key when finished with Excel, or wait 10 seconds..."
     if not _WaitForFinish(e, 10):
@@ -72,20 +83,25 @@ def _WaitForFinish(ob, timeout):
         if stopEvent.isSet():
             stopEvent.clear()
             break
-        if not ob.Visible:
-            # Gone invisible - we need to pretend we timed
-            # out, so the app is quit.
-            return 0
+        try:
+            if not ob.Visible:
+                # Gone invisible - we need to pretend we timed
+                # out, so the app is quit.
+                return 0
+        except pythoncom.com_error:
+            # Excel is busy (eg, editing the cell) - ignore
+            pass
         if time.time() > end:
             return 0
     return 1
 
 def _CheckSeenEvents(o, events):
+    rc = 1
     for e in events:
         if not o.seen_events.has_key(e):
             print "ERROR: Expected event did not trigger", e
-            return 0
-    return 1
+            rc = 0
+    return rc
 
 def test():
     import sys
