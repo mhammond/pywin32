@@ -41,9 +41,7 @@ typedef struct
 	HDBC hdbc;
 	int  connected;
 	int  connect_id;
-	char dsn[MAX_STR];
-	char uid[MAX_STR];
-	char pwd[MAX_STR];
+	char *connectionString;
 } connectionObject;
 
 static connectionObject *connection(PyObject *o)
@@ -209,15 +207,17 @@ static void cursorError(cursorObject *cur, const char *action)
 static int doConnect(connectionObject *conn)
 {
 	RETCODE rc;
+	short connectionStringLength;
 	Py_BEGIN_ALLOW_THREADS
-	rc = SQLConnect(
+	rc = SQLDriverConnect(
 		conn->hdbc,
-		(unsigned char *) conn->dsn,
+		NULL,
+		(unsigned char *) conn->connectionString,
 		SQL_NTS,
-		(unsigned char *) conn->uid,
-		SQL_NTS, 
-		(unsigned char *) conn->pwd,
-		SQL_NTS);
+		NULL,
+		0,
+		&connectionStringLength,
+		SQL_DRIVER_NOPROMPT);
 	Py_END_ALLOW_THREADS
 	if  (unsuccessful(rc))
 	{
@@ -407,6 +407,10 @@ static void connectionDealloc(PyObject *self)
 {
 	SQLDisconnect(connection(self)->hdbc);
 	SQLFreeConnect(connection(self)->hdbc);
+	if (connection(self)->connectionString)
+	{
+		free(connection(self)->connectionString);
+	}
 	PyObject_Del(self);
 }
 
@@ -1602,36 +1606,69 @@ static void parseInfo(connectionObject *conn, const char *c)
 {
 	char *p;
 	char buf[255];
-	strncpy(buf, c, sizeof(buf));
-	p = strtok(buf, "/");
-	if (p)
+	char *firstEqualsSign;
+	char *firstSlash;
+	char dsn[MAX_STR];
+	char uid[MAX_STR];
+	char pwd[MAX_STR];
+	short connectionStringLength;
+
+	firstEqualsSign = strchr(c, '=');
+	firstSlash = strchr(c, '/');
+
+	if (!firstEqualsSign || (firstSlash && firstSlash < firstEqualsSign))
 	{
-		strncpy(conn->dsn, p, sizeof(conn->dsn));
-		p = strtok(0, "/");
+		strncpy(buf, c, sizeof(buf));
+		p = strtok(buf, "/");
 		if (p)
 		{
-			strncpy(conn->uid, p, sizeof(conn->uid));
+			strncpy(dsn, p, sizeof(dsn));
 			p = strtok(0, "/");
 			if (p)
 			{
-				strncpy(conn->pwd, p, sizeof(conn->pwd));
+				strncpy(uid, p, sizeof(uid));
+				p = strtok(0, "/");
+				if (p)
+				{
+					strncpy(pwd, p, sizeof(pwd));
+				}
+				else
+				{
+					pwd[0] = 0;
+				}
 			}
 			else
 			{
-				conn->pwd[0] = 0;
+				uid[0] = 0;
+				pwd[0] = 0;
 			}
 		}
 		else
 		{
-			conn->uid[0] = 0;
-			conn->pwd[0] = 0;
+			strncpy(dsn, c, sizeof(dsn));
+			uid[0] = 0;
+			pwd[0] = 0;
+		}
+
+		connectionStringLength = strlen(dsn) + strlen(uid) + strlen(pwd) + 15; // add room for DSN=;UID=;PWD=\0
+		conn->connectionString = (char *) malloc(connectionStringLength);
+		strcpy(conn->connectionString, "DSN=");
+		strcat(conn->connectionString, dsn);
+		if (strlen(uid))
+		{
+			strcat(conn->connectionString, ";UID=");
+			strcat(conn->connectionString, uid);
+		}
+		if (strlen(pwd))
+		{
+			strcat(conn->connectionString, ";PWD=");
+			strcat(conn->connectionString, pwd);
 		}
 	}
 	else
 	{
-		strncpy(conn->dsn, c, sizeof(conn->dsn));
-		conn->uid[0] = 0;
-		conn->pwd[0] = 0;
+		conn->connectionString = (char *) malloc(strlen(c) + 1);
+		strcpy(conn->connectionString, c);
 	}
 }
 
@@ -1642,6 +1679,10 @@ static PyObject *odbcLogon(PyObject *self, PyObject *args)
 	connectionObject *conn;
 
 	// @pyparm string|connectionString||An ODBC connection string.
+	// For backwards-compatibility, this parameter can be of the form
+	// DSN[/username[/password]] (e.g. "myDSN/myUserName/myPassword").
+	// Alternatively, a full ODBC connection string can be used (e.g.,
+	// "Driver={SQL Server};Server=(local);Database=myDatabase").
 	if (!PyArg_ParseTuple(args, "s", &connectionString))
 	{
 		return NULL;
@@ -1655,6 +1696,7 @@ static PyObject *odbcLogon(PyObject *self, PyObject *args)
 
 	conn->connect_id = 0; // initialize it to anything
 	conn->hdbc = SQL_NULL_HDBC;
+	conn->connectionString = NULL;
 	if (unsuccessful(SQLAllocConnect(Env, &conn->hdbc)))
 	{
 		connectionError(conn, "ALLOCATION");
