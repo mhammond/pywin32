@@ -13,3 +13,4 @@ win32servicemodule.cpp
 wincerapimodule.cpp
 win32inetmodule.cpp
 winxpguimodule.cpp
+_winxpthememodule.cpp
