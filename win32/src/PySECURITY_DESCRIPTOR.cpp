@@ -234,7 +234,12 @@ BOOL PySECURITY_DESCRIPTOR::SetSD(PSECURITY_DESCRIPTOR psd)
 	if (this->m_psd)
 		free (this->m_psd);
 	DWORD sdsize = GetSecurityDescriptorLength(psd);
-	if (_IsSelfRelative(psd)){
+	if (sdsize == 0){
+		// GetSecurityDescriptorLength returns 0 on Win9x where the
+		// SECURITY_DESCRIPTOR stuff is not supported.
+		this->m_psd = NULL;
+		}
+	else if (_IsSelfRelative(psd)){
 		this->m_psd = malloc(sdsize);
 		memcpy(this->m_psd, psd, sdsize);
 		return TRUE;
@@ -687,9 +692,9 @@ PySECURITY_DESCRIPTOR::PySECURITY_DESCRIPTOR(unsigned cb /*= 0*/)
 	_Py_NewReference(this);
 	cb = max(cb, SECURITY_DESCRIPTOR_MIN_LENGTH);
 	PSECURITY_DESCRIPTOR psd = malloc(cb);
-	::InitializeSecurityDescriptor(psd, SECURITY_DESCRIPTOR_REVISION);
 	this->m_psd=NULL;
-	this->SetSD(psd);
+	if (::InitializeSecurityDescriptor(psd, SECURITY_DESCRIPTOR_REVISION))
+		this->SetSD(psd);
 	free(psd);
 }
 
