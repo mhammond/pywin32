@@ -224,6 +224,10 @@ SOURCE=.\win32comext\AXDebug\src\PyIEnumDebugExpressionContexts.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32comext\axdebug\src\PyIEnumDebugPropertyInfo.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32comext\AXDebug\src\PyIEnumDebugStackFrames.cpp
 # End Source File
 # Begin Source File
@@ -370,6 +374,10 @@ SOURCE=.\win32comext\AXDebug\src\PyIEnumDebugApplicationNodes.h
 # Begin Source File
 
 SOURCE=.\win32comext\AXDebug\src\PyIEnumDebugCodeContexts.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\axdebug\src\PyIEnumDebugPropertyInfo.h
 # End Source File
 # Begin Source File
 
