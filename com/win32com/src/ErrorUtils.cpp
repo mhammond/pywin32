@@ -886,7 +886,7 @@ PyObject *PyCom_PyObjectFromIErrorInfo(IErrorInfo *pEI)
 		Py_INCREF(obSource);
 	} else
 		obSource = MakeBstrToObj(source);
-	if (pEI->GetDescription(&helpfile)!=S_OK) {
+	if (pEI->GetHelpFile(&helpfile)!=S_OK) {
 		obHelpFile = Py_None;
 		Py_INCREF(obHelpFile);
 	} else
