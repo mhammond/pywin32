@@ -871,7 +871,7 @@ done:
 	// hwnd, msg, lp, data.  Data will be whatever you passed as callback_data,
 	// and the rest are integers.  See the Microsoft documentation for
 	// SHBrowseForFolder, or the browse_for_folder.py shell sample for more
-	information.
+	// information.
 }
 
 // @pymethod string/<o PyUnicode>|shell|SHGetPathFromIDList|Converts an IDLIST to a path.
