@@ -281,7 +281,7 @@ Public Sub DoSomeCallbacks(ob As Object)
     rgv(1) = 1#
     ' NOTE - MUST use subroutine syntax to get byrefs passed!
     ob.CallbackArrayResult rgv
-    If Abs(rgv(0)-1.0) > 0.01 Or Abs(rgv(1)- 2.0) > 0.01 Then MsgBox "CallbackArrayResult (sub, variant) failed - (" & rgv(0) & "," & rgv(1) & ")!!"
+    If Abs(rgv(0) - 1#) > 0.01 Or Abs(rgv(1) - 2#) > 0.01 Then MsgBox "CallbackArrayResult (sub, variant) failed - (" & rgv(0) & "," & rgv(1) & ")!!"
     rg(0) = 0
     rg(1) = 1
     ob.CallbackArrayResult rg
@@ -306,3 +306,11 @@ Public Sub DoCallbackSafeArraySizeFail(ob As Object)
     ob.CallbackArrayResultWrongSize rg
 '    Err.Raise Err.Message = "Expecting Python have failed!"
 End Sub
+
+Public Function GetInterfaceTester(ByVal initval As Integer) As IPyComTestInterface
+    Dim n As IPyComTestInterface
+    Set n = New PyComTestImplementation
+    n.setn initval
+    Set GetInterfaceTester = n
+    Set n = Nothing
+End Function
