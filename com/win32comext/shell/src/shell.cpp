@@ -23,7 +23,10 @@ generates Windows .hlp files.
 #include "PyIOleWindow.h"
 #include "PyIShellView.h"
 #include "PyIShellBrowser.h"
+/* It appears this was undocumented, and vanished in MSVC7. */
+#ifdef HAVE_BROWSER_FRAME_OPTIONS
 #include "PyIBrowserFrameOptions.h"
+#endif /* HAVE_BROWSER_FRAME_OPTIONS */
 #include "PyIPersist.h"
 #include "PyIPersistFolder.h"
 #include "PyIColumnProvider.h"
@@ -979,7 +982,9 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL(ShellView),
 	PYCOM_INTERFACE_FULL(ShellBrowser),
 	PYCOM_INTERFACE_FULL(EnumIDList),
+#ifdef HAVE_BROWSER_FRAME_OPTIONS
 	PYCOM_INTERFACE_FULL(BrowserFrameOptions),
+#endif /* HAVE_BROWSER_FRAME_OPTIONS */
 	PYCOM_INTERFACE_FULL(PersistFolder),
 	PYCOM_INTERFACE_FULL(ColumnProvider),
 	// IID_ICopyHook doesn't exist - hack it up
