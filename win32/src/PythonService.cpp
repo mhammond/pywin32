@@ -1019,7 +1019,18 @@ int PythonService_main(int argc, char **argv)
 #else
 	targv = argv;
 #endif
-	
+	// Before we start, change directory to our executable's dir.  This
+	// is to prevent our cwd being SYSTEM32, which can have undesired
+	// side effects (ie, it ends up on sys.path and, eg, 'import zlib' may
+	// locate zlib.dll in that directory rather than the correct zlib.pyd.
+	TCHAR dir[MAX_PATH] = _T("");
+	GetModuleFileName(0, dir, sizeof(dir)/sizeof(dir[0]));
+	TCHAR *slash = _tcsrchr(dir, _T('\\'));
+	if (slash) {
+		*slash = '\0';
+		_tchdir(dir);
+	}
+	// Process the args
     if ( (argc > 1) &&
          ((*argv[1] == '-') || (*argv[1] == '/')) )
     {
