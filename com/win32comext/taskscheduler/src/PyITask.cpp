@@ -51,7 +51,7 @@ PyObject *PyITask::SetApplicationName(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyITask|GetApplicationName|Retrieve name of program that task will run
+// @pymethod <o PyUNICODE>|PyITask|GetApplicationName|Retrieve name of program that task will run
 PyObject *PyITask::GetApplicationName(PyObject *self, PyObject *args)
 {
 	ITask *pIT = GetI(self);
@@ -103,7 +103,7 @@ PyObject *PyITask::SetParameters(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyITask|GetParameters|Returns command line parameters for task
+// @pymethod <o PyUNICODE>|PyITask|GetParameters|Returns command line parameters for task
 PyObject *PyITask::GetParameters(PyObject *self, PyObject *args)
 {
 	ITask *pIT = GetI(self);
@@ -155,7 +155,7 @@ PyObject *PyITask::SetWorkingDirectory(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyITask|GetWorkingDirectory|Return working directory that the task will start out in
+// @pymethod <o PyUNICODE>|PyITask|GetWorkingDirectory|Return working directory that the task will start out in
 PyObject *PyITask::GetWorkingDirectory(PyObject *self, PyObject *args)
 {
 	ITask *pIT = GetI(self);
@@ -200,7 +200,7 @@ PyObject *PyITask::SetPriority(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyITask|GetPriority|Gets priority that will be assigned to process when task starts
+// @pymethod int|PyITask|GetPriority|Gets priority that will be assigned to process when task starts
 PyObject *PyITask::GetPriority(PyObject *self, PyObject *args)
 {
 	ITask *pIT = GetI(self);
@@ -241,7 +241,7 @@ PyObject *PyITask::SetTaskFlags(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyITask|GetTaskFlags|Retrieve task flags (None currently defined)
+// @pymethod int|PyITask|GetTaskFlags|Retrieve task flags (None currently defined)
 PyObject *PyITask::GetTaskFlags(PyObject *self, PyObject *args)
 {
 	ITask *pIT = GetI(self);
@@ -284,7 +284,7 @@ PyObject *PyITask::SetMaxRunTime(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyITask|GetMaxRunTime|Returns maximun run time for task
+// @pymethod int|PyITask|GetMaxRunTime|Returns maximun run time for task
 PyObject *PyITask::GetMaxRunTime(PyObject *self, PyObject *args)
 {
 	ITask *pIT = GetI(self);
@@ -306,7 +306,7 @@ PyObject *PyITask::GetMaxRunTime(PyObject *self, PyObject *args)
 
 }
 
-// @object PyITask|Description of the interface
+// @object PyITask|Python object that encapsulates the ITask interface, inherits all the methods of PyIScheduledWorkItem 
 static struct PyMethodDef PyITask_methods[] =
 {
 	{ "SetApplicationName", PyITask::SetApplicationName, 1 }, // @pymeth SetApplicationName|Specify which program the task will run

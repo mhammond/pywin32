@@ -30,6 +30,7 @@ PyObject *PyITaskTrigger::SetTrigger(PyObject *self, PyObject *args)
 	if ( pITT == NULL )
 		return NULL;
 	PyObject *obtt;
+	// @pyparm <o PyTASK_TRIGGER>|Trigger||Python object representing a TASK_TRIGGER struct
 	if ( !PyArg_ParseTuple(args, "O:PyITaskTrigger::SetTrigger",&obtt))
 		return NULL;
 	if (!PyTASK_TRIGGER_check(obtt))
@@ -88,7 +89,7 @@ PyObject *PyITaskTrigger::GetTriggerString(PyObject *self, PyObject *args)
 	return ret;
 }
 
-// @object PyITaskTrigger|Description of the interface
+// @object PyITaskTrigger|Python object that encapsulates the ITaskTrigger interface
 static struct PyMethodDef PyITaskTrigger_methods[] =
 {
 	{ "SetTrigger", PyITaskTrigger::SetTrigger, 1 }, // @pymeth SetTrigger|Set trigger parameters from a PyTASK_TRIGGER object
@@ -140,6 +141,7 @@ static struct PyMemberDef PyTASK_TRIGGER_members[] = {
 	{NULL}
 };
 
+// @object PyTASK_TRIGGER|Python object representing a TASK_TRIGGER structure via the structmember Api
 static PyTypeObject PyTASK_TRIGGERType =
 {
 	PyObject_HEAD_INIT(&PyType_Type)

@@ -23,7 +23,7 @@ PyIScheduledWorkItem::~PyIScheduledWorkItem()
 	return (IScheduledWorkItem *)PyIUnknown::GetI(self);
 }
 
-// @pymethod int|PyIScheduledWorkItem|CreateTrigger|Creates a new trigger for a task, returns index and new ITaskTrigger interface
+// @pymethod int,PyITaskTrigger|PyIScheduledWorkItem|CreateTrigger|Creates a new trigger for a task, returns index and new ITaskTrigger interface
 PyObject *PyIScheduledWorkItem::CreateTrigger(PyObject *self, PyObject *args)
 {
 	IScheduledWorkItem *pISWI = GetI(self);
@@ -69,7 +69,7 @@ PyObject *PyIScheduledWorkItem::DeleteTrigger(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIScheduledWorkItem|GetTriggerCount|Returns number of triggers defined for the task
+// @pymethod int|PyIScheduledWorkItem|GetTriggerCount|Returns number of triggers defined for the task
 PyObject *PyIScheduledWorkItem::GetTriggerCount(PyObject *self, PyObject *args)
 {
 	IScheduledWorkItem *pISWI = GetI(self);
@@ -113,7 +113,7 @@ PyObject *PyIScheduledWorkItem::GetTrigger(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(pITT, IID_ITaskTrigger, FALSE);
 }
 
-// @pymethod |PyIScheduledWorkItem|GetTriggerString|Creates a human-readable summary of specified trigger
+// @pymethod <o PyUNICODE>|PyIScheduledWorkItem|GetTriggerString|Creates a human-readable summary of specified trigger
 PyObject *PyIScheduledWorkItem::GetTriggerString(PyObject *self, PyObject *args)
 {
 	IScheduledWorkItem *pISWI = GetI(self);
@@ -140,13 +140,13 @@ PyObject *PyIScheduledWorkItem::GetTriggerString(PyObject *self, PyObject *args)
 	return ret;
 }
 
-// @pymethod |PyIScheduledWorkItem|GetRunTimes|Return specified number of run times within given time frame
+// @pymethod (<o PyTime>,,,)|PyIScheduledWorkItem|GetRunTimes|Return specified number of run times within given time frame
 PyObject *PyIScheduledWorkItem::GetRunTimes(PyObject *self, PyObject *args)
 {
 	IScheduledWorkItem *pISWI = GetI(self);
 	if ( pISWI == NULL )
 		return NULL;
-	// @pyparm int|Count|Number of run times to retrieve
+	// @pyparm int|Count||Number of run times to retrieve
 	// @pyparm <o PyTime>|Begin||Start time, defaults to current time if not passed or None
 	// @pyparm <o PyTime>|End||End time, defaults to unlimited if not passed or None
 	WORD wCount=0, time_ind=0;
@@ -186,7 +186,7 @@ PyObject *PyIScheduledWorkItem::GetRunTimes(PyObject *self, PyObject *args)
 	return ret;
 }
 
-// @pymethod |PyIScheduledWorkItem|GetNextRunTime|Returns next time that task is scheduled to run
+// @pymethod <o PyTime>|PyIScheduledWorkItem|GetNextRunTime|Returns next time that task is scheduled to run
 PyObject *PyIScheduledWorkItem::GetNextRunTime(PyObject *self, PyObject *args)
 {
 	IScheduledWorkItem *pISWI = GetI(self);
@@ -430,7 +430,7 @@ PyObject *PyIScheduledWorkItem::SetCreator(PyObject *self, PyObject *args)
 	IScheduledWorkItem *pISWI = GetI(self);
 	if ( pISWI == NULL )
 		return NULL;
-	// @pyparm <o unicode>|pwszCreator||Description for pwszCreator
+	// @pyparm <o unicode>|Creator||Originator of task, does not have to be valid username
 	PyObject *obpwszCreator;
 	LPWSTR pwszCreator;
 	if ( !PyArg_ParseTuple(args, "O:SetCreator", &obpwszCreator) )
@@ -694,7 +694,7 @@ PyObject *PyIScheduledWorkItem::SetAccountInformation(PyObject *self, PyObject *
 	return Py_None;
 }
 
-// @pymethod |PyIScheduledWorkItem|GetAccountInformation|Returns username that task will run under
+// @pymethod <o PyUNICODE>|PyIScheduledWorkItem|GetAccountInformation|Returns username that task will run under
 PyObject *PyIScheduledWorkItem::GetAccountInformation(PyObject *self, PyObject *args)
 {
 	IScheduledWorkItem *pISWI = GetI(self);
@@ -717,7 +717,7 @@ PyObject *PyIScheduledWorkItem::GetAccountInformation(PyObject *self, PyObject *
 	return ret;
 }
 
-// @object PyIScheduledWorkItem|Description of the interface
+// @object PyIScheduledWorkItem|Python object that encapsulates the IScheduledWorkItem interface
 static struct PyMethodDef PyIScheduledWorkItem_methods[] =
 {
 	{ "CreateTrigger", PyIScheduledWorkItem::CreateTrigger, 1 }, // @pymeth CreateTrigger|Creates a new trigger for a task, returns index and new ITaskTrigger interface

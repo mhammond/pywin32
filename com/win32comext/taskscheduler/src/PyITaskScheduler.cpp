@@ -149,7 +149,7 @@ PyObject *PyITaskScheduler::Activate(PyObject *self, PyObject *args)
 	if ( pITS == NULL )
 		return NULL;
 	// @pyparm <o unicode>|Name||Name of task to retreive
-	// @pyparm <o PyIID>|riid||IID to return, currently only IID_ITask accepted
+	// @pyparm <o PyIID>|riid|IID_ITask|IID to return, currently only IID_ITask accepted
 	PyObject *obtask_name=NULL, *obriid=NULL;
 	LPWSTR task_name;
 	IID riid=IID_ITask;
@@ -207,8 +207,8 @@ PyObject *PyITaskScheduler::NewWorkItem(PyObject *self, PyObject *args)
 	if ( pITS == NULL )
 		return NULL;
 	// @pyparm <o unicode>|TaskName||Name of new task
-	// @pyparm <o PyIID>|rclsid||Class id of work item, currently only CLSID_CTask (defaults if not passed in)
-	// @pyparm <o PyIID>|riid||Interface IID to return, currently only IID_ITask (defaults if not passed in)
+	// @pyparm <o PyIID>|rclsid|CLSID_CTask|Class id of work item, currently only CLSID_CTask (defaults if not passed in)
+	// @pyparm <o PyIID>|riid|IID_ITask|Interface IID to return, currently only IID_ITask (defaults if not passed in)
 	PyObject *obTaskName=NULL;
 	PyObject *obrclsid=NULL;
 	PyObject *obriid=NULL;
@@ -238,7 +238,7 @@ PyObject *PyITaskScheduler::NewWorkItem(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(pUnk, riid, FALSE);
 }
 
-// @pymethod <o PyUnicode>,<o PyITask>|PyITaskScheduler|AddWorkItem|Create a new scheduled task from PyITask object
+// @pymethod |PyITaskScheduler|AddWorkItem|Create a new scheduled task from PyITask object
 // @comm The PyItask passed in is modified in place and on success is associated with the new task, not the old one
 PyObject *PyITaskScheduler::AddWorkItem(PyObject *self, PyObject *args)
 {
