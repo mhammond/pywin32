@@ -224,15 +224,74 @@ PYCOM_EXPORT void PyCom_CoUninitialize();
 ///////////////////////////////////////////////////////////////////
 // Error related functions
 
-PYCOM_EXPORT void GetScodeString(SCODE sc, TCHAR *buf, int bufSize);
-PYCOM_EXPORT LPCSTR GetScodeRangeString(SCODE sc);
-PYCOM_EXPORT LPCSTR GetSeverityString(SCODE sc);
-PYCOM_EXPORT LPCSTR GetFacilityString(SCODE sc);
-PYCOM_EXPORT PyObject *OleSetExtendedOleError(HRESULT hr, IUnknown *pUnk, REFIID iid);
-PYCOM_EXPORT PyObject* OleSetOleError(SCODE sc, EXCEPINFO *einfo = NULL, UINT nArgErr = -1);
-PYCOM_EXPORT PyObject* OleSetError(char *msg);
-PYCOM_EXPORT PyObject* OleSetTypeError(char *msg);
-PYCOM_EXPORT PyObject* OleSetMemoryError(char *doingWhat);
+// Client related functions - generally called by interfaces before
+// they return NULL back to Python to indicate the error.
+// All these functions return NULL so interfaces can generally
+// just "return PyCom_BuildPyException(hr, punk, IID_IWhatever)"
+
+// Uses the HRESULT, and IErrorInfo interfaces if available to
+// create and set a pythoncom.com_error.
+PYCOM_EXPORT PyObject *PyCom_BuildPyException(HRESULT hr, IUnknown *pUnk=NULL, REFIID iid=IID_NULL);
+
+// Uses the HRESULT and an EXCEPINFO structure to create and
+// set a pythoncom.com_error.
+PYCOM_EXPORT PyObject* PyCom_BuildPyExceptionFromEXCEPINFO(HRESULT hr, EXCEPINFO *pexcepInfo, UINT nArgErr = -1);
+
+// Sets a pythoncom.internal_error - no one should ever see these!
+PYCOM_EXPORT PyObject* PyCom_BuildInternalPyException(char *msg);
+
+// The old names, for b/w compat - but we have purged it
+// from the COM core, so we may as well remove it completely from the core :-)
+#ifndef BUILD_PYTHONCOM
+	#define OleSetOleError PyCom_BuildPyException
+#endif
+
+// Server related error functions
+// These are supplied so that any Python errors we detect can be
+// converted into COM error information.  The HRESULT returned should
+// be returned by the COM function, and these functions also set the
+// IErrorInfo interfaces, so the caller can extract more detailed
+// information about the Python exception.
+
+// Used in gateways to SetErrorInfo() with a simple HRESULT, then return it.
+// The description is generally only useful for debugging purposes,
+// and if you are debugging via a server that supports IErrorInfo (like Python :-)
+// NOTE: this function is usuable from outside the Python context
+PYCOM_EXPORT HRESULT PyCom_SetCOMErrorFromSimple(HRESULT hr, REFIID riid = IID_NULL, const char *description = NULL);
+
+// Used in gateways to SetErrorInfo() the current Python exception
+// NOTE: this function assumes it is operating within the Python context
+PYCOM_EXPORT HRESULT PyCom_SetCOMErrorFromPyException(REFIID riid = IID_NULL);
+
+// A couple of EXCEPINFO helpers - could be private to IDispatch
+// if it wasnt for the AXScript support (and ITypeInfo if we get around to that :-)
+// These functions do not set any error states to either Python or
+// COM - they simply convert to/from PyObjects and EXCEPINFOs
+
+// Use the current Python exception to fill an EXCEPINFO structure.
+PYCOM_EXPORT void PyCom_ExcepInfoFromPyException(EXCEPINFO *pExcepInfo);
+
+// Fill in an EXCEPINFO structure from a Python instance or tuple object.
+// (ie, similar to the above, except the Python exception object is specified,
+// rather than using the "current"
+PYCOM_EXPORT BOOL PyCom_ExcepInfoFromPyObject(PyObject *obExcepInfo, EXCEPINFO *pexcepInfo, HRESULT *phresult = NULL);
+
+// Create a Python object holding the exception information.  The exception
+// information is *not* freed by this function.  Python exceptions are
+// raised and NULL is returned if an error occurs.
+PYCOM_EXPORT PyObject *PyCom_PyObjectFromExcepInfo(const EXCEPINFO *pexcepInfo);
+
+// Used by gateways to SetErrorInfo() from the data contained in an EXCEPINFO
+// structure.  Mainly used internally, but handy for functions that have special
+// error requirements (particularly those with IDispatch::Invoke() semantics - 
+// ie, you have an EXCEPINFO structure, but it turns out you can't return it
+// as the HRESULT will not be DISP_E_EXCEPTION - therefore you can make the
+// EXCEPINFO data available via SetErrorInfo() just incase the client can use it
+PYCOM_EXPORT BOOL PyCom_SetCOMErrorFromExcepInfo(const EXCEPINFO *pexcepinfo, REFIID riid);
+
+// Free the strings etc in an EXCEPINFO
+PYCOM_EXPORT void PyCom_CleanupExcepInfo(EXCEPINFO *pexcepinfo);
+
 
 ///////////////////////////////////////////////////////////////////
 //
@@ -257,33 +316,6 @@ PYCOM_EXPORT PyObject* OleSetMemoryError(char *doingWhat);
 PYCOM_EXPORT BOOL PyCom_MakeOlePythonCall(PyObject *handler, DISPPARAMS FAR* params, VARIANT FAR* pVarResult,
 	EXCEPINFO FAR* pexcepinfo, UINT FAR* puArgErr, PyObject *addnlArgs);
 
-// If a Python exception occurs call this to do get an HRESULT and to
-// optionally fill in an EXCEPINFO structure. If no Python exception has
-// occurred, then S_OK is returned (and the EXCEPINFO is zeroed).
-// Otherwise, the function will look at the Python exception to try to
-// find an HRESULT and to try to fill in the EXCEPINFO.
-PYCOM_EXPORT HRESULT PyCom_HandlePythonFailureToCOM(EXCEPINFO *pExcepInfo = NULL);
-
-// Create a Python object holding the exception information.  The exception
-// information is *not* freed by this function.  Python exceptions are
-// raised and NULL is returned if an error occurs.
-PYCOM_EXPORT PyObject *PyCom_PyObjectFromExcepInfo(const EXCEPINFO *pexcepInfo);
-
-// Fill in an EXCEPINFO structure from a Python instance or tuple object.
-PYCOM_EXPORT BOOL PyCom_ExcepInfoFromPyObject(PyObject *obExcepInfo, EXCEPINFO *pexcepInfo, HRESULT *phresult = NULL);
-
-// Used by sophisticated gateways to SetErrorInfo() full error information.
-// NOTE: this function is usuable from outside the Python context
-PYCOM_EXPORT HRESULT PyCom_SetFromExcepInfo(const EXCEPINFO *pexcepinfo, REFIID riid = IID_NULL);
-
-// Used in gateways to SetErrorInfo() with a simple HRESULT, then return it.
-// NOTE: this function is usuable from outside the Python context
-PYCOM_EXPORT HRESULT PyCom_SetFromSimple(HRESULT hr, REFIID riid = IID_NULL);
-
-// Used in gateways to SetErrorInfo() the current Python exception
-// NOTE: this function assumes it is operating within the Python context
-PYCOM_EXPORT HRESULT PyCom_SetFromPyException(REFIID riid = IID_NULL);
-
 /////////////////////////////////////////////////////////////////////////////
 // class PyOleEmpty
 class PYCOM_EXPORT PyOleEmpty : public PyObject
@@ -303,7 +335,7 @@ public:
 #define MAKE_PYCOM_CTOR(classname) static PyIUnknown * classname::PyObConstruct(IUnknown *pInitObj) {return new classname(pInitObj);}
 #define MAKE_PYCOM_CTOR_ERRORINFO(classname, iid) \
          static PyIUnknown * classname::PyObConstruct(IUnknown *pInitObj) {return new classname(pInitObj);} \
-		 static PyObject *SetPythonCOMError(PyObject *self, HRESULT hr) {return OleSetExtendedOleError(hr, GetI(self), iid);}
+		 static PyObject *SetPythonCOMError(PyObject *self, HRESULT hr) {return PyCom_BuildPyException(hr, GetI(self), iid);}
 #define GET_PYCOM_CTOR(classname) classname::PyObConstruct
 
 // Macros that interfaces should use.  PY_INTERFACE_METHOD at the top of the method
