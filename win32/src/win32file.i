@@ -9,6 +9,7 @@
 //#define FAR
 #include "winsock2.h"
 #include "mswsock.h"
+#include "assert.h"
 #endif
 
 %}
@@ -894,9 +895,10 @@ MyUnlockFileEx(PyObject *self, PyObject *args)
 
 #ifndef MS_WINCE
 %{
-// @pyswig (int, int, <o PyOVERLAPPED>)|GetQueuedCompletionStatus|Attempts to dequeue an I/O completion packet from a specified input/output completion port.
+// @pyswig (int, int, int, <o PyOVERLAPPED>)|GetQueuedCompletionStatus|Attempts to dequeue an I/O completion packet from a specified input/output completion port.
 // @comm This method never throws an API error.
 // <nl>The result is a tuple of (rc, numberOfBytesTransferred, completionKey, overlapped)
+// <nl>If the function succeeds, rc will be set to 1, otherwise it will be set to the win32 error code.
 static PyObject *myGetQueuedCompletionStatus(PyObject *self, PyObject *args)
 {
 	PyObject *obHandle;
@@ -2038,6 +2040,206 @@ static PyObject *MyWaitCommEvent(PyObject *self, PyObject *args)
 }
 %}
 %native (WaitCommEvent) MyWaitCommEvent;
+
+// Some Win2k specific volume mounting functions, thanks to Roger Upole
+%{
+
+static BOOL (*pfnGetVolumeNameForVolumeMountPointW)(LPCWSTR, LPCWSTR, DWORD) = NULL;
+static BOOL (*pfnSetVolumeMountPointW)(LPCWSTR, LPCWSTR) = NULL;
+static BOOL (*pfnDeleteVolumeMountPointW)(LPCWSTR) = NULL;
+static BOOL (*pfnCreateHardLinkW)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES ) = NULL;
+
+#define VOLUME_POINTERS_NON_NULL \
+            (pfnGetVolumeNameForVolumeMountPointW != NULL && \
+            pfnSetVolumeMountPointW != NULL && \
+            pfnDeleteVolumeMountPointW != NULL && \
+            pfnCreateHardLinkW != NULL)
+
+static BOOL _CheckVolumePfns()
+{
+    // Do a LoadLibrary for the function pointers, as these are
+    // win2k specific.
+    if (!VOLUME_POINTERS_NON_NULL) {
+
+        HMODULE hMod = GetModuleHandle("kernel32.dll");
+        if (hMod==0) {
+            PyWin_SetAPIError("GetModuleHandle", E_HANDLE);
+            return FALSE;
+        }
+
+        FARPROC fp = GetProcAddress(hMod, "GetVolumeNameForVolumeMountPointW");
+        if (fp) pfnGetVolumeNameForVolumeMountPointW = (BOOL (*)(LPCWSTR, LPCWSTR, DWORD))(fp);
+
+        fp = GetProcAddress(hMod, "SetVolumeMountPointW");
+        if (fp) pfnSetVolumeMountPointW = (BOOL (*)(LPCWSTR, LPCWSTR))(fp);
+
+        fp = GetProcAddress(hMod, "DeleteVolumeMountPointW");
+        if (fp) pfnDeleteVolumeMountPointW = (BOOL (*)(LPCWSTR))(fp);
+
+        fp = GetProcAddress(hMod, "CreateHardLinkW");
+        if (fp) pfnCreateHardLinkW = (BOOL (*)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES))(fp);
+
+    }
+    return VOLUME_POINTERS_NON_NULL;
+}
+
+// @pyswig <o PyUnicode>|SetVolumeMountPoint|Mounts the specified volume at the specified volume mount point.
+static PyObject*
+py_SetVolumeMountPoint(PyObject *self, PyObject *args)
+{
+    // @ex Usage|SetVolumeMountPoint('h:\tmp\','c:\')
+    // @pyparm string|mountPoint||The mount point - must be an existing empty directory on an NTFS volume
+    // @pyparm string|volumeName||The volume to mount there 
+    // @comm Note that both parameters must have trailing backslashes.
+    // @rdesc The result is the GUID of the volume mounted, as a string.
+    // @comm This method exists only on Windows 2000.If there
+    // is an attempt to use it on these platforms, an error with E_NOTIMPL will be raised.
+    PyObject *ret=NULL;
+    PyObject *volume_obj = NULL, *mount_point_obj = NULL;
+    // LPWSTR volume = NULL, mount_point = NULL;
+
+    WCHAR *volume = NULL;
+    WCHAR *mount_point = NULL;
+    WCHAR volume_name[50];
+
+    if (!_CheckVolumePfns())
+        return NULL;
+    if (!PyArg_ParseTuple(args,"OO", &mount_point_obj, &volume_obj))
+        return NULL;
+
+    if (!PyWinObject_AsWCHAR(mount_point_obj, &mount_point, false)){
+        PyErr_SetString(PyExc_TypeError,"Mount point must be string or unicode");
+        goto cleanup;
+    }
+
+    if (!PyWinObject_AsWCHAR(volume_obj, &volume, false)){
+        PyErr_SetString(PyExc_TypeError,"Volume name must be string or unicode");
+        goto cleanup;
+    }
+
+    assert(pfnGetVolumeNameForVolumeMountPointW);
+    if (!(*pfnGetVolumeNameForVolumeMountPointW)(volume,volume_name,sizeof(volume_name)/sizeof(volume_name[0]))){
+        PyWin_SetAPIError("GetVolumeNameForVolumeMountPoint");
+        goto cleanup;
+    }
+    assert(pfnSetVolumeMountPointW);
+    if (!(*pfnSetVolumeMountPointW)(mount_point, volume_name)){
+        PyWin_SetAPIError("SetVolumeMountPoint");
+        goto cleanup;
+    }
+    ret=PyWinObject_FromWCHAR(volume_name);
+cleanup:
+    PyWinObject_FreeWCHAR(volume);
+    PyWinObject_FreeWCHAR(mount_point);
+
+    return ret;
+}
+
+
+// @pyswig |DeleteVolumeMountPoint|Unmounts the volume from the specified volume mount point.
+static PyObject*
+py_DeleteVolumeMountPoint(PyObject *self, PyObject *args)
+{
+    // @ex Usage|DeleteVolumeMountPoint('h:\tmp\')
+    // @pyparm string|mountPoint||The mount point to delete - must have a trailing backslash.
+    // @comm Throws an error if it is not a valid mount point, returns None on success.
+    // <nl>Use carefully - will remove drive letter assignment if no directory specified
+    // @comm This method exists only on Windows 2000.If there
+    // is an attempt to use it on these platforms, an error with E_NOTIMPL will be raised.
+
+    PyObject *ret=NULL;
+    PyObject *mount_point_obj = NULL;
+    WCHAR *mount_point = NULL;
+
+    if (!_CheckVolumePfns())
+        return NULL;
+
+    if (!PyArg_ParseTuple(args,"O", &mount_point_obj))
+        return NULL;
+
+    if (!PyWinObject_AsWCHAR(mount_point_obj, &mount_point, false)){
+        PyErr_SetString(PyExc_TypeError,"Mount point must be string or unicode");
+        goto cleanup;
+    }
+
+    assert(pfnDeleteVolumeMountPointW);
+    if (!(*pfnDeleteVolumeMountPointW)(mount_point)){
+        PyWin_SetAPIError("DeleteVolumeMountPoint");
+    }
+    else
+        ret=Py_None;
+    PyWinObject_FreeWCHAR(mount_point);
+
+    cleanup:
+    Py_XINCREF(ret);
+    return ret;
+}
+
+// @pyswig |CreateHardLink|Establishes an NTFS hard link between an existing file and a new file.
+static PyObject*
+py_CreateHardLink(PyObject *self, PyObject *args)
+{
+    // @comm  An NTFS hard link is similar to a POSIX hard link.
+    // <nl>This function reates a second directory entry for an existing file, can be different name in
+    // same directory or any name in a different directory.
+    // Both file paths must be on the same NTFS volume.<nl>To remove the link, simply delete 
+    // it and the original file will still remain.
+    // @ex Usage|CreateHardLink('h:\dir\newfilename.txt','h:\otherdir\existingfile.txt')
+    // @pyparm string|fileName||The name of the new directory entry to be created.
+    // @pyparm string|existingName||The name of the existing file to which the new link will point.
+    // @pyparm <o PySECURITY_ATTRIBUTES>|security||a SECURITY_ATTRIBUTES structure that specifies a security descriptor for the new file.
+    // If this parameter is None, it leaves the file's existing security descriptor unmodified. 
+    // If this parameter is not None, it modifies the file's security descriptor. 
+    // @comm This method exists only on Windows 2000.If there
+    // is an attempt to use it on these platforms, an error with E_NOTIMPL will be raised.
+
+    PyObject *ret=NULL;
+    PyObject *new_file_obj;
+    PyObject *existing_file_obj;
+    PyObject *sa_obj = Py_None;
+    WCHAR *new_file = NULL;
+    WCHAR *existing_file = NULL;
+    SECURITY_ATTRIBUTES *sa;
+
+    if (!_CheckVolumePfns())
+        return NULL;
+
+    if (!PyArg_ParseTuple(args,"OO|O", &new_file_obj, &existing_file_obj, &sa_obj))
+        return NULL;
+
+    if (!PyWinObject_AsWCHAR(new_file_obj, &new_file, false)){
+        PyErr_SetString(PyExc_TypeError,"New file name must be string or unicode");
+        goto cleanup;
+    }
+
+    if (!PyWinObject_AsWCHAR(existing_file_obj, &existing_file, false)){
+        PyErr_SetString(PyExc_TypeError,"Existing file name must be string or unicode");
+        goto cleanup;
+    }
+
+    if (!PyWinObject_AsSECURITY_ATTRIBUTES(sa_obj, &sa, true)){
+        PyErr_SetString(PyExc_TypeError,"3rd param must be a SECURITY_ATTRIBUTES, or None");
+        goto cleanup;
+    }
+
+    assert(pfnCreateHardLinkW);
+    if (!(*pfnCreateHardLinkW)(new_file, existing_file, NULL)){
+        PyWin_SetAPIError("CreateHardLink");
+        goto cleanup;
+    }
+    ret=Py_None;
+    Py_INCREF(Py_None);
+cleanup:
+    PyWinObject_FreeWCHAR(new_file);
+    PyWinObject_FreeWCHAR(existing_file);
+    return ret;
+}
+
+%}
+%native (SetVolumeMountPoint) py_SetVolumeMountPoint;
+%native (DeleteVolumeMountPoint) py_DeleteVolumeMountPoint;
+%native (CreateHardLink) py_CreateHardLink;
+// end of win2k volume mount functions.
 
 #define EV_BREAK EV_BREAK // A break was detected on input. 
 #define EV_CTS EV_CTS // The CTS (clear-to-send) signal changed state. 
