@@ -129,8 +129,9 @@ def InstallService(pythonClassString, serviceName, displayName, startType = None
 	# Handle the default arguments.
 	if startType is None:
 		startType = win32service.SERVICE_DEMAND_START
-		if bRunInteractive:
-			startType = startType | win32service.SERVICE_INTERACTIVE_PROCESS
+	serviceType = win32service.SERVICE_WIN32_OWN_PROCESS
+	if bRunInteractive:
+		serviceType = serviceType | win32service.SERVICE_INTERACTIVE_PROCESS
 	if errorControl is None:
 		errorControl = win32service.SERVICE_ERROR_NORMAL
 
@@ -141,7 +142,7 @@ def InstallService(pythonClassString, serviceName, displayName, startType = None
 					serviceName,
 					displayName,
 					win32service.SERVICE_ALL_ACCESS,         # desired access
-		            win32service.SERVICE_WIN32_OWN_PROCESS,  # service type
+		            serviceType,        # service type
 		            startType,
 		            errorControl,       # error control type
 		            exeName,
@@ -158,7 +159,7 @@ def InstallService(pythonClassString, serviceName, displayName, startType = None
 	if perfMonIni is not None:
 		InstallPerfmonForService(serviceName, perfMonIni, perfMonDll)
 
-def ChangeServiceConfig(pythonClassString, serviceName, startType = None, errorControl = None, serviceDeps = None, userName = None, password = None, exeName = None, displayName = None, perfMonIni = None, perfMonDll = None):
+def ChangeServiceConfig(pythonClassString, serviceName, startType = None, errorControl = None, bRunInteractive = 0, serviceDeps = None, userName = None, password = None, exeName = None, displayName = None, perfMonIni = None, perfMonDll = None):
 	# Before doing anything, remove any perfmon counters.
 	try:
 		import perfmon
@@ -174,12 +175,15 @@ def ChangeServiceConfig(pythonClassString, serviceName, startType = None, errorC
 	if errorControl is None: errorControl = win32service.SERVICE_NO_CHANGE
 
 	hscm = win32service.OpenSCManager(None,None,win32service.SC_MANAGER_ALL_ACCESS)
+	serviceType = win32service.SERVICE_WIN32_OWN_PROCESS
+	if bRunInteractive:
+		serviceType = serviceType | win32service.SERVICE_INTERACTIVE_PROCESS
 	try:
 		hs = SmartOpenService(hscm, serviceName, win32service.SERVICE_ALL_ACCESS)
 		try:
 
 			win32service.ChangeServiceConfig(hs,
-		            win32service.SERVICE_NO_CHANGE,  # service type
+		            serviceType,  # service type
 		            startType,
 		            errorControl,       # error control type
 		            exeName,
@@ -413,6 +417,7 @@ def usage():
 	print " --username domain\username : The Username the service is to run under"
 	print " --password password : The password for the username"
 	print " --startup [manual|auto|disabled] : How the service starts, default = manual"
+	print " --interactive : Allow the service to interactive with the desktop."
 	sys.exit(1)
 
 def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstallOptions = "", customOptionHandler = None):
@@ -462,7 +467,7 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
 		# Pull apart the command line
 		import getopt
 		try:
-			opts, args = getopt.getopt(argv[1:], customInstallOptions,["password=","username=","startup=","perfmonini=", "perfmondll="])
+			opts, args = getopt.getopt(argv[1:], customInstallOptions,["password=","username=","startup=","perfmonini=", "perfmondll=", "interactive"])
 		except getopt.error, details:
 			print details
 			usage()
@@ -470,6 +475,7 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
 		password = None
 		perfMonIni = perfMonDll = None
 		startup = None
+		interactive = None
 		for opt, val in opts:
 			if opt=='--username':
 				userName = val
@@ -479,6 +485,8 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
 				perfMonIni = val
 			elif opt=='--perfmondll':
 				perfMonDll = val
+			elif opt=='--interactive':
+				interactive = 1
 			elif opt=='--startup':
 				map = {"manual": win32service.SERVICE_DEMAND_START, "auto" : win32service.SERVICE_AUTO_START, "disabled": win32service.SERVICE_DISABLED}
 				try:
@@ -505,7 +513,7 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
 			# but is unlikely to work, as the Python code controlling it failed.  Therefore
 			# we remove the service if the first bit works, but the second doesnt!
 			try:
-				InstallService(serviceClassString, serviceName, serviceDisplayName, serviceDeps = serviceDeps, startType=startup, userName=userName,password=password, exeName=exeName, perfMonIni=perfMonIni,perfMonDll=perfMonDll)
+				InstallService(serviceClassString, serviceName, serviceDisplayName, serviceDeps = serviceDeps, startType=startup, bRunInteractive=interactive, userName=userName,password=password, exeName=exeName, perfMonIni=perfMonIni,perfMonDll=perfMonDll)
 				if customOptionHandler:
 					apply( customOptionHandler, (opts,) )
 				print "Service installed"
@@ -540,7 +548,7 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
 				exeName = None # Default to PythonService.exe
 			print "Changing service configuration"
 			try:
-				ChangeServiceConfig(serviceClassString, serviceName, serviceDeps = serviceDeps, startType=startup, userName=userName,password=password, exeName=exeName, displayName = serviceDisplayName, perfMonIni=perfMonIni,perfMonDll=perfMonDll)
+				ChangeServiceConfig(serviceClassString, serviceName, serviceDeps = serviceDeps, startType=startup, bRunInteractive=interactive, userName=userName,password=password, exeName=exeName, displayName = serviceDisplayName, perfMonIni=perfMonIni,perfMonDll=perfMonDll)
 				print "Service updated"
 			except win32service.error, (hr, fn, msg):
 				print "Error changing service configuration: %s (%d)" % (msg,hr)
