@@ -49,9 +49,21 @@ generates Windows .hlp files.
 extern CPrintDialog *GetPrintDialog(PyObject *self);
 
 // this returns a pointer that should not be stored.
+void *ui_prinfo_object::GetGoodCppObject(ui_type *ui_type_check) const
+{
+  CPrintInfo *pPrInfo = (CPrintInfo *)
+    ui_assoc_object::GetGoodCppObject(ui_type_check);
+  if (pPrInfo==NULL) {
+    PyErr_Clear();
+    RETURN_NONE;
+  }
+  return pPrInfo;
+}
+
+// this returns a pointer that should not be stored.
 CPrintInfo *ui_prinfo_object::GetPrintInfo(PyObject *self)
 {
-  return (CPrintInfo *)GetGoodCppObject( self, &type);
+  return (CPrintInfo *)ui_assoc_object::GetGoodCppObject( self, &type);
 }
 
 void ui_prinfo_object::SetAssocInvalid()
@@ -155,12 +167,11 @@ static PyObject *ui_set_print_dialog(PyObject * self, PyObject * args)
   CPrintInfo *pInfo = ui_prinfo_object::GetPrintInfo(self);
   if (!pInfo)
     return NULL;
-  // Dont use GetPrintDlg so we can convert the pyDlg from 
-  // possibly an instance to the PyCPrintDialog.
-  CPrintDialog *pDlg = (CPrintDialog *)ui_assoc_object::GetGoodCppObject(pyDlg, &PyCPrintDialog::type);
+  CPrintDialog *pDlg = GetPrintDialog(pyDlg);
   if (!pDlg)
     return NULL;
-  
+  // Convert the pyDlg from possibly an instance to the PyCPrintDialog.
+  ui_assoc_object::GetGoodCppObject(pyDlg, &PyCPrintDialog::type);
   PyCPrintDialog *pyPrintDialog = (PyCPrintDialog *)pyDlg;
 
   delete pInfo->m_pPD;
@@ -171,6 +182,7 @@ static PyObject *ui_set_print_dialog(PyObject * self, PyObject * args)
   pInfo->m_pPD->m_pd.lpPrintTemplateName = MAKEINTRESOURCE(PRINTDLGORD);
   pInfo->m_pPD->m_pd.Flags |= PD_ENABLEPRINTTEMPLATE;
   pInfo->m_pPD->m_pd.Flags |= PD_PAGENUMS;
+  pInfo->m_pPD->m_pd.hDC = NULL;
   RETURN_NONE;
 }
 

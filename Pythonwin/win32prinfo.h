@@ -5,6 +5,8 @@ protected:
   ~ui_prinfo_object();
   virtual void SetAssocInvalid();
   virtual void DoKillAssoc( BOOL bDestructing = FALSE );
+  virtual void *GetGoodCppObject(ui_type *ui_type_check=NULL) const;
+
 public:
   static ui_type type;
   MAKE_PY_CTOR(ui_prinfo_object)
