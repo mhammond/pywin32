@@ -1,4 +1,4 @@
-build_number=201
+build_number=202
 """distutils setup-script for win32all
 
 To build the win32all extensions, simply execute:
@@ -967,7 +967,7 @@ dist = setup(name="pywin32",
                 },
 
       scripts = ["pywin32_postinstall.py"],
-      
+
       ext_modules = win32_extensions + com_extensions + pythonwin_extensions,
 
       package_dir = {"win32com": "com/win32com",
