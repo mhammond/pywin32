@@ -292,31 +292,80 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
     return ReturnAPIError("GetClipboardData");
   }
 
-  HGLOBAL cData;
-  cData = GlobalLock(handle);
-  if (!cData) {
-    GlobalUnlock(handle);
-    return ReturnAPIError("GetClipboardData:GlobalLock");
-  }
-  DWORD size = GlobalSize(cData);
-  if (!size) {
-    GlobalUnlock(handle);
-    return ReturnAPIError("GetClipboardData:GlobalSize");
+  void * cData;
+  DWORD size;
+  switch (format) {
+    case CF_ENHMETAFILE:
+      size = GetEnhMetaFileBits((HENHMETAFILE)handle, 0, NULL);
+      if (!size)
+        return ReturnAPIError("GetClipboardData:GetEnhMetafileBits(NULL)");
+      // allocate a temporary buffer for enhanced metafile
+      cData = malloc(size);
+      if (cData == NULL)
+        return ReturnAPIError("GetClipboardData:malloc");
+      // copy enhanced metafile into the temporary buffer
+      if (0 == GetEnhMetaFileBits((HENHMETAFILE)handle, size, (LPBYTE)cData)) {
+        free(cData);
+        return ReturnAPIError("GetClipboardData:GetEnhMetafileBits");
+      }
+      break;
+    case CF_METAFILEPICT:
+      size = GetMetaFileBitsEx((HMETAFILE)handle, 0, NULL);
+      if (!size)
+        return ReturnAPIError("GetClipboardData:GetMetafileBitsEx(NULL)");
+      // allocate a temporary buffer for metafile
+      cData = malloc(size);
+      if (cData == NULL)
+        return ReturnAPIError("GetClipboardData:malloc");
+      // copy metafile into the temporary buffer
+      if (0 == GetMetaFileBitsEx((HMETAFILE)handle, size, cData)) {
+        free(cData);
+        return ReturnAPIError("GetClipboardData:GetMetafileBitsEx");
+      }
+      break;
+    case CF_BITMAP:
+      PyErr_SetString(PyExc_NotImplementedError, "GetClipboardData(CF_BITMAP) unimplemented");
+      return NULL;
+      break;
+    case CF_DIB:
+      PyErr_SetString(PyExc_NotImplementedError, "GetClipboardData(CF_DIB) unimplemented");
+      break;
+    default:
+      cData = GlobalLock(handle);
+      if (!cData) {
+        GlobalUnlock(handle);
+        return ReturnAPIError("GetClipboardData:GlobalLock");
+      }
+      size  = GlobalSize(cData);
+      if (!size) {
+        GlobalUnlock(handle);
+        return ReturnAPIError("GetClipboardData:GlobalSize");
+      }
+      break;
   }
   switch (format) {
     case CF_UNICODETEXT:
       ret = PyWinObject_FromWCHAR((wchar_t *)cData, (size / sizeof(wchar_t))-1);
+      GlobalUnlock(handle);
       break;
     // For the text formats, strip the null!
     case CF_TEXT:
     case CF_OEMTEXT:
       ret = PyString_FromStringAndSize((char *)cData, size-1);
+      GlobalUnlock(handle);
+      break;
+    case CF_ENHMETAFILE:
+    case CF_METAFILEPICT:
+    case CF_BITMAP:
+    case CF_DIB:
+      ret = PyString_FromStringAndSize((char *)cData, size);
+      free(cData);
       break;
     default:
       ret = PyString_FromStringAndSize((char *)cData, size);
+      GlobalUnlock(handle);
       break;
   }
-  GlobalUnlock(handle);
   return ret;
 
   // @comm An application can enumerate the available formats in advance by
