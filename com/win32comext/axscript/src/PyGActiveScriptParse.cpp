@@ -82,6 +82,7 @@ STDMETHODIMP PyGActiveScriptParse::ParseScriptText(
 											ulStartingLineNumber,
 											dwFlags,
 											bWantResult);
+	Py_DECREF(context);
 	if (FAILED(hr)) return hr;
 	if (pvarResult) {
 		if (!PyCom_VariantFromPyObject(result, pvarResult)) {
@@ -89,5 +90,6 @@ STDMETHODIMP PyGActiveScriptParse::ParseScriptText(
 			hr = DISP_E_EXCEPTION;
 		}
 	}
+	Py_DECREF(result);
 	return hr;
 }
