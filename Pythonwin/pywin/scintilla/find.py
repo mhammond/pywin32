@@ -273,9 +273,9 @@ class ReplaceDialog(FindReplaceDialog):
 	def OnReplaceAll(self, id, code):
 		control = _GetControl(None)
 		control.SetSel(0)
+		num = 0
 		if self.DoFindNext() == FOUND_NORMAL:
 			lastSearch.replaceText = self.editReplaceText.GetWindowText()
-			num = 0
 			while _ReplaceIt(control) == FOUND_NORMAL:
 				num = num + 1
 
