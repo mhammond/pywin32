@@ -118,3 +118,23 @@ public:
 	int wVarFlags;
 	int varkind;
 };
+
+class PYCOM_EXPORT PySTGMEDIUM : public PyObject
+{
+public:
+	PySTGMEDIUM(STGMEDIUM *pS = NULL);
+	virtual ~PySTGMEDIUM(void);
+
+	void DropOwnership(void);
+	void Close(void);
+	static void deallocFunc(PyObject *ob);
+	static PyObject *getattr(PyObject *self, char *name);
+	STGMEDIUM medium;
+#pragma warning( disable : 4251 )
+	static struct memberlist memberlist[];
+	static PyTypeObject Type;
+#pragma warning( default : 4251 )
+};
+
+PYCOM_EXPORT PySTGMEDIUM *PyObject_FromSTGMEDIUM(STGMEDIUM *desc = NULL);
+#define PySTGMEDIUM_Check(x) ((x)->ob_type==&PySTGMEDIUM::Type)

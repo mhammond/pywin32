@@ -45,6 +45,8 @@ generates Windows .hlp files.
 #include "PyIPropertyStorage.h"
 #include "PyIPropertySetStorage.h"
 #include "PyIEnumSTATPROPSTG.h"
+#include "PyIEnumFORMATETC.h"
+#include "PyIDataObject.h"
 
 //PyObject *CLSIDMapping;  // Maps CLSIDs onto PyClassObjects
 PyObject *g_obPyCom_MapIIDToType = NULL; // map of IID's to client types.
@@ -221,11 +223,13 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL       ( ConnectionPointContainer),
 	PYCOM_INTERFACE_CLIENT_ONLY( CreateTypeInfo),
 	PYCOM_INTERFACE_CLIENT_ONLY( CreateTypeLib),
+	PYCOM_INTERFACE_FULL       ( DataObject ),
 #ifndef NO_PYCOM_IENUMCATEGORYINFO
 	PYCOM_INTERFACE_CLIENT_ONLY( EnumCATEGORYINFO),
 #endif // NO_PYCOM_IENUMCATEGORYINFO
 	PYCOM_INTERFACE_FULL       ( EnumConnectionPoints),
 	PYCOM_INTERFACE_FULL       ( EnumConnections),
+	PYCOM_INTERFACE_FULL       ( EnumFORMATETC),
 #ifndef NO_PYCOM_IENUMGUID
 	PYCOM_INTERFACE_CLIENT_ONLY( EnumGUID),
 #endif // NO_PYCOM_IENUMGUID

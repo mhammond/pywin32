@@ -41,6 +41,8 @@ extern PyObject *pythoncom_WriteClassStg(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_ReadClassStg(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_GetRecordFromGuids(PyObject *self, PyObject *args);
 
+extern PyObject *Py_NewSTGMEDIUM(PyObject *self, PyObject *args);
+
 
 // Typelib related functions
 extern PyObject *pythoncom_loadtypelib(PyObject *self, PyObject *args);
@@ -1334,6 +1336,86 @@ done:
 	return ret;
 }
 
+// @pymeth <o PyIDataObject>|OleGetClipboard|Retrieves a data object that you can use to access the contents of the clipboard.
+static PyObject *pythoncom_OleGetClipboard(PyObject *, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":OleGetClipboard"))
+		return NULL;
+	IDataObject *pd = NULL;
+	HRESULT hr;
+	Py_BEGIN_ALLOW_THREADS
+	hr = ::OleGetClipboard(&pd);
+	Py_END_ALLOW_THREADS
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		return NULL;
+	}
+	return PyCom_PyObjectFromIUnknown(pd, IID_IDataObject, FALSE);
+}
+
+// @pymeth |OleSetClipboard|Places a pointer to a specific data object onto the clipboard. This makes the data object accessible to the OleGetClipboard function.
+static PyObject *pythoncom_OleSetClipboard(PyObject *, PyObject *args)
+{
+	PyObject *obd;
+	if (!PyArg_ParseTuple(args, "O:OleSetClipboard", &obd))
+		return NULL;
+	IDataObject *pd;
+	if (!PyCom_InterfaceFromPyObject(obd, IID_IDataObject, (void**)&pd, FALSE))
+		return NULL;
+	HRESULT hr;
+	Py_BEGIN_ALLOW_THREADS
+	hr = ::OleSetClipboard(pd);
+	Py_END_ALLOW_THREADS
+	pd->Release();
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		return NULL;
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymeth true/false|OleIsCurrentClipboard|Determines whether the data object pointer previously placed on the clipboard by the OleSetClipboard function is still on the clipboard.
+static PyObject *pythoncom_OleIsCurrentClipboard(PyObject *, PyObject *args)
+{
+	PyObject *obd;
+	if (!PyArg_ParseTuple(args, "O:OleIsCurrentClipboard", &obd))
+		return NULL;
+	IDataObject *pd;
+	if (!PyCom_InterfaceFromPyObject(obd, IID_IDataObject, (void**)&pd, FALSE))
+		return NULL;
+	HRESULT hr;
+	Py_BEGIN_ALLOW_THREADS
+	hr = ::OleIsCurrentClipboard(pd);
+	Py_END_ALLOW_THREADS
+	pd->Release();
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		return NULL;
+	}
+	PyObject *ret = hr==S_OK ? Py_True: Py_False;
+	Py_INCREF(ret);
+	return ret;
+}
+
+// @pymeth |OleFlushClipboard|Carries out the clipboard shutdown sequence. It also releases the IDataObject pointer that was placed on the clipboard by the <om pythoncom.OleSetClipboard> function.
+static PyObject *pythoncom_OleFlushClipboard(PyObject *, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":OleFlushClipboard"))
+		return NULL;
+
+	HRESULT hr;
+	Py_BEGIN_ALLOW_THREADS
+	hr = ::OleFlushClipboard();
+	Py_END_ALLOW_THREADS
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		return NULL;
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 
 
 /* List of module functions */
@@ -1394,6 +1476,10 @@ static struct PyMethodDef pythoncom_methods[]=
 #endif // MS_WINCE
 	{ "new",                 pythoncom_new, 1 },
 	{ "New",                 pythoncom_new, 1 },                 // @pymeth New|Create a new instance of an OLE automation server.
+	{ "OleGetClipboard",     pythoncom_OleGetClipboard, 1},      // @pymeth OleGetClipboard|Retrieves a data object that you can use to access the contents of the clipboard.
+	{ "OleFlushClipboard",   pythoncom_OleFlushClipboard, 1},   // @pymeth OleFlushClipboard|Carries out the clipboard shutdown sequence. It also releases the IDataObject pointer that was placed on the clipboard by the <om pythoncom.OleSetClipboard> function.
+	{ "OleIsCurrentClipboard",pythoncom_OleIsCurrentClipboard, 1}, // @pymeth OleIsCurrentClipboard|Determines whether the data object pointer previously placed on the clipboard by the OleSetClipboard function is still on the clipboard.
+	{ "OleSetClipboard",     pythoncom_OleSetClipboard, 1},      // @pymeth OleSetClipboard|Places a pointer to a specific data object onto the clipboard. This makes the data object accessible to the OleGetClipboard function.
 	{ "OleLoadFromStream",   pythoncom_OleLoadFromStream, 1},    // @pymeth OleLoadFromStream|Load an object from an IStream.
 	{ "OleSaveToStream",     pythoncom_OleSaveToStream, 1},      // @pymeth OleSaveToStream|Save an object to an IStream.
 	{ "OleLoadPicture",      pythoncom_OleLoadPicture, 1 },      // @pymeth OleLoadPicture|Creates a new picture object and initializes it from the contents of a stream.
@@ -1419,6 +1505,7 @@ static struct PyMethodDef pythoncom_methods[]=
 #ifndef MS_WINCE
 	{ "StgIsStorageFile",    pythoncom_StgIsStorageFile, 1 },       // @pymeth StgIsStorageFile|Indicates whether a particular disk file contains a storage object.
 #endif // MS_WINCE
+	{ "STGMEDIUM",           Py_NewSTGMEDIUM, 1}, // @pymeth STGMEDIUM|Creates a new <o PySTGMEDIUM> object suitable for the <o PyIDataObject> interface.
 	{ "StgOpenStorage",      pythoncom_StgOpenStorage, 1 },       // @pymeth StgOpenStorage|Opens an existing root storage object in the file system.
 	{ "TYPEATTR",            Py_NewTYPEATTR, 1}, // @pymeth TYPEATTR|Returns a new <o TYPEATTR> object.
 	{ "VARDESC",             Py_NewVARDESC, 1}, // @pymeth VARDESC|Returns a new <o VARDESC> object.
@@ -1555,6 +1642,18 @@ extern "C" __declspec(dllexport) void initpythoncom()
 	ADD_CONSTANT(COINIT_DISABLE_OLE1DDE);
 	ADD_CONSTANT(COINIT_SPEED_OVER_MEMORY);
 #endif
+	// CLIPBOARD
+	ADD_CONSTANT(DATADIR_GET);
+	ADD_CONSTANT(DATADIR_SET);
+	ADD_CONSTANT(TYMED_HGLOBAL);
+    ADD_CONSTANT(TYMED_FILE);
+    ADD_CONSTANT(TYMED_ISTREAM);
+    ADD_CONSTANT(TYMED_ISTORAGE);
+    ADD_CONSTANT(TYMED_GDI);
+    ADD_CONSTANT(TYMED_MFPICT);
+    ADD_CONSTANT(TYMED_ENHMF);
+    ADD_CONSTANT(TYMED_NULL);
+
 	// DISPATCH
 	ADD_CONSTANT(DISPATCH_PROPERTYGET);
 	ADD_CONSTANT(DISPATCH_PROPERTYPUT);
