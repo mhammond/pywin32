@@ -16,9 +16,9 @@ def BGR(b,g,r):		# Colors in font definitions are integers made up of Blue, Gree
     return b*256*256 + g*256 + r
 
 class ScintillaFormatPropertyPage(dialog.PropertyPage):
-	def __init__(self, scintillaClass = None):
+	def __init__(self, scintillaClass = None, caption = 0):
 		self.scintillaClass = scintillaClass
-		dialog.PropertyPage.__init__(self, win32ui.IDD_PP_FORMAT)
+		dialog.PropertyPage.__init__(self, win32ui.IDD_PP_FORMAT, caption=caption)
 
 	def OnInitDialog(self):
 		if self.scintillaClass is None:
