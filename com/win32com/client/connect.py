@@ -3,9 +3,10 @@ import win32com.server.util, pythoncom
 
 class SimpleConnection:
 	"A simple, single connection object"
-	def __init__(self, coInstance = None, eventInstance = None, eventCLSID = None):
+	def __init__(self, coInstance = None, eventInstance = None, eventCLSID = None, debug = 0):
 		self.cp = None
 		self.cookie = None
+		self.debug = debug
 		if not coInstance is None:
 			self.Connect(coInstance , eventInstance, eventCLSID)
 
@@ -17,7 +18,11 @@ class SimpleConnection:
 			pass
 
 	def _wrap(self, obj):
-		return win32com.server.util.wrap(obj)
+		useDispatcher = None
+		if self.debug:
+			from win32com.server import dispatcher
+			useDispatcher = dispatcher.DefaultDebugDispatcher
+		return win32com.server.util.wrap(obj, useDispatcher=useDispatcher)
 
 	def Connect(self, coInstance, eventInstance, eventCLSID = None):
 		try:
