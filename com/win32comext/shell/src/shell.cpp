@@ -466,12 +466,20 @@ extern "C" __declspec(dllexport) void initshell()
 	PyCom_RegisterExtensionSupport(dict, g_interfaceSupportData, sizeof(g_interfaceSupportData)/sizeof(PyCom_InterfaceSupportInfo));
 
 	ADD_CONSTANT(SLR_NO_UI);
+// Some of these are win2k only...
+//	ADD_CONSTANT(SLR_NOLINKINFO);
+//	ADD_CONSTANT(SLR_INVOKE_MSI);
     ADD_CONSTANT(SLR_ANY_MATCH);
     ADD_CONSTANT(SLR_UPDATE);
     ADD_CONSTANT(SLR_NOUPDATE);
+//	ADD_CONSTANT(SLR_NOSEARCH);
+//	ADD_CONSTANT(SLR_NOTRACK);
     ADD_CONSTANT(SLGP_SHORTPATH);
     ADD_CONSTANT(SLGP_UNCPRIORITY);
     ADD_CONSTANT(SLGP_RAWPATH);
-
+	ADD_CONSTANT(HOTKEYF_ALT);
+	ADD_CONSTANT(HOTKEYF_CONTROL);
+	ADD_CONSTANT(HOTKEYF_EXT);
+	ADD_CONSTANT(HOTKEYF_SHIFT);
 	ADD_IID(CLSID_ShellLink);
 }
