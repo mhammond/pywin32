@@ -1897,8 +1897,10 @@ int TranslateAccelerator(
 %{
 static PyObject *Unicode(PyObject *self, PyObject *args)
 {
-	PyErr_Warn(PyExc_PendingDeprecationWarning, "win32gui.Unicode will die!");
 	char *text;
+#if PY_VERSION_HEX > 0x2030300
+	PyErr_Warn(PyExc_PendingDeprecationWarning, "win32gui.Unicode will die!");
+#endif
 	if (!PyArg_ParseTuple(args, "s", &text))
 		return NULL;
 	return PyUnicodeObject_FromString(text);
