@@ -84,6 +84,12 @@ item: Delete File
   Pathname=%SYS32%\pythoncom.exe
 end
 item: Install File
+  Source=l:\src\pythonex\com\License.txt
+  Destination=%INSTDIR%\License.txt
+  Description=COM License
+  Flags=0000000000000010
+end
+item: Install File
   Source=l:\src\pythonex\WIN32COM.HLP
   Destination=%INSTDIR%\WIN32COM.HLP
   Description=COM Help File

@@ -18,9 +18,9 @@ item: Global
   Patch Memory=4000
 end
 item: Install File
-  Source=l:\src\pythonex\win32\win32.txt
-  Destination=%INSTDIR%\win32.txt
-  Description=Readme
+  Source=l:\src\pythonex\win32\License.txt
+  Destination=%INSTDIR%\License.txt
+  Description=win32 extension files
   Flags=0000000000000010
 end
 item: Install File

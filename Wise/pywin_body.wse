@@ -38,6 +38,12 @@ end
 item: Compiler Variable End
 end
 item: Install File
+  Source=l:\src\pythonex\pythonwin\License.txt
+  Destination=%INSTDIR%\License.txt
+  Description=Library files
+  Flags=0000000000000010
+end
+item: Install File
   Source=l:\src\pythonex\pythonwin\pywin\*.py
   Destination=%INSTDIR%\pywin
   Description=Library files
@@ -59,12 +65,6 @@ item: Install File
   Source=l:\src\pythonex\pythonwin\doc\*.*
   Destination=%INSTDIR%\doc
   Description=Documentation
-  Flags=0000000100000010
-end
-item: Install File
-  Source=l:\src\pythonex\pythonwin\pywin\debugger\doc\*.*
-  Destination=%INSTDIR%\pywin\debugger\doc
-  Description=Debugger Documentation
   Flags=0000000100000010
 end
 item: Install File
@@ -143,12 +143,6 @@ item: Install File
   Source=l:\src\pythonex\pythonwin\readme.html
   Destination=%INSTDIR%\readme.html
   Description=Help files
-  Flags=0000000000000010
-end
-item: Install File
-  Source=l:\src\pythonex\pythonwin\Pythonwin.txt
-  Destination=%INSTDIR%\Pythonwin.txt
-  Description=Pythonwin Readme
   Flags=0000000000000010
 end
 item: Add Text to INSTALL.LOG
