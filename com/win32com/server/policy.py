@@ -513,9 +513,9 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
           raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)	# not found
       else:
         try:
-            func = getattr(self._obj_, funcname)
+          func = getattr(self._obj_, funcname)
         except AttributeError:
-            # May have a dispid, but that doesnt mean we have the function!
+          # May have a dispid, but that doesnt mean we have the function!
           raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
         # Should check callable here
         return apply(func, args)
