@@ -1318,6 +1318,10 @@ done:
 %{
 static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 {
+	TOKEN_DEFAULT_DACL tdd;
+	TOKEN_OWNER towner;
+	TOKEN_PRIMARY_GROUP tpg;
+	DWORD sessionid=0;
 	PyObject *obth;
 	HANDLE th;
 	PyObject *obinfo;
@@ -1336,50 +1340,28 @@ static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 
 	switch (typ) {
 		case TokenOwner: {
-			PSID psid;
-			TOKEN_OWNER towner; 
-			if (!PyWinObject_AsSID(obinfo, &psid, FALSE))
+			if (!PyWinObject_AsSID(obinfo, &towner.Owner, FALSE))
 				return NULL;
-			if (!IsValidSid(psid)){
-				PyErr_SetString(PyExc_ValueError, "Invalid SID");
-				return NULL;
-				}
-			towner.Owner = psid;
 			buf = (void *)&towner;
-			if (!IsValidSid(towner.Owner)){
-				PyErr_SetString(PyExc_ValueError, "Invalid SID in tokenowner");
-				return NULL;
-				}
 			bufsize = sizeof(TOKEN_OWNER);
 			break;
 			}
 		case TokenPrimaryGroup: {
-			PSID psid;
-			TOKEN_PRIMARY_GROUP tpg;
-			if (!PyWinObject_AsSID(obinfo, &psid, FALSE))
+			if (!PyWinObject_AsSID(obinfo, &tpg.PrimaryGroup, FALSE))
 				return NULL;
-			if (!IsValidSid(psid)){
-				PyErr_SetString(PyExc_ValueError, "Invalid SID");
-				return NULL;
-				}
-			ZeroMemory(&tpg,sizeof(TOKEN_PRIMARY_GROUP));
-			tpg.PrimaryGroup = psid;
 			buf = (void *)&tpg;
 			bufsize = sizeof(TOKEN_PRIMARY_GROUP);
 			break;
 			}
 		case TokenDefaultDacl: {
-			PACL pacl;
-			TOKEN_DEFAULT_DACL tdd;
-			if (!PyWinObject_AsACL(obinfo, &pacl, TRUE))
+			if (!PyWinObject_AsACL(obinfo, &tdd.DefaultDacl, TRUE))
 				return NULL;
-			tdd.DefaultDacl = pacl;
 			buf = (void *)&tdd;
 			bufsize = sizeof(TOKEN_DEFAULT_DACL);
 			break;
 			}
 		case TokenSessionId: {
-			DWORD sessionid = PyLong_AsUnsignedLong(obinfo);
+			sessionid = PyLong_AsUnsignedLong(obinfo);
 			buf = (void *)&sessionid;
 			bufsize = sizeof(DWORD);
 			break;
