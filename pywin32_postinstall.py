@@ -9,6 +9,7 @@ com_modules = [
     # module_name,                      class_names
     ("win32com.servers.interp",         "Interpreter"),
     ("win32com.servers.dictionary",     "DictionaryPolicy"),
+    ("win32com.axscript.client.pyscript","PyScript"),
 ]
 
 # Is this a 'silent' install - ie, avoid all dialogs.
@@ -119,6 +120,8 @@ def RegisterCOMObjects(register = 1):
     for module, klass_name in com_modules:
         __import__(module)
         mod = sys.modules[module]
+        flags["finalize_register"] = getattr(mod, "DllRegisterServer", None)
+        flags["finalize_unregister"] = getattr(mod, "DllUnregisterServer", None)
         klass = getattr(mod, klass_name)
         func(klass, **flags)
 
