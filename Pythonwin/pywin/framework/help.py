@@ -16,9 +16,9 @@ html_help_command_translators = {
 }
 
 def FinalizeHelp():
+	global htmlhelp_handle
 	if htmlhelp_handle is not None:
 			import win32help
-			global htmlhelp_handle
 			try:
 				#frame = win32ui.GetMainFrame().GetSafeHwnd()
 				frame = 0
@@ -106,8 +106,8 @@ def SetHelpMenuOtherHelp(mainMenu):
 	"""
 
 	# Load all help files from the registry.
+	global helpIDMap
 	if helpIDMap is None:
-		global helpIDMap
 		helpIDMap = {}
 		cmdID = win32ui.ID_HELP_OTHER
 		excludeList = ['Main Python Documentation', 'Pythonwin Reference']
