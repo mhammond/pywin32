@@ -91,8 +91,6 @@ PyObject *PySECURITY_DESCRIPTOR::GetSecurityDescriptorOwner(PyObject *self, PyOb
 	PSID psd_sid;
 	BOOL OwnerDefaulted;
 	PySECURITY_DESCRIPTOR *This = (PySECURITY_DESCRIPTOR *)self;
-	DWORD sidsize= 0;
-	PyObject *obNewSid = NULL;
 
 	// get SID from SD
 	if (!::GetSecurityDescriptorOwner(This->m_psd, &psd_sid, &OwnerDefaulted))
@@ -113,8 +111,6 @@ PyObject *PySECURITY_DESCRIPTOR::GetSecurityDescriptorGroup(PyObject *self, PyOb
 	PSID psd_sid;
 	BOOL OwnerDefaulted;
 	PySECURITY_DESCRIPTOR *This = (PySECURITY_DESCRIPTOR *)self;
-	DWORD sidsize= 0;
-	PyObject *obNewSid = NULL;
 
 	// get SID from SD
 	if (!::GetSecurityDescriptorGroup(This->m_psd, &psd_sid, &OwnerDefaulted))
@@ -135,8 +131,6 @@ PyObject *PySECURITY_DESCRIPTOR::GetSecurityDescriptorDacl(PyObject *self, PyObj
 	PACL Dacl;
 	BOOL DaclPresent, DaclDefaulted;
 	PySECURITY_DESCRIPTOR *This = (PySECURITY_DESCRIPTOR *)self;
-	DWORD sidsize= 0;
-	PyObject *obNewSid = NULL;
 
 	// get Dacl from SD
 	if (!::GetSecurityDescriptorDacl(This->m_psd, &DaclPresent, &Dacl, &DaclDefaulted))
