@@ -468,6 +468,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "taskscheduler"=.\com\taskscheduler.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "timer"=.\win32\timer.dsp - Package Owner=<4>
 
 Package=<5>
