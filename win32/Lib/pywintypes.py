@@ -40,12 +40,12 @@ def __import_pywin32_system_module__(modname, globs):
         else:
             # Eeek - can't find on the path.  Try "LoadLibrary", as it
             # has slightly different semantics than a simple sys.path search
-            import win32api
-            # Normal Python needs these files in a directory somewhere on
-            # %PATH%, so let Windows search it out for us.  As win32api
-            # loads pywintypes, we can simple get the module after the import
-            h = win32api.GetModuleHandle(filename)
-            found = win32api.GetModuleFileName(h)
+            # XXX - OK, we *don't* try LoadLibrary - if we can't find it, 
+            # there is an excellent change Windows can't find it, and
+            # the attempt to bring in win32api *needs* Windows to find it.
+            # If Windows can't find it, it displays a dialog trying to 
+            # import win32api, which is not what we want!
+            raise ImportError, "Can not locate " + filename
     # Python can load the module
     mod = imp.load_module(modname, None, found, 
                           ('.dll', 'rb', imp.C_EXTENSION))
