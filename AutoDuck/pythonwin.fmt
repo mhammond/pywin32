@@ -99,12 +99,10 @@ topics, choose the Index button.\par
 $(reset)$(heading_3)Python Objects\par 
 $(reset)$(indexlink){\uldb Modules}{\v ctx_commod}\par 
 $(reset)$(indexlink){\uldb Objects}{\v ctx_comobj}\par 
-$(reset)$(indexlink){\uldb Object and Module Methods}{\v ctx_commeth}\par 
-$(reset)$(indexlink){\uldb Object and Module Properties}{\v ctx_comprop}\par 
 $(reset)\sl-240 \fs21\lang1033 \par 
 
-$(reset)$(heading_3)Other\par 
-$(reset)$(indexlink){\uldb Overviews}{\v ctx_overviews}\par 
+$(reset)$(heading_3)Overviews and other documentation\par 
+$[index:topic]
 $(reset)$(indexlink){\uldb Constants}{\v ctx_constants}\par 
 $(reset)\sl-240 \fs21\lang1033 \par 
 $(reset)\sl-240 \fs21\lang1033 \par 

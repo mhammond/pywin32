@@ -95,16 +95,23 @@
 <BODY>
 <H1>$(title)</H1>
 <P>
-<LI><A HREF="overviews.html">Overviews</A>
+<!-- <LI><A HREF="overviews.html">Overviews</A> -->
+<H2>Python Objects</H2>
 <LI><A HREF="modules.html">Modules</A>
 <LI><A HREF="objects.html">Objects</A>
+<!--
 <LI><A HREF="objectmodmethods.html">Object and Module Methods</A>
 <LI><A HREF="objectmodprops.html">Object and Module Properties</A>
 <LI><A HREF="classesandcmember.html">Classes and class members</A>
 <LI><A HREF="functions.html">Functions</A>
 <LI><A HREF="messages.html">Messages</A>
 <LI><A HREF="structsnenum.html">Structs and Enums</A>
+-->
+<H2>Overviews and other documentation</H2>
+$[index:topic]
 <LI><A HREF="constants.html">Constants</A>
+
+<p>Help file built: $!d</p>
 
 $(node_b0)overviews.html$(node_b1)Overviews$(node_e)
 <H2>Overviews</H2>
