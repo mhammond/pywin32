@@ -388,7 +388,8 @@ PyObject *PyACL::AddAccessAllowedAce(PyObject *self, PyObject *args)
 		if (err != ERROR_ALLOTTED_SPACE_EXCEEDED)
 			return PyWin_SetAPIError("AddAccessAllowedAce", err);
 		// resize if dacl too small
-		unsigned short required_size=pdacl->AclSize + sizeof(ACCESS_ALLOWED_ACE) + GetLengthSid(psid);
+		unsigned short required_size=pdacl->AclSize + sizeof(ACCESS_ALLOWED_ACE) + \
+		                             (unsigned short)GetLengthSid(psid);
 		pdacl_padded = (ACL *)malloc(required_size);
 		ZeroMemory (pdacl_padded, required_size);
 		memcpy(pdacl_padded,pdacl,pdacl->AclSize);
@@ -433,7 +434,8 @@ PyObject *PyACL::AddAccessAllowedAceEx(PyObject *self, PyObject *args)
 		if (err != ERROR_ALLOTTED_SPACE_EXCEEDED)
 			return PyWin_SetAPIError("AddAccessAllowedAceEx", err);
 		// resize if dacl too small
-		unsigned short required_size=pdacl->AclSize + sizeof(ACCESS_ALLOWED_ACE) + GetLengthSid(psid);
+		unsigned short required_size=pdacl->AclSize + sizeof(ACCESS_ALLOWED_ACE) + \
+		                             (unsigned short)GetLengthSid(psid);
 		pdacl_padded = (ACL *)malloc(required_size);
 		ZeroMemory (pdacl_padded, required_size);
 		memcpy(pdacl_padded,pdacl,pdacl->AclSize);
@@ -486,7 +488,8 @@ PyObject *PyACL::AddAccessDeniedAce(PyObject *self, PyObject *args)
 			goto done;
 			}
 		// resize if dacl too small
-		unsigned short required_size=pdacl->AclSize + sizeof(ACCESS_DENIED_ACE) + GetLengthSid(psid);
+		unsigned short required_size=pdacl->AclSize + sizeof(ACCESS_DENIED_ACE) + \
+		                             (unsigned short)GetLengthSid(psid);
 		pdacl_padded = (ACL *)malloc(required_size);
 		ZeroMemory(pdacl_padded,required_size);
 		memcpy(pdacl_padded,pdacl,pdacl->AclSize);
@@ -540,7 +543,8 @@ PyObject *PyACL::AddAccessDeniedAceEx(PyObject *self, PyObject *args)
 		if (err != ERROR_ALLOTTED_SPACE_EXCEEDED)
 			return PyWin_SetAPIError("AddAccessDeniedAceEx", err);
 		// resize if dacl too small
-		unsigned short required_size=pdacl->AclSize + sizeof(ACCESS_DENIED_ACE) + GetLengthSid(psid);
+		unsigned short required_size=pdacl->AclSize + sizeof(ACCESS_DENIED_ACE) + \
+		                             (unsigned short)GetLengthSid(psid);
 		pdacl_padded = (ACL *)malloc(required_size);
 		ZeroMemory (pdacl_padded, required_size);
 		memcpy(pdacl_padded,pdacl,pdacl->AclSize);
@@ -594,7 +598,8 @@ PyObject *PyACL::AddAuditAccessAce(PyObject *self, PyObject *args)
 		if (err != ERROR_ALLOTTED_SPACE_EXCEEDED)
 			return PyWin_SetAPIError("AddAuditAccessAce", err);
 		// resize if acl too small
-		unsigned short required_size=psacl->AclSize + sizeof(SYSTEM_AUDIT_ACE) + GetLengthSid(psid);
+		unsigned short required_size=psacl->AclSize + sizeof(SYSTEM_AUDIT_ACE) + \
+		                             (unsigned short)GetLengthSid(psid);
 		psacl_padded = (ACL *)malloc(required_size);
 		ZeroMemory (psacl_padded, required_size);
 		memcpy(psacl_padded,psacl,psacl->AclSize);
@@ -641,7 +646,8 @@ PyObject *PyACL::AddAuditAccessAceEx(PyObject *self, PyObject *args)
 		if (err != ERROR_ALLOTTED_SPACE_EXCEEDED)
 			return PyWin_SetAPIError("AddAuditAccessAceEx", err);
 		// resize if acl too small
-		unsigned short required_size=psacl->AclSize + sizeof(SYSTEM_AUDIT_ACE) + GetLengthSid(psid);
+		unsigned short required_size=psacl->AclSize + sizeof(SYSTEM_AUDIT_ACE) + \
+		                             (unsigned short)GetLengthSid(psid);
 		psacl_padded = (ACL *)malloc(required_size);
 		ZeroMemory (psacl_padded, required_size);
 		memcpy(psacl_padded,psacl,psacl->AclSize);
