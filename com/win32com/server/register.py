@@ -182,14 +182,19 @@ def RegisterServer(clsid,
   _set_string("AppID\\%s" % clsid, progID)
   # Depending on contexts requested, register the specified server type.
   if not clsctx or clsctx & pythoncom.CLSCTX_INPROC_SERVER:
-    # get the module loaded
-    try:
-      # We dont need to put the path.  It will either be in the system directory (in which
-      # case it will be found) or maybe in the clients directory, in which case we assume
-      # the correct one will be located.
+    # get the module to use for registration.
+    # nod to Gordon's installer - if sys.frozen and sys.frozendllhandle
+    # exist, then we are being registered via a DLL - use this DLL as the
+    # file name.
+    if pythoncom.frozen:
+      if hasattr(sys, "frozendllhandle"):
+        dllName = win32api.GetModuleFileName(sys.frozendllhandle)
+      else:
+        raise RuntimeError, "We appear to have a frozen DLL, but I don't know the DLL to use"
+    else:
+      # Normal case - running from .py file, so register pythoncom's DLL.
       dllName = os.path.basename(pythoncom.__file__)
-    except win32api.error:
-      raise ImportError, "Could not locate the PythonCOM extension"
+
     _set_subkeys(keyNameRoot + "\\InprocServer32",
                  { None : dllName,
                    "ThreadingModel" : threadingModel,
@@ -370,12 +375,15 @@ def RegisterClasses(*classes, **flags):
       # Always write out path - the policy may or may not need it
       scriptDir = os.path.split(sys.argv[0])[0]
       if not scriptDir: scriptDir = "."
-      # Use the win32api to find the case-sensitive name
-      try:
-        moduleName = os.path.splitext(win32api.FindFiles(sys.argv[0])[0][8])[0]
-      except (IndexError, win32api.error):
-        # Can't find the script file - the user must explicitely set the _reg_... attribute.
-        raise TypeError, "Can't locate the script hosting the COM object - please set _reg_class_spec_ in your object"
+      moduleName = cls.__module__
+      if moduleName == '__main__':
+        # Use argv[0] to determine the module name.
+        try:
+         # Use the win32api to find the case-sensitive name
+          moduleName = os.path.splitext(win32api.FindFiles(sys.argv[0])[0][8])[0]
+        except (IndexError, win32api.error):
+          # Can't find the script file - the user must explicitely set the _reg_... attribute.
+          raise TypeError, "Can't locate the script hosting the COM object - please set _reg_class_spec_ in your object"
 
       spec = moduleName + "." + cls.__name__
       addnPath = win32api.GetFullPathName(scriptDir)
