@@ -1,7 +1,9 @@
+// @doc - This file contains autoduck documentation
 #include "PyWinTypes.h"
 #include "structmember.h"
 #include "PyWinObjects.h"
 
+// @object PyDEVMODE|Python object wrapping a DEVMODE structure
 struct PyMethodDef PyDEVMODE::methods[] = {
 	{"Clear",     PyDEVMODE::Clear, 1}, 	// @pymeth Clear|Resets all members of the structure
 	{NULL}
@@ -10,7 +12,7 @@ struct PyMethodDef PyDEVMODE::methods[] = {
 #define OFF(e) offsetof(PyDEVMODE, e)
 struct PyMemberDef PyDEVMODE::members[] = {
 	// DeviceName is a dummy so it will show up in property list, get and set handle manually
-	{"DeviceName",		T_OBJECT, 0, 0, "String of at most 32 chars"}, 
+	{"DeviceName",		T_OBJECT, OFF(obdummy), 0, "String of at most 32 chars"}, 
 	{"SpecVersion", 	T_USHORT, OFF(devmode.dmSpecVersion), 0, "Should always be set to DM_SPECVERSION"},
 	{"DriverVersion", 	T_USHORT, OFF(devmode.dmDriverVersion), 0, ""},
 	{"Size",	 		T_USHORT, OFF(devmode.dmSize), READONLY, "Size of structure"},
@@ -33,8 +35,8 @@ struct PyMemberDef PyDEVMODE::members[] = {
 	{"Duplex",			T_SHORT,  OFF(devmode.dmDuplex), 0, "For printers that do two-sided printing: DMDUP_SIMPLEX, DMDUP_HORIZONTAL, DMDUP_VERTICAL"},
 	{"YResolution", 	T_SHORT,  OFF(devmode.dmYResolution), 0, "Vertical printer resolution in DPI - if this is set, PrintQuality indicates horizontal DPI"},
 	{"TTOption", 		T_SHORT,  OFF(devmode.dmTTOption), 0, "TrueType options: DMTT_BITMAP, DMTT_DOWNLOAD, DMTT_DOWNLOAD_OUTLINE, DMTT_SUBDEV"},
-	{"Collate", 		T_SHORT,  OFF(devmode.dmCollate), 0, "DMCOLLATE_TRUE or DMCOLLATE_FLASE"},
-	{"FormName",		T_OBJECT, 0, 0, "String of at most 32 chars"},  // same semantics as DeviceName
+	{"Collate", 		T_SHORT,   OFF(devmode.dmCollate), 0, "DMCOLLATE_TRUE or DMCOLLATE_FLASE"},
+	{"FormName",		T_OBJECT,  OFF(obdummy), 0, "String of at most 32 chars"},  // same semantics as DeviceName
 	{"LogPixels", 		T_USHORT,  OFF(devmode.dmLogPixels), 0, "Pixels per inch (only for display devices)"},
 	{"BitsPerPel", 		T_ULONG,   OFF(devmode.dmBitsPerPel), 0, "Color resolution in bits per pixel"},
 	{"PelsWidth", 		T_ULONG,   OFF(devmode.dmPelsWidth), 0, "Pixel width of display"},
@@ -50,12 +52,10 @@ struct PyMemberDef PyDEVMODE::members[] = {
 	{"Reserved2",		T_ULONG,   OFF(devmode.dmReserved2), 0, ""},
 	{"PanningWidth",	T_ULONG,   OFF(devmode.dmPanningWidth), 0, ""},
 	{"PanningHeight",	T_ULONG,   OFF(devmode.dmPanningHeight), 0, ""},
-	{"DriverData",		T_OBJECT,  OFF(devmode)+sizeof(DEVMODE), 0, "Driver data appended to end of structure"},
+	{"DriverData",		T_OBJECT,  OFF(obdummy), 0, "Driver data appended to end of structure"},
 	{NULL}
 };
 
-
-// @object PyDEVMODE|Python object wrapping a DEVMODE structure
 PYWINTYPES_EXPORT PyTypeObject PyDEVMODEType =
 {
 	PyObject_HEAD_INIT(&PyType_Type)
@@ -109,6 +109,7 @@ PyDEVMODE::PyDEVMODE(PDEVMODE pdm)
 		pdm->dmSize + pdm->dmDriverExtra);
 	else;
 		memcpy(pdevmode, pdm, pdm->dmSize + pdm->dmDriverExtra);
+	obdummy=NULL;
 	_Py_NewReference(this);
 }
 
@@ -123,6 +124,7 @@ PyDEVMODE::PyDEVMODE(void)
 	ZeroMemory(&devmode,dmSize);
 	devmode.dmSize=dmSize;
 	devmode.dmSpecVersion=DM_SPECVERSION;
+	obdummy=NULL;
 	_Py_NewReference(this);
 }
 
@@ -139,6 +141,7 @@ PyDEVMODE::PyDEVMODE(USHORT dmDriverExtra)
 	devmode.dmSize=dmSize;
 	devmode.dmSpecVersion=DM_SPECVERSION;
 	devmode.dmDriverExtra=dmDriverExtra;
+	obdummy=NULL;
 	_Py_NewReference(this);
 }
 
@@ -167,6 +170,7 @@ PDEVMODE PyDEVMODE::GetDEVMODE(void)
 	return pdevmode;
 }
 
+// @pymethod |PyDEVMODE|Clear|Resets all members of the structure
 PyObject *PyDEVMODE::Clear(PyObject *self, PyObject *args)
 {
 	PDEVMODE pdevmode=((PyDEVMODE *)self)->pdevmode;

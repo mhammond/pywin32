@@ -238,7 +238,11 @@ public:
 	static int setattro(PyObject *self, PyObject *obname, PyObject *obvalue);
 	static PyObject *Clear(PyObject *self, PyObject *args);
 	static PyObject *tp_new(PyTypeObject *, PyObject *, PyObject *);
+	// use this where a function modifies a passed-in PyDEVMODE to make changes visible to Python
+	void modify_in_place(void)
+		{memcpy(&devmode, pdevmode, pdevmode->dmSize);}
 	PDEVMODE GetDEVMODE(void);
+	PyObject *obdummy;
 protected:
 	// Pointer to variable length DEVMODE with dmDriverExtra bytes allocated at end, always use this externally
 	PDEVMODE pdevmode;
