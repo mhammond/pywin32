@@ -1,7 +1,7 @@
 build_number=203
 # Putting buildno at the top prevents automatic __doc__ assignment, and
 # I *want* the build number at the top :)
-__doc__="""This is a distutils setup-script for the pywin32 extnesions
+__doc__="""This is a distutils setup-script for the pywin32 extensions
 
 To build the pywin32 extensions, simply execute:
   python setup.py -q build
@@ -75,6 +75,7 @@ try:
 except NameError:
     this_file = sys.argv[0]
 
+this_file = os.path.abspath(this_file)
 # We get upset if the cwd is not our source dir, but it is a PITA to
 # insist people manually CD there first!
 if os.path.dirname(this_file):
@@ -156,6 +157,8 @@ class WinExt (Extension):
 
     def get_source_files(self, dsp):
         result = []
+        if dsp is None:
+            return result
         dsp_path = os.path.dirname(dsp)
         for line in open(dsp, "r"):
             fields = line.strip().split("=", 2)
@@ -860,6 +863,14 @@ win32_extensions += [
            define_macros = [("WIN32GUI",None), ("WINXPGUI",None)],
            extra_swig_commands=["-DWINXPGUI"],
         ),
+    # winxptheme
+    WinExt_win32("_winxptheme",
+           sources = ["win32/src/_winxptheme.i", "win32/src/_winxpthememodule.cpp"],
+           dsp_file = None,
+           libraries="gdi32 user32 comdlg32 comctl32 shell32 Uxtheme",
+           windows_h_version=0x0500,
+           extra_compile_args = ['-DUNICODE', '-D_UNICODE', '-DWINNT'],
+        ),
     WinExt_win32('servicemanager',
            extra_compile_args = ['-DUNICODE', '-D_UNICODE', 
                                  '-DWINNT', '-DPYSERVICE_BUILD_DLL'],
@@ -1202,10 +1213,9 @@ if dist.command_obj.has_key('build_ext'):
 if not dist.dry_run and dist.command_obj.has_key('install') \
        and not dist.command_obj.has_key('bdist_wininst'):
     # What executable to use?  This one I guess.
-    filename = os.path.join(
-                  os.path.dirname(sys.argv[0]), "pywin32_postinstall.py")
+    filename = os.path.join(os.path.dirname(this_file), "pywin32_postinstall.py")
     if not os.path.isfile(filename):
-        raise RuntimeError, "Can't find pywin32_postinstall.py"
+        raise RuntimeError, "Can't find '%s'" % (filename,)
     print "Executing post install script..."
     os.spawnl(os.P_NOWAIT, sys.executable,
               sys.executable, filename,
