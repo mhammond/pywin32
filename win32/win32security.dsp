@@ -123,6 +123,10 @@ InputName=win32security
 # End Source File
 # Begin Source File
 
+SOURCE=.\src\win32security_sspi.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\src\win32securitymodule.cpp
 # End Source File
 # End Target

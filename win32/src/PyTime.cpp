@@ -126,6 +126,16 @@ PyObject *PyWinTimeObject_FromLong(long t)
 	return new PyTime(t);
 }
 
+// Converts a TimeStamp, which is in 100 nanosecond units like a FILETIME
+// See comments in pywintypes.h re LARGE_INTEGER vs TimeStamp
+PyObject *PyWinObject_FromTimeStamp(const LARGE_INTEGER &ts)
+{
+	FILETIME ft;
+	ft.dwHighDateTime=ts.HighPart;
+	ft.dwLowDateTime=ts.LowPart;
+	return new PyTime(ft);
+}
+
 BOOL PyWinObject_AsDATE(PyObject *ob, DATE *pDate)
 {
 	PyObject *newref = NULL;
@@ -711,7 +721,6 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromFILETIME(const FILETIME &t)
 		return PyInt_FromLong(-1);
 	return PyFloat_FromDouble(PyCE_SystemTimeToCTime(&st));
 }
-
 //PYWINTYPES_EXPORT BOOL PyWinObject_AsDATE(PyObject *ob, DATE *pDate)
 //{
 //}

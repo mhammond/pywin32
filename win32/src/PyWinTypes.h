@@ -284,6 +284,12 @@ PYWINTYPES_EXPORT PyObject *PyWinMethod_NewIID( PyObject *self, PyObject *args);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromSYSTEMTIME(const SYSTEMTIME &t);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromFILETIME(const FILETIME &t);
 
+// Converts a TimeStamp, which is in 100 nanosecond units like a FILETIME
+// TimeStamp is actually defined as a LARGE_INTEGER, so this function will also
+// accept Windows security "TimeStamp" objects directly - however, we use a
+// LARGE_INTEGER prototype to avoid pulling in the windows security headers.
+PYWINTYPES_EXPORT PyObject *PyWinObject_FromTimeStamp(const LARGE_INTEGER &t);
+
 PYWINTYPES_EXPORT BOOL PyWinObject_AsDATE(PyObject *ob, DATE *pDate);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsFILETIME(PyObject *ob,	FILETIME *pDate);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsSYSTEMTIME(PyObject *ob, SYSTEMTIME *pDate);

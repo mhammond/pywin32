@@ -1,4 +1,5 @@
 /* File : win32security.i */
+// $Id$
 // @doc
 
 %module win32security // An interface to the win32 security API's
@@ -6,7 +7,6 @@
 %{
 #define _WIN32_WINNT 0x0500 // We are 2k specific
 %}
-
 
 %include "typemaps.i"
 %include "pywin32.i"
@@ -22,6 +22,81 @@
 #include "subauth.h"
 #include "lmshare.h"
 #include "sddl.h"
+#include <stddef.h>
+#include "win32security_sspi.h"
+
+#define CHECK_PFN(fname) if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);
+
+typedef NTSTATUS (WINAPI *LsaRegisterLogonProcessfunc)
+	(PLSA_STRING, PHANDLE, PLSA_OPERATIONAL_MODE);
+static LsaRegisterLogonProcessfunc pfnLsaRegisterLogonProcess=NULL;
+typedef NTSTATUS (WINAPI *LsaDeregisterLogonProcessfunc)(HANDLE);
+static LsaDeregisterLogonProcessfunc pfnLsaDeregisterLogonProcess=NULL;
+typedef NTSTATUS (WINAPI *LsaConnectUntrustedfunc)(PHANDLE);
+static LsaConnectUntrustedfunc pfnLsaConnectUntrusted=NULL;
+typedef NTSTATUS (WINAPI *LsaLookupAuthenticationPackagefunc)
+	(HANDLE, PLSA_STRING, PULONG);
+static LsaLookupAuthenticationPackagefunc pfnLsaLookupAuthenticationPackage=NULL;
+typedef NTSTATUS (WINAPI *LsaEnumerateLogonSessionsfunc)(PULONG, PLUID*);
+static LsaEnumerateLogonSessionsfunc pfnLsaEnumerateLogonSessions=NULL;
+typedef NTSTATUS (WINAPI *LsaGetLogonSessionDatafunc)(PLUID, PSECURITY_LOGON_SESSION_DATA *);
+static LsaGetLogonSessionDatafunc pfnLsaGetLogonSessionData=NULL;
+typedef NTSTATUS (WINAPI *LsaFreeReturnBufferfunc)(PVOID);
+static LsaFreeReturnBufferfunc pfnLsaFreeReturnBuffer=NULL;
+typedef NTSTATUS (WINAPI *LsaCallAuthenticationPackagefunc)(HANDLE, ULONG, PVOID, ULONG, PVOID *, PULONG, PNTSTATUS);
+static LsaCallAuthenticationPackagefunc pfnLsaCallAuthenticationPackage=NULL;
+
+typedef NTSTATUS (WINAPI *LsaRegisterPolicyChangeNotificationfunc)(POLICY_NOTIFICATION_INFORMATION_CLASS,HANDLE);
+static LsaRegisterPolicyChangeNotificationfunc pfnLsaRegisterPolicyChangeNotification=NULL;
+static LsaRegisterPolicyChangeNotificationfunc pfnLsaUnregisterPolicyChangeNotification=NULL;
+
+typedef BOOL (WINAPI *CryptEnumProvidersfunc)(DWORD, DWORD *, DWORD, DWORD *, LPTSTR, DWORD *);
+static CryptEnumProvidersfunc pfnCryptEnumProviders=NULL;
+
+typedef BOOL (WINAPI *CheckTokenMembershipfunc)(HANDLE, PSID, PBOOL);
+static CheckTokenMembershipfunc pfnCheckTokenMembership=NULL;
+typedef BOOL (WINAPI *CreateRestrictedTokenfunc)(HANDLE,DWORD,DWORD,PSID_AND_ATTRIBUTES,
+	DWORD,PLUID_AND_ATTRIBUTES,DWORD,PSID_AND_ATTRIBUTES,PHANDLE);
+static CreateRestrictedTokenfunc pfnCreateRestrictedToken=NULL;
+
+typedef BOOL (WINAPI *ConvertSidToStringSidfunc)(PSID, WCHAR **);
+static ConvertSidToStringSidfunc pfnConvertSidToStringSid = NULL;
+typedef BOOL (WINAPI *ConvertStringSidToSidfunc)(LPCWSTR, PSID);
+static ConvertStringSidToSidfunc pfnConvertStringSidToSid = NULL;
+typedef BOOL (WINAPI *ConvertSecurityDescriptorToStringSecurityDescriptorfunc)
+    (PSECURITY_DESCRIPTOR,DWORD,SECURITY_INFORMATION, LPTSTR*,PULONG);
+static ConvertSecurityDescriptorToStringSecurityDescriptorfunc
+	pfnConvertSecurityDescriptorToStringSecurityDescriptor=NULL;
+typedef BOOL (WINAPI *ConvertStringSecurityDescriptorToSecurityDescriptorfunc)
+	(LPCTSTR,DWORD,PSECURITY_DESCRIPTOR*,PULONG);
+static ConvertStringSecurityDescriptorToSecurityDescriptorfunc
+	pfnConvertStringSecurityDescriptorToSecurityDescriptor = NULL;
+typedef BOOL (WINAPI *ImpersonateAnonymousTokenfunc)(HANDLE);
+static ImpersonateAnonymousTokenfunc pfnImpersonateAnonymousToken=NULL;
+
+typedef PSecurityFunctionTableW (SEC_ENTRY *InitSecurityInterfacefunc)(void);
+static InitSecurityInterfacefunc pfnInitSecurityInterface=NULL;
+extern PSecurityFunctionTableW psecurityfunctiontable=NULL;
+
+static HMODULE advapi32_dll=NULL;
+static HMODULE secur32_dll =NULL;
+static HMODULE security_dll=NULL;
+static HMODULE ntdll_dll   =NULL;
+
+HMODULE loadmodule(WCHAR *dllname)
+{
+	HMODULE hmodule = GetModuleHandle(dllname);
+    if (hmodule==NULL)
+        hmodule = LoadLibrary(dllname);
+	return hmodule;
+}
+
+FARPROC loadapifunc(char *funcname, HMODULE hmodule)
+{
+	if (hmodule==NULL)
+		return NULL;
+	return GetProcAddress(hmodule, funcname);
+}
 %}
 
 typedef long SECURITY_IMPERSONATION_LEVEL;
@@ -52,9 +127,18 @@ typedef LARGE_INTEGER LUID;
 }
 
 %{
+PyObject *PyWinObject_FromSecHandle(PSecHandle h)
+{
+	ULARGE_INTEGER ul;
+	ul.LowPart=h->dwLower;
+	ul.HighPart=h->dwUpper;
+	return PyWinObject_FromULARGE_INTEGER(ul);
+}
+
 #undef PyHANDLE
 #include "PyWinObjects.h"
-// Support for LSAHandle objects.  Like a PyHANDLE, but calls LsaClose
+// @object PyLSA_HANDLE|Object representing an Lsa policy handle (LSA_HANDLE), created by <om win32security.LsaOpenPolicy>
+//   Identical to <o PyHANDLE>, but calls LsaClose on destruction
 class PyLSA_HANDLE: public PyHANDLE
 {
 public:
@@ -68,6 +152,29 @@ public:
 	}
 	virtual const char *GetTypeName() {
 		return "PyLSA_HANDLE";
+	}
+};
+
+// @object PyLsaLogon_HANDLE|Lsa handle used to access authentication packages, returned by
+//   <om win32security.LsaRegisterLogonProcess> or <om win32security.LsaConnectUntrusted>. Base low-level object is a plain HANDLE.
+//   Inherits all properties and methods of <o PyHANDLE>, but Close uses LsaDeregisterLogonProcess
+class PyLsaLogon_HANDLE: public PyHANDLE
+{
+public:
+	PyLsaLogon_HANDLE(HANDLE hInit) : PyHANDLE(hInit) {}
+	virtual BOOL Close(void) {
+		if (pfnLsaDeregisterLogonProcess==NULL){
+			PyErr_SetString(PyExc_SystemError,"PyLsaLogon_HANDLE cannot be closed - LsaDeregisterLogonProcess is not available ??????");
+			return FALSE;
+			}
+		NTSTATUS err = m_handle ? (*pfnLsaDeregisterLogonProcess)(m_handle) : STATUS_SUCCESS;
+		m_handle = 0;
+		if (err!= STATUS_SUCCESS)
+			PyWin_SetAPIError("LsaDeregisterLogonProcess", LsaNtStatusToWinError(err));
+		return err== STATUS_SUCCESS;
+	}
+	virtual const char *GetTypeName() {
+		return "PyLsaLogon_HANDLE";
 	}
 };
 
@@ -378,35 +485,6 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 {
 	free(pPriv);
 }
-
-
-static BOOL (WINAPI *cstss)(PSID, WCHAR **) = NULL;
-static BOOL (WINAPI *cssts)(LPCWSTR, PSID) = NULL;
-static BOOL (WINAPI *csdtssd)(PSECURITY_DESCRIPTOR,DWORD,SECURITY_INFORMATION, LPTSTR*,PULONG) = NULL;
-static BOOL (WINAPI *cssdtsd)(LPCTSTR,DWORD,PSECURITY_DESCRIPTOR*,PULONG) = NULL;
-static long (WINAPI *lsarpcn)(POLICY_NOTIFICATION_INFORMATION_CLASS,HANDLE) = NULL;
-static long (WINAPI *lsaupcn)(POLICY_NOTIFICATION_INFORMATION_CLASS,HANDLE) = NULL;
-static BOOL (WINAPI *cryptenumproviders)(DWORD, DWORD *, DWORD, DWORD *, LPTSTR, DWORD *) = NULL;
-static BOOL (WINAPI *checktokenmembership)(HANDLE, PSID, PBOOL) = NULL;
-static BOOL (WINAPI *createrestrictedtoken)(HANDLE,DWORD,DWORD,PSID_AND_ATTRIBUTES,
-	DWORD,PLUID_AND_ATTRIBUTES,DWORD,PSID_AND_ATTRIBUTES,PHANDLE) = NULL;
-static SECURITY_STATUS (WINAPI *enumeratesecuritypackages)(PULONG, PSecPkgInfoW*) = NULL;
-static SECURITY_STATUS (WINAPI *freecontextbuffer)(PVOID) = NULL;
-
-BOOL CheckIfSupported(char *funcname, WCHAR *dllname, FARPROC *fp)
-{
-    *fp=NULL;
-    HMODULE hmodule = GetModuleHandle(dllname);
-    if (hmodule==NULL){
-        hmodule = LoadLibrary(dllname);
-        if (hmodule==NULL)
-            return false;
-        }
-    *fp = GetProcAddress(hmodule, funcname);
-    if (*fp==NULL)
-        return false;
-    return true;
-}
 %}
 
 %typemap(python,in) TOKEN_PRIVILEGES *{
@@ -485,40 +563,57 @@ BOOL CheckIfSupported(char *funcname, WCHAR *dllname, FARPROC *fp)
 	PyDict_SetItemString(d,"SE_SYNC_AGENT_NAME",PyUnicode_FromWideChar(SE_SYNC_AGENT_NAME,wcslen(SE_SYNC_AGENT_NAME)));
 	PyDict_SetItemString(d,"SE_ENABLE_DELEGATION_NAME",PyUnicode_FromWideChar(SE_ENABLE_DELEGATION_NAME,wcslen(SE_ENABLE_DELEGATION_NAME)));
 	PyDict_SetItemString(d,"SE_MANAGE_VOLUME_NAME",PyUnicode_FromWideChar(SE_MANAGE_VOLUME_NAME,wcslen(SE_MANAGE_VOLUME_NAME)));
+	PyDict_SetItemString(d,"MSV1_0_PACKAGE_NAME",PyString_FromString(MSV1_0_PACKAGE_NAME));
+	PyDict_SetItemString(d,"MICROSOFT_KERBEROS_NAME_A",PyString_FromString(MICROSOFT_KERBEROS_NAME_A));
 
-	FARPROC fp=NULL;
-	// Load the Secur32.dll library to CheckIfSupported's GetModuleHandle will work.
-	// If we fail here, GetModuleHandle will too, so no need to check result here.
-	HMODULE hMod = LoadLibrary(_T("Secur32.dll"));
-	if (CheckIfSupported("ConvertSidToStringSidW",_T("Advapi32.dll"),&fp))
-		cstss=  (BOOL (WINAPI *)(PSID, WCHAR **))(fp);
-	if (CheckIfSupported("ConvertStringSidToSidW",_T("Advapi32.dll"),&fp))
-		cssts=  (BOOL (WINAPI *)(LPCWSTR, PSID))(fp);
-	if (CheckIfSupported("CheckTokenMembership",  _T("Advapi32.dll"),&fp))
-		checktokenmembership=(BOOL (WINAPI *)(HANDLE, PSID, PBOOL))(fp);
-	if (CheckIfSupported("CreateRestrictedToken", _T("Advapi32.dll"),&fp))
-		createrestrictedtoken=(BOOL (WINAPI *)(HANDLE,DWORD,DWORD,PSID_AND_ATTRIBUTES,
-			DWORD,PLUID_AND_ATTRIBUTES,DWORD,PSID_AND_ATTRIBUTES,PHANDLE))(fp);
-	if (CheckIfSupported("ConvertSecurityDescriptorToStringSecurityDescriptorW",_T("Advapi32.dll"),&fp))
-		csdtssd=(BOOL (WINAPI *)(PSECURITY_DESCRIPTOR,DWORD,SECURITY_INFORMATION, LPTSTR*,PULONG))(fp);
-	if (CheckIfSupported("ConvertStringSecurityDescriptorToSecurityDescriptorW",_T("Advapi32.dll"),&fp))
-		cssdtsd=(BOOL (WINAPI *)(LPCTSTR,DWORD,PSECURITY_DESCRIPTOR*,PULONG))(fp);
-	if (CheckIfSupported("LsaRegisterPolicyChangeNotification",_T("Secur32.dll"),&fp))
-		lsarpcn=(NTSTATUS (NTAPI *)(POLICY_NOTIFICATION_INFORMATION_CLASS,HANDLE))(fp);
-	if (CheckIfSupported("LsaUnregisterPolicyChangeNotification",_T("Secur32.dll"),&fp))
-		lsaupcn=(NTSTATUS (NTAPI *)(POLICY_NOTIFICATION_INFORMATION_CLASS,HANDLE))(fp);
-	if (CheckIfSupported("CryptEnumProvidersW", _T("Advapi32.dll"),&fp))
-		cryptenumproviders=(BOOL (WINAPI *)(DWORD, DWORD *, DWORD, DWORD *, LPTSTR, DWORD *))(fp);
-	if (CheckIfSupported("EnumerateSecurityPackagesW",_T("Secur32.dll"),&fp))
-		enumeratesecuritypackages=(SECURITY_STATUS (WINAPI *)(PULONG, PSecPkgInfoW*))(fp);
-	else
-		if (CheckIfSupported("EnumerateSecurityPackagesW",_T("security.dll"),&fp))
-			enumeratesecuritypackages=(SECURITY_STATUS (WINAPI *)(PULONG, PSecPkgInfoW*))(fp);
-	if (CheckIfSupported("FreeContextBuffer",_T("Secur32.dll"),&fp))
-		freecontextbuffer=(SECURITY_STATUS (WINAPI *)(PVOID))(fp);
-	else
-		if (CheckIfSupported("FreeContextBuffer",_T("security.dll"),&fp))
-			freecontextbuffer=(SECURITY_STATUS (WINAPI *)(PVOID))(fp);
+	advapi32_dll=loadmodule(_T("Advapi32.dll"));
+	secur32_dll =loadmodule(_T("Secur32.dll"));
+	security_dll=loadmodule(_T("security.dll"));
+	ntdll_dll   =loadmodule(_T("ntdll.dll"));
+
+	pfnCheckTokenMembership=(CheckTokenMembershipfunc)loadapifunc("CheckTokenMembership", advapi32_dll);
+	pfnCreateRestrictedToken=(CreateRestrictedTokenfunc)loadapifunc("CreateRestrictedToken", advapi32_dll);
+
+	pfnCryptEnumProviders=(CryptEnumProvidersfunc)loadapifunc("CryptEnumProvidersW", advapi32_dll);
+
+	/* ??? Below four functions live in Secur32.dll on Win2K and higher, but apparently are only
+	   exported by ntoskrnl.exe on NT - not sure what the implications of loading *that* are ???
+	*/
+	pfnLsaRegisterLogonProcess=(LsaRegisterLogonProcessfunc)loadapifunc("LsaRegisterLogonProcess", secur32_dll);
+	pfnLsaConnectUntrusted=(LsaConnectUntrustedfunc)loadapifunc("LsaConnectUntrusted", secur32_dll);
+	pfnLsaDeregisterLogonProcess=(LsaDeregisterLogonProcessfunc)loadapifunc("LsaDeregisterLogonProcess", secur32_dll);
+	pfnLsaLookupAuthenticationPackage=(LsaLookupAuthenticationPackagefunc)loadapifunc("LsaLookupAuthenticationPackage", secur32_dll);
+
+	pfnLsaEnumerateLogonSessions=(LsaEnumerateLogonSessionsfunc)loadapifunc("LsaEnumerateLogonSessions",secur32_dll);
+	pfnLsaGetLogonSessionData=(LsaGetLogonSessionDatafunc)loadapifunc("LsaGetLogonSessionData",secur32_dll);
+	pfnLsaFreeReturnBuffer=(LsaFreeReturnBufferfunc)loadapifunc("LsaFreeReturnBuffer",secur32_dll);
+	pfnLsaCallAuthenticationPackage=(LsaCallAuthenticationPackagefunc)loadapifunc("LsaCallAuthenticationPackage",secur32_dll);
+	
+	pfnLsaRegisterPolicyChangeNotification=(LsaRegisterPolicyChangeNotificationfunc)
+		loadapifunc("LsaRegisterPolicyChangeNotification", secur32_dll);
+	pfnLsaUnregisterPolicyChangeNotification=(LsaRegisterPolicyChangeNotificationfunc)
+		loadapifunc("LsaUnregisterPolicyChangeNotification", secur32_dll);
+
+	pfnConvertSidToStringSid=(ConvertSidToStringSidfunc)loadapifunc("ConvertSidToStringSidW", advapi32_dll);
+	pfnConvertStringSidToSid=(ConvertStringSidToSidfunc)loadapifunc("ConvertStringSidToSidW", advapi32_dll);
+	pfnConvertSecurityDescriptorToStringSecurityDescriptor=(ConvertSecurityDescriptorToStringSecurityDescriptorfunc)
+		loadapifunc("ConvertSecurityDescriptorToStringSecurityDescriptorW", advapi32_dll);
+	pfnConvertStringSecurityDescriptorToSecurityDescriptor=(ConvertStringSecurityDescriptorToSecurityDescriptorfunc)
+		loadapifunc("ConvertStringSecurityDescriptorToSecurityDescriptorW", advapi32_dll);
+	pfnImpersonateAnonymousToken=(ImpersonateAnonymousTokenfunc)loadapifunc("ImpersonateAnonymousToken", advapi32_dll);
+
+	// Load InitSecurityInterface, which returns a table of pointers to the SSPI functions so they don't all have to be
+	// loaded individually - from security.dll on NT, and secur32.dll on win2k and up
+	pfnInitSecurityInterface=(InitSecurityInterfacefunc)loadapifunc("InitSecurityInterfaceW",secur32_dll);
+	if (pfnInitSecurityInterface==NULL)
+		pfnInitSecurityInterface=(InitSecurityInterfacefunc)loadapifunc("InitSecurityInterfaceW",security_dll);
+	if (pfnInitSecurityInterface!=NULL)
+		psecurityfunctiontable=(*pfnInitSecurityInterface)();
+		
+	PyDict_SetItemString(d, "SecBufferType", (PyObject *)&PySecBufferType);
+	PyDict_SetItemString(d, "SecBufferDescType", (PyObject *)&PySecBufferDescType);
+	PyDict_SetItemString(d, "CtxtHandleType", (PyObject *)&PyCtxtHandleType);
+	PyDict_SetItemString(d, "CredHandleType", (PyObject *)&PyCredHandleType);
 %}
 
 // @pyswig PyACL|ACL|Creates a new <o PyACL> object.
@@ -540,6 +635,25 @@ BOOLAPI ImpersonateNamedPipeClient(
 BOOLAPI ImpersonateLoggedOnUser(
   PyHANDLE hToken  // @pyparm <o PyHANDLE>|handle||Handle to a token that represents a logged-on user
 ); 
+
+// @pyswig |ImpersonateAnonymousToken|Cause a thread to act in the security context of an anonymous token
+%native(ImpersonateAnonymousToken) PyImpersonateAnonymousToken;
+%{
+static PyObject * PyImpersonateAnonymousToken(PyObject *self, PyObject *args)
+{
+	HANDLE hthread;			// @pyparm <o PyHANDLE>|ThreadHandle||Handle to thread that will 
+	PyObject *obhthread;
+	CHECK_PFN(ImpersonateAnonymousToken);
+	if (!PyArg_ParseTuple(args, "O:ImpersonateAnonymousToken", &obhthread))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhthread, &hthread))
+		return NULL;
+	if (!(*pfnImpersonateAnonymousToken)(hthread))
+		return PyWin_SetAPIError("ImpersonateAnonymousToken");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
 
 // @pyswig |RevertToSelf|Terminates the impersonation of a client application.
 BOOLAPI RevertToSelf();
@@ -1321,6 +1435,7 @@ static PyObject *PyGetTokenInformation(PyObject *self, PyObject *args)
 			break;
 			}
 		case TokenPrimaryGroup: {
+			// @flag TokenPrimaryGroup|<o PySID>
 			TOKEN_PRIMARY_GROUP *pg = (TOKEN_PRIMARY_GROUP *)buf;
 			ret = PyWinObject_FromSID(pg->PrimaryGroup);
 			break;
@@ -1335,17 +1450,21 @@ static PyObject *PyGetTokenInformation(PyObject *self, PyObject *args)
 			break;
 			}
 		case TokenDefaultDacl: {
+			// @flag TokenDefaultDacl|<o PyACL>
 			TOKEN_DEFAULT_DACL *dacl = (TOKEN_DEFAULT_DACL *)buf;
 			ret = new PyACL(dacl->DefaultDacl);
 			break;
 			}
 		case TokenType: {
-			// returns TokenPrimary or TokenImpersonation
+			// @flag TokenType|int
+			// - returns TokenPrimary or TokenImpersonation
 			TOKEN_TYPE *tt = (TOKEN_TYPE *)buf;
 			ret=Py_BuildValue("i",*tt);
 			break;
 			}
 		case TokenImpersonationLevel: {
+			// @flag TokenImpersonationLevel|int
+			// - returns a value from SECURITY_IMPERSONATION_LEVEL enum
 			SECURITY_IMPERSONATION_LEVEL *sil = (SECURITY_IMPERSONATION_LEVEL *)buf;
 			ret=Py_BuildValue("i",*sil);
 			break;
@@ -1356,9 +1475,26 @@ static PyObject *PyGetTokenInformation(PyObject *self, PyObject *args)
 			break;
 			}
 		case TokenSessionId: {
-			// always returns zero when handle does not refer to a Terminal Services client session
-			//  - not yet tested with such
+			// @flag TokenSessionId|int
+			// Terminal Services session id
 			ret = Py_BuildValue("l",dwordbuf);
+			break;
+			}
+		case TokenStatistics: {
+			// @flag TokenStatistics|dict
+			// Returns a dictionary representing a TOKEN_STATISTICS structure
+			TOKEN_STATISTICS *pts=(TOKEN_STATISTICS *)buf;
+			ret=Py_BuildValue("{s:N,s:N,s:N,s:l,s:l,s:l,s:l,s:l,s:l,s:N}",
+				"TokenId", PyWinObject_FromLARGE_INTEGER(*((LARGE_INTEGER *)&pts->TokenId)),
+				"AuthenticationId", PyWinObject_FromLARGE_INTEGER(*((LARGE_INTEGER *)&pts->AuthenticationId)),
+				"ExpirationTime", PyWinObject_FromTimeStamp(pts->ExpirationTime),
+				"TokenType", pts->TokenType,
+				"ImpersonationLevel", pts->ImpersonationLevel,
+				"DynamicCharged", pts->DynamicCharged,
+				"DynamicAvailable", pts->DynamicAvailable,
+				"GroupCount", pts->GroupCount,
+				"PrivilegeCount", pts->PrivilegeCount,
+				"ModifiedId", PyWinObject_FromLARGE_INTEGER(*((LARGE_INTEGER *)&pts->ModifiedId)));
 			break;
 			}
 		default:
@@ -1411,6 +1547,8 @@ static PyObject *PySetThreadToken(PyObject *self, PyObject *args)
 %native(SetThreadToken) PySetThreadToken;
 
 // @pyswig <o PySECURITY_DESCRIPTOR>|GetFileSecurity|Obtains specified information about the security of a file or directory. The information obtained is constrained by the caller's access rights and privileges.
+// @comm This function reportedly will not return the INHERITED_ACE flag on some Windows XP SP1 systems
+//       Use GetNameSecurityInfo if you encounter this problem. 
 %native(GetFileSecurity) MyGetFileSecurity;
 %{
 static PyObject *MyGetFileSecurity(PyObject *self, PyObject *args)
@@ -1710,7 +1848,7 @@ static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 // exists as an alias.
 %native(GetPolicyHandle) PyLsaOpenPolicy;
 
-// @pyswig <o PyHandle>|LsaOpenPolicy|Opens a policy handle for the specified system
+// @pyswig <o PyLSA_HANDLE>|LsaOpenPolicy|Opens a policy handle for the specified system
 %native(LsaOpenPolicy) PyLsaOpenPolicy;
 %{
 static PyObject *PyLsaOpenPolicy(PyObject *self, PyObject *args)
@@ -1783,12 +1921,13 @@ static PyObject *PyLsaQueryInformationPolicy(PyObject *self, PyObject *args)
 		PyWin_SetAPIError("LsaQueryInformationPolicy",LsaNtStatusToWinError(err));
 		return NULL;
 		}
-
+	// @flagh POLICY_INFORMATION_CLASS value|Return type
 	switch (info_class){
 		case PolicyAuditEventsInformation:{
-			// return tuple of
-			//   int (auditing enabled),
-			//   tuple of event auditing options, indexed by POLICY_AUDIT_EVENT_TYPE values
+			// @flag PolicyAuditEventsInformation|returns tuple of (boolean,(int,...))
+			// Tuple consists of a boolean indicating if auditing is enabled, and a tuple of 
+			//   ints, indexed by POLICY_AUDIT_EVENT_TYPE values, containing a combination
+			//   of POLICY_AUDIT_EVENT_UNCHANGED, POLICY_AUDIT_EVENT_SUCCESS, POLICY_AUDIT_EVENT_FAILURE, POLICY_AUDIT_EVENT_NONE 
 			POLICY_AUDIT_EVENTS_INFO *info = (POLICY_AUDIT_EVENTS_INFO *)buf;
 			PyObject *events = PyTuple_New(info->MaximumAuditEventCount);
 			DWORD *auditing_option = info->EventAuditingOptions;
@@ -1802,6 +1941,7 @@ static PyObject *PyLsaQueryInformationPolicy(PyObject *self, PyObject *args)
 			}
 
 		case PolicyDnsDomainInformation:{
+			// @flag PolicyDnsDomainInformation|Returns a tuple representing a POLICY_DNS_DOMAIN_INFO struct
 			POLICY_DNS_DOMAIN_INFO *info = (POLICY_DNS_DOMAIN_INFO *)buf;
 			PyObject *domain_name =     PyWinObject_FromLSA_UNICODE_STRING(info->Name);
 			PyObject *dns_domain_name = PyWinObject_FromLSA_UNICODE_STRING(info->DnsDomainName);
@@ -1818,6 +1958,7 @@ static PyObject *PyLsaQueryInformationPolicy(PyObject *self, PyObject *args)
 			}
 
 		case PolicyPrimaryDomainInformation:{
+			// @flag PolicyPrimaryDomainInformation|Returns name and SID of primary domain
 			POLICY_PRIMARY_DOMAIN_INFO *info = (POLICY_PRIMARY_DOMAIN_INFO *)buf;
 			PyObject *domain_name = PyWinObject_FromLSA_UNICODE_STRING(info->Name);
 			PyObject *domain_sid = PyWinObject_FromSID(info->Sid);
@@ -1828,6 +1969,7 @@ static PyObject *PyLsaQueryInformationPolicy(PyObject *self, PyObject *args)
 			}
 
 		case PolicyAccountDomainInformation:{
+			// @flag PolicyAccountDomainInformation|Returns name and SID of account domain
 			POLICY_ACCOUNT_DOMAIN_INFO *info = (POLICY_ACCOUNT_DOMAIN_INFO *)buf;
 			PyObject *domain_name = PyWinObject_FromLSA_UNICODE_STRING(info->DomainName);
 			PyObject *domain_sid = PyWinObject_FromSID(info->DomainSid);
@@ -1838,6 +1980,7 @@ static PyObject *PyLsaQueryInformationPolicy(PyObject *self, PyObject *args)
 			}
 
 		case PolicyLsaServerRoleInformation:{
+			// @flag PolicyLsaServerRoleInformation|Returns an int, one of PolicyServerRoleBackup, PolicyServerRolePrimary
 			POLICY_LSA_SERVER_ROLE_INFO *info = (POLICY_LSA_SERVER_ROLE_INFO *)buf;
 			ret=Py_BuildValue("i",info->LsaServerRole);
 			break;
@@ -1851,12 +1994,11 @@ static PyObject *PyLsaQueryInformationPolicy(PyObject *self, PyObject *args)
 			   Maybe only works locally on PDC ?
 			   Data conversions below are untested
 			*/
+			// @flag PolicyModificationInformation|Returns modification serial nbr and modified time of Lsa database
 			POLICY_MODIFICATION_INFO *info = (POLICY_MODIFICATION_INFO *)buf;
 			PyObject *modserial = PyWinObject_FromLARGE_INTEGER(info->ModifiedId);
-			FILETIME modtimeft;
-			memcpy(&modtimeft, &(info->DatabaseCreationTime), sizeof(FILETIME));
-			PyObject *modtime = PyWinObject_FromFILETIME(modtimeft);
-			ret = Py_BuildValue("(OO)",modserial,modtime);
+			PyObject *modtime = PyWinObject_FromTimeStamp(info->DatabaseCreationTime);
+			ret = Py_BuildValue("(NN)",modserial,modtime);
 			Py_DECREF(modserial);
 			Py_DECREF(modtime);
 			break;
@@ -2165,10 +2307,7 @@ static PyObject *PyLsaEnumerateAccountsWithUserRight(PyObject *self, PyObject *a
 %{
 static PyObject *PyConvertSidToStringSid(PyObject *self, PyObject *args)
 {
-    if (cstss==NULL){
-        PyErr_SetString(PyExc_NotImplementedError,"ConvertSidToStringSid not supported by this version of Windows");
-        return NULL;
-        }
+	CHECK_PFN(ConvertSidToStringSid);
     PyObject *obsid=NULL, *ret=NULL;
     // @pyparm <o PySID>|Sid||PySID object
     PSID psid=NULL;
@@ -2178,7 +2317,7 @@ static PyObject *PyConvertSidToStringSid(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsSID(obsid, &psid))
         return NULL;
-    if (!cstss(psid,&stringsid))
+    if (!(*pfnConvertSidToStringSid)(psid,&stringsid))
         PyWin_SetAPIError("ConvertSidToStringSid");
     else
         ret=PyWinObject_FromWCHAR(stringsid);
@@ -2193,10 +2332,7 @@ static PyObject *PyConvertSidToStringSid(PyObject *self, PyObject *args)
 %{
 static PyObject *PyConvertStringSidToSid(PyObject *self, PyObject *args)
 {
-    if (cssts==NULL){
-        PyErr_SetString(PyExc_NotImplementedError,"ConvertStringSidToSid not supported by this version of Windows");
-        return NULL;
-        }
+	CHECK_PFN(ConvertStringSidToSid);
     PyObject *ret=NULL, *obstringsid=NULL;
     PSID psid=NULL;
     TCHAR *stringsid=NULL;
@@ -2206,7 +2342,7 @@ static PyObject *PyConvertStringSidToSid(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsWCHAR(obstringsid, &stringsid))
         return NULL;
-    if (!cssts(stringsid, &psid))
+    if (!(*pfnConvertStringSidToSid)(stringsid, &psid))
         PyWin_SetAPIError("ConvertStringSidToSid");
     else
         ret=PyWinObject_FromSID(psid);
@@ -2223,10 +2359,7 @@ static PyObject *PyConvertStringSidToSid(PyObject *self, PyObject *args)
 %{
 static PyObject *PyConvertSecurityDescriptorToStringSecurityDescriptor(PyObject *self, PyObject *args)
 {
-    if (csdtssd==NULL){
-        PyErr_SetString(PyExc_NotImplementedError,"ConvertSecurityDescriptorToStringSecurityDescriptor not supported by this version of Windows");
-        return NULL;
-        }
+	CHECK_PFN(ConvertSecurityDescriptorToStringSecurityDescriptor);
     PyObject *obsd=NULL, *ret=NULL;
     // @pyparm <o PySECURITY_DESCRIPTOR>|SecurityDescriptor||PySECURITY_DESCRIPTOR object
     // @pyparm int|RequestedStringSDRevision||Only SDDL_REVISION_1 currently valid
@@ -2239,7 +2372,7 @@ static PyObject *PyConvertSecurityDescriptorToStringSecurityDescriptor(PyObject 
         return NULL;
     if (!PyWinObject_AsSECURITY_DESCRIPTOR(obsd, &psd, FALSE))
         return NULL;
-    if (!csdtssd(psd, sd_rev, info, &stringsd, NULL))
+    if (!(*pfnConvertSecurityDescriptorToStringSecurityDescriptor)(psd, sd_rev, info, &stringsd, NULL))
         PyWin_SetAPIError("ConvertSecurityDescriptorToStringSecurityDescriptor");
     else
         ret=PyWinObject_FromWCHAR(stringsd);
@@ -2254,10 +2387,7 @@ static PyObject *PyConvertSecurityDescriptorToStringSecurityDescriptor(PyObject 
 %{
 static PyObject *PyConvertStringSecurityDescriptorToSecurityDescriptor(PyObject *self, PyObject *args)
 {
-    if (cssdtsd==NULL){
-        PyErr_SetString(PyExc_NotImplementedError,"ConvertStringSecurityDescriptorToSecurityDescriptor not supported by this version of Windows");
-        return NULL;
-	    }
+	CHECK_PFN(ConvertStringSecurityDescriptorToSecurityDescriptor);
     PyObject *obssd=NULL, *ret=NULL;
     PSECURITY_DESCRIPTOR psd=NULL;
     // @pyparm string|StringSecurityDescriptor||String representation of a SECURITY_DESCRIPTOR
@@ -2269,7 +2399,7 @@ static PyObject *PyConvertStringSecurityDescriptorToSecurityDescriptor(PyObject 
         return NULL;
     if (!PyWinObject_AsWCHAR(obssd, &stringsd, FALSE))
         return NULL;
-    if (!cssdtsd(stringsd, sd_rev, &psd, NULL))
+    if (!(*pfnConvertStringSecurityDescriptorToSecurityDescriptor)(stringsd, sd_rev, &psd, NULL))
         PyWin_SetAPIError("ConvertStringSecurityDescriptorToSecurityDescriptor");
     else
         ret=PyWinObject_FromSECURITY_DESCRIPTOR(psd);
@@ -2364,8 +2494,7 @@ static PyObject *PyLsaRetrievePrivateData(PyObject *self, PyObject *args)
 %{
 static PyObject *PyLsaRegisterPolicyChangeNotification(PyObject *self, PyObject *args)
 {
-	if (lsarpcn==NULL)
-		return PyErr_Format(PyExc_NotImplementedError,"LsaRegisterPolicyChangeNotification not supported by this version of Windows");
+	CHECK_PFN(LsaRegisterPolicyChangeNotification);
 	PyObject *obHandle=NULL;
 	PyObject *ret=NULL;
 	HANDLE hevent;
@@ -2377,7 +2506,7 @@ static PyObject *PyLsaRegisterPolicyChangeNotification(PyObject *self, PyObject 
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obHandle, &hevent, FALSE))
 		return NULL;
-	err=(*lsarpcn)(info_class,hevent);
+	err=(*pfnLsaRegisterPolicyChangeNotification)(info_class,hevent);
 	if (err==STATUS_SUCCESS)
 		ret=Py_None;
 	else
@@ -2392,8 +2521,7 @@ static PyObject *PyLsaRegisterPolicyChangeNotification(PyObject *self, PyObject 
 %{
 static PyObject *PyLsaUnregisterPolicyChangeNotification(PyObject *self, PyObject *args)
 {
-	if (lsaupcn==NULL)
-		return PyErr_Format(PyExc_NotImplementedError,"LsaUnregisterPolicyChangeNotification not supported by this version of Windows");
+	CHECK_PFN(LsaUnregisterPolicyChangeNotification);
 	PyObject *obHandle;
 	PyObject *ret=NULL;
 	HANDLE hevent;
@@ -2405,7 +2533,7 @@ static PyObject *PyLsaUnregisterPolicyChangeNotification(PyObject *self, PyObjec
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obHandle, &hevent, FALSE))
 		return NULL;
-	err=(*lsaupcn)(info_class,hevent);
+	err=(*pfnLsaUnregisterPolicyChangeNotification)(info_class,hevent);
 	if (err==STATUS_SUCCESS)
 		ret=Py_None;
 	else
@@ -2421,8 +2549,7 @@ static PyObject *PyLsaUnregisterPolicyChangeNotification(PyObject *self, PyObjec
 %{
 static PyObject *PyCryptEnumProviders(PyObject *self, PyObject *args)
 {
-	if (cryptenumproviders==NULL)
-		return PyErr_Format(PyExc_NotImplementedError,"CryptEnumProviders not supported by this version of Windows");
+	CHECK_PFN(CryptEnumProviders);
 	if (!PyArg_ParseTuple(args, ":CryptEnumProviders"))
 		return NULL; 
 	DWORD dwFlags=0, dwIndex=0, dwReserved=NULL, dwProvType=0, cbProvName=0;
@@ -2434,7 +2561,7 @@ static PyObject *PyCryptEnumProviders(PyObject *self, PyObject *args)
 	do{
 		cbProvName=0;
 		pszProvName=NULL;
-		succeeded = (*cryptenumproviders)(dwIndex, NULL, dwFlags, &dwProvType, NULL, &cbProvName);
+		succeeded = (*pfnCryptEnumProviders)(dwIndex, NULL, dwFlags, &dwProvType, NULL, &cbProvName);
 		if (!succeeded)
 			break;
 		// test breaking out of loop if out of memory
@@ -2446,7 +2573,7 @@ static PyObject *PyCryptEnumProviders(PyObject *self, PyObject *args)
 			PyErr_SetString(PyExc_MemoryError, "CryptEnumProviders: SOM");
 			return NULL;
 			}
-		succeeded = (*cryptenumproviders)(dwIndex, NULL, dwFlags, &dwProvType, pszProvName, &cbProvName);
+		succeeded = (*pfnCryptEnumProviders)(dwIndex, NULL, dwFlags, &dwProvType, pszProvName, &cbProvName);
 		if (!succeeded){
 			free(pszProvName);
 			break;
@@ -2474,15 +2601,15 @@ static PyObject *PyCryptEnumProviders(PyObject *self, PyObject *args)
 %{
 static PyObject *PyEnumerateSecurityPackages(PyObject *self, PyObject *args)
 {
-	if (enumeratesecuritypackages==NULL || freecontextbuffer==NULL)
-		return PyErr_Format(PyExc_NotImplementedError,"EnumerateSecurityPackages not supported by this version of Windows");
+	CHECK_SECURITYFUNCTIONTABLE(EnumerateSecurityPackagesW);
+	CHECK_SECURITYFUNCTIONTABLE(FreeContextBuffer);
 	if (!PyArg_ParseTuple(args, ":EnumerateSecurityPackages"))
 		return NULL;
 	PSecPkgInfoW pbuf=NULL, psecpkg=NULL;
 	PyObject *ret=NULL, *obsecpkg=NULL;
 	SECURITY_STATUS result;
 	ULONG pkg_cnt, pkg_ind;
-	result = (*enumeratesecuritypackages)(&pkg_cnt, &pbuf);
+	result = (*psecurityfunctiontable->EnumerateSecurityPackagesW)(&pkg_cnt, &pbuf);
 	if (result!=SEC_E_OK)
 		goto done;
 	ret=PyTuple_New(pkg_cnt);
@@ -2490,13 +2617,7 @@ static PyObject *PyEnumerateSecurityPackages(PyObject *self, PyObject *args)
 		goto done;
 	psecpkg=pbuf;
 	for (pkg_ind=0;pkg_ind<pkg_cnt;pkg_ind++){
-		obsecpkg=Py_BuildValue("{s:l,s:l,s:l,s:l,s:u,s:u}",
-			"Capabilities", psecpkg->fCapabilities,
-			"Version",		psecpkg->wVersion,
-			"RPCID",		psecpkg->wRPCID,
-			"MaxToken",		psecpkg->cbMaxToken,
-			"Name",			psecpkg->Name,
-			"Comment",		psecpkg->Comment);
+		obsecpkg=PyWinObject_FromSecPkgInfo(psecpkg);
 		if (obsecpkg==NULL){
 			Py_DECREF(ret);
 			ret=NULL;
@@ -2507,7 +2628,7 @@ static PyObject *PyEnumerateSecurityPackages(PyObject *self, PyObject *args)
 		}
 	done:
 	if (pbuf!=NULL)
-		(*freecontextbuffer)(pbuf);
+		(*psecurityfunctiontable->FreeContextBuffer)(pbuf);
 	return ret;
 }
 %}
@@ -2542,8 +2663,7 @@ static PyObject *PyCheckTokenMembership(PyObject *self, PyObject *args)
 	PSID sid;
 	BOOL enabled;
 	PyObject *obsid=NULL, *obtoken=NULL;
-	if (checktokenmembership==NULL)
-		return PyErr_Format(PyExc_NotImplementedError,"CheckTokenMembership not supported by this version of Windows");
+	CHECK_PFN(CheckTokenMembership);
 	// @pyparm <o PyHANDLE>|TokenHandle||Handle to an access token, current process token used if None
 	// @pyparm <o PySID>|SidToCheck||Sid to be checked for presence in token
 	if (!PyArg_ParseTuple(args, "OO:CheckTokenMembership",&obtoken, &obsid))
@@ -2552,7 +2672,7 @@ static PyObject *PyCheckTokenMembership(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsSID(obsid, &sid, FALSE))
 		return NULL;
-	if (!(*checktokenmembership)(htoken,sid,&enabled))
+	if (!(*pfnCheckTokenMembership)(htoken,sid,&enabled))
 		PyWin_SetAPIError("CheckTokenMembership",GetLastError());
 	else
 		ret=PyBool_FromLong(enabled);
@@ -2572,8 +2692,8 @@ static PyObject *PyCreateRestrictedToken(PyObject *self, PyObject *args)
 	PSID_AND_ATTRIBUTES SidsToDisable=NULL,SidsToRestrict=NULL;
 	PLUID_AND_ATTRIBUTES PrivilegesToDelete=NULL;
 	BOOL bsuccess=TRUE;
-	if (createrestrictedtoken==NULL)
-		return PyErr_Format(PyExc_NotImplementedError,"CreateRestrictedToken not supported by this version of Windows");
+	
+	CHECK_PFN(CreateRestrictedToken);
 	if (!PyArg_ParseTuple(args,"OlOOO",
 		&obExistingTokenHandle,	// @pyparm <o PyHANDLE>|ExistingTokenHandle||Handle to an access token (see <om win32security.LogonUser>,<om win32security.OpenProcessToken>
 		&Flags,					// @pyparm int|Flags||Valid values are zero or a combination of DISABLE_MAX_PRIVILEGE and SANDBOX_INERT
@@ -2585,7 +2705,7 @@ static PyObject *PyCreateRestrictedToken(PyObject *self, PyObject *args)
 		if (PyWinObject_AsSID_AND_ATTRIBUTESArray(obSidsToDisable, &SidsToDisable, &DisableSidCount))
 			if (PyWinObject_AsSID_AND_ATTRIBUTESArray(obSidsToRestrict, &SidsToRestrict, &RestrictedSidCount))
 				if (PyWinObject_AsLUID_AND_ATTRIBUTESArray(obPrivilegesToDelete, &PrivilegesToDelete, &DeletePrivilegeCount))
-					if ((*createrestrictedtoken)(ExistingTokenHandle,Flags,DisableSidCount,SidsToDisable,
+					if ((*pfnCreateRestrictedToken)(ExistingTokenHandle,Flags,DisableSidCount,SidsToDisable,
 							DeletePrivilegeCount,PrivilegesToDelete,RestrictedSidCount,SidsToRestrict,&NewTokenHandle))
 						ret=PyWinObject_FromHANDLE(NewTokenHandle);
 					else
@@ -2596,6 +2716,574 @@ static PyObject *PyCreateRestrictedToken(PyObject *self, PyObject *args)
 		free(PrivilegesToDelete);
 	if (SidsToRestrict!=NULL)
 		free(SidsToRestrict);
+	return ret;
+}
+%}
+
+// @pyswig <o PyLsaLogon_HANDLE>|LsaRegisterLogonProcess|Creates a trusted connection to LSA
+// @comm Requires SeTcbPrivilege (and must be enabled)
+%native(LsaRegisterLogonProcess) PyLsaRegisterLogonProcess;
+%{
+static PyObject *PyLsaRegisterLogonProcess(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(LsaRegisterLogonProcess);
+	HANDLE lsahandle;
+	NTSTATUS err;
+	LSA_STRING LogonProcessName;
+	LSA_OPERATIONAL_MODE dummy;   // sdk says this should be ignored
+	// @pyparm string|LogonProcessName||Name to use for this logon process
+	if (!PyArg_ParseTuple(args, "s#:LsaRegisterLogonProcess", &LogonProcessName.Buffer, &LogonProcessName.Length))
+		return NULL;
+	LogonProcessName.MaximumLength=LogonProcessName.Length+1;
+	err=(*pfnLsaRegisterLogonProcess)(&LogonProcessName, &lsahandle, &dummy);
+	if (err==STATUS_SUCCESS)
+		return new PyLsaLogon_HANDLE(lsahandle);
+	PyWin_SetAPIError("LsaRegisterLogonProcess",LsaNtStatusToWinError(err));
+	return NULL;
+}
+%}
+
+// @pyswig <o PyLsaLogon_HANDLE>|LsaConnectUntrusted|Creates untrusted connection to LSA
+// @comm You don't need SeTcbPrivilege to execute this function as you do with
+//    LsaRegisterLogonProcess, but functionality of handle is limited
+%native(LsaConnectUntrusted) PyLsaConnectUntrusted;
+%{
+static PyObject *PyLsaConnectUntrusted(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(LsaConnectUntrusted);
+
+	HANDLE lsahandle;
+	NTSTATUS err;
+	if (!PyArg_ParseTuple(args, ":LsaConnectUntrusted"))
+		return NULL;
+	err=(*pfnLsaConnectUntrusted)(&lsahandle);
+	if (err==STATUS_SUCCESS)
+		return new PyLsaLogon_HANDLE(lsahandle);
+	PyWin_SetAPIError("LsaConnectUntrusted",LsaNtStatusToWinError(err));
+	return NULL;
+}
+%}
+
+// @pyswig |LsaDeregisterLogonProcess|Closes connection to LSA server
+%native(LsaDeregisterLogonProcess) PyLsaDeregisterLogonProcess;
+%{
+static PyObject *PyLsaDeregisterLogonProcess(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(LsaDeregisterLogonProcess);
+	HANDLE lsahandle;
+	NTSTATUS err;
+	// @pyparm int|LsaHandle||An Lsa handle as returned by LsaConnectUntrusted or LsaRegisterLogonProcess
+	if (!PyArg_ParseTuple(args, "l:LsaDeregisterLogonProcess",&lsahandle))
+		return NULL;
+	err=(*pfnLsaDeregisterLogonProcess)(lsahandle);
+	if (err==STATUS_SUCCESS){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	PyWin_SetAPIError("LsaDeregisterLogonProcess",LsaNtStatusToWinError(err));
+	return NULL;
+}
+%}
+
+// @pyswig int|LsaLookupAuthenticationPackage|Retrieves the unique id for an authentication package
+%native(LsaLookupAuthenticationPackage) PyLsaLookupAuthenticationPackage;
+%{
+static PyObject *PyLsaLookupAuthenticationPackage(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(LsaLookupAuthenticationPackage);
+
+	NTSTATUS err;
+	HANDLE lsahandle;
+	LSA_STRING packagename;
+	ULONG packageid;
+	// @pyparm int|<o PyLsaLogon_HANDLE>||An Lsa handle as returned by <om win32security.LsaConnectUntrusted> or <om win32security.LsaRegisterLogonProcess>
+	// @pyparm string|PackageName||Name of security package to be identified
+
+	if (!PyArg_ParseTuple(args,"ls#:LsaLookupAuthenticationPackage", &lsahandle, &packagename.Buffer, &packagename.Length))
+		return NULL;
+	packagename.MaximumLength=packagename.Length+1;
+	err=(*pfnLsaLookupAuthenticationPackage)(lsahandle, &packagename, &packageid);
+	if (err!=STATUS_SUCCESS)
+		return PyWin_SetAPIError("LsaLookupAuthenticationPackage", LsaNtStatusToWinError(err)); 
+	return PyLong_FromLong(packageid);
+}
+%}
+
+// @pyswig (long,...)|LsaEnumerateLogonSessions|Lists all current logon ids
+%native(LsaEnumerateLogonSessions) PyLsaEnumerateLogonSessions;
+%{
+static PyObject *PyLsaEnumerateLogonSessions(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(LsaEnumerateLogonSessions);
+	if (!PyArg_ParseTuple(args,":LsaEnumerateLogonSessions"))
+		return NULL;
+
+	NTSTATUS err;
+	unsigned long sessioncount=0, sessionind;
+	PLUID logonids=NULL, logonid;
+	PyObject *ret=NULL, *ret_item;
+	err=(*pfnLsaEnumerateLogonSessions)(&sessioncount, &logonids);
+	if (err!=STATUS_SUCCESS)
+		PyWin_SetAPIError("LsaEnumerateLogonSessions", LsaNtStatusToWinError(err));
+	else{
+		logonid=logonids;
+		ret=PyTuple_New(sessioncount);
+		if (ret!=NULL)
+			for (sessionind=0;sessionind<sessioncount;sessionind++){
+				ret_item=PyWinObject_FromLARGE_INTEGER(*((LARGE_INTEGER *)logonid));
+				if (ret_item==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SetItem(ret,sessionind,ret_item);
+				logonid++;
+				}
+		}
+	if (logonids !=NULL)
+		(*pfnLsaFreeReturnBuffer)(logonids);
+	return ret;
+}
+%}
+
+// @pyswig (dict,...)|LsaGetLogonSessionData|Returns information about a logon session
+// @rdesc Returns a dictionary representing a SECURITY_LOGON_SESSION_DATA structure
+%native(LsaGetLogonSessionData) PyLsaGetLogonSessionData;
+%{
+static PyObject *PyLsaGetLogonSessionData(PyObject *self, PyObject *args)
+{
+	PyObject *obluid, *obLogonServer, *obDnsDomainName, *obUpn;
+	LUID logonid;
+	NTSTATUS err;
+	PSECURITY_LOGON_SESSION_DATA pdata=NULL;
+	PyObject *ret=NULL;
+
+	CHECK_PFN(LsaGetLogonSessionData);
+	CHECK_PFN(LsaFreeReturnBuffer);
+	if (!PyArg_ParseTuple(args,"O:LsaGetLogonSessionData", &obluid))
+		return NULL;
+	// @pyparm <o PyLARGE_INTEGER>|LogonId||An LUID identifying a logon session
+	if (!PyWinObject_AsLARGE_INTEGER(obluid, (LARGE_INTEGER *)&logonid))
+		return NULL;
+
+	err=(*pfnLsaGetLogonSessionData)(&logonid, &pdata);
+	if (err!=STATUS_SUCCESS)
+		PyWin_SetAPIError("LsaGetLogonSessionData", LsaNtStatusToWinError(err));
+	else{
+		// Last 3 members of SECURITY_LOGON_SESSION_DATA don't exist on Win2k
+		if (pdata->Size>offsetof(SECURITY_LOGON_SESSION_DATA,LogonServer)){
+			obLogonServer=PyWinObject_FromLSA_UNICODE_STRING(pdata->LogonServer);
+			obDnsDomainName=PyWinObject_FromLSA_UNICODE_STRING(pdata->DnsDomainName);
+			obUpn=PyWinObject_FromLSA_UNICODE_STRING(pdata->Upn);
+			}
+		else{
+			obLogonServer=Py_None;
+			Py_INCREF(Py_None);
+			obDnsDomainName=Py_None;
+			Py_INCREF(Py_None);
+			obUpn=Py_None;
+			Py_INCREF(Py_None);
+			}
+
+		ret=Py_BuildValue("{s:N,s:N,s:N,s:N,s:l,s:l,s:N,s:N,s:N,s:N,s:N}",
+			"LogonId", PyWinObject_FromLARGE_INTEGER(*((LARGE_INTEGER *)&pdata->LogonId)),
+			"UserName", PyWinObject_FromLSA_UNICODE_STRING(pdata->UserName),
+			"LogonDomain", PyWinObject_FromLSA_UNICODE_STRING(pdata->LogonDomain),
+			"AuthenticationPackage", PyWinObject_FromLSA_UNICODE_STRING(pdata->AuthenticationPackage),
+			"LogonType", pdata->LogonType,
+			"Session", pdata->Session,
+			"Sid", PyWinObject_FromSID(pdata->Sid),
+			"LogonTime", PyWinObject_FromTimeStamp(pdata->LogonTime),
+			"LogonServer", obLogonServer,
+			"DnsDomainName", obDnsDomainName,
+			"Upn", obUpn);
+		}
+
+	if (pdata!=NULL)
+		(*pfnLsaFreeReturnBuffer)(pdata);
+	return ret;
+}
+%}
+
+%{
+// NOTE: PyWinObject_FreeSEC_WINNT_AUTH_IDENTITY must be called even if we fail!
+BOOL PyWinObject_AsSEC_WINNT_AUTH_IDENTITY(PyObject *obAuthData, PSEC_WINNT_AUTH_IDENTITY_W pAuthData)
+{
+	static char *err_msg="AuthData must be a tuple of 3 strings (or None): (User, Domain, Password)";
+	PyObject *obUser, *obDomain, *obPW;
+	ZeroMemory(pAuthData,sizeof(SEC_WINNT_AUTH_IDENTITY_W));
+	if (!PyTuple_Check(obAuthData)){
+		PyErr_Clear();
+		PyErr_SetString(PyExc_TypeError, err_msg);
+		return FALSE;
+		}
+	// No format string for "unicode or None" and no decent functions for
+	// "string or unicode or None" - use pywintypes which auto-encodes as mbcs.
+	if (!PyArg_ParseTuple(obAuthData,"OOO", &obUser, &obDomain, &obPW)) {
+		PyErr_Clear();
+		PyErr_SetString(PyExc_TypeError, err_msg);
+		return FALSE;
+		}
+	static const BOOL none_ok = TRUE; // NULL seems OK anywhere
+	if (!PyWinObject_AsWCHAR(obUser, &pAuthData->User, none_ok, &pAuthData->UserLength) || \
+	    !PyWinObject_AsWCHAR(obDomain, &pAuthData->Domain, none_ok, &pAuthData->DomainLength) || \
+		!PyWinObject_AsWCHAR(obPW, &pAuthData->Password, none_ok, &pAuthData->PasswordLength)) {
+		PyErr_Clear();
+		PyErr_SetString(PyExc_TypeError, err_msg);
+		return FALSE;
+	}
+	pAuthData->Flags=SEC_WINNT_AUTH_IDENTITY_UNICODE;
+	return TRUE;
+}
+
+void PyWinObject_FreeSEC_WINNT_AUTH_IDENTITY(PSEC_WINNT_AUTH_IDENTITY_W pAuthData)
+{
+	if (!pAuthData)
+		return;
+	if (pAuthData->User)
+		PyWinObject_FreeWCHAR(pAuthData->User);
+	if (pAuthData->Domain)
+		PyWinObject_FreeWCHAR(pAuthData->Domain);
+	if (pAuthData->Password)
+		PyWinObject_FreeWCHAR(pAuthData->Password);
+}
+
+%}
+
+// @pyswig (<o PyCredHandle>,<o PyTime>)|AcquireCredentialsHandle|Creates a handle to credentials for use with SSPI
+// @rdesc Returns credential handle and credential's expiration time
+%native(AcquireCredentialsHandle) PyAcquireCredentialsHandle;
+%{
+static PyObject *PyAcquireCredentialsHandle(PyObject *self, PyObject *args)
+{
+    CHECK_SECURITYFUNCTIONTABLE(AcquireCredentialsHandleW);
+	WCHAR *Principal=NULL, *Package=NULL;
+	PyObject *obPrincipal, *obPackage;
+	ULONG CredentialUse;
+	LUID LogonID;
+	PLUID pLogonID=NULL;
+	PyObject *obLogonID;
+	SEC_WINNT_AUTH_IDENTITY_W AuthData;
+	SEC_WINNT_AUTH_IDENTITY_W *pAuthData=NULL;
+	PyObject *obAuthData=Py_None;
+	SEC_GET_KEY_FN GetKeyFn=NULL;
+	PVOID GetKeyArgument=NULL;
+	PyObject *obGetKeyFn=Py_None, *obGetKeyArgument=Py_None;
+	PyObject *ret=NULL;
+	CredHandle Credential;
+	TimeStamp Expiry;
+	SECURITY_STATUS err;
+
+	if (!PyArg_ParseTuple(args,"OOlOO|OO",
+		&obPrincipal,						// @pyparm str/unicode|Principal||Use None for current security context
+		&obPackage,							// @pyparm str/unicode|Package||Name of security package that credentials will be used with
+		&CredentialUse,						// @pyparm int|CredentialUse||Intended use of requested credentials, SECPKG_CRED_INBOUND, SECPKG_CRED_OUTBOUND, or SECPKG_CRED_BOTH
+		&obLogonID,							// @pyparm long|LogonID||LUID representing a logon session, can be None
+		&obAuthData,						// @pyparm tuple|AuthData||Sequence of 3 strings: (User, Domain, Password) - use none for existing credentials
+		&obGetKeyFn, &obGetKeyArgument))	// not supported yet
+		return NULL;
+	if (obGetKeyFn!=Py_None || obGetKeyArgument!=Py_None){
+		PyErr_SetString(PyExc_NotImplementedError,"GetKeyFn and arguments are not supported");
+		return NULL;
+		}
+	if (obAuthData!=Py_None){
+		pAuthData=&AuthData; // set first so freed on failure.
+		if (!PyWinObject_AsSEC_WINNT_AUTH_IDENTITY(obAuthData, &AuthData))
+			goto done;
+		}
+	if (obLogonID!=Py_None){
+		if (!PyWinObject_AsLARGE_INTEGER(obLogonID, (LARGE_INTEGER *)&LogonID))
+			goto done;
+		pLogonID=&LogonID;
+		}
+
+	if (PyWinObject_AsWCHAR(obPrincipal, &Principal, TRUE)
+		&&PyWinObject_AsWCHAR(obPackage, &Package, FALSE)){
+		err=(*psecurityfunctiontable->AcquireCredentialsHandleW)
+			(Principal, Package, CredentialUse, pLogonID, pAuthData,
+			NULL, NULL, &Credential, &Expiry);
+		if (err==SEC_E_OK)
+			ret=Py_BuildValue("NN",new PyCredHandle(&Credential), PyWinObject_FromTimeStamp(Expiry));
+		else
+			PyWin_SetAPIError("AcquireCredentialsHandle",err);
+		}
+done:
+	if (Principal)
+		PyWinObject_FreeWCHAR(Principal);
+	if (Package)
+		PyWinObject_FreeWCHAR(Package);
+	PyWinObject_FreeSEC_WINNT_AUTH_IDENTITY(pAuthData);
+	return ret;
+}
+%}
+
+// @pyswig (int, int, <o PyTime>)|InitializeSecurityContext|Creates a security context based on credentials created by AcquireCredentialsHandle
+// @rdesc Return value is a tuple of (return code, attribute flags, expiration time)
+%native(InitializeSecurityContext) PyInitializeSecurityContext;
+%{
+static PyObject *PyInitializeSecurityContext(PyObject *self, PyObject *args)
+{
+	CHECK_SECURITYFUNCTIONTABLE(InitializeSecurityContextW);
+	PyObject *obcredhandle, *obctxt, *obtargetname, *obsecbufferdesc, *obctxtout, *obsecbufferdescout;
+	PCredHandle pcredhandle;
+	PCtxtHandle pctxt, pctxtout;
+	PSecBufferDesc psecbufferdesc, psecbufferdescout;
+	WCHAR *targetname=NULL;
+	ULONG contextreq, contextattr, targetdatarep, reserved1=0, reserved2=0;
+	TimeStamp expiry;
+	SECURITY_STATUS	err;
+	PyObject *ret=NULL;
+	if (!PyArg_ParseTuple(args,"OOOllOOO",
+		&obcredhandle,			// @pyparm <o PyCredHandle>|Credential||A credentials handle as returned by <om win32security.AcquireCredentialsHandle>
+		&obctxt,				// @pyparm <o PyCtxtHandle>|Context||Use None on initial call, then handle returned in NewContext thereafter
+		&obtargetname,			// @pyparm str/unicode|TargetName||Target of context, security package specific - Use None with NTLM
+		&contextreq,			// @pyparm int|ContextReq||Combination of ISC_REQ_* flags
+		&targetdatarep,			// @pyparm int|TargetDataRep||One of SECURITY_NATIVE_DREP,SECURITY_NETWORK_DREP
+		&obsecbufferdesc,		// @pyparm <o PySecBufferDesc>|pInput||Data buffer - use None initially
+		&obctxtout,				// @pyparm <o PyCtxtHandle>|NewContext||Uninitialized context handle to receive output
+		&obsecbufferdescout))	// @pyparm <o PySecBufferDesc>|pOutput||Buffer that receives output data for subsequent calls
+		return NULL;
+	if (contextreq&ISC_REQ_ALLOCATE_MEMORY){
+		PyErr_SetString(PyExc_NotImplementedError,"Use of ISC_REQ_ALLOCATE_MEMORY is not yet supported");
+		return NULL;
+		}
+
+	if (PyWinObject_AsCredHandle(obcredhandle, &pcredhandle, FALSE)
+		&&PyWinObject_AsCtxtHandle(obctxt, &pctxt, TRUE)
+		&&PyWinObject_AsSecBufferDesc(obsecbufferdesc, &psecbufferdesc, TRUE)
+		&&PyWinObject_AsCtxtHandle(obctxtout, &pctxtout, FALSE)
+		&&PyWinObject_AsSecBufferDesc(obsecbufferdescout, &psecbufferdescout, FALSE)
+		&&PyWinObject_AsWCHAR(obtargetname, &targetname, TRUE)){
+		err=(*psecurityfunctiontable->InitializeSecurityContextW)(pcredhandle, pctxt, targetname, contextreq, reserved1,
+			targetdatarep, psecbufferdesc, reserved2, pctxtout, psecbufferdescout, &contextattr, &expiry);
+		if (err<0)
+			PyWin_SetAPIError("InitializeSecurityContext",err);
+		else{
+			((PySecBufferDesc *)obsecbufferdescout)->modify_in_place();
+			ret=Py_BuildValue("llN",err,contextattr,PyWinObject_FromTimeStamp(expiry));
+			}
+		}
+	PyWinObject_FreeWCHAR(targetname);
+	return ret;
+}
+%}
+
+// @pyswig (int, long, int)|AcceptSecurityContext|Builds security context between server and client
+// @rdesc Returns a tuple of (return code, context attributes, context expiration time)
+
+%native(AcceptSecurityContext) PyAcceptSecurityContext;
+%{
+static PyObject *PyAcceptSecurityContext(PyObject *self, PyObject *args)
+{
+	CHECK_SECURITYFUNCTIONTABLE(AcceptSecurityContext);
+	PyObject *obcredhandle, *obctxt, *obsecbufferdesc, *obctxtout, *obsecbufferdescout;
+	PCredHandle pcredhandle;
+	PCtxtHandle pctxt, pctxtout;
+	PSecBufferDesc psecbufferdesc, psecbufferdescout;
+	ULONG contextreq, contextattr, targetdatarep, reserved1=0, reserved2=0;
+	TimeStamp expiry;
+	SECURITY_STATUS	err;
+	PyObject *ret=NULL;
+
+	if (!PyArg_ParseTuple(args,"OOOllOO",
+		&obcredhandle,			// @pyparm <o PyCredHandle>|Credential||Handle to server's credentials (see AcquireCredentialsHandle)
+		&obctxt,				// @pyparm <o PyCtxtHandle>|Context||Use None on initial call, then handle returned in NewContext thereafter
+		&obsecbufferdesc,		// @pyparm <o PySecBufferDesc>|pInput||Data buffer received from client
+		&contextreq,			// @pyparm int|ContextReq||Combination of ASC_REQ_* flags
+		&targetdatarep,			// @pyparm int|TargetDataRep||One of SECURITY_NATIVE_DREP,SECURITY_NETWORK_DREP
+		&obctxtout,				// @pyparm <o PyCtxtHandle>|NewContext||Uninitialized context handle to receive output
+		&obsecbufferdescout))	// @pyparm <o PySecBufferDesc>|pOutput||Buffer that receives output data, to be passed back as pInput on subsequent calls
+		return NULL;
+	if (contextreq&ISC_REQ_ALLOCATE_MEMORY){
+		PyErr_SetString(PyExc_NotImplementedError,"Use of ISC_REQ_ALLOCATE_MEMORY is not yet supported");
+		return NULL;
+		}
+
+	if (PyWinObject_AsCredHandle(obcredhandle, &pcredhandle, FALSE)
+		&&PyWinObject_AsCtxtHandle(obctxt, &pctxt, TRUE)
+		&&PyWinObject_AsSecBufferDesc(obsecbufferdesc, &psecbufferdesc, TRUE)
+		&&PyWinObject_AsCtxtHandle(obctxtout, &pctxtout, FALSE)
+		&&PyWinObject_AsSecBufferDesc(obsecbufferdescout, &psecbufferdescout, FALSE)){
+		err=(*psecurityfunctiontable->AcceptSecurityContext)(pcredhandle, pctxt, psecbufferdesc, contextreq,
+			targetdatarep, pctxtout, psecbufferdescout, &contextattr, &expiry);
+		if (err<0)
+			PyWin_SetAPIError("AcceptSecurityContext",err);
+		else{
+			((PySecBufferDesc *)obsecbufferdescout)->modify_in_place();
+			ret=Py_BuildValue("llN",err, contextattr, PyWinObject_FromTimeStamp(expiry));
+			}
+		}
+	return ret;
+}
+%}
+
+// @pyswig |QuerySecurityPackageInfo|Retrieves parameters for a security package
+%native(QuerySecurityPackageInfo) PyQuerySecurityPackageInfo;
+%{
+static PyObject *PyQuerySecurityPackageInfo(PyObject *self, PyObject *args)
+{
+	CHECK_SECURITYFUNCTIONTABLE(QuerySecurityPackageInfoW);
+	CHECK_SECURITYFUNCTIONTABLE(FreeContextBuffer);
+
+	PSecPkgInfoW psecpkginfo=NULL;
+	SECURITY_STATUS err;
+	WCHAR *packagename;
+	PyObject *obpackagename, *ret=NULL;
+	if (!PyArg_ParseTuple(args,"O:QuerySecurityPackageInfo",&obpackagename))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obpackagename, &packagename, FALSE))
+		return NULL;
+	err=(*psecurityfunctiontable->QuerySecurityPackageInfoW)(packagename, &psecpkginfo);
+	if (err==SEC_E_OK){
+		ret=PyWinObject_FromSecPkgInfo(psecpkginfo);
+		(*psecurityfunctiontable->FreeContextBuffer)(psecpkginfo);
+		}
+	else
+		PyWin_SetAPIError("QuerySecurityPackageInfo",err);
+	PyWinObject_FreeWCHAR(packagename);
+	return ret;	
+}
+%}
+
+// @pyswig |LsaCallAuthenticationPackage|Requests the services of an authentication package
+%native(LsaCallAuthenticationPackage) PyLsaCallAuthenticationPackage;
+%{
+static PyObject *PyLsaCallAuthenticationPackage(PyObject *self, PyObject *args)
+{
+	// @pyparm <o PyLsaLogon_HANDLE>|LsaHandle||Lsa handle as returned by <om win32security.LsaRegisterLogonProcess> or <om win32security.LsaConnectUntrusted>
+	// @pyparm int|AuthenticationPackage||Id of authentication package to call, as returned by <om win32security.LsaLookupAuthenticationPackage>
+	// @pyparm int|MessageType||Type of request that is being made, Kerb*Message or MsV1_0* constant
+	// @pyparm object|ProtocolSubmitBuffer||Type is dependent on MessageType
+	// @rdesc Type of returned object is dependent on MessageType
+	// @comm Message type is embedded in different types of submit buffers in the API call, but passed separately
+	//   from python for simplicity of parsing input
+	CHECK_PFN(LsaCallAuthenticationPackage);
+	CHECK_PFN(LsaFreeReturnBuffer);
+	HANDLE lsahandle;
+	NTSTATUS err, protocol_status;
+	ULONG pkgid, inputbuflen, outputbuflen, msgtype;
+	PVOID inputbuf=NULL, outputbuf=NULL;
+	PyObject *ret=NULL, *obinputbuf;
+	if (!PyArg_ParseTuple(args, "lllO:LsaCallAuthenticationPackage", &lsahandle, &pkgid, &msgtype, &obinputbuf))
+		return NULL;
+		
+	// Message-specific input
+	// @flagh MessageType|Input type
+	switch (msgtype){
+		// @flag KerbQueryTicketCacheMessage|long - a logon id, use 0 for current logon session
+		// @flag KerbRetrieveTicketMessage|long - a logon id, use 0 for current logon session
+		case KerbQueryTicketCacheMessage:
+		case KerbRetrieveTicketMessage:
+			inputbuflen=sizeof(KERB_QUERY_TKT_CACHE_REQUEST);
+			inputbuf=malloc(inputbuflen);
+			if (inputbuf==NULL){
+				PyErr_Format(PyExc_MemoryError,"Unable to allocate %s bytes", inputbuflen);
+				goto done;
+				}
+			ZeroMemory(inputbuf, inputbuflen);
+			((PKERB_QUERY_TKT_CACHE_REQUEST)inputbuf)->MessageType=(KERB_PROTOCOL_MESSAGE_TYPE)msgtype;
+			if (!PyWinObject_AsLARGE_INTEGER(obinputbuf,(LARGE_INTEGER *)&((PKERB_QUERY_TKT_CACHE_REQUEST)inputbuf)->LogonId))
+				goto done;
+			break;
+		// @flag KerbPurgeTicketCacheMessage|(long, <o PyUnicode>, <o PyUnicode) - tuple containing (LogonId, ServerName, RealmName)
+		case KerbPurgeTicketCacheMessage:
+			PyObject *obLogonId, *obServerName, *obRealmName;
+			inputbuflen=sizeof(KERB_PURGE_TKT_CACHE_REQUEST);
+			inputbuf=malloc(inputbuflen);
+			if (inputbuf==NULL){
+				PyErr_Format(PyExc_MemoryError,"Unable to allocate %s bytes", inputbuflen);
+				goto done;
+				}
+			ZeroMemory(inputbuf, inputbuflen);
+			if (!PyTuple_Check(obinputbuf)){
+				PyErr_SetString(PyExc_TypeError,"Input must be a tuple of (LogonId,ServerName,RealmName)");
+				goto done;
+				}
+			if (!PyArg_ParseTuple(obinputbuf,"OOO:KERB_PURGE_TKT_CACHE_REQUEST", &obLogonId, &obServerName, &obRealmName))
+				goto done;
+			if (!PyWinObject_AsLARGE_INTEGER(obLogonId,(LARGE_INTEGER *)&((PKERB_PURGE_TKT_CACHE_REQUEST)inputbuf)->LogonId)||
+				!PyWinObject_AsLSA_UNICODE_STRING(obServerName,&((PKERB_PURGE_TKT_CACHE_REQUEST)inputbuf)->ServerName, TRUE)||
+				!PyWinObject_AsLSA_UNICODE_STRING(obRealmName,&((PKERB_PURGE_TKT_CACHE_REQUEST)inputbuf)->RealmName, TRUE))
+				goto done;
+			((PKERB_PURGE_TKT_CACHE_REQUEST)inputbuf)->MessageType=(KERB_PROTOCOL_MESSAGE_TYPE)msgtype;
+			break;
+		// @flag KerbRetrieveEncodedTicketMessage|(LogonId, TargetName, TicketFlags, CacheOptions, EncryptionType, CredentialsHandle)
+		//	(int, <o PyUnicode>, int, int, int, <o PyCredHandle>)
+		case KerbRetrieveEncodedTicketMessage:
+		default:
+			return PyErr_Format(PyExc_NotImplementedError,"Message type %d is not supported yet", msgtype);
+		}
+
+	err=(*pfnLsaCallAuthenticationPackage)(lsahandle, pkgid, inputbuf, inputbuflen,
+		&outputbuf, &outputbuflen, &protocol_status);
+	if (err!=STATUS_SUCCESS){
+		PyWin_SetAPIError("LsaCallAuthenticationPackage",LsaNtStatusToWinError(err));
+		goto done;
+		}
+	if (protocol_status!=STATUS_SUCCESS){
+		PyWin_SetAPIError("LsaCallAuthenticationPackage",LsaNtStatusToWinError(protocol_status));
+		goto done;
+		}
+
+	// Message-specific output
+	// @flagh MessageType|Return type
+	switch (msgtype){
+		// @flag KerbQueryTicketCacheMessage|(dict,...) - Returns all tickets for the specified logon session (form is KERB_TICKET_CACHE_INFO)
+		case KerbQueryTicketCacheMessage:
+			ULONG tkt_ind;
+			PKERB_QUERY_TKT_CACHE_RESPONSE kqtcr;
+			PyObject *obktci;
+			kqtcr=(PKERB_QUERY_TKT_CACHE_RESPONSE)outputbuf;
+			ret=PyTuple_New(kqtcr->CountOfTickets);
+			if (ret==NULL)
+				goto done;
+			for (tkt_ind=0; tkt_ind<kqtcr->CountOfTickets; tkt_ind++){
+				obktci=Py_BuildValue("{s:N,s:N,s:N,s:N,s:N,s:l,s:l}",
+					"ServerName", PyWinObject_FromLSA_UNICODE_STRING(kqtcr->Tickets[tkt_ind].ServerName),
+					"RealmName", PyWinObject_FromLSA_UNICODE_STRING(kqtcr->Tickets[tkt_ind].RealmName),
+					"StartTime", PyWinObject_FromTimeStamp(kqtcr->Tickets[tkt_ind].StartTime),
+					"EndTime", PyWinObject_FromTimeStamp(kqtcr->Tickets[tkt_ind].EndTime),
+					"RenewTime", PyWinObject_FromTimeStamp(kqtcr->Tickets[tkt_ind].RenewTime),
+					"EncryptionType", kqtcr->Tickets[tkt_ind].EncryptionType,
+					"TicketFlags", kqtcr->Tickets[tkt_ind].TicketFlags);
+				if (obktci==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					goto done;
+					}
+				PyTuple_SET_ITEM(ret, tkt_ind, obktci);
+				}
+			break;
+		// @flag KerbPurgeTicketCacheMessage|None
+		case KerbPurgeTicketCacheMessage:
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			break;
+		// @flag KerbRetrieveTicketMessage|Returns the ticket granting ticket for the logon session as a KERB_EXTERNAL_TICKET
+		case KerbRetrieveTicketMessage:
+		// @flag KerbRetrieveEncodedTicketMessage|Returns specified ticket as a KERB_EXTERNAL_TICKET
+		case KerbRetrieveEncodedTicketMessage:
+			// KERB_EXTERNAL_TICKET ket;
+			// ket=((PKERB_RETRIEVE_TKT_RESPONSE)outputbuf)->Ticket;  // this is going to be a pain to translate
+			// break;
+		default:
+			PyErr_Format(PyExc_NotImplementedError,"Message type %d is not supported yet", msgtype);
+		}
+
+	done:
+	// Message-specific cleanup
+	switch (msgtype){
+		case KerbPurgeTicketCacheMessage:
+			if (inputbuf!=NULL){
+				PyWinObject_FreeWCHAR(((PKERB_PURGE_TKT_CACHE_REQUEST)inputbuf)->ServerName.Buffer);
+				PyWinObject_FreeWCHAR(((PKERB_PURGE_TKT_CACHE_REQUEST)inputbuf)->RealmName.Buffer);
+				}
+			break;
+		}
+	if (inputbuf!=NULL)
+		free(inputbuf);
+	if (outputbuf!=NULL)
+		(*pfnLsaFreeReturnBuffer)(outputbuf);
 	return ret;
 }
 %}
@@ -2895,3 +3583,4 @@ static PyObject *PyCreateRestrictedToken(PyObject *self, PyObject *args)
 #define SECPKG_CRED_BOTH SECPKG_CRED_BOTH
 #define DISABLE_MAX_PRIVILEGE DISABLE_MAX_PRIVILEGE
 #define SANDBOX_INERT SANDBOX_INERT
+
