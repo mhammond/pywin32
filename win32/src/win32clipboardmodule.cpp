@@ -11,9 +11,9 @@
   files are processed by a tool called "autoduck" which
   generates Windows .hlp files.
 
-******************************************************************************/
-// @doc
+  @doc
 
+******************************************************************************/
 
 #include "windows.h"
 #include "Python.h"
@@ -23,7 +23,6 @@
 #define CHECK_NO_ARGS2(args, fnName) do {\
   if(!PyArg_ParseTuple(args,":"#fnName)) return NULL;\
 } while (0)
-
 
 #define RETURN_NONE do {Py_INCREF(Py_None);return Py_None;} while (0)
 
@@ -271,6 +270,8 @@ static PyObject *
 py_get_clipboard_data(PyObject* self, PyObject* args)
 {
 
+  PyObject *ret;
+
   // @pyparm int|format||Specifies a clipboard format. For a description of
   // the standard clipboard formats, see Standard Clipboard Formats.
 
@@ -289,7 +290,20 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
     return ReturnAPIError("GetClipboardData");
   }
 
-  return (Py_BuildValue("i", (int)handle));
+  LPTSTR lptstr;
+  if (format == CF_TEXT) {
+    lptstr = (LPTSTR)GlobalLock(handle);
+    if (lptstr) {
+      ret = Py_BuildValue("s", lptstr);
+    } else {
+      ret = Py_BuildValue("i", (int)handle);
+    }
+    GlobalUnlock(handle);
+  } else {
+    ret = Py_BuildValue("i", (int)handle);
+  }
+
+  return ret;
 
   // @comm An application can enumerate the available formats in advance by
   // using the EnumClipboardFormats function.<nl>
@@ -533,7 +547,7 @@ py_getPriority_clipboard_format(PyObject* self, PyObject* args)
     o = PyTuple_GetItem(formats, i);
     if (!PyInt_Check(o)) {
       delete format_list;
-      return PyErr_Format(PyExc_TypeError, "GetPriorityClipboardFormat requires a tuple of integer formats");
+      return PyErr_Format(PyExc_TypeError, "GetPriorityClipboardFormat expected integer formats.");
     }
     format_list[i] = PyInt_AsLong(o);
   }
@@ -759,6 +773,58 @@ py_set_clipboard_data(PyObject* self, PyObject* args)
 
 //*****************************************************************************
 //
+// @pymethod int|win32clipboard|SetClipboardText|Convienience function to
+// call SetClipboardData with text.
+
+static PyObject *
+py_set_clipboard_text(PyObject* self, PyObject* args)
+{
+
+  // @pyparm string|text||The text to place on the clipboard.
+
+  int format = CF_TEXT;
+  char *text;
+  int size;
+  if (!PyArg_ParseTuple(args, "s#:SetClipboardText",
+                        &text, &size)) {
+    return NULL;
+  }
+
+  HGLOBAL    hMem;
+  LPTSTR     pszDst;
+
+  hMem = GlobalAlloc(GHND, (DWORD)(size+1));
+  if (hMem == NULL) {
+    return ReturnAPIError("GlobalAlloc");
+  }
+  pszDst = (char*)GlobalLock(hMem);
+  lstrcpy(pszDst, text);
+  pszDst[size] = 0;
+  GlobalUnlock(hMem);
+
+  HANDLE data;
+  Py_BEGIN_ALLOW_THREADS;
+  data = SetClipboardData((UINT)format, hMem);
+  Py_END_ALLOW_THREADS;
+
+  if (!data) {
+    return ReturnAPIError("SetClipboardText");
+  }
+
+  return (Py_BuildValue("i", (int)data));
+
+  // @pyseeapi SetClipboardData
+
+  // @rdesc If the function succeeds, the return value is integer handle
+  // of the data.<nl>
+  // If the function fails, win32api.error is raised with the GetLastError
+  // info.
+
+}
+
+
+//*****************************************************************************
+//
 // @pymethod int|win32clipboard|SetClipboardViewer|The SetClipboardViewer function
 // adds the specified window to the chain of clipboard viewers. Clipboard
 // viewer windows receive a WM_DRAWCLIPBOARD message whenever the content of
@@ -795,7 +861,7 @@ py_set_clipboard_viewer(PyObject* self, PyObject* args)
   // clipboard viewer chain.<nl>
   // A clipboard viewer window must eventually remove itself from the clipboard
   // viewer chain by calling the ChangeClipboardChain function -- for example,
-  // in response to the WM_DESTROY message. 
+  // in response to theWM_DESTROY message. 
 
   // @pyseeapi SetClipboardViewer
 
@@ -874,6 +940,9 @@ static struct PyMethodDef clipboard_functions[] = {
   // @pymeth SetClipboardData|Places data on the clipboard in a specified
   // clipboard format. 
   {"SetClipboardData", py_set_clipboard_data, 1},
+
+  // @pymeth SetClipboardText|Places text on the clipboard . 
+  {"SetClipboardText", py_set_clipboard_text, 1},
 
   // @pymeth SetClipboardViewer|Adds the specified window to the chain of
   // clipboard viewers
