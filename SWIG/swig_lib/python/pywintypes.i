@@ -132,14 +132,14 @@ typedef unsigned long ULONG;
 
 %typemap(python,in) OLECHAR *, WCHAR *{
 	// Wide string code!
-	if (!PyWinObject_AsBstr($source, &$target, FALSE))
+	if (!PyWinObject_AsWCHAR($source, &$target, FALSE))
 		return NULL;
 }
 
 %typemap(python,in) OLECHAR *inNullWideString,
                     WCHAR *inNullWideString {
 	// Wide string code!
-	if (!PyWinObject_AsBstr($source, &$target, TRUE))
+	if (!PyWinObject_AsWCHAR($source, &$target, TRUE))
 		return NULL;
 }
 
@@ -148,7 +148,7 @@ typedef unsigned long ULONG;
 
 %typemap(python,freearg) OLECHAR *, WCHAR *{
 	// Wide string cleanup
-	SysFreeString($source);
+	PyWinObject_FreeWCHAR($source);
 }
 
 %typemap(python,ignore) BSTR *OUTPUT (BSTR temp) {
