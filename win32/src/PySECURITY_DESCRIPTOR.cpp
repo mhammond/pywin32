@@ -83,8 +83,16 @@ BOOL _IsSelfRelative(PSECURITY_DESCRIPTOR psd)
 PyObject *PyWinMethod_NewSECURITY_DESCRIPTOR(PyObject *self, PyObject *args)
 {
 	int descriptor_len = SECURITY_DESCRIPTOR_MIN_LENGTH;
-	if (PyArg_ParseTuple(args, "|l:SECURITY_DESCRIPTOR", &descriptor_len))
-		return new PySECURITY_DESCRIPTOR(descriptor_len);
+	if (PyArg_ParseTuple(args, "|l:SECURITY_DESCRIPTOR", &descriptor_len)){
+		PyObject *ret=new PySECURITY_DESCRIPTOR(descriptor_len);
+		if (((PySECURITY_DESCRIPTOR *)ret)->GetSD()==NULL){
+			if (!PyErr_Occurred())
+				PyErr_SetString(PyExc_NotImplementedError,"Security descriptors are not supported on this platform");
+			Py_DECREF(ret);
+			ret=NULL;
+			}
+		return ret;
+		}
 
 	PyErr_Clear();
 	PyObject *obsd = NULL;
@@ -238,6 +246,7 @@ BOOL PySECURITY_DESCRIPTOR::SetSD(PSECURITY_DESCRIPTOR psd)
 		// GetSecurityDescriptorLength returns 0 on Win9x where the
 		// SECURITY_DESCRIPTOR stuff is not supported.
 		this->m_psd = NULL;
+		return TRUE;
 		}
 	else if (_IsSelfRelative(psd)){
 		this->m_psd = malloc(sdsize);
