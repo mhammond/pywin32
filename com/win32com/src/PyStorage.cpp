@@ -5,7 +5,7 @@
 #include "stdafx.h"
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
-
+static HMODULE ole32=NULL;
 // @doc
 
 // @pymethod <o PyIID>|pythoncom|ReadClassStg|Reads a CLSID from a storage object.
@@ -162,9 +162,10 @@ PyObject *pythoncom_StgOpenStorageEx(PyObject *self, PyObject *args)
 	static PFNStgOpenStorageEx myStgOpenStorageEx = NULL;
 	if (myStgOpenStorageEx==NULL) { // Haven't tried to fetch it yet.
 		myStgOpenStorageEx = (PFNStgOpenStorageEx)-1;
-		HMODULE hmodule=GetModuleHandle("Ole32.dll");
-		if (hmodule!=NULL){
-			FARPROC fp = GetProcAddress(hmodule,"StgOpenStorageEx");
+		if (ole32==NULL)
+			ole32=GetModuleHandle("Ole32.dll");
+		if (ole32!=NULL){
+			FARPROC fp = GetProcAddress(ole32,"StgOpenStorageEx");
 			if (fp!=NULL)
 				myStgOpenStorageEx=(PFNStgOpenStorageEx)fp;
 		}
@@ -217,16 +218,26 @@ PyObject *pythoncom_FmtIdToPropStgName(PyObject *self, PyObject *args)
 	WCHAR oszName[CCH_MAX_PROPSTG_NAME];
 	FMTID fmtid;
 	PyObject *obfmtid=NULL;
+
+	typedef HRESULT (WINAPI * PFNFmtIdToPropStgName)(const FMTID*, LPOLESTR);
+	static PFNFmtIdToPropStgName pfnFmtIdToPropStgName=NULL;
+	static BOOL pfnchecked=FALSE;
+	if (!pfnchecked){
+		if (ole32==NULL)
+			ole32=GetModuleHandle("Ole32.dll");
+		if (ole32!=NULL)
+			pfnFmtIdToPropStgName = (PFNFmtIdToPropStgName)GetProcAddress(ole32, "FmtIdToPropStgName");
+		pfnchecked=TRUE;
+		}
+	if (pfnFmtIdToPropStgName==NULL)
+		return PyErr_Format(PyExc_NotImplementedError,"FmtIdToPropStgName is not available on this platform");
+
 	if (!PyArg_ParseTuple(args, "O:FmtIdToPropStgName", &obfmtid))
 		return NULL;
 	if (!PyWinObject_AsIID(obfmtid, &fmtid))
 		return NULL;
 
-	typedef HRESULT (WINAPI * PFNFmtIdToPropStgName)(const FMTID*, LPOLESTR);
-	HMODULE hmod = GetModuleHandle(TEXT("ole32.dll"));
-	PFNFmtIdToPropStgName pfnFmtIdToPropStgName = (PFNFmtIdToPropStgName)GetProcAddress(hmod, "FmtIdToPropStgName");
-	if (pfnFmtIdToPropStgName==NULL)
-		return PyCom_BuildPyException(E_NOTIMPL);
+
 	PY_INTERFACE_PRECALL;
 	err = (*pfnFmtIdToPropStgName)(&fmtid, oszName);
 	PY_INTERFACE_POSTCALL;
@@ -244,16 +255,25 @@ PyObject *pythoncom_PropStgNameToFmtId(PyObject *self, PyObject *args)
 	WCHAR *oszName=NULL;
 	HRESULT err;
 	PyObject *obName=NULL;
+
+	typedef HRESULT (WINAPI * PFNPropStgNameToFmtId)(const LPOLESTR, FMTID*);
+	static PFNPropStgNameToFmtId pfnPropStgNameToFmtId=NULL;
+	static BOOL pfnchecked=FALSE;
+	if (!pfnchecked){
+		if (ole32==NULL)
+			ole32=GetModuleHandle("Ole32.dll");
+		if (ole32!=NULL)
+			pfnPropStgNameToFmtId = (PFNPropStgNameToFmtId)GetProcAddress(ole32, "PropStgNameToFmtId");
+		pfnchecked=TRUE;
+		}
+	if (pfnPropStgNameToFmtId==NULL)
+		return PyErr_Format(PyExc_NotImplementedError,"PropStgNameToFmtId is not available on this platform");
+
 	if (!PyArg_ParseTuple(args, "O:PropStgNameToFmtId", &obName))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obName,&oszName))
 		return NULL;
 
-	typedef HRESULT (WINAPI * PFNPropStgNameToFmtId)(const LPOLESTR, FMTID*);
-	HMODULE hmod = GetModuleHandle(TEXT("ole32.dll"));
-	PFNPropStgNameToFmtId pfnPropStgNameToFmtId = (PFNPropStgNameToFmtId)GetProcAddress(hmod, "PropStgNameToFmtId");
-	if (pfnPropStgNameToFmtId==NULL)
-		return PyCom_BuildPyException(E_NOTIMPL);
 	PY_INTERFACE_PRECALL;
 	err = (*pfnPropStgNameToFmtId)(oszName, &fmtid);
 	PY_INTERFACE_POSTCALL;
