@@ -178,7 +178,6 @@ static BOOL PyCom_ExcepInfoFromServerExceptionInstance(PyObject *v, EXCEPINFO *p
 // then return FALSE.
 BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *phresult)
 {
-	_ASSERTE(v != NULL);
 	_ASSERTE(pExcepInfo != NULL);
 	if (v==NULL || pExcepInfo==NULL)
 		return FALSE;
