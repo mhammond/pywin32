@@ -50,7 +50,7 @@ class COMException(pythoncom.com_error):
 		if scode and scode != 1: # We dont want S_FALSE mapped!
 			if scode >= -32768 and scode < 32768:
 				# this is HRESULT_FROM_WIN32()
-				scode = 0x80070000 | (scode & 0x0000FFFF)
+				scode = -2147024896 | (scode & 0x0000FFFF)
 		self.scode = scode
 
 		self.description = description or desc

@@ -17,7 +17,7 @@ import pythoncom
 ### Modules will work if loaded into "win32comext" path.
 
 def SetupEnvironment():
-	HKEY_LOCAL_MACHINE = 0x80000002 # Avoid pulling in win32con for just these...
+	HKEY_LOCAL_MACHINE = -2147483646 # Avoid pulling in win32con for just these...
 	KEY_QUERY_VALUE = 0x1
 	# Open the root key once, as this is quite slow on NT.
 	keyName = "SOFTWARE\\Python\\PythonCore\\%s\\PythonPath\\win32com" % sys.winver
