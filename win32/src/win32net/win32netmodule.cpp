@@ -758,7 +758,7 @@ PyDoGroupDelMembers(PyObject *self, PyObject *args)
 
 	numEntries = PySequence_Length(obData);
     plgrminfo = new LOCALGROUP_MEMBERS_INFO_3[numEntries];
-
+	// XXX - todo - we should allow a list of LOCALGROUP_MEMBER_INFO items *or* strings
 	memset(plgrminfo, 0, sizeof(LOCALGROUP_MEMBERS_INFO_3) * numEntries);
 	for (i = 0; i < numEntries; i++) {
 		PyObject *sub = PySequence_GetItem(obData, i);
