@@ -45,6 +45,7 @@ PyObject *PyIOleObject::SetClientSite(PyObject *self, PyObject *args)
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pIOO->SetClientSite( pClientSite );
+	if (pClientSite) pClientSite->Release();
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
@@ -152,6 +153,7 @@ PyObject *PyIOleObject::SetMoniker(PyObject *self, PyObject *args)
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pIOO->SetMoniker( dwWhichMoniker, pmk );
+	if (pmk) pmk->Release();
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
@@ -211,6 +213,7 @@ PyObject *PyIOleObject::InitFromData(PyObject *self, PyObject *args)
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pIOO->InitFromData( pDataObject, fCreation, dwReserved );
+	if (pDataObject) pDataObject->Release();
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
@@ -283,8 +286,8 @@ PyObject *PyIOleObject::DoVerb(PyObject *self, PyObject *args)
 	if (!bPythonIsHappy) return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-//	hr = pIOO->DoVerb( iVerb, lpmsg, pActiveSite, lindex, hwndParent, lprcPosRect );
 	hr = pIOO->DoVerb( iVerb, lpmsg, pActiveSite, lindex, hwndParent, lprcPosRect );
+	if (pActiveSite) pActiveSite->Release();
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
@@ -477,6 +480,7 @@ PyObject *PyIOleObject::Advise(PyObject *self, PyObject *args)
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pIOO->Advise( pAdvSink, &pdwConnection );
+	if (pAdvSink) pAdvSink->Release();
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )

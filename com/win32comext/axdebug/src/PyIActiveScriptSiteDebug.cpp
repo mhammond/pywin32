@@ -114,6 +114,7 @@ PyObject *PyIActiveScriptSiteDebug::OnScriptErrorDebug(PyObject *self, PyObject 
 	BOOL bEnterDebugger, bCallOnError;
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = pIASSD->OnScriptErrorDebug( pad, &bEnterDebugger, &bCallOnError );
+	if (pad) pad->Release();
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);

@@ -69,6 +69,7 @@ PyObject *PyIActiveScriptParseProcedure::ParseProcedureText(PyObject *self, PyOb
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pIASPP->ParseProcedureText( pstrCode, pstrFormalParams, pstrProcedureName, pstrItemName, punkContext, pstrDelimiter, dwSourceContextCookie, ulStartingLineNumber, dwFlags, &ppdisp );
+	if (punkContext) punkContext->Release();
 	PY_INTERFACE_POSTCALL;
 	SysFreeString(pstrCode);
 	SysFreeString(pstrFormalParams);

@@ -189,6 +189,7 @@ PyObject *PyIViewObject::SetAdvise(PyObject *self, PyObject *args)
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pIVO->SetAdvise( aspects, advf, pAdvSink );
+	if (pAdvSink) pAdvSink->Release();
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )

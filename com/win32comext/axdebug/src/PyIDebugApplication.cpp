@@ -438,6 +438,8 @@ PyObject *PyIDebugApplication::HandleRuntimeError(PyObject *self, PyObject *args
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pIDA->HandleRuntimeError( pErrorDebug, pScriptSite, &pbra, &perra, &pfCallOnScriptError );
+	if (pErrorDebug) pErrorDebug->Release();
+	if (pScriptSite) pScriptSite->Release();
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
@@ -506,6 +508,7 @@ PyObject *PyIDebugApplication::AddGlobalExpressionContextProvider(PyObject *self
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pIDA->AddGlobalExpressionContextProvider( pdsfs, &pdwCookie );
+	if (pdsfs) pdsfs->Release();
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )

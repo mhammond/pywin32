@@ -146,6 +146,8 @@ PyObject *PyIRemoteDebugApplicationThread::SetNextStatement(PyObject *self, PyOb
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pIRDAT->SetNextStatement( pStackFrame, pCodeContext );
+	if (pStackFrame) pStackFrame->Release();
+	if (pCodeContext) pCodeContext->Release();
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )

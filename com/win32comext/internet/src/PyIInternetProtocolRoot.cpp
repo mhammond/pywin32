@@ -55,6 +55,8 @@ PyObject *PyIInternetProtocolRoot::Start(PyObject *self, PyObject *args)
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pIIPR->Start( szUrl, pOIProtSink, pOIBindInfo, grfPI, dwReserved );
+	if (pOIProtSink) pOIProtSink->Release();
+	if (pOIBindInfo) pOIBindInfo->Release();
 	PY_INTERFACE_POSTCALL;
 	SysFreeString(szUrl);
 
