@@ -45,21 +45,21 @@ static GetPrintProcessorDirectoryfunc pfnGetPrinterDriverDirectory=NULL;  // sam
 static PyObject *dummy_tuple=NULL;
 
 // @object PRINTER_DEFAULTS|A dictionary representing a PRINTER_DEFAULTS structure
-// @prop string|pDatatype|Data type to be used for print jobs, see <om win32print.EnumPrintProcessorDatatypes>, can be None
-// @prop <o PyDEVMODE>|pDevMode|A PyDEVMODE that specifies default printer parameters, can be None 
+// @prop string|pDatatype|Data type to be used for print jobs, see <om win32print.EnumPrintProcessorDatatypes>, optional, can be None
+// @prop <o PyDEVMODE>|pDevMode|A PyDEVMODE that specifies default printer parameters, optional, can be None 
 // @prop int|DesiredAccess|An ACCESS_MASK specifying what level of access is needed, eg PRINTER_ACCESS_ADMINISTER, PRINTER_ACCESS_USE 
 BOOL PyWinObject_AsPRINTER_DEFAULTS(PyObject *obdefaults, PPRINTER_DEFAULTS pdefaults)
 {
-	static char *printer_default_keys[]={"pDataType","pDevMode","DesiredAccess",NULL};
-	static char *printer_default_format="zOl";
-	PyObject *obdevmode;
+	static char *printer_default_keys[]={"DesiredAccess","pDataType","pDevMode",NULL};
+	static char *printer_default_format="l|zO";
+	PyObject *obdevmode=Py_None;
 	if (!PyDict_Check(obdefaults)){
 		PyErr_SetString(PyExc_TypeError, "PRINTER_DEFAULTS must be a dictionary");
 		return FALSE;
 		}
 	ZeroMemory(pdefaults,sizeof(PRINTER_DEFAULTS));
 	return PyArg_ParseTupleAndKeywords(dummy_tuple,obdefaults,printer_default_format,printer_default_keys,
-		&pdefaults->pDatatype, &obdevmode, &pdefaults->DesiredAccess)
+		&pdefaults->DesiredAccess, &pdefaults->pDatatype, &obdevmode)
 		&&PyWinObject_AsDEVMODE(obdevmode, &pdefaults->pDevMode, TRUE);
 }
 // Printer stuff.
@@ -501,7 +501,9 @@ static PyObject *PyEnumPrinters(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_ValueError, "This information level is not supported");
 		return NULL;
 	}
-	EnumPrinters(flags, name, level, NULL, 0, &bufneeded, &printersreturned);
+	// if call with NULL buffer succeeds, there's nothing to enumerate
+	if (EnumPrinters(flags, name, level, NULL, 0, &bufneeded, &printersreturned))
+		return PyTuple_New(0);
 	if (GetLastError()!=ERROR_INSUFFICIENT_BUFFER)
 		return PyWin_SetAPIError("EnumPrinters");
 	bufsize= bufneeded;
@@ -849,7 +851,8 @@ static PyObject *PyEnumJobs(PyObject *self, PyObject *args)
 		return NULL;
 	if ((level < 1)||(level > 3))
 		return PyErr_Format(PyExc_ValueError, "Information level %d is not supported", level);
-	EnumJobs(hprinter, firstjob, nojobs, level, NULL, 0, &bufneeded_size, &jobsreturned);
+	if (EnumJobs(hprinter, firstjob, nojobs, level, NULL, 0, &bufneeded_size, &jobsreturned))
+		return PyTuple_New(0);
 	if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
 		return PyWin_SetAPIError("EnumJobs");
 	buf_size= bufneeded_size;
@@ -1239,7 +1242,10 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsWCHAR(obenvironment, &environment, TRUE))
 		goto done;
 
-	EnumPrinterDriversW(servername, environment, level, buf, bufsize, &bytes_needed, &return_cnt);
+	if (EnumPrinterDriversW(servername, environment, level, buf, bufsize, &bytes_needed, &return_cnt)){
+		ret=PyTuple_New(0);
+		goto done;
+		}
 	if (bytes_needed==0){
 		PyWin_SetAPIError("EnumPrinterDrivers");
 		goto done;
@@ -1251,7 +1257,7 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 		}
 	bufsize=bytes_needed;
 	if (!EnumPrinterDriversW(servername, environment, level, buf, bufsize, &bytes_needed, &return_cnt)){
-		PyWin_SetAPIError("EnumPrintProcessors");
+		PyWin_SetAPIError("EnumPrinterDrivers");
 		goto done;
 		}
 	ret=PyTuple_New(return_cnt);
@@ -1316,7 +1322,7 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 		case 4:
 			di4=(DRIVER_INFO_4W *)buf;
 			for (i=0; i<return_cnt; i++){
-				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u}",
+				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u,s:u,s:O&,s:u,s:u,s:u}",
 					"Version",di4->cVersion,
 					"Name",di4->pName,
 					"Environment",di4->pEnvironment,
@@ -1324,7 +1330,7 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 					"DataFile",di4->pDataFile,
 					"ConfigFile",di4->pConfigFile,
 					"HelpFile", di4->pHelpFile,
-					"DependentFiles",di4->pDependentFiles,
+					"DependentFiles",PyWinObject_FromWCHARMultiple,di4->pDependentFiles,
 					"MonitorName",di4->pMonitorName,
 					"DefaultDataType",di4->pDefaultDataType,
 					"PreviousNames",di4->pszzPreviousNames);
@@ -1362,7 +1368,7 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 		case 6:
 			di6=(DRIVER_INFO_6W *)buf;
 			for (i=0; i<return_cnt; i++){
-				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:O&,s:L,s:u,s:u,s:u}",
+				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u,s:u,s:O&,s:u,s:u,s:u,s:O&,s:L,s:u,s:u,s:u}",
 					"Version",di6->cVersion,
 					"Name",di6->pName,
 					"Environment",di6->pEnvironment,
@@ -1370,7 +1376,7 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 					"DataFile",di6->pDataFile,
 					"ConfigFile",di6->pConfigFile,
 					"HelpFile", di6->pHelpFile,
-					"DependentFiles",di6->pDependentFiles,
+					"DependentFiles",PyWinObject_FromWCHARMultiple,di6->pDependentFiles,
 					"MonitorName",di6->pMonitorName,
 					"DefaultDataType",di6->pDefaultDataType,
 					"PreviousNames",di6->pszzPreviousNames,
