@@ -1,6 +1,7 @@
 import os
 import sys
 import glob
+import shutil
 
 """
 BuildHHP.py
@@ -33,9 +34,13 @@ Home="%(target)s","%(target)s.hhc","%(target)s.hhk","%(target)s.HTML","%(target)
 """
 
 def handle_globs(lGlobs):
+  assert lGlobs, "you must pass some patterns!"
   lFiles = []
   for g in lGlobs:
-    lFiles = lFiles + glob.glob(g)
+    new = glob.glob(g)
+    if len(new)==0:
+      print "The pattern '%s' yielded no files!" % (g,)
+    lFiles = lFiles + new
   # lFiles is now the list of origin files.
   # Normalize all of the paths:
   cFiles = len(lFiles)
@@ -51,6 +56,9 @@ def handle_globs(lGlobs):
     i = i + 1
   # Find the common prefix of all of the files
   sCommonPrefix = os.path.commonprefix(lFiles)
+  # if that prefix isnt a directory, turn it into one!
+  if not os.path.isdir(sCommonPrefix):
+    sCommonPrefix = os.path.split(sCommonPrefix)[0]
   # Ok, now remove this common prefix from every file:
   lRelativeFiles = []
   for file in lFiles:
@@ -82,9 +90,8 @@ def main():
         os.makedirs(os.path.split(file)[0])
       except:
         pass
-      sCmd = "copy %s %s > NUL" % (lSrcFiles[i], file)
-      os.system(sCmd)
-      
+      shutil.copyfile(lSrcFiles[i], file)
+
     for file in lDestFiles:
       html_files = html_files + '%s\\%s\n' % (html_dir, file)
     
