@@ -7,6 +7,7 @@ from distutils.core import setup, Extension, Command
 from distutils.command.install_lib import install_lib
 from distutils.command.build_ext import build_ext
 from distutils.dep_util import newer_group
+from distutils import log
 import os, string, sys
 
 class WinExt (Extension):
@@ -32,7 +33,7 @@ class WinExt (Extension):
         libary_dirs = library_dirs,
         include_dirs = ['com/win32com/src/include',
                         'win32/src'] + include_dirs
-        libraries = ['user32', 'odbc32', 'advapi32',
+        libraries = ['user32', 'odbc32', 'advapi32', 'version',
                      'oleaut32', 'ole32', 'shell32'] + libraries
 
         if export_symbol_file:
@@ -73,10 +74,121 @@ class WinExt (Extension):
         for line in open(dsp, "r"):
             fields = line.strip().split("=", 2)
             if fields[0]=="SOURCE":
-                if os.path.splitext(fields[1])[1].lower() in ['.cpp', '.c']:
+                if os.path.splitext(fields[1])[1].lower() in ['.cpp', '.c', '.i']:
                     pathname = os.path.normpath(os.path.join(dsp_path, fields[1]))
                     result.append(pathname)
         return result
+
+################################################################
+
+class my_install_lib (install_lib):
+    # A special install_lib command, which will install into the windows
+    # system directory instead of Lib/site-packages
+
+    # XXX Currently broken.  Should only install pywintypes and pythoncom into sysdir
+    def finalize_options(self):
+        install_lib.finalize_options(self)
+        self.install_dir = os.getenv("windir") + '\\system32'
+
+class my_build_ext(build_ext):
+
+    def finalize_options(self):
+        build_ext.finalize_options(self)
+        # The pywintypes library is created in the build_temp
+        # directory, so we need to add this to library_dirs
+        self.library_dirs.append(self.build_temp)
+        self.mingw32 = (self.compiler == "mingw32")
+        if self.mingw32:
+            self.libraries.append("stdc++")
+
+    def build_extension(self, ext):
+        # some source files are compiled for different extensions
+        # with special defines. So we cannot use a shared
+        # directory for objects, we must use a special one for each extension.
+        old_build_temp = self.build_temp
+        try:
+            self.build_temp = os.path.join(self.build_temp, ext.name)
+
+            build_ext.build_extension(self, ext)
+
+            if ext.name not in ("pywintypes", "pythoncom"):
+                return
+
+            # The import libraries are created as PyWinTypes23.lib, but
+            # are expected to be pywintypes.lib.
+
+            # XXX This has to be changed for mingw32
+            extra = self.debug and "_d.lib" or ".lib"
+            if ext.name == "pywintypes":
+                name1 = "pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
+                name2 = "pywintypes%s" % (extra)
+            elif ext.name == "pythoncom":
+                name1 = "pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
+                name2 = "pythoncom%s" % (extra)
+
+            # MSVCCompiler constructs the .lib file in the same directory
+            # as the first source file's object file:
+            #    os.path.dirname(objects[0])
+            # but we want it in the (old) build_temp directory
+            src = os.path.join(self.build_temp,
+                               os.path.dirname(ext.sources[0]),
+                               name1)
+            dst = os.path.join(old_build_temp, name2)
+            self.copy_file(src, dst)#, update=1)
+
+        finally:
+            self.build_temp = old_build_temp
+
+    def get_ext_filename(self, name):
+        # The pywintypes and pythoncom extensions have special names
+        if name == "pywintypes":
+            extra = self.debug and "_d.dll" or ".dll"
+            return "pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
+        elif name == "pythoncom":
+            extra = self.debug and "_d.dll" or ".dll"
+            return "pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
+        return build_ext.get_ext_filename(self, name)
+
+    def find_swig (self):
+        # We know where swig is
+        os.environ["SWIG_LIB"] = os.path.abspath(r"swig\swig_lib")
+        return os.path.abspath(r"swig\swig.exe")
+
+    def swig_sources (self, sources):
+        new_sources = []
+        swig_sources = []
+        swig_targets = {}
+        # XXX this drops generated C/C++ files into the source tree, which
+        # is fine for developers who want to distribute the generated
+        # source -- but there should be an option to put SWIG output in
+        # the temp dir.
+        target_ext = '.cpp'
+        for source in sources:
+            (base, ext) = os.path.splitext(source)
+            if ext == ".i":             # SWIG interface file
+                # Seems the files SWIG creates are not compiled separately,
+                # they are #included somewhere else. So we don't include
+                # the generated wrapper in the new_sources list.
+                swig_sources.append(source)
+                # and win32all has it's own naming convention for the wrappers:
+                swig_targets[source] = base + 'module_win32' + target_ext
+            else:
+                new_sources.append(source)
+
+        if not swig_sources:
+            return new_sources
+
+        swig = self.find_swig()
+        swig_cmd = [swig, "-python"]
+        if self.swig_cpp:
+            swig_cmd.append("-c++")
+
+        for source in swig_sources:
+            target = swig_targets[source]
+            log.info("swigging %s to %s", source, target)
+            self.spawn(swig_cmd + ["-o", target, source])
+
+        return new_sources
 
 ################################################################
 
@@ -88,92 +200,19 @@ pywintypes = WinExt('pywintypes',
 pythoncom = WinExt('pythoncom',
                    dsp_file=r"com\win32com.dsp",
                    export_symbol_file = 'com/win32com/src/PythonCOM.def',
-##                   libraries = ['PyWintypes'],
                    extra_compile_args = ['-DBUILD_PYTHONCOM'],
                    )
 
+win32api = WinExt('win32api',
+                  dsp_file = r"win32\win32api.dsp")
 
-class my_install_lib (install_lib):
-    # A special install_lib command, which will install into the windows
-    # system directory instead of Lib/site-packages
-    def finalize_options(self):
-        install_lib.finalize_options(self)
-        self.install_dir = os.getenv("windir") + '\\system32'
+win32file = WinExt('win32file',
+                  dsp_file = r"win32\win32file.dsp")
 
-WINVER = tuple(map(int, string.split(sys.winver, '.')))
+win32event = WinExt('win32event',
+                  dsp_file = r"win32\win32event.dsp")
 
-REGNAMES = {'pywintypes': 'PyWinTypes%d%d' % WINVER,
-            'pythoncom': 'PythonCOM%d%d' % WINVER,
-            }
-
-
-class my_build_ext(build_ext):
-
-    def finalize_options(self):
-        build_ext.finalize_options(self)
-
-        self.library_dirs.append(self.build_temp)
-        self.mingw32 = (self.compiler == "mingw32")
-        if self.mingw32:
-            self.libraries.append("stdc++")
-
-    def build_extension(self, ext):
-        # some source files are compiled for different extensions
-        # with special defines. So we cannot use a shared
-        # directory for objects, we must use special ones.
-        old_temp = self.build_temp
-        try:
-            self.build_temp = os.path.join(self.build_temp, ext.name)
-
-            build_ext.build_extension(self, ext)
-
-            # After building an extension with non-standard target filename,
-            # copy the .lib-file created to the original name.
-            name = REGNAMES.get(ext.name, ext.name)
-            from distutils.file_util import copy_file, move_file
-            extra = ''
-            if self.debug:
-                extra = '_d'
-            if self.mingw32:
-                prefix = 'lib'
-                extra = extra + '.a'
-            else:
-                prefix = ''
-                extra = extra + '.lib'
-
-            # MSVCCompiler constructs the .lib file in the same directory
-            # as the first source file's object file:
-            #    os.path.dirname(objects[0])
-            src = os.path.join(self.build_temp,
-                               os.path.dirname(ext.sources[0]),
-                               prefix + name + extra)
-            dst = os.path.join(self.build_temp, "..", prefix + ext.name + extra)
-            self.copy_file(src, dst)#, update=1)
-
-        finally:
-            self.build_temp = old_temp
-
-
-    def get_libraries(self, ext):
-        libs = build_ext.get_libraries(self, ext)
-        result = []
-        for lib in libs:
-            plib = REGNAMES.get(string.lower(lib), None)
-            if plib and self.debug:
-                plib = plib + '_d'
-            if plib:
-                result.append(plib)
-            else:
-                result.append(lib)
-        return result
-
-    def get_ext_filename(self, name):
-        fname = build_ext.get_ext_filename(self, name)
-        base, ext = os.path.splitext(fname)
-        newbase = REGNAMES.get(name, fname)
-        if self.debug:
-            return newbase + '_d' + '.dll'
-        return newbase + '.dll'
+################################################################
 
 setup(name="PyWinTypes",
       version="version?",
@@ -184,11 +223,11 @@ setup(name="PyWinTypes",
       url="http://starship.python.net/crew/mhammond/",
       license="???",
 
-      cmdclass = { 'install_lib': my_install_lib,
+      cmdclass = { #'install_lib': my_install_lib,
                    'build_ext': my_build_ext,
                    },
 
-      ext_modules = [pywintypes, pythoncom],
+      ext_modules = [pywintypes, win32api, win32file, win32event, pythoncom],
 
 ##      packages=['win32',
     
@@ -228,4 +267,3 @@ setup(name="PyWinTypes",
 ##                'pywin.tools',
 ##                ],
       )
-
