@@ -54,13 +54,8 @@ class SafeOutput:
 # Make sure we have a valid sys.stdout/stderr, otherwise out
 # print and trace statements may raise an exception
 def MakeValidSysOuts():
-	myclass = SafeOutput
-	try:
-		if sys.stdout.__class__ == myclass:
-			return # already set up
-	except AttributeError:
-		pass
-	sys.stdout = sys.stderr = myclass()
+	if not isinstance(sys.stdout, SafeOutput):
+		sys.stdout = sys.stderr = SafeOutput()
 
 def trace(*args):
 	"""A function used instead of "print" for debugging output.
