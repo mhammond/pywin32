@@ -25,11 +25,11 @@ class RegexTest(unittest.TestCase):
         self._CheckMatches(match, expected)
     
     def testDynamic(self):
-        re = EnsureDispatch("VBScript.Regexp")
+        re = DumbDispatch("VBScript.Regexp")
         self._TestVBScriptRegex(re)
 
-    def testDynamic(self):
-        re = DumbDispatch("VBScript.Regexp")
+    def testGenerated(self):
+        re = EnsureDispatch("VBScript.Regexp")
         self._TestVBScriptRegex(re)
 
 if __name__=='__main__':
