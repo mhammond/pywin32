@@ -30,8 +30,7 @@ class ConnectableServer:
 		# Creates a connection to the client.  Simply allocate a new cookie,
 		# find the clients interface, and store it in a dictionary.
 		try:
-			interface = pUnk.QueryInterface(self._connect_interfaces_[0],1)
-			interface = interface.QueryInterface(pythoncom.IID_IDispatch)
+			interface = pUnk.QueryInterface(self._connect_interfaces_[0],pythoncom.IID_IDispatch)
 		except pythoncom.com_error:
 			raise Exception(scode=olectl.CONNECT_E_NOCONNECTION)
 		self.cookieNo = self.cookieNo + 1
@@ -42,7 +41,7 @@ class ConnectableServer:
 		try:
 			del self.connections[cookie]
 		except KeyError:
-			return Exception(scode=winerror.E_UNEXPECTED)
+			raise Exception(scode=winerror.E_UNEXPECTED)
 	# IConnectionPointContainer interfaces
 	def EnumConnectionPoints(self):
 		raise Exception(winerror.E_NOTIMPL)
