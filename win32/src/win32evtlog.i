@@ -324,7 +324,7 @@ cleanup:
 %name (ClearEventLog) BOOLAPI
 ClearEventLogW (
     HANDLE hEventLog,	// @pyparm int|handle||Handle to the event log to clear.
-    WCHAR *nullokstr // @pyparm <o PyUnicode>|eventLogName||The name of the event log to save to, or None
+    WCHAR *INPUT_NULLOK // @pyparm <o PyUnicode>|eventLogName||The name of the event log to save to, or None
     );
 
 // @pyswig |BackupEventLog|Backs up the event log
