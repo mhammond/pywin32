@@ -26,7 +26,24 @@ from pywintypes import UnicodeType
 
 error = "PythonCOM.Client.Build error"
 DropIndirection="DropIndirection"
-	
+
+NoTranslateTypes = [
+	pythoncom.VT_BOOL,          pythoncom.VT_CLSID,        pythoncom.VT_CY,
+	pythoncom.VT_DATE,          pythoncom.VT_DECIMAL,       pythoncom.VT_EMPTY,
+	pythoncom.VT_ERROR,         pythoncom.VT_FILETIME,     pythoncom.VT_HRESULT,
+	pythoncom.VT_I1,            pythoncom.VT_I2,           pythoncom.VT_I4,
+	pythoncom.VT_I8,            pythoncom.VT_INT,          pythoncom.VT_NULL,
+	pythoncom.VT_R4,            pythoncom.VT_R8,           pythoncom.VT_NULL,
+	pythoncom.VT_STREAM,
+	pythoncom.VT_UI1,            pythoncom.VT_UI2,           pythoncom.VT_UI4,
+	pythoncom.VT_UI8,            pythoncom.VT_UINT,          pythoncom.VT_VOID,
+	pythoncom.VT_UNKNOWN,
+]
+
+NoTranslateMap = {}
+for v in NoTranslateTypes:
+	NoTranslateMap[v] = None
+
 class MapEntry:
 	"Simple holder for named attibutes - items in a map."
 	def __init__(self, desc_or_id, names=None, doc=None, resultCLSID=pythoncom.IID_NULL, resultDoc = None, hidden=0):
@@ -306,7 +323,20 @@ class DispatchItem(OleItem):
 		# Strip the default values from the arg desc
 		retDesc = fdesc[8][:2]
 		argsDesc = tuple(map(lambda what: what[:2], fdesc[2]))
-		s = '%s\treturn self._ApplyTypes_(0x%x, %s, %s, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, argsDesc, `name`, resclsid, _BuildArgList(fdesc, names))
+		s = None
+		if len(retDesc)==2 and retDesc[1]==0:
+			rd = retDesc[0]
+			if NoTranslateMap.has_key(rd):
+				s = '%s\treturn self._oleobj_.InvokeTypes(0x%x, LCID, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, argsDesc, _BuildArgList(fdesc, names))
+			elif rd==pythoncom.VT_DISPATCH:
+				s = '%s\tret = self._oleobj_.InvokeTypes(0x%x, LCID, %s, %s, %s%s)\n' % (linePrefix, id, fdesc[4], retDesc, `argsDesc`, _BuildArgList(fdesc, names))
+				s = s + '%s\tif ret is not None: ret = win32com.client.Dispatch(ret, %s, %s, UnicodeToString=1)\n' % (linePrefix,`name`, resclsid) 
+				s = s + '%s\treturn ret' % (linePrefix)
+			elif rd == pythoncom.VT_BSTR:
+				s = '%s\treturn str(self._oleobj_.InvokeTypes(0x%x, LCID, %s, %s, %s%s))' % (linePrefix, id, fdesc[4], retDesc, `argsDesc`, _BuildArgList(fdesc, names))
+			# else s remains None
+		if s is None:
+			s = '%s\treturn self._ApplyTypes_(0x%x, %s, %s, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, argsDesc, `name`, resclsid, _BuildArgList(fdesc, names))
 
 		ret.append(s)
 		ret.append("")
@@ -410,6 +440,10 @@ def _BuildArgList(fdesc, names):
     "Builds list of args to the underlying Invoke method."
     # Word has TypeInfo for Insert() method, but says "no args"
     numArgs = max(fdesc[6], len(fdesc[2]))
+    names = list(names)
+    while None in names:
+    	i = names.index(None)
+    	names[i] = "arg%d" % (i,)
     names = map(MakePublicAttributeName, names[1:])
     while len(names) < numArgs:
         names.append("arg%d" % (len(names),))
