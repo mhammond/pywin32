@@ -315,6 +315,7 @@ char *failMsg = "bad operand type";
 {
 	// Call virtual method Close
 	((PyHANDLE *)ob)->Close();
+    PyErr_Clear(); // can not leave pending exceptions in destructors.
 	delete (PyHANDLE *)ob;
 }
 
