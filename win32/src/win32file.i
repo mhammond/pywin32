@@ -1559,6 +1559,39 @@ PyObject* MyWSAEventSelect
 	PyHANDLE hEvent, // @pyparm <o PyHandle>|hEvent||Event handle for the socket to become attached to.
 	LONG lNetworkEvents // @pyparm int|networkEvents||A bitmask of network events that will cause hEvent to be signaled. e.g. (FD_CLOSE \| FD_READ)
 );
+%{
+
+PyObject* MyWSAAsyncSelect
+(
+	SOCKET *s, 
+	LONG hwnd,
+	LONG wMsg,
+	LONG lNetworkEvents
+)
+{
+	int rc;
+	Py_BEGIN_ALLOW_THREADS;
+	rc = WSAAsyncSelect(*s, (HWND)hwnd, wMsg, lNetworkEvents);
+	Py_END_ALLOW_THREADS;
+	if (rc == SOCKET_ERROR)
+	{
+		PyWin_SetAPIError("WSAAsyncSelect", WSAGetLastError());
+		return NULL;
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+%}
+
+// @pyswig |WSAEventSelect|Specifies an event object to be associated with the supplied set of FD_XXXX network events.
+%name(WSAAsyncSelect) PyObject *MyWSAAsyncSelect
+(
+	SOCKET *s, // @pyparm <o PySocket>|socket||socket to attach to the event
+	LONG hwnd, // @pyparm <o hwnd>|hwnd||Window handle for the socket to become attached to.
+	LONG wMsg, // @pyparm <o int>|int||Window message that will be posted.
+	LONG lNetworkEvents // @pyparm int|networkEvents||A bitmask of network events that will cause wMsg to be posted. e.g. (FD_CLOSE \| FD_READ)
+);
 
 %native(WSASend) MyWSASend;
 %native(WSARecv) MyWSARecv;
