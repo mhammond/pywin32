@@ -628,7 +628,6 @@ class Generator:
     self.bHaveWrittenDispatchBaseClass = 0
     self.bHaveWrittenCoClassBaseClass = 0
     self.bHaveWrittenEventBaseClass = 0
-
     self.typelib = typelib
     self.sourceFilename = sourceFilename
     self.bBuildHidden = bBuildHidden
@@ -761,6 +760,11 @@ class Generator:
     docDesc = ""
     if moduleDoc[1]:
       docDesc = moduleDoc[1]
+
+    # Reset all the 'per file' state
+    self.bHaveWrittenDispatchBaseClass = 0
+    self.bHaveWrittenCoClassBaseClass = 0
+    self.bHaveWrittenEventBaseClass = 0
 
     # encodings were giving me grief with McMillan's Installer
     # until I get to the bottom of this, don't generate
@@ -903,7 +907,6 @@ class Generator:
   def generate_child(self, child, dir):
     "Generate a single child.  May force a few children to be built as we generate deps"
     self.generate_type = GEN_DEMAND_CHILD
-    oldOut = sys.stdout
 
     la = self.typelib.GetLibAttr()
     lcid = la[1]
@@ -963,8 +966,8 @@ class Generator:
       self.progress.SetDescription("Generating...", len(items))
       for oleitem, vtableitem in items.values():
         an_item = oleitem or vtableitem
+        assert not self.file, "already have a file?"
         self.file = open(os.path.join(dir, an_item.python_name) + ".py", "w")
-        sys.stdout = self.file
         try:
           if oleitem is not None:
             self.do_gen_child_item(oleitem)
@@ -972,11 +975,9 @@ class Generator:
             self.do_gen_child_item(vtableitem)
           self.progress.Tick()
         finally:
-          sys.stdout = oldOut
           self.file.close()
           self.file = None
     finally:
-      sys.stdout = oldOut
       self.progress.Finished()
 
   def do_gen_child_item(self, oleitem):
