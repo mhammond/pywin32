@@ -515,3 +515,9 @@ def main():
 
 if __name__=='__main__':
 	main()
+
+	ni = pythoncom._GetInterfaceCount()
+	ng = pythoncom._GetGatewayCount()
+	if ni or ng:
+		print "Warning - exiting with %d/%d objects alive" % (ni,ng)
+	
