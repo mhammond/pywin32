@@ -13,5 +13,6 @@
 
 #include <PythonCOM.h>
 #include <PythonCOMServer.h>
+#include <PythonCOMRegister.h>
 
 #include "dataconv.h"

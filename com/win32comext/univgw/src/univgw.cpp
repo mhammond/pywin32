@@ -6,6 +6,7 @@
 
 static HMODULE g_hModule = NULL;
 static PyObject *univgwError;
+static PyObject *g_obRegisteredVTables = NULL;
 
 // ### copied from PyGatewayBase.cpp
 static const GUID IID_IInternalUnwrapPythonObject = {
@@ -20,6 +21,13 @@ typedef struct gw_vtbl
 #define GW_VTBL_MAGIC	0x20534A47
 
 	PyObject *	dispatcher;	// dispatcher from the COM2Py thunk definition
+	
+	// Python CObject that owns freeing this object.
+	// This is here so that the method function pointer array
+	// exists as long as the tear off interface does.
+	// This is also here so that the tear off interfaces have the absolute
+	// minimum state necessary.
+	PyObject *  obVTable;   
 	IID			iid;		// the IID of this interface
 	UINT		cMethod;	// count of methods
 
@@ -47,10 +55,6 @@ static void set_error(REFIID riid, LPCOLESTR desc)
 	if ( SUCCEEDED(hr) )
 	{
 		CComBSTR b(desc);
-
-		// ### temporary
-		OutputDebugStringW(desc);
-		OutputDebugStringW(L"\n");
 
 		pICEI->SetGUID(riid);
 		pICEI->SetDescription(b);
@@ -82,7 +86,6 @@ static HRESULT univgw_dispatch(DWORD index, gw_object * _this, va_list argPtr)
 
 	if ( obArgPtr == NULL || obArgs == NULL || obIndex == NULL )
 	{
-		// ### what-to-do is pretty close here. maybe refine it some.
 		set_error(vtbl->iid, L"could not create argument tuple");
 		Py_XDECREF(obArgPtr);
 		Py_XDECREF(obArgs);
@@ -107,7 +110,7 @@ static HRESULT univgw_dispatch(DWORD index, gw_object * _this, va_list argPtr)
 	Py_DECREF(obArgs);
 
 	if ( result == NULL )
-		return PyCom_SetCOMErrorFromPyException(vtbl->iid);
+	  return PyCom_SetCOMErrorFromPyException(vtbl->iid);
 
 	HRESULT hr;
 	if ( result == Py_None )
@@ -119,8 +122,6 @@ static HRESULT univgw_dispatch(DWORD index, gw_object * _this, va_list argPtr)
 		if ( !PyInt_Check(result) )
 		{
 			Py_DECREF(result);
-
-			// ### pretty close here. maybe refine it some.
 			set_error(vtbl->iid, L"expected integer return value");
 			return E_UNEXPECTED;	// ### select a different value?
 		}
@@ -130,7 +131,25 @@ static HRESULT univgw_dispatch(DWORD index, gw_object * _this, va_list argPtr)
 
 	Py_DECREF(result);
 
-	// ### what to do for non-HRESULT return values?
+	// ### Greg> what to do for non-HRESULT return values?
+	// ### Bill> If its not a float/double then
+	// ###       then they'll see a 32bit sign-extended value.
+	// ###       If its a float/double they're currently out of luck.
+	// ###       The smart ones only declare int, HRESULT, or void
+	// ###       functions in any event...
+	// ### on X86s __stdcall return values go into:
+	// ### char:     al
+	// ### short:    ax
+	// ### int:     eax
+	// ### long:    eax
+	// ### float:  ST(0)
+	// ### double: ST(0)
+	// ### HRESULT: eax
+	// ### int64:   edx:eax
+	// ### Where edx is the most significant 32bits.
+	// ### All praise we don't have to deal with the Alpha calling convention...
+	// ### If we want to handle multiple ABIs it might be wise to look into
+	// ### using libfii.
 	return hr;
 }
 
@@ -227,16 +246,21 @@ static STDMETHODIMP univgw_QueryInterface(gw_object * _this, REFIID riid, void *
 	// delegate to the original interface
 	return _this->punk->QueryInterface(riid, ppv);
 }
+
 static STDMETHODIMP_(ULONG) univgw_AddRef(gw_object * _this)
 {
 	return InterlockedIncrement(&_this->cRef);
 }
+
 static STDMETHODIMP_(ULONG) univgw_Release(gw_object * _this)
 {
 	LONG cRef = InterlockedDecrement(&_this->cRef);
 	if ( cRef == 0 )
 	{
 		_this->punk->Release();
+		// Do I need to acquire the python lock here???
+		// I probably do... 
+		Py_DECREF(GET_DEFN(_this)->obVTable);
 		free(_this);
 		return 0;
 	}
@@ -315,6 +339,7 @@ static PyObject * univgw_CreateVTable(PyObject *self, PyObject *args)
 	Py_INCREF(obDef);
 	vtbl->iid = iid;
 	vtbl->cMethod = count;
+	vtbl->obVTable = NULL;
 
 	vtbl->dispatcher = PyObject_GetAttrString(obDef, "dispatch");
 	if ( vtbl->dispatcher == NULL )
@@ -357,7 +382,11 @@ static PyObject * univgw_CreateVTable(PyObject *self, PyObject *args)
 		free_vtbl(vtbl);
 		return NULL;
 	}
-
+	
+	// Stick the CObject into the vtable itself
+	// so that the tear off interfaces can INCREF/DECREF it at
+	// their own whim.
+	vtbl->obVTable = result;
 	return result;
 
   error:
@@ -366,26 +395,16 @@ static PyObject * univgw_CreateVTable(PyObject *self, PyObject *args)
 	return NULL;
 }
 
-static PyObject * univgw_CreateTearOff(PyObject *self, PyObject *args)
+// Does all of the heavy lifting...
+// Returns the created vtable pointer.
+static IUnknown *CreateTearOff
+(
+	PyObject *obInstance,
+	PyObject *obVTable
+)
 {
-	PyObject *obInstance;
-	PyObject *obVTable;
-	PyObject *obIID = NULL;
-	if ( !PyArg_ParseTuple(args, "OO|O:CreateTearOff", &obInstance, &obVTable, &obIID) )
-		return NULL;
-
-	IID iidInterface = IID_IUnknown;	// what PyI* to wrap with
-	if ( obIID && obIID != Py_None )
-		if ( !PyWinObject_AsIID(obIID, &iidInterface) )
-			return NULL;
-
-	// obVTable must be a CObject containing our vtbl ptr
-	if ( !PyCObject_Check(obVTable) )
-	{
-		PyErr_SetString(PyExc_ValueError, "argument is not a CObject/vtable");
-		return NULL;
-	}
 	gw_vtbl * vtbl = (gw_vtbl *)PyCObject_AsVoidPtr(obVTable);
+
 	if ( vtbl->magic != GW_VTBL_MAGIC )
 	{
 		PyErr_SetString(PyExc_ValueError, "argument does not contain a vtable");
@@ -408,9 +427,123 @@ static PyObject * univgw_CreateTearOff(PyObject *self, PyObject *args)
 	}
 	punk->vtbl = vtbl->methods;
 	punk->punk = pUnwrap;
-	punk->cRef = 1;		// we start with one reference (the object we return)
+	// we start with one reference (the object we return)
+	punk->cRef = 1;
+	// Make sure the vtbl doesn't go away before we do.
+	Py_INCREF(vtbl->obVTable);
 
+	return (IUnknown *)punk;	
+}
+
+static PyObject * univgw_CreateTearOff(PyObject *self, PyObject *args)
+{
+	PyObject *obInstance;
+	PyObject *obVTable;
+	PyObject *obIID = NULL;
+	IUnknown *punk = NULL;
+	if ( !PyArg_ParseTuple(args, "OO|O:CreateTearOff", &obInstance, &obVTable, &obIID) )
+		return NULL;
+
+	IID iidInterface = IID_IUnknown;	// what PyI* to wrap with
+	if ( obIID && obIID != Py_None )
+		if ( !PyWinObject_AsIID(obIID, &iidInterface) )
+			return NULL;
+
+	// obVTable must be a CObject containing our vtbl ptr
+	if ( !PyCObject_Check(obVTable) )
+	{
+		PyErr_SetString(PyExc_ValueError, "argument is not a CObject/vtable");
+		return NULL;
+	}
+
+	// Do all of the grunt work.
+	punk = CreateTearOff(obInstance, obVTable);
+	if (!punk)
+	{
+		Py_DECREF(obVTable);
+		return NULL;
+	}
+
+	// Convert to a PyObject.
 	return PyCom_PyObjectFromIUnknown((IUnknown *)punk, iidInterface, FALSE);
+}
+
+// This is the function that gets called for creating
+// registered PythonCOM gateway objects.
+static HRESULT CreateRegisteredTearOff(PyObject *pPyInstance, void **ppResult, REFIID iid)
+{
+	if (ppResult == NULL ||
+		pPyInstance == NULL)
+	{
+		return E_POINTER;
+	}
+
+	// Lookup vtable using iid.
+	PyObject *obIID = PyWinObject_FromIID(iid);
+	PyObject *obVTable = PyDict_GetItem(g_obRegisteredVTables, obIID);
+	if (!obVTable)
+	{
+		// This should never happen....
+		_ASSERTE(FALSE);
+		return E_NOINTERFACE;
+	}
+
+	// obVTable must be a CObject containing our vtbl ptr
+	if ( !PyCObject_Check(obVTable) )
+	{
+		_ASSERTE(FALSE);
+		return E_NOINTERFACE;
+	}
+
+	// Do all of the grunt work.
+	*ppResult = CreateTearOff(pPyInstance, obVTable);
+	if (*ppResult == NULL)
+		return E_FAIL;
+	return S_OK;
+}
+
+static PyObject * univgw_RegisterVTable(PyObject *self, PyObject *args)
+{
+	IID iid;
+	PyObject *obVTable;
+	PyObject *obIID;
+	char *pszInterfaceNm = NULL;
+
+	if ( !PyArg_ParseTuple(args, "OOs:RegisterVTable", &obVTable, &obIID, &pszInterfaceNm) )
+		return NULL;
+
+	// obVTable must be a CObject containing our vtbl ptr
+	if ( !PyCObject_Check(obVTable) )
+	{
+		PyErr_SetString(PyExc_ValueError, "argument is not a CObject/vtable");
+		return NULL;
+	}
+
+	if (!PyWinObject_AsIID(obIID, &iid))
+	{
+		PyErr_SetString(PyExc_ValueError, "argument is not an IID");
+		return NULL;
+	}
+
+	if (!PyDict_SetItem(
+		g_obRegisteredVTables,
+		obIID,
+		obVTable))
+	{
+		return NULL;
+	}
+
+	if (!PyCom_IsGatewayRegistered(iid))
+	{
+		HRESULT hr = PyCom_RegisterGatewayObject(iid, CreateRegisteredTearOff, pszInterfaceNm);
+		if (FAILED(hr))
+		{
+			return NULL;
+		}
+	}
+	
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 static PyObject * univgw_ReadMemory(PyObject *self, PyObject *args)
@@ -459,12 +592,16 @@ static struct PyMethodDef univgw_functions[] =
 	{ "CreateTearOff", univgw_CreateTearOff, 1 },
 	{ "ReadMemory", univgw_ReadMemory, 1 },
 	{ "WriteMemory", univgw_WriteMemory, 1 },
+	{ "RegisterVTable", univgw_RegisterVTable, 1},
 
 	{ "L64", dataconv_L64, 1 },
 	{ "UL64", dataconv_UL64, 1 },
 	{ "strL64", dataconv_strL64, 1 },
 	{ "strUL64", dataconv_strUL64, 1 },
 	{ "interface", dataconv_interface, 1},
+	{ "SizeOfVT", dataconv_SizeOfVT, 1},
+	{ "WriteFromOutTuple", dataconv_WriteFromOutTuple, 1},
+	{ "ReadFromInTuple", dataconv_ReadFromInTuple, 1},
 
 	{ NULL } /* sentinel */
 };

@@ -34,5 +34,8 @@ PyObject * dataconv_UL64(PyObject *self, PyObject *args);
 PyObject * dataconv_strL64(PyObject *self, PyObject *args);
 PyObject * dataconv_strUL64(PyObject *self, PyObject *args);
 PyObject * dataconv_interface(PyObject *self, PyObject *args);
+PyObject * dataconv_SizeOfVT(PyObject *self, PyObject *args);
+PyObject * dataconv_WriteFromOutTuple(PyObject *self, PyObject *args);
+PyObject * dataconv_ReadFromInTuple(PyObject *self, PyObject *args);
 
 #endif // __DATACONV_H__
