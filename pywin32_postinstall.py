@@ -2,7 +2,7 @@
 #
 # copies PyWinTypesxx.dll and PythonCOMxx.dll into the system directory,
 # and creates a pth file
-import os, sys, glob, shutil
+import os, sys, glob, shutil, time
 import _winreg
 
 com_modules = [
@@ -229,6 +229,9 @@ if __name__=='__main__':
             pid = int(sys.argv[arg_index])
             try:
                 os.waitpid(pid, 0)
+            except AttributeError:
+                # Python 2.2 - no waitpid - just sleep.
+                time.sleep(3)
             except os.error:
                 # child already dead
                 pass
