@@ -131,7 +131,7 @@ BOOL PyWinObject_AsString(PyObject *stringObject, char **pResult, BOOL bNoneOK /
 	}
 	char *temp = PyString_AsString(stringObject);
 	int len = PyString_Size(stringObject);
-	*pResult = PyMem_Malloc(len+1);
+	*pResult = (char *)PyMem_Malloc(len+1);
 	if (*pResult) {
 		memcpy(*pResult, temp, len+1);
 		if (pResultLen) *pResultLen = len;
