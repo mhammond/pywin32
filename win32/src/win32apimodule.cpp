@@ -2233,6 +2233,36 @@ PyRegLoadKey( PyObject *self, PyObject *args )
 	// @comm A call to RegLoadKey fails if the calling process does not have the SE_RESTORE_PRIVILEGE privilege.
 	// <nl>If hkey is a handle returned by <om win32api.RegConnectRegistry>, then the path specified in fileName is relative to the remote computer. 
 }
+// @pymethod |win32api|RegUnLoadKey|The RegUnLoadKey function unloads the specified registry key and its subkeys from the registry.
+// The key should have been created by a previous call to <om win32api.RegLoadKey>.
+static PyObject *
+PyRegUnLoadKey( PyObject *self, PyObject *args )
+{
+	HKEY hKey;
+	PyObject *obKey;
+	char *subKey;
+
+	long rc;
+	// @pyparm <o PyHKEY>/int|key||An already open key, or any one of the following win32con constants:<nl>HKEY_USERS<nl>HKEY_LOCAL_MACHINE
+	// @pyparm string|subKey||The name of the key to unload.
+	// This key must be a subkey of the key identified by the key parameter.
+	// This value must not be None.
+	if (!PyArg_ParseTuple(args, "Os:RegUnLoadKey", &obKey, &subKey))
+		return NULL;
+	if (!PyWinObject_AsHKEY(obKey, &hKey))
+		return NULL;
+	// @pyseeapi RegUnLoadKey
+	PyW32_BEGIN_ALLOW_THREADS
+	rc=RegUnLoadKey(hKey, subKey);
+	PyW32_END_ALLOW_THREADS
+	if (rc!=ERROR_SUCCESS)
+		return ReturnAPIError("RegUnLoadKey", rc);
+	Py_INCREF(Py_None);
+	return Py_None;
+	// @comm A call to RegUnLoadKey fails if the calling process does not have the SE_RESTORE_PRIVILEGE privilege.
+	// <nl>If hkey is a handle returned by <om win32api.RegConnectRegistry>, then the path specified in fileName is relative to the remote computer.
+}
+
 // @pymethod <o PyHKEY>|win32api|RegOpenKey|Opens the specified key.
 // @comm This funcion is implemented using <om win32api.RegOpenKeyEx>, by taking advantage
 // of default parameters.  See <om win32api.RegOpenKeyEx> for more details.
@@ -3780,6 +3810,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"RegSetKeySecurity",   PyRegSetKeySecurity, 1}, // @pymeth RegSetKeySecurity|Sets the security on the specified registry key.
 	{"RegSetValue",         PyRegSetValue, 1}, // @pymeth RegSetValue|Associates a value with a specified key.  Currently, only strings are supported.
 	{"RegSetValueEx",       PyRegSetValueEx, 1}, // @pymeth RegSetValueEx|Stores data in the value field of an open registry key.
+	{"RegUnLoadKey",        PyRegUnLoadKey, 1}, // @pymeth RegUnLoadKey|Unloads the specified registry key and its subkeys from the registry.  The keys must have been loaded previously by a call to RegLoadKey.
 	{"RegisterWindowMessage",PyRegisterWindowMessage, 1}, // @pymeth RegisterWindowMessage|Given a string, return a system wide unique message ID.
 	{"SearchPath",          PySearchPath, 1}, // @pymeth SearchPath|Searches a path for a file.
 	{"SendMessage",         PySendMessage, 1}, // @pymeth SendMessage|Send a message to a window.
