@@ -18,7 +18,7 @@ def LocatePythonServiceExe(exeName = None):
 		if win32service.__file__.find("_d")>=0:
 			exeName = "PythonService_d.exe"
 		else:
-			exeName = "PythonService_d.exe"
+			exeName = "PythonService.exe"
 	# See if it exists as specified
 	if os.path.isfile(exeName): return win32api.GetFullPathName(exeName)
 	baseName = os.path.splitext(os.path.basename(exeName))[0]
