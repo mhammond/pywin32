@@ -706,12 +706,15 @@ static PyObject *MySetThreadIdealProcessor( HANDLE hThread, DWORD dwIdealProc )
 %}
 
 // @pyswig int|SetThreadIdealProcessor|Used to specify a preferred processor for a thread. The system schedules threads on their preferred processors whenever possible.
-%name(SetThreadIdealProcessor) DWORD MySetThreadIdealProcessor(
+%name(SetThreadIdealProcessor) 
+PyObject *MySetThreadIdealProcessor(
   HANDLE hThread,             // @pyparm <o PyHANDLE>|handle||handle to the thread of interest
   DWORD dwIdealProcessor  // @pyparm int|dwIdealProcessor||ideal processor number
 );
 
 %{
+// Appears to be some problem with the optimizer here, so I just leave it off!
+#pragma optimize ("", off)
 // This function does not exist on all platforms.
 static PyObject *MySetProcessAffinityMask( HANDLE hThread, DWORD dwMask )
 {
@@ -728,10 +731,12 @@ static PyObject *MySetProcessAffinityMask( HANDLE hThread, DWORD dwMask )
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+#pragma optimize ("", on)
 %}
 
 // @pyswig |SetProcessAffinityMask|Sets a processor affinity mask for a specified process.
-%name(SetProcessAffinityMask) DWORD MySetProcessAffinityMask (
+%name(SetProcessAffinityMask)
+PyObject *MySetProcessAffinityMask (
   HANDLE hThread,             // @pyparm <o PyHANDLE>|handle||handle to the process of interest
   DWORD dwThreadAffinityMask  // @pyparm int|mask||a thread affinity mask
 );
