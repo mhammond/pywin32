@@ -1,0 +1,33 @@
+README for building of Scintilla and SciTE
+
+
+*** GTK+/Linux version ***
+
+You must first have GTK+ 1.2x and GCC (2.8 or better) installed.
+GTK+ 1.0x will not work and when it did it was very slow.
+Other C++ compilers may work but may require tweaking the make file.
+
+To build SciTE for GTK+/Linux, use the Makefile_gtk like this:
+
+	make -f Makefile_gtk
+
+The current make file only supports static linking between SciTE and Scintilla.
+
+The SciTEGTK.properties file is better than the SciTEGlobal.properties for use 
+on Linux/GTK+ as it specifies fonts that are likely to be installed. 
+SciTE reads its SciTEGlobal.properties file from the user's home directory.
+
+
+*** Windows version ***
+
+A C++ compiler is required. Mingw32 GCC 2.9.5 is the compiler used
+for most development although Visual C++ is also supported.
+
+To compile with GCC, use make on the "makefile" file.
+
+	make
+
+To compile with VC++, use nmake on the "makefile_vc" file.
+
+	nmake /f makefile_vc
+
