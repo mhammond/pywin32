@@ -1782,7 +1782,7 @@ PyObject* MyWSAAsyncSelect
 
 %}
 
-// @pyswig |WSAEventSelect|Specifies an event object to be associated with the supplied set of FD_XXXX network events.
+// @pyswig |WSAAsyncSelect|Specifies an event object to be associated with the supplied set of FD_XXXX network events.
 %name(WSAAsyncSelect) PyObject *MyWSAAsyncSelect
 (
 	SOCKET *s, // @pyparm <o PySocket>|socket||socket to attach to the event
