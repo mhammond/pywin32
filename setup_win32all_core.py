@@ -3,12 +3,8 @@
 # Thomas Heller, started in 2000 or so.
 #
 # Things known to be missing:
-# * Commented "data files"
 # * Install of .exe/.dlls - most .exe files go next to python.exe
 # * "dbi" was built as .dll, as odbc depends on it.  does it work?
-# * create win32com\gen_py directory post install.
-# * Installing the 2 system DLLs to the system directory (just notice post-
-#   setup script does this - maybe do this on std "install" too?
 
 from distutils.core import setup, Extension, Command
 from distutils.command.install_lib import install_lib
@@ -18,6 +14,7 @@ from distutils import log
 from distutils.sysconfig import get_python_lib
 from distutils.filelist import FileList
 import os, string, sys
+import re
 
 # Python 2.2 has no True/False
 try:
@@ -134,19 +131,9 @@ class WinExt_win32com_mapi(WinExt_win32com):
 # A hacky extension class for pywintypesXX.dll and pythoncomXX.dll
 class WinExt_system32(WinExt):
     def get_pywin32_dir(self):
-        return "system32"
+        return "pywin32_system32"
 
 ################################################################
-
-class my_install_lib (install_lib):
-    # A special install_lib command, which will install into the windows
-    # system directory instead of Lib/site-packages
-
-    # XXX Currently broken.  Should only install pywintypes and pythoncom into sysdir
-    def finalize_options(self):
-        install_lib.finalize_options(self)
-        self.install_dir = os.getenv("windir") + '\\system32'
-
 class my_build_ext(build_ext):
 
     def finalize_options(self):
@@ -357,12 +344,12 @@ class my_build_ext(build_ext):
 
     def get_ext_filename(self, name):
         # The pywintypes and pythoncom extensions have special names
-        if name == "system32.pywintypes":
+        if name == "pywin32_system32.pywintypes":
             extra = self.debug and "_d.dll" or ".dll"
-            return r"system32\pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
-        elif name == "system32.pythoncom":
+            return r"pywin32_system32\pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
+        elif name == "pywin32_system32.pythoncom":
             extra = self.debug and "_d.dll" or ".dll"
-            return r"system32\pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
+            return r"pywin32_system32\pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
         elif name.endswith("win32.perfmondata"):
             extra = self.debug and "_d.dll" or ".dll"
             return r"win32\perfmondata" + extra
@@ -540,32 +527,43 @@ W32_exe_files = [
     WinExt_pythonwin("Pythonwin", extra_link_args=["/SUBSYSTEM:WINDOWS"]),
     ]
 
-# XXX - incomplete, but checking in to avoid conflicts with Thomas ;)
+def expand_modules(module_dir):
+    flist = FileList()
+    flist.findall(module_dir)
+    flist.include_pattern("*.py")
+    return [os.path.splitext(name)[0] for name in flist.files]
+
 # NOTE: somewhat counter-intuitively, a result list a-la:
 #  [('Lib/site-packages\\Pythonwin', ('Pythonwin/license.txt',)),]
 # will 'do the right thing' in terms of installing licence.txt into
-# 'Lib/site-packages/Pythonwin/licence.txt'.  I intent exploiting this to
-# get 'com/wincom/whatever' installed to 'win32com/whatever'
+# 'Lib/site-packages/Pythonwin/licence.txt'.  We exploit this to
+# get 'com/win32com/whatever' installed to 'win32com/whatever'
 def convert_data_files(files):
+    base_dir = "Lib/site-packages"
     ret = []
     for file in files:
+        file = os.path.normpath(file)
         if file.find("*") >= 0:
-            continue
-            flist = FileList(os.path.dirname(file))
-            if not flist.include_pattern(os.path.basename(file)):
+            flist = FileList()
+            flist.findall(os.path.dirname(file))
+            flist.include_pattern(os.path.basename(file))
+            # We never want CVS
+            flist.exclude_pattern(re.compile(".*\\\\CVS\\\\"), is_regex=1)
+            if not flist.files:
                 raise RuntimeError, "No files match '%s'" % file
-            found = flist.files
+            files_use = flist.files
         else:
             if not os.path.isfile(file):
                 raise RuntimeError, "No file '%s'" % file
-            path = os.path.join("Lib/site-packages", os.path.dirname(file))
-            ret.append( (path, (file,)) )
-            continue
-# xxx - incomplete, but semi-working, and going to bed :)
-#            found = [file]
-        ret.append( ("Lib/site-packages", found) )
-        
-    print ret
+            files_use = (file,)
+        path_use = os.path.dirname(file)
+        if path_use.startswith("com/") or path_use.startswith("com\\"):
+            path_use = path_use[4:]
+        path_use = os.path.join(base_dir, path_use)
+        ret.append( (path_use, files_use))
+    #print "DataFiles:"
+    #for f in ret:
+    #    print f
     return ret
    
 
@@ -588,28 +586,10 @@ dist = setup(name="pywin32",
       
       ext_modules = win32_extensions + com_extensions + pythonwin_extensions,
 
-      package_dir = {"win32": "win32",
-                     "win32com": "com/win32com",
+      package_dir = {"win32com": "com/win32com",
                      "win32comext": "com/win32comext",
                      "Pythonwin": "Pythonwin"},
-
-      data_files=convert_data_files([
-                'Pythonwin/pywin/*.cfg',
-                'pywin32.chm',
-                'Pythonwin/license.txt',
-                'win32/license.txt',
-                # win32com readme (doesn't work for cvt_data_files)
-                # win32com/license
-                # win32com test - *.txt, *.py, *.vbs, *.js, *.sct, *.xsl
-                # win32com HTML\*
-                # win32com HTML\image\*
-                # win32comext\axscript\test - *.py, *.vbs, *.pys
-                # win32comext\axscript\demos\ie\*.*
-                # win32comext\axscript\demos\wsh\*.*
-                # win32comext\axscript\demos\asp\*.*
-                 ]),
-      packages=['win32',
-                'win32com',
+      packages=['win32com',
                 'win32com.client',
                 'win32com.demos',
                 'win32com.makegw',
@@ -621,23 +601,13 @@ dist = setup(name="pywin32",
                 'win32comext.axscript.client',
                 'win32comext.axscript.server',
 
-                'win32comext.axscript.demos',      # XXX not a package
-                'win32comext.axscript.demos.client',
-                'win32comext.axscript.demos.client.asp',
-                'win32comext.axscript.demos.client.ie',
-                'win32comext.axscript.demos.client.wsh',
-                'win32comext.axscript.test',       # XXX not a package
                 'win32comext.axdebug',
-                'win32comext.axscript',
-                'win32comext.axscript.client',
-                'win32comext.axscript.server',
 
                 'win32comext.shell',
                 'win32comext.mapi',
                 'win32comext.internet',
                 'win32comext.axcontrol',
 
-                'Pythonwin',
                 'Pythonwin.pywin',
                 'Pythonwin.pywin.debugger',
                 'Pythonwin.pywin.dialogs',
@@ -650,8 +620,41 @@ dist = setup(name="pywin32",
                 'Pythonwin.pywin.scintilla',
                 'Pythonwin.pywin.tools',
                 ],
+
+      py_modules = expand_modules("win32\\lib"),
+
+      data_files=convert_data_files([
+                'pywin32.chm',
+                'pythonwin/pywin/*.cfg',
+                'pythonwin/license.txt',
+                'win32/license.txt',
+                'com/win32com/readme.htm',
+                # win32com test utility files.
+                'com/win32com/test/*.txt',
+                'com/win32com/test/*.vbs',
+                'com/win32com/test/*.js',
+                'com/win32com/test/*.sct',
+                'com/win32com/test/*.xsl',
+                # win32com docs
+                'com/win32com/HTML/*',
+                'com/win32com/HTML/image/*',
+                # Active Scripting test and demos.
+                'com/win32comext/axscript/test/*.vbs',
+                'com/win32comext/axscript/test/*.pys',
+                'com/win32comext/axscript/demos/client/ie/*',
+                'com/win32comext/axscript/demos/client/wsh/*',
+                'com/win32comext/axscript/demos/client/asp/*',
+                 ]) + \
+                # And data files convert_data_files can't handle.
+                [
+                    ('Lib/site-packages\\win32com', ('com/License.txt',)),
+                    # pythoncom.py doesn't quite fit anywhere else.
+                    # Note we don't get an auto .pyc - but who cares?
+                    ('Lib/site-packages', ('com/pythoncom.py',)),
+                ],
       )
-# If we did any extension building...
+
+# If we did any extension building, and report if we skipped any.
 if dist.command_obj.has_key('build_ext'):
     what_string = "built"
     if dist.command_obj.has_key('install'): # just to be purdy
@@ -664,3 +667,22 @@ if dist.command_obj.has_key('build_ext'):
             print " %s: %s" % (ext.name, why)
     else:
         print "All extension modules %s OK" % (what_string,)
+
+# Custom script we run at the end of installing - this is the same script
+# run by bdist_wininst, but the standard 'install' command doesn't seem
+# to have such a concept.
+# This child process won't be able to install the system DLLs until our
+# process has terminated (as distutils imports win32api!), so we must use
+# some 'no wait' executor - spawn seems fine!  We pass the PID of this
+# process so the child will wait for us.
+if dist.command_obj.has_key('install'):
+    # What executable to use?  This one I guess.  Maybe I could just import
+    # as a module and execute?
+    filename = os.path.join(
+                  os.path.dirname(sys.argv[0]), "pywin32_postinstall.py")
+    if not os.path.isfile(filename):
+        raise RuntimeError, "Can't find pywin32_postinstall.py"
+    print "Executing post install script..."
+    os.spawnl(os.P_NOWAIT, sys.executable,
+              sys.executable, filename,
+              "-quiet", "-wait", str(os.getpid()), "-install")
