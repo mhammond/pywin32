@@ -132,6 +132,10 @@ def TestVB( vbtest, bUseGenerated ):
 		ret = vbtest.PassIntByRef(1)
 		if ret != (1,2):
 			raise error, "Could not increment the integer - "+str(ret)
+		# Check you can leave a byref arg blank.
+		ret = vbtest.PassIntByRef()
+		if ret != (0,1):
+			raise error, "Could not increment the integer with default arg- "+str(ret)
 
 	try:
 		vbtest.IntProperty = "One"
