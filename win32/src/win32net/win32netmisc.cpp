@@ -1087,65 +1087,53 @@ done:
 	// @pyseeapi NetWkstaTransportDel
 }
 
-// @pymethod ([dict, ...], total, resumeHandle)|win32net|NetServerDiskEnum|Retrieves the list of disk drives on a server.
-// @rdesc The result is a list of items read (with each item being a dictionary of format
-// <o PyUnicode>, depending on the level parameter),
-// the total available, and a "resume handle".  If the result handle is true, you should call
-// this function again to fetch more data, passing this handle in the resumeHandle param.
+// @pymethod (list|win32net|NetServerDiskEnum|Retrieves the list of disk drives on a server.
+// @rdesc The result is a list of drives on the server
 PyObject *
 PyNetServerDiskEnum(PyObject *self, PyObject *args)
 {
-	WCHAR *szServer = NULL, *szDomain = NULL;
-	PyObject *obServer, *obDomain = Py_None;
+	WCHAR *szServer=NULL, *disk=NULL;
+	PyObject *obServer=NULL, *obdisk=NULL;
 	PyObject *ret = NULL;
 	DWORD err;
-	DWORD dwPrefLen = 4096;
-	DWORD level;
-	BOOL ok = FALSE;
+	DWORD dwPrefLen = MAX_PREFERRED_LENGTH;
+	DWORD level=0;
 	DWORD resumeHandle = 0;
 	DWORD numRead, i;
-	PyObject *list;
 	BYTE *buf = NULL;
 	DWORD totalEntries = 0;
 	// @pyparm string/<o PyUnicode>|server||The name of the server to execute on, or None.
-	// @pyparm int|level||The level of data required. Must be None or 0.
-	// @pyparm int|resumeHandle|0|A resume handle.  See the return description for more information.
-	// @pyparm int|prefLen|4096|The preferred length of the data buffer.
-	if (!PyArg_ParseTuple(args, "Oi|ii", &obServer, &level, &resumeHandle, &dwPrefLen))
+	// @pyparm int|level||The level of data required. Must be 0.
+	if (!PyArg_ParseTuple(args, "O|i", &obServer, &level))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obServer, &szServer, TRUE))
-		goto done;
-	if (!PyWinObject_AsWCHAR(obDomain, &szDomain, TRUE))
-		goto done;
+		return NULL;
 
 	Py_BEGIN_ALLOW_THREADS
 	err = NetServerDiskEnum(szServer, level, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
 	Py_END_ALLOW_THREADS
-	if (err!=0 && err != ERROR_MORE_DATA) {
+	if (err!=0) {
 		ReturnNetError("NetServerDiskEnum",err);
 		goto done;
 	}
-	list = PyList_New(numRead);
-	if (list==NULL) goto done;
-	// The return buffer contains drive letters as wchar_t seperated by wchar_t
-	// NULLs.
-	for (i=0;i<numRead;i++) {
-		PyObject *sub = PyWinObject_FromWCHAR((WCHAR *)buf);
-		if (sub==NULL) goto done;
-		PyList_SetItem(list, i, sub);
-		buf = buf + wcslen((WCHAR *)buf) + sizeof((wchar_t)0);
-	}
-	resumeHandle = err==0 ? 0 : resumeHandle;
-	ret = Py_BuildValue("Oll", list, totalEntries, resumeHandle);
-	Py_DECREF(list);
-	ok = TRUE;
+	ret = PyTuple_New(totalEntries);
+	if (ret==NULL)
+		goto done;
+	// The return buffer contains drive letters as 3-char segments terminated by NULLs
+	for (i=0;i<totalEntries;i++){
+		disk=(WCHAR *)(buf+(i*sizeof(WCHAR)*3));
+		obdisk = PyWinObject_FromWCHAR(disk,2);
+		if (obdisk==NULL){
+			Py_DECREF(ret);
+			ret = NULL;
+			break;
+			}
+		PyTuple_SetItem(ret, i, obdisk);
+		}
 done:
 	if (buf) NetApiBufferFree(buf);
-	if (!ok) {
-		Py_XDECREF(ret);
-		ret = NULL;
-	}
-	PyWinObject_FreeWCHAR(szServer);
+	if (szServer)
+		PyWinObject_FreeWCHAR(szServer);
 	return ret;
 	// @pyseeapi NetServerDiskEnum
 }
