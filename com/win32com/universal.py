@@ -8,7 +8,7 @@ from pythoncom import _univgw
 from win32com.client import gencache
 
 # Make it clear to the user they are playing with fire ATM ;-)
-msg = "This is a very new module - it probably has bugs, and the interface may change in the future.  Use at your own risk!"
+msg = "win32com.universal is a very new module - it probably has bugs, and the interface may change in the future.  Use at your own risk!"
 try:
     import warnings
     warnings.warn(msg)
@@ -64,8 +64,11 @@ def _CalcTypeSize(typeTuple):
         # Its a pointer.
         cb = _univgw.SizeOfVT(pythoncom.VT_PTR)[1]
     elif t == pythoncom.VT_RECORD:
-        import warnings
-        warnings.warn("assuming records always pass pointers (they wont work for other reasons anyway!")
+        try:
+            import warnings
+            warnings.warn("assuming records always pass pointers (they wont work for other reasons anyway!")
+        except ImportError:
+            print "warning: assuming records always pass pointers (they wont work for other reasons anyway!"
         cb = _univgw.SizeOfVT(pythoncom.VT_PTR)[1]
         #cb = typeInfo.GetTypeAttr().cbSizeInstance
     else:
