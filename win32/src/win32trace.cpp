@@ -184,22 +184,25 @@ BOOL WriteData(const char *data, unsigned len)
 		ReturnError("The data is too large.");
 		return FALSE;
 	}
-	if (!GetMyMutex())
-		return FALSE;
+	BOOL rc = FALSE;
+	Py_BEGIN_ALLOW_THREADS
+	if (GetMyMutex()) {
 
-	size_t *pLen = (size_t *)pMapBaseWrite;
-	char *buffer = (char *)(((size_t *)pMapBaseWrite)+1);
+		size_t *pLen = (size_t *)pMapBaseWrite;
+		char *buffer = (char *)(((size_t *)pMapBaseWrite)+1);
 
-	size_t sizeLeft = (BUFFER_SIZE-sizeof(size_t)) - *pLen;
-	if (sizeLeft<len)
-		*pLen = 0;
-	
-	memcpy(buffer+(*pLen), data, len);
-	*pLen += len;
-	BOOL rc = ReleaseMyMutex();
-	HANDLE hEvent = (HANDLE)obEvent->asLong();
+		size_t sizeLeft = (BUFFER_SIZE-sizeof(size_t)) - *pLen;
+		if (sizeLeft<len)
+			*pLen = 0;
+		
+		memcpy(buffer+(*pLen), data, len);
+		*pLen += len;
+		BOOL rc = ReleaseMyMutex();
+		HANDLE hEvent = (HANDLE)obEvent->asLong();
 
-	SetEvent(hEvent);
+		SetEvent(hEvent);
+	}
+	Py_END_ALLOW_THREADS
 	return rc;
 }
 
@@ -297,10 +300,7 @@ static PyObject *win32trace_write(PyObject *self, PyObject *args)
 	char *data;
 	if (!PyArg_ParseTuple(args, "s#:write", &data, &len))
 		return NULL;
-	BOOL ok;
-	Py_BEGIN_ALLOW_THREADS
-	ok = WriteData(data, len);
-	Py_END_ALLOW_THREADS
+	BOOL ok = WriteData(data, len);
 	if (!ok)
 		return NULL;
 	Py_INCREF(Py_None);
