@@ -286,7 +286,7 @@ def getevents(clsid):
       try:
         return gencache.GetClassForCLSID(klass.coclass_clsid).default_source
       except AttributeError:
-        raise TypeError, "No events can be found for this object"
+        return None
 
 ############################################
 # The base of all makepy generated classes
