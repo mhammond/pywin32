@@ -48,6 +48,56 @@ typedef LARGE_INTEGER LUID;
     }
 }
 
+%{
+#undef PyHANDLE
+#include "PyWinObjects.h"
+// Support for LSAHandle objects.  Like a PyHANDLE, but calls LsaClose
+class PyLSA_HANDLE: public PyHANDLE
+{
+public:
+	PyLSA_HANDLE(HANDLE hInit) : PyHANDLE(hInit) {}
+	virtual BOOL Close(void) {
+		NTSTATUS err = m_handle ? LsaClose((LSA_HANDLE)m_handle) : STATUS_SUCCESS;
+		m_handle = 0;
+		if (err!= STATUS_SUCCESS)
+			PyWin_SetAPIError("LsaClose", LsaNtStatusToWinError(err));
+		return err== STATUS_SUCCESS;
+	}
+	virtual const char *GetTypeName() {
+		return "PyLSA_HANDLE";
+	}
+};
+
+BOOL PyWinObject_AsLSA_HANDLE(PyObject *ob, LSA_HANDLE *pRes, BOOL bNoneOK = FALSE);
+PyObject *PyWinObject_FromLSA_HANDLE(LSA_HANDLE h)
+{
+	return new PyLSA_HANDLE(h);
+}
+
+BOOL PyWinObject_CloseLSA_HANDLE(PyObject *obHandle)
+{
+	BOOL ok;
+	if (PyHANDLE_Check(obHandle))
+		// Python error already set.
+		ok = ((PyLSA_HANDLE *)obHandle)->Close();
+	else if PyInt_Check(obHandle) {
+		NTSTATUS err;
+		err=LsaClose((HKEY)PyInt_AsLong(obHandle));
+		ok = err == STATUS_SUCCESS;
+		if (!ok)
+			PyWin_SetAPIError("LsaClose",LsaNtStatusToWinError(err));
+	} else {
+		PyErr_SetString(PyExc_TypeError, "A handle must be a LSA_HANDLE object or an integer");
+		ok = FALSE;
+	}
+	return ok;
+}
+
+// And re-define, so PyHANDLE in function sigs gets the PyHANDLE treatment.
+#define PyHANDLE HANDLE
+
+%}
+
 // @object PyTOKEN_PRIVILEGES|An object representing Win32 token privileges.
 // @comm This is a sequence (eg, list) of (id, attributes)
 %{
@@ -86,9 +136,14 @@ BOOL PyWinObject_AsLSA_UNICODE_STRING(PyObject *obstr, LSA_UNICODE_STRING *plsau
 {
 	TCHAR *ret_string = NULL;
 	USHORT strlen = 0;
-	if (!PyWinObject_AsTCHAR(obstr, &ret_string, bNoneOk))
+	if (!PyWinObject_AsTCHAR(obstr, &ret_string, bNoneOk)) {
+		plsaus->Buffer = ret_string;
 		return FALSE;
-	strlen = wcslen(ret_string);
+	}
+	if (ret_string == NULL)
+		strlen=0;
+	else
+		strlen = wcslen(ret_string);
 	plsaus->Buffer = ret_string;
 	plsaus->Length = strlen * sizeof(WCHAR);
 	plsaus->MaximumLength= (strlen+1) * sizeof(WCHAR);
@@ -198,6 +253,8 @@ static BOOL (WINAPI *cstss)(PSID, WCHAR **) = NULL;
 static BOOL (WINAPI *cssts)(LPCWSTR, PSID) = NULL;
 static BOOL (WINAPI *csdtssd)(PSECURITY_DESCRIPTOR,DWORD,SECURITY_INFORMATION, LPTSTR*,PULONG) = NULL;
 static BOOL (WINAPI *cssdtsd)(LPCTSTR,DWORD,PSECURITY_DESCRIPTOR*,PULONG) = NULL;
+static long (WINAPI *lsarpcn)(POLICY_NOTIFICATION_INFORMATION_CLASS,HANDLE) = NULL;
+static long (WINAPI *lsaupcn)(POLICY_NOTIFICATION_INFORMATION_CLASS,HANDLE) = NULL;
 
 BOOL CheckIfSupported(char *funcname, WCHAR *dllname, FARPROC *fp)
 {
@@ -285,6 +342,9 @@ BOOL CheckIfSupported(char *funcname, WCHAR *dllname, FARPROC *fp)
 	PyDict_SetItemString(d,"SE_MANAGE_VOLUME_NAME",PyUnicode_FromWideChar(SE_MANAGE_VOLUME_NAME,wcslen(SE_MANAGE_VOLUME_NAME)));
 
 	FARPROC fp=NULL;
+	// Load the Secur32.dll library to CheckIfSupported's GetModuleHandle will work.
+	// If we fail here, GetModuleHandle will too, so no need to check result here.
+	HMODULE hMod = LoadLibrary(_T("Secur32.dll"));
 	if (CheckIfSupported("ConvertSidToStringSidW",_T("Advapi32.dll"),&fp))
 		cstss=  (BOOL (WINAPI *)(PSID, WCHAR **))(fp);
 	if (CheckIfSupported("ConvertStringSidToSidW",_T("Advapi32.dll"),&fp))
@@ -293,6 +353,11 @@ BOOL CheckIfSupported(char *funcname, WCHAR *dllname, FARPROC *fp)
 		csdtssd=(BOOL (WINAPI *)(PSECURITY_DESCRIPTOR,DWORD,SECURITY_INFORMATION, LPTSTR*,PULONG))(fp);
 	if (CheckIfSupported("ConvertStringSecurityDescriptorToSecurityDescriptorW",_T("Advapi32.dll"),&fp))
 		cssdtsd=(BOOL (WINAPI *)(LPCTSTR,DWORD,PSECURITY_DESCRIPTOR*,PULONG))(fp);
+	if (CheckIfSupported("LsaRegisterPolicyChangeNotification",_T("Secur32.dll"),&fp))
+		lsarpcn=(NTSTATUS (NTAPI *)(POLICY_NOTIFICATION_INFORMATION_CLASS,HANDLE))(fp);
+	if (CheckIfSupported("LsaUnregisterPolicyChangeNotification",_T("Secur32.dll"),&fp))
+		lsaupcn=(NTSTATUS (NTAPI *)(POLICY_NOTIFICATION_INFORMATION_CLASS,HANDLE))(fp);
+
 %}
 
 
@@ -1331,10 +1396,15 @@ static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig <o PyHandle>|GetPolicyHandle|Opens a policy handle for the specified system
-%native(GetPolicyHandle) PyGetPolicyHandle;
+// we used to expose this as "GetPolicyHandle".  It has been renamed 
+// to "LsaOpenPolicy" to be consistent with win32, but GetPolicyHandle still
+// exists as an alias.
+%native(GetPolicyHandle) PyLsaOpenPolicy;
+
+// @pyswig <o PyHandle>|LsaOpenPolicy|Opens a policy handle for the specified system
+%native(LsaOpenPolicy) PyLsaOpenPolicy;
 %{
-static PyObject *PyGetPolicyHandle(PyObject *self, PyObject *args)
+static PyObject *PyLsaOpenPolicy(PyObject *self, PyObject *args)
 {
 	PyObject *obsystem_name = NULL;
 	PyObject *ret = NULL;
@@ -1345,7 +1415,7 @@ static PyObject *PyGetPolicyHandle(PyObject *self, PyObject *args)
 	LSA_OBJECT_ATTRIBUTES ObjectAttributes;  // reserved, must be zeros or NULL
 	ZeroMemory(&ObjectAttributes, sizeof(ObjectAttributes));
 
-	if (!PyArg_ParseTuple(args, "Oi:GetPolicyHandle", 
+	if (!PyArg_ParseTuple(args, "Oi:LsaOpenPolicy", 
 		&obsystem_name, // @pyparm string/<o PyUnicode>|obsystem_name||System name, local system assumed if not specified
 		&access_mask))  // @pyparm int|access_mask||Bitmask of requested access types
 		return NULL;
@@ -1354,10 +1424,10 @@ static PyObject *PyGetPolicyHandle(PyObject *self, PyObject *args)
 
 	ntsResult = LsaOpenPolicy(&system_name, &ObjectAttributes, access_mask, &lsahPolicyHandle);
 	if (ntsResult != STATUS_SUCCESS){
-		PyWin_SetAPIError("GetPolicyHandle",LsaNtStatusToWinError(ntsResult));
+		PyWin_SetAPIError("LsaOpenPolicy",LsaNtStatusToWinError(ntsResult));
 		goto done;
 		}
-	ret = PyWinObject_FromHANDLE(lsahPolicyHandle);
+	ret = PyWinObject_FromLSA_HANDLE(lsahPolicyHandle);
 	done:
 		PyWinObject_FreeTCHAR(system_name.Buffer);
 		return ret;
@@ -1369,18 +1439,12 @@ static PyObject *PyGetPolicyHandle(PyObject *self, PyObject *args)
 %{
 static PyObject *PyLsaClose(PyObject *self, PyObject *args)
 {
-	PyObject *obhandle;
-	LSA_HANDLE lsah;
-	NTSTATUS err;
-	if (!PyArg_ParseTuple(args, "O:LsaClose", &obhandle))
+	PyObject *obHandle;
+	if (!PyArg_ParseTuple(args, "O:LsaClose", &obHandle))
 		return NULL; 
-	if (!PyWinObject_AsHANDLE(obhandle, &lsah))
+
+	if (!PyWinObject_CloseLSA_HANDLE(obHandle))
 		return NULL;
-	err=LsaClose(lsah);
-	if (err != STATUS_SUCCESS){
-		PyWin_SetAPIError("LsaClose",LsaNtStatusToWinError(err));
-		return NULL;
-		}
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -1882,6 +1946,191 @@ static PyObject *PyConvertStringSecurityDescriptorToSecurityDescriptor(PyObject 
 }
 %}
 
+// @pyswig |LsaStorePrivateData|Stores encrypted unicode data under specified Lsa registry key. Returns None on success
+%native(LsaStorePrivateData) PyLsaStorePrivateData;
+%{
+static PyObject *PyLsaStorePrivateData(PyObject *self, PyObject *args)
+{
+	// @pyparm <o PyHANDLE>||Policy handle
+    // @pyparm string|KeyName||Registry key in which to store data
+    // @pyparm int|PrivateData||Unicode string to be encrypted and stored
+	PyObject *obpolicyhandle=NULL, *obkeyname=NULL, *obprivatedata=NULL; 
+	PyObject * ret=NULL;
+	LSA_HANDLE policyhandle;
+    LSA_UNICODE_STRING keyname, privatedata;
+	keyname.Buffer=NULL;
+	privatedata.Buffer=NULL;
+	NTSTATUS err = NULL;
+	if (!PyArg_ParseTuple(args, "OOO:LsaStorePrivateData", &obpolicyhandle, &obkeyname, &obprivatedata))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obpolicyhandle, &policyhandle))
+		return NULL;
+	if (!PyWinObject_AsLSA_UNICODE_STRING(obkeyname, &keyname, FALSE))
+		goto done;
+	// passing NULL deletes the data stored under specified key
+	// use Py_None since empty string is considered valid data
+	if (obprivatedata==Py_None)
+		err = LsaStorePrivateData(policyhandle, &keyname, NULL);
+	else{
+		if (!PyWinObject_AsLSA_UNICODE_STRING(obprivatedata, &privatedata, FALSE))
+			goto done;
+		err = LsaStorePrivateData(policyhandle, &keyname, &privatedata);
+		}
+	if (err == STATUS_SUCCESS)
+		ret=Py_None;
+	else
+		PyWin_SetAPIError("LsaStorePrivateData",LsaNtStatusToWinError(err));
+
+	done:
+		if (keyname.Buffer != NULL)
+			PyWinObject_FreeWCHAR(keyname.Buffer);
+		if (privatedata.Buffer != NULL)
+			PyWinObject_FreeWCHAR(privatedata.Buffer);
+		Py_XINCREF(ret);
+		return ret;
+}
+%}
+
+// @pyswig <o PyUnicode>|LsaRetrievePrivateData|Retreives encrypted unicode data from Lsa registry key.
+%native(LsaRetrievePrivateData) PyLsaRetrievePrivateData;
+%{
+static PyObject *PyLsaRetrievePrivateData(PyObject *self, PyObject *args)
+{
+	// @pyparm <o PyHANDLE>||Policy handle
+    // @pyparm string|KeyName||Registry key to read
+	PyObject *obpolicyhandle=NULL, *obkeyname=NULL, *obprivatedata=NULL; 
+	PyObject * ret=NULL;
+	LSA_HANDLE policyhandle;
+    LSA_UNICODE_STRING keyname;
+	keyname.Buffer=NULL;
+	PLSA_UNICODE_STRING privatedata = NULL;
+	NTSTATUS err = NULL;
+	if (!PyArg_ParseTuple(args, "OO:LsaRetrievePrivateData", &obpolicyhandle, &obkeyname))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obpolicyhandle, &policyhandle))
+		return NULL;
+	if (!PyWinObject_AsLSA_UNICODE_STRING(obkeyname, &keyname, FALSE))
+		goto done;
+
+	err = LsaRetrievePrivateData(policyhandle, &keyname, &privatedata);
+	if (err == STATUS_SUCCESS)
+	    ret=PyWinObject_FromLSA_UNICODE_STRING(*privatedata);
+	else
+		PyWin_SetAPIError("LsaRetrievePrivateData",LsaNtStatusToWinError(err));
+	done:
+		if (keyname.Buffer != NULL)
+			PyWinObject_FreeWCHAR(keyname.Buffer);
+		if (privatedata != NULL)
+			LsaFreeMemory(privatedata);
+		return ret;
+}
+%}
+
+// @pyswig object|LsaRegisterPolicyChangeNotification|Register an event handle to receive policy change events
+%native(LsaRegisterPolicyChangeNotification) PyLsaRegisterPolicyChangeNotification;
+%{
+static PyObject *PyLsaRegisterPolicyChangeNotification(PyObject *self, PyObject *args)
+{
+	if (lsarpcn==NULL)
+		return PyErr_Format(PyExc_NotImplementedError,"LsaRegisterPolicyChangeNotification not supported by this version of Windows");
+	PyObject *obHandle=NULL;
+	PyObject *ret=NULL;
+	HANDLE hevent;
+	POLICY_NOTIFICATION_INFORMATION_CLASS info_class;
+	NTSTATUS err;
+	if (!PyArg_ParseTuple(args, "lO:LsaRegisterPolicyChangeNotification", 
+		(long *)&info_class,   // @pyparm int|InformationClass||One of POLICY_NOTIFICATION_INFORMATION_CLASS contants
+		&obHandle))            // @pyparm <o PyHANDLE>|NotificationEventHandle||Event handle to receives notification
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obHandle, &hevent, FALSE))
+		return NULL;
+	err=(*lsarpcn)(info_class,hevent);
+	if (err==STATUS_SUCCESS)
+		ret=Py_None;
+	else
+		PyWin_SetAPIError("LsaRegisterPolicyChangeNotification",LsaNtStatusToWinError(err));
+	Py_XINCREF(ret);
+	return ret;
+}
+%}
+
+// @pyswig object|LsaUnregisterPolicyChangeNotification|Stop receiving policy change notification
+%native(LsaUnregisterPolicyChangeNotification) PyLsaUnregisterPolicyChangeNotification;
+%{
+static PyObject *PyLsaUnregisterPolicyChangeNotification(PyObject *self, PyObject *args)
+{
+	if (lsaupcn==NULL)
+		return PyErr_Format(PyExc_NotImplementedError,"LsaUnregisterPolicyChangeNotification not supported by this version of Windows");
+	PyObject *obHandle;
+	PyObject *ret=NULL;
+	HANDLE hevent;
+	POLICY_NOTIFICATION_INFORMATION_CLASS info_class;
+	NTSTATUS err;
+	if (!PyArg_ParseTuple(args, "lO:LsaUnregisterPolicyChangeNotification", 
+		(long *)&info_class,   // @pyparm int|InformationClass||POLICY_NOTIFICATION_INFORMATION_CLASS constant
+		&obHandle))            // @pyparm <o PyHANDLE>|NotificationEventHandle||Event handle previously registered to receive policy change events
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obHandle, &hevent, FALSE))
+		return NULL;
+	err=(*lsaupcn)(info_class,hevent);
+	if (err==STATUS_SUCCESS)
+		ret=Py_None;
+	else
+		PyWin_SetAPIError("LsaUnregisterPolicyChangeNotification",LsaNtStatusToWinError(err));
+	Py_XINCREF(ret);
+	return ret;
+}
+%}
+
+// @pyswig object|CryptEnumProviders|List cryptography providers
+%native(CryptEnumProviders) PyCryptEnumProviders;
+%{
+static PyObject *PyCryptEnumProviders(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":CryptEnumProviders"))
+		return NULL; 
+	DWORD dwFlags=0, dwIndex=0, dwReserved=NULL, dwProvType=0, cbProvName=0;
+	WCHAR *pszProvName=NULL;
+	PyObject *ret=PyList_New(0);
+	PyObject *ret_item=NULL;
+	BOOL succeeded = TRUE;
+	DWORD err = 0;
+	do{
+		cbProvName=0;
+		pszProvName=NULL;
+		succeeded = CryptEnumProviders(dwIndex, NULL, dwFlags, &dwProvType, NULL, &cbProvName);
+		if (!succeeded)
+			break;
+		// test breaking out of loop if out of memory
+		// if (dwIndex==3)
+		//	cbProvName=0x77777777;
+		pszProvName = (WCHAR *)malloc(cbProvName);
+		if (pszProvName==NULL){
+			Py_DECREF(ret);
+			PyErr_SetString(PyExc_MemoryError, "CryptEnumProviders: SOM");
+			return NULL;
+			}
+		succeeded = CryptEnumProviders(dwIndex, NULL, dwFlags, &dwProvType, pszProvName, &cbProvName);
+		if (!succeeded){
+			free(pszProvName);
+			break;
+			}
+		ret_item = Py_BuildValue("ul",pszProvName, dwProvType);
+		PyList_Append(ret, ret_item);
+		Py_DECREF(ret_item);
+		free(pszProvName);
+		dwIndex++;
+		}
+	while (succeeded);
+	err=GetLastError();
+	if (err != ERROR_NO_MORE_ITEMS){
+		Py_DECREF(ret);
+		ret=NULL;
+		PyWin_SetAPIError("CryptEnumProviders",err);
+		}
+	return ret;
+}
+%}
 
 #define TOKEN_ADJUST_DEFAULT TOKEN_ADJUST_DEFAULT // Required to change the default ACL, primary group, or owner of an access token.
 #define TOKEN_ADJUST_GROUPS TOKEN_ADJUST_GROUPS // Required to change the groups specified in an access token.
@@ -2073,10 +2322,14 @@ static PyObject *PyConvertStringSecurityDescriptorToSecurityDescriptor(PyObject 
 // from ntsecapi.h
 #ifdef PolicyServerEnabled
 #define PolicyServerEnabled PolicyServerEnabled 
+#else
+#define PolicyServerEnabled 2
 #endif
 
 #ifdef PolicyServerDisabled
 #define PolicyServerDisabled PolicyServerDisabled
+#else
+#define PolicyServerDisabled 3
 #endif
 
 // POLICY_NOTIFICATION_INFORMATION_CLASS
