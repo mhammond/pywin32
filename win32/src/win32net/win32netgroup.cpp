@@ -172,7 +172,7 @@ PyObject *PyNetGroupSetInfo(PyObject *self, PyObject *args)
 	// @pyparm string/<o PyUnicode>|server||The name of the server, or None.
 	// @pyparm string/<o PyUnicode>|groupname||The group name
 	// @pyparm int|level||The information level contained in the data
-	// @pyparm <PyGROUP_INFO_*>|data||A dictionary holding the group data.
+	// @pyparm <o PyGROUP_INFO_*>|data||A dictionary holding the group data.
 	// @pyseeapi NetGroupSetInfo
 	return PyDoSetInfo(self, args, NetGroupSetInfo, "NetGroupSetInfo", group_infos);
 }
@@ -182,7 +182,7 @@ PyObject *PyNetGroupAdd(PyObject *self, PyObject *args)
 {
 	// @pyparm string/<o PyUnicode>|server||The name of the server, or None.
 	// @pyparm int|level||The information level contained in the data
-	// @pyparm <PyGROUP_INFO_*>|data||A dictionary holding the group data.
+	// @pyparm <o PyGROUP_INFO_*>|data||A dictionary holding the group data.
 	return PyDoAdd(self, args, &NetGroupAdd, "NetGroupAdd",group_infos);
 	// @pyseeapi NetGroupAdd
 }
