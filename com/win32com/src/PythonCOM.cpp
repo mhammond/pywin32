@@ -33,6 +33,9 @@ PyObject *PyCom_InternalError = NULL;
 // Storage related functions.
 extern PyObject *pythoncom_StgOpenStorage(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_StgOpenStorageEx(PyObject *self, PyObject *args);
+extern PyObject *pythoncom_FmtIdToPropStgName(PyObject *self, PyObject *args);
+extern PyObject *pythoncom_PropStgNameToFmtId(PyObject *self, PyObject *args);
+
 #ifndef MS_WINCE
 extern PyObject *pythoncom_StgIsStorageFile(PyObject *self, PyObject *args);
 #endif // MS_WINCE
@@ -1581,6 +1584,8 @@ static struct PyMethodDef pythoncom_methods[]=
 	{ "WriteClassStg",       pythoncom_WriteClassStg, 1}, // @pymeth WriteClassStg|Stores a CLSID from a storage object
 	{ "UnwrapObject",        pythoncom_UnwrapObject, 1 }, // @pymeth UnwrapObject|Unwraps a Python instance in a gateway object.
 	{ "Unicode",			pythoncom_Unicode, 1 }, // @pymeth Unicode|Converts a string into a <o PyUnicode> object.
+	{ "FmtIdToPropStgName",	pythoncom_FmtIdToPropStgName, 1}, //@pymeth FmtIdToPropStgName|Convert a FMTID to its stream name
+	{ "PropStgNameToFmtId",	pythoncom_PropStgNameToFmtId, 1}, //@pymeth PropStgNameToFmtId|Convert property set name to FMTID
 	{ NULL, NULL }
 };
 

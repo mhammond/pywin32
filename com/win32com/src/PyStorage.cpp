@@ -209,4 +209,40 @@ PyObject *pythoncom_StgOpenStorageEx(PyObject *self, PyObject *args)
 #endif // NO_PYCOM_STGOPENSTORAGEEX	
 }
 
+// @pymethod <o PyUNICODE>|pythoncom|FmtIdToPropStgName|Converts a FMTID to its stream name
+PyObject *pythoncom_FmtIdToPropStgName(PyObject *self, PyObject *args)
+{
+	// @pyparm <o PyIID>|fmtid||Format id - a property storage GUID (FMTID_* IIDs)
+	HRESULT err;
+	WCHAR oszName[CCH_MAX_PROPSTG_NAME];
+	FMTID fmtid;
+	PyObject *obfmtid=NULL;
+	if (!PyArg_ParseTuple(args, "O:FmtIdToPropStgName", &obfmtid))
+		return NULL;
+	if (!PyWinObject_AsIID(obfmtid, &fmtid))
+		return NULL;
+	err=FmtIdToPropStgName(&fmtid, oszName);
+	if (err!=S_OK)
+		return PyCom_BuildPyException(err);
+	return PyWinObject_FromWCHAR(oszName);
+}
+
+// @pymethod <o PyIID>|pythoncom|PropStgNameToFmtId|Converts a property set name to its format id (GUID)
+PyObject *pythoncom_PropStgNameToFmtId(PyObject *self, PyObject *args)
+{
+	// @pyparm string/unicode|Name||Storage stream name
+	FMTID fmtid;
+	WCHAR *oszName=NULL;
+	HRESULT err;
+	PyObject *obName=NULL;
+	if (!PyArg_ParseTuple(args, "O:PropStgNameToFmtId", &obName))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obName,&oszName))
+		return NULL;
+	err=PropStgNameToFmtId(oszName,&fmtid);
+	PyWinObject_FreeWCHAR(oszName);
+	if (err!=S_OK)
+		return PyCom_BuildPyException(err);
+	return PyWinObject_FromIID(fmtid);
+}
 
