@@ -259,7 +259,7 @@ static PyObject *pythoncom_CoInitializeSecurity(PyObject *self, PyObject *args)
 	DWORD dwAuthnLevel;
 	DWORD dwImpLevel;
 	DWORD dwCapabilities;
-	SECURITY_DESCRIPTOR *pSD;
+	PSECURITY_DESCRIPTOR pSD;
 	PyObject *obSD, *obAuthSvc, *obReserved1, *obReserved2, *obAuthInfo;
 	if (!PyArg_ParseTuple(args, "OOOiiOiO:CoInitializeSecurity",
 		&obSD, // @pyparm <o PySECURITY_DESCRIPTOR>|sd||
@@ -291,8 +291,8 @@ static PyObject *pythoncom_CoInitializeSecurity(PyObject *self, PyObject *args)
 	FARPROC fp = GetProcAddress(hMod, "CoInitializeSecurity");
 	if (fp==NULL) return PyCom_BuildPyException(E_NOTIMPL);
 
-	HRESULT (*mypfn)(SECURITY_DESCRIPTOR*, LONG, SOLE_AUTHENTICATION_SERVICE*, void *, DWORD, DWORD, void *, DWORD, void *);
-	mypfn = (HRESULT (*)(SECURITY_DESCRIPTOR*, LONG, SOLE_AUTHENTICATION_SERVICE*, void *, DWORD, DWORD, void *, DWORD, void *))fp;
+	HRESULT (*mypfn)(PSECURITY_DESCRIPTOR, LONG, SOLE_AUTHENTICATION_SERVICE*, void *, DWORD, DWORD, void *, DWORD, void *);
+	mypfn = (HRESULT (*)(PSECURITY_DESCRIPTOR, LONG, SOLE_AUTHENTICATION_SERVICE*, void *, DWORD, DWORD, void *, DWORD, void *))fp;
 
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = (*mypfn)(pSD, cAuthSvc, pAS, NULL, dwAuthnLevel, dwImpLevel, NULL, dwCapabilities, NULL);
