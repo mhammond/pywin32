@@ -5,7 +5,7 @@
 
 import winerror
 import pythoncom, win32com.client, win32com.client.dynamic, win32com.client.gencache
-from win32com.server.util import NewEnum, wrap
+from win32com.server.util import NewCollection, wrap
 import string
 
 importMsg = """\
@@ -35,11 +35,15 @@ import traceback
 error = "VB Test Error"
 
 # Set up a COM object that VB will do some callbacks on.  This is used
-# to simulate OCX events to test byref params in that direction.
+# to test byref params for gateway IDispatch.
 class TestObject:
-	_public_methods_ = ["CallbackInt","CallbackString"]
-	def CallbackInt(self, intVal):
-		return 0, intVal + 1
+	_public_methods_ = ["CallbackVoidOneByRef","CallbackResultOneByRef", "CallbackVoidTwoByRef", "CallbackString"]
+	def CallbackVoidOneByRef(self, intVal):
+		return intVal + 1
+	def CallbackResultOneByRef(self, intVal):
+		return intVal, intVal + 1
+	def CallbackVoidTwoByRef(self, int1, int2):
+		return int1+int2, int1-int2
 	def CallbackString(self, strVal):
 		return 0, strVal + " has visited Python"
 
@@ -77,23 +81,13 @@ def TestVB( vbtest, bUseGenerated ):
 		vbtest.VariantPutref = vbtest
 		if vbtest.VariantPutref._oleobj_!= vbtest._oleobj_:
 			raise error, "Could not set the VariantPutref property correctly."
-
-#		vbtest.VariantPutref = "Hi from Python"
-#		if str(vbtest.VariantPutref) != "Hi from Python":
-#			raise error, "Could not set the VariantPutref property to a string correctly."
-
-#		vbtest.VariantPutref = 999
-#		if vbtest.VariantPutref != 999:
-#			raise error, "Could not set the VariantPutref property to an integer correctly."
-
-#		vbtest.VariantPutref = 999.99
-#		if vbtest.VariantPutref != 999.99:
-#			raise error, "Could not set the VariantPutref property to a float correctly."
+		# Cant test further types for this VariantPutref, as only
+		# COM objects can be stored ByRef.
 
 		# A "set" type property - only works for generated.
-		print "Skipping CollectionProperty - dont know why it doesnt work!"
-		
-#		vbtest.CollectionProperty = NewEnum((1,2,"3", "Four"))
+		print "Skipping CollectionProperty - dont know how to make"
+		print " VB recognize an object as a collection"
+#		vbtest.CollectionProperty = NewCollection((1,2,"3", "Four"))
 #		if vbtest.CollectionProperty != (1,2,"3", "Four"):
 #			raise error, "Could not set the Collection property correctly - got back " + str(vbtest.CollectionProperty)
 
@@ -103,6 +97,7 @@ def TestVB( vbtest, bUseGenerated ):
 		# and one for the byref.
 		testData = string.split("Mark was here")
 		resultData, byRefParam = vbtest.PassSAFEARRAY(testData)
+		# Un unicode everything.
 		resultData = map(str, resultData)
 		byRefParam = map(str, byRefParam)
 		if testData != list(resultData):
@@ -120,8 +115,7 @@ def TestVB( vbtest, bUseGenerated ):
 			raise error, "Could not pass a float VARIANT byref"
 		
 
-		print "Skipping other BYREF tests, cos they dont work!"
-#		vbtest.DoSomeCallbacks(wrap(TestObject()))
+		vbtest.DoSomeCallbacks(wrap(TestObject()))
 
 	ret = vbtest.PassIntByVal(1)
 	if ret != 2:
