@@ -110,7 +110,7 @@ def main():
 
   for cat in doc:
     html_files = html_files + '%s\\%s.html\n' % (output_dir, cat.id)
-    for suffix in "_overview _modules _objects".split():
+    for suffix in "_overview _modules _objects _constants".split():
       html_files = html_files + '%s\\%s%s.html\n' % (output_dir, cat.id, suffix)
 
   f.write(sHHPFormat % { "output" : output, "target" : target,
