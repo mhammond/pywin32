@@ -80,11 +80,14 @@ void PyCom_ExcepInfoFromPyException(EXCEPINFO *pExcepInfo)
 			// 2 for ": "
 		// message could be quite long - be safe.
 		char *tempBuf = new char[len];
-		strcpy(tempBuf, szBaseMessage);
-		strcat(tempBuf, szException);
-		strcat(tempBuf, ": ");
-		strcat(tempBuf, szValue);
-		pExcepInfo->bstrDescription = A2BSTR(tempBuf);
+		if (tempBuf) {
+			strcpy(tempBuf, szBaseMessage);
+			strcat(tempBuf, szException);
+			strcat(tempBuf, ": ");
+			strcat(tempBuf, szValue);
+			pExcepInfo->bstrDescription = A2BSTR(tempBuf);
+		} else
+			pExcepInfo->bstrDescription = A2BSTR("memory error allocating exception buffer!");
 		pExcepInfo->bstrSource = A2BSTR("Python COM Server Internal Error");
 
 		// Map some well known exceptions to specific HRESULTs
