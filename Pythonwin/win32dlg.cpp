@@ -269,6 +269,11 @@ static PyObject *do_exchange_list_combo( int id, int index, char *type, PyObject
 {
 	if (o1 && o2)
 		return set_exchange_error("List/ComboBox - must be tuple of control_id, key, 'i|s'", index);
+	HWND hWndCtrl;
+	pDX->m_pDlgWnd->GetDlgItem(id, &hWndCtrl);
+	if (hWndCtrl == NULL)
+		return set_exchange_error("There is no control with that ID", index);
+
 	PyObject *newOb = NULL;
 	switch (type[0]) {
 		case 'i': {
