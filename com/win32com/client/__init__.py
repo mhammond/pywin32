@@ -294,6 +294,7 @@ def WithEvents(disp, user_event_class):
   circular reference problems that the simple proxy doesn't deal with
   """
   disp = getattr(disp, "_oleobj_", disp)
+  disp = Dispatch(disp)
   if not disp.__dict__.get("CLSID"): # Eeek - no makepy support - try and build it.
     try:
       ti = disp._oleobj_.GetTypeInfo()
