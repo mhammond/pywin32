@@ -461,15 +461,18 @@ PyObject * PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
 PyObject *PyIDispatch::GetTypeInfo(PyObject *self, PyObject *args)
 {
 	LCID locale = LOCALE_USER_DEFAULT;
+	int index = 0;
 	// @pyparm int|locale|LOCALE_USER_DEFAULT|The locale to use.
-	if (!PyArg_ParseTuple(args, "|i:GetTypeInfo", &locale))
+	// @pyparm int|index|0|The index of the typelibrary to fetch.
+	// Note that these params are reversed from the win32 call.
+	if (!PyArg_ParseTuple(args, "|ii:GetTypeInfo", &locale, &index))
 		return NULL;
 
 	IDispatch *pMyDispatch = GetI(self);
 	if (pMyDispatch==NULL) return NULL;
 	ITypeInfo *pti = NULL;
 	PY_INTERFACE_PRECALL;
-	SCODE sc = pMyDispatch->GetTypeInfo(0, locale, &pti);
+	SCODE sc = pMyDispatch->GetTypeInfo(index, locale, &pti);
 	PY_INTERFACE_POSTCALL;
 	if (sc!=S_OK) // S_OK is only acceptable result.
 		return PyCom_BuildPyException(sc, pMyDispatch, IID_IDispatch);
