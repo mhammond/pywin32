@@ -33,6 +33,39 @@ def LocatePythonServiceExe(exeName = None):
 			msg = "%s is not correctly registered\nPlease locate and run %s.exe, and it will self-register\nThen run this service registration process again." % (exeName, exeName)
 			raise error, msg
 
+def _GetServiceShortName(longName):
+    # looks up a services name
+    # from the display name
+    # Thanks to Andy McKay for this code.
+    hkey = win32api.RegOpenKey(win32con.HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Services", 0, win32con.KEY_ALL_ACCESS)
+    num = win32api.RegQueryInfoKey(hkey)[0]
+    # loop through number of subkeys
+    for x in range(0, num):
+        # find service name, open subkey
+        svc = win32api.RegEnumKey(hkey, x)
+        skey = win32api.RegOpenKey(hkey, svc, 0, win32con.KEY_ALL_ACCESS)
+        try:
+            # find short name
+            shortName = str(win32api.RegQueryValueEx(skey, "DisplayName")[0])
+            if shortName == longName:
+                return svc
+        except win32api.error: 
+            # in case there is no key called DisplayName
+            pass
+    return None
+
+# Open a service given either it's long or short name.
+def SmartOpenService(hscm, name, access):
+	try:
+		return win32service.OpenService(hscm, name, access)
+	except win32api.error, details:
+		if details[0]!=winerror.ERROR_SERVICE_DOES_NOT_EXIST:
+			raise
+		name = _GetServiceShortName(name)
+		if name is None:
+			raise
+		return win32service.OpenService(hscm, name, access)
+
 def LocateSpecificServiceExe(serviceName):
 	# Given the name of a specific service, return the .EXE name _it_ uses
 	# (which may or may not be the Python Service EXE
@@ -137,7 +170,7 @@ def ChangeServiceConfig(pythonClassString, serviceName, startType = None, errorC
 
 	hscm = win32service.OpenSCManager(None,None,win32service.SC_MANAGER_ALL_ACCESS)
 	try:
-		hs = win32service.OpenService(hscm, serviceName, win32service.SERVICE_ALL_ACCESS)
+		hs = SmartOpenService(hscm, serviceName, win32service.SERVICE_ALL_ACCESS)
 		try:
 
 			win32service.ChangeServiceConfig(hs,
@@ -209,7 +242,7 @@ def RemoveService(serviceName):
 
 	hscm = win32service.OpenSCManager(None,None,win32service.SC_MANAGER_ALL_ACCESS)
 	try:
-		hs = win32service.OpenService(hscm, serviceName, win32service.SERVICE_ALL_ACCESS)
+		hs = SmartOpenService(hscm, serviceName, win32service.SERVICE_ALL_ACCESS)
 		win32service.DeleteService(hs)
 		win32service.CloseServiceHandle(hs)
 	finally:
@@ -219,7 +252,7 @@ def ControlService(serviceName, code, machine = None):
 	hscm = win32service.OpenSCManager(machine,None,win32service.SC_MANAGER_ALL_ACCESS)
 	try:
 
-		hs = win32service.OpenService(hscm, serviceName, win32service.SERVICE_ALL_ACCESS)
+		hs = SmartOpenService(hscm, serviceName, win32service.SERVICE_ALL_ACCESS)
 		try:
 			status = win32service.ControlService(hs, code)
 		finally:
@@ -305,7 +338,7 @@ def StartService(serviceName, args = None, machine = None):
 	hscm = win32service.OpenSCManager(machine,None,win32service.SC_MANAGER_ALL_ACCESS)
 	try:
 
-		hs = win32service.OpenService(hscm, serviceName, win32service.SERVICE_ALL_ACCESS)
+		hs = SmartOpenService(hscm, serviceName, win32service.SERVICE_ALL_ACCESS)
 		try:
 			win32service.StartService(hs, args)
 		finally:
@@ -356,7 +389,7 @@ def QueryServiceStatus(serviceName, machine=None):
 	hscm = win32service.OpenSCManager(machine,None,win32service.SC_MANAGER_CONNECT)
 	try:
 
-		hs = win32service.OpenService(hscm, serviceName, win32service.SERVICE_QUERY_STATUS)
+		hs = SmartOpenService(hscm, serviceName, win32service.SERVICE_QUERY_STATUS)
 		try:
 			status = win32service.QueryServiceStatus(hs)
 		finally:
