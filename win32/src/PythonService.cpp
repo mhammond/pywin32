@@ -892,9 +892,34 @@ static BOOL ReportError(DWORD code, LPCTSTR *inserts, WORD errorType /* = EVENTL
     		LocalFree(buffer);
     	}
 		return TRUE;
-    } else {
- 	
-	    hEventSource = RegisterEventSource(NULL, g_szEventSourceName);
+	} else {
+		// Ensure we are setup in the eventlog
+		HKEY hkey;
+		TCHAR keyName[MAX_PATH];
+		_tcscpy(keyName, _T("SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\"));
+		_tcscat(keyName, g_szEventSourceName );
+		// ignore all failures when settingup - for whatever reason it fails,
+		// we are probably still better off calling ReportEvent than
+		// not calling due to some other failure here.
+		if (RegCreateKeyEx(HKEY_LOCAL_MACHINE, 
+		                   keyName, 
+		                   0, 
+		                   NULL, 
+		                   REG_OPTION_NON_VOLATILE, 
+		                   KEY_WRITE, NULL, 
+		                   &hkey, 
+		                   NULL) == ERROR_SUCCESS) {
+			TCHAR fnameBuf[MAX_PATH+MAX_PATH];
+			const DWORD fnameBufSize = sizeof(fnameBuf)/sizeof(fnameBuf[0]);
+			GetModuleFileName( NULL, fnameBuf, fnameBufSize);
+			RegSetValueEx(hkey, TEXT("EventMessageFile"), 0, REG_SZ, 
+			              (const BYTE *)fnameBuf, (_tcslen(fnameBuf)+1)*sizeof(TCHAR));
+			DWORD types = EVENTLOG_ERROR_TYPE | EVENTLOG_WARNING_TYPE | EVENTLOG_INFORMATION_TYPE;
+			RegSetValueEx(hkey, TEXT("TypesSupported"), 0, REG_DWORD, 
+			              (const BYTE *)&types, sizeof(types));
+			RegCloseKey(hkey);
+		}
+		hEventSource = RegisterEventSource(NULL, g_szEventSourceName);
 		if (hEventSource==NULL)
 			return FALSE;
 
@@ -946,31 +971,7 @@ static BOOL RegisterPythonServiceExe(void)
 		printf("Registration failed due to RegSetValue() of service EXE - error %d\n", rc);
 		return FALSE;
 	}
-
-	HKEY hkey;
-	TCHAR regKey[MAX_PATH + MAX_PATH];
-	_tcscpy(regKey, _T("SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\"));
-	_tcscat(regKey, g_szEventSourceName );
-	if ((rc=RegCreateKey(HKEY_LOCAL_MACHINE,
-	               regKey,
-	               &hkey ))!=ERROR_SUCCESS) {
-		printf("Registration failed due to RegCreateKey() of EventLog entry - error %d\n", rc);
-		return FALSE;
-	}
-	rc = RegSetValueEx(hkey,
-	                TEXT("EventMessageFile"), 0, REG_SZ, 
-					(const BYTE *)fnameBuf, (_tcslen(fnameBuf)+1)*sizeof(TCHAR));
-	if (rc==ERROR_SUCCESS) {
-		DWORD types = EVENTLOG_ERROR_TYPE | EVENTLOG_WARNING_TYPE | EVENTLOG_INFORMATION_TYPE;
-		rc = RegSetValueEx(hkey,
-	                TEXT("TypesSupported"), 0, REG_DWORD, 
-					(const BYTE *)&types, sizeof(types));
-	}
-	RegCloseKey(hkey);
-	if (rc!=ERROR_SUCCESS) {
-		printf("Registration failed due to RegSetValue() of EventLog entry - error %d\n", rc);
-		return FALSE;
-	}
+	// don't bother registering in the event log - do it when we write a log entry.
 	return TRUE;
 }
 
