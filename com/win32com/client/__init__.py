@@ -154,7 +154,12 @@ class EventsProxy:
   def __init__(self, ob):
     self.__dict__['_obj_'] = ob
   def __del__(self):
-    self._obj_.close()
+    try:
+      # If there is a COM error on disconnection we should
+      # just ignore it - object probably already shut down...
+      self._obj_.close()
+    except pythoncom.com_error:
+      pass
   def __getattr__(self, attr):
     return getattr(self._obj_, attr)
   def __setattr__(self, attr, val):
