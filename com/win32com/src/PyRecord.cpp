@@ -62,7 +62,7 @@ public:
 	}
 	~PyRecordBuffer()
 	{
-		if (data) PyMem_Free((ANY *)data);
+		if (data) PyMem_Free((void *)data);
 	}
 	void AddRef() {
 		ref++;
