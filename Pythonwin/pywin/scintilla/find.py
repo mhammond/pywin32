@@ -129,7 +129,7 @@ def _FindIt(control, searchParams):
 		# Loop around this control - attempt to find from the start of the control.
 		posFind, foundSel = control.FindText(flags, (0, sel[0]-1), searchParams.findText)
 		if posFind >= 0:
-			control.SCIEnsureVisible(control.LineFromChar(foundSel))
+			control.SCIEnsureVisible(control.LineFromChar(foundSel[0]))
 			control.SetSel(foundSel)
 			control.SetFocus()
 			win32ui.SetStatusText("Not found! Searching from the top of the file.")
