@@ -255,30 +255,25 @@ PyDragFinish( PyObject *self, PyObject *args )
 static PyObject *
 PyGetEnvironmentVariable( PyObject *self, PyObject *args )
 {
-	PyObject *obVar;
-	if (!PyArg_ParseTuple(args, "O:GetEnvironmentVariable", 
-	           &obVar)) // @pyparm string|variable||The variable to get
+	char *szVar;
+	if (!PyArg_ParseTuple(args, "s:GetEnvironmentVariable", 
+	           &szVar)) // @pyparm string|variable||The variable to get
 		return NULL;
-	// @pyseeapi GetEnvironmentVariableW
-	BSTR szVar;
-	if (!PyWinObject_AsBstr(obVar, &szVar, FALSE))
-		return NULL;
-
+	// @pyseeapi GetEnvironmentVariable
 	PyW32_BEGIN_ALLOW_THREADS
-	DWORD size = GetEnvironmentVariableW(szVar, NULL, 0);
-	WCHAR *pResult = NULL;
+	DWORD size = GetEnvironmentVariable(szVar, NULL, 0);
+	char *pResult = NULL;
 	if (size) {
-		pResult = (WCHAR *)malloc(sizeof(WCHAR) * size);
-		GetEnvironmentVariableW(szVar, pResult, size);
+		pResult = (char *)malloc(sizeof(char) * size);
+		GetEnvironmentVariable(szVar, pResult, size);
 	}
 	PyW32_END_ALLOW_THREADS
-	PyWinObject_FreeBstr(szVar);
 	PyObject *ret;
 	if (pResult==NULL) {
 		Py_INCREF(Py_None);
 		ret = Py_None;
 	} else
-		ret = PyWinObject_FromOLECHAR(pResult);
+		ret = PyString_FromString(pResult);
 	if (pResult)
 		free(pResult);
 	return ret;
