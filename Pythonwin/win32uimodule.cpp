@@ -1712,9 +1712,11 @@ static PyObject *ui_translate_message(PyObject *, PyObject *args)
 	return PyInt_FromLong(rc);
 }
 
+// @pymethod string/None|win32ui|TranslateVirtualKey|
 static PyObject *ui_translate_vk(PyObject *, PyObject *args)
 {
 	int vk;
+	// @pyparm int|vk||The key to translate
 	if (!PyArg_ParseTuple(args, "i", &vk))
 		return NULL;
 	static HKL layout=GetKeyboardLayout(0);
@@ -1724,7 +1726,32 @@ static PyObject *ui_translate_vk(PyObject *, PyObject *args)
 	char result[2];
 	UINT sc=MapVirtualKeyEx(vk,0,layout);
 	int nc = ToAsciiEx(vk,sc,State,(unsigned short *)result,0,layout);
+	if (nc==-1) { // a dead char.
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	return PyString_FromStringAndSize(result, nc);
+}
+
+// @pymethod <o PyUnicode>/None|win32ui|TranslateVirtualKeyW|
+static PyObject *ui_translate_vkW(PyObject *, PyObject *args)
+{
+	int vk;
+	// @pyparm int|vk||The key to translate
+	if (!PyArg_ParseTuple(args, "i", &vk))
+		return NULL;
+	static HKL layout=GetKeyboardLayout(0);
+	static BYTE State[256];
+	if (GetKeyboardState(State)==FALSE)
+		RETURN_ERR("Can't get keyboard state");
+	WCHAR result[2];
+	UINT sc=MapVirtualKeyEx(vk,0,layout);
+	int nc = ToUnicodeEx(vk,sc,State,result,2, 0,layout);
+	if (nc==-1) { // a dead char.
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+	return PyWinObject_FromWCHAR(result, nc);
 }
 
 extern PyObject *ui_get_dialog_resource( PyObject *, PyObject *args );
@@ -1830,12 +1857,12 @@ static struct PyMethodDef ui_functions[] = {
 	{"GetThread",               ui_get_thread, 1 },    // @pymeth GetThread|Retrieves the current thread object.
 	{"GetType",                 ui_get_type, 1 },    // @pymeth GetType|Retrieves a Python Type object given its name
 	{"InitRichEdit",            ui_init_rich_edit, 1}, // @pymeth InitRichEdit|Initializes the rich edit framework.
-    {"InstallCallbackCaller",	ui_install_callback_caller,	1}, // @pymeth InstallCallbackCaller|Installs a callback caller.
+	{"InstallCallbackCaller",	ui_install_callback_caller,	1}, // @pymeth InstallCallbackCaller|Installs a callback caller.
 	{"IsDebug",				    ui_is_debug, 1}, // @pymeth IsDebug|Returns a flag indicating if the current win32ui build is a DEBUG build.
 	{"IsWin32s",				ui_is_win32s, 1}, // @pymeth IsWin32s|Determines if the application is running under Win32s.
 	{"IsObject",				ui_is_object, 1}, // @pymeth IsObject|Determines if the passed object is a win32ui object.
 	{"LoadDialogResource",		ui_get_dialog_resource,		1}, // @pymeth LoadDialogResource|Loads a dialog resource, and returns a list detailing the objects.
-    {"LoadLibrary",				dll_object::create,	1}, // @pymeth LoadLibrary|Creates a <o PyDLL> object.
+	{"LoadLibrary",				dll_object::create,	1}, // @pymeth LoadLibrary|Creates a <o PyDLL> object.
 	{"LoadMenu",				PyCMenu::load_menu,	1}, // @pymeth LoadMenu|Loads a menu.
 	{"LoadStdProfileSettings",	ui_load_std_profile_settings,	1}, // @pymeth LoadStdProfileSettings|Loads standard application profile settings.
 	{"LoadString",				ui_load_string,	1}, // @pymeth LoadString|Loads a string from a resource file.
@@ -1859,7 +1886,8 @@ static struct PyMethodDef ui_functions[] = {
 	{"StartDebuggerPump",		ui_start_debugger_pump,	1}, // @pymeth StartDebuggerPump|Starts the debugger message pump.
 	{"StopDebuggerPump",		ui_stop_debugger_pump,	1}, // @pymeth StopDebuggerPump|Stops the debugger message pump.
 	{"TranslateMessage",            ui_translate_message, 1}, // @pymeth TranslateMessage|Calls ::TranslateMessage.
-	{"TranslateVirtualKey",            ui_translate_vk, 1}, // @pymeth TranslateVirtualKey|Translates a virtual key.
+	{"TranslateVirtualKey",         ui_translate_vk, 1}, // @pymeth TranslateVirtualKey|Translates a virtual key.
+	{"TranslateVirtualKeyW",        ui_translate_vkW, 1},// @pymeth TranslateVirtualKeyW|Translates a virtual key.
 	{"WinHelp",					ui_win_help,	1}, // @pymeth WinHelp|Invokes the Window Help engine.
 	{"WriteProfileVal",			ui_write_profile_val,	1}, // @pymeth WriteProfileVal|Writes a value to the INI file.
 
