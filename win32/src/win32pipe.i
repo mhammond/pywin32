@@ -364,3 +364,36 @@ BOOLAPI WaitNamedPipe(
 	// @flag NMPWAIT_USE_DEFAULT_WAIT|The time-out interval is the default value specified by the server process in the CreateNamedPipe function. 
 	// @flag NMPWAIT_WAIT_FOREVER|The function does not return until an instance of the named pipe is available 
 	
+%{
+
+// @pyswig (string, int, int)|PeekNamedPipe|Copies data from a named or anonymous pipe into a buffer without removing it from the pipe. It also returns information about data in the pipe.
+PyObject *MyPeekNamedPipe(PyObject *self, PyObject *args)
+{
+	HANDLE hNamedPipe;
+	PyObject *obhNamedPipe;
+	unsigned long bytesRead, totalAvail, bytesLeft;
+	int size;
+
+	// @pyparm <o PyHANDLE>|hPipe||The handle to the pipe.
+	// @pyparm int|size||The size of the buffer.
+
+	if (!PyArg_ParseTuple(args, "Oi:PeekNamedPipe", &obhNamedPipe, &size))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
+		return NULL;
+	void *buf = malloc(size);
+	if (buf==NULL) {
+		PyErr_NoMemory();
+		return NULL;
+	}
+	PyObject *rc = NULL;
+	if (PeekNamedPipe(hNamedPipe, buf, size, &bytesRead, &totalAvail, &bytesLeft)) {
+		rc = Py_BuildValue("s#ii", (char *)buf, bytesRead, totalAvail, bytesLeft);
+	} else
+		PyWin_SetAPIError("GetNamedPipeHandleState");
+	free(buf);
+	return rc;
+}
+%}
+
+%native(PeekNamedPipe) MyPeekNamedPipe;
