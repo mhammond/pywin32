@@ -63,11 +63,24 @@ void ProcessShellMessage( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 			break;
 	}
 }
+
+static void AddIcons(HWND hwndDebug)
+{
+	HICON hIcon = AfxGetApp()->LoadIcon( MAKEINTRESOURCE(IDR_MAINFRAME) );
+	DWORD flags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+	NOTIFYICONDATA nid = { sizeof(NOTIFYICONDATA), hwndDebug, 0, flags, WM_USER+20, hIcon };
+	_tcscpy(nid.szTip, "Pythonwin");
+	Shell_NotifyIcon(NIM_ADD, &nid);
+}
+
 LRESULT CALLBACK DebuggerWndProc( HWND hWnd, UINT msg, WPARAM wParam,
    LPARAM lParam )
 {
-
-   switch( msg ) {
+    static UINT s_uTaskbarRestart;
+    switch( msg ) {
+      case WM_CREATE:
+         s_uTaskbarRestart = RegisterWindowMessage(TEXT("TaskbarCreated"));
+         break;
       case WM_COMMAND:
          break;
       case WM_DESTROY:
@@ -83,6 +96,8 @@ LRESULT CALLBACK DebuggerWndProc( HWND hWnd, UINT msg, WPARAM wParam,
 *     Let the default window proc handle all other messages    *
 \**************************************************************/
       default:
+          if(msg==s_uTaskbarRestart)
+              AddIcons(hWnd);
          return( DefWindowProc( hWnd, msg, wParam, lParam ));
    }
    return 0;
@@ -95,7 +110,6 @@ void StopDebuggerThread()
 	Shell_NotifyIcon(NIM_DELETE, &nid);
 	::PostMessage(hwndDebug, WM_USER+21, 0, 0);
 }
-
 
 DWORD DebuggerThreadFunc( LPDWORD lpdwWhatever )
 {
@@ -120,11 +134,7 @@ DWORD DebuggerThreadFunc( LPDWORD lpdwWhatever )
 				14, 8, 70, 60, 
 				NULL, NULL, AfxGetInstanceHandle(),   NULL );
 
-	HICON hIcon = AfxGetApp()->LoadIcon( MAKEINTRESOURCE(IDR_MAINFRAME) );
-	DWORD flags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
-	NOTIFYICONDATA nid = { sizeof(NOTIFYICONDATA), hwndDebug, 0, flags, WM_USER+20, hIcon };
-	_tcscpy(nid.szTip, "Pythonwin");
-	Shell_NotifyIcon(NIM_ADD, &nid);
+	AddIcons(hwndDebug);
 
     while (GetMessage(&msg, 0, 0, NULL))
     {
