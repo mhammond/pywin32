@@ -409,6 +409,7 @@ static struct PyMethodDef pywintypes_functions[] = {
 
 void PyWinGlobals_Ensure()
 {
+	PyEval_InitThreads();
 	PyWinInterpreterState_Ensure();
 	if (PyWinExc_ApiError==NULL) {
 		PyWinExc_ApiError = PyErr_NewException("pywintypes.error", NULL, NULL);
