@@ -288,7 +288,7 @@ PyHANDLE OpenSemaphore(
 //@pyswig handle|OpenWaitableTimer|Opens an existing named waitable timer object
 PyHANDLE OpenWaitableTimer(
     DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||access flag
-    BOOL bInheritHandle,	// @pyparm bInheritHandle||inherit flag
+    BOOL bInheritHandle,	// @pyparm int|bInheritHandle||inherit flag
     TCHAR *lpTimerName	// @pyparm string|timerName||pointer to timer object name
 );
 
