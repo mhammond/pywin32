@@ -22,11 +22,10 @@ def IIDToInterfaceName(iid):
 	except KeyError:
 		try:
 			try:
-				return win32api.RegQueryValue(win32con.HKEY_CLASSES_ROOT, "Interface\\%s" % iid) + \
-					"(unregistered)"
+				return win32api.RegQueryValue(win32con.HKEY_CLASSES_ROOT, "Interface\\%s" % iid)
 			except win32api.error:
 				pass
 		except ImportError:
 			pass
-		return "<Unregistered interface>"
+		return str(iid)
 
