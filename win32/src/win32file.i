@@ -36,7 +36,7 @@
 // Specifies write access to the object. Data can be written to the file and the file pointer can be moved. Combine with GENERIC_READ for read-write access. 
 #define GENERIC_EXECUTE GENERIC_EXECUTE 
 // Specifies execute access.
-
+	
 #ifndef MS_WINCE
 #define FILE_SHARE_DELETE  FILE_SHARE_DELETE 
 // Windows NT only: Subsequent open operations on the object will succeed only if delete access is requested. 
@@ -1224,6 +1224,90 @@ unsigned long GetFileType( // DWORD
 #endif // MS_WINCE
 
 // GetFullPathName	
+// @pyswig str/unicode|GetFullPathName|Returns full path for path passed in
+// @comm This function takes either a plain string or a unicode string, and returns the same type
+//       If unicode is passed in, GetFullPathNameW is called, which supports filenames longer than MAX_PATH
+%native(GetFullPathName) MyGetFullPathName;
+%{
+static PyObject *MyGetFullPathName(PyObject *self, PyObject *args)
+{
+	PyObject *ret=NULL, *obpathin;
+	int pathlen, retlen;
+
+	// @pyparm str/unicode|FileName||Path on which to operate
+	if (!PyArg_ParseTuple(args, "O", &obpathin))
+		return NULL;
+	WCHAR *wpathin;
+	if (wpathin=PyUnicode_AsUnicode(obpathin)){
+		WCHAR *wpathret, *wfilepart;
+		pathlen=wcslen(wpathin)+1;
+		wpathret=(WCHAR *)malloc(pathlen*sizeof(WCHAR));
+		if (wpathret==NULL){
+			PyErr_SetString(PyExc_MemoryError,"GetFullPathNameW: unable to allocate unicode return buffer");
+			return NULL;
+			}
+		Py_BEGIN_ALLOW_THREADS
+		retlen=GetFullPathNameW(wpathin, pathlen, wpathret, &wfilepart);
+		Py_END_ALLOW_THREADS
+		if (retlen>pathlen){
+			pathlen=retlen;
+			wpathret=(WCHAR *)realloc(wpathret,pathlen*sizeof(WCHAR));
+			if (wpathret==NULL){
+				PyErr_SetString(PyExc_MemoryError,"GetFullPathNameW: unable to allocate unicode return buffer");
+				return NULL;
+				}
+			Py_BEGIN_ALLOW_THREADS
+			retlen=GetFullPathNameW(wpathin, retlen, wpathret, &wfilepart);
+			Py_END_ALLOW_THREADS
+			}
+		if (retlen>pathlen)
+			PyErr_SetString(PyExc_SystemError,"GetFullPathNameW: Unexpected second increase in required buffer size");
+		else
+			if (retlen==0)
+				PyWin_SetAPIError("GetFullPathNameW", GetLastError());
+			else
+				ret=PyUnicode_FromWideChar(wpathret,retlen);
+		free(wpathret);
+		return ret;
+		}
+
+	PyErr_Clear();
+	char *cpathin;
+	if (PyString_AsStringAndSize(obpathin, &cpathin, &pathlen)!=-1){
+		char *cpathret, *cfilepart;
+		pathlen+=1;
+		cpathret=(char *)malloc(pathlen);
+		if (cpathret==NULL){
+			PyErr_SetString(PyExc_MemoryError,"GetFullPathName: unable to allocate character return buffer");
+			return NULL;
+			}
+		Py_BEGIN_ALLOW_THREADS
+		retlen=GetFullPathName(cpathin, pathlen, cpathret, &cfilepart);
+		Py_END_ALLOW_THREADS
+		if (retlen>pathlen){
+			pathlen=retlen;
+			cpathret=(char *)realloc(cpathret,pathlen);
+			if (cpathret==NULL){
+				PyErr_SetString(PyExc_MemoryError,"GetFullPathName: unable to allocate character return buffer");
+				return NULL;
+				}
+			Py_BEGIN_ALLOW_THREADS
+			retlen=GetFullPathName(cpathin, retlen, cpathret, &cfilepart);
+			Py_END_ALLOW_THREADS
+			}
+		if (retlen>pathlen)
+			PyErr_SetString(PyExc_SystemError,"GetFullPathName: Unexpected second increase in required buffer size");
+		else
+			if (retlen==0)
+				PyWin_SetAPIError("GetFullPathName", GetLastError());
+			else
+				ret=PyString_FromStringAndSize(cpathret,retlen);
+		free(cpathret);
+		}
+	return ret;
+}
+%}
+
 
 #ifndef MS_WINCE
 // @pyswig int|GetLogicalDrives|Returns a bitmaks of the logical drives installed.
@@ -1396,16 +1480,16 @@ done:
 // ReadFileEx	
 
 // @pyswig |RemoveDirectory|Removes an existing directory
-BOOLAPI RemoveDirectory(
-    TCHAR *lpPathName	// @pyparm <o PyUnicode>|lpPathName||Name of the path to remove.
+%name(RemoveDirectory) BOOLAPI RemoveDirectoryW(
+    WCHAR *lpPathName	// @pyparm str/<o PyUnicode>|lpPathName||Name of the path to remove.
 );
 
 //SearchPath	
 
 #ifndef MS_WINCE
 // @pyswig |SetCurrentDirectory|Sets the current directory.
-BOOLAPI SetCurrentDirectory(
-    TCHAR *lpPathName	// @pyparm <o PyUnicode>|lpPathName||Name of the path to set current.
+%name(SetCurrentDirectory) BOOLAPI SetCurrentDirectoryW(
+    WCHAR *lpPathName	// @pyparm str/<o PyUnicode>|lpPathName||Name of the path to set current.
 );
 #endif // MS_WINCE
 
@@ -2461,7 +2545,7 @@ static BOOL (WINAPI *pfnSetVolumeMountPointW)(LPCWSTR, LPCWSTR) = NULL;
 static BOOL (WINAPI *pfnDeleteVolumeMountPointW)(LPCWSTR) = NULL;
 static BOOL (WINAPI *pfnCreateHardLinkW)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES ) = NULL;
 static BOOL (WINAPI *pfnEncryptFile)(WCHAR *)=NULL;
-static BOOL (WINAPI *pfnDecryptFile)(WCHAR *)=NULL;
+static BOOL (WINAPI *pfnDecryptFile)(WCHAR *, DWORD)=NULL;
 static BOOL (WINAPI *pfnEncryptionDisable)(WCHAR *, BOOL)=NULL;
 static BOOL (WINAPI *pfnFileEncryptionStatus)(WCHAR *, LPDWORD)=NULL;
 static DWORD (WINAPI *pfnQueryUsersOnEncryptedFile)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST *)=NULL;
@@ -2469,7 +2553,7 @@ static BOOL (WINAPI *pfnFreeEncryptionCertificateHashList)(PENCRYPTION_CERTIFICA
 static DWORD (WINAPI *pfnQueryRecoveryAgentsOnEncryptedFile)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST *)=NULL;
 static DWORD (WINAPI *pfnRemoveUsersFromEncryptedFile)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST)=NULL;
 static DWORD (WINAPI *pfnAddUsersToEncryptedFile)(WCHAR *, PENCRYPTION_CERTIFICATE_LIST)=NULL;
-
+static BOOL (WINAPI *pfnGetVolumePathNameW)(WCHAR *, WCHAR *, DWORD)=NULL;
 
 
 // @pyswig <o PyUnicode>|SetVolumeMountPoint|Mounts the specified volume at the specified volume mount point.
@@ -2633,7 +2717,7 @@ py_GetVolumeNameForVolumeMountPoint(PyObject *self, PyObject *args)
     if (pfnGetVolumeNameForVolumeMountPointW==NULL)
         return PyErr_Format(PyExc_NotImplementedError,"GetVolumeNameForVolumeMountPoint not supported by this version of Windows");
 
-    if (!PyArg_ParseTuple(args,"O", &obmount_point))
+    if (!PyArg_ParseTuple(args,"O:GetVolumeNameForVolumeMountPoint", &obmount_point))
         return NULL;
 
     if (!PyWinObject_AsWCHAR(obmount_point, &mount_point, false)){
@@ -2651,6 +2735,46 @@ cleanup:
 	return ret;
 }
 
+// @pyswig <o PyUnicode>|GetVolumePathName|Returns volume mount point for a path
+// @comm Api gives no indication of how much memory is needed, so function assumes returned path
+//       will not be longer that length of input path + 1.
+//       Use GetFullPathName first for relative paths, or GetLongPathName for 8.3 paths.
+//       Optional second parm can also be used to override the buffer size for returned path
+static PyObject*
+py_GetVolumePathName(PyObject *self, PyObject *args)
+{
+	// @pyparm string/unicode|FileName||File/dir for which to return volume mount point
+	// @pyparm int|bufsize|0|Optional parm to allocate extra space for returned string
+	PyObject *ret=NULL;
+	PyObject *obpath = NULL;
+	WCHAR *path=NULL, *mount_point=NULL;
+	DWORD pathlen, bufsize=0;
+	if (pfnGetVolumePathNameW==NULL)
+		return PyErr_Format(PyExc_NotImplementedError,"GetVolumePathName not supported by this version of Windows");
+	if (!PyArg_ParseTuple(args,"O|l:GetVolumePathName", &obpath, &bufsize))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obpath, &path, FALSE, &pathlen))
+		return NULL;
+
+	// yet another function that doesn't tell us how much memory it needs ...
+	if (bufsize>0)
+		bufsize+=1;
+	else
+		bufsize=pathlen+2;  // enough to accomodate trailing null, and possibly extra backslash
+	mount_point=(WCHAR *)malloc(bufsize*sizeof(WCHAR));
+	if (mount_point==NULL)
+		PyErr_SetString(PyExc_MemoryError,"GetVolumePathName: Unable to allocate return buffer");
+	else
+		if (!(*pfnGetVolumePathNameW)(path, mount_point, bufsize))
+			PyWin_SetAPIError("GetVolumePathName");
+		else
+			ret=PyWinObject_FromWCHAR(mount_point);
+	if (path != NULL)
+		PyWinObject_FreeWCHAR(path);
+	if (mount_point!=NULL)
+		free(mount_point);
+	return ret;
+}
 
 // @pyswig |EncryptFile|Encrypts specified file (requires Win2k or higher and NTFS)
 static PyObject*
@@ -2679,22 +2803,23 @@ py_EncryptFile(PyObject *self, PyObject *args)
 static PyObject*
 py_DecryptFile(PyObject *self, PyObject *args)
 {
-    // @pyparm string/unicode|filename||File to decrypt
-    PyObject *ret=NULL, *obfname=NULL;
-    WCHAR *fname = NULL;
+	// @pyparm string/unicode|filename||File to decrypt
+	PyObject *ret=NULL, *obfname=NULL;
+	WCHAR *fname = NULL;
+	DWORD reserved=0;
 	if (pfnDecryptFile==NULL)
 		return PyErr_Format(PyExc_NotImplementedError,"DecryptFile not supported by this version of Windows");
-    if (!PyArg_ParseTuple(args,"O", &obfname))
-        return NULL;
-    if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
-        return NULL;
-	if (!(*pfnDecryptFile)(fname))
-        PyWin_SetAPIError("DecryptFile");
-    else
-        ret=Py_None;
-    PyWinObject_FreeWCHAR(fname);
-    Py_XINCREF(ret);
-    return ret;
+	if (!PyArg_ParseTuple(args,"O:DecryptFile", &obfname))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
+		return NULL;
+	if (!(*pfnDecryptFile)(fname,reserved))
+		PyWin_SetAPIError("DecryptFile");
+	else
+		ret=Py_None;
+	PyWinObject_FreeWCHAR(fname);
+	Py_XINCREF(ret);
+	return ret;
 }
 
 // @pyswig |EncryptionDisable|Enables/disables encryption for a directory (requires Win2k or higher and NTFS)
@@ -3151,6 +3276,7 @@ py_AddUsersToEncryptedFile(PyObject *self, PyObject *args)
 %native (DeleteVolumeMountPoint) py_DeleteVolumeMountPoint;
 %native (CreateHardLink) py_CreateHardLink;
 %native (GetVolumeNameForVolumeMountPoint) py_GetVolumeNameForVolumeMountPoint;
+%native (GetVolumePathName) py_GetVolumePathName;
 
 // end of win2k volume mount functions.
 %native (EncryptFile) py_EncryptFile;
@@ -3175,7 +3301,7 @@ py_AddUsersToEncryptedFile(PyObject *self, PyObject *args)
 		if (fp) pfnEncryptFile=(BOOL (WINAPI *)(WCHAR *))(fp);
 
 		fp=GetProcAddress(hmodule,"DecryptFileW");
-		if (fp) pfnDecryptFile=(BOOL (WINAPI *)(WCHAR *))(fp);
+		if (fp) pfnDecryptFile=(BOOL (WINAPI *)(WCHAR *, DWORD))(fp);
 
 		fp=GetProcAddress(hmodule,"EncryptionDisable");
 		if (fp) pfnEncryptionDisable=(BOOL (WINAPI *)(WCHAR *, BOOL))(fp);
@@ -3202,17 +3328,20 @@ py_AddUsersToEncryptedFile(PyObject *self, PyObject *args)
 
 	hmodule = GetModuleHandle("kernel32.dll");
 	if (hmodule){
-        fp = GetProcAddress(hmodule, "GetVolumeNameForVolumeMountPointW");
-        if (fp) pfnGetVolumeNameForVolumeMountPointW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR, DWORD))(fp);
+		fp = GetProcAddress(hmodule, "GetVolumeNameForVolumeMountPointW");
+		if (fp) pfnGetVolumeNameForVolumeMountPointW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR, DWORD))(fp);
 
-        fp = GetProcAddress(hmodule, "SetVolumeMountPointW");
-        if (fp) pfnSetVolumeMountPointW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR))(fp);
+		fp = GetProcAddress(hmodule, "GetVolumePathNameW");
+		if (fp) pfnGetVolumePathNameW = (BOOL (WINAPI *)(WCHAR *, WCHAR *, DWORD))(fp);
 
-        fp = GetProcAddress(hmodule, "DeleteVolumeMountPointW");
-        if (fp) pfnDeleteVolumeMountPointW = (BOOL (WINAPI *)(LPCWSTR))(fp);
+		fp = GetProcAddress(hmodule, "SetVolumeMountPointW");
+		if (fp) pfnSetVolumeMountPointW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR))(fp);
 
-        fp = GetProcAddress(hmodule, "CreateHardLinkW");
-        if (fp) pfnCreateHardLinkW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES))(fp);
+		fp = GetProcAddress(hmodule, "DeleteVolumeMountPointW");
+		if (fp) pfnDeleteVolumeMountPointW = (BOOL (WINAPI *)(LPCWSTR))(fp);
+
+		fp = GetProcAddress(hmodule, "CreateHardLinkW");
+		if (fp) pfnCreateHardLinkW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES))(fp);
 		}
 %}
 
