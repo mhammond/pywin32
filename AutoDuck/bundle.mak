@@ -22,12 +22,11 @@ FILES = PyWin32.html \
 # Help and Doc targets
 htmlhlp : "..\$(TARGET).chm"
 
-"$(GENDIR)\$(TARGET).chm": $(GENSOURCE) $(CHMS)
+"..\$(TARGET).chm": $(GENSOURCE) $(CHMS)
 	-$(HHC) "$(GENDIR)\$(TARGET).hhp"
+	if exist "..\$(TARGET).chm" del "..\$(TARGET).chm"
+	move "$(GENDIR)\$(TARGET).chm" "..\$(TARGET).chm" 
 
-"..\$(TARGET).chm" : "$(GENDIR)\$(TARGET).chm"
-    if exist "..\$(TARGET).chm" del "..\$(TARGET).chm"
-    move "$(GENDIR)\$(TARGET).chm" "..\$(TARGET).chm" 
 
 "$(GENDIR)\PyWin32.html": PyWin32.html
 	copy $? $@

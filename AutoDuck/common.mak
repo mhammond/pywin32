@@ -57,9 +57,8 @@ cleanad:
 "$(GENDIR)\$(TARGET).hhc" : "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).dump" Dump2HHC.py
 	Dump2HHC.py "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).hhc" "$(TITLE)" "$(TARGET)" 
 
-"..\$(TARGET).chm" : "$(GENDIR)\$(TARGET).chm"
-    if exist "..\$(TARGET).chm" del "..\$(TARGET).chm"
-    move "$(GENDIR)\$(TARGET).chm" "..\$(TARGET).chm" 
-
-"$(GENDIR)\$(TARGET).chm" : $(SOURCE) "$(GENDIR)\$(TARGET).html" "$(GENDIR)\$(TARGET).hhc" "$(GENDIR)\$(TARGET).hhk" "$(GENDIR)\$(TARGET).hhp"
+"..\$(TARGET).chm" : $(SOURCE) "$(GENDIR)\$(TARGET).html" "$(GENDIR)\$(TARGET).hhc" "$(GENDIR)\$(TARGET).hhk" "$(GENDIR)\$(TARGET).hhp"
 	-$(HHC) "$(GENDIR)\$(TARGET).hhp"
+	if exist "..\$(TARGET).chm" del "..\$(TARGET).chm"
+	move "$(GENDIR)\$(TARGET).chm" "..\$(TARGET).chm" 
+

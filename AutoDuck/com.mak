@@ -45,6 +45,7 @@ SOURCE  = $(WIN32COM_DIR)\src\*.cpp \
 
 
 # Help and Doc targets
+all: help htmlhlp
 
 help : ..\$(TARGET).hlp $(GENDIR)
 

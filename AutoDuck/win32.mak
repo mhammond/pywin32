@@ -23,6 +23,8 @@ SOURCE  = $(SOURCE_DIR)/*.cpp \
 	  $(GENDIR)/win32process.d $(GENDIR)/wincerapi.d
 
 # Help and Doc targets
+all: help htmlhlp
+
 help : $(GENDIR) "..\$(TARGET).hlp"
 
 htmlhlp: $(GENDIR) "..\$(TARGET).chm"

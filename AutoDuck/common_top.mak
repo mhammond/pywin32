@@ -1,7 +1,7 @@
 # Common AutoDuck make file
 
-AD		  = ad2\autoduck.exe /Spythonwin.fmt
-ADHTMLFMT = ad2\autoduck.exe /Spyhtml.fmt
+AD		  = bin\autoduck.exe /Spythonwin.fmt
+ADHTMLFMT = bin\autoduck.exe /Spyhtml.fmt
 ADHTMLLOG = /R html "/L$(GENDIR)\$(TARGET).HHLOG" /N
 ADLOG	  = /R help "/L$(GENDIR)\$(TARGET).HLOG" /N
 ADHTML	  = /R html "/G$(GENDIR)\$(TARGET).DUMP" "/C$(GENDIR)\$(TARGET).HHLOG" "/I$(GENDIR)\$(TARGET).IDX" "/O$(GENDIR)\$(TARGET).HTML" /D "title=$(TITLE)"
