@@ -176,7 +176,7 @@ STDMETHODIMP PyGDropTargetHelper::DragEnter(
 {
 	PY_GATEWAY_METHOD;
 	PyObject *obpt = PyObject_FromPOINT(*pt);
-	if (obpt==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (obpt==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("DragEnter");
 	PyObject *obpDataObj;
 	obpDataObj = PyCom_PyObjectFromIUnknown(pDataObj, IID_IDataObject, TRUE);
 	PyObject *result;
@@ -194,7 +194,7 @@ STDMETHODIMP PyGDropTargetHelper::DragOver(
 {
 	PY_GATEWAY_METHOD;
 	PyObject *obpt = PyObject_FromPOINT(*pt);
-	if (obpt==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (obpt==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("DragOver");
 	PyObject *result;
 	HRESULT hr=InvokeViaPolicy("DragOver", &result, "Ol", obpt, dwEffect);
 	Py_DECREF(obpt);
@@ -218,7 +218,7 @@ STDMETHODIMP PyGDropTargetHelper::Drop(
 {
 	PY_GATEWAY_METHOD;
 	PyObject *obpt = PyObject_FromPOINT(*pt);
-	if (obpt==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (obpt==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("Drop");
 	PyObject *obpDataObj;
 	obpDataObj = PyCom_PyObjectFromIUnknown(pDataObj, IID_IDataObject, TRUE);
 	PyObject *result;

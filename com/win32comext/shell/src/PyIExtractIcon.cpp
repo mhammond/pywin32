@@ -121,7 +121,7 @@ STDMETHODIMP PyGExtractIcon::Extract(
 		hr = PyInt_AsLong(result);
 	else {
 		PyArg_ParseTuple(result, "ii", phiconLarge, phiconSmall);
-		hr = PyCom_HandlePythonFailureToCOM();
+		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("Extract");
 	}
 	Py_DECREF(result);
 	return hr;
@@ -159,7 +159,7 @@ STDMETHODIMP PyGExtractIcon::GetIconLocation(
 				PyWinObject_FreeTCHAR(filename);
 			}
 		}
-		hr = PyCom_HandlePythonFailureToCOM();
+		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetIconLocation");
 	}
 	Py_DECREF(result);
 	return hr;

@@ -103,7 +103,7 @@ STDMETHODIMP_(UINT) PyGCopyHook::CopyCallback(
 	if (FAILED(hr)) return hr;
 	if (!PyInt_Check(result) || !PyLong_Check(result)) {
 		PyErr_Format(PyExc_TypeError, "CopyCallBack should return an int, not a '%s'", result->ob_type->tp_name);
-		hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("CopyCallBack");
 	} else
 		hr = PyInt_AsLong(result);
 	Py_DECREF(result);

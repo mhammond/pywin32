@@ -327,7 +327,7 @@ STDMETHODIMP PyGShellView::TranslateAccelerator(
 {
 	PY_GATEWAY_METHOD;
 	PyObject *obpmsg = PyObject_FromMSG(pmsg);
-	if (obpmsg==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (obpmsg==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("TranslateAccelerator");
 	PyObject *result;
 	HRESULT hr=InvokeViaPolicy("TranslateAccelerator", &result, "(O)", obpmsg);
 	Py_DECREF(obpmsg);
@@ -372,9 +372,9 @@ STDMETHODIMP PyGShellView::CreateViewWindow(
 {
 	PY_GATEWAY_METHOD;
 	PyObject *obpfs = PyObject_FromFOLDERSETTINGS(pfs);
-	if (obpfs==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (obpfs==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("CreateViewWindow");
 	PyObject *obrect = PyObject_FromRECT(prcView);
-	if (obrect==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (obrect==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("CreateViewWindow");
 	PyObject *obpsvPrevious;
 	PyObject *obpsb;
 	obpsvPrevious = PyCom_PyObjectFromIUnknown(psvPrevious, IID_IShellView, TRUE);
@@ -411,7 +411,7 @@ STDMETHODIMP PyGShellView::GetCurrentInfo(
 	// Process the Python results, and convert back to the real params
 	PyObject_AsFOLDERSETTINGS(result, pfs);
 	Py_DECREF(result);
-	return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	return MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetCurrentInfo");
 }
 
 STDMETHODIMP PyGShellView::AddPropertySheetPages(
@@ -425,7 +425,7 @@ STDMETHODIMP PyGShellView::AddPropertySheetPages(
 //   - The type 'LPFNSVADDPROPSHEETPAGE' (pfn) is unknown.
 	PyObject *obpfn = Py_None;
 	Py_INCREF(Py_None);
-	if (obpfn==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (obpfn==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("AddPropertySheetPages");
 	HRESULT hr=InvokeViaPolicy("AddPropertySheetPages", NULL, "lOl", dwReserved, obpfn, lparam);
 	Py_DECREF(obpfn);
 	return hr;
@@ -466,11 +466,11 @@ STDMETHODIMP PyGShellView::GetItemObject(
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	PyObject *obppv;
-	if (!PyArg_Parse(result, "O" , &obppv)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!PyArg_Parse(result, "O" , &obppv)) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetItemObject");
 	BOOL bPythonIsHappy = TRUE;
 	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obppv, riid, ppv, FALSE/* bNoneOK */))
 		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetItemObject");
 	Py_DECREF(result);
 	return hr;
 }

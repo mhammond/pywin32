@@ -142,7 +142,7 @@ STDMETHODIMP PyGColumnProvider::Initialize(
 {
 	PY_GATEWAY_METHOD;
 	PyObject *obpsci = PyObject_FromSHCOLUMNINIT(psci);
-	if (obpsci==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (obpsci==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("Initialize");
 	HRESULT hr=InvokeViaPolicy("Initialize", NULL, "(O)", obpsci);
 	Py_DECREF(obpsci);
 	return hr;
@@ -173,9 +173,9 @@ STDMETHODIMP PyGColumnProvider::GetItemData(
 {
 	PY_GATEWAY_METHOD;
 	PyObject *obpscid = PyObject_FromSHCOLUMNID(pscid);
-	if (obpscid==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (obpscid==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetItemData");
 	PyObject *obpscd = PyObject_FromSHCOLUMNDATA(pscd);
-	if (obpscd==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (obpscd==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetItemData");
 	PyObject *result;
 	HRESULT hr=InvokeViaPolicy("GetItemData", &result, "OO", obpscid, obpscd);
 	Py_DECREF(obpscid);

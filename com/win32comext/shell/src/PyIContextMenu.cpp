@@ -152,7 +152,7 @@ STDMETHODIMP PyGContextMenu::InvokeCommand(
 {
 	PY_GATEWAY_METHOD;
 	PyObject *oblpici = PyObject_FromCMINVOKECOMMANDINFO(lpici);
-	if (oblpici==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (oblpici==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("InvokeCommand");
 	HRESULT hr=InvokeViaPolicy("InvokeCommand", NULL, "(O)", oblpici);
 	Py_DECREF(oblpici);
 	return hr;
