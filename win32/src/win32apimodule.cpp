@@ -26,7 +26,7 @@ generates Windows .hlp files.
 #include "math.h" // for some of the date stuff...
 
 #define SECURITY_WIN32 // required by below
-#include "Security.h"  // for GetUserNameEx
+#include "security.h"  // for GetUserNameEx
 
 #define DllExport   _declspec(dllexport)
 
@@ -559,7 +559,8 @@ PyFormatMessage (PyObject *self, PyObject *args)
 			PyErr_SetString(PyExc_MemoryError, "Allocating buffer for inserts");
 			return NULL;
 		}
-		for (int i=0;i<len;i++) {
+		int i;
+		for (i=0;i<len;i++) {
 			PyObject *subObject = PySequence_GetItem(obInserts, i);
 			if (subObject==NULL) {
 				free(pInserts);
@@ -2537,13 +2538,6 @@ PyRegOpenKey( PyObject *self, PyObject *args )
 	// If the function fails, an exception is raised.
 }
 
-static double LI2double(LARGE_INTEGER *li)
-{
-  double d=li->LowPart;
-  d=d+pow(2.0,32.0)*li->HighPart;
-  return d;
-}
-
 // @pymethod (int, int, long)|win32api|RegQueryInfoKey|Returns the number of 
 // subkeys, the number of values a key has, 
 // and if available the last time the key was modified as
@@ -2556,7 +2550,6 @@ PyRegQueryInfoKey( PyObject *self, PyObject *args)
   long rc;
   DWORD nSubKeys, nValues;
   FILETIME ft;
-  LARGE_INTEGER li;
   PyObject *l;
 
   // @pyparm <o PyHKEY>/int|key||An already open key, or or any one of the following win32con
@@ -2573,9 +2566,7 @@ PyRegQueryInfoKey( PyObject *self, PyObject *args)
     &ft)
        )!=ERROR_SUCCESS)
     return ReturnAPIError("RegQueryInfoKey", rc);
-  li.LowPart=ft.dwLowDateTime;
-  li.HighPart=ft.dwHighDateTime;
-  if (!(l=PyLong_FromDouble(LI2double(&li))))
+  if (!(l=PyLong_FromTwoInts(ft.dwHighDateTime, ft.dwLowDateTime)))
       return NULL;
   PyObject *ret = Py_BuildValue("iiO",nSubKeys,nValues,l);
   Py_DECREF(l);
