@@ -206,7 +206,7 @@ PyObject *fnname( PyObject *self, PyObject *args ) { \
 
 #define MAKE_SETBOOL_INT_METH(fnname, mfcName) \
 PyObject *fnname( PyObject *self, PyObject *args ) { \
-	CTreeCtrl *pList = pList=GetTreeCtrl(self); \
+	CTreeCtrl *pList = GetTreeCtrl(self); \
 	if (!pList) return NULL; \
 	int val; \
 	if (!PyArg_ParseTuple( args, "i:" #mfcName, &val)) \
@@ -220,7 +220,7 @@ PyObject *fnname( PyObject *self, PyObject *args ) { \
 }
 #define MAKE_SETVOID_INT_METH(fnname, mfcName) \
 PyObject *fnname( PyObject *self, PyObject *args ) { \
-	CTreeCtrl *pList = pList=GetTreeCtrl(self); \
+	CTreeCtrl *pList = GetTreeCtrl(self); \
 	if (!pList) return NULL; \
 	int val; \
 	if (!PyArg_ParseTuple( args, "i:" #mfcName, &val)) \
@@ -246,6 +246,7 @@ MAKE_SETVOID_INT_METH(PyCTreeCtrl_SetIndent, SetIndent)
 
 // @pymethod HTREEITEM|PyCTreeCtrl|GetNextItem|Retrieves the next item.
 // @pyparm HTREEITEM|item||The specified item
+// @pyparm int|code||Specifies the relationship of the item to fetch.
 MAKE_GET_ITEM_ITEM_INT_METH(PyCTreeCtrl_GetNextItem, GetNextItem )
 
 // @pymethod HTREEITEM|PyCTreeCtrl|GetChildItem|Retrieves the first child item.
@@ -551,7 +552,7 @@ PyObject *PyCTreeCtrl_GetItemText( PyObject *self, PyObject *args )
 // @pymethod int|PyCTreeCtrl|SetItemText|Changes the text of a list view item or subitem.
 PyObject *PyCTreeCtrl_SetItemText( PyObject *self, PyObject *args )
 {
-	CTreeCtrl *pList = pList=GetTreeCtrl(self);
+	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
 	HTREEITEM item;
 	char *text;
@@ -590,7 +591,7 @@ PyObject *PyCTreeCtrl_GetItemData( PyObject *self, PyObject *args )
 // @pymethod int|PyCTreeCtrl|SetItemData|Sets the item's application-specific value.
 PyObject *PyCTreeCtrl_SetItemData( PyObject *self, PyObject *args )
 {
-	CTreeCtrl *pList = pList=GetTreeCtrl(self);
+	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
 	HTREEITEM item;
 	PyObject *data;
@@ -627,7 +628,7 @@ PyObject *PyCTreeCtrl_DeleteAllItems( PyObject *self, PyObject *args )
 // @pymethod (int, int, int, int)|PyCTreeCtrl|GetItemRect|Retrieves the bounding rectangle of a tree view item.
 PyObject *PyCTreeCtrl_GetItemRect( PyObject *self, PyObject *args )
 {
-	CTreeCtrl *pList = pList=GetTreeCtrl(self);
+	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
 	HTREEITEM item;
 	RECT rect;
@@ -647,7 +648,7 @@ PyObject *PyCTreeCtrl_GetItemRect( PyObject *self, PyObject *args )
 // @pymethod <o PyCEdit>|PyCTreeCtrl|GetEditControl|Retrieves the handle of the edit control used to edit the specified tree view item.
 PyObject *PyCTreeCtrl_GetEditControl( PyObject *self, PyObject *args )
 {
-	CTreeCtrl *pList = pList=GetTreeCtrl(self);
+	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
 	if (!PyArg_ParseTuple( args, ":GetEditControl"))
 		return NULL;
@@ -662,7 +663,7 @@ PyObject *PyCTreeCtrl_GetEditControl( PyObject *self, PyObject *args )
 // @pymethod <o PyCEdit>|PyCTreeCtrl|EditLabel|Edits a specified tree view item in-place.
 PyObject *PyCTreeCtrl_EditLabel( PyObject *self, PyObject *args )
 {
-	CTreeCtrl *pList = pList=GetTreeCtrl(self);
+	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
 	HTREEITEM item;
 	// @pyparm HTREEITEM|item||The item to edit.
@@ -679,7 +680,7 @@ PyObject *PyCTreeCtrl_EditLabel( PyObject *self, PyObject *args )
 // @pymethod int|PyCTreeCtrl|EnsureVisible|Ensures that a tree view item is visible in its tree view control.
 PyObject *PyCTreeCtrl_EnsureVisible( PyObject *self, PyObject *args )
 {
-	CTreeCtrl *pList = pList=GetTreeCtrl(self);
+	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
 	HTREEITEM item;
 	// @pyparm HTREEITEM|item||The item to edit.
@@ -696,7 +697,7 @@ PyObject *PyCTreeCtrl_EnsureVisible( PyObject *self, PyObject *args )
 // @pymethod <o PyCImageList>|PyCTreeCtrl|CreateDragImage|Creates a dragging bitmap for the specified tree view item.
 PyObject *PyCTreeCtrl_CreateDragImage( PyObject *self, PyObject *args )
 {
-	CTreeCtrl *pList = pList=GetTreeCtrl(self);
+	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
 	HTREEITEM item;
 	// @pyparm HTREEITEM|item||The item to edit.
@@ -710,10 +711,41 @@ PyObject *PyCTreeCtrl_CreateDragImage( PyObject *self, PyObject *args )
 	return ui_assoc_object::make(PyCImageList::type, pIL)->GetGoodRet();
 }
 
+// @pymethod (int, int)|PyCTreeCtrl|HitTest|Determines which tree view item, if any, is at a specified position.
+PyObject *PyCTreeCtrl_HitTest( PyObject *self, PyObject *args )
+{
+	CTreeCtrl *pList = GetTreeCtrl(self);
+	if (!pList) return NULL;
+	TVHITTESTINFO i;
+	memset(&i, 0, sizeof(i));
+	// @pyparm point|x,y||The point to test.
+	if (!PyArg_ParseTuple( args, "(ii):HitTest", &i.pt.x, &i.pt.y))
+		return NULL;
+	GUI_BGN_SAVE;
+	pList->HitTest( &i );
+	GUI_END_SAVE;
+	return Py_BuildValue("ii", i.flags, i.hItem);
+	// @rdesc The result is a tuple of (flags, hItem).
+	// flags may be a combination of the following values:
+	// @flagh Value|Description
+	// @flag commctrl.TVHT_ABOVE|Above the client area.  
+	// @flag commctrl.TVHT_BELOW|Below the client area.  
+	// @flag commctrl.TVHT_NOWHERE|In the client area, but below the last item.  
+	// @flag commctrl.TVHT_ONITEM|On the bitmap or label associated with an item.  
+	// @flag commctrl.TVHT_ONITEMBUTTON|On the button associated with an item.  
+	// @flag commctrl.TVHT_ONITEMICON|On the bitmap associated with an item.  
+	// @flag commctrl.TVHT_ONITEMINDENT|In the indentation associated with an item.  
+	// @flag commctrl.TVHT_ONITEMLABEL|On the label (string) associated with an item.  
+	// @flag commctrl.TVHT_ONITEMRIGHT|In the area to the right of an item.  
+	// @flag commctrl.TVHT_ONITEMSTATEICON|On the state icon for a tree view item that is in a user-defined state.  
+	// @flag commctrl.TVHT_TOLEFT|To the left of the client area.  
+	// @flag commctrl.TVHT_TORIGHT|To the right of the client area.  
+}
+
 
 // @object PyCTreeCtrl|A class which encapsulates an MFC CTreeCtrl object.  Derived from a <o PyCWnd> object.
 static struct PyMethodDef PyCTreeCtrl_methods[] = {
-	// Same order as MFC doco.
+	// Originally the same order as MFC doco.
 	{"CreateWindow",   PyCTreeCtrl_CreateWindow, 1}, // @pymeth CreateWindow|Creates the actual window for the object.
 	{"GetCount",        PyCTreeCtrl_GetCount,  1}, // @pymeth GetCount|Retrieves the number of tree items associated with a tree view control.
 	{"GetIndent",      PyCTreeCtrl_GetIndent,  1}, // @pymeth GetIndent|Retrieves the offset (in pixels) of a tree view item from its parent.
@@ -758,6 +790,7 @@ static struct PyMethodDef PyCTreeCtrl_methods[] = {
 	{"CreateDragImage",PyCTreeCtrl_CreateDragImage,  1}, // @pymeth CreateDragImage|Creates a dragging bitmap for the specified tree view item.
 	{"SortChildren",   PyCTreeCtrl_SortChildren,  1}, // @pymeth SortChildren|Sorts the children of a given parent item.
 	{"EnsureVisible",  PyCTreeCtrl_EnsureVisible,  1}, // @pymeth EnsureVisible|Ensures that a tree view item is visible in its tree view control.
+	{"HitTest",        PyCTreeCtrl_HitTest, 1}, // @pymeth HitTest|Determines which tree view item, if any, is at a specified position.
 	{NULL,			NULL}
 };
 // @comm Sam Rushing has found the following tidbits:<nl>

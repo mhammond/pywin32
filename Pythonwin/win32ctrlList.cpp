@@ -104,7 +104,7 @@ PyObject *fnname( PyObject *self, PyObject *args ) { \
 
 #define MAKE_SETBOOL_INT_METH(fnname, mfcName) \
 PyObject *fnname( PyObject *self, PyObject *args ) { \
-	CListCtrl *pList = pList=GetListCtrl(self); \
+	CListCtrl *pList = GetListCtrl(self); \
 	if (!pList) return NULL; \
 	int val; \
 	if (!PyArg_ParseTuple( args, "i:" #mfcName, &val)) \
@@ -118,7 +118,7 @@ PyObject *fnname( PyObject *self, PyObject *args ) { \
 }
 #define MAKE_SETVOID_INT_METH(fnname, mfcName) \
 PyObject *fnname( PyObject *self, PyObject *args ) { \
-	CListCtrl *pList = pList=GetListCtrl(self); \
+	CListCtrl *pList = GetListCtrl(self); \
 	if (!pList) return NULL; \
 	int val; \
 	if (!PyArg_ParseTuple( args, "i:" #mfcName, &val)) \
@@ -493,7 +493,7 @@ PyObject *PyCListCtrl_GetItemText( PyObject *self, PyObject *args )
 // @pymethod int|PyCListCtrl|SetItemText|Changes the text of a list view item or subitem.
 PyObject *PyCListCtrl_SetItemText( PyObject *self, PyObject *args )
 {
-	CListCtrl *pList = pList=GetListCtrl(self);
+	CListCtrl *pList = GetListCtrl(self);
 	if (!pList) return NULL;
 	int item, sub;
 	char *text;
@@ -530,7 +530,7 @@ PyObject *PyCListCtrl_GetItemState( PyObject *self, PyObject *args )
 // @pymethod int|PyCListCtrl|SetItemState|Changes the state of an item in a list view control.
 PyObject *PyCListCtrl_SetItemState( PyObject *self, PyObject *args )
 {
-	CListCtrl *pList = pList=GetListCtrl(self);
+	CListCtrl *pList = GetListCtrl(self);
 	if (!pList) return NULL;
 	int item, state, mask;
 	if (!PyArg_ParseTuple( args, "iii:SetItemState", 
@@ -566,7 +566,7 @@ PyObject *PyCListCtrl_GetItemData( PyObject *self, PyObject *args )
 // @pymethod int|PyCListCtrl|SetItemData|Sets the item's application-specific value.
 PyObject *PyCListCtrl_SetItemData( PyObject *self, PyObject *args )
 {
-	CListCtrl *pList = pList=GetListCtrl(self);
+	CListCtrl *pList = GetListCtrl(self);
 	if (!pList) return NULL;
 	int item;
 	PyObject *data;
@@ -632,7 +632,7 @@ PyObject *PyCListCtrl_RedrawItems( PyObject *self, PyObject *args )
 // @pymethod (int, int, int, int)|PyCListCtrl|GetItemRect|Retrieves the bounding rectangle of a list view item.
 PyObject *PyCListCtrl_GetItemRect( PyObject *self, PyObject *args )
 {
-	CListCtrl *pList = pList=GetListCtrl(self);
+	CListCtrl *pList = GetListCtrl(self);
 	if (!pList) return NULL;
 	int item;
 	RECT rect;
@@ -652,7 +652,7 @@ PyObject *PyCListCtrl_GetItemRect( PyObject *self, PyObject *args )
 // @pymethod <o PyCEdit>|PyCListCtrl|GetEditControl|Retrieves the handle of the edit control used to edit the specified list view item.
 PyObject *PyCListCtrl_GetEditControl( PyObject *self, PyObject *args )
 {
-	CListCtrl *pList = pList=GetListCtrl(self);
+	CListCtrl *pList = GetListCtrl(self);
 	if (!pList) return NULL;
 	if (!PyArg_ParseTuple( args, ":GetEditControl"))
 		return NULL;
@@ -667,7 +667,7 @@ PyObject *PyCListCtrl_GetEditControl( PyObject *self, PyObject *args )
 // @pymethod <o PyCEdit>|PyCListCtrl|EditLabel|Edits a specified list view item in-place.
 PyObject *PyCListCtrl_EditLabel( PyObject *self, PyObject *args )
 {
-	CListCtrl *pList = pList=GetListCtrl(self);
+	CListCtrl *pList = GetListCtrl(self);
 	if (!pList) return NULL;
 	int item;
 	// @pyparm int|item||The index of item to edit.
@@ -684,7 +684,7 @@ PyObject *PyCListCtrl_EditLabel( PyObject *self, PyObject *args )
 // @pymethod int|PyCListCtrl|EnsureVisible|Ensures that a list view item is visible in its list view control.
 PyObject *PyCListCtrl_EnsureVisible( PyObject *self, PyObject *args )
 {
-	CListCtrl *pList = pList=GetListCtrl(self);
+	CListCtrl *pList = GetListCtrl(self);
 	if (!pList) return NULL;
 	int item;
 	BOOL bPartialOK;
@@ -703,7 +703,7 @@ PyObject *PyCListCtrl_EnsureVisible( PyObject *self, PyObject *args )
 // @pymethod <o PyCImageList>,(x,y)|PyCListCtrl|CreateDragImage|Creates a dragging bitmap for the specified list view item.
 PyObject *PyCListCtrl_CreateDragImage( PyObject *self, PyObject *args )
 {
-	CListCtrl *pList = pList=GetListCtrl(self);
+	CListCtrl *pList = GetListCtrl(self);
 	if (!pList) return NULL;
 	int item;
 	// @pyparm int|item||The index of the item to edit.
@@ -719,6 +719,50 @@ PyObject *PyCListCtrl_CreateDragImage( PyObject *self, PyObject *args )
 	return ret;
 }
 
+// @pymethod (int, int, int)|PyCListCtrl|HitTest|Determines which list view item, if any, is at a specified position.
+PyObject *PyCListCtrl_HitTest( PyObject *self, PyObject *args )
+{
+	CListCtrl *pList = GetListCtrl(self);
+	if (!pList) return NULL;
+	LVHITTESTINFO i;
+	memset(&i, 0, sizeof(i));
+	// @pyparm point|x,y||The point to test.
+	if (!PyArg_ParseTuple( args, "(ii):HitTest", &i.pt.x, &i.pt.y))
+		return NULL;
+	GUI_BGN_SAVE;
+	pList->HitTest( &i );
+	GUI_END_SAVE;
+	return Py_BuildValue("iii", i.flags, i.iItem, i.iSubItem);
+	// @rdesc The result is a tuple of (flags, item, subItem).
+	// flags may be a combination of the following values:
+	// @flagh Value|Description
+	// @flag commctrl.LVHT_ABOVE|The position is above the control's client area. 
+	// @flag commctrl.LVHT_BELOW|The position is below the control's client area. 
+	// @flag commctrl.LVHT_NOWHERE|The position is inside the list view control's client window, but it is not over a list item. 
+	// @flag commctrl.LVHT_ONITEMICON|The position is over a list view item's icon. 
+	// @flag commctrl.LVHT_ONITEMLABEL|The position is over a list view item's text. 
+	// @flag commctrl.LVHT_ONITEMSTATEICON|The position is over the state image of a list view item. 
+	// @flag commctrl.LVHT_TOLEFT|The position is to the left of the list view control's client area. 
+	// @flag commctrl.LVHT_TORIGHT|The position is to the right of the list view control's client area. 
+}
+
+// @pymethod (int, int)|PyCListCtrl|GetItemPosition|Determines the position of the specified item.
+PyObject *PyCListCtrl_GetItemPosition( PyObject *self, PyObject *args )
+{
+	CListCtrl *pList = GetListCtrl(self);
+	if (!pList) return NULL;
+	int item;
+	// @pyparm int|item||The item to determine the position for.
+	if (!PyArg_ParseTuple( args, "i:GetItemPosition", &item))
+		return NULL;
+	POINT pt;
+	GUI_BGN_SAVE;
+	BOOL ok = pList->GetItemPosition(item, &pt);
+	GUI_END_SAVE;
+	if (!ok)
+		RETURN_ERR("GetItemPosition failed");
+	return Py_BuildValue("(ii)", pt.x, pt.y);
+}
 
 // @object PyCListCtrl|A class which encapsulates an MFC CListCtrl object.  Derived from a <o PyCWnd> object.
 static struct PyMethodDef PyCListCtrl_methods[] = {
@@ -765,6 +809,8 @@ static struct PyMethodDef PyCListCtrl_methods[] = {
 	{"GetColumnWidth", PyCListCtrl_GetColumnWidth,  1}, // @pymeth GetColumnWidth|Gets the width of the specified column in the list control.
 	{"SetColumnWidth", PyCListCtrl_SetColumnWidth,  1}, // @pymeth SetColumnWidth|Sets the width of the specified column in the list control.
 	{"GetStringWidth", PyCListCtrl_GetStringWidth,  1}, // @pymeth GetStringWidth|Gets the necessary column width to fully display this text in a column.
+	{"HitTest",        PyCListCtrl_HitTest, 1}, // @pymeth HitTest|Determines which list view item, if any, is at a specified position.
+	{"GetItemPosition",PyCListCtrl_GetItemPosition, 1}, // @pymeth GetItemPosition|Determines the position of the specified item.
 	{NULL,			NULL}
 };
 
