@@ -139,13 +139,13 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
         """
         ecb.HttpStatusCode = isapicon.HSE_STATUS_ERROR
         #control_block.LogData = "we failed!"
-        ecb.SendResponseHeaders("200 OK", "Content-type: text/html\r\n\r\n", 
-                                False)
         exc_typ, exc_val, exc_tb = sys.exc_info()
         limit = None
         try:
             try:
                 import cgi
+                ecb.SendResponseHeaders("200 OK", "Content-type: text/html\r\n\r\n", 
+                                        False)
                 print >> ecb
                 print >> ecb, "<H3>Traceback (most recent call last):</H3>"
                 list = traceback.format_tb(exc_tb, limit) + \
