@@ -210,6 +210,7 @@ def TestVB( vbtest, bUseGenerated ):
     if ret != 2:
         raise error, "Could not increment the integer - "+str(ret)
 
+    TestVBInterface(vbtest)
     # Python doesnt support byrefs without some sort of generated support.
     if bUseGenerated:
         # This is a VB function that takes a single byref
@@ -312,6 +313,14 @@ def TestStructs(vbtest):
 
     # NOTE - a COM error is _not_ acceptable here!
     print "Struct/Record tests passed"
+
+def TestVBInterface(ob):
+    t = ob.GetInterfaceTester(2)
+    if t.getn() != 2:
+        raise error, "Initial value wrong"
+    t.setn(3)
+    if t.getn() != 3:
+        raise error, "New value wrong"
 
 def DoTestAll():
     o = win32com.client.Dispatch("PyCOMVBTest.Tester")
