@@ -86,6 +86,8 @@ def _cat_registrar():
     )
     
 def _find_localserver_exe(mustfind):
+  if not sys.platform.startswith("win32"):
+    return sys.executable
   if pythoncom.__file__.find("_d") < 0:
     exeBaseName = "pythonw.exe"
   else:
@@ -104,7 +106,7 @@ def _find_localserver_exe(mustfind):
       key = "SOFTWARE\\Python\\PythonCore\\%s\\InstallPath" % sys.winver
       path = win32api.RegQueryValue( win32con.HKEY_LOCAL_MACHINE, key )
       exeName = os.path.join( path, exeBaseName )
-    except win32api.error:
+    except (AttributeError,win32api.error):
       pass
   if not os.path.exists(exeName):
     if mustfind:
@@ -374,7 +376,7 @@ def RegisterClasses(*classes, **flags):
       # use our default dispatcher.
       dispatcherSpec = _get(cls, '_reg_debug_dispatcher_spec_')
       if dispatcherSpec is None:
-        dispatcherSpec = "win32com.server.dispatcher.DispatcherWin32trace"
+        dispatcherSpec = "win32com.server.dispatcher.DefaultDebugDispatcher"
       # And remember the debugging flag as servers may wish to use it at runtime.
       debuggingDesc = "(for debugging)"
       options['Debugging'] = "1"
