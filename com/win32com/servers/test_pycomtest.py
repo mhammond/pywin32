@@ -8,6 +8,7 @@ from win32com.server.exception import COMException
 from win32com.client import gencache
 import winerror
 from win32com.client import constants
+from win32com.server.util import wrap
 
 # We use the constants from the module, so must insist on a gencache.
 # Otherwise, use of gencache is not necessary (tho still advised)
@@ -42,7 +43,7 @@ class PyCOMTest:
 
 	# Result is of type IPyCOMTest
 	def GetSetInterface(self, ininterface):
-		raise COMException(hresult=winerror.E_NOTIMPL)
+		return wrap(self)
 
 	# Result is of type IPyCOMTest
 	def GetSetInterfaceArray(self, ininterface):

@@ -479,6 +479,14 @@ HRESULT CPyCOMTest::TestMyInterface( IUnknown *unktester)
 	CHECK_HR(tester->get_IntProp(&result));
 	CHECK_TRUE(result==4);
 
+	// interface tests
+	CComPtr<IPyCOMTest>param(tester);
+	CComPtr<IPyCOMTest>obresult;
+	CHECK_HR(tester->GetSetInterface(param, &obresult));
+	// Make a vtable call on the returned object, so we
+	// crash if a bad vtable.  Don't care about the value tho.
+	CHECK_HR(obresult->get_IntProp(&result));
+
 	return S_OK;
 }
 
