@@ -63,13 +63,13 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e600000" /subsystem:windows /dll /pdb:"Build\System\PyWinTypes15.pdb" /machine:I386 /out:"Build\System\PyWinTypes15.dll" /implib:"Build\PyWinTypes.lib"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e600000" /subsystem:windows /dll /pdb:"Build\System\PyWinTypes15.pdb" /machine:I386 /out:"Build\System\PyWinTypes16.dll" /implib:"Build\PyWinTypes.lib"
 # SUBTRACT LINK32 /pdb:none /debug
 # Begin Custom Build - copy to system32
 ProjDir=.
-TargetPath=.\Build\System\PyWinTypes15.dll
-TargetName=PyWinTypes15
-InputPath=.\Build\System\PyWinTypes15.dll
+TargetPath=.\Build\System\PyWinTypes16.dll
+TargetName=PyWinTypes16
+InputPath=.\Build\System\PyWinTypes16.dll
 SOURCE="$(InputPath)"
 
 "$(ProjDir)\$(TargetName).flg" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -105,13 +105,13 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e600000" /subsystem:windows /dll /pdb:"Build\System\PyWinTypes15_d.pdb" /debug /machine:I386 /out:"Build\System\PyWinTypes15_d.dll" /implib:"Build\PyWinTypes_d.lib" /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e600000" /subsystem:windows /dll /pdb:"Build\System\PyWinTypes15_d.pdb" /debug /machine:I386 /out:"Build\System\PyWinTypes16_d.dll" /implib:"Build\PyWinTypes_d.lib" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
 # Begin Custom Build - copy to system32
 ProjDir=.
-TargetPath=.\Build\System\PyWinTypes15_d.dll
-TargetName=PyWinTypes15_d
-InputPath=.\Build\System\PyWinTypes15_d.dll
+TargetPath=.\Build\System\PyWinTypes16_d.dll
+TargetName=PyWinTypes16_d
+InputPath=.\Build\System\PyWinTypes16_d.dll
 SOURCE="$(InputPath)"
 
 "$(ProjDir)\$(TargetName).flg" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -133,25 +133,25 @@ SOURCE="$(InputPath)"
 # PROP Intermediate_Dir "Build\Temp\pywintypes\ce\mips\Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
+PFILE=pfile.exe
+# ADD BASE PFILE COPY
+# ADD PFILE COPY
+CPP=clmips.exe
+# ADD BASE CPP /nologo /ML /W3 /Zi /O2 /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "BUILD_PYWINTYPES" /D "STRICT" /YX /FD /c
+# ADD CPP /nologo /M$(CECrtMT) /W3 /O1 /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=200 /D "UNICODE" /D "BUILD_PYWINTYPES" /D "STRICT" /YX /FD /c
+RSC=rc.exe
+# ADD BASE RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+# ADD RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib commctrl.lib coredll.lib /nologo /dll /pdb:"Build\System\PyWinTypes15.pdb" /debug /machine:MIPS /out:"Build\System\PyWinTypes15.dll" /implib:"Build\PyWinTypes.lib"
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 coredll.lib ole32.lib oleaut32.lib /nologo /dll /machine:MIPS /nodefaultlib:"$(CENoDefaultLib)" /out:"Build\ce\mips\PyWinTypes15.dll" /implib:"Build\ce\mips\PyWinTypes.lib" /subsystem:windowsce,1.0
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-RSC=rc.exe
-# ADD BASE RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-# ADD RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-CPP=clmips.exe
-# ADD BASE CPP /nologo /ML /W3 /Zi /O2 /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "BUILD_PYWINTYPES" /D "STRICT" /YX /FD /c
-# ADD CPP /nologo /M$(CECrtMT) /W3 /O1 /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=200 /D "UNICODE" /D "BUILD_PYWINTYPES" /D "STRICT" /YX /FD /c
-PFILE=pfile.exe
-# ADD BASE PFILE COPY
-# ADD PFILE COPY
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE x86em) Debug"
 
@@ -167,26 +167,26 @@ PFILE=pfile.exe
 # PROP Intermediate_Dir "Build\Temp\pywintypes\ce\x86em\Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
+EMPFILE=empfile.exe
+# ADD BASE EMPFILE COPY
+# ADD EMPFILE COPY
+CPP=cl.exe
+# ADD BASE CPP /nologo /ML /W3 /Gm /Zi /O2 /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "NDEBUG" /D "x86" /D "i486" /D "_x86_" /D "BUILD_PYWINTYPES" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /Gm /Zi /Od /D "DEBUG" /D "_DEBUG" /D "_WIN32_WCE_EMULATION" /D UNDER_CE=200 /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=200 /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "x86" /D "i486" /D "_x86_" /D "BUILD_PYWINTYPES" /YX /FD /c
+RSC=rc.exe
+# ADD BASE RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
+# ADD RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib commctrl.lib coredll.lib /nologo /base:"0x1e600000" /subsystem:windows /dll /pdb:"Build\System\PyWinTypes15.pdb" /debug /machine:IX86 /out:"Build\System\PyWinTypes15.dll" /implib:"Build\PyWinTypes.lib"
 # SUBTRACT BASE LINK32 /pdb:none
 # ADD LINK32 coredll.lib /nologo /base:"0x1e600000" /entry:"_DllMainCRTStartup@12" /subsystem:windows /dll /debug /machine:IX86 /nodefaultlib:"$(CENoDefaultLib)" /out:"Build\ce\x86em\PyWinTypes15_d.dll" /implib:"Build\ce\x86em\PyWinTypes_d.lib"
 # SUBTRACT LINK32 /pdb:none
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-RSC=rc.exe
-# ADD BASE RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
-# ADD RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
-CPP=cl.exe
-# ADD BASE CPP /nologo /ML /W3 /Gm /Zi /O2 /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "NDEBUG" /D "x86" /D "i486" /D "_x86_" /D "BUILD_PYWINTYPES" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /Gm /Zi /Od /D "DEBUG" /D "_DEBUG" /D "_WIN32_WCE_EMULATION" /D UNDER_CE=200 /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=200 /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "x86" /D "i486" /D "_x86_" /D "BUILD_PYWINTYPES" /YX /FD /c
-EMPFILE=empfile.exe
-# ADD BASE EMPFILE COPY
-# ADD EMPFILE COPY
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE x86em) Release"
 
@@ -202,26 +202,26 @@ EMPFILE=empfile.exe
 # PROP Intermediate_Dir "Build\Temp\pywintypes\ce\x86em\Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
+EMPFILE=empfile.exe
+# ADD BASE EMPFILE COPY
+# ADD EMPFILE COPY
+CPP=cl.exe
+# ADD BASE CPP /nologo /MT /W3 /Gm /Zi /Od /D "DEBUG" /D "_DEBUG" /D "_WIN32_WCE_EMULATION" /D UNDER_CE=200 /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=200 /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "x86" /D "i486" /D "_x86_" /D "BUILD_PYWINTYPES" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /O1 /D "NDEBUG" /D "_WIN32_WCE_EMULATION" /D UNDER_CE=200 /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=200 /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "x86" /D "i486" /D "_x86_" /D "BUILD_PYWINTYPES" /YX /FD /c
+RSC=rc.exe
+# ADD BASE RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
+# ADD RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 winsockm.lib commctrl.lib coredll.lib corelibc.lib ole32m.lib oleautm.lib uuid.lib /nologo /base:"0x1e600000" /subsystem:windows /dll /pdb:"Build\System\PyWinTypes15.pdb" /debug /machine:IX86 /nodefaultlib:"libcmt.lib" /out:"Build\ce\x86\PyWinTypes_d.dll"
 # SUBTRACT BASE LINK32 /pdb:none
 # ADD LINK32 coredll.lib corelibc.lib /nologo /base:"0x1e600000" /subsystem:windows /dll /machine:IX86 /nodefaultlib:"libcmt.lib" /nodefaultlib:"$(CENoDefaultLib)" /out:"Build\ce\x86em\PyWinTypes15.dll" /implib:"Build\ce\x86em\PyWinTypes.lib"
 # SUBTRACT LINK32 /pdb:none
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-RSC=rc.exe
-# ADD BASE RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
-# ADD RSC /l 0xc09 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
-CPP=cl.exe
-# ADD BASE CPP /nologo /MT /W3 /Gm /Zi /Od /D "DEBUG" /D "_DEBUG" /D "_WIN32_WCE_EMULATION" /D UNDER_CE=200 /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=200 /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "x86" /D "i486" /D "_x86_" /D "BUILD_PYWINTYPES" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /O1 /D "NDEBUG" /D "_WIN32_WCE_EMULATION" /D UNDER_CE=200 /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=200 /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "x86" /D "i486" /D "_x86_" /D "BUILD_PYWINTYPES" /YX /FD /c
-EMPFILE=empfile.exe
-# ADD BASE EMPFILE COPY
-# ADD EMPFILE COPY
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE MIPS) Debug"
 
@@ -237,26 +237,26 @@ EMPFILE=empfile.exe
 # PROP Intermediate_Dir "Build\temp\pywintypes\ce\mips\Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
+PFILE=pfile.exe
+# ADD BASE PFILE COPY
+# ADD PFILE COPY
+CPP=clmips.exe
+# ADD BASE CPP /nologo /MT /W3 /Zi /O1 /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=200 /D "UNICODE" /D "BUILD_PYWINTYPES" /D "STRICT" /YX /FD /c
+# ADD CPP /nologo /M$(CECrtMT) /W3 /Zi /Od /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "_DEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=200 /D "UNICODE" /D "BUILD_PYWINTYPES" /D "STRICT" /YX /FD /c
+RSC=rc.exe
+# ADD BASE RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+# ADD RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 coredll.lib /nologo /dll /pdb:"Build\System\PyWinTypes15.pdb" /debug /machine:MIPS /out:"Build\ce\mips\PyWinTypes15.dll" /implib:"Build\ce\mips\PyWinTypes.lib" /subsystem:windowsce
 # SUBTRACT BASE LINK32 /pdb:none
 # ADD LINK32 coredll.lib ole32.lib oleaut32.lib /nologo /dll /debug /machine:MIPS /nodefaultlib:"$(CENoDefaultLib)" /out:"Build\ce\mips\PyWinTypes15_d.dll" /implib:"Build\ce\mips\PyWinTypes_d.lib" /subsystem:windowsce
 # SUBTRACT LINK32 /pdb:none
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-RSC=rc.exe
-# ADD BASE RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-# ADD RSC /l 0xc09 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-CPP=clmips.exe
-# ADD BASE CPP /nologo /MT /W3 /Zi /O1 /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=200 /D "UNICODE" /D "BUILD_PYWINTYPES" /D "STRICT" /YX /FD /c
-# ADD CPP /nologo /M$(CECrtMT) /W3 /Zi /Od /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "_DEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=200 /D "UNICODE" /D "BUILD_PYWINTYPES" /D "STRICT" /YX /FD /c
-PFILE=pfile.exe
-# ADD BASE PFILE COPY
-# ADD PFILE COPY
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Debug"
 
@@ -272,26 +272,26 @@ PFILE=pfile.exe
 # PROP Intermediate_Dir "Build\Temp\pywintypes\ce\sh\Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
+PFILE=pfile.exe
+# ADD BASE PFILE COPY
+# ADD PFILE COPY
+CPP=shcl.exe
+# ADD BASE CPP /nologo /ML /W3 /Zi /Od /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "DEBUG" /YX /FD /c
+# ADD CPP /nologo /M$(CECrtMT) /W3 /Zi /Od /D "BUILD_PYWINTYPES" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "_DEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /YX /FD /c
+RSC=rc.exe
+# ADD BASE RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+# ADD RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 commctrl.lib coredll.lib /nologo /dll /debug /machine:SH3 /out:"Build\ce\mips\PyWinTypes15_d.dll" /implib:"Build\ce\mips\PyWinTypes_d.lib" /subsystem:windowsce
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 commctrl.lib coredll.lib /nologo /dll /debug /machine:SH3 /nodefaultlib:"$(CENoDefaultLib)" /out:"Build\ce\sh\PyWinTypes15_d.dll" /implib:"Build\ce\sh\PyWinTypes_d.lib" /subsystem:windowsce
 # SUBTRACT LINK32 /pdb:none
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-RSC=rc.exe
-# ADD BASE RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-# ADD RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-CPP=shcl.exe
-# ADD BASE CPP /nologo /ML /W3 /Zi /Od /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "DEBUG" /YX /FD /c
-# ADD CPP /nologo /M$(CECrtMT) /W3 /Zi /Od /D "BUILD_PYWINTYPES" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "_DEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /YX /FD /c
-PFILE=pfile.exe
-# ADD BASE PFILE COPY
-# ADD PFILE COPY
 
 !ELSEIF  "$(CFG)" == "PyWinTypes - Win32 (WCE SH3) Release"
 
@@ -307,26 +307,26 @@ PFILE=pfile.exe
 # PROP Intermediate_Dir "Build\Temp\pywintypes\ce\sh\Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
+PFILE=pfile.exe
+# ADD BASE PFILE COPY
+# ADD PFILE COPY
+CPP=shcl.exe
+# ADD BASE CPP /nologo /ML /W3 /O1 /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D "UNICODE" /D UNDER_CE=200 /YX /FD /c
+# ADD CPP /nologo /M$(CECrtMT) /W3 /O1 /D "BUILD_PYWINTYPES" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D "UNICODE" /D UNDER_CE=200 /YX /FD /c
+RSC=rc.exe
+# ADD BASE RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+# ADD RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 commctrl.lib coredll.lib /nologo /dll /machine:SH3 /out:"Build\ce\mips\PyWinTypes15.dll" /implib:"Build\ce\mips\PyWinTypes.lib" /subsystem:windowsce,1.0
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 commctrl.lib coredll.lib /nologo /dll /machine:SH3 /nodefaultlib:"$(CENoDefaultLib)" /out:"Build\ce\sh\PyWinTypes15.dll" /implib:"Build\ce\sh\PyWinTypes.lib" /subsystem:windowsce,1.0
 # SUBTRACT LINK32 /pdb:none
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-RSC=rc.exe
-# ADD BASE RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-# ADD RSC /l 0xc09 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-CPP=shcl.exe
-# ADD BASE CPP /nologo /ML /W3 /O1 /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D "UNICODE" /D UNDER_CE=200 /YX /FD /c
-# ADD CPP /nologo /M$(CECrtMT) /W3 /O1 /D "BUILD_PYWINTYPES" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D "UNICODE" /D UNDER_CE=200 /YX /FD /c
-PFILE=pfile.exe
-# ADD BASE PFILE COPY
-# ADD PFILE COPY
 
 !ENDIF 
 
