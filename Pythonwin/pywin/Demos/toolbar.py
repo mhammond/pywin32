@@ -24,7 +24,8 @@ class GenericFrame(window.MDIChildWnd):
 
 		buttons = (win32ui.ID_APP_ABOUT,win32ui.ID_VIEW_INTERACTIVE)
 		bitmap = win32ui.IDB_BROWSER_HIER
-		self.toolbar = tb = win32ui.CreateToolBar (parent, style)
+		tbid = 0xE840
+		self.toolbar = tb = win32ui.CreateToolBar (parent, style, tbid)
 		tb.LoadBitmap(bitmap)
 		tb.SetButtons(buttons)
 		    
