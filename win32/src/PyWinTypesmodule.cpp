@@ -66,7 +66,7 @@ BOOL PySocket_AsSOCKET
 	{
 		*ps = (SOCKET)PyInt_AS_LONG(obSocket);
 	}
-	else if (PyInstance_Check(obSocket))
+	else
 	{
 		o = PyObject_GetAttrString(obSocket, "fileno");
 		if (o == NULL)
@@ -106,7 +106,6 @@ BOOL PySocket_AsSOCKET
 		}
 		Py_DECREF(o);
 	}
-
 	return TRUE;
 }
 
