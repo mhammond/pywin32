@@ -28,7 +28,9 @@ PyObject *PyIConnectionPointContainer::EnumConnectionPoints(PyObject *self, PyOb
 		return NULL;
 
 	IEnumConnectionPoints *pE;
+	PY_INTERFACE_PRECALL;
 	HRESULT hr = pICPC->EnumConnectionPoints(&pE);
+	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
 

@@ -53,7 +53,9 @@ PyObject *PyIEnumSTATPROPSTG::Next(PyObject *self, PyObject *args)
 */
 
 	ULONG celtFetched = 0;
+	PY_INTERFACE_PRECALL;
 	HRESULT hr = pIESTATPROPSTG->Next(celt, rgVar, &celtFetched);
+	PY_INTERFACE_POSTCALL;
 	if (  HRESULT_CODE(hr) != ERROR_NO_MORE_ITEMS && FAILED(hr) )
 	{
 		delete [] rgVar;
@@ -90,7 +92,9 @@ PyObject *PyIEnumSTATPROPSTG::Skip(PyObject *self, PyObject *args)
 	if ( pIESTATPROPSTG == NULL )
 		return NULL;
 
+	PY_INTERFACE_PRECALL;
 	HRESULT hr = pIESTATPROPSTG->Skip(celt);
+	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr);
 
@@ -108,7 +112,9 @@ PyObject *PyIEnumSTATPROPSTG::Reset(PyObject *self, PyObject *args)
 	if ( pIESTATPROPSTG == NULL )
 		return NULL;
 
+	PY_INTERFACE_PRECALL;
 	HRESULT hr = pIESTATPROPSTG->Reset();
+	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr);
 
@@ -127,7 +133,9 @@ PyObject *PyIEnumSTATPROPSTG::Clone(PyObject *self, PyObject *args)
 		return NULL;
 
 	IEnumSTATPROPSTG *pClone;
+	PY_INTERFACE_PRECALL;
 	HRESULT hr = pIESTATPROPSTG->Clone(&pClone);
+	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr);
 
