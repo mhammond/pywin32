@@ -42,12 +42,14 @@ def get_PyProp1():
   return PyProp1
 
 def put_PyProp1(newValue):
+  global PyProp1
   PyProp1 = newValue
 
 def get_PyProp2():
   return PyProp2
 
 def put_PyProp2(newValue):
+  global PyProp2
   PyProp2 = newValue
 
 def PyMethod1():
