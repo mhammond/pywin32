@@ -1,4 +1,3 @@
-import win32ui
 import sys, os, string
 import pythoncom
 import win32com.client
