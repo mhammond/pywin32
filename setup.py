@@ -824,7 +824,7 @@ for info in (
         ("win32net", "netapi32", True),
         ("win32pdh", "", False),
         ("win32pipe", "", False),
-        ("win32print", "winspool user32", False),
+        ("win32print", "winspool user32 gdi32", False),
         ("win32process", "advapi32 user32", False, 0x0500),
         ("win32ras", "rasapi32 user32", False),
         ("win32security", "advapi32 user32", True),
