@@ -103,7 +103,10 @@ PyObject *PyIActiveScriptSite::OnStateChange(PyObject *self, PyObject *args)
 	SCODE sc = pMySite->OnStateChange((SCRIPTSTATE)state);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return SetPythonCOMError(self, sc);
+		// EEK - WSH appears to die if we QI for
+		// IID_ISupportErrorInfo - we don't really
+		// use this extended info (even if it did provide it)
+		return SetPythonCOMError(NULL, sc);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
