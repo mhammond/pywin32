@@ -131,9 +131,9 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
 		// @flag PT_MV_R8|A sequence of floats
 		case PT_MV_R8:
 			MAKE_MV(double, pAllocMoreLinkBlock, pv->Value.MVdbl.lpdbl, pv->Value.MVdbl.cValues, PyFloat_AsDouble)
-		// @flag PT_BOOLEAN|An integer
+		// @flag PT_BOOLEAN|A boolean value (or an int)
 		case PT_BOOLEAN:
-			pv->Value.b = (BOOL)PyInt_AsLong(ob);
+			pv->Value.b = PyInt_AsLong(ob) ? VARIANT_TRUE : VARIANT_FALSE;
 			break;
 
 /*
@@ -341,7 +341,8 @@ PyObject *PyMAPIObject_FromSPropValue(SPropValue *pv)
 			val = PyFloat_FromDouble(pv->Value.dbl);
 			break;
 		case PT_BOOLEAN:
-			val = PyInt_FromLong(pv->Value.b);
+			val = pv->Value.b ? Py_True : Py_False;
+			Py_INCREF(val);
 			break;
 /*
 		case PT_CURRENCY:
@@ -995,7 +996,7 @@ BOOL PyMAPIObject_AsSBitMaskRestriction(PyObject *ob, SBitMaskRestriction *pRest
 BOOL PyMAPIObject_AsSingleSRestriction(PyObject *ob, SRestriction *pRest, void *pAllocMoreLinkBlock)
 {
 	if (!PySequence_Check(ob) || PySequence_Length(ob)!=2) {
-		PyErr_SetString(PyExc_TypeError, "The restriction object must be a sequence of length 2");
+		PyErr_SetString(PyExc_TypeError, "The SRestriction object must be a sequence of length 2");
 		return FALSE;
 	}
 	PyObject *obResType = PySequence_GetItem(ob, 0);
