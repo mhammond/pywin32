@@ -182,14 +182,24 @@ class ScriptItem(framework.ScriptItem):
 		if self.dispatch:
 			# Need to avoid the new Python "lazy" dispatch behaviour.
 			try:
+				engine = self.GetEngine()
+				olerepr = clsid = None
 				typeinfo = self.dispatch.GetTypeInfo()
+				clsid = typeinfo.GetTypeAttr()[0]
+				try:
+					olerepr = engine.mapKnownCOMTypes[clsid]
+				except KeyError:
+					pass
 			except pythoncom.com_error:
 				typeinfo = None
-			olerepr = win32com.client.dynamic.MakeOleRepr(self.dispatch, typeinfo, None)
+			if olerepr is None:
+				olerepr = win32com.client.dynamic.MakeOleRepr(self.dispatch, typeinfo, None)
+				if clsid is not None:
+					engine.mapKnownCOMTypes[clsid] = olerepr
 			self.dispatchContainer = win32com.client.dynamic.CDispatch(self.dispatch, olerepr, self.name)
 #			self.dispatchContainer = win32com.client.dynamic.Dispatch(self.dispatch, userName = self.name)
 #			self.dispatchContainer = win32com.client.dynamic.DumbDispatch(self.dispatch, userName = self.name)
-			
+
 #	def Connect(self):
 #		framework.ScriptItem.Connect(self)
 #	def Disconnect(self):
@@ -222,6 +232,7 @@ class PyScript(framework.COMScript):
 		self.rexec_env = None # will be created first time around.
 		
 		self.pendingCodeBlocks = []
+		self.mapKnownCOMTypes = {} # Map of known CLSID to typereprs
 		self.codeBlockCounter = 0
 
 	def Stop(self):
@@ -280,6 +291,7 @@ class PyScript(framework.COMScript):
 
 	def GetScriptDispatch(self, name):
 #		trace("GetScriptDispatch with", name)
+#		if name is not None: return None
 		if self.scriptDispatch is None:
 			self.scriptDispatch = scriptdispatch.MakeScriptDispatch(self, self.globalNameSpaceModule)
 		return self.scriptDispatch
