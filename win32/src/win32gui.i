@@ -1921,7 +1921,7 @@ BOOL IsWindowEnabled(HWND hwnd);
 
 // @pyswig |SetFocus|Sets focus to the specified window.
 // @pyparm int|hwnd||The handle to the window
-BOOLAPI SetFocus(HWND hwnd);
+HWND SetFocus(HWND hwnd);
 
 // @pyswig |UpdateWindow|
 // @pyparm int|hwnd||The handle to the window
