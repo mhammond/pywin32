@@ -4,7 +4,7 @@
 
 !include "common_top.mak"
 
-TARGET  = Python Win32 Extensions
+TARGET  = PythonWin32Extensions
 GENDIR  = ..\build\Temp\Help
 TITLE   = $(TARGET) Help
 DOCHDR  = $(TARGET) Reference

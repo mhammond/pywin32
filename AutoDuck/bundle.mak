@@ -12,7 +12,7 @@ GENSOURCE = "$(GENDIR)\PyWin32.html" \
 	"$(GENDIR)\PyWin32.hhk" \
 	"$(GENDIR)\PyWin32.hhp"
 
-CHMS = "..\PythonWin.chm" "..\win32com.chm" "..\Python Win32 Extensions.chm"
+CHMS = "..\PythonWin.chm" "..\win32com.chm" "..\PythonWin32Extensions.chm"
 
 FILES = PyWin32.html \
 	PyWin32.hhc \

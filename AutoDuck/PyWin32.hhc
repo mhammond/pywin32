@@ -14,7 +14,7 @@
         <param name="Local" value="PyWin32.html">
 		</OBJECT>
 	<OBJECT type="text/sitemap">
-		<param name="Merge" value="Python Win32 Extensions.hhc">
+		<param name="Merge" value="PythonWin32Extensions.hhc">
 	</OBJECT>
 	<OBJECT type="text/sitemap">
 		<param name="Merge" value="win32com.hhc">
