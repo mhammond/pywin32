@@ -202,7 +202,9 @@ def DispatchWithEvents(clsid, user_event_class):
   Visible changed: 1
   >>> 
   """
-  # First, get the object.
+  # "clsid" may already be a Dispatch - if so, get the real dispatch
+  clsid = getattr(clsid, "_oleobj_", clsid)
+  # Create/Get the object.
   disp = Dispatch(clsid)
   if not disp.__dict__.get("CLSID"): # Eeek - no makepy support - try and build it.
     try:
@@ -217,9 +219,13 @@ def DispatchWithEvents(clsid, user_event_class):
       raise TypeError, "This COM object can not automate the makepy process - please run makepy manually for this object"
   else:
     disp_class = disp.__class__
+  # If the clsid was an object, get the clsid
+  clsid = disp_class.CLSID
   # Create a new class that derives from 3 classes - the dispatch class, the event sink class and the user class.
   import new
   events_class = getevents(clsid)
+  if events_class is None:
+    raise ValueError, "This COM object does not support events."
   result_class = new.classobj("COMEventClass", (disp_class, events_class, user_event_class), {"__setattr__" : _event_setattr_})
   instance = result_class(disp._oleobj_) # This only calls the first base class __init__.
   events_class.__init__(instance, instance)
@@ -272,7 +278,15 @@ def getevents(clsid):
     # find clsid given progid or clsid
     clsid=str(pywintypes.IID(clsid))
     # return default outgoing interface for that class
-    return gencache.GetClassForCLSID(clsid).default_source
+    klass = gencache.GetClassForCLSID(clsid)
+    try:
+      return klass.default_source
+    except AttributeError:
+      # See if we have a coclass for the interfaces.
+      try:
+        return gencache.GetClassForCLSID(klass.coclass_clsid).default_source
+      except AttributeError:
+        raise TypeError, "No events can be found for this object"
 
 ############################################
 # The base of all makepy generated classes
@@ -375,3 +389,25 @@ class DispatchBaseClass:
 			return tuple(map(lambda o, s=self, oun=obUserName, rc=resultCLSID: s._get_good_single_object_(o, oun, rc),  obj))
 		else:
 			return self._get_good_single_object_(obj, obUserName, resultCLSID)
+
+class CoClassBaseClass:
+	def __init__(self, oobj=None):
+		if oobj is None: oobj = pythoncom.new(self.CLSID)
+		self.__dict__["_dispobj_"] = self.default_interface(oobj)
+	def __repr__(self):
+		return "<win32com.gen_py.%s.%s>" % (__doc__, self.__class__.__name__)
+
+	def __getattr__(self, attr):
+		d=self.__dict__["_dispobj_"]
+		if d is not None: return getattr(d, attr)
+		raise AttributeError, attr
+	def __setattr__(self, attr, value):
+		if self.__dict__.has_key(attr): self.__dict__[attr] = value; return
+		try:
+			d=self.__dict__["_dispobj_"]
+			if d is not None:
+				d.__setattr__(attr, value)
+				return
+		except AttributeError:
+			pass
+		self.__dict__[attr] = value
