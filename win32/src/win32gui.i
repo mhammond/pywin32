@@ -14,6 +14,7 @@
 %{
 #define _WIN32_IE 0x0501 // to enable balloon notifications in Shell_NotifyIcon
 #ifdef WINXPGUI
+#define _WIN32_WINNT 0x0501
 // This changes the entire world for XP!
 #define ISOLATION_AWARE_ENABLED 1
 #endif
@@ -28,6 +29,7 @@
 #include "winuser.h"
 #include "commctrl.h"
 #include "windowsx.h" // For edit control hacks.
+#include "malloc.h"
 
 #ifdef MS_WINCE
 #include "winbase.h"
@@ -171,7 +173,7 @@ typedef int UINT;
 }
 
 %typemap(python,in) MSG *INPUT {
-    $target = (MSG *)calloc(1, sizeof(MSG));
+    $target = (MSG *)_alloca(sizeof(MSG));
     if (!PyArg_ParseTuple($source, "iiiii(ii):MSG param for $name",
             &$target->hwnd,
             &$target->message,
@@ -288,6 +290,18 @@ typedef int UINT;
 %typemap(python,in) POINT *BOTH = POINT *INPUT;
 %typemap(python,argout) POINT *BOTH = POINT *OUTPUT;
 
+%typemap(python,in) SIZE *INPUT {
+    SIZE s;
+	if (PyTuple_Check($source)) {
+		if (PyArg_ParseTuple($source, "ll", &s.cx, &s.cy) == 0) {
+			return PyErr_Format(PyExc_TypeError, "%s: a SIZE must be a tuple of integers", "$name");
+		}
+		$target = &s;
+    } else {
+		return PyErr_Format(PyExc_TypeError, "%s: a SIZE must be a tuple of integers", "$name");
+	}
+}
+
 %typemap(python,argout) ICONINFO *OUTPUT {
     PyObject *o;
     o = Py_BuildValue("lllll", $source->fIcon, $source->xHotspot,
@@ -312,6 +326,20 @@ typedef int UINT;
 %typemap(python,ignore) ICONINFO *OUTPUT(ICONINFO temp)
 {
   $target = &temp;
+}
+
+%typemap(python,in) BLENDFUNCTION *INPUT {
+    BLENDFUNCTION bf;
+	if (PyTuple_Check($source)) {
+		if (PyArg_ParseTuple($source, "bbbb:" "$name" " tuple",
+                             &bf.BlendOp, &bf.BlendFlags,
+                             &bf.SourceConstantAlpha, &bf.AlphaFormat) == 0) {
+            return NULL;
+		}
+		$target = &bf;
+	} else {
+		return PyErr_Format(PyExc_TypeError, "%s: This param must be a tuple of four integers", "$name");
+	}
 }
 
 %typemap(python,except) LRESULT {
@@ -1141,12 +1169,42 @@ PyObject *PyFlashWindowEx(PyObject *self, PyObject *args)
 %}
 %native(FlashWindowEx) PyFlashWindowEx;
 
+// To avoid LoadLibrary etc (ie, keep my life simple) for functions
+// that don't exist on NT, only put them in winxpgui.
+%ifdef WINXPGUI
+
 // @pyswig |AnimateWindow|Enables you to produce special effects when showing or hiding windows. There are three types of animation: roll, slide, and alpha-blended fade.
+// @comm To avoid complications with Windows NT, this function only exists in winxpgui (not win32gui)
 BOOLAPI AnimateWindow(
   HWND hwnd,     // @pyparm int|hwnd||handle to window
   DWORD dwTime,  // @pyparm int|dwTime||duration of animation
   DWORD dwFlags  // @pyparm int|dwFlags||animation type
 );
+
+// @pyswig |UpdateLayeredWindow|Updates the position, size, shape, content, and translucency of a layered window. 
+// @comm To avoid complications with Windows NT, this function only exists in winxpgui (not win32gui)
+BOOLAPI UpdateLayeredWindow(
+  HWND hwnd,             // @pyparm int|hwnd||handle to layered window
+  HDC hdcDst,            // @pyparm int|hdcDst||handle to screen DC
+  POINT *INPUT,         // @pyparm (x,y)|pointDest||new screen position
+  SIZE *INPUT,           // @pyparm (cx, cy)|size||new size of the layered window
+  HDC hdcSrc,            // @pyparm int|hdcSrc||handle to surface DC
+  POINT *INPUT,         // @pyparm (x,y)|pointSrc||layer position
+  COLORREF crKey,        // @pyparm int|colorKey||color key
+  BLENDFUNCTION *INPUT, // @pyparm (int, int, int, int)|blend||blend function
+  DWORD dwFlags          // @pyparm int|flags||options
+);
+
+// @pyswig |SetLayeredWindowAttributes|Sets the opacity and transparency color key of a layered window.
+// @comm To avoid complications with Windows NT, this function only exists in winxpgui (not win32gui)
+BOOLAPI SetLayeredWindowAttributes(
+  HWND hwnd,           // @pyparm int|hwnd||handle to the layered window
+  COLORREF crKey,      // @pyparm int|colorKey||specifies the color key
+  int bAlpha,         // @pyparm int|alpha||value for the blend function
+  DWORD dwFlags        // @pyparm int|flags||action
+);
+
+%endif // End of winxpgui only functi0ons
 
 // @pyswig int|GetWindowLong|
 // @pyparm int|hwnd||
