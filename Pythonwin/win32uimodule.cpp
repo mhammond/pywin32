@@ -49,6 +49,12 @@ extern DWORD DebuggerThreadFunc( LPDWORD lpdwWhatever );
 static char BASED_CODE uiModName[] = "win32ui";
 static char BASED_CODE errorName[] = "win32ui";
 
+// We can't init exceptionHandler in initwin32ui because the application using
+// us could have called SetExceptionHandler earlier. We do a forward declaration
+// of DefaultExceptionHandler here and assign it to exceptionHandler.
+void DefaultExceptionHandler(int action, const char *context, const char *extraTitleMsg);
+static ExceptionHandlerFunc exceptionHandler = DefaultExceptionHandler;
+
 PYW_EXPORT PyObject *ui_module_error;
 Win32uiHostGlue *pHostGlue = NULL;
 
@@ -611,10 +617,7 @@ int Python_run_command_with_log(const char *command, const char * logFileName = 
 	d = PyModule_GetDict(m);
 	v = PyRun_String((char *)command, file_input, d, d);
 	if (v == NULL) {
-		PyObject *type, *value, *traceback;
-		PyErr_Fetch(&type, &value, &traceback);
-		DisplayPythonTraceback(type, value, traceback);
-		PyErr_Restore(type, value, traceback);
+		ExceptionHandler(EHA_DISPLAY_DIALOG);
 /*******
 		PyObject *fo = PyFile_FromString((char *)logFileName, "w" );
 		if (fo==NULL)
@@ -700,28 +703,64 @@ void gui_print_error(void)
 {
 	// basic recursion control.
 	static BOOL bInError = FALSE;
-	if (bInError) return;
+	if (bInError) {
+		TRACE("gui_print_error: recursive call!\n");
+		return;
+	}
 	bInError=TRUE;
-
-	// Check if the exception is SystemExit - if so,
-	// PyErr_Print will terminate then and there!  This is
-	// not good (and not what we want!?
-	PyObject *exception, *v, *tb;
-	PyErr_Fetch(&exception, &v, &tb);
-	PyErr_NormalizeException(&exception, &v, &tb);
-
-	if (exception  && PyErr_GivenExceptionMatches(exception, PyExc_SystemExit)) {
-		// Replace it with a RuntimeError.
-		TRACE("WARNING!!  win32ui had a SystemError - Replacing with RuntimeError!!\n");
-		Py_DECREF(exception);
-		Py_XINCREF(PyExc_RuntimeError);
-		PyErr_Restore(PyExc_RuntimeError, v, tb);
-	} else
-		PyErr_Restore(exception, v, tb);
-	// Now print it.
-
-	PyErr_Print();
+	ExceptionHandler(EHA_PRINT_ERROR);
 	bInError=FALSE;
+}
+
+void DefaultExceptionHandler(int action, const char *context, const char *extraTitleMsg)
+{
+	PyObject *type, *value, *traceback;
+	PyErr_Fetch(&type, &value, &traceback);
+	if (!type) {
+		TRACE("DefaultExceptionHandler: no exception occured!\n");
+		return;
+	}
+	if (action == EHA_PRINT_ERROR)
+	{
+		// Check if the exception is SystemExit - if so,
+		// PyErr_Print will terminate then and there!  This is
+		// not good (and not what we want!?
+		PyErr_NormalizeException(&type, &value, &traceback);
+
+		if (type && PyErr_GivenExceptionMatches(type, PyExc_SystemExit)) {
+			// Replace it with a RuntimeError.
+			TRACE("WARNING!!  win32ui had a SystemError - Replacing with RuntimeError!!\n");
+			Py_DECREF(type);
+			Py_XINCREF(PyExc_RuntimeError);
+			PyErr_Restore(PyExc_RuntimeError, value, traceback);
+		} else
+			PyErr_Restore(type, value, traceback);
+		fprintf(stderr, "%s\n", context);
+		// Now print it.
+		PyErr_Print();
+	}
+	else if (action == EHA_DISPLAY_DIALOG)
+	{
+		DisplayPythonTraceback(type, value, traceback, extraTitleMsg);
+		PyErr_Restore(type, value, traceback);
+	}
+	else
+		TRACE("DefaultExceptionHandler: unknown action (%d)\n", action);
+}
+
+void ExceptionHandler(int action, const char *context, const char *extraTitleMsg)
+{
+	if (exceptionHandler)
+		exceptionHandler(action, extraTitleMsg, context);
+	else
+		TRACE("ExceptionHandler: no exception handler available\n");
+}
+
+ExceptionHandlerFunc SetExceptionHandler(ExceptionHandlerFunc handler)
+{
+	ExceptionHandlerFunc oldHandler = exceptionHandler;
+	exceptionHandler = handler;
+	return oldHandler;
 }
 
 // A Python program can install a callback notifier, to make all

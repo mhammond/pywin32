@@ -15,7 +15,6 @@
 // virtuals helper
 //
 //////////////////////////////////////////////////////////////////////
-extern BOOL DisplayPythonTraceback(PyObject *exc_type, PyObject *exc_val, PyObject *exc_tb, const char *extraTitleMsg = NULL);
 
 extern BOOL bInFatalShutdown;
 
@@ -91,8 +90,11 @@ BOOL CVirtualHelper::do_call(PyObject *args)
 			char msg[256];
 			TRACE("CallVirtual : callback failed with exception\n");
 			gui_print_error();
+			// this will probably fail if we are already inside the exception handler
 			PyObject *obRepr = PyObject_Repr(handler);
-			char *szRepr = PyString_AsString(obRepr);
+			char *szRepr = "<no representation (PyObject_Repr failed)>";
+			if (obRepr)
+				szRepr = PyString_AsString(obRepr);
 			wsprintf(msg, "%s() virtual handler (%s) raised an exception", (const char *)csHandlerName, szRepr);
 			Py_XDECREF(obRepr);
 			PyErr_SetString(ui_module_error, msg);
@@ -107,10 +109,7 @@ BOOL CVirtualHelper::do_call(PyObject *args)
 			csAddnMsg += csHandlerName;
 			csAddnMsg += " handler";
 
-			PyObject *type, *value, *traceback;
-			PyErr_Fetch(&type, &value, &traceback);
-			DisplayPythonTraceback(type, value, traceback, csAddnMsg);
-			PyErr_Restore(type, value, traceback);
+			ExceptionHandler(EHA_DISPLAY_DIALOG, NULL, csAddnMsg);
 		}
 		return FALSE;
 	}

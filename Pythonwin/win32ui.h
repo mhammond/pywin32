@@ -238,6 +238,16 @@ private:
 	PyObject *m_PythonObject;
 };
 
+enum EnumExceptionHandlerAction {
+	EHA_PRINT_ERROR,
+	EHA_DISPLAY_DIALOG
+};
+
+typedef void (*ExceptionHandlerFunc)(int action, const char *context, const char *extraTitleMsg);
+
+PYW_EXPORT void ExceptionHandler(int action, const char *context=NULL, const char *extraTitleMsg=NULL);
+PYW_EXPORT ExceptionHandlerFunc SetExceptionHandler(ExceptionHandlerFunc handler);
+
 // A helper class for calling "virtual methods" - ie, given a C++ object
 // call a Python method of that name on the attached Python object.
 

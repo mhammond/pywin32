@@ -159,8 +159,7 @@ unsigned int ThreadWorkerEntryPoint( LPVOID lpvoid )
 		if (PyErr_Occurred() == PyExc_SystemExit)
 			PyErr_Clear();
 		else {
-			fprintf(stderr, "Unhandled exception in thread:\n");
-			PyErr_Print();
+			ExceptionHandler(EHA_PRINT_ERROR, "Unhandled exception in thread");
 		}
 	}
 	else
