@@ -389,7 +389,7 @@ PyObject *PyRecord::tp_repr(PyObject *self)
 	PyObject *equals = PyString_FromString(" = ");
 	for (i = 0; i < num_names && s != NULL; i++) {
 		char *name;
-		if (PyWin_WCHAR_AsString(strings[i], -1, &name)) {
+		if (PyWin_WCHAR_AsString(strings[i], (DWORD)-1, &name)) {
 			if (i > 0)
 				PyString_Concat(&s, comma);
 			PyString_ConcatAndDel(&s, PyString_FromString(name));
@@ -443,7 +443,7 @@ PyObject *PyRecord::tp_getattr(PyObject *self, char *name)
 		return res;
 	PyErr_Clear();
 	WCHAR *wname;
-	if (!PyWin_String_AsWCHAR(name, -1, &wname))
+	if (!PyWin_String_AsWCHAR(name, (DWORD)-1, &wname))
 		return NULL;
 
 	VARIANT vret;
@@ -518,7 +518,7 @@ int PyRecord::tp_setattr(PyObject *self, char *name, PyObject *v)
 		return -1;
 
 	WCHAR *wname;
-	if (!PyWin_String_AsWCHAR(name, -1, &wname))
+	if (!PyWin_String_AsWCHAR(name, (DWORD)-1, &wname))
 		return -1;
 
 	PY_INTERFACE_PRECALL;
@@ -551,7 +551,7 @@ int PyRecord::tp_compare(PyObject *self, PyObject *other)
 	for (ULONG i=0;i<num_names;i++) {
 		ret = 0;
 		char *name;
-		if (PyWin_WCHAR_AsString(strings[i], -1, &name)) {
+		if (PyWin_WCHAR_AsString(strings[i], (DWORD)-1, &name)) {
 			PyObject *self_sub = PyRecord::tp_getattr(self, name);
 			if (self_sub) {
 				PyObject *other_sub = PyRecord::tp_getattr(other, name);

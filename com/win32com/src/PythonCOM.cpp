@@ -284,7 +284,7 @@ static PyObject *pythoncom_CoInitializeSecurity(PyObject *self, PyObject *args)
 		return NULL;
 
 	if (obAuthSvc==NULL)
-		cAuthSvc = -1;
+		cAuthSvc = (DWORD)-1;
 	else if (PySequence_Check(obAuthSvc)) {
 		cAuthSvc = 0;
 	} else {
