@@ -471,9 +471,16 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
       self._name_to_dispid_[string.lower(name)]=dispid
 
     # Patch up the universal stuff.
-    for dispid, name in universal_data:
+    for dispid, invkind, name in universal_data:
       self._name_to_dispid_[string.lower(name)]=dispid
-      self._dispid_to_func_[dispid] = name
+      if invkind == DISPATCH_METHOD:
+          self._dispid_to_func_[dispid] = name
+      elif invkind == DISPATCH_PROPERTYPUT:
+          self._dispid_to_put_[dispid] = name
+      elif invkind == DISPATCH_PROPERTYGET:
+          self._dispid_to_get_[dispid] = name
+      else:
+        raise ValueError, "unexpected invkind: %d (%s)" % (invkind,name)
     
     # look for reserved methods
     if hasattr(ob, '_value_'):
@@ -538,7 +545,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
           raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)	# not found
       retob = getattr(self._obj_, name)
       if type(retob)==types.MethodType: # a method as a property - call it.
-      	retob = apply(retob, args)
+        retob = apply(retob, args)
       return retob
 
     if wFlags & (DISPATCH_PROPERTYPUT | DISPATCH_PROPERTYPUTREF): ### correct?
@@ -546,7 +553,15 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
         name = self._dispid_to_put_[dispid]
       except KeyError:
         raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)	# read-only
-      setattr(self._obj_, name, args[0])
+      # If we have a method of that name (ie, a property get function), and
+      # we have an equiv. property set function, use that instead.
+      if type(getattr(self._obj_, name, None)) == types.MethodType and \
+         type(getattr(self._obj_, "Set" + name, None)) == types.MethodType:
+        fn = getattr(self._obj_, "Set" + name)
+        fn( *args )
+      else:
+        # just set the attribute
+        setattr(self._obj_, name, args[0])
       return
 
     raise COMException(scode=winerror.E_INVALIDARG, desc="invalid wFlags")

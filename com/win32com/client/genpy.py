@@ -23,7 +23,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.4.2" # Written to generated file.
+makepy_version = "0.4.3" # Written to generated file.
 
 GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
@@ -221,8 +221,14 @@ class VTableItem(build.VTableItem, WritableItem):
         print "%s_vtables_ = [" % (self.python_name, ) 
         for v in self.vtableFuncs:
             chunks = []
-            name, dispid, arg_desc, ret_desc, named_params = v
-            chunks.append("\t(%s, %d, (" % (repr(name), dispid))
+            names, dispid, desc = v
+            name = names[0]
+            named_params = names[1:]
+            invkind = desc[4]
+            arg_desc = desc[2]
+            ret_desc = desc[8]
+
+            chunks.append("\t(%s, %d, %d, (" % (repr(name), dispid, invkind))
             for arg in arg_desc:
                 chunks.append("(%d,%d," % (arg[0], arg[1]))
                 defval = build.MakeDefaultArgRepr(arg)
@@ -231,6 +237,7 @@ class VTableItem(build.VTableItem, WritableItem):
                 else:
                     chunks.append(defval + "), ")
             chunks.append("), %s, %s)," % (repr(ret_desc), repr(named_params)))
+            #chunks.append(' # vtable entry %d' % (desc[7]/4,) )
             print "".join(chunks)
         print "]"
         print
@@ -339,12 +346,19 @@ class DispatchItem(build.DispatchItem, WritableItem):
         itemCount = None
         for name in names:
             entry=self.mapFuncs[name]
+            # skip [restricted] methods, unless it is the
+            # enumerator (which, being part of the "system",
+            # we know about and can use)
+            dispid = entry.desc[0]
+            if entry.desc[9] & pythoncom.FUNCFLAG_FRESTRICTED and \
+                dispid != pythoncom.DISPID_NEWENUM:
+                continue
             # If not accessible via IDispatch, then we can't use it here.
             if entry.desc[3] != pythoncom.FUNC_DISPATCH:
                 continue
-            if entry.desc[0]==pythoncom.DISPID_VALUE:
+            if dispid==pythoncom.DISPID_VALUE:
                 lkey = "value"
-            elif entry.desc[0]==pythoncom.DISPID_NEWENUM:
+            elif dispid==pythoncom.DISPID_NEWENUM:
                 specialItems["_newenum"] = (entry, entry.desc[4], None)
                 continue # Dont build this one now!
             else:

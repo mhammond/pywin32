@@ -149,14 +149,6 @@ class DispatchItem(OleItem):
 	def	_AddFunc_(self,typeinfo,fdesc,bForUser):
 		id = fdesc.memid
 		funcflags = fdesc.wFuncFlags
-
-		# skip [restricted] methods, unless it is the
-		# enumerator (which, being part of the "system",
-		# we know about and can use)
-		if funcflags & pythoncom.FUNCFLAG_FRESTRICTED and \
-			id != pythoncom.DISPID_NEWENUM:
-			return None
-
 		try:
 			names = typeinfo.GetNames(id)
 			name=names[0]
@@ -404,13 +396,14 @@ class VTableItem(DispatchItem):
 		def cmp_vtable_off(m1, m2):
 			return cmp(m1.desc[7], m2.desc[7])
 
-		meth_list = self.mapFuncs.values()
+		meth_list = self.mapFuncs.values() + self.propMapGet.values() + self.propMapPut.values()
+
 		meth_list.sort( cmp_vtable_off )
 		# Now turn this list into the run-time representation
 		# (ready for immediate use or writing to gencache)
 		self.vtableFuncs = []
 		for entry in meth_list:
-			self.vtableFuncs.append( (entry.names[0], entry.dispid, entry.desc[2], entry.desc[8], entry.names[1:]) )
+			self.vtableFuncs.append( (entry.names, entry.dispid, entry.desc) )
 
 # A Lazy dispatch item - builds an item on request using info from
 # an ITypeComp.  The dynamic module makes the called to build each item,

@@ -40,7 +40,9 @@ def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names = None):
             item = win32com.client.build.VTableItem(type_info, attr, type_info.GetDocumentation(-1))
             _doCreateVTable(item.clsid, item.python_name, item.bIsDispatch, item.vtableFuncs)
             for info in item.vtableFuncs:
-                ret.append((info[1], info[0]))
+                names, dispid, desc = info
+                invkind = desc[4]
+                ret.append((dispid, invkind, names[0]))
     else:
         # Cool - can used cached info.
         if not interface_names:
@@ -60,7 +62,9 @@ def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names = None):
             # And create the univgw defn
             _doCreateVTable(iid, name, is_dispatch, method_defs)
             for info in method_defs:
-                ret.append((info[1], info[0]))
+                names, dispid, desc = info
+                invkind = desc[4]
+                ret.append((dispid, invkind, names[0]))
     return ret
 
 def _doCreateVTable(iid, interface_name, is_dispatch, method_defs):
@@ -95,8 +99,15 @@ class Arg:
 
 class Method:
     def __init__(self, method_info, isEventSink=0):
-        name, dispid, arg_defs, ret_def, names = method_info
+        all_names, dispid, desc = method_info
+        name = all_names[0]
+        names = all_names[1:]
+        invkind = desc[4]
+        arg_defs = desc[2]
+        ret_def = desc[8]
+        
         self.dispid = dispid
+        self.invkind = invkind
         # We dont use this ATM.
 #        self.ret = Arg(ret_def)
         if isEventSink and name[:2] != "On":
@@ -156,10 +167,10 @@ class Definition:
         ob = getattr(ob, "policy", ob)
         # Ensure the correct dispid is setup
         ob._dispid_to_func_[meth.dispid] = meth.name
-        retVal = ob._InvokeEx_(meth.dispid, 0, pythoncom.DISPATCH_METHOD, args, None, None)
+        retVal = ob._InvokeEx_(meth.dispid, 0, meth.invkind, args, None, None)
         # None is an allowed return value stating that
         # the code doesn't want to touch any output arguments.
-        if type(retVal) == types.TupleType: # Like win32com, we special case a tuple.
+        if type(retVal) == types.TupleType: # Like pythoncom, we special case a tuple.
             # However, if they want to return a specific HRESULT,
             # then they have to return all of the out arguments
             # AND the HRESULT.
