@@ -17,60 +17,70 @@
 // Global used to determine if Win9x win32pipe hack is necessary.
 bool g_fUsingWin9x;
 CHAR g_szModulePath[_MAX_PATH + 2];
+HINSTANCE g_hInstance = NULL;
 
 /////////////////////////////////////////////////////////////////////////////
 // DLL Entry Point
 
+#ifndef BUILD_FREEZE
+// Doesnt work for freeze - but in that case, g_hInstance
+// remaims NULL, so GetModuleFileName(NULL) will be used
+// and still give the answer we are after.
 extern "C"
 BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
+{
+	if (dwReason == DLL_PROCESS_ATTACH)
+		g_hInstance = hInstance;
+	return TRUE;
+}
+#endif // BUILD_FREEZE
+
+static BOOL LoadModulePath(void)
 {
 	DWORD cbModuleFilename;
 	CHAR *psz = NULL;
 
-	if (dwReason == DLL_PROCESS_ATTACH)
+	// Note: GetModuleFileName will write nSize + 1 characters
+	// to get the null terminator.
+	cbModuleFilename = GetModuleFileName(
+		g_hInstance,
+		g_szModulePath,
+		sizeof(g_szModulePath) - 1);
+	if (0 == cbModuleFilename)
 	{
-	    // Note: GetModuleFileName will write nSize + 1 characters
-	    // to get the null terminator.
-	    cbModuleFilename = GetModuleFileName(
-		    hInstance,
-		    g_szModulePath,
-		    sizeof(g_szModulePath) - 1);
-	    if (0 == cbModuleFilename)
-	    {
-//		    hr = HRESULT_FROM_WIN32(GetLastError());
-//		    ErrorTrace(hr);
-		    return FALSE;
-	    }
-
-	    if ((sizeof(g_szModulePath) - 1) == cbModuleFilename)
-	    {
-		    // Note: This should never happen
-//		    hr = HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER);
-//		    ErrorTrace(hr);
-		    return FALSE;
-	    }
-
-		// Start from the end of the string and insert a '\0' after the first '\\' you find.
-		psz = g_szModulePath + strlen(g_szModulePath) - 1;
-		while (psz > g_szModulePath && *psz != '\\')
-		{
-			psz--;
-		}
-
-		if (*psz == '\\')
-		{
-			psz++;
-			*psz = '\0';
-		}
-		else
-		{
-			// Something wierd happened. :(
-			return FALSE;
-		}
+//	    hr = HRESULT_FROM_WIN32(GetLastError());
+//	    ErrorTrace(hr);
+		return FALSE;
 	}
 
+	if ((sizeof(g_szModulePath) - 1) == cbModuleFilename)
+	{
+		// Note: This should never happen
+//	    hr = HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER);
+//	    ErrorTrace(hr);
+		return FALSE;
+	}
+
+	// Start from the end of the string and insert a '\0' after the first '\\' you find.
+	psz = g_szModulePath + strlen(g_szModulePath) - 1;
+	while (psz > g_szModulePath && *psz != '\\')
+	{
+		psz--;
+	}
+
+	if (*psz == '\\')
+	{
+		psz++;
+		*psz = '\0';
+	}
+	else
+	{
+		// Something wierd happened. :(
+		return FALSE;
+	}
 	return TRUE;
 }
+
 
 %}
 
@@ -79,8 +89,12 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
 	Py_INCREF(PyWinExc_ApiError);
 	PyDict_SetItemString(d, "error", PyWinExc_ApiError);
 
-	// Setup g_fUsingWin9x correctly...
+	// Setup g_fUsingWin9x and module path correctly...
 	{
+		if (!LoadModulePath()) {
+			PyErr_SetString(PyExc_RuntimeError, "Could not determine the module base path!?");
+		}
+
 		OSVERSIONINFO osvi;
 
 		memset(&osvi, 0, sizeof(osvi));
