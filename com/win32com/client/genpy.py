@@ -736,7 +736,7 @@ class Generator:
     list = recordItems.values()
     for record in list:
         if str(record.clsid) == pythoncom.IID_NULL:
-            print "\t###%s: %s, # Typedef disabled because it doesn't have a non-null GUID"
+            print "\t###%s: %s, # Typedef disabled because it doesn't have a non-null GUID" % (`record.doc[0]`, `str(record.clsid)`)
         else:
             print "\t%s: %s," % (`record.doc[0]`, `str(record.clsid)`)
     print "}"
