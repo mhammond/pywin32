@@ -70,21 +70,25 @@ If the first fold in the file is collapsed, all top-level folds are opened.  Oth
 @flag Ctrl+Down|Recall the next command in the history list.
 
 @topic Folding|
-Thanks to Scintilla (http://www.scintilla.org), Pythonwin supports source code folding.
-Folding is the ability to collapse sections of your source-code into a single line, making
-it easier to navigate around large files.  Any Python statement which introduces a new
-block can be folded either by clicking on the indicator in the folding margin (if enabled via
-the View-\>Options-\>Editor dialog), by selecting one of the folding keystrokes (see 
-<t Keyboard Bindings>, or by using View->Folding menu.
-<nl>
-All find/replace or 'goto linenumber' functions work correctly when code is folded - the
-code is simply unfolded if necessary before the relevant operation.
-<nl>
-You may configure Pythonwin so that all files have their top-levels folded when
-opened.  Only the first level folds are collapsed using this function, so expanding
-the top-level fold reveals the entire class/method that was folded.  Alternatively, you
-can use the Keypad-Multiply key to toggle the first level folds for the entire file at any time.
-<nl>
+Thanks to Scintilla (http://www.scintilla.org), Pythonwin supports
+source code folding.  Folding is the ability to collapse sections of
+your source-code into a single line, making it easier to navigate
+around large files.  Any Python statement which introduces a new block
+can be folded either by clicking on the indicator in the folding
+margin (if enabled via the View-\>Options-\>Editor dialog), by
+selecting one of the folding keystrokes (see <t Keyboard Bindings>, or
+by using View->Folding menu.)  <nl>
+
+All find/replace or 'goto linenumber' functions work correctly when
+code is folded - the code is simply unfolded if necessary before the
+relevant operation.  <nl>
+
+You may configure Pythonwin so that all files have their top-levels
+folded when opened.  Only the first level folds are collapsed using
+this function, so expanding the top-level fold reveals the entire
+class/method that was folded.  Alternatively, you can use the
+Keypad-Multiply key to toggle the first level folds for the entire
+file at any time.  <nl>
 
 
 @topic Source Safe Integration|
