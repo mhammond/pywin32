@@ -74,7 +74,11 @@ def MakeValidSysOuts():
 			print "WARNING: Ignoring keyboard interrupt from ActiveScripting engine"
 		# If someone else has already redirected, then assume they know what they are doing!
 		if signal.getsignal(signal.SIGINT) == signal.default_int_handler:
-			signal.signal(signal.SIGINT, noOp)
+			try:
+				signal.signal(signal.SIGINT, noOp)
+			except ValueError:
+				# Not the main thread - can't do much.
+				pass
 
 def trace(*args):
 	"""A function used instead of "print" for debugging output.
