@@ -283,10 +283,19 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
     return NULL;
   }
 
+  if (!IsClipboardFormatAvailable(format)){
+      PyErr_SetString(PyExc_TypeError, "Specified clipboard format is not available");
+      return NULL;
+  }
   HANDLE handle;
+  WCHAR *filename=NULL;
+  PyObject* obfilename = NULL;
+  UINT filecnt=0, fileind=0, filenamesize=0;
+  HDROP hdrop;
   Py_BEGIN_ALLOW_THREADS;
   handle = GetClipboardData((UINT)format);
   Py_END_ALLOW_THREADS;
+
 
   if (!handle) {
     return ReturnAPIError("GetClipboardData");
@@ -295,6 +304,9 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
   void * cData;
   DWORD size;
   switch (format) {
+    case CF_HDROP:
+		hdrop = (HDROP)GlobalLock(handle);
+        break;
     case CF_ENHMETAFILE:
       size = GetEnhMetaFileBits((HENHMETAFILE)handle, 0, NULL);
       if (!size)
@@ -344,6 +356,24 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
       break;
   }
   switch (format) {
+    case CF_HDROP:
+        filecnt = DragQueryFileW(hdrop, 0xFFFFFFFF, NULL, NULL);
+        ret = PyTuple_New(filecnt);
+        if (!ret) return PyErr_NoMemory();
+        for (fileind=0;fileind<filecnt;fileind++){
+            filenamesize = DragQueryFileW(hdrop, fileind, NULL, NULL);
+            filename = (WCHAR *)malloc((filenamesize+1)*sizeof(WCHAR));
+            if (!filename) {
+                Py_DECREF(ret);
+                return PyErr_NoMemory();
+            }
+            filenamesize = DragQueryFileW(hdrop, fileind, filename, filenamesize+1);
+            obfilename=PyWinObject_FromWCHAR(filename);
+            PyTuple_SetItem(ret,fileind,obfilename);
+            free (filename);
+        }
+        GlobalUnlock(handle);
+        break;
     case CF_UNICODETEXT:
       ret = PyWinObject_FromWCHAR((wchar_t *)cData, (size / sizeof(wchar_t))-1);
       GlobalUnlock(handle);
@@ -806,6 +836,7 @@ py_set_clipboard_data(PyObject* self, PyObject* args)
 	int format;
 	HANDLE handle;
 	int ihandle;
+
 	if (PyArg_ParseTuple(args, "ii:SetClipboardData",
                         &format, &ihandle)) {
 		handle = (HANDLE)ihandle;
@@ -818,14 +849,14 @@ py_set_clipboard_data(PyObject* self, PyObject* args)
 		// A global memory object is allocated, and the objects buffer is copied
 		// to the new memory.
 		PyObject *obBuf;
+		const void * buf = NULL;
+		int bufSize = 0;
 		if (!PyArg_ParseTuple(args, "iO:SetClipboardData",
                       &format, &obBuf))
 		      return NULL;
-		PyBufferProcs *pb = obBuf->ob_type->tp_as_buffer;
-		if (pb==NULL)
+
+		if (PyObject_AsReadBuffer(obBuf,&buf,&bufSize)==-1) 
 			RETURN_TYPE_ERR("The object must support the buffer interfaces");
-		void *buf = NULL;
-		int bufSize = (*pb->bf_getreadbuffer)(obBuf, 0, &buf);
 		// size doesnt include nulls!
 		if (PyString_Check(obBuf))
 			bufSize += 1;
