@@ -17,7 +17,7 @@ item: Global
   Patch Flags=0000000000000001
   Patch Threshold=85
   Patch Memory=4000
-  EXE Filename=win32all-159.exe
+  EXE Filename=win32all-161.exe
   Code Sign Name=Python Win32 combined extensions
   Code Sign Info=skippinet.com.au
   Crystal Format=10111100101100000010001001001001
@@ -1097,6 +1097,12 @@ item: Install File
   Flags=0000000000000011
 end
 item: Install File
+  Source=e:\src\pythonex\win32\Build\servicemanager.pyd
+  Destination=%INSTDIR%\servicemanager.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
   Source=e:\src\pythonex\win32\Build\timer.pyd
   Destination=%INSTDIR%\timer.pyd
   Description=win32 extension files
@@ -1466,6 +1472,12 @@ item: Install File
   Flags=0000000000000010
 end
 item: Remark
+  Text=If this exists, it becomes the gen_py dir - so create it
+end
+item: Create Directory
+  Pathname=%INSTDIR%\gen_py
+end
+item: Remark
   Text=AXScript and AXDebug files
 end
 item: Install File
@@ -1598,6 +1610,12 @@ item: Install File
   Flags=0000000000000010
 end
 item: Install File
+  Source=e:\src\pythonex\com\win32comext\shell\demos\*.py
+  Destination=%EXTDIR%\shell\demos
+  Description=ActiveX Shell Extension files
+  Flags=0000000100000010
+end
+item: Install File
   Source=e:\src\pythonex\com\Build\shell.pyd
   Destination=%EXTDIR%\shell\shell.pyd
   Description=ActiveX Shell Extension files
@@ -1661,7 +1679,7 @@ end
 item: End Block
 end
 item: Remark
-  Text=Add the registry key that support auto-register
+  Text=Add the registry key that support auto-register (not that this has been used by anyone, nor has MS ever published it)
 end
 item: Edit Registry
   Total Keys=1
