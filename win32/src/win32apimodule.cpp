@@ -3704,16 +3704,16 @@ static PyObject *PyApply(PyObject *self, PyObject *args)
 // @pymethod |win32api|keybd_event|Simulate a keyboard event
 PyObject *Pykeybd_event(PyObject *self, PyObject *args)
 {
-        BYTE bVk;
-        BYTE bScan;
-        DWORD dwFlags;
-        DWORD dwExtraInfo;
+  BYTE bVk;
+  BYTE bScan;
+  DWORD dwFlags = 0;
+  DWORD dwExtraInfo = 0;
 
   if (!PyArg_ParseTuple(args, "ii|ii:keybd_event",
            &bVk,    // @pyparm BYTE|bVk||Virtual-key code
            &bScan, // @pyparm BYTE|bScan||Hardware scan code
-           &dwFlags,  // @pyparm DWORD|dwFlags||Flags specifying various function options
-           &dwExtraInfo)) // @pyparm DWORD|dwExtraInfo||Additional data associated with keystroke
+           &dwFlags,  // @pyparm DWORD|dwFlags|0|Flags specifying various function options
+           &dwExtraInfo)) // @pyparm DWORD|dwExtraInfo|0|Additional data associated with keystroke
 
     return NULL;
   // @pyseeapi keybd_event
