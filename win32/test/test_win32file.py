@@ -73,6 +73,44 @@ class TestSimpleOps(unittest.TestCase):
 
         self.failUnless(not os.path.isfile(testName), "After closing the file, it still exists!")
 
+    def testFilePointer(self):
+        # via [ 979270 ] SetFilePointer fails with negative offset
+
+        # Create a file in the %TEMP% directory.
+        filename = os.path.join( win32api.GetTempPath(), "win32filetest.dat" )
+
+        f = win32file.CreateFile(filename,
+                                win32file.GENERIC_READ|win32file.GENERIC_WRITE,
+                                0,
+                                None,
+                                win32file.CREATE_ALWAYS,
+                                win32file.FILE_ATTRIBUTE_NORMAL,
+                                0)
+        try:
+            #Write some data
+            data = 'Some data'
+            (res, written) = win32file.WriteFile(f, data)
+            
+            self.failIf(res)
+            self.assertEqual(written, len(data))
+            
+            #Move at the beginning and read the data
+            win32file.SetFilePointer(f, 0, win32file.FILE_BEGIN)
+            (res, s) = win32file.ReadFile(f, len(data))
+            
+            self.failIf(res)
+            self.assertEqual(s, data)
+            
+            #Move at the end and read the data
+            win32file.SetFilePointer(f, -len(data), win32file.FILE_END)
+            (res, s) = win32file.ReadFile(f, len(data))
+            
+            self.failIf(res)
+            self.failUnlessEqual(s, data)
+        finally:
+            f.Close()
+            os.unlink(filename)
+
 class TestOverlapped(unittest.TestCase):
     def testSimpleOverlapped(self):
         # Create a file in the %TEMP% directory.
