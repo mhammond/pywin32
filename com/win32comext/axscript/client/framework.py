@@ -29,7 +29,9 @@ def profile(fn, *args):
 	import profile
 	prof = profile.Profile()
 	try:
-		return prof.runcall(fn, *args)
+# roll on 1.6 :-)		
+#		return prof.runcall(fn, *args)
+		return apply(prof.runcall, (fn,) + args)
 	finally:
 		import pstats
 		# Damn - really want to send this to Excel!
