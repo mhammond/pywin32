@@ -89,7 +89,7 @@ PyObject *PyIPersistFile::Save(PyObject *self, PyObject *args)
 	if ( !PyArg_ParseTuple(args, "Oi:Save", &obpszFileName, &fRemember) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
-	if (!PyWinObject_AsBstr(obpszFileName, &pszFileName)) bPythonIsHappy = FALSE;
+	if (!PyWinObject_AsBstr(obpszFileName, &pszFileName, TRUE)) bPythonIsHappy = FALSE;
 	if (!bPythonIsHappy) return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
