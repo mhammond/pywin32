@@ -561,14 +561,14 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
 			IDispatch *pDisp;
 			hres = SafeArrayGetElement(psa, arrayIndices, &pDisp);
 			if (FAILED(hres)) break;
-			PyCom_PyObjectFromIUnknown(pDisp, IID_IDispatch, TRUE);
+			subitem = PyCom_PyObjectFromIUnknown(pDisp, IID_IDispatch, TRUE);
 			break;
 		}
 		case VT_UNKNOWN: {
 			IUnknown *pUnk;
 			hres = SafeArrayGetElement(psa, arrayIndices, &pUnk);
 			if (FAILED(hres)) break;
-			PyCom_PyObjectFromIUnknown(pUnk, IID_IUnknown, TRUE);
+			subitem = PyCom_PyObjectFromIUnknown(pUnk, IID_IUnknown, TRUE);
 			break;
 		}
 		case VT_DATE: {
