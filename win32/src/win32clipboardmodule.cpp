@@ -456,6 +456,7 @@ static PyObject *
 py_get_global_memory(PyObject* self, PyObject* args)
 {
     int iglobal;
+    // @pyparm int|hglobal||The handle to the global memory object
     if (!PyArg_ParseTuple(args, "i", &iglobal))
         return NULL;
     HGLOBAL hglobal = (HGLOBAL)iglobal;
