@@ -226,7 +226,8 @@ static pfnGWMethod make_method(DWORD index, UINT argsize)
 	*(short *)&code[35] = argsize;
 
 #else	// _M_IX86
-#  error make_method not defined for this platform
+   /* The MAINWIN toolkit allows us to build this on Linux!!! */
+#  pragma message("XXXXXXXXX - win32com.universal wont work on this platform - need make_method")
 #endif
 
 	return (pfnGWMethod)code;
