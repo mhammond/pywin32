@@ -155,7 +155,8 @@ int PyIUnknown::compare(PyObject *other)
 		pUnkThis->Release();
 		return -1;
 	}
-	int rc = (int)pUnkThis-(int)pUnkOther;
+	int rc = pUnkThis==pUnkOther ? 0 :
+		(pUnkThis < pUnkOther ? -1 : 1);
 	pUnkThis->Release();
 	pUnkOther->Release();
 	return rc;
