@@ -55,8 +55,10 @@ void PyCom_ExcepInfoFromPyException(EXCEPINFO *pExcepInfo)
 {
 	USES_CONVERSION;
 	// If the caller did not provide a valid exception info, get out now!
-	if (pExcepInfo==NULL)
+	if (pExcepInfo==NULL) {
+		PyErr_Clear(); // must leave Python in a clean state.
 		return;
+	}
 	PyObject *exception, *v, *tb;
 	*pExcepInfo = nullExcepInfo;
 	PyErr_Fetch(&exception, &v, &tb);
