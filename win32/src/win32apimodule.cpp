@@ -781,18 +781,18 @@ PyGetUserNameEx (PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple (args, "i:GetUserNameEx", &fmt))
 		return NULL;
 	// @pyseeapi GetUserNameEx
+	// We always get into trouble with WinXP vs 2k error codes.
+	// Simply assume that if we have a size, the function gave us the correct one.
+	myGetUserNameEx(fmt,formattedname,&nSize);
+	if (!nSize)
+		return PyWin_SetAPIError("GetUserNameEx (for buffer size)");
+	formattedname=(WCHAR *)malloc(nSize*sizeof(WCHAR));
+	if (!formattedname)
+		return PyErr_NoMemory();
 	if (!myGetUserNameEx(fmt,formattedname,&nSize)){
-		// returned string includes trailing null, so should always fail with 0 len
-		if (GetLastError()!=ERROR_MORE_DATA){
-			PyWin_SetAPIError("GetUserNameEx");
-			goto done;
-			}
-		formattedname=(WCHAR *)malloc(nSize*sizeof(WCHAR));
-		if (!myGetUserNameEx(fmt,formattedname,&nSize)){
-			PyWin_SetAPIError("GetUserNameEx");
-			goto done;
-			}
-		}
+		PyWin_SetAPIError("GetUserNameEx");
+		goto done;
+	}
 	ret=PyWinObject_FromWCHAR(formattedname);
 	done:
 	if (formattedname!=NULL)
