@@ -410,6 +410,7 @@ STDMETHODIMP PyGShellView::GetCurrentInfo(
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	PyObject_AsFOLDERSETTINGS(result, pfs);
+	Py_DECREF(result);
 	return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
 }
 
