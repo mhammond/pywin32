@@ -3204,6 +3204,20 @@ PySetSystemTime (PyObject * self, PyObject * args)
  return Py_BuildValue ("i", result);
   }
 }
+
+// @pymethod |win32api|SetThreadLocale|Sets the current thread's locale.
+static PyObject *
+PySetThreadLocale(PyObject *self, PyObject *args)
+{
+	int lcid;
+	// @pyparm int|lcid||The new LCID
+	if (!PyArg_ParseTuple(args, "i:SetThreadLocale", &lcid))
+		return NULL;
+	SetThreadLocale(lcid);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 // @pymethod |win32api|OutputDebugString|Sends a string to the Windows debugging device.
 static PyObject *
 PyOutputDebugString(PyObject *self, PyObject *args)
@@ -3779,6 +3793,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"SetClassWord",       PySetWindowWord,1}, // @pymeth SetWindowWord|
 	{"SetCursor",           PySetCursor,1}, // @pymeth SetCursor|Set the cursor to the HCURSOR object.
 	{"SetStdHandle",	PySetStdHandle,	1}, // @pymeth SetStdHandle|Sets a handle for the standard input, standard output, or standard error device
+	{"SetThreadLocale",     PySetThreadLocale, 1}, // @pymeth SetThreadLocale|Sets the current thread's locale.
 	{"SetWindowLong",       PySetWindowLong,1}, // @pymeth SetWindowLong|Places a long value at the specified offset into the extra window memory of the given window.
 	{"ShellExecute",		PyShellExecute,		1}, // @pymeth ShellExecute|Executes an application.
 	{"ShowCursor",			PyShowCursor,		1}, // @pymeth ShowCursor|The ShowCursor method displays or hides the cursor. 
