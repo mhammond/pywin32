@@ -375,8 +375,10 @@ static PyObject *mybeginthreadex(PyObject *self, PyObject *args)
 
 static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUnicode)
 {
-	*pRetIsUnicode = FALSE;
+	BOOL ok = FALSE;
+	BOOL bIsUnicode = FALSE;
 	if (env==Py_None) {
+		*pRetIsUnicode = FALSE;
 		*ppRet = NULL;
 		return TRUE;
 	}
@@ -385,18 +387,22 @@ static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUn
 		PyErr_SetString(PyExc_TypeError, "environment parameter must be a dictionary object of strings or unicode objects.");
 		return FALSE;
 	}
-	int envLength = PyMapping_Length(env);
-	PyObject *keys = PyMapping_Keys(env);
-	PyObject *vals = PyMapping_Values(env);
-	if (!keys || !vals)
-		return FALSE;
-
 	int i;
-	BOOL bIsUnicode;
 	unsigned bufLen = 0;
+	PyObject *keys = NULL, *vals = NULL;
+	int envLength = PyMapping_Length(env);
+	LPVOID result = NULL;
+	WCHAR *pUCur;
+	char *pACur;
+
+	keys = PyMapping_Keys(env);
+	vals = PyMapping_Values(env);
+	if (!keys || !vals)
+		goto done;
+
 	for (i=0;i<envLength;i++) {
-		PyObject *key = PyList_GetItem(keys, i);
-		PyObject *val = PyList_GetItem(vals, i);
+		PyObject *key = PyList_GetItem(keys, i); // no reference
+		PyObject *val = PyList_GetItem(vals, i); // no ref.
 		if (i==0) {
 			if (PyString_Check(key)) {
 				bIsUnicode = FALSE;
@@ -406,26 +412,21 @@ static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUn
 				bufLen += PyUnicode_Size(key) + 1;
 			} else {
 				PyErr_SetString(PyExc_TypeError, "dictionary must have keys and values as strings or unicode objects.");
-				Py_DECREF(keys);
-				Py_DECREF(vals);
-				return FALSE;
+				goto done;
 			}
 		} else {
 			if (bIsUnicode) {
 				if (!PyUnicode_Check(key)) {
 					PyErr_SetString(PyExc_TypeError, "All dictionary items must be strings, or all must be unicode");
-					Py_DECREF(keys);
-					Py_DECREF(vals);
-					return FALSE;
+					goto done;
 				}
 				bufLen += PyUnicode_Size(key) + 1;
 			}
 			else {
 				if (!PyString_Check(key)) {
 					PyErr_SetString(PyExc_TypeError, "All dictionary items must be strings, or all must be unicode");
-					Py_DECREF(keys);
-					Py_DECREF(vals);
-					return FALSE;
+					goto done;
+
 				}
 				bufLen += PyString_Size(key) + 1;
 			}
@@ -433,32 +434,33 @@ static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUn
 		if (bIsUnicode) {
 			if (!PyUnicode_Check(val)) {
 				PyErr_SetString(PyExc_TypeError, "All dictionary items must be strings, or all must be unicode");
-				Py_DECREF(keys);
-				Py_DECREF(vals);
-				return FALSE;
+				goto done;
 			}
 			bufLen += PyUnicode_Size(val) + 2; // For the '=' and '\0'
 		}
 		else {
 			if (!PyString_Check(val)) {
 				PyErr_SetString(PyExc_TypeError, "All dictionary items must be strings, or all must be unicode");
-				Py_DECREF(keys);
-				Py_DECREF(vals);
-				return FALSE;
+				goto done;
 			}
 			bufLen += PyString_Size(val) + 2; // For the '=' and '\0'
 		}
 	}
-	LPVOID result = (LPVOID)malloc( (bIsUnicode ? sizeof(WCHAR) : sizeof(char)) * (bufLen + 1) );
-	WCHAR *pUCur = (WCHAR *)result;
-	char *pACur = (char *)result;
+	result = (LPVOID)malloc( (bIsUnicode ? sizeof(WCHAR) : sizeof(char)) * (bufLen + 1) );
+	if (!result) {
+		PyErr_SetString(PyExc_MemoryError, "allocating environment buffer");
+		goto done;
+	}
+	pUCur = (WCHAR *)result;
+	pACur = (char *)result;
 	// Now loop filling it!
 	for (i=0;i<envLength;i++) {
 		PyObject *key = PyList_GetItem(keys, i);
 		PyObject *val = PyList_GetItem(vals, i);
 		if (bIsUnicode) {
 			WCHAR *pTemp;
-			PyWinObject_AsWCHAR(key, &pTemp);
+			if (!PyWinObject_AsWCHAR(key, &pTemp))
+				goto done;
 			wcscpy(pUCur, pTemp);
 			pUCur += wcslen(pTemp);
 			PyWinObject_FreeWCHAR(pTemp);
@@ -473,7 +475,8 @@ static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUn
 			*pACur++ = '=';
 		if (bIsUnicode) {
 			WCHAR *pTemp;
-			PyWinObject_AsWCHAR(val, &pTemp);
+			if (!PyWinObject_AsWCHAR(val, &pTemp))
+				goto done;
 			wcscpy(pUCur, pTemp);
 			pUCur += wcslen(pTemp);
 			PyWinObject_FreeWCHAR(pTemp);
@@ -487,8 +490,6 @@ static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUn
 		else
 			*pACur++ = '\0';
 	}
-	Py_DECREF(keys);
-	Py_DECREF(vals);
 	if (bIsUnicode) {
 		*pUCur++ = L'\0';
 //		assert(((unsigned)(pUCur - (WCHAR *)result))==bufLen);
@@ -498,8 +499,13 @@ static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUn
 	}
 	*pRetIsUnicode = bIsUnicode;
 	*ppRet = result;
-
-	return TRUE;
+	ok = TRUE;
+done:
+	if (result && !ok) // failure after allocing buffer.
+		free(result);
+	Py_XDECREF(keys);
+	Py_XDECREF(vals);
+	return ok;
 }
 
 PyObject *MyCreateProcess(
