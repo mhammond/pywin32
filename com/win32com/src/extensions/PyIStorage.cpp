@@ -70,10 +70,14 @@ PyObject *PyIStorage::OpenStream(PyObject *self, PyObject *args)
 	// @pyparm int|reserved2|0|Reserved - must be zero.
 	PyObject *obName;
 	DWORD grfMode;
-	char *szreserved1;
+	PyObject *obreserved1;
 	DWORD reserved2 = 0;
-	if ( !PyArg_ParseTuple(args, "Ozi|i:OpenStream", &obName, &szreserved1, &grfMode, &reserved2) )
+	if ( !PyArg_ParseTuple(args, "OOi|i:OpenStream", &obName, &obreserved1, &grfMode, &reserved2) )
 		return NULL;
+	if (obreserved1 != Py_None) {
+		PyErr_SetString(PyExc_TypeError, "The 'reserved' parameter (param 2) must be None");
+		return NULL;
+	}
 	IStream *ppstm;
 	BOOL bPythonIsHappy = TRUE;
 	BSTR name;
