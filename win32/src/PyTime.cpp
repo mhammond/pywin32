@@ -187,6 +187,7 @@ PyObject *PyTime::Format(PyObject *self, PyObject *args)
 	if (bFreeString) PyWinObject_FreeTCHAR(fmt);
 	return rc;
 	// @comm The following format characters are supported.
+	// @flagh Character|Description
 	// @flag %a|Abbreviated weekday name
 	// @flag %A|Full weekday name
 	// @flag %b|Abbreviated month name
@@ -219,9 +220,10 @@ PyObject *PyTime::Format(PyObject *self, PyObject *args)
 
 // @object PyTime|A Python object, representing an instant in time.
 // @comm A PyTime object is used primarily when exchanging date/time information
-// with other COM objects.
+// with COM objects or other win32 functions.
 // <nl>Using int(timeObject) will return an integer compatible with
-// the time module.
+// the standard Python time module.
+// @ex First import the time module|import time
 // @ex To return a simple string|time.ctime(int(timeObject))
 // @ex To return a string formatted as the long date in control panel|time.strftime("%#c", time.localtime(int(timeObject)))
 // @xref <om pywintypes.Time>
