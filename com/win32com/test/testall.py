@@ -4,6 +4,13 @@ import win32com.client
 from util import CheckClean
 import traceback
 
+import unittest
+
+try:
+    this_file = __file__
+except NameError:
+    this_file = sys.argv[0]
+
 def GenerateAndRunOldStyle():
     import GenTestScripts
     GenTestScripts.GenerateAll()
@@ -37,7 +44,27 @@ def _test_with_import(capture, module_name, fn_name, desc):
         capture.release()
         print "***** %s test FAILED after %d lines of output" % (desc, capture.get_num_lines_captured())
 
-unittest_modules = "testIterators testvbscript_regexp".split()
+class PyCOMTest(unittest.TestCase):
+    def testit(self):
+        # Execute testPyComTest in its own process so it can play
+        # with the Python thread state
+        fname = os.path.join(os.path.dirname(this_file), "testPyComTest.py")
+        cmd = '%s "%s" -q 2>&1' % (sys.executable, fname)
+        f = os.popen(cmd)
+        data = f.read()
+        rc = f.close()
+        if rc:
+            print data
+            self.fail("Executing '%s' failed (%d)" % (cmd, rc))
+        data = string.strip(data)
+        if data:
+            print "** testPyCOMTest generated unexpected output"
+            # lf -> cr/lf
+            print string.join(string.split(data, "\n"), "\r\n")
+
+unittest_modules = """testIterators testvbscript_regexp testStorage 
+                      testStreams testWMI policySemantics testShell testROT
+                   """.split()
 
 if __name__=='__main__':
     # default to "quick" test.  2==medium, 3==full
@@ -50,18 +77,20 @@ if __name__=='__main__':
 
     CleanGenerated()
 
-    import unittest
-    testRunner = unittest.TextTestRunner(verbosity=1)
+    verbosity = 1
+    if "-v" in sys.argv: verbosity += 1
+    testRunner = unittest.TextTestRunner(verbosity=verbosity)
+    suite = unittest.TestSuite()
     for mod_name in unittest_modules:
         mod = __import__(mod_name)
         if hasattr(mod, "suite"):
             test = mod.suite()
         else:
             test = unittest.defaultTestLoader.loadTestsFromModule(mod)
-        result = testRunner.run(test)
-        if not result.wasSuccessful():
-            print "*" * 50
-            print "Unittest tests failed"
+        suite.addTest(test)
+    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(PyCOMTest))
+    result = testRunner.run(suite)
+
     import win32com.test.util
     capture = win32com.test.util.CaptureWriter()
 
@@ -80,29 +109,14 @@ if __name__=='__main__':
 
         _test_with_import(capture, "testExchange", "test", "MS Exchange")
 
-    _test_with_import(capture, "testStreams", "test", "Streams")
-    _test_with_import(capture, "testWMI", "test", "WMI")
-
-    # Execute testPyComTest in its own process so it can play
-    # with the Python thread state
-    import win32pipe
-    data = win32pipe.popen(sys.executable + " testPyComTest.py -q").read()
-    data = string.strip(data)
-    # lf -> cr/lf
-    print string.join(string.split(data, "\n"), "\r\n")
-
     import errorSemantics
     errorSemantics.test()
-
-    import policySemantics
-    policySemantics.TestAll()
 
     try:
         import testvb
         testvb.TestAll()
     except RuntimeError, why:
         print why
-
 
     import testAXScript
     testAXScript.TestAll()
@@ -147,6 +161,10 @@ if __name__=='__main__':
         testmakepy.TestAll(0)
 
     print "Tests completed."
+    # re-print unit-test error here so it is noticed
+    if not result.wasSuccessful():
+        print "*" * 20, "- unittest tests FAILED"
+    
     CheckClean()
     pythoncom.CoUninitialize()
     CleanGenerated()
