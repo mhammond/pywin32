@@ -98,6 +98,10 @@ SOURCE=.\win32comext\shell\src\PyIBrowserFrameOptions.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32comext\shell\src\PyIColumnProvider.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32comext\shell\src\PyIContextMenu.cpp
 # End Source File
 # Begin Source File
@@ -147,6 +151,10 @@ SOURCE=.\win32comext\shell\src\shell.cpp
 # Begin Source File
 
 SOURCE=.\win32comext\shell\src\PyIBrowserFrameOptions.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIColumnProvider.h
 # End Source File
 # Begin Source File
 
