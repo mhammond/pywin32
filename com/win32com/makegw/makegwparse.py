@@ -19,6 +19,7 @@ error_not_found = "The requested item could not be found"
 error_not_supported = "The required functionality is not supported"
 
 VERBOSE=0
+DEBUG=0
 
 ## NOTE : For interfaces as params to work correctly, you must
 ## make sure any PythonCOM extensions which expose the interface are loaded
@@ -26,7 +27,7 @@ VERBOSE=0
 
 
 class ArgFormatter:
-	"""An instance for a specific type of argument.  Knows how to convert itself"""
+	"""An instance for a specific type of argument.	 Knows how to convert itself"""
 	def __init__(self, arg, builtinIndirection, declaredIndirection = 0):
 		#print 'init:', arg.name, builtinIndirection, declaredIndirection, arg.indirectionLevel
 		self.arg = arg
@@ -53,7 +54,7 @@ class ArgFormatter:
 		  return "??"
 		  raise error_not_supported, "Can't indirect this far - please fix me :-)"
 	def GetIndirectedArgName(self, indirectFrom, indirectionTo):
-                #print 'get:',self.arg.name, indirectFrom,self._GetDeclaredIndirection() + self.builtinIndirection, indirectionTo, self.arg.indirectionLevel
+		#print 'get:',self.arg.name, indirectFrom,self._GetDeclaredIndirection() + self.builtinIndirection, indirectionTo, self.arg.indirectionLevel
 
 		if indirectFrom is None:
 			### ACK! this does not account for [in][out] variables.
@@ -88,18 +89,21 @@ class ArgFormatter:
 		"""
 
 		# the first return element is the variable to be passed as
-                #    an argument to an interface method. the variable was
-                #    declared with only its builtin indirection level. when
-                #    we pass it, we'll need to pass in whatever amount of
-                #    indirection was applied (plus the builtin amount)
-                # the second return element is the variable declaration; it
-                #    should simply be builtin indirection
+				#	 an argument to an interface method. the variable was
+				#	 declared with only its builtin indirection level. when
+				#	 we pass it, we'll need to pass in whatever amount of
+				#	 indirection was applied (plus the builtin amount)
+				# the second return element is the variable declaration; it
+				#	 should simply be builtin indirection
 		return self.GetIndirectedArgName(self.builtinIndirection, self.arg.indirectionLevel + self.builtinIndirection), \
-                       "%s %s" % (self.GetUnconstType(), self.arg.name)
+					   "%s %s" % (self.GetUnconstType(), self.arg.name)
 
 	def GetInterfaceArgCleanup(self):
 		"Return cleanup code for C++ args passed to the interface method."
-		return ""
+		if DEBUG:
+			return "/* GetInterfaceArgCleanup output goes here: %s */\n" % self.arg.name
+		else:
+			return ""
 
 	def GetUnconstType(self):
 		return self.arg.unc_type
@@ -116,34 +120,111 @@ class ArgFormatter:
 	def DeclareParseArgTupleInputConverter(self):
 		"Declare the variable used as the PyArg_ParseTuple param for a gateway"
 		# Only declare it??
-#		if self.arg.indirectionLevel==0:
-#			return "\t%s %s;\n" % (self.arg.type, self.arg.name)
-#		else:
-		return ""
+		#if self.arg.indirectionLevel==0:
+		#	return "\t%s %s;\n" % (self.arg.type, self.arg.name)
+		#else:
+		if DEBUG:
+			return "/* Declare ParseArgTupleInputConverter goes here: %s */\n" % self.arg.name
+		else:
+			return ""
 	def GetParsePostCode(self):
 		"Get a string of C++ code to be executed after (ie, to finalise) the PyArg_ParseTuple conversion"
-		return ""
+		if DEBUG:
+			return "/* GetParsePostCode code goes here: %s */\n" % self.arg.name
+		else:
+			return ""
 	def GetBuildForInterfacePreCode(self):
 		"Get a string of C++ code to be executed before (ie, to initialise) the Py_BuildValue conversion for Interfaces"
-		return ""
+		if DEBUG:
+			return "/* GetBuildForInterfacePreCode goes here: %s */\n" % self.arg.name
+		else:
+			return ""
 	def GetBuildForGatewayPreCode(self):
 		"Get a string of C++ code to be executed before (ie, to initialise) the Py_BuildValue conversion for Gateways"
-		return self.GetBuildForInterfacePreCode()  # Usually the same
+		s = self.GetBuildForInterfacePreCode() # Usually the same
+		if DEBUG:
+			if s[:4] == "/* G":
+				s = "/* GetBuildForGatewayPreCode goes here: %s */\n" % self.arg.name
+		return s
 	def GetBuildForInterfacePostCode(self):
 		"Get a string of C++ code to be executed after (ie, to finalise) the Py_BuildValue conversion for Interfaces"
+		if DEBUG:
+			return "/* GetBuildForInterfacePostCode goes here: %s */\n" % self.arg.name
 		return ""
 	def GetBuildForGatewayPostCode(self):
 		"Get a string of C++ code to be executed after (ie, to finalise) the Py_BuildValue conversion for Gateways"
-		return self.GetBuildForInterfacePostCode() # Usually the same
+		s = self.GetBuildForInterfacePostCode() # Usually the same
+		if DEBUG:
+			if s[:4] == "/* G":
+				s = "/* GetBuildForGatewayPostCode goes here: %s */\n" % self.arg.name
+		return s
 	def GetAutoduckString(self):
- 		return '// @pyparm %s|%s||Description for %s' % (self._GetPythonTypeDesc(), self.arg.name, self.arg.name)
+		return '// @pyparm %s|%s||Description for %s' % (self._GetPythonTypeDesc(), self.arg.name, self.arg.name)
 	def _GetPythonTypeDesc(self):
-		"Returns a string with the description of the type.  Used for doco purposes"
+		"Returns a string with the description of the type.	 Used for doco purposes"
 		return None
 	def NeedUSES_CONVERSION(self):
 		"Determines if this arg forces a USES_CONVERSION macro"
 		return 0
 
+# Special formatter for floats since they're smaller than Python floats.
+class ArgFormatterFloat(ArgFormatter):
+	def GetFormatChar(self):
+		return "f"
+	def DeclareParseArgTupleInputConverter(self):
+		# Declare a double variable
+		return "\tdouble dbl%s;\n" % self.arg.name
+	def GetParseTupleArg(self):
+		return "&dbl" + self.arg.name
+	def _GetPythonTypeDesc(self):
+		return "float"
+	def GetBuildValueArg(self):
+		return "&dbl" + self.arg.name
+	def GetBuildForInterfacePreCode(self):
+		return "\tdbl" + self.arg.name + " = " + self.arg.name + ";\n"
+	def GetBuildForGatewayPreCode(self):
+		return "\tdbl%s = " % self.arg.name + self._IndirectPrefix( \
+			self._GetDeclaredIndirection(),
+			0) + self.arg.name + ";\n"
+	def GetParsePostCode(self):
+		s = "\t"
+		if self.gatewayMode:
+			s = s + self._IndirectPrefix( 
+				self._GetDeclaredIndirection(),
+				0)
+		s = s + self.arg.name
+		s = s + " = (float)dbl%s;\n" % self.arg.name
+		return s
+
+# Special formatter for Shorts because they're
+# a different size than Python ints!
+class ArgFormatterShort(ArgFormatter):
+	def GetFormatChar(self):
+		return "i"
+	def DeclareParseArgTupleInputConverter(self):
+		# Declare a double variable
+		return "\tINT i%s;\n" % self.arg.name
+	def GetParseTupleArg(self):
+		return "&i" + self.arg.name
+	def _GetPythonTypeDesc(self):
+		return "int"
+	def GetBuildValueArg(self):
+		return "&i" + self.arg.name
+	def GetBuildForInterfacePreCode(self):
+		return "\ti" + self.arg.name + " = " + self.arg.name + ";\n"
+	def GetBuildForGatewayPreCode(self):
+		return "\ti%s = " % self.arg.name + self._IndirectPrefix( \
+			self._GetDeclaredIndirection(),
+			0) + self.arg.name + ";\n"
+	def GetParsePostCode(self):
+		s = "\t"
+		if self.gatewayMode:
+			s = s + self._IndirectPrefix( 
+				self._GetDeclaredIndirection(),
+				0)
+		s = s + self.arg.name
+		s = s + " = i%s;\n" % self.arg.name
+		return s
 
 class ArgFormatterPythonCOM(ArgFormatter):
 	"""An arg formatter for types exposed in the PythonCOM module"""
@@ -151,7 +232,7 @@ class ArgFormatterPythonCOM(ArgFormatter):
 		return "O"
 #	def GetInterfaceCppObjectInfo(self):
 #		return ArgFormatter.GetInterfaceCppObjectInfo(self)[0], \
-#		    "%s %s%s" % (self.arg.unc_type, "*" * self._GetDeclaredIndirection(), self.arg.name)
+#			"%s %s%s" % (self.arg.unc_type, "*" * self._GetDeclaredIndirection(), self.arg.name)
 	def DeclareParseArgTupleInputConverter(self):
 		# Declare a PyObject variable
 		return "\tPyObject *ob%s;\n" % self.arg.name
@@ -174,7 +255,8 @@ class ArgFormatterBSTR(ArgFormatterPythonCOM):
 		return "\tif (!PyWinObject_AsBstr(ob%s, %s)) bPythonIsHappy = FALSE;\n" % (self.arg.name, self.GetIndirectedArgName(None, 2))
 	def GetBuildForInterfacePreCode(self):
 		notdirected = self.GetIndirectedArgName(None, 1)
-		return "\tob%s = MakeBstrToObj(%s);\n" % (self.arg.name, notdirected)
+		return "\tob%s = MakeBstrToObj(%s);\n" % \
+			   (self.arg.name, notdirected)
 	def GetBuildForInterfacePostCode(self):
 		return "\tSysFreeString(%s);\n" % self.arg.name
 	def GetBuildForGatewayPostCode(self):
@@ -195,7 +277,8 @@ class ArgFormatterOLECHAR(ArgFormatterPythonCOM):
 	def GetBuildForInterfacePreCode(self):
 		# the variable was declared with just its builtin indirection
 		notdirected = self.GetIndirectedArgName(self.builtinIndirection, 1)
-		return "\tob%s = MakeOLECHARToObj(%s);\n" % (self.arg.name, notdirected)
+		return "\tob%s = MakeOLECHARToObj(%s);\n" % \
+			   (self.arg.name, notdirected)
 	def GetBuildForInterfacePostCode(self):
 		# memory returned into an OLECHAR should be freed
 		return "\tCoTaskMemFree(%s);\n" % self.arg.name
@@ -216,30 +299,30 @@ class ArgFormatterIID(ArgFormatterPythonCOM):
 
 class ArgFormatterTime(ArgFormatterPythonCOM):
 	def __init__(self, arg, builtinIndirection, declaredIndirection = 0):
-		# we don't want to declare LPSYSTEMTIME / LPFILETIME objects
-		if arg.indirectionLevel == 0 and arg.unc_type[:2] == "LP":
+		  # we don't want to declare LPSYSTEMTIME / LPFILETIME objects
+		  if arg.indirectionLevel == 0 and arg.unc_type[:2] == "LP":
 			arg.unc_type = arg.unc_type[2:]
 			# reduce the builtin and increment the declaration
 			arg.indirectionLevel = arg.indirectionLevel + 1
 			builtinIndirection = 0
-		ArgFormatterPythonCOM.__init__(self, arg, builtinIndirection, declaredIndirection)
+		  ArgFormatterPythonCOM.__init__(self, arg, builtinIndirection, declaredIndirection)
 
 	def _GetPythonTypeDesc(self):
 		return "<o PyTime>"
 	def GetParsePostCode(self):
 		# variable was declared with only the builtinIndirection
-                ### NOTE: this is an [in] ... so use only builtin
+				### NOTE: this is an [in] ... so use only builtin
 		return '\tif (!PyTime_Check(ob%s)) {\n\t\tPyErr_SetString(PyExc_TypeError, "The argument must be a PyTime object");\n\t\tbPythonIsHappy = FALSE;\n\t}\n\tif (!((PyTime *)ob%s)->GetTime(%s)) bPythonIsHappy = FALSE;\n' % (self.arg.name, self.arg.name, self.GetIndirectedArgName(self.builtinIndirection, 1))
 	def GetBuildForInterfacePreCode(self):
-		### use just the builtinIndirection again...
-		notdirected = self.GetIndirectedArgName(self.builtinIndirection,0)
-		return "\tob%s = new PyTime(%s);\n" % (self.arg.name, notdirected)
+	  ### use just the builtinIndirection again...
+	  notdirected = self.GetIndirectedArgName(self.builtinIndirection,0)
+	  return "\tob%s = new PyTime(%s);\n" % (self.arg.name, notdirected)
 	def GetBuildForInterfacePostCode(self):
-		### hack to determine if we need to free stuff
-		if self.builtinIndirection + self.arg.indirectionLevel > 1:
-			# memory returned into an OLECHAR should be freed
-			return "\tCoTaskMemFree(%s);\n" % self.arg.name
-		return ''
+	  ### hack to determine if we need to free stuff
+	  if self.builtinIndirection + self.arg.indirectionLevel > 1:
+		# memory returned into an OLECHAR should be freed
+		return "\tCoTaskMemFree(%s);\n" % self.arg.name
+	  return ''
 
 class ArgFormatterSTATSTG(ArgFormatterPythonCOM):
 	def _GetPythonTypeDesc(self):
@@ -267,57 +350,66 @@ class ArgFormatterULARGE_INTEGER(ArgFormatterLARGE_INTEGER):
 
 class ArgFormatterInterface(ArgFormatterPythonCOM):
 	def GetInterfaceCppObjectInfo(self):
-		return self.GetIndirectedArgName(1, self.arg.indirectionLevel), \
-		              "%s * %s" % (self.GetUnconstType(), self.arg.name)
+	  return self.GetIndirectedArgName(1, self.arg.indirectionLevel), \
+			 "%s * %s" % (self.GetUnconstType(), self.arg.name)
 
 	def GetParsePostCode(self):
-		return "\tif (!PyCom_InterfaceFromPyInstanceOrObject(ob%s, IID_%s, (void **)%s, TRUE /* bNoneOK */))\n\t\t bPythonIsHappy = FALSE;\n" % (self.arg.name, self.arg.type, self.GetIndirectedArgName(None, 2))
+		# This gets called for out params in gateway mode
+		if self.gatewayMode:
+			sArg = self.GetIndirectedArgName(None, 2)
+		else:
+		# vs. in params for interface mode.
+			sArg = self.GetIndirectedArgName(1, 2)
+		return "\tif (!PyCom_InterfaceFromPyInstanceOrObject(ob%s, IID_%s, (void **)%s, TRUE /* bNoneOK */))\n\t\t bPythonIsHappy = FALSE;\n" % (self.arg.name, self.arg.type, sArg)
+	
 	def GetBuildForInterfacePreCode(self):
 		return "\tob%s = PyCom_PyObjectFromIUnknown(%s, IID_%s, FALSE);\n" % (self.arg.name, self.arg.name, self.arg.type)
+	
 	def GetBuildForGatewayPreCode(self):
-		return "\tob%s = PyCom_PyObjectFromIUnknown(%s, IID_%s, TRUE);\n" % (self.arg.name, self.arg.name, self.arg.type)
+		sPrefix = self._IndirectPrefix(self._GetDeclaredIndirection(), 1)
+		return "\tob%s = PyCom_PyObjectFromIUnknown(%s%s, IID_%s, TRUE);\n" % (self.arg.name, sPrefix, self.arg.name, self.arg.type)
+
 	def GetInterfaceArgCleanup(self):
 		return "\tif (%s) %s->Release();" % (self.arg.name, self.arg.name)
 
 class ArgFormatterVARIANT(ArgFormatterPythonCOM):
   def GetParsePostCode(self):
-    return "\tif ( !PyCom_VariantFromPyObject(ob%s, %s) )\n\t\tbPythonIsHappy = FALSE;\n" % (self.arg.name, self.GetIndirectedArgName(None, 1))
+	return "\tif ( !PyCom_VariantFromPyObject(ob%s, %s) )\n\t\tbPythonIsHappy = FALSE;\n" % (self.arg.name, self.GetIndirectedArgName(None, 1))
 
   def GetBuildForGatewayPreCode(self):
-    notdirected = self.GetIndirectedArgName(None, 1)
-    return "\tob%s = PyCom_PyObjectFromVariant(%s);\n" % (self.arg.name, notdirected)
+	notdirected = self.GetIndirectedArgName(None, 1)
+	return "\tob%s = PyCom_PyObjectFromVariant(%s);\n" % (self.arg.name, notdirected)
   def GetBuildForGatewayPostCode(self):
-    return "\tPy_XDECREF(ob%s);\n" % self.arg.name
+	return "\tPy_XDECREF(ob%s);\n" % self.arg.name
 
-                      # Key :       , Python Type Description, ParseTuple format char
+					  # Key :		, Python Type Description, ParseTuple format char
 ConvertSimpleTypes = {"BOOL":("BOOL", "int", "i"),
-                      "UINT":("UINT", "int", "i"),
-                      "BYTE": ("BYTE", "int", "i"),
-                      "INT": ("INT", "int", "i"),
-                      "WORD": ("DWORD", "int", "i"),
-                      "DWORD": ("DWORD", "int", "l"),
-                      "HRESULT":("HRESULT", "int", "l"),
-                      "ULONG": ("ULONG", "int", "l"),
-                      "LONG": ("LONG", "int", "l"),
-                      "int": ("int", "int", "i"),
-                      "long": ("long", "int", "l"),
-                      "HWND": ("HWND", "HWND", "l"),
-                      "HDC": ("HDC", "HDC", "l"),
-                      "LPARAM" : ("LPARAM", "long", "l"),
-                      "LRESULT" : ("LRESULT", "long", "l"),
-                      "WPARAM" : ("LPARAM", "int", "i"),
-                      "DISPID": ("DISPID", "long", "l"),
-                      "APPBREAKFLAGS": ("int", "int", "i"),
-                      "BREAKRESUMEACTION": ("int", "int", "i"),
-                      "ERRORRESUMEACTION": ("int", "int", "i"),
-                      "BREAKREASON": ("int", "int", "i"),
-                      "BREAKPOINT_STATE": ("int", "int", "i"),
-                      "BREAKRESUME_ACTION": ("int", "int", "i"),
-                      "SOURCE_TEXT_ATTR": ("int", "int", "i"),
-                      "TEXT_DOC_ATTR": ("int", "int", "i"),
-                      "QUERYOPTION": ("int", "int", "i"),
-                      "PARSEACTION": ("int", "int", "i"),
-
+					  "UINT":("UINT", "int", "i"),
+					  "BYTE": ("BYTE", "int", "i"),
+					  "INT": ("INT", "int", "i"),
+					  "DWORD": ("DWORD", "int", "l"),
+					  "HRESULT":("HRESULT", "int", "l"),
+					  "ULONG": ("ULONG", "int", "l"),
+					  "LONG": ("LONG", "int", "l"),
+					  "int": ("int", "int", "i"),
+					  "long": ("long", "int", "l"),
+					  "HWND": ("HWND", "HWND", "l"),
+					  "HDC": ("HDC", "HDC", "l"),
+					  "LPARAM" : ("LPARAM", "long", "l"),
+					  "LRESULT" : ("LRESULT", "long", "l"),
+					  "WPARAM" : ("LPARAM", "int", "i"),
+					  "DISPID": ("DISPID", "long", "l"),
+					  "APPBREAKFLAGS": ("int", "int", "i"),
+					  "BREAKRESUMEACTION": ("int", "int", "i"),
+					  "ERRORRESUMEACTION": ("int", "int", "i"),
+					  "BREAKREASON": ("int", "int", "i"),
+					  "BREAKPOINT_STATE": ("int", "int", "i"),
+					  "BREAKRESUME_ACTION": ("int", "int", "i"),
+					  "SOURCE_TEXT_ATTR": ("int", "int", "i"),
+					  "TEXT_DOC_ATTR": ("int", "int", "i"),
+					  "QUERYOPTION": ("int", "int", "i"),
+					  "PARSEACTION": ("int", "int", "i"),
+					  "VARIANT_BOOL": ("VARIANT_BOOL", "int", "i"),
 }
 	
 class ArgFormatterSimple(ArgFormatter):
@@ -327,33 +419,43 @@ class ArgFormatterSimple(ArgFormatter):
 	def _GetPythonTypeDesc(self):
 		return ConvertSimpleTypes[self.arg.type][1]
 
-AllConverters = {"const OLECHAR":   (ArgFormatterOLECHAR, 0, 1),
-                 "WCHAR":           (ArgFormatterOLECHAR, 0, 1),
-                 "OLECHAR":         (ArgFormatterOLECHAR, 0, 1),
-                 "LPCOLESTR":       (ArgFormatterOLECHAR, 1, 1),
-                 "LPOLESTR":        (ArgFormatterOLECHAR, 1, 1),
-                 "LPCWSTR":         (ArgFormatterOLECHAR, 1, 1),
-                 "LPWSTR":          (ArgFormatterOLECHAR, 1, 1),
-                 "BSTR":            (ArgFormatterBSTR, 1, 0),
-                 "const IID":       (ArgFormatterIID, 0),
-                 "CLSID":           (ArgFormatterIID, 0),
-                 "IID":             (ArgFormatterIID, 0),
-                 "GUID":            (ArgFormatterIID, 0),
-                 "const GUID":      (ArgFormatterIID, 0),
-                 "const IID":       (ArgFormatterIID, 0),
-                 "REFCLSID":        (ArgFormatterIID, 0),
-                 "REFIID":          (ArgFormatterIID, 0),
-                 "REFGUID":         (ArgFormatterIID, 0),
-                 "const FILETIME":  (ArgFormatterTime, 0),
-                 "const SYSTEMTIME":(ArgFormatterTime, 0),
-                 "const LPSYSTEMTIME":(ArgFormatterTime, 1, 1),
-                 "LPSYSTEMTIME":    (ArgFormatterTime, 1, 1),
-                 "FILETIME":        (ArgFormatterTime, 0),
-                 "SYSTEMTIME":      (ArgFormatterTime, 0),
-                 "STATSTG":         (ArgFormatterSTATSTG, 0),
-                 "LARGE_INTEGER":   (ArgFormatterLARGE_INTEGER, 0),
-                 "ULARGE_INTEGER":  (ArgFormatterULARGE_INTEGER, 0),
-                 "VARIANT":         (ArgFormatterVARIANT, 0),
+AllConverters = {"const OLECHAR":	(ArgFormatterOLECHAR, 0, 1),
+				 "WCHAR":			(ArgFormatterOLECHAR, 0, 1),
+				 "OLECHAR":			(ArgFormatterOLECHAR, 0, 1),
+				 "LPCOLESTR":		(ArgFormatterOLECHAR, 1, 1),
+				 "LPOLESTR":		(ArgFormatterOLECHAR, 1, 1),
+				 "LPCWSTR":			(ArgFormatterOLECHAR, 1, 1),
+				 "LPWSTR":			(ArgFormatterOLECHAR, 1, 1),
+				 "BSTR":			(ArgFormatterBSTR, 1, 0),
+				 "const IID":		(ArgFormatterIID, 0),
+				 "CLSID":			(ArgFormatterIID, 0),
+				 "IID":				(ArgFormatterIID, 0),
+				 "GUID":			(ArgFormatterIID, 0),
+				 "const GUID":		(ArgFormatterIID, 0),
+				 "const IID":		(ArgFormatterIID, 0),
+				 "REFCLSID":		(ArgFormatterIID, 0),
+				 "REFIID":			(ArgFormatterIID, 0),
+				 "REFGUID":			(ArgFormatterIID, 0),
+				 "const FILETIME":	(ArgFormatterTime, 0),
+				 "const SYSTEMTIME":(ArgFormatterTime, 0),
+				 "const LPSYSTEMTIME":(ArgFormatterTime, 1, 1),
+				 "LPSYSTEMTIME":	(ArgFormatterTime, 1, 1),
+				 "FILETIME":		(ArgFormatterTime, 0),
+				 "SYSTEMTIME":		(ArgFormatterTime, 0),
+				 "STATSTG":			(ArgFormatterSTATSTG, 0),
+				 "LARGE_INTEGER":	(ArgFormatterLARGE_INTEGER, 0),
+				 "ULARGE_INTEGER":	(ArgFormatterULARGE_INTEGER, 0),
+				 "VARIANT":			(ArgFormatterVARIANT, 0),
+				 "float":			(ArgFormatterFloat, 0),
+				 "single":			(ArgFormatterFloat, 0),
+				 "short":			(ArgFormatterShort, 0),
+				 "WORD":			(ArgFormatterShort, 0),
+				 "Control":			(ArgFormatterInterface, 0, 1),
+				 "DataObject":		(ArgFormatterInterface, 0, 1),
+				 "_PropertyBag":	(ArgFormatterInterface, 0, 1),
+				 "AsyncProp":		(ArgFormatterInterface, 0, 1),
+				 "DataSource":		(ArgFormatterInterface, 0, 1),
+				 "DataFormat":		(ArgFormatterInterface, 0, 1),
 }
 
 # Auto-add all the simple types
@@ -385,8 +487,8 @@ class Argument:
 	In addition, methods exist so that an argument knows how to convert itself
 	to/from Python arguments.
 	"""
-#	                                  in,out                      type            name           [  ]
-#	                               --------------               --------      ------------      ------
+#									  in,out					  type			  name			 [	]
+#								   --------------				--------	  ------------		------
 	regex = regex.compile('/\\* \\[\\([^\\]]*.*\\)] \\*/[ \t]\\(.*[\\* ]\\)\\([a-zA-Z0-9]+\\)\\(\\[ *]\\)?[),]')
 	def __init__(self, good_interface_names):
 		self.good_interface_names = good_interface_names
@@ -431,7 +533,7 @@ class Argument:
 			self.unc_type = self.type
 		
 		if VERBOSE:
-			print "    Arg %s of type %s%s (%s)" % (self.name, self.type, "*" * self.indirectionLevel, self.inout)
+			print "	   Arg %s of type %s%s (%s)" % (self.name, self.type, "*" * self.indirectionLevel, self.inout)
 
 	def HasAttribute(self, typ):
 		"""Determines if the argument has the specific attribute.
@@ -454,8 +556,8 @@ class Method:
 	This class contains information about a specific method, as well as 
 	a list of all @Argument@s
 	"""
-#	                                     options     ret type callconv   name
-#	                               ----------------- -------- -------- --------
+#										 options	 ret type callconv	 name
+#								   ----------------- -------- -------- --------
 	regex = regex.compile('virtual \\(/\\*.*\\*/ \\)?\\(.*\\) \\(.*\\) \\(.*\\)( ')
 	def __init__(self, good_interface_names ):
 		self.good_interface_names = good_interface_names
@@ -478,8 +580,8 @@ class Method:
 				print "Warning: Old style interface detected - compilation errors likely!"
 			else:
 				print "Method %s - Only HRESULT return types are supported." % self.name
-#				raise error_not_supported, 		if VERBOSE:
-			print "  Method %s %s(" % (self.result, self.name)
+#				raise error_not_supported,		if VERBOSE:
+			print "	 Method %s %s(" % (self.result, self.name)
 		while 1:
 			arg = Argument(self.good_interface_names)
 			try:
@@ -494,8 +596,8 @@ class Interface:
 	This class contains information about a specific interface, as well as 
 	a list of all @Method@s
 	"""
-#	                                  name               base
-#	                                 --------          --------
+#									  name				 base
+#									 --------		   --------
 	regex = regex.compile("\\(interface\\|\\) \\([^ ]*\\) : public \\(.*\\)$")
 	def __init__(self):
 		self.methods = []
