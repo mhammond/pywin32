@@ -870,3 +870,13 @@ SHCNRF_InterruptLevel = 1
 SHCNRF_ShellLevel = 2
 SHCNRF_RecursiveInterrupt = 4096
 SHCNRF_NewDelivery = 32768
+
+FD_CLSID            = 0x0001
+FD_SIZEPOINT        = 0x0002
+FD_ATTRIBUTES       = 0x0004
+FD_CREATETIME       = 0x0008
+FD_ACCESSTIME       = 0x0010
+FD_WRITESTIME       = 0x0020
+FD_FILESIZE         = 0x0040
+FD_PROGRESSUI       = 0x4000
+FD_LINKUI           = 0x8000
