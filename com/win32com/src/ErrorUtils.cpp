@@ -438,9 +438,15 @@ void PyCom_StreamMessage(const char *pszMessageText)
 #endif
 	// PySys_WriteStderr has an internal 1024 limit due to varargs.
 	// weve already resolved them, so we gotta do it the hard way
+	// We can't afford to screw with the Python exception state
+	PyObject *typ, *val, *tb;
+	PyErr_Fetch(&typ, &val, &tb);
 	PyObject *pyfile = PySys_GetObject("stderr");
 	if (pyfile)
-		PyFile_WriteString((char *)pszMessageText, pyfile);
+		if (PyFile_WriteString((char *)pszMessageText, pyfile)!=0)
+			// eeek - Python error writing this error - write it to stdout.
+			fprintf(stdout, "%s", pszMessageText);
+	PyErr_Restore(typ, val, tb);
 }
 
 void VLogF(const TCHAR *fmt, va_list argptr)
