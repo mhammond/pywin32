@@ -471,33 +471,79 @@ static PyObject *PyWritePrinter(PyObject *self, PyObject *args)
 // convert a job structure to python. only works for level 1
 PyObject *JobtoPy(DWORD level, LPBYTE buf)
 {
-	if (level != 1)
-		return NULL;
-
-	JOB_INFO_1 *job1= (JOB_INFO_1 *)buf;
+	JOB_INFO_1 *job1;
+	JOB_INFO_2 *job2;
+	JOB_INFO_3 *job3;
 	SYSTEMTIME localSubmitted;
-
-	SystemTimeToTzSpecificLocalTime(NULL, &(job1->Submitted), &localSubmitted);
-	PyObject *pylocalsubmitted= new PyTime(localSubmitted);
-	PyObject *ret= Py_BuildValue("{s:i, s:s, s:s, s:s, s:s, s:s, s:s, s:i, s:i, s:i, s:i, s:i, s:O}",
-	        "JobID", job1->JobId,
-	        "pPrinterName", job1->pPrinterName,
-	        "pMachineName", job1->pMachineName,
-	        "pUserName", job1->pUserName,
-	        "pDocument", job1->pDocument,
-	        "pDatatype", job1->pDatatype,
-	        "pStatus", job1->pStatus,
-	        "Status", job1->Status,
-	        "Priority", job1->Priority,
-	        "Position", job1->Position,
-	        "TotalPages", job1->TotalPages,
-	        "PagesPrinted", job1->PagesPrinted,
-	        "Submitted", pylocalsubmitted);
-	Py_XDECREF(pylocalsubmitted);
-	return ret;
+	PyObject *pylocalsubmitted, *ret;
+	switch (level){
+		case 1:{
+			job1= (JOB_INFO_1 *)buf;
+			SystemTimeToTzSpecificLocalTime(NULL, &(job1->Submitted), &localSubmitted);
+			pylocalsubmitted= new PyTime(localSubmitted);
+			ret= Py_BuildValue("{s:i, s:s, s:s, s:s, s:s, s:s, s:s, s:i, s:i, s:i, s:i, s:i, s:O}",
+					"JobId", job1->JobId,
+					"pPrinterName", job1->pPrinterName,
+					"pMachineName", job1->pMachineName,
+					"pUserName", job1->pUserName,
+					"pDocument", job1->pDocument,
+					"pDatatype", job1->pDatatype,
+					"pStatus", job1->pStatus,
+					"Status", job1->Status,
+					"Priority", job1->Priority,
+					"Position", job1->Position,
+					"TotalPages", job1->TotalPages,
+					"PagesPrinted", job1->PagesPrinted,
+					"Submitted", pylocalsubmitted);
+			Py_XDECREF(pylocalsubmitted);
+			return ret;
+			}
+		case 2:{
+			job2=(JOB_INFO_2 *)buf;
+			SystemTimeToTzSpecificLocalTime(NULL, &(job2->Submitted), &localSubmitted);
+			pylocalsubmitted= new PyTime(localSubmitted);
+			ret= Py_BuildValue("{s:i, s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:O&, s:s, s:O&, s:i, s:i, s:i, s:i, s:i, s:i, s:i, s:O, s:i, s:i}",
+					"JobId", job2->JobId,
+					"pPrinterName", job2->pPrinterName,
+					"pMachineName", job2->pMachineName,
+					"pUserName", job2->pUserName,
+					"pDocument", job2->pDocument,
+					"pNotifyName", job2->pNotifyName,
+					"pDatatype", job2->pDatatype,
+					"pPrintProcessor", job2->pPrintProcessor,
+					"pParameters", job2->pParameters,
+					"pDriverName", job2->pDriverName,
+					"pDevMode", PyWinObject_FromDEVMODE, job2->pDevMode,
+					"pStatus", job2->pStatus,
+					"pSecurityDescriptor", PyWinObject_FromSECURITY_DESCRIPTOR, job2->pSecurityDescriptor,
+					"Status", job2->Status,
+					"Priority", job2->Priority,
+					"Position", job2->Position,
+					"StartTime", job2->StartTime,
+					"UntilTime", job2->UntilTime,
+					"TotalPages", job2->TotalPages,
+					"Size", job2->Size,
+					"Submitted", pylocalsubmitted,
+					"Time", job2->Time,
+					"PagesPrinted", job2->PagesPrinted);
+			Py_XDECREF(pylocalsubmitted);
+			return ret;
+			}
+	   	case 3:{
+			job3=(JOB_INFO_3 *)buf;
+			ret=Py_BuildValue("{s:l, s:l, s:l}",
+				"JobId", job3->JobId,
+				"NextJobId",job3->NextJobId,
+				"Reserved",job3->Reserved);
+			return ret;
+			}
+		default:
+			return PyErr_Format(PyExc_NotImplementedError,"Job info level %d is not yet supported", level);
+		}
 }
 
 // @pymethod tuple|win32print|EnumJobs|Enumerates print jobs on specified printer.
+// @rdesc Returns a sequence of dictionaries representing JOB_INFO_* structures, depending on level
 static PyObject *PyEnumJobs(PyObject *self, PyObject *args)
 {
 	HANDLE hprinter;
@@ -508,28 +554,22 @@ static PyObject *PyEnumJobs(PyObject *self, PyObject *args)
 	DWORD buf_size;
 	DWORD bufneeded_size;
 	DWORD jobsreturned;
-
-	if (!PyArg_ParseTuple(args, "iiii:EnumJobs",
+	size_t job_info_offset[]={sizeof(JOB_INFO_1),sizeof(JOB_INFO_2),sizeof(JOB_INFO_3)};
+	if (!PyArg_ParseTuple(args, "iii|i:EnumJobs",
 	          &hprinter,   // @pyparm int|hPrinter||Handle of printer.
 	          &firstjob,   // @pyparm int|FirstJob||location of first job in print queue to enumerate.
 	          &nojobs,     // @pyparm int|NoJobs||Number of jobs to enumerate.
-	          &level       // @pyparm int|Level|1|Level of information to return (only JOB_INFO_1 is supported).
+	          &level       // @pyparm int|Level|1|Level of information to return (JOB_INFO_1, JOB_INFO_2, JOB_INFO_3 supported).
 	          ))
 		return NULL;
-	if (level != 1)
-	{
-		PyErr_SetString(PyExc_ValueError, "This information level is not supported");
-		return NULL;
-	}
+	if ((level < 1)||(level > 3))
+		return PyErr_Format(PyExc_ValueError, "Information level %d is not supported", level);
 	EnumJobs(hprinter, firstjob, nojobs, level, NULL, 0, &bufneeded_size, &jobsreturned);
 	if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
 		return PyWin_SetAPIError("EnumJobs");
 	buf_size= bufneeded_size;
 	if (NULL == (buf= (LPBYTE)malloc(buf_size)))
-	{
-		PyErr_SetString(PyExc_MemoryError, "Malloc failed.");
-		return NULL;
-	}
+		return PyErr_Format(PyExc_MemoryError, "Malloc failed for %d bytes", buf_size);
 	if (!EnumJobs(hprinter, firstjob, nojobs, level, buf, buf_size, &bufneeded_size, &jobsreturned))
 	{
 		free(buf);
@@ -537,137 +577,157 @@ static PyObject *PyEnumJobs(PyObject *self, PyObject *args)
 	}
 
 	DWORD i;
+	PyObject *job_info;
 	PyObject *ret = PyTuple_New(jobsreturned);
-	for (i= 0; i < jobsreturned; i++)
-	{
-		PyTuple_SetItem(ret, i, JobtoPy(1, (buf + i * sizeof(JOB_INFO_1))));
-	}
+	if (ret!=NULL)
+		for (i= 0; i < jobsreturned; i++)
+		{
+			job_info=JobtoPy(level, (buf + i * job_info_offset[level-1]));
+			if (job_info == NULL){
+				Py_DECREF(ret);
+				ret=NULL;
+				break;
+			}
+			PyTuple_SetItem(ret, i, job_info);
+		}
 	free(buf);
 	return ret;
 }
 
 
 // @pymethod dictionary|win32print|GetJob|Returns dictionary of information about a specified print job.
+// @rdesc Returns a dict representing a JOB_INFO_* struct, depending on level
 static PyObject *PyGetJob(PyObject *self, PyObject *args)
 {
 	HANDLE hprinter;
 	DWORD jobid;
 	DWORD level= 1;
-	JOB_INFO_1 *buf;
+	LPBYTE buf;
 	DWORD buf_size;
 	DWORD bufneeded_size;
 
 	if (!PyArg_ParseTuple(args, "ii|i:GetJob",
 	          &hprinter,// @pyparm int|hPrinter||Handle of printer.
 	          &jobid,   // @pyparm int|JobID||Job Identifier.
-	          &level   // @pyparm int|Level|1|Level of information to return (only JOB_INFO_1 is supported).
+	          &level   // @pyparm int|Level|1|Level of information to return (JOB_INFO_1, JOB_INFO_2, JOB_INFO_3 supported).
 	          ))
 		return NULL;
-	if (level != 1)
-	{
-		PyErr_SetString(PyExc_ValueError, "This information level is not supported");
-		return NULL;
-	}
+	if ((level < 1)||(level > 3))
+		return PyErr_Format(PyExc_ValueError, "Information level %d is not supported", level);
+
 	GetJob(hprinter, jobid, level, NULL, 0, &bufneeded_size);
 	if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
 		return PyWin_SetAPIError("GetJob");
 	buf_size= bufneeded_size;
-	if (NULL == (buf= (JOB_INFO_1 *)malloc(buf_size)))
+	if (NULL == (buf= (LPBYTE)malloc(buf_size)))
 	{
 		PyErr_SetString(PyExc_MemoryError, "Malloc failed.");
 		return NULL;
 	}
-	if (!GetJob(hprinter, jobid, level, (LPBYTE)buf, buf_size, &bufneeded_size))
+	if (!GetJob(hprinter, jobid, level, buf, buf_size, &bufneeded_size))
 	{
 		free(buf);
 		return PyWin_SetAPIError("GetJob");
 	}
-	PyObject *ret= JobtoPy(1, (LPBYTE)buf);
+	PyObject *ret= JobtoPy(level, buf);
 	free(buf);
 	return ret;
 }
 
 
-// Convert a python dictionary to a job structure. Only works for level 1
-// There has got to be an easier way to do this...
+// Convert a python dictionary to a JOB_INFO_* structure.
 // Returned buffer must be freed.
-LPBYTE PytoJob(DWORD level, PyObject *pyjobinfo)
+BOOL PytoJob(DWORD level, PyObject *pyjobinfo, LPBYTE *pbuf)
 {
-	PyObject* temp;
+	static char *job1_keys[]={"JobId","pPrinterName","pMachineName","pUserName","pDocument","pDatatype",
+		"pStatus","Status","Priority","Position","TotalPages","PagesPrinted","Submitted", NULL};
+	static char *job1_format="lzzzzzzlllll|O:JOB_INFO_1";
+
+	static char *job2_keys[]={"JobId","pPrinterName","pMachineName","pUserName","pDocument","pNotifyName",
+		"pDatatype","pPrintProcessor","pParameters","pDriverName","pDevMode","pStatus","pSecurityDescriptor",
+		"Status","Priority","Position","StartTime","UntilTime","TotalPages","Size",
+		"Submitted","Time","PagesPrinted", NULL};
+	static char *job2_format="lzzzzzzzzzOzOlllllllOll:JOB_INFO_2";
+
+	static char *job3_keys[]={"JobId","NextJobId","Reserved", NULL};
+	static char *job3_format="ll|l:JOB_INFO_3";
+
+	PyObject *obdevmode, *obsecurity_descriptor, *obsubmitted=Py_None;
 	char *err= NULL;
+	BOOL ret=FALSE;
 
-	if (level != 1)
-		return NULL;
-
-	JOB_INFO_1 *job1;
-	if (!PyDict_Check (pyjobinfo))
-	{
-		PyErr_SetString(PyExc_ValueError, "JOB_INFO must be a dictionary.");
-		return NULL;
-	}
-	if (NULL == (job1= (JOB_INFO_1 *)malloc(sizeof(JOB_INFO_1))))
-	{
-		PyErr_SetString(PyExc_MemoryError, "Malloc failed.");
-		return NULL;
-	}
-	if (NULL != (temp= PyDict_GetItemString(pyjobinfo, "JobID")) && PyInt_Check(temp))
-		job1->JobId= PyInt_AsLong(temp);
-	else
-		err= "JobID invalid";
-	if (NULL != (temp= PyDict_GetItemString(pyjobinfo, "pPrinterName")) && PyString_Check(temp))
-		job1->pPrinterName= PyString_AsString(temp);
-	else
-		err= "pPrinterName invalid";
-	if (NULL != (temp= PyDict_GetItemString(pyjobinfo, "pMachineName")) && PyString_Check(temp))
-		job1->pMachineName= PyString_AsString(temp);
-	else
-		err= "pMachineName invalid";
-	if (NULL != (temp= PyDict_GetItemString(pyjobinfo, "pUserName")) && PyString_Check(temp))
-		job1->pUserName= PyString_AsString(temp);
-	else
-		err= "pUsername invalid";
-	if (NULL != (temp= PyDict_GetItemString(pyjobinfo, "pDocument")) && PyString_Check(temp))
-		job1->pDocument= PyString_AsString(temp);
-	else
-		err= "pDocument invalid";
-	if (NULL != (temp= PyDict_GetItemString(pyjobinfo, "pDatatype")) && PyString_Check(temp))
-		job1->pDatatype= PyString_AsString(temp);
-	else
-		err= "pDatatype invalid";
-	if (NULL != (temp= PyDict_GetItemString(pyjobinfo, "pStatus")))
-		if (PyString_Check(temp))
-			job1->pStatus= PyString_AsString(temp);
-		else
-			job1->pStatus= NULL;
-	else
-		err= "pStatus invalid";
-	if (NULL != (temp= PyDict_GetItemString(pyjobinfo, "Status")) && PyInt_Check(temp))
-		job1->Status= PyInt_AsLong(temp);
-	else
-		err= "Status invalid";
-	if (NULL != (temp= PyDict_GetItemString(pyjobinfo, "Priority")) && PyInt_Check(temp))
-		job1->Priority= PyInt_AsLong (temp);
-	else
-		err= "Priority invalid";
-	if (NULL != (temp= PyDict_GetItemString(pyjobinfo, "Position")) && PyInt_Check(temp))
-		job1->Position= PyInt_AsLong (temp);
-	else
-		err= "Position invalid";
-	if (NULL != (temp= PyDict_GetItemString(pyjobinfo, "TotalPages")) && PyInt_Check(temp))
-		job1->TotalPages= PyInt_AsLong (temp);
-	else
-		err= "TotalPages invalid";
-	if (NULL != (temp= PyDict_GetItemString(pyjobinfo, "PagesPrinted")) && PyInt_Check(temp))
-		job1->PagesPrinted= PyInt_AsLong(temp);
-	else
-		err= "PagesPrinted invalid";
-	if (err != NULL)
-	{
-		free(job1);
-		PyErr_SetString(PyExc_ValueError, err);
-		return NULL;
-	}
-	return (LPBYTE)job1;
+	*pbuf=NULL;
+	switch(level){
+		case 0:
+			if (pyjobinfo==Py_None)
+				ret=TRUE;
+			else
+				PyErr_SetString(PyExc_TypeError,"Info must be None when level is 0.");
+			break;
+		case 1:
+			if (!PyDict_Check (pyjobinfo)){
+				PyErr_SetString(PyExc_TypeError, "JOB_INFO_1 must be a dictionary");
+				break;
+				}
+			JOB_INFO_1 *job1;
+			if (NULL == (*pbuf= (LPBYTE)malloc(sizeof(JOB_INFO_1)))){
+				PyErr_Format(PyExc_MemoryError, "Malloc failed for %d bytes", sizeof(JOB_INFO_1));
+				break;
+				}
+			job1=(JOB_INFO_1 *)*pbuf;
+			ZeroMemory(job1,sizeof(JOB_INFO_1));
+			if (PyArg_ParseTupleAndKeywords(dummy_tuple, pyjobinfo, job1_format, job1_keys,
+				&job1->JobId, &job1->pPrinterName, &job1->pMachineName, &job1->pUserName, &job1->pDocument,
+				&job1->pDatatype, &job1->pStatus, &job1->Status, &job1->Priority, &job1->Position,
+				&job1->TotalPages, &job1->PagesPrinted, &obsubmitted)
+				&&((obsubmitted==Py_None)||PyWinObject_AsSYSTEMTIME(obsubmitted, &job1->Submitted)))
+				ret=TRUE;
+			break;
+		case 2:
+			if (!PyDict_Check (pyjobinfo)){
+				PyErr_SetString(PyExc_TypeError, "JOB_INFO_2 must be a dictionary");
+				break;
+				}
+			JOB_INFO_2 *job2;
+			if (NULL == (*pbuf=(LPBYTE)malloc(sizeof(JOB_INFO_2)))){
+				PyErr_Format(PyExc_MemoryError, "Malloc failed for %d bytes", sizeof(JOB_INFO_2));
+				break;
+				}
+			job2=(JOB_INFO_2 *)*pbuf;
+			ZeroMemory(job2,sizeof(JOB_INFO_2));
+			if (PyArg_ParseTupleAndKeywords(dummy_tuple, pyjobinfo, job2_format, job2_keys,
+					&job2->JobId, &job2->pPrinterName, &job2->pMachineName, &job2->pUserName, &job2->pDocument,
+					&job2->pNotifyName, &job2->pDatatype, &job2->pPrintProcessor, &job2->pParameters,
+					&job2->pDriverName, &obdevmode, &job2->pStatus, &obsecurity_descriptor, &job2->Status,
+					&job2->Priority, &job2->Position, &job2->StartTime, &job2->UntilTime,
+					&job2->TotalPages, &job2->Size, &obsubmitted, &job2->Time, &job2->PagesPrinted)
+				&&PyWinObject_AsDEVMODE(obdevmode, &job2->pDevMode, TRUE)
+				&&PyWinObject_AsSECURITY_DESCRIPTOR(obsecurity_descriptor, &job2->pSecurityDescriptor, TRUE)
+				&&((obsubmitted==Py_None)||PyWinObject_AsSYSTEMTIME(obsubmitted, &job2->Submitted)))
+				ret=TRUE;
+			break;
+		case 3:
+			if (!PyDict_Check (pyjobinfo)){
+				PyErr_SetString(PyExc_TypeError, "JOB_INFO_3 must be a dictionary");
+				break;
+				}
+			JOB_INFO_3 *job3;
+			if (NULL == (*pbuf=(LPBYTE)malloc(sizeof(JOB_INFO_3)))){
+				PyErr_Format(PyExc_MemoryError, "Malloc failed for %d bytes", sizeof(JOB_INFO_3));
+				break;
+				}
+			job3=(JOB_INFO_3 *)*pbuf;
+			ZeroMemory(job3,sizeof(JOB_INFO_3));
+			ret=PyArg_ParseTupleAndKeywords(dummy_tuple, pyjobinfo, job3_format, job3_keys,
+				&job3->JobId, &job3->NextJobId, &job3->Reserved);
+			break;
+		default:
+			PyErr_Format(PyExc_NotImplementedError,"Information level %d is not supported", level);
+		}
+	if (!ret)
+		if (*pbuf!=NULL)
+			free(*pbuf);
+	return ret;
 }
 
 
@@ -681,26 +741,17 @@ static PyObject *PySetJob(PyObject *self, PyObject *args)
 	DWORD command;
 	LPBYTE buf;
 
-	if (!PyArg_ParseTuple(args, "iiiOi:GetJob",
+	if (!PyArg_ParseTuple(args, "iiiOi:SetJob",
 	    &hprinter,// @pyparm int|hPrinter||Handle of printer.
 	    &jobid,   // @pyparm int|JobID||Job Identifier.
-	    &level,   // @pyparm int|Level|1|Level of information to return (only 0 and JOB_INFO_1 are supported).
-	    &pyjobinfo, // @pyparm dict|JobInfo||JOB_INFO_1 Dictionary (can be None if Level is 0). Position should be JOB_POSITION_UNSPECIFIED.
+	    &level,   // @pyparm int|Level|1|Level of information in JobInfo dict (0, 1, 2, and 3 are supported).
+	    &pyjobinfo, // @pyparm dict|JobInfo||JOB_INFO_* Dictionary as returned by <om win32print.GetJob> or <om win32print.EnumJobs> (can be None if Level is 0).
 	    &command  // @pyparm int|Command||Job command value (JOB_CONTROL_*).
 	    ))
 		return NULL;
-	if (level != 1 && level != 0)
-	{
-		PyErr_SetString(PyExc_ValueError, "This information level is not supported");
+	if (!PytoJob(level, pyjobinfo, &buf))
 		return NULL;
-	}
-	if (pyjobinfo == Py_None)
-		buf= NULL;
-	else
-	{
-		if (NULL == (buf= PytoJob(1, pyjobinfo)))
-			return NULL;
-	}
+
 	if (!SetJob(hprinter, jobid, level, buf, command))
 	{
 		if (buf)
@@ -1416,6 +1467,26 @@ initwin32print(void)
   AddConstant(dict, "FORM_BUILTIN", FORM_BUILTIN);
   AddConstant(dict, "FORM_PRINTER", FORM_PRINTER);
 
+  // Printer, print server, and print job access rights
+  AddConstant(dict, "SERVER_ACCESS_ADMINISTER",SERVER_ACCESS_ADMINISTER);
+  AddConstant(dict, "SERVER_ACCESS_ENUMERATE",SERVER_ACCESS_ENUMERATE);
+  AddConstant(dict, "PRINTER_ACCESS_ADMINISTER",PRINTER_ACCESS_ADMINISTER);
+  AddConstant(dict, "PRINTER_ACCESS_USE",PRINTER_ACCESS_USE);
+  AddConstant(dict, "JOB_ACCESS_ADMINISTER",JOB_ACCESS_ADMINISTER);
+  AddConstant(dict, "JOB_ACCESS_READ",JOB_ACCESS_READ);
+  AddConstant(dict, "SERVER_ALL_ACCESS",SERVER_ALL_ACCESS);
+  AddConstant(dict, "SERVER_READ",SERVER_READ);
+  AddConstant(dict, "SERVER_WRITE",SERVER_WRITE);
+  AddConstant(dict, "SERVER_EXECUTE",SERVER_EXECUTE);
+  AddConstant(dict, "PRINTER_ALL_ACCESS",PRINTER_ALL_ACCESS);
+  AddConstant(dict, "PRINTER_READ",PRINTER_READ);
+  AddConstant(dict, "PRINTER_WRITE",PRINTER_WRITE);
+  AddConstant(dict, "PRINTER_EXECUTE",PRINTER_EXECUTE);
+  AddConstant(dict, "JOB_ALL_ACCESS",JOB_ALL_ACCESS);
+  AddConstant(dict, "JOB_READ",JOB_READ);
+  AddConstant(dict, "JOB_WRITE",JOB_WRITE);
+  AddConstant(dict, "JOB_EXECUTE",JOB_EXECUTE);
+
   FARPROC fp;
   HMODULE hmodule=LoadLibrary("winspool.drv");
   if (hmodule!=NULL){
@@ -1443,3 +1514,4 @@ initwin32print(void)
   }
   dummy_tuple=PyTuple_New(0);
 }
+
