@@ -385,7 +385,9 @@ static PyObject *PyEnumObjects(PyObject *self, PyObject *args)
         refresh); 
 	Py_END_ALLOW_THREADS
 
-	if (pdhStatus != ERROR_SUCCESS)  {
+	// it appears NT/2k will return 0, while XP will return
+	// PDH_MORE_DATA
+	if (pdhStatus != ERROR_SUCCESS && pdhStatus != PDH_MORE_DATA)  {
 		PyWinObject_FreeTCHAR(strMachine);
 		return PyWin_SetAPIError("EnumObjects for buffer size", pdhStatus);
 	}
