@@ -393,44 +393,46 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		return 1
 
 	def _AutoComplete(self):
+		def list2dict(l):
+			ret={}
+			for i in l:
+				ret[i] = None
+			return ret
+
 		self.SCIAutoCCancel() # Cancel old auto-complete lists.
 		# First try and get an object without evaluating calls
 		ob = self._GetObjectAtPos(bAllowCalls = 0)
 		# If that failed, try and process call or indexing to get the object.
 		if ob is None:
 			ob = self._GetObjectAtPos(bAllowCalls = 1)
+		items_dict = {}
 		if ob is not None:
-			items = []
 			try: # Catch unexpected errors when fetching attribute names from the object
 				try:
-					items = items + dir(ob)
+					items_dict.update(list2dict(dir(ob)))
 				except AttributeError:
 					pass # object has no __dict__
 				if hasattr(ob, "__class__"):
-					items = items + _get_class_attributes(ob.__class__)
-				# All names that start with "_" go!
-				items = filter(lambda word: word[0]!='_', items)
+					items_dict.update(list2dict(_get_class_attributes(ob.__class__)))
 				# The object may be a COM object with typelib support - lets see if we can get its props.
 				# (contributed by Stefan Migowsky)
 				try:
 					# Get the automation attributes
-					list = ob.__class__._prop_map_get_.keys()
+					items_dict.update(ob.__class__._prop_map_get_)
 					# See if there is an write only property 
 					# could be optimized
-					for i in ob.__class__._prop_map_put_.keys():
-						if i not in list:
-							list.append(i)
+					items_dict.update(ob.__class__._prop_map_put_)
 					# append to the already evaluated list
-					items = items + list
 				except AttributeError:
 					pass
 			except:
 				win32ui.SetStatusText("Error attempting to get object attributes - %s" % (`sys.exc_info()[0]`,))
 
+		items = items_dict.keys()
+		# All names that start with "_" go!
+		items = filter(lambda word: word[0]!='_', items)
 
-			if items:
-				self.SCIAutoCShow(items)
-		else:
+		if not items:
 			# Heuristics a-la AutoExpand
 			# The idea is to find other usages of the current binding
 			# and assume, that it refers to the same object (or at least,
@@ -464,8 +466,9 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 				items.remove(right[1:])
 			except ValueError:
 				pass
-			if items:
-				self.SCIAutoCShow(items)
+		if items:
+			items.sort()
+			self.SCIAutoCShow(items)
 
 	# TODO: This is kinda slow. Probably need some kind of cache 
 	# here that is flushed upon file save
