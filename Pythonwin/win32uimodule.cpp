@@ -1701,6 +1701,33 @@ static PyObject *ui_get_device_caps( PyObject *, PyObject *args )
 	return PyInt_FromLong( ::GetDeviceCaps( (HDC)hdc, index) );
 }
 
+// @pymethod int|win32ui|TranslateMessage|Calls the API version of TranslateMessage.
+static PyObject *ui_translate_message(PyObject *, PyObject *args)
+{
+	MSG _msg; MSG *msg=&_msg;
+	if (!PyArg_ParseTuple(args, "(iiiii(ii))", &msg->hwnd,&msg->message,&msg->wParam,&msg->lParam,&msg->time,&msg->pt.x,&msg->pt.y))
+		return NULL;
+	GUI_BGN_SAVE;
+	BOOL rc = ::TranslateMessage(msg);
+	GUI_END_SAVE;
+	return PyInt_FromLong(rc);
+}
+
+static PyObject *ui_translate_vk(PyObject *, PyObject *args)
+{
+	int vk;
+	if (!PyArg_ParseTuple(args, "i", &vk))
+		return NULL;
+	static HKL layout=GetKeyboardLayout(0);
+	static BYTE State[256];
+	if (GetKeyboardState(State)==FALSE)
+		RETURN_ERR("Can't get keyboard state");
+	char result[2];
+	UINT sc=MapVirtualKeyEx(vk,0,layout);
+	int nc = ToAsciiEx(vk,sc,State,(unsigned short *)result,0,layout);
+	return PyString_FromStringAndSize(result, nc);
+}
+
 extern PyObject *ui_get_dialog_resource( PyObject *, PyObject *args );
 extern PyObject *ui_create_app( PyObject *, PyObject *args );
 extern PyObject *ui_get_app( PyObject *, PyObject *args );
@@ -1832,6 +1859,8 @@ static struct PyMethodDef ui_functions[] = {
 	{"SetStatusText",			ui_set_status_text,	1}, // @pymeth SetStatusText|Sets the text in the status bar.
 	{"StartDebuggerPump",		ui_start_debugger_pump,	1}, // @pymeth StartDebuggerPump|Starts the debugger message pump.
 	{"StopDebuggerPump",		ui_stop_debugger_pump,	1}, // @pymeth StopDebuggerPump|Stops the debugger message pump.
+	{"TranslateMessage",            ui_translate_message, 1}, // @pymeth TranslateMessage|Calls ::TranslateMessage.
+	{"TranslateVirtualKey",            ui_translate_vk, 1}, // @pymeth TranslateVirtualKey|Translates a virtual key.
 	{"WinHelp",					ui_win_help,	1}, // @pymeth WinHelp|Invokes the Window Help engine.
 	{"WriteProfileVal",			ui_write_profile_val,	1}, // @pymeth WriteProfileVal|Writes a value to the INI file.
 
