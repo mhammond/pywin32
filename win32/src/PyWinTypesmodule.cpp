@@ -112,6 +112,13 @@ BOOL PySocket_AsSOCKET
 
 #ifndef PYCOM_USE_FREE_THREAD
 DWORD dwTlsIndex = 0;
+// PyThreadState *_tlsThisThreadState = NULL; // thread local storage.
+
+// This structure is stored in the TLS slot.
+struct ThreadData{
+	PyThreadState *ts;
+	BOOL owned; // do we free the state when we die?
+};
 
 PyInterpreterState *PyWin_InterpreterState;
 
@@ -127,6 +134,14 @@ void PyWinInterpreterState_Ensure()
 		PyWin_InterpreterState = threadStateSave->interp;
 		PyThreadState_Swap(threadStateSave);
 	}
+	// Save the main thread's state in the TLS map, but not owned.
+	ThreadData *pData = (ThreadData *)LocalAlloc(LMEM_ZEROINIT, sizeof(ThreadData));
+	if (!pData)
+		Py_FatalError("Out of memory allocating thread state.");
+	TlsSetValue(dwTlsIndex, pData);
+	pData->ts = PyThreadState_Swap(NULL);
+	PyThreadState_Swap(pData->ts);
+	pData->owned = FALSE;
 }
 
 void PyWinInterpreterState_Free()
@@ -134,19 +149,17 @@ void PyWinInterpreterState_Free()
 	PyWinThreadState_Free();
 	PyWin_InterpreterState = NULL; // Eek - should I be freeing something?
 }
-// PyThreadState *_tlsThisThreadState = NULL; // thread local storage.
-
-// This structure is stored in the TLS slot.  At this stage only a Python thread state
-// is kept, but this may change in the future...
-struct ThreadData{
-	PyThreadState *ts;
-};
 
 // Ensure that we have a Python thread state available to use.
 // If this is called for the first time on a thread, it will allocate
 // the thread state.  This does NOT change the state of the Python lock.
 // Returns TRUE if a new thread state was created, or FALSE if a
 // thread state already existed.
+#ifdef TRACE_THREADSTATE
+static LONG numThreadStatesCreated = 0;
+static LONG numAcquires = 0;
+#endif /* TRACE_THREADSTATE */
+
 BOOL PyWinThreadState_Ensure()
 {
 	ThreadData *pData = (ThreadData *)TlsGetValue(dwTlsIndex);
@@ -160,6 +173,10 @@ BOOL PyWinThreadState_Ensure()
 			Py_FatalError("Out of memory allocating thread state.");
 		TlsSetValue(dwTlsIndex, pData);
 		pData->ts = PyThreadState_New(PyWin_InterpreterState);
+		pData->owned = TRUE;
+#ifdef TRACE_THREADSTATE
+		InterlockedIncrement(&numThreadStatesCreated);
+#endif /* TRACE_THREADSTATE */
 		return TRUE; // Did create a thread state state
 	}
 	return FALSE; // Thread state was previously created
@@ -171,6 +188,9 @@ void PyWinInterpreterLock_Acquire()
 	ThreadData *pData = (ThreadData *)TlsGetValue(dwTlsIndex);
 	PyThreadState *thisThreadState = pData->ts;
 	PyEval_AcquireThread(thisThreadState);
+#ifdef TRACE_THREADSTATE
+	InterlockedIncrement(&numAcquires);
+#endif /* TRACE_THREADSTATE */
 }
 
 // Asuming we have a valid thread state, release the Python lock.
@@ -187,7 +207,7 @@ void PyWinInterpreterLock_Release()
 void PyWinThreadState_Free()
 {
 	ThreadData *pData = (ThreadData *)TlsGetValue(dwTlsIndex);
-	if (!pData) return;
+	if (!pData || !pData->owned) return;
 	PyThreadState *thisThreadState = pData->ts;
 	PyThreadState_Delete(thisThreadState);
 	TlsSetValue(dwTlsIndex, NULL);
@@ -200,6 +220,14 @@ void PyWinThreadState_Clear()
 	PyThreadState *thisThreadState = pData->ts;
 	PyThreadState_Clear(thisThreadState);
 }
+
+#ifdef TRACE_THREADSTATE
+static PyObject *_GetLockStats(PyObject *, PyObject *)
+{
+	return Py_BuildValue("ll", numThreadStatesCreated, numAcquires);
+}
+#endif /* TRACE_THREADSTATE */
+
 #endif
 
 /* error helper - GetLastError() is provided, but this is for exceptions */
@@ -374,6 +402,9 @@ static struct PyMethodDef pywintypes_functions[] = {
 #endif
 	{"HANDLE",      PyWinMethod_NewHANDLE, 1 },      // @pymeth HANDLE|Creates a new <o PyHANDLE> object.
 	{"HKEY",        PyWinMethod_NewHKEY, 1 },      // @pymeth HKEY|Creates a new <o PyHKEY> object.
+#ifdef TRACE_THREADSTATE
+	{"_GetLockStats", _GetLockStats, 1},
+#endif /* TRACE_THREADSTATE */
 	{NULL,			NULL}
 };
 
