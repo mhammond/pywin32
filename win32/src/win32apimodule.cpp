@@ -1969,15 +1969,19 @@ countStrings(char *data, int len)
 
 /* Convert PyObject into Registry data. 
    Allocates space as needed. */
-static int
+static bool
 Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataSize)
 {
 	int i,j;
 	switch (typ) {
 		case REG_DWORD:
 			if (value!=Py_None && !PyInt_Check(value))
-				return 0;
-			*retDataBuf=(BYTE *)PyMem_NEW(DWORD, 1);
+				return false;
+			*retDataBuf = (BYTE *)PyMem_NEW(DWORD, sizeof(DWORD));
+			if (*retDataBuf==NULL){
+				PyErr_NoMemory();
+				return false;
+			}
 			*retDataSize=sizeof(DWORD);
 			if (value==Py_None) {
 				DWORD zero = 0;
@@ -1992,10 +1996,14 @@ Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataSize)
 				*retDataSize=1;
 			else {
 				if (!PyString_Check(value))
-					return 0;
+					return false;
 				*retDataSize=strlen(PyString_AS_STRING((PyStringObject *)value))+1;
 			}
 			*retDataBuf=(BYTE *)PyMem_NEW(DWORD, *retDataSize);
+			if (*retDataBuf==NULL){
+				PyErr_NoMemory();
+				return false;
+			}
 			if (value==Py_None)
 				strcpy((char *)*retDataBuf, "");
 			else
@@ -2010,7 +2018,7 @@ Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataSize)
 					i = 0;
 				else {
 					if (!PyList_Check(value))
-						return 0;
+						return false;
 					i=PyList_Size(value);
 				}
 				for(j=0; j<i; j++)
@@ -2023,6 +2031,10 @@ Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataSize)
 			
 				*retDataSize=size+1;
 				*retDataBuf=(BYTE *)PyMem_NEW(char, *retDataSize);
+				if (*retDataBuf==NULL){
+					PyErr_NoMemory();
+					return false;
+				}
 				char *P=(char *)*retDataBuf;
 
 				for(j=0; j<i; j++)
@@ -2043,9 +2055,13 @@ Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataSize)
 				*retDataSize = 0;
 			else {
 				if (!PyString_Check(value))
-					return 0;
+					return false;
 				*retDataSize=PyString_Size(value);
 				*retDataBuf=(BYTE *)PyMem_NEW(char, *retDataSize);
+				if (*retDataBuf==NULL){
+					PyErr_NoMemory();
+					return false;
+				}
 				memcpy(*retDataBuf,PyString_AS_STRING((PyStringObject *)value),*retDataSize);
 			}
 			break;
@@ -2152,7 +2168,9 @@ PyRegEnumValue( PyObject *self, PyObject *args )
 	PyObject *obData=Reg2Py(retDataBuf, retDataSize, typ);
 	if (obData==NULL)
 		return NULL;
-	return Py_BuildValue("sOi", retValueBuf, obData, typ);
+	PyObject *retVal = Py_BuildValue("sOi", retValueBuf, obData, typ);
+	Py_DECREF(obData);
+	return retVal;
 	// @comm This function is typically called repeatedly, until an exception is raised, indicating no more values.
 }
 
@@ -2295,7 +2313,9 @@ PyRegQueryInfoKey( PyObject *self, PyObject *args)
   li.HighPart=ft.dwHighDateTime;
   if (!(l=PyLong_FromDouble(LI2double(&li))))
       return NULL;
-  return Py_BuildValue("iiO",nSubKeys,nValues,l);
+  PyObject *ret = Py_BuildValue("iiO",nSubKeys,nValues,l);
+  Py_DECREF(l);
+  return ret;
 }
 
 // @pymethod string|win32api|RegQueryValue|The RegQueryValue method retrieves the value associated with
@@ -2381,7 +2401,7 @@ PyRegSaveKey( PyObject *self, PyObject *args )
 	// @pyparm <o PyHKEY>/int|key||An already open key, or any one of the following win32con constants:<nl>HKEY_CLASSES_ROOT<nl>HKEY_CURRENT_USER<nl>HKEY_LOCAL_MACHINE<nl>HKEY_USERS
 	// @pyparm string|filename||The name of the file to save registry data to.
 	// This file cannot already exist. If this filename includes an extension, it cannot be used on file allocation table (FAT) file systems by the <om win32api.RegLoadKey>, <om win32api.RegReplaceKey>, or <om win32api.RegRestoreKey> methods. 
-	// @pyparm <o PySECURITY_ATTRIBUTES>|sa||The security attributes of the created file.
+	// @pyparm <o PySECURITY_ATTRIBUTES>|sa|None|The security attributes of the created file.
 	if (!PyArg_ParseTuple(args, "Os|O:RegSaveKey", &obKey, &fileName, &obSA))
 		return NULL;
 	if (!PyWinObject_AsHKEY(obKey, &hKey))
@@ -2399,7 +2419,6 @@ PyRegSaveKey( PyObject *self, PyObject *args )
 	return Py_None;
 	// @comm If key represents a key on a remote computer, the path described by fileName is relative to the remote computer.
 	// <nl>The caller of this method must possess the SeBackupPrivilege security privilege.
-	// <nl>Currently, this function passes NULL for security_attributes to the API.
 }
 // @pymethod |win32api|RegSetValue|Associates a value with a specified key.  Currently, only strings are supported.
 static PyObject *
@@ -2493,12 +2512,15 @@ PyRegSetValueEx( PyObject *self, PyObject *args )
 	// @pyseeapi RegSetValueEx
 	if (!Py2Reg(value, typ, &data, &len))
 	{
-		PyErr_SetObject(PyExc_ValueError, Py_BuildValue("sO","Data didn't match Registry Type", data));
+		if (!PyErr_Occurred())
+			PyErr_SetString(PyExc_ValueError, 
+		                	"Could not convert the data to the specified type.");
 		return NULL;
 	}
 	PyW32_BEGIN_ALLOW_THREADS
 	rc=RegSetValueEx(hKey, valueName, NULL, typ, data, len );
 	PyW32_END_ALLOW_THREADS
+	PyMem_Free((char *)data);
 	if (rc!=ERROR_SUCCESS)
 		return ReturnAPIError("RegSetValueEx", rc);
 	Py_INCREF(Py_None);
