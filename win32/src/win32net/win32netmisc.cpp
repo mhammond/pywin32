@@ -1149,3 +1149,116 @@ done:
 	return ret;
 	// @pyseeapi NetServerDiskEnum
 }
+
+PyObject *
+PyNetStatisticsGet(PyObject *self, PyObject *args)
+{
+	STAT_WORKSTATION_0 *stat_workstation;
+	STAT_SERVER_0 *stat_server;
+	NET_API_STATUS err;
+	PyObject *obServer=NULL, *obService=NULL;
+	PyObject *ret=NULL;
+	WCHAR *server=NULL,*service=NULL;
+	DWORD level=0,options=0;
+	LPBYTE buf=NULL;
+	int cmp_res;
+	// @pyparm string/<o PyUnicode>|server||Name of server/workstation to retrieve statistics for (None or blank uses local).
+	// @pyparm string/<o PyUnicode>|service||SERVICE_SERVER or SERVICE_WORKSTATION
+	// @pyparm int|level||Only 0 currently supported.
+	// @pyparm int|options||Must be zero.
+	if (!PyArg_ParseTuple(args, "OO|ii", &obServer, &obService, &level, &options))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obServer, &server, TRUE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(obService, &service, FALSE))
+		goto done;
+
+	err = NetStatisticsGet(server,service,level,options,&buf);
+	if (err != NERR_Success){
+		ReturnNetError("NetStatisticsGet",err);
+		goto done;
+		}
+
+	cmp_res = CompareString(LOCALE_USER_DEFAULT,0,service,-1,SERVICE_SERVER,-1);
+	if (cmp_res==CSTR_EQUAL){
+		stat_server=(STAT_SERVER_0 *)buf;
+		ret=Py_BuildValue(
+				"{s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l}",
+				"sts0_start",stat_server->sts0_start,
+				"sts0_fopens",stat_server->sts0_fopens,
+				"sts0_devopens",stat_server->sts0_devopens,
+				"sts0_jobsqueued",stat_server->sts0_jobsqueued,
+				"sts0_sopens",stat_server->sts0_sopens,
+				"sts0_stimedout",stat_server->sts0_stimedout,
+				"sts0_serrorout",stat_server->sts0_serrorout,
+				"sts0_pwerrors",stat_server->sts0_pwerrors,
+				"sts0_permerrors",stat_server->sts0_permerrors,
+				"sts0_syserrors",stat_server->sts0_syserrors,
+				"sts0_bytessent_low",stat_server->sts0_bytessent_low,
+				"sts0_bytessent_high",stat_server->sts0_bytessent_high,
+				"sts0_bytesrcvd_low",stat_server->sts0_bytesrcvd_low,
+				"sts0_bytesrcvd_high",stat_server->sts0_bytesrcvd_high,
+				"sts0_avresponse",stat_server->sts0_avresponse,
+				"sts0_reqbufneed",stat_server->sts0_reqbufneed,
+				"sts0_bigbufneed",stat_server->sts0_bigbufneed);
+		goto done;
+		}
+	cmp_res = CompareString(LOCALE_USER_DEFAULT,0,service,-1,SERVICE_WORKSTATION,-1);
+	if (cmp_res==CSTR_EQUAL){
+		stat_workstation=(STAT_WORKSTATION_0 *)buf;
+		ret=Py_BuildValue(
+				"{s:N,s:N,s:N,s:N,s:N,s:N,s:N,s:N,s:N,s:N,s:N,s:N,s:N,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l}",
+				"StatisticsStartTime",PyWinObject_FromLARGE_INTEGER(stat_workstation->StatisticsStartTime),
+				"BytesReceived",PyWinObject_FromLARGE_INTEGER(stat_workstation->BytesReceived),
+				"SmbsReceived",PyWinObject_FromLARGE_INTEGER(stat_workstation->SmbsReceived),
+				"PagingReadBytesRequested",PyWinObject_FromLARGE_INTEGER(stat_workstation->PagingReadBytesRequested),
+				"NonPagingReadBytesRequested",PyWinObject_FromLARGE_INTEGER(stat_workstation->NonPagingReadBytesRequested),
+				"CacheReadBytesRequested",PyWinObject_FromLARGE_INTEGER(stat_workstation->NonPagingReadBytesRequested),
+				"NetworkReadBytesRequested",PyWinObject_FromLARGE_INTEGER(stat_workstation->NetworkReadBytesRequested),
+				"BytesTransmitted",PyWinObject_FromLARGE_INTEGER(stat_workstation->BytesTransmitted),
+				"SmbsTransmitted",PyWinObject_FromLARGE_INTEGER(stat_workstation->SmbsTransmitted),
+				"PagingWriteBytesRequested",PyWinObject_FromLARGE_INTEGER(stat_workstation->PagingWriteBytesRequested),
+				"NonPagingWriteBytesRequested",PyWinObject_FromLARGE_INTEGER(stat_workstation->NonPagingWriteBytesRequested),
+				"CacheWriteBytesRequested",PyWinObject_FromLARGE_INTEGER(stat_workstation->CacheWriteBytesRequested),
+				"NetworkWriteBytesRequested",PyWinObject_FromLARGE_INTEGER(stat_workstation->NetworkWriteBytesRequested),
+				"InitiallyFailedOperations",stat_workstation->InitiallyFailedOperations,
+				"FailedCompletionOperations",stat_workstation->FailedCompletionOperations,
+				"ReadOperations",stat_workstation->ReadOperations,
+				"RandomReadOperations",stat_workstation->RandomReadOperations,
+				"ReadSmbs",stat_workstation->ReadSmbs,
+				"LargeReadSmbs",stat_workstation->LargeReadSmbs,
+				"SmallReadSmbs",stat_workstation->SmallReadSmbs,
+				"WriteOperations",stat_workstation->WriteOperations,
+				"RandomWriteOperations",stat_workstation->RandomWriteOperations,
+				"WriteSmbs",stat_workstation->WriteSmbs,
+				"LargeWriteSmbs",stat_workstation->LargeWriteSmbs,
+				"SmallWriteSmbs",stat_workstation->SmallWriteSmbs,
+				"RawReadsDenied",stat_workstation->RawReadsDenied,
+				"RawWritesDenied",stat_workstation->RawWritesDenied,
+				"NetworkErrors",stat_workstation->NetworkErrors,
+				"Sessions",stat_workstation->Sessions,
+				"FailedSessions",stat_workstation->FailedSessions,
+				"Reconnects",stat_workstation->Reconnects,
+				"CoreConnects",stat_workstation->CoreConnects,
+				"Lanman20Connects",stat_workstation->Lanman20Connects,
+				"Lanman21Connects",stat_workstation->Lanman21Connects,
+				"LanmanNtConnects",stat_workstation->LanmanNtConnects,
+				"ServerDisconnects",stat_workstation->ServerDisconnects,
+				"HungSessions",stat_workstation->HungSessions,
+				"UseCount",stat_workstation->UseCount,
+				"FailedUseCount",stat_workstation->FailedUseCount,
+				"CurrentCommands",stat_workstation->CurrentCommands
+				);
+		goto done;
+		}
+	PyErr_SetString(PyExc_ValueError, "Invalid service name");
+
+	done:
+	if (server!=NULL)
+		PyWinObject_FreeWCHAR(server);
+	if (service!=NULL)
+		PyWinObject_FreeWCHAR(service);
+	if (buf != NULL)
+		NetApiBufferFree(buf);
+	return ret;
+}

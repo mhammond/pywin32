@@ -914,6 +914,7 @@ extern PyObject * PyNetWkstaTransportEnum(PyObject *self, PyObject *args);
 extern PyObject * PyNetWkstaTransportAdd(PyObject *self, PyObject *args);
 extern PyObject * PyNetWkstaTransportDel(PyObject *self, PyObject *args);
 extern PyObject * PyNetServerDiskEnum(PyObject *self, PyObject *args);
+extern PyObject * PyNetStatisticsGet(PyObject *self, PyObject *args);
 
 // NetUse Functions
 extern PyObject * PyNetUseAdd(PyObject *self, PyObject *args);
@@ -997,6 +998,7 @@ static struct PyMethodDef win32net_functions[] = {
 	{"NetFileEnum",             PyNetFileEnum,             1}, // @pymeth NetFileEnum|Returns open file resources for server (single client and/or user may also be passed as criteria).
 	{"NetFileClose",            PyNetFileClose,            1}, // @pymeth NetFileClose|Closes file for specified server and file id.
 	{"NetFileGetInfo",          PyNetFileGetInfo,          1}, // @pymeth NetFileGetInfo|Get info about files open on the server.
+	{"NetStatisticsGet",		PyNetStatisticsGet,		   1}, // @pymeth NetStatisticsGet|Return server or workstation stats
 	{NULL,			NULL}
 };
 
@@ -1017,6 +1019,9 @@ initwin32net(void)
   if (!dict) return;
   PyWinGlobals_Ensure();
   PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
+  PyDict_SetItemString(dict, "SERVICE_SERVER", PyUnicode_FromWideChar(SERVICE_SERVER,wcslen(SERVICE_SERVER)));
+  PyDict_SetItemString(dict, "SERVICE_WORKSTATION", PyUnicode_FromWideChar(SERVICE_WORKSTATION,wcslen(SERVICE_WORKSTATION)));
+  
   Py_INCREF(PyWinExc_ApiError);
   AddConstant(dict, "USE_NOFORCE", USE_NOFORCE);
   AddConstant(dict, "USE_FORCE", USE_FORCE);
