@@ -91,12 +91,8 @@ regPolicy = 'CLSID\\%s\\PythonCOMPolicy'
 regDispatcher = 'CLSID\\%s\\PythonCOMDispatcher'
 regAddnPath = 'CLSID\\%s\\PythonCOMPath'
 
-# sys.exc_info() doesnt appear until 1.5.
-try:
-	from sys import exc_info
-except ImportError:
-	def exc_info():
-		return sys.exc_type, sys.exc_value, sys.exc_traceback
+# exc_info doesnt appear 'till Python 1.5, but we now have other 1.5 deps!
+from sys import exc_info
 
 def CreateInstance(clsid, reqIID):
   """Create a new instance of the specified IID
@@ -174,7 +170,12 @@ class BasicWrapPolicy:
          and only 1 property at a time can be fetched (which is all we support in getidsofnames anyway!)
          This is the new, prefered handler (the default _invoke_ handler simply called _invokeex_)
      _getnextdispid_- uses self._name_to_dispid_ to enumerate the DISPIDs
-  
+
+  Argument conversion
+
+  If the object has a method _arg_transformer_, it will be called with the list of arguments for
+  each Invoke() call, and the result is passed as the actual argument list.  This provides an
+  opportunity to wrap IDispatch pointers, convert Unicode etc.
   """
   def __init__(self, object):
     """Initialise the policy object
@@ -233,6 +234,10 @@ class BasicWrapPolicy:
     else:
       self._com_interfaces_ = [ ]
 
+    # Allow a function to be used to specify special argument translations.
+    if hasattr(ob, '_arg_transformer_'):
+      self._arg_transformer_ = ob._arg_transformer_
+
   # "QueryInterface" handling.
   def _QueryInterface_(self, iid):
     """The main COM entry-point for QueryInterface. 
@@ -264,6 +269,10 @@ class BasicWrapPolicy:
         dispid = self._name_to_dispid_[string.lower(dispid)]
       except KeyError:
         raise COMException(scode = winerror.DISP_E_MEMBERNOTFOUND, desc="Member not found")
+    try:
+      args = self._arg_transformer_(args)
+    except AttributeError: # Some policies may not support this.
+      pass
     return self._invoke_(dispid, lcid, wFlags, args)
  
   def _invoke_(self, dispid, lcid, wFlags, args):
@@ -314,6 +323,10 @@ class BasicWrapPolicy:
         dispid = self._name_to_dispid_[string.lower(dispid)]
       except KeyError:
         raise COMException(scode = winerror.DISP_E_MEMBERNOTFOUND, desc="Member not found")
+    try:
+      args = self._arg_transformer_(args)
+    except AttributeError: # Some policies may not support this.
+      pass
     return self._invokeex_(dispid, lcid, wFlags, args, kwargs, serviceProvider)
  
   def _invokeex_(self, dispid, lcid, wFlags, args, kwargs, serviceProvider):
@@ -499,7 +512,11 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
         if not wFlags & DISPATCH_PROPERTYGET:
           raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)	# not found
       else:
-        func = getattr(self._obj_, funcname)
+        try:
+            func = getattr(self._obj_, funcname)
+        except AttributeError:
+            # May have a dispid, but that doesnt mean we have the function!
+          raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
         # Should check callable here
         return apply(func, args)
 
