@@ -722,13 +722,13 @@ BOOL PythonService_PrepareToHostMultiple(const TCHAR *service_name, PyObject *kl
 	else if (g_serviceProcessFlags != SERVICE_WIN32_SHARE_PROCESS)
 		return FALSE;
 	UINT i;
-	for (i=0;i<MAX_SERVICES;i++) {
+	for (i=0;i<g_maxServices;i++) {
 		if (DispatchTable[i].lpServiceName==NULL)
 			break;
 		if (_tcscmp(service_name, DispatchTable[i].lpServiceName)==0)
 			return FALSE;
 	}
-	if (i>=MAX_SERVICES)
+	if (i>=g_maxServices)
 		return FALSE;
 
 	DispatchTable[i].lpServiceName = _tcsdup(service_name);
