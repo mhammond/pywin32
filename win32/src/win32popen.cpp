@@ -579,6 +579,7 @@ static int _PyPclose(FILE *file)
 	result = fclose(file);
 
 	if (_PyPopenProcs) {
+		CEnterLeavePython _celp;
 		if ((fileObj = PyLong_FromVoidPtr(file)) != NULL &&
 		    (procObj = PyDict_GetItem(_PyPopenProcs,
 					      fileObj)) != NULL &&
@@ -594,6 +595,7 @@ static int _PyPclose(FILE *file)
 				PyList_SetItem(procObj,1,
 					       PyInt_FromLong(file_count));
 			} else {
+				Py_BEGIN_ALLOW_THREADS
 				/* Last file for this process */
 				if (result != EOF &&
 				    WaitForSingleObject(hProcess, INFINITE) != WAIT_FAILED &&
@@ -617,9 +619,9 @@ static int _PyPclose(FILE *file)
 					}
 					result = -1;
 				}
-
 				/* Free up the native handle at this point */
 				CloseHandle(hProcess);
+				Py_END_ALLOW_THREADS
 			}
 
 			/* Remove this file pointer from dictionary */
