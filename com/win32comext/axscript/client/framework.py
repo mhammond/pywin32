@@ -440,7 +440,7 @@ class COMScript:
 	def _query_interface_(self, iid):
 		if self.debugManager:
 			return self.debugManager._query_interface_for_debugger_(iid)
-		trace("ScriptEngine QI - unknown IID", iid)
+#		trace("ScriptEngine QI - unknown IID", iid)
 		return 0
 	#
 	# IActiveScriptParse
