@@ -15,7 +15,8 @@ import pywintypes
 
 
 def __WrapDispatch(dispatch, userName = None, resultCLSID = None, typeinfo = None, \
-                  UnicodeToString = NeedUnicodeConversions, clsctx = pythoncom.CLSCTX_SERVER):
+                  UnicodeToString = NeedUnicodeConversions, clsctx = pythoncom.CLSCTX_SERVER,
+                  WrapperClass = None):
   """
     Helper function to return a makepy generated class for a CLSID if it exists,
     otherwise cope by using CDispatch.
@@ -44,7 +45,8 @@ def __WrapDispatch(dispatch, userName = None, resultCLSID = None, typeinfo = Non
         pass
 
   # Return a "dynamic" object - best we can do!
-  return dynamic.Dispatch(dispatch, userName, CDispatch, typeinfo, UnicodeToString=UnicodeToString,clsctx=clsctx)
+  if WrapperClass is None: WrapperClass = CDispatch
+  return dynamic.Dispatch(dispatch, userName, WrapperClass, typeinfo, UnicodeToString=UnicodeToString,clsctx=clsctx)
 
 
 def GetObject(Pathname = None, Class = None, clsctx = None):
