@@ -176,6 +176,10 @@ def TestGenerated():
 	TestApplyResult(o.Test4, (constants.Attr2,), constants.Attr2)
 	TestApplyResult(o.Test5, (constants.Attr2,), constants.Attr2)
 
+	now = pythoncom.MakeTime(time.gmtime(time.time()))
+	later = pythoncom.MakeTime(time.gmtime(time.time()+1))
+	TestApplyResult(o.EarliestDate, (now, later), now)
+
 	assert o.DoubleString("foo") == "foofoo"
 	assert o.DoubleInOutString("foo") == "foofoo"
 
