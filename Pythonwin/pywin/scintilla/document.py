@@ -53,13 +53,8 @@ class CScintillaDocument(ParentScintillaDocument):
 			view.SetReadOnly(0)
 
 			doc = self
-			sm = text
-			if sm:
-				sma = array.array('c', sm)
-				(a,l) = sma.buffer_info()
-				view.SendScintilla(SCI_CLEARALL)
-				view.SendScintilla(SCI_ADDTEXT, l, a)
-				sma = None
+			view.SendScintilla(SCI_CLEARALL)
+			view.SendMessage(SCI_ADDTEXT, buffer(text))
 			view.SendScintilla(SCI_SETUNDOCOLLECTION, 1, 0)
 			view.SendScintilla(win32con.EM_EMPTYUNDOBUFFER, 0, 0)
 
@@ -68,19 +63,17 @@ class CScintillaDocument(ParentScintillaDocument):
 
 	def HookViewNotifications(self, view):
 		parent = view.GetParentFrame()
-		parent.HookNotify(self.OnSavePointReached, SCN_SAVEPOINTREACHED)
-		parent.HookNotify(self.OnSavePointLeft, SCN_SAVEPOINTLEFT)
-		parent.HookNotify(self.OnModifyAttemptRO, SCN_MODIFYATTEMPTRO)
 		parent.HookNotify(ViewNotifyDelegate(self, "OnBraceMatch"), SCN_CHECKBRACE)
 		parent.HookNotify(ViewNotifyDelegate(self, "OnMarginClick"), SCN_MARGINCLICK)
 		parent.HookNotify(ViewNotifyDelegate(self, "OnNeedShown"), SCN_NEEDSHOWN)
 
+		parent.HookNotify(DocumentNotifyDelegate(self, "OnSavePointReached"), SCN_SAVEPOINTREACHED)
+		parent.HookNotify(DocumentNotifyDelegate(self, "OnSavePointLeft"), SCN_SAVEPOINTLEFT)
+		parent.HookNotify(DocumentNotifyDelegate(self, "OnModifyAttemptRO"), SCN_MODIFYATTEMPTRO)
 		# Tell scintilla what characters should abort auto-complete.
 		view.SCIAutoCStops(string.whitespace+"()[]:;+-/*=\\?'!#@$%^&,<>\"'|" )
 
-		if view == self.GetFirstView():
-			pass
-		else:
+		if view != self.GetFirstView():
 			view.SCISetDocPointer(self.GetFirstView().SCIGetDocPointer())
 
 
@@ -106,9 +99,9 @@ class CScintillaDocument(ParentScintillaDocument):
 	def MarkerToggle( self, lineNo, marker ):
 		v = self.GetEditorView()
 		if self.MarkerCheck(lineNo, marker):
-			v.SCIMarkerDelete(lineNo, marker)
+			v.SCIMarkerDelete(lineNo-1, marker)
 		else:
-			v.SCIMarkerAdd(lineNo, marker)
+			v.SCIMarkerAdd(lineNo-1, marker)
 	def MarkerDelete( self, lineNo, marker ):
 		self.GetEditorView().SCIMarkerDelete(lineNo-1, marker)
 	def MarkerDeleteAll( self, marker ):
@@ -133,9 +126,13 @@ class CScintillaDocument(ParentScintillaDocument):
 		# Find the first frame with a view,
 		# then ask it to give the editor view
 		# as it knows which one is "active"
-		frame = self.GetFirstView().GetParentFrame()
-		return frame.GetEditorView()
+		try:
+			frame_gev = self.GetFirstView().GetParentFrame().GetEditorView
+		except AttributeError:
+			return self.GetFirstView()
+		return frame_gev()
 
+# Delegate to the correct view, based on the control that sent it.
 class ViewNotifyDelegate:
 	def __init__(self, doc, name):
 		self.doc = doc
@@ -145,3 +142,13 @@ class ViewNotifyDelegate:
 		for v in self.doc.GetAllViews():
 			if v.GetSafeHwnd() == hwndFrom:
 				return apply(getattr(v, self.name), (std, extra))
+
+# Delegate to the document, but only from a single view (as each view sends it seperately)
+class DocumentNotifyDelegate:
+	def __init__(self, doc, name):
+		self.doc = doc
+		self.delegate = getattr(doc, name)
+	def __call__(self, std, extra):
+		(hwndFrom, idFrom, code) = std
+		if hwndFrom == self.doc.GetEditorView().GetSafeHwnd():
+				apply(self.delegate, (std, extra))
