@@ -859,8 +859,8 @@ BOOL PyWinObject_AsBstr(PyObject *stringObject, BSTR *pResult, BOOL bNoneOK /*= 
 	{
 		// copy the value, including embedded NULLs
 #if defined(PYWIN_USE_PYUNICODE)
-		BSTR v = PyUnicode_AS_UNICODE(stringObject);
-		*pResult = SysAllocStringLen(v, PyUnicode_GET_SIZE(v));
+		wchar_t *v = PyUnicode_AS_UNICODE(stringObject);
+		*pResult = SysAllocStringLen(v, PyUnicode_GET_SIZE(stringObject));
 #else
 		BSTR v = ((PyUnicode *)stringObject)->m_bstrValue;
 		*pResult = SysAllocStringLen(v, SysStringLen(v));
