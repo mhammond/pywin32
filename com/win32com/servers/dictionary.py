@@ -33,7 +33,8 @@ the dictionary's keys. This allows for the following type of VB code:
 
 import string
 import pythoncom
-from win32com.server import util, policy, exception
+from win32com.server import util, policy
+from win32com.server.exception import COMException
 import winerror
 import types
 import pywintypes
@@ -70,11 +71,11 @@ class DictionaryPolicy(policy.BasicWrapPolicy):
   def _wrap_(self, ob):
     self._obj_ = ob	# ob should be a dictionary
 
-  def _invoke_(self, dispid, lcid, wFlags, args):
+  def _invokeex_(self, dispid, lcid, wFlags, args, kwargs, serviceProvider):
     if dispid == 0:	# item
       l = len(args)
       if l < 1:
-        return winerror.DISP_E_BADPARAMCOUNT
+        raise COMException(desc="not enough parameters", scode=winerror.DISP_E_BADPARAMCOUNT)
 
       key = args[0]
       if type(key) == UnicodeType:
@@ -83,20 +84,20 @@ class DictionaryPolicy(policy.BasicWrapPolicy):
         key = pywintypes.Unicode(key)
       else:
         ### the nArgErr thing should be 0-based, not reversed... sigh
-        return winerror.DISP_E_TYPEMISMATCH, len(args) - 1
+        raise COMException(desc="Key must be a string", scode=winerror.DISP_E_TYPEMISMATCH)
 
       key = key.lower()
 
       if wFlags & (DISPATCH_METHOD | DISPATCH_PROPERTYGET):
         if l > 1:
-          return winerror.DISP_E_BADPARAMCOUNT
+            raise COMException(scode=winerror.DISP_E_BADPARAMCOUNT)
         try:
-          return S_OK, 0, self._obj_[key]
+          return self._obj_[key]
         except KeyError:
-          return S_OK, 0, None	# unknown keys return None (VT_NULL)
+          return None	# unknown keys return None (VT_NULL)
 
       if l <> 2:
-        return winerror.DISP_E_BADPARAMCOUNT
+        raise COMException(scode=winerror.DISP_E_BADPARAMCOUNT)
       if args[1] is None:
         # delete a key when None is assigned to it
         try:
@@ -109,15 +110,15 @@ class DictionaryPolicy(policy.BasicWrapPolicy):
 
     if dispid == 1:	# count
       if not wFlags & DISPATCH_PROPERTYGET:
-        return winerror.DISP_E_MEMBERNOTFOUND	# not found
+        raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)	# not found
       if len(args) != 0:
-        return winerror.DISP_E_BADPARAMCOUNT
-      return S_OK, 0, len(self._obj_)
+        raise COMException(scode=winerror.DISP_E_BADPARAMCOUNT)
+      return len(self._obj_)
 
     if dispid == pythoncom.DISPID_NEWENUM:
-      return S_OK, 0, util.NewEnum(self._obj_.keys())
+      return util.NewEnum(self._obj_.keys())
 
-    return winerror.DISP_E_MEMBERNOTFOUND
+    raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
 
   def _getidsofnames_(self, names, lcid):
     ### this is a copy of MappedWrapPolicy._getidsofnames_ ...
@@ -127,7 +128,7 @@ class DictionaryPolicy(policy.BasicWrapPolicy):
     try:
       return (self._name_to_dispid_[name],)
     except KeyError:
-      raise exception.Exception(scode=winerror.DISP_E_MEMBERNOTFOUND,
+      raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND,
                                 desc="Member not found")
 
 

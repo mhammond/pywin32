@@ -267,12 +267,9 @@ class BasicWrapPolicy:
     return self._invoke_(dispid, lcid, wFlags, args)
  
   def _invoke_(self, dispid, lcid, wFlags, args):
-    """A stub for _invoke_ - should never be called.  
- 
-       Simply raises an exception.
-    """
-    # Base classes should override this method (and not call the base)
-    raise error, "This class does not provide _invoke_ semantics"
+    # Delegates to the _invokeex_ implementation.  This allows
+    # a custom policy to define _invokeex_, and automatically get _invoke_ too.
+    return S_OK, -1, self._invokeex_(dispid, lcid, wFlags, args, None, None)
 
   # "GetIDsOfNames" handling.
   def _GetIDsOfNames_(self, names, lcid):
@@ -485,9 +482,6 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
       self._name_to_dispid_[string.lower(name)] = dispid
       self._dispid_to_func_[dispid] = name
       dispid = dispid + 1
-
-  def _invoke_(self, dispid, lcid, wFlags, args):
-    return S_OK, -1, self._invokeex_(dispid, lcid, wFlags, args, None, None)
 
   def _invokeex_(self, dispid, lcid, wFlags, args, kwArgs, serviceProvider):
     ### note: lcid is being ignored...

@@ -35,12 +35,32 @@ def TestDict(quiet=0):
 	del checkDict["NewKey"]
 	TestDictAgainst(dict, checkDict)
 
+	if not quiet:
+		print "Failure tests"
 	try:
 		dict()
 		raise error, "default method with no args worked when it shouldnt have!"
 	except pythoncom.com_error, (hr, desc, exc, argErr):
 		if hr != winerror.DISP_E_BADPARAMCOUNT:
 			raise error, "Expected DISP_E_BADPARAMCOUNT - got %d (%s)" % (hr, desc)
+
+	try:
+		dict("hi", "there")
+		raise error, "multiple args worked when it shouldnt have!"
+	except pythoncom.com_error, (hr, desc, exc, argErr):
+		if hr != winerror.DISP_E_BADPARAMCOUNT:
+			raise error, "Expected DISP_E_BADPARAMCOUNT - got %d (%s)" % (hr, desc)
+
+	try:
+		dict(0)
+		raise error, "int key worked when it shouldnt have!"
+	except pythoncom.com_error, (hr, desc, exc, argErr):
+		if hr != winerror.DISP_E_TYPEMISMATCH:
+			raise error, "Expected DISP_E_TYPEMISMATCH - got %d (%s)" % (hr, desc)
+
+	if not quiet:
+		print "Python.Dictionary tests complete."
+
 
 def doit():
 	try:

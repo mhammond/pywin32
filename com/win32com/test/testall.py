@@ -111,20 +111,24 @@ if __name__=='__main__':
 	testServers.TestAll()
 
 	# Test VBScript and JScript which call back into Python
-	rc = os.system("cscript testInterp.vbs")
-	if rc:
-		print "'cscript.exe testInterp.vbs' failed!!!"
+	cscript_tests = string.split("testInterp.vbs testDictionary.vbs")
 
 	# Note that this test assumes 'Testpys.sct' has been previously registered.
 	# To register this test, simply run 'regsvr32.exe Testpys.sct'
 	try:
 		# First check our test object has actually been installed.
 		win32com.client.Dispatch("TestPys.Scriptlet")
-		# Then run the test as a new process.
-		rc = os.system("cscript testPyScriptlet.js")
+		# If it worked, append it to the tests.
+		cscript_tests.append("testPyScriptlet.js")
 	except pythoncom.error:
 		print "Can not test 'Scriptlets' - has Scriptlets been installed and 'Testpys.sct' been registered???"
-	
+
+	for test in cscript_tests:
+		cmd_line = "cscript.exe " + test
+		print "Running:", cmd_line
+		rc = os.system(cmd_line)
+		if rc:
+			print "***** Test Failed:", cmd_line
 
 	if testLevel>2:
 
