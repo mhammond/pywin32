@@ -273,3 +273,54 @@ def getevents(clsid):
     clsid=str(pywintypes.IID(clsid))
     # return default outgoing interface for that class
     return CLSIDToClass.GetClass(clsid).default_source
+
+############################################
+# The base of all makepy generated classes
+############################################
+_PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
+from types import TupleType
+from pywintypes import UnicodeType
+
+
+class DispatchBaseClass:
+	def __init__(self, oobj=None):
+		if oobj is None:
+			oobj = pythoncom.new(self.CLSID)
+		elif type(self) == type(oobj): # An instance
+			oobj = oobj._oleobj_.QueryInterface(self.CLSID, pythoncom.IID_IDispatch) # Must be a valid COM instance
+		self.__dict__["_oleobj_"] = oobj # so we dont call __setattr__
+      # Provide a prettier name than the CLSID
+	def __repr__(self):
+		return "<win32com.gen_py.%s.%s>" % (__doc__, self.__class__.__name__)
+
+	def _ApplyTypes_(self, dispid, wFlags, retType, argTypes, user, resultCLSID, *args):
+		return self._get_good_object_(apply(self._oleobj_.InvokeTypes, (dispid, 0, wFlags, retType, argTypes) + args), user, resultCLSID)
+
+	def __getattr__(self, attr):
+		try:
+			args=self._prop_map_get_[attr]
+		except KeyError:
+			raise AttributeError, attr
+		return apply(self._ApplyTypes_, args)
+
+	def __setattr__(self, attr, value):
+		if self.__dict__.has_key(attr): self.__dict__[attr] = value; return
+		try:
+			args, defArgs=self._prop_map_put_[attr]
+		except KeyError:
+			raise AttributeError, attr
+		apply(self._oleobj_.Invoke, args + (value,) + defArgs)
+	  # XXX - These should be consolidated with dynamic.py versions.
+	def _get_good_single_object_(self, obj, obUserName=None, resultCLSID=None):
+		if _PyIDispatchType==type(obj):
+			return Dispatch(obj, obUserName, resultCLSID, UnicodeToString=1)
+		elif UnicodeType==type(obj):
+			return str(obj)
+		return obj
+	def _get_good_object_(self, obj, obUserName=None, resultCLSID=None):
+		if obj is None:
+			return None
+		elif type(obj)==TupleType:
+			return tuple(map(lambda o, s=self, oun=obUserName, rc=resultCLSID: s._get_good_single_object_(o, oun, rc),  obj))
+		else:
+			return self._get_good_single_object_(obj, obUserName, resultCLSID)
