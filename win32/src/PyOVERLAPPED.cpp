@@ -38,7 +38,8 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromOVERLAPPED(const OVERLAPPED *pOverla
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
-	PyObject *ret = new PyOVERLAPPED((sMyOverlapped *)pOverlapped);
+	PyOVERLAPPED::sMyOverlapped myo(*pOverlapped);
+	PyObject *ret = new PyOVERLAPPED(&myo);
 	if(ret==NULL)
 		PyErr_SetString(PyExc_MemoryError, "Allocating pOverlapped");
 	return ret;

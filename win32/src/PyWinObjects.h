@@ -121,14 +121,17 @@ public:
 };
 #endif // NO_PYWINTYPES_TIME
 
-typedef struct PYWINTYPES_EXPORT _sMyOverlapped : public OVERLAPPED
-{
-	PyObject *obState;
-} sMyOverlapped;
-
 class PYWINTYPES_EXPORT PyOVERLAPPED : public PyObject
 {
 public:
+	class PYWINTYPES_EXPORT sMyOverlapped : public OVERLAPPED
+	{
+	public:
+		PyObject *obState;
+		sMyOverlapped() {obState=NULL;}
+		sMyOverlapped(const OVERLAPPED &o) : OVERLAPPED(o) {obState=NULL;}
+	};
+
 	OVERLAPPED *GetOverlapped() {return &m_overlapped;}
 
 	PyOVERLAPPED(void);
