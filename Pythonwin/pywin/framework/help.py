@@ -36,7 +36,10 @@ def OpenHelpFile(fileName, helpCmd = None, helpArg = None):
 		ext = string.lower(os.path.splitext(fileName)[1])
 		if ext == ".hlp":
 			win32api.WinHelp( win32ui.GetMainFrame().GetSafeHwnd(), fileName, helpCmd, helpArg)
-		elif ext == ".chm":
+		# XXX - using the htmlhelp API wreaks havoc with keyboard shortcuts
+		# so we disable it, forcing ShellExecute, which works fine (but
+		# doesn't close the help file when Pythonwin is closed.
+		elif 0 and ext == ".chm":
 			import win32help
 			global htmlhelp_handle
 			helpCmd = html_help_command_translators.get(helpCmd, helpCmd)
