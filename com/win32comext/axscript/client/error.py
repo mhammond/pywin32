@@ -141,7 +141,7 @@ class AXScriptException(win32com.server.exception.COMException):
 			depth = None
 			tb_top = tb
 			
-		list = ['Traceback (innermost last):\n']
+		list = ['Traceback (most recent call last):\n']
 		list = list + traceback.format_list(format_items)
 		if type==pythoncom.com_error:
 			desc = "%s (0x%x)" % (value[1], value[0])
@@ -203,7 +203,7 @@ def ProcessAXScriptException(scriptingSite, debugManager, exceptionInstance):
 		print "Exception description:'%s'" % (`exceptionInstance.description`)
 		print "Exception text:'%s'" % (`exceptionInstance.linetext`)
 		result = winerror.S_FALSE
-		
+
 	if result==winerror.S_OK:
 		# If the above  returns NOERROR, it is assumed the error has been 
 		# correctly registered and the value SCRIPT_E_REPORTED is returned.
