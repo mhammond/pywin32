@@ -2190,15 +2190,43 @@ ui_dc_draw_text(PyObject *self, PyObject *args)
 	RECT rect;
 	UINT nFormat=DT_SINGLELINE|DT_CENTER|DT_VCENTER;
 	if (!PyArg_ParseTuple(args,
-						"s(iiii)|i",&psz,
-						&rect.left,&rect.top,
-						&rect.right,&rect.bottom,&nFormat)) 
+						"s(iiii)|i",&psz, // @pyparm string|s||The desired output string
+						// @pyparm (int, int, int, int)|tuple||The bounding rectangle in the form:
+						// (left, top, right, bottom) expressed in logical units (depending on 
+						// selected coordinate system - see <om PyCDC.SetMapMode>)
+						&rect.left,&rect.top, 
+						&rect.right,&rect.bottom,
+						// @pyparm int|format||Specifies one or more bit-or'd format values, such as
+						// DT_BOTTOM, DT_CENTERDT_RIGHT, DT_VCENTER. For a complete list, see 
+						// the Microsoft Win32 API documentation.
+						&nFormat)) 
 		return NULL;
 
 	CString str(psz);
 	int height=pDC->DrawText(str,&rect,nFormat);
-
+	// @rdesc The return value is the height of the text, in logical units. 
+	// If DT_VCENTER or DT_BOTTOM is specified, the return value is the 
+	// offset from rect.top to the bottom of the drawn text.
+	// If the function fails, the return value is zero (no Python exception is thrown)
 	return Py_BuildValue("i",height);
+	// @ex Example|import win32ui<nl>
+	// import win32con<nl>
+	// INCH = 1440   # twips - 1440 per inch allows fine res<nl>
+	// def drawtext_test():<nl>
+	//     dc = win32ui.CreateDC()<nl>
+	//     dc.CreatePrinterDC()                # ties to default printer<nl>
+	//     dc.StartDoc('My Python Document')<nl>
+	//     dc.StartPage()<nl>
+	// <nl>
+	//     # note: upper left is 0,0 with x increasing to the right,<nl>
+	//     #       and y decreasing (negative) moving down<nl>
+	//     dc.SetMapMode(win32con.MM_TWIPS)<nl>
+	// <nl>
+	//     # Centers "TEST" about an inch down on page<nl>
+	//     dc.DrawText('TEST', (0,INCH*-1,INCH*8,INCH*-2), win32con.DT_CENTER )<nl>
+	//     dc.EndPage()<nl>
+	//     dc.EndDoc()<nl>
+	//     del dc<nl>
 }
 
 // @pymethod |PyCDC|StretchBlt|Copies a bitmap from the source device context to this device context. 
