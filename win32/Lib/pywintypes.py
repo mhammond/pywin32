@@ -14,7 +14,8 @@ def __import_pywin32_system_module__(modname, globs):
             break
     else:
         suffix = ""
-    filename = "%s%d%d%s.dll" % (modname, sys.version_info[0], sys.version_info[1], suffix)
+    filename = "%s%d%d%s.dll" % \
+               (modname, sys.version_info[0], sys.version_info[1], suffix)
     if hasattr(sys, "frozen"):
         # If we are running from a frozen program (py2exe, McMillan, freeze)
         # then we try and load the DLL from our sys.path
@@ -27,21 +28,28 @@ def __import_pywin32_system_module__(modname, globs):
             if os.path.isfile(found):
                 break
         else:
-            raise ImportError, "Module '%s' isn't in frozen sys.path directories" % modname
+            raise ImportError, \
+                  "Module '%s' isn't in frozen sys.path directories" % modname
     else:
-        if os.path.isfile(os.path.join(sys.prefix, filename)):
-            found = os.path.join(sys.prefix, filename)
+        search_dirs = [sys.prefix] + \
+                      os.environ.get("PATH", "").split(os.pathsep)
+        for d in search_dirs:
+            found = os.path.join(d, filename)
+            if os.path.isfile(found):
+                break
         else:
-            # We could still avoid win32api here, but...
+            # Eeek - can't find on the path.  Try "LoadLibrary", as it
+            # has slightly different semantics than a simple sys.path search
             import win32api
             # Normal Python needs these files in a directory somewhere on
-            # %PATH%, so let Windows search it out for us
-            h = win32api.LoadLibrary(filename)
+            # %PATH%, so let Windows search it out for us.  As win32api
+            # loads pywintypes, we can simple get the module after the import
+            h = win32api.GetModuleHandle(filename)
             found = win32api.GetModuleFileName(h)
     # Python can load the module
-    mod = imp.load_module(modname, None, found, ('.dll', 'rb', imp.C_EXTENSION))
+    mod = imp.load_module(modname, None, found, 
+                          ('.dll', 'rb', imp.C_EXTENSION))
     # and fill our namespace with it.
     globs.update(mod.__dict__)
 
 __import_pywin32_system_module__("pywintypes", globals())
-
