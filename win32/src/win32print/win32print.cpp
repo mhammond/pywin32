@@ -29,6 +29,10 @@ typedef BOOL (WINAPI *GetFormfunc)(HANDLE,LPWSTR,DWORD,LPBYTE,DWORD,LPDWORD);
 static GetFormfunc getform=NULL;
 typedef BOOL (WINAPI *SetFormfunc)(HANDLE, LPWSTR, DWORD, LPBYTE);
 static SetFormfunc setform=NULL;
+typedef BOOL (WINAPI *AddJobfunc)(HANDLE,DWORD,LPBYTE,DWORD,LPDWORD);
+static AddJobfunc addjob=NULL;
+typedef BOOL (WINAPI *ScheduleJobfunc)(HANDLE, DWORD);
+static ScheduleJobfunc schedulejob=NULL;
 
 static PyObject *dummy_tuple=NULL;
 
@@ -351,7 +355,8 @@ BOOL PyWinObject_AsDOCINFO(PyObject *obdocinfo, DOCINFO *di)
 		PyErr_SetString(PyExc_TypeError,"DOCINFO must be a tuple");
 		return FALSE;
 		}
-	if (!PyArg_ParseTuple(obdocinfo, "zzzl", &di->lpszDocName, &di->lpszOutput, &di->lpszOutput, &di->fwType))
+	di->cbSize=sizeof(DOCINFO);
+	if (!PyArg_ParseTuple(obdocinfo, "zzzl", &di->lpszDocName, &di->lpszOutput, &di->lpszDatatype, &di->fwType))
 		return FALSE;
 	return TRUE;
 }
@@ -1251,6 +1256,67 @@ static PyObject *PySetForm(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod |win32print|AddJob|Add a job to be spooled to a printer queue
+static PyObject *PyAddJob(PyObject *self, PyObject *args)
+{
+	// @rdesc Returns the file name to which data should be written and the job id of the new job
+	// @pyparm int|hprinter||Printer handle as returned by <om win32print.OpenPrinter>
+	HANDLE hprinter;
+	DWORD level=1, bufsize, bytes_needed;
+	LPBYTE buf=NULL;
+	PyObject *ret=NULL;
+	BOOL bsuccess;
+	if (addjob==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"AddJob does not exist on this version of Windows");
+		return NULL;
+		}
+
+	if (!PyArg_ParseTuple(args,"l:AddJob", &hprinter))
+		return NULL;
+	bufsize=sizeof(ADDJOB_INFO_1)+ (MAX_PATH*sizeof(WCHAR));
+	buf=(LPBYTE)malloc(bufsize);
+	if (buf==NULL)
+		return PyErr_Format(PyExc_MemoryError,"AddJob: unable to allocate %d bytes",bufsize);
+	bsuccess=(*addjob)(hprinter, level, buf, bufsize, &bytes_needed);
+	if (!bsuccess)
+		if (bytes_needed > bufsize){
+			free(buf);
+			buf=(LPBYTE)malloc(bytes_needed);
+			if (buf==NULL)
+				return PyErr_Format(PyExc_MemoryError,"AddJob: unable to allocate %d bytes",bytes_needed);
+			bufsize=bytes_needed;
+			bsuccess=(*addjob)(hprinter, level, buf, bufsize, &bytes_needed);
+			}
+	if (!bsuccess)
+		PyWin_SetAPIError("AddJob");
+	else
+		ret=Py_BuildValue("ul",((ADDJOB_INFO_1 *)buf)->Path,((ADDJOB_INFO_1 *)buf)->JobId);
+	if (buf!=NULL)
+		free(buf);
+	return ret;
+}
+
+// @pymethod |win32print|ScheduleJob|Schedules a spooled job to be printed
+static PyObject *PyScheduleJob(PyObject *self, PyObject *args)
+{
+	// @pyparm int|hprinter||Printer handle as returned by <om win32print.OpenPrinter>
+	// @pyparm int|JobId||Job Id as returned by <om win32print.AddJob>
+	HANDLE hprinter;
+	DWORD jobid;
+	if (schedulejob==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"ScheduleJob does not exist on this version of Windows");
+		return NULL;
+		}
+
+	if (!PyArg_ParseTuple(args,"ll:ScheduleJob", &hprinter, &jobid))
+		return NULL;
+	if (!(*schedulejob)(hprinter, jobid)){
+		PyWin_SetAPIError("ScheduleJob");
+		return NULL;
+		}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
 
 /* List of functions exported by this module */
 // @module win32print|A module, encapsulating the Windows Win32 API.
@@ -1286,6 +1352,8 @@ static struct PyMethodDef win32print_functions[] = {
 	{"DeleteForm", PyDeleteForm, 1}, //@pymeth DeleteForm|Deletes a form defined for a printer
 	{"GetForm", PyGetForm, 1}, //@pymeth GetForm|Retrieves information about a defined form
 	{"SetForm", PySetForm, 1}, //@pymeth SetForm|Change information for a form
+	{"AddJob", PyAddJob, 1}, //@pymeth AddJob|Adds a job to be spooled to a printer queue
+	{"ScheduleJob", PyScheduleJob, 1}, //@pymeth ScheduleJob|Schedules a spooled job to be printed
 	{ NULL }
 };
 
@@ -1366,6 +1434,12 @@ initwin32print(void)
 	fp=GetProcAddress(hmodule,"SetFormW");
 	if (fp!=NULL)
 		setform=(SetFormfunc)fp;
+	fp=GetProcAddress(hmodule,"AddJobW");
+	if (fp!=NULL)
+		addjob=(AddJobfunc)fp;
+	fp=GetProcAddress(hmodule,"ScheduleJob");
+	if (fp!=NULL)
+		schedulejob=(ScheduleJobfunc)fp;
   }
   dummy_tuple=PyTuple_New(0);
 }
