@@ -637,7 +637,8 @@ CAPTION "About Pythonwin"
 FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,184,94,37,14,WS_GROUP
-    LTEXT           "Version",IDC_ABOUT_VERSION,7,96,122,8
+    LTEXT           "A very long version string that should wrap",
+                    IDC_ABOUT_VERSION,7,96,122,16
     CONTROL         "",IDC_EDIT1,"RICHEDIT",ES_MULTILINE | WS_BORDER | 
                     WS_VSCROLL | WS_TABSTOP,4,4,219,85,WS_EX_TRANSPARENT
     PUSHBUTTON      "Home page",IDC_BUTTON1,131,94,48,14
