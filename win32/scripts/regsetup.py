@@ -120,23 +120,27 @@ def FindRegisteredModule(moduleName, possibleRealNames, searchPaths):
 def FindPythonExe(exeAlias, possibleRealNames, searchPaths):
 	"""Find an exe.
 
-         First place looked is the registry for an existing entry.  Then
-         the searchPaths are searched.
-         
 	   Returns the full path to the .exe, and a boolean indicating if the current 
-	   registered entry is OK.
-      """
-	import _winreg, regutil, string
+	   registered entry is OK.  We don't trust the already registered version even
+	   if it exists - it may be wrong (ie, for a different Python version)
+	"""
+	import _winreg, regutil, string, os, sys
 	if possibleRealNames is None:
 		possibleRealNames = exeAlias
-	try:
-		fname = _winreg.QueryValue(regutil.GetRootKey(), regutil.GetAppPathsKey() + "\\" + exeAlias)
-		if FileExists(fname):
-			return fname, 1 # Registered entry OK
+	# Look first in Python's home.
+	found = os.path.join(sys.prefix,  possibleRealNames)
+	if not FileExists(found): # for developers
+		found = os.path.join(sys.prefix,  "PCBuild", possibleRealNames)
+	if not FileExists(found):
+		found = LocateFileName(possibleRealNames, searchPaths)
 
+	registered_ok = 0
+	try:
+		registered = _winreg.QueryValue(regutil.GetRootKey(), regutil.GetAppPathsKey() + "\\" + exeAlias)
+		registered_ok = found==registered
 	except EnvironmentError:
 		pass
-	return LocateFileName(possibleRealNames, searchPaths), 0
+	return found, registered_ok
 
 def QuotedFileName(fname):
 	"""Given a filename, return a quoted version if necessary
