@@ -20,4 +20,6 @@ pycvs
 *.pdb
 *.plg
 *.pyd
+*.hlp
+*.chm
 temp-*
