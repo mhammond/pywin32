@@ -249,6 +249,12 @@ end
 item: Add Text to INSTALL.LOG
   Text=RegDB Root: 1
 end
+item: Add Text to INSTALL.LOG
+  Text=RegDB TREE: SOFTWARE\Python %PYVER_DOTTED%\Pythonwin Debugger
+end
+item: Add Text to INSTALL.LOG
+  Text=RegDB Root: 1
+end
 item: Compiler Variable If
   Variable=_COMBINEDINST_
   Value=0
