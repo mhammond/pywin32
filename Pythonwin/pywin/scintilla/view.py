@@ -3,6 +3,7 @@
 import control
 import IDLEenvironment # IDLE emulation.
 from pywin.mfc import docview
+from pywin.mfc import dialog
 from scintillacon import *
 import win32con
 import win32api
@@ -16,6 +17,12 @@ import __main__ # for attribute lookup
 import bindings
 import keycodes
 import regex
+import struct
+import re
+
+PRINTDLGORD = 1538
+IDC_PRINT_MAG_EDIT = 1010
+EM_FORMATRANGE = win32con.WM_USER+57
 
 wordbreaks = "._" + string.uppercase + string.lowercase + string.digits
 
@@ -125,9 +132,15 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		self.HookCommand(self.OnCmdEditRepeat, win32ui.ID_EDIT_REPEAT)
 		self.HookCommand(self.OnCmdEditReplace, win32ui.ID_EDIT_REPLACE)
 		self.HookCommand(self.OnCmdGotoLine, win32ui.ID_EDIT_GOTO_LINE)
+		self.HookCommand(self.OnFilePrint, afxres.ID_FILE_PRINT)
+		self.HookCommand(self.OnFilePrint, afxres.ID_FILE_PRINT_DIRECT)
+		self.HookCommand(self.OnFilePrintPreview,
+			win32ui.ID_FILE_PRINT_PREVIEW)
 		# Key bindings.
 		self.HookMessage(self.OnKeyDown, win32con.WM_KEYDOWN)
 		self.HookMessage(self.OnKeyDown, win32con.WM_SYSKEYDOWN)
+		# Hook wheeley mouse events
+		self.HookMessage(self.OnMouseWheel, win32con.WM_MOUSEWHEEL)
 		# Hook colorizer.
 		self.HookStyleNotify()
 
@@ -177,6 +190,15 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		self.idle = None
 		control.CScintillaColorEditInterface.close(self)
 		return docview.CtrlView.OnDestroy(self, msg)
+
+	def OnMouseWheel(self, msg):
+		zDelta = msg[2] >> 16
+		vpos = self.GetScrollPos(win32con.SB_VERT)
+		vpos = vpos - zDelta/40 # 3 lines per notch
+		self.SetScrollPos(win32con.SB_VERT, vpos)
+		self.SendScintilla(win32con.WM_VSCROLL,
+						   (vpos<<16) | win32con.SB_THUMBPOSITION,
+						   0)
 
 	# Helper to add an event to a menu.
 	def AppendMenu(self, menu, text="", event=None, flags = None, checked=0):
@@ -295,8 +317,12 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		return 1
 
 	def _AutoComplete(self):
-		ob = self._GetObjectAtPos()
 		self.SCICancel() # Cancel tooltips and old auto-complete lists.
+		# First try and get an object without evaluating calls
+		ob = self._GetObjectAtPos(bAllowCalls = 0)
+		# If that failed, try and process call or indexing to get the object.
+		if ob is None:
+			ob = self._GetObjectAtPos(bAllowCalls = 1)
 		if ob is not None:
 			items = []
 			try:
@@ -307,16 +333,31 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 				items = items + dir(ob.__class__)
 			except AttributeError:
 				pass
-			# Reduce __special_names__
-			items = filter(lambda word: word[:2]!='__' or word[-2:]!='__', items)
+			# All names that start with "_" go!
+			items = filter(lambda word: word[0]!='_', items)
+			# The object may be a COM object with typelib support - lets see if we can get its props.
+			# (contributed by Stefan Migowsky)
+			try:
+				# Get the automation attributes
+				list = ob.__class__._prop_map_get_.keys()
+				# See if there is an write only property 
+				# could be optimized
+				for i in ob.__class__._prop_map_put_.keys():
+					if i not in list:
+						list.append(i)
+				# append to the already evaluated list
+				items = items + list
+			except AttributeError:
+				pass
+
 			if items:
 				self.SCIAutoCShow(items)
 		else:
 			# Heuristics a-la AutoExpand
 			# The idea is to find other usages of the current binding
 			# and assume, that it refers to the same object (or at least,
-			# to the object of the same type)
-			# Contributed by Vadim [vadimch@yahoo.com]
+			# to an object of the same type)
+			# Contributed by Vadim Chugunov [vadimch@yahoo.com]
 			left, right = self._GetWordSplit()
 			if left=="": # Ignore standalone dots
 				return None
@@ -325,9 +366,12 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 			minline, maxline, curclass = self._GetClassInfoFromBrowser()
 			endpos = self.LineIndex(maxline)
 			text = self.GetTextRange(self.LineIndex(minline),endpos)
-			import re
-			list = re.findall(r"\b"+left+"\.\w+",text)
-			del text
+			try:
+				list = re.findall(r"\b"+left+"\.\w+",text)
+			except re.error:
+				# parens etc may make an invalid RE, but this code wouldnt
+				# benefit even if the RE did work :-)
+				list = []
 			prefix = len(left)+1
 			unique = {}
 			for li in list:
@@ -337,6 +381,11 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 				self._UpdateWithClassMethods(unique,curclass)
 
 			items = filter(lambda word: word[:2]!='__' or word[-2:]!='__', unique.keys())
+			# Ignore the word currently to the right of the dot - probably a red-herring.
+			try:
+				items.remove(right[1:])
+			except ValueError:
+				pass
 			if items:
 				self.SCIAutoCShow(items)
 
@@ -349,21 +398,31 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 			if hasattr(super,"methods"):
 				self._UpdateWithClassMethods(dict,super)
 
-	# Finds which class definition caret is currently in and returns 
-	# indexes of the the first and of the last lines of class definition
+	# Find which class definition caret is currently in and return
+	# indexes of the the first and the last lines of that class definition
 	# Data is obtained from module browser (if enabled)
 	def _GetClassInfoFromBrowser(self,pos=-1):
 		minline = 0
 		maxline = self.GetLineCount()-1
-		try: browser = self.GetParentFrame().GetActiveDocument().GetAllViews()[1]
-		except IndexError:	return (minline,maxline,None) # Current window has no browser
+		doc = self.GetParentFrame().GetActiveDocument()
+		browser = None
+		try:
+			if doc is not None:
+				browser = doc.GetAllViews()[1]
+		except IndexError:
+			pass
+		if browser is None:
+			return (minline,maxline,None) # Current window has no browser
 		if not browser.list: return (minline,maxline,None) # Not initialized
 		path = self.GetDocument().GetPathName()
 		if not path: return (minline,maxline,None) # No current path
 		
 		import pywin.framework.scriptutils
 		curmodule, path = pywin.framework.scriptutils.GetPackageModuleName(path)
-		clbrdata = browser.list.root.clbrdata
+		try:
+			clbrdata = browser.list.root.clbrdata
+		except AttributeError:
+			return (minline,maxline,None) # No class data for this module.
 		curline = self.LineFromChar(pos)
 		curclass = None
 		# Find out which class we are in
@@ -376,9 +435,10 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 				if curline < item_lineno < maxline:
 					maxline = item_lineno
 		return (minline,maxline,curclass)
-	
-	def _GetObjectAtPos(self, pos=-1):
-		left, right = self._GetWordSplit()
+
+
+	def _GetObjectAtPos(self, pos = -1, bAllowCalls = 0):
+		left, right = self._GetWordSplit(pos, bAllowCalls)
 		if left: # It is an attribute lookup
 			# How is this for a hack!
 			namespace = sys.modules.copy()
@@ -389,24 +449,113 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 				pass
 		return None
 
-	def _GetWordSplit(self, pos=-1):
+	def _GetWordSplit(self, pos = -1, bAllowCalls = 0):
 		if pos==-1: pos = self.GetSel()[0]-1 # Character before current one
 		limit = self.GetTextLength()
 		before = []
 		after = []
 		index = pos-1
+		wordbreaks_use = wordbreaks
+		if bAllowCalls: wordbreaks_use = wordbreaks_use + "()[]"
 		while index>=0:
 			char = self.SCIGetCharAt(index)
-			if char not in wordbreaks: break
+			if char not in wordbreaks_use: break
 			before.insert(0, char)
 			index = index-1
 		index = pos
 		while index<=limit:
 			char = self.SCIGetCharAt(index)
-			if char not in wordbreaks: break
+			if char not in wordbreaks_use: break
 			after.append(char)
 			index=index+1
 		return string.join(before,''), string.join(after,'')
+
+	def OnPrepareDC (self, dc, pInfo):
+#		print "OnPrepareDC for page", pInfo.GetCurPage(), "of", pInfo.GetFromPage(), "to", pInfo.GetToPage(), ", starts=", self.starts
+		if dc.IsPrinting():
+			# Check if we are beyond the end.
+			# (only do this when actually printing, else messes up print preview!)
+			if not pInfo.GetPreview() and self.starts is not None and self.starts[pInfo.GetCurPage()] >= self.GetTextLength():
+				# All finished.
+				pInfo.SetContinuePrinting(0)
+				return
+			dc.SetMapMode(win32con.MM_TEXT);
+
+	def OnPreparePrinting(self, pInfo):
+		flags = win32ui.PD_USEDEVMODECOPIES | \
+		        win32ui.PD_ALLPAGES | \
+		        win32ui.PD_NOSELECTION # Dont support printing just a selection.
+# NOTE: Custom print dialogs are stopping the user's values from coming back :-(
+#		self.prtDlg = PrintDialog(pInfo, PRINTDLGORD, flags)
+#		pInfo.SetPrintDialog(self.prtDlg)
+		pInfo.SetMinPage(1)
+		# max page remains undefined for now.
+		pInfo.SetFromPage(1)
+		pInfo.SetToPage(1)
+		ret = self.DoPreparePrinting(pInfo)
+		return ret
+
+	def OnBeginPrinting(self, dc, pInfo):
+		self.starts = None
+		return self._obj_.OnBeginPrinting(dc, pInfo)
+
+	def CalculatePageRanges(self, dc, pInfo):
+		# Calculate page ranges and max page
+		self.starts = {0:0}
+		metrics = dc.GetTextMetrics()
+		left, top, right, bottom = pInfo.GetDraw()
+		# Leave space at the top for the header.
+		rc = (left, top + (9*metrics['tmHeight'])/2, right, bottom)
+		pageStart = 0
+		maxPage = 0
+		textLen = self.GetTextLength()
+		while pageStart < textLen:
+			pageStart = self.FormatRange(dc, pageStart, textLen, rc, 0)
+			maxPage = maxPage + 1
+			self.starts[maxPage] = pageStart
+		# And a sentinal for one page past the end
+		self.starts[maxPage+1] = textLen
+		# When actually printing, maxPage doesnt have any effect at this late state.
+		# but is needed to make the Print Preview work correctly.
+		pInfo.SetMaxPage(maxPage)
+
+	def OnFilePrintPreview(self, *arg):
+		self._obj_.OnFilePrintPreview()
+
+	def OnFilePrint(self, *arg):
+		self._obj_.OnFilePrint()
+
+	def FormatRange(self, dc, pageStart, lengthDoc, rc, draw):
+		hdcRender = dc.GetHandleOutput()
+		hdcFormat = dc.GetHandleAttrib()
+		fr = struct.pack('LLIIIIIIIIll', hdcRender, hdcFormat, rc[0], rc[1], rc[2], rc[3], rc[0], rc[1], rc[2], rc[3], pageStart, lengthDoc)
+		frBuff = array.array('c', fr)
+		addressFrBuff = frBuff.buffer_info()[0]
+		nextPageStart = self.SendScintilla(EM_FORMATRANGE, draw, addressFrBuff)
+		return nextPageStart
+
+	def OnPrint(self, dc, pInfo):
+		metrics = dc.GetTextMetrics()
+#		print "dev", w, h, l, metrics['tmAscent'], metrics['tmDescent']
+		if self.starts is None:
+			self.CalculatePageRanges(dc, pInfo)
+		pageNum = pInfo.GetCurPage() - 1
+		# Setup the header of the page - docname on left, pagenum on right.
+		doc = self.GetDocument()
+		cxChar = metrics['tmAveCharWidth']
+		cyChar = metrics['tmHeight']
+		left, top, right, bottom = pInfo.GetDraw()
+		dc.TextOut(0, 2*cyChar, doc.GetTitle())
+		pagenum_str = win32ui.LoadString(afxres.AFX_IDS_PRINTPAGENUM) % (pageNum+1,)
+		dc.SetTextAlign(win32con.TA_RIGHT)
+		dc.TextOut(right, 2*cyChar, pagenum_str)
+		dc.SetTextAlign(win32con.TA_LEFT)
+		top = top + (7*cyChar)/2
+		dc.MoveTo(left, top)
+		dc.LineTo(right, top)
+		top = top + cyChar
+		rc = (left, top, right, bottom)
+		nextPageStart = self.FormatRange(dc, self.starts[pageNum], self.starts[pageNum+1], rc, 1)
 
 def LoadConfiguration():
 	global configManager
