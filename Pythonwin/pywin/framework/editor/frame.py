@@ -46,6 +46,8 @@ class EditorFrame(pywin.framework.window.MDIChildWnd):
         # In a multi-view (eg, splitter) environment, get
         # an editor (ie, scintilla) view
         # Look for the splitter opened the most!
+        if self.sub_splitter is None:
+            return self.GetFirstView()
         v1 = self.sub_splitter.GetPane(0,0)
         v2 = self.sub_splitter.GetPane(1,0)
         r1 = v1.GetWindowRect()
