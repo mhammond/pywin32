@@ -107,6 +107,9 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
         self._testRT(d)
     
     def testComplex(self):
+        if sys.hexversion < 0x2030000:
+            # no kw-args to dict in 2.2 - not worth converting!
+            return
         clsid = pythoncom.MakeIID("{CD637886-DB8B-4b04-98B5-25731E1495BE}")
         d = dict(cFileName="foo.txt",
                  clsid=clsid,
