@@ -37,6 +37,10 @@ class SourceCodeContainer:
 	def _Close(self):
 		self.text = self.lines = self.lineOffsets = None
 		self.codeContexts = None
+		self.debugDocument = None
+		self.site = None
+		self.sourceContext = None
+
 	def GetText(self):
 		return self.text
 	def GetName(self, dnt):
