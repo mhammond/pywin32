@@ -4,9 +4,6 @@
 #include "shell_pch.h"
 #include "PyIShellLink.h"
 
-extern BOOL PyObject_AsPIDL(PyObject *ob, LPCITEMIDLIST *ppidl, BOOL bNoneOK = FALSE);
-extern PyObject *PyObject_FromPIDL(LPITEMIDLIST pidl);
-void PyObject_FreePIDL( LPCITEMIDLIST pidl );
 
 PyObject *PyObject_FromWIN32_FIND_DATA(WIN32_FIND_DATAA &findData);
 
@@ -85,7 +82,7 @@ PyObject *PyIShellLink::GetIDList(PyObject *self, PyObject *args)
 
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
-	return PyObject_FromPIDL(pidl);
+	return PyObject_FromPIDL(pidl, TRUE);
 }
 
 // @pymethod |PyIShellLink|SetIDList|Sets the list of item identifiers for a shell link object.
@@ -94,7 +91,7 @@ PyObject *PyIShellLink::SetIDList(PyObject *self, PyObject *args)
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
-	LPCITEMIDLIST pidl;
+	LPITEMIDLIST pidl;
 	PyObject *obpidl;
 	if ( !PyArg_ParseTuple(args, "O:SetIDList", &obpidl) )
 		return NULL;

@@ -14,12 +14,17 @@ generates Windows .hlp files.
 
 #include "shell_pch.h"
 #include "PyIShellLink.h"
+#include "PyIContextMenu.h"
+#include "PyIExtractIcon.h"
+#include "PyIShellExtInit.h"
+#include "PyIShellFolder.h"
+#include "PyIEnumIDList.h"
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
 
 void PyShell_FreeMem(void *p)
 {
 	IMalloc *pMalloc;
-	if (SHGetMalloc(&pMalloc)==S_OK) {
+	if (p && SHGetMalloc(&pMalloc)==S_OK) {
 		pMalloc->Free(p);
 		pMalloc->Release();
 	}
@@ -55,12 +60,15 @@ UINT PyShell_ILGetSize(LPCITEMIDLIST pidl)
     return cbTotal;
 }
 
-PyObject *PyObject_FromPIDL(LPITEMIDLIST pidl)
+PyObject *PyObject_FromPIDL(LPCITEMIDLIST pidl, BOOL bFreeSystemPIDL)
 {
-	return PyString_FromStringAndSize((char *)pidl, PyShell_ILGetSize(pidl) );
+	PyObject *ret = PyString_FromStringAndSize((char *)pidl, PyShell_ILGetSize(pidl) );
+	if (bFreeSystemPIDL)
+		PyShell_FreeMem( (void *)pidl);
+	return ret;
 }
 // @object PyIDL|A Python representation of an IDL.  Implemented as a Python string.
-BOOL PyObject_AsPIDL(PyObject *ob, LPCITEMIDLIST *ppidl, BOOL bNoneOK = FALSE)
+BOOL PyObject_AsPIDL(PyObject *ob, ITEMIDLIST **ppidl, BOOL bNoneOK /*= FALSE*/)
 {
 	if (ob==Py_None) {
 		if (!bNoneOK) {
@@ -81,12 +89,166 @@ BOOL PyObject_AsPIDL(PyObject *ob, LPCITEMIDLIST *ppidl, BOOL bNoneOK = FALSE)
 		return FALSE;
 	}
 	memcpy( buf, PyString_AsString(ob), cb);
-	*ppidl = (LPCITEMIDLIST)buf;
+	*ppidl = (LPITEMIDLIST)buf;
 	return TRUE;
 }
 void PyObject_FreePIDL( LPCITEMIDLIST pidl )
 {
 	PyShell_FreeMem( (void *)pidl);
+}
+
+BOOL PyObject_AsPIDLArray(PyObject *obSeq, UINT *pcidl, LPCITEMIDLIST **ret)
+{
+	// string is a seq - handle that
+	*pcidl = 0;
+	*ret = NULL;
+	if (PyString_Check(obSeq) || !PySequence_Check(obSeq)) {
+		PyErr_SetString(PyExc_TypeError, "Must be an array of IDLs");
+		return FALSE;
+	}
+	int n = PySequence_Length(obSeq);
+	LPCITEMIDLIST *ppidl = (LPCITEMIDLIST *)malloc(n * sizeof(ITEMIDLIST *));
+	if (!ppidl) {
+		PyErr_NoMemory();
+		return FALSE;
+	}
+	for (int i=0;i<n;i++) {
+		PyObject *ob = PySequence_GetItem(obSeq, i);
+		if (!ob || !PyObject_AsPIDL(ob, (ITEMIDLIST **)&ppidl[i], FALSE )) {
+			Py_XDECREF(ob);
+			PyObject_FreePIDLArray(n, ppidl);
+			return FALSE;
+		}
+		Py_DECREF(ob);
+	}
+	*pcidl = n;
+	*ret = ppidl;
+	return TRUE;
+}
+
+void PyObject_FreePIDLArray(UINT cidl, LPCITEMIDLIST *pidl)
+{
+	for (UINT i=0;i<cidl;i++)
+		if (pidl[i])
+			PyObject_FreePIDL(pidl[i]);
+	free(pidl);
+}
+
+PyObject *PyObject_FromPIDLArray(UINT cidl, LPCITEMIDLIST *pidl)
+{
+	PyObject *ob = PyList_New(cidl);
+	if (!ob) return NULL;
+	for (UINT i=0;i<cidl;i++) {
+		PyObject *n = PyObject_FromPIDL(pidl[i], FALSE);
+		if (!n) {
+			Py_DECREF(ob);
+			return NULL;
+		}
+		PyList_SET_ITEM(ob, i, n); // consumes ref to 'n'
+	}
+	return ob;
+}
+
+
+PyObject *PyWinObject_FromRESOURCESTRING(LPCSTR str)
+{
+	if (!str) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+	if (HIWORD(str)==0)
+		return PyInt_FromLong(LOWORD(str));
+	return PyString_FromString(str);
+}
+
+BOOL PyObject_AsCMINVOKECOMMANDINFO(PyObject *ob, CMINVOKECOMMANDINFO **ppci)
+{
+	*ppci = NULL;
+	PyErr_SetString(PyExc_NotImplementedError, "CMINVOKECOMMANDINFO not yet supported");
+	return FALSE;
+}
+void PyObject_FreeCMINVOKECOMMANDINFO( CMINVOKECOMMANDINFO *pci )
+{
+	if (pci)
+		free(pci);
+}
+static PyObject *PyString_FromMaybeNullString(const char *sz)
+{
+	if (sz)
+		return PyString_FromString(sz);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+PyObject *PyObject_FromCMINVOKECOMMANDINFO(const CMINVOKECOMMANDINFO *pci)
+{
+	if (!pci) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+	PyObject *obVerb = PyWinObject_FromRESOURCESTRING(pci->lpVerb);
+	if (!obVerb) return NULL;
+	PyObject *obParams = PyString_FromMaybeNullString(pci->lpParameters);
+	if (!obParams) {
+		Py_DECREF(obVerb);
+		return NULL;
+	}
+	PyObject *obDir = PyString_FromMaybeNullString(pci->lpDirectory);
+	if (!obDir) {
+		Py_DECREF(obVerb);
+		Py_DECREF(obParams);
+		return NULL;
+	}
+	return Py_BuildValue("iiNNNiii", pci->fMask, pci->hwnd, 
+	                                 obVerb, obParams, obDir, 
+	                                 pci->nShow, pci->dwHotKey, pci->hIcon);
+}
+
+BOOL PyObject_AsSTRRET( PyObject *ob, STRRET &out )
+{
+	if (PyInt_Check(ob)) {
+		out.uType = STRRET_OFFSET;
+		out.uOffset = PyInt_AsLong(ob);
+		return TRUE;
+	}
+	if (PyString_Check(ob)) {
+		out.uType = STRRET_CSTR;
+		strncpy(out.cStr, PyString_AsString(ob), MAX_PATH);
+		return TRUE;
+	}
+	PyErr_Format(PyExc_TypeError, "Can't convert objects of type '%s' to STRRET", ob->ob_type->tp_name);
+	return FALSE;
+}
+
+void PyObject_FreeSTRRET(STRRET &s)
+{
+	if (s.uType==STRRET_WSTR) {
+		PyShell_FreeMem(s.pOleStr);
+		s.pOleStr = NULL;
+	}
+}
+
+PyObject *PyObject_FromSTRRET(STRRET *ps, ITEMIDLIST *pidl, BOOL bFree)
+{
+	PyObject *ret;
+	switch (ps->uType) {
+		case STRRET_CSTR:
+			ret = PyString_FromString(ps->cStr);
+			break;
+		case STRRET_OFFSET:
+			ret = PyString_FromString(((char *)pidl)+ps->uOffset);
+			break;
+		case STRRET_WSTR:
+			ret = PyWinObject_FromWCHAR(ps->pOleStr);
+			break;
+		default:
+			PyErr_SetString(PyExc_RuntimeError, "unknown uType");
+			ret = NULL;
+			break;
+	}
+	if (bFree)
+		PyObject_FreeSTRRET(*ps);
+	return ret;
 }
 
 //////////////////////////////////////////////////
@@ -149,7 +311,7 @@ static PyObject *PySHBrowseForFolder( PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_TypeError, "Callback item must be None");
 		goto done;
 	}
-	if (!PyObject_AsPIDL(obPIDL, &bi.pidlRoot, TRUE))
+	if (!PyObject_AsPIDL(obPIDL, (LPITEMIDLIST *)&bi.pidlRoot, TRUE))
 		goto done;
 
 	if (!PyWinObject_AsTCHAR(obTitle, (TCHAR **)&bi.lpszTitle, TRUE))
@@ -165,10 +327,9 @@ static PyObject *PySHBrowseForFolder( PyObject *self, PyObject *args)
 	// dialog, all items are None.  If the dialog is closed normally, the result is
 	// a tuple of (PIDL, DisplayName, iImageList)
 	if (pl){
-		PyObject *obPidl = PyObject_FromPIDL(pl);
+		PyObject *obPidl = PyObject_FromPIDL(pl, TRUE);
 		PyObject *obDisplayName = PyWinObject_FromTCHAR(bi.pszDisplayName);
 		rc = Py_BuildValue("OOi", obPidl, obDisplayName, bi.iImage);
-		PyShell_FreeMem(pl);
 		Py_XDECREF(obPidl);
 		Py_XDECREF(obDisplayName);
 	}
@@ -186,7 +347,7 @@ static PyObject *PySHGetPathFromIDList(PyObject *self, PyObject *args)
 {
 	char buffer[MAX_PATH];
 	PyObject *rc;
-	LPCITEMIDLIST pidl;
+	LPITEMIDLIST pidl;
 	PyObject *obPidl;
 
 	if (!PyArg_ParseTuple(args, "O:SHGetPathFromIDList", &obPidl))
@@ -255,8 +416,7 @@ static PyObject *PySHGetSpecialFolderLocation(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
 		return OleSetOleError(hr);
-	PyObject *rc = PyObject_FromPIDL(pidl);
-	PyShell_FreeMem(pidl);
+	PyObject *rc = PyObject_FromPIDL(pidl, TRUE);
 	return rc;
 }
 
@@ -338,8 +498,7 @@ static PyObject *PySHGetFolderLocation(PyObject *self, PyObject *args)
 	FreeLibrary(hmod);
 	if (FAILED(hr))
 		return OleSetOleError(hr);
-	PyObject *rc = PyObject_FromPIDL(pidl);
-	PyShell_FreeMem(pidl);
+	PyObject *rc = PyObject_FromPIDL(pidl, TRUE);
 	return rc;
 }
 
@@ -360,27 +519,6 @@ static PyObject *PySHAddToRecentDocs(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-
-// @pymethod <o PyIDL>|shell|SHChangeNotify|Notifies the system of an event that an application has performed. An application should use this function if it performs an action that may affect the shell.
-static PyObject *PySHChangeNotify(PyObject *self, PyObject *args)
-{
-	int flags;
-	DWORD eventId;
-	void *whatever1;
-	void *whatever2;
-	if(!PyArg_ParseTuple(args, "lizz:SHChangeNotify",
-			&eventId, // @pyparm int|eventId||Describes the event that has occurred.  One of the SHCNE_* constants.
-			&flags, // @pyparm int|flags||Flags that indicate the meaning of the other params.
-			&whatever1, // @pyparm string|whatever||A path or <o PyIDL>
-			&whatever2)) // @pyparm string|whatever||A path or <o PyIDL>
-		return NULL;
-	// @todo This function does not support integers 
-	PY_INTERFACE_PRECALL;
-	SHChangeNotify(eventId, flags, whatever1, whatever2);
-	PY_INTERFACE_POSTCALL;
-	Py_INCREF(Py_None);
-	return Py_None;
-}
 
 // @pymethod <o PyIDL>|shell|SHEmptyRecycleBin|Empties the recycle bin on the specified drive.
 static PyObject *PySHEmptyRecycleBin(PyObject *self, PyObject *args)
@@ -410,6 +548,93 @@ static PyObject *PySHEmptyRecycleBin(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod <o PyIShellFolder>|shell|SHGetDesktopFolder|Retrieves the <o PyIShellFolder> interface for the desktop folder, which is the root of the shell's namespace. 
+static PyObject *PySHGetDesktopFolder(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":SHGetPathFromIDList"))
+		return NULL;
+	IShellFolder *psf;
+	PY_INTERFACE_PRECALL;
+	HRESULT hr = SHGetDesktopFolder(&psf);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return OleSetOleError(hr);
+	return PyCom_PyObjectFromIUnknown(psf, IID_IShellFolder, FALSE);
+}
+
+// @pymethod |shell|SHUpdateImage|Notifies the shell that an image in the system image list has changed.
+static PyObject *PySHUpdateImage(PyObject *self, PyObject *args)
+{
+	char *szHash;
+	UINT flags;
+	int index, imageIndex;
+	if(!PyArg_ParseTuple(args, "siii:SHUpdateImage", 
+			&szHash, 
+			&index, 
+			&flags, 
+			&imageIndex))
+		return NULL;
+
+	PY_INTERFACE_PRECALL;
+	SHUpdateImage(szHash, index, flags, imageIndex);
+	PY_INTERFACE_POSTCALL;
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod |shell|SHChangeNotify|Notifies the system of an event that an application has performed. An application should use this function if it performs an action that may affect the shell. 
+static PyObject *PySHChangeNotify(PyObject *self, PyObject *args)
+{
+	LONG wEventID;
+	UINT flags;
+	PyObject *ob1, *ob2;
+	if(!PyArg_ParseTuple(args, "iiOO:SHChangeNotify", 
+			&wEventID, 
+			&flags, 
+			&ob1, 
+			&ob2))
+		return NULL;
+
+	void *p1, *p2;
+	if (flags & SHCNF_DWORD) {
+		if (!PyInt_Check(ob1) || !(ob2==Py_None || PyInt_Check(ob2))) {
+			PyErr_SetString(PyExc_TypeError, "SHCNF_DWORD is set - items must be integers");
+			return NULL;
+		}
+		p1 = (void *)PyInt_AsLong(ob1);
+		p2 = (void *)(ob2==Py_None ? NULL : PyInt_AsLong(ob2));
+	} else if (flags & SHCNF_IDLIST) {
+		ITEMIDLIST *pidl1, *pidl2;
+		if (!PyObject_AsPIDL(ob1, &pidl1, FALSE))
+			return NULL;
+		if (!PyObject_AsPIDL(ob2, &pidl2, TRUE)) {
+			PyObject_FreePIDL(pidl1);
+			return NULL;
+		}
+		p1 = (void *)pidl1;
+		p2 = (void *)pidl2;
+	} else if (flags & SHCNF_PATH || flags & SHCNF_PRINTER) {
+		if (!PyString_Check(ob1) || !(ob2==Py_None || PyString_Check(ob2))) {
+			PyErr_SetString(PyExc_TypeError, "SHCNF_PATH/PRINTER is set - items must be strings");
+			return NULL;
+		}
+		p1 = (void *)PyString_AsString(ob1);
+		p2 = (void *)(ob2==Py_None ? NULL : PyString_AsString(ob2));
+	} else {
+		PyErr_SetString(PyExc_ValueError, "unknown data flags");
+		return NULL;
+	}
+	PY_INTERFACE_PRECALL;
+	SHChangeNotify(wEventID, flags, p1, p2);
+	PY_INTERFACE_POSTCALL;
+	if (flags & SHCNF_IDLIST) {
+		PyObject_FreePIDL((ITEMIDLIST *)p1);
+		PyObject_FreePIDL((ITEMIDLIST *)p2);
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 /* List of module functions */
 // @module shell|A module, encapsulating the ActiveX Control interfaces
 static struct PyMethodDef shell_methods[]=
@@ -423,6 +648,9 @@ static struct PyMethodDef shell_methods[]=
     { "SHAddToRecentDocs", PySHAddToRecentDocs, 1 }, // @pymeth SHAddToRecentDocs|Adds a document to the shell's list of recently used documents or clears all documents from the list. The user gains access to the list through the Start menu of the Windows taskbar.
     { "SHChangeNotify", PySHChangeNotify, 1 }, // @pymeth SHChangeNotify|Notifies the system of an event that an application has performed. An application should use this function if it performs an action that may affect the shell.
     { "SHEmptyRecycleBin", PySHEmptyRecycleBin, 1 }, // @pymeth SHEmptyRecycleBin|Empties the recycle bin on the specified drive.
+    { "SHGetDesktopFolder", PySHGetDesktopFolder, 1}, // @pymeth SHGetDesktopFolder|Retrieves the <o PyIShellFolder> interface for the desktop folder, which is the root of the shell's namespace. 
+    { "SHUpdateImage", PySHUpdateImage, 1}, // @pymeth SHUpdateImage|Notifies the shell that an image in the system image list has changed.
+    { "SHChangeNotify", PySHChangeNotify, 1}, // @pymeth SHChangeNotify|Notifies the system of an event that an application has performed.
 	{ NULL, NULL },
 };
 
@@ -431,6 +659,11 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 {
 	PYCOM_INTERFACE_CLIENT_ONLY       (ShellLink),
 	PYCOM_INTERFACE_CLSID_ONLY		  (ShellLink),
+	PYCOM_INTERFACE_FULL(ContextMenu),
+	PYCOM_INTERFACE_FULL(ExtractIcon),
+	PYCOM_INTERFACE_FULL(ShellExtInit),
+	PYCOM_INTERFACE_FULL(ShellFolder),
+	PYCOM_INTERFACE_FULL(EnumIDList),
 };
 
 static int AddConstant(PyObject *dict, const char *key, long value)
