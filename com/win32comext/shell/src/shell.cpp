@@ -155,7 +155,11 @@ static PyObject *PySHBrowseForFolder( PyObject *self, PyObject *args)
 	if (!PyWinObject_AsTCHAR(obTitle, (TCHAR **)&bi.lpszTitle, TRUE))
 		goto done;
 
+	{ // new scope to avoid warnings about the goto
+	PY_INTERFACE_PRECALL;
 	pl = SHBrowseForFolder(&bi);
+	PY_INTERFACE_POSTCALL;
+	}
 
 	// @rdesc The result is ALWAYS a tuple of 3 items.  If the user cancels the
 	// dialog, all items are None.  If the dialog is closed normally, the result is
@@ -191,7 +195,10 @@ static PyObject *PySHGetPathFromIDList(PyObject *self, PyObject *args)
 	if (!PyObject_AsPIDL(obPidl, &pidl))
 		return NULL;
 
-	if (!SHGetPathFromIDList(pidl, buffer)) {
+	PY_INTERFACE_PRECALL;
+	BOOL ok = SHGetPathFromIDList(pidl, buffer);
+	PY_INTERFACE_POSTCALL;
+	if (!ok) {
 		PyWin_SetAPIError("SHGetPathFromIDList");
 		rc = NULL;
 	} else
@@ -343,7 +350,9 @@ static PyObject *PySHAddToRecentDocs(PyObject *self, PyObject *args)
 			&whatever)) // @pyparm string|whatever||A path or <o PyIDL>
 		return NULL;
 
+	PY_INTERFACE_PRECALL;
 	SHAddToRecentDocs(flags, whatever);
+	PY_INTERFACE_POSTCALL;
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -363,7 +372,9 @@ static PyObject *PySHChangeNotify(PyObject *self, PyObject *args)
 			&whatever2)) // @pyparm string|whatever||A path or <o PyIDL>
 		return NULL;
 	// @todo This function does not support integers 
+	PY_INTERFACE_PRECALL;
 	SHChangeNotify(eventId, flags, whatever1, whatever2);
+	PY_INTERFACE_POSTCALL;
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -387,7 +398,9 @@ static PyObject *PySHEmptyRecycleBin(PyObject *self, PyObject *args)
 	if (pfnSHEmptyRecycleBin==NULL)
 		return OleSetOleError(E_NOTIMPL);
 
+	PY_INTERFACE_PRECALL;
 	HRESULT hr = (*pfnSHEmptyRecycleBin)(hwnd, path, flags);
+	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
 		return OleSetOleError(hr);
 	Py_INCREF(Py_None);
