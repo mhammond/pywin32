@@ -439,14 +439,26 @@ BOOLAPI GetBinaryType(
 // @pyswig (int, int, int, int)|GetDiskFreeSpace|Determines the free space on a device.
 BOOLAPI GetDiskFreeSpace(
     TCHAR *lpRootPathName,	// @pyparm <o PyUnicode>|rootPathName||address of root path
-    unsigned long *OUTPUT, // LPDWORD 
-    unsigned long *OUTPUT, // LPDWORD 
-    unsigned long *OUTPUT, // LPDWORD 
-    unsigned long *OUTPUT // LPDWORD 
+    unsigned long *OUTPUT,
+    unsigned long *OUTPUT,
+    unsigned long *OUTPUT,
+    unsigned long *OUTPUT
 // @rdesc The result is a tuple of integers representing (sectors per cluster, bytes per sector, number of free clusters, total number of clusters)
 );
 
 // GetDiskFreeSpaceEx	
+// @pyswig long, long, long|GetDiskFreeSpaceEx|Determines the free space on a device.
+BOOLAPI GetDiskFreeSpaceEx(
+    TCHAR *lpRootPathName,	// @pyparm <o PyUnicode>|rootPathName||address of root path
+    ULARGE_INTEGER *OUTPUT, 
+    ULARGE_INTEGER *OUTPUT,
+    ULARGE_INTEGER *OUTPUT 
+// @rdesc The result is a tuple of long integers:
+// @tupleitem 0|long integer|The total number of free bytes on the disk that are available to the user associated with the calling thread.
+// @tupleitem 1|long integer|The total number of bytes on the disk that are available to the user associated with the calling thread.
+// Windows 2000: If per-user quotas are in use, this value may be less than the total number of bytes on the disk. 
+// @tupleitem 2|long integer|The total number of free bytes on the disk. 
+);
 
 // @pyswig int|GetDriveType|Determines whether a disk drive is a removable, fixed, CD-ROM, RAM disk, or network drive. 
 long GetDriveType(
