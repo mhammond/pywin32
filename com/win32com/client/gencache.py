@@ -231,27 +231,6 @@ def GetModuleForTypelib(typelibCLSID, lcid, major, minor):
 	"""
 	modName = GetGeneratedFileName(typelibCLSID, lcid, major, minor)
 	return _GetModule(modName)
-##############
-	typelibCLSID = str(typelibCLSID)
-	args = typelibCLSID, lcid, major, minor
-	args = versionRedirectMap.get(args, args)
-	modName = GetGeneratedFileName(*args)
-	try:
-		return _GetModule(modName)
-	except ImportError:
-		# See if we can find a module with a different minor version.
-		items = []
-		for desc in GetGeneratedInfos():
-			if str(desc[0])==typelibCLSID and desc[1]==lcid and desc[2]==major:
-				items.append(desc)
-		if not items:
-			raise
-		# Items are all identical, except for last tuple element
-		# We want the latest minor version we have - so just sort and grab last
-		items.sort()
-		new_minor = items[-1][3]
-		versionRedirectMap[args] = typelibCLSID, lcid, major, new_minor
-		return GetModuleForTypelib(typelibCLSID, lcid, major, new_minor)
 
 def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = None, bGUIProgress = None, bForDemand = bForDemandDefault, bBuildHidden = 1):
 	"""Generate support for a type library.
