@@ -472,16 +472,28 @@ static BOOL PyCom_SAFEARRAYFromPyObjectEx(PyObject *obj, SAFEARRAY **ppSA, bool 
 	Py_INCREF(obItemCheck);
 	// Allow arbitary sequences, but not strings or Unicode objects.
 	while (obItemCheck && PySequence_Check(obItemCheck) && !PyString_Check(obItemCheck) && !PyUnicode_Check(obItemCheck)) {
-		if (!PyBuffer_Check(obItemCheck) && PySequence_Length(obItemCheck)) {
-			PyObject *obSave = obItemCheck;
-			obItemCheck = PySequence_GetItem(obItemCheck,0);
-			Py_DECREF(obSave);
-			if (obItemCheck==NULL) {
-				// Says it is a sequence, but getting the item failed.
-				// (eg, may be a COM instance that has __getitem__, but fails when attempting)
-				// Ignore the error, and pretend it is not a sequence.
+		if (!PyBuffer_Check(obItemCheck) ) {
+			// We *think* it is a sequence, but may not be.  (eg, maybe
+			// a COM instance with __len__/__getitem__, but they will fail.
+			// In these cases, ignore the error and pretend it is not a sequence.
+			int sub_len = PySequence_Length(obItemCheck);
+			if (sub_len<0) { // __len__ failed.
 				PyErr_Clear();
 				break;
+			}
+			if (sub_len) {
+				// The reckon we have at least one item - fetch it.
+				// XXX - is this really necessary?  Isn't __len__ failure
+				// good enough?
+				PyObject *obSave = obItemCheck;
+				obItemCheck = PySequence_GetItem(obItemCheck,0);
+
+				Py_DECREF(obSave);
+				if (obItemCheck==NULL) {
+					// getting the item failed.
+					PyErr_Clear();
+					break;
+				}
 			}
 		} else {
 			Py_XDECREF(obItemCheck);
