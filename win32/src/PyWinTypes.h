@@ -444,6 +444,12 @@ extern PYWINTYPES_EXPORT void PyWin_MakePendingCalls();
 class CEnterLeavePython {
 public:
 	CEnterLeavePython() {
+		acquired = FALSE;
+		acquire();
+	}
+	void acquire() {
+		if (acquired)
+			return;
 		created = PyWinThreadState_Ensure();
 #ifndef PYCOM_USE_FREE_THREAD
 		PyWinInterpreterLock_Acquire();
@@ -464,15 +470,21 @@ public:
 			// signals raised _while_ we are executing will cause exceptions.
 			PyWin_MakePendingCalls();
 		}
-
+		acquired = TRUE;
 	}
 	~CEnterLeavePython() {
+		if (acquired)
+			release();
+	}
+	void release() {
 	// The interpreter state must be cleared
 	// _before_ we release the lock, as some of
 	// the sys. attributes cleared (eg, the current exception)
 	// may need the lock to invoke their destructors - 
 	// specifically, when exc_value is a class instance, and
 	// the exception holds the last reference!
+		if ( !acquired )
+			return;
 		if ( created )
 			PyWinThreadState_Clear();
 #ifndef PYCOM_USE_FREE_THREAD
@@ -480,9 +492,11 @@ public:
 #endif
 		if ( created )
 			PyWinThreadState_Free();
+		acquired = FALSE;
 	}
 private:
 	BOOL created;
+	BOOL acquired;
 };
 
 
