@@ -341,6 +341,56 @@ done:
 	return ret;
 }
 
+BOOL PyObject_AsTBBUTTONs( PyObject *ob, TBBUTTON **ppButtons, UINT *pnButtons )
+{
+	*ppButtons = NULL;
+	if (ob==Py_None) {
+		*pnButtons = 0;
+		return TRUE;
+	}
+	if (!PySequence_Check(ob)) {
+		PyErr_Format(PyExc_TypeError, "TBBUTTONs must be a sequence (got %s)", ob->ob_type->tp_name);
+		return FALSE;
+	}
+	UINT seqsize = PySequence_Size(ob);
+	UINT i;
+	if (seqsize == -1)
+		return FALSE;
+	*ppButtons = (TBBUTTON *)malloc(seqsize * sizeof(TBBUTTON));
+	if (!*ppButtons) {
+		PyErr_NoMemory();
+		return FALSE;
+	}
+	memset(*ppButtons, 0, seqsize * sizeof(TBBUTTON));
+	for (i=0;i<seqsize;i++) {
+		TBBUTTON *pThis = (*ppButtons)+i;
+		PyObject *sub = PySequence_GetItem(ob, i);
+		if (!sub) goto failed;
+		int ok = PyArg_ParseTuple(sub, "iiBB|li",
+							 &pThis->iBitmap,
+							 &pThis->idCommand,
+							 &pThis->fsState,
+							 &pThis->fsStyle,
+							 &pThis->dwData,
+							 &pThis->iString);
+		Py_DECREF(sub);
+		if (!ok) goto failed;
+	}
+	*pnButtons = seqsize;
+	return TRUE;
+failed:
+	if (*ppButtons)
+		free(*ppButtons);
+	*ppButtons = NULL;
+	return FALSE;
+}
+
+void PyObject_FreeTBBUTTONs(TBBUTTON *p)
+{
+	if (p)
+		free(p);
+}
+
 PyObject *PyWinObject_FromRESOURCESTRING(LPCSTR str)
 {
 	if (HIWORD(str)==0)
@@ -1433,6 +1483,339 @@ static PyObject *PyCIDAAsString(PyObject *self, PyObject *args)
 	// @rdesc The result is a string with the CIDA bytes.
 }
 
+#define CHECK_SET_VAL(mask1, mask2, x) \
+	if (mask1 & mask2 ) PyDict_SetItemString(ret, #x, state.x ? Py_True : Py_False);
+
+// @pymethod dict|SHGetSettings|Retrieves the current shell option settings.
+static PyObject *PySHGetSettings(PyObject *self, PyObject *args)
+{
+	DWORD mask = -1;
+	// @pyparm int|mask|-1|The values being requested - one of the shellcon.SSF_* constants
+	if (!PyArg_ParseTuple(args, "|l:SHGetSettings", &mask))
+		return NULL;
+	SHELLFLAGSTATE state;
+	SHGetSettings(&state, mask);
+	PyObject *ret = PyDict_New();
+	CHECK_SET_VAL(SSF_DESKTOPHTML, mask, fDesktopHTML);
+	
+	CHECK_SET_VAL(SSF_DONTPRETTYPATH, mask, fDontPrettyPath);
+	CHECK_SET_VAL(SSF_DOUBLECLICKINWEBVIEW, mask, fDoubleClickInWebView);
+	CHECK_SET_VAL(SSF_HIDEICONS, mask, fHideIcons);
+	CHECK_SET_VAL(SSF_MAPNETDRVBUTTON, mask, fMapNetDrvBtn);
+	CHECK_SET_VAL(SSF_NOCONFIRMRECYCLE, mask, fNoConfirmRecycle);
+	CHECK_SET_VAL(SSF_SHOWALLOBJECTS, mask, fShowAllObjects);
+	CHECK_SET_VAL(SSF_SHOWATTRIBCOL, mask, fShowAttribCol);
+	CHECK_SET_VAL(SSF_SHOWCOMPCOLOR, mask, fShowCompColor);
+	CHECK_SET_VAL(SSF_SHOWEXTENSIONS, mask, fShowExtensions);
+	CHECK_SET_VAL(SSF_SHOWINFOTIP, mask, fShowInfoTip);
+	CHECK_SET_VAL(SSF_SHOWSYSFILES, mask, fShowSysFiles);
+	CHECK_SET_VAL(SSF_WIN95CLASSIC, mask, fWin95Classic);
+	// If requesting any of the top 3 bits, return them as well
+	if (mask & 0xE000) {
+		PyObject *val = PyInt_FromLong(state.fRestFlags);
+		if (val) {
+			PyDict_SetItemString(ret, "fRestFlags", val);
+			Py_DECREF(val);
+		}
+	}
+	return ret;
+	// @rdesc, the resule is a dictionary, the contents of which depend on
+	// the mask param.  Key names are the same as the SHELLFLAGSTATE
+	// structure members - 'fShowExtensions', 'fNoConfirmRecycle', etc
+}
+
+// @pymethod string|shell|FILEGROUPDESCRIPTORAsString|Creates a FILEGROUPDESCRIPTOR from a sequence of mapping objects, each with FILEDESCRIPTOR attributes
+static PyObject *PyFILEGROUPDESCRIPTORAsString(PyObject *self, PyObject *args)
+{
+	PyObject *ret = NULL;
+	FILEGROUPDESCRIPTORA *fgd = NULL;
+	FILEGROUPDESCRIPTORW *fgdw = NULL;
+	PyObject *ob;
+	int i;
+	// @pyparm [FILEDESCRIPTOR, ...]|descriptors||A sequence of FILEDESCRIPTOR objects.
+	// Each filedescriptor object must be a mapping/dictionary, with the following
+	// optional attributes: dwFlags, clsid, sizel, pointl, dwFileAttributes,
+	// ftCreationTime, ftLastAccessTime, ftLastWriteTime, nFileSize
+	// If these attributes do not exist, or are None, they will be ignored - hence
+	// you only need specify attributes you care about.
+	// <nl>In general, you can omit dwFlags - it will be set correctly based
+	// on what other attributes exist.
+	// @pyparm bool|make_unicode|False|Should a FILEDESCRIPTORW be created?
+	int make_unicode = FALSE;
+	if (!PyArg_ParseTuple(args, "O|i", &ob, &make_unicode))
+		return NULL;
+	if (!PySequence_Check(ob))
+		return PyErr_Format(PyExc_TypeError, "must be a sequence of mapping objects (got '%s')",
+							ob->ob_type->tp_name);
+	int num = PySequence_Length(ob);
+	if (num==-1)
+		return NULL;
+	int cb;
+	if (make_unicode)
+		cb = sizeof(FILEGROUPDESCRIPTORW) + sizeof(FILEDESCRIPTORW)*(num-1);
+	else
+		cb = sizeof(FILEGROUPDESCRIPTORA) + sizeof(FILEDESCRIPTORA)*(num-1);
+	PyObject *ret_string = PyString_FromStringAndSize(NULL, cb);
+	if (!ret_string) goto done;
+	fgd = (FILEGROUPDESCRIPTORA *)PyString_AS_STRING(ret_string);
+	fgdw = (FILEGROUPDESCRIPTORW *)PyString_AS_STRING(ret_string);
+	memset(fgd, 0, cb);
+	fgd->cItems = num;
+	for (i=0;i<num;i++) {
+		BOOL ok = TRUE;
+		FILEDESCRIPTORA *fd = fgd->fgd+i;
+		FILEDESCRIPTORW *fdw = fgdw->fgd+i;
+		// These structures are the same until the very end, where the
+		// unicode/ascii buffer is - so we can use either pointer
+		PyObject *attr;
+		PyObject *sub = PySequence_GetItem(ob, i);
+		if (!sub) goto done;
+		if (!PyMapping_Check(sub)) {
+			PyErr_Format(PyExc_TypeError, "sub-items must be mapping objects (got '%s')",
+						 sub->ob_type->tp_name);
+			goto loop_failed;
+		}
+		
+		attr = PyMapping_GetItemString(sub, "dwFlags");
+		if (attr==NULL) PyErr_Clear();
+		if (attr && attr != Py_None) {
+			fd->dwFlags = PyInt_AsLong(attr);
+			ok = !PyErr_Occurred();
+		}
+		Py_XDECREF(attr);
+		if (!ok) goto loop_failed;
+		
+		attr = PyMapping_GetItemString(sub, "clsid");
+		if (attr==NULL) PyErr_Clear();
+		if (attr && attr != Py_None) {
+			fd->dwFlags |= FD_CLSID;
+			ok = PyWinObject_AsIID(attr, &fd->clsid);
+		}
+		Py_XDECREF(attr);
+		if (!ok) goto loop_failed;
+
+		attr = PyMapping_GetItemString(sub, "sizel");
+		if (attr==NULL) PyErr_Clear();
+		if (attr && attr != Py_None) {
+			fd->dwFlags |= FD_SIZEPOINT;
+			ok = PyArg_ParseTuple(attr, "ii", &fd->sizel.cx, &fd->sizel.cy);
+		}
+		Py_XDECREF(attr);
+		if (!ok) goto loop_failed;
+
+		attr = PyMapping_GetItemString(sub, "pointl");
+		if (attr==NULL) PyErr_Clear();
+		if (attr && attr != Py_None) {
+			fd->dwFlags |= FD_SIZEPOINT;
+			ok = PyArg_ParseTuple(attr, "ii", &fd->pointl.x, &fd->pointl.y);
+		}
+		Py_XDECREF(attr);
+		if (!ok) goto loop_failed;
+
+		attr = PyMapping_GetItemString(sub, "dwFileAttributes");
+		if (attr==NULL) PyErr_Clear();
+		if (attr && attr != Py_None) {
+			fd->dwFlags |= FD_ATTRIBUTES;
+			fd->dwFileAttributes = PyInt_AsLong(attr);
+			ok = !PyErr_Occurred();
+		}
+		Py_XDECREF(attr);
+		if (!ok) goto loop_failed;
+
+		attr = PyMapping_GetItemString(sub, "ftCreationTime");
+		if (attr==NULL) PyErr_Clear();
+		if (attr && attr != Py_None) {
+			fd->dwFlags |= FD_CREATETIME;
+			ok = PyWinObject_AsFILETIME(attr, &fd->ftCreationTime);
+		}
+		Py_XDECREF(attr);
+		if (!ok) goto loop_failed;
+
+		attr = PyMapping_GetItemString(sub, "ftLastAccessTime");
+		if (attr==NULL) PyErr_Clear();
+		if (attr && attr != Py_None) {
+			fd->dwFlags |= FD_ACCESSTIME;
+			ok = PyWinObject_AsFILETIME(attr, &fd->ftLastAccessTime);
+		}
+		Py_XDECREF(attr);
+		if (!ok) goto loop_failed;
+
+		attr = PyMapping_GetItemString(sub, "ftLastWriteTime");
+		if (attr==NULL) PyErr_Clear();
+		if (attr && attr != Py_None) {
+			fd->dwFlags |= FD_WRITESTIME;
+			ok = PyWinObject_AsFILETIME(attr, &fd->ftLastWriteTime);
+		}
+		Py_XDECREF(attr);
+		if (!ok) goto loop_failed;
+
+		attr = PyMapping_GetItemString(sub, "nFileSize");
+		if (attr==NULL) PyErr_Clear();
+		if (attr && attr != Py_None) {
+			fd->dwFlags |= FD_FILESIZE;
+			ok = PyLong_AsTwoI32(attr, (int *)&fd->nFileSizeHigh, (unsigned *)&fd->nFileSizeLow);
+		}
+		Py_XDECREF(attr);
+		if (!ok) goto loop_failed;
+
+		attr = PyMapping_GetItemString(sub, "cFileName");
+		if (attr==NULL) PyErr_Clear();
+		if (attr && attr != Py_None) {
+			// no filename flags??
+			if (make_unicode) {
+				WCHAR *t;
+				ok = PyWinObject_AsWCHAR(attr, &t);
+				if (ok) {
+					wcsncpy(fdw->cFileName, t, sizeof(fdw->cFileName)/sizeof(WCHAR));
+					PyWinObject_FreeWCHAR(t);
+				}
+			} else {
+				char *t;
+				ok = PyWinObject_AsString(attr, &t);
+				if (ok) {
+					strncpy(fd->cFileName, t, sizeof(fd->cFileName)/sizeof(char));
+					PyWinObject_FreeString(t);
+				}
+			}
+		}
+		Py_XDECREF(attr);
+		if (!ok) goto loop_failed;
+
+		Py_DECREF(sub);
+		continue; // don't fall through to loop error!
+loop_failed:
+		Py_DECREF(sub);
+		goto done;
+	}
+	// all worked - setup result.
+	ret = ret_string;
+	ret_string = NULL;
+done:
+	Py_XDECREF(ret_string);
+	return ret;
+}
+
+// @pymethod [dict, ...]|shell|StringAsFILEGROUPDESCRIPTOR|Decodes a FILEGROUPDESCRIPTOR packed in a string
+static PyObject *PyStringAsFILEGROUPDESCRIPTOR(PyObject *self, PyObject *args)
+{
+	PyObject *ret = NULL;
+	FILEGROUPDESCRIPTORA *fgd = NULL;
+	FILEGROUPDESCRIPTORW *fgdw = NULL;
+	void *buf;
+	int i, cb, size_a, size_w, num;
+	BOOL ok = FALSE;
+	// @pyparm buffer|buf||A string packed as either FILEGROUPDESCRIPTORW or FILEGROUPDESCRIPTORW
+	// @pyparm bool|make_unicode|-1|Should this be treated as a FILEDESCRIPTORW?  If -1
+	// the size of the buffer will be used to make that determination.  Thus, if
+	// the buffer is not the exact size of a correct FILEDESCRIPTORW or FILEDESCRIPTORA,
+	// you will need to specify this parameter.
+	int make_unicode = -1;
+	if (!PyArg_ParseTuple(args, "z#|i", &buf, &cb, make_unicode))
+		return NULL;
+	if (!buf) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+	if (cb < sizeof(UINT))
+		return PyErr_Format(PyExc_ValueError, "The buffer is way too small!");
+	fgd = (FILEGROUPDESCRIPTORA *)buf;
+	fgdw = (FILEGROUPDESCRIPTORW *)buf;
+	num = fgd->cItems;
+	size_a = sizeof(FILEGROUPDESCRIPTORA) + sizeof(FILEDESCRIPTORA)*(num-1);
+	size_w = sizeof(FILEGROUPDESCRIPTORW) + sizeof(FILEDESCRIPTORW)*(num-1);
+	if (make_unicode==-1) {
+		// allow an extra byte that may be added!
+		if (cb==size_a || cb-1==size_a)
+			make_unicode = 0;
+		else if (cb==size_w || cb-1==size_w)
+			make_unicode = 1;
+	}
+	if (make_unicode==-1)
+		return PyErr_Format(PyExc_ValueError,
+							"You must specify a value for make_unicode - got a "
+							"buffer of %d bytes, but an ascii one would be %d "
+							"bytes, and unicode %d bytes", cb, size_a, size_w);
+	if ((make_unicode && cb < size_w) || (!make_unicode && cb < size_a)) {
+		return PyErr_Format(PyExc_ValueError,
+							"The buffer is too small - require %d bytes, but "
+							"only %d supplied", make_unicode ? size_w : size_a,
+							cb);
+	}
+	ret = PyList_New(num);
+	if (!ret) return NULL;
+	for (i=0;i<num;i++) {
+		FILEDESCRIPTORA *fd = fgd->fgd+i;
+		FILEDESCRIPTORW *fdw = fgdw->fgd+i;
+		PyObject *sub = PyDict_New();
+		if (!sub) goto done;
+		PyObject *val;
+		// These structures are the same until the very end, where the
+		// unicode/ascii buffer is - so we can use either pointer
+		val = PyInt_FromLong(fd->dwFlags);
+		if (val) PyDict_SetItemString(sub, "dwFlags", val);
+		Py_XDECREF(val);
+		
+		if (fd->dwFlags & FD_CLSID) {
+			val = PyWinObject_FromIID(fd->clsid);
+			if (val) PyDict_SetItemString(sub, "clsid", val);
+			Py_XDECREF(val);
+		}
+
+		if (fd->dwFlags & FD_SIZEPOINT) {
+			val = Py_BuildValue("ii", fd->sizel.cx, fd->sizel.cy);
+			if (val) PyDict_SetItemString(sub, "sizel", val);
+			Py_XDECREF(val);
+			val = Py_BuildValue("ii", fd->pointl.x, fd->pointl.y);
+			if (val) PyDict_SetItemString(sub, "pointl", val);
+			Py_XDECREF(val);
+		}
+
+		if (fd->dwFlags & FD_ATTRIBUTES) {
+			val = PyInt_FromLong(fd->dwFileAttributes);
+			if (val) PyDict_SetItemString(sub, "dwFileAttributes", val);
+			Py_XDECREF(val);
+		}
+
+		if (fd->dwFlags & FD_CREATETIME) {
+			val = PyWinObject_FromFILETIME(fd->ftCreationTime);
+			if (val) PyDict_SetItemString(sub, "ftCreationTime", val);
+			Py_XDECREF(val);
+		}
+
+		if (fd->dwFlags & FD_ACCESSTIME) {
+			val = PyWinObject_FromFILETIME(fd->ftLastAccessTime);
+			if (val) PyDict_SetItemString(sub, "ftLastAccessTime", val);
+			Py_XDECREF(val);
+		}
+
+		if (fd->dwFlags & FD_WRITESTIME) {
+			val = PyWinObject_FromFILETIME(fd->ftLastWriteTime);
+			if (val) PyDict_SetItemString(sub, "ftLastWriteTime", val);
+			Py_XDECREF(val);
+		}
+
+		if (fd->dwFlags & FD_FILESIZE) {
+			val = PyLong_FromTwoInts(fd->nFileSizeHigh, fd->nFileSizeLow);
+			if (val) PyDict_SetItemString(sub, "nFileSize", val);
+			Py_XDECREF(val);
+		}
+		// no filename flags??
+		if (make_unicode)
+			val = PyWinObject_FromWCHAR(fdw->cFileName);
+		else
+			val = PyString_FromString(fd->cFileName);
+		if (val) PyDict_SetItemString(sub, "cFileName", val);
+		Py_XDECREF(val);
+		PyList_SET_ITEM(ret, i, sub); // 'sub' reference consumed.
+	}
+	ok = TRUE;
+done:
+	if (!ok) {
+		Py_DECREF(ret);
+		ret = NULL;
+	}
+	return ret;
+}
 
 /* List of module functions */
 // @module shell|A module, encapsulating the ActiveX Control interfaces
@@ -1462,6 +1845,9 @@ static struct PyMethodDef shell_methods[]=
 	{ "StringAsPIDL", PyStringAsPIDL, 1}, // @pymeth StringAsPIDL|Given a PIDL as a raw string, return a PIDL object (ie, a list of strings)
 	{ "AddressAsPIDL", PyAddressAsPIDL, 1}, // @pymeth AddressAsPIDL|Given the address of a PIDL, return a PIDL object (ie, a list of strings)
 	{ "PIDLAsString", PyPIDLAsString, 1}, // @pymeth PIDLAsString|Given a PIDL object, return the raw PIDL bytes as a string
+	{ "SHGetSettings", PySHGetSettings, 1}, // @pymeth SHGetSettings|Retrieves the current shell option settings.
+	{ "FILEGROUPDESCRIPTORAsString", PyFILEGROUPDESCRIPTORAsString, 1}, // @pymeth FILEGROUPDESCRIPTORAsString|Creates a FILEGROUPDESCRIPTOR from a sequence of mapping objects, each with FILEDESCRIPTOR attributes
+	{ "StringAsFILEGROUPDESCRIPTOR", PyStringAsFILEGROUPDESCRIPTOR, 1}, // @pymeth StringAsFILEGROUPDESCRIPTOR|Decodes a FILEGROUPDESCRIPTOR packed in a string
 	{ NULL, NULL },
 };
 
@@ -1469,9 +1855,12 @@ static struct PyMethodDef shell_methods[]=
 static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 {
 	PYCOM_INTERFACE_CLIENT_ONLY       (ShellLink),
+	PYCOM_INTERFACE_IID_ONLY		  (ShellLinkA),
 	PYCOM_INTERFACE_CLSID_ONLY		  (ShellLink),
+	PYCOM_INTERFACE_IID_ONLY		  (ShellLinkW),
 	PYCOM_INTERFACE_FULL(ContextMenu),
 	PYCOM_INTERFACE_FULL(ExtractIcon),
+	PYCOM_INTERFACE_IID_ONLY		  (ExtractIconW),
 	PYCOM_INTERFACE_FULL(ShellExtInit),
 	PYCOM_INTERFACE_FULL(ShellFolder),
 	PYCOM_INTERFACE_FULL(ShellView),
