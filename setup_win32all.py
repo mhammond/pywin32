@@ -260,6 +260,25 @@ class my_build_ext(build_ext):
         self.mingw32 = (self.compiler == "mingw32")
         if self.mingw32:
             self.libraries.append("stdc++")
+        # Try and locate the platform SDK - this prevents the user from needing
+        # to manually add these directories via the MSVC UI.
+        # (Note that just having them in INCLUDE/LIB does *not* work -
+        # distutils thinks it knows better, and resets those vars.
+        try:
+            key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+                                  r"Software\Microsoft\MicrosoftSDK\Directories")
+            sdk_dir, ignore = _winreg.QueryValueEx(key, "Install Dir")
+        except OSError:
+            sdk_dir = None
+        if sdk_dir:
+            extra = os.path.join(sdk_dir, 'include')
+            if extra not in self.include_dirs and os.path.isdir(extra):
+                self.include_dirs.insert(0, extra)
+            extra = os.path.join(sys.exec_prefix, 'lib')
+            if extra not in self.library_dirs and os.path.isdir(extra):
+                self.library_dirs.insert(0, extra)
+        else:
+            print "Warning - can't find an installed platform SDK"
         # Python 2.2 distutils doesn't handle the 'PC'/PCBuild directory for
         # us (it only exists if building from the source tree)
         extra = os.path.join(sys.exec_prefix, 'PC')
@@ -1007,6 +1026,9 @@ dist = setup(name="pywin32",
                 ]) + 
       convert_data_files([
                 'pythonwin/pywin/*.cfg',
+                'pythonwin/pywin/Demos/*.py',
+                'pythonwin/pywin/Demos/app/*.py',
+                'pythonwin/pywin/Demos/ocx/*.py',
                 'pythonwin/license.txt',
                 'win32/license.txt',
                 'win32/scripts/*',
