@@ -880,3 +880,46 @@ FD_WRITESTIME       = 0x0020
 FD_FILESIZE         = 0x0040
 FD_PROGRESSUI       = 0x4000
 FD_LINKUI           = 0x8000
+
+# shlwapi stuff
+ASSOCF_INIT_NOREMAPCLSID           = 0x00000001  #  do not remap clsids to progids
+ASSOCF_INIT_BYEXENAME              = 0x00000002 # executable is being passed in
+ASSOCF_OPEN_BYEXENAME              = 0x00000002 # executable is being passed in
+ASSOCF_INIT_DEFAULTTOSTAR          = 0x00000004 # treat "*" as the BaseClass
+ASSOCF_INIT_DEFAULTTOFOLDER        = 0x00000008 # treat "Folder" as the BaseClass
+ASSOCF_NOUSERSETTINGS              = 0x00000010 #  dont use HKCU
+ASSOCF_NOTRUNCATE                  = 0x00000020 # dont truncate the return string
+ASSOCF_VERIFY                      = 0x00000040 #  verify data is accurate (DISK HITS)
+ASSOCF_REMAPRUNDLL                 = 0x00000080 # actually gets info about rundlls target if applicable
+ASSOCF_NOFIXUPS                    = 0x00000100 # attempt to fix errors if found
+ASSOCF_IGNOREBASECLASS             = 0x00000200 # dont recurse into the baseclass
+
+ASSOCSTR_COMMAND      = 1 # shell\verb\command string
+ASSOCSTR_EXECUTABLE = 2 # the executable part of command string
+ASSOCSTR_FRIENDLYDOCNAME = 3 # friendly name of the document type
+ASSOCSTR_FRIENDLYAPPNAME = 4 # friendly name of executable
+ASSOCSTR_NOOPEN = 5  # noopen value
+ASSOCSTR_SHELLNEWVALUE = 6 # query values under the shellnew key
+ASSOCSTR_DDECOMMAND = 7 # template for DDE commands
+ASSOCSTR_DDEIFEXEC = 8 # DDECOMMAND to use if just create a process
+ASSOCSTR_DDEAPPLICATION = 9 # Application name in DDE broadcast
+ASSOCSTR_DDETOPIC = 10 # Topic Name in DDE broadcast
+ASSOCSTR_INFOTIP = 11 # info tip for an item, or list of properties to create info tip from
+ASSOCSTR_QUICKTIP = 12 # same as ASSOCSTR_INFOTIP, except, this list contains only quickly retrievable properties
+ASSOCSTR_TILEINFO = 13 # similar to ASSOCSTR_INFOTIP - lists important properties for tileview
+ASSOCSTR_CONTENTTYPE = 14 # MIME Content type
+ASSOCSTR_DEFAULTICON = 15 # Default icon source
+ASSOCSTR_SHELLEXTENSION = 16 # Guid string pointing to the Shellex\Shellextensionhandler value.
+
+ASSOCKEY_SHELLEXECCLASS = 1 # the key that should be passed to ShellExec(hkeyClass)
+ASSOCKEY_APP = 2 # the "Application" key for the association
+ASSOCKEY_CLASS = 3 # the progid or class key
+ASSOCKEY_BASECLASS = 4 # the BaseClass key
+
+ASSOCDATA_MSIDESCRIPTOR = 1 # Component Descriptor to pass to MSI APIs
+ASSOCDATA_NOACTIVATEHANDLER = 2 # restrict attempts to activate window
+ASSOCDATA_QUERYCLASSSTORE = 3 # should check with the NT Class Store
+ASSOCDATA_HASPERUSERASSOC = 4 # defaults to user specified association
+ASSOCDATA_EDITFLAGS = 5 # Edit flags.
+ASSOCDATA_VALUE = 6 # use pszExtra as the Value name
+

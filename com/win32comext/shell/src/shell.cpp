@@ -13,6 +13,7 @@ generates Windows .hlp files.
 ***/
 
 #include "shell_pch.h"
+#include "shlwapi.h"
 #include "PyIShellLink.h"
 #include "PyIContextMenu.h"
 #include "PyIExtractIcon.h"
@@ -29,6 +30,7 @@ generates Windows .hlp files.
 #include "PyIColumnProvider.h"
 #include "PyIDropTargetHelper.h"
 #include "PyIAsyncOperation.h"
+#include "PyIQueryAssociations.h"
 
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
 
@@ -1934,11 +1936,36 @@ done:
 	return ret;
 }
 
+// @pymethod <o PyIQueryAssociations|shell|AssocCreate|Creates a <o PyIQueryAssociations> object
+static PyObject *PyAssocCreate(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":AssocCreate"))
+		return NULL;
+
+	HMODULE hmod = LoadLibrary(TEXT("shlwapi.dll"));
+	typedef HRESULT (WINAPI * PFNAssocCreate)(CLSID, REFIID, LPVOID);
+	PFNAssocCreate pfnAssocCreate = NULL;
+	if (hmod) pfnAssocCreate=(PFNAssocCreate)GetProcAddress(hmod, "AssocCreate");
+	if (pfnAssocCreate==NULL) {
+		if (hmod) FreeLibrary(hmod);
+		return OleSetOleError(E_NOTIMPL);
+	}
+	HRESULT hr;
+	IQueryAssociations *pRet = NULL;
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnAssocCreate)(CLSID_QueryAssociations, IID_IQueryAssociations, (void **)&pRet);
+	if (hmod) FreeLibrary(hmod);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	return PyCom_PyObjectFromIUnknown(pRet, IID_IQueryAssociations, FALSE);
+}
 
 /* List of module functions */
 // @module shell|A module, encapsulating the ActiveX Control interfaces
 static struct PyMethodDef shell_methods[]=
 {
+    { "AssocCreate",    PyAssocCreate, 1 }, // @pymeth AssocCreate|Creates a <o PyIQueryAssociations> object
     { "DragQueryFile",    PyDragQueryFile, 1 }, // @pymeth DragQueryFile|Retrieves the file names of dropped files that have resulted from a successful drag-and-drop operation.
 	{ "DragQueryPoint",   PyDragQueryPoint, 1}, // @pymeth DragQueryPoint|Retrieves the position of the mouse pointer at the time a file was dropped during a drag-and-drop operation.
     { "SHGetPathFromIDList",    PySHGetPathFromIDList, 1 }, // @pymeth SHGetPathFromIDList|Converts an <o PyIDL> to a path.
@@ -1990,6 +2017,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL(PersistFolder),
 	PYCOM_INTERFACE_FULL(ColumnProvider),
 	PYCOM_INTERFACE_FULL(DropTargetHelper),
+	PYCOM_INTERFACE_CLIENT_ONLY(QueryAssociations),
 	// IID_ICopyHook doesn't exist - hack it up
 	{ &IID_IShellCopyHook, "IShellCopyHook", "IID_IShellCopyHook", &PyICopyHook::type, GET_PYGATEWAY_CTOR(PyGCopyHook) },
 	{ &IID_IShellCopyHook, "ICopyHook", "IID_ICopyHook", NULL, NULL  },

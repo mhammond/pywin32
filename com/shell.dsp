@@ -130,6 +130,10 @@ SOURCE=.\win32comext\shell\src\PyIPersistFolder.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32comext\shell\src\PyIQueryAssociations.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32comext\shell\src\PyIShellBrowser.cpp
 # End Source File
 # Begin Source File
@@ -191,6 +195,10 @@ SOURCE=.\win32comext\shell\src\PyIExtractIcon.h
 # Begin Source File
 
 SOURCE=.\win32comext\shell\src\PyIPersistFolder.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIQueryAssociations.h
 # End Source File
 # Begin Source File
 
