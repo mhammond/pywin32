@@ -32,9 +32,19 @@
 #include "EDKCFG.H"
 #include "EDKUTILS.H"
 
-#include "ADDRLKUP.H"
-#include "MBLOGON.H"
+// What is the correct story here??  The Exchange SDK story sucks - it seems
+// certain functions in the stand-alone version are simply commented out.
+#if defined(EXCHANGE_RE)
+#	define DONT_HAVE_MBLOGON
+#	define DONT_HAVE_ADDRLKUP
+#endif
 
+#if !defined(DONT_HAVE_ADDRLKUP)
+#	include "ADDRLKUP.H"
+#endif
+#if !defined(DONT_HAVE_MBLOGON)
+#	include "MBLOGON.H"
+#endif
 
 %}
 
@@ -353,6 +363,9 @@ done:
 // @pyswig string|HrFindExchangeGlobalAddressList|Retrieves the entry identifier of the global address list (GAL) container in the address book.
 static PyObject *PyHrFindExchangeGlobalAddressList(PyObject *self, PyObject *args) 
 {
+#ifdef DONT_HAVE_ADDRLKUP
+	return PyErr_Format(PyExc_NotImplementedError, "Not available with this version of the Exchange SDK");
+#else
 	PyObject *obAddrBook;
 	// @pyparm <o PyIAddrBook>|addrBook||The interface containing the address book
 	if (!PyArg_ParseTuple(args, "O:HrFindExchangeGlobalAddressList", &obAddrBook))
@@ -371,12 +384,29 @@ static PyObject *PyHrFindExchangeGlobalAddressList(PyObject *self, PyObject *arg
 	PyObject *rc = PyString_FromStringAndSize((char *)peid, cb);
 	MAPIFreeBuffer(peid);
 	return rc;
+#endif
 }
 %}
 
+%{
+HRESULT MyHrMailboxLogon(
+    IN  LPMAPISESSION   lplhSession,                // ptr to MAPI session handle
+    IN  LPMDB           lpMDB,                      // ptr to message store
+    IN  LPSTR           lpszMsgStoreDN,             // ptr to message store DN
+    IN  LPSTR           lpszMailboxDN,              // ptr to mailbox DN
+    OUT LPMDB           *lppMailboxMDB)            // ptr to mailbox message store ptr
+{
+#if defined(DONT_HAVE_MBLOGON)
+	PyErr_Warn(PyExc_RuntimeWarning, "Not available with this version of the Exchange SDK");
+	return E_NOTIMPL;
+#else
+	return HrMailboxLogon(lplhSession, lpMDB, lpszMsgStoreDN, lpszMailboxDN, lppMailboxMDB);
+#endif
+}
+%}
 
 // @pyswig <o PyIMsgStore>|HrMailboxLogon|Logs on a server and mailbox.
-HRESULT HrMailboxLogon(
+%name(HrMailboxLogon) HRESULT MyHrMailboxLogon(
 	IMAPISession *INPUT, // @pyparm <o PyIMAPISession>|session||The session object
 	IMsgStore *INPUT, // @pyparm <o PyIMsgStore>|msgStore||
 	TCHAR *INPUT, // @pyparm string/<o PyUnicode>|msgStoreDN||
@@ -384,8 +414,20 @@ HRESULT HrMailboxLogon(
 	IMsgStore **OUTPUT
 );
 
+%{
+HRESULT MyHrMailboxLogoff(IMsgStore **pp)
+{
+#if defined(DONT_HAVE_MBLOGON)
+	PyErr_Warn(PyExc_RuntimeWarning, "Not available with this version of the Exchange SDK");
+	return E_NOTIMPL;
+#else
+	return HrMailboxLogoff(pp);
+#endif
+}
+%}
+
 // @pyswig |HrMailboxLogoff|Logs off a server and mailbox.
-HRESULT HrMailboxLogoff(
+%name(HrMailboxLogoff) HRESULT MyHrMailboxLogoff(
 	IMsgStore **INPUT // @pyparm <o PyIMsgStore>|inbox||The open inbox.
 );
 
