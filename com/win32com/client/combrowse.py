@@ -98,8 +98,12 @@ class HLIHeadingCategory(HLICOM):
 		catinf=pythoncom.CoCreateInstance(pythoncom.CLSID_StdComponentCategoriesMgr,None,pythoncom.CLSCTX_INPROC,pythoncom.IID_ICatInformation)
 		enum=util.Enumerator(catinf.EnumCategories())
 		ret = []
-		for catid, lcid, desc in enum:
-			ret.append(HLICategory((catid, lcid, desc)))
+		try:
+			for catid, lcid, desc in enum:
+				ret.append(HLICategory((catid, lcid, desc)))
+		except pythoncom.com_error:
+			# Registered categories occasionally seem to give spurious errors.
+			pass # Use what we already have.
 		return ret
 
 class HLICategory(HLICOM):
@@ -472,6 +476,7 @@ class HLIHeadingRegisterdTypeLibs(HLICOM):
 					break
 				# Enumerate all version info
 				subKey = win32api.RegOpenKey(key, keyName)
+				name = None
 				try:
 					subNum = 0
 					bestVersion = 0.0
@@ -490,7 +495,8 @@ class HLIHeadingRegisterdTypeLibs(HLICOM):
 						subNum = subNum + 1
 				finally:
 					win32api.RegCloseKey(subKey)
-				ret.append(HLIRegisteredTypeLibrary((keyName, versionStr), name))
+				if name is not None:
+					ret.append(HLIRegisteredTypeLibrary((keyName, versionStr), name))
 				num = num + 1
 		finally:
 			win32api.RegCloseKey(key)
