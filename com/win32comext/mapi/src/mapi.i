@@ -481,7 +481,7 @@ HRESULT RTFSync(
 	int *OUTPUT // lpfMessageUpdated 
 );
 
-// @pyswig <PyIStream>|WrapCompressedRTFStream|
+// @pyswig <o PyIStream>|WrapCompressedRTFStream|
 HRESULT WrapCompressedRTFStream(
   IStream *INPUT, // @pyparm <o PyIStream>|stream||Message stream
   unsigned long ulflags, // @pyparm int|flags||
