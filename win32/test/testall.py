@@ -7,6 +7,7 @@ def suite():
         me = __file__
     except NameError:
         me = sys.argv[0]
+    me = os.path.abspath(me)
     files = os.listdir(os.path.dirname(me))
     suite = unittest.TestSuite()
     for file in files:
@@ -20,5 +21,9 @@ def suite():
             suite.addTest(test)
     return suite
 
+class CustomLoader(unittest.TestLoader):
+    def loadTestsFromModule(self, module):
+        return suite()
+
 if __name__=='__main__':
-    unittest.main(argv=sys.argv + ['suite'])
+    unittest.TestProgram(testLoader=CustomLoader())(argv=sys.argv)
