@@ -31,6 +31,7 @@ typedef struct gw_vtbl
 	PyObject *  obVTable;   
 	IID			iid;		// the IID of this interface
 	UINT		cMethod;	// count of methods
+	UINT		cReservedMethods;	// number of reserved methods; 3 for IUnknown, 7 for IDispatch.
 
 	// the vtable (the actual methods)
 #pragma warning ( disable : 4200 )
@@ -301,11 +302,11 @@ static STDMETHODIMP univgw_Invoke( gw_object *_this, DISPID dispIdMember, REFIID
 static void __cdecl free_vtbl(void * cobject)
 {
 	gw_vtbl * vtbl = (gw_vtbl *)cobject;
-
+	_ASSERTE(vtbl->magic == GW_VTBL_MAGIC);
 	Py_XDECREF(vtbl->dispatcher);
 
 	// free the methods. 0..2 are the constant IUnknown methods
-	for ( int i = vtbl->cMethod; --i > 2; )
+	for ( int i = vtbl->cMethod; i-- > (int)vtbl->cReservedMethods; )
 		if ( vtbl->methods[i] != NULL )
 			free(vtbl->methods[i]);
 	free(vtbl);
@@ -375,6 +376,7 @@ static PyObject * univgw_CreateVTable(PyObject *self, PyObject *args)
 	Py_INCREF(obDef);
 	vtbl->iid = iid;
 	vtbl->cMethod = count;
+	vtbl->cReservedMethods = numReservedVtables;
 	vtbl->obVTable = NULL;
 
 	vtbl->dispatcher = PyObject_GetAttrString(obDef, "dispatch");
@@ -519,7 +521,7 @@ static HRESULT CreateRegisteredTearOff(PyObject *pPyInstance, PyGatewayBase *bas
 
 	// Lookup vtable using iid.
 	PyObject *obIID = PyWinObject_FromIID(iid);
-	PyObject *obVTable = PyDict_GetItem(g_obRegisteredVTables, obIID);
+	PyObject *obVTable = PyDict_GetItem(g_obRegisteredVTables, obIID); // NOTE: NO reference added to obVTable
 	if (!obVTable)
 	{
 		OLECHAR oleRes[128];
@@ -533,7 +535,6 @@ static HRESULT CreateRegisteredTearOff(PyObject *pPyInstance, PyGatewayBase *bas
 	// obVTable must be a CObject containing our vtbl ptr
 	if ( !PyCObject_Check(obVTable) )
 	{
-		Py_DECREF(obVTable);
 		_ASSERTE(FALSE);
 		return E_NOINTERFACE;
 	}
@@ -554,7 +555,6 @@ static HRESULT CreateRegisteredTearOff(PyObject *pPyInstance, PyGatewayBase *bas
 
 	// Do all of the grunt work.
 	*ppResult = CreateTearOff(pPyInstance, base, obVTable);
-	Py_DECREF(obVTable);
 	if (bCreatedBase) {
 		PY_INTERFACE_PRECALL;
 		base->Release();
