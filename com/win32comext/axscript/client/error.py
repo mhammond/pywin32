@@ -132,8 +132,12 @@ class AXScriptException(win32com.server.exception.COMException):
 				filename, lineno, name, line = self.ExtractTracebackInfo(tb_look, site)
 				if name in hide_names:
 					break
-				self.lineno = lineno
-				self.linetext = line
+				# We can report a line-number, but not a filename.  Therefore,
+				# we return the last line-number we find in one of our script
+				# blocks.
+				if filename.startswith("<Script"):
+					self.lineno = lineno
+					self.linetext = line
 				format_items.append((filename, lineno, name, line))
 				depth = depth + 1
 				tb_look = tb_look.tb_next
