@@ -307,6 +307,13 @@ def install():
         print "http://starship.python.net/crew/mhammond/win32/"
         print "*" * 50
 
+    # importing win32com.client ensures the gen_py dir created - not strictly
+    # necessary to do now, but this makes the installation "complete"
+    try:
+        import win32com.client
+    except ImportError:
+        # Don't let this error sound fatal
+        pass
     print "The pywin32 extensions were successfully installed."
 
 def usage():
