@@ -59,9 +59,22 @@ ui_re_doc_on_close(PyObject *self, PyObject *args)
 	RETURN_NONE;
 }
 
+extern PyObject *ui_doc_set_path_name(PyObject *self, PyObject *args);
+
+static PyObject *ui_re_doc_set_path_name(PyObject *self, PyObject *args)
+{
+	CRichEditDoc *pDoc;
+	if (!(pDoc=(CRichEditDoc *)PyCDocument::GetDoc(self)))
+		return NULL;
+	if (pDoc->GetView()==NULL)
+		RETURN_ERR("There is no view");
+	return ui_doc_set_path_name(self, args);
+}
+
 // @object PyCRichEditDoc|A class which implements a CRichEditView object.  Derived from <o PyCDocument>.
 static struct PyMethodDef PyCRichEditDoc_methods[] = {
 	{"OnCloseDocument",		ui_re_doc_on_close,		1},	// @pymeth OnCloseDocument|Call the MFC OnCloseDocument handler.
+	{"SetPathName",         ui_re_doc_set_path_name, 1},
 	{NULL, NULL}
 };
 
