@@ -113,6 +113,7 @@ class BrowserView(pywin.mfc.docview.TreeView):
         rc = self._obj_.OnInitialUpdate()
         self.HookMessage(self.OnSize, win32con.WM_SIZE)
         self.bDirty = 0
+        self.destroying = 0
         return rc
 
     def DestroyBrowser(self):
@@ -157,13 +158,15 @@ class BrowserView(pywin.mfc.docview.TreeView):
                 win32ui.SetStatusText(win32ui.LoadString(afxres.AFX_IDS_IDLEMESSAGE))
 
     def DestroyList(self):
+        self.destroying = 1
         list = getattr(self, "list", None) # If the document was not successfully opened, we may not have a list.
         self.list = None
         if list is not None:
             list.HierTerm()
+        self.destroying = 0
 
     def CheckMadeList(self):
-        if self.list is not None: return
+        if self.list is not None or self.destroying: return
         self.rootitem = root = self._MakeRoot()
         self.list = list = hierlist.HierListWithItems( root, win32ui.IDB_BROWSER_HIER)
         list.HierInit(self.GetParentFrame(), self)
