@@ -53,6 +53,11 @@ generates Windows .hlp files.
 #include "PyIEnumDebugExpressionContexts.h"
 #include "PyIProvideExpressionContexts.h"
 #include "PyIActiveScriptErrorDebug.h"
+#include "PyIEnumDebugPropertyInfo.h"
+
+// Headers needed for the f_trace hacks.
+#include "compile.h"
+#include "frameobject.h" 
 
 static PyObject* axdebug_Error;     /* 'Python level' errors */
 
@@ -146,16 +151,57 @@ PyObject *PyAXDebug_PyObject_FromSOURCE_TEXT_ATTR( const SOURCE_TEXT_ATTR *pstaT
 	return obattr;
 }
 
+// A few hacks to get debugging doing the right thing.
 static PyObject *GetStackAddress(PyObject *, PyObject *)
 {
 	int i;
 	return PyInt_FromLong((long)&i);
+}
+
+static PyObject *GetThreadStateHandle(PyObject *self, PyObject *args)
+{
+	_ASSERTE(sizeof(void *) <= sizeof(long)); // can we hack ptrs into longs?
+	// We _must_ have the thread-lock to be called!
+	PyThreadState *myState = PyThreadState_Swap(NULL);
+	PyThreadState_Swap(myState);
+	return PyInt_FromLong( (long)myState);
+}
+static PyObject *SetThreadStateTrace(PyObject *self, PyObject *args)
+{
+	long handle;
+	PyObject *func;
+	if (!PyArg_ParseTuple(args, "lO", &handle, &func))
+		return NULL;
+	PyThreadState *state = (PyThreadState *)handle;
+	Py_XDECREF(state->sys_tracefunc);
+	state->sys_tracefunc = func;
+	Py_INCREF(func);
+	// Loop back over all frames, setting each frame back to our
+	// first script block frame with the tracer.
+	PyFrameObject *frame = state ? state->frame : NULL;
+	bool bFoundFirstScriptBlock = false;
+	while (frame) {
+		if (strncmp(PyString_AsString(frame->f_code->co_filename), "<Script ", 8)==0)
+			bFoundFirstScriptBlock = true;
+		else {
+			if (bFoundFirstScriptBlock)
+				break;
+		}
+		Py_XDECREF(frame->f_trace);
+		frame->f_trace = func;
+		Py_INCREF(func);
+		frame = frame->f_back;
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 /* List of module functions */
 // @module axdebug|A module, encapsulating the ActiveX Debugging
 static struct PyMethodDef axdebug_methods[]=
 {
 	{ "GetStackAddress", GetStackAddress, 1},
+	{ "GetThreadStateHandle", GetThreadStateHandle, 1},
+	{ "SetThreadStateTrace", SetThreadStateTrace, 1},
 	{ NULL, NULL }
 };
 
@@ -218,6 +264,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL       (EnumDebugApplicationNodes),
 	PYCOM_INTERFACE_FULL       (EnumDebugCodeContexts),
 	PYCOM_INTERFACE_FULL       (EnumDebugExpressionContexts),
+	PYCOM_INTERFACE_FULL       (EnumDebugPropertyInfo),
 	PYCOM_INTERFACE_FULL       (EnumDebugStackFrames),
 	PYCOM_INTERFACE_FULL       (EnumRemoteDebugApplications),
 	PYCOM_INTERFACE_FULL       (EnumRemoteDebugApplicationThreads),
@@ -261,7 +308,7 @@ extern "C" __declspec(dllexport) void initaxdebug()
 	ADD_CONSTANT(APPBREAKFLAG_DEBUGGER_BLOCK); // @const axdebug|APPBREAKFLAG_DEBUGGER_BLOCK|Languages should break immediately with BREAKREASON_DEBUGGER_BLOCK 
 	ADD_CONSTANT(APPBREAKFLAG_DEBUGGER_HALT); // @const axdebug|APPBREAKFLAG_DEBUGGER_HALT|Languages should break immediately with BREAKREASON_DEBUGGER_HALT
 	ADD_CONSTANT(APPBREAKFLAG_STEP); // @const axdebug|APPBREAKFLAG_STEP|
-	ADD_CONSTANT(APPBREAKFLAGS	APPBREAKFLAG_NESTED);
+//	ADD_CONSTANT(APPBREAKFLAG_APPBREAKFLAG_NESTED);
 	ADD_CONSTANT(APPBREAKFLAG_STEPTYPE_SOURCE);
 	ADD_CONSTANT(APPBREAKFLAG_STEPTYPE_BYTECODE);
 	ADD_CONSTANT(APPBREAKFLAG_STEPTYPE_MACHINE);
@@ -310,6 +357,14 @@ extern "C" __declspec(dllexport) void initaxdebug()
 	ADD_CONSTANT(DBGPROP_ATTRIB_TYPE_IS_SYNCHRONIZED); // @const axdebug|DBGPROP_ATTRIB_TYPE_IS_SYNCHRONIZED|
 	ADD_CONSTANT(DBGPROP_ATTRIB_TYPE_IS_VOLATILE); // @const axdebug|DBGPROP_ATTRIB_TYPE_IS_VOLATILE|
 	ADD_CONSTANT(DBGPROP_ATTRIB_HAS_EXTENDED_ATTRIBS); // @const axdebug|DBGPROP_ATTRIB_HAS_EXTENDED_ATTRIBS|
+
+	ADD_CONSTANT(DBGPROP_INFO_NAME); // @const axdebug|DBGPROP_INFO_NAME|
+	ADD_CONSTANT(DBGPROP_INFO_TYPE); // @const axdebug|DBGPROP_INFO_TYPE|
+	ADD_CONSTANT(DBGPROP_INFO_VALUE); // @const axdebug|DBGPROP_INFO_VALUE|
+	ADD_CONSTANT(DBGPROP_INFO_FULLNAME); // @const axdebug|DBGPROP_INFO_FULLNAME|
+	ADD_CONSTANT(DBGPROP_INFO_ATTRIBUTES); // @const axdebug|DBGPROP_INFO_ATTRIBUTES|
+	ADD_CONSTANT(DBGPROP_INFO_DEBUGPROP); // @const axdebug|DBGPROP_INFO_DEBUGPROP|
+	ADD_CONSTANT(DBGPROP_INFO_AUTOEXPAND); // @const axdebug|DBGPROP_INFO_AUTOEXPAND|
 
 	ADD_CONSTANT(ERRORRESUMEACTION_ReexecuteErrorStatement); // @const axdebug|ERRORRESUMEACTION_ReexecuteErrorStatement|
 	ADD_CONSTANT(ERRORRESUMEACTION_AbortCallAndReturnErrorToCaller); // @const axdebug|ERRORRESUMEACTION_AbortCallAndReturnErrorToCaller|
