@@ -191,12 +191,14 @@ class CDispatch:
 		import util
 		return util.WrapEnum(enum, None)
 
-	def __getitem__(self, index):
-		# Much check _NewEnum before Item, to ensure b/w compat.
-		if self.__dict__['_enum_'] is None:
-			self.__dict__['_enum_'] = self._NewEnum()
-		if self.__dict__['_enum_'] is not None:
-			return self._get_good_object_(self._enum_.__getitem__(index))
+	def __getitem__(self, index): # syver modified
+		# Improved __getitem__ courtesy Syver Enstad
+		# Must check _NewEnum before Item, to ensure b/w compat.
+		if isinstance(index, IntType):
+			if self.__dict__['_enum_'] is None:
+				self.__dict__['_enum_'] = self._NewEnum()
+			if self.__dict__['_enum_'] is not None:
+				return self._get_good_object_(self._enum_.__getitem__(index))
 		# See if we have an "Item" method/property we can use (goes hand in hand with Count() above!)
 		invkind, dispid = self._find_dispatch_type_("Item")
 		if invkind is not None:
