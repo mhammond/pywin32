@@ -46,7 +46,7 @@ def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names = None):
     else:
         # Cool - can used cached info.
         if not interface_names:
-            interface_names = mod.NamesToIIDMap.keys()
+            interface_names = mod.VTablesToClassMap.values()
         for name in interface_names:
             try:
                 iid = mod.NamesToIIDMap[name]
