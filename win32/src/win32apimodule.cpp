@@ -3354,6 +3354,15 @@ PySetThreadLocale(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod int|win32api|GetThreadLocale|Returns the current thread's locale.
+static PyObject *
+PyGetThreadLocale(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":GetThreadLocale"))
+		return NULL;
+	return PyInt_FromLong(GetThreadLocale());
+}
+
 // @pymethod |win32api|OutputDebugString|Sends a string to the Windows debugging device.
 static PyObject *
 PyOutputDebugString(PyObject *self, PyObject *args)
@@ -3923,6 +3932,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetSystemTime",		PyGetSystemTime,	1},	// @pymeth GetSystemTime|Returns the current system time.
 	{"GetTempFileName",		PyGetTempFileName,  1}, // @pymeth GetTempFileName|Creates a temporary file.
 	{"GetTempPath",			PyGetTempPath,      1}, // @pymeth GetTempPath|Returns the path designated as holding temporary files.
+	{"GetThreadLocale",     PyGetThreadLocale, 1}, // @pymeth GetThreadLocale|Returns the current thread's locale.
 	{"GetTickCount",	    PyGetTickCount,      1}, // @pymeth GetTickCount|Returns the milliseconds since windows started.
 	{"GetTimeZoneInformation",	PyGetTimeZoneInformation,1}, // @pymeth GetTimeZoneInformation|Returns the system time-zone information.
 	{"GetVersion",			PyGetVersion,       1}, // @pymeth GetVersion|Returns Windows version information.
