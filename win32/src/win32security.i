@@ -1951,7 +1951,7 @@ static PyObject *PyConvertStringSecurityDescriptorToSecurityDescriptor(PyObject 
 %{
 static PyObject *PyLsaStorePrivateData(PyObject *self, PyObject *args)
 {
-	// @pyparm <o PyHANDLE>||Policy handle
+	// @pyparm <o PyHANDLE>|handle||Policy handle
     // @pyparm string|KeyName||Registry key in which to store data
     // @pyparm int|PrivateData||Unicode string to be encrypted and stored
 	PyObject *obpolicyhandle=NULL, *obkeyname=NULL, *obprivatedata=NULL; 
@@ -1996,7 +1996,7 @@ static PyObject *PyLsaStorePrivateData(PyObject *self, PyObject *args)
 %{
 static PyObject *PyLsaRetrievePrivateData(PyObject *self, PyObject *args)
 {
-	// @pyparm <o PyHANDLE>||Policy handle
+	// @pyparm <o PyHANDLE>|handle||Policy handle
     // @pyparm string|KeyName||Registry key to read
 	PyObject *obpolicyhandle=NULL, *obkeyname=NULL, *obprivatedata=NULL; 
 	PyObject * ret=NULL;
