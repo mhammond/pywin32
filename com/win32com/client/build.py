@@ -185,9 +185,7 @@ class DispatchItem(OleItem):
 		fdesc.args = tuple(argList)
 
 		hidden = (funcflags & pythoncom.FUNCFLAG_FHIDDEN) != 0
-		if id == pythoncom.DISPID_NEWENUM:
-			map = self.mapFuncs
-		elif invkind == pythoncom.INVOKE_PROPERTYGET:
+		if invkind == pythoncom.INVOKE_PROPERTYGET:
 			map = self.propMapGet
 		# This is not the best solution, but I dont think there is
 		# one without specific "set" syntax.
@@ -242,12 +240,7 @@ class DispatchItem(OleItem):
 				pass
 
 			# handle the enumerator specially
-			if id == pythoncom.DISPID_NEWENUM:
-				map = self.mapFuncs
-				### hack together a minimal FUNCDESC
-				fdesc = (fdesc[0], None, None, None, pythoncom.INVOKE_PROPERTYGET, )
-			else:
-				map = self.propMap
+			map = self.propMap
 			# Check if the element is hidden.
 			hidden = 0
 			if hasattr(fdesc,"wVarFlags"):
@@ -349,7 +342,15 @@ class DispatchItem(OleItem):
 				s = '%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, argsDesc, _BuildArgList(fdesc, names))
 			elif rd in [pythoncom.VT_DISPATCH, pythoncom.VT_UNKNOWN]:
 				s = '%s\tret = self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)\n' % (linePrefix, id, fdesc[4], retDesc, `argsDesc`, _BuildArgList(fdesc, names))
-				s = s + '%s\tif ret is not None: ret = Dispatch(ret, %s, %s, UnicodeToString=%d)\n' % (linePrefix,`name`, resclsid, NeedUnicodeConversions) 
+				s = s + '%s\tif ret is not None:\n' % (linePrefix,)
+				print >> sys.stderr, name, rd, pythoncom.VT_UNKNOWN
+				if rd == pythoncom.VT_UNKNOWN:
+					s = s + "%s\t\t# See if this IUnknown is really an IDispatch\n" % (linePrefix,)
+					s = s + "%s\t\ttry:\n" % (linePrefix,)
+					s = s + "%s\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n" % (linePrefix,)
+					s = s + "%s\t\texcept pythoncom.error:\n" % (linePrefix,)
+					s = s + "%s\t\t\treturn ret\n" % (linePrefix,)
+				s = s + '%s\t\tret = Dispatch(ret, %s, %s, UnicodeToString=%d)\n' % (linePrefix,`name`, resclsid, NeedUnicodeConversions) 
 				s = s + '%s\treturn ret' % (linePrefix)
 			elif rd == pythoncom.VT_BSTR:
 				if NeedUnicodeConversions:

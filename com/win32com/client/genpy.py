@@ -29,6 +29,13 @@ GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
 GEN_DEMAND_CHILD = "demand(child)"
 
+try:
+    TrueRepr = repr(True)
+    FalseRepr = repr(False)
+except NameError:
+    TrueRepr = "1"
+    FalseRepr = "0"
+
 # This map is used purely for the users benefit -it shows the
 # raw, underlying type of Alias/Enums, etc.  The COM implementation
 # does not use this map at runtime - all Alias/Enum have already
@@ -393,13 +400,15 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 if entry.desc[0]==pythoncom.DISPID_VALUE:
                     lkey = "value"
                 elif entry.desc[0]==pythoncom.DISPID_NEWENUM:
-                    # XXX - should DISPATCH_METHOD in the next line use the invtype?
-                    specialItems["_newenum"] = (entry, pythoncom.DISPATCH_METHOD, mapEntry)
-                    continue # Dont build this one now!
+                    lkey = "_newenum"
                 else:
                     lkey = string.lower(key)
                 if specialItems.has_key(lkey) and specialItems[lkey] is None: # remember if a special one.
                     specialItems[lkey] = (entry, pythoncom.DISPATCH_PROPERTYGET, mapEntry)
+                    # All special methods, except _newenum, are written
+                    # "normally".  This is a mess!
+                    if entry.desc[0]==pythoncom.DISPID_NEWENUM:
+                        continue 
 
                 print '\t\t"%s": %s,' % (key, mapEntry)
         names = self.propMapGet.keys(); names.sort()
@@ -416,12 +425,15 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 if entry.desc[0]==pythoncom.DISPID_VALUE:
                     lkey = "value"
                 elif entry.desc[0]==pythoncom.DISPID_NEWENUM:
-                    specialItems["_newenum"] = (entry, pythoncom.DISPATCH_METHOD, mapEntry)
-                    continue # Dont build this one now!
+                    lkey = "_newenum"
                 else:
                     lkey = string.lower(key)
                 if specialItems.has_key(lkey) and specialItems[lkey] is None: # remember if a special one.
                     specialItems[lkey]=(entry, pythoncom.DISPATCH_PROPERTYGET, mapEntry)
+                    # All special methods, except _newenum, are written
+                    # "normally".  This is a mess!
+                    if entry.desc[0]==pythoncom.DISPID_NEWENUM:
+                        continue 
                 print '\t\t"%s": %s,' % (key, mapEntry)
 
         print "\t}"
@@ -509,7 +521,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
             # Also include a __nonzero__
             print "\t#This class has a __len__ - this is needed so 'if object:' always returns TRUE."
             print "\tdef __nonzero__(self):"
-            print "\t\treturn 1"
+            print "\t\treturn %s" % (TrueRepr,)
 
 class CoClassItem(build.OleItem, WritableItem):
   order = 5
