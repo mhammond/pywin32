@@ -120,12 +120,12 @@ class GUIProgress(SimpleProgress):
 		if self.dialog is not None:
 			self.dialog.Close()
 			self.dialog = None
-		
+
 	def Starting(self, tlb_desc):
 		SimpleProgress.Starting(self, tlb_desc)
 		if self.dialog is None:
 			from pywin.dialogs import status
-			self.dialog=status.StatusProgressDialog(tlb_desc)
+			self.dialog=status.ThreadedStatusProgressDialog(tlb_desc)
 		else:
 			self.dialog.SetTitle(tlb_desc)
 		
