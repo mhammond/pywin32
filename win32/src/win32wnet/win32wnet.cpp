@@ -56,8 +56,10 @@
 #include "atlbase.h"
 #include "Python.h"
 #include "PyWinTypes.h"
+#include "PyWinObjects.h" // for the PyHANDLE impl.
 #include "netres.h"			// NETRESOURCE Type
 #include "pyncb.h"
+
 
 
 /****************************************************************************
@@ -79,6 +81,52 @@ PyObject *ReturnNetError(char *fnName, long err = 0)
 {
 	return PyWin_SetAPIError(fnName, err);
 }
+
+/****************************************************************************
+		A HANDLE object
+
+****************************************************************************/
+class PyNETENUMHANDLE : public PyHANDLE
+{
+public:
+	PyNETENUMHANDLE(HANDLE hInit) : PyHANDLE(hInit) {}
+	virtual BOOL Close(void);
+	virtual const char *GetTypeName() {return "PyNetEnumHANDLE";}
+};
+
+PyObject *PyNETENUMObject_FromHANDLE(HANDLE h)
+{
+	return new PyNETENUMHANDLE(h);
+}
+
+BOOL PyNETENUMObject_CloseHANDLE(PyObject *obHandle)
+{
+	BOOL ok;
+	if (PyHANDLE_Check(obHandle))
+		// Python error already set.
+		ok = ((PyNETENUMHANDLE *)obHandle)->Close();
+	else {
+		PyErr_SetString(PyExc_TypeError, "Not a handle object");
+		ok = FALSE;
+	}
+	return ok;
+}
+
+// The non-static member functions
+BOOL PyNETENUMHANDLE::Close(void)
+{
+	LONG rc = m_handle ? WNetCloseEnum(m_handle) : ERROR_SUCCESS;
+	m_handle = 0;
+	if (rc!= ERROR_SUCCESS)
+		PyWin_SetAPIError("WNetCloseEnum", rc);
+	return rc==ERROR_SUCCESS;
+}
+
+
+/****************************************************************************
+		PYTHON METHODS
+
+****************************************************************************/
 
 // @pymethod |win32wnet|WNetAddConnection2|Creates a connection to a network resource. The function can redirect 
 // a local device to the network resource.
@@ -193,11 +241,10 @@ PyWNetOpenEnum(PyObject *self, PyObject *args)
 	if (Errno != NO_ERROR)
 		return(ReturnNetError("WNetOpenEnum", Errno));
 
-	// @todo It appears there is a bug here - the handle returned will attempt to
-	// be closed via CloseHandle, which is wrong.  We need a new private handle type!
-	return (PyWinObject_FromHANDLE(hEnum));
+	return (PyNETENUMObject_FromHANDLE(hEnum));
 	// @rdesc PyHANDLE representing the Win32 HANDLE for the open resource.
-	// This handle should be closed via <om win32wnet.WNetCloseEnum>
+	// This handle will be automatically be closed via <om win32wnet.WNetCloseEnum>, but
+	// good style dictates it still be closed manually.
 };
 
 
@@ -207,24 +254,15 @@ PyObject *
 PyWNetCloseEnum(PyObject *self, PyObject *args)
 {
 	PyObject *	ob_nr;
-	HANDLE	hEnum;
-	DWORD Errno;
 	// @pyparm <o PyHANDLE>|handle||The handle to close, as obtained from <om win32wnet.WNetOpenEnum>
 	// @comm You should perform a WNetClose for each handle returned from <om win32wnet.WNetOpenEnum>.
 
-	if (!PyArg_ParseTuple(args, "O!", &PyHANDLEType, &ob_nr))
+	if (!PyArg_ParseTuple(args, "O", &ob_nr))
+		return NULL;
+
+	if (!PyNETENUMObject_CloseHANDLE(ob_nr))
 		return NULL;
 	
-	if(!PyWinObject_AsHANDLE(ob_nr, &hEnum, FALSE))	// error code set by callee (check this)
-		return NULL;
-
-	Py_BEGIN_ALLOW_THREADS
-	Errno = WNetCloseEnum(hEnum);
-	Py_END_ALLOW_THREADS
-
-	if(Errno != NO_ERROR)
-		return(ReturnNetError("WNetCloseEnum", Errno));
-
 	Py_INCREF(Py_None);
 	return Py_None;
 };
@@ -266,8 +304,8 @@ PyWNetEnumResource(PyObject *self, PyObject *args)
 		dwCount = dwMaxCount;		// yes virginia, 0xffffffff is a LOT of items
 
 	PyObject * pRetlist = PyList_New(0);	//create a return list of 0 size
-	if (pRetlist == Py_None)				// did we err?
-		return(ReturnError("Unable to create return list","WNetEnumResource"));
+	if (pRetlist == NULL)               // did we err?
+		return NULL;
 
 	
 	do	// start the enumeration
@@ -329,6 +367,117 @@ PyWNetEnumResource(PyObject *self, PyObject *args)
 	return pRetlist;
 };
 
+// @pymethod string|win32wnet|WNetGetUser|Retrieves the current default user name, or the user name used to establish a network connection.
+static
+PyObject *
+PyWNetGetUser(PyObject *self, PyObject *args)
+{
+	PyObject *ret = NULL;
+	PyObject *obConnection = Py_None;
+	DWORD length = 0;
+	DWORD errcode;
+	TCHAR *szConnection = NULL;
+	TCHAR *buf = NULL;
+
+	// @pyparm string|connection|None|A string that specifies either the name of a local device that has been redirected to a network resource, or the remote name of a network resource to which a connection has been made without redirecting a local device. 
+	// If this parameter is None, the system returns the name of the current user for the process.
+	if (!PyArg_ParseTuple(args, "|O", &obConnection))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obConnection, &szConnection, TRUE))
+		goto done;
+	// get the buffer size
+	{
+	Py_BEGIN_ALLOW_THREADS
+	WNetGetUser(szConnection, NULL, &length);
+	Py_END_ALLOW_THREADS
+	}
+	if (length==0) {
+		PyErr_SetString(PyExc_RuntimeError, "Couldn't get the buffer size!");
+		goto done;
+	}
+	buf = (TCHAR *)malloc( sizeof( TCHAR) * length);
+	if (buf == NULL) goto done;
+	Py_BEGIN_ALLOW_THREADS
+	errcode = WNetGetUser(szConnection, buf, &length);
+	Py_END_ALLOW_THREADS
+	if (0 != errcode) {
+		ReturnNetError("WNetGetUser", errcode);
+		goto done;
+	}
+	// length includes the NULL - drop it (safely!)
+	ret = PyWinObject_FromTCHAR(buf, (length > 0) ? length-1 : 0);
+done:
+	PyWinObject_FreeTCHAR(szConnection);
+	if (buf) free(buf);
+	return ret;
+}
+
+// @pymethod string/tuple|win32wnet|WNetGetUniversalName|Takes a drive-based path for a network resource and returns an information structure that contains a more universal form of the name.
+static
+PyObject *
+PyWNetGetUniversalName(PyObject *self, PyObject *args)
+{
+	int level = UNIVERSAL_NAME_INFO_LEVEL;
+	TCHAR *szLocalPath = NULL;
+	PyObject *obLocalPath;
+	void *buf = NULL;
+	DWORD length = 0;
+	PyObject *ret = NULL;
+	DWORD errcode;
+	if (!PyArg_ParseTuple(args, "O|i:WNetGetUniversalName", &obLocalPath, &level))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obLocalPath, &szLocalPath, FALSE))
+		return NULL;
+	// @pyparm string|localPath||A string that is a drive-based path for a network resource. 
+	// <nl>For example, if drive H has been mapped to a network drive share, and the network 
+	// resource of interest is a file named SAMPLE.DOC in the directory \WIN32\EXAMPLES on 
+	// that share, the drive-based path is H:\WIN32\EXAMPLES\SAMPLE.DOC. 
+	// @pyparm int|infoLevel|UNIVERSAL_NAME_INFO_LEVEL|Specifies the type of structure that the function stores in the buffer pointed to by the lpBuffer parameter. 
+	// This parameter can be one of the following values.
+	// @flagh Value|Meaning 
+	// @flag UNIVERSAL_NAME_INFO_LEVEL (=1)|The function returns a simple string with the UNC name.
+	// @flag REMOTE_NAME_INFO_LEVEL (=2)|The function returns a tuple based in the Win32 REMOTE_NAME_INFO data structure.
+	// @rdesc If the infoLevel parameter is REMOTE_NAME_INFO_LEVEL, the result is a tuple of 3 strings: (UNCName, connectionName, remainingPath)
+
+	// First get the buffer size.
+	{
+	Py_BEGIN_ALLOW_THREADS
+	char temp_buf[] = ""; // doesnt appear to like NULL!!
+	errcode = WNetGetUniversalName( szLocalPath, level, &temp_buf, &length);
+	Py_END_ALLOW_THREADS
+	}
+	if (errcode != ERROR_MORE_DATA || length == 0) {
+		ReturnNetError("WNetGetUniversalName (for buffer size)", errcode);
+		goto done;
+	}
+	buf = malloc(length);
+	if (buf==NULL) goto done;
+	errcode = WNetGetUniversalName( szLocalPath, level, buf, &length);
+	if (errcode != 0) {
+		ReturnNetError("WNetGetUniversalName", errcode);
+		goto done;
+	}
+	switch (level) {
+	case UNIVERSAL_NAME_INFO_LEVEL:
+		ret = PyWinObject_FromTCHAR( ((UNIVERSAL_NAME_INFO *)buf)->lpUniversalName );
+		break;
+	case REMOTE_NAME_INFO_LEVEL: {
+		REMOTE_NAME_INFO *r = (REMOTE_NAME_INFO *)buf;
+		ret = PyTuple_New(3);
+		if (ret==NULL) goto done;
+		PyTuple_SET_ITEM(ret, 0, PyWinObject_FromTCHAR( r->lpUniversalName) );
+		PyTuple_SET_ITEM(ret, 1, PyWinObject_FromTCHAR( r->lpConnectionName) );
+		PyTuple_SET_ITEM(ret, 2, PyWinObject_FromTCHAR( r->lpRemainingPath) );
+		break;
+		}
+	default:
+		PyErr_SetString(PyExc_TypeError, "Unsupported infoLevel");
+	}
+done:
+	PyWinObject_FreeTCHAR(szLocalPath);
+	if (buf) free(buf);
+	return ret;
+}
 #if 0
 /**********************************************************************************************************
 **	Implements the WNetGetResourceInformation api call.
@@ -430,6 +579,10 @@ static PyMethodDef win32wnet_functions[] = {
 	{"WNetCloseEnum",			PyWNetCloseEnum,			1,	"PyHANDLE from WNetOpenEnum()"},
 	// @pymeth WNetEnumResource|Enumerates a list of resources
 	{"WNetEnumResource",		PyWNetEnumResource,			1,	"Enum"},
+	// @pymeth WNetGetUser|Retrieves the current default user name, or the user name used to establish a network connection.
+	{"WNetGetUser",             PyWNetGetUser,              1,  "connectionName=None"},
+	// @pymeth WNetGetUniversalName|Takes a drive-based path for a network resource and returns an information structure that contains a more universal form of the name.
+	{"WNetGetUniversalName",    PyWNetGetUniversalName,     1,  "localPath, infoLevel=UNIVERSAL_NAME_INFO_LEVEL"},
 #if 0
 	{"WNetGetResourceInformation", PyWNetGetResourceInformation, 1, "NT_5 Only? DO NOT USE YET"},
 #endif
@@ -443,7 +596,9 @@ initwin32wnet(void)
 {
   PyObject *dict, *module;
   module = Py_InitModule("win32wnet", win32wnet_functions);
+  if (!module) return;
   dict = PyModule_GetDict(module);
+  if (!dict) return;
   PyWinGlobals_Ensure();
   PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
   PyDict_SetItemString(dict, "NETRESOURCEType", (PyObject *)&PyNETRESOURCEType);
