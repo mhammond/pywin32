@@ -1087,7 +1087,8 @@ void PyMAPIObject_FreeSRestriction(SRestriction *pRest)
 BOOL PyMAPIObject_BuildSSortOrderSet(PyObject *obSorts, SSortOrderSet *psos) 
 {
 	// @pyparm int|propTag||A property tag.
-	// @pyparm int|order||
+	// @pyparm int|order||The order in which the data is to be sorted. Possible values are: 
+	// mapi.TABLE_SORT_ASCEND, mapi.TABLE_SORT_COMBINE and mapi.TABLE_SORT_DESCEND
 	BOOL ok = TRUE;
 	for (ULONG i=0;ok && i<psos->cSorts;i++) {
 		SSortOrder *psThis = &psos->aSort[i];
