@@ -545,6 +545,8 @@ class COMScript:
 	def SetScriptSite(self, site):
 		# We should still work with an existing site (or so MSXML believes :)
 		self.scriptSite = site
+		if self.debugManager is not None:
+			self.debugManager.Close()
 		import traceback
 		try:
 			import debug

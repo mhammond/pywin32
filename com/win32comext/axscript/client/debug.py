@@ -81,7 +81,9 @@ class DebugManager:
 		self.rootNode = None
 		self.debugApplication = None
 		self.scriptSiteDebug = None
-		self.ccProvider = None
+		if self.ccProvider is not None:
+			self.ccProvider.Close()
+			self.ccProvider = None
 		self.codeContainers = {}
 		if self.adb:
 			self.adb.CloseApp()
