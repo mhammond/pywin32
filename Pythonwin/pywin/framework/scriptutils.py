@@ -276,17 +276,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog = 1, debuggingType=None):
 	win32ui.PumpWaitingMessages()
 	win32ui.SetStatusText('Running script %s...' % base,1 )
 	exitCode = 0
-	# We set the interactive window to write output as it occurs
-	oldFlag = None
-	try:
-		oldFlag = sys.stdout.template.writeQueueing
-		# sys.stdout may change on us!  So we remember the object
-		# that we actually modified so we can reset it correctly.
-		oldFlagObject = sys.stdout.template
-		oldFlagObject.writeQueueing = 0
-	except (NameError, AttributeError):
-		# sys.stdout is not an interactive window - we dont care.
-		pass
+	from pywin.framework import interact
 	# Check the debugger flags
 	if debugger is None and (debuggingType != RS_DEBUGGER_NONE):
 		win32ui.MessageBox("No debugger is installed.  Debugging options have been ignored!")
@@ -321,32 +311,29 @@ def RunScript(defName=None, defArgs=None, bShowDialog = 1, debuggingType=None):
 	except KeyboardInterrupt:
 		# Consider this successful, as we dont want the debugger.
 		# (but we do want a traceback!)
+		if interact.edit and interact.edit.currentView:
+			interact.edit.currentView.EnsureNoPrompt()
 		traceback.print_exc()
+		if interact.edit and interact.edit.currentView:
+			interact.edit.currentView.AppendToPrompt([])
 		bWorked = 1
-	except SyntaxError:
-		# We dont want to break into the debugger for a syntax error!
-		# (although there shouldnt really be any here, as we work with code objects!)
-		traceback.print_exc()
 	except:
-		# Reset queueing before exception for nice clean printing.
-		if oldFlag is not None:
-			oldFlagObject.writeQueueing = oldFlag
-			oldFlag = oldFlagObject = None
+		if interact.edit and interact.edit.currentView:
+			interact.edit.currentView.EnsureNoPrompt()
 		traceback.print_exc()
+		if interact.edit and interact.edit.currentView:
+			interact.edit.currentView.AppendToPrompt([])
 		if debuggingType == RS_DEBUGGER_PM:
 			debugger.pm()
 	sys.argv = oldArgv
 	f.close()
-	if oldFlag is not None:
-		oldFlagObject.writeQueueing = oldFlag
-		oldFlag = oldFlagObject = None
 	if bWorked:
 		win32ui.SetStatusText("Script '%s' returned exit code %s" %(script, exitCode))
 	else:
 		win32ui.SetStatusText('Exception raised while running script  %s' % base)
 	try:
 		sys.stdout.flush()
-	except:
+	except AttributeError:
 		pass
 
 	win32ui.DoWaitCursor(0)
