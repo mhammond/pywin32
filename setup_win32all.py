@@ -108,6 +108,9 @@ class WinExt (Extension):
                   pch_header=None,
                   windows_h_version=None, # min version of windows.h needed.
                   extra_swig_commands=None,
+                  # list of headers which may not be installed forcing us to
+                  # skip this extension
+                  optional_headers=[],
                  ):
         assert dsp_file or sources, "Either dsp_file or sources must be specified"
         libary_dirs = library_dirs,
@@ -131,6 +134,7 @@ class WinExt (Extension):
         self.pch_header = pch_header
         self.extra_swig_commands = extra_swig_commands or []
         self.windows_h_version = windows_h_version
+        self.optional_headers = optional_headers
         Extension.__init__ (self, name, sources,
                             include_dirs,
                             define_macros,
@@ -324,6 +328,13 @@ class my_build_ext(build_ext):
             return "WINDOWS.H with version 0x%x is required, but only " \
                    "version 0x%x is installed." \
                    % (ext.windows_h_version, self.windows_h_version)
+
+        for h in ext.optional_headers:
+            for d in self.include_dirs:
+                if os.path.isfile(os.path.join(d, h)):
+                    break
+            else:
+                return "The header '%s' can not be located" % (h,)
 
         common_dirs = self.compiler.library_dirs[:]
         common_dirs += os.environ.get("LIB").split(os.pathsep)
@@ -855,10 +866,13 @@ com_extensions += [
             extra_compile_args = ['-DPY_BUILD_AXSCRIPT'],
             pch_header = "stdafx.h"
     ),
+    # ActiveDebugging is a mess.  See the comments in the docstring of this
+    # module for details on getting it built.
     WinExt_win32com('axdebug',
             dsp_file=r"com\Active Debugging.dsp",
             libraries="axscript ad1",
             pch_header = "stdafx.h",
+            optional_headers = ["activdbg.h"],
     ),
     WinExt_win32com('internet'),
     WinExt_win32com('mapi', libraries="mapi32", pch_header="PythonCOM.h"),
@@ -1114,6 +1128,8 @@ if dist.command_obj.has_key('build_ext'):
             print "*** NOTE: The following extensions were NOT %s:" % what_string
             for ext, why in excluded_extensions:
                 print " %s: %s" % (ext.name, why)
+            print "For more details on installing the correct libraries and headers,"
+            print "please execute this script with no arguments (or see the docstring)"
         else:
             print "All extension modules %s OK" % (what_string,)
 
