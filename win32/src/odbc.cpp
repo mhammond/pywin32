@@ -1348,6 +1348,7 @@ Cleanup:
 	return rv;
 Error:
 	Py_DECREF(cur->description);
+	cur->description = NULL;
 	rv = NULL;
 	goto Cleanup;
 }
