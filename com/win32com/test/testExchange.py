@@ -58,15 +58,10 @@ def TestUser(session):
 		field = fields[f+1]
 		try:
 			id = PropTagsById[field.ID]
-			print "%s/%s=%s" % (field.Name, id, field.Value)
-#			if field.ID==constants.ActMsgPR_DISPLAY_NAME_A:
-#				field.Value = "Hammoond"
 		except KeyError:
-			pass
+			id = field.ID
+		print "%s/%s=%s" % (field.Name, id, field.Value)
 			
-#		field.Value = field.Value
-#	ae.Update()
-	
 def test():
 	import win32com.client
 	session = win32com.client.Dispatch("MAPI.Session")
