@@ -227,12 +227,12 @@ static struct PyMethodDef directsound_methods[]=
 	{ "DirectSoundEnumerate",      directsound_DirectSoundEnumerate, 1 },      // @pymeth DirectSoundEnumerate|The DirectSoundEnumerate function enumerates the DirectSound drivers installed in the system.
 	{ "DirectSoundCaptureCreate",  directsound_DirectSoundCaptureCreate, 1},   // @pymeth DirectSoundCaptureCreate|The DirectSoundCaptureCreate function creates and initializes an object that supports the IDirectSoundCapture interface.
 	{ "DirectSoundCaptureEnumerate",  directsound_DirectSoundCaptureEnumerate, 1},   // @pymeth DirectSoundCaptureEnumerate|The DirectSoundCaptureEnumerate function enumerates the DirectSoundCapture objects installed in the system.
-	{"DSCAPS",         PyWinMethod_NewDSCAPS, 1 },      // @pymeth DSCAPS|Creates a new <o PyDSCAPS> object.
-	{"DSBCAPS",         PyWinMethod_NewDSBCAPS, 1 },      // @pymeth DSBCAPS|Creates a new <o PyDSBCAPS> object.
-	{"DSCCAPS",         PyWinMethod_NewDSCCAPS, 1 },      // @pymeth DSCCAPS|Creates a new <o PyDSCCAPS> object.
-	{"DSCBCAPS",         PyWinMethod_NewDSCBCAPS, 1 },      // @pymeth DSCBCAPS|Creates a new <o PyDSCBCAPS> object.
-	{"DSBUFFERDESC",         PyWinMethod_NewDSBUFFERDESC, 1 },      // @pymeth DSBUFFERDESC|Creates a new <o PyDSBUFFERDESC> object.
-	{"DSCBUFFERDESC",         PyWinMethod_NewDSCBUFFERDESC, 1 },      // @pymeth DSCBUFFERDESC|Creates a new <o PyDSCBUFFERDESC> object.
+	{"DSCAPS", PyWinMethod_NewDSCAPS, 1 }, // @pymeth DSCAPS|Creates a new <o PyDSCAPS> object.
+	{"DSBCAPS", PyWinMethod_NewDSBCAPS, 1 }, // @pymeth DSBCAPS|Creates a new <o PyDSBCAPS> object.
+	{"DSCCAPS", PyWinMethod_NewDSCCAPS, 1 }, // @pymeth DSCCAPS|Creates a new <o PyDSCCAPS> object.
+	{"DSCBCAPS", PyWinMethod_NewDSCBCAPS, 1 }, // @pymeth DSCBCAPS|Creates a new <o PyDSCBCAPS> object.
+	{"DSBUFFERDESC", PyWinMethod_NewDSBUFFERDESC, 1 }, // @pymeth DSBUFFERDESC|Creates a new <o PyDSBUFFERDESC> object.
+	{"DSCBUFFERDESC", PyWinMethod_NewDSCBUFFERDESC, 1 }, // @pymeth DSCBUFFERDESC|Creates a new <o PyDSCBUFFERDESC> object.
 	{ NULL, NULL },
 };
 
@@ -273,8 +273,6 @@ extern "C" __declspec(dllexport) void initdirectsound()
 
 	// Register all of our interfaces, gateways and IIDs.
 	PyCom_RegisterExtensionSupport(dict, g_interfaceSupportData, sizeof(g_interfaceSupportData)/sizeof(g_interfaceSupportData[0]));
-
-	// @topic DSCAPS constants|
 
 	// @const directsound|DSCAPS_PRIMARYMONO|The device supports monophonic primary buffers. 
 	ADD_CONSTANT(DSCAPS_PRIMARYMONO); 
@@ -325,8 +323,6 @@ extern "C" __declspec(dllexport) void initdirectsound()
 	ADD_CONSTANT(DS3DMODE_HEADRELATIVE);
 	// @const directsound|DS3DMODE_DISABLE|Processing of 3D sound is disabled. The sound seems to originate from the center of the listener's head.
 	ADD_CONSTANT(DS3DMODE_DISABLE);
-
-	// @topic DSCAPS constants|
 
 	// @const directsound|DSBCAPS_PRIMARYBUFFER|Indicates that the buffer is a primary sound buffer. If this value is not specified, a secondary sound buffer will be created. 
 	ADD_CONSTANT(DSBCAPS_PRIMARYBUFFER);
@@ -431,7 +427,6 @@ def wav_header_unpack(data):
     return wfx, datalength
 
 # Play a wav file and wait until it's finished
-
 fname = os.path.join(os.path.dirname(__file__), "01-Intro.wav")
 f = open(fname, 'rb')
 
@@ -450,20 +445,15 @@ sdesc.lpwfxFormat = wfx
 buffer = d.CreateSoundBuffer(sdesc, None)
 
 event = win32event.CreateEvent(None, 0, 0, None)
-notify = buffer.QueryInterface(ds.IID_IDirectSoundNotify)
 
+  notify = buffer.QueryInterface(ds.IID_IDirectSoundNotify)
 notify.SetNotificationPositions((ds.DSBPN_OFFSETSTOP, event))
 
 buffer.Update(0, f.read(size))
-
 buffer.Play(0)
-
 win32event.WaitForSingleObject(event, -1)
-*/
 
-/* @topic DirectSoundCapture examples|
-
-@ex This shows how to record into a wav file:|
+@ex This example shows how to record into a wav file:|
 
 import pywintypes
 import struct

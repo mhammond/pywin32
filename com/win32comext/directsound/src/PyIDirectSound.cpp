@@ -75,7 +75,13 @@ PyObject *PyIDirectSound::SetCooperativeLevel(PyObject *self, PyObject *args)
 		return NULL;
 	if ( !PyArg_ParseTuple(args, "Oi:SetCooperativeLevel", 
 		&obHWND, // @pyparm int|hwnd||Window handle to the application or None.
-		&level) ) // @pyparm int|level||Requested priority level. See the DSSCL constants.
+		&level) ) // @pyparm int|level||Requested priority level. Specify one of the following values:
+		// @flagh Level|Description
+		// @flag DSSCL_NORMAL|Sets the application to a fully cooperative status. Most applications should use this level, because it has the smoothest multitasking and resource-sharing behavior.
+		// @flag DSSCL_PRIORITY|Sets the application to the priority level. Applications with this cooperative level can call the DirectSoundBuffer.setFormat and DirectSound.compact methods. 
+		// @flag DSSCL_EXCLUSIVE|Sets the application to the exclusive level. When it has the input focus, the application will be the only one audible (sounds from applications with the DSBCAPS_GLOBALFOCUS flag set will be muted). With this level, it also has all the privileges of the DSSCL_PRIORITY level. DirectSound will restore the hardware format, as specified by the most recent call to the DirectSoundBuffer.setFormat method, once the application gains the input focus. (Note that DirectSound will always restore the wave format, no matter what priority level is set.) 
+		// @flag DSSCL_WRITEPRIMARY|This is the highest priority level. The application has write access to the primary sound buffers. No secondary sound buffers in any application can be played. 
+
 		return NULL;
 
 	if (obHWND == Py_None)
