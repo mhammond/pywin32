@@ -437,9 +437,15 @@ STDMETHODIMP PyGShellFolder::ParseDisplayName(
 	// Process the Python results, and convert back to the real params
 	PyObject *obppidl;
 	ULONG chEaten, dwAttributes;
-	if (!PyArg_ParseTuple(result, "lOl" , &chEaten, &obppidl, &dwAttributes)) 
-		return PyCom_SetAndLogCOMErrorFromPyException("ParseDisplayName", IID_IShellFolder);
 	BOOL bPythonIsHappy = TRUE;
+	if (!PyTuple_Check(result)) {
+		PyErr_Format(PyExc_TypeError, 
+				"ParseDisplayName must return a tuple if (int, pidl, attr) - got '%s'",
+				result->ob_type->tp_name);
+		bPythonIsHappy = FALSE;
+	}
+	if (bPythonIsHappy && !PyArg_ParseTuple(result, "lOl" , &chEaten, &obppidl, &dwAttributes))
+		bPythonIsHappy = FALSE;
 	if (bPythonIsHappy && !PyObject_AsPIDL(obppidl, ppidl)) bPythonIsHappy = FALSE;
 	if (!bPythonIsHappy) hr = PyCom_SetAndLogCOMErrorFromPyException("ParseDisplayName", IID_IShellFolder);
 	if (pchEaten) *pchEaten = chEaten;
