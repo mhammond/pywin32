@@ -114,12 +114,23 @@ def FindPath(options, server, name):
 def FindWebServer(options, server_desc):
     # command-line options get first go.
     if options.server:
-        server = options.server
+        server_desc = options.server
     # If the config passed by the caller doesn't specify one, use the default
-    elif server_desc is None:
+    if not server_desc:
         server = _IIS_OBJECT+"/1"
     else:
-        server = server_desc
+        # Assume the user has passed a "server description" - loop over
+        # all objects until we find it.
+        ob = GetObject(_IIS_OBJECT)
+        look = server_desc.lower().strip()
+        for sub in ob:
+            this_comment = getattr(sub, "ServerComment", "")
+            if this_comment.lower().strip() == look:
+                server = sub.AdsPath
+                break
+        else:
+            raise ItemNotFound, \
+                  "No web sites match the description '%s'" % (server_desc,)
     # Check it is good.
     try:
         GetObject(server)
@@ -149,31 +160,32 @@ def CreateDirectory(params, options):
     else:
         keyType = _IIS_WEBVIRTUALDIR
     _CallHook(params, "PreInstall", options)
+    # We used to go to lengths to keep an existing virtual directory
+    # in place.  However, in some cases the existing directories got
+    # into a bad state, and an update failed to get them working.
+    # So we nuke it first.  If this is a problem, we could consider adding
+    # a --keep-existing option.
     try:
-        newDir = webDir.Create(keyType, name)
-    except pythoncom.com_error, details:
-        rc = _GetWin32ErrorCode(details)
-        if rc != winerror.ERROR_ALREADY_EXISTS:
-            raise
-        newDir = GetObject(FindPath(options, params.Server, params.Name))
-        log(2, "Updating existing directory '%s'..." % (params.Name,))
-        if newDir.Class != keyType:
-            log(2, "but it has the wrong class (is %s, expecting %s) - recreating" \
-                   % (newDir.Class, keyType))
-            webDir.Delete(newDir.Class, newDir.Name)
-            newDir = webDir.Create(keyType, name)
-    else:
-        log(2, "Creating new directory '%s'..." % (params.Name,))
-        
-        friendly = params.Description or params.Name
-        newDir.AppFriendlyName = friendly
-        try:
-            path = params.Path or webDir.Path
-            newDir.Path = path
-        except AttributeError:
-            pass
-        newDir.AppCreate2(params.AppProtection)
-        newDir.HttpCustomHeaders = params.Headers
+        # Also seen the Class change to a generic IISObject - so nuke
+        # *any* existing object, regardless of Class
+        existing = GetObject(FindPath(options, params.Server, params.Name))
+        webDir.Delete(existing.Class, existing.Name)
+        log(2, "Deleted old directory '%s'" % (params.Name,))
+    except pythoncom.com_error:
+        pass
+
+    newDir = webDir.Create(keyType, name)
+    log(2, "Creating new directory '%s'..." % (params.Name,))
+    
+    friendly = params.Description or params.Name
+    newDir.AppFriendlyName = friendly
+    try:
+        path = params.Path or webDir.Path
+        newDir.Path = path
+    except AttributeError:
+        pass
+    newDir.AppCreate2(params.AppProtection)
+    newDir.HttpCustomHeaders = params.Headers
 
     log(2, "Setting directory options...")
     newDir.AccessExecute  = params.AccessExecute
@@ -224,14 +236,15 @@ def CreateISAPIFilter(filterParams, options):
         filters = server_ob.Create(_IIS_FILTERS, "Filters")
         filters.FilterLoadOrder = ""
         filters.SetInfo()
+
+    # As for VirtualDir, delete an existing one.
     try:
-        newFilter = filters.Create(_IIS_FILTER, filterParams.Name)
-        log(2, "Created new ISAPI filter...")
-    except pythoncom.com_error, (hr, msg, exc, narg):
-        if exc is None or exc[-1]!=-2147024713:
-            raise
-        log(2, "Updating existing filter '%s'..." % (filterParams.Name,))
-        newFilter = GetObject(server+"/Filters/"+filterParams.Name)
+        filters.Delete(_IIS_FILTER, filterParams.Name)
+        log(2, "Deleted old filter '%s'" % (filterParams.Name,))
+    except pythoncom.com_error:
+        pass
+    newFilter = filters.Create(_IIS_FILTER, filterParams.Name)
+    log(2, "Created new ISAPI filter...")
     assert os.path.isfile(filterParams.Path)
     newFilter.FilterPath  = filterParams.Path
     newFilter.FilterDescription = filterParams.Description
