@@ -23,7 +23,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.3.6" # Written to generated file.
+makepy_version = "0.4.0" # Written to generated file.
 
 GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
@@ -119,16 +119,6 @@ class RecordItem(build.OleItem, WritableItem):
   def WriteClass(self, generator):
     pass
 
-class InterfaceItem(build.OleItem, WritableItem):
-  order = 4
-  typename = "INTERFACE"
-
-  def __init__(self, typeInfo, typeAttr, doc=None, bForUser=1):
-    build.OleItem.__init__(self, doc)
-
-  def WriteClass(self, generator):
-    pass
-
 # Given an enum, write all aliases for it.
 # (no longer necessary for new style code, but still used for old code.
 def WriteAliasesForItem(item, aliasItems):
@@ -217,21 +207,40 @@ class EnumerationItem(build.OleItem, WritableItem):
           use = repr(str(vdesc[1]))
         print "\t%-30s=%-10s # from enum %s" % (build.MakePublicAttributeName(name), use, enumName)
 
+class VTableItem(build.VTableItem, WritableItem):
+    order = 4
+
+    def WriteClass(self, generator):
+        self.WriteVTableMap(generator)
+        self.bWritten = 1
+
+    def WriteVTableMap(self, generator):
+        print "%s_vtables_dispatch_ = %d" % (self.python_name, self.bIsDispatch)
+        print "%s_vtables_ = " % (self.python_name, ) ,
+        print repr(self.vtableFuncs)
+        print
+
 class DispatchItem(build.DispatchItem, WritableItem):
     order = 3
 
     def __init__(self, typeinfo, attr, doc=None):
         build.DispatchItem.__init__(self, typeinfo, attr, doc)
-
-        self.bIsSink = 0
+        self.type_attr = attr
 
     def WriteClass(self, generator):
-        if self.bIsSink:
-            self.WriteEventSinkClassHeader(generator)
-            self.WriteCallbackClassBody(generator)
-        else:
-            self.WriteClassHeader(generator)
-            self.WriteClassBody(generator)
+      wTypeFlags = self.type_attr.wTypeFlags
+      if not self.bIsDispatch:
+          return
+      # This is pretty screwey - now we have vtable support we
+      # should probably rethink this (ie, maybe write both sides for sinks, etc)
+      if self.bIsSink:
+          self.WriteEventSinkClassHeader(generator)
+          self.WriteCallbackClassBody(generator)
+      else:
+          self.WriteClassHeader(generator)
+          self.WriteClassBody(generator)
+      print
+      self.bWritten = 1
 
     def WriteClassHeader(self, generator):
         generator.checkWriteDispatchBaseClass()
@@ -309,6 +318,9 @@ class DispatchItem(build.DispatchItem, WritableItem):
         itemCount = None
         for name in names:
             entry=self.mapFuncs[name]
+            # If not accessible via IDispatch, then we can't use it here.
+            if entry.desc[3] != pythoncom.FUNC_DISPATCH:
+                continue
             if entry.desc[0]==pythoncom.DISPID_VALUE:
                 lkey = "value"
             elif entry.desc[0]==pythoncom.DISPID_NEWENUM:
@@ -458,10 +470,6 @@ class DispatchItem(build.DispatchItem, WritableItem):
             print "\t#This class has a __len__ - this is needed so 'if object:' always returns TRUE."
             print "\tdef __nonzero__(self):"
             print "\t\treturn 1"
-    
-        print
-        self.bWritten = 1
-
 
 class CoClassItem(build.OleItem, WritableItem):
   order = 5
@@ -472,6 +480,7 @@ class CoClassItem(build.OleItem, WritableItem):
     self.clsid = attr[0]
     self.sources = sources
     self.interfaces = interfaces
+    self.bIsDispatch = 1 # Pretend it is so it is written to the class map.
 
   def WriteClass(self, generator):
     generator.checkWriteCoClassBaseClass()
@@ -479,9 +488,9 @@ class CoClassItem(build.OleItem, WritableItem):
     if generator.generate_type == GEN_DEMAND_CHILD:
       # Some special imports we must setup.
       referenced_items = []
-      for ref, flag, dual in self.sources:
+      for ref, flag in self.sources:
         referenced_items.append(ref)
-      for ref, flag, dual in self.interfaces:
+      for ref, flag in self.interfaces:
         referenced_items.append(ref)
       print "import sys"
       for ref in referenced_items:
@@ -498,22 +507,32 @@ class CoClassItem(build.OleItem, WritableItem):
     print '\tCLSID = pythoncom.MakeIID("%s")' % (clsidStr)
     print '\tcoclass_sources = ['
     defItem = None
-    for source, flag, dual in self.sources:
+    for item, flag in self.sources:
       if flag & pythoncom.IMPLTYPEFLAG_FDEFAULT:
-        defItem = source
-      print '\t\t%s,' % (source.python_name)
+        defItem = item
+      # check if non-dispatchable - if so no real Python class has been written.  Write the iid as a string instead.
+      if item.bIsDispatch: key = item.python_name
+      else: key = repr(str(item.clsid)) # really the iid.
+      print '\t\t%s,' % (key)
     print '\t]'
     if defItem:
-      print '\tdefault_source = %s' % (defItem.python_name)
+      if defItem.bIsDispatch: defName = defItem.python_name
+      else: defName = repr(str(defItem.clsid)) # really the iid.
+      print '\tdefault_source = %s' % (defName,)
     print '\tcoclass_interfaces = ['
     defItem = None
-    for interface, flag, dual in self.interfaces:
+    for item, flag in self.interfaces:
       if flag & pythoncom.IMPLTYPEFLAG_FDEFAULT: # and dual:
-        defItem = interface
-      print '\t\t%s,' % (interface.python_name,)
+        defItem = item
+      # check if non-dispatchable - if so no real Python class has been written.  Write the iid as a string instead.
+      if item.bIsDispatch: key = item.python_name
+      else: key = repr(str(item.clsid)) # really the iid.
+      print '\t\t%s,' % (key,)
     print '\t]'
     if defItem:
-      print '\tdefault_interface = %s' % (defItem.python_name,)
+      if defItem.bIsDispatch: defName = defItem.python_name
+      else: defName = repr(str(defItem.clsid)) # really the iid.
+      print '\tdefault_interface = %s' % (defName,)
     self.bWritten = 1
     print
 
@@ -560,9 +579,11 @@ class Generator:
     self.file = None
 
   def BuildOleItemsFromType(self, look_name = None):
+    assert self.bBuildHidden, "This code doesnt look at the hidden flag - I thought everyone set it true!?!?!"
     oleItems = {}
     enumItems = {}
     recordItems = {}
+    vtableItems = {}
     for i in xrange(self.typelib.GetTypeInfoCount()):
       info = self.typelib.GetTypeInfo(i)
       infotype = self.typelib.GetTypeInfoType(i)
@@ -575,29 +596,28 @@ class Generator:
         enumItems[newItem.doc[0]] = newItem
       # We never hide interfaces (MSAccess, for example, nominates interfaces as
       # hidden, assuming that you only ever use them via the CoClass)
-      elif (infotype in [pythoncom.TKIND_DISPATCH, pythoncom.TKIND_INTERFACE]) and \
-            not ((0 != pythoncom.TYPEFLAG_FHIDDEN & attr[11]) and not self.bBuildHidden): 
-        if infotype==pythoncom.TKIND_INTERFACE:
-          # For now we believe this flag.  It appears we could also
-          # look down the cImplTypes for IDispatch, but this is simpler.
-          if not attr[11] & pythoncom.TYPEFLAG_FDISPATCHABLE:
-            ### we can't build these
-            self.progress.VerboseProgress("Skipped interface: %s" % doc[0])
-            continue
-          else:
-            self.progress.VerboseProgress("Dispatchable interface: %s" % doc[0])
-        else: # A TKIND_DISPATCH
-          if attr[11] & pythoncom.TYPEFLAG_FDUAL:
-            self.progress.VerboseProgress("Dual interface: %s" % doc[0])
-          else:
-            self.progress.VerboseProgress("Dispatch interface: %s" % doc[0])
-        # Get to work.
+      elif infotype in [pythoncom.TKIND_DISPATCH, pythoncom.TKIND_INTERFACE]:
         if look_name is not None and doc[0]!=look_name:
           continue
-        if oleItems.has_key(attr[0]):
-          continue # already built by CoClass processing.
-        newItem = DispatchItem(info, attr, doc)
-        oleItems[newItem.clsid] = newItem
+        if infotype == pythoncom.TKIND_DISPATCH:
+            if not oleItems.has_key(attr[0]):
+                newItem = DispatchItem(info, attr, doc)
+                oleItems[newItem.clsid] = newItem
+                # If this DISPATCH interface is not dual, then we are done.
+            if not (attr.wTypeFlags & pythoncom.TYPEFLAG_FDUAL):
+#                sys.stderr.write("interface " + doc[0] + " is not dual\n");
+                continue
+            # If a dual dispatch interface, get the _real_ interface
+            refhtype = info.GetRefTypeOfImplType(-1)
+            info = info.GetRefTypeInfo(refhtype)
+            attr = info.GetTypeAttr()
+#        assert infotype == pythoncom.TKIND_INTERFACE, "Must be a real interface at this point"
+        if vtableItems.has_key(attr[0]):
+            continue # already built by CoClass processing.
+#        sys.stderr.write("Have interface " + doc[0] + "\n");
+        newItem = VTableItem(info, attr, doc)
+        vtableItems[newItem.clsid] = newItem
+
       elif infotype == pythoncom.TKIND_RECORD or infotype == pythoncom.TKIND_UNION:
         if look_name is not None: continue
         newItem = RecordItem(info, attr, doc)
@@ -619,39 +639,46 @@ class Generator:
           flags = info.GetImplTypeFlags(j)
           refType = info.GetRefTypeInfo(info.GetRefTypeOfImplType(j))
           refAttr = refType.GetTypeAttr()
-          if refAttr.typekind == pythoncom.TKIND_INTERFACE:
-              # For now we believe this flag.  It appears we could also
-              # look down the cImplTypes for IDispatch, but this is simpler.
-              if not refAttr.wTypeFlags & pythoncom.TYPEFLAG_FDISPATCHABLE:
-                  ### we can't build these
-                  self.progress.VerboseProgress("Skipped interface: %s" % doc[0])
-                  continue
+          isSource = flags & pythoncom.IMPLTYPEFLAG_FSOURCE
+          name = build.MakePublicAttributeName(refType.GetDocumentation(-1)[0])
+#          sys.stderr.write("Attr typeflags for coclass referenced object %s=%d (%d), typekind=%d\n" % (name, refAttr.wTypeFlags, refAttr.wTypeFlags & pythoncom.TYPEFLAG_FDUAL,refAttr.typekind))
+          if refAttr.typekind == pythoncom.TKIND_DISPATCH:
+              if oleItems.has_key(refAttr[0]):
+                dispItem = oleItems[refAttr[0]]
               else:
-                  self.progress.VerboseProgress("Dispatchable interface: %s" % doc[0])
-          else: # A TKIND_DISPATCH
-              if refAttr.wTypeFlags & pythoncom.TYPEFLAG_FDUAL:
-                  self.progress.VerboseProgress("Dual interface: %s" % doc[0])
+                dispItem = DispatchItem(refType, refAttr, refType.GetDocumentation(-1))
+                oleItems[dispItem.clsid] = dispItem
+              if flags & pythoncom.IMPLTYPEFLAG_FSOURCE:
+                dispItem.bIsSink = 1
+                sources.append((dispItem, flags))
               else:
-                  self.progress.VerboseProgress("Dispatch interface: %s" % doc[0])
-          dual = refAttr[11] & pythoncom.TYPEFLAG_FDUAL
-          # Ensure the references interfaces have been generated.
-          if oleItems.has_key(refAttr[0]):
-            dispItem = oleItems[refAttr[0]]
-          else:
-            dispItem = DispatchItem(refType, refAttr, refType.GetDocumentation(-1))
-            oleItems[dispItem.clsid] = dispItem
-          if flags & pythoncom.IMPLTYPEFLAG_FSOURCE:
-            dispItem.bIsSink = 1
-            sources.append((dispItem, flags, dual))
-          else:
-            interfaces.append((dispItem, flags, dual))
+                interfaces.append((dispItem, flags))
+              # If dual interface, make do that too.
+              if not refAttr[11] & pythoncom.TYPEFLAG_FDUAL:
+                continue
+              refType = refType.GetRefTypeInfo(refType.GetRefTypeOfImplType(-1))
+              refAttr = refType.GetTypeAttr()
+          assert refAttr.typekind == pythoncom.TKIND_INTERFACE, "must be interface bynow!"
+          if refAttr.typekind == pythoncom.TKIND_DISPATCH:
+              if vtableItems.has_key(refAttr[0]):
+                dispItem = vtableItems[refAttr[0]]
+              else:
+                dispItem = VTableItem(refType, refAttr, refType.GetDocumentation(-1))
+                vtableItems[dispItem.clsid] = dispItem
 
+              if flags & pythoncom.IMPLTYPEFLAG_FSOURCE:
+                  dispItem.bIsSink = 1
+                  sources.append((dispItem, flags))
+              else:
+                  interfaces.append((dispItem, flags))
+
+        # Done generating children - now the CoClass itself.
         newItem = CoClassItem(info, attr, doc, sources, interfaces)
         oleItems[newItem.clsid] = newItem
       else:
         self.progress.LogWarning("Unknown TKIND found: %d" % infotype)
   
-    return oleItems, enumItems, recordItems
+    return oleItems, enumItems, recordItems, vtableItems
 
   def generate(self, file, is_for_demand = 0):
     if is_for_demand:
@@ -716,9 +743,9 @@ class Generator:
 
     self.do_gen_file_header()
 
-    oleItems, enumItems, recordItems = self.BuildOleItemsFromType()
+    oleItems, enumItems, recordItems, vtableItems = self.BuildOleItemsFromType()
 
-    self.progress.SetDescription("Generating...", len(oleItems.values())+len(enumItems.values()))
+    self.progress.SetDescription("Generating...", len(oleItems)+len(enumItems)+len(vtableItems))
 
     # Generate the constants and their support.
     if enumItems:
@@ -737,6 +764,14 @@ class Generator:
         self.progress.Tick()
         oleitem.WriteClass(self)
 
+      list = vtableItems.values()
+      list.sort()
+      for oleitem in list:
+        self.progress.Tick()
+        oleitem.WriteClass(self)
+    else:
+        self.progress.Tick(len(oleItems)+len(vtableItems))
+
     print 'RecordMap = {'
     list = recordItems.values()
     for record in list:
@@ -751,18 +786,39 @@ class Generator:
     if self.generate_type == GEN_FULL:
       print 'CLSIDToClassMap = {'
       for item in oleItems.values():
-        if item.bWritten:
-          print "\t'%s' : %s," % (str(item.clsid), item.python_name)
+          if item.bWritten and item.bIsDispatch:
+              print "\t'%s' : %s," % (str(item.clsid), item.python_name)
       print '}'
       print 'CLSIDToPackageMap = {}'
-      print
       print 'win32com.client.CLSIDToClass.RegisterCLSIDsFromDict( CLSIDToClassMap )'
+      print "VTablesToPackageMap = {}"
+      print "VTablesToClassMap = {"
+      for item in vtableItems.values():
+          if not item.bIsDispatch:
+            print "\t'%s' : '%s'," % (item.clsid,item.python_name)
+      print '}'
+      print 
+
     else:
       print 'CLSIDToClassMap = {}'
       print 'CLSIDToPackageMap = {'
       for item in oleItems.values():
         print "\t'%s' : %s," % (str(item.clsid), `item.python_name`)
       print '}'
+      print "VTablesToClassMap = {}"
+      print "VTablesToPackageMap = {"
+      for item in vtableItems.values():
+          if not item.bIsDispatch:
+            print "\t'%s' : '%s'," % (item.clsid,item.python_name)
+      print '}'
+      print 
+
+    print
+    print "VTablesNamesToCLSIDMap = {"
+    for item in vtableItems.values():
+        print "\t'%s' : '%s'," % (item.python_name, item.clsid)
+    print '}'
+    print
 
     if enumItems:
       print 'win32com.client.constants.__dicts__.append(constants.__dict__)'
@@ -780,16 +836,31 @@ class Generator:
     minor=la[4]
     self.base_mod_name = "win32com.gen_py." + str(clsid)[1:-1] + "x%sx%sx%s" % (lcid, major, minor)
     try:
-      oleItems, enumItems, recordItems = self.BuildOleItemsFromType(child)
-      assert len(enumItems)==0 and len(recordItems)==0, "Not expecting anything other than oleitems"
-      assert len(oleItems)>0, "Could not find the name '%s'" % (child,)
-      list = oleItems.values()
-      self.progress.SetDescription("Generating...", len(oleItems.values()))
-      for oleitem in list:
-        self.file = open(os.path.join(dir, oleitem.python_name) + ".py", "w")
+      oleItems, enumItems, recordItems, vtableItems = self.BuildOleItemsFromType(child)
+      assert len(enumItems)==0 and len(recordItems)==0, "Not expecting anything other than dispatch/interface items"
+      assert len(oleItems)>0 or len(vtableItems)>0, "Could not find the name '%s'" % (child,)
+      # Make a map of iid: dispitem, vtableitem)
+      items = {}
+      for key, value in oleItems.items():
+          items[key] = (value,None)
+      for key, value in vtableItems.items():
+          existing = items.get(key, None)
+          if existing is not None:
+              new_val = existing[0], value
+          else:
+              new_val = None, value
+          items[key] = new_val
+
+      self.progress.SetDescription("Generating...", len(items))
+      for oleitem, vtableitem in items.values():
+        an_item = oleitem or vtableitem
+        self.file = open(os.path.join(dir, an_item.python_name) + ".py", "w")
         sys.stdout = self.file
         try:
-          self.do_gen_child_item(oleitem)
+          if oleitem is not None:
+            self.do_gen_child_item(oleitem)
+          if vtableitem is not None:
+            self.do_gen_child_item(vtableitem)
           self.progress.Tick()
         finally:
           sys.stdout = oldOut
@@ -808,7 +879,8 @@ class Generator:
     self.progress.SetDescription("Building definitions from type library...")
     self.do_gen_file_header()
     oleitem.WriteClass(self)
-    print 'win32com.client.CLSIDToClass.RegisterCLSID( "%s", %s )' % (oleitem.clsid, oleitem.python_name)
+    if oleitem.bIsDispatch:
+        print 'win32com.client.CLSIDToClass.RegisterCLSID( "%s", %s )' % (oleitem.clsid, oleitem.python_name)
 
   def checkWriteDispatchBaseClass(self):
     if not self.bHaveWrittenDispatchBaseClass:

@@ -20,6 +20,7 @@ extern PyObject  *pythoncom_IsGatewayRegistered(PyObject *self, PyObject *args);
 
 extern PyObject *g_obPyCom_MapIIDToType;
 extern PyObject *g_obPyCom_MapGatewayIIDToName;
+extern PyObject *g_obPyCom_MapInterfaceNameToIID;
 
 static PyObject *g_obEmpty = NULL;
 static PyObject *g_obMissing = NULL;
@@ -674,9 +675,28 @@ static PyObject *pythoncom_WrapObject(PyObject *self, PyObject *args)
 	}
 	// Make a gateway of the specific IID we ask for.
 	// The gateway must exist (ie, we _must_ support PyGIXXX
+
+	// XXX - do we need an optional arg for "base object"?
+	// XXX - If we did, we would unwrap it like thus:
+	/****
+	IUnknown *pLook = (IUnknown *)(*ppv);
+	IInternalUnwrapPythonObject *pTemp;
+	if (pLook->QueryInterface(IID_IInternalUnwrapPythonObject, (void **)&pTemp)==S_OK) {
+		// One of our objects, so set the base object if it doesnt already have one
+		PyGatewayBase *pG = (PyGatewayBase *)pTemp;
+		// Eeek - just these few next lines need to be thread-safe :-(
+		PyWin_AcquireGlobalLock();
+		if (pG->m_pBaseObject==NULL && pG != (PyGatewayBase *)this) {
+			pG->m_pBaseObject = this;
+			pG->m_pBaseObject->AddRef();
+		}
+		PyWin_ReleaseGlobalLock();
+		pTemp->Release();
+	}
+	******/
 	IUnknown *pDispatch;
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = PyCom_MakeRegisteredGatewayObject(iid, ob, (void **)&pDispatch);
+	HRESULT hr = PyCom_MakeRegisteredGatewayObject(iid, ob, NULL, (void **)&pDispatch);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr);
@@ -1319,6 +1339,8 @@ int AddConstant(PyObject *dict, const char *key, long value)
 
 static char *modName = "pythoncom";
 
+extern BOOL initunivgw(PyObject *parentDict);
+
 /* Module initialisation */
 extern "C" __declspec(dllexport) void initpythoncom()
 {
@@ -1357,6 +1379,7 @@ extern "C" __declspec(dllexport) void initpythoncom()
 	if (!dict) return; /* Another serious error!*/
 	PyDict_SetItemString(dict, "TypeIIDs", g_obPyCom_MapIIDToType);
 	PyDict_SetItemString(dict, "ServerInterfaces", g_obPyCom_MapGatewayIIDToName);
+	PyDict_SetItemString(dict, "InterfaceNames", g_obPyCom_MapInterfaceNameToIID);
 
 	g_obEmpty = new PyOleEmpty;
 	PyDict_SetItemString(dict, "Empty", g_obEmpty);
@@ -1392,6 +1415,10 @@ extern "C" __declspec(dllexport) void initpythoncom()
 
 	// Add the IIDs
 	if (PyCom_RegisterCoreIIDs(dict) != 0)
+		return;
+
+	// Setup our sub-modules
+	if (!initunivgw(dict))
 		return;
 
 	// Add a few types.
@@ -1499,7 +1526,7 @@ extern "C" __declspec(dllexport) void initpythoncom()
 
 	// STREAMSEEK
 	ADD_CONSTANT(STREAM_SEEK_SET);
-    ADD_CONSTANT(STREAM_SEEK_CUR);
+	ADD_CONSTANT(STREAM_SEEK_CUR);
 	ADD_CONSTANT(STREAM_SEEK_END);
 
 

@@ -229,7 +229,14 @@ class BasicWrapPolicy:
 
     # Allow for override of certain special attributes.
     if hasattr(ob, '_com_interfaces_'):
-      self._com_interfaces_ = ob._com_interfaces_
+      self._com_interfaces_ = []
+      # Allow interfaces to be specified by name.
+      for i in ob._com_interfaces_:
+        if type(i) != pythoncom.PyIIDType:
+          # Prolly a string!
+          if i[0] != "{":
+            i = pythoncom.InterfaceNames[i]
+        self._com_interfaces_.append(i)
     else:
       self._com_interfaces_ = [ ]
 

@@ -80,6 +80,8 @@ END_COM_MAP()
 	STDMETHOD(TestOptionals)(BSTR strArg, short sarg, long larg, double darg, SAFEARRAY **pRet);
 	STDMETHOD(TestOptionals2)(double dval, BSTR strval, short sval, SAFEARRAY **pRet);
 	STDMETHOD(GetStruct)(TestStruct1 *ret);
+	STDMETHOD(TestMyInterface)(IUnknown *t);
+	STDMETHOD(NotScriptable)(int *val);
 
 	// info associated to each session
 	struct PyCOMTestSessionData

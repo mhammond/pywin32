@@ -18,6 +18,19 @@ are used for testing, they do show a variety of COM techniques.</p>
 
 <h3>Recent Changes</h3>
 
+<h4>win32all-136/ActivePython 2.1</h4>
+
+<p>Universal gateway has arrived!&nbsp; You can now implement arbitrary vtable
+based interfaces, as long as they are defined in a type-library (and even if not
+if you bonkers :-).&nbsp; You simply add one extra statement to your COM server
+nominating the typelibrary with the interface.&nbsp; Your PythonCOM server then
+can list the interfaces in that typelibrary by name in _com_interfaces_.&nbsp;
+Note that you must still have _public_methods_, but it need not specify named
+vtable interface methods - ie, in most cases this list will be empty.&nbsp; See
+win32com\servers\test_pycomtest.py for an example.&nbsp; (Note the intent is for
+the list of interfaces passed to universal.RegisterInterfaces() will be
+optional)</p>
+
 <h4>win32all-133 changes</h4>
 
 <p>Bug fixes!&nbsp; We now have an option to honour the hidden attribute on

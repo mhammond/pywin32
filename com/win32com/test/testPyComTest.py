@@ -14,7 +14,7 @@ error = "testPyCOMTest error"
 from win32com.client import gencache
 try:
 	PyCOMTest = gencache.EnsureModule('{6BCDCB60-5605-11D0-AE5F-CADD4C000000}', 0, 1, 1)
-except:
+except pythoncom.com_error:
 	PyCOMTest = None
 
 if PyCOMTest is None:
@@ -153,6 +153,7 @@ def TestGenerated():
 	if o.GetSetInterface(o).__class__ != PyCOMTest.IPyCOMTest:
 		raise error, "GetSetDispatch failed"
 
+	o.GetSimpleSafeArray(None)
 	TestApplyResult(o.GetSimpleSafeArray, (None,), tuple(range(10)))
 	resultCheck = tuple(range(5)), tuple(range(10)), tuple(range(20))
 	TestApplyResult(o.GetSafeArrays, (None, None, None), resultCheck)
@@ -250,6 +251,15 @@ def TestCounter(counter, bIsGenerated):
 		raise error, "*** Unexpected number of loop iterations - got %d ***" % num
 	if verbose: print "Finished testing counter"
 
+###############################
+##
+## Some vtable tests of the interface
+##
+def TestVTable():
+	tester = win32com.client.Dispatch("PyCOMTest.PyCOMTest")
+	testee = pythoncom.CoCreateInstance("Python.Test.PyCOMTest", None, pythoncom.CLSCTX_ALL, pythoncom.IID_IUnknown)
+	tester.TestMyInterface(testee)
+
 def TestAll():
 	try:
 		# Make sure server installed
@@ -258,6 +268,9 @@ def TestAll():
 	except pythoncom.com_error:
 		print importMsg
 		return
+
+	print "Testing VTables..."
+	TestVTable()
 
 	print "Testing Python COM Test Horse..."
 	TestDynamic()

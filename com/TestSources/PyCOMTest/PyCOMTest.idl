@@ -11,6 +11,7 @@
 typedef enum EnumTestAttributes1
 {
 	TestAttr1,
+	TestAttr1_1,
 } TestAttributes1;
 
 typedef enum // Missing EnumTestAttributes2
@@ -55,8 +56,8 @@ library PyCOMTestLib
 		TestAttr3,
 	};
 	// Some test structures
-	typedef [uuid(7a4ce6a7-7959-4e85-a3c0-b41442ff0f67)]
-	struct _TestStruct1 {
+	typedef [uuid(7a4ce6a7-7959-4e85-a3c0-b41442ff0f67), version(1.0)]
+	struct tagTestStruct1 {
 		int int_value;
 		BSTR str_value;
 	} TestStruct1;
@@ -198,6 +199,9 @@ library PyCOMTestLib
 							   [optional, defaultvalue(1)] short sval,
 							   [out,retval] SAFEARRAY(VARIANT) *pret );
 		HRESULT GetStruct([out, retval]TestStruct1 *ret);
+		[restricted] HRESULT NotScriptable([in,out] int *val);
+
+		HRESULT TestMyInterface([in] IUnknown *tester);
 	};
 
 	// Define a new class to test how Python handles derived interfaces!
@@ -245,10 +249,43 @@ library PyCOMTestLib
 		uuid(b636cac0-5605-11d0-ae5f-cadd4c000000),
 		helpstring("PyCOMTestEvent IDispatch Interface"),
 	]
-        dispinterface PyCOMTestEvent
-        {
-                interface IPyCOMTestEvent;
-        };
+	dispinterface PyCOMTestEvent
+	{
+		interface IPyCOMTestEvent;
+	};
+	// Some non-IDispatch based interfaces for univgw testing.
+	[
+		object,
+		uuid(36f7a0f7-10c9-43b7-9bd8-47a932b11d84),
+		helpstring("IPyCOMTestNoDispatch Interface"),
+		pointer_default(unique)
+	]
+	interface IPyCOMTestNoDispatch : IUnknown
+	{
+		HRESULT PlayWithSomeArgs([in,out]VARIANT *var, [in,out]long *l);
+		HRESULT ChangeStruct([in]TestStruct1 *inval, [out, retval]TestStruct1 *ret);
+		HRESULT InPtr([in]int *inval, [out]int *outval);
+	};
+	[
+		object,
+		uuid(b21b658a-19a8-488a-8d3a-b63b3cf98501),
+		dual,
+		helpstring("IPyCOMTestNoDispatchEvent Interface"),
+		pointer_default(unique)
+	]
+	interface IPyCOMTestNoDispatchEvent : IUnknown
+	{
+		HRESULT Fire([in]long nID);
+	};
 
-
+	[
+		uuid(638630ac-a734-45a2-8080-fda5c1e47f66),
+		helpstring("PyCOMTest Class that doesnt derive from IDispatch")
+	]
+	coclass CoPyCOMTestNoDispatch
+	{
+		[default] interface IPyCOMTestNoDispatch;
+		[default, source] dispinterface IPyCOMTestNoDispatchEvent; // use same events for now.
+	};
 };
+

@@ -173,6 +173,8 @@ def GetModuleForCLSID(clsid):
 	mod = GetModuleForTypelib(typelibCLSID, lcid, major, minor)
 	if mod is not None:
 		sub_mod = mod.CLSIDToPackageMap.get(clsid_str)
+		if sub_mod is None:
+			sub_mod = mod.VTablesToPackageMap.get(clsid_str)
 		if sub_mod is not None:
 			sub_mod_name = mod.__name__ + "." + sub_mod
 			try:
@@ -447,6 +449,16 @@ def AddModuleToCache(typelibclsid, lcid, major, minor, verbose = 1, bFlushNow = 
 	dict = mod.CLSIDToPackageMap
 	for clsid, name in dict.items():
 		clsidToTypelib[clsid] = (str(typelibclsid), mod.LCID, mod.MajorVersion, mod.MinorVersion)
+
+	dict = mod.VTablesToClassMap
+	for clsid, cls in dict.items():
+		clsidToTypelib[clsid] = (str(typelibclsid), mod.LCID, mod.MajorVersion, mod.MinorVersion)
+
+	dict = mod.VTablesToPackageMap
+	for clsid, cls in dict.items():
+		clsidToTypelib[clsid] = (str(typelibclsid), mod.LCID, mod.MajorVersion, mod.MinorVersion)
+
+
 	if bFlushNow:
 		_SaveDicts()
 

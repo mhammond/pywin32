@@ -87,6 +87,8 @@ class OleItem:
     else:
         self.python_name = None
     self.bWritten = 0
+    self.bIsDispatch = 0
+    self.bIsSink = 0
     self.clsid = None
 
 class DispatchItem(OleItem):
@@ -149,10 +151,6 @@ class DispatchItem(OleItem):
 			id != pythoncom.DISPID_NEWENUM:
 			return None
 
-		# skip any methods that can't be reached via DISPATCH
-		if fdesc.funckind != pythoncom.FUNC_DISPATCH:
-			return None
-
 		try:
 			names = typeinfo.GetNames(id)
 			name=names[0]
@@ -189,9 +187,6 @@ class DispatchItem(OleItem):
 		fdesc.args = tuple(argList)
 
 		hidden = (funcflags & pythoncom.FUNCFLAG_FHIDDEN) != 0
-#			if hidden and name != "Item": # XXX - special hack case.
-#				return 0
-
 		if id == pythoncom.DISPID_NEWENUM:
 			map = self.mapFuncs
 		elif invkind == pythoncom.INVOKE_PROPERTYGET:
@@ -224,9 +219,12 @@ class DispatchItem(OleItem):
 #				if map.has_key(name):
 #					sys.stderr.write("Warning - overwriting existing method/attribute %s\n" % name)
 			map[name] = MapEntry(tuple(fdesc), names, doc, resultCLSID, resultDoc, hidden)
+			# any methods that can't be reached via DISPATCH we return None
+			# for, so dynamic dispatch doesnt see it.
+			if fdesc.funckind != pythoncom.FUNC_DISPATCH:
+				return None
 			return (name,map)
-		else:
-			return None
+		return None
 
 	def _AddVar_(self,typeinfo,fdesc,bForUser):
 		### need pythoncom.VARFLAG_FRESTRICTED ...
@@ -263,6 +261,7 @@ class DispatchItem(OleItem):
 
 	def Build(self, typeinfo, attr, bForUser = 1):
 		self.clsid = attr[0]
+		self.bIsDispatch = (attr.wTypeFlags & pythoncom.TYPEFLAG_FDISPATCHABLE) != 0
 		if typeinfo is None: return
 		# Loop over all methods
 		for j in xrange(attr[6]):
@@ -391,6 +390,23 @@ class DispatchItem(OleItem):
 		ret.append("")
 		return ret
 
+# Note - "DispatchItem" poorly named - need a new intermediate class.
+class VTableItem(DispatchItem):
+	def Build(self, typeinfo, attr, bForUser = 1):
+		DispatchItem.Build(self, typeinfo, attr, bForUser)
+		assert typeinfo is not None, "Cant build vtables without type info!"
+
+		def cmp_vtable_off(m1, m2):
+			return cmp(m1.desc[7], m2.desc[7])
+
+		meth_list = self.mapFuncs.values()
+		meth_list.sort( cmp_vtable_off )
+		# Now turn this list into the run-time representation
+		# (ready for immediate use or writing to gencache)
+		self.vtableFuncs = []
+		for entry in meth_list:
+			self.vtableFuncs.append( (entry.names[0], entry.dispid, entry.desc[2], entry.desc[8], entry.names[1:]) )
+
 # A Lazy dispatch item - builds an item on request using info from
 # an ITypeComp.  The dynamic module makes the called to build each item,
 # and also holds the references to the typeinfo and typecomp.
@@ -399,7 +415,7 @@ class LazyDispatchItem(DispatchItem):
 	def __init__(self, attr, doc):
 		self.clsid = attr[0]
 		DispatchItem.__init__(self, None, attr, doc, 0)
-		
+
 typeSubstMap = {
 	pythoncom.VT_INT: pythoncom.VT_I4,
 	pythoncom.VT_UINT: pythoncom.VT_I4,
@@ -497,12 +513,6 @@ def MakeDefaultArgRepr(defArgVal):
     # something strange - assume is in param.
     inOut = pythoncom.PARAMFLAG_FIN
 
-## XXX - this is clearly not correct.  Many params do not have [in] specified -
-## XXX  at worst, we want to check specifically for FOUT being set, but I can't see why!?
-##  if not inOut==pythoncom.PARAMFLAG_NONE and not (inOut & pythoncom.PARAMFLAG_FIN):
-##    # If it is not an inout param, override default to "None".
-##    # This allows us to "hide" out params.
-##    return "None"
   if inOut & pythoncom.PARAMFLAG_FHASDEFAULT:
     # hack for Unicode until it repr's better.
     val = defArgVal[2]

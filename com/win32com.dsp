@@ -61,7 +61,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386
-# ADD LINK32 ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e2a0000" /subsystem:windows /dll /pdb:"Build\System\pythoncom16.pdb" /debug /machine:I386 /def:".\win32com\src\PythonCOM.def" /out:"Build\System\pythoncom21.dll" /implib:"Build\pythoncom.lib" /libpath:"..\win32\build"
+# ADD LINK32 ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e2a0000" /subsystem:windows /dll /pdb:"Build\System\pythoncom21.pdb" /debug /machine:I386 /def:".\win32com\src\PythonCOM.def" /out:"Build\System\pythoncom21.dll" /implib:"Build\pythoncom.lib" /libpath:"..\win32\build"
 # SUBTRACT LINK32 /pdb:none
 # Begin Custom Build - copy to system32
 ProjDir=.
@@ -103,7 +103,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e2a0000" /subsystem:windows /dll /pdb:"Build\System\pythoncom16_d.pdb" /debug /machine:I386 /def:".\win32com\src\PythonCOM.def" /out:"Build\System\pythoncom21_d.dll" /implib:"Build\pythoncom_d.lib" /pdbtype:sept /libpath:"..\win32\build"
+# ADD LINK32 ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e2a0000" /subsystem:windows /dll /pdb:"Build\System\pythoncom21_d.pdb" /debug /machine:I386 /def:".\win32com\src\PythonCOM.def" /out:"Build\System\pythoncom21_d.dll" /implib:"Build\pythoncom_d.lib" /pdbtype:sept /libpath:"..\win32\build"
 # SUBTRACT LINK32 /pdb:none
 # Begin Custom Build - copy to system32
 ProjDir=.
@@ -131,25 +131,25 @@ SOURCE="$(InputPath)"
 # PROP Intermediate_Dir "Build\Temp\win32event\ce\mips\Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-PFILE=pfile.exe
-# ADD BASE PFILE COPY
-# ADD PFILE COPY
-CPP=clmips.exe
-# ADD BASE CPP /nologo /ML /W3 /Zi /O2 /I "win32com\src\include" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_WINDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /D "STRICT" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /M$(CECrtMT) /W3 /O1 /I "win32com\src\include" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_WINDLL" /D "BUILD_PYTHONCOM" /D "STRICT" /Yu"stdafx.h" /FD /c
-RSC=rc.exe
-# ADD BASE RSC /l 0x409 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-# ADD RSC /l 0x409 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 ole32.lib oleaut32.lib uuid.lib commctrl.lib coredll.lib /nologo /dll /pdb:"Build\System\pythoncom15.pdb" /debug /machine:MIPS /def:".\win32com\src\PythonCOM.def" /out:"Build\System\pythoncom15.dll" /implib:"Build\pythoncom.lib"
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 ole32.lib oleaut32.lib uuid.lib commctrl.lib coredll.lib winsock.lib /nologo /dll /pdb:none /machine:MIPS /nodefaultlib:"$(CENoDefaultLib)" /def:".\win32com\src\PythonCOM.def" /out:"Build\ce\mips\pythoncom15.dll" /implib:"Build\ce\mips\pythoncom.lib" /subsystem:$(CESubsystem)
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+# ADD RSC /l 0x409 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+CPP=clmips.exe
+# ADD BASE CPP /nologo /ML /W3 /Zi /O2 /I "win32com\src\include" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_WINDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /D "STRICT" /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /M$(CECrtMT) /W3 /O1 /I "win32com\src\include" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_WINDLL" /D "BUILD_PYTHONCOM" /D "STRICT" /Yu"stdafx.h" /FD /c
+PFILE=pfile.exe
+# ADD BASE PFILE COPY
+# ADD PFILE COPY
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
 
@@ -165,25 +165,25 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Build\Temp\win32event\ce\sh\Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-PFILE=pfile.exe
-# ADD BASE PFILE COPY
-# ADD PFILE COPY
-CPP=shcl.exe
-# ADD BASE CPP /nologo /ML /W3 /Zi /O2 /I "win32com\src\include" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_WINDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /D "STRICT" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /M$(CECrtMT) /W3 /O1 /I "win32com\src\include" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_WINDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /D "STRICT" /Yu"stdafx.h" /FD /c
-RSC=rc.exe
-# ADD BASE RSC /l 0x409 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-# ADD RSC /l 0x409 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 ole32.lib oleaut32.lib uuid.lib commctrl.lib coredll.lib /nologo /dll /pdb:"Build\System\pythoncom15.pdb" /debug /machine:SH3 /def:".\win32com\src\PythonCOM.def" /out:"Build\System\pythoncom15.dll" /implib:"Build\pythoncom.lib"
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 ole32.lib oleaut32.lib uuid.lib commctrl.lib coredll.lib /nologo /dll /pdb:none /machine:SH3 /nodefaultlib:"$(CENoDefaultLib)" /def:".\win32com\src\PythonCOM.def" /out:"Build\ce\sh\pythoncom15.dll" /implib:"Build\ce\sh\pythoncom.lib" /subsystem:$(CESubsystem)
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+# ADD RSC /l 0x409 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+CPP=shcl.exe
+# ADD BASE CPP /nologo /ML /W3 /Zi /O2 /I "win32com\src\include" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_WINDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /D "STRICT" /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /M$(CECrtMT) /W3 /O1 /I "win32com\src\include" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_WINDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /D "STRICT" /Yu"stdafx.h" /FD /c
+PFILE=pfile.exe
+# ADD BASE PFILE COPY
+# ADD PFILE COPY
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
 
@@ -199,26 +199,26 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Build\Temp\win32com\ce\x86em\Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-EMPFILE=empfile.exe
-# ADD BASE EMPFILE COPY
-# ADD EMPFILE COPY
-CPP=cl.exe
-# ADD BASE CPP /nologo /MLd /W3 /Gm /ZI /Od /I "win32com\src\include" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "_DEBUG" /D "x86" /D "i486" /D "_x86_" /D "_WINDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MTd /W3 /Gm /Zi /Od /I "win32com\src\include" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "_DEBUG" /D "x86" /D "i486" /D "_x86_" /D "_WINDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /YX"stdafx.h" /FD /c
-RSC=rc.exe
-# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "_DEBUG" /d "x86" /d "i486" /d "_x86_"
-# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "_DEBUG" /d "x86" /d "i486" /d "_x86_"
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 ole32.lib oleaut32.lib uuid.lib commctrl.lib coredll.lib /nologo /base:"0x1e2a0000" /subsystem:windows /dll /pdb:"Build\System\pythoncom15_d.pdb" /debug /machine:IX86 /def:".\win32com\src\PythonCOM.def" /out:"Build\System\pythoncom15_d.dll" /implib:"Build\pythoncom_d.lib" /pdbtype:sept
 # SUBTRACT BASE LINK32 /pdb:none /incremental:no
 # ADD LINK32 coredll.lib corelibc.lib ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e2a0000" /subsystem:windows /dll /debug /machine:IX86 /nodefaultlib:"$(CENoDefaultLib)" /def:".\win32com\src\PythonCOM.def" /out:"Build\ce\x86em\pythoncom15_d.dll" /implib:"Build\pythoncom_d.lib" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "_DEBUG" /d "x86" /d "i486" /d "_x86_"
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "_DEBUG" /d "x86" /d "i486" /d "_x86_"
+CPP=cl.exe
+# ADD BASE CPP /nologo /MLd /W3 /Gm /ZI /Od /I "win32com\src\include" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "_DEBUG" /D "x86" /D "i486" /D "_x86_" /D "_WINDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MTd /W3 /Gm /Zi /Od /I "win32com\src\include" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "_DEBUG" /D "x86" /D "i486" /D "_x86_" /D "_WINDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /YX"stdafx.h" /FD /c
+EMPFILE=empfile.exe
+# ADD BASE EMPFILE COPY
+# ADD EMPFILE COPY
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Debug"
 
@@ -234,26 +234,26 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Build\Temp\win32com\ce\mips\Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-PFILE=pfile.exe
-# ADD BASE PFILE COPY
-# ADD PFILE COPY
-CPP=clmips.exe
-# ADD BASE CPP /nologo /MLd /W3 /Zi /Od /I "win32com\src\include" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /M$(CECrtMT) /W3 /Zi /Od /I "win32com\src\include" /D "BUILD_PYTHONCOM" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /Yu"stdafx.h" /FD /c
-RSC=rc.exe
-# ADD BASE RSC /l 0x409 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "DEBUG"
-# ADD RSC /l 0x409 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "DEBUG"
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 corelibc.lib ole32.lib oleaut32.lib uuid.lib commctrl.lib coredll.lib /nologo /dll /debug /machine:MIPS /def:".\win32com\src\PythonCOM.def" /out:"Build\ce\x86em\pythoncom15_d.dll" /implib:"Build\pythoncom_d.lib" /pdbtype:sept
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 corelibc.lib ole32.lib oleaut32.lib uuid.lib commctrl.lib coredll.lib /nologo /dll /debug /machine:MIPS /nodefaultlib:"$(CENoDefaultLib)" /def:".\win32com\src\PythonCOM.def" /out:"Build\ce\mips\pythoncom15_d.dll" /implib:"Build\ce\mips\pythoncom_d.lib" /pdbtype:sept /subsystem:$(CESubsystem)
 # SUBTRACT LINK32 /pdb:none
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "DEBUG"
+# ADD RSC /l 0x409 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "DEBUG"
+CPP=clmips.exe
+# ADD BASE CPP /nologo /MLd /W3 /Zi /Od /I "win32com\src\include" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /M$(CECrtMT) /W3 /Zi /Od /I "win32com\src\include" /D "BUILD_PYTHONCOM" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /Yu"stdafx.h" /FD /c
+PFILE=pfile.exe
+# ADD BASE PFILE COPY
+# ADD PFILE COPY
 
 !ENDIF 
 
@@ -2120,6 +2120,44 @@ DEP_CPP_STDAF=\
 	
 # ADD BASE CPP /Yc"stdafx.h"
 # ADD CPP /Yc"stdafx.h"
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32com\src\univgw.cpp
+
+!IF  "$(CFG)" == "win32com - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Release"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Debug"
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32com\src\univgw_dataconv.cpp
+
+!IF  "$(CFG)" == "win32com - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Release"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Debug"
 
 !ENDIF 
 
@@ -8331,6 +8369,10 @@ SOURCE=.\win32com\src\include\PythonCOMServer.h
 # Begin Source File
 
 SOURCE=.\win32com\src\include\stdafx.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32com\src\include\univgw_dataconv.h
 # End Source File
 # End Group
 # Begin Source File

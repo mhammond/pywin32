@@ -6,6 +6,7 @@
 #include "SimpleCounter.h"
 #include "objbase.h"
 
+#include "stdio.h"
 /////////////////////////////////////////////////////////////////////////////
 //
 
@@ -374,5 +375,59 @@ HRESULT CPyCOMTest::GetStruct(TestStruct1 *ret)
 	r.int_value = 99;
 	r.str_value = SysAllocString(L"Hello from C++");
 	*ret = r;
+	return S_OK;
+}
+
+#define CHECK_HR(_hr) if (FAILED(hr=_hr)) { \
+	printf("PyCOMTest: Failed at '%s', line %d: %d", __FILE__, __LINE__, hr); \
+	return hr; \
+}
+
+#define CHECK_TRUE(v) if (!(v)) { \
+	printf("PyCOMTest: Test value failed:%s\nAt '%s', line %d\n", #v, __FILE__, __LINE__); \
+	return E_UNEXPECTED; \
+}
+
+HRESULT CPyCOMTest::TestMyInterface( IUnknown *unktester)
+{
+	if (!unktester)
+		return E_POINTER;
+	CComQIPtr<IPyCOMTest, &IID_IPyCOMTest> tester(unktester);
+	if (!tester)
+		return E_NOINTERFACE;
+	HRESULT hr;
+
+	// TEST
+	QsBoolean i = 0, o = 0;
+	CComVariant var(99);
+	CHECK_HR(tester->Test( var, i, &o));
+	CHECK_TRUE( o );
+	i = 1, o = 1;
+	CHECK_HR(tester->Test( var, i, &o));
+	CHECK_TRUE( !o );
+
+	// TEST2
+	QsAttribute ret_attr;
+	QsAttribute attr = Attr1;
+	CHECK_HR(tester->Test2( attr, &ret_attr));
+	CHECK_TRUE( attr == ret_attr );
+
+	attr = Attr3;
+	CHECK_HR(tester->Test2( attr, &ret_attr));
+	CHECK_TRUE( attr == ret_attr );
+
+	// TEST5
+	TestAttributes1 tattr = TestAttr1;
+	CHECK_HR(tester->Test5( &tattr ));
+	CHECK_TRUE( tattr == TestAttr1_1 );
+	tattr = TestAttr1_1;
+	CHECK_HR(tester->Test5( &tattr ));
+	CHECK_TRUE( tattr == TestAttr1 );
+	return S_OK;
+}
+
+HRESULT CPyCOMTest::NotScriptable(int *val)
+{
+	(*val) ++;
 	return S_OK;
 }

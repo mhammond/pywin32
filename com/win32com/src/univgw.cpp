@@ -3,15 +3,16 @@
 */
 
 #include "stdafx.h"
+#include "PythonCOM.h"
+#include "PythonCOMServer.h"
+#include "PythonCOMRegister.h"
+#include "univgw_dataconv.h"
 
-static HMODULE g_hModule = NULL;
-static PyObject *univgwError;
+
 static PyObject *g_obRegisteredVTables = NULL;
 
 // ### copied from PyGatewayBase.cpp
-static const GUID IID_IInternalUnwrapPythonObject = {
-	0x25d29cd0, 0x9b98, 0x11d0, { 0xae, 0x79, 0x4c, 0xf1, 0xcf, 0x0, 0x0, 0x0 }
-};
+extern const GUID IID_IInternalUnwrapPythonObject;
 
 typedef HRESULT (STDMETHODCALLTYPE * pfnGWMethod)(struct gw_object * _this);
 
@@ -258,14 +259,43 @@ static STDMETHODIMP_(ULONG) univgw_Release(gw_object * _this)
 	if ( cRef == 0 )
 	{
 		_this->punk->Release();
-		// Do I need to acquire the python lock here???
-		// I probably do... 
+		CEnterLeavePython _celp;
 		Py_DECREF(GET_DEFN(_this)->obVTable);
 		free(_this);
 		return 0;
 	}
 	return _this->cRef;
 }
+
+/* The IDispatch delegation when necessary */
+static STDMETHODIMP univgw_GetIDsOfNames( gw_object * _this, REFIID riid, 
+	OLECHAR FAR* FAR* rgszNames, unsigned int cNames, LCID lcid, 
+	DISPID FAR* rgDispId )
+{
+	return ((PyGatewayBase *)_this->punk)->GetIDsOfNames(riid, rgszNames, cNames, lcid, rgDispId);
+}
+
+static STDMETHODIMP univgw_GetTypeInfo( gw_object *_this, unsigned int iTInfo, LCID lcid, 
+	ITypeInfo FAR* FAR* ppTInfo )
+{
+	return ((PyGatewayBase *)_this->punk)->GetTypeInfo(iTInfo, lcid, ppTInfo);
+}
+
+static STDMETHODIMP univgw_GetTypeInfoCount( gw_object *_this, unsigned int FAR* pctinfo )
+{
+	return ((PyGatewayBase *)_this->punk)->GetTypeInfoCount(pctinfo);
+}
+
+static STDMETHODIMP univgw_Invoke( gw_object *_this, DISPID dispIdMember, REFIID riid, LCID lcid, 
+	WORD wFlags, DISPPARAMS FAR* pDispParams, 
+	VARIANT FAR* pVarResult, EXCEPINFO FAR* pExcepInfo, 
+	unsigned int FAR* puArgErr)
+{
+	return ((PyGatewayBase *)_this->punk)->Invoke(dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr);
+}
+
+
+/* End of IDispatch delegation */
 
 /* free the gw_vtbl object. also works on a partially constructed gw_vtbl. */
 static void __cdecl free_vtbl(void * cobject)
@@ -284,7 +314,8 @@ static void __cdecl free_vtbl(void * cobject)
 static PyObject * univgw_CreateVTable(PyObject *self, PyObject *args)
 {
 	PyObject *obDef;
-	if ( !PyArg_ParseTuple(args, "O:CreateVTable", &obDef) )
+	int isDispatch = 0;
+	if ( !PyArg_ParseTuple(args, "O|i:CreateVTable", &obDef, &isDispatch) )
 		return NULL;
 
 	PyObject *obIID = PyObject_CallMethod(obDef, "iid", NULL);
@@ -322,7 +353,12 @@ static PyObject * univgw_CreateVTable(PyObject *self, PyObject *args)
 		Py_DECREF(methods);
 		return NULL;
 	}
-	count += 3;	// the methods list should not specify IUnknown methods
+	int numReservedVtables = 3;	// the methods list should not specify IUnknown methods
+	
+	if (isDispatch) // or IDispatch if this interface uses it.
+		numReservedVtables+= 4;
+
+	count += numReservedVtables;
 
 	// compute the size of the structure plus the method pointers
 	size_t size = sizeof(gw_vtbl) + count * sizeof(pfnGWMethod);
@@ -349,9 +385,16 @@ static PyObject * univgw_CreateVTable(PyObject *self, PyObject *args)
 	vtbl->methods[1] = (pfnGWMethod)univgw_AddRef;
 	vtbl->methods[2] = (pfnGWMethod)univgw_Release;
 
+	if (isDispatch) {
+		vtbl->methods[3] = (pfnGWMethod)univgw_GetIDsOfNames;
+		vtbl->methods[4] = (pfnGWMethod)univgw_GetTypeInfo;
+		vtbl->methods[5] = (pfnGWMethod)univgw_GetTypeInfoCount;
+		vtbl->methods[6] = (pfnGWMethod)univgw_Invoke;
+	}
+
 	// add the methods. NOTE: 0..2 are the constant IUnknown methods
 	int i;
-	for ( i = vtbl->cMethod - 3; i--; )
+	for ( i = vtbl->cMethod - numReservedVtables; i--; )
 	{
 		PyObject * obArgSize = PySequence_GetItem(methods, i);
 		if ( obArgSize == NULL )
@@ -371,7 +414,7 @@ static PyObject * univgw_CreateVTable(PyObject *self, PyObject *args)
 			goto error;
 		}
 
-		vtbl->methods[i + 3] = meth;
+		vtbl->methods[i + numReservedVtables] = meth;
 	}
 	Py_DECREF(methods);
 
@@ -387,6 +430,7 @@ static PyObject * univgw_CreateVTable(PyObject *self, PyObject *args)
 	// so that the tear off interfaces can INCREF/DECREF it at
 	// their own whim.
 	vtbl->obVTable = result;
+	Py_INCREF(result); // the vtable's reference.
 	return result;
 
   error:
@@ -400,6 +444,7 @@ static PyObject * univgw_CreateVTable(PyObject *self, PyObject *args)
 static IUnknown *CreateTearOff
 (
 	PyObject *obInstance,
+	PyGatewayBase *gatewayBase,
 	PyObject *obVTable
 )
 {
@@ -411,22 +456,16 @@ static IUnknown *CreateTearOff
 		return NULL;
 	}
 
-	// obInstance must be a PyIUnknown (or derivative) pointing to a
-	// PyGatewayBase object.
-	IInternalUnwrapPythonObject * pUnwrap;
-	if ( !PyCom_InterfaceFromPyInstanceOrObject(obInstance, IID_IInternalUnwrapPythonObject, (void **)&pUnwrap, /* bNoneOK = */ FALSE) )
-		return NULL;
-
 	// construct a C++ object (a block of mem with a vtbl)
 	gw_object * punk = (gw_object *)malloc(sizeof(gw_object));
 	if ( punk == NULL )
 	{
 		PyErr_NoMemory();
-		pUnwrap->Release();
 		return NULL;
 	}
 	punk->vtbl = vtbl->methods;
-	punk->punk = pUnwrap;
+	punk->punk = (IInternalUnwrapPythonObject *)gatewayBase;
+	punk->punk->AddRef();
 	// we start with one reference (the object we return)
 	punk->cRef = 1;
 	// Make sure the vtbl doesn't go away before we do.
@@ -457,7 +496,7 @@ static PyObject * univgw_CreateTearOff(PyObject *self, PyObject *args)
 	}
 
 	// Do all of the grunt work.
-	punk = CreateTearOff(obInstance, obVTable);
+	punk = CreateTearOff(obInstance, NULL, obVTable);
 	if (!punk)
 	{
 		Py_DECREF(obVTable);
@@ -470,7 +509,7 @@ static PyObject * univgw_CreateTearOff(PyObject *self, PyObject *args)
 
 // This is the function that gets called for creating
 // registered PythonCOM gateway objects.
-static HRESULT CreateRegisteredTearOff(PyObject *pPyInstance, void **ppResult, REFIID iid)
+static HRESULT CreateRegisteredTearOff(PyObject *pPyInstance, PyGatewayBase *base, void **ppResult, REFIID iid)
 {
 	if (ppResult == NULL ||
 		pPyInstance == NULL)
@@ -483,6 +522,9 @@ static HRESULT CreateRegisteredTearOff(PyObject *pPyInstance, void **ppResult, R
 	PyObject *obVTable = PyDict_GetItem(g_obRegisteredVTables, obIID);
 	if (!obVTable)
 	{
+		OLECHAR oleRes[128];
+		StringFromGUID2(iid, oleRes, sizeof(oleRes));
+		printf("Couldn't find IID %S\n", oleRes);
 		// This should never happen....
 		_ASSERTE(FALSE);
 		return E_NOINTERFACE;
@@ -491,12 +533,14 @@ static HRESULT CreateRegisteredTearOff(PyObject *pPyInstance, void **ppResult, R
 	// obVTable must be a CObject containing our vtbl ptr
 	if ( !PyCObject_Check(obVTable) )
 	{
+		Py_DECREF(obVTable);
 		_ASSERTE(FALSE);
 		return E_NOINTERFACE;
 	}
 
 	// Do all of the grunt work.
-	*ppResult = CreateTearOff(pPyInstance, obVTable);
+	*ppResult = CreateTearOff(pPyInstance, base, obVTable);
+	Py_DECREF(obVTable);
 	if (*ppResult == NULL)
 		return E_FAIL;
 	return S_OK;
@@ -508,6 +552,7 @@ static PyObject * univgw_RegisterVTable(PyObject *self, PyObject *args)
 	PyObject *obVTable;
 	PyObject *obIID;
 	char *pszInterfaceNm = NULL;
+	PyObject *ret = NULL;
 
 	if ( !PyArg_ParseTuple(args, "OOs:RegisterVTable", &obVTable, &obIID, &pszInterfaceNm) )
 		return NULL;
@@ -524,26 +569,30 @@ static PyObject * univgw_RegisterVTable(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_ValueError, "argument is not an IID");
 		return NULL;
 	}
+	// obIID may be a string, but we need it to be a real PyIID.
+	PyObject *keyObject = PyWinObject_FromIID(iid);
 
 	if (0 != PyDict_SetItem(
 		g_obRegisteredVTables,
-		obIID,
+		keyObject,
 		obVTable))
 	{
-		return NULL;
+
+		goto done;
 	}
 
 	if (!PyCom_IsGatewayRegistered(iid))
 	{
 		HRESULT hr = PyCom_RegisterGatewayObject(iid, CreateRegisteredTearOff, pszInterfaceNm);
 		if (FAILED(hr))
-		{
-			return NULL;
-		}
+			goto done;
 	}
 	
 	Py_INCREF(Py_None);
-	return Py_None;
+	ret = Py_None;
+done:
+	Py_DECREF(keyObject);
+	return ret;
 }
 
 static PyObject * univgw_ReadMemory(PyObject *self, PyObject *args)
@@ -606,59 +655,21 @@ static struct PyMethodDef univgw_functions[] =
 	{ NULL } /* sentinel */
 };
 
-static int AddObject(PyObject *dict, const char *key, PyObject *ob)
-{
-	if (!ob) return 1;
-	int rc = PyDict_SetItemString(dict, (char*)key, ob);
-	Py_DECREF(ob);
-	return rc;
-}
-
-extern "C" void __declspec(dllexport)
-initunivgw(void)
+BOOL initunivgw(PyObject *parentDict)
 {
 //	HRESULT hr;
 
-	PyObject *module = Py_InitModule("univgw", univgw_functions);
+	PyObject *module = Py_InitModule("pythoncom.__univgw", univgw_functions);
 	if (!module) /* Eeek - some serious error! */
-		return;
+		return FALSE;
 
-	PyObject *dict = PyModule_GetDict(module);
-	if (!dict) return; /* Another serious error!*/
-
-	univgwError = PyString_FromString("univgw.error");
-	PyDict_SetItemString(dict, "error", univgwError);
+//	PyObject *dict = PyModule_GetDict(module);
+//	if (!dict) return; /* Another serious error!*/
 
 	g_obRegisteredVTables = PyDict_New();
 
-#define ADD_CONSTANT(tok) AddObject(dict, #tok, PyInt_FromLong(tok))
-#define ADD_IID(tok) AddObject(dict, #tok, PyWinObject_FromIID(tok))
+	PyDict_SetItemString(parentDict, "_univgw", module);
+
+	return TRUE;
 }
 
-
-/*
-** We want a DllMain simply to capture our modules hInstance value
-*/
-extern "C"
-BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
-{
-	if ( dwReason == DLL_PROCESS_ATTACH )
-	{
-		g_hModule = hInstance;
-
-		/*
-		** we don't need to be notified about threads
-		*/
-		DisableThreadLibraryCalls(hInstance);
-	}
-	else if ( dwReason == DLL_PROCESS_DETACH )
-	{
-		g_hModule = NULL;
-	}
-
-	return TRUE;    // ok
-}
-
-
-// Include the ATL code here
-#include <atlconv.cpp>

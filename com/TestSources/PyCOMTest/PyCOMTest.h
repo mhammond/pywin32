@@ -5,7 +5,7 @@
 
 
  /* File created by MIDL compiler version 5.03.0280 */
-/* at Mon Dec 04 09:35:05 2000
+/* at Wed Feb 14 16:26:20 2001
  */
 /* Compiler settings for PyCOMTest.idl:
     Os (OptLev=s), W1, Zp8, env=Win32 (32b run), ms_ext, c_ext
@@ -102,6 +102,30 @@ typedef interface PyCOMTestEvent PyCOMTestEvent;
 #endif 	/* __PyCOMTestEvent_FWD_DEFINED__ */
 
 
+#ifndef __IPyCOMTestNoDispatch_FWD_DEFINED__
+#define __IPyCOMTestNoDispatch_FWD_DEFINED__
+typedef interface IPyCOMTestNoDispatch IPyCOMTestNoDispatch;
+#endif 	/* __IPyCOMTestNoDispatch_FWD_DEFINED__ */
+
+
+#ifndef __IPyCOMTestNoDispatchEvent_FWD_DEFINED__
+#define __IPyCOMTestNoDispatchEvent_FWD_DEFINED__
+typedef interface IPyCOMTestNoDispatchEvent IPyCOMTestNoDispatchEvent;
+#endif 	/* __IPyCOMTestNoDispatchEvent_FWD_DEFINED__ */
+
+
+#ifndef __CoPyCOMTestNoDispatch_FWD_DEFINED__
+#define __CoPyCOMTestNoDispatch_FWD_DEFINED__
+
+#ifdef __cplusplus
+typedef class CoPyCOMTestNoDispatch CoPyCOMTestNoDispatch;
+#else
+typedef struct CoPyCOMTestNoDispatch CoPyCOMTestNoDispatch;
+#endif /* __cplusplus */
+
+#endif 	/* __CoPyCOMTestNoDispatch_FWD_DEFINED__ */
+
+
 #ifdef __cplusplus
 extern "C"{
 #endif 
@@ -114,7 +138,8 @@ void __RPC_USER MIDL_user_free( void __RPC_FAR * );
 
 typedef 
 enum EnumTestAttributes1
-    {	TestAttr1	= 0
+    {	TestAttr1	= 0,
+	TestAttr1_1	= TestAttr1 + 1
     }	TestAttributes1;
 
 typedef /* [public][public][public] */ 
@@ -154,7 +179,7 @@ enum tagQsAttribute
 enum TestAttributes3
     {	TestAttr3	= 0
     };
-typedef /* [uuid] */  DECLSPEC_UUID("7a4ce6a7-7959-4e85-a3c0-b41442ff0f67") struct _TestStruct1
+typedef /* [version][uuid] */  DECLSPEC_UUID("7a4ce6a7-7959-4e85-a3c0-b41442ff0f67") struct tagTestStruct1
     {
     int int_value;
     BSTR str_value;
@@ -818,6 +843,12 @@ EXTERN_C const IID IID_IPyCOMTest;
         virtual HRESULT STDMETHODCALLTYPE GetStruct( 
             /* [retval][out] */ TestStruct1 __RPC_FAR *ret) = 0;
         
+        virtual /* [restricted] */ HRESULT STDMETHODCALLTYPE NotScriptable( 
+            /* [out][in] */ int __RPC_FAR *val) = 0;
+        
+        virtual HRESULT STDMETHODCALLTYPE TestMyInterface( 
+            /* [in] */ IUnknown __RPC_FAR *tester) = 0;
+        
     };
     
 #else 	/* C style interface */
@@ -990,6 +1021,14 @@ EXTERN_C const IID IID_IPyCOMTest;
             IPyCOMTest __RPC_FAR * This,
             /* [retval][out] */ TestStruct1 __RPC_FAR *ret);
         
+        /* [restricted] */ HRESULT ( STDMETHODCALLTYPE __RPC_FAR *NotScriptable )( 
+            IPyCOMTest __RPC_FAR * This,
+            /* [out][in] */ int __RPC_FAR *val);
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *TestMyInterface )( 
+            IPyCOMTest __RPC_FAR * This,
+            /* [in] */ IUnknown __RPC_FAR *tester);
+        
         END_INTERFACE
     } IPyCOMTestVtbl;
 
@@ -1103,6 +1142,12 @@ EXTERN_C const IID IID_IPyCOMTest;
 
 #define IPyCOMTest_GetStruct(This,ret)	\
     (This)->lpVtbl -> GetStruct(This,ret)
+
+#define IPyCOMTest_NotScriptable(This,val)	\
+    (This)->lpVtbl -> NotScriptable(This,val)
+
+#define IPyCOMTest_TestMyInterface(This,tester)	\
+    (This)->lpVtbl -> TestMyInterface(This,tester)
 
 #endif /* COBJMACROS */
 
@@ -1443,6 +1488,30 @@ void __RPC_STUB IPyCOMTest_GetStruct_Stub(
     DWORD *_pdwStubPhase);
 
 
+/* [restricted] */ HRESULT STDMETHODCALLTYPE IPyCOMTest_NotScriptable_Proxy( 
+    IPyCOMTest __RPC_FAR * This,
+    /* [out][in] */ int __RPC_FAR *val);
+
+
+void __RPC_STUB IPyCOMTest_NotScriptable_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+HRESULT STDMETHODCALLTYPE IPyCOMTest_TestMyInterface_Proxy( 
+    IPyCOMTest __RPC_FAR * This,
+    /* [in] */ IUnknown __RPC_FAR *tester);
+
+
+void __RPC_STUB IPyCOMTest_TestMyInterface_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
 
 #endif 	/* __IPyCOMTest_INTERFACE_DEFINED__ */
 
@@ -1646,6 +1715,14 @@ EXTERN_C const IID IID_IPyCOMTest2;
             IPyCOMTest2 __RPC_FAR * This,
             /* [retval][out] */ TestStruct1 __RPC_FAR *ret);
         
+        /* [restricted] */ HRESULT ( STDMETHODCALLTYPE __RPC_FAR *NotScriptable )( 
+            IPyCOMTest2 __RPC_FAR * This,
+            /* [out][in] */ int __RPC_FAR *val);
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *TestMyInterface )( 
+            IPyCOMTest2 __RPC_FAR * This,
+            /* [in] */ IUnknown __RPC_FAR *tester);
+        
         HRESULT ( STDMETHODCALLTYPE __RPC_FAR *TestDerived )( 
             IPyCOMTest2 __RPC_FAR * This,
             /* [in] */ QsAttribute inval,
@@ -1764,6 +1841,12 @@ EXTERN_C const IID IID_IPyCOMTest2;
 
 #define IPyCOMTest2_GetStruct(This,ret)	\
     (This)->lpVtbl -> GetStruct(This,ret)
+
+#define IPyCOMTest2_NotScriptable(This,val)	\
+    (This)->lpVtbl -> NotScriptable(This,val)
+
+#define IPyCOMTest2_TestMyInterface(This,tester)	\
+    (This)->lpVtbl -> TestMyInterface(This,tester)
 
 
 #define IPyCOMTest2_TestDerived(This,inval,retval)	\
@@ -2030,6 +2113,247 @@ EXTERN_C const IID DIID_PyCOMTestEvent;
 
 #endif 	/* __PyCOMTestEvent_DISPINTERFACE_DEFINED__ */
 
+
+#ifndef __IPyCOMTestNoDispatch_INTERFACE_DEFINED__
+#define __IPyCOMTestNoDispatch_INTERFACE_DEFINED__
+
+/* interface IPyCOMTestNoDispatch */
+/* [unique][helpstring][uuid][object] */ 
+
+
+EXTERN_C const IID IID_IPyCOMTestNoDispatch;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+    
+    MIDL_INTERFACE("36f7a0f7-10c9-43b7-9bd8-47a932b11d84")
+    IPyCOMTestNoDispatch : public IUnknown
+    {
+    public:
+        virtual HRESULT STDMETHODCALLTYPE PlayWithSomeArgs( 
+            /* [out][in] */ VARIANT __RPC_FAR *var,
+            /* [out][in] */ long __RPC_FAR *l) = 0;
+        
+        virtual HRESULT STDMETHODCALLTYPE ChangeStruct( 
+            /* [in] */ TestStruct1 __RPC_FAR *inval,
+            /* [retval][out] */ TestStruct1 __RPC_FAR *ret) = 0;
+        
+        virtual HRESULT STDMETHODCALLTYPE InPtr( 
+            /* [in] */ int __RPC_FAR *inval,
+            /* [out] */ int __RPC_FAR *outval) = 0;
+        
+    };
+    
+#else 	/* C style interface */
+
+    typedef struct IPyCOMTestNoDispatchVtbl
+    {
+        BEGIN_INTERFACE
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *QueryInterface )( 
+            IPyCOMTestNoDispatch __RPC_FAR * This,
+            /* [in] */ REFIID riid,
+            /* [iid_is][out] */ void __RPC_FAR *__RPC_FAR *ppvObject);
+        
+        ULONG ( STDMETHODCALLTYPE __RPC_FAR *AddRef )( 
+            IPyCOMTestNoDispatch __RPC_FAR * This);
+        
+        ULONG ( STDMETHODCALLTYPE __RPC_FAR *Release )( 
+            IPyCOMTestNoDispatch __RPC_FAR * This);
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *PlayWithSomeArgs )( 
+            IPyCOMTestNoDispatch __RPC_FAR * This,
+            /* [out][in] */ VARIANT __RPC_FAR *var,
+            /* [out][in] */ long __RPC_FAR *l);
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *ChangeStruct )( 
+            IPyCOMTestNoDispatch __RPC_FAR * This,
+            /* [in] */ TestStruct1 __RPC_FAR *inval,
+            /* [retval][out] */ TestStruct1 __RPC_FAR *ret);
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *InPtr )( 
+            IPyCOMTestNoDispatch __RPC_FAR * This,
+            /* [in] */ int __RPC_FAR *inval,
+            /* [out] */ int __RPC_FAR *outval);
+        
+        END_INTERFACE
+    } IPyCOMTestNoDispatchVtbl;
+
+    interface IPyCOMTestNoDispatch
+    {
+        CONST_VTBL struct IPyCOMTestNoDispatchVtbl __RPC_FAR *lpVtbl;
+    };
+
+    
+
+#ifdef COBJMACROS
+
+
+#define IPyCOMTestNoDispatch_QueryInterface(This,riid,ppvObject)	\
+    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+
+#define IPyCOMTestNoDispatch_AddRef(This)	\
+    (This)->lpVtbl -> AddRef(This)
+
+#define IPyCOMTestNoDispatch_Release(This)	\
+    (This)->lpVtbl -> Release(This)
+
+
+#define IPyCOMTestNoDispatch_PlayWithSomeArgs(This,var,l)	\
+    (This)->lpVtbl -> PlayWithSomeArgs(This,var,l)
+
+#define IPyCOMTestNoDispatch_ChangeStruct(This,inval,ret)	\
+    (This)->lpVtbl -> ChangeStruct(This,inval,ret)
+
+#define IPyCOMTestNoDispatch_InPtr(This,inval,outval)	\
+    (This)->lpVtbl -> InPtr(This,inval,outval)
+
+#endif /* COBJMACROS */
+
+
+#endif 	/* C style interface */
+
+
+
+HRESULT STDMETHODCALLTYPE IPyCOMTestNoDispatch_PlayWithSomeArgs_Proxy( 
+    IPyCOMTestNoDispatch __RPC_FAR * This,
+    /* [out][in] */ VARIANT __RPC_FAR *var,
+    /* [out][in] */ long __RPC_FAR *l);
+
+
+void __RPC_STUB IPyCOMTestNoDispatch_PlayWithSomeArgs_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+HRESULT STDMETHODCALLTYPE IPyCOMTestNoDispatch_ChangeStruct_Proxy( 
+    IPyCOMTestNoDispatch __RPC_FAR * This,
+    /* [in] */ TestStruct1 __RPC_FAR *inval,
+    /* [retval][out] */ TestStruct1 __RPC_FAR *ret);
+
+
+void __RPC_STUB IPyCOMTestNoDispatch_ChangeStruct_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+HRESULT STDMETHODCALLTYPE IPyCOMTestNoDispatch_InPtr_Proxy( 
+    IPyCOMTestNoDispatch __RPC_FAR * This,
+    /* [in] */ int __RPC_FAR *inval,
+    /* [out] */ int __RPC_FAR *outval);
+
+
+void __RPC_STUB IPyCOMTestNoDispatch_InPtr_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+
+#endif 	/* __IPyCOMTestNoDispatch_INTERFACE_DEFINED__ */
+
+
+#ifndef __IPyCOMTestNoDispatchEvent_INTERFACE_DEFINED__
+#define __IPyCOMTestNoDispatchEvent_INTERFACE_DEFINED__
+
+/* interface IPyCOMTestNoDispatchEvent */
+/* [unique][helpstring][dual][uuid][object] */ 
+
+
+EXTERN_C const IID IID_IPyCOMTestNoDispatchEvent;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+    
+    MIDL_INTERFACE("b21b658a-19a8-488a-8d3a-b63b3cf98501")
+    IPyCOMTestNoDispatchEvent : public IUnknown
+    {
+    public:
+        virtual HRESULT STDMETHODCALLTYPE Fire( 
+            /* [in] */ long nID) = 0;
+        
+    };
+    
+#else 	/* C style interface */
+
+    typedef struct IPyCOMTestNoDispatchEventVtbl
+    {
+        BEGIN_INTERFACE
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *QueryInterface )( 
+            IPyCOMTestNoDispatchEvent __RPC_FAR * This,
+            /* [in] */ REFIID riid,
+            /* [iid_is][out] */ void __RPC_FAR *__RPC_FAR *ppvObject);
+        
+        ULONG ( STDMETHODCALLTYPE __RPC_FAR *AddRef )( 
+            IPyCOMTestNoDispatchEvent __RPC_FAR * This);
+        
+        ULONG ( STDMETHODCALLTYPE __RPC_FAR *Release )( 
+            IPyCOMTestNoDispatchEvent __RPC_FAR * This);
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *Fire )( 
+            IPyCOMTestNoDispatchEvent __RPC_FAR * This,
+            /* [in] */ long nID);
+        
+        END_INTERFACE
+    } IPyCOMTestNoDispatchEventVtbl;
+
+    interface IPyCOMTestNoDispatchEvent
+    {
+        CONST_VTBL struct IPyCOMTestNoDispatchEventVtbl __RPC_FAR *lpVtbl;
+    };
+
+    
+
+#ifdef COBJMACROS
+
+
+#define IPyCOMTestNoDispatchEvent_QueryInterface(This,riid,ppvObject)	\
+    (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
+
+#define IPyCOMTestNoDispatchEvent_AddRef(This)	\
+    (This)->lpVtbl -> AddRef(This)
+
+#define IPyCOMTestNoDispatchEvent_Release(This)	\
+    (This)->lpVtbl -> Release(This)
+
+
+#define IPyCOMTestNoDispatchEvent_Fire(This,nID)	\
+    (This)->lpVtbl -> Fire(This,nID)
+
+#endif /* COBJMACROS */
+
+
+#endif 	/* C style interface */
+
+
+
+HRESULT STDMETHODCALLTYPE IPyCOMTestNoDispatchEvent_Fire_Proxy( 
+    IPyCOMTestNoDispatchEvent __RPC_FAR * This,
+    /* [in] */ long nID);
+
+
+void __RPC_STUB IPyCOMTestNoDispatchEvent_Fire_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+
+#endif 	/* __IPyCOMTestNoDispatchEvent_INTERFACE_DEFINED__ */
+
+
+EXTERN_C const CLSID CLSID_CoPyCOMTestNoDispatch;
+
+#ifdef __cplusplus
+
+class DECLSPEC_UUID("638630ac-a734-45a2-8080-fda5c1e47f66")
+CoPyCOMTestNoDispatch;
+#endif
 #endif /* __PyCOMTestLib_LIBRARY_DEFINED__ */
 
 /* Additional Prototypes for ALL interfaces */

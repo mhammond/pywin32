@@ -3,6 +3,9 @@
 //
 
 #include "stdafx.h"
+#include "PythonCOM.h"
+#include "PythonCOMServer.h"
+#include "univgw_dataconv.h"
 
 PyObject * dataconv_L64(PyObject *self, PyObject *args)
 {
@@ -80,69 +83,98 @@ PyObject * dataconv_interface(PyObject *self, PyObject *args)
 }
 
 
-static inline int SizeOfVT(VARTYPE vt)
+static inline void SizeOfVT(VARTYPE vt, int *pitem_size, int *pstack_size)
 {
+	int stack_size = -1;
+	int item_size;
 	if (vt & VT_BYREF)
 	{
-		return sizeof(void *);
-	}
+		item_size = sizeof(void *);
+	} else {
 
-	switch (vt & VT_TYPEMASK)
-	{
-	case VT_BSTR:
-	case VT_UNKNOWN:
-	case VT_DISPATCH:
-	case VT_ARRAY:
-	case VT_PTR:
-	case VT_LPSTR:
-	case VT_LPWSTR:
-	case VT_CARRAY:
-	case VT_RECORD:
-		return sizeof(void *);
-	case VT_I4:
-	case VT_UI4:
-		return 4;
-	case VT_INT:
-	case VT_UINT:
-		return sizeof(INT);
-	case VT_R4:
-		return 4;
-	case VT_DATE:
-		return sizeof(DATE);
-	case VT_R8:
-		return 8;
-	case VT_CY:
-		return sizeof(CY);
-	case VT_ERROR:
-		return sizeof(SCODE);
-	case VT_BOOL:
-		return sizeof(VARIANT_BOOL);
-	case VT_VARIANT:
-		return sizeof(VARIANT);
-	case VT_I1:
-	case VT_UI1:
-		return sizeof(char);
-	case VT_I2:
-	case VT_UI2:
-		return 2;
-	case VT_I8:
-	case VT_UI8:
-		return 8;
-	case VT_HRESULT:
-		return sizeof(HRESULT);
-	default:
-		_ASSERTE(FALSE);
-		return 0;
+		switch (vt & VT_TYPEMASK)
+		{
+		case VT_BSTR:
+		case VT_UNKNOWN:
+		case VT_DISPATCH:
+		case VT_ARRAY:
+		case VT_PTR:
+		case VT_LPSTR:
+		case VT_LPWSTR:
+		case VT_CARRAY:
+		case VT_RECORD:
+			item_size = sizeof(void *);
+			break;
+		case VT_I4:
+		case VT_UI4:
+			item_size = 4;
+			break;
+		case VT_INT:
+		case VT_UINT:
+			item_size = sizeof(INT);
+			break;
+		case VT_R4:
+			item_size = 4;
+			break;
+		case VT_DATE:
+			item_size = sizeof(DATE);
+			break;
+		case VT_R8:
+			item_size = 8;
+			break;
+		case VT_CY:
+			item_size = sizeof(CY);
+			break;
+		case VT_ERROR:
+			item_size = sizeof(SCODE);
+			break;
+		case VT_BOOL:
+			item_size = sizeof(VARIANT_BOOL);
+			break;
+		case VT_VARIANT:
+			item_size = sizeof(VARIANT);
+			break;
+		case VT_I1:
+		case VT_UI1:
+			item_size = sizeof(char);
+			break;
+		case VT_I2:
+		case VT_UI2:
+			item_size = 2;
+			break;
+		case VT_I8:
+		case VT_UI8:
+			item_size = 8;
+			break;
+		case VT_HRESULT:
+			item_size = sizeof(HRESULT);
+			break;
+		default:
+			_ASSERTE(FALSE);
+			item_size = 0;
+		}
 	}
+	if (stack_size == -1) stack_size = item_size;
+	if (item_size < 4 && item_size > 0)
+		stack_size = 4; // everything widened on x86
+	if (pitem_size) *pitem_size = item_size;
+	if (pstack_size) *pstack_size = stack_size;
 }	
 
 PyObject *dataconv_SizeOfVT(PyObject *self, PyObject *args)
 {
-	PyObject *obVT;
-	if (!PyArg_ParseTuple(args, "O:SizeOfVT", &obVT))
+	int vt;
+	if (!PyArg_ParseTuple(args, "i:SizeOfVT", &vt))
 		return NULL;
 
-	return PyInt_FromLong(SizeOfVT((VARTYPE)PyInt_AS_LONG(obVT)));
+	int item_size = 0;
+	int stack_size = 0;
+	SizeOfVT((VARTYPE)vt, &item_size, &stack_size);
+	if (item_size <= 0) {
+		PyErr_Format(PyExc_ValueError, "The value %d (0x%x) is an invalid variant type", vt, vt);
+		return NULL;
+	}
+	return Py_BuildValue("ii", item_size, stack_size);
 }
 
 #define VALID_BYREF_MISSING(obUse) (obUse==Py_None || obUse->ob_type == &PyOleEmptyType)
@@ -161,7 +193,6 @@ PyObject * dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 	UINT cArgs;
 	UINT uiIndirectionLevel = 0;
 	UINT i;
-	VARTYPE vtConversionType = VT_EMPTY;
 	
 	if (!PyArg_ParseTuple(args, "OOO:WriteFromOutTuple", &obRetValues, &obArgTypes, &obPtr))
 		return NULL;
@@ -194,79 +225,8 @@ PyObject * dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 	for(i = 0 ; i < cArgs; i++)
 	{
 		obArgType = PyTuple_GET_ITEM(PyTuple_GET_ITEM(obArgTypes, i), 0);
-		if (!PyTuple_Check(obArgType))
-		{
-			PyErr_SetString(PyExc_TypeError, "All out arguments must have at least one level of indirection!");
-			goto Error;
-		}
-		uiIndirectionLevel = 0;
-		while (PyTuple_Check(obArgType))
-		{
-			if (PyTuple_Size(obArgType) != 2)
-			{
-				PyErr_SetString(PyExc_TypeError, "OLE type description - expecting a sub-type tuple of size 2");
-				goto Error;
-			}
-			vtArgType = (VARTYPE)PyInt_AS_LONG(PyTuple_GET_ITEM(obArgType, 0));
-			switch (vtArgType)
-			{
-			case VT_PTR:
-				uiIndirectionLevel++;
-				break;
-			case VT_CARRAY:
-				// Force treatment as VT_PTR.
-				uiIndirectionLevel += 2;
-				break;
-			case VT_SAFEARRAY:
-				vtConversionType |= VT_ARRAY;
-				break;
-			default:
-				PyErr_SetString(PyExc_TypeError, "COM type description - unknown indirection type.");
-				goto Error;
-			}
-			   
-			obArgType = PyTuple_GET_ITEM(obArgType, 1);
-		}
 		vtArgType = (VARTYPE)PyInt_AS_LONG(obArgType);
 
-		// non-BSTR strings aren't supported at all...
-		// only because we don't know how much memory we're allowed to overwrite...
-		if (vtArgType & VT_TYPEMASK == VT_LPSTR ||
-			vtArgType & VT_TYPEMASK == VT_LPWSTR)
-		{
-			uiIndirectionLevel +=2;
-		}
-		
-		// If the indirection is > 1 we passed in a pointer to the argument
-		// on the stack. They made any necessary changes, so skip it.
-		//
-		if (uiIndirectionLevel > 1)
-		{
-			continue;
-		}
-		
-		// If the indirection level == 0 then we don't how to handle that either.
-		// How do you handle an "[in, out] IDispatch *pdisp" sanely?
-		// If we converted the arg for them, they're in trouble now,
-		// since we can't handle this lame case.
-		// Should I issue a warning when generating the type tuples for
-		// cases like this?
-		if (uiIndirectionLevel == 0)
-		{
-			// Throw an error only if we can convert the type and it
-			// has a hidden indirection level.
-			switch (vtConversionType)
-			{
-			case VT_UNKNOWN:
-			case VT_DISPATCH:
-				// What else could there be??
-			default:
-				_ASSERTE(FALSE);
-				break;
-			}
-			// Skip the arg, they could have tweaked it themselves by now.
-			continue;
-		}
 
 		// The following types aren't supported:
 		// SAFEARRAY *: This requires support for SAFEARRAYs as a
@@ -279,16 +239,14 @@ PyObject * dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 		//              These can't be supported since we don't know the correct
 		//              memory allocation policy.
 
-		vtConversionType |= vtArgType | VT_BYREF;
-
 		// Find the start of the argument.
 		pbArg = pbArgs + PyInt_AS_LONG(PyTuple_GET_ITEM(PyTuple_GET_ITEM(obArgTypes, i), 1));
 		obOutValue = PyTuple_GET_ITEM(obRetValues, i);
 	
-		if (vtConversionType & VT_ARRAY)
+		if (vtArgType & VT_ARRAY)
 		{
-			VARENUM rawVT = (VARENUM)(vtConversionType & VT_TYPEMASK);
-			if (vtConversionType & VT_BYREF)
+			VARENUM rawVT = (VARENUM)(vtArgType & VT_TYPEMASK);
+			if (vtArgType & VT_BYREF)
 			{
 				SAFEARRAY **ppsa = *(SAFEARRAY ***)pbArg;
 				SAFEARRAY *psa;
@@ -329,7 +287,7 @@ PyObject * dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 
 		PyObject *obUse = NULL;
 
-		switch (vtConversionType) {
+		switch (vtArgType) {
 		case VT_VARIANT | VT_BYREF:
 		{
 			VARIANT *pvar = *(VARIANT **)pbArg;
@@ -642,10 +600,9 @@ PyObject * dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
 	PyObject *obArgs = NULL;
 	PyObject *obArg;
 	VARTYPE vtArgType;
-	VARTYPE vtConversionType;
-	UINT uiIndirectionLevel;
 	UINT cb;
 	VARIANT var;
+	BOOL bIsByRef;
 	
 
 	if (!PyArg_ParseTuple(args, "OO:ReadFromInTuple", &obArgTypes, &obPtr))
@@ -674,7 +631,7 @@ PyObject * dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
 		// (<type tuple>, argPtr offset, arg size)
 		if (PyTuple_Size(PyTuple_GET_ITEM(obArgTypes, i)) != 3)
 		{
-			PyErr_SetString(PyExc_TypeError, "OLE type description - expecting a arg desc tuple of size 3");
+			PyErr_SetString(PyExc_TypeError, "OLE type description - expecting an arg desc tuple of size 3");
 			goto Error;
 		}
 		
@@ -682,63 +639,11 @@ PyObject * dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
 
 		// Position pb to point to the current argument.
 		pb = pbArg + PyInt_AS_LONG(PyTuple_GET_ITEM(PyTuple_GET_ITEM(obArgTypes, i), 1));
-		uiIndirectionLevel = 0;
-		vtConversionType = VT_EMPTY;
-		if (PyTuple_Check(obArgType))
-		{
-			// Handle any indirections...
-			while (PyTuple_Check(obArgType)) {
-				if (PyTuple_Size(obArgType)!=2)
-				{
-					PyErr_SetString(PyExc_TypeError, "OLE type description - expecting a sub-type tuple of size 2");
-					goto Error;
-				}
-				vtArgType = (VARTYPE)PyInt_AS_LONG(PyTuple_GET_ITEM(obArgType, 0));
-				switch (vtArgType)
-				{
-				case VT_PTR:
-					uiIndirectionLevel++;
-					break;
-				case VT_CARRAY:
-					// Force treatment as VT_PTR.
-					uiIndirectionLevel += 2;
-					break;
-				case VT_SAFEARRAY:
-					vtConversionType |= VT_ARRAY;
-					break;
-				default:
-					PyErr_SetString(PyExc_TypeError, "COM type description - unknown indirection type.");
-					goto Error;
-				}
-				obArgType = PyTuple_GET_ITEM(obArgType, 1);
-			}
-		}
-		
 		vtArgType = (VARTYPE)PyInt_AS_LONG(obArgType);
+		bIsByRef = vtArgType & VT_BYREF;
 		
-		// non-BSTR strings are only supported in their normal case.
-		if (vtArgType & VT_TYPEMASK == VT_LPSTR ||
-			vtArgType & VT_TYPEMASK == VT_LPWSTR)
-		{
-			uiIndirectionLevel++;
-		}
-		
-		// If our indirection level is over 1, then we don't know what to do.
-		// They can figure out wtf is going on.
-		if (uiIndirectionLevel > 1)
-		{
-			vtConversionType = VT_PTR;	
-		}
-		else
-		{
-			if (uiIndirectionLevel == 1)
-			{
-				vtConversionType |= VT_BYREF;
-			}
-			vtConversionType |= vtArgType;
-		}
-
-		switch (vtConversionType & VT_TYPEMASK)
+		VARTYPE vtConversionType = vtArgType & VT_TYPEMASK;
+		switch (vtConversionType)
 		{
 		// If they can fit in a VARIANT, cheat and make that code do all of the work...
 		case VT_I2:
@@ -750,7 +655,6 @@ PyObject * dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
 		case VT_BSTR:
 		case VT_ERROR:
 		case VT_BOOL:
-		case VT_VARIANT:
 		case VT_I1:
 		case VT_UI1:
 		case VT_UI2:
@@ -765,22 +669,26 @@ PyObject * dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
 				vtConversionType == VT_INT)
 			{
 				// Preserve VT_BYREF or VT_ARRAY
-				vtConversionType = VT_I4 | (vtConversionType & VT_TYPEMASK);
+				vtArgType = VT_I4 | (vtArgType & VT_TYPEMASK);
 			}
-			if (vtConversionType == VT_UINT) 
+			if (vtArgType == VT_UINT) 
 			{
 				// Preserve VT_BYREF or VT_ARRAY
-				vtConversionType = VT_UI4 | (vtConversionType & VT_TYPEMASK);
+				vtArgType = VT_UI4 | (vtArgType & VT_TYPEMASK);
 			}
-			var.vt = vtConversionType;
+			var.vt = vtArgType;
 			// Copy the data into the variant...
-			cb = SizeOfVT(var.vt);
+			SizeOfVT(var.vt, (int *)&cb, NULL);
 			memcpy(&var.lVal, pb, cb);
 			// Convert it into a PyObject:
 			obArg = PyCom_PyObjectFromVariant(&var);
 			break;
-		// Strings are always VT_BYREF'd due to the above
-		// uiIndirectionLevel calculation.
+		case VT_VARIANT: {
+			// A pointer to a _real_ variant.
+			VARIANT *pVar = (VARIANT *)pb;
+			obArg = PyCom_PyObjectFromVariant(pVar);
+			break;
+		}
 		case VT_LPSTR:
 			obArg = PyString_FromString(*(CHAR **)pb);
 			break;
@@ -789,7 +697,7 @@ PyObject * dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
 			break;
 		// Special cases:
 		case VT_UI8:
-			if (uiIndirectionLevel == 0)
+			if (bIsByRef)
 			{
 				obArg = PyWinObject_FromULARGE_INTEGER(*(ULARGE_INTEGER *)pb);
 			}
@@ -799,7 +707,7 @@ PyObject * dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
 			}
 			break;
 		case VT_I8:
-			if (uiIndirectionLevel == 0)
+			if (bIsByRef)
 			{
 				obArg = PyWinObject_FromLARGE_INTEGER(*(LARGE_INTEGER *)pb);
 			}
