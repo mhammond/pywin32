@@ -227,7 +227,10 @@ class my_build_ext(build_ext):
                 # the generated wrapper in the new_sources list.
                 swig_sources.append(source)
                 # and win32all has it's own naming convention for the wrappers:
-                swig_targets[source] = base + 'module_win32' + target_ext
+                if base.endswith("win32pipe") or base.endswith("win32security"):
+                    swig_targets[source] = base + 'module' + target_ext
+                else:
+                    swig_targets[source] = base + 'module_win32' + target_ext
             else:
                 new_sources.append(source)
 
@@ -264,10 +267,10 @@ for name, lib_names, is_unicode in (
         ("timer", "user32", False),
         ("win2kras", "rasapi32", False),
         ("win32api", "user32 advapi32 shell32 version", False),
-        ("win32file", "", False),
+        ("win32file", "oleaut32", False),
         ("win32event", "user32", False),
         ("win32clipboard", "gdi32 user32 shell32", False),
-        ("win32evtlog", "advapi32", False),
+        ("win32evtlog", "advapi32 oleaut32", False),
         # win32gui handled below
         ("win32help", "htmlhelp user32 advapi32", False),
         ("win32lz", "lz32", False),
@@ -279,7 +282,7 @@ for name, lib_names, is_unicode in (
         ("win32process", "advapi32 user32", False),
         ("win32ras", "rasapi32 user32", False),
         ("win32security", "advapi32 user32", True),
-        ("win32service", "advapi32", True),
+        ("win32service", "advapi32 oleaut32", True),
         ("win32trace", "advapi32", False),
         ("win32wnet", "netapi32 mpr", False),
     ):
