@@ -1134,6 +1134,13 @@ BOOLAPI PostMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 // @pyparm int|lparam||An integer whose value depends on the message
 BOOLAPI PostThreadMessage(DWORD dwThreadId, UINT msg, WPARAM wParam, LPARAM lParam);
 
+// @pyswig int|ReplyMessage|Used to reply to a message sent through the SendMessage function without returning control to the function that called SendMessage. 
+BOOLAPI ReplyMessage(int lResult); // @pyparm int|result||Specifies the result of the message processing. The possible values are based on the message sent.
+
+// @pyswig int|RegisterWindowMessage|Defines a new window message that is guaranteed to be unique throughout the system. The message value can be used when sending or posting messages.
+// @pyparm string/unicode|name||The string
+LRESULT RegisterWindowMessage(TCHAR *lpString);
+
 // @pyswig int|DefWindowProc|
 // @pyparm int|hwnd||The handle to the Window
 // @pyparm int|message||The ID of the message to send
@@ -1438,8 +1445,12 @@ BOOLAPI SetMenu( HWND hwnd, HMENU hmenu );
 HICON LoadIcon(HINSTANCE hInst, RESOURCE_ID name);
 
 // @pyswig HANDLE|LoadImage|Loads a bitmap, cursor or icon
-HANDLE LoadImage(HINSTANCE hInst, RESOURCE_ID name, UINT type,
-				 int cxDesired, int cyDesired, UINT fuLoad);
+HANDLE LoadImage(HINSTANCE hInst, // @pyparm int|hinst||Handle to an instance of the module that contains the image to be loaded. To load an OEM image, set this parameter to zero. 
+				 RESOURCE_ID name, // @pyparm int/string|name||Specifies the image to load. If the hInst parameter is non-zero and the fuLoad parameter omits LR_LOADFROMFILE, name specifies the image resource in the hInst module. If the image resource is to be loaded by name, the name parameter is a string that contains the name of the image resource.
+				 UINT type, // @pyparm int|type||Specifies the type of image to be loaded.
+				 int cxDesired, // @pyparm int|cxDesired||Specifies the width, in pixels, of the icon or cursor. If this parameter is zero and the fuLoad parameter is LR_DEFAULTSIZE, the function uses the SM_CXICON or SM_CXCURSOR system metric value to set the width. If this parameter is zero and LR_DEFAULTSIZE is not used, the function uses the actual resource width. 
+				 int cyDesired, // @pyparm int|cyDesired||Specifies the height, in pixels, of the icon or cursor. If this parameter is zero and the fuLoad parameter is LR_DEFAULTSIZE, the function uses the SM_CYICON or SM_CYCURSOR system metric value to set the height. If this parameter is zero and LR_DEFAULTSIZE is not used, the function uses the actual resource height. 
+				 UINT fuLoad); // @pyparm int|fuLoad||
 
 #define	IMAGE_BITMAP	IMAGE_BITMAP
 #define	IMAGE_CURSOR	IMAGE_CURSOR
@@ -1455,7 +1466,7 @@ HANDLE LoadImage(HINSTANCE hInst, RESOURCE_ID name, UINT type,
 #define	LR_SHARED	LR_SHARED
 #define	LR_VGACOLOR	LR_VGACOLOR
 
-// pyswig |DeleteObject||Deletes a logical pen, brush, font, bitmap, region, or palette, freeing all system resources associated with the object. After the object is deleted, the specified handle is no longer valid.
+// @pyswig |DeleteObject|Deletes a logical pen, brush, font, bitmap, region, or palette, freeing all system resources associated with the object. After the object is deleted, the specified handle is no longer valid.
 BOOLAPI DeleteObject(HANDLE h); // @pyparm int|handle||handle to the object to delete.
 
 // @pyswig int|ImageList_Add|Adds an image or images to an image list. 
@@ -2066,7 +2077,7 @@ BOOL GetOpenFileName(OPENFILENAME *INPUT);
 BOOLAPI InsertMenuItem(HMENU hMenu, UINT uItem, BOOL fByPosition, MENUITEMINFO *INPUT);
 #endif
 BOOLAPI AppendMenu(HMENU hMenu, UINT uFlags, UINT uIDNewItem, TCHAR *lpNewItem);
-BOOLAPI InsertMenu(HMENU hMenu, UINT uPosition, UINT uFlags, UINT uIDNewItem, TCHAR *lpNewItem);
+BOOLAPI InsertMenu(HMENU hMenu, UINT uPosition, UINT uFlags, UINT uIDNewItem, TCHAR *INPUT_NULLOK);
 
 /*
 BOOLAPI DrawFocusRect(HDC hDC,  RECT *INPUT);
