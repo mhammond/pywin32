@@ -425,7 +425,7 @@ PyObject *MyPeekNamedPipe(PyObject *self, PyObject *args)
 	if (PeekNamedPipe(hNamedPipe, buf, size, &bytesRead, &totalAvail, &bytesLeft)) {
 		rc = Py_BuildValue("s#ii", (char *)buf, bytesRead, totalAvail, bytesLeft);
 	} else
-		PyWin_SetAPIError("GetNamedPipeHandleState");
+		PyWin_SetAPIError("PeekNamedPipe");
 	free(buf);
 	return rc;
 }
