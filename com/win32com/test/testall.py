@@ -71,6 +71,7 @@ unittest_modules = [
           testStreams testWMI policySemantics testShell testROT
           testAXScript testxslt testDictionary testCollections
           testServers errorSemantics.test testvb.TestAll testArrays
+          testClipboard
         """.split(),
         # Level 2 tests.
         """testMSOffice.TestAll testMSOfficeEvents.test testAccess.test
