@@ -270,8 +270,12 @@ done:
 // @pymethod ([dict, ...], total, resumeHandle)|win32net|NetGroupEnum|Enumerates all groups.
 // @rdesc The result is a list of items read (with each item being a dictionary of format
 // <o PyGROUP_INFO_*>, depending on the level parameter),
-// the total available, and a "resume handle".  If the result handle is true, you should call
-// this function again to fetch more data, passing this handle in the resumeHandle param.
+// the total available, and a new "resume handle".  The first time you call
+// this function, you should pass zero for the resume handle.  If more data
+// is available than what was returned, a new non-zero resume handle will be
+// returned, which can be used to call the function again to fetch more data.
+// This process may repeat, each time with a new resume handle, until zero is
+// returned for the new handle, indicating all the data has been read.
 PyObject *PyNetGroupEnum(PyObject *self, PyObject *args) 
 {
 	// @pyparm string/<o PyUnicode>|server||The name of the server, or None.
@@ -285,8 +289,12 @@ PyObject *PyNetGroupEnum(PyObject *self, PyObject *args)
 // @pymethod ([dict, ...], total, resumeHandle)|win32net|NetGroupGetUsers|Enumerates the users in a group.
 // @rdesc The result is a list of items read (with each item being a dictionary of format
 // <o PyGROUP_USERS_INFO_*>, depending on the level parameter),
-// the total available, and a "resume handle".  If the result handle is true, you should call
-// this function again to fetch more data, passing this handle in the resumeHandle param.
+// the total available, and a new "resume handle".  The first time you call
+// this function, you should pass zero for the resume handle.  If more data
+// is available than what was returned, a new non-zero resume handle will be
+// returned, which can be used to call the function again to fetch more data.
+// This process may repeat, each time with a new resume handle, until zero is
+// returned for the new handle, indicating all the data has been read.
 PyObject *PyNetGroupGetUsers(PyObject *self, PyObject *args) 
 {
 	// @pyparm string/<o PyUnicode>|server||The name of the server, or None.
@@ -360,8 +368,12 @@ PyObject *PyNetLocalGroupDel(PyObject *self, PyObject *args)
 // @pymethod ([dict, ...], total, resumeHandle)|win32net|NetLocalGroupEnum|Enumerates all groups.
 // @rdesc The result is a list of items read (with each item being a dictionary of format
 // <o PyGROUP_INFO_*>, depending on the level parameter),
-// the total available, and a "resume handle".  If the result handle is true, you should call
-// this function again to fetch more data, passing this handle in the resumeHandle param.
+// the total available, and a new "resume handle".  The first time you call
+// this function, you should pass zero for the resume handle.  If more data
+// is available than what was returned, a new non-zero resume handle will be
+// returned, which can be used to call the function again to fetch more data.
+// This process may repeat, each time with a new resume handle, until zero is
+// returned for the new handle, indicating all the data has been read.
 PyObject *PyNetLocalGroupEnum(PyObject *self, PyObject *args) 
 {
 	// @pyparm string/<o PyUnicode>|server||The name of the server, or None.
@@ -398,8 +410,12 @@ PyObject *PyNetLocalGroupSetMembers(PyObject *self, PyObject *args)
 // @pymethod ([dict, ...], total, resumeHandle)|win32net|NetLocalGroupGetMembers|Enumerates the members in a local group.
 // @rdesc The result is a list of items read (with each item being a dictionary of format
 // <o PyLOCALGROUP_MEMBERS_INFO_*>, depending on the level parameter),
-// the total available, and a "resume handle".  If the result handle is true, you should call
-// this function again to fetch more data, passing this handle in the resumeHandle param.
+// the total available, and a new "resume handle".  The first time you call
+// this function, you should pass zero for the resume handle.  If more data
+// is available than what was returned, a new non-zero resume handle will be
+// returned, which can be used to call the function again to fetch more data.
+// This process may repeat, each time with a new resume handle, until zero is
+// returned for the new handle, indicating all the data has been read.
 PyObject *PyNetLocalGroupGetMembers(PyObject *self, PyObject *args) 
 {
 	// @pyparm string/<o PyUnicode>|server||The name of the server, or None.

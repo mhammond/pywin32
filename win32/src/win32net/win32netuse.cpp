@@ -153,8 +153,12 @@ done:
 // @pymethod ([dict, ...], total, resumeHandle)|win32net|NetUseEnum|Retrieves information about transport protocols that are currently managed by the redirector
 // @rdesc The result is a list of items read (with each item being a dictionary of format
 // <o PyUSE_INFO_*>, depending on the level parameter),
-// the total available, and a "resume handle".  If the result handle is true, you should call
-// this function again to fetch more data, passing this handle in the resumeHandle param.
+// the total available, and a new "resume handle".  The first time you call
+// this function, you should pass zero for the resume handle.  If more data
+// is available than what was returned, a new non-zero resume handle will be
+// returned, which can be used to call the function again to fetch more data.
+// This process may repeat, each time with a new resume handle, until zero is
+// returned for the new handle, indicating all the data has been read.
 PyObject *
 PyNetUseEnum(PyObject *self, PyObject *args)
 {

@@ -342,8 +342,12 @@ static PyObject *PyNetShareEnum1(char *szServerName)
 // @pymethod ([dict, ...], total, resumeHandle)|win32net|NetShareEnum|Retrieves information about each shared resource on a server. 
 // @rdesc The result is a list of items read (with each item being a dictionary of format
 // <o PySHARE_INFO_*>, depending on the level parameter),
-// the total available, and a "resume handle".  If the result handle is true, you should call
-// this function again to fetch more data, passing this handle in the resumeHandle param.
+// the total available, and a new "resume handle".  The first time you call
+// this function, you should pass zero for the resume handle.  If more data
+// is available than what was returned, a new non-zero resume handle will be
+// returned, which can be used to call the function again to fetch more data.
+// This process may repeat, each time with a new resume handle, until zero is
+// returned for the new handle, indicating all the data has been read.
 PyObject *
 PyNetShareEnum(PyObject *self, PyObject *args)
 {
@@ -664,8 +668,12 @@ static struct PyNET_STRUCT server_infos[] = { // @flagh Level|Data
 // @pymethod ([dict, ...], total, resumeHandle)|win32net|NetServerEnum|Retrieves information about each server of a particular type
 // @rdesc The result is a list of items read (with each item being a dictionary of format
 // <o PySERVER_INFO_*>, depending on the level parameter),
-// the total available, and a "resume handle".  If the result handle is true, you should call
-// this function again to fetch more data, passing this handle in the resumeHandle param.
+// the total available, and a new "resume handle".  The first time you call
+// this function, you should pass zero for the resume handle.  If more data
+// is available than what was returned, a new non-zero resume handle will be
+// returned, which can be used to call the function again to fetch more data.
+// This process may repeat, each time with a new resume handle, until zero is
+// returned for the new handle, indicating all the data has been read.
 PyObject *
 PyNetServerEnum(PyObject *self, PyObject *args)
 {
@@ -808,8 +816,12 @@ done:
 // @pymethod ([dict, ...], total, resumeHandle)|win32net|NetWkstaUserEnum|Retrieves information about all users currently logged on to the workstation.
 // @rdesc The result is a list of items read (with each item being a dictionary of format
 // <o PyWKSTA_USER_INFO_*>, depending on the level parameter),
-// the total available, and a "resume handle".  If the result handle is true, you should call
-// this function again to fetch more data, passing this handle in the resumeHandle param.
+// the total available, and a new "resume handle".  The first time you call
+// this function, you should pass zero for the resume handle.  If more data
+// is available than what was returned, a new non-zero resume handle will be
+// returned, which can be used to call the function again to fetch more data.
+// This process may repeat, each time with a new resume handle, until zero is
+// returned for the new handle, indicating all the data has been read.
 PyObject *
 PyNetWkstaUserEnum(PyObject *self, PyObject *args)
 {
@@ -949,8 +961,12 @@ done:
 // @pymethod ([dict, ...], total, resumeHandle)|win32net|NetWkstaTransportEnum|Retrieves information about transport protocols that are currently managed by the redirector
 // @rdesc The result is a list of items read (with each item being a dictionary of format
 // <o PyWKSTA_TRANSPORT_INFO_*>, depending on the level parameter),
-// the total available, and a "resume handle".  If the result handle is true, you should call
-// this function again to fetch more data, passing this handle in the resumeHandle param.
+// the total available, and a new "resume handle".  The first time you call
+// this function, you should pass zero for the resume handle.  If more data
+// is available than what was returned, a new non-zero resume handle will be
+// returned, which can be used to call the function again to fetch more data.
+// This process may repeat, each time with a new resume handle, until zero is
+// returned for the new handle, indicating all the data has been read.
 PyObject *
 PyNetWkstaTransportEnum(PyObject *self, PyObject *args)
 {
