@@ -2,17 +2,662 @@
 
 %module win32service // An interface to the Windows NT Service API
 
+
 %include "typemaps.i"
 %include "pywin32.i"
+
+%{
+#undef PyHANDLE
+#include "PyWinObjects.h"
+static BOOL (WINAPI *fpQueryServiceStatusEx)(SC_HANDLE,SC_STATUS_TYPE,LPBYTE,DWORD,LPDWORD) = NULL;
+%}
 
 %init %{
 	// All errors raised by this module are of this type.
 	Py_INCREF(PyWinExc_ApiError);
 	PyDict_SetItemString(d, "error", PyWinExc_ApiError);
+	PyDict_SetItemString(d, "HWINSTAType", (PyObject *)&PyHWINSTAType);
+	PyDict_SetItemString(d, "HDESKType", (PyObject *)&PyHDESKType);
+	HMODULE hmod;
+	FARPROC fp;
+	hmod=GetModuleHandle(_T("Advapi32"));
+	if (hmod==NULL)
+		hmod=LoadLibrary(_T("Advapi32"));
+	if (hmod!=NULL){
+		fp=GetProcAddress(hmod,"QueryServiceStatusEx");
+		if (fp!=NULL)
+			fpQueryServiceStatusEx=(BOOL (WINAPI *)(SC_HANDLE,SC_STATUS_TYPE,LPBYTE,DWORD,LPDWORD))fp;
+		}
 %}
 
 %{
+#include "structmember.h"
+// @object PyHWINSTA|Wrapper for a handle to a window station - returned by CreateWindowStation, OpenWindowStation, or GetProcessWindowStation
+class PyHWINSTA : public PyHANDLE
+{
+public:
+	PyHWINSTA(HWINSTA hwinsta);
+	~PyHWINSTA(void);
+	static void deallocFunc(PyObject *ob);
+	static PyObject *EnumDesktops(PyObject *self, PyObject *args);
+	static PyObject *SetProcessWindowStation(PyObject *self, PyObject *args);
+	static PyObject *CloseWindowStation(PyObject *self, PyObject *args);
+	static struct PyMemberDef members[];
+	static struct PyMethodDef methods[]; 
+	static PyObject *PyHWINSTA_new(PyTypeObject *tp, PyObject *args, PyObject *kwargs);
+};
 
+struct PyMethodDef PyHWINSTA::methods[] = {
+	{"EnumDesktops",			PyHWINSTA::EnumDesktops, METH_VARARGS, "List desktop names within the window station"}, 	// @pymeth EnumDesktops|List desktop names within the window station
+	{"SetProcessWindowStation",	PyHWINSTA::SetProcessWindowStation, METH_VARARGS, "Associates the calling process with the window station"}, // @pymeth SetProcessWindowStation|Associates the calling process with the window station
+	{"CloseWindowStation",		PyHWINSTA::CloseWindowStation, METH_VARARGS, "Closes the window station handle"}, // @pymeth CloseWindowStation|Closes the window station handle
+	{"Detach",					PyHANDLE::Detach, METH_VARARGS, "Releases reference to handle without closing it"}, //@pymeth Detach|Releases reference to handle without closing it
+	{NULL}
+};
+
+struct PyMemberDef PyHWINSTA::members[] = {
+	// ??? offsetof not working correctly ??? 
+	// {"handle", T_LONG, offsetof(PyHWINSTA,m_handle), READONLY, "For use where an integer handle is required"},
+	{NULL}
+};
+
+PyObject *PyHWINSTA::PyHWINSTA_new(PyTypeObject *tp, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"handle",0};
+	HWINSTA hwinsta;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "l", keywords, &hwinsta))
+		return NULL;
+	return new PyHWINSTA(hwinsta);
+}
+
+PyTypeObject PyHWINSTAType =
+{
+	PyObject_HEAD_INIT(&PyType_Type)
+	0,
+	"PyHWINSTA",
+	sizeof(PyHWINSTA),
+	0,
+	PyHWINSTA::deallocFunc,		/* tp_dealloc */
+	0,							/* tp_print */
+	0,							/* tp_getattr */
+	0,							/* tp_setattr */
+	0,							/* tp_compare */
+	0,							/* tp_repr */
+	PyHANDLEType.tp_as_number,	/* tp_as_number */
+	0,							/* tp_as_sequence */
+	0,							/* tp_as_mapping */
+	0,
+	0,							/* tp_call */
+	0,							/* tp_str */
+	PyObject_GenericGetAttr,
+	PyObject_GenericSetAttr,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	PyHWINSTA::methods,
+	PyHWINSTA::members,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	PyHWINSTA::PyHWINSTA_new
+};
+
+#define PyHWINSTA_Check(ob)	((ob)->ob_type == &PyHWINSTAType)
+
+PyHWINSTA::PyHWINSTA(HWINSTA hwinsta) : PyHANDLE((HANDLE)hwinsta)
+{
+	ob_type = &PyHWINSTAType;
+}
+PyHWINSTA::~PyHWINSTA(void)
+{
+	::CloseWindowStation((HWINSTA)m_handle);
+}
+
+void PyHWINSTA::deallocFunc(PyObject *ob)
+{
+	delete (PyHWINSTA *)ob;
+}
+
+
+// @object PyHDESK|Object representing a handle to a desktop, created by CreateDesktop, GetThreadDesktop, and OpenDesktop. 
+
+class PyHDESK : public PyHANDLE
+{
+public:
+	PyHDESK(HDESK hdesk);
+	~PyHDESK(void);
+	static void deallocFunc(PyObject *ob);
+	static PyObject *SetThreadDesktop(PyObject *self, PyObject *args);
+	static PyObject *EnumDesktopWindows(PyObject *self, PyObject *args);
+	static PyObject *SwitchDesktop(PyObject *self, PyObject *args);
+	static PyObject *CloseDesktop(PyObject *self, PyObject *args);
+	static struct PyMemberDef members[];
+	static struct PyMethodDef methods[];
+	static PyObject *PyHDESK_new(PyTypeObject *tp, PyObject *args, PyObject *kwargs);
+};
+
+struct PyMethodDef PyHDESK::methods[] = {
+	{"SetThreadDesktop",	PyHDESK::SetThreadDesktop, METH_VARARGS, "Assigns desktop to calling thread"}, // @pymeth SetThreadDesktop|Assigns desktop to calling thread
+	{"EnumDesktopWindows",	PyHDESK::EnumDesktopWindows, METH_VARARGS, "Lists all top-level windows on the desktop"}, 	// @pymeth EnumDesktopWindows|Lists all top-level windows on the desktop
+	{"SwitchDesktop",		PyHDESK::SwitchDesktop, METH_VARARGS, "Activates the desktop"}, 	// @pymeth SwitchDesktop|Activates the desktop
+	{"CloseDesktop",		PyHDESK::CloseDesktop, METH_VARARGS, "Closes the handle"}, //@pymeth CloseDesktop|Closes the desktop handle
+	{"Detach",				PyHANDLE::Detach, METH_VARARGS, "Releases reference to handle without closing it"}, //@pymeth Detach|Releases reference to handle without closing it
+	{NULL}
+};
+
+struct PyMemberDef PyHDESK::members[] = {
+	// {"handle", T_LONG, offsetof(PyHDESK,m_handle), READONLY, "For use where an integer handle is required"},
+	{NULL}
+};
+
+PyObject *PyHDESK::PyHDESK_new(PyTypeObject *tp, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"handle",0};
+	HDESK hdesk;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "l", keywords, &hdesk))
+		return NULL;
+	return new PyHDESK(hdesk);
+}
+
+PyTypeObject PyHDESKType =
+{
+	PyObject_HEAD_INIT(&PyType_Type)
+	0,
+	"PyHDESK",
+	sizeof(PyHDESK),
+	0,
+	PyHDESK::deallocFunc,		/* tp_dealloc */
+	0,							/* tp_print */
+	0,							/* tp_getattr */
+	0,							/* tp_setattr */
+	0,							/* tp_compare */
+	0,							/* tp_repr */
+	PyHANDLEType.tp_as_number,	/* tp_as_number */
+	0,							/* tp_as_sequence */
+	0,							/* tp_as_mapping */
+	0,
+	0,							/* tp_call */
+	0,							/* tp_str */
+	PyObject_GenericGetAttr,
+	PyObject_GenericSetAttr,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	PyHDESK::methods,
+	PyHDESK::members,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	PyHDESK::PyHDESK_new
+};
+
+#define PyHDESK_Check(ob)	((ob)->ob_type == &PyHDESKType)
+
+PyHDESK::PyHDESK(HDESK hdesk) : PyHANDLE((HANDLE)hdesk)
+{
+	ob_type = &PyHDESKType;
+}
+
+PyHDESK::~PyHDESK(void)
+{
+	::CloseDesktop((HDESK)m_handle);
+}
+
+void PyHDESK::deallocFunc(PyObject *ob)
+{
+	delete (PyHDESK *)ob;
+}
+
+BOOL CALLBACK EnumWindowStationProc(LPWSTR winstaname, LPARAM ret)
+{
+	PyObject *obwinstaname=PyWinObject_FromWCHAR(winstaname);
+	if (obwinstaname==NULL)
+		return FALSE;
+	PyList_Append((PyObject *)ret,obwinstaname);
+	Py_DECREF(obwinstaname);
+	return TRUE;
+}
+
+BOOL CALLBACK EnumDesktopsProc(LPWSTR desktopname, LPARAM ret)
+{
+	PyObject *obdesktopname=PyWinObject_FromWCHAR(desktopname);
+	if (obdesktopname==NULL)
+		return FALSE;
+	PyList_Append((PyObject *)ret,obdesktopname);
+	Py_DECREF(obdesktopname);
+	return TRUE;
+}
+
+BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM ret)
+{
+	PyObject *obhandle=PyWinObject_FromHANDLE(hwnd);
+	if (obhandle==NULL)
+		return FALSE;
+	PyList_Append((PyObject *)ret,obhandle);
+	Py_DECREF(obhandle);
+	return TRUE;
+}
+
+// @pymethod (PyUNICODE,...)|PyHWINSTA|EnumDesktops|Lists names of desktops in the window station
+PyObject *PyHWINSTA::EnumDesktops(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":EnumDesktops"))
+		return NULL;
+	PyObject *ret=PyList_New(0);
+	if (ret==NULL)
+		return NULL;
+	if (!::EnumDesktopsW((HWINSTA)((PyHWINSTA *)self)->m_handle, EnumDesktopsProc, (LPARAM)ret)){
+		Py_DECREF(ret);
+		ret=NULL;
+		if (!PyErr_Occurred())
+			PyWin_SetAPIError("EnumDesktops",GetLastError());
+		}
+	return ret;
+}
+
+// @pymethod |PyHWINSTA|SetProcessWindowStation|Associates the calling process with the window station
+PyObject *PyHWINSTA::SetProcessWindowStation(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":SetProcessWindowStation"))
+		return NULL;
+	if (!::SetProcessWindowStation((HWINSTA)((PyHWINSTA *)self)->m_handle))
+		return PyWin_SetAPIError("SetProcessWindowStation",GetLastError());
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod |PyHWINSTA|CloseWindowStation|Closes the window station handle
+// @comm This function cannot close the handle to current process's window station 
+PyObject *PyHWINSTA::CloseWindowStation(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":CloseWindowStation"))
+		return NULL;
+	if (!::CloseWindowStation((HWINSTA)((PyHWINSTA *)self)->m_handle))
+		return PyWin_SetAPIError("CloseWindowStation",GetLastError());
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod |PyHDESK|SetThreadDesktop|Assigns this desktop to the calling thread
+PyObject *PyHDESK::SetThreadDesktop(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":SetThreadDesktop"))
+		return NULL;
+	if (!::SetThreadDesktop((HDESK)((PyHDESK *)self)->m_handle))
+		return PyWin_SetAPIError("SetThreadDesktop",GetLastError());
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod |PyHDESK|SwitchDesktop|Activates the desktop
+PyObject *PyHDESK::SwitchDesktop(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":SwitchDesktop"))
+		return NULL;
+	if (!::SwitchDesktop((HDESK)((PyHDESK *)self)->m_handle))
+		return PyWin_SetAPIError("SwitchDesktop",GetLastError());
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod |PyHDESK|CloseDesktop|Closes the desktop handle
+PyObject *PyHDESK::CloseDesktop(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":CloseDesktop"))
+		return NULL;
+	if (!::CloseDesktop((HDESK)((PyHDESK *)self)->m_handle))
+		return PyWin_SetAPIError("CloseDesktop",GetLastError());
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod (<o PyHANDLE>,...)|PyHDESK|EnumDesktopWindows|Returns a list of handles to all top-level windows on desktop
+PyObject *PyHDESK::EnumDesktopWindows(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":EnumDesktopWindows"))
+		return NULL;
+	PyObject *ret=PyList_New(0);
+	if (ret==NULL)
+		return NULL;
+	if (!::EnumDesktopWindows((HDESK)((PyHDESK *)self)->m_handle, EnumWindowsProc, (LPARAM)ret)){
+		Py_DECREF(ret);
+		ret=NULL;
+		if (!PyErr_Occurred())
+			PyWin_SetAPIError("EnumDesktopWindows",GetLastError());
+		}
+	return ret;
+}
+%}
+
+// @pyswig <o PyHDESK>|GetThreadDesktop|Retrieves a handle to the desktop for a thread
+%native(GetThreadDesktop) PyGetThreadDesktop;
+%{
+PyObject *PyGetThreadDesktop(PyObject *self, PyObject *args)
+{
+	DWORD tid;
+	HDESK hdesk;
+	// @pyparm int|ThreadId||Id of thread
+	if (!PyArg_ParseTuple(args, "l:GetThreadDesktop", &tid))
+		return NULL;
+	hdesk=GetThreadDesktop(tid);
+	if (hdesk==NULL)
+		return PyWin_SetAPIError("GetThreadDesktop",GetLastError());
+	return new PyHDESK(hdesk);
+}
+%}
+
+// @pyswig (PyUNICODE,...)|EnumWindowStations|Lists names of window stations
+// @comm Only window stations for which you have WINSTA_ENUMERATE access will be returned
+%native(EnumWindowStations) PyEnumWindowStations;
+%{
+PyObject *PyEnumWindowStations(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":EnumWindowStations"))
+		return NULL;
+	PyObject *ret=PyList_New(0);
+	if (ret==NULL)
+		return NULL;
+	if (!EnumWindowStationsW(EnumWindowStationProc, (LPARAM)ret)){
+		Py_DECREF(ret);
+		ret=NULL;
+		if (!PyErr_Occurred())
+			PyWin_SetAPIError("EnumWindowStations",GetLastError());
+		}
+	return ret;
+}
+%}
+
+// @pyswig |GetUserObjectInformation|Returns specified type of info about a window station or desktop
+// @comm Return type is dependent on UOI_* constant passed in
+%native(GetUserObjectInformation) PyGetUserObjectInformation;
+%{
+PyObject *PyGetUserObjectInformation(PyObject *self, PyObject *args)
+{
+	HANDLE handle;
+	DWORD origbuflen=128, reqdbuflen=0, err;
+#ifdef Py_DEBUG
+	origbuflen=3;
+#endif
+	void *buf=NULL;
+	PyObject *obhandle, *ret=NULL;
+	BOOL bsuccess;
+	int info_type;
+	// @pyparm <o PyHANDLE>|Handle||Handle to window station or desktop
+	// @pyparm int|type||Type of info to return, one of UOI_FLAGS,UOI_NAME, UOI_TYPE, or UOI_USER_SID
+	if (!PyArg_ParseTuple(args, "Ol:GetUserObjectInformation", &obhandle, &info_type))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhandle, &handle))
+		return NULL;
+	buf=malloc(origbuflen);
+	if (buf==NULL)
+		return PyErr_Format(PyExc_MemoryError, "GetUserObjectInformation unable to allocate %d bytes", origbuflen);
+	bsuccess=GetUserObjectInformationW(handle, info_type, buf, origbuflen, &reqdbuflen);
+	if (!bsuccess){
+		err=GetLastError();
+		if (err==ERROR_INSUFFICIENT_BUFFER){
+			free(buf);
+			buf=malloc(reqdbuflen);
+			if (buf==NULL)
+				return PyErr_Format(PyExc_MemoryError, "GetUserObjectInformation unable to allocate %d bytes", reqdbuflen);
+			bsuccess=GetUserObjectInformationW(handle, info_type, buf, reqdbuflen, &reqdbuflen);
+			if (!bsuccess)
+				err=GetLastError();
+			}	
+		}
+	if (!bsuccess)
+		PyWin_SetAPIError("GetUserObjectInformation",err);
+	else
+		switch(info_type){
+			case UOI_NAME:
+			case UOI_TYPE:{
+				ret=PyWinObject_FromWCHAR((WCHAR *)buf);
+				break;
+				}
+			case UOI_USER_SID:{
+				if (reqdbuflen==0){
+					Py_INCREF(Py_None);
+					ret=Py_None;
+					}
+				else
+					ret=PyWinObject_FromSID((PSID)buf);
+				break;
+				}
+			case UOI_FLAGS:{
+				ret=Py_BuildValue("{s:N,s:N,s:l}",
+				 "Inherit",		PyBool_FromLong(((USEROBJECTFLAGS *)buf)->fInherit),
+				 "Reserved",	PyBool_FromLong(((USEROBJECTFLAGS *)buf)->fReserved),
+				 "Flags",		((USEROBJECTFLAGS *)buf)->dwFlags);
+				 break;
+				 }
+			default:
+				PyErr_SetString(PyExc_NotImplementedError,"Type of information is not supported yet");
+				break;
+			}
+	if (buf)
+		free (buf);
+	return ret;
+}
+%}
+
+// @pyswig |SetUserObjectInformation|Set specified type of info for a window station or desktop object
+// @comm Currently only UOI_FLAGS supported
+%native(SetUserObjectInformation) PySetUserObjectInformation;
+%{
+PyObject *PySetUserObjectInformation(PyObject *self, PyObject *args)
+{
+	HANDLE handle;
+	USEROBJECTFLAGS uof;
+	DWORD buflen=sizeof(USEROBJECTFLAGS);
+	int info_type=UOI_FLAGS;
+	PyObject *obhandle, *obinfo;
+	static char *uof_members[]={"Inherit", "Reserved", "Flags", 0};
+	static char *uof_format="Object must be a dictionary containing {'Inherit':bool, 'Reserved':bool, 'Flags':int}";
+	// @pyparm <o PyHANDLE>|Handle||Handle to window station or desktop
+	// @pyparm object|info||Information to set for handle, currently only a dictionary representing USEROBJECTFLAGS struct
+	// @pyparm int|type|UOI_FLAGS|Type of info to set, currently only accepts UOI_FLAGS
+	if (!PyArg_ParseTuple(args,"OO|l:SetUserObjectInformation", &obhandle, &obinfo, &info_type))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhandle, &handle))
+		return NULL;
+	if (info_type!=UOI_FLAGS){
+		PyErr_SetString(PyExc_TypeError,"Only UOI_FLAGS currently supported");
+		return NULL;
+		}
+	if (!PyDict_Check(obinfo)){
+		PyErr_SetString(PyExc_TypeError,uof_format);
+		return NULL;
+		}
+	PyObject *dummy_tuple=PyTuple_New(0);
+	if (!PyArg_ParseTupleAndKeywords(dummy_tuple, obinfo, "lll", uof_members, &uof.fInherit, &uof.fReserved, &uof.dwFlags)){
+	 	PyErr_SetString(PyExc_TypeError,uof_format);
+		return NULL;
+		}
+	if (!SetUserObjectInformationW(handle, info_type, (void *)&uof, buflen))
+		return PyWin_SetAPIError("SetUserObjectInformation",GetLastError());
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+
+
+// @pyswig <o PyHWINSTA>|OpenWindowStation|Returns a handle to the specified window station
+%native(OpenWindowStation) PyOpenWindowStation;
+%{
+PyObject *PyOpenWindowStation(PyObject *self, PyObject *args)
+{
+	WCHAR *winsta_name=NULL;
+	BOOL Inherit;
+	ACCESS_MASK DesiredAccess;
+	PyObject *obwinsta_name, *ret=NULL;
+	HWINSTA hwinsta;
+	// @pyparm str/PyUNICODE|szWinSta||Name of window station
+	// @pyparm Bool|Inherit||Allow handle to be inherited by subprocesses
+	// @pyparm int|DesiredAccess||Bitmask of access types
+	if (!PyArg_ParseTuple(args,"Oll:OpenWindowStation",&obwinsta_name, &Inherit, &DesiredAccess))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obwinsta_name,&winsta_name,FALSE))
+		return NULL;
+	hwinsta=OpenWindowStationW(winsta_name,Inherit,DesiredAccess);
+	if (hwinsta==NULL)
+		PyWin_SetAPIError("OpenWindowStation",GetLastError());
+	else
+		ret= new PyHWINSTA(hwinsta);
+	PyWinObject_FreeWCHAR(winsta_name);
+	return ret;
+}
+%}
+
+// @pyswig <o PyHDESK>|OpenDesktop|Opens a handle to a desktop
+%native(OpenDesktop) PyOpenDesktop;
+%{
+PyObject *PyOpenDesktop(PyObject *self, PyObject *args)
+{
+	WCHAR *desktop_name=NULL;
+	BOOL Inherit;
+	ACCESS_MASK DesiredAccess;
+	DWORD Flags;
+	PyObject *obdesktop_name, *ret=NULL;
+	HDESK hdesk;
+	// @pyparm str/unicode|szDesktop||Name of desktop to open
+	// @pyparm int|Flags||DF_ALLOWOTHERACCOUNTHOOK or 0
+	// @pyparm bool|Inherit||Allow handle to be inherited
+	// @pyparm int|DesiredAccess||ACCESS_MASK specifying level of access for handle
+	if (!PyArg_ParseTuple(args,"Olll:OpenWindowStation",&obdesktop_name, &Flags, &Inherit, &DesiredAccess))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obdesktop_name,&desktop_name,FALSE))
+		return NULL;
+	hdesk=OpenDesktopW(desktop_name, Flags, Inherit,DesiredAccess);
+	if (hdesk==NULL)
+		PyWin_SetAPIError("OpenDesktop",GetLastError());
+	else
+		ret= new PyHDESK(hdesk);
+	PyWinObject_FreeWCHAR(desktop_name);
+	return ret;
+}
+%}
+
+// @pyswig <o PyHDESK>|CreateDesktop|Creates a new desktop in calling process's current window station
+%native(CreateDesktop) PyCreateDesktop;
+%{
+PyObject *PyCreateDesktop(PyObject *self, PyObject *args)
+{
+	PyObject *obDesktop, *obSA=NULL, *ret=NULL;
+	WCHAR *Desktop=NULL;
+	DWORD Flags;
+	ACCESS_MASK DesiredAccess;
+	PSECURITY_ATTRIBUTES pSA;
+	HDESK hdesk;
+	// @pyparm str/unicode|Desktop||Name of desktop to create
+	// @pyparm int|Flags||DF_ALLOWOTHERACCOUNTHOOK or 0
+	// @pyparm int|DesiredAccess||An ACCESS_MASK determining level of access available thru returned handle
+	// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes||Specifies inheritance and controls access to desktop
+	if (!PyArg_ParseTuple(args,"OllO:CreateDesktop", &obDesktop, &Flags, &DesiredAccess, &obSA))
+		return NULL;
+	if (!PyWinObject_AsSECURITY_ATTRIBUTES(obSA, &pSA, TRUE))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obDesktop, &Desktop, FALSE))
+		return NULL;
+
+	hdesk=CreateDesktopW(Desktop,NULL,NULL,Flags,DesiredAccess, pSA);
+	if (hdesk==NULL)
+		PyWin_SetAPIError("CreateDesktop",GetLastError());
+	else
+		ret= new PyHDESK(hdesk);
+
+	PyWinObject_FreeWCHAR(Desktop);
+	return ret;
+}
+%}
+
+// @pyswig <o PyHDESK>|OpenInputDesktop|Returns a handle to desktop for logged-in user
+%native(OpenInputDesktop) PyOpenInputDesktop;
+%{
+PyObject *PyOpenInputDesktop(PyObject *self, PyObject *args)
+{
+	DWORD Flags;
+	BOOL Inherit;
+	ACCESS_MASK DesiredAccess;
+	HDESK hdesk;
+	// @pyparm int|Flags||DF_ALLOWOTHERACCOUNTHOOK or 0
+	// @pyparm bool|Inherit||Specifies if handle will be inheritable
+	// @pyparm int|DesiredAccess||ACCESS_MASK specifying access available to returned handle
+	if (!PyArg_ParseTuple(args,"lll:OpenInputDesktop",&Flags,&Inherit,&DesiredAccess))
+		return NULL;
+	hdesk=OpenInputDesktop(Flags,Inherit,DesiredAccess);
+	if (hdesk==NULL)
+		return PyWin_SetAPIError("OpenInputDesktop",GetLastError());
+	return new PyHDESK(hdesk);
+}
+%}
+
+// @pyswig <o PyHWINSTA>|GetProcessWindowStation|Returns a handle to calling process's current window station
+%native(GetProcessWindowStation) PyGetProcessWindowStation;
+%{
+PyObject *PyGetProcessWindowStation(PyObject *self, PyObject *args)
+{
+	HWINSTA hwinsta;
+	if (!PyArg_ParseTuple(args,":GetProcessWindowStation"))
+		return NULL;
+	hwinsta=::GetProcessWindowStation();
+	if (hwinsta==NULL)
+		return PyWin_SetAPIError("GetProcessWindowStation",GetLastError());
+	return new PyHWINSTA(hwinsta);
+}
+%}
+
+// @pyswig <o PyHWINSTA>|CreateWindowStation|Creates a new window station
+// @comm If name is None or empty string, name is formatteded from logon id
+%native(CreateWindowStation) PyCreateWindowStation;
+%{
+PyObject *PyCreateWindowStation(PyObject *self, PyObject *args)
+{
+	HWINSTA hwinsta;
+	WCHAR *winsta_name;
+	DWORD Flags;
+	ACCESS_MASK DesiredAccess;
+	PSECURITY_ATTRIBUTES pSA;
+	PyObject *obwinsta_name, *obSA;
+	// @pyparm str/unicode|WindowStation||Name of window station to create, or None
+	// @pyparm int|Flags||CWF_CREATE_ONLY or 0
+	// @pyparm int|DesiredAccess||Bitmask of access types available to returned handle
+	// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes||Specifies security for window station, and whether handle is inheritable
+	if (!PyArg_ParseTuple(args,"OllO:CreateWindowStation", &obwinsta_name, &Flags, &DesiredAccess, &obSA))
+		return NULL;
+	if (!PyWinObject_AsSECURITY_ATTRIBUTES(obSA, &pSA, TRUE))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obwinsta_name, &winsta_name, TRUE))
+		return NULL;
+	hwinsta=CreateWindowStationW(winsta_name, Flags, DesiredAccess, pSA);
+	PyWinObject_FreeWCHAR(winsta_name); 
+	if (hwinsta==NULL)
+		return PyWin_SetAPIError("CreateWindowStation",GetLastError());
+	return new PyHWINSTA(hwinsta);
+}
+%}
+
+%{
 BOOL BuildDeps(PyObject *obDeps, TCHAR **ppDeps)
 {
 	TCHAR *lpDeps = NULL;
@@ -447,6 +1092,104 @@ BOOLAPI CloseServiceHandle(SC_HANDLE handle); // @pyparm int|scHandle||Handle to
 BOOLAPI QueryServiceStatus(SC_HANDLE handle, SERVICE_STATUS *outServiceStatus);
 // @pyparm int|scHandle||Handle to query
 
+// @pyswig <o SERVICE_STATUS>|QueryServiceStatusEx|Queries a service status
+%native (QueryServiceStatusEx) MyQueryServiceStatusEx;
+%{
+PyObject *MyQueryServiceStatusEx(PyObject *self, PyObject *args)
+{
+	if (fpQueryServiceStatusEx==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"QueryServiceStatusEx does not exist on this platform");
+		return NULL;
+		}
+	SC_HANDLE hService;
+	SC_STATUS_TYPE InfoLevel=SC_STATUS_PROCESS_INFO;  // only existing info level
+	SERVICE_STATUS_PROCESS info;
+	DWORD bufsize=sizeof(SERVICE_STATUS_PROCESS);
+	DWORD reqdbufsize;
+	// @pyparm int|scHandle||Handle to query
+	if (!PyArg_ParseTuple(args,"l:QueryServiceStatusEx",&hService))
+		return NULL;
+	if (!(*fpQueryServiceStatusEx)(hService,InfoLevel,(BYTE *)&info,bufsize,&reqdbufsize))
+		return PyWin_SetAPIError("QueryServiceStatusEx", GetLastError());
+	return Py_BuildValue("{s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l}",
+		"ServiceType", info.dwServiceType,
+		"CurrentState", info.dwCurrentState,
+		"ControlsAccepted", info.dwControlsAccepted,
+		"Win32ExitCode", info.dwWin32ExitCode,
+		"ServiceSpecificExitCode",info.dwServiceSpecificExitCode,
+		"CheckPoint", info.dwCheckPoint,
+		"WaitHint", info.dwWaitHint,
+		"ProcessId", info.dwProcessId,
+		"ServiceFlags", info.dwServiceFlags);
+}
+%}
+
+// @pyswig |SetServiceObjectSecurity|Set the security descriptor for a service
+%native (SetServiceObjectSecurity) MySetServiceObjectSecurity;
+%{
+PyObject *MySetServiceObjectSecurity(PyObject *self, PyObject *args)
+{
+	PyObject *obSD;
+	PSECURITY_DESCRIPTOR pSD;
+	SECURITY_INFORMATION info;
+	SC_HANDLE hsvc;
+	// @pyparm int|Handle||Service handle
+	// @pyparm int|SecurityInformation||Type of infomation to set, combination of values from SECURITY_INFORMATION enum
+	// @pyparm <o PySECURITY_DESCRIPTOR>|SecurityDescriptor||PySECURITY_DESCRIPTOR containing infomation to set
+	if (!PyArg_ParseTuple(args,"llO:SetServiceObjectSecurity",&hsvc, &info, &obSD))
+		return NULL;
+	if (!PyWinObject_AsSECURITY_DESCRIPTOR(obSD,&pSD,FALSE))
+		return NULL;
+	if (!SetServiceObjectSecurity(hsvc,info,pSD))
+		return PyWin_SetAPIError("SetServiceObjectSecurity",GetLastError());
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+
+// @pyswig <o PySECURITY_DESCRIPTOR>|QueryServiceObjectSecurity|Retrieves information from the security descriptor for a service
+%native (QueryServiceObjectSecurity) MyQueryServiceObjectSecurity;
+%{
+PyObject *MyQueryServiceObjectSecurity(PyObject *self, PyObject *args)
+{
+	PyObject *ret=NULL;
+	PSECURITY_DESCRIPTOR pSD=NULL;
+	SECURITY_INFORMATION info;
+	DWORD err, origbufsize=SECURITY_DESCRIPTOR_MIN_LENGTH, reqdbufsize=0;
+	SC_HANDLE hsvc;
+	// @pyparm int|Handle||Service handle
+	// @pyparm int|SecurityInformation||Type of infomation to retrieve, combination of values from SECURITY_INFORMATION enum
+	if (!PyArg_ParseTuple(args,"ll:QueryServiceObjectSecurity",&hsvc, &info))
+		return NULL;
+	pSD=(PSECURITY_DESCRIPTOR)malloc(origbufsize);
+	if (pSD==NULL){
+		PyErr_Format(PyExc_MemoryError, "QueryServiceObjectSecurity: unable to allocate %d bytes", origbufsize);
+		return NULL;
+		}
+	if (!QueryServiceObjectSecurity(hsvc,info,pSD,origbufsize,&reqdbufsize)){
+		err=GetLastError();
+		if (err==ERROR_INSUFFICIENT_BUFFER){
+			free(pSD);
+			pSD=(PSECURITY_DESCRIPTOR)malloc(reqdbufsize);
+			if (pSD==NULL)
+				PyErr_Format(PyExc_MemoryError,"QueryServiceObjectSecurity: unable to reallocatate %d bytes",reqdbufsize);
+			else
+				if (!QueryServiceObjectSecurity(hsvc,info,pSD,reqdbufsize,&reqdbufsize))
+					PyWin_SetAPIError("QueryServiceObjectSecurity",GetLastError());
+				else
+					ret=PyWinObject_FromSECURITY_DESCRIPTOR(pSD);
+			}
+		else
+			PyWin_SetAPIError("QueryServiceObjectSecurity",err);
+		}
+	else
+		ret=PyWinObject_FromSECURITY_DESCRIPTOR(pSD);
+	if (pSD!=NULL)
+		free(pSD);
+	return ret;
+}
+%}
+
 // @pyswig <o SERVICE_STATUS>|SetServiceStatus|Sets a service status
 BOOLAPI SetServiceStatus(
 	SERVICE_STATUS_HANDLE hSCManager, // @pyparm int|scHandle||Handle to set
@@ -667,3 +1410,11 @@ static PyObject *PyQueryServiceLockStatus(PyObject *self, PyObject *args)
 #define SERVICE_NO_CHANGE SERVICE_NO_CHANGE // Indicates the parameter should not be changed.
 
 #define SERVICE_SPECIFIC_ERROR ERROR_SERVICE_SPECIFIC_ERROR  // A service specific error has occurred.
+
+#define UOI_FLAGS UOI_FLAGS
+#define UOI_NAME UOI_NAME
+#define UOI_TYPE UOI_TYPE
+#define UOI_USER_SID UOI_USER_SID
+#define WSF_VISIBLE WSF_VISIBLE
+#define DF_ALLOWOTHERACCOUNTHOOK DF_ALLOWOTHERACCOUNTHOOK
+// #define CWF_CREATE_ONLY CWF_CREATE_ONLY 
