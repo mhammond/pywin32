@@ -16,6 +16,7 @@ generates Windows .hlp files.
 
 #include "axcontrol_pch.h"
 #include "stddef.h" // for offsetof
+#include "olectl.h"
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
 
 #include "PyIOleClientSite.h"
@@ -192,6 +193,102 @@ static PyObject *axcontrol_OleCreate(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(pResult, iid, FALSE);
 }
 
+// @pymethod <o PyIUnknown>|axcontrol|OleLoadPicture|Creates a new picture object and initializes it from the contents of a stream.
+static PyObject *axcontrol_OleLoadPicture(PyObject *, PyObject *args)
+{
+	PyObject *ret = NULL;
+	PyObject *obStream, *obIIDAPI, *obIIDRet = NULL;
+	LONG size;
+	BOOL runMode;
+	if (!PyArg_ParseTuple(args, "OiiO|O", 
+		&obStream, // @pyparm <o PyIStream>|stream||The stream that contains picture's data.
+		&size,  // @pyparm int|size||Number of bytes read from the stream
+		&runMode, // @pyparm int|runMode||The opposite of the initial value of the KeepOriginalFormat property. If TRUE, KeepOriginalFormat is set to FALSE and vice-versa.
+		&obIIDAPI, // @pyparm <o PyIID>||iid|The identifier of the interface describing the type of interface pointer to return
+		&obIIDRet)) {// @pyparm <o PyIID>||iidRet|The IID to use for the return object - use only if pythoncom does not support the native interface requested.
+		return NULL;
+	}
+
+	IUnknown *pUnk = NULL;
+	IStream* pStream = NULL;
+	IID iidAPI, iidRet;
+	HRESULT hr;
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obStream, IID_IStream, (void **)&pStream, FALSE))
+		goto done;
+
+	if (!PyWinObject_AsIID(obIIDAPI, &iidAPI))
+		goto done;
+	if (obIIDRet == NULL)
+		iidRet = iidAPI;
+	else {
+		if (!PyWinObject_AsIID(obIIDRet, &iidRet))
+			goto done;
+	}
+	Py_BEGIN_ALLOW_THREADS
+	hr = ::OleLoadPicture(pStream, size, runMode, iidAPI, (LPVOID*)&pUnk);
+	Py_END_ALLOW_THREADS
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	ret = PyCom_PyObjectFromIUnknown(pUnk, iidRet, FALSE);
+done:
+	if (pStream)
+		pStream->Release();
+	return ret;
+}
+
+// @pymethod <o PyIUnknown>|axcontrol|OleLoadPicturePath|Creates a new picture object and initializes it from the contents of a stream.
+static PyObject *axcontrol_OleLoadPicturePath(PyObject *, PyObject *args)
+{
+	PyObject *ret = NULL;
+	WCHAR *szPath = NULL;
+	PyObject *obPath, *obUnk, *obIIDAPI, *obIIDRet = NULL;
+	int reserved, clr;
+	if (!PyArg_ParseTuple(args, "OOiiO|O", 
+		&obPath, // @pyparm string/unicode|url_or_path||The path or url to the file you want to open.
+		&obUnk,  // @pyparm <o PyIUknown>|unk||The IUnknown for COM aggregation.
+		&reserved, // @pyparm int|reserved||reserved
+		&clr, // @pyparm int|clr||The color you want to reserve to be transparent. 
+		&obIIDAPI, // @pyparm <o PyIID>||iid|The identifier of the interface describing the type of interface pointer to return
+		&obIIDRet)) {// @pyparm <o PyIID>||iidRet|The IID to use for the return object - use only if pythoncom does not support the native interface requested.
+		return NULL;
+	}
+
+	IUnknown *pUnkRet = NULL;
+	IUnknown * pUnkIn = NULL;
+	IID iidAPI, iidRet;
+	HRESULT hr;
+	if (!PyWinObject_AsWCHAR(obPath, &szPath, FALSE))
+		goto done;
+
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obUnk, IID_IUnknown, (void **)&pUnkIn, TRUE))
+		goto done;
+
+	if (!PyWinObject_AsIID(obIIDAPI, &iidAPI))
+		goto done;
+	if (obIIDRet == NULL)
+		iidRet = iidAPI;
+	else {
+		if (!PyWinObject_AsIID(obIIDRet, &iidRet))
+			goto done;
+	}
+	Py_BEGIN_ALLOW_THREADS
+	hr = ::OleLoadPicturePath(szPath, pUnkIn, (DWORD)reserved, (OLE_COLOR)clr, iidAPI, (LPVOID*)&pUnkRet);
+	Py_END_ALLOW_THREADS
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	ret = PyCom_PyObjectFromIUnknown(pUnkRet, iidRet, FALSE);
+done:
+	if (pUnkIn)
+		pUnkIn->Release();
+	if (szPath)
+		PyWinObject_FreeWCHAR(szPath);
+	return ret;
+}
+
 
 
 /* List of module functions */
@@ -199,6 +296,8 @@ static PyObject *axcontrol_OleCreate(PyObject *self, PyObject *args)
 static struct PyMethodDef axcontrol_methods[]=
 {
     { "OleCreate",    axcontrol_OleCreate, 1 }, // @pymeth OleCreate|Creates a new embedded object identified by a CLSID.
+	{ "OleLoadPicture",      axcontrol_OleLoadPicture, 1 },      // @pymeth OleLoadPicture|Creates a new picture object and initializes it from the contents of a stream.
+	{ "OleLoadPicturePath",  axcontrol_OleLoadPicturePath, 1},   // @pymeth OleLoadPicturePath|Creates a new picture object and initializes it from the contents of a stream.
 	{ NULL, NULL },
 };
 
