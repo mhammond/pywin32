@@ -201,9 +201,27 @@ STDMETHODIMP PyGatewayBase::GetTypeInfoCount(
 {
 	if (pctInfo==NULL)
 		return E_POINTER;
-	/* ### eventually, let Python be able to return type info */
 
 	*pctInfo = 0;
+	{
+		CEnterLeavePython celp;
+
+		PyObject *result = PyObject_CallMethod(m_pPyObject, "_GetTypeInfoCount_", NULL);
+
+		if ( result )
+		{
+			if (PyInt_Check(result))
+				*pctInfo = PyInt_AsLong(result);
+			PyErr_Clear(); // ignore exceptions during conversion 
+			Py_DECREF(result);
+		}
+		else
+		{
+//			PyRun_SimpleString("import traceback;traceback.print_exc()");
+			PyErr_Clear();	// ### what to do with exceptions? ... 
+		}
+	}
+
 	return S_OK;
 }
 
@@ -213,13 +231,38 @@ STDMETHODIMP PyGatewayBase::GetTypeInfo(
 	ITypeInfo FAR* FAR* pptInfo
 	)
 {
+	HRESULT hr = E_FAIL;
+
 	if (pptInfo==NULL)
 		return E_POINTER;
-    *pptInfo = NULL;
+	*pptInfo = NULL;
 
-	/* ### eventually, let Python be able to return type info */
+	CEnterLeavePython celp;
 
-	return DISP_E_BADINDEX;
+	PyObject *result = PyObject_CallMethod(m_pPyObject, "_GetTypeInfo_",
+						   "ii", itinfo, lcid);
+
+	/* We expect a tuple containing (HRESULT, typeinfo) */
+	if ( result )
+	{
+		PyObject *pypti;
+		if (!PyArg_ParseTuple(result, "iO",
+					  &hr, &pypti)) {
+			Py_DECREF(result);
+			return E_FAIL;
+		}
+		if ( PyIBase::is_object(pypti, &PyITypeInfo::type) ) {
+			*pptInfo = PyITypeInfo::GetI(pypti);
+			(*pptInfo)->AddRef();
+		}
+		Py_DECREF(result);
+	}
+	else
+	{
+		PyErr_Clear();	// ### what to do with exceptions? ... 
+		hr = DISP_E_EXCEPTION;
+	}
+	return hr;
 }
 
 static HRESULT getids_setup(
