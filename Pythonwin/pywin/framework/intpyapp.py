@@ -256,7 +256,7 @@ class InteractivePythonApp(app.CApp):
 
 
 	def LoadSystemModules(self):
-		self.DoLoadModules("editor")
+		self.DoLoadModules("editor,stdin")
 
 	def LoadUserModules(self, moduleNames = None):
 		# Load the users modules.
