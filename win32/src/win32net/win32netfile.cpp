@@ -58,8 +58,10 @@ PyNetFileEnum(PyObject *self, PyObject *args)
 	switch (info_lvl){
 		case 2: {
 			do{
+			    Py_BEGIN_ALLOW_THREADS
 			    nStatus = NetFileEnum(server_name, base_path, user_name, info_lvl,
 			       (LPBYTE*)&pBuf2, buff_len, &dwEntriesRead, &dwTotalEntries, &dwResumeHandle);
+			    Py_END_ALLOW_THREADS
 			
 			    if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA)){
 			       if ((pTmpBuf2 = pBuf2) != NULL){
@@ -88,19 +90,21 @@ PyNetFileEnum(PyObject *self, PyObject *args)
 		}
 		case 3: {
 			do {
+				Py_BEGIN_ALLOW_THREADS
 				nStatus = NetFileEnum(server_name, base_path, user_name, info_lvl,
                     (LPBYTE*)&pBuf3, buff_len, &dwEntriesRead,
                      &dwTotalEntries, &dwResumeHandle);
+				Py_END_ALLOW_THREADS
 
 				if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA)){
 					if ((pTmpBuf3 = pBuf3) != NULL){
 						for (i = 0; (i < dwEntriesRead); i++){
-							PyObject* curr_sess_dict  = Py_BuildValue("{s:i,s:i,s:i,s:u,s:u}",
+							PyObject* curr_sess_dict  = Py_BuildValue("{s:i,s:i,s:i,s:N,s:N}",
 								"id", pTmpBuf3->fi3_id,
 								"permissions", pTmpBuf3->fi3_permissions,
 								"num_locks", pTmpBuf3->fi3_num_locks,
-								"path_name", pTmpBuf3->fi3_pathname,
-								"user_name", pTmpBuf3->fi3_username);
+								"path_name", PyWinObject_FromWCHAR(pTmpBuf3->fi3_pathname),
+								"user_name", PyWinObject_FromWCHAR(pTmpBuf3->fi3_username));
 							PyList_Append (ret_list, curr_sess_dict);
 							Py_DECREF(curr_sess_dict);
 							pTmpBuf3++;
@@ -145,7 +149,9 @@ PyNetFileClose(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "Oi", &server_name_obj, &file_id))
 		return NULL;
 	rc = PyWinObject_AsWCHAR(server_name_obj, &server_name, TRUE);
+	Py_BEGIN_ALLOW_THREADS
 	nStatus=NetFileClose(server_name, file_id);
+	Py_END_ALLOW_THREADS
 
     PyWinObject_FreeWCHAR(server_name);
 
@@ -183,8 +189,10 @@ PyNetFileGetInfo(PyObject *self, PyObject *args)
 	rc = PyWinObject_AsWCHAR(server_name_obj, &server_name, FALSE);
 	switch (info_lvl){
 		case 2:{
+			Py_BEGIN_ALLOW_THREADS
 			nStatus = NetFileGetInfo(server_name, file_id, info_lvl,
 			       (LPBYTE*)&pTmpBuf2);
+			Py_END_ALLOW_THREADS
 			
 			if (nStatus == NERR_Success)
 				ret_dict = Py_BuildValue("{s:i}","id",pTmpBuf2->fi2_id);	
@@ -197,16 +205,18 @@ PyNetFileGetInfo(PyObject *self, PyObject *args)
 			break;
 		}
 		case 3: {
+		        Py_BEGIN_ALLOW_THREADS
 			nStatus = NetFileGetInfo(server_name, file_id, info_lvl,
 			       (LPBYTE*)&pTmpBuf3);
+			Py_END_ALLOW_THREADS
 			
 			if (nStatus == NERR_Success)
-				ret_dict = Py_BuildValue("{s:i,s:i,s:i,s:u,s:u}",
+				ret_dict = Py_BuildValue("{s:i,s:i,s:i,s:N,s:N}",
 					"id", pTmpBuf3->fi3_id,
 					"permissions", pTmpBuf3->fi3_permissions,
 					"num_locks", pTmpBuf3->fi3_num_locks,
-					"path_name", pTmpBuf3->fi3_pathname,
-					"user_name", pTmpBuf3->fi3_username);
+					"path_name", PyWinObject_FromWCHAR(pTmpBuf3->fi3_pathname),
+					"user_name", PyWinObject_FromWCHAR(pTmpBuf3->fi3_username));
 			else{
 				ReturnNetError("NetFileEnum",nStatus);
 				ret_dict=NULL;

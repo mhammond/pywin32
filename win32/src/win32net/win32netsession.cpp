@@ -69,14 +69,16 @@ PyNetSessionEnum(PyObject *self, PyObject *args)
    switch (info_lvl){
    		case 0: {
 			do{
+			    Py_BEGIN_ALLOW_THREADS
 			    nStatus = NetSessionEnum(server_name, client_name, user_name, info_lvl,
 			       (LPBYTE*)&pBuf0, buff_len, &dwEntriesRead, &dwTotalEntries, &dwResumeHandle);
+			    Py_END_ALLOW_THREADS
 			
 			    if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA)){
 			       if ((pTmpBuf0 = pBuf0) != NULL){
 						for (i = 0; (i < dwEntriesRead); i++){
-							PyObject* curr_sess_dict  = Py_BuildValue("{s:u}",
-								"client_name", pTmpBuf0->sesi0_cname);
+							PyObject* curr_sess_dict  = Py_BuildValue("{s:N}",
+								"client_name", PyWinObject_FromWCHAR(pTmpBuf0->sesi0_cname));
 							PyList_Append (ret_list, curr_sess_dict);
 							Py_DECREF(curr_sess_dict);
 							pTmpBuf0++;
@@ -101,15 +103,17 @@ PyNetSessionEnum(PyObject *self, PyObject *args)
 
 		case 1:{	
 			do{
+			     Py_BEGIN_ALLOW_THREADS
 			     nStatus = NetSessionEnum(server_name, client_name, user_name, info_lvl,
 			        (LPBYTE*)&pBuf1, buff_len, &dwEntriesRead, &dwTotalEntries, &dwResumeHandle);
+			     Py_END_ALLOW_THREADS
 			
 			     if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA)){
 			        if ((pTmpBuf1 = pBuf1) != NULL){
 						for (i = 0; (i < dwEntriesRead); i++){
-							PyObject* curr_sess_dict  = Py_BuildValue("{s:u,s:u,s:i,s:i,s:i,s:i}",
-							"client_name", pTmpBuf1->sesi1_cname,
-							"user_name", pTmpBuf1->sesi1_username,
+							PyObject* curr_sess_dict  = Py_BuildValue("{s:N,s:N,s:i,s:i,s:i,s:i}",
+							"client_name", PyWinObject_FromWCHAR(pTmpBuf1->sesi1_cname),
+							"user_name", PyWinObject_FromWCHAR(pTmpBuf1->sesi1_username),
 							"num_opens", pTmpBuf1->sesi1_num_opens,
 							"active_time", pTmpBuf1->sesi1_time,
 							"idle_time", pTmpBuf1->sesi1_idle_time,
@@ -141,20 +145,22 @@ PyNetSessionEnum(PyObject *self, PyObject *args)
 
 		case 2: {
 			do{
+			        Py_BEGIN_ALLOW_THREADS
 				nStatus = NetSessionEnum(server_name, client_name, user_name, info_lvl,
 				(LPBYTE*)&pBuf2, buff_len, &dwEntriesRead, &dwTotalEntries, &dwResumeHandle);
+				Py_END_ALLOW_THREADS
 				
 				if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA)){
 					if ((pTmpBuf2 = pBuf2) != NULL){
 						for (i = 0; (i < dwEntriesRead); i++){
-							PyObject* curr_sess_dict  = Py_BuildValue("{s:u,s:u,s:i,s:i,s:i,s:i,s:u}",
-								"client_name", pTmpBuf2->sesi2_cname,
-								"user_name", pTmpBuf2->sesi2_username,
+							PyObject* curr_sess_dict  = Py_BuildValue("{s:N,s:N,s:i,s:i,s:i,s:i,s:N}",
+								"client_name", PyWinObject_FromWCHAR(pTmpBuf2->sesi2_cname),
+								"user_name", PyWinObject_FromWCHAR(pTmpBuf2->sesi2_username),
 								"num_opens", pTmpBuf2->sesi2_num_opens,
 								"active_time", pTmpBuf2->sesi2_time,
 								"idle_time", pTmpBuf2->sesi2_idle_time,
 								"user_flags", pTmpBuf2->sesi2_user_flags,
-								"client_type", pTmpBuf2->sesi2_cltype_name);
+								"client_type", PyWinObject_FromWCHAR(pTmpBuf2->sesi2_cltype_name));
 							PyList_Append (ret_list, curr_sess_dict);
 							Py_DECREF(curr_sess_dict);
 							pTmpBuf2++;
@@ -180,14 +186,16 @@ PyNetSessionEnum(PyObject *self, PyObject *args)
    
 		case 10: {
 			do{
+			Py_BEGIN_ALLOW_THREADS
       			nStatus = NetSessionEnum(server_name, client_name, user_name, info_lvl,
          			(LPBYTE*)&pBuf10, buff_len, &dwEntriesRead, &dwTotalEntries, &dwResumeHandle);
+			Py_END_ALLOW_THREADS
 				if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA)){
 				   if ((pTmpBuf10 = pBuf10) != NULL){
 						for (i = 0; (i < dwEntriesRead); i++){
-							PyObject* curr_sess_dict  = Py_BuildValue("{s:u,s:u,s:i,s:i}",
-								"client_name", pTmpBuf10->sesi10_cname,
-								"user_name", pTmpBuf10->sesi10_username,
+							PyObject* curr_sess_dict  = Py_BuildValue("{s:N,s:N,s:i,s:i}",
+								"client_name", PyWinObject_FromWCHAR(pTmpBuf10->sesi10_cname),
+								"user_name", PyWinObject_FromWCHAR(pTmpBuf10->sesi10_username),
 								"active_time", pTmpBuf10->sesi10_time,
 								"idle_time", pTmpBuf10->sesi10_idle_time);
 								PyList_Append (ret_list, curr_sess_dict);
@@ -216,20 +224,22 @@ PyNetSessionEnum(PyObject *self, PyObject *args)
 
 		case 502: {
 			do{
+				Py_BEGIN_ALLOW_THREADS
 				nStatus = NetSessionEnum(server_name, client_name, user_name, info_lvl,
 				(LPBYTE*)&pBuf502, buff_len, &dwEntriesRead, &dwTotalEntries, &dwResumeHandle);
+				Py_END_ALLOW_THREADS
 				if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA)){
 					if ((pTmpBuf502 = pBuf502) != NULL){
 						for (i = 0; (i < dwEntriesRead); i++){
-							PyObject* curr_sess_dict  = Py_BuildValue("{s:u,s:u,s:i,s:i,s:i,s:i,s:u,s:u}",
-								"client_name", pTmpBuf502->sesi502_cname,
-								"user_name", pTmpBuf502->sesi502_username,
+							PyObject* curr_sess_dict  = Py_BuildValue("{s:N,s:N,s:i,s:i,s:i,s:i,s:N,s:N}",
+								"client_name", PyWinObject_FromWCHAR(pTmpBuf502->sesi502_cname),
+								"user_name", PyWinObject_FromWCHAR(pTmpBuf502->sesi502_username),
 								"num_opens", pTmpBuf502->sesi502_num_opens,
 								"active_time", pTmpBuf502->sesi502_time,
 								"idle_time", pTmpBuf502->sesi502_idle_time,
 								"user_flags", pTmpBuf502->sesi502_user_flags,
-								"client_type", pTmpBuf502->sesi502_cltype_name,
-								"transport", pTmpBuf502->sesi502_transport);
+								"client_type", PyWinObject_FromWCHAR(pTmpBuf502->sesi502_cltype_name),
+								"transport", PyWinObject_FromWCHAR(pTmpBuf502->sesi502_transport));
 							PyList_Append (ret_list, curr_sess_dict);
 							Py_DECREF(curr_sess_dict);
 							pTmpBuf502++;
@@ -284,7 +294,9 @@ PyNetSessionDel(PyObject *self, PyObject *args)
 	if (PyTuple_Size(args)>2)
 		rc = PyWinObject_AsWCHAR(user_name_obj, &user_name, TRUE);
 
+   Py_BEGIN_ALLOW_THREADS
    nStatus = NetSessionDel(server_name, client_name, user_name);
+   Py_END_ALLOW_THREADS
 
     PyWinObject_FreeWCHAR(server_name);
 	if (client_name != NULL)
@@ -336,9 +348,12 @@ PyNetSessionGetInfo(PyObject *self, PyObject *args)
 
 	switch (info_lvl){
 		case 0: {
+			Py_BEGIN_ALLOW_THREADS
 			nStatus = NetSessionGetInfo(server_name, client_name, user_name, info_lvl, (LPBYTE*)&pTmpBuf0);
+			Py_END_ALLOW_THREADS
 			if (nStatus == NERR_Success)
-				ret_dict = Py_BuildValue("{s:u}", "client_name", pTmpBuf0->sesi0_cname);
+				ret_dict = Py_BuildValue("{s:N}", "client_name",
+							 PyWinObject_FromWCHAR(pTmpBuf0->sesi0_cname));
 			else{
 				ReturnNetError("NetSessionGetInfo",nStatus);
 				ret_dict=NULL;
@@ -351,11 +366,13 @@ PyNetSessionGetInfo(PyObject *self, PyObject *args)
 		}
 
 		case 1:{
+			Py_BEGIN_ALLOW_THREADS
 			nStatus = NetSessionGetInfo(server_name, client_name, user_name, info_lvl, (LPBYTE*)&pTmpBuf1);
+			Py_END_ALLOW_THREADS
 			if (nStatus == NERR_Success)
-				ret_dict = Py_BuildValue("{s:u,s:u,s:i,s:i,s:i,s:i}",
-					"client_name", pTmpBuf1->sesi1_cname,
-					"user_name", pTmpBuf1->sesi1_username,
+				ret_dict = Py_BuildValue("{s:N,s:N,s:i,s:i,s:i,s:i}",
+					"client_name", PyWinObject_FromWCHAR(pTmpBuf1->sesi1_cname),
+					"user_name", PyWinObject_FromWCHAR(pTmpBuf1->sesi1_username),
 					"num_opens", pTmpBuf1->sesi1_num_opens,
 					"active_time", pTmpBuf1->sesi1_time,
 					"idle_time", pTmpBuf1->sesi1_idle_time,
@@ -372,16 +389,18 @@ PyNetSessionGetInfo(PyObject *self, PyObject *args)
 		}
 
 		case 2:{
+			Py_BEGIN_ALLOW_THREADS
 			nStatus = NetSessionGetInfo(server_name, client_name, user_name, info_lvl, (LPBYTE*)&pTmpBuf2);
+			Py_END_ALLOW_THREADS
 			if (nStatus == NERR_Success)
-				ret_dict = Py_BuildValue("{s:u,s:u,s:i,s:i,s:i,s:i,s:u}",
-					"client_name", pTmpBuf2->sesi2_cname,
-					"user_name", pTmpBuf2->sesi2_username,
+				ret_dict = Py_BuildValue("{s:N,s:N,s:i,s:i,s:i,s:i,s:N}",
+					"client_name", PyWinObject_FromWCHAR(pTmpBuf2->sesi2_cname),
+					"user_name", PyWinObject_FromWCHAR(pTmpBuf2->sesi2_username),
 					"num_opens", pTmpBuf2->sesi2_num_opens,
 					"active_time", pTmpBuf2->sesi2_time,
 					"idle_time", pTmpBuf2->sesi2_idle_time,
 					"user_flags", pTmpBuf2->sesi2_user_flags,
-					"client_type", pTmpBuf2->sesi2_cltype_name);
+					"client_type", PyWinObject_FromWCHAR(pTmpBuf2->sesi2_cltype_name));
 			else{
 				ReturnNetError("NetSessionGetInfo",nStatus);
 				ret_dict=NULL;
@@ -394,11 +413,13 @@ PyNetSessionGetInfo(PyObject *self, PyObject *args)
 		}
 
 		case 10:{
+			Py_BEGIN_ALLOW_THREADS
 			nStatus = NetSessionGetInfo(server_name, client_name, user_name, info_lvl, (LPBYTE*)&pTmpBuf10);
+			Py_END_ALLOW_THREADS
 			if (nStatus == NERR_Success)
-				ret_dict = Py_BuildValue("{s:u,s:u,s:i,s:i}",
-					"client_name", pTmpBuf10->sesi10_cname,
-					"user_name", pTmpBuf10->sesi10_username,
+				ret_dict = Py_BuildValue("{s:N,s:N,s:i,s:i}",
+					"client_name", PyWinObject_FromWCHAR(pTmpBuf10->sesi10_cname),
+					"user_name", PyWinObject_FromWCHAR(pTmpBuf10->sesi10_username),
 					"active_time", pTmpBuf10->sesi10_time,
 					"idle_time", pTmpBuf10->sesi10_idle_time);
 			else{
@@ -414,17 +435,19 @@ PyNetSessionGetInfo(PyObject *self, PyObject *args)
 
 
 		case 502:{
+			Py_BEGIN_ALLOW_THREADS
 			nStatus = NetSessionGetInfo(server_name, client_name, user_name, info_lvl, (LPBYTE*)&pTmpBuf502);
+			Py_END_ALLOW_THREADS
 			if (nStatus == NERR_Success)
-				ret_dict = Py_BuildValue("{s:u,s:u,s:i,s:i,s:i,s:i,s:u,s:u}",
-					"client_name", pTmpBuf502->sesi502_cname,
-					"user_name", pTmpBuf502->sesi502_username,
+				ret_dict = Py_BuildValue("{s:N,s:N,s:i,s:i,s:i,s:i,s:N,s:N}",
+					"client_name", PyWinObject_FromWCHAR(pTmpBuf502->sesi502_cname),
+					"user_name", PyWinObject_FromWCHAR(pTmpBuf502->sesi502_username),
 					"num_opens", pTmpBuf502->sesi502_num_opens,
 					"active_time", pTmpBuf502->sesi502_time,
 					"idle_time", pTmpBuf502->sesi502_idle_time,
 					"user_flags", pTmpBuf502->sesi502_user_flags,
-					"client_type", pTmpBuf502->sesi502_cltype_name,
-					"transport", pTmpBuf502->sesi502_transport);
+					"client_type", PyWinObject_FromWCHAR(pTmpBuf502->sesi502_cltype_name),
+					"transport", PyWinObject_FromWCHAR(pTmpBuf502->sesi502_transport));
 			else{
 				ReturnNetError("NetSessionGetInfo",nStatus);
 				ret_dict=NULL;
