@@ -197,11 +197,11 @@ class BasicWrapPolicy:
     try:
       classSpec = win32api.RegQueryValue(win32con.HKEY_CLASSES_ROOT,
                                        regSpec % clsid)
-      myob = call_func(classSpec)
-      self._wrap_(myob)
-      return pythoncom.WrapObject(self, reqIID)
     except win32api.error:
       raise error, "The object is not correctly registered - %s key can not be read" % (regSpec % clsid)
+    myob = call_func(classSpec)
+    self._wrap_(myob)
+    return pythoncom.WrapObject(self, reqIID)
 
   def _wrap_(self, object):
     """Wraps up the specified object.
