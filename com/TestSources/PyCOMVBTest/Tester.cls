@@ -1,0 +1,168 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Tester"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = True
+Attribute VB_Ext_KEY = "SavedWithClassBuilder" ,"Yes"
+Attribute VB_Ext_KEY = "Top_Level" ,"Yes"
+Option Explicit
+'local variable(s) to hold property value(s)
+Private mvarIntProperty As Integer 'local copy
+Private mvarLongProperty As Long 'local copy
+Private mvarVariantProperty As Variant 'local copy
+Private mvarStringProperty As String 'local copy
+Private mvarCollectionProperty As Collection 'local copy
+'local variable(s) to hold property value(s)
+Private mvarVariantPutref As Variant 'local copy
+'local variable(s) to hold property value(s)
+' I cant seem to declare properties as returning native arrays.
+' I can only declare them as variant which hopefully holds an array.
+Private mvarArrayProperty As Variant 'local copy
+Public Function PassSAFEARRAY(arrayData() As String) As Variant
+    PassSAFEARRAY = arrayData
+End Function
+
+Public Property Let ArrayProperty(ByRef vData As Variant)
+'used when assigning a value to the property, on the left side of an assignment.
+'Syntax: X.ArrayProperty = 5
+    mvarArrayProperty = vData
+End Property
+
+
+Public Property Get ArrayProperty() As Variant
+'used when retrieving value of a property, on the right side of an assignment.
+'Syntax: Debug.Print X.ArrayProperty
+    ArrayProperty = mvarArrayProperty
+End Property
+
+
+Public Property Set VariantPutref(ByVal vData As Variant)
+'used when assigning an Object to the property, on the left side of a Set statement.
+'Syntax: Set x.VariantPutref = Form1
+    Set mvarVariantPutref = vData
+End Property
+
+
+Public Property Get VariantPutref() As Variant
+'used when retrieving value of a property, on the right side of an assignment.
+'Syntax: Debug.Print X.VariantPutref
+    If IsObject(mvarVariantPutref) Then
+        Set VariantPutref = mvarVariantPutref
+    Else
+        VariantPutref = mvarVariantPutref
+    End If
+End Property
+
+Public Function PassIntByRef(intVal As Integer) As Integer
+    PassIntByRef = intVal
+    intVal = intVal + 1
+End Function
+Public Function PassIntByVal(ByVal intVal As Integer) As Integer
+    PassIntByVal = intVal + 1
+End Function
+
+Public Property Set CollectionProperty(ByVal vData As Object)
+'used when assigning an Object to the property, on the left side of a Set statement.
+'Syntax: Set x.CollectionProperty = Form1
+    Set mvarCollectionProperty = vData
+End Property
+
+
+Public Property Get CollectionProperty() As Collection
+'used when retrieving value of a property, on the right side of an assignment.
+'Syntax: Debug.Print X.CollectionProperty
+    Set CollectionProperty = mvarCollectionProperty
+End Property
+
+Public Property Let StringProperty(ByVal vData As String)
+'used when assigning a value to the property, on the left side of an assignment.
+'Syntax: X.StringProperty = 5
+    mvarStringProperty = vData
+End Property
+
+
+Public Property Get StringProperty() As String
+'used when retrieving value of a property, on the right side of an assignment.
+'Syntax: Debug.Print X.StringProperty
+    StringProperty = mvarStringProperty
+End Property
+
+
+
+Public Property Let VariantProperty(ByVal vData As Variant)
+'used when assigning a value to the property, on the left side of an assignment.
+'Syntax: X.VariantProperty = 5
+    mvarVariantProperty = vData
+End Property
+
+
+Public Property Set VariantProperty(ByVal vData As Object)
+'used when assigning an Object to the property, on the left side of a Set statement.
+'Syntax: Set x.VariantProperty = Form1
+    Set mvarVariantProperty = vData
+End Property
+
+
+Public Property Get VariantProperty() As Variant
+'used when retrieving value of a property, on the right side of an assignment.
+'Syntax: Debug.Print X.VariantProperty
+    If IsObject(mvarVariantProperty) Then
+        Set VariantProperty = mvarVariantProperty
+    Else
+        VariantProperty = mvarVariantProperty
+    End If
+End Property
+
+
+
+Public Property Let IntProperty(ByVal vData As Long)
+'used when assigning a value to the property, on the left side of an assignment.
+'Syntax: X.IntProperty = 5
+    mvarIntProperty = vData
+End Property
+
+
+Public Property Get IntProperty() As Long
+'used when retrieving value of a property, on the right side of an assignment.
+'Syntax: Debug.Print X.IntProperty
+    IntProperty = mvarIntProperty
+End Property
+
+Public Property Let LongProperty(ByVal vData As Long)
+'used when assigning a value to the property, on the left side of an assignment.
+'Syntax: X.LongProperty = 5
+    mvarLongProperty = vData
+End Property
+
+Public Property Get LongProperty() As Long
+'used when retrieving value of a property, on the right side of an assignment.
+'Syntax: Debug.Print X.LongProperty
+    LongProperty = mvarLongProperty
+End Property
+
+Private Sub Class_Initialize()
+    Set mvarCollectionProperty = New Collection
+    mvarCollectionProperty.Add (1)
+    mvarCollectionProperty.Add ("Two")
+    mvarCollectionProperty.Add ("3")
+End Sub
+
+Public Sub IncrementIntegerParam(intVal As Integer)
+    intVal = intVal + 1
+End Sub
+Public Sub IncrementVariantParam(ByRef varVal As Variant)
+    varVal = varVal + 1
+End Sub
+
+Public Sub DoSomeCallbacks(ob As Object)
+    Dim i As Integer
+    Dim s As String
+    i = 99
+    ob.CallbackInt (i)
+    If i <> 100 Then MsgBox "After CallbackInt, the param was in error - was " & i & " but expected 100"
+End Sub
+

@@ -1,0 +1,71 @@
+HKCR
+{
+	PyCOMTest.PyCOMTest.1 = s 'PyCOMTest Class'
+	{
+		CLSID = s '{8ee0c520-5605-11d0-ae5f-cadd4c000000}'
+	}
+	PyCOMTest.PyCOMTest = s 'PyCOMTest Class'
+	{
+		CLSID = s '{8ee0c520-5605-11d0-ae5f-cadd4c000000}'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {8ee0c520-5605-11d0-ae5f-cadd4c000000} = s 'PyCOMTest Class'
+		{
+			val AppID = s '{5675eae0-5609-11d0-ae5f-cadd4c000000}'
+			ProgID = s 'PyCOMTest.PyCOMTest.1'
+			VersionIndependentProgID = s 'PyCOMTest.PyCOMTest'
+			InprocServer32 = s %MODULE%
+			{
+				val ThreadingModel = s 'both'
+			}
+		}
+	}
+
+
+	PyCOMTest.PyCOMTest2.1 = s 'PyCOMTest2 Class'
+	{
+		CLSID = s '{4E58A401-1117-11d1-9C4B-00AA00125A98}'
+	}
+	PyCOMTest.PyCOMTest2 = s 'PyCOMTest2 Class'
+	{
+		CLSID = s '{4E58A401-1117-11d1-9C4B-00AA00125A98}'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {4E58A401-1117-11d1-9C4B-00AA00125A98} = s 'PyCOMTest Class'
+		{
+			val AppID = s '{5675eae0-5609-11d0-ae5f-cadd4c000000}'
+			ProgID = s 'PyCOMTest.PyCOMTest2.1'
+			VersionIndependentProgID = s 'PyCOMTest.PyCOMTest2'
+			InprocServer32 = s %MODULE%
+			{
+				val ThreadingModel = s 'both'
+			}
+		}
+	}
+
+
+	PyCOMTest.SimpleCounter.1 = s 'PyCOMTest SimpleCounter Class'
+	{
+		CLSID = s '{b88dd310-bae8-11d0-ae86-76f2c1000000}'
+	}
+	PyCOMTest.SimpleCounter = s 'PyCOMTest SimpleCounter Class'
+	{
+		CLSID = s '{b88dd310-bae8-11d0-ae86-76f2c1000000}'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {b88dd310-bae8-11d0-ae86-76f2c1000000} = s 'PyCOMTest SimpleCounter Class'
+		{
+			val AppID = s '{5675eae0-5609-11d0-ae5f-cadd4c000000}'
+			ProgID = s 'PyCOMTest.SimpleCounter.1'
+			VersionIndependentProgID = s 'PyCOMTest.SimpleCounter'
+			InprocServer32 = s %MODULE%
+			{
+				val ThreadingModel = s 'both'
+			}
+		}
+	}
+
+}
