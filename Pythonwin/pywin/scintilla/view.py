@@ -258,7 +258,12 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
 	def OnNeedShown(self, std, extra):
 		notify = self.SCIUnpackNotifyMessage(extra)
-		self.EnsureCharsVisible(notify.position, notify.position + notify.length)
+		# OnNeedShown is called before an edit operation when
+		# text is folded (as it is possible the text insertion will happen
+		# in a folded region.)  As this happens _before_ the insert,
+		# we ignore the length (if we are at EOF, pos + length may
+		# actually be beyond the end of buffer)
+		self.EnsureCharsVisible(notify.position)
 
 	def EnsureCharsVisible(self, start, end = None):
 		if end is None: end = start
