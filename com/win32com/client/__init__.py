@@ -6,6 +6,7 @@
 # dispatch object, the known class will be used.  This contrasts
 # with dynamic.Dispatch behaviour, where dynamic objects are always used.
 import dynamic, CLSIDToClass, pythoncom
+import sys
 import pywintypes
 
 def __WrapDispatch(dispatch, userName = None, resultCLSID = None, typeinfo = None, \
@@ -289,9 +290,17 @@ class DispatchBaseClass:
 		elif type(self) == type(oobj): # An instance
 			oobj = oobj._oleobj_.QueryInterface(self.CLSID, pythoncom.IID_IDispatch) # Must be a valid COM instance
 		self.__dict__["_oleobj_"] = oobj # so we dont call __setattr__
-      # Provide a prettier name than the CLSID
+	# Provide a prettier name than the CLSID
 	def __repr__(self):
-		return "<win32com.gen_py.%s.%s>" % (__doc__, self.__class__.__name__)
+		# Need to get the docstring for the module for this class.
+		try:
+			mod_doc = sys.modules[self.__class__.__module__].__doc__
+		except KeyError:
+		  mod_doc = "<no module found>"
+		return "<win32com.gen_py.%s.%s>" % (mod_doc, self.__class__.__name__)
+	# Delegate comparison to the oleobjs, as they know how to do identity.
+	def __cmp__(self, other):
+		return cmp(self._oleobj_, other._oleobj_)
 
 	def _ApplyTypes_(self, dispid, wFlags, retType, argTypes, user, resultCLSID, *args):
 		return self._get_good_object_(apply(self._oleobj_.InvokeTypes, (dispid, 0, wFlags, retType, argTypes) + args), user, resultCLSID)
@@ -310,7 +319,7 @@ class DispatchBaseClass:
 		except KeyError:
 			raise AttributeError, attr
 		apply(self._oleobj_.Invoke, args + (value,) + defArgs)
-	  # XXX - These should be consolidated with dynamic.py versions.
+	# XXX - These should be consolidated with dynamic.py versions.
 	def _get_good_single_object_(self, obj, obUserName=None, resultCLSID=None):
 		if _PyIDispatchType==type(obj):
 			return Dispatch(obj, obUserName, resultCLSID, UnicodeToString=1)
