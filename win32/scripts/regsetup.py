@@ -384,7 +384,7 @@ def RegisterShellInfo(searchPaths):
 	# Set up a pointer to the .exe's
 	exePath = FindRegisterPythonExe("Python%s.exe" % suffix, searchPaths)
 	regutil.SetRegistryDefaultValue(".py", "Python.File", win32con.HKEY_CLASSES_ROOT)
-	regutil.RegisterShellCommand("Open", QuotedFileName(exePath)+" %1 %*", "&Run")
+	regutil.RegisterShellCommand("Open", QuotedFileName(exePath)+" \"%1\" %*", "&Run")
 	regutil.SetRegistryDefaultValue("Python.File\\DefaultIcon", "%s,0" % exePath, win32con.HKEY_CLASSES_ROOT)
 	
 	FindRegisterHelpFile("Python.hlp", searchPaths, "Main Python Documentation")
