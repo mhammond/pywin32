@@ -109,7 +109,14 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 	{
 		if (PyCom_InterfaceFromPyInstanceOrObject(obj, IID_IDispatch, (void **)&V_DISPATCH(var), FALSE))
 				V_VT(var) = VT_DISPATCH;
-		PyErr_Clear();
+		else {
+			PyErr_Clear();
+			// Try for IUnknown
+			if (PyCom_InterfaceFromPyInstanceOrObject(obj, IID_IUnknown, (void **)&V_UNKNOWN(var), FALSE))
+				V_VT(var) = VT_UNKNOWN;
+			else
+				PyErr_Clear();
+		}
 	}
 	else if (PyIBase::is_object(obj, &PyIDispatch::type))
 	{
