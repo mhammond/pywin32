@@ -56,29 +56,36 @@ PyObject *PyCImageList_Create( PyObject *self, PyObject *args )
 	BOOL bMask;
 	CImageList *pList = new PythonImageList();
 	if (PyArg_ParseTuple(args, "iiiii", 
-		&cx, // @pyparm int|cx||Dimension of each image, in pixels.
-		&cy, // @pyparm int|cy||Dimension of each image, in pixels.
-		&bMask, // @pyparm int|mask||TRUE if the image contains a mask; otherwise FALSE.
-		&nInitial, // @pyparm int|initial||Number of images that the image list initially contains.
-		&nGrow)) {// @pyparm int|grow||Number of images by which the image list can grow when the system needs to resize the list to make room for new images. This parameter represents the number of new images the resized image list can contain.
+			&cx, // @pyparm int|cx||Dimension of each image, in pixels.
+			&cy, // @pyparm int|cy||Dimension of each image, in pixels.
+			&bMask, // @pyparm int|mask||TRUE if the image contains a mask; otherwise FALSE.
+			&nInitial, // @pyparm int|initial||Number of images that the image list initially contains.
+			&nGrow)) // @pyparm int|grow||Number of images by which the image list can grow when the system needs to resize the list to make room for new images. This parameter represents the number of new images the resized image list can contain.
 		bRet = pList->Create(cx, cy, bMask, nInitial, nGrow);
-	} else if (PyArg_ParseTuple(args, "iiii", 
-		&nBitmap, // @pyparmalt1 int|bitmapId||Resource ID of the bitmap to be associated with the image list.
-		&cx, // @pyparmalt1 int|cx||Dimension of each image, in pixels.
-		&nGrow, // @pyparmalt1 int|grow||Number of images by which the image list can grow when the system needs to resize the list to make room for new images. This parameter represents the number of new images the resized image list can contain.
-		&crMask)) { // @pyparmalt1 int|crMask||Color used to generate a mask. Each pixel of this color in the specified bitmap is changed to black, and the corresponding bit in the mask is set to one.
-		bRet = pList->Create(nBitmap,cx,nGrow,crMask);
-	} else if (PyArg_ParseTuple(args, "siii", 
-		    &strBitmap, // @pyparmalt2 int|bitmapId||Resource ID of the bitmap to be associated with the image list.
-			&cx, // @pyparmalt2 int|cx||Dimension of each image, in pixels.
-			&nGrow, // @pyparmalt2 int|grow||Number of images by which the image list can grow when the system needs to resize the list to make room for new images. This parameter represents the number of new images the resized image list can contain.
-			&crMask)) { // @pyparmalt2 int|crMask||Color used to generate a mask. Each pixel of this color in the specified bitmap is changed to black, and the corresponding bit in the mask is set to one.
-		bRet = pList->Create(strBitmap,cx,nGrow,crMask);
-	} else {
-		GUI_BGN_SAVE;
-		delete pList;
-		GUI_END_SAVE;
-		RETURN_ERR("PyCImageList::Create() - bad argument list");
+	else {
+		PyErr_Clear();
+		if (PyArg_ParseTuple(args, "iiii", 
+				&nBitmap, // @pyparmalt1 int|bitmapId||Resource ID of the bitmap to be associated with the image list.
+				&cx, // @pyparmalt1 int|cx||Dimension of each image, in pixels.
+				&nGrow, // @pyparmalt1 int|grow||Number of images by which the image list can grow when the system needs to resize the list to make room for new images. This parameter represents the number of new images the resized image list can contain.
+				&crMask)) // @pyparmalt1 int|crMask||Color used to generate a mask. Each pixel of this color in the specified bitmap is changed to black, and the corresponding bit in the mask is set to one.
+			bRet = pList->Create(nBitmap,cx,nGrow,crMask);
+		else {
+			PyErr_Clear();
+			if (PyArg_ParseTuple(args, "siii", 
+					&strBitmap, // @pyparmalt2 int|bitmapId||Resource ID of the bitmap to be associated with the image list.
+					&cx, // @pyparmalt2 int|cx||Dimension of each image, in pixels.
+					&nGrow, // @pyparmalt2 int|grow||Number of images by which the image list can grow when the system needs to resize the list to make room for new images. This parameter represents the number of new images the resized image list can contain.
+					&crMask)) // @pyparmalt2 int|crMask||Color used to generate a mask. Each pixel of this color in the specified bitmap is changed to black, and the corresponding bit in the mask is set to one.
+				bRet = pList->Create(strBitmap,cx,nGrow,crMask);
+			else {
+				PyErr_Clear();
+				GUI_BGN_SAVE;
+				delete pList;
+				GUI_END_SAVE;
+				RETURN_ERR("PyCImageList::Create() - bad argument list");
+			}
+		}
 	}
 	if (!bRet) {
 		GUI_BGN_SAVE;
@@ -125,21 +132,28 @@ PyObject *PyCImageList_Add( PyObject *self, PyObject *args )
 		GUI_BGN_SAVE;
 		rc = pList->Add(CBitmap::FromHandle((HBITMAP)bmp1), CBitmap::FromHandle((HBITMAP)bmp2));
 		GUI_END_SAVE;
-	} else if (PyArg_ParseTuple(args, "ii", 
-			&bmp1, 	// @pyparmalt1 int|bitmap||Bitmap to use
-			&mask)) { // @pyparmalt1 int|color||Color to use for the mask.
-		if (!IsGdiHandleValid((HANDLE)bmp1))
-			RETURN_ERR("The bitmap handle is invalid");
-		GUI_BGN_SAVE;
-		rc = pList->Add(CBitmap::FromHandle((HBITMAP)bmp1), (COLORREF)mask);
-		GUI_END_SAVE;
-	} else if (PyArg_ParseTuple(args, "i", 
-			&hIcon)) {// @pyparmalt2 int|hIcon||Handle of an icon to add.
-		GUI_BGN_SAVE;
-		rc = pList->Add(hIcon);
-		GUI_END_SAVE;
 	} else {
-		RETURN_ERR("Add requires '(hbitmap, hbitmap)', 'hbitmap, color' or 'hicon'");
+		PyErr_Clear();
+		if (PyArg_ParseTuple(args, "ii", 
+				&bmp1, 	// @pyparmalt1 int|bitmap||Bitmap to use
+				&mask)) { // @pyparmalt1 int|color||Color to use for the mask.
+			if (!IsGdiHandleValid((HANDLE)bmp1))
+				RETURN_ERR("The bitmap handle is invalid");
+			GUI_BGN_SAVE;
+			rc = pList->Add(CBitmap::FromHandle((HBITMAP)bmp1), (COLORREF)mask);
+			GUI_END_SAVE;
+		} else {
+			PyErr_Clear();
+			if (PyArg_ParseTuple(args, "i", 
+					&hIcon)) {// @pyparmalt2 int|hIcon||Handle of an icon to add.
+				GUI_BGN_SAVE;
+				rc = pList->Add(hIcon);
+				GUI_END_SAVE;
+			} else {
+				PyErr_Clear();
+				RETURN_ERR("Add requires '(hbitmap, hbitmap)', 'hbitmap, color' or 'hicon'");
+			}
+		}
 	}
 	if (rc==-1)
 		RETURN_ERR("Add failed");

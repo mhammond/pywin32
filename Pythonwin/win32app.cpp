@@ -267,11 +267,14 @@ static PyObject *ui_load_cursor(PyObject *self, PyObject *args)
 	if ( PyArg_ParseTuple(args, "i",
 						   &cid)) // @pyparm int|cursorId||The ID of the cursor to load.
 		hc = GetApp()->LoadCursor(cid);
-	else if (PyArg_ParseTuple(args, "s",
+	else {
+		PyErr_Clear();
+		if (PyArg_ParseTuple(args, "s",
 						   &csid)) // @pyparmalt1 string|cursorId||The ID of the cursor to load.
-		hc = GetApp()->LoadCursor(csid);
-	else
-		RETURN_TYPE_ERR("The first param must be an integer or a string");
+			hc = GetApp()->LoadCursor(csid);
+		else
+			RETURN_TYPE_ERR("The first param must be an integer or a string");
+	}
 	if (hc==0)
 		RETURN_API_ERR("LoadCursor");
 	return PyInt_FromLong((long)hc);
@@ -286,11 +289,14 @@ static PyObject *ui_load_standard_cursor(PyObject *self, PyObject *args)
 	if ( PyArg_ParseTuple(args, "i",
 						   &cid)) // @pyparm int|cursorId||The ID of the cursor to load.
 		hc = GetApp()->LoadStandardCursor(MAKEINTRESOURCE(cid));
-	else if (PyArg_ParseTuple(args, "s", // @pyparmalt1 string|cursorId||The ID of the cursor to load.
+	else {
+		PyErr_Clear();
+		if (PyArg_ParseTuple(args, "s", // @pyparmalt1 string|cursorId||The ID of the cursor to load.
 						   &csid))
-		hc = GetApp()->LoadStandardCursor(csid);
-	else
-		RETURN_TYPE_ERR("The first param must be an integer or a string");
+			hc = GetApp()->LoadStandardCursor(csid);
+		else
+			RETURN_TYPE_ERR("The first param must be an integer or a string");
+	}
 	if (hc==0)
 		RETURN_API_ERR("LoadStandardCursor");
 	return PyInt_FromLong((long)hc);
