@@ -45,7 +45,7 @@ PyObject *PyIShellFolder::ParseDisplayName(PyObject *self, PyObject *args)
 	LPOLESTR lpszDisplayName;
 	ULONG pchEaten = (ULONG)-1;
 	ITEMIDLIST *ppidl;
-	ULONG pdwAttributes = -1;
+	ULONG pdwAttributes = 0;
 	if ( !PyArg_ParseTuple(args, "lOO|l:ParseDisplayName", &hwndOwner, &obpbcReserved,
 						   &oblpszDisplayName, &pdwAttributes) )
 		return NULL;
