@@ -8,6 +8,13 @@
 
 #include "stdio.h"
 #include "string.h"
+#include "initguid.h"
+
+// The CLSID of the Python test vtable component
+// {e743d9cd-cb03-4b04-b516-11d3a81c1597}
+DEFINE_GUID(CLSID_PythonTestPyCOMTest,
+0xe743d9cd, 0xcb03, 0x4b04, 0xb5, 0x16, 0x11, 0xd3, 0xa8, 0x1c, 0x15, 0x97);
+
 /////////////////////////////////////////////////////////////////////////////
 //
 
@@ -457,6 +464,37 @@ HRESULT CPyCOMTest::EarliestDate(DATE first, DATE second, DATE *pResult)
 		return E_POINTER;
 	*pResult = first <= second ? first : second;
 	return S_OK;
+}
+
+HRESULT CPyCOMTest::TestQueryInterface()
+{
+	IUnknown* pObj = 0;
+	IPyCOMTest * pCOMTest = 0;
+	HRESULT hr = S_OK;
+
+	MULTI_QI mqi[1] = {
+		&IID_IUnknown, NULL, E_FAIL
+	};
+
+	COSERVERINFO server = {
+		(DWORD)0, 0, (COAUTHINFO*)NULL, (DWORD)0
+	};
+
+	// Create an instance of the test server
+	hr = CoCreateInstanceEx(CLSID_PythonTestPyCOMTest, NULL, CLSCTX_LOCAL_SERVER, &server, 1, mqi);
+	if (FAILED(hr)) { goto exit; }
+	pObj = mqi[0].pItf;
+
+	// Query for the custom interface
+	hr = pObj->QueryInterface(IID_IPyCOMTest, (LPVOID*)&pCOMTest);
+	if (FAILED(hr)) { goto exit; }
+
+	hr = S_OK;
+
+exit:
+	if (pObj)     { pObj->Release(); pObj = 0; }
+	if (pCOMTest) { pCOMTest->Release(); pCOMTest = 0; }
+	return hr;
 }
 
 

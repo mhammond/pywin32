@@ -84,6 +84,7 @@ END_COM_MAP()
 	STDMETHOD(DoubleInOutString)(BSTR *str);
 	STDMETHOD(TestMyInterface)(IUnknown *t);
 	STDMETHOD(EarliestDate)(DATE first, DATE second, DATE *pResult);
+	STDMETHOD(TestQueryInterface)();
 	STDMETHOD(NotScriptable)(int *val);
 
 	// info associated to each session
