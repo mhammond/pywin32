@@ -157,7 +157,13 @@ class HLIRegisteredTypeLibrary(HLICOM):
 					subKey = win32api.RegEnumKey(key, num)
 				except win32api.error:
 					break
-				value = win32api.RegQueryValue(key, subKey)
+				hSubKey = win32api.RegOpenKey(key, subKey)
+				try:
+					value, typ = win32api.RegQueryValueEx(hSubKey, None)
+					if typ == win32con.REG_EXPAND_SZ:
+						value = win32api.ExpandEnvironmentStrings(value)
+				except win32api.error:
+					value = ""
 				if subKey=="HELPDIR":
 					helpPath = value
 				elif subKey=="Flags":
@@ -173,7 +179,13 @@ class HLIRegisteredTypeLibrary(HLICOM):
 								platform = win32api.RegEnumKey(lcidkey, lcidnum)
 							except win32api.error:
 								break
-							fname = win32api.RegQueryValue(lcidkey, platform)
+							try:
+								hplatform = win32api.RegOpenKey(lcidkey, platform)
+								fname, typ = win32api.RegQueryValueEx(hplatform, None)
+								if typ == win32con.REG_EXPAND_SZ:
+									fname = win32api.ExpandEnvironmentStrings(fname)
+							except win32api.error:
+								fname = ""
 							collected.append((lcid, platform, fname))
 							lcidnum = lcidnum + 1
 						win32api.RegCloseKey(lcidkey)

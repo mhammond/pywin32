@@ -53,6 +53,8 @@ def EnumKeys(root):
 		except win32api.error:
 			break
 		try:
+			# Note this doesn't handle REG_EXPAND_SZ, but the implementation
+			# here doesn't need to - that is handled as the data is read.
 			val = win32api.RegQueryValue(root, item)
 		except win32api.error:
 			val = None
@@ -102,7 +104,7 @@ def EnumTlbs(excludeFlags = 0):
 				for lcid, crap in EnumKeys(key3):
 					try:
 						lcid = int(lcid)
-					except ValueError: # crap in the registry!
+					except ValueError: # not an LCID entry
 						continue
 					# Only care about "{lcid}\win32" key - jump straight there.
 					try:
@@ -110,7 +112,9 @@ def EnumTlbs(excludeFlags = 0):
 					except win32api.error:
 						continue
 					try:
-						dll = win32api.RegQueryValue(key4, None)
+						dll, typ = win32api.RegQueryValueEx(key4, None)
+						if typ==win32con.REG_EXPAND_SZ:
+							dll = win32api.ExpandEnvironmentStrings(dll)
 					except win32api.error:
 						dll = None
 					spec = TypelibSpec(iid, lcid, major, minor, flags)
