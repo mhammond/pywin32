@@ -4,6 +4,9 @@
 # and displays a message box when clicked.  Thus, it demonstrates
 # how to plug in to Outlook itself, and hook outlook events.
 #
+# Additionally, each time a new message arrives in the Inbox, a message
+# is printed with the subject of the message.
+#
 # To register the addin, simply execute:
 #   outlookAddin.py
 # This will install the COM server, and write the necessary
@@ -43,6 +46,15 @@ class ButtonEvent:
         win32ui.MessageBox("Hello from Python")
         return cancel
 
+class FolderEvent:
+    def OnItemAdd(self, item):
+        try:
+            print "An item was added to the inbox with subject:", item.Subject
+        except AttributeError:
+            print "An item was added to the inbox, but it has no subject! - ", repr(item)
+
+
+
 class OutlookAddin:
     _com_interfaces_ = ['_IDTExtensibility2']
     _public_methods_ = []
@@ -52,21 +64,21 @@ class OutlookAddin:
     _reg_policy_spec_ = "win32com.server.policy.EventHandlerPolicy"
     def OnConnection(self, application, connectMode, addin, custom):
         print "OnConnection", application, connectMode, addin, custom
-        bars = application.ActiveExplorer().CommandBars
-        toolbar = bars.Item("Standard")
-        item = toolbar.Controls.Add(Type=constants.msoControlButton, Temporary=True)
-        # Hook events for the item
-        item = self.toolbarButton = DispatchWithEvents(item, ButtonEvent)
-        item.Caption="Python"
-        item.TooltipText = "Click for Python"
-        item.Enabled = True
+        # ActiveExplorer may be none when started without a UI (eg, WinCE synchronisation)
+        activeExplorer = application.ActiveExplorer()
+        if activeExplorer is not None:
+            bars = activeExplorer.CommandBars
+            toolbar = bars.Item("Standard")
+            item = toolbar.Controls.Add(Type=constants.msoControlButton, Temporary=True)
+            # Hook events for the item
+            item = self.toolbarButton = DispatchWithEvents(item, ButtonEvent)
+            item.Caption="Python"
+            item.TooltipText = "Click for Python"
+            item.Enabled = True
 
         # And now, for the sake of demonstration, setup a hook for all new messages
-        print "Session is", application.Session
         inbox = application.Session.GetDefaultFolder(constants.olFolderInbox)
-        print "inbox is", inbox
-        # sob - can't really make MAPI events work :(  Must be a typelib dependency we don't handle.
-        #inbox = DispatchWithEvents(inbox, FolderEvent)
+        self.inboxItems = DispatchWithEvents(inbox.Items, FolderEvent)
 
     def OnDisconnection(self, mode, custom):
         print "OnDisconnection"
