@@ -13,6 +13,17 @@
 #define OUT
 #endif
 
+// Do we want to use the builtin Unicode object?
+// If defined, we use the standard builtin type.
+// If not define, we have our own Unicode type
+// (but that doesnt work seamlessly with PyString objects)
+
+// For 1.6 builds, this will be ON.
+// For 1.5 builds, this will be OFF
+#if (PY_VERSION_HEX >= 0x01060000)
+#define PYWIN_USE_PYUNICODE
+#endif
+
 
 #ifdef FREEZE_PYWINTYPES
 	/* The pywintypes module is being included in a frozen .EXE/.DLL */
@@ -33,10 +44,8 @@
 #	endif
 #endif
 
-#include "tchar.h"
+#include <tchar.h>
 #ifdef MS_WINCE
-#define PYWIN_USE_PYUNICODE
-
 // Having trouble making these work for Palm PCs??
 #ifndef PYWIN_HPC /* Palm PC */
 #define NO_PYWINTYPES_TIME
@@ -65,8 +74,6 @@ PYWINTYPES_EXPORT PyObject *PyWin_SetBasicCOMError(HRESULT hr);
 /*
 ** String/UniCode support
 */
-// #define PYTHON_WIDESTRINGS
-
 #ifdef PYWIN_USE_PYUNICODE
 	/* Python has built-in Unicode String support */
 #define PyUnicodeType PyUnicode_Type
@@ -77,15 +84,13 @@ PYWINTYPES_EXPORT PyObject *PyWin_SetBasicCOMError(HRESULT hr);
 /* If a Python Unicode object exists, disable it. */
 #ifdef PyUnicode_Check
 #undef PyUnicode_Check
-#endif
-
 #define PyUnicode_Check(ob)	((ob)->ob_type == &PyUnicodeType)
+#endif /* PyUnicode_Check */
 
 	/* Need our custom Unicode object */
 extern PYWINTYPES_EXPORT PyTypeObject PyUnicodeType; // the Type for PyUnicode
 #define PyUnicode_Check(ob)	((ob)->ob_type == &PyUnicodeType)
 
-extern PYWINTYPES_EXPORT int PyUnicode_Size(PyObject *op);
 
 // PyUnicode_AsUnicode clashes with the standard Python name - 
 // so if we are not using Python Unicode objects, we hide the
@@ -95,11 +100,16 @@ extern PYWINTYPES_EXPORT int PyUnicode_Size(PyObject *op);
 
 #endif /* PYWIN_USE_PYUNICODE */
 
+extern PYWINTYPES_EXPORT int PyUnicode_Size(PyObject *op);
+
 #ifndef NO_PYWINTYPES_BSTR
 // Given a PyObject (string, Unicode, etc) create a "BSTR" with the value
 PYWINTYPES_EXPORT BOOL PyWinObject_AsBstr(PyObject *stringObject, BSTR *pResult, BOOL bNoneOK = FALSE, DWORD *pResultLen = NULL);
 // And free it when finished.
 PYWINTYPES_EXPORT void PyWinObject_FreeBstr(BSTR pResult);
+
+PYWINTYPES_EXPORT PyObject *PyWinObject_FromBstr(const BSTR bstr, BOOL takeOwnership=FALSE);
+
 #endif // NO_PYWINTYPES_BSTR
 
 // Given a string or Unicode object, get WCHAR characters.
@@ -138,10 +148,6 @@ PYWINTYPES_EXPORT PyObject *PyString_FromUnicode( const OLECHAR *str );
 PYWINTYPES_EXPORT PyObject *PyUnicodeObject_FromString(const char *string);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromOLECHAR(const OLECHAR * str);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromOLECHAR(const OLECHAR * str, int numChars);
-
-#ifndef NO_PYWINTYPES_BSTR
-PYWINTYPES_EXPORT PyObject *PyWinObject_FromBstr(const BSTR bstr, BOOL takeOwnership=FALSE);
-#endif
 
 #ifndef MS_WINCE
 // String support for buffers allocated via CoTaskMemAlloc and CoTaskMemFree

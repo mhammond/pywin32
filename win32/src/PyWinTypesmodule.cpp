@@ -247,9 +247,10 @@ PYWINTYPES_EXPORT PyObject *PyWin_NewUnicode(PyObject *self, PyObject *args)
 {
 #ifdef PYWIN_USE_PYUNICODE
 	char *string;
-	if (!PyArg_ParseTuple(args, "s", &string))
+	int slen;
+	if (!PyArg_ParseTuple(args, "t#", &string, &slen))
 		return NULL;
-    return PyUnicode_FromString(string);
+    return PyUnicode_DecodeMBCS(string, slen, NULL);
 #else
 	PyObject *obString;
 	// @pyparm string|str||The string to convert.

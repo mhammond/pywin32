@@ -15,12 +15,72 @@
 #endif
 
 
+#ifndef MS_WINCE
+
+BOOL PyWinObject_AsTaskAllocatedWCHAR(PyObject *stringObject, WCHAR **ppResult, BOOL bNoneOK /*= FALSE*/,DWORD *pResultLen /*= NULL*/)
+{
+	BOOL rc = TRUE;
+	if (PyString_Check(stringObject)) {
+		int cch=PyString_Size(stringObject);
+		const char *buf = PyString_AsString(stringObject);
+		if (buf==NULL) return FALSE;
+
+		/* compute the max possible size ("size" may contain multi-byte chars) */
+		int wideSize = cch*2;
+
+		*ppResult = (LPWSTR)CoTaskMemAlloc(wideSize);
+		if (*ppResult)
+			/* convert and get the final character size */
+			cch = MultiByteToWideChar(CP_ACP, 0, buf, cch, *ppResult, wideSize);
+		if (*ppResult && pResultLen) *pResultLen = cch;
+	} else if (PyUnicode_Check(stringObject)) {
+		// copy the value, including embedded NULLs
 #if defined(PYWIN_USE_PYUNICODE)
+		WCHAR *v = PyUnicode_AS_UNICODE(stringObject);
+		UINT cch = PyUnicode_GET_SIZE(stringObject);
+#else
+		WCHAR *v = ((PyUnicode *)stringObject)->m_bstrValue;
+		UINT cch = SysStringLen(v);
+#endif
+		*ppResult = (WCHAR *)CoTaskMemAlloc(cch * sizeof(WCHAR));
+		if (*ppResult)
+			memcpy(*ppResult, v, cch * sizeof(WCHAR));
+		if (*ppResult && pResultLen) *pResultLen = cch;
+
+	} else if (stringObject == Py_None) {
+		if (bNoneOK) {
+			*ppResult = NULL;
+		} else {
+			PyErr_SetString(PyExc_TypeError, "None is not a valid string in this context");
+			rc = FALSE;
+		}
+	} else {
+		PyErr_SetString(PyExc_TypeError, "The object can not be converted to a Unicode object");
+		rc = FALSE;
+	}
+	if (rc && !ppResult) {
+		PyErr_SetString(PyExc_MemoryError, "Allocating WCHAR via CoTaskMemAlloc");
+		return FALSE;
+	}
+	return rc;
+}
+
+void PyWinObject_FreeTaskAllocatedWCHAR(WCHAR * str)
+{
+	CoTaskMemFree(str);
+}
+
+#endif /* MS_WINCE */
+
+#if defined(PYWIN_USE_PYUNICODE)
+
+// Remove this message once it no longer surprises us :-)
+#pragma message("Using Python built-in Unicode object")
 
 /* Implement our Windows Unicode API using the Python widestring object */
 PyObject *PyUnicodeObject_FromString(const char *string)
 {
-	return (PyObject *)PyUnicode_FromString(string);
+	return (PyObject *)PyUnicode_DecodeMBCS(string, strlen(string), NULL);
 }
 
 // Convert a WCHAR string to "char *"
@@ -59,7 +119,7 @@ BOOL PyWinObject_AsString(PyObject *stringObject, char **pResult, BOOL bNoneOK /
 	}
 	// Convert the string if a WIDE string.
 	if (PyUnicode_Check(stringObject))
-		stringObject = tempObject = PyUnicode_ToUTF8(stringObject);
+		stringObject = tempObject = PyUnicode_EncodeMBCS(PyUnicode_AS_UNICODE(stringObject), PyUnicode_GET_SIZE(stringObject), NULL);
 
 	if (!PyString_Check(stringObject)) {
 		PyErr_SetString(PyExc_TypeError, "The object must be a string or unicode object");
@@ -88,7 +148,7 @@ PyObject *PyWinObject_FromOLECHAR(const OLECHAR * str, int numChars)
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
-	return PyUnicode_FromDataAndSize((OLECHAR *)str, numChars);
+	return PyUnicode_FromWideChar((OLECHAR *)str, numChars);
 }
 
 // No size info avail.
@@ -98,17 +158,32 @@ PyObject *PyWinObject_FromOLECHAR(const OLECHAR * str)
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
-	return PyUnicode_FromDataAndSize( (OLECHAR *)str, wcslen(str) );
+	return PyUnicode_FromWideChar( (OLECHAR *)str, wcslen(str) );
 }
 
 PyObject *PyString_FromUnicode( const OLECHAR *str )
 {
-	PyObject *obUnicode = PyUnicode_FromDataAndSize((OLECHAR *)str, wcslen(str));
-	if (obUnicode==NULL) return NULL;
-	PyObject *rc = PyUnicode_ToUTF8(obUnicode);
-	Py_DECREF(obUnicode);
-	return rc;
+	PyObject *uo = PyWinObject_FromOLECHAR(str);
+	return PyUnicode_EncodeMBCS(PyUnicode_AS_UNICODE(uo), PyUnicode_GET_SIZE(uo), NULL);
 }
+
+int PyUnicode_Size(PyObject *op)
+{
+	if (!PyUnicode_Check(op)) {
+		PyErr_BadInternalCall();
+		return -1;
+	}
+	return PyUnicode_GET_SIZE(op);
+}
+
+#ifndef NO_PYWINTYPES_BSTR
+PyObject *PyWinObject_FromBstr(const BSTR bstr, BOOL takeOwnership /*=FALSE*/)
+{
+	PyObject *ret = PyUnicode_FromWideChar(bstr, SysStringLen(bstr));
+	if (takeOwnership) SysFreeString(bstr);
+	return ret;
+}
+#endif // NO_PYWINTYPES_BSTR
 
 #else /* not PYWIN_USE_PYUNICODE */
 
@@ -148,118 +223,6 @@ WCHAR *PyUnicode_AsUnicode(PyObject *op)
 }
 **/
 
-// String conversions
-// Convert a Python string object to a BSTR - allow embedded NULLs, etc.
-static BOOL PyString_AsBstr(PyObject *stringObject, BSTR *pResult)
-{
-	int size=PyString_Size(stringObject);
-	const char *buf = PyString_AsString(stringObject);
-	if (buf==NULL) return FALSE;
-
-	/* compute the max possible size ("size" may contain multi-byte chars) */
-	int wideSize = size*2;
-
-	LPWSTR wstr = (LPWSTR)malloc(wideSize);
-	if (wstr==NULL) {
-		PyErr_SetString(PyExc_MemoryError, "No memory for wide string buffer");
-		return FALSE;
-	}
-	/* convert and get the final character size */
-	size = MultiByteToWideChar(CP_ACP, 0, buf, size, wstr, wideSize);
-	*pResult = SysAllocStringLen(wstr, size);
-	if (*pResult==NULL)
-		PyErr_SetString(PyExc_MemoryError, "allocating BSTR");
-	free(wstr);
-	return *pResult != NULL;
-}
-
-// Convert a Python object to a BSTR - allow embedded NULLs, None, etc.
-BOOL PyWinObject_AsBstr(PyObject *stringObject, BSTR *pResult, BOOL bNoneOK /*= FALSE*/,DWORD *pResultLen /*= NULL*/)
-{
-	BOOL rc = TRUE;
-	if (PyString_Check(stringObject))
-		rc = PyString_AsBstr(stringObject, pResult);
-	else if (PyUnicode_Check(stringObject))
-	{
-		// copy the value, including embedded NULLs
-		BSTR v = ((PyUnicode *)stringObject)->m_bstrValue;
-		*pResult = SysAllocStringLen(v, SysStringLen(v));
-	}
-	else if (stringObject == Py_None) {
-		if (bNoneOK) {
-			*pResult = NULL;
-		} else {
-			PyErr_SetString(PyExc_TypeError, "None is not a valid string in this context");
-			rc = FALSE;
-		}
-	} else {
-		PyErr_SetString(PyExc_TypeError, "The object can not be converted to a Unicode object");
-		rc = FALSE;
-	}
-	if (rc && !pResult) {
-		PyErr_SetString(PyExc_MemoryError, "Allocating BSTR");
-		return FALSE;
-	}
-	if (rc && pResultLen) *pResultLen = SysStringLen(*pResult);
-	return rc;
-}
-
-void PyWinObject_FreeBstr(BSTR str)
-{
-	SysFreeString(str);
-}
-
-#ifndef MS_WINCE
-
-BOOL PyWinObject_AsTaskAllocatedWCHAR(PyObject *stringObject, WCHAR **ppResult, BOOL bNoneOK /*= FALSE*/,DWORD *pResultLen /*= NULL*/)
-{
-	BOOL rc = TRUE;
-	if (PyString_Check(stringObject)) {
-		int cch=PyString_Size(stringObject);
-		const char *buf = PyString_AsString(stringObject);
-		if (buf==NULL) return FALSE;
-
-		/* compute the max possible size ("size" may contain multi-byte chars) */
-		int wideSize = cch*2;
-
-		*ppResult = (LPWSTR)CoTaskMemAlloc(wideSize);
-		if (*ppResult)
-			/* convert and get the final character size */
-			cch = MultiByteToWideChar(CP_ACP, 0, buf, cch, *ppResult, wideSize);
-		if (*ppResult && pResultLen) *pResultLen = cch;
-	} else if (PyUnicode_Check(stringObject)) {
-		// copy the value, including embedded NULLs
-		BSTR v = ((PyUnicode *)stringObject)->m_bstrValue;
-		UINT cch = SysStringLen(v);
-		*ppResult = (WCHAR *)CoTaskMemAlloc(SysStringLen(v) * sizeof(WCHAR));
-		if (*ppResult)
-			memcpy(*ppResult, v, cch * sizeof(WCHAR));
-		if (*ppResult && pResultLen) *pResultLen = cch;
-
-	} else if (stringObject == Py_None) {
-		if (bNoneOK) {
-			*ppResult = NULL;
-		} else {
-			PyErr_SetString(PyExc_TypeError, "None is not a valid string in this context");
-			rc = FALSE;
-		}
-	} else {
-		PyErr_SetString(PyExc_TypeError, "The object can not be converted to a Unicode object");
-		rc = FALSE;
-	}
-	if (rc && !ppResult) {
-		PyErr_SetString(PyExc_MemoryError, "Allocating WCHAR via CoTaskMemAlloc");
-		return FALSE;
-	}
-	return rc;
-}
-
-void PyWinObject_FreeTaskAllocatedWCHAR(WCHAR * str)
-{
-	CoTaskMemFree(str);
-}
-
-#endif MS_WINCE
 
 // Convert a WCHAR string to "char *"
 //  If len is known, pass it, else -1
@@ -837,9 +800,13 @@ PyObject * PyUnicode::lowerFunc(PyObject *ob, PyObject *args)
 	return ((PyUnicode *)ob)->lower();
 }
 
+#endif /* PYWIN_USE_PYUNICODE */
+
 ///////////////////////////////////////////////////////////
 //
 // Some utilities etc
+#ifndef NO_PYWINTYPES_BSTR
+
 PyWin_AutoFreeBstr::PyWin_AutoFreeBstr( BSTR bstr /*= NULL*/ )
  : m_bstr(bstr)
 {
@@ -857,7 +824,73 @@ void PyWin_AutoFreeBstr::SetBstr( BSTR bstr )
 	m_bstr = bstr;
 }
 
-#endif /* PYWIN_USE_PYUNICODE */
+// String conversions
+// Convert a Python string object to a BSTR - allow embedded NULLs, etc.
+static BOOL PyString_AsBstr(PyObject *stringObject, BSTR *pResult)
+{
+	int size=PyString_Size(stringObject);
+	const char *buf = PyString_AsString(stringObject);
+	if (buf==NULL) return FALSE;
+
+	/* compute the max possible size ("size" may contain multi-byte chars) */
+	int wideSize = size*2;
+
+	LPWSTR wstr = (LPWSTR)malloc(wideSize);
+	if (wstr==NULL) {
+		PyErr_SetString(PyExc_MemoryError, "No memory for wide string buffer");
+		return FALSE;
+	}
+	/* convert and get the final character size */
+	size = MultiByteToWideChar(CP_ACP, 0, buf, size, wstr, wideSize);
+	*pResult = SysAllocStringLen(wstr, size);
+	if (*pResult==NULL)
+		PyErr_SetString(PyExc_MemoryError, "allocating BSTR");
+	free(wstr);
+	return *pResult != NULL;
+}
+
+// Convert a Python object to a BSTR - allow embedded NULLs, None, etc.
+BOOL PyWinObject_AsBstr(PyObject *stringObject, BSTR *pResult, BOOL bNoneOK /*= FALSE*/,DWORD *pResultLen /*= NULL*/)
+{
+	BOOL rc = TRUE;
+	if (PyString_Check(stringObject))
+		rc = PyString_AsBstr(stringObject, pResult);
+	else if (PyUnicode_Check(stringObject))
+	{
+		// copy the value, including embedded NULLs
+#if defined(PYWIN_USE_PYUNICODE)
+		BSTR v = PyUnicode_AS_UNICODE(stringObject);
+		*pResult = SysAllocStringLen(v, PyUnicode_GET_SIZE(v));
+#else
+		BSTR v = ((PyUnicode *)stringObject)->m_bstrValue;
+		*pResult = SysAllocStringLen(v, SysStringLen(v));
+#endif
+	}
+	else if (stringObject == Py_None) {
+		if (bNoneOK) {
+			*pResult = NULL;
+		} else {
+			PyErr_SetString(PyExc_TypeError, "None is not a valid string in this context");
+			rc = FALSE;
+		}
+	} else {
+		PyErr_SetString(PyExc_TypeError, "The object can not be converted to a Unicode object");
+		rc = FALSE;
+	}
+	if (rc && !pResult) {
+		PyErr_SetString(PyExc_MemoryError, "Allocating BSTR");
+		return FALSE;
+	}
+	if (rc && pResultLen) *pResultLen = SysStringLen(*pResult);
+	return rc;
+}
+
+void PyWinObject_FreeBstr(BSTR str)
+{
+	SysFreeString(str);
+}
+
+#endif // NO_PYWINTYPES_BSTR
 
 // String conversions
 // Convert a Python object to a WCHAR - allow embedded NULLs, None, etc.
