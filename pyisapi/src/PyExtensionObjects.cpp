@@ -325,10 +325,13 @@ PyObject * PyECB::GetServerVariable(PyObject *self, PyObject *args)
 {
 	BOOL bRes = FALSE;
 	TCHAR * variable = NULL;
+	PyObject *def = NULL;
 
 	PyECB * pecb = (PyECB *) self;
 	// @pyparm string|variable||
-	if (!PyArg_ParseTuple(args, "s:GetServerVariable", &variable))
+	// @pyparm object|default||If specified, the function will return this
+	// value instead of raising an error if the variable could not be fetched.
+	if (!PyArg_ParseTuple(args, "s|O:GetServerVariable", &variable, &def))
 		return NULL;
 
 	char buf[8192] = "";
@@ -338,8 +341,13 @@ PyObject * PyECB::GetServerVariable(PyObject *self, PyObject *args)
 		Py_BEGIN_ALLOW_THREADS
 		bRes = pecb->m_pcb->GetServerVariable(variable, buf, &bufsize);
 		Py_END_ALLOW_THREADS
-		if (!bRes)
+		if (!bRes) {
+			if (def) {
+				Py_INCREF(def);
+				return def;
+			}
 			return SetPyECBError("GetServerVariable");
+		}
 	}
 	return PyString_FromStringAndSize(buf, bufsize);
 }
