@@ -252,15 +252,15 @@ static PyObject *PyADsEnumerateNext(PyObject *self, PyObject *args)
 	ADD_IID(IID_IADsOpenDSObject);
 	ADD_IID(IID_IADsSearch);
 	ADD_IID(IID_IADsPropertyList);
-	ADD_IID(IID_IDSObject);
-	ADD_IID(IID_IDSSearch);
-	ADD_IID(IID_IDSAttrMgmt);
+//	ADD_IID(IID_IDSObject);
+//	ADD_IID(IID_IDSSearch);
+//	ADD_IID(IID_IDSAttrMgmt);
 
 	if ( PyCom_RegisterClientType(&PyIDirectoryObject::type, &IID_IDirectoryObject) != 0 ) return;
 	ADD_IID(IID_IDirectoryObject);
 
 	ADD_IID(IID_IDirectorySearch);
-	ADD_IID(IID_IDirectoryAttrMgmt);
+//	ADD_IID(IID_IDirectoryAttrMgmt);
 
 	AddIID(d, "CLSID_ADsDSOObject", CLSID_ADsDSOObject);
 	AddIID(d, "DBGUID_LDAPDialect", DBGUID_LDAPDialect);

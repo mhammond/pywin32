@@ -22,7 +22,7 @@
 // NOTE - The standard "activscp.h" header is not good enough -
 // need to use IE4 SDK or MSVC6 etc
 #include "activscp.h"
-#include "multinfo.h"
+// #include "multinfo.h"
 
 
 #if !WIN16
