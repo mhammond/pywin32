@@ -29,6 +29,9 @@
 
   REVISION HISTORY:
 
+  12/99 - Pass errno instead of GetLastError(),
+          WNetAddConnection2() allows a few NULLs       mh
+  6/99ish - CE changes.                                 mh
   10/98	- Original version, ascii only.		Scott Cothrell, Cisco Systems Inc.
   12/98 - Unicode support added.			SC
   1/99	- Windows CE conditionals started. Not tested.	SC
@@ -107,7 +110,7 @@ PyWNetAddConnection2 (PyObject *self, PyObject *args)
 	DWORD	ErrorNo;		// holds the returned error number, if any
 	NETRESOURCE  NetResource;
 
-	if (!PyArg_ParseTuple(args,"isssss",&Type,&LocalName,&RemoteName,&ProviderName,&Username,&Password))
+	if (!PyArg_ParseTuple(args,"isszzz",&Type,&LocalName,&RemoteName,&ProviderName,&Username,&Password))
 		return NULL;
 
 // Build the NETRESOURCE structure
@@ -128,7 +131,7 @@ PyWNetAddConnection2 (PyObject *self, PyObject *args)
 
 	if (ErrorNo != NO_ERROR)
 	{
-		return ReturnNetError("WNetAddConnection2", GetLastError());
+		return ReturnNetError("WNetAddConnection2", ErrorNo);
 	}
 
 	Py_INCREF(Py_None);
@@ -167,7 +170,7 @@ PyWNetCancelConnection2 (PyObject *self, PyObject *args)
 
 	if (ErrorNo != NO_ERROR)
 	{
-		return ReturnNetError("WNetCancelConnection2", GetLastError());
+		return ReturnNetError("WNetCancelConnection2", ErrorNo);
 	}
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -209,7 +212,7 @@ PyWNetOpenEnum(PyObject *self, PyObject *args)
 	Py_END_ALLOW_THREADS
 
 	if (Errno != NO_ERROR)
-		return(ReturnNetError("WNetOpenEnum", GetLastError()));
+		return(ReturnNetError("WNetOpenEnum", Errno));
 
 	return (PyWinObject_FromHANDLE(hEnum));
 };
@@ -243,7 +246,7 @@ PyWNetCloseEnum(PyObject *self, PyObject *args)
 	Py_END_ALLOW_THREADS
 
 	if(Errno != NO_ERROR)
-		return(ReturnNetError("WNetCloseEnum", GetLastError()));
+		return(ReturnNetError("WNetCloseEnum", Errno));
 
 	Py_INCREF(Py_None);
 	return Py_None;
