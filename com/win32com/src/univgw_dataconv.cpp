@@ -499,10 +499,14 @@ PyObject * dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 		}
 		case VT_DISPATCH | VT_BYREF:
 		{
+			PyObject *obIID = PyTuple_GET_ITEM(PyTuple_GET_ITEM(obArgTypes, i), 3);
+			IID iid = IID_IDispatch;
+			if (obIID != NULL && obIID!=Py_None)
+				PyWinObject_AsIID(obIID, &iid);
 			IDispatch **pdisp = *(IDispatch ***)pbArg;
 			if (!PyCom_InterfaceFromPyInstanceOrObject(
 				obOutValue,
-				IID_IDispatch,
+				iid,
 				(void **)pdisp,
 				TRUE))
 			{
@@ -513,10 +517,14 @@ PyObject * dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 		}
 		case VT_UNKNOWN | VT_BYREF:
 		{
+			PyObject *obIID = PyTuple_GET_ITEM(PyTuple_GET_ITEM(obArgTypes, i), 3);
+			IID iid = IID_IUnknown;
+			if (obIID != NULL && obIID!=Py_None)
+				PyWinObject_AsIID(obIID, &iid);
 			IUnknown **punk = *(IUnknown ***)pbArg;
 			if (!PyCom_InterfaceFromPyInstanceOrObject(
 				obOutValue,
-				IID_IUnknown,
+				iid,
 				(void **)punk, TRUE))
 			{
 				goto Error;
