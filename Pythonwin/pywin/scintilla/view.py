@@ -123,8 +123,11 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
 		parent.HookNotify(self.OnSavePointReached, SCN_SAVEPOINTREACHED)
 		parent.HookNotify(self.OnSavePointLeft, SCN_SAVEPOINTLEFT)
+		parent.HookNotify(self.OnBraceMatch, SCN_CHECKBRACE)
 		self.HookCommand(self.OnCmdViewWS, win32ui.ID_VIEW_WHITESPACE)
+		self.HookCommand(self.OnCmdViewEOL, win32ui.ID_VIEW_EOL)
 		self.HookCommandUpdate(self.OnUpdateViewWS, win32ui.ID_VIEW_WHITESPACE)
+		self.HookCommandUpdate(self.OnUpdateViewEOL, win32ui.ID_VIEW_EOL)
 		self.HookCommand(self.OnCmdViewFixedFont, win32ui.ID_VIEW_FIXED_FONT)
 		self.HookCommandUpdate(self.OnUpdateViewFixedFont, win32ui.ID_VIEW_FIXED_FONT)
 		self.HookCommand(self.OnCmdFileLocate, win32ui.ID_FILE_LOCATE)
@@ -182,6 +185,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		configManager.configure(self, self._GetSubConfigNames())
 		if configManager.last_error:
 			win32ui.MessageBox(configManager.last_error, "Configuration Error")
+		self.bMatchBraces = GetEditorOption("Match Braces", 1)
 
 	def OnDestroy(self, msg):
 		self.bindings.close()
@@ -199,6 +203,25 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		self.SendScintilla(win32con.WM_VSCROLL,
 						   (vpos<<16) | win32con.SB_THUMBPOSITION,
 						   0)
+
+	def OnBraceMatch(self, std, extra):
+		if not self.bMatchBraces: return
+		curPos = self.SCIGetCurrentPos()
+		charBefore = ' '
+		if curPos: charBefore = self.SCIGetCharAt(curPos-1)
+		charAt = self.SCIGetCharAt(curPos)
+		braceAtPos = braceOpposite = -1
+		if charBefore in "[](){}": braceAtPos = curPos-1
+		if braceAtPos==-1:
+			if charAt in "[](){}": braceAtPos = curPos
+		if braceAtPos != -1:
+			braceOpposite = self.SCIBraceMatch(braceAtPos, 0)
+		if braceAtPos != -1 and braceOpposite==-1:
+			self.SCIBraceBadHighlight(braceAtPos)
+		else:
+			# either clear them both or set them both.
+			self.SCIBraceHighlight(braceAtPos, braceOpposite)
+
 
 	# Helper to add an event to a menu.
 	def AppendMenu(self, menu, text="", event=None, flags = None, checked=0):
@@ -235,6 +258,12 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		self.SCISetViewWS(not viewWS)
 	def OnUpdateViewWS(self, cmdui): # Update the tick on the UI.
 		cmdui.SetCheck(self.SCIGetViewWS())
+		cmdui.Enable()
+	def OnCmdViewEOL(self, cmd, code): # Handle the menu command
+		viewEOL = self.SCIGetViewEOL()
+		self.SCISetViewEOL(not viewEOL)
+	def OnUpdateViewEOL(self, cmdui): # Update the tick on the UI.
+		cmdui.SetCheck(self.SCIGetViewEOL())
 		cmdui.Enable()
 
 	def OnCmdViewFixedFont(self, cmd, code): # Handle the menu command
@@ -317,7 +346,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		return 1
 
 	def _AutoComplete(self):
-		self.SCICancel() # Cancel tooltips and old auto-complete lists.
+		self.SCIAutoCCancel() # Cancel old auto-complete lists.
 		# First try and get an object without evaluating calls
 		ob = self._GetObjectAtPos(bAllowCalls = 0)
 		# If that failed, try and process call or indexing to get the object.
