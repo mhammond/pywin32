@@ -5,14 +5,26 @@
 # * Uses a ListView control.
 # * Dynamically resizes content.
 # * Uses a second worker thread to fill the list.
+# * Demostrates support for windows XP themes.
 
-import win32gui
+# If you are on Windows XP, and specify a '--noxp' argument, you will see:
+# * alpha-blend issues with icons
+# * The buttons are "old" style, rather than based on the XP theme.
+# Hence, using:
+#   import winxpgui as win32gui
+# is recommened.
+# Please report any problems.
+import sys
+if "--noxp" in sys.argv:
+    import win32gui
+else:
+    import winxpgui as win32gui
 import win32api
 import win32con
 import struct, array
 import commctrl
 import Queue
-import sys, os
+import os
 
 IDC_SEARCHTEXT = 1024
 IDC_BUTTON_SEARCH = 1025
@@ -110,7 +122,7 @@ class LVCOLUMN(_WIN32MASKEDSTRUCT):
 class DemoWindow:
     def __init__(self):
         win32gui.InitCommonControls()
-        self.hinst = win32api.GetModuleHandle(None)
+        self.hinst = win32gui.dllhandle
         self.list_data = {}
 
     def _RegisterWndClass(self):
@@ -120,7 +132,7 @@ class DemoWindow:
             message_map = {}
             wc = win32gui.WNDCLASS()
             wc.SetDialogProc() # Make it a dialog class.
-            self.hinst = wc.hInstance = win32api.GetModuleHandle(None)
+            wc.hInstance = self.hinst
             wc.lpszClassName = className
             wc.style = win32con.CS_VREDRAW | win32con.CS_HREDRAW
             wc.hCursor = win32gui.LoadCursor( 0, win32con.IDC_ARROW )
@@ -190,6 +202,24 @@ class DemoWindow:
         child_ex_style = win32gui.SendMessage(self.hwndList, commctrl.LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0)
         child_ex_style |= commctrl.LVS_EX_FULLROWSELECT
         win32gui.SendMessage(self.hwndList, commctrl.LVM_SETEXTENDEDLISTVIEWSTYLE, 0, child_ex_style)
+
+        # Add an image list - use the builtin shell folder icon - this
+        # demonstrates the problem with alpha-blending of icons on XP if
+        # winxpgui is not used in place of win32gui.
+        il = win32gui.ImageList_Create(
+                    win32api.GetSystemMetrics(win32con.SM_CXSMICON),
+                    win32api.GetSystemMetrics(win32con.SM_CYSMICON),
+                    commctrl.ILC_COLOR32 | commctrl.ILC_MASK,
+                    1, # initial size
+                    0) # cGrow
+
+        shell_dll = os.path.join(win32api.GetSystemDirectory(), "shell32.dll")
+        large, small = win32gui.ExtractIconEx(shell_dll, 4, 1)
+        win32gui.ImageList_ReplaceIcon(il, -1, small[0])
+        win32gui.DestroyIcon(small[0])
+        win32gui.DestroyIcon(large[0])
+        win32gui.SendMessage(self.hwndList, commctrl.LVM_SETIMAGELIST,
+                             commctrl.LVSIL_SMALL, il)
 
         # Setup the list control columns.
         lvc = LVCOLUMN(mask = commctrl.LVCF_FMT | commctrl.LVCF_WIDTH | commctrl.LVCF_TEXT | commctrl.LVCF_SUBITEM)
