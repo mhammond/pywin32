@@ -289,9 +289,9 @@ PyObject *MyCallNamedPipe(PyObject *self, PyObject *args)
 		&readBufSize, // @pyparm int|bufSize||The size of the result buffer to allocate for the read.
 		&timeOut)) // @pyparm int|timeOut||Specifies the number of milliseconds to wait for the named pipe to be available. In addition to numeric values, the following special values can be specified.
 		// @flagh Value|Meaning 
-		// win32pipe.NMPWAIT_NOWAIT|Does not wait for the named pipe. If the named pipe is not available, the function returns an error. 
-		// win32pipe.NMPWAIT_WAIT_FOREVER|Waits indefinitely. 
-		// win32pipe.NMPWAIT_USE_DEFAULT_WAIT|Uses the default time-out specified in a call to the CreateNamedPipe function. 
+		// @flag win32pipe.NMPWAIT_NOWAIT|Does not wait for the named pipe. If the named pipe is not available, the function returns an error. 
+		// @flag win32pipe.NMPWAIT_WAIT_FOREVER|Waits indefinitely. 
+		// @flag win32pipe.NMPWAIT_USE_DEFAULT_WAIT|Uses the default time-out specified in a call to the CreateNamedPipe function. 
 		return NULL;
 
 	if (!PyWinObject_AsTCHAR(obPipeName, &szPipeName))
