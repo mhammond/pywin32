@@ -124,12 +124,10 @@ BOOL PyObject_AsTYPEDESC( PyObject *ob, TYPEDESC *pDesc, void *pMore)
 				goto done;
 			if (!PyObject_AsTYPEDESC(obExtra, pDesc->lptdesc, pMore))
 				goto done;
-			rc = TRUE;
 			break;
 		case VT_CARRAY:
 			if (!PyObject_AsARRAYDESC(obExtra, &pDesc->lpadesc, pMore))
 				goto done;
-			rc = TRUE;
 			break;
 		case VT_USERDEFINED:
 			if (!PyInt_Check(obExtra)) {
@@ -137,11 +135,11 @@ BOOL PyObject_AsTYPEDESC( PyObject *ob, TYPEDESC *pDesc, void *pMore)
 				goto done;
 			}
 			pDesc->hreftype = (HREFTYPE)PyInt_AsLong(obExtra);
-			rc = TRUE;
 			break;
 		default:
 			break;
 	}
+	rc = TRUE;
 done:
 	Py_XDECREF(obType);
 	Py_XDECREF(obExtra);
