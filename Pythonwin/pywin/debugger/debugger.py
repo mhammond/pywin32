@@ -552,6 +552,10 @@ class Debugger(debugger_parent):
 		debugger_parent.user_line(self, frame)
 
 	def stop_here(self, frame):
+		if self.isInitialBreakpoint:
+			self.isInitialBreakpoint = 0
+			self.set_continue()
+			return 0
 		if frame is self.botframe and self.skipBotFrame == SKIP_RUN:
 			self.set_continue()
 			return 0
@@ -564,6 +568,10 @@ class Debugger(debugger_parent):
 		if type(cmd) not in [types.StringType, types.CodeType]:
 			raise TypeError, "Only strings can be run"
 		self.last_cmd_debugged = cmd
+		if start_stepping:
+			self.isInitialBreakpoint = 0
+		else:
+			self.isInitialBreakpoint = 1
 		try:
 			if globals is None:
 				import __main__
@@ -579,7 +587,10 @@ class Debugger(debugger_parent):
 				try:
 					if start_stepping: self.skipBotFrame = SKIP_STEP
 					else: self.skipBotFrame = SKIP_RUN
-					_doexec(cmd, globals, locals)
+					if sys.version_info > (2,2):
+						exec cmd in globals, locals
+					else:
+						_doexec(cmd, globals, locals)
 				except bdb.BdbQuit:
 					pass
 			finally:
