@@ -527,7 +527,10 @@ static HRESULT CreateRegisteredTearOff(PyObject *pPyInstance, PyGatewayBase *bas
 
 	// Lookup vtable using iid.
 	PyObject *obIID = PyWinObject_FromIID(iid);
+        if (!obIID)
+            return PyCom_SetCOMErrorFromPyException(iid);
 	PyObject *obVTable = PyDict_GetItem(g_obRegisteredVTables, obIID); // NOTE: NO reference added to obVTable
+        Py_DECREF(obIID);
 	if (!obVTable)
 	{
 		OLECHAR oleRes[128];
