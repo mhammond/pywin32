@@ -147,6 +147,27 @@ def install():
         directory_created(make_dir)
         os.mkdir(make_dir)
 
+    try:
+        create_shortcut
+    except NameError:
+        # todo: create shortcut with win32all
+        pass
+    else:
+        try:
+            # use bdist_wininst builtins to create a shortcut.
+            # XXX CSIDL_COMMON_PROGRAMS only available works on NT/2000/XP:
+            fldr = get_special_folder_path("CSIDL_COMMON_PROGRAMS")
+            dst = os.path.join(fldr, "Python %d.%d\\PythonWin.lnk" % \
+                               (sys.version_info[0], sys.version_info[1]))
+            create_shortcut(os.path.join(lib_dir, "Pythonwin\\Pythonwin.exe"),
+                            "The Pythonwin IDE",
+                            dst)
+            file_created(dst)
+        except Exception, details:
+            print details
+        else:
+            print "Shortcut for Pythonwin created"
+
     print "The pywin32 extensions were successfully installed."
 
 def usage():
