@@ -557,7 +557,7 @@ PyObject *PyIDispatchEx::InvokeEx(PyObject *self, PyObject *args)
 	PyObject *types = Py_None;
 	PyObject *obReturnDesc = Py_None;
 	PyObject *obCaller = Py_None;
-	if (!PyArg_ParseTuple(args, "lliO|OOO:DeleteMemberByName",
+	if (!PyArg_ParseTuple(args, "lliO|OOO:InvokeEx",
 		&dispid, // @pyparm int|dispid||
 		&lcid,  // @pyparm int|lcid||
 		&flags, // @pyparm int|flags||
