@@ -30,7 +30,7 @@ class HierListCLBRModule(hierlist.HierListItem):
 
 class HierListCLBRItem(hierlist.HierListItem):
     def __init__(self, name, file, lineno, suffix = ""):
-        self.name = name
+        self.name = str(name)
         self.file = file
         self.lineno = lineno
         self.suffix = suffix
