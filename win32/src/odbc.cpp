@@ -1414,8 +1414,17 @@ static PyObject *processOutput(cursorObject *cur)
 
                     //cbRequired += ob->rcode - ob->vsize;
                     cbRequired += 32767;    // Fix that works for SQL Anywhere 5.0 driver.
-                    
-                    cbRead = ob->vsize;
+                    if (ob->vtype == SQL_C_CHAR)
+					{
+						// We want to ignore the intermediate
+						// NULL characters SQLGetData() gives us.
+						// (silly, silly)
+						cbRead = ob->vsize - 1;
+					}
+					else
+					{
+						cbRead = ob->vsize;
+					}
                 }
 
             } while (rc == SQL_SUCCESS_WITH_INFO); 
