@@ -95,8 +95,54 @@ def test():
     if cap.get_captured().find("Traceback")<0:
         raise error("Could not find a traceback in stderr: %r" % (cap.get_captured(),))
 
+try:
+    import logging
+except ImportError:
+    logging = None
+if logging is not None:
+    import win32com
+    class TestLogHandler(logging.Handler):
+        def __init__(self):
+            self.num_emits = 0
+            logging.Handler.__init__(self)
+        def emit(self, record):
+            self.num_emits += 1
+            return
+            print "--- record start"
+            print self.format(record)
+            print "--- record end"
+    
+    def testLogger():
+        assert not hasattr(win32com, "logger")
+        handler = TestLogHandler()
+        formatter = logging.Formatter('%(message)s')
+        handler.setFormatter(formatter)
+        log = logging.getLogger("win32com_test")
+        log.addHandler(handler)
+        win32com.logger = log
+        # Now throw some exceptions!
+        # Native interfaces
+        com_server = wrap(TestServer(), pythoncom.IID_IStream)
+        try:
+            com_server.Commit(0)
+            raise RuntimeError, "should have failed"
+        except pythoncom.error:
+            pass
+        assert handler.num_emits == 1, handler.num_emits
+        handler.num_emits = 0 # reset
+
+        com_server = Dispatch(wrap(TestServer()))
+        try:
+            com_server.Commit(0)
+            raise RuntimeError, "should have failed"
+        except pythoncom.error:
+            pass
+        assert handler.num_emits == 1, handler.num_emits
+    
 if __name__=='__main__':
     test()
+    if logging is not None:
+        testLogger()
     from util import CheckClean
     CheckClean()
     print "error semantic tests worked"
