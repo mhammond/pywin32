@@ -7,6 +7,7 @@
 #include "structmember.h"
 
 #ifndef NO_PYWINTYPES_SECURITY
+BOOL (WINAPI *setsecuritydescriptorcontrol)(PSECURITY_DESCRIPTOR, SECURITY_DESCRIPTOR_CONTROL, SECURITY_DESCRIPTOR_CONTROL)=NULL;
 
 void FreeSD_DACL(PSECURITY_DESCRIPTOR psd)
 {
@@ -574,6 +575,28 @@ PyObject *PySECURITY_DESCRIPTOR::GetSecurityDescriptorControl(PyObject *self, Py
 	return Py_BuildValue("(ii)", Control, dwRevision);
 }
 
+// @pymethod |PySECURITY_DESCRIPTOR|SetSecurityDescriptorControl|Sets the control bit flags related to inheritance for a security descriptor
+// @comm Only exists on Windows 2000 or later
+PyObject *PySECURITY_DESCRIPTOR::SetSecurityDescriptorControl(PyObject *self, PyObject *args)
+{
+	SECURITY_DESCRIPTOR_CONTROL ControlBitsOfInterest, ControlBitsToSet;
+	PySECURITY_DESCRIPTOR *This = (PySECURITY_DESCRIPTOR *)self;
+	PSECURITY_DESCRIPTOR psd;
+	if (setsecuritydescriptorcontrol==NULL){
+		PyErr_SetString(PyExc_NotImplementedError, "SetSecurityDescriptorControl does not exist on this platform");
+		return NULL;
+		}
+	// @pyparm int|ControlBitsOfInterest||Bitmask of flags to be modified
+	// @pyparm int|ControlBitsToSet||Bitmask containing flag values to set
+	if (!PyArg_ParseTuple(args, "ll:SetSecurityDescriptorControl", &ControlBitsOfInterest, &ControlBitsToSet))
+		return NULL;
+	psd = This->GetSD();
+	if (!(*setsecuritydescriptorcontrol)(psd, ControlBitsOfInterest, ControlBitsToSet))
+		return PyWin_SetAPIError("SetSecurityDescriptorControl");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 // @pymethod |PySECURITY_DESCRIPTOR|IsValid|Determines if the security descriptor is valid.
 PyObject *PySECURITY_DESCRIPTOR::IsValid(PyObject *self, PyObject *args)
 {
@@ -608,6 +631,7 @@ static struct PyMethodDef PySECURITY_DESCRIPTOR_methods[] = {
 	{"IsValid", PySECURITY_DESCRIPTOR::IsValid, 1}, // @pymeth IsValid|Determine if security descriptor is valid (IsValidSecurityDescriptor)
 	{"GetLength", PySECURITY_DESCRIPTOR::GetLength, 1}, // @pymeth GetLength|Return length of security descriptor (GetSecurityDescriptorLength)
 	{"IsSelfRelative", PySECURITY_DESCRIPTOR::IsSelfRelative, 1}, // @pymeth IsSelfRelative|Returns true if SD is self-relative, false if absolute
+	{"SetSecurityDescriptorControl", PySECURITY_DESCRIPTOR::SetSecurityDescriptorControl, 1}, // @pymeth SetSecurityDescriptorControl|Sets control bitmask of a security descriptor
 	{NULL}
 };
 

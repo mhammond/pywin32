@@ -6,10 +6,18 @@
 #endif 
 
 #ifndef NO_PYWINTYPES_SECURITY
-
-extern BOOL (WINAPI *addaccessallowedaceex)(PACL, DWORD, DWORD, DWORD, PSID);
-extern BOOL (WINAPI *addaccessdeniedaceex)(PACL, DWORD, DWORD, DWORD, PSID);
+typedef BOOL (WINAPI *addacefunc)(PACL,DWORD,DWORD,PSID);
+typedef BOOL (WINAPI *addaceexfunc)(PACL, DWORD, DWORD, DWORD, PSID);
+typedef BOOL (WINAPI *addobjectacefunc)(PACL,DWORD,DWORD,DWORD,GUID*,GUID*,PSID);
+extern addacefunc addaccessallowedace;
+extern addacefunc addaccessdeniedace;
+extern addaceexfunc addaccessallowedaceex;
+extern addaceexfunc addaccessdeniedaceex;
+extern addobjectacefunc addaccessallowedobjectace;
+extern addobjectacefunc addaccessdeniedobjectace;
 extern BOOL (WINAPI *addauditaccessaceex)(PACL, DWORD, DWORD, DWORD, PSID, BOOL, BOOL);
+extern BOOL (WINAPI *addauditaccessobjectace)(PACL,DWORD,DWORD,DWORD,GUID*,GUID*,PSID,BOOL,BOOL);
+extern BOOL (WINAPI *setsecuritydescriptorcontrol)(PSECURITY_DESCRIPTOR, SECURITY_DESCRIPTOR_CONTROL, SECURITY_DESCRIPTOR_CONTROL);
 
 // To do - rationalize PySECURITY_ATTRIBUTES and SECURITY_DESCRIPTOR
 // objects.
@@ -77,6 +85,7 @@ public:
 	static PyObject *IsValid(PyObject *self, PyObject *args);
 	static PyObject *GetLength(PyObject *self, PyObject *args);
 	static PyObject *GetSecurityDescriptorControl(PyObject *self, PyObject *args);
+	static PyObject *SetSecurityDescriptorControl(PyObject *self, PyObject *args);
 	static PyObject *IsSelfRelative(PyObject *self, PyObject *args);
 
 #ifdef _MSC_VER
@@ -137,12 +146,24 @@ class PYWINTYPES_EXPORT PyACL : public PyObject
 {
 public:
 	ACL *GetACL() {return (ACL *)buf;}
-	void SetACL(ACL *pacl)
+	BOOL SetACL(ACL *pacl)
 	{
-		if (buf)
-			free(buf);
-		buf = (ACL *)malloc(pacl->AclSize);
+		WORD origbufsize=((ACL *)buf)->AclSize;
+		if (pacl->AclSize<=origbufsize){
+			ZeroMemory(buf,origbufsize);
+			memcpy(buf,pacl,pacl->AclSize);
+			((ACL *)buf)->AclSize=origbufsize;
+			return TRUE;
+			}
+		void *buf_save=buf; // so we can restore state if allocation fails
+		buf = realloc(buf,pacl->AclSize);
+		if (buf==NULL){
+			PyErr_Format(PyExc_MemoryError,"SetACL: Unable to reallocate ACL to size %d",pacl->AclSize);
+			buf=buf_save;
+			return FALSE;
+			}
 		memcpy(buf,pacl,pacl->AclSize);
+		return TRUE;
 	}
 
 	PyACL(int bufSize, int aclrev);
@@ -163,10 +184,13 @@ public:
 	static PyObject *IsValid(PyObject *self, PyObject *args);
 	static PyObject *AddAccessAllowedAce(PyObject *self, PyObject *args);
 	static PyObject *AddAccessAllowedAceEx(PyObject *self, PyObject *args);
+	static PyObject *AddAccessAllowedObjectAce(PyObject *self, PyObject *args);
 	static PyObject *AddAccessDeniedAce(PyObject *self, PyObject *args);
 	static PyObject *AddAccessDeniedAceEx(PyObject *self, PyObject *args);
+	static PyObject *AddAccessDeniedObjectAce(PyObject *self, PyObject *args);
 	static PyObject *AddAuditAccessAce(PyObject *self, PyObject *args);
 	static PyObject *AddAuditAccessAceEx(PyObject *self, PyObject *args);
+	static PyObject *AddAuditAccessObjectAce(PyObject *self, PyObject *args);
 	static PyObject *GetAclSize(PyObject *self, PyObject *args);
 	static PyObject *GetAclRevision(PyObject *self, PyObject *args);
 	static PyObject *GetAceCount(PyObject *self, PyObject *args);
@@ -187,7 +211,6 @@ public:
 
 protected:
 	void *buf;
-	int bufSize;
 };
 
 #endif // NO_PYWINTYPES_SECURITY 

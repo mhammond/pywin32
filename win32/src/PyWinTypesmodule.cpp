@@ -551,16 +551,35 @@ BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 	if (hmodule==NULL)
 		hmodule=LoadLibrary("AdvAPI32.dll");
 	if (hmodule){
+		fp=GetProcAddress(hmodule,"AddAccessAllowedAce");
+		if (fp)
+			addaccessallowedace=(addacefunc)(fp);
+		fp=GetProcAddress(hmodule,"AddAccessDeniedAce");
+		if (fp)
+			addaccessdeniedace=(addacefunc)(fp);
 		fp=GetProcAddress(hmodule,"AddAccessAllowedAceEx");
 		if (fp)
-			addaccessallowedaceex=(BOOL (WINAPI *)(PACL, DWORD, DWORD, DWORD, PSID))(fp);
+			addaccessallowedaceex=(addaceexfunc)(fp);
+		fp=GetProcAddress(hmodule,"AddAccessAllowedObjectAce");
+		if (fp)
+			addaccessallowedobjectace=(addobjectacefunc)(fp);
 		fp=GetProcAddress(hmodule,"AddAccessDeniedAceEx");
 		if (fp)
-			addaccessdeniedaceex=(BOOL (WINAPI *)(PACL, DWORD, DWORD, DWORD, PSID))(fp);
+			addaccessdeniedaceex=(addaceexfunc)(fp);
+		fp=GetProcAddress(hmodule,"AddAccessDeniedObjectAce");
+		if (fp)
+			addaccessdeniedobjectace= (addobjectacefunc)(fp);
 		fp=GetProcAddress(hmodule,"AddAuditAccessAceEx");
 		if (fp)
 			addauditaccessaceex=(BOOL (WINAPI *)(PACL, DWORD, DWORD, DWORD, PSID, BOOL, BOOL))(fp);
+		fp=GetProcAddress(hmodule,"AddAuditAccessObjectAce");
+		if (fp)
+			addauditaccessobjectace=(BOOL (WINAPI *)(PACL,DWORD,DWORD,DWORD,GUID*,GUID*,PSID,BOOL,BOOL))(fp);
 		}
+		fp=GetProcAddress(hmodule,"SetSecurityDescriptorControl");
+		if (fp)
+			setsecuritydescriptorcontrol=(BOOL (WINAPI *)(PSECURITY_DESCRIPTOR, SECURITY_DESCRIPTOR_CONTROL, SECURITY_DESCRIPTOR_CONTROL))(fp);
+
 #endif // NO_PYWINTYPES_SECURITY
 	switch (dwReason) {
 		case DLL_PROCESS_ATTACH: {
