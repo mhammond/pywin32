@@ -1185,6 +1185,34 @@ done:
 	return ret;
 }
 
+PyObject * PyWinObject_FromWCHARMultiple(WCHAR *multistring)
+{
+	PyObject *obelement, *ret=NULL;
+	// takes a consecutive sequence of NULL terminated unicode strings,
+	// terminated by an additional NULL and returns a list
+	int elementlen;
+	if (multistring==NULL){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	ret=PyList_New(0);
+	if (ret==NULL)
+		return NULL;
+	elementlen=wcslen(multistring);
+	do{
+		obelement=PyWinObject_FromWCHAR(multistring, elementlen);
+		if ((obelement==NULL)||(PyList_Append(ret,obelement)==-1)){
+			Py_DECREF(ret);
+			return NULL;
+			}
+		Py_DECREF(obelement);
+		multistring+=elementlen+1;
+		elementlen=wcslen(multistring);
+		}
+	while (elementlen>0);
+	return ret;
+}
+		
 // @pymethod (dict,...)|win32print|EnumPrinterDrivers|Lists installed printer drivers
 static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 {
@@ -1265,7 +1293,7 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 		case 3:
 			di3=(DRIVER_INFO_3W *)buf;
 			for (i=0; i<return_cnt; i++){
-				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u}",
+				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u,s:u,s:O&,s:u,s:u}",
 					"Version",di3->cVersion,
 					"Name",di3->pName,
 					"Environment",di3->pEnvironment,
@@ -1273,8 +1301,7 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 					"DataFile",di3->pDataFile,
 					"ConfigFile",di3->pConfigFile,
 					"HelpFile", di3->pHelpFile,
-					"DependentFiles",di3->pDependentFiles,
-					// ???? pDependentFiles can contain multiple null-terminated strings, need to parse them out ????
+					"DependentFiles",PyWinObject_FromWCHARMultiple,di3->pDependentFiles,
 					"MonitorName",di3->pMonitorName,
 					"DefaultDataType",di3->pDefaultDataType);
 				if (tuple_item==NULL){
@@ -1758,8 +1785,7 @@ static PyObject *PyDeviceCapabilities(PyObject *self, PyObject *args)
 			break;
 			}
 		// @flag DC_MEDIATYPES|Sequence of ints, DMMEDIA_* constants
-		case DC_MEDIATYPES:{
-			// need to add	DMMEDIA_STANDARD, DMMEDIA_GLOSSY, DMMEDIA_TRANSPARENCY, DMMEDIA_USER to win32con 
+		case DC_MEDIATYPES:{ 
 			DWORD *pdword;
 			retsize=sizeof(DWORD);
 			bufsize=result*retsize;
