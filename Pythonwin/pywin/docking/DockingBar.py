@@ -57,6 +57,7 @@ class DockingBar(window.Wnd):
 
 	def CreateWindow(self, parent, childCreator, title, id, style=win32con.WS_CHILD | win32con.WS_VISIBLE | afxres.CBRS_LEFT, childCreatorArgs=()):
 		assert not ((style & afxres.CBRS_SIZE_FIXED) and (style & afxres.CBRS_SIZE_DYNAMIC)), "Invalid style"
+		self.rectClose = self.rectBorder = self.rectGripper = self.rectTracker = 0,0,0,0
 
 		# save the style
 		self._obj_.dwStyle = style & afxres.CBRS_ALL
