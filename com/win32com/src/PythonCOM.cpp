@@ -43,6 +43,7 @@ extern PyObject *pythoncom_GetRecordFromGuids(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_loadtypelib(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_loadregtypelib(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_registertypelib(PyObject *self, PyObject *args);
+extern PyObject *pythoncom_unregistertypelib(PyObject *self, PyObject *args);
 #ifndef MS_WINCE
 extern PyObject *pythoncom_querypathofregtypelib(PyObject *self, PyObject *args);
 #endif // MS_WINCE
@@ -1304,6 +1305,7 @@ static struct PyMethodDef pythoncom_methods[]=
 	{ "ReadClassStg",        pythoncom_ReadClassStg, 1}, // @pymeth ReadClassStg|Reads a CLSID from a storage object
 	{ "RecoverFromID",       pythoncom_RecoverFromID, 1 },
 	{ "RegisterTypeLib",     pythoncom_registertypelib, 1}, // @pymeth RegisterTypeLib|Adds information about a type library to the system registry.
+	{ "UnRegisterTypeLib",     pythoncom_unregistertypelib, 1}, // @pymeth UnRegisterTypeLib|Removes a type library from the system registry.
 #ifndef MS_WINCE
 	{ "RegisterActiveObject",pythoncom_RegisterActiveObject, 1 }, // @pymeth RegisterActiveObject|Register an object as the active object for its class
 	{ "RevokeActiveObject",  pythoncom_RevokeActiveObject, 1 },   // @pymeth RevokeActiveObject|Ends an object’s status as active.

@@ -822,7 +822,7 @@ PyObject *pythoncom_registertypelib(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsBstr(obHelpDir, &bstrHelpDir, TRUE))
 		goto done;
 
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obTypeLib, IID_ITypeLib, (void **)pLib, FALSE))
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obTypeLib, IID_ITypeLib, (void **)&pLib, FALSE))
 		goto done;
 
 	{ // scope to avoid warning about var decl and goto.
@@ -852,6 +852,44 @@ done:
 	// interfaces, including dual interfaces. This information is required to create 
 	// instances of these interfaces. Coclasses are not registered (that is, 
 	// RegisterTypeLib does not write any values to the CLSID key of the coclass). 
+}
+
+
+// @pymethod <o PyUnicode>|pythoncom|UnRegisterTypeLib|Unregister a Type Library.
+PyObject *pythoncom_unregistertypelib(PyObject *self, PyObject *args)
+{
+	PyObject *obIID;
+	int major, minor;
+	LCID lcid = LOCALE_USER_DEFAULT;
+	SYSKIND syskind = SYS_WIN32;
+	// @pyparm <o PyIID>|iid||The IID of the type library.
+	// @pyparm int|versionMajor||The major version number of the library
+	// @pyparm int|versionMinor||The minor version number of the library
+	// @pyparm int|lcid|LOCALE_USER_DEFAULT|The locale ID to use.
+	// @pyparm int|syskind|SYS_WIN32|The target operating system.
+	if (!PyArg_ParseTuple(args, "Oii|ii",
+		&obIID,
+		&major,
+		&minor,
+		&lcid,
+		&syskind))
+		return NULL;
+
+	CLSID clsid;
+	if (!PyWinObject_AsIID(obIID, &clsid))
+		return NULL;
+
+	PY_INTERFACE_PRECALL;
+	// WARNING: Requires Win95 OSR2 or later!!!
+	HRESULT hr = UnRegisterTypeLib(clsid, major, minor, lcid, syskind);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+        Py_INCREF(Py_None);
+	return Py_None;
+	// @comm Removes type library information from the system registry.
+	// Use this API to allow applications to properly uninstall themselves.
+	// In-process objects typically call this API from DllUnregisterServer.
 }
 
 #ifndef MS_WINCE
