@@ -913,13 +913,12 @@ BOOLAPI SetWindowText(HWND hwnd, TCHAR *text);
 static PyObject *PyGetWindowText(PyObject *self, PyObject *args)
 {
     HWND hwnd;
-    TCHAR *buffer;
     int len;
-    
-	buffer = (TCHAR *) malloc(sizeof(TCHAR) * 200);
+   
+	TCHAR buffer[512];
 	if (!PyArg_ParseTuple(args, "l", &hwnd))
 		return NULL;
-    len = GetWindowText(hwnd, buffer, 200);
+    len = GetWindowText(hwnd, buffer, sizeof(buffer)/sizeof(TCHAR));
     if (len == 0) return PyUnicodeObject_FromString("");
 	return PyWinObject_FromTCHAR(buffer, len);
 }
@@ -1128,6 +1127,7 @@ static PyObject *PyUnregisterClass(PyObject *self, PyObject *args)
 %native (UnregisterClass) PyUnregisterClass;
 
 %{
+// @pyswig |PumpMessages|Runs a message loop until a WM_QUIT message is received.
 static PyObject *PyPumpMessages(PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ""))
@@ -1144,10 +1144,40 @@ static PyObject *PyPumpMessages(PyObject *self, PyObject *args)
 
 	Py_INCREF(Py_None);
 	return Py_None;
+	// @xref <om win32gui.PumpWaitingMessages>
 }
+
+// @pyswig int|PumpWaitingMessages|Pumps all waiting messages for the current thread.
+// @rdesc Returns 1 if a WM_QUIT message was received, else 0
+static PyObject *PyPumpWaitingMessages(PyObject *self, PyObject *args)
+{
+	UINT firstMsg = 0, lastMsg = 0;
+	if (!PyArg_ParseTuple (args, "|ii:PumpWaitingMessages", &firstMsg, &lastMsg))
+		return NULL;
+	// @pyseeapi PeekMessage and DispatchMessage
+
+    MSG msg;
+	long result = 0;
+	// Read all of the messages in this next loop, 
+	// removing each message as we read it.
+	Py_BEGIN_ALLOW_THREADS
+	while (PeekMessage(&msg, NULL, firstMsg, lastMsg, PM_REMOVE)) {
+		// If it's a quit message, we're out of here.
+		if (msg.message == WM_QUIT) {
+			result = 1;
+			break;
+		}
+		// Otherwise, dispatch the message.
+		DispatchMessage(&msg); 
+	} // End of PeekMessage while loop
+	// @xref <om win32gui.PumpMessages>
+	Py_END_ALLOW_THREADS
+	return PyInt_FromLong(result);
+}
+
 %}
-// @pyswig |PumpMessages|Runs a message loop until a WM_QUIT message is received.
 %native (PumpMessages) PyPumpMessages;
+%native (PumpWaitingMessages) PyPumpWaitingMessages;
 
 // DELETE ME!
 %{
@@ -1311,17 +1341,48 @@ static PyObject *PyNKDbgPrintfW(PyObject *self, PyObject *args)
 
 // DAVID ASCHER DAA
 
-// Need to put the documentation!
+// Need to complete the documentation!
 
+// @pyswig int|GetSystemMenu|
+// @pyparm int|hwnd||The handle to the window
+// @pyparm int|bRevert||
+// @rdesc The result is a HMENU to the menu.
 HMENU GetSystemMenu(HWND hWnd, BOOL bRevert); 
+
+// @pyswig |DrawMenuBar|
+// @pyparm int|hwnd||The handle to the window
 BOOLAPI DrawMenuBar(HWND hWnd);
+
+// @pyswig |MoveWindow|
 BOOLAPI MoveWindow(HWND hWnd, int X, int Y, int nWidth, int nHeight, BOOL bRepaint);
+// @pyparm int|hwnd||The handle to the window
+// @pyparm int|x||
+// @pyparm int|y||
+// @pyparm int|width||
+// @pyparm int|height||
+// @pyparm int|bRepaint||
 #ifndef MS_WINCE
+// @pyswig |CloseWindow|
 BOOLAPI CloseWindow(HWND hWnd);
 #endif
+
+// @pyswig |DeleteMenu|
+// @pyparm int|hmenu||The handle to the menu
+// @pyparm int|position||The position to delete.
+// @pyparm int|flags||
 BOOLAPI DeleteMenu(HMENU hMenu, UINT uPosition, UINT uFlags);
+
+// @pyswig |RemoveMenu|
+// @pyparm int|hmenu||The handle to the menu
+// @pyparm int|position||The position to delete.
+// @pyparm int|flags||
 BOOLAPI RemoveMenu(HMENU hMenu, UINT uPosition, UINT uFlags);
+
+// @pyswig int|CreateMenu|
+// @rdesc The result is a HMENU to the new menu.
 HMENU CreateMenu();
+// @pyswig int|CreatePopupMenu|
+// @rdesc The result is a HMENU to the new menu.
 HMENU CreatePopupMenu(); 
 %{
 #include "commdlg.h"
@@ -1335,6 +1396,7 @@ PyObject *Pylpstr(PyObject *self, PyObject *args) {
 %}
 %native (lpstr) Pylpstr;
 
+// @pyswig int|CommDlgExtendedError|
 DWORD CommDlgExtendedError(void);
 
 %typemap (python, in) OPENFILENAME *INPUT (int size, char buffer[200]){
@@ -1346,6 +1408,22 @@ DWORD CommDlgExtendedError(void);
 	}
 	$target = ( OPENFILENAME *)PyString_AS_STRING($source);
 }
+
+// @pyswig int|ExtractIcon|
+// @pyparm int|hinstance||
+// @pyparm string/<o PyUnicode>|moduleName||
+// @pyparm int|index||
+// @comm You must destroy the icon handle returned by calling the <om win32gui.DestroyIcon> function. 
+// @rdesc The result is a HICON.
+HICON ExtractIcon(HINSTANCE hinst, TCHAR *modName, UINT index);
+
+// @pyswig |DestroyIcon|
+// @pyparm int|hicon||The icon to destroy.
+BOOLAPI DestroyIcon( HICON hicon);
+
+
+// @pyswig int|GetOpenFileName|Creates an Open dialog box that lets the user specify the drive, directory, and the name of a file or set of files to open.
+// @rdesc If the user presses OK, the function returns TRUE.  Otherwise, use CommDlgExtendedError for error details.
 
 BOOL GetOpenFileName(OPENFILENAME *INPUT);
 
