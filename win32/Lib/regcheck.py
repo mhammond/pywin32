@@ -131,12 +131,6 @@ def CheckRegistry(verbose=0):
 	CheckRegisteredExe("Python.exe")
 	CheckRegisteredExe("Pythonwin.exe")
 
-	# Main DLL entry
-	try:
-		os.stat(win32api.RegQueryValue(defaultRootKey , regutil.BuildDefaultPythonKey() + "\\Dll"))
-	except (os.error,win32api.error):
-		print "DLL entry not set correctly"
-
 if __name__=='__main__':
 	import sys
 	if len(sys.argv)>1 and sys.argv[1]=='-q':
