@@ -14,6 +14,13 @@
 #include "Python.h"
 #include "intobject.h"
 
+// Python 1.5.2 doesn't have PyObject_New
+// PyObject_NEW is not *quite* as safe, but seem to work fine
+// (as all win32all for 1.5.2 used it!
+#ifndef PyObject_New 
+#define PyObject_New PyObject_NEW
+#endif
+
 #define DBI_EXPORT
 
 #include "dbi.h"
@@ -47,7 +54,11 @@ static PyObject *makeDbiTypeTP(PyObject *args, PyTypeObject *ty)
 static void dbiDealloc(PyObject *self)
 {
 	Py_DECREF(((DbiContainer *) self)->objectOf);
+#ifdef PyObject_Del // see top of file for 1.5.2 comments
 	PyObject_Del(self);
+#else
+	PyMem_DEL(self);
+#endif
 }
 
 static PyMethodDef noMethods[] =

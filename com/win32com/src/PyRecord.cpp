@@ -62,7 +62,14 @@ public:
 	}
 	~PyRecordBuffer()
 	{
-		if (data) PyMem_Free((void *)data);
+		if (data) PyMem_Free(
+#ifdef ANY // Python lost ANY in 2.2, but fails to build with "void *" in 1.5 :(
+				(ANY *)
+#else
+				(void *)
+#endif
+					data);
+
 	}
 	void AddRef() {
 		ref++;

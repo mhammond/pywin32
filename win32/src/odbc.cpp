@@ -19,6 +19,16 @@
 
 #include <time.h>
 
+// Python 1.5.2 doesn't have PyObject_New
+// PyObject_NEW is not *quite* as safe, but seem to work fine
+// (as all win32all for 1.5.2 used it!
+#ifndef PyObject_New 
+#define PyObject_New PyObject_NEW
+#endif
+#ifndef PyObject_Del 
+#define PyObject_Del PyMem_DEL
+#endif
+
 #include "dbi.h"  //$ This is a hack
 static PyObject *odbcError;
 
