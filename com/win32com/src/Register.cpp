@@ -282,6 +282,8 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 
 int PyCom_RegisterCoreSupport(void)
 {
+	if (g_obPyCom_MapIIDToType)
+		return 0; // already done!
 	// Create the name and type mappings.
 	g_obPyCom_MapIIDToType = PyDict_New(); // map of IID's to types.
 	if (g_obPyCom_MapIIDToType==NULL) return -1;

@@ -13,7 +13,8 @@
 #include "PyFactory.h"
 
 extern void FreeGatewayModule(void);
-
+extern int PyCom_RegisterCoreSupport(void);
+extern int PyCom_UnregisterCoreSupport(void);
 
 /*
 ** This value counts the number of references to objects that contain code
@@ -47,6 +48,8 @@ void PyCom_DLLAddRef(void)
 			Py_Initialize();
 			// Make sure our Windows framework is all setup.
 			PyWinGlobals_Ensure();
+			// COM interfaces registered
+			PyCom_RegisterCoreSupport();
 			// Make sure we have _something_ as sys.argv.
 			if (PySys_GetObject("argv")==NULL) {
 				PyObject *path = PyList_New(0);
@@ -103,10 +106,6 @@ void PyCom_DLLReleaseRef(void)
 static DWORD g_dwCoInitThread = 0;
 static BOOL g_bCoInitThreadHasInit = FALSE;
 
-/* declare this outside of DllMain which has "C" scoping */
-extern int PyCom_RegisterCoreSupport(void);
-extern int PyCom_UnregisterCoreSupport(void);
-
 #ifndef BUILD_FREEZE
 #define DLLMAIN DllMain
 #define DLLMAIN_DECL
@@ -134,14 +133,8 @@ BOOL WINAPI DLLMAIN(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 		**       tell us).
 		*/
 
-		/*
-		** NOTE: PythonCOM.DLL is now linked against pywintypes.dll
-		**
-		** pywintypes.dll's DLLMain() will be executed before us, and it
-		** needs to initialise and call Python.  Thus is is never necessary for
-		** us to initialise Python.
-		*/
-		PyCom_RegisterCoreSupport();
+		/* We don't assume anything about Python's init state here!
+
 		/*
 		** we don't need to be notified about threads
 		*/

@@ -17,6 +17,8 @@ generates Windows .hlp files.
 #include "PyFactory.h"
 
 extern int PyCom_RegisterCoreIIDs(PyObject *dict);
+extern int PyCom_RegisterCoreSupport(void);
+
 extern PyObject  *pythoncom_IsGatewayRegistered(PyObject *self, PyObject *args);
 
 extern PyObject *g_obPyCom_MapIIDToType;
@@ -1473,6 +1475,7 @@ extern "C" __declspec(dllexport) void initpythoncom()
 
 	// ensure the framework has valid state to work with.
 	PyWinGlobals_Ensure();
+	PyCom_RegisterCoreSupport();
 
 	// Create the module and add the functions
 	oModule = Py_InitModule(modName, pythoncom_methods);
