@@ -179,7 +179,32 @@ BOOL PyHANDLE::Close(void)
 	BOOL rc = TRUE;
 	if (m_handle) {
 		Py_BEGIN_ALLOW_THREADS
-		rc = CloseHandle(m_handle);
+#ifdef Py_DEBUG
+		__try {
+#endif // Py_DEBUG
+			rc = CloseHandle(m_handle);
+#ifdef Py_DEBUG
+		} __except(1) {
+			// according to the docs on CloseHandle(), this
+			// can happen when run under the debugger.  This is a
+			// PITA, as it makes it hard to debug whatever we are here
+			// for (unless we are here to debug this!).  So we break into
+			// the debugger, which gives the developer the option of continuing
+			rc = FALSE;
+			::SetLastError(ERROR_INVALID_HANDLE);
+
+			// reset this in the debugger if you want to stop at
+			// every one - we reset it to false after first hit
+			static bool is_first_exception = true;
+			static bool break_on_exception = true;
+			if (break_on_exception) {
+				if (is_first_exception)
+					break_on_exception = false;
+				DebugBreak();
+			}
+			is_first_exception = false;
+		}
+#endif // Py_DEBUG
 		Py_END_ALLOW_THREADS
 		m_handle = 0;
 	}
