@@ -28,8 +28,22 @@ would be likely to result assuming the code has an "import string"
 statement.  Pressing the key again expands to the next match.
 @flag .|Auto expand the attribute.  Eg, typing "string." will display a listbox with the contents of the string module.
 @flag Alt+I|Toggle focus to/from the interactive window.
+
+@flagh Builtin Keystrokes|Keystrokes built into Scintilla
 @flag Ctrl+Keypad+Plus|Zoom-in for the current window (builtin to Scintilla)
 @flag Ctrl+Keypad+Minus|Zoom-out for the current window (builtin to Scintilla)
+@flag Ctrl+Backspace|Delete the word to the left of the cursor.
+@flag Ctrl+Z|Undo
+@flag Ctrl+Y|Redo
+@flag Ctrl+X|Cut
+@flag Ctrl+C|Copy
+@flag Ctrl+V|Paste
+@flag Ctrl+A|Select All
+@flag Ctrl+L|Cut the current line
+@flag Ctrl+Shift+L|Delete the corrent line
+@flag Ctrl+T|Transpose (swap) the current line with the line above
+@flag Ctrl+U|Convert the selection to lower case
+@flag Ctrl+Shift+U|Convert the selection to upper case
 
 @flagh Editor Specific Keystrokes|Description
 @flag F2|Move to the next bookmark.
@@ -69,7 +83,7 @@ If the first fold in the file is collapsed, all top-level folds are opened.  Oth
 @flag Ctrl+Up|Recall the previous command in the history list.
 @flag Ctrl+Down|Recall the next command in the history list.
 
-@topic Folding|
+@topic Source code folding in the editor|
 Thanks to Scintilla (http://www.scintilla.org), Pythonwin supports
 source code folding.  Folding is the ability to collapse sections of
 your source-code into a single line, making it easier to navigate
@@ -90,13 +104,16 @@ class/method that was folded.  Alternatively, you can use the
 Keypad-Multiply key to toggle the first level folds for the entire
 file at any time.  <nl>
 
-@topic Tabs|
+@topic Tabs and indentation in the editor|
 The use of tabs and the meanings of the tab defaults is not completely
 clear.  Unfortunately, this is very hard to fix without losing the smart
 indentation (eg, when indenting lists or function parameters).
+<nl>If the use of smart indentation has been disabled (the default is enabled)
+then the indentation should always follow your preferences, regardless
+of any existing indentation in the source.
 <nl>
-The defaults for tab settings are only used when a new file is created.
-If smart-tabs are enabled and an existing file is opened, it's first 
+Otherwise, the preferences for tab settings are only used when a new file is created.
+If smart-tabs are enabled and an existing file is opened, its first 
 block is located, and the indentation
 it uses overrides the default.  Thus, regardless of your preferences, if the first 
 indent in the file is a tab, Pythonwin uses tabs for the entire file (and
