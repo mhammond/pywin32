@@ -108,7 +108,7 @@ def load_descriptions(fname, vars):
 
   return retvars, descriptions
 
-def scan(build, root, desc):
+def scan(build, root, desc, **custom_vars ):
   global numStamped
   numStamped = 0
   try:
@@ -123,6 +123,8 @@ def scan(build, root, desc):
 
   vars, descriptions = load_descriptions(desc, varList)
   vars['build'] = build
+  if custom_vars is not None:
+	  vars.update(custom_vars)
 
   arg = vars, debug, descriptions
   os.path.walk(root, walk, arg)
