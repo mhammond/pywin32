@@ -351,6 +351,7 @@ extern "C" __declspec(dllexport) void initdirectsound()
 	// @const directsound|DSBCAPS_MUTE3DATMAXDISTANCE|The sound is reduced to silence at the maximum distance. The buffer will stop playing when the maximum distance is exceeded, so that processor time is not wasted. 
 	ADD_CONSTANT(DSBCAPS_MUTE3DATMAXDISTANCE);
 
+	// @const directsound|DSCBCAPS_WAVEMAPPED|The Win32 wave mapper will be used for formats not supported by the device.
 	ADD_CONSTANT(DSCBCAPS_WAVEMAPPED);
 
 	// @const directsound|DSSPEAKER_HEADPHONE|The speakers are headphones. 

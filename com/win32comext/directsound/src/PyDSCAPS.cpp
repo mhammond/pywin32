@@ -7,7 +7,7 @@
 #include "structmember.h"
 #include "directsound_pch.h"
 
-// @pymethod <o PyDSCAPS>|pywintypes|DSCAPS|Creates a new DSCAPS object
+// @pymethod <o PyDSCAPS>|directsound|DSCAPS|Creates a new PyDSCAPS object.
 PyObject *PyWinMethod_NewDSCAPS(PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ":DSCAPS"))
@@ -88,7 +88,19 @@ PyTypeObject PyDSCAPSType =
 
 /*static*/ struct PyMemberDef PyDSCAPS::members[] = {
 	{"dwFlags",  T_INT,  OFF(m_caps.dwFlags), 0, "Specifies device capabilities."}, 
-	// @prop integer|dwFlags|Specifies device capabilities.
+	// @prop integer|dwFlags|Specifies device capabilities. Can be one or more of the following:
+	// @flagh Flag|Description
+	// @flag DSCAPS_PRIMARYMONO|The device supports monophonic primary buffers. 
+	// @flag DSCAPS_PRIMARYSTEREO|The device supports stereo primary buffers. 
+	// @flag DSCAPS_PRIMARY8BIT|The device supports hardware-mixed secondary buffers with 8-bit samples. 
+	// @flag DSCAPS_PRIMARY16BIT|The device supports primary sound buffers with 16-bit samples.
+	// @flag DSCAPS_CONTINUOUSRATE|The device supports all sample rates between the dwMinSecondarySampleRate and dwMaxSecondarySampleRate member values. Typically, this means that the actual output rate will be within +/- 10 hertz (Hz) of the requested frequency. 
+	// @flag DSCAPS_EMULDRIVER|The device does not have a DirectSound driver installed, so it is being emulated through the waveform-audio functions. Performance degradation should be expected. 
+	// @flag DSCAPS_CERTIFIED|This driver has been tested and certified by Microsoft. 
+	// @flag DSCAPS_SECONDARYMONO|The device supports hardware-mixed monophonic secondary buffers.
+	// @flag DSCAPS_SECONDARYSTEREO|The device supports hardware-mixed stereo secondary buffers. 
+	// @flag DSCAPS_SECONDARY8BIT|The device supports hardware-mixed secondary buffers with 8-bit samples. 
+	// @flag DSCAPS_SECONDARY16BIT|The device supports hardware-mixed secondary sound buffers with 16-bit samples. 
 	{"dwMinSecondarySampleRate",  T_INT,  OFF(m_caps.dwMinSecondarySampleRate), 0, "Minimum sample rate supported by this device's hardware secondary sound buffers."}, 
 	// @prop integer|dwMinSecondarySampleRate|Minimum sample rate supported by this device's hardware secondary sound buffers.
 	{"dwMaxSecondarySampleRate",  T_INT,  OFF(m_caps.dwMaxSecondarySampleRate), 0, "Maximum sample rate supported by this device's hardware secondary sound buffers."}, 

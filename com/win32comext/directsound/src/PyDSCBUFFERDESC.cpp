@@ -7,7 +7,7 @@
 #include "structmember.h"
 #include "directsound_pch.h"
 
-// @pymethod <o PyDSCBUFFERDESC>|pywintypes|DSCBUFFERDESC|Creates a new DSCBUFFERDESC object
+// @pymethod <o PyDSCBUFFERDESC>|directsound|DSCBUFFERDESC|Creates a new PyDSCBUFFERDESC object
 PyObject *PyWinMethod_NewDSCBUFFERDESC(PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ":DSCBUFFERDESC"))
@@ -92,7 +92,9 @@ PyTypeObject PyDSCBUFFERDESCType =
 
 /*static*/ struct PyMemberDef PyDSCBUFFERDESC::members[] = {
 	{"dwFlags",  T_INT,  OFF(m_dscbd.dwFlags), 0, "Identifies the capabilities to include when creating a new DirectSoundBuffer object"}, 
-		// @prop integer|dwFlags|Identifies the capabilities to include when creating a new DirectSoundBuffer object.
+		// @prop integer|dwFlags|Identifies the capabilities to include when creating a new DirectSoundBuffer object. Can be zero or the following flag:
+		// @flagh Flag|Description
+		// @flag DSCBCAPS_WAVEMAPPED|The Win32 wave mapper will be used for formats not supported by the device.
 	{"dwBufferBytes",  T_INT,  OFF(m_dscbd.dwBufferBytes), 0, "Size of the new buffer, in bytes. This value must be 0 when creating primary buffers. For secondary buffers, the minimum and maximum sizes allowed are specified by DSBSIZE_MIN and DSBSIZE_MAX"}, 
 		// @prop integer|dwBufferBytes|Size of the new buffer, in bytes. This value must be 0 when creating primary buffers. For secondary buffers, the minimum and maximum sizes allowed are specified by DSBSIZE_MIN and DSBSIZE_MAX.
 	{"lpwfxFormat", T_OBJECT, OFF(m_obWFX), 0, "Structure specifying the waveform format for the buffer. This value must be None for primary buffers. The application can use IDirectSoundCaptureBuffer::SetFormat to set the format of the primary buffer."},

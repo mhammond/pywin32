@@ -6,7 +6,7 @@
 #include "structmember.h"
 #include "directsound_pch.h"
 
-// @pymethod <o PyDSBCAPS>|pywintypes|DSBCAPS|Creates a new DSBCAPS object
+// @pymethod <o PyDSBCAPS>|directsound|DSBCAPS|Creates a new PyDSBCAPS object
 PyObject *PyWinMethod_NewDSBCAPS(PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ":DSBCAPS"))

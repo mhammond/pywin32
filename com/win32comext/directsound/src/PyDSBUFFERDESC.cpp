@@ -7,7 +7,7 @@
 #include "structmember.h"
 #include "directsound_pch.h"
 
-// @pymethod <o PyDSBUFFERDESC>|pywintypes|DSBUFFERDESC|Creates a new DSBUFFERDESC object
+// @pymethod <o PyDSBUFFERDESC>|directsound|DSBUFFERDESC|Creates a new PyDSBUFFERDESC object
 PyObject *PyWinMethod_NewDSBUFFERDESC(PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ":DSBUFFERDESC"))

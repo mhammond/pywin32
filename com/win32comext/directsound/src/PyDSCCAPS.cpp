@@ -7,7 +7,7 @@
 #include "structmember.h"
 #include "directsound_pch.h"
 
-// @pymethod <o PyDSCCAPS>|pywintypes|DSCCAPS|Creates a new DSCCAPS object
+// @pymethod <o PyDSCCAPS>|directsound|DSCCAPS|Creates a new PyDSCCAPS object
 PyObject *PyWinMethod_NewDSCCAPS(PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ":DSCCAPS"))
@@ -88,9 +88,11 @@ PyTypeObject PyDSCCAPSType =
 
 /*static*/ struct PyMemberDef PyDSCCAPS::members[] = {
 	{"dwFlags",  T_INT,  OFF(m_caps.dwFlags), 0, "Specifies device capabilities. Can be 0 or DSCCAPS_EMULDRIVER (indicates that no DirectSoundCapture device is available and standard wave audio functions are being used)"}, 
-	// @prop integer|dwFlags|Specifies device capabilities. Can be 0 or DSCCAPS_EMULDRIVER (indicates that no DirectSound Device is available and standard wave audio functions are being used).
+	// @prop integer|dwFlags|Specifies device capabilities. Can be zero or the following flag:
+		// @flagh Flag|Description
+		// @flag DSCCAPS_EMULDRIVER|Indicates that no DirectSound Device is available and standard wave audio functions are being used.
 	{"dwFormats",  T_INT,  OFF(m_caps.dwFormats), 0, "Supported WAVE_FORMAT formats."}, 
-	// @prop integer|dwFormats|Supported WAVE_FORMAT formats.
+	// @prop integer|dwFormats|Bitset of supported WAVE_FORMAT formats.
 	{"dwChannels",  T_INT,  OFF(m_caps.dwChannels), 0, "Number of channels supported by the device."}, 
 	// @prop integer|dwChannels|Number of channels supported by the device.
 	{NULL}
