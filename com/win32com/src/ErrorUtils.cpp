@@ -336,6 +336,15 @@ PYCOM_EXPORT HRESULT PyCom_SetCOMErrorFromPyException(REFIID riid /* = IID_NULL 
 	return einfo.scode;
 }
 
+PYCOM_EXPORT HRESULT PyCom_SetAndLogCOMErrorFromPyException(const char *methodName, REFIID riid /* = IID_NULL */)
+{
+	if (!PyErr_Occurred())
+		// No error occurred
+		return S_OK;
+	PyCom_LogNonServerError("Unexpected exception in gateway method '%s'", methodName);
+	return PyCom_SetCOMErrorFromPyException(riid);
+}
+
 ////////////////////////////////////////////////////////////////////////
 // Some logging functions
 ////////////////////////////////////////////////////////////////////////

@@ -305,6 +305,9 @@ PYCOM_EXPORT void PyCom_StreamMessage(const char *msg);
 // IErrorInfo interfaces, so the caller can extract more detailed
 // information about the Python exception.
 
+// Set a COM exception, logging the exception if not an explicitly raised 'server' exception
+PYCOM_EXPORT HRESULT PyCom_SetAndLogCOMErrorFromPyException(const char *methodName, REFIID riid /* = IID_NULL */);
+
 // Used in gateways to SetErrorInfo() with a simple HRESULT, then return it.
 // The description is generally only useful for debugging purposes,
 // and if you are debugging via a server that supports IErrorInfo (like Python :-)
