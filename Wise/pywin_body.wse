@@ -21,7 +21,7 @@ item: Compiler Variable If
   Value=0
 end
 item: Install File
-  Source=l:\src\pythonex\win32\Build\System\PyWinTypes%PYVER_NODOT%.dll
+  Source=f:\src\pythonex\win32\Build\System\PyWinTypes%PYVER_NODOT%.dll
   Destination=%SYS32%\PyWinTypes%PYVER_NODOT%.dll
   Description=Core COM Extension DLL
   Flags=0000001000010011
@@ -53,37 +53,37 @@ end
 item: Compiler Variable End
 end
 item: Install File
-  Source=l:\src\pythonex\pythonwin\License.txt
+  Source=f:\src\pythonex\pythonwin\License.txt
   Destination=%INSTDIR%\License.txt
   Description=Library files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\pythonwin\pywin\*.py
+  Source=f:\src\pythonex\pythonwin\pywin\*.py
   Destination=%INSTDIR%\pywin
   Description=Library files
   Flags=0000000100000010
 end
 item: Install File
-  Source=l:\src\pythonex\pythonwin\pywin\*.cfg
+  Source=f:\src\pythonex\pythonwin\pywin\*.cfg
   Destination=%INSTDIR%\pywin
   Description=Library files
   Flags=0000000100000010
 end
 item: Install File
-  Source=l:\src\pythonex\pythonwin\pywin\*.txt
+  Source=f:\src\pythonex\pythonwin\pywin\*.txt
   Destination=%INSTDIR%\pywin
   Description=Library files
   Flags=0000000100000010
 end
 item: Install File
-  Source=l:\src\pythonex\pythonwin\doc\*.*
+  Source=f:\src\pythonex\pythonwin\doc\*.*
   Destination=%INSTDIR%\doc
   Description=Documentation
   Flags=0000000100000010
 end
 item: Install File
-  Source=l:\src\pythonex\pythonwin\Build\scintilla.dll
+  Source=f:\src\pythonex\pythonwin\Build\scintilla.dll
   Destination=%INSTDIR%\scintilla.dll
   Flags=0000000000000010
 end
@@ -91,7 +91,7 @@ item: Remark
   Text=Make sure I get all the demo stuff!
 end
 item: Install File
-  Source=l:\src\pythonex\pythonwin\pywin\*.dll
+  Source=f:\src\pythonex\pythonwin\pywin\*.dll
   Destination=%INSTDIR%\pywin
   Description=Library files
   Flags=0000000100000010
@@ -103,7 +103,7 @@ remarked item: Install File
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\pythonwin\Build\Pythonwin.exe
+  Source=f:\src\pythonex\pythonwin\Build\Pythonwin.exe
   Destination=%INSTDIR%\Pythonwin.exe
   Description=Extension modules
   Flags=0000000000000011
@@ -145,19 +145,19 @@ end
 item: End Block
 end
 item: Install File
-  Source=l:\src\pythonex\pythonwin\Build\win32ui.pyd
+  Source=f:\src\pythonex\pythonwin\Build\win32ui.pyd
   Destination=%INSTDIR%\win32ui.pyd
   Description=Extension modules
   Flags=0000000000000011
 end
 item: Install File
-  Source=l:\src\pythonex\pythonwin\Build\win32uiole.pyd
+  Source=f:\src\pythonex\pythonwin\Build\win32uiole.pyd
   Destination=%INSTDIR%\win32uiole.pyd
   Description=Extension modules
   Flags=0000000000000011
 end
 item: Install File
-  Source=l:\src\pythonex\pythonwin.hlp
+  Source=f:\src\pythonex\pythonwin.hlp
   Destination=%INSTDIR%\Help\Pythonwin.hlp
   Description=Help files
   Flags=0000000100000010
@@ -183,7 +183,7 @@ end
 item: End Block
 end
 item: Install File
-  Source=l:\src\pythonex\pythonwin\readme.html
+  Source=f:\src\pythonex\pythonwin\readme.html
   Destination=%INSTDIR%\readme.html
   Description=Help files
   Flags=0000000000000010
@@ -198,7 +198,7 @@ item: Add Text to INSTALL.LOG
   Text=File Copy: %INSTDIR%\pywin\idle.cfc
 end
 item: Install File
-  Source=l:\src\pythonex\SharedDlls\MFC42.DLL
+  Source=f:\src\pythonex\SharedDlls\MFC42.DLL
   Destination=%SYS32%\MFC42.DLL
   Flags=0000001000000011
 end

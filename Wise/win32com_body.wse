@@ -42,13 +42,13 @@ item: Check if File/Dir Exists
   Title=Old Active Debugging found.
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32com\*.txt
+  Source=f:\src\pythonex\com\win32com\*.txt
   Destination=%INSTDIR%
   Description=COM Readme
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32com\*.htm
+  Source=f:\src\pythonex\com\win32com\*.htm
   Destination=%INSTDIR%
   Description=COM Readme
   Flags=0000000000000010
@@ -62,13 +62,13 @@ item: Compiler Variable If
   Value=0
 end
 item: Install File
-  Source=l:\src\pythonex\win32\Build\System\PyWinTypes%PYVER_NODOT%.dll
+  Source=f:\src\pythonex\win32\Build\System\PyWinTypes%PYVER_NODOT%.dll
   Destination=%SYS32%\PyWinTypes%PYVER_NODOT%.dll
   Description=Core COM Extension DLL
   Flags=0000001000010011
 end
 item: Install File
-  Source=l:\src\pythonex\com\Build\System\PythonCOM%PYVER_NODOT%.dll
+  Source=f:\src\pythonex\com\Build\System\PythonCOM%PYVER_NODOT%.dll
   Destination=%PYTHONCOM_DLL%
   Description=Core COM Extension DLL
   Flags=0000000000000011
@@ -84,85 +84,85 @@ item: Delete File
   Pathname=%SYS32%\pythoncom.exe
 end
 item: Install File
-  Source=l:\src\pythonex\com\License.txt
+  Source=f:\src\pythonex\com\License.txt
   Destination=%INSTDIR%\License.txt
   Description=COM License
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\WIN32COM.HLP
+  Source=f:\src\pythonex\WIN32COM.HLP
   Destination=%INSTDIR%\WIN32COM.HLP
   Description=COM Help File
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32com\*.py
+  Source=f:\src\pythonex\com\win32com\*.py
   Destination=%INSTDIR%\
   Description=COM Support files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32com\servers\*.py
+  Source=f:\src\pythonex\com\win32com\servers\*.py
   Destination=%INSTDIR%\servers
   Description=COM Support files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32com\server\*.py
+  Source=f:\src\pythonex\com\win32com\server\*.py
   Destination=%INSTDIR%\server
   Description=COM Support files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32com\client\*.py
+  Source=f:\src\pythonex\com\win32com\client\*.py
   Destination=%INSTDIR%\client
   Description=COM Support files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32com\demos\*.py
+  Source=f:\src\pythonex\com\win32com\demos\*.py
   Destination=%INSTDIR%\demos
   Description=COM Support files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32com\test\*.txt
+  Source=f:\src\pythonex\com\win32com\test\*.txt
   Destination=%INSTDIR%\test
   Description=COM Test files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32com\test\*.py
+  Source=f:\src\pythonex\com\win32com\test\*.py
   Destination=%INSTDIR%\test
   Description=COM Test files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32com\test\*.vbs
+  Source=f:\src\pythonex\com\win32com\test\*.vbs
   Destination=%INSTDIR%\test
   Description=COM Test files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32com\test\*.js
+  Source=f:\src\pythonex\com\win32com\test\*.js
   Destination=%INSTDIR%\test
   Description=COM Test files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32com\test\*.sct
+  Source=f:\src\pythonex\com\win32com\test\*.sct
   Destination=%INSTDIR%\test
   Description=COM Test files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32com\HTML\*
+  Source=f:\src\pythonex\com\win32com\HTML\*
   Destination=%INSTDIR%\HTML
   Description=Win32com HTML Documentation
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32com\HTML\image\*
+  Source=f:\src\pythonex\com\win32com\HTML\image\*
   Destination=%INSTDIR%\HTML\image
   Description=Win32com HTML Documentation
   Flags=0000000000000010
@@ -171,73 +171,73 @@ item: Remark
   Text=AXScript and AXDebug files
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32comext\axscript\*.py
+  Source=f:\src\pythonex\com\win32comext\axscript\*.py
   Destination=%EXTDIR%\axscript
   Description=ActiveX Script Files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32comext\axscript\client\*.py
+  Source=f:\src\pythonex\com\win32comext\axscript\client\*.py
   Destination=%EXTDIR%\axscript\client
   Description=ActiveX Script Files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32comext\axscript\server\*.py
+  Source=f:\src\pythonex\com\win32comext\axscript\server\*.py
   Destination=%EXTDIR%\axscript\server
   Description=ActiveX Script Files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32comext\axscript\test\*.py
+  Source=f:\src\pythonex\com\win32comext\axscript\test\*.py
   Destination=%EXTDIR%\axscript\test
   Description=ActiveX Script Files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32comext\axscript\test\*.vbs
+  Source=f:\src\pythonex\com\win32comext\axscript\test\*.vbs
   Destination=%EXTDIR%\axscript\test
   Description=ActiveX Script Files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32comext\axscript\test\*.pys
+  Source=f:\src\pythonex\com\win32comext\axscript\test\*.pys
   Destination=%EXTDIR%\axscript\test
   Description=ActiveX Script Files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\Build\axscript.pyd
+  Source=f:\src\pythonex\com\Build\axscript.pyd
   Destination=%EXTDIR%\axscript\axscript.pyd
   Description=ActiveX Script Files - Extennsion module
   Flags=0000000000000011
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32comext\axscript\demos\client\ie\*.*
+  Source=f:\src\pythonex\com\win32comext\axscript\demos\client\ie\*.*
   Destination=%EXTDIR%\axscript\demos\client\ie
   Description=ActiveX Script Files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32comext\axscript\demos\client\wsh\*.*
+  Source=f:\src\pythonex\com\win32comext\axscript\demos\client\wsh\*.*
   Destination=%EXTDIR%\axscript\demos\client\wsh
   Description=ActiveX Script Files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32comext\axscript\demos\client\asp\*.*
+  Source=f:\src\pythonex\com\win32comext\axscript\demos\client\asp\*.*
   Destination=%EXTDIR%\axscript\demos\client\asp
   Description=ActiveX Script Files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32comext\axdebug\*.py
+  Source=f:\src\pythonex\com\win32comext\axdebug\*.py
   Destination=%EXTDIR%\axdebug
   Description=Active Debugging files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\Build\axdebug.pyd
+  Source=f:\src\pythonex\com\Build\axdebug.pyd
   Destination=%EXTDIR%\axdebug\axdebug.pyd
   Description=Active Debugging files
   Flags=0000000000000011
@@ -246,25 +246,25 @@ item: Remark
   Text=MAPI and Exchange files
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32comext\mapi\*.py
+  Source=f:\src\pythonex\com\win32comext\mapi\*.py
   Destination=%EXTDIR%\mapi
   Description=MAPI files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\Build\mapi.pyd
+  Source=f:\src\pythonex\com\Build\mapi.pyd
   Destination=%EXTDIR%\mapi\mapi.pyd
   Description=MAPI files
   Flags=0000000000000011
 end
 item: Install File
-  Source=l:\src\pythonex\com\Build\exchdapi.pyd
+  Source=f:\src\pythonex\com\Build\exchdapi.pyd
   Destination=%EXTDIR%\mapi\exchdapi.pyd
   Description=MAPI files
   Flags=0000000000000011
 end
 item: Install File
-  Source=l:\src\pythonex\com\Build\exchange.pyd
+  Source=f:\src\pythonex\com\Build\exchange.pyd
   Destination=%EXTDIR%\mapi\exchange.pyd
   Description=MAPI files
   Flags=0000000000000011
@@ -273,13 +273,13 @@ item: Remark
   Text=AXControl files
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32comext\axcontrol\*.py
+  Source=f:\src\pythonex\com\win32comext\axcontrol\*.py
   Destination=%EXTDIR%\axcontrol
   Description=ActiveX Control files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\Build\axcontrol.pyd
+  Source=f:\src\pythonex\com\Build\axcontrol.pyd
   Destination=%EXTDIR%\axcontrol\axcontrol.pyd
   Description=ActiveX Control files
   Flags=0000000000000011
@@ -288,19 +288,19 @@ item: Remark
   Text=Shell Extenion files
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32comext\shell\*.py
+  Source=f:\src\pythonex\com\win32comext\shell\*.py
   Destination=%EXTDIR%\shell
   Description=ActiveX Shell Extension files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32comext\shell\test\*.py
+  Source=f:\src\pythonex\com\win32comext\shell\test\*.py
   Destination=%EXTDIR%\shell\test
   Description=ActiveX Shell Extension files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\Build\shell.pyd
+  Source=f:\src\pythonex\com\Build\shell.pyd
   Destination=%EXTDIR%\shell\shell.pyd
   Description=ActiveX Shell Extension files
   Flags=0000000000000011
@@ -309,13 +309,13 @@ item: Remark
   Text=Internet Extenion files
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32comext\internet\*.py
+  Source=f:\src\pythonex\com\win32comext\internet\*.py
   Destination=%EXTDIR%\internet
   Description=ActiveX Internet Extension files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\Build\internet.pyd
+  Source=f:\src\pythonex\com\Build\internet.pyd
   Destination=%EXTDIR%\internet\internet.pyd
   Description=ActiveX Internet Extension files
   Flags=0000000000000011
@@ -324,13 +324,13 @@ item: Remark
   Text=ADSI
 end
 item: Install File
-  Source=l:\src\pythonex\com\win32comext\adsi\*.py
+  Source=f:\src\pythonex\com\win32comext\adsi\*.py
   Destination=%EXTDIR%\adsi
   Description=ADSI Extension files
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\Build\adsi.pyd
+  Source=f:\src\pythonex\com\Build\adsi.pyd
   Destination=%EXTDIR%\adsi\adsi.pyd
   Description=ADSI Extension files
   Flags=0000000000000011

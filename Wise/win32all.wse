@@ -16,11 +16,11 @@ item: Global
   Patch Flags=0000000000000001
   Patch Threshold=85
   Patch Memory=4000
-  EXE Filename=win32all-136.exe
+  EXE Filename=win32all-137.exe
   Code Sign Name=Python Win32 combined extensions
   Code Sign Info=skippinet.com.au
   Variable Name1=_WISE_
-  Variable Default1=L:\Program Files\Wise
+  Variable Default1=F:\Program Files\Wise
   Variable Flags1=00001000
   Variable Name2=_COMBINEDINST_
   Variable Default2=1
@@ -93,7 +93,7 @@ item: Set Variable
   Value=Pythonwin %PYVER_DOTTED%
 end
 item: Include Script
-  Pathname=L:\src\pythonex\Wise\win32all_ver.wse
+  Pathname=win32all_ver.wse
 end
 item: Check if File/Dir Exists
   Pathname=%SYS%
@@ -900,13 +900,13 @@ end
 remarked item: Compiler Variable End
 end
 item: Install File
-  Source=l:\src\pythonex\win32\Build\System\PyWinTypes%PYVER_NODOT%.dll
+  Source=f:\src\pythonex\win32\Build\System\PyWinTypes%PYVER_NODOT%.dll
   Destination=%SYSDLL_PATH%\PyWinTypes%PYVER_NODOT%.dll
   Description=Core COM Extension DLL
   Flags=0000000000000010
 end
 item: Install File
-  Source=l:\src\pythonex\com\Build\System\PythonCOM%PYVER_NODOT%.dll
+  Source=f:\src\pythonex\com\Build\System\PythonCOM%PYVER_NODOT%.dll
   Destination=%SYSDLL_PATH%\PythonCOM%PYVER_NODOT%.dll
   Description=Core COM Extension DLL
   Flags=0000000000000010
@@ -1002,7 +1002,7 @@ item: Remark
   Text=Call Python to finish the installation off
 end
 item: Install File
-  Source=l:\src\pythonex\Wise\Install Scripts\FinishInstall.py
+  Source=f:\src\pythonex\Wise\Install Scripts\FinishInstall.py
   Destination=%TEMP%\FinishInstall.py
   Flags=0000000000100010
 end
@@ -1011,7 +1011,7 @@ item: Compiler Variable If
   Value=1.5
 end
 item: Install File
-  Source=l:\src\pythonex\Wise\PyWise\Build\Release\PyWise.dll
+  Source=f:\src\pythonex\Wise\PyWise\Build\Release\PyWise.dll
   Destination=%TEMP%\PyWise.dll
   Flags=0000000000100010
 end
@@ -1034,7 +1034,7 @@ end
 item: Compiler Variable Else
 end
 item: Install File
-  Source=l:\src\pythonex\Wise\PyWise\Build\Release\PyWise%PYVER_NODOT%.dll
+  Source=f:\src\pythonex\Wise\PyWise\Build\Release\PyWise%PYVER_NODOT%.dll
   Destination=%MAINDIR%\PyWise%PYVER_NODOT%.dll
   Flags=0000000000100010
 end
