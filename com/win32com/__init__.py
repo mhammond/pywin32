@@ -18,6 +18,7 @@ if _frozen and not hasattr(pythoncom, "frozen"):
 #  eg "win32com.mapi" or "win32com.axscript" both work, even though they do not
 #  live under the main win32com directory.
 __gen_path__ = ''
+__build_path__ = None
 ### TODO - Load _all_ \\Extensions subkeys - for now, we only read the default
 ### Modules will work if loaded into "win32comext" path.
 
@@ -73,7 +74,7 @@ def SetupEnvironment():
 # (which the win32com developers do!)
 def __PackageSupportBuildPath__(package_path):
 	# See if we have a special directory for the binaries (for developers)
-	if not _frozen:
+	if not _frozen and __build_path__:
 		package_path.append(__build_path__)
 
 if not _frozen:
