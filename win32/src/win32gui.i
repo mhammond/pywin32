@@ -1029,9 +1029,15 @@ BOOLAPI BringWindowToTop(HWND hWnd);
 // @pyparm int|hwnd||The handle to the window
 HWND SetActiveWindow(HWND hWnd);
 
+// @pyswig HWND|GetActiveWindow|
+HWND GetActiveWindow();
+
 // @pyswig HWND|SetForegroundWindow|
 // @pyparm int|hwnd||The handle to the window
 BOOLAPI SetForegroundWindow(HWND hWnd);
+
+// @pyswig HWND|GetForegroundWindow|
+HWND GetForegroundWindow();
 
 // @pyswig (left, top, right, bottom)|GetClientRect|
 // @pyparm int|hwnd||The handle to the window
