@@ -95,7 +95,7 @@ PyObject *PyIProvideClassInfo2::GetGUID(PyObject *self, PyObject *args)
 // @object PyIProvideClassInfo2|
 static struct PyMethodDef PyIProvideClassInfo2_methods[] =
 {
-	{"GetGUID",PyIProvideClassInfo2::GetGUID,  1}, // @pymeth GetGUID|Gets the GUID for the object.
+	{"GetGUID",PyIProvideClassInfo2::GetGUID,  1}, // @pymeth GetGUID|Gets the default event sink IID for the object (if any).
 	{NULL,  NULL}        
 };
 
