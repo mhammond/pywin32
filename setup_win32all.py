@@ -576,7 +576,7 @@ for info in (
         ("perfmon", "", True),
         ("timer", "user32", False),
         ("win2kras", "rasapi32", False, 0x0500),
-        ("win32api", "user32 advapi32 shell32 version", False),
+        ("win32api", "user32 advapi32 shell32 version", False, 0x0500),
         ("win32file", "oleaut32", False),
         ("win32event", "user32", False),
         ("win32clipboard", "gdi32 user32 shell32", False),
@@ -587,7 +587,6 @@ for info in (
         ("win32net", "netapi32", True),
         ("win32pdh", "", False),
         ("win32pipe", "", False),
-        # win32popenWin9x later
         ("win32print", "winspool user32", False),
         ("win32process", "advapi32 user32", False),
         ("win32ras", "rasapi32 user32", False),
