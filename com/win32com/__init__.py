@@ -7,7 +7,8 @@ import pythoncom
 
 # flag if we are in a "frozen" build.
 _frozen = getattr(sys, "frozen", 1==0)
-if _frozen and not hasattr(pythoncom, "frozen"):
+# pythoncom dumbly defaults this to zero - we believe sys.frozen over it.
+if _frozen and not getattr(pythoncom, "frozen", 0):
 	pythoncom.frozen = sys.frozen
 
 # Add support for an external "COM Extensions" path.
