@@ -849,7 +849,8 @@ PYW_EXPORT HGLOBAL MakeResourceFromDlgList(PyObject *tmpl)
 		if (!ParseDlgItemList(dlg, PyList_GetItem(tmpl, i)))
 		{
 			delete dlg;
-			RETURN_ERR("Unable to parse a dialog item");
+			PyErr_Format(PyExc_TypeError, "Unable to parse dialog item %d.", i);
+			return NULL;
 		}
 	}
 	HGLOBAL h = dlg->ClaimTemplate();
