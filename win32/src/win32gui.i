@@ -1399,7 +1399,7 @@ PyObject *Pylpstr(PyObject *self, PyObject *args) {
 // @pyswig int|CommDlgExtendedError|
 DWORD CommDlgExtendedError(void);
 
-%typemap (python, in) OPENFILENAME *INPUT (int size, char buffer[200]){
+%typemap (python, in) OPENFILENAME *INPUT (int size){
 	size = sizeof(OPENFILENAME);
 /*	$source = PyObject_Str($source); */
 	if ( (! PyString_Check($source)) || (size != PyString_GET_SIZE($source)) ) {
