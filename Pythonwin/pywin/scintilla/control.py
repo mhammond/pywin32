@@ -259,8 +259,8 @@ class CScintillaEditInterface(ScintillaControlInterface):
 			end = start
 		if start < 0: start = self.GetTextLength()
 		if end < 0: end = self.GetTextLength()
-		assert start <= self.GetTextLength(), "The start postion is invalid"
-		assert end <= self.GetTextLength(), "The end postion is invalid"
+		assert start <= self.GetTextLength(), "The start postion is invalid (%d/%d)" % (start, self.GetTextLength())
+		assert end <= self.GetTextLength(), "The end postion is invalid (%d/%d)" % (end, self.GetTextLength())
 		cr = struct.pack('ll', start, end)
 		crBuff = array.array('c', cr)
 		addressCrBuff = crBuff.buffer_info()[0]
@@ -335,8 +335,9 @@ class CScintillaColorEditInterface(CScintillaEditInterface):
 		return self.colorizer
 	def _MakeColorizer(self):
 		# Give parent a chance to hook.
-		if hasattr(self.GetParent(), "_MakeColorizer"):
-			return self.GetParent()._MakeColorizer()
+		parent_func = getattr(self.GetParentFrame(), "_MakeColorizer", None)
+		if parent_func is not None:
+			return parent_func()
 		import formatter
 ##		return formatter.PythonSourceFormatter(self)
 		return formatter.BuiltinPythonSourceFormatter(self)
