@@ -111,8 +111,10 @@ static HRESULT univgw_dispatch(DWORD index, gw_object * _this, va_list argPtr)
 	// done with the arguments and the contained objects
 	Py_DECREF(obArgs);
 
-	if ( result == NULL )
+	if ( result == NULL ) {
+	  PyCom_LogError("Failed to call the universal dispatcher");
 	  return PyCom_SetCOMErrorFromPyException(vtbl->iid);
+	}
 
 	HRESULT hr;
 	if ( result == Py_None )
