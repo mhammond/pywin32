@@ -38,7 +38,9 @@ versionRedirectMap = {}
 
 # There is no reason we *must* be readonly in a .zip, but we are now,
 # and we really do need a "read-only" concept anyway.
-is_readonly = not os.path.isdir(os.path.dirname(win32com.__gen_path__))
+# We don't want to use isdir() though, as we have always gracefully
+# created this directory when we could.
+is_readonly = win32com.__gen_path__.find(".zip\\") >= 0
 
 # A dictionary of ITypeLibrary objects for demand generation explicitly handed to us
 # Keyed by usual clsid, lcid, major, minor
@@ -104,6 +106,7 @@ def GetGeneratePath():
 	"""Returns the name of the path to generate to.
 	Checks the directory is OK.
 	"""
+	assert not is_readonly, "Why do you want the genpath for a readonly store?"
 	try:
 		os.makedirs(win32com.__gen_path__)
 		#os.mkdir(win32com.__gen_path__)
