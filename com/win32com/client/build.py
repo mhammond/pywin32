@@ -535,6 +535,7 @@ def BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg
   numOptArgs = fdesc[6]
   strval = ''
   if numOptArgs==-1:	# Special value that says "var args after here"
+    firstOptArg = numArgs
     numArgs = numArgs - 1
   else:
     firstOptArg = numArgs - numOptArgs
