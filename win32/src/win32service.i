@@ -232,9 +232,11 @@ static PyObject *MyEnumServicesStatus(PyObject *self, PyObject *args)
 	PyObject *retval = PyTuple_New(servicesReturned);
 	for (DWORD i = 0; i < servicesReturned; i++)
 	{
+		PyObject *obServiceName = PyWinObject_FromTCHAR(services[i].lpServiceName);
+		PyObject *obDisplayName = PyWinObject_FromTCHAR(services[i].lpDisplayName);
 		PyTuple_SetItem(retval, i, Py_BuildValue("OO(lllllll)",
-			PyWinObject_FromTCHAR(services[i].lpServiceName),
-			PyWinObject_FromTCHAR(services[i].lpDisplayName),
+			obServiceName,
+			obDisplayName,
 			services[i].ServiceStatus.dwServiceType,
 			services[i].ServiceStatus.dwCurrentState,
 			services[i].ServiceStatus.dwControlsAccepted,
@@ -242,6 +244,8 @@ static PyObject *MyEnumServicesStatus(PyObject *self, PyObject *args)
 			services[i].ServiceStatus.dwServiceSpecificExitCode,
 			services[i].ServiceStatus.dwCheckPoint,
 			services[i].ServiceStatus.dwWaitHint));
+		Py_XDECREF(obServiceName);
+		Py_XDECREF(obDisplayName);
 	}
 
 	delete buffer;
@@ -290,9 +294,11 @@ static PyObject *MyEnumDependentServices(PyObject *self, PyObject *args)
 	PyObject *retval = PyTuple_New(servicesReturned);
 	for (DWORD i = 0; i < servicesReturned; i++)
 	{
+		PyObject *obServiceName = PyWinObject_FromTCHAR(services[i].lpServiceName);
+		PyObject *obDisplayName = PyWinObject_FromTCHAR(services[i].lpDisplayName);
 		PyTuple_SetItem(retval, i, Py_BuildValue("OO(lllllll)",
-			PyWinObject_FromTCHAR(services[i].lpServiceName),
-			PyWinObject_FromTCHAR(services[i].lpDisplayName),
+			obServiceName,
+			obDisplayName,
 			services[i].ServiceStatus.dwServiceType,
 			services[i].ServiceStatus.dwCurrentState,
 			services[i].ServiceStatus.dwControlsAccepted,
@@ -300,6 +306,8 @@ static PyObject *MyEnumDependentServices(PyObject *self, PyObject *args)
 			services[i].ServiceStatus.dwServiceSpecificExitCode,
 			services[i].ServiceStatus.dwCheckPoint,
 			services[i].ServiceStatus.dwWaitHint));
+		Py_XDECREF(obServiceName);
+		Py_XDECREF(obDisplayName);
 	}
 
 	delete buffer;
@@ -343,16 +351,26 @@ static PyObject *MyQueryServiceConfig(PyObject *self, PyObject *args)
 		return PyWin_SetAPIError("QueryServiceConfig");
 	}
 
+	PyObject *obBinaryPathName = PyWinObject_FromTCHAR(config->lpBinaryPathName);
+	PyObject *obLoadOrderGroup = PyWinObject_FromTCHAR(config->lpLoadOrderGroup);
+	PyObject *obDependencies = PyWinObject_FromTCHAR(config->lpDependencies);
+	PyObject *obServiceStartName = PyWinObject_FromTCHAR(config->lpServiceStartName);
+	PyObject *obDisplayName = PyWinObject_FromTCHAR(config->lpDisplayName);
 	PyObject *retval = Py_BuildValue("lllOOlOOO",
 			config->dwServiceType,
 			config->dwStartType,
 			config->dwErrorControl,
-			PyWinObject_FromTCHAR(config->lpBinaryPathName),
-			PyWinObject_FromTCHAR(config->lpLoadOrderGroup),
+			obBinaryPathName,
+			obLoadOrderGroup,
 			config->dwTagId,
-			PyWinObject_FromTCHAR(config->lpDependencies),
-			PyWinObject_FromTCHAR(config->lpServiceStartName),
-			PyWinObject_FromTCHAR(config->lpDisplayName));
+			obDependencies,
+			obServiceStartName,
+			obDisplayName);
+	Py_XDECREF(obBinaryPathName);
+	Py_XDECREF(obLoadOrderGroup);
+	Py_XDECREF(obDependencies);
+	Py_XDECREF(obServiceStartName);
+	Py_XDECREF(obDisplayName);
 
 	delete buffer;
 	return retval;
