@@ -36,7 +36,6 @@ from pywin.scintilla.document import CScintillaDocument
 from pywin.framework.editor.document import EditorDocumentBase
 from pywin.scintilla.scintillacon import * # For the marker definitions
 import pywin.scintilla.view
-import pywin.scintilla.IDLEEnvironment
 
 class SyntEditDocument(EditorDocumentBase):
 	"A SyntEdit document. "
