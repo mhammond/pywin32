@@ -99,6 +99,15 @@ class TestPipeService(win32serviceutil.ServiceFramework):
 		SetEvent(self.hWaitStop)
 
 	def SvcDoRun(self):
+		# Write an event log record - in debug mode we will also 
+		# see this message printed.
+		import servicemanager
+		servicemanager.LogMsg(
+			servicemanager.EVENTLOG_INFORMATION_TYPE,
+			servicemanager.PYS_SERVICE_STARTED,
+			(self._svc_name_, '')
+			)
+			
 		num_connections = 0
 		while 1:
 			pipeHandle = CreateNamedPipe("\\\\.\\pipe\\PyPipeTest",
@@ -133,8 +142,13 @@ class TestPipeService(win32serviceutil.ServiceFramework):
 			self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING, 5000)
 			print "Waiting for %d threads to finish..." % (len(self.thread_handles))
 			WaitForMultipleObjects(self.thread_handles, 1, 3000)
-		print "Finished after processing %d connections..." % num_connections
-				
+		# Write another event log record.
+		servicemanager.LogMsg(
+			servicemanager.EVENTLOG_INFORMATION_TYPE,
+			servicemanager.PYS_SERVICE_STOPPED,
+			(self._svc_name_, " after processing %d connections" % (num_connections,))
+			)
+
 
 if __name__=='__main__':
 	win32serviceutil.HandleCommandLine(TestPipeService)
