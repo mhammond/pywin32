@@ -11,28 +11,38 @@
 #ifndef DBI_H
 #define DBI_H
 
-PyAPI_FUNC(int) dbiIsDate(const PyObject *o);
-PyAPI_FUNC(int) dbiIsRaw(const PyObject *o);
-PyAPI_FUNC(int) dbiIsRowId(const PyObject *o);
+#ifdef MS_WIN32
+#ifdef DBI_EXPORT
+#define DBI_FUNC(x) __declspec(dllexport) x
+#else
+#define DBI_FUNC(x) __declspec(dllimport) x
+#endif /* DBI_EXPORT */
+#else /* MS_WIN32 */
+#define DBI_FUNC(x) x
+#endif
+
+DBI_FUNC(int) dbiIsDate(const PyObject *o);
+DBI_FUNC(int) dbiIsRaw(const PyObject *o);
+DBI_FUNC(int) dbiIsRowId(const PyObject *o);
 
 /* These do not INCREF */
-PyAPI_FUNC(PyObject) *dbiValue(PyObject *o);  
-PyAPI_FUNC(PyObject) *dbiMakeDate(PyObject *contents);
-PyAPI_FUNC(PyObject) *dbiMakeRaw(PyObject *contents);
-PyAPI_FUNC(PyObject) *dbiMakeRowId(PyObject *contents);
+DBI_FUNC(PyObject) *dbiValue(PyObject *o);  
+DBI_FUNC(PyObject) *dbiMakeDate(PyObject *contents);
+DBI_FUNC(PyObject) *dbiMakeRaw(PyObject *contents);
+DBI_FUNC(PyObject) *dbiMakeRowId(PyObject *contents);
 
-PyAPI_FUNC(PyObject)*DbiString;
-PyAPI_FUNC(PyObject)*DbiRaw;
-PyAPI_FUNC(PyObject)*DbiRowId;
-PyAPI_FUNC(PyObject)*DbiNumber;
-PyAPI_FUNC(PyObject)*DbiDate;
+DBI_FUNC(PyObject)*DbiString;
+DBI_FUNC(PyObject)*DbiRaw;
+DBI_FUNC(PyObject)*DbiRowId;
+DBI_FUNC(PyObject)*DbiNumber;
+DBI_FUNC(PyObject)*DbiDate;
 
-PyAPI_FUNC(PyObject)*DbiNoError;
-PyAPI_FUNC(PyObject)*DbiOpError;
-PyAPI_FUNC(PyObject)*DbiProgError;
-PyAPI_FUNC(PyObject)*DbiIntegrityError;
-PyAPI_FUNC(PyObject)*DbiDataError;
-PyAPI_FUNC(PyObject)*DbiInternalError;
+DBI_FUNC(PyObject)*DbiNoError;
+DBI_FUNC(PyObject)*DbiOpError;
+DBI_FUNC(PyObject)*DbiProgError;
+DBI_FUNC(PyObject)*DbiIntegrityError;
+DBI_FUNC(PyObject)*DbiDataError;
+DBI_FUNC(PyObject)*DbiInternalError;
 
 
 #endif
