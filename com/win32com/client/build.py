@@ -343,7 +343,6 @@ class DispatchItem(OleItem):
 			elif rd in [pythoncom.VT_DISPATCH, pythoncom.VT_UNKNOWN]:
 				s = '%s\tret = self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)\n' % (linePrefix, id, fdesc[4], retDesc, `argsDesc`, _BuildArgList(fdesc, names))
 				s = s + '%s\tif ret is not None:\n' % (linePrefix,)
-				print >> sys.stderr, name, rd, pythoncom.VT_UNKNOWN
 				if rd == pythoncom.VT_UNKNOWN:
 					s = s + "%s\t\t# See if this IUnknown is really an IDispatch\n" % (linePrefix,)
 					s = s + "%s\t\ttry:\n" % (linePrefix,)
