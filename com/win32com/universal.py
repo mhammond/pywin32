@@ -155,7 +155,7 @@ class Definition:
                 hr = retVal[0]
                 retVal = retVal[1:]
             else:
-                raise TypeError, "Expected %s return values, got: %s" % (len(outTup), len(retVal))
+                raise TypeError, "Expected %s return values, got: %s" % (len(meth._gw_out_args) + 1, len(retVal))
         else:
             retVal = [retVal]
             retVal.extend([None] * (len(meth._gw_out_args)-1))
