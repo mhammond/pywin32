@@ -362,7 +362,7 @@ PyObject *MakeLV_ITEMTuple(LV_ITEM *item)
 // @object LV_ITEM|Describes an LV_ITEM tuple, used by the <o PyCListCtrl> object.
 // @tupleitem 0|int|item|The item number.
 // @tupleitem 1|int|subItem|The sub-item number.
-// @tupleitem 2|int|state|The items state.
+// @tupleitem 2|int|state|The items state.  If specified, the stateMask must also be specified.
 // @tupleitem 3|int|stateMask|A mask indicating which of the state bits are valid..
 // @tupleitem 4|string|text|The text for the item
 // @tupleitem 5|int|iImage|The image offset for the item
@@ -571,8 +571,7 @@ PyObject *MakeTV_ITEMTuple(TV_ITEM *item)
 		Py_INCREF(Py_None);
 		PyTuple_SET_ITEM(ret, 6, Py_None);
 	}
-	if (item->mask & TVIF_PARAM && item->lParam) {
-		// assume lParam is an object
+	if (item->mask & TVIF_PARAM) {
 		PyTuple_SET_ITEM(ret, 7, PyInt_FromLong(item->lParam));
 	} else {
 		Py_INCREF(Py_None);
@@ -583,8 +582,8 @@ PyObject *MakeTV_ITEMTuple(TV_ITEM *item)
 
 // @object TV_ITEM|Describes a TV_ITEM tuple, used by the <o PyCListCtrl> object.
 // A tuple of 8 items:
-// <nl>When passed to Python, will always be a tuple of size 8, and items may be None if not available.
-// <nl>When passed from Python, the tuple may be any length up to 8, and any item may be None.
+// <nl>When returned from a win32ui function, will always be a tuple of size 8, and items may be None if not available.
+// <nl>When passed to a win32ui function, the tuple may be any length up to 8, and any item may be None.
 BOOL ParseTV_ITEMTuple( PyObject *args, TV_ITEM *pItem)
 {
 	PyObject *ob;
@@ -618,11 +617,11 @@ BOOL ParseTV_ITEMTuple( PyObject *args, TV_ITEM *pItem)
 		return FALSE;
 	if (ob==Py_None && ob2==Py_None)
 		;
-	else if (ob==Py_None) {
-		PyErr_SetString(PyExc_TypeError, "TV_ITEM - state and stateMask must both be None, or both not Noned");
+	else if (ob==Py_None || ob2==Py_None) {
+		PyErr_SetString(PyExc_TypeError, "TV_ITEM - state and stateMask must both be None, or both not None");
 		return FALSE;
 	} else {
-		// @tupleitem 1|int|state|Item state
+		// @tupleitem 1|int|state|Item state.  If specified, the stateMask must also be specified.
 		// @tupleitem 2|int|stateMask|Item state mask
 		pItem->state = (int)PyInt_AsLong(ob);
 		pItem->stateMask = (int)PyInt_AsLong(ob2);
