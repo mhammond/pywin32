@@ -325,6 +325,88 @@ static PyObject *PyEnumObjectItems(PyObject *self, PyObject *args)
 	return rc;
 }
 
+// @pymethod list|win32pdh|EnumObjects|Enumerates objects
+static PyObject *PyEnumObjects(PyObject *self, PyObject *args)
+{
+	DWORD detailLevel, refresh=1;
+	char *reserved;
+	PyObject *obMachine;
+	if (!PyArg_ParseTuple(args, "zOi|i:EnumObjects", 
+	          &reserved, // @pyparm string|reserved||Should be None
+	          &obMachine, // @pyparm string|machine||The machine to use, or None
+	          &detailLevel, // @pyparm int|detailLevel||The level of data required.
+	          &refresh)) // @pyparm int|refresh|1|Should the list be refreshed.
+		return NULL;
+
+    LPTSTR      szObjectListBuffer     = NULL;
+    DWORD       dwObjectListSize       = 0;
+    LPTSTR      szTemp          = NULL;
+
+	CHECK_PDH_PTR(pPdhEnumObjects);
+
+	TCHAR *strMachine;
+	if (!PyWinObject_AsTCHAR(obMachine, &strMachine, TRUE))
+		return NULL;
+
+
+	PDH_STATUS pdhStatus;
+
+	Py_BEGIN_ALLOW_THREADS
+
+    pdhStatus = (*pPdhEnumObjects) (
+        reserved,                   // reserved
+        strMachine,                   // local machine
+        szObjectListBuffer,    // pass in NULL buffers
+        &dwObjectListSize,     // an 0 length to get
+        detailLevel,     // counter detail level
+        refresh); 
+	Py_END_ALLOW_THREADS
+
+	if (pdhStatus != ERROR_SUCCESS)  {
+		PyWinObject_FreeTCHAR(strMachine);
+		return PyWin_SetAPIError("EnumObjects for buffer size", pdhStatus);
+	}
+
+    // Allocate the buffers and try the call again.
+	if (dwObjectListSize) {
+		szObjectListBuffer = (LPTSTR)malloc (dwObjectListSize * sizeof (TCHAR));
+		if (szObjectListBuffer==NULL) {
+			PyErr_SetString(PyExc_MemoryError, "Allocating object buffer");
+			PyWinObject_FreeTCHAR(strMachine);
+			return NULL;
+		}
+	} else
+		szObjectListBuffer=NULL;
+
+
+	Py_BEGIN_ALLOW_THREADS
+	pdhStatus = (*pPdhEnumObjects) (
+	        reserved,                   // reserved
+	        strMachine,                   // local machine
+	        szObjectListBuffer,    // pass in NULL buffers
+	        &dwObjectListSize,     // an 0 length to get
+	        detailLevel,     // counter detail level
+	        0); 
+	Py_END_ALLOW_THREADS
+	PyWinObject_FreeTCHAR(strMachine);
+
+    if (pdhStatus != ERROR_SUCCESS) {
+		free(szObjectListBuffer);
+		return PyWin_SetAPIError("EnumObjects for data", pdhStatus);
+    }
+
+	PyObject *retObject = PyList_New(0);
+	if (szObjectListBuffer)
+		for (szTemp = szObjectListBuffer;
+			*szTemp != 0;
+			szTemp += lstrlen(szTemp) + 1) {
+				PyList_Append(retObject, PyString_FromString(szTemp));
+		}
+	free(szObjectListBuffer);
+	Py_INCREF(retObject);
+	return retObject;
+}
+
 // @pymethod int|win32pdh|AddCounter|Adds a new counter
 static PyObject *PyAddCounter(PyObject *self, PyObject *args)
 {
@@ -903,6 +985,7 @@ static struct PyMethodDef win32pdh_functions[] = {
 	{"AddCounter",               PyAddCounter,           1}, // @pymeth AddCounter|Adds a new counter
 	{"RemoveCounter",            PyRemoveCounter,        1}, // @pymeth RemoveCounter|Removes an open counter.
 	{"EnumObjectItems",          PyEnumObjectItems,      1}, // @pymeth EnumObjectItems|Enumerates an object's items
+ 	{"EnumObjects",		         PyEnumObjects,          1}, // @pymeth EnumObjects|Enumerates objects
 	{"OpenQuery",                PyOpenQuery,            1}, // @pymeth OpenQuery|Opens a new query
 	{"CloseQuery",               PyCloseQuery,           1}, // @pymeth CloseQuery|Closes an open query.
 	{"MakeCounterPath",          PyMakeCounterPath,      1}, // @pymeth MakeCounterPath|Makes a fully resolved counter path
