@@ -22,6 +22,24 @@ import win32pdh, string, time
 
 error = win32pdh.error
 
+# Handle some localization issues.
+# see http://support.microsoft.com/default.aspx?scid=http://support.microsoft.com:80/support/kb/articles/Q287/1/59.asp&NoWebContent=1
+# Build a map of english_counter_name: counter_id
+counter_english_map = {}
+
+def find_pdh_counter_localized_name(english_name, machine_name = None):
+	if not counter_english_map:
+		import win32api, win32con
+		counter_reg_value = win32api.RegQueryValueEx(win32con.HKEY_PERFORMANCE_DATA, "Counter 009")
+		counter_list = counter_reg_value[0]
+		for i in range(0, len(counter_list) - 1, 2):
+			try:
+				counter_id = int(counter_list[i])
+			except ValueError:
+				continue
+			counter_english_map[counter_list[i+1].lower()] = counter_id
+	return win32pdh.LookupPerfNameByIndex(machine_name, counter_english_map[english_name.lower()])
+
 def GetPerformanceAttributes(object, counter, instance = None, inum=-1, format = win32pdh.PDH_FMT_LONG, machine=None):
 	path = win32pdh.MakeCounterPath( (machine,object,instance, None, inum,counter) )
 	hq = win32pdh.OpenQuery()
@@ -36,13 +54,14 @@ def GetPerformanceAttributes(object, counter, instance = None, inum=-1, format =
 	finally:
 		win32pdh.CloseQuery(hq)
 
-def FindPerformanceAttributesByName(instanceName, object = "Process", counter = "ID Process", format = win32pdh.PDH_FMT_LONG, machine = None, bRefresh=0):
+def FindPerformanceAttributesByName(instanceName, object = None, counter = None, format = win32pdh.PDH_FMT_LONG, machine = None, bRefresh=0):
 	"""Find peformance attributes by (case insensitive) instance name.
 	
 	Given a process name, return a list with the requested attributes.
 	Most useful for returning a tuple of PIDs given a process name.
 	"""
-
+	if object is None: object = find_pdh_counter_localized_name("Process", machine)
+	if counter is None: counter = find_pdh_counter_localized_name("ID Process", machine)
 	if bRefresh: # PDH docs say this is how you do a refresh.
 		win32pdh.EnumObjects(None, machine, 0, 1)
 	instanceName = string.lower(instanceName)
@@ -105,17 +124,10 @@ def BrowseCallBackDemo(counter):
 	print "Added '%s' on object '%s' (machine %s), instance %s(%d)-parent of %s" % (counterName, object, machine, instance, index, parentInstance)
 
 def browse( callback = BrowseCallBackDemo, title="Python Browser", level=win32pdh.PERF_DETAIL_WIZARD):
-	win32pdh.BrowseCounters(None,0, callback, level, title)
-
-def test():
 	print "Virtual Bytes = ", FindPerformanceAttributesByName("python", counter="Virtual Bytes")	 
 	print "Available Bytes = ", GetPerformanceAttributes("Memory", "Available Bytes")
-	print win32pdh.EnumObjectItems(None,None,"Memory", -1)
-	
-	
-	
+
 if __name__=='__main__':
 	ShowAllProcesses()
-#	test()
 	print "Browsing for counters..."
 	browse()
