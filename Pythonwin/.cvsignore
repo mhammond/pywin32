@@ -7,4 +7,5 @@ Build
 *.pdb
 *.plg
 *.pyd
+*.aps
 temp-*
