@@ -28,6 +28,7 @@
 #include "PyIEnumSTATSTG.h"
 #include "PyIExternalConnection.h"
 #include "PyIServiceProvider.h"
+#include "PyIEnumConnectionPoints.h"
 #include "PyIEnumConnections.h"
 #include "PyICreateTypeLib.h"
 #include "PyICreateTypeInfo.h"
@@ -153,6 +154,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 #ifndef NO_PYCOM_IENUMCATEGORYINFO
 	PYCOM_INTERFACE_CLIENT_ONLY( EnumCATEGORYINFO),
 #endif // NO_PYCOM_IENUMCATEGORYINFO
+	PYCOM_INTERFACE_FULL       ( EnumConnectionPoints),
 	PYCOM_INTERFACE_FULL       ( EnumConnections),
 #ifndef NO_PYCOM_IENUMGUID
 	PYCOM_INTERFACE_CLIENT_ONLY( EnumGUID),
