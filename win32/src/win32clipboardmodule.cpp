@@ -1000,6 +1000,7 @@ initwin32clipboard(void)
   PyObject *dict, *module;
   module = Py_InitModule("win32clipboard", clipboard_functions);
   dict = PyModule_GetDict(module);
+  PyWinGlobals_Ensure();
   Py_INCREF(PyWinExc_ApiError);
   PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
 }
