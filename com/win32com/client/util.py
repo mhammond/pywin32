@@ -4,7 +4,7 @@ This module contains utility functions, used primarily by advanced COM
 programmers, or other COM modules.
 """
 import pythoncom
-from win32com.client import Dispatch
+from win32com.client import Dispatch, _get_good_object_
 
 PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 
@@ -56,7 +56,6 @@ class Enumerator:
 		raise IndexError, "list index out of range"
 	def Next(self, count=1):
 		ret = self._oleobj_.Next(count)
-		if ret is None: return None
 		realRets = []
 		for r in ret:
 			realRets.append(self._make_retval_(r))
@@ -73,7 +72,12 @@ class EnumVARIANT(Enumerator):
 		self.resultCLSID = resultCLSID
 		Enumerator.__init__(self, enum)
 	def _make_retval_(self, result):
-		if type(result)==PyIDispatchType:
-			result = Dispatch(result, resultCLSID = self.resultCLSID)
-		return result
+		return _get_good_object_(result, resultCLSID = self.resultCLSID)
 
+class Iterator:
+	def __init__(self, enum):
+		self._iter_ = iter(enum.QueryInterface(pythoncom.IID_IEnumVARIANT))
+	def __iter__(self):
+		return self
+	def next(self):
+		return _get_good_object_(self._iter_.next())
