@@ -48,6 +48,7 @@ generates Windows .hlp files.
 //PyObject *CLSIDMapping;  // Maps CLSIDs onto PyClassObjects
 PyObject *g_obPyCom_MapIIDToType = NULL; // map of IID's to client types.
 PyObject *g_obPyCom_MapGatewayIIDToName = NULL; // map of IID's to names
+PyObject *g_obPyCom_MapInterfaceNameToIID = NULL; // map of names to IID
 PyObject *g_obPyCom_MapServerIIDToGateway = NULL; // map of IID's to gateways.
 
 // Register a Python on both the UID and Name maps.
@@ -90,12 +91,33 @@ HRESULT PyCom_RegisterGatewayObject(REFIID iid, pfnPyGatewayConstructor ctor, co
 	Py_DECREF(valueObject);
 	// Now in the other server map.
 	if (g_obPyCom_MapGatewayIIDToName) {
-		if (PyDict_SetItem(g_obPyCom_MapGatewayIIDToName, keyObject, PyString_FromString((char *)interfaceName))!=0) {
+		valueObject = PyString_FromString((char *)interfaceName);
+		if (!valueObject) {
 			Py_DECREF(keyObject);
 			return E_FAIL;
 		}
+		if (PyDict_SetItem(g_obPyCom_MapGatewayIIDToName, keyObject, valueObject)!=0) {
+			Py_DECREF(keyObject);
+			return E_FAIL;
+		}
+		Py_DECREF(valueObject);
+	}
+	// And finally in the map of names to gateway IIDs.
+	if (g_obPyCom_MapInterfaceNameToIID) {
+		valueObject = PyString_FromString((char *)interfaceName);
+		if (!valueObject) {
+			Py_DECREF(keyObject);
+			return E_FAIL;
+		}
+		// Note we reuse the key as the value, and value as the key!
+		if (PyDict_SetItem(g_obPyCom_MapInterfaceNameToIID, valueObject, keyObject)!=0) {
+			Py_DECREF(keyObject);
+			return E_FAIL;
+		}
+		Py_DECREF(valueObject);
 	}
 	Py_DECREF(keyObject);
+
 	return S_OK;
 }
 
@@ -264,6 +286,8 @@ int PyCom_RegisterCoreSupport(void)
 	if (g_obPyCom_MapIIDToType==NULL) return -1;
 	g_obPyCom_MapGatewayIIDToName = PyDict_New();
 	if (g_obPyCom_MapGatewayIIDToName==NULL) return -1;
+	g_obPyCom_MapInterfaceNameToIID = PyDict_New();
+	if (g_obPyCom_MapInterfaceNameToIID==NULL) return -1;
 
 	return PyCom_RegisterSupportedInterfaces(g_interfaceSupportData, sizeof(g_interfaceSupportData)/sizeof(PyCom_InterfaceSupportInfo) );
 }
@@ -281,5 +305,7 @@ int PyCom_UnregisterCoreSupport(void)
 	g_obPyCom_MapIIDToType = NULL;
 	Py_DECREF(g_obPyCom_MapGatewayIIDToName);
 	g_obPyCom_MapGatewayIIDToName = NULL;
+	Py_DECREF(g_obPyCom_MapInterfaceNameToIID);
+	g_obPyCom_MapInterfaceNameToIID = NULL;
 	return 0;
 }
