@@ -254,7 +254,7 @@ class ReplaceDialog(FindReplaceDialog):
 #		bCanReplace = len(ft)>0 and control.GetSelText() == ft
 		bCanReplace = lastSearch.sel == control.GetSel()
 		self.butReplace.EnableWindow(bCanReplace)
-		self.butReplaceAll.EnableWindow(bCanReplace)
+#		self.butReplaceAll.EnableWindow(bCanReplace)
 
 	def OnActivate(self, msg):
 		wparam = msg[2]
@@ -271,10 +271,13 @@ class ReplaceDialog(FindReplaceDialog):
 		_ReplaceIt(None)
 
 	def OnReplaceAll(self, id, code):
-		lastSearch.replaceText = self.editReplaceText.GetWindowText()
-		num = 0
-		while _ReplaceIt(None) != FOUND_NOTHING:
-			num = num + 1
+		control = _GetControl(None)
+		control.SetSel(0)
+		if self.DoFindNext() == FOUND_NORMAL:
+			lastSearch.replaceText = self.editReplaceText.GetWindowText()
+			num = 0
+			while _ReplaceIt(control) == FOUND_NORMAL:
+				num = num + 1
 
 		win32ui.SetStatusText("Replaced %d occurrences" % num)
 		if num > 0 and not self.butKeepDialogOpen.GetCheck():
