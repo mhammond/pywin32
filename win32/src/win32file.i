@@ -12,6 +12,7 @@
 #include "assert.h"
 #endif
 
+#define NEED_PYWINOBJECTS_H
 %}
 
 %include "typemaps.i"
@@ -2099,18 +2100,28 @@ static PyObject *MyWaitCommEvent(PyObject *self, PyObject *args)
 	HANDLE handle;
 	if (!PyWinObject_AsHANDLE(obHandle, &handle, FALSE))
 		return NULL;
-	OVERLAPPED *poverlapped;
-	if (!PyWinObject_AsOVERLAPPED(obOverlapped, &poverlapped, TRUE))
+	PyOVERLAPPED *pyoverlapped;
+	if (!PyWinObject_AsPyOVERLAPPED(obOverlapped, &pyoverlapped, TRUE))
 		return NULL;
-	DWORD mask;
+	DWORD mask, *pmask;
+	if (pyoverlapped)
+		pmask = &pyoverlapped->m_overlapped.dwValue;
+	else
+		pmask = &mask;
+
 	BOOL ok;
 	Py_BEGIN_ALLOW_THREADS
-	ok = WaitCommEvent(handle, &mask, poverlapped);
+	ok = WaitCommEvent(handle, &mask, 
+	                   pyoverlapped ? pyoverlapped->GetOverlapped() : NULL);
 	Py_END_ALLOW_THREADS
 	DWORD rc = ok ? 0 : GetLastError();
 	if (rc!=0 && rc != ERROR_IO_PENDING)
 		return PyWin_SetAPIError("WaitCommError", rc);
-	return Py_BuildValue("ll", rc, mask);
+	return Py_BuildValue("ll", rc, *pmask);
+	// @comm If an overlapped structure is passed, then the <om PyOVERLAPPED.dword> 
+	// address is passed to the Win32 API as the mask.  This means that once the
+	// overlapped operation has completed, this dword attribute can be used to
+	// determine the type of event that occurred.
 }
 %}
 %native (WaitCommEvent) MyWaitCommEvent;
@@ -2118,10 +2129,10 @@ static PyObject *MyWaitCommEvent(PyObject *self, PyObject *args)
 // Some Win2k specific volume mounting functions, thanks to Roger Upole
 %{
 
-static BOOL (*pfnGetVolumeNameForVolumeMountPointW)(LPCWSTR, LPCWSTR, DWORD) = NULL;
-static BOOL (*pfnSetVolumeMountPointW)(LPCWSTR, LPCWSTR) = NULL;
-static BOOL (*pfnDeleteVolumeMountPointW)(LPCWSTR) = NULL;
-static BOOL (*pfnCreateHardLinkW)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES ) = NULL;
+static BOOL WINAPI (*pfnGetVolumeNameForVolumeMountPointW)(LPCWSTR, LPCWSTR, DWORD) = NULL;
+static BOOL WINAPI (*pfnSetVolumeMountPointW)(LPCWSTR, LPCWSTR) = NULL;
+static BOOL WINAPI (*pfnDeleteVolumeMountPointW)(LPCWSTR) = NULL;
+static BOOL WINAPI (*pfnCreateHardLinkW)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES ) = NULL;
 
 #define VOLUME_POINTERS_NON_NULL \
             (pfnGetVolumeNameForVolumeMountPointW != NULL && \
@@ -2274,6 +2285,7 @@ py_CreateHardLink(PyObject *self, PyObject *args)
     WCHAR *new_file = NULL;
     WCHAR *existing_file = NULL;
     SECURITY_ATTRIBUTES *sa;
+	DebugBreak();
 
     if (!_CheckVolumePfns())
         return NULL;
@@ -2297,7 +2309,7 @@ py_CreateHardLink(PyObject *self, PyObject *args)
     }
 
     assert(pfnCreateHardLinkW);
-    if (!(*pfnCreateHardLinkW)(new_file, existing_file, NULL)){
+    if (!((*pfnCreateHardLinkW)(new_file, existing_file, sa))){
         PyWin_SetAPIError("CreateHardLink");
         goto cleanup;
     }
