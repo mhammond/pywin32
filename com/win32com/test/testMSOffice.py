@@ -43,7 +43,7 @@ def TestWord():
 	try:
 		print "Starting MSWord for generated test"
 		# Typelib, lcid, major and minor for the typelib
-		if gencache.EnsureModule("{00020905-0000-0000-C000-000000000046}", 1033, 8, 0) is None :
+		if gencache.EnsureModule("{00020905-0000-0000-C000-000000000046}", 1033, 8, 0, bForDemand=1) is None :
 # This should not be necessary - Office 2000 should have the same library ID, just different version numbers??
 #		   and gencache.EnsureModule('{91493440-5A91-11CF-8700-00AA0060263B}', 0, 2,14) is None: # Office 2000
 			raise ImportError, "Can not load the Word8 typelibrary."
@@ -149,7 +149,7 @@ def TestAll():
 
 		try:
 			print "Starting Excel 8 for generated excel8.py test..."
-			mod = gencache.EnsureModule("{00020813-0000-0000-C000-000000000046}", 0, 1, 2)
+			mod = gencache.EnsureModule("{00020813-0000-0000-C000-000000000046}", 0, 1, 2, bForDemand=1)
 			xl = win32com.client.Dispatch("Excel.Application")
 			TextExcel(xl)
 		except ImportError:
