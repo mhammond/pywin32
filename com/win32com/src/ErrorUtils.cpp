@@ -50,8 +50,7 @@ static PyObject *PyCom_PyObjectFromIErrorInfo(IErrorInfo *, HRESULT errorhr);
 ////////////////////////////////////////////////////////////////////////
 
 // Generically fills an EXCEP_INFO.  The scode in the EXCEPINFO
-// is the HRESULT as nominated by the user.  This function returns
-// DISP_E_EXCEPTION
+// is the HRESULT as nominated by the user.
 void PyCom_ExcepInfoFromPyException(EXCEPINFO *pExcepInfo)
 {
 	USES_CONVERSION;
