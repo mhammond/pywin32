@@ -267,8 +267,6 @@ class WindowOutputViewScintilla(pywin.scintilla.view.CScintillaView, WindowOutpu
 	def _MakeColorizer(self):
 		return None # No colorizer for me!
 
-#		win32ui.PumpWaitingMessages(0, -1)
-
 WindowOutputView = WindowOutputViewScintilla
 # The WindowOutput class is actually an MFC template.  This is a conventient way of
 # making sure that my state can exist beyond the life of the windows themselves.
@@ -437,7 +435,7 @@ class WindowOutput(docview.DocTemplate):
 			if not self.CheckRecreateWindow():
 				debug(":Recreate failed!\n")
 				return 1 # In trouble - so say we have nothing to do.
-#			win32ui.PumpWaitingMessages() # Pump paint messages
+			win32ui.PumpWaitingMessages() # Pump paint messages
 			self.currentView.dowrite(string.join(items,''))
 		return rc
 
@@ -449,7 +447,7 @@ class WindowOutput(docview.DocTemplate):
 #			debug("not my thread - ignoring queue options!\n")
 		elif self.writeQueueing==flags.WQ_LINE:
 			pos = string.rfind(message, '\n')
-			if pos>0:
+			if pos>=0:
 #				debug("Line queueing - forcing flush\n")
 				self.QueueFlush()
 				return
