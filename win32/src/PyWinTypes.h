@@ -170,6 +170,13 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromOLECHAR(const OLECHAR * str);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromOLECHAR(const OLECHAR * str, int numChars);
 
 #ifndef MS_WINCE
+// String support for buffers allocated via a function of your choice.
+PYWINTYPES_EXPORT PyWinObject_AsPfnAllocatedWCHAR(PyObject *stringObject, 
+                                                  void *(*pfnAllocator)(ULONG), 
+                                                  WCHAR **ppResult, 
+                                                  BOOL bNoneOK = FALSE,
+                                                  DWORD *pResultLen = NULL);
+
 // String support for buffers allocated via CoTaskMemAlloc and CoTaskMemFree
 PYWINTYPES_EXPORT BOOL PyWinObject_AsTaskAllocatedWCHAR(PyObject *stringObject, WCHAR **ppResult, BOOL bNoneOK /*= FALSE*/,DWORD *pResultLen /*= NULL*/);
 PYWINTYPES_EXPORT void PyWinObject_FreeTaskAllocatedWCHAR(WCHAR * str);

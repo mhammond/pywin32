@@ -15,7 +15,7 @@
 
 #ifndef MS_WINCE
 
-BOOL PyWinObject_AsTaskAllocatedWCHAR(PyObject *stringObject, WCHAR **ppResult, BOOL bNoneOK /*= FALSE*/,DWORD *pResultLen /*= NULL*/)
+BOOL PyWinObject_AsPfnAllocatedWCHAR(PyObject *stringObject, void *(*pfnAllocator)(ULONG), WCHAR **ppResult, BOOL bNoneOK /*= FALSE*/,DWORD *pResultLen /*= NULL*/)
 {
 	BOOL rc = TRUE;
 	if (PyString_Check(stringObject)) {
@@ -28,10 +28,10 @@ BOOL PyWinObject_AsTaskAllocatedWCHAR(PyObject *stringObject, WCHAR **ppResult, 
 		   will need less, as the input may contain multi-byte chars, but we
 		   should never need more 
 		*/
-		*ppResult = (LPWSTR)CoTaskMemAlloc(cch*sizeof(WCHAR));
+		*ppResult = (LPWSTR)(*pfnAllocator)((cch+1)*sizeof(WCHAR));
 		if (*ppResult)
 			/* convert and get the final character size */
-			cch = MultiByteToWideChar(CP_ACP, 0, buf, cch, *ppResult, cch);
+			cch = MultiByteToWideChar(CP_ACP, 0, buf, cch+1, *ppResult, cch+1);
 		if (*ppResult && pResultLen) *pResultLen = cch;
 	} else if (PyUnicode_Check(stringObject)) {
 		// copy the value, including embedded NULLs
@@ -42,9 +42,9 @@ BOOL PyWinObject_AsTaskAllocatedWCHAR(PyObject *stringObject, WCHAR **ppResult, 
 		WCHAR *v = ((PyUnicode *)stringObject)->m_bstrValue;
 		UINT cch = SysStringLen(v);
 #endif
-		*ppResult = (WCHAR *)CoTaskMemAlloc(cch * sizeof(WCHAR));
+		*ppResult = (WCHAR *)pfnAllocator((cch+1) * sizeof(WCHAR));
 		if (*ppResult)
-			memcpy(*ppResult, v, cch * sizeof(WCHAR));
+			memcpy(*ppResult, v, (cch+1) * sizeof(WCHAR));
 		if (*ppResult && pResultLen) *pResultLen = cch;
 
 	} else if (stringObject == Py_None) {
@@ -60,10 +60,21 @@ BOOL PyWinObject_AsTaskAllocatedWCHAR(PyObject *stringObject, WCHAR **ppResult, 
 		rc = FALSE;
 	}
 	if (rc && !ppResult) {
-		PyErr_SetString(PyExc_MemoryError, "Allocating WCHAR via CoTaskMemAlloc");
+		PyErr_SetString(PyExc_MemoryError, "Allocating WCHAR");
 		return FALSE;
 	}
 	return rc;
+}
+
+// Get around calling conversion issues.
+void *AllocViaCoTaskMemAlloc(ULONG cb)
+{
+	return CoTaskMemAlloc(cb);
+}
+
+BOOL PyWinObject_AsTaskAllocatedWCHAR(PyObject *stringObject, WCHAR **ppResult, BOOL bNoneOK /*= FALSE*/,DWORD *pResultLen /*= NULL*/)
+{
+	return PyWinObject_AsPfnAllocatedWCHAR(stringObject, AllocViaCoTaskMemAlloc, ppResult, bNoneOK, pResultLen);
 }
 
 void PyWinObject_FreeTaskAllocatedWCHAR(WCHAR * str)
