@@ -81,12 +81,11 @@ public:
 		return m_pECB->ReadClient(m_pECB->ConnID, lpvBuffer, lpdwSize) ? true : false;
 	}
 
-	void SignalAsyncRequestDone(const bool bKeepAlive=true)
+	void DoneWithSession(DWORD dwState)
 	{
 
 		// Let IIS know that this worker thread is done with this request.  This will allow
 		// IIS to recycle the EXTENSION_CONTROL_BLOCK.  
-		DWORD dwState = (bKeepAlive) ? HSE_STATUS_SUCCESS_AND_KEEP_CONN : HSE_STATUS_SUCCESS;
 		m_pECB->ServerSupportFunction(m_pECB->ConnID, HSE_REQ_DONE_WITH_SESSION, &dwState, NULL, 0);
 	}
 

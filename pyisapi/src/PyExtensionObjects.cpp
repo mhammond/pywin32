@@ -144,6 +144,7 @@ static struct PyMethodDef PyECB_methods[] = {
 	{"GetServerVariable",		PyECB::GetServerVariable, 1},	 // @pymeth GetServerVariable|
 	{"ReadClient",				PyECB::ReadClient, 1},			 // @pymeth ReadClient|
 	{"SendResponseHeaders",	    PyECB::SendResponseHeaders, 1},  // @pymeth SendResponseHeaders|
+	
 	{"DoneWithSession",	        PyECB::DoneWithSession, 1},      // @pymeth DoneWithSession|
 	{"close",                   PyECB::DoneWithSession, 1},      // @pymeth close|A synonym for DoneWithSession.
 	{"IsSessionActive",			PyECB::IsSessionActive,1},       // @pymeth IsSessionActive|Indicates if DoneWithSession has been called
@@ -498,21 +499,20 @@ PyObject * PyECB::IsKeepAlive(PyObject *self, PyObject * args)
 // @pymethod |EXTENSION_CONTROL_BLOCK|DoneWithSession|Calls ServerSupportFunction with HSE_REQ_DONE_WITH_SESSION 
 PyObject * PyECB::DoneWithSession(PyObject *self, PyObject * args)
 {
-	BOOL bRes = FALSE;
-	int bKeepAlive = 0;
-
+	DWORD status = HSE_STATUS_SUCCESS;
 	PyECB * pecb = (PyECB *) self;
 
-	if (!PyArg_ParseTuple(args, "|i:DoneWithSession", &bKeepAlive))
+	// @pyparm int|status|HSE_STATUS_SUCCESS|An optional status.
+	// HSE_STATUS_SUCCESS_AND_KEEP_CONN is supported by IIS to keep the connection alive.
+	if (!PyArg_ParseTuple(args, "|i:DoneWithSession", &status))
 		return NULL;
 
 	if (pecb->m_pcb){
 		Py_BEGIN_ALLOW_THREADS
-		pecb->m_pcb->SignalAsyncRequestDone((bKeepAlive!=0)?true:false);
+		pecb->m_pcb->DoneWithSession(status);
 		pecb->m_bAsyncDone = true;
 		Py_END_ALLOW_THREADS
 	}
-
 	Py_INCREF(Py_None);
 	return Py_None;
 }
