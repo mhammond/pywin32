@@ -779,7 +779,10 @@ initwin32ras(void)
   PyWinGlobals_Ensure();
   PyObject *dict, *module;
   module = Py_InitModule("win32ras", win32ras_functions);
+  if (!module) /* Eeek - some serious error! */
+    return;
   dict = PyModule_GetDict(module);
+  if (!dict) return;
   module_error = PyWinExc_ApiError;
   Py_INCREF(module_error);
 //  module_error = PyString_FromString("win32ras error");

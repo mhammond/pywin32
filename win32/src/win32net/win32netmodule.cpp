@@ -928,7 +928,9 @@ initwin32net(void)
 {
   PyObject *dict, *module;
   module = Py_InitModule("win32net", win32net_functions);
+  if (!module) return;
   dict = PyModule_GetDict(module);
+  if (!dict) return;
   PyWinGlobals_Ensure();
   PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
   Py_INCREF(PyWinExc_ApiError);

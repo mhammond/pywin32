@@ -178,7 +178,9 @@ extern "C" __declspec(dllexport) void initwin32sh(void)
 	PyObject *d=NULL;
 
 	m=Py_InitModule4("win32sh", win32sh_methods, "", (PyObject*)NULL, PYTHON_API_VERSION);
+	if (!m) return;
 	d=PyModule_GetDict(m);
+	if (!d) return;
 	obError=PyString_FromString("error");
 	PyDict_SetItemString(d, "error", obError);
 

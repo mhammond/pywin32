@@ -171,7 +171,10 @@ initwin32lz(void)
 {
   PyObject *dict, *module;
   module = Py_InitModule("win32lz", win32ras_functions);
+  if (!module) /* Eeek - some serious error! */
+    return;
   dict = PyModule_GetDict(module);
+  if (!dict) return; /* Another serious error!*/
   module_error = PyString_FromString("win32lz error");
   PyDict_SetItemString(dict, "error", module_error);
 }

@@ -1350,8 +1350,11 @@ extern "C" __declspec(dllexport) void initpythoncom()
 
 	// Create the module and add the functions
 	oModule = Py_InitModule(modName, pythoncom_methods);
+	if (!oModule) /* Eeek - some serious error! */
+		return;
 
 	PyObject *dict = PyModule_GetDict(oModule);
+	if (!dict) return; /* Another serious error!*/
 	PyDict_SetItemString(dict, "TypeIIDs", g_obPyCom_MapIIDToType);
 	PyDict_SetItemString(dict, "ServerInterfaces", g_obPyCom_MapGatewayIIDToName);
 

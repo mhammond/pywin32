@@ -411,7 +411,10 @@ void initpywintypes(void)
   // Note we assume the Python global lock has been acquired for us already.
   PyObject *dict, *module;
   module = Py_InitModule("pywintypes", pywintypes_functions);
+  if (!module) /* Eeek - some serious error! */
+    return;
   dict = PyModule_GetDict(module);
+  if (!dict) return; /* Another serious error!*/
   if (PyWinExc_ApiError == NULL || PyWinExc_COMError == NULL) {
 	  PyErr_SetString(PyExc_MemoryError, "Could not initialise the error objects");
 	  return;

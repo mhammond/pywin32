@@ -1045,7 +1045,10 @@ initwin32clipboard(void)
 {
   PyObject *dict, *module;
   module = Py_InitModule("win32clipboard", clipboard_functions);
+  if (!module) /* Eeek - some serious error! */
+    return;
   dict = PyModule_GetDict(module);
+  if (!dict) return; /* Another serious error!*/
   PyWinGlobals_Ensure();
   AddConstants(dict);
   Py_INCREF(PyWinExc_ApiError);

@@ -196,7 +196,10 @@ initwin2kras(void)
 	PyWinGlobals_Ensure();
 	PyObject *dict, *module;
 	module = Py_InitModule("win2kras", win2kras_functions);
+	if (!module) /* Eeek - some serious error! */
+		return;
 	dict = PyModule_GetDict(module);
+	if (!dict) return; /* Another serious error!*/
 	AddConstants(dict);
 #ifdef _DEBUG
 	const char *modName = "win32ras_d.pyd";

@@ -2174,7 +2174,10 @@ initwin32ui(void)
   PyWinGlobals_Ensure();
   PyObject *dict, *module;
   module = Py_InitModule(uiModName, ui_functions);
+  if (!module) /* Eeek - some serious error! */
+    return;
   dict = PyModule_GetDict(module);
+  if (!dict) return; /* Another serious error!*/
   ui_module_error = PyString_FromString(errorName);
   PyDict_SetItemString(dict, "error", ui_module_error);
   PyObject *copyright = PyString_FromString("Copyright 1994-2000 Mark Hammond (MarkH@ActiveState.com)");

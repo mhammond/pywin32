@@ -145,7 +145,10 @@ inittimer(void)
 {
   PyObject *dict, *module;
   module = Py_InitModule("timer", timer_functions);
+  if (!module) /* Eeek - some serious error! */
+    return;
   dict = PyModule_GetDict(module);
+  if (!dict) return; /* Another serious error!*/
   timer_module_error = PyString_FromString("timer error");
   PyDict_SetItemString(dict, "error", timer_module_error);
   timer_id_callback_map = PyDict_New();

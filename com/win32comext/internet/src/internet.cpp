@@ -165,7 +165,10 @@ extern "C" __declspec(dllexport) void initinternet()
 	PyObject *oModule;
 	// Create the module and add the functions
 	oModule = Py_InitModule(modName, internet_methods);
+	if (!oModule) /* Eeek - some serious error! */
+		return;
 	PyObject *dict = PyModule_GetDict(oModule);
+	if (!dict) return; /* Another serious error!*/
 
 	// Register all of our interfaces, gateways and IIDs.
 	PyCom_RegisterExtensionSupport(dict, g_interfaceSupportData, sizeof(g_interfaceSupportData)/sizeof(PyCom_InterfaceSupportInfo));

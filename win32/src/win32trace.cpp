@@ -389,7 +389,10 @@ initwin32trace(void)
   PyWinGlobals_Ensure();
   PyObject *dict;
   pModMe = Py_InitModule("win32trace", win32trace_functions);
+  if (!pModMe) return;
   dict = PyModule_GetDict(pModMe);
+  if (!dict) return;
+
   Py_INCREF(PyWinExc_ApiError);
   PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
 }

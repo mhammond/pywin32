@@ -456,7 +456,10 @@ initmmapfile(void)
 {
 	PyObject *dict, *module;
 	module = Py_InitModule ("mmapfile", mmapfile_functions);
+	if (!module) /* Eeek - some serious error! */
+		return;
 	dict = PyModule_GetDict (module);
+	if (!dict) return; /* Another serious error!*/
 	mmapfile_module_error = PyString_FromString ("mmapfile error");
 	PyDict_SetItemString (dict, "error", mmapfile_module_error);
 }

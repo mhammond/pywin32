@@ -175,7 +175,10 @@ extern "C" void __declspec(dllexport) initdde(void)
 		return;
 	}
 	module = Py_InitModule(szModName, dde_methods);
+	if (!module) /* Eeek - some serious error! */
+		return;
 	dict = PyModule_GetDict(module);
+	if (!dict) return; /* Another serious error!*/
 	dde_module_error = PyString_FromString(errorName);
 	PyDict_SetItemString(dict, "error", dde_module_error);
 

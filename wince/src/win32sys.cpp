@@ -191,7 +191,9 @@ void initwin32sys(void)
 	InitCommonControls();
 
 	m=Py_InitModule4("win32sys", win32sys_methods, "", (PyObject*)NULL, PYTHON_API_VERSION);
+	if (!m) return;
 	d=PyModule_GetDict(m);
+	if (!d) return;
 	obError=PyString_FromString("error");
 	PyDict_SetItemString(d, "error", obError);
 }

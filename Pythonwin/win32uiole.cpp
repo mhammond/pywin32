@@ -138,6 +138,9 @@ extern "C" __declspec(dllexport) void
 initwin32uiole(void)
 {
   PyObject *module = Py_InitModule("win32uiole", uiole_functions);
+  if (!module) /* Eeek - some serious error! */
+    return;
   PyObject *dict = PyModule_GetDict(module);
+  if (!dict) return; /* Another serious error!*/
   AddConstants(dict);
  }

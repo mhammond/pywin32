@@ -3276,7 +3276,10 @@ initwin32help(void)
 {
   PyObject *dict, *module;
   module = Py_InitModule("win32help", win32help_functions);
+  if (!module) /* Eeek - some serious error! */
+    return;
   dict = PyModule_GetDict(module);
+  if (!dict) return; /* Another serious error!*/
   AddConstants(dict);
   PyDict_SetItemString(dict, "__version__", 
                        PyString_FromString("$Revision$"));

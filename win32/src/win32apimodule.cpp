@@ -3821,7 +3821,10 @@ initwin32api(void)
   PyObject *dict, *module;
   PyWinGlobals_Ensure();
   module = Py_InitModule("win32api", win32api_functions);
+  if (!module) /* Eeek - some serious error! */
+    return;
   dict = PyModule_GetDict(module);
+  if (!dict) return; /* Another serious error!*/
   Py_INCREF(PyWinExc_ApiError);
   PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
   PyDict_SetItemString(dict,"STD_INPUT_HANDLE",

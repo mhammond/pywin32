@@ -1026,7 +1026,10 @@ initwin32pdh(void)
 	InitializeCriticalSection(&critSec);
 	PyObject *dict, *module;
 	module = Py_InitModule("win32pdh", win32pdh_functions);
+	if (!module) /* Eeek - some serious error! */
+		return;
 	dict = PyModule_GetDict(module);
+	if (!dict) return;
 	PyWinGlobals_Ensure();
 	Py_INCREF(PyWinExc_ApiError);
 	PyDict_SetItemString(dict, "error", PyWinExc_ApiError);

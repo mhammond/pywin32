@@ -362,7 +362,9 @@ extern "C" __declspec(dllexport) void initwin32db(void)
 	PyWinGlobals_Ensure();
 
 	m=Py_InitModule4("win32db", win32db_methods, "", (PyObject*)NULL, PYTHON_API_VERSION);
+	if (!m) return;
 	d=PyModule_GetDict(m);
+	if (!d) return;
 	PyDict_SetItemString(d, "error", PyWinExc_ApiError);
 
 

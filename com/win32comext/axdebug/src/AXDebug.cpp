@@ -292,7 +292,10 @@ extern "C" __declspec(dllexport) void initaxdebug()
 	PyEval_InitThreads();
 	// Create the module and add the functions
 	oModule = Py_InitModule(modName, axdebug_methods);
+	if (!oModule) /* Eeek - some serious error! */
+		return;
 	PyObject *dict = PyModule_GetDict(oModule);
+	if (!dict) return; /* Another serious error!*/
 
 	// Add some symbolic constants to the module   
 	axdebug_Error = PyString_FromString("error");

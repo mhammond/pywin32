@@ -258,7 +258,9 @@ initwin32print(void)
 {
   PyObject *module, *dict;
   module = Py_InitModule("win32print", win32print_functions);
+  if (!module) return;
   dict = PyModule_GetDict(module);
+  if (!dict) return;
   AddConstant(dict, "PRINTER_INFO_1", 1);
   AddConstant(dict, "PRINTER_ENUM_LOCAL", PRINTER_ENUM_LOCAL);
   AddConstant(dict, "PRINTER_ENUM_NAME", PRINTER_ENUM_NAME);

@@ -500,7 +500,9 @@ void PyWise_Initialize(void)
 
   PyObject *dict, *module;
   module = Py_InitModule("pywise", pywise_functions);
+  if (!module) return;
   dict = PyModule_GetDict(module);
+  if (!dict) return;
   PyWise_Error = PyErr_NewException("pywise.error", NULL, NULL);
   PyDict_SetItemString(dict, "error", PyWise_Error);
   int debug = 

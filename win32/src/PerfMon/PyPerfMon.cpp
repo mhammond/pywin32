@@ -102,6 +102,7 @@ initperfmon(void)
 {
   PyObject *dict, *module;
   module = Py_InitModule("perfmon", perfmon_functions);
+  if (!module) return;
   dict = PyModule_GetDict(module);
 }
 

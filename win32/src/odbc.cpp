@@ -1678,6 +1678,8 @@ extern "C" __declspec(dllexport) void initodbc()
     else if (PyImport_ImportModule("dbi"))
 	{
 		PyObject *m = Py_InitModule("odbc", globalMethods);
+		if (!m) /* Eeek - some serious error! */
+			return;
 		if (m)
 		{
 			/* The indices go to indices in the ODBC error table */

@@ -620,8 +620,11 @@ initunivgw(void)
 //	HRESULT hr;
 
 	PyObject *module = Py_InitModule("univgw", univgw_functions);
+	if (!module) /* Eeek - some serious error! */
+		return;
 
 	PyObject *dict = PyModule_GetDict(module);
+	if (!dict) return; /* Another serious error!*/
 
 	univgwError = PyString_FromString("univgw.error");
 	PyDict_SetItemString(dict, "error", univgwError);

@@ -334,7 +334,10 @@ initservicemanager(void)
 {
   PyObject *dict, *module;
   module = Py_InitModule("servicemanager", servicemanager_functions);
+  if (!module) /* Eeek - some serious error! */
+    return;
   dict = PyModule_GetDict(module);
+  if (!dict) return; /* Another serious error!*/
 
   servicemanager_startup_error = PyErr_NewException("servicemanager.startup_error", NULL, NULL);
   if (servicemanager_startup_error == NULL) return;

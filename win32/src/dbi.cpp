@@ -257,7 +257,10 @@ static PyMethodDef globalMethods[] =
 void initdbi()
 {
 	PyObject *m = Py_InitModule("dbi", globalMethods);
+	if (!m) /* Eeek - some serious error! */
+		return;
 	PyObject *d = PyModule_GetDict(m);
+	if (!d) return; /* Another serious error!*/
 	PyDict_SetItemString(d, "STRING",
 						 DbiString = PyString_FromString("STRING"));
 	PyDict_SetItemString(d, "RAW",
