@@ -64,7 +64,7 @@ static struct PyNET_STRUCT_ITEM ui3[] = {
     UI3_ENTRY(flags, NSI_DWORD, 0), // @prop int |flags|
 };
 
-// @object PyUSE_INFO*|The following USE_INFO levels are supported.
+// @object PyUSE_INFO_*|The following USE_INFO levels are supported.
 static struct PyNET_STRUCT use_infos[] = { // @flagh Level|Data
 	{ 0, ui0, sizeof(USE_INFO_0) },        // @flag 0|<o PyUSE_INFO_0>
 	{ 1, ui1, sizeof(USE_INFO_1) },		   // @flag 1|<o PyUSE_INFO_1>
@@ -86,7 +86,7 @@ PyNetUseAdd(PyObject *self, PyObject *args)
 	DWORD err = 0;
 	// @pyparm string/<o PyUnicode>|server||The name of the server, or None.
 	// @pyparm int|level||The information level contained in the data
-	// @pyparm mapping|data||A dictionary holding the share data.
+	// @pyparm mapping|data||A dictionary holding the share data in the format of <o PyUSE_INFO_*>.
 	if (!PyArg_ParseTuple(args, "OiO", &obServer, &level, &obData))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obServer, &szServer, TRUE))
@@ -250,6 +250,6 @@ done:
 	PyWinObject_FreeWCHAR(szUse);
 	return ret;
 	// @pyseeapi NetUseGetInfo
-	// @rdesc The result will be a dictionary in one of the <o PyWKSTA_INFO_*>
+	// @rdesc The result will be a dictionary in one of the <o PyUSE_INFO_*>
 	// formats, depending on the level parameter.
 }
