@@ -13,6 +13,11 @@ WIN32COM_DIR = ../com/win32com
 WIN32COMEXT_DIR = ../com/win32comext
 MAPI_DIR = $(WIN32COMEXT_DIR)/mapi
 HELP_DIR = ../com/help
+# Name of the subdirectory to copy $(HTML_FILES) into
+# for building of the .CHM file.
+HTML_DIR = win32com
+HTML_FILES = $(WIN32COM_DIR)/HTML/*.html \
+	$(WIN32COM_DIR)/HTML/image/*
 
 SOURCE  = $(WIN32COM_DIR)\src\*.cpp \
 	$(HELP_DIR)\*.d \

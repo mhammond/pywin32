@@ -3,6 +3,9 @@
 $(GENDIR):
 	@if not exist $(GENDIR)\. md $(GENDIR)
 
+"$(GENDIR)\$(HTML_DIR)":
+	@if not exist $(GENDIR)\$(HTML_DIR)\. md "$(GENDIR)\$(HTML_DIR)"
+
 cleanad:
     if exist "$(GENDIR)\*.rtf" del "$(GENDIR)\*.rtf"
     if exist "$(GENDIR)\*.hpj" del "$(GENDIR)\*.hpj"
@@ -50,8 +53,8 @@ cleanad:
 
 # Generate an HTML Help file.
 
-"$(GENDIR)\$(TARGET).hhp" : BuildHHP.py
-	BuildHHP.py "$(GENDIR)\$(TARGET)" "$(TARGET)"
+"$(GENDIR)\$(TARGET).hhp" : BuildHHP.py $(HTML_FILES) "$(GENDIR)\$(HTML_DIR)"
+	BuildHHP.py "$(GENDIR)\$(TARGET)" "$(TARGET)" "$(GENDIR)\$(HTML_DIR)" $(HTML_FILES)
 
 "$(GENDIR)\$(TARGET).html" "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).idx" : $(SOURCE) pyhtml.fmt "$(GENDIR)\$(TARGET).hhlog"
 	@echo Running autoduck for the .html
