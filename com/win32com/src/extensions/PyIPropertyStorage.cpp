@@ -115,6 +115,10 @@ PyObject *PyObject_FromPROPVARIANT( PROPVARIANT *pVar )
 		case VT_FILETIME:
 			return PyWinObject_FromFILETIME(pVar->filetime);
 		case VT_LPSTR:
+			if (pVar->pszVal == NULL) {
+				Py_INCREF(Py_None);
+				return Py_None;
+			}
 			return PyString_FromString(pVar->pszVal);
 		case VT_LPWSTR:
 			return PyWinObject_FromOLECHAR(pVar->pwszVal);
