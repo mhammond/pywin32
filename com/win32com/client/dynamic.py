@@ -34,6 +34,16 @@ debugging_attr=0	# Debugging dynamic attribute lookups.
 
 LCID = 0x0
 
+# These errors generally mean the property or method exists,
+# but can't be used in this context - eg, property instead of a method, etc.
+# Used to determine if we have a real error or not.
+ERRORS_BAD_CONTEXT = [
+	winerror.DISP_E_MEMBERNOTFOUND,
+	winerror.DISP_E_BADPARAMCOUNT,
+	winerror.DISP_E_PARAMNOTOPTIONAL,
+	winerror.DISP_E_TYPEMISMATCH,
+]
+
 def debug_print(*args):
 	if debugging:
 		for arg in args:
@@ -87,7 +97,7 @@ def Dispatch(IDispatch, userName = None, createClass = None, typeinfo = None, Un
 		typeinfo = None
 	olerepr = MakeOleRepr(IDispatch, typeinfo, lazydata)
 	return createClass(IDispatch, olerepr, userName,UnicodeToString, lazydata)
-				
+
 def MakeOleRepr(IDispatch, typeinfo, typecomp):
 	olerepr = None
 	if typeinfo is not None:
@@ -139,7 +149,7 @@ class CDispatch:
 			allArgs = (dispid,LCID,invkind,1) + args
 			return self._get_good_object_(apply(self._oleobj_.Invoke,allArgs),self._olerepr_.defaultDispatchName,None)
 		raise TypeError, "This dispatch object does not define a default method"
-          
+
 	def __nonzero__(self):
 		return 1 # ie "if object:" should always be "true" - without this, __len__ is tried.
 		# _Possibly_ want to defer to __len__ if available, but Im not sure this is
@@ -154,7 +164,7 @@ class CDispatch:
 		try:
 			return str(self.__call__())
 		except pythoncom.com_error, details:
-			if details[0]!=winerror.DISP_E_MEMBERNOTFOUND:
+			if details[0] not in ERRORS_BAD_CONTEXT:
 				raise
 			return self.__repr__()
 
@@ -171,14 +181,20 @@ class CDispatch:
 			return self._oleobj_.Invoke(dispid, LCID, invkind, 1)
 		raise TypeError, "This dispatch object does not define a Count method"
 
+	def _NewEnum(self):
+		invkind, dispid = self._find_dispatch_type_("_NewEnum")
+		if invkind is None:
+			return None
+		
+		enum = self._oleobj_.InvokeTypes(pythoncom.DISPID_NEWENUM,LCID,invkind,(13, 10),())
+		import util
+		return util.WrapEnum(enum, None)
+
 	def __getitem__(self, index):
 		# Much check _NewEnum before Item, to ensure b/w compat.
-		if self._enum_ is not None:
-			return self._get_good_object_(self._enum_.__getitem__(index))
-		invkind, dispid = self._find_dispatch_type_("_NewEnum")
-		if invkind is not None:
-			import util
-			self._enum_ = util.WrapEnum(self._oleobj_.InvokeTypes(pythoncom.DISPID_NEWENUM,LCID,invkind,(13, 10),()),None)
+		if self.__dict__['_enum_'] is None:
+			self.__dict__['_enum_'] = self._NewEnum()
+		if self.__dict__['_enum_'] is not None:
 			return self._get_good_object_(self._enum_.__getitem__(index))
 		# See if we have an "Item" method/property we can use (goes hand in hand with Count() above!)
 		invkind, dispid = self._find_dispatch_type_("Item")
@@ -405,11 +421,7 @@ class CDispatch:
 			try:
 				ret = self._oleobj_.Invoke(retEntry.dispid,0,pythoncom.DISPATCH_PROPERTYGET,1)
 			except pythoncom.com_error, details:
-				if details[0] in [winerror.DISP_E_MEMBERNOTFOUND,
-				                  winerror.DISP_E_BADPARAMCOUNT,
-				                  winerror.DISP_E_PARAMNOTOPTIONAL,
-				                  winerror.DISP_E_TYPEMISMATCH,
-				                 ]:
+				if details[0] in ERRORS_BAD_CONTEXT:
 					# May be a method.
 					self._olerepr_.mapFuncs[attr] = retEntry
 					return self._make_method_(attr)
