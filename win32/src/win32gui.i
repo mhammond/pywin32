@@ -2679,6 +2679,34 @@ BOOLAPI ScreenToClient(HWND hWnd,POINT *BOTH);
 // @pyswig |ClientToScreen|Convert client coordinates to screen coords
 BOOLAPI ClientToScreen(HWND hWnd,POINT *BOTH);
 
+%{
+// @pyswig cx, cy|GetTextExtentPoint32|Computes the width and height of the specified string of text.
+static PyObject *PyGetTextExtentPoint32(PyObject *self, PyObject *args)
+{
+	// @pyparm int|dc||The device context
+	// @pyparm string|str||The string to measure.
+	int dc;
+	PyObject *obString;
+	if (!PyArg_ParseTuple(args, "iO:GetTextExtentPoint32", &dc, &obString))
+		return NULL;
+	TCHAR *szString = NULL;
+	DWORD nchars;
+	if (!PyWinObject_AsTCHAR(obString, &szString, FALSE, &nchars))
+		return FALSE;
+	SIZE size = {0,0};
+	BOOL rc;
+	Py_BEGIN_ALLOW_THREADS
+	rc = GetTextExtentPoint32( (HDC)dc, szString, nchars, &size);
+	Py_END_ALLOW_THREADS
+	PyWinObject_FreeTCHAR(szString);
+	if (!rc)
+		return PyWin_SetAPIError("GetTextExtentPoint32");
+	return Py_BuildValue("ll", size.cx, size.cy);
+}
+%}
+
+%native (GetTextExtentPoint32) PyGetTextExtentPoint32;
+
 // @pyswig int|GetOpenFileName|Creates an Open dialog box that lets the user specify the drive, directory, and the name of a file or set of files to open.
 // @rdesc If the user presses OK, the function returns TRUE.  Otherwise, use CommDlgExtendedError for error details.
 
@@ -2698,6 +2726,20 @@ BOOL GetOpenFileName(OPENFILENAME *INPUT);
 		return NULL;
 	if (sizeof MENUITEMINFO != target_size)
 		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte buffer (got %d bytes)", sizeof MENUITEMINFO, target_size);
+}
+
+%typemap (python, in) MENUINFO *INPUT (int target_size){
+	if (0 != PyObject_AsReadBuffer($source, (const void **)&$target, &target_size))
+		return NULL;
+	if (sizeof MENUINFO != target_size)
+		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string/buffer (got %d bytes)", sizeof MENUINFO, target_size);
+}
+
+%typemap (python,in) MENUINFO *BOTH(int target_size) {
+	if (0 != PyObject_AsWriteBuffer($source, (void **)&$target, &target_size))
+		return NULL;
+	if (sizeof MENUINFO != target_size)
+		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte buffer (got %d bytes)", sizeof MENUINFO, target_size);
 }
 
 // @pyswig |InsertMenuItem|Inserts a menu item
@@ -2780,6 +2822,19 @@ BOOLAPI CheckMenuRadioItem(
   UINT idLast,  // @pyparm int|idLast||identifier or position of last item
   UINT idCheck,  // @pyparm int|idCheck||identifier or position of item to check
   UINT uFlags               // @pyparm int|uFlags||options
+);
+
+// @pyswig |SetMenuInfo|Sets information for a specified menu.
+BOOLAPI SetMenuInfo(
+  HMENU hmenu,       // @pyparm int|hmenu||handle to menu
+  MENUINFO *INPUT  // @pyparm <o MENUINFO>|info||menu information in the format of a buffer.
+  // See win32gui_struct for helper functions.
+);
+
+// @pyswig |GetMenuInfo|Sets information about a specified menu.
+BOOLAPI GetMenuInfo(
+	HMENU hMenu, // @pyparm int|hmenu||handle to menu
+	MENUINFO *BOTH // @pyparm buffer|info||A buffer to fill with the information.
 );
 
 
