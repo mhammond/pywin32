@@ -19,6 +19,11 @@ PyObject *PyWinMethod_NewIID(PyObject *self, PyObject *args)
 	// @pyparm string/Unicode|iidString||A string representation of an IID, or a ProgID.
 	if ( !PyArg_ParseTuple(args, "O", &obIID) )
 		return NULL;
+	// Already an IID? Return self.
+	if ( PyIID_Check(obIID) ) {
+		Py_INCREF(obIID);
+		return obIID;
+	}
 	if (!PyWinObject_AsBstr(obIID, &bstrIID))
 		return NULL;
 
