@@ -54,6 +54,17 @@ PyObject *PyWinMethod_NewTime(PyObject *self, PyObject *args)
 		result = new PyTime(PyFloat_AS_DOUBLE((PyFloatObject *)timeOb));
 	}
 	else *****/
+	// Support objects with a "timetuple" method.
+	PyObject *method = PyObject_GetAttrString(timeOb, "timetuple");
+	if (method==NULL)
+		PyErr_Clear();
+	else {
+		timeOb = PyEval_CallObject(method, NULL);
+		Py_DECREF(method);
+		if (!timeOb)
+			return NULL;
+		// now we should fall into the sequence check!
+	}
 	if ( PyNumber_Check(timeOb) )
 	{
 		long t = PyInt_AsLong(timeOb);
