@@ -6,7 +6,9 @@
 
 #ifdef MS_WINCE
 #include "olectl.h" // For connection point constants.
+extern "C" void WINAPIV NKDbgPrintfW(LPWSTR lpszFmt, ...);
 #endif
+
 
 static const char *szBadStringObject = "<Bad String Object>";
 extern PyObject *PyCom_InternalError;
@@ -363,6 +365,175 @@ PYCOM_EXPORT HRESULT PyCom_SetCOMErrorFromPyException(REFIID riid /* = IID_NULL 
 }
 
 ////////////////////////////////////////////////////////////////////////
+// Some logging functions
+////////////////////////////////////////////////////////////////////////
+/* Obtains a string from a Python traceback.
+   This is the exact same string as "traceback.print_exc" would return.
+
+   Pass in a Python traceback object (probably obtained from PyErr_Fetch())
+   Result is a string which must be free'd using PyMem_Free()
+*/
+#define TRACEBACK_FETCH_ERROR(what) {errMsg = what; goto done;}
+
+char *PyTraceback_AsString(PyObject *exc_tb)
+{
+	char *errMsg = NULL; /* holds a local error message */
+	char *result = NULL; /* a valid, allocated result. */
+	PyObject *modStringIO = NULL;
+	PyObject *modTB = NULL;
+	PyObject *obFuncStringIO = NULL;
+	PyObject *obStringIO = NULL;
+	PyObject *obFuncTB = NULL;
+	PyObject *argsTB = NULL;
+	PyObject *obResult = NULL;
+
+	/* Import the modules we need - cStringIO and traceback */
+	modStringIO = PyImport_ImportModule("cStringIO");
+	if (modStringIO==NULL)
+		TRACEBACK_FETCH_ERROR("cant import cStringIO\n");
+
+	modTB = PyImport_ImportModule("traceback");
+	if (modTB==NULL)
+		TRACEBACK_FETCH_ERROR("cant import traceback\n");
+	/* Construct a cStringIO object */
+	obFuncStringIO = PyObject_GetAttrString(modStringIO, "StringIO");
+	if (obFuncStringIO==NULL)
+		TRACEBACK_FETCH_ERROR("cant find cStringIO.StringIO\n");
+	obStringIO = PyObject_CallObject(obFuncStringIO, NULL);
+	if (obStringIO==NULL)
+		TRACEBACK_FETCH_ERROR("cStringIO.StringIO() failed\n");
+	/* Get the traceback.print_exception function, and call it. */
+	obFuncTB = PyObject_GetAttrString(modTB, "print_tb");
+	if (obFuncTB==NULL)
+		TRACEBACK_FETCH_ERROR("cant find traceback.print_tb\n");
+
+	argsTB = Py_BuildValue("OOO", 
+			exc_tb  ? exc_tb  : Py_None,
+			Py_None, 
+			obStringIO);
+	if (argsTB==NULL) 
+		TRACEBACK_FETCH_ERROR("cant make print_tb arguments\n");
+
+	obResult = PyObject_CallObject(obFuncTB, argsTB);
+	if (obResult==NULL) 
+		TRACEBACK_FETCH_ERROR("traceback.print_tb() failed\n");
+	/* Now call the getvalue() method in the StringIO instance */
+	Py_DECREF(obFuncStringIO);
+	obFuncStringIO = PyObject_GetAttrString(obStringIO, "getvalue");
+	if (obFuncStringIO==NULL)
+		TRACEBACK_FETCH_ERROR("cant find getvalue function\n");
+	Py_DECREF(obResult);
+	obResult = PyObject_CallObject(obFuncStringIO, NULL);
+	if (obResult==NULL) 
+		TRACEBACK_FETCH_ERROR("getvalue() failed.\n");
+
+	/* And it should be a string all ready to go - duplicate it. */
+	if (!PyString_Check(obResult))
+			TRACEBACK_FETCH_ERROR("getvalue() did not return a string\n");
+
+	{ // a temp scope so I can use temp locals.
+	char *tempResult = PyString_AsString(obResult);
+	result = (char *)PyMem_Malloc(strlen(tempResult)+1);
+	if (result==NULL)
+		TRACEBACK_FETCH_ERROR("memory error duplicating the traceback string\n");
+
+	strcpy(result, tempResult);
+	} // end of temp scope.
+done:
+	/* All finished - first see if we encountered an error */
+	if (result==NULL && errMsg != NULL) {
+		result = (char *)PyMem_Malloc(strlen(errMsg)+1);
+		if (result != NULL)
+			/* if it does, not much we can do! */
+			strcpy(result, errMsg);
+	}
+	Py_XDECREF(modStringIO);
+	Py_XDECREF(modTB);
+	Py_XDECREF(obFuncStringIO);
+	Py_XDECREF(obStringIO);
+	Py_XDECREF(obFuncTB);
+	Py_XDECREF(argsTB);
+	Py_XDECREF(obResult);
+	return result;
+}
+
+void PyCom_StreamMessage(const char *pszMessageText)
+{
+#ifndef MS_WINCE
+	OutputDebugString(pszMessageText);
+#else
+	NKDbgPrintfW(pszMessageText);
+#endif
+	// PySys_WriteStderr has an internal 1024 limit due to varargs.
+	// weve already resolved them, so we gotta do it the hard way
+	PyObject *pyfile = PySys_GetObject("stderr");
+	if (pyfile)
+		PyFile_WriteString(pszMessageText, pyfile);
+}
+
+void VLogF(const TCHAR *fmt, va_list argptr)
+{
+	static TCHAR buff[8196]; // protected by Python lock
+
+	wvsprintf(buff, fmt, argptr);
+
+	PyCom_StreamMessage(buff);
+}
+
+PYCOM_EXPORT void PyCom_LogF(const TCHAR *fmt, ...)
+{
+	va_list marker;
+
+	va_start(marker, fmt);
+	VLogF(fmt, marker);
+	PyCom_StreamMessage("\n");
+}
+
+PYCOM_EXPORT 
+void PyCom_LogError(const char *fmt, ...)
+{
+	va_list marker;
+	va_start(marker, fmt);
+	PyCom_StreamMessage("pythoncom error: ");
+	VLogF(fmt, marker);
+	PyCom_StreamMessage("\n");
+	// If we have a Python exception, also log that:
+	PyObject *exc_typ = NULL, *exc_val = NULL, *exc_tb = NULL;
+	PyErr_Fetch( &exc_typ, &exc_val, &exc_tb);
+	if (exc_typ) {
+		PyErr_NormalizeException( &exc_typ, &exc_val, &exc_tb);
+		if (exc_tb) {
+			const char *szTraceback = PyTraceback_AsString(exc_tb);
+			if (szTraceback == NULL)
+				PyCom_StreamMessage("Can't get the traceback info!");
+			else {
+				PyCom_StreamMessage("Traceback (most recent call last):\n");
+				PyCom_StreamMessage(szTraceback);
+				PyMem_Free((void *)szTraceback);
+			}
+		}
+		PyObject *temp = PyObject_Str(exc_typ);
+		if (temp) {
+			PyCom_StreamMessage(PyString_AsString(temp));
+			Py_DECREF(temp);
+		} else
+			PyCom_StreamMessage("Can't convert exception to a string!");
+		PyCom_StreamMessage(": ");
+		if (exc_val != NULL) {
+			temp = PyObject_Str(exc_val);
+			if (temp) {
+				PyCom_StreamMessage(PyString_AsString(temp));
+				Py_DECREF(temp);
+			} else
+				PyCom_StreamMessage("Can't convert exception value to a string!");
+		}
+		PyCom_StreamMessage("\n");
+	}
+	PyErr_Restore(exc_typ, exc_val, exc_tb);
+}
+
+
+////////////////////////////////////////////////////////////////////////
 //
 // Client Side Errors - translate a COM failure to a Python exception
 //
@@ -370,8 +541,8 @@ PYCOM_EXPORT HRESULT PyCom_SetCOMErrorFromPyException(REFIID riid /* = IID_NULL 
 PyObject *PyCom_BuildPyException(HRESULT errorhr, IUnknown *pUnk /* = NULL */, REFIID iid /* = IID_NULL */)
 {
 	PyObject *obEI = NULL;
-	char scodeStringBuf[512];
-	GetScodeString(errorhr, scodeStringBuf, sizeof(scodeStringBuf));
+	TCHAR scodeStringBuf[512];
+	GetScodeString(errorhr, scodeStringBuf, sizeof(scodeStringBuf)/sizeof(scodeStringBuf[0]));
 
 #ifndef MS_WINCE // WINCE doesnt appear to have GetErrorInfo() - compiled, but doesnt link!
 	if (pUnk != NULL) {

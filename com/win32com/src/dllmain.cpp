@@ -11,72 +11,9 @@
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
 #include "PyFactory.h"
-#ifndef MS_WINCE
-#include "locale.h"
-#else
-extern "C" void WINAPIV NKDbgPrintfW(LPWSTR lpszFmt, ...);
-#endif
 
 extern void FreeGatewayModule(void);
 
-// #define LOG_USE_EVENT_LOG
-#ifdef LOG_USE_EVENT_LOG
-void LogEvent(LPCSTR pszMessageText)
-{
-    HANDLE  hEventSource;
-
-	hEventSource = RegisterEventSource(NULL, "PythonCOM");
-    if (NULL == hEventSource)
-		return;
-
-    BOOL nRetVal = ReportEvent(
-        hEventSource,
-        EVENTLOG_INFORMATION_TYPE,
-        0,				/* category */
-        0x40000001ul,	/* event id */
-        NULL,			/* security identifier */
-        1,				/* string count */
-        0,				/* length of binary data */
-        &pszMessageText,
-        NULL			/* binary data */
-    );
-
-	DeregisterEventSource(hEventSource);
-}
-#endif
-
-void LogMessage(LPTSTR pszMessageText)
-{
-#ifndef LOG_USE_EVENT_LOG
-#ifndef MS_WINCE
-	OutputDebugString(pszMessageText);
-	OutputDebugString("\n");
-#else
-	NKDbgPrintfW(pszMessageText);
-	NKDbgPrintfW(_T("\n"));
-#endif
-#else
-	LogEvent(pszMessageText);
-#endif
-}
-
-void VLogF(const TCHAR *fmt, va_list argptr)
-{
-	TCHAR buff[512];
-
-	wvsprintf(buff, fmt, argptr);
-
-	LogMessage(buff);
-}
-
-PYCOM_EXPORT void PyCom_LogF(const TCHAR *fmt, ...)
-{
-	va_list marker;
-
-	va_start(marker, fmt);
-	VLogF(fmt, marker);
-}
-#define LogF PyCom_LogF
 
 /*
 ** This value counts the number of references to objects that contain code
@@ -271,7 +208,7 @@ HRESULT PyCom_CoInitializeEx(LPVOID reserved, DWORD dwInit)
 	if ( (hr != RPC_E_CHANGED_MODE) && FAILED(hr) )
 	{
 #ifdef _DEBUG
-		LogF(_T("OLE initialization failed! (0x%08lx)"), hr);
+		PyCom_LogError(_T("OLE initialization failed! (0x%08lx)"), hr);
 #endif
 		return hr;
 	}
@@ -303,7 +240,7 @@ HRESULT PyCom_CoInitialize(LPVOID reserved)
 	if ( (hr != RPC_E_CHANGED_MODE) && FAILED(hr) )
 	{
 #ifdef _DEBUG
-		LogF(_T("OLE initialization failed! (0x%08lx)"), hr);
+		PyCom_LogError(_T("OLE initialization failed! (0x%08lx)"), hr);
 #endif
 		return hr;
 	}
@@ -348,7 +285,7 @@ STDAPI DllCanUnloadNow(void)
 
 STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppv)
 {
-	//LogMessage("in DllGetClassObject\n");
+	//PyCom_StreamMessage("in DllGetClassObject\n");
 
 	if ( ppv == NULL )
 		return E_INVALIDARG;

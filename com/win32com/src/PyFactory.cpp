@@ -85,14 +85,14 @@ STDMETHODIMP CPyFactory::CreateInstance(
 		hr = CreateNewPythonInstance(m_guidClassID, riid, &pNewInstance);
 		if ( FAILED(hr) )
 		{
-			LogF(_T("CPyFactory::CreateInstance failed to create instance. (%lx)"), hr);
+			PyCom_LogError("CPyFactory::CreateInstance failed to create instance. (%lx)", hr);
 		} 
 		else 
 		{
 		   // CreateInstance now returns an object already all wrapped
 		   // up (giving more flexibility to the Python programmer.
 			if (!PyCom_InterfaceFromPyObject(pNewInstance, riid, ppv, FALSE)) {
-				LogF(_T("CPyFactory::CreateInstance failed to get gateway to returned object"));
+				PyCom_LogError("CPyFactory::CreateInstance failed to get gateway to returned object");
 				hr = E_FAIL;
 			}
 		}
@@ -143,16 +143,12 @@ STDMETHODIMP CPyFactory::CreateNewPythonInstance(REFCLSID rclsid, REFCLSID rReqi
 	                                     "OO", obiid, obReqiid);
 	// Check the error state before DECREFs, otherwise they may
 	// change the error state.
+	if ( !*ppNewInstance )
+		PyCom_LogError("ERROR: server.policy could not create an instance.");
 	HRESULT hr = PyCom_SetCOMErrorFromPyException(IID_IClassFactory);
 	Py_DECREF(obiid);
 	Py_DECREF(obReqiid);
 	Py_DECREF(pPyModule);
-
-
-	if ( !*ppNewInstance )
-	{
-		LogF(_T("ERROR: server.policy could not create an instance."));
-	}
 
 	return hr;
 }
