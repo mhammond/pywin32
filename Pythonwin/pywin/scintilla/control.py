@@ -25,6 +25,7 @@ EM_GETTEXTRANGE = 1099
 EM_EXLINEFROMCHAR = 1078
 EM_FINDTEXTEX = 1103
 EM_GETSELTEXT = 1086
+EM_EXSETSEL = win32con.WM_USER + 55
 
 class ScintillaControlInterface:
 	def SCIAddText(self, text):
@@ -188,7 +189,7 @@ class CScintillaEditInterface(ScintillaControlInterface):
 		if end < 0: end = self.GetTextLength()
 		assert start <= self.GetTextLength(), "The start postion is invalid"
 		assert end <= self.GetTextLength(), "The end postion is invalid"
-		self.SendScintilla(win32con.EM_SETSEL, start, end)
+		self.SendScintilla(EM_EXSETSEL, start, end)
 
 	def GetLineCount(self):
 		return self.SendScintilla(win32con.EM_GETLINECOUNT)
