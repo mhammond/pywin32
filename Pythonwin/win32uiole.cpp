@@ -5,11 +5,17 @@
 #include "win32uioledoc.h"
 #include "win32template.h"
 #include "PythonCOM.h"
+// not including this here causes compile errors when it *is* 
+// included by later headers, using MSVC6 standard headers
+// (although replacing transact.h with a later Platform SDK
+// version does *not* give the error.  Whatever.
+#include "transact.h"
 #include "afxdao.h"
 
 // Sorry about this - OLE support needs MFC private header.
-// Adding MFC source path to include path causes grief!
-//#include "c:\program files\DevStudio\VC\mfc\src\occimpl.h"
+// You MUST install MFC with source-code to build this extension.
+// (and this source must be in "../src" relative to the MFC 
+// includes, which it is by default)
 #include "..\src\occimpl.h"
 
 extern PyObject *PyCOleClientItem_Create(PyObject *self, PyObject *args);
