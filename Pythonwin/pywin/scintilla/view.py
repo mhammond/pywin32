@@ -85,6 +85,23 @@ command_reflectors = [
 	(win32ui.ID_EDIT_SELECT_ALL, SCI_SELECTALL),
 ]
 
+def DoBraceMatch(control):
+		curPos = control.SCIGetCurrentPos()
+		charBefore = ' '
+		if curPos: charBefore = control.SCIGetCharAt(curPos-1)
+		charAt = control.SCIGetCharAt(curPos)
+		braceAtPos = braceOpposite = -1
+		if charBefore in "[](){}": braceAtPos = curPos-1
+		if braceAtPos==-1:
+			if charAt in "[](){}": braceAtPos = curPos
+		if braceAtPos != -1:
+			braceOpposite = control.SCIBraceMatch(braceAtPos, 0)
+		if braceAtPos != -1 and braceOpposite==-1:
+			control.SCIBraceBadHighlight(braceAtPos)
+		else:
+			# either clear them both or set them both.
+			control.SCIBraceHighlight(braceAtPos, braceOpposite)
+
 # Supposed to look like an MFC CEditView, but 
 # also supports IDLE extensions and other source code generic features.
 class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
@@ -93,12 +110,20 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		self._tabWidth = 8 # Mirror of what we send to Scintilla - never change this directly
 		self.bAutoCompleteAttributes = 1
 		self.bShowCallTips = 1
+		self.bMatchBraces = 0 # Editor option will default this to true later!
 		self.bindings = bindings.BindingsManager(self)
 
 		self.idle = IDLEenvironment.IDLEEditorWindow(self)
 		self.idle.IDLEExtension("AutoExpand")
-	def SendScintilla(self, msg, w=0, l=0):
-		return self._obj_.SendMessage(msg, w, l)
+		# SendScintilla is called so frequently it is worth optimizing.
+		self.SendScintilla = self._obj_.SendMessage
+
+	def OnDestroy(self, msg):
+		self.SendScintilla = None
+		return docview.CtrlView.OnDestroy(self, msg)
+	
+#	def SendScintilla(self, msg, w=0, l=0):
+#		return self._obj_.SendMessage(msg, w, l)
 
 	def SCISetTabWidth(self, width):
 		# I need to remember the tab-width for the AutoIndent extension.  This may go.
@@ -109,8 +134,6 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		return self._tabWidth
 
 	def HookHandlers(self):
-		parent = self.GetParentFrame()
-
 		# Create events for all the menu names.
 		for name, val in event_commands:
 #			handler = lambda id, code, tosend=val, parent=parent: parent.OnCommand(tosend, 0) and 0
@@ -121,12 +144,9 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 			handler = lambda id, code, ss=self.SendScintilla, tosend=reflection: ss(tosend) and 0
 			self.HookCommand(handler, command)
 
-		parent.HookNotify(self.OnSavePointReached, SCN_SAVEPOINTREACHED)
-		parent.HookNotify(self.OnSavePointLeft, SCN_SAVEPOINTLEFT)
-		parent.HookNotify(self.OnBraceMatch, SCN_CHECKBRACE)
 		self.HookCommand(self.OnCmdViewWS, win32ui.ID_VIEW_WHITESPACE)
-		self.HookCommand(self.OnCmdViewEOL, win32ui.ID_VIEW_EOL)
 		self.HookCommandUpdate(self.OnUpdateViewWS, win32ui.ID_VIEW_WHITESPACE)
+		self.HookCommand(self.OnCmdViewEOL, win32ui.ID_VIEW_EOL)
 		self.HookCommandUpdate(self.OnUpdateViewEOL, win32ui.ID_VIEW_EOL)
 		self.HookCommand(self.OnCmdViewFixedFont, win32ui.ID_VIEW_FIXED_FONT)
 		self.HookCommandUpdate(self.OnUpdateViewFixedFont, win32ui.ID_VIEW_FIXED_FONT)
@@ -143,41 +163,42 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		self.HookMessage(self.OnKeyDown, win32con.WM_KEYDOWN)
 		self.HookMessage(self.OnKeyDown, win32con.WM_SYSKEYDOWN)
 		# Hook wheeley mouse events
-		self.HookMessage(self.OnMouseWheel, win32con.WM_MOUSEWHEEL)
-		# Hook colorizer.
-		self.HookStyleNotify()
+#		self.HookMessage(self.OnMouseWheel, win32con.WM_MOUSEWHEEL)
+		self.HookFormatter()
 
 	def OnInitialUpdate(self):
-		self.SCISetSavePoint()
-		self.SCISetUndoCollection(1)
+		doc = self.GetDocument()
 
+		# Create margins
+		self.SendScintilla(SCI_SETMARGINTYPEN, 1, SC_MARGIN_SYMBOL);
+		self.SendScintilla(SCI_SETMARGINMASKN, 1, 0xF);
+		self.SendScintilla(SCI_SETMARGINTYPEN, 2, SC_MARGIN_SYMBOL);
+		self.SendScintilla(SCI_SETMARGINMASKN, 2, SC_MASK_FOLDERS);
+		self.SendScintilla(SCI_SETMARGINSENSITIVEN, 2, 1);
+
+		self.GetDocument().HookViewNotifications(self) # is there an MFC way to grab this?
 		self.HookHandlers()
 
-		# Tell scintilla what characters should abort auto-complete.
-		self.SCIAutoCStops(string.whitespace+"()[]:;+-/*=\\?'!#@$%^&,<>\"'|" )
-
 		# Load the configuration information.
-		self.OnConfigChange()
-		try:
-			self._SetLoadedText(self.GetDocument().text)
-		except AttributeError: # Not one of our docs - thats OK, but the text is their job!
-			pass
+		self.OnWinIniChange(None)
 
 		self.SetSel()
+
+		self.GetDocument().FinalizeViewCreation(self) # is there an MFC way to grab this?
+		
 
 	def _GetSubConfigNames(self):
 		return None # By default we use only sections without sub-sections.
 
-	def OnConfigChange(self):
+	def OnWinIniChange(self, section = None):
 		self.bindings.prepare_configure()
 		try:
 			self.DoConfigChange()
-			self.Reformat(1)
 		finally:
 			self.bindings.complete_configure()
 
 	def DoConfigChange(self):
-		# Bit of a hack I dont kow what to do about?
+		# Bit of a hack I dont kow what to do about - these should be "editor options"
 		from pywin.framework.editor import GetEditorOption
 		self.bAutoCompleteAttributes = GetEditorOption("Autocomplete Attributes", 1)
 		self.bShowCallTips = GetEditorOption("Show Call Tips", 1)
@@ -186,6 +207,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		if configManager.last_error:
 			win32ui.MessageBox(configManager.last_error, "Configuration Error")
 		self.bMatchBraces = GetEditorOption("Match Braces", 1)
+		self.ApplyFormattingStyles(1)
 
 	def OnDestroy(self, msg):
 		self.bindings.close()
@@ -206,22 +228,19 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
 	def OnBraceMatch(self, std, extra):
 		if not self.bMatchBraces: return
-		curPos = self.SCIGetCurrentPos()
-		charBefore = ' '
-		if curPos: charBefore = self.SCIGetCharAt(curPos-1)
-		charAt = self.SCIGetCharAt(curPos)
-		braceAtPos = braceOpposite = -1
-		if charBefore in "[](){}": braceAtPos = curPos-1
-		if braceAtPos==-1:
-			if charAt in "[](){}": braceAtPos = curPos
-		if braceAtPos != -1:
-			braceOpposite = self.SCIBraceMatch(braceAtPos, 0)
-		if braceAtPos != -1 and braceOpposite==-1:
-			self.SCIBraceBadHighlight(braceAtPos)
-		else:
-			# either clear them both or set them both.
-			self.SCIBraceHighlight(braceAtPos, braceOpposite)
+		DoBraceMatch(self)
 
+	def OnNeedShown(self, std, extra):
+		notify = self.SCIUnpackNotifyMessage(extra)
+		self.EnsureCharsVisible(notify.position, notify.position + notify.length)
+
+	def EnsureCharsVisible(self, start, end = None):
+		if end is None: end = start
+		lineStart = self.LineFromChar(min(start, end))
+		lineEnd = self.LineFromChar(max(start, end))
+		while lineStart <= lineEnd:
+			self.SCIEnsureVisible(lineStart)
+			lineStart = lineStart + 1
 
 	# Helper to add an event to a menu.
 	def AppendMenu(self, menu, text="", event=None, flags = None, checked=0):
@@ -253,6 +272,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 			self._AutoComplete()
 
 	# View Whitespace UI.
+
 	def OnCmdViewWS(self, cmd, code): # Handle the menu command
 		viewWS = self.SCIGetViewWS()
 		self.SCISetViewWS(not viewWS)
@@ -268,7 +288,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
 	def OnCmdViewFixedFont(self, cmd, code): # Handle the menu command
 		self._GetColorizer().bUseFixed = not self._GetColorizer().bUseFixed
-		self.Reformat(0)
+		self.ApplyFormattingStyles(0)
 	def OnUpdateViewFixedFont(self, cmdui): # Update the tick on the UI.
 		c = self._GetColorizer()
 		if c is not None: cmdui.SetCheck(c.bUseFixed)
@@ -303,38 +323,12 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
 	def OnCmdGotoLine(self, cmd, id):
 		try:
-			lineNo = string.atoi(raw_input("Enter Line Number"))
+			lineNo = string.atoi(raw_input("Enter Line Number"))-1
 		except (ValueError, KeyboardInterrupt):
 			return 0
-		self.SCIGotoLine(lineNo-1)
+		self.SCIEnsureVisible(lineNo)
+		self.SCIGotoLine(lineNo)
 		return 0
-
-	# #####################
-	# File related functions
-	# Helper to transfer text from the MFC document to the control.
-	def OnSavePointReached(self, std, extra):
-		self.GetDocument().SetModifiedFlag(0)
-
-	def OnSavePointLeft(self, std, extra):
-		self.GetDocument().SetModifiedFlag(1)
-
-	def _SetLoadedText(self, text):
-		if self.IsWindow():
-			# Turn off undo collection while loading 
-			self.SendScintilla(SCI_SETUNDOCOLLECTION, 0, 0)
-			# Make sure the control isnt read-only
-			self.SetReadOnly(0)
-
-			doc = self.GetDocument()
-			sm = text
-			if sm:
-				sma = array.array('c', sm)
-				(a,l) = sma.buffer_info()
-				self.SendScintilla(SCI_CLEARALL)
-				self.SendScintilla(SCI_ADDTEXT, l, a)
-				sma = None
-			self.SendScintilla(SCI_SETUNDOCOLLECTION, 1, 0)
-			self.SendScintilla(win32con.EM_EMPTYUNDOBUFFER, 0, 0)
 
 	def SaveTextFile(self, filename):
 		doc = self.GetDocument()

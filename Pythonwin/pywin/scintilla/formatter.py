@@ -1,8 +1,11 @@
 # Does Python source formatting for Scintilla controls.
 import win32ui
+import win32api
 import win32con
+import winerror
 import string
 import array
+import scintillacon
 
 WM_KICKIDLE = 0x036A
 
@@ -19,8 +22,9 @@ else:
 class Style:
 	"""Represents a single format
 	"""
-	def __init__(self, name, format):
+	def __init__(self, name, format, background = None):
 		self.name = name # Name the format representes eg, "String", "Class"
+		self.background = background
 		if type(format)==type(''):
 			self.aliased = format
 			self.format = None
@@ -42,14 +46,20 @@ class Style:
 		return bIsDefault
 	def ForceAgainstDefault(self):
 		self.format = self.format[:5]
+	def GetCompleteFormat(self, defaultFormat):
+		# Get the complete style after applying any relevant defaults.
+		if len(self.format)==5: # It is a default one
+			fmt = self.format + defaultFormat[5:]
+		else:
+			fmt = self.format
+		flags = win32con.CFM_BOLD | win32con.CFM_CHARSET | win32con.CFM_COLOR | win32con.CFM_FACE | win32con.CFM_ITALIC | win32con.CFM_SIZE
+		return (flags,) + fmt[1:]
 
-# An abstract formatter
-class Formatter:
+# The Formatter interface
+# used primarily when the actual formatting is done by Scintilla!
+class FormatterBase:
 	def __init__(self, scintilla):
-		self.bCompleteWhileIdle = 1
-		self.bHaveIdleHandler = 0 # Dont currently have an idle handle
 		self.scintilla = scintilla
-		self.nextstylenum = 0
 		self.baseFormatFixed = (-402653169, 0, 200, 0, 0, 0, 49, 'Courier New')
 		self.baseFormatProp = (-402653169, 0, 200, 0, 0, 0, 49, 'Arial')
 		self.bUseFixed = 1
@@ -57,30 +67,34 @@ class Formatter:
 		self.styles_by_id = {} # Indexed by allocated ID.
 		self.SetStyles()
 
+	def HookFormatter(self, parent = None):
+		raise NotImplementedError
+
+	# Used by the IDLE extensions to quickly determine if a character is a string.
+	def GetStringStyle(self, pos):
+		style = self.styles_by_id[self.scintilla.SCIGetStyleAt(pos)]
+		if style.name in self.string_style_names:
+			return style
+		return None
+
+	def RegisterStyle(self, style, stylenum):
+		assert stylenum is not None, "We must have a style number"
+		assert style.stylenum is None, "Style has already been registered"
+		assert not self.styles.has_key(stylenum), "We are reusing a style number!"
+		style.stylenum = stylenum
+		self.styles[style.name] = style
+		self.styles_by_id[stylenum] = style
+
 	def SetStyles(self):
-		assert 0, "You must override this"
+		raise NotImplementedError
 
 	def GetSampleText(self):
 		return "Sample Text for the Format Dialog"
 
-	def ColorSeg(self, start, end, styleName):
-		end = end+1
-#		assert end-start>=0, "Can't have negative styling"
-		stylenum = self.styles[styleName].stylenum
-		while start<end:
-			self.style_buffer[start]=chr(stylenum)
-			start = start+1
-		#self.scintilla.SCISetStyling(end - start + 1, stylenum)
-
-	def RegisterStyle(self, style, stylenum = None):
-		assert style.stylenum is None, "Style has already been registered"
-		if stylenum is None:
-			stylenum = self.nextstylenum
-			self.nextstylenum = self.nextstylenum + 1
-		assert self.styles.get(stylenum) is None, "We are reusing a style number!"
-		style.stylenum = stylenum
-		self.styles[style.name] = style
-		self.styles_by_id[stylenum] = style
+	def GetDefaultFormat(self):
+			if self.bUseFixed:
+				return self.baseFormatFixed
+			return self.baseFormatProp
 
 	# Update the control with the new style format.
 	def _ReformatStyle(self, style):
@@ -93,8 +107,7 @@ class Formatter:
 			style = self.styles[style.aliased]
 		f=style.format
 		if style.IsBasedOnDefault():
-			if self.bUseFixed: baseFormat = self.baseFormatFixed
-			else: baseFormat = self.baseFormatProp
+			baseFormat = self.GetDefaultFormat()
 		else: baseFormat = f
 		scintilla.SCIStyleSetFore(stylenum, f[4])
 		scintilla.SCIStyleSetFont( stylenum, baseFormat[7])
@@ -103,20 +116,101 @@ class Formatter:
 		if f[1] & 2: scintilla.SCIStyleSetItalic(stylenum, 1)
 		else: scintilla.SCIStyleSetItalic(stylenum, 0)
 		scintilla.SCIStyleSetSize(stylenum, int(baseFormat[2]/20))
+		if style.background is not None:
+			scintilla.SCIStyleSetBack(stylenum, style.background)
+		else:
+			scintilla.SCIStyleSetBack(stylenum, win32api.RGB(0xff, 0xff, 0xff))
+		scintilla.SCIStyleSetEOLFilled(stylenum, 1) # Only needed for unclosed strings.
 
 	def GetStyleByNum(self, stylenum):
 		return self.styles_by_id[stylenum]
 
-	def Reformat(self, bReload=1):
+	def ApplyFormattingStyles(self, bReload=1):
 		if bReload:
 			self.LoadPreferences()
-		if self.bUseFixed: baseFormat = self.baseFormatFixed
-		else: baseFormat = self.baseFormatProp
+		baseFormat = self.GetDefaultFormat()
 		for style in self.styles.values():
 			if style.aliased is None:
 				style.NormalizeAgainstDefault(baseFormat)
 			self._ReformatStyle(style)
 		self.scintilla.InvalidateRect()
+
+	# Some functions for loading and saving preferences.  By default
+	# an INI file (well, MFC maps this to the registry) is used.
+	def LoadPreferences(self):
+		self.baseFormatFixed = eval(self.LoadPreference("Base Format Fixed", str(self.baseFormatFixed)))
+		self.baseFormatProp = eval(self.LoadPreference("Base Format Proportional", str(self.baseFormatProp)))
+		self.bUseFixed = int(self.LoadPreference("Use Fixed", 1))
+		for style in self.styles.values():
+			new = self.LoadPreference(style.name, str(style.format))
+			try:
+				style.format = eval(new)
+				bg = int(self.LoadPreference(style.name + " background", -1))
+				if bg != -1:
+					style.background = bg
+			except:
+				print "Error loading style data for", style.name
+
+	def LoadPreference(self, name, default):
+		return win32ui.GetProfileVal("Format", name, default)
+
+	def SavePreferences(self):
+		self.SavePreference("Base Format Fixed", str(self.baseFormatFixed))
+		self.SavePreference("Base Format Proportional", str(self.baseFormatProp))
+		self.SavePreference("Use Fixed", self.bUseFixed)
+		for style in self.styles.values():
+			if style.aliased is None:
+				self.SavePreference(style.name, str(style.format))
+				bg_name = style.name + " background"
+				self.SavePreference(bg_name, style.background) # May be None
+	def SavePreference(self, name, value):
+		if value is None:
+			hkey = win32ui.GetAppRegistryKey()
+			try:
+				subkey = win32api.RegOpenKey(hkey, "Format", 0, win32con.KEY_SET_VALUE)
+			except win32api.error, (rc, fn, msg):
+				if rc != winerror.ERROR_FILE_NOT_FOUND:
+					raise
+			subkey.Close()
+		else:
+			win32ui.WriteProfileVal("Format", name, value)
+
+# An abstract formatter
+# For all formatters we actually implement here.
+# (as opposed to those formatters built in to Scintilla)
+class Formatter(FormatterBase):
+	def __init__(self, scintilla):
+		self.bCompleteWhileIdle = 0
+		self.bHaveIdleHandler = 0 # Dont currently have an idle handle
+		self.nextstylenum = 0
+		FormatterBase.__init__(self, scintilla)
+
+	def HookFormatter(self, parent = None):
+		if parent is None: parent = self.scintilla.GetParent() # was GetParentFrame()!?
+		parent.HookNotify(self.OnStyleNeeded, scintillacon.SCN_STYLENEEDED)
+
+	def OnStyleNeeded(self, std, extra):
+		notify = self.scintilla.SCIUnpackNotifyMessage(extra)
+		endStyledChar = self.scintilla.SendScintilla(scintillacon.SCI_GETENDSTYLED)
+		lineEndStyled = self.scintilla.LineFromChar(endStyledChar)
+		endStyled = self.scintilla.LineIndex(lineEndStyled)
+		#print "enPosPaint %d endStyledChar %d lineEndStyled %d endStyled %d" % (endPosPaint, endStyledChar, lineEndStyled, endStyled)
+		self.Colorize(endStyled, notify.position)
+
+	def ColorSeg(self, start, end, styleName):
+		end = end+1
+#		assert end-start>=0, "Can't have negative styling"
+		stylenum = self.styles[styleName].stylenum
+		while start<end:
+			self.style_buffer[start]=chr(stylenum)
+			start = start+1
+		#self.scintilla.SCISetStyling(end - start + 1, stylenum)
+
+	def RegisterStyle(self, style, stylenum = None):
+		if stylenum is None:
+			stylenum = self.nextstylenum
+			self.nextstylenum = self.nextstylenum + 1
+		FormatterBase.RegisterStyle(self, style, stylenum)
 
 	def ColorizeString(self, str, charStart, styleStart):
 		raise RuntimeError, "You must override this method"
@@ -163,31 +257,8 @@ class Formatter:
 			win32ui.GetApp().DeleteIdleHandler(handler)
 		return not finished
 
-	# Some functions for loading and saving preferences.  By default
-	# an INI file (well, MFC maps this to the registry) is used.
-	def LoadPreferences(self):
-		self.baseFormatFixed = eval(self.LoadPreference("Base Format Fixed", str(self.baseFormatFixed)))
-		self.baseFormatProp = eval(self.LoadPreference("Base Format Proportional", str(self.baseFormatProp)))
-		self.bUseFixed = int(self.LoadPreference("Use Fixed", 1))
-		for style in self.styles.values():
-			new = self.LoadPreference(style.name, str(style.format))
-			style.format = eval(new)
-
-	def LoadPreference(self, name, default):
-		return win32ui.GetProfileVal("Format", name, default)
-
-	def SavePreferences(self):
-		self.SavePreference("Base Format Fixed", str(self.baseFormatFixed))
-		self.SavePreference("Base Format Proportional", str(self.baseFormatProp))
-		self.SavePreference("Use Fixed", self.bUseFixed)
-		for style in self.styles.values():
-			if style.aliased is None:
-				self.SavePreference(style.name, str(style.format))
-	def SavePreference(self, name, value):
-		win32ui.WriteProfileVal("Format", name, value)
-
 # A Formatter that knows how to format Python source
-from keyword import iskeyword
+from keyword import iskeyword, kwlist
 
 wordstarts = '_0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 wordchars = '._0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
@@ -208,53 +279,61 @@ STYLE_OPERATOR = "Operator"
 STYLE_IDENTIFIER = "Identifier"
 STYLE_BRACE = "Brace/Paren - matching"
 STYLE_BRACEBAD = "Brace/Paren - unmatched"
+STYLE_STRINGEOL = "String with no terminator"
 
-STRING_STYLES = [STYLE_STRING, STYLE_SQSTRING, STYLE_TQSSTRING, STYLE_TQDSTRING]
+STRING_STYLES = [STYLE_STRING, STYLE_SQSTRING, STYLE_TQSSTRING, STYLE_TQDSTRING, STYLE_STRINGEOL]
 
-# the default font tuples to use for Python coloring
-classfmt	= (0, 1, 200, 0, 16711680) 
-keywordfmt	= (0, 1, 200, 0, 8388608)
-cmntfmt	= (0, 2, 200, 0, 32768)
-cmntblockfmt	= (0,0,200,0,8421504)
-quotefmt	= (0, 0, 200, 0, 32896)
-nmberfmt	= (0, 0, 200, 0, 8421376)
-methodfmt	= (0, 1, 200, 0, 8421376)
-dfltfmt	= (0, 0, 200, 0, 8421504)
-opfmt	= (0, 0, 200, 0, 0)
-idfmt		= (0, 0, 200, 0, 0)
-bracefmt	= (0, 1, 200, 0, 0)
-bracebadfmt	= (0, 0, 200, 0, 255)
+# These styles can have any ID - they are not special to scintilla itself.
+# However, if we use the built-in lexer, then we must use its style numbers
+# so in that case, they _are_ special.
+PYTHON_STYLES = [
+		(STYLE_DEFAULT,      (0, 0, 200, 0, 0x808080), None,     scintillacon.SCE_P_DEFAULT ),
+		(STYLE_COMMENT,      (0, 2, 200, 0, 0x008000), None,     scintillacon.SCE_P_COMMENTLINE ),
+		(STYLE_COMMENT_BLOCK,(0, 2, 200, 0, 0x808080), None,     scintillacon.SCE_P_COMMENTBLOCK ),
+		(STYLE_NUMBER,       (0, 0, 200, 0, 0x808000), None,     scintillacon.SCE_P_NUMBER ),
+		(STYLE_STRING,       (0, 0, 200, 0, 0x008080), None,     scintillacon.SCE_P_STRING ),
+		(STYLE_SQSTRING,     STYLE_STRING,             None,     scintillacon.SCE_P_CHARACTER ),
+		(STYLE_TQSSTRING,    STYLE_STRING,             None,     scintillacon.SCE_P_TRIPLE ),
+		(STYLE_TQDSTRING,    STYLE_STRING,             None,     scintillacon.SCE_P_TRIPLEDOUBLE),
+		(STYLE_STRINGEOL,    (0, 0, 200, 0, 0x000000), 0x008080, scintillacon.SCE_P_STRINGEOL),
+		(STYLE_KEYWORD,      (0, 1, 200, 0, 0x800000), None,     scintillacon.SCE_P_WORD),
+		(STYLE_CLASS,        (0, 1, 200, 0, 0xFF0000), None,     scintillacon.SCE_P_CLASSNAME ),
+		(STYLE_METHOD,       (0, 1, 200, 0, 0x808000), None,     scintillacon.SCE_P_DEFNAME),
+		(STYLE_OPERATOR,     (0, 0, 200, 0, 0x000000), None,     scintillacon.SCE_P_OPERATOR),
+		(STYLE_IDENTIFIER,   (0, 0, 200, 0, 0x000000), None,     scintillacon.SCE_P_IDENTIFIER ),
+]
+
+# These styles _always_ have this specific style number, regardless of
+# internal or external formatter.
+SPECIAL_STYLES = [
+		(STYLE_BRACE,        (0, 0, 200, 0, 0x000000), 0xffff80, scintillacon.STYLE_BRACELIGHT),
+		(STYLE_BRACEBAD,     (0, 0, 200, 0, 0x000000), 0x8ea5f2, scintillacon.STYLE_BRACEBAD),
+]
+
+PythonSampleCode = """\
+# Some Python
+class Sample(Super):
+  def Fn(self):
+\tself.v = 1024
+dest = 'dest.html'
+x = func(a + 1)|)
+s = "I forget...
+## A large
+## comment block"""
 
 class PythonSourceFormatter(Formatter):
+	string_style_names = STRING_STYLES
 	def GetSampleText(self):
-		return "class Sample(Super):\n  def Fn(self):\n    # A bitOPy\n    dest = 'dest.html'\n    timeOut = 1024\n\ta = a + 1\n## A large\n## comment block\n"
+		return PythonSampleCode
 
 	def LoadStyles(self):
 		pass
 
 	def SetStyles(self):
-		self.RegisterStyle( Style(STYLE_DEFAULT, dfltfmt ) )
-		self.RegisterStyle( Style(STYLE_COMMENT, cmntfmt ) )
-		self.RegisterStyle( Style(STYLE_COMMENT_BLOCK, cmntblockfmt ) )
-		self.RegisterStyle( Style(STYLE_NUMBER, nmberfmt ) )
-		self.RegisterStyle( Style(STYLE_STRING, quotefmt ) )
-		self.RegisterStyle( Style(STYLE_SQSTRING, STYLE_STRING ) )
-		self.RegisterStyle( Style(STYLE_TQSSTRING, STYLE_STRING ) )
-		self.RegisterStyle( Style(STYLE_TQDSTRING, STYLE_STRING ) )
-		self.RegisterStyle( Style(STYLE_KEYWORD, keywordfmt ) )
-		self.RegisterStyle( Style(STYLE_CLASS, classfmt ) )
-		self.RegisterStyle( Style(STYLE_METHOD, methodfmt ) )
-		self.RegisterStyle( Style(STYLE_OPERATOR, opfmt ) )
-		self.RegisterStyle( Style(STYLE_IDENTIFIER, idfmt ) )
-		self.RegisterStyle( Style(STYLE_BRACE, bracefmt ), 34) # 34 is the special style for braces
-		self.RegisterStyle( Style(STYLE_BRACEBAD, bracebadfmt ), 35) # 35 is the special style for bad brace matches
-
-	# Used by the IDLE extensions to quickly determine if a character is a string.
-	def GetStringStyle(self, pos):
-		style = self.styles_by_id[self.scintilla.SCIGetStyleAt(pos)]
-		if style.name in STRING_STYLES:
-			return style
-		return None
+		for name, format, bg, ignore in PYTHON_STYLES:
+			self.RegisterStyle( Style(name, format, bg) )
+		for name, format, bg, sc_id in SPECIAL_STYLES:
+			self.RegisterStyle( Style(name, format, bg), sc_id )
 
 	def ClassifyWord(self, cdoc, start, end, prevWord):
 		word = cdoc[start:end+1]
@@ -410,3 +489,36 @@ class PythonSourceFormatter(Formatter):
 				self.ClassifyWord(cdoc, startSeg, lengthDoc-1, prevWord)
 			else:
 				self.ColorSeg(startSeg, lengthDoc-1, state)
+
+class BuiltinSourceFormatter(FormatterBase):
+	# A class that represents a formatter built-in to Scintilla
+	def Colorize(self, start=0, end=-1):
+		self.scintilla.SendScintilla(scintillacon.SCI_COLOURISE, start, end)
+	def RegisterStyle(self, style, stylenum = None):
+		assert style.stylenum is None, "Style has already been registered"
+		if stylenum is None:
+			stylenum = self.nextstylenum
+			self.nextstylenum = self.nextstylenum + 1
+		assert self.styles.get(stylenum) is None, "We are reusing a style number!"
+		style.stylenum = stylenum
+		self.styles[style.name] = style
+		self.styles_by_id[stylenum] = style
+
+	def HookFormatter(self, parent = None):
+		sc = self.scintilla
+		sc.SendScintilla(scintillacon.SCI_SETLEXER, self.sci_lexer_name)
+		keywords = string.join(kwlist)
+		sc.SCISetKeywords(keywords)
+
+class BuiltinPythonSourceFormatter(BuiltinSourceFormatter):
+	sci_lexer_name = scintillacon.SCLEX_PYTHON
+	string_style_names = STRING_STYLES
+	def __init__(self, sc):
+		BuiltinSourceFormatter.__init__(self, sc)
+	def SetStyles(self):
+		for name, format, bg, sc_id in PYTHON_STYLES:
+			self.RegisterStyle( Style(name, format, bg), sc_id )
+		for name, format, bg, sc_id in SPECIAL_STYLES:
+			self.RegisterStyle( Style(name, format, bg), sc_id )
+	def GetSampleText(self):
+		return PythonSampleCode

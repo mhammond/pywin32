@@ -115,7 +115,7 @@ def make_key_name(scancode, flags):
     try:
         parts.append(key_code_to_name[scancode])
     except KeyError:
-        parts.append( "<Unknown scan code %x>" % scancode )
+        parts.append( "<Unknown scan code %s>" % scancode )
     sep = "+"
     if sep in parts: sep = "-"
     return string.join(map(string.capitalize, parts), sep)
@@ -146,6 +146,7 @@ def test2():
     _pkn("ctl+enter")
     _pkn("alt+return")
     _pkn("Alt+/")
+    _pkn("Alt+BadKeyName")
 
 if __name__=='__main__':
     test2()

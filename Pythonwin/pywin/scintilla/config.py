@@ -195,8 +195,8 @@ class ConfigManager:
             if map is None: # Build it
                 map = {}
                 keymap = subsection_keymap.get(subsection, {})
-                for key_info, event in keymap.items():
-                    map[event] = key_info
+                for key_info, map_event in keymap.items():
+                    map[map_event] = key_info
                 self.key_to_events[subsection] = map
 
             info = map.get(event)

@@ -1,7 +1,10 @@
 from pywin.mfc import dialog
+import win32api
 import win32con
 import win32ui
 import copy
+import string
+from scintillacon import *
 
 ######################################################
 # Property Page for syntax formatting options
@@ -21,56 +24,77 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 		dialog.PropertyPage.__init__(self, win32ui.IDD_PP_FORMAT, caption=caption)
 
 	def OnInitDialog(self):
-		if self.scintillaClass is None:
-			import control
-			sc = control.CScintillaEdit
-		else:
-			sc = self.scintillaClass
+		try:
+			if self.scintillaClass is None:
+				import control
+				sc = control.CScintillaEdit
+			else:
+				sc = self.scintillaClass
 
-		self.scintilla = sc()
-		style = win32con.WS_CHILD | win32con.WS_VISIBLE | win32con.ES_MULTILINE
-		# Convert the rect size
-		rect = self.MapDialogRect( (5, 5, 120, 75))
-		self.scintilla.CreateWindow(style, rect, self, 111)
-		self.scintilla.SCISetViewWS(1)
+			self.scintilla = sc()
+			style = win32con.WS_CHILD | win32con.WS_VISIBLE | win32con.ES_MULTILINE
+			# Convert the rect size
+			rect = self.MapDialogRect( (5, 5, 120, 75))
+			self.scintilla.CreateWindow(style, rect, self, 111)
+			self.HookNotify(self.OnBraceMatch, SCN_CHECKBRACE)
+			self.scintilla.HookKeyStroke(self.OnEsc, 27)
+			self.scintilla.SCISetViewWS(1)
+			self.pos_bstart = self.pos_bend = self.pos_bbad = 0
 
-		colorizer = self.scintilla._GetColorizer()
-		self.scintilla.SCIAddText(colorizer.GetSampleText())
-		self.scintilla.Reformat()
-		self.styles = self.scintilla._GetColorizer().styles
+			colorizer = self.scintilla._GetColorizer()
+			text = colorizer.GetSampleText()
+			items = string.split(text, '|', 2)
+			pos = len(items[0])
+			self.scintilla.SCIAddText(string.join(items,''))
+			self.scintilla.SetSel(pos, pos)
+			self.scintilla.ApplyFormattingStyles()
+			self.styles = self.scintilla._GetColorizer().styles
 
-		self.cbo = self.GetDlgItem(win32ui.IDC_COMBO1)
-		for c in paletteVGA:
-			self.cbo.AddString(c[0])
+			self.cbo = self.GetDlgItem(win32ui.IDC_COMBO1)
+			for c in paletteVGA:
+				self.cbo.AddString(c[0])
 
-		self.cboBoldItalic = self.GetDlgItem(win32ui.IDC_COMBO2)
-		for item in ["Bold Italic", "Bold", "Italic", "Regular"]:
-			self.cboBoldItalic.InsertString(0, item)
+			self.cboBoldItalic = self.GetDlgItem(win32ui.IDC_COMBO2)
+			for item in ["Bold Italic", "Bold", "Italic", "Regular"]:
+				self.cboBoldItalic.InsertString(0, item)
 
-		self.butIsDefault = self.GetDlgItem(win32ui.IDC_CHECK1)
-		self.listbox = self.GetDlgItem(win32ui.IDC_LIST1)
-		self.HookCommand(self.OnListCommand, win32ui.IDC_LIST1)
-		names = self.styles.keys()
-		names.sort()
-		for name in names:
-			if self.styles[name].aliased is None:
-				self.listbox.AddString(name)
-		self.listbox.SetCurSel(0)
+			self.butIsDefault = self.GetDlgItem(win32ui.IDC_CHECK1)
+			self.butIsDefaultBackground = self.GetDlgItem(win32ui.IDC_CHECK2)
+			self.listbox = self.GetDlgItem(win32ui.IDC_LIST1)
+			self.HookCommand(self.OnListCommand, win32ui.IDC_LIST1)
+			names = self.styles.keys()
+			names.sort()
+			for name in names:
+				if self.styles[name].aliased is None:
+					self.listbox.AddString(name)
+			self.listbox.SetCurSel(0)
 
-		idc = win32ui.IDC_RADIO1
-		if not self.scintilla._GetColorizer().bUseFixed: idc = win32ui.IDC_RADIO2
-		self.GetDlgItem(idc).SetCheck(1)
-		self.UpdateUIForStyle(self.styles[names[0]])
+			idc = win32ui.IDC_RADIO1
+			if not self.scintilla._GetColorizer().bUseFixed: idc = win32ui.IDC_RADIO2
+			self.GetDlgItem(idc).SetCheck(1)
+			self.UpdateUIForStyle(self.styles[names[0]])
 
-		self.scintilla.HookStyleNotify(self)
-		self.HookCommand(self.OnButDefaultFixedFont, win32ui.IDC_BUTTON1)
-		self.HookCommand(self.OnButDefaultPropFont, win32ui.IDC_BUTTON2)
-		self.HookCommand(self.OnButThisFont, win32ui.IDC_BUTTON3)
-		self.HookCommand(self.OnButUseDefaultFont, win32ui.IDC_CHECK1)
-		self.HookCommand(self.OnStyleUIChanged, win32ui.IDC_COMBO1)
-		self.HookCommand(self.OnStyleUIChanged, win32ui.IDC_COMBO2)
-		self.HookCommand(self.OnButFixedOrDefault, win32ui.IDC_RADIO1)
-		self.HookCommand(self.OnButFixedOrDefault, win32ui.IDC_RADIO2)
+			self.scintilla.HookFormatter(self)
+			self.HookCommand(self.OnButDefaultFixedFont, win32ui.IDC_BUTTON1)
+			self.HookCommand(self.OnButDefaultPropFont, win32ui.IDC_BUTTON2)
+			self.HookCommand(self.OnButThisFont, win32ui.IDC_BUTTON3)
+			self.HookCommand(self.OnButUseDefaultFont, win32ui.IDC_CHECK1)
+			self.HookCommand(self.OnButThisBackground, win32ui.IDC_BUTTON4)
+			self.HookCommand(self.OnButUseDefaultBackground, win32ui.IDC_CHECK2)
+			self.HookCommand(self.OnStyleUIChanged, win32ui.IDC_COMBO1)
+			self.HookCommand(self.OnStyleUIChanged, win32ui.IDC_COMBO2)
+			self.HookCommand(self.OnButFixedOrDefault, win32ui.IDC_RADIO1)
+			self.HookCommand(self.OnButFixedOrDefault, win32ui.IDC_RADIO2)
+		except:
+			import traceback
+			traceback.print_exc()
+
+	def OnEsc(self, ch):
+		self.GetParent().EndDialog(win32con.IDCANCEL)
+
+	def OnBraceMatch(self, std, extra):
+		import pywin.scintilla.view
+		pywin.scintilla.view.DoBraceMatch(self.scintilla)
 
 	def GetSelectedStyle(self):
 		return self.styles[self.listbox.GetText(self.listbox.GetCurSel())]
@@ -98,17 +122,21 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 			bUseFixed = id == win32ui.IDC_RADIO1
 			self.GetDlgItem(win32ui.IDC_RADIO1).GetCheck() != 0
 			self.scintilla._GetColorizer().bUseFixed = bUseFixed
-			self.scintilla.Reformat(0)
+			self.scintilla.ApplyFormattingStyles(0)
 			return 1
 
 	def OnButThisFont(self, id, code):
 		if code==win32con.BN_CLICKED:
 			flags = win32con.CF_SCREENFONTS | win32con.CF_EFFECTS | win32con.CF_FORCEFONTEXIST
 			style = self.GetSelectedStyle()
-			d=win32ui.CreateFontDialog(style.format, flags, None, self)
+			# If the selected style is based on the default, we need to apply
+			# the default to it.
+			def_format = self.scintilla._GetColorizer().GetDefaultFormat()
+			format = style.GetCompleteFormat(def_format)
+			d=win32ui.CreateFontDialog(format, flags, None, self)
 			if d.DoModal()==win32con.IDOK:
 				style.format = d.GetCharFormat()
-				self.scintilla.Reformat(0)
+				self.scintilla.ApplyFormattingStyles(0)
 			return 1
 
 	def OnButUseDefaultFont(self, id, code):
@@ -119,11 +147,38 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 				style = self.GetSelectedStyle()
 				style.ForceAgainstDefault()
 				self.UpdateUIForStyle(style)
-				self.scintilla.Reformat(0)
+				self.scintilla.ApplyFormattingStyles(0)
 			else:
 				# User wants to override default -
 				# do nothing!
 				pass
+
+	def OnButThisBackground(self, id, code):
+		if code==win32con.BN_CLICKED:
+			style = self.GetSelectedStyle()
+			bg = win32api.RGB(0xff, 0xff, 0xff)
+			if style.background is not None:
+				bg = style.background
+			d=win32ui.CreateColorDialog(bg, 0, self)
+			if d.DoModal()==win32con.IDOK:
+				style.background = d.GetColor()
+				self.scintilla.ApplyFormattingStyles(0)
+			return 1
+
+	def OnButUseDefaultBackground(self, id, code):
+		if code == win32con.BN_CLICKED:
+			isDef = self.butIsDefaultBackground.GetCheck()
+			self.GetDlgItem(win32ui.IDC_BUTTON4).EnableWindow(not isDef)
+			if isDef: # Being reset to the default color
+				style = self.GetSelectedStyle()
+				style.background = win32api.RGB(0xff, 0xff, 0xff)
+				self.UpdateUIForStyle(style)
+				self.scintilla.ApplyFormattingStyles(0)
+			else:
+				# User wants to override default -
+				# do nothing!
+				pass
+
 
 	def OnListCommand(self, id, code):
 		if code==win32con.LBN_SELCHANGE:
@@ -143,6 +198,8 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 			sel = -1
 		self.cbo.SetCurSel(sel)
 		self.butIsDefault.SetCheck(style.IsBasedOnDefault())
+		white = win32api.RGB(0xff, 0xff, 0xff) # Need to rethink this b/g stuff if we ever support other than white :-)
+		self.butIsDefaultBackground.SetCheck(style.background is None or style.background == white)
 		self.GetDlgItem(win32ui.IDC_BUTTON3).EnableWindow(not style.IsBasedOnDefault())
 		bold = format[1] & win32con.CFE_BOLD != 0; italic = format[1] & win32con.CFE_ITALIC != 0
 		self.cboBoldItalic.SetCurSel( bold*2 + italic )
@@ -151,7 +208,7 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 		if code in [win32con.BN_CLICKED, win32con.CBN_SELCHANGE]:
 			style = self.GetSelectedStyle()
 			self.ApplyUIFormatToStyle(style)
-			self.scintilla.Reformat(0)
+			self.scintilla.ApplyFormattingStyles(0)
 			return 0
 		return 1
 
@@ -173,17 +230,6 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 
 	def OnOK(self):
 		self.scintilla._GetColorizer().SavePreferences()
-		# Now tell _all_ Scintilla controls we can find to reformat
-		# themselves.  Only ones attached to the formatter will have
-		# any visible changes (although all will reload their options)
-		for templ in win32ui.GetApp().GetDocTemplateList( ):
-			for d in templ.GetDocumentList( ):
-				# Try all documents, but only coloreditor.EditorDocument will respond
-				try:
-					fn = d.Reformat
-				except AttributeError:
-					continue
-				fn()
 		return 1
 
 def test():
