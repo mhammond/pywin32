@@ -1,0 +1,94 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<META NAME="Generator" CONTENT="Microsoft FrontPage 4.0">
+<TITLE>Win32 Debugger Tutorial</TITLE>
+<META NAME="Template" CONTENT="D:\Program Files\Microsoft Office\Office\HTML.DOT">
+</HEAD>
+<BODY LINK="#0000ff" VLINK="#800080">
+
+<H1><IMG SRC="pythonwin.gif" WIDTH=64 HEIGHT=64>Pythonwin Debugger Tutorial </H1>
+<B><P>NOTE:</B> This debugger used to be known as the "win32dbg" package.  Also, we have recently upgraded to a much better editor control.  The screen shots in this tutorial do not reflect these recent changes.  Although "win32dbg" will still work, you should substitute "pywin.debugger" for "win32dbg" in the screen-shots, and hopefully the new editor control will make the break-points etc even more obvious.</P>
+<P>This tutorial shows how to debug a file provided with Pythonwin distribution. The module we will debug is called "fail.py", and is provided purely for demonstrating and testing the debugger. This file is located in the Pythonwin\pywin\debugger directory. </P>
+<P>This document does not attempt to discuss general debugging concepts. It is assumed that you understand the concepts of "Step In" to a routine, "Step Over" a routine, "call stack", "break-point" etc. </P>
+<P>When you have completed the tutorial, you should read the <A HREF="general.html">general debugger documentation</A>. </P>
+<P>In general, the user interface should be fairly intuitive. All toolbar items have status bar text and tool-tips, which will help determine their function. </P>
+<P>This tutorial covers the following topics: </P>
+<P><A HREF="#Preparation_for_the_tutorial">Preparation for the tutorial</A> <BR>
+<A HREF="#Starting_the_Debugger">Starting the Debugger</A><BR>
+<A HREF="#Setting_a_Breakpoint">Setting a Breakpoint</A><BR>
+<A HREF="#Stepping_through_the_code">Stepping through the code</A> <BR>
+<A HREF="#Examining_the_current_context">Examining the current context</A> <BR>
+<A HREF="#Postmortem_diagnostics">Postmortem diagnostics</A> </P>
+<H2><A NAME="Preparation_for_the_tutorial">Preparation for the tutorial</A> </H2>
+<P>To prepare for the tutorial, ensure you have Pythonwin installed, then start either Pythonwin/Python, Windows Explorer, or an "MS-DOS" prompt</P>
+<H2><A NAME="Starting_the_Debugger">Starting the Debugger</A> </H2>
+<H3>From Pythonwin or Python.exe</H3>
+<P>At the interactive window, type:</P>
+<PRE>import pywin.debugger.fail&lt;enter&gt;</PRE>
+<P>&nbsp;</P>
+<H3>From Windows Explorer</H3>
+<P>Navigate to the Pythonwin\pywin\debugger directory, and double-click on the file "fail.py"</P>
+<H3>From the MS-DOS Prompt</H3>
+<P>Change to the Pythonwin\pywin\debugger directory.</P>
+<P>For Windows NT users, type:</P>
+<CODE><P>fail.py&lt;enter&gt;</CODE> </P>
+<P>Or Windows 95/98 (sob - you would hope that 98 would have fixed some of 95s dumbness!)</P>
+<CODE><P>&lt;path to python.exe&gt;\python.exe fail.py</P>
+</CODE><P>or</P>
+<CODE><P>start fail.py</CODE> </P>
+<H2>Using the Debugger</H2>
+<P>If all goes well, you should see the debugger appear in a full GUI frame, with a particular line in fail.py highlighted. Part of the screen should look something like: </P>
+<P><i>NOTE:</i> This screen capture is wrong - hopefully what you can see on
+your screen is better and more obvious than this old picture! </P>
+<P><IMG SRC="tut1.gif" WIDTH=551 HEIGHT=82></P>
+<P>In this case, the Python program has executed until it hit the statement: </P>
+<CODE><P>pywin.debugger.set_trace()</CODE> </P>
+<P>This statement is effectively a hard-coded break-point, which creates a debugger, and causes it to stop at the statement following the set_trace(). </P>
+<P>The Debugger is showing the blue line as the "current" line - this is the next statement to be executed. </P>
+<H2><A NAME="Setting_a_Breakpoint">Setting a Break-point</A> </H2>
+<P>Our next step is to set a breakpoint somewhere inside the code that remains to be executed. As you can see, the Python program is about to call the function "c()". Examining the source, we can see that c() calls d(). The first line of d() is a good spot! </P>
+<P>To set a break-point, perform the following steps. </P>
+
+<UL>
+<LI>Select the "fail.py" source file (or more generally, you can open another source file, and set a break-point there). </LI>
+<LI>Scroll to the location where a breakpoint should be set, and ensure the carat (edit box cursor) is on the line. </LI>
+<LI>Either: Select the "Hand" icon on the debugger toolbar. Or: Select the "Breakpoints" property page, and select the "Add/Clear" button. </LI></UL>
+
+<P>The debugger should then look something like: </P>
+<P><IMG SRC="tutbp1.gif" WIDTH=551 HEIGHT=154></P>
+<P>Note the current line is still colored blue, and the newly added break-point is colored red. You can also select the "Breakpoints" property-page and see the breakpoint listed there. </P>
+<P>We are now ready to run the debugger. </P>
+
+<UL>
+<LI>Either: Select "Go" from one of the property-pages, or select the "Run" toolbar item. </LI></UL>
+
+<P>The debugger should vanish briefly, then re-appear after hitting the breakpoint. </P>
+<B><P>Notes</B> </P>
+
+<UL>
+<LI>The behaviour of the "hiding" can be changed, but with caveats - see the <A HREF="general.html">general debugger documentation</A> for details on GUI versus non-GUI issues). </LI>
+<LI>The debugger will show the break-point line in blue - there will be no visual indication the line is <I>both</I> a break-point, <I>and</I> the current line. As soon as the current line moves off this line, it will return to its break-point color. </LI></UL>
+
+<H2><A NAME="Stepping_through_the_code">Stepping through the code</A> </H2>
+<P>Use the "Step" toolbar or dialog button to step through code. Stepping from the current location will step over the assignment of 1 to the local variable d. Continuing to step will step into the function e(). </P>
+<H2><A NAME="Examining_the_current_context">Examining the current context</A> </H2>
+<P>Just to jump in, we should have a play with the property pages. </P>
+
+<UL>
+<LI>Use the "Call Stack" page to see the current context. Double-clicking will change the "current context", and change the highlight. Expand and collapse each entry to view locals and globals. </LI>
+<LI>Use the "Interactive" page to view and change variables in the current context. For example, assuming that "d()" is still the top call stack, entering "d&lt;enter&gt;" into the interactive page will print "1". Almost any Python expression/statement can be executed here, from the current context. Use the "Call Stack" page to change the current context (ie, make another stack entry blue), and notice how "d" is likely to evaluate to the function d() (ie, the interactive page has changed contexts) </LI></UL>
+
+<H2><A NAME="Postmortem_diagnostics">Post-mortem diagnostics</A> </H2>
+<P>The fail.py as distributed is setup to demonstrate "port-mortem" debugging - ie, debugging <I>after</I> an exception has occurred. </P>
+<P>To demonstrate post-mortem diagnostics, simply: </P>
+
+<UL>
+<LI>Click on the "Run" toolbar item or property page button </LI></UL>
+
+<P>The debugger will again vanish, and re-appear looking something like: </P>
+<P><IMG SRC="postmortem.gif" WIDTH=551 HEIGHT=96></P>
+<P>Notice that there is now a new property page, titled "Exception". This shows the traceback that Python would normally print if this exception was unhandled. </P>
+<P>All other features of the debugger work as expected. You can view each call stacks local and globals, etc. However, you can not force Python to ignore, or otherwise alter the normal Python exception processing. (except, or course, by stopping the debugger) </P>
+<P>OK - now jump to the <A HREF="general.html">general debugger documentation</A> to get a more detailed picture. </P></BODY>
+</HTML>
