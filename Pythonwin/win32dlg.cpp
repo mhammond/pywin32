@@ -1259,12 +1259,61 @@ static PyObject *ui_color_dialog_set_current_color( PyObject *self, PyObject *ar
 	RETURN_NONE;
 }
 
+// @pymethod (int,...)|PyCColorDialog|GetCustomColors|Gets the 16 currently defined custom colors
+static PyObject *ui_color_dialog_get_custom_colors( PyObject *self, PyObject *args )
+{
+	if (!PyArg_ParseTuple(args, ""))
+		return NULL;
+	CColorDialog *pDlg = GetColorDialog(self);
+	if (!pDlg)
+		return NULL;
+	PyObject *ret = PyTuple_New(16);
+	for (int i=0;i<16;i++)
+		PyTuple_SET_ITEM(ret, i, PyInt_FromLong(pDlg->m_cc.lpCustColors[i]));
+	return ret;
+}
+
+// @pymethod |PyCColorDialog|SetCustomColors|Sets one or more custom colors
+static PyObject *ui_color_dialog_set_custom_colors( PyObject *self, PyObject *args )
+{
+	PyObject *obCols;
+	if (!PyArg_ParseTuple(args, "O", &obCols))
+		return NULL;
+	int len = PySequence_Length(obCols);
+	if (PyErr_Occurred() || len <= 0 || len > 16) {
+		PyErr_Clear();
+		PyErr_SetString(PyExc_TypeError, "The argument must be a sequence of integers of length 1-16");
+		return NULL;
+	}
+	CColorDialog *pDlg = GetColorDialog(self);
+	if (!pDlg)
+		return NULL;
+	for (int i=0;i<len;i++) {
+		PyObject *obInt = NULL;
+		PyObject *ob = PySequence_GetItem(obCols, i);
+		if (ob!=NULL)
+			obInt = PyNumber_Int(ob);
+		if (obInt == NULL) {
+			Py_XDECREF(ob);
+			PyErr_SetString(PyExc_TypeError, "The argument must be a sequence of integers of length 1-16");
+			return NULL;
+		}
+		pDlg->m_cc.lpCustColors[i] = PyInt_AsLong(obInt);
+		Py_DECREF(ob);
+		Py_DECREF(obInt);
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 // @object PyCColorDialog|A class which encapsulates an MFC CColorDialog object.  Derived from a <o PyCDialog> object.
 static struct PyMethodDef ui_color_dialog_methods[] = {
 	{"GetColor",  ui_color_dialog_get_color, 1}, // @pymeth GetColor|Determines the selected color.
 	{"DoModal",   ui_color_dialog_do_modal,  1}, // @pymeth DoModal|Displays a dialog and allows the user to make a selection.
 	{"GetSavedCustomColors",ui_color_dialog_get_saved_custom_colors,  1}, // @pymeth GetSavedCustomColors|Returns the saved custom colors.
 	{"SetCurrentColor",		ui_color_dialog_set_current_color,  1}, // @pymeth SetCurrentColor|Sets the currently selected color.
+	{"SetCustomColors",     ui_color_dialog_set_custom_colors,  1}, // @pymeth SetCustomColors|Sets one or more custom colors
+	{"GetCustomColors",     ui_color_dialog_get_custom_colors,  1}, // @pymeth GetCustomColors|Gets the currently defined custom colors.
 	{NULL,			NULL}
 };
 

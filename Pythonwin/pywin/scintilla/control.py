@@ -223,6 +223,19 @@ class ScintillaControlInterface:
 		self.SendScintilla(SCI_ENSUREVISIBLE, lineno)
 	def SCIGetFoldExpanded(self, lineno):
 		return self.SendScintilla(SCI_GETFOLDEXPANDED, lineno)
+	# right edge
+	def SCISetEdgeColumn(self, edge):
+		self.SendScintilla(SCI_SETEDGECOLUMN, edge)
+	def SCIGetEdgeColumn(self):
+		return self.SendScintilla(SCI_GETEDGECOLUMN)
+	def SCISetEdgeMode(self, mode):
+		self.SendScintilla(SCI_SETEDGEMODE, mode)
+	def SCIGetEdgeMode(self):
+		return self.SendScintilla(SCI_GETEDGEMODE)
+	def SCISetEdgeColor(self, color):
+		self.SendScintilla(SCI_SETEDGECOLOUR, color)
+	def SCIGetEdgeColor(self):
+		return self.SendScintilla(SCI_GETEDGECOLOR)
 	# Multi-doc
 	def SCIGetDocPointer(self):
 		return self.SendScintilla(SCI_GETDOCPOINTER)

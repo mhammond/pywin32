@@ -82,6 +82,7 @@
 #define IDC_ABOUT_VERSION               15062
 #define IDC_VSS_INTEGRATE               15063
 #define IDC_USE_SMART_TABS              15064
+#define IDC_SPIN4                       15064
 #define IDC_CHECK1                      15066
 #define IDC_CHECK2                      15067
 #define IDC_BUTTON4                     15068
@@ -102,6 +103,10 @@
 #define IDC_MARGIN_MARKER               15080
 #define IDC_MARGIN_LINENUMBER           15081
 #define IDC_MARGIN_FOLD                 15082
+#define IDC_RIGHTEDGE_COLUMN            15083
+#define IDC_RIGHTEDGE_ENABLE            15084
+#define IDC_RIGHTEDGE_SAMPLE            15085
+#define IDC_RIGHTEDGE_DEFINE            15086
 #define IDC_DBG_ADD                     16004
 #define IDC_DBG_CLEAR                   16006
 #define IDC_DBG_CLOSE                   16010
@@ -135,6 +140,7 @@
 #define ID_VIEW_FOLD_COLLAPSE           36898
 #define ID_VIEW_FOLD_TOPLEVEL           36900
 #define ID_VIEW_INDENTATIONGUIDES       36901
+#define ID_VIEW_RIGHT_EDGE              36904
 #define IDC_DBG_WATCH                   40002
 #define IDS_DEBUG_RELEASE_MISMATCH      57346
 #define ID_EDIT_GOTO_LINE               57638
@@ -146,8 +152,8 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        11161
-#define _APS_NEXT_COMMAND_VALUE         36902
-#define _APS_NEXT_CONTROL_VALUE         15084
+#define _APS_NEXT_COMMAND_VALUE         36905
+#define _APS_NEXT_CONTROL_VALUE         15087
 #define _APS_NEXT_SYMED_VALUE           11152
 #endif
 #endif

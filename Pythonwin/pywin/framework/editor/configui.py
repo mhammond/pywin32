@@ -26,20 +26,35 @@ class EditorPropertyPage(dialog.PropertyPage):
 		self._AddEditorOption(win32ui.IDC_AUTOCOMPLETE, "i", "Autocomplete Attributes", 1)
 		self._AddEditorOption(win32ui.IDC_CALLTIPS, "i", "Show Call Tips", 1)
 		self._AddEditorOption(win32ui.IDC_MARGIN_LINENUMBER, "i", "Line Number Margin Width", 0)
-		self._AddEditorOption(win32ui.IDC_MARGIN_MARKER, "i", "Marker Margin Width", 14)
+		self._AddEditorOption(win32ui.IDC_RADIO1, "i", "MarkersInMargin", None)
+		self._AddEditorOption(win32ui.IDC_MARGIN_MARKER, "i", "Marker Margin Width", None)
+		self["Marker Margin Width"] = GetEditorOption("Marker Margin Width", 14)
+
+		# Folding		
 		self._AddEditorOption(win32ui.IDC_MARGIN_FOLD, "i", "Fold Margin Width", 20)
 		self._AddEditorOption(win32ui.IDC_FOLD_ENABLE, "i", "Enable Folding", 1)
 		self._AddEditorOption(win32ui.IDC_FOLD_ON_OPEN, "i", "Fold On Open", 0)
 		self._AddEditorOption(win32ui.IDC_FOLD_SHOW_LINES, "i", "Fold Lines", 1)
 
+		# Right edge.
+		self._AddEditorOption(win32ui.IDC_RIGHTEDGE_ENABLE, "i", "Right Edge Enabled", 0)
+		self._AddEditorOption(win32ui.IDC_RIGHTEDGE_COLUMN, "i", "Right Edge Column", 75)
+
+		# Source control, etc		
 		self.AddDDX(win32ui.IDC_VSS_INTEGRATE, "bVSS")
 		self.AddDDX(win32ui.IDC_KEYBOARD_CONFIG, "Configs", "l")
 		self["Configs"] = pywin.scintilla.config.find_config_files()
 
+
+
 	def _AddEditorOption(self, idd, typ, optionName, defaultVal):
 		self.AddDDX(idd, optionName, typ)
-		self[optionName] = GetEditorOption(optionName, defaultVal)
-		self.autooptions.append((optionName, defaultVal))
+		# some options are "derived" - ie, can be implied from others
+		# (eg, "view markers in background" is implied from "markerMarginWidth==0"
+		# So we don't actually store these values, but they do still get DDX support.
+		if defaultVal is not None:
+			self[optionName] = GetEditorOption(optionName, defaultVal)
+			self.autooptions.append((optionName, defaultVal))
 
 	def OnInitDialog(self):
 		for name, val in self.autooptions:
@@ -56,6 +71,9 @@ class EditorPropertyPage(dialog.PropertyPage):
 		bVSS = GetEditorOption("Source Control Module", "") == "pywin.framework.editor.vss"
 		self['bVSS'] = bVSS
 
+		edit = self.GetDlgItem(win32ui.IDC_RIGHTEDGE_SAMPLE)
+		edit.SetWindowText("Sample Color")
+
 		rc = dialog.PropertyPage.OnInitDialog(self)
 
 		try:
@@ -65,24 +83,70 @@ class EditorPropertyPage(dialog.PropertyPage):
 			traceback.print_exc()
 			pass
 
-		self.HookCommand(self.OnButUseFolding, win32ui.IDC_FOLD_ENABLE)
+		self.HookCommand(self.OnButSimple, win32ui.IDC_FOLD_ENABLE)
+		self.HookCommand(self.OnButSimple, win32ui.IDC_RADIO1)
+		self.HookCommand(self.OnButSimple, win32ui.IDC_RADIO2)
+		self.HookCommand(self.OnButSimple, win32ui.IDC_RIGHTEDGE_ENABLE)
+		self.HookCommand(self.OnButEdgeColor, win32ui.IDC_RIGHTEDGE_DEFINE)
+
+		butMarginEnabled = self['Marker Margin Width'] > 0
+		self.GetDlgItem(win32ui.IDC_RADIO1).SetCheck(butMarginEnabled)
+		self.GetDlgItem(win32ui.IDC_RADIO2).SetCheck(not butMarginEnabled)
+
+		self.edgeColor = self.initialEdgeColor = GetEditorOption("Right Edge Color", win32api.RGB(0xef, 0xef, 0xef))
+
 		self.UpdateUIForState()
 
 		return rc
 
-	def OnButUseFolding(self, id, code):
+	def OnButSimple(self, id, code):
 		if code == win32con.BN_CLICKED:
 			self.UpdateUIForState()
 
+	def OnButEdgeColor(self, id, code):
+		if code == win32con.BN_CLICKED:
+			d = win32ui.CreateColorDialog(self.edgeColor, 0, self)
+			# Ensure the current color is a custom color (as it may not be in the swatch)
+			# plus some other nice gray scales.
+			ccs = [self.edgeColor]
+			for c in range(0xef, 0x4f, -0x10):
+				ccs.append(win32api.RGB(c,c,c))
+			d.SetCustomColors( ccs )
+			if d.DoModal() == win32con.IDOK:
+				self.edgeColor = d.GetColor()
+				self.UpdateUIForState()
+				
 	def UpdateUIForState(self):
 		folding = self.GetDlgItem(win32ui.IDC_FOLD_ENABLE).GetCheck()
 		self.GetDlgItem(win32ui.IDC_FOLD_ON_OPEN).EnableWindow(folding)
 		self.GetDlgItem(win32ui.IDC_FOLD_SHOW_LINES).EnableWindow(folding)
-		
+
+		widthEnabled = self.GetDlgItem(win32ui.IDC_RADIO1).GetCheck()
+		self.GetDlgItem(win32ui.IDC_MARGIN_MARKER).EnableWindow(widthEnabled)
+		self.UpdateData() # Ensure self[] is up to date with the control data.
+		if widthEnabled and self["Marker Margin Width"] == 0:
+			self["Marker Margin Width"] = 14
+			self.UpdateData(0) # Ensure control up to date with self[]
+
+		# Right edge
+		edgeEnabled = self.GetDlgItem(win32ui.IDC_RIGHTEDGE_ENABLE).GetCheck()
+		self.GetDlgItem(win32ui.IDC_RIGHTEDGE_COLUMN).EnableWindow(edgeEnabled)
+		self.GetDlgItem(win32ui.IDC_RIGHTEDGE_SAMPLE).EnableWindow(edgeEnabled)
+		self.GetDlgItem(win32ui.IDC_RIGHTEDGE_DEFINE).EnableWindow(edgeEnabled)
+
+		edit = self.GetDlgItem(win32ui.IDC_RIGHTEDGE_SAMPLE)
+		edit.SetBackgroundColor(0, self.edgeColor)
 
 	def OnOK(self):
 		for name, defVal in self.autooptions:
 			SetEditorOption(name, self[name])
+		# Margin width gets handled differently.
+		if self['MarkersInMargin']:
+			SetEditorOption("Marker Margin Width", self["Marker Margin Width"])
+		else:
+			SetEditorOption("Marker Margin Width", 0)
+		if self.edgeColor != self.initialEdgeColor:
+			SetEditorOption("Right Edge Color", self.edgeColor)
 		if self['bVSS']:
 			SetEditorOption("Source Control Module", "pywin.framework.editor.vss")
 		else:
@@ -153,16 +217,16 @@ class EditorWhitespacePropertyPage(dialog.PropertyPage):
 		else:
 			sel = -1
 		self.cbo.SetCurSel(sel)
-		self.HookCommand(self.OnButTabTimmy, win32ui.IDC_TABTIMMY_NONE)
-		self.HookCommand(self.OnButTabTimmy, win32ui.IDC_TABTIMMY_IND)
-		self.HookCommand(self.OnButTabTimmy, win32ui.IDC_TABTIMMY_BG)
+		self.HookCommand(self.OnButSimple, win32ui.IDC_TABTIMMY_NONE)
+		self.HookCommand(self.OnButSimple, win32ui.IDC_TABTIMMY_IND)
+		self.HookCommand(self.OnButSimple, win32ui.IDC_TABTIMMY_BG)
 		# Set ranges for the spinners.
 		for spinner_id in [win32ui.IDC_SPIN1, win32ui.IDC_SPIN2]:
 			spinner = self.GetDlgItem(spinner_id)
 			spinner.SetRange(1, 16)
 		return rc
 
-	def OnButTabTimmy(self, id, code):
+	def OnButSimple(self, id, code):
 		if code == win32con.BN_CLICKED:
 			self.UpdateUIForState()
 

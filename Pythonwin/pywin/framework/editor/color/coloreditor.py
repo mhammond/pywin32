@@ -114,6 +114,14 @@ class SyntEditView(SyntEditViewParent):
 		self.SCISetViewEOL( GetEditorOption("View EOL", 0) )
 		self.SCISetIndentationGuides( GetEditorOption("View Indentation Guides", 0) )
 
+		if GetEditorOption("Right Edge Enabled", 0):
+			mode = EDGE_BACKGROUND
+		else:
+			mode = EDGE_NONE
+		self.SCISetEdgeMode(mode)
+		self.SCISetEdgeColumn( GetEditorOption("Right Edge Column", 75) )
+		self.SCISetEdgeColor( GetEditorOption("Right Edge Color", win32api.RGB(0xef, 0xef, 0xef)))
+
 		width = GetEditorOption("Marker Margin Width", 16)
 		self.SCISetMarginWidthN(1, width)
 		width = GetEditorOption("Folding Margin Width", 12)

@@ -169,6 +169,8 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		self.HookCommandUpdate(self.OnUpdateViewWS, win32ui.ID_VIEW_WHITESPACE)
 		self.HookCommand(self.OnCmdViewIndentationGuides, win32ui.ID_VIEW_INDENTATIONGUIDES)
 		self.HookCommandUpdate(self.OnUpdateViewIndentationGuides, win32ui.ID_VIEW_INDENTATIONGUIDES)
+		self.HookCommand(self.OnCmdViewRightEdge, win32ui.ID_VIEW_RIGHT_EDGE)
+		self.HookCommandUpdate(self.OnUpdateViewRightEdge, win32ui.ID_VIEW_RIGHT_EDGE)
 		self.HookCommand(self.OnCmdViewEOL, win32ui.ID_VIEW_EOL)
 		self.HookCommandUpdate(self.OnUpdateViewEOL, win32ui.ID_VIEW_EOL)
 		self.HookCommand(self.OnCmdViewFixedFont, win32ui.ID_VIEW_FIXED_FONT)
@@ -310,6 +312,15 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		self.SCISetIndentationGuides(not viewIG)
 	def OnUpdateViewIndentationGuides(self, cmdui): # Update the tick on the UI.
 		cmdui.SetCheck(self.SCIGetIndentationGuides())
+		cmdui.Enable()
+	def OnCmdViewRightEdge(self, cmd, code): # Handle the menu command
+		if self.SCIGetEdgeMode() == EDGE_NONE:
+			mode = EDGE_BACKGROUND
+		else:
+			mode = EDGE_NONE
+		self.SCISetEdgeMode(mode)
+	def OnUpdateViewRightEdge(self, cmdui): # Update the tick on the UI.
+		cmdui.SetCheck(self.SCIGetEdgeMode() != EDGE_NONE)
 		cmdui.Enable()
 	def OnCmdViewEOL(self, cmd, code): # Handle the menu command
 		viewEOL = self.SCIGetViewEOL()

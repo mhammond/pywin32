@@ -189,6 +189,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Whitespace",                 ID_VIEW_WHITESPACE
         MENUITEM "Indentation &guides",         ID_VIEW_INDENTATIONGUIDES
+        MENUITEM "&Right edge indicator",       ID_VIEW_RIGHT_EDGE
         MENUITEM "&End-of-line markers",        ID_VIEW_EOL
         MENUITEM "&Fixed Font",                 ID_VIEW_FIXED_FONT
         POPUP "Fol&ding"
@@ -285,6 +286,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Whitespace",                 ID_VIEW_WHITESPACE
         MENUITEM "Indentation &guides",         ID_VIEW_INDENTATIONGUIDES
+        MENUITEM "&Right edge indicator",       ID_VIEW_RIGHT_EDGE
         MENUITEM "&End-of-line markers",        ID_VIEW_EOL
         MENUITEM "&Fixed Font",                 ID_VIEW_FIXED_FONT
         MENUITEM "&Options...",                 ID_VIEW_OPTIONS
@@ -707,50 +709,64 @@ BEGIN
     LTEXT           "Item 4",IDC_PROMPT4,7,54,68,8,NOT WS_GROUP
 END
 
-IDD_PP_EDITOR DIALOG DISCARDABLE  0, 0, 255, 121
+IDD_PP_EDITOR DIALOG DISCARDABLE  0, 0, 248, 141
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Editor"
 FONT 8, "MS Sans Serif"
 BEGIN
-    GROUPBOX        "",IDC_STATIC,7,7,125,55
-    CONTROL         "&Auto-complete attributes",IDC_AUTOCOMPLETE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,14,17,99,8
+    GROUPBOX        "",IDC_STATIC,7,1,125,43
+    CONTROL         "&Auto complete",IDC_AUTOCOMPLETE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,12,12,59,8
     CONTROL         "Show &calltips",IDC_CALLTIPS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,14,30,93,9
-    LTEXT           "&Keyboard",IDC_STATIC,14,46,32,10
-    COMBOBOX        IDC_KEYBOARD_CONFIG,65,44,47,37,CBS_DROPDOWNLIST | 
+                    WS_TABSTOP,74,12,54,9
+    LTEXT           "&Keyboard",IDC_STATIC,12,29,32,10
+    COMBOBOX        IDC_KEYBOARD_CONFIG,73,26,55,37,CBS_DROPDOWNLIST | 
                     CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Margin Widths",IDC_STATIC,136,7,112,55
-    LTEXT           "Line Numbers",IDC_STATIC,142,17,51,8
-    EDITTEXT        IDC_MARGIN_LINENUMBER,207,14,33,13,ES_AUTOHSCROLL
+    GROUPBOX        "Margins Widths",IDC_STATIC,136,1,109,91
+    LTEXT           "Line Numbers",IDC_STATIC,142,12,51,8
+    EDITTEXT        IDC_MARGIN_LINENUMBER,207,9,33,13,ES_AUTOHSCROLL
     CONTROL         "Spin1",IDC_SPIN2,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
-                    UDS_HOTTRACK,237,12,11,13
-    LTEXT           "Markers",IDC_STATIC,144,31,49,8
-    EDITTEXT        IDC_MARGIN_MARKER,207,29,33,12,ES_AUTOHSCROLL
+                    UDS_HOTTRACK,234,7,11,13
+    EDITTEXT        IDC_MARGIN_MARKER,207,58,33,12,ES_AUTOHSCROLL
     CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
-                    UDS_HOTTRACK,237,25,11,14
-    LTEXT           "Folding",IDC_STATIC,144,46,49,8
-    EDITTEXT        IDC_MARGIN_FOLD,207,44,33,12,ES_AUTOHSCROLL
+                    UDS_HOTTRACK,234,57,11,14
+    LTEXT           "Folding",IDC_STATIC,142,26,50,8
+    EDITTEXT        IDC_MARGIN_FOLD,207,27,33,12,ES_AUTOHSCROLL
     CONTROL         "Spin1",IDC_SPIN3,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
-                    UDS_HOTTRACK,237,39,11,15
-    GROUPBOX        "Folding",IDC_STATIC,7,64,125,50
+                    UDS_HOTTRACK,234,19,11,15
+    GROUPBOX        "Folding",IDC_STATIC,7,46,125,46
     CONTROL         "Enable folding",IDC_FOLD_ENABLE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,14,75,93,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,12,56,93,8
     CONTROL         "Show fold lines",IDC_FOLD_SHOW_LINES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,14,86,93,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,12,67,93,8
     CONTROL         "Fold top-level when opening",IDC_FOLD_ON_OPEN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,14,98,108,8
-    GROUPBOX        "External File Support",IDC_STATIC,136,64,112,50
+                    BS_AUTOCHECKBOX | WS_TABSTOP,12,79,108,8
+    GROUPBOX        "External File Support",IDC_STATIC,7,94,125,44
     CONTROL         "Auto &reload changed file",IDC_AUTO_RELOAD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,144,73,96,11
+                    BS_AUTOCHECKBOX | WS_TABSTOP,12,101,96,11
     CONTROL         "&VSS Integration",IDC_VSS_INTEGRATE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,144,86,96,11
-    LTEXT           "&Backups",IDC_STATIC,144,99,32,10
-    COMBOBOX        IDC_COMBO1,191,99,49,41,CBS_DROPDOWN | WS_VSCROLL | 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,12,112,96,11
+    LTEXT           "&Backups",IDC_STATIC,12,125,32,10
+    COMBOBOX        IDC_COMBO1,61,123,49,41,CBS_DROPDOWN | WS_VSCROLL | 
                     WS_TABSTOP
+    LTEXT           "Markers (bookmarks etc)",IDC_STATIC,142,49,98,9
+    CONTROL         "In margin",IDC_RADIO1,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP | WS_TABSTOP,142,59,50,11
+    CONTROL         "In &background",IDC_RADIO2,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,142,74,98,11
+    GROUPBOX        "Right-Edge mode",IDC_STATIC,136,95,109,44
+    EDITTEXT        IDC_RIGHTEDGE_COLUMN,207,103,33,12,ES_AUTOHSCROLL
+    CONTROL         "Spin1",IDC_SPIN4,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
+                    UDS_HOTTRACK,234,102,11,14
+    CONTROL         "Enable at col.",IDC_RIGHTEDGE_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,142,104,59,11
+    PUSHBUTTON      "Define...",IDC_RIGHTEDGE_DEFINE,208,119,32,12
+    CONTROL         "",IDC_RIGHTEDGE_SAMPLE,"RICHEDIT",ES_AUTOHSCROLL | 
+                    WS_BORDER | WS_TABSTOP,142,118,50,13
 END
 
 IDD_PP_IDE DIALOG DISCARDABLE  0, 0, 255, 117
@@ -980,18 +996,18 @@ BEGIN
     IDD_PP_EDITOR, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 248
-        VERTGUIDE, 14
+        RIGHTMARGIN, 245
+        VERTGUIDE, 12
         VERTGUIDE, 132
         VERTGUIDE, 136
-        VERTGUIDE, 144
-        VERTGUIDE, 193
+        VERTGUIDE, 142
+        VERTGUIDE, 192
         VERTGUIDE, 240
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 114
+        TOPMARGIN, 1
+        BOTTOMMARGIN, 140
         HORZGUIDE, 12
-        HORZGUIDE, 62
-        HORZGUIDE, 64
+        HORZGUIDE, 44
+        HORZGUIDE, 46
     END
 
     IDD_PP_IDE, DIALOG
@@ -1293,6 +1309,7 @@ BEGIN
     ID_VIEW_FOLD_COLLAPSE   "Collapse the current fold.\nCollapse"
     ID_VIEW_INDENTATIONGUIDES 
                             "Toggle display of indentation guides\nHide/show Indentation guides"
+    ID_VIEW_RIGHT_EDGE      "Toggle display of the right edge indicator (default is enabled at 75 characters)"
 END
 
 #endif    // English (U.S.) resources
