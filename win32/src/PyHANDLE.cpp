@@ -25,11 +25,12 @@ BOOL PyWinObject_AsHANDLE(PyObject *ob, HANDLE *pHANDLE, BOOL bNoneOK /*= TRUE*/
 	} else if (PyHANDLE_Check(ob)) {
 		PyHANDLE *pH = (PyHANDLE *)ob;
 		*pHANDLE = (HANDLE)(*pH);
-	} else if (PyInt_Check(ob)) { // Support integer objects for b/w compat.
+	} else{ // Support integer objects for b/w compat.
 		*pHANDLE = (HANDLE)PyInt_AsLong(ob);
-	} else {
-		PyErr_SetString(PyExc_TypeError, "The object is not a PyHANDLE object");
-		return FALSE;
+		if ((*pHANDLE==(HANDLE)-1)&&PyErr_Occurred()){
+			PyErr_SetString(PyExc_TypeError, "The object is not a PyHANDLE object");
+			return FALSE;
+		}
 	}
 	return TRUE;
 }
@@ -41,18 +42,17 @@ PyObject *PyWinObject_FromHANDLE(HANDLE h)
 
 BOOL PyWinObject_CloseHANDLE(PyObject *obHandle)
 {
-	BOOL ok;
+	// PyWinObject_AsHANDLE checks this also, but need to make sure an override Close method is called
 	if (PyHANDLE_Check(obHandle))
-		// Python error already set.
-		ok = ((PyHANDLE *)obHandle)->Close();
-	else if PyInt_Check(obHandle) {
-		ok = ::CloseHandle((HANDLE)PyInt_AsLong(obHandle));
-		if (!ok)
-			PyWin_SetAPIError("CloseHandle");
-	} else {
-		PyErr_Format(PyExc_TypeError, "A handle must be a HANDLE object or an integer (got %s)", obHandle->ob_type->tp_name);
+		return ((PyHANDLE *)obHandle)->Close(); // Python error already set.
+
+	HANDLE h;
+	BOOL ok;
+	if (!PyWinObject_AsHANDLE(obHandle, &h, FALSE))
 		return FALSE;
-	}
+	ok=::CloseHandle(h);  // This can still trigger an Invalid Handle exception in debug mode
+	if (!ok)
+		PyWin_SetAPIError("CloseHandle");
 	return ok;
 }
 
@@ -241,8 +241,10 @@ long PyHANDLE::asLong(void)
 PyObject * PyHANDLE::intFunc(PyObject *ob)
 {
 	long result = ((PyHANDLE *)ob)->asLong();
+	/* PyHANDLE::asLong sets no errors 
 	if ( result == -1 )
 		return NULL;
+	*/
 	return PyInt_FromLong(result);
 }
 
