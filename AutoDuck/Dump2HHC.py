@@ -15,6 +15,7 @@ Add support for merging in non-autoduck'd comments into HTML Help files.
 g_dModules = {}
 g_dObject = {}
 g_dOverviewTopics = {}
+g_dExtOverviewTopics = {}
 
 class topic:
     def __init__(self):
@@ -38,7 +39,38 @@ def TopicCmp(a, b):
             return 1
         else:
             return -1
+          
+def parseOverview(input):
+  # Sucks in an external overview file.
+  # format:
+  # topicname\t<CHM path to HTML file>\n
+  # <repeat ...>
+  line = input.readline()
+  if line == '':
+    return None
+  # chop
+  line = line[:-1]
+  fields = string.split(line, "\t")
+  while len(fields) > 0:
+    assert len(fields) == 2, fields
+    top = topic()
+    top.name = fields[0]
+    top.context = fields[1]
+    top.type = "topic"
+    d = g_dExtOverviewTopics
+    assert not d.has_key(top.name) and not g_dOverviewTopics.has_key(top.name), \
+           "Duplicate named topic detected: " + top.name
+    d[top.name] = top
 
+    # Loop...
+    line = input.readline()
+    if line == '':
+      return
+    # chop
+    line = line[:-1]
+    # split
+    fields = string.split(line, "\t")
+  
 def parseTopics(input):
     # Sucks in a AutoDuck Dump file.
     # format:
@@ -51,7 +83,7 @@ def parseTopics(input):
     lTags = ["module", "object", "topic"]
     line = input.readline()
     if line == '':
-        return None
+        return
     # chop
     line = line[:-1]
     fields = string.split(line, "\t")
@@ -217,6 +249,32 @@ def genTOC(output, title, target):
       if len(g_dOverviewTopics[k].contains) > 0:
         output.write('''
         </UL>''')
+    keys = g_dExtOverviewTopics.keys()
+    keys.sort()
+    for k in keys:
+      context = g_dExtOverviewTopics[k].context
+      output.write('''
+        <LI> <OBJECT type="text/sitemap">
+             <param name="Name" value="%s">
+             <param name="ImageNumber" value="1">
+             <param name="Local" value="%s%s">
+             </OBJECT>
+      ''' % (g_dExtOverviewTopics[k].name, CHM, g_dExtOverviewTopics[k].context))
+      if len(g_dExtOverviewTopics[k].contains) > 0:
+        output.write("<UL>")
+      containees = copy.copy(g_dExtOverviewTopics[k].contains)
+      containees.sort(TopicCmp)
+      for m in containees:
+        context = m.context
+        output.write('''
+        <LI><OBJECT type="text/sitemap">
+             <param name="Name" value="%s">
+             <param name="ImageNumber" value="11">
+             <param name="Local" value="%s%s">
+            </OBJECT>''' % (m.name, CHM, m.context))
+      if len(g_dExtOverviewTopics[k].contains) > 0:
+        output.write('''
+        </UL>''')
     output.write('''
     </UL>
     <LI> <OBJECT type="text/sitemap">
@@ -321,12 +379,22 @@ def genTOC(output, title, target):
 </BODY></HTML>
 ''' % { "CHM" : CHM})
 
+# Dump2HHC.py
+# Usage:
+#   Dump2HHC.py autoduck.DUMP output.hhc
+#               <CHM Title> <Generated CHM name without CHM ext.>
+#               <non-autoduck overview list file>
+#
+
 def main():
     file = sys.argv[1]
     input = open(file, "r")
     parseTopics(input)
     del input
     output = open(sys.argv[2], "w")
+    if len(sys.argv) > 5:
+      # parse non-autoduck overview list file.
+      parseOverview(open(sys.argv[5], "r"))
     genTOC(output, sys.argv[3], sys.argv[4])
     #pprint.pprint(g_dModules["win32lz"].contains)
     #pprint.pprint(g_dObject["connection"].contains)
