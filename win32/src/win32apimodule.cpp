@@ -867,7 +867,7 @@ PyClipCursor( PyObject *self, PyObject *args )
 	// @pyparm (int, int, int, int)|left, top, right, bottom||contains the screen coordinates of the upper-left and lower-right corners of the confining rectangle. If this parameter is omitted or (0,0,0,0), the cursor is free to move anywhere on the screen. 
 	if (!PyArg_ParseTuple(args, "|(iiii):ClipCursor", &r.left, &r.top, &r.right, &r.bottom))
 		return NULL;
-	if (r.left == r.top == r.right == r.bottom == 0)
+	if (r.left == 0 && r.top == 0 && r.right == 0 && r.bottom == 0)
 		pRect = NULL;
 	else
 		pRect = &r;
