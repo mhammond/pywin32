@@ -91,8 +91,7 @@ if not __gen_path__:
 		# If a win32com\gen_py directory already exists, then we use it
 		# (gencache doesn't insist it have an __init__, but our __import__ 
 		# above does!
-		__gen_path__ = os.path.abspath(
-		                         os.path.join(win32com.__path__[0], "gen_py"))
+		__gen_path__ = os.path.abspath(os.path.join(__path__[0], "gen_py"))
 		if not os.path.isdir(__gen_path__):
 			# We used to dynamically create a directory under win32com -
 			# but this sucks.  If the dir doesn't already exist, we we 
