@@ -68,7 +68,7 @@ def VS_FIXEDFILEINFO(maj, min, sub, build, debug=0, is_dll=1):
 
 def nullterm(s):
   try:
-    return str(buffer(unicode(s))) + "\0\0"
+    return buffer(unicode(s)) + "\0\0"
   except NameError: # No unicode builtin
     return U(s).raw + '\0\0'
 
