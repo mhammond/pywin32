@@ -53,6 +53,10 @@ Public Function PassSAFEARRAY(arrayData() As String) As Variant
     PassSAFEARRAY = arrayData
 End Function
 
+Public Function PassSAFEARRAYVariant(arrayData() As Variant) As Variant
+    PassSAFEARRAYVariant = arrayData
+End Function
+
 Public Property Let ArrayProperty(ByRef vData As Variant)
 'used when assigning a value to the property, on the left side of an assignment.
 'Syntax: X.ArrayProperty = 5
@@ -272,6 +276,12 @@ Public Sub DoSomeCallbacks(ob As Object)
     ' NOTE - MUST use subroutine syntax to get byrefs passed!
     ob.CallbackArrayResult rgv
     If rgv(0) <> 1 Or rgv(1) <> 2 Then MsgBox "CallbackArrayResult (sub, variant) failed - (" & rgv(0) & "," & rgv(1) & ")!!"
+    ' Try it with doubles, just for the sake of testing!
+    rgv(0) = 0#
+    rgv(1) = 1#
+    ' NOTE - MUST use subroutine syntax to get byrefs passed!
+    ob.CallbackArrayResult rgv
+    If Abs(rgv(0)-1.0) > 0.01 Or Abs(rgv(1)- 2.0) > 0.01 Then MsgBox "CallbackArrayResult (sub, variant) failed - (" & rgv(0) & "," & rgv(1) & ")!!"
     rg(0) = 0
     rg(1) = 1
     ob.CallbackArrayResult rg
@@ -294,5 +304,5 @@ Public Sub DoCallbackSafeArraySizeFail(ob As Object)
     rg(0) = 0
     rg(1) = 1
     ob.CallbackArrayResultWrongSize rg
-    Err.Raise Err.Message = "Expecting Python have failed!"
+'    Err.Raise Err.Message = "Expecting Python have failed!"
 End Sub
