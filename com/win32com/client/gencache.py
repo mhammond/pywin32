@@ -508,25 +508,25 @@ def Rebuild(verbose = 1):
 
 def _Dump():
 	print "Cache is in directory", win32com.__gen_path__
-	files = glob.glob(win32com.__gen_path__+ "\*.py")
-	for file in files:
-		name = os.path.splitext(os.path.split(file)[1])[0]
-		if name[0] != '_':
-			mod = _GetModule(name)
-			print "%s - %s" % (mod.__doc__, name)
+	# Build a unique dir
+	d = {}
+	for clsid, (typelibCLSID, lcid, major, minor) in clsidToTypelib.items():
+		d[typelibCLSID, lcid, major, minor] = None
+	for typelibCLSID, lcid, major, minor in d.keys():
+		mod = GetModuleForTypelib(typelibCLSID, lcid, major, minor)
+		print "%s - %s" % (mod.__doc__, typelibCLSID)
 
-	
+# Boot up
 __init__()
 
-usageString = """\
-  Usage: gencache [-q] [-d] [-r]
-  
-         -q         - Quiet
-         -d         - Dump the cache (typelibrary description and filename).
-         -r         - Rebuild the cache dictionary from the existing .py files
-"""
-
 def usage():
+	usageString = """\
+	  Usage: gencache [-q] [-d] [-r]
+	  
+			 -q         - Quiet
+			 -d         - Dump the cache (typelibrary description and filename).
+			 -r         - Rebuild the cache dictionary from the existing .py files
+	"""
 	print usageString
 	sys.exit(1)
 
