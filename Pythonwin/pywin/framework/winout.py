@@ -39,7 +39,11 @@ class flags:
 	WQ_IDLE = 2
 
 #WindowOutputDocumentParent=docview.RichEditDoc
-WindowOutputDocumentParent=docview.Document
+#WindowOutputDocumentParent=docview.Document
+import pywin.scintilla.document
+from pywin.scintilla import scintillacon
+
+WindowOutputDocumentParent=pywin.scintilla.document.CScintillaDocument
 class WindowOutputDocument(WindowOutputDocumentParent):
 	def SaveModified(self):
 		return 1	# say it is OK to destroy my document
@@ -76,8 +80,6 @@ class WindowOutputViewImpl:
 		self.template = self.GetDocument().GetDocTemplate()
 
 	def HookHandlers(self):
-		# Hook for finding and locating error messages
-		self.HookMessage(self.OnLDoubleClick,win32con.WM_LBUTTONDBLCLK)
 		# Hook for the right-click menu.
 		self.HookMessage(self.OnRClick,win32con.WM_RBUTTONDOWN)
 
@@ -108,11 +110,6 @@ class WindowOutputViewImpl:
 		menu.TrackPopupMenu(params[5]) # track at mouse position.
 		return 0
 
-	def OnLDoubleClick(self,params):
-		if self.HandleSpecialLine():
-			return 0	# dont pass on
-		return 1	# pass it on by default.
-
 	# as this is often used as an output window, exeptions will often
 	# be printed.  Therefore, we support this functionality at this level.
 	# Returns TRUE if the current line is an error message line, and will
@@ -120,9 +117,29 @@ class WindowOutputViewImpl:
 	def HandleSpecialLine(self):
 		import scriptutils
 		line = self.GetLine()
+		if line[:11]=="com_error: ":
+			# An OLE Exception - pull apart the exception
+			# and try and locate a help file.
+			try:
+				import win32api, win32con
+				det = eval(string.strip(line[string.find(line,":")+1:]))
+				win32ui.SetStatusText("Opening help file on OLE error...");
+				import help
+				help.OpenHelpFile(det[2][3],win32con.HELP_CONTEXT, det[2][4])
+				return 1
+			except win32api.error, details:
+				try:
+					msg = details[2]
+				except:
+					msg = str(details)
+				win32ui.SetStatusText("The help file could not be opened - %s" % msg)
+				return 1
+			except:
+				win32ui.SetStatusText("Line is a COM error, but no WinHelp details can be parsed");
+		# Look for a Python traceback.
 		matchResult = self.patErrorMessage.match(line)
 		if matchResult<=0:
-			# No match - try the next line
+			# No match - try the previous line
 			lineNo = self.LineFromChar()
 			if lineNo > 0:
 				line = self.GetLine(lineNo-1)
@@ -148,24 +165,6 @@ class WindowOutputViewImpl:
 					win32ui.SetStatusText("Could not open %s" % fileName)
 					return 1	# still was an error message.
 				return 1
-		if line[:11]=="com_error: ":
-			# An OLE Exception - pull apart the exception
-			# and try and locate a help file.
-			try:
-				import win32api, win32con
-				det = eval(string.strip(line[string.find(line,":")+1:]))
-				win32ui.SetStatusText("Opening help file on OLE error...");
-				win32api.WinHelp(win32ui.GetMainFrame().GetSafeHwnd(),det[2][3],win32con.HELP_CONTEXT, det[2][4])
-				return 1
-			except win32api.error, details:
-				try:
-					msg = details[2]
-				except:
-					msg = str(details)
-				win32ui.SetStatusText("The help file could not be opened - %s" % msg)
-				return 1
-			except:
-				win32ui.SetStatusText("Line is a COM error, but no WinHelp details can be parsed");
 		return 0	# not an error line
 	def write(self, msg):
 		return self.template.write(msg)
@@ -190,7 +189,14 @@ class WindowOutputViewRTF(docview.RichEditView, WindowOutputViewImpl):
 
 	def HookHandlers(self):
 		WindowOutputViewImpl.HookHandlers(self)
+		# Hook for finding and locating error messages
+		self.HookMessage(self.OnLDoubleClick,win32con.WM_LBUTTONDBLCLK)
 #		docview.RichEditView.HookHandlers(self)
+
+	def OnLDoubleClick(self,params):
+		if self.HandleSpecialLine():
+			return 0	# dont pass on
+		return 1	# pass it on by default.
 		
 	def RestoreKillBuffer(self):
 		if len(self.template.killBuffer):
@@ -235,6 +241,14 @@ class WindowOutputViewScintilla(pywin.scintilla.view.CScintillaView, WindowOutpu
 	def HookHandlers(self):
 		WindowOutputViewImpl.HookHandlers(self)
 		pywin.scintilla.view.CScintillaView.HookHandlers(self)
+		self.GetParent().HookNotify(self.OnScintillaDoubleClick, scintillacon.SCN_DOUBLECLICK)
+##		self.HookMessage(self.OnLDoubleClick,win32con.WM_LBUTTONDBLCLK)
+
+	def OnScintillaDoubleClick(self, std, extra):
+		self.HandleSpecialLine()
+
+##	def OnLDoubleClick(self,params):
+##			return 0	# never dont pass on
 
 	def RestoreKillBuffer(self):
 		assert len(self.template.killBuffer) in [0,1], "Unexpected killbuffer contents"
@@ -423,6 +437,7 @@ class WindowOutput(docview.DocTemplate):
 			if not self.CheckRecreateWindow():
 				debug(":Recreate failed!\n")
 				return 1 # In trouble - so say we have nothing to do.
+#			win32ui.PumpWaitingMessages() # Pump paint messages
 			self.currentView.dowrite(string.join(items,''))
 		return rc
 
