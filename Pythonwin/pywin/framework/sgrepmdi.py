@@ -23,8 +23,7 @@ import win32api
 from pywin.mfc import docview, dialog, window
 import win32con
 import string
-import regex
-import regex_syntax
+import re
 import glob
 import os
 import stat
@@ -116,7 +115,7 @@ class dirpath:
 # Group(1) is the filename, group(2) is the lineno.
 #regexGrepResult=regex.compile("^\\([a-zA-Z]:.*\\)(\\([0-9]+\\))")
 
-regexGrepResult=regex.compile("^\\([a-zA-Z]:[^(]*\\)(\\([0-9]+\\))")
+regexGrepResult=re.compile("^\\([a-zA-Z]:[^(]*\\)(\\([0-9]+\\))")
 
 #these are the atom numbers defined by Windows for basic dialog controls
 
@@ -234,11 +233,10 @@ class GrepDocument(docview.RichEditDoc):
 		self.GetFirstView().Append('# Files '+self.filpattern+'\n')
 		self.GetFirstView().Append('#   For '+self.greppattern+'\n')
 		self.fplist = string.split(self.filpattern,';')
-		regex.set_syntax(regex_syntax.RE_SYNTAX_GREP)
 		if self.casesensitive:
-			self.pat = regex.compile(self.greppattern)
+			self.pat = re.compile(self.greppattern)
 		else:
-			self.pat = regex.compile(self.greppattern, regex.casefold)
+			self.pat = re.compile(self.greppattern, re.IGNORECASE)
 		win32ui.SetStatusText("Searching.  Please wait...", 0)
 		self.dpndx = self.fpndx = 0
 		self.fndx = -1
@@ -259,7 +257,7 @@ class GrepDocument(docview.RichEditDoc):
 			lines = open(f, 'r').readlines()
 			for i in range(len(lines)):
 				line = lines[i]
-				if self.pat.search(line) >= 0:
+				if self.pat.search(line) != None:
 					self.GetFirstView().Append(f+'('+`i+1` + ') '+line)
 		else:
 			self.fndx = -1
