@@ -2,29 +2,62 @@
 
 # To demostrate:
 # * Execute this script to register the namespace.
-# * Open Windows Explorer
-# * Note the new folder hanging off "My Computer"
-# This is still incomplete - but we *do* create a view window - we just do
-# nothing with it.
+# * Open Windows Explorer, and locate the new "Python Path Shell Browser"
+#   folder off "My Computer"
+# * Browse this tree - .py files are shown expandable, with classes and
+#   methods selectable.  Selecting a Python file, or a class/method, will
+#   display the file using Scintilla.
+# Known problems:
+# * Classes and methods don't have icons
+
 import sys, os
+import thread
+import pyclbr
 import pythoncom
+import win32gui, win32api, win32con, winerror
 from win32com.shell import shell, shellcon
-import win32gui
-import win32con
-import winerror
-from win32com.server.util import wrap
+from win32com.server.util import wrap, NewEnum
+from win32com.server.exception import COMException
+from win32com.util import IIDToInterfaceName
+from pywin.scintilla import scintillacon
 
-debug=1
-if debug:
-    import win32com.server.dispatcher
-    defaultDispatcher = win32com.server.dispatcher.DefaultDebugDispatcher
+debug=0
 
+# Helper function to get a system IShellFolder interface, and the PIDL within
+# that folder for an existing file/directory.
+def GetFolderAndPIDLForPath(filename):
+    desktop = shell.SHGetDesktopFolder()
+    info = desktop.ParseDisplayName(0, None, os.path.abspath(filename))
+    cchEaten, pidl, attr = info
+    # We must walk the ID list, looking for one child at a time.
+    folder = desktop
+    while len(pidl) > 1:
+        this = pidl.pop(0)
+        folder = folder.BindToObject([this], None, shell.IID_IShellFolder)
+    # We are left with the pidl for the specific item.  Leave it as
+    # a list, so it remains a valid PIDL.
+    return folder, pidl
+
+# A cache of pyclbr module objects, so we only parse a given filename once.
+clbr_modules = {} # Indexed by path, item is dict as returned from pyclbr
+def get_clbr_for_file(path):
+    try:
+        objects = clbr_modules[path]
+    except KeyError:
+        dir, filename = os.path.split(path)
+        base, ext = os.path.splitext(filename)
+        objects = pyclbr.readmodule_ex(base, [dir])
+        clbr_modules[path] = objects
+    return objects
+
+# Our COM interfaces.
 IOleWindow_Methods = "GetWindow ContextSensitiveHelp".split()
 IShellView_Methods = IOleWindow_Methods + \
                     """TranslateAccelerator EnableModeless UIActivate
                        Refresh CreateViewWindow DestroyViewWindow
                        GetCurrentInfo AddPropertySheetPages SaveViewState
                        SelectItem GetItemObject""".split()
+
 IShellFolder_Methods = """ParseDisplayName EnumObjects BindToObject
                           BindToStorage CompareIDs CreateViewObject
                           GetAttributesOf GetUIObjectOf GetDisplayNameOf
@@ -35,32 +68,10 @@ IBrowserFrame_Methods = ["GetFrameOptions"]
 IPersist_Methods = ["GetClassID"]
 IPersistFolder_Methods = IPersist_Methods + ["Initialize"]
 
-# Our shell extension.
-class ShellView:
-#    _reg_progid_ = "Python.ShellExtension.View"
-#    _reg_desc_ = "Python Sample Shell Extension (View)"
-    _public_methods_ = IShellView_Methods
-    _com_interfaces_ = [pythoncom.IID_IOleWindow,
-                        shell.IID_IShellView,
-                        ]
-    def __init__(self, hwnd):
-        self.hwnd_parent = hwnd
-   # IShellView
-    def CreateViewWindow(self, prev, settings, browser, rect):
-        print "CreateViewWindow", prev, settings, browser, rect
-        import win32ui
-        style = win32con.WS_VISIBLE|win32con.WS_CHILD
-        l = win32ui.CreateListCtrl()
-        l.CreateWindow(style, rect, self.hwnd_parent, 1)
-        l.InsertItem(0, "Hello")
-        return l.GetSafeHwnd()
-    def TranslateAccelerator(self, msg):
-        return winerror.S_FALSE
-
-class ShellFolder:
-    _reg_progid_ = "Python.ShellExtension.Folder"
-    _reg_desc_ = "Python Sample Shell Extension (Folder)"
-    _reg_clsid_ = "{f6287035-3074-4cb5-a8a6-d3c80e206944}"
+# Base class for a shell folder.
+# All child classes use a simple PIDL of the form:
+#  "object_type\0object_name[\0extra ...]"
+class ShellFolderBase:
     _com_interfaces_ = [shell.IID_IBrowserFrameOptions,
                         pythoncom.IID_IPersist,
                         shell.IID_IPersistFolder,
@@ -70,36 +81,306 @@ class ShellFolder:
     _public_methods_ = IBrowserFrame_Methods + \
                        IPersistFolder_Methods + \
                        IShellFolder_Methods
-    # IPersistFolder    
+
     def GetFrameOptions(self, mask):
+        #print "GetFrameOptions", self, mask
         return 0
+    def ParseDisplayName(self, hwnd, reserved, displayName):
+        print "ParseDisplayName", displayName
+        # return cchEaten, pidl, attr
+    def BindToStorage(self, pidl, bc, iid):
+        print "BTS", iid, IIDToInterfaceName(iid)
+    def BindToObject(self, pidl, bc, iid):
+        # We may be passed a set of relative PIDLs here - ie
+        # [pidl_of_dir, pidl_of_child_dir, pidl_of_file, pidl_of_function]
+        # But each of our PIDLs keeps the fully qualified name anyway - so
+        # just jump directly to the last.
+        final_pidl = pidl[-1]
+        typ, extra = final_pidl.split('\0', 1)
+        if typ == "directory":
+            klass = ShellFolderDirectory
+        elif typ == "file":
+            klass = ShellFolderFile
+        elif typ == "object":
+            klass = ShellFolderObject
+        else:
+            raise RuntimeError, "What is " + repr(typ)
+        ret = wrap(klass(extra), iid, useDispatcher = (debug>0))
+        return ret
+
+# A ShellFolder for an object with CHILDREN on the file system
+# Note that this means our "File" folder is *not* a 'FileSystem' folder,
+# as it's children (functions and classes) are not on the file system.
+# 
+class ShellFolderFileSystem(ShellFolderBase):
+    def _GetFolderAndPIDLForPIDL(self, my_idl):
+        typ, name = my_idl[0].split('\0')
+        return GetFolderAndPIDLForPath(name)
+    # Interface methods
+    def CompareIDs(self, param, id1, id2):
+        return cmp(id1, id2)
+    def GetUIObjectOf(self, hwndOwner, pidls, iid, inout):
+        # delegate to the shell.
+        assert len(pidls)==1, "oops - arent expecting more than one!)"
+        pidl = pidls[0]
+        folder, child_pidl = self._GetFolderAndPIDLForPIDL(pidl)
+        try:
+            inout, ret = folder.GetUIObjectOf(hwndOwner, [child_pidl], iid,
+                                              inout, pythoncom.IID_IUnknown)
+        except pythoncom.com_error, (hr, desc, exc, arg):
+            raise COMException(hresult=hr)
+        return inout, ret
+        # return object of IID
+    def GetDisplayNameOf(self, pidl, flags):
+        # delegate to the shell.
+        folder, child_pidl = self._GetFolderAndPIDLForPIDL(pidl)
+        ret = folder.GetDisplayNameOf(child_pidl, flags)
+        return ret
+    def GetAttributesOf(self, pidls, attrFlags):
+        ret_flags = -1
+        for pidl in pidls:
+            pidl = pidl[0] # ??
+            typ, name = pidl.split('\0')
+            flags = shellcon.SHGFI_ATTRIBUTES 
+            info = shell.SHGetFileInfo(name, 0, flags)
+            hIcon, iIcon, dwAttr, name, typeName = info
+            # All our items, even files, have sub-items
+            extras = shellcon.SFGAO_HASSUBFOLDER | \
+                     shellcon.SFGAO_FOLDER | \
+                     shellcon.SFGAO_FILESYSANCESTOR
+            ret_flags &= (dwAttr | extras)
+        return ret_flags
+ 
+class ShellFolderDirectory(ShellFolderFileSystem):
+    def __init__(self, path):
+        self.path = os.path.abspath(path)
+    def CreateViewObject(self, hwnd, iid):
+        # delegate to the shell.
+        folder, child_pidl = GetFolderAndPIDLForPath(self.path)
+        return folder.CreateViewObject(hwnd, iid)
+    def EnumObjects(self, hwndOwner, flags):
+        pidls = []
+        for fname in os.listdir(self.path):
+            fqn = os.path.join(self.path, fname)
+            if os.path.isdir(fqn):
+                type_name = "directory"
+                type_class = ShellFolderDirectory
+            else:
+                base, ext = os.path.splitext(fname)
+                if ext in [".py", ".pyw"]:
+                    type_class = ShellFolderFile
+                    type_name = "file"
+                else:
+                    type_class = None
+            if type_class is not None:
+                pidls.append( [type_name + "\0" + fqn] )
+        return NewEnum(pidls, iid=shell.IID_IEnumIDList,
+                       useDispatcher=(debug>0))
+  
+# As per comments above, even though this manages a file, it is *not* a
+# ShellFolderFileSystem, as the children are not on the file system.
+class ShellFolderFile(ShellFolderBase):
+    def __init__(self, path):
+        self.path = os.path.abspath(path)
+    def EnumObjects(self, hwndOwner, flags):
+        objects = get_clbr_for_file(self.path)
+        pidls = []
+        for name, ob in objects.items():
+            pidls.append( ["object\0" + self.path + "\0" + name] )
+        return NewEnum(pidls, iid=shell.IID_IEnumIDList,
+                       useDispatcher=(debug>0))
+
+    def GetAttributesOf(self, pidls, attrFlags):
+        ret_flags = -1
+        for pidl in pidls:
+            assert len(pidl)==1, "Expecting relative pidls"
+            pidl = pidl[0]
+            typ, filename, obname = pidl.split('\0')
+            obs = get_clbr_for_file(filename)
+            ob = obs[obname]
+            flags = shellcon.SFGAO_BROWSABLE | shellcon.SFGAO_FOLDER | \
+                    shellcon.SFGAO_FILESYSANCESTOR
+            if hasattr(ob, "methods"):
+                flags |= shellcon.SFGAO_HASSUBFOLDER
+            ret_flags &= flags
+        return ret_flags
+
+    def GetDisplayNameOf(self, pidl, flags):
+        assert len(pidl)==1, "Expecting relative PIDL"
+        typ, fname, obname = pidl[0].split('\0')
+        return obname
+
+    def CreateViewObject(self, hwnd, iid):
+        return wrap(ScintillaShellView(hwnd, self.path), useDispatcher=debug>0)
+
+# A ShellFolder for our Python objects
+class ShellFolderObject(ShellFolderBase):
+    def __init__(self, details):
+        self.path, details = details.split('\0')
+        if details.find(".")>0:
+            self.class_name, self.method_name = details.split(".")
+        else:
+            self.class_name = details
+            self.method_name = None
+    def CreateViewObject(self, hwnd, iid):
+        mod_objects = get_clbr_for_file(self.path)
+        object = mod_objects[self.class_name]
+        if self.method_name is None:
+            lineno = object.lineno
+        else:
+            lineno = object.methods[self.method_name]
+        return wrap(ScintillaShellView(hwnd, self.path, lineno),
+                    useDispatcher=debug>0)
+    def EnumObjects(self, hwndOwner, flags):
+        assert self.method_name is None, "Should not be enuming methods!"
+        mod_objects = get_clbr_for_file(self.path)
+        my_objects = mod_objects[self.class_name]
+        pidls = []
+        for func_name, lineno in my_objects.methods.items():
+            pidl = ["object\0" + self.path + "\0" +
+                    self.class_name + "." + func_name]
+            pidls.append(pidl)
+        return NewEnum(pidls, iid=shell.IID_IEnumIDList,
+                       useDispatcher=(debug>0))
+    def GetDisplayNameOf(self, pidl, flags):
+        assert len(pidl)==1, "Expecting relative PIDL"
+        typ, fname, obname = pidl[0].split('\0')
+        class_name, method_name = obname.split('.')
+        return method_name
+    def GetAttributesOf(self, pidls, attrFlags):
+        ret_flags = -1
+        for pidl in pidls:
+            assert len(pidl)==1, "Expecting relative pidls"
+            flags = shellcon.SFGAO_BROWSABLE | shellcon.SFGAO_FOLDER | \
+                    shellcon.SFGAO_FILESYSANCESTOR
+            ret_flags &= flags
+        return ret_flags
+
+# The "Root" folder of our namespace.  As all children are directories,
+# it is derived from ShellFolderFileSystem
+class ShellFolderRoot(ShellFolderFileSystem):
+    _reg_progid_ = "Python.ShellExtension.Folder"
+    _reg_desc_ = "Python Path Shell Browser"
+    _reg_clsid_ = "{f6287035-3074-4cb5-a8a6-d3c80e206944}"
     def GetClassID(self):
         return self._reg_clsid_
-    # IPersist
     def Initialize(self, pidl):
-        print "Got pidl", repr(pidl)
-    # IShellFolder
+        #print "Initialize called with pidl", repr(pidl)
+        pass
     def CreateViewObject(self, hwnd, iid):
-        print "CreateViewObject", hwnd, iid
-        return wrap(ShellView(hwnd), useDispatcher=defaultDispatcher)
- 
+        raise COMException(hresult=winerror.E_NOTIMPL)
+    def EnumObjects(self, hwndOwner, flags):
+        items = [ ["directory\0" + p] for p in sys.path if os.path.isdir(p)]
+        return NewEnum(items, iid=shell.IID_IEnumIDList,
+                       useDispatcher=(debug>0))
+
+# A Simple shell view implementation
+# Our shell extension.
+class ScintillaShellView:
+    _public_methods_ = IShellView_Methods
+    _com_interfaces_ = [pythoncom.IID_IOleWindow,
+                        shell.IID_IShellView,
+                        ]
+    def __init__(self, hwnd, filename, lineno = None):
+        self.filename = filename
+        self.lineno = lineno
+        self.hwnd_parent = hwnd
+        self.hwnd = None
+    def _SendSci(self, msg, wparam=0, lparam=0):
+        return win32gui.SendMessage(self.hwnd, msg, wparam, lparam)
+
+   # IShellView
+    def CreateViewWindow(self, prev, settings, browser, rect):
+        print "CreateViewWindow", prev, settings, browser, rect
+        # Make sure scintilla.dll is loaded.  If not, find it on sys.path
+        # (which it generally is for Pythonwin)
+        try:
+            win32api.GetModuleHandle("Scintilla.dll")
+        except win32api.error:
+            for p in sys.path:
+                fname = os.path.join(p, "Scintilla.dll")
+                if not os.path.isfile(fname):
+                    fname = os.path.join(p, "Build", "Scintilla.dll")
+                if os.path.isfile(fname):
+                    win32api.LoadLibrary(fname)
+                    break
+            else:
+                raise RuntimeError, "Can't find scintilla!"
+
+        style = win32con.WS_CHILD | win32con.WS_VSCROLL | \
+                win32con.WS_HSCROLL | win32con.WS_CLIPCHILDREN | \
+                win32con.WS_VISIBLE
+        self.hwnd = win32gui.CreateWindow("Scintilla", "Scintilla", style,
+                              rect[0], rect[1], rect[2]-rect[0], rect[3]-rect[1], 
+                              self.hwnd_parent, 1000, 0, None)
+        file_data = file(self.filename, "U").read()
+
+        self._SetupLexer()
+        self._SendSci(scintillacon.SCI_SETTEXT, 0, file_data)
+        self._SendSci(scintillacon.SCI_COLOURISE, 0, -1)
+        if self.lineno != None:
+            self._SendSci(scintillacon.SCI_GOTOLINE, self.lineno)
+        print "Made scintilla", self.hwnd
+
+    def _SetupLexer(self):
+        h = self.hwnd
+        styles = [
+            ((0, 0, 200, 0, 0x808080), None,     scintillacon.SCE_P_DEFAULT ),
+            ((0, 2, 200, 0, 0x008000), None,     scintillacon.SCE_P_COMMENTLINE ),
+            ((0, 2, 200, 0, 0x808080), None,     scintillacon.SCE_P_COMMENTBLOCK ),
+            ((0, 0, 200, 0, 0x808000), None,     scintillacon.SCE_P_NUMBER ),
+            ((0, 0, 200, 0, 0x008080), None,     scintillacon.SCE_P_STRING ),
+            ((0, 0, 200, 0, 0x008080), None,     scintillacon.SCE_P_CHARACTER ),
+            ((0, 0, 200, 0, 0x008080), None,     scintillacon.SCE_P_TRIPLE ),
+            ((0, 0, 200, 0, 0x008080), None,     scintillacon.SCE_P_TRIPLEDOUBLE),
+            ((0, 0, 200, 0, 0x000000), 0x008080, scintillacon.SCE_P_STRINGEOL),
+            ((0, 1, 200, 0, 0x800000), None,     scintillacon.SCE_P_WORD),
+            ((0, 1, 200, 0, 0xFF0000), None,     scintillacon.SCE_P_CLASSNAME ),
+            ((0, 1, 200, 0, 0x808000), None,     scintillacon.SCE_P_DEFNAME),
+            ((0, 0, 200, 0, 0x000000), None,     scintillacon.SCE_P_OPERATOR),
+            ((0, 0, 200, 0, 0x000000), None,     scintillacon.SCE_P_IDENTIFIER ),
+                 ]
+        self._SendSci(scintillacon.SCI_SETLEXER, scintillacon.SCLEX_PYTHON, 0)
+        self._SendSci(scintillacon.SCI_SETSTYLEBITS, 5)
+        print "Got back lexer", win32gui.SendMessage(self.hwnd, scintillacon.SCI_GETLEXER)
+        baseFormat = (-402653169, 0, 200, 0, 0, 0, 49, 'Courier New')
+        for f, bg, stylenum in styles:
+            self._SendSci(scintillacon.SCI_STYLESETFORE, stylenum, f[4])
+            self._SendSci(scintillacon.SCI_STYLESETFONT, stylenum, baseFormat[7])
+            if f[1] & 1: self._SendSci(scintillacon.SCI_STYLESETBOLD, stylenum, 1)
+            else: self._SendSci(scintillacon.SCI_STYLESETBOLD, stylenum, 0)
+            if f[1] & 2: self._SendSci(scintillacon.SCI_STYLESETITALIC, stylenum, 1)
+            else: self._SendSci(scintillacon.SCI_STYLESETITALIC, stylenum, 0)
+            self._SendSci(scintillacon.SCI_STYLESETSIZE, stylenum, int(baseFormat[2]/20))
+            if bg is not None:
+                self._SendSci(scintillacon.SCI_STYLESETBACK, stylenum, bg)
+            self._SendSci(scintillacon.SCI_STYLESETEOLFILLED, stylenum, 1) # Only needed for unclosed strings.
+
+    def DestroyViewWindow(self):
+        win32gui.DestroyWindow(self.hwnd)
+        self.hwnd = None
+        print "Destroyed scintilla window"
+
+    def TranslateAccelerator(self, msg):
+        return winerror.S_FALSE
+
 def DllRegisterServer():
     import _winreg
     key = _winreg.CreateKey(_winreg.HKEY_LOCAL_MACHINE,
                             "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\" \
                             "Explorer\\Desktop\\Namespace\\" + \
-                            ShellFolder._reg_clsid_)
-    _winreg.SetValueEx(key, None, 0, _winreg.REG_SZ, ShellFolder._reg_desc_)
+                            ShellFolderRoot._reg_clsid_)
+    _winreg.SetValueEx(key, None, 0, _winreg.REG_SZ, ShellFolderRoot._reg_desc_)
     # And special shell keys under our CLSID
     key = _winreg.CreateKey(_winreg.HKEY_CLASSES_ROOT,
-                        "CLSID\\" + ShellFolder._reg_clsid_ + "\\ShellFolder")
+                        "CLSID\\" + ShellFolderRoot._reg_clsid_ + "\\ShellFolder")
     # 'Attributes' is an int stored as a binary! use struct
     attr = shellcon.SFGAO_FOLDER | shellcon.SFGAO_HASSUBFOLDER | \
            shellcon.SFGAO_BROWSABLE
     import struct
-    s = struct.pack("I", attr)
+    s = struct.pack("i", attr)
     _winreg.SetValueEx(key, "Attributes", 0, _winreg.REG_BINARY, s)
-    print ShellFolder._reg_desc_, "registration complete."
+    print ShellFolderRoot._reg_desc_, "registration complete."
 
 def DllUnregisterServer():
     import _winreg
@@ -107,15 +388,16 @@ def DllUnregisterServer():
         key = _winreg.DeleteKey(_winreg.HKEY_LOCAL_MACHINE,
                             "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\" \
                             "Explorer\\Desktop\\Namespace\\" + \
-                            ShellFolder._reg_clsid_)
+                            ShellFolderRoot._reg_clsid_)
     except WindowsError, details:
         import errno
         if details.errno != errno.ENOENT:
             raise
-    print ShellFolder._reg_desc_, "unregistration complete."
+    print ShellFolderRoot._reg_desc_, "unregistration complete."
 
 if __name__=='__main__':
     from win32com.server import register
-    register.UseCommandLine(ShellFolder,
+    register.UseCommandLine(ShellFolderRoot,
+                   debug = debug,
                    finalize_register = DllRegisterServer,
                    finalize_unregister = DllUnregisterServer)
