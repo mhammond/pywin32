@@ -2,10 +2,7 @@
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
 #include <PyGConnectionPointContainer.h>
-
-#ifdef MS_WINCE
-#include "olectl.h" // For the error codes!?
-#endif
+#include "olectl.h" // For the error codes
 
 STDMETHODIMP PyGConnectionPointContainer::EnumConnectionPoints(IEnumConnectionPoints **)
 {

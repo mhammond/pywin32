@@ -12,6 +12,7 @@ generates Windows .hlp files.
 ***/
 
 #include "stdafx.h"
+#include "comcat.h"
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
 #include "PythonCOMRegister.h"
