@@ -170,7 +170,7 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const char *cmd, const char 
 	for (int i=5;i<10;i++) {
 		char fname[20];
 #ifdef _DEBUG
-		wsprintf(fname, "Python1%_d.dll", i);
+		wsprintf(fname, "Python1%d_d.dll", i);
 #else
 		wsprintf(fname, "Python1%d.dll", i);
 #endif
