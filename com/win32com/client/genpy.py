@@ -23,7 +23,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.4.6" # Written to generated file.
+makepy_version = "0.4.7" # Written to generated file.
 
 GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
@@ -483,6 +483,13 @@ class DispatchItem(build.DispatchItem, WritableItem):
             # If we dont have a good CLSID for the enum result, assume it is the same as the Item() method.
             if resultCLSID == "None" and self.mapFuncs.has_key("Item"):
                 resultCLSID = self.mapFuncs["Item"].GetResultCLSIDStr()
+            # "Native" Python iterator support
+            print '\tdef __iter__(self):'
+            print '\t\t"Return a Python iterator for this object"'
+            print '\t\tob = self._oleobj_.InvokeTypes(%d,LCID,%d,(13, 10),())' % (pythoncom.DISPID_NEWENUM, enumEntry.desc[4])
+            print '\t\treturn win32com.client.util.Iterator(ob)'
+            # And 'old style' iterator support - magically used to simulate iterators
+            # before Python grew them
             print '\tdef _NewEnum(self):'
             print '\t\t"Create an enumerator from this object"'
             print '\t\treturn win32com.client.util.WrapEnum(self._oleobj_.InvokeTypes(%d,LCID,%d,(13, 10),()),%s)' % (pythoncom.DISPID_NEWENUM, enumEntry.desc[4], resultCLSID)
