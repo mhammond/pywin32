@@ -592,10 +592,10 @@ BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 		fp=GetProcAddress(hmodule,"AddAuditAccessObjectAce");
 		if (fp)
 			addauditaccessobjectace=(BOOL (WINAPI *)(PACL,DWORD,DWORD,DWORD,GUID*,GUID*,PSID,BOOL,BOOL))(fp);
-		}
 		fp=GetProcAddress(hmodule,"SetSecurityDescriptorControl");
 		if (fp)
 			setsecuritydescriptorcontrol=(BOOL (WINAPI *)(PSECURITY_DESCRIPTOR, SECURITY_DESCRIPTOR_CONTROL, SECURITY_DESCRIPTOR_CONTROL))(fp);
+	}
 
 #endif // NO_PYWINTYPES_SECURITY
 	switch (dwReason) {
