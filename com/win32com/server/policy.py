@@ -495,7 +495,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
       self._name_to_dispid_['_evaluate'] = DISPID_EVALUATE
       self._dispid_to_func_[DISPID_EVALUATE] = '_Evaluate'
 
-    dispid = self._getnextdispid(999)
+    dispid = self._allocnextdispid(999)
     # note: funcs have precedence over attrs (install attrs first)
     if hasattr(ob, '_public_attrs_'):
       if hasattr(ob, '_readonly_attrs_'):
@@ -507,14 +507,14 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
         self._dispid_to_get_[dispid] = name
         if name not in readonly:
           self._dispid_to_put_[dispid] = name
-        dispid = self._getnextdispid(dispid)
+        dispid = self._allocnextdispid(dispid)
     for name in getattr(ob, "_public_methods_", []):
       if not self._name_to_dispid_.has_key(string.lower(name)):
          self._name_to_dispid_[string.lower(name)] = dispid
          self._dispid_to_func_[dispid] = name
-         dispid = self._getnextdispid(dispid)
+         dispid = self._allocnextdispid(dispid)
 
-  def _getnextdispid(self, last_dispid):
+  def _allocnextdispid(self, last_dispid):
       while 1:
         last_dispid = last_dispid + 1
         if not self._dispid_to_func_.has_key(last_dispid) and \
