@@ -7,6 +7,7 @@
 #include "objbase.h"
 
 #include "stdio.h"
+#include "string.h"
 /////////////////////////////////////////////////////////////////////////////
 //
 
@@ -377,6 +378,23 @@ HRESULT CPyCOMTest::GetStruct(TestStruct1 *ret)
 	*ret = r;
 	return S_OK;
 }
+HRESULT CPyCOMTest::DoubleString(BSTR in, BSTR *out)
+{
+	*out = SysAllocStringLen(NULL, SysStringLen(in)*2);
+	wcscpy(*out, in);
+	wcscat(*out, in);
+	return S_OK;
+}
+
+HRESULT CPyCOMTest::DoubleInOutString(BSTR *inout)
+{
+	BSTR newStr = SysAllocStringLen(NULL, SysStringLen(*inout)*2);
+	wcscpy(newStr, *inout);
+	wcscat(newStr, *inout);
+	SysFreeString(*inout);
+	*inout = newStr;
+	return S_OK;
+}
 
 #define CHECK_HR(_hr) if (FAILED(hr=_hr)) { \
 	printf("PyCOMTest: Failed at '%s', line %d: %d", __FILE__, __LINE__, hr); \
@@ -423,6 +441,13 @@ HRESULT CPyCOMTest::TestMyInterface( IUnknown *unktester)
 	tattr = TestAttr1_1;
 	CHECK_HR(tester->Test5( &tattr ));
 	CHECK_TRUE( tattr == TestAttr1 );
+
+	// STRINGS
+	CComBSTR instr("Foo");
+	CComBSTR outstr;
+	CHECK_HR(tester->DoubleString(instr, &outstr));
+	CHECK_TRUE(outstr == L"FooFoo");
+
 	return S_OK;
 }
 

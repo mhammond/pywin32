@@ -199,6 +199,8 @@ library PyCOMTestLib
 							   [optional, defaultvalue(1)] short sval,
 							   [out,retval] SAFEARRAY(VARIANT) *pret );
 		HRESULT GetStruct([out, retval]TestStruct1 *ret);
+		HRESULT DoubleString([in] BSTR inStr, [out, retval] BSTR *outStr);
+		HRESULT DoubleInOutString([in,out] BSTR *str);
 		[restricted] HRESULT NotScriptable([in,out] int *val);
 
 		HRESULT TestMyInterface([in] IUnknown *tester);

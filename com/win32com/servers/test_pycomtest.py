@@ -18,6 +18,12 @@ class PyCOMTest:
 	_reg_clsid_ = "{e743d9cd-cb03-4b04-b516-11d3a81c1597}"
 	_reg_progid_ = "Python.Test.PyCOMTest"
 
+	def DoubleString(self, str):
+		print "******************** doubling the string!"
+		return str*2
+	def DoubleInOutString(self, str):
+		return str*2
+
 	def Fire(self, nID):
 		raise COMException(hresult=winerror.E_NOTIMPL)
 

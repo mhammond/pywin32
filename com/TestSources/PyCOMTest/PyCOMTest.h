@@ -5,7 +5,7 @@
 
 
  /* File created by MIDL compiler version 5.03.0280 */
-/* at Wed Feb 14 16:26:20 2001
+/* at Wed Feb 14 22:12:27 2001
  */
 /* Compiler settings for PyCOMTest.idl:
     Os (OptLev=s), W1, Zp8, env=Win32 (32b run), ms_ext, c_ext
@@ -843,6 +843,13 @@ EXTERN_C const IID IID_IPyCOMTest;
         virtual HRESULT STDMETHODCALLTYPE GetStruct( 
             /* [retval][out] */ TestStruct1 __RPC_FAR *ret) = 0;
         
+        virtual HRESULT STDMETHODCALLTYPE DoubleString( 
+            /* [in] */ BSTR inStr,
+            /* [retval][out] */ BSTR __RPC_FAR *outStr) = 0;
+        
+        virtual HRESULT STDMETHODCALLTYPE DoubleInOutString( 
+            /* [out][in] */ BSTR __RPC_FAR *str) = 0;
+        
         virtual /* [restricted] */ HRESULT STDMETHODCALLTYPE NotScriptable( 
             /* [out][in] */ int __RPC_FAR *val) = 0;
         
@@ -1021,6 +1028,15 @@ EXTERN_C const IID IID_IPyCOMTest;
             IPyCOMTest __RPC_FAR * This,
             /* [retval][out] */ TestStruct1 __RPC_FAR *ret);
         
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *DoubleString )( 
+            IPyCOMTest __RPC_FAR * This,
+            /* [in] */ BSTR inStr,
+            /* [retval][out] */ BSTR __RPC_FAR *outStr);
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *DoubleInOutString )( 
+            IPyCOMTest __RPC_FAR * This,
+            /* [out][in] */ BSTR __RPC_FAR *str);
+        
         /* [restricted] */ HRESULT ( STDMETHODCALLTYPE __RPC_FAR *NotScriptable )( 
             IPyCOMTest __RPC_FAR * This,
             /* [out][in] */ int __RPC_FAR *val);
@@ -1142,6 +1158,12 @@ EXTERN_C const IID IID_IPyCOMTest;
 
 #define IPyCOMTest_GetStruct(This,ret)	\
     (This)->lpVtbl -> GetStruct(This,ret)
+
+#define IPyCOMTest_DoubleString(This,inStr,outStr)	\
+    (This)->lpVtbl -> DoubleString(This,inStr,outStr)
+
+#define IPyCOMTest_DoubleInOutString(This,str)	\
+    (This)->lpVtbl -> DoubleInOutString(This,str)
 
 #define IPyCOMTest_NotScriptable(This,val)	\
     (This)->lpVtbl -> NotScriptable(This,val)
@@ -1488,6 +1510,31 @@ void __RPC_STUB IPyCOMTest_GetStruct_Stub(
     DWORD *_pdwStubPhase);
 
 
+HRESULT STDMETHODCALLTYPE IPyCOMTest_DoubleString_Proxy( 
+    IPyCOMTest __RPC_FAR * This,
+    /* [in] */ BSTR inStr,
+    /* [retval][out] */ BSTR __RPC_FAR *outStr);
+
+
+void __RPC_STUB IPyCOMTest_DoubleString_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+HRESULT STDMETHODCALLTYPE IPyCOMTest_DoubleInOutString_Proxy( 
+    IPyCOMTest __RPC_FAR * This,
+    /* [out][in] */ BSTR __RPC_FAR *str);
+
+
+void __RPC_STUB IPyCOMTest_DoubleInOutString_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
 /* [restricted] */ HRESULT STDMETHODCALLTYPE IPyCOMTest_NotScriptable_Proxy( 
     IPyCOMTest __RPC_FAR * This,
     /* [out][in] */ int __RPC_FAR *val);
@@ -1715,6 +1762,15 @@ EXTERN_C const IID IID_IPyCOMTest2;
             IPyCOMTest2 __RPC_FAR * This,
             /* [retval][out] */ TestStruct1 __RPC_FAR *ret);
         
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *DoubleString )( 
+            IPyCOMTest2 __RPC_FAR * This,
+            /* [in] */ BSTR inStr,
+            /* [retval][out] */ BSTR __RPC_FAR *outStr);
+        
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *DoubleInOutString )( 
+            IPyCOMTest2 __RPC_FAR * This,
+            /* [out][in] */ BSTR __RPC_FAR *str);
+        
         /* [restricted] */ HRESULT ( STDMETHODCALLTYPE __RPC_FAR *NotScriptable )( 
             IPyCOMTest2 __RPC_FAR * This,
             /* [out][in] */ int __RPC_FAR *val);
@@ -1841,6 +1897,12 @@ EXTERN_C const IID IID_IPyCOMTest2;
 
 #define IPyCOMTest2_GetStruct(This,ret)	\
     (This)->lpVtbl -> GetStruct(This,ret)
+
+#define IPyCOMTest2_DoubleString(This,inStr,outStr)	\
+    (This)->lpVtbl -> DoubleString(This,inStr,outStr)
+
+#define IPyCOMTest2_DoubleInOutString(This,str)	\
+    (This)->lpVtbl -> DoubleInOutString(This,str)
 
 #define IPyCOMTest2_NotScriptable(This,val)	\
     (This)->lpVtbl -> NotScriptable(This,val)

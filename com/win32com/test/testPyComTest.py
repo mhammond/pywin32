@@ -97,6 +97,7 @@ def TestDynamic():
 	assert r.int_value == 99 and str(r.str_value)=="Hello from C++"
 	counter = win32com.client.dynamic.DumbDispatch("PyCOMTest.SimpleCounter")
 	TestCounter(counter, 0)
+	assert o.DoubleString("foo") == "foofoo"
 
 	l=[]
 	TestApplyResult(o.SetVariantSafeArray, (l,), len(l))
@@ -158,7 +159,6 @@ def TestGenerated():
 	resultCheck = tuple(range(5)), tuple(range(10)), tuple(range(20))
 	TestApplyResult(o.GetSafeArrays, (None, None, None), resultCheck)
 
-
 	l=[1,2,3,4]
 	TestApplyResult(o.SetVariantSafeArray, (l,), len(l))
 	TestApplyResult(o.SetIntSafeArray, (l,), len(l))
@@ -175,6 +175,9 @@ def TestGenerated():
 	TestApplyResult(o.Test3, (constants.Attr2,), constants.Attr2)
 	TestApplyResult(o.Test4, (constants.Attr2,), constants.Attr2)
 	TestApplyResult(o.Test5, (constants.Attr2,), constants.Attr2)
+
+	assert o.DoubleString("foo") == "foofoo"
+	assert o.DoubleInOutString("foo") == "foofoo"
 
 	# Do the connection point thing...
 	# Create a connection object.
