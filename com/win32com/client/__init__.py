@@ -441,8 +441,12 @@ class DispatchBaseClass:
 		other = getattr(other, "_oleobj_", other)
 		return cmp(self._oleobj_, other)
 
-	def _ApplyTypes_(self, dispid, wFlags, retType, argTypes, user, resultCLSID, *args):
-		return self._get_good_object_(self._oleobj_.InvokeTypes(*((dispid, 0, wFlags, retType, argTypes) + args)), user, resultCLSID)
+	def _ApplyTypes_(self, dispid, wFlags, retType, argTypes, user,
+                     resultCLSID, *args):
+		return self._get_good_object_(
+                    self._oleobj_.InvokeTypes(
+                              dispid, 0, wFlags, retType, argTypes, *args),
+                    user, resultCLSID)
 
 	def __getattr__(self, attr):
 		args=self._prop_map_get_.get(attr)
