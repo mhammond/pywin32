@@ -395,6 +395,43 @@ def PackLVCOLUMN(fmt=None, cx=None, text=None, subItem=None, image=None, order=N
                       subItem, image, order)
     return array.array("c", buf), extra
 
+def UnpackLVCOLUMN(lparam):
+    format = "iiiiiiii"
+    mask, fmt, cx, text_addr, text_size, subItem, image, order = \
+            struct.unpack(format, lparam)
+    # ensure only items listed by the mask are valid
+    if not (mask & commctrl.LVCF_FMT): fmt = None
+    if not (mask & commctrl.LVCF_WIDTH): cx = None
+    if not (mask & commctrl.LVCF_TEXT): text_addr = test_size = None
+    if not (mask & commctrl.LVCF_SUBITEM): subItem = None
+    if not (mask & commctrl.LVCF_IMAGE): image = None
+    if not (mask & commctrl.LVCF_ORDER): order = None
+    if text_addr:
+        text = win32gui.PyGetString(text_addr)
+    else:
+        text = None
+    return fmt, cx, text, subItem, image, order
+
+
+# Make a new buffer suitable for querying an items attributes.
+def EmptyLVCOLUMN(mask = None, text_buf_size=512):
+    extra = [] # objects we must keep references to
+    if mask is None:
+        mask = commctrl.LVCF_FMT | commctrl.LVCF_WIDTH | commctrl.LVCF_TEXT | \
+               commctrl.LVCF_SUBITEM | commctrl.LVCF_IMAGE | commctrl.LVCF_ORDER
+    if mask & commctrl.LVCF_TEXT:
+        text_buffer = array.array("c", "\0" * text_buf_size)
+        extra.append(text_buffer)
+        text_addr, text_len = text_buffer.buffer_info()
+    else:
+        text_addr = text_len = 0
+    format = "iiiiiiii"
+    buf = struct.pack(format,
+                      mask, 0, 0,
+                      text_addr, text_len, # text
+                      0, 0, 0)
+    return array.array("c", buf), extra
+
 # List view hit-test.
 def PackLVHITTEST(pt):
     format = "iiiii"
@@ -407,3 +444,30 @@ def UnpackLVHITTEST(buf):
     format = "iiiii"
     x, y, flags, item, subitem = struct.unpack(format, buf)
     return (x,y), flags, item, subitem
+
+def PackHDITEM(cxy = None, text = None, hbm = None, fmt = None,
+               param = None, image = None, order = None):
+    extra = [] # objects we must keep references to
+    mask = 0
+    mask, cxy = _GetMaskAndVal(cxy, 0, mask, commctrl.HDI_HEIGHT)
+    mask, text = _GetMaskAndVal(text, None, mask, commctrl.LVCF_TEXT)
+    mask, hbm = _GetMaskAndVal(hbm, 0, mask, commctrl.HDI_BITMAP)
+    mask, fmt = _GetMaskAndVal(fmt, 0, mask, commctrl.HDI_FORMAT)
+    mask, param = _GetMaskAndVal(param, 0, mask, commctrl.HDI_LPARAM)
+    mask, image = _GetMaskAndVal(image, 0, mask, commctrl.HDI_IMAGE)
+    mask, order = _GetMaskAndVal(order, 0, mask, commctrl.HDI_ORDER)
+
+    if text is None:
+        text_addr = text_len = 0
+    else:
+        if isinstance(text, unicode):
+            text = text.encode("mbcs")
+        text_buffer = array.array("c", text+"\0")
+        extra.append(text_buffer)
+        text_addr, text_len = text_buffer.buffer_info()
+
+    format = "iiiiiiiiiii"
+    buf = struct.pack(format,
+                      mask, cxy, text_addr, hbm, text_len,
+                      fmt, param, image, order, 0, 0)
+    return array.array("c", buf), extra
