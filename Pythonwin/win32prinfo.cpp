@@ -181,7 +181,7 @@ static PyObject *ui_set_print_dialog(PyObject * self, PyObject * args)
   pInfo->m_pPD->m_pd.hInstance = pyPrintDialog->hInstance;
   pInfo->m_pPD->m_pd.lpPrintTemplateName = MAKEINTRESOURCE(PRINTDLGORD);
   pInfo->m_pPD->m_pd.Flags |= PD_ENABLEPRINTTEMPLATE;
-  pInfo->m_pPD->m_pd.Flags |= PD_PAGENUMS;
+//  pInfo->m_pPD->m_pd.Flags |= PD_PAGENUMS;
   pInfo->m_pPD->m_pd.hDC = NULL;
   RETURN_NONE;
 }
