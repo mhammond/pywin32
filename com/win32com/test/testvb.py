@@ -246,6 +246,11 @@ def TestArrays(vbtest, bUseGenerated):
     # and I cant work out how to force it to use native arrays!
     # (NOTE Python will convert incoming arrays to tuples, so we pass a tuple, even tho
     # a list works fine - just makes it easier for us to compare the result!
+    # Empty array
+    _DoTestArray(vbtest, ())
+    # Empty child array
+    _DoTestArray(vbtest, ((), ()))
+    # ints
     _DoTestArray(vbtest, tuple(range(1,100)))
     # Floats
     _DoTestArray(vbtest, (1.0, 2.0, 3.0))
