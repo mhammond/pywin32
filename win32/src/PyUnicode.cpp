@@ -651,6 +651,15 @@ int PyUnicode::print(FILE *fp, int flags)
 
 PyObject *PyUnicode::repr()
 {
+	// Do NOT write an "L" - Python opted for "u" anyway,
+	// and pre 2.0 builds work nicer if we just pretend we are a string in repr.
+	PyObject *obStr = asStr();
+	if (obStr==NULL)
+		return NULL;
+	PyObject *obRepr = PyObject_Repr(obStr);
+	Py_DECREF(obStr);
+	return obRepr;
+/***
 	// This is not quite correct, but good enough for now.
 	// To save me lots of work, I convert the Unicode to a temporary
 	// string object, then perform a repr on the string object, then
@@ -671,6 +680,7 @@ PyObject *PyUnicode::repr()
 	buffer[strSize+1] = '\0';
 	Py_DECREF(obRepr);
 	return PyString_FromStringAndSize(buffer, strSize+1);
+***/
 }
 
 PyObject * PyUnicode::upper(void)
