@@ -68,6 +68,7 @@ public:
 	void BaseOnEndPrinting(CDC *dc, CPrintInfo *pInfo) {CView::OnEndPrinting(dc, pInfo);}
 	BOOL DoPreparePrinting(CPrintInfo *pInfo) {return CView::DoPreparePrinting(pInfo);}
 	BOOL BaseOnPreparePrinting(CPrintInfo *pInfo) {return CView::OnPreparePrinting(pInfo);}
+	void BaseOnPrepareDC(CDC *dc, CPrintInfo *pInfo) {CView::OnPrepareDC(dc, pInfo);}
 	int BaseOnMouseActivate( CWnd *pWnd, UINT ht, UINT msg) { return CView::OnMouseActivate(pWnd, ht, msg);}
 };
 
@@ -252,7 +253,7 @@ PyCView_on_file_print(PyObject *self, PyObject *args)
 	GUI_BGN_SAVE;
 	view->BaseOnFilePrint();
 	GUI_END_SAVE;
-        RETURN_NONE;
+	RETURN_NONE;
 }
 
 // @pymethod |PyCView|OnFilePrintPreview|Calls the underlying MFC OnFilePrintPreview method.
@@ -273,12 +274,12 @@ PyCView_on_file_print_preview(PyObject *self, PyObject *args)
 PyObject *
 PyCView_do_prepare_printing(PyObject *self, PyObject *args)
 {
-        PyObject *pyInfo;
+	PyObject *pyInfo;
 	if (!PyArg_ParseTuple (args, "O:DoPreparePrinting", &pyInfo))
 		return NULL;
-        CPrintInfo *pInfo = ui_prinfo_object::GetPrintInfo(pyInfo);
-        if (!pInfo)
-          return NULL;
+	CPrintInfo *pInfo = ui_prinfo_object::GetPrintInfo(pyInfo);
+	if (!pInfo)
+		return NULL;
 	CProtectedView	*view = (CProtectedView*)PyCView::GetViewPtr (self);
 	if (view == NULL)
 		return NULL;
@@ -309,24 +310,47 @@ PyCView_on_prepare_printing(PyObject *self, PyObject *args)
 	return Py_BuildValue("i", ret);
 }
 
+// @pymethod |PyCView|OnPrepareDC|Calls the underlying MFC OnPrepareDC method.
+// @xref <vm PyCView.OnPrepareDC>
+PyObject *
+PyCView_on_prepare_dc(PyObject *self, PyObject *args)
+{
+	PyObject *pyInfo, *pyDC;
+	if (!PyArg_ParseTuple (args, "OO:OnPrepareDC", &pyDC, &pyInfo))
+		return NULL;
+	CPrintInfo *pInfo = ui_prinfo_object::GetPrintInfo(pyInfo);
+	if (!pInfo)
+		return NULL;
+	CDC *pDC = ui_dc_object::GetDC(pyDC);
+	if (!pDC)
+		RETURN_ERR("The DC is invalid");
+	CProtectedView	*view = (CProtectedView*)PyCView::GetViewPtr (self);
+	if (view == NULL)
+		return NULL;
+	GUI_BGN_SAVE;
+	view->BaseOnPrepareDC(pDC, pInfo);
+	GUI_END_SAVE;
+	RETURN_NONE;
+}
+
 // @pymethod |PyCView|OnBeginPrinting|Calls the underlying MFC OnBeginPrinting method.
 // @xref <vm PyCView.OnBeginPrinting>
 PyObject *
 PyCView_on_begin_printing(PyObject *self, PyObject *args)
 {
-        PyObject *pyDC;
-        PyObject *pyInfo;
+	PyObject *pyDC;
+	PyObject *pyInfo;
 
 	if (!PyArg_ParseTuple (args, "OO:OnBeginPrinting", &pyDC, &pyInfo))
 		return NULL;
 	if (!ui_base_class::is_uiobject (pyDC, &ui_dc_object::type))
 		RETURN_TYPE_ERR("The first param must be a PyCDC object");
 	CDC *pDC = ui_dc_object::GetDC(pyDC);
-        if (!pDC)
-          RETURN_ERR("The DC is invalid");
-        CPrintInfo *pInfo = ui_prinfo_object::GetPrintInfo(pyInfo);
-        if (!pInfo)
-          return NULL;
+	if (!pDC)
+		RETURN_ERR("The DC is invalid");
+	CPrintInfo *pInfo = ui_prinfo_object::GetPrintInfo(pyInfo);
+	if (!pInfo)
+		return NULL;
 	CProtectedView	*view = (CProtectedView*)PyCView::GetViewPtr (self);
 	if (view == NULL)
 		return NULL;
@@ -341,19 +365,19 @@ PyCView_on_begin_printing(PyObject *self, PyObject *args)
 PyObject *
 PyCView_on_end_printing(PyObject *self, PyObject *args)
 {
-        PyObject *pyDC;
-        PyObject *pyInfo;
+	PyObject *pyDC;
+	PyObject *pyInfo;
 
 	if (!PyArg_ParseTuple (args, "OO:OnEndPrinting", &pyDC, &pyInfo))
 		return NULL;
 	if (!ui_base_class::is_uiobject (pyDC, &ui_dc_object::type))
 		RETURN_TYPE_ERR("The first param must be a PyCDC object");
 	CDC *pDC = ui_dc_object::GetDC(pyDC);
-        if (!pDC)
-          RETURN_ERR("The DC is invalid");
-        CPrintInfo *pInfo = ui_prinfo_object::GetPrintInfo(pyInfo);
-        if (!pInfo)
-          return NULL;
+	if (!pDC)
+		RETURN_ERR("The DC is invalid");
+	CPrintInfo *pInfo = ui_prinfo_object::GetPrintInfo(pyInfo);
+	if (!pInfo)
+		return NULL;
 	CProtectedView	*view = (CProtectedView*)PyCView::GetViewPtr (self);
 	if (view == NULL)
 		return NULL;
