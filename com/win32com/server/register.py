@@ -10,6 +10,7 @@ import sys
 import win32api
 import win32con
 import pythoncom
+import win32com
 import winerror
 import os
 
@@ -417,5 +418,8 @@ try:
   win32api.RegQueryValue(win32con.HKEY_CLASSES_ROOT,
                          'Component Categories\\%s' % CATID_PythonCOMServer)
 except win32api.error:
-  RegisterPyComCategory()
+  try:
+    RegisterPyComCategory()
+  except win32com.error: # Error with the COM category manager - oh well.
+    pass    
 
