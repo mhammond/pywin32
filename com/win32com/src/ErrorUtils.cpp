@@ -88,7 +88,9 @@ void PyCom_ExcepInfoFromPyException(EXCEPINFO *pExcepInfo)
 		pExcepInfo->bstrSource = A2BSTR("Python COM Server Internal Error");
 
 		// Map some well known exceptions to specific HRESULTs
-		if (PyErr_GivenExceptionMatches(v, PyExc_MemoryError))
+		// Note: v can be NULL. This can happen via PyErr_SetNone().
+		//       e.g.: KeyboardInterrupt
+		if (PyErr_GivenExceptionMatches(exception, PyExc_MemoryError))
 			pExcepInfo->scode = E_OUTOFMEMORY;
 		else
 			// Any other common Python exceptions we should map?
