@@ -10,6 +10,7 @@ from distutils.dep_util import newer_group
 from distutils import log
 import os, string, sys
 
+# Python 2.2 has no True/False
 try:
     True; False
 except NameError:
@@ -26,7 +27,7 @@ class WinExt (Extension):
                   define_macros=None,
                   undef_macros=None,
                   library_dirs=[],
-                  libraries=[],
+                  libraries="",
                   runtime_library_dirs=None,
                   extra_objects=None,
                   extra_compile_args=None,
@@ -39,8 +40,7 @@ class WinExt (Extension):
         libary_dirs = library_dirs,
         include_dirs = ['com/win32com/src/include',
                         'win32/src'] + include_dirs
-        libraries = ['user32', 'odbc32', 'advapi32', 'version',
-                     'oleaut32', 'ole32', 'shell32'] + libraries
+        libraries=libraries.split()
 
         if export_symbol_file:
             export_symbols = export_symbols or []
@@ -85,6 +85,34 @@ class WinExt (Extension):
                     result.append(pathname)
         return result
 
+class WinExt_win32(WinExt):
+    def __init__ (self, name, **kw):
+        if not kw.has_key("dsp_file"):
+            kw["dsp_file"] = "win32/" + name + ".dsp"
+        WinExt.__init__(self, name, **kw)
+    def get_pywin32_dir(self):
+        return "win32"
+
+class WinExt_win32com(WinExt):
+    def __init__ (self, name, **kw):
+        if not kw.has_key("dsp_file"):
+            kw["dsp_file"] = "com/" + name + ".dsp"
+        kw["libraries"] = kw.get("libraries", "") + " oleaut32 ole32"
+        WinExt.__init__(self, name, **kw)
+    def get_pywin32_dir(self):
+        return "win32com/" + self.name
+
+# 'win32com.mapi.exchange' and 'win32com.mapi.exchdapi' currently only
+# ones with this special requirement
+class WinExt_win32com_mapi(WinExt_win32com):
+    def get_pywin32_dir(self):
+        return "win32com/mapi"
+
+# A hacky extension class for pywintypesXX.dll and pythoncomXX.dll
+class WinExt_system32(WinExt):
+    def get_pywin32_dir(self):
+        return "system32"
+
 ################################################################
 
 class my_install_lib (install_lib):
@@ -106,6 +134,23 @@ class my_build_ext(build_ext):
         self.mingw32 = (self.compiler == "mingw32")
         if self.mingw32:
             self.libraries.append("stdc++")
+
+    def build_extensions(self):
+        # Is there a better way than this?
+        # Just one GUIDS.CPP and it gives trouble on mainwin too
+        # Maybe I should just rename the file, but a case-only rename is likely to be
+        # worse!
+        import distutils.msvccompiler
+        if ".CPP" not in self.compiler.src_extensions:
+            self.compiler._cpp_extensions.append(".CPP")
+            self.compiler.src_extensions.append(".CPP")
+        assert self.package is None
+        for ext in self.extensions:
+            try:
+                self.package = ext.get_pywin32_dir()
+            except AttributeError:
+                raise RuntimeError, "Not a win32 package!"
+            self.build_extension(ext)
 
     def build_extension(self, ext):
         # some source files are compiled for different extensions
@@ -148,12 +193,12 @@ class my_build_ext(build_ext):
 
     def get_ext_filename(self, name):
         # The pywintypes and pythoncom extensions have special names
-        if name == "pywintypes":
+        if name == "system32.pywintypes":
             extra = self.debug and "_d.dll" or ".dll"
-            return "pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
-        elif name == "pythoncom":
+            return "system32\pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
+        elif name == "system32.pythoncom":
             extra = self.debug and "_d.dll" or ".dll"
-            return "pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
+            return "system32\pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
         return build_ext.get_ext_filename(self, name)
 
     def find_swig (self):
@@ -199,77 +244,108 @@ class my_build_ext(build_ext):
 
 ################################################################
 
-pywintypes = WinExt('pywintypes',
+pywintypes = WinExt_system32('pywintypes',
                     dsp_file = r"win32\PyWinTypes.dsp",
-                    extra_compile_args = ['-DBUILD_PYWINTYPES']
+                    extra_compile_args = ['-DBUILD_PYWINTYPES'],
+                    libraries = "advapi32 user32 ole32 oleaut32",
                     )
 
-pythoncom = WinExt('pythoncom',
-                   dsp_file=r"com\win32com.dsp",
-                   export_symbol_file = 'com/win32com/src/PythonCOM.def',
-                   extra_compile_args = ['-DBUILD_PYTHONCOM'],
-                   )
+win32_extensions = [pywintypes]
 
-win32_extensions = []
 for name, lib_names, is_unicode in (
+        ("dbi", "", False),
+        ("mmapfile", "", False),
+#        ("odbc", "odbc32 odbccp32", False), # needs dbi - MH should clean this up
         ("perfmon", "", True),
+        ("timer", "user32", False),
         ("win2kras", "rasapi32", False),
-        ("win32api", "", False),
+        ("win32api", "user32 advapi32 shell32 version", False),
         ("win32file", "", False),
-        ("win32event", "", False),
-        ("win32clipboard", "gdi32", False),
-        ("win32evtlog", "", False),
+        ("win32event", "user32", False),
+        ("win32clipboard", "gdi32 user32 shell32", False),
+        ("win32evtlog", "advapi32", False),
         # win32gui handled below
-        ("win32help", "htmlhelp", False),
+        ("win32help", "htmlhelp user32 advapi32", False),
         ("win32lz", "lz32", False),
         ("win32net", "netapi32", True),
         ("win32pdh", "", False),
         ("win32pipe", "", False),
         # win32popenWin9x later
-        ("win32print", "winspool", False),
-        ("win32process", "", False),
-        ("win32ras", "rasapi32", False),
-        ("win32security", "", True),
-        ("win32service", "", True),
-        ("win32trace", "", False),
+        ("win32print", "winspool user32", False),
+        ("win32process", "advapi32 user32", False),
+        ("win32ras", "rasapi32 user32", False),
+        ("win32security", "advapi32 user32", True),
+        ("win32service", "advapi32", True),
+        ("win32trace", "advapi32", False),
         ("win32wnet", "netapi32 mpr", False),
     ):
 
     extra_compile_args = []
     if is_unicode:
         extra_compile_args = ['-DUNICODE', '-D_UNICODE', '-DWINNT']
-    ext = WinExt(name, 
-                 dsp_file = "win32\\" + name + ".dsp",
-                 libraries=lib_names.split(),
+    ext = WinExt_win32(name, 
+                 libraries=lib_names,
                  extra_compile_args = extra_compile_args)
     win32_extensions.append(ext)
 # The few that need slightly special treatment
 win32_extensions += [
-    WinExt("win32gui", 
-           dsp_file=r"win32\\win32gui.dsp",
-           libraries=["gdi32", "comdlg32", "comctl32"],
+    WinExt_win32("win32gui", 
+           libraries="gdi32 user32 comdlg32 comctl32 shell32",
            extra_compile_args=["-DWIN32GUI"]
         ),
-    WinExt('servicemanager',
+    WinExt_win32('servicemanager',
            extra_compile_args = ['-DUNICODE', '-D_UNICODE', 
                                  '-DWINNT', '-DPYSERVICE_BUILD_DLL'],
+           libraries = "user32 ole32 advapi32 shell32",
            dsp_file = r"win32\Pythonservice servicemanager.dsp")
+]
+
+# The COM modules.
+pythoncom = WinExt_system32('pythoncom',
+                   dsp_file=r"com\win32com.dsp",
+                   libraries = "oleaut32 ole32 user32",
+                   export_symbol_file = 'com/win32com/src/PythonCOM.def',
+                   extra_compile_args = ['-DBUILD_PYTHONCOM'],
+                   )
+com_extensions = [pythoncom]
+com_extensions += [
+#    WinExt_win32com('adsi'),  # bullshit "extern IID" issues :(
+    WinExt_win32com('axcontrol'),
+    WinExt_win32com('axscript',
+            dsp_file=r"com\Active Scripting.dsp",
+            extra_compile_args = ['-DPY_BUILD_AXSCRIPT'],
+    ),
+#    WinExt_win32com('axdebug', # bullshit "extern IID" issues :(
+#            dsp_file=r"com\Active Debugging.dsp",
+#    ),
+    WinExt_win32com('internet'),
+    WinExt_win32com('mapi', libraries="mapi32"),
+    WinExt_win32com_mapi('exchange',
+                         libraries="""MBLOGON ADDRLKUP mapi32 exchinst                         
+                                      EDKCFG EDKUTILS EDKMAPI
+                                      ACLCLS version""",
+                         extra_link_args=["/nodefaultlib:libc"]),
+    WinExt_win32com_mapi('exchdapi',
+                         libraries="""DAPI ADDRLKUP exchinst EDKCFG EDKUTILS
+                                      EDKMAPI mapi32 version""",
+                         extra_link_args=["/nodefaultlib:libc"]),
+    WinExt_win32com('shell', libraries='shell32')
 ]
 ################################################################
 
-setup(name="PyWinTypes",
+setup(name="pywin32",
       version="version",
       description="Python for Window Extensions",
       long_description="",
       author="Mark Hammond (et al)",
-      author_email = "mhammond@skippinet.com.au",
-      url="http://starship.python.net/crew/mhammond/",
+      author_email = "mhammond@users.sourceforge.net",
+      url="http://sourceforge.net/projects/pywin32/",
       license="PSA",
       cmdclass = { #'install_lib': my_install_lib,
                    'build_ext': my_build_ext,
                    },
 
-      ext_modules = [pywintypes, pythoncom] + win32_extensions,
+      ext_modules = win32_extensions + com_extensions,
 
 ##      packages=['win32',
     
