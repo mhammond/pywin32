@@ -219,12 +219,9 @@ LRESULT PyWndProc_Call(PyObject *obFuncOrMap, MYWNDPROC oldWndProc, HWND hWnd, U
 
 	PyObject *obFunc = NULL;
 	if (obFuncOrMap!=NULL) {
-		// XXX - this is very very naughty.
-		// for speed's sake, we support a map, so
-		// that we only call into Python for messages we
-		// process.  BUT - we use the Python dictionary
-		// without the thread-lock!  Acquiring the thread lock
-		// is quite expensive, so I want to avoid that too.
+		// Acquiring the thread lock is quite expensive
+		// It would be nice to avoid!
+		CEnterLeavePython _celp;
 		if (PyDict_Check(obFuncOrMap)) {
 			PyObject *key = PyInt_FromLong(uMsg);
 			obFunc = PyDict_GetItem(obFuncOrMap, key);
