@@ -211,6 +211,7 @@ def RemoveService(serviceName):
 	try:
 		hs = win32service.OpenService(hscm, serviceName, win32service.SERVICE_ALL_ACCESS)
 		win32service.DeleteService(hs)
+		win32service.CloseServiceHandle(hs)
 	finally:
 		win32service.CloseServiceHandle(hscm)
 
@@ -602,5 +603,6 @@ class ServiceFramework:
 		# We tell the SCM the service is still stopping - the C framework
 		# will automatically tell the SCM it has stopped when this returns.
 		self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
+
 
 
