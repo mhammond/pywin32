@@ -502,8 +502,12 @@ PyFormatMessage (PyObject *self, PyObject *args)
 			errCode = GetLastError();
 		const int bufSize = 512;
 		char buf[bufSize];
+		DWORD flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
+		HMODULE hmodule = PyWin_GetErrorMessageModule(errCode);
+		if (hmodule)
+			flags |= FORMAT_MESSAGE_FROM_HMODULE;
 		// @pyseeapi FormatMessage
-		if (::FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errCode, 0, buf, bufSize, NULL )<=0)
+		if (::FormatMessage(flags, hmodule, errCode, 0, buf, bufSize, NULL )<=0)
 			return ReturnAPIError("FormatMessage");
 		return Py_BuildValue("s", buf);
 	}

@@ -73,6 +73,11 @@
 ** Error/Exception handling
 */
 extern PYWINTYPES_EXPORT PyObject *PyWinExc_ApiError;
+// Register a Windows DLL that contains the messages in the specified range.
+extern PYWINTYPES_EXPORT BOOL PyWin_RegisterErrorMessageModule(DWORD first, DWORD last, HINSTANCE hmod);
+// Get the previously registered hmodule for an error code.
+extern PYWINTYPES_EXPORT HINSTANCE PyWin_GetErrorMessageModule(DWORD err);
+
 
 /* A global function that sets an API style error (ie, (code, fn, errTest)) */
 PYWINTYPES_EXPORT PyObject *PyWin_SetAPIError(char *fnName, long err = 0);
