@@ -16,7 +16,7 @@ class InterpCase(win32com.test.util.TestCase):
 
     def _testInterp(self, interp):
         self.assertEquals(interp.Eval("1+1"), 2)
-        self.assertRaisesCOM_HRESULT(winerror.DISP_E_TYPEMISMATCH,
+        win32com.test.util.assertRaisesCOM_HRESULT(self, winerror.DISP_E_TYPEMISMATCH,
                                      interp.Eval, 2)
 
     def testInproc(self):
