@@ -1460,9 +1460,9 @@ BOOLAPI DeleteObject(HANDLE h); // @pyparm int|handle||handle to the object to d
 
 // @pyswig int|ImageList_Add|Adds an image or images to an image list. 
 // @rdesc Returns the index of the first new image if successful, or -1 otherwise. 
-int ImageList_Add(HIMAGELIST himl, // @pyswig int|himl||Handle to the image list. 
-                  HBITMAP hbmImage, // @pyswig int|hbmImage||Handle to the bitmap that contains the image or images. The number of images is inferred from the width of the bitmap. 
-				  HBITMAP hbmMask); // @pyswig int|hbmMask||Handle to the bitmap that contains the mask. If no mask is used with the image list, this parameter is ignored
+int ImageList_Add(HIMAGELIST himl, // @pyparm int|himl||Handle to the image list. 
+                  HBITMAP hbmImage, // @pyparm int|hbmImage||Handle to the bitmap that contains the image or images. The number of images is inferred from the width of the bitmap. 
+				  HBITMAP hbmMask); // @pyparm int|hbmMask||Handle to the bitmap that contains the mask. If no mask is used with the image list, this parameter is ignored
 
 
 // @pyswig HIMAGELIST|ImageList_Create|Create an image list
