@@ -96,7 +96,6 @@ def DllRegisterServer():
     # 'Attributes' is an int stored as a binary! use struct
     attr = shellcon.SFGAO_FOLDER | shellcon.SFGAO_HASSUBFOLDER | \
            shellcon.SFGAO_BROWSABLE
-    print attr
     import struct
     s = struct.pack("I", attr)
     _winreg.SetValueEx(key, "Attributes", 0, _winreg.REG_BINARY, s)
