@@ -10,12 +10,16 @@
 
 #include "AutoComplete.h"
 
-AutoComplete::AutoComplete() {
-	active = false;
-	posStart = 0;
-	strcpy(stopChars, "");
-	separator = ' ';
-	cancelAtStartPos = true;
+AutoComplete::AutoComplete() : 
+	active(false),
+	separator(' '),
+	ignoreCase(false),
+	chooseSingle(false),
+	posStart(0),
+	startLen(0),
+	cancelAtStartPos(true) {
+	stopChars[0] = '\0';
+	fillUpChars[0] = '\0';
 }
 
 AutoComplete::~AutoComplete() {
@@ -45,6 +49,15 @@ bool AutoComplete::IsStopChar(char ch) {
 	return ch && strchr(stopChars, ch);
 }
 
+void AutoComplete::SetFillUpChars(const char *fillUpChars_) {
+	strncpy(fillUpChars, fillUpChars_, sizeof(fillUpChars));
+	fillUpChars[sizeof(fillUpChars) - 1] = '\0';
+}
+
+bool AutoComplete::IsFillUpChar(char ch) {
+	return ch && strchr(fillUpChars, ch);
+}
+ 
 void AutoComplete::SetSeparator(char separator_) {
 	separator = separator_;
 }

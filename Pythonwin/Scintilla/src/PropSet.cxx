@@ -24,6 +24,8 @@ bool EqualCaseInsensitive(const char *a, const char *b) {
 #endif
 }
 
+SString::size_type SString::npos = -1;
+
 inline unsigned int HashString(const char *s) {
     unsigned int ret = 0;
     while (*s) {
@@ -333,7 +335,8 @@ static bool iswordsep(char ch, bool onlyLineEnds) {
 
 // Creates an array that points into each word in the string and puts \0 terminators
 // after each word.
-static char **ArrayFromWordList(char *wordlist, bool onlyLineEnds = false) {
+static char **ArrayFromWordList(char *wordlist, int *len, bool onlyLineEnds = false) {
+#if 1
 	char prev = '\n';
 	int words = 0;
 	for (int j = 0; wordlist[j]; j++) {
@@ -345,8 +348,8 @@ static char **ArrayFromWordList(char *wordlist, bool onlyLineEnds = false) {
 	if (keywords) {
 		words = 0;
 		prev = '\0';
-		int len = strlen(wordlist);
-		for (int k = 0; k < len; k++) {
+		int slen = strlen(wordlist);
+		for (int k = 0; k < slen; k++) {
 			if (!iswordsep(wordlist[k], onlyLineEnds)) {
 				if (!prev) {
 					keywords[words] = &wordlist[k];
@@ -357,25 +360,69 @@ static char **ArrayFromWordList(char *wordlist, bool onlyLineEnds = false) {
 			}
 			prev = wordlist[k];
 		}
-		keywords[words] = &wordlist[len];
+		keywords[words] = &wordlist[slen];
+		*len = words;
+	} else {
+		*len = 0;
 	}
+#else
+	int words = 0; // length of the returned buffer of pointers
+	#undef APICHUNK // how many pointers will be pre-allocated (to avoid buffer reallocation on each new pointer)
+	#define APICHUNK 256
+	int size = APICHUNK; // real size of the returned buffer of pointers
+	char **keywords; // buffer for the pointers returned
+	int slen = strlen(wordlist); //length of the buffer with api file
+	keywords = (char**) malloc((size + 1) * sizeof (*keywords));
+	words = 0;
+	for (int k = 0;;) {
+		while (iswordsep(wordlist[k], onlyLineEnds))
+			wordlist[k++] = '\0';
+		if (k >= slen)
+			break;
+		if (words >= size) {
+			do
+				size += APICHUNK;
+			while (size <= words);
+			keywords = (char**) realloc(keywords, (size + 1) * sizeof (*keywords));
+		}
+		keywords[words++] = wordlist + k;
+		do
+			if (k < slen)
+				k++;
+			else
+				goto out;
+		while (!iswordsep(wordlist[k], onlyLineEnds));
+	}
+out:
+	keywords[words] = wordlist + slen;
+	*len = words;
+#endif
 	return keywords;
 }
 
 void WordList::Clear() {
 	if (words) {
-		delete []words;
 		delete []list;
+#if 1
+        delete []words;
+#else
+		free(words);
+#endif
+		free(wordsNoCase);
 	}
 	words = 0;
+	wordsNoCase = 0;
 	list = 0;
 	len = 0;
+	sorted = false;
 }
 
 void WordList::Set(const char *s) {
-	len = 0;
 	list = StringDup(s);
-	words = ArrayFromWordList(list, onlyLineEnds);
+	sorted = false;
+	words = ArrayFromWordList(list, &len, onlyLineEnds);
+	wordsNoCase = (char**) malloc ((len + 1) * sizeof (*wordsNoCase));
+	memcpy(wordsNoCase, words, (len + 1) * sizeof (*words));
 }
 
 char *WordList::Allocate(int size) {
@@ -385,45 +432,35 @@ char *WordList::Allocate(int size) {
 }
 
 void WordList::SetFromAllocated() {
-	len = 0;
-	words = ArrayFromWordList(list, onlyLineEnds);
+	sorted = false;
+	words = ArrayFromWordList(list, &len, onlyLineEnds);
+	wordsNoCase = (char**) malloc ((len + 1) * sizeof (*wordsNoCase));
+	memcpy(wordsNoCase, words, (len + 1) * sizeof (*words));
 }
 
-// Shell sort based upon public domain C implementation by Raymond Gardner 1991
-// Used here because of problems with mingw qsort.
-static void SortWordList(char **words, unsigned int len) {
-	unsigned int gap = len / 2;
-
-	while (gap > 0) {
-		unsigned int i = gap;
-		while (i < len) {
-			unsigned int j = i;
-			char **a = words + j;
-			do {
-				j -= gap;
-				char **b = a;
-				a -= gap;
-				if (strcmp(*a, *b) > 0) {
-					char *tmp = *a;
-					*a = *b;
-					*b = tmp;
-				} else {
-					break;
-				}
-			} while (j >= gap);
-			i++;
-		}
-		gap = gap / 2;
-	}
+int cmpString(const void *a1, const void *a2) {
+    // Can't work out the correct incantation to use modern casts here
+    return strcmp(*(char**)(a1), *(char**)(a2));
 }
 
+int cmpStringNoCase(const void *a1, const void *a2) {
+    // Can't work out the correct incantation to use modern casts here
+    return strcasecmp(*(char**)(a1), *(char**)(a2));
+}
+
+static void SortWordList(char **words, char **wordsNoCase, unsigned int len) {
+	qsort(reinterpret_cast<void*>(words), len, sizeof(*words),
+		cmpString);
+	qsort(reinterpret_cast<void*>(wordsNoCase), len, sizeof(*wordsNoCase),
+		cmpStringNoCase);
+}
+ 
 bool WordList::InList(const char *s) {
 	if (0 == words)
 		return false;
-	if (len == 0) {
-		for (int i = 0; words[i][0]; i++)
-			len++;
-		SortWordList(words, len);
+	if (!sorted) {
+		sorted = true;
+		SortWordList(words, wordsNoCase, len);
 		for (unsigned int k = 0; k < (sizeof(starts) / sizeof(starts[0])); k++)
 			starts[k] = -1;
 		for (int l = len - 1; l >= 0; l--) {
@@ -449,4 +486,257 @@ bool WordList::InList(const char *s) {
 		}
 	}
 	return false;
+}
+
+/**
+ * Returns an element (complete) of the wordlist array which has the beginning
+ * the same as the passed string. The length of the word to compare is passed
+ * too. Letter case can be ignored or preserved (default).
+ */
+const char *WordList::GetNearestWord(const char *wordStart, int searchLen /*= -1*/, bool ignoreCase /*= false*/) {
+	int start = 0; // lower bound of the api array block to search
+	int end = len - 1; // upper bound of the api array block to search
+	int pivot; // index of api array element just being compared
+	int cond; // comparison result (in the sense of strcmp() result)
+	const char *word; // api array element just being compared
+
+	if (0 == words)
+		return NULL;
+	if (!sorted) {
+		sorted = true;
+		SortWordList(words, wordsNoCase, len);
+	}
+	if (ignoreCase)
+		while (start <= end) { // binary searching loop
+			pivot = (start + end) >> 1;
+			word = wordsNoCase[pivot];
+			cond = strncasecmp(wordStart, word, searchLen);
+			if (!cond && nonFuncChar(word[searchLen])) // maybe there should be a "non-word character" test here?
+				return word; // result must not be freed with free()
+			else if (cond < 0)
+				end = pivot - 1;
+			else if (cond > 0)
+				start = pivot + 1;
+		}
+	else // preserve the letter case
+		while (start <= end) { // binary searching loop
+			pivot = (start + end) >> 1;
+			word = words[pivot];
+			cond = strncmp(wordStart, word, searchLen);
+			if (!cond && nonFuncChar(word[searchLen])) // maybe there should be a "non-word character" test here?
+				return word; // result must not be freed with free()
+			else if (cond >= 0)
+				start = pivot + 1;
+			else if (cond < 0)
+				end = pivot - 1;
+		}
+	return NULL;
+}
+	
+/**
+ * Returns elements (first words of them) of the wordlist array which have
+ * the beginning the same as the passed string. The length of the word to
+ * compare is passed too. Letter case can be ignored or preserved (default).
+ * If there are more words meeting the condition they are returned all of
+ * them in the ascending order separated with spaces.
+ *
+ * NOTE: returned buffer has to be freed with a free() call.
+ */
+char *WordList::GetNearestWords(const char *wordStart, int searchLen /*= -1*/, bool ignoreCase /*= false*/) {
+	int wordlen; // length of the word part (before the '(' brace) of the api array element
+	int length = 0; // length of the returned buffer of words (string)
+	int newlength; // length of the new buffer before the reallocating itself
+	#undef WORDCHUNK // how many characters will be pre-allocated (to avoid buffer reallocation on each new word)
+	#define WORDCHUNK 100
+	int size = WORDCHUNK; // real size of the returned buffer of words
+	char *buffer; // buffer for the words returned
+	int start = 0; // lower bound of the api array block to search
+	int end = len - 1; // upper bound of the api array block to search
+	int pivot; // index of api array element just being compared
+	int cond; // comparison result (in the sense of strcmp() result)
+	int oldpivot; // pivot storage to be able to browse the api array upwards and then downwards
+	const char *word; // api array element just being compared
+	const char *brace; // position of the opening brace in the api array element just being compared
+
+	if (0 == words)
+		return NULL;
+	if (!sorted) {
+		sorted = true;
+		SortWordList(words, wordsNoCase, len);
+	}
+	buffer = (char*) malloc(size);
+	*buffer = '\0';
+	if (ignoreCase)
+		while (start <= end) { // binary searching loop
+			pivot = (start + end) >> 1;
+			word = wordsNoCase[pivot];
+			cond = strncasecmp(wordStart, word, searchLen);
+			if (!cond) {
+				oldpivot = pivot;
+				do { // browse sequentially the rest after the hit
+					brace = strchr(word, '(');
+					if (brace)
+						do
+							if (--brace < word)
+								break;
+						while (isspace(*brace));
+					else {
+						brace = word + strlen(word);
+						do
+							if (--brace < word)
+								break;
+						while (isspace(*brace));
+					}
+					wordlen = brace - word + 1;
+					newlength = length + wordlen; // stretch the buffer
+					if (length)
+						newlength++;
+					if (newlength >= size) {
+						do
+							size += WORDCHUNK;
+						while (size <= newlength);
+						buffer = (char*) realloc(buffer, size);
+					}
+					if (length) // append a new entry
+						buffer[length++] = ' ';
+					memcpy(buffer + length, word, wordlen);
+					length = newlength;
+					buffer[length] = '\0';
+					if (++pivot > end)
+						break;
+					word = wordsNoCase[pivot];
+				} while (!strncasecmp(wordStart, word, searchLen));
+
+				pivot = oldpivot;
+				for (;;) { // browse sequentially the rest before the hit
+					if (--pivot < start)
+						break;
+					word = wordsNoCase[pivot];
+					if (strncasecmp(wordStart, word, searchLen))
+						break;                 
+					brace = strchr(word, '(');
+					if (brace)
+						do
+							if (--brace < word)
+								break;
+						while (isspace(*brace));
+					else {
+						brace = word + strlen(word);
+						do
+							if (--brace < word)
+								break;
+						while (isspace(*brace));
+					}
+					wordlen = brace - word + 1;
+					newlength = length + wordlen; // stretch the buffer
+					if (length)
+						newlength++;
+					if (newlength >= size)
+					{
+						do
+							size += WORDCHUNK;
+						while (size <= newlength);
+						buffer = (char*) realloc(buffer, size);
+					}
+					if (length) // append a new entry
+						buffer[length++] = ' ';
+					memcpy(buffer + length, word, wordlen);
+					length = newlength;
+					buffer[length] = '\0';
+				}
+				return buffer; // result has to be freed with free()
+			}
+			else if (cond < 0)
+				end = pivot - 1;
+			else if (cond > 0)
+				start = pivot + 1;
+		}
+	else // preserve the letter case
+		while (start <= end) { // binary searching loop
+			pivot = (start + end) >> 1;
+			word = words[pivot];
+			cond = strncmp(wordStart, word, searchLen);
+			if (!cond) {
+				oldpivot = pivot;
+				do { // browse sequentially the rest after the hit
+					brace = strchr(word, '(');
+					if (brace)
+						do
+							if (--brace < word)
+								break;
+						while (isspace(*brace));
+					else {
+						brace = word + strlen(word);
+						do
+							if (--brace < word)
+								break;
+						while (isspace(*brace));
+					}
+					wordlen = brace - word + 1;
+					newlength = length + wordlen; // stretch the buffer
+					if (length)
+						newlength++;
+					if (newlength >= size)
+					{
+						do
+							size += WORDCHUNK;
+						while (size <= newlength);
+						buffer = (char*) realloc(buffer, size);
+					}
+					if (length) // append a new entry
+						buffer[length++] = ' ';
+					memcpy(buffer + length, word, wordlen);
+					length = newlength;
+					buffer[length] = '\0';
+					if (++pivot > end)
+						break;
+					word = words[pivot];
+				} while (!strncmp(wordStart, word, searchLen));
+
+				pivot = oldpivot;
+				for (;;) { // browse sequentially the rest before the hit
+					if (--pivot < start)
+						break;
+					word = words[pivot];
+					if (strncmp(wordStart, word, searchLen))
+						break;
+					brace = strchr(word, '(');
+					if (brace)
+						do
+							if (--brace < word)
+								break;
+						while (isspace(*brace));
+					else {
+						brace = word + strlen(word);
+						do
+							if (--brace < word)
+								break;
+						while (isspace(*brace));
+					}
+					wordlen = brace - word + 1;
+					newlength = length + wordlen; // stretch the buffer
+					if (length)
+						newlength++;
+					if (newlength >= size)
+					{
+						do
+							size += WORDCHUNK;
+						while (size <= newlength);
+						buffer = (char*) realloc(buffer, size);
+					}
+					if (length) // append a new entry
+						buffer[length++] = ' ';
+					memcpy(buffer + length, word, wordlen);
+					length = newlength;
+					buffer[length] = '\0';
+				}
+				return buffer; // result has to be freed with free()
+			}
+			else if (cond < 0)
+				end = pivot - 1;
+			else if (cond > 0)
+				start = pivot + 1;
+		}
+	free(buffer);
+	return NULL;
 }

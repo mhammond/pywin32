@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <assert.h>
 
 #include "Platform.h"
 
@@ -122,6 +123,7 @@ class ScintillaWin :
 		    HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 	virtual void StartDrag();
+	LRESULT WndPaint(unsigned long wParam);
 	virtual LRESULT WndProc(unsigned int iMessage, unsigned long wParam, long lParam);
 	virtual LRESULT DefWndProc(unsigned int iMessage, unsigned long wParam, long lParam);
 	virtual void SetTicking(bool on);
@@ -145,7 +147,7 @@ class ScintillaWin :
 	void ImeStartComposition();
 	void ImeEndComposition();
 
-    void AddCharBytes(char b0, char b1=0);
+	void AddCharBytes(char b0, char b1=0);
 
 	void GetIntelliMouseParameters();
 	void CopySelTextToClipboard();
@@ -262,6 +264,7 @@ static int InputCodePage() {
 
 // Map the key codes to their equivalent SCK_ form
 static int KeyTranslate(int keyIn) {
+//PLATFORM_ASSERT(!keyIn);
 	switch (keyIn) {
 		case VK_DOWN:		return SCK_DOWN;
 		case VK_UP:		return SCK_UP;
@@ -284,7 +287,65 @@ static int KeyTranslate(int keyIn) {
 	}
 }
 
+LRESULT ScintillaWin::WndPaint(unsigned long wParam) {
+	//CElapsed ce; ce.Begin();
+	//LARGE_INTEGER perfStart;
+	//LARGE_INTEGER perfEnd;
+	//LARGE_INTEGER performanceFreq;
+	//QueryPerformanceFrequency(&performanceFreq);
+	//QueryPerformanceCounter(&perfStart);
+	
+	// Redirect assertions to debug output and save current state 
+	bool assertsPopup = Platform::ShowAssertionPopUps(false);
+	paintState = painting;
+	PAINTSTRUCT ps;
+	PAINTSTRUCT* pps;
+
+	bool IsOcxCtrl = (wParam != 0); // if wParam != 0, it contains 
+								   // a PAINSTRUCT* from the OCX
+	if (IsOcxCtrl) {
+		pps = reinterpret_cast<PAINTSTRUCT*>(wParam);
+	} else {
+		pps = &ps;
+		BeginPaint(wMain.GetID(), pps);
+	}
+	Surface surfaceWindow;
+	surfaceWindow.Init(pps->hdc);
+	surfaceWindow.SetUnicodeMode(IsUnicodeMode());
+	rcPaint = PRectangle(pps->rcPaint.left, pps->rcPaint.top, pps->rcPaint.right, pps->rcPaint.bottom);
+	PRectangle rcText = GetTextRectangle();
+	paintingAllText = rcPaint.Contains(rcText);
+	if (paintingAllText) {
+		//Platform::DebugPrintf("Performing full text paint\n");
+	} else {
+		//Platform::DebugPrintf("Performing partial paint %d .. %d\n", rcPaint.top, rcPaint.bottom);
+	}
+	Paint(&surfaceWindow, rcPaint);
+	surfaceWindow.Release();
+	if(!IsOcxCtrl)
+		EndPaint(wMain.GetID(), pps);
+	if (paintState == paintAbandoned) {
+		// Painting area was insufficient to cover new styling or brace highlight positions
+		FullPaint();
+	}
+	paintState = notPainting;
+
+	// Restore debug output state 
+	Platform::ShowAssertionPopUps(assertsPopup);
+	
+	//QueryPerformanceCounter(&perfEnd);
+	//__int64 start = perfStart.QuadPart;
+	//__int64 end = perfEnd.QuadPart;
+	//__int64 freq = performanceFreq.QuadPart;
+	//__int64 dur = end - start;
+	//double per = double(dur) / double(freq);
+	//Platform::DebugPrintf("Paint took %5.03g\n", per);
+	//Platform::DebugPrintf("Paint took %g\n", ce.End());
+	return 0l;
+}
+
 LRESULT ScintillaWin::WndProc(unsigned int iMessage, unsigned long wParam, long lParam) {
+	//Platform::DebugPrintf("S M:%x WP:%x L:%x\n", iMessage, wParam, lParam);
 	switch (iMessage) {
 
 	case WM_CREATE:
@@ -309,45 +370,8 @@ LRESULT ScintillaWin::WndProc(unsigned int iMessage, unsigned long wParam, long 
 #endif
 		break;
 
-	case WM_PAINT: {
-			//CElapsed ce; ce.Begin();
-			//LARGE_INTEGER perfStart;
-			//LARGE_INTEGER perfEnd;
-			//LARGE_INTEGER performanceFreq;
-			//QueryPerformanceFrequency(&performanceFreq);
-			//QueryPerformanceCounter(&perfStart);
-			paintState = painting;
-			PAINTSTRUCT ps;
-			BeginPaint(wMain.GetID(), &ps);
-			Surface surfaceWindow;
-			surfaceWindow.Init(ps.hdc);
-			surfaceWindow.SetUnicodeMode(IsUnicodeMode());
-			rcPaint = PRectangle(ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom);
-			PRectangle rcText = GetTextRectangle();
-			paintingAllText = rcPaint.Contains(rcText);
-			if (paintingAllText) {
-				//Platform::DebugPrintf("Performing full text paint\n");
-			} else {
-				//Platform::DebugPrintf("Performing partial paint %d .. %d\n", rcPaint.top, rcPaint.bottom);
-			}
-			Paint(&surfaceWindow, rcPaint);
-			surfaceWindow.Release();
-			EndPaint(wMain.GetID(), &ps);
-			if (paintState == paintAbandoned) {
-				// Painting area was insufficient to cover new styling or brace highlight positions
-				FullPaint();
-			}
-			paintState = notPainting;
-			//QueryPerformanceCounter(&perfEnd);
-			//__int64 start = perfStart.QuadPart;
-			//__int64 end = perfEnd.QuadPart;
-			//__int64 freq = performanceFreq.QuadPart;
-			//__int64 dur = end - start;
-			//double per = double(dur) / double(freq);
-			//Platform::DebugPrintf("Paint took %5.03g\n", per);
-			//Platform::DebugPrintf("Paint took %g\n", ce.End());
-		}
-		break;
+	case WM_PAINT:
+		return WndPaint(wParam);
 
 	case WM_VSCROLL:
 		ScrollMessage(wParam);
@@ -371,7 +395,7 @@ LRESULT ScintillaWin::WndProc(unsigned int iMessage, unsigned long wParam, long 
 		// i.e. if datazoomed out only class structures are visible, when datazooming in the control
 		// structures appear, then eventually the individual statements...)
 		if (wParam & MK_SHIFT) {
-            return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
+            		return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
 		}
 
 		// Either SCROLL or ZOOM. We handle the wheel steppings calculation
@@ -428,18 +452,18 @@ LRESULT ScintillaWin::WndProc(unsigned int iMessage, unsigned long wParam, long 
 	case WM_SETCURSOR:
 		if (LoWord(lParam) == HTCLIENT) {
 			if (inDragDrop) {
-				wDraw.SetCursor(Window::cursorUp);
+				DisplayCursor(Window::cursorUp);
 			} else {
 				// Display regular (drag) cursor over selection
 				POINT pt;
 				::GetCursorPos(&pt);
 				::ScreenToClient(wMain.GetID(), &pt);
 				if (PointInSelMargin(Point(pt.x, pt.y))) {
-					wDraw.SetCursor(Window::cursorReverseArrow);
+					DisplayCursor(Window::cursorReverseArrow);
 				} else if (PointInSelection(Point(pt.x, pt.y))) {
-					wDraw.SetCursor(Window::cursorArrow);
+					DisplayCursor(Window::cursorArrow);
 				} else {
-					wDraw.SetCursor(Window::cursorText);
+					DisplayCursor(Window::cursorText);
 				}
 			}
 			return TRUE;
@@ -484,14 +508,12 @@ LRESULT ScintillaWin::WndProc(unsigned int iMessage, unsigned long wParam, long 
 		return DLGC_HASSETSEL | DLGC_WANTALLKEYS;
 
 	case WM_KILLFOCUS:
-		NotifyFocus(false);
-		DropCaret();
+		SetFocusState(false);
 		//RealizeWindowPalette(true);
 		break;
 
 	case WM_SETFOCUS:
-		NotifyFocus(true);
-		ShowCaretAtCurrentPosition();
+		SetFocusState(true);
 		RealizeWindowPalette(false);
 		break;
 
@@ -566,6 +588,10 @@ LRESULT ScintillaWin::WndProc(unsigned int iMessage, unsigned long wParam, long 
 	case WM_ERASEBKGND:
         	return 1;   // Avoid any background erasure as whole window painted. 
 
+    	case WM_CAPTURECHANGED:
+		capturedMouse = false;
+		return 0;
+	
         // These are not handled in Scintilla and its faster to dispatch them here.
         // Also moves time out to here so profile doesn't count lots of empty message calls.
     	case WM_MOVE:
@@ -575,7 +601,6 @@ LRESULT ScintillaWin::WndProc(unsigned int iMessage, unsigned long wParam, long 
 	case WM_NCPAINT:
     	case WM_NCMOUSEMOVE:
     	case WM_NCLBUTTONDOWN:
-    	case WM_CAPTURECHANGED:
     	case WM_IME_SETCONTEXT:
     	case WM_IME_NOTIFY:
     	case WM_SYSCOMMAND:
@@ -589,6 +614,10 @@ LRESULT ScintillaWin::WndProc(unsigned int iMessage, unsigned long wParam, long 
 	case SCI_GETDIRECTPOINTER:
 		return reinterpret_cast<LRESULT>(this);
 
+	case SCI_GRABFOCUS:
+		::SetFocus(wMain.GetID());
+		break;
+	
 	default:
 	    return ScintillaBase::WndProc(iMessage, wParam, lParam);
 	}
@@ -613,17 +642,20 @@ void ScintillaWin::SetTicking(bool on) {
 }
 
 void ScintillaWin::SetMouseCapture(bool on) {
-	if (on) {
-		::SetCapture(wMain.GetID());
-	} else {
-		::ReleaseCapture();
+	if (mouseDownCaptures) {
+		if (on) {
+			::SetCapture(wMain.GetID());
+		} else {
+			::ReleaseCapture();
+		}
 	}
 	capturedMouse = on;
 }
 
 bool ScintillaWin::HaveMouseCapture() {
 	// Cannot just see if GetCapture is this window as the scroll bar also sets capture for the window
-	return capturedMouse && (::GetCapture() == wMain.GetID());
+	return capturedMouse;
+	//return capturedMouse && (::GetCapture() == wMain.GetID());
 }
 
 void ScintillaWin::ScrollText(int linesToMove) {
@@ -1396,6 +1428,8 @@ STDMETHODIMP ScintillaWin::Drop(LPDATAOBJECT pIDataSource, DWORD grfKeyState,
 	// Free data
 	if (medium.pUnkForRelease != NULL)
 		medium.pUnkForRelease->Release();
+    else
+    	::GlobalFree(medium.hGlobal);
 
 	if (udata) 
 		delete []data;

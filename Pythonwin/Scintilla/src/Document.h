@@ -164,7 +164,8 @@ public:
 	int ExtendWordSelect(int pos, int delta);
 	int NextWordStart(int pos, int delta);
 	int Length() { return cb.Length(); }
-	long FindText(int minPos, int maxPos, const char *s, bool caseSensitive, bool word);
+	long FindText(int minPos, int maxPos, const char *s, 
+		bool caseSensitive, bool word, bool wordStart);
 	long FindText(int iMessage, unsigned long wParam, long lParam);
 	int LinesTotal();
 	
@@ -187,9 +188,15 @@ public:
 	const WatcherWithUserData *GetWatchers() const { return watchers; }
 	int GetLenWatchers() const { return lenWatchers; }
 	
+	bool IsWordPartSeparator(char ch);
+	int WordPartLeft(int pos);
+	int WordPartRight(int pos);
+
 private:
 	bool IsDBCS(int pos);
 	bool IsWordChar(unsigned char ch);
+	bool IsWordStartAt(int pos);
+	bool IsWordEndAt(int pos);
 	bool IsWordAt(int start, int end);
 	void ModifiedAt(int pos);
 	

@@ -75,6 +75,7 @@ ViewStyle::ViewStyle(const ViewStyle &source) {
 	caretcolour.desired = source.caretcolour.desired;
 	edgecolour.desired = source.edgecolour.desired;
 	edgeState = source.edgeState;
+	caretWidth = source.caretWidth;
 	leftMarginWidth = source.leftMarginWidth;
 	rightMarginWidth = source.rightMarginWidth;
 	for (int i=0;i < margins; i++) {
@@ -123,6 +124,7 @@ void ViewStyle::Init() {
 	caretcolour.desired = Colour(0, 0, 0);
 	edgecolour.desired = Colour(0xc0, 0xc0, 0xc0);
 	edgeState = EDGE_NONE;
+	caretWidth = 1;
 	
 	leftMarginWidth = 1;
 	rightMarginWidth = 1;
@@ -210,7 +212,7 @@ void ViewStyle::ResetDefaultStyle() {
 	styles[STYLE_DEFAULT].Clear(Colour(0,0,0), Colour(0xff,0xff,0xff),
 	        Platform::DefaultFontSize(), fontNames.Save(Platform::DefaultFont()), 
 		SC_CHARSET_DEFAULT,
-		false, false, false, false);
+		false, false, false, false, true);
 }
 
 void ViewStyle::ClearStyles() {
@@ -226,7 +228,8 @@ void ViewStyle::ClearStyles() {
 				styles[STYLE_DEFAULT].bold, 
 				styles[STYLE_DEFAULT].italic,
 				styles[STYLE_DEFAULT].eolFilled,
-				styles[STYLE_DEFAULT].underline);
+				styles[STYLE_DEFAULT].underline,
+				styles[STYLE_DEFAULT].visible);
 		}
 	}
 	styles[STYLE_LINENUMBER].back.desired = Platform::Chrome();

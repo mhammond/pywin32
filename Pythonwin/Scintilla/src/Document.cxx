@@ -717,25 +717,29 @@ int Document::NextWordStart(int pos, int delta) {
 	return pos;
 }
 
-bool Document::IsWordAt(int start, int end) {
-	int lengthDoc = Length();
-	if (start > 0) {
-		char ch = CharAt(start - 1);
-		if (IsWordChar(ch))
-			return false;
-	}
-	if (end < lengthDoc - 1) {
-		char ch = CharAt(end);
-		if (IsWordChar(ch))
-			return false;
+bool Document::IsWordStartAt(int pos) {
+	if (pos > 0) {
+		return !IsWordChar(CharAt(pos - 1));
 	}
 	return true;
+}
+
+bool Document::IsWordEndAt(int pos) {
+	if (pos < Length() - 1) {
+		return !IsWordChar(CharAt(pos));
+	}
+	return true;
+}
+
+bool Document::IsWordAt(int start, int end) {
+	return IsWordStartAt(start) && IsWordEndAt(end);
 }
 
 // Find text in document, supporting both forward and backward
 // searches (just pass minPos > maxPos to do a backward search)
 // Has not been tested with backwards DBCS searches yet.
-long Document::FindText(int minPos, int maxPos, const char *s, bool caseSensitive, bool word) {
+long Document::FindText(int minPos, int maxPos, const char *s, 
+	bool caseSensitive, bool word, bool wordStart) {
  	bool forward = minPos <= maxPos;
 	int increment = forward ? 1 : -1;
 
@@ -765,8 +769,10 @@ long Document::FindText(int minPos, int maxPos, const char *s, bool caseSensitiv
 						found = false;
 				}
 				if (found) {
-					if ((!word) || IsWordAt(pos, pos + lengthFind))
-						return pos;
+					if ((!word && !wordStart) ||
+						word && IsWordAt(pos, pos + lengthFind) ||
+						wordStart && IsWordStartAt(pos))
+ 						return pos;
 				}
 			}
 		} else {
@@ -778,8 +784,10 @@ long Document::FindText(int minPos, int maxPos, const char *s, bool caseSensitiv
 						found = false;
 				}
 				if (found) {
-					if ((!word) || IsWordAt(pos, pos + lengthFind))
-						return pos;
+					if ((!word && !wordStart) ||
+						word && IsWordAt(pos, pos + lengthFind) ||
+						wordStart && IsWordStartAt(pos))
+ 						return pos;
 				}
 			}
 		}
@@ -949,4 +957,87 @@ void Document::NotifyModified(DocModification mh) {
 	for (int i = 0; i < lenWatchers; i++) {
 		watchers[i].watcher->NotifyModified(this, mh, watchers[i].userData);
 	}
+}
+
+bool Document::IsWordPartSeparator(char ch) {
+	return ispunct(ch) && IsWordChar(ch);
+}
+
+int Document::WordPartLeft(int pos) {
+	if (pos > 0) {
+		--pos;
+		char startChar = cb.CharAt(pos);
+		if (IsWordPartSeparator(startChar)) {
+			while (pos > 0 && IsWordPartSeparator(cb.CharAt(pos))) {
+				--pos;
+			}
+			startChar = cb.CharAt(pos);
+		}
+		if (pos > 0) {
+			startChar = cb.CharAt(pos);
+			--pos;
+			if (islower(startChar)) {
+				while (pos > 0 && islower(cb.CharAt(pos)))
+					--pos;
+				if (!isupper(cb.CharAt(pos)) && !islower(cb.CharAt(pos)))
+					++pos;
+			} else if (isupper(startChar)) {
+				while (pos > 0 && isupper(cb.CharAt(pos)))
+					--pos;
+				if (!isupper(cb.CharAt(pos)))
+					++pos;
+			} else if (isdigit(startChar)) {
+				while (pos > 0 && isdigit(cb.CharAt(pos)))
+					--pos;
+				if (!isdigit(cb.CharAt(pos)))
+					++pos;
+			} else if (ispunct(startChar)) {
+				while (pos > 0 && ispunct(cb.CharAt(pos)))
+					--pos;
+				if (!ispunct(cb.CharAt(pos)))
+					++pos;
+			} else if (isspace(startChar)) {
+				while (pos > 0 && isspace(cb.CharAt(pos)))
+					--pos;
+				if (!isspace(cb.CharAt(pos)))
+					++pos;
+			}
+		}
+	}
+	return pos;
+}
+
+int Document::WordPartRight(int pos) {
+	char startChar = cb.CharAt(pos);
+	int length = Length();
+	if (IsWordPartSeparator(startChar)) {
+		while (pos < length && IsWordPartSeparator(cb.CharAt(pos)))
+			++pos;
+		startChar = cb.CharAt(pos);
+	}
+	if (islower(startChar)) {
+		while (pos < length && islower(cb.CharAt(pos)))
+			++pos;
+	} else if (isupper(startChar)) {
+		if (islower(cb.CharAt(pos + 1))) {
+			++pos;
+			while (pos < length && islower(cb.CharAt(pos)))
+				++pos;
+		} else {
+			while (pos < length && isupper(cb.CharAt(pos)))
+				++pos;
+		}
+		if (islower(cb.CharAt(pos)) && isupper(cb.CharAt(pos - 1)))
+			--pos;
+	} else if (isdigit(startChar)) {
+		while (pos < length && isdigit(cb.CharAt(pos)))
+			++pos;
+	} else if (ispunct(startChar)) {
+		while (pos < length && ispunct(cb.CharAt(pos)))
+			++pos;
+	} else if (isspace(startChar)) {
+		while (pos < length && isspace(cb.CharAt(pos)))
+			++pos;
+	}
+	return pos;
 }

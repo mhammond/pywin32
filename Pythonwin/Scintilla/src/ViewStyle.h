@@ -61,6 +61,7 @@ public:
 	ColourPair caretcolour;
 	ColourPair edgecolour;
 	int edgeState;
+	int caretWidth;
 	
 	ViewStyle();
 	ViewStyle(const ViewStyle &source);

@@ -45,20 +45,19 @@ The current make file only supports static linking between SciTE and Scintilla.
 
 A C++ compiler is required. Mingw32 GCC 2.95.2 is the compiler used
 for most development although Visual C++ and Borland C++ are also supported.
-
-The make command used is 
-For GCC, make
-For VC++, nmake /f makefile_vc
-For Borland C++ 5.02 (MAKE Version 5.0), make -l -fmakefile_bor
-For Borland C++ Builder, make -fmakefile_bor
+For older versions of Borland make such as version 5.02, add the -l option. 
 
 To build Scintilla, make in the scintilla/win32 directory
-	cd scintilla\win32
-	[make command as described above for your compiler]
-	cd ..\..
+		cd scintilla\win32
+GCC:		make
+VC++:	nmake -f scintilla.mak
+Borland: 	make -fscintilla.mak
+		cd ..\..
 	
-To build SciTE, use the makefile located in the scite/win32 directory
-	cd scite\win32
-	[make command as described above for your compiler]
+To build SciTE, use the makefiles located in the scite/win32 directory
+		cd scite\win32
+GCC:		make
+VC++: 	nmake -f scite.mak
+Borland:	make -fscite.mak
 
 An executable SciTE will now be in scite\bin.

@@ -61,10 +61,14 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	Palette palette;
 	int printMagnification;
 	int printColourMode;
-	
+	int cursorMode;
+
+	bool hasFocus;
 	bool hideSelection;
 	bool inOverstrike;
-
+	int errorStatus;
+	bool mouseDownCaptures;
+	
 	// In bufferedDraw mode, graphics operations are drawn to a pixmap and then copied to 
 	// the screen. This avoids flashing but is about 30% slower.
 	bool bufferedDraw;
@@ -178,6 +182,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	void SetSelection(int currentPos_, int anchor_);
 	void SetSelection(int currentPos_);
 	void SetEmptySelection(int currentPos_);
+	int MovePositionOutsideChar(int pos, int moveDir, bool checkLineEnd=true);
 	int MovePositionTo(int newPos, bool extend = false);
 	int MovePositionSoVisible(int pos, int moveDir);
 	void SetLastXChosen();
@@ -227,10 +232,12 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	virtual void NotifyParent(SCNotification scn) = 0;
 	virtual void NotifyStyleToNeeded(int endStyleNeeded);
 	void NotifyChar(char ch);
+	void NotifyMove(int position);
 	void NotifySavePoint(bool isSavePoint);
 	void NotifyModifyAttempt();
 	virtual void NotifyDoubleClick(Point pt, bool shift);
 	void NotifyUpdateUI();
+	void NotifyPainted();
 	bool NotifyMarginClick(Point pt, bool shift, bool ctrl, bool alt);
 	void NotifyNeedShown(int pos, int len);
 	
@@ -268,6 +275,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	char *CopySelectionRange();
 	void CopySelectionIntoDrag();
 	void SetDragPosition(int newPos);
+	void DisplayCursor(Window::Cursor c);
 	virtual void StartDrag();
 	void DropAt(int position, const char *value, bool moving, bool rectangular);
 	// PositionInSelection returns 0 if position in selection, -1 if position before selection, and 1 if after.
@@ -275,6 +283,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	int PositionInSelection(int pos);
 	bool PointInSelection(Point pt);
 	bool PointInSelMargin(Point pt);
+	void LineSelection(int lineCurrent_, int lineAnchor_);
 	virtual void ButtonDown(Point pt, unsigned int curTime, bool shift, bool ctrl, bool alt);
 	void ButtonMove(Point pt);
 	void ButtonUp(Point pt, unsigned int curTime, bool ctrl);
@@ -283,6 +292,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	virtual void SetTicking(bool on) = 0;
 	virtual void SetMouseCapture(bool on) = 0;
 	virtual bool HaveMouseCapture() = 0;
+	void SetFocusState(bool focusState);
 
 	void CheckForChangeOutsidePaint(Range r);
 	int BraceMatch(int position, int maxReStyle);

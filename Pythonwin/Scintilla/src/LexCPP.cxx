@@ -94,7 +94,13 @@ static void ColouriseCppDoc(unsigned int startPos, int length, int initStyle, Wo
 		}
 
 		if (state == SCE_C_DEFAULT) {
-			if (iswordstart(ch)) {
+			if (ch == '@' && chNext == '\"') {
+				styler.ColourTo(i-1, state);
+				state = SCE_C_VERBATIM;
+				i++;
+				ch = chNext;
+				chNext = styler.SafeGetCharAt(i + 1);
+			} else if (iswordstart(ch) || (ch == '@')) {
 				styler.ColourTo(i-1, state);
 				if (lastWordWasUUID) {
 					state = SCE_C_UUID;
@@ -219,6 +225,17 @@ static void ColouriseCppDoc(unsigned int startPos, int length, int initStyle, Wo
 				} else if (ch == '\'') {
 					styler.ColourTo(i, state);
 					state = SCE_C_DEFAULT;
+				}
+			} else if (state == SCE_C_VERBATIM) {
+				if (ch == '\"') {
+					if (chNext == '\"') {
+						i++;
+						ch = chNext;
+						chNext = styler.SafeGetCharAt(i + 1);
+					} else {
+						styler.ColourTo(i, state);
+						state = SCE_C_DEFAULT;
+					}
 				}
 			} else if (state == SCE_C_UUID) {
 				if (ch == '\r' || ch == '\n' || ch == ')') {

@@ -11,9 +11,9 @@
 #include "Platform.h"
 
 #include "Scintilla.h"
+#include "PropSet.h"
 #ifdef SCI_LEXER
 #include "SciLexer.h"
-#include "PropSet.h"
 #include "Accessor.h"
 #include "WindowAccessor.h"
 #include "DocumentAccessor.h"
@@ -60,7 +60,8 @@ void ScintillaBase::RefreshColourPalette(Palette &pal, bool want) {
 
 void ScintillaBase::AddCharUTF(char *s, unsigned int len) {
 	bool acActiveBeforeCharAdded = ac.Active();
-	Editor::AddCharUTF(s, len);
+	if (!acActiveBeforeCharAdded || !ac.IsFillUpChar(*s))
+		Editor::AddCharUTF(s, len);
 	if (acActiveBeforeCharAdded)
 		AutoCompleteChanged(s[0]);
 }
@@ -136,6 +137,9 @@ int ScintillaBase::KeyCommand(unsigned int iMessage) {
 		case SCI_TAB:
 			AutoCompleteCompleted();
 			return 0;
+		case SCI_NEWLINE:
+			AutoCompleteCompleted();
+			return 0;
 
 		default:
 			ac.Cancel();
@@ -166,6 +170,22 @@ void ScintillaBase::AutoCompleteStart(int lenEntered, const char *list) {
 	//Platform::DebugPrintf("AutoComplete %s\n", list);
 	ct.CallTipCancel();
 
+	if (ac.chooseSingle) {
+		if (list && !strchr(list, ac.GetSeparator())) {
+			if (ac.ignoreCase) {
+				SetEmptySelection(currentPos - lenEntered);
+				pdoc->DeleteChars(currentPos, lenEntered);
+				SetEmptySelection(currentPos);
+				pdoc->InsertString(currentPos, list);
+				SetEmptySelection(currentPos + strlen(list));
+			} else {
+				SetEmptySelection(currentPos);
+				pdoc->InsertString(currentPos, list + lenEntered);
+				SetEmptySelection(currentPos + strlen(list + lenEntered));
+			}
+			return;
+		}
+	}
 	ac.Start(wDraw, idAutoComplete, currentPos, lenEntered);
 
 	PRectangle rcClient = GetClientRectangle();
@@ -238,7 +258,9 @@ void ScintillaBase::AutoCompleteMoveToCurrentWord() {
 }
 
 void ScintillaBase::AutoCompleteChanged(char ch) {
-	if (currentPos <= ac.posStart - ac.startLen) {
+	if (ac.IsFillUpChar(ch)) {
+		AutoCompleteCompleted(ch);
+	} else if (currentPos <= ac.posStart - ac.startLen) {
 		ac.Cancel();
 	} else if (ac.cancelAtStartPos && currentPos <= ac.posStart) {
 		ac.Cancel();
@@ -249,20 +271,27 @@ void ScintillaBase::AutoCompleteChanged(char ch) {
 	}
 }
 
-void ScintillaBase::AutoCompleteCompleted() {
+void ScintillaBase::AutoCompleteCompleted(char fillUp/*='\0'*/) {
 	int item = ac.lb.GetSelection();
 	char selected[1000];
 	if (item != -1) {
 		ac.lb.GetValue(item, selected, sizeof(selected));
 	}
 	ac.Cancel();
-	if (currentPos != ac.posStart) {
-		pdoc->DeleteChars(ac.posStart, currentPos - ac.posStart);
+	
+	Position firstPos = ac.posStart - ac.startLen;
+	if (currentPos < firstPos)
+		return;
+	if (currentPos != firstPos) {
+		pdoc->DeleteChars(firstPos, currentPos - firstPos);
 	}
 	SetEmptySelection(ac.posStart);
 	if (item != -1) {
-		pdoc->InsertString(currentPos, selected + ac.startLen);
-		SetEmptySelection(currentPos + strlen(selected + ac.startLen));
+		SString piece = selected;
+		if (fillUp)
+			piece += fillUp;
+		pdoc->InsertString(firstPos, piece.c_str());
+		SetEmptySelection(firstPos + piece.length());
 	}
 }
 
@@ -366,6 +395,24 @@ long ScintillaBase::WndProc(unsigned int iMessage, unsigned long wParam, long lP
 	case SCI_AUTOCGETCANCELATSTART:
 		return ac.cancelAtStartPos;
 
+	case SCI_AUTOCSETFILLUPS:
+		ac.SetFillUpChars(reinterpret_cast<char *>(lParam));
+		break;
+
+	case SCI_AUTOCSETCHOOSESINGLE:
+		ac.chooseSingle = wParam;
+		break;
+
+	case SCI_AUTOCGETCHOOSESINGLE:
+		return ac.chooseSingle;
+		
+	case SCI_AUTOCSETIGNORECASE:
+		ac.ignoreCase = wParam;
+		break;
+		
+	case SCI_AUTOCGETIGNORECASE:
+		return ac.ignoreCase;
+		
 	case SCI_CALLTIPSHOW: {
 			AutoCompleteCancel();
 			if (!ct.wCallTip.Created()) {

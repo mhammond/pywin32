@@ -405,7 +405,15 @@ public:
 		return static_cast<short>(x & 0xffff);
 	}
 	static void DebugPrintf(const char *format, ...);
+	static bool ShowAssertionPopUps(bool assertionPopUps_);
+	static void Assert(const char *c, const char *file, int line);
 	static int Clamp(int val, int minVal, int maxVal);
 };
+
+#ifdef  NDEBUG
+#define PLATFORM_ASSERT(c) ((void)0)
+#else
+#define PLATFORM_ASSERT(c) ((c) ? (void)(0) : Platform::Assert(#c, __FILE__, __LINE__))
+#endif
 
 #endif

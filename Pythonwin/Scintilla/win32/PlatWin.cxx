@@ -147,10 +147,10 @@ class FontCached : Font {
 	FontCached *next;
 	int usage;
 	LOGFONT lf;
-    int hash;
+	int hash;
 	FontCached(const char *faceName_, int characterSet_, int size_, bool bold_, bool italic_);
 	~FontCached() {}
-    bool SameAs(const char *faceName_, int characterSet_, int size_, bool bold_, bool italic_);
+	bool SameAs(const char *faceName_, int characterSet_, int size_, bool bold_, bool italic_);
 	virtual void Release();
 		
 	static FontCached *first;
@@ -516,7 +516,11 @@ void Surface::MeasureWidths(Font &font_, const char *s, int len, int *positions)
 		}
 		positions[i] = sz.cx;
 	} else {
-		::GetTextExtentExPoint(hdc, s, len, 30000, &fit, positions, &sz);
+		if (!::GetTextExtentExPoint(hdc, s, len, 30000, &fit, positions, &sz)) {
+			// Eeek - a NULL DC or other foolishness could cause this.
+			// The least we can do is set the positions to zero!
+			memset(positions, 0, len * sizeof(*positions));
+		}
 	}
 }
 
@@ -873,6 +877,34 @@ void Platform::DebugPrintf(const char *format, ...) {
 void Platform::DebugPrintf(const char *, ...) {
 }
 #endif
+
+static bool assertionPopUps = true;
+
+bool Platform::ShowAssertionPopUps(bool assertionPopUps_) {
+	bool ret = assertionPopUps;
+	assertionPopUps = assertionPopUps_;
+	return ret;
+}
+
+void Platform::Assert(const char *c, const char *file, int line) {
+	char buffer[2000];
+	sprintf(buffer, "Assertion [%s] failed at %s %d", c, file, line);
+	if (assertionPopUps) {
+		int idButton = ::MessageBox(0, buffer, "Assertion failure", 
+			MB_ABORTRETRYIGNORE|MB_ICONHAND|MB_SETFOREGROUND|MB_TASKMODAL);
+		if (idButton == IDRETRY) {
+			::DebugBreak();
+		} else if (idButton == IDIGNORE) {
+			// all OK
+		} else {
+			abort();
+		}
+	} else {
+		strcat(buffer, "\r\n");
+		Platform::DebugDisplay(buffer);
+		abort();
+	}
+}
 
 int Platform::Clamp(int val, int minVal, int maxVal) {
 	if (val > maxVal)
