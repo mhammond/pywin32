@@ -163,7 +163,10 @@ def GetRegisteredHelpFile(helpDesc):
 	try:
 		return GetRegistryDefaultValue(BuildDefaultPythonKey() + "\\Help\\" + helpDesc)
 	except win32api.error:
-		return None
+		try:
+			return GetRegistryDefaultValue(BuildDefaultPythonKey() + "\\Help\\" + helpDesc, win32con.HKEY_CURRENT_USER)
+		except win32api.error:
+			return None
 
 def RegisterHelpFile(helpFile, helpPath, helpDesc = None, bCheckFile = 1):
 	"""Register a help file in the registry.

@@ -53,12 +53,21 @@ def OpenHelpFile(fileName, helpCmd = None, helpArg = None):
 		win32ui.DoWaitCursor(-1)
 
 def ListAllHelpFiles():
+	ret = []
+	ret = _ListAllHelpFilesInRoot(win32con.HKEY_LOCAL_MACHINE)
+	# Ensure we don't get dups.
+	for item in _ListAllHelpFilesInRoot(win32con.HKEY_CURRENT_USER):
+		if item not in ret:
+			ret.append(item)
+	return ret
+
+def _ListAllHelpFilesInRoot(root):
 	"""Returns a list of (helpDesc, helpFname) for all registered help files
 	"""
 	import regutil
 	retList = []
 	try:
-		key = win32api.RegOpenKey(regutil.GetRootKey(), regutil.BuildDefaultPythonKey() + "\\Help", 0, win32con.KEY_READ)
+		key = win32api.RegOpenKey(root, regutil.BuildDefaultPythonKey() + "\\Help", 0, win32con.KEY_READ)
 	except win32api.error, (code, fn, details):
 		import winerror
 		if code!=winerror.ERROR_FILE_NOT_FOUND:
