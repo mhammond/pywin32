@@ -84,11 +84,11 @@ PyObject *PyIFilter::GetChunk(PyObject *self, PyObject *args)
 		obProp = Py_BuildValue("i", stat.attribute.psProperty.propid);
 	}
 
-	PyObject * obAttr = Py_BuildValue("OO", 
+	PyObject * obAttr = Py_BuildValue("NN", 
 									  PyWinObject_FromIID(stat.attribute.guidPropSet),
 									  obProp);
 
-	return Py_BuildValue("iiiiOiii",  stat.idChunk,
+	return Py_BuildValue("iiiiNiii",  stat.idChunk,
 									  stat.breakType,
 									  stat.flags,
 									  stat.locale,
@@ -111,8 +111,7 @@ PyObject *PyIFilter::GetText(PyObject *self, PyObject *args)
 		return NULL;
 
 	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	if (nBufSize <= 0)  
+	if (nBufSize = 0)
 		nBufSize = 8192; // 8k default
 
 	WCHAR *wBuffer = (WCHAR *)PyMem_Malloc((nBufSize+1)*sizeof(WCHAR));
@@ -121,18 +120,18 @@ PyObject *PyIFilter::GetText(PyObject *self, PyObject *args)
 		return NULL;
 	}
 
+	PY_INTERFACE_PRECALL;
 	hr = pIF->GetText( &nBufSize, wBuffer );
 	PY_INTERFACE_POSTCALL;
 
-	PyObject *obRet =  PyWinObject_FromWCHAR(wBuffer, nBufSize);
-
-	PyWinObject_FreeWCHAR(wBuffer);
-
-	if ( FAILED(hr) )
+	if ( FAILED(hr) ) {
+		PyMem_Free(wBuffer);
 		return PyCom_BuildPyException(hr, pIF, IID_IFilter );
-	
-	return obRet;
+	}
 
+	PyObject *obRet =  PyWinObject_FromWCHAR(wBuffer, nBufSize);
+	PyMem_Free(wBuffer);
+	return obRet;
 }
 
 // @pymethod |PyIFilter|GetValue|Description of GetValue.
