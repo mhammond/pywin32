@@ -178,7 +178,7 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 		typelibCLSID, lcid, major, minor  = typelibInfo
 		tlb = pythoncom.LoadRegTypeLib(typelibCLSID, major, minor, lcid)
 		spec = selecttlb.TypelibSpec(typelibCLSID, lcid, major, minor)
-		spec.FromTypelib(tlb, typelibCLSID)
+		spec.FromTypelib(tlb, str(typelibCLSID))
 		typelibs = [(tlb, spec)]
 	elif type(typelibInfo)==types.InstanceType:
 		tlb = pythoncom.LoadRegTypeLib(typelibInfo.clsid, typelibInfo.major, typelibInfo.minor, typelibInfo.lcid)
