@@ -502,6 +502,116 @@ DWORD GetFileTime(
 	FILETIME *OUTPUT // @pyparm <o PyTime>|writeTime||
 );
 
+%{
+static PyObject *PyObject_FromFILEX_INFO(GET_FILEEX_INFO_LEVELS level, void *p)
+{
+	switch (level) {
+		case GetFileExInfoStandard: {
+			WIN32_FILE_ATTRIBUTE_DATA *pa = (WIN32_FILE_ATTRIBUTE_DATA *)p;
+			return Py_BuildValue("iNNNN",
+			             pa->dwFileAttributes,
+						 PyWinObject_FromFILETIME(pa->ftCreationTime),
+						 PyWinObject_FromFILETIME(pa->ftLastAccessTime),
+						 PyWinObject_FromFILETIME(pa->ftLastWriteTime),
+			             PyLong_FromTwoInts(pa->nFileSizeHigh, pa->nFileSizeLow));
+			break;
+		}
+			
+		default:
+			PyErr_Format(PyExc_RuntimeError, "invalid level for FILEEX_INFO");
+			return NULL;
+	}
+	assert(0); // "not reached";
+	return NULL;
+}
+
+static PyObject *_DoGetFileAttributesEx(PyObject *self, PyObject *args, BOOL bUnicode)
+{
+	BOOL ok;
+	PyObject *ret = NULL;
+	PyObject *obName;
+	char *fname = NULL; WCHAR *wname = NULL; // only one of these used.
+	int level = (int)GetFileExInfoStandard;
+	void *buffer = NULL;
+	int nbytes;
+	if (!PyArg_ParseTuple(args, "O|i", &obName, &level))
+		return NULL;
+	if (bUnicode)
+		ok = PyWinObject_AsWCHAR(obName, &wname, FALSE);
+	else
+		ok = PyWinObject_AsString(obName, &fname, FALSE);
+	if (!ok)
+		goto done;
+
+	switch (level) {
+		case GetFileExInfoStandard:
+			nbytes = sizeof WIN32_FILE_ATTRIBUTE_DATA;
+			break;
+		default:
+			PyErr_Format(PyExc_ValueError, "Level '%d' is not supported", level);
+			goto done;
+	}
+	buffer = malloc(nbytes);
+	if (!buffer) {
+		PyErr_Format(PyExc_MemoryError, "Error allocting buffer");
+		goto done;
+	}
+	Py_BEGIN_ALLOW_THREADS
+	ok = bUnicode ? 
+			GetFileAttributesExW(wname, (GET_FILEEX_INFO_LEVELS)level, buffer) :
+			GetFileAttributesEx(fname, (GET_FILEEX_INFO_LEVELS)level, buffer);
+	Py_END_ALLOW_THREADS
+	if (!ok) {
+		PyWin_SetAPIError("GetFileAttributesEx");
+		goto done;
+	}
+	ret = PyObject_FromFILEX_INFO((GET_FILEEX_INFO_LEVELS)level, buffer);
+done:
+	PyWinObject_FreeString(fname);
+	PyWinObject_FreeString(wname);
+	if (buffer) free(buffer);
+	return ret;
+}
+
+// @pyswig tuple|GetFileAttributesEx|Retrieves attributes for a specified file or directory.
+// @pyparm string/unicode|filename||String that specifies a file or directory.
+// Windows NT/2000: In the ANSI version of this function, the name is limited to 
+// MAX_PATH characters. To extend this limit to nearly 32,000 wide characters, 
+// call the Unicode version of the function (<om win32file.GetFileAttributesExW>) and prepend 
+// "\\?\" to the path.
+// @pyparm int|level|GetFileExInfoStandard|An integer that gives the set of attribute information to obtain.
+// See the Win32 SDK documentation for more information.
+// @rdesc The result is a tuple of:
+// @tupleitem 0|int|attributes|File Attributes.  A combination of the win32com.FILE_ATTRIBUTE_* flags.
+// @tupleitem 1|<o PyTime>|creationTime|Specifies when the file or directory was created. 
+// @tupleitem 2|<o PyTime>|lastAccessTime|For a file, specifies when the file was last read from 
+// or written to. For a directory, the structure specifies when the directory was created. For 
+// both files and directories, the specified date will be correct, but the time of day will 
+// always be set to midnight.
+// @tupleitem 3|<o PyTime>|lastWriteTime|For a file, the structure specifies when the file was last 
+// written to. For a directory, the structure specifies when the directory was created.
+// @tupleitem 4|int/long|fileSize|The size of the file. This member has no meaning for directories. 
+// @comm Not all file systems can record creation and last access time and not all file systems record 
+// them in the same manner. For example, on Windows NT FAT, create time has a resolution of 
+// 10 milliseconds, write time has a resolution of 2 seconds, and access time has a resolution 
+// of 1 day (really, the access date). On NTFS, access time has a resolution of 1 hour. 
+// Furthermore, FAT records times on disk in local time, while NTFS records times on disk in UTC, 
+// so it is not affected by changes in time zone or daylight saving time.
+static PyObject *PyGetFileAttributesEx(PyObject *self, PyObject *args)
+{
+	return _DoGetFileAttributesEx(self, args, FALSE);
+}
+// @pyswig tuple|GetFileAttributesEx|Retrieves attributes for a specified file or directory using Unicode paths.
+// @comm See <om win32file.GetFileAttributesEx> for a description of the arguments and return type.
+static PyObject *PyGetFileAttributesExW(PyObject *self, PyObject *args)
+{
+	return _DoGetFileAttributesEx(self, args, TRUE);
+}
+
+%}
+%native(GetFileAttributesEx) PyGetFileAttributesEx;
+%native(GetFileAttributesExW) PyGetFileAttributesExW;
+
 
 %{
 // @pyswig None|SetFileTime|Sets the date and time that a file was created, last accessed, or last modified.
@@ -2130,9 +2240,9 @@ static PyObject *MyWaitCommEvent(PyObject *self, PyObject *args)
 %{
 
 static BOOL (WINAPI *pfnGetVolumeNameForVolumeMountPointW)(LPCWSTR, LPCWSTR, DWORD) = NULL;
-static BOOL (*pfnSetVolumeMountPointW)(LPCWSTR, LPCWSTR) = NULL;
-static BOOL (*pfnDeleteVolumeMountPointW)(LPCWSTR) = NULL;
-static BOOL (*pfnCreateHardLinkW)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES ) = NULL;
+static BOOL (WINAPI *pfnSetVolumeMountPointW)(LPCWSTR, LPCWSTR) = NULL;
+static BOOL (WINAPI *pfnDeleteVolumeMountPointW)(LPCWSTR) = NULL;
+static BOOL (WINAPI *pfnCreateHardLinkW)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES ) = NULL;
 
 #define VOLUME_POINTERS_NON_NULL \
             (pfnGetVolumeNameForVolumeMountPointW != NULL && \
@@ -2153,16 +2263,16 @@ static BOOL _CheckVolumePfns()
         }
 
         FARPROC fp = GetProcAddress(hMod, "GetVolumeNameForVolumeMountPointW");
-        if (fp) pfnGetVolumeNameForVolumeMountPointW = (BOOL (*)(LPCWSTR, LPCWSTR, DWORD))(fp);
+        if (fp) pfnGetVolumeNameForVolumeMountPointW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR, DWORD))(fp);
 
         fp = GetProcAddress(hMod, "SetVolumeMountPointW");
-        if (fp) pfnSetVolumeMountPointW = (BOOL (*)(LPCWSTR, LPCWSTR))(fp);
+        if (fp) pfnSetVolumeMountPointW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR))(fp);
 
         fp = GetProcAddress(hMod, "DeleteVolumeMountPointW");
-        if (fp) pfnDeleteVolumeMountPointW = (BOOL (*)(LPCWSTR))(fp);
+        if (fp) pfnDeleteVolumeMountPointW = (BOOL (WINAPI *)(LPCWSTR))(fp);
 
         fp = GetProcAddress(hMod, "CreateHardLinkW");
-        if (fp) pfnCreateHardLinkW = (BOOL (*)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES))(fp);
+        if (fp) pfnCreateHardLinkW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES))(fp);
 
     }
     return VOLUME_POINTERS_NON_NULL;
