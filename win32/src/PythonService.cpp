@@ -420,8 +420,12 @@ static PyObject *PyPrepareToHostMultiple(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @module servicemanager|A module built in to PythonService.exe (and therefore only available to Python service programs).
-// <nl>The module <o win32service> provides other service facilities.
+// @module servicemanager|A module that interfaces with the Windows Service Control Manager.  While this
+// module can be imported by regular Python programs, it is only useful when used by a Python program
+// hosting a service - and even then is generally used automatically by the Python Service framework.
+// See the pipeTestService sample for an example of using this module.
+// <nl>The module <o win32service> and <o win32serviceutil> provide other facilities for controlling
+// and managing services.
 static struct PyMethodDef servicemanager_functions[] = {
 	{"CoInitializeEx", PyCoInitializeEx, 1}, // @pymeth CoInitializeEx|
 	{"CoUninitialize", PyCoUninitialize, 1}, // @pymeth CoUninitialize|
