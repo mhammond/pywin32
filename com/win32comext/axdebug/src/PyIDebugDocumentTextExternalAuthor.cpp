@@ -45,6 +45,7 @@ PyObject *PyIDebugDocumentTextExternalAuthor::GetPathName(PyObject *self, PyObje
 
 	obpbstrLongName = MakeBstrToObj(pbstrLongName);
 	PyObject *pyretval = Py_BuildValue("Oi", obpbstrLongName, pfIsOriginalFile);
+	Py_XDECREF(obpbstrLongName);
 	SysFreeString(pbstrLongName);
 	return pyretval;
 }
@@ -67,6 +68,7 @@ PyObject *PyIDebugDocumentTextExternalAuthor::GetFileName(PyObject *self, PyObje
 
 	obpbstrShortName = MakeBstrToObj(pbstrShortName);
 	PyObject *pyretval = Py_BuildValue("O", obpbstrShortName);
+	Py_XDECREF(obpbstrShortName);
 	SysFreeString(pbstrShortName);
 	return pyretval;
 }

@@ -408,6 +408,7 @@ PyObject *PyIOleObject::GetUserType(PyObject *self, PyObject *args)
 	obpszUserType = MakeOLECHARToObj(pszUserType);
 	PyObject *pyretval = Py_BuildValue("O", obpszUserType);
 	CoTaskMemFree(pszUserType);
+	Py_XDECREF(obpszUserType);
 	return pyretval;
 }
 

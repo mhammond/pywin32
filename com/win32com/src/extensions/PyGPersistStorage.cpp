@@ -20,6 +20,7 @@ STDMETHODIMP PyGPersistStorage::InitNew(
 	PY_GATEWAY_METHOD;
 	PyObject *obIStorage = PyCom_PyObjectFromIUnknown(pStg, IID_IStorage, TRUE);
 	HRESULT hr=InvokeViaPolicy("IPersistStorage", NULL, "O",obIStorage);
+	Py_XDECREF(obIStorage);
 	return hr;
 }
 
@@ -29,6 +30,7 @@ STDMETHODIMP PyGPersistStorage::Load(
 	PY_GATEWAY_METHOD;
 	PyObject *obIStorage = PyCom_PyObjectFromIUnknown(pStg, IID_IStorage, TRUE);
 	HRESULT hr=InvokeViaPolicy("IPersistStorage", NULL, "O",obIStorage);
+	Py_XDECREF(obIStorage);
 	return hr;
 }
 
@@ -39,6 +41,7 @@ STDMETHODIMP PyGPersistStorage::Save(
 	PY_GATEWAY_METHOD;
 	PyObject *obIStorage = PyCom_PyObjectFromIUnknown(pStgSave, IID_IStorage, TRUE);
 	HRESULT hr=InvokeViaPolicy("IPersistStorage", NULL, "Oi",obIStorage,fSameAsLoad);
+	Py_XDECREF(obIStorage);
 	return hr;
 }
 
@@ -48,6 +51,7 @@ STDMETHODIMP PyGPersistStorage::SaveCompleted(
 	PY_GATEWAY_METHOD;
 	PyObject *obIStorage = PyCom_PyObjectFromIUnknown(pStgNew, IID_IStorage, TRUE);
 	HRESULT hr=InvokeViaPolicy("IPersistStorage", NULL, "O",obIStorage);
+	Py_XDECREF(obIStorage);
 	return hr;
 }
 

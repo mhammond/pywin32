@@ -151,6 +151,7 @@ PyObject *PyIPersistFile::GetCurFile(PyObject *self, PyObject *args)
 
 	obppszFileName = MakeOLECHARToObj(ppszFileName);
 	PyObject *pyretval = Py_BuildValue("O", obppszFileName);
+	Py_XDECREF(obppszFileName);
 	CoTaskMemFree(ppszFileName);
 	return pyretval;
 }

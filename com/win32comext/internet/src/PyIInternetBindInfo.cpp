@@ -88,6 +88,7 @@ PyObject *PyIInternetBindInfo::GetBindString(PyObject *self, PyObject *args)
 	obppwzStr = MakeOLECHARToObj(ppwzStr);
 
 	PyObject *pyretval = Py_BuildValue("Oi", obppwzStr, pcElFetched);
+	Py_XDECREF(obppwzStr);
 	CoTaskMemFree(ppwzStr);
 	return pyretval;
 ***/

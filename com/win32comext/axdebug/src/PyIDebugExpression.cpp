@@ -107,6 +107,7 @@ PyObject *PyIDebugExpression::GetResultAsString(PyObject *self, PyObject *args)
 
 	obpbstrResult = MakeBstrToObj(pbstrResult);
 	PyObject *pyretval = Py_BuildValue("iO", phrResult, obpbstrResult);
+	Py_XDECREF(obpbstrResult);
 	SysFreeString(pbstrResult);
 	return pyretval;
 }

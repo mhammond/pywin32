@@ -232,6 +232,7 @@ PyObject *PyIRemoteDebugApplication::GetName(PyObject *self, PyObject *args)
 
 	PyObject *obpbstrName = MakeBstrToObj(pbstrName);
 	PyObject *pyretval = Py_BuildValue("O", obpbstrName);
+	Py_XDECREF(obpbstrName);
 	SysFreeString(pbstrName);
 	return pyretval;
 }

@@ -118,7 +118,9 @@ PyObject *PyIRemoteDebugApplicationThread::GetDescription(PyObject *self, PyObje
 	obpbstrDescription = MakeBstrToObj(pbstrDescription);
 	obpbstrState = MakeBstrToObj(pbstrState);
 	PyObject *pyretval = Py_BuildValue("OO", obpbstrDescription, obpbstrState);
+	Py_XDECREF(obpbstrDescription);
 	SysFreeString(pbstrDescription);
+	Py_XDECREF(obpbstrState);
 	SysFreeString(pbstrState);
 	return pyretval;
 }

@@ -251,6 +251,7 @@ PyObject *PyObject_FromSTATPROPSETSTG(STATPROPSETSTG *pStg)
 	PyObject *obctime = PyWinObject_FromFILETIME(pStg->ctime);
 	PyObject *obatime = PyWinObject_FromFILETIME(pStg->atime);
 	PyObject *ret = Py_BuildValue("lOiOOO", pStg->fmtid, obclsid, pStg->grfFlags, obmtime, obctime, obatime);
+	Py_XDECREF(obclsid);
 	Py_XDECREF(obmtime);
 	Py_XDECREF(obctime);
 	Py_XDECREF(obatime);

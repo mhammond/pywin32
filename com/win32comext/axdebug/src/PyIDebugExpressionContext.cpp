@@ -90,6 +90,7 @@ PyObject *PyIDebugExpressionContext::GetLanguageInfo(PyObject *self, PyObject *a
 	obpLanguageID = PyWinObject_FromIID(pLanguageID);
 	PyObject *pyretval = Py_BuildValue("OO", obpbstrLanguageName, obpLanguageID);
 	SysFreeString(pbstrLanguageName);
+	Py_XDECREF(obpbstrLanguageName);
 	Py_XDECREF(obpLanguageID);
 	return pyretval;
 }
