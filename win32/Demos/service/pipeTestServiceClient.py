@@ -52,6 +52,7 @@ def testClient(server,msg):
     data = CallPipe(CallNamedPipe, ("\\\\%s\\pipe\\PyPipeTest" % server, msg, 256, NMPWAIT_WAIT_FOREVER))
     if verbose:
         print "Server sent back '%s'" % data
+    print "Sent and received a message!"
 
 def testLargeMessage(server, size = 4096):
     if verbose:
@@ -110,6 +111,7 @@ def main():
         print "Usage: %s [-v] [-s server] [-t thread_count=0] [-m msg_count=500] msg ..." % my_name
         print "       -v = verbose"
         print "       Specifying a value for -t will stress test using that many threads."
+        return
     testClient(server, msg)
     if thread_count > 0:
         print "Spawning %d threads each sending %d messages..." % (thread_count, msg_count)
