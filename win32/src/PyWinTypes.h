@@ -2,6 +2,18 @@
 #ifndef __PYWINTYPES_H__
 #define __PYWINTYPES_H__
 
+/* DAA: restore macros for building under CE */
+#ifndef IN
+#define IN
+#endif
+#ifdef OUT
+#undef OUT
+#endif
+#ifndef OUT
+#define OUT
+#endif
+
+
 #ifdef FREEZE_PYWINTYPES
 	/* The pywintypes module is being included in a frozen .EXE/.DLL */
 #	define PYWINTYPES_EXPORT
