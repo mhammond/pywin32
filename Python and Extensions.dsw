@@ -423,7 +423,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "python15"="..\Python-cvs\PCbuild\python15.dsp" - Package Owner=<4>
+Project: "python16"="..\Python-cvs\PCbuild\python16.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
