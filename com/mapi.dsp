@@ -91,10 +91,74 @@ LINK32=link.exe
 
 # Name "mapi - Win32 Release"
 # Name "mapi - Win32 Debug"
+# Begin Group "Swigged"
+
+# PROP Default_Filter "*.cpp"
 # Begin Source File
 
 SOURCE=.\win32comext\mapi\src\mapi.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\mapi\src\PyIABContainer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\mapi\src\PyIAddrBook.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\mapi\src\PyIAttach.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\mapi\src\PyIDistList.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\mapi\src\PyIMailUser.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\mapi\src\PyIMAPIContainer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\mapi\src\PyIMAPIFolder.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\mapi\src\PyIMAPIProp.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\mapi\src\PyIMAPISession.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\mapi\src\PyIMAPITable.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\mapi\src\PyIMessage.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\mapi\src\PyIMsgServiceAdmin.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\mapi\src\PyIMsgStore.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\mapi\src\PyIProfAdmin.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\mapi\src\PyIProfSect.cpp
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=.\win32comext\mapi\src\mapi.i
@@ -104,11 +168,10 @@ SOURCE=.\win32comext\mapi\src\mapi.i
 USERDEP__MAPI_=".\win32comext\mapi\src\mapilib.i"	
 # Begin Custom Build - Invoking SWIG...
 InputDir=.\win32comext\mapi\src
-TargetName=mapi
 InputPath=.\win32comext\mapi\src\mapi.i
 InputName=mapi
 
-"$(InputDir)\$(TargetName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	cd $(InputDir) 
 	%SWIG_EXE% -dnone -python -c++ -o $(InputName).cpp $(InputName).i 
 	
@@ -144,10 +207,6 @@ SOURCE=.\win32comext\mapi\src\mapilib.i
 
 SOURCE=.\win32comext\mapi\src\mapiutil.cpp
 # SUBTRACT CPP /YX
-# End Source File
-# Begin Source File
-
-SOURCE=.\win32comext\mapi\src\PyIABContainer.cpp
 # End Source File
 # Begin Source File
 
@@ -196,10 +255,6 @@ BuildCmds= \
 # End Source File
 # Begin Source File
 
-SOURCE=.\win32comext\mapi\src\PyIAddrBook.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\win32comext\mapi\src\PyIAddrBook.i
 
 !IF  "$(CFG)" == "mapi - Win32 Release"
@@ -242,10 +297,6 @@ BuildCmds= \
 
 !ENDIF 
 
-# End Source File
-# Begin Source File
-
-SOURCE=.\win32comext\mapi\src\PyIAttach.cpp
 # End Source File
 # Begin Source File
 
@@ -296,10 +347,6 @@ BuildCmds= \
 # End Source File
 # Begin Source File
 
-SOURCE=.\win32comext\mapi\src\PyIDistList.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\win32comext\mapi\src\PyIDistList.i
 
 !IF  "$(CFG)" == "mapi - Win32 Release"
@@ -345,10 +392,6 @@ BuildCmds= \
 # End Source File
 # Begin Source File
 
-SOURCE=.\win32comext\mapi\src\PyIMailUser.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\win32comext\mapi\src\PyIMailUser.i
 
 !IF  "$(CFG)" == "mapi - Win32 Release"
@@ -391,10 +434,6 @@ BuildCmds= \
 
 !ENDIF 
 
-# End Source File
-# Begin Source File
-
-SOURCE=.\win32comext\mapi\src\PyIMAPIContainer.cpp
 # End Source File
 # Begin Source File
 
@@ -445,10 +484,6 @@ BuildCmds= \
 # End Source File
 # Begin Source File
 
-SOURCE=.\win32comext\mapi\src\PyIMAPIFolder.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\win32comext\mapi\src\PyIMAPIFolder.i
 
 !IF  "$(CFG)" == "mapi - Win32 Release"
@@ -493,10 +528,6 @@ BuildCmds= \
 
 !ENDIF 
 
-# End Source File
-# Begin Source File
-
-SOURCE=.\win32comext\mapi\src\PyIMAPIProp.cpp
 # End Source File
 # Begin Source File
 
@@ -547,10 +578,6 @@ BuildCmds= \
 # End Source File
 # Begin Source File
 
-SOURCE=.\win32comext\mapi\src\PyIMAPISession.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\win32comext\mapi\src\PyIMAPISession.i
 
 !IF  "$(CFG)" == "mapi - Win32 Release"
@@ -595,10 +622,6 @@ BuildCmds= \
 
 !ENDIF 
 
-# End Source File
-# Begin Source File
-
-SOURCE=.\win32comext\mapi\src\PyIMAPITable.cpp
 # End Source File
 # Begin Source File
 
@@ -649,10 +672,6 @@ BuildCmds= \
 # End Source File
 # Begin Source File
 
-SOURCE=.\win32comext\mapi\src\PyIMessage.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\win32comext\mapi\src\PyIMessage.i
 
 !IF  "$(CFG)" == "mapi - Win32 Release"
@@ -700,10 +719,6 @@ BuildCmds= \
 # End Source File
 # Begin Source File
 
-SOURCE=.\win32comext\mapi\src\PyIMsgServiceAdmin.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\win32comext\mapi\src\PyIMsgServiceAdmin.i
 
 !IF  "$(CFG)" == "mapi - Win32 Release"
@@ -746,10 +761,6 @@ BuildCmds= \
 
 !ENDIF 
 
-# End Source File
-# Begin Source File
-
-SOURCE=.\win32comext\mapi\src\PyIMsgStore.cpp
 # End Source File
 # Begin Source File
 
@@ -800,10 +811,6 @@ BuildCmds= \
 # End Source File
 # Begin Source File
 
-SOURCE=.\win32comext\mapi\src\PyIProfAdmin.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\win32comext\mapi\src\PyIProfAdmin.i
 
 !IF  "$(CFG)" == "mapi - Win32 Release"
@@ -848,10 +855,6 @@ BuildCmds= \
 
 !ENDIF 
 
-# End Source File
-# Begin Source File
-
-SOURCE=.\win32comext\mapi\src\PyIProfSect.cpp
 # End Source File
 # Begin Source File
 
