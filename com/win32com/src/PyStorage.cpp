@@ -156,6 +156,7 @@ PyObject *pythoncom_StgOpenStorage(PyObject *self, PyObject *args)
 // @pymethod <o PyIStorage>|pythoncom|StgOpenStorageEx|Advanced version of StgOpenStorage, win2k or better
 PyObject *pythoncom_StgOpenStorageEx(PyObject *self, PyObject *args)
 {
+#ifndef NO_PYCOM_STGOPENSTORAGEEX
 	typedef HRESULT (WINAPI *PFNStgOpenStorageEx)(WCHAR *, DWORD, DWORD, DWORD, 
 						STGOPTIONS *, void *, REFIID, void **);;
 	static PFNStgOpenStorageEx myStgOpenStorageEx = NULL;
@@ -203,6 +204,9 @@ PyObject *pythoncom_StgOpenStorageEx(PyObject *self, PyObject *args)
 	if (FAILED(err))
 		return PyCom_BuildPyException(err);
 	return PyCom_PyObjectFromIUnknown((IUnknown *)intptr, riid, FALSE);
+#else
+	return PyErr_Format(PyExc_NotImplementedError,"StgOpenStorageEx not supported by this version of Windows");
+#endif // NO_PYCOM_STGOPENSTORAGEEX	
 }
 
 
