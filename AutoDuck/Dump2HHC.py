@@ -14,6 +14,7 @@ Add support for merging in non-autoduck'd comments into HTML Help files.
 
 g_dModules = {}
 g_dObject = {}
+g_dOverviewTopics = {}
 
 class topic:
     def __init__(self):
@@ -45,7 +46,9 @@ def parseTopics(input):
     # \ttagname
     # \t\tfield1\tfield2\t......
     # repeat tag/field section until the next topicname\tcontext line.
-    
+
+    # tagnames we care about:
+    lTags = ["module", "object", "topic"]
     line = input.readline()
     if line == '':
         return None
@@ -66,7 +69,7 @@ def parseTopics(input):
         assert len(fields) == 2
         assert len(fields[0]) == 0
         top.type = fields[1]
-        if not (top.type == "module" or top.type == "object"):
+        if top.type not in lTags:
             # Skip the property fields line for module/object
             line = input.readline()
             line = line[:-1]
@@ -95,11 +98,13 @@ def parseTopics(input):
         else:
             # add to modules or object
             if top.type == "module":
-                d = g_dModules
+              d = g_dModules
             elif top.type == "object":
-                d = g_dObject
+              d = g_dObject
+            elif top.type == "topic":
+              d = g_dOverviewTopics
 
-            assert not d.has_key(top.name), "Duplicate named module/object detected: " + top.name
+            assert not d.has_key(top.name), "Duplicate named module/object/topic detected: " + top.name
 
             # Skip the property fields line for module/object
             line = input.readline()
@@ -170,25 +175,55 @@ def genTOC(output, title, target):
 <!-- Sitemap 1.0 -->
 </HEAD><BODY>
 <OBJECT type="text/site properties">
-	<param name="ImageType" value="Folder">
+    <param name="ImageType" value="Folder">
 </OBJECT>
 <UL>
-	<LI> <OBJECT type="text/sitemap">
-		<param name="Name" value="%(title)s">
-		<param name="ImageNumber" value="1">
+    <LI> <OBJECT type="text/sitemap">
+        <param name="Name" value="%(title)s">
+        <param name="ImageNumber" value="1">
         <param name="Local" value="%(CHM)s%(target)s.html">
-		</OBJECT>
+        </OBJECT>
     <UL>
     <LI> <OBJECT type="text/sitemap">
          <param name="Name" value="Overviews">
          <param name="ImageNumber" value="1">
          <param name="Local" value="%(CHM)soverviews.html">
          </OBJECT>
-	<LI> <OBJECT type="text/sitemap">
-		<param name="Name" value="Modules">
-		<param name="ImageNumber" value="1">
+    <UL>
+''' % {"title" : title, "target" : target, "CHM" : CHM})
+    keys = g_dOverviewTopics.keys()
+    keys.sort()
+    for k in keys:
+      context = g_dOverviewTopics[k].context
+      output.write('''
+        <LI> <OBJECT type="text/sitemap">
+             <param name="Name" value="%s">
+             <param name="ImageNumber" value="1">
+             <param name="Local" value="%s%s.html">
+             </OBJECT>
+      ''' % (g_dOverviewTopics[k].name, CHM, g_dOverviewTopics[k].context))
+      if len(g_dOverviewTopics[k].contains) > 0:
+        output.write("<UL>")
+      containees = copy.copy(g_dOverviewTopics[k].contains)
+      containees.sort(TopicCmp)
+      for m in containees:
+        context = m.context
+        output.write('''
+        <LI><OBJECT type="text/sitemap">
+             <param name="Name" value="%s">
+             <param name="ImageNumber" value="11">
+             <param name="Local" value="%s%s.html">
+            </OBJECT>''' % (m.name, CHM, m.context))
+      if len(g_dOverviewTopics[k].contains) > 0:
+        output.write('''
+        </UL>''')
+    output.write('''
+    </UL>
+    <LI> <OBJECT type="text/sitemap">
+        <param name="Name" value="Modules">
+        <param name="ImageNumber" value="1">
         <param name="Local" value="%(CHM)smodules.html">
-		</OBJECT>
+        </OBJECT>
     <UL>
 ''' % {"title" : title, "target" : target, "CHM" : CHM})
     keys = g_dModules.keys()
@@ -196,7 +231,7 @@ def genTOC(output, title, target):
     for k in keys:
         context = g_dModules[k].context
         output.write('''
-	    <LI> <OBJECT type="text/sitemap">
+        <LI> <OBJECT type="text/sitemap">
              <param name="Name" value="%s">
              <param name="ImageNumber" value="1">
              <param name="Local" value="%s%s.html">
@@ -209,28 +244,28 @@ def genTOC(output, title, target):
         for m in containees:
             context = m.context
             output.write('''
-		    <LI> <OBJECT type="text/sitemap">
-			     <param name="Name" value="%s">
-			     <param name="ImageNumber" value="11">
-			     <param name="Local" value="%s%s.html">
-			     </OBJECT>''' % (m.name, CHM, m.context))
+            <LI> <OBJECT type="text/sitemap">
+                 <param name="Name" value="%s">
+                 <param name="ImageNumber" value="11">
+                 <param name="Local" value="%s%s.html">
+                 </OBJECT>''' % (m.name, CHM, m.context))
         if len(g_dModules[k].contains) > 0:
             output.write('''
         </UL>''')
     output.write('''
     </UL>
-	<LI> <OBJECT type="text/sitemap">
-		<param name="Name" value="Objects">
-		<param name="ImageNumber" value="1">
+    <LI> <OBJECT type="text/sitemap">
+        <param name="Name" value="Objects">
+        <param name="ImageNumber" value="1">
         <param name="Local" value="%sobjects.html">
-		</OBJECT>
+        </OBJECT>
     <UL>''' % CHM)
     keys = g_dObject.keys()
     keys.sort()
     for k in keys:
         context = g_dObject[k].context
         output.write('''
-	    <LI> <OBJECT type="text/sitemap">
+        <LI> <OBJECT type="text/sitemap">
              <param name="Name" value="%s">
              <param name="ImageNumber" value="1">
              <param name="Local" value="%s%s.html">
@@ -246,14 +281,14 @@ def genTOC(output, title, target):
             else:
                 context = m.context
             output.write('''
-		    <LI> <OBJECT type="text/sitemap">
-			     <param name="Name" value="%s">
-			     <param name="Local" value="%s%s.html">
-			     <param name="ImageNumber" value="11">
-			     </OBJECT>''' % (m.name, CHM, context))
+            <LI> <OBJECT type="text/sitemap">
+                 <param name="Name" value="%s">
+                 <param name="Local" value="%s%s.html">
+                 <param name="ImageNumber" value="11">
+                 </OBJECT>''' % (m.name, CHM, context))
         if len(g_dObject[k].contains) > 0:
             output.write('''
-	    </UL>''')
+        </UL>''')
     output.write('''
     </UL>
     <LI> <OBJECT type="text/sitemap">
