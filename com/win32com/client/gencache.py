@@ -27,6 +27,8 @@ import glob
 import traceback
 import CLSIDToClass
 
+bForDemandDefault = False # Default value of bForDemand - toggle this to change the world - see also makepy.py
+
 # The global dictionary
 clsidToTypelib = {}
 
@@ -83,7 +85,8 @@ def GetGeneratePath():
 	Checks the directory is OK.
 	"""
 	try:
-		os.mkdir(win32com.__gen_path__)
+		os.makedirs(win32com.__gen_path__)
+		#os.mkdir(win32com.__gen_path__)
 	except os.error:
 		pass
 	try:
@@ -209,7 +212,7 @@ def GetModuleForTypelib(typelibCLSID, lcid, major, minor):
 	modName = GetGeneratedFileName(typelibCLSID, lcid, major, minor)
 	return _GetModule(modName)
 
-def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = None, bGUIProgress = None, bForDemand = 0, bBuildHidden = 1):
+def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = None, bGUIProgress = None, bForDemand = bForDemandDefault, bBuildHidden = 1):
 	"""Generate support for a type library.
 	
 	Given the IID, LCID and version information for a type library, generate
@@ -235,7 +238,7 @@ def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = No
 		return None
 	return GetModuleForTypelib(typelibCLSID, lcid, major, minor)
 
-def MakeModuleForTypelibInterface(typelib_ob, progressInstance = None, bForDemand = 0, bBuildHidden = 1):
+def MakeModuleForTypelibInterface(typelib_ob, progressInstance = None, bForDemand = bForDemandDefault, bBuildHidden = 1):
 	"""Generate support for a type library.
 	
 	Given a PyITypeLib interface generate and import the necessary support files.  This is useful
@@ -251,7 +254,7 @@ def MakeModuleForTypelibInterface(typelib_ob, progressInstance = None, bForDeman
 	"""
 	import makepy
 	try:
-		makepy.GenerateFromTypeLibSpec( typelib_ob, progressInstance=progressInstance, bForDemand = bForDemand, bBuildHidden = bBuildHidden)
+		makepy.GenerateFromTypeLibSpec( typelib_ob, progressInstance=progressInstance, bForDemand = bForDemandDefault, bBuildHidden = bBuildHidden)
 	except pywintypes.com_error:
 		return None
 	tla = typelib_ob.GetLibAttr()
@@ -261,7 +264,7 @@ def MakeModuleForTypelibInterface(typelib_ob, progressInstance = None, bForDeman
 	minor = tla[4]
 	return GetModuleForTypelib(guid, lcid, major, minor)
 
-def EnsureModuleForTypelibInterface(typelib_ob, progressInstance = None, bForDemand = 0, bBuildHidden = 1):
+def EnsureModuleForTypelibInterface(typelib_ob, progressInstance = None, bForDemand = bForDemandDefault, bBuildHidden = 1):
 	"""Check we have support for a type library, generating if not.
 	
 	Given a PyITypeLib interface generate and import the necessary
@@ -309,7 +312,7 @@ def ForgetAboutTypelibInterface(typelib_ob):
 
 
 
-def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bValidateFile=1, bForDemand = 0, bBuildHidden = 1):
+def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bValidateFile=1, bForDemand = bForDemandDefault, bBuildHidden = 1):
 	"""Ensure Python support is loaded for a type library, generating if necessary.
 	
 	Given the IID, LCID and version information for a type library, check and if
