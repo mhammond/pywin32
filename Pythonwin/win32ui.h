@@ -146,6 +146,7 @@ public:
 
 PYW_EXPORT ui_type_CObject &UITypeFromCObject( CObject *ob );
 PYW_EXPORT ui_type_CObject &UITypeFromHWnd( HWND hwnd );
+PYW_EXPORT ui_type_CObject *UITypeFromName( const char *name );
 
 CString GetReprText( PyObject *objectUse );
 
