@@ -18,7 +18,7 @@ Example:
   the easiest way is often to simply use PerfMon to find out the names.
 """
 
-import win32pdh, string
+import win32pdh, string, time
 
 error = win32pdh.error
 
@@ -83,6 +83,10 @@ def ShowAllProcesses():
 			for item in items:
 				path = win32pdh.MakeCounterPath( (None,object,instance, None, inum, item) )
 				hcs.append(win32pdh.AddCounter(hq, path))
+			win32pdh.CollectQueryData(hq)
+			# as per http://support.microsoft.com/default.aspx?scid=kb;EN-US;q262938, some "%" based
+			# counters need two collections
+			time.sleep(0.01)
 			win32pdh.CollectQueryData(hq)
 			print "%-15s\t" % (instance[:15]),
 			for hc in hcs:
