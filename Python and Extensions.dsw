@@ -7,10 +7,6 @@ Project: "Active Debugging"=".\com\Active Debugging.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/com/win32comext/axdebug", TKAAAAAA
-    .\com\win32comext\axdebug\src
-    end source code control
 }}}
 
 Package=<4>
@@ -32,10 +28,6 @@ Project: "Active Scripting"=".\com\Active Scripting.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/com/win32comext/axscript", RJAAAAAA
-    .\com\win32comext\axscript\src
-    end source code control
 }}}
 
 Package=<4>
@@ -54,10 +46,6 @@ Project: "PyWinTypes"=.\win32\PyWinTypes.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", CDAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -70,10 +58,6 @@ Project: "PythonService EXE"=".\win32\PythonService EXE.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", YFAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -89,10 +73,6 @@ Project: "_All Pythonwin"=".\Pythonwin\_All Pythonwin.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/Pythonwin", OOAAAAAA
-    .\pythonwin
-    end source code control
 }}}
 
 Package=<4>
@@ -162,10 +142,6 @@ Project: "_win32 projects"=".\win32\_win32 projects.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", IOAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -248,6 +224,12 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name win32clipboard
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32popenWin9x
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32help
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -256,10 +238,6 @@ Project: "axcontrol"=.\com\axcontrol.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/com/win32comext/axcontrol", LFCAAAAA
-    .\com\win32comext\axcontrol
-    end source code control
 }}}
 
 Package=<4>
@@ -275,10 +253,6 @@ Project: "dbi"=.\win32\dbi.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", MJAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -291,10 +265,6 @@ Project: "dde"=.\win32\dde.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", EJAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -310,10 +280,6 @@ Project: "exchange"=.\com\exchange.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/com/win32comext/mapi", WHAAAAAA
-    .\com\win32comext\mapi
-    end source code control
 }}}
 
 Package=<4>
@@ -344,10 +310,6 @@ Project: "internet"=.\com\internet.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/com/win32comext/internet", QGCAAAAA
-    .\com\win32comext\internet
-    end source code control
 }}}
 
 Package=<4>
@@ -363,10 +325,6 @@ Project: "mapi"=.\com\mapi.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/com/win32comext/mapi", WHAAAAAA
-    .\com\win32comext\mapi
-    end source code control
 }}}
 
 Package=<4>
@@ -385,10 +343,6 @@ Project: "mmapfile"=.\win32\mmapfile.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", NNAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -401,10 +355,6 @@ Project: "odbc"=.\win32\odbc.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", RNAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -435,10 +385,6 @@ Project: "perfmondata"=.\win32\perfmondata.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32/PerfMon", PNCAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -475,10 +421,6 @@ Project: "pythonwin"=.\Pythonwin\pythonwin.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/Pythonwin/pythonwin", FTAAAAAA
-    .\pythonwin
-    end source code control
 }}}
 
 Package=<4>
@@ -491,10 +433,6 @@ Project: "shell"=.\com\shell.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/com/win32comext/shell", FOCAAAAA
-    .\com\win32comext\shell
-    end source code control
 }}}
 
 Package=<4>
@@ -510,10 +448,6 @@ Project: "timer"=.\win32\timer.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", VNAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -526,10 +460,6 @@ Project: "win32api"=.\win32\win32api.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", MEAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -560,10 +490,6 @@ Project: "win32com"=.\com\win32com.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/com/win32com", SAAAAAAA
-    .\com\win32com
-    end source code control
 }}}
 
 Package=<4>
@@ -579,10 +505,6 @@ Project: "win32event"=.\win32\win32event.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", DGAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -598,10 +520,6 @@ Project: "win32evtlog"=.\win32\win32evtlog.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", IGAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -617,10 +535,6 @@ Project: "win32file"=.\win32\win32file.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", OGAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -648,10 +562,6 @@ Project: "win32help"=.\win32\win32help.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", VNAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -667,10 +577,6 @@ Project: "win32lz"=.\win32\win32lz.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", TAAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -683,10 +589,6 @@ Project: "win32net"=.\win32\win32net.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", NHAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -702,10 +604,6 @@ Project: "win32pdh"=.\win32\win32pdh.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", JHAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -721,10 +619,6 @@ Project: "win32pipe"=.\win32\win32pipe.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", DHAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -736,14 +630,22 @@ Package=<4>
 
 ###############################################################################
 
+Project: "win32popenWin9x"=.\win32\win32popenWin9x.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "win32print"=.\win32\win32print.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32/win32print", AUBAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -759,10 +661,6 @@ Project: "win32process"=.\win32\win32process.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", OGAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -775,10 +673,6 @@ Project: "win32ras"=.\win32\win32ras.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", RHAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -791,10 +685,6 @@ Project: "win32security"=.\win32\win32security.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", DOAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -810,10 +700,6 @@ Project: "win32service"=.\win32\win32service.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", TGAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -829,10 +715,6 @@ Project: "win32trace"=.\win32\win32trace.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", ZGAAAAAA
-    .\win32
-    end source code control
 }}}
 
 Package=<4>
@@ -848,10 +730,6 @@ Project: "win32ui"=.\Pythonwin\win32ui.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/Pythonwin/win32ui", POAAAAAA
-    .\pythonwin
-    end source code control
 }}}
 
 Package=<4>
@@ -867,10 +745,6 @@ Project: "win32uiole"=.\Pythonwin\win32uiole.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/Pythonwin/win32uiole", XSAAAAAA
-    .\pythonwin
-    end source code control
 }}}
 
 Package=<4>
@@ -892,14 +766,13 @@ Project: "win32wnet"=.\win32\win32wnet.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/Python/win32", CAAAAAAA
-    .
-    end source code control
 }}}
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
 }}}
 
 ###############################################################################
