@@ -10,6 +10,7 @@
 #include "winsock2.h"
 #include "mswsock.h"
 #endif
+
 %}
 
 %include "typemaps.i"
@@ -297,6 +298,7 @@ PyObject *MyDeviceIoControl(PyObject *self, PyObject *args)
 }
 %}
 
+%native (OVERLAPPED) PyWinMethod_NewOVERLAPPED;
 %native(DeviceIoControl) MyDeviceIoControl;
 
 
@@ -595,7 +597,7 @@ PyObject *MyWriteFile(PyObject *self, PyObject *args)
 	PyObject *obOverlapped = NULL;
 	PyBufferProcs *pb = NULL;
 
-	if (!PyArg_ParseTuple(args, "OO|O:Write", 
+	if (!PyArg_ParseTuple(args, "OO|O:WriteFile", 
 		&obhFile, // @pyparm <o PyHANDLE>/int|hFile||Handle to the file
 		&obWriteData, // @pyparm string/<o PyOVERLAPPEDReadBuffer>|data||The data to write.
 		&obOverlapped))	// @pyparm <o PyOVERLAPPED>|ol|None|An overlapped structure
@@ -1615,3 +1617,323 @@ Error:
 #define FD_ADDRESS_LIST_CHANGE FD_ADDRESS_LIST_CHANGE
 
 #endif // MS_WINCE
+
+// The communications related functions.
+// The COMM port enhancements were added by Mark Hammond, and are
+// (c) 2000, ActiveState Tools Corp.
+
+%{
+// The comms port helpers.
+extern PyObject *PyWinObject_FromCOMSTAT(const COMSTAT *pCOMSTAT);
+extern BOOL PyWinObject_AsCOMSTAT(PyObject *ob, COMSTAT **ppCOMSTAT, BOOL bNoneOK = TRUE);
+extern BOOL PyWinObject_AsDCB(PyObject *ob, DCB **ppDCB, BOOL bNoneOK = TRUE);
+extern PyObject *PyWinObject_FromDCB(const DCB *pDCB);
+extern PyObject *PyWinMethod_NewDCB(PyObject *self, PyObject *args);
+extern PyObject *PyWinObject_FromCOMMTIMEOUTS( COMMTIMEOUTS *p);
+extern BOOL PyWinObject_AsCOMMTIMEOUTS( PyObject *ob, COMMTIMEOUTS *p);
+
+%}
+
+%native (DCB) PyWinMethod_NewDCB;
+
+%typemap(python,in) DCB *
+{
+	if (!PyWinObject_AsDCB($source, &$target, TRUE))
+		return NULL;
+}
+%typemap(python,argout) DCB *OUTPUT {
+    PyObject *o;
+    o = PyWinObject_FromDCB($source);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
+      Py_DECREF(Py_None);
+      $target = o;
+    } else {
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
+	Py_XDECREF(o2);
+      }
+      PyList_Append($target,o);
+      Py_XDECREF(o);
+    }
+}
+%typemap(python,ignore) DCB *OUTPUT(DCB temp)
+{
+  $target = &temp;
+  $target->DCBlength = sizeof( DCB ) ;
+}
+
+%typemap(python,in) COMSTAT *
+{
+	if (!PyWinObject_AsCOMSTAT($source, &$target, TRUE))
+		return NULL;
+}
+%typemap(python,argout) COMSTAT *OUTPUT {
+    PyObject *o;
+    o = PyWinObject_FromCOMSTAT(*$source);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
+      Py_DECREF(Py_None);
+      $target = o;
+    } else {
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
+	Py_XDECREF(o2);
+      }
+      PyList_Append($target,o);
+      Py_XDECREF(o);
+    }
+}
+%typemap(python,ignore) COMSTAT *OUTPUT(COMSTAT temp)
+{
+  $target = &temp;
+}
+
+
+%typemap(python,in) COMMTIMEOUTS *(COMMTIMEOUTS temp)
+{
+	$target = &temp;
+	if (!PyWinObject_AsCOMMTIMEOUTS($source, $target))
+		return NULL;
+}
+
+%typemap(python,argout) COMMTIMEOUTS *OUTPUT {
+    PyObject *o;
+    o = PyWinObject_FromCOMMTIMEOUTS($source);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
+      Py_DECREF(Py_None);
+      $target = o;
+    } else {
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
+	Py_XDECREF(o2);
+      }
+      PyList_Append($target,o);
+      Py_XDECREF(o);
+    }
+}
+%typemap(python,ignore) COMMTIMEOUTS *OUTPUT(COMMTIMEOUTS temp)
+{
+  $target = &temp;
+}
+
+
+// @pyswig <o PyDCB>|BuildCommDCB|Fills the specified DCB structure with values specified in a device-control string. The device-control string uses the syntax of the mode command
+BOOLAPI BuildCommDCB(
+  TCHAR *lpDef,  // @pyparm string|def||device-control string
+  DCB *OUTOUT     // @pyparm <o PyDCB>|dcb||The device-control block
+);
+
+%{
+// @pyswig int, <o PyCOMSTAT>|ClearCommError|retrieves information about a communications error and reports the current status of a communications device.
+static PyObject *PyClearCommError(PyObject *self, PyObject *args)
+{
+	PyObject *obHandle;
+	if (!PyArg_ParseTuple(args, "O", &obHandle))
+		return NULL;
+	HANDLE handle;
+	if (!PyWinObject_AsHANDLE(obHandle, &handle, FALSE))
+		return NULL;
+	BOOL rc;
+	DWORD int_ret;
+	COMSTAT stat;
+	Py_BEGIN_ALLOW_THREADS;
+	rc = ClearCommError(handle, &int_ret, &stat);
+	Py_END_ALLOW_THREADS;
+	if (!rc)
+		return PyWin_SetAPIError("ClearCommError");
+	PyObject *obStat = PyWinObject_FromCOMSTAT(&stat);
+	PyObject *ret = Py_BuildValue("iO", int_ret, obStat);
+	Py_XDECREF(obStat);
+	return ret;
+}
+
+%}
+%native (ClearCommError) PyClearCommError;
+
+// @pyswig |EscapeCommFunction|directs a specified communications device to perform an extended function. 
+BOOLAPI EscapeCommFunction(
+	PyHANDLE handle, // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
+	int func // int|func||Specifies the code of the extended function to perform. This parameter can be one of the following values. 
+	// @flagh Value|Meaning 
+	// @flag CLRDTR|Clears the DTR (data-terminal-ready) signal. 
+	// @flag CLRRTS|Clears the RTS (request-to-send) signal. 
+	// @flag SETDTR|Sends the DTR (data-terminal-ready) signal. 
+	// @flag SETRTS|Sends the RTS (request-to-send) signal. 
+	// @flag SETXOFF|Causes transmission to act as if an XOFF character has been received. 
+	// @flag SETXON|Causes transmission to act as if an XON character has been received. 
+	// @flag SETBREAK|Suspends character transmission and places the transmission line in a break state until the ClearCommBreak function is called (or EscapeCommFunction is called with the CLRBREAK extended function code). The SETBREAK extended function code is identical to the SetCommBreak function. Note that this extended function does not flush data that has not been transmitted. 
+	// @flag CLRBREAK|Restores character transmission and places the transmission line in a nonbreak state. The CLRBREAK extended function code is identical to the ClearCommBreak function. 
+);
+
+// @pyswig <o PyDCB>|GetCommState|Returns a device-control block (a DCB structure) with the current control settings for a specified communications device.
+BOOLAPI GetCommState(
+	PyHANDLE handle, // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
+	DCB *OUTPUT
+);
+// @pyswig |SetCommState|Configures a communications device according to the specifications in a device-control block.
+// The function reinitializes all hardware and control settings, but it does not empty output or input queues.
+BOOLAPI SetCommState(
+	PyHANDLE handle, // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
+	DCB *dcb // @pyparm <o PyDCB>|dcb||The control settings.
+);
+
+// @pyswig ClearCommBreak|Restores character transmission for a specified communications device and places the transmission line in a nonbreak state
+BOOLAPI ClearCommBreak(
+	PyHANDLE handle // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
+);
+
+// @pyswig int|GetCommMask|Retrieves the value of the event mask for a specified communications device.
+BOOLAPI GetCommMask(
+	PyHANDLE handle, // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
+	unsigned long *OUTPUT
+);
+
+// @pyswig int|SetCommMask|Sets the value of the event mask for a specified communications device.
+BOOLAPI SetCommMask(
+	PyHANDLE handle, // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
+	unsigned long val // @pyparm int|val||The new mask value.
+);
+
+// @pyswig int|GetCommModemStatus|Retrieves modem control-register values. 
+BOOLAPI GetCommModemStatus(
+	PyHANDLE handle, // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
+	unsigned long *OUTPUT
+);
+
+// @pyswig <o PyCOMMTIMEOUTS>|GetCommTimeouts|Retrieves the time-out parameters for all read and write operations on a specified communications device. 
+BOOLAPI GetCommTimeouts(
+	PyHANDLE handle, // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
+	COMMTIMEOUTS *OUTPUT
+);
+
+// @pyswig int|SetCommTimeouts|Sets the time-out parameters for all read and write operations on a specified communications device. 
+BOOLAPI SetCommTimeouts(
+	PyHANDLE handle, // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
+	COMMTIMEOUTS *timeouts // @pyparm <o PyCOMMTIMEOUTS>|val||The new time-out parameters.
+);
+
+// @pyswig |PurgeComm|Discards all characters from the output or input buffer of a specified communications resource. It can also terminate pending read or write operations on the resource. 
+BOOLAPI PurgeComm(
+	PyHANDLE handle, // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
+	unsigned long val // @pyparm int|action||The action to perform.  This parameter can be one or more of the following values.
+	// @flagh Value|Meaning 
+	// @flag PURGE_TXABORT|Terminates all outstanding overlapped write operations and returns immediately, even if the write operations have not been completed. 
+	// @flag PURGE_RXABORT|Terminates all outstanding overlapped read operations and returns immediately, even if the read operations have not been completed. 
+	// @flag PURGE_TXCLEAR|Clears the output buffer (if the device driver has one). 
+	// @flag PURGE_RXCLEAR|Clears the input buffer (if the device driver has one). 
+);
+
+// @pyswig SetCommBreak|Suspends character transmission for a specified communications device and places the transmission line in a break state until the <om win32file.ClearCommBreak> function is called. 
+BOOLAPI SetCommBreak(
+	PyHANDLE handle // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
+);
+
+// @pyswig |SetupComm|Initializes the communications parameters for a specified communications device. 
+BOOLAPI SetupComm(
+	PyHANDLE handle, // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
+	unsigned long dwInQueue, // @pyparm int|dwInQueue||Specifies the recommended size, in bytes, of the device's internal input buffer.
+	unsigned long dwOutQueue // @pyparm int|dwOutQueue||Specifies the recommended size, in bytes, of the device's internal output buffer.
+);
+
+// @pyswig |TransmitCommChar|Transmits a specified character ahead of any pending data in the output buffer of the specified communications device.
+BOOLAPI TransmitCommChar(
+	PyHANDLE handle, // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
+	char ch // @pyparm char|cChar||The character to transmit.
+// @comm The TransmitCommChar function is useful for sending an interrupt character (such as a CTRL+C) to a host system. 
+// <nl>If the device is not transmitting, TransmitCommChar cannot be called repeatedly. Once TransmitCommChar places a character in the output buffer, the character must be transmitted before the function can be called again. If the previous character has not yet been sent, TransmitCommChar returns an error.
+);
+
+%{
+static PyObject *MyWaitCommEvent(PyObject *self, PyObject *args)
+{
+	PyObject *obHandle, *obOverlapped = Py_None;
+	if (!PyArg_ParseTuple(args, "O|O", 
+			&obHandle, // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
+			&obOverlapped))// @pyparm <o PyOVERLAPPED>|overlapped||This structure is required if hFile was opened with FILE_FLAG_OVERLAPPED. 
+			// <nl>If hFile was opened with FILE_FLAG_OVERLAPPED, the lpOverlapped parameter must not be NULL. It must point to a valid OVERLAPPED structure. If hFile was opened with FILE_FLAG_OVERLAPPED and lpOverlapped is NULL, the function can incorrectly report that the operation is complete. 
+			// <nl>If hFile was opened with FILE_FLAG_OVERLAPPED and lpOverlapped is not NULL, WaitCommEvent is performed as an overlapped operation. In this case, the OVERLAPPED structure must contain a handle to a manual-reset event object (created by using the CreateEvent function). 
+			// <nl>If hFile was not opened with FILE_FLAG_OVERLAPPED, WaitCommEvent does not return until one of the specified events or an error occurs. 
+		return NULL;
+	HANDLE handle;
+	if (!PyWinObject_AsHANDLE(obHandle, &handle, FALSE))
+		return NULL;
+	OVERLAPPED *poverlapped;
+	if (!PyWinObject_AsOVERLAPPED(obOverlapped, &poverlapped, TRUE))
+		return NULL;
+	DWORD mask;
+	BOOL ok;
+	Py_BEGIN_ALLOW_THREADS
+	ok = WaitCommEvent(handle, &mask, poverlapped);
+	Py_END_ALLOW_THREADS
+	DWORD rc = ok ? 0 : GetLastError();
+	if (rc!=0 && rc != ERROR_IO_PENDING)
+		return PyWin_SetAPIError("WaitCommError", rc);
+	return Py_BuildValue("ll", rc, mask);
+}
+%}
+%native (WaitCommEvent) MyWaitCommEvent;
+
+#define EV_BREAK EV_BREAK // A break was detected on input. 
+#define EV_CTS EV_CTS // The CTS (clear-to-send) signal changed state. 
+#define EV_DSR EV_DSR // The DSR (data-set-ready) signal changed state. 
+#define EV_ERR EV_ERR // A line-status error occurred. Line-status errors are CE_FRAME, CE_OVERRUN, and CE_RXPARITY. 
+#define EV_RING EV_RING // A ring indicator was detected. 
+#define EV_RLSD EV_RLSD // The RLSD (receive-line-signal-detect) signal changed state. 
+#define EV_RXCHAR EV_RXCHAR // A character was received and placed in the input buffer. 
+#define EV_RXFLAG EV_RXFLAG // The event character was received and placed in the input buffer. The event character is specified in the device's DCB structure, which is applied to a serial port by using the SetCommState function. 
+#define EV_TXEMPTY EV_TXEMPTY // The last character in the output buffer was sent.
+#define CBR_110 CBR_110 
+#define CBR_19200 CBR_19200
+#define CBR_300 CBR_300 
+#define CBR_38400 CBR_38400
+#define CBR_600 CBR_600 
+#define CBR_56000 CBR_56000
+#define CBR_1200 CBR_1200
+#define CBR_57600 CBR_57600
+#define CBR_2400 CBR_2400
+#define CBR_115200 CBR_115200
+#define CBR_4800 CBR_4800
+#define CBR_128000 CBR_128000
+#define CBR_9600 CBR_9600
+#define CBR_256000 CBR_256000
+#define CBR_14400 CBR_14400 
+#define DTR_CONTROL_DISABLE DTR_CONTROL_DISABLE // Disables the DTR line when the device is opened and leaves it disabled. 
+#define DTR_CONTROL_ENABLE DTR_CONTROL_ENABLE // Enables the DTR line when the device is opened and leaves it on. 
+#define DTR_CONTROL_HANDSHAKE DTR_CONTROL_HANDSHAKE // Enables DTR handshaking. If handshaking is enabled, it is an error for the application to adjust the line by using the EscapeCommFunction function. 
+#define RTS_CONTROL_DISABLE RTS_CONTROL_DISABLE // Disables the RTS line when the device is opened and leaves it disabled. 
+#define RTS_CONTROL_ENABLE RTS_CONTROL_ENABLE // Enables the RTS line when the device is opened and leaves it on. 
+#define RTS_CONTROL_HANDSHAKE RTS_CONTROL_HANDSHAKE // Enables RTS handshaking. The driver raises the RTS line when the "type-ahead" (input) buffer is less than one-half full and lowers the RTS line when the buffer is more than three-quarters full. If handshaking is enabled, it is an error for the application to adjust the line by using the EscapeCommFunction function. 
+#define RTS_CONTROL_TOGGLE RTS_CONTROL_TOGGLE // Specifies that the RTS line will be high if bytes are available for transmission. After all buffered bytes have been sent, the RTS line will be low. 
+#define EVENPARITY EVENPARITY
+#define MARKPARITY MARKPARITY
+#define NOPARITY NOPARITY
+#define ODDPARITY ODDPARITY
+#define SPACEPARITY SPACEPARITY
+#define ONESTOPBIT ONESTOPBIT
+#define ONE5STOPBITS ONE5STOPBITS
+#define TWOSTOPBITS TWOSTOPBITS 
+#define CLRDTR CLRDTR // Clears the DTR (data-terminal-ready) signal. 
+#define CLRRTS CLRRTS // Clears the RTS (request-to-send) signal. 
+#define SETDTR SETDTR // Sends the DTR (data-terminal-ready) signal. 
+#define SETRTS SETRTS // Sends the RTS (request-to-send) signal. 
+#define SETXOFF SETXOFF // Causes transmission to act as if an XOFF character has been received. 
+#define SETXON SETXON // Causes transmission to act as if an XON character has been received. 
+#define SETBREAK SETBREAK // Suspends character transmission and places the transmission line in a break state until the ClearCommBreak function is called (or EscapeCommFunction is called with the CLRBREAK extended function code). The SETBREAK extended function code is identical to the SetCommBreak function. Note that this extended function does not flush data that has not been transmitted. 
+#define CLRBREAK CLRBREAK // Restores character transmission and places the transmission line in a nonbreak state. The CLRBREAK extended function code is identical to the ClearCommBreak function. 
+#define PURGE_TXABORT PURGE_TXABORT // Terminates all outstanding overlapped write operations and returns immediately, even if the write operations have not been completed. 
+#define PURGE_RXABORT PURGE_RXABORT // Terminates all outstanding overlapped read operations and returns immediately, even if the read operations have not been completed. 
+#define PURGE_TXCLEAR PURGE_TXCLEAR // Clears the output buffer (if the device driver has one). 
+#define PURGE_RXCLEAR PURGE_RXCLEAR // Clears the input buffer (if the device driver has one). 
+
+

@@ -419,6 +419,29 @@ InputDir=.\src	InputPath=.\src\win32file.i	InputName=win32file
 # End Source File
 # Begin Source File
 
+SOURCE=.\src\win32file_comm.cpp
+
+!IF  "$(CFG)" == "win32file - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "win32file - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "win32file - Win32 (WCE x86em) Debug"
+
+!ELSEIF  "$(CFG)" == "win32file - Win32 (WCE x86em) Release"
+
+!ELSEIF  "$(CFG)" == "win32file - Win32 (WCE SH3) Debug"
+
+!ELSEIF  "$(CFG)" == "win32file - Win32 (WCE MIPS) Debug"
+
+!ELSEIF  "$(CFG)" == "win32file - Win32 (WCE SH3) Release"
+
+!ELSEIF  "$(CFG)" == "win32file - Win32 (WCE MIPS) Release"
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
 SOURCE=.\src\win32filemodule.cpp
 
 !IF  "$(CFG)" == "win32file - Win32 Release"
