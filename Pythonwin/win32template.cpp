@@ -456,6 +456,7 @@ CDocument* CPythonDocTemplate::CreateNewDocument()
 	CVirtualHelper helper("CreateNewDocument", this);
 	BOOL ok = helper.HaveHandler();
 	if (!ok) {
+		CEnterLeavePython _celp;
 		PyErr_SetString(ui_module_error, "PyCTemplate::CreateNewDocument handler does not exist.");
 		TRACE0("CPythonDocTemplate::CreateNewDocument fails due to no handler\n");
 		return NULL;
