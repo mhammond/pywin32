@@ -1819,7 +1819,7 @@ static struct PyMethodDef ui_functions[] = {
 	{"CreatePropertyPage",		PyCPropertyPage::create,		1}, // @pymeth CreatePropertyPage|Creates a <o PyCPropertyPage> object.
 	{"CreatePropertyPageIndirect", PyCPropertyPage::createIndirect, 1}, // @pymeth CreatePropertyPageIndirect|Creates a <o PyCPropertyPage> object from a template.
 	{"CreatePropertySheet",		PyCPropertySheet::create,	1}, // @pymeth CreatePropertySheet|Creates a <o PyCPropertySheet> object
-	{"CreateRectRgn",           PyCRgn::create_rect_rgn,	1}, // @pymeth CreateRectRgn|Initializes a Mo PyCRgn> to a rectangle
+	{"CreateRectRgn",           PyCRgn::create_rect_rgn,	1}, // @pymeth CreateRectRgn|Initializes a <o PyCRgn> to a rectangle
 	{"CreateRgn",               PyCRgn::create,	1}, // @pymeth CreateRgn|Creates a new <o PyCRgn> object.
 	{"CreateRichEditCtrl",	    PyCRichEditCtrl_create,	1}, // @pymeth CreateRichEditCtrl|Creates a rich edit control.
 	{"CreateRichEditDocTemplate", PyCRichEditDocTemplate::create, 1}, // @pymeth CreateRichEditDocTemplate|Create a <o PyCRichEditDocTemplate> object.
@@ -1830,8 +1830,8 @@ static struct PyMethodDef ui_functions[] = {
 	{"CreateStatusBarCtrl",		PyCStatusBarCtrl_create, 1}, // @pymeth CreateStatusBarCtrl|Creates a new status bar control object. <om PyCStatusBarCtrl.CreateWindow> creates the actual control.
 	{"CreateFont",				PyCFont::create,	1}, // @pymeth CreateFont|Creates a <o PyCFont> object.
 	{"CreateToolBar",			PyCToolBar::create,	1}, // @pymeth CreateToolBar|Creates a toolbar object.
-	{"CreateToolBarCtrl",		PyCToolBarCtrl_create,	1}, // @pymeth CreateToolBar|Creates a toolbar object.
-	{"CreateToolTipCtrl",		PyCToolTipCtrl_create,	1}, // @pymeth CreateToolTip|Creates a tooltip control object.
+	{"CreateToolBarCtrl",		PyCToolBarCtrl_create,	1}, // @pymeth CreateToolBarCtrl|Creates a toolbar object.
+	{"CreateToolTipCtrl",		PyCToolTipCtrl_create,	1}, // @pymeth CreateToolTipCtrl|Creates a tooltip control object.
 	{"CreateThread",            PyCWinThread::create, 1}, // @pymeth CreateThread|Creates a <o PyCWinThread> object.
 	{"CreateView",				PyCScrollView::create,		1}, // @pymeth CreateView|Creates a <o PyCView> object.
 	{"CreateEditView",			PyCEditView::create,	1}, // @pymeth CreateEditView|Creates an <o PyCEditView> object.
