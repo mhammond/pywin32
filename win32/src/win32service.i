@@ -44,15 +44,15 @@ BOOL BuildDeps(PyObject *obDeps, TCHAR **ppDeps)
 			// We know the sequence is valid.
 			PyObject *obString = PySequence_GetItem(obDeps, i);
 			BSTR pStr;
-			if (!PyWinObject_AsBstr(obString, &pStr)) {
+			if (!PyWinObject_AsTCHAR(obString, &pStr)) {
 				Py_DECREF(obString);
 				goto cleanup;
 			}
-			int len = SysStringLen(pStr);
+			int len = _tcslen(pStr);
 			_tcsncpy(p, pStr, len);
 			p += len;
 			*p++ = L'\0';
-			SysFreeString(pStr);
+			PyWinObject_FreeTCHAR(pStr);
 			Py_DECREF(obString);
 		}
 		*p = L'\0'; // Add second terminator.
@@ -170,7 +170,7 @@ PyObject *MyStartService( SC_HANDLE scHandle, PyObject *serviceArgs )
 				return NULL;
 			}
 			pArgs[i] = NULL;
-			PyWinObject_AsBstr(obString, pArgs+i);
+			PyWinObject_AsTCHAR(obString, pArgs+i);
 			Py_DECREF(obString);
 		}
 	}
@@ -181,7 +181,7 @@ PyObject *MyStartService( SC_HANDLE scHandle, PyObject *serviceArgs )
 	} else
 		rc = PyWin_SetAPIError("StartService");
 	for (DWORD i=0;i<numStrings;i++)
-		SysFreeString(pArgs[i]);
+		PyWinObject_FreeTCHAR(pArgs[i]);
 	delete [] pArgs;
 	return rc;
 }
@@ -431,13 +431,13 @@ typedef long SERVICE_STATUS_HANDLE
 // @pyswig int|OpenService|Returns a handle to the specified service.
 SC_HANDLE OpenService(
 	SC_HANDLE hSCManager, // @pyparm int|scHandle||Handle to the Service Control Mananger
-	%val PyWin_AutoFreeBstr &inWideString, // @pyparm <o PyUnicode>|name||The name of the service to open.
+	TCHAR *name, // @pyparm <o PyUnicode>|name||The name of the service to open.
 	unsigned long desiredAccess); // @pyparm int|desiredAccess||The access desired.
 
 // @pyswig int|OpenSCManager|Returns a handle to the service control manager
 SC_HANDLE OpenSCManager(
-	%val PyWin_AutoFreeBstr &inNullWideString, // @pyparm <o PyUnicode>|machineName||The name of the computer, or None
-	%val PyWin_AutoFreeBstr &inNullWideString, // @pyparm <o PyUnicode>|dbName||The name of the service database, or None
+	TCHAR *INPUT_NULLOK, // @pyparm <o PyUnicode>|machineName||The name of the computer, or None
+	TCHAR *INPUT_NULLOK, // @pyparm <o PyUnicode>|dbName||The name of the service database, or None
 	unsigned long desiredAccess); // @pyparm int|desiredAccess||The access desired.
 
 // @pyswig |CloseServiceHandle|Closes a service handle
@@ -466,18 +466,18 @@ BOOLAPI DeleteService(SC_HANDLE);
 // @pyswig int/(int, int)|CreateService|Creates a new service.
 %name (CreateService) PyObject * MyCreateService(
     SC_HANDLE hSCManager,	// @pyparm int|scHandle||handle to service control manager database  
-    %val PyWin_AutoFreeBstr &inWideString,	// @pyparm <o PyUnicode>|name||Name of service
-    %val PyWin_AutoFreeBstr &inWideString,	// @pyparm <o PyUnicode>|displayName||Display name 
+    TCHAR *name,	// @pyparm <o PyUnicode>|name||Name of service
+    TCHAR *displayName,	// @pyparm <o PyUnicode>|displayName||Display name 
     DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||type of access to service 
     DWORD dwServiceType,	// @pyparm int|serviceType||type of service 
     DWORD dwStartType,		// @pyparm int|startType||When/how to start service 
     DWORD dwErrorControl,	// @pyparm int|errorControl||severity if service fails to start
-    %val PyWin_AutoFreeBstr &inWideString,	// @pyparm <o PyUnicode>|binaryFile||name of binary file 
-    %val PyWin_AutoFreeBstr &inNullWideString,	// @pyparm <o PyUnicode>|loadOrderGroup||name of load ordering group , or None
+    TCHAR *binaryFile,	// @pyparm <o PyUnicode>|binaryFile||name of binary file 
+    TCHAR *INPUT_NULLOK,	// @pyparm <o PyUnicode>|loadOrderGroup||name of load ordering group , or None
     BOOL  bFetchTag,            // @pyparm int|bFetchTag||Should the tag be fetched and returned?  If TRUE, the result is a tuple of (handle, tag), otherwise just handle.
     PyObject *pyobject,		// @pyparm [<o PyUnicode>,...]|serviceDeps||sequence of dependency names 
-    %val PyWin_AutoFreeBstr &inNullWideString,	// @pyparm <o PyUnicode>|acctName||account name of service, or None
-    %val PyWin_AutoFreeBstr &inNullWideString 	// @pyparm <o PyUnicode>|password||password for service account , or None
+    TCHAR *INPUT_NULLOK,	// @pyparm <o PyUnicode>|acctName||account name of service, or None
+    TCHAR *INPUT_NULLOK 	// @pyparm <o PyUnicode>|password||password for service account , or None
    );
 
 // @pyswig int/None|ChangeServiceConfig|Changes the configuration of an existing service.
@@ -486,13 +486,13 @@ BOOLAPI DeleteService(SC_HANDLE);
     DWORD dwServiceType,	// @pyparm int|serviceType||type of service, or SERVICE_NO_CHANGE
     DWORD dwStartType,		// @pyparm int|startType||When/how to start service, or SERVICE_NO_CHANGE
     DWORD dwErrorControl,	// @pyparm int|errorControl||severity if service fails to start, or SERVICE_NO_CHANGE
-    %val PyWin_AutoFreeBstr &inNullWideString,	// @pyparm <o PyUnicode>|binaryFile||name of binary file, or None
-    %val PyWin_AutoFreeBstr &inNullWideString,	// @pyparm <o PyUnicode>|loadOrderGroup||name of load ordering group , or None
+    TCHAR *INPUT_NULLOK,	// @pyparm <o PyUnicode>|binaryFile||name of binary file, or None
+    TCHAR *INPUT_NULLOK,	// @pyparm <o PyUnicode>|loadOrderGroup||name of load ordering group , or None
     BOOL  bFetchTag,            // @pyparm int|bFetchTag||Should the tag be fetched and returned?  If TRUE, the result is the tag, else None.
     PyObject *pyobject,		// @pyparm [<o PyUnicode>,...]|serviceDeps||sequence of dependency names 
-    %val PyWin_AutoFreeBstr &inNullWideString,	// @pyparm <o PyUnicode>|acctName||account name of service, or None
-    %val PyWin_AutoFreeBstr &inNullWideString, 	// @pyparm <o PyUnicode>|password||password for service account , or None
-    %val PyWin_AutoFreeBstr &inNullWideString	// @pyparm <o PyUnicode>|displayName||Display name 
+    TCHAR *INPUT_NULLOK,	// @pyparm <o PyUnicode>|acctName||account name of service, or None
+    TCHAR *INPUT_NULLOK, 	// @pyparm <o PyUnicode>|password||password for service account , or None
+    TCHAR *INPUT_NULLOK	// @pyparm <o PyUnicode>|displayName||Display name 
    );
 
 // @pyswig int|LockServiceDatabase|Locks the service database.

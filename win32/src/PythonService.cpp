@@ -141,15 +141,15 @@ static PyObject *servicemanager_startup_error;
 
 static PyObject *DoLogMessage(WORD errorType, PyObject *obMsg)
 {
-	BSTR msg;
-	if (!PyWinObject_AsBstr(obMsg, &msg))
+	WCHAR *msg;
+	if (!PyWinObject_AsWCHAR(obMsg, &msg))
 		return NULL;
 	DWORD errorCode = errorType==EVENTLOG_ERROR_TYPE ? PYS_E_GENERIC_ERROR : PYS_E_GENERIC_WARNING;
 	LPCTSTR inserts[] = {msg, NULL};
 	BOOL ok;
 	Py_BEGIN_ALLOW_THREADS
 	ok = ReportError(errorCode, inserts, errorType);
-	SysFreeString(msg);
+	PyWinObject_FreeWCHAR(msg);
 	Py_END_ALLOW_THREADS
 	if (!ok)
 		return PyWin_SetAPIError("RegisterEventSource/ReportEvent");
@@ -183,7 +183,7 @@ static PyObject *PyLogMsg(PyObject *self, PyObject *args)
 			PyErr_SetString(PyExc_MemoryError, "Allocating string arrays");
 			goto cleanup;
 		}
-		memset(pStrings, 0, sizeof(BSTR *)*(numStrings+1)); // this also terminates array!
+		memset(pStrings, 0, sizeof(TCHAR *)*(numStrings+1)); // this also terminates array!
 		for (int i=0;i<numStrings;i++) {
 			PyObject *obString = PySequence_GetItem(obStrings, i);
 			if (obString==NULL) {
@@ -259,13 +259,13 @@ static PyObject *PyRegisterServiceCtrlHandler(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_TypeError, "Second argument must be a callable object");
 		return NULL;
 	}
-	BSTR bstrName;
-	if (!PyWinObject_AsBstr(nameOb, &bstrName))
+	WCHAR *szName;
+	if (!PyWinObject_AsWCHAR(nameOb, &szName))
 		return NULL;
-	PY_SERVICE_TABLE_ENTRY *pe = FindPythonServiceEntry(bstrName);
+	PY_SERVICE_TABLE_ENTRY *pe = FindPythonServiceEntry(szName);
 	if (pe==NULL) {
 		PyErr_SetString(PyExc_ValueError, "The service name is not hosted by this process");
-		SysFreeString(bstrName);
+		PyWinObject_FreeWCHAR(szName);
 		return NULL;
 	}
 	Py_XDECREF(pe->obServiceCtrlHandler);
@@ -275,8 +275,8 @@ static PyObject *PyRegisterServiceCtrlHandler(PyObject *self, PyObject *args)
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
-	pe->sshStatusHandle = RegisterServiceCtrlHandlerEx(bstrName, service_ctrl_ex, pe);
-	SysFreeString(bstrName);
+	pe->sshStatusHandle = RegisterServiceCtrlHandlerEx(szName, service_ctrl_ex, pe);
+	PyWinObject_FreeWCHAR(szName);
 	PyObject *rc;
 	if (pe->sshStatusHandle==0) {
 		Py_DECREF(obCallback);

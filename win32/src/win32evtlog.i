@@ -256,13 +256,13 @@ PyObject * MyReportEvent( HANDLE hEventLog,
 			PyErr_SetString(PyExc_MemoryError, "Allocating string arrays");
 			goto cleanup;
 		}
-		memset(pStrings, 0, sizeof(BSTR *)*numStrings);
+		memset(pStrings, 0, sizeof(WCHAR *)*numStrings);
 		for (i=0;i<numStrings;i++) {
 			PyObject *obString = PySequence_GetItem(obStrings, i);
 			if (obString==NULL) {
 				goto cleanup;
 			}
-			BOOL ok = PyWinObject_AsBstr(obString, pStrings+i);
+			BOOL ok = PyWinObject_AsWCHAR(obString, pStrings+i);
 			Py_XDECREF(obString);
 			if (!ok)
 				goto cleanup;
@@ -294,7 +294,7 @@ PyObject * MyReportEvent( HANDLE hEventLog,
 cleanup:
 	if (pStrings) {
 		for (i=0;i<numStrings;i++)
-			SysFreeString(pStrings[i]);
+			PyWinObject_FreeWCHAR(pStrings[i]);
 		delete [] pStrings;
 	}
 	return rc;
@@ -372,22 +372,22 @@ GetOldestEventLogRecord (
 
 // @pyswig int|OpenEventLog|Opens an event log.
 %name (OpenEventLog) HANDLE OpenEventLogW (
-    %val PyWin_AutoFreeBstr &inNullWideString, // @pyparm <o PyUnicode>|serverName||The server name, or None
-    %val PyWin_AutoFreeBstr &inWideString  // @pyparm <o PyUnicode>|sourceName||specifies the name of the source that the returned handle will reference. The source name must be a subkey of a logfile entry under the EventLog key in the registry. 
+    WCHAR *INPUT_NULLOK, // @pyparm <o PyUnicode>|serverName||The server name, or None
+    WCHAR *sourceName    // @pyparm <o PyUnicode>|sourceName||specifies the name of the source that the returned handle will reference. The source name must be a subkey of a logfile entry under the EventLog key in the registry. 
     );
 
 // @pyswig int|RegisterEventSource|Registers an Event Source
 %name (RegisterEventSource) HANDLE
 RegisterEventSourceW (
-    %val PyWin_AutoFreeBstr &inNullWideString, // @pyparm <o PyUnicode>|serverName||The server name, or None
-    %val PyWin_AutoFreeBstr &inWideString  // @pyparm <o PyUnicode>|sourceName||The source name
+    WCHAR *INPUT_NULLOK, // @pyparm <o PyUnicode>|serverName||The server name, or None
+    WCHAR *sourceName  // @pyparm <o PyUnicode>|sourceName||The source name
     );
 
 
 // @pyswig int|OpenBackupEventLog|Opens a previously saved event log.
 %name (OpenBackupEventLog) HANDLE OpenBackupEventLogW (
-    %val PyWin_AutoFreeBstr &inNullWideString, // @pyparm <o PyUnicode>|serverName||The server name, or None
-    %val PyWin_AutoFreeBstr &inWideString      // @pyparm <o PyUnicode>|fileName||The filename to open
+    WCHAR *INPUT_NULLOK, // @pyparm <o PyUnicode>|serverName||The server name, or None
+    WCHAR *fileName      // @pyparm <o PyUnicode>|fileName||The filename to open
     );
 
 // @pyswig [object,...]|ReadEventLog|Reads some event log records.
