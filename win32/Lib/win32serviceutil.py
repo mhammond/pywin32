@@ -1,7 +1,10 @@
-# Utility functions for Python programs which run as services...
+# General purpose service utilities, both for standard Python scripts,
+# and for for Python programs which run as services...
 #
-# Note that most utility functios here will raise win32api.error's when
-# things go wrong - eg, not enough permissions to hit the registry etc.
+# Note that most utility functions here will raise win32api.error's
+# (which is == win32service.error, pywintypes.error, etc)
+# when things go wrong - eg, not enough permissions to hit the
+# registry etc.
 
 import win32service, win32api, win32con, winerror
 import sys, string, pywintypes, os
