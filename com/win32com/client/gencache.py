@@ -417,6 +417,17 @@ def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bVal
 			assert not is_readonly, "Can't validate in a read-only gencache"
 			try:
 				typLibPath = pythoncom.QueryPathOfRegTypeLib(typelibCLSID, major, minor, lcid)
+				# windows seems to add an extra \0 (via the underlying BSTR)
+				# The mainwin toolkit does not add this erroneous \0
+				if typLibPath[-1]=='\0':
+					typLibPath=typLibPath[:-1]
+				suf = getattr(os.path, "supports_unicode_filenames", 0)
+				if not suf:
+					# can't pass unicode filenames directly - convert
+					try:
+						typLibPath=typLibPath.encode(sys.getfilesystemencoding())
+					except AttributeError: # no sys.getfilesystemencoding
+						typLibPath=str(typLibPath)
 				tlbAttributes = pythoncom.LoadRegTypeLib(typelibCLSID, major, minor, lcid).GetLibAttr()
 			except pythoncom.com_error:
 				# We have a module, but no type lib - we should still
@@ -433,12 +444,6 @@ def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bVal
 			else:
 				filePathPyc = filePathPyc + "o"
 			# Verify that type library is up to date.
-			#print "Grabbing typelib"
-			# If the following doesn't throw an exception, then we have a valid type library
-			typLibPath = pythoncom.QueryPathOfRegTypeLib(typelibCLSID, major, minor, lcid)
-			tlbAttributes = pythoncom.LoadRegTypeLib(typelibCLSID, major, minor, lcid).GetLibAttr()
-			#print "Grabbed typelib: ", tlbAttributes[3], tlbAttributes[4]
-			##print module.MinorVersion
 			# If we have a differing MinorVersion or genpy has bumped versions, update the file
 			import genpy
 			if module.MinorVersion != tlbAttributes[4] or genpy.makepy_version != module.makepy_version:
@@ -478,7 +483,7 @@ def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bVal
 						pass
 				#print "Trying stat typelib", pyModTime
 				#print str(typLibPath)
-				typLibModTime = os.stat(str(typLibPath[:-1]))[8]
+				typLibModTime = os.stat(typLibPath)[8]
 				if fModTimeSet and (typLibModTime > pyModTime):
 					bReloadNeeded = 1
 					module = None
@@ -543,8 +548,8 @@ def AddModuleToCache(typelibclsid, lcid, major, minor, verbose = 1, bFlushNow = 
 	"""
 	fname = GetGeneratedFileName(typelibclsid, lcid, major, minor)
 	mod = _GetModule(fname)
-	assert not mod.__dict__.has_key("_in_gencache_"), \
-		   "This module has already been processed by this process"
+	# if mod._in_gencache_ is already true, then we are reloading this
+	# module - this doesn't mean anything special though!
 	mod._in_gencache_ = 1
 	dict = mod.CLSIDToClassMap
 	info = str(typelibclsid), lcid, major, minor
