@@ -643,95 +643,111 @@ PyObject * dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
 		bIsByRef = vtArgType & VT_BYREF;
 		
 		VARTYPE vtConversionType = vtArgType & VT_TYPEMASK;
-		switch (vtConversionType)
-		{
-		// If they can fit in a VARIANT, cheat and make that code do all of the work...
-		case VT_I2:
-		case VT_I4:
-		case VT_R4:
-		case VT_R8:
-		case VT_CY:
-		case VT_DATE:
-		case VT_BSTR:
-		case VT_ERROR:
-		case VT_BOOL:
-		case VT_I1:
-		case VT_UI1:
-		case VT_UI2:
-		case VT_UI4:
-		case VT_INT:
-		case VT_UINT:
-		case VT_UNKNOWN:
-		case VT_DISPATCH:
-		case VT_HRESULT:
-			VariantInit(&var);
-			if (vtConversionType == VT_HRESULT ||
-				vtConversionType == VT_INT)
-			{
-				// Preserve VT_BYREF or VT_ARRAY
-				vtArgType = VT_I4 | (vtArgType & VT_TYPEMASK);
+		if (vtArgType & VT_ARRAY) {
+			SAFEARRAY FAR *psa = *((SAFEARRAY **)pb);
+			if (psa==NULL) { // A NULL array
+				Py_INCREF(Py_None);
+				obArg = Py_None;
+			} else {
+				if (vtArgType & VT_BYREF) // one more level of indirection
+					psa = *((SAFEARRAY FAR **)psa);
+				if (psa==NULL) { // A NULL array
+					Py_INCREF(Py_None);
+					obArg = Py_None;
+				} else 
+					obArg = PyCom_PyObjectFromSAFEARRAY(psa, (VARENUM)vtConversionType);
 			}
-			if (vtArgType == VT_UINT) 
+		} else {
+			switch (vtConversionType)
 			{
-				// Preserve VT_BYREF or VT_ARRAY
-				vtArgType = VT_UI4 | (vtArgType & VT_TYPEMASK);
+			// If they can fit in a VARIANT, cheat and make that code do all of the work...
+			case VT_I2:
+			case VT_I4:
+			case VT_R4:
+			case VT_R8:
+			case VT_CY:
+			case VT_DATE:
+			case VT_BSTR:
+			case VT_ERROR:
+			case VT_BOOL:
+			case VT_I1:
+			case VT_UI1:
+			case VT_UI2:
+			case VT_UI4:
+			case VT_INT:
+			case VT_UINT:
+			case VT_UNKNOWN:
+			case VT_DISPATCH:
+			case VT_HRESULT:
+				VariantInit(&var);
+				if (vtConversionType == VT_HRESULT ||
+					vtConversionType == VT_INT)
+				{
+					// Preserve VT_BYREF or VT_ARRAY
+					vtArgType = VT_I4 | (vtArgType & VT_TYPEMASK);
+				}
+				if (vtArgType == VT_UINT) 
+				{
+					// Preserve VT_BYREF or VT_ARRAY
+					vtArgType = VT_UI4 | (vtArgType & VT_TYPEMASK);
+				}
+				var.vt = vtArgType;
+				// Copy the data into the variant...
+				SizeOfVT(var.vt, (int *)&cb, NULL);
+				memcpy(&var.lVal, pb, cb);
+				// Convert it into a PyObject:
+				obArg = PyCom_PyObjectFromVariant(&var);
+				break;
+			case VT_VARIANT: {
+				// A pointer to a _real_ variant.
+				VARIANT *pVar = (VARIANT *)pb;
+				obArg = PyCom_PyObjectFromVariant(pVar);
+				break;
 			}
-			var.vt = vtArgType;
-			// Copy the data into the variant...
-			SizeOfVT(var.vt, (int *)&cb, NULL);
-			memcpy(&var.lVal, pb, cb);
-			// Convert it into a PyObject:
-			obArg = PyCom_PyObjectFromVariant(&var);
-			break;
-		case VT_VARIANT: {
-			// A pointer to a _real_ variant.
-			VARIANT *pVar = (VARIANT *)pb;
-			obArg = PyCom_PyObjectFromVariant(pVar);
-			break;
-		}
-		case VT_LPSTR:
-			obArg = PyString_FromString(*(CHAR **)pb);
-			break;
-		case VT_LPWSTR:
-			obArg = PyWinObject_FromOLECHAR(*(OLECHAR **)pb);
-			break;
-		// Special cases:
-		case VT_UI8:
-			if (bIsByRef)
-			{
-				obArg = PyWinObject_FromULARGE_INTEGER(*(ULARGE_INTEGER *)pb);
-			}
-			else
-			{
-				obArg = PyWinObject_FromULARGE_INTEGER(**(ULARGE_INTEGER **)pb);
-			}
-			break;
-		case VT_I8:
-			if (bIsByRef)
-			{
-				obArg = PyWinObject_FromLARGE_INTEGER(*(LARGE_INTEGER *)pb);
-			}
-			else
-			{
-				obArg = PyWinObject_FromLARGE_INTEGER(**(LARGE_INTEGER **)pb);
-			}
-			break;
-		// Pointers to unhandled arguments:
-		// neither of these will be VT_BYREF'd.
-		case VT_RECORD:
-		case VT_PTR:
-			obArg = PyLong_FromVoidPtr((void *)pb);
-			break;
-		// None of these should ever happen:
-		case VT_USERDEFINED:
-		// Should have been coerced into VT_PTR.
-		case VT_CARRAY:
-		default:
-			obArg = NULL;
-			PyErr_SetString(PyExc_TypeError, "Unknown/bad type description type!");
-			// barf here, we don't wtf they were thinking...
-			break;
-		}
+			case VT_LPSTR:
+				obArg = PyString_FromString(*(CHAR **)pb);
+				break;
+			case VT_LPWSTR:
+				obArg = PyWinObject_FromOLECHAR(*(OLECHAR **)pb);
+				break;
+			// Special cases:
+			case VT_UI8:
+				if (bIsByRef)
+				{
+					obArg = PyWinObject_FromULARGE_INTEGER(*(ULARGE_INTEGER *)pb);
+				}
+				else
+				{
+					obArg = PyWinObject_FromULARGE_INTEGER(**(ULARGE_INTEGER **)pb);
+				}
+				break;
+			case VT_I8:
+				if (bIsByRef)
+				{
+					obArg = PyWinObject_FromLARGE_INTEGER(*(LARGE_INTEGER *)pb);
+				}
+				else
+				{
+					obArg = PyWinObject_FromLARGE_INTEGER(**(LARGE_INTEGER **)pb);
+				}
+				break;
+			// Pointers to unhandled arguments:
+			// neither of these will be VT_BYREF'd.
+			case VT_RECORD:
+			case VT_PTR:
+				obArg = PyLong_FromVoidPtr((void *)pb);
+				break;
+			// None of these should ever happen:
+			case VT_USERDEFINED:
+			// Should have been coerced into VT_PTR.
+			case VT_CARRAY:
+			default:
+				obArg = NULL;
+				PyErr_SetString(PyExc_TypeError, "Unknown/bad type description type!");
+				// barf here, we don't wtf they were thinking...
+				break;
+			} // switch
+		} // if ARRAY
 
 		if (obArg == NULL)
 		{
