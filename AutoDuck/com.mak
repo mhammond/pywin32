@@ -22,7 +22,8 @@ HTML_DIR = win32com
 HTML_FILES = $(WIN32COM_DIR)/*.htm* \
 		$(WIN32COM_DIR)/HTML/*.html \
 		$(WIN32COM_DIR)/HTML/image/* \
-		$(HELP_DIR)/adsi.html \		$(WIN32COMEXT_DIR)/axscript/demos/client/ie/* 
+		$(HELP_DIR)/adsi.html \
+		$(WIN32COMEXT_DIR)/axscript/demos/client/ie/* 
 
 # Non-autoduck overview topics data file:
 EXT_TOPICS = comOverviews.dat
