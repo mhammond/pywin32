@@ -217,7 +217,18 @@ extern "C" __declspec(dllexport) int __stdcall DllMainwin32ui(HINSTANCE hInstanc
 			delete pCreatedApp;
 			pCreatedApp = NULL;
 		}
-		delete pDLL;
+		// Only delete the Library if not already autodeleted by resource chain.
+		AFX_MODULE_STATE* pafxmostState  = AfxGetModuleState();
+		if(NULL != pafxmostState && !pafxmostState->m_libraryList.IsEmpty()) {
+			CDynLinkLibrary* pdynDll = pafxmostState->m_libraryList.GetHead();
+			while (NULL != pdynDll && NULL != pDLL) {
+				if(pdynDll == pDLL) {
+					delete pDLL;
+					pDLL = NULL;
+				}
+				pdynDll = pafxmostState->m_libraryList.GetNext(pdynDll);
+			}
+		}
 	}
 	return 1;   // ok
 }
