@@ -2188,7 +2188,7 @@ initwin32ui(void)
   if (!dict) return; /* Another serious error!*/
   ui_module_error = PyString_FromString(errorName);
   PyDict_SetItemString(dict, "error", ui_module_error);
-  PyObject *copyright = PyString_FromString("Copyright 1994-2001 Mark Hammond (MarkH@ActiveState.com)");
+  PyObject *copyright = PyString_FromString("Copyright 1994-2001 Mark Hammond (mhammond@skippinet.com.au)");
   PyDict_SetItemString(dict, "copyright", copyright);
   Py_XDECREF(copyright);
   PyObject *dllhandle = PyInt_FromLong((long)hWin32uiDll);
