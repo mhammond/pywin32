@@ -276,7 +276,7 @@ def MakeHLI( ob, name=None ):
 	try:
 		cls = TypeMap[type(ob)]
 	except KeyError:
-		if isinstance(ob, object): # 'new style' class
+		if hasattr(ob, '__class__'): # 'new style' class
 			cls = HLIInstance
 		else:
 			cls = HLIPythonObject
