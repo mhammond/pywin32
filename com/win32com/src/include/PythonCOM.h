@@ -269,7 +269,7 @@ PYCOM_EXPORT PyObject *PyCom_BuildPyException(HRESULT hr, IUnknown *pUnk=NULL, R
 
 // Uses the HRESULT and an EXCEPINFO structure to create and
 // set a pythoncom.com_error.
-PYCOM_EXPORT PyObject* PyCom_BuildPyExceptionFromEXCEPINFO(HRESULT hr, EXCEPINFO *pexcepInfo, UINT nArgErr = -1);
+PYCOM_EXPORT PyObject* PyCom_BuildPyExceptionFromEXCEPINFO(HRESULT hr, EXCEPINFO *pexcepInfo, UINT nArgErr = (UINT)-1);
 
 // Sets a pythoncom.internal_error - no one should ever see these!
 PYCOM_EXPORT PyObject* PyCom_BuildInternalPyException(char *msg);
