@@ -119,9 +119,9 @@ PyWNetAddConnection2 (PyObject *self, PyObject *args)
 	NetResource.lpRemoteName = A2T(RemoteName);
 
 #ifdef _WIN32_WCE_	// Windows CE only has the #3 version...use NULL for HWND to simulate #2
-	ErrorNo = WNetAddConnection3(NULL,&NetResource, A2T(Password), A2T(Username), 0);
+	ErrorNo = WNetAddConnection3(NULL,&NetResource, A2T(Password), A2T(Username), flags);
 #else
-	ErrorNo = WNetAddConnection2(&NetResource, A2T(Password), A2T(Username), 0);
+	ErrorNo = WNetAddConnection2(&NetResource, A2T(Password), A2T(Username), flags);
 #endif
 	Py_END_ALLOW_THREADS
 
