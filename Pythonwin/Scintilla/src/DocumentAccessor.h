@@ -35,7 +35,9 @@ public:
 	void Flush();
 	int GetLineState(int line);
 	int SetLineState(int line, int state);
-	PropSet &GetPropSet() { return props; }
+	int GetPropertyInt(const char *key, int defaultValue=0) { 
+		return props.GetInt(key, defaultValue); 
+	}
 
 	void StartAt(unsigned int start, char chMask=31);
 	void SetFlags(char chFlags_, char chWhile_) {chFlags = chFlags_; chWhile = chWhile_; };

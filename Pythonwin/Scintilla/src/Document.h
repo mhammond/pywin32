@@ -90,6 +90,8 @@ public:
 	// dbcsCodePage can also be SC_CP_UTF8 to enable UTF-8 mode
 	int dbcsCodePage;
 	int tabInChars;
+	int indentInChars;
+	bool useTabs;
 	
 	Document();
 	virtual ~Document();
@@ -118,6 +120,10 @@ public:
 	void EndUndoAction() { cb.EndUndoAction(); }
 	void SetSavePoint();
 	bool IsSavePoint() { return cb.IsSavePoint(); }
+
+	int GetLineIndentation(int line);
+	void SetLineIndentation(int line, int indent);
+	int GetLineIndentPosition(int line);
 	void Indent(bool forwards, int lineBottom, int lineTop);
 	void ConvertLineEnds(int eolModeSet);
 	void SetReadOnly(bool set) { cb.SetReadOnly(set); }
@@ -182,10 +188,12 @@ private:
 	bool IsWordChar(unsigned char ch);
 	bool IsWordAt(int start, int end);
 	void ModifiedAt(int pos);
-		
+	
 	void NotifyModifyAttempt();
 	void NotifySavePoint(bool atSavePoint);
 	void NotifyModified(DocModification mh);
+	
+	int IndentSize() { return indentInChars ? indentInChars : tabInChars; }
 };
 
 // To optimise processing of document modifications by DocWatchers, a hint is passed indicating the 

@@ -168,7 +168,7 @@ public:
 	WordList(bool onlyLineEnds_ = false) : 
 		words(0), list(0), len(0), onlyLineEnds(onlyLineEnds_) {}
 	~WordList() { Clear(); }
-	operator bool() { return list; }
+	operator bool() { return list ? true : false; }
 	const char *operator[](int ind) { return words[ind]; }
 	void Clear();
 	void Set(const char *s);

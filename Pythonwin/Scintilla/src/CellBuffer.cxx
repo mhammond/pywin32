@@ -449,6 +449,7 @@ void UndoHistory::BeginUndoAction() {
 			actions[currentAction].Create(startAction);
 			maxAction = currentAction;
 		}
+		actions[currentAction].mayCoalesce = false;
 	}
 	undoSequenceDepth++;
 }

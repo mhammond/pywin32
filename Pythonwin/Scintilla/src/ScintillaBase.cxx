@@ -324,8 +324,19 @@ LRESULT ScintillaBase::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 		AutoCompleteCompleted();
 		break;
 
+	case SCI_AUTOCSETSEPARATOR:
+		ac.SetSeparator(wParam);
+		break;
+
+	case SCI_AUTOCGETSEPARATOR:
+		return ac.GetSeparator();
+
 	case SCI_AUTOCSTOPS:
 		ac.SetStopChars(reinterpret_cast<char *>(lParam));
+		break;
+		
+	case SCI_AUTOCSELECT:
+		ac.Select(reinterpret_cast<char *>(lParam));
 		break;
 
 	case SCI_CALLTIPSHOW: {

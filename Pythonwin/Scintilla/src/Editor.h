@@ -64,6 +64,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 
 	int xOffset;				// Horizontal scrolled amount in pixels
 	int xCaretMargin;	// Ensure this many pixels visible on both sides of caret
+	bool horizontalScrollBarVisible;
 	
 	Surface pixmapLine;
 	Surface pixmapSelMargin;
@@ -189,6 +190,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	virtual void SetVerticalScrollPos() = 0;
 	virtual void SetHorizontalScrollPos() = 0;
 	virtual bool ModifyScrollBars(int nMax, int nPage) = 0;
+	virtual void ReconfigureScrollBars();
 	void SetScrollBarsTo(PRectangle rsClient);
 	void SetScrollBars();
 

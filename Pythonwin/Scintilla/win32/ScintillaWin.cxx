@@ -181,6 +181,7 @@ public:
 HINSTANCE ScintillaWin::hInstance = 0;
 
 ScintillaWin::ScintillaWin(HWND hwnd) {
+::SetThreadLocale(MAKELCID(932, SORT_DEFAULT));
 
 	capturedMouse = false;
 
@@ -244,6 +245,20 @@ static WORD LoWord(DWORD l) {
 static WORD HiWord(DWORD l) {
 	return HIWORD(l);
 }
+
+static int InputCodePage() {
+	HKL inputLocale = ::GetKeyboardLayout(0);
+	LANGID inputLang = LOWORD(inputLocale);
+	char sCodePage[10];
+	int res = ::GetLocaleInfo(MAKELCID(inputLang, SORT_DEFAULT),
+	  LOCALE_IDEFAULTANSICODEPAGE, sCodePage, sizeof(sCodePage));
+	if (!res) 
+		return 0;
+	return atoi(sCodePage);
+}
+
+//#undef DefWindowProc
+//#define DefWindowProc  DefWindowProcW
 
 LRESULT ScintillaWin::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 	switch (iMessage) {
@@ -354,7 +369,7 @@ LRESULT ScintillaWin::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 		break;
 
 	case WM_GETMINMAXINFO:
-		return DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
+		return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
 
 	case WM_LBUTTONDOWN:
 		//Platform::DebugPrintf("Buttdown %d %x %x %x %x %x\n",iMessage, wParam, lParam, 
@@ -393,17 +408,32 @@ LRESULT ScintillaWin::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 			}
 			return TRUE;
 		} else
-			return DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
+			return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
 
 	case WM_CHAR: {
 			char utfval[4]="\0\0\0";
 			if (IsUnicodeMode()) {
 				if ((wParam > 0xff) || (!iscntrl(wParam))) {
+					int inputCodePage = InputCodePage();
+					char ansiChars[3];
+					ansiChars[0] = static_cast<char>(wParam);
+					ansiChars[1] = '\0';
+					ansiChars[2] = '\0';
+					wchar_t wcs[2];
+					//int nRet = 
+					::MultiByteToWideChar(inputCodePage, 0, ansiChars, 1, wcs, 1);
+					wchar_t uchar = wcs[0];
+					unsigned int len = UTF8Length(&uchar, 1);
+					UTF8FromUCS2(&uchar, 1, utfval, len);
+					utfval[len] = '\0';
+					AddCharUTF(utfval,len);
+					/*
 					wchar_t uchar = wParam;
 					unsigned int len = UTF8Length(&uchar, 1);
 					UTF8FromUCS2(&uchar, 1, utfval, len);
 					utfval[len] = '\0';
 					AddCharUTF(utfval,len);
+					*/
 				}
 			} else {
 				if (!iscntrl(wParam&0xff)) {
@@ -413,13 +443,21 @@ LRESULT ScintillaWin::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 		}
 		return 1;
 
-	case WM_KEYDOWN:
+	case WM_KEYDOWN: {
 		//Platform::DebugPrintf("S keydown %d %x %x %x %x\n",iMessage, wParam, lParam, ::IsKeyDown(VK_SHIFT), ::IsKeyDown(VK_CONTROL));
-		return KeyDown(wParam, Platform::IsKeyDown(VK_SHIFT),
+			int ret = KeyDown(wParam, Platform::IsKeyDown(VK_SHIFT),
 		               Platform::IsKeyDown(VK_CONTROL), false);
+			if (!ret)
+				return DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
+			break;
+		}
+
+	case WM_IME_KEYDOWN:
+			return DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
 
 	case WM_KEYUP:
 		//Platform::DebugPrintf("S keyup %d %x %x\n",iMessage, wParam, lParam);
+		return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
 		break;
 
 	case WM_SETTINGCHANGE:
@@ -462,12 +500,39 @@ LRESULT ScintillaWin::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 		break;
 
 	case WM_IME_STARTCOMPOSITION: 	// dbcs
-		ImeStartComposition();
-		return DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
+		//ImeStartComposition();
+		return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
 
 	case WM_IME_ENDCOMPOSITION: 	// dbcs
-		ImeEndComposition();
-		return DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
+		//ImeEndComposition();
+		return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
+		
+	case WM_IME_COMPOSITION:
+		if (lParam & GCS_RESULTSTR) {
+			Platform::DebugPrintf("Result\n");
+		}
+		return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
+
+	case WM_IME_CHAR: {
+			int nRet = 0;
+			int inputCodePage = InputCodePage();
+			if (inputCodePage) {
+				char utfval[4]="\0\0\0";
+				char ansiChars[3];
+				ansiChars[0] = static_cast<char>(wParam & 0xff);
+				ansiChars[1] = static_cast<char>(wParam >> 8);
+				ansiChars[2] = '\0';
+				wchar_t wcs[2];
+				nRet = ::MultiByteToWideChar(inputCodePage, 0, ansiChars, 2, wcs, 1);
+				wchar_t uchar = wcs[0];
+				uchar = wParam;
+				unsigned int len = UTF8Length(&uchar, 1);
+				UTF8FromUCS2(&uchar, 1, utfval, len);
+				utfval[len] = '\0';
+				AddCharUTF(utfval,len);
+			}
+			return 0;
+		}
 
 	case WM_CONTEXTMENU:
 #ifdef TOTAL_CONTROL
@@ -494,7 +559,20 @@ LRESULT ScintillaWin::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 			return MAKELONG(topLine - topStart, TRUE);
 		}
 
+	case WM_INPUTLANGCHANGE:
+		//::SetThreadLocale(LOWORD(lParam));
+		return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
+
+	case WM_INPUTLANGCHANGEREQUEST:
+		return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
+
+	case WM_ERASEBKGND:
+	case WM_NCHITTEST:
+	case WM_NCPAINT:
+		return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
+
 	default:
+		//return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
 		return ScintillaBase::WndProc(iMessage, wParam, lParam);
 	}
 	return 0l;
@@ -569,9 +647,12 @@ bool ScintillaWin::ModifyScrollBars(int nMax, int nPage) {
 	}
 	int horizStart = 0;
 	int horizEnd = 2000;
+	int horizEndPreferred = 2000;
+	if (!horizontalScrollBarVisible)
+		horizEndPreferred = 0;
 	if (!::GetScrollRange(wMain.GetID(), SB_HORZ, &horizStart, &horizEnd) ||
-	        horizStart != 0 || horizEnd != 2000) {
-		::SetScrollRange(wMain.GetID(), SB_HORZ, 0, 2000, TRUE);
+	        horizStart != 0 || horizEnd != horizEndPreferred) {
+		::SetScrollRange(wMain.GetID(), SB_HORZ, 0, horizEndPreferred, TRUE);
 		//Platform::DebugPrintf("Horiz Scroll info changed\n");
 		modified = true;
 	}
@@ -1006,11 +1087,13 @@ void ScintillaWin::ImeStartComposition() {
 			lf.lfWeight = vs.styles[styleHere].bold ? FW_BOLD : FW_NORMAL;
 			lf.lfItalic = static_cast<BYTE>(vs.styles[styleHere].italic ? 1 : 0);
 			lf.lfCharSet = DEFAULT_CHARSET;
-			strcpy(lf.lfFaceName, vs.styles[styleHere].fontName);
+			lf.lfFaceName[0] = '\0';
+			if (vs.styles[styleHere].fontName)
+				strcpy(lf.lfFaceName, vs.styles[styleHere].fontName);
 
 			::ImmSetCompositionFont(hIMC, &lf);
-			::ImmReleaseContext(wMain.GetID(), hIMC);
 		}
+		::ImmReleaseContext(wMain.GetID(), hIMC);
 		// Caret is displayed in IME window. So, caret in Scintilla is useless.
 		DropCaret();
 	}
@@ -1333,22 +1416,26 @@ bool ScintillaWin::IsUnicodeMode() const {
 
 const char scintillaClassName[] = "Scintilla";
 
+#if 0
 static BOOL IsNT() {
 		OSVERSIONINFO osv = {sizeof(OSVERSIONINFO),0,0,0,0,""};
 		::GetVersionEx(&osv);
 		return osv.dwPlatformId == VER_PLATFORM_WIN32_NT;
 }
+#endif
 
 void ScintillaWin::Register(HINSTANCE hInstance_) {
 
 	hInstance = hInstance_;
 
 	InitCommonControls();
-
+#if 0
 	// Register the Scintilla class
 	if (IsNT()) {
+	//if (0) {
 		// Register Scintilla as a wide character window
-		WNDCLASSW wndclass;
+		WNDCLASSEXW wndclass;
+		wndclass.cbSize = sizeof(wndclass);
 		wndclass.style = CS_GLOBALCLASS | CS_HREDRAW | CS_VREDRAW;
 		wndclass.lpfnWndProc = ::ScintillaWin::SWndProc;
 		wndclass.cbClsExtra = 0;
@@ -1359,10 +1446,13 @@ void ScintillaWin::Register(HINSTANCE hInstance_) {
 		wndclass.hbrBackground = NULL;
 		wndclass.lpszMenuName = NULL;
 		wndclass.lpszClassName = L"Scintilla";
-		::RegisterClassW(&wndclass);
+		wndclass.hIconSm = 0;
+		::RegisterClassExW(&wndclass);
 	} else {
+#endif
 		// Register Scintilla as a normal character window
-		WNDCLASS wndclass;
+		WNDCLASSEX wndclass;
+		wndclass.cbSize = sizeof(wndclass);
 		wndclass.style = CS_GLOBALCLASS | CS_HREDRAW | CS_VREDRAW;
 		wndclass.lpfnWndProc = ::ScintillaWin::SWndProc;
 		wndclass.cbClsExtra = 0;
@@ -1373,11 +1463,13 @@ void ScintillaWin::Register(HINSTANCE hInstance_) {
 		wndclass.hbrBackground = NULL;
 		wndclass.lpszMenuName = NULL;
 		wndclass.lpszClassName = scintillaClassName;
-		::RegisterClass(&wndclass);
-	}
+		wndclass.hIconSm = 0;
+		::RegisterClassEx(&wndclass);
+	//}
 
 	// Register the CallTip class
-	WNDCLASS wndclassc;
+	WNDCLASSEX wndclassc;
+	wndclassc.cbSize = sizeof(wndclass);
 	wndclassc.style = CS_GLOBALCLASS | CS_HREDRAW | CS_VREDRAW;
 	wndclassc.cbClsExtra = 0;
 	wndclassc.cbWndExtra = sizeof(ScintillaWin *);
@@ -1385,12 +1477,12 @@ void ScintillaWin::Register(HINSTANCE hInstance_) {
 	wndclassc.hIcon = NULL;
 	wndclassc.hbrBackground = NULL;
 	wndclassc.lpszMenuName = NULL;
-
 	wndclassc.lpfnWndProc = ScintillaWin::CTWndProc;
 	wndclassc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wndclassc.lpszClassName = callClassName;
+	wndclassc.hIconSm = 0;
 
-	if (!RegisterClass(&wndclassc)) {
+	if (!::RegisterClassEx(&wndclassc)) {
 		//Platform::DebugPrintf("Could not register class\n");
 		return;
 	}
@@ -1433,7 +1525,7 @@ LRESULT PASCAL ScintillaWin::CTWndProc(
 
 LRESULT PASCAL ScintillaWin::SWndProc(
     HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam) {
-	//Platform::DebugPrintf("S W:%x M:%d WP:%x L:%x\n", hWnd, iMessage, wParam, lParam);
+	//Platform::DebugPrintf("S W:%x M:%x WP:%x L:%x\n", hWnd, iMessage, wParam, lParam);
 
 	// Find C++ object associated with window.
 	ScintillaWin *sci = reinterpret_cast<ScintillaWin *>(GetWindowLong(hWnd, 0));

@@ -45,7 +45,7 @@ static void ColouriseCppDoc(unsigned int startPos, int length, int initStyle, Wo
 	
 	styler.StartAt(startPos);
 	
-	bool fold = styler.GetPropSet().GetInt("fold");
+	bool fold = styler.GetPropertyInt("fold");
 	int lineCurrent = styler.GetLine(startPos);
 	int levelPrev = styler.LevelAt(lineCurrent) & SC_FOLDLEVELNUMBERMASK;
 	int levelCurrent = levelPrev;
@@ -177,7 +177,7 @@ static void ColouriseCppDoc(unsigned int startPos, int length, int initStyle, Wo
 				}
 			} else if (state == SCE_C_STRING) {
 				if ((ch == '\r' || ch == '\n') && (chPrev != '\\')) {
-					styler.ColourTo(i-1, state);
+					styler.ColourTo(i-1, SCE_C_STRINGEOL);
 					state = SCE_C_STRINGEOL;
 				} else if (ch == '\\') {
 					if (chNext == '\"' || chNext == '\'' || chNext == '\\') {
@@ -194,7 +194,7 @@ static void ColouriseCppDoc(unsigned int startPos, int length, int initStyle, Wo
 				}
 			} else if (state == SCE_C_CHARACTER) {
 				if ((ch == '\r' || ch == '\n') && (chPrev != '\\')) {
-					styler.ColourTo(i-1, state);
+					styler.ColourTo(i-1, SCE_C_STRINGEOL);
 					state = SCE_C_STRINGEOL;
 				} else if (ch == '\\') {
 					if (chNext == '\"' || chNext == '\'' || chNext == '\\') {
