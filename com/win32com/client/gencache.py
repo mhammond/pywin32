@@ -208,6 +208,59 @@ def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = No
 		return None
 	return GetModuleForTypelib(typelibCLSID, lcid, major, minor)
 
+def MakeModuleForTypelibInterface(typelib_ob, progressInstance = None, bForDemand = 0):
+	"""Generate support for a type library.
+	
+	Given a PyITypeLib interface generate and import the necessary support files.  This is useful
+	for getting makepy support for a typelibrary that is not registered - the caller can locate
+	and load the type library itself, rather than relying on COM to find it.
+	
+	Returns the Python module.
+
+	Params
+	typelib_ob -- The type library itself
+	progressInstance -- Instance to use as progress indicator, or None to
+	                    use the GUI progress bar.
+	"""
+	import makepy
+	try:
+		makepy.GenerateFromTypeLibSpec( typelib_ob, progressInstance=progressInstance, bForDemand = bForDemand)
+	except pywintypes.com_error:
+		return None
+	tla = typelib_ob.GetLibAttr()
+	guid = tla[0]
+	lcid = tla[1]
+	major = tla[3]
+	minor = tla[4]
+	return GetModuleForTypelib(guid, lcid, major, minor)
+
+def EnsureModuleForTypelibInterface(typelib_ob, progressInstance = None, bForDemand = 0):
+	"""Check we have support for a type library, generating if not.
+	
+	Given a PyITypeLib interface generate and import the necessary
+	support files if necessary. This is useful for getting makepy support
+	for a typelibrary that is not registered - the caller can locate and
+	load the type library itself, rather than relying on COM to find it.
+	
+	Returns the Python module.
+
+	Params
+	typelib_ob -- The type library itself
+	progressInstance -- Instance to use as progress indicator, or None to
+	                    use the GUI progress bar.
+	"""
+	tla = typelib_ob.GetLibAttr()
+	guid = tla[0]
+	lcid = tla[1]
+	major = tla[3]
+	minor = tla[4]
+	try:
+		return GetModuleForTypelib(guid, lcid, major, minor)
+	except ImportError:
+		pass
+	# Generate it.
+	return MakeModuleForTypelibInterface(typelib_ob, progressInstance, bForDemand)
+
 def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bValidateFile=1, bForDemand = 0):
 	"""Ensure Python support is loaded for a type library, generating if necessary.
 	

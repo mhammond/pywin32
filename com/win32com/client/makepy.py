@@ -190,6 +190,15 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 	elif type(typelibInfo)==types.InstanceType:
 		tlb = pythoncom.LoadRegTypeLib(typelibInfo.clsid, typelibInfo.major, typelibInfo.minor, typelibInfo.lcid)
 		typelibs = [(tlb, typelibInfo)]
+	elif hasattr(typelibInfo, "GetLibAttr"):
+		# A real typelib object!
+		tla = typelibInfo.GetLibAttr()
+		guid = tla[0]
+		lcid = tla[1]
+		major = tla[3]
+		minor = tla[4]
+		spec = selecttlb.TypelibSpec(guid, lcid, major, minor)
+		typelibs = [(typelibInfo, spec)]
 	else:
 		typelibs = GetTypeLibsForSpec(typelibInfo)
 
