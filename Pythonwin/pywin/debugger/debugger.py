@@ -32,8 +32,6 @@ import traceback
 
 from dbgcon import *
 
-isInprocApp = -1
-
 error = "pywin.debugger.error"
 
 def SetInteractiveContext(globs, locs):
@@ -361,39 +359,6 @@ DebuggerDialogInfos = (
 	(0xe812, DebuggerWatchWindow, None),
 	)
 
-def _MakeDebuggerGUI():
-	import dbgpyapp
-	app = dbgpyapp.DebuggerPythonApp()
-	app.InitInstance()
-
-def _CheckNeedGUI():
-	global isInprocApp
-	if isInprocApp==-1:
-		isInprocApp = win32ui.GetApp().IsInproc()
-	if isInprocApp:
-		# MAY Need it - may already have one
-		need = sys.modules.has_key("pywin.debugger.dbgpyapp")==0
-	else:
-		need = 0
-	if need:
-		_MakeDebuggerGUI()
-	else:
-		# Check we have the appropriate editor.
-		import pywin.framework.editor
-		try:
-			import pywin.framework.editor.color.coloreditor
-			ok = pywin.framework.editor.editorTemplate==pywin.framework.editor.color.coloreditor.editorTemplate
-		except ImportError:
-			ok = 0
-		if not ok:
-			msg = "This debugger requires the Pythonwin color editor.\r\nDebugging can not continue.\r\n\r\nWould you like to make the color editor the default?"
-			rc = win32ui.MessageBox(msg, "Can't initialize debugger", win32con.MB_YESNO)
-			if rc == win32con.IDYES:
-				pywin.framework.editor.WriteDefaultEditorModule("pywin.framework.editor.color.coloreditor")
-				win32ui.MessageBox("The debugger will be available when you restart the application.")
-			raise RuntimeError, "Can't initialize debugger, as the required editor is not the default"
-	return need
-
 SKIP_NONE=0
 SKIP_STEP=1
 SKIP_RUN=2
@@ -422,8 +387,7 @@ class Debugger(debugger_parent):
 				self.set_break(doc.GetPathName(), lineNo)
 
 		self.reset()
-		_CheckNeedGUI()
-		self.inForcedGUI = isInprocApp
+		self.inForcedGUI = win32ui.GetApp().IsInproc()
 		self.options = LoadDebuggerOptions()
 		self.bAtException = self.bAtPostMortem = 0
 
@@ -547,15 +511,6 @@ class Debugger(debugger_parent):
 			return 0
 		return debugger_parent.stop_here(self, frame)
 
-	def _set_botuser(self, levels_back=2):
-		try:
-			1/0
-		except:
-			f = sys.exc_info()[2].tb_frame
-			for i in range(levels_back):
-				f = f.f_back
-			self.userbotframe = f
-
 	def run(self, cmd,globals=None, locals=None, start_stepping = 1):
 		if type(cmd) not in [types.StringType, types.CodeType]:
 			raise TypeError, "Only strings can be run"
@@ -646,8 +601,12 @@ class Debugger(debugger_parent):
 		except:
 			frame = sys.exc_info()[2].tb_frame.f_back.f_back
 		self.reset()
-		self._set_botuser(5)
+		self.userbotframe = None
 		while frame:
+			if frame.f_locals.has_key("_debugger_stop_frame_"):
+				self.userbotframe = frame
+				break
+
 			frame.f_trace = self.trace_dispatch
 			self.botframe = frame
 			frame = frame.f_back

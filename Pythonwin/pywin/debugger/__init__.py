@@ -1,11 +1,49 @@
 import sys
 
+# Some cruft to deal with the Pythonwin GUI booting up from a non GUI app.
+def _MakeDebuggerGUI():
+	app.InitInstance()
+
+isInprocApp = -1
+def _CheckNeedGUI():
+	global isInprocApp
+	if isInprocApp==-1:
+		import win32ui
+		isInprocApp = win32ui.GetApp().IsInproc()
+	if isInprocApp:
+		# MAY Need it - may already have one
+		need = sys.modules.has_key("pywin.debugger.dbgpyapp")==0
+	else:
+		need = 0
+	if need:
+		import pywin.framework.app
+		import dbgpyapp
+		pywin.framework.app.CreateDefaultGUI(dbgpyapp.DebuggerPythonApp)
+
+	else:
+		# Check we have the appropriate editor.
+		import pywin.framework.editor
+		try:
+			import pywin.framework.editor.color.coloreditor
+			ok = pywin.framework.editor.editorTemplate==pywin.framework.editor.color.coloreditor.editorTemplate
+		except ImportError:
+			ok = 0
+		if not ok:
+			msg = "This debugger requires the Pythonwin color editor.\r\nDebugging can not continue.\r\n\r\nWould you like to make the color editor the default?"
+			rc = win32ui.MessageBox(msg, "Can't initialize debugger", win32con.MB_YESNO)
+			if rc == win32con.IDYES:
+				pywin.framework.editor.WriteDefaultEditorModule("pywin.framework.editor.color.coloreditor")
+				win32ui.MessageBox("The debugger will be available when you restart the application.")
+			raise RuntimeError, "Can't initialize debugger, as the required editor is not the default"
+	return need
+
 # Inject some methods in the top level name-space.
 currentDebugger = None # Wipe out any old one on reload.
 
 def _GetCurrentDebugger():
 	global currentDebugger
 	if currentDebugger is None:
+		_CheckNeedGUI()
 		import debugger
 		currentDebugger = debugger.Debugger()
 	return currentDebugger
