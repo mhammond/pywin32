@@ -1,6 +1,7 @@
 import win32ui
 import sys, os
 import pythoncom
+import win32com.client
 from util import CheckClean
 
 def GenerateAndRunOldStyle():
@@ -110,11 +111,16 @@ if __name__=='__main__':
 	if rc:
 		print "'cscript.exe testInterp.vbs' failed!!!"
 
-	rc = os.system("cscript testPyScriptlet.js")
-	if rc:
-		# Note that this test assumes 'Testpys.sct' has been previously registered.
-		# To register this test, simply run 'regsvr32.exe Testpys.sct'
-		print "testPyScriptlet failed - has Scriptlets been installed and 'Testpys.sct' been registered?!!!"
+	# Note that this test assumes 'Testpys.sct' has been previously registered.
+	# To register this test, simply run 'regsvr32.exe Testpys.sct'
+	try:
+		# First check our test object has actually been installed.
+		win32com.client.Dispatch("TestPys.Scriptlet")
+		# Then run the test as a new process.
+		rc = os.system("cscript testPyScriptlet.js")
+	except pythoncom.error:
+		print "Can not test 'Scriptlets' - has Scriptlets been installed and 'Testpys.sct' been registered???"
+	
 
 	if testLevel>2:
 
