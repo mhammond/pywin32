@@ -72,11 +72,13 @@ class Formatter:
 			start = start+1
 		#self.scintilla.SCISetStyling(end - start + 1, stylenum)
 
-	def RegisterStyle(self, style):
+	def RegisterStyle(self, style, stylenum = None):
 		assert style.stylenum is None, "Style has already been registered"
-		assert self.styles.get(self.nextstylenum) is None, "We are reusing a style number!"
-		stylenum = style.stylenum = self.nextstylenum
-		self.nextstylenum = self.nextstylenum + 1
+		if stylenum is None:
+			stylenum = self.nextstylenum
+			self.nextstylenum = self.nextstylenum + 1
+		assert self.styles.get(stylenum) is None, "We are reusing a style number!"
+		style.stylenum = stylenum
 		self.styles[style.name] = style
 		self.styles_by_id[stylenum] = style
 
@@ -147,8 +149,10 @@ class Formatter:
 			lineStartStyled = scintilla.LineFromChar(endStyled)
 			start = scintilla.LineIndex(lineStartStyled)
 			end = scintilla.LineIndex(lineStartStyled+1)
+			textlen = scintilla.GetTextLength()
+			if end < 0: end = textlen
 
-			finished = end >= scintilla.GetTextLength()
+			finished = end >= textlen
 			self.Colorize(start, end)
 		except (win32ui.error, AttributeError):
 			# Window may have closed before we finished - no big deal!
@@ -201,6 +205,8 @@ STYLE_CLASS = "Class"
 STYLE_METHOD = "Method"
 STYLE_OPERATOR = "Operator"
 STYLE_IDENTIFIER = "Identifier"
+STYLE_BRACE = "Brace/Paren - matching"
+STYLE_BRACEBAD = "Brace/Paren - unmatched"
 
 STRING_STYLES = [STYLE_STRING, STYLE_SQSTRING, STYLE_TQSSTRING, STYLE_TQDSTRING]
 
@@ -212,8 +218,10 @@ quotefmt	= (0, 0, 200, 0, 32896)
 nmberfmt	= (0, 0, 200, 0, 8421376)
 methodfmt	= (0, 1, 200, 0, 8421376)
 dfltfmt	= (0, 0, 200, 0, 8421504)
-opfmt	= (0, 1, 200, 0, 0)
+opfmt	= (0, 0, 200, 0, 0)
 idfmt		= (0, 0, 200, 0, 0)
+bracefmt	= (0, 1, 200, 0, 0)
+bracebadfmt	= (0, 0, 200, 0, 255)
 
 class PythonSourceFormatter(Formatter):
 	def GetSampleText(self):
@@ -235,6 +243,8 @@ class PythonSourceFormatter(Formatter):
 		self.RegisterStyle( Style(STYLE_METHOD, methodfmt ) )
 		self.RegisterStyle( Style(STYLE_OPERATOR, opfmt ) )
 		self.RegisterStyle( Style(STYLE_IDENTIFIER, idfmt ) )
+		self.RegisterStyle( Style(STYLE_BRACE, bracefmt ), 34) # 34 is the special style for braces
+		self.RegisterStyle( Style(STYLE_BRACEBAD, bracebadfmt ), 35) # 35 is the special style for bad brace matches
 
 	# Used by the IDLE extensions to quickly determine if a character is a string.
 	def GetStringStyle(self, pos):
