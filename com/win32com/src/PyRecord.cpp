@@ -178,12 +178,16 @@ exit:
 	return ret;
 }
 // Creates a new Record by TAKING A COPY of the passed record.
-PyObject *PyObject_FromRecordInfo(IRecordInfo *ri, void *data)
+PyObject *PyObject_FromRecordInfo(IRecordInfo *ri, void *data, ULONG cbData)
 {
+	if ((data != NULL && cbData==0) || (data==NULL && cbData != 0))
+		return PyErr_Format(PyExc_RuntimeError, "Both or neither data and size must be given");
 	ULONG cb;
 	HRESULT hr = ri->GetSize(&cb);
 	if (FAILED(hr))
 		return PyCom_BuildPyException(hr, ri, g_IID_IRecordInfo);
+	if (cbData != 0 && cbData != cb)
+		return PyErr_Format(PyExc_ValueError, "Expecting a string of %d bytes (got %d)", cb, cbData);
 	PyRecordBuffer *owner = new PyRecordBuffer(cb);
 	if (PyErr_Occurred()) { // must be mem error!
 		delete owner;
@@ -205,14 +209,17 @@ PyObject *PyObject_FromRecordInfo(IRecordInfo *ri, void *data)
 // @pymethod <o PyRecord>|pythoncom|GetRecordFromGuids|Creates a new record object from the given GUIDs
 PyObject *pythoncom_GetRecordFromGuids(PyObject *self, PyObject *args)
 {
+	char *data = NULL;
 	PyObject *obGuid, *obInfoGuid;
 	int maj, min, lcid;
-	if (!PyArg_ParseTuple(args, "OiiiO:GetRecordFromGuids", 
+	int cb = 0;
+	if (!PyArg_ParseTuple(args, "OiiiO|z#:GetRecordFromGuids", 
 		&obGuid, // @pyparm <o PyIID>|iid||The GUID of the type library
 		&maj, // @pyparm int|verMajor||The major version number of the type lib.
 		&min, // @pyparm int|verMinor||The minor version number of the type lib.
 		&lcid, // @pyparm int|lcid||The LCID of the type lib.
-		&obInfoGuid)) // @pyparm <o PyIID>|infoIID||The GUID of the record info in the library
+		&obInfoGuid, // @pyparm <o PyIID>|infoIID||The GUID of the record info in the library
+		&data, &cb)) // @pyparm string|data|None|The raw data to initialize the record with.
 		return NULL;
 	GUID guid, infoGuid;
 	if (!PyWinObject_AsIID(obGuid, &guid))
@@ -223,7 +230,7 @@ PyObject *pythoncom_GetRecordFromGuids(PyObject *self, PyObject *args)
 	HRESULT hr = PyGetRecordInfoFromGuids(guid, maj, min, lcid, infoGuid, &i);
 	if (FAILED(hr))
 		return PyCom_BuildPyException(hr);
-	PyObject *ret = PyObject_FromRecordInfo(i, NULL);
+	PyObject *ret = PyObject_FromRecordInfo(i, data, cb);
 	i->Release();
 	return ret;
 }
@@ -267,18 +274,73 @@ PyTypeObject PyRecord::Type =
 	0,		/* tp_str */
 };
 
-static PyObject *PyRecord_copy(PyObject *self, PyObject *args)
+static PyObject *PyRecord_reduce(PyObject *self, PyObject *args)
 {
-	if (!PyArg_ParseTuple(args, ":copy"))
-		return NULL;
+	PyObject *ret = NULL;
 	PyRecord *pyrec = (PyRecord *)self;
-	return PyObject_FromRecordInfo(pyrec->pri, pyrec->pdata);
+	PyObject *obModule = NULL, *obModDict = NULL, *obFunc = NULL;
+	ITypeInfo *pti = NULL;
+	TYPEATTR *pta = NULL;
+	ULONG cb;
+	HRESULT hr;
+	GUID structguid;
+	if (!PyArg_ParseTuple(args, ":reduce"))
+		return NULL;
+	hr = pyrec->pri->GetTypeInfo(&pti);
+	if (FAILED(hr)||pti==NULL) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	hr = pti->GetTypeAttr(&pta);
+	if (FAILED(hr)||pta==NULL) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	hr = pyrec->pri->GetGuid(&structguid);
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	hr = pyrec->pri->GetSize(&cb);
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	obModule = PyImport_ImportModule("pythoncom");
+	if (obModule)
+		obModDict = PyModule_GetDict(obModule); // no ref added!
+	if (obModDict)
+		obFunc = PyDict_GetItemString(obModDict, "GetRecordFromGuids"); // no ref added!
+	if (!obFunc) {
+		PyErr_Clear();
+		PyErr_SetString(PyExc_RuntimeError, "pythoncom.GetRecordFromGuids() can't be located!");
+		goto done;
+	}
+	{ // scope for locals avoiding goto
+	PyObject *obtlbguid = PyWinObject_FromIID(pta->guid);
+	PyObject *obstructguid = PyWinObject_FromIID(structguid);
+	ret = Py_BuildValue("O(NiiiNs#)",
+						obFunc,
+						obtlbguid,
+						pta->wMajorVerNum,
+						pta->wMinorVerNum,
+						pta->lcid,
+						obstructguid,
+						pyrec->pdata, cb);
+	} // end scope
+done:
+	if (pta&& pti)
+		pti->ReleaseTypeAttr(pta);
+	if (pti) pti->Release();
+	Py_XDECREF(obModule);
+	// obModDict and obFunc have no new reference.
+	return ret;
 }
 // The object itself.
 // Any method names should be "__blah__", as they override
 // structure names!
 static struct PyMethodDef PyRecord_methods[] = {
-	{"__copy__",      PyRecord_copy, 1}, // This allows the copy module to work!
+	{"__reduce__",      PyRecord_reduce, 1}, // This allows the copy module to work!
 	{NULL}
 };
 

@@ -6,7 +6,7 @@
 
 extern void PyCom_LogF(const TCHAR *fmt, ...);
 
-extern PyObject *PyObject_FromRecordInfo(IRecordInfo *, void *);
+extern PyObject *PyObject_FromRecordInfo(IRecordInfo *, void *, ULONG);
 extern PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa);
 extern BOOL PyObject_AsVARIANTRecordInfo(PyObject *ob, VARIANT *pv);
 extern BOOL PyRecord_Check(PyObject *ob);
@@ -331,7 +331,11 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
 			break;
 
 		case VT_RECORD:
-			result = PyObject_FromRecordInfo(V_RECORDINFO(&varValue), V_RECORD(&varValue));
+			{
+			ULONG cb;
+			V_RECORDINFO(&varValue)->GetSize(&cb);
+			result = PyObject_FromRecordInfo(V_RECORDINFO(&varValue), V_RECORD(&varValue), cb);
+			}
 			break;
 		default:
 			{
