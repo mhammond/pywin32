@@ -7,6 +7,7 @@ import win32com.client.dynamic
 import win32api
 import glob
 import pythoncom
+import time
 from util import CheckClean
 
 bVisibleEventFired = 0
@@ -60,6 +61,8 @@ def TestAll():
 
         # Test IE events.
         TestExplorerEvents()
+        # Give IE a chance to shutdown, else it can get upset on fast machines.
+        time.sleep(2)
 
         # Note that the TextExplorerEvents will force makepy - hence
         # this gencache is really no longer needed.
