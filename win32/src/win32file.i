@@ -903,7 +903,7 @@ PyObject *MyGetFileSize(PyObject *self, PyObject *args)
 // of arbitary size, so currently this can only be created by <om win32file.AllocateReadBuffer>.
 #ifndef MS_WINCE
 %{
-// @pyswig <o PyOVERLAPPEDReadBuffer>|AllocateReadBuffer|Allocated a buffer which can be used with an overlapped Read operation using <om win32file.Read>
+// @pyswig <o PyOVERLAPPEDReadBuffer>|AllocateReadBuffer|Allocated a buffer which can be used with an overlapped Read operation using <om win32file.ReadFile>
 PyObject *MyAllocateReadBuffer(PyObject *self, PyObject *args)
 {
 	int bufSize;
@@ -2626,6 +2626,9 @@ static DWORD (WINAPI *pfnQueryRecoveryAgentsOnEncryptedFile)(WCHAR *, PENCRYPTIO
 static DWORD (WINAPI *pfnRemoveUsersFromEncryptedFile)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST)=NULL;
 static DWORD (WINAPI *pfnAddUsersToEncryptedFile)(WCHAR *, PENCRYPTION_CERTIFICATE_LIST)=NULL;
 static BOOL (WINAPI *pfnGetVolumePathNameW)(WCHAR *, WCHAR *, DWORD)=NULL;
+static BOOL (WINAPI *pfnBackupRead)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL, LPVOID*)=NULL;
+static BOOL (WINAPI *pfnBackupSeek)(HANDLE, DWORD, DWORD, LPDWORD, LPDWORD, LPVOID*)=NULL;
+static BOOL (WINAPI *pfnBackupWrite)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL, LPVOID*)=NULL;
 
 
 // @pyswig <o PyUnicode>|SetVolumeMountPoint|Mounts the specified volume at the specified volume mount point.
@@ -3342,6 +3345,127 @@ py_AddUsersToEncryptedFile(PyObject *self, PyObject *args)
     return ret;
 }
 
+// @pyswig (int, buffer, int)|BackupRead|Reads streams of data from a file
+// @comm Returns number of bytes read, data buffer, and context pointer for next operation
+// If Buffer is None, a new buffer will be created of size NbrOfBytesToRead that can be passed
+//	back in subsequent calls
+
+static PyObject*
+py_BackupRead(PyObject *self, PyObject *args)
+{
+	// @pyparm <o PyHANDLE>|hFile||File handle opened by CreateFile
+	// @pyparm int|NumberOfBytesToRead||Number of bytes to be read from file
+	// @pyparm buffer|Buffer||Writeable buffer object that receives data read
+	// @pyparm int|bAbort||If true, ends read operation and frees backup context
+	// @pyparm int|bProcessSecurity||Indicates whether file's ACL stream should be read
+	// @pyparm int|lpContext||Pass 0 on first call, then pass back value returned from last call thereafter
+	HANDLE h;
+	BYTE *buf;
+	int buflen;
+	DWORD bytes_requested, bytes_read;
+	BOOL bAbort,bProcessSecurity;
+	LPVOID ctxt;
+	PyObject *obbuf=NULL, *obbufout=NULL;
+	if (pfnBackupRead==NULL)
+        return PyErr_Format(PyExc_NotImplementedError,"BackupRead not supported by this version of Windows");
+
+	if (!PyArg_ParseTuple(args, "llOlll", &h, &bytes_requested, &obbuf, &bAbort, &bProcessSecurity, &ctxt))
+		return NULL;
+	if (obbuf==Py_None){
+		obbufout=PyBuffer_New(bytes_requested); // ??? any way to create a writable buffer from Python level ???
+		if (obbufout==NULL)
+			return NULL;
+		if (PyObject_AsWriteBuffer(obbufout, (void **)&buf, &buflen)==-1){
+			Py_DECREF(obbufout);
+			return NULL;
+			}
+		}
+	else{
+		obbufout=obbuf;
+		if (PyObject_AsWriteBuffer(obbufout, (void **)&buf, &buflen)==-1)
+			return NULL;
+		if ((DWORD)buflen < bytes_requested)
+			return PyErr_Format(PyExc_ValueError,"Buffer size (%d) less than requested read size (%d)", buflen, bytes_requested);
+		Py_INCREF(obbufout);
+		}
+	if (!(*pfnBackupRead)(h, buf, bytes_requested, &bytes_read, bAbort, bProcessSecurity, &ctxt)){
+		PyWin_SetAPIError("BackupRead");
+		Py_DECREF(obbufout);
+		return NULL;
+		}
+	return Py_BuildValue("lNl", bytes_read, obbufout, ctxt);
+}
+
+// @pyswig long|BackupSeek|Seeks forward in a file stream
+// @comm Function will only seek to end of current stream, used to seek past bad data
+//    or find beginning position for read of next stream
+// Returns number of bytes actually moved
+static PyObject*
+py_BackupSeek(PyObject *self, PyObject *args)
+{
+	// @pyparm <o PyHANDLE>|hFile||File handle used by a BackupRead operation
+	// @pyparm long|NumberOfBytesToSeek||Number of bytes to move forward in current stream
+	// @pyparm int|lpContext||Context pointer returned from a BackupRead operation
+	HANDLE h;
+	ULARGE_INTEGER bytes_to_seek;
+	ULARGE_INTEGER bytes_moved;
+	LPVOID ctxt;
+	PyObject *obbytes_to_seek;
+	if (pfnBackupSeek==NULL)
+        return PyErr_Format(PyExc_NotImplementedError,"BackupSeek not supported by this version of Windows");
+	if (!PyArg_ParseTuple(args,"lOl", &h, &obbytes_to_seek, &ctxt))
+		return NULL;
+	if (!PyWinObject_AsULARGE_INTEGER(obbytes_to_seek, &bytes_to_seek))
+		return NULL;
+	bytes_moved.QuadPart=0;
+	if (!(*pfnBackupSeek)(h, bytes_to_seek.LowPart, bytes_to_seek.HighPart, 
+	                   &bytes_moved.LowPart, &bytes_moved.HighPart,
+	                   &ctxt)){
+	    // function returns false if you attempt to seek past end of current stream, but file pointer
+	    //   still moves to start of next stream - consider this as success
+		if (bytes_moved.QuadPart==0){
+			PyWin_SetAPIError("BackupSeek");
+			return NULL;
+			}
+		}
+	return PyWinObject_FromULARGE_INTEGER(bytes_moved);
+}
+
+// @pyswig (int,int)|BackupWrite|Restores file data
+// @comm Returns number of bytes written and context pointer for next operation
+static PyObject*
+py_BackupWrite(PyObject *self, PyObject *args)
+{
+	// @pyparm <o PyHANDLE>|hFile||File handle opened by CreateFile
+	// @pyparm int|NumberOfBytesToWrite||Length of data to be written to file
+	// @pyparm string|Buffer||A string or buffer object that contains the data to be written
+	// @pyparm int|bAbort||If true, ends write operation and frees backup context
+	// @pyparm int|bProcessSecurity||Indicates whether ACL's should be restored
+	// @pyparm int|lpContext||Pass 0 on first call, then pass back value returned from last call thereafter
+	HANDLE h;
+	BYTE *buf;
+	int buflen;
+	DWORD bytes_to_write, bytes_written;
+	BOOL bAbort, bProcessSecurity;
+	LPVOID ctxt;
+	PyObject *obbuf;
+	if (pfnBackupWrite==NULL)
+        return PyErr_Format(PyExc_NotImplementedError,"BackupWrite not supported by this version of Windows");
+
+	if (!PyArg_ParseTuple(args, "llOlll", &h, &bytes_to_write, &obbuf, &bAbort, &bProcessSecurity, &ctxt))
+		return NULL;
+	if (PyObject_AsReadBuffer(obbuf, (const void **)&buf, &buflen)==-1)
+		return NULL;
+	if ((DWORD)buflen < bytes_to_write)
+		return PyErr_Format(PyExc_ValueError,"Buffer size (%d) less than requested write size (%d)", buflen, bytes_to_write);
+
+	if (!(*pfnBackupWrite)(h, buf, bytes_to_write, &bytes_written, bAbort, bProcessSecurity, &ctxt)){
+		PyWin_SetAPIError("BackupWrite");
+		return NULL;
+		}
+	return Py_BuildValue("ll", bytes_written, ctxt);
+}
+ 
 %}
 
 %native (SetVolumeMountPoint) py_SetVolumeMountPoint;
@@ -3359,6 +3483,9 @@ py_AddUsersToEncryptedFile(PyObject *self, PyObject *args)
 %native (QueryRecoveryAgentsOnEncryptedFile) py_QueryRecoveryAgentsOnEncryptedFile;
 %native (RemoveUsersFromEncryptedFile) py_RemoveUsersFromEncryptedFile;
 %native (AddUsersToEncryptedFile) py_AddUsersToEncryptedFile;
+%native (BackupRead) py_BackupRead;
+%native (BackupSeek) py_BackupSeek;
+%native (BackupWrite) py_BackupWrite;
 
 %init %{
 
@@ -3414,6 +3541,16 @@ py_AddUsersToEncryptedFile(PyObject *self, PyObject *args)
 
 		fp = GetProcAddress(hmodule, "CreateHardLinkW");
 		if (fp) pfnCreateHardLinkW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES))(fp);
+		
+		fp = GetProcAddress(hmodule, "BackupRead");
+		if (fp) pfnBackupRead = (BOOL (WINAPI *)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL, LPVOID*))(fp);
+
+		fp = GetProcAddress(hmodule, "BackupSeek");
+		if (fp) pfnBackupSeek = (BOOL (WINAPI *)(HANDLE, DWORD, DWORD, LPDWORD, LPDWORD, LPVOID*))(fp);
+		
+		fp = GetProcAddress(hmodule, "BackupWrite");
+		if (fp) pfnBackupWrite = (BOOL (WINAPI *)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL, LPVOID*))(fp);
+
 		}
 %}
 
