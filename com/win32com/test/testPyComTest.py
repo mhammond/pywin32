@@ -25,17 +25,6 @@ import sys
 
 verbose = 0
 
-class DebugConnection(win32com.client.connect.SimpleConnection):
-	def __init__(self):
-		print self, "alive"
-		win32com.client.connect.SimpleConnection.__init__(self)
-	def __del__(self):
-		print self, "dieing"
-	pass
-#	def _wrap(self, obj):
-#		import win32com.server.dispatcher
-#		return win32com.server.util.wrap(obj, useDispatcher=win32com.server.dispatcher.DefaultDebugDispatcher)
-
 def TestApplyResult(fn, args, result):
 	try:
 		import string
@@ -59,11 +48,8 @@ def TestApplyResult(fn, args, result):
 # Simple handler class.  This demo only fires one event.
 class RandomEventHandler (PyCOMTest.IPyCOMTestEvent):
 	def __init__(self, oobj = None):
-		print self, "alive"
 		PyCOMTest.IPyCOMTestEvent.__init__(self, oobj)
 		self.fireds = {}
-	def __del__(self):
-		print self, "dead"
 	def OnFire(self, no):
 		try:
 			self.fireds[no] = self.fireds[no] + 1
@@ -73,7 +59,8 @@ class RandomEventHandler (PyCOMTest.IPyCOMTestEvent):
 		if not self.fireds:
 			print "ERROR: Nothing was recieved!"
 		for firedId, no in self.fireds.items():
-			print "ID %d fired %d times" % (firedId, no)
+			if verbose:
+				print "ID %d fired %d times" % (firedId, no)
 
 def TestDynamic():
 	if verbose: print "Testing Dynamic"
@@ -146,25 +133,23 @@ def TestGenerated():
 	# Do the connection point thing...
 	# Create a connection object.
 	if verbose: print "Testing connection points"
-	connection = DebugConnection()
 	sessions = []
 	handler = RandomEventHandler()
+
 	try:
-		for i in range(2):
+		for i in range(3):
 			session = o.Start()
 			# Create an event handler instance, and connect it to the server.
-			connection.Connect(o, handler)
-			sessions.append(session)
+			connection = win32com.client.connect.SimpleConnection(o, handler)
+			sessions.append((session, connection))
 
-		time.sleep(2)
+		time.sleep(.5)
 	finally:
 		# Stop the servers
-		for session in sessions:
+		for session, connection in sessions:
 			o.Stop(session)
+			connection.Disconnect()
 		if handler: handler._DumpFireds()
-		# Break the connection.
-		if verbose: print "Disconnecting"
-		connection.Disconnect()
 	if verbose: print "Finished generated .py test."
 
 def TestCounter(counter, bIsGenerated):
@@ -241,8 +226,9 @@ if __name__=='__main__':
 	import thread
 	thread.start_new( NullThreadFunc, () )
 
-	verbose = 1
+	if "-q" not in sys.argv: verbose = 1
 	TestAll()
 	CheckClean()
 	pythoncom.CoUninitialize()
+	print "C++ test harness worked OK."
 
