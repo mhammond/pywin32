@@ -807,6 +807,17 @@ BOOLAPI TerminateProcess(
 	DWORD exitCode  // @pyparm int|exitCode||The exit code for the process.
 );
 
+// @pyswig |ExitProcess|Ends a process and all its threads
+void ExitProcess(
+	DWORD exitCode  // @pyparm int|exitCode||Specifies the exit code for the process, and for all threads that are terminated as a result of this call
+	// @comm ExitProcess is the preferred method of ending a process. This function provides 
+	// a clean process shutdown. This includes calling the entry-point function of all 
+	// attached dynamic-link libraries (DLLs) with a value indicating that the process 
+	// is detaching from the DLL. If a process terminates by calling 
+	// <om win32process.TerminateProcess>, the DLLs that the process is attached to are 
+	// not notified of the process termination. 
+);
+
 #define CREATE_SUSPENDED CREATE_SUSPENDED 
 
 #ifndef MS_WINCE
