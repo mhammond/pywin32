@@ -302,6 +302,8 @@ class InteractiveCore:
 	def DoGetLine(self, line=-1):
 		if line==-1: line = self.LineFromChar()
 		line = self.GetLine(line)
+		if pywin.is_platform_unicode:
+			line = unicode(line, pywin.default_scintilla_encoding).encode(pywin.default_platform_encoding)
 		while line and line[-1] in ['\r', '\n']:
 			line = line[:-1]
 		return line
