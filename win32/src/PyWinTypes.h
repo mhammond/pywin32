@@ -163,8 +163,8 @@ PYWINTYPES_EXPORT BOOL PyWin_Bstr_AsString(BSTR input, char **pResult);
 */
 #ifdef LONG_LONG
 	// Python got its own support for 64 bit ints as of Python 1.5.2.
-	// This wont be undefined for a little while, to keep binary compatibility.
-#	ifndef MS_WINCE // except in CE, where there is no b/w compat
+	// However, for 1.5.2 we stick without it - we use it for 1.6 and on.
+#	if (PY_VERSION_HEX < 0x01060000)
 #		define PYWIN_NO_PYTHON_LONG_LONG
 #	endif
 #else
