@@ -362,11 +362,22 @@ PyObject *PyACL::AddAccessAllowedAce(PyObject *self, PyObject *args)
 	PyACL *This = (PyACL *)self;
 	PACL pdacl = This->GetACL();
 	PACL pdacl_padded=NULL;
-	// @pyparm int|revision||Pre-win2k, must be ACL_REVISION, otherwise also may be ACL_REVISION_DS.
-	// @pyparm int|access||Specifies the mask of access rights to be granted to the specified SID.
-	// @pyparm <o PySID>|sid||A SID object representing a user, group, or logon account being granted access. 
-	if (!PyArg_ParseTuple(args, "llO:AddAccessAllowedAce", &revision, &access, &obSID))
-		return NULL;
+	// Need to support 2 arg styles for b/w compat.
+	if (PyArg_ParseTuple(args, "lO:AddAccessAllowedAce", &access, &obSID)) {
+		// We worked - is old style 
+		// @pyparmalt1 int|access||Specifies the mask of access rights to be denied to the specified SID.
+		// @pyparmalt1 <o PySID>|sid||A SID object representing a user, group, or logon account being denied access. 
+		revision = ACL_REVISION;
+	} else {
+		// Try new style (we use new style last so that
+		// exceptions report the new style rather than old
+		// @pyparm int|revision||Pre-win2k, must be ACL_REVISION, otherwise also may be ACL_REVISION_DS.
+		// @pyparm int|access||Specifies the mask of access rights to be denied to the specified SID.
+		// @pyparm <o PySID>|sid||A SID object representing a user, group, or logon account being denied access. 
+		PyErr_Clear();
+		if (!PyArg_ParseTuple(args, "llO:AddAccessAllowedAce", &revision, &access, &obSID))
+			return NULL;
+	}
 	if (!PyWinObject_AsSID(obSID, &psid, FALSE))
 		return NULL;
 	if (!::AddAccessAllowedAce(pdacl, revision, access, psid)){
@@ -389,6 +400,10 @@ PyObject *PyACL::AddAccessAllowedAce(PyObject *self, PyObject *args)
 		free(pdacl_padded);
 	Py_INCREF(Py_None);
 	return Py_None;
+	// @comm Note that early versions of this function supported only
+	// two arguments.  This has been deprecated in preference of the
+	// three argument version, which reflects the win32 API and the new
+	// functions in this module.
 }
 
 // @pymethod |PyACL|AddAccessDeniedAce|Adds an access-denied ACE to an ACL object. The access is denied to a specified SID.
@@ -401,11 +416,22 @@ PyObject *PyACL::AddAccessDeniedAce(PyObject *self, PyObject *args)
 	PyACL *This = (PyACL *)self;
 	PACL pdacl = This->GetACL();
 	PACL pdacl_padded = NULL;
-	// @pyparm int|revision||Pre-win2k, must be ACL_REVISION, otherwise also may be ACL_REVISION_DS.
-	// @pyparm int|access||Specifies the mask of access rights to be denied to the specified SID.
-	// @pyparm <o PySID>|sid||A SID object representing a user, group, or logon account being denied access. 
-	if (!PyArg_ParseTuple(args, "llO:AddAccessDeniedAce", &revision, &access, &obSID))
-		return NULL;
+	// Need to support 2 arg styles for b/w compat.
+	if (PyArg_ParseTuple(args, "lO:AddAccessDeniedAce", &access, &obSID)) {
+		// We worked - is old style 
+		// @pyparmalt1 int|access||Specifies the mask of access rights to be denied to the specified SID.
+		// @pyparmalt1 <o PySID>|sid||A SID object representing a user, group, or logon account being denied access. 
+		revision = ACL_REVISION;
+	} else {
+		// Try new style (we use new style last so that
+		// exceptions report the new style rather than old
+		// @pyparm int|revision||Pre-win2k, must be ACL_REVISION, otherwise also may be ACL_REVISION_DS.
+		// @pyparm int|access||Specifies the mask of access rights to be denied to the specified SID.
+		// @pyparm <o PySID>|sid||A SID object representing a user, group, or logon account being denied access. 
+		PyErr_Clear();
+		if (!PyArg_ParseTuple(args, "llO:AddAccessDeniedAce", &revision, &access, &obSID))
+			return NULL;
+	}
 	if (!PyWinObject_AsSID(obSID, &psid, FALSE))
 		return NULL;
 	if (!::AddAccessDeniedAce(pdacl, revision, access, psid)){
@@ -439,6 +465,10 @@ PyObject *PyACL::AddAccessDeniedAce(PyObject *self, PyObject *args)
 			free(pdacl_padded);
 		Py_XINCREF(ret);
 		return ret;
+	// @comm Note that early versions of this function supported only
+	// two arguments.  This has been deprecated in preference of the
+	// three argument version, which reflects the win32 API and the new
+	// functions in this module.
 }
 
 // AddAuditAccessAce
