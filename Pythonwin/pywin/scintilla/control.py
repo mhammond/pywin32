@@ -126,10 +126,10 @@ class ScintillaControlInterface:
 		return self.SendScintilla(SCI_AUTOCACTIVE)
 	def SCIAutoCComplete(self):
 		return self.SendScintilla(SCI_AUTOCCOMPLETE)
-        def SCIAutoCStops(self, stops):
+	def SCIAutoCStops(self, stops):
 		buff = array.array('c', stops + "\0")
 		addressBuffer = buff.buffer_info()[0]
-                self.SendScintilla(SCI_AUTOCSTOPS, 0, addressBuffer)
+		self.SendScintilla(SCI_AUTOCSTOPS, 0, addressBuffer)
 	# Call tips
 	def SCICallTipShow(self, text, pos=-1):
 		if pos==-1: pos = self.GetSel()[0]
