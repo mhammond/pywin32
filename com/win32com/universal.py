@@ -92,7 +92,7 @@ def _CalcTypeSize(typeTuple):
 class Arg:
     def __init__(self, arg_info, name = None):
         self.name = name
-        self.vt, self.inOut, self.GUID = arg_info
+        self.vt, self.inOut, self.default, self.clsid = arg_info
         self.size = _CalcTypeSize(arg_info)
         # Offset from the beginning of the arguments of the stack.
         self.offset = 0
@@ -140,7 +140,7 @@ class Method:
             if arg.inOut & pythoncom.PARAMFLAG_FOUT or \
                arg.inOut & pythoncom.PARAMFLAG_FRETVAL or \
                arg.inOut == 0:
-                l.append((arg.vt, arg.offset, arg.size))
+                l.append((arg.vt, arg.offset, arg.size, arg.clsid))
         return tuple(l)
 
 class Definition:
