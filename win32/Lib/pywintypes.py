@@ -3,7 +3,7 @@
 def __import(modname):
     import win32api, imp, sys, os
     suffix = ""
-    if win32api.__file__.find("_d")>0:
+    if win32api.__file__.endswith("_d.pyd")>0:
         suffix = "_d"
     filename = "%s%d%d%s.dll" % (modname, sys.version_info[0], sys.version_info[1], suffix)
     if hasattr(sys, "frozen"):
