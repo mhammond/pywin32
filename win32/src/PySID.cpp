@@ -37,7 +37,7 @@ PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args)
 			}
 			int numSubs = PySequence_Length(obSubs);
 			if (numSubs>8) {
-				PyErr_SetString(PyExc_TypeError, "sub authorities sequence size must be < 8");
+				PyErr_SetString(PyExc_TypeError, "sub authorities sequence size must be <= 8");
 				return NULL;
 			}
 #define GET_SUB(i) if (i<numSubs) { \
@@ -140,6 +140,13 @@ static struct PyMethodDef PySID_methods[] = {
 	{NULL}
 };
 
+static PyBufferProcs PySID_as_buffer = {
+	(getreadbufferproc)PySID::getreadbuf,
+	(getwritebufferproc)0,
+	(getsegcountproc)PySID::getsegcount,
+	(getcharbufferproc)0,
+};
+
 
 PYWINTYPES_EXPORT PyTypeObject PySIDType =
 {
@@ -161,6 +168,10 @@ PYWINTYPES_EXPORT PyTypeObject PySIDType =
 	0,
 	0,						/* tp_call */
 	PySID::strFunc,		/* tp_str */
+	0,		/*tp_getattro*/
+	0,		/*tp_setattro*/
+	// @comm Note the PySID object supports the buffer interface.  Thus buffer(sid) can be used to obtain the raw bytes.
+	&PySID_as_buffer,	/*tp_as_buffer*/
 };
 
 
@@ -226,6 +237,26 @@ int PySID::compareFunc(PyObject *ob1, PyObject *ob2)
 {
 	delete (PySID *)ob;
 }
+
+/*static*/ int PySID::getreadbuf(PyObject *self, int index, const void **ptr)
+{
+	if ( index != 0 ) {
+		PyErr_SetString(PyExc_SystemError,
+				"accessing non-existent SID segment");
+		return -1;
+	}
+	PySID *pysid = (PySID *)self;
+	*ptr = pysid->m_psid;
+	return GetLengthSid(pysid->m_psid);
+}
+
+/*static*/ int PySID::getsegcount(PyObject *self, int *lenp)
+{
+	if ( lenp )
+		*lenp = GetLengthSid(((PySID *)self)->m_psid);
+	return 1;
+}
+
 
 // NOTE:  This function taken from KB Q131320.
 BOOL GetTextualSid( 

@@ -15,9 +15,15 @@ PyObject *PyWinMethod_NewSECURITY_DESCRIPTOR(PyObject *self, PyObject *args)
 {
 	unsigned cb = 0;
 	// @pyparm int|cb|0|The number of bytes to allocate, or 0 for the default.
-	if (!PyArg_ParseTuple(args, "|i:SECURITY_DESCRIPTOR", &cb))
+	if (PyArg_ParseTuple(args, "|i:SECURITY_DESCRIPTOR", &cb))
+		return new PySECURITY_DESCRIPTOR(cb);
+
+	PyErr_Clear();
+	char *szRawData;
+	// @pyparmalt1 buffer|data||A buffer (eg, a string) with the raw bytes for the security descriptor.
+	if (!PyArg_ParseTuple(args, "s#:SECURITY_DESCRIPTOR", &szRawData, &cb))
 		return NULL;
-	return new PySECURITY_DESCRIPTOR(cb);
+	return new PySECURITY_DESCRIPTOR((SECURITY_DESCRIPTOR *)szRawData, cb);
 }
 
 BOOL PyWinObject_AsSECURITY_DESCRIPTOR(PyObject *ob, SECURITY_DESCRIPTOR **ppSECURITY_DESCRIPTOR, BOOL bNoneOK /*= TRUE*/)
@@ -80,6 +86,12 @@ static struct PyMethodDef PySECURITY_DESCRIPTOR_methods[] = {
 	{NULL}
 };
 
+static PyBufferProcs PySECURITY_DESCRIPTOR_as_buffer = {
+	(getreadbufferproc)PySECURITY_DESCRIPTOR::getreadbuf,
+	(getwritebufferproc)0,
+	(getsegcountproc)PySECURITY_DESCRIPTOR::getsegcount,
+	(getcharbufferproc)0,
+};
 
 PYWINTYPES_EXPORT PyTypeObject PySECURITY_DESCRIPTORType =
 {
@@ -100,6 +112,10 @@ PYWINTYPES_EXPORT PyTypeObject PySECURITY_DESCRIPTORType =
 	0,
 	0,						/* tp_call */
 	0,		/* tp_str */
+	0,		/*tp_getattro*/
+	0,		/*tp_setattro*/
+	// @comm Note the PySECURITY_DESCRIPTOR object supports the buffer interface.  Thus buffer(sd) can be used to obtain the raw bytes.
+	&PySECURITY_DESCRIPTOR_as_buffer,	/*tp_as_buffer*/
 };
 
 #define OFF(e) offsetof(PySECURITY_DESCRIPTOR, e)
@@ -155,6 +171,25 @@ int PySECURITY_DESCRIPTOR::setattr(PyObject *self, char *name, PyObject *v)
 /*static*/ void PySECURITY_DESCRIPTOR::deallocFunc(PyObject *ob)
 {
 	delete (PySECURITY_DESCRIPTOR *)ob;
+}
+
+/*static*/ int PySECURITY_DESCRIPTOR::getreadbuf(PyObject *self, int index, const void **ptr)
+{
+	if ( index != 0 ) {
+		PyErr_SetString(PyExc_SystemError,
+				"accessing non-existent SID segment");
+		return -1;
+	}
+	PySECURITY_DESCRIPTOR *pysd = (PySECURITY_DESCRIPTOR *)self;
+	*ptr = pysd->m_psd;
+	return GetSecurityDescriptorLength(pysd->m_psd);
+}
+
+/*static*/ int PySECURITY_DESCRIPTOR::getsegcount(PyObject *self, int *lenp)
+{
+	if ( lenp )
+		*lenp = GetSecurityDescriptorLength(((PySECURITY_DESCRIPTOR *)self)->m_psd);
+	return 1;
 }
 
 #endif /* MS_WINCE */

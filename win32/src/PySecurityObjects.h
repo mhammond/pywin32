@@ -49,6 +49,8 @@ public:
 
 	static PyObject *getattr(PyObject *self, char *name);
 	static int setattr(PyObject *self, char *name, PyObject *v);
+	static int getreadbuf(PyObject *self, int index, const void **ptr);
+	static int getsegcount(PyObject *self, int *lenp);
 
 	static PyObject *Initialize(PyObject *self, PyObject *args);
 	static PyObject *SetSecurityDescriptorDacl(PyObject *self, PyObject *args);
@@ -79,6 +81,9 @@ public:
 
 	static PyObject *getattr(PyObject *self, char *name);
 	static int setattr(PyObject *self, char *name, PyObject *v);
+	static int getreadbuf(PyObject *self, int index, const void **ptr);
+	static int getsegcount(PyObject *self, int *lenp);
+
 
 	static PyObject *Initialize(PyObject *self, PyObject *args);
 	static PyObject *IsValid(PyObject *self, PyObject *args);
