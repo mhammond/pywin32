@@ -197,7 +197,7 @@ BOOL WriteData(const char *data, unsigned len)
 		
 		memcpy(buffer+(*pLen), data, len);
 		*pLen += len;
-		BOOL rc = ReleaseMyMutex();
+		rc = ReleaseMyMutex();
 		HANDLE hEvent = (HANDLE)obEvent->asLong();
 
 		SetEvent(hEvent);
