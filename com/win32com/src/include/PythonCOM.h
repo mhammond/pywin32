@@ -112,6 +112,9 @@
 // Special Mingw32 considerations.
 #define NO_PYCOM_IDISPATCHEX
 #define NO_PYCOM_IPROVIDECLASSINFO
+#define NO_PYCOM_ISERVICEPROVIDER
+#define NO_PYCOM_ENUMSTATPROPSTG
+#define NO_PYCOM_IPROPERTYSTORAGE
 #define __try try
 #define __except catch
 
