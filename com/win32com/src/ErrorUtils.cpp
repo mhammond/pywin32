@@ -1171,6 +1171,20 @@ void GetScodeString(HRESULT hr, LPTSTR buf, int bufSize)
 		}
 		return;
 	}
+	// Next see if this particular error code is registerd as being supplied
+	// by a specific DLL.
+	HINSTANCE hi = PyWin_GetErrorMessageModule(hr);
+	if (hi) {
+		numCopied = ::FormatMessage(FORMAT_MESSAGE_FROM_HMODULE, hi, hr, 0, buf, bufSize, NULL );
+		if (numCopied>0) {
+			if (numCopied<bufSize) {
+				// trim trailing crap
+				if (numCopied>2 && (buf[numCopied-2]=='\n'||buf[numCopied-2]=='\r'))
+					buf[numCopied-2] = '\0';
+			}
+			return;
+		}
+	}
 
 	// else look for it in the table
 	for (int i = 0; i < _countof(hrNameTable); i++)
