@@ -117,15 +117,17 @@ PyObject *PyIDirectSound::CreateSoundBuffer(PyObject *self, PyObject *args)
 	IDirectSound *pIDS = GetI(self);
 	if ( pIDS == NULL )
 		return NULL;
-	if ( !PyArg_ParseTuple(args, "O|O:CreateSoundBuffer", &obDSBD, &obUnk) )
+	if ( !PyArg_ParseTuple(args, "O|O:CreateSoundBuffer", 
+		&obDSBD,  // @pyparm <o PyDSCBUFFERDESC>|lpDSCBufferDesc||a DSBUFFERDESC structure containing values for the sound buffer being created.
+		&obUnk) ) // @pyparm <o PyIUknown>|unk|None|The IUnknown for COM aggregation.
 		return NULL;
 
 	if (!PyDSBUFFERDESC_Check(obDSBD)) {
-		PyErr_SetString(PyExc_TypeError, "Argument 1 must be of type PyDSBUFFERDESC");
+		PyErr_SetString(PyExc_TypeError, "Argument 1 must be of type DSBUFFERDESC");
 		return NULL;
 	}
 
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obUnk, IID_IUnknown, (void **)&pUnkIn, TRUE)) {
+	if (obUnk && !PyCom_InterfaceFromPyInstanceOrObject(obUnk, IID_IUnknown, (void **)&pUnkIn, TRUE)) {
 		return NULL;
 	}
 	

@@ -9,7 +9,6 @@ import win32com.directsound.directsound as ds
 # import win32com
 # import directsound as ds
 
-
 WAV_FORMAT_PCM = 1
 WAV_HEADER_SIZE = struct.calcsize('<4sl4s4slhhllhh4sl')
 
@@ -18,8 +17,13 @@ def wav_header_unpack(data):
      datarate, blockalign, bitspersample, data, datalength) \
      = struct.unpack('<4sl4s4slhhllhh4sl', data)
 
-    if riff != 'RIFF' or fmtsize != 16 or fmt != 'fmt ' or data != 'data':
-        raise ValueError, 'illegal wav header'
+    if riff != 'RIFF':
+        raise ValueError, 'invalid wav header'
+    
+    if fmtsize != 16 or fmt != 'fmt ' or data != 'data':
+        # fmt chuck is not first chunk, directly followed by data chuck
+        # It is nowhere required that they are, it is just very common
+        raise ValueError, 'cannot understand wav header'
 
     wfx = pywintypes.WAVEFORMATEX()
     wfx.wFormatTag = format
@@ -30,6 +34,13 @@ def wav_header_unpack(data):
     wfx.wBitsPerSample = bitspersample
 
     return wfx, datalength
+
+def wav_header_pack(wfx, datasize):
+    return struct.pack('<4sl4s4slhhllhh4sl', 'RIFF', 36 + datasize,
+                       'WAVE', 'fmt ', 16,
+                       wfx.wFormatTag, wfx.nChannels, wfx.nSamplesPerSec,
+                       wfx.nAvgBytesPerSec, wfx.nBlockAlign,
+                       wfx.wBitsPerSample, 'data', datasize);
 
 class WAVEFORMATTest(unittest.TestCase):
     def test_1_Type(self):
@@ -127,6 +138,38 @@ class DSBCAPSTest(unittest.TestCase):
         self.failUnless(c.dwUnlockTransferRate == 3)
         self.failUnless(c.dwPlayCpuOverhead == 4)
 
+class DSCCAPSTest(unittest.TestCase):
+    def test_1_Type(self):
+        'DSCCAPS type'
+        c = ds.DSCCAPS()
+        self.failUnless(type(c) == ds.DSCCAPSType)
+
+    def test_2_Attr(self):
+        'DSCCAPS attribute access'
+        c = ds.DSCCAPS()
+        c.dwFlags = 1
+        c.dwFormats = 2
+        c.dwChannels = 4
+
+        self.failUnless(c.dwFlags == 1)
+        self.failUnless(c.dwFormats == 2)
+        self.failUnless(c.dwChannels == 4)
+
+class DSCBCAPSTest(unittest.TestCase):
+    def test_1_Type(self):
+        'DSCBCAPS type'
+        c = ds.DSCBCAPS()
+        self.failUnless(type(c) == ds.DSCBCAPSType)
+
+    def test_2_Attr(self):
+        'DSCBCAPS attribute access'
+        c = ds.DSCBCAPS()
+        c.dwFlags = 1
+        c.dwBufferBytes = 2
+
+        self.failUnless(c.dwFlags == 1)
+        self.failUnless(c.dwBufferBytes == 2)
+
 class DSBUFFERDESCTest(unittest.TestCase):
     def test_1_Type(self):
         'DSBUFFERDESC type'
@@ -163,6 +206,42 @@ class DSBUFFERDESCTest(unittest.TestCase):
         c = ds.DSBUFFERDESC()
         self.failUnlessRaises(ValueError, self.invalid_format, c)
 
+class DSCBUFFERDESCTest(unittest.TestCase):
+    def test_1_Type(self):
+        'DSCBUFFERDESC type'
+        c = ds.DSCBUFFERDESC()
+        self.failUnless(type(c) == ds.DSCBUFFERDESCType)
+
+    def test_2_Attr(self):
+        'DSCBUFFERDESC attribute access'
+        c = ds.DSCBUFFERDESC()
+        c.dwFlags = 1
+        c.dwBufferBytes = 2
+        c.lpwfxFormat = pywintypes.WAVEFORMATEX()
+        c.lpwfxFormat.wFormatTag = pywintypes.WAVE_FORMAT_PCM
+        c.lpwfxFormat.nChannels = 2
+        c.lpwfxFormat.nSamplesPerSec = 44100
+        c.lpwfxFormat.nAvgBytesPerSec = 176400
+        c.lpwfxFormat.nBlockAlign = 4
+        c.lpwfxFormat.wBitsPerSample = 16
+
+        self.failUnless(c.dwFlags == 1)
+        self.failUnless(c.dwBufferBytes == 2)
+        self.failUnless(c.lpwfxFormat.wFormatTag == 1)
+        self.failUnless(c.lpwfxFormat.nChannels == 2)
+        self.failUnless(c.lpwfxFormat.nSamplesPerSec == 44100)
+        self.failUnless(c.lpwfxFormat.nAvgBytesPerSec == 176400)
+        self.failUnless(c.lpwfxFormat.nBlockAlign == 4)
+        self.failUnless(c.lpwfxFormat.wBitsPerSample == 16)
+
+    def invalid_format(self, c):
+        c.lpwfxFormat = 17
+
+    def test_3_invalid_format(self):
+        'DSCBUFFERDESC invalid lpwfxFormat assignment'
+        c = ds.DSCBUFFERDESC()
+        self.failUnlessRaises(ValueError, self.invalid_format, c)
+
 class DirectSoundTest(unittest.TestCase):
     # basic tests - mostly just exercise the functions
     
@@ -180,7 +259,7 @@ class DirectSoundTest(unittest.TestCase):
         d = ds.DirectSoundCreate(None, None)
 
     def testPlay(self):
-        '''Play a file'''
+        '''Mesdames et Messieurs, la cour de Devin Dazzle'''
         fname=os.path.join(os.path.dirname(__file__), "01-Intro.wav")
         f = open(fname, 'rb')
         hdr = f.read(WAV_HEADER_SIZE)
@@ -206,6 +285,54 @@ class DirectSoundTest(unittest.TestCase):
         buffer.Play(0)
 
         win32event.WaitForSingleObject(event, -1)
+
+class DirectSoundCaptureTest(unittest.TestCase):
+    # basic tests - mostly just exercise the functions
+    
+    def testEnumerate(self):
+        '''DirectSoundCaptureEnumerate() sanity tests'''
+
+        devices = ds.DirectSoundCaptureEnumerate()
+        # this might fail on machines without a sound card
+        self.failUnless(len(devices))
+        # if we have an entry, it must be a tuple of size 3
+        self.failUnless(len(devices[0]) == 3)
+        
+    def testCreate(self):
+        '''DirectSoundCreate()'''
+        d = ds.DirectSoundCaptureCreate(None, None)
+
+    def testRecord(self):
+        d = ds.DirectSoundCaptureCreate(None, None)
+
+        sdesc = ds.DSCBUFFERDESC()
+        sdesc.dwBufferBytes = 352800 # 2 seconds
+        sdesc.lpwfxFormat = pywintypes.WAVEFORMATEX()
+        sdesc.lpwfxFormat.wFormatTag = pywintypes.WAVE_FORMAT_PCM
+        sdesc.lpwfxFormat.nChannels = 2
+        sdesc.lpwfxFormat.nSamplesPerSec = 44100
+        sdesc.lpwfxFormat.nAvgBytesPerSec = 176400
+        sdesc.lpwfxFormat.nBlockAlign = 4
+        sdesc.lpwfxFormat.wBitsPerSample = 16
+
+        buffer = d.CreateCaptureBuffer(sdesc)
+
+        event = win32event.CreateEvent(None, 0, 0, None)
+        notify = buffer.QueryInterface(ds.IID_IDirectSoundNotify)
+
+        notify.SetNotificationPositions((ds.DSBPN_OFFSETSTOP, event))
+
+        buffer.Start(0)
+
+        win32event.WaitForSingleObject(event, -1)
+        event.Close()
+
+        data = buffer.Update(0, 352800)
+
+        f = open('recording.wav', 'wb')
+        f.write(wav_header_pack(sdesc.lpwfxFormat, 352800))
+        f.write(data)
+        f.close()
 
 if __name__ == '__main__':
     unittest.main()

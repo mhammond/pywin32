@@ -61,7 +61,7 @@ PyIDirectSoundBuffer::~PyIDirectSoundBuffer()
 	return rc;
 }
 
-// @pymethod |PyIDirectSoundBuffer|GetCaps|Description of GetCaps.
+// @pymethod |PyIDirectSoundBuffer|GetCaps|Retrieves the capabilities of the DirectSoundBuffer object as a DSBCAPS object.
 PyObject *PyIDirectSoundBuffer::GetCaps(PyObject *self, PyObject *args)
 {
 	IDirectSoundBuffer *pIDSB = GetI(self);
@@ -89,13 +89,10 @@ PyObject *PyIDirectSoundBuffer::GetCaps(PyObject *self, PyObject *args)
 // @pymethod |PyIDirectSoundBuffer|GetFormat|Description of GetFormat.
 PyObject *PyIDirectSoundBuffer::GetFormat(PyObject *self, PyObject *args)
 {
-	int level;
-	HWND hwnd;
-
 	IDirectSoundBuffer *pIDSB = GetI(self);
 	if ( pIDSB == NULL )
 		return NULL;
-	if ( !PyArg_ParseTuple(args, ":GetFormat", &hwnd, &level) )
+	if ( !PyArg_ParseTuple(args, ":GetFormat") )
 		return NULL;
 
 
@@ -116,7 +113,7 @@ PyObject *PyIDirectSoundBuffer::GetFormat(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIDirectSoundBuffer|GetStatus|Description of GetStatus.
+// @pymethod |PyIDirectSoundBuffer|GetStatus|Retrieves the current status of the sound buffer.
 PyObject *PyIDirectSoundBuffer::GetStatus(PyObject *self, PyObject *args)
 {
 	IDirectSoundBuffer *pIDSB = GetI(self);
@@ -140,9 +137,11 @@ PyObject *PyIDirectSoundBuffer::GetStatus(PyObject *self, PyObject *args)
 	return PyInt_FromLong(dwStatus);
 }
 
-// @pymethod |PyIDirectSoundBuffer|SetFormat|Description of SetFormat.
+// @pymethod |PyIDirectSoundBuffer|SetFormat|Sets the format of the primary sound buffer for the application. Whenever this application has the input focus, DirectSound will set the primary buffer to the specified format.
 PyObject *PyIDirectSoundBuffer::SetFormat(PyObject *self, PyObject *args)
 {
+	// @pyparm WAVEFORMATEX|format||A WAVEFORMATEX object that describes the new format for the primary sound buffer. 
+
 	PyObject *obWfx;
 	IDirectSoundBuffer *pIDSB = GetI(self);
 	if ( pIDSB == NULL )
@@ -151,7 +150,7 @@ PyObject *PyIDirectSoundBuffer::SetFormat(PyObject *self, PyObject *args)
 		return NULL;
 
 	if (!PyWAVEFORMATEX_Check(obWfx)) {
-		PyErr_SetString(PyExc_TypeError, "Argument 1 must be of type PyWAVEFORMATEX");
+		PyErr_SetString(PyExc_TypeError, "Argument 1 must be of type WAVEFORMATEX");
 		return NULL;
 	}
 
@@ -186,7 +185,7 @@ PyObject *PyIDirectSoundBuffer::Initialize(PyObject *self, PyObject *args)
 	// Todo - check and initialize pIDS
 
 	if (!PyDSBUFFERDESC_Check(obDSBD)) {
-		PyErr_SetString(PyExc_TypeError, "Argument 2 must be of type PyDSBUFFERDESC");
+		PyErr_SetString(PyExc_TypeError, "Argument 2 must be of type DSBUFFERDESC");
 		return NULL;
 	}
 
@@ -205,7 +204,7 @@ PyObject *PyIDirectSoundBuffer::Initialize(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @pymethod |PyIDirectSoundBuffer|Restore|Description of Initialize.
+// @pymethod |PyIDirectSoundBuffer|Restore|Restores the memory allocation for a lost sound buffer for the specified DirectSoundBuffer object.
 PyObject *PyIDirectSoundBuffer::Restore(PyObject *self, PyObject *args)
 {
 	IDirectSoundBuffer *pIDSB = GetI(self);

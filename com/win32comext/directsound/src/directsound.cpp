@@ -18,7 +18,8 @@ generates Windows .hlp files.
 #include "PyIDirectSound.h"
 #include "PyIDirectSoundBuffer.h"
 #include "PyIDirectSoundNotify.h"
-
+#include "PyIDirectSoundCapture.h"
+#include "PyIDirectSoundCaptureBuffer.h"
 
 // @pymethod <o PyIUnknown>|directsound|DirectSoundCreate|Creates and initializes a new object that supports the IDirectSound interface.
 static PyObject *directsound_DirectSoundCreate(PyObject *, PyObject *args)
@@ -125,10 +126,92 @@ static PyObject *directsound_DirectSoundEnumerate(PyObject *, PyObject *args)
 
 	if (PyErr_Occurred())
 	{
+		Py_DECREF(list);
 		return NULL;
 	}
 
 	if (FAILED(hr)) {
+		Py_DECREF(list);
+		PyCom_BuildPyException(hr);
+		return NULL;
+	}
+
+	return list;
+}
+
+// @pymethod <o PyIUnknown>|directsound|DirectSoundCaptureCreate|Creates and initializes a new object that supports the IDirectSoundCapture interface.
+static PyObject *directsound_DirectSoundCaptureCreate(PyObject *, PyObject *args)
+{
+	PyObject *ret = NULL;
+	PyObject *obGUID = NULL, *obUnk = NULL;
+	IUnknown *pUnkIn = NULL;
+	GUID guid, *pguid = NULL;
+	LPDIRECTSOUNDCAPTURE dsc;
+	HRESULT hr;
+
+	if (!PyArg_ParseTuple(args, "|OO:DirectSoundCaptureCreate", 
+		&obGUID, // @pyparm <o PyIID>|guid|None|Address of the GUID that identifies the sound device. The value of this parameter must be one of the GUIDs returned by DirectSoundCaptureEnumerate, or None for the default device.
+		&obUnk))  // @pyparm <o PyIUknown>|unk|None|The IUnknown for COM aggregation.
+	{
+		return NULL;
+	}
+
+	if (obUnk)
+	{
+		if (!PyCom_InterfaceFromPyInstanceOrObject(obUnk, IID_IUnknown, (void **)&pUnkIn, TRUE))
+			goto done;
+	}
+
+	if (obGUID && obGUID != Py_None)
+	{
+		if (!PyWinObject_AsIID(obGUID, &guid))
+			goto done;
+
+		pguid = &guid;
+	}
+
+	Py_BEGIN_ALLOW_THREADS
+	hr = ::DirectSoundCaptureCreate(pguid, &dsc, pUnkIn);
+	Py_END_ALLOW_THREADS
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	ret = new PyIDirectSoundCapture(dsc);
+done:
+	if (pUnkIn)
+		pUnkIn->Release();
+
+	return ret;
+}
+
+// @pymethod <o list>|directsound|DirectSoundCaptureEnumerate|Enumerates DirectSoundCapture drivers installed in the system.
+static PyObject *directsound_DirectSoundCaptureEnumerate(PyObject *, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":DirectSoundCaptureEnumerate"))
+	{
+		return NULL;
+	}
+
+	PyObject *list = PyList_New(0);	
+	if (!list)
+	{
+		return NULL;
+	}
+
+	HRESULT hr;
+	Py_BEGIN_ALLOW_THREADS
+	hr = ::DirectSoundCaptureEnumerate(dsEnumCallback, list);
+	Py_END_ALLOW_THREADS
+
+	if (PyErr_Occurred())
+	{
+		Py_DECREF(list);
+		return NULL;
+	}
+
+	if (FAILED(hr)) {
+		Py_DECREF(list);
 		PyCom_BuildPyException(hr);
 		return NULL;
 	}
@@ -142,12 +225,14 @@ static struct PyMethodDef directsound_methods[]=
 {
     { "DirectSoundCreate",    directsound_DirectSoundCreate, 1 }, // @pymeth DirectSoundCreate|Creates and initializes a new object that supports the IDirectSound interface.
 	{ "DirectSoundEnumerate",      directsound_DirectSoundEnumerate, 1 },      // @pymeth DirectSoundEnumerate|The DirectSoundEnumerate function enumerates the DirectSound drivers installed in the system.
-
-//	{ "DirectSoundCaptureCreate",  directsound_DirectSoundCaptureCreate, 1},   // @pymeth DirectSoundCaptureCreate|The DirectSoundCaptureCreate function creates and initializes an object that supports the IDirectSoundCapture interface.
-//	{ "DirectSoundCaptureEnumerate",  directsound_DirectSoundCaptureEnumerate, 1},   // @pymeth DirectSoundCaptureEnumerate|The DirectSoundCaptureEnumerate function enumerates the DirectSoundCapture objects installed in the system.
+	{ "DirectSoundCaptureCreate",  directsound_DirectSoundCaptureCreate, 1},   // @pymeth DirectSoundCaptureCreate|The DirectSoundCaptureCreate function creates and initializes an object that supports the IDirectSoundCapture interface.
+	{ "DirectSoundCaptureEnumerate",  directsound_DirectSoundCaptureEnumerate, 1},   // @pymeth DirectSoundCaptureEnumerate|The DirectSoundCaptureEnumerate function enumerates the DirectSoundCapture objects installed in the system.
 	{"DSCAPS",         PyWinMethod_NewDSCAPS, 1 },      // @pymeth DSCAPS|Creates a new <o PyDSCAPS> object.
 	{"DSBCAPS",         PyWinMethod_NewDSBCAPS, 1 },      // @pymeth DSBCAPS|Creates a new <o PyDSBCAPS> object.
+	{"DSCCAPS",         PyWinMethod_NewDSCCAPS, 1 },      // @pymeth DSCCAPS|Creates a new <o PyDSCCAPS> object.
+	{"DSCBCAPS",         PyWinMethod_NewDSCBCAPS, 1 },      // @pymeth DSCBCAPS|Creates a new <o PyDSCBCAPS> object.
 	{"DSBUFFERDESC",         PyWinMethod_NewDSBUFFERDESC, 1 },      // @pymeth DSBUFFERDESC|Creates a new <o PyDSBUFFERDESC> object.
+	{"DSCBUFFERDESC",         PyWinMethod_NewDSCBUFFERDESC, 1 },      // @pymeth DSCBUFFERDESC|Creates a new <o PyDSCBUFFERDESC> object.
 	{ NULL, NULL },
 };
 
@@ -170,6 +255,8 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_CLIENT_ONLY   (DirectSound),
 	PYCOM_INTERFACE_CLIENT_ONLY   (DirectSoundBuffer),
 	PYCOM_INTERFACE_CLIENT_ONLY   (DirectSoundNotify),
+	PYCOM_INTERFACE_CLIENT_ONLY   (DirectSoundCapture),
+	PYCOM_INTERFACE_CLIENT_ONLY   (DirectSoundCaptureBuffer),
 };
 
 /* Module initialisation */
@@ -210,19 +297,33 @@ extern "C" __declspec(dllexport) void initdirectsound()
 	// @const directsound|DSCAPS_SECONDARY8BIT|The device supports hardware-mixed secondary buffers with 8-bit samples. 
 	ADD_CONSTANT(DSCAPS_SECONDARY8BIT);
 	// @const directsound|DSCAPS_SECONDARY16BIT|The device supports hardware-mixed secondary sound buffers with 16-bit samples. 
+	ADD_CONSTANT(DSCAPS_SECONDARY16BIT);
 
-	ADD_CONSTANT(DSBPLAY_LOOPING); // @const directsound|DSBPLAY_LOOPING|text. 
-    ADD_CONSTANT(DSBSTATUS_PLAYING);
+	// @const directsound|DSBPLAY_LOOPING|Once the end of the audio buffer is reached, play restarts at the beginning of the buffer. Play continues until explicitly stopped. This flag must be set when playing primary sound buffers. 
+	ADD_CONSTANT(DSBPLAY_LOOPING); 
+	// @const directsound|DSBSTATUS_PLAYING|The buffer is playing. If this value is not set, the buffer is stopped.
+    ADD_CONSTANT(DSBSTATUS_PLAYING); 
+	// @const directsound|DSBSTATUS_BUFFERLOST|The buffer is lost and must be restored before it can be played or locked.
 	ADD_CONSTANT(DSBSTATUS_BUFFERLOST);
+	// @const directsound|DSBSTATUS_LOOPING|The buffer is being looped. If this value is not set, the buffer will stop when it reaches the end of the sound data. Note that if this value is set, the buffer must also be playing. 
 	ADD_CONSTANT(DSBSTATUS_LOOPING);
+	// @const directsound|DSBLOCK_FROMWRITECURSOR|Locks from the current write cursor, making a call to DirectSoundBuffer.getCurrentPosition unnecessary. If this flag is specified, the start parameter is ignored. This flag is optional. 
 	ADD_CONSTANT(DSBLOCK_FROMWRITECURSOR);
+	// @const directsound|DSBLOCK_ENTIREBUFFER|Unknown.
 	ADD_CONSTANT(DSBLOCK_ENTIREBUFFER);
+	// @const directsound|DSSCL_NORMAL|Sets the application to a fully cooperative status. Most applications should use this level, because it has the smoothest multitasking and resource-sharing behavior.
 	ADD_CONSTANT(DSSCL_NORMAL);
+	// @const directsound|DSSCL_PRIORITY|Sets the application to the priority level. Applications with this cooperative level can call the DirectSoundBuffer.setFormat and DirectSound.compact methods. 
 	ADD_CONSTANT(DSSCL_PRIORITY);
+	// @const directsound|DSSCL_EXCLUSIVE|Sets the application to the exclusive level. When it has the input focus, the application will be the only one audible (sounds from applications with the DSBCAPS_GLOBALFOCUS flag set will be muted). With this level, it also has all the privileges of the DSSCL_PRIORITY level. DirectSound will restore the hardware format, as specified by the most recent call to the DirectSoundBuffer.setFormat method, once the application gains the input focus. (Note that DirectSound will always restore the wave format, no matter what priority level is set.) 
 	ADD_CONSTANT(DSSCL_EXCLUSIVE);
+	// @const directsound|DSSCL_WRITEPRIMARY|This is the highest priority level. The application has write access to the primary sound buffers. No secondary sound buffers in any application can be played. 
 	ADD_CONSTANT(DSSCL_WRITEPRIMARY);
+	// @const directsound|DS3DMODE_NORMAL|Normal processing. This is the default mode. 
 	ADD_CONSTANT(DS3DMODE_NORMAL);
+	// @const directsound|DS3DMODE_HEADRELATIVE|Sound parameters (position, velocity, and orientation) are relative to the listener's parameters. In this mode, the absolute parameters of the sound are updated automatically as the listener's parameters change, so that the relative parameters remain constant. 
 	ADD_CONSTANT(DS3DMODE_HEADRELATIVE);
+	// @const directsound|DS3DMODE_DISABLE|Processing of 3D sound is disabled. The sound seems to originate from the center of the listener's head.
 	ADD_CONSTANT(DS3DMODE_DISABLE);
 
 	// @topic DSCAPS constants|
@@ -288,6 +389,7 @@ extern "C" __declspec(dllexport) void initdirectsound()
 	ADD_CONSTANT(DSBVOLUME_MAX);
 	ADD_CONSTANT(DSBSIZE_MIN);
 	ADD_CONSTANT(DSBSIZE_MAX);
+	// @const directsound|DSCCAPS_EMULDRIVER|The device does not have a DirectSound driver installed, so it is being emulated through the waveform-audio functions. Performance degradation should be expected. 
 	ADD_CONSTANT(DSCCAPS_EMULDRIVER);
 	ADD_CONSTANT(DSCBLOCK_ENTIREBUFFER);
 	ADD_CONSTANT(DSCBSTATUS_CAPTURING);
@@ -298,6 +400,9 @@ extern "C" __declspec(dllexport) void initdirectsound()
 	PyDict_SetItemString(dict, "DSCAPSType", (PyObject *)&PyDSCAPSType);
 	PyDict_SetItemString(dict, "DSBCAPSType", (PyObject *)&PyDSBCAPSType);
 	PyDict_SetItemString(dict, "DSBUFFERDESCType", (PyObject *)&PyDSBUFFERDESCType);
+	PyDict_SetItemString(dict, "DSCCAPSType", (PyObject *)&PyDSCCAPSType);
+	PyDict_SetItemString(dict, "DSCBCAPSType", (PyObject *)&PyDSCBCAPSType);
+	PyDict_SetItemString(dict, "DSCBUFFERDESCType", (PyObject *)&PyDSCBUFFERDESCType);
 }
 
 /* @topic DirectSound examples|
@@ -327,7 +432,7 @@ def wav_header_unpack(data):
 
 # Play a wav file and wait until it's finished
 
-fname=os.path.join(os.path.dirname(__file__), "01-Intro.wav")
+fname = os.path.join(os.path.dirname(__file__), "01-Intro.wav")
 f = open(fname, 'rb')
 
 # Read and unpack the wav header

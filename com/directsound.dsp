@@ -112,11 +112,31 @@ SOURCE=.\win32comext\directsound\src\PyDSCAPS.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32comext\directsound\src\PyDSCBCAPS.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\directsound\src\PyDSCBUFFERDESC.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\directsound\src\PyDSCCAPS.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32comext\directsound\src\PyIDirectSound.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\win32comext\directsound\src\PyIDirectSoundBuffer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\directsound\src\PyIDirectSoundCapture.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\directsound\src\PyIDirectSoundCaptureBuffer.cpp
 # End Source File
 # Begin Source File
 
@@ -137,6 +157,14 @@ SOURCE=.\win32comext\directsound\src\PyIDirectSound.h
 # Begin Source File
 
 SOURCE=.\win32comext\directsound\src\PyIDirectSoundBuffer.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\directsound\src\PyIDirectSoundCapture.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\directsound\src\PyIDirectSoundCaptureBuffer.h
 # End Source File
 # Begin Source File
 

@@ -16,6 +16,16 @@ extern PyTypeObject PyDSBUFFERDESCType;
 #define PyDSBUFFERDESC_Check(ob)		((ob)->ob_type == &PyDSBUFFERDESCType)
 
 /*
+** DSCBUFFERDESC support
+*/
+
+PyObject *PyWinMethod_NewDSCBUFFERDESC(PyObject *self, PyObject *args);
+PyObject *PyWinObject_FromWAVEFROMATEX(const DSCBUFFERDESC &dsbd);
+BOOL PyWinObject_AsDSCBUFFERDESC(PyObject *ob, DSCBUFFERDESC **ppDSCBUFFERDESC, BOOL bNoneOK = TRUE);
+extern PyTypeObject PyDSCBUFFERDESCType;
+#define PyDSCBUFFERDESC_Check(ob)		((ob)->ob_type == &PyDSCBUFFERDESCType)
+
+/*
 ** DSCAPS support
 */
 
@@ -34,6 +44,26 @@ PyObject *PyWinObject_FromDSBCAPS(const DSBUFFERDESC &dsbd);
 BOOL PyWinObject_AsDSBCAPS(PyObject *ob, DSBCAPS **ppDSBCAPS, BOOL bNoneOK = TRUE);
 extern PyTypeObject PyDSBCAPSType;
 #define PyDSBCAPS_Check(ob)		((ob)->ob_type == &PyDSBCAPSType)
+
+/*
+** DSCCAPS support
+*/
+
+PyObject *PyWinMethod_NewDSCCAPS(PyObject *self, PyObject *args);
+PyObject *PyWinObject_FromDSCCAPS(const DSBUFFERDESC &dsbd);
+BOOL PyWinObject_AsDSCCAPS(PyObject *ob, DSCCAPS **ppDSCCAPS, BOOL bNoneOK = TRUE);
+extern PyTypeObject PyDSCCAPSType;
+#define PyDSCCAPS_Check(ob)		((ob)->ob_type == &PyDSCCAPSType)
+
+/*
+** DSCBCAPS support
+*/
+
+PyObject *PyWinMethod_NewDSCBCAPS(PyObject *self, PyObject *args);
+PyObject *PyWinObject_FromDSCBCAPS(const DSBUFFERDESC &dsbd);
+BOOL PyWinObject_AsDSCBCAPS(PyObject *ob, DSCBCAPS **ppDSCBCAPS, BOOL bNoneOK = TRUE);
+extern PyTypeObject PyDSCBCAPSType;
+#define PyDSCBCAPS_Check(ob)		((ob)->ob_type == &PyDSCBCAPSType)
 
 
 class PyDSBUFFERDESC : public PyObject
@@ -61,6 +91,76 @@ public:
 	DSBUFFERDESC m_dsbd;
 };
 
+class PyDSCBUFFERDESC : public PyObject
+{
+public:
+
+	PyDSCBUFFERDESC(void);
+	PyDSCBUFFERDESC(const DSCBUFFERDESC &);
+	~PyDSCBUFFERDESC();
+
+	/* Python support */
+	static void deallocFunc(PyObject *ob);
+
+	static int setattro(PyObject *self, PyObject *obname, PyObject *obvalue);
+
+	PyObject *m_obWFX;
+
+#ifdef _MSC_VER
+#pragma warning( disable : 4251 )
+#endif // _MSC_VER
+	static struct PyMemberDef members[];
+#ifdef _MSC_VER
+#pragma warning( default : 4251 )
+#endif // _MSC_VER
+	DSCBUFFERDESC m_dscbd;
+};
+
+class PyDSCCAPS : public PyObject
+{
+public:
+
+	DSCCAPS *GetCAPS() {return &m_caps;}
+
+	PyDSCCAPS(void);
+	PyDSCCAPS(const DSCCAPS &);
+	~PyDSCCAPS();
+
+	/* Python support */
+	static void deallocFunc(PyObject *ob);
+
+#ifdef _MSC_VER
+#pragma warning( disable : 4251 )
+#endif // _MSC_VER
+	static struct PyMemberDef members[];
+#ifdef _MSC_VER
+#pragma warning( default : 4251 )
+#endif // _MSC_VER
+	DSCCAPS m_caps;
+};
+
+class PyDSCBCAPS : public PyObject
+{
+public:
+
+	DSCBCAPS *GetCAPS() {return &m_caps;}
+
+	PyDSCBCAPS(void);
+	PyDSCBCAPS(const DSCBCAPS &);
+	~PyDSCBCAPS();
+
+	/* Python support */
+	static void deallocFunc(PyObject *ob);
+
+#ifdef _MSC_VER
+#pragma warning( disable : 4251 )
+#endif // _MSC_VER
+	static struct PyMemberDef members[];
+#ifdef _MSC_VER
+#pragma warning( default : 4251 )
+#endif // _MSC_VER
+	DSCBCAPS m_caps;
+};
 
 class PyDSCAPS : public PyObject
 {
