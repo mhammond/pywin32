@@ -171,7 +171,10 @@ class CApp(thread.WinApp):
 					print "Idle handler %s failed" % (`handler`)
 					traceback.print_exc()
 					print "Idle handler removed from list"
-					self.DeleteIdleHandler(handler)
+					try:
+						self.DeleteIdleHandler(handler)
+					except ValueError: # Item not in list.
+						pass
 					thisRet = 0
 				ret = ret or thisRet
 			return ret
@@ -304,7 +307,7 @@ class CApp(thread.WinApp):
 		dlg=AboutBox()
 		dlg.DoModal()
 
-scintilla = "Scintilla is Copyright 1998-1999 Neil Hodgson (http://www.hare.net.au/~neilh/ScintillaDownload.html)"
+scintilla = "Scintilla is Copyright 1998-2000 Neil Hodgson (http://www.scintilla.org)"
 idle = "This program uses IDLE extensions by Guido van Rossum, Tim Peters and others."
 contributors = "Thanks to the following people for making significant contributions: Sam Rushing, Curt Hagenlocher, Dave Brennan, Roger Burnham, Gordon McMillan, Neil Hodgson. (let me know if I have forgotten you!)"
 # The About Box
