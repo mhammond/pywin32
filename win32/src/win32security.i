@@ -696,6 +696,10 @@ PSID GetBinarySid(
 
     ZeroMemory(&identAuthority, sizeof(identAuthority));
 
+    /* avoid buffer overflows */
+    if (lstrlen(TextualSid) >= sizeof(buffer)/sizeof(buffer[0]))
+        return NULL;
+
     lstrcpy(buffer, TextualSid);
 
     // S-SID_REVISION- + identifierauthority- + subauthorities- + NULL
@@ -986,11 +990,11 @@ static PyObject *PyGetNamedSecurityInfo(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig int|OpenProcessToken|
+// @pyswig <o PyHANDLE>|OpenProcessToken|Opens the access token associated with a process. 
 BOOLAPI OpenProcessToken(
 	PyHANDLE ProcessHandle, // @pyparm int|processHandle||The handle of the process to open.
 	DWORD DesiredAccess, // @pyparm int|desiredAccess||Desired access to process 
-	HANDLE *OUTPUT
+	PyHANDLE *OUTPUT
 );
 
 // @pyswig <o LARGE_INTEGER>|LookupPrivilegeValue|
