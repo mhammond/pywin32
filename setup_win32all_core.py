@@ -140,7 +140,13 @@ class my_build_ext(build_ext):
             else:
                 prefix = ''
                 extra = extra + '.lib'
-            src = os.path.join(self.build_temp, prefix + name + extra)
+
+            # MSVCCompiler constructs the .lib file in the same directory
+            # as the first source file's object file:
+            #    os.path.dirname(objects[0])
+            src = os.path.join(self.build_temp,
+                               os.path.dirname(ext.sources[0]),
+                               prefix + name + extra)
             dst = os.path.join(self.build_temp, "..", prefix + ext.name + extra)
             self.copy_file(src, dst)#, update=1)
 
