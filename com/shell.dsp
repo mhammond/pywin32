@@ -98,6 +98,10 @@ SOURCE=.\win32comext\shell\src\PyIContextMenu.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32comext\shell\src\PyICopyHook.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32comext\shell\src\PyIEnumIDList.cpp
 # End Source File
 # Begin Source File
@@ -127,6 +131,10 @@ SOURCE=.\win32comext\shell\src\shell.cpp
 # Begin Source File
 
 SOURCE=.\win32comext\shell\src\PyIContextMenu.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyICopyHook.h
 # End Source File
 # Begin Source File
 
