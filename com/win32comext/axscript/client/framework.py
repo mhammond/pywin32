@@ -367,8 +367,7 @@ class ScriptItem:
 							if type(result)==pythoncom.TypeIIDs[pythoncom.IID_IDispatch]:
 								name = names[0]
 								subObj = self.GetCreateSubItem(self, name, result, axscript.SCRIPTITEM_ISVISIBLE)
-								if subObj.flags & axscript.SCRIPTITEM_ISSOURCE:
-									subObj.BuildEvents()
+								subObj.BuildEvents()
 
 								subObj.Register()
 
