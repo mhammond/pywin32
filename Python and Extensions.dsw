@@ -309,7 +309,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "dde"=.\win32\dde.dsp - Package Owner=<4>
+Project: "dde"=.\pythonwin\dde.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
