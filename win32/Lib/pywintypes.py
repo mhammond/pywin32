@@ -7,6 +7,20 @@ def __import_pywin32_system_module__(modname, globs):
     # So if it exists in sys.prefix, then we try and load it from
     # there, as that way we can avoid the win32api import
     import imp, sys, os
+    if not sys.platform.startswith("win32"):
+        # These extensions can be built on Linux via the 'mainwin' toolkit.
+        # Look for a native 'lib{modname}.so'
+        for ext, mode, ext_type in imp.get_suffixes():
+            if ext_type==imp.C_EXTENSION:
+                for path in sys.path:
+                    look = os.path.join(path, "lib" + modname + ext)
+                    if os.path.isfile(look):
+                        mod = imp.load_module(modname, None, look,
+                                              (ext, mode, ext_type))
+                        # and fill our namespace with it.
+                        globs.update(mod.__dict__)
+                        return
+        raise ImportError, "No dynamic module " + modname
     # See if this is a debug build.
     for suffix_item in imp.get_suffixes():
         if suffix_item[0]=='_d.pyd':
