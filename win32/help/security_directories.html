@@ -1,0 +1,561 @@
+<HTML>
+<HEAD>
+<TITLE>Extending Python: directory permissions with GetNamedSecurityInfo</TITLE>
+</HEAD>
+	<BODY BGCOLOR="FFFFFF">
+	<!-- beginning of leaf header-->
+
+	<TABLE border=0  cellpadding=0 cellspacing=0 width=100%>
+	<TR>
+		<TD valign=middle width="100%"
+		bgcolor="#99ccff"> <font face="sans-serif" size="+1"
+		color="#111111">&nbsp;&nbsp;&nbsp;Extending Python  (directory permisisions w/GetNamedSecurityInfo)  </font>
+		</TD>
+	</TR>
+	</TABLE>
+	<p>&nbsp</p>
+	<!-- end of leaf content-->
+<!-- INDEX BEGIN -->
+
+<UL>
+
+	<LI><A HREF="#SUMMARY">SUMMARY</A></LI>
+	<UL>
+		<LI><A HREF="#Introduction">Introduction</A></LI>
+                <LI><A HREF="#Extend">Extending Python</A></li>
+                <LI><A HREF="#Get">GetNamedSecurityInfo</A></li>
+                <LI><A HREF="#Extend_Get">Extending Python for Directory
+Permissions</A></li>
+                <ul>
+		<LI><A HREF="#Extend_Get_c">C code</li>
+                <LI><A HREF="#Extend_Get_py">Python code</li>
+		</ul>
+                <LI><A HREF="#Conclusion">In Conclusion</li></A>
+	</UL>
+
+	<LI><A HREF="#Further Info">Further Info</A></LI>
+	<LI><A HREF="#Author">Author</A></LI>
+</UL>
+<!-- INDEX END -->
+
+<HR>
+<H1><A NAME="SUMMARY">SUMMARY</A></H1>
+<p>
+Python has a good framework in place to extend it's capabilites with C or C++. Often this is done for reasons of performance
+or to give it capabilities that aren't present in it's standard libraries. For example, standard python does not provide a way to 
+acquire file and directory permissions on windows. However, Microsoft's GetSecurityInfo/GetNamedSecurityInfo 
+does and is accessible via C++. We'll look at how one can build a small module that uses GetNamedSecurityInfo to 
+return to python permission information for a file or directory. 
+</p>
+
+<HR>
+<H2><A NAME="Introduction">Introduction</A></H2>
+<p>
+Extending python, though not nearly as simple as pure python, is reasonably
+straightforward. The most convenient method of doing this is to seperate the
+extension into it's own module which would act like any other python module
+one uses.
+
+It is straightforward enough that one can limit the need to use C++ to
+narrow well-defined extensions and have python manage the rest. Extending
+python to use Microsoft's Security API is an excellent
+candidate for this. Of the four security functions that allow one to deal
+with security descriptors, we're going to look at GetNamedSecurityInfo.
+Specifically, python is going to be extended so it can get permissions from
+a filesystem.
+
+</p>
+
+<HR>
+<H2><A NAME="Extend">Extending Python</A></H3>
+<p>
+There are several ways one can extend python. You can take a raw wrapping
+approach, <a href="http://www.swig.org">SWIG</a> or
+<a href="http://www.boost.org/libs/python/doc/index.html">BPL (Boost Python Libraries) </a>.
+
+This extension is simple enough that we're going to wrap the C++ w/out the
+help of SWIG of BPL. This won't be an extensive discussion about extending
+python, just enough to serve as a starting point to deciphering and making
+your own win32 extensions.
+
+The approach to wrap has a few standard todos. You need a to:
+<ul>
+<li>define whatever functions you want to expose</li>
+<li>manipulate C and python data types </li>
+<li>create a structure that has references to the functions</li>
+<li>initialize the module.</li>
+</ul>
+
+Python has helper objects and functions to make this as painless as
+possible. You need to include Python.h to get access to these.
+<br>
+To define the the function, you need to follow a specific format: 
+static PyObject * module_function<br>
+PyObject is the base type of Python Object. The name of the function needs
+to be the module followed by an '_' followed by the function.
+<p>
+To manipulate data types, there are numerous "Py" functions. The ones used
+in this extension are:
+<ul>
+<li>PyList_New(),PyList_Append -- make and add to a  python list</li>
+<li>PyDict_New(),PyDict_SetItem -- make a dictionary and add to a python dictionary</li>
+<li>PyArg_ParseTuple -- process arguments sent to module</li>
+<li>PyString_FromString/PyLong_FromUnsignedLong -- convert C datatypes to Python</li>
+<li>PyArg_ParseTuple -- accept data from python and convert to C</li>
+</ul>
+</p>
+<p> 
+You also need to create a structure of all the functions that you want  the
+Python interpreter to see. To do this you make an array of arrays of type
+static PyMethodDef. The array needs to end w/a NULL entry to mark it's end.
+</p>
+<p>
+Finally, you need to initialize the module (which is what happens when the
+module is imported). This  uses another "Py" function called Py_InitModule.
+</p>
+
+<p>
+These steps should become clearer once you see all the details of an actual extension.
+</p>
+
+
+</p>
+
+<HR>
+<H2><A NAME="Get">GetNamedSecurityInfo</A></H2>
+GetNamedSecurityInfo retrieves a security descriptor from a string that
+specifies the object. This works well for strings that contain filenames.
+A Security Descriptor contains the security information about an object.
+Of that information, we're primarily concerned with the DACL (discretionary
+access control list), which contains a list of things that are allowed to
+interact with the object(in our case the file or directory). Specifically,
+we will process the ACEs in the DACL, each of which contains the
+removal/addition of permissions and what SIDs they are assigned to.
+
+
+To get and process the DACL, you need to follow these steps:
+<ol>
+<li>GetNamedSecurityInfo -- Get the DACL</li>
+<li>GetAclInformation -- get the list of the ACL's in the DACL to go
+through</li>
+<li>GetAce -- get an ACE (which contains the access mask and the SID) from the list</li>
+<li>LookupAccountSid-- gives you the domain and name for the SID</li>
+</ol>
+
+The following code goes through those 4 steps in greater detail.
+Refer to <a href="http://msdn.microsoft.com">Microsoft MSDN references</a>
+for info about the various win32 calls made.
+
+
+
+<HR>
+<H2><A NAME="Extend_get">Extending Python for Directory Permissions</A></H2>
+To setup Visual Studio correctly for building an extension, it is easiest to
+use a program called <A HREF="http://starship.python.net/crew/da/compile">compile.py</A> 
+which builds the project for you. The Extension creates a dictionary of
+user or group plus the access mask. To Python it will look like:
+<pre>
+import fileperm
+all_perms=fileperm.get_perms(r'\\Simon\share\db\a.txt')
+
+And if you print the perms you'll get something like:
+
+print all_perms
+{'\\Everyone': 2032127L, 'Domain\\fred': 1179817L, 'BUILTIN\\Users': 1179817L}
+</pre>
+
+<h3><A NAME="#Extend_Get_c">C code</a></h3>
+<pre>
+
+#include <Python.h>
+
+//win32 security
+#include <WindowsX.h>
+#include <ACLAPI.h>
+#include <ACLUI.h>
+
+
+struct file_perms {
+  char user_domain[2050];
+  unsigned long user_mask;
+};
+
+
+//This function determines the username and domain
+void lookup_sid ( ACCESS_ALLOWED_ACE* pACE, char user_domain[] ) {
+	char username[1024]="";
+	char domain[1024]="";
+
+	ULONG len_username = sizeof(username);
+	ULONG len_domain = sizeof(domain);
+	PSID pSID =(PSID)(&(pACE->SidStart));
+	SID_NAME_USE sid_name_use;         
+
+	if (!LookupAccountSid(NULL, pSID, 
+		username, &len_username, domain, &len_domain, &sid_name_use)){  
+		strcpy(user_domain, "unknown");
+	} else {
+		strcat(user_domain,domain);
+		strcat(user_domain,"\\");
+		strcat(user_domain,username);
+	}
+
+
+}
+
+//Store the mask and username in the file_perms structure.
+//call lookup_sid to get the username
+void acl_info( PACL pACL, ULONG AceCount, file_perms fp[]){		
+	for (ULONG acl_index = 0;acl_index < AceCount;acl_index++){
+		ACCESS_ALLOWED_ACE* pACE;
+		
+		if (GetAce(pACL, acl_index, (PVOID*)&pACE))			
+		{		
+			char user_domain[2050]="";	
+			lookup_sid(pACE,user_domain);
+			strcpy(fp[acl_index].user_domain,user_domain);
+			fp[acl_index].user_mask=(ULONG)pACE->Mask;
+		}
+	}
+}
+
+static PyObject *get_perms(PyObject *self, PyObject *args)
+{
+
+	PyObject *py_perms = PyDict_New();
+	//get file or directory name
+    char *file;
+
+    if (!PyArg_ParseTuple(args, "s", &file))
+        return NULL;
+
+	//setup security code
+	PSECURITY_DESCRIPTOR pSD;
+	PACL pDACL; 
+    //GetNamedSecurityInfo() will give you the DACL when you ask for
+    //DACL_SECURITY_INFORMATION. At this point, you have SIDs in the ACEs contained in the DACL. 
+	ULONG result = GetNamedSecurityInfo(file,SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, 
+	&pDACL, NULL, &pSD);
+
+	if (result != ERROR_SUCCESS){ return NULL;}
+	if (result == ERROR_SUCCESS){
+		ACL_SIZE_INFORMATION aclSize = {0};
+		if(pDACL != NULL){   
+			if(!GetAclInformation(pDACL, &aclSize, sizeof(aclSize),
+				AclSizeInformation)){
+				return NULL;
+			}
+		}
+	
+		file_perms *fp = new file_perms[aclSize.AceCount];
+		acl_info(pDACL, aclSize.AceCount, fp );
+		
+		//Dict
+		for (ULONG i=0;i<aclSize.AceCount;++i){
+			PyDict_SetItem( py_perms, PyString_FromString(fp[i].user_domain) , 
+				PyLong_FromUnsignedLong ((unsigned long) fp[i].user_mask));      
+		}
+		
+		//List
+		for (i=0;i<aclSize.AceCount;++i){
+			PyList_Append(py_perms,PyString_FromString(fp[i].user_domain));
+		}
+
+	}
+	return py_perms;
+}
+
+//Boilerplate functions
+//create a structure that has references to the functions 
+//3 parts 
+//name of python function
+//C++ function
+//flags METH_VARARGS means function takes variable number of args
+static PyMethodDef fileperm_methods[] = {
+	{ "get_perms", get_perms, METH_VARARGS },
+	{ NULL, NULL }
+};
+
+//initialize the module.
+void initfileperm()
+{
+
+Py_InitModule("fileperm",fileperm_methods);
+
+}
+
+</pre>
+
+
+
+
+//Boilerplate functions
+
+//3 parts 
+//name of python function
+//C++ function
+//flags METH_VARARGS means function takes variable number of args
+static PyMethodDef fileperm_methods[] = {
+	{ "get_perms", get_perms, METH_VARARGS },
+	{ NULL }
+};
+
+
+
+void initfileperm()
+{
+
+Py_InitModule("fileperm",fileperm_methods);
+
+}
+
+<p>
+</p>
+
+<h3><A NAME="#Extend_Get_py">Python code</a></h3>
+One thing the extension doesn't do is process the access mask into human
+readable names. Python can easily do that as shown in the program below.
+
+This program looks down a directory tree, takes the access mask and the login/group information,
+processes the access mask to produce human readable names and prints out the
+permission structure for the tree.
+<pre>
+import os
+import sys
+import win32net
+import string
+import time
+import copy
+import getopt
+
+#the extension module
+import fileperm
+
+All_perms={
+    1:"ACCESS_READ",            #0x00000001
+    2:"ACCESS_WRITE",           #0x00000002
+    4:"ACCESS_CREATE",          #0x00000004
+    8:"ACCESS_EXEC",            #0x00000008
+    16:"ACCESS_DELETE",         #0x00000010
+    32:"ACCESS_ATRIB [sic]",    #0x00000020
+    64:"ACCESS_PERM",           #0x00000040
+    32768:"ACCESS_GROUP",       #0x00008000
+    65536:"DELETE",             #0x00010000
+    131072:"READ_CONTROL",      #0x00020000
+    262144:"WRITE_DAC",         #0x00040000
+    524288:"WRITE_OWNER",       #0x00080000
+    1048576:"SYNCHRONIZE",      #0x00100000
+    16777216:"ACCESS_SYSTEM_SECURITY",#0x01000000
+    33554432:"MAXIMUM_ALLOWED", #0x02000000
+    268435456:"GENERIC_ALL",    #0x10000000
+    536870912:"GENERIC_EXECUTE",#0x20000000
+    1073741824:"GENERIC_WRITE", #0x40000000
+    65535:"SPECIFIC_RIGHTS_ALL",#0x0000ffff
+    983040:"STANDARD_RIGHTS_REQUIRED",#0x000f0000
+    2031616:"STANDARD_RIGHTS_ALL",#0x001f0000
+    }
+
+Typical_perms={
+    2032127L:"Full Control(All)",
+    1179817L:"Read(RX)",
+    1180086L:"Add",
+    1180095L:"Add&Read",
+    1245631L:"Change"
+}
+
+
+def get_mask(mask):
+    a=2147483648L
+    if Typical_perms.has_key(mask):
+        return Typical_perms[mask]
+    else:
+        result=''
+        while a>>1:
+            a=a>>1
+            masked=mask&a
+            if masked:
+                if All_perms.has_key(masked):
+                    result=All_perms[masked]+':'+result
+    return result
+
+
+def is_group(sys_id):
+    #get the server for the domain -- it has to be a primary dc
+    group=0
+    resume=0
+    sys_id=string.strip(sys_id)
+    if D_group.has_key(sys_id):
+        group=1
+    elif D_except.has_key(sys_id):
+        group=0
+    else:
+        try:
+            #info returns a dictionary of information
+            info = win32net.NetGroupGetInfo(Server, sys_id, 0)
+            group=1
+        except:
+            try:
+                win32net.NetLocalGroupGetMembers(Server, sys_id, 0,resume,4096)
+                group=1
+            except:
+                pass
+    return group
+
+
+def get_perm_base(file):
+    all_perms=fileperm.get_perms(file)
+    for (domain_id,mask) in all_perms.items():
+        (domain,sys_id)=string.split(domain_id,'\\',1)
+        mask_name=get_mask(mask)
+        Results.append(file+','+sys_id+','+mask_name)
+
+def get_perm(file):
+    perm_list=[]
+    perm_list.append(file)
+    all_perms=fileperm.get_perms(file)
+    for (domain_id,mask) in all_perms.items():
+        (domain,sys_id)=string.split(domain_id,'\\',1)
+        print domain,sys_id
+        sys_id=str(sys_id)
+        mask_name=get_mask(mask)
+        if len(sys_id)<7:
+            perm_list.append(sys_id+'\t\t\t'+mask_name)
+        elif len(sys_id)>14:
+            perm_list.append(sys_id+'\t'+mask_name)
+        else:
+            perm_list.append(sys_id+'\t\t'+mask_name)
+    return perm_list
+def get_perms(arg, d, files):
+    a=2147483648L #1L<<31L
+    print 'Now at ',d
+    for i in files:
+        file=d+'\\'+i
+        if opts['-d']:
+            if not os.path.isdir(file): # skip non-directories
+                continue
+        all_perms=fileperm.get_perms(file)
+        for (domain_id,mask) in all_perms.items():
+            if string.find(domain_id,'\\')!=-1:
+                (domain,sys_id)=string.split(domain_id,'\\',1)
+            else:
+                sys_id=domain_id
+            mask_name=get_mask(mask)    
+            Results.append(file+','+sys_id+','+mask_name)
+    Results.sort()
+    return Results
+######################################################################################################
+#h - help
+#r - recursive
+#o - output file
+#d - directories only
+
+domain='bedrock'
+
+Server=str(win32net.NetGetDCName("",domain))
+print '************************ Using domain ',domain
+
+only_dir=0
+D_group={}
+D_except={}
+if len(sys.argv)==1:
+    print sys.argv[0],"<all options> file or directory<return>"
+    print "-r for recursive mode \n-o for output file (default screen) \n-d for directories only"
+    print 'Example:',sys.argv[0],'-o a.txt -r c:\\junk  \n ----goes down dir tree in c:\\junk and saves in a.txt'
+    sys.exit(0)    
+else:
+    try:
+        optlist, args = getopt.getopt(sys.argv[1:], 'dho:r')
+    except getopt.error:
+       print "invalid option.  available options are: -d -h -r -o <file or dir>"
+       print "-r for recursive mode \n-o for output file (default screen) \n-d for directories only"
+
+       sys.exit(0)
+
+    opts = {'-d':0,'-h':0,'-o':0,'-r':0}
+    for key, value in optlist:
+        opts[key]=1
+        if key == '-o':
+            opts[key]=value
+    init=time.clock()
+
+
+    Results=[]
+    if opts['-r']:
+        if os.path.isdir(args[0]):
+            print 'walking thru',args[0]
+            get_perm_base(args[0])
+            os.path.walk(args[0],get_perms,opts['-d'])
+        else:
+            print 'Directory',args[0],'does not exist'
+            sys.exit(0)
+    else:
+        if os.path.exists(args[0]):
+            Results=get_perm(args[0])
+        else:
+            print 'Directory or file',args[0],'does not exist'
+            sys.exit(0)
+        
+    #now print out the results
+    if opts['-o']:
+        #send to a file
+        print 'Storing results in',opts['-o']
+        f=open(opts['-o'],'w')
+        for i in Results:
+            f.write(i)
+            f.write('\n')
+    else:
+        for i in Results:
+            print i
+        end = time.clock()-init
+
+</pre>
+
+<HR>
+<H2><A NAME="Conclusion">In Conclusion</A></H2>
+<p>
+Extending python isn't as simple as writing python, but it greatly expands
+python's capabilities. There are many details not covered here like
+reference counting, threading, and error handeling. The python website has documentation about
+<A HREF="http://www.python.org/doc/current/ext/ext.html">Extending Python</A>.
+
+
+</p>
+
+
+<hr>
+<H1><A NAME="Further Info">Further Info</A></H1>
+<p>
+<ul>
+<li><a href="http://msdn.microsoft.com">Microsoft MSDN references</a></li>
+<li><A HREF="http://www.python.org/doc/current/ext/ext.html">Extending Python</A></li>
+<li><A HREF="http://starship.python.net/crew/da/compile">compile.py</A></li>
+<li><a href="http://www.swig.org">SWIG</a> </li>
+<li><a href="http://www.boost.org/libs/python/doc/index.html">BPL (Boost Python Libraries) </a></li>
+</ul>
+</p>
+<HR><H1><A NAME="Author">Author</A></H1>
+John Nielsen, <A HREF="mailto:jn@who.net,">jn@who.net</A> 
+<br>-- Have a great time with programming with python! 
+		<!-- beginning of leaf footer-->
+		<p>&nbsp;</p>
+		<TABLE border=0  cellpadding=0 cellspacing=0 width=100%>
+		<TR>
+			<TD valign=middle
+			bgcolor="#99ccff"> <font face="sans-serif" size="+1"
+			color="#111111">&nbsp;&nbsp;&nbsp;Extending Python  (directory permisisions w/GetNamedSecurityInfo)  </font>
+			</TD>
+		</TR>
+		</TABLE>
+		<!-- end of leaf footer-->
+</BODY>
+</HTML>
+
+
+
+
+
+
+
+
+
+
