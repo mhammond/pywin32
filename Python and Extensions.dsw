@@ -69,6 +69,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "Scintilla"=.\Pythonwin\Scintilla.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "_All Pythonwin"=".\Pythonwin\_All Pythonwin.dsp" - Package Owner=<4>
 
 Package=<5>
@@ -88,6 +100,9 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name dde
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name Scintilla
     End Project Dependency
 }}}
 
@@ -133,6 +148,9 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name exchange
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name univgw
     End Project Dependency
 }}}
 
@@ -452,6 +470,21 @@ Package=<5>
 
 Package=<4>
 {{{
+}}}
+
+###############################################################################
+
+Project: "univgw"=.\com\univgw.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name win32com
+    End Project Dependency
 }}}
 
 ###############################################################################
