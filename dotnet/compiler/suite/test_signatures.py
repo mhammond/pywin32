@@ -23,6 +23,8 @@ class SignatureTest:
         _com_params_="System.String"
         _com_return_type_="System.String"
         return arg[1:-1]
+    def void_func(self):
+        _com_return_type_="System.Void"
     def str_func(self, arg):
         _com_params_="System.String"
         _com_return_type_="System.String"
