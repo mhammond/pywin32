@@ -778,6 +778,59 @@ PyObject *pythoncom_loadregtypelib(PyObject *self, PyObject *args)
 	// If none of the registered type libraries exactly match the requested major version number (or if none of those that do exactly match the major version number also have a minor version number greater than or equal to the requested minor version number), then LoadRegTypeLib returns an error.
 }
 
+// @pymethod |pythoncom|RegisterTypeLib|Adds information about a type library to the system registry.
+PyObject *pythoncom_registertypelib(PyObject *self, PyObject *args)
+{
+	PyObject *obTypeLib, *obPath, *obHelpDir = Py_None;
+	// @pyparm <o PyITypeLib>|typelib||The type library being registered.
+	// @pyparm string|fullPath||Fully qualified path specification for the type library being registered
+	// @pyparm string|helpDir|None|Directory in which the Help file for the library being registered can be found. Can be None.
+	// @pyparm int|lcid|LOCALE_USER_DEFAULT|The locale ID to use.
+	if (!PyArg_ParseTuple(args, "OO|O:RegisterTypeLib", &obTypeLib, &obPath, &obHelpDir))
+		return NULL;
+
+	PyObject *result = NULL;
+	BSTR bstrPath = NULL;
+	BSTR bstrHelpDir = NULL;
+	ITypeLib *pLib = NULL;
+	SCODE sc;
+	if (!PyWinObject_AsBstr(obPath, &bstrPath, FALSE))
+		goto done;
+	if (!PyWinObject_AsBstr(obHelpDir, &bstrHelpDir, TRUE))
+		goto done;
+
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obTypeLib, IID_ITypeLib, (void **)pLib, FALSE))
+		goto done;
+
+	{ // scope to avoid warning about var decl and goto.
+	PY_INTERFACE_PRECALL;
+	sc = RegisterTypeLib(pLib, bstrPath, bstrHelpDir);
+	PY_INTERFACE_POSTCALL;
+	}
+	if (FAILED(sc))
+		return PyCom_BuildPyException(sc);
+
+	result = Py_None;
+	Py_INCREF(result);
+done:
+	if (bstrPath) SysFreeString(bstrPath);
+	if (bstrHelpDir) SysFreeString(bstrHelpDir);
+	if (pLib) {
+		PY_INTERFACE_PRECALL;
+		pLib->Release();
+		PY_INTERFACE_POSTCALL;
+	}
+	return result;
+	// @comm This function can be used during application initialization to register the application's type 
+	// library correctly. When RegisterTypeLib is called to register a type library, 
+	// both the minor and major version numbers are registered in hexadecimal.
+	// <nl> In addition to filling in a complete registry entry under the type library key, 
+	// RegisterTypeLib adds entries for each of the dispinterfaces and Automation-compatible 
+	// interfaces, including dual interfaces. This information is required to create 
+	// instances of these interfaces. Coclasses are not registered (that is, 
+	// RegisterTypeLib does not write any values to the CLSID key of the coclass). 
+}
+
 #ifndef MS_WINCE
 // @pymethod <o PyUnicode>|pythoncom|QueryPathOfRegTypeLib|Retrieves the path of a registered type library.
 PyObject *pythoncom_querypathofregtypelib(PyObject *self, PyObject *args)
