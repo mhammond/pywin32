@@ -89,12 +89,12 @@ class ArgFormatter:
 		"""
 
 		# the first return element is the variable to be passed as
-				#	 an argument to an interface method. the variable was
-				#	 declared with only its builtin indirection level. when
-				#	 we pass it, we'll need to pass in whatever amount of
-				#	 indirection was applied (plus the builtin amount)
-				# the second return element is the variable declaration; it
-				#	 should simply be builtin indirection
+		#	 an argument to an interface method. the variable was
+		#	 declared with only its builtin indirection level. when
+		#	 we pass it, we'll need to pass in whatever amount of
+		#	 indirection was applied (plus the builtin amount)
+		# the second return element is the variable declaration; it
+		#	 should simply be builtin indirection
 		return self.GetIndirectedArgName(self.builtinIndirection, self.arg.indirectionLevel + self.builtinIndirection), \
 					   "%s %s" % (self.GetUnconstType(), self.arg.name)
 
@@ -230,9 +230,9 @@ class ArgFormatterPythonCOM(ArgFormatter):
 	"""An arg formatter for types exposed in the PythonCOM module"""
 	def GetFormatChar(self):
 		return "O"
-#	def GetInterfaceCppObjectInfo(self):
-#		return ArgFormatter.GetInterfaceCppObjectInfo(self)[0], \
-#			"%s %s%s" % (self.arg.unc_type, "*" * self._GetDeclaredIndirection(), self.arg.name)
+	#def GetInterfaceCppObjectInfo(self):
+	#	return ArgFormatter.GetInterfaceCppObjectInfo(self)[0], \
+	#		"%s %s%s" % (self.arg.unc_type, "*" * self._GetDeclaredIndirection(), self.arg.name)
 	def DeclareParseArgTupleInputConverter(self):
 		# Declare a PyObject variable
 		return "\tPyObject *ob%s;\n" % self.arg.name
@@ -299,30 +299,30 @@ class ArgFormatterIID(ArgFormatterPythonCOM):
 
 class ArgFormatterTime(ArgFormatterPythonCOM):
 	def __init__(self, arg, builtinIndirection, declaredIndirection = 0):
-		  # we don't want to declare LPSYSTEMTIME / LPFILETIME objects
-		  if arg.indirectionLevel == 0 and arg.unc_type[:2] == "LP":
+		# we don't want to declare LPSYSTEMTIME / LPFILETIME objects
+		if arg.indirectionLevel == 0 and arg.unc_type[:2] == "LP":
 			arg.unc_type = arg.unc_type[2:]
 			# reduce the builtin and increment the declaration
 			arg.indirectionLevel = arg.indirectionLevel + 1
 			builtinIndirection = 0
-		  ArgFormatterPythonCOM.__init__(self, arg, builtinIndirection, declaredIndirection)
+		ArgFormatterPythonCOM.__init__(self, arg, builtinIndirection, declaredIndirection)
 
 	def _GetPythonTypeDesc(self):
 		return "<o PyTime>"
 	def GetParsePostCode(self):
 		# variable was declared with only the builtinIndirection
-				### NOTE: this is an [in] ... so use only builtin
+		### NOTE: this is an [in] ... so use only builtin
 		return '\tif (!PyTime_Check(ob%s)) {\n\t\tPyErr_SetString(PyExc_TypeError, "The argument must be a PyTime object");\n\t\tbPythonIsHappy = FALSE;\n\t}\n\tif (!((PyTime *)ob%s)->GetTime(%s)) bPythonIsHappy = FALSE;\n' % (self.arg.name, self.arg.name, self.GetIndirectedArgName(self.builtinIndirection, 1))
 	def GetBuildForInterfacePreCode(self):
-	  ### use just the builtinIndirection again...
-	  notdirected = self.GetIndirectedArgName(self.builtinIndirection,0)
-	  return "\tob%s = new PyTime(%s);\n" % (self.arg.name, notdirected)
+		### use just the builtinIndirection again...
+		notdirected = self.GetIndirectedArgName(self.builtinIndirection,0)
+		return "\tob%s = new PyTime(%s);\n" % (self.arg.name, notdirected)
 	def GetBuildForInterfacePostCode(self):
-	  ### hack to determine if we need to free stuff
-	  if self.builtinIndirection + self.arg.indirectionLevel > 1:
-		# memory returned into an OLECHAR should be freed
-		return "\tCoTaskMemFree(%s);\n" % self.arg.name
-	  return ''
+		### hack to determine if we need to free stuff
+		if self.builtinIndirection + self.arg.indirectionLevel > 1:
+			# memory returned into an OLECHAR should be freed
+			return "\tCoTaskMemFree(%s);\n" % self.arg.name
+		return ''
 
 class ArgFormatterSTATSTG(ArgFormatterPythonCOM):
 	def _GetPythonTypeDesc(self):
@@ -350,8 +350,8 @@ class ArgFormatterULARGE_INTEGER(ArgFormatterLARGE_INTEGER):
 
 class ArgFormatterInterface(ArgFormatterPythonCOM):
 	def GetInterfaceCppObjectInfo(self):
-	  return self.GetIndirectedArgName(1, self.arg.indirectionLevel), \
-			 "%s * %s" % (self.GetUnconstType(), self.arg.name)
+		return self.GetIndirectedArgName(1, self.arg.indirectionLevel), \
+			   "%s * %s" % (self.GetUnconstType(), self.arg.name)
 
 	def GetParsePostCode(self):
 		# This gets called for out params in gateway mode
@@ -373,14 +373,14 @@ class ArgFormatterInterface(ArgFormatterPythonCOM):
 		return "\tif (%s) %s->Release();" % (self.arg.name, self.arg.name)
 
 class ArgFormatterVARIANT(ArgFormatterPythonCOM):
-  def GetParsePostCode(self):
-	return "\tif ( !PyCom_VariantFromPyObject(ob%s, %s) )\n\t\tbPythonIsHappy = FALSE;\n" % (self.arg.name, self.GetIndirectedArgName(None, 1))
+	def GetParsePostCode(self):
+		return "\tif ( !PyCom_VariantFromPyObject(ob%s, %s) )\n\t\tbPythonIsHappy = FALSE;\n" % (self.arg.name, self.GetIndirectedArgName(None, 1))
 
-  def GetBuildForGatewayPreCode(self):
-	notdirected = self.GetIndirectedArgName(None, 1)
-	return "\tob%s = PyCom_PyObjectFromVariant(%s);\n" % (self.arg.name, notdirected)
-  def GetBuildForGatewayPostCode(self):
-	return "\tPy_XDECREF(ob%s);\n" % self.arg.name
+	def GetBuildForGatewayPreCode(self):
+		notdirected = self.GetIndirectedArgName(None, 1)
+		return "\tob%s = PyCom_PyObjectFromVariant(%s);\n" % (self.arg.name, notdirected)
+	def GetBuildForGatewayPostCode(self):
+		return "\tPy_XDECREF(ob%s);\n" % self.arg.name
 
 					  # Key :		, Python Type Description, ParseTuple format char
 ConvertSimpleTypes = {"BOOL":("BOOL", "int", "i"),
