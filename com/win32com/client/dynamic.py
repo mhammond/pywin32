@@ -431,23 +431,25 @@ class CDispatch:
 				self._oleobj_.Invoke(self._olerepr_.propMapPut[attr].dispid, 0, pythoncom.DISPATCH_PROPERTYPUT, 0, value)
 				return
 
-		# Try the OLE Object				
+		# Try the OLE Object
 		if self._oleobj_:
+			if self.__LazyMap__(attr):
+				# Check the "general" property map.
+				if self._olerepr_.propMap.has_key(attr):
+					self._oleobj_.Invoke(self._olerepr_.propMap[attr].dispid, 0, pythoncom.DISPATCH_PROPERTYPUT, 0, value)
+					return
+				# Check the specific "put" map.
+				if self._olerepr_.propMapPut.has_key(attr):
+					self._oleobj_.Invoke(self._olerepr_.propMapPut[attr].dispid, 0, pythoncom.DISPATCH_PROPERTYPUT, 0, value)
+					return
 			try:
-				if self.__LazyMap__(attr):
-					# Check the "general" property map.
-					if self._olerepr_.propMap.has_key(attr):
-						self._oleobj_.Invoke(self._olerepr_.propMap[attr].dispid, 0, pythoncom.DISPATCH_PROPERTYPUT, 0, value)
-						return
-					# Check the specific "put" map.
-					if self._olerepr_.propMapPut.has_key(attr):
-						self._oleobj_.Invoke(self._olerepr_.propMapPut[attr].dispid, 0, pythoncom.DISPATCH_PROPERTYPUT, 0, value)
-						return
 				entry = build.MapEntry(self.__AttrToID__(attr),(attr,))
+			except pythoncom.com_error:
+				# No attribute of that name
+				entry = None
+			if entry is not None:
 				self._olerepr_.propMap[attr] = entry
 				self._oleobj_.Invoke(entry.dispid, 0, pythoncom.DISPATCH_PROPERTYPUT, 0, value)
 				debug_attr_print("__setattr__ property %s (id=0x%x) in Dispatch container %s" % (attr, entry.dispid, self._username_))
 				return
-			except pythoncom.ole_error:
-				pass # No prop by that name.
 		raise AttributeError, "Property '%s.%s' can not be set." % (self._username_, attr)
