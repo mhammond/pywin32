@@ -1,11 +1,12 @@
 # Code that packs and unpacks the Univgw structures.
 
 # See if we have a special directory for the binaries (for developers)
-import pythoncom
-from pythoncom import com_error
 import types
-from pythoncom import _univgw
+import pythoncom
 from win32com.client import gencache
+
+com_error = pythoncom.com_error
+_univgw = pythoncom._univgw
 
 # Make it clear to the user they are playing with fire ATM ;-)
 msg = "win32com.universal is a very new module - it probably has bugs, and the interface may change in the future.  Use at your own risk!"
@@ -77,6 +78,7 @@ def _CalcTypeSize(typeTuple):
 
 class Arg:
     def __init__(self, arg_info, name = None):
+        self.name = name
         self.vt, self.inOut, self.GUID = arg_info
         self.size = _CalcTypeSize(arg_info)
         # Offset from the beginning of the arguments of the stack.
