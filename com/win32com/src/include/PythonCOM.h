@@ -250,6 +250,16 @@ PYCOM_EXPORT PyObject* PyCom_BuildInternalPyException(char *msg);
 	#define OleSetOleError PyCom_BuildPyException
 #endif
 
+// Log an internal error, including traceback.
+PYCOM_EXPORT void PyCom_LogError(const char *fmt, ...);
+
+// Log an error if not a COM Server exception, including traceback.
+PYCOM_EXPORT void PyCom_LogNonServerError(const char *fmt, ...);
+
+// Write a raw string to the error device.
+PYCOM_EXPORT void PyCom_StreamMessage(const char *msg);
+
+
 // Server related error functions
 // These are supplied so that any Python errors we detect can be
 // converted into COM error information.  The HRESULT returned should

@@ -489,6 +489,36 @@ PYCOM_EXPORT void PyCom_LogF(const TCHAR *fmt, ...)
 	PyCom_StreamMessage("\n");
 }
 
+void _LogException(PyObject *exc_typ, PyObject *exc_val, PyObject *exc_tb)
+{
+	if (exc_tb) {
+		const char *szTraceback = PyTraceback_AsString(exc_tb);
+		if (szTraceback == NULL)
+			PyCom_StreamMessage("Can't get the traceback info!");
+		else {
+			PyCom_StreamMessage("Traceback (most recent call last):\n");
+			PyCom_StreamMessage(szTraceback);
+			PyMem_Free((void *)szTraceback);
+		}
+	}
+	PyObject *temp = PyObject_Str(exc_typ);
+	if (temp) {
+		PyCom_StreamMessage(PyString_AsString(temp));
+		Py_DECREF(temp);
+	} else
+		PyCom_StreamMessage("Can't convert exception to a string!");
+	PyCom_StreamMessage(": ");
+	if (exc_val != NULL) {
+		temp = PyObject_Str(exc_val);
+		if (temp) {
+			PyCom_StreamMessage(PyString_AsString(temp));
+			Py_DECREF(temp);
+		} else
+			PyCom_StreamMessage("Can't convert exception value to a string!");
+	}
+	PyCom_StreamMessage("\n");
+}
+
 PYCOM_EXPORT 
 void PyCom_LogError(const char *fmt, ...)
 {
@@ -502,32 +532,30 @@ void PyCom_LogError(const char *fmt, ...)
 	PyErr_Fetch( &exc_typ, &exc_val, &exc_tb);
 	if (exc_typ) {
 		PyErr_NormalizeException( &exc_typ, &exc_val, &exc_tb);
-		if (exc_tb) {
-			const char *szTraceback = PyTraceback_AsString(exc_tb);
-			if (szTraceback == NULL)
-				PyCom_StreamMessage("Can't get the traceback info!");
-			else {
-				PyCom_StreamMessage("Traceback (most recent call last):\n");
-				PyCom_StreamMessage(szTraceback);
-				PyMem_Free((void *)szTraceback);
-			}
+		_LogException(exc_typ, exc_val, exc_tb);
+	}
+	PyErr_Restore(exc_typ, exc_val, exc_tb);
+}
+
+
+PYCOM_EXPORT 
+void PyCom_LogNonServerError(const char *fmt, ...)
+{
+	// See if our gateway exception
+	PyObject *exc_typ = NULL, *exc_val = NULL, *exc_tb = NULL;
+	PyErr_Fetch( &exc_typ, &exc_val, &exc_tb);
+	if (exc_typ) {
+		PyErr_NormalizeException( &exc_typ, &exc_val, &exc_tb);
+		if (!PyErr_GivenExceptionMatches(exc_val, PyWinExc_COMError) ||
+		   ((PyInstance_Check(exc_val) && 
+		     (PyObject *)(((PyInstanceObject *)exc_val)->in_class)==PyWinExc_COMError))) {
+			va_list marker;
+			va_start(marker, fmt);
+			PyCom_StreamMessage("pythoncom error: ");
+			VLogF(fmt, marker);
+			PyCom_StreamMessage("\n");
+			_LogException(exc_typ, exc_val, exc_tb);
 		}
-		PyObject *temp = PyObject_Str(exc_typ);
-		if (temp) {
-			PyCom_StreamMessage(PyString_AsString(temp));
-			Py_DECREF(temp);
-		} else
-			PyCom_StreamMessage("Can't convert exception to a string!");
-		PyCom_StreamMessage(": ");
-		if (exc_val != NULL) {
-			temp = PyObject_Str(exc_val);
-			if (temp) {
-				PyCom_StreamMessage(PyString_AsString(temp));
-				Py_DECREF(temp);
-			} else
-				PyCom_StreamMessage("Can't convert exception value to a string!");
-		}
-		PyCom_StreamMessage("\n");
 	}
 	PyErr_Restore(exc_typ, exc_val, exc_tb);
 }

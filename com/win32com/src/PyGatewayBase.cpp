@@ -32,6 +32,9 @@ static HRESULT GetIDispatchErrorResult(EXCEPINFO *pexcepinfo)
 		bCleanupExcepInfo = TRUE;
 	} else
 		bCleanupExcepInfo = FALSE;
+	// Log the error
+	PyCom_LogNonServerError("Python error invoking COM method.");
+
 	// Fill the EXCEPINFO with the details.
 	PyCom_ExcepInfoFromPyException(pexcepinfo);
 	// If the Python code is returning an IDispatch error,
@@ -905,6 +908,8 @@ STDMETHODIMP PyGatewayBase::InvokeViaPolicy(
 	PyObject *result = do_dispatch(m_pPyObject, szMethodName, szFormat, va);
 	va_end(va);
 
+	if (result==NULL)
+		PyCom_LogNonServerError("Python error calling method %s\n", szMethodName);
 	HRESULT hr = PyCom_SetCOMErrorFromPyException(GetIID());
 
 	if ( ppResult )
