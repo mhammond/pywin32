@@ -715,7 +715,7 @@ for info in (
         ("win32print", "winspool user32", False),
         ("win32process", "advapi32 user32", False, 0x0500),
         ("win32ras", "rasapi32 user32", False),
-        ("win32security", "advapi32 user32 Secur32", True),
+        ("win32security", "advapi32 user32", True),
         ("win32service", "advapi32 oleaut32", True, 0x0500),
         ("win32trace", "advapi32", False),
         ("win32wnet", "netapi32 mpr", False),
