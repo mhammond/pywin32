@@ -230,8 +230,8 @@ PyObject *Py%(interfacename)s::%(method)s(PyObject *self, PyObject *args)
 '''	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = p%(ptr)s->%(method)s(%(argsCOM)s );
-	PY_INTERFACE_POSTCALL;
 %(cleanup)s
+	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, p%(ptr)s, %(interfacename)s );
 ''' % strdict)
