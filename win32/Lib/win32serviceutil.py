@@ -40,7 +40,7 @@ def LocatePythonServiceExe(exeName = None):
         try:
             return win32api.SearchPath(None, exeName)[0]
         except win32api.error:
-            msg = "%s is not correctly registered\nPlease locate and run %s.exe, and it will self-register\nThen run this service registration process again." % (exeName, exeName)
+            msg = "%s is not correctly registered\nPlease locate and run %s, and it will self-register\nThen run this service registration process again." % (exeName, exeName)
             raise error, msg
 
 def _GetServiceShortName(longName):
