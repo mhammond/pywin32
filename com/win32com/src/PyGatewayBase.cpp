@@ -673,7 +673,7 @@ STDMETHODIMP PyGatewayBase::GetDispID(BSTR bstrName, DWORD grfdex, DISPID *pid)
 STDMETHODIMP PyGatewayBase::InvokeEx(DISPID id, LCID lcid, WORD wFlags, DISPPARAMS *params, VARIANT *pVarResult, EXCEPINFO *pexcepinfo, IServiceProvider *pspCaller)
 {
 #ifdef DEBUG_FULL
-	LogF("PyGatewayBase::InvokeEx; dispid=%ld", dispid);
+	LogF("PyGatewayBase::InvokeEx; dispid=%ld", id);
 #endif
 
 	HRESULT hr;
