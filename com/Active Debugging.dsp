@@ -54,7 +54,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386
-# ADD LINK32 Build\axscript.lib msdbg.lib winspool.lib comdlg32.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e3b0000" /subsystem:windows /dll /debug /machine:I386 /nodefaultlib:"libcmt" /out:"Build\axdebug.pyd" /libpath:"build" /libpath:"..\win32\build"
+# ADD LINK32 Build\axscript.lib msdbg.lib winspool.lib comdlg32.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e7b0000" /subsystem:windows /dll /debug /machine:I386 /nodefaultlib:"libcmt" /out:"Build\axdebug.pyd" /libpath:"build" /libpath:"..\win32\build"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "Active Debugging - Win32 Debug"
@@ -82,7 +82,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386
-# ADD LINK32 Build\axscript_d.lib msdbg.lib winspool.lib comdlg32.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e3b0000" /subsystem:windows /dll /debug /machine:I386 /nodefaultlib:"libcmt" /nodefaultlib:"msvcrt.lib" /out:"Build\axdebug_d.pyd" /libpath:"build" /libpath:"..\win32\build"
+# ADD LINK32 Build\axscript_d.lib msdbg.lib winspool.lib comdlg32.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e7b0000" /subsystem:windows /dll /debug /machine:I386 /nodefaultlib:"libcmt" /nodefaultlib:"msvcrt.lib" /out:"Build\axdebug_d.pyd" /libpath:"build" /libpath:"..\win32\build"
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 

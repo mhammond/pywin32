@@ -54,7 +54,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 ACTIVEDS.LIB ADSIID.LIB kernel32.lib user32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /dll /machine:I386 /out:"Build\adsi.pyd" /libpath:"..\win32\build"
+# ADD LINK32 ACTIVEDS.LIB ADSIID.LIB kernel32.lib user32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e7f0000" /dll /machine:I386 /out:"Build\adsi.pyd" /libpath:"..\win32\build"
 
 !ELSEIF  "$(CFG)" == "adsi - Win32 Debug"
 
@@ -81,7 +81,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 ACTIVEDS.LIB ADSIID.LIB kernel32.lib user32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /dll /debug /machine:I386 /out:"Build\adsi_d.pyd" /pdbtype:sept /libpath:"..\win32\build"
+# ADD LINK32 ACTIVEDS.LIB ADSIID.LIB kernel32.lib user32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e7f0000" /dll /debug /machine:I386 /out:"Build\adsi_d.pyd" /pdbtype:sept /libpath:"..\win32\build"
 
 !ENDIF 
 
@@ -121,8 +121,8 @@ InputPath=.\win32comext\adsi\src\adsi.i
 InputName=adsi
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -dnone -python -c++ -o $(InputName).cpp $(InputName).i 
-	
+	..\swig.bat $(InputDir) -dnone -python -c++ -o $(InputName).cpp $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "adsi - Win32 Debug"
@@ -133,8 +133,8 @@ InputPath=.\win32comext\adsi\src\adsi.i
 InputName=adsi
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -dnone -python -c++ -o $(InputName).cpp $(InputName).i 
-	
+	..\swig.bat $(InputDir) -dnone -python -c++ -o $(InputName).cpp $(InputName).i
+
 # End Custom Build
 
 !ENDIF 
@@ -183,8 +183,7 @@ InputPath=.\win32comext\adsi\src\PyIADsContainer.i
 InputName=PyIADsContainer
 
 BuildCmds= \
-	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IDispatch -c++ -o $(InputName).cpp  $(InputName).i \
-	
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IDispatch -c++ -o $(InputName).cpp  $(InputName).i
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
    $(BuildCmds)
@@ -208,8 +207,7 @@ InputPath=.\win32comext\adsi\src\PyIADsUser.i
 InputName=PyIADsUser
 
 BuildCmds= \
-	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IDispatch -c++ -o $(InputName).cpp  $(InputName).i \
-	
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IDispatch -c++ -o $(InputName).cpp  $(InputName).i
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
    $(BuildCmds)
@@ -226,8 +224,7 @@ InputPath=.\win32comext\adsi\src\PyIADsUser.i
 InputName=PyIADsUser
 
 BuildCmds= \
-	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IDispatch -c++ -o $(InputName).cpp  $(InputName).i \
-	
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IDispatch -c++ -o $(InputName).cpp  $(InputName).i
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
    $(BuildCmds)

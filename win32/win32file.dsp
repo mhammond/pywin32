@@ -63,7 +63,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e700000" /subsystem:windows /dll /debug /machine:I386 /out:"Build\win32file.pyd" /libpath:".\Build"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e730000" /subsystem:windows /dll /debug /machine:I386 /out:"Build\win32file.pyd" /libpath:".\Build"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "win32file - Win32 Debug"
@@ -94,7 +94,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e700000" /subsystem:windows /dll /debug /machine:I386 /out:"Build\win32file_d.pyd" /pdbtype:sept /libpath:".\Build"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e730000" /subsystem:windows /dll /debug /machine:I386 /out:"Build\win32file_d.pyd" /pdbtype:sept /libpath:".\Build"
 
 !ELSEIF  "$(CFG)" == "win32file - Win32 (WCE x86em) Debug"
 
@@ -330,8 +330,8 @@ InputPath=.\src\win32file.i
 InputName=win32file
 
 "$(InputDir)\$(InputName)module_win32.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module_win32.cpp $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module_win32.cpp $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32file - Win32 Debug"
@@ -342,8 +342,8 @@ InputPath=.\src\win32file.i
 InputName=win32file
 
 "$(InputDir)\$(InputName)module_win32.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module_win32.cpp $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module_win32.cpp $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32file - Win32 (WCE x86em) Debug"
@@ -352,8 +352,8 @@ InputName=win32file
 InputDir=.\src	InputPath=.\src\win32file.i	InputName=win32file	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp              $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp              $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32file - Win32 (WCE x86em) Release"
@@ -362,8 +362,8 @@ InputDir=.\src	InputPath=.\src\win32file.i	InputName=win32file
 InputDir=.\src	InputPath=.\src\win32file.i	InputName=win32file	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp              $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp              $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32file - Win32 (WCE SH3) Debug"
@@ -372,8 +372,8 @@ InputDir=.\src	InputPath=.\src\win32file.i	InputName=win32file
 InputDir=.\src	InputPath=.\src\win32file.i	InputName=win32file	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp              $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp              $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32file - Win32 (WCE MIPS) Debug"
@@ -382,8 +382,8 @@ InputDir=.\src	InputPath=.\src\win32file.i	InputName=win32file
 InputDir=.\src	InputPath=.\src\win32file.i	InputName=win32file	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp              $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp              $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32file - Win32 (WCE SH3) Release"
@@ -392,8 +392,8 @@ InputDir=.\src	InputPath=.\src\win32file.i	InputName=win32file
 InputDir=.\src	InputPath=.\src\win32file.i	InputName=win32file	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp              $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp              $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32file - Win32 (WCE MIPS) Release"
@@ -402,8 +402,8 @@ InputDir=.\src	InputPath=.\src\win32file.i	InputName=win32file
 InputDir=.\src	InputPath=.\src\win32file.i	InputName=win32file	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp              $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp              $(InputName).i
+
 # End Custom Build
 
 !ENDIF 

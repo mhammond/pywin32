@@ -34,7 +34,6 @@ CFG=win32event - Win32 Debug
 # PROP AllowPerConfigDependencies 0
 # PROP Scc_ProjName ""$/Python/win32", DGAAAAAA"
 # PROP Scc_LocalPath "."
-# PROP WCE_FormatVersion "6.0"
 
 !IF  "$(CFG)" == "win32event - Win32 Release"
 
@@ -64,7 +63,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e800000" /subsystem:windows /dll /debug /machine:I386 /out:"Build\win32event.pyd"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e810000" /subsystem:windows /dll /debug /machine:I386 /out:"Build\win32event.pyd"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "win32event - Win32 Debug"
@@ -95,7 +94,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e800000" /subsystem:windows /dll /debug /machine:I386 /out:"Build\win32event_d.pyd" /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /base:"0x1e810000" /subsystem:windows /dll /debug /machine:I386 /out:"Build\win32event_d.pyd" /pdbtype:sept
 
 !ELSEIF  "$(CFG)" == "win32event - Win32 (WCE x86em) Debug"
 
@@ -331,8 +330,8 @@ InputPath=.\src\win32event.i
 InputName=win32event
 
 "$(InputDir)\$(InputName)module_win32.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module_win32.cpp $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module_win32.cpp $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32event - Win32 Debug"
@@ -343,80 +342,68 @@ InputPath=.\src\win32event.i
 InputName=win32event
 
 "$(InputDir)\$(InputName)module_win32.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module_win32.cpp $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module_win32.cpp $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32event - Win32 (WCE x86em) Debug"
 
 # Begin Custom Build - Invoking SWIG...
-InputDir=.\src
-InputPath=.\src\win32event.i
-InputName=win32event
+InputDir=.\src	InputPath=.\src\win32event.i	InputName=win32event	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32event - Win32 (WCE MIPS) Release"
 
 # Begin Custom Build - Invoking SWIG...
-InputDir=.\src
-InputPath=.\src\win32event.i
-InputName=win32event
+InputDir=.\src	InputPath=.\src\win32event.i	InputName=win32event	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32event - Win32 (WCE SH3) Release"
 
 # Begin Custom Build - Invoking SWIG...
-InputDir=.\src
-InputPath=.\src\win32event.i
-InputName=win32event
+InputDir=.\src	InputPath=.\src\win32event.i	InputName=win32event	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32event - Win32 (WCE MIPS) Debug"
 
 # Begin Custom Build - Invoking SWIG...
-InputDir=.\src
-InputPath=.\src\win32event.i
-InputName=win32event
+InputDir=.\src	InputPath=.\src\win32event.i	InputName=win32event	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32event - Win32 (WCE SH3) Debug"
 
 # Begin Custom Build - Invoking SWIG...
-InputDir=.\src
-InputPath=.\src\win32event.i
-InputName=win32event
+InputDir=.\src	InputPath=.\src\win32event.i	InputName=win32event	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32event - Win32 (WCE x86em) Release"
 
 # Begin Custom Build - Invoking SWIG...
-InputDir=.\src
-InputPath=.\src\win32event.i
-InputName=win32event
+InputDir=.\src	InputPath=.\src\win32event.i	InputName=win32event	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i
+
 # End Custom Build
 
 !ENDIF 
