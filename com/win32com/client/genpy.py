@@ -17,7 +17,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.2.9" # Written to generated file.
+makepy_version = "0.3.0" # Written to generated file.
 
 # This map is used purely for the users benefit -it shows the
 # raw, underlying type of Alias/Enums, etc.  The COM implementation
@@ -242,12 +242,22 @@ class DispatchItem(build.DispatchItem, WritableItem):
 		except pythoncom.com_error:
 			pass
 		clsidStr = str(self.clsid)
-		print '\tCLSID = pythoncom.MakeIID(\'' + clsidStr + '\')'
+		print '\tCLSID = CLSID_Sink = pythoncom.MakeIID(\'' + clsidStr + '\')'
 		print '\t_public_methods_ = [] # For COM Server support'
 		WriteSinkEventMap(self)
 		print
 		print '\tdef __init__(self, oobj = None):'
-		print '\t\tpass'
+		print '\t\timport win32com.server.util'
+		print '\t\tcpc=oobj._oleobj_.QueryInterface(pythoncom.IID_IConnectionPointContainer)'
+		print '\t\tcp=cpc.FindConnectionPoint(self.CLSID_Sink)'
+		print '\t\tcookie=cp.Advise(win32com.server.util.wrap(self))'
+		print '\t\tself._olecp,self._olecp_cookie = cp,cookie'
+		print '\tdef __del__(self):'
+		print '\t\tself.close()'
+		print '\tdef close(self):'
+		print '\t\tif not self._olecp:'
+		print '\t\t\tcp,cookie,self._olecp,self._olecp_cookie = self._olecp,self._olecp_cookie,None,None'
+		print '\t\tcp.Unadvise(cookie)'
 		print '\tdef _query_interface_(self, iid):'
 		print '\t\timport win32com.server.util'
 		print '\t\tif iid==self.CLSID: return win32com.server.util.wrap(self)'
@@ -571,7 +581,6 @@ class Generator:
           else:
             dispItem = DispatchItem(refType, refAttr, refType.GetDocumentation(-1))
             oleItems[dispItem.clsid] = dispItem
-
           if flags & pythoncom.IMPLTYPEFLAG_FSOURCE:
             dispItem.bIsSink = 1
             sources.append(dispItem, flags, dual)
@@ -605,7 +614,7 @@ class Generator:
     self.progress.SetDescription("Building definitions from type library...")
     oleItems, enumItems, aliasItems = self.BuildOleItemsFromType()
     la = self.typelib.GetLibAttr()
-    
+
     print '# Created by makepy.py version %s from %s' % (makepy_version,os.path.split(self.sourceFilename)[1])
     print '# On date: %s' % time.ctime(time.time())
 #    print '#\n# Command line used:', string.join(sys.argv[1:]," ")
