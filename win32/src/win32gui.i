@@ -1609,7 +1609,7 @@ BOOLAPI SetMenu( HWND hwnd, HMENU hmenu );
 HICON LoadIcon(HINSTANCE hInst, RESOURCE_ID name);
 
 // @pyswig HICON|CopyIcon|Copies an icon
-// #pyparm int|hicon||Existing icon
+// @pyparm int|hicon||Existing icon
 HICON CopyIcon(HICON hicon);
 
 // @pyswig HANDLE|LoadImage|Loads a bitmap, cursor or icon
