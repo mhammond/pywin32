@@ -311,7 +311,72 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 			items = filter(lambda word: word[:2]!='__' or word[-2:]!='__', items)
 			if items:
 				self.SCIAutoCShow(items)
+		else:
+			# Heuristics a-la AutoExpand
+			# The idea is to find other usages of the current binding
+			# and assume, that it refers to the same object (or at least,
+			# to the object of the same type)
+			# Contributed by Vadim [vadimch@yahoo.com]
+			left, right = self._GetWordSplit()
+			if left=="": # Ignore standalone dots
+				return None
+			# We limit our search to the current class, if that
+			# information is available
+			minline, maxline, curclass = self._GetClassInfoFromBrowser()
+			endpos = self.LineIndex(maxline)
+			text = self.GetTextRange(self.LineIndex(minline),endpos)
+			import re
+			list = re.findall(r"\b"+left+"\.\w+",text)
+			del text
+			prefix = len(left)+1
+			unique = {}
+			for li in list:
+				unique[li[prefix:]] = 1
+			# Assuming traditional usage of self...
+			if curclass and left=="self":
+				self._UpdateWithClassMethods(unique,curclass)
 
+			items = filter(lambda word: word[:2]!='__' or word[-2:]!='__', unique.keys())
+			if items:
+				self.SCIAutoCShow(items)
+
+	# TODO: This is kinda slow. Probably need some kind of cache 
+	# here that is flushed upon file save
+	# Or maybe we don't need the superclass methods at all ?
+	def _UpdateWithClassMethods(self,dict,classinfo):
+		dict.update(classinfo.methods)
+		for super in classinfo.super:
+			if hasattr(super,"methods"):
+				self._UpdateWithClassMethods(dict,super)
+
+	# Finds which class definition caret is currently in and returns 
+	# indexes of the the first and of the last lines of class definition
+	# Data is obtained from module browser (if enabled)
+	def _GetClassInfoFromBrowser(self,pos=-1):
+		minline = 0
+		maxline = self.GetLineCount()-1
+		try: browser = self.GetParentFrame().GetActiveDocument().GetAllViews()[1]
+		except IndexError:	return (minline,maxline,None) # Current window has no browser
+		if not browser.list: return (minline,maxline,None) # Not initialized
+		path = self.GetDocument().GetPathName()
+		if not path: return (minline,maxline,None) # No current path
+		
+		import pywin.framework.scriptutils
+		curmodule, path = pywin.framework.scriptutils.GetPackageModuleName(path)
+		clbrdata = browser.list.root.clbrdata
+		curline = self.LineFromChar(pos)
+		curclass = None
+		# Find out which class we are in
+		for item in clbrdata.values():
+			if item.module==curmodule:
+				item_lineno = item.lineno - 1 # Scintilla counts lines from 0, whereas pyclbr - from 1
+				if minline < item_lineno <= curline:
+					minline = item_lineno
+					curclass = item
+				if curline < item_lineno < maxline:
+					maxline = item_lineno
+		return (minline,maxline,curclass)
+	
 	def _GetObjectAtPos(self, pos=-1):
 		left, right = self._GetWordSplit()
 		if left: # It is an attribute lookup
