@@ -49,8 +49,9 @@ def demo (delay=1000, stop=10):
 		rc = win32event.MsgWaitForMultipleObjects(
 			(g.event,), # list of objects
 			0, # wait all
+			500,  # timeout
 			win32event.QS_ALLEVENTS, # type of input
-			500) # timeout
+			)
 		if rc == win32event.WAIT_OBJECT_0:
 			# Event signalled.
 			break
