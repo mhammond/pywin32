@@ -19,7 +19,8 @@ BOOL PyObject_AsPROPSPECs( PyObject *ob, PROPSPEC **ppRet, ULONG *pcRet)
 	// First count the items, and the total string space we need.
 	LONG cChars = 0;
 	int len = PySequence_Length(ob);
-	for (int i=0;i<len;i++) {
+	int i;
+	for (i=0;i<len;i++) {
 		PyObject *sub = PySequence_GetItem(ob, i);
 		if (PyUnicode_Check(sub))
 			cChars += PyUnicode_Size(sub) + 1;
@@ -182,7 +183,8 @@ BOOL PyObject_AsPROPVARIANTs(PyObject *ob, PROPVARIANT **ppRet, ULONG *pcRet)
 	int len = PySequence_Length(ob);
 
 	PROPVARIANT *pRet = new PROPVARIANT[len];
-	for (int i=0;i<len;i++)
+	int i;
+	for (i=0;i<len;i++)
 		PropVariantInit(pRet+i);
 
 	for (i=0;i<len;i++) {
@@ -278,7 +280,8 @@ PyObject *PyIPropertyStorage::ReadMultiple(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_MemoryError, "allocating PROPVARIANTs");
 		return NULL;
 	}
-	for (ULONG i=0;i<cProps;i++)
+	ULONG i;
+	for (i=0;i<cProps;i++)
 		PropVariantInit(pPropVars+i);
 
 	HRESULT hr;
