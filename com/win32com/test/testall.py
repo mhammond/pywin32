@@ -56,15 +56,12 @@ if __name__=='__main__':
 		testExchange = None
 	if testExchange is not None:
 		capture.capture()
-		try:
-				testExchange.test()
-			capture.release()
-			print "testExchange test generated %d lines of output" % capture.get_num_lines_captured()
-		finally:
-			capture.release()
+		testExchange.test()
+		capture.release()
+		print "testExchange test generated %d lines of output" % capture.get_num_lines_captured()
 
-		import testExplorer
-		testExplorer.TestAll()
+	import testExplorer
+	testExplorer.TestAll()
 
 
 	capture.capture()
