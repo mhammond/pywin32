@@ -46,20 +46,23 @@ PyObject *PySet(PyObject *self, PyObject *args)
 			ps->medium.hEnhMetaFile = (HENHMETAFILE)PyInt_AsLong(ob);
 			break;
 		case TYMED_HGLOBAL: {
-			// todo: support buffer (but see byte-count discussion below)
-			if (!PyString_Check(ob))
-				return PyErr_Format(PyExc_TypeError, "tymed value of %d requires a string", tymed);
-			// We need to include the NULL, as the Windows clipboard functions
-			// will assume it is there for text related formats (eg, CF_TEXT).
-			// I can't see one extra byte could cause any problems - but if
-			// in the future it does, we can take the win32clipboard route,
-			// and only include the extra \0 for strings, allowing buffers to
-			// use the exact cb.
-			int cb = PyString_Size(ob)+1;
+			const void * buf = NULL;
+			int cb = 0;
+			if (PyObject_AsReadBuffer(ob,&buf,&cb)==-1) 
+				return PyErr_Format(PyExc_TypeError, "tymed value of %d requires a string/unicode/buffer", tymed);
+			// size doesnt include nulls!
+			// We need to include the NULL for strings and unicode, as the
+			// Windows clipboard functions will assume it is there for
+			// text related formats (eg, CF_TEXT).
+			if (PyString_Check(ob))
+				cb += 1;
+			else if (PyUnicode_Check(ob))
+				cb += sizeof(wchar_t);
+			// else assume buffer needs no terminator...
 			ps->medium.hGlobal = GlobalAlloc(GMEM_FIXED, cb);
 			if (!ps->medium.hGlobal)
 				return PyErr_NoMemory();
-			memcpy( (void *)ps->medium.hGlobal, PyString_AsString(ob), cb);
+			memcpy( (void *)ps->medium.hGlobal, buf, cb);
 			break;
 		}
 		case TYMED_FILE: 
