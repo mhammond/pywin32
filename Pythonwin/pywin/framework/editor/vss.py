@@ -50,7 +50,7 @@ def FindVssProjectInfo(fullfname):
 	if not project:
 		win32ui.MessageBox("%s\r\n\r\nThis directory is not configured for Python/VSS" % origPath)
 		return
-	return project, string.join(retPaths, "/")
+	return project, string.join(retPaths, "/"), database
 		
 	
 def CheckoutFile(fileName):
@@ -70,12 +70,14 @@ def CheckoutFile(fileName):
 		rc = FindVssProjectInfo(fileName)
 		if rc is None:
 			return
-		project, vssFname = rc
+		project, vssFname, database = rc
 		if g_sourceSafe is None:
 			g_sourceSafe=win32com.client.Dispatch("SourceSafe")
 			# SS seems a bit wierd.  It defaults the arguments as empty strings, but
 			# then complains when they are used - so we pass "Missing"
-			g_sourceSafe.Open(pythoncom.Missing, pythoncom.Missing, pythoncom.Missing)
+			if not database:
+				database = pythoncom.Missing
+			g_sourceSafe.Open(database, pythoncom.Missing, pythoncom.Missing)
 		item = g_sourceSafe.VSSItem("$/%s/%s" % (project, vssFname))
 		item.Checkout(None, fileName)
 		ok = 1
