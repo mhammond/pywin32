@@ -187,14 +187,18 @@ def RunScript(defName=None, defArgs=None, bShowDialog = 1, debuggingType=None):
 	debugger = GetDebugger()
 
 	if defName is None:
-		try:
-			pathName = GetActiveFileName()
-		except KeyboardInterrupt:
-			return # User cancelled save.
+		# None supplied - use the last script run regardless of the current script.
+		if lastScript:
+			pathName = lastScript
+		else:
+			# No last script - find the file they want to run.
+			try:
+				pathName = GetActiveFileName()
+			except KeyboardInterrupt:
+				return # User cancelled save.
 	else:
+		# Script was excplicitely specified - use it.
 		pathName = defName
-	if not pathName:
-		pathName = lastScript
 	if defArgs is None:
 		args = ''
 		if pathName==lastScript:
