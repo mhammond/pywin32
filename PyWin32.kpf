@@ -35,11 +35,13 @@
 </file>
 <file name="PyCOMImpl.h" url="com/TestSources/PyCOMTest/PyCOMImpl.h">
 </file>
-<file name="PyCOMTest.h" url="com/TestSources/PyCOMTest/PyCOMTest.h">
-</file>
 <file name="SimpleCounter.cpp" url="com/TestSources/PyCOMTest/SimpleCounter.cpp">
 </file>
 <file name="SimpleCounter.h" url="com/TestSources/PyCOMTest/SimpleCounter.h">
+</file>
+<file name="PyCOMTest.idl" url="com/TestSources/PyCOMTest/PyCOMTest.idl">
+</file>
+<file name="DSCArrayTest.cpp" url="com/TestSources/PyCOMTest/DSCArrayTest.cpp">
 </file>
 </folder>
 </folder>
@@ -286,6 +288,10 @@
 </file>
 <file name="PyVARDESC.cpp" url="com/win32com/src/extensions/PyVARDESC.cpp">
 </file>
+<file name="PyIDropTarget.cpp" url="com/win32com/src/extensions/PyIDropTarget.cpp">
+</file>
+<file name="PyIDropSource.cpp" url="com/win32com/src/extensions/PyIDropSource.cpp">
+</file>
 </folder>
 <folder name="include" url="com/win32com/src/include">
 <file name="propbag.h" url="com/win32com/src/include/propbag.h">
@@ -305,8 +311,6 @@
 <file name="PyICatInformation.h" url="com/win32com/src/include/PyICatInformation.h">
 </file>
 <file name="PyICatRegister.h" url="com/win32com/src/include/PyICatRegister.h">
-</file>
-<file name="PyIConnectionPoint.h" url="com/win32com/src/include/PyIConnectionPoint.h">
 </file>
 <file name="PyIConnectionPointContainer.h" url="com/win32com/src/include/PyIConnectionPointContainer.h">
 </file>
@@ -369,6 +373,8 @@
 <file name="stdafx.h" url="com/win32com/src/include/stdafx.h">
 </file>
 <file name="univgw_dataconv.h" url="com/win32com/src/include/univgw_dataconv.h">
+</file>
+<file name="PyIConnectionPoint.h" url="com/win32com/src/include/PyIConnectionPoint.h">
 </file>
 </folder>
 </folder>
@@ -1024,6 +1030,10 @@
 <file name="shell.cpp" url="com/win32comext/shell/src/shell.cpp">
 </file>
 <file name="shell_pch.h" url="com/win32comext/shell/src/shell_pch.h">
+</file>
+<file name="PyIColumnProvider.cpp" url="com/win32comext/shell/src/PyIColumnProvider.cpp">
+</file>
+<file name="PyIColumnProvider.h" url="com/win32comext/shell/src/PyIColumnProvider.h">
 </file>
 </folder>
 <folder name="test" url="com/win32comext/shell/test">
@@ -1684,6 +1694,8 @@
 </file>
 </folder>
 <folder name="Lib" url="win32/Lib">
+<preference-set id="">
+</preference-set>
 <file name="afxres.py" url="win32/Lib/afxres.py">
 </file>
 <file name="commctrl.py" url="win32/Lib/commctrl.py">
@@ -1722,6 +1734,12 @@
 </file>
 <file name="winperf.py" url="win32/Lib/winperf.py">
 </file>
+<file name="win32rcparser.py" url="win32/lib/win32rcparser.py">
+<preference-set id="">
+<preference-set id="Invocations">
+</preference-set>
+</preference-set>
+</file>
 </folder>
 <folder name="scripts" url="win32/scripts">
 <file name="backupEventLog.py" url="win32/scripts/backupEventLog.py">
@@ -1757,18 +1775,6 @@
 <file name="dbi.def" url="win32/src/dbi.def">
 </file>
 <file name="dbi.h" url="win32/src/dbi.h">
-</file>
-<file name="ddeconv.cpp" url="win32/src/ddeconv.cpp">
-</file>
-<file name="ddeitem.cpp" url="win32/src/ddeitem.cpp">
-</file>
-<file name="ddemodule.cpp" url="win32/src/ddemodule.cpp">
-</file>
-<file name="ddemodule.h" url="win32/src/ddemodule.h">
-</file>
-<file name="ddeserver.cpp" url="win32/src/ddeserver.cpp">
-</file>
-<file name="ddetopic.cpp" url="win32/src/ddetopic.cpp">
 </file>
 <file name="mmapfilemodule.cpp" url="win32/src/mmapfilemodule.cpp">
 </file>
@@ -1809,10 +1815,6 @@
 <file name="PyWinTypes.h" url="win32/src/PyWinTypes.h">
 </file>
 <file name="PyWinTypesmodule.cpp" url="win32/src/PyWinTypesmodule.cpp">
-</file>
-<file name="stdafxdde.h" url="win32/src/stdafxdde.h">
-</file>
-<file name="stddde.cpp" url="win32/src/stddde.cpp">
 </file>
 <file name="stddde.h" url="win32/src/stddde.h">
 </file>
@@ -1975,12 +1977,11 @@
 <preference-set id="">
 <preference-set id="Invocations">
 <preference-set id="Python">
-  <string id="userEnvironment"></string>
   <string id="postparams"></string>
+  <string id="userEnvironment"></string>
   <string id="getparams"></string>
   <boolean id="use-console">0</boolean>
   <string id="mpostparams"></string>
-  <boolean id="sim-cgi">0</boolean>
   <string id="filename">E:\src\pythonex\setup_win32all.py</string>
   <string id="request-method">GET</string>
   <string id="params">bdist_wininst --skip-build --target-version=2.2</string>
@@ -1989,6 +1990,7 @@
   <string id="documentRoot"></string>
   <string id="cookieparams"></string>
   <boolean id="show-dialog">1</boolean>
+  <boolean id="sim-cgi">0</boolean>
   <string id="cwd"></string>
 </preference-set>
 </preference-set>
