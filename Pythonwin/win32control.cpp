@@ -1472,10 +1472,12 @@ PyCSliderCtrl::~PyCSliderCtrl()
 {
 }
 
-// @pymethod <o PyCSliderCtrl>|win32ui|CreateSliderCtrl|Creates a Slider control object. <om PySliderCtrl.Create> creates the actual control.
+// @pymethod <o PyCSliderCtrl>|win32ui|CreateSliderCtrl|Creates a Slider control object.
 PyObject *
 PyCSliderCtrl_create(PyObject *self, PyObject *args)
 {
+	// @comm  The method <om PySliderCtrl.CreateWindow> is used to 
+	// create the actual control.
 	CHECK_NO_ARGS(args);
 	CSliderCtrl *pPC = new CSliderCtrl();
 	return ui_assoc_object::make( PyCSliderCtrl::type, pPC );
@@ -1678,7 +1680,7 @@ PyCSliderCtrl_set_range(PyObject *self, PyObject *args)
 	RETURN_NONE;
 }
 
-// @pymethod int|PyCSliderCtrl|GetSelection|Get the control's seledction start and end positions
+// @pymethod int|PyCSliderCtrl|GetSelection|Get the control's selection start and end positions
 static PyObject *
 PyCSliderCtrl_get_selection(PyObject *self, PyObject *args)
 {
