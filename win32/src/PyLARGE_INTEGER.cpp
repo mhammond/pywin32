@@ -185,8 +185,7 @@ PyObject *PyWinObject_FromLARGE_INTEGER(LARGE_INTEGER &val)
 }
 PyObject *PyWinObject_FromULARGE_INTEGER(ULARGE_INTEGER &val)
 {
-	if (val.HighPart==0)
-		// ### this should check for overflow!! (don't want a negative int)
+	if (val.HighPart==0 && !(val.LowPart & 0x80000000))
 		return PyInt_FromLong(val.LowPart);
 	else
 		return PyLong_FromUI64(val.QuadPart);
