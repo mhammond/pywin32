@@ -223,6 +223,8 @@ def DispatchWithEvents(clsid, user_event_class):
   result_class = new.classobj("COMEventClass", (disp_class, events_class, user_event_class), {"__setattr__" : _event_setattr_})
   instance = result_class(disp._oleobj_) # This only calls the first base class __init__.
   events_class.__init__(instance, instance)
+  if hasattr(user_event_class, "__init__"):
+    user_event_class.__init__(instance)
   return EventsProxy(instance)
 
 def getevents(clsid):
@@ -349,7 +351,7 @@ class DispatchBaseClass:
 	def __getattr__(self, attr):
 		args=self._prop_map_get_.get(attr)
 		if args is None:
-			raise AttributeError, attr
+			raise AttributeError, "'%s' object has no attribute '%s'" % (repr(self), attr)
 		return apply(self._ApplyTypes_, args)
 
 	def __setattr__(self, attr, value):
@@ -357,7 +359,7 @@ class DispatchBaseClass:
 		try:
 			args, defArgs=self._prop_map_put_[attr]
 		except KeyError:
-			raise AttributeError, attr
+			raise AttributeError, "'%s' object has no attribute '%s'" % (repr(self), attr)
 		apply(self._oleobj_.Invoke, args + (value,) + defArgs)
 	# XXX - These should be consolidated with dynamic.py versions.
 	def _get_good_single_object_(self, obj, obUserName=None, resultCLSID=None):
