@@ -322,7 +322,7 @@ def _GetRegistryValue(key, val, default = None):
 
 scintilla = "Scintilla is Copyright 1998-2000 Neil Hodgson (http://www.scintilla.org)"
 idle = "This program uses IDLE extensions by Guido van Rossum, Tim Peters and others."
-contributors = "Thanks to the following people for making significant contributions: Sam Rushing, Curt Hagenlocher, Dave Brennan, Roger Burnham, Gordon McMillan, Neil Hodgson. (let me know if I have forgotten you!)"
+contributors = "Thanks to the following people for making significant contributions: Sam Rushing, Curt Hagenlocher, Dave Brennan, Roger Burnham, Gordon McMillan, Neil Hodgson, Laramie Leavitt. (let me know if I have forgotten you!)"
 # The About Box
 class AboutBox(dialog.Dialog):
 	def __init__(self, idd=win32ui.IDD_ABOUTBOX):
