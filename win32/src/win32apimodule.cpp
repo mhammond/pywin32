@@ -4381,6 +4381,104 @@ PyObject *PyChangeDisplaySettings(PyObject *self, PyObject *args)
 	return Py_BuildValue("l",ret);
 }
 
+static BOOL addedCtrlHandler = FALSE;
+static PyObject *consoleControlHandlers = NULL;
+static BOOL WINAPI PyCtrlHandler(DWORD dwCtrlType)
+{
+	CEnterLeavePython _celp;
+	// try and keep similar semantics to windows itself - last first, and
+	// first to return TRUE stops the search.
+	// Thread-safety provided by GIL
+	PyObject *args = Py_BuildValue("(i)", dwCtrlType);
+	if (!args) return FALSE;
+	BOOL rc = FALSE;
+	for (int i=PyList_GET_SIZE(consoleControlHandlers);i>0 && !rc;i--) {
+		// The list may shift underneath us during the call - check index
+		// is still valid.
+		if (i > PyList_GET_SIZE(consoleControlHandlers))
+			continue;
+
+		PyObject *ob = PyList_GET_ITEM(consoleControlHandlers, i-1);
+		PyObject *ret = PyObject_Call(ob, args, NULL);
+		if (ret == NULL) {
+			PySys_WriteStderr("ConsoleCtrlHandler function failed");
+			PyErr_Print();
+			PyErr_Clear();
+			continue;
+		}
+		rc = PyObject_IsTrue(ret);
+		Py_DECREF(ret);
+	}
+	Py_DECREF(args);
+	return rc;
+}
+
+// @pymethod |win32api|SetConsoleCtrlHandler|Adds or removes an application-defined HandlerRoutine function from the list of handler functions for the calling process.
+PyObject *PySetConsoleCtrlHandler(PyObject *self, PyObject *args)
+{
+	// @comm Note that the implementation is a single CtrlHandler in C, which
+	// keeps a list of the handlers added by this function.  So although this
+	// function uses the same semantics as the Win32 function (ie, last
+	// registered first called, and first to return True stops the calls) the
+	// true order of all Python and C implemented CtrlHandlers may not match
+	// what would happen if all were implemented in C.
+	// <nl>This handler must acquire the Python lock before it can call any
+	// of the registered handlers.  This means the handler may not be called
+	// until the current Python thread yields the lock.
+	// <nl>
+	// A console process can use the <om win32api.GenerateConsoleCtrlEvent>
+	// function to send a CTRL+C or CTRL+BREAK signal to a console process
+	// group.
+	// <nl>The system generates CTRL_CLOSE_EVENT, CTRL_LOGOFF_EVENT, and
+	// CTRL_SHUTDOWN_EVENT signals when the user closes the console, logs off,
+	// or shuts down the system so that the process has an opportunity to
+	// clean up before termination.
+	// @pyseeapi SetConsoleCtrlHandler
+	PyObject *func;
+	int bAdd = TRUE;
+	// @pyparm callable|ctrlHandler||The function to call.  This function
+	// should accept one param - the type of signal.
+	// @pyparm int|bAdd||True if the handler is being added, false if removed.
+	if (!PyArg_ParseTuple(args, "O|i:SetConsoleCtrlHandler", &func, &bAdd))
+		return NULL;
+	if (!PyCallable_Check(func))
+		return PyErr_Format(PyExc_TypeError,
+							"First argument must be callable (got %s)",
+							func->ob_type->tp_name);
+	// thread-safety provided by GIL
+	if (consoleControlHandlers==NULL)
+		consoleControlHandlers = PyList_New(0);
+	if (consoleControlHandlers==NULL)
+		return NULL;
+
+	if (bAdd) {
+		if (0 != PyList_Append(consoleControlHandlers, func))
+			return NULL;
+		if (!addedCtrlHandler) {
+			SetConsoleCtrlHandler(PyCtrlHandler, TRUE);
+			addedCtrlHandler = TRUE;
+		}
+	} else {
+		int i;
+		BOOL found = FALSE;
+		for (i=0;i<PyList_Size(consoleControlHandlers);i++) {
+			if (PyList_GET_ITEM(consoleControlHandlers, i)==func) {
+				if (0 != PyList_SetSlice(consoleControlHandlers, i, i+1, NULL))
+					return NULL;
+				found = TRUE;
+			}
+		}
+		if (!found)
+			return PyErr_Format(PyExc_ValueError, "The object has not been registered");
+		if (addedCtrlHandler && PyList_Size(consoleControlHandlers)==0) {
+			SetConsoleCtrlHandler(PyCtrlHandler, FALSE);
+			addedCtrlHandler = FALSE;
+		}
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 /* List of functions exported by this module */
 // @module win32api|A module, encapsulating the Windows Win32 API.
 static struct PyMethodDef win32api_functions[] = {
@@ -4518,6 +4616,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"RegNotifyChangeKeyValue", PyRegNotifyChangeKeyValue, 1}, //@pymeth RegNotifyChangeKeyValue|Watch for registry changes
 	{"SearchPath",          PySearchPath, 1}, // @pymeth SearchPath|Searches a path for a file.
 	{"SendMessage",         PySendMessage, 1}, // @pymeth SendMessage|Send a message to a window.
+	{"SetConsoleCtrlHandler",PySetConsoleCtrlHandler, 1}, // @pymeth SetConsoleCtrlHandler|Adds or removes an application-defined HandlerRoutine function from the list of handler functions for the calling process.
 	{"SetConsoleTitle",     PySetConsoleTitle, 1}, // @pymeth SetConsoleTitle|Sets the title for the current console.
 	{"SetCursorPos",		PySetCursorPos,1}, // @pymeth SetCursorPos|The SetCursorPos function moves the cursor to the specified screen coordinates.
 	{"SetErrorMode",        PySetErrorMode, 1}, // @pymeth SetErrorMode|Controls whether the system will handle the specified types of serious errors, or whether the process will handle them.
@@ -4641,8 +4740,3 @@ initwin32api(void)
       myGetComputerNameEx=(BOOL (WINAPI *)(COMPUTER_NAME_FORMAT, LPWSTR, LPDWORD))(fp);
   }
 }  
-  
-  
-  
-
-
