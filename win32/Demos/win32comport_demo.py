@@ -74,7 +74,7 @@ class SerialTTY:
 
     def _UserInputReaderThread(self):
         overlapped = OVERLAPPED()
-        overlapped.hEvent = CreateEvent(None, 0, 0, None)
+        overlapped.hEvent = CreateEvent(None, 1, 0, None)
         try:
             while 1:
                 ch = msvcrt.getch()
@@ -88,7 +88,7 @@ class SerialTTY:
 
     def _ComPortThread(self):
         overlapped = OVERLAPPED()
-        overlapped.hEvent = CreateEvent(None, 0, 0, None)
+        overlapped.hEvent = CreateEvent(None, 1, 0, None)
         while 1:
             # XXX - note we could _probably_ just use overlapped IO on the win32file.ReadFile() statement
             # XXX but this tests the COM stuff!
