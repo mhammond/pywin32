@@ -359,14 +359,14 @@ PyObject *MakeLV_ITEMTuple(LV_ITEM *item)
 	return ret;
 }
 
-// @pymethod |PyCListCtrl|LV_ITEM tuple|Describes an LV_ITEM tuple, used by the <o PyCListCtrl> object.
-// @pyparm int|item||The item number.
-// @pyparm int|subItem||The sub-item number.
-// @pyparm int|state||The items state.
-// @pyparm int|stateMask||A mask indicating which of the state bits are valid..
-// @pyparm string|text||The text for the item
-// @pyparm int|iImage||The image offset for the item
-// @pyparm int|userObject||Any integer to be associated with the item.
+// @object LV_ITEM|Describes an LV_ITEM tuple, used by the <o PyCListCtrl> object.
+// @tupleitem 0|int|item|The item number.
+// @tupleitem 1|int|subItem|The sub-item number.
+// @tupleitem 2|int|state|The items state.
+// @tupleitem 3|int|stateMask|A mask indicating which of the state bits are valid..
+// @tupleitem 4|string|text|The text for the item
+// @tupleitem 5|int|iImage|The image offset for the item
+// @tupleitem 6|int|userObject|Any integer to be associated with the item.
 // @comm When passed to Python, will always be a tuple of size 7, and items may be None if not available.
 // <nl>When passed from Python, the tuple must be at least 2 items long, and any item may be None.
 // <nl>userob is any Python object at all, but no reference count is kept, so you must ensure the object remains referenced throught the lists life.
@@ -462,8 +462,12 @@ PyObject *MakeLV_COLUMNTuple(LV_COLUMN *item)
 	}
 	return ret;
 }
-// @pymethod |PyCListCtrl|LV_COLUMN tuple|Describes an LV_COLUMN tuple, used by the <o PyCListCtrl> object.
+// @object LV_COLUMN|A tuple that describes a Win32 LV_COLUMN tuple. Used by the <o PyCListCtrl> object.
 // A tuple of 4 items, being fmt, cx, pszText, iSubItem
+// @tupleitem 0|int|fmt|Alignment of the column header and the subitem text in the column.
+// @tupleitem 1|int|cx|Width of the column.
+// @tupleitem 2|string|text|Column header text.
+// @tupleitem 3|int|subItem|Index of subitem associated with the column. 
 // <nl>When passed to Python, will always be a tuple of size 4, and items may be None if not available.
 // <nl>When passed from Python, the tuple may be any length up to 4, and any item may be None.
 BOOL ParseLV_COLUMNTuple( PyObject *args, LV_COLUMN *pItem)
@@ -577,7 +581,7 @@ PyObject *MakeTV_ITEMTuple(TV_ITEM *item)
 	return ret;
 }
 
-// @pymethod |PyCTreeCtrl|TV_ITEM tuple|Describes a TV_ITEM tuple, used by the <o PyCListCtrl> object.
+// @object TV_ITEM|Describes a TV_ITEM tuple, used by the <o PyCListCtrl> object.
 // A tuple of 8 items:
 // <nl>When passed to Python, will always be a tuple of size 8, and items may be None if not available.
 // <nl>When passed from Python, the tuple may be any length up to 8, and any item may be None.
@@ -597,7 +601,7 @@ BOOL ParseTV_ITEMTuple( PyObject *args, TV_ITEM *pItem)
 	if ((ob=PyTuple_GetItem(args, 0))==NULL)
 		return FALSE;
 	if (ob != Py_None) {
-		// @pyparm int|hItem||Item handle
+		// @tupleitem 0|int|hItem|Item handle
 		pItem->hItem = (HTREEITEM)PyInt_AsLong(ob);
 		if (PyErr_Occurred()) return FALSE;
 		pItem->mask |= TVIF_HANDLE;
@@ -618,8 +622,8 @@ BOOL ParseTV_ITEMTuple( PyObject *args, TV_ITEM *pItem)
 		PyErr_SetString(PyExc_TypeError, "TV_ITEM - state and stateMask must both be None, or both not Noned");
 		return FALSE;
 	} else {
-		// @pyparm int|state||Item state
-		// @pyparm int|stateMask||Item state mask
+		// @tupleitem 1|int|state|Item state
+		// @tupleitem 2|int|stateMask|Item state mask
 		pItem->state = (int)PyInt_AsLong(ob);
 		pItem->stateMask = (int)PyInt_AsLong(ob2);
 		if (PyErr_Occurred()) return FALSE;
@@ -630,7 +634,7 @@ BOOL ParseTV_ITEMTuple( PyObject *args, TV_ITEM *pItem)
 	if ((ob=PyTuple_GetItem(args, 3))==NULL)
 		return FALSE;
 	if (ob != Py_None) {
-		// @pyparm string|text||Item text
+		// @tupleitem 3|string|text|Item text
 		if (!PyString_Check(ob)) RETURN_TYPE_ERR("The text item must be a string or None");
 		pItem->mask |= TVIF_TEXT;
 		pItem->pszText = PyString_AsString(ob);
@@ -642,7 +646,7 @@ BOOL ParseTV_ITEMTuple( PyObject *args, TV_ITEM *pItem)
 		return FALSE;
 	if (ob != Py_None) {
 		pItem->mask |= TVIF_IMAGE;
-		// @pyparm int|iImage||Offset of items image.
+		// @tupleitem 4|int|iImage|Offset of items image.
 		pItem->iImage = (int)PyInt_AsLong(ob);
 	}
 	// 5 - imageSelected
@@ -650,7 +654,7 @@ BOOL ParseTV_ITEMTuple( PyObject *args, TV_ITEM *pItem)
 	if ((ob=PyTuple_GetItem(args, 5))==NULL)
 		return FALSE;
 	if (ob != Py_None) {
-		// @pyparm int|iSelectedImage||Offset of items selected image.
+		// @tupleitem 5|int|iSelectedImage|Offset of items selected image.
 		pItem->mask |= TVIF_SELECTEDIMAGE;
 		pItem->iSelectedImage = (int)PyInt_AsLong(ob);
 	}
@@ -659,7 +663,7 @@ BOOL ParseTV_ITEMTuple( PyObject *args, TV_ITEM *pItem)
 	if ((ob=PyTuple_GetItem(args, 6))==NULL)
 		return FALSE;
 	if (ob != Py_None) {
-		// @pyparm int|cChildren||Number of child items.
+		// @tupleitem 6|int|cChildren|Number of child items.
 		pItem->mask |= TVIF_CHILDREN;
 		pItem->cChildren = (int)PyInt_AsLong(ob);
 	}
@@ -668,7 +672,7 @@ BOOL ParseTV_ITEMTuple( PyObject *args, TV_ITEM *pItem)
 	if ((ob=PyTuple_GetItem(args, 7))==NULL)
 		return FALSE;
 	if (ob != Py_None) {
-		// @pyparm int|lParam||User defined integer param.
+		// @tupleitem 7|int|lParam|User defined integer param.
 		pItem->mask |= LVIF_PARAM;
 		pItem->lParam = PyInt_AsLong(ob);
 	}
@@ -815,7 +819,7 @@ BOOL ParseHD_ITEMTuple( PyObject *args, HD_ITEM *pItem)
 // CHARFORMAT and PARAFORMAT conversion utilities
 //
 //
-// @pymethod |win32ui|CHARFORMAT tuple|Describes a CHARFORMAT tuple
+// @object CHARFORMAT|Describes a CHARFORMAT tuple
 BOOL ParseCharFormatTuple( PyObject *args, CHARFORMAT *pFmt)
 {
 	if (!PyTuple_Check(args))
@@ -836,14 +840,14 @@ BOOL ParseCharFormatTuple( PyObject *args, CHARFORMAT *pFmt)
 			strncpy(pFmt->szFaceName, PyString_AsString(obFont), sizeof(pFmt->szFaceName));
 		}
 	}
-   // @pyparm int|mask|0|The mask to use.  Bits in this mask indicate which of the following paramaters are interpreted.  Must be a combination the win32con.CFM_* constants.
-   // @pyparm int|effects|None|The effects to use.  Must be a combination the win32con.CFE_* constants.
-   // @pyparm int|yHeight|None|The y height.
-   // @pyparm int|yOffset|None|Character offset from the baseline. If this member is positive, the character is a superscript; if it is negative, the character is a subscript.
-   // @pyparm int|colorText|None|The color to use.
-   // @pyparm int|bCharSet|None|The charset.  See the LOGFONT structure for details.
-   // @pyparm int|bPitchAndFamily|None|The charset.  See the LOGFONT structure for details.
-   // @pyparm string|faceName|None|The font name.
+   // @tupleitem 0|int|mask|The mask to use.  Bits in this mask indicate which of the following paramaters are interpreted.  Must be a combination the win32con.CFM_* constants.
+   // @tupleitem 1|int|effects|The effects to use.  Must be a combination the win32con.CFE_* constants.
+   // @tupleitem 2|int|yHeight|The y height.
+   // @tupleitem 3|int|yOffset|Character offset from the baseline. If this member is positive, the character is a superscript; if it is negative, the character is a subscript.
+   // @tupleitem 4|int|colorText|The color to use.
+   // @tupleitem 5|int|bCharSet|The charset.  See the LOGFONT structure for details.
+   // @tupleitem 6|int|bPitchAndFamily|The charset.  See the LOGFONT structure for details.
+   // @tupleitem 7|string|faceName|The font name.
 
 	// @comm  Executing d=win32ui.CreateFontDialog(); d.DoModal(); print d.GetCharFormat()
 	// will print a valid CHARFORMAT tuple.
@@ -863,20 +867,20 @@ PyObject *MakeCharFormatTuple(CHARFORMAT *pFmt)
 			   pFmt->szFaceName);
 }
 
-// @pymethod|win32ui|PARAFORMAT tuple|Describes a PARAFORMAT tuple
+// @object PARAFORMAT|Describes a PARAFORMAT tuple
 BOOL ParseParaFormatTuple( PyObject *args, PARAFORMAT *pFmt)
 {
 	PyObject *obTabStops = Py_None;
 	pFmt->cTabCount = 0;
 	BOOL rc = PyArg_ParseTuple(args, "|iiiiiiiO:PARAFORMAT tuple", 
-		       &pFmt->dwMask, // @pyparm int|mask|0|The mask to use.  Bits in this mask indicate which of the following paramaters are interpreted.  Must be a combination the win32con.PFM_* constants.
-			   &pFmt->wNumbering, // @pyparm int|numbering|None|The numbering style to use.
-			   &pFmt->wReserved, // @pyparm int|yHeight|None|Reserved
-			   &pFmt->dxStartIndent, // @pyparm int|dxStartIndext|None|Indentation of the first line.
-			   &pFmt->dxRightIndent,// @pyparm int|dxRightIndent|None|Indentation from the right.
-			   &pFmt->dxOffset,// @pyparm int|dxOffset|None|The indent of second and subsequent lines.
-			   &pFmt->wAlignment,// @pyparm int|wAlignment|None|The alignment of the paragraph.
-			   &obTabStops); // @pyparm sequence of ints|tabStops|None|The tabstops to use.
+		       &pFmt->dwMask, // @tupleitem 0|int|mask|The mask to use.  Bits in this mask indicate which of the following paramaters are interpreted.  Must be a combination the win32con.PFM_* constants.
+			   &pFmt->wNumbering, // @tupleitem 1|int|numbering|The numbering style to use.
+			   &pFmt->wReserved, // @tupleitem 2|int|yHeight|Reserved
+			   &pFmt->dxStartIndent, // @tupleitem 3|int|dxStartIndent|Indentation of the first line.
+			   &pFmt->dxRightIndent,// @tupleitem 4|int|dxRightIndent|Indentation from the right.
+			   &pFmt->dxOffset,// @tupleitem 5|int|dxOffset|The indent of second and subsequent lines.
+			   &pFmt->wAlignment,// @tupleitem 6|int|wAlignment|The alignment of the paragraph.
+			   &obTabStops); // @tupleitem 7|[int ,...]|tabStops|The tabstops to use.
 	if (rc && obTabStops != Py_None) {
 		if (!PySequence_Check(obTabStops))
 			RETURN_ERR("tabStops object must be None or a sequence");
