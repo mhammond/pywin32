@@ -49,6 +49,7 @@ from distutils.filelist import FileList
 import types, glob
 import os, string, sys
 import re
+import _winreg
 
 # Python 2.2 has no True/False
 try:
@@ -183,10 +184,45 @@ class WinExt_win32com(WinExt):
     def get_pywin32_dir(self):
         return "win32comext/" + self.name
 
-# 'win32com.mapi.exchange' and 'win32com.mapi.exchdapi' currently only
-# ones with this special requirement
+# Exchange extensions get special treatment:
+# * Look for the Exchange SDK in the registry.
+# * Output directory is different than the module's basename.
 class WinExt_win32com_mapi(WinExt_win32com):
+    def __init__ (self, name, **kw):
+        # The Exchange 2000 SDK seems to install itself without updating 
+        # LIB or INCLUDE environment variables.  It does register the core 
+        # directory in the registry tho - look it up
+        sdk_install_dir = None
+        libs = kw.get("libraries", "")
+        keyname = "SOFTWARE\Microsoft\Exchange\SDK"
+        for root in _winreg.HKEY_LOCAL_MACHINE, _winreg.HKEY_CURRENT_USER:
+            try:
+                keyob = _winreg.OpenKey(root, keyname)
+                value, type_id = _winreg.QueryValueEx(keyob, "INSTALLDIR")
+                if type_id == _winreg.REG_SZ:
+                    sdk_install_dir = value
+                    break
+            except WindowsError:
+                pass
+        if sdk_install_dir is not None:
+            d = os.path.join(sdk_install_dir, "SDK", "Include")
+            if os.path.isdir(d):
+                kw.setdefault("include_dirs", []).insert(0, d)
+            d = os.path.join(sdk_install_dir, "SDK", "Lib")
+            if os.path.isdir(d):
+                kw.setdefault("library_dirs", []).insert(0, d)
+            # The stand-alone exchange SDK has these libs
+            libs += " Ex2KSdk sadapi mapi32 netapi32"
+        else:
+            # The MSVC6 included exchange SDK has these libs
+            libs += """ MBLOGON ADDRLKUP mapi32 exchinst
+                       EDKCFG EDKUTILS EDKMAPI ACLCLS"""
+        kw["libraries"] = libs
+        WinExt_win32com.__init__(self, name, **kw)
+
     def get_pywin32_dir(self):
+    # 'win32com.mapi.exchange' and 'win32com.mapi.exchdapi' currently only
+    # ones with this special requirement
         return "win32comext/mapi"
 
 # A hacky extension class for pywintypesXX.dll and pythoncomXX.dll
@@ -678,11 +714,10 @@ com_extensions += [
     WinExt_win32com('internet'),
     WinExt_win32com('mapi', libraries="mapi32", pch_header="PythonCOM.h"),
     WinExt_win32com_mapi('exchange',
-                         libraries="""MBLOGON ADDRLKUP mapi32 exchinst                         
-                                      EDKCFG EDKUTILS EDKMAPI
-                                      ACLCLS version""",
+                         libraries="""version""",
                          extra_link_args=["/nodefaultlib:libc"]),
     WinExt_win32com_mapi('exchdapi',
+                         # This still needs work for vs.net.
                          libraries="""DAPI ADDRLKUP exchinst EDKCFG EDKUTILS
                                       EDKMAPI mapi32 version""",
                          extra_link_args=["/nodefaultlib:libc"]),
@@ -857,6 +892,9 @@ dist = setup(name="pywin32",
                 'pythonwin/pywin/*.cfg',
                 'pythonwin/license.txt',
                 'win32/license.txt',
+                'win32/scripts/*.py',
+                'win32/scripts/VersionStamp/*.py',
+                'win32/test/*.py',
                 'com/win32com/readme.htm',
                 # win32com test utility files.
                 'com/win32com/test/*.txt',
@@ -868,6 +906,7 @@ dist = setup(name="pywin32",
                 'com/win32com/HTML/*',
                 'com/win32com/HTML/image/*',
                 # Active Scripting test and demos.
+                'com/win32comext/axscript/test/*.py',
                 'com/win32comext/axscript/test/*.vbs',
                 'com/win32comext/axscript/test/*.pys',
                 'com/win32comext/axscript/demos/client/ie/*',
