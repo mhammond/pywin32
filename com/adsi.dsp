@@ -164,9 +164,7 @@ InputPath=.\win32comext\adsi\src\PyIADsContainer.i
 InputName=PyIADsContainer
 
 BuildCmds= \
-	cd $(InputDir) \
-	..\swig.bat -dnone -pythoncom -com_interface_parent IDispatch -c++ -o $(InputName).cpp  $(InputName).i \
-	
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IDispatch -c++ -o $(InputName).cpp  $(InputName).i
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
    $(BuildCmds)
