@@ -8,7 +8,7 @@
 #include "PyWinObjects.h"
 #include "PySecurityObjects.h"
 #include "accctrl.h"
-#include "Aclapi.h"
+#include "aclapi.h"
 
 // @pymethod <o PyACL>|pywintypes|ACL|Creates a new ACL object
 PyObject *PyWinMethod_NewACL(PyObject *self, PyObject *args)
@@ -66,7 +66,7 @@ BOOL _ReorderACL(PACL pacl)
 		return TRUE;
 	BOOL ret = TRUE;
 	DWORD aceind = 0;
-	DWORD ace_insert_ind = -1;
+	DWORD ace_insert_ind = (DWORD)-1;
 	DWORD aclsize=pacl->AclSize;
 	DWORD acecount=pacl->AceCount;
 	DWORD aclrev = pacl->AclRevision;
