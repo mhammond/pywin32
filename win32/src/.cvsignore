@@ -11,3 +11,4 @@ win32securitymodule.cpp
 win32service_messages.h
 win32servicemodule.cpp
 wincerapimodule.cpp
+win32inetmodule.cpp
