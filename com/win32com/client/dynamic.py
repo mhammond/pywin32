@@ -70,6 +70,9 @@ def _GetGoodDispatch(IDispatch, clsctx = pythoncom.CLSCTX_SERVER):
 			IDispatch = pythoncom.connect(IDispatch)
 		except pythoncom.ole_error:
 			IDispatch = pythoncom.CoCreateInstance(IDispatch, None, clsctx, pythoncom.IID_IDispatch)
+	else:
+		# may already be a wrapped class.
+		IDispatch = getattr(IDispatch, "_oleobj_", IDispatch)
 	return IDispatch
 
 def _GetGoodDispatchAndUserName(IDispatch,userName,clsctx):

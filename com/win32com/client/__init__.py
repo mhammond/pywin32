@@ -238,8 +238,6 @@ def DispatchWithEvents(clsid, user_event_class):
   Visible changed: 1
   >>> 
   """
-  # "clsid" may already be a Dispatch - if so, get the real dispatch
-  clsid = getattr(clsid, "_oleobj_", clsid)
   # Create/Get the object.
   disp = Dispatch(clsid)
   if not disp.__dict__.get("CLSID"): # Eeek - no makepy support - try and build it.
@@ -293,7 +291,6 @@ def WithEvents(disp, user_event_class):
   This is mainly useful where using DispatchWithEvents causes
   circular reference problems that the simple proxy doesn't deal with
   """
-  disp = getattr(disp, "_oleobj_", disp)
   disp = Dispatch(disp)
   if not disp.__dict__.get("CLSID"): # Eeek - no makepy support - try and build it.
     try:
@@ -391,7 +388,7 @@ def Record(name, object):
   """
   # XXX - to do - probably should allow "object" to already be a module object.
   import gencache
-  object = gencache.EnsureDispatch(object._oleobj_)
+  object = gencache.EnsureDispatch(object)
   module = sys.modules[object.__class__.__module__]
   # to allow us to work correctly with "demand generated" code,
   # we must use the typelib CLSID to obtain the module
