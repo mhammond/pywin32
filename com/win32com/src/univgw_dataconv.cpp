@@ -150,7 +150,7 @@ static inline void SizeOfVT(VARTYPE vt, int *pitem_size, int *pstack_size)
 			item_size = sizeof(HRESULT);
 			break;
 		default:
-			_ASSERTE(FALSE);
+			assert(FALSE);
 			item_size = 0;
 		}
 	}
@@ -198,7 +198,7 @@ PyObject * dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 		return NULL;
 
 	pbArgs = (BYTE *)PyLong_AsVoidPtr(obPtr);
-	_ASSERTE(pbArgs);
+	assert(pbArgs);
 	if (!pbArgs)
 		return NULL;
 
@@ -617,7 +617,7 @@ PyObject * dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
 		return NULL;
 	
 	pbArg = (BYTE *)PyLong_AsVoidPtr(obPtr);
-	_ASSERTE(pbArg);
+	assert(pbArg);
 	if (!pbArg)
 		return NULL;
 

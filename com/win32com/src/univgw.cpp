@@ -3,6 +3,7 @@
 */
 
 #include "stdafx.h"
+#include "stddef.h"
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
 #include "PythonCOMRegister.h"
@@ -56,7 +57,7 @@ static void set_error(REFIID riid, LPCOLESTR desc)
 	HRESULT hr = CreateErrorInfo(&pICEI);
 	if ( SUCCEEDED(hr) )
 	{
-		CComBSTR b(desc);
+		BSTR b = SysAllocString(desc);
 
 		pICEI->SetGUID(riid);
 		pICEI->SetDescription(b);
@@ -70,7 +71,8 @@ static void set_error(REFIID riid, LPCOLESTR desc)
 			SetErrorInfo(0, pIEI);
 			pIEI->Release();
 		}
-		pICEI->Release();			
+		pICEI->Release();
+		SysFreeString(b);
 	}
 }
 
@@ -304,7 +306,7 @@ static STDMETHODIMP univgw_Invoke( gw_object *_this, DISPID dispIdMember, REFIID
 static void __cdecl free_vtbl(void * cobject)
 {
 	gw_vtbl * vtbl = (gw_vtbl *)cobject;
-	_ASSERTE(vtbl->magic == GW_VTBL_MAGIC);
+	assert(vtbl->magic == GW_VTBL_MAGIC);
 	Py_XDECREF(vtbl->dispatcher);
 
 	// free the methods. 0..2 are the constant IUnknown methods
@@ -530,14 +532,14 @@ static HRESULT CreateRegisteredTearOff(PyObject *pPyInstance, PyGatewayBase *bas
 		StringFromGUID2(iid, oleRes, sizeof(oleRes));
 		printf("Couldn't find IID %S\n", oleRes);
 		// This should never happen....
-		_ASSERTE(FALSE);
+		assert(FALSE);
 		return E_NOINTERFACE;
 	}
 
 	// obVTable must be a CObject containing our vtbl ptr
 	if ( !PyCObject_Check(obVTable) )
 	{
-		_ASSERTE(FALSE);
+		assert(FALSE);
 		return E_NOINTERFACE;
 	}
 	// If the base object is NULL, we must create one now.
