@@ -90,11 +90,8 @@ class HLIPythonObject(hierlist.HierListItem):
 		return self.knownExpandable
 
 	def CalculateIsExpandable(self):
-		try:
-			if self.myobject.__doc__:
-				return 1
-		except (AttributeError, TypeError):
-			pass
+		if hasattr(self.myobject, '__doc__'):
+			return 1
 		try:
 			for key in self.myobject.__dict__.keys():
 				if key not in special_names:
@@ -279,7 +276,10 @@ def MakeHLI( ob, name=None ):
 	try:
 		cls = TypeMap[type(ob)]
 	except KeyError:
-		cls = HLIPythonObject
+		if isinstance(ob, object): # 'new style' class
+			cls = HLIInstance
+		else:
+			cls = HLIPythonObject
 	return cls( ob, name )
 
 #########################################
