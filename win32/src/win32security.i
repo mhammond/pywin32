@@ -101,7 +101,10 @@ BOOL PyWinObject_CloseLSA_HANDLE(PyObject *obHandle)
 %}
 
 // @object PyTOKEN_PRIVILEGES|An object representing Win32 token privileges.
-// @comm This is a sequence (eg, list) of (id, attributes)
+// @comm This is a sequence (eg, list) of ((id, attributes),...) where id is a 
+//  privilege LUID as returned by <om win32security.LookupPrivilegeValue> and
+//  attributes is a combination if SE_PRIVILEGE_ENABLED, SE_PRIVILEGE_ENABLED_BY_DEFAULT,
+//  and SE_PRIVILEGE_USED_FOR_ACCESS
 %{
 
 PyObject *PyWinObject_FromTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *tp)
@@ -247,7 +250,7 @@ done:
 	return ok;
 }
 
-void PyMAPIObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
+void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 {
 	free(pPriv);
 }
@@ -279,7 +282,7 @@ BOOL CheckIfSupported(char *funcname, WCHAR *dllname, FARPROC *fp)
 		return NULL;
 }
 %typemap(python,freearg) TOKEN_PRIVILEGES * {
-	if ($source) PyMAPIObject_FreeTOKEN_PRIVILEGES($source);
+	if ($source) PyWinObject_FreeTOKEN_PRIVILEGES($source);
 }
 
 %typemap(python,ignore) TOKEN_PRIVILEGES *OUTPUT(TOKEN_PRIVILEGES temp)
@@ -287,8 +290,13 @@ BOOL CheckIfSupported(char *funcname, WCHAR *dllname, FARPROC *fp)
   $target = &temp;
 }
 
-%typemap(python,out) TOKEN_PRIVILEGES {
-  $target = PyWinObject_FromTOKEN_PRIVILEGES($source);
+%typemap(python,out) TOKEN_PRIVILEGES *{
+  if ($source==NULL)
+    $target=NULL;
+  else{
+    $target = PyWinObject_FromTOKEN_PRIVILEGES($source);
+    free($source);
+	}
 }
 
 %typemap(python,argout) TOKEN_PRIVILEGES *OUTPUT {
@@ -974,30 +982,48 @@ PyObject *LookupPrivilegeDisplayName(PyObject *self, PyObject *args)
 }
 %}
 
-
 %{
-BOOL MyAdjustTokenPrivileges(
+TOKEN_PRIVILEGES *MyAdjustTokenPrivileges(
 	HANDLE TokenHandle,
 	BOOL DisableAllPrivileges,
 	TOKEN_PRIVILEGES *NewState)
 {
-	AdjustTokenPrivileges(TokenHandle, DisableAllPrivileges, NewState, 0, NULL, 0);
+	DWORD origbufsize=sizeof(DWORD) + (3*sizeof(LUID_AND_ATTRIBUTES));
+	DWORD reqdbufsize=0;
+	TOKEN_PRIVILEGES *PreviousState=(TOKEN_PRIVILEGES *)malloc(origbufsize);
+	if (PreviousState==NULL){
+		PyErr_SetString(PyExc_MemoryError,"AdjustTokenPrivileges: unable to allocate return buffer");
+		return NULL;
+		}
+
+	if (!AdjustTokenPrivileges(TokenHandle, DisableAllPrivileges, NewState, origbufsize, PreviousState, &reqdbufsize))
+		if (reqdbufsize>origbufsize){
+			free(PreviousState);
+			PreviousState=(TOKEN_PRIVILEGES *)malloc(reqdbufsize);
+			if (PreviousState==NULL){
+				PyErr_SetString(PyExc_MemoryError,"AdjustTokenPrivileges: unable to allocate return buffer");
+				return NULL;
+				}
+			AdjustTokenPrivileges(TokenHandle, DisableAllPrivileges, NewState, reqdbufsize, PreviousState, &reqdbufsize);
+			}
 	// Note that AdjustTokenPrivileges may succeed, and yet
 	// some privileges weren't actually adjusted.
 	// You've got to check GetLastError() to be sure!
 	DWORD rc = GetLastError();
-	return rc==0 || rc==ERROR_NOT_ALL_ASSIGNED;
+	if (rc==0 || rc==ERROR_NOT_ALL_ASSIGNED)
+		return PreviousState;
+	PyWin_SetAPIError("AdjustTokenPrivileges",rc);
+	free(PreviousState);
+	return NULL;
 }
 %}
 
-// @pyswig |AdjustTokenPrivileges|
-%name(AdjustTokenPrivileges) BOOLAPI MyAdjustTokenPrivileges(
+// @pyswig <o PyTOKEN_PRIVILEGES>|AdjustTokenPrivileges|Enables or disables privileges for an access token, returns modified privileges for later restoral
+%name(AdjustTokenPrivileges) TOKEN_PRIVILEGES *MyAdjustTokenPrivileges(
 	HANDLE TokenHandle, // @pyparm int|handle||handle to token that contains privileges
 	BOOL DisableAllPrivileges, // @pyparm int|bDisableAllPrivileges||Flag for disabling all privileges
 	TOKEN_PRIVILEGES *NewState // @pyparm <o PyTOKEN_PRIVILEGES>|NewState||The new state
 );
-
-
 
 // @pyswig <o PyTOKEN_GROUPS>|AdjustTokenGroups|Sets the groups associated to an access token,returns previous group info
 %native(AdjustTokenGroups) PyAdjustTokenGroups;
@@ -1015,13 +1041,14 @@ static PyObject *PyAdjustTokenGroups(PyObject *self, PyObject *args)
 		&obHandle, // @pyparm <o PyHANDLE>|obHandle||The handle to access token to be modified
 		&reset,    // @pyparm int|ResetToDefault||Sets groups to default enabled/disabled states,
 		&obtg))     // @pyparm PyTOKEN_GROUPS|NewState||Groups and attributes to be set for token
+		return NULL;
 	if (!PyWinObject_AsHANDLE(obHandle, &th, FALSE))
 		return NULL;
-    if (!PyWinObject_AsTOKEN_GROUPS(obtg, &newstate))
+	if (!PyWinObject_AsTOKEN_GROUPS(obtg, &newstate))
 		return NULL;
 
 	DWORD bufsize = 0, origbufsize = 10;  //pick a number out of a hat
-    TOKEN_GROUPS *oldstate = (TOKEN_GROUPS *)malloc(origbufsize);
+	TOKEN_GROUPS *oldstate = (TOKEN_GROUPS *)malloc(origbufsize);
 	if (oldstate==NULL) {
 		PyErr_SetString(PyExc_MemoryError, "AdjustTokenGroups: unable to allocate memory");
 		return NULL;
@@ -1050,8 +1077,6 @@ static PyObject *PyAdjustTokenGroups(PyObject *self, PyObject *args)
 		return ret;
 }
 %}
-
-
 
 // @pyswig object|GetTokenInformation|Retrieves a specified type of information about an access token. The calling process must have appropriate access rights to obtain the information.
 %native(GetTokenInformation) PyGetTokenInformation;
@@ -1514,7 +1539,7 @@ static PyObject *PyLsaOpenPolicy(PyObject *self, PyObject *args)
 	ZeroMemory(&ObjectAttributes, sizeof(ObjectAttributes));
 
 	if (!PyArg_ParseTuple(args, "Oi:LsaOpenPolicy", 
-		&obsystem_name, // @pyparm string/<o PyUnicode>|obsystem_name||System name, local system assumed if not specified
+		&obsystem_name, // @pyparm string/<o PyUnicode>|system_name||System name, local system assumed if not specified
 		&access_mask))  // @pyparm int|access_mask||Bitmask of requested access types
 		return NULL;
 	if (!PyWinObject_AsLSA_UNICODE_STRING(obsystem_name, &system_name, TRUE))
@@ -1538,6 +1563,7 @@ static PyObject *PyLsaOpenPolicy(PyObject *self, PyObject *args)
 static PyObject *PyLsaClose(PyObject *self, PyObject *args)
 {
 	PyObject *obHandle;
+	// @pyparm <o PyHANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
 	if (!PyArg_ParseTuple(args, "O:LsaClose", &obHandle))
 		return NULL; 
 
@@ -1559,6 +1585,8 @@ static PyObject *PyLsaQueryInformationPolicy(PyObject *self, PyObject *args)
 	NTSTATUS err;
 	void* buf = NULL;
 	POLICY_INFORMATION_CLASS info_class;
+	// @pyparm <o PyHANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
+	// @pyparm int|InformationClass||POLICY_INFORMATION_CLASS value 
 	if (!PyArg_ParseTuple(args, "Oi:LsaQueryInformationPolicy", &obhandle, (long *)&info_class))
 		return NULL; 
 	if (!PyWinObject_AsHANDLE(obhandle, &lsah))
@@ -1669,6 +1697,9 @@ static PyObject *PyLsaSetInformationPolicy(PyObject *self, PyObject *args)
 	NTSTATUS err;
 	void* buf = NULL;
 	POLICY_INFORMATION_CLASS info_class;
+	// @pyparm <o PyHANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
+	// @pyparm int|InformationClass||POLICY_INFORMATION_CLASS value
+	// @pyparm object|Information||Type is dependent on InformationClass
 	if (!PyArg_ParseTuple(args, "OiO:PyLsaSetInformationPolicy", &obhandle, (long *)&info_class, &obinfo))
 		return NULL; 
 	if (!PyWinObject_AsHANDLE(obhandle, &lsah))
@@ -1744,6 +1775,9 @@ static PyObject *PyLsaAddAccountRights(PyObject *self, PyObject *args)
 	DWORD priv_cnt=0,priv_ind=0;
 	HANDLE hpolicy;
 	NTSTATUS err;
+	// @pyparm <o PyHANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
+	// @pyparm <o PySID>|AccountSid||Account to which privs will be added
+	// @pyparm (str/unicode,...)|UserRights||List of privilege names (SE_*_NAME unicode constants)
 	if (!PyArg_ParseTuple(args, "OOO:LsaAddAccountRights", &policy_handle, &obsid, &privs))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(policy_handle, &hpolicy))
@@ -1802,6 +1836,10 @@ static PyObject *PyLsaRemoveAccountRights(PyObject *self, PyObject *args)
 	DWORD priv_cnt=0,priv_ind=0;
 	HANDLE hpolicy;
 	NTSTATUS err;
+	// @pyparm <o PyHANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
+	// @pyparm <o PySID>|AccountSid||Account whose privileges will be removed
+	// @pyparm int|AllRights||Boolean value indicating if all privs should be removed from account
+	// @pyparm (str/unicode,...)|UserRights||List of privilege names to be removed (SE_*_NAME unicode constants)
 	if (!PyArg_ParseTuple(args, "OOiO:LsaAddAccountRights", &policy_handle, &obsid,  &AllRights, &privs))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(policy_handle, &hpolicy))
@@ -1859,7 +1897,9 @@ static PyObject *PyLsaEnumerateAccountRights(PyObject *self, PyObject *args)
 	ULONG priv_cnt=0,priv_ind=0;
 	HANDLE hpolicy;
 	NTSTATUS err;
-	if (!PyArg_ParseTuple(args, "OO:LsaAddAccountRights", &policy_handle, &obsid))
+	// @pyparm <o PyHANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
+	// @pyparm <o PySID>|AccountSid||Security identifier of account for which to list privs
+	if (!PyArg_ParseTuple(args, "OO:LsaEnumerateAccountRights", &policy_handle, &obsid))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(policy_handle, &hpolicy))
 		return NULL;
@@ -1898,6 +1938,8 @@ static PyObject *PyLsaEnumerateAccountsWithUserRight(PyObject *self, PyObject *a
 	LSA_ENUMERATION_INFORMATION *buf;
 	void *buf_start;
 	NTSTATUS err;
+	// @pyparm <o PyHANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
+	// @pyparm str/unicode|UserRight||Name of privilege (SE_*_NAME unicode constant)
 	if (!PyArg_ParseTuple(args, "OO:LsaEnumerateAccountsWithUserRight", &policy_handle, &obpriv))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(policy_handle, &hpolicy))
@@ -2049,9 +2091,9 @@ static PyObject *PyConvertStringSecurityDescriptorToSecurityDescriptor(PyObject 
 %{
 static PyObject *PyLsaStorePrivateData(PyObject *self, PyObject *args)
 {
-	// @pyparm <o PyHANDLE>|handle||Policy handle
+	// @pyparm <o PyHANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
     // @pyparm string|KeyName||Registry key in which to store data
-    // @pyparm int|PrivateData||Unicode string to be encrypted and stored
+    // @pyparm <o PyUNICODE>|PrivateData||Unicode string to be encrypted and stored
 	PyObject *obpolicyhandle=NULL, *obkeyname=NULL, *obprivatedata=NULL; 
 	PyObject * ret=NULL;
 	LSA_HANDLE policyhandle;
@@ -2094,7 +2136,7 @@ static PyObject *PyLsaStorePrivateData(PyObject *self, PyObject *args)
 %{
 static PyObject *PyLsaRetrievePrivateData(PyObject *self, PyObject *args)
 {
-	// @pyparm <o PyHANDLE>|handle||Policy handle
+	// @pyparm <o PyHANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
     // @pyparm string|KeyName||Registry key to read
 	PyObject *obpolicyhandle=NULL, *obkeyname=NULL, *obprivatedata=NULL; 
 	PyObject * ret=NULL;
@@ -2179,6 +2221,7 @@ static PyObject *PyLsaUnregisterPolicyChangeNotification(PyObject *self, PyObjec
 	return ret;
 }
 %}
+
 
 // @pyswig object|CryptEnumProviders|List cryptography providers
 %native(CryptEnumProviders) PyCryptEnumProviders;
