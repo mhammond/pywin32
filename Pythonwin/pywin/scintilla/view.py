@@ -20,6 +20,8 @@ import regex
 import struct
 import re
 
+is_platform_unicode = win32api.GetVersionEx()[3] == win32con.VER_PLATFORM_WIN32_NT
+
 PRINTDLGORD = 1538
 IDC_PRINT_MAG_EDIT = 1010
 EM_FORMATRANGE = win32con.WM_USER+57
@@ -169,6 +171,9 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 	def OnInitialUpdate(self):
 		doc = self.GetDocument()
 
+		# Enable Unicode if we can
+		if is_platform_unicode:
+			self.SendScintilla(SCI_SETCODEPAGE, 65001, 0)
 		# Create margins
 		self.SendScintilla(SCI_SETMARGINTYPEN, 1, SC_MARGIN_SYMBOL);
 		self.SendScintilla(SCI_SETMARGINMASKN, 1, 0xF);
