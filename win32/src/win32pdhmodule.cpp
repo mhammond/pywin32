@@ -622,7 +622,8 @@ static PyObject *PyGetCounterInfo(PyObject *self, PyObject *args)
 	Py_BEGIN_ALLOW_THREADS
     pdhStatus = (*pPdhGetCounterInfo) (handle, bExplainText, &bufSize, NULL);
 	Py_END_ALLOW_THREADS
-    if (pdhStatus != ERROR_SUCCESS) 
+	// as usual, pre-xp returns ERROR_SUCCESS, xp returns PDH_MORE_DATA
+	if (pdhStatus != ERROR_SUCCESS && pdhStatus != PDH_MORE_DATA) 
 		return PyWin_SetAPIError("GetCounterInfo for size", pdhStatus);
 		
 	 PPDH_COUNTER_INFO pInfo = (PPDH_COUNTER_INFO)malloc(bufSize);
