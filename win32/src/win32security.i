@@ -62,7 +62,8 @@ BOOL PyWinObject_AsTOKEN_PRIVILEGES(PyObject *ob, TOKEN_PRIVILEGES **ppRest, BOO
 		return NULL;
 	}
 	int num = PySequence_Length(ob);
-	TOKEN_PRIVILEGES *pRet = (TOKEN_PRIVILEGES *)malloc(sizeof(LUID_AND_ATTRIBUTES) * num);
+	// space for the array and the priv. count.
+	TOKEN_PRIVILEGES *pRet = (TOKEN_PRIVILEGES *)malloc((sizeof(LUID_AND_ATTRIBUTES) * num) + sizeof(DWORD));
 	if (pRet==NULL) {
 		PyErr_SetString(PyExc_MemoryError, "allocating TOKEN_PRIVILEGES");
 		return NULL;
