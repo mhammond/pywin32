@@ -252,6 +252,11 @@ class HLIDict(HLIPythonObject):
 		self.InsertDocString(ret)
 		return ret
 
+# In Python 1.6, strings and Unicode have builtin methods, but we dont really want to see these
+class HLIString(HLIPythonObject):
+    def IsExpandable(self):
+        return 0
+
 TypeMap = { ClassType : HLIClass, 
             FunctionType: HLIFunction,
             TupleType: HLITuple,
@@ -263,7 +268,12 @@ TypeMap = { ClassType : HLIClass,
             BuiltinFunctionType : HLIBuiltinFunction,
             FrameType : HLIFrame,
             TracebackType : HLITraceback,
+            StringType : HLIString,
            }
+try:
+    TypeMap[UnicodeType] = HLIString
+except NameError:
+    pass # Python 1.5 - no Unicode - no problem!
 
 def MakeHLI( ob, name=None ):
 	try:
@@ -291,6 +301,7 @@ class DialogShowObject(dialog.Dialog):
 		except:
 			t, v, tb = sys.exc_info()
 			strval = "Exception getting object value\n\n%s:%s" % (t, v)
+			tb = None
 		strval = regsub.gsub('\n','\r\n', strval)
 		self.edit.ReplaceSel(strval)
 		
@@ -329,6 +340,15 @@ class dynamic_browser (dialog.Dialog):
     def OnInitDialog (self):
         self.hier_list.HierInit (self)
         return dialog.Dialog.OnInitDialog (self)
+
+    def OnOK(self):
+        self.hier_list.HierTerm()
+        self.hier_list = None
+        return self._obj_.OnOK()
+    def OnCancel(self):
+        self.hier_list.HierTerm()
+        self.hier_list = None
+        return self._obj_.OnCancel()
 
     def on_size (self, params):
         lparam = params[3]
