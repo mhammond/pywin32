@@ -239,7 +239,7 @@ class VTableItem(build.VTableItem, WritableItem):
                 if arg[3] is None:
                     chunks.append("None")
                 else:
-                    chunks.append("pythoncom.MakeIID('" + str(arg[3]) + "')" )
+                    chunks.append(repr(arg[3]))
                 chunks.append("),")
             chunks.append("), %s, %s)," % (repr(ret_desc), repr(named_params)))
             #chunks.append(' # vtable entry %d' % (desc[7]/4,) )
@@ -279,12 +279,11 @@ class DispatchItem(build.DispatchItem, WritableItem):
             print "\t# This class is creatable by the name '%s'" % (progId)
         except pythoncom.com_error:
             pass
-        clsidStr = str(self.clsid)
-        print "\tCLSID = pythoncom.MakeIID('" + clsidStr + "')"
+        print "\tCLSID = " + repr(self.clsid)
         if self.coclass_clsid is None:
             print "\tcoclass_clsid = None"
         else:
-            print "\tcoclass_clsid = pythoncom.MakeIID('" + str(self.coclass_clsid) + "')"
+            print "\tcoclass_clsid = " + repr(self.coclass_clsid)
         print
         self.bWritten = 1
 
@@ -298,12 +297,11 @@ class DispatchItem(build.DispatchItem, WritableItem):
             print "\t# This class is creatable by the name '%s'" % (progId)
         except pythoncom.com_error:
             pass
-        clsidStr = str(self.clsid)
-        print '\tCLSID = CLSID_Sink = pythoncom.MakeIID(\'' + clsidStr + '\')'
+        print '\tCLSID = CLSID_Sink = ' + repr(self.clsid)
         if self.coclass_clsid is None:
             print "\tcoclass_clsid = None"
         else:
-            print "\tcoclass_clsid = pythoncom.MakeIID('" + str(self.coclass_clsid) + "')"
+            print "\tcoclass_clsid = " + repr(self.coclass_clsid)
         print '\t_public_methods_ = [] # For COM Server support'
         WriteSinkEventMap(self)
         print
@@ -545,8 +543,7 @@ class CoClassItem(build.OleItem, WritableItem):
       pass
     print 'class %s(CoClassBaseClass): # A CoClass' % (self.python_name)
     if doc and doc[1]: print '\t# ' + doc[1]
-    clsidStr = str(self.clsid)
-    print '\tCLSID = pythoncom.MakeIID("%s")' % (clsidStr)
+    print '\tCLSID = %r' % (self.clsid,)
     print '\tcoclass_sources = ['
     defItem = None
     for item, flag in self.sources:
@@ -767,6 +764,8 @@ class Generator:
         print 'python_version = 0x0 # Presumably Python 1.5.2 - 0x0 is not a problem'
     print
     print 'import win32com.client.CLSIDToClass, pythoncom'
+    print 'from pywintypes import IID'
+    print 'from win32com.client import Dispatch'
     print
     print '# The following 3 lines may need tweaking for the particular server'
     print '# Candidates are pythoncom.Missing and pythoncom.Empty'
@@ -774,7 +773,7 @@ class Generator:
     print 'defaultNamedNotOptArg=pythoncom.Empty'
     print 'defaultUnnamedArg=pythoncom.Empty'
     print
-    print 'CLSID = pythoncom.MakeIID(\'' + str(la[0]) + '\')'
+    print 'CLSID = ' + repr(la[0])
     print 'MajorVersion = ' + str(la[3])
     print 'MinorVersion = ' + str(la[4])
     print 'LibraryFlags = ' + str(la[5])

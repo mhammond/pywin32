@@ -282,7 +282,10 @@ class CDispatch:
 			codeObject = compile(methodCode, "<COMObject %s>" % self._username_,"exec")
 			# Exec the code object
 			tempNameSpace = {}
-			exec codeObject in globals(), tempNameSpace # self.__dict__, self.__dict__
+			# "Dispatch" in the exec'd code is win32com.client.Dispatch, not ours.
+			globNameSpace = globals().copy()
+			globNameSpace["Dispatch"] = win32com.client.Dispatch
+			exec codeObject in globNameSpace, tempNameSpace # self.__dict__, self.__dict__
 			name = methodName
 			# Save the function in map.
 			fn = self._builtMethods_[name] = tempNameSpace[name]

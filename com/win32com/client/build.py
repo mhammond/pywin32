@@ -349,7 +349,7 @@ class DispatchItem(OleItem):
 				s = '%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, argsDesc, _BuildArgList(fdesc, names))
 			elif rd in [pythoncom.VT_DISPATCH, pythoncom.VT_UNKNOWN]:
 				s = '%s\tret = self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)\n' % (linePrefix, id, fdesc[4], retDesc, `argsDesc`, _BuildArgList(fdesc, names))
-				s = s + '%s\tif ret is not None: ret = win32com.client.Dispatch(ret, %s, %s, UnicodeToString=%d)\n' % (linePrefix,`name`, resclsid, NeedUnicodeConversions) 
+				s = s + '%s\tif ret is not None: ret = Dispatch(ret, %s, %s, UnicodeToString=%d)\n' % (linePrefix,`name`, resclsid, NeedUnicodeConversions) 
 				s = s + '%s\treturn ret' % (linePrefix)
 			elif rd == pythoncom.VT_BSTR:
 				if NeedUnicodeConversions:
