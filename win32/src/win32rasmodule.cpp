@@ -71,6 +71,8 @@ PyObject *ReturnRasError(char *fnName, long err = 0)
 	return NULL;
 }
 
+#if (WINVER >= 0x500)
+
 // Helpers external so I can avoid LoadLibraries of
 // the win2k only functions.
 typedef BOOL (*PFNPyWinObject_AsRASEAPUSERIDENTITY)(PyObject *ob, RASEAPUSERIDENTITY **pp);
@@ -98,6 +100,8 @@ BOOL myPyWinObject_AsRASEAPUSERIDENTITY( PyObject *ob, RASEAPUSERIDENTITY **pp)
 	}
 	return (*pfnPyWinObject_AsRASEAPUSERIDENTITY)(ob, pp);
 }
+#endif // WINVER
+
 ////////////////////////////////////////////////////////////
 //
 // RASDIALEXTENSIONS support

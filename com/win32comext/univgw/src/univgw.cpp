@@ -525,7 +525,7 @@ static PyObject * univgw_RegisterVTable(PyObject *self, PyObject *args)
 		return NULL;
 	}
 
-	if (!PyDict_SetItem(
+	if (0 != PyDict_SetItem(
 		g_obRegisteredVTables,
 		obIID,
 		obVTable))
@@ -625,6 +625,8 @@ initunivgw(void)
 
 	univgwError = PyString_FromString("univgw.error");
 	PyDict_SetItemString(dict, "error", univgwError);
+
+	g_obRegisteredVTables = PyDict_New();
 
 #define ADD_CONSTANT(tok) AddObject(dict, #tok, PyInt_FromLong(tok))
 #define ADD_IID(tok) AddObject(dict, #tok, PyWinObject_FromIID(tok))
