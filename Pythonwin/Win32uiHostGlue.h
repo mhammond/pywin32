@@ -118,30 +118,35 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const char *cmd, const char 
 	// Otherwise we give up in disgust.
 	// (A brutal search trying a LoadLibrary on *all* Pythons we find is very
 	// unlikely to come up with the right one.
+	char app_dir[MAX_PATH];
+	strcpy(app_dir, "\0");
+	GetModuleFileName(NULL, app_dir, sizeof(app_dir));
+	char *p = app_dir + strlen(app_dir);
+	while (p>app_dir && *p != '\\')
+		p--;
+	*p = '\0';
+
+	char fname[MAX_PATH*2];
+
 	HMODULE hModCore = NULL;
 	int i;
 	HMODULE hModWin32ui = LoadLibrary(szWinui_Name);
 	if (hModWin32ui==NULL) {
-		// don't give up now - try a local Python.
+		// try an installed version
+		wsprintf(fname, "%s\\%s\\%s", app_dir, "lib\\site-packages\\pythonwin", szWinui_Name);
+		hModWin32ui = LoadLibrary(fname);
+	}
+	if (hModWin32ui==NULL) {
+		// Still no need to give up - try a local Python.
 		for (i=15;i<40;i++) {
-			char fname[MAX_PATH*2];
-			strcpy(fname, "\0");
-			GetModuleFileName(NULL, fname, sizeof(fname));
-			char *p = fname + strlen(fname);
-			while (p>fname && *p != '\\')
-				p--;
-			if (p>fname) {
-				char pyname[20];
-	#ifdef _DEBUG
-				wsprintf(pyname, "Python%d_d.dll", i);
-	#else
-				wsprintf(pyname, "Python%d.dll", i);
-	#endif
-				strcpy(p+1, pyname);
-				hModCore = LoadLibrary(fname);
-				if (hModCore)
-					break;
-			}
+#ifdef _DEBUG
+			wsprintf(fname, "%s\\Python%d_d.dll", app_dir, i);
+#else
+			wsprintf(fname, "%s\\Python%d.dll", app_dir, i);
+#endif
+			hModCore = LoadLibrary(fname);
+			if (hModCore)
+				break;
 		}
 		if (!hModCore) {
 			// No Python, no win32ui :(
@@ -187,6 +192,11 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const char *cmd, const char 
 	pfnPyInit = (void (__cdecl *)(void))GetProcAddress(hModCore, "Py_Initialize");
 	if (pfnPyInit && bShouldInitPython) {
 		(*pfnPyInit)();
+		void (__cdecl *pfnPyEval_InitThreads)(void);
+		pfnPyEval_InitThreads = (void (__cdecl *)(void))GetProcAddress(hModCore, "PyEval_InitThreads");
+		ASSERT(pfnPyEval_InitThreads);
+		if (pfnPyEval_InitThreads)
+			pfnPyEval_InitThreads();
 	}
 
 	if (!hModWin32ui) { // sigh - try and import it
