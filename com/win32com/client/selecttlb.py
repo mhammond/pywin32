@@ -57,7 +57,7 @@ def EnumKeys(root):
 			# here doesn't need to - that is handled as the data is read.
 			val = win32api.RegQueryValue(root, item)
 		except win32api.error:
-			val = None
+			val = "" # code using this assumes a string.
 			
 		ret.append((item, val))
 		index = index + 1
@@ -108,7 +108,7 @@ def EnumTlbs(excludeFlags = 0):
 						continue
 					# Only care about "{lcid}\win32" key - jump straight there.
 					try:
-						key4 = win32api.RegOpenKey(key3, "%s\win32" % (lcid,))
+						key4 = win32api.RegOpenKey(key3, "%s\\win32" % (lcid,))
 					except win32api.error:
 						continue
 					try:
