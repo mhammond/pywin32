@@ -35,7 +35,7 @@ move Wise\PyWise\Build \PyWise_build
 %zip% -9 -r BuildTools.zip AutoDuck/*
 %zip% -9 -r BuildTools.zip Wise/*.wse Wise/*.py Wise/*.txt Wise/PyWise/* "Wise/Install Scripts/*"
 %zip% -9    BuildTools.zip Wise/PyWise/*
-%zip% -9 -r BuildTools.zip d:\dbgsdk\*
+rem %zip% -9 -r BuildTools.zip d:\dbgsdk\*
 %zip% -9 -r BuildTools.zip *.dsw
 rem Get the SWIG .I files.
 e:
