@@ -122,7 +122,8 @@ class InteractiveFormatter(FormatterParent):
 		while i < lengthDoc:
 			ch = chNext
 			chNext = cdoc[i+1:i+2]
-
+			
+#			trace("ch=%r, i=%d, next=%r, state=%s" % (ch, i, chNext, state))
 			if state == STYLE_INTERACTIVE_EOL:
 				if ch not in '\r\n':
 					self.ColorSeg(startSeg, i-1, state)
@@ -137,7 +138,10 @@ class InteractiveFormatter(FormatterParent):
 				if ch not in sys.ps1 + sys.ps2 + " ":
 					self.ColorSeg(startSeg, i-1, state)
 					startSeg = i
-					state = stylePyStart # Start coloring Python code.
+					if ch in '\r\n':
+						state = STYLE_INTERACTIVE_EOL
+					else:
+						state = stylePyStart # Start coloring Python code.
 			elif state in [STYLE_INTERACTIVE_OUTPUT]:
 				if ch in '\r\n':
 					self.ColorSeg(startSeg, i-1, state)
@@ -149,13 +153,20 @@ class InteractiveFormatter(FormatterParent):
 					self.ColorSeg(startSeg, i, state)
 					startSeg = i+1
 					state = STYLE_INTERACTIVE_ERROR_FINALLINE
+				elif i == 0 and ch not in string.whitespace:
+					# If we are coloring from the start of a line,
+					# we need this better check for the last line
+					# Color up to not including me
+					self.ColorSeg(startSeg, i-1, state)
+					startSeg = i
+					state = STYLE_INTERACTIVE_ERROR_FINALLINE
 			elif state == STYLE_INTERACTIVE_ERROR_FINALLINE:
 				if ch in '\r\n':
 					self.ColorSeg(startSeg, i-1, state)
 					startSeg = i
 					state = STYLE_INTERACTIVE_EOL
 			elif state == STYLE_INTERACTIVE_BANNER:
-				if ch in '\r\n' and chNext and chNext in ">[":
+				if ch in '\r\n' and (chNext=='' or chNext in ">["):
 					# Everything including me
 					self.ColorSeg(startSeg, i-1, state)
 					startSeg = i
@@ -285,6 +296,9 @@ class InteractiveCore:
 		self.interp.globals = globals
 		self.AppendToPrompt([], oldPrompt)
 
+	def GetContext(self):
+		return self.interp.globals, self.interp.locals
+
 	def DoGetLine(self, line=-1):
 		if line==-1: line = self.LineFromChar()
 		line = self.GetLine(line)
@@ -312,6 +326,18 @@ class InteractiveCore:
 				self.write( bufLine + term )
 		self.flush()
 
+	def EnsureNoPrompt(self):
+		# Get ready to write some text NOT at a Python prompt.
+		self.flush()
+		lastLineNo = self.GetLineCount()-1
+		line = self.DoGetLine(lastLineNo)
+		if not line or line in [sys.ps1, sys.ps2]:
+			self.SetSel(self.GetTextLength()-len(line), self.GetTextLength())
+			self.ReplaceSel('')
+		else:
+			# Just add a new line.
+			self.write('\n')
+		
 	def _GetSubConfigNames(self):
 		return ["interactive"] # Allow [Keys:Interactive] sections to be specific
 
