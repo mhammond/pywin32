@@ -832,8 +832,12 @@ class Debugger(debugger_parent):
 		"""Called as the GUI is about to finish any interaction with the user
 		   Returns non zero if we are allowed to stop interacting"""
 		if self.oldForeground is not None:
-			win32ui.GetMainFrame().EnableWindow(self.oldFrameEnableState)
-			self.oldForeground.EnableWindow(1)
+			try:
+				win32ui.GetMainFrame().EnableWindow(self.oldFrameEnableState)
+				self.oldForeground.EnableWindow(1)
+			except win32ui.error:
+				# old window may be dead.
+				pass
 #			self.oldForeground.SetForegroundWindow() - fails??
 		if not self.inForcedGUI:
 			return 1 # Never a problem, and nothing else to do.
