@@ -162,3 +162,19 @@ class Collection:
 
   def _NewEnum(self):
     return NewEnum(self.data)
+
+def NewCollection(seq, cls=Collection):
+  """Creates a new COM collection object
+
+  This function creates a new COM Server that implements the 
+  common collection protocols, including enumeration. (_NewEnum)
+
+  A COM server that can enumerate the passed in sequence will be
+  created, then wrapped up for return through the COM framework.
+  Optionally, a custom COM server for enumeration can be passed
+  (the default is @Collection@).
+  """
+  return pythoncom.WrapObject(policy.DefaultPolicy(cls(seq)),
+                              pythoncom.IID_IDispatch,
+                              pythoncom.IID_IDispatch)
+
