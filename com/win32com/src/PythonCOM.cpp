@@ -16,6 +16,7 @@ generates Windows .hlp files.
 #include "PyFactory.h"
 
 extern int PyCom_RegisterCoreIIDs(PyObject *dict);
+extern PyObject  *pythoncom_IsGatewayRegistered(PyObject *self, PyObject *args);
 
 extern PyObject *g_obPyCom_MapIIDToType;
 extern PyObject *g_obPyCom_MapGatewayIIDToName;
@@ -1258,6 +1259,7 @@ static struct PyMethodDef pythoncom_methods[]=
 	{ "GetScodeString",      pythoncom_GetScodeString, 1 },      // @pymeth GetScodeString|Returns the string for an OLE scode.
 	{ "GetScodeRangeString", pythoncom_GetScodeRangeString, 1 }, // @pymeth GetScodeRangeString|Returns the scode range string, given an OLE scode.
 	{ "GetSeverityString",   pythoncom_GetSeverityString, 1 },   // @pymeth GetSeverityString|Returns the severity string, given an OLE scode.
+	{ "IsGatewayRegistered", pythoncom_IsGatewayRegistered, 1}, // @pymeth IsGatewayRegistered|Returns 1 if the given IID has a registered gateway object.
 	{ "LoadRegTypeLib",      pythoncom_loadregtypelib, 1 },		 // @pymeth LoadRegTypeLib|Loads a registered type library by CLSID
 	{ "LoadTypeLib",         pythoncom_loadtypelib, 1 },		 // @pymeth LoadTypeLib|Loads a type library by name
 	{ "MakeIID",             pythoncom_MakeIID, 1 },             // @pymeth MakeIID|Makes an IID object from a string.

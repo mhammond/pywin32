@@ -2,6 +2,15 @@
 ** Registration type stuff
 */
 
+/***
+Note that this source file contains embedded documentation.
+This documentation consists of marked up text inside the
+C comments, and is prefixed with an '@' symbol.  The source
+files are processed by a tool called "autoduck" which
+generates Windows .hlp files.
+@doc
+***/
+
 #include "stdafx.h"
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
@@ -128,6 +137,46 @@ int PyCom_RegisterExtensionSupport( PyObject *dict, const PyCom_InterfaceSupport
 		return -1;
 	return PyCom_RegisterIIDs(dict, pInterfaces, numEntries);
 }
+
+// Determine if a gateway has been registered.
+int PyCom_IsGatewayRegistered(REFIID iid)
+{
+	PyObject *keyObject = PyWinObject_FromIID(iid);
+	if (!keyObject) 
+	{
+		return 0;
+	}
+	return PyMapping_HasKey(
+		g_obPyCom_MapServerIIDToGateway,
+		keyObject);
+}
+
+// @pymethod int|pythoncom|IsGatewayRegistered|Returns true if a gateway has been registered for the given IID 
+PyObject  *pythoncom_IsGatewayRegistered(PyObject *self, PyObject *args)
+{
+	PyObject *obIID;
+	PyObject *v;
+
+    // @pyparm <o PyIID>|iid||IID of the interface.
+	if ( !PyArg_ParseTuple(args, "O:CreateVTable", &obIID) )
+		return NULL;
+	v = PyDict_GetItem(
+		g_obPyCom_MapServerIIDToGateway,
+		obIID);
+	if (!v)
+	{
+		PyErr_Clear();
+		v = PyInt_FromLong(0);
+	}
+	else
+	{
+		Py_DECREF(v);
+		v = PyInt_FromLong(1);
+	}
+	return v;
+}
+
+
 
 /////////////////////////////////////////////////////////////////////////////////
 //
