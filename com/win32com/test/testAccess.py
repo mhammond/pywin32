@@ -24,7 +24,7 @@ def CreateTestAccessDatabase(dbname = None):
 	try:
 		os.unlink(dbname)
 	except os.error:
-		pass
+		print "WARNING - Unable to delete old test database - expect a COM exception RSN!"
 
 	newdb = workspace.CreateDatabase( dbname, constants.dbLangGeneral, constants.dbEncrypt )
 
@@ -72,9 +72,30 @@ def CreateTestAccessDatabase(dbname = None):
 	tab1.Fields("Last Name").Value = "Hammond"
 	tab1.Update()
 
-	return dbname	
-	
-	
+	tab1.MoveFirst()
+	# We do a simple bookmark test which tests our optimized VT_SAFEARRAY|VT_UI1 support.
+	# The bookmark will be a buffer object - remember it for later.
+	bk = tab1.Bookmark
+
+	# Add a second record.
+	tab1.AddNew()
+	tab1.Fields("First Name").Value = "Second"
+	tab1.Fields("Last Name").Value = "Person"
+	tab1.Update()
+
+	# Reset the bookmark to the one we saved.
+	# But first check the test is actually doing something!
+	tab1.MoveLast()
+	if tab1.Fields("First Name").Value != "Second":
+		raise RuntimeError, "Unexpected record is last - makes bookmark test pointless!"
+
+	tab1.Bookmark = bk
+	if tab1.Fields("First Name").Value != "Mark":
+		raise RuntimeError, "The bookmark did not reset the record pointer correctly"
+
+	return dbname
+
+
 def DoDumpAccessInfo(dbname):
 	import daodump
 	a = forms = None
