@@ -232,8 +232,12 @@ void ui_assoc_object::KillAssoc()
 // ASSUMES WE HOLD THE PYTHON LOCK as for all Python object destruction.
 void ui_assoc_object::DoKillAssoc( BOOL bDestructing /*= FALSE*/ )
 {
-	Py_XDECREF(virtualInst);
+	// In Python debug builds, this can get recursive -
+	// Python temporarily increments the refcount of the dieing
+	// object - this object death will attempt to use the dieing object.
+	PyObject *vi = virtualInst;
 	virtualInst = NULL;
+	Py_XDECREF(vi);
 //	virtuals.DeleteAll();
 	handleMgr.Assoc(0,this,assoc);
 }
@@ -284,8 +288,10 @@ CString ui_assoc_object::repr()
 {
 	CString csRet;
 	char *buf = csRet.GetBuffer(128);
-	sprintf(buf, " - assoc is %p, vf=%s", assoc, virtualInst ? "True" : "False");
+	PyObject *vi_repr = virtualInst ? PyObject_Repr(virtualInst) : NULL;
+	sprintf(buf, " - assoc is %p, vi=%s", assoc, vi_repr ? PyString_AsString(vi_repr) : "<None>" );
 	csRet.ReleaseBuffer();
+	Py_XDECREF(vi_repr);
 	return ui_base_class::repr() + csRet;
 }
 #ifdef _DEBUG
