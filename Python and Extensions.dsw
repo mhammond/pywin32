@@ -252,6 +252,21 @@ Package=<4>
 
 ###############################################################################
 
+Project: "adsi"=.\com\adsi.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name win32com
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "axcontrol"=.\com\axcontrol.dsp - Package Owner=<4>
 
 Package=<5>
