@@ -12,6 +12,8 @@ BAK_DOT_BAK=1
 BAK_DOT_BAK_TEMP_DIR=2
 BAK_DOT_BAK_BAK_DIR=3
 
+MSG_CHECK_EXTERNAL_FILE = win32con.WM_USER+1999 ## WARNING: Duplicated in editor.py and coloreditor.py
+
 ParentEditorDocument=docview.Document
 class EditorDocumentBase(ParentEditorDocument):
 	def __init__(self, template):
@@ -23,6 +25,8 @@ class EditorDocumentBase(ParentEditorDocument):
 		# default to write to %temp%/bak/filename.ext
 		self.bakFileType=GetEditorOption("Backup Type", BAK_DOT_BAK_BAK_DIR)
 
+		self.watcherThread = FileWatchingThread(self)
+		self.watcherThread.start()
 		# Should I try and use VSS integration?
 		self.scModuleName=GetEditorOption("Source Control Module", "")
 		self.scModule = None # Loaded when first used.
@@ -39,6 +43,15 @@ class EditorDocumentBase(ParentEditorDocument):
 			func = getattr(view, funcName, None)
 			if func is not None:
 				apply(func, args)
+
+	def OnCloseDocument(self ):
+		self.watcherThread.stop()
+		return self._obj_.OnCloseDocument()
+
+	def OnOpenDocument(self, name):
+		rc = self._obj_.OnOpenDocument(name)
+		self._DocumentStateChanged()
+		return rc
 
 	def OnSaveDocument( self, fileName ):
 		win32ui.SetStatusText("Saving file...",1)
@@ -107,7 +120,7 @@ class EditorDocumentBase(ParentEditorDocument):
 		try:
 			newstat = os.stat(self.GetPathName())
 		except os.error, (code, msg):
-			print "Warning on file %s - %s" % (self.GetPathName(), msg)
+			print "The file '%s' is open for editing, but\nchecking it for changes caused the error: %s" % (self.GetPathName(), msg)
 			self.bDeclinedReload = 1
 			return
 		changed = (self.fileStat is None) or \
@@ -142,6 +155,7 @@ class EditorDocumentBase(ParentEditorDocument):
 				self.fileStat = None
 		else:
 			self.fileStat = None
+		self.watcherThread._DocumentStateChanged()
 		self._UpdateUIForState()
 		self._ApplyOptionalToViews("_UpdateUIForState")
 			
@@ -216,3 +230,48 @@ class EditorDocumentBase(ParentEditorDocument):
 				print "Could not bring document to foreground"
 		return self._obj_.SaveModified()
 
+import threading
+import win32event
+class FileWatchingThread(threading.Thread):
+	def __init__(self, doc):
+		self.doc = doc
+		self.adminEvent = win32event.CreateEvent(None, 0, 0, None)
+		self.stopEvent = win32event.CreateEvent(None, 0, 0, None)
+		self.watchEvent = None
+		threading.Thread.__init__(self)
+
+	def _DocumentStateChanged(self):
+		win32event.SetEvent(self.adminEvent)
+
+	def RefreshEvent(self):
+		self.hwnd = self.doc.GetFirstView().GetSafeHwnd()
+		if self.watchEvent is not None:
+			win32api.FindCloseChangeNotification(self.watchEvent)
+			self.watchEvent = None
+		path = self.doc.GetPathName()
+		if path: path = os.path.dirname(path)
+		if path:
+			filter = win32con.FILE_NOTIFY_CHANGE_FILE_NAME | \
+					 win32con.FILE_NOTIFY_CHANGE_ATTRIBUTES | \
+					 win32con.FILE_NOTIFY_CHANGE_LAST_WRITE
+			try:
+				self.watchEvent = win32api.FindFirstChangeNotification(path, 0, filter)
+			except win32api.error, (rc, fn, msg):
+				print "Can not watch file", path, "for changes -", msg
+	def stop(self):
+		win32event.SetEvent(self.stopEvent)
+	def run(self):
+		while 1:
+			handles = [self.stopEvent, self.adminEvent]
+			if self.watchEvent is not None:
+				handles.append(self.watchEvent)
+			rc = win32event.WaitForMultipleObjects(handles, 0, win32event.INFINITE)
+			if rc == win32event.WAIT_OBJECT_0:
+				break
+			elif rc == win32event.WAIT_OBJECT_0+1:
+				self.RefreshEvent()
+			else:
+				win32api.PostMessage(self.hwnd, MSG_CHECK_EXTERNAL_FILE, 0, 0)
+				win32api.FindNextChangeNotification(self.watchEvent)
+		# close a circular reference
+		self.doc = None

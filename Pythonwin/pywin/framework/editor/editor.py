@@ -34,6 +34,7 @@ patIndent=regex.compile('^\\([ \t]*[~ \t]\\)')
 
 ID_LOCATE_FILE = 0xe200
 ID_GOTO_LINE = 0xe2001
+MSG_CHECK_EXTERNAL_FILE = win32con.WM_USER+1999 ## WARNING: Duplicated in document.py and coloreditor.py
 
 # Key Codes that modify the bufffer when Ctrl or Alt are NOT pressed.
 MODIFYING_VK_KEYS = [win32con.VK_BACK, win32con.VK_TAB, win32con.VK_RETURN, win32con.VK_SPACE, win32con.VK_DELETE]
@@ -164,10 +165,6 @@ class EditorView(ParentEditorView):
 		rc = self._obj_.OnInitialUpdate()
 		self.SetDefaultCharFormat(self.defCharFormat)
 		return rc
-
-	def OnDestroy(self, msg):
-		self._DeleteReloadIdleHandler()
-		return ParentEditorView.OnDestroy(self, msg)
 
 	def CutCurLine(self):
 		curLine = self._obj_.LineFromChar()
@@ -315,8 +312,8 @@ class EditorView(ParentEditorView):
 
 	def HookHandlers(self):	# children can override, but should still call me!
 #		self.HookAllKeyStrokes(self.OnKey)
+		self.HookMessage(self.OnCheckExternalDocumentUpdated,MSG_CHECK_EXTERNAL_FILE)
 		self.HookMessage(self.OnRClick,win32con.WM_RBUTTONDOWN)
-		self.HookMessage(self.OnKillFocus, win32con.WM_KILLFOCUS)
 		self.HookMessage(self.OnSetFocus, win32con.WM_SETFOCUS)
 		self.HookMessage(self.OnKeyDown, win32con.WM_KEYDOWN)
 		self.HookKeyStroke(self.OnKeyCtrlY, 25)	# ^Y
@@ -329,12 +326,9 @@ class EditorView(ParentEditorView):
 		self.HookCommand(self.OnEditCut, afxres.ID_EDIT_CUT)
 
 	# Hook Handlers
-	def OnKillFocus(self,msg):
-		self._DeleteReloadIdleHandler()
-
 	def OnSetFocus(self,msg):
-		self.CheckExternalDocumentUpdated(self.CheckExternalDocumentUpdated,0)
-		self._AddReloadIdleHandler()
+		# Even though we use file change notifications, we should be very sure about it here.
+		self.OnCheckExternalDocumentUpdated(msg)
 
 	def OnRClick(self,params):
 		menu = win32ui.CreatePopupMenu()
@@ -434,31 +428,12 @@ class EditorView(ParentEditorView):
 
 #	def OnKey(self, key):
 #		return self.GetDocument().CheckMakeDocumentWritable()
-	
-	#
-	# Support for checking the external file to see if it is changed.
-	# We set up an idle time handler only when the view has focus.
-	# This handler continually checks the file behind this document, but
-	# as it is in idle time, no one notices :-)
-	#
-	def _AddReloadIdleHandler(self):
-		win32ui.GetApp().AddIdleHandler(self.CheckExternalDocumentUpdated)
 
-	def _DeleteReloadIdleHandler(self):
-		if win32ui.GetApp().HaveIdleHandler(self.CheckExternalDocumentUpdated):
-			win32ui.GetApp().DeleteIdleHandler(self.CheckExternalDocumentUpdated)
-
-	def CheckExternalDocumentUpdated(self, handler, count):
+	def OnCheckExternalDocumentUpdated(self, msg):
 		if self._obj_ is None or self.bCheckingFile: return
 		self.bCheckingFile = 1
-		try:
-			self.GetDocument().CheckExternalDocumentUpdated()
-		except:
-			traceback.print_exc()
-			print "Idle handler failed!"
-			self._DeleteReloadIdleHandler()
+		self.GetDocument().CheckExternalDocumentUpdated()
 		self.bCheckingFile = 0
-		return 0 # No more idle handling required.
 
 from template import EditorTemplateBase
 class EditorTemplate(EditorTemplateBase):
