@@ -94,19 +94,24 @@ def _find_localserver_exe(mustfind):
     exeBaseName = "pythonw_d.exe"
   # First see if in the same directory as this .EXE
   exeName = os.path.join( os.path.split(sys.executable)[0], exeBaseName )
-  try:
-    os.stat(exeName)
-  except os.error:
+  if not os.path.exists(exeName):
+    # See if in our sys.prefix directory
+    exeName = os.path.join( sys.prefix, exeBaseName )
+  if not os.path.exists(exeName):
+    # See if in our sys.prefix/pcbuild directory (for developers)
+    exeName = os.path.join( sys.prefix, "PCbuild",  exeBaseName )
+  if not os.path.exists(exeName):
     # See if the registry has some info.
     try:
       key = "SOFTWARE\\Python\\PythonCore\\%s\\InstallPath" % sys.winver
       path = win32api.RegQueryValue( win32con.HKEY_LOCAL_MACHINE, key )
       exeName = os.path.join( path, exeBaseName )
-      os.stat(exeName)
-    except (win32api.error, os.error):
-      if mustfind:
-        raise RuntimeError, "Can not locate the program '%s'" % exeBaseName
-      return None
+    except win32api.error:
+      pass
+  if not os.path.exists(exeName):
+    if mustfind:
+      raise RuntimeError, "Can not locate the program '%s'" % exeBaseName
+    return None
   return exeName
 
 def _find_localserver_module():
@@ -316,7 +321,18 @@ def _get(ob, attr, default=None):
   try:
     return getattr(ob, attr)
   except AttributeError:
+    pass
+  # look down sub-classes
+  try:
+    bases = ob.__bases__
+  except AttributeError:
+    # ob is not a class - no probs.
     return default
+  for base in bases:
+    val = _get(base, attr, None)
+    if val is not None:
+      return val
+  return default
 
 def RegisterClasses(*classes, **flags):
   quiet = flags.has_key('quiet') and flags['quiet']
