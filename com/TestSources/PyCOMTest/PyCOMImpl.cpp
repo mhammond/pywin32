@@ -279,6 +279,12 @@ STDMETHODIMP CPyCOMTest::GetSimpleSafeArray(SAFEARRAY** attrs)
 	return MakeFillIntArray(attrs, 10, VT_I4);
 }
 
+STDMETHODIMP CPyCOMTest::CheckVariantSafeArray(SAFEARRAY** attrs, int *result)
+{
+	*result = 1;
+	return S_OK;
+}
+
 STDMETHODIMP CPyCOMTest::GetSimpleCounter(ISimpleCounter** counter)
 {
 	if (counter==NULL) return E_POINTER;
@@ -454,6 +460,17 @@ HRESULT CPyCOMTest::TestMyInterface( IUnknown *unktester)
 	CComBSTR outstr;
 	CHECK_HR(tester->DoubleString(instr, &outstr));
 	CHECK_TRUE(outstr == L"FooFoo");
+
+	// Arrays
+	int result;
+	SAFEARRAY *array;
+	CHECK_HR(MakeFillIntArray(&array, 5, VT_INT));
+	CHECK_HR(tester->CheckVariantSafeArray(&array, &result));
+	CHECK_TRUE(result==1);
+
+	CHECK_HR(tester->SetIntSafeArray(array, &result));
+
+	SafeArrayDestroy(array);
 
 	return S_OK;
 }

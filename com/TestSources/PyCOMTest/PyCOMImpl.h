@@ -71,6 +71,7 @@ END_COM_MAP()
                                       SAFEARRAY** ints);
 	STDMETHOD(GetSimpleSafeArray)(SAFEARRAY** ints);
 	STDMETHOD(GetSimpleCounter)(ISimpleCounter** counter);
+	STDMETHOD(CheckVariantSafeArray)(SAFEARRAY **vals, int *result);
 
 	STDMETHOD(SetVarArgs)(SAFEARRAY *);
 	STDMETHOD(GetLastVarArgs)(SAFEARRAY **);

@@ -184,6 +184,7 @@ library PyCOMTestLib
                                       [out] SAFEARRAY(enum tagQsAttribute)*attrs2,
                                       [out] SAFEARRAY(int)*ints);
 		HRESULT GetSimpleCounter([out, retval] ISimpleCounter** counter);
+		HRESULT CheckVariantSafeArray([in] SAFEARRAY(VARIANT)* data, [out, retval]int *sum);
 
 		[vararg] HRESULT SetVarArgs([in]SAFEARRAY(VARIANT) vars);
 		HRESULT GetLastVarArgs([out, retval]SAFEARRAY(VARIANT) *result);
