@@ -489,10 +489,11 @@ BOOL VLogF_Logger(PyObject *logger, const char *log_method,
 	// in Python 2.3, simply use the Python 2.4 logging package (or at least
 	// a logger from that package)
 	PyObject *kw = PyDict_New();
-	PyObject *exc_info = Py_BuildValue("OOO", exc_typ, exc_val, exc_tb);
-	if (kw)
+	if (kw && exc_typ) {
+		PyObject *exc_info = Py_BuildValue("OOO", exc_typ, exc_val, exc_tb);
 		PyDict_SetItemString(kw, "exc_info", exc_info);
-	Py_XDECREF(exc_info);
+		Py_XDECREF(exc_info);
+	}
 	PyObject *args = Py_BuildValue("(s)", buff);
 	PyObject *method = PyObject_GetAttrString(logger, (char *)log_method);
 	PyObject *result = NULL;
