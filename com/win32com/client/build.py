@@ -475,9 +475,11 @@ valid_identifier_chars = string.letters + string.digits + "_"
 # make sure it is a legal (and reasonable!) Python name.
 def MakePublicAttributeName(className):
 	# Given a class attribute that needs to be public, but Python munges
-	# convert it.
+	# convert it.  Also need to be careful that the munging doesnt
+	# create duplicates - eg, just removing a leading "_" is likely to cause
+	# a clash.
 	if className[:2]=='__' and className[-2:]!='__':
-		return className[1:]
+		return className[1:] + '_' # First '_' moved at the end.
 	elif iskeyword(className):
 		return string.capitalize(className)
 	# Strip non printable chars
