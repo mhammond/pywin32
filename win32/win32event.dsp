@@ -331,8 +331,7 @@ InputPath=.\src\win32event.i
 InputName=win32event
 
 "$(InputDir)\$(InputName)module_win32.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	cd $(InputDir) 
-	%SWIG_EXE% -python -c++ -o $(InputName)module_win32.cpp $(InputName).i 
+	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module_win32.cpp $(InputName).i 
 	
 # End Custom Build
 
@@ -344,8 +343,7 @@ InputPath=.\src\win32event.i
 InputName=win32event
 
 "$(InputDir)\$(InputName)module_win32.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	cd $(InputDir) 
-	%SWIG_EXE% -python -c++ -o $(InputName)module_win32.cpp $(InputName).i 
+	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module_win32.cpp $(InputName).i 
 	
 # End Custom Build
 
@@ -357,8 +355,7 @@ InputPath=.\src\win32event.i
 InputName=win32event
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	cd $(InputDir) 
-	%SWIG_EXE% -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i 
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i 
 	
 # End Custom Build
 
@@ -370,8 +367,7 @@ InputPath=.\src\win32event.i
 InputName=win32event
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	cd $(InputDir) 
-	%SWIG_EXE% -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i 
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i 
 	
 # End Custom Build
 
@@ -383,8 +379,7 @@ InputPath=.\src\win32event.i
 InputName=win32event
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	cd $(InputDir) 
-	%SWIG_EXE% -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i 
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i 
 	
 # End Custom Build
 
@@ -396,8 +391,7 @@ InputPath=.\src\win32event.i
 InputName=win32event
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	cd $(InputDir) 
-	%SWIG_EXE% -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i 
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i 
 	
 # End Custom Build
 
@@ -409,8 +403,7 @@ InputPath=.\src\win32event.i
 InputName=win32event
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	cd $(InputDir) 
-	%SWIG_EXE% -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i 
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i 
 	
 # End Custom Build
 
@@ -422,8 +415,7 @@ InputPath=.\src\win32event.i
 InputName=win32event
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	cd $(InputDir) 
-	%SWIG_EXE% -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i 
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp             $(InputName).i 
 	
 # End Custom Build
 

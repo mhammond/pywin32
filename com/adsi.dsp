@@ -70,8 +70,8 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 F90=df.exe
-# ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "ADSI_EXPORTS" /YX /FD /GZ  /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\win32\src" /I "..\com\win32com\src\include" /D "_DEBUG" /D "__WIN32__" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "ADSI_EXPORTS" /YX /FD /GZ  /c
+# ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "ADSI_EXPORTS" /YX /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\win32\src" /I "..\com\win32com\src\include" /D "_DEBUG" /D "__WIN32__" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "ADSI_EXPORTS" /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0xc09 /d "_DEBUG"
@@ -121,8 +121,7 @@ InputPath=.\win32comext\adsi\src\adsi.i
 InputName=adsi
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	cd $(InputDir) 
-	%SWIG_EXE% -dnone -python -c++ -o $(InputName).cpp $(InputName).i 
+	..\swig.bat $(InputDir) -dnone -python -c++ -o $(InputName).cpp $(InputName).i 
 	
 # End Custom Build
 
@@ -134,8 +133,7 @@ InputPath=.\win32comext\adsi\src\adsi.i
 InputName=adsi
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	cd $(InputDir) 
-	%SWIG_EXE% -dnone -python -c++ -o $(InputName).cpp $(InputName).i 
+	..\swig.bat $(InputDir) -dnone -python -c++ -o $(InputName).cpp $(InputName).i 
 	
 # End Custom Build
 
@@ -167,7 +165,7 @@ InputName=PyIADsContainer
 
 BuildCmds= \
 	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IDispatch -c++ -o $(InputName).cpp  $(InputName).i \
+	..\swig.bat -dnone -pythoncom -com_interface_parent IDispatch -c++ -o $(InputName).cpp  $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -185,8 +183,7 @@ InputPath=.\win32comext\adsi\src\PyIADsContainer.i
 InputName=PyIADsContainer
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IDispatch -c++ -o $(InputName).cpp  $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IDispatch -c++ -o $(InputName).cpp  $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -211,8 +208,7 @@ InputPath=.\win32comext\adsi\src\PyIADsUser.i
 InputName=PyIADsUser
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IDispatch -c++ -o $(InputName).cpp  $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IDispatch -c++ -o $(InputName).cpp  $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -230,8 +226,7 @@ InputPath=.\win32comext\adsi\src\PyIADsUser.i
 InputName=PyIADsUser
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IDispatch -c++ -o $(InputName).cpp  $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IDispatch -c++ -o $(InputName).cpp  $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -257,9 +252,7 @@ InputPath=.\win32comext\adsi\src\PyIDirectoryObject.i
 InputName=PyIDirectoryObject
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -c++ -o $(InputName).cpp  $(InputName).i \
-	
+	..\swig.bat $(InputDir)  -dnone -pythoncom -c++ -o $(InputName).cpp  $(InputName).i
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
    $(BuildCmds)
@@ -277,9 +270,7 @@ InputPath=.\win32comext\adsi\src\PyIDirectoryObject.i
 InputName=PyIDirectoryObject
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -c++ -o $(InputName).cpp  $(InputName).i \
-	
+	..\swig.bat $(InputDir)  -dnone -pythoncom -c++ -o $(InputName).cpp  $(InputName).i
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
    $(BuildCmds)

@@ -102,8 +102,7 @@ InputPath=.\src\win32security.i
 InputName=win32security
 
 "$(InputDir)\$(InputName)module.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	cd $(InputDir) 
-	%SWIG_EXE% -python -c++ -o $(InputName)module.cpp $(InputName).i 
+	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module.cpp $(InputName).i 
 	
 # End Custom Build
 
@@ -115,8 +114,7 @@ InputPath=.\src\win32security.i
 InputName=win32security
 
 "$(InputDir)\$(InputName)module.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	cd $(InputDir) 
-	%SWIG_EXE% -python -c++ -o $(InputName)module.cpp $(InputName).i 
+	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module.cpp $(InputName).i 
 	
 # End Custom Build
 

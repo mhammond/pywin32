@@ -172,7 +172,6 @@ InputPath=.\win32comext\mapi\src\mapi.i
 InputName=mapi
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	cd $(InputDir) 
 	%SWIG_EXE% -dnone -python -c++ -o $(InputName).cpp $(InputName).i 
 	
 # End Custom Build
@@ -186,8 +185,7 @@ InputPath=.\win32comext\mapi\src\mapi.i
 InputName=mapi
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	cd $(InputDir) 
-	%SWIG_EXE% -dnone -python -c++ -o $(InputName).cpp $(InputName).i 
+	..\swig.bat $(InputDir) -dnone -python -c++ -o $(InputName).cpp $(InputName).i 
 	
 # End Custom Build
 
@@ -220,8 +218,7 @@ InputPath=.\win32comext\mapi\src\PyIABContainer.i
 InputName=PyIABContainer
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IMAPIContainer -c++ -o              $(InputName).cpp  $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IMAPIContainer -c++ -o              $(InputName).cpp  $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -239,8 +236,7 @@ InputPath=.\win32comext\mapi\src\PyIABContainer.i
 InputName=PyIABContainer
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IMAPIContainer -c++ -o              $(InputName).cpp  $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IMAPIContainer -c++ -o              $(InputName).cpp  $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -265,8 +261,7 @@ InputPath=.\win32comext\mapi\src\PyIAddrBook.i
 InputName=PyIAddrBook
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o                    $(InputName).cpp $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o                    $(InputName).cpp $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -284,8 +279,7 @@ InputPath=.\win32comext\mapi\src\PyIAddrBook.i
 InputName=PyIAddrBook
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o                    $(InputName).cpp $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o                    $(InputName).cpp $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -311,8 +305,7 @@ InputPath=.\win32comext\mapi\src\PyIAttach.i
 InputName=PyIAttach
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o                    $(InputName).cpp $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o                    $(InputName).cpp $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -331,8 +324,7 @@ InputPath=.\win32comext\mapi\src\PyIAttach.i
 InputName=PyIAttach
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o                    $(InputName).cpp $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o                    $(InputName).cpp $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -357,8 +349,7 @@ InputPath=.\win32comext\mapi\src\PyIDistList.i
 InputName=PyIDistList
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o              $(InputName).cpp  $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o              $(InputName).cpp  $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -376,8 +367,7 @@ InputPath=.\win32comext\mapi\src\PyIDistList.i
 InputName=PyIDistList
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o              $(InputName).cpp  $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o              $(InputName).cpp  $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -402,8 +392,7 @@ InputPath=.\win32comext\mapi\src\PyIMailUser.i
 InputName=PyIMailUser
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IMAPIContainer -c++ -o              $(InputName).cpp  $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IMAPIContainer -c++ -o              $(InputName).cpp  $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -421,8 +410,7 @@ InputPath=.\win32comext\mapi\src\PyIMailUser.i
 InputName=PyIMailUser
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IMAPIContainer -c++ -o              $(InputName).cpp  $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IMAPIContainer -c++ -o              $(InputName).cpp  $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -448,8 +436,7 @@ InputPath=.\win32comext\mapi\src\PyIMAPIContainer.i
 InputName=PyIMAPIContainer
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o                    $(InputName).cpp  $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o                    $(InputName).cpp  $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -468,8 +455,7 @@ InputPath=.\win32comext\mapi\src\PyIMAPIContainer.i
 InputName=PyIMAPIContainer
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o                    $(InputName).cpp  $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o                    $(InputName).cpp  $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -495,8 +481,7 @@ InputPath=.\win32comext\mapi\src\PyIMAPIFolder.i
 InputName=PyIMAPIFolder
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IMAPIContainer -c++ -o                    $(InputName).cpp $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IMAPIContainer -c++ -o                    $(InputName).cpp $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -515,8 +500,7 @@ InputPath=.\win32comext\mapi\src\PyIMAPIFolder.i
 InputName=PyIMAPIFolder
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IMAPIContainer -c++ -o                    $(InputName).cpp $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IMAPIContainer -c++ -o                    $(InputName).cpp $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -542,8 +526,7 @@ InputPath=.\win32comext\mapi\src\PyIMAPIProp.i
 InputName=PyIMAPIProp
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -c++ -o $(InputName).cpp $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -c++ -o $(InputName).cpp $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -562,8 +545,7 @@ InputPath=.\win32comext\mapi\src\PyIMAPIProp.i
 InputName=PyIMAPIProp
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -c++ -o $(InputName).cpp $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -c++ -o $(InputName).cpp $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -589,8 +571,7 @@ InputPath=.\win32comext\mapi\src\PyIMAPISession.i
 InputName=PyIMAPISession
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -c++ -o $(InputName).cpp $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -c++ -o $(InputName).cpp $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -609,8 +590,7 @@ InputPath=.\win32comext\mapi\src\PyIMAPISession.i
 InputName=PyIMAPISession
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -c++ -o $(InputName).cpp $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -c++ -o $(InputName).cpp $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -636,8 +616,7 @@ InputPath=.\win32comext\mapi\src\PyIMAPITable.i
 InputName=PyIMAPITable
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -c++ -o $(InputName).cpp $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -c++ -o $(InputName).cpp $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -656,8 +635,7 @@ InputPath=.\win32comext\mapi\src\PyIMAPITable.i
 InputName=PyIMAPITable
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -c++ -o $(InputName).cpp $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -c++ -o $(InputName).cpp $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -683,8 +661,7 @@ InputPath=.\win32comext\mapi\src\PyIMessage.i
 InputName=PyIMessage
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o                    $(InputName).cpp $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o                    $(InputName).cpp $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -703,8 +680,7 @@ InputPath=.\win32comext\mapi\src\PyIMessage.i
 InputName=PyIMessage
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o                    $(InputName).cpp $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o                    $(InputName).cpp $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -729,8 +705,7 @@ InputPath=.\win32comext\mapi\src\PyIMsgServiceAdmin.i
 InputName=PyIMsgServiceAdmin
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -c++ -o  $(InputName).cpp $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -c++ -o  $(InputName).cpp $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -748,8 +723,7 @@ InputPath=.\win32comext\mapi\src\PyIMsgServiceAdmin.i
 InputName=PyIMsgServiceAdmin
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -c++ -o  $(InputName).cpp $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -c++ -o  $(InputName).cpp $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -775,8 +749,7 @@ InputPath=.\win32comext\mapi\src\PyIMsgStore.i
 InputName=PyIMsgStore
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o                    $(InputName).cpp $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o                    $(InputName).cpp $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -795,8 +768,7 @@ InputPath=.\win32comext\mapi\src\PyIMsgStore.i
 InputName=PyIMsgStore
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o                    $(InputName).cpp $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o                    $(InputName).cpp $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -822,8 +794,7 @@ InputPath=.\win32comext\mapi\src\PyIProfAdmin.i
 InputName=PyIProfAdmin
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -c++ -o $(InputName).cpp $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -c++ -o $(InputName).cpp $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -842,8 +813,7 @@ InputPath=.\win32comext\mapi\src\PyIProfAdmin.i
 InputName=PyIProfAdmin
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -c++ -o $(InputName).cpp $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -c++ -o $(InputName).cpp $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -868,8 +838,7 @@ InputPath=.\win32comext\mapi\src\PyIProfSect.i
 InputName=PyIProfSect
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o              $(InputName).cpp  $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o              $(InputName).cpp  $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -887,8 +856,7 @@ InputPath=.\win32comext\mapi\src\PyIProfSect.i
 InputName=PyIProfSect
 
 BuildCmds= \
-	cd $(InputDir) \
-	%SWIG_EXE% -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o              $(InputName).cpp  $(InputName).i \
+	..\swig.bat $(InputDir) -dnone -pythoncom -com_interface_parent IMAPIProp -c++ -o              $(InputName).cpp  $(InputName).i \
 	
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"

@@ -10,6 +10,9 @@
  * and things like that.
  *
  * $Log$
+ * Revision 1.1  2000/03/14 23:34:06  mhammond
+ * Needed to modify a standard Swig file to avoid the 'extern "C"' around Python.h (which gets upset when it tries to include whcar.h as part of the new Unicode patches)
+ *
  ************************************************************************/
 
 #include "Python.h"

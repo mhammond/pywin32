@@ -102,8 +102,7 @@ InputPath=.\src\win32evtlog.i
 InputName=win32evtlog
 
 "$(InputDir)\$(InputName)module.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	cd $(InputDir) 
-	%SWIG_EXE% -c++ -o $(InputName)module.cpp $(InputName).i 
+	..\swig.bat $(InputDir) -c++ -o $(InputName)module.cpp $(InputName).i 
 	
 # End Custom Build
 
@@ -115,8 +114,7 @@ InputPath=.\src\win32evtlog.i
 InputName=win32evtlog
 
 "$(InputDir)\$(InputName)module.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	cd $(InputDir) 
-	%SWIG_EXE% -c++ -o $(InputName)module.cpp $(InputName).i 
+	..\swig.bat $(InputDir) -c++ -o $(InputName)module.cpp $(InputName).i 
 	
 # End Custom Build
 

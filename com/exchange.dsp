@@ -108,7 +108,6 @@ InputPath=.\win32comext\mapi\src\exchange.i
 InputName=exchange
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	cd $(InputDir) 
 	%SWIG_EXE% -dnone -python -c++ -o $(InputName).cpp $(InputName).i 
 	
 # End Custom Build
@@ -122,8 +121,7 @@ InputPath=.\win32comext\mapi\src\exchange.i
 InputName=exchange
 
 "$(InputDir)\$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	cd $(InputDir) 
-	%SWIG_EXE% -dnone -python -c++ -o $(InputName).cpp $(InputName).i 
+	..\swig.bat $(InputDir) -dnone -python -c++ -o $(InputName).cpp $(InputName).i 
 	
 # End Custom Build
 
