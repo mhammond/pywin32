@@ -500,6 +500,63 @@ DWORD GetFileTime(
 	FILETIME *OUTPUT // @pyparm <o PyTime>|writeTime||
 );
 
+
+%{
+// @pyswig None|SetFileTime|Sets the date and time that a file was created, last accessed, or last modified.
+static PyObject *PySetFileTime (PyObject *self, PyObject *args)
+{
+	PyObject *obHandle;       // @pyparm <o PyHANDLE>/int|handle||Previously opened handle (opened with GENERIC_WRITE access).
+	PyObject *obTimeCreated;  // @pyparm <o PyTime>|CreatedTime||File created time. None for no change.
+	PyObject *obTimeAccessed; // @pyparm <o PyTime>|AccessTime||File access time. None for no change.
+	PyObject *obTimeWritten;  // @pyparm <o PyTime>|WrittenTime||File written time. None for no change.
+	HANDLE hHandle;
+	FILETIME TimeCreated, *lpTimeCreated;
+	FILETIME TimeAccessed, *lpTimeAccessed;
+	FILETIME TimeWritten, *lpTimeWritten;
+	FILETIME LocalFileTime;
+	
+	if (!PyArg_ParseTuple(args, "OOOO:SetFileTime",
+		&obHandle, &obTimeCreated, &obTimeAccessed, &obTimeWritten))
+		return NULL;
+
+    if (!PyWinObject_AsHANDLE(obHandle, &hHandle))
+        return NULL;
+	if (obTimeCreated == Py_None)
+		lpTimeCreated= NULL;
+	else
+	{
+		if (!PyWinObject_AsFILETIME(obTimeCreated, &LocalFileTime))
+			return NULL;
+		LocalFileTimeToFileTime(&LocalFileTime, &TimeCreated);
+		lpTimeCreated= &TimeCreated;
+	}
+	if (obTimeAccessed == Py_None)
+		lpTimeAccessed= NULL;
+	else
+	{
+		if (!PyWinObject_AsFILETIME(obTimeAccessed, &LocalFileTime))
+			return NULL;
+		LocalFileTimeToFileTime(&LocalFileTime, &TimeAccessed);
+		lpTimeAccessed= &TimeAccessed;
+	}
+	if (obTimeWritten == Py_None)
+		lpTimeWritten= NULL;
+	else
+	{
+		if (!PyWinObject_AsFILETIME(obTimeWritten, &LocalFileTime))
+			return NULL;
+		LocalFileTimeToFileTime(&LocalFileTime, &TimeWritten);
+		lpTimeWritten= &TimeWritten;
+	}
+	if (!::SetFileTime(hHandle, lpTimeCreated, lpTimeAccessed, lpTimeWritten))
+		return PyWin_SetAPIError("SetFileTime");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+%native(SetFileTime) PySetFileTime;
+
+
 //GetFileAttributesEx	
 //GetFileInformationByHandle	
 
