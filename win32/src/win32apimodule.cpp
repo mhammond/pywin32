@@ -1388,7 +1388,7 @@ PyGetProcAddress(PyObject * self, PyObject * args)
 	if (proc==NULL)
 		return ReturnAPIError("GetProcAddress");
 	// @pyseeapi GetProcAddress
-	return Py_BuildValue("i",(int)proc);
+	return PyLong_FromVoidPtr(proc);
 }
 
 // @pymethod int/string|win32api|GetProfileVal|Retrieves entries from a windows INI file.  This method encapsulates GetProfileString, GetProfileInt, GetPrivateProfileString and GetPrivateProfileInt.
