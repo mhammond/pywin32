@@ -60,6 +60,7 @@ char *FormatSysError(const DWORD nErrNo)
 	// This should never happen, so we can be a little brutal.
 	char *result = (char *)malloc(1024);
 	if (!result) return NULL;
+	result[0] = '\0';
 	int nLen =FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,
 				  NULL,
 				  nErrNo,
