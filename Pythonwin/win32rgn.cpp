@@ -51,6 +51,24 @@ PyCRgn::create_rect_rgn(PyObject *self, PyObject *args)
 	return Py_BuildValue("i",ok);
 	}
 
+// @pymethod int|PyCRgn|CreateEllipticRgn|Initializes a region to an ellipse
+// Return Values: success or failure flag (BOOL)
+PyObject *
+PyCRgn::create_elliptic_rgn(PyObject *self, PyObject *args)
+      {
+      CRgn *pRgn = PyCRgn::GetRgn(self);
+      if (!pRgn) return NULL;
+
+      int x1,y1,x2,y2;
+      if (!PyArg_ParseTuple(args,"(iiii):CreateEllipticRgn",
+              &x1,&y1, &x2,&y2))
+              return NULL;
+
+      BOOL ok=pRgn->CreateEllipticRgn(x1,y1,x2,y2);
+
+      return Py_BuildValue("i",ok);
+      }
+
 // @pymethod int|PyCRgn|CombineRgn|Creates a new GDI region by combining two existing regions. The regions are combined as specified by nCombineMode
 // Return Values: success or failure flag (BOOL)
 PyObject *

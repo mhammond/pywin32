@@ -12,6 +12,7 @@ class PyCRgn : public PyCGdiObject
 	static CRgn *GetRgn(PyObject *self);
 
 	static PyObject *create(PyObject *self, PyObject *args);
+	static PyObject *create_elliptic_rgn(PyObject *self, PyObject *args);
 
 	static PyObject *create_rect_rgn(PyObject *self, PyObject *args);
 	static PyObject *combine_rgn(PyObject *self, PyObject *args);
