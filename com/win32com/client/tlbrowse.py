@@ -147,7 +147,7 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
 			desc = desc + ", Flags=0x%x, typeKind=0x%x, typeFlags=0x%x" % (flags, typeKind, typeFlags)
 			if flags & pythoncom.IMPLTYPEFLAG_FSOURCE:
 				desc = desc + "(Source)"
-			infos.append( ('Implements'), desc)
+			infos.append( ('Implements', desc))
 
 		return infos
 
