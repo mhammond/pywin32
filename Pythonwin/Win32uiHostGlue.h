@@ -135,7 +135,7 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const char *cmd, const char 
 			break;
 		// No point searching for 1.6->2.0!
 		if (i==15)
-			i = 20;
+			i = 19;
 	}
 	if (hModCore==NULL) {
 		AfxMessageBox("Can not locate the Python DLL");
