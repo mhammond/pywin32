@@ -430,12 +430,23 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 
 #define TABLE_SORT_DESCEND TABLE_SORT_DESCEND // The table should be sorted in descending order. 
 
+// @object MAPIINIT_0|A MAPIINIT_0 is represented as a tuple of:
+// @tupleitem 0|int|version|This must be MAPI_INIT_VERSION.
+// @tupleitem 1|int|flags|MAPI initlization flags.
+// @flagh Value|Meaning
+// @flag MAPI_MULTITHREAD_NOTIFICATIONS|MAPI should generate notifications using a thread dedicated to notification handling rather than the first thread used to call <om mapi.MAPIInitialize>.
+// @flag MAPI_NT_SERVICE|The caller is running as a NT service. Callers that are not running in a Windows NT service should not set this flag; callers that are running as a service must set this flag.
+// @comm Multithreaded clients should set MAPI_MULTITHREAD_NOTIFICATIONS flag so that they can receive notifications on threads other than the first thread to call <om mapi.MAPIInitialize>.
+
 // @pyswig |MAPIInitialize|Increments the MAPI subsystem reference count and initializes global data for the MAPI DLL. 
-HRESULT MAPIInitialize( MAPIINIT_0 *INPUT);
+HRESULT MAPIInitialize
+(
+	MAPIINIT_0 *INPUT // @pyparm <o MAPIINIT_0>|init||MAPI Initialization flags.
+);
 
 // @pyswig <o PyIMAPISession>|MAPILogonEx|
 HRESULT MAPILogonEx( 
-	ULONG INPUT, // @pyparm int|uiFlags||Handle to the window to which the logon dialog box is modal. If no dialog box is displayed during the call, the ulUIParam parameter is ignored. This parameter can be zero. 
+	ULONG INPUT, // @pyparm int|hWnd||Handle to the window to which the logon dialog box is modal. If no dialog box is displayed during the call, the hWnd parameter is ignored. This parameter can be zero. 
 	TCHAR *inNullString, // @pyparm <o PyUnicode>|profileName||A string containing the name of the profile to use when logging on. This string is limited to 64 characters.
 	TCHAR *inNullString, // @pyparm <o PyUnicode>|password||A string containing the password of the profile. This parameter can be None whether or not the profileName parameter is None. This string is limited to 64 characters.
 	FLAGS flFlags, // @pyparm int|uiFlags||Bitmask of flags used to control how logon is performed.  See the MAPI documentation for details.
