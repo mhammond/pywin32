@@ -49,11 +49,11 @@ void FreeSD_Group(PSECURITY_DESCRIPTOR psd)
 
 void FreeAbsoluteSD(PSECURITY_DESCRIPTOR psd)
 {
-		FreeSD_DACL(psd);
-		FreeSD_SACL(psd);
-		FreeSD_Owner(psd);
-		FreeSD_Group(psd);
-		free(psd);
+	FreeSD_DACL(psd);
+	FreeSD_SACL(psd);
+	FreeSD_Owner(psd);
+	FreeSD_Group(psd);
+	free(psd);
 }
 
 DWORD GetAclSize (PACL pacl)
@@ -161,33 +161,23 @@ BOOL _MakeSelfRelativeSD(PSECURITY_DESCRIPTOR psd_absolute, PSECURITY_DESCRIPTOR
 BOOL _MakeAbsoluteSD(PSECURITY_DESCRIPTOR psd_relative, PSECURITY_DESCRIPTOR *ppsd_absolute)
 {
 	PSECURITY_DESCRIPTOR psd_absolute = NULL;
-	PACL pdacl;
-	PACL psacl;
-	PSID powner;
-	PSID pgroup;
-    DWORD origsdsize = SECURITY_DESCRIPTOR_MIN_LENGTH;
-	DWORD origdaclsize = sizeof(ACL);
-	DWORD origsaclsize = sizeof(ACL);
-	DWORD origownersize = sizeof(SID);
-	DWORD origgroupsize = sizeof(SID);
-	DWORD sdsize,daclsize,saclsize,ownersize,groupsize;
-
-	sdsize = origsdsize;
-	daclsize = origdaclsize;
-	saclsize = origsaclsize;
-	ownersize = origownersize;
-	groupsize = origgroupsize;
+	PACL pdacl = NULL;
+	PACL psacl = NULL;
+	PSID powner = NULL;
+	PSID pgroup = NULL;
+	DWORD sdsize = SECURITY_DESCRIPTOR_MIN_LENGTH;
+	DWORD origsdsize = SECURITY_DESCRIPTOR_MIN_LENGTH;
+	DWORD daclsize = 0;
+	DWORD saclsize = 0;
+	DWORD ownersize = 0;
+	DWORD groupsize = 0;
 
 	psd_absolute = malloc(sdsize);
 	ZeroMemory(psd_absolute,sdsize);
 	::InitializeSecurityDescriptor(psd_absolute,SECURITY_DESCRIPTOR_REVISION);
-	pdacl =  (ACL *)malloc(daclsize);
-	psacl =  (ACL *)malloc(saclsize);
-	powner = malloc(ownersize);
-	pgroup = malloc(groupsize);
 	BOOL resize = FALSE;
 
-    if(MakeAbsoluteSD(psd_relative, psd_absolute, &sdsize,
+	if(MakeAbsoluteSD(psd_relative, psd_absolute, &sdsize,
 					pdacl, &daclsize, psacl, &saclsize,
 					powner, &ownersize, pgroup, &groupsize)){
 		*ppsd_absolute = psd_absolute;
@@ -199,24 +189,20 @@ BOOL _MakeAbsoluteSD(PSECURITY_DESCRIPTOR psd_relative, PSECURITY_DESCRIPTOR *pp
 		psd_absolute = malloc(sdsize);
 		::InitializeSecurityDescriptor(psd_absolute,SECURITY_DESCRIPTOR_REVISION);
 		}
-	if (daclsize > origdaclsize){
+	if (daclsize > 0){
 		resize = TRUE;
-		free(pdacl);
 		pdacl =  (ACL *)malloc(daclsize);
 		}
-	if (saclsize > origsaclsize){
+	if (saclsize > 0){
 		resize = TRUE;
-		free(psacl);
 		psacl = (ACL *)malloc(saclsize);
 		}
-	if (ownersize > origownersize){
+	if (ownersize > 0){
 		resize = TRUE;
-		free(powner);
 		powner = (SID *)malloc(ownersize);
 		}
-	if (groupsize > origgroupsize){
+	if (groupsize > 0){
 		resize = TRUE;
-		free(pgroup);
 		pgroup = (SID *)malloc(groupsize);
 		}
 	if (!resize){
@@ -228,7 +214,6 @@ BOOL _MakeAbsoluteSD(PSECURITY_DESCRIPTOR psd_relative, PSECURITY_DESCRIPTOR *pp
 					pdacl, &daclsize, psacl, &saclsize,
 					powner, &ownersize, pgroup, &groupsize)){
 		*ppsd_absolute = psd_absolute;
-		DWORD sdsize=::GetSecurityDescriptorLength(psd_absolute);
 		return TRUE;
 		}
 	FreeAbsoluteSD(psd_absolute);
@@ -266,7 +251,7 @@ PyObject *PySECURITY_DESCRIPTOR::Initialize(PyObject *self, PyObject *args)
 		return NULL;
 	if (!::InitializeSecurityDescriptor(psd, SECURITY_DESCRIPTOR_REVISION))
 		return PyWin_SetAPIError("InitializeSecurityDescriptor");
-    // above always returns in absolute format, change back to self-relative
+	// above always returns in absolute format, change back to self-relative
 	if (_MakeSelfRelativeSD(psd,&psd_relative))
 		if (This->SetSD(psd_relative))
 			ret = Py_None;
@@ -284,7 +269,6 @@ PyObject *PySECURITY_DESCRIPTOR::SetSecurityDescriptorDacl(PyObject *self, PyObj
 	PyObject *obDACL;
 	PySECURITY_DESCRIPTOR *This = (PySECURITY_DESCRIPTOR *)self;
 	PSECURITY_DESCRIPTOR psd=NULL, psd_relative=NULL;
-	DWORD sdsize=0,required_size=0,aclsize=0;
 	BOOL bDaclPresent, bDaclDefaulted;
 	PACL pdacl;
 	if (!PyArg_ParseTuple(args, "iOi:SetSecurityDescriptorDacl", &bDaclPresent, &obDACL, &bDaclDefaulted))
@@ -295,7 +279,7 @@ PyObject *PySECURITY_DESCRIPTOR::SetSecurityDescriptorDacl(PyObject *self, PyObj
 	// @pyparm <o PyACL>|DACL||The DACL to set.  If None, a NULL ACL will be created allowing world access.
 	// @pyparm int|bDaclDefaulted||A flag indicating if the SE_DACL_DEFAULTED flag should be set.
 
-    PSECURITY_DESCRIPTOR obpsd = This->GetSD();
+	PSECURITY_DESCRIPTOR obpsd = This->GetSD();
 	// will alway be in relative format in python object, convert to absolute
 	if (!_MakeAbsoluteSD(obpsd, &psd))
 		return NULL;
@@ -335,7 +319,6 @@ PyObject *PySECURITY_DESCRIPTOR::SetSecurityDescriptorSacl(PyObject *self, PyObj
 	PyObject *obSACL;
 	PACL psacl;
 	BOOL bSaclPresent, bSaclDefaulted;
-	DWORD sdsize=0,required_size=0,aclsize=0;
 	// @pyparm int|bSaclPresent||A flag indicating if SACL is to be used. If false, last 2 parms are ignored.
 	// @pyparm <o PyACL>|SACL||The SACL to set in the security descriptor
 	// @pyparm int|bSaclDefaulted||Flag, set to false if user has specifically set the SACL.
@@ -344,7 +327,7 @@ PyObject *PySECURITY_DESCRIPTOR::SetSecurityDescriptorSacl(PyObject *self, PyObj
 	if (!PyWinObject_AsACL(obSACL, &psacl, TRUE))
 		return NULL;
 
-    PSECURITY_DESCRIPTOR obpsd = This->GetSD();
+	PSECURITY_DESCRIPTOR obpsd = This->GetSD();
 	if (!_MakeAbsoluteSD(obpsd,&psd))
 		goto done;
 
@@ -410,7 +393,7 @@ PyObject *PySECURITY_DESCRIPTOR::SetSecurityDescriptorOwner(PyObject *self, PyOb
 	BOOL bOwnerDefaulted;
 	PySECURITY_DESCRIPTOR *This = (PySECURITY_DESCRIPTOR *)self;
 	PSID NewOwnerSid = NULL;
-	PySID *obNewOwnerSid = NULL;
+	PyObject *obNewOwnerSid = NULL;
 	PyObject *ret = NULL;
 	if (!PyArg_ParseTuple(args, "Oi:SetSecurityDescriptorOwner", &obNewOwnerSid, &bOwnerDefaulted))
 		return NULL;
@@ -432,14 +415,14 @@ PyObject *PySECURITY_DESCRIPTOR::SetSecurityDescriptorOwner(PyObject *self, PyOb
 		ret = Py_None;
 
 	done:
-	if (psd){
+	if (psd != NULL){
 		FreeSD_DACL(psd);
 		FreeSD_SACL(psd);
 		FreeSD_Group(psd);
 		// *Don't* free owner memory, will still be referenced by passed in PySID
 		free(psd);
 		}
-	if (psd_relative)
+	if (psd_relative != NULL)
 		free(psd_relative);
 	Py_XINCREF(ret);
 	return ret;
@@ -455,7 +438,7 @@ PyObject *PySECURITY_DESCRIPTOR::SetSecurityDescriptorGroup(PyObject *self, PyOb
 	PSECURITY_DESCRIPTOR psd = NULL;
 	PSECURITY_DESCRIPTOR psd_relative = NULL;
 	PSID NewGroupSid = NULL;
-	PySID *obNewGroupSid = NULL;
+	PyObject *obNewGroupSid = NULL;
 	PyObject *ret = NULL;
 
 	if (!PyArg_ParseTuple(args, "Oi:SetSecurityDescriptorOwner", &obNewGroupSid, &bGroupDefaulted))
@@ -477,14 +460,14 @@ PyObject *PySECURITY_DESCRIPTOR::SetSecurityDescriptorGroup(PyObject *self, PyOb
 		ret = Py_None;
 
 	done:
-	if (psd){
+	if (psd != NULL){
 		FreeSD_DACL(psd);
 		FreeSD_SACL(psd);
 		FreeSD_Owner(psd);
 		free(psd);
 		// *Don't* free group, will still be owned by passed in PySID
 		}
-	if (psd_relative)
+	if (psd_relative != NULL)
 		free(psd_relative);
 	Py_XINCREF(ret);
 	return ret;
@@ -590,7 +573,7 @@ PyObject *PySECURITY_DESCRIPTOR::GetSecurityDescriptorControl(PyObject *self, Py
 		return PyWin_SetAPIError("GetSecurityDescriptorControl - invalid sd");
 	if (!::GetSecurityDescriptorControl(psd, &Control, 	&dwRevision))
 		return PyWin_SetAPIError("GetSecurityDescriptorControl");
-    return Py_BuildValue("(ii)", Control, dwRevision);
+	return Py_BuildValue("(ii)", Control, dwRevision);
 }
 
 // @pymethod |PySECURITY_DESCRIPTOR|IsValid|Determines if the security descriptor is valid.
