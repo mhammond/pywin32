@@ -293,7 +293,7 @@ class DialogShowObject(dialog.Dialog):
 		self.title = title
 		dialog.Dialog.__init__(self, win32ui.IDD_LARGE_EDIT)
 	def OnInitDialog(self):
-		import regsub
+		import re
 		self.SetWindowText(self.title)
 		self.edit = self.GetDlgItem(win32ui.IDC_EDIT1)
 		try:
@@ -302,7 +302,7 @@ class DialogShowObject(dialog.Dialog):
 			t, v, tb = sys.exc_info()
 			strval = "Exception getting object value\n\n%s:%s" % (t, v)
 			tb = None
-		strval = regsub.gsub('\n','\r\n', strval)
+		strval = re.sub('\n','\r\n', strval)
 		self.edit.ReplaceSel(strval)
 		
 def ShowObject(object, title):

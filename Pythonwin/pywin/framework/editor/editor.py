@@ -21,7 +21,7 @@ import win32ui
 import win32api
 import win32con
 import regex
-import regsub
+import re
 import string
 import sys, os
 import traceback
@@ -105,7 +105,7 @@ class EditorDocument(ParentEditorDocument):
 		# if a CR in the first 250 chars, then perform the expensive translate
 		if string.find(data[:250],'\r')==-1:
 			win32ui.SetStatusText("Translating from Unix file format - please wait...",1)
-			return regsub.gsub('\r*\n','\r\n',data)
+			return re.sub('\r*\n','\r\n',data)
 		else:
 			return data
 		

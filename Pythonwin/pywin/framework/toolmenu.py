@@ -86,11 +86,11 @@ def SetToolsMenu(menu, menuPos = None):
 
 def HandleToolCommand(cmd, code):
 	import traceback
-	import regsub
+	import re
 	global tools
 	(menuString, pyCmd, desc) = tools[cmd]
 	win32ui.SetStatusText("Executing tool %s" % desc, 1)
-	pyCmd = regsub.gsub('\\\\n','\n', pyCmd)
+	pyCmd = re.sub('\\\\n','\n', pyCmd)
 	win32ui.DoWaitCursor(1)
 	oldFlag = None
 	try:

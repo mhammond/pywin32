@@ -13,7 +13,6 @@ import bdb
 import sys
 import string
 import os
-import regsub
 import types
 
 import win32ui

@@ -8,7 +8,6 @@ import win32con
 import win32api
 import sys
 from pywin.mfc import dialog
-import regsub
 
 error = "Dialog Application Error" 
 
