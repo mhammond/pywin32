@@ -245,7 +245,6 @@ class PyScript(framework.COMScript):
 		return framework.COMScript.Stop(self)
 
 	def Reset(self):
-		print "Reset called - had %d code blocks" % (len(self.codeBlocks))
 		# Reset all code-blocks that are persistent, and discard the rest
 		oldCodeBlocks = self.codeBlocks[:]
 		self.codeBlocks = []
