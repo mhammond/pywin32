@@ -379,9 +379,7 @@ PyObject *PyIShellFolder::SetNameOf(PyObject *self, PyObject *args)
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pISF, IID_IShellFolder );
 	PyObject *ret = PyObject_FromPIDL(pidlRet, TRUE);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+	return ret;
 }
 
 // @object PyIShellFolder|Description of the interface
@@ -567,8 +565,9 @@ STDMETHODIMP PyGShellFolder::GetAttributesOf(
 	Py_XDECREF(obpidl);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
-	if (!PyArg_Parse(result, "l" , rgfInOut))
-		hr = PyCom_SetAndLogCOMErrorFromPyException("GetAttributesOf", IID_IShellFolder);
+	if (rgfInOut && PyInt_Check(result))
+		*rgfInOut = PyInt_AsLong(result);
+	hr = PyCom_SetAndLogCOMErrorFromPyException("GetAttributesOf", IID_IShellFolder);
 	Py_DECREF(result);
 	return hr;
 }
@@ -637,6 +636,7 @@ STDMETHODIMP PyGShellFolder::SetNameOf(
 {
 	static const char *szMethodName = "SetNameOf";
 	PY_GATEWAY_METHOD;
+	if (ppidlOut) (*ppidlOut)=NULL;
 	PyObject *obpidl;
 	PyObject *oblpszName;
 	obpidl = PyObject_FromPIDL(pidl, FALSE);
@@ -646,8 +646,10 @@ STDMETHODIMP PyGShellFolder::SetNameOf(
 	Py_XDECREF(obpidl);
 	Py_XDECREF(oblpszName);
 	if (FAILED(hr)) return hr;
-	PyObject_AsPIDL(result, ppidlOut, FALSE);
-	hr = PyCom_SetAndLogCOMErrorFromPyException(szMethodName, IID_IShellFolder);
+	if (ppidlOut) {
+		PyObject_AsPIDL(result, ppidlOut, FALSE);
+		hr = PyCom_SetAndLogCOMErrorFromPyException(szMethodName, IID_IShellFolder);
+	}
 	Py_DECREF(result);
 	return hr;
 }
