@@ -37,10 +37,11 @@ def _test_with_import(capture, module_name, fn_name, desc):
         capture.release()
         print "***** %s test FAILED after %d lines of output" % (desc, capture.get_num_lines_captured())
 
+unittest_modules = "testIterators".split()
+
 if __name__=='__main__':
     # default to "quick" test.  2==medium, 3==full
     testLevel = 1
-
     try:
         if len(sys.argv)>1:
             testLevel = int(sys.argv[1])
@@ -49,6 +50,18 @@ if __name__=='__main__':
 
     CleanGenerated()
 
+    import unittest
+    testRunner = unittest.TextTestRunner(verbosity=1)
+    for mod_name in unittest_modules:
+        mod = __import__(mod_name)
+        if hasattr(mod, "suite"):
+            test = mod.suite()
+        else:
+            test = unittest.defaultTestLoader.loadTestsFromModule(mod)
+        result = testRunner.run(test)
+        if not result.wasSuccessful():
+            print "*" * 50
+            print "Unittest tests failed"
     import win32com.test.util
     capture = win32com.test.util.CaptureWriter()
 
