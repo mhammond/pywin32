@@ -14,9 +14,13 @@ HELP_DIR   = ../win32/help
 SOURCE  = $(SOURCE_DIR)/*.cpp \
 	  $(SOURCE_DIR)/*.h \
 	  $(HELP_DIR)/*.d \
+	  $(SOURCE_DIR)/perfmon/*.cpp \
+	  $(SOURCE_DIR)/win32net/*.cpp \
+	  $(SOURCE_DIR)/win32wnet/*.cpp \
+	  $(SOURCE_DIR)/win32print/*.cpp \
 	  $(GENDIR)/win32evtlog.d $(GENDIR)/win32event.d $(GENDIR)/win32file.d \
 	  $(GENDIR)/win32service.d $(GENDIR)/win32pipe.d $(GENDIR)/win32security.d \
-	  $(GENDIR)/win32process.d
+	  $(GENDIR)/win32process.d $(GENDIR)/wincerapi.d
 
 # Help and Doc targets
 help : $(GENDIR) "..\$(TARGET).hlp"
@@ -46,6 +50,9 @@ $(GENDIR)/win32security.d: $(SOURCE_DIR)/$(*B).i
 	makedfromi.py -o$*.d $(SOURCE_DIR)/$(*B).i
 
 $(GENDIR)/win32process.d: $(SOURCE_DIR)/$(*B).i
+	makedfromi.py -o$*.d $(SOURCE_DIR)/$(*B).i
+
+$(GENDIR)/wincerapi.d: $(SOURCE_DIR)/$(*B).i
 	makedfromi.py -o$*.d $(SOURCE_DIR)/$(*B).i
 
 !include "common.mak"
