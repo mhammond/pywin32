@@ -5,6 +5,7 @@ import unittest
 import gc
 import pythoncom
 import winerror
+import cStringIO as StringIO
 from pythoncom import _GetInterfaceCount, _GetGatewayCount
 
 def CheckClean():
@@ -19,7 +20,7 @@ def CheckClean():
         print "Warning - %d com gateway objects still alive" % c
 
 def RegisterPythonServer(filename, verbose=0):
-    cmd = '%s "%s" > nul' % (win32api.GetModuleFileName(0), filename)
+    cmd = '%s "%s" > nul 2>&1' % (win32api.GetModuleFileName(0), filename)
     if verbose:
         print "Registering engine", filename
 #       print cmd
@@ -54,6 +55,14 @@ def ExecuteShellCommand(cmd, testcase,
         print "** end of program output **"
         testcase.fail("Executing '%s' failed as %s" % (cmd, why))
 
+def assertRaisesCOM_HRESULT(testcase, hresult, func, *args, **kw):
+    try:
+        func(*args, **kw)
+    except pythoncom.com_error, details:
+        if details[0]==hresult:
+            return
+    testcase.fail("Excepected COM exception with HRESULT 0x%x" % hresult)
+
 class CaptureWriter:
     def __init__(self):
         self.old_err = self.old_out = None
@@ -79,47 +88,113 @@ class CaptureWriter:
     def get_num_lines_captured(self):
         return len("".join(self.captured).split("\n"))
 
-class TestCaseMixin:
-    def _preTest(self):
-        self.ni = _GetInterfaceCount()
-        self.ng = _GetGatewayCount()
-    def _postTest(self, result):
+class LeakTestCase(unittest.TestCase):
+    def __init__(self, real_test):
+        unittest.TestCase.__init__(self)
+        self.real_test = real_test
+        self.num_test_cases = 1
+        self.num_leak_iters = 2 # seems to be enough!
+        if hasattr(sys, "gettotalrefcount"):
+            self.num_test_cases = self.num_test_cases + self.num_leak_iters
+    def countTestCases(self):
+        return self.num_test_cases
+    def runTest(self):
+        assert 0, "not used"
+    def __call__(self, result = None):
+        # Always ensure we don't leak gateways/interfaces
         gc.collect()
-        lost_i = _GetInterfaceCount() - self.ni
-        lost_g = _GetGatewayCount() - self.ng
+        ni = _GetInterfaceCount()
+        ng = _GetGatewayCount()
+        self.real_test(result)
+        # Failed - no point checking anything else
+        if result.shouldStop or not result.wasSuccessful():
+            return
+        self._do_leak_tests(result)
+        gc.collect()
+        lost_i = _GetInterfaceCount() - ni
+        lost_g = _GetGatewayCount() - ng
         if lost_i or lost_g:
             msg = "%d interface objects and %d gateway objects leaked" \
                                                         % (lost_i, lost_g)
-            result.addFailure(self, (AssertionError, msg, None))
-    def assertRaisesCOM_HRESULT(self, hresult, func, *args, **kw):
+            result.addFailure(self.real_test, (AssertionError, msg, None))
+    def _do_leak_tests(self, result = None):
         try:
-            func(*args, **kw)
-        except pythoncom.com_error, details:
-            if details[0]==hresult:
-                return
-        self.fail("Excepected COM exception with HRESULT 0x%x" % hresult)
+            gtrc = sys.gettotalrefcount
+        except AttributeError:
+            return # can't do leak tests in this build
+            def gtrc():
+                return 0
+        # Assume already called once, to prime any caches etc
+        trc = gtrc()
+        for i in range(self.num_leak_iters):
+            self.real_test(result)
+            if result.shouldStop:
+                break
+        del i # created after we remembered the refcount!
+        # int division here means one or 2 stray references won't force 
+        # failure, but one per loop 
+        lost = (gtrc() - trc) // self.num_leak_iters
+        if lost < 0:
+            msg = "LeakTest: %s appeared to gain %d references!!" % (self.real_test, -lost)
+            result.addFailure(self.real_test, (AssertionError, msg, None))
+        if lost > 0:
+            msg = "LeakTest: %s lost %d references" % (self.real_test, lost)
+            result.addFailure(self.real_test, (AssertionError, msg, None))
 
-class TestCase(unittest.TestCase, TestCaseMixin):
-    def __call__(self, result=None):
-        if result is None: result = self.defaultTestResult()
-        self._preTest()
-        try:
-            unittest.TestCase.__call__(self, result)
-        finally:
-            self._postTest(result)
+class TestLoader(unittest.TestLoader):
+    def loadTestsFromTestCase(self, testCaseClass):
+        """Return a suite of all tests cases contained in testCaseClass"""
+        leak_tests = []
+        for name in self.getTestCaseNames(testCaseClass):
+            real_test = testCaseClass(name)
+            leak_test = self._getTestWrapper(real_test)
+            leak_tests.append(leak_test)
+        return self.suiteClass(leak_tests)
+    def _getTestWrapper(self, test):
+        no_leak_tests = getattr(test, "no_leak_tests", False)
+        if no_leak_tests:
+            print "Test says it doesn't want leak tests!"
+            return test
+        return LeakTestCase(test)
+    def loadTestsFromModule(self, mod):
+        if hasattr(mod, "suite"):
+            return mod.suite()
+        else:
+            return unittest.TestLoader.loadTestsFromModule(self, mod)
+    def loadTestsFromName(self, name, module=None):
+        test = unittest.TestLoader.loadTestsFromName(self, name, module)
+        if isinstance(test, unittest.TestSuite):
+            pass # hmmm? print "Don't wrap suites yet!", test._tests
+        elif isinstance(test, unittest.TestCase):
+            test = self._getTestWrapper(test)
+        else:
+            print "XXX - what is", test
+        return test
 
-class CapturingFunctionTestCase(unittest.FunctionTestCase, TestCaseMixin):
+# We used to override some of this (and may later!)
+TestCase = unittest.TestCase
+
+def CapturingFunctionTestCase(*args, **kw):
+    real_test = _CapturingFunctionTestCase(*args, **kw)
+    return LeakTestCase(real_test)
+
+class _CapturingFunctionTestCase(unittest.FunctionTestCase):#, TestCaseMixin):
     def __call__(self, result=None):
         if result is None: result = self.defaultTestResult()
         writer = CaptureWriter()
-        self._preTest()
+        #self._preTest()
         writer.capture()
         try:
             unittest.FunctionTestCase.__call__(self, result)
+            if getattr(self, "do_leak_tests", 0) and hasattr(sys, "gettotalrefcount"):
+                self.run_leak_tests(result)
         finally:
             writer.release()
-            self._postTest(result)
-        self.checkOutput(writer.get_captured(), result)
+            #self._postTest(result)
+        output = writer.get_captured()
+        self.checkOutput(output, result)
+        if result.showAll:
+            print output
     def checkOutput(self, output, result):
         if output.find("Traceback")>=0:
             msg = "Test output contained a traceback\n---\n%s\n---" % output
@@ -141,5 +216,8 @@ class ShellTestCase(unittest.TestCase):
         return "exec: " + cmd_repr
 
 def testmain(*args, **kw):
-    unittest.main(*args, **kw)
+    new_kw = kw.copy()
+    if not new_kw.has_key('testLoader'):
+        new_kw['testLoader'] = TestLoader()
+    unittest.main(*args, **new_kw)
     
