@@ -172,7 +172,10 @@ PyObject *PyString_FromUnicode( const OLECHAR *str )
 		return Py_None;
 	}
 	PyObject *uo = PyWinObject_FromOLECHAR(str);
-	return PyUnicode_EncodeMBCS(PyUnicode_AS_UNICODE(uo), PyUnicode_GET_SIZE(uo), NULL);
+	if (uo==NULL) return NULL;
+	PyObject *ret = PyUnicode_EncodeMBCS(PyUnicode_AS_UNICODE(uo), PyUnicode_GET_SIZE(uo), NULL);
+	Py_DECREF(uo);
+	return ret;
 }
 
 int PyUnicode_Size(PyObject *op)
