@@ -37,6 +37,8 @@ generates Windows .hlp files.
 #define PyW32_BLOCK_THREADS Py_BLOCK_THREADS
 
 static BOOL (WINAPI *myGetUserNameEx)(EXTENDED_NAME_FORMAT, LPWSTR, PULONG)=NULL;
+static BOOL (WINAPI *myGetLongPathNameA)(LPCSTR, LPSTR, DWORD)=NULL;
+static BOOL (WINAPI *myGetLongPathNameW)(LPCWSTR, LPWSTR, DWORD)=NULL;
 
 /* error helper */
 PyObject *ReturnError(char *msg, char *fnName = NULL)
@@ -1570,6 +1572,53 @@ PyGetShortPathName(PyObject * self, PyObject * args)
 	// @comm The short path name is an 8.3 compatible file name.  As the input path does
 	// not need to be absolute, the returned name may be longer than the input path.
 }
+
+// @pymethod string|win32api|GetLongPathName|Converts the specified path to its long form.
+static PyObject *
+PyGetLongPathNameA (PyObject *self, PyObject *args)
+{
+	char pathBuf[MAX_PATH];
+	char *fileName;
+	if (!myGetLongPathNameA)
+		PyErr_SetString(PyExc_NotImplementedError, "GetLongPathNameA does not exist in this version of Windows");
+	// @pyparm string|fileName||The file name.
+	if (!PyArg_ParseTuple (args, "s:GetLongPathName", &fileName))
+		return NULL;
+	PyW32_BEGIN_ALLOW_THREADS
+	BOOL ok = (*myGetLongPathNameA)(fileName, pathBuf, sizeof(pathBuf));
+	PyW32_END_ALLOW_THREADS
+	if (!ok)
+		return ReturnAPIError("GetLongPathName");
+	return Py_BuildValue("s", pathBuf);
+	// @comm This function may raise a NotImplementedError exception if the version
+	// of Windows does not support this function.
+}
+
+// @pymethod unicode|win32api|GetLongPathNameW|Converts the specified path to its long form.
+static PyObject *
+PyGetLongPathNameW (PyObject *self, PyObject *args)
+{
+	WCHAR pathBuf[MAX_PATH];
+	WCHAR *fileName;
+	if (!myGetLongPathNameW)
+		PyErr_SetString(PyExc_NotImplementedError, "GetLongPathNameW does not exist in this version of Windows");
+	// @pyparm string|fileName||The file name.
+	PyObject *obFileName;
+	if (!PyArg_ParseTuple (args, "O:GetLongPathNameW", &obFileName))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obFileName, &fileName))
+		return NULL;
+	PyW32_BEGIN_ALLOW_THREADS
+	BOOL ok = (*myGetLongPathNameW)(fileName, pathBuf, sizeof(pathBuf)/sizeof(pathBuf[0]));
+	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeWCHAR(fileName);
+	if (!ok)
+		return ReturnAPIError("GetLongPathName");
+	return PyWinObject_FromWCHAR(pathBuf);
+	// @comm This function may raise a NotImplementedError exception if the version
+	// of Windows does not support this function.
+}
+
 
 // @pymethod string|win32api|GetTickCount|Returns the number of milliseconds since windows started.
 static PyObject *
@@ -4212,6 +4261,8 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetKeyState",			PyGetKeyState,      1}, // @pymeth GetKeyState|Retrives the last known key state for a key.
 	{"GetLastError",		PyGetLastError,     1}, // @pymeth GetLastError|Retrieves the last error code known by the system.
 	{"GetLocalTime",         PyGetLocalTime,      1},  // @pymeth GetLocalTime|Returns the current local time.
+	{"GetLongPathName",     PyGetLongPathNameA, 1}, // @pymeth GetLongPathName|Converts the specified path to its long form.
+	{"GetLongPathNameW",    PyGetLongPathNameW, 1}, // @pymeth GetLongPathNameW|Converts the specified path to its long form.
 	{"GetLogicalDrives",	PyGetLogicalDrives,     1}, // @pymeth GetLogicalDrives|Returns a bitmask representing the currently available disk drives.
 	{"GetLogicalDriveStrings",	PyGetLogicalDriveStrings,     1}, // @pymeth GetLogicalDriveStrings|Returns a list of strings for all the drives.
 	{"GetModuleFileName",	PyGetModuleFileName,1}, // @pymeth GetModuleFileName|Retrieves the filename of the specified module.
@@ -4386,8 +4437,17 @@ initwin32api(void)
   if (hmodule!=NULL){
     FARPROC fp = GetProcAddress(hmodule,"GetUserNameExW");
     if (fp!=NULL)
-		myGetUserNameEx=(BOOL (WINAPI *)(EXTENDED_NAME_FORMAT, LPWSTR, PULONG))(fp);
-	}
+      myGetUserNameEx=(BOOL (WINAPI *)(EXTENDED_NAME_FORMAT, LPWSTR, PULONG))(fp);
+  }
+  hmodule = LoadLibrary("kernel32.dll");
+  if (hmodule!=NULL){
+    FARPROC fp = GetProcAddress(hmodule,"GetLongPathNameA");
+    if (fp!=NULL)
+      myGetLongPathNameA=(BOOL (WINAPI *)(LPCSTR, LPSTR, DWORD))(fp);
+    fp = GetProcAddress(hmodule,"GetLongPathNameW");
+    if (fp!=NULL)
+      myGetLongPathNameW=(BOOL (WINAPI *)(LPCWSTR, LPWSTR, DWORD))(fp);
+  }
 }  
   
   
