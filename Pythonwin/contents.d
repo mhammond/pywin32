@@ -64,6 +64,8 @@ statement.  Pressing the key again expands to the next match.
 exists.
 @flag Shift-Tab|Block dedent the selection
 <nl>
+@flag F6|Toggle view when editor splitter is open.
+<nl>
 @flag Keypad-Plus|If the current line is a collapsed fold, expand it (see <t Folding>)
 @flag Alt-Keypad-Plus|Expand all folds in the current file (see <t Folding>)
 @flag Keypad-Minus|If the current line is an expanded fold, collapse it (see <t Folding>)
