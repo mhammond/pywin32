@@ -18,6 +18,8 @@
 #include "aclapi.h"
 #include "Ntsecapi.h"
 #include "subauth.h"
+#include "lmshare.h"
+#include "sddl.h"
 %}
 
 %apply LARGE_INTEGER {LUID};
@@ -49,13 +51,21 @@ typedef LARGE_INTEGER LUID;
 // @object PyTOKEN_PRIVILEGES|An object representing Win32 token privileges.
 // @comm This is a sequence (eg, list) of (id, attributes)
 %{
-PyObject *PyWinObject_FromTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
+PyObject *PyWinObject_FromTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *tp)
 {
-	PyErr_SetString(PyExc_NotImplementedError, "Not yet implemented");
-	return NULL;
+	unsigned int privInd;
+	PyObject *priv = NULL, *obluid = NULL;
+	PLUID pluid;
+	PyObject *privs = PyTuple_New(tp->PrivilegeCount);
+	for (privInd = 0; privInd < tp->PrivilegeCount; privInd++){
+		pluid = &tp->Privileges[privInd].Luid;
+		obluid = PyWinObject_FromLARGE_INTEGER(*((LARGE_INTEGER *) pluid));
+		priv = Py_BuildValue("(Ol)",obluid,tp->Privileges[privInd].Attributes );
+		PyTuple_SET_ITEM(privs, privInd, priv);
+		Py_DECREF(obluid);
+		}
+	return privs;
 }
-
-
 
 PyObject *PyWinObject_FromTOKEN_GROUPS(TOKEN_GROUPS *tg)
 {
@@ -184,6 +194,22 @@ void PyMAPIObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 	free(pPriv);
 }
 
+static BOOL (WINAPI *cstss)(PSID, WCHAR **) = NULL;
+static BOOL (WINAPI *cssts)(LPCWSTR, PSID) = NULL;
+static BOOL (WINAPI *csdtssd)(PSECURITY_DESCRIPTOR,DWORD,SECURITY_INFORMATION, LPTSTR*,PULONG) = NULL;
+static BOOL (WINAPI *cssdtsd)(LPCTSTR,DWORD,PSECURITY_DESCRIPTOR*,PULONG) = NULL;
+
+BOOL CheckIfSupported(char *funcname, WCHAR *dllname, FARPROC *fp)
+{
+    *fp=NULL;
+    HMODULE hmodule = GetModuleHandle(dllname);
+    if (hmodule==NULL)
+        return false;
+    *fp = GetProcAddress(hmodule, funcname);
+    if (*fp==NULL)
+        return false;
+    return true;
+}
 %}
 
 %typemap(python,in) TOKEN_PRIVILEGES *{
@@ -228,7 +254,47 @@ void PyMAPIObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 	// All errors raised by this module are of this type.
 	Py_INCREF(PyWinExc_ApiError);
 	PyDict_SetItemString(d, "error", PyWinExc_ApiError);
+
+	PyDict_SetItemString(d,"SE_CREATE_TOKEN_NAME",PyUnicode_FromWideChar(SE_CREATE_TOKEN_NAME,wcslen(SE_CREATE_TOKEN_NAME)));
+	PyDict_SetItemString(d,"SE_ASSIGNPRIMARYTOKEN_NAME",PyUnicode_FromWideChar(SE_ASSIGNPRIMARYTOKEN_NAME,wcslen(SE_ASSIGNPRIMARYTOKEN_NAME)));
+	PyDict_SetItemString(d,"SE_LOCK_MEMORY_NAME",PyUnicode_FromWideChar(SE_LOCK_MEMORY_NAME,wcslen(SE_LOCK_MEMORY_NAME)));
+	PyDict_SetItemString(d,"SE_INCREASE_QUOTA_NAME",PyUnicode_FromWideChar(SE_INCREASE_QUOTA_NAME,wcslen(SE_INCREASE_QUOTA_NAME)));
+	PyDict_SetItemString(d,"SE_UNSOLICITED_INPUT_NAME",PyUnicode_FromWideChar(SE_UNSOLICITED_INPUT_NAME,wcslen(SE_UNSOLICITED_INPUT_NAME)));
+	PyDict_SetItemString(d,"SE_MACHINE_ACCOUNT_NAME",PyUnicode_FromWideChar(SE_MACHINE_ACCOUNT_NAME,wcslen(SE_MACHINE_ACCOUNT_NAME)));
+	PyDict_SetItemString(d,"SE_TCB_NAME",PyUnicode_FromWideChar(SE_TCB_NAME,wcslen(SE_TCB_NAME)));
+	PyDict_SetItemString(d,"SE_SECURITY_NAME",PyUnicode_FromWideChar(SE_SECURITY_NAME,wcslen(SE_SECURITY_NAME)));
+	PyDict_SetItemString(d,"SE_TAKE_OWNERSHIP_NAME",PyUnicode_FromWideChar(SE_TAKE_OWNERSHIP_NAME,wcslen(SE_TAKE_OWNERSHIP_NAME)));
+	PyDict_SetItemString(d,"SE_LOAD_DRIVER_NAME",PyUnicode_FromWideChar(SE_LOAD_DRIVER_NAME,wcslen(SE_LOAD_DRIVER_NAME)));
+	PyDict_SetItemString(d,"SE_SYSTEM_PROFILE_NAME",PyUnicode_FromWideChar(SE_SYSTEM_PROFILE_NAME,wcslen(SE_SYSTEM_PROFILE_NAME)));
+	PyDict_SetItemString(d,"SE_SYSTEMTIME_NAME",PyUnicode_FromWideChar(SE_SYSTEMTIME_NAME,wcslen(SE_SYSTEMTIME_NAME)));
+	PyDict_SetItemString(d,"SE_PROF_SINGLE_PROCESS_NAME",PyUnicode_FromWideChar(SE_PROF_SINGLE_PROCESS_NAME,wcslen(SE_PROF_SINGLE_PROCESS_NAME)));
+	PyDict_SetItemString(d,"SE_INC_BASE_PRIORITY_NAME",PyUnicode_FromWideChar(SE_INC_BASE_PRIORITY_NAME,wcslen(SE_INC_BASE_PRIORITY_NAME)));
+	PyDict_SetItemString(d,"SE_CREATE_PAGEFILE_NAME",PyUnicode_FromWideChar(SE_CREATE_PAGEFILE_NAME,wcslen(SE_CREATE_PAGEFILE_NAME)));
+	PyDict_SetItemString(d,"SE_CREATE_PERMANENT_NAME",PyUnicode_FromWideChar(SE_CREATE_PERMANENT_NAME,wcslen(SE_CREATE_PERMANENT_NAME)));
+	PyDict_SetItemString(d,"SE_BACKUP_NAME",PyUnicode_FromWideChar(SE_BACKUP_NAME,wcslen(SE_BACKUP_NAME)));
+	PyDict_SetItemString(d,"SE_RESTORE_NAME",PyUnicode_FromWideChar(SE_RESTORE_NAME,wcslen(SE_RESTORE_NAME)));
+	PyDict_SetItemString(d,"SE_SHUTDOWN_NAME",PyUnicode_FromWideChar(SE_SHUTDOWN_NAME,wcslen(SE_SHUTDOWN_NAME)));
+	PyDict_SetItemString(d,"SE_DEBUG_NAME",PyUnicode_FromWideChar(SE_DEBUG_NAME,wcslen(SE_DEBUG_NAME)));
+	PyDict_SetItemString(d,"SE_AUDIT_NAME",PyUnicode_FromWideChar(SE_AUDIT_NAME,wcslen(SE_AUDIT_NAME)));
+	PyDict_SetItemString(d,"SE_SYSTEM_ENVIRONMENT_NAME",PyUnicode_FromWideChar(SE_SYSTEM_ENVIRONMENT_NAME,wcslen(SE_SYSTEM_ENVIRONMENT_NAME)));
+	PyDict_SetItemString(d,"SE_CHANGE_NOTIFY_NAME",PyUnicode_FromWideChar(SE_CHANGE_NOTIFY_NAME,wcslen(SE_CHANGE_NOTIFY_NAME)));
+	PyDict_SetItemString(d,"SE_REMOTE_SHUTDOWN_NAME",PyUnicode_FromWideChar(SE_REMOTE_SHUTDOWN_NAME,wcslen(SE_REMOTE_SHUTDOWN_NAME)));
+	PyDict_SetItemString(d,"SE_UNDOCK_NAME",PyUnicode_FromWideChar(SE_UNDOCK_NAME,wcslen(SE_UNDOCK_NAME)));
+	PyDict_SetItemString(d,"SE_SYNC_AGENT_NAME",PyUnicode_FromWideChar(SE_SYNC_AGENT_NAME,wcslen(SE_SYNC_AGENT_NAME)));
+	PyDict_SetItemString(d,"SE_ENABLE_DELEGATION_NAME",PyUnicode_FromWideChar(SE_ENABLE_DELEGATION_NAME,wcslen(SE_ENABLE_DELEGATION_NAME)));
+	PyDict_SetItemString(d,"SE_MANAGE_VOLUME_NAME",PyUnicode_FromWideChar(SE_MANAGE_VOLUME_NAME,wcslen(SE_MANAGE_VOLUME_NAME)));
+
+	FARPROC fp=NULL;
+	if (CheckIfSupported("ConvertSidToStringSidW",_T("Advapi32.dll"),&fp))
+		cstss=  (BOOL (WINAPI *)(PSID, WCHAR **))(fp);
+	if (CheckIfSupported("ConvertStringSidToSidW",_T("Advapi32.dll"),&fp))
+		cssts=  (BOOL (WINAPI *)(LPCWSTR, PSID))(fp);
+	if (CheckIfSupported("ConvertSecurityDescriptorToStringSecurityDescriptorW",_T("Advapi32.dll"),&fp))
+		csdtssd=(BOOL (WINAPI *)(PSECURITY_DESCRIPTOR,DWORD,SECURITY_INFORMATION, LPTSTR*,PULONG))(fp);
+	if (CheckIfSupported("ConvertStringSecurityDescriptorToSecurityDescriptorW",_T("Advapi32.dll"),&fp))
+		cssdtsd=(BOOL (WINAPI *)(LPCTSTR,DWORD,PSECURITY_DESCRIPTOR*,PULONG))(fp);
 %}
+
 
 // @pyswig PyACL|ACL|Creates a new <o PyACL> object.
 // @pyparm int|bufSize|64|The size of the buffer for the ACL.
@@ -893,26 +959,12 @@ static PyObject *PyGetTokenInformation(PyObject *self, PyObject *args)
 			// @flag TokenPrivileges|((int,int),)
 			// returns PyTOKEN_PRIVILEGES (tuple of LUID and attribute flags for each privilege)
 			// attributes are combination of SE_PRIVILEGE_ENABLED,SE_PRIVILEGE_ENABLED_BY_DEFAULT,SE_PRIVILEGE_USED_FOR_ACCESS
-			// should make this into body of PyWinObject_FromTOKEN_PRIVILEGES
-			unsigned int privInd;
-			PyObject *priv = NULL;
-			PyObject *obluid = NULL;
-			PLUID pluid;
-			TOKEN_PRIVILEGES *tp = (TOKEN_PRIVILEGES *)buf;
-			PyObject *privs = PyTuple_New(tp->PrivilegeCount);
-			for (privInd = 0; privInd < tp->PrivilegeCount; privInd++){
-				pluid = &tp->Privileges[privInd].Luid;
-				obluid = PyWinObject_FromLARGE_INTEGER(*((LARGE_INTEGER *) pluid));
-				priv = Py_BuildValue("(Ol)",obluid,tp->Privileges[privInd].Attributes );
-				PyTuple_SET_ITEM(privs, privInd, priv);
-				Py_DECREF(obluid);
-				}
-			ret = privs;
+			ret = PyWinObject_FromTOKEN_PRIVILEGES((TOKEN_PRIVILEGES *)buf);
 			break;
 			}
 		case TokenPrimaryGroup: {
 			TOKEN_PRIMARY_GROUP *pg = (TOKEN_PRIMARY_GROUP *)buf;
-            ret = PyWinObject_FromSID(pg->PrimaryGroup);
+			ret = PyWinObject_FromSID(pg->PrimaryGroup);
 			break;
 			}
 		case TokenSource: {
@@ -1208,7 +1260,7 @@ static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "OiO", 
 		&obth,        // @pyparm <o PyHANDLE>|handle||Handle to an access token to be modified
 		(long *)&typ, // @pyparm int|TokenInformationClass||Specifies a value from the TOKEN_INFORMATION_CLASS enumerated type identifying the type of information the function retrieves.
-		&obinfo))     // @pyparm <o PyACL>/<o PySID>/int|obinfo||PyACL, PySID, or int depending on type parm
+		&obinfo))     // @pyparm <o>|obinfo||PyACL, PySID, or int depending on type parm
 		return NULL;
 
 	if (!PyWinObject_AsHANDLE(obth, &th, FALSE ))
@@ -1711,6 +1763,124 @@ static PyObject *PyLsaEnumerateAccountsWithUserRight(PyObject *self, PyObject *a
 }
 %}
 
+// @pyswig string|ConvertSidToStringSid|Return string representation of a SID
+%native(ConvertSidToStringSid) PyConvertSidToStringSid;
+%{
+static PyObject *PyConvertSidToStringSid(PyObject *self, PyObject *args)
+{
+    if (cstss==NULL){
+        PyErr_SetString(PyExc_NotImplementedError,"ConvertSidToStringSid not supported by this version of Windows");
+        return NULL;
+        }
+    PyObject *obsid=NULL, *ret=NULL;
+    // @pyparm <o PySID>|Sid||PySID object
+    PSID psid=NULL;
+    WCHAR *stringsid=NULL;
+
+    if (!PyArg_ParseTuple(args, "O:ConvertSidToStringSid", &obsid))
+        return NULL;
+    if (!PyWinObject_AsSID(obsid, &psid))
+        return NULL;
+    if (!cstss(psid,&stringsid))
+        PyWin_SetAPIError("ConvertSidToStringSid");
+    else
+        ret=PyWinObject_FromWCHAR(stringsid);
+    if (stringsid!=NULL)
+        LocalFree(stringsid);
+    return ret;
+}
+%}
+
+// @pyswig <o PySID>|ConvertStringSidToSid|Creates a SID from a string representation
+%native(ConvertStringSidToSid) PyConvertStringSidToSid;
+%{
+static PyObject *PyConvertStringSidToSid(PyObject *self, PyObject *args)
+{
+    if (cssts==NULL){
+        PyErr_SetString(PyExc_NotImplementedError,"ConvertStringSidToSid not supported by this version of Windows");
+        return NULL;
+        }
+    PyObject *ret=NULL, *obstringsid=NULL;
+    PSID psid=NULL;
+    TCHAR *stringsid=NULL;
+    // @pyparm string|StringSid||String representation of a SID
+
+    if (!PyArg_ParseTuple(args, "O:ConvertStringSidToSid", &obstringsid))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obstringsid, &stringsid))
+        return NULL;
+    if (!cssts(stringsid, &psid))
+        PyWin_SetAPIError("ConvertStringSidToSid");
+    else
+        ret=PyWinObject_FromSID(psid);
+    if (psid != NULL)
+        LocalFree(psid);
+    if (stringsid!=NULL)
+        PyWinObject_FreeWCHAR(stringsid);
+    return ret;
+}
+%}
+
+// @pyswig string|ConvertSecurityDescriptorToStringSecurityDescriptor|Return string representation of a SECURITY_DESCRIPTOR
+%native(ConvertSecurityDescriptorToStringSecurityDescriptor) PyConvertSecurityDescriptorToStringSecurityDescriptor;
+%{
+static PyObject *PyConvertSecurityDescriptorToStringSecurityDescriptor(PyObject *self, PyObject *args)
+{
+    if (csdtssd==NULL){
+        PyErr_SetString(PyExc_NotImplementedError,"ConvertSecurityDescriptorToStringSecurityDescriptor not supported by this version of Windows");
+        return NULL;
+        }
+    PyObject *obsd=NULL, *ret=NULL;
+    // @pyparm <o PySECURITY_DESCRIPTOR>|SecurityDescriptor||PySECURITY_DESCRIPTOR object
+    // @pyparm int|RequestedStringSDRevision||Only SDDL_REVISION_1 currently valid
+    // @pyparm int|SecurityInformation||Combination of bit flags from SECURITY_INFORMATION enum
+    PSECURITY_DESCRIPTOR psd=NULL;
+    WCHAR *stringsd=NULL;
+    DWORD sd_rev;
+    SECURITY_INFORMATION info;
+    if (!PyArg_ParseTuple(args, "Oii:ConvertSecurityDescriptorToStringSecurityDescriptor", &obsd, &sd_rev, &info))
+        return NULL;
+    if (!PyWinObject_AsSECURITY_DESCRIPTOR(obsd, &psd, FALSE))
+        return NULL;
+    if (!csdtssd(psd, sd_rev, info, &stringsd, NULL))
+        PyWin_SetAPIError("ConvertSecurityDescriptorToStringSecurityDescriptor");
+    else
+        ret=PyWinObject_FromWCHAR(stringsd);
+    if (stringsd!=NULL)
+        LocalFree(stringsd);
+    return ret;
+}
+%}
+
+// @pyswig <o PySECURITY_DESCRIPTOR>|ConvertStringSecurityDescriptorToSecurityDescriptor|Turns string representation of a SECURITY_DESCRIPTOR into the real thing
+%native(ConvertStringSecurityDescriptorToSecurityDescriptor) PyConvertStringSecurityDescriptorToSecurityDescriptor;
+%{
+static PyObject *PyConvertStringSecurityDescriptorToSecurityDescriptor(PyObject *self, PyObject *args)
+{
+    if (cssdtsd==NULL){
+        PyErr_SetString(PyExc_NotImplementedError,"ConvertStringSecurityDescriptorToSecurityDescriptor not supported by this version of Windows");
+        return NULL;
+	    }
+    PyObject *obssd=NULL, *ret=NULL;
+    PSECURITY_DESCRIPTOR psd=NULL;
+    // @pyparm string|StringSecurityDescriptor||String representation of a SECURITY_DESCRIPTOR
+    // @pyparm int|StringSDRevision||Only SDDL_REVISION_1 currently valid
+
+    WCHAR *stringsd=NULL; 
+    DWORD sd_rev;
+    if (!PyArg_ParseTuple(args, "Oi:ConvertStringSecurityDescriptorToSecurityDescriptor", &obssd, &sd_rev))
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obssd, &stringsd, FALSE))
+        return NULL;
+    if (!cssdtsd(stringsd, sd_rev, &psd, NULL))
+        PyWin_SetAPIError("ConvertStringSecurityDescriptorToSecurityDescriptor");
+    else
+        ret=PyWinObject_FromSECURITY_DESCRIPTOR(psd);
+    PyWinObject_FreeWCHAR(stringsd);
+    LocalFree(psd);
+    return ret;
+}
+%}
 
 
 #define TOKEN_ADJUST_DEFAULT TOKEN_ADJUST_DEFAULT // Required to change the default ACL, primary group, or owner of an access token.
@@ -1754,6 +1924,10 @@ static PyObject *PyLsaEnumerateAccountsWithUserRight(PyObject *self, PyObject *a
 #define GROUP_SECURITY_INFORMATION GROUP_SECURITY_INFORMATION // Indicates the primary group identifier of the object is being referenced. 
 #define DACL_SECURITY_INFORMATION DACL_SECURITY_INFORMATION // Indicates the discretionary ACL of the object is being referenced. 
 #define SACL_SECURITY_INFORMATION SACL_SECURITY_INFORMATION // Indicates the system ACL of the object is being referenced. 
+#define PROTECTED_DACL_SECURITY_INFORMATION PROTECTED_DACL_SECURITY_INFORMATION
+#define PROTECTED_SACL_SECURITY_INFORMATION PROTECTED_SACL_SECURITY_INFORMATION
+#define UNPROTECTED_DACL_SECURITY_INFORMATION UNPROTECTED_DACL_SECURITY_INFORMATION
+#define UNPROTECTED_SACL_SECURITY_INFORMATION UNPROTECTED_SACL_SECURITY_INFORMATION
 
 /** if (_WIN32_WINNT >= 0x0500)
 #define SE_DS_OBJECT SE_DS_OBJECT
@@ -1896,8 +2070,14 @@ static PyObject *PyLsaEnumerateAccountsWithUserRight(PyObject *self, PyObject *a
 
 // POLICY_SERVER_ENABLE_STATE 
 // markh fails with these!?
-//#define PolicyServerEnabled PolicyServerEnabled 
-//#define PolicyServerDisabled PolicyServerDisabled
+// from ntsecapi.h
+#ifdef PolicyServerEnabled
+#define PolicyServerEnabled PolicyServerEnabled 
+#endif
+
+#ifdef PolicyServerDisabled
+#define PolicyServerDisabled PolicyServerDisabled
+#endif
 
 // POLICY_NOTIFICATION_INFORMATION_CLASS
 #define PolicyNotifyAuditEventsInformation PolicyNotifyAuditEventsInformation
@@ -1966,3 +2146,13 @@ static PyObject *PyLsaEnumerateAccountsWithUserRight(PyObject *self, PyObject *a
 #define SE_PRIVILEGE_ENABLED_BY_DEFAULT SE_PRIVILEGE_ENABLED_BY_DEFAULT
 #define SE_PRIVILEGE_ENABLED SE_PRIVILEGE_ENABLED
 #define SE_PRIVILEGE_USED_FOR_ACCESS SE_PRIVILEGE_USED_FOR_ACCESS
+
+// share types from lmshare.h
+#define STYPE_DISKTREE STYPE_DISKTREE     
+#define STYPE_PRINTQ STYPE_PRINTQ
+#define STYPE_DEVICE STYPE_DEVICE
+#define STYPE_IPC STYPE_IPC
+#define STYPE_TEMPORARY STYPE_TEMPORARY
+#define STYPE_SPECIAL STYPE_SPECIAL
+
+#define SDDL_REVISION_1 SDDL_REVISION_1
