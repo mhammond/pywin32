@@ -538,7 +538,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
           # May have a dispid, but that doesnt mean we have the function!
           raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
         # Should check callable here
-        return apply(func, args)
+        return func(*args)
 
     if wFlags & DISPATCH_PROPERTYGET:
       try:
@@ -547,7 +547,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
           raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)	# not found
       retob = getattr(self._obj_, name)
       if type(retob)==types.MethodType: # a method as a property - call it.
-        retob = apply(retob, args)
+        retob = retob(*args)
       return retob
 
     if wFlags & (DISPATCH_PROPERTYPUT | DISPATCH_PROPERTYPUTREF): ### correct?
@@ -678,7 +678,7 @@ def call_func(spec, *args):
   Call a function specified by 'module.function' and return the result.
   """
 
-  return apply(resolve_func(spec), args)
+  return resolve_func(spec)(*args)
 
 def _import_module(mname):
   """Import a module just like the 'import' statement.

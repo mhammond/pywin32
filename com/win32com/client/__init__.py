@@ -442,13 +442,13 @@ class DispatchBaseClass:
 		return cmp(self._oleobj_, other)
 
 	def _ApplyTypes_(self, dispid, wFlags, retType, argTypes, user, resultCLSID, *args):
-		return self._get_good_object_(apply(self._oleobj_.InvokeTypes, (dispid, 0, wFlags, retType, argTypes) + args), user, resultCLSID)
+		return self._get_good_object_(self._oleobj_.InvokeTypes(*((dispid, 0, wFlags, retType, argTypes) + args)), user, resultCLSID)
 
 	def __getattr__(self, attr):
 		args=self._prop_map_get_.get(attr)
 		if args is None:
 			raise AttributeError, "'%s' object has no attribute '%s'" % (repr(self), attr)
-		return apply(self._ApplyTypes_, args)
+		return self._ApplyTypes_(*args)
 
 	def __setattr__(self, attr, value):
 		if self.__dict__.has_key(attr): self.__dict__[attr] = value; return
@@ -456,7 +456,7 @@ class DispatchBaseClass:
 			args, defArgs=self._prop_map_put_[attr]
 		except KeyError:
 			raise AttributeError, "'%s' object has no attribute '%s'" % (repr(self), attr)
-		apply(self._oleobj_.Invoke, args + (value,) + defArgs)
+		self._oleobj_.Invoke(*(args + (value,) + defArgs))
 	# XXX - These should be consolidated with dynamic.py versions.
 	def _get_good_single_object_(self, obj, obUserName=None, resultCLSID=None):
 		if _PyIDispatchType==type(obj):

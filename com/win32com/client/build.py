@@ -382,8 +382,8 @@ class DispatchItem(OleItem):
 			invoketype = fdesc[4]
 		else:
 			invoketype = pythoncom.DISPATCH_METHOD
-		s = linePrefix + '\treturn self._get_good_object_(apply(self._oleobj_.Invoke,('
-		ret.append(s + str(entry.dispid) + ",0,%d,1)+args),'%s')" % (invoketype, names[0]))
+		s = linePrefix + '\treturn self._get_good_object_(self._oleobj_.Invoke(*(('
+		ret.append(s + str(entry.dispid) + ",0,%d,1)+args)),'%s')" % (invoketype, names[0]))
 		ret.append("")
 		return ret
 
