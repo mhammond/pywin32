@@ -79,8 +79,6 @@ protected:
 	PyGatewayBase(PyObject *instance);
 	~ PyGatewayBase();
 
-	// ### this method is deprecated...
-	PyObject *DispatchViaPolicy(const char *szMethodName, const char *szFormat, ...);
 	// Invoke the Python method (via the policy object)
 	STDMETHOD(InvokeViaPolicy)(
 		const char *szMethodName,
@@ -138,6 +136,9 @@ private:
 };
 
 #pragma warning(default : 4275 )
+
+// B/W compat hack for gateways.
+#define PyCom_HandlePythonFailureToCOM() PyCom_SetCOMErrorFromPyException(GetIID())
 
 
 #endif /* __PYTHONCOMSERVER_H__ */
