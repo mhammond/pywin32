@@ -17,6 +17,10 @@ def TestConnections():
 	win32com.demos.connect.test()
 
 def TestAllInterps():
+	# Ensure the correct version registered.
+	import win32com.servers.interp
+	win32com.servers.interp.Register()
+
 	numInterps = 0
 	try:
 		interp = win32com.client.dynamic.Dispatch("Python.Interpreter")

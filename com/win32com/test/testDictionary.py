@@ -20,8 +20,15 @@ def TestDictAgainst(dict,check):
 		if dict(key) != value:
 			raise error, "Indexing for '%s' gave the incorrect value - %s/%s" % (`key`, `dict[key]`, `check[key]`)
 
+# Ensure we have the correct version registered.
+def Register():
+	import win32com.servers.dictionary
+	win32com.servers.dictionary.Register()
+
 
 def TestDict(quiet=0):
+	Register()
+
 	if not quiet: print "Simple enum test"
 	dict = MakeTestDictionary()
 	checkDict = {}
@@ -60,7 +67,6 @@ def TestDict(quiet=0):
 
 	if not quiet:
 		print "Python.Dictionary tests complete."
-
 
 def doit():
 	try:
