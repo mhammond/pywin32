@@ -24,7 +24,6 @@ def __import(modname):
                 break
         else:
             raise ImportError, "Module '%s' isn't in frozen sys.path directories" % modname
-        h = None
     else:
         if os.path.isfile(os.path.join(sys.prefix, filename)):
             found = os.path.join(sys.prefix, filename)
