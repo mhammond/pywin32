@@ -173,7 +173,7 @@ BOOL PyCom_InterfaceFromPyObject(PyObject *ob, REFIID iid, LPVOID *ppv, BOOL bNo
 	return TRUE;
 }
 
-HRESULT PyCom_MakeRegisteredGatewayObject(REFIID iid, PyObject *instance, void **ppv)
+HRESULT PyCom_MakeRegisteredGatewayObject(REFIID iid, PyObject *instance, PyGatewayBase *base, void **ppv)
 {
 	if ( g_obPyCom_MapServerIIDToGateway == NULL )
 		return E_NOINTERFACE;
@@ -195,7 +195,7 @@ HRESULT PyCom_MakeRegisteredGatewayObject(REFIID iid, PyObject *instance, void *
 				pfnPyGatewayConstructor ctor = (pfnPyGatewayConstructor)PyLong_AsVoidPtr(valueObject);
 #endif
 				// ctor takes reference count to instance.
-				hr = (*ctor)(instance, ppv, iid);
+				hr = (*ctor)(instance, base, ppv, iid);
 			}
 			else
 			{

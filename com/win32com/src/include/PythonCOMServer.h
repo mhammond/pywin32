@@ -14,6 +14,7 @@ void PYCOM_EXPORT PyCom_DLLReleaseRef(void);
 // Use this macro at the start of all gateway methods.
 #define PY_GATEWAY_METHOD CEnterLeavePython _celp
 
+class PyGatewayBase;
 // Gateway constructors.
 // Each gateway must be able to be created from a "gateway constructor".  This
 // is simply a function that takes a Python instance as as argument, and returns
@@ -21,16 +22,19 @@ void PYCOM_EXPORT PyCom_DLLReleaseRef(void);
 // will embed such a constructor in the class - however, this is not necessary - 
 // _any_ function of the correct signature can be used.
 
-typedef HRESULT (* pfnPyGatewayConstructor)(PyObject *PythonInstance, void **ppResult, REFIID iid);
-HRESULT PyCom_MakeRegisteredGatewayObject(REFIID iid, PyObject *instance, void **ppv);
+typedef HRESULT (* pfnPyGatewayConstructor)(PyObject *PythonInstance, PyGatewayBase *, void **ppResult, REFIID iid);
+HRESULT PyCom_MakeRegisteredGatewayObject(REFIID iid, PyObject *instance, PyGatewayBase *base, void **ppv);
 
 // A version of the above which support classes being derived from
 // other than IUnknown
 #define PYGATEWAY_MAKE_SUPPORT2(classname, IInterface, theIID, gatewaybaseclass) \
 	public: \
-		static HRESULT classname::PyGatewayConstruct(PyObject *pPyInstance, void **ppResult, REFIID iid) { \
+		static HRESULT classname::PyGatewayConstruct(PyObject *pPyInstance, PyGatewayBase *unkBase, void **ppResult, REFIID iid) { \
 			if (ppResult==NULL) return E_INVALIDARG; \
-			*ppResult = (new classname(pPyInstance))->ThisAsIID(iid);  \
+			classname *newob = new classname(pPyInstance); \
+			newob->m_pBaseObject = unkBase; \
+			if (unkBase) unkBase->AddRef(); \
+			*ppResult = newob->ThisAsIID(iid);  \
 			return *ppResult ? S_OK : E_OUTOFMEMORY; } \
 	protected: \
 		virtual IID GetIID(void) { return theIID; } \
@@ -117,10 +121,13 @@ public:
 
 	// Basically just PYGATEWAY_MAKE_SUPPORT(PyGatewayBase, IDispatch, IID_IDispatch);
 	// but with special handling as its the base class.
-	static HRESULT PyGatewayBase::PyGatewayConstruct(PyObject *pPyInstance, void **ppResult, REFIID iid)
+	static HRESULT PyGatewayBase::PyGatewayConstruct(PyObject *pPyInstance, PyGatewayBase *gatewayBase, void **ppResult, REFIID iid)
 	{
 		if (ppResult==NULL) return E_INVALIDARG;
-		*ppResult = (IDispatch *)(PyGatewayBase *)new PyGatewayBase(pPyInstance);
+		PyGatewayBase *obNew = new PyGatewayBase(pPyInstance);
+		obNew->m_pBaseObject = gatewayBase;
+		if (gatewayBase) gatewayBase->AddRef();
+		*ppResult = (IDispatch *)obNew;
 		return *ppResult ? S_OK : E_OUTOFMEMORY;
 	}
 	// Currently this is used only for ISupportErrorInfo,
@@ -130,8 +137,8 @@ public:
 	virtual void *ThisAsIID(IID iid);
 	// End of PYGATEWAY_MAKE_SUPPORT
 	PyObject * m_pPyObject;
-private:
 	PyGatewayBase *m_pBaseObject;
+private:
 	LONG m_cRef;
 };
 

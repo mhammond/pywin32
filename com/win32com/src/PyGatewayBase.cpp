@@ -176,26 +176,8 @@ STDMETHODIMP PyGatewayBase::QueryInterface(
 
 	// Make a new gateway object
 	if (*ppv==NULL) {
-		HRESULT hr = PyCom_MakeRegisteredGatewayObject(iid, m_pPyObject, ppv);
+		HRESULT hr = PyCom_MakeRegisteredGatewayObject(iid, m_pPyObject, this, ppv);
 		if (FAILED(hr)) return hr;
-	}
-	// Now setup the base object pointer back to me.
-	// Make sure it is actually a gateway, and not some other
-	// IUnknown object grabbed from elsewhere.
-	// Also makes sure we have the address of the object OK.
-	IUnknown *pLook = (IUnknown *)(*ppv);
-	IInternalUnwrapPythonObject *pTemp;
-	if (pLook->QueryInterface(IID_IInternalUnwrapPythonObject, (void **)&pTemp)==S_OK) {
-		// One of our objects, so set the base object if it doesnt already have one
-		PyGatewayBase *pG = (PyGatewayBase *)pTemp;
-		// Eeek - just these few next lines need to be thread-safe :-(
-		PyWin_AcquireGlobalLock();
-		if (pG->m_pBaseObject==NULL && pG != (PyGatewayBase *)this) {
-			pG->m_pBaseObject = this;
-			pG->m_pBaseObject->AddRef();
-		}
-		PyWin_ReleaseGlobalLock();
-		pTemp->Release();
 	}
 	return S_OK;
 }
