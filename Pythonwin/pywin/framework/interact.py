@@ -262,8 +262,8 @@ class InteractiveCore:
 
 		if self.GetTextLength()==0:
 			if self.banner is None:
-				sys.stderr.write("PythonWin %s on %s\n%s\n" % (sys.version, sys.platform, sys.copyright) )
-				sys.stderr.write("Portions %s\n" % (win32ui.copyright) )
+				sys.stderr.write("PythonWin %s on %s\n" % (sys.version, sys.platform) )
+				sys.stderr.write("%s - see 'Help/About Pythonwin' for further copyright information.\n" % (win32ui.copyright,) )
 			else:
 				sys.stderr.write(banner)
 		self.AppendToPrompt([])
