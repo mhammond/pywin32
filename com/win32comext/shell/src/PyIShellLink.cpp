@@ -31,14 +31,18 @@ PyIShellLink::~PyIShellLink()
 	return (IShellLink *)PyIUnknown::GetI(self);
 }
 
-// @pymethod |PyIShellLink|GetPath|Description of GetPath.
+// @pymethod name, WIN32_FIND_DATA|PyIShellLink|GetPath|Retrieves the path and file name of a shell link object.
 PyObject *PyIShellLink::GetPath(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
 	WIN32_FIND_DATAA fd;
-	// @pyparm int|fFlags||Description for fFlags
+	// @pyparm int|fFlags||One of the following values:
+	// @flagh Value|Description
+	// @flag SLGP_SHORTPATH|Retrieves the standard short (8.3 format) file name.  
+	// @flag SLGP_UNCPRIORITY|Retrieves the Universal Naming Convention (UNC) path name of the file.  
+	// @flag SLGP_RAWPATH|Retrieves the raw path name. A raw path is something that might not exist and may include environment variables that need to be expanded. 
 	// @pyparm int|cchMaxPath|_MAX_PATH|Description for cchMaxPath
 	int cchMaxPath = _MAX_PATH;
 	DWORD fFlags;
@@ -461,7 +465,7 @@ PyObject *PyIShellLink::SetPath(PyObject *self, PyObject *args)
 // @object PyIShellLink|Description of the interface
 static struct PyMethodDef PyIShellLink_methods[] =
 {
-	{ "GetPath", PyIShellLink::GetPath, 1 }, // @pymeth GetPath|Description of GetPath
+	{ "GetPath", PyIShellLink::GetPath, 1 }, // @pymeth GetPath|Retrieves the path and file name of a shell link object.
 	{ "GetIDList", PyIShellLink::GetIDList, 1 }, // @pymeth GetIDList|Description of GetIDList
 	{ "SetIDList", PyIShellLink::SetIDList, 1 }, // @pymeth SetIDList|Description of SetIDList
 	{ "GetDescription", PyIShellLink::GetDescription, 1 }, // @pymeth GetDescription|Description of GetDescription

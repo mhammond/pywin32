@@ -218,7 +218,7 @@ BOOLAPI FindCloseChangeNotification(
 HANDLE FindFirstChangeNotification(
     TCHAR *lpPathName,	// @pyparm <o PyUnicode>|pathName||Name of directory to watch  
     BOOL bWatchSubtree,	// @pyparm int|bWatchSubtree||flag for monitoring directory or directory tree  
-    DWORD dwNotifyFilter 	// @pyparm int|notifyFilter||filter conditions to watch for 
+    DWORD dwNotifyFilter 	// @pyparm int|notifyFilter||filter conditions to watch for.  See <om win32api.FindFirstChangeNotification> for details.
 );
 
 //FindFirstFile	
