@@ -187,11 +187,11 @@ class CDispatch:
 		raise TypeError, "This dispatch object does not define a Count method"
 
 	def _NewEnum(self):
-		invkind, dispid = self._find_dispatch_type_("_NewEnum")
-		if invkind is None:
-			return None
-		
-		enum = self._oleobj_.InvokeTypes(pythoncom.DISPID_NEWENUM,LCID,invkind,(13, 10),())
+		try:
+			invkind = pythoncom.DISPATCH_METHOD | pythoncom.DISPATCH_PROPERTYGET
+			enum = self._oleobj_.InvokeTypes(pythoncom.DISPID_NEWENUM,LCID,invkind,(13, 10),())
+		except pythoncom.com_error:
+			return None # no enumerator for this object.
 		import util
 		return util.WrapEnum(enum, None)
 
@@ -395,6 +395,23 @@ class CDispatch:
 			return self._oleobj_.GetIDsOfNames(0,attr)
 
 	def __getattr__(self, attr):
+		if attr=='__iter__':
+			# We can't handle this as a normal method, as if the attribute
+			# exists, then it must return an iterable object.
+			try:
+				invkind = pythoncom.DISPATCH_METHOD | pythoncom.DISPATCH_PROPERTYGET
+				enum = self._oleobj_.InvokeTypes(pythoncom.DISPID_NEWENUM,LCID,invkind,(13, 10),())
+			except pythoncom.com_error:
+				raise AttributeError, "This object can not function as an iterator"
+			# We must return a callable object.
+			class Factory:
+				def __init__(self, ob):
+					self.ob = ob
+				def __call__(self):
+					import win32com.client.util
+					return win32com.client.util.Iterator(self.ob)
+			return Factory(enum)
+			
 		if attr[0]=='_' and attr[-1]=='_': # Fast-track.
 			raise AttributeError, attr
 		# If a known method, create new instance and return.
