@@ -79,5 +79,16 @@ class FileNames(unittest.TestCase):
         self.failUnless(long_name==fname, \
                         "Expected long name ('%s') to be original name ('%s')" % (long_name, fname))
 
+class FormatMessage(unittest.TestCase):
+    def test_FromString(self):
+        msg = "Hello %1, how are you %2?"
+        inserts = ["Mark", "today"]
+        result = win32api.FormatMessage(win32con.FORMAT_MESSAGE_FROM_STRING,
+                               msg, # source
+                               0, # ID
+                               0, # LangID
+                               inserts)
+        self.assertEqual(result, "Hello Mark, how are you today?")
+
 if __name__ == '__main__':
     unittest.main()
