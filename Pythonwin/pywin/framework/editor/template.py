@@ -16,11 +16,13 @@ class EditorTemplateBase(ParentEditorTemplate):
 		assert 0, "You must override this"
 	def CreateWin32uiDocument(self):
 		assert 0, "You must override this"
+	def GetFileExtensions(self):
+		return ".txt", ".py"
 	def MatchDocType(self, fileName, fileType):
 		doc = self.FindOpenDocument(fileName)
 		if doc: return doc
 		ext = string.lower(os.path.splitext(fileName)[1])
-		if ext =='.txt' or ext=='.py':
+		if ext in self.GetFileExtensions():
 			return win32ui.CDocTemplate_Confidence_yesAttemptNative
 		return win32ui.CDocTemplate_Confidence_maybeAttemptForeign
 
