@@ -1264,6 +1264,7 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 					"ConfigFile",di3->pConfigFile,
 					"HelpFile", di3->pHelpFile,
 					"DependentFiles",di3->pDependentFiles,
+					// ???? pDependentFiles can contain multiple null-terminated strings, need to parse them out ????
 					"MonitorName",di3->pMonitorName,
 					"DefaultDataType",di3->pDefaultDataType);
 				if (tuple_item==NULL){
@@ -1645,6 +1646,248 @@ static PyObject *PyScheduleJob(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod |win32print|DeviceCapabilities|Queries a printer for its capabilities
+static PyObject *PyDeviceCapabilities(PyObject *self, PyObject *args)
+{
+	// @pyparm string|Device||Name of printer
+	// @pyparm string|Port||Port that printer is using
+	// @pyparm int|Capability||Type of capability to return - DC_* constant
+	// @pyparm <o PyDEVMODE>|DEVMODE|None|If present, function returns values from it, otherwise the printer defaults are used
+	char *device, *port;
+	WORD capability;
+	LPTSTR buf=NULL;
+	PDEVMODE pdevmode;
+	PyObject *obdevmode=Py_None, *ret=NULL, *tuple_item;
+	DWORD result, bufsize, bufindex;
+	static size_t papernamesize=64; // same for DC_PAPERNAMES, DC_MEDIATYPENAMES, DC_MEDIAREADY, DC_FILEDEPENDENCIES
+	static size_t binnamesize=24; // DC_BINNAMES
+	static size_t personalitysize=32; // DC_PERSONALITY
+	size_t retsize;
+
+	if (!PyArg_ParseTuple(args,"ssh|O:DeviceCapabilities", &device, &port, &capability, &obdevmode))
+		return NULL;
+	if (!PyWinObject_AsDEVMODE(obdevmode, &pdevmode, TRUE))
+		return NULL;
+	result=DeviceCapabilities(device,port,capability,buf,pdevmode);
+	if (result==-1){
+		PyWin_SetAPIError("DeviceCapabilities");
+		return NULL;
+		}
+	// @flagh Capability|Returned value
+	switch (capability){
+		// none of these use the output pointer, just the returned DWORD
+		case DC_BINADJUST:
+		case DC_COLLATE:
+		case DC_COPIES:
+		case DC_COLORDEVICE:
+		case DC_DUPLEX:
+		case DC_DRIVER:
+		case DC_EMF_COMPLIANT:
+		case DC_EXTRA:
+		case DC_FIELDS:
+		case DC_NUP:
+		case DC_ORIENTATION:
+		case DC_PRINTRATE:
+		case DC_PRINTRATEPPM:
+		case DC_PRINTRATEUNIT:
+		case DC_PRINTERMEM:
+		case DC_SIZE:
+		case DC_STAPLE:
+		case DC_TRUETYPE:
+		case DC_VERSION:
+			ret=Py_BuildValue("l",result);
+			break;
+		// @flag DC_MINEXTENT|Dictionary containing minimum paper width and height
+		// @flag DC_MAXEXTENT|Dictionary containing maximum paper width and height
+		case DC_MINEXTENT:
+		case DC_MAXEXTENT:
+			ret=Py_BuildValue("{s:h,s:h}","Width",LOWORD(result),"Length",HIWORD(result));
+			break;
+		// @flag DC_ENUMRESOLUTIONS|Sequence of dictionaries containing x and y resolutions in DPI
+		case DC_ENUMRESOLUTIONS:{	
+			// output is pairs of LONGs, result indicates number of pairs
+			PLONG presolutions;
+			LONG xres, yres;
+			bufsize=result*2*sizeof(LONG);
+			buf=(LPTSTR)malloc(bufsize);
+			if (buf==NULL){
+				PyErr_Format(PyExc_MemoryError,"DeviceCapabilites: Unable to allocate %d bytes",bufsize);
+				break;
+				}
+			result=DeviceCapabilities(device,port,capability,buf,pdevmode);
+			if (result==-1)
+				break;
+			ret=PyTuple_New(result);
+			if (ret==NULL)
+				break;
+			presolutions=(PLONG)buf;
+			for (bufindex=0;bufindex<result;bufindex++){
+				xres=*presolutions++;
+				yres=*presolutions++;
+				tuple_item=Py_BuildValue("{s:l,s:l}", "xdpi", xres, "ydpi", yres);
+				if (tuple_item==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SET_ITEM(ret,bufindex,tuple_item);
+				}
+			break;
+			}
+		// @flag DC_PAPERS|Returns a sequence of ints, DMPAPER_* constants
+		// @flag DC_BINS|Returns a sequence of ints, DMBIN_* constants
+		case DC_PAPERS:
+		case DC_BINS:{
+			// output is an array of WORDs
+			WORD *pword;
+			retsize=sizeof(WORD);
+			bufsize=result*retsize;
+			buf=(LPTSTR)malloc(bufsize);
+			if (buf==NULL){
+				PyErr_Format(PyExc_MemoryError,"DeviceCapabilites: Unable to allocate %d bytes",bufsize);
+				break;
+				}
+			result=DeviceCapabilities(device,port,capability,buf,pdevmode);
+			if (result==-1)
+				break;
+			ret=PyTuple_New(result);
+			if (ret==NULL)
+				break;
+			pword=(WORD *)buf;
+			for (bufindex=0;bufindex<result;bufindex++){
+				tuple_item=Py_BuildValue("h", *pword++);
+				if (tuple_item==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SET_ITEM(ret,bufindex,tuple_item);
+				}
+			break;
+			}
+		// @flag DC_MEDIATYPES|Sequence of ints, DMMEDIA_* constants
+		case DC_MEDIATYPES:{
+			// need to add	DMMEDIA_STANDARD, DMMEDIA_GLOSSY, DMMEDIA_TRANSPARENCY, DMMEDIA_USER to win32con 
+			DWORD *pdword;
+			retsize=sizeof(DWORD);
+			bufsize=result*retsize;
+			buf=(LPTSTR)malloc(bufsize);
+			if (buf==NULL){
+				PyErr_Format(PyExc_MemoryError,"DeviceCapabilites: Unable to allocate %d bytes",bufsize);
+				break;
+				}
+			result=DeviceCapabilities(device,port,capability,buf,pdevmode);
+			if (result==-1)
+				break;
+			ret=PyTuple_New(result);
+			if (ret==NULL)
+				break;
+			pdword=(DWORD *)buf;
+			for (bufindex=0;bufindex<result;bufindex++){
+				tuple_item=Py_BuildValue("l", *pdword++);
+				if (tuple_item==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SET_ITEM(ret,bufindex,tuple_item);
+				}
+			break;
+			}
+		// @flag DC_PAPERNAMES|Sequence of strings
+		// @flag DC_MEDIATYPENAMES|Sequence of strings
+		// @flag DC_MEDIAREADY|Sequence of strings
+		// @flag DC_FILEDEPENDENCIES|Sequence of strings
+		// @flag DC_PERSONALITY|Sequence of strings
+		// @flag DC_BINNAMES|Sequence of strings
+		case DC_PAPERNAMES:
+		case DC_MEDIATYPENAMES:
+		case DC_MEDIAREADY:
+		case DC_FILEDEPENDENCIES: 	// first 4 return array of 64-char strings
+		case DC_PERSONALITY:	// returns 32-char strings
+		case DC_BINNAMES:{		// returns array of 24-char strings
+			char *retname;
+			if (capability==DC_BINNAMES)
+				retsize=binnamesize;
+			else if (capability==DC_PERSONALITY)
+				retsize=personalitysize;
+			else
+				retsize=papernamesize;
+			bufsize=result*retsize*sizeof(char);
+			buf=(LPTSTR)malloc(bufsize);
+			if (buf==NULL){
+				PyErr_Format(PyExc_MemoryError,"DeviceCapabilites: Unable to allocate %d bytes",bufsize);
+				break;
+				}
+			ZeroMemory(buf,bufsize);
+			result=DeviceCapabilities(device,port,capability,buf,pdevmode);
+			if (result==-1)
+				break;
+			ret=PyTuple_New(result);
+			if (ret==NULL)
+				break;
+			retname=(char *)buf;
+			for (bufindex=0;bufindex<result;bufindex++){
+				if (*(retname+retsize-1)==0)
+					tuple_item=PyString_FromString(retname);
+				else  // won't be null-terminated if string occupies entire space
+					tuple_item=PyString_FromStringAndSize(retname,retsize);
+				if (tuple_item==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SET_ITEM(ret,bufindex,tuple_item);
+				retname+=retsize;
+				}
+			break;
+			}
+		// @flag DC_PAPERSIZE|Sequence of dicts containing paper sizes, in 1/10 millimeter units
+		// @flag All others|Output is an int
+		case DC_PAPERSIZE:{
+			// output is an array of POINTs
+			POINT *ppoint;
+			retsize=sizeof(POINT);
+			bufsize=result*retsize;
+			buf=(LPTSTR)malloc(bufsize);
+			if (buf==NULL){
+				PyErr_Format(PyExc_MemoryError,"DeviceCapabilites: Unable to allocate %d bytes",bufsize);
+				break;
+				}
+			result=DeviceCapabilities(device,port,capability,buf,pdevmode);
+			if (result==-1)
+				break;
+			ret=PyTuple_New(result);
+			if (ret==NULL)
+				break;
+			ppoint=(POINT *)buf;
+			for (bufindex=0;bufindex<result;bufindex++){
+				tuple_item=Py_BuildValue("{s:l,s:l}", "x",ppoint->x, "y",ppoint->y);
+				if (tuple_item==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SET_ITEM(ret,bufindex,tuple_item);
+				ppoint++;
+				}
+			break;
+			}
+		// last 3 are 95/98/Me only
+		case DC_DATATYPE_PRODUCED:
+		case DC_MANUFACTURER:
+		case DC_MODEL:
+		default:
+			PyErr_Format(PyExc_NotImplementedError,"Type %d is not supported", capability);
+		}
+
+	if (result==-1)
+		PyWin_SetAPIError("DeviceCapabilities");
+	if (buf!=NULL)
+		free(buf);
+	return ret;
+}
+
 /* List of functions exported by this module */
 // @module win32print|A module, encapsulating the Windows Win32 API.
 static struct PyMethodDef win32print_functions[] = {
@@ -1682,6 +1925,7 @@ static struct PyMethodDef win32print_functions[] = {
 	{"SetForm", PySetForm, 1}, //@pymeth SetForm|Change information for a form
 	{"AddJob", PyAddJob, 1}, //@pymeth AddJob|Adds a job to be spooled to a printer queue
 	{"ScheduleJob", PyScheduleJob, 1}, //@pymeth ScheduleJob|Schedules a spooled job to be printed
+	{"DeviceCapabilities", PyDeviceCapabilities, 1}, //@pymeth DeviceCapabilities|Queries a printer for its capabilities
 	{ NULL }
 };
 
