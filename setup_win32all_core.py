@@ -3,14 +3,18 @@
 # Thomas Heller, started in 2000 or so.
 #
 # Things known to be missing:
-# * Install of .exe/.dlls - most .exe files go next to python.exe
-# * "dbi" was built as .dll, as odbc depends on it.  does it work?
+# * Newer win32all.exes installed Pythonwin.exe next to python.exe.  This
+#   leaves it in the pythonwin directory, but it seems to work fine.
+#   It may not for a non-admin Python install, where Pythonxx.dll is
+#   not in the system32 directory.
 
 from distutils.core import setup, Extension, Command
 from distutils.command.install_lib import install_lib
 from distutils.command.build_ext import build_ext
 from distutils.dep_util import newer_group
 from distutils import log
+from distutils import spawn
+from distutils import dir_util, file_util
 from distutils.sysconfig import get_python_lib
 from distutils.filelist import FileList
 import os, string, sys
@@ -174,8 +178,9 @@ class my_build_ext(build_ext):
         self.found_libraries = {}        
         self.excluded_extensions = [] # list of (ext, why)
 
-        # Here we hack a "pywin32" directory into the mix.  Distutils
-        # doesn't seem to like the concept of multiple top-level directories.
+        # Here we hack a "pywin32" directory (one of 'win32', 'win32com',
+        # 'pythonwin' etc), as distutils doesn't seem to like the concept
+        # of multiple top-level directories.
         assert self.package is None
         for ext in self.extensions:
             try:
@@ -190,6 +195,35 @@ class my_build_ext(build_ext):
             except AttributeError:
                 raise RuntimeError, "Not a win32 package!"
             self.build_exefile(ext)
+
+        # Not sure how to make this completely generic, and there is no
+        # need at this stage.
+        path = 'pythonwin\\Scintilla'
+        makefile = 'makefile_pythonwin'
+        makeargs = ["QUIET=1"]
+        if self.dry_run:
+            makeargs.append("-n")
+        # We build the DLL into our own temp directory, then copy it to the
+        # real directory - this avoids the generated .lib/.exp
+        build_temp = os.path.abspath(os.path.join(self.build_temp, "scintilla"))
+        dir_util.mkpath(build_temp, verbose=self.verbose, dry_run=self.dry_run)
+        makeargs.append("SUB_DIR_O=%s" % build_temp)
+        makeargs.append("SUB_DIR_BIN=%s" % build_temp)
+
+        cwd = os.getcwd()
+        os.chdir(path)
+        try:
+            cmd = ["nmake.exe", "/nologo", "/f", makefile] + makeargs
+            # dry_run handled by 'make /n'
+            spawn.spawn(cmd, verbose=self.verbose, dry_run=0)
+        finally:
+            os.chdir(cwd)
+
+        # The DLL goes in the Pythonwin directory.
+        file_util.copy_file(
+                    os.path.join(self.build_temp, "scintilla", "scintilla.dll"),
+                    os.path.join(self.build_lib, "Pythonwin"),
+                    verbose = self.verbose, dry_run = self.dry_run)
 
     def build_exefile(self, ext):
         from types import ListType, TupleType
@@ -675,7 +709,7 @@ if dist.command_obj.has_key('build_ext'):
 # process has terminated (as distutils imports win32api!), so we must use
 # some 'no wait' executor - spawn seems fine!  We pass the PID of this
 # process so the child will wait for us.
-if dist.command_obj.has_key('install'):
+if not dist.dry_run and dist.command_obj.has_key('install'):
     # What executable to use?  This one I guess.  Maybe I could just import
     # as a module and execute?
     filename = os.path.join(
