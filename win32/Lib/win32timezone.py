@@ -69,6 +69,7 @@ __version__ = '$Revision$'[11:-2]
 __vssauthor__ = '$Author$'[9:-2]
 __date__ = '$Modtime: 04-04-14 10:52 $'[10:-2]
 
+from __future__ import generators
 import os, win32api, win32con, struct, datetime
 
 class TimeZoneInfo( datetime.tzinfo ):
