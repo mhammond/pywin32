@@ -130,7 +130,7 @@ class FormatterBase:
 			baseFormat = self.GetDefaultFormat()
 		else: baseFormat = f
 		scintilla.SCIStyleSetFore(stylenum, f[4])
-		scintilla.SCIStyleSetFont( stylenum, baseFormat[7])
+		scintilla.SCIStyleSetFont(stylenum, baseFormat[7], baseFormat[5])
 		if f[1] & 1: scintilla.SCIStyleSetBold(stylenum, 1)
 		else: scintilla.SCIStyleSetBold(stylenum, 0)
 		if f[1] & 2: scintilla.SCIStyleSetItalic(stylenum, 1)

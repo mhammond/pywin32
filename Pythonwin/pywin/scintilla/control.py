@@ -105,10 +105,11 @@ class ScintillaControlInterface:
 		return self.SendScintilla(SCI_STYLESETBACK, num, v)
 	def SCIStyleSetEOLFilled(self, num, v):
 		return self.SendScintilla(SCI_STYLESETEOLFILLED, num, v)
-	def SCIStyleSetFont(self, num, name):
+	def SCIStyleSetFont(self, num, name, characterset=0):
 		buff = array.array('c', name + "\0")
 		addressBuffer = buff.buffer_info()[0]
 		self.SendScintilla(SCI_STYLESETFONT, num, addressBuffer)
+		self.SendScintilla(SCI_STYLESETCHARACTERSET, num, characterset)
 	def SCIStyleSetBold(self, num, bBold):
 		self.SendScintilla(SCI_STYLESETBOLD, num, bBold)
 	def SCIStyleSetItalic(self, num, bItalic):
