@@ -165,7 +165,7 @@ MessageId=0xB
 Severity=Error
 SymbolicName=PYS_E_SERVICE_CONTROL_FAILED
 Language=English
-The Python service control failed.
+The Python service control handler failed.
 %n%1
 %n%2: %3
 .
