@@ -84,21 +84,22 @@ py_timer_set_timer (PyObject * self, PyObject * args)
     return NULL;
   }
 
-  py_timer_id = Py_BuildValue ("i", (int) timer_id);
+  py_timer_id = PyInt_FromLong((long) timer_id);
+  if (!py_timer_id)
+	  return NULL;
 
   // associate the timer id with the given callback function
   if (PyObject_SetItem (timer_id_callback_map,
 						py_timer_id,
 						callback) == -1) {
     ::KillTimer (NULL, timer_id);
+	Py_DECREF(py_timer_id);
     PyErr_SetString (timer_module_error,
 					 "internal error, couldn't set timer id callback item");
     return NULL;
   }
-  Py_INCREF (callback);
-
   // everything went ok.
-  return (Py_BuildValue ("i", (int) timer_id));
+  return py_timer_id;
 }
 
 static PyObject *
@@ -109,7 +110,9 @@ py_timer_kill_timer (PyObject * self, PyObject * args)
   if (!PyArg_ParseTuple (args, "O", &py_timer_id)) {
 	return NULL;
   } else if (timer_id_callback_map) {
-	PyDict_DelItem (timer_id_callback_map, py_timer_id);
+	  if (0 != PyDict_DelItem (timer_id_callback_map, py_timer_id)) {
+		  return NULL;
+	  }
   }
   int rc;
   Py_BEGIN_ALLOW_THREADS;
@@ -151,5 +154,6 @@ inittimer(void)
   if (!dict) return; /* Another serious error!*/
   timer_module_error = PyString_FromString("timer error");
   PyDict_SetItemString(dict, "error", timer_module_error);
+  PyDict_SetItemString(dict, "__version__", PyString_FromString("0.2"));
   timer_id_callback_map = PyDict_New();
 }
