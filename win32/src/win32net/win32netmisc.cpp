@@ -707,7 +707,6 @@ PyNetServerEnum(PyObject *self, PyObject *args)
 		if (sub==NULL) goto done;
 		PyList_SetItem(list, i, sub);
 	}
-	resumeHandle = err==0 ? 0 : resumeHandle;
 	ret = Py_BuildValue("Oll", list, totalEntries, resumeHandle);
 	Py_DECREF(list);
 	ok = TRUE;
