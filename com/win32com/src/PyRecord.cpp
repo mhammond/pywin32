@@ -1,12 +1,17 @@
 #include "stdafx.h"
 #include "PythonCOM.h"
 
+// @doc
 #ifdef LINK_AGAINST_RECORDINFO
 // Helpers to avoid linking directly to these newer functions
 static const IID g_IID_IRecordInfo = IID_IRecordInfo;
 HRESULT PySafeArrayGetRecordInfo( SAFEARRAY *  psa, IRecordInfo **  prinfo )
 {
 	return SafeArrayGetRecordInfo(psa, prinfo);
+}
+HRESULT PyGetRecordInfoFromGuids( REFGUID g, ULONG maj, ULONG min, LCID lcid, REFGUID gti, IRecordInfo **ppr)
+{
+	return GetRecordInfoFromGuids( g, maj, min, lcid, gti, ppr);
 }
 #else
 
@@ -27,6 +32,20 @@ HRESULT PySafeArrayGetRecordInfo( SAFEARRAY *  psa, IRecordInfo **  prinfo )
 			return E_NOTIMPL;
 	}
 	return (*pfnSAGRI)(psa, prinfo);
+}
+HRESULT PyGetRecordInfoFromGuids( REFGUID g, ULONG maj, ULONG min, LCID lcid, REFGUID gti, IRecordInfo **ppr)
+{
+	static HRESULT (STDAPICALLTYPE *pfnGRIFG)(REFGUID, ULONG, ULONG, LCID, REFGUID, IRecordInfo **) = NULL;
+	if (pfnGRIFG==NULL) {
+		HMODULE hmod = GetModuleHandle("oleaut32.dll");
+		if (hmod==NULL)
+			return E_NOTIMPL;
+		pfnGRIFG = (HRESULT (STDAPICALLTYPE *)(REFGUID, ULONG, ULONG, LCID, REFGUID, IRecordInfo **))
+			GetProcAddress(hmod, "GetRecordInfoFromGuids");
+		if (pfnGRIFG==NULL)
+			return E_NOTIMPL;
+	}
+	return (*pfnGRIFG)(g, maj, min, lcid, gti, ppr);
 }
 #endif // LINK_AGAINST_RECORDINFO
 
@@ -58,6 +77,9 @@ public:
 	long ref;
 };
 
+// @object PyRecord|An object that represents a COM User Defined Type.
+// @comm Once created or obtained from other methods, you can simply
+// get and set attributes.
 class PyRecord : public PyObject
 {
 public:
@@ -77,7 +99,6 @@ public:
 };
 
 BOOL PyRecord_Check(PyObject *ob) {return ((ob)->ob_type == &PyRecord::Type);}
-
 
 BOOL PyObject_AsVARIANTRecordInfo(PyObject *ob, VARIANT *pv)
 {
@@ -166,12 +187,38 @@ PyObject *PyObject_FromRecordInfo(IRecordInfo *ri, void *data)
 		delete owner;
 		return PyCom_BuildPyException(hr, ri, g_IID_IRecordInfo);
 	}
-	hr = ri->RecordCopy(data, owner->data);
+	hr = data==NULL ? 0 : ri->RecordCopy(data, owner->data);
 	if (FAILED(hr)) {
 		delete owner;
 		return PyCom_BuildPyException(hr, ri, g_IID_IRecordInfo);
 	}
 	return new PyRecord(ri, owner->data, owner);
+}
+
+// @pymethod <o PyRecord>|pythoncom|GetRecordFromGuids|Creates a new record object from the given GUIDs
+PyObject *pythoncom_GetRecordFromGuids(PyObject *self, PyObject *args)
+{
+	PyObject *obGuid, *obInfoGuid;
+	int maj, min, lcid;
+	if (!PyArg_ParseTuple(args, "OiiiO:GetRecordFromGuids", 
+		&obGuid, // @pyparm <o PyIID>|iid||The GUID of the type library
+		&maj, // @pyparm int|verMajor||The major version number of the type lib.
+		&min, // @pyparm int|verMinor||The minor version number of the type lib.
+		&lcid, // @pyparm int|lcid||The LCID of the type lib.
+		&obInfoGuid)) // @pyparm <o PyIID>|infoIID||The GUID of the record info in the library
+		return NULL;
+	GUID guid, infoGuid;
+	if (!PyWinObject_AsIID(obGuid, &guid))
+		return NULL;
+	if (!PyWinObject_AsIID(obInfoGuid, &infoGuid))
+		return NULL;
+	IRecordInfo *i = NULL;
+	HRESULT hr = PyGetRecordInfoFromGuids(guid, maj, min, lcid, infoGuid, &i);
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	PyObject *ret = PyObject_FromRecordInfo(i, NULL);
+	i->Release();
+	return ret;
 }
 
 PyRecord::PyRecord(IRecordInfo *ri, PVOID data, PyRecordBuffer *owner)

@@ -35,6 +35,7 @@ extern PyObject *pythoncom_StgCreateDocfile(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_StgCreateDocfileOnILockBytes(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_WriteClassStg(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_ReadClassStg(PyObject *self, PyObject *args);
+extern PyObject *pythoncom_GetRecordFromGuids(PyObject *self, PyObject *args);
 
 
 // Typelib related functions
@@ -1253,6 +1254,7 @@ static struct PyMethodDef pythoncom_methods[]=
 	{ "GetClassFile",        pythoncom_GetClassFile, 1 },        // @pymeth GetClassFile|Supplies the CLSID associated with the given filename.
 #endif // MS_WINCE
 	{ "GetFacilityString",   pythoncom_GetFacilityString, 1 },   // @pymeth GetFacilityString|Returns the facility string, given an OLE scode.
+	{ "GetRecordFromGuids",  pythoncom_GetRecordFromGuids, 1},   // @pymeth GetRecordFromGuids|Creates a new record object from the given GUIDs
 #ifndef MS_WINCE
 	{ "GetRunningObjectTable", pythoncom_GetRunningObjectTable, 1 }, // @pymeth GetRunningObjectTable|Obtains a <o PyIRunningObjectTable> object.
 #endif // MS_WINCE
