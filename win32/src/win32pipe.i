@@ -355,4 +355,12 @@ BOOLAPI GetOverlappedResult(
 	BOOL bWait	// @pyparm int|bWait||Indicates if the function should wait for data to become available.
 );
 
- 
+// @pyswig |WaitNamedPipe|Waits until either a time-out interval elapses or an instance of the specified named pipe is available to be connected to (that is, the pipe's server process has a pending <om win32pipe.ConnectNamedPipe> operation on the pipe). 
+BOOLAPI WaitNamedPipe( 
+	TCHAR *pipeName, // @pyparm <o PyUnicode>|pipeName||The name of the pipe
+	unsigned long timeout); // @pyparm int|timeout||The number of milliseconds the function will wait.
+	// instead of a literal value, you can specify one of the following values for the timeout:
+	// @flagh Value|Meaning 
+	// @flag NMPWAIT_USE_DEFAULT_WAIT|The time-out interval is the default value specified by the server process in the CreateNamedPipe function. 
+	// @flag NMPWAIT_WAIT_FOREVER|The function does not return until an instance of the named pipe is available 
+	
