@@ -5,7 +5,7 @@ import sys, string, os, getopt
 g_com_parent = ""
 
 def GetComments(line, lineNo, lines):
-	# Get the comment from this and continuos lines, if they exist.
+	# Get the comment from this and continuous lines, if they exist.
 	data = string.split(line, "//", 2)
 	doc = ""
 	if len(data)==2: doc=string.strip(data[1])
@@ -48,7 +48,8 @@ def make_doc_summary(inFile, outFile):
 				extra = string.split(line, "//")
 				if len(extra)>1:
 					modName = string.strip(extra[0][7:])
-					modDoc = string.strip(extra[1])
+					modDoc, lineNo = GetComments(line, lineNo, lines)
+				lineNo += 1
 			elif line[:10]=="// @pyswig":
 				doc, lineNo = GetComments(line, lineNo, lines)
 				curMethod = doc[8:], []
