@@ -14,6 +14,9 @@
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
 
+// We should not be using this!
+#define OleSetOleError PyCom_BuildPyException
+
 #if _ATL_VER < 0x0200
 typedef EXCEPINFO UserEXCEPINFO;
 typedef VARIANT UserVARIANT;
