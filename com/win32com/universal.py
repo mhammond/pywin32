@@ -144,6 +144,8 @@ class Definition:
         # Infer S_OK if they don't return anything bizarre.
         hr = 0 
         args = ReadFromInTuple(meth._gw_in_args, argPtr)
+        # If ob is a dispatcher, ensure a policy
+        ob = getattr(ob, "policy", ob)
         # Ensure the correct dispid is setup
         ob._dispid_to_func_[meth.dispid] = meth.name
         retVal = ob._InvokeEx_(meth.dispid, 0, pythoncom.DISPATCH_METHOD, args, None, None)
