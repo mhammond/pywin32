@@ -213,6 +213,11 @@ library PyCOMTestLib
 						[out, retval] Date* pResult);
 
 		HRESULT TestQueryInterface();
+		// Some test properties
+		[propget] HRESULT LongProp([out, retval] long* retval);
+		[propput] HRESULT LongProp([in] long val);
+		[propget] HRESULT IntProp([out, retval] int* retval);
+		[propput] HRESULT IntProp([in] int val);
 	};
 
 	// Define a new class to test how Python handles derived interfaces!

@@ -87,6 +87,10 @@ END_COM_MAP()
 	STDMETHOD(EarliestDate)(DATE first, DATE second, DATE *pResult);
 	STDMETHOD(TestQueryInterface)();
 	STDMETHOD(NotScriptable)(int *val);
+	STDMETHOD(get_LongProp)(long *ret);
+	STDMETHOD(put_LongProp)(long val);
+	STDMETHOD(get_IntProp)(int *ret);
+	STDMETHOD(put_IntProp)(int val);
 
 	// info associated to each session
 	struct PyCOMTestSessionData
@@ -103,6 +107,7 @@ protected:
 
 	_ThreadModel::AutoCriticalSection m_cs;
 	SAFEARRAY *pLastArray;
+	long m_long;
 };
 
 class CPyCOMTest2 : public CPyCOMTest

@@ -472,6 +472,13 @@ HRESULT CPyCOMTest::TestMyInterface( IUnknown *unktester)
 
 	SafeArrayDestroy(array);
 
+	long lresult;
+	CHECK_HR(tester->put_LongProp(4));
+	CHECK_HR(tester->get_LongProp(&lresult));
+	CHECK_TRUE(lresult==4);
+	CHECK_HR(tester->get_IntProp(&result));
+	CHECK_TRUE(result==4);
+
 	return S_OK;
 }
 
@@ -518,5 +525,33 @@ exit:
 HRESULT CPyCOMTest::NotScriptable(int *val)
 {
 	(*val) ++;
+	return S_OK;
+}
+
+HRESULT CPyCOMTest::put_LongProp(long val)
+{
+	m_long = val;
+	return S_OK;
+}
+
+HRESULT CPyCOMTest::get_LongProp(long *ret)
+{
+	if (!ret)
+		return E_POINTER;
+	*ret = m_long;
+	return S_OK;
+}
+
+HRESULT CPyCOMTest::put_IntProp(int val)
+{
+	m_long = val;
+	return S_OK;
+}
+
+HRESULT CPyCOMTest::get_IntProp(int *ret)
+{
+	if (!ret)
+		return E_POINTER;
+	*ret = (int)m_long;
 	return S_OK;
 }
