@@ -41,6 +41,11 @@ def find_pdh_counter_localized_name(english_name, machine_name = None):
 	return win32pdh.LookupPerfNameByIndex(machine_name, counter_english_map[english_name.lower()])
 
 def GetPerformanceAttributes(object, counter, instance = None, inum=-1, format = win32pdh.PDH_FMT_LONG, machine=None):
+	# NOTE: If you attempt to use this function to get "% Processor Time",
+	# it will not work as you expect - the problem is that by creating a
+	# new query each time, we force the CPU to 100%.  If you pull this
+	# function apart, and only do the inner "CollectQueryData" each time
+	# you need to know, it will give the correct results.
 	path = win32pdh.MakeCounterPath( (machine,object,instance, None, inum,counter) )
 	hq = win32pdh.OpenQuery()
 	try:
