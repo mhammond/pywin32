@@ -40,14 +40,12 @@ def RunAsCollector():
 
 
 def SetupForPrint():
-	import sys
 	win32trace.InitWrite()
 	try:	# Under certain servers, sys.stdout may be invalid.
 		print "Redirecting output to win32trace remote collector"
 	except:
 		pass
 	win32trace.setprint() # this works in an rexec environment.
-#	sys.stdout = sys.stderr = win32trace
 
 if __name__=='__main__':
 	RunAsCollector()

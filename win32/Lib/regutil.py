@@ -1,7 +1,6 @@
 # Some registry helpers.
 import win32api
 import win32con
-import string
 import sys
 import os
 
@@ -123,8 +122,8 @@ def GetRegisteredNamedPath(name):
 	except win32api.error, (code, fn, details):
 		import winerror
 		if code!=winerror.ERROR_FILE_NOT_FOUND:
-			raise win32api.error, (code, fn, desc)
-		return
+			raise win32api.error, (code, fn, details)
+		return None
 
 
 def RegisterModule(modName, modPath):
@@ -166,7 +165,8 @@ def GetRegisteredHelpFile(helpDesc):
 		try:
 			return GetRegistryDefaultValue(BuildDefaultPythonKey() + "\\Help\\" + helpDesc, win32con.HKEY_CURRENT_USER)
 		except win32api.error:
-			return None
+			pass
+	return None
 
 def RegisterHelpFile(helpFile, helpPath, helpDesc = None, bCheckFile = 1):
 	"""Register a help file in the registry.

@@ -118,7 +118,7 @@ if you use it, you accept the risk of using it, etceteras.
 '''
 # Feb 12, 98 - MH added "rawaddcounter" so caller can get exception details.
 
-import win32pdh, string, win32api,time, thread,copy
+import win32pdh, win32api,time, thread,copy
 
 class BaseQuery:
 	'''
@@ -354,7 +354,7 @@ class Query(BaseQuery):
 		has an identicle effect.
 			query.addcounter('Memory', 'Available Bytes')
 		'''
-		BaseQuery.addcounter(self, object=object, counter=counter)
+		BaseQuery.addcounter(self, object=object, counter=counter, machine=machine)
 	def addinstcounter(self, object, counter,machine=None,objtype = 'Process',volatile=1,format = win32pdh.PDH_FMT_LONG):
 		'''
 		The purpose of using an instcounter is to track particular
@@ -374,7 +374,7 @@ class Query(BaseQuery):
 		if volatile:
 			self.volatilecounters.append((object,counter,machine,objtype,format))
 		else:
-			self.paths[len(self.paths):] = self.getinstpaths(self,object,counter,machine,objtype,format)
+			self.paths[len(self.paths):] = self.getinstpaths(object,counter,machine,objtype,format)
 				
 	def getinstpaths(self,object,counter,machine=None,objtype='Process',format = win32pdh.PDH_FMT_LONG):
 		'''

@@ -16,7 +16,7 @@ def CheckPathString(pathString):
 	for path in string.split(pathString, ";"):
 		if not os.path.isdir(path):
 			return "'%s' is not a valid directory!" % path
-	return
+	return None
 
 def CheckPythonPaths(verbose):
 	if verbose: print "Python Paths:"
@@ -61,7 +61,7 @@ def CheckHelpFiles(verbose):
 	except win32api.error, (code, fn, details):
 		import winerror
 		if code!=winerror.ERROR_FILE_NOT_FOUND:
-			raise win32api.error, (code, fn, desc)
+			raise win32api.error, (code, fn, details)
 		return
 		
 	try:
@@ -94,7 +94,7 @@ def ChcekRegisteredModules(verbose):
 	except win32api.error, (code, fn, details):
 		import winerror
 		if code!=winerror.ERROR_FILE_NOT_FOUND:
-			raise win32api.error, (code, fn, desc)
+			raise win32api.error, (code, fn, details)
 		return
 	try:
 		if verbose: print "Registered Modules:"
@@ -119,7 +119,6 @@ def ChcekRegisteredModules(verbose):
 
 
 def CheckRegistry(verbose=0):
-	defaultRootKey = regutil.GetRootKey()
 	# check the registered modules
 	if os.environ.has_key('pythonpath'):
 		print "Warning - PythonPath in environment - registry PythonPath will be ignored"
@@ -132,7 +131,6 @@ def CheckRegistry(verbose=0):
 	CheckRegisteredExe("Pythonwin.exe")
 
 if __name__=='__main__':
-	import sys
 	if len(sys.argv)>1 and sys.argv[1]=='-q':
 		verbose = 0
 	else:
