@@ -129,6 +129,9 @@ class FormatterBase:
 		if bReload:
 			self.LoadPreferences()
 		baseFormat = self.GetDefaultFormat()
+		defaultStyle = Style("default", baseFormat)
+		defaultStyle.stylenum = scintillacon.STYLE_DEFAULT
+		self._ReformatStyle(defaultStyle)
 		for style in self.styles.values():
 			if style.aliased is None:
 				style.NormalizeAgainstDefault(baseFormat)
