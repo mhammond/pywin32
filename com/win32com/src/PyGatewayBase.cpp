@@ -833,7 +833,7 @@ static PyObject *do_dispatch(
 
 	// make sure a tuple.
 	if ( !PyTuple_Check(args) )
-    {
+	{
 		PyObject *a = PyTuple_New(1);
 		if ( a == NULL )
 		{
@@ -842,14 +842,15 @@ static PyObject *do_dispatch(
 		}
 		PyTuple_SET_ITEM(a, 0, args);
 		args = a;
-    }
+	}
 
 	PyObject *method = PyObject_GetAttrString(pPyObject, "_InvokeEx_");
 	if ( !method )
-    {
+	{
 		PyErr_SetString(PyExc_AttributeError, (char *)szMethodName);
+		Py_DECREF(args);
 		return NULL;
-    }
+	}
 
 	// Make the call to _Invoke_
 	PyObject *result = PyObject_CallFunction(method,
