@@ -26,6 +26,29 @@ Private mvarVariantPutref As Variant 'local copy
 ' I cant seem to declare properties as returning native arrays.
 ' I can only declare them as variant which hopefully holds an array.
 Private mvarArrayProperty As Variant 'local copy
+
+Public Type SubSubStruct
+    int_val As Integer
+    str_val As String
+End Type
+
+Public Type SubStruct
+    int_val As Integer
+    str_val As String
+    array_val(3) As SubSubStruct
+    ob_val As Object
+End Type
+
+Public Type VBStruct
+    int_val As Integer
+    str_val As String
+    ob_val As Object
+    sub_val As SubStruct
+End Type
+
+Dim mvarStructProperty As VBStruct
+Dim mvarStructArrayProperty() As VBStruct
+
 Public Function PassSAFEARRAY(arrayData() As String) As Variant
     PassSAFEARRAY = arrayData
 End Function
@@ -95,7 +118,27 @@ Public Property Get StringProperty() As String
     StringProperty = mvarStringProperty
 End Property
 
+Public Property Get StructProperty() As VBStruct
+    StructProperty = mvarStructProperty
+End Property
+Public Property Let StructProperty(s As VBStruct)
+    mvarStructProperty = s
+End Property
 
+Public Function GetStructFunc() As VBStruct
+    GetStructFunc = mvarStructProperty
+End Function
+Public Sub SetStructSub(s As VBStruct)
+    mvarStructProperty = s
+End Sub
+
+Public Property Get StructArrayProperty() As VBStruct()
+    StructArrayProperty = mvarStructArrayProperty
+End Property
+
+Public Property Let StructArrayProperty(s() As VBStruct)
+    mvarStructArrayProperty = s
+End Property
 
 Public Property Let VariantProperty(ByVal vData As Variant)
 'used when assigning a value to the property, on the left side of an assignment.
@@ -120,8 +163,6 @@ Public Property Get VariantProperty() As Variant
         VariantProperty = mvarVariantProperty
     End If
 End Property
-
-
 
 Public Property Let IntProperty(ByVal vData As Long)
 'used when assigning a value to the property, on the left side of an assignment.
@@ -153,13 +194,46 @@ Private Sub Class_Initialize()
     mvarCollectionProperty.Add (1)
     mvarCollectionProperty.Add ("Two")
     mvarCollectionProperty.Add ("3")
+    
+    mvarStructProperty.int_val = 99
+    mvarStructProperty.str_val = "hello"
+    mvarStructProperty.sub_val.int_val = 66
+    mvarStructProperty.sub_val.str_val = "sub hello"
+    mvarStructProperty.sub_val.array_val(0).int_val = 0
+    mvarStructProperty.sub_val.array_val(0).str_val = "zero"
+    mvarStructProperty.sub_val.array_val(1).int_val = 1
+    mvarStructProperty.sub_val.array_val(1).str_val = "one"
+    mvarStructProperty.sub_val.array_val(2).int_val = 2
+    mvarStructProperty.sub_val.array_val(2).str_val = "two"
+  
 End Sub
 
 Public Sub IncrementIntegerParam(intVal As Integer)
     intVal = intVal + 1
 End Sub
+
 Public Sub IncrementVariantParam(ByRef varVal As Variant)
     varVal = varVal + 1
+End Sub
+
+Public Function TakeByRefObject(ByRef ob As Object) As Object
+    set TakeByRefObject = ob
+End Function
+
+Public Function TakeByValObject(ByVal ob As Object) As Object
+    set TakeByValObject = ob
+End Function
+
+Public Sub MakeStructArrayProperty(n as Integer)
+    redim mvarStructArrayProperty(n)
+    dim i as integer
+    for i = 0 to n
+    	mvarStructArrayProperty(i).int_val = i
+    	mvarStructArrayProperty(i).sub_val.int_val = i
+    	mvarStructArrayProperty(i).sub_val.array_val(0).int_val = i
+    	mvarStructArrayProperty(i).sub_val.array_val(1).int_val = i+1
+    	mvarStructArrayProperty(i).sub_val.array_val(2).int_val = i+2
+    next
 End Sub
 
 Public Sub DoSomeCallbacks(ob As Object)
