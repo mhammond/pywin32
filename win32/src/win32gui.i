@@ -118,6 +118,14 @@ extern "C" __declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD 
 }
 %}
 
+// Custom 'exception handlers' for simple types that exist only to
+// manage the thread-lock.
+%typemap(python,except) int {
+    Py_BEGIN_ALLOW_THREADS
+    $function
+    Py_END_ALLOW_THREADS
+}
+
 %apply HCURSOR {long};
 typedef long HCURSOR;
 
@@ -1643,6 +1651,11 @@ static PyObject *PyDialogBoxIndirect(PyObject *self, PyObject *args)
 	long hinst, hwnd, param=0;
 	PyObject *obList, *obDlgProc;
 	BOOL bFreeString = FALSE;
+	// @pyparm int|hinst||
+	// @pyparm object|controlList||
+	// @pyparm int|hwnd||
+	// @pyparm object|dlgproc||
+	// @pyparm int|param|0|
 	if (!PyArg_ParseTuple(args, "lOlO|l", &hinst, &obList, &hwnd, &obDlgProc, &param))
 		return NULL;
 	
@@ -1679,6 +1692,11 @@ static PyObject *PyCreateDialogIndirect(PyObject *self, PyObject *args)
 	long hinst, hwnd, param=0;
 	PyObject *obList, *obDlgProc;
 	BOOL bFreeString = FALSE;
+	// @pyparm int|hinst||
+	// @pyparm object|controlList||
+	// @pyparm int|hwnd||
+	// @pyparm object|dlgproc||
+	// @pyparm int|param|0|
 	if (!PyArg_ParseTuple(args, "lOlO|l", &hinst, &obList, &hwnd, &obDlgProc, &param))
 		return NULL;
 	
@@ -1746,7 +1764,9 @@ static PyObject *PyGetWindowText(PyObject *self, PyObject *args)
 	// @pyparm int|hwnd||The handle to the window
 	if (!PyArg_ParseTuple(args, "l", &hwnd))
 		return NULL;
+    Py_BEGIN_ALLOW_THREADS
     len = GetWindowText(hwnd, buffer, sizeof(buffer)/sizeof(TCHAR));
+    Py_END_ALLOW_THREADS
     if (len == 0) return PyUnicodeObject_FromString("");
 	return PyWinObject_FromTCHAR(buffer, len);
 }
@@ -1989,8 +2009,6 @@ int ImageList_ReplaceIcon(HIMAGELIST himl, int i, HICON hicon);
 COLORREF ImageList_SetBkColor(HIMAGELIST himl,COLORREF clrbk);
 
 #define	CLR_NONE	CLR_NONE
-
-
 
 // @pyswig int|MessageBox|Displays a message box
 // @pyparm int|parent||The parent window
@@ -2685,19 +2703,19 @@ BOOL GetOpenFileName(OPENFILENAME *INPUT);
 // @pyswig |InsertMenuItem|Inserts a menu item
 // @pyparm int|hMenu||
 // @pyparm int|fByPosition||
-// @pyparm buffer|menuItem||A string or buffer in the format of a MENUITEMINFO structure.
+// @pyparm buffer|menuItem||A string or buffer in the format of a <o MENUITEMINFO> structure.
 BOOLAPI InsertMenuItem(HMENU hMenu, UINT uItem, BOOL fByPosition, MENUITEMINFO *INPUT);
 
 // @pyswig |SetMenuItemInfo|Sets menu information
 // @pyparm int|hMenu||
 // @pyparm int|fByPosition||
-// @pyparm buffer|menuItem||A string or buffer in the format of a MENUITEMINFO structure.
+// @pyparm buffer|menuItem||A string or buffer in the format of a <o MENUITEMINFO> structure.
 BOOLAPI SetMenuItemInfo(HMENU hMenu, UINT uItem, BOOL fByPosition, MENUITEMINFO *INPUT);
 
 // @pyswig |GetMenuItemInfo|Gets menu information
 // @pyparm int|hMenu||
 // @pyparm int|fByPosition||
-// @pyparm buffer|menuItem||A string or buffer in the format of a MENUITEMINFO structure.
+// @pyparm buffer|menuItem||A string or buffer in the format of a <o MENUITEMINFO> structure.
 BOOLAPI GetMenuItemInfo(HMENU hMenu, UINT uItem, BOOL fByPosition, MENUITEMINFO *BOTH);
 
 #endif
