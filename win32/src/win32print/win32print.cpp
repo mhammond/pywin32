@@ -558,7 +558,84 @@ static PyObject *PySetJob(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod int|win32print|DocumentProperties|Changes printer configuration for a printer
+// @comm If DM_IN_PROMPT is specified, return value will be IDOK or IDCANCEL
+static PyObject *PyDocumentProperties(PyObject *self, PyObject *args)
+{
+	long ret;
+	HANDLE hprinter;
+	HWND hwnd;
+	char *devicename;
+	PDEVMODE dmoutput, dminput;
+	PyObject *obdmoutput, *obdminput;
+	DWORD mode;
+	// @pyparm int|HWnd||Parent window handle to use if DM_IN_PROMPT is specified to display printer dialog
+	// @pyparm int|hPrinter||Printer handle as returned by OpenPrinter
+	// @pyparm string|DeviceName||Name of printer
+	// @pyparm <o PyDEVMODE>|DevModeOutput||PyDEVMODE object that receives modified info, can be None if DM_OUT_BUFFER not specified
+	// @pyparm <o PyDEVMODE>|DevModeInput||PyDEVMODE that specifies initial configuration, can be None if DM_IN_BUFFER not specified
+	// @pyparm int|Mode||A combination of DM_IN_BUFFER, DM_OUT_BUFFER, and DM_IN_PROMPT - pass 0 to retrieve driver data size
+	if (!PyArg_ParseTuple(args,"llsOOl", &hwnd, &hprinter, &devicename, &obdmoutput, &obdminput, &mode))
+		return NULL;
+	if (!PyWinObject_AsDEVMODE(obdmoutput, &dmoutput, TRUE))
+		return NULL;
+	if (!PyWinObject_AsDEVMODE(obdminput, &dminput, TRUE))
+		return NULL;
+	ret=DocumentProperties(hwnd, hprinter, devicename, dmoutput, dminput, mode);
+	if (ret < 0){
+		PyWin_SetAPIError("DocumentProperties");
+		return NULL;
+		}
+	if (obdmoutput!=Py_None)
+		((PyDEVMODE *)obdmoutput)->modify_in_place();
+	return PyInt_FromLong(ret);
+}
 
+// @pymethod string,...|win32print|EnumPrintProcessors|List printer providers for specified server and environment
+static PyObject *PyEnumPrintProcessors(PyObject *self, PyObject *args)
+{
+	PRINTPROCESSOR_INFO_1 *info=NULL; // currently only level that exists
+	LPBYTE buf=NULL;
+	char *servername=NULL, *environment=NULL;
+	DWORD level=1, bufsize=0, bytes_needed, return_cnt;
+	PyObject *ret, *tuple_item;
+	// @pyparm string|Server|None|Name of print server, use None for local machine
+	// @pyparm string|Environment|None|Environment - eg 'Windows NT x86' - use None for current client environment
+	if (!PyArg_ParseTuple(args,"|zz", &servername, &environment))
+		return NULL;
+
+	EnumPrintProcessors(servername, environment, level, buf, bufsize, &bytes_needed, &return_cnt);
+	if (bytes_needed==0){
+		PyWin_SetAPIError("EnumPrintProcessors");
+		return NULL;
+		}
+	buf=(LPBYTE)malloc(bytes_needed);
+	if (buf==NULL){
+		PyErr_Format(PyExc_MemoryError,"EnumPrintProcessors: unable to allocate buffer of size %d", bytes_needed);
+		return NULL;
+		}
+	bufsize=bytes_needed;
+	if (!EnumPrintProcessors(servername, environment, level, buf, bufsize, &bytes_needed, &return_cnt))
+		PyWin_SetAPIError("EnumPrintProcessors");
+	else{
+		ret=PyTuple_New(return_cnt);
+		if (ret!=NULL){
+			info=(PRINTPROCESSOR_INFO_1 *)buf;
+			for (DWORD buf_ind=0; buf_ind<return_cnt; buf_ind++){
+				tuple_item=PyString_FromString(info->pName);
+				if (tuple_item==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SetItem(ret,buf_ind,tuple_item);
+				info++;
+				}
+			}
+		}
+	free(buf);
+	return ret;
+}
 
 /* List of functions exported by this module */
 // @module win32print|A module, encapsulating the Windows Win32 API.
@@ -577,6 +654,8 @@ static struct PyMethodDef win32print_functions[] = {
 	{"EnumJobs",        PyEnumJobs, 1},   // @pymeth EnumJobs|Enumerates print jobs on specified printer.
 	{"GetJob",          PyGetJob, 1},   // @pymeth GetJob|Returns dictionary of information about a specified print job.
 	{"SetJob",          PySetJob, 1},   // @pymeth SetJob|Pause, cancel, resume, set priority levels on a print job.
+	{"DocumentProperties", PyDocumentProperties, 1}, //@pymeth DocumentProperties|Changes printer configuration
+	{"EnumPrintProcessors", PyEnumPrintProcessors, 1}, //@pymeth EnumPrintProcessors|List printer providers for specified server and environment
 	{ NULL }
 };
 
