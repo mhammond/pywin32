@@ -477,8 +477,10 @@ PyObject * PyPREPROC_HEADERS_GetHeader(PyObject *self, PyObject *args)
 	TCHAR buffer[8192];
 	DWORD bufSize = sizeof(buffer) / sizeof(TCHAR);
 	char *name;
+	PyObject *def = NULL;
 	// @pyparm string|header||
-	if (!PyArg_ParseTuple(args, "s:GetHeader", &name))
+	// @pyparm object|default||If specified, this will be returned on error.
+	if (!PyArg_ParseTuple(args, "s|O:GetHeader", &name, &def))
 		return NULL;
 	BOOL ok;
 	HTTP_FILTER_PREPROC_HEADERS *pp = ((PyPREPROC_HEADERS *)self)->GetPREPROC_HEADERS();
@@ -488,8 +490,12 @@ PyObject * PyPREPROC_HEADERS_GetHeader(PyObject *self, PyObject *args)
 	Py_BEGIN_ALLOW_THREADS
 	ok = pp->GetHeader(pfc, name, buffer, &bufSize);
 	Py_END_ALLOW_THREADS
-	if (!ok)
-		return SetPyHFCError("GetHeader");
+	if (!ok || bufSize==0) {
+		if (def == NULL)
+			return SetPyHFCError("GetHeader");
+		Py_INCREF(def);
+		return def;
+	}
 	return PyString_FromStringAndSize(buffer, bufSize-1);
 }
 
