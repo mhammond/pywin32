@@ -126,16 +126,22 @@ class HierStackRoot(HierListItem):
 
 class HierListDebugger(hierlist.HierListWithItems):
 	""" Hier List of stack frames, breakpoints, whatever """
-	def __init__(self, debugger):
-		self.debugger = debugger
+	def __init__(self):
 		hierlist.HierListWithItems.__init__(self, None, win32ui.IDB_DEBUGGER_HIER, None, win32api.RGB(255,0,0))
-	def Setup(self):
-		root = HierStackRoot(self.debugger)
+	def Setup(self, debugger):
+		root = HierStackRoot(debugger)
 		self.AcceptRoot(root)
 #	def Refresh(self):
 #		self.Setup()
 
 class DebuggerWindow(window.Wnd):
+	def __init__(self, ob):
+		window.Wnd.__init__(self, ob)
+		self.debugger = None
+
+	def Init(self, debugger):
+		self.debugger = debugger
+
 	def GetDefRect(self):
 		defRect = app.LoadWindowSize("Debugger Windows\\" + self.title)
 		if defRect[2]-defRect[0]==0:
@@ -171,10 +177,10 @@ class DebuggerWindow(window.Wnd):
 
 class DebuggerStackWindow(DebuggerWindow):
 	title = "Stack"
-	def __init__(self, debugger):
+	def __init__(self):
 		DebuggerWindow.__init__(self, win32ui.CreateTreeCtrl())
-		self.list = HierListDebugger(debugger)
-		self.listOK = 1
+		self.list = HierListDebugger()
+		self.listOK = 0
 	def SaveState(self):
 		self.list.DeleteAllItems()
 		self.listOK = 0
@@ -184,12 +190,14 @@ class DebuggerStackWindow(DebuggerWindow):
 		self.HookMessage(self.OnKeyDown, win32con.WM_KEYDOWN)
 		self.HookMessage(self.OnKeyDown, win32con.WM_SYSKEYDOWN)
 		self.list.HierInit (parent, self)
-		self.list.Setup()
+		self.listOK = 0 # delayed setup
+		#self.list.Setup()
 
 	def RespondDebuggerState(self, state):
+		assert self.debugger is not None, "Init not called"
 		if not self.listOK:
 			self.listOK = 1
-			self.list.Setup()
+			self.list.Setup(self.debugger)
 		else:			
 			self.list.Refresh()
 
@@ -211,9 +219,8 @@ class DebuggerStackWindow(DebuggerWindow):
 				break
 
 class DebuggerListViewWindow(DebuggerWindow):
-	def __init__(self, debugger):
+	def __init__(self):
 		DebuggerWindow.__init__(self, win32ui.CreateListCtrl())
-		self.debugger = debugger
 	def CreateWindow(self, parent):
 		list = self
 		style = win32con.WS_CHILD | win32con.WS_VISIBLE | win32con.WS_BORDER | commctrl.LVS_EDITLABELS | commctrl.LVS_REPORT
@@ -395,8 +402,8 @@ class DebuggerWatchWindow(DebuggerListViewWindow):
 					tb = None # prevent a cycle.
 			self.SetItemText(i, 1, val)
 
-def CreateDebuggerDialog(parent, klass, debugger):
-	control = klass(debugger)
+def CreateDebuggerDialog(parent, klass):
+	control = klass()
 	control.CreateWindow(parent)
 	return control
 
@@ -405,6 +412,39 @@ DebuggerDialogInfos = (
 	(0xe811, DebuggerBreakpointsWindow, (10, 10)),
 	(0xe812, DebuggerWatchWindow, None),
 	)
+
+# Prepare all the "control bars" for this package.
+# If control bars are not all loaded when the toolbar-state functions are
+# called, things go horribly wrong.
+def PrepareControlBars(frame):
+	style = win32con.WS_CHILD | afxres.CBRS_SIZE_DYNAMIC | afxres.CBRS_TOP | afxres.CBRS_TOOLTIPS | afxres.CBRS_FLYBY
+	tbd = win32ui.CreateToolBar (frame, style, win32ui.ID_VIEW_TOOLBAR_DBG)
+	tbd.ModifyStyle(0, commctrl.TBSTYLE_FLAT)
+	tbd.LoadToolBar(win32ui.IDR_DEBUGGER)
+	tbd.EnableDocking(afxres.CBRS_ALIGN_ANY)
+	tbd.SetWindowText("Debugger")
+	frame.DockControlBar(tbd)
+
+	# and the other windows.
+	for id, klass, float in DebuggerDialogInfos:
+		try:
+			frame.GetControlBar(id)
+			exists=1
+		except win32ui.error:
+			exists=0
+		if exists: continue
+		bar = pywin.docking.DockingBar.DockingBar()
+		style=win32con.WS_CHILD | afxres.CBRS_LEFT # don't create visible.
+		bar.CreateWindow(frame, CreateDebuggerDialog, klass.title, id, style, childCreatorArgs=(klass,))
+		bar.SetBarStyle( bar.GetBarStyle()|afxres.CBRS_TOOLTIPS|afxres.CBRS_FLYBY|afxres.CBRS_SIZE_DYNAMIC)
+		bar.EnableDocking(afxres.CBRS_ALIGN_ANY)
+		if float is None:
+			frame.DockControlBar(bar)
+		else:
+			frame.FloatControlBar(bar, float, afxres.CBRS_ALIGN_ANY)
+
+		frame.ShowControlBar(bar, 0, 1)
+
 
 SKIP_NONE=0
 SKIP_STEP=1
@@ -458,11 +498,7 @@ class Debugger(debugger_parent):
 		SetInteractiveContext(None, None)
 
 		frame = win32ui.GetMainFrame()
-# See bug [ 944506 ] PythonWin Menus don't work
-# This relieves most of the symptoms, but I'd love
-# to know what is going on.  Sounds alot like
-# Q151446, but that is for MFC4, and doesn't fix it.
-#		frame.SaveBarState("ToolbarDebugging")
+		frame.SaveBarState("ToolbarDebugging")
 		# Hide the debuger toolbars (as they wont normally form part of the main toolbar state.
 		for id, klass, float in DebuggerDialogInfos:
 			try:
@@ -744,22 +780,11 @@ class Debugger(debugger_parent):
 		self.inited = 1
 		frame = win32ui.GetMainFrame()
 
-		# And the other dockable debugger dialogs.
+		# Ensure the debugger windows are attached to the debugger.
 		for id, klass, float in DebuggerDialogInfos:
-			try:
-				frame.GetControlBar(id)
-				exists=1
-			except win32ui.error:
-				exists=0
-			if exists: continue
-			bar = pywin.docking.DockingBar.DockingBar()
-			bar.CreateWindow(win32ui.GetMainFrame(), CreateDebuggerDialog, klass.title, id, childCreatorArgs=(klass, self))
-			bar.SetBarStyle( bar.GetBarStyle()|afxres.CBRS_TOOLTIPS|afxres.CBRS_FLYBY|afxres.CBRS_SIZE_DYNAMIC)
-			bar.EnableDocking(afxres.CBRS_ALIGN_ANY)
-			if float is None:
-				frame.DockControlBar(bar)
-			else:
-				frame.FloatControlBar(bar, float, afxres.CBRS_ALIGN_ANY)
+			w = frame.GetControlBar(id).dialog
+			w.Init(self)
+
 		try:
 			frame.LoadBarState("ToolbarDebugging")
 		except win32ui.error, details:

@@ -28,15 +28,12 @@ class MainFrame(app.MainFrame):
 		tb.LoadToolBar(win32ui.IDR_MAINFRAME)
 		tb.EnableDocking(afxres.CBRS_ALIGN_ANY)
 		tb.SetWindowText("Standard")
-
-		tbd = win32ui.CreateToolBar (self, style, win32ui.ID_VIEW_TOOLBAR_DBG)
-		tbd.ModifyStyle(0, commctrl.TBSTYLE_FLAT)
-		tbd.LoadToolBar(win32ui.IDR_DEBUGGER)
-		tbd.EnableDocking(afxres.CBRS_ALIGN_ANY)
-		tbd.SetWindowText("Debugger")
-
 		self.DockControlBar(tb)
-		self.DockControlBar(tbd)
+		# Any other packages which use toolbars
+		from pywin.debugger.debugger import PrepareControlBars
+		PrepareControlBars(self)
+		# Note "interact" also uses dockable windows, but they already happen
+
 		# And a "Tools" menu on the main frame.
 		menu = self.GetMenu()
 		import toolmenu
@@ -63,8 +60,19 @@ class MainFrame(app.MainFrame):
 
 		from pywin.framework import help
 		help.FinalizeHelp()
+
+		self.DestroyControlBar(afxres.AFX_IDW_TOOLBAR)
+		self.DestroyControlBar(win32ui.ID_VIEW_TOOLBAR_DBG)
 		
 		return self._obj_.OnClose()
+
+	def DestroyControlBar(self, id):
+		try:
+			bar = self.GetControlBar(id)
+		except win32ui.error:
+			return
+		bar.DestroyWindow()
+
 	def OnCommand(self, wparam, lparam):
 		# By default, the current MDI child frame will process WM_COMMAND
 		# messages before any docked control bars - even if the control bar
