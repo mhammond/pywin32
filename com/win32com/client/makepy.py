@@ -326,7 +326,7 @@ def main():
 				bForDemand = 1
 
 	except (getopt.error, error), msg:
-		sys.stderr.write (msg + "\n")
+		sys.stderr.write (str(msg) + "\n")
 		usage()
 
 	if bForDemand and outputName is not None:
