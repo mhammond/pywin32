@@ -871,6 +871,7 @@ PyGetUserNameEx (PyObject *self, PyObject *args)
 }
 
 // @pymethod string|win32api|GetDomainName|Returns the current domain name
+// @comm This is a convenience wrapper of the Win32 function LookupAccountSid()
 static PyObject *
 PyGetDomainName (PyObject *self, PyObject *args)
 {
