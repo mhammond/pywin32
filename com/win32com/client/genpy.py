@@ -246,7 +246,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
         generator.checkWriteDispatchBaseClass()
         doc = self.doc
         print 'class ' + self.python_name + '(DispatchBaseClass):'
-        if doc[1]: print '\t' + build._safeQQQ(doc[1])
+        if doc[1]: print '\t' + build._safeQuotedString(doc[1])
         try:
             progId = pythoncom.ProgIDFromCLSID(self.clsid)
             print "\t# This class is creatable by the name '%s'" % (progId)
@@ -261,7 +261,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
         generator.checkWriteEventBaseClass()
         doc = self.doc
         print 'class ' + self.python_name + ':'
-        if doc[1]: print '\t' + build._safeQQQ(doc[1])
+        if doc[1]: print '\t' + build._safeQuotedString(doc[1])
         try:
             progId = pythoncom.ProgIDFromCLSID(self.clsid)
             print "\t# This class is creatable by the name '%s'" % (progId)
@@ -305,7 +305,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
             id = fdesc[0]
             methName = MakeEventMethodName(entry.names[0])
             print '#\tdef ' + methName + '(self' + build.BuildCallList(fdesc, entry.names, "defaultNamedOptArg", "defaultNamedNotOptArg","defaultUnnamedArg") + '):'
-            if entry.doc and entry.doc[1]: print '#\t\t' + build._safeQQQ(entry.doc[1])
+            if entry.doc and entry.doc[1]: print '#\t\t' + build._safeQuotedString(entry.doc[1])
         print
         self.bWritten = 1
 
