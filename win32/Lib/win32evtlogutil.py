@@ -102,20 +102,25 @@ def FormatMessage( eventLogRecord, logType="Application" ):
 	# the name of the message DLL.
 	handle = win32api.RegOpenKey(win32con.HKEY_LOCAL_MACHINE, keyName)
 	try:
-		dllName = win32api.RegQueryValueEx(handle, "EventMessageFile")[0]
-		# Expand environment variable strings in the message DLL path name,
-	    # in case any are there.
-		dllName = win32api.ExpandEnvironmentStrings(dllName)
-	
-		dllHandle = win32api.LoadLibraryEx(dllName, 0, win32con.DONT_RESOLVE_DLL_REFERENCES)
-		try:
-			data = win32api.FormatMessageW(win32con.FORMAT_MESSAGE_FROM_HMODULE, 
-		            dllHandle, eventLogRecord.EventID, langid, eventLogRecord.StringInserts)
-		finally:
-			win32api.FreeLibrary(dllHandle)
+		dllNames = win32api.RegQueryValueEx(handle, "EventMessageFile")[0].split(";")
+		# Win2k etc appear to allow multiple DLL names
+		data = None
+		for dllName in dllNames:
+			# Expand environment variable strings in the message DLL path name,
+			# in case any are there.
+			dllName = win32api.ExpandEnvironmentStrings(dllName)
+
+			dllHandle = win32api.LoadLibraryEx(dllName, 0, win32con.DONT_RESOLVE_DLL_REFERENCES)
+			try:
+				data = win32api.FormatMessageW(win32con.FORMAT_MESSAGE_FROM_HMODULE, 
+						dllHandle, eventLogRecord.EventID, langid, eventLogRecord.StringInserts)
+			finally:
+				win32api.FreeLibrary(dllHandle)
+			if data is not None:
+				break
 	finally:
 		win32api.RegCloseKey(handle)
-	return data
+	return data or '' # Don't want "None" ever being returned.
 
 def SafeFormatMessage( eventLogRecord, logType=None ):
 	"""As for FormatMessage, except returns an error message if
