@@ -99,7 +99,8 @@ BOOL PyLong_AsUI64(PyObject *val, unsigned __int64 *lval)
 // ### should be obsolete since win32 has __int64 to work with
 PyObject *PyLong_FromTwoInts(int hidword, unsigned lodword)
 {
-	if (hidword==0)
+    // If it fits in a normal Python int, we return one of them.
+	if (hidword==0 && (lodword & 0x8000==0))
 		return PyInt_FromLong(lodword);
 	else {
 		__int64 ival = hidword;
