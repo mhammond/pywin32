@@ -442,7 +442,10 @@ CFrameWnd* CPythonDocTemplate::CreateNewFrame( CDocument* pDoc, CFrameWnd* pOthe
 		CEnterLeavePython _celp;
 		if (PyErr_Occurred())
 			gui_print_error();
-		PyErr_SetString(PyExc_TypeError,"PyCTemplate::CreateNewFrame must return a PyCFrameWnd object.");
+		const char *typ_str = retObject ? retObject->ob_type->tp_name : "<null>";
+		PyErr_Format(PyExc_TypeError,
+					 "PyCTemplate::CreateNewFrame must return a PyCFrameWnd object (got %s).",
+					 typ_str);
 		gui_print_error();
 		return NULL;
 	}
@@ -471,7 +474,10 @@ CDocument* CPythonDocTemplate::CreateNewDocument()
 		CEnterLeavePython _celp;
 		if (PyErr_Occurred())
 			gui_print_error();
-		PyErr_SetString(PyExc_TypeError,"PyCTemplate::CreateNewDocument must return a PyCDocument object.");
+		const char *typ_str = retObject ? retObject->ob_type->tp_name : "<null>";
+		PyErr_Format(PyExc_TypeError,
+					 "PyCTemplate::CreateNewDocument must return a PyCDocument object (got %s).",
+					 typ_str);
 		TRACE0("CPythonDocTemplate::CreateNewDocument fails due to return type error\n");
 		return NULL;
 	}
@@ -498,7 +504,10 @@ CDocument* CPythonDocTemplate::OpenDocumentFile(LPCTSTR lpszPathName, BOOL bMake
 		CEnterLeavePython _celp;
 		if (PyErr_Occurred())
 			gui_print_error();
-		PyErr_SetString(PyExc_TypeError,"PyCTemplate::OpenDocumentFile must return a PyCDocument object.");
+		const char *typ_str = retObject ? retObject->ob_type->tp_name : "<null>";
+		PyErr_Format(PyExc_TypeError,
+					 "PyCTemplate::OpenDocumentFile must return a PyCDocument object (got %s).",
+					 typ_str);
 		TRACE0("CPythonDocTemplate::CreateNewDocument fails due to return type error\n");
 		return NULL;
 	}
@@ -534,7 +543,9 @@ CDocTemplate::Confidence CPythonDocTemplate::MatchDocType(LPCTSTR lpszPathName,
 			return yesAlreadyOpen;
 		}
 		CEnterLeavePython _celp;
-		PyErr_SetString(PyExc_TypeError,"PyCTemplate::MatchDocType must return an integer or PyCDocument object.");
+		const char *typ_str = ret ? ret->ob_type->tp_name : "<null>";
+		PyErr_Format(PyExc_TypeError,"PyCTemplate::MatchDocType must return an integer or PyCDocument object (got %s).",
+					 typ_str);
  		gui_print_error();
 		return CDocTemplate::noAttempt;
 	} else {

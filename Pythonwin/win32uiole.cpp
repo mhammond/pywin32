@@ -92,7 +92,7 @@ static PyObject *DaoGetEngine(PyObject *self, PyObject *args)
 	IDispatch *pDisp;
 	HRESULT hr = pEngine->QueryInterface(IID_IDispatch, (void **)&pDisp);
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	pEngine->Release();
 	return PyCom_PyObjectFromIUnknown(pDisp, IID_IDispatch, FALSE);
 }
