@@ -1,6 +1,6 @@
 Document Type: WSE
 item: Global
-  Version=5.0
+  Version=8.14
   Title=Python Win32 extensions Installation
   Flags=00010100
   Languages=65 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
@@ -12,15 +12,19 @@ item: Global
   Log Pathname=%MAINDIR%\W32INST.LOG
   Message Font=MS Sans Serif
   Font Size=8
+  Extra Pages=00000000000000000000000000100000
   Disk Filename=SETUP
   Patch Flags=0000000000000001
   Patch Threshold=85
   Patch Memory=4000
-  EXE Filename=win32all-146.exe
+  EXE Filename=win32all-147.exe
   Code Sign Name=Python Win32 combined extensions
   Code Sign Info=skippinet.com.au
+  Crystal Format=10111100101100000010001001001001
+  Distribute Type=1
+  Step View=&Properties
   Variable Name1=_WISE_
-  Variable Default1=F:\Program Files\Wise
+  Variable Default1=F:\Program Files\Wise InstallMaster 8.1
   Variable Flags1=00001000
   Variable Name2=_COMBINEDINST_
   Variable Default2=1
@@ -49,46 +53,6 @@ item: Global
 end
 item: Open/Close INSTALL.LOG
   Flags=00000001
-end
-remarked item: Compiler Variable If
-  Variable=PYVER_DOTTED
-  Value=1.5
-end
-remarked item: Set Variable
-  Variable=PYVER_NODOT
-  Value=15
-end
-remarked item: Compiler Variable Else
-end
-remarked item: Compiler Variable If
-  Variable=PYVER_DOTTED
-  Value=1.6
-end
-remarked item: Set Variable
-  Variable=PYVER_NODOT
-  Value=16
-end
-remarked item: Compiler Variable Else
-end
-remarked item: Compiler Variable If
-  Variable=PYVER_DOTTED
-  Value=2.0
-end
-remarked item: Set Variable
-  Variable=PYVER_NODOT
-  Value=20
-end
-remarked item: Compiler Variable Else
-end
-remarked item: Set Variable
-  Variable=PYVER_NODOT
-  Value=21
-end
-remarked item: Compiler Variable End
-end
-remarked item: Compiler Variable End
-end
-remarked item: Compiler Variable End
 end
 item: Remark
   Text=Main Python related variables.
@@ -142,30 +106,7 @@ item: Set Variable
 end
 item: If/While Statement
   Variable=PY_INST_PATH
-end
-item: Remark
-  Text=Old 1.5.1 support - we can drop this!
-end
-remarked item: Compiler Variable If
-  Variable=PYTHON_15
-  Value=1
-end
-remarked item: Set Variable
-  Variable=PY_REG_VERSION
-  Value=1.5.1
-end
-remarked item: Get Registry Key Value
-  Variable=PY_INST_PATH
-  Key=Software\Python\PythonCore\%PY_REG_VERSION%\InstallPath
-  Flags=00000100
-end
-remarked item: Get Registry Key Value
-  Variable=GROUP
-  Key=Software\Python\PythonCore\%PY_REG_VERSION%\InstallPath\InstallGroup
-  Default=%GROUP%
-  Flags=00000100
-end
-remarked item: Compiler Variable End
+  Flags=00010000
 end
 item: Remark
   Text=Check HKEY_CURRENT_USER too.
@@ -189,8 +130,8 @@ item: If/While Statement
   Variable=PY_INST_PATH
 end
 item: Set Variable
-  Variable=PY_REG_VERSION
-  Value=%PYVER_DOTTED%
+  Variable=CONTINUE
+  Value=0
 end
 item: Custom Dialog Set
   Name=Cant install %PY_APP_NAME%
@@ -201,21 +142,21 @@ item: Custom Dialog Set
     Font Name=Helv
     Font Size=8
     item: Static
-      Rectangle=19 15 75 36
+      Rectangle=19 7 189 28
       Create Flags=01010000000000000000000000000000
       Flags=0000000000000001
       Name=Times New Roman
       Font Style=-24 0 0 0 700 255 0 0 0 3 2 1 18
-      Text=Sorry
+      Text=No Python installation found
     end
     item: Static
-      Rectangle=19 40 188 102
+      Rectangle=19 32 188 109
       Create Flags=01010000000000000000000000000000
-      Text=The installation of %PY_APP_NAME% can not be performed.
-      Text=
-      Text=This is because Python version %PY_REG_VERSION% does not appear to be installed on this computer.
+      Text=Python version %PY_REG_VERSION% does not appear to be installed on this computer.
       Text=
       Text=You can find this version of Python at www.python.org
+      Text=
+      Text=In some cases, you may wish to install these extensions into a non-standard Python installation.  In this case you may choose to continue the installation, but you must select a directory with a valid Python %PY_REG_VERSION% installed.
     end
     item: Push Button
       Rectangle=147 112 182 127
@@ -223,9 +164,185 @@ item: Custom Dialog Set
       Create Flags=01010000000000010000000000000001
       Text=Exit
     end
+    item: Push Button
+      Rectangle=18 112 78 127
+      Variable=CONTINUE
+      Value=1
+      Action=1
+      Enabled Color=00000000000000001111111111111111
+      Create Flags=01010000000000010000000000000000
+      Text=Continue anyway
+    end
   end
 end
+item: If/While Statement
+  Variable=CONTINUE
+  Value=1
+end
+item: Wizard Block
+  Direction Variable=DIRECTION
+  Display Variable=DISPLAY
+  Bitmap Pathname=.\installer.bmp
+  X Position=0
+  Y Position=0
+  Filler Color=11173759
+  Flags=00000010
+end
+item: Custom Dialog Set
+  Name=Select Destination Directory
+  Display Variable=DISPLAY
+  item: Dialog
+    Title=%APPTITLE% Installation
+    Title French=Installation de %APPTITLE%
+    Title German=Installation von %APPTITLE%
+    Title Spanish=Instalación de %APPTITLE%
+    Title Italian=Installazione di %APPTITLE%
+    Width=290
+    Height=260
+    Font Name=Helv
+    Font Size=8
+    item: Push Button
+      Rectangle=155 222 200 237
+      Variable=DIRECTION
+      Value=N
+      Action=1
+      Create Flags=01010000000000010000000000000001
+      Text=Next >
+      Text French=&Suite >
+      Text German=&Weiter >
+      Text Spanish=&Siguiente >
+      Text Italian=&Avanti >
+    end
+    item: Push Button
+      Rectangle=226 222 271 237
+      Action=3
+      Create Flags=01010000000000010000000000000000
+      Text=&Cancel
+      Text French=&Annuler
+      Text German=&Abbrechen
+      Text Spanish=&Cancelar
+      Text Italian=&Annulla
+    end
+    item: Static
+      Rectangle=10 216 271 217
+      Action=3
+      Create Flags=01010000000000000000000000000111
+    end
+    item: Static
+      Rectangle=104 7 276 41
+      Create Flags=01010000000000000000000000000000
+      Flags=0000000000000001
+      Name=Times New Roman
+      Font Style=-24 0 0 0 700 255 0 0 0 3 2 1 18
+      Text=Select Destination Directory
+      Text French=Sélectionner le répertoire de destination
+      Text German=Zielverzeichnis wählen
+      Text Spanish=Seleccione el directorio de destino
+      Text Italian=Selezionare Directory di destinazione
+    end
+    item: Static
+      Rectangle=104 42 274 82
+      Create Flags=01010000000000000000000000000000
+      Text=Please select the directory where the %APPTITLE% files are to be installed.
+      Text=
+      Text=%DIR_INFO%
+      Text French=Veuillez sélectionner le répertoire dans lequel les fichiers %APPTITLE% doivent être installés.
+      Text German=Geben Sie an, in welchem Verzeichnis die %APPTITLE%-Dateien installiert werden sollen.
+      Text Spanish=Por favor seleccione el directorio donde desee instalar los archivos de %APPTITLE%.
+      Text Italian=Selezionare la directory dove verranno installati i file %APPTITLE%.
+    end
+    item: Static
+      Rectangle=104 98 274 125
+      Action=1
+      Create Flags=01010000000000000000000000000111
+    end
+    item: Push Button
+      Rectangle=225 106 270 121
+      Variable=PY_INST_PATH
+      Value=%PY_INST_PATH%
+      Destination Dialog=1
+      Action=2
+      Create Flags=01010000000000010000000000000000
+      Text=Browse
+      Text French=Parcourir
+      Text German=Durchsuchen
+      Text Spanish=Buscar
+      Text Italian=Sfoglie
+    end
+    item: Static
+      Rectangle=107 108 223 119
+      Create Flags=01010000000000000000000000000000
+      Text=%PY_INST_PATH%
+      Text French=%MAINDIR%
+      Text German=%MAINDIR%
+      Text Spanish=%MAINDIR%
+      Text Italian=%MAINDIR%
+    end
+  end
+  item: Dialog
+    Title=Select Destination Directory
+    Title French=Sélectionner le répertoire de destination
+    Title German=Zielverzeichnis wählen
+    Title Spanish=Seleccione el directorio de destino
+    Title Italian=Selezionare Directory di destinazione
+    Width=221
+    Height=173
+    Font Name=Helv
+    Font Size=8
+    item: Listbox
+      Rectangle=5 5 163 149
+      Variable=PY_INST_PATH
+      Create Flags=01010000100000010000000101000001
+      Flags=0000010000000010
+      Text French=%MAINDIR%
+      Text German=%MAINDIR%
+      Text Spanish=%MAINDIR%
+      Text Italian=%MAINDIR%
+    end
+    item: Push Button
+      Rectangle=167 6 212 21
+      Create Flags=01010000000000010000000000000001
+      Text=OK
+      Text French=OK
+      Text German=OK
+      Text Spanish=Aceptar
+      Text Italian=OK
+    end
+    item: Push Button
+      Rectangle=167 25 212 40
+      Variable=MAINDIR
+      Value=%MAINDIR_SAVE%
+      Create Flags=01010000000000010000000000000000
+      Flags=0000000000000001
+      Text=Cancel
+      Text French=Annuler
+      Text German=Abbrechen
+      Text Spanish=Cancelar
+      Text Italian=Annulla
+    end
+  end
+end
+item: Check if File/Dir Exists
+  Pathname=PY_INST_PATH\Python%PYVER_NODOT%.dll
+  Flags=00000101
+end
+item: Display Message
+  Title=Cannot locate Python
+  Text=Python can not be located in the specified directory.  Please ensure that Python%PYVER_NODOT%.dll exists in the specified directory.
+  Flags=00101000
+end
+item: Set Variable
+  Variable=PY_INST_PATH
+end
+item: End Block
+end
+item: End Block
+end
+item: Else Statement
+end
 item: Exit Installation
+end
+item: End Block
 end
 item: End Block
 end
@@ -421,10 +538,10 @@ end
 item: Wizard Block
   Direction Variable=DIRECTION
   Display Variable=DISPLAY
-  Bitmap Pathname=%_WISE_%\DIALOGS\TEMPLATE\WIZARD.BMP
+  Bitmap Pathname=.\installer.bmp
   X Position=9
   Y Position=10
-  Filler Color=8421440
+  Filler Color=11173759
   Flags=00000011
 end
 item: Custom Dialog Set
@@ -436,12 +553,12 @@ item: Custom Dialog Set
     Title German=Installation von %APPTITLE%
     Title Spanish=Instalación de %APPTITLE%
     Title Italian=Installazione di %APPTITLE%
-    Width=271
-    Height=224
+    Width=290
+    Height=260
     Font Name=Helv
     Font Size=8
     item: Static
-      Rectangle=86 8 258 42
+      Rectangle=104 7 276 41
       Create Flags=01010000000000000000000000000000
       Flags=0000000000000001
       Name=Times New Roman
@@ -453,7 +570,7 @@ item: Custom Dialog Set
       Text Italian=Benvenuti!
     end
     item: Push Button
-      Rectangle=150 187 195 202
+      Rectangle=155 222 200 237
       Variable=DIRECTION
       Value=N
       Create Flags=01010000000000010000000000000001
@@ -464,7 +581,7 @@ item: Custom Dialog Set
       Text Italian=&Avanti >
     end
     item: Push Button
-      Rectangle=105 187 150 202
+      Rectangle=109 222 154 237
       Variable=DISABLED
       Value=!
       Create Flags=01010000000000010000000000000000
@@ -475,7 +592,7 @@ item: Custom Dialog Set
       Text Italian=< &Indietro
     end
     item: Push Button
-      Rectangle=211 187 256 202
+      Rectangle=226 222 271 237
       Action=3
       Create Flags=01010000000000010000000000000000
       Text=&Cancel
@@ -485,7 +602,7 @@ item: Custom Dialog Set
       Text Italian=&Annulla
     end
     item: Static
-      Rectangle=86 42 256 146
+      Rectangle=105 52 275 156
       Create Flags=01010000000000000000000000000000
       Text=This installation program will install all the Python Win32 extensions build %BUILD_NO% onto your system.
       Text=
@@ -510,7 +627,7 @@ item: Custom Dialog Set
       Text Italian=Per avvviare l'installazione premere il pulsante Avanti. Se non si desidera installare %APPTITLE% ora, premere il pulsante Esci dall'installazione.
     end
     item: Static
-      Rectangle=8 180 256 181
+      Rectangle=10 216 271 217
       Action=3
       Create Flags=01010000000000000000000000000111
     end
@@ -537,12 +654,12 @@ remarked item: Custom Dialog Set
     Title German=Installation von %APPTITLE%
     Title Spanish=Instalación de %APPTITLE%
     Title Italian=Installazione di %APPTITLE%
-    Width=271
-    Height=224
+    Width=290
+    Height=260
     Font Name=Helv
     Font Size=8
     item: Push Button
-      Rectangle=150 187 195 202
+      Rectangle=155 222 200 237
       Variable=DIRECTION
       Value=N
       Create Flags=01010000000000010000000000000001
@@ -553,7 +670,7 @@ remarked item: Custom Dialog Set
       Text Italian=&Avanti >
     end
     item: Push Button
-      Rectangle=105 187 150 202
+      Rectangle=109 222 154 237
       Variable=DIRECTION
       Value=B
       Create Flags=01010000000000010000000000000000
@@ -565,7 +682,7 @@ remarked item: Custom Dialog Set
       Text Italian=< &Indietro
     end
     item: Push Button
-      Rectangle=211 187 256 202
+      Rectangle=226 222 271 237
       Action=3
       Create Flags=01010000000000010000000000000000
       Text=&Cancel
@@ -575,12 +692,12 @@ remarked item: Custom Dialog Set
       Text Italian=&Annulla
     end
     item: Static
-      Rectangle=8 180 256 181
+      Rectangle=10 216 271 217
       Action=3
       Create Flags=01010000000000000000000000000111
     end
     item: Static
-      Rectangle=86 7 258 41
+      Rectangle=104 7 276 41
       Create Flags=01010000000000000000000000000000
       Flags=0000000000000001
       Name=Times New Roman
@@ -592,7 +709,7 @@ remarked item: Custom Dialog Set
       Text Italian=Selezionare Directory di destinazione
     end
     item: Static
-      Rectangle=86 42 256 82
+      Rectangle=104 42 274 82
       Create Flags=01010000000000000000000000000000
       Text=Please select the directory where the %APPTITLE% files are to be installed.
       Text=
@@ -603,12 +720,12 @@ remarked item: Custom Dialog Set
       Text Italian=Selezionare la directory dove verranno installati i file %APPTITLE%.
     end
     item: Static
-      Rectangle=86 98 256 125
+      Rectangle=104 98 274 125
       Action=1
       Create Flags=01010000000000000000000000000111
     end
     item: Push Button
-      Rectangle=208 106 253 121
+      Rectangle=225 106 270 121
       Variable=MAINDIR_SAVE
       Value=%MAINDIR%
       Destination Dialog=1
@@ -621,7 +738,7 @@ remarked item: Custom Dialog Set
       Text Italian=Sfoglie
     end
     item: Static
-      Rectangle=90 109 206 120
+      Rectangle=107 108 223 119
       Create Flags=01010000000000000000000000000000
       Text=%MAINDIR%
       Text French=%MAINDIR%
@@ -674,7 +791,7 @@ remarked item: Custom Dialog Set
     end
   end
 end
-item: Custom Dialog Set
+remarked item: Custom Dialog Set
   Name=Select Program Manager Group
   Display Variable=DISPLAY
   item: Dialog
@@ -683,12 +800,12 @@ item: Custom Dialog Set
     Title German=Installation von %APPTITLE%
     Title Spanish=Instalación de %APPTITLE%
     Title Italian=Installazione di %APPTITLE%
-    Width=271
-    Height=224
+    Width=290
+    Height=260
     Font Name=Helv
     Font Size=8
     item: Push Button
-      Rectangle=150 187 195 202
+      Rectangle=155 222 200 237
       Variable=DIRECTION
       Value=N
       Create Flags=01010000000000010000000000000001
@@ -699,7 +816,7 @@ item: Custom Dialog Set
       Text Italian=&Avanti >
     end
     item: Push Button
-      Rectangle=105 187 150 202
+      Rectangle=109 222 154 237
       Variable=DIRECTION
       Value=B
       Create Flags=01010000000000010000000000000000
@@ -711,7 +828,7 @@ item: Custom Dialog Set
       Text Italian=< &Indietro
     end
     item: Push Button
-      Rectangle=211 187 256 202
+      Rectangle=226 222 271 237
       Action=3
       Create Flags=01010000000000010000000000000000
       Text=&Cancel
@@ -721,12 +838,12 @@ item: Custom Dialog Set
       Text Italian=&Annulla
     end
     item: Static
-      Rectangle=8 180 256 181
+      Rectangle=10 216 271 217
       Action=3
       Create Flags=01010000000000000000000000000111
     end
     item: Static
-      Rectangle=86 8 258 42
+      Rectangle=104 8 276 42
       Create Flags=01010000000000000000000000000000
       Flags=0000000000000001
       Name=Times New Roman
@@ -738,7 +855,7 @@ item: Custom Dialog Set
       Text Italian=Selezionare il gruppo ProgMan 
     end
     item: Static
-      Rectangle=86 44 256 68
+      Rectangle=104 44 274 68
       Create Flags=01010000000000000000000000000000
       Text=Enter the name of the Program Manager group to add the %APPTITLE% icons to:
       Text French=Entrez le nom du groupe du Gestionnaire de programme dans lequel vous souhaitez ajouter les icônes de %APPTITLE% :
@@ -747,11 +864,12 @@ item: Custom Dialog Set
       Text Italian=Inserire il nome del gruppo Program Manager per aggiungere le icone %APPTITLE% a:
     end
     item: Combobox
-      Rectangle=86 69 256 175
+      Rectangle=104 69 274 175
       Variable=GROUP
       Create Flags=01010000000000010000001000000001
       Flags=0000000000000001
       Text=%GROUP%
+      Text=
       Text French=%GROUP%
       Text German=%GROUP%
       Text Spanish=%GROUP%
@@ -768,12 +886,12 @@ item: Custom Dialog Set
     Title German=Installation von %APPTITLE%
     Title Spanish=Instalación de %APPTITLE%
     Title Italian=Installazione di %APPTITLE%
-    Width=271
-    Height=224
+    Width=290
+    Height=260
     Font Name=Helv
     Font Size=8
     item: Push Button
-      Rectangle=150 187 195 202
+      Rectangle=155 222 200 237
       Variable=DIRECTION
       Value=N
       Create Flags=01010000000000010000000000000001
@@ -784,7 +902,7 @@ item: Custom Dialog Set
       Text Italian=&Avanti >
     end
     item: Push Button
-      Rectangle=105 187 150 202
+      Rectangle=109 222 154 237
       Variable=DIRECTION
       Value=B
       Create Flags=01010000000000010000000000000000
@@ -795,7 +913,7 @@ item: Custom Dialog Set
       Text Italian=< &Indietro
     end
     item: Push Button
-      Rectangle=211 187 256 202
+      Rectangle=226 222 271 237
       Action=3
       Create Flags=01010000000000010000000000000000
       Text=&Cancel
@@ -805,12 +923,12 @@ item: Custom Dialog Set
       Text Italian=&Annulla
     end
     item: Static
-      Rectangle=8 180 256 181
+      Rectangle=10 216 271 217
       Action=3
       Create Flags=01010000000000000000000000000111
     end
     item: Static
-      Rectangle=86 8 258 42
+      Rectangle=104 8 276 42
       Create Flags=01010000000000000000000000000000
       Flags=0000000000000001
       Name=Times New Roman
@@ -822,7 +940,7 @@ item: Custom Dialog Set
       Text Italian=Pronto per l'installazione!
     end
     item: Static
-      Rectangle=86 42 256 102
+      Rectangle=104 42 274 102
       Create Flags=01010000000000000000000000000000
       Text=You are now ready to install the %APPTITLE%.
       Text=
@@ -841,7 +959,7 @@ item: Custom Dialog Set
       Text Italian=Premere il pulsante Avanti per avviare l'installazione o il pulsante Indietro per reinserire le informazioni di installazione.
     end
     item: Checkbox
-      Rectangle=88 153 243 169
+      Rectangle=104 153 259 169
       Variable=ADD_EDIT_MENU
       Create Flags=01010000000000010000000000000011
       Text=Install Pythonwin as default editor for Python source
@@ -850,6 +968,45 @@ item: Custom Dialog Set
   end
 end
 item: End Block
+end
+item: Remark
+  Text=Calculate the location for shortcuts
+end
+item: Check Configuration
+  Flags=10111011
+end
+item: Remark
+  Text=If NT, install in a common group
+end
+item: If/While Statement
+  Variable=USE_HKLM
+  Value=1
+end
+item: Get Registry Key Value
+  Variable=GROUPDIR
+  Key=Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders
+  Value Name=Common Programs
+  Flags=00000100
+end
+item: Else Statement
+end
+item: Get Registry Key Value
+  Variable=GROUPDIR
+  Key=Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders
+  Default=%WIN%\Start Menu\Programs
+  Value Name=Programs
+  Flags=00000010
+end
+item: End Block
+end
+item: End Block
+end
+item: Set Variable
+  Variable=GROUP
+  Value=%GROUPDIR%\%GROUP%
+end
+item: Remark
+  Text=Start the install
 end
 item: Set Variable
   Variable=INST_LOG_PATH
@@ -865,12 +1022,294 @@ item: Open/Close INSTALL.LOG
 end
 item: Check Disk Space
 end
+item: Remark
+  Text=Win32 core
+end
 item: Set Variable
   Variable=INSTDIR
   Value=%MAINDIR%\win32
 end
-item: Include Script
-  Pathname=win32_body.wse
+item: Install File
+  Source=f:\src\pythonex\win32\License.txt
+  Destination=%INSTDIR%\License.txt
+  Description=win32 extension files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\win32\lib\*.py
+  Destination=%INSTDIR%\lib
+  Description=win32 extension files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\dde.pyd
+  Destination=%INSTDIR%\dde.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\mmapfile.pyd
+  Destination=%INSTDIR%\mmapfile.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\odbc.pyd
+  Destination=%INSTDIR%\odbc.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\timer.pyd
+  Destination=%INSTDIR%\timer.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\win32api.pyd
+  Destination=%INSTDIR%\win32api.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\win32clipboard.pyd
+  Destination=%INSTDIR%\win32clipboard.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\win32event.pyd
+  Destination=%INSTDIR%\win32event.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\win32file.pyd
+  Destination=%INSTDIR%\win32file.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\win32gui.pyd
+  Destination=%INSTDIR%\win32gui.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\win32help.pyd
+  Destination=%INSTDIR%\win32help.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\win32lz.pyd
+  Destination=%INSTDIR%\win32lz.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\win32net.pyd
+  Destination=%INSTDIR%\win32net.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\win32pipe.pyd
+  Destination=%INSTDIR%\win32pipe.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\win32popenWin9x.exe
+  Destination=%INSTDIR%\win32popenWin9x.exe
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\win32print.pyd
+  Destination=%INSTDIR%\win32print.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\win32process.pyd
+  Destination=%INSTDIR%\win32process.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\win2kras.pyd
+  Destination=%INSTDIR%\win2kras.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\win32ras.pyd
+  Destination=%INSTDIR%\win32ras.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\win32security.pyd
+  Destination=%INSTDIR%\win32security.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\win32service.pyd
+  Destination=%INSTDIR%\win32service.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\win32trace.pyd
+  Destination=%INSTDIR%\win32trace.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\win32wnet.pyd
+  Destination=%INSTDIR%\win32wnet.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+remarked item: Install File
+  Source=l:\src\pythonex\win32\Build\wincerapi.pyd
+  Destination=%INSTDIR%\wincerapi.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\dbi.dll
+  Destination=%INSTDIR%\dbi.dll
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Check Configuration
+  Flags=10100000
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\win32pdh.pyd
+  Destination=%INSTDIR%\win32pdh.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\win32evtlog.pyd
+  Destination=%INSTDIR%\win32evtlog.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\perfmon.pyd
+  Destination=%INSTDIR%\perfmon.pyd
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\perfmondata.dll
+  Destination=%INSTDIR%\perfmondata.dll
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\SharedDlls\NT\pdh.dll
+  Destination=%SYS32%\pdh.dll
+  Flags=0000001000010011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\Build\PythonService.exe
+  Destination=%INSTDIR%\PythonService.exe
+  Description=win32 extension files
+  Flags=0000000000000011
+end
+item: End Block
+end
+item: Install File
+  Source=f:\src\pythonex\SharedDlls\MSVCIRT.DLL
+  Destination=%SYS32%\MSVCIRT.DLL
+  Description=Visual C++ DLLs
+  Flags=0000001000010011
+end
+item: Install File
+  Source=f:\src\pythonex\SharedDlls\MSVCRT.DLL
+  Destination=%SYS32%\MSVCRT.DLL
+  Description=Visual C++ DLLs
+  Flags=0000001000010011
+end
+item: Install File
+  Source=f:\src\pythonex\win32\demos\*.py
+  Destination=%INSTDIR%\demos
+  Description=win32 extension demos
+  Flags=0000000100000010
+end
+item: Install File
+  Source=f:\src\pythonex\win32\demos\*.txt
+  Destination=%INSTDIR%\demos
+  Description=win32 extension demos
+  Flags=0000000100000010
+end
+item: Install File
+  Source=f:\src\pythonex\win32\demos\*.htm*
+  Destination=%INSTDIR%\demos
+  Description=win32 extension demos
+  Flags=0000000100000010
+end
+item: Install File
+  Source=f:\src\pythonex\win32\demos\*.bat
+  Destination=%INSTDIR%\demos
+  Description=win32 extension demos
+  Flags=0000000100000010
+end
+item: Install File
+  Source=f:\src\pythonex\win32\demos\*.pys
+  Destination=%INSTDIR%\demos
+  Description=win32 extension demos
+  Flags=0000000100000010
+end
+item: Install File
+  Source=f:\src\pythonex\win32\demos\*.js
+  Destination=%INSTDIR%\demos
+  Description=win32 extension demos
+  Flags=0000000100000010
+end
+item: Install File
+  Source=f:\src\pythonex\win32\demos\*.vbs
+  Destination=%INSTDIR%\demos
+  Description=win32 extension demos
+  Flags=0000000100000010
+end
+item: Install File
+  Source=f:\src\pythonex\win32\scripts\*.*
+  Destination=%INSTDIR%\scripts
+  Description=win32 extension demos
+  Flags=0000000100000010
+end
+item: Install File
+  Source=f:\src\pythonex\win32\demos\service\install\*.*
+  Destination=%INSTDIR%\demos\service\install
+  Description=win32 extension demos
+  Flags=0000000100000010
+end
+item: If/While Statement
+  Variable=USE_HKLM
+  Value=1
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\PythonPath\win32
+  New Value=%INSTDIR%;%INSTDIR%\lib
+  Root=2
+end
+item: Else Statement
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\PythonPath\win32
+  New Value=%INSTDIR%;%INSTDIR%\lib
+  Root=1
+end
+item: End Block
 end
 item: Set Variable
   Variable=INSTDIR
@@ -880,15 +1319,546 @@ item: Set Variable
   Variable=EXTDIR
   Value=%MAINDIR%\win32comext
 end
-item: Include Script
-  Pathname=win32com_body.wse
+item: Remark
+  Text=win32com
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32com\*.txt
+  Destination=%INSTDIR%
+  Description=COM Readme
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32com\*.htm
+  Destination=%INSTDIR%
+  Description=COM Readme
+  Flags=0000000000000010
+end
+item: Set Variable
+  Variable=PYTHONCOM_DLL
+  Value=%SYS32%\PythonCOM%PYVER_NODOT%.dll
+end
+item: Install File
+  Source=f:\src\pythonex\com\License.txt
+  Destination=%INSTDIR%\License.txt
+  Description=COM License
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32com\*.py
+  Destination=%INSTDIR%\
+  Description=COM Support files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32com\servers\*.py
+  Destination=%INSTDIR%\servers
+  Description=COM Support files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32com\server\*.py
+  Destination=%INSTDIR%\server
+  Description=COM Support files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32com\client\*.py
+  Destination=%INSTDIR%\client
+  Description=COM Support files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32com\demos\*.py
+  Destination=%INSTDIR%\demos
+  Description=COM Support files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32com\test\*.txt
+  Destination=%INSTDIR%\test
+  Description=COM Test files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32com\test\*.py
+  Destination=%INSTDIR%\test
+  Description=COM Test files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32com\test\*.vbs
+  Destination=%INSTDIR%\test
+  Description=COM Test files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32com\test\*.js
+  Destination=%INSTDIR%\test
+  Description=COM Test files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32com\test\*.sct
+  Destination=%INSTDIR%\test
+  Description=COM Test files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32com\HTML\*
+  Destination=%INSTDIR%\HTML
+  Description=Win32com HTML Documentation
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32com\HTML\image\*
+  Destination=%INSTDIR%\HTML\image
+  Description=Win32com HTML Documentation
+  Flags=0000000000000010
+end
+item: Remark
+  Text=AXScript and AXDebug files
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32comext\axscript\*.py
+  Destination=%EXTDIR%\axscript
+  Description=ActiveX Script Files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32comext\axscript\client\*.py
+  Destination=%EXTDIR%\axscript\client
+  Description=ActiveX Script Files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32comext\axscript\server\*.py
+  Destination=%EXTDIR%\axscript\server
+  Description=ActiveX Script Files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32comext\axscript\test\*.py
+  Destination=%EXTDIR%\axscript\test
+  Description=ActiveX Script Files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32comext\axscript\test\*.vbs
+  Destination=%EXTDIR%\axscript\test
+  Description=ActiveX Script Files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32comext\axscript\test\*.pys
+  Destination=%EXTDIR%\axscript\test
+  Description=ActiveX Script Files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\Build\axscript.pyd
+  Destination=%EXTDIR%\axscript\axscript.pyd
+  Description=ActiveX Script Files - Extennsion module
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32comext\axscript\demos\client\ie\*.*
+  Destination=%EXTDIR%\axscript\demos\client\ie
+  Description=ActiveX Script Files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32comext\axscript\demos\client\wsh\*.*
+  Destination=%EXTDIR%\axscript\demos\client\wsh
+  Description=ActiveX Script Files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32comext\axscript\demos\client\asp\*.*
+  Destination=%EXTDIR%\axscript\demos\client\asp
+  Description=ActiveX Script Files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32comext\axdebug\*.py
+  Destination=%EXTDIR%\axdebug
+  Description=Active Debugging files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\Build\axdebug.pyd
+  Destination=%EXTDIR%\axdebug\axdebug.pyd
+  Description=Active Debugging files
+  Flags=0000000000000011
+end
+item: Remark
+  Text=MAPI and Exchange files
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32comext\mapi\*.py
+  Destination=%EXTDIR%\mapi
+  Description=MAPI files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\Build\mapi.pyd
+  Destination=%EXTDIR%\mapi\mapi.pyd
+  Description=MAPI files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\com\Build\exchdapi.pyd
+  Destination=%EXTDIR%\mapi\exchdapi.pyd
+  Description=MAPI files
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\com\Build\exchange.pyd
+  Destination=%EXTDIR%\mapi\exchange.pyd
+  Description=MAPI files
+  Flags=0000000000000011
+end
+item: Remark
+  Text=AXControl files
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32comext\axcontrol\*.py
+  Destination=%EXTDIR%\axcontrol
+  Description=ActiveX Control files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\Build\axcontrol.pyd
+  Destination=%EXTDIR%\axcontrol\axcontrol.pyd
+  Description=ActiveX Control files
+  Flags=0000000000000011
+end
+item: Remark
+  Text=Shell Extenion files
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32comext\shell\*.py
+  Destination=%EXTDIR%\shell
+  Description=ActiveX Shell Extension files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32comext\shell\test\*.py
+  Destination=%EXTDIR%\shell\test
+  Description=ActiveX Shell Extension files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\Build\shell.pyd
+  Destination=%EXTDIR%\shell\shell.pyd
+  Description=ActiveX Shell Extension files
+  Flags=0000000000000011
+end
+item: Remark
+  Text=Internet Extenion files
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32comext\internet\*.py
+  Destination=%EXTDIR%\internet
+  Description=ActiveX Internet Extension files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\Build\internet.pyd
+  Destination=%EXTDIR%\internet\internet.pyd
+  Description=ActiveX Internet Extension files
+  Flags=0000000000000011
+end
+item: Remark
+  Text=ADSI
+end
+item: Install File
+  Source=f:\src\pythonex\com\win32comext\adsi\*.py
+  Destination=%EXTDIR%\adsi
+  Description=ADSI Extension files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\com\Build\adsi.pyd
+  Destination=%EXTDIR%\adsi\adsi.pyd
+  Description=ADSI Extension files
+  Flags=0000000000000011
+end
+item: Remark
+end
+item: Remark
+  Text=Write the registry keys
+end
+item: If/While Statement
+  Variable=USE_HKLM
+  Value=1
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\PythonPath\win32com
+  New Value=%MAINDIR%
+  New Value=
+  Root=2
+end
+item: Else Statement
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\PythonPath\win32com
+  New Value=%MAINDIR%
+  New Value=
+  Root=1
+end
+item: End Block
+end
+item: Remark
+  Text=Add the registry key that support auto-register
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Python.File\AutoRegister
+  New Value=%PYTHONCOM_DLL%
+end
+item: Add Text to INSTALL.LOG
+  Text=File Tree: %INSTDIR%\gen_py\*.*
+end
+item: Check Configuration
+  Flags=10111011
+end
+item: Create Shortcut
+  Source=%INSTDIR%\readme.htm
+  Destination=%GROUP%\COM Readme.lnk
+  Description=COM Readme
+  Key Type=1536
+  Flags=00000001
+end
+item: End Block
 end
 item: Set Variable
   Variable=INSTDIR
   Value=%MAINDIR%\Pythonwin
 end
-item: Include Script
-  Pathname=pywin_body.wse
+item: Install File
+  Source=f:\src\pythonex\pythonwin\License.txt
+  Destination=%INSTDIR%\License.txt
+  Description=Library files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\pythonwin\pywin\*.py
+  Destination=%INSTDIR%\pywin
+  Description=Library files
+  Flags=0000000100000010
+end
+item: Install File
+  Source=f:\src\pythonex\pythonwin\pywin\*.cfg
+  Destination=%INSTDIR%\pywin
+  Description=Library files
+  Flags=0000000100000010
+end
+item: Install File
+  Source=f:\src\pythonex\pythonwin\pywin\*.txt
+  Destination=%INSTDIR%\pywin
+  Description=Library files
+  Flags=0000000100000010
+end
+item: Install File
+  Source=f:\src\pythonex\pythonwin\doc\*.*
+  Destination=%INSTDIR%\doc
+  Description=Documentation
+  Flags=0000000100000010
+end
+item: Install File
+  Source=f:\src\pythonex\pythonwin\Build\scintilla.dll
+  Destination=%INSTDIR%\scintilla.dll
+  Flags=0000000000000010
+end
+item: Remark
+  Text=Make sure I get all the demo stuff!
+end
+item: Install File
+  Source=f:\src\pythonex\pythonwin\pywin\*.dll
+  Destination=%INSTDIR%\pywin
+  Description=Library files
+  Flags=0000000100000010
+end
+remarked item: Install File
+  Source=l:\src\pythonex\pythonwin\pywin\demos\Resource_Dll\src
+  Destination=%INSTDIR%\pywin\demos\Resource_Dll\src
+  Description=Demo files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\pythonwin\Build\Pythonwin.exe
+  Destination=%INSTDIR%\Pythonwin.exe
+  Description=Extension modules
+  Flags=0000000000000011
+end
+item: If/While Statement
+  Variable=USE_HKLM
+  Value=1
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Microsoft\Windows\CurrentVersion\App Paths\Pythonwin.exe
+  New Value=%INSTDIR%\Pythonwin.exe
+  Root=2
+end
+item: Else Statement
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Microsoft\Windows\CurrentVersion\App Paths\Pythonwin.exe
+  New Value=%INSTDIR%\Pythonwin.exe
+  Root=1
+end
+item: End Block
+end
+item: If/While Statement
+  Variable=ADD_EDIT_MENU
+  Value=A
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Python.File\shell\Edit\command
+  New Value=%INSTDIR%\pythonwin.exe /edit "%%1"
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Python.NoConFile\shell\Edit\command
+  New Value=%INSTDIR%\pythonwin.exe /edit "%%1"
+end
+item: End Block
+end
+item: Install File
+  Source=f:\src\pythonex\pythonwin\Build\win32ui.pyd
+  Destination=%INSTDIR%\win32ui.pyd
+  Description=Extension modules
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\pythonwin\Build\win32uiole.pyd
+  Destination=%INSTDIR%\win32uiole.pyd
+  Description=Extension modules
+  Flags=0000000000000011
+end
+item: Install File
+  Source=f:\src\pythonex\pythonwin\readme.html
+  Destination=%INSTDIR%\readme.html
+  Description=Help files
+  Flags=0000000000000010
+end
+item: Add Text to INSTALL.LOG
+  Text=File Copy: %INSTDIR%\pywin\default.cfc
+end
+item: Add Text to INSTALL.LOG
+  Text=File Copy: %INSTDIR%\pywin\idle.cfc
+end
+item: Remark
+  Text=The help file
+end
+item: Install File
+  Source=f:\src\pythonex\PyWin32.chm
+  Destination=%MAINDIR%\PyWin32.chm
+  Description=Help Files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=f:\src\pythonex\SharedDlls\MFC42.DLL
+  Destination=%SYS32%\MFC42.DLL
+  Flags=0000001000000011
+end
+item: Self-Register OCXs/DLLs
+  Description=Updating System Configuration, Please Wait...
+end
+item: If/While Statement
+  Variable=USE_HKLM
+  Value=1
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\Help\Pythonwin Reference
+  New Value=%MAINDIR%\PyWin32.chm
+  New Value=
+  Root=2
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\PythonPath\Pythonwin
+  New Value=%INSTDIR%
+  Root=2
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Python\Pythonwin\Build
+  New Value=%BUILD_NO%
+  Root=2
+end
+item: Else Statement
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\Help\Pythonwin Reference
+  New Value=%MAINDIR%\PyWin32.chm
+  New Value=
+  Root=1
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\PythonPath\Pythonwin
+  New Value=%INSTDIR%
+  Root=1
+end
+item: Edit Registry
+  Total Keys=1
+  Key=Software\Python\Pythonwin\Build
+  New Value=%BUILD_NO%
+  Root=1
+end
+item: End Block
+end
+item: Add Text to INSTALL.LOG
+  Text=RegDB TREE: SOFTWARE\Python %PYVER_DOTTED%\Python for Win32
+end
+item: Add Text to INSTALL.LOG
+  Text=RegDB Root: 1
+end
+item: Add Text to INSTALL.LOG
+  Text=RegDB TREE: SOFTWARE\Python %PYVER_DOTTED%\win32ui module
+end
+item: Add Text to INSTALL.LOG
+  Text=RegDB Root: 1
+end
+item: Add Text to INSTALL.LOG
+  Text=RegDB TREE: SOFTWARE\Python %PYVER_DOTTED%\Pythonwin Debugger
+end
+item: Add Text to INSTALL.LOG
+  Text=RegDB Root: 1
+end
+item: Check Configuration
+  Flags=10111011
+end
+item: Create Shortcut
+  Source=%INSTDIR%\Pythonwin.exe
+  Destination=%GROUP%\Pythonwin.lnk
+  Working Directory=%MAINDIR%
+  Description=Pythonwin
+  Key Type=1536
+  Flags=00000001
+end
+item: Create Shortcut
+  Source=%MAINDIR%\PyWin32.chm
+  Destination=%GROUP%\Win32 Extensions Documentation.lnk
+  Description=Win32 Extensions Documentation
+  Key Type=1536
+  Flags=00000001
+end
+item: Else Statement
+end
+item: Remark
+  Text=We (Python core, and now me) Seem to be ignoring non Win95 (ie, win31 or NT3.5) interfaces.
+end
+item: End Block
 end
 item: Install File
   Source=f:\src\pythonex\win32\Build\System\PyWinTypes%PYVER_NODOT%.dll
@@ -980,13 +1950,6 @@ item: Edit Registry
   Value Name=UninstallString
   Root=2
 end
-item: Else Statement
-end
-item: Add ProgMan Icon
-  Group=%GROUP%
-  Icon Name=Uninstall %APPTITLE%
-  Command Line=%UNINSTALL_PATH% %INST_LOG_PATH%
-end
 item: End Block
 end
 item: Remark
@@ -1011,6 +1974,7 @@ item: Call DLL Function
   Function Name=Wise_CallObject
   Variables Added=DISPLAY_MSG
   Parameter=%TEMP%\FinishInstall.CompileAllAndRegisterCOM|winerror=%MAINDIR%\win32\lib|%MAINDIR%\win32;%MAINDIR%\win32com;%MAINDIR%\win32comext;%MAINDIR%\Pythonwin
+  Return Variable=0
   Flags=00000010
 end
 item: Display Message
@@ -1034,6 +1998,7 @@ item: Call DLL Function
   Function Name=Wise_CallObject
   Variables Added=DISPLAY_MSG
   Parameter=%TEMP%\FinishInstall.CompileAllAndRegisterCOM|winerror=%MAINDIR%\win32\lib|%MAINDIR%\win32;%MAINDIR%\win32com;%MAINDIR%\win32comext;%MAINDIR%\Pythonwin
+  Return Variable=0
   Flags=00000010
 end
 item: Display Message
@@ -1044,8 +2009,6 @@ item: Display Message
   Flags=00100000
 end
 item: End Block
-end
-item: Compiler Variable End
 end
 item: Delete File
   Pathname=%TEMP%\FinishInstall.py
@@ -1064,8 +2027,6 @@ item: Compiler Variable Else
 end
 item: Delete File
   Pathname=%MAINDIR%\PyWise%PYVER_NODOT%.dll
-end
-item: Compiler Variable End
 end
 item: Wizard Block
   Direction Variable=DIRECTION
