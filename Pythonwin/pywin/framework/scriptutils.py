@@ -12,6 +12,7 @@ import os
 import string
 import traceback
 import linecache
+import bdb
 
 from cmdline import ParseArgs
 
@@ -308,6 +309,11 @@ def RunScript(defName=None, defArgs=None, bShowDialog = 1, debuggingType=None):
 		else:
 			# Post mortem or no debugging
 			exec codeObject in __main__.__dict__
+		bWorked = 1
+	except bdb.BdbQuit:
+		# Dont print tracebacks when the debugger quit, but do print a message.
+		print "Debugging session cancelled."
+		exitCode = 1
 		bWorked = 1
 	except SystemExit, code:
 		exitCode = code
