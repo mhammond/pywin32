@@ -5,6 +5,10 @@
 
 include MANIFEST.in
 include pywin32.pth
+# while we have setup.py and setup_win32all.py, distutils will miss whatever
+# one was not used!
+include setup_win32all.py
+include setup.py
 # Core win32 stuff
 include win32/src/*.rc
 include win32/src/win32popenWin9x.cpp
@@ -104,3 +108,6 @@ include SWIG/swig_lib/*.i
 include SWIG/swig_lib/*.swg
 include SWIG/swig_lib/python/*.i
 include SWIG/swig_lib/python/*.swg
+
+include AutoDuck/*
+include AutoDuck/bin/*
