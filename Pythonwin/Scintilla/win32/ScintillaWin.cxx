@@ -1378,6 +1378,13 @@ void ScintillaWin::Register(HINSTANCE hInstance_) {
 
 	// Register the CallTip class
 	WNDCLASS wndclassc;
+	wndclassc.style = CS_GLOBALCLASS | CS_HREDRAW | CS_VREDRAW;
+	wndclassc.cbClsExtra = 0;
+	wndclassc.cbWndExtra = sizeof(ScintillaWin *);
+	wndclassc.hInstance = hInstance;
+	wndclassc.hIcon = NULL;
+	wndclassc.hbrBackground = NULL;
+	wndclassc.lpszMenuName = NULL;
 
 	wndclassc.lpfnWndProc = ScintillaWin::CTWndProc;
 	wndclassc.hCursor = LoadCursor(NULL, IDC_ARROW);
