@@ -144,7 +144,7 @@ BOOL PyWinObject_AsLARGE_INTEGER(PyObject *ob, LARGE_INTEGER *pResult)
 			return FALSE;
 		}
 		// ### what to do about a "negative" loVal?!
-		pResult->QuadPart = (((LONG_LONG)hiVal) << 32) | loVal;
+		pResult->QuadPart = (((__int64)hiVal) << 32) | loVal;
 	}
 	return TRUE;
 }
@@ -171,7 +171,7 @@ BOOL PyWinObject_AsULARGE_INTEGER(PyObject *ob, ULARGE_INTEGER *pResult)
 			return FALSE;
 		}
 		// ### what to do about "negative" integers?!
-		pResult->QuadPart = (((LONG_LONG)hiVal) << 32) | loVal;
+		pResult->QuadPart = (((__int64)hiVal) << 32) | loVal;
 	}
 	return TRUE;
 }
@@ -179,14 +179,14 @@ PyObject *PyWinObject_FromLARGE_INTEGER(LARGE_INTEGER &val)
 {
 	// NOTE: The max _signed_ positive integer is the largest we 
 	// can return as a simple Python integer.
-	if (val.QuadPart < (LONG_LONG)0x80000000)
+	if (val.QuadPart < (__int64)0x80000000)
 		return PyInt_FromLong((long)val.QuadPart);
 	else
 		return PyLong_FromI64(val.QuadPart);
 }
 PyObject *PyWinObject_FromULARGE_INTEGER(ULARGE_INTEGER &val)
 {
-	if (val.QuadPart < (LONG_LONG)0x80000000)
+	if (val.QuadPart < (__int64)0x80000000)
 		return PyInt_FromLong((long)val.QuadPart);
 	else
 		return PyLong_FromUI64(val.QuadPart);
