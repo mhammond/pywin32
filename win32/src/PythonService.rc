@@ -1,0 +1,4 @@
+STRINGTABLE DISCARDABLE 
+BEGIN
+    2000 "Dummy" // Needed to version branding works!
+END
