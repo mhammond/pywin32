@@ -1,4 +1,7 @@
 # TestExchange = Exchange Server Dump
+# Note that this code uses "CDO", which is unlikely to get the best choice.
+# You should use the Outlook object model, or
+# the win32com.mapi examples for a low-level interface.
 
 from win32com.client import gencache, constants
 import pythoncom
@@ -35,7 +38,14 @@ def DumpFolders(session):
     for i in range(infostores.Count):
         infostore = infostores[i+1]
         print "Infostore = ", infostore.Name
-        folder = infostore.RootFolder
+        try:
+            folder = infostore.RootFolder
+        except pythoncom.com_error, details:
+            hr, msg, exc, arg = details
+            # -2147221219 == MAPI_E_FAILONEPROVIDER - a single provider temporarily not available.
+            if exc and exc[-1]==-2147221219:
+                print "This info store is currently not available"
+                continue
         DumpFolder(folder)
 
 # Build a dictionary of property tags, so I can reverse look-up
