@@ -696,6 +696,41 @@ class my_build_ext(build_ext):
 
         return new_sources
 
+# As per get_source_files, we need special handling so .mc file is
+# processed first.  It appears there was an intention to fix distutils
+# itself, but as at 2.4 that hasn't happened.  We need yet more vile
+# hacks to get a subclassed compiler in.
+# (otherwise we replace all of build_extension!)
+def my_new_compiler(**kw):
+    if kw.has_key('compiler') and kw['compiler'] in (None, 'msvc'):
+        return my_compiler()
+    return orig_new_compiler(**kw)
+
+# No way to cleanly wedge our compiler sub-class in.
+from distutils import ccompiler, msvccompiler
+orig_new_compiler = ccompiler.new_compiler
+ccompiler.new_compiler = my_new_compiler
+
+class my_compiler(msvccompiler.MSVCCompiler):
+    # overriding _setup_compile is the easiest way to get this support in.
+    def _setup_compile(self, *args):
+        macros, objects, extra, pp_opts, build = \
+               msvccompiler.MSVCCompiler._setup_compile(self, *args)
+        build_order = ".i .mc .rc .cpp".split()
+        decorated = [(build_order.index(ext.lower()), obj, (src, ext))
+                     for obj, (src, ext) in build.items()]
+        decorated.sort()
+        items = [item[1:] for item in decorated]
+        # The compiler itself only calls ".items" - leverage that, so that
+        # when it does, the list is in the correct order.
+        class OnlyItems:
+            def __init__(self, items):
+                self._items = items
+            def items(self):
+                return self._items
+        build = OnlyItems(items)
+        return macros, objects, extra, pp_opts, build
+        
 ################################################################
 
 class my_install_data(install_data):
