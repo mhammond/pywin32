@@ -146,8 +146,8 @@ PyObject * PyIUnknown::repr()
 		}
 		__except( EXCEPTION_EXECUTE_HANDLER )
 		{
-			LogF(_T("Exception occured:\n\tTry to release object at adress 0x%08x\n\twhich was already destroyed"), ob->m_obj);
 			PyEval_RestoreThread(_save);
+			LogF(_T("Exception occured:\n\tTry to release object at adress 0x%08x\n\twhich was already destroyed"), ob->m_obj);
 			ob->m_obj = NULL;
 			return;
 		}
