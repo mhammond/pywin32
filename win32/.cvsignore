@@ -8,3 +8,4 @@ Build
 *.plg
 *.pyd
 temp-*
+PyWinTypes*.flg
