@@ -1,5 +1,5 @@
-import sys
-import string
+import sys, os
+import win32api
 from pythoncom import _GetInterfaceCount, _GetGatewayCount
 
 def CheckClean():
@@ -12,6 +12,15 @@ def CheckClean():
     c = _GetGatewayCount()
     if c:
         print "Warning - %d com gateway objects still alive" % c
+
+def RegisterPythonServer(filename, verbose=0):
+    cmd = '%s "%s" > nul' % (win32api.GetModuleFileName(0), filename)
+    if verbose:
+        print "Registering engine", filename
+#       print cmd
+    rc = os.system(cmd)
+    if rc:
+        raise RuntimeError, "Registration of engine '%s' failed" % filename
 
 class CaptureWriter:
     def __init__(self):
@@ -30,6 +39,6 @@ class CaptureWriter:
     def write(self, msg):
         self.captured.append(msg)
     def get_captured(self):
-        return string.join(self.captured,"")
+        return "".join(self.captured)
     def get_num_lines_captured(self):
-        return len(string.split(string.join(self.captured, ""),"\n"))
+        return len("".join(self.captured).split("\n"))
