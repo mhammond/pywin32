@@ -98,8 +98,8 @@ class ArgFormatter:
                        "%s %s" % (self.GetUnconstType(), self.arg.name)
 
 	def GetInterfaceArgCleanup(self):
-          "Return cleanup code for C++ args passed to the interface method."
-          return ""
+		"Return cleanup code for C++ args passed to the interface method."
+		return ""
 
 	def GetUnconstType(self):
 		return self.arg.unc_type
@@ -173,7 +173,7 @@ class ArgFormatterBSTR(ArgFormatterPythonCOM):
 	def GetParsePostCode(self):
 		return "\tif (!PyWinObject_AsBstr(ob%s, %s)) bPythonIsHappy = FALSE;\n" % (self.arg.name, self.GetIndirectedArgName(None, 2))
 	def GetBuildForInterfacePreCode(self):
-                notdirected = self.GetIndirectedArgName(None, 1)
+		notdirected = self.GetIndirectedArgName(None, 1)
 		return "\tob%s = MakeBstrToObj(%s);\n" % (self.arg.name, notdirected)
 	def GetBuildForInterfacePostCode(self):
 		return "\tSysFreeString(%s);\n" % self.arg.name
@@ -190,7 +190,7 @@ class ArgFormatterOLECHAR(ArgFormatterPythonCOM):
 			return self.arg.unc_type
 	def GetParsePostCode(self):
 		return "\tif (!PyWinObject_AsBstr(ob%s, %s)) bPythonIsHappy = FALSE;\n" % (self.arg.name, self.GetIndirectedArgName(None, 2))
-        def GetInterfaceArgCleanup(self):
+	def GetInterfaceArgCleanup(self):
 		return "\tSysFreeString(%s);\n" % self.GetIndirectedArgName(None, 1)
 	def GetBuildForInterfacePreCode(self):
 		# the variable was declared with just its builtin indirection
@@ -216,13 +216,13 @@ class ArgFormatterIID(ArgFormatterPythonCOM):
 
 class ArgFormatterTime(ArgFormatterPythonCOM):
 	def __init__(self, arg, builtinIndirection, declaredIndirection = 0):
-          # we don't want to declare LPSYSTEMTIME / LPFILETIME objects
-          if arg.indirectionLevel == 0 and arg.unc_type[:2] == "LP":
-            arg.unc_type = arg.unc_type[2:]
-            # reduce the builtin and increment the declaration
-            arg.indirectionLevel = arg.indirectionLevel + 1
-            builtinIndirection = 0
-          ArgFormatterPythonCOM.__init__(self, arg, builtinIndirection, declaredIndirection)
+		# we don't want to declare LPSYSTEMTIME / LPFILETIME objects
+		if arg.indirectionLevel == 0 and arg.unc_type[:2] == "LP":
+			arg.unc_type = arg.unc_type[2:]
+			# reduce the builtin and increment the declaration
+			arg.indirectionLevel = arg.indirectionLevel + 1
+			builtinIndirection = 0
+		ArgFormatterPythonCOM.__init__(self, arg, builtinIndirection, declaredIndirection)
 
 	def _GetPythonTypeDesc(self):
 		return "<o PyTime>"
@@ -235,11 +235,11 @@ class ArgFormatterTime(ArgFormatterPythonCOM):
 		notdirected = self.GetIndirectedArgName(self.builtinIndirection,0)
 		return "\tob%s = new PyTime(%s);\n" % (self.arg.name, notdirected)
 	def GetBuildForInterfacePostCode(self):
-	  ### hack to determine if we need to free stuff
-          if self.builtinIndirection + self.arg.indirectionLevel > 1:
-            # memory returned into an OLECHAR should be freed
-            return "\tCoTaskMemFree(%s);\n" % self.arg.name
-          return ''
+		### hack to determine if we need to free stuff
+		if self.builtinIndirection + self.arg.indirectionLevel > 1:
+			# memory returned into an OLECHAR should be freed
+			return "\tCoTaskMemFree(%s);\n" % self.arg.name
+		return ''
 
 class ArgFormatterSTATSTG(ArgFormatterPythonCOM):
 	def _GetPythonTypeDesc(self):
@@ -267,8 +267,8 @@ class ArgFormatterULARGE_INTEGER(ArgFormatterLARGE_INTEGER):
 
 class ArgFormatterInterface(ArgFormatterPythonCOM):
 	def GetInterfaceCppObjectInfo(self):
-          return self.GetIndirectedArgName(1, self.arg.indirectionLevel), \
-                 "%s * %s" % (self.GetUnconstType(), self.arg.name)
+		return self.GetIndirectedArgName(1, self.arg.indirectionLevel), \
+		              "%s * %s" % (self.GetUnconstType(), self.arg.name)
 
 	def GetParsePostCode(self):
 		return "\tif (!PyCom_InterfaceFromPyInstanceOrObject(ob%s, IID_%s, (void **)%s, TRUE /* bNoneOK */))\n\t\t bPythonIsHappy = FALSE;\n" % (self.arg.name, self.arg.type, self.GetIndirectedArgName(None, 2))
@@ -276,6 +276,8 @@ class ArgFormatterInterface(ArgFormatterPythonCOM):
 		return "\tob%s = PyCom_PyObjectFromIUnknown(%s, IID_%s, FALSE);\n" % (self.arg.name, self.arg.name, self.arg.type)
 	def GetBuildForGatewayPreCode(self):
 		return "\tob%s = PyCom_PyObjectFromIUnknown(%s, IID_%s, TRUE);\n" % (self.arg.name, self.arg.name, self.arg.type)
+	def GetInterfaceArgCleanup(self):
+		return "\tif (%s) %s->Release();" % (self.arg.name, self.arg.name)
 
 class ArgFormatterVARIANT(ArgFormatterPythonCOM):
   def GetParsePostCode(self):
