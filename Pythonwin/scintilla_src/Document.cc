@@ -310,6 +310,8 @@ void Document::SetStyleAt(int position, char style, char mask) {
 void Document::AppendAction(actionType at, int position, char *data, int length) {
 	//dprintf("%% %d action %d %d %d\n", at, position, length, currentAction);
 	if (currentAction >= 2) {
+		if (currentAction >= lenActions)
+			return; // MH -  need to do something smarter here?
 		// See if current action can be coalesced into previous action
 		// Will work if both are inserts or deletes and position is same or two different
 		if ((at != actions[currentAction-1].at) || (abs(position-actions[currentAction-1].position) > 2)) {
@@ -519,7 +521,7 @@ void Document::BasicDeleteChars(int position, int deleteLength) {
 		if ((position + deleteLength) < length)
 			chAfter = ByteAt(position + deleteLength);
 		if (chBefore == '\r' && chAfter == '\n') {
-	//d printf("Joining cr before lf at %d\n", lineRemove);
+	//d.printf("Joining cr before lf at %d\n", lineRemove);
 			// Using lineRemove-1 as cr ended line before start of deletion
 			lc.Remove(lineRemove-1);
 			lc.SetValue(lineRemove-1,position/2+1);
