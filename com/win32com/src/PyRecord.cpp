@@ -55,14 +55,14 @@ class PyRecordBuffer
 public:
 	PyRecordBuffer(int size)
 	{
-		data = Py_Malloc(size);
+		data = PyMem_Malloc(size);
 		if (data==NULL)
 			PyErr_NoMemory();
 		ref = 0;
 	}
 	~PyRecordBuffer()
 	{
-		if (data) Py_Free((ANY *)data);
+		if (data) PyMem_Free((ANY *)data);
 	}
 	void AddRef() {
 		ref++;
