@@ -180,11 +180,27 @@ def install():
                 # Register the files with the uninstaller
                 file_created(dst)
                 worked = 1
+                # If this isn't sys.prefix (ie, System32), then nuke 
+                # any versions that may exist in sys.prefix - having
+                # duplicates causes major headaches.
+                if dest_dir != sys.prefix:
+                    bad_fname = os.path.join(sys.prefix, base)
+                    if os.path.exists(bad_fname):
+                        # let exceptions go here - delete must succeed
+                        os.unlink(bad_fname)
             if worked:
                 break
         except win32api.error, details:
             if details[0]==5:
-                # access denied - user not admin - try sys.prefix dir.
+                # access denied - user not admin - try sys.prefix dir,
+                # but first check that a version doesn't already exist
+                # in that place - otherwise that one will still get used!
+                if os.path.exists(dst):
+                    msg = "The file '%s' exists, but can not be replaced " \
+                          "due to insufficient permissions.  You must " \
+                          "reinstall this software as an Administrator" \
+                          % dst
+                    raise RuntimeError, msg
                 continue
             raise
     else:
