@@ -81,8 +81,11 @@ def EnumTlbs(excludeFlags = 0):
 							major = string.split(version, '.', 1)
 							if len(major) < 2:
 								major.append('0')
-							major, minor = string.atoi(major[0], 16), string.atoi(major[1], 16)
-							lcid = string.atoi(lcid,16)
+							try:
+								major, minor = string.atoi(major[0], 16), string.atoi(major[1], 16)
+								lcid = string.atoi(lcid,16)
+							except ValueError: # crap in the registry!
+								continue
 							spec = TypelibSpec(iid, lcid, major, minor, flags)
 							spec.desc = tlbdesc
 							spec.ver_desc = tlbdesc + " (" + version + ")"
