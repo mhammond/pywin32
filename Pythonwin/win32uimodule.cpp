@@ -316,10 +316,8 @@ CString ui_base_class::repr()
 }
 void ui_base_class::cleanup()
 {
-	CEnterLeavePython _celp;
-	CString rep = repr();
-	const char *szRep = rep;
-	TRACE("cleanup detected %s, refcount = %d\n",szRep,ob_refcnt);
+	const char *szTyp = ob_type ? ob_type->tp_name : "<bad type!>";
+	TRACE("cleanup detected type %s, refcount = %d\n",szTyp,ob_refcnt);
 }
 
 /*static*/ void ui_base_class::sui_dealloc(PyObject *window)
