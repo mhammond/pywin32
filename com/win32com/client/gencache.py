@@ -26,6 +26,7 @@ import win32com, win32com.client
 import glob
 import traceback
 import CLSIDToClass
+import operator
 
 bForDemandDefault = 0 # Default value of bForDemand - toggle this to change the world - see also makepy.py
 
@@ -37,17 +38,18 @@ clsidToTypelib = {}
 versionRedirectMap = {}
 
 # There is no reason we *must* be readonly in a .zip, but we are now,
-# and we really do need a "read-only" concept anyway.
-# We don't want to use isdir() though, as we have always gracefully
-# created this directory when we could.
-is_readonly = getattr(win32com, "__loader__", None) or (1 == 0)
+# Rather than check for ".zip" or other tricks, PEP302 defines
+# a "__loader__" attribute, so we use that.
+# (Later, it may become necessary to check if the __loader__ can update files,
+# as a .zip loader potentially could - but punt all that until a need arises)
+is_readonly = hasattr(win32com, "__loader__")
 
 # A dictionary of ITypeLibrary objects for demand generation explicitly handed to us
 # Keyed by usual clsid, lcid, major, minor
 demandGeneratedTypeLibraries = {}
 
 def __init__():
-	# Initialize the module.  Called once automatically
+	# Initialize the module.  Called once explicitly at module import below.
 	try:
 		_LoadDicts()
 	except IOError:
