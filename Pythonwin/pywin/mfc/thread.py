@@ -10,7 +10,7 @@ class WinThread(object.CmdTarget):
 		object.CmdTarget.__init__(self, initObj)
 		
 	def InitInstance(self):
-		pass
+		return 1 # default is all OK!
 	def ExitInstance(self):
 		pass
 		
