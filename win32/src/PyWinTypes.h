@@ -33,10 +33,9 @@
 #	endif
 #endif
 
-#include "tchar.h" // We use some Unicode conventions (for the road to CE!)
+#include "tchar.h"
 #ifdef MS_WINCE
 #define PYWIN_USE_PYUNICODE
-#include "unicodeobject.h"
 
 // Having trouble making these work for Palm PCs??
 #ifndef PYWIN_HPC /* Palm PC */
@@ -74,12 +73,25 @@ PYWINTYPES_EXPORT PyObject *PyWin_SetBasicCOMError(HRESULT hr);
 // PyUnicode_Check is defined.
 
 #else
+
+/* If a Python Unicode object exists, disable it. */
+#ifdef PyUnicode_Check
+#undef PyUnicode_Check
+#endif
+
+#define PyUnicode_Check(ob)	((ob)->ob_type == &PyUnicodeType)
+
 	/* Need our custom Unicode object */
 extern PYWINTYPES_EXPORT PyTypeObject PyUnicodeType; // the Type for PyUnicode
 #define PyUnicode_Check(ob)	((ob)->ob_type == &PyUnicodeType)
 
 extern PYWINTYPES_EXPORT int PyUnicode_Size(PyObject *op);
-extern PYWINTYPES_EXPORT WCHAR *PyUnicode_AsUnicode(PyObject *op);
+
+// PyUnicode_AsUnicode clashes with the standard Python name - 
+// so if we are not using Python Unicode objects, we hide the
+// name with a #define.
+#define PyUnicode_AsUnicode(op) (((PyUnicode *)op)->m_bstrValue)
+//extern PYWINTYPES_EXPORT WCHAR *PyUnicode_AsUnicode(PyObject *op);
 
 #endif /* PYWIN_USE_PYUNICODE */
 

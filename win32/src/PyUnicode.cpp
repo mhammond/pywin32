@@ -140,10 +140,13 @@ int PyUnicode_Size(PyObject *op)
 	return PyUnicode::lengthFunc((PyUnicode *)op);
 }
 
+// Moved to a #define as it clashes with the new standard Python function
+/**
 WCHAR *PyUnicode_AsUnicode(PyObject *op)
 {
 	return ((PyUnicode *)op)->m_bstrValue;
 }
+**/
 
 // String conversions
 // Convert a Python string object to a BSTR - allow embedded NULLs, etc.
