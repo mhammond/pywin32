@@ -1515,8 +1515,23 @@ static PyObject *PySHGetSettings(PyObject *self, PyObject *args)
 	// @pyparm int|mask|-1|The values being requested - one of the shellcon.SSF_* constants
 	if (!PyArg_ParseTuple(args, "|l:SHGetSettings", &mask))
 		return NULL;
+
+	typedef void (WINAPI * PFNSHGetSettings)(LPSHELLFLAGSTATE, DWORD);
+
+	// @comm This method is only available in shell version 4.71.  If the 
+	// function is not available, a COM Exception with HRESULT=E_NOTIMPL 
+	// will be raised.  If the function fails, a COM Exception with 
+	// HRESULT=E_FAIL will be raised.
+	HMODULE hmod = GetModuleHandle(TEXT("shell32.dll"));
+	PFNSHGetSettings pfnSHGetSettings = (PFNSHGetSettings)GetProcAddress(hmod, "SHGetSettings");
+	if (pfnSHGetSettings==NULL)
+		return OleSetOleError(E_NOTIMPL);
+
 	SHELLFLAGSTATE state;
-	SHGetSettings(&state, mask);
+	PY_INTERFACE_PRECALL;
+	(*pfnSHGetSettings)(&state, mask);
+	PY_INTERFACE_POSTCALL;
+
 	PyObject *ret = PyDict_New();
 	CHECK_SET_VAL(SSF_DESKTOPHTML, mask, fDesktopHTML);
 	
