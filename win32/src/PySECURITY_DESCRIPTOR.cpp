@@ -66,6 +66,19 @@ DWORD GetAclSize (PACL pacl)
 	return retsize;
 };
 
+BOOL _IsSelfRelative(PSECURITY_DESCRIPTOR psd)
+{
+	// check if SD is relative or absolute
+	SECURITY_DESCRIPTOR_CONTROL sdc;
+	DWORD revision;
+	if (!::GetSecurityDescriptorControl(psd, &sdc, &revision)){
+		return NULL;
+	}
+	if (sdc&SE_SELF_RELATIVE)
+		return TRUE;
+	return FALSE;
+}
+
 // @pymethod <o PySECURITY_DESCRIPTOR>|pywintypes|SECURITY_DESCRIPTOR|Creates a new SECURITY_DESCRIPTOR object
 PyObject *PyWinMethod_NewSECURITY_DESCRIPTOR(PyObject *self, PyObject *args)
 {
@@ -85,6 +98,10 @@ PyObject *PyWinMethod_NewSECURITY_DESCRIPTOR(PyObject *self, PyObject *args)
 		}
 	if (!IsValidSecurityDescriptor(psd)){
 		PyErr_SetString(PyExc_ValueError,"Data is not a valid security descriptor");
+		return NULL;
+		}
+	if (!_IsSelfRelative(psd)){
+		PyErr_SetString(PyExc_ValueError,"Security descriptor created from a buffer must be self relative");
 		return NULL;
 		}
 	return new PySECURITY_DESCRIPTOR(psd);
@@ -110,19 +127,6 @@ PyObject *PyWinObject_FromSECURITY_DESCRIPTOR(PSECURITY_DESCRIPTOR psd)
 		return Py_None;
 	}
 	return new PySECURITY_DESCRIPTOR(psd);
-}
-
-BOOL _IsSelfRelative(PSECURITY_DESCRIPTOR psd)
-{
-	// check if SD is relative or absolute
-	SECURITY_DESCRIPTOR_CONTROL sdc;
-	DWORD revision;
-	if (!::GetSecurityDescriptorControl(psd, &sdc, &revision)){
-		return NULL;
-	}
-	if (sdc&SE_SELF_RELATIVE)
-		return TRUE;
-	return FALSE;
 }
 
 // @pymethod |PySECURITY_DESCRIPTOR|IsSelfRelative|Returns 1 if security descriptor is self relative, 0 if absolute
