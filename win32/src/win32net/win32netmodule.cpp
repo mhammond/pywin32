@@ -326,15 +326,10 @@ PyObject *PyDoSimpleEnum(PyObject *self, PyObject *args, PFNSIMPLEENUM pfn, char
 
 	Py_BEGIN_ALLOW_THREADS
 	/* Bad resume handles etc can cause access violations here - catch them. */
-	__try {
+    PYWINTYPES_TRY {
 		err = (*pfn)(szServer, level, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
 	}
-#if defined(__MINGW32__) || defined(MAINWIN)
-		catch(...)
-#else
-		__except( EXCEPTION_EXECUTE_HANDLER )
-#endif
-	{
+    PYWINTYPES_EXCEPT {
 		err = ERROR_INVALID_PARAMETER;
 	}
 	Py_END_ALLOW_THREADS

@@ -565,6 +565,22 @@ private:
 };
 #endif // PYWIN_USE_GILSTATE
 
+// A helper for simple exception handling.
+// try/__try
+#ifdef MAINWIN
+#define PYWINTYPES_TRY try
+#else
+#define PYWINTYPES_TRY __try
+#endif /* MAINWIN */
+
+// catch/__except
+#if defined(__MINGW32__) || defined(MAINWIN)
+#define PYWINTYPES_EXCEPT catch(...)
+#else
+#define PYWINTYPES_EXCEPT __except( EXCEPTION_EXECUTE_HANDLER )
+#endif
+// End of exception helper macros.
+
 #endif // __PYWINTYPES_H__
 
 

@@ -133,7 +133,7 @@ PyObject * PyIUnknown::repr()
 		// Safe for all objects which delete 
 		// itself ignoring a reference count.
 		PyThreadState *_save;
-		__try
+		PYWINTYPES_TRY
 		{
 			_save = PyEval_SaveThread();
 			long rcnt = ob->m_obj->Release();
@@ -144,11 +144,7 @@ PyObject * PyIUnknown::repr()
 #endif
 			ob->m_obj = NULL;
 		}
-#if defined(__MINGW32__) || defined(MAINWIN)
-		catch(...)
-#else
-		__except( EXCEPTION_EXECUTE_HANDLER )
-#endif
+		PYWINTYPES_EXCEPT
 		{
 			PyEval_RestoreThread(_save);
 			LogF(_T("Win32 exception occurred releasing IUnknown at 0x%08x"), ob->m_obj);
