@@ -1,14 +1,14 @@
 Document Type: WSE
 item: Global
   Version=5.0
-  Title=Python 1.5 combined Win32 extensions Installation
+  Title=Python Win32 extensions Installation
   Flags=00010100
   Languages=65 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
   Japanese Font Name=MS Gothic
   Japanese Font Size=10
   Start Gradient=0 0 255
   End Gradient=0 0 0
-  Windows Flags=00000100000000010010110100011000
+  Windows Flags=00000100000011010010110100011000
   Log Pathname=%MAINDIR%\W32INST.LOG
   Message Font=MS Sans Serif
   Font Size=8
@@ -16,36 +16,69 @@ item: Global
   Patch Flags=0000000000000001
   Patch Threshold=85
   Patch Memory=4000
-  EXE Filename=win32all-129.exe
+  EXE Filename=win32all-130.exe
   Code Sign Name=Python Win32 combined extensions
   Code Sign Info=skippinet.com.au
   Variable Name1=_WISE_
   Variable Default1=L:\Program Files\Wise
+  Variable Flags1=00001000
   Variable Name2=_COMBINEDINST_
   Variable Default2=1
+  Variable Flags2=00001000
   Variable Name3=_EXE_OS_TYPE_
   Variable Default3=WIN32
+  Variable Flags3=00001000
+  Variable Name4=PYTHON_15
+  Variable Description4=Is this a Python 1.5 build?
+  Variable Default4=0
+  Variable Values4=0
+  Variable Values4=1
+  Variable Flags4=00000010
 end
 item: Open/Close INSTALL.LOG
   Flags=00000001
 end
+item: Compiler Variable If
+  Variable=PYTHON_15
+  Value=1
+end
+item: Set Variable
+  Variable=PYVER_DOTTED
+  Value=1.5
+end
+item: Set Variable
+  Variable=PYVER_NODOT
+  Value=15
+end
+item: Compiler Variable Else
+end
+item: Set Variable
+  Variable=PYVER_DOTTED
+  Value=1.6
+end
+item: Set Variable
+  Variable=PYVER_NODOT
+  Value=16
+end
+item: Compiler Variable End
+end
+item: Remark
+  Text=Main Python related variables.
+end
 item: Set Variable
   Variable=APPTITLE
-  Value=Python 1.5 combined Win32 extensions
+  Value=Python %PYVER_DOTTED% combined Win32 extensions
 end
 item: Set Variable
   Variable=GROUP
-  Value=Python 1.5
-end
-item: Remark
-  Text=2 Main Python related variables.
+  Value=Python %PYVER_DOTTED%
 end
 item: Remark
   Text=PY_APP_NAME - Name as registered in the registry's path
 end
 item: Set Variable
   Variable=PY_APP_NAME
-  Value=Pythonwin 1.5
+  Value=Pythonwin %PYVER_DOTTED%
 end
 item: Include Script
   Pathname=L:\src\pythonex\Wise\win32all_ver.wse
@@ -62,7 +95,7 @@ item: End Block
 end
 item: Set Variable
   Variable=PY_REG_VERSION
-  Value=1.5
+  Value=%PYVER_DOTTED%
 end
 item: Get Registry Key Value
   Variable=PY_INST_PATH
@@ -77,6 +110,10 @@ item: Get Registry Key Value
 end
 item: If/While Statement
   Variable=PY_INST_PATH
+end
+item: Compiler Variable If
+  Variable=PYTHON_15
+  Value=1
 end
 item: Set Variable
   Variable=PY_REG_VERSION
@@ -93,12 +130,14 @@ item: Get Registry Key Value
   Default=%GROUP%
   Flags=00000100
 end
+item: Compiler Variable End
+end
 item: If/While Statement
   Variable=PY_INST_PATH
 end
 item: Set Variable
   Variable=PY_REG_VERSION
-  Value=1.5.x
+  Value=%PYVER_DOTTED%
 end
 item: Custom Dialog Set
   Name=Cant install %PY_APP_NAME%
@@ -144,6 +183,31 @@ item: Set Variable
   Value=%PY_INST_PATH%
   Flags=00001100
 end
+item: Compiler Variable If
+  Variable=PYTHON_15
+  Value=1
+end
+item: Set Variable
+  Variable=SYSDLL_PATH
+  Value=%SYS32%
+end
+item: Compiler Variable Else
+end
+item: Copy Local File
+  Source=%MAINDIR%\Python16.dll
+  Destination=%SYS32%\Python16.dll
+  Flags=0000000001100010
+end
+item: Set Variable
+  Variable=SYSDLL_PATH
+  Value=%SYS32%
+end
+remarked item: Set Variable
+  Variable=SYSDLL_PATH
+  Value=%MAINDIR%
+end
+item: Compiler Variable End
+end
 item: Set Variable
   Variable=DISABLED
   Value=!
@@ -165,6 +229,13 @@ item: Get Registry Key Value
   Value Name=UninstallString
   Flags=00000100
 end
+item: Compiler Variable If
+  Variable=PYTHON_15
+  Value=1
+end
+item: Remark
+  Text=Older 1.5 versions used this key.
+end
 item: If/While Statement
   Variable=UNINST_PROG
 end
@@ -175,6 +246,8 @@ item: Get Registry Key Value
   Flags=00000100
 end
 item: End Block
+end
+item: Compiler Variable End
 end
 item: If/While Statement
   Variable=UNINST_PROG
@@ -235,12 +308,12 @@ end
 item: End Block
 end
 item: Check if File/Dir Exists
-  Pathname=%SYS32%\pywintypes15.dll
+  Pathname=%SYSDLL_PATH%\pywintypes%PYVER_NODOT%.dll
   Flags=00000100
 end
-item: Display Message
+remarked item: Display Message
   Title=Existing System file
-  Text=The file %SYS32%\pywintypes15.dll
+  Text=The file %SYSDLL_PATH%\pywintypes%PYVER_NODOT%.dll
   Text=already exists, and needs to be updated.
   Text=
   Text=It is likely that installation will fail if this file
@@ -250,11 +323,11 @@ item: Display Message
   Flags=00001000
 end
 item: Delete File
-  Pathname=%SYS32%\pywintypes15.dll
+  Pathname=%SYSDLL_PATH%\pywintypes%PYVER_NODOT%.dll
 end
 item: Check if File/Dir Exists
-  Pathname=%SYS32%\pywintypes15.dll
-  Message=The file %SYS32%\pywintypes15.dll
+  Pathname=%SYSDLL_PATH%\pywintypes%PYVER_NODOT%.dll
+  Message=The file %SYS32%\pywintypes%PYVER_NODOT%.dll
   Message=can not be deleted.  It is likely this file
   Message=is in use.  Please restart your system,
   Message=then attempt installation again.
@@ -264,12 +337,12 @@ end
 item: End Block
 end
 item: Check if File/Dir Exists
-  Pathname=%SYS32%\pythoncom15.dll
+  Pathname=%SYSDLL_PATH%\pythoncom%PYVER_NODOT%.dll
   Flags=00000100
 end
-item: Display Message
+remarked item: Display Message
   Title=Existing System file
-  Text=The file %SYS32%\pythoncom15.dll
+  Text=The file %SYSDLL_PATH%\pythoncom%PYVER_NODOT%.dll
   Text=already exists, and needs to be updated.
   Text=
   Text=It is likely that installation will fail if this file
@@ -279,11 +352,11 @@ item: Display Message
   Flags=00001000
 end
 item: Delete File
-  Pathname=%SYS32%\pythoncom15.dll
+  Pathname=%SYSDLL_PATH%\pythoncom%PYVER_NODOT%.dll
 end
 item: Check if File/Dir Exists
-  Pathname=%SYS32%\pythoncom15.dll
-  Message=The file %SYS32%\pythoncom15.dll
+  Pathname=%SYSDLL_PATH%\pythoncom%PYVER_NODOT%.dll
+  Message=The file %SYS32%\pythoncom%PYVER_NODOT%.dll
   Message=can not be deleted.  It is likely this file
   Message=is in use.  Please restart your system,
   Message=then attempt installation again.
@@ -291,6 +364,10 @@ item: Check if File/Dir Exists
   Flags=00000010
 end
 item: End Block
+end
+item: Set Variable
+  Variable=ADD_EDIT_MENU
+  Value=A
 end
 item: Wizard Block
   Direction Variable=DIRECTION
@@ -714,6 +791,13 @@ item: Custom Dialog Set
       Text Italian=
       Text Italian=Premere il pulsante Avanti per avviare l'installazione o il pulsante Indietro per reinserire le informazioni di installazione.
     end
+    item: Checkbox
+      Rectangle=88 153 243 169
+      Variable=ADD_EDIT_MENU
+      Create Flags=01010000000000010000000000000011
+      Text=Install Pythonwin as default editor for Python source
+      Text=
+    end
   end
 end
 item: End Block
@@ -758,31 +842,55 @@ end
 item: Include Script
   Pathname=pywin_body.wse
 end
-item: Install File
+remarked item: Install File
   Source=l:\src\pythonex\pythonwin\win32dbg.py
   Destination=%MAINDIR%\Pythonwin\win32dbg.py
   Flags=0000000000000010
 end
-item: Install File
-  Source=l:\src\pythonex\win32\Build\System\PyWinTypes15.dll
-  Destination=%SYS32%\PyWinTypes15.dll
-  Description=Core COM Extension DLL
-  Flags=0000001000010011
+item: Compiler Variable If
+  Variable=PYTHON_15
+  Value=1
 end
 item: Install File
-  Source=l:\src\pythonex\com\Build\System\PythonCOM15.dll
-  Destination=%SYS32%\PythonCOM15.dll
+  Source=l:\src\pythonex\win32\Build\System\PyWinTypes%PYVER_NODOT%.dll
+  Destination=%SYSDLL_PATH%\PyWinTypes%PYVER_NODOT%.dll
   Description=Core COM Extension DLL
-  Flags=0000001000010011
+  Flags=0000001000000011
+end
+item: Install File
+  Source=l:\src\pythonex\com\Build\System\PythonCOM%PYVER_NODOT%.dll
+  Destination=%SYSDLL_PATH%\PythonCOM%PYVER_NODOT%.dll
+  Description=Core COM Extension DLL
+  Flags=0000001000000011
+end
+item: Compiler Variable Else
+end
+item: Install File
+  Source=l:\src\pythonex\win32\Build\System\PyWinTypes16.dll
+  Destination=%SYSDLL_PATH%\PyWinTypes16.dll
+  Description=Core COM Extension DLL
+  Flags=0000000000000011
+end
+item: Install File
+  Source=l:\src\pythonex\com\Build\System\PythonCOM16.dll
+  Destination=%SYSDLL_PATH%\PythonCOM16.dll
+  Description=Core COM Extension DLL
+  Flags=0000000000000011
+end
+item: Compiler Variable End
 end
 item: Edit Registry
+  Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\pythoncom
-  New Value=%SYS32%\pythoncom15.dll
+  New Value=%SYSDLL_PATH%\pythoncom%PYVER_NODOT%.dll
+  New Value=
   Root=2
 end
 item: Edit Registry
+  Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\pywintypes
-  New Value=%SYS32%\PyWinTypes15.dll
+  New Value=%SYSDLL_PATH%\PyWinTypes%PYVER_NODOT%.dll
+  New Value=
   Root=2
 end
 item: Remark
@@ -814,12 +922,14 @@ item: Check Configuration
   Flags=10111011
 end
 item: Edit Registry
+  Total Keys=1
   Key=Software\Microsoft\Windows\CurrentVersion\Uninstall\%APPTITLE%
   New Value=%APPTITLE%
   Value Name=DisplayName
   Root=2
 end
 item: Edit Registry
+  Total Keys=1
   Key=Software\Microsoft\Windows\CurrentVersion\Uninstall\%APPTITLE%
   New Value=%UNINSTALL_PATH% %INST_LOG_PATH%\w32inst.log
   Value Name=UninstallString
@@ -842,6 +952,10 @@ item: Install File
   Destination=%TEMP%\FinishInstall.py
   Flags=0000000000100010
 end
+item: Compiler Variable If
+  Variable=PYTHON_15
+  Value=1
+end
 item: Install File
   Source=l:\src\pythonex\Wise\PyWise\Build\Release\PyWise.dll
   Destination=%TEMP%\PyWise.dll
@@ -863,14 +977,50 @@ item: Display Message
 end
 item: End Block
 end
+item: Compiler Variable Else
+end
+item: Install File
+  Source=l:\src\pythonex\Wise\PyWise\Build\Release\PyWise16.dll
+  Destination=%MAINDIR%\PyWise16.dll
+  Flags=0000000000100010
+end
+item: Call DLL Function
+  Pathname=%MAINDIR%\PyWise16.dll
+  Function Name=Wise_CallObject
+  Variables Added=DISPLAY_MSG
+  Parameter=%TEMP%\FinishInstall.CompileAllAndRegisterCOM|winerror=%MAINDIR%\win32\lib|%MAINDIR%\win32;%MAINDIR%\win32com;%MAINDIR%\win32comext;%MAINDIR%\Pythonwin
+  Flags=00000010
+end
+item: Display Message
+  Title=Finialization failed
+  Text=The finalization of the installation failed.
+  Text=
+  Text=Installation will continue, but .pyc files may not have been created, and COM Servers will not have been registered.
+  Flags=00100000
+end
+item: End Block
+end
+item: Compiler Variable End
+end
 item: Delete File
   Pathname=%TEMP%\FinishInstall.py
 end
 item: Delete File
   Pathname=%TEMP%\FinishInstall.pyc
 end
+item: Compiler Variable If
+  Variable=PYTHON_15
+  Value=1
+end
 item: Delete File
   Pathname=%TEMP%\PyWise.dll
+end
+item: Compiler Variable Else
+end
+item: Delete File
+  Pathname=%MAINDIR%\PyWise16.dll
+end
+item: Compiler Variable End
 end
 item: Wizard Block
   Direction Variable=DIRECTION

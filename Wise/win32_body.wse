@@ -172,8 +172,8 @@ item: Compiler Variable If
   Value=0
 end
 item: Install File
-  Source=l:\src\pythonex\win32\Build\Release\System\PyWinTypes15.dll
-  Destination=%SYS32%\PyWinTypes15.dll
+  Source=l:\src\pythonex\win32\Build\Release\System\PyWinTypes%PYVER_NODOT%.dll
+  Destination=%SYS32%\PyWinTypes%PYVER_NODOT%.dll
   Description=win32 extension files
   Flags=0000001000010011
 end
@@ -315,7 +315,8 @@ end
 item: Edit Registry
   Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\pywintypes
-  New Value=%SYS32%\PyWinTypes15.dll
+  New Value=%SYS32%\PyWinTypes%PYVER_NODOT%.dll
+  New Value=
   Root=2
 end
 item: Compiler Variable End

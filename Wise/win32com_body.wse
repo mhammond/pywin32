@@ -55,20 +55,20 @@ item: Install File
 end
 item: Set Variable
   Variable=PYTHONCOM_DLL
-  Value=%SYS32%\PythonCOM15.dll
+  Value=%SYS32%\PythonCOM%PYVER_NODOT%.dll
 end
 item: Compiler Variable If
   Variable=_COMBINEDINST_
   Value=0
 end
 item: Install File
-  Source=l:\src\pythonex\win32\Build\System\PyWinTypes15.dll
-  Destination=%SYS32%\PyWinTypes15.dll
+  Source=l:\src\pythonex\win32\Build\System\PyWinTypes%PYVER_NODOT%.dll
+  Destination=%SYS32%\PyWinTypes%PYVER_NODOT%.dll
   Description=Core COM Extension DLL
   Flags=0000001000010011
 end
 item: Install File
-  Source=l:\src\pythonex\com\Build\System\PythonCOM15.dll
+  Source=l:\src\pythonex\com\Build\System\PythonCOM%PYVER_NODOT%.dll
   Destination=%PYTHONCOM_DLL%
   Description=Core COM Extension DLL
   Flags=0000000000000011
@@ -360,7 +360,8 @@ end
 item: Edit Registry
   Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\pywintypes
-  New Value=%SYS32%\PyWinTypes15.dll
+  New Value=%SYS32%\PyWinTypes%PYVER_NODOT%.dll
+  New Value=
   Root=2
 end
 item: Compiler Variable End

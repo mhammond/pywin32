@@ -21,14 +21,16 @@ item: Compiler Variable If
   Value=0
 end
 item: Install File
-  Source=l:\src\pythonex\win32\Build\System\PyWinTypes15.dll
-  Destination=%SYS32%\PyWinTypes15.dll
+  Source=l:\src\pythonex\win32\Build\System\PyWinTypes%PYVER_NODOT%.dll
+  Destination=%SYS32%\PyWinTypes%PYVER_NODOT%.dll
   Description=Core COM Extension DLL
   Flags=0000001000010011
 end
 item: Edit Registry
+  Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\pywintypes
-  New Value=%SYS32%\PyWinTypes15.dll
+  New Value=%SYS32%\PyWinTypes%PYVER_NODOT%.dll
+  New Value=
   Root=2
 end
 item: Compiler Variable End
@@ -89,42 +91,41 @@ item: Install File
   Source=l:\src\pythonex\pythonwin\Build\Pythonwin.exe
   Destination=%INSTDIR%\Pythonwin.exe
   Description=Extension modules
-  Flags=0000001000000011
+  Flags=0000000000000011
 end
 item: Edit Registry
+  Total Keys=1
   Key=Software\Microsoft\Windows\CurrentVersion\App Paths\Pythonwin.exe
   New Value=%INSTDIR%\Pythonwin.exe
   Root=2
 end
+item: If/While Statement
+  Variable=ADD_EDIT_MENU
+  Value=A
+end
 item: Edit Registry
+  Total Keys=1
   Key=Python.File\shell\Edit\command
   New Value=%INSTDIR%\pythonwin.exe /edit "%%1"
 end
 item: Edit Registry
+  Total Keys=1
   Key=Python.NoConFile\shell\Edit\command
   New Value=%INSTDIR%\pythonwin.exe /edit "%%1"
+end
+item: End Block
 end
 item: Install File
   Source=l:\src\pythonex\pythonwin\Build\win32ui.pyd
   Destination=%INSTDIR%\win32ui.pyd
   Description=Extension modules
-  Flags=0000001000000011
-end
-item: Edit Registry
-  Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\win32ui
-  New Value=%INSTDIR%\win32ui.pyd
-  Root=2
+  Flags=0000000000000011
 end
 item: Install File
   Source=l:\src\pythonex\pythonwin\Build\win32uiole.pyd
   Destination=%INSTDIR%\win32uiole.pyd
   Description=Extension modules
-  Flags=0000000100000011
-end
-item: Edit Registry
-  Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\win32uiole
-  New Value=%INSTDIR%\win32uiole.pyd
-  Root=2
+  Flags=0000000000000011
 end
 item: Install File
   Source=l:\src\pythonex\pythonwin.hlp
@@ -133,6 +134,7 @@ item: Install File
   Flags=0000000100000010
 end
 item: Edit Registry
+  Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Help\Pythonwin Reference
   New Value=%INSTDIR%\Help\Pythonwin.hlp
   Root=2
@@ -167,23 +169,25 @@ item: Self-Register OCXs/DLLs
   Description=Updating System Configuration, Please Wait...
 end
 item: Edit Registry
+  Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\PythonPath\Pythonwin
   New Value=%INSTDIR%
   Root=2
 end
 item: Edit Registry
+  Total Keys=1
   Key=Software\Python\Pythonwin\Build
   New Value=%BUILD_NO%
   Root=2
 end
 item: Add Text to INSTALL.LOG
-  Text=RegDB TREE: SOFTWARE\Python\Python for Win32
+  Text=RegDB TREE: SOFTWARE\Python %PYVER_DOTTED%\Python for Win32
 end
 item: Add Text to INSTALL.LOG
   Text=RegDB Root: 1
 end
 item: Add Text to INSTALL.LOG
-  Text=RegDB TREE: SOFTWARE\Python\win32ui module
+  Text=RegDB TREE: SOFTWARE\Python %PYVER_DOTTED%\win32ui module
 end
 item: Add Text to INSTALL.LOG
   Text=RegDB Root: 1
