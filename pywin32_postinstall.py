@@ -144,6 +144,11 @@ def install():
                          shutil.copyfile, fname, dst)
         # Register the files with the uninstaller
         file_created(dst)
+    # Pythonwin 'compiles' config files - record them for uninstall.
+    pywin_dir = os.path.join(lib_dir, "Pythonwin", "pywin")
+    for fname in glob.glob(os.path.join(pywin_dir, "*.cfg")):
+        file_created(fname[:-1] + "c") # .cfg->.cfc
+
     # Register our demo COM objects.
     RegisterCOMObjects()
     # Register the .chm help file.
