@@ -7,6 +7,7 @@ major		1
 minor		5
 
 pywintypes15.dll	Common Python types for win32
+pywintypes16.dll	Common Python 1.6 types for win32
 dbi.dll		Database utilities for the ODBC module
 dde.pyd		Python Dynamic Data Exchange extensions
 mmapfile.pyd	Python Memory Mapped File extension
@@ -38,6 +39,7 @@ win32ui.pyd	Python MFC extensions
 win32uiole.pyd	Python MFC OLE extensions
 
 pythoncom15.dll	Python COM Extensions core
+pythoncom16.dll	Python 1.6 COM Extensions core
 dcom.pyd	Temporary DCOM test
 exchdapi.pyd	Python MS-Exchange Directory extension
 mapi.pyd	Python MAPI extension
