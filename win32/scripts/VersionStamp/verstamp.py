@@ -67,7 +67,10 @@ def VS_FIXEDFILEINFO(maj, min, sub, build, debug=0, is_dll=1):
                      )
 
 def nullterm(s):
-  return U(s).raw + '\0\0'
+  try:
+    return str(buffer(unicode(s))) + "\0\0"
+  except NameError: # No unicode builtin
+    return U(s).raw + '\0\0'
 
 def pad32(s, extra=2):
   # extra is normally 2 to deal with wLength
