@@ -510,6 +510,10 @@ def JumpToDocument(fileName, lineno=0, col = 1, nChars = 0, bScrollToTop = 0):
 		charNo = view.LineIndex(lineno-1)
 		start = charNo + col - 1
 		size = view.GetTextLength()
+		try:
+			view.EnsureCharsVisible(charNo)
+		except AttributeError:
+			print "Doesnt appear to be one of our views?"
 		view.SetSel(min(start, size), min(start + nChars, size))
 	if bScrollToTop:
 		curTop = view.GetFirstVisibleLine()
