@@ -210,11 +210,14 @@ BOOL PyObject_AsELEMDESC( PyObject *ob, ELEMDESC *pDesc, void *pMore )
 
 	if (obDefaultVal != Py_None) {
 		pDesc->paramdesc.wParamFlags |= PARAMFLAG_FHASDEFAULT;
-		pDesc->paramdesc.pparamdescex = (LPPARAMDESCEX)AllocMore( pMore, sizeof(LPPARAMDESCEX), TRUE);
+		pDesc->paramdesc.pparamdescex = (LPPARAMDESCEX)AllocMore( pMore, sizeof(PARAMDESCEX), TRUE);
 		pDesc->paramdesc.pparamdescex->cBytes = sizeof(PARAMDESCEX);
 		/// XXX - this leaks this variant :-(
 		// To avoid, we could maybe alloc a new More block with VARIANT set
 		// to True, then memcpy this variant into it??
+		// Or have PyObject_FreeFUNCDESC() do the right thing, looking down
+		// each elemdesc freeing the variant?
+		// However, this is very very rarely used (possibly never in the real world!)
 		VariantInit(&pDesc->paramdesc.pparamdescex->varDefaultValue);
 		if (!PyCom_VariantFromPyObject(obDefaultVal, &pDesc->paramdesc.pparamdescex->varDefaultValue))
 			goto done;
