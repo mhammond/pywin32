@@ -16,7 +16,10 @@ class HLIErrorItem(hierlist.HierListItem):
 
 class HLICLBRItem(hierlist.HierListItem):
 	def __init__(self, name, file, lineno, suffix = ""):
-		self.name = name
+		# If the 'name' object itself has a .name, use it.  Not sure
+		# how this happens, but seems pyclbr related. 
+		# See PyWin32 bug 817035
+		self.name = getattr(name, "name", name)
 		self.file = file
 		self.lineno = lineno
 		self.suffix = suffix
