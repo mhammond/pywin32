@@ -143,6 +143,12 @@ def SetInfo(userName=None):
 	finally:
 		win32net.NetUserSetInfo(server, userName, 3, oldData)
 
+def SetComputerInfo():
+    "Doesnt actually change anything, just make sure we could ;-)"
+    info = win32net.NetWkstaGetInfo(None, 502)
+    # *sob* - but we can't!  Why not!!!
+    # win32net.NetWkstaSetInfo(None, 502, info) 
+
 def usage(tests):
 	import os
 	print "Usage: %s [-s server ] [-v] [Test ...]" % os.path.basename(sys.argv[0])
