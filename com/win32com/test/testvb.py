@@ -21,14 +21,9 @@ importMsg = """\
 
 # Import the type library for the test module.
 try:
-	# The new IID
-	win32com.client.gencache.EnsureModule('{32C85CE8-0035-11D3-8546-204C4F4F5020}', 0, 1, 0)
+	win32com.client.gencache.EnsureModule('{32C85CE8-0035-11D3-8546-204C4F4F5020}', 0, 5, 0)
 except pythoncom.com_error:
-	try:
-		# The old IID.
-		win32com.client.gencache.EnsureModule('{236C9C31-3AD6-11D2-848C-204C4F4F5020}', 0, 9, 0)
-	except pythoncom.com_error:
-		raise RuntimeError, importMsg
+	raise RuntimeError, importMsg
 
 import traceback
 
@@ -80,9 +75,16 @@ def TestVB( vbtest, bUseGenerated ):
 	if vbtest.ArrayProperty != arrayData:
 		raise error, "Could not set the array data correctly - got back " + str(vbtest.ArrayProperty)
 
+	TestStructs(vbtest)
+
+	assert vbtest.TakeByValObject(vbtest)==vbtest
+
 	# Python doesnt support PUTREF properties without a typeref
 	# (although we could)
 	if bUseGenerated:
+		ob = vbtest.TakeByRefObject(vbtest)
+		assert ob[0]==vbtest and ob[1]==vbtest
+
 		# A property that only has PUTREF defined.
 		vbtest.VariantPutref = vbtest
 		if vbtest.VariantPutref._oleobj_!= vbtest._oleobj_:
@@ -124,7 +126,7 @@ def TestVB( vbtest, bUseGenerated ):
 
 		if vbtest.IncrementVariantParam(1.5) != 2.5:
 			raise error, "Could not pass a float VARIANT byref"
-		
+
 		# Can't test IncrementVariantParam with the param omitted as it
 		# it not declared in the VB code as "Optional"
 
@@ -146,11 +148,79 @@ def TestVB( vbtest, bUseGenerated ):
 		if ret != (0,1):
 			raise error, "Could not increment the integer with default arg- "+str(ret)
 
+def TestStructs(vbtest):
 	try:
 		vbtest.IntProperty = "One"
 	except pythoncom.com_error, (hr, desc, exc, argErr):
 		if hr != winerror.DISP_E_TYPEMISMATCH:
 			raise error, "Expected DISP_E_TYPEMISMATCH"
+
+	s = vbtest.StructProperty
+	if s.int_val != 99 or str(s.str_val) != "hello":
+		raise error, "The struct value was not correct"
+	s.str_val = "Hi from Python"
+	s.int_val = 11
+	if s.int_val != 11 or str(s.str_val) != "Hi from Python":
+		raise error, "The struct value didnt persist!"
+	
+	if s.sub_val.int_val != 66 or str(s.sub_val.str_val) != "sub hello":
+		raise error, "The sub-struct value was not correct"
+	sub = s.sub_val
+	sub.int_val = 22
+	if sub.int_val != 22:
+		print sub.int_val
+		raise error, "The sub-struct value didnt persist!"
+		
+	if s.sub_val.int_val != 22:
+		print s.sub_val.int_val
+		raise error, "The sub-struct value (re-fetched) didnt persist!"
+
+	if s.sub_val.array_val[0].int_val != 0 or str(s.sub_val.array_val[0].str_val) != "zero":
+		print s.sub_val.array_val[0].int_val
+		raise error, "The array element wasnt correct"
+	s.sub_val.array_val[0].int_val = 99
+	s.sub_val.array_val[1].int_val = 66
+	if s.sub_val.array_val[0].int_val != 99 or \
+	   s.sub_val.array_val[1].int_val != 66:
+		print s.sub_val.array_val[0].int_val
+		raise error, "The array element didnt persist."
+	# Now pass the struct back to VB
+	vbtest.StructProperty = s
+	# And get it back again
+	s = vbtest.StructProperty
+	if s.int_val != 11 or str(s.str_val) != "Hi from Python":
+		raise error, "After sending to VB, the struct value didnt persist!"
+	if s.sub_val.array_val[0].int_val != 99:
+		raise error, "After sending to VB, the struct array value didnt persist!"
+
+	# Now do some object equality tests.
+	assert s==s
+	assert s != s.sub_val
+	import copy
+	s2 = copy.copy(s)
+	assert s is not s2
+	assert s == s2
+	s2.int_val = 123
+	assert s != s2
+	# Make sure everything works with functions
+	s2 = vbtest.GetStructFunc()
+	assert s==s2
+	vbtest.SetStructSub(s2)
+	
+	# Finally, test stand-alone structure arrays.
+	s_array = vbtest.StructArrayProperty
+	assert s_array is None, "Expected None from the uninitialized VB array"
+	vbtest.MakeStructArrayProperty(3)
+	s_array = vbtest.StructArrayProperty
+	assert len(s_array)==3
+	for i in range(len(s_array)):
+		assert s_array[i].int_val == i
+		assert s_array[i].sub_val.int_val == i
+		assert s_array[i].sub_val.array_val[0].int_val == i
+		assert s_array[i].sub_val.array_val[1].int_val == i+1
+		assert s_array[i].sub_val.array_val[2].int_val == i+2
+		
+	print "Struct/Record tests passed"
 
 def DoTestAll():
 	o = win32com.client.Dispatch("PyCOMVBTest.Tester")
@@ -160,6 +230,8 @@ def DoTestAll():
 	TestVB(o,0)
 		
 def TestAll():
+	if not __debug__:
+		raise RuntimeError, "This must be run in debug mode - we use assert!"
 	try:
 		DoTestAll()
 	except:

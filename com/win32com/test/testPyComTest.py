@@ -5,6 +5,7 @@ import sys; sys.coinit_flags=0 # Must be free-threaded!
 import win32api, types, pythoncom, time
 import sys, win32com, win32com.client.connect
 from win32com.test.util import CheckClean
+from win32com.client import constants
 
 importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 
@@ -71,6 +72,28 @@ def TestDynamic():
 	counter = o.GetSimpleCounter()
 	TestCounter(counter, 0)
 
+	if verbose: print "Checking default args"
+	rc = o.TestOptionals()
+	if  rc[:-1] != ("def", 0, 1) or abs(rc[-1]-3.14)>.01:
+		print rc
+		raise error, "Did not get the optional values correctly"
+	rc = o.TestOptionals("Hi", 2, 3, 1.1)
+	if  rc[:-1] != ("Hi", 2, 3) or abs(rc[-1]-1.1)>.01:
+		print rc
+		raise error, "Did not get the specified optional values correctly"
+	rc = o.TestOptionals2(0)
+	if  rc != (0, "", 1):
+		print rc
+		raise error, "Did not get the optional2 values correctly"
+	rc = o.TestOptionals2(1.1, "Hi", 2)
+	if  rc[1:] != ("Hi", 2) or abs(rc[0]-1.1)>.01:
+		print rc
+		raise error, "Did not get the specified optional2 values correctly"
+
+#	if verbose: print "Testing structs"
+	r = o.GetStruct()
+	print str(r.str_value)
+	assert r.int_value == 99 and str(r.str_value)=="Hello from C++"
 	counter = win32com.client.dynamic.DumbDispatch("PyCOMTest.SimpleCounter")
 	TestCounter(counter, 0)
 
@@ -93,9 +116,27 @@ def TestGenerated():
 	i1, i2 = o.GetMultipleInterfaces()
 	if type(i1) != types.InstanceType or type(i2) != types.InstanceType:
 		# Yay - is now an instance returned!
-		raise error,  "GetMultipleInterfaces did not return an instance - is a " + str(i1), str(i2)
+		raise error,  "GetMultipleInterfaces did not return instances - got '%s', '%s'" % (i1, i2)
 	del i1
 	del i2
+
+	if verbose: print "Checking default args"
+	rc = o.TestOptionals()
+	if  rc[:-1] != ("def", 0, 1) or abs(rc[-1]-3.14)>.01:
+		print rc
+		raise error, "Did not get the optional values correctly"
+	rc = o.TestOptionals("Hi", 2, 3, 1.1)
+	if  rc[:-1] != ("Hi", 2, 3) or abs(rc[-1]-1.1)>.01:
+		print rc
+		raise error, "Did not get the specified optional values correctly"
+	rc = o.TestOptionals2(0)
+	if  rc != (0, "", 1):
+		print rc
+		raise error, "Did not get the optional2 values correctly"
+	rc = o.TestOptionals2(1.1, "Hi", 2)
+	if  rc[1:] != ("Hi", 2) or abs(rc[0]-1.1)>.01:
+		print rc
+		raise error, "Did not get the specified optional2 values correctly"
 
 	if verbose: print "Checking var args"
 	o.SetVarArgs("Hi", "There", "From", "Python", 1)
@@ -128,7 +169,10 @@ def TestGenerated():
 	TestApplyResult(o.Test, ("Unused", 1==1), 1) # A bool function
 	TestApplyResult(o.Test, ("Unused", 0), 0)
 	TestApplyResult(o.Test, ("Unused", 1==0), 0)
-	TestApplyResult(o.Test2, (PyCOMTest.QsAttribute.Attr2,), PyCOMTest.QsAttribute.Attr2)
+	TestApplyResult(o.Test2, (constants.Attr2,), constants.Attr2)
+	TestApplyResult(o.Test3, (constants.Attr2,), constants.Attr2)
+	TestApplyResult(o.Test4, (constants.Attr2,), constants.Attr2)
+	TestApplyResult(o.Test5, (constants.Attr2,), constants.Attr2)
 
 	# Do the connection point thing...
 	# Create a connection object.
