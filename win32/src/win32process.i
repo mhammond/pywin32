@@ -726,11 +726,16 @@ BOOLAPI SetThreadPriority(
 	int nPriority   // @pyparm int|nPriority||thread priority level
 );
 
+// @pyswig int|GetThreadPriority|
+DWORD GetThreadPriority(
+	HANDLE hThread // @pyparm <o PyHANDLE>|handle||handle to the thread
+);
+
 #ifndef MS_WINCE
 
 // @pyswig |SetPriorityClass|
 BOOLAPI SetPriorityClass(
-  	HANDLE hThread, // @pyparm <o PyHANDLE>|handle||handle to the thread
+  	HANDLE hThread, // @pyparm <o PyHANDLE>|handle||handle to the process
 	DWORD dwPriorityClass   // @pyparm int|dwPriorityClass||priority class value
 );
 
