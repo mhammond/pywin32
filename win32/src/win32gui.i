@@ -2160,7 +2160,7 @@ int DrawText(HDC hDC, LPCTSTR lpString, int nCount, RECT *INPUT, UINT uFormat);
 BOOLAPI DrawEdge(HDC hdc, RECT *INPUT, UINT edge, UINT grfFlags); 
 int FillRect(HDC hDC,   RECT *INPUT, HBRUSH hbr);
 DWORD GetSysColor(int nIndex);
-BOOLAPI InvalidateRect(HWND hWnd,  RECT *INPUT, BOOL bErase);
+BOOLAPI InvalidateRect(HWND hWnd,  RECT *INPUT_NULLOK , BOOL bErase);
 int FrameRect(HDC hDC,   RECT *INPUT, HBRUSH hbr);
 int GetUpdateRgn(HWND hWnd, HRGN hRgn, BOOL bErase);
 /*
