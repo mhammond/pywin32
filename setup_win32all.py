@@ -182,7 +182,7 @@ class WinExt_win32com(WinExt):
 # ones with this special requirement
 class WinExt_win32com_mapi(WinExt_win32com):
     def get_pywin32_dir(self):
-        return "win32com/mapi"
+        return "win32comext/mapi"
 
 # A hacky extension class for pywintypesXX.dll and pythoncomXX.dll
 class WinExt_system32(WinExt):
