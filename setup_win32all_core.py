@@ -147,12 +147,10 @@ class my_build_ext(build_ext):
 
     def _why_cant_build_extension(self, ext):
         # Return None, or a reason it can't be built.
-        common_dirs = self.compiler.library_dirs
-        common_dirs += os.environ.get("LIB").split(os.pathsep)
         for lib in ext.libraries:
             if self.found_libraries.has_key(lib.lower()):
                 continue
-            for dir in common_dirs + ext.library_dirs:
+            for dir in self.compiler.library_dirs + ext.library_dirs:
                 if os.path.isfile(os.path.join(dir, lib + ".lib")):
                     self.found_libraries[lib.lower()] = True
                     break
