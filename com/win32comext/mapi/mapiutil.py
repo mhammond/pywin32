@@ -4,6 +4,10 @@ from pywintypes import UnicodeType, TimeType
 import pythoncom
 import mapi, mapitags
 
+# Pre 2.2.1 compat.
+try: True, False
+except NameError: True = 1==1; False = 1==0
+
 prTable = {}
 def GetPropTagName(pt):
 	if not prTable:
