@@ -17,7 +17,7 @@ item: Global
   Patch Flags=0000000000000001
   Patch Threshold=85
   Patch Memory=4000
-  EXE Filename=win32all-154.exe
+  EXE Filename=win32all-155.exe
   Code Sign Name=Python Win32 combined extensions
   Code Sign Info=skippinet.com.au
   Crystal Format=10111100101100000010001001001001
@@ -106,34 +106,8 @@ item: Set Variable
 end
 item: Compiler Variable Else
 end
-item: Get Registry Key Value
-  Variable=PY_INST_PATH
-  Key=Software\Python\PythonCore\%PY_REG_VERSION%\InstallPath
-  Flags=00000100
-end
-item: Get Registry Key Value
-  Variable=GROUP
-  Key=Software\Python\PythonCore\%PY_REG_VERSION%\InstallPath\InstallGroup
-  Default=%GROUP%
-  Flags=00000100
-end
-item: Compiler Variable End
-end
-item: Set Variable
-  Variable=USE_HKLM
-  Value=1
-end
-item: If/While Statement
-  Variable=PY_INST_PATH
-  Flags=00010000
-end
 item: Remark
-  Text=Check HKEY_CURRENT_USER too.
-end
-item: Compiler Variable If
-  Variable=PY_DEV_BUILD
-  Value=True
-  Flags=00000001
+  Text=Check HKCU first - if it is there, the user probably has no admin anyway.
 end
 item: Get Registry Key Value
   Variable=PY_INST_PATH
@@ -154,16 +128,28 @@ item: Compiler Variable End
 end
 item: If/While Statement
   Variable=PY_INST_PATH
+  Flags=00010000
 end
-item: Compiler Variable If
-  Variable=PY_DEV_BUILD
-  Value=True
+item: Remark
+  Text=Check HKEY_CURRENT_USER too.
+end
+item: Get Registry Key Value
+  Variable=PY_INST_PATH
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\InstallPath
+  Flags=00000100
+end
+item: Get Registry Key Value
+  Variable=GROUP
+  Key=Software\Python\PythonCore\%PY_REG_VERSION%\InstallPath\InstallGroup
+  Default=%GROUP%
+  Flags=00000100
 end
 item: Set Variable
-  Variable=CONTINUE
+  Variable=USE_HKLM
   Value=1
 end
-item: Compiler Variable Else
+item: If/While Statement
+  Variable=PY_INST_PATH
 end
 item: Set Variable
   Variable=CONTINUE
@@ -211,8 +197,6 @@ item: Custom Dialog Set
     end
   end
 end
-item: Compiler Variable End
-end
 item: If/While Statement
   Variable=CONTINUE
   Value=1
@@ -225,10 +209,6 @@ item: Wizard Block
   Y Position=0
   Filler Color=11173759
   Flags=00000010
-end
-item: Compiler Variable If
-  Variable=PY_DEV_BUILD
-  Value=True
 end
 item: Custom Dialog Set
   Name=Select Destination Directory
@@ -364,24 +344,6 @@ item: Custom Dialog Set
     end
   end
 end
-item: Compiler Variable Else
-end
-item: Check if File/Dir Exists
-  Pathname=PY_INST_PATH\Python%PYVER_NODOT%.dll
-  Flags=00000101
-end
-item: Display Message
-  Title=Cannot locate Python
-  Text=Python can not be located in the specified directory.  Please ensure that Python%PYVER_NODOT%.dll exists in the specified directory.
-  Flags=00101000
-end
-item: Set Variable
-  Variable=PY_INST_PATH
-end
-item: End Block
-end
-item: Compiler Variable End
-end
 item: End Block
 end
 item: Else Statement
@@ -399,25 +361,25 @@ item: Compiler Variable If
   Value=True
   Flags=00000001
 end
-item: Remark
-  Text=Python 2.2 and later have "site-packages" - install there.
-end
-item: Check if File/Dir Exists
-  Pathname=%PY_INST_PATH%\lib\site-packages
-  Flags=00000100
-end
-item: Set Variable
-  Variable=PY_INST_PATH
-  Value=%PY_INST_PATH%\lib\site-packages
-end
-item: End Block
-end
 item: Compiler Variable End
 end
 item: Set Variable
   Variable=MAINDIR
   Value=%PY_INST_PATH%
   Flags=00001100
+end
+item: Remark
+  Text=Python 2.2 and later have "site-packages" - install there.
+end
+item: Check if File/Dir Exists
+  Pathname=%MAINDIR%\lib\site-packages
+  Flags=00000100
+end
+item: Set Variable
+  Variable=MAINDIR
+  Value=%MAINDIR%\lib\site-packages
+end
+item: End Block
 end
 item: Set Variable
   Variable=SYSDLL_PATH
@@ -698,7 +660,7 @@ item: Custom Dialog Set
     end
   end
 end
-item: Check Configuration
+remarked item: Check Configuration
   Message=This program must be installed by a user with Administrative rights.
   Message=
   Message=This is so information can be added to the registry.
@@ -1777,9 +1739,12 @@ item: Compiler Variable If
   Value=True
   Flags=00000001
 end
+item: Remark
+  Text=Install Python in the main Python dir, so non-admin installs can find Python.dll
+end
 item: Install File
   Source=e:\src\pythonex\pythonwin\Build\Pythonwin.exe
-  Destination=%INSTDIR%\Pythonwin.exe
+  Destination=%PY_INST_PATH%\Pythonwin.exe
   Description=Extension modules
   Flags=0000000000000011
 end
@@ -1790,7 +1755,8 @@ end
 item: Edit Registry
   Total Keys=1
   Key=Software\Microsoft\Windows\CurrentVersion\App Paths\Pythonwin.exe
-  New Value=%INSTDIR%\Pythonwin.exe
+  New Value=%PY_INST_PATH%\Pythonwin.exe
+  New Value=
   Root=2
 end
 item: Else Statement
@@ -1798,7 +1764,8 @@ end
 item: Edit Registry
   Total Keys=1
   Key=Software\Microsoft\Windows\CurrentVersion\App Paths\Pythonwin.exe
-  New Value=%INSTDIR%\Pythonwin.exe
+  New Value=%PY_INST_PATH%\Pythonwin.exe
+  New Value=
   Root=1
 end
 item: End Block
@@ -1810,12 +1777,14 @@ end
 item: Edit Registry
   Total Keys=1
   Key=Python.File\shell\Edit\command
-  New Value=%INSTDIR%\pythonwin.exe /edit "%%1"
+  New Value=%PY_INST_PATH%\pythonwin.exe /edit "%%1"
+  New Value=
 end
 item: Edit Registry
   Total Keys=1
   Key=Python.NoConFile\shell\Edit\command
-  New Value=%INSTDIR%\pythonwin.exe /edit "%%1"
+  New Value=%PY_INST_PATH%\pythonwin.exe /edit "%%1"
+  New Value=
 end
 item: End Block
 end
@@ -1938,7 +1907,7 @@ item: Check Configuration
   Flags=10111011
 end
 item: Create Shortcut
-  Source=%INSTDIR%\Pythonwin.exe
+  Source=%PY_INST_PATH%\Pythonwin.exe
   Destination=%GROUP%\Pythonwin.lnk
   Working Directory=%MAINDIR%
   Description=Pythonwin
@@ -1951,11 +1920,6 @@ item: Create Shortcut
   Description=Win32 Extensions Documentation
   Key Type=1536
   Flags=00000001
-end
-item: Else Statement
-end
-item: Remark
-  Text=We (Python core, and now me) Seem to be ignoring non Win95 (ie, win31 or NT3.5) interfaces.
 end
 item: End Block
 end
@@ -2025,6 +1989,22 @@ item: Compiler Variable If
   Value=True
   Flags=00000001
 end
+item: If/While Statement
+  Variable=USE_HKLM
+  Value=1
+  Flags=00000001
+end
+item: Display Message
+  Title=Non-admin install
+  Text=As this is being installed as a non-admin user, certain COM features will not work correctly.
+  Text=
+  Text=You will not be able to implement COM objects in Python (but you should be able to use other COM objects).
+  Text=
+  Text=Active Scripting is also not supported
+  Flags=00100100
+end
+item: Else Statement
+end
 item: Install File
   Source=e:\src\pythonex\Wise\Install Scripts\FinishInstall.py
   Destination=%TEMP%\FinishInstall.py
@@ -2060,6 +2040,8 @@ item: Delete File
 end
 item: Delete File
   Pathname=%MAINDIR%\PyWise%PYVER_NODOT%.dll
+end
+item: End Block
 end
 item: Compiler Variable End
 end
