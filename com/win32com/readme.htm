@@ -13,7 +13,12 @@
 <P><A HREF="win32com.txt">The release notes</A> is where we do a poor job of keeping a list of significant enhancements and changes at the C/C++ level (yeah, right!) and also contains the log from the source control system.</P>
 <P>The <A HREF="test/.">win32com\test directory</A> contains some interesting scripts (and a new <A HREF="test/readme.txt">readme.txt</A>). Although these are used for testing, they do show a variety of COM techniques.</P>
 <H3>Recent Changes</H3>
-<P>Better support for DCOM via <CODE>win32com.client.DispathEx(progId, machineName=None, …)</CODE>.  Small DCOM demo in <I>win32com\test\testDCOM.py</I>.</P>
+<H4>win32all-126 fixes.</H4>
+<P>Threading bug that was exposed when using MTS has been fixed.  Minor (but regular) memory leak plugged.  Can now run for (nearly :-) ever under MTS with huge thread numbers.</P>
+<P>makepy has better support for objects that expose multiple IDispatch interfaces,  Also sorts the list of type-libraries correctly, and hides libraries marked as hidden.</P>
+<P>COM now supports byref date arguments.</P>
+<H4>win32all-125 fixes.</H4>
+<P>Better support for DCOM via <CODE>win32com.client.DispathEx(progId, machineName=None, …)</CODE>. Small DCOM demo in <I>win32com\test\testDCOM.py</I>.</P>
 <P>Registration of COM servers has been made a little simpler, and the QuickStart has been changed to reflect this. Classes no longer need <I>_reg_class_spec_</I> or <I>_reg_desc_</I> attributes - the registration process now provides sensible defaults. Also note that if <I>_reg_class_spec_</I> is not specified, the PythonPath will also be modified when your server is loaded - this prevents the common problem of not having your COM server on the PythonPath. Note that if <I>_reg_class_spec_</I> is specified, the original behaviour remains - you must ensure the path is correct yourself.</P>
 <P>Type information has been upgraded. The Pythoncom core is now capable of creating COM Type Libraries. All left remaining is some Python programming, so expect this soon.</P>
 <P>Robin Becker has dramatically increased the speed of COM accessing certain objects (notably MSOffice) when not using <I>makepy</I>.</P>
@@ -23,7 +28,7 @@
 <P>There is also support for Python as an ActiveX Scripting Host.</P>
 <P>Active Debugging seems to be fully functional.</P>
 <H3>Known bugs and problems...</H3>
-<P>Certain servers may hang at shutdown if all COM client objects not released - notably, MSOffice. Eg, if a Python program that is talking to excel raises an exception and exits, the Python program will be hung. There are no known leaks in win32com, but there is also no attempt at automatic object cleanup. All standard Python caveats about references apply! Note this is a "feature" of COM, and not a bug in win32com.  You can use the function <I>pythoncom._GetInterfaceCount()</I> to determine how many COM objects are held by Python as your program terminates - this should return zero.</P>
+<P>Certain servers may hang at shutdown if all COM client objects not released - notably, MSOffice. Eg, if a Python program that is talking to excel raises an exception and exits, the Python program will be hung. There are no known leaks in win32com, but there is also no attempt at automatic object cleanup. All standard Python caveats about references apply! Note this is a "feature" of COM, and not a bug in win32com. You can use the function <I>pythoncom._GetInterfaceCount()</I> to determine how many COM objects are held by Python as your program terminates - this should return zero.</P>
 <H3><A NAME="OlderChanges">Even Older Changes</A></H3>
 <H4>Build 123 and earlier changes.</H4>
 <P>Active Debugging should now be <B><I>nearly</B></I> capable of debugging stand-alone Python scripts.<BR>
@@ -38,6 +43,5 @@ debugger.Break()</PRE>
 <I><P>pythoncom.CoUninitialize()</I> is no longer called automatically at shutdown. This seems to fix more problems than it causes, but if your COM program is hanging at shutdown, try adding an explicit call to this method just before you exit.</P>
 <P>Regressed back to the default COM threading model being "Apartment", as defaulting to "Free Threading" seems to break so many clients. <I>sys.coinit_flags</I> still allows you to dictate the behaviour before <I>pythoncom</I> is imported for the first time.</P>
 <I><P>makepy</I> generated files now have much better support for default values for arguments. Also attempted to remove some hacks related to "interface" descriptions in IDL file. Nothing should break, and my (now comprehensive) test suite runs to completion, but let me know of any problems with weird, custom IDL files.</P>
-<P>More changes to <I>makepy</I> to better support COM Constants. All external COM constants (eg, MSWord related constants) should now be available in <I>win32com.client.constants</I>. No old code should break, but in the future the "old style" of using COM constants will be removed. <A HREF="html/QuickStartClientCom.html">This is all documented in the Client Side Quick Start documentation</A>. Also made a few minor changes to the <I>bGuiProgress</I> param.</P>
-</BODY>
+<P>More changes to <I>makepy</I> to better support COM Constants. All external COM constants (eg, MSWord related constants) should now be available in <I>win32com.client.constants</I>. No old code should break, but in the future the "old style" of using COM constants will be removed. <A HREF="html/QuickStartClientCom.html">This is all documented in the Client Side Quick Start documentation</A>. Also made a few minor changes to the <I>bGuiProgress</I> param.</P></BODY>
 </HTML>
