@@ -302,6 +302,19 @@ typedef int UINT;
 	}
 }
 
+%typemap(python,in) ICONINFO *INPUT {
+    ICONINFO s;
+	if (PyTuple_Check($source)) {
+		if (PyArg_ParseTuple($source, "lllll", &s.fIcon, &s.xHotspot, &s.yHotspot,
+                                               &s.hbmMask, &s.hbmColor) == 0) {
+			return PyErr_Format(PyExc_TypeError, "%s: a ICONINFO must be a tuple of integers", "$name");
+		}
+		$target = &s;
+    } else {
+		return PyErr_Format(PyExc_TypeError, "%s: a ICONINFO must be a tuple of integers", "$name");
+	}
+}
+
 %typemap(python,argout) ICONINFO *OUTPUT {
     PyObject *o;
     o = Py_BuildValue("lllll", $source->fIcon, $source->xHotspot,
@@ -339,6 +352,64 @@ typedef int UINT;
 		$target = &bf;
 	} else {
 		return PyErr_Format(PyExc_TypeError, "%s: This param must be a tuple of four integers", "$name");
+	}
+}
+
+%typemap(python,argout) PAINTSTRUCT *OUTPUT {
+    PyObject *o;
+    o = Py_BuildValue("(ll(iiii)lls#)",
+                $source->hdc,
+                $source->fErase,
+                $source->rcPaint.left, $source->rcPaint.top, $source->rcPaint.right, $source->rcPaint.bottom,
+                $source->fRestore,
+                $source->fIncUpdate,
+                (char *)$source->rgbReserved,
+                sizeof($source->rgbReserved));
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
+      Py_DECREF(Py_None);
+      $target = o;
+    } else {
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
+	Py_XDECREF(o2);
+      }
+      PyList_Append($target,o);
+      Py_XDECREF(o);
+    }
+}
+
+%typemap(python,ignore) PAINTSTRUCT *OUTPUT(PAINTSTRUCT temp)
+{
+  $target = &temp;
+}
+
+%typemap(python,in) PAINTSTRUCT *INPUT {
+    PAINTSTRUCT r;
+    char *szReserved;
+    int lenReserved;
+	if (PyTuple_Check($source)) {
+		if (!PyArg_ParseTuple($source,
+                             "ll(iiii)lls#",
+                            &r.hdc,
+                            &r.fErase,
+                            &r.rcPaint.left, &r.rcPaint.top, &r.rcPaint.right, &r.rcPaint.bottom,
+                            &r.fRestore,
+                            &r.fIncUpdate,
+                            &szReserved,
+                            &lenReserved)) {
+			return NULL;
+		}
+        if (lenReserved != sizeof(r.rgbReserved))
+            return PyErr_Format(PyExc_ValueError, "%s: last element must be string of %d bytes",
+                                "$name", sizeof(r.rgbReserved));
+        memcpy(&r.rgbReserved, szReserved, sizeof(r.rgbReserved));
+		$target = &r;
+    } else {
+		return PyErr_Format(PyExc_TypeError, "%s: a PAINTSTRUCT must be a tuple", "$name");
 	}
 }
 
@@ -1828,6 +1899,8 @@ BOOLAPI DrawIconEx(
   int diFlags               // @pyparm int|diFlags||icon-drawing flags
 );
 
+// @pyswig int|CreateIconIndirect|Creates an icon or cursor from an ICONINFO structure. 
+HICON CreateIconIndirect(ICONINFO *INPUT);
 
 // @pyswig HANDLE|LoadImage|Loads a bitmap, cursor or icon
 HANDLE LoadImage(HINSTANCE hInst, // @pyparm int|hinst||Handle to an instance of the module that contains the image to be loaded. To load an OEM image, set this parameter to zero. 
@@ -2702,10 +2775,14 @@ HBRUSH GetSysColorBrush(int nIndex);
 BOOLAPI InvalidateRect(HWND hWnd,  RECT *INPUT_NULLOK , BOOL bErase);
 int FrameRect(HDC hDC,   RECT *INPUT, HBRUSH hbr);
 int GetUpdateRgn(HWND hWnd, HRGN hRgn, BOOL bErase);
-/*
-HDC BeginPaint(HWND hwnd, LPPAINTSTRUCT lpPaint);
-BOOLAPI EndPaint(HWND hWnd,  PAINTSTRUCT *lpPaint); 
-*/
+
+// @pyswig hdc, paintstruct|BeginPaint|
+HDC BeginPaint(HWND hwnd, PAINTSTRUCT *OUTPUT);
+
+// @pyswig |EndPaint|
+// @pyparm int|hwnd||
+// @pyparm paintstruct|ps||As returned from <om win32gui.BeginPaint>
+BOOLAPI EndPaint(HWND hWnd,  PAINTSTRUCT *INPUT); 
 
 // @pyswig int|CreateWindowEx|Creates a new window with Extended Style.
 HWND CreateWindowEx( 
