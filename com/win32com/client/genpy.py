@@ -17,7 +17,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.3.0" # Written to generated file.
+makepy_version = "0.3.1" # Written to generated file.
 
 # This map is used purely for the users benefit -it shows the
 # raw, underlying type of Alias/Enums, etc.  The COM implementation
@@ -232,6 +232,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
 		self.bWritten = 1
 
 	def WriteEventSinkClassHeader(self, generator):
+		generator.checkWriteEventBaseClass()
 		doc = self.doc
 		className = build.MakePublicAttributeName(doc[0])
 		print 'class ' + className + ':'
@@ -244,6 +245,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
 		clsidStr = str(self.clsid)
 		print '\tCLSID = CLSID_Sink = pythoncom.MakeIID(\'' + clsidStr + '\')'
 		print '\t_public_methods_ = [] # For COM Server support'
+		print "\t_arg_transformer_ = arg_transformer"
 		WriteSinkEventMap(self)
 		print
 		print '\tdef __init__(self, oobj = None):'
@@ -256,14 +258,17 @@ class DispatchItem(build.DispatchItem, WritableItem):
 		print '\t\t\tcookie=cp.Advise(win32com.server.util.wrap(self))'
 		print '\t\t\tself._olecp,self._olecp_cookie = cp,cookie'
 		print '\tdef __del__(self):'
-		print '\t\tself.close()'
+		print '\t\ttry:'
+		print '\t\t\tself.close()'
+		print '\t\texcept pythoncom.com_error:'
+		print '\t\t\tpass'
 		print '\tdef close(self):'
 		print '\t\tif self._olecp is not None:'
 		print '\t\t\tcp,cookie,self._olecp,self._olecp_cookie = self._olecp,self._olecp_cookie,None,None'
 		print '\t\t\tcp.Unadvise(cookie)'
 		print '\tdef _query_interface_(self, iid):'
 		print '\t\timport win32com.server.util'
-		print '\t\tif iid==self.CLSID: return win32com.server.util.wrap(self)'
+		print '\t\tif iid==self.CLSID_Sink: return win32com.server.util.wrap(self)'
 		print
 		self.bWritten = 1
 
@@ -516,6 +521,7 @@ class Generator:
   def __init__(self, typelib, sourceFilename, progressObject, bBuildHidden=0, bUnicodeToString=0):
     self.bHaveWrittenDispatchBaseClass = 0
     self.bHaveWrittenCoClassBaseClass = 0
+    self.bHaveWrittenEventBaseClass = 0
 
     self.typelib = typelib
     self.sourceFilename = sourceFilename
@@ -766,6 +772,23 @@ class Generator:
       print '\t\tself.__dict__[attr] = value'
       print
       self.bHaveWrittenCoClassBaseClass = 1
+
+  def checkWriteEventBaseClass(self):
+    # Nota base class as such...
+      if not self.bHaveWrittenEventBaseClass:
+        print "# Little helper to transform event arguments to more usable objects."
+        print "import win32com.client"
+        print "from pywintypes import UnicodeType"
+        print "dispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]"
+        print "def transformarg(arg):"
+        print "\tif type(arg)==dispatchType:"
+        print "\t\treturn win32com.client.Dispatch(arg)"
+        print "\telif type(arg)==UnicodeType:"
+        print "\t\treturn str(arg)"
+        print "\treturn arg"
+        print "arg_transformer = lambda object, args: map(transformarg, args)"
+        print 
+        self.bHaveWrittenEventBaseClass = 1
 
 if __name__=='__main__':
   print "This is a worker module.  Please use makepy to generate Python files."
