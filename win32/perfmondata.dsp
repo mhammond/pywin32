@@ -83,7 +83,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /pdb:"Build\perfmondata_d.pdb" /debug /machine:I386 /def:".\perfmon\perfmondata.def" /out:"Build\perfmondata_d.dll" /implib:"Build\perfmondata_d.lib" /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /pdb:"Build\perfmondata_d.pdb" /debug /machine:I386 /out:"Build\perfmondata_d.dll" /implib:"Build\perfmondata_d.lib" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
@@ -99,7 +99,15 @@ SOURCE=.\src\perfmon\perfmondata.cpp
 # Begin Source File
 
 SOURCE=.\src\perfmon\perfmondata.def
+
+!IF  "$(CFG)" == "perfmondata - Win32 Release"
+
 # PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "perfmondata - Win32 Debug"
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
