@@ -28,7 +28,14 @@ generates Windows .hlp files.
 #define PyW32_END_ALLOW_THREADS PyEval_RestoreThread(_save);
 #define PyW32_BLOCK_THREADS Py_BLOCK_THREADS
 
+#if (_WIN32_WINNT < 0x0500)
+// We don't get COMPUTER_NAME_FORMAT unless we bump this.
+// As we use it dynamically, we don't *need* to bump it.
+typedef int COMPUTER_NAME_FORMAT;
+#endif
+
 static BOOL (WINAPI *myGetUserNameEx)(EXTENDED_NAME_FORMAT, LPWSTR, PULONG)=NULL;
+static BOOL (WINAPI *myGetComputerNameEx)(COMPUTER_NAME_FORMAT, LPWSTR, LPDWORD)=NULL;
 static BOOL (WINAPI *myGetLongPathNameA)(LPCSTR, LPSTR, DWORD)=NULL;
 static BOOL (WINAPI *myGetLongPathNameW)(LPCWSTR, LPWSTR, DWORD)=NULL;
 
@@ -749,6 +756,39 @@ PyGetComputerName (PyObject *self, PyObject *args)
 	return Py_BuildValue("s", buf);
 }
 
+// @pymethod string|win32api|GetComputerNameEx|Retrieves a NetBIOS or DNS name associated with the local computer
+static PyObject *
+PyGetComputerNameEx(PyObject *self, PyObject *args)
+{
+	if (myGetComputerNameEx==NULL)
+		return ReturnError("GetComputerNameEx is not supported on current platform","GetComputerNameEx");
+
+	WCHAR *formattedname=NULL;
+	COMPUTER_NAME_FORMAT fmt;
+	PyObject *ret = NULL;
+	ULONG nSize=0;
+	if (!PyArg_ParseTuple (args, "i:GetComputerNameEx", &fmt))
+		return NULL;
+	// @pyseeapi GetComputerNameEx
+	// We always get into trouble with WinXP vs 2k error codes.
+	// Simply assume that if we have a size, the function gave us the correct one.
+	myGetComputerNameEx(fmt,formattedname,&nSize);
+	if (!nSize)
+		return PyWin_SetAPIError("GetComputerNameExW");
+	formattedname=(WCHAR *)malloc(nSize*sizeof(WCHAR));
+	if (!formattedname)
+		return PyErr_NoMemory();
+	if (!myGetComputerNameEx(fmt,formattedname,&nSize)){
+		PyWin_SetAPIError("GetComputerNameEx");
+		goto done;
+	}
+	ret=PyWinObject_FromWCHAR(formattedname);
+	done:
+	if (formattedname!=NULL)
+		free(formattedname);
+	return ret;
+}
+
 // @pymethod string|win32api|GetUserName|Returns the current user name
 static PyObject *
 PyGetUserName (PyObject *self, PyObject *args)
@@ -781,7 +821,7 @@ PyGetUserNameEx (PyObject *self, PyObject *args)
 	// Simply assume that if we have a size, the function gave us the correct one.
 	myGetUserNameEx(fmt,formattedname,&nSize);
 	if (!nSize)
-		return PyWin_SetAPIError("GetUserNameEx (for buffer size)");
+		return PyWin_SetAPIError("GetUserNameExW");
 	formattedname=(WCHAR *)malloc(nSize*sizeof(WCHAR));
 	if (!formattedname)
 		return PyErr_NoMemory();
@@ -4350,6 +4390,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetAsyncKeyState",	PyGetAsyncKeyState,1}, // @pymeth GetAsyncKeyState|Retrieves the asynch state of a virtual key code.
 	{"GetCommandLine",		PyGetCommandLine,   1}, // @pymeth GetCommandLine|Return the application's command line.
 	{"GetComputerName",     PyGetComputerName,  1}, // @pymeth GetComputerName|Returns the local computer name
+	{"GetComputerNameEx",   PyGetComputerNameEx,  1}, // @pymeth GetComputerNameEx|Retrieves a NetBIOS or DNS name associated with the local computer
 	{"GetUserName",         PyGetUserName,  1},     // @pymeth GetUserName|Returns the current user name.
 	{"GetUserNameEx",       PyGetUserNameEx,  1},     // @pymeth GetUserNameEx|Returns the current user name in format specified by Name* constants
 	{"GetCursorPos",		PyGetCursorPos,   1},   // @pymeth GetCursorPos|Returns the position of the cursor, in screen co-ordinates.
@@ -4556,6 +4597,9 @@ initwin32api(void)
     fp = GetProcAddress(hmodule,"GetLongPathNameW");
     if (fp!=NULL)
       myGetLongPathNameW=(BOOL (WINAPI *)(LPCWSTR, LPWSTR, DWORD))(fp);
+    fp = GetProcAddress(hmodule,"GetComputerNameExW");
+    if (fp!=NULL)
+      myGetComputerNameEx=(BOOL (WINAPI *)(COMPUTER_NAME_FORMAT, LPWSTR, LPDWORD))(fp);
   }
 }  
   
