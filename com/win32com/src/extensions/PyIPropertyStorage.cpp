@@ -447,8 +447,8 @@ PyObject *PyIPropertyStorage::WritePropertyNames(PyObject *self, PyObject *args)
 	HRESULT hr;
 	ppStrs = new LPWSTR[cProps];
 	memset(ppStrs, 0, sizeof(LPWSTR)*cProps);
-
-	for (ULONG i=0;i<cProps;i++) {
+	ULONG i;
+	for (i=0;i<cProps;i++) {
 		PyObject *sub = PySequence_GetItem(obNames, i);
 		BOOL ok = PyWinObject_AsBstr(sub, ppStrs+i);
 		Py_XDECREF(sub);
