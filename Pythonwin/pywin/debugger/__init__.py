@@ -98,10 +98,6 @@ def post_mortem(t=None):
 	if p.frameShutdown: return # App closing
 	# No idea why I need to settrace to None - it should have been reset by now?
 	sys.settrace(None)
-	if p.stopframe != p.botframe:
-		# If im "running"
-		print "Can not perform post-mortem debugging while the debugger is active."
-		return
 	p.reset()
 	while t.tb_next <> None: t = t.tb_next
 	p.bAtPostMortem = 1
