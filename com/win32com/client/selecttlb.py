@@ -72,7 +72,11 @@ def EnumTlbs(excludeFlags = 0):
 	iids = EnumKeys(key)
 	results = []
 	for iid, crap in iids:
-		key2 = win32api.RegOpenKey(key, str(iid))
+		try:
+			key2 = win32api.RegOpenKey(key, str(iid))
+		except win32api.error:
+			# A few good reasons for this, including "access denied".
+			continue
 		for version, tlbdesc in EnumKeys(key2):
 			major_minor = string.split(version, '.', 1)
 			if len(major_minor) < 2:
@@ -139,4 +143,4 @@ def SelectTlb(title="Select Library", excludeFlags = 0):
 
 # Test code.
 if __name__=='__main__':
-	print SelectTlb()
+	print SelectTlb().__dict__
