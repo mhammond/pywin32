@@ -23,6 +23,8 @@ extern PyObject *g_obPyCom_MapGatewayIIDToName;
 static PyObject *g_obEmpty = NULL;
 static PyObject *g_obMissing = NULL;
 
+PyObject *PyCom_InternalError = NULL;
+
 // Storage related functions.
 extern PyObject *pythoncom_StgOpenStorage(PyObject *self, PyObject *args);
 #ifndef MS_WINCE
@@ -45,6 +47,12 @@ extern PyObject *pythoncom_querypathofregtypelib(PyObject *self, PyObject *args)
 PyObject *Py_NewFUNCDESC(PyObject *self, PyObject *args);
 PyObject *Py_NewTYPEATTR(PyObject *self, PyObject *args);
 PyObject *Py_NewVARDESC(PyObject *self, PyObject *args);
+
+// Error related functions
+void GetScodeString(SCODE sc, TCHAR *buf, int bufSize);
+LPCSTR GetScodeRangeString(SCODE sc);
+LPCSTR GetSeverityString(SCODE sc);
+LPCSTR GetFacilityString(SCODE sc);
 
 /* Debug/Test helpers */
 extern LONG _PyCom_GetInterfaceCount(void);
@@ -103,7 +111,7 @@ static PyObject *pythoncom_CoCreateInstance(PyObject *self, PyObject *args)
 		punk->Release();
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc);
 	return PyCom_PyObjectFromIUnknown(result, iid);
 }
 #pragma optimize ("", on)
@@ -185,12 +193,12 @@ static PyObject *pythoncom_CoCreateInstanceEx(PyObject *self, PyObject *args)
 	HRESULT (*mypfn)(REFCLSID, IUnknown *, DWORD, COSERVERINFO *, ULONG, MULTI_QI *);
 	HMODULE hMod = GetModuleHandle("ole32.dll");
 	if (hMod==0) {
-		OleSetOleError(E_HANDLE);
+		PyCom_BuildInternalPyException("Can not load ole32.dll");
 		goto done;
 	}
 	FARPROC fp = GetProcAddress(hMod, "CoCreateInstanceEx");
 	if (fp==NULL) {
-		OleSetOleError(E_NOTIMPL);
+		PyCom_BuildPyException(E_NOTIMPL);
 		goto done;
 	}
 	mypfn = (HRESULT (*)(REFCLSID, IUnknown *, DWORD, COSERVERINFO *, ULONG, MULTI_QI *))fp;
@@ -198,7 +206,7 @@ static PyObject *pythoncom_CoCreateInstanceEx(PyObject *self, PyObject *args)
 	HRESULT hr = (*mypfn)(clsid, punk, dwClsContext, pServerInfo, numIIDs, mqi);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr)) {
-		OleSetOleError(hr);
+		PyCom_BuildPyException(hr);
 		goto done;
 	}
 	} // end scoping.
@@ -265,9 +273,9 @@ static PyObject *pythoncom_CoInitializeSecurity(PyObject *self, PyObject *args)
 		return NULL;
 	}
 	HMODULE hMod = GetModuleHandle("ole32.dll");
-	if (hMod==0) return OleSetOleError(E_HANDLE);
+	if (hMod==0) return PyCom_BuildInternalPyException("Can not load ole32.dll");
 	FARPROC fp = GetProcAddress(hMod, "CoInitializeSecurity");
-	if (fp==NULL) return OleSetOleError(E_NOTIMPL);
+	if (fp==NULL) return PyCom_BuildPyException(E_NOTIMPL);
 
 	HRESULT (*mypfn)(SECURITY_DESCRIPTOR*, LONG, SOLE_AUTHENTICATION_SERVICE*, void *, DWORD, DWORD, void *, DWORD, void *);
 	mypfn = (HRESULT (*)(SECURITY_DESCRIPTOR*, LONG, SOLE_AUTHENTICATION_SERVICE*, void *, DWORD, DWORD, void *, DWORD, void *))fp;
@@ -277,7 +285,7 @@ static PyObject *pythoncom_CoInitializeSecurity(PyObject *self, PyObject *args)
 //	HRESULT hr = CoInitializeSecurity(pSD, cAuthSvc, pAS, NULL, dwAuthnLevel, dwImpLevel, NULL, dwCapabilities, NULL);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -311,7 +319,7 @@ static PyObject *pythoncom_CoRegisterClassObject(PyObject *self, PyObject *args)
 	pFactory->Release();
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	// @rdesc The result is a handle which should be revoked using <om pythoncom.CoRevokeClassObject>
 	return PyInt_FromLong(reg);
 }
@@ -328,7 +336,7 @@ static PyObject *pythoncom_CoRevokeClassObject(PyObject *self, PyObject *args)
 	HRESULT hr = CoRevokeClassObject(reg);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr)) {
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	}
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -350,12 +358,12 @@ static PyObject *pythoncom_CoResumeClassObjects(PyObject *self, PyObject *args)
 	if (hMod==0) return PyWin_SetAPIError("GetModuleHandle(\"ole32.dll\")");
 	FARPROC fp = GetProcAddress(hMod, "CoResumeClassObjects");
 	if (fp==NULL)
-		return OleSetOleError(E_NOTIMPL);
+		return PyCom_BuildPyException(E_NOTIMPL);
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = (*fp)();
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -378,7 +386,7 @@ static PyObject *pythoncom_MakePyFactory(PyObject *self, PyObject *args)
 	CPyFactory *pFact = new CPyFactory(iid);
 	PY_INTERFACE_POSTCALL;
 	if (pFact==NULL)
-		return OleSetOleError(E_OUTOFMEMORY);
+		return PyCom_BuildPyException(E_OUTOFMEMORY);
 	return PyCom_PyObjectFromIUnknown(pFact, IID_IClassFactory, /*bAddRef =*/FALSE);
 }
 
@@ -422,7 +430,7 @@ static PyObject *pythoncom_GetActiveObject(PyObject *self, PyObject *args)
 	SCODE sc = GetActiveObject(clsid, NULL, &result);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc);
 	return PyCom_PyObjectFromIUnknown(result, IID_IUnknown);
 }
 
@@ -443,7 +451,7 @@ static PyObject *pythoncom_connect(PyObject *self, PyObject *args)
 	HRESULT hr = GetActiveObject(clsid, NULL, &unk);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr) || unk == NULL)
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	IDispatch *disp = NULL;
 	SCODE sc;
 	Py_BEGIN_ALLOW_THREADS; // Cant use the INTERFACE macros twice :-(
@@ -451,7 +459,7 @@ static PyObject *pythoncom_connect(PyObject *self, PyObject *args)
 	unk->Release();
 	Py_END_ALLOW_THREADS;
 	if (FAILED(sc) || disp == NULL)
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc);
 	return PyCom_PyObjectFromIUnknown(disp, IID_IDispatch);
 	// @comm This function is equivilent to <om pythoncom.GetActiveObject>(clsid).<om pythoncom.QueryInterace>(pythoncom.IID_IDispatch)
 }
@@ -483,8 +491,10 @@ static PyObject *pythoncom_new(PyObject *self, PyObject *args)
 static PyObject *pythoncom_createguid(PyObject *self, PyObject *args)
 {
 	PyErr_Clear();
-	if (PyTuple_Size(args) != 0)
-		return OleSetTypeError("function requires no arguments");
+	if (PyTuple_Size(args) != 0) {
+		PyErr_SetString(PyExc_TypeError, "function requires no arguments");
+		return NULL;
+	}
 	GUID guid;
 	PY_INTERFACE_PRECALL;
 	CoCreateGuid(&guid);
@@ -509,7 +519,7 @@ static PyObject *pythoncom_progidfromclsid(PyObject *self, PyObject *args)
 	HRESULT sc = ProgIDFromCLSID(clsid, &progid);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(sc))
-		return OleSetOleError(sc);
+		return PyCom_BuildPyException(sc);
 
 	PyObject *ob = MakeOLECHARToObj(progid);
 	CoTaskMemFree(progid);
@@ -603,7 +613,7 @@ static PyObject *pythoncom_UnwrapObject(PyObject *self, PyObject *args)
 	pUnwrapper->Unwrap(&retval);
 	pUnwrapper->Release();
 	if (S_OK!=hr)
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	return retval;
 	// Use this function to obtain the inverse of the <om WrapObject> method.
 	// Eg, if you pass to this function the value you received from <om WrapObject>, it
@@ -645,7 +655,7 @@ static PyObject *pythoncom_WrapObject(PyObject *self, PyObject *args)
 	HRESULT hr = PyCom_MakeRegisteredGatewayObject(iid, ob, (void **)&pDispatch);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 
 	/* pass the pDispatch reference into this thing */
 	/* ### this guy should always AddRef() ... */
@@ -710,7 +720,7 @@ static PyObject *pythoncom_MkParseDisplayName(PyObject *self, PyObject *args)
 	{
 		hr = CreateBindCtx(0, &pBC);
 		if ( FAILED(hr) )
-			return OleSetOleError(hr);
+			return PyCom_BuildPyException(hr);
 
 		/* pass the pBC ref into obBindCtx */
 		obBindCtx = PyCom_PyObjectFromIUnknown(pBC, IID_IBindCtx, FALSE);
@@ -735,7 +745,7 @@ static PyObject *pythoncom_MkParseDisplayName(PyObject *self, PyObject *args)
 	if ( FAILED(hr) )
 	{
 		Py_DECREF(obBindCtx);
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	}
 
 	/* pass ownership of the moniker into the result */
@@ -770,7 +780,7 @@ static PyObject *pythoncom_CreatePointerMoniker(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 
 	return PyCom_PyObjectFromIUnknown(pmk, IID_IMoniker, FALSE);
 }
@@ -794,7 +804,7 @@ static PyObject *pythoncom_CreateFileMoniker(PyObject *self, PyObject *args)
 	PyWinObject_FreeBstr(bstrName);
 
 	if ( FAILED(hr) )
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 
 	return PyCom_PyObjectFromIUnknown(pmk, IID_IMoniker, FALSE);
 }
@@ -817,7 +827,7 @@ static PyObject *pythoncom_GetClassFile(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	SysFreeString(fname);
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	return PyWinObject_FromIID(clsid);
 }
 #endif // MS_WINCE
@@ -831,7 +841,7 @@ static PyObject *pythoncom_CoInitialize(PyObject *self, PyObject *args)
 	HRESULT hr = PyCom_CoInitialize(NULL);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		OleSetOleError(hr);
+		PyCom_BuildPyException(hr);
 	Py_INCREF(Py_None);
 	return Py_None;
 	// @comm Equivilent to <om pythoncom.CoInitializeEx>(pythoncom.COINIT_APARTMENTTHREADED).
@@ -849,7 +859,7 @@ static PyObject *pythoncom_CoInitializeEx(PyObject *self, PyObject *args)
 	HRESULT hr = PyCom_CoInitializeEx(NULL, val);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		OleSetOleError(hr);
+		PyCom_BuildPyException(hr);
 	Py_INCREF(Py_None);
 	return Py_None;
 	// @comm There is no need to call this for the main Python thread, as it is called
@@ -896,7 +906,7 @@ static PyObject *pythoncom_GetRunningObjectTable(PyObject *self, PyObject *args)
 	HRESULT hr = GetRunningObjectTable(reserved,&pROT);
 	PY_INTERFACE_POSTCALL;
 	if (S_OK!=hr)
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	return PyCom_PyObjectFromIUnknown(pROT, IID_IRunningObjectTable, FALSE);
 }
 
@@ -911,7 +921,7 @@ static PyObject *pythoncom_CreateBindCtx(PyObject *self, PyObject *args)
 	HRESULT hr = CreateBindCtx(reserved,&pBC);
 	PY_INTERFACE_POSTCALL;
 	if (S_OK!=hr)
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	return PyCom_PyObjectFromIUnknown(pBC, IID_IBindCtx, FALSE);
 }
 
@@ -940,7 +950,7 @@ static PyObject *pythoncom_RegisterActiveObject(PyObject *self, PyObject *args)
     hr = RegisterActiveObject(punk, clsid, dwflags, &dwkey);
 	punk->Release();
 	PY_INTERFACE_POSTCALL;
-    if (S_OK!=hr) return OleSetOleError(hr);
+    if (S_OK!=hr) return PyCom_BuildPyException(hr);
     return PyInt_FromLong(dwkey);
 	// @rdesc The result is a handle which should be pass to <om pythoncom.RevokeActiveObject>
 }
@@ -957,7 +967,7 @@ static PyObject *pythoncom_RevokeActiveObject(PyObject *self, PyObject *args)
 	PY_INTERFACE_PRECALL;
     hr = RevokeActiveObject(dw_x, NULL);
 	PY_INTERFACE_POSTCALL;
-    if (S_OK!=hr) return OleSetOleError(hr);
+    if (S_OK!=hr) return PyCom_BuildPyException(hr);
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -983,7 +993,7 @@ static PyObject *pythoncom_CoMarshalInterThreadInterfaceInStream(PyObject *self,
 	pUnk->Release();
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	return PyCom_PyObjectFromIUnknown(pStream, IID_IStream, /*BOOL bAddRef*/ FALSE);
 }
 
@@ -1010,7 +1020,7 @@ static PyObject *pythoncom_CoGetInterfaceAndReleaseStream(PyObject *self, PyObje
 	// pStream is released by this call - no need for me to do it!
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	return PyCom_PyObjectFromIUnknown(pUnk, iid, /*BOOL bAddRef*/ FALSE);
 }
 // @pymethod <o PyIUnknown>|pythoncom|CoCreateFreeThreadedMarshaler|Creates an aggregatable object capable of context-dependent marshaling. 
@@ -1031,7 +1041,7 @@ static PyObject *pythoncom_CoCreateFreeThreadedMarshaler(PyObject *self, PyObjec
 	pUnk->Release();
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	return PyCom_PyObjectFromIUnknown(pUnkRet, IID_IUnknown, FALSE);
 }
 
@@ -1060,7 +1070,7 @@ static PyObject *pythoncom_OleLoadFromStream(PyObject *self, PyObject* args)
 	pStream->Release();
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	return PyCom_PyObjectFromIUnknown(pUnk, iid, /*BOOL bAddRef*/ FALSE);
 }
 
@@ -1095,7 +1105,7 @@ static PyObject *pythoncom_OleSaveToStream(PyObject *self, PyObject*args)
 	if(pPersist) pPersist->Release();
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -1117,7 +1127,7 @@ static PyObject *pythoncom_CreateTypeLib(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	PyWinObject_FreeBstr(fname);
 	if (FAILED(hr))
-		return OleSetOleError(hr);
+		return PyCom_BuildPyException(hr);
 	return PyCom_PyObjectFromIUnknown(pcti, IID_ICreateTypeLib, FALSE);
 }
 
@@ -1342,6 +1352,13 @@ extern "C" __declspec(dllexport) void initpythoncom()
 		PyErr_SetString(PyExc_MemoryError, "can't define com_error");
 		return;
 	}
+	PyCom_InternalError = PyErr_NewException("pythoncom.internal_error", NULL, NULL);
+	if (PyDict_SetItemString(dict, "internal_error", PyCom_InternalError) != 0)
+	{
+		PyErr_SetString(PyExc_MemoryError, "can't define internal_error");
+		return;
+	}
+
 	// Add the IIDs
 	if (PyCom_RegisterCoreIIDs(dict) != 0)
 		return;
