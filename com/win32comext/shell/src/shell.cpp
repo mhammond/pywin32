@@ -1146,14 +1146,14 @@ static PyObject *PySHChangeNotify(PyObject *self, PyObject *args)
 		return NULL;
 
 	void *p1, *p2;
-	if (flags == SHCNF_DWORD) {
+	if ((flags & SHCNF_DWORD)== SHCNF_DWORD) {
 		if (!PyInt_Check(ob1) || !(ob2==Py_None || PyInt_Check(ob2))) {
 			PyErr_SetString(PyExc_TypeError, "SHCNF_DWORD is set - items must be integers");
 			return NULL;
 		}
 		p1 = (void *)PyInt_AsLong(ob1);
 		p2 = (void *)(ob2==Py_None ? NULL : PyInt_AsLong(ob2));
-	} else if (flags == SHCNF_IDLIST) {
+	} else if ((flags & SHCNF_IDLIST)==SHCNF_IDLIST) {
 		ITEMIDLIST *pidl1, *pidl2;
 		if (!PyObject_AsPIDL(ob1, &pidl1, FALSE))
 			return NULL;
@@ -1163,7 +1163,7 @@ static PyObject *PySHChangeNotify(PyObject *self, PyObject *args)
 		}
 		p1 = (void *)pidl1;
 		p2 = (void *)pidl2;
-	} else if (flags == SHCNF_PATH || flags == SHCNF_PRINTER) {
+	} else if ((flags & SHCNF_PATH) || (flags & SHCNF_PRINTER)) {
 		if (!PyString_Check(ob1) || !(ob2==Py_None || PyString_Check(ob2))) {
 			PyErr_SetString(PyExc_TypeError, "SHCNF_PATH/PRINTER is set - items must be strings");
 			return NULL;
@@ -1171,8 +1171,7 @@ static PyObject *PySHChangeNotify(PyObject *self, PyObject *args)
 		p1 = (void *)PyString_AsString(ob1);
 		p2 = (void *)(ob2==Py_None ? NULL : PyString_AsString(ob2));
 	} else {
-		PyErr_SetString(PyExc_ValueError, "unknown data flags");
-		return NULL;
+		return PyErr_Format(PyExc_ValueError, "unknown data flags 0x%x", flags);
 	}
 	PY_INTERFACE_PRECALL;
 	SHChangeNotify(wEventID, flags, p1, p2);
