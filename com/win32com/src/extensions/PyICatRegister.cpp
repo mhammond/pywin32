@@ -106,7 +106,7 @@ PyObject *PyICatRegister::RegisterCategories(PyObject *self, PyObject *args)
 		}
 		Py_DECREF(obThis);
 		OLECHAR *oc;
-		if (PyWin_String_AsWCHAR(desc, -1, &oc)) {
+		if (PyWin_String_AsWCHAR(desc, (DWORD)-1, &oc)) {
 			wcsncpy(infos[i].szDescription, oc, sizeof(infos->szDescription));
 			PyWinObject_FreeString(oc);
 		}
