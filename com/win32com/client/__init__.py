@@ -145,6 +145,21 @@ def _event_setattr_(self, attr, val):
     # Otherwise just stash it away in the instance.
     self.__dict__[attr] = val
 
+# An instance of this "proxy" is created to break the COM circular references
+# that exist (ie, when we connect to the COM events, COM keeps a reference
+# to the object.  Thus, the Event connection must be manually broken before
+# our object can die.  This solves the problem by manually breaking the connection
+# to the real object as the proxy dies.
+class EventsProxy:
+  def __init__(self, ob):
+    self.__dict__['_obj_'] = ob
+  def __del__(self):
+    self._obj_.close()
+  def __getattr__(self, attr):
+    return getattr(self._obj_, attr)
+  def __setattr__(self, attr, val):
+    return setattr(self._obj_, attr, val)
+
 def DispatchWithEvents(clsid, user_event_class):
   """Create a COM object that can fire events to a user defined class.
   clsid -- The ProgID or CLSID of the object to create.
@@ -200,7 +215,7 @@ def DispatchWithEvents(clsid, user_event_class):
   result_class = new.classobj("COMEventClass", (disp_class, events_class, user_event_class), {"__setattr__" : _event_setattr_})
   instance = result_class(disp._oleobj_) # This only calls the first base class __init__.
   events_class.__init__(instance, instance)
-  return instance
+  return EventsProxy(instance)
 
 def getevents(clsid):
     """Determine the default outgoing interface for a class, given
