@@ -15,6 +15,9 @@ IDataObject_Methods = """GetData GetDataHere QueryGetData
 # A COM object implementing IDataObject used for basic testing.
 num_do_objects = 0
 
+def WrapCOMObject(ob, iid=None):
+    return wrap(ob, iid=iid, useDispatcher = 0)
+
 class TestDataObject:
     _com_interfaces_ = [pythoncom.IID_IDataObject]
     _public_methods_ = IDataObject_Methods
@@ -87,17 +90,21 @@ class ClipboardTester(unittest.TestCase):
     def setUp(self):
         pythoncom.OleInitialize()
     def tearDown(self):
-        pythoncom.OleFlushClipboard()
+        try:
+            pythoncom.OleFlushClipboard()
+        except pythoncom.com_error:
+            # We never set anything!
+            pass
     def testIsCurrentClipboard(self):
         do = TestDataObject("Hello from Python")
-        do = wrap(do, iid=pythoncom.IID_IDataObject)
+        do = WrapCOMObject(do, iid=pythoncom.IID_IDataObject)
         pythoncom.OleSetClipboard(do)
         self.failUnless(pythoncom.OleIsCurrentClipboard(do))
 
     def testComToWin32(self):
         # Set the data via our DataObject
         do = TestDataObject("Hello from Python")
-        do = wrap(do, iid=pythoncom.IID_IDataObject)
+        do = WrapCOMObject(do, iid=pythoncom.IID_IDataObject)
         pythoncom.OleSetClipboard(do)
         # Then get it back via the standard win32 clipboard functions.
         win32clipboard.OpenClipboard()
@@ -126,7 +133,7 @@ class ClipboardTester(unittest.TestCase):
         
     def testDataObjectFlush(self):
         do = TestDataObject("Hello from Python")
-        do = wrap(do, iid=pythoncom.IID_IDataObject)
+        do = WrapCOMObject(do, iid=pythoncom.IID_IDataObject)
         pythoncom.OleSetClipboard(do)
         self.assertEqual(num_do_objects, 1)
 
@@ -136,7 +143,7 @@ class ClipboardTester(unittest.TestCase):
 
     def testDataObjectReset(self):
         do = TestDataObject("Hello from Python")
-        do = wrap(do)
+        do = WrapCOMObject(do)
         pythoncom.OleSetClipboard(do)
         do = None # clear my ref!
         self.assertEqual(num_do_objects, 1)
@@ -144,4 +151,5 @@ class ClipboardTester(unittest.TestCase):
         self.assertEqual(num_do_objects, 0)
 
 if __name__=='__main__':
-    unittest.main()
+    import util
+    util.testmain()
