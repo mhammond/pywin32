@@ -44,7 +44,7 @@ PyObject *PyIShellExtInit::Initialize(PyObject *self, PyObject *args)
 	BOOL bPythonIsHappy = TRUE;
 	if (!PyObject_AsPIDL(obpFolder, &pFolder)) bPythonIsHappy = FALSE;
 	// XXX - no IDataObject support
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obpDataObject, IID_IUnknown, (void **)&pDataObject, TRUE /* bNoneOK */))
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obpDataObject, IID_IDataObject, (void **)&pDataObject, TRUE /* bNoneOK */))
 		 bPythonIsHappy = FALSE;
 	if (!PyWinObject_AsHANDLE(obhkey, (HANDLE *)&hkey, FALSE)) bPythonIsHappy = FALSE;
 	if (!bPythonIsHappy) return NULL;
@@ -87,7 +87,7 @@ STDMETHODIMP PyGShellExtInit::Initialize(
 	PyObject *obpDataObject;
 	obpFolder = PyObject_FromPIDL(pFolder, FALSE);
 	// XXX - no IDataObject support
-	obpDataObject = PyCom_PyObjectFromIUnknown(pDataObject, IID_IUnknown, TRUE);
+	obpDataObject = PyCom_PyObjectFromIUnknown(pDataObject, IID_IDataObject, TRUE);
 	HRESULT hr=InvokeViaPolicy("Initialize", NULL, "OOi", obpFolder, obpDataObject, hkey);
 	Py_XDECREF(obpFolder);
 	Py_XDECREF(obpDataObject);
