@@ -1,12 +1,18 @@
+
+#pragma warning( disable: 4049 )  /* more than 64k source lines */
+
 /* this ALWAYS GENERATED file contains the definitions for the interfaces */
 
 
-/* File created by MIDL compiler version 5.01.0164 */
-/* at Wed Mar 08 19:06:37 2000
+ /* File created by MIDL compiler version 5.03.0280 */
+/* at Mon Dec 04 09:35:05 2000
  */
 /* Compiler settings for PyCOMTest.idl:
-    Os (OptLev=s), W1, Zp8, env=Win32, ms_ext, c_ext
+    Os (OptLev=s), W1, Zp8, env=Win32 (32b run), ms_ext, c_ext
     error checks: allocation ref bounds_check enum stub_data 
+    VC __declspec() decoration level: 
+         __declspec(uuid()), __declspec(selectany), __declspec(novtable)
+         DECLSPEC_UUID(), MIDL_INTERFACE()
 */
 //@@MIDL_FILE_HEADING(  )
 
@@ -21,10 +27,6 @@
 
 #ifndef __PyCOMTest_h__
 #define __PyCOMTest_h__
-
-#ifdef __cplusplus
-extern "C"{
-#endif 
 
 /* Forward Declarations */ 
 
@@ -100,6 +102,10 @@ typedef interface PyCOMTestEvent PyCOMTestEvent;
 #endif 	/* __PyCOMTestEvent_FWD_DEFINED__ */
 
 
+#ifdef __cplusplus
+extern "C"{
+#endif 
+
 void __RPC_FAR * __RPC_USER MIDL_user_allocate(size_t);
 void __RPC_USER MIDL_user_free( void __RPC_FAR * ); 
 
@@ -136,7 +142,7 @@ typedef /* [public] */ long HCON;
 
 typedef /* [public] */ HCON CONNECTID;
 
-typedef /* [uuid] */ 
+typedef /* [uuid] */  DECLSPEC_UUID("14894ca0-554a-11d0-ae5f-cadd4c000000") 
 enum tagQsAttribute
     {	Attr1	= 0,
 	Attr2	= Attr1 + 1,
@@ -148,7 +154,7 @@ enum tagQsAttribute
 enum TestAttributes3
     {	TestAttr3	= 0
     };
-typedef /* [uuid] */ struct  _TestStruct1
+typedef /* [uuid] */  DECLSPEC_UUID("7a4ce6a7-7959-4e85-a3c0-b41442ff0f67") struct _TestStruct1
     {
     int int_value;
     BSTR str_value;
@@ -2035,3 +2041,5 @@ EXTERN_C const IID DIID_PyCOMTestEvent;
 #endif
 
 #endif
+
+
