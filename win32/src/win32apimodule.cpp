@@ -3895,6 +3895,126 @@ static PyObject *PyApply(PyObject *self, PyObject *args)
 // or other diagnostics are printed)
 }
 
+// @pymethod |GetFileVersionInfo||Retrieve version info for specified file
+PyObject *PyGetFileVersionInfo(PyObject *self, PyObject *args)
+{
+	int wcharcmp=0, nbr_langs=0, lang_ind=0;
+	WORD lang=0, codepage=0;
+	int langret=0, codepageret=0;
+	DWORD *lang_codepage;
+	PyObject *obfile_name=NULL, *obinfo=NULL;
+	PyObject *ret=NULL, *ret_item=NULL, *obft=NULL;
+	WCHAR *file_name=NULL, *info=NULL;
+	DWORD dwHandle=0, buf_len=0;
+	UINT value_len;
+	VOID *buf=NULL, *value=NULL;
+	VS_FIXEDFILEINFO *fixed_info;
+	FILETIME ft;
+	BOOL success;
+	if (!PyArg_ParseTuple(args,"OO", 
+		&obfile_name, // @pyparm string/unicode|Filename||File to query for version info
+		&obinfo))	  // @pyparm string/unicode|SubBlock||Information to return: \ for VS_FIXEDFILEINFO, \VarFileInfo\Translation for languages/codepages available
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obfile_name, &file_name, FALSE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(obinfo, &info, FALSE))
+		goto done;
+	buf_len=GetFileVersionInfoSizeW(file_name, &dwHandle); //handle is ignored
+	if (buf_len==0){
+		PyWin_SetAPIError("GetFileVersionInfo:GetFileVersionInfoSize",GetLastError());
+		goto done;
+		}
+	buf=malloc(buf_len);
+	if (buf==NULL){
+		PyErr_SetString(PyExc_MemoryError, "GetFileVersionInfo");
+		goto done;
+		}
+	if (!GetFileVersionInfoW(file_name, dwHandle, buf_len, buf)){
+		PyWin_SetAPIError("GetFileVersionInfo",GetLastError());
+		goto done;
+		}
+	success=VerQueryValueW(buf, info, &value, &value_len);
+
+	wcharcmp = CompareStringW(LOCALE_USER_DEFAULT,0,info,-1,L"\\",-1);
+	if (wcharcmp==CSTR_EQUAL){
+		if (!success){
+			PyWin_SetAPIError("GetFileVersionInfo:VerQueryValue",GetLastError());
+			goto done;
+			}
+
+		fixed_info=(VS_FIXEDFILEINFO *)value;
+		ft.dwHighDateTime=fixed_info->dwFileDateMS;
+		ft.dwLowDateTime=fixed_info->dwFileDateLS;
+		// ?????? can't find any files where these are non-zero - conversion has not been tested ??????
+		if ((ft.dwHighDateTime==0)&&(ft.dwLowDateTime==0)){
+			obft=Py_None;
+			Py_INCREF(Py_None);
+			}
+		else
+			obft=PyWinObject_FromFILETIME(ft);
+
+		ret=Py_BuildValue(
+			"{u:l,u:l,u:l,u:l,u:l,u:l,u:l,u:l,u:l,u:l,u:l,u:N}",
+			L"Signature",			fixed_info->dwSignature,
+			L"StrucVersion",		fixed_info->dwStrucVersion,
+			L"FileVersionMS",		fixed_info->dwFileVersionMS,
+			L"FileVersionLS",		fixed_info->dwFileVersionLS,
+			L"ProductVersionMS",	fixed_info->dwProductVersionMS,
+			L"ProductVersionLS",	fixed_info->dwProductVersionLS,
+			L"FileFlagsMask",		fixed_info->dwFileFlagsMask,
+			L"FileFlags",			fixed_info->dwFileFlags,
+			L"FileOS",				fixed_info->dwFileOS,
+			L"FileType",			fixed_info->dwFileType,
+			L"FileSubtype",			fixed_info->dwFileSubtype,
+			L"FileDate",			obft);
+		goto done;
+		}
+
+//   win32api.GetFileVersionInfo('c:/win2k/system32/cmd.exe',"\\VarFileInfo\\Translation")
+	wcharcmp = CompareStringW(LOCALE_USER_DEFAULT,0,info,-1,L"\\VarFileInfo\\Translation",-1);
+	if (wcharcmp==CSTR_EQUAL){
+		if (!success){
+			PyWin_SetAPIError("GetFileVersionInfo:VerQueryValue",GetLastError());
+			goto done;
+			}
+		//return value consists of lang id/code page pairs as DWORDs
+		nbr_langs=value_len/(sizeof(DWORD));
+		ret=PyTuple_New(nbr_langs);
+		lang_codepage=(DWORD *)value;
+		for (lang_ind=0;lang_ind<nbr_langs;lang_ind++){
+			langret=(lang=LOWORD(*lang_codepage));
+			codepageret=(codepage=HIWORD(*lang_codepage));
+			ret_item=Py_BuildValue("ii",langret,codepageret);
+			PyTuple_SetItem(ret,lang_ind,ret_item);
+			lang_codepage++;
+			}
+		goto done;
+		}
+	// VerQueryValue returns false and value pointer is null if specified string doesn't exist
+	// This includes cases where the language and codepage are wrong, and simple misspellings of the
+	//    standard string parms.  Maybe should throw error all the time ?  GetLastError returns no
+	//    useful info, though.
+	if (success)
+		ret=PyWinObject_FromWCHAR((WCHAR *)value);
+	else{
+		if (value==NULL){
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		else
+			PyWin_SetAPIError("GetFileVersionInfo:VerQueryValue",GetLastError());
+		}
+
+done:
+	if (file_name)
+		PyWinObject_FreeWCHAR(file_name);
+	if (info)
+		PyWinObject_FreeWCHAR(info);
+	if (buf)
+		free(buf);
+	return ret;
+}
+
 // @pymethod |win32api|keybd_event|Simulate a keyboard event
 PyObject *Pykeybd_event(PyObject *self, PyObject *args)
 {
@@ -3908,7 +4028,6 @@ PyObject *Pykeybd_event(PyObject *self, PyObject *args)
            &bScan, // @pyparm BYTE|bScan||Hardware scan code
            &dwFlags,  // @pyparm DWORD|dwFlags|0|Flags specifying various function options
            &dwExtraInfo)) // @pyparm DWORD|dwExtraInfo|0|Additional data associated with keystroke
-
     return NULL;
   // @pyseeapi keybd_event
   PyW32_BEGIN_ALLOW_THREADS
@@ -3988,6 +4107,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetDomainName",		PyGetDomainName, 1}, 	// @pymeth GetDomainName|Returns the current domain name
 	{"GetEnvironmentVariable", PyGetEnvironmentVariable, 1}, // @pymeth GetEnvironmentVariable|Retrieves the value of an environment variable.
 	{"GetFileAttributes",   PyGetFileAttributes,1}, // @pymeth GetFileAttributes|Retrieves the attributes for the named file.
+	{"GetFileVersionInfo",	PyGetFileVersionInfo, 1}, //@pymeth GetFileVersionInfo|Retrieves string version info
 	{"GetFocus",            PyGetFocus,         1}, // @pymeth GetFocus|Retrieves the handle of the keyboard focus window associated with the thread that called the method. 
 	{"GetFullPathName",     PyGetFullPathName,1},   // @pymeth GetFullPathName|Returns the full path of a (possibly relative) path
 	{"GetKeyState",			PyGetKeyState,      1}, // @pymeth GetKeyState|Retrives the last known key state for a key.
@@ -4129,6 +4249,39 @@ initwin32api(void)
   PyModule_AddIntConstant(module, "REG_NOTIFY_CHANGE_ATTRIBUTES", REG_NOTIFY_CHANGE_ATTRIBUTES);
   PyModule_AddIntConstant(module, "REG_NOTIFY_CHANGE_LAST_SET", REG_NOTIFY_CHANGE_LAST_SET);
   PyModule_AddIntConstant(module, "REG_NOTIFY_CHANGE_SECURITY", REG_NOTIFY_CHANGE_SECURITY);
+
+    // FileOS values
+  PyModule_AddIntConstant(module, "VOS_DOS",VOS_DOS);
+  PyModule_AddIntConstant(module, "VOS_NT",VOS_NT);
+  PyModule_AddIntConstant(module, "VOS__WINDOWS16",VOS__WINDOWS16);
+  PyModule_AddIntConstant(module, "VOS__WINDOWS32",VOS__WINDOWS32);
+  PyModule_AddIntConstant(module, "VOS_OS216",VOS_OS216);
+  PyModule_AddIntConstant(module, "VOS_OS232",VOS_OS232);
+  PyModule_AddIntConstant(module, "VOS__PM16",VOS__PM16);
+  PyModule_AddIntConstant(module, "VOS__PM32",VOS__PM32);
+  PyModule_AddIntConstant(module, "VOS_UNKNOWN",VOS_UNKNOWN);
+  PyModule_AddIntConstant(module, "VOS_DOS_WINDOWS16",VOS_DOS_WINDOWS16);
+  PyModule_AddIntConstant(module, "VOS_DOS_WINDOWS32",VOS_DOS_WINDOWS32);
+  PyModule_AddIntConstant(module, "VOS_NT_WINDOWS32",VOS_NT_WINDOWS32);
+  PyModule_AddIntConstant(module, "VOS_OS216_PM16",VOS_OS216_PM16);
+  PyModule_AddIntConstant(module, "VOS_OS232_PM32",VOS_OS232_PM32);
+
+  //FileType values
+  PyModule_AddIntConstant(module, "VFT_UNKNOWN",VFT_UNKNOWN);
+  PyModule_AddIntConstant(module, "VFT_APP",VFT_APP);
+  PyModule_AddIntConstant(module, "VFT_DLL",VFT_DLL);
+  PyModule_AddIntConstant(module, "VFT_DRV",VFT_DRV);
+  PyModule_AddIntConstant(module, "VFT_FONT",VFT_FONT);
+  PyModule_AddIntConstant(module, "VFT_VXD",VFT_VXD);
+  PyModule_AddIntConstant(module, "VFT_STATIC_LIB",VFT_STATIC_LIB);
+
+  //FileFlags
+  PyModule_AddIntConstant(module, "VS_FF_DEBUG",VS_FF_DEBUG);
+  PyModule_AddIntConstant(module, "VS_FF_INFOINFERRED",VS_FF_INFOINFERRED);
+  PyModule_AddIntConstant(module, "VS_FF_PATCHED",VS_FF_PATCHED);
+  PyModule_AddIntConstant(module, "VS_FF_PRERELEASE",VS_FF_PRERELEASE);
+  PyModule_AddIntConstant(module, "VS_FF_PRIVATEBUILD",VS_FF_PRIVATEBUILD);
+  PyModule_AddIntConstant(module, "VS_FF_SPECIALBUILD",VS_FF_SPECIALBUILD);
 
   HMODULE hmodule = LoadLibrary("secur32.dll");
   if (hmodule!=NULL){
