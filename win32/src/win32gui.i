@@ -1460,6 +1460,24 @@ static PyObject *PyGetWindowText(PyObject *self, PyObject *args)
 // @pyswig |InitCommonControls|Initializes the common controls.
 void InitCommonControls();
 
+%{
+// @pyswig |InitCommonControlsEx|Initializes specific common controls.
+static PyObject *PyInitCommonControlsEx(PyObject *self, PyObject *args)
+{
+	int flag;
+	// @pyparm int|flag||One of the ICC_ constants
+	if (!PyArg_ParseTuple(args, "i", &flag))
+		return NULL;
+	INITCOMMONCONTROLSEX cc;
+	cc.dwSize = sizeof(cc);
+	cc.dwICC = flag;
+	if (!InitCommonControlsEx(&cc))
+		return PyWin_SetAPIError("InitCommonControlsEx");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+%native (InitCommonControlsEx) PyInitCommonControlsEx;
 
 // @pyswig HCURSOR|LoadCursor|Loads a cursor.
 HCURSOR LoadCursor(
@@ -1471,6 +1489,24 @@ HCURSOR LoadCursor(
 HCURSOR SetCursor(
 	HCURSOR hc // @pyparm int|hcursor||
 );
+
+// @pyswig HCURSOR|GetCursor|
+HCURSOR GetCursor();
+
+%{
+// @pyswig flags, hcursor, (x,y)|GetCursorInfo|Retrieves information about the global cursor.
+PyObject *PyGetCursorInfo(PyObject *self, PyObject *args)
+{
+	CURSORINFO ci;
+	ci.cbSize = sizeof(ci);
+	if (!PyArg_NoArgs(args))
+		return NULL;
+	if (!::GetCursorInfo(&ci))
+		return PyWin_SetAPIError("GetCursorInfo");
+	return Py_BuildValue("ii(ii)", ci.flags, ci.hCursor, ci.ptScreenPos.x, ci.ptScreenPos.y);
+}
+%}
+%native(GetCursorInfo) PyGetCursorInfo;
 
 // @pyswig HACCEL|CreateAcceleratorTable|Creates an accelerator table
 %{
@@ -1538,6 +1574,10 @@ BOOLAPI SetMenu( HWND hwnd, HMENU hmenu );
 
 // @pyswig HCURSOR|LoadIcon|Loads an icon
 HICON LoadIcon(HINSTANCE hInst, RESOURCE_ID name);
+
+// @pyswig HICON|CopyIcon|Copies an icon
+// #pyparm int|hicon||Existing icon
+HICON CopyIcon(HICON hicon);
 
 // @pyswig HANDLE|LoadImage|Loads a bitmap, cursor or icon
 HANDLE LoadImage(HINSTANCE hInst, // @pyparm int|hinst||Handle to an instance of the module that contains the image to be loaded. To load an OEM image, set this parameter to zero. 
@@ -1698,6 +1738,10 @@ BOOL ShowWindow(HWND hWndMain, int nCmdShow);
 // @pyswig int|IsWindowVisible|Indicates if the window has the WS_VISIBLE style.
 // @pyparm int|hwnd||The handle to the window
 BOOL IsWindowVisible(HWND hwnd);
+
+// @pyswig int|IsWindowEnabled|Indicates if the window is enabled.
+// @pyparm int|hwnd||The handle to the window
+BOOL IsWindowEnabled(HWND hwnd);
 
 // @pyswig |SetFocus|Sets focus to the specified window.
 // @pyparm int|hwnd||The handle to the window
