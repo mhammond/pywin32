@@ -2046,7 +2046,7 @@ ui_window_set_scroll_info (PyObject *self, PyObject *args)
 		return NULL;
 	SCROLLINFO info;
 	info.cbSize = sizeof(SCROLLINFO);
-	if (ParseSCROLLINFOTuple(obInfo, &info))
+	if (!ParseSCROLLINFOTuple(obInfo, &info))
 		return NULL;
 	CWnd *pWnd = GetWndPtr(self);
 	if (pWnd == NULL)
