@@ -139,4 +139,4 @@ class FileOperationTester(win32com.test.util.TestCase):
         self.failUnless(not os.path.isfile(self.src_name))
 
 if __name__=='__main__':
-    unittest.main()
+    win32com.test.util.testmain()
