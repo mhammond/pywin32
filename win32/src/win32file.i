@@ -2129,10 +2129,10 @@ static PyObject *MyWaitCommEvent(PyObject *self, PyObject *args)
 // Some Win2k specific volume mounting functions, thanks to Roger Upole
 %{
 
-static BOOL WINAPI (*pfnGetVolumeNameForVolumeMountPointW)(LPCWSTR, LPCWSTR, DWORD) = NULL;
-static BOOL WINAPI (*pfnSetVolumeMountPointW)(LPCWSTR, LPCWSTR) = NULL;
-static BOOL WINAPI (*pfnDeleteVolumeMountPointW)(LPCWSTR) = NULL;
-static BOOL WINAPI (*pfnCreateHardLinkW)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES ) = NULL;
+static BOOL (WINAPI *pfnGetVolumeNameForVolumeMountPointW)(LPCWSTR, LPCWSTR, DWORD) = NULL;
+static BOOL (*pfnSetVolumeMountPointW)(LPCWSTR, LPCWSTR) = NULL;
+static BOOL (*pfnDeleteVolumeMountPointW)(LPCWSTR) = NULL;
+static BOOL (*pfnCreateHardLinkW)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES ) = NULL;
 
 #define VOLUME_POINTERS_NON_NULL \
             (pfnGetVolumeNameForVolumeMountPointW != NULL && \
@@ -2285,7 +2285,6 @@ py_CreateHardLink(PyObject *self, PyObject *args)
     WCHAR *new_file = NULL;
     WCHAR *existing_file = NULL;
     SECURITY_ATTRIBUTES *sa;
-	DebugBreak();
 
     if (!_CheckVolumePfns())
         return NULL;
