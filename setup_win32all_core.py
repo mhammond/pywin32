@@ -80,7 +80,7 @@ class WinExt (Extension):
         for line in open(dsp, "r"):
             fields = line.strip().split("=", 2)
             if fields[0]=="SOURCE":
-                if os.path.splitext(fields[1])[1].lower() in ['.cpp', '.c', '.i', '.mc']:
+                if os.path.splitext(fields[1])[1].lower() in ['.cpp', '.c', '.i', '.rc', '.mc']:
                     pathname = os.path.normpath(os.path.join(dsp_path, fields[1]))
                     result.append(pathname)
         return result
@@ -164,7 +164,6 @@ class my_build_ext(build_ext):
         # Just one GUIDS.CPP and it gives trouble on mainwin too
         # Maybe I should just rename the file, but a case-only rename is likely to be
         # worse!
-        import distutils.msvccompiler
         if ".CPP" not in self.compiler.src_extensions:
             self.compiler._cpp_extensions.append(".CPP")
             self.compiler.src_extensions.append(".CPP")
@@ -185,6 +184,113 @@ class my_build_ext(build_ext):
                 raise RuntimeError, "Not a win32 package!"
             self.build_extension(ext)
 
+        for ext in W32_exe_files:
+            try:
+                self.package = ext.get_pywin32_dir()
+            except AttributeError:
+                raise RuntimeError, "Not a win32 package!"
+            self.build_exefile(ext)
+
+    def build_exefile(self, ext):
+        from types import ListType, TupleType
+        sources = ext.sources
+        if sources is None or type(sources) not in (ListType, TupleType):
+            raise DistutilsSetupError, \
+                  ("in 'ext_modules' option (extension '%s'), " +
+                   "'sources' must be present and must be " +
+                   "a list of source filenames") % ext.name
+        sources = list(sources)
+
+        print "building exe %s" % ext.name
+
+        fullname = self.get_ext_fullname(ext.name)
+        if self.inplace:
+            # ignore build-lib -- put the compiled extension into
+            # the source tree along with pure Python modules
+
+            modpath = string.split(fullname, '.')
+            package = string.join(modpath[0:-1], '.')
+            base = modpath[-1]
+
+            build_py = self.get_finalized_command('build_py')
+            package_dir = build_py.get_package_dir(package)
+            ext_filename = os.path.join(package_dir,
+                                        self.get_ext_filename(base))
+        else:
+            ext_filename = os.path.join(self.build_lib,
+                                        self.get_ext_filename(fullname))
+        depends = sources + ext.depends
+        if not (self.force or newer_group(depends, ext_filename, 'newer')):
+            log.debug("skipping '%s' executable (up-to-date)", ext.name)
+            return
+        else:
+            log.info("building '%s' executable", ext.name)
+
+        # First, scan the sources for SWIG definition files (.i), run
+        # SWIG on 'em to create .c files, and modify the sources list
+        # accordingly.
+        sources = self.swig_sources(sources)
+
+        # Next, compile the source code to object files.
+
+        # XXX not honouring 'define_macros' or 'undef_macros' -- the
+        # CCompiler API needs to change to accommodate this, and I
+        # want to do one thing at a time!
+
+        # Two possible sources for extra compiler arguments:
+        #   - 'extra_compile_args' in Extension object
+        #   - CFLAGS environment variable (not particularly
+        #     elegant, but people seem to expect it and I
+        #     guess it's useful)
+        # The environment variable should take precedence, and
+        # any sensible compiler will give precedence to later
+        # command line args.  Hence we combine them in order:
+        extra_args = ext.extra_compile_args or []
+
+        macros = ext.define_macros[:]
+        for undef in ext.undef_macros:
+            macros.append((undef,))
+
+        objects = self.compiler.compile(sources,
+                                        output_dir=self.build_temp,
+                                        macros=macros,
+                                        include_dirs=ext.include_dirs,
+                                        debug=self.debug,
+                                        extra_postargs=extra_args,
+                                        depends=ext.depends)
+
+        # XXX -- this is a Vile HACK!
+        #
+        # The setup.py script for Python on Unix needs to be able to
+        # get this list so it can perform all the clean up needed to
+        # avoid keeping object files around when cleaning out a failed
+        # build of an extension module.  Since Distutils does not
+        # track dependencies, we have to get rid of intermediates to
+        # ensure all the intermediates will be properly re-built.
+        #
+        self._built_objects = objects[:]
+
+        # Now link the object files together into a "shared object" --
+        # of course, first we have to figure out all the other things
+        # that go into the mix.
+        if ext.extra_objects:
+            objects.extend(ext.extra_objects)
+        extra_args = ext.extra_link_args or []
+
+        # Detect target language, if not provided
+        language = ext.language or self.compiler.detect_language(sources)
+
+        self.compiler.link(
+            "executable",
+            objects, ext_filename,
+            libraries=self.get_libraries(ext),
+            library_dirs=ext.library_dirs,
+            runtime_library_dirs=ext.runtime_library_dirs,
+            extra_postargs=extra_args,
+            debug=self.debug,
+            build_temp=self.build_temp,
+            target_lang=language)
+        
     def build_extension(self, ext):
         # It is well known that some of these extensions are difficult to
         # build, requiring various hard-to-track libraries etc.  So we
@@ -241,7 +347,14 @@ class my_build_ext(build_ext):
             extra = self.debug and "_d.dll" or ".dll"
             return r"system32\pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
         elif name.endswith("win32.perfmondata"):
-            return r"win32\perfmondata.dll"
+            extra = self.debug and "_d.dll" or ".dll"
+            return r"win32\perfmondata" + extra
+        elif name.endswith("win32.win32popenWin9x"):
+            extra = self.debug and "_d.exe" or ".exe"
+            return r"win32\win32popenWin9x" + extra
+        elif name.endswith("pythonwin.Pythonwin"):
+            extra = self.debug and "_d.exe" or ".exe"
+            return r"pythonwin\Pythonwin" + extra
         return build_ext.get_ext_filename(self, name)
 
     def get_export_symbols(self, ext):
@@ -401,6 +514,12 @@ pythonwin_extensions = [
     WinExt_pythonwin("dde"),
 ]
 
+W32_exe_files = [
+    WinExt_win32("win32popenWin9x",
+                 libraries = "user32"),
+    WinExt_pythonwin("Pythonwin"),
+##                     extra_compile_args = ['-D_WINDOWS', '-D_AFXDLL', '-D_MBCS']),
+    ]
 ################################################################
 
 dist = setup(name="pywin32",
