@@ -123,7 +123,7 @@ class ShellFolderBase:
     def GetFrameOptions(self, mask):
         #print "GetFrameOptions", self, mask
         return 0
-    def ParseDisplayName(self, hwnd, reserved, displayName):
+    def ParseDisplayName(self, hwnd, reserved, displayName, attr):
         print "ParseDisplayName", displayName
         # return cchEaten, pidl, attr
     def BindToStorage(self, pidl, bc, iid):
