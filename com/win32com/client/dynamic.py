@@ -443,8 +443,11 @@ class CDispatch:
 				# No attribute of that name
 				entry = None
 			if entry is not None:
-				self._olerepr_.propMap[attr] = entry
-				self._oleobj_.Invoke(entry.dispid, 0, pythoncom.DISPATCH_PROPERTYPUT, 0, value)
-				debug_attr_print("__setattr__ property %s (id=0x%x) in Dispatch container %s" % (attr, entry.dispid, self._username_))
-				return
+				try:
+					self._oleobj_.Invoke(entry.dispid, 0, pythoncom.DISPATCH_PROPERTYPUT, 0, value)
+					self._olerepr_.propMap[attr] = entry
+					debug_attr_print("__setattr__ property %s (id=0x%x) in Dispatch container %s" % (attr, entry.dispid, self._username_))
+					return
+				except pythoncom.com_error:
+					pass
 		raise AttributeError, "Property '%s.%s' can not be set." % (self._username_, attr)
