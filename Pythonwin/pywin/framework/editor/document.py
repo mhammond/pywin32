@@ -30,7 +30,7 @@ class EditorDocumentBase(ParentEditorDocument):
 		self.bakFileType=GetEditorOption("Backup Type", BAK_DOT_BAK_BAK_DIR)
 
 		self.watcherThread = FileWatchingThread(self)
-		self.watcherThread.start()
+		self.watcherThread.CreateThread()
 		# Should I try and use VSS integration?
 		self.scModuleName=GetEditorOption("Source Control Module", "")
 		self.scModule = None # Loaded when first used.
@@ -38,7 +38,7 @@ class EditorDocumentBase(ParentEditorDocument):
 		object.CmdTarget.__init__(self, template.CreateWin32uiDocument())
 
 	def OnCloseDocument(self ):
-		self.watcherThread.stop()
+		self.watcherThread.SignalStop()
 		return self._obj_.OnCloseDocument()
 
 #	def OnOpenDocument(self, name):
@@ -252,15 +252,20 @@ class EditorDocumentBase(ParentEditorDocument):
 				print "Could not bring document to foreground"
 		return self._obj_.SaveModified()
 
-import threading
+# NOTE - I DONT use the standard threading module,
+# as this waits for all threads to terminate at shutdown.
+# When using the debugger, it is possible shutdown will
+# occur without Pythonwin getting a complete shutdown,
+# so we deadlock at the end - threading is waiting for
+import pywin.mfc.thread
 import win32event
-class FileWatchingThread(threading.Thread):
+class FileWatchingThread(pywin.mfc.thread.WinThread):
 	def __init__(self, doc):
 		self.doc = doc
 		self.adminEvent = win32event.CreateEvent(None, 0, 0, None)
 		self.stopEvent = win32event.CreateEvent(None, 0, 0, None)
 		self.watchEvent = None
-		threading.Thread.__init__(self)
+		pywin.mfc.thread.WinThread.__init__(self)
 
 	def _DocumentStateChanged(self):
 		win32event.SetEvent(self.adminEvent)
@@ -280,9 +285,9 @@ class FileWatchingThread(threading.Thread):
 				self.watchEvent = win32api.FindFirstChangeNotification(path, 0, filter)
 			except win32api.error, (rc, fn, msg):
 				print "Can not watch file", path, "for changes -", msg
-	def stop(self):
+	def SignalStop(self):
 		win32event.SetEvent(self.stopEvent)
-	def run(self):
+	def Run(self):
 		while 1:
 			handles = [self.stopEvent, self.adminEvent]
 			if self.watchEvent is not None:
