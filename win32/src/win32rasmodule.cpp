@@ -712,7 +712,7 @@ static struct PyMethodDef win32ras_functions[] = {
 	{"HangUp",                      PyRasHangUp, METH_VARARGS}, // @pymeth HangUp|Terminates a remote access session.
 	{"IsHandleValid",				PyRasIsHandleValid, METH_VARARGS}, // @pymeth IsHandleValid|Indicates if the given RAS handle is valid.
 	{"SetEntryDialParams",          PyRasSetEntryDialParams, METH_VARARGS}, // @pymeth SetEntryDialParams|Sets the dial parameters for the specified entry.
-	{"RASDIALEXTENSIONS",           PyWinObject_NewRASDIALEXTENSIONS, METH_VARARGS}, // @pymeth RASDIALEXTENSIONS|Creates a new <RASDIALEXTENSIONS> object
+	{"RASDIALEXTENSIONS",           PyWinObject_NewRASDIALEXTENSIONS, METH_VARARGS}, // @pymeth RASDIALEXTENSIONS|Creates a new <o RASDIALEXTENSIONS> object
 	{NULL,			NULL}
 };
 
