@@ -14,9 +14,12 @@ def wrap(ob, iid=None, usePolicy=None, useDispatcher=None):
      the QueryInterface() method is used.
 
   """
-  if usePolicy is None: 
+  if usePolicy is None:
     usePolicy = policy.DefaultPolicy
-  if useDispatcher is None:
+  if useDispatcher == 1: # True will also work here.
+    import win32com.server.dispatcher
+    useDispatcher = win32com.server.dispatcher.DefaultDebugDispatcher
+  if useDispatcher is None or useDispatcher==0:
     ob = usePolicy(ob)
   else:
     ob = useDispatcher(usePolicy, ob)
