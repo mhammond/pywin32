@@ -11,34 +11,28 @@
 #ifndef DBI_H
 #define DBI_H
 
-#ifdef DBI_EXPORT
-    #define CALLCONV(RTYPE) __declspec(dllexport) RTYPE
-#else
-    #define CALLCONV(RTYPE) __declspec(dllimport) RTYPE
-#endif
-
-CALLCONV(int) dbiIsDate(const PyObject *o);
-CALLCONV(int) dbiIsRaw(const PyObject *o);
-CALLCONV(int) dbiIsRowId(const PyObject *o);
+PyAPI_FUNC(int) dbiIsDate(const PyObject *o);
+PyAPI_FUNC(int) dbiIsRaw(const PyObject *o);
+PyAPI_FUNC(int) dbiIsRowId(const PyObject *o);
 
 /* These do not INCREF */
-CALLCONV(PyObject) *dbiValue(PyObject *o);  
-CALLCONV(PyObject) *dbiMakeDate(PyObject *contents);
-CALLCONV(PyObject) *dbiMakeRaw(PyObject *contents);
-CALLCONV(PyObject) *dbiMakeRowId(PyObject *contents);
+PyAPI_FUNC(PyObject) *dbiValue(PyObject *o);  
+PyAPI_FUNC(PyObject) *dbiMakeDate(PyObject *contents);
+PyAPI_FUNC(PyObject) *dbiMakeRaw(PyObject *contents);
+PyAPI_FUNC(PyObject) *dbiMakeRowId(PyObject *contents);
 
-CALLCONV(PyObject)*DbiString;
-CALLCONV(PyObject)*DbiRaw;
-CALLCONV(PyObject)*DbiRowId;
-CALLCONV(PyObject)*DbiNumber;
-CALLCONV(PyObject)*DbiDate;
+PyAPI_FUNC(PyObject)*DbiString;
+PyAPI_FUNC(PyObject)*DbiRaw;
+PyAPI_FUNC(PyObject)*DbiRowId;
+PyAPI_FUNC(PyObject)*DbiNumber;
+PyAPI_FUNC(PyObject)*DbiDate;
 
-CALLCONV(PyObject)*DbiNoError;
-CALLCONV(PyObject)*DbiOpError;
-CALLCONV(PyObject)*DbiProgError;
-CALLCONV(PyObject)*DbiIntegrityError;
-CALLCONV(PyObject)*DbiDataError;
-CALLCONV(PyObject)*DbiInternalError;
+PyAPI_FUNC(PyObject)*DbiNoError;
+PyAPI_FUNC(PyObject)*DbiOpError;
+PyAPI_FUNC(PyObject)*DbiProgError;
+PyAPI_FUNC(PyObject)*DbiIntegrityError;
+PyAPI_FUNC(PyObject)*DbiDataError;
+PyAPI_FUNC(PyObject)*DbiInternalError;
 
 
 #endif
