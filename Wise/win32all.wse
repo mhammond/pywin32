@@ -16,7 +16,7 @@ item: Global
   Patch Flags=0000000000000001
   Patch Threshold=85
   Patch Memory=4000
-  EXE Filename=win32all-139.exe
+  EXE Filename=win32all-141.exe
   Code Sign Name=Python Win32 combined extensions
   Code Sign Info=skippinet.com.au
   Variable Name1=_WISE_
@@ -30,19 +30,21 @@ item: Global
   Variable Flags3=00001000
   Variable Name4=PYVER_DOTTED
   Variable Description4=Python version number
-  Variable Default4=2.1
+  Variable Default4=2.2
   Variable Values4=1.5
   Variable Values4=1.6
   Variable Values4=2.0
   Variable Values4=2.1
+  Variable Values4=2.2
   Variable Flags4=00000010
   Variable Name5=PYVER_NODOT
   Variable Description5=Python version number, without a dot.
-  Variable Default5=21
+  Variable Default5=22
   Variable Values5=15
   Variable Values5=16
   Variable Values5=20
   Variable Values5=21
+  Variable Values5=22
   Variable Flags5=00000010
 end
 item: Open/Close INSTALL.LOG
@@ -849,7 +851,6 @@ end
 item: Open/Close INSTALL.LOG
 end
 item: Check Disk Space
-  Component=COMPONENTS
 end
 item: Set Variable
   Variable=INSTDIR
