@@ -3,6 +3,7 @@
 import unittest
 
 import win32api, win32con, win32event
+import sys, os
 
 class CurrentUserTestCase(unittest.TestCase):
     def testGetCurrentUser(self):
@@ -61,6 +62,22 @@ class Registry(unittest.TestCase):
         # Our event should now be in a signalled state.
         ret_code=win32event.WaitForSingleObject(evt,0)
         self.failUnless(ret_code==win32con.WAIT_OBJECT_0)
+
+class FileNames(unittest.TestCase):
+    def testShortLongPathNames(self):
+        try:
+            me = __file__
+        except NameError:
+            me = sys.argv[0]
+        fname = os.path.abspath(me)
+        short_name = win32api.GetShortPathName(fname)
+        long_name = win32api.GetLongPathName(short_name)
+        self.failUnless(long_name==fname, \
+                        "Expected long name ('%s') to be original name ('%s')" % (long_name, fname))
+        long_name = win32api.GetLongPathNameW(short_name)
+        self.failUnless(type(long_name)==unicode, "GetLongPathNameW returned type '%s'" % (type(long_name),))
+        self.failUnless(long_name==fname, \
+                        "Expected long name ('%s') to be original name ('%s')" % (long_name, fname))
 
 if __name__ == '__main__':
     unittest.main()
