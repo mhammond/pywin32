@@ -9,20 +9,13 @@ GENDIR  = ..\build\Temp\Help
 TITLE   = $(TARGET) Help
 DOCHDR  = $(TARGET) Reference
 
-#AD      = autoduck.exe /SPythonWin.fmt
-#ADLOG   = "/L$(GENDIR)\$(TARGET).LOG" /N
-#ADHLP   = /RH "/C$(GENDIR)\$(TARGET).LOG" "/O$(GENDIR)\$(TARGET).RTF" /D "title=$(TITLE)"
-#ADDOC   = /RD "/O$(GENDIR)\$(TARGET).DOC" /D "doc_header=$(DOCHDR)"
-#ADTAB   = 8
-#HC      = hcw /a /c 
-
-
 WIN32COM_DIR = ../com/win32com
-HELP_DIR = ../com/help
 WIN32COMEXT_DIR = ../com/win32comext
 MAPI_DIR = $(WIN32COMEXT_DIR)/mapi
+HELP_DIR = ../com/help
 
 SOURCE  = $(WIN32COM_DIR)\src\*.cpp \
+	$(HELP_DIR)\*.d \
 	$(WIN32COM_DIR)\src\extensions\*.cpp \
 	$(WIN32COMEXT_DIR)\axscript\src\*.cpp \
 	$(WIN32COMEXT_DIR)\axdebug\src\*.cpp \
@@ -49,12 +42,13 @@ SOURCE  = $(WIN32COM_DIR)\src\*.cpp \
 	$(GENDIR)\PyIProfSect.d \
 	$(GENDIR)\exchange.d \
 	$(GENDIR)\exchdapi.d \
-	$(HELP_DIR)\adsi.d \
 
 
 # Help and Doc targets
 
 help : ..\$(TARGET).hlp $(GENDIR)
+
+htmlhlp : "..\$(TARGET).chm" $(GENDIR)
 
 doc : $(TARGET).doc
 

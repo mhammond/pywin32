@@ -1,10 +1,14 @@
 # Common AutoDuck make file
 
-AD      = ad2\autoduck.exe /SPythonWin.fmt
-ADLOG   = "/L$(GENDIR)\$(TARGET).LOG" /N
-ADHLP   = /RH "/C$(GENDIR)\$(TARGET).LOG" "/O$(GENDIR)\$(TARGET).RTF" /D "title=$(TITLE)"
-ADDOC   = /RD "/O$(GENDIR)\$(TARGET).DOC" /D "doc_header=$(DOCHDR)"
-ADTAB   = 8
-HC      = hcw /a /c 
+AD		  = ad2\autoduck.exe /Spythonwin.fmt
+ADHTMLFMT = ad2\autoduck.exe /Spyhtml.fmt
+ADHTMLLOG = /R html "/L$(GENDIR)\$(TARGET).HHLOG" /N
+ADLOG	  = /R help "/L$(GENDIR)\$(TARGET).HLOG" /N
+ADHTML	  = /R html "/G$(GENDIR)\$(TARGET).DUMP" "/C$(GENDIR)\$(TARGET).HHLOG" "/I$(GENDIR)\$(TARGET).IDX" "/O$(GENDIR)\$(TARGET).HTML" /D "title=$(TITLE)"
+ADHLP	  = /R help "/C$(GENDIR)\$(TARGET).HLOG" "/O$(GENDIR)\$(TARGET).RTF" /D "title=$(TITLE)"
+ADDOC	  = /RD "/O$(GENDIR)\$(TARGET).DOC" /D "doc_header=$(DOCHDR)"
+ADTAB	  = 8
+HC		  = hcw /a /c /e
+HHC		  = hhc
 
 

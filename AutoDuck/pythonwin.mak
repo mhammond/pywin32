@@ -13,8 +13,9 @@ SOURCE_DIR = ../pythonwin
 SOURCE  = $(SOURCE_DIR)\contents.d $(SOURCE_DIR)\*.cpp $(SOURCE_DIR)\*.h 
 
 # Help and Doc targets
+help : $(GENDIR) ..\$(TARGET).hlp
 
-hwlp : $(GENDIR) ..\$(TARGET).hlp
+htmlhlp : $(GENDIR) "..\$(TARGET).chm"
 
 doc : $(TARGET).doc
 
