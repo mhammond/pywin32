@@ -312,7 +312,7 @@ static void __cdecl free_vtbl(void * cobject)
 	// free the methods. 0..2 are the constant IUnknown methods
 	for ( int i = vtbl->cMethod; i-- > (int)vtbl->cReservedMethods; )
 		if ( vtbl->methods[i] != NULL )
-			free(vtbl->methods[i]);
+			free((void *)vtbl->methods[i]);
 	free(vtbl);
 }
 

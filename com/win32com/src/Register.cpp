@@ -79,7 +79,7 @@ HRESULT PyCom_RegisterGatewayObject(REFIID iid, pfnPyGatewayConstructor ctor, co
 #ifdef PYWIN_NO_PYTHON_LONG_LONG
 	PyObject *valueObject = PyInt_FromLong((long)ctor);
 #else
-	PyObject *valueObject = PyLong_FromVoidPtr(ctor);
+	PyObject *valueObject = PyLong_FromVoidPtr((void *)ctor);
 #endif
 	if (!valueObject) {
 		Py_DECREF(keyObject);
