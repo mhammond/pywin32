@@ -25,6 +25,13 @@ LONG _PyCom_GetGatewayCount(void)
 static HRESULT GetIDispatchErrorResult(EXCEPINFO *pexcepinfo)
 {
 	HRESULT hr;
+	EXCEPINFO tei;
+	BOOL bCleanupExcepInfo;
+	if (pexcepinfo==NULL) {
+		pexcepinfo = &tei;
+		bCleanupExcepInfo = TRUE;
+	} else
+		bCleanupExcepInfo = FALSE;
 	// Fill the EXCEPINFO with the details.
 	PyCom_ExcepInfoFromPyException(pexcepinfo);
 	// If the Python code is returning an IDispatch error,
@@ -34,8 +41,11 @@ static HRESULT GetIDispatchErrorResult(EXCEPINFO *pexcepinfo)
 		PyCom_SetCOMErrorFromExcepInfo(pexcepinfo, IID_IDispatch);
 		PyCom_CleanupExcepInfo(pexcepinfo);
 		hr = pexcepinfo->scode;
-	} else
+	} else {
 		hr = DISP_E_EXCEPTION; // and the EXCEPINFO remains valid.
+		if (bCleanupExcepInfo)
+			PyCom_CleanupExcepInfo(pexcepinfo);
+	}
 	return hr;
 }
 /////////////////////////////////////////////////////////////////////////////
