@@ -38,7 +38,7 @@ _is_block_closer = re.compile(r"""
     \b
 """, re.VERBOSE).match
 
-tracebackHeader = "Traceback (innermost last):\n"
+tracebackHeader = "Traceback ("
 
 sectionProfile = "Interactive Window"
 valueFormatTitle = "FormatTitle"
@@ -608,7 +608,9 @@ class CDockedInteractivePython(CInteractivePython):
 			return 0
 		try:
 				frame = win32ui.GetMainFrame()
-		except win32ui.error:
+				if frame.closing:
+					return 0 # Dieing!
+		except (win32ui.error, AttributeError):
 			return 0 # The app is dieing!
 		try:
 			cb = frame.GetControlBar(ID_DOCKED_INTERACTIVE_CONTROLBAR)
