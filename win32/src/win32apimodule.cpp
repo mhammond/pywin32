@@ -1569,25 +1569,51 @@ PyGetTimeZoneInformation(PyObject * self, PyObject * args)
 	if (!PyArg_ParseTuple (args, ":GetTimeZoneInformation"))
 		return NULL;
 	TIME_ZONE_INFORMATION tzinfo;
-	if (GetTimeZoneInformation(&tzinfo)==0xFFFFFFFF)
+	DWORD rc;
+	
+	rc = ::GetTimeZoneInformation(&tzinfo);
+	if( rc == TIME_ZONE_ID_INVALID ) {
 		return ReturnAPIError("GetTimeZoneInformation");
-	return Py_BuildValue("ls(iiiiiiii)ls(iiiiiiii)l",
-	              tzinfo.Bias,
-				  tzinfo.StandardName,
-				    tzinfo.StandardDate.wYear, tzinfo.StandardDate.wMonth, 
-				    tzinfo.StandardDate.wDayOfWeek, tzinfo.StandardDate.wDay, 
-				    tzinfo.StandardDate.wHour, tzinfo.StandardDate.wMinute, 
-				    tzinfo.StandardDate.wSecond, tzinfo.StandardDate.wMilliseconds,
+	}
+	// else ok...
+	// According to the ::GetTimezoneInformation() documentation, 
+	// it will return:
+	//    TIME_ZONE_ID_STANDARD if in standard time,
+	//    TIME_ZONE_ID_DAYLIGHT if in daylight savings time, and
+	//    TIME_ZONE_ID_UNKNOWN if the timezone in question doesn't 
+	//               use daylight savings time, (eg. indiana time).  
+	// We therefore need to add this code to the return tuple, so 
+	// the calling code can decide which part of the tzinfo data to 
+	// use.  This is now returned as the 1st element of an outer 
+	// 2-tuple; the 2nd element is the (corrected) tuple representing 
+	// the tzinfo structure.
+	return Py_BuildValue("i,(lNNlNNl)",
+				  rc,
+				  tzinfo.Bias,
+				  PyWinObject_FromWCHAR(tzinfo.StandardName),
+				  PyWinObject_FromSYSTEMTIME(tzinfo.StandardDate),
 				  tzinfo.StandardBias,
-				  tzinfo.DaylightName,
-				    tzinfo.DaylightDate.wYear, tzinfo.DaylightDate.wMonth, 
-				    tzinfo.DaylightDate.wDayOfWeek, tzinfo.DaylightDate.wDay, 
-				    tzinfo.DaylightDate.wHour, tzinfo.DaylightDate.wMinute, 
-				    tzinfo.DaylightDate.wSecond, tzinfo.DaylightDate.wMilliseconds,
+				  PyWinObject_FromWCHAR(tzinfo.DaylightName),
+				  PyWinObject_FromSYSTEMTIME(tzinfo.DaylightDate),
 				  tzinfo.DaylightBias );
-	// @rdesc The return value is a tuple of format "ls(iiiiiiii)ls(iiiiiiii)l",
-	// which contains the information in a win32api TIME_ZONE_INFORMATION
-	// structure. 
+	
+	// @rdesc The return value is a tuple of (rc, tzinfo), where rc is
+	// the integer return code from ::GetTimezoneInformation(), which may be
+	// @flagh value|description
+	// @flag TIME_ZONE_ID_STANDARD|if in standard time
+	// @flag TIME_ZONE_ID_DAYLIGHT|if in daylight savings time
+	// @flag TIME_ZONE_ID_UNKNOWN|if the timezone in question doesn't use daylight savings time, (eg. indiana time).  
+	// @rdesc tzinfo is a tuple of:
+	// @tupleitem 0|int|bias|Specifies the current bias, in minutes, for local time translation on this computer. The bias is the difference, in minutes, between Coordinated Universal Time (UTC) and local time. All translations between UTC and local time are based on the following formula:<nl><nl>UTC = local time + bias <nl><nl>
+	// @tupleitem 1|unicode|standardName|Specifies a string associated with standard time on this operating system. For example, this member could contain "EST" to indicate Eastern Standard Time. This string is not used by the operating system, so anything stored there using the SetTimeZoneInformation function is returned unchanged by the GetTimeZoneInformation function. This string can be empty.
+	// @tupleitem 2|<o PyTime>|standardTime|Specifies a SYSTEMTIME object that contains a date and local time when the transition from daylight saving time to standard time occurs on this operating system. If this date is not specified, the wMonth member in the SYSTEMTIME structure must be zero. If this date is specified, the DaylightDate value in the TIME_ZONE_INFORMATION structure must also be specified. 
+	// <nl>To select the correct day in the month, set the wYear member to zero, the wDayOfWeek member to an appropriate weekday, and the wDay member to a value in the range 1 through 5. Using this notation, the first Sunday in April can be specified, as can the last Thursday in October (5 is equal to "the last"). 
+	// @tupleitem 3|int|standardBias|Specifies a bias value to be used during local time translations that occur during standard time. This member is ignored if a value for the StandardDate member is not supplied. <nl>This value is added to the value of the Bias member to form the bias used during standard time. In most time zones, the value of this member is zero. 
+	// @tupleitem 4|unicode|daylightName|
+	// @tupleitem 5|<o PyTime>|daylightTime|
+	// @tupleitem 6|int|daylightBias|Specifies a bias value to be used during local time translations that occur during daylight saving time. This member is ignored if a value for the DaylightDate member is not supplied. 
+	// <nl>This value is added to the value of the Bias member to form the bias used during daylight saving time. In most time zones, the value of this member is – 60. 
+	
 }
 
 // @pymethod int|win32api|GetSysColor|Returns the current system color for the specified element.
