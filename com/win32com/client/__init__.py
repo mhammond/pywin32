@@ -300,9 +300,13 @@ class DispatchBaseClass:
 		# Need to get the docstring for the module for this class.
 		try:
 			mod_doc = sys.modules[self.__class__.__module__].__doc__
+			if mod_doc:
+				mod_name = "win32com.gen_py." + mod_doc
+			else:
+				mod_name = sys.modules[self.__class__.__module__].__name__
 		except KeyError:
-		  mod_doc = "<no module found>"
-		return "<win32com.gen_py.%s.%s>" % (mod_doc, self.__class__.__name__)
+		  mod_name = "win32com.gen_py.unknown"
+		return "<%s.%s>" % (mod_name, self.__class__.__name__)
 	# Delegate comparison to the oleobjs, as they know how to do identity.
 	def __cmp__(self, other):
 		return cmp(self._oleobj_, other._oleobj_)
