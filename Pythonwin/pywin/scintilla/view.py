@@ -428,7 +428,8 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 			except:
 				win32ui.SetStatusText("Error attempting to get object attributes - %s" % (`sys.exc_info()[0]`,))
 
-		items = items_dict.keys()
+		# ensure all keys are strings.		
+		items = map(str, items_dict.keys())
 		# All names that start with "_" go!
 		items = filter(lambda word: word[0]!='_', items)
 
