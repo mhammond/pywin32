@@ -16,6 +16,7 @@
 #include "windows.h"
 #include "winbase.h"
 #include "assert.h"
+#include <stddef.h>
 #endif
 
 #define NEED_PYWINOBJECTS_H
@@ -1179,6 +1180,43 @@ MyUnlockFileEx(PyObject *self, PyObject *args)
 
 #ifndef MS_WINCE
 %{
+
+// See Q192800 for an interesting discussion on overlapped and IOCP.
+
+PyObject *PyWinObject_FromQueuedOVERLAPPED(OVERLAPPED *p)
+{
+	if (p==NULL || p==(OVERLAPPED *)-1) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+
+	// We know this is a pointer to an OVERLAPPED inside a PyObject
+	// extract it back out.
+	size_t off = offsetof(PyOVERLAPPED, m_overlapped);
+	PyOVERLAPPED *po = (PyOVERLAPPED *)(((LPBYTE)p) - off);
+	// consume reference added when it was posted.
+	return po;
+}
+
+BOOL PyWinObject_AsQueuedOVERLAPPED(PyObject *ob, OVERLAPPED **ppOverlapped, BOOL bNoneOK = TRUE)
+{
+	PyOVERLAPPED *po = NULL;
+	if (!PyWinObject_AsPyOVERLAPPED(ob, &po, bNoneOK))
+		return FALSE;
+	if (bNoneOK && po==NULL) {
+		*ppOverlapped = NULL;
+		return TRUE;
+	}
+	assert(po);
+	if (!po)
+		return FALSE;
+	PyOVERLAPPED::sMyOverlapped *pMyOverlapped = (PyOVERLAPPED::sMyOverlapped *)po;
+	// Add a fake reference so the object lives while in the queue.
+	Py_INCREF(ob);
+	*ppOverlapped = po->GetOverlapped();
+	return TRUE;
+}
+
 // @pyswig (int, int, int, <o PyOVERLAPPED>)|GetQueuedCompletionStatus|Attempts to dequeue an I/O completion packet from a specified input/output completion port.
 // @comm This method never throws an API error.
 // <nl>The result is a tuple of (rc, numberOfBytesTransferred, completionKey, overlapped)
@@ -1197,18 +1235,51 @@ static PyObject *myGetQueuedCompletionStatus(PyObject *self, PyObject *args)
 	DWORD bytes = 0, key = 0;
 	OVERLAPPED *pOverlapped = NULL;
 	UINT errCode;
-    Py_BEGIN_ALLOW_THREADS
+	Py_BEGIN_ALLOW_THREADS
 	BOOL ok = GetQueuedCompletionStatus(handle, &bytes, &key, &pOverlapped, timeout);
-	errCode = ok ? ok : GetLastError();
-    Py_END_ALLOW_THREADS
-	PyObject *obOverlapped = PyWinObject_FromOVERLAPPED(pOverlapped);
+	errCode = ok ? 0 : GetLastError();
+	Py_END_ALLOW_THREADS
+	PyObject *obOverlapped = PyWinObject_FromQueuedOVERLAPPED(pOverlapped);
 	PyObject *rc = Py_BuildValue("illO", errCode, bytes, key, obOverlapped);
 	Py_XDECREF(obOverlapped);
 	return rc;
 }
+
+// @pyswig None|PostQueuedCompletionStatus|lets you post an I/O completion packet to an I/O completion port. The I/O completion packet will satisfy an outstanding call to the GetQueuedCompletionStatus function.
+PyObject *myPostQueuedCompletionStatus(PyObject *self, PyObject *args)
+{
+	PyObject *obHandle, *obOverlapped = NULL;
+	DWORD bytesTransfered = 0, key = 0;
+	// @pyparm <o PyHANDLE>|handle||handle to an I/O completion port
+	// @pyparm int|numberOfbytes|0|value to return via GetQueuedCompletionStatus' first result
+	// @pyparm int|completionKey|0|value to return via GetQueuedCompletionStatus' second result
+	// @pyparm <o PyOVERLAPPED>|overlapped|None|value to return via GetQueuedCompletionStatus' third result
+	if (!PyArg_ParseTuple(args, "O|iiO", &obHandle, &bytesTransfered, &key, &obOverlapped))
+		return NULL;
+	HANDLE handle;
+	if (!PyWinObject_AsHANDLE(obHandle, &handle, FALSE))
+		return NULL;
+	OVERLAPPED *pOverlapped;
+	if (!PyWinObject_AsQueuedOVERLAPPED(obOverlapped, &pOverlapped, TRUE))
+		return NULL;
+	BOOL ok;
+	Py_BEGIN_ALLOW_THREADS
+	ok = ::PostQueuedCompletionStatus(handle, bytesTransfered, key, pOverlapped);
+	Py_END_ALLOW_THREADS
+	if (!ok)
+		return PyWin_SetAPIError("PostQueuedCompletionStatus");
+	Py_INCREF(Py_None);
+	return Py_None;
+	// @comm Note that if you post overlapped objects, but your post is closed
+	// before all pending requests are processed, the overlapped objects
+	// (including its 'handle' and 'object' members) will leak.
+	// See MS KB article Q192800 for a summary of this.
+}
+
 %}
 
 %native (GetQueuedCompletionStatus) myGetQueuedCompletionStatus;
+%native (PostQueuedCompletionStatus) myPostQueuedCompletionStatus;
 #endif // MS_WINCE
 
 %native(ReadFile) MyReadFile;
@@ -1385,16 +1456,6 @@ BOOLAPI MoveFileExW(
 
 #endif // MS_WINCE
 
-#ifndef MS_WINCE
-// @pyswig <o PyOVERLAPPED>|PostQueuedCompletionStatus|lets you post an I/O completion packet to an I/O completion port. The I/O completion packet will satisfy an outstanding call to the GetQueuedCompletionStatus function.
-BOOLAPI PostQueuedCompletionStatus(
-  PyHANDLE CompletionPort,  // @pyparm <o PyHANDLE>|handle||handle to an I/O completion port
-  DWORD dwNumberOfBytesTransferred,  // @pyparm int|numberOfbytes||value to return via GetQueuedCompletionStatus' first result
-  DWORD dwCompletionKey,  // // @pyparm int|completionKey||value to return via GetQueuedCompletionStatus' second result
-  OVERLAPPED *lpOverlapped  // @pyparm <o PyOVERLAPPED>|overlapped||value to return via GetQueuedCompletionStatus' third result
-);
-#endif // MS_WINCE
-							 
 // QueryDosDevice	
 
 
