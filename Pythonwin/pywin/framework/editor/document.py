@@ -1,3 +1,5 @@
+# We no longer support the old, non-colour editor!
+
 from pywin.mfc import docview, object
 from pywin.framework.editor import GetEditorOption
 import win32ui
@@ -14,7 +16,8 @@ BAK_DOT_BAK_BAK_DIR=3
 
 MSG_CHECK_EXTERNAL_FILE = win32con.WM_USER+1999 ## WARNING: Duplicated in editor.py and coloreditor.py
 
-ParentEditorDocument=docview.Document
+import pywin.scintilla.document
+ParentEditorDocument=pywin.scintilla.document.CScintillaDocument
 class EditorDocumentBase(ParentEditorDocument):
 	def __init__(self, template):
 		self.bAutoReload = GetEditorOption("Auto Reload", 1)
@@ -33,23 +36,13 @@ class EditorDocumentBase(ParentEditorDocument):
 		# Skip the direct parent
 		object.CmdTarget.__init__(self, template.CreateWin32uiDocument())
 
-	# Helper for reflecting functions to views.
-	def _ApplyToViews(self, funcName, *args):
-		for view in self.GetAllViews():
-			func = getattr(view, funcName)
-			apply(func, args)
-	def _ApplyOptionalToViews(self, funcName, *args):
-		for view in self.GetAllViews():
-			func = getattr(view, funcName, None)
-			if func is not None:
-				apply(func, args)
-
 	def OnCloseDocument(self ):
 		self.watcherThread.stop()
 		return self._obj_.OnCloseDocument()
 
 	def OnOpenDocument(self, name):
-		rc = self._obj_.OnOpenDocument(name)
+		rc = ParentEditorDocument.OnOpenDocument(self, name)
+#		self.GetFirstView()._SetLoadedText(self.text)
 		self._DocumentStateChanged()
 		return rc
 
@@ -89,6 +82,15 @@ class EditorDocumentBase(ParentEditorDocument):
 		self._DocumentStateChanged()
 		return 1
 
+	def FinalizeViewCreation(self, view):
+		ParentEditorDocument.FinalizeViewCreation(self, view)
+		if view == self.GetFirstView():
+			if view.bFolding and GetEditorOption("Fold On Open", 0):
+				view.FoldTopLevelEvent()
+		
+	def HookViewNotifications(self, view):
+		ParentEditorDocument.HookViewNotifications(self, view)
+
 	# Support for reloading the document from disk - presumably after some
 	# external application has modified it (or possibly source control has
 	# checked it out.
@@ -111,6 +113,7 @@ class EditorDocumentBase(ParentEditorDocument):
 		for view, info in map(None, views, states):
 			if info is not None:
 				view._EndUserStateChange(info)
+		views[0].SCISetSavePoint()
 		win32ui.SetStatusText("Document reloaded.")
 
 	# Reloading the file

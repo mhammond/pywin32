@@ -8,15 +8,34 @@ import ModuleBrowser
 
 class EditorFrame(pywin.framework.window.MDIChildWnd):
     def OnCreateClient(self, cp, context):
-        splitter = win32ui.CreateSplitter()
-        splitter.CreateStatic (self, 1, 2)
+
         # Create the default view as specified by the template (ie, the editor view)
         view = context.template.MakeView(context.doc)
         # Create the browser view.
-        otherView = ModuleBrowser.BrowserView(context.doc)
+        browserView = ModuleBrowser.BrowserView(context.doc)
+        view2 = context.template.MakeView(context.doc)
+
+        splitter = win32ui.CreateSplitter()
+        style = win32con.WS_CHILD | win32con.WS_VISIBLE
+        splitter.CreateStatic (self, 1, 2, style, win32ui.AFX_IDW_PANE_FIRST)
+        sub_splitter = self.sub_splitter = win32ui.CreateSplitter()
+        sub_splitter.CreateStatic (splitter, 2, 1, style, win32ui.AFX_IDW_PANE_FIRST+1)
+
         # Note we must add the default view first, so that doc.GetFirstView() returns the editor view.
-        splitter.CreateView(view, 0, 1, (0,0)) # size ignored.
-        splitter.CreateView (otherView, 0, 0, (0, 0))
+        sub_splitter.CreateView(view, 1, 0, (0,0)) 
+        splitter.CreateView (browserView, 0, 0, (0,0))
+        sub_splitter.CreateView(view2,0, 0, (0,0)) 
+
+##        print "First view is", context.doc.GetFirstView()
+##        print "Views are", view, view2, browserView
+##        print "Parents are", view.GetParent(), view2.GetParent(), browserView.GetParent()
+##        print "Splitter is", splitter
+##        print "sub splitter is", sub_splitter
+        ## Old 
+##        splitter.CreateStatic (self, 1, 2)
+##        splitter.CreateView(view, 0, 1, (0,0)) # size ignored.
+##        splitter.CreateView (browserView, 0, 0, (0, 0))
+
         # Restrict the size of the browser splitter (and we can avoid filling
         # it until it is shown)
         splitter.SetColumnInfo(0, 10, 20)
@@ -26,8 +45,20 @@ class EditorFrame(pywin.framework.window.MDIChildWnd):
     def GetEditorView(self):
         # In a multi-view (eg, splitter) environment, get
         # an editor (ie, scintilla) view
-        return self.GetActiveDocument().GetFirstView()
+        # Look for the splitter opened the most!
+        v1 = self.sub_splitter.GetPane(0,0)
+        v2 = self.sub_splitter.GetPane(1,0)
+        r1 = v1.GetWindowRect()
+        r2 = v2.GetWindowRect()
+        if r1[3]-r1[1] > r2[3]-r2[1]:
+            return v1
+        return v2
+
+    def GetBrowserView(self):
+        # XXX - should fix this :-)
+        return self.GetActiveDocument().GetAllViews()[1]
     def OnClose(self):
         # Must force the module browser to close itself here (OnDestroy for the view itself is too late!)
-        self.GetActiveDocument().GetAllViews()[1].DestroyBrowser()
+        self.sub_splitter = None # ensure no circles!
+        self.GetBrowserView().DestroyBrowser()
         return self._obj_.OnClose()

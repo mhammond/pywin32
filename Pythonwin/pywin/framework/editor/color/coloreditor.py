@@ -36,31 +36,21 @@ from pywin.scintilla.document import CScintillaDocument
 from pywin.framework.editor.document import EditorDocumentBase
 from pywin.scintilla.scintillacon import * # For the marker definitions
 import pywin.scintilla.view
+import pywin.scintilla.IDLEEnvironment
 
-class SyntEditDocument(EditorDocumentBase, CScintillaDocument):
+class SyntEditDocument(EditorDocumentBase):
 	"A SyntEdit document. "
-	def OnOpenDocument(self, filename):
-		rc = CScintillaDocument.OnOpenDocument(self, filename)
-		self._DocumentStateChanged()
-		return rc
-	def ReloadDocument(self):
-		EditorDocumentBase.ReloadDocument(self)
-		self._ApplyOptionalToViews("SCISetSavePoint")
-	# All Marker functions are 1 based.
-	def MarkerAdd( self, lineNo, marker ):
-		self._ApplyOptionalToViews("MarkerAdd", lineNo, marker)
-	def MarkerToggle( self, lineNo, marker ):
-		self._ApplyOptionalToViews("MarkerToggle", lineNo, marker)
-	def MarkerDelete( self, lineNo, marker ):
-		self._ApplyOptionalToViews("MarkerDelete", lineNo, marker)
-	def MarkerDeleteAll( self, marker ):
-		self._ApplyOptionalToViews("MarkerDeleteAll", marker)
-	def MarkerGetNext(self, lineNo, marker):
-		return self.GetFirstView().MarkerGetNext(lineNo, marker)
-	def MarkerAtLine(self, lineNo, marker):
-		return self.GetFirstView().MarkerAtLine(lineNo, marker)
 	def OnDebuggerStateChange(self, state):
 		self._ApplyOptionalToViews("OnDebuggerStateChange", state)
+	def HookViewNotifications(self, view):
+		EditorDocumentBase.HookViewNotifications(self, view)
+		view.SetReadOnly(self._IsReadOnly())
+		view.SCISetSavePoint()
+		view.SCISetUndoCollection(1)
+	def FinalizeViewCreation(self, view):
+		EditorDocumentBase.FinalizeViewCreation(self, view)
+		if view==self.GetFirstView():
+			self.GetDocTemplate().CheckIDLEMenus(view.idle)
 
 SyntEditViewParent=pywin.scintilla.view.CScintillaView
 class SyntEditView(SyntEditViewParent):
@@ -71,18 +61,32 @@ class SyntEditView(SyntEditViewParent):
 
 	def OnInitialUpdate(self):
 		SyntEditViewParent.OnInitialUpdate(self)
-		# set up styles
+
 		self.HookMessage(self.OnRClick,win32con.WM_RBUTTONDOWN)
 
+		for id in [win32ui.ID_VIEW_FOLD_COLLAPSE, win32ui.ID_VIEW_FOLD_COLLAPSE_ALL,
+				   win32ui.ID_VIEW_FOLD_EXPAND, win32ui.ID_VIEW_FOLD_EXPAND_ALL]:
+		
+			self.HookCommand(self.OnCmdViewFold, id)
+			self.HookCommandUpdate(self.OnUpdateViewFold, id)
+
 		# Define the markers
+		self.SCIMarkerDeleteAll()
 		self.SCIMarkerDefine(MARKER_BOOKMARK, SC_MARK_ROUNDRECT)
 		self.SCIMarkerSetBack(MARKER_BOOKMARK, win32api.RGB(0, 0xff, 0xff))
 		self.SCIMarkerSetFore(MARKER_BOOKMARK, win32api.RGB(0x0, 0x0, 0x0))
 
 		self.SCIMarkerDefine(MARKER_CURRENT, SC_MARK_ARROW)
-		self.SCIMarkerSetBack(MARKER_CURRENT, win32api.RGB(0, 0x7f, 0x7f))
+		self.SCIMarkerSetBack(MARKER_CURRENT, win32api.RGB(0xff, 0xff, 0x00))
 
-		self._UpdateUIForState()
+		# Define the folding markers
+		self.SCIMarkerDefine(SC_MARKNUM_FOLDEROPEN, SC_MARK_MINUS)
+		self.SCIMarkerSetFore(SC_MARKNUM_FOLDEROPEN, win32api.RGB(0xff, 0xff, 0xff))
+		self.SCIMarkerSetBack(SC_MARKNUM_FOLDEROPEN, win32api.RGB(0, 0, 0))
+		self.SCIMarkerDefine(SC_MARKNUM_FOLDER, SC_MARK_PLUS)
+		self.SCIMarkerSetFore(SC_MARKNUM_FOLDER, win32api.RGB(0xff, 0xff, 0xff))
+		self.SCIMarkerSetBack(SC_MARKNUM_FOLDER, win32api.RGB(0, 0, 0))
+
 		self.SCIMarkerDefine(MARKER_BREAKPOINT, SC_MARK_CIRCLE)
 		# Marker background depends on debugger state
 		self.SCIMarkerSetFore(MARKER_BREAKPOINT, win32api.RGB(0x0, 0, 0))
@@ -96,7 +100,6 @@ class SyntEditView(SyntEditViewParent):
 		except ImportError:
 			state = DBGSTATE_NOT_DEBUGGING
 		self.OnDebuggerStateChange(state)
-		self.GetDocument().GetDocTemplate().CheckIDLEMenus(self.idle)
 
 	def _GetSubConfigNames(self):
 		return ["editor"] # Allow [Keys:Editor] sections to be specific to us
@@ -108,6 +111,32 @@ class SyntEditView(SyntEditViewParent):
 		bUseTabs = GetEditorOption("Use Tabs", 0)
 		bSmartTabs = GetEditorOption("Smart Tabs", 1)
 		ext = self.idle.IDLEExtension("AutoIndent") # Required extension.
+
+		self.SCISetViewWS( GetEditorOption("View Whitespace", 0) )
+		self.SCISetViewEOL( GetEditorOption("View EOL", 0) )
+
+		width = GetEditorOption("Marker Margin Width", 16)
+		self.SCISetMarginWidthN(1, width)
+		width = GetEditorOption("Folding Margin Width", 12)
+		self.SCISetMarginWidthN(2, width)
+		width = GetEditorOption("Line Number Margin Width", 0)
+		self.SCISetMarginWidthN(0, width)
+		self.bFolding = GetEditorOption("Enable Folding", 1)
+		fold_flags = 0
+		self.SendScintilla(SCI_SETMODEVENTMASK, SC_MOD_CHANGEFOLD);
+		if self.bFolding:
+			if GetEditorOption("Fold Lines", 1):
+				fold_flags = 16
+
+		self.SCISetProperty("fold", self.bFolding)
+		self.SCISetFoldFlags(fold_flags)
+
+		tt_color = GetEditorOption("Tab Timmy Color", win32api.RGB(0xff, 0, 0))
+		self.SendScintilla(SCI_INDICSETFORE, 1, tt_color)
+
+		tt_use = GetEditorOption("Use Tab Timmy", 1)
+		if tt_use:
+			self.SCISetProperty("tab.timmy.whinge.level", "1")
 
 		# Auto-indent has very complicated behaviour.  In a nutshell, the only
 		# way to get sensible behaviour from it is to ensure tabwidth != indentsize.
@@ -145,21 +174,22 @@ class SyntEditView(SyntEditViewParent):
 			ext.config(usetabs=bUseTabs, tabwidth=tabSize, indentwidth=indentSize)
 		self.SCISetTabWidth(tabSize)
 
-		self.SCISetViewWS( GetEditorOption("View Whitespace", 0) )
-
 	def OnDebuggerStateChange(self, state):
 		if state == DBGSTATE_NOT_DEBUGGING:
 			# Indicate breakpoints arent really usable.
-			self.SCIMarkerSetBack(MARKER_BREAKPOINT, win32api.RGB(0xff, 0xff, 0xff))
+			# Not quite white - useful when no marker margin, so set as background color.
+			self.SCIMarkerSetBack(MARKER_BREAKPOINT, win32api.RGB(0xef, 0xef, 0xef))
 		else:
-			self.SCIMarkerSetBack(MARKER_BREAKPOINT, win32api.RGB(0x80, 0, 0))
+			# A light-red, so still readable when no marker margin.
+			self.SCIMarkerSetBack(MARKER_BREAKPOINT, win32api.RGB(0xff, 0x80, 0x80))
+
+	def HookDocumentHandlers(self):
+		SyntEditViewParent.HookDocumentHandlers(self)
+		self.HookMessage(self.OnCheckExternalDocumentUpdated,MSG_CHECK_EXTERNAL_FILE)
 
 	def HookHandlers(self):
 		SyntEditViewParent.HookHandlers(self)
-
-		self.HookMessage(self.OnCheckExternalDocumentUpdated,MSG_CHECK_EXTERNAL_FILE)
 		self.HookMessage(self.OnSetFocus, win32con.WM_SETFOCUS)
-		self.GetParentFrame().HookNotify(self.OnModifyAttemptRO, SCN_MODIFYATTEMPTRO)
 
 	def _PrepareUserStateChange(self):
 		return self.GetSel(), self.GetFirstVisibleLine()
@@ -172,37 +202,19 @@ class SyntEditView(SyntEditViewParent):
 		newPos = min(info[0][0], max), min(info[0][1], max)
 		self.SetSel(newPos)
 
-	def _UpdateUIForState(self):
-		self.SetReadOnly(self.GetDocument()._IsReadOnly())
-
-	def MarkerAdd( self, lineNo, marker ):
-		self.SCIMarkerAdd(lineNo-1, marker)
-
-	def MarkerAtLine(self, lineNo, marker):
-		markerState = self.SCIMarkerGet(lineNo-1)
-		return markerState & (1<<marker)
-
-	def MarkerToggle(self, lineNo, marker):
-		lineNo = lineNo - 1 # Make 0 based
-		markerState = self.SCIMarkerGet(lineNo)
-		if markerState & (1<<marker):
-			self.SCIMarkerDelete(lineNo, marker)
-		else:
-			self.SCIMarkerAdd(lineNo, marker)
-
-	def MarkerDelete(self, lineNo, marker ):
-		self.SCIMarkerDelete(lineNo-1, marker)
-
-	def MarkerDeleteAll( self, marker ):
-		self.SCIMarkerDeleteAll(marker)
-
-	def MarkerGetNext(self, lineNo, marker ):
-		return self.SCIMarkerNext( lineNo-1, 1 << marker )+1
 	#######################################
 	# The Windows Message or Notify handlers.
 	#######################################
-	def OnModifyAttemptRO(self, std, extra):
-		self.GetDocument().MakeDocumentWritable()
+	def OnMarginClick(self, std, extra):
+		notify = self.SCIUnpackNotifyMessage(extra)
+		if notify.margin==2: # Our fold margin
+			line_click = self.LineFromChar(notify.position)
+#			max_line = self.GetLineCount()
+			if self.SCIGetFoldLevel(line_click) & SC_FOLDLEVELHEADERFLAG:
+				# If a fold point.
+				self.Colorize()
+				self.SCIToggleFold(line_click)
+		return 1
 
 	def OnSetFocus(self,msg):
 		# Even though we use file change notifications, we should be very sure about it here.
@@ -243,19 +255,49 @@ class SyntEditView(SyntEditViewParent):
 		flags = win32con.TPM_LEFTALIGN|win32con.TPM_LEFTBUTTON|win32con.TPM_RIGHTBUTTON
 		menu.TrackPopupMenu(params[5], flags, self)
 		return 0
+	def OnCmdViewFold(self, cid, code): # Handle the menu command
+		if cid == win32ui.ID_VIEW_FOLD_EXPAND_ALL:
+			self.FoldExpandAllEvent(None)
+		elif cid == win32ui.ID_VIEW_FOLD_EXPAND:
+			self.FoldExpandEvent(None)
+		elif cid == win32ui.ID_VIEW_FOLD_COLLAPSE_ALL:
+			self.FoldCollapseAllEvent(None)
+		elif cid == win32ui.ID_VIEW_FOLD_COLLAPSE:
+			self.FoldCollapseEvent(None)
+		else:
+			print "Unknown collapse/expand ID"
+	def OnUpdateViewFold(self, cmdui): # Update the tick on the UI.
+		if not self.bFolding:
+			cmdui.Enable(0)
+			return
+
+		id = cmdui.m_nID
+		if id in [win32ui.ID_VIEW_FOLD_EXPAND_ALL, win32ui.ID_VIEW_FOLD_COLLAPSE_ALL]:
+			self.FoldExpandAllEvent(None)
+			cmdui.Enable()
+		else:
+			enable = 0
+			lineno = self.LineFromChar(self.GetSel()[0])
+			foldable = self.SCIGetFoldLevel(lineno) & SC_FOLDLEVELHEADERFLAG
+			is_expanded = self.SCIGetFoldExpanded(lineno)
+			if id == win32ui.ID_VIEW_FOLD_EXPAND:
+				if foldable and not is_expanded:
+					enable = 1
+			elif id == win32ui.ID_VIEW_FOLD_COLLAPSE:
+				if foldable and is_expanded:
+					enable = 1
+			cmdui.Enable(enable)
+	
 	#######################################
 	# The Events
 	#######################################
-	def _DoMarkerToggle(self, marker, pos = -1):
-		if pos==-1:
-			pos, end = self.GetSel()
-		startLine = self.LineFromChar(pos)
-		self.GetDocument().MarkerToggle(startLine+1, marker)
-
 	def ToggleBookmarkEvent(self, event, pos = -1):
 		"""Toggle a bookmark at the specified or current position
 		"""
-		self._DoMarkerToggle(MARKER_BOOKMARK)
+		if pos==-1:
+			pos, end = self.GetSel()
+		startLine = self.LineFromChar(pos)
+		self.GetDocument().MarkerToggle(startLine+1, MARKER_BOOKMARK)
 		return 0
 
 	def GotoNextBookmarkEvent(self, event, fromPos=-1):
@@ -264,12 +306,13 @@ class SyntEditView(SyntEditViewParent):
 		if fromPos==-1:
 			fromPos, end = self.GetSel()
 		startLine = self.LineFromChar(fromPos)+1 # Zero based line to start
-		nextLine = self.MarkerGetNext(startLine+1, MARKER_BOOKMARK)-1
+		nextLine = self.GetDocument().MarkerGetNext(startLine+1, MARKER_BOOKMARK)-1
 		if nextLine<0:
-			nextLine = self.MarkerGetNext(0, MARKER_BOOKMARK)-1
+			nextLine = self.GetDocument().MarkerGetNext(0, MARKER_BOOKMARK)-1
 		if nextLine <0 or nextLine == startLine-1:
 			win32api.MessageBeep()
 		else:
+			self.SCIEnsureVisible(nextLine)
 			self.SCIGotoLine(nextLine)
 		return 0
 
@@ -287,11 +330,93 @@ class SyntEditView(SyntEditViewParent):
 		import pywin.framework.interact
 		pywin.framework.interact.ShowInteractiveWindow()
 
+	def FoldTopLevelEvent(self, event = None):
+		win32ui.DoWaitCursor(1)
+		try:
+			self.Colorize()
+			maxLine = self.GetLineCount()
+			# Find the first line, and check out its state.
+			for lineSeek in xrange(maxLine):
+				if self.SCIGetFoldLevel(lineSeek) & SC_FOLDLEVELHEADERFLAG:
+					expanding = not self.SCIGetFoldExpanded(lineSeek)
+					break
+			else:
+				# no folds here!
+				return
+			for lineSeek in xrange(lineSeek, maxLine):
+				level = self.SCIGetFoldLevel(lineSeek)
+				level_no = level & SC_FOLDLEVELNUMBERMASK - SC_FOLDLEVELBASE
+				is_header = level & SC_FOLDLEVELHEADERFLAG
+	#			print lineSeek, level_no, is_header
+				if level_no == 0 and is_header:
+					if (expanding and not self.SCIGetFoldExpanded(lineSeek)) or \
+					   (not expanding and self.SCIGetFoldExpanded(lineSeek)):
+						self.SCIToggleFold(lineSeek)
+		finally:
+			win32ui.DoWaitCursor(-1)
+
+	def FoldExpandEvent(self, event):
+		if not self.bFolding:
+			win32api.MessageBeep()
+			return
+		win32ui.DoWaitCursor(1)
+		lineno = self.LineFromChar(self.GetSel()[0])
+		if self.SCIGetFoldLevel(lineno) & SC_FOLDLEVELHEADERFLAG and \
+				not self.SCIGetFoldExpanded(lineno):
+			self.SCIToggleFold(lineno)
+		win32ui.DoWaitCursor(-1)
+
+	def FoldExpandAllEvent(self, event):
+		if not self.bFolding:
+			win32api.MessageBeep()
+			return
+		win32ui.DoWaitCursor(1)
+		for lineno in xrange(0, self.GetLineCount()):
+			if self.SCIGetFoldLevel(lineno) & SC_FOLDLEVELHEADERFLAG and \
+					not self.SCIGetFoldExpanded(lineno):
+				self.SCIToggleFold(lineno)
+		win32ui.DoWaitCursor(-1)
+
+	def FoldCollapseEvent(self, event):
+		if not self.bFolding:
+			win32api.MessageBeep()
+			return
+		win32ui.DoWaitCursor(1)
+		self.Colorize()
+		lineno = self.LineFromChar(self.GetSel()[0])
+		if self.SCIGetFoldLevel(lineno) & SC_FOLDLEVELHEADERFLAG and \
+				self.SCIGetFoldExpanded(lineno):
+			self.SCIToggleFold(lineno)
+		win32ui.DoWaitCursor(-1)
+
+	def FoldCollapseAllEvent(self, event):
+		if not self.bFolding:
+			win32api.MessageBeep()
+			return
+		win32ui.DoWaitCursor(1)
+		self.Colorize()
+		for lineno in xrange(0, self.GetLineCount()):
+			if self.SCIGetFoldLevel(lineno) & SC_FOLDLEVELHEADERFLAG and \
+					self.SCIGetFoldExpanded(lineno):
+				self.SCIToggleFold(lineno)
+		win32ui.DoWaitCursor(-1)
+
+
+from pywin.framework.editor.frame import EditorFrame
+class SplitterFrame(EditorFrame):
+	def OnCreate(self, cs):
+		self.HookCommand(self.OnWindowSplit, win32ui.ID_WINDOW_SPLIT)
+		return 1
+	def OnWindowSplit(self, id, code):
+		self.GetDlgItem(win32ui.AFX_IDW_PANE_FIRST).DoKeyboardSplit()
+		return 1
+
 from pywin.framework.editor.template import EditorTemplateBase
 class SyntEditTemplate(EditorTemplateBase):
 	def __init__(self, res=win32ui.IDR_TEXTTYPE, makeDoc=None, makeFrame=None, makeView=None):
 		if makeDoc is None: makeDoc = SyntEditDocument
 		if makeView is None: makeView = SyntEditView
+		if makeFrame is None: makeFrame = SplitterFrame
 		self.bSetMenus = 0
 		EditorTemplateBase.__init__(self, res, makeDoc, makeFrame, makeView)
 

@@ -34,7 +34,7 @@ class EditorTemplateBase(ParentEditorTemplate):
 		"""Returns a list of property pages
 		"""
 		import configui
-		return [configui.EditorPropertyPage()]
+		return [configui.EditorPropertyPage(), configui.EditorWhitespacePropertyPage()]
 
 	def OpenDocumentFile(self, filename, bMakeVisible = 1):
 		if filename is not None:
