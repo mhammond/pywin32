@@ -202,24 +202,51 @@ bool Document::IsCrLf(int pos) {
 bool Document::IsDBCS(int pos) {
 #if PLAT_WIN
 	if (dbcsCodePage) {
-		// Anchor DBCS calculations at start of line because start of line can
-		// not be a DBCS trail byte.
-		int startLine = pos;
-		while (startLine > 0 && cb.CharAt(startLine) != '\r' && cb.CharAt(startLine) != '\n')
-			startLine--;
-		while (startLine <= pos) {
-			if (IsDBCSLeadByteEx(dbcsCodePage, cb.CharAt(startLine))) {
+		if (SC_CP_UTF8 == dbcsCodePage) {
+			unsigned char ch = static_cast<unsigned char>(cb.CharAt(pos));
+			return ch >= 0x80;
+		} else {
+			// Anchor DBCS calculations at start of line because start of line can
+			// not be a DBCS trail byte.
+			int startLine = pos;
+			while (startLine > 0 && cb.CharAt(startLine) != '\r' && cb.CharAt(startLine) != '\n')
+				startLine--;
+			while (startLine <= pos) {
+				if (IsDBCSLeadByteEx(dbcsCodePage, cb.CharAt(startLine))) {
+					startLine++;
+					if (startLine >= pos)
+						return true;
+				}
 				startLine++;
-				if (startLine >= pos)
-					return true;
 			}
-			startLine++;
 		}
 	}
 	return false;
 #else
 	return false;
 #endif
+}
+
+int Document::LenChar(int pos) {
+	if (IsCrLf(pos)) {
+		return 2;
+	} else if (SC_CP_UTF8 == dbcsCodePage) {
+		unsigned char ch = static_cast<unsigned char>(cb.CharAt(pos));
+		if (ch < 0x80)
+			return 1;
+		int len = 2;
+		if (ch >= (0x80+0x40+0x20))
+			len = 3;
+		int lengthDoc = Length();
+		if ((pos + len) > lengthDoc)
+			return lengthDoc-pos;
+		else 
+			return len;
+	} else if (IsDBCS(pos)) {
+		return 2;
+	} else {
+		return 1;
+	}
 }
 
 // Normalise a position so that it is not halfway through a two byte character.
@@ -253,29 +280,41 @@ int Document::MovePositionOutsideChar(int pos, int moveDir, bool checkLineEnd) {
 
 #if PLAT_WIN
 	if (dbcsCodePage) {
-		// Anchor DBCS calculations at start of line because start of line can
-		// not be a DBCS trail byte.
-		int startLine = pos;
-		while (startLine > 0 && cb.CharAt(startLine) != '\r' && cb.CharAt(startLine) != '\n')
-			startLine--;
-		bool atLeadByte = false;
-		while (startLine < pos) {
-			if (atLeadByte)
-				atLeadByte = false;
-			else if (IsDBCSLeadByteEx(dbcsCodePage, cb.CharAt(startLine)))
-				atLeadByte = true;
-			else
-				atLeadByte = false;
-			startLine++;
-			//Platform::DebugPrintf("DBCS %s\n", atlead ? "D" : "-");
-		}
+		if (SC_CP_UTF8 == dbcsCodePage) {
+			unsigned char ch = static_cast<unsigned char>(cb.CharAt(pos));
+			while ((pos > 0) && (pos < Length()) && (ch >= 0x80) && (ch < (0x80 + 0x40))) {
+				// ch is a trail byte
+				if (moveDir > 0)
+					pos++;
+				else 
+					pos--;
+				ch = static_cast<unsigned char>(cb.CharAt(pos));
+			}
+		} else {
+			// Anchor DBCS calculations at start of line because start of line can
+			// not be a DBCS trail byte.
+			int startLine = pos;
+			while (startLine > 0 && cb.CharAt(startLine) != '\r' && cb.CharAt(startLine) != '\n')
+				startLine--;
+			bool atLeadByte = false;
+			while (startLine < pos) {
+				if (atLeadByte)
+					atLeadByte = false;
+				else if (IsDBCSLeadByteEx(dbcsCodePage, cb.CharAt(startLine)))
+					atLeadByte = true;
+				else
+					atLeadByte = false;
+				startLine++;
+				//Platform::DebugPrintf("DBCS %s\n", atlead ? "D" : "-");
+			}
 
-		if (atLeadByte) {
-			// Position is between a lead byte and a trail byte
-			if (moveDir > 0)
-				return pos + 1;
-			else
-				return pos - 1;
+			if (atLeadByte) {
+				// Position is between a lead byte and a trail byte
+				if (moveDir > 0)
+					return pos + 1;
+				else
+					return pos - 1;
+			}
 		}
 	}
 #endif
@@ -440,13 +479,7 @@ void Document::ChangeChar(int pos, char ch) {
 }
 
 void Document::DelChar(int pos) {
-	if (IsCrLf(pos)) {
-		DeleteChars(pos, 2);
-	} else if (IsDBCS(pos)) {
-		DeleteChars(pos, 2);
-	} else if (pos < Length()) {
-		DeleteChars(pos, 1);
-	}
+	DeleteChars(pos, LenChar(pos));
 }
 
 int Document::DelCharBack(int pos) {
@@ -455,6 +488,10 @@ int Document::DelCharBack(int pos) {
 	} else if (IsCrLf(pos - 2)) {
 		DeleteChars(pos - 2, 2);
 		return pos - 2;
+	} else if (SC_CP_UTF8 == dbcsCodePage) {
+		int startChar = MovePositionOutsideChar(pos-1, -1, false);
+		DeleteChars(startChar, pos - startChar);
+		return startChar;
 	} else if (IsDBCS(pos - 1)) {
 		DeleteChars(pos - 2, 2);
 		return pos - 2;
@@ -529,6 +566,8 @@ void Document::ConvertLineEnds(int eolModeSet) {
 }
 
 bool Document::IsWordChar(unsigned char ch) {
+	if ((SC_CP_UTF8 == dbcsCodePage) && (ch >0x80))
+		return true;
 	return wordchars[ch];
 }
 
@@ -595,16 +634,14 @@ long Document::FindText(int minPos, int maxPos, const char *s, bool caseSensitiv
  	
 	// Compute actual search ranges needed
 	int lengthFind = strlen(s);
- 	int endSearch = 0;
+ 	int endSearch = endPos;
  	if (startPos <= endPos) {
  		endSearch = endPos - lengthFind + 1;
- 	} else {
- 		endSearch = endPos;
  	}
 	//Platform::DebugPrintf("Find %d %d %s %d\n", startPos, endPos, ft->lpstrText, lengthFind);
 	char firstChar = s[0];
 	if (!caseSensitive)
-		firstChar = toupper(firstChar);
+		firstChar = static_cast<char>(toupper(firstChar));
 	int pos = startPos;
 	while (forward ? (pos < endSearch) : (pos >= endSearch)) {
 		char ch = CharAt(pos);
@@ -653,15 +690,15 @@ void Document::ChangeCase(Range r, bool makeUpperCase) {
 	for (int pos=r.start; pos<r.end; pos++) {
 		char ch = CharAt(pos);
 		if (dbcsCodePage && IsDBCS(pos)) {
-			pos++;
+			pos += LenChar(pos);
 		} else {
 			if (makeUpperCase) {
 				if (islower(ch)) {
-					ChangeChar(pos, toupper(ch));
+					ChangeChar(pos, static_cast<char>(toupper(ch)));
 				}
 			} else {
 				if (isupper(ch)) {
-					ChangeChar(pos, tolower(ch));
+					ChangeChar(pos, static_cast<char>(tolower(ch)));
 				}
 			}
 		}

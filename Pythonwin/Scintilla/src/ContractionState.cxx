@@ -30,7 +30,6 @@ void ContractionState::MakeValid() const {
 	if (!valid) {
 		// Could be cleverer by keeping the index of the last still valid entry 
 		// rather than invalidating all.
-		int linePrev = -1;
 		int lineDisplay = 0;
 		for (int line=0; line<linesInDoc; line++) {
 			lines[line].displayLine = lineDisplay;

@@ -107,6 +107,9 @@ extern "C" {
 #define SCI_STARTSTYLING SCI_START + 32
 #define SCI_SETSTYLING SCI_START + 33
 
+// This is the same value as CP_UTF8 in Windows
+#define SC_CP_UTF8 65001
+
 #define SCI_SETBUFFEREDDRAW SCI_START + 35
 #define SCI_SETTABWIDTH SCI_START + 36
 #define SCI_SETCODEPAGE SCI_START + 37

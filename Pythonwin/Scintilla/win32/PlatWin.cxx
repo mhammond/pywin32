@@ -11,6 +11,7 @@
 
 #include "Platform.h"
 #include "PlatformRes.h"
+#include "UniConversion.h"
 
 Point Point::FromLong(long lpoint) {
 	return Point(static_cast<short>(LOWORD(lpoint)), static_cast<short>(HIWORD(lpoint)));
@@ -101,12 +102,12 @@ void Palette::Allocate(Window &) {
 		char *pal = new char[sizeof(LOGPALETTE) + (used-1) * sizeof(PALETTEENTRY)];
 		LOGPALETTE *logpal = reinterpret_cast<LOGPALETTE *>(pal);
 		logpal->palVersion = 0x300;
-		logpal->palNumEntries = used;
+		logpal->palNumEntries = static_cast<WORD>(used);
 		for (int iPal=0;iPal<used;iPal++) {
 			Colour desired = entries[iPal].desired;
-			logpal->palPalEntry[iPal].peRed   = desired.GetRed();
-			logpal->palPalEntry[iPal].peGreen = desired.GetGreen();
-			logpal->palPalEntry[iPal].peBlue  = desired.GetBlue();
+			logpal->palPalEntry[iPal].peRed   = static_cast<BYTE>(desired.GetRed());
+			logpal->palPalEntry[iPal].peGreen = static_cast<BYTE>(desired.GetGreen());
+			logpal->palPalEntry[iPal].peBlue  = static_cast<BYTE>(desired.GetBlue());
 			entries[iPal].allocated = 
 				PALETTERGB(desired.GetRed(), desired.GetGreen(), desired.GetBlue());
 			// PC_NOCOLLAPSE means exact colours allocated even when in background this means other windows 
@@ -135,7 +136,7 @@ void Font::Create(const char *faceName, int size, bool bold, bool italic) {
 	// The negative is to allow for leading
 	lf.lfHeight = -(abs(size));
 	lf.lfWeight = bold ? FW_BOLD : FW_NORMAL;
-	lf.lfItalic = italic ? 1 : 0;
+	lf.lfItalic = static_cast<BYTE>(italic ? 1 : 0);
 	lf.lfCharSet = DEFAULT_CHARSET;
 	strcpy(lf.lfFaceName, faceName);
 
@@ -293,7 +294,7 @@ void Surface::FillRectangle(PRectangle rc, Colour back) {
 }
 
 void Surface::FillRectangle(PRectangle rc, Surface &surfacePattern) {
-	HBRUSH br = 0;
+	HBRUSH br;
 	if (surfacePattern.bitmap)
 		br = ::CreatePatternBrush(surfacePattern.bitmap);
 	else	// Something is wrong so display in red
@@ -323,12 +324,21 @@ void Surface::Copy(PRectangle rc, Point from, Surface &surfaceSource) {
 		surfaceSource.hdc, from.x, from.y, SRCCOPY);
 }
 
+#define MAX_US_LEN 5000
+
 void Surface::DrawText(PRectangle rc, Font &font_, int ybase, const char *s, int len, Colour fore, Colour back) {
 	SetFont(font_);
 	::SetTextColor(hdc, fore.AsLong());
 	::SetBkColor(hdc, back.AsLong());
 	RECT rcw = RectFromPRectangle(rc);
-	::ExtTextOut(hdc, rc.left, ybase, ETO_OPAQUE, &rcw, s, len, NULL);
+	if (unicodeMode) {
+		wchar_t tbuf[MAX_US_LEN];
+		int tlen = UCS2FromUTF8(s, len, tbuf, sizeof(tbuf)/sizeof(wchar_t));
+		tbuf[tlen] = L'\0';
+		::ExtTextOutW(hdc, rc.left, ybase, ETO_OPAQUE, &rcw, tbuf, tlen, NULL);
+	} else {
+		::ExtTextOut(hdc, rc.left, ybase, ETO_OPAQUE, &rcw, s, len, NULL);
+	}
 }
 
 void Surface::DrawTextClipped(PRectangle rc, Font &font_, int ybase, const char *s, int len, Colour fore, Colour back) {
@@ -336,21 +346,75 @@ void Surface::DrawTextClipped(PRectangle rc, Font &font_, int ybase, const char 
 	::SetTextColor(hdc, fore.AsLong());
 	::SetBkColor(hdc, back.AsLong());
 	RECT rcw = RectFromPRectangle(rc);
-	::ExtTextOut(hdc, rc.left, ybase, ETO_OPAQUE | ETO_CLIPPED, &rcw, s, len, NULL);
+	if (unicodeMode) {
+		wchar_t tbuf[MAX_US_LEN];
+		int tlen = UCS2FromUTF8(s, len, tbuf, sizeof(tbuf)/sizeof(wchar_t));
+		tbuf[tlen] = L'\0';
+		::ExtTextOutW(hdc, rc.left, ybase, ETO_OPAQUE | ETO_CLIPPED, &rcw, tbuf, tlen, NULL);
+	} else {
+		::ExtTextOut(hdc, rc.left, ybase, ETO_OPAQUE | ETO_CLIPPED, &rcw, s, len, NULL);
+	}
 }
 
 int Surface::WidthText(Font &font_, const char *s, int len) {
 	SetFont(font_);
-	SIZE sz;
-	::GetTextExtentPoint32(hdc, s, len, &sz);
+	SIZE sz={0,0};
+	if (unicodeMode) {
+		int fit = 0;
+		wchar_t tbuf[MAX_US_LEN];
+		int tlen = UCS2FromUTF8(s, len, tbuf, sizeof(tbuf)/sizeof(wchar_t));
+		tbuf[tlen] = L'\0';
+		fit = tlen;
+		//::GetTextExtentPoint32W(hdc, tbuf, tlen, &sz);
+		if (!::GetTextExtentExPointW(hdc, tbuf, tlen, 30000, &fit, NULL, &sz)) {
+			DWORD dw = GetLastError();
+			Platform::DebugPrintf("Error for 1 GTEEPW %d\n", dw);
+		} else {
+			//Platform::DebugPrintf("OK 1 GTEEPW %d\n", len);
+		}
+	} else {
+		::GetTextExtentPoint32(hdc, s, len, &sz);
+	}
 	return sz.cx;
 }
 
 void Surface::MeasureWidths(Font &font_, const char *s, int len, int *positions) {
 	SetFont(font_);
-	SIZE sz;
+	SIZE sz={0,0};
 	int fit = 0;
-	::GetTextExtentExPoint(hdc, s, len, 30000, &fit, positions, &sz);
+	if (unicodeMode) {
+		wchar_t tbuf[MAX_US_LEN];
+		int tlen = UCS2FromUTF8(s, len, tbuf, sizeof(tbuf)/sizeof(wchar_t));
+		tbuf[tlen] = L'\0';
+		int poses[MAX_US_LEN];
+		fit = tlen;
+		SetLastError(0);
+		if (!::GetTextExtentExPointW(hdc, tbuf, tlen, 30000, &fit, poses, &sz)) {
+			DWORD dw = GetLastError();
+			Platform::DebugPrintf("Error for GTEEPW %d\n", dw);
+		} else {
+			//Platform::DebugPrintf("OK GTEEPW %d\n", len);
+		}
+		int ui=0;
+		const unsigned char *us = reinterpret_cast<const unsigned char *>(s);
+		int i=0;
+		while (i<len) {
+			unsigned char uch = us[i];
+			positions[i++] = poses[ui];
+			if (uch >= 0x80) {
+				if (uch < (0x80 + 0x40 + 0x20)) {
+					positions[i++] = poses[ui];
+				} else {
+					positions[i++] = poses[ui];
+					positions[i++] = poses[ui];
+				}
+			}
+			ui++;
+		}
+		positions[i] = sz.cx;
+	} else {
+		::GetTextExtentExPoint(hdc, s, len, 30000, &fit, positions, &sz);
+	}
 }
 
 int Surface::WidthChar(Font &font_, char ch) {
@@ -657,7 +721,7 @@ int Platform::Maximum(int a, int b) {
 		return b;
 }
 
-//#define TRACE
+#define TRACE
 
 void Platform::DebugPrintf(const char *format, ...) {
 #ifdef TRACE

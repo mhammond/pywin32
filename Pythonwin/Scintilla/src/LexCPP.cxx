@@ -17,7 +17,7 @@
 #include "Scintilla.h"
 #include "SciLexer.h"
 
-static bool classifyWordCpp(unsigned int start, unsigned int end, WordList &keywords, StylingContext &styler) {
+static bool classifyWordCpp(unsigned int start, unsigned int end, WordList &keywords, Accessor &styler) {
 	char s[100];
 	bool wordIsNumber = isdigit(styler[start]) || (styler[start] == '.');
 	bool wordIsUUID = false;
@@ -39,7 +39,7 @@ static bool classifyWordCpp(unsigned int start, unsigned int end, WordList &keyw
 }
 
 static void ColouriseCppDoc(unsigned int startPos, int length, int initStyle, WordList *keywordlists[], 
-	StylingContext &styler) {
+	Accessor &styler) {
 	
 	WordList &keywords = *keywordlists[0];
 	
@@ -163,7 +163,7 @@ static void ColouriseCppDoc(unsigned int startPos, int length, int initStyle, Wo
 				}
 			} else if (state == SCE_C_COMMENTDOC) {
 				if (ch == '/' && chPrev == '*') {
-					if (((i > styler.GetStartSegment() + 3) || (
+					if (((i > styler.GetStartSegment() + 2) || (
 						(initStyle == SCE_C_COMMENTDOC) && 
 						(styler.GetStartSegment() == static_cast<unsigned int>(startPos))))) {
 						styler.ColourTo(i, state);
@@ -252,4 +252,4 @@ static void ColouriseCppDoc(unsigned int startPos, int length, int initStyle, Wo
 	}
 }
 
-static LexerModule lmCPP(SCLEX_CPP, ColouriseCppDoc);
+LexerModule lmCPP(SCLEX_CPP, ColouriseCppDoc);

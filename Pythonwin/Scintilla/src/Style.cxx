@@ -16,6 +16,18 @@ Style::Style() {
 		false, false, false);
 }
 	
+Style::Style(const Style &source) {
+	Clear(Colour(0,0,0), Colour(0xff,0xff,0xff),
+	        0, 0,
+		false, false, false);
+	fore.desired = source.fore.desired;
+	back.desired = source.back.desired;
+	bold = source.bold;
+	italic = source.italic;
+	size = source.size;
+	eolFilled = source.eolFilled;
+}
+
 Style::~Style() {
 	if (aliasOfDefaultFont)
 		font.SetID(0);

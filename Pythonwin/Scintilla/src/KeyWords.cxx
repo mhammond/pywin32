@@ -26,7 +26,7 @@ LexerModule::LexerModule(int language_, LexerFunction fn_) :
 }
 
 void LexerModule::Colourise(unsigned int startPos, int lengthDoc, int initStyle,
-		int language, WordList *keywordlists[], StylingContext &styler) {
+		int language, WordList *keywordlists[], Accessor &styler) {
 	LexerModule *lm = base;
 	while (lm) {
 		if (lm->language == language) {

@@ -37,7 +37,8 @@ for most development although Visual C++ and Borland C++ are also supported.
 The make command used is 
 For GCC, make
 For VC++, nmake /f makefile_vc
-For Borland, make /f makefile_bor
+For Borland C++ 5.02 (MAKE Version 5.0), make -l -fmakefile_bor
+For Borland C++ Builder, make -fmakefile_bor
 
 To build Scintilla, make in the scintilla/gtk directory
 	cd scintilla\win32

@@ -79,10 +79,11 @@ public:
 	int position;
 	char *data;
 	int lenData;
+	bool mayCoalesce;
 
 	Action();
 	~Action();
-	void Create(actionType at_, int position_=0, char *data_=0, int lenData_=0);
+	void Create(actionType at_, int position_=0, char *data_=0, int lenData_=0, bool mayCoalesce_=true);
 	void Destroy();
 	void Grab(Action *source);
 };
@@ -171,7 +172,7 @@ public:
 	
 	// Setting styles for positions outside the range of the buffer is safe and has no effect.
 	// True is returned if the style of a character changed.
-	bool SetStyleAt(int position, char style, char mask=(char)0xff);
+	bool SetStyleAt(int position, char style, char mask='\377');
 	bool SetStyleFor(int position, int length, char style, char mask);
 	
 	const char *DeleteChars(int position, int deleteLength);
