@@ -5,8 +5,8 @@ xmlns="http://www.w3.org/TR/REC-html40">
 
 <head>
 <meta http-equiv=Content-Type content="text/html; charset=windows-1252">
-<meta name=ProgId content=Word.Document>
-<meta name=Generator content="Microsoft Word 9">
+<meta name=ProgId content=FrontPage.Editor.Document>
+<meta name=Generator content="Microsoft FrontPage 4.0">
 <meta name=Originator content="Microsoft Word 9">
 <link rel=File-List href="./readme_files/filelist.xml">
 <link rel=Edit-Time-Data href="./readme_files/editdata.mso">
@@ -87,6 +87,39 @@ scripts (and a new <a href="test\readme.txt">readme.txt</a>). Although these
 are used for testing, they do show a variety of COM techniques.</p>
 
 <h3>Recent Changes</h3>
+
+<h4>win32all-129 changes</h4>
+
+<p>We now have complete support for COM structures.&nbsp; To take advantage of
+this, you need a late version of COM (Windows 2000, 98, Windows 95 with DCOM95
+1.2, or Window NT 4.0 with <font style="BACKGROUND-COLOR: #0a246a" color="#ffffff">Service
+Pack</font> 4).&nbsp; You can receive structures from any COM object, and reference the structure's
+elements by name (eg, <i>struct.int_val</i>).&nbsp; Once you have a structure,
+you can pass it to any other function, but currently there is no simple way to
+create Record objects in Python.&nbsp; Records work with or without makepy
+support for an object.</p>
+
+<p>We support demand-building of <i>makepy</i> files.&nbsp; When a <i>makepy</i>
+file is built in this way, instead of a single file being generated in the
+gencache, a Python package is created.&nbsp; In the package <i>__init__</i> file
+is all the information you would normally find in a <i>makepy</i> file, except
+for the classes!&nbsp; As an object is needed at runtime, <i>makepy</i> is run
+again to generate only the specific class requested, into a separate file in the
+package.&nbsp; This has significant advantages when loading huge type libraries
+- you get all the benefits of <i>makepy</i>, but don't have to suffer the huge
+delay running <i>makepy</i>.&nbsp; Indeed, there are some type libraries that
+are too large to run <i>makepy</i> at all - this solves that problem.</p>
+
+<p>This new demand-building feature is not enabled by default - you must run <i>makepy
+-d</i>, or specify the new <i>bForDemand</i> parameter to the <i>gencache</i>
+functions.&nbsp; It is expected that in the future the existing code will be
+dropped in favour of this package mechanism (although we will always retain the
+option to generate the entire package at the start, as <i>makepy</i> does now)</p>
+
+<p><i>makepy</i> generated code should be even faster now - many of the run-time
+type conversions that the previous version performed have been optimized away (<i>makepy</i>
+already knows the return type of many functions - there was no need for it to
+check these types at runtime)</p>
 
 <h4>win32all-128 changes</h4>
 
