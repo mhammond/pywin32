@@ -266,6 +266,7 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
 			result = PyInt_FromLong(V_I4(&varValue));
 			break;
 
+		case VT_HRESULT:
 		case VT_ERROR:
 			result = PyInt_FromLong(V_ERROR(&varValue));
 			break;
@@ -1148,6 +1149,16 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 	case VT_ERROR:
 		V_ERROR(var) = DISP_E_PARAMNOTFOUND; // should this be PyObject_Int??
 		break;
+	case VT_ERROR | VT_BYREF:
+		if (bCreateBuffers)
+			V_ERRORREF(var) = &m_lBuf;
+
+		if (!VALID_BYREF_MISSING(obj)) {
+			if ((obUse=PyNumber_Int(obj))==NULL) BREAK_FALSE
+			*V_ERRORREF(var) = PyInt_AsLong(obUse);
+		} else
+			*V_ERRORREF(var) = 0;
+		break;
 	case VT_EMPTY:
 		if (obj != Py_None) {
 			PyErr_SetString(PyExc_TypeError, "None must be used for VT_EMPTY variables.");
@@ -1161,7 +1172,9 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 	default:
 		// could try default, but this error indicates we need to
 		// beef up the VARIANT support, rather than default.
-		OleSetTypeError("The VARIANT type is unknown.");
+		TCHAR buf[200];
+		wsprintf(buf, _T("The VARIANT type is unknown (%08lx)"), m_reqdType);
+		OleSetTypeErrorT(buf);
 		rc = FALSE;
 		break;
 	}
