@@ -1,0 +1,91 @@
+<HTML>
+<HEAD>
+<META NAME="GENERATOR" Content="SciTE">
+<META HTTP-EQUIV="Content-Type" content="text/html; charset=iso-8859-1">
+<TITLE>Scintilla and SciTE</TITLE>
+</HEAD>
+<BODY>
+<TABLE bgcolor="#000080" width="100%" cellspacing="0" cellpadding="5" border="0"'>
+<TR><TD>
+	<FONT color="#FFFFFF" size="6">
+		Scintilla and SciTE
+	</FONT>
+		<IMG src="SciTEIco.png">
+	</TD>
+</TD></TR>
+</TABLE>
+<P></P>
+<H2>History of Scintilla and SciTE</H2>
+<H3>Release 1.0</H3>
+	<P>Released on 17 May 1999. </P>
+	<P>Changed name of "Tide" to "SciTE" to avoid clash with a TCL based 
+	IDE. "SciTE" is a SCIntilla based Text Editor and is Latin meaning 
+	something like "understanding in a neat way" and is also an Old 
+	English version of the word "shit".</P>
+	<P>There is a SCI_AUTOCSTOPS message for defining a string of characters 
+	that will stop autocompletion mode. Autocompletion mode is cancelled when 
+	any cursor movement occurs apart from backspace.</P>
+	<P>GTK+ version now splits horizontally as well as vertically and all dialogs
+	cancel when the escape key is pressed.
+	</P>
+<H3>Beta release 0.93</H3>
+	<P>Released on 12 May 1999. </P>
+	<P>A bit more robust than 0.92 and supports SCI_MARKERNEXT 
+	message.
+	</P>
+<H3>Beta release 0.92</H3>
+	<P>Released on 11 May 1999. </P>
+	<P>GTK+ version now contains all features of Windows version 
+	with some very small differences. Executing programs works much better now.</P>
+	<P>New palette code to allow more colours to be displayed in 256 colour
+	screen modes. A line number column can be displayed to the left of the 
+	selection margin.</P>
+	<P>The code that maps from line numbers to text positions and back 
+	has been completely rewritten to be faster, and to allow markers to move 
+	with the text.</P>
+<H3>Beta release 0.91</H3>
+	<P>Released on 30 April 1999, containing fixes to text measuring to make Scintilla work
+	better with bitmap fonts. Also some small fixes to make compiling work with Visual C++.
+	</P>
+<H3>Beta release 0.90</H3>
+	<P>Released on 29 April 1999, containing working GTK+/Linux version.
+	</P>
+	<P>The Java, C++ and Python lexers recognise operators as distinct from
+	default allowing them to be highlighted.
+	</P>
+<H3>Beta release 0.82</H3>
+	<P>Released on 1 April 1999, to fix a problem with handling the Enter key in PythonWin.
+	Also fixes some problems with cmd key mapping.
+	</P>
+<H3>Beta release 0.81</H3>
+	<P>Released on 30th March 1999, containing bug fixes and a few more features.</P>
+	<P>Static linking supported and Tidy.EXE, a statically linked version of Tide.EXE. 
+	Changes to compiler flags in the makefiles to optimise for size.</P>
+	<P>Scintilla supports a 'savepoint' in the undo stack which can be set by the 
+	container when the document is saved. 
+	Notifications are sent to the container when the savepoint is entered or left, allowing 
+	the container to to display a dirty indicator and change its menues.</P>
+	<P>When Scintilla is set to read-only mode, a notification is sent to the
+	container should the user try to edit the document. This can be used to check the 
+	document out of a version control system.</P>
+	<P>There is an API for setting the appearence of indicators.</P>
+	<P>The keyboard mapping can be redefined or removed so it can be 
+	implemented completely by the container. All of the keyboard commands are now 
+	commands which can be sent by the container.</P>
+	<P>A home command like Visual C++ with one hit going to the start of the text on the 
+	line and the next going to the left margin is available. I do not personally like this
+	but my fingers have become trained to it by much repetition.</P>
+	<P>SCI_MARKERDELETEALL has an argument in wParam which is the number of the type
+	marker to delete with -1 performing the old action of removing all marker types.</P>
+	<P>Tide now understands both the file name and line numbers in error messages in 
+	most cases.</P>
+	<P>Tide remembers the current lines of files in the recently used list.</P>
+	<P>Tide has a Find in Files command.</P>
+<H3>Beta release 0.80</H3>
+	<P>This was the first public release on 14th March 1999, containing a mostly working Win32 
+	Scintilla DLL and Tide EXE.</P>
+<H3>Beta releases of SciTE were called Tide</H3>
+<P>
+</P>
+</BODY>
+</HTML>

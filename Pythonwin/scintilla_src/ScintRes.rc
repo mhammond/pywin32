@@ -1,0 +1,35 @@
+// Resource file for Scintilla
+// Copyright 1998-1999 by Neil Hodgson <neilh@hare.net.au>
+// The License.txt file describes the conditions under which this software may be distributed.
+
+#include <windows.h>
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION	1, 0, 0, 0
+PRODUCTVERSION	1, 0, 0, 0
+FILEFLAGSMASK	0x3fL
+FILEFLAGS 0
+FILEOS VOS_DOS_WINDOWS32
+FILETYPE VFT_APP
+FILESUBTYPE VFT2_UNKNOWN
+BEGIN
+	BLOCK	"VarFileInfo"
+	BEGIN
+		VALUE	"Translation",	0x409,	1252
+	END
+	BLOCK	"StringFileInfo"
+	BEGIN
+		BLOCK "040904e4\0"
+		BEGIN
+			VALUE	"CompanyName",	"Neil Hodgson\0"
+			VALUE	"FileDescription",	"Scintilla.DLL - a Source Editing Component\0"
+			VALUE	"FileVersion",	"1.0\0"
+			VALUE	"InternalName",	"Scintilla\0"
+			VALUE	"LegalCopyright",	"Copyright 1998-1999 by Neil Hodgson <neilh@hare.net.au>\0"
+			VALUE	"OriginalFilename",	"Scintilla.DLL\0"
+			VALUE	"ProductName",	"Scintilla\0"
+			VALUE	"ProductVersion",	"1.0\0"
+		END
+	END
+END
+

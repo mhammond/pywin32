@@ -1,0 +1,66 @@
+# Marks Hammond's version for Pythonwin.
+# Builds the DLL into the same directory as the Pythonwin binaries.
+# The scintilla directory should be under the Pythonwin directory.
+# Thus, your tree should look like:
+# Pythonwin\*.cpp - existing Pythonwin sources
+# Pythonwin\build - Where pythonwin binaries go.
+# Pythonwin\scintilla - Directory of this file and scintilla sources.
+#
+# This makefile will place binaries and obj files in the Pythonwin build tree.
+
+# Make file for Scintilla and Tide, Windows Visual C++ version
+# Copyright 1998-1999 by Neil Hodgson <neilh@hare.net.au>
+# The License.txt file describes the conditions under which this software may be distributed.
+# This makefile is for using Visual C++ and nmake. 
+
+TEMP_DIR=../Build/Temp/Scintilla
+BUILD_DIR=../Build
+
+CC      = cl
+O		= obj
+PROG	= Tide.EXE
+PROGSTATIC = Tidy.EXE
+COMPONENT = $(BUILD_DIR)/Scintilla.DLL
+LDBASE = KERNEL32.lib USER32.lib GDI32.lib COMDLG32.lib WINMM.lib COMCTL32.lib ADVAPI32.lib
+
+!ifdef DEBUG
+CPPFLAGS = /TP /MD /Zi /Fo$*.$(O)
+LDFLAGS = $(LDBASE) /DEBUG
+!else
+CPPFLAGS = /TP /MD /Ox /Fo$*.$(O)
+LDFLAGS = $(LDBASE)
+!endif
+
+OBJS	= Tide.$(O) KeyWords.$(O) PropSet.$(O)
+OBJSSTATIC = Tidy.$(O) KeyWords.$(O) PropSet.$(O) ScintillaS.$(O) Document.$(O) CallTip.$(O)
+
+ALL:	before $(COMPONENT)
+
+before:
+	@if not exist $(TEMP_DIR) mkdir "$(TEMP_DIR)"
+	@if not exist $(BUILD_DIR) mkdir "$(BUILD_DIR)"
+
+$(TEMP_DIR)/Tide.$(O): Tide.cc
+	cl $(CPPFLAGS) /c $(*B).cc
+$(TEMP_DIR)/Tidy.$(O): Tide.cc
+	cl $(CPPFLAGS) /D STATIC_BUILD /c Tide.cc
+$(TEMP_DIR)/KeyWords.$(O):	KeyWords.cc
+	cl $(CPPFLAGS) /c $(*B).cc
+$(TEMP_DIR)/PropSet.$(O):	PropSet.cc
+	cl $(CPPFLAGS) /c $(*B).cc
+$(TEMP_DIR)/Scintilla.$(O):	Scintilla.cc
+	cl $(CPPFLAGS) /c $(*B).cc
+$(TEMP_DIR)/ScintillaS.$(O):	Scintilla.cc
+	cl $(CPPFLAGS) /D STATIC_BUILD /c Scintilla.cc /FoScintillaS.$(O)
+$(TEMP_DIR)/Document.$(O):	Document.cc
+	cl $(CPPFLAGS) /c $(*B).cc
+$(TEMP_DIR)/CallTip.$(O):	CallTip.cc
+	cl $(CPPFLAGS) /c $(*B).cc
+$(TEMP_DIR)/PlatWin.$(O):	PlatWin.cc
+	cl $(CPPFLAGS) /c $(*B).cc
+
+$(COMPONENT): $(TEMP_DIR)/Scintilla.$(O) $(TEMP_DIR)/PlatWin.$(O) $(TEMP_DIR)/Document.$(O) $(TEMP_DIR)/CallTip.$(O) $(TEMP_DIR)/ScintRes.res
+	link $** $(LDFLAGS) /DLL /OUT:$(COMPONENT) 
+
+$(TEMP_DIR)/ScintRes.res:	ScintRes.rc
+	rc /fo$*.res ScintRes.rc

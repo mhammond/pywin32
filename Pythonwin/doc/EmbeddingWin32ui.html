@@ -1,0 +1,132 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<META NAME="Generator" CONTENT="Microsoft Word 97">
+<TITLE>Embedding Pythonwin</TITLE>
+<META NAME="Template" CONTENT="D:\Program Files\Microsoft Office\Office\html.dot">
+</HEAD>
+<BODY LINK="#0000ff" VLINK="#800080">
+
+<H1><IMG SRC="pythonwin.gif" WIDTH=64 HEIGHT=64>Embedding Pythonwin.</H1>
+<P>Pythonwin is distributed as 2 key components - Pythonwin.exe and win32ui.pyd. Win32ui.pyd contains the raw functionality of Pythonwin - Pythonwin.exe is a simple "wrapper" .exe that hosts win32ui.pyd. </P>
+<P>This document describes how to embed the win32ui extension module in your own application. </P>
+<H2>Limitations. </H2>
+<P>The biggest limitations you will find are that a host application must </P>
+
+<UL>
+<LI>Have some small changes made to the application source to fully support win32ui command handling and routing (although most things work without modification) </LI>
+<LI>Be an MFC application </LI></UL>
+
+<P>Below is some example code needed to embed win32ui in your application.. </P>
+<H2>Changes to the application. </H2>
+<H3>Subclass a Win32uiHostGlue class </H3>
+<P>You must instantiate a Win32uiHostGlue class. This class is used as a glue between win32ui.pyd and the host .exe, and is defined in Win32uiHostGlue.h </P>
+<P>Currently, this consists of about 5 methods that must be called by your application. The principle is that the Application must hook certain handlers, and delegate them to the HostGlue class. This will ensure the appropriate Win32ui internals are called. </P>
+<H2>Embedding win32ui Architecture </H2>
+<H3>win32uihostglue.h</H3>
+<P>The win32uihostglue.h module defines a class which makes interfacing fairly simple. This Win32uiHostGlue class is used as a glue between win32ui.pyd and the host .exe. In the most simple case, you need to instantiate one of the classes, and at certain key points in your CWinApp derived class, call the appropriate methods. You may choose to provide your own glue class derived from Win32uiHostGlue in certain cases. </P>
+<P>Below is an example class, which overrides the "SetStatusText" method, so that status information displays in the applications status bar (this is only necessary if your application has a "non standard" status bar - normally you could omit this.). </P>
+<PRE>GameApp NEAR theApp; // My existing CWinApp derived class. 
+// HostGlue class. 
+
+class GameHostGlue : public Win32uiHostGlue 
+{ 
+  virtual void SetStatusText(const char *text, BOOL bForce) 
+    // Assuming our GameApp above defines a SetStatusText method 
+    {GetApp()-&gt;SetStatusText(text, bForce);} 
+};
+
+// The one and only Glue object. 
+GameHostGlue NEAR glue; </PRE>
+<P>And now we are well on our way. </P>
+<H3>Delegating to win32uiHostGlue</H3>
+<P>You need to either implement, or modify, certain key methods of your Application object. Probably the most important is the call to initialise win32ui. You need to modify your CWinApp::InitInstance method (it is almost certain you already have one). The following code needs to be executed in this method: </P>
+<H4>InitInstance</H4>
+<PRE>BOOL GameApp::InitInstance() 
+{ 
+... 
+  if (!glue.DynamicApplicationInit("import initscore", csScripts)) { 
+  // Assuming you have a ReportError method - do whatever makes sense! 
+    ReportError("Could not attach to the Python win32ui extensions"); 
+    return FALSE; 
+  } 
+... </PRE>
+<P>Note the following: </P>
+
+<UL>
+<LI>The first param - "import initscore" is the Python command that will be executed to kick in the Python side of the world. For Pythonwin, this is "import pywin.framework.startup" - see "initscore.py" below. </LI>
+<LI>The second param may be empty or NULL, and defines an additional PythonPath to be added. This is useful if you do not want your application .py/.pyd files on the main PythonPath. In the example above, code not shown loads csScripts from the applications INI file. </LI>
+<LI>The example above assumes the Python code is <I>not</I> responsible for creating the main application window. In the case of Pythonwin (where the Python code <I>does</I> create the main window) this call actually appears in InitApplication() for the CWinApp class. The example above assumes you have existing C++ code which creates the main frame window. Your Python code could create child windows, as the initscore.py file demonstrates. </LI></UL>
+
+<H4>And the Rest</H4>
+<P>Below is the rest of the code you need to implement. You may need to create these methods, as the AppWizard generated MFC application does not have some. </P>
+<PRE>BOOL 
+GameApp::OnCmdMsg (UINT nID, int nCode, 
+void* pExtra, AFX_CMDHANDLERINFO*pHandlerInfo) 
+{ 
+  // yield to Python first - send to the main frame, as there is no Python app object. 
+  if (glue.OnCmdMsg (m_pMainWnd, nID, nCode, pExtra, pHandlerInfo)) 
+    return TRUE; 
+  else 
+    return CWinApp::OnCmdMsg (nID, nCode, pExtra, pHandlerInfo); 
+} 
+
+BOOL GameApp::PreTranslateMessage(MSG *pMsg) 
+{ 
+  if (glue.PreTranslateMessage(pMsg)) 
+    return TRUE; 
+  else 
+    return CWinApp::PreTranslateMessage(pMsg); 
+} 
+BOOL GameApp::OnIdle( LONG lCount ) 
+{ 
+  // call base class idle first 
+  if (CWinApp::OnIdle(lCount)) 
+    return TRUE; 
+  return glue.OnIdle(lCount); 
+} </PRE>
+
+<UL>
+<H3><LI>initscore.py</LI></H3>
+<LI>Below is the code for initscore.py. Obviously your code will vary, depending on your requirements. </LI></UL>
+
+<PRE>import sys 
+import win32ui 
+# First step - redirect python output to the debugging device, until we 
+# can create a window to capture it. 
+
+# Note that this is only useful while debugging, and simply sends any 
+# Python output (ie, exceptions while developing the startup code) is 
+# printed to the MSVC debugger. Note that since this code was written, 
+# the win32trace module has appeared, giving another alternative to 
+# debugging this code. 
+class DebugOutput: 
+  softspace=1 
+  def write(self,message): 
+    win32ui.OutputDebug(message) 
+sys.stderr=sys.stdout=DebugOutput() 
+
+# One of your first priorities should be to set sys.stdout to somewhere useful,
+# depending on what useful means to your application. This code simply creates 
+# the Pythonwin Interactive Window, which handles this automatically. 
+
+# Now here is the code that does the real work. 
+import win32con </PRE>
+<FONT FACE="Courier New" SIZE=2><P>from pywin.framework import intpyapp, app</P>
+</FONT><PRE>
+class ScoreApp(intpyapp.InteractivePythonApp):
+  def InitInstance(self):
+    # Call the base class (if you want)
+    intpyapp.InteractivePythonApp.InitInstance(self)
+    # Do domething useful, specific to your app.
+    # Here, we minimise the interactive window.
+    # (after painting the main frame)
+    win32ui.PumpWaitingMessages()
+    interact.edit.currentView.GetParent().ShowWindow(win32con.SW_MINIMIZE)
+
+#  def OnExitInstance(self):
+#    return 0
+    
+app = ScoreApp()</PRE>
+<P>And we are done </P></BODY>
+</HTML>

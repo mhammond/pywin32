@@ -1,0 +1,102 @@
+<HTML>
+<HEAD>
+<META NAME="GENERATOR" Content="SciTE">
+<META HTTP-EQUIV="Content-Type" content="text/html; charset=iso-8859-1">
+<TITLE>Scintilla and SciTE</TITLE>
+</HEAD>
+<BODY>
+<TABLE bgcolor="#000080" width="100%" cellspacing="0" cellpadding="5" border="0"'>
+<TR><TD>
+	<FONT color="#FFFFFF" size="6">
+		Scintilla and SciTE
+	</FONT>
+	</TD>
+	<TD>
+		<IMG src="SciTEIco.png">
+	</TD>
+	<TD>
+	<FONT color="#FFFFFF" size="1">
+		Release version 1.0. <BR>
+		Site last modified May 17 1999.
+	</FONT>
+	</TD>
+</TD></TR>
+</TABLE>
+<P>
+	<DIV style='background:#FFCC66'>
+		Scintilla and SciTE are no longer beta - this means that I think
+		they are fairly stable and are unlikely to crash under normal
+		use. There will certainly still be bugs in there so watch out for them 
+		and please send me mail if you see one.<BR>
+		I am going on an overseas holiday until mid September and will 
+		not have an opportunity to do much coding work on this project
+		while away. 
+		I'll still be reading my email whenever possible, although less 
+		frequently, possibly once a week depending on where 'net access
+		can be found.<BR>
+		The name of the editor application has changed from "Tide" to 
+		"SciTE" to avoid confusion with a TCL based IDE.
+	</DIV>
+</P>
+<P>
+	<A href="ScintillaDoc.html">Scintilla</A> is a free source code editing component. 
+	As well as features found in standard text editing components, Scintilla includes 
+	features especially useful when editing and debugging source code.
+	These include support for syntax styling, error indicators, code completion and
+	call tips. 
+	The selection margin can contain markers like those used 
+	in debuggers to indicate breakpoints and the current line.
+	Styling choices are more open than with many editors, allowing the use of 
+	proportional fonts, bold and italics, multiple foreground and background
+	colours and multiple fonts.<BR>
+	It comes with complete source code and may be used in any free project or 
+	commercial product. 
+</P>
+<P>
+	<A href="SciTEDoc.html">SciTE</A> is a SCIntilla based Text Editor.
+	Originally built to demonstrate Scintilla, it has grown to be a generally useful 
+	editor with facilities for building and running programs. 
+	It is best used for jobs with simple configurations - I use it for building test and
+	demonstration programs as well as SciTE and Scintilla, themselves.
+</P>
+<P>
+	Development of Scintilla started as an effort to improve the text 
+	editor in PythonWin. After being frustrated by problems in the Richedit 
+	control used by PythonWin, it looked like the best way forward was to 
+	write a new edit control.
+	The biggest problem with Richedit and other similar controls is that they treat
+	styling changes as important persistent changes to the document so they are 
+	saved into the undo stack and set the document's dirty flag. For source code, 
+	styling should not be persisted as it can be mechanically recreated. <BR>
+	<A href="http://starship.python.net/crew/mhammond/">PythonWin builds 124 
+	and 125</A> include copies of Scintilla. <BR>
+	In general, the best strategy to use with combining Scintilla and PythonWin 
+	is to use the version of Scintilla included with PythonWin as newer versions
+	may not be compatible.<BR>
+	Scintilla 1.0 is not compatible with PythonWin 125, but should be 
+	compatible with PythonWin 126.
+</P>
+<P>
+	Scintilla and SciTE are currently available for Intel Win32 and Linux with GTK+.
+	They have been run on Windows 95, NT, and Red Hat Linux 4.2 with GTK+ 1.2.0. 
+	<A href="SciTEImage.html">Here is a screenshot of SciTE. </A><BR>
+</P>
+<P>
+	You can <A href="ScintillaDownload.html">download 
+	Scintilla and SciTE.</A>
+</P>
+<P>
+	<A href="ScintillaRelated.html">Related sites.</A>
+</P>
+<P>
+	<A href="ScintillaToDo.html">Bugs and To Do list.</A>
+</P>
+<P>
+	<A href="ScintillaHistory.html">History.</A>
+</P>
+<P>
+	You can write to me, <A href="mailto:neilh@hare.net.au">Neil Hodgson</A>, 
+	at neilh@hare.net.au.
+</P>
+</BODY>
+</HTML>

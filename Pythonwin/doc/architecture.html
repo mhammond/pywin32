@@ -1,0 +1,66 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<META NAME="Generator" CONTENT="Microsoft Word 97">
+<TITLE>Pythonwin's architecture</TITLE>
+<META NAME="Template" CONTENT="D:\Program Files\Microsoft Office\Office\html.dot">
+</HEAD>
+<BODY LINK="#0000ff" VLINK="#800080">
+
+<H1><IMG SRC="pythonwin.gif" WIDTH=64 HEIGHT=64>Pythonwin's architecture. </H1>
+<H2>Introduction </H2>
+<P>This document describes the general architecture of Pythonwin. It describes the general design and interface to MFC. </P>
+<P>After reading this, you should read the <A HREF="docview.html">document and view architecture documentation</A>. </P>
+<H2>Objects, types, etc. </H2>
+<P>For each MFC object created, there are usually 3 "objects" floating around. Although this may initially seem confusing, it does provide significant flexibility. </P>
+<P>In general this complexity is hidden from view. The programmer usually only ever deals with a single object, and this object manages all others. However, an understanding if the implementation will assist in advanced programming techniques. </P>
+<P>There is a quick <A HREF="#Example">example</A> which shows all this in action. </P>
+<H3>C++ objects </H3>
+<P>For every window, toolbar, document etc. that exists in Pythonwin, there is a C++ object. In some cases this object may be a standard MFC object, as found in the MFC DLL's. In other cases, the C++ object will be derived from a standard MFC object, and can be found in win32ui.pyd. </P>
+<P>Often, these C++ objects will not be aware that there is Python support behind them. </P>
+<H3>win32ui types. </H3>
+<P>The win32ui module provides a large number of types, each one usually associated with an MFC C++ object.. The naming conventions for these objects is of the form "Py{MFC_Name}" - eg, PyCDocument provides the functionality of an MFC CDocument, PyCDialog for a CDialog. </P>
+<P>There is a form of inheritance used for these objects. Each object provides methods from its derived class. A PyCDialog is derived from a PyCWnd, and therefore has all PyCWnd methods available. However, this is as far as the inheritance extends, as Python types are more restrictive than Python classes. </P>
+<P>Each method that a win32ui type provides is generally just code for extracting Python arguments and making the call to the associated C++ object. </P>
+<P>These objects and methods are defined in Pythonwin.hlp (available from the Pythonwin help menu.) </P>
+<H3>"Object" base class </H3>
+<P>In object.py, there is a base class "Object". This provides 2 key functions. </P>
+
+<UL>
+<LI>Its constructor (__init__ method) registers the class with a win32ui type object (see below). This allows all virtual methods (see below) to be handled by a class method. </LI>
+<LI>It allows itself to look exactly like the underlying win32ui type. It does this by storing the win32ui object in self._obj_, and providing a __getattr__ method. See the standard Python documentation for information on __getattr__ in a Python class. </LI></UL>
+
+<P>The end result of this is that a class derived from "Object" looks just like a win32ui object, and can be used as such. In fact, there is rarely a reason to use the underlying object directly. </P>
+<H3>Python Classes </H3>
+<P>If you like you can skip this, and jump straight to the example below. It makes more sense in action! </P>
+<P>Pythonwin provides support for many "virtual" functions. A "virtual" function is defined as <I>a virtual C++ MFC function which has deferred its implementation to a Python object</I>. To explain, I will use the example of a document. </P>
+<P>In Python, it is possible to create a PyCDialog object by using win32ui.CreateDialog(). This will create both a PyCDialog object, and a C++ CDialog object. For dialogs to be useful to a programmer, it must be possible to define a method to be called when the dialog initialises (i.e., when the C++ OnInitDialog virtual method is called). Normally, a programmer would initialise the values of controls etc. at this time. To support this, the C++ OnInitDialog implementation calls Python to handle the call. In this example, OnInitDialog is a "virtual" function. </P>
+<P>Each win32ui type supports being "attached" to a Python class instance. When a virtual function is called, the Python class instance associated with the object is checked to see if it has a method with the same name. If so, the method is called. </P>
+<P>More details on this can be found in the <A HREF="docview.html">document and view architecture documentation</A>. </P>
+<H3><A NAME="Example">Example of this in action</A> </H3>
+<CODE><P>&gt;&gt;&gt; import win32ui # import the base win32ui module. <BR>
+&gt;&gt;&gt; import dialog # import dialog.py<BR>
+&gt;&gt;&gt; d=dialog.Dialog(win32ui.IDD_SIMPLE_INPUT)<BR>
+&gt;&gt;&gt; d<BR>
+&lt;Dialog instance at 886c78&gt;</CODE> </P>
+<P>This creates an instance of class Dialog, defined in dialog.py. Dialog is derived from Object (via Wnd). To see the underlying win32ui type: </P>
+<CODE><P>&gt;&gt;&gt; d._obj_<BR>
+object 'PyCDialog' - assoc is 002F3278, vf=True, ch=0, mh=2, kh=0<BR>
+&gt;&gt;&gt; <BR>
+</CODE>This output shows the C++ CDialog object is at address<CODE> 0x002F3278</CODE>, that there is a virtual function handler (i.e., the class instance "d"), that 2 messages have hooks, and no command or keyboard handlers are installed. </P>
+<P>Even though the DoModal() method is implemented in the underlying win32ui type, the class object can be used just like the win32ui object. Thus: </P>
+<CODE><P>&gt;&gt;&gt; d.DoModal()<BR>
+1<BR>
+&gt;&gt;&gt; </P>
+</CODE><P>To see virtual functions in action </P>
+<CODE><PRE>&gt;&gt;&gt; class MyDialog(dialog.Dialog):<BR>
+...   def OnInitDialog(self, msg): <BR>
+...     self.GetDlgItem(win32ui.IDC_PROMPT1).SetWindowText("Hello") <BR>
+...     return 1<BR>
+... <BR>
+&gt;&gt;&gt; d=MyDialog(win32ui.IDD_SIMPLE_INPUT)<BR>
+&gt;&gt;&gt; d.DoModal()<BR>
+1</CODE> </PRE>
+<P>Note the prompt on the dialog box is now "Hello".<BR>
+</P></BODY>
+</HTML>
