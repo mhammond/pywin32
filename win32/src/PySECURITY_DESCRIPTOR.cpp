@@ -81,7 +81,7 @@ PyObject *PySECURITY_DESCRIPTOR::SetSecurityDescriptorDacl(PyObject *self, PyObj
 	// @comm This method is also known by the alias SetSecurityDescriptorDacl
 }
 
-// @pymethod |PySECURITY_DESCRIPTOR|GetSecurityDescriptorOwner|Return the owner of the security descriptor. SID is returned.
+// @pymethod <o PySID>|PySECURITY_DESCRIPTOR|GetSecurityDescriptorOwner|Return the owner of the security descriptor.
 PyObject *PySECURITY_DESCRIPTOR::GetSecurityDescriptorOwner(PyObject *self, PyObject *args)
 {
 	PSID psd_sid;
