@@ -158,7 +158,13 @@ public:
 // method that returns a PyIEnum object
 class PYCOM_EXPORT PyComEnumProviderTypeObject : public PyComTypeObject {
 public:
-	PyComEnumProviderTypeObject( const char *name, PyComTypeObject *pBaseType, int typeSize, struct PyMethodDef* methodList, PyIUnknown* (* thector)(IUnknown *)  );
+	PyComEnumProviderTypeObject( const char *name, 
+	                             PyComTypeObject *pBaseType, 
+	                             int typeSize, 
+	                             struct PyMethodDef* methodList, 
+	                             PyIUnknown* (* thector)(IUnknown *),
+	                             const char *enum_method_name);
+	const char *enum_method_name;
 };
 
 // A type used for PyIEnum interfaces
@@ -178,9 +184,6 @@ public:
 	virtual int setattr(char *name, PyObject *v);
 	virtual PyObject *repr();
 	virtual int compare(PyObject *other) {return (int)this-int(other);}
-	virtual PyObject *iter();
-	virtual PyObject *iternext();
-
 	static struct PyMethodDef PyIBase::empty_methods[];
 protected:
 	PyIBase();
@@ -194,8 +197,6 @@ public:
 	static PyObject *getattro(PyObject *self, PyObject *name);
 	static int setattr(PyObject *op, char *name, PyObject *v);
 	static int cmp(PyObject *ob1, PyObject *ob2);
-	static PyObject *iter(PyObject *self);
-	static PyObject *iternext(PyObject *self);
 };
 
 /* Special Type objects */
@@ -413,6 +414,31 @@ protected:
 	~PyIUnknown();
 };
 
+/////////////////////////////////////////////////////////////////////////////
+// class PyIEnum - base for all Python interfaces implement IEnum*
+class PYCOM_EXPORT PyIEnum : public PyIUnknown
+{
+protected:
+	PyIEnum(IUnknown *punk) : PyIUnknown(punk) {;}
+public:
+	virtual PyObject *iter();
+	virtual PyObject *iternext();
+	static PyObject *iter(PyObject *self) {return ((PyIEnum *)self)->iter();}
+	static PyObject *iternext(PyObject *self) {return ((PyIEnum *)self)->iternext();}
+
+};
+
+/////////////////////////////////////////////////////////////////////////////
+// class PyIEnum - base for all Python interfaces that can provide an
+// IEnum* via a method
+class PYCOM_EXPORT PyIEnumProvider : public PyIUnknown
+{
+protected:
+	PyIEnumProvider(IUnknown *punk) : PyIUnknown(punk) {;}
+public:
+	virtual PyObject *iter();
+	static PyObject *iter(PyObject *self) {return ((PyIEnumProvider *)self)->iter();}
+};
 
 /////////////////////////////////////////////////////////////////////////////
 // class PyIDispatch

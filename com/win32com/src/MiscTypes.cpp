@@ -112,18 +112,25 @@ PyComTypeObject::~PyComTypeObject()
 PyComEnumTypeObject::PyComEnumTypeObject( const char *name, PyComTypeObject *pBase, int typeSize, struct PyMethodDef* methodList, PyIUnknown * (* thector)(IUnknown *)) :
 	PyComTypeObject( name, pBase, typeSize, methodList, thector)
 {
-		tp_iter = PyIBase::iter;
-		tp_iternext = PyIBase::iternext;
-		tp_flags |= Py_TPFLAGS_HAVE_ITER;
+	tp_iter = PyIEnum::iter;
+	tp_iternext = PyIEnum::iternext;
+	tp_flags |= Py_TPFLAGS_HAVE_ITER;
 }
 
 	// Our type for IEnum provider interfaces
-PyComEnumProviderTypeObject::PyComEnumProviderTypeObject( const char *name, PyComTypeObject *pBase, int typeSize, struct PyMethodDef* methodList, PyIUnknown * (* thector)(IUnknown *)) :
-	PyComTypeObject( name, pBase, typeSize, methodList, thector)
+PyComEnumProviderTypeObject::PyComEnumProviderTypeObject( 
+                                        const char *name, 
+                                        PyComTypeObject *pBase, 
+                                        int typeSize, 
+                                        struct PyMethodDef* methodList, 
+                                        PyIUnknown * (* thector)(IUnknown *),
+                                        const char *penum_method_name) :
+	PyComTypeObject( name, pBase, typeSize, methodList, thector),
+	enum_method_name(penum_method_name)
 {
-		tp_iter = PyIBase::iter;
-		// tp_iternext remains NULL
-		tp_flags |= Py_TPFLAGS_HAVE_ITER;
+	tp_iter = PyIEnumProvider::iter;
+	// tp_iternext remains NULL
+	tp_flags |= Py_TPFLAGS_HAVE_ITER;
 }
 
 /////////////////////////////////////////////////////////////////////////////

@@ -13,7 +13,7 @@
 // Interface Implementation
 
 PyIPropertySetStorage::PyIPropertySetStorage(IUnknown *pdisp):
-	PyIUnknown(pdisp)
+	PyIEnumProvider(pdisp)
 {
 	ob_type = &type;
 }
@@ -145,9 +145,10 @@ static struct PyMethodDef PyIPropertySetStorage_methods[] =
 	{ NULL }
 };
 
-PyComTypeObject PyIPropertySetStorage::type("PyIPropertySetStorage",
+PyComEnumProviderTypeObject PyIPropertySetStorage::type("PyIPropertySetStorage",
 		&PyIUnknown::type,
 		sizeof(PyIPropertySetStorage),
 		PyIPropertySetStorage_methods,
-		GET_PYCOM_CTOR(PyIPropertySetStorage));
+		GET_PYCOM_CTOR(PyIPropertySetStorage),
+		"Enum");
 #endif // NO_PYCOM_IPROPERTYSETSTORAGE

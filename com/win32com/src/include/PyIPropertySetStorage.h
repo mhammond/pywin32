@@ -4,19 +4,18 @@
 //
 // Interface Declaration
 
-class PyIPropertySetStorage : public PyIUnknown
+class PyIPropertySetStorage : public PyIEnumProvider
 {
 public:
 	MAKE_PYCOM_CTOR(PyIPropertySetStorage);
 	static IPropertySetStorage *GetI(PyObject *self);
-	static PyComTypeObject type;
+	static PyComEnumProviderTypeObject type;
 
 	// The Python methods
 	static PyObject *Create(PyObject *self, PyObject *args);
 	static PyObject *Open(PyObject *self, PyObject *args);
 	static PyObject *Delete(PyObject *self, PyObject *args);
 	static PyObject *Enum(PyObject *self, PyObject *args);
-
 protected:
 	PyIPropertySetStorage(IUnknown *pdisp);
 	~PyIPropertySetStorage();

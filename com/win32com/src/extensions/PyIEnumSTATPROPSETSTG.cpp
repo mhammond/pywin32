@@ -15,7 +15,7 @@
 // Interface Implementation
 
 PyIEnumSTATPROPSETSTG::PyIEnumSTATPROPSETSTG(IUnknown *pdisp):
-	PyIUnknown(pdisp)
+	PyIEnum(pdisp)
 {
 	ob_type = &type;
 }
@@ -147,7 +147,7 @@ static struct PyMethodDef PyIEnumSTATPROPSETSTG_methods[] =
 	{ NULL }
 };
 
-PyComTypeObject PyIEnumSTATPROPSETSTG::type("PyIEnumSTATPROPSETSTG",
+PyComEnumTypeObject PyIEnumSTATPROPSETSTG::type("PyIEnumSTATPROPSETSTG",
 		&PyIUnknown::type,
 		sizeof(PyIEnumSTATPROPSETSTG),
 		PyIEnumSTATPROPSETSTG_methods,

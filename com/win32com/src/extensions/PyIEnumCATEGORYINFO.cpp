@@ -10,7 +10,7 @@
 #include "PyIEnumGUID.h"
 
 PyIEnumCATEGORYINFO::PyIEnumCATEGORYINFO(IUnknown *pDisp) :
-	PyIUnknown(pDisp)
+	PyIEnum(pDisp)
 {
 	ob_type = &type;
 }
@@ -144,7 +144,7 @@ static struct PyMethodDef PyIEnumCATEGORYINFO_methods[] =
 	{NULL,  NULL}        
 };
 
-PyComTypeObject PyIEnumCATEGORYINFO::type("PyIEnumCATEGORYINFO",
+PyComEnumTypeObject PyIEnumCATEGORYINFO::type("PyIEnumCATEGORYINFO",
                  &PyIUnknown::type, // @base PyIEnumCATEGORYINFO|PyIUnknown
                  sizeof(PyIEnumCATEGORYINFO),
                  PyIEnumCATEGORYINFO_methods,

@@ -3,44 +3,13 @@
 #include "PyIEnumVARIANT.h"
 
 PyIEnumVARIANT::PyIEnumVARIANT(IUnknown *pdisp):
-	PyIUnknown(pdisp)
+	PyIEnum(pdisp)
 {
 	ob_type = &type;
 }
 
 PyIEnumVARIANT::~PyIEnumVARIANT()
 {
-}
-
-PyObject *
-PyIEnumVARIANT::iter()
-{
-	Py_INCREF(this);
-	return this;
-}
-
-PyObject *
-PyIEnumVARIANT::iternext()
-{
-	IEnumVARIANT *pIEVARIANT = GetI(this);
-	if ( pIEVARIANT == NULL )
-		return NULL;
-
-	VARIANT var;
-	VariantInit(&var);
-	ULONG celtFetched;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pIEVARIANT->Next(1, &var, &celtFetched);
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr);
-	if (celtFetched==0) {
-		PyErr_SetNone(PyExc_StopIteration);
-		return NULL;
-	}
-	PyObject *ret = PyCom_PyObjectFromVariant(&var);
-	VariantClear(&var);
-	return ret;
 }
 
 /* static */ IEnumVARIANT *PyIEnumVARIANT::GetI(PyObject *self)

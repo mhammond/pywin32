@@ -4,15 +4,12 @@
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
 
-class PYCOM_EXPORT PyIEnumVARIANT : public PyIUnknown
+class PYCOM_EXPORT PyIEnumVARIANT : public PyIEnum
 {
 public:
 	MAKE_PYCOM_CTOR(PyIEnumVARIANT);
 	static IEnumVARIANT *GetI(PyObject *self);
 	static PyComEnumTypeObject type;
-
-	virtual PyObject *iter();
-	virtual PyObject *iternext();
 
 	// The Python methods
 	static PyObject *Next(PyObject *self, PyObject *args);

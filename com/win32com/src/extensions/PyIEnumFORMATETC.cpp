@@ -15,7 +15,7 @@ extern PyObject *PyObject_FromFORMATETC(FORMATETC *petc);
 // Interface Implementation
 
 PyIEnumFORMATETC::PyIEnumFORMATETC(IUnknown *pdisp):
-	PyIUnknown(pdisp)
+	PyIEnum(pdisp)
 {
 	ob_type = &type;
 }
@@ -27,33 +27,6 @@ PyIEnumFORMATETC::~PyIEnumFORMATETC()
 /* static */ IEnumFORMATETC *PyIEnumFORMATETC::GetI(PyObject *self)
 {
 	return (IEnumFORMATETC *)PyIUnknown::GetI(self);
-}
-
-PyObject *
-PyIEnumFORMATETC::iter()
-{
-	Py_INCREF(this);
-	return this;
-}
-
-PyObject *
-PyIEnumFORMATETC::iternext()
-{
-	ULONG celtFetched = 0;
-	FORMATETC ret;;
-	IEnumFORMATETC *peidl = GetI(this);
-	if ( peidl == NULL )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = peidl->Next(1, &ret, &celtFetched);
-	PY_INTERFACE_POSTCALL;
-	if (  HRESULT_CODE(hr) != ERROR_NO_MORE_ITEMS && FAILED(hr) )
-		return PyCom_BuildPyException(hr,peidl, IID_IEnumFORMATETC);
-	if (celtFetched==0) {
-		PyErr_SetNone(PyExc_StopIteration);
-		return NULL;
-	}
-	return PyObject_FromFORMATETC(&ret);
 }
 
 // @pymethod object|PyIEnumFORMATETC|Next|Retrieves a specified number of items in the enumeration sequence.

@@ -10,7 +10,7 @@
 #include "PyIEnumGUID.h"
 
 PyIEnumGUID::PyIEnumGUID(IUnknown *pDisp) :
-	PyIUnknown(pDisp)
+	PyIEnum(pDisp)
 {
 	ob_type = &type;
 }
@@ -139,7 +139,7 @@ static struct PyMethodDef PyIEnumGUID_methods[] =
 	{NULL,  NULL}        
 };
 
-PyComTypeObject PyIEnumGUID::type("PyIEnumGUID",
+PyComEnumTypeObject PyIEnumGUID::type("PyIEnumGUID",
                  &PyIUnknown::type, // @base PyIEnumGUID|PyIUnknown
                  sizeof(PyIEnumGUID),
                  PyIEnumGUID_methods,

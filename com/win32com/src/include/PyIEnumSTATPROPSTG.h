@@ -4,12 +4,12 @@
 //
 // Interface Declaration
 
-class PyIEnumSTATPROPSTG : public PyIUnknown
+class PyIEnumSTATPROPSTG : public PyIEnum
 {
 public:
 	MAKE_PYCOM_CTOR(PyIEnumSTATPROPSTG);
 	static IEnumSTATPROPSTG *GetI(PyObject *self);
-	static PyComTypeObject type;
+	static PyComEnumTypeObject type;
 
 	// The Python methods
 	static PyObject *Next(PyObject *self, PyObject *args);

@@ -4,12 +4,12 @@
 //
 // Interface Declaration
 
-class PyIPropertyStorage : public PyIUnknown
+class PyIPropertyStorage : public PyIEnumProvider
 {
 public:
 	MAKE_PYCOM_CTOR(PyIPropertyStorage);
 	static IPropertyStorage *GetI(PyObject *self);
-	static PyComTypeObject type;
+	static PyComEnumProviderTypeObject type;
 
 	// The Python methods
 	static PyObject *ReadMultiple(PyObject *self, PyObject *args);

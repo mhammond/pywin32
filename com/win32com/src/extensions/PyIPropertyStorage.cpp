@@ -246,7 +246,7 @@ void PyObject_FreePROPIDs(PROPID *pFree, ULONG)
 // Interface Implementation
 
 PyIPropertyStorage::PyIPropertyStorage(IUnknown *pdisp):
-	PyIUnknown(pdisp)
+	PyIEnumProvider(pdisp)
 {
 	ob_type = &type;
 }
@@ -333,6 +333,7 @@ PyObject *PyIPropertyStorage::WriteMultiple(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_ValueError, "The parameters must be sequences of the same size");
 		PyObject_FreePROPSPECs(pProps, cProps);
 		PyObject_FreePROPVARIANTs(pVals, cVals);
+		return NULL;
 	}
 
 	HRESULT hr;
@@ -672,10 +673,11 @@ static struct PyMethodDef PyIPropertyStorage_methods[] =
 	{ NULL }
 };
 
-PyComTypeObject PyIPropertyStorage::type("PyIPropertyStorage",
+PyComEnumProviderTypeObject PyIPropertyStorage::type("PyIPropertyStorage",
 		&PyIUnknown::type,
 		sizeof(PyIPropertyStorage),
 		PyIPropertyStorage_methods,
-		GET_PYCOM_CTOR(PyIPropertyStorage));
+		GET_PYCOM_CTOR(PyIPropertyStorage),
+		"Enum");
 
 #endif // NO_PYCOM_IPROPERTYSTORAGE

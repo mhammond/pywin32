@@ -13,7 +13,7 @@
 // Interface Implementation
 
 PyIEnumConnectionPoints::PyIEnumConnectionPoints(IUnknown *pdisp):
-	PyIUnknown(pdisp)
+	PyIEnum(pdisp)
 {
 	ob_type = &type;
 }
@@ -147,7 +147,7 @@ static struct PyMethodDef PyIEnumConnectionPoints_methods[] =
 	{ NULL }
 };
 
-PyComTypeObject PyIEnumConnectionPoints::type("PyIEnumConnectionPoints",
+PyComEnumTypeObject PyIEnumConnectionPoints::type("PyIEnumConnectionPoints",
 		&PyIUnknown::type, // @base PyIEnumConnectionPoints|PyIUnknown
 		sizeof(PyIEnumConnectionPoints),
 		PyIEnumConnectionPoints_methods,

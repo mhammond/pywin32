@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
 // class PyIEnumGUID
 #ifndef NO_PYCOM_IENUMGUID
-class PyIEnumGUID : public PyIUnknown
+class PyIEnumGUID : public PyIEnum
 {
 public:
 	MAKE_PYCOM_CTOR(PyIEnumGUID);
-	static PyComTypeObject type;
+	static PyComEnumTypeObject type;
 	static IEnumGUID *GetI(PyObject *self);
 
 	static PyObject *Next(PyObject *self, PyObject *args);
@@ -22,11 +22,11 @@ protected:
 /////////////////////////////////////////////////////////////////////////////
 // class PyIEnumCATEGORYINFO
 #ifndef NO_PYCOM_IENUMCATEGORYINFO
-class PyIEnumCATEGORYINFO : public PyIUnknown
+class PyIEnumCATEGORYINFO : public PyIEnum
 {
 public:
 	MAKE_PYCOM_CTOR(PyIEnumCATEGORYINFO);
-	static PyComTypeObject type;
+	static PyComEnumTypeObject type;
 	static IEnumCATEGORYINFO *GetI(PyObject *self);
 
 	static PyObject *Next(PyObject *self, PyObject *args);

@@ -54,20 +54,6 @@ PyIBase::getattr(char *name)
 	return Py_FindMethodInChain(&((PyComTypeObject *)ob_type)->chain, this, name);
 }
 
-PyObject *
-PyIBase::iter()
-{
-	return PyErr_Format(PyExc_RuntimeError,
-			"iter must be overridden by objects supporting enumeration (type '%s').", ob_type->tp_name);
-}
-
-PyObject *
-PyIBase::iternext()
-{
-	return PyErr_Format(PyExc_RuntimeError,
-			"iternext must be overridden by objects supporting enumeration (type '%s').", ob_type->tp_name);
-}
-
 /*static*/int PyIBase::setattr(PyObject *op, char *name, PyObject *v)
 {
 	PyIBase* bc = (PyIBase *)op;
@@ -103,12 +89,46 @@ PyObject * PyIBase::repr()
 	return ((PyIBase *)ob1)->compare(ob2);
 }
 
-/*static*/ PyObject *PyIBase::iter(PyObject *self)
+// PyIEnum iter methods - generic for any "standard" COM IEnum interface.
+PyObject *PyIEnum::iter()
 {
-	return ((PyIBase *)self)->iter();
+	Py_INCREF(this);
+	return this;
 }
 
-/*static*/ PyObject *PyIBase::iternext(PyObject *self)
+PyObject *PyIEnum::iternext()
 {
-	return ((PyIBase *)self)->iternext();
+	PyObject *method = PyObject_GetAttrString(this, "Next");
+	if (!method)
+		return NULL;
+	PyObject *args=Py_BuildValue("(i)", 1);
+	PyObject *result = PyObject_Call(method, args, NULL);
+	Py_DECREF(method);
+	Py_DECREF(args);
+	if (!result)
+		return NULL;
+	PyObject *ret;
+	if (PySequence_Length(result)==0){
+		PyErr_SetNone(PyExc_StopIteration);
+		ret = NULL;
+	} else
+		ret = PySequence_GetItem(result, 0);
+	Py_DECREF(result);
+	return ret;
 }
+
+// PyIEnumProvider iter methods - generic for COM object that can provide an IEnum*
+// interface via a method call taking no args.
+PyObject *PyIEnumProvider::iter()
+{
+	PyComEnumProviderTypeObject *t = (PyComEnumProviderTypeObject *)ob_type;
+	PyObject *method = PyObject_GetAttrString(this, (char *)t->enum_method_name);
+	if (!method)
+		return NULL;
+	PyObject *args=PyTuple_New(0);
+	PyObject *result = PyObject_Call(method, args, NULL);
+	Py_DECREF(method);
+	Py_DECREF(args);
+	return result;
+}
+
