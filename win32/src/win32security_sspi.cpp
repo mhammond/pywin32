@@ -1215,6 +1215,36 @@ PyObject *PyCredHandle::QueryCredentialsAttributes(PyObject *self, PyObject *arg
 	return ret;
 }
 
+// Directory service handle, yet another type of PyHANDLE
+// @object PyDS_HANDLE|Directory service handle, returned by <om win32security.DsBind>
+//   Subtype of <o PyHANDLE>, inherits all properties and methods
+class PyDS_HANDLE: public PyHANDLE
+{
+public:
+	PyDS_HANDLE(HANDLE hInit) : PyHANDLE(hInit) {}
+	virtual BOOL Close(void) {
+		DWORD err;
+		if (!m_handle)
+			return TRUE;	// already closed or Detached, nothing to do
+		if (pfnDsUnBind==NULL){
+			// should not happen if functions to create a Ds handle exist ...
+			PyErr_SetString(PyExc_SystemError,"Error closing PyDS_HANDLE, DsUnBind is NULL");
+			return FALSE;
+			}
+		err = (*pfnDsUnBind)(&m_handle);
+		// ??? This function apparently never returns an error, no matter what you pass to it ???
+		if (err==NO_ERROR){
+			m_handle = 0;
+			return TRUE;
+			}
+		PyWin_SetAPIError("PyDS_HANDLE::Close", err);
+		return FALSE;
+	}
+	virtual const char *GetTypeName(){
+		return "PyDS_HANDLE";
+	}
+};
+
 // directory service functions for registering target Spns to be used with Kerberos
 extern PyObject *PyDsBind(PyObject *self, PyObject *args)
 {
@@ -1231,7 +1261,7 @@ extern PyObject *PyDsBind(PyObject *self, PyObject *args)
 		PyWinObject_AsWCHAR(obdomain, &domain, TRUE)){
 		err=(*pfnDsBind)(dc, domain, &dshandle);
 		if (err==NO_ERROR)
-			ret=PyWinObject_FromHANDLE(dshandle);
+			ret=new PyDS_HANDLE(dshandle);
 		else
 			PyWin_SetAPIError("DsBind",err);
 		}
