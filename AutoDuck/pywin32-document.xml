@@ -16,7 +16,8 @@
         <overviews>
             <item name="Quick-Starts to Python and COM" href="com/win32com/HTML/docindex.html"/>
             <item name="win32com readme" href="com/win32com/readme.htm"/>
-            <item name="ADSI and Python" href="com/help/adsi.html"/>
+            <item name="ADSI Python" href="com/help/adsi.html"/>
+            <item name="Active Directory" href="com/help/active_directory.html"/>
         </overviews>
     </category>
     <category id="pythonwin" label="Pythonwin and win32ui">

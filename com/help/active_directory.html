@@ -1,0 +1,302 @@
+<HTML>
+<HEAD>
+<TITLE>Active Directory</TITLE>
+</HEAD>
+	<BODY BGCOLOR="FFFFFF">
+	<!-- beginning of leaf header-->
+
+	<TABLE border=0  cellpadding=0 cellspacing=0 width=100%>
+	<TR>
+		<TD valign=middle width="100%"
+		bgcolor="#99ccff"> <font face="sans-serif" size="+1"
+		color="#111111">&nbsp;&nbsp;&nbsp;Active Directory</font>
+		</TD>
+	</TR>
+	</TABLE>
+	<p>&nbsp</p>
+	<!-- end of leaf content-->
+<!-- INDEX BEGIN -->
+
+<UL>
+
+	<LI><A HREF="#SUMMARY">SUMMARY</A></LI>
+	<UL>
+		<LI><A HREF="#Introduction">Introduction</A></LI>
+                <LI><A HREF="#getobj">Getting Active Directory Objects</A>
+		<ul>
+                <LI><A HREF="#discovery">Discovery</A>
+                <LI><A HREF="#opends">Making the object</A>
+                <LI><A HREF="#what">What properties does the object have?</A>
+                <LI><A HREF="#time">The time property</A>
+		</ul>
+                <LI><A HREF="#users">Managing Users(to be added)</A>
+		<ul>
+                <LI><A HREF="#basic">User Basics</A>
+                <LI><A HREF="#exchange">Adding Exchange access</A>
+		</ul>
+		 
+                <LI><A HREF="#Conclusion">In Conclusion</A>
+	</UL>
+
+	<LI><A HREF="#Further Info">Further Info</A></LI>
+	<LI><A HREF="#Author">Author</A></LI>
+</UL>
+<!-- INDEX END -->
+
+<HR>
+<H1><A NAME="SUMMARY">SUMMARY</A></H1>
+<p>
+Active Directory combines all sorts of domain-wide information into one spot. 
+Using Microsoft's COM LDAP provider, python has good access to Active Directory.
+
+</p>
+
+<HR>
+<H2><A NAME="Introduction">Introduction</A></H2>
+<p>
+
+To access active directory, it is easiest to put some boilerplate code
+into a functions for future use.  This will be done w/python's COM
+access to Active Directory. If you use python's ldap library, you can
+do similar stuff. Unfortunately, Microsoft switched directions
+w/exchange. You used to be able to access a lot of exchange
+functionality with ldap which no longer exists. Now, COM is needed.
+<br>
+Here is a list of the functions
+<ul>
+<li>Discover your active directory environment. 
+<li>Basic authenticated connections to objects for you.
+<li>Collect all the objects attributes into a dictionary
+<li>Convert Active Directory time to python time
+</ul>
+Later we'll add information about managing users and computers.
+
+
+<HR>
+<H2><A NAME="getobj">Getting Active Directory Objects</A></H2>
+
+<H3><A NAME="discovery">Discovery</A></H3> 
+<pre>
+A tool that can be of a great help is ADSIedit which is in the Windows
+2000 support tools on the Windows 2000 server cdrom. It gives you the
+raw ldap view of active directory.
+
+def discover():
+    Here is a function that helps you determine the active directory ldap strings that you can actually use.
+    #get base LDAP string
+    ldap_loc=win32com.client.GetObject('LDAP://rootDSE').Get("defaultNamingContext")
+    #container where users are put it, may be like:
+    ldap_main_loc='OU=people,'+ldap_loc
+
+    Finding out about exchange, it is a bit more complicated.
+    #typical exchange string
+    ex_loc='CN=Microsoft Exchange,CN=Services,CN=Configuration'
+
+    #look for your exchange sites
+    ex_sites=[]
+    for i in win32com.client.GetObject('LDAP://'+ex_loc+','+ldap_loc):
+    if i.cn!='Active Directory Connections': ex_sites.append(i.cn)
+
+    #get an exchange server
+    ex_admin_grps='CN=Administrative Groups,cn='+ex_site+','+ex_loc+','+ldap_loc
+    admin_grp=win32com.client.GetObject('LDAP://'+ex_admin_grps)[0].cn
+    
+    ex_servers='LDAP://CN=Servers,'+'cn='+admin_grp+','+ex_admin_grps
+    servers=win32com.client.GetObject(ex_servers)
+
+    ex_servers=[]
+  
+    for i in servers:
+        ex_servers.append(i.cn)
+    print '\texchange servers',string.join(ex_servers)
+    
+    ex_first_store='CN=First Storage Group,CN=InformationStore,CN=%s,CN=Servers,CN=%s,%s'%(ex_servers[-1],admin_grp,ex_admin_grps)
+
+    ex_stores=[]
+
+    for i in win32com.client.GetObject('LDAP://'+ex_first_store):
+        ex_stores.append('cn='+i.cn+','+ex_first_store)
+    print '\tExchange stores:',string.join(ex_stores,"',")
+</pre>
+
+<H3><A NAME="opends">Making the object</A></H3>
+
+One such useful function is opends. Ultimately, you need some sort of
+"LDAP://" string. The opends function builds it for you, by going to a
+default container. It also automatically authenticates w/a specific
+account.  If you just give the function an id like 'fred', it will
+wrap it with something like:<br>
+LDAP://cn=fred,OU=people,DC=ad,DC=company,DC=state,DC=oh,DC=us'
+
+<p>
+This then allows things like:
+<br>
+print 'The last name: ',opends('fred').sn #sn =surname
+<br>
+or to get the groups fred is a member of
+<br>
+print "groups=',opends('fred').memberOf
+
+<pre>
+def opends(loc,server=''):
+    '''automatically buoild ldap string and authenticate
+    ldap=win32com.client.Dispatch('ADsNameSpaces').getobject("","LDAP:")
+    ldap_main_loc='OU=people,DC=ad,DC=company,DC=state,DC=oh,DC=us' 
+    ldap_auth='CN=admin_account,'+ldap_main_loc
+
+    #if there is no ","  then they are not providing a full url
+    #so append the standard url for it
+    #if there is no '=', assume they want a cn
+    if loc.find(',')==-1:
+        if loc.find('=')==-1: loc='cn='+loc+','+Ad.ldap_main_loc
+        else: loc=loc+','+Ad.ldap_main_loc
+    if loc.find('LDAP://')==-1: loc='LDAP://'+loc
+ 
+    return ldap.OpenDSObject(loc,Ad.ldap_auth,Ad.pw,1)
+</pre>
+
+<H3><A NAME="what">What does the object have?</A></H3>
+
+Now that you can connection to objects, how do you determine what
+properties you can get from the object. The following function, ad_dict,
+converts the avilable properties of the object to a python dictionary,
+that is then easily inspected. To do so is a little tricky. It first
+determines what schema the object has and uses the schema, to grab
+mandatory and optional properties of the object. For any value that
+evaluates to true, it builds a dictionary. It also uses a conv_time
+fuction that deals with the way active directory saves time
+information and converts it to something compatible with python's time
+library.
+<p>
+You would use ad_dict like a normal python dictionary.
+<br>
+for i in ad_dict('fred').items(): print i
+<br>
+A lot of things convert to automatic python data types. For others, you'll get stuff like
+COMObject. You need to do specific processing, like the one done for 
+pwdLastSet below, to extract data from them.
+
+<pre>
+def ad_dict(ldapobj,attr_dict={},recurse=0,auth=1,filter=()):
+    if ldapobj.find(',')==-1: ldapobj='cn='+ldapobj+','+Ad.ldap_main_loc
+    if auth: #setup authenticated connections
+        if debug: print 'auth'
+        adobj=opends(ldapobj)
+        #if debug: print 'authenticated to',ldapobj    
+    else:
+        adobj=win32com.client.GetObject('LDAP://'+ldapobj)
+        if debug: print 'connected to',ldapobj    
+
+    if not(filter):
+        #check for children
+        for i in adobj:
+            if debug: print '****at',i.cn,str(adobj.cn)
+            if recurse:
+                pass
+                #get children's attributes too
+                #attr_dict[i.distinguishedName]={}
+                #get_all(i.distinguishedName,attr_dict[i.distinguishedName],recurse,auth)
+        if debug: print 'getting schema'
+        schema_obj=win32com.client.GetObject(adobj.schema)
+        for i in schema_obj.MandatoryProperties:
+            if i =='nTSecurityDescriptor':continue #takes a long time, skip it
+            value=getattr(adobj,i)
+            if value: attr_dict[i]=value
+
+        for i in schema_obj.OptionalProperties:
+            value=getattr(adobj,i)
+            if i == 'pwdLastSet':
+                #convert com object to sec since 1970
+                attr_dict[i]=conv_time(adobj.pwdLastSet.lowpart,adobj.pwdLastSet.highpart)       
+            elif value: attr_dict[i]=value
+        
+    else:
+        attr_dict={}
+        #only get data that is available
+        for item in filter:
+            try:
+                if item == 'pwdLastSet':
+                    #convert com object to sec since 1970
+                    attr_dict[item]=conv_time(adobj.pwdLastSet.lowpart,adobj.pwdLastSet.highpart)       
+                else: attr_dict[item]=getattr(adobj,item)
+            except:
+                pass
+    return attr_dict
+</pre>
+
+
+<H3><A NAME="time">The time property</A></H3> 
+
+Time in active directory is stored in a 64 bit integer that keeps
+track of the number of 100-nanosecond intervals which have passed
+since January 1, 1601.  The 64-bit value uses 2 32 bit parts to store
+the time. The following is a function that returns the time in the
+typical format the python time libraries use (seconds since 1970).
+
+Here's an example where you'd use it:
+
+user=opends('fred')
+
+print 'time in seconds',conv_time(user.pwdLastSet.lowpart,user.pwdLastSet.highpart)       
+
+user.pwdLastSet returns a com object, not a python data type.
+
+<pre>
+def conv_time(l,h):
+    #converts 64-bit integer specifying the number of 100-nanosecond
+    #intervals which have passed since January 1, 1601.
+    #This 64-bit value is split into the
+    #two 32 bits  stored in the structure.
+    d=116444736000000000L #diference between 1601 and 1970
+    #we divide by 10million to convert to seconds
+    return (((long(h)<< 32) + long(l))-d)/10000000    
+</pre>
+
+<HR>
+<H2><A NAME="users">Managing Users</A></H2>
+<H3><A NAME="basic">User Basics</A></H3> 
+<H3><A NAME="exchange">Adding Exchange Access</A></H3> 
+<HR>
+<H2><A NAME="Conclusion">In Conclusion</A></H2>
+So far we've only covered the basics of using Active Directory. Stay tuned for more.
+
+</p>
+<p>
+
+<hr>
+<H1><A NAME="Further Info">Further Info</A></H1>
+<p>
+<ul>
+<li><a href="http://msdn.microsoft.com">Microsoft MSDN references</a>
+</ul>
+</p>
+<HR><H1><A NAME="Author">Author</A></H1>
+John Nielsen, <A HREF="mailto:jn@who.net,">jn@who.net</A> 
+<br>-- Have a great time with programming with python! 
+		<!-- beginning of leaf footer-->
+		<p>&nbsp;</p>
+		<TABLE border=0  cellpadding=0 cellspacing=0 width=100%>
+		<TR>
+			<TD valign=middle
+			bgcolor="#99ccff"> <font face="sans-serif" size="+1"
+			color="#111111">&nbsp;&nbsp;&nbsp;ADSI, Exchange, and Python</font>
+			</TD>
+		</TR>
+		</TABLE>
+		<!-- end of leaf footer-->
+</BODY>
+</HTML>
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
