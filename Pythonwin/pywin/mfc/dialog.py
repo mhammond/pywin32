@@ -83,80 +83,79 @@ class PrintDialog(Dialog):
 		self.dll=dllFromDll(dllid)
 		if type(dlgID)==type([]):	# a template
 			raise TypeError, "dlgID parameter must be an integer resource ID"
-		else:
-			dlg=win32ui.CreatePrintDialog(dlgID, printSetupOnly,
-                                                      flags, parent,
-                                                      self.dll)
+		dlg=win32ui.CreatePrintDialog(dlgID, printSetupOnly,
+                                              flags, parent,
+                                              self.dll)
 		window.Wnd.__init__(self, dlg)
 		self.HookCommands()
 		self.bHaveInit = None
-                self.pInfo = pInfo
-                # init values (if PrintSetup is called, values still available)
-                flags = pInfo.GetFlags()
-                self['toFile'] = (flags&win32ui.PD_PRINTTOFILE != 0)
-                self['direct'] = pInfo.GetDirect()
-                self['preview'] = pInfo.GetPreview()
-                self['continuePrinting'] = pInfo.GetContinuePrinting()
-                self['curPage'] = pInfo.GetCurPage()
-                self['numPreviewPages'] = pInfo.GetNumPreviewPages()
-                self['userData'] = pInfo.GetUserData()
-                self['draw'] = pInfo.GetDraw()
-                self['pageDesc'] = pInfo.GetPageDesc()
-                self['minPage'] = pInfo.GetMinPage()
-                self['maxPage'] = pInfo.GetMaxPage()
-                self['offsetPage'] = pInfo.GetOffsetPage()
-                self['fromPage'] = pInfo.GetFromPage()
-                self['toPage'] = pInfo.GetToPage()
-                # these values updated after OnOK
-                self['copies'] = 0
-                self['deviceName'] = ''
-                self['driverName'] = ''
-                self['printAll'] = 0
-                self['printCollate'] = 0
-                self['printRange'] = 0
-                self['printSelection'] = 0
+		self.pInfo = pInfo
+		# init values (if PrintSetup is called, values still available)
+		flags = pInfo.GetFlags()
+		self['toFile'] = (flags&win32ui.PD_PRINTTOFILE != 0)
+		self['direct'] = pInfo.GetDirect()
+		self['preview'] = pInfo.GetPreview()
+		self['continuePrinting'] = pInfo.GetContinuePrinting()
+		self['curPage'] = pInfo.GetCurPage()
+		self['numPreviewPages'] = pInfo.GetNumPreviewPages()
+		self['userData'] = pInfo.GetUserData()
+		self['draw'] = pInfo.GetDraw()
+		self['pageDesc'] = pInfo.GetPageDesc()
+		self['minPage'] = pInfo.GetMinPage()
+		self['maxPage'] = pInfo.GetMaxPage()
+		self['offsetPage'] = pInfo.GetOffsetPage()
+		self['fromPage'] = pInfo.GetFromPage()
+		self['toPage'] = pInfo.GetToPage()
+		# these values updated after OnOK
+		self['copies'] = 0
+		self['deviceName'] = ''
+		self['driverName'] = ''
+		self['printAll'] = 0
+		self['printCollate'] = 0
+		self['printRange'] = 0
+		self['printSelection'] = 0
 
 	def OnInitDialog(self):
-                self.pInfo.SetHDC(self.pInfo.CreatePrinterDC())
-        
+		self.pInfo.CreatePrinterDC() # This also sets the hDC of the pInfo structure.
+		return self._obj_.OnInitDialog()
+
 	def OnCancel(self):
-                del self.pInfo
-        
+		del self.pInfo
 	def OnOK(self):
-                '''DoModal has finished. Can now access the users choices'''
+		'''DoModal has finished. Can now access the users choices'''
 		self._obj_.OnOK()
-                pInfo = self.pInfo
-               # user values 
-                flags = pInfo.GetFlags()
-                self['toFile'] = (flags&win32ui.PD_PRINTTOFILE != 0)
-                self['direct'] = pInfo.GetDirect()
-                self['preview'] = pInfo.GetPreview()
-                self['continuePrinting'] = pInfo.GetContinuePrinting()
-                self['curPage'] = pInfo.GetCurPage()
-                self['numPreviewPages'] = pInfo.GetNumPreviewPages()
-                self['userData'] = pInfo.GetUserData()
-                self['draw'] = pInfo.GetDraw()
-                self['pageDesc'] = pInfo.GetPageDesc()
-                self['minPage'] = pInfo.GetMinPage()
-                self['maxPage'] = pInfo.GetMaxPage()
-                self['offsetPage'] = pInfo.GetOffsetPage()
-                self['fromPage'] = pInfo.GetFromPage()
-                self['toPage'] = pInfo.GetToPage()
-                self['copies'] = pInfo.GetCopies()
-                self['deviceName'] = pInfo.GetDeviceName()
-                self['driverName'] = pInfo.GetDriverName()
-                self['printAll'] = pInfo.PrintAll()
-                self['printCollate'] = pInfo.PrintCollate()
-                self['printRange'] = pInfo.PrintRange()
-                self['printSelection'] = pInfo.PrintSelection()
-                del self.pInfo
-                
+		pInfo = self.pInfo
+	   # user values 
+		flags = pInfo.GetFlags()
+		self['toFile'] = (flags&win32ui.PD_PRINTTOFILE != 0)
+		self['direct'] = pInfo.GetDirect()
+		self['preview'] = pInfo.GetPreview()
+		self['continuePrinting'] = pInfo.GetContinuePrinting()
+		self['curPage'] = pInfo.GetCurPage()
+		self['numPreviewPages'] = pInfo.GetNumPreviewPages()
+		self['userData'] = pInfo.GetUserData()
+		self['draw'] = pInfo.GetDraw()
+		self['pageDesc'] = pInfo.GetPageDesc()
+		self['minPage'] = pInfo.GetMinPage()
+		self['maxPage'] = pInfo.GetMaxPage()
+		self['offsetPage'] = pInfo.GetOffsetPage()
+		self['fromPage'] = pInfo.GetFromPage()
+		self['toPage'] = pInfo.GetToPage()
+		self['copies'] = pInfo.GetCopies()
+		self['deviceName'] = pInfo.GetDeviceName()
+		self['driverName'] = pInfo.GetDriverName()
+		self['printAll'] = pInfo.PrintAll()
+		self['printCollate'] = pInfo.PrintCollate()
+		self['printRange'] = pInfo.PrintRange()
+		self['printSelection'] = pInfo.PrintSelection()
+		del self.pInfo
+
 class PropertyPage(Dialog):
 	" Base class for a Property Page"
 	def __init__( self, id, dllid=None, caption=0 ):
 		""" id is the resource ID
 			dllid may be None, a dll object, or a string with a dll name """
-	
+
 		self.dll = dllFromDll(dllid)
 		if self.dll:
 			oldRes = win32ui.SetResource(self.dll)
@@ -251,5 +250,3 @@ def GetSimpleInput(prompt, defValue='', title=None ):
 	if dlg.DoModal() <> win32con.IDOK:
 		return None
 	return dlg['result']
-
-
