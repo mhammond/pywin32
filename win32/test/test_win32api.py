@@ -32,11 +32,14 @@ class Registry(unittest.TestCase):
         # do the test
         try:
             try:
-                reg_operation()
-            except:
-                1/0 # Force exception
-        finally:
-            win32api.RegDeleteKey(win32con.HKEY_CURRENT_USER, key_name)
+                try:
+                    reg_operation()
+                except:
+                    1/0 # Force exception
+            finally:
+                win32api.RegDeleteKey(win32con.HKEY_CURRENT_USER, key_name)
+        except ZeroDivisionError:
+            pass
 
 if __name__ == '__main__':
     unittest.main()
