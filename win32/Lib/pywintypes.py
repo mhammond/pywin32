@@ -43,7 +43,7 @@ def __import_pywin32_system_module__(modname, globs):
                 break
         else:
             raise ImportError, \
-                  "Module '%s' isn't in frozen sys.path directories" % modname
+                  "Module '%s' isn't in frozen sys.path %s" % (modname, sys.path)
     else:
         search_dirs = [sys.prefix] + \
                       os.environ.get("PATH", "").split(os.pathsep)
