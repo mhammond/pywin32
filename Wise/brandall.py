@@ -21,9 +21,6 @@ def doit():
 		if o=='-r':
 			bRebrand = 1
 
-	if len(args) != 2:
-		print "You must enter the Python version and the build number"
-		return
 	defines = []
 	if args[0] == "cvs":
 		# days since epoch <wink>
@@ -31,8 +28,13 @@ def doit():
 		build = str(int(time.time() / 3600 / 24))
 		build_suffix = time.strftime("%Y%m%d", time.gmtime(time.time()))
 		defines.append("PY_DEV_BUILD=1")
-		# xxx
+		pyver = "%d.%d" % (sys.version_info[0], sys.version_info[1])
+		defines.append("PYVER_DOTTED=%s" % (pyver,))
+		defines.append("PYVER_NODOT=%d%d" % (sys.version_info[0], sys.version_info[1]))
 	else:
+		if len(args) != 2:
+			print "You must enter the Python version and the build number"
+			return
 		pyver = args[0]
 		build = args[1]
 		defines.append("PY_DEV_BUILD=0")
@@ -45,14 +47,15 @@ def doit():
 		except ValueError, why:
 			print why
 			return
-		if sys.executable.find("_d")<0:
-			print "Oops - can't brand myself - spawing debug version."
-			base, ext = os.path.splitext(sys.executable)
-			exe = base + "_d" + ext
-			os.execv(exe, [exe]+sys.argv)
-			# Does not return
-			assert(False)
 		build_suffix = build
+	if sys.executable.find("_d")<0:
+		print "Oops - can't brand myself - spawing debug version."
+		print "XXX - note that readline is gunna screw up"
+		base, ext = os.path.splitext(sys.executable)
+		exe = base + "_d" + ext
+		os.execv(exe, [exe]+sys.argv)
+		# Does not return
+		assert(False)
 #	projectName = "$/Python/Wise/win32all"
 	
 #	build = MakeNewBuildNo(projectName, desc, auto, bRebrand)
