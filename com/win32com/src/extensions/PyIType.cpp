@@ -308,7 +308,7 @@ PyObject *PyITypeInfo::GetTypeComp()
 	return PyCom_PyObjectFromIUnknown(ptc, IID_ITypeComp);
 }
 
-// @pymethod <o PyITypeLib>|PyITypeInfo|GetContainingTypeLib|Retrieves the containing type library and the index of the type description within that type library.
+// @pymethod <o PyITypeLib>, int|PyITypeInfo|GetContainingTypeLib|Retrieves the containing type library and the index of the type description within that type library.
 static PyObject *typeinfo_getlib(PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ""))
