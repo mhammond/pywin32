@@ -22,7 +22,7 @@ def TestHost(verbose = 1):
 #	print cmd
 	rc = os.system(cmd)
 	if rc:
-		print "Execution of TestHost failed"
+		print "****** Error - Execution of ActiveScripting Test Host failed"
 
 def TestCScript(verbose = 1):
 	import win32com.axscript
