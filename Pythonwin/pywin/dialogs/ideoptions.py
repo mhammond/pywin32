@@ -21,15 +21,18 @@ class OptionsPropPage(dialog.PropertyPage):
 	def OnInitDialog(self):
 
 		edit = self.GetDlgItem(win32ui.IDC_EDIT1)
-		edit.SetDefaultCharFormat(interact.formatInput)
+		format = eval(win32ui.GetProfileVal(interact.sectionProfile, interact.STYLE_INTERACTIVE_PROMPT, str(interact.formatInput)))
+		edit.SetDefaultCharFormat(format)
 		edit.SetWindowText("Input Text")
 		
 		edit = self.GetDlgItem(win32ui.IDC_EDIT2)
-		edit.SetDefaultCharFormat(interact.formatOutput)
+		format = eval(win32ui.GetProfileVal(interact.sectionProfile, interact.STYLE_INTERACTIVE_OUTPUT, str(interact.formatOutput)))
+		edit.SetDefaultCharFormat(format)
 		edit.SetWindowText("Output Text")
 		
 		edit = self.GetDlgItem(win32ui.IDC_EDIT3)
-		edit.SetDefaultCharFormat(interact.formatOutputError)
+		format = eval(win32ui.GetProfileVal(interact.sectionProfile, interact.STYLE_INTERACTIVE_ERROR, str(interact.formatOutputError)))
+		edit.SetDefaultCharFormat(format)
 		edit.SetWindowText("Error Text")
 
 		self['bShowAtStartup'] = interact.LoadPreference("Show at startup", 1)
@@ -65,12 +68,14 @@ class OptionsPropPage(dialog.PropertyPage):
 	def OnOK(self):
 		# Handle the edit controls - get all the fonts, put them back into interact, then
 		# get interact to save its stuff!
-		controlAttrs = [(win32ui.IDC_EDIT1, "formatInput"), (win32ui.IDC_EDIT2, "formatOutput"), (win32ui.IDC_EDIT3, "formatOutputError")]
-		for id, attr in controlAttrs:
+		controlAttrs = [
+			(win32ui.IDC_EDIT1, interact.STYLE_INTERACTIVE_PROMPT),
+			(win32ui.IDC_EDIT2, interact.STYLE_INTERACTIVE_OUTPUT),
+			(win32ui.IDC_EDIT3, interact.STYLE_INTERACTIVE_ERROR)]
+		for id, key in controlAttrs:
 			control = self.GetDlgItem(id)
 			fmt = control.GetDefaultCharFormat()
-			setattr(interact, attr, fmt)
-			interact.SaveFontPreferences()
+			win32ui.WriteProfileVal(interact.sectionProfile, key, str(fmt))
 
 		# Save the other interactive window options.
 		interact.SavePreference("Show at startup", self['bShowAtStartup'])
