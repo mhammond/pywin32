@@ -144,6 +144,9 @@ static BOOL MakeHandleList(PyObject *handleList, HANDLE **ppBuf, DWORD *pNumEntr
     BOOL bWaitAll, // @pyparm int|bWaitAll||If true, waits for all handles in the list.
     DWORD dwMilliseconds,	// @pyparm int|milliseconds||time-out interval in milliseconds 
     DWORD dwWakeMask 	// @pyparm int|wakeMask||type of input events to wait for.  One of the win32event.QS_ constants.
+	// @ comm Note that if bWaitAll is TRUE, the function will return when there is input in the queue,
+	// and all events are signalled.  This is rarely what you want!
+	// If input is waiting, the result is win32event.WAIT_OBJECT_0+len(handles))
    );
 %{
 static PyObject * MyMsgWaitForMultipleObjects(
