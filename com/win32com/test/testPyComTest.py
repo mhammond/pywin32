@@ -21,6 +21,11 @@ except pythoncom.com_error:
 
 import sys
 
+# We had a bg where RegisterInterfaces would fail if gencache had 
+# already been run - exercise that here
+from win32com import universal
+universal.RegisterInterfaces('{6BCDCB60-5605-11D0-AE5F-CADD4C000000}', 0, 1, 1)
+
 verbose = 0
 
 def progress(*args):
