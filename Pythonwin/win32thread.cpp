@@ -63,7 +63,18 @@ public:
 			helper.retval(ret);
 			return ret;
 		} else
-			return CWinThread::InitInstance();
+			return CWinThread::ExitInstance();
+	}
+	virtual int Run() {
+		int ret;
+		CVirtualHelper helper("Run", this);
+		if (!helper.HaveHandler())
+			ret = CWinThread::Run();
+		else {
+			helper.call();
+			helper.retval(ret);
+		}
+		return ret;
 	}
 	PyObject *obFunc;
 	PyObject *obArgs;
