@@ -407,20 +407,22 @@ class PyScript(framework.COMScript):
 			globalNameSpaceModule = None
 			
 		self.rexec_env = None
-		
+
+def DllRegisterServer():
+	klass=PyScript
+	win32com.server.register._set_subkeys(klass._reg_progid_ + "\\OLEScript", {}) # Just a CreateKey
+	# Basic Registration for wsh.
+	win32com.server.register._set_string(".pys", "pysFile")
+	win32com.server.register._set_string("pysFile\\ScriptEngine", klass._reg_progid_)
+	guid_wsh_shellex = "{60254CA5-953B-11CF-8C96-00AA00B8708C}"
+	win32com.server.register._set_string("pysFile\\ShellEx\\DropHandler", guid_wsh_shellex)
+	win32com.server.register._set_string("pysFile\\ShellEx\\PropertySheetHandlers\\WSHProps", guid_wsh_shellex)
 
 def Register(klass=PyScript):
 	import sys
-	ret = win32com.server.register.UseCommandLine(klass)
-	if '--unregister' not in sys.argv and \
-	   '--unregister_info' not in sys.argv:
-		# If we are registering, do our extra stuff.
-		win32com.server.register._set_subkeys(klass._reg_progid_ + "\\OLEScript", {}) # Just a CreateKey
-		# Basic Registration for wsh.
-		win32com.server.register._set_string(".pys", "pysFile")
-		win32com.server.register._set_string("pysFile\\ScriptEngine", klass._reg_progid_)
-		print "Registration of %s complete." % (klass._reg_desc_,)
+	ret = win32com.server.register.UseCommandLine(klass, 
+	                     finalize_register=DllRegisterServer)
 	return ret
-	
+
 if __name__=='__main__':
 	Register()
