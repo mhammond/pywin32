@@ -40,11 +40,11 @@ class EditorDocumentBase(ParentEditorDocument):
 		self.watcherThread.stop()
 		return self._obj_.OnCloseDocument()
 
-	def OnOpenDocument(self, name):
-		rc = ParentEditorDocument.OnOpenDocument(self, name)
+#	def OnOpenDocument(self, name):
+#		rc = ParentEditorDocument.OnOpenDocument(self, name)
 #		self.GetFirstView()._SetLoadedText(self.text)
-		self._DocumentStateChanged()
-		return rc
+#		self._DocumentStateChanged()
+#		return rc
 
 	def OnSaveDocument( self, fileName ):
 		win32ui.SetStatusText("Saving file...",1)
@@ -85,9 +85,10 @@ class EditorDocumentBase(ParentEditorDocument):
 	def FinalizeViewCreation(self, view):
 		ParentEditorDocument.FinalizeViewCreation(self, view)
 		if view == self.GetFirstView():
+			self._DocumentStateChanged()
 			if view.bFolding and GetEditorOption("Fold On Open", 0):
 				view.FoldTopLevelEvent()
-		
+
 	def HookViewNotifications(self, view):
 		ParentEditorDocument.HookViewNotifications(self, view)
 
@@ -161,6 +162,10 @@ class EditorDocumentBase(ParentEditorDocument):
 		self.watcherThread._DocumentStateChanged()
 		self._UpdateUIForState()
 		self._ApplyOptionalToViews("_UpdateUIForState")
+		# Allow the debugger to reset us too.
+		import pywin.debugger
+		if pywin.debugger.currentDebugger is not None:
+			pywin.debugger.currentDebugger.UpdateDocumentLineStates(self)
 			
 	# Read-only document support - make it obvious to the user
 	# that the file is read-only.
