@@ -924,8 +924,7 @@ PyObject *MyWriteFile(PyObject *self, PyObject *args)
 	} 
 #endif // MS_WINCE
 	else {
-		PyErr_SetString(PyExc_TypeError, "This object can not be written");
-		return NULL;
+		return PyErr_Format(PyExc_TypeError, "Objects of type '%s' can not be directly written to a file", obWriteData->ob_type->tp_name);
 	}
 	if (obOverlapped==NULL)
 		pOverlapped = NULL;
