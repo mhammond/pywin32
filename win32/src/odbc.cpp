@@ -1026,7 +1026,6 @@ static int bindOutput(cursorObject *cur)
 			&scale,
 			&nullok);
 		name[nsize] = 0;
-		_strlwr(name);
 		dsize = display_size(vtype, vsize, name);
 		prec = 0;
 
