@@ -19,13 +19,11 @@
 #include "accctrl.h"
 #include "aclapi.h"
 #include "Ntsecapi.h"
-#include "subauth.h"
 #include "lmshare.h"
 #include "sddl.h"
 #include <stddef.h>
 #include "win32security_sspi.h"
 
-#define CHECK_PFN(fname) if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);
 
 typedef NTSTATUS (WINAPI *LsaRegisterLogonProcessfunc)
 	(PLSA_STRING, PHANDLE, PLSA_OPERATIONAL_MODE);
@@ -78,10 +76,18 @@ typedef PSecurityFunctionTableW (SEC_ENTRY *InitSecurityInterfacefunc)(void);
 static InitSecurityInterfacefunc pfnInitSecurityInterface=NULL;
 extern PSecurityFunctionTableW psecurityfunctiontable=NULL;
 
+// function pointers used in win32security_sspi.cpp
+extern DsBindfunc pfnDsBind=NULL;
+extern DsUnBindfunc pfnDsUnBind=NULL;
+extern DsGetSpnfunc pfnDsGetSpn=NULL;
+extern DsWriteAccountSpnfunc pfnDsWriteAccountSpn=NULL;
+extern DsFreeSpnArrayfunc pfnDsFreeSpnArray=NULL;
+
 static HMODULE advapi32_dll=NULL;
 static HMODULE secur32_dll =NULL;
 static HMODULE security_dll=NULL;
 static HMODULE ntdll_dll   =NULL;
+static HMODULE ntdsapi_dll =NULL;
 
 HMODULE loadmodule(WCHAR *dllname)
 {
@@ -570,7 +576,8 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 	secur32_dll =loadmodule(_T("Secur32.dll"));
 	security_dll=loadmodule(_T("security.dll"));
 	ntdll_dll   =loadmodule(_T("ntdll.dll"));
-
+	ntdsapi_dll =loadmodule(_T("ntdsapi.dll"));
+	
 	pfnCheckTokenMembership=(CheckTokenMembershipfunc)loadapifunc("CheckTokenMembership", advapi32_dll);
 	pfnCreateRestrictedToken=(CreateRestrictedTokenfunc)loadapifunc("CreateRestrictedToken", advapi32_dll);
 
@@ -609,12 +616,44 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 		pfnInitSecurityInterface=(InitSecurityInterfacefunc)loadapifunc("InitSecurityInterfaceW",security_dll);
 	if (pfnInitSecurityInterface!=NULL)
 		psecurityfunctiontable=(*pfnInitSecurityInterface)();
-		
+	
+	pfnDsBind=(DsBindfunc)loadapifunc("DsBindW", ntdsapi_dll);
+	pfnDsUnBind=(DsUnBindfunc)loadapifunc("DsUnBindW", ntdsapi_dll);
+	pfnDsGetSpn=(DsGetSpnfunc)loadapifunc("DsGetSpnW", ntdsapi_dll);
+	pfnDsWriteAccountSpn=(DsWriteAccountSpnfunc)loadapifunc("DsWriteAccountSpnW", ntdsapi_dll);
+	pfnDsFreeSpnArray=(DsFreeSpnArrayfunc)loadapifunc("DsFreeSpnArrayW", ntdsapi_dll);
+	
 	PyDict_SetItemString(d, "SecBufferType", (PyObject *)&PySecBufferType);
 	PyDict_SetItemString(d, "SecBufferDescType", (PyObject *)&PySecBufferDescType);
 	PyDict_SetItemString(d, "CtxtHandleType", (PyObject *)&PyCtxtHandleType);
 	PyDict_SetItemString(d, "CredHandleType", (PyObject *)&PyCredHandleType);
 %}
+
+// functions bodies in win32security_sspi.cpp
+%native(DsGetSpn) PyDsGetSpn;
+// @pyswig (<o PyUnicode>,...)|DsGetSpn|Compose one or more service principal names to be registered using <om win32security.DsWriteAccountSpn>
+// @pyparm int|ServiceType||Type of Spn to create, one of the DS_SPN_* constants
+// @pyparm <o PyUnicode>|ServiceClass||Arbitrary string that describes type of service, eg http
+// @pyparm <o PyUnicode>|ServiceName||Name of service, can be None (not required for DS_SPN_*_HOST Spn's)
+// @pyparm int|InstancePort|0|Port nbr for service instance, use 0 for no port
+// @pyparm (<o PyUnicode>,...)|InstanceNames|None|A sequence of service instance names, can be None - not required for for host Spn's
+// @pyparm (int,...)|InstancePorts|None|A sequence of extra instance ports.  If specified, must be same length as InstanceNames.
+
+%native(DsWriteAccountSpn) PyDsWriteAccountSpn;
+// @pyswig |DsWriteAccountSpn|Associates a set of service principal names with an account
+// @pyparm <o PyHANDLE>|hDS||Directory service handle as returned from <om win32security.DsBind>
+// @pyparm int|Operation||Constant from DS_SPN_WRITE_OP enum
+// @pyparm <o PyUnicode>|Account||Distinguished name of account whose Spn's will be modified
+// @pyparm (<o PyUnicode>,...)|Spns||A sequence of target Spn's as returned by <om win32security.DsGetSpn>
+
+%native (DsBind) PyDsBind;
+// @pyswig <o PyHANDLE>|DsBind|Creates a connection to a directory service
+// @pyparm <o PyUnicode>|DomainController||Name of domain controller to contact, can be None
+// @pyparm <o PyUnicode>|DnsDomainName||Dotted name of domain to bind to, can be None
+
+%native (DsUnBind) PyDsUnBind;
+// @pyswig |DsUnBind|Closes a directory services handle created by <om win32security.DsBind>
+// @pyparm <o PyHANDLE>|hDS||A handle to a directory service as returned by <om win32security.DsBind>
 
 // @pyswig PyACL|ACL|Creates a new <o PyACL> object.
 // @pyparm int|bufSize|64|The size of the buffer for the ACL.
@@ -3584,3 +3623,15 @@ static PyObject *PyLsaCallAuthenticationPackage(PyObject *self, PyObject *args)
 #define DISABLE_MAX_PRIVILEGE DISABLE_MAX_PRIVILEGE
 #define SANDBOX_INERT SANDBOX_INERT
 
+// Spn types used with DsGetSpn  (from ntdsapi.h)
+#define DS_SPN_DNS_HOST DS_SPN_DNS_HOST
+#define DS_SPN_DN_HOST DS_SPN_DN_HOST
+#define DS_SPN_NB_HOST DS_SPN_NB_HOST
+#define DS_SPN_DOMAIN DS_SPN_DOMAIN
+#define DS_SPN_NB_DOMAIN DS_SPN_NB_DOMAIN
+#define DS_SPN_SERVICE DS_SPN_SERVICE
+
+#Spn operations used with DsWriteAccountSpn
+#define DS_SPN_ADD_SPN_OP DS_SPN_ADD_SPN_OP
+#define DS_SPN_REPLACE_SPN_OP DS_SPN_REPLACE_SPN_OP
+#define DS_SPN_DELETE_SPN_OP DS_SPN_DELETE_SPN_OP

@@ -3,7 +3,8 @@
 
 #define SECURITY_WIN32
 #include "Security.h"
-
+#include "ntdsapi.h"
+#include "subauth.h"
 
 // SecBuffer objects for SSPI functionality
 extern __declspec(dllexport) PyTypeObject PySecBufferType;
@@ -152,3 +153,29 @@ public:
 protected:
 	CredHandle credhandle;
 };
+
+// functions implemented in win32security_sspi.cpp and wrapped as %native with SWIG 
+PyObject *PyDsGetSpn(PyObject *self, PyObject *args);
+PyObject *PyDsWriteAccountSpn(PyObject *self, PyObject *args);
+PyObject *PyDsBind(PyObject *self, PyObject *args);
+PyObject *PyDsUnBind(PyObject *self, PyObject *args);
+
+// function pointers that are initialized in win32security.i and used in win32security_sspi.cpp
+typedef DWORD (WINAPI *DsBindfunc)(LPCTSTR, LPCTSTR, HANDLE*);
+extern DsBindfunc pfnDsBind;
+
+typedef DWORD (WINAPI *DsUnBindfunc)(HANDLE*);
+extern DsUnBindfunc pfnDsUnBind;
+
+typedef DWORD (WINAPI *DsGetSpnfunc)(DS_SPN_NAME_TYPE, LPCTSTR, LPCTSTR,
+	USHORT, USHORT, LPCTSTR*, USHORT*, DWORD*, LPTSTR**);
+extern DsGetSpnfunc pfnDsGetSpn;
+
+typedef void (WINAPI *DsFreeSpnArrayfunc)(DWORD, LPTSTR*);
+extern DsFreeSpnArrayfunc pfnDsFreeSpnArray;
+
+typedef DWORD (WINAPI *DsWriteAccountSpnfunc)(HANDLE, DS_SPN_WRITE_OP, LPCTSTR, DWORD, LPCTSTR*);
+extern DsWriteAccountSpnfunc pfnDsWriteAccountSpn;
+
+#define CHECK_PFN(fname) if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);
+
