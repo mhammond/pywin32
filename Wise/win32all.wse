@@ -17,7 +17,7 @@ item: Global
   Patch Flags=0000000000000001
   Patch Threshold=85
   Patch Memory=4000
-  EXE Filename=win32all-155.exe
+  EXE Filename=win32all-154.exe
   Code Sign Name=Python Win32 combined extensions
   Code Sign Info=skippinet.com.au
   Crystal Format=10111100101100000010001001001001
