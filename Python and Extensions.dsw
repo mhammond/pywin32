@@ -429,30 +429,6 @@ Package=<4>
 
 ###############################################################################
 
-Project: "python"="..\Python-cvs\PCbuild\python.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "pythoncore"="..\python-cvs\PCbuild\pythoncore.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
 Project: "pythonwin"=.\Pythonwin\pythonwin.dsp - Package Owner=<4>
 
 Package=<5>
