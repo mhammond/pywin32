@@ -277,7 +277,7 @@ class InteractiveCore:
 				suffix = ""
 				if win32ui.debug: suffix = ", debug build"
 				sys.stderr.write("PythonWin %s on %s%s.\n" % (sys.version, sys.platform, suffix) )
-				sys.stderr.write("%s - see 'Help/About PythonWin' for further copyright information.\n" % (win32ui.copyright,) )
+				sys.stderr.write("Portions %s - see 'Help/About PythonWin' for further copyright information.\n" % (win32ui.copyright,) )
 			else:
 				sys.stderr.write(banner)
 		self.AppendToPrompt([])
