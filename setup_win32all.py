@@ -112,7 +112,10 @@ class WinExt (Extension):
         if dsp_file:
             sources = sources or []
             sources.extend(self.get_source_files(dsp_file))
-            
+        # Some of our swigged files behave differently in distutils vs
+        # MSVC based builds.  Always define DISTUTILS_BUILD so they can tell.
+        define_macros = define_macros or []
+        define_macros.append(("DISTUTILS_BUILD", None))
         self.pch_header = pch_header
         self.windows_h_version = windows_h_version
         Extension.__init__ (self, name, sources,
@@ -440,7 +443,6 @@ class my_build_ext(build_ext):
         # this, distutils gets confused, as they both try and use the same
         # .obj.
         output_dir = os.path.join(self.build_temp, ext.name)
-        print "OD is", output_dir
         # 2.2 has no 'depends' param.
         kw = {'output_dir': output_dir,
               'macros': macros,
@@ -588,8 +590,10 @@ class my_build_ext(build_ext):
         # is fine for developers who want to distribute the generated
         # source -- but there should be an option to put SWIG output in
         # the temp dir.
-        # XXX - further, the way the win32/wince SWIG modules #include the
-        # real .cpp file prevents us generating the .cpp files in the temp dir.
+        # XXX - Note that swig_wince_modules no longer #include the real
+        # generated .cpp file (well, they do, but are avoided via the
+        # pre-processor.)  So this is no longer a reason we can't generate
+        # directly to the temp directory.
         target_ext = '.cpp'
         for source in sources:
             (base, ext) = os.path.splitext(source)
@@ -602,7 +606,11 @@ class my_build_ext(build_ext):
                 if os.path.basename(base) in swig_interface_parents:
                     swig_targets[source] = base + target_ext
                 elif os.path.basename(base) in swig_wince_modules:
-                    swig_targets[source] = base + 'module_win32' + target_ext
+                    # We need to add this .cpp to the sources, so it
+                    # will be built.
+                    new_target = base + 'module_win32' + target_ext
+                    swig_targets[source] = new_target
+                    new_sources.append(new_target)
                 else:
                     swig_targets[source] = base + 'module' + target_ext
             else:
@@ -705,7 +713,7 @@ for info in (
         ("win32pdh", "", False),
         ("win32pipe", "", False),
         ("win32print", "winspool user32", False),
-        ("win32process", "advapi32 user32", False),
+        ("win32process", "advapi32 user32", False, 0x0500),
         ("win32ras", "rasapi32 user32", False),
         ("win32security", "advapi32 user32", True),
         ("win32service", "advapi32 oleaut32", True, 0x0500),
