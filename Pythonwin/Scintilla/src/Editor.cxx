@@ -1830,8 +1830,12 @@ void Editor::DrawLine(Surface *surface, ViewStyle &vsDraw, int line, int lineVis
 				}
 				if (ll->chars[i] == '\t') {
 					// Manage tab display
+					if (!overrideBackground && vsDraw.whitespaceBackgroundSet && (vsDraw.viewWhitespace != wsInvisible) && (!inIndentation || vsDraw.viewWhitespace == wsVisibleAlways))
+						textBack = vsDraw.whitespaceBackground.allocated;
 					surface->FillRectangle(rcSegment, textBack);
 					if ((vsDraw.viewWhitespace != wsInvisible) || ((inIndentation && vsDraw.viewIndentationGuides))) {
+						if (vsDraw.whitespaceForegroundSet)
+							textFore = vsDraw.whitespaceForeground.allocated;
 						surface->PenColour(textFore);
 					}
 					if (inIndentation && vsDraw.viewIndentationGuides) {
@@ -1890,8 +1894,15 @@ void Editor::DrawLine(Surface *surface, ViewStyle &vsDraw, int line, int lineVis
 						for (int cpos = 0; cpos <= i - startseg; cpos++) {
 							if (ll->chars[cpos + startseg] == ' ') {
 								if (vsDraw.viewWhitespace != wsInvisible) {
+									if (vsDraw.whitespaceForegroundSet)
+										textFore = vsDraw.whitespaceForeground.allocated;
 									if (!inIndentation || vsDraw.viewWhitespace == wsVisibleAlways) {
 										int xmid = (ll->positions[cpos + startseg] + ll->positions[cpos + startseg + 1]) / 2;
+										if (!overrideBackground && vsDraw.whitespaceBackgroundSet) {
+											textBack = vsDraw.whitespaceBackground.allocated;
+											PRectangle rcSpace(ll->positions[cpos + startseg] + xStart, rcSegment.top, ll->positions[cpos + startseg + 1] + xStart, rcSegment.bottom);
+											surface->FillRectangle(rcSpace, textBack);
+										}
 										PRectangle rcDot(xmid + xStart  - subLineStart, rcSegment.top + vsDraw.lineHeight / 2, 0, 0);
 										rcDot.right = rcDot.left + 1;
 										rcDot.bottom = rcDot.top + 1;
@@ -2320,6 +2331,8 @@ long Editor::FormatRange(bool draw, RangeToFormat *pfr) {
 	// Don't show the selection when printing
 	vsPrint.selbackset = false;
 	vsPrint.selforeset = false;
+	vsPrint.whitespaceBackgroundSet = false;
+	vsPrint.whitespaceForegroundSet = false;
 	vsPrint.showCaretLineBackground = false;
 
 	// Set colours for printing according to users settings
@@ -5427,6 +5440,18 @@ sptr_t Editor::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam) {
 	case SCI_SETSELBACK:
 		vs.selbackset = wParam != 0;
 		vs.selbackground.desired = ColourDesired(lParam);
+		InvalidateStyleRedraw();
+		break;
+
+	case SCI_SETWHITESPACEFORE:
+		vs.whitespaceForegroundSet = wParam != 0;
+		vs.whitespaceForeground.desired = ColourDesired(lParam);
+		InvalidateStyleRedraw();
+		break;
+
+	case SCI_SETWHITESPACEBACK:
+		vs.whitespaceBackgroundSet = wParam != 0;
+		vs.whitespaceBackground.desired = ColourDesired(lParam);
 		InvalidateStyleRedraw();
 		break;
 
