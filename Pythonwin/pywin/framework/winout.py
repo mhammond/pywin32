@@ -95,8 +95,8 @@ class WindowOutputViewImpl:
 	def GetRightMenuItems(self):
 		ret = []
 		flags=win32con.MF_STRING|win32con.MF_ENABLED
-		ret.append(flags, win32ui.ID_EDIT_COPY, '&Copy')
-		ret.append(flags, win32ui.ID_EDIT_SELECT_ALL, '&Select all')
+		ret.append((flags, win32ui.ID_EDIT_COPY, '&Copy'))
+		ret.append((flags, win32ui.ID_EDIT_SELECT_ALL, '&Select all'))
 		return ret
 
 	#
