@@ -1559,6 +1559,25 @@ DEP_CPP_PYIUN=\
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32com\src\PyRecord.cpp
+
+!IF  "$(CFG)" == "win32com - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Release"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Debug"
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32com\src\PyStorage.cpp
 
 !IF  "$(CFG)" == "win32com - Win32 Release"
@@ -8350,24 +8369,5 @@ SOURCE=.\win32com\src\PythonCOM.def
 
 # End Source File
 # End Group
-# Begin Source File
-
-SOURCE=.\win32com\src\PyRecord.cpp
-
-!IF  "$(CFG)" == "win32com - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "win32com - Win32 Debug"
-
-!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Release"
-
-!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
-
-!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
-
-!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Debug"
-
-!ENDIF 
-
-# End Source File
 # End Target
 # End Project
