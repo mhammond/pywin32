@@ -146,6 +146,7 @@ void PyMAPIObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 %}
 
 // @pyswig PyACL|ACL|Creates a new <o PyACL> object.
+// @pyparm int|bufSize|64|The size of the buffer for the ACL.
 %native(ACL) PyWinMethod_NewACL;
 // @pyswig PySID|SID|Creates a new <o PySID> object.
 %native(SID) PyWinMethod_NewSID;
