@@ -187,11 +187,11 @@ class DispatcherWin32dbg(DispatcherBase):
   A dispatcher which invokes the debugger as an object is instantiated, or 
   when an unexpected exception occurs.
 
-  Requires the win32dbg package.
+  Requires Pythonwin.
   """
   def __init__(self, policyClass, ob):
-    import win32dbg
-    win32dbg.brk()
+    import pywin.debugger 
+    pywin.debugger.brk()
     # DEBUGGER Note - You can either:
     # * Hit Run and wait for a (non Exception class) exception to occur!
     # * Set a breakpoint and hit run.
@@ -199,22 +199,22 @@ class DispatcherWin32dbg(DispatcherBase):
     DispatcherBase.__init__(self, policyClass, ob)
 
   def _HandleException_(self):
-    """ Invoke the win32dbg post mortem capability """
+    """ Invoke the debugger post mortem capability """
     # Save details away.
     typ, val, tb = exc_info()
-    import win32dbg, win32dbg.dbgcon
+    import pywin.debugger, pywin.debugger.dbgcon
     debug = 0
     try:
       raise typ, val
     except Exception: # AARG - What is this Exception???
       # Use some inside knowledge to borrow a Debugger option which dictates if we
       # stop at "expected" exceptions.
-      debug = win32dbg.GetDebugger().get_option(win32dbg.dbgcon.OPT_STOP_EXCEPTIONS)
+      debug = pywin.debugger.GetDebugger().get_option(pywin.debugger.dbgcon.OPT_STOP_EXCEPTIONS)
     except:
       debug = 1
     if debug:
       try:
-        win32dbg.post_mortem(tb, typ, val) # The original exception
+        pywin.debugger.post_mortem(tb, typ, val) # The original exception
       except:
         traceback.print_exc()
 
