@@ -3317,6 +3317,61 @@ static PyObject * PyEndUpdateResource(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+BOOL CALLBACK EnumResProc(HMODULE module, LPCSTR type, LPSTR name, PyObject
+*param)
+{
+	PyObject *pyname;
+	if (HIWORD(name) == 0)
+	{
+		pyname = PyInt_FromLong(reinterpret_cast<long>(name));
+	}
+	else if (name[0] == '#')
+	{
+		pyname = PyInt_FromLong(_ttoi(name + 1));
+	}
+	else
+	{
+		pyname = PyString_FromString(name);
+	}
+	PyList_Append(param, pyname);
+	return TRUE;
+}
+
+// @pymethod [string, ...]|win32api|EnumResourceNames|Enumerates all the resources of the specified type from the nominated file.
+PyObject *PyEnumResourceNames(PyObject *, PyObject *args)
+{
+	HMODULE hmodule;
+	LPCSTR restype;
+	char buf[20];
+	// NOTE:  MH can't make the string version of the param
+	// return anything useful, so I undocumented its use!
+	// pyparm int|hmodule||The handle to the module to enumerate.
+	// pyparm string|resType||The type of resource to enumerate as a string (eg, 'RT_DIALOG')
+	if (!PyArg_ParseTuple(args, "is", &hmodule, &restype))
+	{
+		PyErr_Clear();
+		int restypeint;
+		// @pyparm int|hmodule||The handle to the module to enumerate.
+		// @pyparm int|resType||The type of resource to enumerate as an integer (eg, win32con.RT_DIALOG)
+		if (!PyArg_ParseTuple(args, "ii", &hmodule, &restypeint))
+		{
+			return NULL;
+		}
+		sprintf(buf, "#%d", restypeint);
+		restype = buf;
+	}
+	// @rdesc The result is a list of string or integers, one for each resource enumerated.
+	PyObject *result = PyList_New(0);
+	EnumResourceNames(
+		hmodule,
+		restype,
+		reinterpret_cast<ENUMRESNAMEPROC>(EnumResProc),
+		reinterpret_cast<LONG>(result));
+
+	return result;
+}
+
+
 // @pymethod <o PyUnicode>|win32api|Unicode|Creates a new Unicode object
 PYWINTYPES_EXPORT PyObject *PyWin_NewUnicode(PyObject *self, PyObject *args);
 
@@ -3502,6 +3557,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"DragFinish",			PyDragFinish,       1}, // @pymeth DragFinish|Free memory associated with dropped files.
 	{"DuplicateHandle",     PyDuplicateHandle,  1}, // @pymeth DuplicateHandle|Duplicates a handle.
 	{"EndUpdateResource",   PyEndUpdateResource, 1 }, // @pymeth EndUpdateResource|Ends a resource update cycle of a PE file.
+	{"EnumResourceNames",   PyEnumResourceNames, 1 }, // @pymeth EnumResourceNames|Enumerates all the resources of the specified type from the nominated file.
 	{"ExpandEnvironmentStrings",PyExpandEnvironmentStrings, 1}, // @pymeth ExpandEnvironmentStrings|Expands environment-variable strings and replaces them with their defined values. 
 	{"ExitWindows",         PyExitWindows,      1}, // @pymeth ExitWindows|Logs off the current user
 	{"ExitWindowsEx",       PyExitWindowsEx,      1}, // @pymeth ExitWindowsEx|either logs off the current user, shuts down the system, or shuts down and restarts the system.
