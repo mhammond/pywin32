@@ -765,7 +765,8 @@ class Generator:
     if not hasattr(sys, "frozen") and sys.platform.startswith("win"):
         print >> self.file, '# -*- coding: mbcs -*-' # Is this always correct?
     print >> self.file, '# Created by makepy.py version %s' % (makepy_version,)
-    print >> self.file, '# By python version %s' % (sys.version,)
+    print >> self.file, '# By python version %s' % \
+                        (sys.version.replace("\n", "-"),)
     if self.sourceFilename:
         print >> self.file, "# From type library '%s'" % (os.path.split(self.sourceFilename)[1],)
     print >> self.file, '# On %s' % time.ctime(time.time())
