@@ -110,6 +110,10 @@ SOURCE=.\win32comext\shell\src\PyICopyHook.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32comext\shell\src\PyIDropTargetHelper.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32comext\shell\src\PyIEnumIDList.cpp
 # End Source File
 # Begin Source File
@@ -163,6 +167,10 @@ SOURCE=.\win32comext\shell\src\PyIContextMenu.h
 # Begin Source File
 
 SOURCE=.\win32comext\shell\src\PyICopyHook.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIDropTargetHelper.h
 # End Source File
 # Begin Source File
 
