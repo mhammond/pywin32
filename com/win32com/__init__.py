@@ -81,19 +81,26 @@ if not _frozen:
 	SetupEnvironment()
 
 # If we don't have a special __gen_path__, see if we have a gen_py as a
-# normal module and use that (ie, "win32com\gen_py" may already exist as
+# normal module and use that (ie, "win32com.gen_py" may already exist as
 # a package.
 if not __gen_path__:
 	try:
 		import win32com.gen_py
 		__gen_path__ = sys.modules["win32com.gen_py"].__path__[0]
 	except ImportError:
-		# We used to dynamically create a directory under win32com -
-		# but this sucks.  Now we create a version specific directory
-		# under the user temp directory.
-		__gen_path__ = os.path.join(
-							win32api.GetTempPath(), "gen_py",
-							"%d.%d" % (sys.version_info[0], sys.version_info[1]))
+		# If a win32com\gen_py directory already exists, then we use it
+		# (gencache doesn't insist it have an __init__, but our __import__ 
+		# above does!
+		__gen_path__ = os.path.abspath(
+		                         os.path.join(win32com.__path__[0], "gen_py"))
+		if not os.path.isdir(__gen_path__):
+			# We used to dynamically create a directory under win32com -
+			# but this sucks.  If the dir doesn't already exist, we we 
+			# create a version specific directory under the user temp 
+			# directory.
+			__gen_path__ = os.path.join(
+								win32api.GetTempPath(), "gen_py",
+								"%d.%d" % (sys.version_info[0], sys.version_info[1]))
 
 # we must have a __gen_path__, but may not have a gen_py module -
 # set that up.
