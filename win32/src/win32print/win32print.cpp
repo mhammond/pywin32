@@ -19,6 +19,8 @@ generates Windows .hlp files.
 #include "PyWinObjects.h"
 #include <stdarg.h>
 
+typedef BOOL (WINAPI *EnumFormsfunc)(HANDLE,DWORD,LPBYTE,DWORD,LPDWORD,LPDWORD);
+EnumFormsfunc enumforms=NULL;
 
 // Printer stuff.
 // @pymethod int|win32print|OpenPrinter|Retrieves a handle to a printer.
@@ -240,7 +242,7 @@ static PyObject *PyStartDocPrinter(PyObject *self, PyObject *args)
 	DWORD JobID;
 
 	if (!PyArg_ParseTuple(args, "ii(szz):StartDocPrinter",
-	            &hprinter, // @pyparm int|hprinter||handle to printer (from OpenPrinter)
+	            &hprinter, // @pyparm int|hprinter||handle to printer (from <om win32print.OpenPrinter>)
 	            &level,     // @pyparm int|level|1|type of docinfo structure (only docinfo level 1 supported)
 	            &pDocName, &pOutputFile, &pDatatype // @pyparm data|tuple||A tuple corresponding to the level parameter.
 	        ))
@@ -278,7 +280,7 @@ static PyObject *PyEndDocPrinter(PyObject *self, PyObject *args)
 	HANDLE hprinter;
 
 	if (!PyArg_ParseTuple(args, "i:EndDocPrinter",
-	            &hprinter  // @pyparm int|hprinter||handle to printer (from OpenPrinter)
+	            &hprinter  // @pyparm int|hprinter||handle to printer (from <om win32print.OpenPrinter>)
 	        ))
 		return NULL;
 
@@ -289,6 +291,144 @@ static PyObject *PyEndDocPrinter(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod |win32print|AbortPrinter|Deletes spool file for a printer
+static PyObject *PyAbortPrinter(PyObject *self, PyObject *args)
+{
+	 // @pyparm int|hprinter||Handle to printer as returned by <om win32print.OpenPrinter>
+	HANDLE hprinter;
+	if (!PyArg_ParseTuple(args, "i:AbortPrinter",&hprinter))
+		return NULL;
+	if (!AbortPrinter(hprinter))
+		return PyWin_SetAPIError("AbortPrinter");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod |win32print|StartPagePrinter|Notifies the print spooler that a page is to be printed on specified printer
+static PyObject *PyStartPagePrinter(PyObject *self, PyObject *args)
+{
+	// @pyparm int|hprinter||Printer handle as returned by <om win32print.OpenPrinter>
+	HANDLE hprinter;
+	if (!PyArg_ParseTuple(args, "l:StartPagePrinter", &hprinter))
+		return NULL;
+	if (!StartPagePrinter(hprinter))
+		return PyWin_SetAPIError("StartPagePrinter");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod |win32print|EndPagePrinter|Ends a page in a print job
+static PyObject *PyEndPagePrinter(PyObject *self, PyObject *args)
+{
+	// @pyparm int|hprinter||Printer handle as returned by <om win32print.OpenPrinter>
+	HANDLE hprinter;
+	if (!PyArg_ParseTuple(args, "l:EndPagePrinter", &hprinter))
+		return NULL;
+	if (!EndPagePrinter(hprinter))
+		return PyWin_SetAPIError("EndPagePrinter");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @object DOCINFO|A tuple of information representing a DOCINFO struct
+// @prop string/<o PyUnicode>|DocName|Name of document
+// @prop string/<o PyUnicode>|Output|Name of output file when printing to file. Use None for normal printing.
+// @prop string/<o PyUnicode>|DataType|Type of data to be sent to printer, eg RAW, EMF, TEXT. Use None for printer default.
+// @prop int|Type|Flag specifying mode of operation.  Can be DI_APPBANDING, DI_ROPS_READ_DESTINATION, or 0
+BOOL PyWinObject_AsDOCINFO(PyObject *obdocinfo, DOCINFO *di)
+{
+	if (!PyTuple_Check(obdocinfo)){
+		PyErr_SetString(PyExc_TypeError,"DOCINFO must be a tuple");
+		return FALSE;
+		}
+	if (!PyArg_ParseTuple(obdocinfo, "zzzl", &di->lpszDocName, &di->lpszOutput, &di->lpszOutput, &di->fwType))
+		return FALSE;
+	return TRUE;
+}
+
+// @pymethod int|win32print|StartDoc|Starts spooling a print job on a printer device context
+static PyObject *PyStartDoc(PyObject *self, PyObject *args)
+{
+	// @pyparm int|hdc||Printer device context handle as returned by <om win32gui.CreateDC>
+	// @pyparm tuple|docinfo||<o DOCINFO> tuple specifying print job parameters
+	// @rdesc On success, returns the job id of the print job
+	HDC hdc;
+	DOCINFO docinfo;
+	int jobid;
+	PyObject *obdocinfo;
+	if (!PyArg_ParseTuple(args, "lO:StartDoc", &hdc, &obdocinfo))
+		return NULL;
+	if (!PyWinObject_AsDOCINFO(obdocinfo, &docinfo))
+		return NULL;
+	jobid=StartDoc(hdc, &docinfo);
+	if (jobid > 0)
+		return Py_BuildValue("l",jobid);
+	return PyWin_SetAPIError("StartDoc");
+}
+
+// @pymethod |win32print|EndDoc|Stops spooling a print job on a printer device context
+static PyObject *PyEndDoc(PyObject *self, PyObject *args)
+{
+	// @pyparm int|hdc||Printer device context handle as returned by <om win32gui.CreateDC>
+	HDC hdc;
+	int err;
+	if (!PyArg_ParseTuple(args, "l:EndDoc", &hdc))
+		return NULL;
+	err=EndDoc(hdc);
+	if (err > 0){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	return PyWin_SetAPIError("EndDoc");
+}
+
+// @pymethod |win32print|AbortDoc|Cancels a print job
+static PyObject *PyAbortDoc(PyObject *self, PyObject *args)
+{
+	// @pyparm int|hdc||Printer device context handle as returned by <om win32gui.CreateDC>
+	HDC hdc;
+	int err;
+	if (!PyArg_ParseTuple(args, "l:AbortDoc", &hdc))
+		return NULL;
+	err=AbortDoc(hdc);
+	if (err > 0){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	return PyWin_SetAPIError("AbortDoc");
+}
+
+// @pymethod |win32print|StartPage|Starts a page on a printer device context
+static PyObject *PyStartPage(PyObject *self, PyObject *args)
+{
+	// @pyparm int|hdc||Printer device context handle as returned by <om win32gui.CreateDC>
+	HDC hdc;
+	int err;
+	if (!PyArg_ParseTuple(args, "l:StartPage", &hdc))
+		return NULL;
+	err=StartPage(hdc);
+	if (err > 0){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	return PyWin_SetAPIError("StartPage");
+}
+
+// @pymethod |win32print|EndPage|Ends a page on a printer device context
+static PyObject *PyEndPage(PyObject *self, PyObject *args)
+{
+	// @pyparm int|hdc||Printer device context handle as returned by <om win32gui.CreateDC>
+	HDC hdc;
+	int err;
+	if (!PyArg_ParseTuple(args, "l:EndPage", &hdc))
+		return NULL;
+	err=EndPage(hdc);
+	if (err > 0){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	return PyWin_SetAPIError("EndPage");
+}
 
 // @pymethod int|win32print|WritePrinter|Copies the specified bytes to the specified printer. Suitable for copying raw Postscript or HPGL files to a printer. StartDocPrinter and EndDocPrinter should be called before and after. Returns number of bytes written to printer.
 static PyObject *PyWritePrinter(PyObject *self, PyObject *args)
@@ -575,7 +715,7 @@ static PyObject *PyDocumentProperties(PyObject *self, PyObject *args)
 	// @pyparm <o PyDEVMODE>|DevModeOutput||PyDEVMODE object that receives modified info, can be None if DM_OUT_BUFFER not specified
 	// @pyparm <o PyDEVMODE>|DevModeInput||PyDEVMODE that specifies initial configuration, can be None if DM_IN_BUFFER not specified
 	// @pyparm int|Mode||A combination of DM_IN_BUFFER, DM_OUT_BUFFER, and DM_IN_PROMPT - pass 0 to retrieve driver data size
-	if (!PyArg_ParseTuple(args,"llsOOl", &hwnd, &hprinter, &devicename, &obdmoutput, &obdminput, &mode))
+	if (!PyArg_ParseTuple(args,"llsOOl:DocumentProperties", &hwnd, &hprinter, &devicename, &obdmoutput, &obdminput, &mode))
 		return NULL;
 	if (!PyWinObject_AsDEVMODE(obdmoutput, &dmoutput, TRUE))
 		return NULL;
@@ -591,7 +731,7 @@ static PyObject *PyDocumentProperties(PyObject *self, PyObject *args)
 	return PyInt_FromLong(ret);
 }
 
-// @pymethod string,...|win32print|EnumPrintProcessors|List printer providers for specified server and environment
+// @pymethod (string,...)|win32print|EnumPrintProcessors|List printer processors for specified server and environment
 static PyObject *PyEnumPrintProcessors(PyObject *self, PyObject *args)
 {
 	PRINTPROCESSOR_INFO_1 *info=NULL; // currently only level that exists
@@ -601,7 +741,7 @@ static PyObject *PyEnumPrintProcessors(PyObject *self, PyObject *args)
 	PyObject *ret, *tuple_item;
 	// @pyparm string|Server|None|Name of print server, use None for local machine
 	// @pyparm string|Environment|None|Environment - eg 'Windows NT x86' - use None for current client environment
-	if (!PyArg_ParseTuple(args,"|zz", &servername, &environment))
+	if (!PyArg_ParseTuple(args,"|zz:EnumPrintProcessors", &servername, &environment))
 		return NULL;
 
 	EnumPrintProcessors(servername, environment, level, buf, bufsize, &bytes_needed, &return_cnt);
@@ -637,6 +777,312 @@ static PyObject *PyEnumPrintProcessors(PyObject *self, PyObject *args)
 	return ret;
 }
 
+// @pymethod (<o PyUnicode>,...)|win32print|EnumPrintProcessorDatatypes|List data types that specified print provider recognizes
+static PyObject *PyEnumPrintProcessorDatatypes(PyObject *self, PyObject *args)
+{
+	DATATYPES_INFO_1W *di1;
+	LPBYTE buf=NULL;
+	WCHAR *servername=NULL, *processorname=NULL;
+	PyObject *observername, *obprocessorname;
+	DWORD level=1, bufsize=0, bytes_needed, return_cnt;
+	PyObject *ret=NULL, *tuple_item;
+	// @pyparm string/<o PyUnicode>|ServerName||Name of print server, use None for local machine
+	// @pyparm string/<o PyUnicode>|PrintProcessorName||Name of print processor
+	if (!PyArg_ParseTuple(args,"OO:EnumPrintProcessorDatatypes", &observername, &obprocessorname))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(observername, &servername, TRUE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(obprocessorname, &processorname, FALSE))
+		goto done;
+	EnumPrintProcessorDatatypesW(servername, processorname, level, buf, bufsize, &bytes_needed, &return_cnt);
+	if (bytes_needed==0){
+		PyWin_SetAPIError("EnumPrintProcessorDatatypes");
+		goto done;
+		}
+	buf=(LPBYTE)malloc(bytes_needed);
+	if (buf==NULL){
+		PyErr_Format(PyExc_MemoryError,"EnumPrintProcessorDatatypes: unable to allocate buffer of size %d", bytes_needed);
+		goto done;
+		}
+	bufsize=bytes_needed;
+	if (!EnumPrintProcessorDatatypesW(servername, processorname, level, buf, bufsize, &bytes_needed, &return_cnt)){
+		PyWin_SetAPIError("EnumPrintProcessorDatatypes");
+		goto done;
+		}
+	ret=PyTuple_New(return_cnt);
+	if (ret==NULL)
+		goto done;
+	di1=(DATATYPES_INFO_1W *)buf;
+	for (DWORD buf_ind=0; buf_ind<return_cnt; buf_ind++){
+		tuple_item=PyWinObject_FromWCHAR(di1->pName);
+		if (tuple_item==NULL){
+			Py_DECREF(ret);
+			ret=NULL;
+			break;
+			}
+		PyTuple_SetItem(ret,buf_ind,tuple_item);
+		di1++;
+		}
+done:
+	if (servername!=NULL)
+		PyWinObject_FreeWCHAR(servername);
+	if (processorname!=NULL)
+		PyWinObject_FreeWCHAR(processorname);
+	if (buf!=NULL)
+		free(buf);
+	return ret;
+}
+
+// @pymethod (dict,...)|win32print|EnumPrinterDrivers|Lists installed printer drivers
+static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
+{
+	DWORD level=1, bufsize=0, bytes_needed, return_cnt;
+	LPBYTE buf=NULL;
+	DRIVER_INFO_1W *di1;
+	DRIVER_INFO_2W *di2;
+	DRIVER_INFO_3W *di3;
+	DRIVER_INFO_4W *di4;
+	DRIVER_INFO_5W *di5;
+	DRIVER_INFO_6W *di6;
+	PyObject *ret=NULL, *tuple_item;
+	PyObject *observername=Py_None, *obenvironment=Py_None;
+	WCHAR *servername=NULL, *environment=NULL;
+	// @pyparm string/unicode|Server|None|Name of print server, use None for local machine
+	// @pyparm string/unicode|Environment|None|Environment - eg 'Windows NT x86' - use None for current client environment
+	// @pyparm int|Level|1|Level of information to return, 1-6 (not all levels are supported on all platforms)
+	// @rdesc Returns a sequence of dictionaries representing DRIVER_INFO_* structures
+	// @comm On Win2k and up, 'all' can be passed for environment
+	if (!PyArg_ParseTuple(args,"|OOl:EnumPrinterDrivers", &observername, &obenvironment, &level))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(observername, &servername, TRUE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(obenvironment, &environment, TRUE))
+		goto done;
+
+	EnumPrinterDriversW(servername, environment, level, buf, bufsize, &bytes_needed, &return_cnt);
+	if (bytes_needed==0){
+		PyWin_SetAPIError("EnumPrinterDrivers");
+		goto done;
+		}
+	buf=(LPBYTE)malloc(bytes_needed);
+	if (buf==NULL){
+		PyErr_Format(PyExc_MemoryError,"EnumPrinterDrivers: unable to allocate buffer of size %d", bytes_needed);
+		goto done;
+		}
+	bufsize=bytes_needed;
+	if (!EnumPrinterDriversW(servername, environment, level, buf, bufsize, &bytes_needed, &return_cnt)){
+		PyWin_SetAPIError("EnumPrintProcessors");
+		goto done;
+		}
+	ret=PyTuple_New(return_cnt);
+	if (ret==NULL)
+		goto done;
+	switch (level)
+		case 1:{
+			di1=(DRIVER_INFO_1W *)buf;
+			for (DWORD i=0; i<return_cnt; i++){
+				tuple_item=Py_BuildValue("{s:u}","Name",di1->pName);
+				if (tuple_item==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SetItem(ret, i, tuple_item);
+				di1++;
+				}
+			break;
+		case 2:
+			di2=(DRIVER_INFO_2W *)buf;
+			for (DWORD i=0; i<return_cnt; i++){
+				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u}",
+					"Version",di2->cVersion,
+					"Name",di2->pName,
+					"Environment",di2->pEnvironment,
+					"DriverPath",di2->pDriverPath,
+					"DataFile",di2->pDataFile,
+					"ConfigFile",di2->pConfigFile);
+				if (tuple_item==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SetItem(ret, i, tuple_item);
+				di2++;
+				}
+			break;
+		case 3:
+			di3=(DRIVER_INFO_3W *)buf;
+			for (DWORD i=0; i<return_cnt; i++){
+				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u}",
+					"Version",di3->cVersion,
+					"Name",di3->pName,
+					"Environment",di3->pEnvironment,
+					"DriverPath",di3->pDriverPath,
+					"DataFile",di3->pDataFile,
+					"ConfigFile",di3->pConfigFile,
+					"HelpFile", di3->pHelpFile,
+					"DependentFiles",di3->pDependentFiles,
+					"MonitorName",di3->pMonitorName,
+					"DefaultDataType",di3->pDefaultDataType);
+				if (tuple_item==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SetItem(ret, i, tuple_item);
+				di3++;
+				}
+			break;
+		case 4:
+			di4=(DRIVER_INFO_4W *)buf;
+			for (DWORD i=0; i<return_cnt; i++){
+				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u}",
+					"Version",di4->cVersion,
+					"Name",di4->pName,
+					"Environment",di4->pEnvironment,
+					"DriverPath",di4->pDriverPath,
+					"DataFile",di4->pDataFile,
+					"ConfigFile",di4->pConfigFile,
+					"HelpFile", di4->pHelpFile,
+					"DependentFiles",di4->pDependentFiles,
+					"MonitorName",di4->pMonitorName,
+					"DefaultDataType",di4->pDefaultDataType,
+					"PreviousNames",di4->pszzPreviousNames);
+				if (tuple_item==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SetItem(ret, i, tuple_item);
+				di4++;
+				}
+			break;
+		case 5:
+			di5=(DRIVER_INFO_5W *)buf;
+			for (DWORD i=0; i<return_cnt; i++){
+				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u,s:l,s:l,s:l}",
+					"Version",di5->cVersion,
+					"Name",di5->pName,
+					"Environment",di5->pEnvironment,
+					"DriverPath",di5->pDriverPath,
+					"DataFile",di5->pDataFile,
+					"ConfigFile",di5->pConfigFile,
+					"DriverAttributes", di5->dwDriverAttributes,
+					"DriverVersion",di5->dwDriverVersion,
+					"ConfigVersion",di5->dwConfigVersion);
+				if (tuple_item==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SetItem(ret, i, tuple_item);
+				di5++;
+				}
+			break;
+		case 6:
+			di6=(DRIVER_INFO_6W *)buf;
+			for (DWORD i=0; i<return_cnt; i++){
+				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:O&,s:L,s:u,s:u,s:u}",
+					"Version",di6->cVersion,
+					"Name",di6->pName,
+					"Environment",di6->pEnvironment,
+					"DriverPath",di6->pDriverPath,
+					"DataFile",di6->pDataFile,
+					"ConfigFile",di6->pConfigFile,
+					"HelpFile", di6->pHelpFile,
+					"DependentFiles",di6->pDependentFiles,
+					"MonitorName",di6->pMonitorName,
+					"DefaultDataType",di6->pDefaultDataType,
+					"PreviousNames",di6->pszzPreviousNames,
+					"DriverDate",PyWinObject_FromFILETIME,&di6->ftDriverDate,
+					"DriverVersion",di6->dwlDriverVersion,
+					"MfgName",di6->pszMfgName,
+					"OEMUrl",di6->pszOEMUrl,
+					"Provider",di6->pszProvider
+					);
+				if (tuple_item==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SetItem(ret, i, tuple_item);
+				di6++;
+				}
+			break;
+		default:
+			PyErr_Format(PyExc_ValueError,"EnumPrinterDrivers: Level %d is not supported", level);
+			Py_DECREF(ret);
+			ret=NULL;
+		}
+done:
+	if (buf!=NULL)
+		free(buf);
+	if (servername!=NULL)
+		PyWinObject_FreeWCHAR(servername);
+	if (environment!=NULL)
+		PyWinObject_FreeWCHAR(environment);
+	return ret;
+}
+
+// @pymethod (dict,...)|win32print|EnumForms|Lists forms for a printer
+static PyObject *PyEnumForms(PyObject *self, PyObject *args)
+{
+	// @pyparm int|hprinter||Printer handle as returned by <om win32print.OpenPrinter>
+	// @rdesc Returns a sequence of dictionaries representing FORM_INFO_1 structures
+	PyObject *ret=NULL, *tuple_item;
+	HANDLE hprinter;
+	DWORD level=1, bufsize=0, bytes_needed=0, return_cnt;
+	FORM_INFO_1W *fi1;
+	LPBYTE buf=NULL;
+	if (enumforms==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"EnumForms does not exist on this version of Windows");
+		return NULL;
+		}
+	if (!PyArg_ParseTuple(args,"i:EnumForms",&hprinter))
+		return NULL;
+	(*enumforms)(hprinter, level, buf, bufsize, &bytes_needed, &return_cnt);
+	if (bytes_needed==0){
+		PyWin_SetAPIError("EnumForms");
+		goto done;
+		}
+	buf=(LPBYTE)malloc(bytes_needed);
+	if (buf==NULL){
+		PyErr_Format(PyExc_MemoryError,"EnumForms: unable to allocate buffer of size %d", bytes_needed);
+		goto done;
+		}
+	bufsize=bytes_needed;
+	if (!(*enumforms)(hprinter, level, buf, bufsize, &bytes_needed, &return_cnt)){
+		PyWin_SetAPIError("EnumPrintProcessors");
+		goto done;
+		}
+	ret=PyTuple_New(return_cnt);
+	if (ret==NULL)
+		goto done;
+	fi1=(FORM_INFO_1W *)buf;
+	for (DWORD buf_ind=0; buf_ind<return_cnt; buf_ind++){
+		tuple_item=Py_BuildValue("{s:l,s:u,s:{s:l,s:l},s:{s:l,s:l,s:l,s:l}}",
+			"Flags", fi1->Flags,
+			"Name", fi1->pName,
+			"Size", 
+				"cx", fi1->Size.cx, "cy", fi1->Size.cy,
+			"ImageableArea", 
+				"left", fi1->ImageableArea.left, "top", fi1->ImageableArea.top,
+				"right", fi1->ImageableArea.right, "bottom", fi1->ImageableArea.bottom);
+		if (tuple_item==NULL){
+			Py_DECREF(ret);
+			ret=NULL;
+			break;
+			}
+		PyTuple_SetItem(ret,buf_ind,tuple_item);
+		fi1++;
+		}
+done:
+	if (buf!=NULL)
+		free(buf);
+	return ret;
+}
+
+
 /* List of functions exported by this module */
 // @module win32print|A module, encapsulating the Windows Win32 API.
 static struct PyMethodDef win32print_functions[] = {
@@ -648,14 +1094,25 @@ static struct PyMethodDef win32print_functions[] = {
 	{"EnumPrinters",			PyEnumPrinters, 1}, // @pymeth EnumPrinters|Enumerates printers, print servers, domains and print providers.
 	{"GetDefaultPrinter",		PyGetDefaultPrinter, 1}, // @pymeth GetDefaultPrinter|Returns the default printer.
 	{"SetDefaultPrinter",		PySetDefaultPrinter, 1}, // @pymeth SetDefaultPrinter|Sets the default printer.
-	{"StartDocPrinter",     PyStartDocPrinter, 1},   // @pymeth StartDocPrinter|Notifies the print spooler that a document is to be spooled for printing. Returns the Jobid of the started job.
-	{"EndDocPrinter",     PyEndDocPrinter, 1},   // @pymeth EndDocPrinter|The EndDocPrinter function ends a print job for the specified printer.
+	{"StartDocPrinter",			PyStartDocPrinter, 1},   // @pymeth StartDocPrinter|Notifies the print spooler that a document is to be spooled for printing. Returns the Jobid of the started job.
+	{"EndDocPrinter",			PyEndDocPrinter, 1},   // @pymeth EndDocPrinter|The EndDocPrinter function ends a print job for the specified printer.
+	{"AbortPrinter",			PyAbortPrinter, 1},   // @pymeth AbortPrinter|Deletes spool file for printer
+	{"StartPagePrinter",		PyStartPagePrinter, 1}, // @pymeth StartPagePrinter|Notifies the print spooler that a page is to be printed on specified printer
+	{"EndPagePrinter",			PyEndPagePrinter, 1}, // @pymeth EndPagePrinter|Ends a page in a print job
+	{"StartDoc",     PyStartDoc, 1},   // @pymeth StartDoc|Starts spooling a print job on a printer device context
+	{"EndDoc",     PyEndDoc, 1},   // @pymeth EndDoc|Stops spooling a print job on a printer device context
+	{"AbortDoc",     PyAbortDoc, 1},   // @pymeth AbortDoc|Cancels print job on a printer device context
+	{"StartPage",     PyStartPage, 1},   // @pymeth StartPage|Starts a page on a printer device context
+	{"EndPage",     PyEndPage, 1},   // @pymeth EndPage|Ends a page on a printer device context
 	{"WritePrinter",      PyWritePrinter, 1},   // @pymeth WritePrinter|Copies the specified bytes to the specified printer. StartDocPrinter and EndDocPrinter should be called before and after. Returns number of bytes written to printer.
 	{"EnumJobs",        PyEnumJobs, 1},   // @pymeth EnumJobs|Enumerates print jobs on specified printer.
 	{"GetJob",          PyGetJob, 1},   // @pymeth GetJob|Returns dictionary of information about a specified print job.
 	{"SetJob",          PySetJob, 1},   // @pymeth SetJob|Pause, cancel, resume, set priority levels on a print job.
 	{"DocumentProperties", PyDocumentProperties, 1}, //@pymeth DocumentProperties|Changes printer configuration
 	{"EnumPrintProcessors", PyEnumPrintProcessors, 1}, //@pymeth EnumPrintProcessors|List printer providers for specified server and environment
+	{"EnumPrintProcessorDatatypes", PyEnumPrintProcessorDatatypes, 1}, //@pymeth EnumPrintProcessorDatatypes|Lists data types that specified print provider supports
+	{"EnumPrinterDrivers", PyEnumPrinterDrivers, 1}, //@pymeth EnumPrinterDrivers|Lists installed printer drivers
+	{"EnumForms", PyEnumForms, 1}, //@pymeth EnumForms|Lists forms for a printer
 	{ NULL }
 };
 
@@ -712,4 +1169,14 @@ initwin32print(void)
   AddConstant(dict, "JOB_CONTROL_RESTART", JOB_CONTROL_RESTART);
   AddConstant(dict, "JOB_CONTROL_RESUME", JOB_CONTROL_RESUME);
   AddConstant(dict, "JOB_POSITION_UNSPECIFIED", JOB_POSITION_UNSPECIFIED);
+  AddConstant(dict, "DI_APPBANDING", DI_APPBANDING);
+  AddConstant(dict, "DI_ROPS_READ_DESTINATION", DI_ROPS_READ_DESTINATION);
+
+  FARPROC fp;
+  HMODULE hmodule=LoadLibrary("winspool.drv");
+  if (hmodule!=NULL){
+	  fp=GetProcAddress(hmodule,"EnumFormsW");
+	  if (fp!=NULL)
+		  enumforms=(EnumFormsfunc)fp;
+	}
 }
