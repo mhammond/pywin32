@@ -37,13 +37,14 @@ def _GetServiceShortName(longName):
     # looks up a services name
     # from the display name
     # Thanks to Andy McKay for this code.
-    hkey = win32api.RegOpenKey(win32con.HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Services", 0, win32con.KEY_ALL_ACCESS)
+    access = win32con.KEY_READ | win32con.KEY_ENUMERATE_SUB_KEYS | win32con.KEY_QUERY_VALUE
+    hkey = win32api.RegOpenKey(win32con.HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Services", 0, access)
     num = win32api.RegQueryInfoKey(hkey)[0]
     # loop through number of subkeys
     for x in range(0, num):
         # find service name, open subkey
         svc = win32api.RegEnumKey(hkey, x)
-        skey = win32api.RegOpenKey(hkey, svc, 0, win32con.KEY_ALL_ACCESS)
+        skey = win32api.RegOpenKey(hkey, svc, 0, access)
         try:
             # find short name
             shortName = str(win32api.RegQueryValueEx(skey, "DisplayName")[0])
