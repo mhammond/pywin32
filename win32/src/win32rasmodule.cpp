@@ -12,7 +12,7 @@ generates Windows .hlp files.
 ******************************************************************/
 
 #ifndef WINVER
-#define WINVER 0x500
+#define WINVER 0x400
 #endif
 
 #include "windows.h"
