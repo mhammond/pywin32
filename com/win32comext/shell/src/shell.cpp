@@ -77,6 +77,7 @@ PyObject *PyObject_FromPIDL(LPCITEMIDLIST pidl, BOOL bFreeSystemPIDL)
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
+	LPCITEMIDLIST pidl_free = pidl;
 	PyObject *ret = PyList_New(0);
 	if (!ret)
 		return NULL;
@@ -102,7 +103,7 @@ PyObject *PyObject_FromPIDL(LPCITEMIDLIST pidl, BOOL bFreeSystemPIDL)
 		ret = NULL;
 	}
 	if (bFreeSystemPIDL)
-		PyShell_FreeMem( (void *)pidl);
+		PyShell_FreeMem( (void *)pidl_free);
 	return ret;
 }
 
@@ -652,6 +653,81 @@ PyObject *PyObject_FromOLEMENUGROUPWIDTHS(OLEMENUGROUPWIDTHS *pWidths)
 						 pWidths->width[4], pWidths->width[5]);
 }
 
+static BOOL MakeDoubleTerminatedStringList(PyObject *ob, TCHAR **ret)
+{
+	if (ob==Py_None) {
+		*ret = NULL;
+		return TRUE;
+	}
+	if (PyString_Check(ob) || PyUnicode_Check(ob)) {
+		// single string specified.
+		DWORD len;
+		TCHAR *sz;
+		if (!PyWinObject_AsTCHAR(ob, &sz, FALSE, &len))
+			return FALSE;
+		*ret = (TCHAR *)malloc( sizeof(TCHAR) * (len+2) );
+		if (!*ret)
+			PyErr_NoMemory();
+		else {
+			_tcscpy(*ret, sz);
+			(*ret)[len+1] = '\0'; // second term.
+		}
+		PyWinObject_FreeTCHAR(sz);
+		return TRUE;
+	}
+	
+	if (!PySequence_Check(ob)) {
+		PyErr_Format(PyExc_TypeError,
+					 "Must be a string or sequence of strings (got '%s')", ob->ob_type->tp_name);
+		return FALSE;
+	}
+	PyErr_Format(PyExc_RuntimeError, "Sequences of names not yet supported");
+	return FALSE;
+}
+
+void PyObject_FreeSHFILEOPSTRUCT(SHFILEOPSTRUCT *p)
+{
+	if (p->pFrom)
+		free((void *)p->pFrom);
+	if (p->pTo)
+		free((void *)p->pTo);
+	if (p->lpszProgressTitle)
+		PyWinObject_FreeTCHAR((TCHAR *)p->lpszProgressTitle);
+}
+
+// @object SHFILEOPSTRUCT|A tuple representing a Win32 shell SHFILEOPSTRUCT structure.
+BOOL PyObject_AsSHFILEOPSTRUCT(PyObject *ob, SHFILEOPSTRUCT *p)
+{
+	PyObject *obFrom, *obTo, *obNameMappings = Py_None, *obProgressTitle = Py_None;
+	memset(p, 0, sizeof(*p));
+	if (!PyArg_ParseTuple(ob, "iiOO|iOO",
+						  &p->hwnd, // @tupleitem 0|int|hwnd|
+						  &p->wFunc, // @tupleitem 1|int|wFunc|
+						  &obFrom, // @tupleitem 2|string/list of stringsfrom|
+						  &obTo, // @tupleitem 3|string/list of strings|to|
+						  &p->fFlags, // @tupleitem 4|int|flags|Default=0
+						  &obNameMappings, // @tupleitem 5|None|nameMappings|Default=None
+						  &obProgressTitle)) // @tupleitem 6|string|progressTitle|Default=None
+		return FALSE;
+	
+	if (obNameMappings != Py_None) {
+		PyErr_SetString(PyExc_TypeError, "The nameMappings value must be None");
+		return FALSE;
+	}
+	if (!MakeDoubleTerminatedStringList(obFrom, (LPTSTR *)&p->pFrom))
+		goto error;
+
+	if (!MakeDoubleTerminatedStringList(obTo, (LPTSTR *)&p->pTo))
+		goto error;
+
+	if (!PyWinObject_AsTCHAR(obProgressTitle, (LPSTR *)&p->lpszProgressTitle, TRUE))
+		return FALSE;
+	return TRUE;
+error:
+	PyObject_FreeSHFILEOPSTRUCT(p);
+	return FALSE;
+}
+
 //////////////////////////////////////////////////
 //
 // WIN32_FIND_DATA implementation.
@@ -998,6 +1074,26 @@ static PyObject *PySHEmptyRecycleBin(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod int, int|shell|SHFileOperation|Copies, moves, renames, or deletes a file system object.
+// The result is the int result of the function itself, and the result of the
+// fAnyOperationsAborted member after the operation.
+static PyObject *PySHFileOperation(PyObject *self, PyObject *args)
+{
+	PyObject *ob;
+	if (!PyArg_ParseTuple(args, "O:SHFileOperation",
+						  &ob)) // @pyparm <o SHFILEOPSTRUCT>|operation||Defines the operation to perform.
+		return NULL;
+	SHFILEOPSTRUCT op;
+	if (!PyObject_AsSHFILEOPSTRUCT(ob, &op))
+		return NULL;
+	PY_INTERFACE_PRECALL;
+	int rc = SHFileOperation(&op);
+	PY_INTERFACE_POSTCALL;
+	BOOL did_cancel = op.fAnyOperationsAborted;
+	PyObject_FreeSHFILEOPSTRUCT(&op);
+	return Py_BuildValue("iO", rc, did_cancel ? Py_True : Py_False);
+}
+
 // @pymethod <o PyIShellFolder>|shell|SHGetDesktopFolder|Retrieves the <o PyIShellFolder> interface for the desktop folder, which is the root of the shell's namespace. 
 static PyObject *PySHGetDesktopFolder(PyObject *self, PyObject *args)
 {
@@ -1296,6 +1392,7 @@ static struct PyMethodDef shell_methods[]=
 	{ "SHChangeNotifyRegister", PySHChangeNotifyRegister, 1}, // @pymeth SHChangeNotifyRegister|Registers a window that receives notifications from the file system or shell.
 	{ "SHChangeNotifyDeregister", PySHChangeNotifyDeregister, 1}, // @pymeth SHChangeNotifyDeregister|Unregisters the client's window process from receiving notification events
 	{ "SHGetInstanceExplorer", PySHGetInstanceExplorer, 1}, // @pymeth SHGetInstanceExplorer|Allows components that run in a Web browser (Iexplore.exe) or a nondefault Windows® Explorer (Explorer.exe) process to hold a reference to the process. The components can use the reference to prevent the process from closing prematurely.
+	{ "SHFileOperation", PySHFileOperation, 1}, // @pymeth SHFileOperation|Copies, moves, renames, or deletes a file system object.
 	{ "StringAsCIDA", PyStringAsCIDA, 1}, // @pymeth StringAsCIDA|Given a CIDA as a raw string, return pidl_folder, [pidl_children, ...]
 	{ "CIDAAsString", PyCIDAAsString, 1}, // @pymeth CIDAAsString|Given a (pidl, child_pidls) object, return a CIDA as a string
 	{ "StringAsPIDL", PyStringAsPIDL, 1}, // @pymeth StringAsPIDL|Given a PIDL as a raw string, return a PIDL object (ie, a list of strings)
