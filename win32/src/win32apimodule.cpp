@@ -1834,6 +1834,56 @@ PyGetTimeZoneInformation(PyObject * self, PyObject * args)
 	
 }
 
+// @pymethod string|win32api|GetDateFormat|Formats a date as a date string for a specified locale. The function formats either a specified date or the local system date.
+static PyObject *PyGetDateFormat(PyObject *self, PyObject *args)
+{
+	int locale, flags;
+	PyObject *obTime;
+	char *szFormat = NULL;
+	if (!PyArg_ParseTuple(args, "iiO|z:GetDateFormat",
+						  &locale, // @pyparm int|locale||
+						  &flags, // @pyparm int|flags||
+						  &obTime, // @pyparm <o PyTime>|time||The time to use, or None to use the current time.
+						  &szFormat)) // @pyparm string|format||May be None
+		return NULL;
+	SYSTEMTIME st, *pst = NULL;
+	if (obTime != Py_None) {
+		if (!PyWinObject_AsSYSTEMTIME(obTime, &st))
+			return NULL;
+		pst = &st;
+	}
+	char buf[512];
+	int nchars = ::GetDateFormat(locale, flags, pst, szFormat, buf, sizeof(buf)/sizeof(buf)[0]);
+	if (nchars==0)
+		return PyWin_SetAPIError("GetDateFormat");
+	return PyString_FromStringAndSize(buf, nchars-1);
+}
+
+// @pymethod string|win32api|GetTimeFormat|Formats a time as a time string for a specified locale. The function formats either a specified time or the local system time.
+static PyObject *PyGetTimeFormat(PyObject *self, PyObject *args)
+{
+	int locale, flags;
+	PyObject *obTime;
+	char *szFormat = NULL;
+	if (!PyArg_ParseTuple(args, "iiO|z:GetTimeFormat",
+						  &locale, // @pyparm int|locale||
+						  &flags, // @pyparm int|flags||
+						  &obTime, // @pyparm <o PyTime>|time||The time to use, or None to use the current time.
+						  &szFormat)) // @pyparm string|format||May be None
+		return NULL;
+	SYSTEMTIME st, *pst = NULL;
+	if (obTime != Py_None) {
+		if (!PyWinObject_AsSYSTEMTIME(obTime, &st))
+			return NULL;
+		pst = &st;
+	}
+	char buf[512];
+	int nchars = ::GetTimeFormat(locale, flags, pst, szFormat, buf, sizeof(buf)/sizeof(buf)[0]);
+	if (nchars==0)
+		return PyWin_SetAPIError("GetTimeFormat");
+	return PyString_FromStringAndSize(buf, nchars-1);
+}
+
 // @pymethod int|win32api|GetSysColor|Returns the current system color for the specified element.
 static PyObject *
 PyGetSysColor (PyObject *self, PyObject *args)
@@ -4604,6 +4654,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetCurrentProcessId", PyGetCurrentProcessId,   1}, // @pymeth GetCurrentProcessId|Returns the thread ID for the current thread.
 	{"GetCurrentProcess",   PyGetCurrentProcess,   1}, // @pymeth GetCurrentProcess|Returns a pseudohandle for the current process.
 	{"GetConsoleTitle",		PyGetConsoleTitle,  1}, // @pymeth GetConsoleTitle|Return the application's console title.
+	{"GetDateFormat",       PyGetDateFormat, 1}, // @pymeth GetDateFormat|Formats a date as a date string for a specified locale.
 	{"GetDiskFreeSpace",	PyGetDiskFreeSpace, 1}, // @pymeth GetDiskFreeSpace|Retrieves information about a disk.
 	{"GetDiskFreeSpaceEx",	PyGetDiskFreeSpaceEx, 1}, // @pymeth GetDiskFreeSpaceEx|Retrieves information about a disk.
 	{"GetDomainName",		PyGetDomainName, 1}, 	// @pymeth GetDomainName|Returns the current domain name
@@ -4637,6 +4688,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetTempPath",			PyGetTempPath,      1}, // @pymeth GetTempPath|Returns the path designated as holding temporary files.
 	{"GetThreadLocale",     PyGetThreadLocale, 1}, // @pymeth GetThreadLocale|Returns the current thread's locale.
 	{"GetTickCount",	    PyGetTickCount,      1}, // @pymeth GetTickCount|Returns the milliseconds since windows started.
+	{"GetTimeFormat",       PyGetTimeFormat, 1}, // @pymeth GetTimeFormat|Formats a time as a time string for a specified locale.
 	{"GetTimeZoneInformation",	PyGetTimeZoneInformation,1}, // @pymeth GetTimeZoneInformation|Returns the system time-zone information.
 	{"GetVersion",			PyGetVersion,       1}, // @pymeth GetVersion|Returns Windows version information.
 	{"GetVersionEx",		PyGetVersionEx,       1}, // @pymeth GetVersionEx|Returns Windows version information as a tuple.

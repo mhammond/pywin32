@@ -10,7 +10,7 @@ class CurrentUserTestCase(unittest.TestCase):
         name = "%s\\%s" % (win32api.GetDomainName(), win32api.GetUserName())
         self.failUnless(name == win32api.GetUserNameEx(win32api.NameSamCompatible))
 
-class TimeZone(unittest.TestCase):
+class TestTime(unittest.TestCase):
     def testTimezone(self):
         # GetTimeZoneInformation
         rc, tzinfo = win32api.GetTimeZoneInformation()
@@ -20,8 +20,22 @@ class TimeZone(unittest.TestCase):
         else:
             tz_str = tzinfo[1]
             tz_time = tzinfo[2]
-        print "Time zone in effect is", tz_str.encode()
-        print "Next timezone change happens at", tz_time.Format()
+        # for the sake of code exercise but don't output
+        tz_str.encode()
+        tz_time.Format()
+    def TestDateFormat(self):
+        DATE_LONGDATE = 2
+        date_flags = DATE_LONGDATE
+        win32api.GetDateFormat(0, date_flags, None)
+        win32api.GetDateFormat(0, date_flags, 0)
+        win32api.GetDateFormat(0, date_flags, datetime.datetime.now())
+        win32api.GetDateFormat(0, date_flags, time.time())
+    def TestTimeFormat(self):
+        win32api.GetTimeFormat(0, 0, None)
+        win32api.GetTimeFormat(0, 0, 0)
+        win32api.GetTimeFormat(0, 0, datetime.datetime.now())
+        win32api.GetTimeFormat(0, 0, time.time())
+
 
 class Registry(unittest.TestCase):
     key_name = r'PythonTestHarness\Whatever'
