@@ -315,6 +315,21 @@ item: Install File
   Flags=0000000000000011
 end
 item: Remark
+  Text=ADSI
+end
+item: Install File
+  Source=l:\src\pythonex\com\win32comext\adsi\*.py
+  Destination=%EXTDIR%\adsi
+  Description=ADSI Extension files
+  Flags=0000000000000010
+end
+item: Install File
+  Source=l:\src\pythonex\com\Build\adsi.pyd
+  Destination=%EXTDIR%\adsi\adsi.pyd
+  Description=ADSI Extension files
+  Flags=0000000000000011
+end
+item: Remark
 end
 item: Remark
   Text=Write the registry keys
