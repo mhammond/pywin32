@@ -303,7 +303,14 @@ class InteractiveCore:
 		if line==-1: line = self.LineFromChar()
 		line = self.GetLine(line)
 		if pywin.is_platform_unicode:
-			line = unicode(line, pywin.default_scintilla_encoding).encode(pywin.default_platform_encoding)
+			try:
+				line = unicode(line, pywin.default_scintilla_encoding).encode(pywin.default_platform_encoding)
+			except:
+				# We should fix the underlying problem rather than always masking errors
+				# so make it complain.
+				print "Unicode error converting", repr(line)
+				line = unicode(line, pywin.default_scintilla_encoding, "ignore").encode(pywin.default_platform_encoding)
+
 		while line and line[-1] in ['\r', '\n']:
 			line = line[:-1]
 		return line
