@@ -504,7 +504,7 @@ def JumpToDocument(fileName, lineno=0, col = 1, nChars = 0, bScrollToTop = 0):
 
 def _HandlePythonFailure(what, syntaxErrorPathName = None):
 	typ, details, tb = sys.exc_info()
-	if typ == SyntaxError:
+	if isinstance(details, SyntaxError):
 		try:
 			msg, (fileName, line, col, text) = details
 			if (not fileName or fileName =="<string>") and syntaxErrorPathName:
