@@ -563,7 +563,7 @@ STDMETHODIMP PyGShellFolder::GetAttributesOf(
 	PyObject *obpidl;
 	obpidl = PyObject_FromPIDLArray(cidl, apidl);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetAttributesOf", &result, "Ol", obpidl, rgfInOut);
+	HRESULT hr=InvokeViaPolicy("GetAttributesOf", &result, "Ol", obpidl, rgfInOut? *rgfInOut : 0);
 	Py_XDECREF(obpidl);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
@@ -588,7 +588,7 @@ STDMETHODIMP PyGShellFolder::GetUIObjectOf(
 	obpidl = PyObject_FromPIDLArray(cidl, apidl);
 	obriid = PyWinObject_FromIID(riid);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy(szMethodName, &result, "lOOl", hwndOwner, obpidl, obriid, rgfInOut);
+	HRESULT hr=InvokeViaPolicy(szMethodName, &result, "lOOl", hwndOwner, obpidl, obriid, rgfInOut ? *rgfInOut : 0);
 	Py_XDECREF(obpidl);
 	Py_XDECREF(obriid);
 	if (FAILED(hr)) return hr;
