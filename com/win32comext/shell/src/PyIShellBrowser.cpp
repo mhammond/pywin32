@@ -11,6 +11,9 @@
 extern BOOL PyObject_AsOLEMENUGROUPWIDTHS( PyObject *oblpMenuWidths, OLEMENUGROUPWIDTHS *pWidths);
 PyObject *PyObject_FromOLEMENUGROUPWIDTHS(OLEMENUGROUPWIDTHS *p);
 
+extern BOOL PyObject_AsTBBUTTONs( PyObject *ob, TBBUTTON **ppButtons, UINT *nButtons );
+extern void PyObject_FreeTBBUTTONs(TBBUTTON *);
+
 // Interface Implementation
 
 PyIShellBrowser::PyIShellBrowser(IUnknown *pdisp):
@@ -263,6 +266,37 @@ PyObject *PyIShellBrowser::GetControlWindow(PyObject *self, PyObject *args)
 	return PyLong_FromVoidPtr(hwnd);
 }
 
+// Little helper stolen from win32gui
+static BOOL make_param(PyObject *ob, long *pl)
+{
+	long &l = *pl;
+	if (ob==NULL || ob==Py_None)
+		l = 0;
+	else
+#ifdef UNICODE
+#define TCHAR_DESC "Unicode"
+	if (PyUnicode_Check(ob))
+		l = (long)PyUnicode_AsUnicode(ob);
+#else
+#define TCHAR_DESC "String"	
+	if (PyString_Check(ob))
+		l = (long)PyString_AsString(ob);
+#endif
+	else if (PyInt_Check(ob))
+		l = PyInt_AsLong(ob);
+	else {
+		PyBufferProcs *pb = ob->ob_type->tp_as_buffer;
+		if (pb != NULL && pb->bf_getreadbuffer) {
+			if(-1 == pb->bf_getreadbuffer(ob,0,(void **) &l))
+				return FALSE;
+		} else {
+			PyErr_SetString(PyExc_TypeError, "Must be a" TCHAR_DESC ", int, or buffer object");
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+
 // @pymethod |PyIShellBrowser|SendControlMsg|Description of SendControlMsg.
 PyObject *PyIShellBrowser::SendControlMsg(PyObject *self, PyObject *args)
 {
@@ -275,10 +309,16 @@ PyObject *PyIShellBrowser::SendControlMsg(PyObject *self, PyObject *args)
 	// @pyparm long|lParam||Description for lParam
 	UINT id;
 	UINT uMsg;
+	PyObject *obwparam, *oblparam;
+	if ( !PyArg_ParseTuple(args, "iiOO:SendControlMsg", &id, &uMsg, &obwparam, &oblparam) )
+		return NULL;
 	WPARAM wParam;
 	LPARAM lParam;
-	if ( !PyArg_ParseTuple(args, "iiil:SendControlMsg", &id, &uMsg, &wParam, &lParam) )
+	if (!make_param(obwparam, (long *)&wParam))
 		return NULL;
+	if (!make_param(oblparam, (long *)&lParam))
+		return NULL;
+	
 	HRESULT hr;
 	LRESULT ret;
 	PY_INTERFACE_PRECALL;
@@ -334,32 +374,27 @@ PyObject *PyIShellBrowser::OnViewWindowActive(PyObject *self, PyObject *args)
 
 }
 
-/*
 // @pymethod |PyIShellBrowser|SetToolbarItems|Description of SetToolbarItems.
 PyObject *PyIShellBrowser::SetToolbarItems(PyObject *self, PyObject *args)
 {
 	IShellBrowser *pISB = GetI(self);
 	if ( pISB == NULL )
 		return NULL;
-// *** The input argument lpButtons of type "LPTBBUTTONSB" was not processed ***
-//     Please check the conversion function is appropriate and exists!
 	LPTBBUTTONSB lpButtons;
 	PyObject *oblpButtons;
 	// @pyparm <o PyLPTBBUTTONSB>|lpButtons||Description for lpButtons
-	// @pyparm int|nButtons||Description for nButtons
 	// @pyparm int|uFlags||Description for uFlags
 	UINT nButtons;
 	UINT uFlags;
-	if ( !PyArg_ParseTuple(args, "Oii:SetToolbarItems", &oblpButtons, &nButtons, &uFlags) )
+	if ( !PyArg_ParseTuple(args, "Oi:SetToolbarItems", &oblpButtons, &uFlags) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsLPTBBUTTONSB( oblpButtons, &lpButtons )) bPythonIsHappy = FALSE;
+	if (bPythonIsHappy && !PyObject_AsTBBUTTONs( oblpButtons, &lpButtons, &nButtons )) bPythonIsHappy = FALSE;
 	if (!bPythonIsHappy) return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISB->SetToolbarItems( lpButtons, nButtons, uFlags );
-	PyObject_FreeLPTBBUTTONSB(lpButtons);
-
+	PyObject_FreeTBBUTTONs(lpButtons);
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
@@ -368,8 +403,7 @@ PyObject *PyIShellBrowser::SetToolbarItems(PyObject *self, PyObject *args)
 	return Py_None;
 
 }
-*/
-// @object PyIShellBrowser|Description of the interface
+
 static struct PyMethodDef PyIShellBrowser_methods[] =
 {
 	{ "InsertMenusSB", PyIShellBrowser::InsertMenusSB, 1 }, // @pymeth InsertMenusSB|Description of InsertMenusSB
@@ -384,6 +418,7 @@ static struct PyMethodDef PyIShellBrowser_methods[] =
 	{ "SendControlMsg", PyIShellBrowser::SendControlMsg, 1 }, // @pymeth SendControlMsg|Description of SendControlMsg
 	{ "QueryActiveShellView", PyIShellBrowser::QueryActiveShellView, 1 }, // @pymeth QueryActiveShellView|Description of QueryActiveShellView
 	{ "OnViewWindowActive", PyIShellBrowser::OnViewWindowActive, 1 }, // @pymeth OnViewWindowActive|Description of OnViewWindowActive
+	{ "SetToolbarItems", PyIShellBrowser::SetToolbarItems, 1}, // @pymeth SetToolbarItems|Description of OnViewWindowActive
 	{ NULL }
 };
 
