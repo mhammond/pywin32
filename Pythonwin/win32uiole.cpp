@@ -12,11 +12,15 @@
 #include "transact.h"
 #include "afxdao.h"
 
+#if _MFC_VER >= 0x0700
+#include "afxocc.h"
 // Sorry about this - OLE support needs MFC private header.
 // You MUST install MFC with source-code to build this extension.
 // (and this source must be in "../src" relative to the MFC 
 // includes, which it is by default)
+#else
 #include "..\src\occimpl.h"
+#endif /* _MFC_VER */
 
 extern PyObject *PyCOleClientItem_Create(PyObject *self, PyObject *args);
 
