@@ -3,4 +3,4 @@
 print "Please use 'setup.py' instead of 'setup_win32all.py'"
 import sys, os
 mydir=os.path.dirname(sys.argv[0])
-execfile(os.path.join(mydir, "setup_win32all.py"))
+execfile(os.path.join(mydir, "setup.py"))
