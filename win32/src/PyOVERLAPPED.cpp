@@ -76,7 +76,7 @@ PYWINTYPES_EXPORT PyTypeObject PyOVERLAPPEDType =
 	{NULL}
 };
 // @prop integer/<o PyHANDLE>|hEvent|Identifies an event set to the signaled state when the transfer has been completed. The calling process sets this member before calling the <om win32file.ReadFile>, <om win32file.WriteFile>, <om win32pipe.ConnectNamedPipe>, or <om win32pipe.TransactNamedPipe> function.
-// @prop <Python object>|object|Any python object that you want to attach to your overlapped I/O request.
+// @prop object|object|Any python object that you want to attach to your overlapped I/O request.
 
 PyOVERLAPPED::PyOVERLAPPED(void)
 {
@@ -122,7 +122,7 @@ PyObject *PyOVERLAPPED::getattr(PyObject *self, char *name)
 		}
 		return PyInt_FromLong((long)pO->m_overlapped.hEvent);
 	}
-// @prop <Python object>|object|Any python object that you want to attach to your overlapped I/O request.
+// @prop object|object|Any python object that you want to attach to your overlapped I/O request.
 	else if (strcmp("object", name) == 0)
 	{
 		PyOVERLAPPED *pO = (PyOVERLAPPED *)self;

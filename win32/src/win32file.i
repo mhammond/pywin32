@@ -347,6 +347,11 @@ PyObject *MyGetFileSize(PyObject *self, PyObject *args)
 // @pyswig <o PyLARGE_INTEGER>|GetFileSize|Determines the size of a file.
 %native(GetFileSize) MyGetFileSize;
 
+// @object PyOVERLAPPEDReadBuffer|An alias for a standard Python buffer object.
+// Previous versions of the Windows extensions had a custom object for
+// holding a read buffer.  This has been replaced with the standard Python buffer object.
+// <nl>Python does not provide a method for creating a read-write buffer
+// of arbitary size, so currently this can only be created by <om win32file.AllocateReadBuffer>.
 #ifndef MS_WINCE
 %{
 // @pyswig <o PyOVERLAPPEDReadBuffer>|AllocateReadBuffer|Allocated a buffer which can be used with an overlapped Read operation using <om win32file.Read>
@@ -433,7 +438,7 @@ PyObject *MyReadFile(PyObject *self, PyObject *args)
 	}
 #endif // MS_WINCE
 	 else {
-		PyErr_SetString(PyExc_TypeError, "Second param must be an integer of a buffer object");
+		PyErr_SetString(PyExc_TypeError, "Second param must be an integer or a buffer object");
 		return NULL;
 	}
 
@@ -1347,7 +1352,7 @@ Error:
 	goto Cleanup;
 }
 
-// @pyswig (rc, cBytesRecvd)|WSASend|Winsock recv() equivalent function for Overlapped I/O.
+// @pyswig (rc, cBytesRecvd)|WSARecv|Winsock recv() equivalent function for Overlapped I/O.
 PyObject *MyWSARecv
 (
 	PyObject *self,
