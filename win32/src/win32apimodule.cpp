@@ -2036,6 +2036,85 @@ PyRegEnumKey( PyObject *self, PyObject *args )
 	return Py_BuildValue("s", retBuf);
 }
 
+// @pymethod <o PyTuple>|win32api|RegEnumKeyEx|Returns list of subkeys, info is (name, reserved, class, last write time) - class currently not defined, will always be None, reserved always 0
+static PyObject *
+PyRegEnumKeyEx( PyObject *self, PyObject *args )
+{
+	PyObject *obreghandle=NULL, *obretitem=NULL, *obtimestamp=NULL;
+	HKEY reghandle;
+	FILETIME timestamp;
+	long err;
+	char *key_name;
+    DWORD key_len=0, max_len=0, key_ind=0, nbr_keys=0;
+    PyObject *ret=NULL;
+	// @pyparm <o PyHKEY>/int|key||An already open key, or any one of the following win32con constants:<nl>HKEY_CLASSES_ROOT<nl>HKEY_CURRENT_USER<nl>HKEY_LOCAL_MACHINE<nl>HKEY_USERS.
+	if (!PyArg_ParseTuple(args, "O:RegEnumKeyEx", &obreghandle))
+		return NULL;
+	if (!PyWinObject_AsHKEY(obreghandle, &reghandle))
+		return NULL;
+
+	err=RegQueryInfoKey(reghandle,NULL,NULL,NULL, &nbr_keys, &max_len, NULL,NULL,NULL,NULL,NULL,NULL);
+	if (err!=ERROR_SUCCESS)
+		return ReturnAPIError("RegEnumKeyEx:RegQueryInfoKey",err);
+	max_len++;						 // trailing NULL not included
+	key_name=(char *)malloc(max_len);
+	if (key_name==NULL){
+		PyErr_SetString(PyExc_MemoryError, "RegEnumKeyEx: SOM");
+		return NULL;
+		}
+
+	ret=PyTuple_New(nbr_keys);
+	for (key_ind=0;key_ind<nbr_keys;key_ind++){
+		key_len=max_len;
+		err=RegEnumKeyEx(reghandle, key_ind, key_name, &key_len, NULL, NULL, NULL, &timestamp);
+		if (err!=ERROR_SUCCESS){
+			Py_DECREF(ret);
+			ret=NULL;
+			PyWin_SetAPIError("RegEnumKeyEx",err);
+			break;
+			}
+		obtimestamp=PyWinObject_FromFILETIME(timestamp);
+		obretitem=Py_BuildValue("s#iOO", key_name, key_len, 0, Py_None, obtimestamp);
+		Py_DECREF(obtimestamp);
+		PyTuple_SET_ITEM(ret, key_ind, obretitem);
+		}
+	free(key_name);
+	return ret;
+}
+
+// @pymethod |win32api|RegNotifyChangeKeyValue|Receive notification of registry changes
+static PyObject *
+PyRegNotifyChangeKeyValue( PyObject *self, PyObject *args )
+{
+	PyObject *obreghandle=NULL, *obevent=NULL, *ret=NULL;
+	HKEY reghandle;
+	BOOL subtree=FALSE, asynch=FALSE;
+	DWORD filter=0;
+	HANDLE hevent;
+	long err=0;
+	if (!PyArg_ParseTuple(args,"OiiOi", 
+		&obreghandle,			//@pyparm <o PyHKEY>/int|key||Handle to an open registry key
+		&subtree,				//@pyparm int|bWatchSubTree||Boolean, notify of changes to subkeys if True
+		&filter,				//@pyparm int|dwNotifyFilter||Combination of REG_NOTIFY_CHANGE_* constants
+		&obevent,				//@pyparm <o PyHANDLE>|hKey||Event handle to be signalled, use None if fAsynchronous is False
+		&asynch))				//@pyparm int|fAsynchronous||Boolean, function returns immediately if True, waits for change if False
+		return NULL;
+	if (!PyWinObject_AsHKEY(obreghandle, &reghandle))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obevent, &hevent, TRUE)) // handle should be NULL if asynch is False
+		return NULL;
+	PyW32_BEGIN_ALLOW_THREADS
+	err=RegNotifyChangeKeyValue(reghandle, subtree, filter, hevent, asynch);
+	PyW32_END_ALLOW_THREADS
+	if (err==ERROR_SUCCESS)
+		ret=Py_None;
+	else
+		PyWin_SetAPIError("RegNotifyChangeKeyValue",err);
+	Py_XINCREF(ret);
+	return ret;
+}
+
+
 // Note that fixupMultiSZ and countString have both had changes
 // made to support "incorrect strings".  The registry specification
 // calls for strings to be terminated with 2 null bytes.  It seems
@@ -3966,6 +4045,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"RegDeleteKey",        PyRegDeleteKey, 1}, // @pymeth RegDeleteKey|Deletes the specified key.
 	{"RegDeleteValue",      PyRegDeleteValue, 1}, // @pymeth RegDeleteValue|Removes a named value from the specified registry key.
 	{"RegEnumKey",          PyRegEnumKey, 1}, // @pymeth RegEnumKey|Enumerates subkeys of the specified open registry key.
+	{"RegEnumKeyEx",        PyRegEnumKeyEx, 1}, // @pymeth RegEnumKey|Enumerates subkeys of the specified open registry key.
 	{"RegEnumValue",        PyRegEnumValue, 1}, // @pymeth RegEnumValue|Enumerates values of the specified open registry key.
 	{"RegFlushKey",	        PyRegFlushKey, 1}, // @pymeth RegFlushKey|Writes all the attributes of the specified key to the registry.
 	{"RegGetKeySecurity",   PyRegGetKeySecurity, 1}, // @pymeth RegGetKeySecurity|Retrieves the security on the specified registry key.
@@ -3981,6 +4061,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"RegSetValueEx",       PyRegSetValueEx, 1}, // @pymeth RegSetValueEx|Stores data in the value field of an open registry key.
 	{"RegUnLoadKey",        PyRegUnLoadKey, 1}, // @pymeth RegUnLoadKey|Unloads the specified registry key and its subkeys from the registry.  The keys must have been loaded previously by a call to RegLoadKey.
 	{"RegisterWindowMessage",PyRegisterWindowMessage, 1}, // @pymeth RegisterWindowMessage|Given a string, return a system wide unique message ID.
+	{"RegNotifyChangeKeyValue", PyRegNotifyChangeKeyValue, 1}, //@pymeth RegNotifyChangeKeyValue|Watch for registry changes
 	{"SearchPath",          PySearchPath, 1}, // @pymeth SearchPath|Searches a path for a file.
 	{"SendMessage",         PySendMessage, 1}, // @pymeth SendMessage|Send a message to a window.
 	{"SetConsoleTitle",     PySetConsoleTitle, 1}, // @pymeth SetConsoleTitle|Sets the title for the current console.
@@ -4034,15 +4115,20 @@ initwin32api(void)
   PyDict_SetItemString(dict,"STD_ERROR_HANDLE",
 		       PyInt_FromLong(STD_ERROR_HANDLE));
 
-  PyDict_SetItemString(dict,"NameUnknown",PyInt_FromLong(NameUnknown));
-  PyDict_SetItemString(dict,"NameFullyQualifiedDN",PyInt_FromLong(NameFullyQualifiedDN));
-  PyDict_SetItemString(dict,"NameSamCompatible",PyInt_FromLong(NameSamCompatible));
-  PyDict_SetItemString(dict,"NameDisplay",PyInt_FromLong(NameDisplay));
-  PyDict_SetItemString(dict,"NameUniqueId",PyInt_FromLong(NameUniqueId));
-  PyDict_SetItemString(dict,"NameCanonical",PyInt_FromLong(NameCanonical));
-  PyDict_SetItemString(dict,"NameUserPrincipal",PyInt_FromLong(NameUserPrincipal));
-  PyDict_SetItemString(dict,"NameCanonicalEx",PyInt_FromLong(NameCanonicalEx));
-  PyDict_SetItemString(dict,"NameServicePrincipal",PyInt_FromLong(NameServicePrincipal));
+  PyModule_AddIntConstant(module, "NameUnknown", NameUnknown);
+  PyModule_AddIntConstant(module, "NameFullyQualifiedDN", NameFullyQualifiedDN);
+  PyModule_AddIntConstant(module, "NameSamCompatible", NameSamCompatible);
+  PyModule_AddIntConstant(module, "NameDisplay", NameDisplay);
+  PyModule_AddIntConstant(module, "NameUniqueId", NameUniqueId);
+  PyModule_AddIntConstant(module, "NameCanonical", NameCanonical);
+  PyModule_AddIntConstant(module, "NameUserPrincipal", NameUserPrincipal);
+  PyModule_AddIntConstant(module, "NameCanonicalEx", NameCanonicalEx);
+  PyModule_AddIntConstant(module, "NameServicePrincipal", NameServicePrincipal);
+
+  PyModule_AddIntConstant(module, "REG_NOTIFY_CHANGE_NAME", REG_NOTIFY_CHANGE_NAME);
+  PyModule_AddIntConstant(module, "REG_NOTIFY_CHANGE_ATTRIBUTES", REG_NOTIFY_CHANGE_ATTRIBUTES);
+  PyModule_AddIntConstant(module, "REG_NOTIFY_CHANGE_LAST_SET", REG_NOTIFY_CHANGE_LAST_SET);
+  PyModule_AddIntConstant(module, "REG_NOTIFY_CHANGE_SECURITY", REG_NOTIFY_CHANGE_SECURITY);
 
   HMODULE hmodule = LoadLibrary("secur32.dll");
   if (hmodule!=NULL){
@@ -4054,3 +4140,4 @@ initwin32api(void)
   
   
   
+
