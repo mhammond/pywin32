@@ -24,7 +24,8 @@ def __WrapDispatch(dispatch, userName = None, resultCLSID = None, typeinfo = Non
   if resultCLSID is None:
     try:
       typeinfo = dispatch.GetTypeInfo()
-      resultCLSID = str(typeinfo.GetTypeAttr()[0])
+      if typeinfo is not None: # Some objects return NULL, some raise exceptions...
+        resultCLSID = str(typeinfo.GetTypeAttr()[0])
     except pythoncom.com_error:
       pass
   if resultCLSID is not None:

@@ -23,7 +23,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.3.5" # Written to generated file.
+makepy_version = "0.3.6" # Written to generated file.
 
 GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
@@ -676,6 +676,7 @@ class Generator:
       docDesc = moduleDoc[1]
 
     print '# Created by makepy.py version %s' % (makepy_version,)
+    print '# By python version %s' % (sys.version,)
     if self.sourceFilename:
         print "# From type library '%s'" % (os.path.split(self.sourceFilename)[1],)
     print '# On %s' % time.ctime(time.time())
@@ -685,6 +686,10 @@ class Generator:
     print '"""' + docDesc + '"""'
 
     print 'makepy_version =', `makepy_version`
+    try:
+        print 'python_version = 0x%x' % (sys.hexversion,)
+    except AttributeError:
+        print 'python_version = 0x0 # Presumably Python 1.5.2 - 0x0 is not a problem'
     print
     print 'import win32com.client.CLSIDToClass, pythoncom'
     print
