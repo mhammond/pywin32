@@ -28,8 +28,8 @@ def IsDebug():
         
         This is to be used within DLL names when locating them.
         """
-        import winreg
-        if winreg.__file__[-6:] == '_d.pyd':
+        import _winreg
+        if _winreg.__file__[-6:] == '_d.pyd':
                 return '_d'
         return ''
 
@@ -55,12 +55,12 @@ def FindPackagePath(packageName, knownFileName, searchPaths):
 
 def FindHelpPath(helpFile, helpDesc, searchPaths):
 	# See if the current registry entry is OK
-	import os, winreg
+	import os, _winreg
 	try:
-		key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows\\Help", 0, winreg.KEY_ALL_ACCESS)
+		key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows\\Help", 0, _winreg.KEY_ALL_ACCESS)
 		try:
 			try:
-				path = winreg.QueryValueEx(key, helpDesc)[0]
+				path = _winreg.QueryValueEx(key, helpDesc)[0]
 				if FileExists(os.path.join(path, helpFile)):
 					return os.path.abspath(path)
 			except EnvironmentError:
@@ -105,9 +105,9 @@ def FindRegisteredModule(moduleName, possibleRealNames, searchPaths):
          
 	   Returns the full path to the .exe or None if the current registered entry is OK.
       """
-	import winreg, regutil, string
+	import _winreg, regutil, string
 	try:
-		fname = winreg.QueryValue(regutil.GetRootKey(), \
+		fname = _winreg.QueryValue(regutil.GetRootKey(), \
 		               regutil.BuildDefaultPythonKey() + "\\Modules\\%s" % moduleName)
 
 		if FileExists(fname):
@@ -126,11 +126,11 @@ def FindPythonExe(exeAlias, possibleRealNames, searchPaths):
 	   Returns the full path to the .exe, and a boolean indicating if the current 
 	   registered entry is OK.
       """
-	import winreg, regutil, string
+	import _winreg, regutil, string
 	if possibleRealNames is None:
 		possibleRealNames = exeAlias
 	try:
-		fname = winreg.QueryValue(regutil.GetRootKey(), regutil.GetAppPathsKey() + "\\" + exeAlias)
+		fname = _winreg.QueryValue(regutil.GetRootKey(), regutil.GetAppPathsKey() + "\\" + exeAlias)
 		if FileExists(fname):
 			return fname, 1 # Registered entry OK
 
@@ -344,7 +344,7 @@ def SetupCore(searchPaths):
 		sys.path.append(path)
 
 	import string, os
-	import regutil, winreg, win32api
+	import regutil, _winreg, win32api
 	
 	installPath, corePaths = LocatePythonCore(searchPaths)
 	# Register the core Pythonpath.
@@ -352,12 +352,12 @@ def SetupCore(searchPaths):
 	regutil.RegisterNamedPath(None, string.join(corePaths,";"))
 
 	# Register the install path.
-	hKey = winreg.CreateKey(regutil.GetRootKey() , regutil.BuildDefaultPythonKey())
+	hKey = _winreg.CreateKey(regutil.GetRootKey() , regutil.BuildDefaultPythonKey())
 	try:
 		# Core Paths.
-		winreg.SetValue(hKey, "InstallPath", winreg.REG_SZ, installPath)
+		_winreg.SetValue(hKey, "InstallPath", _winreg.REG_SZ, installPath)
 	finally:
-		winreg.CloseKey(hKey)
+		_winreg.CloseKey(hKey)
 	# The core DLL.
 #	regutil.RegisterCoreDLL()
 
