@@ -1,9 +1,9 @@
 import unittest
 import struct
 import sys
+import os
 import pywintypes
 import win32event
-# sys.path = ['.'] + sys.path
 import win32com.directsound.directsound as ds
 # next two lines are for for debugging:
 # import win32com
@@ -181,8 +181,8 @@ class DirectSoundTest(unittest.TestCase):
 
     def testPlay(self):
         '''Play a file'''
-
-        f = open('d:/temp/01-Intro.wav', 'rb')
+        fname=os.path.join(os.path.dirname(__file__), "01-Intro.wav")
+        f = open(fname, 'rb')
         hdr = f.read(WAV_HEADER_SIZE)
         wfx, size = wav_header_unpack(hdr)
 
