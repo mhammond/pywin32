@@ -374,6 +374,7 @@ def SetupCore(searchPaths):
 
 	suffix = IsDebug()
 	ver_str = hex(sys.hexversion)[2] + hex(sys.hexversion)[4]
+	# pywintypes now has a .py stub
 	FindRegisterModule("pywintypes", "pywintypes%s%s.dll" % (ver_str, suffix), [".", win32api.GetSystemDirectory()])
 	regutil.RegisterNamedPath("win32",win32paths)
 
@@ -451,6 +452,7 @@ def RegisterWin32com(searchPaths):
 		FindRegisterHelpFile("PyWin32.chm", searchPaths + [corePath+"\\win32com"], "Python COM Reference")
 		suffix = IsDebug()
 		ver_str = hex(sys.hexversion)[2] + hex(sys.hexversion)[4]
+		# pythoncom now has a .py stub
 		FindRegisterModule("pythoncom", "pythoncom%s%s.dll" % (ver_str, suffix), [win32api.GetSystemDirectory(), '.'])
 
 usage = """\
