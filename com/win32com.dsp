@@ -2120,7 +2120,7 @@ SOURCE=.\win32com\src\extensions\PyFUNCDESC.cpp
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Release"
 
 DEP_CPP_PYFUN=\
-	".\win32com\src\include\pycomtypeobjects.h"\
+	".\win32com\src\include\PyComTypeObjects.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
 	
@@ -2170,7 +2170,7 @@ NODEP_CPP_PYFUN=\
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
 
 DEP_CPP_PYFUN=\
-	".\win32com\src\include\pycomtypeobjects.h"\
+	".\win32com\src\include\PyComTypeObjects.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
 	
@@ -2222,7 +2222,7 @@ NODEP_CPP_PYFUN=\
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Debug"
 
 DEP_CPP_PYFUN=\
-	".\win32com\src\include\pycomtypeobjects.h"\
+	".\win32com\src\include\PyComTypeObjects.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
 	
@@ -4212,7 +4212,7 @@ SOURCE=.\win32com\src\extensions\PyICreateTypeInfo.cpp
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Release"
 
 DEP_CPP_PYICR=\
-	".\win32com\src\include\pycomtypeobjects.h"\
+	".\win32com\src\include\PyComTypeObjects.h"\
 	".\win32com\src\include\pyicreatetypeinfo.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
@@ -4263,7 +4263,7 @@ NODEP_CPP_PYICR=\
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
 
 DEP_CPP_PYICR=\
-	".\win32com\src\include\pycomtypeobjects.h"\
+	".\win32com\src\include\PyComTypeObjects.h"\
 	".\win32com\src\include\pyicreatetypeinfo.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
@@ -4316,7 +4316,7 @@ NODEP_CPP_PYICR=\
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Debug"
 
 DEP_CPP_PYICR=\
-	".\win32com\src\include\pycomtypeobjects.h"\
+	".\win32com\src\include\PyComTypeObjects.h"\
 	".\win32com\src\include\pyicreatetypeinfo.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
@@ -7652,7 +7652,7 @@ NODEP_CPP_PYITY=\
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
 
 DEP_CPP_PYITY=\
-	".\win32com\src\include\pycomtypeobjects.h"\
+	".\win32com\src\include\PyComTypeObjects.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
 	
@@ -7878,7 +7878,7 @@ SOURCE=.\win32com\src\extensions\PyTYPEATTR.cpp
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Release"
 
 DEP_CPP_PYTYP=\
-	".\win32com\src\include\pycomtypeobjects.h"\
+	".\win32com\src\include\PyComTypeObjects.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
 	
@@ -7928,7 +7928,7 @@ NODEP_CPP_PYTYP=\
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
 
 DEP_CPP_PYTYP=\
-	".\win32com\src\include\pycomtypeobjects.h"\
+	".\win32com\src\include\PyComTypeObjects.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
 	
@@ -7980,7 +7980,7 @@ NODEP_CPP_PYTYP=\
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Debug"
 
 DEP_CPP_PYTYP=\
-	".\win32com\src\include\pycomtypeobjects.h"\
+	".\win32com\src\include\PyComTypeObjects.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
 	
@@ -8041,7 +8041,7 @@ SOURCE=.\win32com\src\extensions\PyVARDESC.cpp
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Release"
 
 DEP_CPP_PYVAR=\
-	".\win32com\src\include\pycomtypeobjects.h"\
+	".\win32com\src\include\PyComTypeObjects.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
 	
@@ -8091,7 +8091,7 @@ NODEP_CPP_PYVAR=\
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
 
 DEP_CPP_PYVAR=\
-	".\win32com\src\include\pycomtypeobjects.h"\
+	".\win32com\src\include\PyComTypeObjects.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
 	
@@ -8143,7 +8143,7 @@ NODEP_CPP_PYVAR=\
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Debug"
 
 DEP_CPP_PYVAR=\
-	".\win32com\src\include\pycomtypeobjects.h"\
+	".\win32com\src\include\PyComTypeObjects.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
 	
@@ -8200,6 +8200,10 @@ NODEP_CPP_PYVAR=\
 # Begin Source File
 
 SOURCE=.\win32com\src\include\propbag.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32com\src\include\PyComTypeObjects.h
 # End Source File
 # Begin Source File
 
@@ -8346,5 +8350,24 @@ SOURCE=.\win32com\src\PythonCOM.def
 
 # End Source File
 # End Group
+# Begin Source File
+
+SOURCE=.\win32com\src\PyRecord.cpp
+
+!IF  "$(CFG)" == "win32com - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Release"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Debug"
+
+!ENDIF 
+
+# End Source File
 # End Target
 # End Project
