@@ -235,4 +235,8 @@ def reraise():
   t, v, tb = exc_info()
   raise t, v, tb
 
-DefaultDebugDispatcher = DispatcherWin32trace
+try:
+  import win32trace
+  DefaultDebugDispatcher = DispatcherWin32trace
+except ImportError: # no win32trace module - just use a print based one.
+  DefaultDebugDispatcher = DispatcherTrace
