@@ -151,7 +151,7 @@ class ConfigManager:
             for parent in parents:
                 trace("Configuration based on", parent, "- loading.")
                 parent = self.__class__(parent)
-                parent.configure(editor)
+                parent.configure(editor, subsections)
                 if parent.last_error:
                     self.report_error(parent.last_error)
 
