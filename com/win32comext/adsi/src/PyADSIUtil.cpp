@@ -141,6 +141,38 @@ PyObject *PyADSIObject_FromADSVALUE(ADSVALUE &v)
 	return ret;
 }
 
+BOOL PyADSIObject_AsTypedValue(PyObject *val, ADSVALUE &v)
+{
+	BOOL ok = TRUE;
+	switch (v.dwType) {
+		// OK - get lazy - we know its a union!
+		case ADSTYPE_DN_STRING:
+		case ADSTYPE_CASE_EXACT_STRING:
+		case ADSTYPE_CASE_IGNORE_STRING:
+		case ADSTYPE_PRINTABLE_STRING:
+		case ADSTYPE_NUMERIC_STRING:
+		case ADSTYPE_OBJECT_CLASS:
+			ok = PyWinObject_AsWCHAR(val, &v.DNString, FALSE);
+			break;
+		case ADSTYPE_BOOLEAN:
+			v.Boolean = PyInt_AsLong(val);
+			break;
+		case ADSTYPE_INTEGER:
+			v.Integer = PyInt_AsLong(val);
+			break;
+		case ADSTYPE_UTC_TIME:
+			ok = PyWinObject_AsSYSTEMTIME(val, &v.UTCTime);
+			break;
+		case ADSTYPE_LARGE_INTEGER:
+			ok = PyWinObject_AsLARGE_INTEGER(val, &v.LargeInteger);
+			break;
+		default:
+			PyErr_SetString(PyExc_TypeError, "Cant convert to this type");
+			return FALSE;
+	}
+	return ok;
+}
+
 BOOL PyADSIObject_AsADSVALUE(PyObject *ob, ADSVALUE &v)
 {
 	if (!PyTuple_Check(ob) || PyTuple_Size(ob) < 1 || PyTuple_Size(ob)>2) {
@@ -171,35 +203,8 @@ BOOL PyADSIObject_AsADSVALUE(PyObject *ob, ADSVALUE &v)
 		PyErr_SetString(PyExc_TypeError, "The type specified must be None or a string");
 		return FALSE;
 	}
-	BOOL ok = TRUE;
-	switch (dwType) {
-		// OK - get lazy - we know its a union!
-		case ADSTYPE_DN_STRING:
-		case ADSTYPE_CASE_EXACT_STRING:
-		case ADSTYPE_CASE_IGNORE_STRING:
-		case ADSTYPE_PRINTABLE_STRING:
-		case ADSTYPE_NUMERIC_STRING:
-		case ADSTYPE_OBJECT_CLASS:
-			ok = PyWinObject_AsWCHAR(val, &v.DNString, FALSE);
-			break;
-		case ADSTYPE_BOOLEAN:
-			v.Boolean = PyInt_AsLong(val);
-			break;
-		case ADSTYPE_INTEGER:
-			v.Integer = PyInt_AsLong(val);
-			break;
-		case ADSTYPE_UTC_TIME:
-			ok = PyWinObject_AsSYSTEMTIME(val, &v.UTCTime);
-			break;
-		case ADSTYPE_LARGE_INTEGER:
-			ok = PyWinObject_AsLARGE_INTEGER(val, &v.LargeInteger);
-			break;
-		default:
-			PyErr_SetString(PyExc_TypeError, "Cant convert to this type");
-			return FALSE;
-	}
 	v.dwType = (ADSTYPE)dwType;
-	return ok;
+	return PyADSIObject_AsTypedValue(val, v);
 }
 
 void PyADSIObject_FreeADSVALUE(ADSVALUE &v)
@@ -215,6 +220,9 @@ void PyADSIObject_FreeADSVALUE(ADSVALUE &v)
 		default:
 			;
 	}
+    // force 'null' reset if called again.
+    v.dwType = ADSTYPE_INTEGER;
+    v.Integer = 0;
 }
 
 // Helpers for passing arrays of Unicode around.
@@ -531,20 +539,139 @@ PyObject *PyADSIObject_FromADS_ATTR_INFOs(ADS_ATTR_INFO *infos, DWORD cinfos)
 	return ret;
 }
 
+BOOL _Make_ATTR_INFO(PyObject *ob, ADS_ATTR_INFO *pBase, DWORD index)
+{
+	PyObject *obName, *obValues;
+	ADS_ATTR_INFO *pThis = pBase + index;
+	PyObject *sub = PySequence_GetItem(ob, index);
+	if (!sub)
+		return FALSE;
+	
+	if (!PyArg_ParseTuple(sub, "OllO:ADS_ATTR_INFO tuple",
+						  &obName, &pThis->dwControlCode,
+						  &pThis->dwADsType, &obValues))
+		return FALSE;
+	if (!PyWinObject_AsWCHAR(obName, &pThis->pszAttrName, FALSE))
+		return FALSE;
+	if (!PySequence_Check(obValues)) {
+		PyErr_Format(PyExc_TypeError,
+					 "4th item in an ATTR_INFO structure must be a sequence (got %s)",
+					 obValues->ob_type->tp_name);
+		return FALSE;
+	}
+	DWORD nValues = PySequence_Length(obValues);
+	pThis->pADsValues = (PADSVALUE)malloc(nValues * sizeof(ADSVALUE));
+	if (!pThis->pADsValues) {
+		PyErr_NoMemory();
+		return FALSE;
+	}
+	memset(pThis->pADsValues, 0, nValues * sizeof(ADSVALUE));
+	pThis->dwNumValues = nValues;
+	DWORD i;
+	BOOL ok;
+	for (i=0;i<nValues;i++) {
+		PyObject *val = PySequence_GetItem(obValues, i);
+		if (!val)
+			return FALSE;
+		pThis->pADsValues[i].dwType = pThis->dwADsType;
+		ok = PyADSIObject_AsTypedValue(val, pThis->pADsValues[i]);
+		Py_DECREF(val);
+	}
+	return TRUE;
+}
+
+void PyADSIObject_FreeADS_ATTR_INFOs(ADS_ATTR_INFO *pval, DWORD cinfos)
+{
+	if (!pval) return;
+	DWORD i;
+	for (i=0;i<cinfos;i++) {
+		ADS_ATTR_INFO *pThis = pval + i;
+		PyWinObject_FreeWCHAR(pThis->pszAttrName);
+		if (pThis->pADsValues) {
+			DWORD valnum;
+			for (valnum=0;valnum<pThis->dwNumValues;valnum++)
+				PyADSIObject_FreeADSVALUE(pThis->pADsValues[valnum]);
+			free(pThis->pADsValues);
+		}
+	}
+	free(pval);
+}
 BOOL PyADSIObject_AsADS_ATTR_INFOs(PyObject *ob, ADS_ATTR_INFO **ppret, DWORD *pcinfos)
 {
 	if (!PySequence_Check(ob)) {
 		PyErr_SetString(PyExc_TypeError, "ADS_ATTR_INFOs must be a sequence");
 		return FALSE;
 	}
-	int nitems = PySequence_Length(ob);
-	PyErr_SetString(PyExc_TypeError, "Havent got here yet!");
-	return FALSE;
+	DWORD i;
+	// Use C++ reference to make working with ppret more convenient.
+	ADS_ATTR_INFO *&pret = *ppret;
+	DWORD &nitems = *pcinfos;
+
+	nitems = PySequence_Length(ob);
+	pret = (PADS_ATTR_INFO)malloc(nitems * sizeof(ADS_ATTR_INFO));
+	if (!pret) {
+		PyErr_NoMemory();
+		return FALSE;
+	}
+	memset(pret, 0, nitems * sizeof(ADS_ATTR_INFO));
+	BOOL ok = TRUE;
+	for (i=0;ok && i<nitems;i++) {
+		ok = _Make_ATTR_INFO(ob, pret, i);
+	}
+	if (!ok && pret) {
+		PyADSIObject_FreeADS_ATTR_INFOs(pret, nitems);
+		pret = 0;
+		nitems = 0;
+	}
+	return ok;
 }
 
-void PyADSIObject_FreeADS_ATTR_INFOs(ADS_ATTR_INFO *pattr, DWORD cattr)
+void PyADSIObject_FreeADS_SEARCHPREF_INFOs(ADS_SEARCHPREF_INFO *pattr, DWORD cattr)
 {
-	PyErr_SetString(PyExc_TypeError, "Havent got here yet!");
+	if (!pattr) return;
+	DWORD i;
+	for (i=0;i<cattr;i++)
+		PyADSIObject_FreeADSVALUE(pattr[i].vValue);
+	free(pattr);
+}
+
+BOOL PyADSIObject_AsADS_SEARCHPREF_INFOs(PyObject *ob, ADS_SEARCHPREF_INFO **ppret, DWORD *pcinfos)
+{
+	BOOL ret = FALSE;
+	if (!PySequence_Check(ob)) {
+		PyErr_SetString(PyExc_TypeError, "ADS_SEARCHPREF_INFOs must be a sequence");
+		return FALSE;
+	}
+	// Use C++ reference to make working with ppret more convenient.
+	ADS_SEARCHPREF_INFO *&pret = *ppret;
+	DWORD &nitems = *pcinfos;
+	nitems = PySequence_Length(ob);
+
+	pret = (ADS_SEARCHPREF_INFO *)malloc(sizeof(ADS_SEARCHPREF_INFO) * nitems);
+	if (!pret) {
+		PyErr_NoMemory();
+		return NULL;
+	}
+	memset(pret, 0, sizeof(ADS_SEARCHPREF_INFO) * nitems);
+	PyObject *sub = NULL;
+	PyObject *obValue; // no reference
+	DWORD i;
+	for (i=0;i<nitems;i++) {
+		PyObject *sub = PySequence_GetItem(ob, i);
+		if (!sub) goto done;
+		if (!PyArg_ParseTuple(sub, "iO:ADS_SEARCHPREF_INFO tuple", &pret[i].dwSearchPref, &obValue))
+			goto done;
+		if (!PyADSIObject_AsADSVALUE(obValue, pret[i].vValue))
+			goto done;
+		Py_DECREF(sub);
+		sub = NULL;
+	}
+	ret = TRUE;
+done:
+	Py_XDECREF(sub);
+	if (!ret && pret)
+		PyADSIObject_FreeADS_SEARCHPREF_INFOs(pret, nitems);
+	return ret;
 }
 
 ///////////////////////////////////////////////////////

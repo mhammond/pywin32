@@ -105,3 +105,45 @@ PyObject *PyIDirectoryObject::SetObjectAttributes(PyObject *self, PyObject *args
 
 %native(SetObjectAttributes) SetObjectAttributes;
 
+%{
+// @pyswig <o PyIDispatch>|CreateDSObject|
+PyObject *PyIDirectoryObject::CreateDSObject(PyObject *self, PyObject *args)
+{
+	HRESULT _result;
+	IDirectoryObject *_swig_self;
+	if ((_swig_self=GetI(self))==NULL) return NULL;
+	PyObject *obAttr, *obName;
+	if (!PyArg_ParseTuple(args, "OO:CreateDSObject", &obName, &obAttr))
+		return NULL;
+
+    WCHAR *szName= NULL;
+    if (!PyWinObject_AsWCHAR(obName, &szName, FALSE))
+        return NULL;
+
+	PADS_ATTR_INFO attr;
+	DWORD cattr;
+	if (!PyADSIObject_AsADS_ATTR_INFOs(obAttr, &attr, &cattr)) {
+        PyWinObject_FreeWCHAR(szName);
+		return NULL;
+    }
+    IDispatch *pRet = NULL;
+
+	Py_BEGIN_ALLOW_THREADS
+	_result = (HRESULT )_swig_self->CreateDSObject(szName, attr, cattr, &pRet);
+	Py_END_ALLOW_THREADS
+	PyObject *ret = NULL;
+	if (FAILED(_result)) {
+		PyCom_BuildPyException(_result, _swig_self, IID_IDirectoryObject);
+	} else
+        ret = PyCom_PyObjectFromIUnknown(pRet, IID_IDispatch, FALSE);
+	PyADSIObject_FreeADS_ATTR_INFOs(attr, cattr);
+	return ret;
+};
+
+%}
+
+%native(CreateDSObject) CreateDSObject;
+
+// @pyswig |DeleteDSObject|Deletes a leaf object in a directory tree
+// @pyparm string|rdn||The relative distinguished name (relative path) of the object to be deleted.
+HRESULT DeleteDSObject(WCHAR *rdn);

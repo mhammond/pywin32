@@ -27,6 +27,7 @@
 #include "PythonCOMServer.h"
 #include "PythonCOMRegister.h"
 #include "PyIDirectoryObject.h"
+#include "PyIDirectorySearch.h"
 #include "PyIADsContainer.h"
 #include "PyIADsUser.h"
 #include "ADSIID.h"
@@ -66,9 +67,9 @@ static PyObject *PyADsOpenObject(PyObject *self, PyObject *args)
 	WCHAR *path, *userName, *password;
 	if (!PyWinObject_AsWCHAR(obPath, &path, FALSE))
 		goto done;
-	if (!PyWinObject_AsWCHAR(obUserName, &userName, FALSE))
+	if (!PyWinObject_AsWCHAR(obUserName, &userName, TRUE))
 		goto done;
-	if (!PyWinObject_AsWCHAR(obPassword, &password, FALSE))
+	if (!PyWinObject_AsWCHAR(obPassword, &password, TRUE))
 		goto done;
 	Py_BEGIN_ALLOW_THREADS;
 	hr = ADsOpenObject(path, userName, password, (DWORD)lres, iid, (void **)&pOb);
@@ -220,6 +221,7 @@ static PyObject *PyADsEnumerateNext(PyObject *self, PyObject *args)
 %native (ADsEnumerateNext) PyADsEnumerateNext;
 
 %init %{
+	PyDict_SetItemString(d, "error", PyWinExc_COMError);
 
 	AddIID(d, "LIBID_ADs", LIBID_ADs);
 
@@ -256,20 +258,25 @@ static PyObject *PyADsEnumerateNext(PyObject *self, PyObject *args)
 //	ADD_IID(IID_IDSSearch);
 //	ADD_IID(IID_IDSAttrMgmt);
 
-	if ( PyCom_RegisterClientType(&PyIDirectoryObject::type, &IID_IDirectoryObject) != 0 ) return;
-	ADD_IID(IID_IDirectoryObject);
+	ADD_IID(CLSID_AccessControlEntry);
+	ADD_IID(CLSID_AccessControlList);
+	ADD_IID(CLSID_SecurityDescriptor);
 
-	ADD_IID(IID_IDirectorySearch);
 //	ADD_IID(IID_IDirectoryAttrMgmt);
 
 	AddIID(d, "CLSID_ADsDSOObject", CLSID_ADsDSOObject);
 	AddIID(d, "DBGUID_LDAPDialect", DBGUID_LDAPDialect);
 	AddIID(d, "DBPROPSET_ADSISEARCH", DBPROPSET_ADSISEARCH);
 
+	if ( PyCom_RegisterClientType(&PyIDirectoryObject::type, &IID_IDirectoryObject) != 0 ) return;
+	ADD_IID(IID_IDirectoryObject);
+
+	if ( PyCom_RegisterClientType(&PyIDirectorySearch::type, &IID_IDirectorySearch) != 0 ) return;
+	ADD_IID(IID_IDirectorySearch);
+
 	if ( PyCom_RegisterClientType(&PyIADsUser::type, &IID_IADsUser) != 0 ) return;
 	ADD_IID(IID_IADsUser);
 
 	if ( PyCom_RegisterClientType(&PyIADsContainer::type, &IID_IADsContainer) != 0 ) return;
 	ADD_IID(IID_IADsContainer);
-
 %}

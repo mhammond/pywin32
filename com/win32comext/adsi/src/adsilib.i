@@ -45,6 +45,9 @@ extern PyObject *OleSetADSIError(HRESULT hr, IUnknown *pUnk, REFIID iid);
 		return NULL;
 }
 
+%apply ADS_SEARCH_HANDLE {long};
+typedef long ADS_SEARCH_HANDLE
+
 /***
 // Some ** special cases.
 %typemap(python,freearg) IMsgStore **INPUT
