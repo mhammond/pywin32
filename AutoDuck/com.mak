@@ -56,7 +56,6 @@ SOURCE  = $(WIN32COM_DIR)\src\*.cpp \
 	$(GENDIR)\exchange.d \
 	$(GENDIR)\exchdapi.d \
 	$(ADSI_DIR)\src\*.cpp \
-	$(GENDIR)\adsi.d \
 	$(GENDIR)\PyIADsContainer.d \
 	$(GENDIR)\PyIADsUser.d \
 	$(GENDIR)\PyIDirectoryObject.d \
