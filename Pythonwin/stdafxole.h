@@ -20,9 +20,7 @@
 // allow memory leaks to give me the line number.
 //#define new DEBUG_NEW
 
-extern "C" {
 #include "Python.h"
-}
 #include "modsupport.h"
 #include "traceback.h"
 #include "pythonrun.h"

@@ -29,9 +29,7 @@
 programmers who forget to use the new names. */
 #undef INCREF
 #undef DECREF
-extern "C" {
 #include "Python.h"
-}
 #include "modsupport.h"
 #include "traceback.h"
 #include "pythonrun.h"
