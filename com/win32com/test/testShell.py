@@ -1,6 +1,9 @@
 import sys, os
+import struct
 import unittest
+import copy
 
+import win32con
 import pythoncom
 from win32com.shell import shell
 from win32com.shell.shellcon import *
@@ -74,6 +77,47 @@ class PIDLTester(win32com.test.util.TestCase):
         self._rtCIDA(["\0"], [ ["\0"] ])
         self._rtCIDA(["\1"], [ ["\2"] ])
         self._rtCIDA(["\0"], [ ["\0"], ["\1"], ["\2"] ])
+
+class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
+    def _testRT(self, fd):
+        fgd_string = shell.FILEGROUPDESCRIPTORAsString([fd])
+        fd2 = shell.StringAsFILEGROUPDESCRIPTOR(fgd_string)[0]
+        
+        fd = fd.copy()
+        fd2 = fd2.copy()
+        
+        # The returned objects *always* have dwFlags and cFileName.
+        if not fd.has_key('dwFlags'):
+            del fd2['dwFlags']
+        if not fd.has_key('cFileName'):
+            self.assertEqual(fd2['cFileName'], '')
+            del fd2['cFileName']
+
+        self.assertEqual(fd, fd2)
+
+    def testSimple(self):
+        fgd = shell.FILEGROUPDESCRIPTORAsString([])
+        header = struct.pack("i", 0)
+        self.assertEqual(header, fgd[:len(header)])
+        self._testRT(dict())
+        d = dict()
+        fgd = shell.FILEGROUPDESCRIPTORAsString([d])
+        header = struct.pack("i", 1)
+        self.assertEqual(header, fgd[:len(header)])
+        self._testRT(d)
+    
+    def testComplex(self):
+        clsid = pythoncom.MakeIID("{CD637886-DB8B-4b04-98B5-25731E1495BE}")
+        d = dict(cFileName="foo.txt",
+                 clsid=clsid,
+                 sizel=(1,2),
+                 pointl=(3,4),
+                 dwFileAttributes = win32con.FILE_ATTRIBUTE_NORMAL,
+                 ftCreationTime=pythoncom.MakeTime(10),
+                 ftLastAccessTime=pythoncom.MakeTime(11),
+                 ftLastWriteTime=pythoncom.MakeTime(12),
+                 nFileSize=sys.maxint + 1)
+        self._testRT(d)
 
 class FileOperationTester(win32com.test.util.TestCase):
     def setUp(self):
