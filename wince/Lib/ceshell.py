@@ -351,6 +351,7 @@ def Interact(shell):
 						m = len(traceback.extract_tb(sys.exc_traceback))
 					traceback.print_exception(exc_type,
 						exc_value, exc_traceback, l-m)
+					exc_traceback = None # Prevent a cycle
 			finally:
 				SetCursor(LoadCursor(0, 0))
 				
