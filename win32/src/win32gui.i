@@ -1041,6 +1041,10 @@ BOOLAPI GetClientRect(HWND hWnd, RECT *OUTPUT);
 // @pyparm int|hwnd||The handle to the window
 HDC GetDC(  HWND hWnd );
 
+// @pyswig HWND|GetParent|Gets the parent window.
+// @pyparm int|hwnd||The handle to the window
+HWND GetParent(HWND hWnd);
+
 #ifndef MS_WINCE
 HINSTANCE GetModuleHandle(TCHAR *INPUT_NULLOK);
 #endif
