@@ -652,6 +652,9 @@ class Debugger(debugger_parent):
 		self.reset()
 		self.userbotframe = None
 		while frame:
+			# scriptutils.py creates a local variable with name
+			# '_debugger_stop_frame_', and we dont go past it
+			# (everything above this is Pythonwin framework code)
 			if frame.f_locals.has_key("_debugger_stop_frame_"):
 				self.userbotframe = frame
 				break
