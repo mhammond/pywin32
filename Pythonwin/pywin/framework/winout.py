@@ -437,11 +437,14 @@ class WindowOutput(docview.DocTemplate):
 			try:
 				item = self.outputQueue.get_nowait()
 				if is_platform_unicode:
-					if type(item) != UnicodeType:
+					# Note is_platform_unicode is never true any more!
+					if not isinstance(type, UnicodeType):
 						item = unicode(item, default_platform_encoding)
 					item = item.encode(default_scintilla_encoding) # What scintilla uses.
 				else:
-					item = str(item)
+					# try and display using mbcs encoding
+					if isinstance(type, UnicodeType):
+						item = item.encode("mbcs")
 				items.append(item)
 			except Queue.Empty:
 				rc = 1
