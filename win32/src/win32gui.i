@@ -991,6 +991,16 @@ static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
 		;
 }
 
+// @pyswig int|GetWindowLong|
+// @pyparm int|hwnd||
+// @pyparm int|index||
+long GetWindowLong(HWND hwnd, int index);
+
+// @pyswig int|GetClassLong|
+// @pyparm int|hwnd||
+// @pyparm int|index||
+long GetClassLong(HWND hwnd, int index);
+
 // @pyswig int|SetWindowLong|
 %{
 static PyObject *PySetWindowLong(PyObject *self, PyObject *args)
