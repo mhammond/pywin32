@@ -39,7 +39,7 @@ CGdiObject *PyCGdiObject::GetGdiObject (PyObject *self, DWORD gtype)
 void PyCGdiObject::DoKillAssoc( BOOL bDestructing /*= FALSE*/ )
 {
   CGdiObject *pGDI;
-  if (m_deleteObject && (pGDI = GetGdiObject()))
+  if (m_deleteObject && (pGDI = ((CGdiObject *)assoc))) // Cant use GetGdiOb as ob_type is NULL!
 	{
 	  m_deleteObject = FALSE;
 	  delete pGDI;
