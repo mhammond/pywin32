@@ -56,7 +56,7 @@ PyObject *PySECURITY_DESCRIPTOR::Initialize(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @pymethod |PySECURITY_DESCRIPTOR|SetDacl|Sets information in a discretionary access-control list.
+// @pymethod |PySECURITY_DESCRIPTOR|SetDacl|Sets reference to information in a discretionary access-control list.
 PyObject *PySECURITY_DESCRIPTOR::SetSecurityDescriptorDacl(PyObject *self, PyObject *args)
 {
 	PySECURITY_DESCRIPTOR *This = (PySECURITY_DESCRIPTOR *)self;
@@ -72,9 +72,77 @@ PyObject *PySECURITY_DESCRIPTOR::SetSecurityDescriptorDacl(PyObject *self, PyObj
 		return NULL;
 	if (!::SetSecurityDescriptorDacl(This->m_psd, bPresent, pacl, bDefaulted))
 		return PyWin_SetAPIError("SetSecurityDescriptorDacl");
+	if (This->m_obACL)
+		Py_DECREF(This->m_obACL);
+	Py_INCREF(obACL);
+	This->m_obACL= obACL;
 	Py_INCREF(Py_None);
 	return Py_None;
 	// @comm This method is also known by the alias SetSecurityDescriptorDacl
+}
+
+// @pymethod |PySECURITY_DESCRIPTOR|GetSecurityDescriptorOwner|Return the owner of the security descriptor. SID is returned.
+PyObject *PySECURITY_DESCRIPTOR::GetSecurityDescriptorOwner(PyObject *self, PyObject *args)
+{
+	PSID psd_sid;
+	BOOL OwnerDefaulted;
+	PySECURITY_DESCRIPTOR *This = (PySECURITY_DESCRIPTOR *)self;
+	DWORD sidsize= 0;
+	PyObject *obNewSid = NULL;
+
+	// get SID from SD
+	if (!::GetSecurityDescriptorOwner(This->m_psd, &psd_sid, &OwnerDefaulted))
+		return PyWin_SetAPIError("GetSecurityDescriptorOwner");
+	if (psd_sid == NULL)
+	{
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+	// create and return pySID object
+	return new PySID(psd_sid, 0);
+}
+
+
+// @pymethod |PySECURITY_DESCRIPTOR|GetSecurityDescriptorGroup|Return the group owning the security descriptor. SID is returned.
+PyObject *PySECURITY_DESCRIPTOR::GetSecurityDescriptorGroup(PyObject *self, PyObject *args)
+{
+	PSID psd_sid;
+	BOOL OwnerDefaulted;
+	PySECURITY_DESCRIPTOR *This = (PySECURITY_DESCRIPTOR *)self;
+	DWORD sidsize= 0;
+	PyObject *obNewSid = NULL;
+
+	// get SID from SD
+	if (!::GetSecurityDescriptorGroup(This->m_psd, &psd_sid, &OwnerDefaulted))
+		return PyWin_SetAPIError("GetSecurityDescriptorGroup");
+	if (psd_sid == NULL)
+	{
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+	// create and return pySID object
+	return new PySID(psd_sid, 0);
+}
+
+
+// @pymethod |PySECURITY_DESCRIPTOR|GetSecurityDescriptorDacl|Return the discretionary ACL of the security descriptor.
+PyObject *PySECURITY_DESCRIPTOR::GetSecurityDescriptorDacl(PyObject *self, PyObject *args)
+{
+	PACL Dacl;
+	BOOL DaclPresent, DaclDefaulted;
+	PySECURITY_DESCRIPTOR *This = (PySECURITY_DESCRIPTOR *)self;
+	DWORD sidsize= 0;
+	PyObject *obNewSid = NULL;
+
+	// get Dacl from SD
+	if (!::GetSecurityDescriptorDacl(This->m_psd, &DaclPresent, &Dacl, &DaclDefaulted))
+		return PyWin_SetAPIError("GetSecurityDescriptorDacl");
+	if (!DaclPresent || Dacl == NULL)
+	{
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+	return new PyACL(Dacl);
 }
 
 
@@ -83,6 +151,9 @@ static struct PyMethodDef PySECURITY_DESCRIPTOR_methods[] = {
 	{"Initialize",     PySECURITY_DESCRIPTOR::Initialize, 1}, 	// @pymeth Initialize|Initializes the object.
 	{"SetSecurityDescriptorDacl",     PySECURITY_DESCRIPTOR::SetSecurityDescriptorDacl, 1},
 	{"SetDacl",     PySECURITY_DESCRIPTOR::SetSecurityDescriptorDacl, 1}, 	// @pymeth SetDacl|Sets information in a discretionary access-control list.
+	{"GetSecurityDescriptorOwner", PySECURITY_DESCRIPTOR::GetSecurityDescriptorOwner, 1}, // @pymeth GetSecurityDescriptorOwner|Return the owner of the security descriptor. SID is returned.	
+	{"GetSecurityDescriptorGroup", PySECURITY_DESCRIPTOR::GetSecurityDescriptorGroup, 1}, // @pymeth GetSecurityDescriptorOwner|Return the group owning the security descriptor. SID is returned.
+	{"GetSecurityDescriptorDacl", PySECURITY_DESCRIPTOR::GetSecurityDescriptorDacl, 1}, // @pymeth GetSecurityDescriptorDacl|Return the discretionary ACL of the security descriptor.
 	{NULL}
 };
 
@@ -131,6 +202,7 @@ PySECURITY_DESCRIPTOR::PySECURITY_DESCRIPTOR(unsigned cb /*= 0*/)
 	cb = max(cb, SECURITY_DESCRIPTOR_MIN_LENGTH);
 	m_psd = (SECURITY_DESCRIPTOR *)malloc(cb);
 	::InitializeSecurityDescriptor(m_psd, SECURITY_DESCRIPTOR_REVISION);
+	m_obACL= NULL;
 }
 
 PySECURITY_DESCRIPTOR::PySECURITY_DESCRIPTOR(const SECURITY_DESCRIPTOR *psd, unsigned cb /*= 0*/)
@@ -140,11 +212,17 @@ PySECURITY_DESCRIPTOR::PySECURITY_DESCRIPTOR(const SECURITY_DESCRIPTOR *psd, uns
 	if (cb==0) cb = GetSecurityDescriptorLength((void *)psd);
 	m_psd = (SECURITY_DESCRIPTOR *)malloc(cb);
 	memcpy(m_psd, psd, cb);
+	m_obACL= NULL;
 }
 
 PySECURITY_DESCRIPTOR::~PySECURITY_DESCRIPTOR(void)
 {
 	if (m_psd) free(m_psd);
+	if (m_obACL)
+	{
+		Py_DECREF(m_obACL);
+		m_obACL= NULL;
+	}
 }
 
 

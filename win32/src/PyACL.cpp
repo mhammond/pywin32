@@ -84,11 +84,64 @@ PyObject *PyACL::AddAccessDeniedAce(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod |PyACL|GetAclSize|Returns the storage size of the ACL.
+PyObject *PyACL::GetAclSize(PyObject *self, PyObject *args)
+{
+	PyACL *This = (PyACL *)self;
+	PACL pacl;
+
+	if (!PyArg_ParseTuple(args, ":GetAclSize"))
+		return NULL;
+
+	pacl= This->GetACL();
+	return Py_BuildValue("l", pacl->AclSize);
+}
+
+// @pymethod |PyACL|GetAceCount|Returns the number of ACEs in the ACL.
+PyObject *PyACL::GetAceCount(PyObject *self, PyObject *args)
+{
+	PyACL *This = (PyACL *)self;
+	PACL pacl;
+
+	if (!PyArg_ParseTuple(args, ":GetAceCount"))
+		return NULL;
+
+	pacl= This->GetACL();
+	return Py_BuildValue("l", pacl->AceCount);
+}
+
+
+// @pymethod |PyACL|GetAce|Gets an Ace from the ACL. Returns tuple ((aceType, AceFlags), Mask, SID). For details see the API documentation: http://msdn.microsoft.com/library/psdk/winbase/acctrlow_22r6.htm.
+PyObject *PyACL::GetAce(PyObject *self, PyObject *args)
+{
+	DWORD index;
+	PyObject *obNewSid;
+	ACCESS_ALLOWED_ACE *pAce;
+	ACE_HEADER *pAceHeader;
+	LPVOID p;
+	PyACL *This = (PyACL *)self;
+	// @pyparm int|index||Zero-based index of the ACE to retrieve.
+	if (!PyArg_ParseTuple(args, "l:GetAce", &index))
+		return NULL;
+	if (!::GetAce(This->GetACL(), index, &p))
+		return PyWin_SetAPIError("GetAce");
+	pAce= ((ACCESS_ALLOWED_ACE *)p);
+	// create pySID object
+	obNewSid= new PySID((PSID)(&pAce->SidStart), 0);
+	// get ACE Header pointer
+	pAceHeader= &pAce->Header;
+	return Py_BuildValue("(ll)lN", pAceHeader->AceType, pAceHeader->AceFlags, pAce->Mask, obNewSid);
+}
+
+
 // @object PyACL|A Python object, representing a ACL structure
 static struct PyMethodDef PyACL_methods[] = {
 	{"Initialize",     PyACL::Initialize, 1}, 	// @pymeth Initialize|Initialize the ACL.
 	{"AddAccessAllowedAce",     PyACL::AddAccessAllowedAce, 1}, 	// @pymeth AddAccessAllowedAce|Adds an access-allowed ACE to an ACL object.
 	{"AddAccessDeniedAce",     PyACL::AddAccessDeniedAce, 1}, 	// @pymeth AddAccessDeniedAce|Adds an access-denied ACE to an ACL object.
+	{"GetAclSize", PyACL::GetAclSize, 1},  // @pymeth GetAclSize|Returns the storage size of the ACL.
+	{"GetAceCount", PyACL::GetAceCount, 1},  // @pymeth GetAceCount|Returns the number of ACEs in the ACL.
+	{"GetAce", PyACL::GetAce, 1},  // @pymeth GetAce|Returns an ACE from the ACL.
 	{NULL}
 };
 
@@ -126,8 +179,18 @@ PyACL::PyACL(int createBufSize)
 	::InitializeAcl(GetACL(), bufSize, ACL_REVISION);
 }
 
+PyACL::PyACL(PACL pacl)
+{
+	ob_type = &PyACLType;
+	_Py_NewReference(this);
+	bufSize = pacl->AclSize;
+	buf = malloc(bufSize);
+	memcpy(buf, (void *)pacl, bufSize);	
+}
+
 PyACL::~PyACL()
 {
+	free(buf);
 }
 
 PyObject *PyACL::getattr(PyObject *self, char *name)

@@ -109,7 +109,7 @@ PyObject *PySID::IsValid(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, ":IsValid"))
 		return NULL;
 	PySID *This = (PySID *)self;
-	return PyInt_FromLong( IsValidSid(This) );
+	return PyInt_FromLong( IsValidSid(This->GetSID()) );
 }
 
 // @pymethod |PySID|SetSubAuthority|Sets a SID SubAuthority

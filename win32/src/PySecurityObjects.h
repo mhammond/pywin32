@@ -54,6 +54,10 @@ public:
 
 	static PyObject *Initialize(PyObject *self, PyObject *args);
 	static PyObject *SetSecurityDescriptorDacl(PyObject *self, PyObject *args);
+	static PyObject *GetSecurityDescriptorOwner(PyObject *self, PyObject *args);
+	static PyObject *GetSecurityDescriptorGroup(PyObject *self, PyObject *args);
+	static PyObject *GetSecurityDescriptorDacl(PyObject *self, PyObject *args);
+
 
 #pragma warning( disable : 4251 )
 	static struct memberlist memberlist[];
@@ -61,6 +65,7 @@ public:
 
 protected:
 	SECURITY_DESCRIPTOR *m_psd;
+	PyObject *m_obACL;           // call to SetSecurityDescriptorDacl incref's then stores pyACL
 };
 
 class PYWINTYPES_EXPORT PySID : public PyObject
@@ -104,6 +109,8 @@ public:
 	ACL *GetACL() {return (ACL *)buf;}
 
 	PyACL(int bufSize);
+	PyACL(PACL pacl);
+
 	~PyACL();
 
 	/* Python support */
@@ -117,6 +124,9 @@ public:
 	static PyObject *Initialize(PyObject *self, PyObject *args);
 	static PyObject *AddAccessAllowedAce(PyObject *self, PyObject *args);
 	static PyObject *AddAccessDeniedAce(PyObject *self, PyObject *args);
+	static PyObject *GetAclSize(PyObject *self, PyObject *args);
+	static PyObject *GetAceCount(PyObject *self, PyObject *args);
+	static PyObject *GetAce(PyObject *self, PyObject *args);
 
 #pragma warning( disable : 4251 )
 	static struct memberlist memberlist[];
