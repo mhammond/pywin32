@@ -295,9 +295,9 @@ static PyObject *pythoncom_CoInitializeSecurity(PyObject *self, PyObject *args)
 	if (hMod==0) return PyCom_BuildInternalPyException("Can not load ole32.dll");
 	FARPROC fp = GetProcAddress(hMod, "CoInitializeSecurity");
 	if (fp==NULL) return PyCom_BuildPyException(E_NOTIMPL);
-
-	HRESULT (*mypfn)(PSECURITY_DESCRIPTOR, LONG, SOLE_AUTHENTICATION_SERVICE*, void *, DWORD, DWORD, void *, DWORD, void *);
-	mypfn = (HRESULT (*)(PSECURITY_DESCRIPTOR, LONG, SOLE_AUTHENTICATION_SERVICE*, void *, DWORD, DWORD, void *, DWORD, void *))fp;
+	typedef HRESULT (STDAPICALLTYPE *CoInitializeSecurityfunc)
+		(PSECURITY_DESCRIPTOR, LONG, SOLE_AUTHENTICATION_SERVICE*, void *, DWORD, DWORD, void *, DWORD, void *);
+	CoInitializeSecurityfunc mypfn=(CoInitializeSecurityfunc)fp;
 
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = (*mypfn)(pSD, cAuthSvc, pAS, NULL, dwAuthnLevel, dwImpLevel, NULL, dwCapabilities, NULL);
