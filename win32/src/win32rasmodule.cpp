@@ -294,24 +294,36 @@ BOOL PyObjectToRasDialParams( PyObject *ob, RASDIALPARAMS *p )
 	}
 	char *dest;
 	int size = PyObject_Length(ob);
+	int dest_size;
 	for (int num=0;num<size;num++) {
 		switch (num) {
-		case 0: dest = p->szEntryName; break;
-		case 1: dest = p->szPhoneNumber; break;
-		case 2: dest = p->szCallbackNumber; break;
-		case 3: dest = p->szUserName; break;
-		case 4: dest = p->szPassword; break;
-		case 5: dest = p->szDomain; break;
+#define GET_BUF_AND_SIZE(name) dest=p->name;dest_size=sizeof(p->name)/sizeof(p->name[0])
+		case 0: GET_BUF_AND_SIZE(szEntryName); break;
+		case 1: GET_BUF_AND_SIZE(szPhoneNumber); break;
+		case 2: GET_BUF_AND_SIZE(szCallbackNumber); break;
+		case 3: GET_BUF_AND_SIZE(szUserName); break;
+		case 4: GET_BUF_AND_SIZE(szPassword); break;
+		case 5: GET_BUF_AND_SIZE(szDomain); break;
 		default:
 			SetError("The RasDialParams sequence length must be less than 6", fnName);
 			return FALSE;
 		}
-		char *src = PyString_AsString(PySequence_GetItem(ob, num));
-		if (src==NULL) {
+		PyObject *sub = PySequence_GetItem(ob, num);
+		if (!sub) return FALSE;
+		if (!PyString_Check(sub)) {
 			SetError("The RasDialParams sequence is invalid - must be a tuple of strings.", fnName);
+			Py_DECREF(sub);
 			return FALSE;
 		}
-		strcpy(dest, src);
+		// check it fits in the dest buffer.
+		if (PyString_Size(sub) >= dest_size) {
+			SetError("The string is too large for the RASDIALPARAMS structure", fnName);
+			Py_DECREF(sub);
+			return FALSE;
+		}
+		// we know it fits - blindly copy.
+		strcpy(dest, PyString_AS_STRING(sub));
+		Py_DECREF(sub);
 	}
 	return TRUE;
 }
