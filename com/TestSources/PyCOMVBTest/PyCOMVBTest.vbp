@@ -3,6 +3,7 @@ Reference=*\G{00020430-0000-0000-C000-000000000046}#2.0#0#..\..\..\..\..\WINNT\S
 Class=Tester; Tester.cls
 Class=IPyComTestInterface; IPyComTestInterface.cls
 Class=PyComTestImplementation; PyComTestImplementation.cls
+Class=EnumerableCollection; EnumerableCollection.cls
 Startup="(None)"
 HelpFile=""
 Title="PyComVBTest"

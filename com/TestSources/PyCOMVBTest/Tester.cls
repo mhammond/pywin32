@@ -27,6 +27,8 @@ Private mvarVariantPutref As Variant 'local copy
 ' I can only declare them as variant which hopefully holds an array.
 Private mvarArrayProperty As Variant 'local copy
 
+Public EnumerableCollectionProperty As New EnumerableCollection 'local copy
+
 Public Type SubSubStruct
     int_val As Integer
     str_val As String
