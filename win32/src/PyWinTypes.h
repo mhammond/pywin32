@@ -194,9 +194,11 @@ BOOL PyLong_AsI64(PyObject *val, __int64 *lval);
 /*
 ** OVERLAPPED Object and API
 */
+class PyOVERLAPPED; // forward declare
 extern PYWINTYPES_EXPORT PyTypeObject PyOVERLAPPEDType; // the Type for PyOVERLAPPED
 #define PyOVERLAPPED_Check(ob)	((ob)->ob_type == &PyOVERLAPPEDType)
 PYWINTYPES_EXPORT BOOL PyWinObject_AsOVERLAPPED(PyObject *ob, OVERLAPPED **ppOverlapped, BOOL bNoneOK = TRUE);
+PYWINTYPES_EXPORT BOOL PyWinObject_AsPyOVERLAPPED(PyObject *ob, PyOVERLAPPED **ppOverlapped, BOOL bNoneOK = TRUE);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromOVERLAPPED(const OVERLAPPED *pOverlapped);
 
 // A global function that can work as a module method for making an OVERLAPPED object.
