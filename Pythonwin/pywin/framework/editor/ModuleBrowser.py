@@ -63,6 +63,13 @@ class HierListCLBRClass(HierListCLBRItem):
             file = lineno = None
             self.super = []; self.methods = {}
         HierListCLBRItem.__init__(self, name, file, lineno, suffix)
+    def __cmp__(self,other):
+        ret = cmp(self.name,other.name)
+        if ret==0 and (self is not other) and self.file==other.file:
+            self.methods = other.methods
+            self.super = other.super
+            self.lineno = other.lineno
+        return ret
     def GetSubList(self):
         r1 = []
         for c in self.super:
@@ -157,7 +164,7 @@ class BrowserView(pywin.mfc.docview.TreeView):
 
     def CheckMadeList(self):
         if self.list is not None: return
-        root = self._MakeRoot()
+        self.rootitem = root = self._MakeRoot()
         self.list = list = hierlist.HierListWithItems( root, win32ui.IDB_BROWSER_HIER)
         list.HierInit(self.GetParentFrame(), self)
         list.SetStyle(commctrl.TVS_HASLINES | commctrl.TVS_LINESATROOT | commctrl.TVS_HASBUTTONS)
@@ -167,7 +174,13 @@ class BrowserView(pywin.mfc.docview.TreeView):
             if self.list is None:
                 self.CheckMadeList()
             else:
-                self.list.AcceptRoot(self._MakeRoot())
+                new_root = self._MakeRoot()
+                if self.rootitem.__class__==new_root.__class__==HierListCLBRModule:
+                    self.rootitem.modName = new_root.modName
+                    self.rootitem.clbrdata = new_root.clbrdata
+                    self.list.Refresh()
+                else:
+                    self.list.AcceptRoot(self._MakeRoot())
             self.bDirty = 0
 
     def OnSize(self, params):
