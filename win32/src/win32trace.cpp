@@ -1,4 +1,4 @@
-/* A debugging module for Python.
+/* A debugging module for Python. 
 
 The design is for a set of functions that can be "printed" to from
 one Python process, and the output read by another process.  Using different
@@ -12,7 +12,7 @@ crash, just cause only one of the processes to see a given piece of text.]
 The implementation is very simple, because of the above assumptions.
 
 * There is a mem-mapped file, with the first word being an integer, and the
-  rest being string data.  The integer is the current length of the string.
+rest being string data.  The integer is the current length of the string.
 * A write operation appends data to the buffer, and updates the length.
 * A read operation reads the entire buffer, and resets the length to zero.
   (Thus, there is no way to read only chunks of the data)
@@ -32,370 +32,557 @@ See - I told you the implementation was simple :-)
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 
-PyObject *pModMe = NULL;
+
+
 
 const size_t BUFFER_SIZE = 0x10000; // Includes size integer.
 const char *MAP_OBJECT_NAME = "PythonTraceOutputMapping";
 const char *MUTEX_OBJECT_NAME = "PythonTraceOutputMutex";
 const char *EVENT_OBJECT_NAME = "PythonTraceOutputEvent";
 
-HANDLE hMapFileRead = NULL; // The handle to the read side of the mem-mapped file
-HANDLE hMapFileWrite = NULL; // The handle to the write side of the mem-mapped file
-HANDLE hMutex = NULL;
-// A Python wrapper around an auto-reset event so a reader knows when data is avail without polling.
-PyHANDLE *obEvent = NULL; // a PyHANDLE object
+// no const because of python api, this is the name of the entry
+// in the sys module that we store our PyTraceObject pointer
+char *TRACEOBJECT_NAME = "__win32traceObject__";
 
-void *pMapBaseRead = NULL;
-void *pMapBaseWrite = NULL;
+HANDLE hMutex = NULL;
+// An auto-reset event so a reader knows when data is avail without polling.
+HANDLE hEvent = NULL;
+
+SECURITY_ATTRIBUTES  sa;       // Security attributes.
+PSECURITY_DESCRIPTOR pSD = NULL;      // Pointer to SD.
+
+
+class PyTraceObject : public PyObject {
+    // do not put virtual
+    // methods in this class or we'll break the binary layout
+    HANDLE hMapFileRead; // The handle to the read side of the mem-mapped file
+    HANDLE hMapFileWrite; // The handle to the write side of the mem-mapped file
+    void *pMapBaseRead;
+    void *pMapBaseWrite;
+public:
+    void Initialize();
+    BOOL OpenReadMap();
+    BOOL CloseReadMap();
+    BOOL OpenWriteMap();
+    BOOL CloseWriteMap();
+    BOOL WriteData(const char *data, unsigned len);
+    BOOL ReadData(char **ppResult, int *retSize, int waitMilliseconds);
+}; // PyTraceObject
+
+static void PyTraceObject_dealloc(PyObject* self)
+{
+    PyObject_Del(self);
+}
+
+static PyObject *PyTraceObject_write(PyObject *self, PyObject *args)
+{
+    int len;
+    char *data;
+    if (!PyArg_ParseTuple(args, "s#:write", &data, &len))
+        return NULL;
+    BOOL ok = static_cast<PyTraceObject*>(self)->WriteData(data, len);
+    if (!ok)
+        return NULL;
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject *PyTraceObject_read(PyObject *self, PyObject *args)
+{
+    if (!PyArg_ParseTuple(args, ":read"))
+        return NULL;
+    int len;
+    char *data;
+    BOOL ok = static_cast<PyTraceObject*>(self)->ReadData(&data, &len, 0);
+    if (!ok)
+        return NULL;
+    PyObject *result = PyString_FromStringAndSize(data, len);
+    free(data);
+    return result;
+}
+
+static PyObject *PyTraceObject_blockingread(PyObject *self, PyObject *args)
+{
+    int milliSeconds = INFINITE;
+    if (!PyArg_ParseTuple(args, "|i:blockingread", &milliSeconds))
+        return NULL;
+    int len;
+    char *data;
+    BOOL ok = static_cast<PyTraceObject*>(self)->ReadData(&data, &len, milliSeconds);
+    if (!ok)
+        return NULL;
+    PyObject *result = PyString_FromStringAndSize(data, len);
+    free(data);
+    return result;
+}
+
+static PyObject *PyTraceObject_flush(PyObject *self, PyObject *args)
+{
+    if (!PyArg_ParseTuple(args, ":flush"))
+	return NULL;
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject* PyTraceObject_isatty(PyObject *self, PyObject *args)
+{
+    return Py_BuildValue("i", 0);
+}
+
+
+static PyMethodDef PyTraceObject_methods[] = {
+    {"blockingread", PyTraceObject_blockingread, METH_VARARGS}, // @pytmeth blockingread
+    {"read",    PyTraceObject_read, METH_VARARGS }, // @pymeth read|    
+    {"write",   PyTraceObject_write, METH_VARARGS }, // @pymeth write|
+    {"flush",   PyTraceObject_flush, METH_VARARGS }, // @pymeth flush|Does nothing, but included to better emulate file semantics.
+    {"isatty",  PyTraceObject_isatty, METH_VARARGS}, // @pymeth isatty | returns false
+    {0, 0},
+}; // PyTraceObject_methods
+
+
+static PyTypeObject PyTraceObjectType = {
+    PyObject_HEAD_INIT(&PyType_Type)
+    0,
+    "PyTraceObject",
+    sizeof(PyTraceObject),
+    0,
+    // standard methods
+    PyTraceObject_dealloc,
+    (printfunc)0,
+    0, // getattr
+    0, // setattr
+    0, // cmp
+    0, // repr
+    // type categories
+    0,
+    0,
+    0,
+    // more methods
+    (hashfunc)0,
+    0,
+    0,
+    PyObject_GenericGetAttr,
+    0,
+    0,
+    Py_TPFLAGS_DEFAULT,
+    0, // doc
+    0, // tp_traverse
+    0, // tp_clear
+    0, // tp_richcompare
+    0,
+    0, // tp_iter
+    0, // iternext
+    PyTraceObject_methods,
+    0, // tp_members
+    0, // tp_getsetlist
+
+}; // PyTraceObjectType
+
+
+static PyObject* newPyTraceObject()
+{
+    PyTraceObject* pThis = PyObject_New(PyTraceObject, &PyTraceObjectType);
+    pThis->Initialize();
+    return pThis;
+}
 
 /* error helper */
 static PyObject *ReturnError(char *msg, char *fnName = NULL)
 {
-	PyObject *v = Py_BuildValue("(izs)", 0, fnName, msg);
-	if (v != NULL) {
-		PyErr_SetObject(PyWinExc_ApiError, v);
-		Py_DECREF(v);
-	}
-	return NULL;
+    PyObject *v = Py_BuildValue("(izs)", 0, fnName, msg);
+    if (v != NULL) {
+        PyErr_SetObject(PyWinExc_ApiError, v);
+        Py_DECREF(v);
+    }
+    return NULL;
 }
 
-BOOL DoOpenMap( HANDLE *pHandle, VOID **ppPtr)
+BOOL DoOpenMap(HANDLE *pHandle, VOID **ppPtr)
 {
-	SECURITY_ATTRIBUTES  sa;       // Security attributes.
-	PSECURITY_DESCRIPTOR pSD;      // Pointer to SD.
-
-	// Allocate memory for the security descriptor.
-
-	pSD = (PSECURITY_DESCRIPTOR) LocalAlloc(LPTR,
-	                        SECURITY_DESCRIPTOR_MIN_LENGTH);
-
-	// Initialize the new security descriptor.
-
-	InitializeSecurityDescriptor(pSD, SECURITY_DESCRIPTOR_REVISION);
-
-	// Add a NULL descriptor ACL to the security descriptor.
-	SetSecurityDescriptorDacl(pSD, TRUE, (PACL) NULL, FALSE);
-
-	sa.nLength = sizeof(sa);
-	sa.lpSecurityDescriptor = pSD;
-	sa.bInheritHandle = TRUE;
-
-	*pHandle = CreateFileMapping((HANDLE)-1, &sa, PAGE_READWRITE, 0, BUFFER_SIZE, MAP_OBJECT_NAME);
-	if (*pHandle==NULL) {
-		PyWin_SetAPIError("CreateFileMapping");
-		return FALSE;
-	}
-	if (hMutex==NULL) {
-		hMutex = CreateMutex(&sa, FALSE, MUTEX_OBJECT_NAME);
-		if (hMutex==NULL) {
-			PyWin_SetAPIError("CreateMutex");
-			CloseHandle(*pHandle);
-			return FALSE;
-		}
-	}
-	if (obEvent==NULL) {
-		HANDLE hEvent = CreateEvent(&sa, FALSE, FALSE, EVENT_OBJECT_NAME);
-		if (hEvent==NULL) {
-			PyWin_SetAPIError("CreateEvent");
-			CloseHandle(*pHandle);
-			return FALSE;
-		}
-		obEvent = (PyHANDLE *)PyWinObject_FromHANDLE(hEvent);
-		// All ref'd up!
-	}
-	*ppPtr = MapViewOfFile(*pHandle, FILE_MAP_ALL_ACCESS, 0, 0, BUFFER_SIZE);
-	if (*ppPtr==NULL) {
-		PyWin_SetAPIError("MapViewOfFile");
-		CloseHandle(*pHandle);
-	}
-	return (*ppPtr!=NULL);
+    if (*pHandle || *ppPtr) {
+	ReturnError("DoOpenMap, already open");
+	return FALSE;
+    }
+    Py_BEGIN_ALLOW_THREADS
+    *pHandle = CreateFileMapping((HANDLE)-1, &sa, PAGE_READWRITE, 0, BUFFER_SIZE, MAP_OBJECT_NAME);
+    Py_END_ALLOW_THREADS
+    if (*pHandle==NULL) {
+        PyWin_SetAPIError("CreateFileMapping");
+        return FALSE;
+    }
+    Py_BEGIN_ALLOW_THREADS
+    *ppPtr = MapViewOfFile(*pHandle, FILE_MAP_ALL_ACCESS, 0, 0, BUFFER_SIZE);
+    Py_END_ALLOW_THREADS
+    if (*ppPtr==NULL) {
+        // not allowed to access the interpreter inside
+        // Py_BEGIN_ALLOW_THREADS block
+        PyWin_SetAPIError("MapViewOfFile");
+        CloseHandle(*pHandle);
+        return FALSE;
+    }
+    return TRUE;
 }
 
 BOOL DoCloseMap( HANDLE *pHandle, VOID **ppPtr)
 {
-	if (*ppPtr) {
-		UnmapViewOfFile(*ppPtr);
-		*ppPtr=NULL;
-	}
-	if (*pHandle) {
-		CloseHandle(*pHandle);
-		*pHandle = NULL;
-	}
-	if (hMapFileRead==NULL && hMapFileWrite==NULL && hMutex != NULL) {
-		CloseHandle(hMutex);
-		hMutex = NULL;
-		if (obEvent != NULL) {
-			HANDLE hEvent = (HANDLE)obEvent->asLong();
-			CloseHandle(hEvent);
-			Py_XDECREF(obEvent);
-			obEvent = NULL;
-		}
-	}
-	return TRUE;
+    if (*ppPtr) {
+        UnmapViewOfFile(*ppPtr);
+        *ppPtr=NULL;
+    }
+    if (*pHandle) {
+        CloseHandle(*pHandle);
+        *pHandle = NULL;
+    }
+    // I don't think we ever want to close the Mutex or the event
+    // they are global so one thread can't decide that.
+    //
+    // Explanation, there was code that closed the mutex and event
+    // here before
+        
+    return TRUE;
 }
 
 BOOL GetMyMutex()
 {
-	// Give the mutex 10 seconds before timing out
-	if (WaitForSingleObject(hMutex, 10*1000)==WAIT_FAILED) {
-		PyWin_SetAPIError("WaitForSingleObject", GetLastError());
-		return FALSE;
-	}
-	return TRUE;
+    // Give the mutex 10 seconds before timing out
+    if (WaitForSingleObject(hMutex, 10*1000)==WAIT_FAILED) {
+	// Danger this is currently called without holding the GIL
+        PyWin_SetAPIError("WaitForSingleObject", GetLastError());
+        return FALSE;
+    }
+    return TRUE;
 }
 
 BOOL ReleaseMyMutex()
 {
-	if (!ReleaseMutex(hMutex)) {
-		PyWin_SetAPIError("ReleaseMutex", GetLastError());
-		return FALSE;
-	}
-	return TRUE;
+    if (!ReleaseMutex(hMutex)) {
+	// Danger this is currently called without holding the GIL
+        PyWin_SetAPIError("ReleaseMutex", GetLastError());
+        return FALSE;
+    }
+    return TRUE;
+}
+
+void PyTraceObject::Initialize()
+{
+    hMapFileRead = NULL;
+    hMapFileWrite = NULL;
+    pMapBaseRead = NULL;
+    pMapBaseWrite = NULL;
 }
 
 
-BOOL OpenReadMap()
+BOOL PyTraceObject::WriteData(const char *data, unsigned len)
 {
-	return DoOpenMap( &hMapFileRead, &pMapBaseRead);
-}
+    if (pMapBaseWrite == NULL) {
+        ReturnError("The module has not been setup for writing");
+        return FALSE;
+    }
+    if (len>BUFFER_SIZE-sizeof(size_t)-1) {
+        ReturnError("The data is too large.");
+        return FALSE;
+    }
+    BOOL rc = FALSE;
+    Py_BEGIN_ALLOW_THREADS
+    if (GetMyMutex()) {
 
-BOOL CloseReadMap()
-{
-	return DoCloseMap( &hMapFileRead, &pMapBaseRead);
-}
+	size_t *pLen = (size_t *)pMapBaseWrite;
+	char *buffer = (char *)(((size_t *)pMapBaseWrite)+1);
 
-BOOL OpenWriteMap()
-{
-	return DoOpenMap( &hMapFileWrite, &pMapBaseWrite);
-}
-
-BOOL CloseWriteMap()
-{
-	return DoCloseMap( &hMapFileWrite, &pMapBaseWrite);
-}
-
-BOOL WriteData(const char *data, unsigned len)
-{
-	if (pMapBaseWrite == NULL) {
-		ReturnError("The module has not been setup for writing");
-		return FALSE;
-	}
-	if (len>BUFFER_SIZE-sizeof(size_t)-1) {
-		ReturnError("The data is too large.");
-		return FALSE;
-	}
-	BOOL rc = FALSE;
-	Py_BEGIN_ALLOW_THREADS
-	if (GetMyMutex()) {
-
-		size_t *pLen = (size_t *)pMapBaseWrite;
-		char *buffer = (char *)(((size_t *)pMapBaseWrite)+1);
-
-		size_t sizeLeft = (BUFFER_SIZE-sizeof(size_t)) - *pLen;
-		if (sizeLeft<len)
-			*pLen = 0;
+	size_t sizeLeft = (BUFFER_SIZE-sizeof(size_t)) - *pLen;
+	if (sizeLeft<len)
+	    *pLen = 0;
 		
-		memcpy(buffer+(*pLen), data, len);
-		*pLen += len;
-		rc = ReleaseMyMutex();
-		HANDLE hEvent = (HANDLE)obEvent->asLong();
-
-		SetEvent(hEvent);
-	}
-	Py_END_ALLOW_THREADS
-	return rc;
+	memcpy(buffer+(*pLen), data, len);
+	*pLen += len;
+	rc = ReleaseMyMutex();
+	SetEvent(hEvent);
+    }
+    Py_END_ALLOW_THREADS
+    return rc;
 }
 
-BOOL ReadData(char **ppResult, int *retSize, int waitMilliseconds)
+BOOL PyTraceObject::ReadData(char **ppResult, int *retSize, int waitMilliseconds) 
 {
-	if (pMapBaseRead == NULL) {
-		ReturnError("The module has not been setup for reading");
-		return FALSE;
-	}
-	if (waitMilliseconds!=0) {
-		HANDLE hEvent = (HANDLE)obEvent->asLong();
-		DWORD rc;
-		Py_BEGIN_ALLOW_THREADS
-		rc = WaitForSingleObject(hEvent, waitMilliseconds);
-		Py_END_ALLOW_THREADS
-		if (rc==WAIT_FAILED) {
-			PyWin_SetAPIError("WaitForSingleObject", GetLastError());
-			return FALSE;
-		}
-	}
+    if (pMapBaseRead == NULL) {
+        ReturnError("The module has not been setup for reading");
+        return FALSE;
+    }
+    if (waitMilliseconds!=0) {
+        DWORD rc;
+        Py_BEGIN_ALLOW_THREADS
+        rc = WaitForSingleObject(hEvent, waitMilliseconds);
+        Py_END_ALLOW_THREADS
+        if (rc==WAIT_FAILED) {
+	    PyWin_SetAPIError("WaitForSingleObject", GetLastError());
+	    return FALSE;
+        }
+    }
+    BOOL rc = FALSE;
+    char *result = NULL;
+    Py_BEGIN_ALLOW_THREADS
+    if (GetMyMutex()) {
 
-	BOOL rc = FALSE;
-	char *result = NULL;
-	Py_BEGIN_ALLOW_THREADS
-	if (GetMyMutex()) {
+	size_t *pLen = (size_t *)pMapBaseRead;
+	char *buffer = (char *)(((size_t *)pMapBaseRead)+1);
 
-		size_t *pLen = (size_t *)pMapBaseRead;
-		char *buffer = (char *)(((size_t *)pMapBaseRead)+1);
-
-		result = (char *)malloc(*pLen + 1);
-		if (result) {
-			memcpy(result, buffer, *pLen);
-			result[*pLen] = '\0';
-			*retSize = *pLen;
-			*pLen = 0;
-		}
-		rc = ReleaseMyMutex();
+	result = (char *)malloc(*pLen + 1);
+	if (result) {
+	    memcpy(result, buffer, *pLen);
+	    result[*pLen] = '\0';
+	    *retSize = *pLen;
+	    *pLen = 0;
 	}
-	Py_END_ALLOW_THREADS
-	if (!rc && result) {
-		free(result);
-	}
-	if (rc && result==NULL) {
-		PyErr_SetString(PyExc_MemoryError, "Allocating buffer for trace data");
-		rc = FALSE;
-	}
-	if (rc)
-		*ppResult = result;
-	return rc;
+	rc = ReleaseMyMutex();
+    }
+    Py_END_ALLOW_THREADS
+    if (!rc && result) {
+	free(result);
+    }
+    if (rc && result==NULL) {
+        PyErr_SetString(PyExc_MemoryError, "Allocating buffer for trace data");
+        rc = FALSE;
+    }
+    if (rc)
+        *ppResult = result;
+    return rc;
 }
+
+BOOL PyTraceObject::OpenReadMap()
+{
+    return DoOpenMap( &hMapFileRead, &pMapBaseRead);
+}
+
+BOOL PyTraceObject::OpenWriteMap()
+{
+    return DoOpenMap( &hMapFileWrite, &pMapBaseWrite);;
+}
+
+
+BOOL PyTraceObject::CloseReadMap()
+{
+    return DoCloseMap( &hMapFileRead, &pMapBaseRead);
+}
+
+
+BOOL PyTraceObject::CloseWriteMap() 
+{
+    return DoCloseMap( &hMapFileWrite, &pMapBaseWrite);
+}
+
+
+static PyObject* win32trace_GetTracer(PyObject*, PyObject*)
+{
+    PyObject* traceObject = PySys_GetObject(TRACEOBJECT_NAME);
+    Py_XINCREF(traceObject);
+    if (traceObject == NULL) {
+        traceObject = newPyTraceObject();
+        int result = PySys_SetObject(TRACEOBJECT_NAME, traceObject);
+        // To do: find out what result means
+    }
+    return traceObject;
+}
+
 
 static PyObject *win32trace_InitRead(PyObject *self, PyObject *args)
 {
-	BOOL ok;
-	Py_BEGIN_ALLOW_THREADS
-	ok = OpenReadMap();
-	Py_END_ALLOW_THREADS
-
-	if (!ok)
-		return NULL;
-	Py_INCREF(Py_None);
-	return Py_None;
+    BOOL ok;
+    PyObject* traceObject = win32trace_GetTracer(NULL, NULL);
+    ok = static_cast<PyTraceObject*>(traceObject)->OpenReadMap(); 
+    Py_DECREF(traceObject);
+    if (!ok)
+	return NULL;
+    // put the new object into sys
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 static PyObject *win32trace_InitWrite(PyObject *self, PyObject *args)
 {
-	BOOL ok;
-	Py_BEGIN_ALLOW_THREADS
-	ok = OpenWriteMap();
-	Py_END_ALLOW_THREADS
-	if (!ok)
-		return NULL;
-	Py_INCREF(Py_None);
-	return Py_None;
+    BOOL ok;
+    PyObject* traceObject = win32trace_GetTracer(NULL, NULL);
+    ok = static_cast<PyTraceObject*>(traceObject)->OpenWriteMap(); 
+    Py_DECREF(traceObject);
+    if (!ok)
+	return NULL;
+    // put the new object into sys
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 static PyObject *win32trace_TermRead(PyObject *self, PyObject *args)
 {
-	BOOL ok;
-	Py_BEGIN_ALLOW_THREADS
-	ok = CloseReadMap();
-	Py_END_ALLOW_THREADS
-	if (!ok)
-		return NULL;
-	Py_INCREF(Py_None);
-	return Py_None;
+    BOOL ok;
+    PyObject* traceObject = PySys_GetObject(TRACEOBJECT_NAME);
+    if (traceObject == NULL) {
+        // can't terminate something that you haven't started
+        return ReturnError("The module has not been setup for reading");
+    }
+    Py_BEGIN_ALLOW_THREADS
+    ok = static_cast<PyTraceObject*>(traceObject)->CloseReadMap();
+    Py_END_ALLOW_THREADS
+    if (!ok)
+	return NULL;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 static PyObject *win32trace_TermWrite(PyObject *self, PyObject *args)
 {
-	BOOL ok;
-	Py_BEGIN_ALLOW_THREADS
-	ok = CloseWriteMap();
-	Py_END_ALLOW_THREADS
-	if (!ok)
-		return NULL;
-	Py_INCREF(Py_None);
-	return Py_None;
+    BOOL ok;
+    PyObject* traceObject = PySys_GetObject(TRACEOBJECT_NAME);
+    if (traceObject == NULL) {
+        // can't terminate something that you haven't started
+        return ReturnError("The module has not been setup for writing");
+    }        
+    Py_BEGIN_ALLOW_THREADS
+    ok = static_cast<PyTraceObject*>(traceObject)->CloseWriteMap();
+    Py_END_ALLOW_THREADS
+    if (!ok)
+	return NULL;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
-static PyObject *win32trace_write(PyObject *self, PyObject *args)
+static PyObject* win32trace_write(PyObject*, PyObject* args)
 {
-	int len;
-	char *data;
-	if (!PyArg_ParseTuple(args, "s#:write", &data, &len))
-		return NULL;
-	BOOL ok = WriteData(data, len);
-	if (!ok)
-		return NULL;
-	Py_INCREF(Py_None);
-	return Py_None;
-}
-static PyObject *win32trace_read(PyObject *self, PyObject *args)
-{
-	if (!PyArg_ParseTuple(args, ":read"))
-		return NULL;
-	int len;
-	char *data;
-	BOOL ok = ReadData(&data, &len, 0);
-	if (!ok)
-		return NULL;
-	PyObject *result = PyString_FromStringAndSize(data, len);
-	free(data);
-	return result;
+    PyObject* traceObject = PySys_GetObject(TRACEOBJECT_NAME);
+    if (traceObject == NULL) {
+        return ReturnError("The module has not been setup for writing");
+    }            
+    PyObject* method = PyObject_GetAttrString(traceObject, "write");
+    if (method == NULL) {
+        return NULL;
+    }
+    PyObject* result = PyObject_CallObject(method, args);
+    Py_DECREF(method);
+    return result;
 }
 
-static PyObject *win32trace_blockingread(PyObject *self, PyObject *args)
+static PyObject* win32trace_read(PyObject*, PyObject* args)
 {
-	int milliSeconds = INFINITE;
-	if (!PyArg_ParseTuple(args, "|i:blockingread", &milliSeconds))
-		return NULL;
-	int len;
-	char *data;
-	BOOL ok = ReadData(&data, &len, milliSeconds);
-	if (!ok)
-		return NULL;
-	PyObject *result = PyString_FromStringAndSize(data, len);
-	free(data);
-	return result;
+    PyObject* traceObject = PySys_GetObject(TRACEOBJECT_NAME);
+    if (traceObject == NULL) {
+        return ReturnError("The module has not been setup for reading");
+    }            
+    PyObject* method = PyObject_GetAttrString(traceObject, "read");
+    if (method == NULL) {
+        return NULL;
+    }
+    PyObject* result = PyObject_CallObject(method, args);
+    Py_DECREF(method);
+    return result;    
 }
+
+static PyObject* win32trace_blockingread(PyObject*, PyObject* args)
+{
+    PyObject* traceObject = PySys_GetObject(TRACEOBJECT_NAME);
+    if (traceObject == NULL) {
+        return ReturnError("The module has not been setup for reading");
+    }            
+    PyObject* method = PyObject_GetAttrString(traceObject, "blockingread");
+    if (method == NULL) {
+        return NULL;
+    }
+    PyObject* result = PyObject_CallObject(method, args);
+    Py_DECREF(method);
+    return result;    
+}    
 
 static PyObject *win32trace_setprint(PyObject *self, PyObject *args)
 {
-	PySys_SetObject("stdout", pModMe);
-	PySys_SetObject("stderr", pModMe);
-	Py_INCREF(Py_None);
-	return Py_None;
+    PyObject* traceObject = PySys_GetObject(TRACEOBJECT_NAME);
+    if (traceObject == NULL) {
+        return ReturnError("The module has not been setup for writing");
+    }            
+    PySys_SetObject("stdout", traceObject);
+    PySys_SetObject("stderr", traceObject);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 static PyObject *win32trace_flush(PyObject *self, PyObject *args)
 {
-	Py_INCREF(Py_None);
-	return Py_None;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 static PyObject *win32trace_GetHandle(PyObject *self, PyObject *args)
 {
-	if (!PyArg_ParseTuple(args, ":GetHandle"))
-		return NULL;
-	if (obEvent==NULL) {
-		PyErr_SetString(PyExc_ValueError, "There is not handle setup for this module.");
-		return NULL;
-	}
-	Py_INCREF(obEvent);
-	return obEvent;
+    if (!PyArg_ParseTuple(args, ":GetHandle"))
+	return NULL;
+    if (hEvent == NULL) {
+	// this is a fatal error for this module
+	// hEvent is setup at module init time.
+	// If the module init doesn't work, then nothing works
+	PyErr_SetString(PyExc_ValueError, "There is not handle setup for this module.");
+	return NULL;
+    }
+    // I'd rather return an object
+    // but I don't want it to be Closed by the object
+    return Py_BuildValue("i", hEvent);
 }
+
+
 /* List of functions exported by this module */
 // @object win32trace|A module providing out-of-process tracing capabilities for Python.
 static struct PyMethodDef win32trace_functions[] = {
-	{"GetHandle",         win32trace_GetHandle, 1}, // @pymeth GetHandle|
-	{"InitRead",          win32trace_InitRead, 1 }, // @pymeth InitRead|
-	{"InitWrite",         win32trace_InitWrite, 1 }, // @pymeth InitWrite|
-	{"TermRead",          win32trace_TermRead, 1 }, // @pymeth TermRead|
-	{"TermWrite",         win32trace_TermWrite, 1 }, // @pymeth TermWrite|
-	{"write",             win32trace_write, 1 }, // @pymeth write|
-	{"blockingread",      win32trace_blockingread, 1 }, // @pymeth blockingread|
-	{"read",              win32trace_read, 1 }, // @pymeth read|
-	{"setprint",          win32trace_setprint, 1 }, // @pymeth setprint|
-	{"flush",             win32trace_flush, 1 }, // @pymeth flush|Does nothing, but included to better emulate file semantics.
-	{NULL,			NULL}
+    {"GetTracer",         win32trace_GetTracer, METH_NOARGS}, // @pymeth GetTracer
+    {"GetHandle",         win32trace_GetHandle, 1}, // @pymeth GetHandle|
+    {"InitRead",          win32trace_InitRead, 1 }, // @pymeth InitRead|
+    {"InitWrite",         win32trace_InitWrite, 1 }, // @pymeth InitWrite|
+    {"TermRead",          win32trace_TermRead, 1 }, // @pymeth TermRead|
+    {"TermWrite",         win32trace_TermWrite, 1 }, // @pymeth TermWrite|
+    {"write",             win32trace_write, 1 }, // @pymeth write|
+    {"blockingread",      win32trace_blockingread, 1 }, // @pymeth blockingread|
+    {"read",              win32trace_read, 1 }, // @pymeth read|
+    {"setprint",          win32trace_setprint, 1 }, // @pymeth setprint|
+    {"flush",             win32trace_flush, 1 }, // @pymeth flush|Does nothing, but included to better emulate file semantics.
+    {NULL,			NULL}
 };
 
 
 extern "C" __declspec(dllexport) void
 initwin32trace(void)
 {
-  PyWinGlobals_Ensure();
-  PyObject *dict;
-  pModMe = Py_InitModule("win32trace", win32trace_functions);
-  if (!pModMe) return;
-  dict = PyModule_GetDict(pModMe);
-  if (!dict) return;
+    PyWinGlobals_Ensure();
+    PyObject *dict;
+    PyObject* pModMe = Py_InitModule("win32trace", win32trace_functions);
+    if (!pModMe) return;
+    dict = PyModule_GetDict(pModMe);
+    if (!dict) return;
 
-  Py_INCREF(PyWinExc_ApiError);
-  PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
+    Py_INCREF(PyWinExc_ApiError);
+    PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
+
+    // Allocate memory for the security descriptor.
+
+    pSD = (PSECURITY_DESCRIPTOR) LocalAlloc(LPTR,
+                                            SECURITY_DESCRIPTOR_MIN_LENGTH);
+
+    // Initialize the new security descriptor.
+
+    InitializeSecurityDescriptor(pSD, SECURITY_DESCRIPTOR_REVISION);
+
+    // Add a NULL descriptor ACL to the security descriptor.
+    SetSecurityDescriptorDacl(pSD, TRUE, (PACL) NULL, FALSE);
+
+    sa.nLength = sizeof(sa);
+    sa.lpSecurityDescriptor = pSD;
+    sa.bInheritHandle = TRUE;
+
+
+
+    assert(hMutex == NULL);
+    hMutex = CreateMutex(&sa, FALSE, MUTEX_OBJECT_NAME);
+    if (hMutex==NULL) {
+        PyWin_SetAPIError("CreateMutex");
+        return ;
+    }
+    assert (hEvent==NULL);
+    hEvent = CreateEvent(&sa, FALSE, FALSE, EVENT_OBJECT_NAME);
+    if (hEvent==NULL) {
+        PyWin_SetAPIError("CreateEvent");
+        return ;
+    }  
 }
