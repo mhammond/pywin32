@@ -1,0 +1,332 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 9">
+<meta name=Originator content="Microsoft Word 9">
+<link rel=File-List href="./introduction_files/filelist.xml">
+<title>Python for COM+2</title>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author>Mark Hammond</o:Author>
+  <o:LastAuthor>Mark Hammond</o:LastAuthor>
+  <o:Revision>1</o:Revision>
+  <o:TotalTime>923</o:TotalTime>
+  <o:Created>2000-01-04T10:20:00Z</o:Created>
+  <o:LastSaved>2001-04-30T14:16:00Z</o:LastSaved>
+  <o:Pages>2</o:Pages>
+  <o:Words>834</o:Words>
+  <o:Characters>4755</o:Characters>
+  <o:Company>Skippi-Net</o:Company>
+  <o:Lines>39</o:Lines>
+  <o:Paragraphs>9</o:Paragraphs>
+  <o:CharactersWithSpaces>5839</o:CharactersWithSpaces>
+  <o:Version>9.3821</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]-->
+<style>
+<!--
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin-top:6.0pt;
+	margin-right:0cm;
+	margin-bottom:0cm;
+	margin-left:0cm;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+h1
+	{mso-style-next:Normal;
+	margin-top:12.0pt;
+	margin-right:0cm;
+	margin-bottom:3.0pt;
+	margin-left:0cm;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:1;
+	font-size:16.0pt;
+	font-family:Arial;
+	mso-font-kerning:16.0pt;}
+h2
+	{mso-style-next:Normal;
+	margin-top:12.0pt;
+	margin-right:0cm;
+	margin-bottom:3.0pt;
+	margin-left:0cm;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:2;
+	font-size:14.0pt;
+	font-family:Arial;
+	font-style:italic;}
+h3
+	{mso-style-next:Normal;
+	margin-top:12.0pt;
+	margin-right:0cm;
+	margin-bottom:3.0pt;
+	margin-left:0cm;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:3;
+	font-size:13.0pt;
+	font-family:Arial;}
+h4
+	{mso-style-next:Normal;
+	margin-top:12.0pt;
+	margin-right:0cm;
+	margin-bottom:3.0pt;
+	margin-left:0cm;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:4;
+	font-size:14.0pt;
+	font-family:"Times New Roman";}
+code
+	{mso-ascii-font-family:"Courier New";
+	mso-fareast-font-family:"Times New Roman";
+	mso-hansi-font-family:"Courier New";
+	mso-bidi-font-family:"Times New Roman";}
+@page Section1
+	{size:595.3pt 841.9pt;
+	margin:72.0pt 90.0pt 72.0pt 90.0pt;
+	mso-header-margin:35.4pt;
+	mso-footer-margin:35.4pt;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+ /* List Definitions */
+@list l0
+	{mso-list-id:1622302988;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-1148024236 67698689 67698691 67698693 67698689 67698691 67698693 67698689 67698691 67698693;}
+@list l0:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:36.0pt;
+	mso-level-number-position:left;
+	text-indent:-18.0pt;
+	font-family:Symbol;}
+@list l0:level2
+	{mso-level-tab-stop:72.0pt;
+	mso-level-number-position:left;
+	text-indent:-18.0pt;}
+@list l0:level3
+	{mso-level-tab-stop:108.0pt;
+	mso-level-number-position:left;
+	text-indent:-18.0pt;}
+@list l0:level4
+	{mso-level-tab-stop:144.0pt;
+	mso-level-number-position:left;
+	text-indent:-18.0pt;}
+@list l0:level5
+	{mso-level-tab-stop:180.0pt;
+	mso-level-number-position:left;
+	text-indent:-18.0pt;}
+@list l0:level6
+	{mso-level-tab-stop:216.0pt;
+	mso-level-number-position:left;
+	text-indent:-18.0pt;}
+@list l0:level7
+	{mso-level-tab-stop:252.0pt;
+	mso-level-number-position:left;
+	text-indent:-18.0pt;}
+@list l0:level8
+	{mso-level-tab-stop:288.0pt;
+	mso-level-number-position:left;
+	text-indent:-18.0pt;}
+@list l0:level9
+	{mso-level-tab-stop:324.0pt;
+	mso-level-number-position:left;
+	text-indent:-18.0pt;}
+ol
+	{margin-bottom:0cm;}
+ul
+	{margin-bottom:0cm;}
+-->
+</style>
+</head>
+
+<body lang=EN-AU style='tab-interval:36.0pt'>
+
+<div class=Section1>
+
+<h1><span lang=EN-US style='mso-ansi-language:EN-US'>Managed Python - Python
+for .NET<o:p></o:p></span></h1>
+
+<h2><span lang=EN-US style='mso-ansi-language:EN-US'>Introduction<o:p></o:p></span></h2>
+
+<p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>This
+document describes the start of an implementation of the Python language for
+Microsoft .NET.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>In this
+document, the term <i>CPython</i> refers to the existing, reference
+implementation of the Python language implemented in C, while <i>ManagedPython</i>
+refers to the .NET version.<span style="mso-spacerun: yes">  </span>The term <i>Python</i>
+is generally used to refer to the language as specified, rather than a specific
+implementation.<o:p></o:p></span></p>
+
+<h2><span lang=EN-US style='mso-ansi-language:EN-US'>Overview<o:p></o:p></span></h2>
+
+<p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>Python
+source files are parsed, and .NET Intermediate Language generated.<span
+style="mso-spacerun: yes">  </span>The implementation has focused more on
+sticking to the Python language specification than generating optimized
+IL.<span style="mso-spacerun: yes">  </span>Although there is plenty of scope
+for optimization, all effort has been on matching Python semantics.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>The most
+notable differences to more optimized IL are:<o:p></o:p></span></p>
+
+<ul style='margin-top:0cm' type=disc>
+ <li class=MsoNormal style='mso-list:l0 level1 lfo3;tab-stops:list 36.0pt'><span
+     lang=EN-US style='mso-ansi-language:EN-US'>Global variables are stored in
+     a hash-table.<o:p></o:p></span></li>
+ <li class=MsoNormal style='mso-list:l0 level1 lfo3;tab-stops:list 36.0pt'><span
+     lang=EN-US style='mso-ansi-language:EN-US'>Function and class definitions
+     result in “Function” and “Class” objects in the defining namespace.<o:p></o:p></span></li>
+ <li class=MsoNormal style='mso-list:l0 level1 lfo3;tab-stops:list 36.0pt'><span
+     lang=EN-US style='mso-ansi-language:EN-US'>Attribute references and
+     function calls to other Python code are done by looking up the function or
+     class object in the relevant namespace.<span style="mso-spacerun: yes"> 
+     </span>External .NET references and calls are generally performed by the
+     compiler generating code that uses .NET Reflection::Emit at runtime.<o:p></o:p></span></li>
+ <li class=MsoNormal style='mso-list:l0 level1 lfo3;tab-stops:list 36.0pt'><span
+     lang=EN-US style='mso-ansi-language:EN-US'>A runtime “type” and object
+     architecture based heavily on CPython<o:p></o:p></span></li>
+</ul>
+
+<h2><span lang=EN-US style='mso-ansi-language:EN-US'>Compiler<o:p></o:p></span></h2>
+
+<p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>The
+ManagedPython compiler is written in Python, and currently runs under
+CPython.<span style="mso-spacerun: yes">  </span>The COM interoperability
+features allow the CPython compiler implementation to make use of the .NET
+runtime by making use of the existing Python/COM integration.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>In the future,
+this compiler will need to run under ManagedPython.<span style="mso-spacerun:
+yes">  </span>This will allow for the dynamic Python language features, such as
+<i>exec</i> and <i>eval()</i>, to be exploited.<span style="mso-spacerun:
+yes">  </span>However, the functionality provided by the ManagedPython compiler
+much be increased and a number of existing C implemented Python modules ported
+before this is possible.<o:p></o:p></span></p>
+
+<h2><span lang=EN-US style='mso-ansi-language:EN-US'>Python Runtime<o:p></o:p></span></h2>
+
+<p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>Much of the
+ManagedPython functionality has been implemented in a “Python Runtime”.<span
+style="mso-spacerun: yes">  </span>This runtime consists of a number of
+functions and classes implemented in C<i><sup>#</sup></i>, and the API has been
+taken as closely as possible from the CPython implementation.<span
+style="mso-spacerun: yes">  </span>The IL generated by the compiler performs
+all operations on objects via the Python runtime, which in turn uses Python
+Types to perform the operation on the object.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>The Python runtime
+has been implemented in C<i><sup>#</sup></i>, in the interests of having a
+fully verifiable runtime system.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>The entire
+Python runtime system uses a PyObject.<span style="mso-spacerun: yes"> 
+</span>All runtime functions use PyObjects rather than .NET objects, and many
+builtin Python collections (tuples, dictionaries, etc) store PyObjects rather
+than .NET objects.<span style="mso-spacerun: yes">  </span>A PyObject is a
+simple structure (ie, .NET value type) with 2 elements – a reference to a .NET
+object represented by this PyObject and the IPyType interface pointer that
+describes the Python semantics of the object (see the types discussion
+below).<span style="mso-spacerun: yes">  </span>This model was chosen in the
+interests of performance – creating new value types is cheap compared to new
+objects, and all objects of the same type can share a single IPyType reference
+(eg, all string objects use the same IPyType interface).<span
+style="mso-spacerun: yes">  </span>This makes the process of converting between
+.NET objects and the PyObjects suitable for the runtime quite cheap.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>For
+example, the Python statement:<o:p></o:p></span></p>
+
+<p class=MsoNormal><code><span style='font-size:10.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>a = &quot;Hello&quot;</span></code><code><span
+lang=EN-US style='font-size:10.0pt;font-family:"Courier New";mso-bidi-font-family:
+"Times New Roman";mso-ansi-language:EN-US'><o:p></o:p></span></code></p>
+
+<p class=MsoNormal>would result in code being generated that creates a new
+PyObject value type, and fills this value type with a reference to the string,
+and a reference to the (shared) IPyType interface for string objects.<span
+style="mso-spacerun: yes">  </span>This PyObject would then be stored
+appropriately (either in a .NET local of type PyObject, or into the globals
+hashtable (that also directly holds PyObjects)</p>
+
+<p class=MsoNormal>Whenever a PyObject needs to be converted to an Object (eg,
+when passing the variable as a parameter to a function), the compiler simply
+fetches the .NET object pointer from the PyObject and uses that.</p>
+
+<h2>Compiler Namespace Optimizations</h2>
+
+<p class=MsoNormal>One particular problem with matching Python and .NET
+semantics relates to base classes.<span style="mso-spacerun: yes"> 
+</span>Python treats base-classes like any other name – found and applied at
+runtime.<span style="mso-spacerun: yes">  </span>This does not work for Python
+classes that need to either derive from a .NET class or implement an interface.</p>
+
+<p class=MsoNormal>Until a better solution is found (ie, better name tracking
+by the compiler, and we work out how to resolve the differences between Python
+and .NET namespaces), the compiler will recognise almost all names that begin
+with <i>COR.</i> and resolve the name at compile time.</p>
+
+<p class=MsoNormal>For example:</p>
+
+<p class=MsoNormal><code><span style='font-size:10.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>class
+MyClass(COR.System.IO.StreamWriter):<o:p></o:p></span></code></p>
+
+<p class=MsoNormal><code><span style='font-size:10.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'><span style="mso-spacerun: yes"> 
+</span># whatever<o:p></o:p></span></code></p>
+
+<p class=MsoNormal>will be identified by the compiler.<span
+style="mso-spacerun: yes">  </span>Additionally, function calls of the type:</p>
+
+<p class=MsoNormal><code><span style='font-size:10.0pt;font-family:"Courier New";
+mso-bidi-font-family:"Times New Roman"'>COR.System.Console.WriteLine(&quot;whatever&quot;)<o:p></o:p></span></code></p>
+
+<p class=MsoNormal>Will also be identified, and the call compiled directly
+rather than performing the normal name-and-attribute lookups Python would
+normally use at runtime.</p>
+
+<h2><span lang=EN-US style='mso-ansi-language:EN-US'>Python Types vs. COR Types<o:p></o:p></span></h2>
+
+<p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>The concept
+of a Python “Type” is implemented as an interface <i>IPyType</i> </span>– this
+interface describes the operations allowed on this object – such as calling the
+object, indexing into the object, getting an attribute of the object and so
+forth.<span style="mso-spacerun: yes">  </span>All operations by Python on
+objects are performed via <i>IPyType</i> and related interfaces.</p>
+
+<p class=MsoNormal>All .NET objects can yield an <i>IPyType</i> interface,
+which the Python Runtime uses to operate on the object.<span
+style="mso-spacerun: yes">  </span>This interface is selected based on the .NET
+type of the object.<span style="mso-spacerun: yes">  </span>All of the Python
+builtin types (such as strings, lists, etc) have interface implementations that
+conform to the correct Python semantics for that object.<span
+style="mso-spacerun: yes">  </span>For all .NET objects that do not have
+special meaning to the Python runtime, a generic “class instance” Python type
+is used.<span style="mso-spacerun: yes">  </span>The use of this generic type
+interface allows Python to use any arbitrary .NET object.</p>
+
+<p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>As
+discussed above, the object and its <i>IPyType</i></span> are generally carried
+around together in a PyObject structure.<span lang=EN-US style='mso-ansi-language:
+EN-US'><o:p></o:p></span></p>
+
+</div>
+
+</body>
+
+</html>
