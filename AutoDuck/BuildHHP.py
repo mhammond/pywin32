@@ -59,6 +59,9 @@ def handle_globs(lGlobs):
   # if that prefix isnt a directory, turn it into one!
   if not os.path.isdir(sCommonPrefix):
     sCommonPrefix = os.path.split(sCommonPrefix)[0]
+  # 1.6/2.0 beta bugs in commonprefix
+  if sCommonPrefix[-1] not in "\\/":
+    sCommonPrefix = os.path.normcase(sCommonPrefix + "/")
   # Ok, now remove this common prefix from every file:
   lRelativeFiles = []
   for file in lFiles:
