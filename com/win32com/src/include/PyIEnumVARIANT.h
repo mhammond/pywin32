@@ -4,7 +4,7 @@
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
 
-class PyIEnumVARIANT : public PyIUnknown
+class PYCOM_EXPORT PyIEnumVARIANT : public PyIUnknown
 {
 public:
 	MAKE_PYCOM_CTOR(PyIEnumVARIANT);
