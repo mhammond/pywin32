@@ -17,6 +17,9 @@ ADSI_DIR = $(WIN32COMEXT_DIR)/adsi
 WIN32COM_HELP_DIR = ../com/help
 
 PYTHONWIN_DIR = ../pythonwin
+ISAPI_DIR = ../pyisapi
+ISAPI_SOURCE_DIR = $(ISAPI_DIR)/src
+
 
 # Extraneous HTML files to include into the .CHM:
 HTML_FILES = $(WIN32_HELP_DIR)\*.html \
@@ -25,6 +28,7 @@ HTML_FILES = $(WIN32_HELP_DIR)\*.html \
 		$(WIN32COM_DIR)/HTML/image/* \
 		$(WIN32COM_HELP_DIR)/*.htm* \
 		$(WIN32COMEXT_DIR)/axscript/demos/client/ie/* \
+		$(ISAPI_DIR)/doc/*.html \
 		$(PYTHONWIN_DIR)/readme.html $(PYTHONWIN_DIR)/doc/* $(PYTHONWIN_DIR)/doc/debugger/* \
 
 
@@ -79,7 +83,10 @@ WIN32COM_SOURCE = \
 PYTHONWIN_SOURCE = \
 	  $(PYTHONWIN_DIR)\contents.d $(PYTHONWIN_DIR)\*.cpp $(PYTHONWIN_DIR)\*.h
 
-SOURCE=$(WIN32_SOURCE) $(WIN32COM_SOURCE) $(PYTHONWIN_SOURCE)
+ISAPI_SOURCE = \
+    $(ISAPI_SOURCE_DIR)\*.cpp $(ISAPI_SOURCE_DIR)\*.h $(GENDIR)\isapi_modules.d
+
+SOURCE=$(WIN32_SOURCE) $(WIN32COM_SOURCE) $(PYTHONWIN_SOURCE) $(ISAPI_SOURCE)
 
 DOCUMENT_FILE = pywin32-document.xml
 
@@ -94,15 +101,18 @@ doc : "$(TARGET).doc"
 
 clean: cleanad
 
+pseudo:
+
+$(GENDIR)\isapi_modules.d: py2d.py pseudo
+    $(PYTHON) py2d.py isapi isapi.install isapi.simple isapi.threaded_extension isapi.isapicon > $(GENDIR)\isapi_modules.d
+
 "$(GENDIR)\$(TARGET).hhc" : $(SOURCE) Dump2HHC.py $(DOCUMENT_FILE) 
     rem Run autoduck over each category so we can create a nested TOC.
     $(ADHTMLFMT) /r html "/O$(GENDIR)\temp.html" "/G$(GENDIR)\win32.dump" /t8 $(WIN32_SOURCE)
     $(ADHTMLFMT) /r html "/O$(GENDIR)\temp.html" "/G$(GENDIR)\pythonwin.dump" /t8 $(PYTHONWIN_SOURCE)
     $(ADHTMLFMT) /r html "/O$(GENDIR)\temp.html" "/G$(GENDIR)\com.dump" /t8 $(WIN32COM_SOURCE)
+    $(ADHTMLFMT) /r html "/O$(GENDIR)\temp.html" "/G$(GENDIR)\isapi.dump" /t8 $(ISAPI_SOURCE)
     $(PYTHON) Dump2HHC.py "$(GENDIR)" "$(GENDIR)\$(TARGET).hhc" "$(TITLE)" "$(TARGET)"
-    @del $(GENDIR)\win32.dump
-    @del $(GENDIR)\pythonwin.dump
-    @del $(GENDIR)\com.dump
 
 
 ##
