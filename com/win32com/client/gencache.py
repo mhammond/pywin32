@@ -317,7 +317,7 @@ def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bVal
 			AddModuleToCache(typelibCLSID, lcid, major, minor)
 	return module
 
-def EnsureDispatch(prog_id, bForDemand = 0):
+def EnsureDispatch(prog_id, bForDemand = 1): # New fn, so we default the new demand feature to on!
 	"""Given a COM prog_id, return an object that is using makepy support, building if necessary"""
 	disp = win32com.client.Dispatch(prog_id)
 	if not disp.__dict__.get("CLSID"): # Eeek - no makepy support - try and build it.
