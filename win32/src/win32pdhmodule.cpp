@@ -140,6 +140,19 @@ typedef PDH_STATUS (WINAPI *FuncPdhConnectMachine) (
   LPCTSTR szMachineName
 );
 
+typedef PDH_STATUS (WINAPI *FuncPdhLookupPerfIndexByName) (
+  LPCTSTR szMachineName,
+  LPCTSTR szCounterName,
+  LPDWORD pdwIndex
+);
+
+typedef PDH_STATUS (WINAPI *FuncPdhLookupPerfNameByIndex) (
+  LPCTSTR szMachineName,
+  DWORD index,
+  LPCTSTR szCounterName,
+  LPDWORD pcchBuffer
+);
+
 #define CHECK_PDH_PTR(ptr) if((ptr)==NULL) { PyErr_SetString(PyExc_RuntimeError, "The pdh.dll entry point functions could not be loaded."); return NULL;}
 
 // The function pointers
@@ -161,6 +174,8 @@ FuncPdhParseInstanceName pPdhParseInstanceName = NULL;
 FuncPdhBrowseCounters pPdhBrowseCounters = NULL;
 
 FuncPdhConnectMachine pPdhConnectMachine = NULL;
+FuncPdhLookupPerfIndexByName pPdhLookupPerfIndexByName = NULL;
+FuncPdhLookupPerfNameByIndex pPdhLookupPerfNameByIndex = NULL;
 
 #include "Python.h"
 #include "malloc.h"
@@ -191,7 +206,9 @@ BOOL LoadPointers()
 	pPdhSetCounterScaleFactor = (FuncPdhSetCounterScaleFactor)GetProcAddress(handle, "PdhSetCounterScaleFactor");
 	pPdhParseInstanceName = (FuncPdhParseInstanceName)GetProcAddress(handle, "PdhParseInstanceNameA");
 	pPdhBrowseCounters = (FuncPdhBrowseCounters)GetProcAddress(handle, "PdhBrowseCountersA");
-        pPdhConnectMachine = (FuncPdhConnectMachine)GetProcAddress(handle, "PdhConnectMachineA");
+	pPdhConnectMachine = (FuncPdhConnectMachine)GetProcAddress(handle, "PdhConnectMachineA");
+	pPdhLookupPerfNameByIndex = (FuncPdhLookupPerfNameByIndex)GetProcAddress(handle, "PdhLookupPerfNameByIndexA");
+	pPdhLookupPerfIndexByName = (FuncPdhLookupPerfIndexByName)GetProcAddress(handle, "PdhLookupPerfIndexByName");
 	return TRUE;
 }
 
@@ -989,6 +1006,60 @@ static PyObject *PyConnectMachine(PyObject *self, PyObject *args)
 	return rc;
 }
 
+// @pymethod int|win32pdh|LookupPerfIndexByName|Returns the counter index corresponding to the specified counter name.
+static PyObject *PyLookupPerfIndexByName(PyObject *self, PyObject *args)
+{
+	PyObject *obiname, *obmname;
+	if (!PyArg_ParseTuple(args, "OO:LookupPerfIndexByName", 
+	          &obmname,// @pyparm string|machineName||The name of the machine where the specified counter is located. The machine name can be specified by the DNS name or the IP address. 
+	          &obiname))// @pyparm string|instanceName||The full name of the counter.
+		return NULL;
+	TCHAR *mname;
+	if (!PyWinObject_AsTCHAR(obmname, &mname, TRUE))
+		return NULL;
+	TCHAR *iname;
+	if (!PyWinObject_AsTCHAR(obiname, &iname, FALSE)) {
+		PyWinObject_FreeTCHAR(mname);
+		return NULL;
+	}
+
+	CHECK_PDH_PTR(pPdhLookupPerfIndexByName);
+	DWORD dwIndex;
+	PyW32_BEGIN_ALLOW_THREADS
+	PDH_STATUS pdhStatus = (*pPdhLookupPerfIndexByName) (mname, iname, &dwIndex);
+	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeTCHAR(mname);
+	PyWinObject_FreeTCHAR(iname);
+	if (pdhStatus != 0)
+		return PyWin_SetAPIError("LookupPerfIndexByName", pdhStatus);
+	return PyInt_FromLong(dwIndex);
+}
+
+// @pymethod string|win32pdh|LookupPerfNameByIndex|Returns the performance object name corresponding to the specified index.
+static PyObject *PyLookupPerfNameByIndex(PyObject *self, PyObject *args)
+{
+	PyObject *obmname;
+	int index;
+	if (!PyArg_ParseTuple(args, "Oi:LookupPerfIndexByName", 
+	          &obmname,// @pyparm string|machineName||The name of the machine where the specified counter is located. The machine name can be specified by the DNS name or the IP address. 
+	          &index))// @pyparm int|index||The index of the performance object.
+		return NULL;
+	TCHAR *mname;
+	if (!PyWinObject_AsTCHAR(obmname, &mname, TRUE))
+		return NULL;
+
+	TCHAR buffer[512];
+	DWORD buf_size = sizeof(buffer)/sizeof(buffer[0]);
+	CHECK_PDH_PTR(pPdhLookupPerfNameByIndex);
+	PyW32_BEGIN_ALLOW_THREADS
+	PDH_STATUS pdhStatus = (*pPdhLookupPerfNameByIndex) (mname, index, buffer, &buf_size);
+	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeTCHAR(mname);
+	if (pdhStatus != 0)
+		return PyWin_SetAPIError("LookupPerfNameByIndex", pdhStatus);
+	return PyWinObject_FromTCHAR(buffer);
+}
+
 /* List of functions exported by this module */
 // @module win32pdh|A module, encapsulating the Windows Performance Data Helpers API
 static struct PyMethodDef win32pdh_functions[] = {
@@ -1009,6 +1080,8 @@ static struct PyMethodDef win32pdh_functions[] = {
 	{"SetCounterScaleFactor",	 PySetCounterScaleFactor, 1}, // @pymeth SetCounterScaleFactor|Sets the scale factor that is applied to the calculated value of the specified counter when you request the formatted counter value.
 	{"BrowseCounters",           PyBrowseCounters,        1}, // @pymeth BrowseCounters|Displays the counter browsing dialog box so that the user can select the counters to be returned to the caller. 
 	{"ConnectMachine",           PyConnectMachine,        1}, // @pymeth ConnectMachine|connects to the specified machine, and creates and initializes a machine entry in the PDH DLL.
+	{"LookupPerfIndexByName",    PyLookupPerfIndexByName, 1}, // @pymeth LookupPerfIndexByName|Returns the counter index corresponding to the specified counter name.
+	{"LookupPerfNameByIndex",    PyLookupPerfNameByIndex, 1}, // @pymeth LookupPerfNameByIndex|Returns the performance object name corresponding to the specified index.
 	{NULL}
 };
 
