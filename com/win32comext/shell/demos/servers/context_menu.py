@@ -25,20 +25,30 @@ class ShellExtension:
 
     def Initialize(self, folder, dataobj, hkey):
         print "Init", folder, dataobj, hkey
+        self.dataobj = dataobj
 
     def QueryContextMenu(self, hMenu, indexMenu, idCmdFirst, idCmdLast, uFlags):
         print "QCM", hMenu, indexMenu, idCmdFirst, idCmdLast, uFlags
+        # Query the items clicked on
+        format_etc = win32con.CF_HDROP, None, 1, -1, pythoncom.TYMED_HGLOBAL
+        sm = self.dataobj.GetData(format_etc)
+        num_files = shell.DragQueryFile(sm.data_handle, -1)
+        if num_files>1:
+            msg = "&Hello from Python (with %d files selected)" % num_files
+        else:
+            fname = shell.DragQueryFile(sm.data_handle, 0)
+            msg = "&Hello from Python (with '%s' selected)" % fname
         idCmd = idCmdFirst
         items = []
         if (uFlags & 0x000F) == shellcon.CMF_NORMAL: # Check == here, since CMF_NORMAL=0
             print "CMF_NORMAL..."
-            items.append("&Hello from Python")
+            items.append(msg)
         elif uFlags & shellcon.CMF_VERBSONLY:
             print "CMF_VERBSONLY..."
-            items.append("&Hello from Python - shortcut")
+            items.append(msg + " - shortcut")
         elif uFlags & shellcon.CMF_EXPLORE:
             print "CMF_EXPLORE..."
-            items.append("&Hello from Python - normal file, right-click in Explorer")
+            items.append(msg + " - normal file, right-click in Explorer")
         elif uFlags & CMF_DEFAULTONLY:
             print "CMF_DEFAULTONLY...\r\n"
         else:
