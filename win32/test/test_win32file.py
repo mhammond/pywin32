@@ -3,6 +3,8 @@ import win32api, win32file, win32con, pywintypes
 import sys
 import os
 import tempfile
+import sets
+import shutil
 
 class TestSimpleOps(unittest.TestCase):
     def testSimpleFiles(self):
@@ -107,6 +109,46 @@ class TestOverlapped(unittest.TestCase):
             except win32api.error:
                 break
         h.Close()
+
+class TestFindFiles(unittest.TestCase):
+    def testIter(self):
+        dir = os.path.join(os.getcwd(), "*")
+        files = win32file.FindFilesW(dir)
+        set1 = sets.Set()
+        set1.update(files)
+        set2 = sets.Set()
+        for file in win32file.FindFilesIterator(dir):
+            set2.add(file)
+        assert len(set2) > 5, "This directory has less than 5 files!?"
+        self.failUnlessEqual(set1, set2)
+
+    def testBadDir(self):
+        dir = os.path.join(os.getcwd(), "a dir that doesnt exist", "*")
+        self.assertRaises(win32file.error, win32file.FindFilesIterator, dir)
+
+    def testEmptySpec(self):
+        spec = os.path.join(os.getcwd(), "*.foo_bar")
+        num = 0
+        for i in win32file.FindFilesIterator(spec):
+            print "Got", i
+            num += 1
+        self.failUnlessEqual(0, num)
+
+    def testEmptyDir(self):
+        test_path = os.path.join(win32api.GetTempPath(), "win32file_test_directory")
+        try:
+            shutil.rmtree(test_path)
+        except os.error:
+            pass
+        os.mkdir(test_path)
+        try:
+            num = 0
+            for i in win32file.FindFilesIterator(os.path.join(test_path, "*")):
+                num += 1
+            # Expecting "." and ".." only
+            self.failUnlessEqual(2, num)
+        finally:
+            shutil.rmtree(test_path)
 
 if __name__ == '__main__':
     unittest.main()
