@@ -9,7 +9,7 @@
 // Constants
 //
 
-#define DDE_TIMEOUT     5000 // 5 seconds
+#define DDE_TIMEOUT     60000 // a minute.
 
 //
 // Format lists
