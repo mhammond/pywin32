@@ -21,14 +21,14 @@ class PyScriptRExec(pyscript.PyScript):
 	_reg_clsid_ = "{69c2454b-efa2-455b-988c-c3651c4a2f69}"
 	_reg_class_spec_ = "win32com.axscript.client.pyscript_rexec.PyScriptRExec"
 	_reg_remove_keys_ = [(".pys",), ("pysFile",)]
-	_reg_threading = "Apartment"
+	_reg_threading_ = "Apartment"
 
 	def _GetSupportedInterfaceSafetyOptions(self):
-		return pyscript.PyScript._GetSupportedInterfaceSafetyOptions(self) | \
-               axscript.INTERFACESAFE_FOR_UNTRUSTED_DATA | \
-               axscript.INTERFACESAFE_FOR_UNTRUSTED_CALLER | \
-               INTERFACE_USES_SECURITY_MANAGER | \
-               INTERFACE_USES_DISPEX
+		# print "**** calling", pyscript.PyScript._GetSupportedInterfaceSafetyOptions, "**->", pyscript.PyScript._GetSupportedInterfaceSafetyOptions(self)
+		return INTERFACE_USES_DISPEX | \
+		       INTERFACE_USES_SECURITY_MANAGER | \
+		       axscript.INTERFACESAFE_FOR_UNTRUSTED_DATA | \
+		       axscript.INTERFACESAFE_FOR_UNTRUSTED_CALLER
 
 if __name__=='__main__':
 	pyscript.Register(PyScriptRExec)

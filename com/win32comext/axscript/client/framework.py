@@ -18,6 +18,7 @@ import types
 
 SCRIPTTEXT_FORCEEXECUTION = 0x80000000
 SCRIPTTEXT_ISEXPRESSION   = 0x00000020
+SCRIPTTEXT_ISPERSISTENT = 0x00000040
 
 from win32com.server.exception import Exception, IsCOMServerException
 import error # ax.client.error
@@ -53,7 +54,13 @@ class SafeOutput:
 # Make sure we have a valid sys.stdout/stderr, otherwise out
 # print and trace statements may raise an exception
 def MakeValidSysOuts():
-	sys.stdout = sys.stderr = SafeOutput()
+	myclass = SafeOutput
+	try:
+		if sys.stdout.__class__ == myclass:
+			return # already set up
+	except AttributeError:
+		pass
+	sys.stdout = sys.stderr = myclass()
 
 def trace(*args):
 	"""A function used instead of "print" for debugging output.
@@ -72,14 +79,14 @@ def RaiseAssert(scode, desc):
 class AXScriptCodeBlock:
 	"""An object which represents a chunk of code in an AX Script
 	"""
-	def __init__(self, name, codeText, sourceContextCookie, startLineNumber):
-		# If codeTextDisplay is none, it assumes the codeText is displayed.
-		# This is handy if the actual code has been modified by the engine.
+	def __init__(self, name, codeText, sourceContextCookie, startLineNumber, flags):
 		self.name = name
 		self.codeText = codeText
 		self.codeObject = None
 		self.sourceContextCookie = sourceContextCookie
 		self.startLineNumber = startLineNumber
+		self.flags = flags
+		self.beenExecuted = 0
 	def GetFileName(self):
 		# Gets the "file name" for Python - uses <...> so Python doesnt think
 		# it is a real file.
@@ -105,6 +112,8 @@ class Event:
 		return "<%s at %d: %s>" % (self.__class__.__name__, id(self), self.name)
 	def Reset(self):
 		pass
+	def Close(self):
+		pass
 	def Build(self, typeinfo, funcdesc):
 		self.dispid = funcdesc[0]
 		self.name = typeinfo.GetNames(self.dispid)[0]
@@ -122,6 +131,8 @@ class EventSink:
 		self.myInvokeMethod = myItem.GetEngine().ProcessScriptItemEvent
 		self.iid = None
 	def Reset(self):
+		self.Disconnect()
+	def Close(self):
 		self.iid = None
 		self.myScriptItem = None
 		self.myInvokeMethod = None
@@ -139,7 +150,7 @@ class EventSink:
 			event = self.events[dispid]
 		except:
 			raise Exception(scode=winerror.DISP_E_MEMBERNOTFOUND)
-#		print "Invoke for ", event, "on", self.myScriptItem
+##		print "Invoke for ", event, "on", self.myScriptItem, " - calling",  self.myInvokeMethod
 		return self.myInvokeMethod(self.myScriptItem, event, lcid, wFlags, args)
 
 	def GetSourceTypeInfo(self, typeinfo):
@@ -235,15 +246,23 @@ class ScriptItem:
 
 	def Reset(self):
 		self.Disconnect()
+		if self.eventSink:
+			self.eventSink.Reset()
+		self.isRegistered = 0
+		for subItem in self.subItems.values():
+			subItem.Reset()
+
+	def Close(self):
+		self.Reset()
 		self.dispatch = None
 		self.parentItem = None
 		if self.eventSink:
-			self.eventSink.Reset()
+			self.eventSink.Close()
 			self.eventSink = None
 		for subItem in self.subItems.values():
-			subItem.Reset()
+			subItem.Close()
+		self.subItems = []
 		self.createdConnections = 0
-		self.isRegistered = 0
 
 	def Register(self):
 		if self.isRegistered: return
@@ -521,7 +540,7 @@ class COMScript:
 		try:
 			self.lcid = site.GetLCID() 
 		except pythoncom.com_error:
-			self.lcid = 0 # todo - GetUserDefaultLCID
+			self.lcid = win32api.GetUserDefaultLCID()
 		self.ResetNamedItems()
 		if self.persistLoaded:
 			self.ChangeScriptState(axscript.SCRIPTSTATE_INITIALIZED)
@@ -533,43 +552,41 @@ class COMScript:
 	def SetScriptState(self, state):
 #		trace("SetScriptState with %d - currentstate = %d" % (state,self.scriptState))
 		if state == self.scriptState: return
-		if state==axscript.SCRIPTSTATE_UNINITIALIZED:
-			if self.scriptState in [axscript.SCRIPTSTATE_CONNECTED, axscript.SCRIPTSTATE_DISCONNECTED]:
-				self.Stop()
-			if self.scriptState in [axscript.SCRIPTSTATE_CONNECTED, axscript.SCRIPTSTATE_DISCONNECTED,axscript.SCRIPTSTATE_STARTED]:
-				self.Reset()
-			self.scriptState = state
-
 		# If closed, allow no other state transitions
-		elif self.scriptState==axscript.SCRIPTSTATE_CLOSED:
+		if self.scriptState==axscript.SCRIPTSTATE_CLOSED:
 			raise Exception(scode=winerror.E_INVALIDARG)
 
-		elif state==axscript.SCRIPTSTATE_INITIALIZED:
-			if self.scriptState in [axscript.SCRIPTSTATE_CONNECTED, axscript.SCRIPTSTATE_DISCONNECTED]:
+		if state==axscript.SCRIPTSTATE_INITIALIZED:
+			# Re-initialize - shutdown then reset.
+			if self.scriptState in [axscript.SCRIPTSTATE_CONNECTED, axscript.SCRIPTSTATE_STARTED]:
 				self.Stop()
-			if self.scriptState in [axscript.SCRIPTSTATE_CONNECTED, axscript.SCRIPTSTATE_DISCONNECTED,axscript.SCRIPTSTATE_STARTED]:
+			if self.scriptState == axscript.SCRIPTSTATE_DISCONNECTED:
 				self.Reset()
-			if self.scriptState in [axscript.SCRIPTSTATE_CONNECTED, axscript.SCRIPTSTATE_DISCONNECTED,axscript.SCRIPTSTATE_STARTED,axscript.SCRIPTSTATE_UNINITIALIZED]:
-				self.ChangeScriptState(axscript.SCRIPTSTATE_INITIALIZED)
 		elif state==axscript.SCRIPTSTATE_STARTED:
-			if self.scriptState in [axscript.SCRIPTSTATE_CONNECTED, axscript.SCRIPTSTATE_DISCONNECTED]:
+			if self.scriptState == axscript.SCRIPTSTATE_CONNECTED:
 				self.Stop()
+			if self.scriptState in [axscript.SCRIPTSTATE_DISCONNECTED, axscript.SCRIPTSTATE_UNINITIALIZED]:
 				self.Reset()
-#			if self.scriptState in [axscript.SCRIPTSTATE_CONNECTED, axscript.SCRIPTSTATE_DISCONNECTED, axscript.SCRIPTSTATE_UNINITIALIZED,axscript.SCRIPTSTATE_INITIALIZED]:
-			self.ExecutePendingScripts()
+			self.Run()
 			self.ChangeScriptState(axscript.SCRIPTSTATE_STARTED)
 		elif state==axscript.SCRIPTSTATE_CONNECTED:
 			if self.scriptState in [axscript.SCRIPTSTATE_UNINITIALIZED,axscript.SCRIPTSTATE_INITIALIZED]:
-				self.SetScriptState(axscript.SCRIPTSTATE_INITIALIZED) # transition through started
-			if self.scriptState in [axscript.SCRIPTSTATE_STARTED, axscript.SCRIPTSTATE_UNINITIALIZED,axscript.SCRIPTSTATE_INITIALIZED]:
+				self.ChangeScriptState(axscript.SCRIPTSTATE_STARTED) # report transition through started
 				self.Run()
+			if self.scriptState == axscript.SCRIPTSTATE_STARTED:
+				self.Connect()
 				self.ChangeScriptState(state)
-#			if self.scriptState in [axscript.SCRIPTSTATE_DISCONNECTED, axscript.SCRIPTSTATE_STARTED, axscript.SCRIPTSTATE_UNINITIALIZED,axscript.SCRIPTSTATE_INITIALIZED]:
-#				self.Reconnect()
 		elif state==axscript.SCRIPTSTATE_DISCONNECTED:
-			pass #??
+			if self.scriptState == axscript.SCRIPTSTATE_CONNECTED:
+				self.Disconnect()
 		elif state==axscript.SCRIPTSTATE_CLOSED:
 			self.Close()
+		elif state==axscript.SCRIPTSTATE_UNINITIALIZED:
+			if self.scriptState in [axscript.SCRIPTSTATE_CONNECTED, axscript.SCRIPTSTATE_STARTED]:
+				self.Stop()
+			if self.scriptState == axscript.SCRIPTSTATE_DISCONNECTED:
+				self.Reset()
+			self.ChangeScriptState(state)
 		else:
 			raise Exception(scode=winerror.E_INVALIDARG)
 
@@ -584,8 +601,9 @@ class COMScript:
 			pass # engine.close??
 		if self.scriptState in [axscript.SCRIPTSTATE_UNINITIALIZED, axscript.SCRIPTSTATE_CONNECTED, axscript.SCRIPTSTATE_DISCONNECTED, axscript.SCRIPTSTATE_INITIALIZED, axscript.SCRIPTSTATE_STARTED]:
 			self.ChangeScriptState(axscript.SCRIPTSTATE_CLOSED)
+			# Completely reset all named items (including persistent)
 			for item in self.subItems.values():
-				item.Reset()
+				item.Close()
 			self.subItems = {}
 			self.baseThreadId = -1
 		if self.debugManager:
@@ -593,6 +611,7 @@ class COMScript:
 			self.debugManager = None
 		self.scriptSite = None
 		self.scriptCodeBlocks = {}
+		self.persistLoaded = 0
 
 	def AddNamedItem(self, name, flags):
 		if self.scriptSite is None: raise Exception(scode=winerror.E_INVALIDARG)
@@ -628,8 +647,9 @@ class COMScript:
 		return self.threadState
 
 	def AddTypeLib(self, uuid, major, minor, flags):
-		# We dont use it, but may as well return S_OK.
-		return
+		# Get the win32com gencache to register this library.
+		from win32com.client import gencache
+		gencache.EnsureModule(uuid, self.lcid, major, minor, bForDemand = 1)
 
 	def InterruptScriptThread(self, state, flags):
 		raise Exception("Not Implemented", scode=winerror.E_NOTIMPL)
@@ -656,17 +676,13 @@ class COMScript:
 
 		if iid in [pythoncom.IID_IPersist, pythoncom.IID_IPersistStream, pythoncom.IID_IPersistStreamInit,
 		            axscript.IID_IActiveScript, axscript.IID_IActiveScriptParse]:
-			self.safetyOptions = 0
 			supported = self._GetSupportedInterfaceSafetyOptions()
-			if optionsMask & supported & enabledOptions & axscript.INTERFACESAFE_FOR_UNTRUSTED_CALLER:
-				self.safetyOptions = self.safetyOptions | axscript.INTERFACESAFE_FOR_UNTRUSTED_CALLER
-			if optionsMask & supported & enabledOptions & axscript.INTERFACESAFE_FOR_UNTRUSTED_DATA:
-				self.safetyOptions = self.safetyOptions | axscript.INTERFACESAFE_FOR_UNTRUSTED_DATA
+			self.safetyOptions = supported & optionsMask & enabledOptions
 		else:
 			raise Exception(scode=winerror.E_NOINTERFACE)
 
 	def _GetSupportedInterfaceSafetyOptions(self):
-		return 0
+		return 0 
 
 	def GetInterfaceSafetyOptions(self, iid):
 		if iid in [pythoncom.IID_IPersist, pythoncom.IID_IPersistStream, pythoncom.IID_IPersistStreamInit,
@@ -691,15 +707,14 @@ class COMScript:
 			item._dump_(0)
 
 	def ResetNamedItems(self):
-		for name, item in self.subItems.items():
-			item.Reset()
-			if item.flags & axscript.SCRIPTITEM_ISPERSISTENT == 0:
-				# remove
-				del self.subItems[name]
-			else:
-				# keep and re-process.
-				item.Register()
-				
+		# Due to the way we work, we re-create persistent ones.
+		si = self.subItems.items()
+		self.subItems = {}
+		for name, item in si:
+			item.Close()
+			if item.flags & axscript.SCRIPTITEM_ISPERSISTENT:
+				self.AddNamedItem(item.name, item.flags)
+
 	def GetCurrentSafetyOptions(self):
 		return self.safetyOptions
 	def ProcessNewNamedItemsConnections(self):
@@ -722,22 +737,24 @@ class COMScript:
 			return
 		RaiseAssert(winerror.E_UNEXPECTED, "Not connected or disconnected - %d" % self.scriptState)
 
+	def Connect(self):
+		self.ProcessNewNamedItemsConnections()
+		self.RegisterNewNamedItems()
+		self.ConnectEventHandlers()
+
 	def Run(self):
 #		trace("AXScript running...")
 		if self.scriptState != axscript.SCRIPTSTATE_INITIALIZED and self.scriptState != axscript.SCRIPTSTATE_STARTED:
 			raise Exception(scode=winerror.E_UNEXPECTED)
-		self.ProcessNewNamedItemsConnections()
-		self.RegisterNewNamedItems()
-		self.ConnectEventHandlers()
 #		self._DumpNamedItems_()
 		self.ExecutePendingScripts()
-
 		self.DoRun()
 
 	def Stop(self):
+		# Stop all executing scripts, and disconnect.
 		self.CheckConnectedOrDisconnected()
 		self.Disconnect()
-		self.ChangeScriptState(axscript.SCRIPTSTATE_INITIALIZED)
+		# script state remains disconnected.
 
 	def Disconnect(self):
 		self.CheckConnectedOrDisconnected()
@@ -761,7 +778,9 @@ class COMScript:
 			item.Disconnect()
 
 	def Reset(self):
+		# Keeping persistent engine state, reset back an initialized state
 		self.ResetNamedItems()
+		self.ChangeScriptState(axscript.SCRIPTSTATE_INITIALIZED)
 
 	def ChangeScriptState(self, state):
 		self.DisableInterrupts()
@@ -795,8 +814,10 @@ class COMScript:
 	def _CompileInScriptedSection(self, code, name, type):
 		if self.debugManager: self.debugManager.OnEnterScript()
 		return compile(code, name, type)
-	
+
 	def CompileInScriptedSection(self, codeBlock, type, realCode = None):
+		if codeBlock.codeObject is not None: # already compiled
+			return 1
 		if realCode is None:
 			code = codeBlock.codeText
 		else:
@@ -818,9 +839,11 @@ class COMScript:
 	def _ExecInScriptedSection(self, codeObject, globals, locals = None):
 		if self.debugManager: self.debugManager.OnEnterScript()
 		exec codeObject in globals, locals
-		
+
 	def ExecInScriptedSection(self, codeBlock, globals, locals = None):
 		if locals is None: locals = globals
+		assert not codeBlock.beenExecuted, "This code block should not have been executed"
+		codeBlock.beenExecuted = 1
 		self.BeginScriptedSection()
 		try:
 			try:
@@ -837,6 +860,8 @@ class COMScript:
 		
 	def EvalInScriptedSection(self, codeBlock, globals, locals = None):
 		if locals is None: locals = globals
+		assert not codeBlock.beenExecuted, "This code block should not have been executed"
+		codeBlock.beenExecuted = 1
 		self.BeginScriptedSection()
 		try:
 			try:
@@ -850,13 +875,17 @@ class COMScript:
 	def HandleException(self, codeBlock):
 		# NOTE - Never returns - raises a ComException
 		exc_type, exc_value, exc_traceback = sys.exc_info()
-		# Is a SERVER exception, re-raise it.  If a client side COM error, it is
+		# If a SERVER exception, re-raise it.  If a client side COM error, it is
 		# likely to have originated from the script code itself, and therefore
 		# needs to be reported like any other exception.
 		if IsCOMServerException(exc_type):
+			# Ensure the traceback doesnt cause a cycle.
+			exc_traceback = None
 			raise
 		# It could be an error by another script.
 		if issubclass(pythoncom.com_error, exc_type) and exc_value[0]==axscript.SCRIPT_E_REPORTED:
+			# Ensure the traceback doesnt cause a cycle.
+			exc_traceback = None
 			raise Exception(scode=exc_value[0])
 		
 		exception = error.AXScriptException(self, \
@@ -865,7 +894,8 @@ class COMScript:
 		result_exception = error.ProcessAXScriptException(self.scriptSite, self.debugManager, exception)
 		if result_exception is not None:
 			self.scriptSite.OnScriptTerminate(None, result_exception)
-			self.SetScriptState(axscript.SCRIPTSTATE_INITIALIZED)
+			# reset ourselves to 'connected' so further events continue to fire.
+			self.SetScriptState(axscript.SCRIPTSTATE_CONNECTED)
 		# Ensure the traceback doesnt cause a cycle.
 		exc_traceback = None
 		raise result_exception

@@ -21,7 +21,7 @@ import scriptdispatch
 import re
 import win32com.client.dynamic
 
-from framework import RaiseAssert, trace, Exception, SCRIPTTEXT_FORCEEXECUTION, SCRIPTTEXT_ISEXPRESSION
+from framework import RaiseAssert, trace, Exception, SCRIPTTEXT_FORCEEXECUTION, SCRIPTTEXT_ISEXPRESSION, SCRIPTTEXT_ISPERSISTENT
 
 PyScript_CLSID = "{DF630910-1C1D-11d0-AE36-8C0F5E000000}"
 
@@ -103,7 +103,7 @@ class AXScriptAttribute:
 		if rc is None:
 			raise AttributeError, attr
 		return rc
-	def _Reset_(self):
+	def _Close_(self):
 		self.__dict__['_scriptEngine_'] = None
 
 	def _DoFindAttribute_(self, obj, attr):
@@ -135,7 +135,7 @@ class NamedScriptAttribute:
 	# Each named object holds a reference to one of these.
 	# Whenever a sub-item appears in a namespace, it is really one of these
 	# objects.  Has a circular reference back to the item itself, which is
-	# closed via _Reset_()
+	# closed via _Close_()
 	def __init__(self, scriptItem):
 		self.__dict__['_scriptItem_'] = scriptItem
 	def __repr__(self):
@@ -159,7 +159,7 @@ class NamedScriptAttribute:
 			except AttributeError:
 				pass
 		raise AttributeError, attr
-	def _Reset_(self):
+	def _Close_(self):
 		self.__dict__['_scriptItem_'] = None
 
 	
@@ -170,11 +170,13 @@ class ScriptItem(framework.ScriptItem):
 		self.attributeObject = None
 	def Reset(self):
 		framework.ScriptItem.Reset(self)
+		if self.attributeObject:
+			self.attributeObject._Close_()
+		self.attributeObject = None
+	def Close(self):
+		framework.ScriptItem.Close(self) # calls reset.
 		self.dispatchContainer = None
 		self.scriptlets = {}
-		if self.attributeObject:
-			self.attributeObject._Reset_()
-		self.attributeObject = None
 
 	def Register(self):
 		framework.ScriptItem.Register(self)
@@ -215,12 +217,12 @@ class PyScript(framework.COMScript):
 	_reg_clsid_ = PyScript_CLSID
 	_reg_class_spec_ = "win32com.axscript.client.pyscript.PyScript"
 	_reg_remove_keys_ = [(".pys",), ("pysFile",)]
-	_reg_threading = "Apartment"
+	_reg_threading_ = "Apartment"
 	
 	def __init__(self):
 		framework.COMScript.__init__(self)
 		self.globalNameSpaceModule = None
-		self.pendingCodeBlocks = []
+		self.codeBlocks = []
 		self.scriptDispatch = None
 
 	def InitNew(self):
@@ -231,15 +233,27 @@ class PyScript(framework.COMScript):
 		self.globalNameSpaceModule.__dict__['ax'] = AXScriptAttribute(self)
 		self.rexec_env = None # will be created first time around.
 		
-		self.pendingCodeBlocks = []
+		self.codeBlocks = []
+		self.persistedCodeBlocks = []
 		self.mapKnownCOMTypes = {} # Map of known CLSID to typereprs
 		self.codeBlockCounter = 0
 
 	def Stop(self):
-		# Dont execute anything else!
-		self.pendingCodeBlocks = []
+		# Flag every pending script as already done
+		for b in self.codeBlocks:
+			b.beenExecuted = 1
 		return framework.COMScript.Stop(self)
 
+	def Reset(self):
+		print "Reset called - had %d code blocks" % (len(self.codeBlocks))
+		# Reset all code-blocks that are persistent, and discard the rest
+		oldCodeBlocks = self.codeBlocks[:]
+		self.codeBlocks = []
+		for b in oldCodeBlocks:
+			if b.flags & SCRIPTTEXT_ISPERSISTENT:
+				b.beenExecuted = 0
+				self.codeBlocks.append(b)
+		return framework.COMScript.Reset(self)
 
 	def _GetNextCodeBlockNumber(self):
 		self.codeBlockCounter = self.codeBlockCounter + 1
@@ -247,7 +261,7 @@ class PyScript(framework.COMScript):
 		
 	def RegisterNamedItem(self, item):
 		if self.rexec_env is None:
-			if self.safetyOptions:
+			if self.safetyOptions & (axscript.INTERFACESAFE_FOR_UNTRUSTED_DATA | axscript.INTERFACESAFE_FOR_UNTRUSTED_CALLER):
 				# Use RExec.
 				self.rexec_env = AXRExec(self.globalNameSpaceModule)
 			else:
@@ -273,19 +287,20 @@ class PyScript(framework.COMScript):
 	def DoExecutePendingScripts(self):
 		try:
 			globs = self.globalNameSpaceModule.__dict__
-			for codeBlock in self.pendingCodeBlocks:
-				if self.CompileInScriptedSection(codeBlock, "exec"):
-					self.ExecInScriptedSection(codeBlock, globs)
+			for codeBlock in self.codeBlocks:
+				if not codeBlock.beenExecuted:
+					if self.CompileInScriptedSection(codeBlock, "exec"):
+						self.ExecInScriptedSection(codeBlock, globs)
 		finally:
-			self.pendingCodeBlocks = []
+			pass
 	
 	def DoRun(self):
 		pass
-		
+
 	def Close(self):
 		self.ResetNamespace()
 		self.globalNameSpaceModule = None
-		self.pendingCodeBlocks = []
+		self.codeBlocks = []
 		self.scriptDispatch = None
 		framework.COMScript.Close(self)
 
@@ -308,7 +323,7 @@ class PyScript(framework.COMScript):
 			subItem = item.GetCreateSubItem(item, subItemName, None, None)
 		funcName = self.MakeEventMethodName(subItemName, eventName)
 		
-		codeBlock = AXScriptCodeBlock("Script Event %s" %funcName, code, sourceContextCookie, startLineNumber)
+		codeBlock = AXScriptCodeBlock("Script Event %s" %funcName, code, sourceContextCookie, startLineNumber, 0)
 		self._AddScriptCodeBlock(codeBlock)
 		subItem.scriptlets[funcName] = codeBlock
 
@@ -363,7 +378,7 @@ class PyScript(framework.COMScript):
 		num = self._GetNextCodeBlockNumber()
 		if num==1: num=""
 		name = "%s %s" % (name, num)
-		codeBlock = AXScriptCodeBlock(name, code, sourceContextCookie, startLineNumber)
+		codeBlock = AXScriptCodeBlock(name, code, sourceContextCookie, startLineNumber, flags)
 		self._AddScriptCodeBlock(codeBlock)
 		globs = self.globalNameSpaceModule.__dict__
 		if bWantResult: # always immediate.
@@ -379,7 +394,7 @@ class PyScript(framework.COMScript):
 				if self.CompileInScriptedSection(codeBlock, exec_type):
 					self.ExecInScriptedSection(codeBlock, globs)
 			else:
-				self.pendingCodeBlocks.append(codeBlock)
+				self.codeBlocks.append(codeBlock)
 
 	def GetNamedItemClass(self):
 		return ScriptItem
