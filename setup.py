@@ -918,6 +918,8 @@ com_extensions += [
     WinExt_win32com('shell', libraries='shell32', pch_header="shell_pch.h"),
     WinExt_win32com('taskscheduler', libraries='mstask'),
     WinExt_win32com('ifilter', libraries='ntquery'),
+    WinExt_win32com('directsound', pch_header='directsound_pch.h',
+                    libraries='user32 dsound dxguid'),
 ]
 
 pythonwin_extensions = [
@@ -1076,6 +1078,7 @@ packages=['win32com',
           'win32comext.internet',
           'win32comext.axcontrol',
           'win32comext.taskscheduler',
+          'win32comext.directsound',
 
           'pythonwin.pywin',
           'pythonwin.pywin.debugger',

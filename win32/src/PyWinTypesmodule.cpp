@@ -451,6 +451,7 @@ static struct PyMethodDef pywintypes_functions[] = {
 #ifdef TRACE_THREADSTATE
 	{"_GetLockStats", _GetLockStats, 1},
 #endif /* TRACE_THREADSTATE */
+	{"WAVEFORMATEX",         PyWinMethod_NewWAVEFORMATEX, 1 },      // @pymeth WAVEFORMATEX|Creates a new <o PyWAVEFORMATEX> object.
 	{NULL,			NULL}
 };
 
@@ -496,6 +497,20 @@ void PyWin_ReleaseGlobalLock(void)
 	LeaveCriticalSection(&g_csMain);
 }
 
+static int AddConstant(PyObject *dict, const char *key, long value)
+{
+	PyObject *oval = PyInt_FromLong(value);
+	if (!oval)
+	{
+		return 1;
+	}
+	int rc = PyDict_SetItemString(dict, (char*)key, oval);
+	Py_DECREF(oval);
+	return rc;
+}
+
+#define ADD_CONSTANT(tok) AddConstant(dict, #tok, tok)
+
 extern "C" __declspec(dllexport)
 void initpywintypes(void)
 {
@@ -519,6 +534,7 @@ void initpywintypes(void)
 
   PyDict_SetItemString(dict, "TRUE", Py_True);
   PyDict_SetItemString(dict, "FALSE", Py_False);
+  ADD_CONSTANT(WAVE_FORMAT_PCM);
 
   // Add a few types.
 #ifndef NO_PYWINTYPES_TIME
@@ -536,7 +552,7 @@ void initpywintypes(void)
   PyDict_SetItemString(dict, "HANDLEType", (PyObject *)&PyHANDLEType);
   PyDict_SetItemString(dict, "OVERLAPPEDType", (PyObject *)&PyHANDLEType);
   PyDict_SetItemString(dict, "DEVMODEType", (PyObject *)&PyDEVMODEType);
-
+  PyDict_SetItemString(dict, "WAVEFORMATEXType", (PyObject *)&PyWAVEFORMATEXType);
 
 }
 

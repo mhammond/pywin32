@@ -155,11 +155,19 @@ SOURCE=.\src\PySID.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\src\PySoundObjects.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\src\PyTime.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\src\PyUnicode.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\src\PyWAVEFORMATEX.cpp
 # End Source File
 # Begin Source File
 

@@ -13,6 +13,10 @@
 // choke point for #include vagaries
 #include "Python.h"
 #include "windows.h"
+
+// Lars: for WAVEFORMATEX
+#include "mmsystem.h"
+
 // Do we want to use the builtin Unicode object?
 // If defined, we use the standard builtin type.
 // If not define, we have our own Unicode type
@@ -309,6 +313,17 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsSECURITY_ATTRIBUTES(PyObject *ob, SECURITY_
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromSECURITY_ATTRIBUTES(const SECURITY_ATTRIBUTES &sa);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsDEVMODE(PyObject *ob, PDEVMODE * ppDEVMODE, BOOL bNoneOK = TRUE);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromDEVMODE(PDEVMODE);
+
+/*
+** WAVEFORMATEX support
+*/
+
+PYWINTYPES_EXPORT PyObject *PyWinMethod_NewWAVEFORMATEX(PyObject *self, PyObject *args);
+PYWINTYPES_EXPORT PyObject *PyWinObject_FromWAVEFROMATEX(const WAVEFORMATEX &wfx);
+PYWINTYPES_EXPORT BOOL PyWinObject_AsWAVEFORMATEX(PyObject *ob, WAVEFORMATEX **ppWAVEFORMATEX, BOOL bNoneOK = TRUE);
+extern PYWINTYPES_EXPORT PyTypeObject PyWAVEFORMATEXType;
+#define PyWAVEFORMATEX_Check(ob)		((ob)->ob_type == &PyWAVEFORMATEXType)
+
 
 /*
 ** SECURITY_DESCRIPTOR support

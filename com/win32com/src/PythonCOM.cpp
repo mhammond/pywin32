@@ -498,10 +498,13 @@ static PyObject *pythoncom_connect(PyObject *self, PyObject *args)
 		return PyCom_BuildPyException(hr);
 	IDispatch *disp = NULL;
 	SCODE sc;
-	Py_BEGIN_ALLOW_THREADS; // Cant use the INTERFACE macros twice :-(
-	sc = unk->QueryInterface(IID_IDispatch, (void**)&disp);
-	unk->Release();
-	Py_END_ALLOW_THREADS;
+	// local scope for macro PY_INTERFACE_PRECALL local variables
+	{
+		PY_INTERFACE_PRECALL;
+		sc = unk->QueryInterface(IID_IDispatch, (void**)&disp);
+		unk->Release();
+		PY_INTERFACE_POSTCALL;
+	}
 	if (FAILED(sc) || disp == NULL)
 		return PyCom_BuildPyException(sc);
 	return PyCom_PyObjectFromIUnknown(disp, IID_IDispatch);
