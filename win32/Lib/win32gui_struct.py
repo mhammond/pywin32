@@ -141,8 +141,8 @@ def EmptyMENUITEMINFO(mask = None, text_buf_size=512):
         mask = win32con.MIIM_BITMAP | win32con.MIIM_CHECKMARKS | \
                win32con.MIIM_DATA | win32con.MIIM_FTYPE | \
                win32con.MIIM_ID | win32con.MIIM_STATE | \
-               win32con.MIIM_STRING | win32con.MIIM_SUBMENU | \
-               win32con.MIIM_TYPE
+               win32con.MIIM_STRING | win32con.MIIM_SUBMENU
+               # Note: No MIIM_TYPE - this screws win2k/98.
  
     if mask & win32con.MIIM_STRING:
         text_buffer = array.array("c", "\0" * text_buf_size)
@@ -167,6 +167,68 @@ def EmptyMENUITEMINFO(mask = None, text_buf_size=512):
                 0, #hbmpItem
                 )
     return array.array("c", buf), extra
+
+# MENUINFO struct
+menuinfo_fmt = '7i'
+
+def PackMENUINFO(dwStyle = None, cyMax = None,
+                 hbrBack = None, dwContextHelpID = None, dwMenuData = None,
+                 fMask = 0):
+    if dwStyle is None: dwStyle = 0
+    else: fMask |= win32con.MIM_STYLE
+    if cyMax is None: cyMax = 0
+    else: fMask |= win32con.MIM_MAXHEIGHT
+    if hbrBack is None: hbrBack = 0
+    else: fMask |= win32con.MIM_BACKGROUND
+    if dwContextHelpID is None: dwContextHelpID = 0
+    else: fMask |= win32con.MIM_HELPID
+    if dwMenuData is None: dwMenuData = 0
+    else: fMask |= win32con.MIM_MENUDATA
+    # Create the struct.
+    item = struct.pack(
+                menuinfo_fmt,
+                struct.calcsize(menuinfo_fmt), # cbSize
+                fMask,
+                dwStyle,
+                cyMax,
+                hbrBack,
+                dwContextHelpID,
+                dwMenuData)
+    return array.array("c", item)
+
+def UnpackMENUINFO(s):
+    (cb,
+    fMask,
+    dwStyle,
+    cyMax,
+    hbrBack,
+    dwContextHelpID,
+    dwMenuData) = struct.unpack(menuinfo_fmt, s)
+    assert cb==len(s)
+    if fMask & win32con.MIM_STYLE==0: dwStyle = None
+    if fMask & win32con.MIM_MAXHEIGHT==0: cyMax = None
+    if fMask & win32con.MIM_BACKGROUND==0: hbrBack = None
+    if fMask & win32con.MIM_HELPID==0: dwContextHelpID = None
+    if fMask & win32con.MIM_MENUDATA==0: dwMenuData = None
+    return dwStyle, cyMax, hbrBack, dwContextHelpID, dwMenuData
+
+def EmptyMENUINFO(mask = None):
+    if mask is None:
+        mask = win32con.MIM_STYLE | win32con.MIM_MAXHEIGHT| \
+               win32con.MIM_BACKGROUND | win32con.MIM_HELPID | \
+               win32con.MIM_MENUDATA
+ 
+    buf = struct.pack(
+                menuinfo_fmt,
+                struct.calcsize(menuinfo_fmt), # cbSize
+                mask,
+                0, #dwStyle
+                0, #cyMax
+                0, #hbrBack,
+                0, #dwContextHelpID,
+                0, #dwMenuData,
+                )
+    return array.array("c", buf)
 
 ##########################################################################
 #
@@ -405,7 +467,7 @@ def UnpackLVCOLUMN(lparam):
     # ensure only items listed by the mask are valid
     if not (mask & commctrl.LVCF_FMT): fmt = None
     if not (mask & commctrl.LVCF_WIDTH): cx = None
-    if not (mask & commctrl.LVCF_TEXT): text_addr = test_size = None
+    if not (mask & commctrl.LVCF_TEXT): text_addr = text_size = None
     if not (mask & commctrl.LVCF_SUBITEM): subItem = None
     if not (mask & commctrl.LVCF_IMAGE): image = None
     if not (mask & commctrl.LVCF_ORDER): order = None
