@@ -3,6 +3,7 @@
 #
 
 import win32api, sys
+import pythoncom
 
 # Add support for an external "COM Extensions" path.
 #  Concept is that you can register a seperate path to be used for
@@ -86,14 +87,13 @@ def __PackageSupportBuildPath__(package_path):
 		# AttributeError may be raised in a frozen EXE.
 		pass
 
-try:
-	__path__.append # NOT a method call - check a list!
-	ok = 1
-except (NameError,AttributeError):
-	ok = 0
-if ok:
+# pythoncom.frozen may already be set if
+# a special build.
+if hasattr(sys, "frozen"):
+	pythoncom.frozen = sys.frozen
+	
+if not pythoncom.frozen:
 	SetupEnvironment()
-del ok
 
 # get rid of these for module users
-del sys, win32api
+del sys, win32api, pythoncom
