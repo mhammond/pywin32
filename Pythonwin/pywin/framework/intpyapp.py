@@ -309,6 +309,7 @@ class InteractivePythonApp(app.CApp):
 		except AttributeError:
 			win32ui.MessageBox('The object has no attribute of that name')
 		except:
+			traceback.print_exc()
 			win32ui.MessageBox('This object can not be browsed')
 
 	def OnFileImport( self, id, code ):
