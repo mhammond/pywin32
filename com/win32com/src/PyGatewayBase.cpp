@@ -1,0 +1,829 @@
+// PyGatewayBase - the IUnknown Gateway Interface
+
+#include "stdafx.h"
+
+#include "PythonCOM.h"
+#include "PyFactory.h"
+
+#include "PythonCOMServer.h"
+
+// {25D29CD0-9B98-11d0-AE79-4CF1CF000000}
+extern const GUID IID_IInternalUnwrapPythonObject = 
+	{ 0x25d29cd0, 0x9b98, 0x11d0, { 0xae, 0x79, 0x4c, 0xf1, 0xcf, 0x0, 0x0, 0x0 } };
+
+extern void PyCom_LogF(const char *fmt, ...);
+#define LogF PyCom_LogF
+
+// #define DEBUG_FULL
+static LONG cGateways = 0;
+LONG _PyCom_GetGatewayCount(void)
+{
+	return cGateways;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+//
+void *PyGatewayBase::ThisAsIID(IID iid)
+{
+	if (iid==IID_IUnknown ||
+		iid==IID_IDispatch)
+		// IDispatch * == IUnknown *
+		return (IDispatch *)(PyGatewayBase *)this;
+#ifndef NO_PYCOM_IDISPATCHEX
+	else if (iid==IID_IDispatchEx)
+		// IDispatchEx * probably == IUnknown *, but no real need to assume that!
+		return (IDispatchEx *)this;
+#endif // NO_PYCOM_IDISPATCHEX
+	else if (iid==IID_ISupportErrorInfo)
+		return (ISupportErrorInfo *)this;
+	else if (iid==IID_IInternalUnwrapPythonObject)
+		return (IInternalUnwrapPythonObject *)this;
+	else
+		return NULL;
+}
+
+PyGatewayBase::PyGatewayBase(PyObject *instance)
+{
+	InterlockedIncrement(&cGateways);
+	m_pBaseObject = NULL;
+	m_cRef = 1;
+	m_pPyObject = instance;
+	Py_XINCREF(instance); // instance should never be NULL - but whats an X between friends!
+
+	PyCom_DLLAddRef();
+
+#ifdef DEBUG_FULL
+	LogF("PyGatewayBase: created %s", m_pPyObject ? m_pPyObject->ob_type->tp_name : "<NULL>");
+#endif
+}
+
+PyGatewayBase::~PyGatewayBase()
+{
+	InterlockedDecrement(&cGateways);
+#ifdef DEBUG_FULL
+	LogF("PyGatewayBase: deleted %s", m_pPyObject ? m_pPyObject->ob_type->tp_name : "<NULL>");
+#endif
+
+	if ( m_pPyObject )
+	{
+		{
+			CEnterLeavePython celp;
+			Py_DECREF(m_pPyObject);
+		}
+	}
+	if (m_pBaseObject)
+	{
+		m_pBaseObject->Release();
+	}
+	PyCom_DLLReleaseRef();
+}
+
+STDMETHODIMP PyGatewayBase::QueryInterface(
+	REFIID iid,
+	void ** ppv
+	)
+{
+#ifdef DEBUG_FULL
+	{
+		USES_CONVERSION;
+		OLECHAR oleRes[128];
+		StringFromGUID2(iid, oleRes, sizeof(oleRes));
+		LogF("PyGatewayBase::QueryInterface: %s", OLE2T(oleRes));
+	}
+#endif
+
+	*ppv = NULL;
+
+	// If one of our native interfaces (but NOT IUnknown if we have a base)
+	// return this.
+	// It is important is that IUnknown come from the base object
+	// to ensure that we live by COM identity rules (other interfaces need
+	// not abide by this rule - only IUnknown.)
+	if ( (m_pBaseObject==NULL || iid!=IID_IUnknown) && (*ppv=ThisAsIID(iid)) != NULL ) {
+		AddRef();
+		return S_OK;
+	}
+
+	// If we have a "base object", then we need to delegate _every_ remaining 
+	// QI to it.
+	if (m_pBaseObject != NULL && (m_pBaseObject->QueryInterface(iid, ppv)==S_OK))
+		return S_OK;
+
+	// Call the Python policy to see if it (says it) supports the interface
+	long supports = 0;
+	{
+		CEnterLeavePython celp;
+		PyObject * ob = PyWinObject_FromIID(iid);
+		if ( !ob )
+			return E_OUTOFMEMORY;
+
+		PyObject *result = PyObject_CallMethod(m_pPyObject, "_QueryInterface_",
+											   "O", ob);
+		Py_DECREF(ob);
+
+		if ( result )
+		{
+			if (PyInt_Check(result))
+				supports = PyInt_AsLong(result);
+			else if ( PyIBase::is_object(result, &PyIUnknown::type) ) {
+				// We already have the object - return it without additional QI's etc.
+				IUnknown *pUnk = PyIUnknown::GetI(result);
+				if (pUnk) {
+					pUnk->AddRef();
+					*ppv = pUnk;
+					supports = 1;
+				}
+			}
+			PyErr_Clear(); // ignore exceptions during conversion 
+			Py_DECREF(result);
+		}
+		else
+		{
+//			PyRun_SimpleString("import traceback;traceback.print_exc()");
+			PyErr_Clear();	// ### what to do with exceptions? ... 
+		}
+	}
+
+	if ( supports != 1 )
+		return E_NOINTERFACE;
+
+	// Make a new gateway object
+	if (*ppv==NULL) {
+		HRESULT hr = PyCom_MakeRegisteredGatewayObject(iid, m_pPyObject, ppv);
+		if (FAILED(hr)) return hr;
+	}
+	// Now setup the base object pointer back to me.
+	// Make sure it is actually a gateway, and not some other
+	// IUnknown object grabbed from elsewhere.
+	// Also makes sure we have the address of the object OK.
+	IUnknown *pLook = (IUnknown *)(*ppv);
+	IInternalUnwrapPythonObject *pTemp;
+	if (pLook->QueryInterface(IID_IInternalUnwrapPythonObject, (void **)&pTemp)==S_OK) {
+		// One of our objects, so set the base object if it doesnt already have one
+		PyGatewayBase *pG = (PyGatewayBase *)pTemp;
+		// Eeek - just these few next lines need to be thread-safe :-(
+		PyWin_AcquireGlobalLock();
+		if (pG->m_pBaseObject==NULL && pG != (PyGatewayBase *)this) {
+			pG->m_pBaseObject = this;
+			pG->m_pBaseObject->AddRef();
+		}
+		PyWin_ReleaseGlobalLock();
+		pTemp->Release();
+	}
+	return S_OK;
+}
+
+STDMETHODIMP_(ULONG) PyGatewayBase::AddRef(void)
+{
+	return InterlockedIncrement(&m_cRef);
+}
+
+STDMETHODIMP_(ULONG) PyGatewayBase::Release(void)
+{
+	LONG cRef = InterlockedDecrement(&m_cRef);
+	if ( cRef == 0 )
+		delete this;
+	return cRef;
+}
+
+STDMETHODIMP PyGatewayBase::GetTypeInfoCount(
+	UINT FAR* pctInfo
+	)
+{
+	if (pctInfo==NULL)
+		return E_POINTER;
+	/* ### eventually, let Python be able to return type info */
+
+	*pctInfo = 0;
+	return S_OK;
+}
+
+STDMETHODIMP PyGatewayBase::GetTypeInfo(
+	UINT itinfo,
+	LCID lcid,
+	ITypeInfo FAR* FAR* pptInfo
+	)
+{
+	if (pptInfo==NULL)
+		return E_POINTER;
+    *pptInfo = NULL;
+
+	/* ### eventually, let Python be able to return type info */
+
+	return DISP_E_BADINDEX;
+}
+
+static HRESULT getids_setup(
+	UINT cNames,
+	OLECHAR FAR* FAR* rgszNames,
+	LCID lcid,
+	PyObject **pPyArgList,
+	PyObject **pPyLCID
+	)
+{
+	PyObject *argList = PyTuple_New(cNames);
+	if ( !argList )
+	{
+		PyErr_Clear();	/* ### what to do with exceptions? ... */
+		return E_OUTOFMEMORY;
+	}
+
+	for ( UINT i = 0; i < cNames; i++ )
+	{
+		PyObject *ob = MakeOLECHARToObj(rgszNames[i]);
+		if ( !ob )
+		{
+			PyErr_Clear();	/* ### what to do with exceptions? ... */
+			Py_DECREF(argList);
+			return E_OUTOFMEMORY;
+		}
+
+		/* Note: this takes our reference for us (even if it fails) */
+		if ( PyTuple_SetItem(argList, i, ob) == -1 )
+		{
+			PyErr_Clear();	/* ### what to do with exceptions? ... */
+			Py_DECREF(argList);
+			return E_FAIL;
+		}
+	}
+
+	/* use the double stuff to keep lcid unsigned... */
+	PyObject * py_lcid = PyLong_FromDouble((double)lcid);
+	if ( !py_lcid )
+	{
+		PyErr_Clear();	/* ### what to do with exceptions? ... */
+		Py_DECREF(argList);
+		return E_FAIL;
+	}
+
+	*pPyArgList = argList;
+	*pPyLCID = py_lcid;
+
+	return S_OK;
+}
+
+static HRESULT getids_finish(
+	PyObject *result,
+	UINT cNames,
+	DISPID FAR* rgdispid
+	)
+{
+	if ( !result )
+		return PyCom_HandlePythonFailureToCOM();
+
+	if ( !PySequence_Check(result) )
+	{
+		Py_DECREF(result);
+		return E_FAIL;
+	}
+
+	UINT count = PyObject_Length(result);
+	if ( count != cNames )
+	{
+		PyErr_Clear();	/* ### toss any potential exception */
+		Py_DECREF(result);
+		return E_FAIL;
+	}
+
+	HRESULT hr = S_OK;
+	for ( UINT i = 0; i < cNames; ++i )
+	{
+		PyObject *ob = PySequence_GetItem(result, i);
+		if ( !ob )
+		{
+			PyErr_Clear();	/* ### what to do with exceptions? ... */
+			Py_DECREF(result);
+			return E_FAIL;
+		}
+		if ( (rgdispid[i] = PyInt_AsLong(ob)) == DISPID_UNKNOWN )
+			hr = DISP_E_UNKNOWNNAME;
+
+		Py_DECREF(ob);
+	}
+
+	Py_DECREF(result);
+
+	return hr;
+}
+
+STDMETHODIMP PyGatewayBase::GetIDsOfNames(
+	REFIID refiid,
+	OLECHAR FAR* FAR* rgszNames,
+	UINT cNames,
+	LCID lcid,
+	DISPID FAR* rgdispid
+	)
+{
+#ifdef DEBUG_FULL
+	LogF("PyGatewayBase::GetIDsOfNames");
+#endif
+
+	HRESULT hr;
+	PyObject *argList;
+	PyObject *py_lcid;
+
+	PY_GATEWAY_METHOD;
+	hr = getids_setup(cNames, rgszNames, lcid, &argList, &py_lcid);
+	if ( SUCCEEDED(hr) )
+	{
+		PyObject *result = PyObject_CallMethod(m_pPyObject,
+											   "_GetIDsOfNames_",
+											   "OO", argList, py_lcid);
+		Py_DECREF(argList);
+		Py_DECREF(py_lcid);
+
+		hr = getids_finish(result, cNames, rgdispid);
+	}
+	return hr;
+}
+
+static HRESULT invoke_setup(
+	DISPPARAMS FAR* params,
+	LCID lcid,
+	PyObject **pPyArgList,
+	PyObject **pPyLCID
+	)
+{
+	PyObject *argList = PyTuple_New(params->cArgs);
+	if ( !argList )
+	{
+		PyErr_Clear();	/* ### what to do with exceptions? ... */
+		return E_OUTOFMEMORY;
+	}
+
+	PyObject *ob;
+	VARIANTARG FAR *pvarg;
+	UINT i;
+	for ( pvarg = params->rgvarg, i = params->cArgs; i--; ++pvarg )
+	{
+		ob = PyCom_PyObjectFromVariant(pvarg);
+		if ( !ob )
+		{
+			PyErr_Clear();	/* ### what to do with exceptions? ... */
+			Py_DECREF(argList);
+			return E_OUTOFMEMORY;
+		}
+
+		/* Note: this takes our reference for us (even if it fails) */
+		if ( PyTuple_SetItem(argList, i, ob) == -1 )
+		{
+			PyErr_Clear();	/* ### what to do with exceptions? ... */
+			Py_DECREF(argList);
+			return E_FAIL;
+		}
+	}
+
+	/* use the double stuff to keep lcid unsigned... */
+	PyObject * py_lcid = PyLong_FromDouble((double)lcid);
+	if ( !py_lcid )
+	{
+		PyErr_Clear();	/* ### what to do with exceptions? ... */
+		Py_DECREF(argList);
+		return E_FAIL;
+	}
+
+	*pPyArgList = argList;
+	*pPyLCID = py_lcid;
+	return S_OK;
+}
+
+static HRESULT invoke_finish(
+	PyObject *result,
+	VARIANT FAR* pVarResult,
+	UINT FAR* puArgErr /* May be NULL */
+	)
+{
+	HRESULT hr;
+
+	if ( PyNumber_Check(result) )
+	{
+		hr = PyInt_AsLong(result);
+		Py_DECREF(result);
+		return hr;
+	}
+	if ( !PySequence_Check(result) )
+	{
+		Py_DECREF(result);
+		return E_FAIL;
+	}
+
+	PyObject *ob = PySequence_GetItem(result, 0);
+	if ( !ob )
+	{
+		PyErr_Clear();	/* ### what to do with exceptions? ... */
+		Py_DECREF(result);
+		return E_FAIL;
+	}
+	hr = PyInt_AsLong(ob);
+	Py_DECREF(ob);
+
+	int count = PyObject_Length(result);
+	if ( count > 0 )
+	{
+		if ( puArgErr )
+		{
+			ob = PySequence_GetItem(result, 1);
+			if ( !ob )
+			{
+				PyErr_Clear();	/* ### what to do with exceptions? ... */
+				Py_DECREF(result);
+				return E_FAIL;
+			}
+
+			*puArgErr = PyInt_AsLong(ob);
+			Py_DECREF(ob);
+		}
+
+		if ( pVarResult )
+		{
+			ob = PySequence_GetItem(result, 2);
+			if ( !ob )
+			{
+				PyErr_Clear();	/* ### what to do with exceptions? ... */
+				Py_DECREF(result);
+				return E_FAIL;
+			}
+
+			BOOL success = PyCom_VariantFromPyObject(ob, pVarResult);
+			/* for now: */ PyErr_Clear();
+			if ( !success )
+			{
+				PyErr_Clear();
+				hr = E_FAIL;
+			}
+			Py_DECREF(ob);
+		}
+
+		if ( count > 3 )
+		{
+			/* ### copy extra results into associated [out] params */
+		}
+	}
+
+	Py_DECREF(result);
+
+	return hr;
+}
+
+STDMETHODIMP PyGatewayBase::Invoke(
+	DISPID dispid,
+	REFIID riid,
+	LCID lcid,
+	WORD wFlags,
+	DISPPARAMS FAR* params,
+	VARIANT FAR* pVarResult,
+	EXCEPINFO FAR* pexcepinfo,
+	UINT FAR* puArgErr
+	)
+{
+#ifdef DEBUG_FULL
+	LogF("PyGatewayBase::Invoke; dispid=%ld", dispid);
+#endif
+
+	HRESULT hr;
+
+	if ( pVarResult )
+		V_VT(pVarResult) = VT_EMPTY;
+
+	/* ### for now: no named args unless it is a PUT operation */
+	if ( params->cNamedArgs )
+	{
+		if ( params->cNamedArgs > 1 )
+			return DISP_E_NONAMEDARGS;
+		if ( params->rgdispidNamedArgs[0] != DISPID_PROPERTYPUT )
+			return DISP_E_NONAMEDARGS;
+	}
+	PY_GATEWAY_METHOD;
+	PyObject *argList;
+	PyObject *py_lcid;
+	hr = invoke_setup(params, lcid, &argList, &py_lcid);
+	if ( SUCCEEDED(hr) )
+	{
+		PyObject * result = PyObject_CallMethod(m_pPyObject,
+												"_Invoke_",
+												"iOiO",
+												dispid, py_lcid, wFlags,
+												argList);
+
+		Py_DECREF(argList);
+		Py_DECREF(py_lcid);
+
+		if ( result==NULL )
+			hr = PyCom_HandlePythonFailureToCOM(pexcepinfo);
+		else
+			hr = invoke_finish(result, pVarResult, puArgErr);
+	}
+	return hr;
+}
+
+#ifndef NO_PYCOM_IDISPATCHEX
+////////////////////////////////////////////////////////////////////////////
+//
+// The IDispatchEx implementation
+//
+//
+STDMETHODIMP PyGatewayBase::GetDispID(BSTR bstrName, DWORD grfdex, DISPID *pid)
+{
+#ifdef DEBUG_FULL
+	LogF("PyGatewayBase::GetDispID");
+#endif
+	PY_GATEWAY_METHOD;
+	PyObject *obName = PyWinObject_FromBstr(bstrName, FALSE);
+	if (obName==NULL) return PyCom_SetFromPyException(IID_IDispatchEx);
+
+	PyObject *result = PyObject_CallMethod(m_pPyObject,
+											   "_GetDispID_",
+											   "Ol", obName, grfdex);
+	Py_DECREF(obName);
+	if (result) {
+		if (PyInt_Check(result))
+			*pid = PyInt_AsLong(result);
+		else
+			PyErr_SetString(PyExc_TypeError, "_GetDispID_ must return an integer object");
+		Py_DECREF(result);
+	}
+	return PyCom_SetFromPyException(IID_IDispatchEx);
+}
+
+STDMETHODIMP PyGatewayBase::InvokeEx(DISPID id, LCID lcid, WORD wFlags, DISPPARAMS *params, VARIANT *pVarResult, EXCEPINFO *pexcepinfo, IServiceProvider *pspCaller)
+{
+#ifdef DEBUG_FULL
+	LogF("PyGatewayBase::InvokeEx; dispid=%ld", dispid);
+#endif
+
+	HRESULT hr;
+
+	if ( pVarResult )
+		V_VT(pVarResult) = VT_EMPTY;
+
+	/* ### for now: no named args unless it is a PUT operation */
+	if ( params->cNamedArgs )
+	{
+		if ( params->cNamedArgs > 1 )
+			return DISP_E_NONAMEDARGS;
+		if ( params->rgdispidNamedArgs[0] != DISPID_PROPERTYPUT )
+			return DISP_E_NONAMEDARGS;
+	}
+	PyObject *obISP = PyCom_PyObjectFromIUnknown(pspCaller, IID_IServiceProvider, TRUE);
+	if (obISP==NULL)
+		return PyCom_HandlePythonFailureToCOM(pexcepinfo);
+
+	PY_GATEWAY_METHOD;
+	PyObject *argList;
+	PyObject *py_lcid;
+	hr = invoke_setup(params, lcid, &argList, &py_lcid);
+	if ( SUCCEEDED(hr) )
+	{
+		PyObject * result = PyObject_CallMethod(m_pPyObject,
+												"_InvokeEx_",
+												"iOiOOO",
+												id, py_lcid, wFlags,
+												argList, Py_None,
+												obISP);
+
+		Py_DECREF(argList);
+		Py_DECREF(py_lcid);
+
+		if ( result==NULL )
+			hr = PyCom_HandlePythonFailureToCOM(pexcepinfo);
+		else {
+			// Done use invoke_finish, as we no longer support exceptions and
+			// nArgErr coming back.
+//			hr = invoke_finish(result, pVarResult, NULL);
+			BOOL success = pVarResult ? 
+					PyCom_VariantFromPyObject(result, pVarResult) :
+					TRUE;
+
+			if ( !success )
+			{
+				PyErr_Clear();
+				hr = E_FAIL;
+			}
+			Py_DECREF(result);
+		}
+	}
+	Py_DECREF(obISP);
+	return hr;
+}
+
+
+STDMETHODIMP PyGatewayBase::DeleteMemberByName(BSTR bstr, DWORD grfdex)
+{
+#ifdef DEBUG_FULL
+	LogF("PyGatewayBase::DeleteMemberByName");
+#endif
+	PY_GATEWAY_METHOD;
+	PyObject *obName = PyWinObject_FromBstr(bstr, FALSE);
+	if (obName==NULL) return PyCom_SetFromPyException(IID_IDispatchEx);
+
+	PyObject *result = PyObject_CallMethod(m_pPyObject,
+											   "_DeleteMemberByName_",
+											   "Ol", obName, grfdex);
+	Py_DECREF(obName);
+	Py_XDECREF(result);
+	return PyCom_SetFromPyException(IID_IDispatchEx);
+}
+
+
+STDMETHODIMP PyGatewayBase::DeleteMemberByDispID(DISPID id)
+{
+#ifdef DEBUG_FULL
+	LogF("PyGatewayBase::DeleteMemberByDispID");
+#endif
+	PY_GATEWAY_METHOD;
+	PyObject *result = PyObject_CallMethod(m_pPyObject,
+											   "_DeleteMemberByDispID_",
+											   "l", id);
+	Py_XDECREF(result);
+	return PyCom_SetFromPyException(IID_IDispatchEx);
+}
+
+
+STDMETHODIMP PyGatewayBase::GetMemberProperties(DISPID id, DWORD grfdexFetch, DWORD *pgrfdex)
+{
+#ifdef DEBUG_FULL
+	LogF("PyGatewayBase::GetMemberProperties");
+#endif
+	PY_GATEWAY_METHOD;
+	PyObject *result = PyObject_CallMethod(m_pPyObject,
+											   "_GetMemberProperties_",
+											   "ll", id, grfdexFetch);
+	if (result) {
+		if (PyInt_Check(result))
+			*pgrfdex = PyInt_AsLong(result);
+		else
+			PyErr_SetString(PyExc_TypeError, "GetMemberProperties must return an integer object");
+		Py_DECREF(result);
+	}
+	return PyCom_SetFromPyException(IID_IDispatchEx);
+}
+
+
+STDMETHODIMP PyGatewayBase::GetMemberName(DISPID id, BSTR *pbstrName)
+{
+#ifdef DEBUG_FULL
+	LogF("PyGatewayBase::GetMemberName");
+#endif
+	PY_GATEWAY_METHOD;
+	PyObject *result = PyObject_CallMethod(m_pPyObject,
+											   "_GetMemberName_",
+											   "l", id);
+	if (result) {
+		PyWinObject_AsBstr(result, pbstrName);
+		Py_DECREF(result);
+	}
+	return PyCom_SetFromPyException(IID_IDispatchEx);
+}
+
+
+STDMETHODIMP PyGatewayBase::GetNextDispID(DWORD grfdex, DISPID id, DISPID *pid)
+{
+#ifdef DEBUG_FULL
+	LogF("PyGatewayBase::GetNextDispID");
+#endif
+	PY_GATEWAY_METHOD;
+	PyObject *result = PyObject_CallMethod(m_pPyObject,
+											   "_GetNextDispID_",
+											   "ll", grfdex, id);
+	if (result) {
+		if (PyInt_Check(result))
+			*pid = PyInt_AsLong(result);
+		else
+			PyErr_SetString(PyExc_TypeError, "GetNextDispID must return an integer object");
+		Py_DECREF(result);
+	}
+	return PyCom_SetFromPyException(IID_IDispatchEx);
+}
+
+
+STDMETHODIMP PyGatewayBase::GetNameSpaceParent(IUnknown **ppunk)
+{
+#ifdef DEBUG_FULL
+	LogF("PyGatewayBase::GetNameSpaceParent");
+#endif
+	PY_GATEWAY_METHOD;
+	PyObject *result = PyObject_CallMethod(m_pPyObject,
+											   "_GetNameSpaceParent_",
+											   NULL);
+	if (result) {
+		PyCom_InterfaceFromPyInstanceOrObject(result, IID_IUnknown, (void **)ppunk, /* bNoneOK=*/FALSE);
+		Py_DECREF(result);
+	}
+	return PyCom_SetFromPyException(IID_IDispatchEx);
+}
+
+#endif // NO_PYCOM_IDISPATCHEX
+
+////////////////////////////////////////////////////////////////////////////
+//
+// Extra Python helpers...
+//
+//
+static PyObject *do_dispatch(
+	PyObject *pPyObject,
+	const char *szMethodName,
+	const char *szFormat,
+	va_list va
+	)
+{
+	// Build the Invoke arguments...
+	PyObject *args;
+	if ( szFormat )
+		args = Py_VaBuildValue((char *)szFormat, va);
+	else
+		args = PyTuple_New(0);
+	if ( !args )
+		return NULL;
+
+	// make sure a tuple.
+	if ( !PyTuple_Check(args) )
+    {
+		PyObject *a = PyTuple_New(1);
+		if ( a == NULL )
+		{
+			Py_DECREF(args);
+			return NULL;
+		}
+		PyTuple_SET_ITEM(a, 0, args);
+		args = a;
+    }
+
+	PyObject *method = PyObject_GetAttrString(pPyObject, "_InvokeEx_");
+	if ( !method )
+    {
+		PyErr_SetString(PyExc_AttributeError, (char *)szMethodName);
+		return NULL;
+    }
+
+	// Make the call to _Invoke_
+	PyObject *result = PyObject_CallFunction(method,
+											 "siiOOO",
+											 szMethodName,
+											 0,
+											 DISPATCH_METHOD,
+											 args, Py_None, Py_None);
+	Py_DECREF(method);
+	Py_DECREF(args);
+	return result;
+}
+
+PyObject *PyGatewayBase::DispatchViaPolicy(const char *szMethodName, const char *szFormat, ...)
+{
+	va_list va;
+
+	if ( !m_pPyObject || !szMethodName )
+    {
+		return OleSetTypeError("The argument is invalid");
+    }
+
+	va_start(va, szFormat);
+	PyObject *result = do_dispatch(m_pPyObject, szMethodName, szFormat, va);
+	va_end(va);
+
+	return result;
+}
+
+STDMETHODIMP PyGatewayBase::InvokeViaPolicy(
+	const char *szMethodName,
+	PyObject **ppResult /* = NULL */,
+	const char *szFormat /* = NULL */,
+	...
+	)
+{
+	va_list va;
+
+	if ( m_pPyObject == NULL || szMethodName == NULL )
+		return E_POINTER;
+
+	va_start(va, szFormat);
+	PyObject *result = do_dispatch(m_pPyObject, szMethodName, szFormat, va);
+	va_end(va);
+
+	HRESULT hr = PyCom_SetFromPyException(GetIID());
+
+	if ( ppResult )
+		*ppResult = result;
+	else
+		Py_XDECREF(result);
+
+	return hr;
+}
+
+STDMETHODIMP PyGatewayBase::InterfaceSupportsErrorInfo(REFIID riid)
+{
+	if ( IsEqualGUID(riid, GetIID()) )
+		return S_OK;
+
+	return S_FALSE;
+}
+
+STDMETHODIMP PyGatewayBase::Unwrap(
+            /* [out] */ PyObject **pPyObject)
+{
+	if (pPyObject==NULL)
+		return E_POINTER;
+	*pPyObject = m_pPyObject;
+	Py_INCREF(m_pPyObject);
+	return S_OK;
+}
+

@@ -1,0 +1,15 @@
+EXPORTS
+	DllCanUnloadNow     @1 PRIVATE
+	DllGetClassObject   @2 PRIVATE
+
+	; Some exports for clients who may "LoadLibrary"...
+	PyCom_VariantFromPyObject
+	PyCom_PyObjectFromVariant
+	PyCom_InterfaceFromPyObject
+	PyCom_PyObjectFromIUnknown
+	PyCom_MakeOlePythonCall
+
+	PyCom_CoInitializeEx
+	PyCom_CoInitialize
+	PyCom_CoUninitialize
+

@@ -1,0 +1,37 @@
+<HTML>
+<H1>Engine Registration</H1>
+
+<BODY>
+
+The Python ActiveX Scripting Engine is not currently registered.  Before any of the supplied demos will work, the engine must be successfully registered.
+
+<P>If you are seeing this page because you just installed the Microsoft Script Debugger
+for internet explorer, then I am afraid you need to upgrade the debugger.  You can find
+a debugger for MSIE3.02 at <A HREF="ftp://www.python.org/ftp/python/pythonwin/MSIE3DBG.EXE">www.python.org (MSIE3DBG.EXE - 1503k)</A>
+<P>To install the engine, the Python program <CODE>win32com\axscript\client\pyscript.py</CODE> must be run.  You can either do this manually, or follow the instructions below.
+
+<H2>Register the engine now!</H2>
+You can register the engine very simply.  Just follow the process outlined below:
+<OL>
+  <LI>Click on the link below
+  <LI><B>A dialog will be presented asking if the file should be opened or saved to disk.  Select "Open it".</B>
+  <LI>A Console program will briefly open, while the server is registered.
+</OL>
+
+<P><A HREF="..\..\..\client\pyscript.py">Register the engine now</A>
+
+<H2>Checking the registration</H2>
+After the registration is complete, simply hit the Reload button.  If the 
+registration was successful, the page will change to the Python/AvtiveX Demo Page.
+
+
+<SCRIPT LANGUAGE="Python">
+try:
+	window.open("demo_intro.htm", "Body")
+except:
+	history.back()
+</SCRIPT>
+</BODY></HTML>
+
+
+
