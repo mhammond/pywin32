@@ -14,7 +14,11 @@ error = "Python Service Utility Error"
 def LocatePythonServiceExe(exeName = None):
 	# Try and find the specified EXE somewhere.  If specifically registered,
 	# use it.  Otherwise look down sys.path, and the global PATH environment.
-	if exeName is None: exeName = "PythonService.exe"
+	if exeName is None:
+		if win32service.__file__.find("_d")>=0:
+			exeName = "PythonService_d.exe"
+		else:
+			exeName = "PythonService_d.exe"
 	# See if it exists as specified
 	if os.path.isfile(exeName): return win32api.GetFullPathName(exeName)
 	baseName = os.path.splitext(os.path.basename(exeName))[0]
