@@ -225,6 +225,7 @@ extern "C" __declspec(dllexport) int __stdcall DllMainwin32ui(HINSTANCE hInstanc
 				if(pdynDll == pDLL) {
 					delete pDLL;
 					pDLL = NULL;
+                    break;
 				}
 				pdynDll = pafxmostState->m_libraryList.GetNext(pdynDll);
 			}
