@@ -480,7 +480,7 @@ extern "C" int PythonService_main(int argc, char **argv)
 #endif
     printf(" -debug servicename [parms] - debug the Python service.\n");
     printf("\nNOTE: You do not start the service using this program - start the\n");
-    printf("service using Control Panel, or 'net start %s'\n", svcName);
+    printf("service using Control Panel, or 'net start service_name'\n");
     printf("\nConnecting to the service control manager....\n");
 
     if (!StartServiceCtrlDispatcher( DispatchTable)) {
