@@ -473,13 +473,16 @@ static HRESULT invoke_finish(
 		userResult = result;
 		Py_INCREF(userResult);
 	}
-	
 	// If the actual result specified is not a tuple,
 	// then the user may be specifying either the function result,
 	// or one of the byrefs.
 	// NOTE: We use a specific tuple check rather than a sequence
 	// check to avoid strings, and also to allow lists to _not_ qualify
 	// here - otherwise returning an array of objects would be difficult.
+	// NOTE: Although this is not ideal, it would be evil if the parameters determined
+	// how the Python result was unpacked.  VB, for example, will often pass everything
+	// BYREF, but Python wont.  This would mean Python and VB would see different results
+	// from the same function.
 	if (PyTuple_Check(userResult)) {
 		unsigned cUserResult = PyTuple_Size(userResult);
 		unsigned firstByRef = 0;
