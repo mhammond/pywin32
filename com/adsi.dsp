@@ -108,6 +108,10 @@ SOURCE=.\win32comext\adsi\src\PyIADsUser.cpp
 
 SOURCE=.\win32comext\adsi\src\PyIDirectoryObject.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\adsi\src\PyIDirectorySearch.cpp
+# End Source File
 # End Group
 # Begin Source File
 
@@ -276,6 +280,10 @@ BuildCmds= \
 
 !ENDIF 
 
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\adsi\src\PyIDirectorySearch.i
 # End Source File
 # End Target
 # End Project
