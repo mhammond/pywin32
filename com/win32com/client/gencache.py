@@ -66,7 +66,7 @@ def GetGeneratedFileName(clsid, lcid, major, minor):
 	"""Given the clsid, lcid, major and  minor for a type lib, return
 	the file name (no extension) providing this support.
 	"""
-	return str(clsid)[1:-1] + "x%sx%sx%s" % (lcid, major, minor)
+	return string.upper(str(clsid))[1:-1] + "x%sx%sx%s" % (lcid, major, minor)
 
 def SplitGeneratedFileName(fname):
 	"""Reverse of GetGeneratedFileName()
