@@ -264,14 +264,23 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 
 def GenerateChildFromTypeLibSpec(child, typelibInfo, verboseLevel = None, progressInstance = None, bUnicodeToString=NeedUnicodeConversions):
 	if verboseLevel is None:
-		verboseLevel = 0 # By default, we use a gui, and no verbose level!
-	typelibCLSID, lcid, major, minor  = typelibInfo
-	tlb = pythoncom.LoadRegTypeLib(typelibCLSID, major, minor, lcid)
+		verboseLevel = 0 # By default, we use no gui, and no verbose level for the children.
+	if type(typelibInfo)==type(()):
+		typelibCLSID, lcid, major, minor  = typelibInfo
+		tlb = pythoncom.LoadRegTypeLib(typelibCLSID, major, minor, lcid)
+	else:
+		tlb = typelibInfo
+		tla = typelibInfo.GetLibAttr()
+		typelibCLSID = tla[0]
+		lcid = tla[1]
+		major = tla[3]
+		minor = tla[4]
 	spec = selecttlb.TypelibSpec(typelibCLSID, lcid, major, minor)
 	spec.FromTypelib(tlb, str(typelibCLSID))
 	typelibs = [(tlb, spec)]
 
-	progressInstance = SimpleProgress(verboseLevel)
+	if progressInstance is None:
+		progressInstance = SimpleProgress(verboseLevel)
 	progress = progressInstance
 
 	for typelib, info in typelibs:

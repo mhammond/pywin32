@@ -30,6 +30,10 @@ import CLSIDToClass
 # The global dictionary
 clsidToTypelib = {}
 
+# A dictionary of ITypeLibrary objects for demand generation explicitly handed to us
+# Keyed by usual clsid, lcid, major, minor
+demandGeneratedTypeLibraries = {}
+
 def __init__():
 	# Initialize the module.  Called once automatically
 	try:
@@ -174,9 +178,12 @@ def GetModuleForCLSID(clsid):
 			try:
 				__import__(sub_mod_name)
 			except ImportError:
-				# Force the generation.
-				import makepy
 				info = typelibCLSID, lcid, major, minor
+				# Force the generation.  If this typelibrary has explicitly been added,
+				# use it (it may not be registered, causing a lookup by clsid to fail)
+				if demandGeneratedTypeLibraries.has_key(info):
+					info = demandGeneratedTypeLibraries[info]
+				import makepy
 				makepy.GenerateChildFromTypeLibSpec(sub_mod, info)
 				# Generate does an import...
 			mod = sys.modules[sub_mod_name]
@@ -270,12 +277,33 @@ def EnsureModuleForTypelibInterface(typelib_ob, progressInstance = None, bForDem
 	lcid = tla[1]
 	major = tla[3]
 	minor = tla[4]
+
+	#If demand generated, save the typelib interface away for later use
+	if bForDemand:
+		demandGeneratedTypeLibraries[(str(guid), lcid, major, minor)] = typelib_ob
+
 	try:
 		return GetModuleForTypelib(guid, lcid, major, minor)
 	except ImportError:
 		pass
 	# Generate it.
 	return MakeModuleForTypelibInterface(typelib_ob, progressInstance, bForDemand, bBuildHidden)
+
+def ForgetAboutTypelibInterface(typelib_ob):
+	"""Drop any references to a typelib previously added with EnsureModuleForTypelibInterface and forDemand"""
+	tla = typelib_ob.GetLibAttr()
+	guid = tla[0]
+	lcid = tla[1]
+	major = tla[3]
+	minor = tla[4]
+	info = str(guid), lcid, major, minor
+	try:
+		del demandGeneratedTypeLibraries[info]
+	except KeyError:
+		# Not worth raising an exception - maybe they dont know we only remember for demand generated, etc.
+		print "ForgetAboutTypelibInterface:: Warning - type library with info %s is not being remembered!" % (info,)
+
+
 
 def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bValidateFile=1, bForDemand = 0, bBuildHidden = 1):
 	"""Ensure Python support is loaded for a type library, generating if necessary.
