@@ -80,7 +80,7 @@ def _LoadDicts():
 			zf = zipfile.ZipFile(zip_file)
 			f = cStringIO.StringIO(zf.read(zip_path))
 			zf.close()
-		except IOError:
+		except KeyError:
 			# Our gencache is in a .zip file (and almost certainly readonly)
 			# but no dicts file.  That actually needn't be fatal for a frozen
 			# application.  Assuming they call "EnsureModule" with the same
