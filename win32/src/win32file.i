@@ -138,6 +138,12 @@ BOOLAPI CopyFile(
     TCHAR *to, // @pyparm <o PyUnicode>|to||The name of the file to copy to
     BOOL bFailIfExists); // @pyparm int|bFailIfExists||Indicates if the operation should fail if the file exists.
 
+// @pyswig |CopyFileW|Copies a file (NT/2000 Unicode specific version)
+BOOLAPI CopyFileW(
+    WCHAR *from, // @pyparm <o PyUnicode>|from||The name of the file to copy from
+    WCHAR *to, // @pyparm <o PyUnicode>|to||The name of the file to copy to
+    BOOL bFailIfExists); // @pyparm int|bFailIfExists||Indicates if the operation should fail if the file exists.
+
 // CopyFileEx
 
 // @pyswig |CreateDirectory|Creates a directory
@@ -182,6 +188,17 @@ PyHANDLE CreateFile(
     PyHANDLE INPUT_NULLOK // @pyparm <o PyHANDLE>|hTemplateFile||Specifies a handle with GENERIC_READ access to a template file. The template file supplies file attributes and extended attributes for the file being created.   Under Win95, this must be 0, else an exception will be raised.
 );
 
+// @pyswig <o PyHANDLE>|CreateFileW|An NT/2000 specific Unicode version of CreateFile - see <om win32file.CreateFile> for more information.
+PyHANDLE CreateFileW(
+    WCHAR *lpFileName,	// @pyparm <o PyUnicode>|fileName||The name of the file
+    DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||access (read-write) mode
+    DWORD dwShareMode,	// @pyparm int|shareMode||Set of bit flags that specifies how the object can be shared. If dwShareMode is 0, the object cannot be shared. Subsequent open operations on the object will fail, until the handle is closed. 
+    SECURITY_ATTRIBUTES *lpSecurityAttributes,	// @pyparm <o PySECURITY_ATTRIBUTES>|attributes||The security attributes, or None
+    DWORD dwCreationDistribution,	// @pyparm int|creationDisposition||Specifies which action to take on files that exist, and which action to take when files do not exist. For more information about this parameter, see <om win32file.CreateFile>
+    DWORD dwFlagsAndAttributes,	// @pyparm int|flagsAndAttributes||file attributes
+    PyHANDLE INPUT_NULLOK // @pyparm <o PyHANDLE>|hTemplateFile||Specifies a handle with GENERIC_READ access to a template file. The template file supplies file attributes and extended attributes for the file being created.
+);
+
 #ifndef MS_WINCE
 // @pyswig <o PyHANDLE>|CreateIoCompletionPort|Can associate an instance of an opened file with a newly created or an existing input/output (I/O) completion port; or it can create an I/O completion port without associating it with a file.
 HANDLE CreateIoCompletionPort (
@@ -197,10 +214,20 @@ BOOLAPI DefineDosDevice(
     TCHAR *lpDeviceName,	// @pyparm <o PyUnicode>|deviceName||MS-DOS device name string  
     TCHAR *lpTargetPath	// @pyparm <o PyUnicode>|targetPath||MS-DOS or path string for 32-bit Windows.
 );
+// @pyswig |DefineDosDeviceW|Lets an application define, redefine, or delete MS-DOS device names. (NT/2000 Unicode specific version)
+BOOLAPI DefineDosDeviceW(
+    DWORD dwFlags,	// @pyparm int|flags||flags specifying aspects of device definition  
+    WCHAR *lpDeviceName,	// @pyparm <o PyUnicode>|deviceName||MS-DOS device name string  
+    WCHAR *lpTargetPath	// @pyparm <o PyUnicode>|targetPath||MS-DOS or path string for 32-bit Windows.
+);
 #endif // MS_WINCE
 
 // @pyswig |DeleteFile|Deletes a file.
 BOOLAPI DeleteFile(TCHAR *fileName);
+// @pyparm <o PyUnicode>|fileName||The filename to delete
+
+// @pyswig |DeleteFileW|Deletes a file (NT/2000 Unicode specific version)
+BOOLAPI DeleteFileW(WCHAR *fileName);
 // @pyparm <o PyUnicode>|fileName||The filename to delete
 
 %{
@@ -330,6 +357,11 @@ long GetDriveType(
     TCHAR *rootPathName
 // @rdesc The result is one of the DRIVE_* constants.
 );
+// @pyswig int|GetDriveTypeW|Determines whether a disk drive is a removable, fixed, CD-ROM, RAM disk, or network drive. (NT/2000 Unicode specific version).
+long GetDriveTypeW(
+    WCHAR *rootPathName
+// @rdesc The result is one of the DRIVE_* constants.
+);
 
 #define DRIVE_UNKNOWN DRIVE_UNKNOWN // The drive type cannot be determined.
 #define DRIVE_NO_ROOT_DIR DRIVE_NO_ROOT_DIR // The root directory does not exist.
@@ -345,6 +377,10 @@ long GetDriveType(
 // @pyswig int|GetFileAttributes|Determines a files attributes.
 DWORD GetFileAttributes(
     TCHAR *fileName); // @pyparm <o PyUnicode>|fileName||Name of the file to retrieve attributes for.
+
+// @pyswig int|GetFileAttributesW|Determines a files attributes (NT/2000 Unicode specific version).
+DWORD GetFileAttributesW(
+    WCHAR *fileName); // @pyparm <o PyUnicode>|fileName||Name of the file to retrieve attributes for.
 
 // @pyswig int|GetFileTime|Determine a file access/modification times.
 DWORD GetFileTime(
@@ -786,12 +822,23 @@ BOOLAPI MoveFile(
     TCHAR *lpExistingFileName,	// @pyparm <o PyUnicode>|existingFileName||Name of the existing file  
     TCHAR *lpNewFileName 	// @pyparm <o PyUnicode>|newFileName||New name for the file 
 );
+// @pyswig |MoveFileW|Renames an existing file or a directory (including all its children). (NT/2000 Unicode specific version).
+BOOLAPI MoveFileW(
+    WCHAR *lpExistingFileName,	// @pyparm <o PyUnicode>|existingFileName||Name of the existing file  
+    WCHAR *lpNewFileName 	// @pyparm <o PyUnicode>|newFileName||New name for the file 
+);
 
 #ifndef MS_WINCE
 // @pyswig |MoveFileEx|Renames an existing file or a directory (including all its children). 
 BOOLAPI MoveFileEx(
     TCHAR *lpExistingFileName,	// @pyparm <o PyUnicode>|existingFileName||Name of the existing file  
     TCHAR *lpNewFileName, 	// @pyparm <o PyUnicode>|newFileName||New name for the file 
+    DWORD dwFlags 	        // @pyparm int|flags||flag to determine how to move file 
+);
+// @pyswig |MoveFileExW|Renames an existing file or a directory (including all its children). (NT/2000 Unicode specific version).
+BOOLAPI MoveFileExW(
+    WCHAR *lpExistingFileName,	// @pyparm <o PyUnicode>|existingFileName||Name of the existing file  
+    WCHAR *lpNewFileName, 	// @pyparm <o PyUnicode>|newFileName||New name for the file 
     DWORD dwFlags 	        // @pyparm int|flags||flag to determine how to move file 
 );
 #define MOVEFILE_COPY_ALLOWED MOVEFILE_COPY_ALLOWED // If the file is to be moved to a different volume, the function simulates the move by using the CopyFile and DeleteFile functions. Cannot be combined with the MOVEFILE_DELAY_UNTIL_REBOOT flag.
@@ -845,6 +892,12 @@ void SetFileApisToOEM(void);
 // @pyswig |SetFileAttributes|Changes a file's attributes.
 BOOLAPI SetFileAttributes(
     TCHAR *lpFileName,	// @pyparm <o PyUnicode>|filename||filename 
+    DWORD dwFileAttributes 	// @pyparm int|newAttributes||attributes to set 
+);	
+
+// @pyswig |SetFileAttributesW|Changes a file's attributes (NT/2000 Unicode specific version)
+BOOLAPI SetFileAttributesW(
+    WCHAR *lpFileName,	// @pyparm <o PyUnicode>|filename||filename 
     DWORD dwFileAttributes 	// @pyparm int|newAttributes||attributes to set 
 );	
  
