@@ -12,14 +12,18 @@ class Object:
 	def __getattr__(self, attr):	# Make this object look like the underlying win32ui one.
 		# During cleanup __dict__ is not available, causing recursive death.
 		if attr != '__dict__':
-			o = self.__dict__.get('_obj_')
-			if o is not None:
-				return getattr(o, attr)
-			# Only raise this error for non "internal" names -
-			# Python may be calling __len__, __nonzero__, etc, so
-			# we dont want this exception
-			if attr[0]!= '_' and attr[-1] != '_':
-				raise win32ui.error, "The MFC object has died."
+			try:
+				o = self.__dict__['_obj_']
+				if o is not None:
+					return getattr(o, attr)
+				# Only raise this error for non "internal" names -
+				# Python may be calling __len__, __nonzero__, etc, so
+				# we dont want this exception
+				if attr[0]!= '_' and attr[-1] != '_':
+					raise win32ui.error, "The MFC object has died."
+			except KeyError:
+				# No _obj_ at all - dont report MFC object died when there isnt one!
+				pass
 		raise AttributeError, attr
 
 	def OnAttachedObjectDeath(self):
