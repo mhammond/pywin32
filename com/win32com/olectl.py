@@ -8,7 +8,7 @@ import winerror
 FACILITY_CONTROL = 0xa
 
 def MAKE_SCODE(sev, fac, code):
-	return (((sev)<<31) | ((fac)<<16) | ((code)))
+	return int((long(-sev)<<31) | ((fac)<<16) | ((code)))
 
 def STD_CTL_SCODE(n):
 	return MAKE_SCODE(winerror.SEVERITY_ERROR, FACILITY_CONTROL, n)
