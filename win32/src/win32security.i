@@ -525,7 +525,11 @@ BOOL MyAdjustTokenPrivileges(
 	TOKEN_PRIVILEGES *NewState)
 {
 	AdjustTokenPrivileges(TokenHandle, DisableAllPrivileges, NewState, 0, NULL, 0);
-	return GetLastError()==0;
+	// Note that AdjustTokenPrivileges may succeed, and yet
+	// some privileges weren't actually adjusted.
+	// You've got to check GetLastError() to be sure!
+	DWORD rc = GetLastError();
+	return rc==0 || rc==ERROR_NOT_ALL_ASSIGNED;
 }
 %}
 
