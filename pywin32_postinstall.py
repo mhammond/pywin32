@@ -105,6 +105,20 @@ def install():
         path = os.path.join(lib_dir, name)
         pthfile.write(path + "\n")
         sys.path.append(path)
+    # It is possible people with old versions installed with still have 
+    # pywintypes and pythoncom registered.  We no longer need this, and stale
+    # entries hurt us.
+    for name in "pythoncom pywintypes".split():
+        keyname = "Software\\Python\\PythonCore\\" + sys.winver + "\\Modules\\" + name
+        for root in _winreg.HKEY_LOCAL_MACHINE, _winreg.HKEY_CURRENT_USER:
+            try:
+                _winreg.DeleteKey(root, keyname + "\\Debug")
+            except WindowsError:
+                pass
+            try:
+                _winreg.DeleteKey(root, keyname)
+            except WindowsError:
+                pass
     # To be able to import win32api, PyWinTypesxx.dll must be on the PATH
     # We must be careful to use the one we just installed, not one already
     # in the system directory, otherwise we will not be able to copy the one
