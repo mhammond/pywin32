@@ -294,12 +294,12 @@ void PyECB::deallocFunc(PyObject *ob)
 }
 
 
-// @pymethod |EXTENSION_CONTROL_BLOCK|WriteClient|
+// @pymethod int|EXTENSION_CONTROL_BLOCK|WriteClient|
 PyObject * PyECB::WriteClient(PyObject *self, PyObject *args)
 {
 	BOOL bRes = FALSE;
 	TCHAR * buffer = NULL;
-	int buffLen = 0;
+	DWORD buffLen = 0;
 	int reserved = 0;
 
 	PyECB * pecb = (PyECB *) self;
@@ -308,16 +308,16 @@ PyObject * PyECB::WriteClient(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "s#|l:WriteClient", &buffer, &buffLen, &reserved))
 		return NULL;
 
+	DWORD bytesWritten = 0;
 	if (pecb->m_pcb){
 		Py_BEGIN_ALLOW_THREADS
-		bRes = pecb->m_pcb->WriteStream(buffer, buffLen, reserved);
+		bRes = pecb->m_pcb->WriteClient(buffer, &buffLen, reserved);
 		Py_END_ALLOW_THREADS
 		if (!bRes)
 			return SetPyECBError("WriteClient");
 	}
-
-	Py_INCREF(Py_None);
-	return Py_None;
+	return PyInt_FromLong(buffLen);
+	// @rdesc the result is the number of bytes written.
 }
 
 // @pymethod string|EXTENSION_CONTROL_BLOCK|GetServerVariable|

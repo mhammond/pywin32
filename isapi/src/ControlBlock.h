@@ -75,6 +75,10 @@ public:
 		m_pECB->WriteClient(m_pECB->ConnID, (void *) buffer, &dwBufLen, reserved);
 		return dwBufLen;
 	}
+	BOOL WriteClient(LPCTSTR buffer, DWORD *buffLen, const int reserved = 0)
+	{
+		return m_pECB->WriteClient(m_pECB->ConnID, (void *) buffer, buffLen, reserved);
+	}
 
 	bool ReadClient(LPVOID lpvBuffer, LPDWORD lpdwSize)
 	{
