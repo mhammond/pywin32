@@ -1,5 +1,5 @@
 import unittest
-import win32api, win32file, win32con, pywintypes
+import win32api, win32file, win32con, pywintypes, winerror
 import sys
 import os
 import tempfile
@@ -149,6 +149,26 @@ class TestFindFiles(unittest.TestCase):
             self.failUnlessEqual(2, num)
         finally:
             shutil.rmtree(test_path)
+
+class TestEncrypt(unittest.TestCase):
+    def testEncrypt(self):
+        fname = tempfile.mktemp("win32file_test")
+        f = open(fname, "wb")
+        f.write("hello")
+        f.close()
+        f = None
+        try:
+            try:
+                win32file.EncryptFile(fname)
+            except win32file.error, details:
+                if details[0] != winerror.ERROR_ACCESS_DENIED:
+                    raise
+                print "It appears this is not NTFS - cant encrypt/decrypt"
+            win32file.DecryptFile(fname)
+        finally:
+            if f is not None:
+                f.close()
+            os.unlink(fname)
 
 if __name__ == '__main__':
     unittest.main()
