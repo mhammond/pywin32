@@ -41,6 +41,8 @@ static EnumPortsfunc pfnEnumMonitors=NULL; // same args as EnumPorts
 typedef BOOL (WINAPI *GetPrintProcessorDirectoryfunc)(LPWSTR,LPWSTR,DWORD,LPBYTE,DWORD,LPDWORD);
 static GetPrintProcessorDirectoryfunc pfnGetPrintProcessorDirectory=NULL;
 static GetPrintProcessorDirectoryfunc pfnGetPrinterDriverDirectory=NULL;  // same as GetPrintProcessorDirectory
+typedef BOOL (WINAPI *DeletePrinterDriverExfunc)(LPWSTR, LPWSTR, LPWSTR, DWORD, DWORD);
+static DeletePrinterDriverExfunc pfnDeletePrinterDriverEx=NULL;
 
 static PyObject *dummy_tuple=NULL;
 
@@ -2214,6 +2216,70 @@ static PyObject *PyDeletePrinter(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod |win32print|DeletePrinterDriver|Removes the specified printer driver from a server
+static PyObject *PyDeletePrinterDriver(PyObject *self, PyObject *args)
+{
+	PyObject *ret=NULL;
+	PyObject *observername, *obenvironment, *obdrivername;
+	WCHAR *servername=NULL, *environment=NULL, *drivername=NULL;
+	// @pyparm string/<o PyUnicode>|Server||Name of print server, use None for local machine
+	// @pyparm string/<o PyUnicode>|Environment||Environment - eg 'Windows NT x86' - use None for current client environment
+	// @pyparm string/<o PyUnicode>|DriverName||Name of driver to remove
+	// @comm Does not delete associated driver files - use <om win32print.DeletePrinterDriverEx> if this is required
+	if (PyArg_ParseTuple(args,"OOO:DeletePrinterDriver", &observername, &obenvironment, &obdrivername)
+		&&PyWinObject_AsWCHAR(observername, &servername, TRUE)
+		&&PyWinObject_AsWCHAR(obenvironment, &environment, TRUE)
+		&&PyWinObject_AsWCHAR(obdrivername, &drivername, FALSE))
+		if (DeletePrinterDriverW(servername, environment, drivername)){
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		else
+			PyWin_SetAPIError("DeletePrinterDriver");
+
+	if (servername!=NULL)
+		PyWinObject_FreeWCHAR(servername);
+	if (environment!=NULL)
+		PyWinObject_FreeWCHAR(environment);
+	if (drivername!=NULL)
+		PyWinObject_FreeWCHAR(drivername);
+	return ret;
+}
+
+// @pymethod |win32print|DeletePrinterDriverEx|Deletes a printer driver and its associated files
+static PyObject *PyDeletePrinterDriverEx(PyObject *self, PyObject *args)
+{
+	PyObject *ret=NULL;
+	PyObject *observername, *obenvironment, *obdrivername;
+	WCHAR *servername=NULL, *environment=NULL, *drivername=NULL;
+	DWORD deleteflag, versionflag;
+	CHECK_PFN(DeletePrinterDriverEx);
+	// @pyparm string/<o PyUnicode>|Server||Name of print server, use None for local machine
+	// @pyparm string/<o PyUnicode>|Environment||Environment - eg 'Windows NT x86' - use None for current client environment
+	// @pyparm string/<o PyUnicode>|DriverName||Name of driver to remove
+	// @pyparm int|DeleteFlag||Combination of DPD_DELETE_SPECIFIC_VERSION, DPD_DELETE_UNUSED_FILES, and DPD_DELETE_ALL_FILES
+	// @pyparm int|VersionFlag||Can be 0,1,2, or 3.  Only used if DPD_DELETE_SPECIFIC_VERSION is specified in DeleteFlag
+	if (PyArg_ParseTuple(args,"OOOll:DeletePrinterDriverEx", &observername, &obenvironment, &obdrivername,
+		&deleteflag, &versionflag)
+		&&PyWinObject_AsWCHAR(observername, &servername, TRUE)
+		&&PyWinObject_AsWCHAR(obenvironment, &environment, TRUE)
+		&&PyWinObject_AsWCHAR(obdrivername, &drivername, FALSE))
+		if ((*pfnDeletePrinterDriverEx)(servername, environment, drivername, deleteflag, versionflag)){
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		else
+			PyWin_SetAPIError("DeletePrinterDriverEx");
+
+	if (servername!=NULL)
+		PyWinObject_FreeWCHAR(servername);
+	if (environment!=NULL)
+		PyWinObject_FreeWCHAR(environment);
+	if (drivername!=NULL)
+		PyWinObject_FreeWCHAR(drivername);
+	return ret;
+}
+
 /* List of functions exported by this module */
 // @module win32print|A module, encapsulating the Windows Win32 API.
 static struct PyMethodDef win32print_functions[] = {
@@ -2258,6 +2324,8 @@ static struct PyMethodDef win32print_functions[] = {
 	{"GetPrinterDriverDirectory", PyGetPrinterDriverDirectory, 1}, //@pymeth GetPrinterDriverDirectory|Returns the directory where printer drivers are installed
 	{"AddPrinter", PyAddPrinter, 1}, //@pymeth AddPrinter|Adds a new printer on a server
 	{"DeletePrinter", PyDeletePrinter, 1}, //@pymeth DeletePrinter|Deletes an existing printer
+	{"DeletePrinterDriver", PyDeletePrinterDriver,1}, //@pymeth DeletePrinterDriver|Deletes the specified driver from a server
+	{"DeletePrinterDriverEx", PyDeletePrinterDriverEx,1}, //@pymeth DeletePrinterDriverEx|Deletes a printer driver and associated files
 	{ NULL }
 };
 
@@ -2404,6 +2472,11 @@ initwin32print(void)
   AddConstant(dict, "PORT_TYPE_REDIRECTED",PORT_TYPE_REDIRECTED);
   AddConstant(dict, "PORT_TYPE_NET_ATTACHED",PORT_TYPE_NET_ATTACHED);
 
+  // DeletePrinterDriverEx DeleteFlag
+  AddConstant(dict, "DPD_DELETE_SPECIFIC_VERSION",DPD_DELETE_SPECIFIC_VERSION);
+  AddConstant(dict, "DPD_DELETE_UNUSED_FILES",DPD_DELETE_UNUSED_FILES);
+  AddConstant(dict, "DPD_DELETE_ALL_FILES",DPD_DELETE_ALL_FILES);
+
   HMODULE hmodule=LoadLibrary("winspool.drv");
   if (hmodule!=NULL){
 	pfnEnumForms=(EnumFormsfunc)GetProcAddress(hmodule,"EnumFormsW");
@@ -2417,6 +2490,7 @@ initwin32print(void)
 	pfnEnumMonitors=(EnumPortsfunc)GetProcAddress(hmodule,"EnumMonitorsW");
 	pfnGetPrintProcessorDirectory=(GetPrintProcessorDirectoryfunc)GetProcAddress(hmodule,"GetPrintProcessorDirectoryW");
 	pfnGetPrinterDriverDirectory=(GetPrintProcessorDirectoryfunc)GetProcAddress(hmodule,"GetPrinterDriverDirectoryW");
+	pfnDeletePrinterDriverEx=(DeletePrinterDriverExfunc)GetProcAddress(hmodule,"DeletePrinterDriverExW");
   }
   dummy_tuple=PyTuple_New(0);
 }
