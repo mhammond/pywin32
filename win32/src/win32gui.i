@@ -248,8 +248,8 @@ LRESULT PyWndProc_Call(PyObject *obFuncOrMap, MYWNDPROC oldWndProc, HWND hWnd, U
 			rc = PyInt_AsLong(ret);
 		Py_DECREF(ret);
 	}
-//	else
-//		PyErr_Print();
+	else
+		PyErr_Print();
 	return rc;
 }
 
