@@ -1486,6 +1486,7 @@ done:
 // @pyswig |RemoveDirectory|Removes an existing directory
 %name(RemoveDirectory) BOOLAPI RemoveDirectoryW(
     WCHAR *lpPathName	// @pyparm str/<o PyUnicode>|lpPathName||Name of the path to remove.
+// @comm This is implemented using RemoveDirectoryW.
 );
 
 //SearchPath	
