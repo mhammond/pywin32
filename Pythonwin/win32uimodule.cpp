@@ -2222,7 +2222,7 @@ extern "C" PYW_EXPORT BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, char *
 
 	// Set sys.argv if not already done!
 	PyObject *argv = PySys_GetObject("argv");
-	if (argv==NULL)
+	if (argv==NULL && __argv!=NULL && __argc > 0)
 		PySys_SetArgv(__argc-1, __argv+1);
 	// If the versions of the .h file are not in synch, then we are in trouble!
 	if (pGlue->versionNo != WIN32UIHOSTGLUE_VERSION) {
