@@ -119,7 +119,35 @@ def ServerEnum():
 		if not resume:
 			break
 	print "Enumerated all the servers on the network"
-	
+
+def LocalGroup(uname=None):
+    "Creates a local group, adds some members, deletes them, then removes the group"
+    level = 3
+    if uname is None: uname=win32api.GetUserName()
+    if uname.find("\\")<0:
+        uname = win32api.GetDomainName() + "\\" + uname
+    group = 'python_test_group'
+    # delete the group if it already exists
+    try:
+        win32net.NetLocalGroupDel(server, group)
+        print "WARNING: existing local group '%s' has been deleted."
+    except win32net.error:
+        pass
+    group_data = {'name': group}
+    win32net.NetLocalGroupAdd(server, 1, group_data) 
+    try:
+        u={'domainandname': uname}
+        win32net.NetLocalGroupAddMembers(server, group, level, [u])
+        mem, tot, res = win32net.NetLocalGroupGetMembers(server, group, level)
+        print "members are", mem
+        if mem[0]['domainandname'] != uname:
+            print "ERROR: LocalGroup just added %s, but members are %r" % (uname, mem)
+        # Convert the list of dicts to a list of strings.
+        win32net.NetLocalGroupDelMembers(server, group, [m['domainandname'] for m in mem])
+    finally:
+        win32net.NetLocalGroupDel(server, group)
+    print "Created a local group, added and removed members, then deleted the group"
+    
 def GetInfo(userName=None):
 	"Dumps level 3 information about the current user"
 	if userName is None: userName=win32api.GetUserName()
