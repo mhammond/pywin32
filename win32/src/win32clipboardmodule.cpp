@@ -15,6 +15,7 @@
 
 ******************************************************************************/
 
+
 #include "windows.h"
 #include "Python.h"
 #include "pywintypes.h"
@@ -24,14 +25,15 @@
   if(!PyArg_ParseTuple(args,":"#fnName)) return NULL;\
 } while (0)
 
-#define RETURN_NONE do {Py_INCREF(Py_None);return Py_None;} while (0)
+#define RETURN_TYPE_ERR(err) do {\
+PyErr_SetString(PyExc_TypeError,err);return NULL;} while (0)
 
+#define RETURN_NONE do {Py_INCREF(Py_None);return Py_None;} while (0)
 
 PyObject *ReturnAPIError(char *fnName, long err = 0)
 {
   return PyWin_SetAPIError(fnName, err);
 }
-
 
 //*****************************************************************************
 //
@@ -272,11 +274,11 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
 
   PyObject *ret;
 
-  // @pyparm int|format||Specifies a clipboard format. For a description of
+  // @pyparm int|format|CF_TEXT|Specifies a clipboard format. For a description of
   // the standard clipboard formats, see Standard Clipboard Formats.
 
-  int format;
-  if (!PyArg_ParseTuple(args, "i:GetClipboardData:",
+  int format = CF_TEXT;
+  if (!PyArg_ParseTuple(args, "|i:GetClipboardData:",
                         &format)) {
     return NULL;
   }
@@ -290,19 +292,31 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
     return ReturnAPIError("GetClipboardData");
   }
 
-  LPTSTR lptstr;
-  if (format == CF_TEXT) {
-    lptstr = (LPTSTR)GlobalLock(handle);
-    if (lptstr) {
-      ret = Py_BuildValue("s", lptstr);
-    } else {
-      ret = Py_BuildValue("i", (int)handle);
-    }
+  HGLOBAL cData;
+  cData = GlobalLock(handle);
+  if (!cData) {
     GlobalUnlock(handle);
-  } else {
-    ret = Py_BuildValue("i", (int)handle);
+    return ReturnAPIError("GetClipboardData:GlobalLock");
   }
-
+  DWORD size = GlobalSize(cData);
+  if (!size) {
+    GlobalUnlock(handle);
+    return ReturnAPIError("GetClipboardData:GlobalSize");
+  }
+  switch (format) {
+    case CF_UNICODETEXT:
+      ret = PyWinObject_FromWCHAR((wchar_t *)cData, (size / sizeof(wchar_t))-1);
+      break;
+    // For the text formats, strip the null!
+    case CF_TEXT:
+    case CF_OEMTEXT:
+      ret = PyString_FromStringAndSize((char *)cData, size-1);
+      break;
+    default:
+      ret = PyString_FromStringAndSize((char *)cData, size);
+      break;
+  }
+  GlobalUnlock(handle);
   return ret;
 
   // @comm An application can enumerate the available formats in advance by
@@ -537,7 +551,8 @@ py_getPriority_clipboard_format(PyObject* self, PyObject* args)
   }
 
   if (!PyTuple_Check(formats)) {
-    return PyErr_Format(PyExc_TypeError, "GetPriorityClipboardFormat requires a tuple of integer formats");
+    RETURN_TYPE_ERR(
+       "GetPriorityClipboardFormat requires a tuple of integer formats");
   }
 
   int num_formats = PyTuple_Size(formats);
@@ -547,7 +562,7 @@ py_getPriority_clipboard_format(PyObject* self, PyObject* args)
     o = PyTuple_GetItem(formats, i);
     if (!PyInt_Check(o)) {
       delete format_list;
-      return PyErr_Format(PyExc_TypeError, "GetPriorityClipboardFormat expected integer formats.");
+      RETURN_TYPE_ERR ("GetPriorityClipboardFormat expected integer formats.");
     }
     format_list[i] = PyInt_AsLong(o);
   }
@@ -719,55 +734,82 @@ static PyObject *
 py_set_clipboard_data(PyObject* self, PyObject* args)
 {
 
-  // @pyparm int|format||Specifies a clipboard format. For a description of
-  // the standard clipboard formats, see Standard Clipboard Formats.
+	// @pyparm int|format||Specifies a clipboard format. For a description of
+	// the standard clipboard formats, see Standard Clipboard Formats.
 
-  // @pyparm int|hMem||Integer handle to the data in the specified format.
-  // This parameter can be 0, indicating that the window provides data in
-  // the specified clipboard format (renders the format) upon request. If a
-  // window delays rendering, it must process the WM_RENDERFORMAT and
-  // WM_RENDERALLFORMATS messages.<nl>
-  // After SetClipboardData is called, the system owns the object identified
-  // by the hMem parameter. The application can read the data, but must not
-  // free the handle or leave it locked. If the hMem parameter identifies a
-  // memory object, the object must have been allocated using the GlobalAlloc
-  // function with the GMEM_MOVEABLE and GMEM_DDESHARE flags. 
+	// @pyparm int|hMem||Integer handle to the data in the specified format.
+	// This parameter can be 0, indicating that the window provides data in
+	// the specified clipboard format (renders the format) upon request. If a
+	// window delays rendering, it must process the WM_RENDERFORMAT and
+	// WM_RENDERALLFORMATS messages.<nl>
+	// After SetClipboardData is called, the system owns the object identified
+	// by the hMem parameter. The application can read the data, but must not
+	// free the handle or leave it locked. If the hMem parameter identifies a
+	// memory object, the object must have been allocated using the GlobalAlloc
+	// function with the GMEM_MOVEABLE and GMEM_DDESHARE flags. 
+	int format;
+	HANDLE handle;
+	int ihandle;
+	if (PyArg_ParseTuple(args, "ii:SetClipboardData",
+                        &format, &ihandle)) {
+		handle = (HANDLE)ihandle;
+	} else {
+		PyErr_Clear();
+		// @pyparmalt1 int|format||Specifies a clipboard format. For a description of
+		// the standard clipboard formats, see Standard Clipboard Formats.
 
-  int format;
-  int handle;
-  if (!PyArg_ParseTuple(args, "ii:SetClipboardData",
-                        &format, &handle)) {
-    return NULL;
-  }
+		// @pyparmalt1 object|ob||An object that has a read-buffer interface.
+		// A global memory object is allocated, and the objects buffer is copied
+		// to the new memory.
+		PyObject *obBuf;
+		if (!PyArg_ParseTuple(args, "iO:SetClipboardData",
+                      &format, &obBuf))
+		      return NULL;
+		PyBufferProcs *pb = obBuf->ob_type->tp_as_buffer;
+		if (pb==NULL)
+			RETURN_TYPE_ERR("The object must support the buffer interfaces");
+		void *buf = NULL;
+		int bufSize = (*pb->bf_getreadbuffer)(obBuf, 0, &buf);
+		// size doesnt include nulls!
+		if (PyString_Check(obBuf))
+			bufSize += 1;
+		else if (PyUnicode_Check(obBuf))
+			bufSize += sizeof(wchar_t);
+		// else assume buffer needs no terminator...
+		handle = GlobalAlloc(GHND, (DWORD)bufSize);
+		if (handle == NULL) {
+			return ReturnAPIError("GlobalAlloc");
+		}
+		void *dest = GlobalLock(handle);
+		memcpy(dest, buf, bufSize);
+		GlobalUnlock(handle);
+	}
+	HANDLE data;
+	Py_BEGIN_ALLOW_THREADS;
+	data = SetClipboardData((UINT)format, handle);
+	Py_END_ALLOW_THREADS;
 
-  HANDLE data;
-  Py_BEGIN_ALLOW_THREADS;
-  data = SetClipboardData((UINT)format, (HANDLE)handle);
-  Py_END_ALLOW_THREADS;
+	if (!data) {
+		return ReturnAPIError("SetClipboardData");
+	}
+	return (Py_BuildValue("i", (int)data));
 
-  if (!data) {
-    return ReturnAPIError("SetClipboardData");
-  }
+	// @comm The uFormat parameter can identify a registered clipboard format,
+	// or it can be one of the standard clipboard formats. For more information,
+	// see Registered Clipboard Formats and Standard Clipboard Formats.<nl>
+	// The system performs implicit data format conversions between certain
+	// clipboard formats when an application calls the GetClipboardData function.
+	// For example, if the CF_OEMTEXT format is on the clipboard, a window can
+	// retrieve data in the CF_TEXT format. The format on the clipboard is
+	// converted to the requested format on demand. For more information, see
+	// Synthesized Clipboard Formats. 
 
-  return (Py_BuildValue("i", (int)data));
+	// @pyseeapi SetClipboardData
 
-  // @comm The uFormat parameter can identify a registered clipboard format,
-  // or it can be one of the standard clipboard formats. For more information,
-  // see Registered Clipboard Formats and Standard Clipboard Formats.<nl>
-  // The system performs implicit data format conversions between certain
-  // clipboard formats when an application calls the GetClipboardData function.
-  // For example, if the CF_OEMTEXT format is on the clipboard, a window can
-  // retrieve data in the CF_TEXT format. The format on the clipboard is
-  // converted to the requested format on demand. For more information, see
-  // Synthesized Clipboard Formats. 
-
-  // @pyseeapi SetClipboardData
-
-  // @rdesc If the function succeeds, the return value is integer handle
-  // of the data.<nl>
-  // If the function fails, win32api.error is raised with the GetLastError
-  // info.
-
+	// @rdesc If the function succeeds, the return value is integer handle
+	// of the data.<nl>
+	// If the function fails, win32api.error is raised with the GetLastError
+	// info.
 }
 
 
@@ -956,7 +998,6 @@ extern "C" __declspec(dllexport) void
 initwin32clipboard(void)
 {
   PyObject *dict, *module;
-  PyWinGlobals_Ensure();
   module = Py_InitModule("win32clipboard", clipboard_functions);
   dict = PyModule_GetDict(module);
   Py_INCREF(PyWinExc_ApiError);
