@@ -37,13 +37,12 @@ def FixArgFileName(fileName):
 	with the path added to sys.path. """
 	import os
 	path, fname = os.path.split(fileName)
-	if len(path)>0:
-		path=win32ui.FullPath(path)
-	else:
-		path=win32ui.FullPath(os.curdir)
+	if len(path)==0:
+		path = os.curdir
+	path=os.path.abspath(path)
 	# must check that the command line arg's path is in sys.path
 	for syspath in sys.path:
-		if win32ui.FullPath(syspath)==path:
+		if os.path.abspath(syspath)==path:
 			break
 	else:
 		sys.path.append(path)
