@@ -245,7 +245,7 @@ BOOLAPI DeleteFileW(WCHAR *fileName);
 // @pyparm <o PyUnicode>|fileName||The filename to delete
 
 %{
-// @pyswig int|DeviceIoControl|Call DeviceIoControl
+// @pyswig string|DeviceIoControl|Call DeviceIoControl
 PyObject *MyDeviceIoControl(PyObject *self, PyObject *args)
 {
     OVERLAPPED *pOverlapped;
