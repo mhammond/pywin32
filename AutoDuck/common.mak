@@ -26,7 +26,7 @@ cleanad:
 
 "..\$(TARGET).hlp": "$(GENDIR)\$(TARGET).rtf" "$(GENDIR)\$(TARGET).hpj"
     if exist "$(GENDIR)\$(TARGET).ph" del "$(GENDIR)\$(TARGET).ph"
-    fixHelpCompression.py "$(GENDIR)\$(TARGET).hpj"
+    $(PYTHON) fixHelpCompression.py "$(GENDIR)\$(TARGET).hpj"
     cd "$(GENDIR)"
     $(HC) $(TARGET).hpj
     if exist "..\..\..\$(TARGET).hlp" del "..\..\..\$(TARGET).hlp" 
@@ -52,15 +52,15 @@ cleanad:
 # Generate an HTML Help file.
 
 "$(GENDIR)\$(TARGET).hhp" : BuildHHP.py $(DOCUMENT_FILE) $(HTML_FILES)
-	BuildHHP.py "$(GENDIR)\$(TARGET)" "$(TARGET)" "$(GENDIR)" $(HTML_FILES)
+	$(PYTHON) BuildHHP.py "$(GENDIR)\$(TARGET)" "$(TARGET)" "$(GENDIR)" $(HTML_FILES)
 
 "$(GENDIR)\$(TARGET).html" "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).idx" : $(SOURCE) pyhtml.fmt "$(GENDIR)\$(TARGET).hhlog" InsertExternalOverviews.py $(DOCUMENT_FILE) 
 	@echo Running autoduck for the .html
 	@$(ADHTMLFMT) $(ADHTML) /t$(ADTAB) $(SOURCE)
-	InsertExternalOverviews.py "$(GENDIR)\$(TARGET).html"
+	$(PYTHON) InsertExternalOverviews.py "$(GENDIR)\$(TARGET).html"
 
 "$(GENDIR)\$(TARGET).hhk" : "$(GENDIR)\$(TARGET).idx" "$(GENDIR)\$(TARGET).idx" TOCToHHK.py
-	TOCToHHK.py "$(GENDIR)\$(TARGET).idx" "$(GENDIR)\$(TARGET).hhk"
+	$(PYTHON) TOCToHHK.py "$(GENDIR)\$(TARGET).idx" "$(GENDIR)\$(TARGET).hhk"
 
 #"$(GENDIR)\$(TARGET).hhc" : "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).dump" Dump2HHC.py $(EXT_TOPICS)
 #	Dump2HHC.py "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).hhc" "$(TITLE)" "$(TARGET)" $(EXT_TOPICS)
