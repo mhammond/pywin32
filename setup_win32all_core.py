@@ -163,21 +163,15 @@ class my_build_ext(build_ext):
 
             build_ext.build_extension(self, ext)
 
-            if ext.name not in ("pywintypes", "pythoncom"):
-                return
-
-            # The import libraries are created as PyWinTypes23.lib, but
-            # are expected to be pywintypes.lib.
-
             # XXX This has to be changed for mingw32
             extra = self.debug and "_d.lib" or ".lib"
-            if ext.name == "pywintypes":
-                name1 = "pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
-                name2 = "pywintypes%s" % (extra)
-            elif ext.name == "pythoncom":
-                name1 = "pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
-                name2 = "pythoncom%s" % (extra)
-
+            if ext.name in ("pywintypes", "pythoncom"):
+                # The import libraries are created as PyWinTypes23.lib, but
+                # are expected to be pywintypes.lib.
+                name1 = "%s%d%d%s" % (ext.name, sys.version_info[0], sys.version_info[1], extra)
+                name2 = "%s%s" % (ext.name, extra)
+            else:
+                name1 = name2 = ext.name + extra
             # MSVCCompiler constructs the .lib file in the same directory
             # as the first source file's object file:
             #    os.path.dirname(objects[0])
@@ -255,7 +249,7 @@ win32_extensions = [pywintypes]
 for name, lib_names, is_unicode in (
         ("dbi", "", False),
         ("mmapfile", "", False),
-#        ("odbc", "odbc32 odbccp32", False), # needs dbi - MH should clean this up
+        ("odbc", "odbc32 odbccp32 dbi", False),
         ("perfmon", "", True),
         ("timer", "user32", False),
         ("win2kras", "rasapi32", False),
@@ -309,15 +303,16 @@ pythoncom = WinExt_system32('pythoncom',
                    )
 com_extensions = [pythoncom]
 com_extensions += [
-#    WinExt_win32com('adsi'),  # bullshit "extern IID" issues :(
+    WinExt_win32com('adsi', libraries="ACTIVEDS ADSIID"),
     WinExt_win32com('axcontrol'),
     WinExt_win32com('axscript',
             dsp_file=r"com\Active Scripting.dsp",
             extra_compile_args = ['-DPY_BUILD_AXSCRIPT'],
     ),
-#    WinExt_win32com('axdebug', # bullshit "extern IID" issues :(
-#            dsp_file=r"com\Active Debugging.dsp",
-#    ),
+    WinExt_win32com('axdebug',
+            dsp_file=r"com\Active Debugging.dsp",
+            libraries="axscript msdbg",
+    ),
     WinExt_win32com('internet'),
     WinExt_win32com('mapi', libraries="mapi32"),
     WinExt_win32com_mapi('exchange',
