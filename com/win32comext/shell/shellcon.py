@@ -559,6 +559,10 @@ CSIDL_LOCAL_APPDATA = 28
 SHCONTF_FOLDERS         = 32 # for shell browser
 SHCONTF_NONFOLDERS      = 64 # for default view
 SHCONTF_INCLUDEHIDDEN   = 128 # for hidden/system objects
+SHCONTF_INIT_ON_FIRST_NEXT  = 256
+SHCONTF_NETPRINTERSRCH      = 512
+SHCONTF_SHAREABLE           = 1024
+SHCONTF_STORAGE             = 2048
 
 SHGDN_NORMAL            = 0        # default (display purpose)
 SHGDN_INFOLDER          = 1        # displayed under a folder (relative)
