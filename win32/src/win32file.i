@@ -4,11 +4,15 @@
 %module win32file // An interface to the win32 File API's
 
 %{
+
 //#define UNICODE
 #ifndef MS_WINCE
 //#define FAR
-#include "winsock2.h"
-#include "mswsock.h"
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0400
+#endif
+#include "windows.h"
+#include "winbase.h"
 #include "assert.h"
 #endif
 
@@ -891,7 +895,7 @@ PyObject *MyReadFile(PyObject *self, PyObject *args)
 // <nl>Any other error will raise an exception.
 // @comm If you use an overlapped buffer, then it is your responsibility
 // to ensure the string object passed remains valid until the operation
-// comletes.  If Python garbage collection reclaims the buffer before the
+// completes.  If Python garbage collection reclaims the buffer before the
 // win32 API has finished with it, the results are unpredictable.
 PyObject *MyWriteFile(PyObject *self, PyObject *args)
 {
@@ -1180,7 +1184,91 @@ BOOLAPI PostQueuedCompletionStatus(
 #endif // MS_WINCE
 							 
 // QueryDosDevice	
-// ReadDirectoryChangesW	
+
+
+%{
+static PyObject *PyObject_FromFILE_NOTIFY_INFORMATION(void *buffer, DWORD nbytes)
+{
+	FILE_NOTIFY_INFORMATION *p = (FILE_NOTIFY_INFORMATION *)buffer;
+	PyObject *ret = PyList_New(0);
+	if (nbytes < sizeof FILE_NOTIFY_INFORMATION)
+		return ret;
+	DWORD nbytes_read = 0;
+	while (1) {
+		PyObject *fname = PyWinObject_FromOLECHAR(p->FileName, p->FileNameLength);
+		if (!fname) {
+			Py_DECREF(ret);
+			return NULL;
+		}
+		PyObject *ob = Py_BuildValue("iN", p->Action, fname);
+		if (ob==NULL) {
+			Py_DECREF(ret);
+			return NULL;
+		}
+		PyList_Append(ret, ob);
+		Py_DECREF(ob);
+		if (p->NextEntryOffset==0)
+			break;
+		p = (FILE_NOTIFY_INFORMATION *)(((BYTE *)p) + p->NextEntryOffset);
+		nbytes_read += p->NextEntryOffset;
+		if (nbytes_read > nbytes) {
+			PyErr_SetString(PyExc_RuntimeError, "internal error decoding - running off end of buffer before seeing end-of-buffer marker");
+			Py_DECREF(ret);
+			return NULL;
+		}
+	 }
+	 return ret;
+}
+
+// @pyswig |ReadDirectoryChangesW|retrieves information describing the changes occurring within a directory.
+static PyObject *PyReadDirectoryChangesW(PyObject *self, PyObject *args)
+{
+	BOOL ok;
+	HANDLE handle;
+	BOOL bWatchSubtree;
+	DWORD filter;
+	DWORD buf_size, bytes_returned;
+	void *buffer;
+	PyObject *obBuffer;
+	PyObject *ret = NULL;
+	PyObject *obOverlapped = Py_None;
+	PyObject *obOverlappedRoutine = Py_None;
+	if (!PyArg_ParseTuple(args, "iOii|OO",
+	                      &handle, // @pyparm int|handle||Handle to the directory to be monitored. This directory must be opened with the FILE_LIST_DIRECTORY access right.
+	                      &obBuffer, // @pyparm int|size||Size of the buffer to allocate for the results.
+	                      &bWatchSubtree, // @pyparm int|bWatchSubtree||Specifies whether the ReadDirectoryChangesW function will monitor the directory or the directory tree. If TRUE is specified, the function monitors the directory tree rooted at the specified directory. If FALSE is specified, the function monitors only the directory specified by the hDirectory parameter.
+	                      &filter, // @pyparm int|dwNotifyFilter||Specifies filter criteria the function checks to determine if the wait operation has completed. This parameter can be one or more of the FILE_NOTIFY_CHANGE_* values.
+	                      &obOverlapped, // @pyparm <o PyOVERLAPPED>|overlapped|None|Must be None
+	                      &obOverlappedRoutine))
+		return NULL;
+	// Todo: overlapped support.  Possibly borrow from ReadFile - return a buffer
+	// object, and expose our method to decode the returned info.
+	if (obOverlappedRoutine != Py_None || obOverlapped != Py_None)
+		return PyErr_Format(PyExc_ValueError, "overlapped and overlappedRoutine must be None");
+
+	if (!PyInt_Check(obBuffer))
+		return PyErr_Format(PyExc_TypeError, "The 'buffer/size' param must be an integer if no overlapped object is provided");
+	buf_size = PyInt_AsLong(obBuffer);
+	buffer = malloc(buf_size);
+	if (buffer==NULL)
+		return PyErr_Format(PyExc_MemoryError, "Error allocating %d bytes as a buffer", buf_size);
+
+	// OK, have a buffer and a size.
+    Py_BEGIN_ALLOW_THREADS
+	ok = ::ReadDirectoryChangesW(handle, buffer, buf_size, bWatchSubtree, filter, &bytes_returned, NULL, NULL);
+	Py_END_ALLOW_THREADS
+	if (!ok) {
+		return PyWin_SetAPIError("ReadDirectoryChangesW");
+		goto done;
+	}
+	ret = PyObject_FromFILE_NOTIFY_INFORMATION(buffer, bytes_returned);
+done:
+	free(buffer);
+	return ret;
+}
+%}
+%native(ReadDirectoryChangesW) PyReadDirectoryChangesW;
+
 // ReadFileEx	
 
 // @pyswig |RemoveDirectory|Removes an existing directory
