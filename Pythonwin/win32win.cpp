@@ -1495,8 +1495,13 @@ ui_window_hook_message(PyObject *self, PyObject *args)
 	// The handler will be called with 2 arguments<nl>
 	// * The handler object (as per all hook functions).<nl>
 	// * A tuple representing the message.<nl>
-	// The message tuple is built with the following code:<nl>
-	// Py_BuildValue("O(iiiii(ii))",meth,msg->hwnd,msg->message,msg->wParam,msg->lParam,msg->time,msg->pt.x,msg->pt.y);
+	// The message tuple is in the following format:
+	// @tupleitem 0|int|hwnd|The hwnd of the window.
+	// @tupleitem 1|int|message|The message.
+	// @tupleitem 2|int|wParam|The wParam sent with the message.
+	// @tupleitem 3|int|lParam|The lParam sent with the message.
+	// @tupleitem 4|int|time|The time the message was posted.
+	// @tupleitem 5|int, int|point|The point where the mouse was when the message was posted.
 
 	// @pyparm object|obHandler||The handler for the message notification.  This must be a callable object.
 	// @pyparm int|message||The ID of the message to be handled. 
