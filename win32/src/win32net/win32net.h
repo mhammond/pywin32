@@ -43,8 +43,14 @@ PyObject *PyDoGroupSet(PyObject *self, PyObject *args, PFNGROUPSET pfn, char *fn
 typedef DWORD (__stdcall *PFNGETINFO)(LPCWSTR, LPCWSTR, DWORD, LPBYTE * );
 PyObject *PyDoGetInfo(PyObject *self, PyObject *args, PFNGETINFO pfn, char *fnname, PyNET_STRUCT *pInfos);
 
+typedef DWORD (__stdcall *PFNGETMODALSINFO)(LPCWSTR, DWORD, LPBYTE * );
+PyObject *PyDoGetModalsInfo(PyObject *self, PyObject *args, PFNGETMODALSINFO pfn, char *fnname, PyNET_STRUCT *pInfos);
+
 typedef DWORD (__stdcall *PFNSETINFO)(LPCWSTR, LPCWSTR, DWORD, LPBYTE, DWORD *);
 PyObject *PyDoSetInfo(PyObject *self, PyObject *args, PFNSETINFO pfn, char *fnname, PyNET_STRUCT *pInfos);
+
+typedef DWORD (__stdcall *PFNSETMODALSINFO)(LPCWSTR, DWORD, LPBYTE, DWORD *);
+PyObject *PyDoSetModalsInfo(PyObject *self, PyObject *args, PFNSETMODALSINFO pfn, char *fnname, PyNET_STRUCT *pInfos);
 
 typedef DWORD (__stdcall *PFNADD)(LPCWSTR, DWORD, LPBYTE, DWORD *);
 PyObject *PyDoAdd(PyObject *self, PyObject *args, PFNADD pfn, char *fnname, PyNET_STRUCT *pInfos);

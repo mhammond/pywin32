@@ -3,6 +3,8 @@
 win32netuser.cpp -- module for interface into NetUser part
 of the Network API.  This is part of the win32net module.
 
+// SWT 2/8/01 - added accessors for USER_MODALS_INFO_* 
+
 ***********************************************************/
 // @doc
 #include "windows.h"
@@ -12,7 +14,6 @@ of the Network API.  This is part of the win32net module.
 #include "win32net.h"
 #include "stddef.h"
 #include "atlbase.h"
-
 
 #define UI0_ENTRY(name, t, r) { _T(#name), t, offsetof(USER_INFO_0, usri0_##name), r }
 #define UI1_ENTRY(name, t, r) { _T(#name), t, offsetof(USER_INFO_1, usri1_##name), r }
@@ -29,6 +30,11 @@ of the Network API.  This is part of the win32net module.
 #define UI1009_ENTRY(name, t, r) { _T(#name), t, offsetof(USER_INFO_1009, usri1009_##name), r }
 #define UI1010_ENTRY(name, t, r) { _T(#name), t, offsetof(USER_INFO_1010, usri1010_##name), r }
 #define UI1011_ENTRY(name, t, r) { _T(#name), t, offsetof(USER_INFO_1011, usri1011_##name), r }
+
+#define UMI0_ENTRY(name, t, r) { _T(#name), t, offsetof(USER_MODALS_INFO_0, usrmod0_##name), r }
+#define UMI1_ENTRY(name, t, r) { _T(#name), t, offsetof(USER_MODALS_INFO_1, usrmod1_##name), r }
+#define UMI2_ENTRY(name, t, r) { _T(#name), t, offsetof(USER_MODALS_INFO_2, usrmod2_##name), r }
+#define UMI3_ENTRY(name, t, r) { _T(#name), t, offsetof(USER_MODALS_INFO_3, usrmod3_##name), r }
 
 // @object PyUSER_INFO_0|A dictionary holding the information in a Win32 USER_INFO_0 structure.
 static struct PyNET_STRUCT_ITEM ui0[] = {
@@ -224,6 +230,67 @@ static struct PyNET_STRUCT user_infos[] = { // @flagh Level|Data
 	{NULL}
 };
 
+// @object PyUSER_MODALS_INFO_0|A dictionary holding the information in a Win32 USER_MODALS_INFO_0 structure.
+static struct PyNET_STRUCT_ITEM umi0[] = {
+  UMI0_ENTRY(min_passwd_len, NSI_DWORD, 0), // @prop int|min_passwd_len|
+  UMI0_ENTRY(max_passwd_age, NSI_DWORD, 0), // @prop int|max_passwd_age|
+  UMI0_ENTRY(min_passwd_age, NSI_DWORD, 0), // @prop int|min_passwd_age|
+  UMI0_ENTRY(force_logoff, NSI_DWORD, 0), // @prop int|force_logoff|
+  UMI0_ENTRY(password_hist_len, NSI_DWORD, 0), // @prop int|password_hist_len|
+  {NULL}
+};
+
+// @object PyUSER_MODALS_INFO_1|A dictionary holding the information in a Win32 USER_MODALS_INFO_1 structure.
+static struct PyNET_STRUCT_ITEM umi1[] = {
+  UMI1_ENTRY(role, NSI_DWORD, 0), // @prop int|role|
+  UMI1_ENTRY(primary, NSI_WSTR, 0), // @prop string/<o PyUnicode>|primary|
+  {NULL}
+};
+
+// @object PyUSER_MODALS_INFO_2|A dictionary holding the information in a Win32 USER_MODALS_INFO_2 structure.
+static struct PyNET_STRUCT_ITEM umi2[] = {
+  UMI2_ENTRY(domain_name, NSI_WSTR, 0), // @prop string/<o PyUnicode>|domain_name|
+  UMI2_ENTRY(domain_id, NSI_SID, 0), // @prop int|domain_id|
+  {NULL}
+};
+
+// @object PyUSER_MODALS_INFO_3|A dictionary holding the information in a Win32 USER_MODALS_INFO_3 structure.
+static struct PyNET_STRUCT_ITEM umi3[] = {
+  UMI3_ENTRY(lockout_duration, NSI_DWORD, 0), // @prop int|lockout_duration|
+  UMI3_ENTRY(lockout_observation_window, NSI_DWORD, 0), // @prop int|lockout_observation_window|
+  UMI3_ENTRY(lockout_threshold, NSI_DWORD, 0), // @prop int|usrmod3_lockout_threshold|
+  {NULL}
+};
+
+// @object PyUSER_MODALS_INFO_*|The following USER_MODALS_INFO levels are supported.
+static struct PyNET_STRUCT user_modals_infos[] = { // @flagh Level|Data
+	{ 0, umi0, sizeof(USER_MODALS_INFO_0) },        // @flag 0|<o PyUSER_MODALS_INFO_0>
+	{ 1, umi1, sizeof(USER_MODALS_INFO_1) },		// @flag 1|<o PyUSER_MODALS_INFO_1>
+	{ 2, umi2, sizeof(USER_MODALS_INFO_2) },		// @flag 2|<o PyUSER_MODALS_INFO_2>
+	{ 3, umi3, sizeof(USER_MODALS_INFO_3) },		// @flag 3|<o PyUSER_MODALS_INFO_3>
+	{NULL}
+};
+
+// @pymethod dict|win32net|NetUserModalsGet|Retrieves global user information on a server.
+PyObject *PyNetUserModalsGet(PyObject *self, PyObject *args) 
+{
+	// @pyparm string/<o PyUnicode>|server||The name of the server, or None.
+	// @pyparm int|level||The information level contained in the data
+	// @rdesc The result will be a dictionary in one of the <o PyUSER_MODALS_INFO_*>
+	// formats, depending on the level parameter.
+	// @pyseeapi NetUserModalsGet
+	return PyDoGetModalsInfo(self, args, NetUserModalsGet, "NetUserModalsGet", user_modals_infos);
+}
+
+// @pymethod dict|win32net|NetUserModalsGet|Retrieves global user information on a server.
+PyObject *PyNetUserModalsSet(PyObject *self, PyObject *args) 
+{
+	// @pyparm string/<o PyUnicode>|server||The name of the server, or None.
+	// @pyparm int|level||The information level contained in the data
+	// @pyparm mapping|data||A dictionary holding the data in the format of <o PyUSER_MODALS_INFO_*>.
+	// @pyseeapi NetUserModalsGet
+	return PyDoSetModalsInfo(self, args, NetUserModalsSet, "NetUserModalsSet", user_modals_infos);
+}
 
 // @pymethod dict|win32net|NetUserGetInfo|Retrieves information about a particular user account on a server.
 PyObject *PyNetUserGetInfo(PyObject *self, PyObject *args) 
@@ -247,7 +314,6 @@ PyObject *PyNetUserSetInfo(PyObject *self, PyObject *args)
 	// @pyseeapi NetUserSetInfo
 	return PyDoSetInfo(self, args, NetUserSetInfo, "NetUserSetInfo", user_infos);
 }
-
 
 // @pymethod |win32net|NetUserAdd|Creates a new user.
 PyObject *PyNetUserAdd(PyObject *self, PyObject *args) 

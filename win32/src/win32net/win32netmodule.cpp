@@ -508,6 +508,36 @@ done:
 	return ret;
 }
 
+PyObject *PyDoGetModalsInfo(PyObject *self, PyObject *args, PFNGETMODALSINFO pfn, char *fnname, PyNET_STRUCT *pInfos) 
+{
+	WCHAR *szServer = NULL;
+	PyObject *obServer;
+	PyNET_STRUCT *pInfo;
+	BYTE *buf = NULL;
+	PyObject *ret = NULL;
+	int typ;
+	DWORD err;
+	if (!PyArg_ParseTuple(args, "Oi", &obServer, &typ))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obServer, &szServer, TRUE))
+		goto done;
+	if (!FindNET_STRUCT(typ, pInfos, &pInfo))
+		goto done;
+    Py_BEGIN_ALLOW_THREADS
+	err = (*pfn)(szServer, typ, &buf);
+    Py_END_ALLOW_THREADS
+	if (err) {
+		ReturnNetError(fnname,err);
+		goto done;
+	}
+	ret= PyObject_FromNET_STRUCT(pInfo, buf);
+done:
+	if (buf) NetApiBufferFree(buf);
+	PyWinObject_FreeWCHAR(szServer);
+	return ret;
+}
+
+
 /*****************************************************************************/
 
 // @pymethod |win32net|NetMessageBufferSend|sends a string to a registered message alias.
@@ -601,6 +631,42 @@ done:
 	PyWinObject_FreeWCHAR(szName);
 	return ret;
 }
+
+PyObject *PyDoSetModalsInfo(PyObject *self, PyObject *args, PFNSETMODALSINFO pfn, char *fnname, PyNET_STRUCT *pInfos)
+{
+	WCHAR *szServer = NULL;	
+	PyObject *obServer, *obData;
+	PyNET_STRUCT *pInfo;
+	BYTE *buf = NULL;
+	PyObject *ret = NULL;
+	int typ;
+	DWORD err = 0;
+	if (!PyArg_ParseTuple(args, "OiO", &obServer, &typ, &obData))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obServer, &szServer, TRUE))
+		goto done;
+
+  if (!FindNET_STRUCT(typ, pInfos, &pInfo))
+		goto done;
+
+	if (!PyObject_AsNET_STRUCT(obData, pInfo, &buf))
+		goto done;
+
+    Py_BEGIN_ALLOW_THREADS
+	err = (*pfn)(szServer, typ, buf, NULL);
+    Py_END_ALLOW_THREADS
+	if (err) {
+		ReturnNetError(fnname,err);	
+		goto done;
+	}
+	ret= Py_None;
+	Py_INCREF(ret);
+done:
+	if (buf) PyObject_FreeNET_STRUCT(pInfo, buf);
+	PyWinObject_FreeWCHAR(szServer);	
+	return ret;
+}
+
 
 PyObject *PyDoAdd(PyObject *self, PyObject *args, PFNADD pfn, char *fnname, PyNET_STRUCT *pInfos)
 {
@@ -807,6 +873,9 @@ extern PyObject *PyNetUserChangePassword(PyObject *self, PyObject *args);
 extern PyObject *PyNetUserGetLocalGroups( PyObject *self, PyObject *args);
 extern PyObject *PyNetUserGetGroups( PyObject *self, PyObject *args);
 
+extern PyObject *PyNetUserModalsGet(PyObject *self, PyObject *args);
+extern PyObject *PyNetUserModalsSet(PyObject *self, PyObject *args);
+
 extern PyObject *PyNetGroupGetInfo(PyObject *self, PyObject *args);
 extern PyObject *PyNetGroupSetInfo(PyObject *self, PyObject *args);
 extern PyObject *PyNetGroupAdd(PyObject *self, PyObject *args);
@@ -897,6 +966,9 @@ static struct PyMethodDef win32net_functions[] = {
 	{"NetUserGetLocalGroups",	PyNetUserGetLocalGroups,	1,	"Updated - New Behavior"}, // @pymeth NetUserGetLocalGroups|Retrieves a list of local groups to which a specified user belongs.
 	{"NetUserSetInfo",          PyNetUserSetInfo,           1}, // @pymeth NetUserSetInfo|Sets information about a particular user account on a server.
 	{"NetUserDel",              PyNetUserDel,               1}, // @pymeth NetUserDel|Deletes a user.
+
+	{"NetUserModalsGet",          PyNetUserModalsGet,           1}, // @pymeth NetUserModalsGet|Retrieves global user information on a server.
+  {"NetUserModalsSet",          PyNetUserModalsSet,           1}, // @pymeth NetUserModalsSet|Sets global user information on a server.
 
     {"NetWkstaUserEnum",        PyNetWkstaUserEnum,         1}, // @pymeth NetWkstaUserEnum|Retrieves information about all users currently logged on to the workstation.
     {"NetWkstaGetInfo",         PyNetWkstaGetInfo,          1}, // @pymeth NetWkstaGetInfo|returns information about the configuration elements for a workstation.
