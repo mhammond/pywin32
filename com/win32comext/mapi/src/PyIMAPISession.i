@@ -198,6 +198,12 @@ HRESULT GetMsgStoresTable(
     IMAPITable **OUTPUT 
 );
 
+// @pyswig <o PyIMAPITable>|GetStatusTable|Provides access to the status table - a table with information about all of the MAPI resources in the session.
+HRESULT GetStatusTable(
+    unsigned long ulFlags, // @pyparm int|flags||Flags that control the opening.
+    IMAPITable **OUTPUT 
+);
+
 // @pyswig |Logoff|Ends a MAPI session.
 HRESULT Logoff( 
     unsigned long ulUIParam,  // @pyparm int|uiParm||hwnd of a dialog is to be displayed.
