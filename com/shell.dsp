@@ -94,6 +94,26 @@ LINK32=link.exe
 # PROP Default_Filter "cxx;cpp;c"
 # Begin Source File
 
+SOURCE=.\win32comext\shell\src\PyIContextMenu.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIEnumIDList.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIExtractIcon.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIShellExtInit.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIShellFolder.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32comext\shell\src\PyIShellLink.cpp
 # End Source File
 # Begin Source File
@@ -104,6 +124,26 @@ SOURCE=.\win32comext\shell\src\shell.cpp
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h"
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIContextMenu.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIEnumIDList.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIExtractIcon.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIShellExtInit.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIShellFolder.h
+# End Source File
 # Begin Source File
 
 SOURCE=.\win32comext\shell\src\PyIShellLink.h
