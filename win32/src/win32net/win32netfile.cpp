@@ -1,3 +1,4 @@
+// @doc
 // Implemented and contributed by Roger Upole.
 #include "stdio.h"
 #include "assert.h"
@@ -9,15 +10,20 @@
 #include "PyWinTypes.h"
 #include "win32net.h"
 
+// @pymethod (dict,...)|win32net|NetFileEnum|Lists remotely opened resources on a server
 PyObject *
 PyNetFileEnum(PyObject *self, PyObject *args)
-
 {
-	PyObject *server_name_obj =NULL;
+	// @pyparm int|level||Level of information, 2 or 3 supported
+	// @pyparm string/<o PyUnicode>|servername|None|The name of the server for which to list open resources, local machine assumed if None
+	// @pyparm string/<o PyUnicode>|basepath|None|If specified, limits returned list to files on given path
+	// @pyparm string/<o PyUnicode>|username|None|User that opened resource, or None to list open files for all users
+	// @rdesc Returns a sequence of dictionaries representing FILE_INFO_* structs, depending on level specified
+	PyObject *server_name_obj = Py_None;
 	LPTSTR server_name = NULL;
-	PyObject *base_path_obj = NULL;
+	PyObject *base_path_obj = Py_None;
 	LPTSTR base_path = NULL;
-	PyObject *user_name_obj =NULL;
+	PyObject *user_name_obj = Py_None;
 	LPTSTR user_name = NULL;
 
 	PyObject *ret_list =NULL;
@@ -35,23 +41,21 @@ PyNetFileEnum(PyObject *self, PyObject *args)
 	DWORD i;
 
 	NET_API_STATUS nStatus;
-	long rc;
     long info_lvl=NULL;
 
-    if (!PyArg_ParseTuple(args, "iO|OO", &info_lvl, &server_name_obj, &base_path_obj, &user_name_obj))
+    if (!PyArg_ParseTuple(args, "i|OOO", &info_lvl, &server_name_obj, &base_path_obj, &user_name_obj))
 		return NULL;
     if ((info_lvl != 2) && (info_lvl != 3)){ 
 		PyErr_SetString(PyExc_ValueError,"Invalid level for NetFileEnum");
 		return NULL;
 		}
 
-	rc = PyWinObject_AsWCHAR(server_name_obj, &server_name, TRUE);
-	if (PyTuple_Size(args)>2){
-		rc = PyWinObject_AsWCHAR(base_path_obj, &base_path, TRUE);
-		};
-	if (PyTuple_Size(args)>3){
-		rc = PyWinObject_AsWCHAR(user_name_obj, &user_name, TRUE);
-		};
+	if (!PyWinObject_AsWCHAR(server_name_obj, &server_name, TRUE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(base_path_obj, &base_path, TRUE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(user_name_obj, &user_name, TRUE))
+		goto done;
 	
 	ret_list = PyList_New(0);
 
@@ -127,8 +131,9 @@ PyNetFileEnum(PyObject *self, PyObject *args)
 				
 		}
 	}
-
-	PyWinObject_FreeWCHAR(server_name);
+done:
+	if (server_name!=NULL)
+		PyWinObject_FreeWCHAR(server_name);
 	if (base_path != NULL)
 		PyWinObject_FreeWCHAR(base_path);
 	if (user_name != NULL)
@@ -136,24 +141,27 @@ PyNetFileEnum(PyObject *self, PyObject *args)
 	return ret_list;
 }
 
+// @pymethod (dict,...)|win32net|NetFileClose|Closes an open network resource on a server
 PyObject *
 PyNetFileClose(PyObject *self, PyObject *args)
-
 {
+	// @pyparm string/<o PyUnicode>|servername||Name of server on which to operate, local machine assumed if None
+	// @pyparm int|fileid||Id of opened resource, as returned by <om win32net.NetFileEnum>
 	PyObject *server_name_obj =NULL;
 	LPTSTR server_name = NULL;
 	NET_API_STATUS nStatus;
 	long file_id;
-	long rc;
 
     if (!PyArg_ParseTuple(args, "Oi", &server_name_obj, &file_id))
 		return NULL;
-	rc = PyWinObject_AsWCHAR(server_name_obj, &server_name, TRUE);
+	if (!PyWinObject_AsWCHAR(server_name_obj, &server_name, TRUE))
+		return NULL;
 	Py_BEGIN_ALLOW_THREADS
 	nStatus=NetFileClose(server_name, file_id);
 	Py_END_ALLOW_THREADS
 
-    PyWinObject_FreeWCHAR(server_name);
+	if (server_name!=NULL)
+	    PyWinObject_FreeWCHAR(server_name);
 
 	if (nStatus == NERR_Success){
 		Py_INCREF(Py_None);
@@ -165,16 +173,19 @@ PyNetFileClose(PyObject *self, PyObject *args)
 	}
 }
 
+// @pymethod dict|win32net|NetFileGetInfo|Returns information about an open network resource
 PyObject *
 PyNetFileGetInfo(PyObject *self, PyObject *args)
 
 {
+	// @pyparm int|level||Level of information to return, 2 or 3 supported
+	// @pyparm string/<o PyUnicode>|servername||Server on which resource is open, local machine assumed if None
+	// @pyparm int|fileid||Id of opened resource, as returned by <om win32net.NetFileEnum>
 	PyObject *server_name_obj = NULL;
 	PyObject *ret_dict = NULL;
 	LPTSTR server_name = NULL;
 	long info_lvl=NULL;
 	DWORD file_id = NULL;
-	long rc;
 	LPFILE_INFO_3 pTmpBuf3 = NULL;
 	LPFILE_INFO_2 pTmpBuf2= NULL;
 	NET_API_STATUS nStatus;
@@ -186,7 +197,8 @@ PyNetFileGetInfo(PyObject *self, PyObject *args)
 		return NULL;
 		}
 
-	rc = PyWinObject_AsWCHAR(server_name_obj, &server_name, FALSE);
+	if (!PyWinObject_AsWCHAR(server_name_obj, &server_name, TRUE))
+		return NULL;
 	switch (info_lvl){
 		case 2:{
 			Py_BEGIN_ALLOW_THREADS
@@ -225,7 +237,7 @@ PyNetFileGetInfo(PyObject *self, PyObject *args)
 				NetApiBufferFree(pTmpBuf3);
 		}
 	}
-
-	PyWinObject_FreeWCHAR(server_name);
+	if (server_name!=NULL)
+		PyWinObject_FreeWCHAR(server_name);
 	return ret_dict;
 }
