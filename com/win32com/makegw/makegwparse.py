@@ -409,7 +409,6 @@ ConvertSimpleTypes = {"BOOL":("BOOL", "int", "i"),
 					  "TEXT_DOC_ATTR": ("int", "int", "i"),
 					  "QUERYOPTION": ("int", "int", "i"),
 					  "PARSEACTION": ("int", "int", "i"),
-					  "VARIANT_BOOL": ("VARIANT_BOOL", "int", "i"),
 }
 	
 class ArgFormatterSimple(ArgFormatter):
@@ -450,6 +449,7 @@ AllConverters = {"const OLECHAR":	(ArgFormatterOLECHAR, 0, 1),
 				 "single":			(ArgFormatterFloat, 0),
 				 "short":			(ArgFormatterShort, 0),
 				 "WORD":			(ArgFormatterShort, 0),
+				 "VARIANT_BOOL":	(ArgFormatterShort, 0),
 				 "Control":			(ArgFormatterInterface, 0, 1),
 				 "DataObject":		(ArgFormatterInterface, 0, 1),
 				 "_PropertyBag":	(ArgFormatterInterface, 0, 1),
