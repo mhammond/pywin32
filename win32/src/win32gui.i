@@ -996,6 +996,34 @@ static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
 		;
 }
 
+// @pyswig int|FlashWindow|The FlashWindow function flashes the specified window one time. It does not change the active state of the window.
+// @pyparm int|hwnd||
+// @pyparm int|bInvert||
+BOOL FlashWindow(HWND hwnd, BOOL bInvert);
+
+%{
+PyObject *PyFlashWindowEx(PyObject *self, PyObject *args)
+{
+	PyObject *ret;
+	BOOL rc;
+	FLASHWINFO f;
+	f.cbSize = sizeof f;
+	// @pyparm int|hwnd||
+	// @pyparm int|dwFlags||
+	// @pyparm int|uCount||
+	// @pyparm int|dwTimeout||
+	if (!PyArg_ParseTuple(args, "iiii", &f.hwnd, &f.dwFlags, &f.uCount, &f.dwTimeout))
+		return NULL;
+	Py_BEGIN_ALLOW_THREADS
+	rc = FlashWindowEx(&f);
+	Py_END_ALLOW_THREADS
+	ret = rc ? Py_True : Py_False;
+	Py_INCREF(ret);
+	return ret;
+}
+%}
+%native(FlashWindowEx) PyFlashWindowEx;
+
 // @pyswig int|GetWindowLong|
 // @pyparm int|hwnd||
 // @pyparm int|index||
@@ -2778,7 +2806,7 @@ PyListView_SortItems(PyObject *self, PyObject *args)
 	PyObject *obParam = Py_None;
 	// @pyparm int|hwnd||The handle to the window
 	// @pyparm object|callback||A callback object, taking 3 params.
-	// @pyparm object|param|None||The third param to the callback function.
+	// @pyparm object|param|None|The third param to the callback function.
 	if (!PyArg_ParseTuple(args, "iO|O:ListView_SortItems", &hwnd, &ob, &obParam))
 		return NULL;
 	if (!PyCallable_Check(ob))
@@ -2805,7 +2833,7 @@ PyListView_SortItemsEx(PyObject *self, PyObject *args)
 	PyObject *obParam = Py_None;
 	// @pyparm int|hwnd||The handle to the window
 	// @pyparm object|callback||A callback object, taking 3 params.
-	// @pyparm object|param|None||The third param to the callback function.
+	// @pyparm object|param|None|The third param to the callback function.
 	if (!PyArg_ParseTuple(args, "iO|O:ListView_SortItemsEx", &hwnd, &ob, &obParam))
 		return NULL;
 	if (!PyCallable_Check(ob))
