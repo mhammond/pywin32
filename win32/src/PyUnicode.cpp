@@ -96,11 +96,11 @@ BOOL PyWin_WCHAR_AsString(WCHAR *input, DWORD inLen, char **pResult)
 		inLen = wcslen(input);
 	// convert from string len to include terminator.
 	inLen++;
-	char *buf = (char *)malloc(inLen);
+	char *buf = (char *)PyMem_Malloc(inLen);
 
 	DWORD len = WideCharToMultiByte(CP_ACP, 0, input, inLen, buf, inLen, NULL, NULL);
 	if (len==0) {
-		free(buf);
+		PyMem_Free(buf);
 		PyWin_SetAPIError("WideCharToMultiByte");
 		return FALSE;
 	}
@@ -244,11 +244,11 @@ BOOL PyWin_WCHAR_AsString(WCHAR *input, DWORD inLen, char **pResult)
 		inLen = wcslen(input);
 	// convert from string len to include terminator.
 	inLen++;
-	char *buf = (char *)malloc(inLen);
+	char *buf = (char *)PyMem_Malloc(inLen);
 
 	DWORD len = WideCharToMultiByte(CP_ACP, 0, input, inLen, buf, inLen, NULL, NULL);
 	if (len==0) {
-		free(buf);
+		PyMem_Free(buf);
 		PyWin_SetAPIError("WideCharToMultiByte");
 		return FALSE;
 	}
@@ -269,7 +269,7 @@ BOOL PyWinObject_AsString(PyObject *stringObject, char **pResult, BOOL bNoneOK /
 	BOOL rc = TRUE;
 	if (PyString_Check(stringObject)) {
 		strLen = PyString_Size(stringObject);
-		*pResult = (char *)malloc((strLen + 1) * sizeof(char));
+		*pResult = (char *)PyMem_Malloc((strLen + 1) * sizeof(char));
 		if (*pResult==NULL) {
 			PyErr_SetString(PyExc_MemoryError, "copying string");
 			return FALSE;
@@ -301,7 +301,7 @@ BOOL PyWinObject_AsString(PyObject *stringObject, char **pResult, BOOL bNoneOK /
 
 void PyWinObject_FreeString(char *str)
 {
-	free(str);
+	PyMem_Free(str);
 }
 
 
@@ -927,7 +927,7 @@ BOOL PyWinObject_AsWCHAR(PyObject *stringObject, WCHAR **pResult, BOOL bNoneOK /
 		/* compute the max possible size ("size" may contain multi-byte chars) */
 		int wideSize = size*2;
 
-		*pResult = (LPWSTR)malloc(wideSize+sizeof(WCHAR));
+		*pResult = (LPWSTR)PyMem_Malloc(wideSize+sizeof(WCHAR));
 		if (*pResult==NULL) {
 			PyErr_SetString(PyExc_MemoryError, "No memory for wide string buffer");
 			return FALSE;
@@ -966,5 +966,5 @@ BOOL PyWinObject_AsWCHAR(PyObject *stringObject, WCHAR **pResult, BOOL bNoneOK /
 
 void PyWinObject_FreeWCHAR(WCHAR *str)
 {
-	free(str);
+	PyMem_Free(str);
 }
