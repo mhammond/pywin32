@@ -13,6 +13,8 @@
 
 %{
 #include "windows.h"
+#define SECURITY_WIN32
+#include "security.h"
 #include "PySecurityObjects.h"
 #include "accctrl.h"
 #include "aclapi.h"
@@ -101,6 +103,7 @@ BOOL PyWinObject_CloseLSA_HANDLE(PyObject *obHandle)
 // @object PyTOKEN_PRIVILEGES|An object representing Win32 token privileges.
 // @comm This is a sequence (eg, list) of (id, attributes)
 %{
+
 PyObject *PyWinObject_FromTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *tp)
 {
 	unsigned int privInd;
@@ -664,6 +667,7 @@ static PyObject *PyGetBinarySid (PyObject *self, PyObject *args)
 %}
 %native(GetBinarySid) PyGetBinarySid;
 
+// @pyswig |SetSecurityInfo|Sets security info for an object by handle
 %native(SetSecurityInfo) SetSecurityInfo;
 %{
 PyObject *SetSecurityInfo(PyObject *self, PyObject *args)
@@ -680,47 +684,152 @@ PyObject *SetSecurityInfo(PyObject *self, PyObject *args)
 	SECURITY_INFORMATION info = 0;
 	SE_OBJECT_TYPE typeHandle;
 	HANDLE handle;
+	DWORD err;
 
-	if (!PyArg_ParseTuple(args, "Ol|OOOO:SetSecurityInfo",
-				&obHandle,
-				(long *)(&typeHandle),
-				&obSidOwner,
-				&obSidGroup,
-				&obDacl,
-				&obSacl))
+	if (!PyArg_ParseTuple(args, "Oll|OOOO:SetSecurityInfo",
+				&obHandle,				// @pyparm int/<o PyHANDLE>|handle||Handle to object
+				(long *)(&typeHandle),	// @pyparm int|ObjectType||Value from SE_OBJECT_TYPE enum
+				&info,					// @pyparm int|SecurityInfo||Combination of SECURITY_INFORMATION constants			
+				&obSidOwner,			// @pyparm <o PySID>|Owner||Sid to set as owner of object, can be None
+				&obSidGroup,			// @pyparm <o PySID>|Group||Group Sid, can be None
+				&obDacl,				// @pyparm <o PyACL>|Dacl||Discretionary ACL to set for object, can be None
+				&obSacl))				// @pyparm <o PyACL>|Sacl||System Audit ACL to set for object, can be None
 		return NULL;
 
 	if (!PyWinObject_AsHANDLE(obHandle, &handle, FALSE ))
 		return NULL;
-	if (obSidOwner!=Py_None) {
-		info |= OWNER_SECURITY_INFORMATION;
-		if (!PyWinObject_AsSID(obSidOwner, &pSidOwner, FALSE))
-			return NULL;
-	}
-	if (obSidGroup!=Py_None) {
-		info |= GROUP_SECURITY_INFORMATION;
-		if (!PyWinObject_AsSID(obSidGroup, &pSidGroup, FALSE))
-			return NULL;
-	}
-	if (obDacl!=Py_None) {
-		info |= DACL_SECURITY_INFORMATION;
-		if (!PyWinObject_AsACL(obDacl, &pDacl, FALSE))
-			return NULL;
-	}
-	if (obSacl!=Py_None) {
-		info |= SACL_SECURITY_INFORMATION;
-		if (!PyWinObject_AsACL(obSacl, &pSacl, FALSE))
-			return NULL;
-	}
-	if (info==0) {
-		PyErr_SetString(PyExc_TypeError, "No new security information was specified");
+	if (!PyWinObject_AsSID(obSidOwner, &pSidOwner, TRUE))
 		return NULL;
-	}
-	if (!SetSecurityInfo(handle, typeHandle, info, pSidOwner, pSidGroup, pDacl, pSacl))
-		return PyWin_SetAPIError("SetSecurityInfo");
+	if (!PyWinObject_AsSID(obSidGroup, &pSidGroup, TRUE))
+		return NULL;
+	if (!PyWinObject_AsACL(obDacl, &pDacl, TRUE))
+		return NULL;
+	if (!PyWinObject_AsACL(obSacl, &pSacl, TRUE))
+		return NULL;
 
+	err=SetSecurityInfo(handle, typeHandle, info, pSidOwner, pSidGroup, pDacl, pSacl);
+	if (err!=ERROR_SUCCESS)
+		return PyWin_SetAPIError("SetSecurityInfo",err);
 	Py_INCREF(Py_None);
 	return Py_None;
+}
+%}
+
+// @pyswig <o PySECURITY_DESCRIPTOR>|GetSecurityInfo|Retrieve security info for an object by handle
+// @comm Separate owner, group, dacl, and sacl are not returned as they can be easily retrieved from
+//       the returned PySECURITY_DESCRIPTOR
+%native(GetSecurityInfo) PyGetSecurityInfo;
+%{
+static PyObject *PyGetSecurityInfo(PyObject *self, PyObject *args)
+{
+	HANDLE handle;
+	PSECURITY_DESCRIPTOR pSD=NULL;
+	SE_OBJECT_TYPE object_type;
+	SECURITY_INFORMATION required_info;
+	DWORD err;
+	PyObject *ret=NULL, *obhandle=NULL;
+	// @pyparm int/<o PyHANDLE>|handle||Handle to object
+	// @pyparm int|ObjectType||Value from SE_OBJECT_TYPE enum
+	// @pyparm int|SecurityInfo||Combination of SECURITY_INFORMATION constants
+	if (!PyArg_ParseTuple(args, "Oll:GetSecurityInfo",&obhandle, &object_type, &required_info))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhandle, &handle, FALSE))
+		return NULL;
+
+	err=GetSecurityInfo(handle, object_type, required_info, NULL, NULL, NULL, NULL, &pSD);
+	if (err==ERROR_SUCCESS)
+		ret=new PySECURITY_DESCRIPTOR(pSD);
+	else
+		PyWin_SetAPIError("GetSecurityInfo",err);
+	if (pSD)
+		LocalFree(pSD);
+	return ret;
+}
+%}
+
+// @pyswig |SetNamedSecurityInfo|Sets security info for an object by name
+%native(SetNamedSecurityInfo) SetNamedSecurityInfo;
+%{
+PyObject *SetNamedSecurityInfo(PyObject *self, PyObject *args)
+{
+	PSID pSidOwner = NULL;
+	PSID pSidGroup = NULL;
+	PACL pDacl= NULL;
+	PACL pSacl = NULL;
+	PyObject *obObjectName=NULL, *ret=NULL;
+	PyObject *obSidOwner = Py_None;
+	PyObject *obSidGroup = Py_None;
+	PyObject *obDacl = Py_None;
+	PyObject *obSacl = Py_None;
+	SECURITY_INFORMATION info = 0;
+	SE_OBJECT_TYPE ObjectType;
+	WCHAR *ObjectName=NULL;
+	DWORD err;
+
+	if (!PyArg_ParseTuple(args, "Oll|OOOO:SetNamedSecurityInfo",
+				&obObjectName,			// @pyparm str/unicode|ObjectName||Name of object
+				&ObjectType,			// @pyparm int|ObjectType||Value from SE_OBJECT_TYPE enum
+				&info,					// @pyparm int|SecurityInfo||Combination of SECURITY_INFORMATION constants			
+				&obSidOwner,			// @pyparm <o PySID>|Owner||Sid to set as owner of object, can be None
+				&obSidGroup,			// @pyparm <o PySID>|Group||Group Sid, can be None
+				&obDacl,				// @pyparm <o PyACL>|Dacl||Discretionary ACL to set for object, can be None
+				&obSacl))				// @pyparm <o PyACL>|Sacl||System Audit ACL to set for object, can be None
+		return NULL;
+
+	if (!PyWinObject_AsSID(obSidOwner, &pSidOwner, TRUE))
+		return NULL;
+	if (!PyWinObject_AsSID(obSidGroup, &pSidGroup, TRUE))
+		return NULL;
+	if (!PyWinObject_AsACL(obDacl, &pDacl, TRUE))
+		return NULL;
+	if (!PyWinObject_AsACL(obSacl, &pSacl, TRUE))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obObjectName, &ObjectName, FALSE ))
+		return NULL;
+
+	err=SetNamedSecurityInfo(ObjectName, ObjectType, info, pSidOwner, pSidGroup, pDacl, pSacl);
+	if (err==ERROR_SUCCESS){
+		Py_INCREF(Py_None);
+		ret=Py_None;
+		}
+	else
+		PyWin_SetAPIError("SetNamedSecurityInfo",err);
+	PyWinObject_FreeWCHAR(ObjectName);
+	return ret;
+}
+%}
+
+
+// @pyswig <o PySECURITY_DESCRIPTOR>|GetNamedSecurityInfo|Retrieve security info for an object by name
+// @comm Separate owner, group, dacl, and sacl are not returned as they can be easily retrieved from
+//       the returned PySECURITY_DESCRIPTOR
+%native(GetNamedSecurityInfo) PyGetNamedSecurityInfo;
+%{
+static PyObject *PyGetNamedSecurityInfo(PyObject *self, PyObject *args)
+{
+	WCHAR *ObjectName=NULL;
+	PSECURITY_DESCRIPTOR pSD=NULL;
+	SE_OBJECT_TYPE object_type;
+	SECURITY_INFORMATION required_info;
+	DWORD err;
+	PyObject *ret=NULL, *obObjectName=NULL;
+	// @pyparm str/unicode|ObjectName||Name of object
+	// @pyparm int|ObjectType||Value from SE_OBJECT_TYPE enum
+	// @pyparm int|SecurityInfo||Combination of SECURITY_INFORMATION constants
+	if (!PyArg_ParseTuple(args, "Oll:GetNamedSecurityInfo",&obObjectName, &object_type, &required_info))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obObjectName, &ObjectName, FALSE))
+		return NULL;
+
+	err=GetNamedSecurityInfoW(ObjectName, object_type, required_info, NULL, NULL, NULL, NULL, &pSD);
+	if (err==ERROR_SUCCESS)
+		ret=new PySECURITY_DESCRIPTOR(pSD);
+	else
+		PyWin_SetAPIError("GetNamedSecurityInfo",err);
+	PyWinObject_FreeWCHAR(ObjectName);
+	if (pSD)
+		LocalFree(pSD);
+	return ret;
 }
 %}
 
@@ -1202,6 +1311,8 @@ static PyObject *MyGetUserObjectSecurity(PyObject *self, PyObject *args)
 	}
 	rc = PyWinObject_FromSECURITY_DESCRIPTOR(psd);
 done:
+	if (psd)
+		free(psd);
 	return rc;
 }
 %}
@@ -1216,8 +1327,8 @@ static PyObject *MySetUserObjectSecurity(PyObject *self, PyObject *args)
 	PyObject *obsd;
 	unsigned long info;
 
-	// @pyparm <o PyHANDLE>|handle||The handle to set.
-	// @pyparm int|info||The type of information to set.
+	// @pyparm <o PyHANDLE>|handle||The handle to an object for which security information will be set.
+	// @pyparm int|info||The type of information to set - combination of SECURITY_INFORMATION values
 	// @pyparm <o PySECURITY_DESCRIPTOR>|security||The security information
 	if (!PyArg_ParseTuple(args, "OlO", &obHandle, &info, &obsd))
 		return NULL;
@@ -1229,7 +1340,7 @@ static PyObject *MySetUserObjectSecurity(PyObject *self, PyObject *args)
 	PSECURITY_DESCRIPTOR psd;
 	if (!PyWinObject_AsSECURITY_DESCRIPTOR(obsd, &psd))
 		goto done;
-	if (SetUserObjectSecurity(handle, &info, psd)) {
+	if (!SetUserObjectSecurity(handle, &info, psd)) {
 		PyWin_SetAPIError("SetUserObjectSecurity");
 		goto done;
 	}
@@ -1275,6 +1386,8 @@ static PyObject *MyGetKernelObjectSecurity(PyObject *self, PyObject *args)
 	}
 	rc = PyWinObject_FromSECURITY_DESCRIPTOR(psd);
 done:
+	if (psd!=NULL)
+		free(psd);
 	return rc;
 }
 %}
@@ -1289,8 +1402,8 @@ static PyObject *MySetKernelObjectSecurity(PyObject *self, PyObject *args)
 	PyObject *obsd;
 	unsigned long info;
 
-	// @pyparm <o PyHANDLE>|handle||The handle to set.
-	// @pyparm int|info||The type of information to set.
+	// @pyparm <o PyHANDLE>|handle||The handle to an object for which security information will be set.
+	// @pyparm int|info||The type of information to set - combination of SECURITY_INFORMATION values
 	// @pyparm <o PySECURITY_DESCRIPTOR>|security||The security information
 	if (!PyArg_ParseTuple(args, "OlO", &obHandle, &info, &obsd))
 		return NULL;
@@ -1302,7 +1415,7 @@ static PyObject *MySetKernelObjectSecurity(PyObject *self, PyObject *args)
 	PSECURITY_DESCRIPTOR psd;
 	if (!PyWinObject_AsSECURITY_DESCRIPTOR(obsd, &psd))
 		goto done;
-	if (SetKernelObjectSecurity(handle, info, psd)) {
+	if (!SetKernelObjectSecurity(handle, info, psd)) {
 		PyWin_SetAPIError("SetKernelObjectSecurity");
 		goto done;
 	}
@@ -2011,7 +2124,7 @@ static PyObject *PyLsaRetrievePrivateData(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig object|LsaRegisterPolicyChangeNotification|Register an event handle to receive policy change events
+// @pyswig |LsaRegisterPolicyChangeNotification|Register an event handle to receive policy change events
 %native(LsaRegisterPolicyChangeNotification) PyLsaRegisterPolicyChangeNotification;
 %{
 static PyObject *PyLsaRegisterPolicyChangeNotification(PyObject *self, PyObject *args)
@@ -2039,7 +2152,7 @@ static PyObject *PyLsaRegisterPolicyChangeNotification(PyObject *self, PyObject 
 }
 %}
 
-// @pyswig object|LsaUnregisterPolicyChangeNotification|Stop receiving policy change notification
+// @pyswig |LsaUnregisterPolicyChangeNotification|Stop receiving policy change notification
 %native(LsaUnregisterPolicyChangeNotification) PyLsaUnregisterPolicyChangeNotification;
 %{
 static PyObject *PyLsaUnregisterPolicyChangeNotification(PyObject *self, PyObject *args)
@@ -2118,6 +2231,50 @@ static PyObject *PyCryptEnumProviders(PyObject *self, PyObject *args)
 	return ret;
 }
 %}
+
+
+// @pyswig (dict,...)|EnumerateSecurityPackages|List available security packages as a sequence of dictionaries representing SecPkgInfo structures
+%native(EnumerateSecurityPackages) PyEnumerateSecurityPackages;
+%{
+static PyObject *PyEnumerateSecurityPackages(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":EnumerateSecurityPackages"))
+		return NULL;
+	PSecPkgInfoW pbuf=NULL, psecpkg=NULL;
+	PyObject *ret=NULL, *obsecpkg=NULL;
+	SECURITY_STATUS result;
+	ULONG pkg_cnt, pkg_ind;
+	result = EnumerateSecurityPackagesW(&pkg_cnt, &pbuf);
+	if (result!=SEC_E_OK)
+		goto done;
+	ret=PyTuple_New(pkg_cnt);
+	if (ret==NULL)
+		goto done;
+	psecpkg=pbuf;
+	for (pkg_ind=0;pkg_ind<pkg_cnt;pkg_ind++){
+		obsecpkg=Py_BuildValue("{s:l,s:l,s:l,s:l,s:u,s:u}",
+			"Capabilities", psecpkg->fCapabilities,
+			"Version",		psecpkg->wVersion,
+			"RPCID",		psecpkg->wRPCID,
+			"MaxToken",		psecpkg->cbMaxToken,
+			"Name",			psecpkg->Name,
+			"Comment",		psecpkg->Comment);
+		if (obsecpkg==NULL){
+			Py_DECREF(ret);
+			ret=NULL;
+			break;
+			}
+		PyTuple_SetItem(ret,pkg_ind,obsecpkg);
+		psecpkg++;
+		}
+	done:
+	if (pbuf!=NULL)
+		FreeContextBuffer(pbuf);
+	return ret;
+}
+%}
+
+
 
 #define TOKEN_ADJUST_DEFAULT TOKEN_ADJUST_DEFAULT // Required to change the default ACL, primary group, or owner of an access token.
 #define TOKEN_ADJUST_GROUPS TOKEN_ADJUST_GROUPS // Required to change the groups specified in an access token.
@@ -2396,3 +2553,19 @@ static PyObject *PyCryptEnumProviders(PyObject *self, PyObject *args)
 #define STYPE_SPECIAL STYPE_SPECIAL
 
 #define SDDL_REVISION_1 SDDL_REVISION_1
+
+#define SECPKG_FLAG_INTEGRITY SECPKG_FLAG_INTEGRITY
+#define SECPKG_FLAG_PRIVACY SECPKG_FLAG_PRIVACY
+#define SECPKG_FLAG_TOKEN_ONLY SECPKG_FLAG_TOKEN_ONLY
+#define SECPKG_FLAG_DATAGRAM SECPKG_FLAG_DATAGRAM
+#define SECPKG_FLAG_CONNECTION SECPKG_FLAG_CONNECTION
+#define SECPKG_FLAG_MULTI_REQUIRED SECPKG_FLAG_MULTI_REQUIRED
+#define SECPKG_FLAG_CLIENT_ONLY SECPKG_FLAG_CLIENT_ONLY
+#define SECPKG_FLAG_EXTENDED_ERROR SECPKG_FLAG_EXTENDED_ERROR
+#define SECPKG_FLAG_IMPERSONATION SECPKG_FLAG_IMPERSONATION
+#define SECPKG_FLAG_ACCEPT_WIN32_NAME SECPKG_FLAG_ACCEPT_WIN32_NAME
+#define SECPKG_FLAG_STREAM SECPKG_FLAG_STREAM 
+
+#define SECPKG_CRED_INBOUND SECPKG_CRED_INBOUND
+#define SECPKG_CRED_OUTBOUND SECPKG_CRED_OUTBOUND
+#define SECPKG_CRED_BOTH SECPKG_CRED_BOTH
