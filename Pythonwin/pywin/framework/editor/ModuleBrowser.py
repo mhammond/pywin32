@@ -52,11 +52,16 @@ class HierListCLBRItem(hierlist.HierListItem):
 
 class HierListCLBRClass(HierListCLBRItem):
     def __init__(self, clbrclass, suffix = ""):
-        name = clbrclass.name
-        file = clbrclass.file
-        lineno = clbrclass.lineno
-        self.super = clbrclass.super
-        self.methods = clbrclass.methods
+        try:
+            name = clbrclass.name
+            file = clbrclass.file
+            lineno = clbrclass.lineno
+            self.super = clbrclass.super
+            self.methods = clbrclass.methods
+        except AttributeError:
+            name = clbrclass
+            file = lineno = None
+            self.super = []; self.methods = {}
         HierListCLBRItem.__init__(self, name, file, lineno, suffix)
     def __cmp__(self,other):
         ret = cmp(self.name,other.name)
