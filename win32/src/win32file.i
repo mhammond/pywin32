@@ -1384,7 +1384,7 @@ PyObject *MyWSASend
 	PyObject *obTemp = NULL;
 	PyObject *obBuf = NULL;
 	PyObject *obOverlapped = NULL;
-	DWORD dwFlags;
+	DWORD dwFlags = 0;
 	PyBufferProcs *pb = NULL;
 
 	if (!PyArg_ParseTuple(
