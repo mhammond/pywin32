@@ -15,7 +15,7 @@
 * OF THE THEORY OF LIABILITY, ARISING OUT OF OR IN CONNECTION
 * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ******************************************************************/
-
+// @doc
 
 #if	defined(_WIN32_WCE_) // defined by the Windows CE compiler environment
 
@@ -37,6 +37,9 @@
 
 
 /* Main PYTHON entry point for creating a new reference.  Registered by win32wnet module */
+
+// @pymethod <o NETRESOURCE>|win32wnet|NETRESOURCE|Creates a new <o NETRESOURCE> object.
+
 PyObject *PyWinMethod_NewNETRESOURCE(PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ":NETRESOURCE"))	// no arguments
@@ -78,7 +81,7 @@ PyObject *PyWinObject_FromNETRESOURCE(const NETRESOURCE *pNetresource)
 }
 
 
-
+// @object NETRESOURCE|A Python object that encapsulates a Win32 NETRESOURCE structure.
 __declspec(dllexport)
 PyTypeObject PyNETRESOURCEType =
 {
@@ -106,15 +109,14 @@ PyTypeObject PyNETRESOURCEType =
 
 struct memberlist PyNETRESOURCE::memberlist[] =
 {
-	{"dwScope",		T_LONG,	OFF(m_nr.dwScope),	0},
-	{"dwType",		T_LONG,	OFF(m_nr.dwType),	0},
-	{"dwDisplayType", T_LONG,OFF(m_nr.dwDisplayType),	0},
-	{"dwUsage",		T_LONG,	OFF(m_nr.dwUsage),	0},
-	{"lpLocalName",	T_STRING, OFF(m_nr.lpLocalName),	0},
-	{"lpRemoteName",T_STRING, OFF(m_nr.lpRemoteName),	0},
-	{"lpComment",	T_STRING, OFF(m_nr.lpComment),	0},
-	{"lpProvider",	T_STRING, OFF(m_nr.lpProvider),	0},
-
+	{"dwScope",		T_LONG,	OFF(m_nr.dwScope),	0}, // @prop integer|dwScope|
+	{"dwType",		T_LONG,	OFF(m_nr.dwType),	0}, // @prop integer|dwType|
+	{"dwDisplayType", T_LONG,OFF(m_nr.dwDisplayType),	0}, // @prop integer|dwDisplayType|
+	{"dwUsage",		T_LONG,	OFF(m_nr.dwUsage),	0}, // @prop integer|dwUsage|
+	{"lpLocalName",	T_STRING, OFF(m_nr.lpLocalName),	0}, // @prop string|localName|
+	{"lpRemoteName",T_STRING, OFF(m_nr.lpRemoteName),	0},// @prop string|remoteName|
+	{"lpComment",	T_STRING, OFF(m_nr.lpComment),	0},// @prop string|comment|
+	{"lpProvider",	T_STRING, OFF(m_nr.lpProvider),	0},// @prop string|provider|
 	{NULL}
 };
 
