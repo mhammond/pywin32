@@ -28,9 +28,9 @@ import Queue
 
 debug = lambda msg: None
 
-#debug=win32ui.OutputDebugString
-#import win32trace;win32trace.InitWrite() # for debugging - delete me!
-#debug = win32trace.write
+##debug=win32ui.OutputDebugString
+##import win32trace;win32trace.InitWrite() # for debugging - delete me!
+##debug = win32trace.write
 
 class flags:
 	# queueing of output.
@@ -291,6 +291,7 @@ class WindowOutput(docview.DocTemplate):
 		self.bAutoRestore = bAutoRestore
 		self.title = title
 		self.bCreating = 0
+		self.interruptCount = 0
 		if type(defSize)==type(''):	# is a string - maintain size pos from ini file.
 			self.iniSizeSection = defSize
 			self.defSize = app.LoadWindowSize(defSize)
@@ -369,19 +370,22 @@ class WindowOutput(docview.DocTemplate):
 
 	# this handles the idle message, and does the printing.
 	def QueueIdleHandler(self,handler,count):
-		if self.outputQueue.empty():
-			return 0
 		try:
-			self.QueueFlush(20)
+			bEmpty = self.QueueFlush(20)
+			# If the queue is empty, then we are back to idle and restart interrupt logic.
+			if bEmpty: self.interruptCount = 0
 		except KeyboardInterrupt:
-			while 1:
-				try:
-					self.outputQueue.get(0)
-				except Queue.Empty:
-					break
-			print "Interrupted."
-			return 0
-		return 1 # More handling until queue empty
+			# First interrupt since idle we just pass on.
+			# later ones we dump the queue and give up.
+			self.interruptCount = self.interruptCount + 1
+			if self.interruptCount > 1:
+				# Drop the queue quickly as the user is already annoyed :-)
+				self.outputQueue = Queue.Queue(-1)
+				print "Interrupted."
+				bEmpty = 1
+			else:
+				raise # re-raise the error so the users exception filters up.
+		return not bEmpty # More to do if not empty.
 
 	# Returns true if the Window needs to be recreated.
 	def NeedRecreateWindow(self):
@@ -394,7 +398,7 @@ class WindowOutput(docview.DocTemplate):
 
 	# Returns true if the Window is OK (either cos it was, or because it was recreated
 	def CheckRecreateWindow(self):
-		if self.bCreating: return 0
+		if self.bCreating: return 1
 		if not self.NeedRecreateWindow():
 			return 1
 		if self.bAutoRestore:
@@ -403,37 +407,46 @@ class WindowOutput(docview.DocTemplate):
 		return 0
 
 	def QueueFlush(self, max = sys.maxint):
-		if not self.CheckRecreateWindow():
-			return
+		# Returns true if the queue is empty after the flush
+#		debug("Queueflush - %d, %d\n" % (max, self.outputQueue.qsize()))
+		if self.bCreating: return 1
 		items = []
+		rc = 0
 		while max > 0:
 			try:
 				items.append(self.outputQueue.get_nowait())
 			except Queue.Empty:
+				rc = 1
 				break
 			max = max - 1
-
-		self.currentView.dowrite(string.join(items,''))
+		if len(items) != 0:
+			if not self.CheckRecreateWindow():
+				debug(":Recreate failed!\n")
+				return 1 # In trouble - so say we have nothing to do.
+			self.currentView.dowrite(string.join(items,''))
+		return rc
 
 	def HandleOutput(self,message):
-		debug("QueueOutput on thread %d, flags %d with '%s'...\n" % (win32api.GetCurrentThreadId(), self.writeQueueing, message ))
+#		debug("QueueOutput on thread %d, flags %d with '%s'...\n" % (win32api.GetCurrentThreadId(), self.writeQueueing, message ))
 		self.outputQueue.put(message)
 		if win32api.GetCurrentThreadId() != self.mainThreadId:
-			debug("not my thread - ignoring queue options!\n")
+			pass
+#			debug("not my thread - ignoring queue options!\n")
 		elif self.writeQueueing==flags.WQ_LINE:
 			pos = string.rfind(message, '\n')
 			if pos>0:
-				debug("Line queueing - forcing flush\n")
-				return self.QueueFlush()
+#				debug("Line queueing - forcing flush\n")
+				self.QueueFlush()
+				return
 		elif self.writeQueueing==flags.WQ_NONE:
-			debug("WQ_NONE - flushing!\n")
-			return self.QueueFlush()
+#			debug("WQ_NONE - flushing!\n")
+			self.QueueFlush()
+			return
 		# Let our idle handler get it - wake it up
 		try:
 			win32ui.GetMainFrame().PostMessage(win32con.WM_USER) # Kick main thread off.
 		except win32ui.error:
-			# This can happen as the app is shutting down, and possibly
-			# if the event queue is full - either way, we ignore!
+			# This can happen as the app is shutting down, so we send it to the C++ debugger
 			win32api.OutputDebugString(message)
 
 	# delegate certain fns to my view.
