@@ -44,7 +44,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 F90=df.exe
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /Zi /O2 /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "_WINDOWS" /D "NDEBUG" /D "STRICT" /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /Zi /O2 /I "..\win32\src" /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "_WINDOWS" /D "NDEBUG" /D "STRICT" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o /win32 "NUL"
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o /win32 "NUL"
 # ADD BASE RSC /l 0xc09 /d "NDEBUG"
@@ -71,7 +71,7 @@ LINK32=link.exe
 # PROP Target_Dir ""
 F90=df.exe
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MDd /W3 /GX /ZI /Od /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "_WINDOWS" /D "_DEBUG" /D "STRICT" /YX /FD /c
+# ADD CPP /nologo /MDd /W3 /GX /ZI /Od /I "..\win32\src" /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "_WINDOWS" /D "_DEBUG" /D "STRICT" /YX /FD /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o /win32 "NUL"
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o /win32 "NUL"
 # ADD BASE RSC /l 0xc09 /d "_DEBUG"
