@@ -412,6 +412,9 @@ def RegisterClasses(*classes, **flags):
       pythoncom.RegisterTypeLib(typelib, tlb_filename)
       if not quiet:
         print 'Registered type library:', tlb_filename
+  extra = flags.get('finalize_register')
+  if extra:
+    extra()
 
 def UnregisterClasses(*classes, **flags):
   quiet = flags.has_key('quiet') and flags['quiet']
@@ -439,6 +442,10 @@ def UnregisterClasses(*classes, **flags):
             print 'Unregistered type library'
         except pythoncom.com_error:
           pass
+
+  extra = flags.get('finalize_unregister')
+  if extra:
+    extra()
 #
 # Unregister info is for installers or external uninstallers.
 # The WISE installer, for example firstly registers the COM server,
