@@ -1,0 +1,1912 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Komodo Project File - DO NOT EDIT -->
+<project kpf_version="2" name="PyWin32">
+<preference-set id="">
+  <string id="import_exclude_matches">*.*~;*.bak;*.tmp;CVS;.#*;*.pyo;*.pyc;*.dsp</string>
+  <string id="import_dirname">E:\src\pythonex</string>
+  <string id="import_include_matches">*.c;*.cpp;*.h;*.def;*.mc;*.py;*.bat;*.txt;*.vbs;*.js;*.x*;*.i;</string>
+</preference-set>
+<file name="build_for_version.bat" url="build_for_version.bat">
+</file>
+<file name="setup_win32all_core.py" url="setup_win32all_core.py">
+</file>
+<file name="set_for_version.py" url="set_for_version.py">
+</file>
+<folder name="com" url="com">
+<file name="changes.txt" url="com/changes.txt">
+</file>
+<file name="License.txt" url="com/License.txt">
+</file>
+<file name="pythoncom.py" url="com/pythoncom.py">
+</file>
+<folder name="TestSources" url="com/TestSources">
+<folder name="PyCOMTest" url="com/TestSources/PyCOMTest">
+<file name="Connect.cpp" url="com/TestSources/PyCOMTest/Connect.cpp">
+</file>
+<file name="Connect.def" url="com/TestSources/PyCOMTest/Connect.def">
+</file>
+<file name="connres.h" url="com/TestSources/PyCOMTest/connres.h">
+</file>
+<file name="preconn.cpp" url="com/TestSources/PyCOMTest/preconn.cpp">
+</file>
+<file name="preconn.h" url="com/TestSources/PyCOMTest/preconn.h">
+</file>
+<file name="PyCOMImpl.cpp" url="com/TestSources/PyCOMTest/PyCOMImpl.cpp">
+</file>
+<file name="PyCOMImpl.h" url="com/TestSources/PyCOMTest/PyCOMImpl.h">
+</file>
+<file name="PyCOMTest.h" url="com/TestSources/PyCOMTest/PyCOMTest.h">
+</file>
+<file name="SimpleCounter.cpp" url="com/TestSources/PyCOMTest/SimpleCounter.cpp">
+</file>
+<file name="SimpleCounter.h" url="com/TestSources/PyCOMTest/SimpleCounter.h">
+</file>
+</folder>
+</folder>
+<folder name="win32com" url="com/win32com">
+<file name="changes.txt" url="com/win32com/changes.txt">
+</file>
+<file name="olectl.py" url="com/win32com/olectl.py">
+</file>
+<file name="storagecon.py" url="com/win32com/storagecon.py">
+</file>
+<file name="universal.py" url="com/win32com/universal.py">
+</file>
+<file name="util.py" url="com/win32com/util.py">
+</file>
+<file name="__init__.py" url="com/win32com/__init__.py">
+</file>
+<folder name="client" url="com/win32com/client">
+<file name="build.py" url="com/win32com/client/build.py">
+</file>
+<file name="CLSIDToClass.py" url="com/win32com/client/CLSIDToClass.py">
+</file>
+<file name="combrowse.py" url="com/win32com/client/combrowse.py">
+</file>
+<file name="connect.py" url="com/win32com/client/connect.py">
+</file>
+<file name="dynamic.py" url="com/win32com/client/dynamic.py">
+</file>
+<file name="gencache.py" url="com/win32com/client/gencache.py">
+</file>
+<file name="genpy.py" url="com/win32com/client/genpy.py">
+</file>
+<file name="makepy.py" url="com/win32com/client/makepy.py">
+</file>
+<file name="selecttlb.py" url="com/win32com/client/selecttlb.py">
+</file>
+<file name="tlbrowse.py" url="com/win32com/client/tlbrowse.py">
+</file>
+<file name="util.py" url="com/win32com/client/util.py">
+</file>
+<file name="__init__.py" url="com/win32com/client/__init__.py">
+</file>
+</folder>
+<folder name="demos" url="com/win32com/demos">
+<file name="connect.py" url="com/win32com/demos/connect.py">
+</file>
+<file name="dump_clipboard.py" url="com/win32com/demos/dump_clipboard.py">
+</file>
+<file name="excelAddin.py" url="com/win32com/demos/excelAddin.py">
+</file>
+<file name="outlookAddin.py" url="com/win32com/demos/outlookAddin.py">
+</file>
+<file name="trybag.py" url="com/win32com/demos/trybag.py">
+</file>
+<file name="__init__.py" url="com/win32com/demos/__init__.py">
+</file>
+</folder>
+<folder name="makegw" url="com/win32com/makegw">
+<file name="makegw.py" url="com/win32com/makegw/makegw.py">
+</file>
+<file name="makegwenum.py" url="com/win32com/makegw/makegwenum.py">
+</file>
+<file name="makegwparse.py" url="com/win32com/makegw/makegwparse.py">
+</file>
+<file name="__init__.py" url="com/win32com/makegw/__init__.py">
+</file>
+</folder>
+<folder name="server" url="com/win32com/server">
+<file name="connect.py" url="com/win32com/server/connect.py">
+</file>
+<file name="dispatcher.py" url="com/win32com/server/dispatcher.py">
+</file>
+<file name="exception.py" url="com/win32com/server/exception.py">
+</file>
+<file name="factory.py" url="com/win32com/server/factory.py">
+</file>
+<file name="localserver.py" url="com/win32com/server/localserver.py">
+</file>
+<file name="policy.py" url="com/win32com/server/policy.py">
+</file>
+<file name="register.py" url="com/win32com/server/register.py">
+</file>
+<file name="util.py" url="com/win32com/server/util.py">
+</file>
+<file name="__init__.py" url="com/win32com/server/__init__.py">
+</file>
+</folder>
+<folder name="servers" url="com/win32com/servers">
+<file name="dictionary.py" url="com/win32com/servers/dictionary.py">
+</file>
+<file name="interp.py" url="com/win32com/servers/interp.py">
+</file>
+<file name="perfmon.py" url="com/win32com/servers/perfmon.py">
+</file>
+<file name="PythonTools.py" url="com/win32com/servers/PythonTools.py">
+</file>
+<file name="test_pycomtest.py" url="com/win32com/servers/test_pycomtest.py">
+</file>
+<file name="__init__.py" url="com/win32com/servers/__init__.py">
+</file>
+</folder>
+<folder name="src" url="com/win32com/src">
+<file name="dllmain.cpp" url="com/win32com/src/dllmain.cpp">
+</file>
+<file name="ErrorUtils.cpp" url="com/win32com/src/ErrorUtils.cpp">
+</file>
+<file name="MiscTypes.cpp" url="com/win32com/src/MiscTypes.cpp">
+</file>
+<file name="oleargs.cpp" url="com/win32com/src/oleargs.cpp">
+</file>
+<file name="PyComHelpers.cpp" url="com/win32com/src/PyComHelpers.cpp">
+</file>
+<file name="PyFactory.cpp" url="com/win32com/src/PyFactory.cpp">
+</file>
+<file name="PyGatewayBase.cpp" url="com/win32com/src/PyGatewayBase.cpp">
+</file>
+<file name="PyIBase.cpp" url="com/win32com/src/PyIBase.cpp">
+</file>
+<file name="PyIClassFactory.cpp" url="com/win32com/src/PyIClassFactory.cpp">
+</file>
+<file name="PyIDispatch.cpp" url="com/win32com/src/PyIDispatch.cpp">
+</file>
+<file name="PyIUnknown.cpp" url="com/win32com/src/PyIUnknown.cpp">
+</file>
+<file name="PyRecord.cpp" url="com/win32com/src/PyRecord.cpp">
+</file>
+<file name="PyStorage.cpp" url="com/win32com/src/PyStorage.cpp">
+</file>
+<file name="PythonCOM.cpp" url="com/win32com/src/PythonCOM.cpp">
+</file>
+<file name="PythonCOM.def" url="com/win32com/src/PythonCOM.def">
+</file>
+<file name="Register.cpp" url="com/win32com/src/Register.cpp">
+</file>
+<file name="stdafx.cpp" url="com/win32com/src/stdafx.cpp">
+</file>
+<file name="univgw.cpp" url="com/win32com/src/univgw.cpp">
+</file>
+<file name="univgw_dataconv.cpp" url="com/win32com/src/univgw_dataconv.cpp">
+</file>
+<folder name="extensions" url="com/win32com/src/extensions">
+<file name="PyFUNCDESC.cpp" url="com/win32com/src/extensions/PyFUNCDESC.cpp">
+</file>
+<file name="PyGConnectionPoint.cpp" url="com/win32com/src/extensions/PyGConnectionPoint.cpp">
+</file>
+<file name="PyGConnectionPointContainer.cpp" url="com/win32com/src/extensions/PyGConnectionPointContainer.cpp">
+</file>
+<file name="PyGEnumVariant.cpp" url="com/win32com/src/extensions/PyGEnumVariant.cpp">
+</file>
+<file name="PyGErrorLog.cpp" url="com/win32com/src/extensions/PyGErrorLog.cpp">
+</file>
+<file name="PyGPersist.cpp" url="com/win32com/src/extensions/PyGPersist.cpp">
+</file>
+<file name="PyGPersistPropertyBag.cpp" url="com/win32com/src/extensions/PyGPersistPropertyBag.cpp">
+</file>
+<file name="PyGPersistStorage.cpp" url="com/win32com/src/extensions/PyGPersistStorage.cpp">
+</file>
+<file name="PyGPersistStream.cpp" url="com/win32com/src/extensions/PyGPersistStream.cpp">
+</file>
+<file name="PyGPersistStreamInit.cpp" url="com/win32com/src/extensions/PyGPersistStreamInit.cpp">
+</file>
+<file name="PyGPropertyBag.cpp" url="com/win32com/src/extensions/PyGPropertyBag.cpp">
+</file>
+<file name="PyGStream.cpp" url="com/win32com/src/extensions/PyGStream.cpp">
+</file>
+<file name="PyIBindCtx.cpp" url="com/win32com/src/extensions/PyIBindCtx.cpp">
+</file>
+<file name="PyICatInformation.cpp" url="com/win32com/src/extensions/PyICatInformation.cpp">
+</file>
+<file name="PyICatRegister.cpp" url="com/win32com/src/extensions/PyICatRegister.cpp">
+</file>
+<file name="PyIConnectionPoint.cpp" url="com/win32com/src/extensions/PyIConnectionPoint.cpp">
+</file>
+<file name="PyIConnectionPointContainer.cpp" url="com/win32com/src/extensions/PyIConnectionPointContainer.cpp">
+</file>
+<file name="PyICreateTypeInfo.cpp" url="com/win32com/src/extensions/PyICreateTypeInfo.cpp">
+</file>
+<file name="PyICreateTypeLib.cpp" url="com/win32com/src/extensions/PyICreateTypeLib.cpp">
+</file>
+<file name="PyIDataObject.cpp" url="com/win32com/src/extensions/PyIDataObject.cpp">
+</file>
+<file name="PyIEnumCATEGORYINFO.cpp" url="com/win32com/src/extensions/PyIEnumCATEGORYINFO.cpp">
+</file>
+<file name="PyIEnumConnectionPoints.cpp" url="com/win32com/src/extensions/PyIEnumConnectionPoints.cpp">
+</file>
+<file name="PyIEnumConnections.cpp" url="com/win32com/src/extensions/PyIEnumConnections.cpp">
+</file>
+<file name="PyIEnumFORMATETC.cpp" url="com/win32com/src/extensions/PyIEnumFORMATETC.cpp">
+</file>
+<file name="PyIEnumGUID.cpp" url="com/win32com/src/extensions/PyIEnumGUID.cpp">
+</file>
+<file name="PyIEnumSTATPROPSTG.cpp" url="com/win32com/src/extensions/PyIEnumSTATPROPSTG.cpp">
+</file>
+<file name="PyIEnumSTATSTG.cpp" url="com/win32com/src/extensions/PyIEnumSTATSTG.cpp">
+</file>
+<file name="PyIEnumVARIANT.cpp" url="com/win32com/src/extensions/PyIEnumVARIANT.cpp">
+</file>
+<file name="PyIErrorLog.cpp" url="com/win32com/src/extensions/PyIErrorLog.cpp">
+</file>
+<file name="PyIExternalConnection.cpp" url="com/win32com/src/extensions/PyIExternalConnection.cpp">
+</file>
+<file name="PyILockBytes.cpp" url="com/win32com/src/extensions/PyILockBytes.cpp">
+</file>
+<file name="PyIMoniker.cpp" url="com/win32com/src/extensions/PyIMoniker.cpp">
+</file>
+<file name="PyIOleWindow.cpp" url="com/win32com/src/extensions/PyIOleWindow.cpp">
+</file>
+<file name="PyIPersist.cpp" url="com/win32com/src/extensions/PyIPersist.cpp">
+</file>
+<file name="PyIPersistFile.cpp" url="com/win32com/src/extensions/PyIPersistFile.cpp">
+</file>
+<file name="PyIPersistPropertyBag.cpp" url="com/win32com/src/extensions/PyIPersistPropertyBag.cpp">
+</file>
+<file name="PyIPersistStorage.cpp" url="com/win32com/src/extensions/PyIPersistStorage.cpp">
+</file>
+<file name="PyIPersistStream.cpp" url="com/win32com/src/extensions/PyIPersistStream.cpp">
+</file>
+<file name="PyIPersistStreamInit.cpp" url="com/win32com/src/extensions/PyIPersistStreamInit.cpp">
+</file>
+<file name="PyIPropertyBag.cpp" url="com/win32com/src/extensions/PyIPropertyBag.cpp">
+</file>
+<file name="PyIPropertySetStorage.cpp" url="com/win32com/src/extensions/PyIPropertySetStorage.cpp">
+</file>
+<file name="PyIPropertyStorage.cpp" url="com/win32com/src/extensions/PyIPropertyStorage.cpp">
+</file>
+<file name="PyIProvideClassInfo.cpp" url="com/win32com/src/extensions/PyIProvideClassInfo.cpp">
+</file>
+<file name="PyIRunningObjectTable.cpp" url="com/win32com/src/extensions/PyIRunningObjectTable.cpp">
+</file>
+<file name="PyIServiceProvider.cpp" url="com/win32com/src/extensions/PyIServiceProvider.cpp">
+</file>
+<file name="PyIStorage.cpp" url="com/win32com/src/extensions/PyIStorage.cpp">
+</file>
+<file name="PyIStream.cpp" url="com/win32com/src/extensions/PyIStream.cpp">
+</file>
+<file name="PyIType.cpp" url="com/win32com/src/extensions/PyIType.cpp">
+</file>
+<file name="PyITypeObjects.cpp" url="com/win32com/src/extensions/PyITypeObjects.cpp">
+</file>
+<file name="PySTGMEDIUM.cpp" url="com/win32com/src/extensions/PySTGMEDIUM.cpp">
+</file>
+<file name="PyTYPEATTR.cpp" url="com/win32com/src/extensions/PyTYPEATTR.cpp">
+</file>
+<file name="PyVARDESC.cpp" url="com/win32com/src/extensions/PyVARDESC.cpp">
+</file>
+</folder>
+<folder name="include" url="com/win32com/src/include">
+<file name="propbag.h" url="com/win32com/src/include/propbag.h">
+</file>
+<file name="PyComTypeObjects.h" url="com/win32com/src/include/PyComTypeObjects.h">
+</file>
+<file name="PyFactory.h" url="com/win32com/src/include/PyFactory.h">
+</file>
+<file name="PyGConnectionPoint.h" url="com/win32com/src/include/PyGConnectionPoint.h">
+</file>
+<file name="PyGConnectionPointContainer.h" url="com/win32com/src/include/PyGConnectionPointContainer.h">
+</file>
+<file name="PyGPersistStorage.h" url="com/win32com/src/include/PyGPersistStorage.h">
+</file>
+<file name="PyIBindCtx.h" url="com/win32com/src/include/PyIBindCtx.h">
+</file>
+<file name="PyICatInformation.h" url="com/win32com/src/include/PyICatInformation.h">
+</file>
+<file name="PyICatRegister.h" url="com/win32com/src/include/PyICatRegister.h">
+</file>
+<file name="PyIConnectionPoint.h" url="com/win32com/src/include/PyIConnectionPoint.h">
+</file>
+<file name="PyIConnectionPointContainer.h" url="com/win32com/src/include/PyIConnectionPointContainer.h">
+</file>
+<file name="PyICreateTypeInfo.h" url="com/win32com/src/include/PyICreateTypeInfo.h">
+</file>
+<file name="PyICreateTypeLib.h" url="com/win32com/src/include/PyICreateTypeLib.h">
+</file>
+<file name="PyIDataObject.h" url="com/win32com/src/include/PyIDataObject.h">
+</file>
+<file name="PyIEnumConnectionPoints.h" url="com/win32com/src/include/PyIEnumConnectionPoints.h">
+</file>
+<file name="PyIEnumConnections.h" url="com/win32com/src/include/PyIEnumConnections.h">
+</file>
+<file name="PyIEnumFORMATETC.h" url="com/win32com/src/include/PyIEnumFORMATETC.h">
+</file>
+<file name="PyIEnumGUID.h" url="com/win32com/src/include/PyIEnumGUID.h">
+</file>
+<file name="PyIEnumSTATPROPSTG.h" url="com/win32com/src/include/PyIEnumSTATPROPSTG.h">
+</file>
+<file name="PyIEnumSTATSTG.h" url="com/win32com/src/include/PyIEnumSTATSTG.h">
+</file>
+<file name="PyIEnumVARIANT.h" url="com/win32com/src/include/PyIEnumVARIANT.h">
+</file>
+<file name="PyIExternalConnection.h" url="com/win32com/src/include/PyIExternalConnection.h">
+</file>
+<file name="PyILockBytes.h" url="com/win32com/src/include/PyILockBytes.h">
+</file>
+<file name="PyIMoniker.h" url="com/win32com/src/include/PyIMoniker.h">
+</file>
+<file name="PyIOleWindow.h" url="com/win32com/src/include/PyIOleWindow.h">
+</file>
+<file name="PyIPersist.h" url="com/win32com/src/include/PyIPersist.h">
+</file>
+<file name="PyIPersistFile.h" url="com/win32com/src/include/PyIPersistFile.h">
+</file>
+<file name="PyIPersistStorage.h" url="com/win32com/src/include/PyIPersistStorage.h">
+</file>
+<file name="PyIPersistStream.h" url="com/win32com/src/include/PyIPersistStream.h">
+</file>
+<file name="PyIPersistStreamInit.h" url="com/win32com/src/include/PyIPersistStreamInit.h">
+</file>
+<file name="PyIPropertySetStorage.h" url="com/win32com/src/include/PyIPropertySetStorage.h">
+</file>
+<file name="PyIPropertyStorage.h" url="com/win32com/src/include/PyIPropertyStorage.h">
+</file>
+<file name="PyIRunningObjectTable.h" url="com/win32com/src/include/PyIRunningObjectTable.h">
+</file>
+<file name="PyIServiceProvider.h" url="com/win32com/src/include/PyIServiceProvider.h">
+</file>
+<file name="PyIStorage.h" url="com/win32com/src/include/PyIStorage.h">
+</file>
+<file name="PyIStream.h" url="com/win32com/src/include/PyIStream.h">
+</file>
+<file name="PythonCOM.h" url="com/win32com/src/include/PythonCOM.h">
+</file>
+<file name="PythonCOMRegister.h" url="com/win32com/src/include/PythonCOMRegister.h">
+</file>
+<file name="PythonCOMServer.h" url="com/win32com/src/include/PythonCOMServer.h">
+</file>
+<file name="stdafx.h" url="com/win32com/src/include/stdafx.h">
+</file>
+<file name="univgw_dataconv.h" url="com/win32com/src/include/univgw_dataconv.h">
+</file>
+</folder>
+</folder>
+<folder name="test" url="com/win32com/test">
+<file name="daodump.py" url="com/win32com/test/daodump.py">
+</file>
+<file name="errorSemantics.py" url="com/win32com/test/errorSemantics.py">
+</file>
+<file name="GenTestScripts.py" url="com/win32com/test/GenTestScripts.py">
+</file>
+<file name="policySemantics.py" url="com/win32com/test/policySemantics.py">
+</file>
+<file name="readme.txt" url="com/win32com/test/readme.txt">
+</file>
+<file name="testAccess.py" url="com/win32com/test/testAccess.py">
+</file>
+<file name="testADOEvents.py" url="com/win32com/test/testADOEvents.py">
+</file>
+<file name="testall.py" url="com/win32com/test/testall.py">
+</file>
+<file name="testAXScript.py" url="com/win32com/test/testAXScript.py">
+</file>
+<file name="testCollections.py" url="com/win32com/test/testCollections.py">
+</file>
+<file name="testDCOM.py" url="com/win32com/test/testDCOM.py">
+</file>
+<file name="testDictionary.py" url="com/win32com/test/testDictionary.py">
+</file>
+<file name="testDictionary.vbs" url="com/win32com/test/testDictionary.vbs">
+</file>
+<file name="testDynamic.py" url="com/win32com/test/testDynamic.py">
+</file>
+<file name="testExchange.py" url="com/win32com/test/testExchange.py">
+</file>
+<file name="testExplorer.py" url="com/win32com/test/testExplorer.py">
+</file>
+<file name="testGatewayAddresses.py" url="com/win32com/test/testGatewayAddresses.py">
+</file>
+<file name="testInterp.vbs" url="com/win32com/test/testInterp.vbs">
+</file>
+<file name="testmakepy.py" url="com/win32com/test/testmakepy.py">
+</file>
+<file name="testMarshal.py" url="com/win32com/test/testMarshal.py">
+</file>
+<file name="testMSOffice.py" url="com/win32com/test/testMSOffice.py">
+</file>
+<file name="testMSOfficeEvents.py" url="com/win32com/test/testMSOfficeEvents.py">
+</file>
+<file name="testNetscape.py" url="com/win32com/test/testNetscape.py">
+</file>
+<file name="testPersist.py" url="com/win32com/test/testPersist.py">
+</file>
+<file name="testPyComTest.py" url="com/win32com/test/testPyComTest.py">
+</file>
+<file name="testPyScriptlet.js" url="com/win32com/test/testPyScriptlet.js">
+</file>
+<file name="testServers.py" url="com/win32com/test/testServers.py">
+</file>
+<file name="testStreams.py" url="com/win32com/test/testStreams.py">
+</file>
+<file name="testuniv.py" url="com/win32com/test/testuniv.py">
+</file>
+<file name="testvb.py" url="com/win32com/test/testvb.py">
+</file>
+<file name="testWMI.py" url="com/win32com/test/testWMI.py">
+</file>
+<file name="testxslt.js" url="com/win32com/test/testxslt.js">
+</file>
+<file name="testxslt.py" url="com/win32com/test/testxslt.py">
+</file>
+<file name="testxslt.xsl" url="com/win32com/test/testxslt.xsl">
+</file>
+<file name="util.py" url="com/win32com/test/util.py">
+</file>
+<file name="__init__.py" url="com/win32com/test/__init__.py">
+</file>
+</folder>
+</folder>
+<folder name="win32comext" url="com/win32comext">
+<folder name="adsi" url="com/win32comext/adsi">
+<file name="test.py" url="com/win32comext/adsi/test.py">
+</file>
+<file name="__init__.py" url="com/win32comext/adsi/__init__.py">
+</file>
+<folder name="src" url="com/win32comext/adsi/src">
+<file name="adsi.cpp" url="com/win32comext/adsi/src/adsi.cpp">
+</file>
+<file name="adsi.i" url="com/win32comext/adsi/src/adsi.i">
+</file>
+<file name="adsilib.i" url="com/win32comext/adsi/src/adsilib.i">
+</file>
+<file name="PyADSIUtil.cpp" url="com/win32comext/adsi/src/PyADSIUtil.cpp">
+</file>
+<file name="PyADSIUtil.h" url="com/win32comext/adsi/src/PyADSIUtil.h">
+</file>
+<file name="PyIADsContainer.cpp" url="com/win32comext/adsi/src/PyIADsContainer.cpp">
+</file>
+<file name="PyIADsContainer.h" url="com/win32comext/adsi/src/PyIADsContainer.h">
+</file>
+<file name="PyIADsContainer.i" url="com/win32comext/adsi/src/PyIADsContainer.i">
+</file>
+<file name="PyIADsUser.cpp" url="com/win32comext/adsi/src/PyIADsUser.cpp">
+</file>
+<file name="PyIADsUser.h" url="com/win32comext/adsi/src/PyIADsUser.h">
+</file>
+<file name="PyIADsUser.i" url="com/win32comext/adsi/src/PyIADsUser.i">
+</file>
+<file name="PyIDirectoryObject.cpp" url="com/win32comext/adsi/src/PyIDirectoryObject.cpp">
+</file>
+<file name="PyIDirectoryObject.h" url="com/win32comext/adsi/src/PyIDirectoryObject.h">
+</file>
+<file name="PyIDirectoryObject.i" url="com/win32comext/adsi/src/PyIDirectoryObject.i">
+</file>
+</folder>
+</folder>
+<folder name="axcontrol" url="com/win32comext/axcontrol">
+<file name="__init__.py" url="com/win32comext/axcontrol/__init__.py">
+</file>
+<folder name="src" url="com/win32comext/axcontrol/src">
+<file name="AXControl.cpp" url="com/win32comext/axcontrol/src/AXControl.cpp">
+</file>
+<file name="axcontrol_pch.h" url="com/win32comext/axcontrol/src/axcontrol_pch.h">
+</file>
+<file name="PyIOleClientSite.cpp" url="com/win32comext/axcontrol/src/PyIOleClientSite.cpp">
+</file>
+<file name="PyIOleClientSite.h" url="com/win32comext/axcontrol/src/PyIOleClientSite.h">
+</file>
+<file name="PyIOleControl.cpp" url="com/win32comext/axcontrol/src/PyIOleControl.cpp">
+</file>
+<file name="PyIOleControl.h" url="com/win32comext/axcontrol/src/PyIOleControl.h">
+</file>
+<file name="PyIOleInPlaceObject.cpp" url="com/win32comext/axcontrol/src/PyIOleInPlaceObject.cpp">
+</file>
+<file name="PyIOleInPlaceObject.h" url="com/win32comext/axcontrol/src/PyIOleInPlaceObject.h">
+</file>
+<file name="PyIOleInPlaceSite.cpp" url="com/win32comext/axcontrol/src/PyIOleInPlaceSite.cpp">
+</file>
+<file name="PyIOleInPlaceSite.h" url="com/win32comext/axcontrol/src/PyIOleInPlaceSite.h">
+</file>
+<file name="PyIOleInPlaceSiteEx.cpp" url="com/win32comext/axcontrol/src/PyIOleInPlaceSiteEx.cpp">
+</file>
+<file name="PyIOleInPlaceSiteEx.h" url="com/win32comext/axcontrol/src/PyIOleInPlaceSiteEx.h">
+</file>
+<file name="PyIOleInPlaceSiteWindowless.cpp" url="com/win32comext/axcontrol/src/PyIOleInPlaceSiteWindowless.cpp">
+</file>
+<file name="PyIOleInPlaceSiteWindowless.h" url="com/win32comext/axcontrol/src/PyIOleInPlaceSiteWindowless.h">
+</file>
+<file name="PyIOleObject.cpp" url="com/win32comext/axcontrol/src/PyIOleObject.cpp">
+</file>
+<file name="PyIOleObject.h" url="com/win32comext/axcontrol/src/PyIOleObject.h">
+</file>
+<file name="PyISpecifyPropertyPages.cpp" url="com/win32comext/axcontrol/src/PyISpecifyPropertyPages.cpp">
+</file>
+<file name="PyISpecifyPropertyPages.h" url="com/win32comext/axcontrol/src/PyISpecifyPropertyPages.h">
+</file>
+<file name="PyIViewObject.cpp" url="com/win32comext/axcontrol/src/PyIViewObject.cpp">
+</file>
+<file name="PyIViewObject.h" url="com/win32comext/axcontrol/src/PyIViewObject.h">
+</file>
+<file name="PyIViewObject2.cpp" url="com/win32comext/axcontrol/src/PyIViewObject2.cpp">
+</file>
+<file name="PyIViewObject2.h" url="com/win32comext/axcontrol/src/PyIViewObject2.h">
+</file>
+</folder>
+</folder>
+<folder name="axdebug" url="com/win32comext/axdebug">
+<file name="adb.py" url="com/win32comext/axdebug/adb.py">
+</file>
+<file name="codecontainer.py" url="com/win32comext/axdebug/codecontainer.py">
+</file>
+<file name="contexts.py" url="com/win32comext/axdebug/contexts.py">
+</file>
+<file name="debugger.py" url="com/win32comext/axdebug/debugger.py">
+</file>
+<file name="documents.py" url="com/win32comext/axdebug/documents.py">
+</file>
+<file name="dump.py" url="com/win32comext/axdebug/dump.py">
+</file>
+<file name="expressions.py" url="com/win32comext/axdebug/expressions.py">
+</file>
+<file name="gateways.py" url="com/win32comext/axdebug/gateways.py">
+</file>
+<file name="stackframe.py" url="com/win32comext/axdebug/stackframe.py">
+</file>
+<file name="util.py" url="com/win32comext/axdebug/util.py">
+</file>
+<file name="__init__.py" url="com/win32comext/axdebug/__init__.py">
+</file>
+<folder name="src" url="com/win32comext/axdebug/src">
+<file name="AXDebug.cpp" url="com/win32comext/axdebug/src/AXDebug.cpp">
+</file>
+<file name="PyIActiveScriptDebug.cpp" url="com/win32comext/axdebug/src/PyIActiveScriptDebug.cpp">
+</file>
+<file name="PyIActiveScriptDebug.h" url="com/win32comext/axdebug/src/PyIActiveScriptDebug.h">
+</file>
+<file name="PyIActiveScriptErrorDebug.cpp" url="com/win32comext/axdebug/src/PyIActiveScriptErrorDebug.cpp">
+</file>
+<file name="PyIActiveScriptErrorDebug.h" url="com/win32comext/axdebug/src/PyIActiveScriptErrorDebug.h">
+</file>
+<file name="PyIActiveScriptSiteDebug.cpp" url="com/win32comext/axdebug/src/PyIActiveScriptSiteDebug.cpp">
+</file>
+<file name="PyIActiveScriptSiteDebug.h" url="com/win32comext/axdebug/src/PyIActiveScriptSiteDebug.h">
+</file>
+<file name="PyIApplicationDebugger.cpp" url="com/win32comext/axdebug/src/PyIApplicationDebugger.cpp">
+</file>
+<file name="PyIApplicationDebugger.h" url="com/win32comext/axdebug/src/PyIApplicationDebugger.h">
+</file>
+<file name="PyIDebugApplication.cpp" url="com/win32comext/axdebug/src/PyIDebugApplication.cpp">
+</file>
+<file name="PyIDebugApplication.h" url="com/win32comext/axdebug/src/PyIDebugApplication.h">
+</file>
+<file name="PyIDebugApplicationNode.cpp" url="com/win32comext/axdebug/src/PyIDebugApplicationNode.cpp">
+</file>
+<file name="PyIDebugApplicationNode.h" url="com/win32comext/axdebug/src/PyIDebugApplicationNode.h">
+</file>
+<file name="PyIDebugApplicationNodeEvents.cpp" url="com/win32comext/axdebug/src/PyIDebugApplicationNodeEvents.cpp">
+</file>
+<file name="PyIDebugApplicationNodeEvents.h" url="com/win32comext/axdebug/src/PyIDebugApplicationNodeEvents.h">
+</file>
+<file name="PyIDebugApplicationThread.cpp" url="com/win32comext/axdebug/src/PyIDebugApplicationThread.cpp">
+</file>
+<file name="PyIDebugApplicationThread.h" url="com/win32comext/axdebug/src/PyIDebugApplicationThread.h">
+</file>
+<file name="PyIDebugCodeContext.cpp" url="com/win32comext/axdebug/src/PyIDebugCodeContext.cpp">
+</file>
+<file name="PyIDebugCodeContext.h" url="com/win32comext/axdebug/src/PyIDebugCodeContext.h">
+</file>
+<file name="PyIDebugDocument.cpp" url="com/win32comext/axdebug/src/PyIDebugDocument.cpp">
+</file>
+<file name="PyIDebugDocument.h" url="com/win32comext/axdebug/src/PyIDebugDocument.h">
+</file>
+<file name="PyIDebugDocumentContext.cpp" url="com/win32comext/axdebug/src/PyIDebugDocumentContext.cpp">
+</file>
+<file name="PyIDebugDocumentContext.h" url="com/win32comext/axdebug/src/PyIDebugDocumentContext.h">
+</file>
+<file name="PyIDebugDocumentHelper.cpp" url="com/win32comext/axdebug/src/PyIDebugDocumentHelper.cpp">
+</file>
+<file name="PyIDebugDocumentHelper.h" url="com/win32comext/axdebug/src/PyIDebugDocumentHelper.h">
+</file>
+<file name="PyIDebugDocumentHost.cpp" url="com/win32comext/axdebug/src/PyIDebugDocumentHost.cpp">
+</file>
+<file name="PyIDebugDocumentHost.h" url="com/win32comext/axdebug/src/PyIDebugDocumentHost.h">
+</file>
+<file name="PyIDebugDocumentInfo.cpp" url="com/win32comext/axdebug/src/PyIDebugDocumentInfo.cpp">
+</file>
+<file name="PyIDebugDocumentInfo.h" url="com/win32comext/axdebug/src/PyIDebugDocumentInfo.h">
+</file>
+<file name="PyIDebugDocumentProvider.cpp" url="com/win32comext/axdebug/src/PyIDebugDocumentProvider.cpp">
+</file>
+<file name="PyIDebugDocumentProvider.h" url="com/win32comext/axdebug/src/PyIDebugDocumentProvider.h">
+</file>
+<file name="PyIDebugDocumentText.cpp" url="com/win32comext/axdebug/src/PyIDebugDocumentText.cpp">
+</file>
+<file name="PyIDebugDocumentText.h" url="com/win32comext/axdebug/src/PyIDebugDocumentText.h">
+</file>
+<file name="PyIDebugDocumentTextAuthor.cpp" url="com/win32comext/axdebug/src/PyIDebugDocumentTextAuthor.cpp">
+</file>
+<file name="PyIDebugDocumentTextAuthor.h" url="com/win32comext/axdebug/src/PyIDebugDocumentTextAuthor.h">
+</file>
+<file name="PyIDebugDocumentTextEvents.cpp" url="com/win32comext/axdebug/src/PyIDebugDocumentTextEvents.cpp">
+</file>
+<file name="PyIDebugDocumentTextEvents.h" url="com/win32comext/axdebug/src/PyIDebugDocumentTextEvents.h">
+</file>
+<file name="PyIDebugDocumentTextExternalAuthor.cpp" url="com/win32comext/axdebug/src/PyIDebugDocumentTextExternalAuthor.cpp">
+</file>
+<file name="PyIDebugDocumentTextExternalAuthor.h" url="com/win32comext/axdebug/src/PyIDebugDocumentTextExternalAuthor.h">
+</file>
+<file name="PyIDebugExpression.cpp" url="com/win32comext/axdebug/src/PyIDebugExpression.cpp">
+</file>
+<file name="PyIDebugExpression.h" url="com/win32comext/axdebug/src/PyIDebugExpression.h">
+</file>
+<file name="PyIDebugExpressionCallBack.cpp" url="com/win32comext/axdebug/src/PyIDebugExpressionCallBack.cpp">
+</file>
+<file name="PyIDebugExpressionCallBack.h" url="com/win32comext/axdebug/src/PyIDebugExpressionCallBack.h">
+</file>
+<file name="PyIDebugExpressionContext.cpp" url="com/win32comext/axdebug/src/PyIDebugExpressionContext.cpp">
+</file>
+<file name="PyIDebugExpressionContext.h" url="com/win32comext/axdebug/src/PyIDebugExpressionContext.h">
+</file>
+<file name="PyIDebugProperties.cpp" url="com/win32comext/axdebug/src/PyIDebugProperties.cpp">
+</file>
+<file name="PyIDebugProperties.h" url="com/win32comext/axdebug/src/PyIDebugProperties.h">
+</file>
+<file name="PyIDebugSessionProvider.cpp" url="com/win32comext/axdebug/src/PyIDebugSessionProvider.cpp">
+</file>
+<file name="PyIDebugSessionProvider.h" url="com/win32comext/axdebug/src/PyIDebugSessionProvider.h">
+</file>
+<file name="PyIDebugStackFrame.cpp" url="com/win32comext/axdebug/src/PyIDebugStackFrame.cpp">
+</file>
+<file name="PyIDebugStackFrame.h" url="com/win32comext/axdebug/src/PyIDebugStackFrame.h">
+</file>
+<file name="PyIDebugStackFrameSniffer.cpp" url="com/win32comext/axdebug/src/PyIDebugStackFrameSniffer.cpp">
+</file>
+<file name="PyIDebugStackFrameSniffer.h" url="com/win32comext/axdebug/src/PyIDebugStackFrameSniffer.h">
+</file>
+<file name="PyIDebugStackFrameSnifferEx.cpp" url="com/win32comext/axdebug/src/PyIDebugStackFrameSnifferEx.cpp">
+</file>
+<file name="PyIDebugStackFrameSnifferEx.h" url="com/win32comext/axdebug/src/PyIDebugStackFrameSnifferEx.h">
+</file>
+<file name="PyIDebugSyncOperation.cpp" url="com/win32comext/axdebug/src/PyIDebugSyncOperation.cpp">
+</file>
+<file name="PyIDebugSyncOperation.h" url="com/win32comext/axdebug/src/PyIDebugSyncOperation.h">
+</file>
+<file name="PyIEnumDebugApplicationNodes.cpp" url="com/win32comext/axdebug/src/PyIEnumDebugApplicationNodes.cpp">
+</file>
+<file name="PyIEnumDebugApplicationNodes.h" url="com/win32comext/axdebug/src/PyIEnumDebugApplicationNodes.h">
+</file>
+<file name="PyIEnumDebugCodeContexts.cpp" url="com/win32comext/axdebug/src/PyIEnumDebugCodeContexts.cpp">
+</file>
+<file name="PyIEnumDebugCodeContexts.h" url="com/win32comext/axdebug/src/PyIEnumDebugCodeContexts.h">
+</file>
+<file name="PyIEnumDebugExpressionContexts.cpp" url="com/win32comext/axdebug/src/PyIEnumDebugExpressionContexts.cpp">
+</file>
+<file name="PyIEnumDebugExpressionContexts.h" url="com/win32comext/axdebug/src/PyIEnumDebugExpressionContexts.h">
+</file>
+<file name="PyIEnumDebugPropertyInfo.cpp" url="com/win32comext/axdebug/src/PyIEnumDebugPropertyInfo.cpp">
+</file>
+<file name="PyIEnumDebugPropertyInfo.h" url="com/win32comext/axdebug/src/PyIEnumDebugPropertyInfo.h">
+</file>
+<file name="PyIEnumDebugStackFrames.cpp" url="com/win32comext/axdebug/src/PyIEnumDebugStackFrames.cpp">
+</file>
+<file name="PyIEnumDebugStackFrames.h" url="com/win32comext/axdebug/src/PyIEnumDebugStackFrames.h">
+</file>
+<file name="PyIEnumRemoteDebugApplications.cpp" url="com/win32comext/axdebug/src/PyIEnumRemoteDebugApplications.cpp">
+</file>
+<file name="PyIEnumRemoteDebugApplications.h" url="com/win32comext/axdebug/src/PyIEnumRemoteDebugApplications.h">
+</file>
+<file name="PyIEnumRemoteDebugApplicationThreads.cpp" url="com/win32comext/axdebug/src/PyIEnumRemoteDebugApplicationThreads.cpp">
+</file>
+<file name="PyIEnumRemoteDebugApplicationThreads.h" url="com/win32comext/axdebug/src/PyIEnumRemoteDebugApplicationThreads.h">
+</file>
+<file name="PyIMachineDebugManager.cpp" url="com/win32comext/axdebug/src/PyIMachineDebugManager.cpp">
+</file>
+<file name="PyIMachineDebugManager.h" url="com/win32comext/axdebug/src/PyIMachineDebugManager.h">
+</file>
+<file name="PyIMachineDebugManagerEvents.cpp" url="com/win32comext/axdebug/src/PyIMachineDebugManagerEvents.cpp">
+</file>
+<file name="PyIMachineDebugManagerEvents.h" url="com/win32comext/axdebug/src/PyIMachineDebugManagerEvents.h">
+</file>
+<file name="PyIProcessDebugManager.cpp" url="com/win32comext/axdebug/src/PyIProcessDebugManager.cpp">
+</file>
+<file name="PyIProcessDebugManager.h" url="com/win32comext/axdebug/src/PyIProcessDebugManager.h">
+</file>
+<file name="PyIProvideExpressionContexts.cpp" url="com/win32comext/axdebug/src/PyIProvideExpressionContexts.cpp">
+</file>
+<file name="PyIProvideExpressionContexts.h" url="com/win32comext/axdebug/src/PyIProvideExpressionContexts.h">
+</file>
+<file name="PyIRemoteDebugApplication.cpp" url="com/win32comext/axdebug/src/PyIRemoteDebugApplication.cpp">
+</file>
+<file name="PyIRemoteDebugApplication.h" url="com/win32comext/axdebug/src/PyIRemoteDebugApplication.h">
+</file>
+<file name="PyIRemoteDebugApplicationEvents.cpp" url="com/win32comext/axdebug/src/PyIRemoteDebugApplicationEvents.cpp">
+</file>
+<file name="PyIRemoteDebugApplicationEvents.h" url="com/win32comext/axdebug/src/PyIRemoteDebugApplicationEvents.h">
+</file>
+<file name="PyIRemoteDebugApplicationThread.cpp" url="com/win32comext/axdebug/src/PyIRemoteDebugApplicationThread.cpp">
+</file>
+<file name="PyIRemoteDebugApplicationThread.h" url="com/win32comext/axdebug/src/PyIRemoteDebugApplicationThread.h">
+</file>
+<file name="stdafx.cpp" url="com/win32comext/axdebug/src/stdafx.cpp">
+</file>
+<file name="stdafx.h" url="com/win32comext/axdebug/src/stdafx.h">
+</file>
+</folder>
+<folder name="Test" url="com/win32comext/axdebug/Test">
+<file name="host.py" url="com/win32comext/axdebug/Test/host.py">
+</file>
+<file name="ttest.py" url="com/win32comext/axdebug/Test/ttest.py">
+</file>
+</folder>
+</folder>
+<folder name="axscript" url="com/win32comext/axscript">
+<file name="asputil.py" url="com/win32comext/axscript/asputil.py">
+</file>
+<file name="__init__.py" url="com/win32comext/axscript/__init__.py">
+</file>
+<folder name="client" url="com/win32comext/axscript/client">
+<file name="debug.py" url="com/win32comext/axscript/client/debug.py">
+</file>
+<file name="error.py" url="com/win32comext/axscript/client/error.py">
+</file>
+<file name="framework.py" url="com/win32comext/axscript/client/framework.py">
+</file>
+<file name="pydumper.py" url="com/win32comext/axscript/client/pydumper.py">
+</file>
+<file name="pyscript.py" url="com/win32comext/axscript/client/pyscript.py">
+</file>
+<file name="pyscript_rexec.py" url="com/win32comext/axscript/client/pyscript_rexec.py">
+</file>
+<file name="scriptdispatch.py" url="com/win32comext/axscript/client/scriptdispatch.py">
+</file>
+<file name="__init__.py" url="com/win32comext/axscript/client/__init__.py">
+</file>
+</folder>
+<folder name="server" url="com/win32comext/axscript/server">
+<file name="axsite.py" url="com/win32comext/axscript/server/axsite.py">
+</file>
+<file name="error.py" url="com/win32comext/axscript/server/error.py">
+</file>
+<file name="__init__.py" url="com/win32comext/axscript/server/__init__.py">
+</file>
+</folder>
+<folder name="src" url="com/win32comext/axscript/src">
+<file name="AXScript.cpp" url="com/win32comext/axscript/src/AXScript.cpp">
+</file>
+<file name="AXScript.h" url="com/win32comext/axscript/src/AXScript.h">
+</file>
+<file name="GUIDS.CPP" url="com/win32comext/axscript/src/GUIDS.CPP">
+</file>
+<file name="GUIDS.H" url="com/win32comext/axscript/src/GUIDS.H">
+</file>
+<file name="MULTINFO.H" url="com/win32comext/axscript/src/MULTINFO.H">
+</file>
+<file name="PyGActiveScript.cpp" url="com/win32comext/axscript/src/PyGActiveScript.cpp">
+</file>
+<file name="PyGActiveScriptError.cpp" url="com/win32comext/axscript/src/PyGActiveScriptError.cpp">
+</file>
+<file name="PyGActiveScriptError.h" url="com/win32comext/axscript/src/PyGActiveScriptError.h">
+</file>
+<file name="PyGActiveScriptParse.cpp" url="com/win32comext/axscript/src/PyGActiveScriptParse.cpp">
+</file>
+<file name="PyGActiveScriptSite.cpp" url="com/win32comext/axscript/src/PyGActiveScriptSite.cpp">
+</file>
+<file name="PyGObjectSafety.cpp" url="com/win32comext/axscript/src/PyGObjectSafety.cpp">
+</file>
+<file name="PyIActiveScript.cpp" url="com/win32comext/axscript/src/PyIActiveScript.cpp">
+</file>
+<file name="PyIActiveScriptError.cpp" url="com/win32comext/axscript/src/PyIActiveScriptError.cpp">
+</file>
+<file name="PyIActiveScriptError.h" url="com/win32comext/axscript/src/PyIActiveScriptError.h">
+</file>
+<file name="PyIActiveScriptParse.cpp" url="com/win32comext/axscript/src/PyIActiveScriptParse.cpp">
+</file>
+<file name="PyIActiveScriptParseProcedure.cpp" url="com/win32comext/axscript/src/PyIActiveScriptParseProcedure.cpp">
+</file>
+<file name="PyIActiveScriptParseProcedure.h" url="com/win32comext/axscript/src/PyIActiveScriptParseProcedure.h">
+</file>
+<file name="PyIActiveScriptSite.cpp" url="com/win32comext/axscript/src/PyIActiveScriptSite.cpp">
+</file>
+<file name="PyIMultiInfos.cpp" url="com/win32comext/axscript/src/PyIMultiInfos.cpp">
+</file>
+<file name="PyIObjectSafety.cpp" url="com/win32comext/axscript/src/PyIObjectSafety.cpp">
+</file>
+<file name="PyIObjectSafety.h" url="com/win32comext/axscript/src/PyIObjectSafety.h">
+</file>
+<file name="PyIProvideMultipleClassInfo.h" url="com/win32comext/axscript/src/PyIProvideMultipleClassInfo.h">
+</file>
+<file name="stdafx.cpp" url="com/win32comext/axscript/src/stdafx.cpp">
+</file>
+<file name="stdafx.h" url="com/win32comext/axscript/src/stdafx.h">
+</file>
+</folder>
+<folder name="test" url="com/win32comext/axscript/test">
+<file name="debugTest.vbs" url="com/win32comext/axscript/test/debugTest.vbs">
+</file>
+<file name="leakTest.py" url="com/win32comext/axscript/test/leakTest.py">
+</file>
+<file name="TEST.BAT" url="com/win32comext/axscript/test/TEST.BAT">
+</file>
+<file name="testHost.py" url="com/win32comext/axscript/test/testHost.py">
+</file>
+<file name="testHost4Dbg.py" url="com/win32comext/axscript/test/testHost4Dbg.py">
+</file>
+</folder>
+</folder>
+<folder name="internet" url="com/win32comext/internet">
+<file name="__init__.py" url="com/win32comext/internet/__init__.py">
+</file>
+<folder name="src" url="com/win32comext/internet/src">
+<file name="internet.cpp" url="com/win32comext/internet/src/internet.cpp">
+</file>
+<file name="internet_pch.h" url="com/win32comext/internet/src/internet_pch.h">
+</file>
+<file name="PyIInternetBindInfo.cpp" url="com/win32comext/internet/src/PyIInternetBindInfo.cpp">
+</file>
+<file name="PyIInternetBindInfo.h" url="com/win32comext/internet/src/PyIInternetBindInfo.h">
+</file>
+<file name="PyIInternetPriority.cpp" url="com/win32comext/internet/src/PyIInternetPriority.cpp">
+</file>
+<file name="PyIInternetPriority.h" url="com/win32comext/internet/src/PyIInternetPriority.h">
+</file>
+<file name="PyIInternetProtocol.cpp" url="com/win32comext/internet/src/PyIInternetProtocol.cpp">
+</file>
+<file name="PyIInternetProtocol.h" url="com/win32comext/internet/src/PyIInternetProtocol.h">
+</file>
+<file name="PyIInternetProtocolInfo.cpp" url="com/win32comext/internet/src/PyIInternetProtocolInfo.cpp">
+</file>
+<file name="PyIInternetProtocolInfo.h" url="com/win32comext/internet/src/PyIInternetProtocolInfo.h">
+</file>
+<file name="PyIInternetProtocolRoot.cpp" url="com/win32comext/internet/src/PyIInternetProtocolRoot.cpp">
+</file>
+<file name="PyIInternetProtocolRoot.h" url="com/win32comext/internet/src/PyIInternetProtocolRoot.h">
+</file>
+<file name="PyIInternetProtocolSink.cpp" url="com/win32comext/internet/src/PyIInternetProtocolSink.cpp">
+</file>
+<file name="PyIInternetProtocolSink.h" url="com/win32comext/internet/src/PyIInternetProtocolSink.h">
+</file>
+</folder>
+</folder>
+<folder name="mapi" url="com/win32comext/mapi">
+<file name="emsabtags.py" url="com/win32comext/mapi/emsabtags.py">
+</file>
+<file name="mapitags.py" url="com/win32comext/mapi/mapitags.py">
+</file>
+<file name="mapiutil.py" url="com/win32comext/mapi/mapiutil.py">
+</file>
+<file name="__init__.py" url="com/win32comext/mapi/__init__.py">
+</file>
+<folder name="src" url="com/win32comext/mapi/src">
+<file name="exchange.cpp" url="com/win32comext/mapi/src/exchange.cpp">
+</file>
+<file name="exchangeguids.cpp" url="com/win32comext/mapi/src/exchangeguids.cpp">
+</file>
+<file name="exchdapi.i" url="com/win32comext/mapi/src/exchdapi.i">
+</file>
+<file name="mapi.i" url="com/win32comext/mapi/src/mapi.i">
+</file>
+<file name="mapiguids.cpp" url="com/win32comext/mapi/src/mapiguids.cpp">
+</file>
+<file name="mapilib.i" url="com/win32comext/mapi/src/mapilib.i">
+</file>
+<file name="mapiutil.cpp" url="com/win32comext/mapi/src/mapiutil.cpp">
+</file>
+<file name="PyIABContainer.i" url="com/win32comext/mapi/src/PyIABContainer.i">
+</file>
+<file name="PyIAddrBook.i" url="com/win32comext/mapi/src/PyIAddrBook.i">
+</file>
+<file name="PyIAttach.i" url="com/win32comext/mapi/src/PyIAttach.i">
+</file>
+<file name="PyIDistList.i" url="com/win32comext/mapi/src/PyIDistList.i">
+</file>
+<file name="PyIMailUser.i" url="com/win32comext/mapi/src/PyIMailUser.i">
+</file>
+<file name="PyIMAPIContainer.i" url="com/win32comext/mapi/src/PyIMAPIContainer.i">
+</file>
+<file name="PyIMAPIFolder.i" url="com/win32comext/mapi/src/PyIMAPIFolder.i">
+</file>
+<file name="PyIMAPIProp.i" url="com/win32comext/mapi/src/PyIMAPIProp.i">
+</file>
+<file name="PyIMAPISession.i" url="com/win32comext/mapi/src/PyIMAPISession.i">
+</file>
+<file name="PyIMAPITable.i" url="com/win32comext/mapi/src/PyIMAPITable.i">
+</file>
+<file name="PyIMessage.i" url="com/win32comext/mapi/src/PyIMessage.i">
+</file>
+<file name="PyIMsgServiceAdmin.i" url="com/win32comext/mapi/src/PyIMsgServiceAdmin.i">
+</file>
+<file name="PyIMsgStore.i" url="com/win32comext/mapi/src/PyIMsgStore.i">
+</file>
+<file name="PyIProfAdmin.i" url="com/win32comext/mapi/src/PyIProfAdmin.i">
+</file>
+<file name="PyIProfSect.i" url="com/win32comext/mapi/src/PyIProfSect.i">
+</file>
+<file name="PyMAPIUtil.h" url="com/win32comext/mapi/src/PyMAPIUtil.h">
+</file>
+</folder>
+</folder>
+<folder name="shell" url="com/win32comext/shell">
+<file name="shellcon.py" url="com/win32comext/shell/shellcon.py">
+</file>
+<file name="__init__.py" url="com/win32comext/shell/__init__.py">
+</file>
+<folder name="demos" url="com/win32comext/shell/demos">
+<folder name="servers" url="com/win32comext/shell/demos/servers">
+<file name="context_menu.py" url="com/win32comext/shell/demos/servers/context_menu.py">
+</file>
+<file name="copy_hook.py" url="com/win32comext/shell/demos/servers/copy_hook.py">
+</file>
+<file name="icon_handler.py" url="com/win32comext/shell/demos/servers/icon_handler.py">
+</file>
+<file name="shell_view.py" url="com/win32comext/shell/demos/servers/shell_view.py">
+</file>
+</folder>
+</folder>
+<folder name="src" url="com/win32comext/shell/src">
+<file name="PyIBrowserFrameOptions.cpp" url="com/win32comext/shell/src/PyIBrowserFrameOptions.cpp">
+</file>
+<file name="PyIBrowserFrameOptions.h" url="com/win32comext/shell/src/PyIBrowserFrameOptions.h">
+</file>
+<file name="PyIContextMenu.cpp" url="com/win32comext/shell/src/PyIContextMenu.cpp">
+</file>
+<file name="PyIContextMenu.h" url="com/win32comext/shell/src/PyIContextMenu.h">
+</file>
+<file name="PyICopyHook.cpp" url="com/win32comext/shell/src/PyICopyHook.cpp">
+</file>
+<file name="PyICopyHook.h" url="com/win32comext/shell/src/PyICopyHook.h">
+</file>
+<file name="PyIEnumIDList.cpp" url="com/win32comext/shell/src/PyIEnumIDList.cpp">
+</file>
+<file name="PyIEnumIDList.h" url="com/win32comext/shell/src/PyIEnumIDList.h">
+</file>
+<file name="PyIExtractIcon.cpp" url="com/win32comext/shell/src/PyIExtractIcon.cpp">
+</file>
+<file name="PyIExtractIcon.h" url="com/win32comext/shell/src/PyIExtractIcon.h">
+</file>
+<file name="PyIPersistFolder.cpp" url="com/win32comext/shell/src/PyIPersistFolder.cpp">
+</file>
+<file name="PyIPersistFolder.h" url="com/win32comext/shell/src/PyIPersistFolder.h">
+</file>
+<file name="PyIShellBrowser.cpp" url="com/win32comext/shell/src/PyIShellBrowser.cpp">
+</file>
+<file name="PyIShellBrowser.h" url="com/win32comext/shell/src/PyIShellBrowser.h">
+</file>
+<file name="PyIShellExtInit.cpp" url="com/win32comext/shell/src/PyIShellExtInit.cpp">
+</file>
+<file name="PyIShellExtInit.h" url="com/win32comext/shell/src/PyIShellExtInit.h">
+</file>
+<file name="PyIShellFolder.cpp" url="com/win32comext/shell/src/PyIShellFolder.cpp">
+</file>
+<file name="PyIShellFolder.h" url="com/win32comext/shell/src/PyIShellFolder.h">
+</file>
+<file name="PyIShellLink.cpp" url="com/win32comext/shell/src/PyIShellLink.cpp">
+</file>
+<file name="PyIShellLink.h" url="com/win32comext/shell/src/PyIShellLink.h">
+</file>
+<file name="PyIShellView.cpp" url="com/win32comext/shell/src/PyIShellView.cpp">
+</file>
+<file name="PyIShellView.h" url="com/win32comext/shell/src/PyIShellView.h">
+</file>
+<file name="shell.cpp" url="com/win32comext/shell/src/shell.cpp">
+</file>
+<file name="shell_pch.h" url="com/win32comext/shell/src/shell_pch.h">
+</file>
+</folder>
+<folder name="test" url="com/win32comext/shell/test">
+<file name="link.py" url="com/win32comext/shell/test/link.py">
+</file>
+<file name="testShell.py" url="com/win32comext/shell/test/testShell.py">
+</file>
+<file name="testShellFolder.py" url="com/win32comext/shell/test/testShellFolder.py">
+</file>
+</folder>
+</folder>
+</folder>
+</folder>
+<folder name="pythonwin" url="pythonwin">
+<file name="dbgthread.cpp" url="pythonwin/dbgthread.cpp">
+</file>
+<file name="dibapi.cpp" url="pythonwin/dibapi.cpp">
+</file>
+<file name="dibapi.h" url="pythonwin/dibapi.h">
+</file>
+<file name="dllmain.cpp" url="pythonwin/dllmain.cpp">
+</file>
+<file name="License.txt" url="pythonwin/License.txt">
+</file>
+<file name="pythoncbar.h" url="pythonwin/pythoncbar.h">
+</file>
+<file name="pythondoc.cpp" url="pythonwin/pythondoc.cpp">
+</file>
+<file name="pythondoc.h" url="pythonwin/pythondoc.h">
+</file>
+<file name="pythonframe.h" url="pythonwin/pythonframe.h">
+</file>
+<file name="pythonppage.cpp" url="pythonwin/pythonppage.cpp">
+</file>
+<file name="pythonppage.h" url="pythonwin/pythonppage.h">
+</file>
+<file name="pythonpsheet.cpp" url="pythonwin/pythonpsheet.cpp">
+</file>
+<file name="pythonpsheet.h" url="pythonwin/pythonpsheet.h">
+</file>
+<file name="pythonRichEdit.cpp" url="pythonwin/pythonRichEdit.cpp">
+</file>
+<file name="pythonRichEdit.h" url="pythonwin/pythonRichEdit.h">
+</file>
+<file name="pythonRichEditCntr.cpp" url="pythonwin/pythonRichEditCntr.cpp">
+</file>
+<file name="pythonRichEditCntr.h" url="pythonwin/pythonRichEditCntr.h">
+</file>
+<file name="pythonRichEditDoc.cpp" url="pythonwin/pythonRichEditDoc.cpp">
+</file>
+<file name="pythonRichEditDoc.h" url="pythonwin/pythonRichEditDoc.h">
+</file>
+<file name="pythonview.cpp" url="pythonwin/pythonview.cpp">
+</file>
+<file name="pythonview.h" url="pythonwin/pythonview.h">
+</file>
+<file name="pythonwin.cpp" url="pythonwin/pythonwin.cpp">
+</file>
+<file name="pythonwin.h" url="pythonwin/pythonwin.h">
+</file>
+<file name="respw.h" url="pythonwin/respw.h">
+</file>
+<file name="reswin32ui.h" url="pythonwin/reswin32ui.h">
+</file>
+<file name="stdafx.cpp" url="pythonwin/stdafx.cpp">
+</file>
+<file name="stdafx.h" url="pythonwin/stdafx.h">
+</file>
+<file name="stdafxole.cpp" url="pythonwin/stdafxole.cpp">
+</file>
+<file name="stdafxole.h" url="pythonwin/stdafxole.h">
+</file>
+<file name="stdafxpw.cpp" url="pythonwin/stdafxpw.cpp">
+</file>
+<file name="stdafxpw.h" url="pythonwin/stdafxpw.h">
+</file>
+<file name="win32app.cpp" url="pythonwin/win32app.cpp">
+</file>
+<file name="Win32app.h" url="pythonwin/Win32app.h">
+</file>
+<file name="win32assoc.cpp" url="pythonwin/win32assoc.cpp">
+</file>
+<file name="win32assoc.h" url="pythonwin/win32assoc.h">
+</file>
+<file name="win32bitmap.cpp" url="pythonwin/win32bitmap.cpp">
+</file>
+<file name="win32bitmap.h" url="pythonwin/win32bitmap.h">
+</file>
+<file name="win32brush.cpp" url="pythonwin/win32brush.cpp">
+</file>
+<file name="win32brush.h" url="pythonwin/win32brush.h">
+</file>
+<file name="win32cmd.cpp" url="pythonwin/win32cmd.cpp">
+</file>
+<file name="win32cmd.h" url="pythonwin/win32cmd.h">
+</file>
+<file name="win32cmdui.cpp" url="pythonwin/win32cmdui.cpp">
+</file>
+<file name="win32cmdui.h" url="pythonwin/win32cmdui.h">
+</file>
+<file name="win32context.cpp" url="pythonwin/win32context.cpp">
+</file>
+<file name="win32control.cpp" url="pythonwin/win32control.cpp">
+</file>
+<file name="win32control.h" url="pythonwin/win32control.h">
+</file>
+<file name="win32ctledit.cpp" url="pythonwin/win32ctledit.cpp">
+</file>
+<file name="win32ctrlList.cpp" url="pythonwin/win32ctrlList.cpp">
+</file>
+<file name="win32ctrlList.h" url="pythonwin/win32ctrlList.h">
+</file>
+<file name="win32ctrlRichEdit.cpp" url="pythonwin/win32ctrlRichEdit.cpp">
+</file>
+<file name="win32ctrlTree.cpp" url="pythonwin/win32ctrlTree.cpp">
+</file>
+<file name="win32ctrlTree.h" url="pythonwin/win32ctrlTree.h">
+</file>
+<file name="win32dc.cpp" url="pythonwin/win32dc.cpp">
+</file>
+<file name="win32dc.h" url="pythonwin/win32dc.h">
+</file>
+<file name="win32dlg.cpp" url="pythonwin/win32dlg.cpp">
+</file>
+<file name="win32dlg.h" url="pythonwin/win32dlg.h">
+</file>
+<file name="win32dlgbar.cpp" url="pythonwin/win32dlgbar.cpp">
+</file>
+<file name="win32dlgbar.h" url="pythonwin/win32dlgbar.h">
+</file>
+<file name="win32dll.cpp" url="pythonwin/win32dll.cpp">
+</file>
+<file name="win32dll.h" url="pythonwin/win32dll.h">
+</file>
+<file name="win32doc.cpp" url="pythonwin/win32doc.cpp">
+</file>
+<file name="win32doc.h" url="pythonwin/win32doc.h">
+</file>
+<file name="win32font.cpp" url="pythonwin/win32font.cpp">
+</file>
+<file name="win32font.h" url="pythonwin/win32font.h">
+</file>
+<file name="win32gdi.cpp" url="pythonwin/win32gdi.cpp">
+</file>
+<file name="win32gdi.h" url="pythonwin/win32gdi.h">
+</file>
+<file name="win32hl.h" url="pythonwin/win32hl.h">
+</file>
+<file name="win32ImageList.cpp" url="pythonwin/win32ImageList.cpp">
+</file>
+<file name="win32ImageList.h" url="pythonwin/win32ImageList.h">
+</file>
+<file name="win32menu.cpp" url="pythonwin/win32menu.cpp">
+</file>
+<file name="win32menu.h" url="pythonwin/win32menu.h">
+</file>
+<file name="win32notify.cpp" url="pythonwin/win32notify.cpp">
+</file>
+<file name="win32oleDlgInsert.cpp" url="pythonwin/win32oleDlgInsert.cpp">
+</file>
+<file name="win32oleDlgs.cpp" url="pythonwin/win32oleDlgs.cpp">
+</file>
+<file name="win32oleDlgs.h" url="pythonwin/win32oleDlgs.h">
+</file>
+<file name="win32pen.cpp" url="pythonwin/win32pen.cpp">
+</file>
+<file name="win32pen.h" url="pythonwin/win32pen.h">
+</file>
+<file name="win32prinfo.cpp" url="pythonwin/win32prinfo.cpp">
+</file>
+<file name="win32prinfo.h" url="pythonwin/win32prinfo.h">
+</file>
+<file name="win32prop.cpp" url="pythonwin/win32prop.cpp">
+</file>
+<file name="win32prop.h" url="pythonwin/win32prop.h">
+</file>
+<file name="win32rgn.cpp" url="pythonwin/win32rgn.cpp">
+</file>
+<file name="win32rgn.h" url="pythonwin/win32rgn.h">
+</file>
+<file name="win32RichEdit.cpp" url="pythonwin/win32RichEdit.cpp">
+</file>
+<file name="win32RichEdit.h" url="pythonwin/win32RichEdit.h">
+</file>
+<file name="win32RichEditDocTemplate.cpp" url="pythonwin/win32RichEditDocTemplate.cpp">
+</file>
+<file name="win32RichEditDocTemplate.h" url="pythonwin/win32RichEditDocTemplate.h">
+</file>
+<file name="win32splitter.cpp" url="pythonwin/win32splitter.cpp">
+</file>
+<file name="win32splitter.h" url="pythonwin/win32splitter.h">
+</file>
+<file name="win32template.cpp" url="pythonwin/win32template.cpp">
+</file>
+<file name="win32template.h" url="pythonwin/win32template.h">
+</file>
+<file name="win32thread.cpp" url="pythonwin/win32thread.cpp">
+</file>
+<file name="win32toolbar.cpp" url="pythonwin/win32toolbar.cpp">
+</file>
+<file name="win32toolbar.h" url="pythonwin/win32toolbar.h">
+</file>
+<file name="win32tooltip.cpp" url="pythonwin/win32tooltip.cpp">
+</file>
+<file name="win32ui.h" url="pythonwin/win32ui.h">
+</file>
+<file name="win32uiExt.h" url="pythonwin/win32uiExt.h">
+</file>
+<file name="Win32uiHostGlue.h" url="pythonwin/Win32uiHostGlue.h">
+</file>
+<file name="win32uimodule.cpp" url="pythonwin/win32uimodule.cpp">
+</file>
+<file name="win32uiole.cpp" url="pythonwin/win32uiole.cpp">
+</file>
+<file name="win32uioleClientItem.cpp" url="pythonwin/win32uioleClientItem.cpp">
+</file>
+<file name="win32uioledoc.cpp" url="pythonwin/win32uioledoc.cpp">
+</file>
+<file name="win32uioledoc.h" url="pythonwin/win32uioledoc.h">
+</file>
+<file name="win32util.cpp" url="pythonwin/win32util.cpp">
+</file>
+<file name="win32view.cpp" url="pythonwin/win32view.cpp">
+</file>
+<file name="win32virt.cpp" url="pythonwin/win32virt.cpp">
+</file>
+<file name="win32win.cpp" url="pythonwin/win32win.cpp">
+</file>
+<file name="win32win.h" url="pythonwin/win32win.h">
+</file>
+<folder name="pywin" url="pythonwin/pywin">
+<file name="__init__.py" url="pythonwin/pywin/__init__.py">
+</file>
+<folder name="debugger" url="pythonwin/pywin/debugger">
+<file name="configui.py" url="pythonwin/pywin/debugger/configui.py">
+</file>
+<file name="dbgcon.py" url="pythonwin/pywin/debugger/dbgcon.py">
+</file>
+<file name="dbgpyapp.py" url="pythonwin/pywin/debugger/dbgpyapp.py">
+</file>
+<file name="debugger.py" url="pythonwin/pywin/debugger/debugger.py">
+</file>
+<file name="fail.py" url="pythonwin/pywin/debugger/fail.py">
+</file>
+<file name="__init__.py" url="pythonwin/pywin/debugger/__init__.py">
+</file>
+</folder>
+<folder name="Demos" url="pythonwin/pywin/Demos">
+<file name="cmdserver.py" url="pythonwin/pywin/Demos/cmdserver.py">
+</file>
+<file name="createwin.py" url="pythonwin/pywin/Demos/createwin.py">
+</file>
+<file name="demoutils.py" url="pythonwin/pywin/Demos/demoutils.py">
+</file>
+<file name="dibdemo.py" url="pythonwin/pywin/Demos/dibdemo.py">
+</file>
+<file name="dlgtest.py" url="pythonwin/pywin/Demos/dlgtest.py">
+</file>
+<file name="dyndlg.py" url="pythonwin/pywin/Demos/dyndlg.py">
+</file>
+<file name="fontdemo.py" url="pythonwin/pywin/Demos/fontdemo.py">
+</file>
+<file name="guidemo.py" url="pythonwin/pywin/Demos/guidemo.py">
+</file>
+<file name="hiertest.py" url="pythonwin/pywin/Demos/hiertest.py">
+</file>
+<file name="menutest.py" url="pythonwin/pywin/Demos/menutest.py">
+</file>
+<file name="objdoc.py" url="pythonwin/pywin/Demos/objdoc.py">
+</file>
+<file name="openGLDemo.py" url="pythonwin/pywin/Demos/openGLDemo.py">
+</file>
+<file name="progressbar.py" url="pythonwin/pywin/Demos/progressbar.py">
+</file>
+<file name="readme.txt" url="pythonwin/pywin/Demos/readme.txt">
+</file>
+<file name="sliderdemo.py" url="pythonwin/pywin/Demos/sliderdemo.py">
+</file>
+<file name="splittst.py" url="pythonwin/pywin/Demos/splittst.py">
+</file>
+<file name="threadedgui.py" url="pythonwin/pywin/Demos/threadedgui.py">
+</file>
+<file name="toolbar.py" url="pythonwin/pywin/Demos/toolbar.py">
+</file>
+<folder name="app" url="pythonwin/pywin/Demos/app">
+<file name="basictimerapp.py" url="pythonwin/pywin/Demos/app/basictimerapp.py">
+</file>
+<file name="customprint.py" url="pythonwin/pywin/Demos/app/customprint.py">
+</file>
+<file name="demoutils.py" url="pythonwin/pywin/Demos/app/demoutils.py">
+</file>
+<file name="dlgappdemo.py" url="pythonwin/pywin/Demos/app/dlgappdemo.py">
+</file>
+<file name="dojobapp.py" url="pythonwin/pywin/Demos/app/dojobapp.py">
+</file>
+<file name="helloapp.py" url="pythonwin/pywin/Demos/app/helloapp.py">
+</file>
+<file name="readme.txt" url="pythonwin/pywin/Demos/app/readme.txt">
+</file>
+</folder>
+<folder name="ocx" url="pythonwin/pywin/Demos/ocx">
+<file name="demoutils.py" url="pythonwin/pywin/Demos/ocx/demoutils.py">
+</file>
+<file name="flash.py" url="pythonwin/pywin/Demos/ocx/flash.py">
+</file>
+<file name="msoffice.py" url="pythonwin/pywin/Demos/ocx/msoffice.py">
+</file>
+<file name="ocxserialtest.py" url="pythonwin/pywin/Demos/ocx/ocxserialtest.py">
+</file>
+<file name="ocxtest.py" url="pythonwin/pywin/Demos/ocx/ocxtest.py">
+</file>
+<file name="webbrowser.py" url="pythonwin/pywin/Demos/ocx/webbrowser.py">
+</file>
+<file name="__init__.py" url="pythonwin/pywin/Demos/ocx/__init__.py">
+</file>
+</folder>
+</folder>
+<folder name="dialogs" url="pythonwin/pywin/dialogs">
+<file name="ideoptions.py" url="pythonwin/pywin/dialogs/ideoptions.py">
+</file>
+<file name="list.py" url="pythonwin/pywin/dialogs/list.py">
+</file>
+<file name="login.py" url="pythonwin/pywin/dialogs/login.py">
+</file>
+<file name="status.py" url="pythonwin/pywin/dialogs/status.py">
+</file>
+<file name="__init__.py" url="pythonwin/pywin/dialogs/__init__.py">
+</file>
+</folder>
+<folder name="docking" url="pythonwin/pywin/docking">
+<file name="DockingBar.py" url="pythonwin/pywin/docking/DockingBar.py">
+</file>
+<file name="__init__.py" url="pythonwin/pywin/docking/__init__.py">
+</file>
+</folder>
+<folder name="framework" url="pythonwin/pywin/framework">
+<file name="app.py" url="pythonwin/pywin/framework/app.py">
+</file>
+<file name="bitmap.py" url="pythonwin/pywin/framework/bitmap.py">
+</file>
+<file name="cmdline.py" url="pythonwin/pywin/framework/cmdline.py">
+</file>
+<file name="dbgcommands.py" url="pythonwin/pywin/framework/dbgcommands.py">
+</file>
+<file name="dlgappcore.py" url="pythonwin/pywin/framework/dlgappcore.py">
+</file>
+<file name="help.py" url="pythonwin/pywin/framework/help.py">
+</file>
+<file name="interact.py" url="pythonwin/pywin/framework/interact.py">
+</file>
+<file name="intpyapp.py" url="pythonwin/pywin/framework/intpyapp.py">
+</file>
+<file name="intpydde.py" url="pythonwin/pywin/framework/intpydde.py">
+</file>
+<file name="scriptutils.py" url="pythonwin/pywin/framework/scriptutils.py">
+</file>
+<file name="sgrepmdi.py" url="pythonwin/pywin/framework/sgrepmdi.py">
+</file>
+<file name="startup.py" url="pythonwin/pywin/framework/startup.py">
+</file>
+<file name="stdin.py" url="pythonwin/pywin/framework/stdin.py">
+</file>
+<file name="toolmenu.py" url="pythonwin/pywin/framework/toolmenu.py">
+</file>
+<file name="window.py" url="pythonwin/pywin/framework/window.py">
+</file>
+<file name="winout.py" url="pythonwin/pywin/framework/winout.py">
+</file>
+<file name="__init__.py" url="pythonwin/pywin/framework/__init__.py">
+</file>
+<folder name="editor" url="pythonwin/pywin/framework/editor">
+<file name="configui.py" url="pythonwin/pywin/framework/editor/configui.py">
+</file>
+<file name="document.py" url="pythonwin/pywin/framework/editor/document.py">
+</file>
+<file name="editor.py" url="pythonwin/pywin/framework/editor/editor.py">
+</file>
+<file name="frame.py" url="pythonwin/pywin/framework/editor/frame.py">
+</file>
+<file name="ModuleBrowser.py" url="pythonwin/pywin/framework/editor/ModuleBrowser.py">
+</file>
+<file name="template.py" url="pythonwin/pywin/framework/editor/template.py">
+</file>
+<file name="vss.py" url="pythonwin/pywin/framework/editor/vss.py">
+</file>
+<file name="__init__.py" url="pythonwin/pywin/framework/editor/__init__.py">
+</file>
+<folder name="color" url="pythonwin/pywin/framework/editor/color">
+<file name="coloreditor.py" url="pythonwin/pywin/framework/editor/color/coloreditor.py">
+</file>
+<file name="__init__.py" url="pythonwin/pywin/framework/editor/color/__init__.py">
+</file>
+</folder>
+</folder>
+</folder>
+<folder name="idle" url="pythonwin/pywin/idle">
+<file name="AutoExpand.py" url="pythonwin/pywin/idle/AutoExpand.py">
+</file>
+<file name="AutoIndent.py" url="pythonwin/pywin/idle/AutoIndent.py">
+</file>
+<file name="CallTips.py" url="pythonwin/pywin/idle/CallTips.py">
+</file>
+<file name="FormatParagraph.py" url="pythonwin/pywin/idle/FormatParagraph.py">
+</file>
+<file name="IdleHistory.py" url="pythonwin/pywin/idle/IdleHistory.py">
+</file>
+<file name="PyParse.py" url="pythonwin/pywin/idle/PyParse.py">
+</file>
+<file name="readme.txt" url="pythonwin/pywin/idle/readme.txt">
+</file>
+<file name="__init__.py" url="pythonwin/pywin/idle/__init__.py">
+</file>
+</folder>
+<folder name="mfc" url="pythonwin/pywin/mfc">
+<file name="activex.py" url="pythonwin/pywin/mfc/activex.py">
+</file>
+<file name="afxres.py" url="pythonwin/pywin/mfc/afxres.py">
+</file>
+<file name="dialog.py" url="pythonwin/pywin/mfc/dialog.py">
+</file>
+<file name="docview.py" url="pythonwin/pywin/mfc/docview.py">
+</file>
+<file name="object.py" url="pythonwin/pywin/mfc/object.py">
+</file>
+<file name="thread.py" url="pythonwin/pywin/mfc/thread.py">
+</file>
+<file name="window.py" url="pythonwin/pywin/mfc/window.py">
+</file>
+<file name="__init__.py" url="pythonwin/pywin/mfc/__init__.py">
+</file>
+</folder>
+<folder name="scintilla" url="pythonwin/pywin/scintilla">
+<file name="bindings.py" url="pythonwin/pywin/scintilla/bindings.py">
+</file>
+<file name="config.py" url="pythonwin/pywin/scintilla/config.py">
+</file>
+<file name="configui.py" url="pythonwin/pywin/scintilla/configui.py">
+</file>
+<file name="control.py" url="pythonwin/pywin/scintilla/control.py">
+</file>
+<file name="document.py" url="pythonwin/pywin/scintilla/document.py">
+</file>
+<file name="find.py" url="pythonwin/pywin/scintilla/find.py">
+</file>
+<file name="formatter.py" url="pythonwin/pywin/scintilla/formatter.py">
+</file>
+<file name="IDLEenvironment.py" url="pythonwin/pywin/scintilla/IDLEenvironment.py">
+</file>
+<file name="keycodes.py" url="pythonwin/pywin/scintilla/keycodes.py">
+</file>
+<file name="scintillacon.py" url="pythonwin/pywin/scintilla/scintillacon.py">
+</file>
+<file name="view.py" url="pythonwin/pywin/scintilla/view.py">
+</file>
+<file name="__init__.py" url="pythonwin/pywin/scintilla/__init__.py">
+</file>
+</folder>
+<folder name="tools" url="pythonwin/pywin/tools">
+<file name="browseProjects.py" url="pythonwin/pywin/tools/browseProjects.py">
+</file>
+<file name="browser.py" url="pythonwin/pywin/tools/browser.py">
+</file>
+<file name="hierlist.py" url="pythonwin/pywin/tools/hierlist.py">
+</file>
+<file name="regedit.py" url="pythonwin/pywin/tools/regedit.py">
+</file>
+<file name="regpy.py" url="pythonwin/pywin/tools/regpy.py">
+</file>
+<file name="TraceCollector.py" url="pythonwin/pywin/tools/TraceCollector.py">
+</file>
+<file name="__init__.py" url="pythonwin/pywin/tools/__init__.py">
+</file>
+</folder>
+</folder>
+<folder name="Scintilla" url="pythonwin/Scintilla">
+<file name="License.txt" url="pythonwin/Scintilla/License.txt">
+</file>
+<file name="update.bat" url="pythonwin/Scintilla/update.bat">
+</file>
+<folder name="include" url="pythonwin/Scintilla/include">
+<file name="Accessor.h" url="pythonwin/Scintilla/include/Accessor.h">
+</file>
+<file name="KeyWords.h" url="pythonwin/Scintilla/include/KeyWords.h">
+</file>
+<file name="Platform.h" url="pythonwin/Scintilla/include/Platform.h">
+</file>
+<file name="PropSet.h" url="pythonwin/Scintilla/include/PropSet.h">
+</file>
+<file name="SciLexer.h" url="pythonwin/Scintilla/include/SciLexer.h">
+</file>
+<file name="Scintilla.h" url="pythonwin/Scintilla/include/Scintilla.h">
+</file>
+<file name="SString.h" url="pythonwin/Scintilla/include/SString.h">
+</file>
+<file name="WinDefs.h" url="pythonwin/Scintilla/include/WinDefs.h">
+</file>
+<file name="WindowAccessor.h" url="pythonwin/Scintilla/include/WindowAccessor.h">
+</file>
+</folder>
+<folder name="src" url="pythonwin/Scintilla/src">
+<file name="AutoComplete.h" url="pythonwin/Scintilla/src/AutoComplete.h">
+</file>
+<file name="CallTip.h" url="pythonwin/Scintilla/src/CallTip.h">
+</file>
+<file name="CellBuffer.h" url="pythonwin/Scintilla/src/CellBuffer.h">
+</file>
+<file name="ContractionState.h" url="pythonwin/Scintilla/src/ContractionState.h">
+</file>
+<file name="Document.h" url="pythonwin/Scintilla/src/Document.h">
+</file>
+<file name="DocumentAccessor.h" url="pythonwin/Scintilla/src/DocumentAccessor.h">
+</file>
+<file name="Editor.h" url="pythonwin/Scintilla/src/Editor.h">
+</file>
+<file name="Indicator.h" url="pythonwin/Scintilla/src/Indicator.h">
+</file>
+<file name="KeyMap.h" url="pythonwin/Scintilla/src/KeyMap.h">
+</file>
+<file name="LineMarker.h" url="pythonwin/Scintilla/src/LineMarker.h">
+</file>
+<file name="RESearch.h" url="pythonwin/Scintilla/src/RESearch.h">
+</file>
+<file name="ScintillaBase.h" url="pythonwin/Scintilla/src/ScintillaBase.h">
+</file>
+<file name="Style.h" url="pythonwin/Scintilla/src/Style.h">
+</file>
+<file name="StyleContext.h" url="pythonwin/Scintilla/src/StyleContext.h">
+</file>
+<file name="SVector.h" url="pythonwin/Scintilla/src/SVector.h">
+</file>
+<file name="UniConversion.h" url="pythonwin/Scintilla/src/UniConversion.h">
+</file>
+<file name="ViewStyle.h" url="pythonwin/Scintilla/src/ViewStyle.h">
+</file>
+</folder>
+<folder name="win32" url="pythonwin/Scintilla/win32">
+<file name="ExternalLexer.h" url="pythonwin/Scintilla/win32/ExternalLexer.h">
+</file>
+<file name="PlatformRes.h" url="pythonwin/Scintilla/win32/PlatformRes.h">
+</file>
+<file name="Scintilla.def" url="pythonwin/Scintilla/win32/Scintilla.def">
+</file>
+</folder>
+</folder>
+</folder>
+<folder name="win32" url="win32">
+<preference-set id="">
+</preference-set>
+<file name="License.txt" url="win32/License.txt">
+</file>
+<folder name="Demos" url="win32/Demos">
+<preference-set id="">
+</preference-set>
+<file name="cerapi.py" url="win32/Demos/cerapi.py">
+</file>
+<file name="eventLogDemo.py" url="win32/Demos/eventLogDemo.py">
+</file>
+<file name="FileSecurityTest.py" url="win32/Demos/FileSecurityTest.py">
+</file>
+<file name="rastest.py" url="win32/Demos/rastest.py">
+</file>
+<file name="timer_demo.py" url="win32/Demos/timer_demo.py">
+</file>
+<file name="win32clipboardDemo.py" url="win32/Demos/win32clipboardDemo.py">
+</file>
+<file name="win32comport_demo.py" url="win32/Demos/win32comport_demo.py">
+</file>
+<file name="win32fileDemo.py" url="win32/Demos/win32fileDemo.py">
+</file>
+<file name="win32gui_demo.py" url="win32/Demos/win32gui_demo.py">
+</file>
+<file name="win32gui_dialog.py" url="win32/Demos/win32gui_dialog.py">
+</file>
+<file name="win32gui_taskbar.py" url="win32/Demos/win32gui_taskbar.py">
+</file>
+<file name="win32netdemo.py" url="win32/Demos/win32netdemo.py">
+</file>
+<file name="win32servicedemo.py" url="win32/Demos/win32servicedemo.py">
+</file>
+<file name="winprocess.py" url="win32/Demos/winprocess.py">
+</file>
+<folder name="dde" url="win32/Demos/dde">
+<file name="ddeclient.py" url="win32/Demos/dde/ddeclient.py">
+</file>
+<file name="ddeserver.py" url="win32/Demos/dde/ddeserver.py">
+</file>
+</folder>
+<folder name="pipes" url="win32/Demos/pipes">
+<file name="cat.py" url="win32/Demos/pipes/cat.py">
+</file>
+<file name="runproc.py" url="win32/Demos/pipes/runproc.py">
+</file>
+</folder>
+<folder name="security" url="win32/Demos/security">
+<file name="account_rights.py" url="win32/Demos/security/account_rights.py">
+</file>
+<file name="explicit_entries.py" url="win32/Demos/security/explicit_entries.py">
+</file>
+<file name="get_policy_info.py" url="win32/Demos/security/get_policy_info.py">
+</file>
+<file name="list_rights.py" url="win32/Demos/security/list_rights.py">
+</file>
+<file name="regsave_sa.py" url="win32/Demos/security/regsave_sa.py">
+</file>
+<file name="regsecurity.py" url="win32/Demos/security/regsecurity.py">
+</file>
+<file name="sa_inherit.py" url="win32/Demos/security/sa_inherit.py">
+</file>
+<file name="security_enums.py" url="win32/Demos/security/security_enums.py">
+</file>
+<file name="set_file_audit.py" url="win32/Demos/security/set_file_audit.py">
+</file>
+<file name="set_file_owner.py" url="win32/Demos/security/set_file_owner.py">
+</file>
+<file name="set_policy_info.py" url="win32/Demos/security/set_policy_info.py">
+</file>
+</folder>
+<folder name="service" url="win32/Demos/service">
+<file name="pipeTestService.py" url="win32/Demos/service/pipeTestService.py">
+</file>
+<file name="pipeTestServiceClient.py" url="win32/Demos/service/pipeTestServiceClient.py">
+</file>
+<folder name="install" url="win32/Demos/service/install">
+<file name="perf_install.h" url="win32/Demos/service/install/perf_install.h">
+</file>
+<file name="readme.txt" url="win32/Demos/service/install/readme.txt">
+</file>
+</folder>
+</folder>
+<folder name="win32wnet" url="win32/Demos/win32wnet">
+<file name="testwnet.py" url="win32/Demos/win32wnet/testwnet.py">
+</file>
+<file name="winnetwk.py" url="win32/Demos/win32wnet/winnetwk.py">
+</file>
+</folder>
+<file name="win32gui_menu.py" url="win32/Demos/win32gui_menu.py">
+<preference-set id="">
+<preference-set id="Invocations">
+<preference-set id="Python">
+  <string id="userEnvironment"></string>
+  <string id="postparams"></string>
+  <string id="getparams"></string>
+  <boolean id="use-console">0</boolean>
+  <string id="mpostparams"></string>
+  <boolean id="sim-cgi">0</boolean>
+  <string id="filename">E:\src\pythonex\win32\Demos\win32gui_menu.py</string>
+  <string id="request-method">GET</string>
+  <string id="params"></string>
+  <string id="userCGIEnvironment"></string>
+  <string id="posttype">application/x-www-form-urlencoded</string>
+  <string id="documentRoot"></string>
+  <string id="cookieparams"></string>
+  <boolean id="show-dialog">1</boolean>
+  <string id="cwd"></string>
+</preference-set>
+</preference-set>
+</preference-set>
+</file>
+</folder>
+<folder name="Lib" url="win32/Lib">
+<file name="afxres.py" url="win32/Lib/afxres.py">
+</file>
+<file name="commctrl.py" url="win32/Lib/commctrl.py">
+</file>
+<file name="mmsystem.py" url="win32/Lib/mmsystem.py">
+</file>
+<file name="netbios.py" url="win32/Lib/netbios.py">
+</file>
+<file name="ntsecuritycon.py" url="win32/Lib/ntsecuritycon.py">
+</file>
+<file name="pywintypes.py" url="win32/Lib/pywintypes.py">
+</file>
+<file name="rasutil.py" url="win32/Lib/rasutil.py">
+</file>
+<file name="regcheck.py" url="win32/Lib/regcheck.py">
+</file>
+<file name="regutil.py" url="win32/Lib/regutil.py">
+</file>
+<file name="win32con.py" url="win32/Lib/win32con.py">
+</file>
+<file name="win32evtlogutil.py" url="win32/Lib/win32evtlogutil.py">
+</file>
+<file name="win32netcon.py" url="win32/Lib/win32netcon.py">
+</file>
+<file name="win32pdhquery.py" url="win32/Lib/win32pdhquery.py">
+</file>
+<file name="win32pdhutil.py" url="win32/Lib/win32pdhutil.py">
+</file>
+<file name="win32serviceutil.py" url="win32/Lib/win32serviceutil.py">
+</file>
+<file name="win32traceutil.py" url="win32/Lib/win32traceutil.py">
+</file>
+<file name="winerror.py" url="win32/Lib/winerror.py">
+</file>
+<file name="winnt.py" url="win32/Lib/winnt.py">
+</file>
+<file name="winperf.py" url="win32/Lib/winperf.py">
+</file>
+</folder>
+<folder name="scripts" url="win32/scripts">
+<file name="backupEventLog.py" url="win32/scripts/backupEventLog.py">
+</file>
+<file name="ControlService.py" url="win32/scripts/ControlService.py">
+</file>
+<file name="killProcName.py" url="win32/scripts/killProcName.py">
+</file>
+<file name="rasutil.py" url="win32/scripts/rasutil.py">
+</file>
+<file name="regsetup.py" url="win32/scripts/regsetup.py">
+</file>
+<file name="setup_d.py" url="win32/scripts/setup_d.py">
+</file>
+<folder name="ce" url="win32/scripts/ce">
+<file name="pysynch.py" url="win32/scripts/ce/pysynch.py">
+</file>
+</folder>
+<folder name="VersionStamp" url="win32/scripts/VersionStamp">
+<file name="BrandProject.py" url="win32/scripts/VersionStamp/BrandProject.py">
+</file>
+<file name="bulkstamp.py" url="win32/scripts/VersionStamp/bulkstamp.py">
+</file>
+<file name="verstamp.py" url="win32/scripts/VersionStamp/verstamp.py">
+</file>
+<file name="vssutil.py" url="win32/scripts/VersionStamp/vssutil.py">
+</file>
+</folder>
+</folder>
+<folder name="src" url="win32/src">
+<file name="dbi.cpp" url="win32/src/dbi.cpp">
+</file>
+<file name="dbi.def" url="win32/src/dbi.def">
+</file>
+<file name="dbi.h" url="win32/src/dbi.h">
+</file>
+<file name="ddeconv.cpp" url="win32/src/ddeconv.cpp">
+</file>
+<file name="ddeitem.cpp" url="win32/src/ddeitem.cpp">
+</file>
+<file name="ddemodule.cpp" url="win32/src/ddemodule.cpp">
+</file>
+<file name="ddemodule.h" url="win32/src/ddemodule.h">
+</file>
+<file name="ddeserver.cpp" url="win32/src/ddeserver.cpp">
+</file>
+<file name="ddetopic.cpp" url="win32/src/ddetopic.cpp">
+</file>
+<file name="mmapfilemodule.cpp" url="win32/src/mmapfilemodule.cpp">
+</file>
+<file name="odbc.cpp" url="win32/src/odbc.cpp">
+</file>
+<file name="pdh.h" url="win32/src/pdh.h">
+</file>
+<file name="PyACL.cpp" url="win32/src/PyACL.cpp">
+</file>
+<file name="PyHANDLE.cpp" url="win32/src/PyHANDLE.cpp">
+</file>
+<file name="PyIID.cpp" url="win32/src/PyIID.cpp">
+</file>
+<file name="PyLARGE_INTEGER.cpp" url="win32/src/PyLARGE_INTEGER.cpp">
+</file>
+<file name="PyOVERLAPPED.cpp" url="win32/src/PyOVERLAPPED.cpp">
+</file>
+<file name="PySecurityObjects.h" url="win32/src/PySecurityObjects.h">
+</file>
+<file name="PySECURITY_ATTRIBUTES.cpp" url="win32/src/PySECURITY_ATTRIBUTES.cpp">
+</file>
+<file name="PySECURITY_DESCRIPTOR.cpp" url="win32/src/PySECURITY_DESCRIPTOR.cpp">
+</file>
+<file name="PySID.cpp" url="win32/src/PySID.cpp">
+</file>
+<file name="PythonService.cpp" url="win32/src/PythonService.cpp">
+</file>
+<file name="PythonServiceMessages.h" url="win32/src/PythonServiceMessages.h">
+</file>
+<file name="PythonServiceMessages.mc" url="win32/src/PythonServiceMessages.mc">
+</file>
+<file name="PyTime.cpp" url="win32/src/PyTime.cpp">
+</file>
+<file name="PyUnicode.cpp" url="win32/src/PyUnicode.cpp">
+</file>
+<file name="PyWinObjects.h" url="win32/src/PyWinObjects.h">
+</file>
+<file name="PyWinTypes.h" url="win32/src/PyWinTypes.h">
+</file>
+<file name="PyWinTypesmodule.cpp" url="win32/src/PyWinTypesmodule.cpp">
+</file>
+<file name="stdafxdde.h" url="win32/src/stdafxdde.h">
+</file>
+<file name="stddde.cpp" url="win32/src/stddde.cpp">
+</file>
+<file name="stddde.h" url="win32/src/stddde.h">
+</file>
+<file name="timermodule.cpp" url="win32/src/timermodule.cpp">
+</file>
+<file name="win2krasmodule.cpp" url="win32/src/win2krasmodule.cpp">
+</file>
+<file name="win32apimodule.cpp" url="win32/src/win32apimodule.cpp">
+</file>
+<file name="win32clipboardmodule.cpp" url="win32/src/win32clipboardmodule.cpp">
+</file>
+<file name="win32dynamicdialog.cpp" url="win32/src/win32dynamicdialog.cpp">
+</file>
+<file name="win32dynamicdialog.h" url="win32/src/win32dynamicdialog.h">
+</file>
+<file name="win32event.i" url="win32/src/win32event.i">
+</file>
+<file name="win32evtlog.i" url="win32/src/win32evtlog.i">
+</file>
+<file name="win32evtlog_messages.mc" url="win32/src/win32evtlog_messages.mc">
+</file>
+<file name="win32file.i" url="win32/src/win32file.i">
+</file>
+<file name="win32gui.i" url="win32/src/win32gui.i">
+</file>
+<file name="win32helpmodule.cpp" url="win32/src/win32helpmodule.cpp">
+</file>
+<file name="win32lzmodule.cpp" url="win32/src/win32lzmodule.cpp">
+</file>
+<file name="win32pdhmodule.cpp" url="win32/src/win32pdhmodule.cpp">
+</file>
+<file name="win32pipe.i" url="win32/src/win32pipe.i">
+</file>
+<file name="win32popen.cpp" url="win32/src/win32popen.cpp">
+</file>
+<file name="win32popenWin9x.cpp" url="win32/src/win32popenWin9x.cpp">
+</file>
+<file name="win32process.i" url="win32/src/win32process.i">
+</file>
+<file name="win32rasmodule.cpp" url="win32/src/win32rasmodule.cpp">
+</file>
+<file name="win32security.i" url="win32/src/win32security.i">
+</file>
+<file name="win32service.i" url="win32/src/win32service.i">
+</file>
+<file name="win32service_messages.mc" url="win32/src/win32service_messages.mc">
+</file>
+<file name="win32trace.cpp" url="win32/src/win32trace.cpp">
+</file>
+<file name="wincerapi.i" url="win32/src/wincerapi.i">
+</file>
+<file name="wincerapi_reg.cpp" url="win32/src/wincerapi_reg.cpp">
+</file>
+<folder name="PerfMon" url="win32/src/PerfMon">
+<file name="MappingManager.cpp" url="win32/src/PerfMon/MappingManager.cpp">
+</file>
+<file name="PerfCounterDefn.cpp" url="win32/src/PerfMon/PerfCounterDefn.cpp">
+</file>
+<file name="perfmondata.cpp" url="win32/src/PerfMon/perfmondata.cpp">
+</file>
+<file name="perfmondata.def" url="win32/src/PerfMon/perfmondata.def">
+</file>
+<file name="PerfObjectType.cpp" url="win32/src/PerfMon/PerfObjectType.cpp">
+</file>
+<file name="perfutil.h" url="win32/src/PerfMon/perfutil.h">
+</file>
+<file name="PyPerfMon.cpp" url="win32/src/PerfMon/PyPerfMon.cpp">
+</file>
+<file name="pyperfmon.h" url="win32/src/PerfMon/pyperfmon.h">
+</file>
+<file name="PyPerfMonControl.h" url="win32/src/PerfMon/PyPerfMonControl.h">
+</file>
+<file name="PyPerfMsgs.h" url="win32/src/PerfMon/PyPerfMsgs.h">
+</file>
+<file name="PyPerfMsgs.mc" url="win32/src/PerfMon/PyPerfMsgs.mc">
+</file>
+</folder>
+<folder name="win32net" url="win32/src/win32net">
+<file name="win32net.h" url="win32/src/win32net/win32net.h">
+</file>
+<file name="win32netfile.cpp" url="win32/src/win32net/win32netfile.cpp">
+</file>
+<file name="win32netgroup.cpp" url="win32/src/win32net/win32netgroup.cpp">
+</file>
+<file name="win32netmisc.cpp" url="win32/src/win32net/win32netmisc.cpp">
+</file>
+<file name="win32netmodule.cpp" url="win32/src/win32net/win32netmodule.cpp">
+</file>
+<file name="win32netsession.cpp" url="win32/src/win32net/win32netsession.cpp">
+</file>
+<file name="win32netuse.cpp" url="win32/src/win32net/win32netuse.cpp">
+</file>
+<file name="win32netuser.cpp" url="win32/src/win32net/win32netuser.cpp">
+</file>
+</folder>
+<folder name="win32print" url="win32/src/win32print">
+<file name="win32print.cpp" url="win32/src/win32print/win32print.cpp">
+</file>
+</folder>
+<folder name="win32wnet" url="win32/src/win32wnet">
+<file name="Netres.h" url="win32/src/win32wnet/Netres.h">
+</file>
+<file name="PyNCB.cpp" url="win32/src/win32wnet/PyNCB.cpp">
+</file>
+<file name="PyNCB.h" url="win32/src/win32wnet/PyNCB.h">
+</file>
+<file name="PyNetresource.cpp" url="win32/src/win32wnet/PyNetresource.cpp">
+</file>
+<file name="win32wnet.cpp" url="win32/src/win32wnet/win32wnet.cpp">
+</file>
+</folder>
+</folder>
+<folder name="test" url="win32/test">
+<file name="handles.py" url="win32/test/handles.py">
+</file>
+<file name="test_clipboard.py" url="win32/test/test_clipboard.py">
+</file>
+<file name="test_security.py" url="win32/test/test_security.py">
+</file>
+<file name="test_win32api.py" url="win32/test/test_win32api.py">
+</file>
+<file name="test_win32file.py" url="win32/test/test_win32file.py">
+</file>
+<file name="test_win32pipe.py" url="win32/test/test_win32pipe.py">
+</file>
+<file name="test_win32trace.py" url="win32/test/test_win32trace.py">
+</file>
+<file name="test_win32wnet.py" url="win32/test/test_win32wnet.py">
+</file>
+</folder>
+</folder>
+</project>
