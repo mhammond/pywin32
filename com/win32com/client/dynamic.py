@@ -42,6 +42,7 @@ ERRORS_BAD_CONTEXT = [
 	winerror.DISP_E_BADPARAMCOUNT,
 	winerror.DISP_E_PARAMNOTOPTIONAL,
 	winerror.DISP_E_TYPEMISMATCH,
+    winerror.E_INVALIDARG,
 ]
 
 def debug_print(*args):
