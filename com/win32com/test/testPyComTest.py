@@ -262,9 +262,9 @@ def TestCounter(counter, bIsGenerated):
 ##
 ## Some vtable tests of the interface
 ##
-def TestVTable():
+def TestVTable(clsctx=pythoncom.CLSCTX_ALL):
 	tester = win32com.client.Dispatch("PyCOMTest.PyCOMTest")
-	testee = pythoncom.CoCreateInstance("Python.Test.PyCOMTest", None, pythoncom.CLSCTX_ALL, pythoncom.IID_IUnknown)
+	testee = pythoncom.CoCreateInstance("Python.Test.PyCOMTest", None, clsctx, pythoncom.IID_IUnknown)
 	tester.TestMyInterface(testee)
 
 	# We once crashed creating our object with the native interface as
@@ -281,6 +281,45 @@ def TestVTable():
 		pass
 
 	
+def TestQueryInterface(long_lived_server = 0, iterations=5):
+	tester = win32com.client.Dispatch("PyCOMTest.PyCOMTest")
+	if long_lived_server:
+		# Create a local server
+		t0 = win32com.client.Dispatch("Python.Test.PyCOMTest", clsctx=pythoncom.CLSCTX_LOCAL_SERVER)
+	# Request custom interfaces a number of times
+	prompt = [
+		"Testing QueryInterface without long-lived local-server #%d of %d...",
+		"Testing QueryInterface with long-lived local-server #%d of %d..."
+	]
+
+	for i in range(iterations):
+		print prompt[long_lived_server!=0] % (i+1, iterations)
+		tester.TestQueryInterface()
+
+def TestMultiVTable():
+	# Ideally we should be able to do this test multiple times,
+	# however at the moment the second call generates an invalid
+	# memory read to bubble up out of python. Set the range
+	# to 1 to pass this test, i.e. for i in range(1)
+	for i in range(2):
+		print "Testing VTables in-process #%d..." % (i+1)
+		TestVTable(pythoncom.CLSCTX_INPROC_SERVER)
+
+	for i in range(2):
+		print "Testing VTables out-of-process #%d..." % (i+1)
+		TestVTable(pythoncom.CLSCTX_LOCAL_SERVER)
+
+def TestMultiQueryInterface():
+	TestQueryInterface(0,6)
+	# When we use the custom interface in the presence of a long-lived
+	# local server, i.e. a local server that is already running when
+	# we request an instance of our COM object, and remains afterwards,
+	# then after repeated requests to create an instance of our object
+	# the custom interface disappears -- i.e. QueryInterface fails with
+	# E_NOINTERFACE. Set the upper range of the following test to 2 to
+	# pass this test, i.e. TestQueryInterface(1,2)
+	TestQueryInterface(1,6)
+
 
 def TestAll():
 	try:
@@ -291,9 +330,10 @@ def TestAll():
 		print importMsg
 		return
 
-	print "Testing VTables..."
-	TestVTable()
-
+	print "Testing Universal Gateway..."
+	TestMultiVTable()
+	TestMultiQueryInterface()
+	
 	print "Testing Python COM Test Horse..."
 	TestDynamic()
 	TestGenerated()
