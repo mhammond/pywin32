@@ -3,3 +3,4 @@ PyCOMTest.tlb
 PyCOMTest_i.c
 *.ncb
 *.opt
+PyCOMTest.h
