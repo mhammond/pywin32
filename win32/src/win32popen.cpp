@@ -221,7 +221,7 @@ static int _PyPopenCreateProcess(char *cmdstring,
 					   NULL,
 					   NULL,
 					   TRUE,
-					   CREATE_NEW_CONSOLE,
+					   0, /* no new console so Ctrl+C kills child too */
 					   NULL,
 					   NULL,
 					   &siStartInfo,

@@ -242,9 +242,17 @@ static PyObject *PyStartDocPrinter(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "ii(szz):StartDocPrinter",
 	            &hprinter, // @pyparm int|hprinter||handle to printer (from OpenPrinter)
 	            &level,     // @pyparm int|level|1|type of docinfo structure (only docinfo level 1 supported)
-	            &pDocName, &pOutputFile, &pDatatype // @pyparm (string, string, string)|(DocName, OutputFile, DataType)||Sequence of document name, output file, data type
+	            &pDocName, &pOutputFile, &pDatatype // @pyparm data|tuple||A tuple corresponding to the level parameter.
 	        ))
 		return NULL;
+
+	// @comm For level 1, the tuple is:
+	// @tupleitem 0|string|docName|Specifies the name of the document.
+	// @tupleitem 1|string|outputFile|Specifies the name of an output file. To print to a printer, set this to None.
+	// @tupleitem 2|string|dataType|Identifies the type of data used to record the document, such 
+	// as "raw" or "emf", used to record the print job. This member can be None. If it is not None,
+	// the StartDoc function passes it to the printer driver. Note that the printer driver might 
+	// ignore the requested data type. 
 
 	if (level != 1)
 	{
@@ -585,6 +593,7 @@ extern "C" __declspec(dllexport) void
 initwin32print(void)
 {
   PyObject *module, *dict;
+  PyWinGlobals_Ensure();
   module = Py_InitModule("win32print", win32print_functions);
   if (!module) return;
   dict = PyModule_GetDict(module);

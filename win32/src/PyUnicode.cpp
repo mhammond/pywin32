@@ -36,7 +36,7 @@ BOOL PyWinObject_AsTaskAllocatedWCHAR(PyObject *stringObject, WCHAR **ppResult, 
 	} else if (PyUnicode_Check(stringObject)) {
 		// copy the value, including embedded NULLs
 #if defined(PYWIN_USE_PYUNICODE)
-		WCHAR *v = PyUnicode_AS_UNICODE(stringObject);
+		WCHAR *v = (WCHAR *)PyUnicode_AS_UNICODE(stringObject);
 		UINT cch = PyUnicode_GET_SIZE(stringObject);
 #else
 		WCHAR *v = ((PyUnicode *)stringObject)->m_bstrValue;
@@ -880,7 +880,7 @@ BOOL PyWinObject_AsBstr(PyObject *stringObject, BSTR *pResult, BOOL bNoneOK /*= 
 	{
 		// copy the value, including embedded NULLs
 #if defined(PYWIN_USE_PYUNICODE)
-		wchar_t *v = PyUnicode_AS_UNICODE(stringObject);
+		wchar_t *v = (wchar_t *)PyUnicode_AS_UNICODE(stringObject);
 		*pResult = SysAllocStringLen(v, PyUnicode_GET_SIZE(stringObject));
 #else
 		BSTR v = ((PyUnicode *)stringObject)->m_bstrValue;
