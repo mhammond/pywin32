@@ -191,6 +191,10 @@ class ScintillaControlInterface:
 		buff = array.array('c', stops + "\0")
 		addressBuffer = buff.buffer_info()[0]
 		self.SendScintilla(SCI_AUTOCSTOPS, 0, addressBuffer)
+	def SCIAutoCSetAutoHide(self, hide):
+		self.SendScintilla(SCI_AUTOCSETAUTOHIDE, hide)
+	def SCIAutoCSetFillups(self, fillups):
+		self.SendScintilla(SCI_AUTOCSETFILLUPS, fillups)
 	# Call tips
 	def SCICallTipShow(self, text, pos=-1):
 		if pos==-1: pos = self.GetSel()[0]

@@ -468,6 +468,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 				pass
 		if items:
 			items.sort()
+			self.SCIAutoCSetAutoHide(0)
 			self.SCIAutoCShow(items)
 
 	# TODO: This is kinda slow. Probably need some kind of cache 
