@@ -17,11 +17,16 @@ generates Windows .hlp files.
 
 inline void*GetPythonOleProcAddress(const char *procName)
 {
+	HMODULE hMod = NULL;
+	for (int i=9;hMod==NULL && i>4;i--) {
+		char buf[20];
 #ifdef _DEBUG
-	HMODULE hMod = GetModuleHandle("PythonCOM15_d.dll");
+		wsprintf(buf, "PythonCOM1%d_d.dll", i);
 #else
-	HMODULE hMod = GetModuleHandle("PythonCOM15.dll");
+		wsprintf(buf, "PythonCOM1%d.dll", i);
 #endif
+		hMod = GetModuleHandle(buf);
+	}
 	if (hMod) {
 		void *rc = GetProcAddress(hMod, procName);
 		if (rc==NULL)
@@ -63,16 +68,17 @@ Python_OnCmdMsg (CCmdTarget *obj, UINT nID, int nCode,
 			PyCCmdTarget *pObj = (PyCCmdTarget *) ui_assoc_CObject::GetPyObject(control);
 			if (pObj && pObj->pOleEventHookList && 
 				pObj->pOleEventHookList->Lookup ((unsigned short)pEvent->m_dispid, (void *&)method)) {
+					CEnterLeavePython _celp;
 					if (pfnMakeOlePythonCall==NULL) {
-							pfnMakeOlePythonCall = (BOOL (*)(PyObject *, DISPPARAMS FAR* , VARIANT FAR* ,EXCEPINFO FAR* , UINT FAR*, PyObject * ))
+						pfnMakeOlePythonCall = (BOOL (*)(PyObject *, DISPPARAMS FAR* , VARIANT FAR* ,EXCEPINFO FAR* , UINT FAR*, PyObject * ))
 								GetPythonOleProcAddress("PyCom_MakeOlePythonCall");
 
 						ASSERT(pfnMakeOlePythonCall);
 					}
-					if (pfnMakeOlePythonCall==NULL) return FALSE;
+					if (pfnMakeOlePythonCall==NULL) 
+						return FALSE;
 					VARIANT result;
 					VariantInit(&result);
-					CEnterLeavePython _celp;
 					(*pfnMakeOlePythonCall)(method, pEvent->m_pDispParams, &result, pEvent->m_pExcepInfo, pEvent->m_puArgError, NULL);
 					VariantClear(&result);
 					if (PyErr_Occurred())	// if any Python exception, pretend it was OK
