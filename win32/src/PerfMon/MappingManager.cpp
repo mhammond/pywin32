@@ -41,7 +41,7 @@ BOOL MappingManager::CheckStatus()
 
 BOOL MappingManager::Init(const TCHAR *szServiceName, const TCHAR *szMappingName /* = NULL */, const TCHAR *szEventSourceName /* = NULL */)
 {
-	TCHAR szGlobalMapping[MAX_PATH+10];
+	TCHAR szGlobalMapping[MAX_PATH+10] = _T("");
 
 
 	if (szMappingName==NULL)
@@ -49,8 +49,14 @@ BOOL MappingManager::Init(const TCHAR *szServiceName, const TCHAR *szMappingName
 	if (szEventSourceName==NULL)
 		szEventSourceName = szServiceName;
 
+	// Use a TerminalServices friendly "Global\\" prefix if supported.
+	OSVERSIONINFO info;
+	info.dwOSVersionInfoSize = sizeof(info);
+	GetVersionEx(&info);
+	if (info.dwMajorVersion > 4)
+		// 2000 or later - "Global\\" prefix OK.
+		_tcscpy(szGlobalMapping, _T("Global\\"));
 
-	_tcscpy(szGlobalMapping, _T("Global\\"));
 	_tcscat(szGlobalMapping, szMappingName);
 
 	m_hMappedObject = CreateFileMapping((HANDLE)0xFFFFFFFF,

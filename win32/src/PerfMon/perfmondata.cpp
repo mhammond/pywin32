@@ -147,10 +147,16 @@ DWORD APIENTRY OpenPerformanceData( LPWSTR lpDeviceNames )
 	DWORD size;
 	DWORD type;
 	TCHAR registryKeyName[MAX_PATH];
-	TCHAR szFileMapping[MAX_PATH+10];
+	TCHAR szFileMapping[MAX_PATH+10] = _T("");
 
-	_tcscpy(szFileMapping, _T("Global\\"));
-	_tcscat(szFileMapping, szModuleName);
+    // Use a TerminalServices friendly "Global\\" prefix if supported.
+    OSVERSIONINFO info;
+    info.dwOSVersionInfoSize = sizeof(info);
+    GetVersionEx(&info);
+    if (info.dwMajorVersion > 4)
+        // 2000 or later - "Global\\" prefix OK.
+        _tcscpy(szFileMapping, _T("Global\\"));
+    _tcscat(szFileMapping, szModuleName);
 
 	//
     //  Since SCREG is multi-threaded and will call this routine in
