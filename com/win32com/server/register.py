@@ -10,7 +10,6 @@ import sys
 import win32api
 import win32con
 import pythoncom
-import win32com
 import winerror
 import os
 
@@ -420,6 +419,6 @@ try:
 except win32api.error:
   try:
     RegisterPyComCategory()
-  except win32com.error: # Error with the COM category manager - oh well.
+  except pythoncom.error: # Error with the COM category manager - oh well.
     pass    
 
