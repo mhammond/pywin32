@@ -18,6 +18,8 @@ from pywin.scintilla import bindings
 from pywin.framework.editor import GetEditorOption, SetEditorOption, GetEditorFontOption, SetEditorFontOption, defaultCharacterFormat
 #from pywin.framework.editor import EditorPropertyPage
 
+MSG_CHECK_EXTERNAL_FILE = win32con.WM_USER+1999 ## WARNING: Duplicated in document.py and editor.py
+
 from pywin.mfc import docview, window, dialog, afxres
 
 # Define a few common markers
@@ -155,8 +157,7 @@ class SyntEditView(SyntEditViewParent):
 	def HookHandlers(self):
 		SyntEditViewParent.HookHandlers(self)
 
-		# Idle time document reloaded handlers.
-		self.HookMessage(self.OnKillFocus, win32con.WM_KILLFOCUS)
+		self.HookMessage(self.OnCheckExternalDocumentUpdated,MSG_CHECK_EXTERNAL_FILE)
 		self.HookMessage(self.OnSetFocus, win32con.WM_SETFOCUS)
 		self.GetParentFrame().HookNotify(self.OnModifyAttemptRO, SCN_MODIFYATTEMPTRO)
 
@@ -200,20 +201,19 @@ class SyntEditView(SyntEditViewParent):
 	#######################################
 	# The Windows Message or Notify handlers.
 	#######################################
-	def OnDestroy(self, msg):
-		self._DeleteReloadIdleHandler()
-		return SyntEditViewParent.OnDestroy(self, msg)
- 
 	def OnModifyAttemptRO(self, std, extra):
 		self.GetDocument().MakeDocumentWritable()
 
-	def OnKillFocus(self,msg):
-		self._DeleteReloadIdleHandler()
-
 	def OnSetFocus(self,msg):
-		self.CheckExternalDocumentUpdated(self.CheckExternalDocumentUpdated,0)
-		self._AddReloadIdleHandler()
+		# Even though we use file change notifications, we should be very sure about it here.
+		self.OnCheckExternalDocumentUpdated(msg)
 		return 1
+
+	def OnCheckExternalDocumentUpdated(self, msg):
+		if self.bCheckingFile: return
+		self.bCheckingFile = 1
+		self.GetDocument().CheckExternalDocumentUpdated()
+		self.bCheckingFile = 0
 
 	def OnRClick(self,params):
 		menu = win32ui.CreatePopupMenu()
@@ -286,31 +286,6 @@ class SyntEditView(SyntEditViewParent):
 	def ShowInteractiveWindowEvent(self, event):
 		import pywin.framework.interact
 		pywin.framework.interact.ShowInteractiveWindow()
-
-	#
-	# Support for checking the external file to see if it is changed.
-	# We set up an idle time handler only when the view has focus.
-	# This handler continually checks the file behind this document, but
-	# as it is in idle time, no one notices :-)
-	#
-	def _AddReloadIdleHandler(self):
-		win32ui.GetApp().AddIdleHandler(self.CheckExternalDocumentUpdated)
-
-	def _DeleteReloadIdleHandler(self):
-		if win32ui.GetApp().HaveIdleHandler(self.CheckExternalDocumentUpdated):
-			win32ui.GetApp().DeleteIdleHandler(self.CheckExternalDocumentUpdated)
-
-	def CheckExternalDocumentUpdated(self, handler, count):
-		if self.bCheckingFile: return
-		self.bCheckingFile = 1
-		try:
-			self.GetDocument().CheckExternalDocumentUpdated()
-		except:
-			traceback.print_exc()
-			print "The idle handler checking for changes to the file on disk failed!"
-			self._DeleteReloadIdleHandler()
-		self.bCheckingFile = 0
-		return 0 # No more idle handling required.
 
 from pywin.framework.editor.template import EditorTemplateBase
 class SyntEditTemplate(EditorTemplateBase):
