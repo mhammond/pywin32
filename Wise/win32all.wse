@@ -17,7 +17,7 @@ item: Global
   Patch Flags=0000000000000001
   Patch Threshold=85
   Patch Memory=4000
-  EXE Filename=win32all-155.exe
+  EXE Filename=win32all-157.exe
   Code Sign Name=Python Win32 combined extensions
   Code Sign Info=skippinet.com.au
   Crystal Format=10111100101100000010001001001001
@@ -381,13 +381,21 @@ item: Set Variable
 end
 item: End Block
 end
+item: If/While Statement
+  Variable=USE_HKLM
+  Value=1
+end
 item: Set Variable
   Variable=SYSDLL_PATH
   Value=%SYS32%
 end
-remarked item: Set Variable
+item: Else Statement
+end
+item: Set Variable
   Variable=SYSDLL_PATH
-  Value=%MAINDIR%
+  Value=%PY_INST_PATH%
+end
+item: End Block
 end
 item: Set Variable
   Variable=DISABLED
@@ -508,7 +516,7 @@ item: Delete File
 end
 item: Check if File/Dir Exists
   Pathname=%SYSDLL_PATH%\pywintypes%PYVER_NODOT%.dll
-  Message=The file %SYS32%\pywintypes%PYVER_NODOT%.dll
+  Message=The file %SYSDLL_PATH%\pywintypes%PYVER_NODOT%.dll
   Message=can not be deleted.  It is likely this file
   Message=is in use.  Please restart your system,
   Message=then attempt installation again.
@@ -537,7 +545,7 @@ item: Delete File
 end
 item: Check if File/Dir Exists
   Pathname=%SYSDLL_PATH%\pythoncom%PYVER_NODOT%.dll
-  Message=The file %SYS32%\pythoncom%PYVER_NODOT%.dll
+  Message=The file %SYSDLL_PATH%\pythoncom%PYVER_NODOT%.dll
   Message=can not be deleted.  It is likely this file
   Message=is in use.  Please restart your system,
   Message=then attempt installation again.
@@ -1241,7 +1249,7 @@ item: Install File
 end
 item: Install File
   Source=e:\src\pythonex\SharedDlls\NT\pdh.dll
-  Destination=%SYS32%\pdh.dll
+  Destination=%SYSDLL_PATH%\pdh.dll
   Flags=0000001000010011
 end
 item: Install File
@@ -1254,13 +1262,13 @@ item: End Block
 end
 item: Install File
   Source=e:\src\pythonex\SharedDlls\MSVCIRT.DLL
-  Destination=%SYS32%\MSVCIRT.DLL
+  Destination=%SYSDLL_PATH%\MSVCIRT.DLL
   Description=Visual C++ DLLs
   Flags=0000001000010011
 end
 item: Install File
   Source=e:\src\pythonex\SharedDlls\MSVCRT.DLL
-  Destination=%SYS32%\MSVCRT.DLL
+  Destination=%SYSDLL_PATH%\MSVCRT.DLL
   Description=Visual C++ DLLs
   Flags=0000001000010011
 end
@@ -1369,7 +1377,7 @@ item: Install File
 end
 item: Set Variable
   Variable=PYTHONCOM_DLL
-  Value=%SYS32%\PythonCOM%PYVER_NODOT%.dll
+  Value=%SYSDLL_PATH%\PythonCOM%PYVER_NODOT%.dll
 end
 item: Install File
   Source=e:\src\pythonex\com\License.txt
@@ -1825,7 +1833,7 @@ item: Install File
 end
 item: Install File
   Source=e:\src\pythonex\SharedDlls\MFC42.DLL
-  Destination=%SYS32%\MFC42.DLL
+  Destination=%SYSDLL_PATH%\MFC42.DLL
   Flags=0000001000000011
 end
 item: Self-Register OCXs/DLLs
