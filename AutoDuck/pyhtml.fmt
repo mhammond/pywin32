@@ -217,7 +217,6 @@ $[pyvirtual]$4$(par)
 $(page)
 <H1>$!n</H1>
 $(cb)const $1.$2;$(cbe)$(par)
-Defined in: $!P$(par)
 $3$(par)
 
 .tag=property, html, 4, 20, $2.$3
