@@ -806,7 +806,7 @@ protected:
 		// <nl>If there is no handler, the base MFC implementation will be called.
 		// @xref <om PyCMDIChildWnd.ActivateFrame>
 		CVirtualHelper helper( "ActivateFrame", this );
-		// @pyparm int|cmdShow||The paramater to be passed to <om PyCWnd.ShowWindow>
+		// @pyparm int|cmdShow||The parameter to be passed to <om PyCWnd.ShowWindow>
 		if (helper.HaveHandler()) {
 			helper.call(nCmdShow);
 		} else {

@@ -735,7 +735,7 @@ PyCRichEditCtrl_stream_in(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "iO:StreamIn", &format, &method))
 		return NULL;
 	if (!PyCallable_Check(method))
-		RETURN_ERR("The method paramater is not callable");
+		RETURN_ERR("The method parameter is not callable");
 	DOINCREF(method);
 	EDITSTREAM es;
 	es.dwCookie = (DWORD)method;
@@ -761,11 +761,11 @@ PyCRichEditCtrl_stream_out(PyObject *self, PyObject *args)
 	PyObject *method;
 	// @pyparm int|format||The format.  One of the win32con.SF_* flags (SF_TEXT,SF_RTF) and may also combine SFF_SELECTION.
 	// @pyparm object|method||A callable object (eg, a method or function)
-	// This method is called with a string paramater.  It should return an integer, zero to abort, non zero otherwise.
+	// This method is called with a string parameter.  It should return an integer, zero to abort, non zero otherwise.
 	if (!PyArg_ParseTuple(args, "iO:StreamOut", &format, &method))
 		return NULL;
 	if (!PyCallable_Check(method))
-		RETURN_ERR("The method paramater is not callable");
+		RETURN_ERR("The method parameter is not callable");
 	EDITSTREAM es;
 	DOINCREF(method);
 	es.dwCookie = (DWORD)method;

@@ -127,7 +127,7 @@ PyObject *PyRASEAPUSERIDENTITY::getattr(PyObject *self, char *name)
 }
 
 
-// @pymethod |win2kras|PyRasGetEapUserIdentity|Sets the dial paramaters for the specified entry.
+// @pymethod |win2kras|PyRasGetEapUserIdentity|Sets the dial parameters for the specified entry.
 static PyObject *
 PyRasGetEapUserIdentity( PyObject *self, PyObject *args )
 {

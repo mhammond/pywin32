@@ -127,7 +127,7 @@ ui_app_add_doc_template(PyObject *self, PyObject *args)
 		return NULL;
 
 	if (!ui_base_class::is_uiobject(obTemplate, &PyCDocTemplate::type))
-		RETURN_TYPE_ERR("The paramater must be a template object");
+		RETURN_TYPE_ERR("The parameter must be a template object");
 
 	CDocTemplate *pTempl = PyCDocTemplate::GetTemplate(obTemplate);
 	if (pTempl==NULL)
@@ -159,7 +159,7 @@ ui_app_remove_doc_template(PyObject *self, PyObject *args)
 		return NULL;
 
 	if (!ui_base_class::is_uiobject(obTemplate, &PyCDocTemplate::type))
-		RETURN_TYPE_ERR("The paramater must be a template object");
+		RETURN_TYPE_ERR("The parameter must be a template object");
 
 	CDocTemplate *pTempl = PyCDocTemplate::GetTemplate(obTemplate);
 	if (pTempl==NULL)

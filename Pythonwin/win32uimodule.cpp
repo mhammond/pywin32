@@ -912,7 +912,7 @@ ui_get_command_line (PyObject *self, PyObject *args)
 	return Py_BuildValue("s", ::GetCommandLine()); // @pyseeapi GetCommandLine
 }
 
-// @pymethod int|win32ui|GetInitialStateRequest|Returns the requested state that the application start in.  This is the same as the paramaters available to <om PyCWnd.ShowWindow>
+// @pymethod int|win32ui|GetInitialStateRequest|Returns the requested state that the application start in.  This is the same as the parameter available to <om PyCWnd.ShowWindow>
 static PyObject *
 ui_get_initial_state_request(PyObject *self, PyObject *args)
 {
@@ -1850,7 +1850,7 @@ static struct PyMethodDef ui_functions[] = {
 	{"GetFocus",				PyCWnd::GetFocus, 1}, // @pymeth GetFocus|Retrieves the window with the focus.
 	{"GetForegroundWindow",		PyCWnd::GetForegroundWindow, 1}, // @pymeth GetForegroundWindow|Retrieves the foreground window.
 	{"GetHalftoneBrush",		ui_get_halftone_brush,	1}, // @pymeth GetHalftoneBrush|Returns a halftone brush.
-	{"GetInitialStateRequest",	ui_get_initial_state_request,	1}, // @pymeth GetInitialStateRequest|Returns the requested state that the application start in.  This is the same as the paramaters available to <om PyCWnd.ShowWindow>
+	{"GetInitialStateRequest",	ui_get_initial_state_request,	1}, // @pymeth GetInitialStateRequest|Returns the requested state that the application start in.  This is the same as the parameter available to <om PyCWnd.ShowWindow>
 	{"GetMainFrame",            ui_get_main_frame,	1}, // @pymeth GetMainFrame|Returns a window object for the main application frame.
 	{"GetName",					ui_get_name,	1}, // @pymeth GetName|Returns the name of the current application.
 	{"GetProfileFileName",		ui_get_profile_filename,	1}, // @pymeth GetProfileFileName|Returns the name of the INI file used by the application.
@@ -1890,7 +1890,6 @@ static struct PyMethodDef ui_functions[] = {
 	{"StopDebuggerPump",		ui_stop_debugger_pump,	1}, // @pymeth StopDebuggerPump|Stops the debugger message pump.
 	{"TranslateMessage",            ui_translate_message, 1}, // @pymeth TranslateMessage|Calls ::TranslateMessage.
 	{"TranslateVirtualKey",         ui_translate_vk, 1}, // @pymeth TranslateVirtualKey|Translates a virtual key.
-//	{"TranslateVirtualKeyW",        ui_translate_vkW, 1},// @pymeth TranslateVirtualKeyW|Translates a virtual key.
 	{"WinHelp",					ui_win_help,	1}, // @pymeth WinHelp|Invokes the Window Help engine.
 	{"WriteProfileVal",			ui_write_profile_val,	1}, // @pymeth WriteProfileVal|Writes a value to the INI file.
 

@@ -840,7 +840,7 @@ BOOL ParseCharFormatTuple( PyObject *args, CHARFORMAT *pFmt)
 			strncpy(pFmt->szFaceName, PyString_AsString(obFont), sizeof(pFmt->szFaceName));
 		}
 	}
-   // @tupleitem 0|int|mask|The mask to use.  Bits in this mask indicate which of the following paramaters are interpreted.  Must be a combination the win32con.CFM_* constants.
+   // @tupleitem 0|int|mask|The mask to use.  Bits in this mask indicate which of the following parameter are interpreted.  Must be a combination the win32con.CFM_* constants.
    // @tupleitem 1|int|effects|The effects to use.  Must be a combination the win32con.CFE_* constants.
    // @tupleitem 2|int|yHeight|The y height.
    // @tupleitem 3|int|yOffset|Character offset from the baseline. If this member is positive, the character is a superscript; if it is negative, the character is a subscript.
@@ -873,7 +873,7 @@ BOOL ParseParaFormatTuple( PyObject *args, PARAFORMAT *pFmt)
 	PyObject *obTabStops = Py_None;
 	pFmt->cTabCount = 0;
 	BOOL rc = PyArg_ParseTuple(args, "|iiiiiiiO:PARAFORMAT tuple", 
-		       &pFmt->dwMask, // @tupleitem 0|int|mask|The mask to use.  Bits in this mask indicate which of the following paramaters are interpreted.  Must be a combination the win32con.PFM_* constants.
+		       &pFmt->dwMask, // @tupleitem 0|int|mask|The mask to use.  Bits in this mask indicate which of the following parameters are interpreted.  Must be a combination the win32con.PFM_* constants.
 			   &pFmt->wNumbering, // @tupleitem 1|int|numbering|The numbering style to use.
 			   &pFmt->wReserved, // @tupleitem 2|int|yHeight|Reserved
 			   &pFmt->dxStartIndent, // @tupleitem 3|int|dxStartIndent|Indentation of the first line.

@@ -34,7 +34,7 @@ PyObject *PyWinMethod_NewTime(PyObject *self, PyObject *args)
 {
 	PyObject *timeOb;
 	// @pyparm object|timeRepr||An integer/float/tuple time representation.
-	// @comm Note that the paramater can be any object that supports
+	// @comm Note that the parameter can be any object that supports
 	// int(object) - for example , another PyTime object.
 	// <nl>The integer should be as defined by the Python time module.
 	// See the description of the <o PyTime> object for more information.

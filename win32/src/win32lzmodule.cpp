@@ -53,7 +53,7 @@ PyObject *ReturnLZError(char *fnName, long err = 0)
 		pMsg = "The file is compressed with an unrecognized compression algorithm.";
 		break;
 	case LZERROR_BADVALUE:
-		pMsg = "A paramater was bad";
+		pMsg = "A parameter was bad";
 		break;
 	case LZERROR_READ:
 		pMsg = "The source file format is not valid.";
