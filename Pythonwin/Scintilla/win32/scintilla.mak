@@ -39,7 +39,8 @@ INCLUDEDIRS=-I ../include -I ../src
 CXXFLAGS=/TP /W4
 # For something scary:/Wp64
 CXXDEBUG=/Zi /Od /MDd -DDEBUG
-CXXNDEBUG=/Ox /MD -DNDEBUG
+CXXNDEBUG=/Og /Os /Oy /MD -DNDEBUG
+#CXXNDEBUG=/Ox /MD -DNDEBUG
 NAMEFLAG=-Fo
 LDFLAGS=/opt:nowin98
 LDDEBUG=/DEBUG
@@ -108,11 +109,13 @@ LEXOBJS=\
 	$(DIR_O)\LexConf.obj \
 	$(DIR_O)\LexCPP.obj \
 	$(DIR_O)\LexHTML.obj \
+	$(DIR_O)\LexLisp.obj \
 	$(DIR_O)\LexLua.obj \
 	$(DIR_O)\LexOthers.obj \
 	$(DIR_O)\LexPascal.obj \
 	$(DIR_O)\LexPerl.obj \
 	$(DIR_O)\LexPython.obj \
+	$(DIR_O)\LexRuby.obj \
 	$(DIR_O)\LexSQL.obj \
 	$(DIR_O)\LexVB.obj
 
@@ -124,6 +127,7 @@ LOBJS=\
 	$(DIR_O)\Document.obj \
 	$(DIR_O)\DocumentAccessor.obj \
 	$(DIR_O)\Editor.obj \
+	$(DIR_O)\ExternalLexer.obj \
 	$(DIR_O)\Indicator.obj \
 	$(DIR_O)\KeyMap.obj \
 	$(DIR_O)\KeyWords.obj \
@@ -205,6 +209,10 @@ $(DIR_O)\Editor.obj: ..\src\Editor.cxx ..\include\Platform.h ..\include\Scintill
  ..\src\CellBuffer.h ..\src\KeyMap.h ..\src\Indicator.h ..\src\LineMarker.h ..\src\Style.h ..\src\ViewStyle.h \
  ..\src\Document.h ..\src\Editor.h
 
+$(DIR_O)\ExternalLexer.obj: ExternalLexer.cxx ExternalLexer.h \
+ ..\include\SciLexer.h ..\include\Platform.h ..\include\PropSet.h ..\include\SString.h \
+ ..\include\Accessor.h ..\src\DocumentAccessor.h ..\include\KeyWords.h \
+
 $(DIR_O)\Indicator.obj: ..\src\Indicator.cxx ..\include\Platform.h ..\include\Scintilla.h ..\src\Indicator.h
 
 $(DIR_O)\KeyMap.obj: ..\src\KeyMap.cxx ..\include\Platform.h ..\include\Scintilla.h ..\src\KeyMap.h
@@ -223,15 +231,19 @@ $(DIR_O)\LexCPP.obj: ..\src\LexCPP.cxx $(LEX_HEADERS)
 
 $(DIR_O)\LexHTML.obj: ..\src\LexHTML.cxx $(LEX_HEADERS)
 
+$(DIR_O)\LexLisp.obj: ..\src\LexLisp.cxx $(LEX_HEADERS)
+
 $(DIR_O)\LexLua.obj: ..\src\LexLua.cxx $(LEX_HEADERS)
 
 $(DIR_O)\LexOthers.obj: ..\src\LexOthers.cxx $(LEX_HEADERS)
 
-$(DIR_O)\LexPerl.obj: ..\src\LexPerl.cxx $(LEX_HEADERS)
-
 $(DIR_O)\LexPascal.obj: ..\src\LexPascal.cxx $(LEX_HEADERS)
 
+$(DIR_O)\LexPerl.obj: ..\src\LexPerl.cxx $(LEX_HEADERS)
+
 $(DIR_O)\LexPython.obj: ..\src\LexPython.cxx $(LEX_HEADERS)
+
+$(DIR_O)\LexRuby.obj: ..\src\LexRuby.cxx $(LEX_HEADERS)
 
 $(DIR_O)\LexSQL.obj: ..\src\LexSQL.cxx $(LEX_HEADERS)
 
@@ -241,10 +253,10 @@ $(DIR_O)\LineMarker.obj: ..\src\LineMarker.cxx ..\include\Platform.h ..\include\
 
 $(DIR_O)\PlatWin.obj: PlatWin.cxx ..\include\Platform.h PlatformRes.h ..\src\UniConversion.h
 
-$(DIR_O)\RESearch.obj: ..\src\RESearch.cxx ..\src\RESearch.h
-
 $(DIR_O)\PropSet.obj: ..\src\PropSet.cxx ..\include\Platform.h ..\include\PropSet.h \
  ..\include\SString.h
+
+$(DIR_O)\RESearch.obj: ..\src\RESearch.cxx ..\src\RESearch.h
 
 $(DIR_O)\ScintillaBase.obj: ..\src\ScintillaBase.cxx ..\include\Platform.h ..\include\Scintilla.h \
  ..\src\ContractionState.h ..\src\CellBuffer.h ..\src\CallTip.h ..\src\KeyMap.h ..\src\Indicator.h \

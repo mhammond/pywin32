@@ -24,20 +24,21 @@ public:
 	int startLen;
 	/// Should autocompletion be canceled if editor's currentPos <= startPos?
 	bool cancelAtStartPos;
-	
+	bool autoHide;
+
 	AutoComplete();
 	~AutoComplete();
 
 	/// Is the auto completion list displayed?
 	bool Active();
-	
+
 	/// Display the auto completion list positioned to be near a character position
 	void Start(Window &parent, int ctrlID, int position, int startLen_);
-	
+
 	/// The stop chars are characters which, when typed, cause the auto completion list to disappear
 	void SetStopChars(const char *stopChars_);
 	bool IsStopChar(char ch);
-	
+
 	/// The fillup chars are characters which, when typed, fill up the selected word
 	void SetFillUpChars(const char *fillUpChars_);
 	bool IsFillUpChar(char ch);
@@ -45,16 +46,16 @@ public:
 	/// The separator character is used when interpreting the list in SetList
 	void SetSeparator(char separator_);
 	char GetSeparator();
-	
+
 	/// The list string contains a sequence of words separated by the separator character
 	void SetList(const char *list);
-	
+
 	void Show();
 	void Cancel();
-	
+
 	/// Move the current list element by delta, scrolling appropriately
 	void Move(int delta);
-	
+
 	/// Select a list element that starts with word as the current element
 	void Select(const char *word);
 };

@@ -44,6 +44,8 @@ Document::Document() {
 	tabInChars = 8;
 	indentInChars = 0;
 	useTabs = true;
+	tabIndents = true;
+	backspaceUnindents = false;
 	watchers = 0;
 	lenWatchers = 0;
 
@@ -150,8 +152,8 @@ int Document::VCHomePosition(int position) {
 int Document::SetLevel(int line, int level) {
 	int prev = cb.SetLevel(line, level);
 	if (prev != level) {
-		DocModification mh(SC_MOD_CHANGEFOLD | SC_MOD_CHANGEMARKER, 
-			LineStart(line), 0, 0, 0);
+		DocModification mh(SC_MOD_CHANGEFOLD | SC_MOD_CHANGEMARKER,
+		                   LineStart(line), 0, 0, 0);
 		mh.line = line;
 		mh.foldLevelNow = level;
 		mh.foldLevelPrev = prev;
@@ -330,6 +332,7 @@ int Document::MovePositionOutsideChar(int pos, int moveDir, bool checkLineEnd) {
 				startLine++;
 				//Platform::DebugPrintf("DBCS %s\n", atlead ? "D" : "-");
 			}
+
 
 			if (atLeadByte) {
 				// Position is between a lead byte and a trail byte
@@ -826,7 +829,7 @@ long Document::FindText(int minPos, int maxPos, const char *s,
 		startPos = MovePositionOutsideChar(startPos, 1, false);
 		endPos = MovePositionOutsideChar(endPos, 1, false);
 
-		const char *errmsg = pre->Compile(s, caseSensitive);
+		const char *errmsg = pre->Compile(s, *length, caseSensitive);
 		if (errmsg) {
 			return -1;
 		}
@@ -836,11 +839,26 @@ long Document::FindText(int minPos, int maxPos, const char *s,
 		//     Replace: $(\1-\2)
 		int lineRangeStart = LineFromPosition(startPos);
 		int lineRangeEnd = LineFromPosition(endPos);
+		if ((startPos >= LineEnd(lineRangeStart)) && (lineRangeStart < lineRangeEnd)) {
+			// the start position is at end of line or between line end characters.
+			lineRangeStart++;
+			startPos = LineStart(lineRangeStart);
+		}
 		int pos = -1;
 		int lenRet = 0;
-		char searchEnd = '\0';
-		if (*s)
-			searchEnd = s[strlen(s) - 1];
+		char searchEnd = s[*length - 1];
+		if (*length == 1) {
+			// These produce empty selections so nudge them on if needed
+			if (s[0] == '^') {
+				if (startPos == LineStart(lineRangeStart))
+					startPos++;
+			} else if (s[0] == '$') {
+				if ((startPos == LineEnd(lineRangeStart)) && (lineRangeStart < lineRangeEnd))
+					startPos = LineStart(lineRangeStart + 1);
+			}
+			lineRangeStart = LineFromPosition(startPos);
+			lineRangeEnd = LineFromPosition(endPos);
+		}
 		for (int line = lineRangeStart; line <= lineRangeEnd; line++) {
 			int startOfLine = LineStart(line);
 			int endOfLine = LineEnd(line);
@@ -855,7 +873,7 @@ long Document::FindText(int minPos, int maxPos, const char *s,
 				endOfLine = endPos;
 			}
 			DocumentIndexer di(this, endOfLine);
-			int success = pre->Execute(di, startOfLine);
+			int success = pre->Execute(di, startOfLine, endOfLine);
 			if (success) {
 				pos = pre->bopat[0];
 				lenRet = pre->eopat[0] - pre->bopat[0];
@@ -875,7 +893,9 @@ long Document::FindText(int minPos, int maxPos, const char *s,
 		int endPos = MovePositionOutsideChar(maxPos, increment, false);
 
 		// Compute actual search ranges needed
-		int lengthFind = strlen(s);
+		int lengthFind = *length;
+		if (lengthFind == -1)
+			lengthFind = strlen(s);
 		int endSearch = endPos;
 		if (startPos <= endPos) {
 			endSearch = endPos - lengthFind + 1;
@@ -929,7 +949,7 @@ long Document::FindText(int minPos, int maxPos, const char *s,
 	return -1;
 }
 
-const char *Document::SubstituteByPosition(const char *text) {
+const char *Document::SubstituteByPosition(const char *text, int *length) {
 	if (!pre)
 		return 0;
 	delete []substituted;
@@ -938,11 +958,11 @@ const char *Document::SubstituteByPosition(const char *text) {
 	if (!pre->GrabMatches(di))
 		return 0;
 	unsigned int lenResult = 0;
-	for (const char *t = text; *t; t++) {
-		if ((*t == '\\') && (*(t + 1) >= '1' && *(t + 1) <= '9')) {
-			unsigned int patNum = *(t + 1) - '0';
+	for (int i = 0; i < *length; i++) {
+		if ((text[i] == '\\') && (text[i + 1] >= '1' && text[i + 1] <= '9')) {
+			unsigned int patNum = text[i + 1] - '0';
 			lenResult += pre->eopat[patNum] - pre->bopat[patNum];
-			t++;
+			i++;
 		} else {
 			lenResult++;
 		}
@@ -951,18 +971,20 @@ const char *Document::SubstituteByPosition(const char *text) {
 	if (!substituted)
 		return 0;
 	char *o = substituted;
-	for (const char *s = text; *s; s++) {
-		if ((*s == '\\') && (*(s + 1) >= '1' && *(s + 1) <= '9')) {
-			unsigned int patNum = *(s + 1) - '0';
+	for (int j = 0; j < *length; j++) {
+		if ((text[j] == '\\') && (text[j + 1] >= '1' && text[j + 1] <= '9')) {
+			unsigned int patNum = text[j + 1] - '0';
 			unsigned int len = pre->eopat[patNum] - pre->bopat[patNum];
-			strcpy(o, pre->pat[patNum]);
+			if (pre->pat[patNum])	// Will be null if try for a match that did not occur
+				memcpy(o, pre->pat[patNum], len);
 			o += len;
-			s++;
+			j++;
 		} else {
-			*o++ = *s;
+			*o++ = text[j];
 		}
 	}
 	*o = '\0';
+	*length = lenResult;
 	return substituted;
 }
 

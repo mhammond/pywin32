@@ -105,6 +105,7 @@ int wxForceScintillaLexers(void) {
   extern LexerModule lmPython;
   extern LexerModule lmSQL;
   extern LexerModule lmVB;
+  extern LexerModule lmRuby;
 
   if (
       &lmAda
@@ -119,6 +120,7 @@ int wxForceScintillaLexers(void) {
       && &lmPython
       && &lmSQL
       && &lmVB
+      && &lmRuby      
       )
     {
       return 1;

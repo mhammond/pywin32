@@ -59,22 +59,22 @@ public:
 	int size;
 	int *levels;
 	int sizeLevels;
-	
+
 	/// Handles are allocated sequentially and should never have to be reused as 32 bit ints are very big.
 	int handleCurrent;
-	
+
 	LineVector();
 	~LineVector();
 	void Init();
 
 	void Expand(int sizeNew);
 	void ExpandLevels(int sizeNew=-1);
-    void ClearLevels();
+	void ClearLevels();
 	void InsertValue(int pos, int value);
 	void SetValue(int pos, int value);
 	void Remove(int pos);
 	int LineFromPosition(int pos);
-	
+
 	int AddMark(int line, int marker);
 	void MergeMarkers(int pos);
 	void DeleteMark(int line, int markerNum);
@@ -114,18 +114,18 @@ class UndoHistory {
 	int savePoint;
 
 	void EnsureUndoRoom();
-	
+
 public:
 	UndoHistory();
 	~UndoHistory();
-	
+
 	void AppendAction(actionType at, int position, char *data, int length);
 
 	void BeginUndoAction();
 	void EndUndoAction();
 	void DropUndoSequence();
 	void DeleteUndoHistory();
-	
+
 	/// The save point is a marker in the undo stack where the container has stated that
 	/// the buffer was saved. Undo and redo can move over the save point.
 	void SetSavePoint();
@@ -157,6 +157,7 @@ private:
 	int gaplen;
 	char *part2body;
 	bool readOnly;
+	int growSize;
 
 	bool collectingUndo;
 	UndoHistory uh;
@@ -175,12 +176,12 @@ public:
 
 	CellBuffer(int initialLength = 4000);
 	~CellBuffer();
-	
+
 	/// Retrieving positions outside the range of the buffer works and returns 0
 	char CharAt(int position);
 	void GetCharRange(char *buffer, int position, int lengthRetrieve);
 	char StyleAt(int position);
-	
+
 	int ByteLength();
 	int Length();
 	int Lines();
@@ -188,12 +189,12 @@ public:
 	int LineFromPosition(int pos) { return lv.LineFromPosition(pos); }
 	const char *InsertString(int position, char *s, int insertLength);
 	void InsertCharStyle(int position, char ch, char style);
-	
+
 	/// Setting styles for positions outside the range of the buffer is safe and has no effect.
 	/// @return true if the style of a character is changed.
 	bool SetStyleAt(int position, char style, char mask='\377');
 	bool SetStyleFor(int position, int length, char style, char mask);
-	
+
 	const char *DeleteChars(int position, int deleteLength);
 
 	bool IsReadOnly();
@@ -221,7 +222,7 @@ public:
 	void BeginUndoAction();
 	void EndUndoAction();
 	void DeleteUndoHistory();
-	
+
 	/// To perform an undo, StartUndo is called to retrieve the number of steps, then UndoStep is
 	/// called that many times. Similarly for redo.
 	bool CanUndo();
@@ -232,14 +233,14 @@ public:
 	int StartRedo();
 	const Action &GetRedoStep() const;
 	void PerformRedoStep();
-	
+
 	int SetLineState(int line, int state);
 	int GetLineState(int line);
 	int GetMaxLineState();
-		
+
 	int SetLevel(int line, int level);
 	int GetLevel(int line);
-    void ClearLevels();
+	void ClearLevels();
 };
 
 #define CELL_SIZE	2

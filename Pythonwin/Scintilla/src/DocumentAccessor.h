@@ -18,6 +18,7 @@ class DocumentAccessor : public Accessor {
 protected:
 	Document *pdoc;
 	PropSet &props;
+	WindowID id;
 	int lenDoc;
 
 	char styleBuf[bufferSize];
@@ -30,8 +31,8 @@ protected:
 	void Fill(int position);
 
 public:
-	DocumentAccessor(Document *pdoc_, PropSet &props_) : 
-		Accessor(), pdoc(pdoc_), props(props_), 
+	DocumentAccessor(Document *pdoc_, PropSet &props_, WindowID id_=0) : 
+		Accessor(), pdoc(pdoc_), props(props_), id(id_),
 		lenDoc(-1), validLen(0), chFlags(0), chWhile(0) {
 	}
 	~DocumentAccessor();
@@ -46,6 +47,10 @@ public:
 	int GetPropertyInt(const char *key, int defaultValue=0) { 
 		return props.GetInt(key, defaultValue); 
 	}
+	char *GetProperties() {
+		return props.ToString();
+	}
+	WindowID GetWindow() { return id; }
 
 	void StartAt(unsigned int start, char chMask=31);
 	void SetFlags(char chFlags_, char chWhile_) {chFlags = chFlags_; chWhile = chWhile_; };

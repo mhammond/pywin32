@@ -118,6 +118,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	int anchor;
 	int targetStart;
 	int targetEnd;
+	int searchFlags;
 	int topLine;
 	int posTopLine;
 	
@@ -285,6 +286,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	long FindText(unsigned int iMessage, unsigned long wParam, long lParam);
 	void SearchAnchor();
 	long SearchText(unsigned int iMessage, unsigned long wParam, long lParam);
+	long SearchInTarget(const char *text, int length);
 	void GoToLine(int lineNo);
 
 	char *CopyRange(int start, int end);
@@ -320,7 +322,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	void Expand(int &line, bool doExpand);
 	void ToggleContraction(int line);
 	void EnsureLineVisible(int lineDoc);
-	int ReplaceTarget(bool replacePatterns, const char *text);
+	int ReplaceTarget(bool replacePatterns, const char *text, int length=-1);
 
 	virtual sptr_t DefWndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam) = 0;
 	

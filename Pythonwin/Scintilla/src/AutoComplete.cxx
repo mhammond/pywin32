@@ -19,7 +19,8 @@ AutoComplete::AutoComplete() :
 	chooseSingle(false),
 	posStart(0),
 	startLen(0),
-	cancelAtStartPos(true) {
+	cancelAtStartPos(true),
+	autoHide(true) {
 	stopChars[0] = '\0';
 	fillUpChars[0] = '\0';
 }
@@ -117,7 +118,7 @@ void AutoComplete::Move(int delta) {
 void AutoComplete::Select(const char *word) {
 	int pos = lb.Find(word);
 	//Platform::DebugPrintf("Autocompleting at <%s> %d\n", wordCurrent, pos);
-	if (pos == -1)
+	if (pos == -1 && autoHide)
 		Cancel();
 	else
 		lb.Select(pos);

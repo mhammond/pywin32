@@ -30,6 +30,17 @@
  * Modification history:
  *
  * $Log$
+ * Revision 1.6  2001/04/29 13:32:10  nyamatongwe
+ * Addition of new target methods - versions of ReplaceTarget that take counted
+ * strings to allow for nulls, SearchInTarget and Get/SetSearchFlags to use a
+ * series of calls rather than a structure.
+ * Handling of \000 in search and replace.
+ * Handling of /escapes within character ranges of regular expressions.
+ * Some handling of bare ^ and $ regular expressions.
+ *
+ * Revision 1.5  2001/04/20 07:36:09  nyamatongwe
+ * Removed DEBUG code that failed to compile on GTK+.
+ *
  * Revision 1.4  2001/04/13 03:52:13  nyamatongwe
  * Added URL to find original code to comments.
  *
@@ -211,8 +222,6 @@
 
 #include "RESearch.h"
 
-#define EXTEND
-
 #define OKP     1
 #define NOP     0
 
@@ -307,8 +316,20 @@ void RESearch::ChSetWithCase(char c, bool caseSensitive) {
 	}
 }
 
-const char *RESearch::Compile(const char *pat, bool caseSensitive) {
-	const char *p;               /* pattern pointer   */
+const char escapeValue(char ch) {
+	switch (ch) {
+	case 'a':	return '\a';
+	case 'b':	return '\b';
+	case 'f':	return '\f';
+	case 'n':	return '\n';
+	case 'r':	return '\r';
+	case 't':	return '\t';
+	case 'v':	return '\v';
+	}
+	return 0;
+}
+
+const char *RESearch::Compile(const char *pat, int length, bool caseSensitive) {
 	char *mp=nfa;          /* nfa pointer       */
 	char *lp;              /* saved pointer..   */
 	char *sp=nfa;          /* another one..     */
@@ -320,14 +341,15 @@ const char *RESearch::Compile(const char *pat, bool caseSensitive) {
 	char mask;		/* xor mask -CCL/NCL */
 	int c1, c2;
 		
-	if (!pat || !*pat)
+	if (!pat || !length)
 		if (sta)
 			return 0;
 		else
 			return badpat("No previous regular expression");
 	sta = NOP;
 
-	for (p = pat; *p; p++) {
+	const char *p=pat;               /* pattern pointer   */
+	for (int i=0; i<length; i++, p++) {
 		lp = mp;
 		switch(*p) {
 
@@ -356,34 +378,46 @@ const char *RESearch::Compile(const char *pat, bool caseSensitive) {
 		case '[':               /* match char class..*/
 			*mp++ = CCL;
 
+			i++;
 			if (*++p == '^') {
 				mask = '\377';	
+				i++;
 				p++;
-			}
-			else
+			} else
 				mask = 0;
 
-			if (*p == '-')		/* real dash */
+			if (*p == '-') {		/* real dash */
+				i++;
 				ChSet(*p++);
-			if (*p == ']')		/* real brac */
+			}
+			if (*p == ']') {	/* real brace */
+				i++;
 				ChSet(*p++);
+			}
 			while (*p && *p != ']') {
 				if (*p == '-' && *(p+1) && *(p+1) != ']') {
+					i++;
 					p++;
 					c1 = *(p-2) + 1;
+					i++;
 					c2 = *p++;
 					while (c1 <= c2) {
 						ChSetWithCase(static_cast<char>(c1++), caseSensitive);
 					}
-				}
-#ifdef EXTEND
-				else if (*p == '\\' && *(p+1)) {
+				} else if (*p == '\\' && *(p+1)) {
+					i++;
 					p++;
+					char escape = escapeValue(*p);
+					if (escape)
+						ChSetWithCase(escape, caseSensitive);
+					else
+						ChSetWithCase(*p, caseSensitive);
+					i++;
+					p++;
+				} else {
+					i++;
 					ChSetWithCase(*p++, caseSensitive);
 				}
-#endif
-				else
-					ChSetWithCase(*p++, caseSensitive);
 			}
 			if (!*p)
 				return badpat("Missing ]");
@@ -427,6 +461,7 @@ const char *RESearch::Compile(const char *pat, bool caseSensitive) {
 			break;
 
 		case '\\':              /* tags, backrefs .. */
+			i++;
 			switch(*++p) {
 
 			case '(':
@@ -475,36 +510,16 @@ const char *RESearch::Compile(const char *pat, bool caseSensitive) {
 				else
 					return badpat("Undetermined reference");
 				break;
-#ifdef EXTEND
 			case 'a':
-				*mp++ = CHR;
-				*mp++ = '\a';
-				break;
 			case 'b':
-				*mp++ = CHR;
-				*mp++ = '\b';
-				break;
 			case 'n':
-				*mp++ = CHR;
-				*mp++ = '\n';
-				break;
 			case 'f':
-				*mp++ = CHR;
-				*mp++ = '\f';
-				break;
 			case 'r':
-				*mp++ = CHR;
-				*mp++ = '\r';
-				break;
 			case 't':
-				*mp++ = CHR;
-				*mp++ = '\t';
-				break;
 			case 'v':
 				*mp++ = CHR;
-				*mp++ = '\v';
+				*mp++ = escapeValue(*p);
 				break;
-#endif
 			default:
 				*mp++ = CHR;
 				*mp++ = *p;
@@ -555,7 +570,7 @@ const char *RESearch::Compile(const char *pat, bool caseSensitive) {
  *
  */
 
-int RESearch::Execute(CharacterIndexer &ci, int lp) {
+int RESearch::Execute(CharacterIndexer &ci, int lp, int endp) {
 	char c;
 	int ep = NOTFOUND;
 	char *ap = nfa;
@@ -568,17 +583,25 @@ int RESearch::Execute(CharacterIndexer &ci, int lp) {
 	switch(*ap) {
 
 	case BOL:			/* anchored: match from BOL only */
-		ep = PMatch(ci, lp, ap);
+		ep = PMatch(ci, lp, endp, ap);
 		break;
+	case EOL:			/* just searching for end of line normal path doesn't work */
+		if (*(ap+1) == END) {
+			lp = endp;
+			ep = lp;
+			break;
+		} else {
+			return 0;
+		}
 	case CHR:			/* ordinary char: locate it fast */
 		c = *(ap+1);
-		while (ci.CharAt(lp) && ci.CharAt(lp) != c)
+		while ((lp < endp) && (ci.CharAt(lp) != c))
 			lp++;
-		if (!ci.CharAt(lp))		/* if EOS, fail, else fall thru. */
+		if (lp >= endp)		/* if EOS, fail, else fall thru. */
 			return 0;
 	default:			/* regular matching all the way. */
-		while (ci.CharAt(lp)) {
-			ep = PMatch(ci, lp, ap);
+		while (lp < endp) {
+			ep = PMatch(ci, lp, endp, ap);
 			if (ep != NOTFOUND)
 				break;
 			lp++;
@@ -664,7 +687,7 @@ static char chrtyp[MAXCHR] = {
 #define CHRSKIP	3	/* [CLO] CHR chr END ...     */
 #define CCLSKIP 18	/* [CLO] CCL 16bytes END ... */
 
-int RESearch::PMatch(CharacterIndexer &ci, int lp, char *ap) {
+int RESearch::PMatch(CharacterIndexer &ci, int lp, int endp, char *ap) {
 	int op, c, n;
 	int e;		/* extra pointer for CLO */
 	int bp;		/* beginning of subpat.. */
@@ -679,7 +702,7 @@ int RESearch::PMatch(CharacterIndexer &ci, int lp, char *ap) {
 				return NOTFOUND;
 			break;
 		case ANY:
-			if (!ci.CharAt(lp++))
+			if (lp++ >= endp)
 				return NOTFOUND;
 			break;
 		case CCL:
@@ -693,7 +716,7 @@ int RESearch::PMatch(CharacterIndexer &ci, int lp, char *ap) {
 				return NOTFOUND;
 			break;
 		case EOL:
-			if (ci.CharAt(lp))
+			if (lp < endp)
 				return NOTFOUND;
 			break;
 		case BOT:
@@ -723,18 +746,18 @@ int RESearch::PMatch(CharacterIndexer &ci, int lp, char *ap) {
 			switch(*ap) {
 
 			case ANY:
-				while (ci.CharAt(lp))
+				while (lp < endp)
 					lp++;
 				n = ANYSKIP;
 				break;
 			case CHR:
 				c = *(ap+1);
-				while (ci.CharAt(lp) && c == ci.CharAt(lp))
+				while ((lp < endp) && (c == ci.CharAt(lp)))
 					lp++;
 				n = CHRSKIP;
 				break;
 			case CCL:
-				while (((c = ci.CharAt(lp)) != 0) && isinset(ap+1,c))
+				while ((lp < endp) && isinset(ap+1,ci.CharAt(lp)))
 					lp++;
 				n = CCLSKIP;
 				break;
@@ -747,7 +770,7 @@ int RESearch::PMatch(CharacterIndexer &ci, int lp, char *ap) {
 			ap += n;
 
 			while (lp >= are) {
-				if ((e = PMatch(ci, lp, ap)) != NOTFOUND)
+				if ((e = PMatch(ci, lp, endp, ap)) != NOTFOUND)
 					return e;
 				--lp;
 			}
@@ -836,81 +859,3 @@ int RESearch::Substitute(CharacterIndexer &ci, char *src, char *dst) {
 	*dst = (char) 0;
 	return 1;
 }
-			
-#ifdef DEBUG
-/*
- * symbolic - produce a symbolic dump of the nfa
- */
-void symbolic(char *s) {
-	printf("pattern: %s\n", s);
-	printf("nfacode:\n");
-	nfadump(nfa);
-}
-
-static void nfadump(char *ap) {
-	int n;
-
-	while (*ap != END)
-		switch(*ap++) {
-		case CLO:
-			printf("CLOSURE");
-			nfadump(ap);
-			switch(*ap) {
-			case CHR:
-				n = CHRSKIP;
-				break;
-			case ANY:
-				n = ANYSKIP;
-				break;
-			case CCL:
-				n = CCLSKIP;
-				break;
-			}
-			ap += n;
-			break;
-		case CHR:
-			printf("\tCHR %c\n",*ap++);
-			break;
-		case ANY:
-			printf("\tANY .\n");
-			break;
-		case BOL:
-			printf("\tBOL -\n");
-			break;
-		case EOL:
-			printf("\tEOL -\n");
-			break;
-		case BOT:
-			printf("BOT: %d\n",*ap++);
-			break;
-		case EOT:
-			printf("EOT: %d\n",*ap++);
-			break;
-		case BOW:
-			printf("BOW\n");
-			break;
-		case EOW:
-			printf("EOW\n");
-			break;
-		case REF:
-			printf("REF: %d\n",*ap++);
-			break;
-		case CCL:
-			printf("\tCCL [");
-			for (n = 0; n < MAXCHR; n++)
-				if (isinset(ap,(char)n)) {
-					if (n < ' ')
-						printf("^%c", n ^ 0x040);
-					else
-						printf("%c", n);
-				}
-			printf("]\n");
-			ap += BITBLK;
-			break;
-		default:
-			printf("bad nfa. opcode %o\n", ap[-1]);
-			exit(1);
-			break;
-		}
-}
-#endif

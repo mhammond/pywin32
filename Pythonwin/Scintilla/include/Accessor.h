@@ -64,6 +64,7 @@ public:
 	virtual int GetLineState(int line)=0;
 	virtual int SetLineState(int line, int state)=0;
 	virtual int GetPropertyInt(const char *key, int defaultValue=0)=0;
+	virtual char *GetProperties()=0;
 
 	// Style setting
 	virtual void StartAt(unsigned int start, char chMask=31)=0;

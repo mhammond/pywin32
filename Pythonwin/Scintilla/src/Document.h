@@ -25,18 +25,18 @@ class Range {
 public:
 	Position start;
 	Position end;
-	
+
 	Range(Position pos=0) : 
 		start(pos), end(pos) {
 	};
 	Range(Position start_, Position end_) : 
 		start(start_), end(end_) {
 	};
-	
+
 	bool Valid() const {
 		return (start != invalidPosition) && (end != invalidPosition);
 	}
-	
+
 	bool Contains(Position pos) const {
 		if (start < end) {
 			return (pos >= start && pos <= end);
@@ -44,11 +44,11 @@ public:
 			return (pos <= start && pos >= end);
 		}
 	}
-	
+
 	bool Contains(Range other) const {
 		return Contains(other.start) && Contains(other.end);
 	}
-	
+
 	bool Overlaps(Range other) const {
 		return 
 		Contains(other.start) ||
@@ -77,7 +77,7 @@ public:
 			userData = 0;
 		}
 	};
-	
+
 private:	
 	int refCount;
 	CellBuffer cb;
@@ -87,7 +87,7 @@ private:
 	int endStyled;
 	int enteredCount;
 	int enteredReadOnlyCount;
-	
+
 	WatcherWithUserData *watchers;
 	int lenWatchers;
 
@@ -98,20 +98,22 @@ private:
 public:
 	int stylingBits;
 	int stylingBitsMask;
-	
+
 	int eolMode;
 	/// Can also be SC_CP_UTF8 to enable UTF-8 mode
 	int dbcsCodePage;
 	int tabInChars;
 	int indentInChars;
 	bool useTabs;
-	
+	bool tabIndents;
+	bool backspaceUnindents;
+
 	Document();
 	virtual ~Document();
-	
+
 	int AddRef();
 	int Release();
- 	
+
 	int LineFromPosition(int pos);
 	int ClampPositionIntoDocument(int pos);
 	bool IsCrLf(int pos);
@@ -180,11 +182,11 @@ public:
 	long FindText(int minPos, int maxPos, const char *s, 
 		bool caseSensitive, bool word, bool wordStart, bool regExp, int *length);
 	long FindText(int iMessage, unsigned long wParam, long lParam);
-	const char *SubstituteByPosition(const char *text);
+	const char *SubstituteByPosition(const char *text, int *length);
 	int LinesTotal();
-	
+
 	void ChangeCase(Range r, bool makeUpperCase);
-	
+
 	void SetWordChars(unsigned char *chars);
 	void SetStylingBits(int bits);
 	void StartStyling(int position, char mask);
@@ -196,12 +198,12 @@ public:
 	int SetLineState(int line, int state) { return cb.SetLineState(line, state); }
 	int GetLineState(int line) { return cb.GetLineState(line); }
 	int GetMaxLineState() { return cb.GetMaxLineState(); }
-		
+
 	bool AddWatcher(DocWatcher *watcher, void *userData);
 	bool RemoveWatcher(DocWatcher *watcher, void *userData);
 	const WatcherWithUserData *GetWatchers() const { return watchers; }
 	int GetLenWatchers() const { return lenWatchers; }
-	
+
 	bool IsWordPartSeparator(char ch);
 	int WordPartLeft(int pos);
 	int WordPartRight(int pos);
@@ -213,11 +215,11 @@ private:
 	bool IsWordEndAt(int pos);
 	bool IsWordAt(int start, int end);
 	void ModifiedAt(int pos);
-	
+
 	void NotifyModifyAttempt();
 	void NotifySavePoint(bool atSavePoint);
 	void NotifyModified(DocModification mh);
-	
+
 	int IndentSize() { return indentInChars ? indentInChars : tabInChars; }
 };
 
@@ -266,7 +268,7 @@ public:
 class DocWatcher {
 public:
 	virtual ~DocWatcher() {}
-	
+
 	virtual void NotifyModifyAttempt(Document *doc, void *userData) = 0;
 	virtual void NotifySavePoint(Document *doc, void *userData, bool atSavePoint) = 0;
 	virtual void NotifyModified(Document *doc, DocModification mh, void *userData) = 0;

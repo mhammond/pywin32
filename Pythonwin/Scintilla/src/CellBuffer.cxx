@@ -597,6 +597,7 @@ CellBuffer::CellBuffer(int initialLength) {
 	part2body = body + gaplen;
 	readOnly = false;
 	collectingUndo = true;
+	growSize = 4000;
 }
 
 CellBuffer::~CellBuffer() {
@@ -627,7 +628,9 @@ void CellBuffer::RoomFor(int insertionLength) {
 	if (gaplen <= insertionLength) {
 		//Platform::DebugPrintf("need room %d %d\n", gaplen, insertionLength);
 		GapTo(length);
-		int newSize = size + insertionLength + 4000;
+		if (growSize * 6 < size)
+			growSize *= 2;
+		int newSize = size + insertionLength + growSize;
 		//Platform::DebugPrintf("moved gap %d\n", newSize);
 		char *newBody = new char[newSize];
 		memcpy(newBody, body, size);

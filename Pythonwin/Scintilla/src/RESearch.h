@@ -32,8 +32,8 @@ public:
 	bool GrabMatches(CharacterIndexer &ci);
 	void ChSet(char c);
 	void ChSetWithCase(char c, bool caseSensitive);
-	const char *Compile(const char *pat, bool caseSensitive);
-	int Execute(CharacterIndexer &ci, int lp);
+	const char *Compile(const char *pat, int length, bool caseSensitive);
+	int Execute(CharacterIndexer &ci, int lp, int endp);
 	void ModifyWord(char *s);
 	int Substitute(CharacterIndexer &ci, char *src, char *dst);
 
@@ -46,7 +46,7 @@ public:
 	char *pat[MAXTAG];
 
 private:
-	int PMatch(CharacterIndexer &ci, int lp, char *ap);
+	int PMatch(CharacterIndexer &ci, int lp, int endp, char *ap);
 
 	int bol;
 	int  tagstk[MAXTAG];             /* subpat tag stack..*/

@@ -36,10 +36,31 @@
 #include "ScintillaBase.h"
 #include "UniConversion.h"
 
+#ifdef SCI_LEXER
+#include "ExternalLexer.h"
+#endif
+
 //#include "CElapsed.h"
 
 #ifndef SPI_GETWHEELSCROLLLINES
 #define SPI_GETWHEELSCROLLLINES   104
+#endif
+
+// These undefinitions are required to work around differences between different versions
+// of the mingw headers, some of which define these twice, in both winuser.h and imm.h.
+#ifdef __MINGW_H
+#undef WM_IME_STARTCOMPOSITION
+#undef WM_IME_ENDCOMPOSITION
+#undef WM_IME_COMPOSITION
+#undef WM_IME_KEYLAST
+#undef WM_IME_SETCONTEXT
+#undef WM_IME_NOTIFY
+#undef WM_IME_CONTROL
+#undef WM_IME_COMPOSITIONFULL
+#undef WM_IME_SELECT
+#undef WM_IME_CHAR
+#undef WM_IME_KEYDOWN
+#undef WM_IME_KEYUP
 #endif
 
 #ifndef WM_IME_STARTCOMPOSITION
@@ -112,6 +133,8 @@ public:
 class ScintillaWin :
 	public ScintillaBase {
 
+	bool lastKeyDownConsumed;
+
 	bool capturedMouse;
 
 	bool hasOKText;
@@ -123,6 +146,10 @@ class ScintillaWin :
 	DropTarget dt;
 
 	static HINSTANCE hInstance;
+
+#ifdef SCI_LEXER
+	LexerManager *lexMan;
+#endif
 
 	ScintillaWin(HWND hwnd);
 	ScintillaWin(const ScintillaWin &) : ScintillaBase() {}
@@ -191,6 +218,12 @@ public:
 	/// Implement important part of IDataObject
 	STDMETHODIMP GetData(FORMATETC *pFEIn, STGMEDIUM *pSTM);
 
+	// External Lexers
+#ifdef SCI_LEXER
+	void SetLexerLanguage(const char *languageName);
+	void SetLexer(uptr_t wParam);
+#endif
+
 	bool IsUnicodeMode() const;
 
 	static void Register(HINSTANCE hInstance_);
@@ -205,6 +238,8 @@ public:
 HINSTANCE ScintillaWin::hInstance = 0;
 
 ScintillaWin::ScintillaWin(HWND hwnd) {
+
+	lastKeyDownConsumed = false;
 
 	capturedMouse = false;
 
@@ -231,6 +266,10 @@ void ScintillaWin::Initialise() {
 	// no effect.  If the app hasnt, we really shouldnt ask them to call
 	// it just so this internal feature works.
 	OleInitialize(NULL);
+
+#ifdef SCI_LEXER
+	lexMan = new LexerManager;
+#endif
 }
 
 void ScintillaWin::Finalise() {
@@ -238,6 +277,10 @@ void ScintillaWin::Finalise() {
 	SetTicking(false);
 	RevokeDragDrop(wMain.GetID());
 	OleUninitialize();
+
+#ifdef SCI_LEXER
+	delete lexMan;
+#endif
 }
 
 void ScintillaWin::StartDrag() {
@@ -490,7 +533,7 @@ sptr_t ScintillaWin::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam
 			return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
 
 	case WM_CHAR:
-		if (!iscntrl(wParam&0xff)) {
+		if (!iscntrl(wParam&0xff) || !lastKeyDownConsumed) {
 			if (IsUnicodeMode()) {
 				AddCharBytes(static_cast<char>(wParam&0xff));
 			} else {
@@ -499,12 +542,16 @@ sptr_t ScintillaWin::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam
 		}
 		return 1;
 
+	case WM_SYSKEYDOWN:
 	case WM_KEYDOWN: {
 		//Platform::DebugPrintf("S keydown %d %x %x %x %x\n",iMessage, wParam, lParam, ::IsKeyDown(VK_SHIFT), ::IsKeyDown(VK_CONTROL));
+			lastKeyDownConsumed = false;
 			int ret = KeyDown(KeyTranslate(wParam),
 				Platform::IsKeyDown(VK_SHIFT),
-		               	Platform::IsKeyDown(VK_CONTROL), false);
-			if (!ret)
+		                Platform::IsKeyDown(VK_CONTROL), 
+						Platform::IsKeyDown(VK_MENU),
+						&lastKeyDownConsumed);
+			if (!ret && !lastKeyDownConsumed)
                 		return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
 			break;
 		}
@@ -563,7 +610,7 @@ sptr_t ScintillaWin::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam
 
 	case WM_IME_COMPOSITION:
 		if (lParam & GCS_RESULTSTR) {
-			Platform::DebugPrintf("Result\n");
+			//Platform::DebugPrintf("Result\n");
 		}
 		return ::DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
 
@@ -575,7 +622,15 @@ sptr_t ScintillaWin::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam
 	case WM_CONTEXTMENU:
 #ifdef TOTAL_CONTROL
 		if (displayPopupMenu) {
-			ContextMenu(Point::FromLong(lParam));
+			Point pt = Point::FromLong(lParam);
+			if ((pt.x == -1) && (pt.y == -1)) {
+				// Caused by keyboard so display menu near caret
+				pt = LocationFromPosition(currentPos);
+				POINT spt = {pt.x, pt.y};
+				::ClientToScreen(wMain.GetID(), &spt);
+				pt = Point(spt.x, spt.y);
+			}
+			ContextMenu(pt);
 			return 0;
 		}
 #endif
@@ -851,6 +906,35 @@ void ScintillaWin::AddToPopUp(const char *label, int cmd, bool enabled) {
 void ScintillaWin::ClaimSelection() {
 	// Windows does not have a primary selection
 }
+
+#ifdef SCI_LEXER
+
+/* 
+
+  Initial Windows-Only implementation of the external lexer
+  system in ScintillaWin class. Intention is to create a LexerModule
+  subclass (?) to have lex and fold methods which will call out to their
+  relevant DLLs...
+
+*/
+
+void ScintillaWin::SetLexer(uptr_t wParam) {
+	lexLanguage = wParam;
+	lexCurrent = LexerModule::Find(lexLanguage);
+	if (!lexCurrent)
+		lexCurrent = LexerModule::Find(SCLEX_NULL);
+}
+
+void ScintillaWin::SetLexerLanguage(const char *languageName) {
+	lexLanguage = SCLEX_CONTAINER;
+	lexCurrent = LexerModule::Find(languageName);
+	if (!lexCurrent)
+		lexCurrent = LexerModule::Find(SCLEX_NULL);
+	if (lexCurrent)
+		lexLanguage = lexCurrent->GetLanguage();
+}
+
+#endif
 
 /// Implement IUnknown
 
