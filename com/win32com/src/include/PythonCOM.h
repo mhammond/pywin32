@@ -127,6 +127,18 @@
 #include <dispex.h> // New header for IDispatchEx interface.
 #endif // NO_PYCOM_IDISPATCHEX
 
+#if defined(MAINWIN)
+// Mainwin seems to have 1/2 the VT_RECORD infrastructure in place
+#	if !defined(VT_RECORD)
+#		define VT_RECORD 36
+#		define V_RECORDINFO(X) ((X)->brecVal.pRecInfo)
+#		define V_RECORD(X)     ((X)->brecVal.pvRecord)
+#	else
+#		pragma message("MAINWIN appears to have grown correct VT_RECORD " \
+		                "support. Please update PythonCOM.h accordingly")
+#	endif //VT_RECORD
+#endif // MAINWIN
+
 class PyIUnknown;
 // To make life interesting/complicated, I use C++ classes for
 // all Python objects.  The main advantage is that I can derive
@@ -253,7 +265,9 @@ PYCOM_EXPORT PyObject *PyCom_PyObjectFromSTATSTG(STATSTG *pStat);
 PYCOM_EXPORT BOOL PyCom_PyObjectAsSTATSTG(PyObject *ob, STATSTG *pStat, DWORD flags = 0);
 PYCOM_EXPORT BOOL PyCom_SAFEARRAYFromPyObject(PyObject *obj, SAFEARRAY **ppSA, VARENUM vt = VT_VARIANT);
 PYCOM_EXPORT PyObject *PyCom_PyObjectFromSAFEARRAY(SAFEARRAY *psa, VARENUM vt = VT_VARIANT );
+#ifndef NO_PYCOM_STGOPTIONS
 PYCOM_EXPORT BOOL PyCom_PyObjectAsSTGOPTIONS(PyObject *obstgoptions, STGOPTIONS **ppstgoptions);
+#endif
 PYCOM_EXPORT PyObject *PyCom_PyObjectFromSTATPROPSETSTG(STATPROPSETSTG *pStat);
 
 
