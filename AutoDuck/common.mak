@@ -20,28 +20,33 @@ cleanad:
 # Generate a Help file
 
 "$(GENDIR)\$(TARGET).rtf" "$(GENDIR)\$(TARGET).hpj" : "$(GENDIR)\$(TARGET).hlog" $(SOURCE) pythonwin.fmt
-    $(AD) $(ADHLP) /t$(ADTAB) $(SOURCE)
+    @echo Running autoduck for the .rtf
+    @$(AD) $(ADHLP) /t$(ADTAB) $(SOURCE)
 
 "..\$(TARGET).hlp": "$(GENDIR)\$(TARGET).rtf" "$(GENDIR)\$(TARGET).hpj"
     if exist "$(GENDIR)\$(TARGET).ph" del "$(GENDIR)\$(TARGET).ph"
     fixHelpCompression.py "$(GENDIR)\$(TARGET).hpj"
-	cd "$(GENDIR)"
+    cd "$(GENDIR)"
     $(HC) $(TARGET).hpj
     if exist "..\..\..\$(TARGET).hlp" del "..\..\..\$(TARGET).hlp" 
-    move "$(TARGET).hlp" "..\..\..\$(TARGET).hlp" 
+    move "$(TARGET).hlp" "..\..\..\$(TARGET).hlp"
+    cd ..\..\..\AutoDuck
 
 # Generate a topic log file
 
 "$(GENDIR)\$(TARGET).hlog" : $(SOURCE)  pythonwin.fmt
-    $(AD) $(ADLOG) $(SOURCE)
+    @echo Running autoduck for the .hlog
+    @$(AD) $(ADLOG) $(SOURCE)
 
 "$(GENDIR)\$(TARGET).hhlog" : $(SOURCE)  pythonwin.fmt
-    $(ADHTMLFMT) $(ADHTMLLOG) $(SOURCE)
+    @echo Running autoduck for the .hhlog
+    @$(ADHTMLFMT) $(ADHTMLLOG) $(SOURCE)
 
 # Generate a print documentation file
 
 "$(TARGET).doc" :  $(SOURCE)
-    $(AD) $(ADDOC) /t$(ADTAB) $(SOURCE)
+    @echo Running autoduck for the .doc
+    @$(AD) $(ADDOC) /t$(ADTAB) $(SOURCE)
 
 # Generate an HTML Help file.
 
@@ -49,7 +54,8 @@ cleanad:
 	BuildHHP.py "$(GENDIR)\$(TARGET)" "$(TARGET)"
 
 "$(GENDIR)\$(TARGET).html" "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).idx" : $(SOURCE) pyhtml.fmt "$(GENDIR)\$(TARGET).hhlog"
-	$(ADHTMLFMT) $(ADHTML) /t$(ADTAB) $(SOURCE)
+	@echo Running autoduck for the .html
+	@$(ADHTMLFMT) $(ADHTML) /t$(ADTAB) $(SOURCE)
 
 "$(GENDIR)\$(TARGET).hhk" : "$(GENDIR)\$(TARGET).idx" "$(GENDIR)\$(TARGET).idx" TOCToHHK.py
 	TOCToHHK.py "$(GENDIR)\$(TARGET).idx" "$(GENDIR)\$(TARGET).hhk"
