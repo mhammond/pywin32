@@ -1,5 +1,5 @@
 # Test AXScripting the best we can in an automated fashion...
-import win32api, win32pipe, os, sys
+import win32api, os, sys
 
 def RegisterEngine(verbose = 1):
     import win32com.axscript.client
@@ -9,7 +9,7 @@ def RegisterEngine(verbose = 1):
 
 def TestHost(verbose = 1):
     import win32com.axscript
-    file = win32api.GetFullPathName(os.path.join(win32com.axscript.__path__[0], "Test\\TestHost.py"))
+    file = win32api.GetFullPathName(os.path.join(win32com.axscript.__path__[0], "test\\testHost.py"))
     cmd = '%s "%s" > nul' % (win32api.GetModuleFileName(0), file)
     if verbose:
         print "Testing Python Scripting host"
