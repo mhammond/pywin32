@@ -231,6 +231,7 @@ BOOL CreateStructFromPyObject(LPCREATESTRUCT lpcs, PyObject *ob, const char *fnN
 // Font conversion utilities
 //
 //
+static const char *szFontQuality = "quality";
 static const char *szFontName = "name";
 static const char *szFontWeight = "weight";
 static const char *szFontWidth = "width";
@@ -243,6 +244,7 @@ static const char *szFontCharSet = "charset";
 PyObject *LogFontToDict(const LOGFONT &lf)
 {
 	PyObject *ret = PyDict_New();
+	PyMapping_SetItemString( ret, (char *)szFontQuality, PyInt_FromLong(lf.lfQuality));
 	PyMapping_SetItemString( ret, (char *)szFontName, PyString_FromString((char *)lf.lfFaceName) );
 	PyMapping_SetItemString( ret, (char *)szFontHeight, PyInt_FromLong(-lf.lfHeight));
 	PyMapping_SetItemString( ret, (char *)szFontWidth, PyInt_FromLong(lf.lfWidth));
@@ -260,9 +262,15 @@ BOOL DictToLogFont(PyObject *font_props, LOGFONT *pLF)
 
   // font default values
   pLF->lfCharSet = DEFAULT_CHARSET; // dont use ANSI_CHARSET to support Japanese charset.
-  pLF->lfQuality = PROOF_QUALITY;  // don't scale raster fonts
+  pLF->lfQuality = PROOF_QUALITY;  // don't scale raster fonts and force anti aliasing
   PyObject *v;
 
+  v = PyDict_GetItemString (font_props, (char *)szFontQuality);
+  if (v != NULL)
+        if (PyInt_Check (v))
+          pLF->lfQuality = (BYTE)PyInt_AsLong(v);
+        else
+              RETURN_ERR ("Expected integer value for font quality property");
 
   v = PyDict_GetItemString (font_props, (char *)szFontName);
   if (v != NULL)
