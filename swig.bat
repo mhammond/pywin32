@@ -16,8 +16,17 @@ goto set
 :not_set
 if not exist ..\swig\swig.exe goto not_found
 rem Pull a trick to convert the path to a full path.
-for %%x in (..\swig\swig.exe) do set SWIG_EXE=%%~fx
-for /D %%x in (..\swig\swig_lib) do set SWIG_LIB=%%~fx
+rem EEEEK - pull a trick so that it also works in Win9x
+rem Win9x patch submitted by Howard Lightstone, based on http://www.fpschultze.de/bsh.htm#a4
+rem Stick the CWD into a CD variable.
+If %OS%'==Windows_NT' (For %%D In (.) Do Set CD=%%~fD&Goto Endcd)
+Echo Exit | %COMSPEC% /K Prompt Set CD=$P$_:>%TEMP%.\Tmp.bat
+For %%C In (Call Del) Do %%C %TEMP%.\Tmp.bat
+:Endcd
+rem End of Set CD variable hack.
+
+set SWIG_EXE=%CD%\..\swig\swig.exe
+set SWIG_LIB=%CD%\..\swig\swig_lib
 
 :set
 cd %1
