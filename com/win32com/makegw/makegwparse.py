@@ -105,6 +105,14 @@ class ArgFormatter:
 		else:
 			return ""
 
+	def GetInterfaceArgCleanupGIL(self):
+		"""Return cleanup code for C++ args passed to the interface
+		method that must be executed with the GIL held"""
+		if DEBUG:
+			return "/* GetInterfaceArgCleanup (GIL held) output goes here: %s */\n" % self.arg.name
+		else:
+			return ""
+
 	def GetUnconstType(self):
 		return self.arg.unc_type
 	
@@ -252,7 +260,7 @@ class ArgFormatterBSTR(ArgFormatterPythonCOM):
 	def _GetPythonTypeDesc(self):
 		return "<o unicode>"
 	def GetParsePostCode(self):
-		return "\tif (!PyWinObject_AsBstr(ob%s, %s)) bPythonIsHappy = FALSE;\n" % (self.arg.name, self.GetIndirectedArgName(None, 2))
+		return "\tif (bPythonIsHappy && !PyWinObject_AsBstr(ob%s, %s)) bPythonIsHappy = FALSE;\n" % (self.arg.name, self.GetIndirectedArgName(None, 2))
 	def GetBuildForInterfacePreCode(self):
 		notdirected = self.GetIndirectedArgName(None, 1)
 		return "\tob%s = MakeBstrToObj(%s);\n" % \
@@ -272,7 +280,7 @@ class ArgFormatterOLECHAR(ArgFormatterPythonCOM):
 		else:
 			return self.arg.unc_type
 	def GetParsePostCode(self):
-		return "\tif (!PyWinObject_AsBstr(ob%s, %s)) bPythonIsHappy = FALSE;\n" % (self.arg.name, self.GetIndirectedArgName(None, 2))
+		return "\tif (bPythonIsHappy && !PyWinObject_AsBstr(ob%s, %s)) bPythonIsHappy = FALSE;\n" % (self.arg.name, self.GetIndirectedArgName(None, 2))
 	def GetInterfaceArgCleanup(self):
 		return "\tSysFreeString(%s);\n" % self.GetIndirectedArgName(None, 1)
 	def GetBuildForInterfacePreCode(self):
@@ -336,6 +344,37 @@ class ArgFormatterSTATSTG(ArgFormatterPythonCOM):
 		notdirected = self.GetIndirectedArgName(None, 1)
 		return "\tob%s = PyCom_PyObjectFromSTATSTG(%s);\n\t// STATSTG doco says our responsibility to free\n\tif ((%s).pwcsName) CoTaskMemFree((%s).pwcsName);\n" % (self.arg.name, self.GetIndirectedArgName(None, 1),notdirected,notdirected)
 
+class ArgFormatterGeneric(ArgFormatterPythonCOM):
+	def _GetPythonTypeDesc(self):
+		return "<o %s>" % self.arg.type
+	def GetParsePostCode(self):
+		return '\tif (!PyObject_As%s(ob%s, &%s) bPythonIsHappy = FALSE;\n' % (self.arg.type, self.arg.name, self.GetIndirectedArgName(None, 1))
+	def GetInterfaceArgCleanup(self):
+		return '\tPyObject_Free%s(%s);\n' % (self.arg.type, self.arg.name)
+	def GetBuildForInterfacePreCode(self):
+		notdirected = self.GetIndirectedArgName(None, 1)
+		return "\tob%s = PyObject_From%s(%s);\n" % (self.arg.name, self.arg.type, self.GetIndirectedArgName(None, 1))
+
+class ArgFormatterIDLIST(ArgFormatterPythonCOM):
+	def _GetPythonTypeDesc(self):
+		return "<o PyIDL>"
+	def GetParsePostCode(self):
+		return '\tif (bPythonIsHappy && !PyObject_AsPIDL(ob%s, &%s)) bPythonIsHappy = FALSE;\n' % (self.arg.name, self.GetIndirectedArgName(None, 1))
+	def GetInterfaceArgCleanup(self):
+		return '\tPyObject_FreePIDL(%s);\n' % (self.arg.name,)
+	def GetBuildForInterfacePreCode(self):
+		notdirected = self.GetIndirectedArgName(None, 1)
+		return "\tob%s = PyObject_FromPIDL(%s);\n" % (self.arg.name, self.GetIndirectedArgName(None, 1))
+
+class ArgFormatterHANDLE(ArgFormatterPythonCOM):
+	def _GetPythonTypeDesc(self):
+		return "<o PyHANDLE>"
+	def GetParsePostCode(self):
+		return '\tif (!PyWinObject_AsHANDLE(ob%s, &%s, FALSE) bPythonIsHappy = FALSE;\n' % (self.arg.name, self.GetIndirectedArgName(None, 1))
+	def GetBuildForInterfacePreCode(self):
+		notdirected = self.GetIndirectedArgName(None, 1)
+		return "\tob%s = PyWinObject_FromHANDLE(%s);\n" % (self.arg.name, self.GetIndirectedArgName(None, 0))
+
 class ArgFormatterLARGE_INTEGER(ArgFormatterPythonCOM):
 	def GetKeyName(self):
 		return "LARGE_INTEGER"
@@ -363,7 +402,7 @@ class ArgFormatterInterface(ArgFormatterPythonCOM):
 		else:
 		# vs. in params for interface mode.
 			sArg = self.GetIndirectedArgName(1, 2)
-		return "\tif (!PyCom_InterfaceFromPyInstanceOrObject(ob%s, IID_%s, (void **)%s, TRUE /* bNoneOK */))\n\t\t bPythonIsHappy = FALSE;\n" % (self.arg.name, self.arg.type, sArg)
+		return "\tif (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(ob%s, IID_%s, (void **)%s, TRUE /* bNoneOK */))\n\t\t bPythonIsHappy = FALSE;\n" % (self.arg.name, self.arg.type, sArg)
 	
 	def GetBuildForInterfacePreCode(self):
 		return "\tob%s = PyCom_PyObjectFromIUnknown(%s, IID_%s, FALSE);\n" % (self.arg.name, self.arg.name, self.arg.type)
@@ -373,7 +412,7 @@ class ArgFormatterInterface(ArgFormatterPythonCOM):
 		return "\tob%s = PyCom_PyObjectFromIUnknown(%s%s, IID_%s, TRUE);\n" % (self.arg.name, sPrefix, self.arg.name, self.arg.type)
 
 	def GetInterfaceArgCleanup(self):
-		return "\tif (%s) %s->Release();" % (self.arg.name, self.arg.name)
+		return "\tif (%s) %s->Release();\n" % (self.arg.name, self.arg.name)
 
 class ArgFormatterVARIANT(ArgFormatterPythonCOM):
 	def GetParsePostCode(self):
@@ -428,6 +467,8 @@ AllConverters = {"const OLECHAR":	(ArgFormatterOLECHAR, 0, 1),
 				 "LPOLESTR":		(ArgFormatterOLECHAR, 1, 1),
 				 "LPCWSTR":			(ArgFormatterOLECHAR, 1, 1),
 				 "LPWSTR":			(ArgFormatterOLECHAR, 1, 1),
+				 "LPCSTR":			(ArgFormatterOLECHAR, 1, 1),
+				 "HANDLE":			(ArgFormatterHANDLE, 0),
 				 "BSTR":			(ArgFormatterBSTR, 1, 0),
 				 "const IID":		(ArgFormatterIID, 0),
 				 "CLSID":			(ArgFormatterIID, 0),
@@ -453,12 +494,18 @@ AllConverters = {"const OLECHAR":	(ArgFormatterOLECHAR, 0, 1),
 				 "short":			(ArgFormatterShort, 0),
 				 "WORD":			(ArgFormatterShort, 0),
 				 "VARIANT_BOOL":	(ArgFormatterShort, 0),
+				 "HWND":			(ArgFormatterShort, 0),
+				 "HMENU":			(ArgFormatterShort, 0),
+				 "HICON":			(ArgFormatterShort, 0),
+				 "UINT":			(ArgFormatterShort, 0),
 				 "Control":			(ArgFormatterInterface, 0, 1),
 				 "DataObject":		(ArgFormatterInterface, 0, 1),
 				 "_PropertyBag":	(ArgFormatterInterface, 0, 1),
 				 "AsyncProp":		(ArgFormatterInterface, 0, 1),
 				 "DataSource":		(ArgFormatterInterface, 0, 1),
 				 "DataFormat":		(ArgFormatterInterface, 0, 1),
+				 "ITEMIDLIST":		(ArgFormatterIDLIST, 0, 1),
+				 "const ITEMIDLIST":		(ArgFormatterIDLIST, 0, 1),
 }
 
 # Auto-add all the simple types
@@ -561,7 +608,7 @@ class Method:
 	"""
 #										 options	 ret type callconv	 name
 #								   ----------------- -------- -------- --------
-	regex = regex.compile('virtual \\(/\\*.*\\*/ \\)?\\(.*\\) \\(.*\\) \\(.*\\)( ')
+	regex = regex.compile('virtual \\(/\\*.*\\*/ \\)?\\(.*\\) \\(.*\\) \\(.*\\)(\w?')
 	def __init__(self, good_interface_names ):
 		self.good_interface_names = good_interface_names
 		self.name = self.result = self.callconv = None
@@ -634,6 +681,7 @@ def find_interface(interfaceName, file):
 	while line:
 		if Interface.regex.search(line, 0) >=0:
 			name = Interface.regex.group(2)
+			print name
 			if name==interfaceName:
 				return Interface()
 		line = file.readline()
