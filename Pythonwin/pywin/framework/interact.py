@@ -1,3 +1,4 @@
+
 ##################################################################
 ##
 ## Interactive Shell Window
@@ -262,8 +263,10 @@ class InteractiveCore:
 
 		if self.GetTextLength()==0:
 			if self.banner is None:
-				sys.stderr.write("PythonWin %s on %s\n" % (sys.version, sys.platform) )
-				sys.stderr.write("%s - see 'Help/About Pythonwin' for further copyright information.\n" % (win32ui.copyright,) )
+				suffix = ""
+				if win32ui.debug: suffix = ", debug build"
+				sys.stderr.write("PythonWin %s on %s%s.\n" % (sys.version, sys.platform, suffix) )
+				sys.stderr.write("%s - see 'Help/About PythonWin' for further copyright information.\n" % (win32ui.copyright,) )
 			else:
 				sys.stderr.write(banner)
 		self.AppendToPrompt([])
@@ -541,7 +544,7 @@ class CInteractivePython(winout.WindowOutput):
 	def __init__(self, makeDoc = None, makeFrame = None):
 		self.IsFinalDestroy = 0
 		winout.WindowOutput.__init__(self, sectionProfile, sectionProfile, \
-		                             winout.flags.WQ_NONE, 1, None, makeDoc, makeFrame, InteractiveView )
+		                             winout.flags.WQ_LINE, 1, None, makeDoc, makeFrame, InteractiveView )
 		self.Create()
 
 	def OnViewDestroy(self, view):
