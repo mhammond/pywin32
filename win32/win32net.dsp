@@ -99,6 +99,10 @@ SOURCE=.\src\win32net\win32net.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\src\win32net\win32netfile.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\src\win32net\win32netgroup.cpp
 # End Source File
 # Begin Source File
@@ -108,6 +112,10 @@ SOURCE=.\src\win32net\win32netmisc.cpp
 # Begin Source File
 
 SOURCE=.\src\win32net\win32netmodule.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\src\win32net\win32netsession.cpp
 # End Source File
 # Begin Source File
 
