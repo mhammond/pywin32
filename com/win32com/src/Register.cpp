@@ -158,7 +158,7 @@ PyObject  *pythoncom_IsGatewayRegistered(PyObject *self, PyObject *args)
 	PyObject *v;
 
     // @pyparm <o PyIID>|iid||IID of the interface.
-	if ( !PyArg_ParseTuple(args, "O:CreateVTable", &obIID) )
+	if ( !PyArg_ParseTuple(args, "O:IsGatewayRegistered", &obIID) )
 		return NULL;
 	v = PyDict_GetItem(
 		g_obPyCom_MapServerIIDToGateway,
@@ -175,8 +175,6 @@ PyObject  *pythoncom_IsGatewayRegistered(PyObject *self, PyObject *args)
 	}
 	return v;
 }
-
-
 
 /////////////////////////////////////////////////////////////////////////////////
 //
