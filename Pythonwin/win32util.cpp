@@ -1077,7 +1077,7 @@ CString GetReprText( PyObject *objectUse )
 	}
 	const char *szRepr = PyString_AsString(s);
 	int len=strlen(szRepr);
-	if (len && strchr("\"'[(", *szRepr)) {
+	if (len > 2 && strchr("\"'[(", *szRepr)) {
 		if (szRepr[len-1]==*szRepr) {
 			++szRepr;
 			len-=2;	// drop first and last chars.
