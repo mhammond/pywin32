@@ -619,6 +619,20 @@ class Generator:
           flags = info.GetImplTypeFlags(j)
           refType = info.GetRefTypeInfo(info.GetRefTypeOfImplType(j))
           refAttr = refType.GetTypeAttr()
+          if refAttr.typekind == pythoncom.TKIND_INTERFACE:
+              # For now we believe this flag.  It appears we could also
+              # look down the cImplTypes for IDispatch, but this is simpler.
+              if not refAttr.wTypeFlags & pythoncom.TYPEFLAG_FDISPATCHABLE:
+                  ### we can't build these
+                  self.progress.VerboseProgress("Skipped interface: %s" % doc[0])
+                  continue
+              else:
+                  self.progress.VerboseProgress("Dispatchable interface: %s" % doc[0])
+          else: # A TKIND_DISPATCH
+              if refAttr.wTypeFlags & pythoncom.TYPEFLAG_FDUAL:
+                  self.progress.VerboseProgress("Dual interface: %s" % doc[0])
+              else:
+                  self.progress.VerboseProgress("Dispatch interface: %s" % doc[0])
           dual = refAttr[11] & pythoncom.TYPEFLAG_FDUAL
           # Ensure the references interfaces have been generated.
           if oleItems.has_key(refAttr[0]):
@@ -721,7 +735,10 @@ class Generator:
     print 'RecordMap = {'
     list = recordItems.values()
     for record in list:
-        print "\t%s: %s," % (`record.doc[0]`, `str(record.clsid)`)
+        if str(record.clsid) == pythoncom.IID_NULL:
+            print "\t###%s: %s, # Typedef disabled because it doesn't have a non-null GUID"
+        else:
+            print "\t%s: %s," % (`record.doc[0]`, `str(record.clsid)`)
     print "}"
     print
 
