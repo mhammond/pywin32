@@ -1720,14 +1720,14 @@ static PyObject *ui_translate_vk(PyObject *, PyObject *args)
 	// @pyparm int|vk||The key to translate
 	if (!PyArg_ParseTuple(args, "i", &vk))
 		return NULL;
-	static HKL layout=GetKeyboardLayout(0);
-	static BYTE State[256];
+	HKL layout=GetKeyboardLayout(0);
+	BYTE State[256];
 	if (GetKeyboardState(State)==FALSE)
 		RETURN_ERR("Can't get keyboard state");
 	char result[2];
 	UINT sc=MapVirtualKeyEx(vk,0,layout);
 	int nc = ToAsciiEx(vk,sc,State,(unsigned short *)result,0,layout);
-	if (nc==-1) { // a dead char.
+	if (nc < 0) { // a dead char.
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
