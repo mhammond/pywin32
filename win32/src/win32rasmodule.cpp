@@ -16,11 +16,13 @@ generates Windows .hlp files.
 #include "raserror.h"
 
 #include "Python.h"
+#include "pywintypes.h"
 
 static PyObject *module_error;
 static PyObject *obHandleMap = NULL;
 
 /* error helper */
+
 void SetError(char *msg, char *fnName = NULL, DWORD code = 0)
 {
 	PyObject *v = Py_BuildValue("(izs)", 0, fnName, msg);
@@ -114,19 +116,6 @@ BOOL PyObjectToRasDialParams( PyObject *ob, RASDIALPARAMS *p )
 	}
 	return TRUE;
 }
-/////////////////////////////////////////////////////////////////////
-//
-// SetRasHandler
-// Associates a Python object with a RAS handle.
-//
-void SetRasHandler( HRASCONN  hrasconn, PyObject *ob)
-{
-	if (obHandleMap==NULL && (obHandleMap = PyDict_New())==NULL)
-		return;
-	Py_INCREF(ob);
-	PyObject *key = PyInt_FromLong((long)hrasconn);
-	PyDict_SetItem( obHandleMap, key, ob );
-}
 
 /////////////////////////////////////////////////////////////////////
 //
@@ -144,12 +133,23 @@ VOID CALLBACK PyRasDialFunc1(
     DWORD  dwError,	// error that may have occurred
     DWORD  dwExtendedError)	// extended error information for some errors
 {
+	CEnterLeavePython _celp;
 	char *fnName = "<RAS Callback handler>";
 	PyObject *handler = NULL;
 	if (obHandleMap) {
+		// NOTE:  As we hold the thread lock, assume noone else can mod this dict.
 		PyObject *key = PyInt_FromLong((long)hrasconn);
 		if (key==NULL) return;
 		handler = PyDict_GetItem( obHandleMap, key );
+		// If handler is NULL, check if None is in the map, and if so,
+		// use and replace it.
+		if (handler==NULL) {
+			handler = PyDict_GetItem( obHandleMap, Py_None );
+			if (handler) {
+				PyDict_SetItem(obHandleMap, key, handler);
+				PyDict_DelItem(obHandleMap, Py_None);
+			}
+		}
 		Py_DECREF(key);
 	}
 	if (handler==NULL) {
@@ -205,7 +205,7 @@ PyRasDial( PyObject *self, PyObject *args )
 	PyObject *obCallback;
 	RASDIALPARAMS dialParams;
 	LPTSTR fileName;
-	HRASCONN hRas = (HRASCONN)-1;
+	HRASCONN hRas = (HRASCONN)0;
 
 	if (!PyArg_ParseTuple(args, "zzOO:Dial", 
 	          &ignored,  // @pyparm (tuple)|RasDialExtensions||Ignored - must be None - a placeholder for future RASDIALEXTENSIONS support.
@@ -232,14 +232,34 @@ PyRasDial( PyObject *self, PyObject *args )
 		notType = 0xFFFFFFFF;
 	} else
 		return ReturnError("The callback object must be an integer handle, None, or a callable object", "<Dial param parsing>");
+	// If we have any sort of callback, we must ensure threads are init'd.
+	if (pNotification)
+		PyEval_InitThreads();
+	// If we have a callback, store it in our map with None as the key.
+	// The callback routine will patch this once it knows the true key.
+	// Before we do, we must check None is not already there
+	if (notType==1) {
+		if (obHandleMap==NULL && (obHandleMap = PyDict_New())==NULL)
+			return NULL;
+		if (PyMapping_HasKey(obHandleMap, Py_None)) {
+			PyErr_SetString(PyExc_RuntimeError, "Another RAS callback is in the process of starting");
+			return NULL;
+		}
+		PyDict_SetItem( obHandleMap, Py_None, obCallback );
+	}
+
 	// @pyseeapi RasDial
+	Py_BEGIN_ALLOW_THREADS
 	rc=RasDial( NULL, fileName, &dialParams, notType, pNotification, &hRas );
-	if (notType==1)
-		SetRasHandler(hRas, obCallback);
+	Py_END_ALLOW_THREADS
+	if (hRas==0 && notType==1) {
+		PyDict_DelItem(obHandleMap, Py_None);
+		PyErr_Clear();
+	}
 	return Py_BuildValue( "ii", hRas, rc );
 	// @rdesc The return value is (handle, retCode).
 	// <nl>It is possible for a valid handle to be returned even on failure.
-	// <nl>If the returned handle is \< 0, then it can be assumed invalid.
+	// <nl>If the returned handle is = 0, then it can be assumed invalid.
 	// @comm Note - this handle must be closed using <om win32ras.HangUp>, or
 	// else the RAS port will remain open, even after the program has terminated.
 	// Your operating system may need rebooting to clean up otherwise!
@@ -260,7 +280,10 @@ PyRasEditPhonebookEntry( PyObject *self, PyObject *args )
 		return NULL;
 	if (hwnd != 0 && !IsWindow((HWND)hwnd))
 		return ReturnError("The first paramater must be a valid window handle", "<EditPhonebookEntry param parsing>");
-	if ((rc=RasEditPhonebookEntry((HWND)hwnd, fileName, entryName )))
+	Py_BEGIN_ALLOW_THREADS
+	rc=RasEditPhonebookEntry((HWND)hwnd, fileName, entryName );
+	Py_END_ALLOW_THREADS
+	if (rc)
 		return ReturnRasError("RasEditPhonebookEntry",rc);	// @pyseeapi RasEditPhonebookEntry
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -279,7 +302,9 @@ PyRasEnumConnections( PyObject *self, PyObject *args )
 	RASCONN *pCon = NULL;
 	// make dummy call to determine buffer size.
 	tc.dwSize = bufSize = sizeof(RASCONN);
+	Py_BEGIN_ALLOW_THREADS
 	rc = RasEnumConnections(&tc, &bufSize, &noConns);
+	Py_END_ALLOW_THREADS
 	if (rc!=0 && rc!=ERROR_BUFFER_TOO_SMALL)
 		return ReturnRasError("RasEnumConnections(NULL)", rc);
 	if (rc==ERROR_BUFFER_TOO_SMALL) {
@@ -292,8 +317,11 @@ PyRasEnumConnections( PyObject *self, PyObject *args )
 		}
 		// @pyseeapi RasEnumConnections
 		pCon[0].dwSize = sizeof(RASCONN);
-		if ((rc=RasEnumConnections(pCon, &bufSize, &noConns))!=0)
-			return ReturnRasError("RasEnumConnections", rc);
+		Py_BEGIN_ALLOW_THREADS
+		rc=RasEnumConnections(pCon, &bufSize, &noConns);
+		Py_END_ALLOW_THREADS
+		if (rc!=0)
+		return ReturnRasError("RasEnumConnections", rc);
 	} else {
 		pCon = &tc;
 	}
@@ -324,9 +352,12 @@ PyRasEnumEntries( PyObject *self, PyObject *args )
 		       &reserved, // @pyparm string|reserved|None|Reserved - must be None
 			   &bookName)) // @pyparm string|fileName|None|The name of the phonebook file, or None.
 		return NULL;
+
 	// make dummy call to determine buffer size.
 	tc.dwSize = bufSize = sizeof(RASENTRYNAME);
+	Py_BEGIN_ALLOW_THREADS
 	RasEnumEntries(reserved, bookName, &tc, &bufSize, &noConns);
+	Py_END_ALLOW_THREADS
 	RASENTRYNAME *pE = NULL;
 	if (bufSize) {
 		pE = (RASENTRYNAME *)malloc(bufSize);
@@ -336,7 +367,10 @@ PyRasEnumEntries( PyObject *self, PyObject *args )
 		}
 		// @pyseeapi RasEnumEntries
 		pE[0].dwSize = sizeof(RASENTRYNAME);
-		if ((rc=RasEnumEntries(reserved, bookName, pE, &bufSize, &noConns))!=0)
+		Py_BEGIN_ALLOW_THREADS
+		rc=RasEnumEntries(reserved, bookName, pE, &bufSize, &noConns);
+		Py_END_ALLOW_THREADS
+		if (rc!=0)
 			return ReturnRasError("RasEnumEntries", rc);
 	}
 	PyObject *ret = PyList_New(0);
@@ -345,7 +379,6 @@ PyRasEnumEntries( PyObject *self, PyObject *args )
 
 	for (DWORD i=0;i<noConns;i++)
 		PyList_Append( ret, Py_BuildValue("(s)", pE[i].szEntryName ) );
-
 	if (pE)
 		free(pE);
 	return ret;
@@ -388,10 +421,10 @@ PyRasGetEntryDialParams( PyObject *self, PyObject *args )
 	// @pyseeapi RasGetEntryDialParams
 	if ((rc=RasGetEntryDialParams(fileName, &dp, &bPass )))
 		return ReturnRasError("RasGetEntryDialParams",rc);	// @pyseeapi RasGetConnectStatus
-	return Py_BuildValue("(ssssss),s", 
+	return Py_BuildValue("(ssssss),i", 
 		dp.szEntryName, dp.szPhoneNumber,
 		dp.szCallbackNumber, dp.szUserName, 
-		dp.szPassword, dp.szDomain );
+		dp.szPassword, dp.szDomain, bPass );
 	// @rdesc The return value is a tuple describing the params retrieved, plus a BOOL integer
 	// indicating if the password was also retrieved.
 }
@@ -492,7 +525,7 @@ static struct PyMethodDef win32ras_functions[] = {
 int AddConstant(PyObject *dict, char *key, long value)
 {
 	PyObject *okey = PyString_FromString(key);
-	PyObject *oval = PyLong_FromLong(value);
+	PyObject *oval = PyInt_FromLong(value);
 	if (!okey || !oval) {
 		Py_XDECREF(okey);
 		Py_XDECREF(oval);
@@ -544,10 +577,13 @@ static int AddConstants(PyObject *dict)
 extern "C" __declspec(dllexport) void
 initwin32ras(void)
 {
+  PyWinGlobals_Ensure();
   PyObject *dict, *module;
   module = Py_InitModule("win32ras", win32ras_functions);
   dict = PyModule_GetDict(module);
-  module_error = PyString_FromString("win32ras error");
+  module_error = PyWinExc_ApiError;
+  Py_INCREF(module_error);
+//  module_error = PyString_FromString("win32ras error");
   PyDict_SetItemString(dict, "error", module_error);
   AddConstants(dict);
 }
