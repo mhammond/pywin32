@@ -35,6 +35,7 @@ PyITaskScheduler::~PyITaskScheduler()
 }
 
 // @pymethod |PyITaskScheduler|SetTargetComputer|Connect to another machine to manage its tasks
+// @comm Leading backslashes are required.  Call will succeed without them, but no other methods will work.
 PyObject *PyITaskScheduler::SetTargetComputer(PyObject *self, PyObject *args)
 {
 	ITaskScheduler *pITS = GetI(self);
@@ -100,6 +101,7 @@ PyObject *PyITaskScheduler::Enum(PyObject *self, PyObject *args)
 	PY_INTERFACE_PRECALL;
 	// create an enumerator
 	hr = pITS->Enum(&pIEnumWorkItems);
+	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr)){
 		PyWin_SetAPIError("PyITaskScheduler::Enum",hr);
 		return NULL;
@@ -111,7 +113,9 @@ PyObject *PyITaskScheduler::Enum(PyObject *self, PyObject *args)
 
 	// loop over all tasks
 	do{
-        hr = pIEnumWorkItems->Next(ulTasksToGet, &task_names, &ulActualTasksRetrieved);
+		PY_INTERFACE_PRECALL;
+		hr = pIEnumWorkItems->Next(ulTasksToGet, &task_names, &ulActualTasksRetrieved);
+		PY_INTERFACE_POSTCALL;
 		if (FAILED(hr)){
 			PyCom_BuildPyException(hr, pITS, IID_ITaskScheduler );
 			Py_DECREF(ret_list);
@@ -129,11 +133,12 @@ PyObject *PyITaskScheduler::Enum(PyObject *self, PyObject *args)
 	} while(hr==S_OK);
 
 	if(pIEnumWorkItems){
+		PY_INTERFACE_PRECALL;
 		pIEnumWorkItems->Release();
+		PY_INTERFACE_POSTCALL;
 		pIEnumWorkItems = NULL;
 		}
- 
-	PY_INTERFACE_POSTCALL;
+
 	return ret_list;
 }
 
