@@ -115,6 +115,7 @@ def TestVB( vbtest, bUseGenerated ):
     assert vbtest.ArrayProperty == arrayData, "Could not set the array data correctly - got back '%s'" % (vbtest.ArrayProperty,)
 
     TestStructs(vbtest)
+    TestCollections(vbtest)
 
     assert vbtest.TakeByValObject(vbtest)==vbtest
 
@@ -217,6 +218,54 @@ def TestVB( vbtest, bUseGenerated ):
 #               ret = vbtest.PassIntByRef()
 #               if ret != (0,1):
 #                       raise error, "Could not increment the integer with default arg- "+str(ret)
+
+def _DoTestCollection(vbtest, col_name, expected):
+    # It sucks that some objects allow "Count()", but others "Count"
+    def _getcount(ob):
+        r = getattr(ob, "Count")
+        if type(r)!=type(0):
+            return r()
+        return r
+    c = getattr(vbtest, col_name)
+    check = []
+    for item in c:
+        check.append(item)
+    if check != list(expected):
+        raise error, "Collection %s didn't have %r (had %r)" % (col_name, expected, check)
+    # Check len()==Count()
+    c = getattr(vbtest, col_name)
+    if len(c) != _getcount(c):
+        raise error, "Collection %s __len__(%r) wasn't==Count(%r)" % (col_name, len(c), _getcount(c))
+    # Check we can do it with zero based indexing.
+    c = getattr(vbtest, col_name)
+    check = []
+    for i in range(_getcount(c)):
+        check.append(c[i])
+    if check != list(expected):
+        raise error, "Collection %s didn't have %r (had %r)" % (col_name, expected, check)
+
+    # Check we can do it with our old "Skip/Next" methods.
+    c = getattr(vbtest, col_name)._NewEnum()
+    check = []
+    while 1:
+        n = c.Next()
+        if not n:
+            break
+        check.append(n[0])
+    if check != list(expected):
+        raise error, "Collection %s didn't have %r (had %r)" % (col_name, expected, check)
+
+def TestCollections(vbtest):
+    _DoTestCollection(vbtest, "CollectionProperty", [1,"Two", "3"])
+    # zero based indexing works for simple VB collections.
+    if vbtest.CollectionProperty[0] != 1:
+        raise error, "The CollectionProperty[0] element was not the default value"
+
+    _DoTestCollection(vbtest, "EnumerableCollectionProperty", [])
+    vbtest.EnumerableCollectionProperty.Add(1)
+    vbtest.EnumerableCollectionProperty.Add("Two")
+    vbtest.EnumerableCollectionProperty.Add("3")
+    _DoTestCollection(vbtest, "EnumerableCollectionProperty", [1,"Two", "3"])
 
 def TestStructs(vbtest):
     try:
