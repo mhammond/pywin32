@@ -69,9 +69,10 @@ class SyntEditView(SyntEditViewParent):
 		
 			self.HookCommand(self.OnCmdViewFold, id)
 			self.HookCommandUpdate(self.OnUpdateViewFold, id)
+		self.HookCommand(self.OnCmdViewFoldTopLevel, win32ui.ID_VIEW_FOLD_TOPLEVEL)
 
 		# Define the markers
-		self.SCIMarkerDeleteAll()
+#		self.SCIMarkerDeleteAll()
 		self.SCIMarkerDefine(MARKER_BOOKMARK, SC_MARK_ROUNDRECT)
 		self.SCIMarkerSetBack(MARKER_BOOKMARK, win32api.RGB(0, 0xff, 0xff))
 		self.SCIMarkerSetFore(MARKER_BOOKMARK, win32api.RGB(0x0, 0x0, 0x0))
@@ -212,7 +213,6 @@ class SyntEditView(SyntEditViewParent):
 #			max_line = self.GetLineCount()
 			if self.SCIGetFoldLevel(line_click) & SC_FOLDLEVELHEADERFLAG:
 				# If a fold point.
-				self.Colorize()
 				self.SCIToggleFold(line_click)
 		return 1
 
@@ -270,10 +270,8 @@ class SyntEditView(SyntEditViewParent):
 		if not self.bFolding:
 			cmdui.Enable(0)
 			return
-
 		id = cmdui.m_nID
 		if id in [win32ui.ID_VIEW_FOLD_EXPAND_ALL, win32ui.ID_VIEW_FOLD_COLLAPSE_ALL]:
-			self.FoldExpandAllEvent(None)
 			cmdui.Enable()
 		else:
 			enable = 0
@@ -287,7 +285,10 @@ class SyntEditView(SyntEditViewParent):
 				if foldable and is_expanded:
 					enable = 1
 			cmdui.Enable(enable)
-	
+
+	def OnCmdViewFoldTopLevel(self, cid, code): # Handle the menu command
+			self.FoldTopLevelEvent(None)
+
 	#######################################
 	# The Events
 	#######################################
@@ -382,7 +383,6 @@ class SyntEditView(SyntEditViewParent):
 			win32api.MessageBeep()
 			return
 		win32ui.DoWaitCursor(1)
-		self.Colorize()
 		lineno = self.LineFromChar(self.GetSel()[0])
 		if self.SCIGetFoldLevel(lineno) & SC_FOLDLEVELHEADERFLAG and \
 				self.SCIGetFoldExpanded(lineno):
