@@ -2644,3 +2644,113 @@ PyGetClassName(PyObject *self, PyObject *args)
 %}
 %native (GetClassName) PyGetClassName;
 
+// Sorting for controls
+%{
+
+// Callbacks
+struct PySortCallback {
+	PyObject *fn;
+	PyObject *data;
+};
+
+int CALLBACK CompareFunc(); 
+
+int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, 
+LPARAM lParamSort);
+
+static int CALLBACK PySortFunc(
+	LPARAM lParam1,
+	LPARAM lParam2, 
+	LPARAM lParamSort
+    )
+{
+	int rc = 0;
+	PyObject *result = NULL;
+	PyObject *args = NULL;
+	PyGILState_STATE state = PyGILState_Ensure();
+	PySortCallback *pc = (PySortCallback *)lParamSort;
+	if (!pc) {
+		PySys_WriteStderr("Control sort function callback with no data!\n");
+		goto done;
+	}
+	assert(!PyErr_Occurred());
+	args = Py_BuildValue("llO", lParam1, lParam2, pc->data);
+	if (!args) goto done;
+	result = PyEval_CallObject(pc->fn, args);
+	// API says must return 0, but there might be a good reason.
+	if (!result) goto done;
+	if (!PyInt_Check(result)) {
+		PyErr_SetString(PyExc_TypeError, "The sort function must return an integer");
+		goto done;
+	}
+	rc = PyInt_AsLong(result);
+done:
+	if (PyErr_Occurred()) {
+		PySys_WriteStderr("ListView sort callback failed!\n");
+		PyErr_Print();
+	}
+	Py_XDECREF(args);
+	Py_XDECREF(result);
+	PyGILState_Release(state);
+	return rc;
+}
+
+
+// @pyswig |ListView_SortItems|Uses an application-defined comparison function to sort the items of a list view control.
+static PyObject *
+PyListView_SortItems(PyObject *self, PyObject *args)
+{
+	HWND hwnd;
+	PyObject *ob;
+	PyObject *obParam = Py_None;
+	// @pyparm int|hwnd||The handle to the window
+	// @pyparm object|callback||A callback object, taking 3 params.
+	// @pyparm object|param|None||The third param to the callback function.
+	if (!PyArg_ParseTuple(args, "iO|O:ListView_SortItems", &hwnd, &ob, &obParam))
+		return NULL;
+	if (!PyCallable_Check(ob))
+		return PyErr_Format(PyExc_TypeError,
+		                    "2nd param must be callable (got type %s)", ob->ob_type->tp_name);
+	PySortCallback cb = {ob, obParam};
+	BOOL ok;
+	GUI_BGN_SAVE;
+	ok = ListView_SortItems(hwnd, PySortFunc, &cb);
+	GUI_END_SAVE;
+	if (!ok) {
+		PyWin_SetAPIError("ListView_SortItems");
+		return NULL;
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+// @pyswig |ListView_SortItemsEx|Uses an application-defined comparison function to sort the items of a list view control.
+static PyObject *
+PyListView_SortItemsEx(PyObject *self, PyObject *args)
+{
+	HWND hwnd;
+	PyObject *ob;
+	PyObject *obParam = Py_None;
+	// @pyparm int|hwnd||The handle to the window
+	// @pyparm object|callback||A callback object, taking 3 params.
+	// @pyparm object|param|None||The third param to the callback function.
+	if (!PyArg_ParseTuple(args, "iO|O:ListView_SortItemsEx", &hwnd, &ob, &obParam))
+		return NULL;
+	if (!PyCallable_Check(ob))
+		return PyErr_Format(PyExc_TypeError,
+		                    "2nd param must be callable (got type %s)", ob->ob_type->tp_name);
+	PySortCallback cb = {ob, obParam};
+	BOOL ok;
+	GUI_BGN_SAVE;
+	ok = ListView_SortItemsEx(hwnd, PySortFunc, &cb);
+	GUI_END_SAVE;
+	if (!ok) {
+		PyWin_SetAPIError("ListView_SortItemsEx");
+		return NULL;
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+
+%native (ListView_SortItems) PyListView_SortItems;
+%native (ListView_SortItemsEx) PyListView_SortItemsEx;
