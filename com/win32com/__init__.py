@@ -2,7 +2,7 @@
 # Initialization for the win32com package
 #
 
-import win32api, sys
+import win32api, sys, os
 import pythoncom
 
 # Add support for an external "COM Extensions" path.
@@ -56,22 +56,29 @@ def SetupEnvironment():
 			
 		found = 0
 		global __gen_path__
-		try:
-			if key is not None:
+		if key is not None:
+			try:
 				__gen_path__ = win32api.RegQueryValue(key, "GenPath")
 				found = 1
-				# Import a special module, Otherwise it is already all setup for us.
-				import new
-				global gen_py # Exists in the win32com namespace.
-				gen_py = new.module("win32com.gen_py")
-				gen_py.__path__ = [ __gen_path__ ]
-				sys.modules[gen_py.__name__]=gen_py
-				
-		except win32api.error:
-			found = 0
-		
+			except win32api.error:
+				pass
 		if not found:
-			__gen_path__ = win32api.GetFullPathName( __path__[0] + "\\gen_py")
+			# no key.
+			# We used to use a directory under win32com - but this sucks.
+			# If that directory exists, we still use it, but now we prefer
+			# a version specific directory under the user temp directory.
+			if os.path.isdir(win32api.GetFullPathName( __path__[0] + "\\gen_py")):
+				__gen_path__ = win32api.GetFullPathName( __path__[0] + "\\gen_py")
+			else:
+				__gen_path__ = os.path.join(
+									win32api.GetTempPath(), "gen_py",
+									"%d.%d" % (sys.version_info[0], sys.version_info[1]))
+		# Create a "win32com.gen_py", but with a custom __path__
+		import new
+		global gen_py # Exists in the win32com namespace.
+		gen_py = new.module("win32com.gen_py")
+		gen_py.__path__ = [ __gen_path__ ]
+		sys.modules[gen_py.__name__]=gen_py
 	finally:
 		if key is not None:
 			key.Close()
@@ -96,4 +103,4 @@ if not pythoncom.frozen:
 	SetupEnvironment()
 
 # get rid of these for module users
-del sys, win32api, pythoncom
+del os, sys, win32api, pythoncom
