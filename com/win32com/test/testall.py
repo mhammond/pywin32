@@ -1,7 +1,7 @@
-import sys, os, string
+import sys, os, string, re
 import pythoncom
 import win32com.client
-from util import CheckClean, TestCase, CapturingFunctionTestCase
+from util import CheckClean, TestCase, CapturingFunctionTestCase, TestLoader
 import win32com.test.util
 import traceback
 import getopt
@@ -32,26 +32,36 @@ def CleanGenerated():
     import win32com.client.gencache
     win32com.client.gencache.__init__() # Reset
 
+def RemoveRefCountOutput(data):
+    while 1:
+        last_line_pos = data.rfind("\n")
+        if not re.match("\[\d+ refs\]", data[last_line_pos+1:]):
+            break
+        if last_line_pos < 0:
+            # All the output
+            return ''
+        data = data[:last_line_pos]
+        
+    return data
+
 def ExecuteSilentlyIfOK(cmd, testcase):
     f = os.popen(cmd)
-    data = f.read()
+    data = f.read().strip()
     rc = f.close()
     if rc:
         print data
         testcase.fail("Executing '%s' failed (%d)" % (cmd, rc))
-    return data.strip()
+    # for "_d" builds, strip the '[xxx refs]' line
+    return RemoveRefCountOutput(data)
 
 class PyCOMTest(TestCase):
+    no_leak_tests = True # done by the test itself
     def testit(self):
         # Execute testPyComTest in its own process so it can play
         # with the Python thread state
         fname = os.path.join(os.path.dirname(this_file), "testPyComTest.py")
         cmd = '%s "%s" -q 2>&1' % (sys.executable, fname)
         data = ExecuteSilentlyIfOK(cmd, self)
-        if data:
-            print "** testPyCOMTest generated unexpected output"
-            # lf -> cr/lf
-            print string.join(string.split(data, "\n"), "\r\n")
 
 class PippoTest(TestCase):
     def testit(self):
@@ -70,7 +80,7 @@ unittest_modules = [
         """testIterators testvbscript_regexp testStorage 
           testStreams testWMI policySemantics testShell testROT
           testAXScript testxslt testDictionary testCollections
-          testServers errorSemantics.test testvb.TestAll testArrays
+          testServers errorSemantics.test testvb testArrays
           testClipboard
         """.split(),
         # Level 2 tests.
@@ -132,6 +142,7 @@ def get_test_mod_and_func(test_name, import_failures):
 def make_test_suite(test_level = 1):
     suite = unittest.TestSuite()
     import_failures = []
+    loader = TestLoader()
     for i in range(testLevel):
         for mod_name in unittest_modules[i]:
             mod, func = get_test_mod_and_func(mod_name, import_failures)
@@ -144,7 +155,7 @@ def make_test_suite(test_level = 1):
                 if hasattr(mod, "suite"):
                     test = mod.suite()
                 else:
-                    test = unittest.defaultTestLoader.loadTestsFromModule(mod)
+                    test = loader.loadTestsFromModule(mod)
             assert test.countTestCases() > 0, "No tests loaded from %r" % mod
             suite.addTest(test)
         for cmd, output in output_checked_programs[i]:
@@ -186,9 +197,13 @@ if __name__=='__main__':
     
     suite, import_failures = make_test_suite(testLevel)
     if verbosity:
+        if hasattr(sys, "gettotalrefcount"):
+            print "This is a debug build - memory leak tests will also be run."
+            print "These tests may take *many* minutes to run - be patient!"
+            print "(running from python.exe will avoid these leak tests)"
         print "Executing level %d tests - %d test cases will be run" \
                 % (testLevel, suite.countTestCases())
-        if verbosity==1:
+        if verbosity==1 and suite.countTestCases() < 70:
             # A little row of markers so the dots show how close to finished
             print '|' * suite.countTestCases()
     testRunner = unittest.TextTestRunner(verbosity=verbosity)
