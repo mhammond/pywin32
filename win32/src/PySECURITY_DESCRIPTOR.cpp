@@ -69,20 +69,24 @@ DWORD GetAclSize (PACL pacl)
 // @pymethod <o PySECURITY_DESCRIPTOR>|pywintypes|SECURITY_DESCRIPTOR|Creates a new SECURITY_DESCRIPTOR object
 PyObject *PyWinMethod_NewSECURITY_DESCRIPTOR(PyObject *self, PyObject *args)
 {
-	long descriptor_len = SECURITY_DESCRIPTOR_MIN_LENGTH;
+	int descriptor_len = SECURITY_DESCRIPTOR_MIN_LENGTH;
 	if (PyArg_ParseTuple(args, "|l:SECURITY_DESCRIPTOR", &descriptor_len))
 		return new PySECURITY_DESCRIPTOR(descriptor_len);
 
 	PyErr_Clear();
 	PyObject *obsd = NULL;
+	PSECURITY_DESCRIPTOR psd;
 	// @pyparmalt1 buffer|data||A buffer (eg, a string) with the raw bytes for the security descriptor.
 	if (!PyArg_ParseTuple(args, "O:SECURITY_DESCRIPTOR", &obsd))
 		return NULL;
-	if (!PySECURITY_DESCRIPTOR_Check(obsd)){
-		PyErr_SetString(PyExc_TypeError,"Object is not a PySECURITY_DESCRIPTOR");
+	if (PyObject_AsReadBuffer(obsd, (const void **)&psd, &descriptor_len)==-1){
+		PyErr_SetString(PyExc_TypeError,"Object has no data buffer");
 		return NULL;
-	}
-	PSECURITY_DESCRIPTOR psd = ((PySECURITY_DESCRIPTOR *)obsd)->GetSD();
+		}
+	if (!IsValidSecurityDescriptor(psd)){
+		PyErr_SetString(PyExc_ValueError,"Data is not a valid security descriptor");
+		return NULL;
+		}
 	return new PySECURITY_DESCRIPTOR(psd);
 }
 
