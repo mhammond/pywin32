@@ -58,7 +58,7 @@ static PyObject *PyADsOpenObject(PyObject *self, PyObject *args)
 			&obUserName, // @pyparm unicode|username||
 			&obPassword,// @pyparm unicode|password||
 			&lres, // @pyparm int|reserved|0|
-			&obiid)) // @pyparm <oPyIID>|iid|IID_IDispatch|The requested interface
+			&obiid)) // @pyparm <o PyIID>|iid|IID_IDispatch|The requested interface
 		return NULL;
 	IID iid = IID_IDispatch;
 	if (obiid != NULL && !PyWinObject_AsIID(obiid, &iid))
@@ -96,7 +96,7 @@ static PyObject *PyADsGetObject(PyObject *self, PyObject *args)
 	PyObject *ret;
 	if (!PyArg_ParseTuple(args, "O|O:ADsGetObject",
 			&obPath, // @pyparm unicode|path||
-			&obiid)) // @pyparm <oPyIID>|iid|IID_IDispatch|The requested interface
+			&obiid)) // @pyparm <o PyIID>|iid|IID_IDispatch|The requested interface
 		return NULL;
 	IID iid = IID_IDispatch;
 	if (obiid != NULL && !PyWinObject_AsIID(obiid, &iid))
