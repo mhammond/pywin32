@@ -28,7 +28,16 @@ import win32gui
 import win32con
 import struct
 import array
+import commctrl
 
+# Generic WM_NOTIFY unpacking
+def UnpackWMNOTIFY(lparam):
+    format = "iii"
+    buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
+    hwndFrom, idFrom, code = struct.unpack(format, buf)
+    code += 0x4f0000 # hrm - wtf - commctrl uses this, and it works with mfc.  *sigh*
+    return hwndFrom, idFrom, code
+    
 # MENUITEMINFO struct
 # http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winui/WinUI/WindowsUserInterface/Resources/Menus/MenuReference/MenuStructures/MENUITEMINFO.asp
 # We use the struct module to pack and unpack strings as MENUITEMINFO
@@ -139,7 +148,8 @@ def _GetMaskAndVal(val, default, mask, flag):
     if val is None:
         return mask, default
     else:
-        mask |= flag
+        if flag is not None:
+            mask |= flag
         return mask, val
 
 def PackTVINSERTSTRUCT(parent, insertAfter, tvitem):
@@ -197,7 +207,7 @@ def EmptyTVITEM(hitem, mask = None, text_buf_size=512):
                       0, 0)
     return array.array("c", buf), extra
     
-def UnpackTVItem(buffer):
+def UnpackTVITEM(buffer):
     item_mask, item_hItem, item_state, item_stateMask, \
         item_textptr, item_cchText, item_image, item_selimage, \
         item_cChildren, item_param = struct.unpack("10i", buffer)
@@ -235,3 +245,107 @@ def UnpackTVDISPINFO(lparam):
     hwndFrom, id, code, buf_item = struct.unpack(format, buf)
     item = UnpackTVItem(buf_item)
     return hwndFrom, id, code, item
+
+#
+# List view items
+def PackLVITEM(item=None, subItem=None, state=None, stateMask=None, text=None, image=None, param=None, indent=None):
+    extra = [] # objects we must keep references to
+    mask = 0
+    mask, item = _GetMaskAndVal(item, 0, mask, None)
+    mask, subItem = _GetMaskAndVal(subItem, 0, mask, None)
+    mask, state = _GetMaskAndVal(state, 0, mask, commctrl.LVIF_STATE)
+    if not mask & commctrl.LVIF_STATE:
+        stateMask = 0
+    mask, text = _GetMaskAndVal(text, None, mask, commctrl.LVIF_TEXT)
+    mask, image = _GetMaskAndVal(image, 0, mask, commctrl.LVIF_IMAGE)
+    mask, param = _GetMaskAndVal(param, 0, mask, commctrl.LVIF_PARAM)
+    mask, indent = _GetMaskAndVal(indent, 0, mask, commctrl.LVIF_INDENT)
+    if text is None:
+        text_addr = text_len = 0
+    else:
+        text_buffer = array.array("c", text+"\0")
+        extra.append(text_buffer)
+        text_addr, text_len = text_buffer.buffer_info()
+    format = "iiiiiiiiii"
+    buf = struct.pack(format,
+                      mask, item, subItem,
+                      state, stateMask,
+                      text_addr, text_len, # text
+                      image, param, indent)
+    return array.array("c", buf), extra
+
+def UnpackLVITEM(buffer):
+    item_mask, item_item, item_subItem, \
+        item_state, item_stateMask, \
+        item_textptr, item_cchText, item_image, \
+        item_param, item_indent = struct.unpack("10i", buffer)
+    # ensure only items listed by the mask are valid
+    if not (item_mask & commctrl.LVIF_TEXT): item_textptr = item_cchText = None
+    if not (item_mask & commctrl.LVIF_IMAGE): item_image = None
+    if not (item_mask & commctrl.LVIF_PARAM): item_param = None
+    if not (item_mask & commctrl.LVIF_INDENT): item_indent = None
+    if not (item_mask & commctrl.LVIF_STATE): item_state = item_stateMask = None
+    
+    if item_textptr:
+        text = win32gui.PyGetString(item_textptr)
+    else:
+        text = None
+    return item_item, item_subItem, item_state, item_stateMask, \
+        text, item_image, item_param, item_indent
+
+# Make a new buffer suitable for querying an items attributes.
+def EmptyLVITEM(item, subitem, mask = None, text_buf_size=512):
+    extra = [] # objects we must keep references to
+    if mask is None:
+        mask = commctrl.LVIF_IMAGE | commctrl.LVIF_INDENT | commctrl.LVIF_TEXT | \
+               commctrl.LVIF_PARAM | commctrl.LVIF_STATE
+    if mask & commctrl.LVIF_TEXT:
+        text_buffer = array.array("c", "\0" * text_buf_size)
+        extra.append(text_buffer)
+        text_addr, text_len = text_buffer.buffer_info()
+    else:
+        text_addr = text_len = 0
+    format = "iiiiiiiiii"
+    buf = struct.pack(format,
+                      mask, item, subitem, 
+                      0, 0,
+                      text_addr, text_len, # text
+                      0, 0, 0)
+    return array.array("c", buf), extra
+
+
+# List view column structure
+def PackLVCOLUMN(fmt=None, cx=None, text=None, subItem=None, image=None, order=None):
+    extra = [] # objects we must keep references to
+    mask = 0
+    mask, fmt = _GetMaskAndVal(fmt, 0, mask, commctrl.LVCF_FMT)
+    mask, cx = _GetMaskAndVal(cx, 0, mask, commctrl.LVCF_WIDTH)
+    mask, text = _GetMaskAndVal(text, None, mask, commctrl.LVCF_TEXT)
+    mask, subItem = _GetMaskAndVal(subItem, 0, mask, commctrl.LVCF_SUBITEM)
+    mask, image = _GetMaskAndVal(image, 0, mask, commctrl.LVCF_IMAGE)
+    mask, order= _GetMaskAndVal(order, 0, mask, commctrl.LVCF_ORDER)
+    if text is None:
+        text_addr = text_len = 0
+    else:
+        text_buffer = array.array("c", text+"\0")
+        extra.append(text_buffer)
+        text_addr, text_len = text_buffer.buffer_info()
+    format = "iiiiiiii"
+    buf = struct.pack(format,
+                      mask, fmt, cx,
+                      text_addr, text_len, # text
+                      subItem, image, order)
+    return array.array("c", buf), extra
+
+# List view hit-test.
+def PackLVHITTEST(pt):
+    format = "iiiii"
+    buf = struct.pack(format,
+                      pt[0], pt[1],
+                      0, 0, 0)
+    return array.array("c", buf), None
+
+def UnpackLVHITTEST(buf):
+    format = "iiiii"
+    x, y, flags, item, subitem = struct.unpack(format, buf)
+    return (x,y), flags, item, subitem
