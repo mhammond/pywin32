@@ -44,8 +44,6 @@ class SyntEditDocument(EditorDocumentBase):
 		self._ApplyOptionalToViews("OnDebuggerStateChange", state)
 	def HookViewNotifications(self, view):
 		EditorDocumentBase.HookViewNotifications(self, view)
-		view.SetReadOnly(self._IsReadOnly())
-		view.SCISetSavePoint()
 		view.SCISetUndoCollection(1)
 	def FinalizeViewCreation(self, view):
 		EditorDocumentBase.FinalizeViewCreation(self, view)
