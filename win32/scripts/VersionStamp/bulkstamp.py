@@ -123,8 +123,7 @@ def scan(build, root, desc, **custom_vars ):
 
   vars, descriptions = load_descriptions(desc, varList)
   vars['build'] = build
-  if custom_vars is not None:
-	  vars.update(custom_vars)
+  vars.update(custom_vars)
 
   arg = vars, debug, descriptions
   os.path.walk(root, walk, arg)
