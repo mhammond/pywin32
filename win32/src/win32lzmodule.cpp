@@ -73,7 +73,7 @@ PyObject *ReturnLZError(char *fnName, long err = 0)
 static PyObject *
 PyGetExpandedName(PyObject *self, PyObject *args)
 {
-	char outName[_MAX_PATH];
+	char outName[_MAX_PATH+1];
 	char *nameIn;
 	if (!PyArg_ParseTuple(args, "s:GetExpandedName", &nameIn )) // @pyparm int|idControl||The Id of the control to be retrieved.
 		return NULL;
