@@ -10,10 +10,10 @@ RC = rc
 LD = link
 
 DIR_O =.
-DIR_BIN=..\bin
+DIR_BIN=../bin
 
-COMPONENT = $(DIR_BIN)\Scintilla.dll
-LEXCOMPONENT = $(DIR_BIN)\SciLexer.dll
+COMPONENT = $(DIR_BIN)/Scintilla.dll
+LEXCOMPONENT = $(DIR_BIN)/SciLexer.dll
 
 LDFLAGS = KERNEL32.lib USER32.lib GDI32.lib COMDLG32.lib WINMM.lib COMCTL32.lib ADVAPI32.lib IMM32.lib SHELL32.LIB OLE32.LIB
 INCLUDEDIRS=-I ../include -I ../src
@@ -33,11 +33,7 @@ LDFLAGS=/DEBUG $(LDFLAGS)
 ALL:	$(COMPONENT) $(LEXCOMPONENT) $(DIR_O)\ScintillaWinS.obj
 
 clean:
-	if exist $(DIR_O)\*.obj del $(DIR_O)\*.obj 
-	if exist $(COMPONENT) del $(COMPONENT) 
-	if exist $(LEXCOMPONENT) del $(LEXCOMPONENT)
-	if exist $(DIR_O)\*.res del $(DIR_O)\*.res
-	if exist $(DIR_BIN)\*.map del $(DIR_BIN)\*.map
+	del /q $(DIR_O)\*.obj $(COMPONENT) $(LEXCOMPONENT) $(DIR_O)\*.res $(DIR_BIN)\*.map
 
 SOBJS	= $(DIR_O)\ScintillaWin.obj $(DIR_O)\ScintillaBase.obj \
 	$(DIR_O)\Editor.obj $(DIR_O)\Document.obj \
@@ -59,9 +55,9 @@ LOBJS	= $(DIR_O)\ScintillaWinL.obj $(DIR_O)\ScintillaBaseL.obj \
 	$(DIR_O)\PropSet.obj
 
 $(DIR_O)\ScintRes.res : ScintRes.rc
-	$(RC) /r /Fo$@ $(*B).rc
+	$(RC) $(*B).rc /Fo$@
 
-$(LEXCOMPONENT): $(LOBJS) $(DIR_O)\ScintRes.res
+$(LEXCOMPONENT): $(LOBJS)
 	$(LD) /DLL /OUT:$(LEXCOMPONENT) $(LOBJS) $(DIR_O)\ScintRes.res $(LDFLAGS)
 	
 $(DIR_O)\Accessor.obj: ..\src\Accessor.cxx ..\include\Platform.h ..\include\PropSet.h ..\include\Accessor.h ..\include\Scintilla.h
