@@ -2,7 +2,7 @@
 
 import unittest
 
-import win32api, win32con
+import win32api, win32con, win32event
 
 class CurrentUserTestCase(unittest.TestCase):
     def testGetCurrentUser(self):
@@ -23,11 +23,11 @@ class TimeZone(unittest.TestCase):
         print "Next timezone change happens at", tz_time.Format()
 
 class Registry(unittest.TestCase):
+    key_name = r'PythonTestHarness\Whatever'
     def test1(self):
         # This used to leave a stale exception behind.
-        key_name = r'PythonTestHarness\Whatever'
         def reg_operation():
-            hkey = win32api.RegCreateKey(win32con.HKEY_CURRENT_USER, key_name)
+            hkey = win32api.RegCreateKey(win32con.HKEY_CURRENT_USER, self.key_name)
             x = 3/0 # or a statement like: raise 'error'
         # do the test
         try:
@@ -37,9 +37,30 @@ class Registry(unittest.TestCase):
                 except:
                     1/0 # Force exception
             finally:
-                win32api.RegDeleteKey(win32con.HKEY_CURRENT_USER, key_name)
+                win32api.RegDeleteKey(win32con.HKEY_CURRENT_USER, self.key_name)
         except ZeroDivisionError:
             pass
+    def testNotifyChange(self):
+        def change():
+            hkey = win32api.RegCreateKey(win32con.HKEY_CURRENT_USER, self.key_name)
+            try:
+                win32api.RegSetValue(hkey, None, win32con.REG_SZ, "foo")
+            finally:
+                win32api.RegDeleteKey(win32con.HKEY_CURRENT_USER, self.key_name)
+
+        evt = win32event.CreateEvent(None,0,0,None)
+        ## REG_NOTIFY_CHANGE_LAST_SET - values
+        ## REG_CHANGE_NOTIFY_NAME - keys
+        ## REG_NOTIFY_CHANGE_SECURITY - security descriptor
+        ## REG_NOTIFY_CHANGE_ATTRIBUTES
+        win32api.RegNotifyChangeKeyValue(win32con.HKEY_CURRENT_USER,1,win32api.REG_NOTIFY_CHANGE_LAST_SET,evt,True)
+        ret_code=win32event.WaitForSingleObject(evt,0)
+        # Should be no change.
+        self.failUnless(ret_code==win32con.WAIT_TIMEOUT)
+        change()
+        # Our event should now be in a signalled state.
+        ret_code=win32event.WaitForSingleObject(evt,0)
+        self.failUnless(ret_code==win32con.WAIT_OBJECT_0)
 
 if __name__ == '__main__':
     unittest.main()
