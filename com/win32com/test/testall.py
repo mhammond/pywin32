@@ -65,12 +65,7 @@ class PyCOMTest(TestCase):
 
 class PippoTest(TestCase):
     def testit(self):
-        # Execute pippo via python_d, so it can refcount check.
-        exe_dir = os.path.dirname(sys.executable)
-        python = os.path.join(exe_dir, "python_d.exe")
-        if not os.path.isfile(python):
-            print "Can't find python_d (but pippo would prefer it!)"
-            python = sys.executable
+        python = sys.executable
         fname = os.path.join(os.path.dirname(this_file), "testPippo.py")
         cmd = '%s "%s" 2>&1' % (python, fname)
         ExecuteSilentlyIfOK(cmd, self)
