@@ -229,6 +229,7 @@ static struct PyMethodDef PyHFC_methods[] = {
 	{"GetData",                 PyHFC::GetData, 1},	 // @pymeth |
 	{"GetServerVariable",       PyHFC::GetServerVariable, 1}, // @pymeth |
 	{"WriteClient",             PyHFC::WriteClient, 1},  // @pymeth |
+	{"write",				    PyHFC::WriteClient, 1},			 // @pymeth write|A synonym for WriteClient, this allows you to 'print >> fc'
 	{"SendResponseHeader",      PyHFC::SendResponseHeader, 1}, // @pymeth |
 	{NULL}
 };

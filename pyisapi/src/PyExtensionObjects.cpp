@@ -142,7 +142,8 @@ static struct PyMethodDef PyECB_methods[] = {
 	{"GetServerVariable",		PyECB::GetServerVariable, 1},	 // @pymeth GetServerVariable|
 	{"ReadClient",				PyECB::ReadClient, 1},			 // @pymeth ReadClient|
 	{"SendResponseHeaders",	    PyECB::SendResponseHeaders, 1},  	
-	{"DoneWithSession",	        PyECB::DoneWithSession, 1}, 
+	{"DoneWithSession",	        PyECB::DoneWithSession, 1},
+	{"close",                   PyECB::DoneWithSession, 1},     // @pymeth close|A synonym for DoneWithSession.
 	{"IsSessionActive",			PyECB::IsSessionActive,1},
 	{"Redirect",				PyECB::Redirect,1},
 	{"IsKeepAlive",				PyECB::IsKeepAlive,1},
