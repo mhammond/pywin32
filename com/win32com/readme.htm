@@ -1,51 +1,232 @@
-<HTML>
-<HEAD>
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
-<META NAME="Generator" CONTENT="Microsoft Word 97">
-<TITLE>win32com Readme</TITLE>
-<META NAME="Template" CONTENT="C:\Program Files\Microsoft Office\Office\html.dot">
-</HEAD>
-<BODY LINK="#0000ff" VLINK="#800080">
+<html xmlns:v="urn:schemas-microsoft-com:vml"
+xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
 
-<P><IMG SRC="html/image/pycom_blowing.gif" WIDTH=551 HEIGHT=99 ALT="Python and COM - Blowing the others away"></P>
-<H1>Python COM Extensions Readme </H1>
-<P>This is the readme for win32com. Please check out the <A HREF="html/docindex.html">win32com documentation index</A></P>
-<P><A HREF="win32com.txt">The release notes</A> is where we do a poor job of keeping a list of significant enhancements and changes at the C/C++ level (yeah, right!) and also contains the log from the source control system.</P>
-<P>The <A HREF="test/.">win32com\test directory</A> contains some interesting scripts (and a new <A HREF="test/readme.txt">readme.txt</A>). Although these are used for testing, they do show a variety of COM techniques.</P>
-<H3>Recent Changes</H3>
-<H4>win32all-127 fixes (includes win32all-126 which was never publicly released).</H4>
-<P>All Arrays of VARIANT's of type VT_UI1 are now converted to a <I>buffer</I> object rather than the previous list of integers.  In addition, a <I>buffer</I> object can be passed to COM and an array of type VT_UI1 will be created.  This type is often used when passing raw binary data, and this change is far more efficient for large data sets.  For example, if you have a string or array.array object holding binary data, you can use the <I>buffer()</I> built-in on the object to create a buffer object that will force the new behaviour.  <B>Note</B>:  This may break some code that uses arrays of this type, but after much soul-searching it was decided this new behaviour is worth the pain.</P>
-<P>A bug that caused the Active Scripting implementation to die has been fixed.  (Specifically, the implementation of to <I>IActiveScript::AddTypeLib()</I> was buggy)</P>
-<P>Active Scripting bug when using IE5 fixed (it has a method called "print" which messed us up)</P>
-<P>Error handling when setting erroneous properties on COM objects fixed.  There were cases where errors would not be reported.</P>
-<P>Threading bug that was exposed when using MTS has been fixed. Minor (but regular) memory leak plugged. Can now run for (nearly :-) ever under MTS with huge thread numbers.</P>
-<P>makepy has better support for objects that expose multiple IDispatch interfaces, Also sorts the list of type-libraries correctly, and hides libraries marked as hidden.</P>
-<P>COM now supports byref date arguments.</P>
-<H4>win32all-125 fixes.</H4>
-<P>Better support for DCOM via <CODE>win32com.client.DispathEx(progId, machineName=None, …)</CODE>. Small DCOM demo in <I>win32com\test\testDCOM.py</I>.</P>
-<P>Registration of COM servers has been made a little simpler, and the QuickStart has been changed to reflect this. Classes no longer need <I>_reg_class_spec_</I> or <I>_reg_desc_</I> attributes - the registration process now provides sensible defaults. Also note that if <I>_reg_class_spec_</I> is not specified, the PythonPath will also be modified when your server is loaded - this prevents the common problem of not having your COM server on the PythonPath. Note that if <I>_reg_class_spec_</I> is specified, the original behaviour remains - you must ensure the path is correct yourself.</P>
-<P>Type information has been upgraded. The Pythoncom core is now capable of creating COM Type Libraries. All left remaining is some Python programming, so expect this soon.</P>
-<P>Robin Becker has dramatically increased the speed of COM accessing certain objects (notably MSOffice) when not using <I>makepy</I>.</P>
-<P>See also the <A HREF="#OlderChanges">older changes</A>.</P>
-<H3>ActiveX Scripting </H3>
-<P>This release contains full support for Python as an ActiveX Scripting Engine and Host. Check out the <A HREF="../win32comext/axscript/demos/client/ie/demo.htm">ActiveX Scripting Demos</A> (which includes information on registering the engine)</P>
-<P>There is also support for Python as an ActiveX Scripting Host.</P>
-<P>Active Debugging seems to be fully functional.</P>
-<H3>Known bugs and problems...</H3>
-<P>Certain servers may hang at shutdown if all COM client objects not released - notably, MSOffice. Eg, if a Python program that is talking to excel raises an exception and exits, the Python program will be hung. There are no known leaks in win32com, but there is also no attempt at automatic object cleanup. All standard Python caveats about references apply! Note this is a "feature" of COM, and not a bug in win32com. You can use the function <I>pythoncom._GetInterfaceCount()</I> to determine how many COM objects are held by Python as your program terminates - this should return zero.</P>
-<H3><A NAME="OlderChanges">Even Older Changes</A></H3>
-<H4>Build 123 and earlier changes.</H4>
-<P>Active Debugging should now be <B><I>nearly</B></I> capable of debugging stand-alone Python scripts.<BR>
-Note that to use this feature you will need an Active Scripting debugger installed. Visual Interdev version 6 is one such debugger, or a free debugger can be found at <A HREF="http://msdn.microsoft.com/scripting">http://msdn.microsoft.com/scripting</A><BR>
-To debug Python scripts, use the following commands:</P>
-<PRE>from win32com.axscript import debugger
-debugger.Break()</PRE>
-<P>This currently has some problems – most notable is that modules imported after debugging has commenced does not work. It also occasionally crashes :-( So maybe using it isn't such a good idea after all :-)</P>
-<H4>Even older Changes</H4>
-<P>Active Debugging support has been improved greatly, and some bugs in Active Scripting have been resolved. Python scripts are fully debugging from MSIE, WSH, etc (havent tested ASP :-( Please let me know of any problems.)</P>
-<P>Couple of minor interfaces added. <I>win32com.shell.shell</I> has been filled out some more.</P>
-<I><P>pythoncom.CoUninitialize()</I> is no longer called automatically at shutdown. This seems to fix more problems than it causes, but if your COM program is hanging at shutdown, try adding an explicit call to this method just before you exit.</P>
-<P>Regressed back to the default COM threading model being "Apartment", as defaulting to "Free Threading" seems to break so many clients. <I>sys.coinit_flags</I> still allows you to dictate the behaviour before <I>pythoncom</I> is imported for the first time.</P>
-<I><P>makepy</I> generated files now have much better support for default values for arguments. Also attempted to remove some hacks related to "interface" descriptions in IDL file. Nothing should break, and my (now comprehensive) test suite runs to completion, but let me know of any problems with weird, custom IDL files.</P>
-<P>More changes to <I>makepy</I> to better support COM Constants. All external COM constants (eg, MSWord related constants) should now be available in <I>win32com.client.constants</I>. No old code should break, but in the future the "old style" of using COM constants will be removed. <A HREF="html/QuickStartClientCom.html">This is all documented in the Client Side Quick Start documentation</A>. Also made a few minor changes to the <I>bGuiProgress</I> param.</P></BODY>
-</HTML>
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 9">
+<meta name=Originator content="Microsoft Word 9">
+<link rel=File-List href="./readme_files/filelist.xml">
+<link rel=Edit-Time-Data href="./readme_files/editdata.mso">
+<!--[if !mso]>
+<style>
+v\:* {behavior:url(#default#VML);}
+o\:* {behavior:url(#default#VML);}
+w\:* {behavior:url(#default#VML);}
+.shape {behavior:url(#default#VML);}
+</style>
+<![endif]-->
+<title>win32com Readme</title>
+<style>
+<!--
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0cm;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+p
+	{font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+code
+	{mso-ascii-font-family:"Courier New";
+	mso-fareast-font-family:"Courier New";
+	mso-hansi-font-family:"Courier New";
+	mso-bidi-font-family:"Courier New";}
+pre
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	font-size:10.0pt;
+	font-family:"Courier New";
+	mso-fareast-font-family:"Courier New";}
+@page Section1
+	{size:595.3pt 841.9pt;
+	margin:72.0pt 90.0pt 72.0pt 90.0pt;
+	mso-header-margin:35.4pt;
+	mso-footer-margin:35.4pt;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+<meta name=Template content="C:\Program Files\Microsoft Office\Office\html.dot">
+</head>
+
+<body lang=EN-AU link=blue vlink=purple style='tab-interval:36.0pt'>
+
+<div class=Section1>
+
+<p><img width=551 height=99 id="_x0000_i1025" src="html\image\pycom_blowing.gif"
+alt="Python and COM - Blowing the others away"></p>
+
+<h1>Python COM Extensions Readme </h1>
+
+<p>This is the readme for win32com. Please check out the <a
+href="html\docindex.html">win32com documentation index</a></p>
+
+<p><a href="win32com.txt">The release notes</a> is where we do a poor job of
+keeping a list of significant enhancements and changes at the C/C++ level
+(yeah, right!) and also contains the log from the source control system.</p>
+
+<p>The <a href="test\.">win32com\test directory</a> contains some interesting
+scripts (and a new <a href="test\readme.txt">readme.txt</a>). Although these
+are used for testing, they do show a variety of COM techniques.</p>
+
+<h3>Recent Changes</h3>
+
+<h4>win32all-128 changes</h4>
+
+<p>We now have events working pretty well.<span style="mso-spacerun: yes"> 
+</span>NOTE:<span style="mso-spacerun: yes">  </span>This is still experimental
+– all feedback appreciated. <span style="mso-spacerun: yes"> </span>See the
+docstring for <i>win32com.client.DispatchWithEvents</i> and <i>win32com\test\testMSOfficeEvents.py</i>
+for more details and samples.</p>
+
+<p>Active Debugging support improved again.</p>
+
+<h4>win32all-127 fixes (includes win32all-126).</h4>
+
+<p>All Arrays of VARIANT's of type VT_UI1 are now converted to a <i>buffer</i>
+object rather than the previous list of integers. In addition, a <i>buffer</i>
+object can be passed to COM and an array of type VT_UI1 will be created. This
+type is often used when passing raw binary data, and this change is far more
+efficient for large data sets. For example, if you have a string or array.array
+object holding binary data, you can use the <i>buffer()</i> built-in on the
+object to create a buffer object that will force the new behaviour. <b>Note</b>:
+This may break some code that uses arrays of this type, but after much
+soul-searching it was decided this new behaviour is worth the pain.</p>
+
+<p>A bug that caused the Active Scripting implementation to die has been fixed.
+(Specifically, the implementation of to <i>IActiveScript::AddTypeLib()</i> was
+buggy)</p>
+
+<p>Active Scripting bug when using IE5 fixed (it has a method called
+&quot;print&quot; which messed us up)</p>
+
+<p>Error handling when setting erroneous properties on COM objects fixed. There
+were cases where errors would not be reported.</p>
+
+<p>Threading bug that was exposed when using MTS has been fixed. Minor (but
+regular) memory leak plugged. Can now run for (nearly :-) ever under MTS with
+huge thread numbers.</p>
+
+<p>makepy has better support for objects that expose multiple IDispatch
+interfaces, Also sorts the list of type-libraries correctly, and hides
+libraries marked as hidden.</p>
+
+<p>COM now supports byref date arguments.</p>
+
+<h4>win32all-125 fixes.</h4>
+
+<p>Better support for DCOM via <code><span style='font-size:10.0pt;font-family:
+"Courier New"'>win32com.client.DispathEx(progId, machineName=None, …)</span></code>.
+Small DCOM demo in <i>win32com\test\testDCOM.py</i>.</p>
+
+<p>Registration of COM servers has been made a little simpler, and the
+QuickStart has been changed to reflect this. Classes no longer need <i>_reg_class_spec_</i>
+or <i>_reg_desc_</i> attributes - the registration process now provides
+sensible defaults. Also note that if <i>_reg_class_spec_</i> is not specified,
+the PythonPath will also be modified when your server is loaded - this prevents
+the common problem of not having your COM server on the PythonPath. Note that
+if <i>_reg_class_spec_</i> is specified, the original behaviour remains - you
+must ensure the path is correct yourself.</p>
+
+<p>Type information has been upgraded. The Pythoncom core is now capable of
+creating COM Type Libraries. All left remaining is some Python programming, so
+expect this soon.</p>
+
+<p>Robin Becker has dramatically increased the speed of COM accessing certain
+objects (notably MSOffice) when not using <i>makepy</i>.</p>
+
+<p>See also the <a href="#OlderChanges">older changes</a>.</p>
+
+<h3>ActiveX Scripting </h3>
+
+<p>This release contains full support for Python as an ActiveX Scripting Engine
+and Host. Check out the <a
+href="..\win32comext\axscript\demos\client\ie\demo.htm">ActiveX Scripting Demos</a>
+(which includes information on registering the engine)</p>
+
+<p>There is also support for Python as an ActiveX Scripting Host.</p>
+
+<p>Active Debugging seems to be fully functional.</p>
+
+<h3>Known bugs and problems...</h3>
+
+<p>Certain servers may hang at shutdown if all COM client objects not released
+- notably, MSOffice. Eg, if a Python program that is talking to excel raises an
+exception and exits, the Python program will be hung. There are no known leaks
+in win32com, but there is also no attempt at automatic object cleanup. All
+standard Python caveats about references apply! Note this is a
+&quot;feature&quot; of COM, and not a bug in win32com. You can use the function
+<i>pythoncom._GetInterfaceCount()</i> to determine how many COM objects are
+held by Python as your program terminates - this should return zero.</p>
+
+<h3><a name=OlderChanges>Even Older Changes</a></h3>
+
+<h4>Build 123 and earlier changes.</h4>
+
+<p>Active Debugging should now be <b><i>nearly</i></b> capable of debugging
+stand-alone Python scripts.<br>
+Note that to use this feature you will need an Active Scripting debugger
+installed. Visual Interdev version 6 is one such debugger, or a free debugger
+can be found at <a href="http://msdn.microsoft.com/scripting">http://msdn.microsoft.com/scripting</a><br>
+To debug Python scripts, use the following commands:</p>
+
+<pre>from win32com.axscript import debugger</pre><pre>debugger.Break()</pre>
+
+<p>This currently has some problems – most notable is that modules imported
+after debugging has commenced does not work. It also occasionally crashes :-(
+So maybe using it isn't such a good idea after all :-)</p>
+
+<h4>Even older Changes</h4>
+
+<p>Active Debugging support has been improved greatly, and some bugs in Active
+Scripting have been resolved. Python scripts are fully debugging from MSIE,
+WSH, etc (havent tested ASP :-( Please let me know of any problems.)</p>
+
+<p>Couple of minor interfaces added. <i>win32com.shell.shell</i> has been filled
+out some more.</p>
+
+<p><i>pythoncom.CoUninitialize()</i> is no longer called automatically at
+shutdown. This seems to fix more problems than it causes, but if your COM
+program is hanging at shutdown, try adding an explicit call to this method just
+before you exit.</p>
+
+<p>Regressed back to the default COM threading model being
+&quot;Apartment&quot;, as defaulting to &quot;Free Threading&quot; seems to
+break so many clients. <i>sys.coinit_flags</i> still allows you to dictate the
+behaviour before <i>pythoncom</i> is imported for the first time.</p>
+
+<p><i>makepy</i> generated files now have much better support for default
+values for arguments. Also attempted to remove some hacks related to
+&quot;interface&quot; descriptions in IDL file. Nothing should break, and my
+(now comprehensive) test suite runs to completion, but let me know of any
+problems with weird, custom IDL files.</p>
+
+<p>More changes to <i>makepy</i> to better support COM Constants. All external
+COM constants (eg, MSWord related constants) should now be available in <i>win32com.client.constants</i>.
+No old code should break, but in the future the &quot;old style&quot; of using
+COM constants will be removed. <a href="html\QuickStartClientCom.html">This is
+all documented in the Client Side Quick Start documentation</a>. Also made a
+few minor changes to the <i>bGuiProgress</i> param.</p>
+
+</div>
+
+</body>
+
+</html>
