@@ -3,7 +3,8 @@ import sys, _winreg, os
 versions = {
     "2.1" : (r"..\python-2.1","Python21"),
     "2.2" : (r"..\python-2.2-cvs", "Python22"),
-    "2.3" : (r"..\python-cvs", None),
+    "2.3" : (r"..\python-2.3-cvs", "Python23"),
+    "2.4" : (r"..\python-cvs", None),
 }
 
 path_infos = (
