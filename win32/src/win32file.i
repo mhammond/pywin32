@@ -557,9 +557,50 @@ static PyObject *PySetFileTime (PyObject *self, PyObject *args)
 %}
 %native(SetFileTime) PySetFileTime;
 
+%{
+// @pyswig tuple|GetFileInformationByHandle|Retrieves file information for a specified file. 
+static PyObject *PyGetFileInformationByHandle(PyObject *self, PyObject *args)
+{
+	PyObject *obHandle;
+	BOOL rc;
+	BY_HANDLE_FILE_INFORMATION fi;
+	// @pyparm <o PyHANDLE>/int|handle||Handle to the file for which to obtain information.<nl>This handle should not be a pipe handle. The GetFileInformationByHandle function does not work with pipe handles.
+	if (!PyArg_ParseTuple(args, "O", &obHandle))
+		return NULL;
+	HANDLE handle;
+	if (!PyWinObject_AsHANDLE(obHandle, &handle))
+		return NULL;
+	Py_BEGIN_ALLOW_THREADS
+	memset(&fi, 0, sizeof(fi));
+	rc = GetFileInformationByHandle(handle, &fi);
+	Py_END_ALLOW_THREADS
+	if (!rc)
+		return PyWin_SetAPIError("GetFileInformationByHandle");
+	// @rdesc The result is a tuple of:
+	return Py_BuildValue("iNNNiiiiii",
+		fi.dwFileAttributes, // @tupleitem 0|int|dwFileAttributes|
+		PyWinObject_FromFILETIME(fi.ftCreationTime), // @tupleitem 1|<o PyTime>|ftCreationTime|
+		PyWinObject_FromFILETIME(fi.ftLastAccessTime),// @tupleitem 2|<o PyTime>|ftLastAccessTime|
+		PyWinObject_FromFILETIME(fi.ftLastWriteTime),// @tupleitem 3|<o PyTime>|ftLastWriteTime|
+		fi.dwVolumeSerialNumber,// @tupleitem 4|int|dwVolumeSerialNumber|
+		fi.nFileSizeHigh,// @tupleitem 5|int|nFileSizeHigh|
+		fi.nFileSizeLow,// @tupleitem 6|int|nFileSizeLow|
+		fi.nNumberOfLinks,// @tupleitem 7|int|nNumberOfLinks|
+		fi.nFileIndexHigh,// @tupleitem 8|int|nFileIndexHigh|
+		fi.nFileIndexLow);// @tupleitem 9|int|nFileIndexLow|
+	// @comm Depending on the underlying network components of the operating system and the type of server 
+	// connected to, the GetFileInformationByHandle function may fail, return partial information, 
+	// or full information for the given file. In general, you should not use GetFileInformationByHandle 
+	// unless your application is intended to be run on a limited set of operating system configurations.
+}
+
+%}
+%native(GetFileInformationByHandle) PyGetFileInformationByHandle;
+
+
 
 //GetFileAttributesEx	
-//GetFileInformationByHandle	
+
 
 #ifndef MS_WINCE
 %{
