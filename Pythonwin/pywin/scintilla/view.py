@@ -476,6 +476,9 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 	# here that is flushed upon file save
 	# Or maybe we don't need the superclass methods at all ?
 	def _UpdateWithClassMethods(self,dict,classinfo):
+		if not hasattr(classinfo,"methods"):
+			# No 'methods' - probably not what we think it is.
+			return
 		dict.update(classinfo.methods)
 		for super in classinfo.super:
 			if hasattr(super,"methods"):
