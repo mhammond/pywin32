@@ -1455,6 +1455,9 @@ HANDLE LoadImage(HINSTANCE hInst, RESOURCE_ID name, UINT type,
 #define	LR_SHARED	LR_SHARED
 #define	LR_VGACOLOR	LR_VGACOLOR
 
+// pyswig |DeleteObject||Deletes a logical pen, brush, font, bitmap, region, or palette, freeing all system resources associated with the object. After the object is deleted, the specified handle is no longer valid.
+BOOLAPI DeleteObject(HANDLE h); // @pyparm int|handle||handle to the object to delete.
+
 // @pyswig int|ImageList_Add|Adds an image or images to an image list. 
 // @rdesc Returns the index of the first new image if successful, or -1 otherwise. 
 int ImageList_Add(HIMAGELIST himl, // @pyswig int|himl||Handle to the image list. 
@@ -2133,7 +2136,7 @@ BOOL IsWindow(  HWND hWnd   // @pyparm int|hWnd||handle to window
 ); 
 
 // @pyswig |IsChild|Tests whether a window is a child window or descendant window of a specified parent window
-BOOL IsIconic(  
+BOOL IsChild(  
 	HWND hWndParent,   // @pyparm int|hWndParent||handle to parent window
 	HWND hWnd   // @pyparm int|hWnd||handle to window to test
 ); 
