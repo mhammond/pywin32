@@ -110,7 +110,9 @@ def _get_class_attributes(ob):
 	try:
 		items = items + dir(ob)
 		for i in ob.__bases__:
-			items = items + _get_class_attributes(i)
+			for item in _get_class_attributes(i):
+				if item not in items:
+					items.append(item)
 	except AttributeError:
 		pass
 	return items
