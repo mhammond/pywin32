@@ -255,6 +255,8 @@ static BOOL (WINAPI *csdtssd)(PSECURITY_DESCRIPTOR,DWORD,SECURITY_INFORMATION, L
 static BOOL (WINAPI *cssdtsd)(LPCTSTR,DWORD,PSECURITY_DESCRIPTOR*,PULONG) = NULL;
 static long (WINAPI *lsarpcn)(POLICY_NOTIFICATION_INFORMATION_CLASS,HANDLE) = NULL;
 static long (WINAPI *lsaupcn)(POLICY_NOTIFICATION_INFORMATION_CLASS,HANDLE) = NULL;
+static BOOL (WINAPI *cryptenumproviders)(DWORD, DWORD *, DWORD, DWORD *, LPTSTR, DWORD *) = NULL;
+
 
 BOOL CheckIfSupported(char *funcname, WCHAR *dllname, FARPROC *fp)
 {
@@ -357,7 +359,8 @@ BOOL CheckIfSupported(char *funcname, WCHAR *dllname, FARPROC *fp)
 		lsarpcn=(NTSTATUS (NTAPI *)(POLICY_NOTIFICATION_INFORMATION_CLASS,HANDLE))(fp);
 	if (CheckIfSupported("LsaUnregisterPolicyChangeNotification",_T("Secur32.dll"),&fp))
 		lsaupcn=(NTSTATUS (NTAPI *)(POLICY_NOTIFICATION_INFORMATION_CLASS,HANDLE))(fp);
-
+	if (CheckIfSupported("CryptEnumProvidersW", _T("Advapi32.dll"),&fp))
+		cryptenumproviders=(BOOL (WINAPI *)(DWORD, DWORD *, DWORD, DWORD *, LPTSTR, DWORD *))(fp);
 %}
 
 
@@ -2087,6 +2090,8 @@ static PyObject *PyLsaUnregisterPolicyChangeNotification(PyObject *self, PyObjec
 %{
 static PyObject *PyCryptEnumProviders(PyObject *self, PyObject *args)
 {
+	if (cryptenumproviders==NULL)
+		return PyErr_Format(PyExc_NotImplementedError,"CryptEnumProviders not supported by this version of Windows");
 	if (!PyArg_ParseTuple(args, ":CryptEnumProviders"))
 		return NULL; 
 	DWORD dwFlags=0, dwIndex=0, dwReserved=NULL, dwProvType=0, cbProvName=0;
@@ -2098,7 +2103,7 @@ static PyObject *PyCryptEnumProviders(PyObject *self, PyObject *args)
 	do{
 		cbProvName=0;
 		pszProvName=NULL;
-		succeeded = CryptEnumProviders(dwIndex, NULL, dwFlags, &dwProvType, NULL, &cbProvName);
+		succeeded = (*cryptenumproviders)(dwIndex, NULL, dwFlags, &dwProvType, NULL, &cbProvName);
 		if (!succeeded)
 			break;
 		// test breaking out of loop if out of memory
@@ -2110,7 +2115,7 @@ static PyObject *PyCryptEnumProviders(PyObject *self, PyObject *args)
 			PyErr_SetString(PyExc_MemoryError, "CryptEnumProviders: SOM");
 			return NULL;
 			}
-		succeeded = CryptEnumProviders(dwIndex, NULL, dwFlags, &dwProvType, pszProvName, &cbProvName);
+		succeeded = (*cryptenumproviders)(dwIndex, NULL, dwFlags, &dwProvType, pszProvName, &cbProvName);
 		if (!succeeded){
 			free(pszProvName);
 			break;
