@@ -49,7 +49,7 @@ CFG=win32com - Win32 Debug
 F90=df.exe
 CPP=cl.exe
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /Zi /O2 /I "win32com\src\include" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_WINDLL" /D "_AFXDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /D "STRICT" /D "_STRICT" /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /Zi /O2 /I "win32com\src\include" /I "..\win32\include" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_WINDLL" /D "_AFXDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /D "STRICT" /D "_STRICT" /Yu"stdafx.h" /FD /c
 MTL=midl.exe
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o /win32 "NUL"
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o /win32 "NUL"
@@ -61,7 +61,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386
-# ADD LINK32 ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e2a0000" /subsystem:windows /dll /pdb:"Build\System\pythoncom15.pdb" /debug /machine:I386 /def:".\win32com\src\PythonCOM.def" /out:"Build\System\pythoncom15.dll" /implib:"Build\pythoncom.lib"
+# ADD LINK32 ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e2a0000" /subsystem:windows /dll /pdb:"Build\System\pythoncom15.pdb" /debug /machine:I386 /def:".\win32com\src\PythonCOM.def" /out:"Build\System\pythoncom15.dll" /implib:"Build\pythoncom.lib" /libpath:"..\win32\build"
 # SUBTRACT LINK32 /pdb:none
 # Begin Custom Build - copy to system32
 ProjDir=.
@@ -91,7 +91,7 @@ SOURCE="$(InputPath)"
 F90=df.exe
 CPP=cl.exe
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MDd /W3 /GX /ZI /Od /I "win32com\src\include" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_WINDLL" /D "_AFXDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /D "STRICT" /D "_STRICT" /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MDd /W3 /GX /ZI /Od /I "win32com\src\include" /I "..\win32\include" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_WINDLL" /D "_AFXDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /D "STRICT" /D "_STRICT" /Yu"stdafx.h" /FD /c
 MTL=midl.exe
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o /win32 "NUL"
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o /win32 "NUL"
@@ -103,7 +103,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e2a0000" /subsystem:windows /dll /pdb:"Build\System\pythoncom15_d.pdb" /debug /machine:I386 /def:".\win32com\src\PythonCOM.def" /out:"Build\System\pythoncom15_d.dll" /implib:"Build\pythoncom_d.lib" /pdbtype:sept
+# ADD LINK32 ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e2a0000" /subsystem:windows /dll /pdb:"Build\System\pythoncom15_d.pdb" /debug /machine:I386 /def:".\win32com\src\PythonCOM.def" /out:"Build\System\pythoncom15_d.dll" /implib:"Build\pythoncom_d.lib" /pdbtype:sept /libpath:"..\win32\build"
 # SUBTRACT LINK32 /pdb:none
 # Begin Custom Build - copy to system32
 ProjDir=.
@@ -1831,7 +1831,6 @@ DEP_CPP_REGIS=\
 	".\win32com\src\include\PythonCOMRegister.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"PyIEnumConnections.h"\
 	
 NODEP_CPP_REGIS=\
 	".\angeobject.h"\
@@ -1863,6 +1862,7 @@ NODEP_CPP_REGIS=\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
+	".\yIEnumConnections.h"\
 	".\ymalloc.h"\
 	".\yproto.h"\
 	".\ys\stat.h"\
@@ -1907,7 +1907,6 @@ DEP_CPP_REGIS=\
 	".\win32com\src\include\PythonCOMRegister.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"PyIEnumConnections.h"\
 	
 NODEP_CPP_REGIS=\
 	".\angeobject.h"\
@@ -1942,6 +1941,7 @@ NODEP_CPP_REGIS=\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
+	".\yIEnumConnections.h"\
 	".\ymalloc.h"\
 	".\yproto.h"\
 	".\ysmodule.h"\
@@ -1982,7 +1982,9 @@ DEP_CPP_REGIS=\
 	".\win32com\src\include\PythonCOMRegister.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"PyIEnumConnections.h"\
+	
+NODEP_CPP_REGIS=\
+	".\yIEnumConnections.h"\
 	
 
 !ENDIF 
@@ -4678,7 +4680,6 @@ DEP_CPP_PYIENU=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"PyIEnumConnections.h"\
 	
 NODEP_CPP_PYIENU=\
 	".\angeobject.h"\
@@ -4710,6 +4711,7 @@ NODEP_CPP_PYIENU=\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
+	".\yIEnumConnections.h"\
 	".\ymalloc.h"\
 	".\yproto.h"\
 	".\ys\stat.h"\
@@ -4726,7 +4728,6 @@ DEP_CPP_PYIENU=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"PyIEnumConnections.h"\
 	
 NODEP_CPP_PYIENU=\
 	".\angeobject.h"\
@@ -4761,6 +4762,7 @@ NODEP_CPP_PYIENU=\
 	".\ydebug.h"\
 	".\yerrors.h"\
 	".\yfpe.h"\
+	".\yIEnumConnections.h"\
 	".\ymalloc.h"\
 	".\yproto.h"\
 	".\ysmodule.h"\
@@ -4778,7 +4780,9 @@ DEP_CPP_PYIENU=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"PyIEnumConnections.h"\
+	
+NODEP_CPP_PYIENU=\
+	".\yIEnumConnections.h"\
 	
 
 !ENDIF 
