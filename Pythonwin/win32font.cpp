@@ -64,10 +64,20 @@ PyCFont::create (PyObject *self, PyObject *args)
   return ui_assoc_object::make (PyCFont::type, pFont);
 }
 
+// @pymethod int|PyCFont|GetSafeHandle|Retrieves the HFONT for the font as an integer
+static PyObject *PyCFont_GetSafeHandle(PyObject *self, PyObject *args)
+{
+  CHECK_NO_ARGS2(args, "GetSafeHandle");
+  CFont *pFont = PyCFont::GetFont(self);
+  if (pFont==NULL) return NULL;
+  return PyInt_FromLong((long)pFont->GetSafeHandle());
+}
+
 // @object PyCFont|A windows font object.  Encapsulates an MFC <c CFont> class.
 // Derived from a <o PyCGDIObject>. 
 static struct PyMethodDef ui_font_methods[] =
 {
+ {"GetSafeHandle", PyCFont_GetSafeHandle, 1}, // @pymeth GetSafeHandle|Retrieves the HFONT for the font as an integer
  {NULL,			NULL}		// sentinel
 };
 
