@@ -379,16 +379,17 @@ typedef long SERVICE_STATUS_HANDLE
 	$target = &temp;
 }
 
+// @object SERVICE_STATUS|A Win32 service status object is represented by a tuple:
 %typemap(python,argout) SERVICE_STATUS *outServiceStatus {
 	Py_DECREF($target);
 	$target = Py_BuildValue("lllllll", 
-		$source->dwServiceType,
-		$source->dwCurrentState,
-		$source->dwControlsAccepted,
-		$source->dwWin32ExitCode,
-		$source->dwServiceSpecificExitCode,
-		$source->dwCheckPoint,
-		$source->dwWaitHint);
+		$source->dwServiceType, // @tupleitem 0|int|serviceType|The type of service.
+		$source->dwCurrentState, // @tupleitem 1|int|serviceState|The current state of the service.
+		$source->dwControlsAccepted, // @tupleitem 2|int|controlsAccepted|The controls the service accepts.
+		$source->dwWin32ExitCode, // @tupleitem 3|int|win32ExitCode|The win32 error code for the service.
+		$source->dwServiceSpecificExitCode, // @tupleitem 4|int|serviceSpecificErrorCode|The service specific error code.
+		$source->dwCheckPoint, // @tupleitem 5|int|checkPoint|The checkpoint reported by the service.
+		$source->dwWaitHint); // @tupleitem 6|int|waitHint|The wait hint reported by the service.
 }
 
 %typemap(python,in) SERVICE_STATUS *inServiceStatus (SERVICE_STATUS junk) {
@@ -424,16 +425,16 @@ SC_HANDLE OpenSCManager(
 // @pyswig |CloseServiceHandle|Closes a service handle
 BOOLAPI CloseServiceHandle(SC_HANDLE handle); // @pyparm int|scHandle||Handle to close
 
-// @pyswig statusObject|QueryServiceStatus|Queries a service status
+// @pyswig <o SERVICE_STATUS>|QueryServiceStatus|Queries a service status
 BOOLAPI QueryServiceStatus(SC_HANDLE handle, SERVICE_STATUS *outServiceStatus);
 // @pyparm int|scHandle||Handle to query
 
-// @pyswig statusObject|SetServiceStatus|Sets a service status
+// @pyswig <o SERVICE_STATUS>|SetServiceStatus|Sets a service status
 BOOLAPI SetServiceStatus(
 	SERVICE_STATUS_HANDLE hSCManager, // @pyparm int|scHandle||Handle to set
 	SERVICE_STATUS *inServiceStatus); // @pyparm object|serviceStatus||The new status
 
-// @pyswig statusObject|ControlService|Sends a control message to a service.
+// @pyswig <o SERVICE_STATUS>|ControlService|Sends a control message to a service.
 // @rdesc The result is the new service status.
 BOOLAPI ControlService(
     SC_HANDLE handle, // @pyparm int|scHandle||Handle to control
