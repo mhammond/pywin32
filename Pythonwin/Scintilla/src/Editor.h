@@ -45,7 +45,7 @@ public:
 	enum { wrapWidthInfinite = 0x7ffffff };
 	int maxLineLength;
 	int numCharsInLine;
-	enum validLevel { llInvalid, llPositions, llLines } validity;
+	enum validLevel { llInvalid, llCheckTextAndStyle, llPositions, llLines } validity;
 	int xHighlightGuide;
 	bool highlightColumn;
 	int selStart;
@@ -77,7 +77,7 @@ public:
 		}
 	}
 	void SetLineStart(int line, int start);
-	void SetBracesHighlight(Range rangeLine, Position braces[], 
+	void SetBracesHighlight(Range rangeLine, Position braces[],
 		char bracesMatchStyle, int xHighlight);
 	void RestoreBracesHighlight(Range rangeLine, Position braces[]);
 };
@@ -97,16 +97,16 @@ public:
 	LineLayoutCache();
 	virtual ~LineLayoutCache();
 	void Deallocate();
-	enum { 
-		llcNone=SC_CACHE_NONE, 
-		llcCaret=SC_CACHE_CARET, 
-		llcPage=SC_CACHE_PAGE, 
+	enum {
+		llcNone=SC_CACHE_NONE,
+		llcCaret=SC_CACHE_CARET,
+		llcPage=SC_CACHE_PAGE,
 		llcDocument=SC_CACHE_DOCUMENT
 	};
 	void Invalidate(LineLayout::validLevel validity_);
 	void SetLevel(int level_);
 	int GetLevel() { return level; }
-	LineLayout *Retrieve(int lineNumber, int lineCaret, int maxChars, int styleClock_, 
+	LineLayout *Retrieve(int lineNumber, int lineCaret, int maxChars, int styleClock_,
 		int linesOnScreen, int linesInDoc);
 	void Dispose(LineLayout *ll);
 };
@@ -259,8 +259,11 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	int xEndSelect;
 	bool primarySelection;
 
-	int caretPolicy;
-	int caretSlop;
+	int caretXPolicy;
+	int caretXSlop;	///< Ensure this many pixels visible on both sides of caret
+
+	int caretYPolicy;
+	int caretYSlop;	///< Ensure this many lines visible on both sides of caret
 
 	int visiblePolicy;
 	int visibleSlop;
@@ -304,6 +307,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	int LineFromLocation(Point pt);
 	void SetTopLine(int topLineNew);
 
+	bool AbandonPaint();
 	void RedrawRect(PRectangle rc);
 	void Redraw();
 	void RedrawSelMargin();
@@ -318,14 +322,14 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	void SetSelection(int currentPos_);
 	void SetEmptySelection(int currentPos_);
 	int MovePositionOutsideChar(int pos, int moveDir, bool checkLineEnd=true);
-	int MovePositionTo(int newPos, bool extend = false);
+	int MovePositionTo(int newPos, bool extend=false, bool ensureVisible=true);
 	int MovePositionSoVisible(int pos, int moveDir);
 	void SetLastXChosen();
 
 	void ScrollTo(int line);
 	virtual void ScrollText(int linesToMove);
 	void HorizontalScrollTo(int xPos);
-	void MoveCaretInsideView();
+	void MoveCaretInsideView(bool ensureVisible=true);
 	int DisplayFromPosition(int pos);
 	void EnsureCaretVisible(bool useMargin=true, bool vert=true, bool horiz=true);
 	void ShowCaretAtCurrentPosition();
@@ -338,7 +342,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	int SubstituteMarkerIfEmpty(int markerCheck, int markerDefault);
 	void PaintSelMargin(Surface *surface, PRectangle &rc);
 	LineLayout *RetrieveLineLayout(int lineNumber);
-	void LayoutLine(int line, Surface *surface, ViewStyle &vstyle, LineLayout *ll, 
+	void LayoutLine(int line, Surface *surface, ViewStyle &vstyle, LineLayout *ll,
 		int width=LineLayout::wrapWidthInfinite);
 	void DrawLine(Surface *surface, ViewStyle &vsDraw, int line, int lineVisible, int xStart,
 		PRectangle rcLine, LineLayout *ll, int subLine=0);
@@ -394,14 +398,15 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	void NotifyModified(Document *document, DocModification mh, void *userData);
 	void NotifyDeleted(Document *document, void *userData);
 	void NotifyStyleNeeded(Document *doc, void *userData, int endPos);
-	void NotifyMacroRecord(unsigned int iMessage, unsigned long wParam, long lParam);
+	void NotifyMacroRecord(unsigned int iMessage, uptr_t wParam, sptr_t lParam);
 
 	void PageMove(int direction, bool extend=false);
 	void ChangeCaseOfSelection(bool makeUpperCase);
 	void LineTranspose();
-    	virtual void CancelModes();
+	virtual void CancelModes();
 	void NewLine();
 	void CursorUpOrDown(int direction, bool extend=false);
+	int StartEndDisplayLine(int pos, bool start);
 	virtual int KeyCommand(unsigned int iMessage);
 	virtual int KeyDefault(int /* key */, int /*modifiers*/);
 	int KeyDown(int key, bool shift, bool ctrl, bool alt, bool *consumed=0);
@@ -411,9 +416,9 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 
 	void Indent(bool forwards);
 
-	long FindText(unsigned long wParam, long lParam);
+	long FindText(uptr_t wParam, sptr_t lParam);
 	void SearchAnchor();
-	long SearchText(unsigned int iMessage, unsigned long wParam, long lParam);
+	long SearchText(unsigned int iMessage, uptr_t wParam, sptr_t lParam);
 	long SearchInTarget(const char *text, int length);
 	void GoToLine(int lineNo);
 

@@ -32,6 +32,10 @@ The language specific properties files are also installed into this directory.
 If Gnome is installed then a .desktop file and icon are installed into the 
 correct Gnome places so that SciTE will be in the Gnome Applications menu.
 
+To build Scintilla for GTK+ 2, define GTK2 on the make command line:
+	make GTK2=1
+SciTE does not support GTK+ 2.
+
 To remove SciTE
 	make uninstall
 	

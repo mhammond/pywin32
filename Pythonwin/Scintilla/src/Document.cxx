@@ -354,7 +354,9 @@ bool Document::DeleteChars(int pos, int len) {
 		NotifyModifyAttempt();
 		enteredReadOnlyCount--;
 	}
-	if (enteredCount == 0) {
+	if (enteredCount != 0) {
+		return false;
+	} else {
 		enteredCount++;
 		if (!cb.IsReadOnly()) {
 			NotifyModified(
@@ -388,7 +390,9 @@ bool Document::InsertStyledString(int position, char *s, int insertLength) {
 		NotifyModifyAttempt();
 		enteredReadOnlyCount--;
 	}
-	if (enteredCount == 0) {
+	if (enteredCount != 0) {
+		return false;
+	} else {
 		enteredCount++;
 		if (!cb.IsReadOnly()) {
 			NotifyModified(
@@ -512,15 +516,16 @@ bool Document::InsertString(int position, const char *s) {
 }
 
 // Insert a string with a length
-bool Document::InsertString(int position, const char *s, int insertLength) {
+bool Document::InsertString(int position, const char *s, size_t insertLength) {
 	bool changed = false;
 	char *sWithStyle = new char[insertLength * 2];
 	if (sWithStyle) {
-		for (int i = 0; i < insertLength; i++) {
+		for (size_t i = 0; i < insertLength; i++) {
 			sWithStyle[i*2] = s[i];
 			sWithStyle[i*2 + 1] = 0;
 		}
-		changed = InsertStyledString(position*2, sWithStyle, insertLength*2);
+		changed = InsertStyledString(position*2, sWithStyle, 
+			static_cast<int>(insertLength*2));
 		delete []sWithStyle;
 	}
 	return changed;
@@ -822,8 +827,9 @@ class DocumentIndexer : public CharacterIndexer {
 	Document *pdoc;
 	int end;
 public:
-DocumentIndexer(Document *pdoc_, int end_) :
-	pdoc(pdoc_), end(end_) {}
+	DocumentIndexer(Document *pdoc_, int end_) :
+		pdoc(pdoc_), end(end_) {
+	}
 
 	virtual char CharAt(int index) {
 		if (index < 0 || index >= end)
@@ -928,7 +934,7 @@ long Document::FindText(int minPos, int maxPos, const char *s,
 		// Compute actual search ranges needed
 		int lengthFind = *length;
 		if (lengthFind == -1)
-			lengthFind = strlen(s);
+			lengthFind = static_cast<int>(strlen(s));
 		int endSearch = endPos;
 		if (startPos <= endPos) {
 			endSearch = endPos - lengthFind + 1;
@@ -1081,8 +1087,10 @@ void Document::StartStyling(int position, char mask) {
 	endStyled = position;
 }
 
-void Document::SetStyleFor(int length, char style) {
-	if (enteredCount == 0) {
+bool Document::SetStyleFor(int length, char style) {
+	if (enteredCount != 0) {
+		return false;
+	} else {
 		enteredCount++;
 		int prevEndStyled = endStyled;
 		if (cb.SetStyleFor(endStyled, length, style, stylingMask)) {
@@ -1092,26 +1100,32 @@ void Document::SetStyleFor(int length, char style) {
 		}
 		endStyled += length;
 		enteredCount--;
+		return true;
 	}
 }
 
-void Document::SetStyles(int length, char *styles) {
-	if (enteredCount == 0) {
+bool Document::SetStyles(int length, char *styles) {
+	if (enteredCount != 0) {
+		return false;
+	} else {
 		enteredCount++;
 		int prevEndStyled = endStyled;
 		bool didChange = false;
+		int lastChange = 0;
 		for (int iPos = 0; iPos < length; iPos++, endStyled++) {
 			PLATFORM_ASSERT(endStyled < Length());
 			if (cb.SetStyleAt(endStyled, styles[iPos], stylingMask)) {
 				didChange = true;
+				lastChange = iPos;
 			}
 		}
 		if (didChange) {
 			DocModification mh(SC_MOD_CHANGESTYLE | SC_PERFORMED_USER,
-			                   prevEndStyled, endStyled - prevEndStyled);
+			                   prevEndStyled, lastChange);
 			NotifyModified(mh);
 		}
 		enteredCount--;
+		return true;
 	}
 }
 
@@ -1121,10 +1135,11 @@ bool Document::EnsureStyledTo(int pos) {
 		if (styleClock > 0x100000) {
 			styleClock = 0;
 		}
+		// Ask the watchers to style, and stop as soon as one responds.
+		for (int i = 0; pos > GetEndStyled() && i < lenWatchers; i++) {
+			watchers[i].watcher->NotifyStyleNeeded(this, watchers[i].userData, pos);
+		}
 	}
-	// Ask the watchers to style, and stop as soon as one responds.
-	for (int i = 0; pos > GetEndStyled() && i < lenWatchers; i++)
-		watchers[i].watcher->NotifyStyleNeeded(this, watchers[i].userData, pos);
 	return pos <= GetEndStyled();
 }
 

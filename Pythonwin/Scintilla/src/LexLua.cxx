@@ -81,17 +81,19 @@ static void ColouriseLuaDoc(
 		sc.SetState(SCE_LUA_COMMENTLINE);
 	}
 	for (; sc.More(); sc.Forward()) {
-		// Handle line continuation generically.
-		if (sc.ch == '\\') {
-			if (sc.Match("\\\n")) {
+		if (sc.atLineStart && (sc.state == SCE_LUA_STRING)) {
+			// Prevent SCE_LUA_STRINGEOL from leaking back to previous line
+			sc.SetState(SCE_LUA_STRING);
+		}
+
+		// Handle string line continuation
+		if ((sc.state == SCE_LUA_STRING || sc.state == SCE_LUA_CHARACTER) &&
+				sc.ch == '\\') {
+			if (sc.chNext == '\n' || sc.chNext == '\r') {
 				sc.Forward();
-				sc.Forward();
-				continue;
-			}
-			if (sc.Match("\\\r\n")) {
-				sc.Forward();
-				sc.Forward();
-				sc.Forward();
+				if (sc.ch == '\r' && sc.chNext == '\n') {
+					sc.Forward();
+				}
 				continue;
 			}
 		}

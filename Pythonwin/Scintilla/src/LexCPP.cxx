@@ -79,13 +79,11 @@ static void ColouriseCppDoc(unsigned int startPos, int length, int initStyle, Wo
 
 		// Handle line continuation generically.
 		if (sc.ch == '\\') {
-			if (sc.Match("\\\n")) {
+			if (sc.chNext == '\n' || sc.chNext == '\r') {
 				sc.Forward();
-				continue;
-			}
-			if (sc.Match("\\\r\n")) {
-				sc.Forward();
-				sc.Forward();
+				if (sc.ch == '\r' && sc.chNext == '\n') {
+					sc.Forward();
+				}
 				continue;
 			}
 		}
@@ -115,7 +113,7 @@ static void ColouriseCppDoc(unsigned int startPos, int length, int initStyle, Wo
 					sc.SetState(SCE_C_DEFAULT);
 				}
 			} else {
-				if (sc.atLineEnd) {
+				if ((sc.atLineEnd) || (sc.Match('/', '*')) || (sc.Match('/', '/'))) {
 					sc.SetState(SCE_C_DEFAULT);
 				}
 			}
@@ -273,6 +271,7 @@ static bool IsStreamCommentStyle(int style) {
 static void FoldCppDoc(unsigned int startPos, int length, int initStyle, WordList *[],
                             Accessor &styler) {
 	bool foldComment = styler.GetPropertyInt("fold.comment") != 0;
+	bool foldPreprocessor = styler.GetPropertyInt("fold.preprocessor") != 0;
 	bool foldCompact = styler.GetPropertyInt("fold.compact", 1) != 0;
 	unsigned int endPos = startPos + length;
 	int visibleChars = 0;
@@ -295,6 +294,29 @@ static void FoldCppDoc(unsigned int startPos, int length, int initStyle, WordLis
 			} else if (!IsStreamCommentStyle(styleNext) && !atEOL) {
 				// Comments don't end at end of line and the next character may be unstyled.
 				levelCurrent--;
+			}
+		}
+		if (foldComment && (style == SCE_C_COMMENTLINE)) {
+			if ((ch == '/') && (chNext == '/')) {
+				char chNext2 = styler.SafeGetCharAt(i + 2);
+				if (chNext2 == '{') {
+					levelCurrent++;
+				} else if (chNext2 == '}') {
+					levelCurrent--;
+				}
+			}
+		}
+		if (foldPreprocessor && (style == SCE_C_PREPROCESSOR)) {
+			if (ch == '#') {
+				unsigned int j=i+1;
+				while ((j<endPos) && IsASpaceOrTab(styler.SafeGetCharAt(j))) {
+					j++;
+				}
+				if (styler.Match(j, "region") || styler.Match(j, "if")) {
+					levelCurrent++;
+				} else if (styler.Match(j, "end")) {
+					levelCurrent--;
+				}
 			}
 		}
 		if (style == SCE_C_OPERATOR) {

@@ -16,6 +16,7 @@
 #include <windows.h>
 #include <commctrl.h>
 #include <richedit.h>
+#include <windowsx.h>
 
 #include "Platform.h"
 #include "PlatformRes.h"
@@ -496,7 +497,7 @@ void SurfaceImpl::DrawTextNoClip(PRectangle rc, Font &font_, int ybase, const ch
 	RECT rcw = RectFromPRectangle(rc);
 	if (unicodeMode) {
 		wchar_t tbuf[MAX_US_LEN];
-		int tlen = UCS2FromUTF8(s, len, tbuf, sizeof(tbuf)/sizeof(wchar_t));
+		int tlen = UCS2FromUTF8(s, len, tbuf, sizeof(tbuf)/sizeof(wchar_t)-1);
 		tbuf[tlen] = L'\0';
 		::ExtTextOutW(hdc, rc.left, ybase, ETO_OPAQUE, &rcw, tbuf, tlen, NULL);
 	} else {
@@ -512,7 +513,7 @@ void SurfaceImpl::DrawTextClipped(PRectangle rc, Font &font_, int ybase, const c
 	RECT rcw = RectFromPRectangle(rc);
 	if (unicodeMode) {
 		wchar_t tbuf[MAX_US_LEN];
-		int tlen = UCS2FromUTF8(s, len, tbuf, sizeof(tbuf)/sizeof(wchar_t));
+		int tlen = UCS2FromUTF8(s, len, tbuf, sizeof(tbuf)/sizeof(wchar_t)-1);
 		tbuf[tlen] = L'\0';
 		::ExtTextOutW(hdc, rc.left, ybase, ETO_OPAQUE | ETO_CLIPPED, &rcw, tbuf, tlen, NULL);
 	} else {
@@ -525,7 +526,7 @@ int SurfaceImpl::WidthText(Font &font_, const char *s, int len) {
 	SIZE sz={0,0};
 	if (unicodeMode) {
 		wchar_t tbuf[MAX_US_LEN];
-		int tlen = UCS2FromUTF8(s, len, tbuf, sizeof(tbuf)/sizeof(wchar_t));
+		int tlen = UCS2FromUTF8(s, len, tbuf, sizeof(tbuf)/sizeof(wchar_t)-1);
 		tbuf[tlen] = L'\0';
 		::GetTextExtentPoint32W(hdc, tbuf, tlen, &sz);
 	} else {
@@ -540,7 +541,7 @@ void SurfaceImpl::MeasureWidths(Font &font_, const char *s, int len, int *positi
 	int fit = 0;
 	if (unicodeMode) {
 		wchar_t tbuf[MAX_US_LEN];
-		int tlen = UCS2FromUTF8(s, len, tbuf, sizeof(tbuf)/sizeof(wchar_t));
+		int tlen = UCS2FromUTF8(s, len, tbuf, sizeof(tbuf)/sizeof(wchar_t)-1);
 		tbuf[tlen] = L'\0';
 		int poses[MAX_US_LEN];
 		fit = tlen;
@@ -557,7 +558,7 @@ void SurfaceImpl::MeasureWidths(Font &font_, const char *s, int len, int *positi
 		int ui=0;
 		const unsigned char *us = reinterpret_cast<const unsigned char *>(s);
 		int i=0;
-		while (i<len) {
+		while (i<fit) {
 			unsigned char uch = us[i];
 			positions[i++] = poses[ui];
 			if (uch >= 0x80) {
@@ -569,6 +570,12 @@ void SurfaceImpl::MeasureWidths(Font &font_, const char *s, int len, int *positi
 				}
 			}
 			ui++;
+		}
+		int lastPos = 0;
+		if (i > 0)
+			lastPos = positions[i-1];
+		while (i<len) {
+			positions[i++] = lastPos;
 		}
 	} else {
 		if (!::GetTextExtentExPoint(hdc, s, len, 30000, &fit, positions, &sz)) {
@@ -769,8 +776,7 @@ ListBox::~ListBox() {
 }
 
 void ListBox::Create(Window &parent, int ctrlID) {
-	HINSTANCE hinstanceParent = reinterpret_cast<HINSTANCE>(
-		::GetWindowLong(reinterpret_cast<HWND>(parent.GetID()),GWL_HINSTANCE));
+	HINSTANCE hinstanceParent = GetWindowInstance(reinterpret_cast<HWND>(parent.GetID()));
 	id = ::CreateWindowEx(
 		WS_EX_WINDOWEDGE, "listbox", "",
 		WS_CHILD | WS_THICKFRAME | WS_VSCROLL | LBS_NOTIFY,
@@ -816,7 +822,7 @@ void ListBox::Clear() {
 
 void ListBox::Append(char *s) {
 	Window_SendMessage(this, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(s));
-	size_t len = strlen(s);
+	unsigned int len = static_cast<unsigned int>(strlen(s));
 	if (maxItemCharacters < len)
 		maxItemCharacters = len;
 }
@@ -957,6 +963,11 @@ bool Platform::IsKeyDown(int key) {
 
 long Platform::SendScintilla(WindowID w, unsigned int msg, unsigned long wParam, long lParam) {
 	return ::SendMessage(reinterpret_cast<HWND>(w), msg, wParam, lParam);
+}
+
+long Platform::SendScintillaPointer(WindowID w, unsigned int msg, unsigned long wParam, void *lParam) {
+	return ::SendMessage(reinterpret_cast<HWND>(w), msg, wParam, 
+		reinterpret_cast<LPARAM>(lParam));
 }
 
 bool Platform::IsDBCSLeadByte(int codePage, char ch) {

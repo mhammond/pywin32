@@ -35,12 +35,14 @@ CC=cl
 RC=rc
 LD=link
 
-CXXFLAGS=-Zi -TP -W4 -Zc:forScope -Zc:wchar_t
+#-Zc:forScope -Zc:wchar_t
+CXXFLAGS=-Zi -TP -W4
 # For something scary:-Wp64
 CXXDEBUG=-Od -MTd -DDEBUG
-CXXNDEBUG=-O1 -MT -DNDEBUG -GL
+CXXNDEBUG=-O1 -MT -DNDEBUG
 NAME=-Fo
-LDFLAGS=-OPT:NOWIN98 -OPT:REF -LTCG -DEBUG
+# If you have problems with lexers being linked, try removing -OPT:REF and replacing with -OPT:NOREF
+LDFLAGS=-OPT:NOWIN98 -OPT:REF
 LDDEBUG=
 LIBS=KERNEL32.lib USER32.lib GDI32.lib IMM32.lib OLE32.LIB
 NOLOGO=-nologo

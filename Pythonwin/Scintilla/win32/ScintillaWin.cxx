@@ -16,6 +16,7 @@
 #include <windows.h>
 #include <commctrl.h>
 #include <richedit.h>
+#include <windowsx.h>
 
 #include "Platform.h"
 
@@ -139,7 +140,7 @@ public:
  */
 class ScintillaWin :
 	public ScintillaBase {
-
+		
 	bool lastKeyDownConsumed;
 
 	bool capturedMouse;
@@ -174,9 +175,8 @@ class ScintillaWin :
 		    HWND hWnd, UINT iMessage, WPARAM wParam, sptr_t lParam);
 
 	virtual void StartDrag();
-	sptr_t WndPaint(unsigned long wParam);
+	sptr_t WndPaint(uptr_t wParam);
 	sptr_t HandleComposition(uptr_t wParam, sptr_t lParam);
-	virtual sptr_t WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam);
 	virtual sptr_t DefWndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam);
 	virtual void SetTicking(bool on);
 	virtual void SetMouseCapture(bool on);
@@ -211,6 +211,9 @@ class ScintillaWin :
 	void FullPaint();
 
 public:
+	// Public for benefit of Scintilla_DirectFunction
+	virtual sptr_t WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam);
+
 	/// Implement IUnknown
 	STDMETHODIMP QueryInterface(REFIID riid, PVOID *ppv);
 	STDMETHODIMP_(ULONG)AddRef();
@@ -356,14 +359,14 @@ static int KeyTranslate(int keyIn) {
 	}
 }
 
-LRESULT ScintillaWin::WndPaint(unsigned long wParam) {
+LRESULT ScintillaWin::WndPaint(uptr_t wParam) {
 	//ElapsedTime et;
 
 	// Redirect assertions to debug output and save current state
 	bool assertsPopup = Platform::ShowAssertionPopUps(false);
 	paintState = painting;
 	PAINTSTRUCT ps;
-	PAINTSTRUCT* pps;
+	PAINTSTRUCT *pps;
 
 	bool IsOcxCtrl = (wParam != 0); // if wParam != 0, it contains
 								   // a PAINSTRUCT* from the OCX
@@ -376,8 +379,8 @@ LRESULT ScintillaWin::WndPaint(unsigned long wParam) {
 	AutoSurface surfaceWindow(pps->hdc, IsUnicodeMode());
 	if (surfaceWindow) {
 		rcPaint = PRectangle(pps->rcPaint.left, pps->rcPaint.top, pps->rcPaint.right, pps->rcPaint.bottom);
-		PRectangle rcText = GetTextRectangle();
-		paintingAllText = rcPaint.Contains(rcText);
+		PRectangle rcClient = GetClientRectangle();
+		paintingAllText = rcPaint.Contains(rcClient);
 		if (paintingAllText) {
 			//Platform::DebugPrintf("Performing full text paint\n");
 		} else {
@@ -580,7 +583,7 @@ sptr_t ScintillaWin::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam
 		//	Platform::IsKeyDown(VK_SHIFT),
 		//	Platform::IsKeyDown(VK_CONTROL),
 		//	Platform::IsKeyDown(VK_MENU));
-		ButtonDown(Point::FromLong(lParam), ::GetTickCount(),
+		ButtonDown(Point::FromLong(lParam), ::GetMessageTime(),
 			(wParam & MK_SHIFT) != 0, 
 			(wParam & MK_CONTROL) != 0, 
 			Platform::IsKeyDown(VK_MENU));
@@ -593,7 +596,7 @@ sptr_t ScintillaWin::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam
 
 	case WM_LBUTTONUP:
 		ButtonUp(Point::FromLong(lParam), 
-			::GetTickCount(), 
+			::GetMessageTime(), 
 			(wParam & MK_CONTROL) != 0);
 		break;
 
@@ -677,7 +680,7 @@ sptr_t ScintillaWin::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam
 		break;
 
 	case WM_PALETTECHANGED:
-		if (wParam != reinterpret_cast<unsigned int>(MainHWND())) {
+		if (wParam != reinterpret_cast<uptr_t>(MainHWND())) {
 			//Platform::DebugPrintf("** Palette Changed\n");
 			RealizeWindowPalette(true);
 		}
@@ -838,7 +841,7 @@ void ScintillaWin::SetTicking(bool on) {
 		if (timer.ticking) {
 			timer.tickerID = reinterpret_cast<TickerID>(::SetTimer(MainHWND(), 1, timer.tickSize, NULL));
 		} else {
-			::KillTimer(MainHWND(), reinterpret_cast<UINT>(timer.tickerID));
+			::KillTimer(MainHWND(), reinterpret_cast<uptr_t>(timer.tickerID));
 			timer.tickerID = 0;
 		}
 	}
@@ -1060,7 +1063,7 @@ void ScintillaWin::CreateCallTipWindow(PRectangle) {
 	ct.wCallTip = ::CreateWindow(callClassName, "ACallTip",
 				     WS_VISIBLE | WS_CHILD, 100, 100, 150, 20,
 				     MainHWND(), reinterpret_cast<HMENU>(idCallTip),
-				     reinterpret_cast<HINSTANCE>(::GetWindowLong(MainHWND(),GWL_HINSTANCE)),
+				     GetWindowInstance(MainHWND()),
 				     &ct);
 	ct.wDraw = ct.wCallTip;
 #endif
@@ -1443,6 +1446,7 @@ void ScintillaWin::ImeEndComposition() {
 }
 
 void ScintillaWin::AddCharBytes(char b0, char b1) {
+
 	int inputCodePage = InputCodePage();
 	if (inputCodePage && IsUnicodeMode()) {
 		char utfval[4]="\0\0\0";
@@ -1461,7 +1465,7 @@ void ScintillaWin::AddCharBytes(char b0, char b1) {
 		dbcsChars[0] = b0;
 		dbcsChars[1] = b1;
 		dbcsChars[2] = '\0';
-		AddCharUTF(dbcsChars, strlen(dbcsChars), true);
+		AddCharUTF(dbcsChars, 2, true);
 	} else {
 		AddChar(b0);
 	}
@@ -1590,7 +1594,7 @@ void ScintillaWin::RealizeWindowPalette(bool inBackGround) {
  */
 void ScintillaWin::FullPaint() {
 	paintState = painting;
-	rcPaint = GetTextRectangle();
+	rcPaint = GetClientRectangle();
 	paintingAllText = true;
 	HDC hdc = ::GetDC(MainHWND());
 	AutoSurface surfaceWindow(hdc, IsUnicodeMode());
@@ -1877,18 +1881,34 @@ bool ScintillaWin::Unregister() {
 	return result;
 }
 
+// Take care of 32/64 bit pointers
+#ifdef GetWindowLongPtr
+static void *PointerFromWindow(HWND hWnd) {
+	return reinterpret_cast<void *>(::GetWindowLongPtr(hWnd, 0));
+}
+static void SetWindowPointer(HWND hWnd, void *ptr) {
+	::SetWindowLongPtr(hWnd, 0, reinterpret_cast<LONG_PTR>(ptr));
+}
+#else
+static void *PointerFromWindow(HWND hWnd) {
+	return reinterpret_cast<void *>(::GetWindowLong(hWnd, 0));
+}
+static void SetWindowPointer(HWND hWnd, void *ptr) {
+	::SetWindowLong(hWnd, 0, reinterpret_cast<LONG>(ptr));
+}
+#endif
+
 sptr_t PASCAL ScintillaWin::CTWndProc(
     HWND hWnd, UINT iMessage, WPARAM wParam, sptr_t lParam) {
 
 	// Find C++ object associated with window.
-	CallTip *ctp = reinterpret_cast<CallTip *>(GetWindowLong(hWnd, 0));
+	CallTip *ctp = reinterpret_cast<CallTip *>(PointerFromWindow(hWnd));
 	// ctp will be zero if WM_CREATE not seen yet
 	if (ctp == 0) {
 		if (iMessage == WM_CREATE) {
 			// Associate CallTip object with window
 			CREATESTRUCT *pCreate = reinterpret_cast<CREATESTRUCT *>(lParam);
-			::SetWindowLong(hWnd, 0,
-			              reinterpret_cast<LONG>(pCreate->lpCreateParams));
+			SetWindowPointer(hWnd, pCreate->lpCreateParams);
 			return 0;
 		} else {
 			return ::DefWindowProc(hWnd, iMessage, wParam, lParam);
@@ -1918,18 +1938,23 @@ sptr_t ScintillaWin::DirectFunction(
 	return sci->WndProc(iMessage, wParam, lParam);
 }
 
+extern "C" __declspec(dllexport) sptr_t __stdcall Scintilla_DirectFunction(
+    ScintillaWin *sci, UINT iMessage, uptr_t wParam, sptr_t lParam) {
+	return sci->WndProc(iMessage, wParam, lParam);
+}
+
 sptr_t PASCAL ScintillaWin::SWndProc(
     HWND hWnd, UINT iMessage, WPARAM wParam, sptr_t lParam) {
 	//Platform::DebugPrintf("S W:%x M:%x WP:%x L:%x\n", hWnd, iMessage, wParam, lParam);
 
 	// Find C++ object associated with window.
-	ScintillaWin *sci = reinterpret_cast<ScintillaWin *>(::GetWindowLong(hWnd, 0));
+	ScintillaWin *sci = reinterpret_cast<ScintillaWin *>(PointerFromWindow(hWnd));
 	// sci will be zero if WM_CREATE not seen yet
 	if (sci == 0) {
 		if (iMessage == WM_CREATE) {
 			// Create C++ object associated with window
 			sci = new ScintillaWin(hWnd);
-			::SetWindowLong(hWnd, 0, reinterpret_cast<LONG>(sci));
+			SetWindowPointer(hWnd, sci);
 			return sci->WndProc(iMessage, wParam, lParam);
 		} else {
 			return ::DefWindowProc(hWnd, iMessage, wParam, lParam);
