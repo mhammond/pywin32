@@ -147,6 +147,9 @@ typedef long HGDIOBJ
 %apply HWND {long};
 typedef long HWND
 
+%apply HFONT {long};
+typedef long HFONT
+
 %apply HDC {long};
 typedef long HDC
 
@@ -969,9 +972,21 @@ static PyObject *PyEnumFontFamilies(PyObject *self, PyObject *args)
 
 }
 %}
+
+%typemap(python,in) LOGFONT *{
+	if (!PyLOGFONT_Check($source))
+		return PyErr_Format(PyExc_TypeError, "Must be a LOGFONT object (got %s)",
+		                    $source->ob_type->tp_name);
+	$target = &(((PyLOGFONT *)$source)->m_LOGFONT);
+}
+
 // @pyswig <o PyLOGFONT>|LOGFONT|Creates a LOGFONT object.
 %native (LOGFONT) MakeLOGFONT;
 %native (EnumFontFamilies) PyEnumFontFamilies;
+
+// @pyswig int|CreateFontIndirect|function creates a logical font that has the specified characteristics.
+// The font can subsequently be selected as the current font for any device context.
+HFONT CreateFontIndirect(LOGFONT *lf);
 
 %{
 // @pyswig object|GetObject|
@@ -1973,6 +1988,9 @@ BOOLAPI ImageList_Destroy(HIMAGELIST himl);
 // @pyswig BOOL |ImageList_Draw|Draw an image on an HDC
 BOOLAPI ImageList_Draw(HIMAGELIST himl,int i,HDC hdcDst, int x, int y, UINT fStyle);
 
+// @pyswig BOOL |ImageList_DrawEx|Draw an image on an HDC
+BOOLAPI ImageList_DrawEx(HIMAGELIST himl,int i,HDC hdcDst, int x, int y, int dx, int dy, COLORREF rgbBk, COLORREF rgbFg, UINT fStyle);
+
 #define	ILD_BLEND25	ILD_BLEND25
 #define	ILD_FOCUS	ILD_FOCUS
 #define	ILD_BLEND50	ILD_BLEND50
@@ -2007,6 +2025,14 @@ int ImageList_ReplaceIcon(HIMAGELIST himl, int i, HICON hicon);
 
 // @pyswig COLORREF|ImageList_SetBkColor|Set the background color for the imagelist
 COLORREF ImageList_SetBkColor(HIMAGELIST himl,COLORREF clrbk);
+
+// @pyswig |ImageList_SetOverlayImage|Adds a specified image to the list of images to be used as overlay masks. An image list can have up to four overlay masks in version 4.70 and earlier and up to 15 in version 4.71. The function assigns an overlay mask index to the specified image. 
+BOOLAPI ImageList_SetOverlayImage(
+    HIMAGELIST himl, // @pyparm int|hImageList||
+    int iImage, // @pyparm int|iImage||
+    int iOverlay // @pyparm int|iOverlay||
+);
+
 
 #define	CLR_NONE	CLR_NONE
 
@@ -2838,15 +2864,29 @@ BOOLAPI GetMenuInfo(
 );
 
 
+// @pyswig |DrawFocusRect|
 BOOLAPI DrawFocusRect(HDC hDC,  RECT *INPUT);
+// @pyswig |DrawText|
 int DrawText(HDC hDC, LPCTSTR lpString, int nCount, RECT *INPUT, UINT uFormat);
+// @pyswig |SetTextColor|
+int SetTextColor(HDC hdc, COLORREF color);
+// @pyswig |SetBkMode|
+int SetBkMode(HDC hdc, int mode);
+// @pyswig |DrawEdge|
 BOOLAPI DrawEdge(HDC hdc, RECT *INPUT, UINT edge, UINT grfFlags); 
+// @pyswig |FillRect|
 int FillRect(HDC hDC,   RECT *INPUT, HBRUSH hbr);
+// @pyswig |CreateSolidBrush|
 HBRUSH CreateSolidBrush(COLORREF color);
+// @pyswig |GetSysColor|
 DWORD GetSysColor(int nIndex);
+// @pyswig |GetSysColorBrush|
 HBRUSH GetSysColorBrush(int nIndex);
+// @pyswig |InvalidateRect|
 BOOLAPI InvalidateRect(HWND hWnd,  RECT *INPUT_NULLOK , BOOL bErase);
+// @pyswig |FrameRect|
 int FrameRect(HDC hDC,   RECT *INPUT, HBRUSH hbr);
+// @pyswig |GetUpdateRgn|
 int GetUpdateRgn(HWND hWnd, HRGN hRgn, BOOL bErase);
 
 // @pyswig hdc, paintstruct|BeginPaint|
