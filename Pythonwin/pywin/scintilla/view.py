@@ -21,7 +21,8 @@ import struct
 import re
 import os
 
-is_platform_unicode = win32api.GetVersionEx()[3] == win32con.VER_PLATFORM_WIN32_NT
+import __builtin__
+is_platform_unicode = hasattr(__builtin__, "unicode") and win32api.GetVersionEx()[3] == win32con.VER_PLATFORM_WIN32_NT
 
 PRINTDLGORD = 1538
 IDC_PRINT_MAG_EDIT = 1010
