@@ -32,7 +32,7 @@ def GetItemText(item):
 	else:
 		return repr(item)
 
-	
+
 class HierDialog(dialog.Dialog):
 	def __init__(self, title, hierList, bitmapID = win32ui.IDB_HIERFOLDERS, dlgID = win32ui.IDD_TREE, dll = None, childListBoxID = win32ui.IDC_LIST1):
 		dialog.Dialog.__init__(self, dlgID, dll )	# reuse this dialog.
@@ -87,11 +87,14 @@ class HierList(object.Object):
 		if self.root:
 			self.AcceptRoot(self.root)
 
-	def HierTerm(self):
+	def DeleteAllItems(self):
 		self.list.DeleteAllItems()
 		self.root = None
 		self.itemHandleMap = {}
 		self.filledItemHandlesMap = {}
+		
+	def HierTerm(self):
+		self.DeleteAllItems()
 		parent = self.GetParentFrame()
 		parent.HookNotify(None, commctrl.TVN_ITEMEXPANDING)
 		parent.HookNotify(None, commctrl.TVN_SELCHANGED)
@@ -124,25 +127,89 @@ class HierList(object.Object):
 
 	def AddSubList(self, parentHandle, subItems):
 		for item in subItems:
-			text = self.GetText(item)
+			self.AddItem(parentHandle, item)
+
+	def AddItem(self, parentHandle, item, hInsertAfter = commctrl.TVI_LAST):
+		text = self.GetText(item)
 #			hitem = self.list.InsertItem(text, 0, 1)
-			if self.IsExpandable(item):
-				cItems = 1 # Trick it !!
-			else:
-				cItems = 0
-			bitmapCol = self.GetBitmapColumn(item)
-			bitmapSel = self.GetSelectedBitmapColumn(item)
-			if bitmapSel is None: bitmapSel = bitmapCol
-			hitem = self.list.InsertItem(parentHandle, commctrl.TVI_LAST, (None, None, None, text, bitmapCol, bitmapSel, cItems, 0))
-			self.itemHandleMap[hitem] = item
-	
+		if self.IsExpandable(item):
+			cItems = 1 # Trick it !!
+		else:
+			cItems = 0
+		bitmapCol = self.GetBitmapColumn(item)
+		bitmapSel = self.GetSelectedBitmapColumn(item)
+		if bitmapSel is None: bitmapSel = bitmapCol
+		hitem = self.list.InsertItem(parentHandle, hInsertAfter, (None, None, None, text, bitmapCol, bitmapSel, cItems, 0))
+		self.itemHandleMap[hitem] = item
+		return hitem
+
+	def _GetChildHandles(self, handle):
+		ret = []
+		try:
+			handle = self.list.GetChildItem(handle)
+			while 1:
+				ret.append(handle)
+				handle = self.list.GetNextItem(handle, commctrl.TVGN_NEXT)
+		except win32ui.error:
+			# out of children
+			pass
+		return ret
 	def ItemFromHandle(self, handle):
 		return self.itemHandleMap[handle]
 
+	def Refresh(self, hparent = None):
+		# Attempt to refresh the given item's sub-entries, but maintain the tree state
+		# (ie, the selected item, expanded items, etc)
+		if hparent is None: hparent = commctrl.TVI_ROOT
+		if not self.filledItemHandlesMap.has_key(hparent):
+			# This item has never been expanded, so no refresh can possibly be required.
+			return
+		root_item = self.itemHandleMap[hparent]
+		old_handles = self._GetChildHandles(hparent)
+		old_items = map( self.ItemFromHandle, old_handles )
+		new_items = self.GetSubList(root_item)
+		# Now an inefficient technique for synching the items.
+		inew = 0
+		hAfter = commctrl.TVI_FIRST
+		for iold in range(len(old_items)):
+			inewlook = inew
+			matched = 0
+			while inewlook < len(new_items):
+				if old_items[iold] == new_items[inewlook]:
+					matched = 1
+					break
+				inewlook = inewlook + 1
+			if matched:
+				# Insert the new items.
+#				print "Inserting after", old_items[iold], old_handles[iold]
+				for i in range(inew, inewlook):
+#					print "Inserting index %d (%s)" % (i, new_items[i])
+					hAfter = self.AddItem(hparent, new_items[i], hAfter)
+					
+				inew = inewlook + 1
+				# And recursively refresh iold
+				hold = old_handles[iold]
+				if self.filledItemHandlesMap.has_key(hold):
+					self.Refresh(hold)
+			else:
+				# Remove the deleted items.
+#				print "Deleting %d (%s)" % (iold, old_items[iold])
+				hdelete = old_handles[iold]
+				# First recurse and remove the children from the map.
+				for hchild in self._GetChildHandles(hdelete):
+					del self.itemHandleMap[hchild]
+					if self.filledItemHandlesMap.has_key(hchild):
+						del self.filledItemHandlesMap[hchild]
+				self.list.DeleteItem(hdelete)
+			hAfter = old_handles[iold]
+		# Fill any remaining new items:
+		for newItem in new_items[inew:]:
+#			print "Inserting new item", newItem
+			self.AddItem(hparent, newItem)
 	def AcceptRoot(self, root):
 		self.list.DeleteAllItems()
-		self.itemHandleMap = {}
-		self.filledItemHandlesMap = {}
+		self.itemHandleMap = {commctrl.TVI_ROOT : root}
+		self.filledItemHandlesMap = {commctrl.TVI_ROOT : root}
 		subItems = self.GetSubList(root)
 		self.AddSubList(0, subItems)
 
