@@ -1,6 +1,10 @@
 VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
+  Persistable = 0  'NotPersistable
+  DataBindingBehavior = 0  'vbNone
+  DataSourceBehavior  = 0  'vbNone
+  MTSTransactionMode  = 0  'NotAnMTSObject
 END
 Attribute VB_Name = "Tester"
 Attribute VB_GlobalNameSpace = False
@@ -159,10 +163,19 @@ Public Sub IncrementVariantParam(ByRef varVal As Variant)
 End Sub
 
 Public Sub DoSomeCallbacks(ob As Object)
-    Dim i As Integer
+    Dim i, i2 As Integer
     Dim s As String
+    Dim ret As Integer
+    Rem Can check byrefs for gateways here, as VB passes all params byref!
     i = 99
-    ob.CallbackInt (i)
-    If i <> 100 Then MsgBox "After CallbackInt, the param was in error - was " & i & " but expected 100"
+    ret = ob.CallbackResultOneByRef(i)
+    If i <> 100 Then MsgBox "After CallbackResultOneByRef, the param was in error - was " & i & " but expected 100"
+    If ret <> 99 Then MsgBox "After CallbackResultOneByRef, the result was in error - was " & ret & " but expected 99"
+    ob.CallbackVoidOneByRef i
+    If i <> 101 Then MsgBox "After CallbackVoidOneByRef, the param was in error - was " & i & " but expected 101"
+    i = 100
+    i2 = 50
+    ob.CallbackVoidTwoByRef i, i2
+    If i <> 150 And i2 <> 50 Then MsgBox "After CallbackVoidTwoByRef, the param was in error - was " & i & "/" & i2 & " but expected 150/50"
 End Sub
 
