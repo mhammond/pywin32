@@ -37,7 +37,9 @@ void LexerModule::Colourise(unsigned int startPos, int lengthDoc, int initStyle,
 	}
 	// Unknown language
 	// Null language means all style bytes are 0 so just mark the end - no need to fill in.
-	styler.StartAt(startPos + lengthDoc - 1);
-	styler.StartSegment(startPos + lengthDoc - 1);
-	styler.ColourTo(startPos + lengthDoc - 1, 0);
+	if (lengthDoc > 0) {
+		styler.StartAt(startPos + lengthDoc - 1);
+		styler.StartSegment(startPos + lengthDoc - 1);
+		styler.ColourTo(startPos + lengthDoc - 1, 0);
+	}
 }

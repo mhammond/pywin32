@@ -92,6 +92,7 @@ ViewStyle::~ViewStyle() {
 
 void ViewStyle::Init() {
 	fontNames.Clear();
+	ResetDefaultStyle();
 	
 	indicators[0].style = INDIC_SQUIGGLE;
 	indicators[0].fore = Colour(0, 0x7f, 0);

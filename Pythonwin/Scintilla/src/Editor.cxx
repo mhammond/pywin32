@@ -1909,6 +1909,7 @@ int Editor::KeyCommand(UINT iMessage) {
 		break;
 	case SCI_DELETEBACK:
 		DelCharBack();
+		SetLastXChosen();
 		EnsureCaretVisible();
 		break;
 	case SCI_TAB:
@@ -1961,6 +1962,7 @@ int Editor::KeyCommand(UINT iMessage) {
 			int startWord = pdoc->NextWordStart(currentPos, -1);
 			pdoc->DeleteChars(startWord, currentPos - startWord);
 			MovePositionTo(startWord);
+			SetLastXChosen();
 		}
 		break;
 	case SCI_DELWORDRIGHT: {

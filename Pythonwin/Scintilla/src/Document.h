@@ -77,6 +77,7 @@ private:
 	int stylingMask;
 	int endStyled;
 	int enteredCount;
+	int enteredReadOnlyCount;
 	
 	WatcherWithUserData *watchers;
 	int lenWatchers;

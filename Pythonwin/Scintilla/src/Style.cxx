@@ -79,7 +79,8 @@ void Style::Realise(Surface &surface, int zoomLevel, Style *defaultStyle) {
 	else 
 		font.Release();		
 	int deviceHeight = (sizeZoomed * surface.LogPixelsY()) / 72;
-	aliasOfDefaultFont = defaultStyle && EquivalentFontTo(defaultStyle);
+	aliasOfDefaultFont = defaultStyle && 
+		(EquivalentFontTo(defaultStyle) || !fontName);
 	if (aliasOfDefaultFont) {
 		font.SetID(defaultStyle->font.GetID());
 	} else if (fontName) {

@@ -32,6 +32,7 @@ Document::Document() {
 	}
 	endStyled = 0;
 	enteredCount = 0;
+	enteredReadOnlyCount = 0;
 	tabInChars = 8;
 	watchers = 0;
 	lenWatchers = 0;
@@ -292,10 +293,13 @@ void Document::ModifiedAt(int pos) {
 
 // Unlike Undo, Redo, and InsertStyledString, the pos argument is a cell number not a char number
 void Document::DeleteChars(int pos, int len) {
+	if (cb.IsReadOnly() && enteredReadOnlyCount==0) {
+		enteredReadOnlyCount++;
+		NotifyModifyAttempt();
+		enteredReadOnlyCount--;
+	}
 	if (enteredCount == 0) {
 		enteredCount++;
-		if (cb.IsReadOnly())
-			NotifyModifyAttempt();
 		if (!cb.IsReadOnly()) {
 			int prevLinesTotal = LinesTotal();
 			bool startSavePoint = cb.IsSavePoint();
@@ -312,10 +316,13 @@ void Document::DeleteChars(int pos, int len) {
 }
 
 void Document::InsertStyledString(int position, char *s, int insertLength) {
+	if (cb.IsReadOnly() && enteredReadOnlyCount==0) {
+		enteredReadOnlyCount++;
+		NotifyModifyAttempt();
+		enteredReadOnlyCount--;
+	}
 	if (enteredCount == 0) {
 		enteredCount++;
-		if (cb.IsReadOnly())
-			NotifyModifyAttempt();
 		if (!cb.IsReadOnly()) {
 			int prevLinesTotal = LinesTotal();
 			bool startSavePoint = cb.IsSavePoint();
@@ -338,7 +345,7 @@ int Document::Undo() {
 		enteredCount++;
 		bool startSavePoint = cb.IsSavePoint();
 		int steps = cb.StartUndo();
-		Platform::DebugPrintf("Steps=%d\n", steps);
+		//Platform::DebugPrintf("Steps=%d\n", steps);
 		for (int step=0; step<steps; step++) {
 			int prevLinesTotal = LinesTotal();
 			const Action &action = cb.UndoStep();
@@ -349,11 +356,9 @@ int Document::Undo() {
 			int modFlags = SC_PERFORMED_UNDO;
 			// With undo, an insertion action becomes a deletion notification
 			if (action.at == removeAction) {
-		Platform::DebugPrintf("Insert of %d\n", action.lenData);
 				newPos += action.lenData;
 				modFlags |= SC_MOD_INSERTTEXT;
 			} else {
-		Platform::DebugPrintf("Remove of %d\n", action.lenData);
 				modFlags |= SC_MOD_DELETETEXT;
 			}
 			if (step == steps-1)

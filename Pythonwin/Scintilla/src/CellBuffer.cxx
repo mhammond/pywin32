@@ -401,9 +401,9 @@ void UndoHistory::EnsureUndoRoom() {
 
 void UndoHistory::AppendAction(actionType at, int position, char *data, int lengthData) {
 	EnsureUndoRoom();
-	Platform::DebugPrintf("%% %d action %d %d %d\n", at, position, lengthData, currentAction);
-	Platform::DebugPrintf("^ %d action %d %d\n", actions[currentAction - 1].at, 
-		actions[currentAction - 1].position, actions[currentAction - 1].lenData);
+	//Platform::DebugPrintf("%% %d action %d %d %d\n", at, position, lengthData, currentAction);
+	//Platform::DebugPrintf("^ %d action %d %d\n", actions[currentAction - 1].at, 
+	//	actions[currentAction - 1].position, actions[currentAction - 1].lenData);
 	if (currentAction >= 1) {
 		if (0 == undoSequenceDepth) {
 		// Top level actions may not always be coalesced
@@ -423,7 +423,7 @@ void UndoHistory::AppendAction(actionType at, int position, char *data, int leng
 				// Insertions must be immediately after to coalesce
 				currentAction++;
 			} else {
-		Platform::DebugPrintf("action coalesced\n");
+				//Platform::DebugPrintf("action coalesced\n");
 			}
 		} else {
 			currentAction++;
@@ -786,7 +786,7 @@ int CellBuffer::LineFromHandle(int markerHandle) {
 // Without undo
 
 void CellBuffer::BasicInsertString(int position, char *s, int insertLength) {
-	Platform::DebugPrintf("Inserting at %d for %d\n", position, insertLength);
+	//Platform::DebugPrintf("Inserting at %d for %d\n", position, insertLength);
 	if (insertLength == 0)
 		return;
 	RoomFor(insertLength);
@@ -846,7 +846,7 @@ void CellBuffer::BasicInsertString(int position, char *s, int insertLength) {
 }
 
 void CellBuffer::BasicDeleteChars(int position, int deleteLength) {
-	Platform::DebugPrintf("Deleting at %d for %d\n", position, deleteLength);
+	//Platform::DebugPrintf("Deleting at %d for %d\n", position, deleteLength);
 	if (deleteLength == 0)
 		return;
 
