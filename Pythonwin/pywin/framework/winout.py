@@ -43,7 +43,7 @@ class flags:
 #WindowOutputDocumentParent=docview.Document
 import pywin.scintilla.document
 from pywin.scintilla import scintillacon
-from pywin import is_platform_unicode
+from pywin import is_platform_unicode, default_platform_encoding, default_scintilla_encoding
 
 WindowOutputDocumentParent=pywin.scintilla.document.CScintillaDocument
 class WindowOutputDocument(WindowOutputDocumentParent):
@@ -431,9 +431,8 @@ class WindowOutput(docview.DocTemplate):
 				item = self.outputQueue.get_nowait()
 				if is_platform_unicode:
 					if type(item) != UnicodeType:
-					# Assume an MBCS (ie, default windows locale) input string
-						item = unicode(item, "mbcs")
-					item = item.encode("utf-8") # What scintilla uses.
+						item = unicode(item, default_platform_encoding)
+					item = item.encode(default_scintilla_encoding) # What scintilla uses.
 				else:
 					item = str(item)
 				items.append(item)

@@ -3,5 +3,7 @@
 import win32api, win32con, __builtin__
 
 is_platform_unicode = hasattr(__builtin__, "unicode") and win32api.GetVersionEx()[3] == win32con.VER_PLATFORM_WIN32_NT
+default_platform_encoding = "mbcs" # Will it ever be necessary to change this?
+default_scintilla_encoding = "utf-8" # Scintilla _only_ supports this ATM
 
 del win32api, win32con, __builtin__

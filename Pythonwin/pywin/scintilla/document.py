@@ -1,6 +1,6 @@
 import win32ui
 from pywin.mfc import docview
-from pywin import is_platform_unicode
+from pywin import is_platform_unicode, default_platform_encoding, default_scintilla_encoding
 from scintillacon import *
 import win32con
 import string
@@ -20,7 +20,7 @@ class CScintillaDocument(ParentScintillaDocument):
 			if is_platform_unicode:
 				# Scintilla in UTF-8 mode - translate accordingly.
 				import codecs
-				f = codecs.open(filename, 'rb', "mbcs")
+				f = codecs.open(filename, 'rb', default_platform_encoding)
 			else:
 				f = open(filename, 'rb')
 			try:
@@ -29,7 +29,7 @@ class CScintillaDocument(ParentScintillaDocument):
 				f.close()
 			if is_platform_unicode:
 				# Translate from locale-specific (MCBS) encoding to UTF-8 for Scintilla
-				text = text.encode("utf-8")
+				text = text.encode(default_scintilla_encoding)
 		except IOError:
 			win32ui.MessageBox("Could not load the file from %s" % filename)
 			return 0
