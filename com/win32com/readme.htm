@@ -3,12 +3,11 @@
 <head>
   <title>win32com Readme</title>
 </head>
-  <body>
+<body>
  
 <p><img width="551" height="99" id="_x0000_i1025"
  src="html%5Cimage%5Cpycom_blowing.gif"
- alt="Python and COM - Blowing the others away">
- </p>
+ alt="Python and COM - Blowing the others away"> </p>
     
 <h1>Python COM Extensions Readme </h1>
     
@@ -22,26 +21,48 @@
 <h3>Recent Changes</h3>
  
 <ul>
+   <li>makepy generation 'for demand' has been fixed, particularly when using
+events</li>
+  <li>Unexpected exceptions in Python COM objects will generally now dump
+the exception and traceback to stdout. &nbsp;This is useful for debugging
+and testing - it means that in some cases there will be no need to register
+an object with <span style="font-style: italic;">--debug</span> to see these
+tracebacks. &nbsp;Note that COM objects used by server processes (such as
+ASP) generally have no valid stdout, so will still need to use <span
+ style="font-style: italic;">--debug</span> as usual.<br>
+  </li>
+   <li>universal gateway support has been improved - we can now work as an
+Outlook Addin<br>
+  </li>
+   <li><b>Potential Breakage</b>: makepy supported objects should now support
+named parameters correctly.      However, previously if there was a ByRef
+param not marked as optional, it     could still often be omitted.  This
+param may now need to be supplied     (depending on the implementation -
+it is true for VB implemented objects)<br>
+  </li>
+</ul>
+<h4>win32all-147/8</h4>
+<ul>
    <li>ActiveScripting bugs with ASP should have been fixed, including the
 dreaded <i>KeyboardInterrupt</i> problem. &nbsp;ASP should also be much faster
 second and subsequent loads of a page.<br>
   </li>
-  <li>ActiveScripting now correctly registers all type libraries. This means 
-that all ActiveScripting global variables should be using makepy supported 
+  <li>ActiveScripting now correctly registers all type libraries. This means
+that all ActiveScripting global variables should be using makepy supported
 early-bound objects.</li>
-   <li>Dynamic dispatch objects now have a method <i>_FlagAsMethod,</i> which 
-allows you to 'declare' that certain attribute names are actually methods 
-rather than properties. &nbsp;This is used for some objects that don't otherwise 
-allow you to call these methods due to problems in their implementation. &nbsp;OpenOffice
-is one such program. &nbsp;For example, you may call <i>ob._FlagAsMethod("AMethod")</i>, 
+   <li>Dynamic dispatch objects now have a method <i>_FlagAsMethod,</i> which
+allows you to 'declare' that certain attribute names are actually methods
+rather than properties. &nbsp;This is used for some objects that don't otherwise
+allow you to call these methods due to problems in their implementation.
+&nbsp;OpenOffice is one such program. &nbsp;For example, you may call <i>ob._FlagAsMethod("AMethod")</i>,
 after which calling <i>ob.AMethod()</i> will work correctly.</li>
  
 </ul>
     
 <h4>win32all-143</h4>
     
-<p>ActiveScripting inside IE has been disabled by default.&nbsp; This is due
-to a <a
+<p>ActiveScripting inside IE has been disabled by default.&nbsp; This is
+due to a <a
  href="http://starship.python.net/crew/mhammond/win32/PrivacyProblem.html">privacy
  concern</a> discovered in the engine.&nbsp; If you wish to re-enable this
  feature, you must execute:<br>
@@ -49,27 +70,27 @@ to a <a
     
 <h4>win32all-142</h4>
    
-<p>Build for Python 2.2.  Note that ActiveDebugging will not work in this 
-release - you will not be able to debug Python programs using the Microsoft 
+<p>Build for Python 2.2.  Note that ActiveDebugging will not work in this
+release - you will not be able to debug Python programs using the Microsoft
 Debuggers inside ActiveScripting apps (such as IE, ASP)</p>
     
 <h4>win32all-136/ActivePython 2.1</h4>
     
 <p>Universal gateway has arrived!&nbsp; You can now implement arbitrary vtable
- based interfaces, as long as they are defined in a type-library (and even 
-if not if you bonkers :-).&nbsp; You simply add one extra statement to your 
-COM server nominating the typelibrary with the interface.&nbsp; Your PythonCOM 
+ based interfaces, as long as they are defined in a type-library (and even
+if not if you bonkers :-).&nbsp; You simply add one extra statement to your
+COM server nominating the typelibrary with the interface.&nbsp; Your PythonCOM
 server then can list the interfaces in that typelibrary by name in _com_interfaces_.&nbsp;
- Note that you must still have _public_methods_, but it need not specify
-named  vtable interface methods - ie, in most cases this list will be empty.&nbsp; 
-See win32com\servers\test_pycomtest.py for an example.&nbsp; (Note the intent 
-is for the list of interfaces passed to universal.RegisterInterfaces() will 
+ Note that you must still have _public_methods_, but it need not specify named
+ vtable interface methods - ie, in most cases this list will be empty.&nbsp;
+See win32com\servers\test_pycomtest.py for an example.&nbsp; (Note the intent
+is for the list of interfaces passed to universal.RegisterInterfaces() will
 be optional)</p>
     
 <h4>win32all-133 changes</h4>
     
-<p>Bug fixes!&nbsp; We now have an option to honour the hidden attribute on
-objects.&nbsp; This currently defaults to off, so nothing should break.</p>
+<p>Bug fixes!&nbsp; We now have an option to honour the hidden attribute
+on objects.&nbsp; This currently defaults to off, so nothing should break.</p>
     
 <h4>win32all-130-132 changes</h4>
     
@@ -80,9 +101,9 @@ objects.&nbsp; This currently defaults to off, so nothing should break.</p>
     
 <h3>ActiveX Scripting </h3>
     
-<p>This release contains full support for Python as an ActiveX Scripting Engine
-and Host. Check out the <a
- href="../win32comext/axscript/demos/client/ie/demo.htm">ActiveX Scripting 
+<p>This release contains full support for Python as an ActiveX Scripting
+Engine and Host. Check out the <a
+ href="../win32comext/axscript/demos/client/ie/demo.htm">ActiveX Scripting
 Demos</a> (which includes information on registering the engine)</p>
     
 <p>There is also support for Python as an ActiveX Scripting Host.</p>
@@ -92,56 +113,56 @@ Demos</a> (which includes information on registering the engine)</p>
 <h3>Known bugs and problems...</h3>
     
 <p>Certain servers may hang at shutdown if all COM client objects not released
- - notably, MSOffice. Eg, if a Python program that is talking to excel raises 
-an exception and exits, the Python program will be hung. There are no known 
-leaks in win32com, but there is also no attempt at automatic object cleanup. 
-All standard Python caveats about references apply! Note this is a "feature" 
-of COM, and not a bug in win32com. You can use the function <i>pythoncom._GetInterfaceCount()</i> 
-to determine how many COM objects are held by Python as your program terminates 
+ - notably, MSOffice. Eg, if a Python program that is talking to excel raises
+an exception and exits, the Python program will be hung. There are no known
+leaks in win32com, but there is also no attempt at automatic object cleanup.
+All standard Python caveats about references apply! Note this is a "feature"
+of COM, and not a bug in win32com. You can use the function <i>pythoncom._GetInterfaceCount()</i>
+to determine how many COM objects are held by Python as your program terminates
 - this should return zero.</p>
     
 <h3><a name="OlderChanges">Even Older Changes</a></h3>
     
 <h4>win32all-129 changes</h4>
     
-<p>We now have complete support for COM structures.&nbsp; To take advantage 
-of this, you need a late version of COM (Windows 2000, 98, Windows 95 with 
-DCOM95 1.2, or Window NT 4.0 with Service Pack 4).&nbsp; You can receive structures
-from any COM object, and reference the structure's elements by name (eg,
-<i>struct.int_val</i>).&nbsp; Once you have a structure, you can pass it
-to any other function, but currently there is no simple way to create Record
-objects in Python.&nbsp; Records work with or without makepy support for
-an object.</p>
+<p>We now have complete support for COM structures.&nbsp; To take advantage
+of this, you need a late version of COM (Windows 2000, 98, Windows 95 with
+DCOM95 1.2, or Window NT 4.0 with Service Pack 4).&nbsp; You can receive
+structures from any COM object, and reference the structure's elements by
+name (eg,<i>struct.int_val</i>).&nbsp; Once you have a structure, you can
+pass it to any other function, but currently there is no simple way to create
+Record objects in Python.&nbsp; Records work with or without makepy support
+for an object.</p>
     
 <p>We support demand-building of <i>makepy</i> files.&nbsp; When a <i>makepy</i>
  file is built in this way, instead of a single file being generated in the
- gencache, a Python package is created.&nbsp; In the package <i>__init__</i> 
-file is all the information you would normally find in a <i>makepy</i> file, 
-except for the classes!&nbsp; As an object is needed at runtime, <i>makepy</i> 
-is run again to generate only the specific class requested, into a separate 
-file in the package.&nbsp; This has significant advantages when loading huge 
-type libraries - you get all the benefits of <i>makepy</i>, but don't have 
-to suffer the huge delay running <i>makepy</i>.&nbsp; Indeed, there are some 
-type libraries that are too large to run <i>makepy</i> at all - this solves 
+ gencache, a Python package is created.&nbsp; In the package <i>__init__</i>
+file is all the information you would normally find in a <i>makepy</i> file,
+except for the classes!&nbsp; As an object is needed at runtime, <i>makepy</i>
+is run again to generate only the specific class requested, into a separate
+file in the package.&nbsp; This has significant advantages when loading huge
+type libraries - you get all the benefits of <i>makepy</i>, but don't have
+to suffer the huge delay running <i>makepy</i>.&nbsp; Indeed, there are some
+type libraries that are too large to run <i>makepy</i> at all - this solves
 that problem.</p>
     
-<p>This new demand-building feature is not enabled by default - you must run
-<i>makepy -d</i>, or specify the new <i>bForDemand</i> parameter to the <i>gencache</i>
-functions.&nbsp; It is expected that in the future the existing code will
-be dropped in favour of this package mechanism (although we will always retain
-the option to generate the entire package at the start, as <i>makepy</i>
-does now)</p>
+<p>This new demand-building feature is not enabled by default - you must
+run<i>makepy -d</i>, or specify the new <i>bForDemand</i> parameter to the
+<i>gencache</i>functions.&nbsp; It is expected that in the future the existing
+code will be dropped in favour of this package mechanism (although we will
+always retain the option to generate the entire package at the start, as
+<i>makepy</i>does now)</p>
     
 <p><i>makepy</i> generated code should be even faster now - many of the run-time
- type conversions that the previous version performed have been optimized 
-away (<i>makepy</i> already knows the return type of many functions - there 
+ type conversions that the previous version performed have been optimized
+away (<i>makepy</i> already knows the return type of many functions - there
 was no need for it to check these types at runtime)</p>
     
 <h4>win32all-128 changes</h4>
     
 <p>We now have events working pretty well.<span style="">&nbsp; </span>NOTE:<span
- style="">&nbsp; </span>This is still experimental &#8211; all feedback appreciated. 
-<span style="">&nbsp;</span>See the docstring for <i>win32com.client.DispatchWithEvents</i> 
+ style="">&nbsp; </span>This is still experimental &#8211; all feedback appreciated.
+<span style="">&nbsp;</span>See the docstring for <i>win32com.client.DispatchWithEvents</i>
 and <i>win32com\test\testMSOfficeEvents.py</i> for more details and samples.</p>
     
 <p>Active Debugging support improved again.</p>
@@ -150,51 +171,51 @@ and <i>win32com\test\testMSOfficeEvents.py</i> for more details and samples.</p>
     
 <p>All Arrays of VARIANT's of type VT_UI1 are now converted to a <i>buffer</i>
  object rather than the previous list of integers. In addition, a <i>buffer</i>
- object can be passed to COM and an array of type VT_UI1 will be created. 
-This type is often used when passing raw binary data, and this change is far
-more efficient for large data sets. For example, if you have a string or
-array.array object holding binary data, you can use the <i>buffer()</i> built-in
-on the object to create a buffer object that will force the new behaviour.
-<b>Note</b>: This may break some code that uses arrays of this type, but
-after much soul-searching it was decided this new behaviour is worth the
-pain.</p>
+ object can be passed to COM and an array of type VT_UI1 will be created.
+This type is often used when passing raw binary data, and this change is
+far more efficient for large data sets. For example, if you have a string
+or array.array object holding binary data, you can use the <i>buffer()</i>
+built-in on the object to create a buffer object that will force the new
+behaviour.<b>Note</b>: This may break some code that uses arrays of this
+type, but after much soul-searching it was decided this new behaviour is
+worth the pain.</p>
     
-<p>A bug that caused the Active Scripting implementation to die has been fixed.
-(Specifically, the implementation of to <i>IActiveScript::AddTypeLib()</i> 
+<p>A bug that caused the Active Scripting implementation to die has been
+fixed. (Specifically, the implementation of to <i>IActiveScript::AddTypeLib()</i>
 was buggy)</p>
     
-<p>Active Scripting bug when using IE5 fixed (it has a method called "print" 
+<p>Active Scripting bug when using IE5 fixed (it has a method called "print"
 which messed us up)</p>
     
-<p>Error handling when setting erroneous properties on COM objects fixed. 
+<p>Error handling when setting erroneous properties on COM objects fixed.
 There were cases where errors would not be reported.</p>
     
 <p>Threading bug that was exposed when using MTS has been fixed. Minor (but
- regular) memory leak plugged. Can now run for (nearly :-) ever under MTS 
+ regular) memory leak plugged. Can now run for (nearly :-) ever under MTS
 with huge thread numbers.</p>
     
-<p>makepy has better support for objects that expose multiple IDispatch interfaces, 
-Also sorts the list of type-libraries correctly, and hides libraries marked 
+<p>makepy has better support for objects that expose multiple IDispatch interfaces,
+Also sorts the list of type-libraries correctly, and hides libraries marked
 as hidden.</p>
     
 <p>COM now supports byref date arguments.</p>
     
 <h4>win32all-125 fixes.</h4>
     
-<p>Better support for DCOM via <code>win32com.client.DispathEx(progId, machineName=None, 
+<p>Better support for DCOM via <code>win32com.client.DispathEx(progId, machineName=None,
 &#8230;)</code>. Small DCOM demo in <i>win32com\test\testDCOM.py</i>.</p>
     
-<p>Registration of COM servers has been made a little simpler, and the QuickStart 
+<p>Registration of COM servers has been made a little simpler, and the QuickStart
 has been changed to reflect this. Classes no longer need <i>_reg_class_spec_</i>
- or <i>_reg_desc_</i> attributes - the registration process now provides
-sensible defaults. Also note that if <i>_reg_class_spec_</i> is not specified,
-the PythonPath will also be modified when your server is loaded - this prevents
- the common problem of not having your COM server on the PythonPath. Note 
-that if <i>_reg_class_spec_</i> is specified, the original behaviour remains 
+ or <i>_reg_desc_</i> attributes - the registration process now provides sensible
+defaults. Also note that if <i>_reg_class_spec_</i> is not specified, the
+PythonPath will also be modified when your server is loaded - this prevents
+ the common problem of not having your COM server on the PythonPath. Note
+that if <i>_reg_class_spec_</i> is specified, the original behaviour remains
 - you must ensure the path is correct yourself.</p>
     
-<p>Type information has been upgraded. The Pythoncom core is now capable of
-creating COM Type Libraries. All left remaining is some Python programming, 
+<p>Type information has been upgraded. The Pythoncom core is now capable
+of creating COM Type Libraries. All left remaining is some Python programming,
 so expect this soon.</p>
     
 <p>Robin Becker has dramatically increased the speed of COM accessing certain
@@ -212,7 +233,7 @@ so expect this soon.</p>
 <pre>from win32com.axscript import debugger<br>debugger.Break()</pre>
     
 <p>This currently has some problems &#8211; most notable is that modules imported
- after debugging has commenced does not work. It also occasionally crashes 
+ after debugging has commenced does not work. It also occasionally crashes
 :-( So maybe using it isn't such a good idea after all :-)</p>
     
 <h4>Even older Changes</h4>
@@ -221,33 +242,33 @@ so expect this soon.</p>
  Scripting have been resolved. Python scripts are fully debugging from MSIE,
  WSH, etc (havent tested ASP :-( Please let me know of any problems.)</p>
     
-<p>Couple of minor interfaces added. <i>win32com.shell.shell</i> has been 
+<p>Couple of minor interfaces added. <i>win32com.shell.shell</i> has been
 filled out some more.</p>
     
 <p><i>pythoncom.CoUninitialize()</i> is no longer called automatically at
  shutdown. This seems to fix more problems than it causes, but if your COM
- program is hanging at shutdown, try adding an explicit call to this method 
+ program is hanging at shutdown, try adding an explicit call to this method
 just before you exit.</p>
     
-<p>Regressed back to the default COM threading model being "Apartment", as 
-defaulting to "Free Threading" seems to break so many clients. <i>sys.coinit_flags</i> 
-still allows you to dictate the behaviour before <i>pythoncom</i> is imported 
+<p>Regressed back to the default COM threading model being "Apartment", as
+defaulting to "Free Threading" seems to break so many clients. <i>sys.coinit_flags</i>
+still allows you to dictate the behaviour before <i>pythoncom</i> is imported
 for the first time.</p>
     
 <p><i>makepy</i> generated files now have much better support for default
- values for arguments. Also attempted to remove some hacks related to "interface" 
-descriptions in IDL file. Nothing should break, and my (now comprehensive) 
-test suite runs to completion, but let me know of any problems with weird, 
+ values for arguments. Also attempted to remove some hacks related to "interface"
+descriptions in IDL file. Nothing should break, and my (now comprehensive)
+test suite runs to completion, but let me know of any problems with weird,
 custom IDL files.</p>
     
 <p>More changes to <i>makepy</i> to better support COM Constants. All external
- COM constants (eg, MSWord related constants) should now be available in
-<i>win32com.client.constants</i>.  No old code should break, but in the future
-the "old style" of using COM constants will be removed. <a
- href="html/QuickStartClientCom.html">This is  all documented in the Client
-Side Quick Start documentation</a>. Also made a few minor changes to the
-<i>bGuiProgress</i> param.</p>
+ COM constants (eg, MSWord related constants) should now be available in<i>win32com.client.constants</i>.
+ No old code should break, but in the future the "old style" of using COM
+constants will be removed. <a href="html/QuickStartClientCom.html">This is
+ all documented in the Client Side Quick Start documentation</a>. Also made
+a few minor changes to the<i>bGuiProgress</i> param.</p>
    <br>
  <br>
+<br>
 </body>
 </html>
