@@ -22,7 +22,11 @@ typedef long FLAGS;
       Py_END_ALLOW_THREADS
       if (FAILED($source))  {
            $cleanup
-           return OleSetOleError($source);
+#ifdef SWIG_THIS_IID
+           return PyCom_BuildPyException($source, _swig_self,  SWIG_THIS_IID);
+#else
+           return PyCom_BuildPyException($source);
+#endif
       }
 }
 
@@ -119,3 +123,29 @@ typedef long FLAGS;
 	$target = NULL;
 }
 
+// Variants!
+// SWIG only does this funky stuff for pointers :-(
+%typemap(python,ignore) VARIANT *OUTPUT( VARIANT temp)
+{
+  $target = &temp;
+}
+
+%typemap(python,argout) VARIANT *OUTPUT {
+    PyObject *o;
+    o = PyCom_PyObjectFromVariant($source);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
+      Py_DECREF(Py_None);
+      $target = o;
+    } else {
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
+	Py_XDECREF(o2);
+      }
+      PyList_Append($target,o);
+      Py_XDECREF(o);
+    }
+}
