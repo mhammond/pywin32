@@ -54,12 +54,15 @@ class ListEnumerator:
      instance into an actual COM server.
   """
   _public_methods_ = [ 'Next', 'Skip', 'Reset', 'Clone' ]
-  _com_interfaces_ = [ pythoncom.IID_IEnumVARIANT ]
 
-  def __init__(self, data, index=0):
+  def __init__(self, data, index=0, iid = pythoncom.IID_IEnumVARIANT):
     self._list_ = data
     self.index = index
+    self._iid_ = iid
 
+  def _query_interface_(self, iid):
+      if iid == self._iid_:
+          return 1
   def Next(self, count):
     result = self._list_[self.index:self.index+count]
     self.Skip(count)
@@ -97,7 +100,11 @@ class ListEnumeratorGateway(ListEnumerator):
     return map(self._wrap, result) 
 
 
-def NewEnum(seq, cls=ListEnumerator):
+def NewEnum(seq,
+            cls=ListEnumerator,
+            iid=pythoncom.IID_IEnumVARIANT,
+            usePolicy=None,
+            useDispatcher=None):
   """Creates a new enumerator COM server.
 
   This function creates a new COM Server that implements the 
@@ -106,11 +113,11 @@ def NewEnum(seq, cls=ListEnumerator):
   A COM server that can enumerate the passed in sequence will be
   created, then wrapped up for return through the COM framework.
   Optionally, a custom COM server for enumeration can be passed
-  (the default is @ListEnumerator@).
+  (the default is @ListEnumerator@), and the specific IEnum
+  interface can be specified.
   """
-  return pythoncom.WrapObject(policy.DefaultPolicy(cls(seq)),
-                              pythoncom.IID_IEnumVARIANT,
-                              pythoncom.IID_IEnumVARIANT)
+  ob = cls(seq, iid=iid)
+  return wrap(ob, iid, usePolicy=usePolicy, useDispatcher=useDispatcher)
 
 
 class Collection:
