@@ -129,7 +129,7 @@ PyTypeObject PyDSCAPSType =
 	// @prop integer|dwUnlockTransferRateHwBuffers|Description of the rate, in kilobytes per second, at which data can be transferred to hardware static sound buffers. This and the number of bytes transferred determines the duration of a call to the IDirectSoundBuffer::Update method.
 	{"dwPlayCpuOverheadSwBuffers",  T_INT,  OFF(m_caps.dwPlayCpuOverheadSwBuffers), 0, "Description of the processing overhead, as a percentage of the central processing unit, needed to mix software buffers (those located in main system memory). This varies according to the bus type, the processor type, and the clock speed. The unlock transfer rate for software buffers is 0 because the data need not be transferred anywhere. Similarly, the play processing overhead for hardware buffers is 0 because the mixing is done by the sound device."}, 
 	// @prop integer|dwPlayCpuOverheadSwBuffers|Description of the processing overhead, as a percentage of the central processing unit, needed to mix software buffers (those located in main system memory). This varies according to the bus type, the processor type, and the clock speed. The unlock transfer rate for software buffers is 0 because the data need not be transferred anywhere. Similarly, the play processing overhead for hardware buffers is 0 because the mixing is done by the sound device.
-	{NULL}	/* Sentinel */
+	{NULL}
 };
 
 PyDSCAPS::PyDSCAPS(void)

@@ -44,8 +44,8 @@ PyIDirectSoundBuffer::~PyIDirectSoundBuffer()
 	// Special treatment for PyIDirectSoundNotify
 
 	// This is a workaround for a reference counting bug in IDirectSound:
-	// If IDirectSound->Release() is called before IDirectSoundBuffer->Release() 
-	// or IDirectSoundNotify->->Release(), we will get an Access Violation
+	// If IDirectSound::Release() is called before IDirectSoundBuffer::Release() 
+	// or IDirectSoundNotify::Release(), we will get an Access Violation
 
 	// We work around this by manipulating the reference count on the Python objects 
 	// that encapsulate them

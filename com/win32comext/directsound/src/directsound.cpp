@@ -31,8 +31,8 @@ static PyObject *directsound_DirectSoundCreate(PyObject *, PyObject *args)
 	HRESULT hr;
 
 	if (!PyArg_ParseTuple(args, "|OO:DirectSoundCreate", 
-		&obGUID, // @pyparm <o PyIID>||guid|The identifier of the interface describing the type of interface pointer to return
-		&obUnk))  // @pyparm <o PyIUknown>|unk||The IUnknown for COM aggregation.
+		&obGUID, // @pyparm <o PyIID>|guid|None|Address of the GUID that identifies the sound device. The value of this parameter must be one of the GUIDs returned by DirectSoundEnumerate, or None for the default device.
+		&obUnk))  // @pyparm <o PyIUknown>|unk|None|The IUnknown for COM aggregation.
 	{
 		return NULL;
 	}
@@ -104,7 +104,7 @@ BOOL CALLBACK dsEnumCallback(LPGUID guid, LPCSTR desc, LPCSTR module, LPVOID con
 
 }
 
-// @pymethod <o list|directsound|DirectSoundEnumerate|Enumerates DirectSound drivers installed in the system.
+// @pymethod <o list>|directsound|DirectSoundEnumerate|Enumerates DirectSound drivers installed in the system.
 static PyObject *directsound_DirectSoundEnumerate(PyObject *, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ":DirectSoundEnumerate"))
@@ -137,12 +137,13 @@ static PyObject *directsound_DirectSoundEnumerate(PyObject *, PyObject *args)
 }
 
 /* List of module functions */
-// @module directsound|A module, encapsulating the DirectSound interfaces
+// @module directsound|A module encapsulating the DirectSound interfaces
 static struct PyMethodDef directsound_methods[]=
 {
     { "DirectSoundCreate",    directsound_DirectSoundCreate, 1 }, // @pymeth DirectSoundCreate|Creates and initializes a new object that supports the IDirectSound interface.
 	{ "DirectSoundEnumerate",      directsound_DirectSoundEnumerate, 1 },      // @pymeth DirectSoundEnumerate|The DirectSoundEnumerate function enumerates the DirectSound drivers installed in the system.
-//	{ "DirectSoundCaptureCreate",  directsound_DirectSoundCaptureCreate, 1},   // @pymeth DirectSoundCaptureCreate|The DirectSoundCaptureCreate function creates and initializes an object that supports the IDirectSoundCapture interface
+
+//	{ "DirectSoundCaptureCreate",  directsound_DirectSoundCaptureCreate, 1},   // @pymeth DirectSoundCaptureCreate|The DirectSoundCaptureCreate function creates and initializes an object that supports the IDirectSoundCapture interface.
 //	{ "DirectSoundCaptureEnumerate",  directsound_DirectSoundCaptureEnumerate, 1},   // @pymeth DirectSoundCaptureEnumerate|The DirectSoundCaptureEnumerate function enumerates the DirectSoundCapture objects installed in the system.
 	{"DSCAPS",         PyWinMethod_NewDSCAPS, 1 },      // @pymeth DSCAPS|Creates a new <o PyDSCAPS> object.
 	{"DSBCAPS",         PyWinMethod_NewDSBCAPS, 1 },      // @pymeth DSBCAPS|Creates a new <o PyDSBCAPS> object.
