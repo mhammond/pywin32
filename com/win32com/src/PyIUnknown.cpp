@@ -130,14 +130,27 @@ PyObject * PyIUnknown::repr()
 		return;
 	if (ob->m_obj)
 	{
-		PY_INTERFACE_PRECALL;
-		long rcnt = ob->m_obj->Release();
-		PY_INTERFACE_POSTCALL;
+		// Safe for all objects which delete 
+		// itself ignoring a reference count.
+		PyThreadState *_save;
+		__try
+		{
+			_save = PyEval_SaveThread();
+			long rcnt = ob->m_obj->Release();
+			PyEval_RestoreThread(_save);
 
 #ifdef _DEBUG_LIFETIMES
-		LogF(buf, "   SafeRelease(%ld) -> %s at 0x%0lx, IUnknown at 0x%0lx - Release() returned %ld",GetCurrentThreadId(), ob->ob_type->tp_name,ob, ob->m_obj,rcnt);
+			LogF(buf, "   SafeRelease(%ld) -> %s at 0x%0lx, IUnknown at 0x%0lx - Release() returned %ld",GetCurrentThreadId(), ob->ob_type->tp_name,ob, ob->m_obj,rcnt);
 #endif
-		ob->m_obj = NULL;
+			ob->m_obj = NULL;
+		}
+		__except( EXCEPTION_EXECUTE_HANDLER )
+		{
+			LogF(_T("Exception occured:\n\tTry to release object at adress 0x%08x\n\twhich was already destroyed"), ob->m_obj);
+			PyEval_RestoreThread(_save);
+			ob->m_obj = NULL;
+			return;
+		}
 	}
 }
 
