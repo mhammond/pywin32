@@ -15,6 +15,8 @@
 # NOTE that the <% tags below execute _before_ these tags!
 Response.Write("Hello from Python<P>")
 Response.Write("Browser is "+bc.browser)
+import win32api # Should be no problem using win32api in ASP pages.
+Response.Write("<p>Win32 username is "+win32api.GetUserName())
 </SCRIPT>
 
 <BODY BGCOLOR="FFFFFF">
