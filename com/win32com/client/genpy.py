@@ -23,7 +23,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.4.8" # Written to generated file.
+makepy_version = "0.4.9" # Written to generated file.
 
 GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
@@ -214,7 +214,8 @@ class EnumerationItem(build.OleItem, WritableItem):
             use = hex(val)
         else:
           use = repr(str(val))
-        print "\t%-30s=%-10s # from enum %s" % (build.MakePublicAttributeName(name), use, enumName)
+        print "\t%-30s=%-10s # from enum %s" % \
+              (build.MakePublicAttributeName(name, True), use, enumName)
 
 class VTableItem(build.VTableItem, WritableItem):
     order = 4

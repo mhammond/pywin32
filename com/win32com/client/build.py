@@ -493,17 +493,19 @@ valid_identifier_chars = string.letters + string.digits + "_"
 
 # Given a "public name" (eg, the name of a class, function, etc)
 # make sure it is a legal (and reasonable!) Python name.
-def MakePublicAttributeName(className):
+def MakePublicAttributeName(className, is_global = False):
 	# Given a class attribute that needs to be public, convert it to a
 	# reasonable name.
 	# Also need to be careful that the munging doesnt
 	# create duplicates - eg, just removing a leading "_" is likely to cause
 	# a clash.
+	# if is_global is True, then the name is a global variable that may
+	# overwrite a builtin - eg, "None"
 	if className[:2]=='__' and className[-2:]!='__':
 		return className[1:] + '_' # First '_' moved at the end.
 	elif iskeyword(className): # all keywords are lower case
 		return string.capitalize(className)
-	elif __builtins__.has_key(className):
+	elif is_global and __builtins__.has_key(className):
 		# builtins may be mixed case.  If capitalizing it doesn't change it,
 		# force to all uppercase (eg, "None", "True" become "NONE", "TRUE"
 		ret = className.capitalize()
