@@ -46,9 +46,6 @@ PyObject *PyWinMethod_NewTime(PyObject *self, PyObject *args)
 	// int(object) - for example , another PyTime object.
 	// <nl>The integer should be as defined by the Python time module.
 	// See the description of the <o PyTime> object for more information.
-	// <nl>If the object is a floating point object, then the value should
-	// be the value of float(t) from
-	// another PyTime object (it represents the Win32 DATE value).
 	if ( !PyArg_ParseTuple(args, "O", &timeOb) )
 		return NULL;
 
