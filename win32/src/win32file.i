@@ -331,6 +331,89 @@ BOOLAPI FindNextChangeNotification(
 
 #endif // MS_WINCE
 
+%{
+// @pyswig list|win32api|FindFilesW|Retrieves a list of matching filenames, using the Windows Unicode API.  An interface to the API FindFirstFileW/FindNextFileW/Find close functions.
+static PyObject *
+PyFindFilesW(PyObject *self, PyObject *args)
+{
+	char *fileSpec;
+	// @pyparm string|fileSpec||A string that specifies a valid directory or path and filename, which can contain wildcard characters (* and ?).
+
+	if (!PyArg_ParseTuple (args, "s:FindFilesW", &fileSpec))
+		return NULL;
+	WIN32_FIND_DATAW findData;
+	// @pyseeapi FindFirstFile
+	HANDLE hFind;
+	int len=strlen(fileSpec);
+	WCHAR *pBuf = new WCHAR[len+1];
+	if (0==MultiByteToWideChar( CP_ACP, 0, fileSpec, len+1, pBuf, sizeof(WCHAR)*(len+1)))
+		return PyWin_SetAPIError("MultiByteToWideChar");
+	hFind =  ::FindFirstFileW(pBuf, &findData);
+	delete [] pBuf;
+
+	if (hFind==INVALID_HANDLE_VALUE) {
+		if (::GetLastError()==ERROR_FILE_NOT_FOUND) {	// this is OK
+			return PyList_New(0);
+		}
+		return PyWin_SetAPIError("FindFirstFileW");
+	}
+	PyObject *retList = PyList_New(0);
+	if (!retList) {
+		::FindClose(hFind);
+		return NULL;
+	}
+	BOOL ok = TRUE;
+	while (ok) {
+		PyObject *obCreateTime = PyWinObject_FromFILETIME(findData.ftCreationTime);
+		PyObject *obAccessTime = PyWinObject_FromFILETIME(findData.ftLastAccessTime);
+		PyObject *obWriteTime = PyWinObject_FromFILETIME(findData.ftLastWriteTime);
+		if (obCreateTime==NULL || obAccessTime==NULL || obWriteTime==NULL) {
+			Py_XDECREF(obCreateTime);
+			Py_XDECREF(obAccessTime);
+			Py_XDECREF(obWriteTime);
+			Py_DECREF(retList);
+			::FindClose(hFind);
+			return NULL;
+		}
+		PyObject *obName = PyWinObject_FromWCHAR(findData.cFileName);
+		PyObject *obAltName = PyWinObject_FromWCHAR(findData.cAlternateFileName);
+		PyObject *newItem = Py_BuildValue("lOOOllllOO",
+		// @rdesc The return value is a list of tuples, in the same format as the WIN32_FIND_DATA structure:
+			findData.dwFileAttributes, // @tupleitem 0|int|attributes|File Attributes.  A combination of the win32com.FILE_ATTRIBUTE_* flags.
+			obCreateTime, // @tupleitem 1|<o PyTime>|createTime|File creation time.
+    		obAccessTime, // @tupleitem 2|<o PyTime>|accessTime|File access time.
+    		obWriteTime, // @tupleitem 3|<o PyTime>|writeTime|Time of last file write
+    		findData.nFileSizeHigh, // @tupleitem 4|int|nFileSizeHigh|high order word of file size.
+    		findData.nFileSizeLow,	// @tupleitem 5|int|nFileSizeLow|low order word of file size.
+    		findData.dwReserved0,	// @tupleitem 6|int|reserved0|Reserved.
+    		findData.dwReserved1,   // @tupleitem 7|int|reserved1|Reserved.
+    		obName,                 // @tupleitem 8|Unicode|fileName|The name of the file.
+    		obAltName);             // @tupleitem 9|Unicode|alternateFilename|Alternative name of the file, expressed in 8.3 format.
+		Py_XDECREF(obName);
+		Py_XDECREF(obAltName);
+		if (newItem!=NULL) {
+			PyList_Append(retList, newItem);
+			Py_DECREF(newItem);
+		}
+		// @pyseeapi FindNextFile
+		Py_DECREF(obCreateTime);
+		Py_DECREF(obAccessTime);
+		Py_DECREF(obWriteTime);
+		ok=::FindNextFileW(hFind, &findData);
+	}
+	ok = (GetLastError()==ERROR_NO_MORE_FILES);
+	// @pyseeapi FindClose
+	::FindClose(hFind);
+	if (!ok) {
+		Py_DECREF(retList);
+		return PyWin_SetAPIError("FindNextFileW");
+	}
+	return retList;
+}
+%}
+
+%native(FindFilesW) PyFindFilesW;
+
 // @pyswig |FlushFileBuffers|Clears the buffers for the specified file and causes all buffered data to be written to the file. 
 BOOLAPI FlushFileBuffers(
    PyHANDLE hFile 	// @pyparm <o PyHANDLE>|hFile||open handle to file whose buffers are to be flushed 
