@@ -110,7 +110,7 @@ PyWNetAddConnection2 (PyObject *self, PyObject *args)
 	DWORD	ErrorNo;		// holds the returned error number, if any
 	NETRESOURCE  NetResource;
 
-	if (!PyArg_ParseTuple(args,"isszzz",&Type,&LocalName,&RemoteName,&ProviderName,&Username,&Password))
+	if (!PyArg_ParseTuple(args,"izszzz",&Type,&LocalName,&RemoteName,&ProviderName,&Username,&Password))
 		return NULL;
 
 // Build the NETRESOURCE structure
