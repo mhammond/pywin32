@@ -320,7 +320,7 @@ def _GetRegistryValue(key, val, default = None):
 		except win32api.error:
 			return default
 
-scintilla = "Scintilla is Copyright 1998-2000 Neil Hodgson (http://www.scintilla.org)"
+scintilla = "Scintilla is Copyright 1998-2004 Neil Hodgson (http://www.scintilla.org)"
 idle = "This program uses IDLE extensions by Guido van Rossum, Tim Peters and others."
 contributors = "Thanks to the following people for making significant contributions: Sam Rushing, Curt Hagenlocher, Dave Brennan, Roger Burnham, Gordon McMillan, Neil Hodgson, Laramie Leavitt. (let me know if I have forgotten you!)"
 # The About Box
