@@ -386,11 +386,21 @@ typedef HANDLE PyHANDLE;
 //
 //---------------------------------------------------------------------------
 %typemap(python,in) LARGE_INTEGER {
-	if (!PyWinObject_AsLARGE_INTEGER($source, &$target, FALSE))
+	if (!PyWinObject_AsLARGE_INTEGER($source, &$target))
+		return NULL;
+}
+%typemap(python,in) LARGE_INTEGER * (LARGE_INTEGER temp) {
+	$target = &temp;
+	if (!PyWinObject_AsLARGE_INTEGER($source, $target))
 		return NULL;
 }
 %typemap(python,in) ULARGE_INTEGER {
-	if (!PyWinObject_AsULARGE_INTEGER($source, &$target, FALSE))
+	if (!PyWinObject_AsULARGE_INTEGER($source, &$target))
+		return NULL;
+}
+%typemap(python,in) ULARGE_INTEGER * (ULARGE_INTEGER temp) {
+	$target = &temp;
+	if (!PyWinObject_AsULARGE_INTEGER($source, $target))
 		return NULL;
 }
 
