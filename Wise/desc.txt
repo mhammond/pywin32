@@ -13,6 +13,7 @@ pywintypes20.dll	Common Python 2.0 types for win32
 pywintypes21.dll	Common Python 2.1 types for win32
 pywintypes22.dll	Common Python 2.2 types for win32
 pywintypes23.dll	Common Python 2.3 types for win32
+pywintypes24.dll	Common Python 2.4 types for win32
 dbi.dll		Database utilities for the ODBC module
 dde.pyd		Python Dynamic Data Exchange extensions
 mmapfile.pyd	Python Memory Mapped File extension
@@ -50,6 +51,7 @@ pythoncom20.dll	Python 2.0 COM Extensions core
 pythoncom21.dll	Python 2.1 COM Extensions core
 pythoncom22.dll	Python 2.2 COM Extensions core
 pythoncom23.dll	Python 2.3 COM Extensions core
+pythoncom24.dll	Python 2.4 COM Extensions core
 dcom.pyd	Temporary DCOM test
 exchdapi.pyd	Python MS-Exchange Directory extension
 mapi.pyd	Python MAPI extension
