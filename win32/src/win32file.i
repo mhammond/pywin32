@@ -131,7 +131,9 @@ BOOL AreFileApisANSI(void);
 
 #endif // MS_WINCE
 
-// BOOLAPI CancelIO(PyHANDLE handle);
+// @pyswig |CancelIo|Cancels pending IO requests for the object.
+// @pyparm <o PyHANDLE>|handle||The handle being cancelled.
+BOOLAPI CancelIo(PyHANDLE handle);
 
 // @pyswig |CopyFile|Copies a file
 BOOLAPI CopyFile(
