@@ -920,7 +920,10 @@ extern PyObject * PyNetUseAdd(PyObject *self, PyObject *args);
 extern PyObject * PyNetUseDel(PyObject *self, PyObject *args);
 extern PyObject * PyNetUseEnum(PyObject *self, PyObject *args);
 extern PyObject * PyNetUseGetInfo(PyObject *self, PyObject *args);
-
+extern PyObject * PyNetSessionEnum(PyObject *self, PyObject *args);
+extern PyObject * PyNetSessionDel(PyObject *self, PyObject *args);
+extern PyObject * PyNetFileEnum(PyObject *self, PyObject *args);
+extern PyObject * PyNetFileClose(PyObject *self, PyObject *args);
 
 /* List of functions exported by this module */
 // @module win32net|A module encapsulating the Windows Network API.
@@ -981,10 +984,16 @@ static struct PyMethodDef win32net_functions[] = {
     {"NetUseAdd",               PyNetUseAdd,               1}, // @pymeth NetUseAdd|Establishes connection between local or NULL device name and a shared resource through redirector.
     {"NetUseDel",               PyNetUseDel,               1}, // @pymeth NetUseDel|Ends connection to a shared resource.
     {"NetUseEnum",              PyNetUseEnum,               1}, // @pymeth NetUseEnum|Enumerates connection between local machine and shared resources on remote computers.
-    {"NetUseGetInfo",           PyNetUseGetInfo,               1}, // @pymeth NetUseGetInfo|Get information about locally mapped shared resource on remote computer.
+    {"NetUseGetInfo",           PyNetUseGetInfo,           1}, // @pymeth NetUseGetInfo|Get information about locally mapped shared resource on remote computer.
 
 	{"NetGetAnyDCName",         PyNetGetAnyDCName,         1}, // @pymeth NetGetAnyDCName|Returns the name of any domain controller trusted by the specified server.
 	{"NetGetDCName",            PyNetGetDCName,            1}, // @pymeth NetGetDCName|Returns the name of the primary domain controller (PDC).
+
+	{"NetSessionEnum",          PyNetSessionEnum,          1}, // @pymeth NetSessionEnum|Returns network session for the server, limited to single client and/or user if specified.
+	{"NetSessionDel",           PyNetSessionDel,          1}, // @pymeth NetSessionDel|Delete network session for specified server, client computer and user. Returns None on success.
+	{"NetFileEnum",				PyNetFileEnum,          1}, // @pymeth NetFileEnum|Returns open file resources for server (single client and/or user may also be passed as criteria).
+	{"NetFileClose",			PyNetFileClose,          1}, // @pymeth NetFileClose|Closes file for specified server and file id.
+
 	{NULL,			NULL}
 };
 
