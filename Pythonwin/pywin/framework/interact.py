@@ -1,7 +1,7 @@
 ##################################################################
-#
-# Interactive Shell Window
-#
+##
+## Interactive Shell Window
+##
 
 import sys
 import code
@@ -66,28 +66,8 @@ except AttributeError:
 def LoadPreference(preference, default = ""):
 	return win32ui.GetProfileVal(sectionProfile, preference, default)
 
-def LoadFontPreferences():
-	global formatTitle, formatInput, formatOutput, formatOutputError
-	try:
-		fmt = win32ui.GetProfileVal( sectionProfile, valueFormatTitle, "" )
-		if len(fmt): formatTitle = eval(fmt)
-		fmt = win32ui.GetProfileVal( sectionProfile, valueFormatInput, "" )
-		if len(fmt): formatInput = eval(fmt)
-		fmt = win32ui.GetProfileVal( sectionProfile, valueFormatOutput, "" )
-		if len(fmt): formatOutput = eval(fmt)
-		fmt = win32ui.GetProfileVal( sectionProfile, valueFormatOutputError, "" )
-		if len(fmt): formatOutputError = eval(fmt)
-	except:
-		win32ui.MessageBox("The Font Preferences could not be loaded")
-
 def SavePreference( prefName, prefValue ):
 	win32ui.WriteProfileVal( sectionProfile, prefName, prefValue )
-
-def SaveFontPreferences():
-	win32ui.WriteProfileVal( sectionProfile, valueFormatTitle, str(formatTitle) )
-	win32ui.WriteProfileVal( sectionProfile, valueFormatInput, str(formatInput) )
-	win32ui.WriteProfileVal( sectionProfile, valueFormatOutput, str(formatOutput) )
-	win32ui.WriteProfileVal( sectionProfile, valueFormatOutputError, str(formatOutputError) )
 
 def GetPromptPrefix(line):
 	ps1=sys.ps1
@@ -123,6 +103,12 @@ class InteractiveFormatter(FormatterParent):
 		self.RegisterStyle( Style(STYLE_INTERACTIVE_BANNER, formatTitle ) )
 		self.RegisterStyle( Style(STYLE_INTERACTIVE_ERROR, formatOutputError ) )
 		self.RegisterStyle( Style(STYLE_INTERACTIVE_ERROR_FINALLINE, STYLE_INTERACTIVE_ERROR ) )
+
+	def LoadPreference(self, name, default):
+		rc = win32ui.GetProfileVal("Format", name, default)
+		if rc==default:
+			rc = win32ui.GetProfileVal(sectionProfile, name, default)
+		return rc
 
 	def ColorizeInteractiveCode(self, cdoc, styleStart, stylePyStart):
 		lengthDoc = len(cdoc)
@@ -257,9 +243,9 @@ class PythonwinInteractiveInterpreter(code.InteractiveInterpreter):
 class InteractiveCore:
 	def __init__(self, banner = None):
 		self.banner = banner
+#		LoadFontPreferences()
 	def Init(self):
 		self.oldStdOut = self.oldStdErr = None
-		LoadFontPreferences()
 
 #		self.SetWordWrap(win32ui.CRichEditView_WrapNone)
 		self.interp = PythonwinInteractiveInterpreter()
@@ -307,7 +293,6 @@ class InteractiveCore:
 			self.write(sys.ps1)
 		self.flush()
 		self.idle.text.mark_set("iomark", "end-1c")
-#		print "set to" + self.text.index("iomark")
 		if not bufLines:
 			return
 		terms = (["\n" + sys.ps2] * (len(bufLines)-1)) + ['']
@@ -422,10 +407,6 @@ class InteractiveCore:
 		# If we are not in a code block just go to the prompt (or create a new one)
 		if not isCode:
 			self.AppendToPrompt([])
-#			lastLine = self.DoGetLine(self.GetLineCount()-1)
-#			if string.find(lastLine, sys.ps1)!=0 and string.find(lastLine, sys.ps2)!=0:
-#				self.write("\n%s" % sys.ps1)
-#			self.SetSel(-1)
 			win32ui.SetStatusText(win32ui.LoadString(afxres.AFX_IDS_IDLEMESSAGE))
 			return
 
@@ -455,10 +436,6 @@ class InteractiveCore:
 					bNeedIndent = 1
 				else:
 					# If the last line isnt empty, append a newline
-#					self.flush()
-#					lastLine = self.DoGetLine(self.GetLineCount()-1)
-#					if lastLine: self.write("\n")
-#					self.write(sys.ps1)
 					if self.history is not None:
 						self.history.history_store(source)
 					self.AppendToPrompt([])
@@ -551,21 +528,16 @@ class InteractiveView(InteractiveCore, winout.WindowOutputView):
 	def OnInitialUpdate(self):
 		winout.WindowOutputView.OnInitialUpdate(self)
 		self.Init()
-#		InteractiveCore.OnInitialUpdate(self)
 	def HookHandlers(self):
 		winout.WindowOutputView.HookHandlers(self)
 		InteractiveCore.HookHandlers(self)
-#		self.HookCommand(self.OnCmdViewWS, win32ui.ID_VIEW_WHITESPACE)
-##	def FillKeyMap(self): # Scintilla only
-##		winout.WindowOutputView.FillKeyMap(self)
-##		InteractiveCore.FillKeyMap(self)
 
 class CInteractivePython(winout.WindowOutput):
 	def __init__(self, makeDoc = None, makeFrame = None):
+		self.IsFinalDestroy = 0
 		winout.WindowOutput.__init__(self, sectionProfile, sectionProfile, \
 		                             winout.flags.WQ_NONE, 1, None, makeDoc, makeFrame, InteractiveView )
 		self.Create()
-		self.IsFinalDestroy = 0
 
 	def OnViewDestroy(self, view):
 		if self.IsFinalDestroy:
@@ -586,9 +558,9 @@ class InteractiveFrame(winout.WindowOutputFrame):
 			self.lastActive = wndDeactive
 
 ######################################################################
-# 
-# Dockable Window Support
-# 
+## 
+## Dockable Window Support
+## 
 ######################################################################
 ID_DOCKED_INTERACTIVE_CONTROLBAR = 0xe802
 
@@ -614,6 +586,16 @@ class DockedInteractiveView(DockedInteractiveViewParent):
 	def OnDestroy(self, msg):
 		newSize = self.GetWindowPlacement()[4]
 		pywin.framework.app.SaveWindowSize("Interactive Window", newSize, "docked")
+		try:
+			if self.GetParentFrame().GetActiveView==self:
+				self.GetParentFrame().SetActiveView(None)
+		except win32ui.error:
+			pass
+		try:
+			if win32ui.GetMainFrame().GetActiveView()==self:
+				win32ui.GetMainFrame().SetActiveView(None)
+		except win32ui.error:
+			pass
 		return DockedInteractiveViewParent.OnDestroy(self, msg)
 
 class CDockedInteractivePython(CInteractivePython):
@@ -622,15 +604,23 @@ class CDockedInteractivePython(CInteractivePython):
 		self.dockbar = dockbar
 		CInteractivePython.__init__(self)
 	def NeedRecreateWindow(self):
-		if self.bCreating: return 0
+		if self.bCreating:
+			return 0
 		try:
-			cb = win32ui.GetMainFrame().GetControlBar(ID_DOCKED_INTERACTIVE_CONTROLBAR)
+				frame = win32ui.GetMainFrame()
+		except win32ui.error:
+			return 0 # The app is dieing!
+		try:
+			cb = frame.GetControlBar(ID_DOCKED_INTERACTIVE_CONTROLBAR)
 			return not cb.IsWindowVisible()
 		except win32ui.error:
-			return 0 # We are dieing!
+			return 1 # Control bar does not exist!
 	def RecreateWindow(self):
-		dockbar = win32ui.GetMainFrame().GetControlBar(ID_DOCKED_INTERACTIVE_CONTROLBAR)
-		win32ui.GetMainFrame().ShowControlBar(dockbar, 1, 1)
+		try:
+			dockbar = win32ui.GetMainFrame().GetControlBar(ID_DOCKED_INTERACTIVE_CONTROLBAR)
+			win32ui.GetMainFrame().ShowControlBar(dockbar, 1, 1)
+		except win32ui.error:
+			CreateDockedInteractiveWindow()
 
 	def Create(self):
 		self.bCreating = 1
