@@ -1593,7 +1593,7 @@ static PyMethodDef cursorMethods[] = {
   { "fetchall", odbcCurFetchAll, 1} , /* @pymeth fetchall|Fetch all the rows of data */
   { "setinputsizes", odbcCurSetInputSizes, 1} , /* @pymeth setinputsizes| */
   { "setoutputsize", odbcCurSetOutputSize, 1} ,/* @pymeth setoutputsize| */
-  {0,     0}        /* Sentinel */
+  {0,     0}
 };
 
 static PyObject *cursorGetAttr(PyObject *self,
@@ -1732,7 +1732,7 @@ static PyObject *odbcLogon(PyObject *self, PyObject *args)
 /* @module odbc|A Python wrapper around the ODBC API. */
 static PyMethodDef globalMethods[] = {
   { "odbc", odbcLogon, 1} , /* @pymeth odbc|Creates an <o connection> object. */
-  {0,     0}        /* Sentinel */
+  {0,     0}
 };
 
 
