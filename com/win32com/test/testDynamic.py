@@ -16,7 +16,11 @@ class VeryPermissive:
 
 		if wFlags & pythoncom.DISPATCH_PROPERTYGET:
 			try:
-				return self.__dict__[name]
+				# to avoid problems with byref param handling, tuple results are converted to lists.
+				ret = self.__dict__[name]
+				if type(ret)==type(()):
+					ret = list(ret)
+				return ret
 			except KeyError: # Probably a method request.
 				raise Exception(scode=winerror.DISP_E_MEMBERNOTFOUND)
 
@@ -38,7 +42,11 @@ def Test():
 	import win32com.server.util, win32com.server.policy
 #	import win32dbg;win32dbg.brk()
 	ob = win32com.server.util.wrap(VeryPermissive(),usePolicy=win32com.server.policy.DynamicPolicy)
-	handle = pythoncom.RegisterActiveObject(ob, iid, 0)
+	try:
+		handle = pythoncom.RegisterActiveObject(ob, iid, 0)
+	except pythoncom.com_error, details:
+		print "Warning - could not register the object in the ROT:", details
+		handle = None
 	try:
 		import win32com.client.dynamic
 		client = win32com.client.dynamic.Dispatch(iid)
@@ -49,13 +57,19 @@ def Test():
 		v = ["Hello","From","Python",1.4]
 		client.TestSequence = v
 		if v != list(client.TestSequence):
-			raise error, "Dynamic sequences not working!"
+			raise error, "Dynamic sequences not working! %r/%r" % (repr(v), repr(client.testSequence))
 			
 		client.write("This","output","has","come","via","COM")
+		# Check our new "_FlagAsMethod" works (kinda!)
+		client._FlagAsMethod("NotReallyAMethod")
+		if not callable(client.NotReallyAMethod):
+			raise error, "Method I flagged as callable isn't!"
+
 
 		client = None
 	finally:
-		pythoncom.RevokeActiveObject(handle)
+		if handle is not None:
+			pythoncom.RevokeActiveObject(handle)
 
 if __name__=='__main__':
 	Test()
