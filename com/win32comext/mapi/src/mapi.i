@@ -481,6 +481,13 @@ HRESULT RTFSync(
 	int *OUTPUT // lpfMessageUpdated 
 );
 
+// @pyswig <PyIStream>|WrapCompressedRTFStream|
+HRESULT WrapCompressedRTFStream(
+  IStream *INPUT, // @pyparm <o PyIStream>|stream||Message stream
+  unsigned long ulflags, // @pyparm int|flags||
+  IStream **OUTPUT
+);
+
 %native(MAPIUIDFromBinary) MAPIUIDFromBinary;
 %{
 PyObject *MAPIUIDFromBinary(PyObject *self, PyObject *args)
@@ -595,3 +602,157 @@ done:
 	return rc;
 }
 %}
+
+%{
+// Code for converting RTF to HTML.
+// Found at http://www.wischik.com/lu/programmer/mapi_utils.html
+// MarkH converted it to Python, but was too slow.  Moving to a regex 
+// based parser was too much work.
+
+// DECODERTFHTML -- Given an uncompressed RTF body of the message,
+// and assuming that it contains encoded-html, this function
+// turns it onto regular html.
+// [in] (buf,*len) indicate the start and length of the uncompressed RTF body.
+// [out] the buffer is overwritten with the HTML version, null-terminated,
+// and *len indicates the length of this HTML.
+//
+// Notes: (1) because of how the encoding works, the HTML version is necessarily
+// shorter than the encoded version. That's why it's safe for the function to
+// place the decoded html in the same buffer that formerly held the encoded stuff.
+// (2) Some messages include characters \'XX, where XX is a hexedecimal number.
+// This function simply converts this into ASCII. The conversion will only make
+// sense if the right code-page is being used. I don't know how rtf specifies which
+// code page it wants.
+// (3) By experiment, I discovered that \pntext{..} and \liN and \fi-N are RTF
+// markup that should be removed. There might be other RTF markup that should
+// also be removed. But I don't know what else.
+//
+void decodertfhtml(char *buf,unsigned int *len)
+{ // c -- pointer to where we're reading from
+  // d -- pointer to where we're writing to. Invariant: d<c
+  // max -- how far we can read from (i.e. to the end of the original rtf)
+  // ignore_tag -- stores 'N': after \mhtmlN, we will ignore the subsequent \htmlN.
+  char *c=buf, *max=buf+*len, *d=buf; int ignore_tag=-1;
+  // First, we skip forwards to the first \htmltag.
+  while (c<max && strncmp(c,"{\\*\\htmltag",11)!=0) c++;
+  //
+  // Now work through the document. Our plan is as follows:
+  // * Ignore { and }. These are part of RTF markup.
+  // * Ignore \htmlrtf...\htmlrtf0. This is how RTF keeps its equivalent markup separate from the html.
+  // * Ignore \r and \n. The real carriage returns are stored in \par tags.
+  // * Ignore \pntext{..} and \liN and \fi-N. These are RTF junk.
+  // * Convert \par and \tab into \r\n and \t
+  // * Convert \'XX into the ascii character indicated by the hex number XX
+  // * Convert \{ and \} into { and }. This is how RTF escapes its curly braces.
+  // * When we get \*\mhtmltagN, keep the tag, but ignore the subsequent \*\htmltagN
+  // * When we get \*\htmltagN, keep the tag as long as it isn't subsequent to a \*\mhtmltagN
+  // * All other text should be kept as it is.
+  while (c<max)
+  { if (*c=='{') c++;
+    else if (*c=='}') c++;
+    else if (strncmp(c,"\\*\\htmltag",10)==0)
+    { c+=10; int tag=0; while (*c>='0' && *c<='9') {tag=tag*10+*c-'0'; c++;}
+      if (*c==' ') c++;
+      if (tag==ignore_tag) {while (c<max && *c!='}') c++; if (*c=='}') c++;}
+      ignore_tag=-1;
+    }
+    else if (strncmp(c,"\\*\\mhtmltag",11)==0)
+    { c+=11; int tag=0; while (*c>='0' && *c<='9') {tag=tag*10+*c-'0'; c++;}
+      if (*c==' ') c++;
+      ignore_tag=tag;
+    }
+    else if (strncmp(c,"\\par",4)==0) {strcpy(d,"\r\n"); d+=2; c+=4; if (*c==' ') c++;}
+    else if (strncmp(c,"\\tab",4)==0) {strcpy(d,"   "); d+=3; c+=4; if (*c==' ') c++;}
+    else if (strncmp(c,"\\li",3)==0)
+    { c+=3; while (*c>='0' && *c<='9') c++; if (*c==' ') c++;
+    }
+    else if (strncmp(c,"\\fi-",4)==0)
+    { c+=4; while (*c>='0' && *c<='9') c++; if (*c==' ') c++;
+    }
+    else if (strncmp(c,"\\'",2)==0)
+    { unsigned int hi=c[2], lo=c[3];
+      if (hi>='0' && hi<='9') hi-='0'; else if (hi>='A' && hi<='Z') hi=hi-'A'+10; else if (hi>='a' && hi<='z') hi=hi-'a'+10;
+      if (lo>='0' && lo<='9') lo-='0'; else if (lo>='A' && lo<='Z') lo=lo-'A'+10; else if (lo>='a' && lo<='z') lo=lo-'a'+10;
+      *((unsigned char*)d) = (unsigned char)(hi*16+lo);
+      c+=4; d++;
+    }
+    else if (strncmp(c,"\\pntext",7)==0) {c+=7; while (c<max && *c!='}') c++;}
+    else if (strncmp(c,"\\htmlrtf",8)==0)
+    { c++; while (c<max && strncmp(c,"\\htmlrtf0",9)!=0) c++;
+      if (c<max) c+=9; if (*c==' ') c++;
+    }
+    else if (*c=='\r' || *c=='\n') c++;
+    else if (strncmp(c,"\\{",2)==0) {*d='{'; d++; c+=2;}
+    else if (strncmp(c,"\\}",2)==0) {*d='}'; d++; c+=2;}
+    else {*d=*c; c++; d++;}
+  }
+  *d=0; d++;
+  *len = (unsigned int)(d-buf);
+}
+
+
+bool isrtfhtml(const char *buf,unsigned int len)
+{ // We look for the words "\fromhtml" somewhere in the file.
+  // If the rtf encodes text rather than html, then instead
+  // it will only find "\fromtext".
+  for (const char *c=buf; c<buf+len; c++)
+  { if (strncmp(c,"\\from",5)==0) return strncmp(c,"\\fromhtml",9)==0;
+  } return false;
+}
+
+// @pyswig |RTFStreamToHTML|
+static PyObject *MyRTFStreamToHTML(PyObject *self, PyObject *args)
+{
+  PyObject *obStream;
+  HRESULT hr;
+  // @pyparm <o PyIStream>|The stream to read the uncompressed RTF from||
+  if  (!PyArg_ParseTuple(args, "O:RTFStreamToHTML", &obStream))
+    return NULL;
+  IStream *pStream = NULL;
+
+  if (!PyCom_InterfaceFromPyObject(obStream, IID_IStream, (void **)&pStream, FALSE))
+    return NULL;
+
+  // all exit from here via 'exit', and no Python until POSTCALL
+  PY_INTERFACE_PRECALL;
+  PyObject *ret = NULL;
+  unsigned int bufsize=10240; 
+  char *htmlbuf = (char *)malloc(bufsize);
+  unsigned int htmlsize=0; bool done=(htmlbuf==NULL);
+  while (!done)
+  { ULONG red; hr = pStream->Read(htmlbuf+htmlsize, bufsize-htmlsize, &red);
+    if (hr!=S_OK) {htmlbuf[htmlsize]=0; done=true;}
+    else
+    { htmlsize+=red; done = (red < bufsize-htmlsize);
+      if (!done)
+      { unsigned int newsize=2*htmlsize;
+        htmlbuf = (char *)realloc(htmlbuf, newsize);
+        bufsize=newsize;
+      }
+    }
+  }
+  bool ok;
+  if (htmlbuf) {
+    ok = isrtfhtml(htmlbuf,htmlsize);
+    if (ok)
+      decodertfhtml(htmlbuf,&htmlsize);
+  }
+  PY_INTERFACE_POSTCALL;
+  if (htmlbuf==0) {
+    PyErr_NoMemory();
+    goto exit;
+  }
+  if (!ok) {
+    Py_INCREF(Py_None);
+    ret = Py_None;
+    goto exit;
+  }
+  ret = PyString_FromStringAndSize(htmlbuf, htmlsize-1);
+exit:
+  if (pStream) pStream->Release();
+  if (htmlbuf)
+    free(htmlbuf);
+  return ret;
+}
+%}
+%native(RTFStreamToHTML) MyRTFStreamToHTML;

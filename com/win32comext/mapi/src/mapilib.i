@@ -78,6 +78,10 @@ typedef unsigned long BOOKMARK;
 {
   $target = &temp;
 }
+%typemap(python,ignore) IStream **OUTPUT(IStream *temp)
+{
+  $target = &temp;
+}
 
 
 %typemap(python,argout) IMAPIProp **OUTPUT {
@@ -119,6 +123,9 @@ typedef unsigned long BOOKMARK;
 %typemap(python,argout) IMsgServiceAdmin **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IMsgServiceAdmin)
 }
+%typemap(python,argout) IStream **OUTPUT {
+	MAKE_OUTPUT_INTERFACE($source, $target, IID_IStream)
+}
 
 
 %typemap(python,freearg) IMessage *INPUT,
@@ -146,7 +153,9 @@ typedef unsigned long BOOKMARK;
 						 IAddrBook *INPUT,
 						 IAddrBook *INPUT_NULLOK,
 						 IMsgServiceAdmin *INPUT,
-						 IMsgServiceAdmin *INPUT_NULLOK
+						 IMsgServiceAdmin *INPUT_NULLOK,
+						 IStream *INPUT,
+						 IStream *INPUT_NULLOK
 {
 	if ($source) $source->Release();
 }
@@ -266,6 +275,15 @@ typedef unsigned long BOOKMARK;
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMsgServiceAdmin, (void **)&$target, 1))
 		return NULL;
 }
+%typemap(python,in) IStream *INPUT {
+	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IStream, (void **)&$target, 0))
+		return NULL;
+}
+%typemap(python,in) IStream *INPUT_NULLOK {
+	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IStream, (void **)&$target, 1))
+		return NULL;
+}
+
 // Some ** special cases.
 %typemap(python,freearg) IMsgStore **INPUT
 {
