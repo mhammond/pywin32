@@ -32,6 +32,14 @@ bForDemandDefault = 0 # Default value of bForDemand - toggle this to change the 
 # The global dictionary
 clsidToTypelib = {}
 
+# If we have a different version of the typelib generated, this
+# maps the "requested version" to the "generated version".
+versionRedirectMap = {}
+
+# There is no reason we *must* be readonly in a .zip, but we are now,
+# and we really do need a "read-only" concept anyway.
+is_readonly = not os.path.isdir(os.path.dirname(win32com.__gen_path__))
+
 # A dictionary of ITypeLibrary objects for demand generation explicitly handed to us
 # Keyed by usual clsid, lcid, major, minor
 demandGeneratedTypeLibraries = {}
@@ -45,6 +53,9 @@ def __init__():
 
 pickleVersion = 1
 def _SaveDicts():
+	if is_readonly:
+		raise RuntimeError, "Trying to write to a readonly gencache ('%s')!" \
+		                    % win32com.__gen_path__
 	import cPickle
 	f = open(os.path.join(GetGeneratePath(), "dicts.dat"), "wb")
 	try:
@@ -56,16 +67,25 @@ def _SaveDicts():
 
 def _LoadDicts():
 	import cPickle
-	try:
+	# Load the dictionary from a .zip file if that is where we live.
+	zip_pos = win32com.__gen_path__.find(".zip\\")
+	if zip_pos >= 0:
+		import zipfile, cStringIO
+		zip_file = win32com.__gen_path__[:zip_pos+4]
+		zip_path = win32com.__gen_path__[zip_pos+5:]
+		zip_path = os.path.join(zip_path, "dicts.dat").replace("\\", "/")
+		zf = zipfile.ZipFile(zip_file)
+		f = cStringIO.StringIO(zf.read(zip_path))
+		zf.close()
+	else:
 		# NOTE: IOError on file open must be caught by caller.
 		f = open(os.path.join(win32com.__gen_path__, "dicts.dat"), "rb")
-	except AttributeError: # no __gen_path__
-		return
 	try:
 		p = cPickle.Unpickler(f)
 		version = p.load()
 		global clsidToTypelib
 		clsidToTypelib = p.load()
+		versionRedirectMap.clear()
 	finally:
 		f.close()
 
@@ -211,6 +231,27 @@ def GetModuleForTypelib(typelibCLSID, lcid, major, minor):
 	"""
 	modName = GetGeneratedFileName(typelibCLSID, lcid, major, minor)
 	return _GetModule(modName)
+##############
+	typelibCLSID = str(typelibCLSID)
+	args = typelibCLSID, lcid, major, minor
+	args = versionRedirectMap.get(args, args)
+	modName = GetGeneratedFileName(*args)
+	try:
+		return _GetModule(modName)
+	except ImportError:
+		# See if we can find a module with a different minor version.
+		items = []
+		for desc in GetGeneratedInfos():
+			if str(desc[0])==typelibCLSID and desc[1]==lcid and desc[2]==major:
+				items.append(desc)
+		if not items:
+			raise
+		# Items are all identical, except for last tuple element
+		# We want the latest minor version we have - so just sort and grab last
+		items.sort()
+		new_minor = items[-1][3]
+		versionRedirectMap[args] = typelibCLSID, lcid, major, new_minor
+		return GetModuleForTypelib(typelibCLSID, lcid, major, new_minor)
 
 def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = None, bGUIProgress = None, bForDemand = bForDemandDefault, bBuildHidden = 1):
 	"""Generate support for a type library.
@@ -309,10 +350,12 @@ def ForgetAboutTypelibInterface(typelib_ob):
 	except KeyError:
 		# Not worth raising an exception - maybe they dont know we only remember for demand generated, etc.
 		print "ForgetAboutTypelibInterface:: Warning - type library with info %s is not being remembered!" % (info,)
+	# and drop any version redirects to it
+	for key, val in versionRedirectMap.items():
+		if val==info:
+			del versionRedirectMap[key]
 
-
-
-def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bValidateFile=1, bForDemand = bForDemandDefault, bBuildHidden = 1):
+def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bValidateFile=not is_readonly, bForDemand = bForDemandDefault, bBuildHidden = 1):
 	"""Ensure Python support is loaded for a type library, generating if necessary.
 	
 	Given the IID, LCID and version information for a type library, check and if
@@ -337,23 +380,31 @@ def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bVal
 	bReloadNeeded = 0
 	try:
 		try:
-			#print "Try specified typelib"
 			module = GetModuleForTypelib(typelibCLSID, lcid, major, minor)
-			#print module
 		except ImportError:
 			# If we get an ImportError
 			# We may still find a valid cache file under a different MinorVersion #
-			#print "Loading reg typelib"
-			tlbAttr = pythoncom.LoadRegTypeLib(typelibCLSID, major, minor, lcid).GetLibAttr()
-			# if the above line doesn't throw a pythoncom.com_error
-			# Let's suck it in
-			#print "Trying 2nd minor #", tlbAttr[1], tlbAttr[3], tlbAttr[4]
+			# (which windows will search out for us)
+			#print "Loading reg typelib", typelibCLSID, major, minor, lcid
+			module = None
 			try:
-				module = GetModuleForTypelib(typelibCLSID, tlbAttr[1], tlbAttr[3], tlbAttr[4])
-			except ImportError:
-				module = None
-				minor = tlbAttr[4]
+				tlbAttr = pythoncom.LoadRegTypeLib(typelibCLSID, major, minor, lcid).GetLibAttr()
+				# if the above line doesn't throw a pythoncom.com_error, check if
+				# it is actually a different lib than we requested, and if so, suck it in
+				if tlbAttr[1] != lcid or tlbAttr[4]!=minor:
+					#print "Trying 2nd minor #", tlbAttr[1], tlbAttr[3], tlbAttr[4]
+					try:
+						module = GetModuleForTypelib(typelibCLSID, tlbAttr[1], tlbAttr[3], tlbAttr[4])
+					except ImportError:
+						# We don't have a module, but we do have a better minor
+						# version - remember that.
+						minor = tlbAttr[4]
+				# else module remains None
+			except pythoncom.com_error:
+				# couldn't load any typelib - mod remains None
+				pass
 		if module is not None and bValidateFile:
+			assert not is_readonly, "Can't validate in a read-only gencache"
 			try:
 				typLibPath = pythoncom.QueryPathOfRegTypeLib(typelibCLSID, major, minor, lcid)
 				tlbAttributes = pythoncom.LoadRegTypeLib(typelibCLSID, major, minor, lcid).GetLibAttr()
@@ -363,6 +414,7 @@ def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bVal
 				# deployed here.
 				bValidateFile = 0
 		if module is not None and bValidateFile:
+			assert not is_readonly, "Can't validate in a read-only gencache"
 			filePathPrefix  = "%s\\%s" % (GetGeneratePath(), GetGeneratedFileName(typelibCLSID, lcid, major, minor))
 			filePath = filePathPrefix + ".py"
 			filePathPyc = filePathPrefix + ".py"
@@ -416,13 +468,39 @@ def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bVal
 						pass
 				#print "Trying stat typelib", pyModTime
 				#print str(typLibPath)
-				typLibModTime = os.stat(typLibPath[:-1])[8]
+				typLibModTime = os.stat(str(typLibPath[:-1]))[8]
 				if fModTimeSet and (typLibModTime > pyModTime):
 					bReloadNeeded = 1
 					module = None
 	except (ImportError, os.error):	
 		module = None
 	if module is None:
+		# We need to build an item.  If we are in a read-only cache, we
+		# can't/don't want to do this - so before giving up, check for
+		# a different minor version in our cache - according to COM, this is OK
+		if is_readonly:
+			key = str(typelibCLSID), lcid, major, minor
+			# If we have been asked before, get last result.
+			try:
+				return versionRedirectMap[key]
+			except KeyError:
+				pass
+			# Find other candidates.
+			items = []
+			for desc in GetGeneratedInfos():
+				if key[0]==desc[0] and key[1]==desc[1] and key[2]==desc[2]:
+					items.append(desc)
+			if items:
+				# Items are all identical, except for last tuple element
+				# We want the latest minor version we have - so just sort and grab last
+				items.sort()
+				new_minor = items[-1][3]
+				ret = GetModuleForTypelib(typelibCLSID, lcid, major, new_minor)
+			else:
+				ret = None
+			# remember and return
+			versionRedirectMap[key] = ret
+			return ret
 		#print "Rebuilding: ", major, minor
 		module = MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance, bForDemand = bForDemand, bBuildHidden = bBuildHidden)
 		# If we replaced something, reload it
@@ -450,67 +528,105 @@ def EnsureDispatch(prog_id, bForDemand = 1): # New fn, so we default the new dem
 			raise TypeError, "This COM object can not automate the makepy process - please run makepy manually for this object"
 	return disp
 
-def AddModuleToCache(typelibclsid, lcid, major, minor, verbose = 1, bFlushNow = 1):
+def AddModuleToCache(typelibclsid, lcid, major, minor, verbose = 1, bFlushNow = not is_readonly):
 	"""Add a newly generated file to the cache dictionary.
 	"""
 	fname = GetGeneratedFileName(typelibclsid, lcid, major, minor)
 	mod = _GetModule(fname)
 	dict = mod.CLSIDToClassMap
+	info = str(typelibclsid), lcid, major, minor
 	for clsid, cls in dict.items():
-		clsidToTypelib[clsid] = (str(typelibclsid), mod.LCID, mod.MajorVersion, mod.MinorVersion)
+		clsidToTypelib[clsid] = info
 
 	dict = mod.CLSIDToPackageMap
 	for clsid, name in dict.items():
-		clsidToTypelib[clsid] = (str(typelibclsid), mod.LCID, mod.MajorVersion, mod.MinorVersion)
+		clsidToTypelib[clsid] = info
 
 	dict = mod.VTablesToClassMap
 	for clsid, cls in dict.items():
-		clsidToTypelib[clsid] = (str(typelibclsid), mod.LCID, mod.MajorVersion, mod.MinorVersion)
+		clsidToTypelib[clsid] = info
 
 	dict = mod.VTablesToPackageMap
 	for clsid, cls in dict.items():
-		clsidToTypelib[clsid] = (str(typelibclsid), mod.LCID, mod.MajorVersion, mod.MinorVersion)
+		clsidToTypelib[clsid] = info
 
-
+	# If this lib was previously redirected, drop it
+	if versionRedirectMap.has_key(info):
+		del versionRedirectMap[info]
 	if bFlushNow:
 		_SaveDicts()
+
+def GetGeneratedInfos():
+	zip_pos = win32com.__gen_path__.find(".zip\\")
+	if zip_pos >= 0:
+		import zipfile, cStringIO
+		zip_file = win32com.__gen_path__[:zip_pos+4]
+		zip_path = win32com.__gen_path__[zip_pos+5:].replace("\\", "/")
+		zf = zipfile.ZipFile(zip_file)
+		infos = {}
+		for n in zf.namelist():
+			if not n.startswith(zip_path):
+				continue
+			base = n[len(zip_path)+1:].split("/")[0]
+			try:
+				iid, lcid, major, minor = base.split("x")
+				lcid = int(lcid)
+				major = int(major)
+				minor = int(minor)
+				iid = pywintypes.IID("{" + iid + "}")
+			except ValueError:
+				continue
+			except pywintypes.com_error:
+				# invalid IID
+				continue
+			infos[(iid, lcid, major, minor)] = 1
+		zf.close()
+		return infos.keys()
+	else:
+		# on the file system
+		files = glob.glob(win32com.__gen_path__+ "\\*")
+		ret = []
+		for file in files:
+			if not os.path.isdir(file) and not os.path.splitext(file)==".py":
+				continue
+			name = os.path.splitext(os.path.split(file)[1])[0]
+			try:
+				iid, lcid, major, minor = string.split(name, "x")
+				iid = pywintypes.IID("{" + iid + "}")
+				lcid = int(lcid)
+				major = int(major)
+				minor = int(minor)
+			except ValueError:
+				continue
+			except pywintypes.com_error:
+				# invalid IID
+				continue
+			ret.append((iid, lcid, major, minor))
+		return ret
 
 def _GetModule(fname):
 	"""Given the name of a module in the gen_py directory, import and return it.
 	"""
-	mod = __import__("win32com.gen_py.%s" % fname)
-	return getattr( getattr(mod, "gen_py"), fname)
-	
+	mod_name = "win32com.gen_py.%s" % fname
+	mod = __import__(mod_name)
+	return sys.modules[mod_name]
+
 def Rebuild(verbose = 1):
 	"""Rebuild the cache indexes from the file system.
 	"""
 	clsidToTypelib.clear()
-	files = glob.glob(win32com.__gen_path__+ "\\*.py")
-	if verbose and len(files): # Dont bother reporting this when directory is empty!
+	infos = GetGeneratedInfos()
+	if verbose and len(infos): # Dont bother reporting this when directory is empty!
 		print "Rebuilding cache of generated files for COM support..."
-	for file in files:
-		name = os.path.splitext(os.path.split(file)[1])[0]
+	for info in infos:
+		iid, lcid, major, minor = info
+		if verbose:
+			print "Checking", GetGeneratedFileName(*info)
 		try:
-			iid, lcid, major, minor = string.split(name, "x")
-			ok = 1
-		except ValueError:
-			ok = 0
-		if ok:
-			try:
-				iid = pywintypes.IID("{" + iid + "}")
-			except pywintypes.com_error:
-				ok = 0
-		if ok:
-			if verbose:
-				print "Checking", name
-			try:
-				AddModuleToCache(iid, lcid, major, minor, verbose, 0)
-			except:
-				print "Could not add module %s - %s: %s" % (name, sys.exc_info()[0],sys.exc_info()[1])
-		else:
-			if verbose and name[0] != '_':
-				print "Skipping module", name
-	if verbose and len(files): # Dont bother reporting this when directory is empty!
+			AddModuleToCache(iid, lcid, major, minor, verbose, 0)
+		except:
+			print "Could not add module %s - %s: %s" % (name, sys.exc_info()[0],sys.exc_info()[1])
+	if verbose and len(infos): # Dont bother reporting this when directory is empty!
 		print "Done."
 	_SaveDicts()
 
