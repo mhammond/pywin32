@@ -316,7 +316,7 @@ def UnregisterServer(clsid, progID=None, verProgID=None, customKeys = None):
   """Unregisters a Python COM server."""
 
   for args in GetUnregisterServerKeys(clsid, progID, verProgID, customKeys ):
-    apply(recurse_delete_key, args)
+    recurse_delete_key(*args)
 
   ### it might be nice at some point to "roll back" the independent ProgID
   ### to an earlier version if one exists, and just blowing away the
@@ -461,11 +461,11 @@ def UseCommandLine(*classes, **flags):
   flags['quiet'] = flags.get('quiet',0) or '--quiet' in sys.argv
   flags['debug'] = flags.get('debug',0) or '--debug' in sys.argv
   if unregisterInfo:
-    return apply(UnregisterInfoClasses, classes, flags)
+    return UnregisterInfoClasses(*classes, **flags)
   if unregister:
-    apply(UnregisterClasses, classes, flags)
+    UnregisterClasses(*classes, **flags)
   else:
-    apply(RegisterClasses, classes, flags)
+    RegisterClasses(*classes, **flags)
 
 
 def RegisterPyComCategory():
