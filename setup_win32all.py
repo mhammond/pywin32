@@ -18,6 +18,12 @@ should be used.
 If you don't use the extensions that fail to build, you can ignore these
 warnings; if you do use them, you must install the correct libraries.
 
+The 'axdebug' extension requires Active Debugging dev files available here:
+  http://support.microsoft.com/default.aspx?kbid=223389
+Download Scriptng.exe, unpack the files to a temporary directory and manually
+copy the .h and .lib files to your Platform SDK installation's include
+and lib directories, respectively -- overwriting some files of the same name.
+
 To install the win32all extensions, execute:
   python setup_win32all.py -q install
   
@@ -851,7 +857,7 @@ com_extensions += [
     ),
     WinExt_win32com('axdebug',
             dsp_file=r"com\Active Debugging.dsp",
-            libraries="axscript msdbg", # ad1.lib should work, but fails in debug?
+            libraries="axscript ad1",
             pch_header = "stdafx.h",
     ),
     WinExt_win32com('internet'),
