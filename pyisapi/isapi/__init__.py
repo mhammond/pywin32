@@ -23,4 +23,11 @@ class FilterError(ISAPIError):
     
 class ExtensionError(ISAPIError):
     pass
-    
+
+# A little development aid - a filter or extension callback function can
+# raise one of these exceptions, and the handler module will be reloaded.
+# This means you can change your code without restarting IIS.
+# After a reload, your filter/extension will have the GetFilterVersion/
+# GetExtensionVersion function called, but with None as the first arg.
+class InternalReloadException(Exception):
+    pass
