@@ -794,7 +794,7 @@ static PyObject *PyEnumPrintProcessorDatatypes(PyObject *self, PyObject *args)
 	LPBYTE buf=NULL;
 	WCHAR *servername=NULL, *processorname=NULL;
 	PyObject *observername, *obprocessorname;
-	DWORD level=1, bufsize=0, bytes_needed, return_cnt;
+	DWORD level=1, bufsize=0, bytes_needed, return_cnt, buf_ind;
 	PyObject *ret=NULL, *tuple_item;
 	// @pyparm string/<o PyUnicode>|ServerName||Name of print server, use None for local machine
 	// @pyparm string/<o PyUnicode>|PrintProcessorName||Name of print processor
@@ -823,7 +823,7 @@ static PyObject *PyEnumPrintProcessorDatatypes(PyObject *self, PyObject *args)
 	if (ret==NULL)
 		goto done;
 	di1=(DATATYPES_INFO_1W *)buf;
-	for (DWORD buf_ind=0; buf_ind<return_cnt; buf_ind++){
+	for (buf_ind=0; buf_ind<return_cnt; buf_ind++){
 		tuple_item=PyWinObject_FromWCHAR(di1->pName);
 		if (tuple_item==NULL){
 			Py_DECREF(ret);
@@ -846,7 +846,7 @@ done:
 // @pymethod (dict,...)|win32print|EnumPrinterDrivers|Lists installed printer drivers
 static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 {
-	DWORD level=1, bufsize=0, bytes_needed, return_cnt;
+	DWORD level=1, bufsize=0, bytes_needed, return_cnt, i;
 	LPBYTE buf=NULL;
 	DRIVER_INFO_1W *di1;
 	DRIVER_INFO_2W *di2;
@@ -890,7 +890,7 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 	switch (level)
 		case 1:{
 			di1=(DRIVER_INFO_1W *)buf;
-			for (DWORD i=0; i<return_cnt; i++){
+			for (i=0; i<return_cnt; i++){
 				tuple_item=Py_BuildValue("{s:u}","Name",di1->pName);
 				if (tuple_item==NULL){
 					Py_DECREF(ret);
@@ -903,7 +903,7 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 			break;
 		case 2:
 			di2=(DRIVER_INFO_2W *)buf;
-			for (DWORD i=0; i<return_cnt; i++){
+			for (i=0; i<return_cnt; i++){
 				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u}",
 					"Version",di2->cVersion,
 					"Name",di2->pName,
@@ -922,7 +922,7 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 			break;
 		case 3:
 			di3=(DRIVER_INFO_3W *)buf;
-			for (DWORD i=0; i<return_cnt; i++){
+			for (i=0; i<return_cnt; i++){
 				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u}",
 					"Version",di3->cVersion,
 					"Name",di3->pName,
@@ -945,7 +945,7 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 			break;
 		case 4:
 			di4=(DRIVER_INFO_4W *)buf;
-			for (DWORD i=0; i<return_cnt; i++){
+			for (i=0; i<return_cnt; i++){
 				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u}",
 					"Version",di4->cVersion,
 					"Name",di4->pName,
@@ -969,7 +969,7 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 			break;
 		case 5:
 			di5=(DRIVER_INFO_5W *)buf;
-			for (DWORD i=0; i<return_cnt; i++){
+			for (i=0; i<return_cnt; i++){
 				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u,s:l,s:l,s:l}",
 					"Version",di5->cVersion,
 					"Name",di5->pName,
@@ -991,7 +991,7 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 			break;
 		case 6:
 			di6=(DRIVER_INFO_6W *)buf;
-			for (DWORD i=0; i<return_cnt; i++){
+			for (i=0; i<return_cnt; i++){
 				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:u,s:O&,s:L,s:u,s:u,s:u}",
 					"Version",di6->cVersion,
 					"Name",di6->pName,
@@ -1057,7 +1057,7 @@ static PyObject *PyEnumForms(PyObject *self, PyObject *args)
 	// @rdesc Returns a sequence of dictionaries representing FORM_INFO_1 structures
 	PyObject *ret=NULL, *tuple_item;
 	HANDLE hprinter;
-	DWORD level=1, bufsize=0, bytes_needed=0, return_cnt;
+	DWORD level=1, bufsize=0, bytes_needed=0, return_cnt, buf_ind;
 	FORM_INFO_1W *fi1;
 	LPBYTE buf=NULL;
 	if (enumforms==NULL){
@@ -1085,7 +1085,7 @@ static PyObject *PyEnumForms(PyObject *self, PyObject *args)
 	if (ret==NULL)
 		goto done;
 	fi1=(FORM_INFO_1W *)buf;
-	for (DWORD buf_ind=0; buf_ind<return_cnt; buf_ind++){
+	for (buf_ind=0; buf_ind<return_cnt; buf_ind++){
 		tuple_item=PyWin_Object_FromFORM_INFO_1(fi1);
 		if (tuple_item==NULL){
 			Py_DECREF(ret);
