@@ -1,12 +1,10 @@
 // ConsSpawn.cpp : Defines the entry point for the console application.
 //
 
-#include "stdafx.h"
-
 /*++
          Module Name:
 
-            CONSPAWN.C
+            win32popenWin9x.cpp
 
          Description:
 
