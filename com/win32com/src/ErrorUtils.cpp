@@ -498,7 +498,9 @@ BOOL VLogF_Logger(PyObject *logger, const char *log_method,
 	// a logger from that package)
 	PyObject *kw = PyDict_New();
 	if (kw && exc_typ) {
-		PyObject *exc_info = Py_BuildValue("OOO", exc_typ, exc_val, exc_tb);
+		PyObject *exc_info = Py_BuildValue("OOO", exc_typ, 
+		                                   exc_val ? exc_val : Py_None,
+		                                   exc_tb ? exc_tb : Py_None);
 		PyDict_SetItemString(kw, "exc_info", exc_info);
 		Py_XDECREF(exc_info);
 	}
