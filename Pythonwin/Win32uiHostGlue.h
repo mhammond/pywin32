@@ -150,41 +150,39 @@ inline BOOL Win32uiHostGlue::RegisterModule(const char *fname, const char *modul
 #ifndef LINK_WITH_WIN32UI
 inline BOOL Win32uiHostGlue::DynamicApplicationInit(const char *cmd, const char *additionalPaths)
 {
-	char keyName[256];
-	char version[32] = "";
-
-	const char *keyRootName = "Software\\Python\\PythonCore\\";
-	HKEY hkey = GetRegistryRootKey();
-	HMODULE hModWin32ui = NULL;
-
 #ifdef _DEBUG
-	HMODULE hModCore = LoadLibrary("Python15_d.dll"); // ?? variable?
 	char *szWinui_Name = "win32ui_d.pyd";
 #else
-	HMODULE hModCore = LoadLibrary("Python15.dll"); // ?? variable?
 	char *szWinui_Name = "win32ui.pyd";
 #endif
-	// Get the version string from the DLL.
-	LoadString(hModCore, 1000, version, sizeof(version));
-	if (GetModuleHandle(szWinui_Name)==0) { // win32ui is not yet loaded - load it.
-		strcpy(keyName, keyRootName);
-		strcat(keyName, version);
-		strcat(keyName, "\\Modules\\win32ui");
-#ifdef _DEBUG
-		strcat(keyName, "\\Debug");
-#endif
-		char path[_MAX_PATH];
-		long retSize = sizeof(path);
-		if (RegQueryValue(hkey, keyName, path, &retSize)==ERROR_SUCCESS) {
-			TRACE("Located registered win32ui at %s.\n", path);
-			hModWin32ui = LoadLibrary(path);
-			if (hModWin32ui==NULL) {
-				char buf[80];
-				wsprintf(buf,"Warning - win32ui registered, but module load failed (%d)\n", GetLastError());
-				OutputDebugString(buf);
-			}
-		}
+	HMODULE hModWin32ui = LoadLibrary(szWinui_Name);
+	if (hModWin32ui==NULL) {
+		char buf[256];
+		sprintf(buf,"The application can not locate %s (%d)\n", szWinui_Name, GetLastError()); 
+		int len = strlen(buf);
+		int bufLeft = sizeof(buf) - len;
+		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), 
+			MAKELANGID(LANG_NEUTRAL,SUBLANG_NEUTRAL), buf+len, bufLeft, NULL);
+		AfxMessageBox(buf);
+		return FALSE;
 	}
+	HMODULE hModCore = NULL;
+	for (int i=5;i<10;i++) {
+		char fname[20];
+#ifdef _DEBUG
+		wsprintf(fname, "Python1%_d.dll", i);
+#else
+		wsprintf(fname, "Python1%d.dll", i);
+#endif
+		hModCore = GetModuleHandle(fname);
+		if (hModCore)
+			break;
+	}
+	if (hModCore==NULL) {
+		AfxMessageBox("Can not locate the Python DLL");
+		return FALSE;
+	}
+
 	// Now the modules are loaded, call the Python init functions.
 	int (__cdecl *pfnIsInit)(void);
 	pfnIsInit = (int (__cdecl *)(void))GetProcAddress(hModCore, "Py_IsInitialized");
@@ -202,20 +200,6 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const char *cmd, const char 
 		(*pfnPyInit)();
 	}
 
-	if (hModWin32ui==NULL)
-		hModWin32ui = LoadLibrary(szWinui_Name);
-	if (hModCore) // free my temp instance - must be after win32ui, else it is unloaded!
-		FreeLibrary(hModCore);
-	if (hModWin32ui==NULL) {
-		char buf[256];
-		sprintf(buf,"The application can not locate %s (%d)\n", szWinui_Name, GetLastError()); 
-		int len = strlen(buf);
-		int bufLeft = sizeof(buf) - len;
-		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), 
-			MAKELANGID(LANG_NEUTRAL,SUBLANG_NEUTRAL), buf+len, bufLeft, NULL);
-		AfxMessageBox(buf);
-		return FALSE;
-	}
 	BOOL (__cdecl *pfnWin32uiInit)(Win32uiHostGlue *, char *, const char *);
 
 	pfnWin32uiInit = (BOOL (__cdecl *)(Win32uiHostGlue *, char *, const char *))GetProcAddress(hModWin32ui, "Win32uiApplicationInit");
