@@ -394,3 +394,14 @@ DWORD_WAITAPI WaitForSingleObjectEx(
    );
 // @rdesc See <om win32event.WaitForSingleObject> for return values.   
 #endif /* MS_WINCE */
+
+// @pyswig int|WaitForInputIdle|Waits until the given process is waiting for user input with no input pending, or until the time-out interval has elapsed
+DWORD_WAITAPI WaitForInputIdle(
+    HANDLE hProcess,	// @pyparm <o PyHANDLE>|hProcess||handle of process to wait for 
+    DWORD dwMilliseconds 	// @pyparm int|milliseconds||time-out interval in milliseconds  
+   );
+// @rdesc The return value indicates wether the process is ready or wether it timed out. This value can be one of the following. 
+// @flagh Value|Meaning
+// @flag 0|The process is ready. 
+// @flag WAIT_TIMEOUT|The time-out interval elapsed, and the process is not ready. 
+
