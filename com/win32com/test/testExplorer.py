@@ -8,6 +8,22 @@ import win32api
 import glob
 import pythoncom
 
+bVisibleEventFired = 0
+
+class ExplorerEvents:
+	def OnVisible(self, visible):
+		global bVisibleEventFired
+		bVisibleEventFired = 1
+
+def TestExplorerEvents():
+	iexplore = win32com.client.DispatchWithEvents("InternetExplorer.Application", ExplorerEvents)
+	iexplore.Visible = 1
+	if not bVisibleEventFired:
+		raise RuntimeError, "The IE event did not appear to fire!"
+	iexplore.Quit()
+	iexplore = None
+
+
 def TestExplorer(iexplore):
 	if not iexplore.Visible: iexplore.Visible = -1
 	try:
@@ -28,6 +44,14 @@ def TestAll():
 		TestExplorer(iexplore)
 
 		win32api.Sleep(1000)
+		iexplore = None
+
+		# Test IE events.
+		TestExplorerEvents()
+
+		# Note that the TextExplorerEvents will force makepy - hence
+		# this gencache is really no longer needed.
+
 		from win32com.client import gencache
 		gencache.EnsureModule("{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}", 0, 1, 1)
 		iexplore = win32com.client.Dispatch("InternetExplorer.Application")
