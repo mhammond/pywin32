@@ -104,7 +104,7 @@ def TestDynamic():
 	l=[1,2,3,4]
 	TestApplyResult(o.SetVariantSafeArray, (l,), len(l))
 #	TestApplyResult(o.SetIntSafeArray, (l,), len(l))       Still fails, and probably always will.
-
+	TestApplyResult(o.CheckVariantSafeArray, ((1,2,3,4,),), 1)
 
 def TestGenerated():
 	# Create an instance of the server.
