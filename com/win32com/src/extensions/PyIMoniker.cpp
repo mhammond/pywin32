@@ -284,7 +284,9 @@ PyObject *PyIMoniker::GetDisplayName(PyObject *self, PyObject *args)
 	IMoniker *pMonLeft = NULL;
 	if (obMoniker!=Py_None) {
 		if (!PyCom_InterfaceFromPyInstanceOrObject(obMoniker, IID_IMoniker, (void **)&pMonLeft, FALSE)) {
+			PY_INTERFACE_PRECALL;
 			pBindCtx->Release();
+			PY_INTERFACE_POSTCALL;
 			return NULL;
 		}
 	}
