@@ -13,7 +13,6 @@ generates Windows .hlp files.
 ***/
 
 #include "shell_pch.h"
-#include "shlwapi.h"
 #include "PyIShellLink.h"
 #include "PyIContextMenu.h"
 #include "PyIExtractIcon.h"
