@@ -22,8 +22,6 @@ generates Windows .hlp files.
 #define SECURITY_WIN32 // required by below
 #include "security.h"  // for GetUserNameEx
 
-#define DllExport   _declspec(dllexport)
-
 // Identical to PyW32_BEGIN_ALLOW_THREADS except no script "{" !!!
 // means variables can be declared between the blocks
 #define PyW32_BEGIN_ALLOW_THREADS PyThreadState *_save = PyEval_SaveThread();
