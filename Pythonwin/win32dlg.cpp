@@ -298,10 +298,12 @@ static PyObject *do_exchange_list_combo( int id, int index, char *type, PyObject
 				strVal = PyString_AsString(oldVal);
 			}
 			CString csVal(strVal?strVal:"");
+			GUI_BGN_SAVE;
 			if (bList)
 				DDX_LBString(pDX, id, csVal);
 			else
 				DDX_CBString(pDX, id, csVal);
+			GUI_END_SAVE;
 			newOb = Py_BuildValue("s", (const char *)csVal);
 			break;
 		}
@@ -387,10 +389,12 @@ static PyObject *do_exchange_button( CDialog *pDlg, int id, int index, char *typ
 			return set_exchange_error("the previous value was not a number!", index);
 		intVal = (int)PyInt_AsLong(oldVal);
 	}
+	GUI_BGN_SAVE;
 	if (bRadio)
 		DDX_Radio(pDX, id, intVal);
 	else
 		DDX_Check(pDX, id, intVal);
+	GUI_END_SAVE;
 	return Py_BuildValue("i", intVal);
 }
 
