@@ -68,6 +68,9 @@ void PyCom_ExcepInfoFromPyException(EXCEPINFO *pExcepInfo)
 	}
 	else
 	{
+		// Clear the exception raised by PyCom_ExcepInfoFromPyObject,
+		// not the one we are interested in!
+		PyErr_Clear();
 		// Not a special exception object - do the best we can.
 		PyObject *obException = PyObject_Str(exception);
 		PyObject *obValue = PyObject_Str(v);
@@ -198,12 +201,16 @@ static BOOL PyCom_ExcepInfoFromServerExceptionInstance(PyObject *v, EXCEPINFO *p
 BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *phresult)
 {
 	_ASSERTE(pExcepInfo != NULL);
-	if (v==NULL || pExcepInfo==NULL)
+	if (v==NULL || pExcepInfo==NULL) {
+		PyErr_SetString(PyExc_RuntimeError, "invalid arg to PyCom_ExcepInfoFromPyObject");
 		return FALSE;
+	}
 
 	// New handling for 1.5 exceptions.
-	if (!PyErr_GivenExceptionMatches(v, PyWinExc_COMError))
+	if (!PyErr_GivenExceptionMatches(v, PyWinExc_COMError)) {
+		PyErr_Format(PyExc_TypeError, "Must be a COM exception object (not '%s')", v->ob_type->tp_name);
 		return FALSE;
+	}
 	// It is a COM exception, but may be a server or client instance.
 	// Explicit check for client.
 	// Note that with class based exceptions, a simple pointer check fails.
@@ -235,6 +242,8 @@ BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *ph
 								   &helpContext,
 								   &scode) ) {
 				Py_DECREF(ob);
+				PyErr_Clear();
+				PyErr_SetString(PyExc_TypeError, "The inner exception tuple must be of format 'izzzii'");
 				return FALSE;
 			}
 			pExcepInfo->wCode = code;
