@@ -389,7 +389,7 @@ STDMETHODIMP %s::%s(
           except makegwparse.error_not_supported, why:
             f.write('// *** The input argument %s of type "%s" was not processed ***\n//   - Please ensure this conversion function exists, and is appropriate\n//   - %s\n' % (arg.name, arg.raw_type, why))
             f.write('\tPyObject *ob%s = PyObject_From%s(%s);\n' % (arg.name, arg.type, arg.name))
-            f.write('\tif (ob%s==NULL) return PyCom_HandlePythonFailureToCOM();\n' % arg.name)
+            f.write('\tif (ob%s==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("%s");\n' % (arg.name, method.name))
             codePost = codePost + "\tPy_DECREF(ob%s);\n" % arg.name
             formatChars = formatChars + "O"
             argStr = argStr + ", ob%s" % (arg.name)
@@ -438,11 +438,11 @@ STDMETHODIMP %s::%s(
         else:
           parseFn = "PyArg_ParseTuple"
         if codePobjects: f.write(codePobjects)
-        f.write('\tif (!%s(result, "%s" %s)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);\n' % (parseFn, formatChars, argsParseTuple))
+        f.write('\tif (!%s(result, "%s" %s))\n\t\treturn MAKE_PYCOM_GATEWAY_FAILURE_CODE("%s");\n' % (parseFn, formatChars, argsParseTuple, method.name))
       if codePost: 
         f.write('\tBOOL bPythonIsHappy = TRUE;\n')
         f.write(codePost)
-        f.write('\tif (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);\n')
+        f.write('\tif (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("%s");\n' % method.name)
       f.write('\tPy_DECREF(result);\n');
     f.write('\treturn hr;\n}\n\n')
   
