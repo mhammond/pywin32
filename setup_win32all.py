@@ -36,11 +36,13 @@ you must have built (or installed) a debug version of Python for this to work.
 from distutils.core import setup, Extension, Command
 from distutils.command.install_lib import install_lib
 from distutils.command.build_ext import build_ext
+from distutils.command.install_data import install_data
 from distutils.dep_util import newer_group
 from distutils import log
 from distutils import dir_util, file_util
 from distutils.sysconfig import get_python_lib
 from distutils.filelist import FileList
+import types, glob
 import os, string, sys
 import re
 
@@ -552,6 +554,19 @@ class my_build_ext(build_ext):
 
 ################################################################
 
+class my_install_data(install_data):
+     """A custom install_data command, which will install it's files
+     into the standard directories (normally lib/site-packages).
+     """
+     def finalize_options(self):
+         if self.install_dir is None:
+             installobj = self.distribution.get_command_obj('install')
+             self.install_dir = installobj.install_lib
+         print 'Installing data files to %s' % self.install_dir
+         install_data.finalize_options(self)
+
+################################################################
+
 pywintypes = WinExt_system32('pywintypes',
                     dsp_file = r"win32\PyWinTypes.dsp",
                     extra_compile_args = ['-DBUILD_PYWINTYPES'],
@@ -723,7 +738,6 @@ def expand_modules(module_dir):
 # 'Lib/site-packages/Pythonwin/licence.txt'.  We exploit this to
 # get 'com/win32com/whatever' installed to 'win32com/whatever'
 def convert_data_files(files):
-    base_dir = "Lib/site-packages"
     ret = []
     for file in files:
         file = os.path.normpath(file)
@@ -743,7 +757,6 @@ def convert_data_files(files):
         path_use = os.path.dirname(file)
         if path_use.startswith("com/") or path_use.startswith("com\\"):
             path_use = path_use[4:]
-        path_use = os.path.join(base_dir, path_use)
         ret.append( (path_use, files_use))
     return ret
 
@@ -776,6 +789,7 @@ dist = setup(name="pywin32",
       license="PSA",
       cmdclass = { #'install_lib': my_install_lib,
                    'build_ext': my_build_ext,
+                   'install_data': my_install_data,
                    },
       options = {"bdist_wininst": {"install_script": "pywin32_postinstall.py"}},
 
@@ -846,10 +860,10 @@ dist = setup(name="pywin32",
                  ]) +
                 # And data files convert_data_files can't handle.
                 [
-                    ('Lib/site-packages\\win32com', ('com/License.txt',)),
+                    ('win32com', ('com/License.txt',)),
                     # pythoncom.py doesn't quite fit anywhere else.
                     # Note we don't get an auto .pyc - but who cares?
-                    ('Lib/site-packages', ('com/pythoncom.py',)),
+                    ('', ('com/pythoncom.py',)),
                 ],
       )
 
@@ -874,7 +888,8 @@ if dist.command_obj.has_key('build_ext'):
 # process has terminated (as distutils imports win32api!), so we must use
 # some 'no wait' executor - spawn seems fine!  We pass the PID of this
 # process so the child will wait for us.
-if not dist.dry_run and dist.command_obj.has_key('install'):
+if not dist.dry_run and dist.command_obj.has_key('install') \
+       and not dist.command_obj.has_key('bdist_wininst'):
     # What executable to use?  This one I guess.  Maybe I could just import
     # as a module and execute?
     filename = os.path.join(
