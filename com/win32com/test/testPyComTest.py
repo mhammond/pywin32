@@ -41,6 +41,7 @@ def TestApplyResult(fn, args, result):
 			raise error, "%s failed - result not %d but %d" % (pref, result, rc)
 	except:
 		t, v, tb = sys.exc_info()
+		tb = None
 		raise error, "%s caused exception %s,%s" % (pref, t, v)
 
 	if verbose: print

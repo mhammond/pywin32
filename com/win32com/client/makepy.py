@@ -167,6 +167,7 @@ def GetTypeLibsForSpec(arg):
 	except pythoncom.com_error:
 		t,v,tb=sys.exc_info()
 		sys.stderr.write ("Unable to load type library from '%s' - %s\n" % (arg, v))
+		t,v,tb = None # Storing tb in a local is a cycle!
 		sys.exit(1)
 
 

@@ -89,6 +89,7 @@ def CheckoutFile(fileName):
 		typ, val, tb = sys.exc_info()
 		traceback.print_exc()
 		win32ui.MessageBox("%s - %s" % (str(typ), str(val)),"Error checking out file")
+		tb = None # Cleanup a cycle
 	return ok
 
 

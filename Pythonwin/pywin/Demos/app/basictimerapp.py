@@ -116,6 +116,7 @@ class TimerManager:
 					str = "Failed: %s: %s" % (t, `v`)
 					print str
 					self.oldErr.write(str)
+					tb = None # Prevent cycle
 			finally:
 				self.ReleaseOutput()
 				self.dlg.butOK.EnableWindow()

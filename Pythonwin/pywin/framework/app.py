@@ -210,6 +210,7 @@ class CApp(thread.WinApp):
 		except:
 			t, v, tb = sys.exc_info()
 			win32ui.MessageBox("Internal error in help file processing\r\n%s: %s" % (t,v))
+			tb = None # Prevent a cycle
 	
 	def DoLoadModules(self, modules):
 		# XXX - this should go, but the debugger uses it :-(

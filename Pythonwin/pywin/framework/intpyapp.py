@@ -255,6 +255,7 @@ class InteractivePythonApp(app.CApp):
 			print "There was an error processing the command line args"
 			traceback.print_exception(typ, val, tb, None, sys.stdout)
 			win32ui.OutputDebug("There was a problem with the command line args - %s: %s" % (`typ`,`val`))
+			tb = None # Prevent a cycle
 
 
 	def LoadSystemModules(self):

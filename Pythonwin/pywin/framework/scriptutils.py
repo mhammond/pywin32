@@ -529,6 +529,7 @@ def _HandlePythonFailure(what, syntaxErrorPathName = None):
 	else:	
 		traceback.print_exc()
 		win32ui.SetStatusText('Failed to ' + what + ' - ' + str(details) )
+	tb = None # Clean up a cycle.
 
 # Find the Python TabNanny in either the standard library or the Python Tools/Scripts directory.
 def FindTabNanny():

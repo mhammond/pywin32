@@ -393,6 +393,7 @@ class DebuggerWatchWindow(DebuggerListViewWindow):
 				except:
 					t, v, tb = sys.exc_info()
 					val = string.strip(traceback.format_exception_only(t, v)[0])
+					tb = None # prevent a cycle.
 			self.SetItemText(i, 1, val)
 
 def CreateDebuggerDialog(parent, klass, debugger):
