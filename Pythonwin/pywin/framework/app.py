@@ -321,9 +321,12 @@ class AboutBox(dialog.Dialog):
 		# Get the build number
 		try:
 			ver = win32api.RegQueryValue(win32con.HKEY_LOCAL_MACHINE, "SOFTWARE\\Python\\Pythonwin\\Build")
-		except:
-			ver = "number is unknown"
-		self.SetDlgItemText(win32ui.IDC_ABOUT_VERSION, "Pythonwin build " + ver)
+		except win32api.error:
+			try:
+				ver = win32api.RegQueryValue(win32con.HKEY_CURRENT_USER, "SOFTWARE\\Python\\Pythonwin\\Build")
+			except win32api.error:
+				ver = "number is unknown"
+		self.SetDlgItemText(win32ui.IDC_ABOUT_VERSION, "Pythonwin build " + str(ver))
 
 def Win32RawInput(prompt=None):
 	"Provide raw_input() for gui apps"
