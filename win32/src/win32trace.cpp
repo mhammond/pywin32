@@ -349,6 +349,12 @@ static PyObject *win32trace_setprint(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+static PyObject *win32trace_flush(PyObject *self, PyObject *args)
+{
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 static PyObject *win32trace_GetHandle(PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ":GetHandle"))
@@ -372,6 +378,7 @@ static struct PyMethodDef win32trace_functions[] = {
 	{"blockingread",      win32trace_blockingread, 1 }, // @pymeth blockingread|
 	{"read",              win32trace_read, 1 }, // @pymeth read|
 	{"setprint",          win32trace_setprint, 1 }, // @pymeth setprint|
+	{"flush",             win32trace_flush, 1 }, // @pymeth flush|Does nothing, but included to better emulate file semantics.
 	{NULL,			NULL}
 };
 
