@@ -6,6 +6,11 @@
 
 extern void PyCom_LogF(const TCHAR *fmt, ...);
 
+extern PyObject *PyObject_FromRecordInfo(IRecordInfo *, void *);
+extern PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa);
+extern BOOL PyObject_AsVARIANTRecordInfo(PyObject *ob, VARIANT *pv);
+extern BOOL PyRecord_Check(PyObject *ob);
+
 // A little helper just for this file
 static PyObject* OleSetTypeError(char *msg)
 {
@@ -149,6 +154,12 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 			return FALSE;
 		V_VT(var) = VT_ARRAY | VT_VARIANT;
 	}
+	else if (PyRecord_Check(obj))
+	{
+		if (!PyObject_AsVARIANTRecordInfo(obj, var))
+			return FALSE;
+		V_VT(var) = VT_RECORD;
+	}
 	/*
 	else if (obj->ob_type == &AutomatedType)
 	{
@@ -192,7 +203,11 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
 			psa = *V_ARRAYREF(var);
 		else
 			psa=V_ARRAY(var);
-		VARENUM rawVT = (VARENUM)(V_VT(var) & (~ (VT_ARRAY | VT_BYREF)));
+		if (psa==NULL) { // A NULL array
+			Py_INCREF(Py_None);
+			return Py_None;
+		}
+		VARENUM rawVT = (VARENUM)(V_VT(var) & VT_TYPEMASK);
 		return PyCom_PyObjectFromSAFEARRAY(psa, rawVT);
 	}
 
@@ -225,6 +240,8 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
 		case VT_I1:
 		case VT_I2:
 		case VT_I4:
+		case VT_INT:
+		case VT_UINT:
 			hr = VariantChangeType(&varValue, &varValue, 0, VT_I4);
 			if ( FAILED(hr) )
 			{
@@ -293,12 +310,15 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
 			result = PyWinObject_FromDATE(V_DATE(&varValue));
 			break;
 
-	    case VT_CY:
-			// Cheesy support browwored from:
+		case VT_CY:
+			// Cheesy support borrowed from:
 			// PyIPropertyStorage.cpp.
 			result = Py_BuildValue("ll", varValue.cyVal.Hi, varValue.cyVal.Lo);
 			break;
 
+		case VT_RECORD:
+			result = PyObject_FromRecordInfo(V_RECORDINFO(&varValue), V_RECORD(&varValue));
+			break;
 		default:
 			{
 				HRESULT hr = VariantChangeType(&varValue, &varValue, 0, VT_BSTR);
@@ -634,6 +654,10 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYBuildDimension(SAFEARRAY *psa, VAREN
 		SafeArrayUnaccessData(psa);
 		return ret;
 	}
+	// Another shortcut for VT_RECORD types.
+	if (vt==VT_RECORD) {
+		return PyObject_FromSAFEARRAYRecordInfo(psa);
+	}
 	// Normal SAFEARRAY case returning a tuple.
 
 	PyObject *retTuple = PyTuple_New(ub-lb+1);
@@ -746,95 +770,12 @@ PythonOleArgHelper::~PythonOleArgHelper()
 BOOL PythonOleArgHelper::ParseTypeInformation(PyObject *reqdObjectTuple)
 {
 	if (m_bParsedTypeInfo) return TRUE;
-	int indirectionLevel = 0;
-	if (!PyTuple_Check(reqdObjectTuple)) {
-		OleSetTypeError("types must be specified in a tuple of tuples.");
-		return FALSE;
-	}
-	// tuple[0] == either integer type, or (type, type)
-	// tuple[1] == in/out
-	PyObject *extraObject = PyTuple_GetItem(reqdObjectTuple, 1);
-	long indirectType = 0;
-	BOOL bForcedType = FALSE;
-	int reqdFlags = 0;
-	if (!extraObject) return FALSE;
+	PyErr_Clear();
 	PyObject *typeDesc = PyTuple_GetItem(reqdObjectTuple, 0);
-	while (PyTuple_Check(typeDesc)) {
-		if (PyTuple_Size(typeDesc)!=2) {
-			PyErr_SetString(PyExc_TypeError, "OLE type description - expecting a sub-type tuple of size 2");
-			return FALSE;
-		}
-		indirectType = PyInt_AsLong(PyTuple_GetItem(typeDesc, 0));
-		switch (indirectType) {
-			case VT_PTR:
-				indirectionLevel++;
-				break;
-			case VT_USERDEFINED:
-				// Remove indirection level VT_USERDEFINED.
-				// This type has not been translated by makepy or similar,
-				--indirectionLevel;
-				// This is an alias, or some other type.
-				// Do the best we can, and get out now.
-				m_reqdType = VT_VARIANT;
-				bForcedType = TRUE;
-				break;
-			case VT_SAFEARRAY:
-				reqdFlags |= VT_ARRAY;
-				break;
-			default:
-				PyErr_SetString(PyExc_TypeError, "OLE type description - unknown indirection type.");
-				return FALSE;
-		} /* case */
-		typeDesc = PyTuple_GetItem(typeDesc, 1);
-	}
-	if (!bForcedType)
-		m_reqdType = (VARENUM)PyInt_AsLong(typeDesc);
-	// We need to translate from VT's that are valid in a type library,
-	// but not in a variant.  Here we translate back to the underlying
-	// VT allowed in a variant.
-	// wtypes.h documents this.
-	switch (m_reqdType) {
-/*** As of MSVC6, these are valid in a VARIANT...
-		case VT_I1:
-			m_reqdType = VT_UI1;
-			break;
-		case VT_UI2:
-			m_reqdType = VT_I2;
-			break;
-***/
-		case VT_INT:
-		case VT_UINT:
-//		case VT_UI4:
-		case VT_HRESULT:
-			m_reqdType = VT_I4;
-			break;
-		default:
-			// leave it alone (probably so later code can fail :-)
-			break;
-	}
-	// Hack - whats the correct thing?
-	// I think I know now!!!  This is not it!!
-	// Well, I _thought_ I knew.  This code means that BYREF VARIANT's are not supported.
-	// Im not even sure they should be.  Removing this hack makes "testMSOffice.py" fail
-//	if (m_reqdType == VT_VARIANT && indirectionLevel>0)
-//		indirectionLevel = 0;
-	// Hack up to here - to be removed, but how??
-
-	if (indirectionLevel) {
-		reqdFlags |= VT_BYREF;
-		// Just because we are VT_BYREF, we dont necessarily want to
-		// be treated as truly BYREF - check the VARTYPE flags.
-		PyErr_Clear();
-		DWORD varFlags = PyInt_AsLong(extraObject);
-		if (!PyErr_Occurred())
-			// If we have no flags at all, or specifically an OUT param, then treat it as such.
-			m_bByRef = (varFlags==0) || 
-			           ((varFlags & PARAMFLAG_FOUT) != 0) ||
-			           ((varFlags & PARAMFLAG_FRETVAL) != 0);
-
-	}
-	m_reqdType |= reqdFlags;
-
+	if (typeDesc==NULL) return FALSE;
+	m_reqdType = (VARTYPE)PyInt_AsLong(typeDesc);
+	if (PyErr_Occurred()) return FALSE;
+	m_bByRef = (m_reqdType & VT_BYREF) != 0;
 	m_bParsedTypeInfo = TRUE;
 	return TRUE;
 }
@@ -866,7 +807,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 			return FALSE;
 	}
 	if (m_reqdType & VT_ARRAY) {
-		VARENUM rawVT = (VARENUM)(m_reqdType & (~ (VT_ARRAY | VT_BYREF)));
+		VARENUM rawVT = (VARENUM)(m_reqdType & VT_TYPEMASK);
 		if (m_reqdType & VT_BYREF) {
 			if (!VALID_BYREF_MISSING(obj)) {
 				if (!PyCom_SAFEARRAYFromPyObject(obj, &m_arrayBuf, rawVT))
@@ -1146,6 +1087,9 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 			BREAK_FALSE; 
 		}
 		// Nothing else to do - the code below sets the VT up correctly.
+		break;
+	case VT_RECORD:
+		rc = PyObject_AsVARIANTRecordInfo(obj, var);
 		break;
 	default:
 		// could try default, but this error indicates we need to
