@@ -114,6 +114,15 @@ class PyCOMTest:
 	def CheckVariantSafeArray(self, data):
 		return 1
 
+	def LongProp(self):
+		return self.intval
+	def SetLongProp(self, val):
+		self.intval = val
+	def IntProp(self):
+		return self.intval
+	def SetIntProp(self, val):
+		self.intval = val
+
 if __name__ == '__main__':
 	import win32com.server.register
 	win32com.server.register.UseCommandLine(PyCOMTest)
