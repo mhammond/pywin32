@@ -553,6 +553,8 @@ class CoClassItem(build.OleItem, WritableItem):
       for ref in referenced_items:
         print >> stream, "__import__('%s.%s')" % (generator.base_mod_name, ref.python_name)
         print >> stream, "%s = sys.modules['%s.%s'].%s" % (ref.python_name, generator.base_mod_name, ref.python_name, ref.python_name)
+        # And pretend we have written it - the name is now available as if we had!
+        ref.bWritten = 1
     try:
       progId = pythoncom.ProgIDFromCLSID(self.clsid)
       print >> stream, "# This CoClass is known by the name '%s'" % (progId)
