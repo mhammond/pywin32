@@ -18,6 +18,7 @@ custom configuration.
 provided with Pythonwin are:
 @flagh Common Keystrokes|Description
 @flag Alt+Q|Reformat the current paragraph/comment block.  Note this does NOT reformat code correctly - use only within comment blocks!
+@flag Ctrl+W|Toggle view whitespace.
 @flag Alt+/|Expand the word at the cursor.  Eg, pressing "st\<Alt+/\>"
 will complete based on all words in the current file - eg, "string"
 would be likely to result assuming the code has an "import string"
@@ -42,6 +43,14 @@ statement.  Pressing the key again expands to the next match.
 @flag Tab|Insert an indent, or perform a block indent is a selection
 exists.
 @flag Shift-Tab|Block dedent the selection
+
+@flagh Debugger Keystrokes|Description
+@flag F9|Toggle breakpoint
+@flag F5|Run (ie, go)
+@flag Shift+F5|Stop debugging
+@flag F11|Single step into functions
+@flag F10|Step over functions
+@flag Shift+F11|Step out of the current function
 
 @flagh Interactive Window Specific Keystrokes|Description
 @flag Ctrl+Up|Recall the previous command in the history list.
