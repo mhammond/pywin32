@@ -151,11 +151,22 @@ BOOLAPI CreateDirectory(
     TCHAR *name, // @pyparm <o PyUnicode>|name||The name of the directory to create
     SECURITY_ATTRIBUTES *pSA); // @pyparm <o PySECURITY_ATTRIBUTES>|sa||The security attributes, or None
 
+// @pyswig |CreateDirectoryW|Creates a directory (NT/2000 Unicode specific version)
+BOOLAPI CreateDirectoryW(
+    WCHAR *name, // @pyparm <o PyUnicode>|name||The name of the directory to create
+    SECURITY_ATTRIBUTES *pSA); // @pyparm <o PySECURITY_ATTRIBUTES>|sa||The security attributes, or None
+
 #ifndef MS_WINCE
 // @pyswig |CreateDirectoryEx|Creates a directory
 BOOLAPI CreateDirectoryEx(
     TCHAR *templateName, // @pyparm <o PyUnicode>|templateName||Specifies the path of the directory to use as a template when creating the new directory. 
     TCHAR *newDirectory, // @pyparm <o PyUnicode>|newDirectory||Specifies the name of the new directory
+    SECURITY_ATTRIBUTES *pSA); // @pyparm <o PySECURITY_ATTRIBUTES>|sa||The security attributes, or None
+
+// @pyswig |CreateDirectoryExW|Creates a directory (NT/2000 Unicode specific version)
+BOOLAPI CreateDirectoryExW(
+    WCHAR *templateName, // @pyparm <o PyUnicode>|templateName||Specifies the path of the directory to use as a template when creating the new directory. 
+    WCHAR *newDirectory, // @pyparm <o PyUnicode>|newDirectory||Specifies the name of the new directory
     SECURITY_ATTRIBUTES *pSA); // @pyparm <o PySECURITY_ATTRIBUTES>|sa||The security attributes, or None
 #endif // MS_WINCE
 
