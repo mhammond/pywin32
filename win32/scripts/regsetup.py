@@ -389,6 +389,7 @@ def RegisterShellInfo(searchPaths):
 	regutil.SetRegistryDefaultValue("Python.File\\DefaultIcon", "%s,0" % exePath, win32con.HKEY_CLASSES_ROOT)
 	
 	FindRegisterHelpFile("Python.hlp", searchPaths, "Main Python Documentation")
+	FindRegisterHelpFile("ActivePython.chm", searchPaths, "Main Python Documentation")
 
 	# We consider the win32 core, as it contains all the win32 api type
 	# stuff we need.
