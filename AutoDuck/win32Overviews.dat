@@ -1,3 +1,3 @@
 Getting process info (with some COM thrown it!)	win32/process_info.html
 Windows NT/2000 Networking with the win32net module	win32/win32net.html
-Directory permissions with GetNamedSecurityInfo win32/security_directories.html
+Directory permissions with GetNamedSecurityInfo	win32/security_directories.html
