@@ -27,8 +27,9 @@ import strop
 # we update the pywin path to ensure it is absolute.
 # If it is indeed relative, it will be relative to our current directory.
 # If its already absolute, then this will have no affect.
-import pywin
+import pywin, pywin.framework
 pywin.__path__[0] = win32ui.FullPath(pywin.__path__[0])
+pywin.framework.__path__[0] = win32ui.FullPath(pywin.framework.__path__[0])
 
 # make a few wierd sys values.  This is so later we can clobber sys.argv to trick
 # scripts when running under a GUI environment.
