@@ -101,6 +101,10 @@ if __name__=='__main__':
 	testAXScript.RegisterEngine()
 	testAXScript.TestAll()
 
+	# testxslt uses the axscript engine too.
+	import testxslt
+	testxslt.TestAll()
+
 	import testCollections
 	testCollections.TestEnum(1)
 
