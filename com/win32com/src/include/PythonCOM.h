@@ -153,6 +153,14 @@ public:
 	PyIUnknown * (* ctor)(IUnknown *);
 };
 
+// A type used for interfaces that can automatically provide enumerators
+// (ie, they themselves aren't enumerable, but do have a suitable default 
+// method that returns a PyIEnum object
+class PYCOM_EXPORT PyComEnumProviderTypeObject : public PyComTypeObject {
+public:
+	PyComEnumProviderTypeObject( const char *name, PyComTypeObject *pBaseType, int typeSize, struct PyMethodDef* methodList, PyIUnknown* (* thector)(IUnknown *)  );
+};
+
 // A type used for PyIEnum interfaces
 class PYCOM_EXPORT PyComEnumTypeObject : public PyComTypeObject {
 public:
@@ -170,7 +178,7 @@ public:
 	virtual int setattr(char *name, PyObject *v);
 	virtual PyObject *repr();
 	virtual int compare(PyObject *other) {return (int)this-int(other);}
-	virtual PyObject *iter() {Py_INCREF(this);return this;}
+	virtual PyObject *iter();
 	virtual PyObject *iternext();
 
 	static struct PyMethodDef PyIBase::empty_methods[];

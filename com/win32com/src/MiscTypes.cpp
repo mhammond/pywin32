@@ -117,6 +117,15 @@ PyComEnumTypeObject::PyComEnumTypeObject( const char *name, PyComTypeObject *pBa
 		tp_flags |= Py_TPFLAGS_HAVE_ITER;
 }
 
+	// Our type for IEnum provider interfaces
+PyComEnumProviderTypeObject::PyComEnumProviderTypeObject( const char *name, PyComTypeObject *pBase, int typeSize, struct PyMethodDef* methodList, PyIUnknown * (* thector)(IUnknown *)) :
+	PyComTypeObject( name, pBase, typeSize, methodList, thector)
+{
+		tp_iter = PyIBase::iter;
+		// tp_iternext remains NULL
+		tp_flags |= Py_TPFLAGS_HAVE_ITER;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // class PyOleEmpty
 PyOleEmpty::PyOleEmpty()

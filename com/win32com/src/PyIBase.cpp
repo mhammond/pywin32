@@ -53,6 +53,14 @@ PyIBase::getattr(char *name)
 {
 	return Py_FindMethodInChain(&((PyComTypeObject *)ob_type)->chain, this, name);
 }
+
+PyObject *
+PyIBase::iter()
+{
+	return PyErr_Format(PyExc_RuntimeError,
+			"iter must be overridden by objects supporting enumeration (type '%s').", ob_type->tp_name);
+}
+
 PyObject *
 PyIBase::iternext()
 {

@@ -13,6 +13,13 @@ PyIEnumVARIANT::~PyIEnumVARIANT()
 }
 
 PyObject *
+PyIEnumVARIANT::iter()
+{
+	Py_INCREF(this);
+	return this;
+}
+
+PyObject *
 PyIEnumVARIANT::iternext()
 {
 	IEnumVARIANT *pIEVARIANT = GetI(this);
