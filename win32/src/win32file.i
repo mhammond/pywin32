@@ -346,21 +346,19 @@ BOOLAPI FindNextChangeNotification(
 static PyObject *
 PyFindFilesW(PyObject *self, PyObject *args)
 {
-	char *fileSpec;
+	WCHAR *fileSpec;
 	// @pyparm string|fileSpec||A string that specifies a valid directory or path and filename, which can contain wildcard characters (* and ?).
-
-	if (!PyArg_ParseTuple (args, "s:FindFilesW", &fileSpec))
+	PyObject *obfileSpec=NULL;
+	if (!PyArg_ParseTuple (args, "O:FindFilesW", &obfileSpec))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obfileSpec,&fileSpec,FALSE))
 		return NULL;
 	WIN32_FIND_DATAW findData;
 	// @pyseeapi FindFirstFile
 	HANDLE hFind;
-	int len=strlen(fileSpec);
-	WCHAR *pBuf = new WCHAR[len+1];
-	if (0==MultiByteToWideChar( CP_ACP, 0, fileSpec, len+1, pBuf, sizeof(WCHAR)*(len+1)))
-		return PyWin_SetAPIError("MultiByteToWideChar");
-	hFind =  ::FindFirstFileW(pBuf, &findData);
-	delete [] pBuf;
 
+	hFind =  ::FindFirstFileW(fileSpec, &findData);
+	PyWinObject_FreeWCHAR(fileSpec);
 	if (hFind==INVALID_HANDLE_VALUE) {
 		if (::GetLastError()==ERROR_FILE_NOT_FOUND) {	// this is OK
 			return PyList_New(0);
