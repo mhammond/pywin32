@@ -35,7 +35,7 @@ PyObject *PyIShellIcon::GetIconOf(PyObject *self, PyObject *args)
 	LPITEMIDLIST pidl;
 	UINT flags;
 	int index;
-	if ( !PyArg_ParseTuple(args, "O:GetIconOf", &obpidl) )
+	if ( !PyArg_ParseTuple(args, "Oi:GetIconOf", &obpidl, &flags) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
 	if (bPythonIsHappy && !PyObject_AsPIDL(obpidl, &pidl)) bPythonIsHappy = FALSE;
