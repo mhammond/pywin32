@@ -114,7 +114,6 @@ PyObject *PyICatInformation::EnumClassesOfCategories(PyObject *self, PyObject *a
 // @pymethod string|PyICatInformation|GetCategoryDesc|Retrieves the localized description string for a specific category ID.
 PyObject *PyICatInformation::GetCategoryDesc(PyObject *self, PyObject *args)
 {
-	USES_CONVERSION;
 	LCID lcid = 0;
 	PyObject *obCatId;
 	// @pyparm int|lcid|0|lcid
@@ -135,9 +134,8 @@ PyObject *PyICatInformation::GetCategoryDesc(PyObject *self, PyObject *args)
 	if (S_OK!=hr) // S_OK only acceptable
 		return PyCom_BuildPyException(hr, pMy, IID_ICatInformation);
 	// @comm The return type is a true PyString, not a Uniocode object.
-	// @todo Upgrade the return type to be Unicode.  Should wait until Python has Unicode support.
-
-	PyObject *rc = PyString_FromString(W2A(pResult));
+	// @todo Upgrade the return type to be Unicode.
+	PyObject *rc = PyString_FromUnicode(pResult);
 	CoTaskMemFree(pResult);
 	return rc;
 }

@@ -11,6 +11,7 @@ generates Windows .hlp files.
 
 #include "stdafx.h"
 #include <objbase.h>
+#include "olectl.h"
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
 #include "PyFactory.h"
@@ -748,7 +749,7 @@ static PyObject *pythoncom_Unicode(PyObject *self, PyObject *args)
 // @pymethod <o PyIMoniker>,int,<o PyIBindCtx>|pythoncom|MkParseDisplayName|Parses a moniker display name into a moniker object. The inverse of <om PyIMoniker.GetDisplayName>
 static PyObject *pythoncom_MkParseDisplayName(PyObject *self, PyObject *args)
 {
-	const char *displayName;
+	WCHAR *displayName;
 	PyObject *obBindCtx = NULL;
 
 	// @pyparm string|displayName||The display name to parse
@@ -756,7 +757,9 @@ static PyObject *pythoncom_MkParseDisplayName(PyObject *self, PyObject *args)
 	// @comm If a binding context is not provided, then one will be created.
 	// Any binding context created or passed in will be returned to the
 	// caller.
-	if ( !PyArg_ParseTuple(args, "s|O:MkParseDisplayName", &displayName, &obBindCtx) )
+	if ( !PyArg_ParseTuple(args, "et|O:MkParseDisplayName", 
+			Py_FileSystemDefaultEncoding, &displayName, 
+			&obBindCtx) )
 		return NULL;
 
 	HRESULT hr;
@@ -764,29 +767,32 @@ static PyObject *pythoncom_MkParseDisplayName(PyObject *self, PyObject *args)
 	if ( obBindCtx == NULL || obBindCtx==Py_None)
 	{
 		hr = CreateBindCtx(0, &pBC);
-		if ( FAILED(hr) )
+		if ( FAILED(hr) ) {
+			PyMem_Free(displayName);
 			return PyCom_BuildPyException(hr);
+		}
 
 		/* pass the pBC ref into obBindCtx */
 		obBindCtx = PyCom_PyObjectFromIUnknown(pBC, IID_IBindCtx, FALSE);
 	}
 	else
 	{
-		if ( !PyCom_InterfaceFromPyObject(obBindCtx, IID_IBindCtx, (LPVOID*)&pBC, FALSE) )
+		if ( !PyCom_InterfaceFromPyObject(obBindCtx, IID_IBindCtx, (LPVOID*)&pBC, FALSE) ) {
+			PyMem_Free(displayName);
 			return NULL;
+		}
 
 		/* we want our own ref to obBindCtx, but not pBC */
 		Py_INCREF(obBindCtx);
 		pBC->Release();
 	}
 	/* at this point: we own a ref to obBindCtx, but not pBC */
-
-	USES_CONVERSION;
 	ULONG chEaten;
 	IMoniker *pmk;
 	PY_INTERFACE_PRECALL;
-	hr = MkParseDisplayName(pBC, A2W(displayName), &chEaten, &pmk);
+	hr = MkParseDisplayName(pBC, displayName, &chEaten, &pmk);
 	PY_INTERFACE_POSTCALL;
+	PyMem_Free(displayName);
 	if ( FAILED(hr) )
 	{
 		Py_DECREF(obBindCtx);
@@ -1096,7 +1102,7 @@ static PyObject *pythoncom_CoCreateFreeThreadedMarshaler(PyObject *self, PyObjec
 static PyObject *pythoncom_OleLoad(PyObject *self, PyObject* args)
 {
 	PyObject *obStorage, *obIID, *obSite;
-	if ( !PyArg_ParseTuple(args, "OO:OleLoad",
+	if ( !PyArg_ParseTuple(args, "OOO:OleLoad",
 		&obStorage, // @pyparm <o PyIStorage>|storage||The storage object from which to load
 		&obIID, // @pyparm <o PyIID>|iid||The IID if the interface to load.
 		&obSite)) // @pyparm <o PyIOleClientSite>|site||The client site for the object.

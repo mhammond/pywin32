@@ -66,7 +66,6 @@ PyICatRegister::~PyICatRegister()
 // @pymethod |PyICatRegister|RegisterCategories|Registers one or more component categories. Each component category consists of a CATID and a list of locale-dependent description strings.
 PyObject *PyICatRegister::RegisterCategories(PyObject *self, PyObject *args)
 {
-	USES_CONVERSION;
 	PyObject *obCatList;
 	// @pyparm [ (<o PyIID>, int, string), ...]|[ (catId, lcid, description), ...]||A sequence of category descriptions.
 	if ( !PyArg_ParseTuple(args, "O:RegisterCategories", &obCatList) )
@@ -106,10 +105,11 @@ PyObject *PyICatRegister::RegisterCategories(PyObject *self, PyObject *args)
 			return NULL;
 		}
 		Py_DECREF(obThis);
-		OLECHAR *oc =  T2OLE(desc);
-		++descLen;	/* copy the terminator, too! */
-		if (descLen>127) descLen = 127;
-		wcsncpy(infos[i].szDescription, oc, descLen);
+		OLECHAR *oc;
+		if (PyWin_String_AsWCHAR(desc, -1, &oc)) {
+			wcsncpy(infos[i].szDescription, oc, sizeof(infos->szDescription));
+			PyWinObject_FreeString(oc);
+		}
 	}
 
 	PY_INTERFACE_PRECALL;

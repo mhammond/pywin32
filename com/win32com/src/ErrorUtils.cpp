@@ -3,44 +3,19 @@
 #include "stdafx.h"
 #include "PythonCOM.h"
 #include "oaidl.h"
+#include "olectl.h" // For connection point constants.
 
 #ifdef MS_WINCE
-#include "olectl.h" // For connection point constants.
 extern "C" void WINAPIV NKDbgPrintfW(LPWSTR lpszFmt, ...);
 #endif
 
-
-static const char *szBadStringObject = "<Bad String Object>";
+static const WCHAR *szBadStringObject = L"<Bad String Object>";
 extern PyObject *PyCom_InternalError;
 
 void GetScodeString(SCODE sc, TCHAR *buf, int bufSize);
 LPCSTR GetScodeRangeString(SCODE sc);
 LPCSTR GetSeverityString(SCODE sc);
 LPCSTR GetFacilityString(SCODE sc);
-
-#if defined(MS_WINCE) && !defined(_ASSERTE) // No _ASSERTE on CE - who cares!
-	#define _ASSERTE(condition)
-#endif
-
-// This module uses an ATL utility "A2BSTR".
-// If this is not available, we provide one of our own
-// suitable for Unicode only.
-#ifndef ATLA2WHELPER
-#	ifndef UNICODE
-#		error("A2BSTR is only emulated for UNICODE builds")
-#	endif
-BSTR A2BSTR(const char *buf)
-{
-	int size=strlen(buf);
-	int wideSize = size*2;
-	LPWSTR wstr = (LPWSTR)malloc(wideSize);
-	if (wstr==NULL) return NULL;
-	/* convert and get the final character size */
-	size = MultiByteToWideChar(CP_ACP, 0, buf, size, wstr, wideSize);
-	return SysAllocStringLen(wstr, size);
-}
-#	define USES_CONVERSION
-#endif
 
 static const EXCEPINFO nullExcepInfo = { 0 };
 static PyObject *PyCom_PyObjectFromIErrorInfo(IErrorInfo *, HRESULT errorhr);
@@ -55,7 +30,6 @@ static PyObject *PyCom_PyObjectFromIErrorInfo(IErrorInfo *, HRESULT errorhr);
 // is the HRESULT as nominated by the user.
 void PyCom_ExcepInfoFromPyException(EXCEPINFO *pExcepInfo)
 {
-	USES_CONVERSION;
 	// If the caller did not provide a valid exception info, get out now!
 	if (pExcepInfo==NULL) {
 		PyErr_Clear(); // must leave Python in a clean state.
@@ -90,10 +64,10 @@ void PyCom_ExcepInfoFromPyException(EXCEPINFO *pExcepInfo)
 			strcat(tempBuf, szException);
 			strcat(tempBuf, ": ");
 			strcat(tempBuf, szValue);
-			pExcepInfo->bstrDescription = A2BSTR(tempBuf);
+			pExcepInfo->bstrDescription = PyWin_String_AsBstr(tempBuf);
 		} else
-			pExcepInfo->bstrDescription = A2BSTR("memory error allocating exception buffer!");
-		pExcepInfo->bstrSource = A2BSTR("Python COM Server Internal Error");
+			pExcepInfo->bstrDescription = SysAllocString(L"memory error allocating exception buffer!");
+		pExcepInfo->bstrSource = SysAllocString(L"Python COM Server Internal Error");
 
 		// Map some well known exceptions to specific HRESULTs
 		// Note: v can be NULL. This can happen via PyErr_SetNone().
@@ -116,16 +90,15 @@ void PyCom_ExcepInfoFromPyException(EXCEPINFO *pExcepInfo)
 
 static BOOL PyCom_ExcepInfoFromServerExceptionInstance(PyObject *v, EXCEPINFO *pExcepInfo)
 {
-	USES_CONVERSION;
 	BSTR temp;
 
-	_ASSERTE(v != NULL);
-	_ASSERTE(pExcepInfo != NULL);
+	assert(v != NULL);
+	assert(pExcepInfo != NULL);
 
 	PyObject *ob = PyObject_GetAttrString(v, "description");
 	if (ob && ob != Py_None) {
 		if ( !PyWinObject_AsBstr(ob, &temp) )
-			pExcepInfo->bstrDescription = A2BSTR(szBadStringObject);
+			pExcepInfo->bstrDescription = SysAllocString(szBadStringObject);
 		else
 			pExcepInfo->bstrDescription = temp;
 	} else {
@@ -137,7 +110,7 @@ static BOOL PyCom_ExcepInfoFromServerExceptionInstance(PyObject *v, EXCEPINFO *p
 	ob = PyObject_GetAttrString(v, "source");
 	if (ob && ob != Py_None) {
 		if ( !PyWinObject_AsBstr(ob, &temp) )
-			pExcepInfo->bstrSource = A2BSTR(szBadStringObject);
+			pExcepInfo->bstrSource = SysAllocString(szBadStringObject);
 		else
 			pExcepInfo->bstrSource = temp;
 	}
@@ -148,7 +121,7 @@ static BOOL PyCom_ExcepInfoFromServerExceptionInstance(PyObject *v, EXCEPINFO *p
 	ob = PyObject_GetAttrString(v, "helpfile");
 	if (ob && ob != Py_None) {
 		if ( !PyWinObject_AsBstr(ob, &temp) )
-			pExcepInfo->bstrHelpFile = A2BSTR(szBadStringObject);
+			pExcepInfo->bstrHelpFile = SysAllocString(szBadStringObject);
 		else
 			pExcepInfo->bstrHelpFile = temp;
 	}
@@ -202,7 +175,7 @@ static BOOL PyCom_ExcepInfoFromServerExceptionInstance(PyObject *v, EXCEPINFO *p
 // then return FALSE.
 BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *phresult)
 {
-	_ASSERTE(pExcepInfo != NULL);
+	assert(pExcepInfo != NULL);
 	if (v==NULL || pExcepInfo==NULL) {
 		PyErr_SetString(PyExc_RuntimeError, "invalid arg to PyCom_ExcepInfoFromPyObject");
 		return FALSE;
@@ -233,7 +206,6 @@ BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *ph
 		// item[1] is the scode description, which we dont need.
 		ob = PySequence_GetItem(v, 2);
 		if (ob) {
-			USES_CONVERSION;
 			int code, helpContext, scode;
 			const char *source, *description, *helpFile;
 			if ( !PyArg_ParseTuple(ob, "izzzii:ExceptionInfo",
@@ -250,9 +222,9 @@ BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *ph
 			}
 			pExcepInfo->wCode = code;
 			pExcepInfo->wReserved = 0;
-			pExcepInfo->bstrSource = A2BSTR(source);
-			pExcepInfo->bstrDescription = A2BSTR(description);
-			pExcepInfo->bstrHelpFile = A2BSTR(helpFile);
+			pExcepInfo->bstrSource = PyWin_String_AsBstr(source);
+			pExcepInfo->bstrDescription = PyWin_String_AsBstr(description);
+			pExcepInfo->bstrHelpFile = PyWin_String_AsBstr(helpFile);
 			pExcepInfo->dwHelpContext = helpContext;
 			pExcepInfo->pvReserved = 0;
 			pExcepInfo->pfnDeferredFillIn = NULL;
@@ -323,11 +295,11 @@ HRESULT PyCom_SetCOMErrorFromSimple(HRESULT hr, REFIID riid /* = IID_NULL */, co
 		return S_OK;
 
 	// If you specify a description you should also specify the IID
-	_ASSERTE(riid != IID_NULL || description==NULL);
+	assert(riid != IID_NULL || description==NULL);
 	// Reset the error info for this thread.  "Inside OLE2" says we
 	// can call IErrorInfo with NULL, but the COM documentation doesnt mention it.
 	BSTR bstrDesc = NULL;
-	if (description) bstrDesc = A2BSTR(description);
+	if (description) bstrDesc = PyWin_String_AsBstr(description);
 
 	EXCEPINFO einfo = {
 		0,		// wCode
@@ -574,7 +546,7 @@ PyObject *PyCom_BuildPyException(HRESULT errorhr, IUnknown *pUnk /* = NULL */, R
 
 #ifndef MS_WINCE // WINCE doesnt appear to have GetErrorInfo() - compiled, but doesnt link!
 	if (pUnk != NULL) {
-		_ASSERTE(iid != IID_NULL); // If you pass an IUnknown, you should pass the specific IID.
+		assert(iid != IID_NULL); // If you pass an IUnknown, you should pass the specific IID.
 		// See if it supports error info.
 		ISupportErrorInfo *pSEI;
 		HRESULT hr;
@@ -691,7 +663,6 @@ PyObject *PyCom_PyObjectFromExcepInfo(const EXCEPINFO *pexcepInfo)
 // NOTE - This MUST return the same object format as the above function
 static PyObject *PyCom_PyObjectFromIErrorInfo(IErrorInfo *pEI, HRESULT errorhr)
 {
-	USES_CONVERSION;
 	BSTR desc;
 	BSTR source;
 	BSTR helpfile;

@@ -28,7 +28,6 @@ PyIEnumCATEGORYINFO::~PyIEnumCATEGORYINFO()
 // @pymethod ( (<o PyIID>, int, string), ...)|PyIEnumCATEGORYINFO|Next|Retrieves a specified number of items in the enumeration sequence.
 PyObject *PyIEnumCATEGORYINFO::Next(PyObject *self, PyObject *args)
 {
-	USES_CONVERSION;
 	long celt = 1;
 	// @pyparm int|num|1|Number of items to retrieve.
 	if ( !PyArg_ParseTuple(args, "|l:Next", &celt) )
@@ -64,7 +63,7 @@ PyObject *PyIEnumCATEGORYINFO::Next(PyObject *self, PyObject *args)
 		for ( i = celtFetched; i--; )
 		{
 			PyObject *obNewIID = PyWinObject_FromIID(rgVar[i].catid);
-			PyObject *ob = Py_BuildValue("Oiz", obNewIID, rgVar[i].lcid, W2A(rgVar[i].szDescription));
+			PyObject *ob = Py_BuildValue("OiN", obNewIID, rgVar[i].lcid, PyString_FromUnicode(rgVar[i].szDescription));
 			Py_XDECREF(obNewIID);
 			if ( ob == NULL )
 			{

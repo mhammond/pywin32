@@ -326,15 +326,17 @@ PyObject *PyRecord::tp_repr(PyObject *self)
 	PyObject *comma = PyString_FromString(", ");
 	PyObject *equals = PyString_FromString(" = ");
 	for (i = 0; i < num_names && s != NULL; i++) {
-		USES_CONVERSION;
-		char *name = W2A(strings[i]);
-		if (i > 0)
-			PyString_Concat(&s, comma);
-		PyString_ConcatAndDel(&s, PyString_FromString(name));
-		PyString_Concat(&s, equals);
-		PyObject *sub_object = PyRecord::tp_getattr(self, name);
-		PyString_ConcatAndDel(&s, PyObject_Repr(sub_object));
-		Py_XDECREF(sub_object);
+		char *name;
+		if (PyWin_WCHAR_AsString(strings[i], -1, &name)) {
+			if (i > 0)
+				PyString_Concat(&s, comma);
+			PyString_ConcatAndDel(&s, PyString_FromString(name));
+			PyString_Concat(&s, equals);
+			PyObject *sub_object = PyRecord::tp_getattr(self, name);
+			PyString_ConcatAndDel(&s, PyObject_Repr(sub_object));
+			Py_XDECREF(sub_object);
+			PyWinObject_FreeString(name);
+		}
 	}
 	Py_XDECREF(comma);
 	Py_XDECREF(equals);
@@ -345,7 +347,6 @@ PyObject *PyRecord::tp_repr(PyObject *self)
 
 PyObject *PyRecord::tp_getattr(PyObject *self, char *name)
 {
-	USES_CONVERSION;
 	PyObject *res;
 	PyRecord *pyrec = (PyRecord *)self;
 
@@ -379,14 +380,18 @@ PyObject *PyRecord::tp_getattr(PyObject *self, char *name)
 	if (res != NULL)
 		return res;
 	PyErr_Clear();
+	WCHAR *wname;
+	if (!PyWin_String_AsWCHAR(name, -1, &wname))
+		return NULL;
 
 	VARIANT vret;
 	VariantInit(&vret);
 	void *sub_data = NULL;
 
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = pyrec->pri->GetFieldNoCopy(pyrec->pdata, A2W(name), &vret, &sub_data);
+	HRESULT hr = pyrec->pri->GetFieldNoCopy(pyrec->pdata, wname, &vret, &sub_data);
 	PY_INTERFACE_POSTCALL;
+	PyWinObject_FreeString(wname);
 	if (FAILED(hr)) {
 		if (hr == TYPE_E_FIELDNOTFOUND)
 			return PyErr_Format(PyExc_AttributeError,
@@ -444,16 +449,20 @@ array_end:
 
 int PyRecord::tp_setattr(PyObject *self, char *name, PyObject *v)
 {
-	USES_CONVERSION;
 	VARIANT val;
 	PyRecord *pyrec = (PyRecord *)self;
 
 	if (!PyCom_VariantFromPyObject(v, &val))
 		return -1;
 
+	WCHAR *wname;
+	if (!PyWin_String_AsWCHAR(name, -1, &wname))
+		return -1;
+
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = pyrec->pri->PutField(INVOKE_PROPERTYPUT, pyrec->pdata, A2W(name), &val);
+	HRESULT hr = pyrec->pri->PutField(INVOKE_PROPERTYPUT, pyrec->pdata, wname, &val);
 	PY_INTERFACE_POSTCALL;
+	PyWinObject_FreeString(wname);
 	VariantClear(&val);
 	if (FAILED(hr)) {
 		PyCom_BuildPyException(hr, pyrec->pri, g_IID_IRecordInfo);
@@ -476,21 +485,22 @@ int PyRecord::tp_compare(PyObject *self, PyObject *other)
 	ULONG num_names;
 	BSTR *strings = _GetFieldNames(pyself->pri, &num_names);
 	if (strings==NULL) return NULL;
-
-	int ret = -1;
+	int ret;
 	for (ULONG i=0;i<num_names;i++) {
-		USES_CONVERSION;
-		BSTR name = strings[i];
-		PyObject *self_sub = PyRecord::tp_getattr(self, W2A(name));
-		if (self_sub==NULL) break;
-		PyObject *other_sub = PyRecord::tp_getattr(other, W2A(name));
-		if (other_sub==NULL) {
-			Py_DECREF(self_sub);
-			break;
+		ret = 0;
+		char *name;
+		if (PyWin_WCHAR_AsString(strings[i], -1, &name)) {
+			PyObject *self_sub = PyRecord::tp_getattr(self, name);
+			if (self_sub) {
+				PyObject *other_sub = PyRecord::tp_getattr(other, name);
+				if (other_sub) {
+					ret = PyObject_Compare(self_sub, other_sub);
+					Py_DECREF(other_sub);
+				}
+			}
+			Py_XDECREF(self_sub);
+			PyWinObject_FreeString(name);
 		}
-		ret = PyObject_Compare(self_sub, other_sub);
-		Py_DECREF(self_sub);
-		Py_DECREF(other_sub);
 		if (ret != 0)
 			break;
 	}
