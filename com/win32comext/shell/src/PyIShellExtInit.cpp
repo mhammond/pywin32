@@ -31,7 +31,7 @@ PyObject *PyIShellExtInit::Initialize(PyObject *self, PyObject *args)
 	if ( pISEI == NULL )
 		return NULL;
 	// @pyparm <o PyIDL>|pFolder||Description for pFolder
-	// @pyparm <o PyIDataObject *>|pDataObject||Description for pDataObject
+	// @pyparm <o PyIDataObject>|pDataObject||Description for pDataObject
 	// @pyparm <o PyHANDLE>|hkey||Description for hkey
 	PyObject *obpFolder;
 	PyObject *obpDataObject;

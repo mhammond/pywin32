@@ -20,6 +20,13 @@ generates Windows .hlp files.
 #include "PyIShellFolder.h"
 #include "PyIEnumIDList.h"
 #include "PyICopyHook.h"
+#include "PyIOleWindow.h"
+#include "PyIShellView.h"
+#include "PyIShellBrowser.h"
+#include "PyIBrowserFrameOptions.h"
+#include "PyIPersist.h"
+#include "PyIPersistFolder.h"
+
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
 
 void PyShell_FreeMem(void *p)
@@ -250,6 +257,33 @@ PyObject *PyObject_FromSTRRET(STRRET *ps, ITEMIDLIST *pidl, BOOL bFree)
 	if (bFree)
 		PyObject_FreeSTRRET(*ps);
 	return ret;
+}
+
+BOOL PyObject_AsMSG( PyObject *obpmsg, MSG *msg )
+{
+	return PyArg_ParseTuple(obpmsg, "iiiii(ii)", &msg->hwnd,&msg->message,&msg->wParam,&msg->lParam,&msg->time,&msg->pt.x,&msg->pt.y);
+}
+PyObject *PyObject_FromMSG(const MSG *msg)
+{
+	return Py_BuildValue("iiiii(ii)", msg->hwnd,msg->message,msg->wParam,msg->lParam,msg->time,msg->pt.x,msg->pt.y);
+}
+
+BOOL PyObject_AsFOLDERSETTINGS( PyObject *ob, FOLDERSETTINGS *pf)
+{
+	return PyArg_ParseTuple(ob, "ii", &pf->ViewMode, &pf->fFlags);
+}
+PyObject *PyObject_FromFOLDERSETTINGS( const FOLDERSETTINGS *pf)
+{
+	return Py_BuildValue("ii", pf->ViewMode, pf->fFlags);
+}
+
+BOOL PyObject_AsRECT( PyObject *ob, RECT *r)
+{
+	return PyArg_ParseTuple(ob, "iiii", &r->left, &r->top, &r->right, &r->bottom);
+}
+PyObject *PyObject_FromRECT(const RECT *r)
+{
+	return Py_BuildValue("iiii", r->left, r->top, r->right, r->bottom);
 }
 
 //////////////////////////////////////////////////
@@ -668,7 +702,11 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL(ExtractIcon),
 	PYCOM_INTERFACE_FULL(ShellExtInit),
 	PYCOM_INTERFACE_FULL(ShellFolder),
+	PYCOM_INTERFACE_FULL(ShellView),
+	PYCOM_INTERFACE_FULL(ShellBrowser),
 	PYCOM_INTERFACE_FULL(EnumIDList),
+	PYCOM_INTERFACE_FULL(BrowserFrameOptions),
+	PYCOM_INTERFACE_FULL(PersistFolder),
 	// IID_ICopyHook doesn't exist - hack it up
 	{ &IID_IShellCopyHook, "IShellCopyHook", "IID_IShellCopyHook", &PyICopyHook::type, GET_PYGATEWAY_CTOR(PyGCopyHook) },
 	{ &IID_IShellCopyHook, "ICopyHook", "IID_ICopyHook", NULL, NULL  },

@@ -23,3 +23,12 @@ PyObject *PyObject_FromCMINVOKECOMMANDINFO(const CMINVOKECOMMANDINFO *pci);
 BOOL PyObject_AsSTRRET( PyObject *obout, STRRET &out );
 void PyObject_FreeSTRRET(STRRET &);
 PyObject *PyObject_FromSTRRET(STRRET *pci, ITEMIDLIST *pidl, BOOL bFree);
+
+BOOL PyObject_AsMSG( PyObject *obpmsg, MSG *msg );
+PyObject *PyObject_FromMSG(const MSG *msg);
+
+BOOL PyObject_AsFOLDERSETTINGS( PyObject *ob, FOLDERSETTINGS *pf);
+PyObject *PyObject_FromFOLDERSETTINGS( const FOLDERSETTINGS *pf);
+
+BOOL PyObject_AsRECT( PyObject *ob, RECT *r);
+PyObject *PyObject_FromRECT(const RECT *r);
