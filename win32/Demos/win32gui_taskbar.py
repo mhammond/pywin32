@@ -62,7 +62,10 @@ class MainWindow:
 			AppendMenu( menu, win32con.MF_STRING, 1024, "Say Hello")
 			AppendMenu( menu, win32con.MF_STRING, 1025, "Exit program" )
 			pos = GetCursorPos()
+			# See http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winui/menus_0hdi.asp
+			SetForegroundWindow(self.hwnd)
 			TrackPopupMenu(menu, win32con.TPM_LEFTALIGN, pos[0], pos[1], 0, self.hwnd, None)
+			PostMessage(self.hwnd, win32con.WM_NULL, 0, 0)
 		return 1
 
 	def OnCommand(self, hwnd, msg, wparam, lparam):
