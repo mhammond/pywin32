@@ -1049,8 +1049,8 @@ static BOOL make_param(PyObject *ob, long *pl)
 // @pyswig int|SendMessage|Sends a message to the window.
 // @pyparm int|hwnd||The handle to the Window
 // @pyparm int|message||The ID of the message to post
-// @pyparm int|wparam||An integer whose value depends on the message
-// @pyparm int|lparam||An integer whose value depends on the message
+// @pyparm int|wparam|0|An integer whose value depends on the message
+// @pyparm int|lparam|0|An integer whose value depends on the message
 static PyObject *PySendMessage(PyObject *self, PyObject *args)
 {
 	long hwnd;
@@ -1073,6 +1073,43 @@ static PyObject *PySendMessage(PyObject *self, PyObject *args)
 }
 %}
 %native (SendMessage) PySendMessage;
+
+%{
+// @pyswig int,int|SendMessageTimeout|Sends a message to the window.
+// @pyparm int|hwnd||The handle to the Window
+// @pyparm int|message||The ID of the message to post
+// @pyparm int|wparam||An integer whose value depends on the message
+// @pyparm int|lparam||An integer whose value depends on the message
+// @pyparm int|flags||Send options
+// @pyparm int|timeout||Timeout duration in milliseconds.
+static PyObject *PySendMessageTimeout(PyObject *self, PyObject *args)
+{
+	long hwnd;
+	PyObject *obwparam, *oblparam;
+	UINT msg;
+	UINT flags, timeout;
+	if (!PyArg_ParseTuple(args, "liOOii", &hwnd, &msg, &obwparam, &oblparam, &flags, &timeout))
+		return NULL;
+	long wparam, lparam;
+	if (!make_param(obwparam, &wparam))
+		return NULL;
+	if (!make_param(oblparam, &lparam))
+		return NULL;
+
+	LRESULT rc;
+	DWORD dwresult;
+	Py_BEGIN_ALLOW_THREADS
+	rc = SendMessageTimeout((HWND)hwnd, msg, wparam, lparam, flags, timeout, &dwresult);
+	Py_END_ALLOW_THREADS
+	if (rc==0)
+		return PyWin_SetAPIError("SendMessageTimeout");
+	// @rdesc The result is the result of the SendMessageTimeout call, plus the last 'result' param.
+	// If the timeout period expires, a pywintypes.error exception will be thrown,
+	// with zero as the error code.  See the Microsoft documentation for more information.
+	return Py_BuildValue("ii", rc, dwresult);
+}
+%}
+%native (SendMessageTimeout) PySendMessageTimeout;
 
 // @pyswig |PostMessage|
 // @pyparm int|hwnd||The handle to the Window
