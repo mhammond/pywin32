@@ -431,11 +431,10 @@ class TkText:
 		return eval("%d%s%d" % (i1,op,i2))
 
 	def undo_block_start(self):
-		self.edit.SCISetUndoCollection(2)
+		self.edit.SCIBeginUndoAction()
 
 	def undo_block_stop(self):
-		self.edit.SCIAppendUndoStartAction()
-		self.edit.SCISetUndoCollection(1)
+		self.edit.SCIEndUndoAction()
 
 ######################################################################
 # 

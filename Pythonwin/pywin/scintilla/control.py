@@ -74,8 +74,10 @@ class ScintillaControlInterface:
 		self.SendScintilla(SCI_SETSAVEPOINT)
 	def SCISetUndoCollection(self, collectFlag):
 		self.SendScintilla(SCI_SETUNDOCOLLECTION, collectFlag)
-	def SCIAppendUndoStartAction(self):
-		self.SendScintilla(SCI_APPENDUNDOSTARTACTION)
+	def SCIBeginUndoAction(self):
+		self.SendScintilla(SCI_BEGINUNDOACTION)
+	def SCIEndUndoAction(self):
+		self.SendScintilla(SCI_ENDUNDOACTION)
 
 	def SCIGetCurrentPos(self):
 		return self.SendScintilla(SCI_GETCURRENTPOS)
@@ -118,6 +120,15 @@ class ScintillaControlInterface:
 	def SCISetViewWS(self, val):
 		self.SendScintilla(SCI_SETVIEWWS, not (val==0))
 		self.InvalidateRect()
+	def SCISetIndentationGuides(self, val):
+		self.SendScintilla(SCI_SETINDENTATIONGUIDES, val)
+	def SCIGetIndentationGuides(self):
+		return self.SendScintilla(SCI_GETINDENTATIONGUIDES)
+	def SCISetIndent(self, val):
+		self.SendScintilla(SCI_SETINDENT, val)
+	def SCIGetIndent(self, val):
+		return self.SendScintilla(SCI_GETINDENT)
+
 	def SCIGetViewEOL(self):
 		return self.SendScintilla(SCI_GETVIEWEOL)
 	def SCISetViewEOL(self, val):

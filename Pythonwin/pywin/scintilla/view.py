@@ -155,6 +155,8 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
 		self.HookCommand(self.OnCmdViewWS, win32ui.ID_VIEW_WHITESPACE)
 		self.HookCommandUpdate(self.OnUpdateViewWS, win32ui.ID_VIEW_WHITESPACE)
+		self.HookCommand(self.OnCmdViewIndentationGuides, win32ui.ID_VIEW_INDENTATIONGUIDES)
+		self.HookCommandUpdate(self.OnUpdateViewIndentationGuides, win32ui.ID_VIEW_INDENTATIONGUIDES)
 		self.HookCommand(self.OnCmdViewEOL, win32ui.ID_VIEW_EOL)
 		self.HookCommandUpdate(self.OnUpdateViewEOL, win32ui.ID_VIEW_EOL)
 		self.HookCommand(self.OnCmdViewFixedFont, win32ui.ID_VIEW_FIXED_FONT)
@@ -283,13 +285,19 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		if self.bAutoCompleteAttributes:
 			self._AutoComplete()
 
-	# View Whitespace UI.
+	# View Whitespace/EOL/Indentation UI.
 
 	def OnCmdViewWS(self, cmd, code): # Handle the menu command
 		viewWS = self.SCIGetViewWS()
 		self.SCISetViewWS(not viewWS)
 	def OnUpdateViewWS(self, cmdui): # Update the tick on the UI.
 		cmdui.SetCheck(self.SCIGetViewWS())
+		cmdui.Enable()
+	def OnCmdViewIndentationGuides(self, cmd, code): # Handle the menu command
+		viewIG = self.SCIGetIndentationGuides()
+		self.SCISetIndentationGuides(not viewIG)
+	def OnUpdateViewIndentationGuides(self, cmdui): # Update the tick on the UI.
+		cmdui.SetCheck(self.SCIGetIndentationGuides())
 		cmdui.Enable()
 	def OnCmdViewEOL(self, cmd, code): # Handle the menu command
 		viewEOL = self.SCIGetViewEOL()
