@@ -12,9 +12,14 @@ def import_all():
     for name in os.listdir(dir):
         base, ext = os.path.splitext(name)
         if (ext==".pyd") and \
+           name != "_winxptheme.pyd" and \
            (is_debug and base.endswith("_d") or \
            not is_debug and not base.endswith("_d")):
-            __import__(base)
+            try:
+                __import__(base)
+            except ImportError:
+                print "FAILED to import", name
+                raise
             num += 1
 
 def suite():
