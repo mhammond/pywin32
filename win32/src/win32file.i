@@ -1195,7 +1195,7 @@ static PyObject *PyObject_FromFILE_NOTIFY_INFORMATION(void *buffer, DWORD nbytes
 		return ret;
 	DWORD nbytes_read = 0;
 	while (1) {
-		PyObject *fname = PyWinObject_FromOLECHAR(p->FileName, p->FileNameLength);
+		PyObject *fname = PyWinObject_FromOLECHAR(p->FileName, p->FileNameLength/sizeof WCHAR);
 		if (!fname) {
 			Py_DECREF(ret);
 			return NULL;
