@@ -642,8 +642,15 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
 # Useful base class to build services from.
 #
 class ServiceFramework:
+    # Required Attributes:
     # _svc_name = The service name
     # _svc_display_name = The service display name
+
+    # Optional Attributes:
+    _svc_deps_ = None        # sequence of service names on which this depends
+    _exe_name_ = None        # Default to PythonService.exe
+    _exe_args_ = None        # Default to no arguments
+
     def __init__(self, args):
         import servicemanager
         self.ssh = servicemanager.RegisterServiceCtrlHandler(args[0], self.ServiceCtrlHandler)
