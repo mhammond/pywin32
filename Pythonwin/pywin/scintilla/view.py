@@ -15,7 +15,6 @@ import types
 import __main__ # for attribute lookup
 import bindings
 import keycodes
-import regex
 import struct
 import re
 import os
@@ -28,7 +27,7 @@ EM_FORMATRANGE = win32con.WM_USER+57
 
 wordbreaks = "._" + string.uppercase + string.lowercase + string.digits
 
-patImport=regex.symcomp('import \(<name>.*\)')
+patImport=re.compile('import (?P<name>.*)')
 
 _event_commands = [
 	# File menu
@@ -358,9 +357,10 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 	def OnCmdFileLocate(self, cmd, id):
 		line=string.strip(self.GetLine())
 		import pywin.framework.scriptutils
-		if patImport.match(line)==len(line):
+		m = patImport.match(line)
+		if m:
 			# Module name on this line - locate that!
-			modName = patImport.group('name')
+			modName = m.group('name')
 			fileName = pywin.framework.scriptutils.LocatePythonFile(modName)
 			if fileName is None:
 				win32ui.SetStatusText("Can't locate module %s" % modName)
