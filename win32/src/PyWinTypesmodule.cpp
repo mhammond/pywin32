@@ -493,7 +493,7 @@ void initpywintypes(void)
 #ifndef MS_WINCE
 extern "C" __declspec(dllexport)
 #endif
-BOOL WINAPI DLLMAIN(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
+BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
 	switch (dwReason) {
 		case DLL_PROCESS_ATTACH: {
