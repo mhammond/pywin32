@@ -25,13 +25,15 @@ BOOL PyWinObject_AsTaskAllocatedWCHAR(PyObject *stringObject, WCHAR **ppResult, 
 		const char *buf = PyString_AsString(stringObject);
 		if (buf==NULL) return FALSE;
 
-		/* compute the max possible size ("size" may contain multi-byte chars) */
-		int wideSize = cch*2;
-
-		*ppResult = (LPWSTR)CoTaskMemAlloc(wideSize);
+		/* We assume that we dont need more 'wide characters' for the result
+		   then the number of bytes in the input. Often we
+		   will need less, as the input may contain multi-byte chars, but we
+		   should never need more 
+		*/
+		*ppResult = (LPWSTR)CoTaskMemAlloc(cch*sizeof(WCHAR));
 		if (*ppResult)
 			/* convert and get the final character size */
-			cch = MultiByteToWideChar(CP_ACP, 0, buf, cch, *ppResult, wideSize);
+			cch = MultiByteToWideChar(CP_ACP, 0, buf, cch, *ppResult, cch);
 		if (*ppResult && pResultLen) *pResultLen = cch;
 	} else if (PyUnicode_Check(stringObject)) {
 		// copy the value, including embedded NULLs
@@ -890,16 +892,19 @@ static BOOL PyString_AsBstr(PyObject *stringObject, BSTR *pResult)
 	const char *buf = PyString_AsString(stringObject);
 	if (buf==NULL) return FALSE;
 
-	/* compute the max possible size ("size" may contain multi-byte chars) */
-	int wideSize = size*2;
+	/* We assume that we dont need more 'wide characters' for the result
+	   then the number of bytes in the input. Often we
+	   will need less, as the input may contain multi-byte chars, but we
+	   should never need more 
+	*/
 
-	LPWSTR wstr = (LPWSTR)malloc(wideSize);
+	LPWSTR wstr = (LPWSTR)malloc(size*sizeof(WCHAR));
 	if (wstr==NULL) {
 		PyErr_SetString(PyExc_MemoryError, "No memory for wide string buffer");
 		return FALSE;
 	}
 	/* convert and get the final character size */
-	size = MultiByteToWideChar(CP_ACP, 0, buf, size, wstr, wideSize);
+	size = MultiByteToWideChar(CP_ACP, 0, buf, size, wstr, size);
 	*pResult = SysAllocStringLen(wstr, size);
 	if (*pResult==NULL)
 		PyErr_SetString(PyExc_MemoryError, "allocating BSTR");
@@ -962,16 +967,18 @@ BOOL PyWinObject_AsWCHAR(PyObject *stringObject, WCHAR **pResult, BOOL bNoneOK /
 		const char *buf = PyString_AsString(stringObject);
 		if (buf==NULL) return FALSE;
 
-		/* compute the max possible size ("size" may contain multi-byte chars) */
-		int wideSize = size*2;
-
-		*pResult = (LPWSTR)PyMem_Malloc(wideSize+sizeof(WCHAR));
+		/* We assume that we dont need more 'wide characters' for the result
+		   then the number of bytes in the input. Often we
+		   will need less, as the input may contain multi-byte chars, but we
+		   should never need more 
+		*/
+		*pResult = (LPWSTR)PyMem_Malloc((size+1)*sizeof(WCHAR));
 		if (*pResult==NULL) {
 			PyErr_SetString(PyExc_MemoryError, "No memory for wide string buffer");
 			return FALSE;
 		}
 		/* convert and get the final character size */
-		resultLen = MultiByteToWideChar(CP_ACP, 0, buf, size, *pResult, wideSize);
+		resultLen = MultiByteToWideChar(CP_ACP, 0, buf, size, *pResult, size);
 		/* terminate the string */
 		(*pResult)[resultLen] = L'\0';
 	}
