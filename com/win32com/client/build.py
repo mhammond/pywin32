@@ -20,6 +20,7 @@ import sys
 import string
 import types
 from keyword import iskeyword
+from win32com.client import NeedUnicodeConversions
 
 import pythoncom
 from pywintypes import UnicodeType
@@ -347,7 +348,7 @@ class DispatchItem(OleItem):
 				s = '%s\treturn self._oleobj_.InvokeTypes(0x%x, LCID, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, argsDesc, _BuildArgList(fdesc, names))
 			elif rd==pythoncom.VT_DISPATCH:
 				s = '%s\tret = self._oleobj_.InvokeTypes(0x%x, LCID, %s, %s, %s%s)\n' % (linePrefix, id, fdesc[4], retDesc, `argsDesc`, _BuildArgList(fdesc, names))
-				s = s + '%s\tif ret is not None: ret = win32com.client.Dispatch(ret, %s, %s, UnicodeToString=1)\n' % (linePrefix,`name`, resclsid) 
+				s = s + '%s\tif ret is not None: ret = win32com.client.Dispatch(ret, %s, %s, UnicodeToString=%d)\n' % (linePrefix,`name`, resclsid, NeedUnicodeConversions) 
 				s = s + '%s\treturn ret' % (linePrefix)
 			elif rd == pythoncom.VT_BSTR:
 				s = '%s\treturn str(self._oleobj_.InvokeTypes(0x%x, LCID, %s, %s, %s%s))' % (linePrefix, id, fdesc[4], retDesc, `argsDesc`, _BuildArgList(fdesc, names))

@@ -27,6 +27,7 @@ from types import StringType, IntType, TupleType, ListType
 from pywintypes import UnicodeType, IIDType
 
 import win32com.client # Needed as code we eval() references it.
+from win32com.client import NeedUnicodeConversions
 
 debugging=0			# General debugging
 debugging_attr=0	# Debugging dynamic attribute lookups.
@@ -68,7 +69,7 @@ def _GetGoodDispatchAndUserName(IDispatch,userName,clsctx):
 			userName = "<unknown>"
 	return (_GetGoodDispatch(IDispatch, clsctx), userName)
 
-def Dispatch(IDispatch, userName = None, createClass = None, typeinfo = None, UnicodeToString=1, clsctx = pythoncom.CLSCTX_SERVER):
+def Dispatch(IDispatch, userName = None, createClass = None, typeinfo = None, UnicodeToString=NeedUnicodeConversions, clsctx = pythoncom.CLSCTX_SERVER):
 	IDispatch, userName = _GetGoodDispatchAndUserName(IDispatch,userName,clsctx)
 	if createClass is None:
 		createClass = CDispatch
@@ -109,7 +110,7 @@ def MakeOleRepr(IDispatch, typeinfo, typecomp):
 	if olerepr is None: olerepr = build.DispatchItem()
 	return olerepr
 
-def DumbDispatch(IDispatch, userName = None, createClass = None,UnicodeToString=1, clsctx=pythoncom.CLSCTX_SERVER):
+def DumbDispatch(IDispatch, userName = None, createClass = None,UnicodeToString=NeedUnicodeConversions, clsctx=pythoncom.CLSCTX_SERVER):
 	"Dispatch with no type info"
 	IDispatch, userName = _GetGoodDispatchAndUserName(IDispatch,userName,clsctx)
 	if createClass is None:
@@ -117,7 +118,7 @@ def DumbDispatch(IDispatch, userName = None, createClass = None,UnicodeToString=
 	return createClass(IDispatch, build.DispatchItem(), userName,UnicodeToString)
 
 class CDispatch:
-	def __init__(self, IDispatch, olerepr, userName =  None, UnicodeToString=1, lazydata = None):
+	def __init__(self, IDispatch, olerepr, userName =  None, UnicodeToString=NeedUnicodeConversions, lazydata = None):
 		if userName is None: userName = "<unknown>"
 		self.__dict__['_oleobj_'] = IDispatch
 		self.__dict__['_username_'] = userName
@@ -216,7 +217,7 @@ class CDispatch:
 		result = apply(self._oleobj_.InvokeTypes, (dispid, LCID, wFlags, retType, argTypes) + args)
 		return self._get_good_object_(result, user, resultCLSID)
 
-	def _wrap_dispatch_(self, ob, userName = None, returnCLSID = None, UnicodeToString = 1):
+	def _wrap_dispatch_(self, ob, userName = None, returnCLSID = None, UnicodeToString = NeedUnicodeConversions):
 		# Given a dispatch object, wrap it in a class
 		return Dispatch(ob, userName, UnicodeToString=UnicodeToString)
 

@@ -5,12 +5,17 @@
 # Note that if the unknown dispatch object then returns a known
 # dispatch object, the known class will be used.  This contrasts
 # with dynamic.Dispatch behaviour, where dynamic objects are always used.
+import __builtin__
+# For some bizarre reason, __builtins__ fails with attribute error on __dict__ here?
+NeedUnicodeConversions = not hasattr(__builtin__, "unicode")
+
 import dynamic, CLSIDToClass, pythoncom
 import sys
 import pywintypes
 
+
 def __WrapDispatch(dispatch, userName = None, resultCLSID = None, typeinfo = None, \
-                  UnicodeToString = 1, clsctx = pythoncom.CLSCTX_SERVER):
+                  UnicodeToString = NeedUnicodeConversions, clsctx = pythoncom.CLSCTX_SERVER):
   """
     Helper function to return a makepy generated class for a CLSID if it exists,
     otherwise cope by using CDispatch.
@@ -89,13 +94,13 @@ def Moniker(Pathname, clsctx = pythoncom.CLSCTX_ALL):
   dispatch = moniker.BindToObject(bindCtx, None, pythoncom.IID_IDispatch)
   return __WrapDispatch(dispatch, Pathname, clsctx = clsctx)
   
-def Dispatch(dispatch, userName = None, resultCLSID = None, typeinfo = None, UnicodeToString=1, clsctx = pythoncom.CLSCTX_SERVER):
+def Dispatch(dispatch, userName = None, resultCLSID = None, typeinfo = None, UnicodeToString=NeedUnicodeConversions, clsctx = pythoncom.CLSCTX_SERVER):
   """Creates a Dispatch based COM object.
   """
   dispatch, userName = dynamic._GetGoodDispatchAndUserName(dispatch,userName,clsctx)
   return __WrapDispatch(dispatch, userName, resultCLSID, typeinfo, UnicodeToString, clsctx)
 
-def DispatchEx(clsid, machine=None, userName = None, resultCLSID = None, typeinfo = None, UnicodeToString=1, clsctx = None):
+def DispatchEx(clsid, machine=None, userName = None, resultCLSID = None, typeinfo = None, UnicodeToString=NeedUnicodeConversions, clsctx = None):
   """Creates a Dispatch based COM object on a specific machine.
   """
   # If InProc is registered, DCOM will use it regardless of the machine name 
@@ -119,7 +124,7 @@ class CDispatch(dynamic.CDispatch):
     of using the makepy generated wrapper Python class instead of dynamic.CDispatch
     if/when possible.
   """
-  def _wrap_dispatch_(self, ob, userName = None, returnCLSID = None, UnicodeToString = 1):
+  def _wrap_dispatch_(self, ob, userName = None, returnCLSID = None, UnicodeToString = NeedUnicodeConversions):
     return Dispatch(ob, userName, returnCLSID,None,UnicodeToString)
 
 class Constants:
@@ -322,7 +327,7 @@ class DispatchBaseClass:
 	# XXX - These should be consolidated with dynamic.py versions.
 	def _get_good_single_object_(self, obj, obUserName=None, resultCLSID=None):
 		if _PyIDispatchType==type(obj):
-			return Dispatch(obj, obUserName, resultCLSID, UnicodeToString=1)
+			return Dispatch(obj, obUserName, resultCLSID, UnicodeToString=NeedUnicodeConversions)
 		elif UnicodeType==type(obj):
 			return str(obj)
 		return obj

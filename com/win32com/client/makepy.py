@@ -47,6 +47,7 @@ Examples:
 import genpy, string, sys, os, types, pythoncom
 import selecttlb
 import gencache
+from win32com.client import NeedUnicodeConversions
 
 error = "makepy.error"
 
@@ -169,7 +170,7 @@ def GetTypeLibsForSpec(arg):
 		sys.exit(1)
 
 
-def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progressInstance = None, bUnicodeToString=1, bQuiet = None, bGUIProgress = None, bForDemand = 0 ):
+def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progressInstance = None, bUnicodeToString=NeedUnicodeConversions, bQuiet = None, bGUIProgress = None, bForDemand = 0 ):
 	if bQuiet is not None or bGUIProgress is not None:
 		print "Please dont use the bQuiet or bGUIProgress params"
 		print "use the 'verboseLevel', and 'progressClass' params"
@@ -236,7 +237,7 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 
 	progress.Close()
 
-def GenerateChildFromTypeLibSpec(child, typelibInfo, verboseLevel = None, progressInstance = None, bUnicodeToString=1):
+def GenerateChildFromTypeLibSpec(child, typelibInfo, verboseLevel = None, progressInstance = None, bUnicodeToString=NeedUnicodeConversions):
 	if verboseLevel is None:
 		verboseLevel = 0 # By default, we use a gui, and no verbose level!
 	typelibCLSID, lcid, major, minor  = typelibInfo
@@ -262,7 +263,7 @@ def GenerateChildFromTypeLibSpec(child, typelibInfo, verboseLevel = None, progre
 def main():
 	import getopt
 	hiddenSpec = 0
-	bUnicodeToString = 1
+	bUnicodeToString = NeedUnicodeConversions
 	outputName = None
 	verboseLevel = 1
 	doit = 1
@@ -273,7 +274,7 @@ def main():
 			if o=='-h':
 				hiddenSpec = 1
 			elif o=='-u':
-				bUnicodeToString = 0
+				bUnicodeToString = not NeedUnicodeConversions
 			elif o=='-o':
 				outputName = v
 			elif o=='-v':
