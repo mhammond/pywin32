@@ -17,7 +17,7 @@ static BOOL HandledDispatchFailure(HRESULT hr, EXCEPINFO *einfo, UINT nArgErr, U
 	{
 		if ( einfo->scode != DISP_E_TYPEMISMATCH &&
 			 einfo->scode != DISP_E_PARAMNOTFOUND )
-			nArgErr = -1;
+			nArgErr = (UINT)-1;
 		else
 			nArgErr = cArgs - nArgErr;	/* convert to usable index */
 		PyCom_BuildPyExceptionFromEXCEPINFO(hr, einfo, nArgErr);
@@ -27,7 +27,7 @@ static BOOL HandledDispatchFailure(HRESULT hr, EXCEPINFO *einfo, UINT nArgErr, U
 	if ( FAILED(hr) )
 	{
 		if ( hr != DISP_E_TYPEMISMATCH && hr != DISP_E_PARAMNOTFOUND )
-			nArgErr = -1;
+			nArgErr =(UINT)-1;
 		else
 			nArgErr = cArgs - nArgErr;	/* convert to usable index */
 		PyCom_BuildPyExceptionFromEXCEPINFO(hr, NULL, nArgErr);
@@ -617,7 +617,7 @@ PyObject *PyIDispatchEx::InvokeEx(PyObject *self, PyObject *args)
 
 	PyCom_FreeUntypedDISPPARAMS(&dispparams);
 
-	if ( HandledDispatchFailure(hr, &excepInfo, -1, dispparams.cArgs) )
+	if ( HandledDispatchFailure(hr, &excepInfo, (UINT)-1, dispparams.cArgs) )
 	{
 		if ( pVarResultUse )
 			VariantClear(pVarResultUse);
