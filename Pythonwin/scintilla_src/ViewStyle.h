@@ -1,6 +1,6 @@
 // Scintilla source code edit control
 // ViewStyle.h - store information on how the document is to be viewed
-// Copyright 1998-1999 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef VIEWSTYLE_H
@@ -28,14 +28,18 @@ public:
 	ColourPair selbackground;
 	ColourPair selbar;
 	ColourPair selbarlight;
+	// Margins are ordered: Line Numbers, Selection Margin, Spacing Margin
+	int leftMarginWidth;		// Spacing margin on left of text
+	int rightMarginWidth;	// Spacing margin on left of text
 	int selMarginWidth;
 	int lineNumberWidth;
 	int fixedColumnWidth;
 	int zoomLevel;
 	bool viewWhitespace;
-        bool viewEOL;
+	bool viewEOL;
 	bool showMarkedLines;
 	ColourPair caretcolour;
+	ColourPair edgecolour;
 	
 	ViewStyle();
 	ViewStyle(const ViewStyle &source);

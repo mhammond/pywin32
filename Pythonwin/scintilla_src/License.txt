@@ -1,6 +1,6 @@
 License for Scintilla and SciTE
 
-Copyright 1998-1999 by Neil Hodgson <neilh@hare.net.au>
+Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
 
 All Rights Reserved 
 

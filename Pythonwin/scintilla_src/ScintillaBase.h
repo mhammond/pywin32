@@ -1,6 +1,6 @@
 // Scintilla source code edit control
 // ScintillaBase.h - defines an enhanced subclass of Editor with calltips, autocomplete and context menu
-// Copyright 1998-1999 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef SCINTILLABASE_H
@@ -38,7 +38,7 @@ protected:
 	void Command(int cmdId);
 	virtual int KeyCommand(UINT iMessage);
 	
-	void AutoCompleteStart(const char *list);
+	void AutoCompleteStart(int lenEntered, const char *list);
 	void AutoCompleteCancel();
 	void AutoCompleteMove(int delta);
 	void AutoCompleteChanged(char ch=0);
@@ -49,7 +49,7 @@ protected:
 	virtual void AddToPopUp(const char *label, int cmd=0, bool enabled=true) = 0;
 	void ContextMenu(Point pt);
 	
-	virtual void ButtonDown(Point pt, unsigned int curTime, bool shift, bool ctrl);
+	virtual void ButtonDown(Point pt, unsigned int curTime, bool shift, bool ctrl, bool alt);
 
 public:
 	// Public so scintilla_send_message can use it

@@ -1,6 +1,6 @@
 // Scintilla source code edit control
 // PlatWin.cxx - implementation of platform facilities on Windows
-// Copyright 1998-1999 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #include <stdlib.h>
@@ -645,7 +645,7 @@ int Platform::Maximum(int a, int b) {
 		return b;
 }
 
-#define TRACE
+//#define TRACE
 
 void Platform::DebugPrintf(const char *format, ...) {
 #ifdef TRACE

@@ -1,6 +1,6 @@
 // Scintilla source code edit control
 // KeyMap.h - defines a mapping between keystrokes and commands
-// Copyright 1998-1999 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef KEYTOCOMMAND_H

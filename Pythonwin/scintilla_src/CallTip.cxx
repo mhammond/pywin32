@@ -1,6 +1,6 @@
 // Scintilla source code edit control
 // CallTip.cxx - code for displaying call tips
-// Copyright 1998-1999 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #include <stdlib.h>
@@ -27,8 +27,7 @@ CallTip::CallTip() {
 
 CallTip::~CallTip() {
 	wCallTip.Destroy();
-	if (val) 
-		free(val);
+	delete []val;
 	val = 0;
 }
 
@@ -120,10 +119,11 @@ PRectangle CallTip::CallTipStart(int pos, Point pt, const char *defn,
 	int deviceHeight = (size * surfaceMeasure.LogPixelsY()) / 72;
 	font.Create(faceName, deviceHeight);
 	if (val)
-		free(val);
-	val = strdup(defn);
+		delete []val;
+	val = new char[strlen(defn) + 1];
 	if (!val)
 		return PRectangle();
+	strcpy(val, defn);
 	startHighlight = 0;
 	endHighlight = 0;
 	inCallTipMode = true;

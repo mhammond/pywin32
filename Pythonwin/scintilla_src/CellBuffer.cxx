@@ -1,6 +1,6 @@
 // Scintilla source code edit control
 // CellBuffer.cxx - manages a buffer of cells
-// Copyright 1998-1999 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #include <stdio.h>
@@ -373,7 +373,6 @@ void CellBuffer::RoomFor(int insertionLength) {
 		size = newSize;
 		//Platform::DebugPrintf("end need room %d %d - size=%d length=%d\n", gaplen, insertionLength,size,length);
 	}
-
 }
 
 // To make it easier to write code that uses ByteAt, a position outside the range of the buffer
@@ -433,9 +432,10 @@ void CellBuffer::GetCharRange(char *buffer, int position, int lengthRetrieve) {
 		return;
 	}
 	GapTo(0); 	// Move the buffer so its easy to subscript into it
+	char *pb = part2body + bytePos;
 	while (lengthRetrieve--) {
-		*buffer++ = part2body[bytePos];
-		bytePos += 2;
+		*buffer++ = *pb;
+		pb +=2;
 	}
 }
 
@@ -443,13 +443,14 @@ char CellBuffer::StyleAt(int position) {
 	return ByteAt(position*2 + 1);
 }
 
-void CellBuffer::InsertString(int position, char *s, int insertLength) {
+const char *CellBuffer::InsertString(int position, char *s, int insertLength) {
+	char *data = 0;
 	// InsertString and DeleteChars are the bottleneck though which all changes occur
 	if (!readOnly) {
 		if (collectingUndo) {
 			// Save into the undo/redo stack, but only the characters - not the formatting
 			// This takes up about half load time
-			char *data = new char[insertLength / 2];
+			data = new char[insertLength / 2];
 			for (int i = 0; i < insertLength / 2; i++) {
 				data[i] = s[i * 2];
 			}
@@ -458,6 +459,7 @@ void CellBuffer::InsertString(int position, char *s, int insertLength) {
 
 		BasicInsertString(position, s, insertLength);
 	}
+	return data;
 }
 
 void CellBuffer::InsertCharStyle(int position, char ch, char style) {
@@ -533,12 +535,13 @@ void CellBuffer::AppendAction(actionType at, int position, char *data, int lengt
 	maxAction = currentAction;
 }
 
-void CellBuffer::DeleteChars(int position, int deleteLength) {
+const char *CellBuffer::DeleteChars(int position, int deleteLength) {
 	// InsertString and DeleteChars are the bottleneck though which all changes occur
+	char *data = 0;
 	if (!readOnly) {
 		if (collectingUndo) {
 			// Save into the undo/redo stack, but only the characters - not the formatting
-			char *data = new char[deleteLength / 2];
+			data = new char[deleteLength / 2];
 			for (int i = 0; i < deleteLength / 2; i++) {
 				data[i] = ByteAt(position + i * 2);
 			}
@@ -547,6 +550,7 @@ void CellBuffer::DeleteChars(int position, int deleteLength) {
 
 		BasicDeleteChars(position, deleteLength);
 	}
+	return data;
 }
 
 int CellBuffer::ByteLength() {
@@ -563,7 +567,12 @@ int CellBuffer::Lines() {
 }
 
 int CellBuffer::LineStart(int line) {
-	return lv.linesData[line].startPosition;
+	if (line < 0)
+		return 0;
+	else if (line > lv.lines)
+		return length;
+	else
+		return lv.linesData[line].startPosition;
 }
 
 bool CellBuffer::IsReadOnly() {
@@ -803,66 +812,70 @@ void CellBuffer::DeleteUndoHistory() {
 	savePoint = 0;
 }
 
-int CellBuffer::Undo(int *posEarliestChanged) {
-	//Platform::DebugPrintf("Undoing from %d\n", currentAction);
-	int retPosition = 0; 	// Where the cursor should be after return
-	if (posEarliestChanged)
-		*posEarliestChanged = length;
+bool CellBuffer::CanUndo() {
+	return (!readOnly) && ((currentAction > 0) && (maxAction > 0));
+}
+
+int CellBuffer::StartUndo() {
+	// Drop any trailing startAction
 	if (actions[currentAction].at == startAction && currentAction > 0)
 		currentAction--;
-	while (actions[currentAction].at != startAction && currentAction > 0) {
-		if (actions[currentAction].at == insertAction) {
-			BasicDeleteChars(actions[currentAction].position, actions[currentAction].lenData*2);
-			retPosition = actions[currentAction].position;
-		} else if (actions[currentAction].at == removeAction) {
-			char *styledData = new char[actions[currentAction].lenData * 2];
-			memset(styledData, 0, actions[currentAction].lenData*2);
-			for (int i = 0; i < actions[currentAction].lenData; i++)
-				styledData[i*2] = actions[currentAction].data[i];
-			BasicInsertString(actions[currentAction].position, styledData, actions[currentAction].lenData*2);
-			delete []styledData;
-			retPosition = actions[currentAction].position + actions[currentAction].lenData * 2;
-		}
-		int changedPosition = actions[currentAction].position;
-		if (posEarliestChanged && (*posEarliestChanged > changedPosition))
-			*posEarliestChanged = changedPosition;
-		currentAction--;
+	
+	// Count the steps in this action
+	int act = currentAction; 
+	while (actions[act].at != startAction && act > 0) {
+		act--;
 	}
-	return retPosition;
+	return currentAction - act;
 }
 
-int CellBuffer::Redo(int *posEarliestChanged) {
-	int retPosition = 0; 	// Where the cursor should be after return
-	if (posEarliestChanged)
-		*posEarliestChanged = length;
-	if (actions[currentAction].at == startAction && currentAction < maxAction)
-		currentAction++;
-	while (actions[currentAction].at != startAction && currentAction < maxAction) {
-		if (actions[currentAction].at == insertAction) {
-			char *styledData = new char[actions[currentAction].lenData * 2];
-			memset(styledData, 0, actions[currentAction].lenData*2);
-			for (int i = 0; i < actions[currentAction].lenData; i++)
-				styledData[i*2] = actions[currentAction].data[i];
-			BasicInsertString(actions[currentAction].position, styledData, actions[currentAction].lenData*2);
-			delete []styledData;
-			retPosition = actions[currentAction].position + actions[currentAction].lenData * 2;
-		} else if (actions[currentAction].at == removeAction) {
-			BasicDeleteChars(actions[currentAction].position, actions[currentAction].lenData*2);
-			retPosition = actions[currentAction].position;
+const Action &CellBuffer::UndoStep() {
+	const Action &actionStep = actions[currentAction];
+	if (actionStep.at == insertAction) {
+		BasicDeleteChars(actionStep.position, actionStep.lenData*2);
+	} else if (actionStep.at == removeAction) {
+		char *styledData = new char[actionStep.lenData * 2];
+		for (int i = 0; i < actionStep.lenData; i++) {
+			styledData[i*2] = actionStep.data[i];
+			styledData[i*2+1] = 0;
 		}
-		int changedPosition = actions[currentAction].position;
-		if (posEarliestChanged && (*posEarliestChanged > changedPosition))
-			*posEarliestChanged = changedPosition;
-		currentAction++;
+		BasicInsertString(actionStep.position, styledData, actionStep.lenData*2);
+		delete []styledData;
 	}
-	return retPosition;
-}
-
-bool CellBuffer::CanUndo() {
-	//Platform::DebugPrintf("Can Undo?\n");
-	return (!readOnly) && ((currentAction > 0) && (maxAction > 0));
+	currentAction--;
+	return actionStep;
 }
 
 bool CellBuffer::CanRedo() {
 	return (!readOnly) && (maxAction > currentAction);
+}
+
+int CellBuffer::StartRedo() {
+	// Drop any leading startAction
+	if (actions[currentAction].at == startAction && currentAction < maxAction)
+		currentAction++;
+	
+	// Count the steps in this action
+	int act = currentAction; 
+	while (actions[act].at != startAction && act < maxAction) {
+		act++;
+	}
+	return act - currentAction;
+}
+
+const Action &CellBuffer::RedoStep() {
+	const Action &actionStep = actions[currentAction];
+	if (actionStep.at == insertAction) {
+		char *styledData = new char[actionStep.lenData * 2];
+		for (int i = 0; i < actionStep.lenData; i++) {
+			styledData[i*2] = actionStep.data[i];
+			styledData[i*2+1] = 0;
+		}
+		BasicInsertString(actionStep.position, styledData, actionStep.lenData*2);
+		delete []styledData;
+	} else if (actionStep.at == removeAction) {
+		BasicDeleteChars(actionStep.position, actionStep.lenData*2);
+	}
+	currentAction++;
+	return actionStep;
 }

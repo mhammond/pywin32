@@ -1,6 +1,6 @@
 // Scintilla source code edit control
 // ScintillaWin.cxx - Windows specific subclass of ScintillaBase
-// Copyright 1998-1999 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #include <stdlib.h>
@@ -84,6 +84,8 @@ class ScintillaWin :
 	public ScintillaBase {
 
 	bool capturedMouse;
+
+	UINT cfColumnSelect;
 	
 	DropSource ds;
 	DataObject dob;
@@ -153,6 +155,9 @@ public:
 	friend class DropSource;
 	friend class DataObject;
 	friend class DropTarget;
+	bool DragIsRectangularOK(UINT fmt) {
+		return dragIsRectangle && (fmt == cfColumnSelect);
+	}
 };
 
 HINSTANCE ScintillaWin::hInstance = 0;
@@ -161,6 +166,10 @@ ScintillaWin::ScintillaWin(HWND hwnd) {
 
 	capturedMouse = false;
 
+	// There does not seem to be a real standard for indicating that the clipboard contains a rectangular
+	// selection, so copy Developer Studio.
+	cfColumnSelect = ::RegisterClipboardFormat("MSDEVColumnSelect");
+	
 	wMain = hwnd;
 	wDraw = hwnd;
 
@@ -250,6 +259,13 @@ LRESULT ScintillaWin::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 			Surface surfaceWindow;
 			surfaceWindow.Init(ps.hdc);
 			rcPaint = PRectangle(ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom);
+			PRectangle rcText = GetTextRectangle();
+			paintingAllText = rcPaint.Contains(rcText);
+			if (paintingAllText) {
+				//Platform::DebugPrintf("Performing full text paint\n");
+			} else {
+				//Platform::DebugPrintf("Performing partial paint %d .. %d\n", rcPaint.top, rcPaint.bottom);
+			}
 			Paint(&surfaceWindow, rcPaint);
 			surfaceWindow.Release();
 			EndPaint(wMain.GetID(), &ps);
@@ -321,8 +337,12 @@ LRESULT ScintillaWin::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 		return DefWindowProc(wMain.GetID(), iMessage, wParam, lParam);
 
 	case WM_LBUTTONDOWN:
+		//Platform::DebugPrintf("Buttdown %d %x %x %x %x %x\n",iMessage, wParam, lParam, 
+		//	Platform::IsKeyDown(VK_SHIFT), 
+		//	Platform::IsKeyDown(VK_CONTROL),
+		//	Platform::IsKeyDown(VK_MENU));
 		ButtonDown(Point::FromLong(lParam), GetTickCount(), 
-			wParam & MK_SHIFT, wParam & MK_CONTROL);
+			wParam & MK_SHIFT, wParam & MK_CONTROL, Platform::IsKeyDown(VK_MENU));
 		break;
 
 	case WM_MOUSEMOVE:
@@ -342,10 +362,13 @@ LRESULT ScintillaWin::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 				POINT pt;
 				::GetCursorPos(&pt);
 				::ScreenToClient(wMain.GetID(), &pt);
-				if (PointInSelection(Point(pt.x, pt.y))) 
+				if (PointInSelMargin(Point(pt.x, pt.y))) {
+					wDraw.SetCursor(Window::cursorReverseArrow);
+				} else if (PointInSelection(Point(pt.x, pt.y))) {
 					wDraw.SetCursor(Window::cursorArrow);
-				else
+				} else {
 					wDraw.SetCursor(Window::cursorText);
+				}
 			}
 			return TRUE;
 		} else
@@ -354,14 +377,13 @@ LRESULT ScintillaWin::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 	case WM_CHAR:
 		//Platform::DebugPrintf("S char proc %d %x %x\n",iMessage, wParam, lParam);
 		if (!iscntrl(wParam&0xff))
-			AddChar(wParam&0xff);
+			AddChar(static_cast<char>(wParam&0xff));
 		return 1;
 
 	case WM_KEYDOWN:
 		//Platform::DebugPrintf("S keydown %d %x %x %x %x\n",iMessage, wParam, lParam, ::IsKeyDown(VK_SHIFT), ::IsKeyDown(VK_CONTROL));
 		return KeyDown(wParam, Platform::IsKeyDown(VK_SHIFT),
 		               Platform::IsKeyDown(VK_CONTROL), false);
-		break;
 
 	case WM_KEYUP:
 		//Platform::DebugPrintf("S keyup %d %x %x\n",iMessage, wParam, lParam);
@@ -432,7 +454,6 @@ LRESULT ScintillaWin::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 			ScrollMessage(wParam);
 			return MAKELONG(topLine - topStart, TRUE);
 		}
-		break;
 
 	default:
 		return ScintillaBase::WndProc(iMessage, wParam, lParam);
@@ -472,7 +493,7 @@ bool ScintillaWin::HaveMouseCapture() {
 }
 
 void ScintillaWin::ScrollText(int linesToMove) {
-	Platform::DebugPrintf("ScintillaWin::ScrollText %d\n", linesToMove);
+	//Platform::DebugPrintf("ScintillaWin::ScrollText %d\n", linesToMove);
 	::ScrollWindow(wMain.GetID(), 0, 
 		vs.lineHeight * (linesToMove), 0, 0);
 	::UpdateWindow(wMain.GetID());
@@ -493,8 +514,8 @@ bool ScintillaWin::ModifyScrollBars(int nMax, int nPage) {
 	};
 	sci.fMask = SIF_PAGE | SIF_RANGE;
 	BOOL bz = ::GetScrollInfo(wMain.GetID(), SB_VERT, &sci);
-	if ((sci.nMin != 0) || (sci.nMax != doc.LinesTotal()) ||
-	        (sci.nPage != (doc.LinesTotal() - MaxScrollPos() + 1)) ||
+	if ((sci.nMin != 0) || (sci.nMax != pdoc->LinesTotal()) ||
+	        (sci.nPage != (pdoc->LinesTotal() - MaxScrollPos() + 1)) ||
 	        (sci.nPos != 0)) {
 		//Platform::DebugPrintf("Scroll info changed %d %d %d %d %d\n",
 		//	sci.nMin, sci.nMax, sci.nPage, sci.nPos, sci.nTrackPos);
@@ -547,14 +568,19 @@ void ScintillaWin::Copy() {
 		::OpenClipboard(wMain.GetID());
 		::EmptyClipboard();
 		::SetClipboardData(CF_TEXT, hmemSelection);
+		if (selType == selRectangle) {
+			::SetClipboardData(cfColumnSelect, 0);
+		}
 		::CloseClipboard();
 	}
 }
 
 void ScintillaWin::Paste() {
-	doc.BeginUndoAction();
+	pdoc->BeginUndoAction();
+	int selStart = SelectionStart();
 	ClearSelection();
 	::OpenClipboard(wMain.GetID());
+	bool isRectangular = ::IsClipboardFormatAvailable(cfColumnSelect);
 	HGLOBAL hmemSelection = ::GetClipboardData(CF_TEXT);
 	if (hmemSelection) {
 		char *ptr = static_cast<char *>(
@@ -566,13 +592,17 @@ void ScintillaWin::Paste() {
 				if ((len == bytes) && (0 == ptr[i]))
 					len = i;
 			}
-			doc.InsertString(currentPos, ptr, len);
-			SetEmptySelection(currentPos + len);
+			if (isRectangular) {
+				PasteRectangular(selStart, ptr, len);
+			} else {
+				pdoc->InsertString(currentPos, ptr, len);
+				SetEmptySelection(currentPos + len);
+			}
 		}
 		::GlobalUnlock(hmemSelection);
 	}
 	::CloseClipboard();
-	doc.EndUndoAction();
+	pdoc->EndUndoAction();
 	NotifyChange();
 	Redraw();
 }
@@ -733,13 +763,22 @@ STDMETHODIMP DataObject_GetDataHere(DataObject *, FORMATETC *, STGMEDIUM *) {
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP DataObject_QueryGetData(DataObject *, FORMATETC *pFE) {
+STDMETHODIMP DataObject_QueryGetData(DataObject *pd, FORMATETC *pFE) {
+	if (pd->sci->DragIsRectangularOK(pFE->cfFormat) && 
+	    pFE->ptd == 0 &&
+	    (pFE->dwAspect & DVASPECT_CONTENT) != 0 &&
+	    pFE->lindex == -1 &&
+	    (pFE->tymed & TYMED_HGLOBAL) != 0
+	) {
+		return S_OK;
+	}
+	
 	if (
 	    ((pFE->cfFormat != CF_TEXT) && (pFE->cfFormat != CF_HDROP)) ||
 	    pFE->ptd != 0 ||
-	    pFE->dwAspect & DVASPECT_CONTENT == 0 ||
+	    (pFE->dwAspect & DVASPECT_CONTENT) == 0 ||
 	    pFE->lindex != -1 ||
-	    pFE->tymed & TYMED_HGLOBAL == 0
+	    (pFE->tymed & TYMED_HGLOBAL) == 0
 	) {
 		//Platform::DebugPrintf("DOB QueryGetData No %x\n",pFE->cfFormat);
 		//return DATA_E_FORMATETC;
@@ -871,7 +910,7 @@ void ScintillaWin::ImeStartComposition() {
 		if (stylesValid) {
 			// Since the style creation code has been made platform independent,
 			// The logfont for the IME is recreated here.
-			int styleHere = (doc.StyleAt(currentPos)) & 31;
+			int styleHere = (pdoc->StyleAt(currentPos)) & 31;
 			LOGFONT lf = {0};
 			int sizeZoomed = vs.styles[styleHere].size + vs.zoomLevel;
 			if (sizeZoomed <= 2)	// Hangs if sizeZoomed <= 1
@@ -904,14 +943,19 @@ void ScintillaWin::GetIntelliMouseParameters() {
 }
 
 HGLOBAL ScintillaWin::GetSelText() {
-	int startPos = SelectionStart();
-	int bytes = SelectionEnd() - startPos;
+	int bytes = SelectionRangeLength();
+
 	HGLOBAL hand = ::GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 
 		bytes + 1);
 	if (hand) {
 		char *ptr = static_cast<char *>(::GlobalLock(hand));
-		for (int i = 0; i < bytes; i++) {
-			ptr[i] = doc.CharAt(startPos + i);
+		char *selChars = CopySelectionRange();
+		if (selChars) {
+			memcpy(ptr, selChars, bytes);
+			delete []selChars;
+			//for (int i = 0; i < bytes; i++) {
+			//	ptr[i] = pdoc->CharAt(startPos + i);
+			//}
 		}
 		ptr[bytes] = '\0';
 		::GlobalUnlock(hand);
@@ -999,6 +1043,7 @@ void ScintillaWin::RealizeWindowPalette(bool inBackGround) {
 void ScintillaWin::FullPaint() {
 	paintState = painting;
 	rcPaint = GetTextRectangle();
+	paintingAllText = true;
 	HDC hdc = ::GetDC(wMain.GetID());
 	Surface surfaceWindow;
 	surfaceWindow.Init(hdc);
@@ -1103,12 +1148,20 @@ STDMETHODIMP ScintillaWin::Drop(LPDATAOBJECT pIDataSource, DWORD grfKeyState,
 	}
 	char *data = static_cast<char *>(::GlobalLock(medium.hGlobal));
 
+	FORMATETC fmtr = {cfColumnSelect,
+	                  NULL,
+	                  DVASPECT_CONTENT,
+	                  -1,
+	                  TYMED_HGLOBAL
+	                 };
+	HRESULT hrRectangular = pIDataSource->QueryGetData(&fmtr);
+	
 	POINT rpt = {pt.x, pt.y};
 	::ScreenToClient(wMain.GetID(), &rpt);
 	Point npt(rpt.x, rpt.y);
 	int movePos = PositionFromLocation(Point(rpt.x, rpt.y));
 
-	DropAt(movePos, data, *pdwEffect == DROPEFFECT_MOVE);
+	DropAt(movePos, data, *pdwEffect == DROPEFFECT_MOVE, hrRectangular == S_OK);
 
 	::GlobalUnlock(medium.hGlobal);
 
@@ -1124,9 +1177,9 @@ STDMETHODIMP ScintillaWin::GetData(FORMATETC *pFEIn, STGMEDIUM *pSTM) {
 	if (
 	    ((pFEIn->cfFormat != CF_TEXT) && (pFEIn->cfFormat != CF_HDROP)) ||
 	    pFEIn->ptd != 0 ||
-	    pFEIn->dwAspect & DVASPECT_CONTENT == 0 ||
+	    (pFEIn->dwAspect & DVASPECT_CONTENT) == 0 ||
 	    pFEIn->lindex != -1 ||
-	    pFEIn->tymed & TYMED_HGLOBAL == 0
+	    (pFEIn->tymed & TYMED_HGLOBAL) == 0
 	) {
 		//Platform::DebugPrintf("DOB GetData No %d %x %x fmt=%x\n", lenDrag, pFEIn, pSTM, pFEIn->cfFormat);
 		return DATA_E_FORMATETC;

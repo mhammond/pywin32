@@ -1,6 +1,6 @@
 // Scintilla source code edit control
 // WinDefs.h - the subset of definitions from Windows needed by Scintilla for GTK+
-// Copyright 1998-1999 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef WINDEFS_H
@@ -11,12 +11,10 @@
 #define LPARAM long
 #define LRESULT long
 #define DWORD long
-#define BOOL bool
-#define PASCAL
 
-#define HWND GtkWidget*
-#define HDC GdkDrawable*
 #define UINT unsigned int
+#define LPSTR char *
+#define LONG long
 
 /* RTF control */
 #define EM_CANPASTE	(1074)
@@ -111,6 +109,10 @@
 
 #define EN_CHANGE	(768)
 
+#define EC_LEFTMARGIN 1
+#define EC_RIGHTMARGIN 2
+#define EC_USEFONTINFO 0xffff
+
 #define VK_DOWN GDK_Down
 #define VK_UP GDK_Up
 #define VK_LEFT GDK_Left
@@ -128,10 +130,6 @@
 #define VK_ADD GDK_KP_Add
 #define VK_SUBTRACT GDK_KP_Subtract
 
-#define LPSTR char *
-#define LONG long
-#define LPDWORD (long *)
-
 /* SELCHANGE structure */
 #define SEL_EMPTY	(0)
 #define SEL_TEXT	(1)
@@ -142,62 +140,51 @@
 /* FINDREPLACE structure */
 #define FR_MATCHCASE	(0x4)
 #define FR_WHOLEWORD	(0x2)
+#define FR_DOWN		(0x1)
 
 #define SHIFT_PRESSED 1
 #define LEFT_CTRL_PRESSED 2
 #define LEFT_ALT_PRESSED 4
 
-typedef struct tagRECT {
+struct RECT {
 	LONG left;
 	LONG top;
 	LONG right;
 	LONG bottom;
-} RECT;
+};
 
-typedef struct _charrange {
+struct CHARRANGE {
 	LONG cpMin;
 	LONG cpMax;
-} CHARRANGE;
+};
 
-typedef struct _textrange {
+struct TEXTRANGE {
 	CHARRANGE chrg;
 	LPSTR lpstrText;
-} TEXTRANGE;
+};
 
-typedef struct _findtextex {
+struct FINDTEXTEX {
 	CHARRANGE chrg;
 	LPSTR lpstrText;
 	CHARRANGE chrgText;
-} FINDTEXTEX;
+};
 
-typedef struct tagNMHDR {
-	HWND hwndFrom;
+struct NMHDR {
+	WindowID hwndFrom;
 	UINT idFrom;
 	UINT code;
-} NMHDR;
+};
 
-typedef struct _formatrange {
-	HDC hdc;
-	HDC hdcTarget;
+struct FORMATRANGE {
+	SurfaceID hdc;
+	SurfaceID hdcTarget;
 	RECT rc;
 	RECT rcPage;
 	CHARRANGE chrg;
-} FORMATRANGE;
-
-// MessageBox
-#define MB_OK	(0L)
-#define MB_YESNO	(0x4L)
-#define MB_YESNOCANCEL	(0x3L)
-#define MB_ICONWARNING	(0x30L)
-#define IDOK	(1)
-#define IDCANCEL	(2)
-#define IDYES	(6)
-#define IDNO	(7)
+};
 
 #define MAKELONG(a, b) ((a) | ((b) << 16))
 #define LOWORD(x) (x & 0xffff)
 #define HIWORD(x) (x >> 16)
-
-#define InterlockedExchange(i, v) *i = v
 
 #endif

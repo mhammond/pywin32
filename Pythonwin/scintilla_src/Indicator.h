@@ -1,6 +1,6 @@
 // Scintilla source code edit control
 // Indicator.h - defines the style of indicators which are text decorations such as underlining
-// Copyright 1998-1999 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef INDICATOR_H

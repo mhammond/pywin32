@@ -1,6 +1,6 @@
 // Scintilla source code edit control
 // LineMarker.cxx - defines the look of a line marker in the margin 
-// Copyright 1998-1999 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #include "Platform.h"

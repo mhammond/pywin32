@@ -2,7 +2,7 @@
 // Platform.h - interface to platform facilities
 // Also includes some basic utilities
 // Implemented in PlatGTK.cxx for GTK+/Linux and PlatWin.cxx for Windows
-// Copyright 1998-1999 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef PLATFORM_H
@@ -22,6 +22,10 @@
 #include <gdk/gdkkeysyms.h>
 #else
 #define _WIN32_WINNT  0x0400 // Otherwise some required stuff gets ifdef'd out
+// Vassili Bourdo: shut up annoying Visual C++ warnings:
+#ifdef _MSC_VER
+#pragma warning(disable: 4800 4244 4309)
+#endif
 #include <windows.h>
 #include <richedit.h>
 #endif

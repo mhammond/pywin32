@@ -1,6 +1,6 @@
 // Scintilla source code edit control
 // Editor.h - defines the main editor class
-// Copyright 1998-1999 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef EDITOR_H
@@ -58,8 +58,9 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	// the screen. This avoids flashing but is about 30% slower.
 	bool bufferedDraw;
 
-	int xOffset;
-
+	int xOffset;				// Horizontal scrolled amount in pixels
+	int xCaretMargin;	// Ensure this many pixels visible on both sides of caret
+	
 	Surface pixmapLine;
 	Surface pixmapSelMargin;
 	Surface pixmapSelPattern;
@@ -87,17 +88,29 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	int currentPos;
 	int anchor;
 	int topLine;
+	int posTopLine;
 	
-        Position braces[2];
+	bool needUpdateUI;
+    Position braces[2];
 	int bracesMatchStyle;
+	
+	int edgeState;
+	int theEdge;
         
 	enum { notPainting, painting, paintAbandoned } paintState;
 	PRectangle rcPaint;
-
+	bool paintingAllText;
+	
+	int modEventMask;
+	
 	char *dragChars;
 	int lenDrag;
+	bool dragIsRectangle;
+	enum { selStream, selRectangle, selRectangleFixed } selType;
+	int xStartSelect;
+	int xEndSelect;
 	
-	Document doc;
+	Document *pdoc;
 
 	Editor();
 	virtual ~Editor();
@@ -117,9 +130,12 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	int LinesToScroll();
 	int MaxScrollPos();
 	Point LocationFromPosition(unsigned int pos);
+	int XFromPosition(unsigned int pos);
 	int PositionFromLocation(Point pt);
+	int PositionFromLineX(int line, int x);
 	int LineFromLocation(Point pt);
-
+	void SetTopLine(int topLineNew);
+	
 	void RedrawRect(PRectangle rc);
 	void Redraw();
 	void RedrawSelMargin();
@@ -128,19 +144,18 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	
 	int CurrentPosition();
 	bool SelectionEmpty();
-	int SelectionStart();
-	int SelectionEnd();
+	int SelectionStart(int line=-1);
+	int SelectionEnd(int line=-1);
 	void SetSelection(int currentPos_, int anchor_);
 	void SetSelection(int currentPos_);
 	void SetEmptySelection(int currentPos_);
-	void SetPosition(int pos, bool shift=false);
 	int MovePositionTo(int newPos, bool extend = false);
 	void SetLastXChosen();
 
 	void ScrollTo(int line);
 	virtual void ScrollText(int linesToMove);
 	void HorizontalScrollTo(int xPos);
-	void EnsureCaretVisible();
+	void EnsureCaretVisible(bool useMargin=true);
 	void ShowCaretAtCurrentPosition();
 	void DropCaret();
 	void InvalidateCaret();
@@ -162,6 +177,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	void ClearSelection();
 	void ClearAll();
 	void Cut();
+	void PasteRectangular(int pos, const char *ptr, int len);
 	virtual void Copy() = 0;
 	virtual void Paste() = 0;
 	void Clear();
@@ -179,11 +195,11 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	void NotifySavePoint(bool isSavePoint);
 	void NotifyModifyAttempt();
 	virtual void NotifyDoubleClick(Point pt, bool shift);
-        void NotifyCheckBrace();
-
-	void NotifyModifyAttempt(Document *doc, void *userData);
-	void NotifySavePoint(Document *doc, void *userData, bool atSavePoint);
-	void NotifyModified(Document *doc, void *userData);
+	void NotifyUpdateUI();
+	
+	void NotifyModifyAttempt(Document *document, void *userData);
+	void NotifySavePoint(Document *document, void *userData, bool atSavePoint);
+	void NotifyModified(Document *document, DocModification mh, void *userData);
 	
 	void PageMove(int direction, bool extend=false);
 	virtual int KeyCommand(UINT iMessage);
@@ -199,15 +215,18 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	void GoToLine(int lineNo);
 
 	char *CopyRange(int start, int end);
+	int SelectionRangeLength();
 	char *CopySelectionRange();
 	void CopySelectionIntoDrag();
 	void SetDragPosition(int newPos);
 	virtual void StartDrag();
-	void DropAt(int position, const char *value, bool moving);
-	bool PositionInSelection(int pos);
+	void DropAt(int position, const char *value, bool moving, bool rectangular);
+	// PositionInSelection returns 0 if position in selection, -1 if position before selection, and 1 if after.
+	// Before means either before any line of selection or before selection on its line, with a similar meaning to after
+	int PositionInSelection(int pos);
 	bool PointInSelection(Point pt);
 	bool PointInSelMargin(Point pt);
-	virtual void ButtonDown(Point pt, unsigned int curTime, bool shift, bool ctrl);
+	virtual void ButtonDown(Point pt, unsigned int curTime, bool shift, bool ctrl, bool alt);
 	void ButtonMove(Point pt);
 	void ButtonUp(Point pt, unsigned int curTime, bool ctrl);
 
@@ -216,10 +235,11 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	virtual void SetMouseCapture(bool on) = 0;
 	virtual bool HaveMouseCapture() = 0;
 
-	Range RangeFromRectangle(PRectangle rc);
 	void CheckForChangeOutsidePaint(Range r);
-        int BraceMatch(int position, int maxReStyle);
+	int BraceMatch(int position, int maxReStyle);
 	void SetBraceHighlight(Position pos0, Position pos1, int matchStyle);
+	
+	void SetDocPointer(Document *document);
 
 	virtual LRESULT DefWndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) = 0;
 	

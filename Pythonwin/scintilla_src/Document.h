@@ -1,6 +1,6 @@
 // Scintilla source code edit control
 // Document.h - text document that handles notifications, DBCS, styling, words and end of line
-// Copyright 1998-1999 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef DOCUMENT_H
@@ -20,82 +20,62 @@ public:
 	Position start;
 	Position end;
 	
-        Range(Position pos=0) : 
+	Range(Position pos=0) : 
 		start(pos), end(pos) {
-        };
-        Range(Position start_, Position end_) : 
+	};
+	Range(Position start_, Position end_) : 
 		start(start_), end(end_) {
-        };
-        
-        bool Valid() const {
-        	return (start != invalidPosition) && (end != invalidPosition);
-        }
-        
-        // Return a range extended to include posStart and posEnd.
-        // posStart <= posEnd.
-        Range Extend(Position posStart, Position posEnd) const {
-        	if (!Valid())
-			return Range(posStart, posEnd);
-        	if (start < end) {
-        		if (posStart < start) 
-        			return Range(posStart, end);
-        		else if (posEnd > end)
-        			return Range(start, posEnd);
-        		else
-        			return *this;
-        	} else {
-        		if (posEnd > start) 
-        			return Range(end, posEnd);
-        		else if (posStart < end)
-        			return Range(posStart, end);
-        		else
-        			return *this;
-        	}
-        }
-        
-        bool Contains(Position pos) const {
-        	if (start < end) {
-        		return (pos >= start && pos <= end);
-        	} else {
-        		return (pos <= start && pos >= end);
-        	}
-        }
-        
-        bool Contains(Range other) const {
-        	return Contains(other.start) && Contains(other.end);
-        }
-        
-        bool Overlaps(Range other) const {
-        	return 
-			Contains(other.start) ||
-			Contains(other.end) ||
-			other.Contains(start) ||
-			other.Contains(end);
-        }
-};
-
-class DocWatcher;
-
-// Used internally by Document
-class WatcherWithUserData {
-public:
-	DocWatcher *watcher;
-	void *userData;
-	WatcherWithUserData() {
-		watcher = 0;
-		userData = 0;
+	};
+	
+	bool Valid() const {
+		return (start != invalidPosition) && (end != invalidPosition);
+	}
+	
+	bool Contains(Position pos) const {
+		if (start < end) {
+			return (pos >= start && pos <= end);
+		} else {
+			return (pos <= start && pos >= end);
+		}
+	}
+	
+	bool Contains(Range other) const {
+		return Contains(other.start) && Contains(other.end);
+	}
+	
+	bool Overlaps(Range other) const {
+		return 
+		Contains(other.start) ||
+		Contains(other.end) ||
+		other.Contains(start) ||
+		other.Contains(end);
 	}
 };
 
+class DocWatcher;
+class DocModification;
+
 class Document {
 
+	// Used internally by Document
+	class WatcherWithUserData {
+	public:
+		DocWatcher *watcher;
+		void *userData;
+		WatcherWithUserData() {
+			watcher = 0;
+			userData = 0;
+		}
+	};
+	
+	int refCount;
 	CellBuffer cb;
 	bool wordchars[256];
 	bool modified;
 	int stylingPos;
 	int stylingMask;
 	int endStyled;
-	Range rangeStyleChanged;
+	int enteredCount;
 	
 	WatcherWithUserData *watchers;
 	int lenWatchers;
@@ -108,10 +88,13 @@ public:
 	Document();
 	virtual ~Document();
 	
+	int AddRef();
+	int Release();
+ 	
 	int LineFromPosition(int pos);
 	int ClampPositionIntoDocument(int pos);
 	bool IsCrLf(int pos);
-	int MovePositionOutsideChar(int pos, int moveDir);
+	int MovePositionOutsideChar(int pos, int moveDir, bool checkLineEnd=true);
 
 	// Gateways to modifying document
 	void DeleteChars(int pos, int len);
@@ -130,6 +113,7 @@ public:
 	void SetSavePoint() { cb.SetSavePoint(); }
 	bool IsSavePoint() { return cb.IsSavePoint(); }
 	void Indent(bool forwards, int lineBottom, int lineTop);
+	void ConvertLineEnds(int eolModeSet);
 	void SetReadOnly(bool set) { cb.SetReadOnly(set); }
 
 	void InsertChar(int pos, char ch);
@@ -162,12 +146,10 @@ public:
 	int LinesTotal();
 	
 	void SetWordChars(unsigned char *chars);
-	void StartStyleSequence();
 	void StartStyling(int position, char mask);
 	void SetStyleFor(int length, char style);
 	void SetStyles(int length, char *styles);
 	int GetEndStyled() { return endStyled; }
-	Range StyleChanged() { return rangeStyleChanged; };
 	
 	bool AddWatcher(DocWatcher *watcher, void *userData);
 	bool RemoveWatcher(DocWatcher *watcher, void *userData);
@@ -180,7 +162,27 @@ private:
 		
 	void NotifyModifyAttempt();
 	void NotifySavePoint(bool atSavePoint);
-	void NotifyModified();
+	void NotifyModified(DocModification mh);
+};
+
+// To optimise processing of document modifications by DocWatchers, a hint is passed indicating the 
+// scope of the change.
+// If the DocWatcher is a document view then this can be used to optimise screen updating.
+class DocModification {
+public:
+  	int modificationType;
+	int position;
+ 	int length;
+ 	int linesAdded;	// Negative if lines deleted
+ 	const char *text;	// Only valid for changes to text, not for changes to style
+
+	DocModification(int modificationType_, int position_=0, int length_=0, 
+		int linesAdded_=0, const char *text_=0) :
+		modificationType(modificationType_),
+		position(position_),
+		length(length_),
+		linesAdded(linesAdded_),
+		text(text_) {}
 };
 
 // A class that wants to receive notifications from a Document must be derived from DocWatcher 
@@ -189,7 +191,7 @@ class DocWatcher {
 public:
 	virtual void NotifyModifyAttempt(Document *doc, void *userData) = 0;
 	virtual void NotifySavePoint(Document *doc, void *userData, bool atSavePoint) = 0;
-	virtual void NotifyModified(Document *doc, void *userData) = 0;
+	virtual void NotifyModified(Document *doc, DocModification mh, void *userData) = 0;
 };
 
 #endif

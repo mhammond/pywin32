@@ -1,6 +1,6 @@
 // Scintilla source code edit control
 // CellBuffer.h - manages the text of the document
-// Copyright 1998-1999 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef CELLBUFFER_H
@@ -132,7 +132,7 @@ public:
 	int Lines();
 	int LineStart(int line);
 	int LineFromPosition(int pos) { return lv.LineFromPosition(pos); }
-	void InsertString(int position, char *s, int insertLength);
+	const char *InsertString(int position, char *s, int insertLength);
 	void InsertCharStyle(int position, char ch, char style);
 	
 	// Setting styles for positions outside the range of the buffer is safe and has no effect.
@@ -140,7 +140,7 @@ public:
 	bool SetStyleAt(int position, char style, char mask=0xff);
 	bool SetStyleFor(int position, int length, char style, char mask);
 	
-	void DeleteChars(int position, int deleteLength);
+	const char *DeleteChars(int position, int deleteLength);
 
 	bool IsReadOnly();
 	void SetReadOnly(bool set);
@@ -168,10 +168,15 @@ public:
 	void BeginUndoAction();
 	void EndUndoAction();
 	void DeleteUndoHistory();
-	int Undo(int *posEarliestChanged=0);
-	int Redo(int *posEarliestChanged=0);
+	
+	// To perform an undo, StartUndo is called to retreive the number of steps, then UndoStep is 
+	// called that many times. Similarly for redo.
 	bool CanUndo();
+	int StartUndo();
+	const Action &UndoStep();
 	bool CanRedo();
+	int StartRedo();
+	const Action &RedoStep();
 };
 
 #define CELL_SIZE	2

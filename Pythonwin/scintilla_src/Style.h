@@ -1,6 +1,6 @@
 // Scintilla source code edit control
 // Style.h - defines the font and colour style for a class of text
-// Copyright 1998-1999 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef STYLE_H

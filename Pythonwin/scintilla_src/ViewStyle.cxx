@@ -1,6 +1,6 @@
 // Scintilla source code edit control
 // ViewStyle.cxx - store information on how the document is to be viewed
-// Copyright 1998-1999 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #include <string.h>
@@ -36,10 +36,12 @@ ViewStyle::ViewStyle(const ViewStyle &source) {
 	selbar.desired = source.selbar.desired;
 	selbarlight.desired = source.selbarlight.desired;
 	caretcolour.desired = source.caretcolour.desired;
-	
+	edgecolour.desired = source.edgecolour.desired;
+	leftMarginWidth = source.leftMarginWidth;
+	rightMarginWidth = source.rightMarginWidth;
 	selMarginWidth = source.selMarginWidth;
 	lineNumberWidth = source.lineNumberWidth;
-	fixedColumnWidth = selMarginWidth + lineNumberWidth;
+	fixedColumnWidth = leftMarginWidth + selMarginWidth + lineNumberWidth;
 	zoomLevel = source.zoomLevel;
 	viewWhitespace = source.viewWhitespace;
 	viewEOL = source.viewEOL;
@@ -73,10 +75,13 @@ void ViewStyle::Init() {
 	styles[STYLE_LINENUMBER].back.desired = Platform::Chrome();
 	//caretcolour.desired = Colour(0xff, 0, 0);
 	caretcolour.desired = Colour(0, 0, 0);
+	edgecolour.desired = Colour(0xc0, 0xc0, 0xc0);
 	
+	leftMarginWidth = 1;
+	rightMarginWidth = 1;
 	selMarginWidth = 20;
 	lineNumberWidth = 0;
-	fixedColumnWidth = selMarginWidth + lineNumberWidth;
+	fixedColumnWidth = leftMarginWidth + selMarginWidth + lineNumberWidth;
 	zoomLevel = 0;
 	viewWhitespace = false;
 	viewEOL = false;
@@ -101,6 +106,7 @@ void ViewStyle::RefreshColourPalette(Palette &pal, bool want) {
 	pal.WantFind(selbar, want);
 	pal.WantFind(selbarlight, want);
 	pal.WantFind(caretcolour, want);
+	pal.WantFind(edgecolour, want);
 }
 
 void ViewStyle::Refresh(Surface &surface) {
@@ -117,10 +123,10 @@ void ViewStyle::Refresh(Surface &surface) {
 	}
 	
 	lineHeight = maxAscent + maxDescent;
-	aveCharWidth = styles[0].aveCharWidth;
-	spaceWidth = styles[0].spaceWidth;
+	aveCharWidth = styles[STYLE_DEFAULT].aveCharWidth;
+	spaceWidth = styles[STYLE_DEFAULT].spaceWidth;
 
-	fixedColumnWidth = selMarginWidth + lineNumberWidth;
+	fixedColumnWidth = leftMarginWidth + selMarginWidth + lineNumberWidth;
 }
 
 void ViewStyle::ResetDefaultStyle() {

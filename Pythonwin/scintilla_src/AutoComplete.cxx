@@ -1,6 +1,6 @@
 // Scintilla source code edit control
 // AutoComplete.cxx - defines the auto completion list box
-// Copyright 1998-1999 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #include <stdlib.h>
@@ -25,12 +25,13 @@ bool AutoComplete::Active() {
 	return active;
 }
 
-void AutoComplete::Start(Window &parent, int ctrlID, int position) {
+void AutoComplete::Start(Window &parent, int ctrlID, int position, int startLen_) {
 	if (!lb.Created()) {
 		lb.Create(parent, ctrlID);
 	}
 	lb.Clear();
 	active = true;
+	startLen = startLen_;
 	posStart = position;
 }
 
@@ -46,8 +47,9 @@ bool AutoComplete::IsStopChar(char ch) {
 int AutoComplete::SetList(const char *list) {
 	int maxStrLen = 12;
 	lb.Clear();
-	char *words = strdup(list);
+	char *words = new char[strlen(list) + 1];
 	if (words) {
+		strcpy(words, list);
 		char *startword = words;
 		int i = 0;
 		for (; words && words[i]; i++) {
@@ -62,7 +64,7 @@ int AutoComplete::SetList(const char *list) {
 			lb.Append(startword);
 			maxStrLen = Platform::Maximum(maxStrLen, strlen(startword));
 		}
-		free(words);
+		delete []words;
 	}
 	lb.Sort();
 	return maxStrLen;

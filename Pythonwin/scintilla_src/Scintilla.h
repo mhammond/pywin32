@@ -1,6 +1,6 @@
 // Scintilla source code edit control
 // Scintilla.h - interface to the edit control
-// Copyright 1998-1999 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef SCINTILLA_H
@@ -77,7 +77,6 @@ extern "C" {
 
 #define SC_UNDOCOLLECT_NONE 0
 #define SC_UNDOCOLLECT_AUTOSTART 1
-#define SC_UNDOCOLLECT_MANUALSTART 2
 
 #define SCI_GETVIEWWS SCI_START + 20
 #define SCI_SETVIEWWS SCI_START + 21
@@ -87,6 +86,7 @@ extern "C" {
 #define SCI_SETANCHOR SCI_START + 26
 #define SCI_GETCURLINE SCI_START + 27
 #define SCI_GETENDSTYLED SCI_START + 28
+#define SCI_CONVERTEOLS SCI_START + 29
 
 #define SCI_GETEOLMODE SCI_START + 30
 #define SCI_SETEOLMODE SCI_START + 31
@@ -122,6 +122,7 @@ extern "C" {
 #define SCI_MARKERDELETEALL SCI_START + 45
 #define SCI_MARKERGET SCI_START + 46
 #define SCI_MARKERNEXT SCI_START + 47
+#define SCI_MARKERPREVIOUS SCI_START + 48
 
 #define LEX_STYLE_MAX 31
 #define STYLE_DEFAULT 32
@@ -141,13 +142,6 @@ extern "C" {
 #define SCI_STYLESETEOLFILLED SCI_START + 57
 #define SCI_STYLERESETDEFAULT SCI_START + 58
 
-// Default style settings
-#define SCI_SETFORE SCI_START + 60
-#define SCI_SETBACK SCI_START + 61
-#define SCI_SETBOLD SCI_START + 62
-#define SCI_SETITALIC SCI_START + 63
-#define SCI_SETSIZE SCI_START + 64
-#define SCI_SETFONT SCI_START + 65
 #define SCI_SETSELFORE SCI_START + 67
 #define SCI_SETSELBACK SCI_START + 68
 #define SCI_SETCARETFORE SCI_START + 69
@@ -157,7 +151,6 @@ extern "C" {
 #define SCI_CLEARALLCMDKEYS SCI_START + 72
 
 #define SCI_SETSTYLINGEX SCI_START + 73
-#define SCI_APPENDUNDOSTARTACTION SCI_START + 74
 
 #define SCI_GETCARETPERIOD SCI_START + 75
 #define SCI_SETCARETPERIOD SCI_START + 76
@@ -194,6 +187,7 @@ extern "C" {
 #define SCI_CALLTIPACTIVE SCI_START + 202
 #define SCI_CALLTIPPOSSTART SCI_START + 203
 #define SCI_CALLTIPSETHLT SCI_START + 204
+#define SCI_CALLTIPSETBACK SCI_START + 205
 
 // Key messages
 #define SCI_LINEDOWN SCI_START + 300
@@ -240,17 +234,48 @@ extern "C" {
 #define SCI_BRACEMATCH SCI_START + 353
 #define SCI_GETVIEWEOL SCI_START + 355
 #define SCI_SETVIEWEOL SCI_START + 356
+#define SCI_GETDOCPOINTER SCI_START + 357
+#define SCI_SETDOCPOINTER SCI_START + 358
+#define SCI_SETMODEVENTMASK SCI_START + 359
+
+#define EDGE_NONE 0
+#define EDGE_LINE 1
+#define EDGE_BACKGROUND 2
+
+#define SCI_GETEDGECOLUMN SCI_START + 360
+#define SCI_SETEDGECOLUMN SCI_START + 361
+#define SCI_GETEDGEMODE SCI_START + 362
+#define SCI_SETEDGEMODE SCI_START + 363
+#define SCI_GETEDGECOLOUR SCI_START + 364
+#define SCI_SETEDGECOLOUR SCI_START + 365
 
 // GTK+ Specific
 #define SCI_GRABFOCUS SCI_START + 400
 
 // Notifications
 
+// Type of modification and the action which caused the modification
+// These are defined as a it mask to make it easy to specify which notifications are wanted.
+// One bit is set from each of SC_MOD_* and SC_PERFORMED_*.
+#define SC_MOD_INSERTTEXT 0x1
+#define SC_MOD_DELETETEXT 0x2
+#define SC_MOD_CHANGESTYLE 0x4
+#define SC_PERFORMED_USER 0x10
+#define SC_PERFORMED_UNDO 0x20
+#define SC_PERFORMED_REDO 0x40
+#define SC_LASTSTEPINUNDOREDO 0x100
+
+#define SC_MODEVENTMASKALL 0x377
+
 struct SCNotification {
 	NMHDR nmhdr;
-	int position;
-	int ch;
-	int modifiers;
+	int position;			// SCN_STYLENEEDED, SCN_MODIFIED
+	int ch;					// SCN_CHARADDED, SCN_KEY
+	int modifiers;			// SCN_KEY
+  	int modificationType;	// SCN_MODIFIED
+ 	const char *text;		// SCN_MODIFIED
+ 	int length;				// SCN_MODIFIED
+ 	int linesAdded;	// SCN_MODIFIED
 };
 
 #define SCN_STYLENEEDED 2000
@@ -261,10 +286,33 @@ struct SCNotification {
 // GTK+ Specific to work around focus and accelerator problems:
 #define SCN_KEY 2005
 #define SCN_DOUBLECLICK 2006
+#define SCN_UPDATEUI 2007
+// The old name for SCN_UPDATEUI:
 #define SCN_CHECKBRACE 2007
+#define SCN_MODIFIED 2008
 
 #ifdef STATIC_BUILD
 void Scintilla_RegisterClasses(HINSTANCE hInstance);
+#endif
+
+// Deprecation section listing all API features that are deprecated and will
+// will be removed completely in a future version.
+// To enable these features define INCLUDE_DEPRECATED_FEATURES
+
+#ifdef INCLUDE_DEPRECATED_FEATURES
+
+// Default style settings. These are deprecated and will be removed in a future version.
+#define SCI_SETFORE SCI_START + 60
+#define SCI_SETBACK SCI_START + 61
+#define SCI_SETBOLD SCI_START + 62
+#define SCI_SETITALIC SCI_START + 63
+#define SCI_SETSIZE SCI_START + 64
+#define SCI_SETFONT SCI_START + 65
+
+#define SCI_APPENDUNDOSTARTACTION SCI_START + 74
+
+#define SC_UNDOCOLLECT_MANUALSTART 2
+
 #endif
 
 #endif
