@@ -424,6 +424,7 @@ class Debugger(debugger_parent):
 		self.shownLineCallstack = None # The last filename I highlighted.
 		self.last_cmd_debugged = ""
 		self.abortClosed = 0
+		self.isInitialBreakpoint = 0
 		debugger_parent.__init__(self)
 
 		# See if any break-points have been set in the editor
