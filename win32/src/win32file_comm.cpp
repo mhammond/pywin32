@@ -285,6 +285,7 @@ PyObject *PyWinMethod_NewCOMSTAT(PyObject *self, PyObject *args)
 }
 
 // @object PyCOMSTAT|A Python object, representing an COMSTAT structure
+
 BOOL PyWinObject_AsCOMSTAT(PyObject *ob, COMSTAT **ppCOMSTAT, BOOL bNoneOK /*= TRUE*/)
 {
 	if (bNoneOK && ob==Py_None) {

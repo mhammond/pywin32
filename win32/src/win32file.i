@@ -1739,6 +1739,7 @@ BOOLAPI BuildCommDCB(
 static PyObject *PyClearCommError(PyObject *self, PyObject *args)
 {
 	PyObject *obHandle;
+	// @pyparm handle|<o PyHANDLE>||A handle to the device.
 	if (!PyArg_ParseTuple(args, "O", &obHandle))
 		return NULL;
 	HANDLE handle;
