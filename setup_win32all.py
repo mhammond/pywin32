@@ -170,6 +170,10 @@ class WinExt_win32com(WinExt):
         if not kw.has_key("dsp_file"):
             kw["dsp_file"] = "com/" + name + ".dsp"
         kw["libraries"] = kw.get("libraries", "") + " oleaut32 ole32"
+
+        # COM extensions require later windows headers.
+        if not kw.get("windows_h_version"):
+            kw["windows_h_version"] = 0x500
         WinExt.__init__(self, name, **kw)
     def get_pywin32_dir(self):
         return "win32comext/" + self.name
@@ -596,12 +600,12 @@ for info in (
         ("timer", "user32", False),
         ("win2kras", "rasapi32", False, 0x0500),
         ("win32api", "user32 advapi32 shell32 version", False, 0x0500),
-        ("win32file", "oleaut32", False),
+        ("win32file", "oleaut32", False, 0x0500),
         ("win32event", "user32", False),
         ("win32clipboard", "gdi32 user32 shell32", False),
         ("win32evtlog", "advapi32 oleaut32", False),
         # win32gui handled below
-        ("win32help", "htmlhelp user32 advapi32", False),
+        ("win32help", "htmlhelp user32 advapi32", False, 0x0500),
         ("win32lz", "lz32", False),
         ("win32net", "netapi32", True),
         ("win32pdh", "", False),
@@ -610,7 +614,7 @@ for info in (
         ("win32process", "advapi32 user32", False),
         ("win32ras", "rasapi32 user32", False),
         ("win32security", "advapi32 user32", True),
-        ("win32service", "advapi32 oleaut32", True),
+        ("win32service", "advapi32 oleaut32", True, 0x0500),
         ("win32trace", "advapi32", False),
         ("win32wnet", "netapi32 mpr", False),
     ):
@@ -639,7 +643,8 @@ win32_extensions += [
            extra_compile_args = ['-DUNICODE', '-D_UNICODE', 
                                  '-DWINNT', '-DPYSERVICE_BUILD_DLL'],
            libraries = "user32 ole32 advapi32 shell32",
-           dsp_file = r"win32\Pythonservice servicemanager.dsp")
+           dsp_file = r"win32\Pythonservice servicemanager.dsp",
+           windows_h_version = 0x500)
 ]
 
 # The COM modules.
@@ -649,6 +654,7 @@ pythoncom = WinExt_system32('pythoncom',
                    export_symbol_file = 'com/win32com/src/PythonCOM.def',
                    extra_compile_args = ['-DBUILD_PYTHONCOM'],
                    pch_header = "stdafx.h",
+                   windows_h_version = 0x500,
                    )
 com_extensions = [pythoncom]
 com_extensions += [
@@ -681,7 +687,8 @@ com_extensions += [
 pythonwin_extensions = [
     WinExt_pythonwin("win32ui", extra_compile_args = ['-DBUILD_PYW'],
                      pch_header="stdafx.h"),
-    WinExt_pythonwin("win32uiole", pch_header="stdafxole.h"),
+    WinExt_pythonwin("win32uiole", pch_header="stdafxole.h",
+                     windows_h_version = 0x500),
     WinExt_pythonwin("dde", pch_header="stdafxdde.h"),
 ]
 
