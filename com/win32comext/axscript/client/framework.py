@@ -553,12 +553,16 @@ class COMScript:
 			self.debugManager.Close()
 		import traceback
 		try:
+			import win32com.axdebug.axdebug # see if the core exists.
 			import debug
 			self.debugManager = debug.DebugManager(self)
 		except pythoncom.com_error:
 			# COM errors will occur if the debugger interface has never been
 			# seen on the target system
 			trace("Debugging interfaces not available - debugging is disabled..")
+			self.debugManager = None
+		except ImportError:
+			trace("Debugging extensions (axdebug) module does not exist - debugging is disabled..")
 			self.debugManager = None
 		except:
 			traceback.print_exc()
