@@ -703,7 +703,7 @@ BOOL PyObject_AsSHFILEOPSTRUCT(PyObject *ob, SHFILEOPSTRUCT *p)
 	if (!PyArg_ParseTuple(ob, "iiOO|iOO",
 						  &p->hwnd, // @tupleitem 0|int|hwnd|
 						  &p->wFunc, // @tupleitem 1|int|wFunc|
-						  &obFrom, // @tupleitem 2|string/list of stringsfrom|
+						  &obFrom, // @tupleitem 2|string/list of stringsfrom|obFrom|
 						  &obTo, // @tupleitem 3|string/list of strings|to|
 						  &p->fFlags, // @tupleitem 4|int|flags|Default=0
 						  &obNameMappings, // @tupleitem 5|None|nameMappings|Default=None

@@ -1365,7 +1365,7 @@ static PyObject *pythoncom_OleFlushClipboard(PyObject *, PyObject *args)
 
 // @pymethod |pythoncom|RegisterDragDrop|Registers the specified window as
 // one that can be the target of an OLE drag-and-drop operation and
-// specifies the <om PyIDropTarget> instance to use for drop operations.
+// specifies the <o PyIDropTarget> instance to use for drop operations.
 static PyObject *pythoncom_RegisterDragDrop(PyObject *, PyObject *args)
 {
 	PyObject *obd;
