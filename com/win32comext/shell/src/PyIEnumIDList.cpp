@@ -24,33 +24,6 @@ PyIEnumIDList::~PyIEnumIDList()
 	return (IEnumIDList *)PyIUnknown::GetI(self);
 }
 
-PyObject *
-PyIEnumIDList::iter()
-{
-	Py_INCREF(this);
-	return this;
-}
-
-PyObject *
-PyIEnumIDList::iternext()
-{
-	ULONG celtFetched = 0;
-	ITEMIDLIST *pRet;
-	IEnumIDList *peidl = GetI(this);
-	if ( peidl == NULL )
-		return NULL;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = peidl->Next(1, &pRet, &celtFetched);
-	PY_INTERFACE_POSTCALL;
-	if (  HRESULT_CODE(hr) != ERROR_NO_MORE_ITEMS && FAILED(hr) )
-		return PyCom_BuildPyException(hr,peidl, IID_IEnumIDList);
-	if (celtFetched==0) {
-		PyErr_SetNone(PyExc_StopIteration);
-		return NULL;
-	}
-	return PyObject_FromPIDL(pRet, TRUE);
-}
-
 // @pymethod object|PyIEnumIDList|Next|Retrieves a specified number of items in the enumeration sequence.
 PyObject *PyIEnumIDList::Next(PyObject *self, PyObject *args)
 {
@@ -63,11 +36,12 @@ PyObject *PyIEnumIDList::Next(PyObject *self, PyObject *args)
 	if ( peidl == NULL )
 		return NULL;
 
-	ITEMIDLIST *rgVar = new ITEMIDLIST [celt];
+	LPITEMIDLIST *rgVar = new LPITEMIDLIST [celt];
 	if ( rgVar == NULL ) {
 		PyErr_SetString(PyExc_MemoryError, "allocating result ITEMIDLISTs");
 		return NULL;
 	}
+	memset(rgVar, 0, sizeof(ITEMIDLIST *) * celt);
 
 	int i;
 /*	for ( i = celt; i--; )
@@ -76,7 +50,7 @@ PyObject *PyIEnumIDList::Next(PyObject *self, PyObject *args)
 
 	ULONG celtFetched = 0;
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = peidl->Next(celt, &rgVar, &celtFetched);
+	HRESULT hr = peidl->Next(celt, rgVar, &celtFetched);
 	PY_INTERFACE_POSTCALL;
 	if (  HRESULT_CODE(hr) != ERROR_NO_MORE_ITEMS && FAILED(hr) )
 	{
@@ -89,7 +63,7 @@ PyObject *PyIEnumIDList::Next(PyObject *self, PyObject *args)
 	{
 		for ( i = celtFetched; i--; )
 		{
-			PyObject *ob = PyObject_FromPIDL(rgVar+i, TRUE);
+			PyObject *ob = PyObject_FromPIDL(rgVar[i], TRUE);
 			if ( ob == NULL )
 			{
 				Py_DECREF(result);
@@ -100,9 +74,7 @@ PyObject *PyIEnumIDList::Next(PyObject *self, PyObject *args)
 		}
 	}
 
-/*	for ( i = celtFetched; i--; )
-		// *** possibly cleanup each structure element???
-*/
+	// Each item free'd by PyObject_FromPIDL'd TRUE param
 	delete [] rgVar;
 	return result;
 }

@@ -24,24 +24,6 @@ PyIShellFolder::~PyIShellFolder()
 	return (IShellFolder *)PyIUnknown::GetI(self);
 }
 
-// @pymethod |PyIShellFolder|__iter__|Enumerates all objects in this folder.
-// @comm Calls EnumObjects(SHCONTF_FOLDERS\|SHCONTF_NONFOLDERS\|SHCONTF_INCLUDEHIDDEN),
-// returning PIDL objects.
-PyObject *
-PyIShellFolder::iter()
-{
-	IShellFolder *pISF = GetI(this);
-	DWORD flags = SHCONTF_FOLDERS|SHCONTF_NONFOLDERS|SHCONTF_INCLUDEHIDDEN;
-	IEnumIDList * ppeidl;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISF->EnumObjects( 0, flags, &ppeidl );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISF, IID_IShellFolder );
-	return PyCom_PyObjectFromIUnknown(ppeidl, IID_IEnumIDList, FALSE);
-}
-
 // @pymethod |PyIShellFolder|ParseDisplayName|Description of ParseDisplayName.
 PyObject *PyIShellFolder::ParseDisplayName(PyObject *self, PyObject *args)
 {
@@ -90,12 +72,12 @@ PyObject *PyIShellFolder::EnumObjects(PyObject *self, PyObject *args)
 	IShellFolder *pISF = GetI(self);
 	if ( pISF == NULL )
 		return NULL;
-	// @pyparm HWND|hwndOwner||Description for hwndOwner
-	// @pyparm int|grfFlags||Description for grfFlags
-	HWND hwndOwner;
-	DWORD grfFlags;
+	// @pyparm HWND|hwndOwner|0|Description for hwndOwner
+	// @pyparm int|grfFlags|SHCONTF_FOLDERS\|SHCONTF_NONFOLDERS\|SHCONTF_INCLUDEHIDDEN|Description for grfFlags
+	HWND hwndOwner = 0;
+	DWORD grfFlags = SHCONTF_FOLDERS|SHCONTF_NONFOLDERS|SHCONTF_INCLUDEHIDDEN;
 	IEnumIDList * ppeidl;
-	if ( !PyArg_ParseTuple(args, "ll:EnumObjects", &hwndOwner, &grfFlags) )
+	if ( !PyArg_ParseTuple(args, "|ll:EnumObjects", &hwndOwner, &grfFlags) )
 		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
@@ -415,7 +397,8 @@ PyComEnumProviderTypeObject PyIShellFolder::type("PyIShellFolder",
 		&PyIUnknown::type,
 		sizeof(PyIShellFolder),
 		PyIShellFolder_methods,
-		GET_PYCOM_CTOR(PyIShellFolder));
+		GET_PYCOM_CTOR(PyIShellFolder),
+		"EnumObjects");
 // ---------------------------------------------------
 //
 // Gateway Implementation

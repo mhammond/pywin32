@@ -11,8 +11,6 @@ public:
 	static IShellFolder *GetI(PyObject *self);
 	static PyComEnumProviderTypeObject type;
 
-	virtual PyObject *iter();
-
 	// The Python methods
 	static PyObject *ParseDisplayName(PyObject *self, PyObject *args);
 	static PyObject *EnumObjects(PyObject *self, PyObject *args);
