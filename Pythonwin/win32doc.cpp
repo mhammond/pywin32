@@ -314,7 +314,7 @@ ui_doc_set_modified_flag(PyObject *self, PyObject *args)
 }
 
 // @pymethod |PyCDocument|SetPathName|Set the full path name for the document.
-static PyObject *
+PyObject *
 ui_doc_set_path_name(PyObject *self, PyObject *args)
 {
 	char *path;
@@ -324,6 +324,7 @@ ui_doc_set_path_name(PyObject *self, PyObject *args)
 	CDocument *pDoc;
 	if (!(pDoc=PyCDocument::GetDoc(self)))
 		return NULL;
+
 	GUI_BGN_SAVE;
 	pDoc->SetPathName(path); // @pyseemfc CDocument|SetPathName
 	GUI_END_SAVE;
