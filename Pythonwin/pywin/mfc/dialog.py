@@ -169,21 +169,6 @@ class PropertyPage(Dialog):
 		window.Wnd.__init__(self, dlg)
 		self.HookCommands()
 
-	# DDX support
-#	def AddDDX( self, *args ):
-#		self._obj_.datalist.append(args)
-	# Make a property page object look like a dictionary for the DDX support
-#	def __nonzero__(self):
-#		return 1
-#	def __len__(self): return len(self._obj_.data)
-#	def __getitem__(self, key): return self._obj_.data[key]
-#	def __setitem__(self, key, item): self._obj_.data[key] = item # self.sheet.UpdateData(0)
-#	def __delitem__(self, key): del self._obj_.data[key]
-#	def keys(self): return self._obj_.data.keys()
-#	def items(self): return self._obj_.data.items()
-#	def values(self): return self._obj_.data.values()
-#	def has_key(self, key): return self._obj_.data.has_key(key)
-
 class PropertySheet(window.Wnd):
 	def __init__(self, caption, dll=None, pageList=None ):# parent=None, style,etc):
 		" Initialize a property sheet.  pageList is a list of ID's "
