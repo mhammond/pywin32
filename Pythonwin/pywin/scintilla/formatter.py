@@ -195,6 +195,7 @@ operators = '%^&*()-+=|{}[]:;<>,/?!.~'
 
 STYLE_DEFAULT = "Whitespace"
 STYLE_COMMENT = "Comment"
+STYLE_COMMENT_BLOCK = "Comment Blocks"
 STYLE_NUMBER = "Number"
 STYLE_STRING = "String"
 STYLE_SQSTRING = "SQ String"
@@ -214,6 +215,7 @@ STRING_STYLES = [STYLE_STRING, STYLE_SQSTRING, STYLE_TQSSTRING, STYLE_TQDSTRING]
 classfmt	= (0, 1, 200, 0, 16711680) 
 keywordfmt	= (0, 1, 200, 0, 8388608)
 cmntfmt	= (0, 2, 200, 0, 32768)
+cmntblockfmt	= (0,0,200,0,8421504)
 quotefmt	= (0, 0, 200, 0, 32896)
 nmberfmt	= (0, 0, 200, 0, 8421376)
 methodfmt	= (0, 1, 200, 0, 8421376)
@@ -225,7 +227,7 @@ bracebadfmt	= (0, 0, 200, 0, 255)
 
 class PythonSourceFormatter(Formatter):
 	def GetSampleText(self):
-		return "class Sample(Super):\n  def Fn(self):\n    # A bitOPy\n    dest = 'dest.html'\n    timeOut = 1024\n\ta = a + 1\n"
+		return "class Sample(Super):\n  def Fn(self):\n    # A bitOPy\n    dest = 'dest.html'\n    timeOut = 1024\n\ta = a + 1\n## A large\n## comment block\n"
 
 	def LoadStyles(self):
 		pass
@@ -233,6 +235,7 @@ class PythonSourceFormatter(Formatter):
 	def SetStyles(self):
 		self.RegisterStyle( Style(STYLE_DEFAULT, dfltfmt ) )
 		self.RegisterStyle( Style(STYLE_COMMENT, cmntfmt ) )
+		self.RegisterStyle( Style(STYLE_COMMENT_BLOCK, cmntblockfmt ) )
 		self.RegisterStyle( Style(STYLE_NUMBER, nmberfmt ) )
 		self.RegisterStyle( Style(STYLE_STRING, quotefmt ) )
 		self.RegisterStyle( Style(STYLE_SQSTRING, STYLE_STRING ) )
@@ -294,7 +297,10 @@ class PythonSourceFormatter(Formatter):
 					startSeg = i
 				elif ch == '#':
 					self.ColorSeg(startSeg, i - 1, STYLE_DEFAULT)
-					state = STYLE_COMMENT
+					if chNext == '#':
+						state = STYLE_COMMENT_BLOCK
+					else:
+						state = STYLE_COMMENT
 					startSeg = i
 				elif ch == '\"':
 					self.ColorSeg(startSeg, i - 1, STYLE_DEFAULT)
@@ -332,7 +338,10 @@ class PythonSourceFormatter(Formatter):
 					state = STYLE_DEFAULT
 					startSeg = i
 					if ch == '#':
-						state = STYLE_COMMENT
+						if chNext == '#':
+							state = STYLE_COMMENT_BLOCK
+						else:
+							state = STYLE_COMMENT
 					elif ch == '\"':
 						if chNext == '\"' and chNext2 == '\"':
 							i = i + 2
@@ -356,9 +365,9 @@ class PythonSourceFormatter(Formatter):
 					elif ch in operators:
 						self.ColorSeg(startSeg, i, STYLE_OPERATOR)
 						startSeg = i+1
-			elif state == STYLE_COMMENT:
+			elif state == STYLE_COMMENT or state == STYLE_COMMENT_BLOCK:
 				if ch == '\r' or ch == '\n':
-					self.ColorSeg(startSeg, i-1, STYLE_COMMENT)
+					self.ColorSeg(startSeg, i-1, state)
 					state = STYLE_DEFAULT
 					startSeg = i
 			elif state == STYLE_STRING:
