@@ -136,6 +136,10 @@ typedef PDH_STATUS (WINAPI *FuncPdhBrowseCounters) (
   PPDH_BROWSE_DLG_CONFIG_A pBrowseDlgData
 );
 
+typedef PDH_STATUS (WINAPI *FuncPdhConnectMachine) (
+  LPCTSTR szMachineName
+);
+
 #define CHECK_PDH_PTR(ptr) if((ptr)==NULL) { PyErr_SetString(PyExc_RuntimeError, "The pdh.dll entry point functions could not be loaded."); return NULL;}
 
 // The function pointers
@@ -155,6 +159,8 @@ FuncPdhParseCounterPath pPdhParseCounterPath = NULL;
 FuncPdhSetCounterScaleFactor pPdhSetCounterScaleFactor = NULL;
 FuncPdhParseInstanceName pPdhParseInstanceName = NULL;
 FuncPdhBrowseCounters pPdhBrowseCounters = NULL;
+
+FuncPdhConnectMachine pPdhConnectMachine = NULL;
 
 #include "Python.h"
 #include "malloc.h"
@@ -185,30 +191,7 @@ BOOL LoadPointers()
 	pPdhSetCounterScaleFactor = (FuncPdhSetCounterScaleFactor)GetProcAddress(handle, "PdhSetCounterScaleFactor");
 	pPdhParseInstanceName = (FuncPdhParseInstanceName)GetProcAddress(handle, "PdhParseInstanceNameA");
 	pPdhBrowseCounters = (FuncPdhBrowseCounters)GetProcAddress(handle, "PdhBrowseCountersA");
-/*
-Python doesnt like errors set during module init.  Instead we now check
-each pointer before we use it
-
-	if (pPdhEnumObjects==NULL || 
-		pPdhEnumObjectItems==NULL ||
-		pPdhAddCounter==NULL ||
-		pPdhCloseQuery==NULL ||
-		pPdhRemoveCounter==NULL ||
-		pPdhOpenQuery==NULL ||
-		pPdhGetCounterInfo==NULL ||
-		pPdhGetFormattedCounterValue==NULL ||
-		pPdhCollectQueryData==NULL ||
-		pPdhMakeCounterPath==NULL ||
-		pPdhExpandCounterPath==NULL ||
-		pPdhValidatePath==NULL ||
-		pPdhParseInstanceName==NULL ||
-		pPdhSetCounterScaleFactor==NULL ||
-		pPdhBrowseCounters==NULL ||
-		pPdhParseCounterPath==NULL) {
-		PyErr_SetString(PyExc_RuntimeError, "Could not load the entry points from the PDH DLL");
-		return FALSE;
-	}
-*/
+        pPdhConnectMachine = (FuncPdhConnectMachine)GetProcAddress(handle, "PdhConnectMachineA");
 	return TRUE;
 }
 
@@ -887,6 +870,33 @@ static PyObject *PyBrowseCounters(PyObject *self, PyObject *args)
 	return rc;
 }
 
+// @pymethod string|win32pdh|ConnectMachine|connects to the specified machine, and creates and initializes a machine entry in the PDH DLL.
+static PyObject *PyConnectMachine(PyObject *self, PyObject *args)
+{
+	PyObject *obPath;
+	if (!PyArg_ParseTuple(args, "O:ConnectMachine", 
+	          &obPath))   // @pyparm string|machineName||The machine name.
+		return NULL;
+	TCHAR *path;
+	if (!PyWinObject_AsTCHAR(obPath, &path, FALSE))
+		return NULL;
+
+	CHECK_PDH_PTR(pPdhConnectMachine);
+	PyW32_BEGIN_ALLOW_THREADS
+	PDH_STATUS pdhStatus = (*pPdhConnectMachine) (path);
+	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeTCHAR(path);
+
+	PyObject *rc;
+	if (pdhStatus != 0) {
+		rc = PyWin_SetAPIError("ConnectMachine", pdhStatus);
+	} else {
+		rc = Py_None;
+		Py_INCREF(rc);
+	}
+	return rc;
+}
+
 /* List of functions exported by this module */
 // @module win32pdh|A module, encapsulating the Windows Performance Data Helpers API
 static struct PyMethodDef win32pdh_functions[] = {
@@ -905,6 +915,7 @@ static struct PyMethodDef win32pdh_functions[] = {
 	{"ParseInstanceName",        PyParseInstanceName,     1}, // @pymeth ParseInstanceName|Parses the elements of the instance name
 	{"SetCounterScaleFactor",	 PySetCounterScaleFactor, 1}, // @pymeth SetCounterScaleFactor|Sets the scale factor that is applied to the calculated value of the specified counter when you request the formatted counter value.
 	{"BrowseCounters",           PyBrowseCounters,        1}, // @pymeth BrowseCounters|Displays the counter browsing dialog box so that the user can select the counters to be returned to the caller. 
+	{"ConnectMachine",           PyConnectMachine,        1}, // @pymeth ConnectMachine|connects to the specified machine, and creates and initializes a machine entry in the PDH DLL.
 	{NULL}
 };
 
