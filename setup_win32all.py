@@ -1,5 +1,7 @@
 build_number=202
-"""distutils setup-script for win32all
+# Putting buildno at the top prevents automatic __doc__ assignment, and
+# I *want* the build number at the top :)
+__doc__="""This is a distutils setup-script for win32all
 
 To build the win32all extensions, simply execute:
   python setup_win32all.py -q build
@@ -20,7 +22,7 @@ To install the win32all extensions, execute:
   python setup_win32all.py -q install
   
 This will install the built extensions into your site-packages directory,
-and create an appropriate .pth file, and should leave everything ready to use.
+create an appropriate .pth file, and should leave everything ready to use.
 There should be no need to modify the registry.
 
 To build or install debug (_d) versions of these extensions, ensure you have
@@ -35,8 +37,9 @@ or to build and install a debug version:
 # Things known to be missing:
 # * Newer win32all.exes installed Pythonwin.exe next to python.exe.  This
 #   leaves it in the pythonwin directory, but it seems to work fine.
-#   It may not for a non-admin Python install, where Pythonxx.dll is
-#   not in the system32 directory.
+#   It works for Pythonwin with a non-admin install so long as it is started 
+#   with the cwd being the Python home directory (our post_install script
+#   sets up the Pythonwin shortcut this way)
 
 from distutils.core import setup, Extension, Command
 from distutils.command.install_lib import install_lib
@@ -77,7 +80,7 @@ except NameError:
 # insist people manually CD there first!
 if os.path.dirname(this_file):
     os.chdir(os.path.dirname(this_file))
-    
+
 class WinExt (Extension):
     # Base class for all win32 extensions, with some predefined
     # library and include dirs, and predefined windows libraries.
@@ -98,6 +101,7 @@ class WinExt (Extension):
                   dsp_file=None,
                   pch_header=None,
                   windows_h_version=None, # min version of windows.h needed.
+                  extra_swig_commands=None,
                  ):
         assert dsp_file or sources, "Either dsp_file or sources must be specified"
         libary_dirs = library_dirs,
@@ -117,6 +121,7 @@ class WinExt (Extension):
         define_macros = define_macros or []
         define_macros.append(("DISTUTILS_BUILD", None))
         self.pch_header = pch_header
+        self.extra_swig_commands = extra_swig_commands or []
         self.windows_h_version = windows_h_version
         Extension.__init__ (self, name, sources,
                             include_dirs,
@@ -504,6 +509,7 @@ class my_build_ext(build_ext):
         if why is not None:
             self.excluded_extensions.append((ext, why))
             return
+        self.current_extension = ext
 
         if not self.mingw32 and ext.pch_header:
             ext.extra_compile_args = ext.extra_compile_args or []
@@ -605,6 +611,14 @@ class my_build_ext(build_ext):
                 # under WinCE - see defn of swig_wince_modules for details
                 if os.path.basename(base) in swig_interface_parents:
                     swig_targets[source] = base + target_ext
+                elif self.current_extension.name == "winxpgui" and \
+                     os.path.basename(base)=="win32gui":
+                    # More vile hacks.  winxpmodule is built from win32gui.i -
+                    # just different #defines are setup for windows.h.
+                    new_target = os.path.join(os.path.dirname(base),
+                                              "winxpguimodule") + target_ext
+                    swig_targets[source] = new_target
+                    new_sources.append(new_target)
                 elif os.path.basename(base) in swig_wince_modules:
                     # We need to add this .cpp to the sources, so it
                     # will be built.
@@ -624,6 +638,7 @@ class my_build_ext(build_ext):
         for source in swig_sources:
             swig_cmd = [swig, "-python", "-c++"]
             swig_cmd.append("-dnone",) # we never use the .doc files.
+            swig_cmd.extend(self.current_extension.extra_swig_commands)
             target = swig_targets[source]
             try:
                 interface_parent = swig_interface_parents[
@@ -740,7 +755,16 @@ for info in (
 win32_extensions += [
     WinExt_win32("win32gui", 
            libraries="gdi32 user32 comdlg32 comctl32 shell32",
-           extra_compile_args=["-DWIN32GUI"]
+           define_macros = [("WIN32GUI", None)],
+        ),
+    # winxpgui is built from win32gui.i, but sets up different #defines before
+    # including windows.h.  It also has an XP style manifest.
+    WinExt_win32("winxpgui",
+           sources = ["win32/src/winxpgui.rc"],
+           dsp_file = "win32/win32gui.dsp",
+           libraries="gdi32 user32 comdlg32 comctl32 shell32",
+           define_macros = [("WIN32GUI",None), ("WINXPGUI",None)],
+           extra_swig_commands=["-DWINXPGUI"],
         ),
     WinExt_win32('servicemanager',
            extra_compile_args = ['-DUNICODE', '-D_UNICODE', 
@@ -909,6 +933,8 @@ packages=['win32com',
           'win32com.server',
           'win32com.servers',
           'win32com.test',
+
+          'win32comext.adsi',
 
           'win32comext.axscript',
           'win32comext.axscript.client',
