@@ -1,7 +1,7 @@
 from win32com.adsi import adsi
 from win32com.adsi.adsicon import *
 from win32com.adsi import adsicon
-import pythoncom, pywintypes
+import pythoncom, pywintypes, win32security
 
 options = None # set to optparse options object
 
@@ -18,10 +18,14 @@ def getADsTypeName(type_val):
 def _guid_from_buffer(b):
     return pywintypes.IID(b, True)
 
+def _sid_from_buffer(b):
+    return str(pywintypes.SID(b))
+
 _null_converter = lambda x: x
 
 converters = {
     'objectGUID' : _guid_from_buffer,
+    'objectSid' : _sid_from_buffer,
     'instanceType' : getADsTypeName,
 }
 
@@ -81,8 +85,6 @@ def search():
             for a in attributes:
                 try:
                     data = gc.GetColumn(h, a)
-                    # for some reason we don't get a valid name in this case.
-                    data = a, data[1], data[2]
                     print_attribute(data)
                 except adsi.error, details:
                     if details[0] != E_ADS_COLUMN_NOT_SET:
