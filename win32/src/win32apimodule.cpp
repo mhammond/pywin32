@@ -4562,6 +4562,13 @@ PyObject *PySetConsoleCtrlHandler(PyObject *self, PyObject *args)
 	// @pyparm int|bAdd||True if the handler is being added, false if removed.
 	if (!PyArg_ParseTuple(args, "O|i:SetConsoleCtrlHandler", &func, &bAdd))
 		return NULL;
+	// Handle special case of None first
+	if (func == Py_None) {
+		if (!SetConsoleCtrlHandler(NULL, bAdd))
+			return ReturnAPIError("SetConsoleCtrlHandler");
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	if (!PyCallable_Check(func))
 		return PyErr_Format(PyExc_TypeError,
 							"First argument must be callable (got %s)",
@@ -4572,12 +4579,13 @@ PyObject *PySetConsoleCtrlHandler(PyObject *self, PyObject *args)
 	if (consoleControlHandlers==NULL)
 		return NULL;
 
+	BOOL ok = TRUE; // we may not actually make the call!
 	if (bAdd) {
 		if (0 != PyList_Append(consoleControlHandlers, func))
 			return NULL;
 		if (!addedCtrlHandler) {
-			SetConsoleCtrlHandler(PyCtrlHandler, TRUE);
-			addedCtrlHandler = TRUE;
+			ok = SetConsoleCtrlHandler(PyCtrlHandler, TRUE);
+			addedCtrlHandler = ok;
 		}
 	} else {
 		int i;
@@ -4592,10 +4600,12 @@ PyObject *PySetConsoleCtrlHandler(PyObject *self, PyObject *args)
 		if (!found)
 			return PyErr_Format(PyExc_ValueError, "The object has not been registered");
 		if (addedCtrlHandler && PyList_Size(consoleControlHandlers)==0) {
-			SetConsoleCtrlHandler(PyCtrlHandler, FALSE);
+			ok = SetConsoleCtrlHandler(PyCtrlHandler, FALSE);
 			addedCtrlHandler = FALSE;
 		}
 	}
+	if (!ok)
+		return ReturnAPIError("SetConsoleCtrlHandler");
 	Py_INCREF(Py_None);
 	return Py_None;
 }
