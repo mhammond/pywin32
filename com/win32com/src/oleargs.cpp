@@ -488,6 +488,7 @@ static long PyCom_CalculatePyObjectDimension(PyObject *obItemCheck, long lDimens
 
 			// Retrieve the stored size in this dimension 
 			ppyobDimension = PyInt_FromLong(lDimension);
+			// Note: No ref added by PyDict_GetItem
 			ppyobDimensionSize = PyDict_GetItem(ppyobDimensionDictionary, ppyobDimension);
 			if (NULL == ppyobDimensionSize) {
 				// Not found so first element defines the size in this dimension
@@ -499,13 +500,11 @@ static long PyCom_CalculatePyObjectDimension(PyObject *obItemCheck, long lDimens
 				if (lStoredSize != lObjectSize) 
 				{
 					// if not the same size => no new dimension
-					Py_XDECREF(ppyobDimensionSize);
 					Py_XDECREF(ppyobSize);
 					Py_XDECREF(ppyobDimension);
 					return lReturnDimension;
 				}
 			}
-			Py_XDECREF(ppyobDimensionSize);
 			Py_XDECREF(ppyobSize);
 			Py_XDECREF(ppyobDimension);
 
