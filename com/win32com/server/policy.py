@@ -86,6 +86,7 @@ S_OK = 0
 # Few more globals to speed things.
 from pywintypes import UnicodeType
 IDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
+IUnknownType = pythoncom.TypeIIDs[pythoncom.IID_IUnknown]
 core_has_unicode = hasattr(__builtins__, "unicode")
 
 from exception import COMException
@@ -541,10 +542,17 @@ class EventHandlerPolicy(DesignatedWrapPolicy):
     def _transform_args_(self, args, kwArgs, dispid, lcid, wFlags, serviceProvider):
         ret = []
         for arg in args:
-            if type(arg) == IDispatchType:
+            arg_type = type(arg)
+            if arg_type == IDispatchType:
                 import win32com.client
                 arg = win32com.client.Dispatch(arg)
-            elif not core_has_unicode and type(arg)==UnicodeType:
+            elif arg_type == IUnknownType:
+                try:
+                    import win32com.client
+                    arg = win32com.client.Dispatch(arg.QueryInterface(pythoncom.IID_IDispatch))
+                except pythoncom.error:
+                    pass # Keep it as IUnknown
+            elif not core_has_unicode and arg_type==UnicodeType:
                 arg = str(arg)
             ret.append(arg)
         return tuple(ret), kwArgs
