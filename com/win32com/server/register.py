@@ -242,7 +242,8 @@ def RegisterServer(clsid,
       _set_string(keyNameRoot + '\\ProgID', progID)
 
     # Set up the root entries - version independent.
-    _set_string(progID, desc)
+    if desc:
+      _set_string(progID, desc)
     _set_string(progID + '\\CLSID', str(clsid))
 
     # Set up the root entries - version dependent.
@@ -254,7 +255,8 @@ def RegisterServer(clsid,
       _set_string(keyNameRoot + '\\VersionIndependentProgID', progID)
 
       # set up the versioned progID
-      _set_string(verProgID, desc)
+      if desc:
+        _set_string(verProgID, desc)
       _set_string(verProgID + '\\CLSID', str(clsid))
 
 def GetUnregisterServerKeys(clsid, progID=None, verProgID=None, customKeys = None):
