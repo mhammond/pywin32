@@ -681,10 +681,11 @@ static PyObject *typelib_getinfocnt(PyObject *self, PyObject *args)
 	return ((PyITypeLib*)self)->GetTypeInfoCount();
 }
 
-// @pymethod int|PyITypeLib|GetTypeInfoOfGuid|Retrieves the type info of the specified GUID.
+// @pymethod <o PyITypeInfo>|PyITypeLib|GetTypeInfoOfGuid|Retrieves the type info of the specified GUID.
 static PyObject *typelib_gettypeinfoofguid(PyObject *self, PyObject *args)
 {
 	PyObject *obguid;
+	// @pyparm <o PyIID>|iid||GUID of the type description.
 	if (!PyArg_ParseTuple(args, "O:GetTypeInfoOfGuid", &obguid))
 		return NULL;
 	GUID guid;
