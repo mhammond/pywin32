@@ -269,6 +269,58 @@ def DispatchWithEvents(clsid, user_event_class):
     user_event_class.__init__(instance)
   return EventsProxy(instance)
 
+def WithEvents(disp, user_event_class):
+  """Similar to DispatchWithEvents - except that the returned
+  object is *not* also usable as the original Dispatch object - that is
+  the returned object is not dispatchable.
+
+  The difference is best summarised by example.
+
+  >>> class IEEvents:
+  ...    def OnVisible(self, visible):
+  ...       print "Visible changed:", visible
+  ...
+  >>> ie = Dispatch("InternetExplorer.Application")
+  >>> ie_events = WithEvents(ie, IEEvents)
+  >>> ie.Visible = 1
+  Visible changed: 1
+
+  Compare with the code sample for DispatchWithEvents, where you get a
+  single object that is both the interface and the event handler.  Note that
+  the event handler instance will *not* be able to use 'self.' to refer to
+  IE's methods and properties.
+
+  This is mainly useful where using DispatchWithEvents causes
+  circular reference problems that the simple proxy doesn't deal with
+  """
+  disp = getattr(disp, "_oleobj_", disp)
+  if not disp.__dict__.get("CLSID"): # Eeek - no makepy support - try and build it.
+    try:
+      ti = disp._oleobj_.GetTypeInfo()
+      disp_clsid = ti.GetTypeAttr()[0]
+      tlb, index = ti.GetContainingTypeLib()
+      tla = tlb.GetLibAttr()
+      mod = gencache.EnsureModule(tla[0], tla[1], tla[3], tla[4])
+      # Get the class from the module.
+      disp_class = gencache.GetClassForProgID(str(disp_clsid))
+    except pythoncom.com_error:
+      raise TypeError, "This COM object can not automate the makepy process - please run makepy manually for this object"
+  else:
+    disp_class = disp.__class__
+  # Get the clsid
+  clsid = disp_class.CLSID
+  # Create a new class that derives from 2 classes - the event sink
+  # class and the user class.
+  import new
+  events_class = getevents(clsid)
+  if events_class is None:
+    raise ValueError, "This COM object does not support events."
+  result_class = new.classobj("COMEventClass", (events_class, user_event_class), {})
+  instance = result_class(disp) # This only calls the first base class __init__.
+  if hasattr(user_event_class, "__init__"):
+    user_event_class.__init__(instance)
+  return instance
+
 def getevents(clsid):
     """Determine the default outgoing interface for a class, given
     either a clsid or progid. It returns a class - you can
