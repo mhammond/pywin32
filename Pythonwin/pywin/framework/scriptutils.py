@@ -182,6 +182,7 @@ lastDebuggingType = RS_DEBUGGER_NONE
 
 def RunScript(defName=None, defArgs=None, bShowDialog = 1, debuggingType=None):
 	global lastScript, lastArgs, lastDebuggingType
+	_debugger_stop_frame_ = 1 # Magic variable so the debugger will hide me!
 
 	# Get the debugger - may be None!
 	debugger = GetDebugger()
@@ -312,8 +313,9 @@ def RunScript(defName=None, defArgs=None, bShowDialog = 1, debuggingType=None):
 		exitCode = code
 		bWorked = 1
 	except KeyboardInterrupt:
-		print "Interrupted!"
 		# Consider this successful, as we dont want the debugger.
+		# (but we do want a traceback!)
+		traceback.print_exc()
 		bWorked = 1
 	except SyntaxError:
 		# We dont want to break into the debugger for a syntax error!
@@ -558,11 +560,9 @@ def LocatePythonFile( fileName, bBrowseIfDir = 1 ):
 			fileName = os.path.join(path, baseName)
 			if os.path.isdir(fileName):
 				if bBrowseIfDir:
-					old=os.getcwd()
-					os.chdir(fileName)
 					d=win32ui.CreateFileDialog(1, "*.py", None, 0, "Python Files (*.py)|*.py|All files|*.*")
+					d.SetOFNInitialDir(fileName)
 					rc=d.DoModal()
-					os.chdir(old)
 					if rc==win32con.IDOK:
 						fileName = d.GetPathName()
 						break
