@@ -27,8 +27,8 @@ class AXEngine:
   def AddNamedItem(self, item, flags):
     return self.eScript.AddNamedItem(item, flags)
   # Some helpers.  
-  def AddCode(self, code):
-    self.eParse.ParseScriptText(code, None, None, None, 0, 0, 0)
+  def AddCode(self, code, flags=0):
+    self.eParse.ParseScriptText(code, None, None, None, 0, 0, flags)
   def EvalCode(self, code):
     return self.eParse.ParseScriptText(code, None, None, None, 0, 0, axscript.SCRIPTTEXT_ISEXPRESSION)
   def Start(self):
@@ -82,7 +82,7 @@ class AXSite:
     else:
       newEngine = engine
     self.engine = newEngine
-    flags = axscript.SCRIPTITEM_ISVISIBLE | axscript.SCRIPTITEM_NOCODE
+    flags = axscript.SCRIPTITEM_ISVISIBLE | axscript.SCRIPTITEM_NOCODE | axscript.SCRIPTITEM_GLOBALMEMBERS | axscript.SCRIPTITEM_ISPERSISTENT
     for name in self.objModel.keys():
       newEngine.AddNamedItem(name, flags)
       newEngine.SetScriptState(axscript.SCRIPTSTATE_INITIALIZED)
