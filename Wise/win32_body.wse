@@ -155,7 +155,7 @@ item: Install File
   Description=win32 extension files
   Flags=0000000000000011
 end
-item: Install File
+remarked item: Install File
   Source=l:\src\pythonex\win32\Build\wincerapi.pyd
   Destination=%INSTDIR%\wincerapi.pyd
   Description=win32 extension files
@@ -228,6 +228,7 @@ item: Install File
   Flags=0000000000000010
 end
 item: Edit Registry
+  Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Help\Win32 Extensions
   New Value=%INSTDIR%\Help\Python Win32 Extensions.hlp
   Root=2
@@ -302,6 +303,7 @@ item: Install File
   Flags=0000000100000010
 end
 item: Edit Registry
+  Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\PythonPath\win32
   New Value=%INSTDIR%;%INSTDIR%\lib
   Root=2
@@ -311,6 +313,7 @@ item: Compiler Variable If
   Value=0
 end
 item: Edit Registry
+  Total Keys=1
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\pywintypes
   New Value=%SYS32%\PyWinTypes15.dll
   Root=2
