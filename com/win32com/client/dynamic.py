@@ -45,6 +45,13 @@ ERRORS_BAD_CONTEXT = [
     winerror.E_INVALIDARG,
 ]
 
+ALL_INVOKE_TYPES = [
+	pythoncom.INVOKE_PROPERTYGET,
+	pythoncom.INVOKE_PROPERTYPUT,
+	pythoncom.INVOKE_PROPERTYPUTREF,
+	pythoncom.INVOKE_FUNC
+]
+
 def debug_print(*args):
 	if debugging:
 		for arg in args:
@@ -82,6 +89,10 @@ def _GetGoodDispatchAndUserName(IDispatch,userName,clsctx):
 		else:
 			userName = "<unknown>"
 	return (_GetGoodDispatch(IDispatch, clsctx), userName)
+
+def _GetDescInvokeType(entry, default_invoke_type):
+	if not entry or not entry.desc: return default_invoke_type
+	return entry.desc[4]
 
 def Dispatch(IDispatch, userName = None, createClass = None, typeinfo = None, UnicodeToString=NeedUnicodeConversions, clsctx = pythoncom.CLSCTX_SERVER):
 	IDispatch, userName = _GetGoodDispatchAndUserName(IDispatch,userName,clsctx)
@@ -270,7 +281,7 @@ class CDispatch:
 			return tuple(map(lambda o, s=self, oun=userName, rc=ReturnCLSID: s._get_good_single_object_(o, oun, rc),  ob))
 		else:
 			return self._get_good_single_object_(ob)
-		
+
 	def _make_method_(self, name):
 		"Make a method object - Assumes in olerepr funcmap"
 		methodName = build.MakePublicAttributeName(name) # translate keywords etc.
@@ -350,28 +361,31 @@ class CDispatch:
 	def _LazyAddAttr_(self,attr):
 		if self._lazydata_ is None: return 0
 		res = 0
-		i = 0
 		typeinfo, typecomp = self._lazydata_
 		olerepr = self._olerepr_
-		try:
-			x,t = typecomp.Bind(attr,i)
-			if x==1:	#it's a FUNCDESC
-				r = olerepr._AddFunc_(typeinfo,t,0)
-			elif x==2:	#it's a VARDESC
-				r = olerepr._AddVar_(typeinfo,t,0)
-			else:		#not found or TYPEDESC/IMPLICITAPP
-				r=None
-
-			if not r is None:
-				key, map = r[0],r[1]
-				item = map[key]
-				if map==olerepr.propMapPut:
-					olerepr._propMapPutCheck_(key,item)
-				elif map==olerepr.propMapGet:
-					olerepr._propMapGetCheck_(key,item)
-				res = 1
-		except:
-			pass
+		# We need to explicitly check each invoke type individually - simply
+		# specifying '0' will bind to "any member", which may not be the one
+		# we are actually after (ie, we may be after prop_get, but returned
+		# the info for the prop_put.)
+		for i in ALL_INVOKE_TYPES:
+			try:
+				x,t = typecomp.Bind(attr,i)
+				if x==1:	#it's a FUNCDESC
+					r = olerepr._AddFunc_(typeinfo,t,0)
+				elif x==2:	#it's a VARDESC
+					r = olerepr._AddVar_(typeinfo,t,0)
+				else:		#not found or TYPEDESC/IMPLICITAPP
+					r=None
+				if not r is None:
+					key, map = r[0],r[1]
+					item = map[key]
+					if map==olerepr.propMapPut:
+						olerepr._propMapPutCheck_(key,item)
+					elif map==olerepr.propMapGet:
+						olerepr._propMapGetCheck_(key,item)
+					res = 1
+			except:
+				pass
 		return res
 
 	def _FlagAsMethod(self, *methodNames):
@@ -432,19 +446,17 @@ class CDispatch:
 		retEntry = None
 		if self._olerepr_ and self._oleobj_:
 			# first check general property map, then specific "put" map.
-			if self._olerepr_.propMap.has_key(attr):
-				retEntry = self._olerepr_.propMap[attr]
-			if retEntry is None and self._olerepr_.propMapGet.has_key(attr):
-				retEntry = self._olerepr_.propMapGet[attr]
+			retEntry = self._olerepr_.propMap.get(attr)
+			if retEntry is None:
+				retEntry = self._olerepr_.propMapGet.get(attr)
 			# Not found so far - See what COM says.
 			if retEntry is None:
 				try:
 					if self.__LazyMap__(attr):
 						if self._olerepr_.mapFuncs.has_key(attr): return self._make_method_(attr)
-						if self._olerepr_.propMap.has_key(attr):
-							retEntry = self._olerepr_.propMap[attr]
-						if retEntry is None and self._olerepr_.propMapGet.has_key(attr):
-							retEntry = self._olerepr_.propMapGet[attr]
+						retEntry = self._olerepr_.propMap.get(attr)
+						if retEntry is None:
+							retEntry = self._olerepr_.propMapGet.get(attr)
 					if retEntry is None:
 						retEntry = build.MapEntry(self.__AttrToID__(attr), (attr,))
 				except pythoncom.ole_error:
@@ -460,16 +472,16 @@ class CDispatch:
 
 		# If we are still here, and have a retEntry, get the OLE item
 		if not retEntry is None:
+			invoke_type = _GetDescInvokeType(retEntry, pythoncom.INVOKE_PROPERTYGET)
 			debug_attr_print("Getting property Id 0x%x from OLE object" % retEntry.dispid)
 			try:
-				ret = self._oleobj_.Invoke(retEntry.dispid,0,pythoncom.DISPATCH_PROPERTYGET,1)
+				ret = self._oleobj_.Invoke(retEntry.dispid,0,invoke_type,1)
 			except pythoncom.com_error, details:
 				if details[0] in ERRORS_BAD_CONTEXT:
 					# May be a method.
 					self._olerepr_.mapFuncs[attr] = retEntry
 					return self._make_method_(attr)
 				raise pythoncom.com_error, details
-			self._olerepr_.propMap[attr] = retEntry
 			debug_attr_print("OLE returned ", ret)
 			return self._get_good_object_(ret)
 
@@ -484,14 +496,19 @@ class CDispatch:
 			return
 		# Allow property assignment.
 		debug_attr_print("SetAttr called for %s.%s=%s on DispatchContainer" % (self._username_, attr, `value`))
+
 		if self._olerepr_:
 			# Check the "general" property map.
 			if self._olerepr_.propMap.has_key(attr):
-				self._oleobj_.Invoke(self._olerepr_.propMap[attr].dispid, 0, pythoncom.DISPATCH_PROPERTYPUT, 0, value)
+				entry = self._olerepr_.propMap[attr]
+				invoke_type = _GetDescInvokeType(entry, pythoncom.INVOKE_PROPERTYPUT)
+				self._oleobj_.Invoke(entry.dispid, 0, invoke_type, 0, value)
 				return
 			# Check the specific "put" map.
 			if self._olerepr_.propMapPut.has_key(attr):
-				self._oleobj_.Invoke(self._olerepr_.propMapPut[attr].dispid, 0, pythoncom.DISPATCH_PROPERTYPUT, 0, value)
+				entry = self._olerepr_.propMapPut[attr]
+				invoke_type = _GetDescInvokeType(entry, pythoncom.INVOKE_PROPERTYPUT)
+				self._oleobj_.Invoke(entry.dispid, 0, invoke_type, 0, value)
 				return
 
 		# Try the OLE Object
@@ -499,11 +516,15 @@ class CDispatch:
 			if self.__LazyMap__(attr):
 				# Check the "general" property map.
 				if self._olerepr_.propMap.has_key(attr):
-					self._oleobj_.Invoke(self._olerepr_.propMap[attr].dispid, 0, pythoncom.DISPATCH_PROPERTYPUT, 0, value)
+					entry = self._olerepr_.propMap[attr]
+					invoke_type = _GetDescInvokeType(entry, pythoncom.INVOKE_PROPERTYPUT)
+					self._oleobj_.Invoke(entry.dispid, 0, invoke_type, 0, value)
 					return
 				# Check the specific "put" map.
 				if self._olerepr_.propMapPut.has_key(attr):
-					self._oleobj_.Invoke(self._olerepr_.propMapPut[attr].dispid, 0, pythoncom.DISPATCH_PROPERTYPUT, 0, value)
+					entry = self._olerepr_.propMapPut[attr]
+					invoke_type = _GetDescInvokeType(entry, pythoncom.INVOKE_PROPERTYPUT)
+					self._oleobj_.Invoke(entry.dispid, 0, invoke_type, 0, value)
 					return
 			try:
 				entry = build.MapEntry(self.__AttrToID__(attr),(attr,))
@@ -512,7 +533,8 @@ class CDispatch:
 				entry = None
 			if entry is not None:
 				try:
-					self._oleobj_.Invoke(entry.dispid, 0, pythoncom.DISPATCH_PROPERTYPUT, 0, value)
+					invoke_type = _GetDescInvokeType(entry, pythoncom.INVOKE_PROPERTYPUT)
+					self._oleobj_.Invoke(entry.dispid, 0, invoke_type, 0, value)
 					self._olerepr_.propMap[attr] = entry
 					debug_attr_print("__setattr__ property %s (id=0x%x) in Dispatch container %s" % (attr, entry.dispid, self._username_))
 					return
