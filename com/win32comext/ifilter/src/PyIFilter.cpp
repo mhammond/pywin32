@@ -5,6 +5,9 @@
 #include "PyIFilter.h"
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
 
+// We should not be using this!
+#define OleSetOleError PyCom_BuildPyException
+
 // @doc - This file contains autoduck documentation
 // ---------------------------------------------------
 //
