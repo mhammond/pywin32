@@ -53,7 +53,7 @@ HRESULT CreateMessage(
 
 // @pyswig |CopyMessages|Copies the specified messages
 HRESULT CopyMessages(
-	SBinaryArray *INPUT, // @pyparm <o SBinaryArray>|msgs||
+	SBinaryArray *INPUT, // @pyparm <o PySBinaryArray>|msgs||
 	IID *INPUT_NULLOK,    // @pyparm <o PyIID>|iid||IID representing the interface to be used to access the destination folder.  Should usually be None.
 	IMAPIFolder *INPUT, // @pyparm <o PyIMAPIFolder>|folder||The destination folder
 	unsigned long ulUIParam, // @pyparm long|ulUIParam||Handle of the parent window for any dialog boxes or windows this method displays.
@@ -67,7 +67,7 @@ HRESULT CopyMessages(
 
 // @pyswig |DeleteMessages|Deletes the specified messages.
 HRESULT DeleteMessages(
-	SBinaryArray *INPUT, // @pyparm <o SBinaryArray>|msgs||
+	SBinaryArray *INPUT, // @pyparm <o PySBinaryArray>|msgs||
 	unsigned long ulUIParam, // @pyparm int|uiParam||A HWND for the progress
 	IMAPIProgress *INPUT_NULLOK,// @pyparm <o PyIMAPIProgress>|progress||A progress object, or None
 	unsigned long ulFlags); // @pyparm int|flags||
