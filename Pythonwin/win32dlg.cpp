@@ -1361,7 +1361,7 @@ static PyObject *fnname( PyObject *self, PyObject *args ) { \
 	return Py_BuildValue("i",ret); \
 }
 
-// @object PyCPrintDialog|An class which encapsulates an MFC CPrintDialog object.
+// @object PyCPrintDialog|An object which encapsulates an MFC CPrintDialog object.
 // @base PyCPrintDialog|PyCCommonDialog
 static struct PyMethodDef ui_print_dialog_methods[] = {
 	{ NULL, NULL }
