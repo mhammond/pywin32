@@ -501,7 +501,7 @@ def MakePublicAttributeName(className, is_global = False):
 	# a clash.
 	# if is_global is True, then the name is a global variable that may
 	# overwrite a builtin - eg, "None"
-	if className[:2]=='__' and className[-2:]!='__':
+	if className[:2]=='__':
 		return className[1:] + '_' # First '_' moved at the end.
 	elif iskeyword(className): # all keywords are lower case
 		return string.capitalize(className)
