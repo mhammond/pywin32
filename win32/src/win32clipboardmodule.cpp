@@ -330,7 +330,7 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
     return ReturnAPIError("GetClipboardData");
   }
 
-  void * cData;
+  void * cData = NULL;
   DWORD size;
   switch (format) {
     case CF_HDROP:
@@ -364,14 +364,7 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
         return ReturnAPIError("GetClipboardData:GetMetafileBitsEx");
       }
       break;
-    case CF_BITMAP:
-      PyErr_SetString(PyExc_NotImplementedError, "GetClipboardData(CF_BITMAP) unimplemented");
-      return NULL;
-      break;
-    case CF_DIB:
-      PyErr_SetString(PyExc_NotImplementedError, "GetClipboardData(CF_DIB) unimplemented");
-      return NULL;
-      break;
+    // All other formats simply return the data as a blob.
     default:
       cData = GlobalLock(handle);
       if (!cData) {
@@ -414,20 +407,17 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
       ret = PyString_FromStringAndSize((char *)cData, size-1);
       GlobalUnlock(handle);
       break;
-    case CF_ENHMETAFILE:
-    case CF_METAFILEPICT:
-    case CF_BITMAP:
-    case CF_DIB:
-      ret = PyString_FromStringAndSize((char *)cData, size);
-      free(cData);
-      break;
     default:
-      ret = PyString_FromStringAndSize((char *)cData, size);
+      assert(cData);
+      if (!cData) {
+          ret = Py_None;
+          Py_INCREF(ret);
+      } else
+        ret = PyString_FromStringAndSize((char *)cData, size);
       GlobalUnlock(handle);
       break;
   }
   return ret;
-
   // @comm An application can enumerate the available formats in advance by
   // using the EnumClipboardFormats function.<nl>
   // The clipboard controls the handle that the GetClipboardData function
@@ -445,10 +435,39 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
   // @pyseeapi GetClipboardData
   // @pyseeapi Standard Clipboard Formats
 
-  // @rdesc If the function succeeds, the return value is either a Unicode object
-  // (if format is CF_UNICODETEXT), otherwise a string object.  Depending on
-  // format (eg, CF_METAFILEPICT) the string may contain raw data bytes.<nl>
-  // If the function fails, the standard win32api.error exception is raised.
+  // @rdesc If the function fails, the standard win32api.error exception 
+  // is raised.  If the function succeeds, the return value is as 
+  // described in the following table:
+  // @flagh Format|Result type
+  // @flag CF_HDROP|A tuple of Unicode filenames.
+  // @flag CF_UNICODETEXT|A unicode object.
+  // @flag CF_UNICODETEXT|A string object.
+  // @flag CF_ENHMETAFILE|A string with binary data obtained from GetEnhMetaFileBits
+  // @flag CF_METAFILEPICT|A string with binary data obtained from GetMetaFileBitsEx
+  // @flag All other formats|A string with binary data obtained directly from the 
+  // global memory referenced by the handle.
+}
+
+//*****************************************************************************
+//
+// @pymethod string|win32clipboard|GetGlobalMemory|Returns the contents of the specified
+// global memory object.
+static PyObject *
+py_get_global_memory(PyObject* self, PyObject* args)
+{
+    int iglobal;
+    if (!PyArg_ParseTuple(args, "i", &iglobal))
+        return NULL;
+    HGLOBAL hglobal = (HGLOBAL)iglobal;
+    DWORD size = GlobalSize(hglobal);
+    if (!size)
+        return ReturnAPIError("GlobalSize");
+    void *p = GlobalLock(hglobal);
+    if (!p)
+        return ReturnAPIError("GlobalAlloc");
+    PyObject *ret = PyString_FromStringAndSize((char *)p, size);
+    GlobalUnlock(hglobal);
+    return ret;
 }
 
 
@@ -1079,6 +1098,10 @@ static struct PyMethodDef clipboard_functions[] = {
   // @pymeth GetClipboardViewer|Retrieves the handle of the first window in
   // the clipboard viewer chain. 
   {"GetClipboardViewer", py_get_clipboard_viewer, 1},
+
+  // @pymeth GetGlobalMemory|Returns the contents of the specified global 
+  // memory object.
+  {"GetGlobalMemory", py_get_global_memory, 1},
 
   // @pymeth GetOpenClipboardWindow|Retrieves the handle of the window that
   // currently has the clipboard open. 
