@@ -467,7 +467,9 @@ class DispatchBaseClass:
 		if obj is None:
 			return None
 		elif type(obj)==TupleType:
-			return tuple(map(lambda o, s=self, oun=obUserName, rc=resultCLSID: s._get_good_single_object_(o, oun, rc),  obj))
+			obUserNameTuple = (obUserName,) * len(obj)
+			resultCLSIDTuple = (resultCLSID,) * len(obj)
+			return tuple(map(self._get_good_object_, obj, obUserNameTuple, resultCLSIDTuple))
 		else:
 			return self._get_good_single_object_(obj, obUserName, resultCLSID)
 
