@@ -1,5 +1,6 @@
 import win32evtlog, traceback
 import win32api, win32con
+import win32security # To translate NT Sids to account names.
 
 from win32evtlogutil import *
 
@@ -18,6 +19,15 @@ def ReadLog(computer, logType="Application", dumpEachRecord = 0):
 			# get it for testing purposes, but dont print it.
 			msg = str(SafeFormatMessage(object, logType))
 			if dumpEachRecord:
+				if object.Sid is not None:
+					try:
+						domain, user, typ = win32security.LookupAccountSid(computer, object.Sid)
+						sidDesc = "%s/%s" % (domain, user)
+					except win32security.error:
+						sidDesc = str(object.Sid)
+					print "Following event associated with user", sidDesc
+				else:
+					print "Following event is not associated with a user:"
 				print msg
 		num = num + len(objects)
 
@@ -44,8 +54,8 @@ def test():
 	computer = None
 
 	logType = "Application"
-	dll = win32api.GetModuleFileName(win32api.GetModuleHandle("win32evtlog.pyd"))
-	ReportEvent(appName, 1, strings=["The message text"], data = "Raw\0Data")
+#	dll = win32api.GetModuleFileName(win32api.GetModuleHandle("win32evtlog.pyd"))
+#	ReportEvent(appName, 1, strings=["The message text"], data = "Raw\0Data")
 #	ReportEvent(appName, 1, strings=["A test security message"], data = "Raw\0Data", eventLogType="Security")
 	verbose = 0
 
