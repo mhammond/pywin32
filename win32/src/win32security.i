@@ -24,6 +24,7 @@
 #include "sddl.h"
 %}
 
+typedef long SECURITY_IMPERSONATION_LEVEL;
 %apply LARGE_INTEGER {LUID};
 typedef LARGE_INTEGER LUID;
 %typemap(python,ignore) LUID *OUTPUT(LUID temp)
@@ -103,7 +104,7 @@ BOOL PyWinObject_CloseLSA_HANDLE(PyObject *obHandle)
 // @object PyTOKEN_PRIVILEGES|An object representing Win32 token privileges.
 // @comm This is a sequence (eg, list) of ((id, attributes),...) where id is a 
 //  privilege LUID as returned by <om win32security.LookupPrivilegeValue> and
-//  attributes is a combination if SE_PRIVILEGE_ENABLED, SE_PRIVILEGE_ENABLED_BY_DEFAULT,
+//  attributes is a combination of SE_PRIVILEGE_ENABLED, SE_PRIVILEGE_ENABLED_BY_DEFAULT,
 //  and SE_PRIVILEGE_USED_FOR_ACCESS
 %{
 
@@ -123,19 +124,150 @@ PyObject *PyWinObject_FromTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *tp)
 	return privs;
 }
 
+// @object PyTOKEN_GROUPS|A sequence of <o PySID_AND_ATTRIBUTES> sequences, eg [(<o PySID>,int),...] representing a TOKEN_GROUPS structure
 PyObject *PyWinObject_FromTOKEN_GROUPS(TOKEN_GROUPS *tg)
 {
 	unsigned int groupInd;
-	PyObject *groups = PyTuple_New(tg->GroupCount);
 	PyObject *group = NULL;
 	PyObject *groupSID = NULL;
+	PyObject *groups = PyTuple_New(tg->GroupCount);
+	if (groups==NULL)
+		return NULL;
 	for (groupInd = 0; groupInd < tg->GroupCount; groupInd++){
 		groupSID = PyWinObject_FromSID(tg->Groups[groupInd].Sid);
 		group = Py_BuildValue("(Ol)", groupSID, tg->Groups[groupInd].Attributes );
-		PyTuple_SET_ITEM(groups, groupInd, group);
 		Py_DECREF(groupSID);
+		if (group==NULL){
+			Py_DECREF(groups);
+			groups=NULL;
+			break;
+			}
+		PyTuple_SET_ITEM(groups, groupInd, group);
 		}
 	return groups;
+}
+
+// @object PySID_AND_ATTRIBUTES|A sequence containing (<o PySID>,Attributes) Representing a SID_AND_ATTRIBUTES structure
+// @comm Attributes is an integer containing flags that depend on intended usage
+BOOL PyWinObject_AsSID_AND_ATTRIBUTES(PyObject *obsid_attr, PSID_AND_ATTRIBUTES sid_attr)
+{
+	static char *fmt_msg="SID_AND_ATTRIBUTES must be a tuple of (PySID,int)";
+	PyObject *obsid, *obsid_attr_tuple;
+	BOOL bsuccess=TRUE;
+	obsid_attr_tuple=PySequence_Tuple(obsid_attr);
+	if (obsid_attr_tuple==NULL){
+		PyErr_Clear();
+		PyErr_SetString(PyExc_TypeError,fmt_msg);
+		bsuccess=FALSE;
+		}
+	else if (!PyArg_ParseTuple(obsid_attr_tuple,"Ol",&obsid,&sid_attr->Attributes)){
+		PyErr_Clear();
+		PyErr_SetString(PyExc_TypeError,fmt_msg);
+		bsuccess=FALSE;
+		}
+	else
+		bsuccess=PyWinObject_AsSID(obsid,&sid_attr->Sid);
+	Py_XDECREF(obsid_attr_tuple);
+	return bsuccess;
+}
+
+BOOL PyWinObject_AsSID_AND_ATTRIBUTESArray(PyObject *obsids, PSID_AND_ATTRIBUTES *psid_attr_array, DWORD *sid_cnt)
+{
+	PyObject *obsid_attr; 
+	*psid_attr_array=NULL;
+	*sid_cnt=0;
+	static char *fmt_msg="Object must be a sequence of PySID_AND_ATTRIBUTES tuples, or None";
+
+	if (obsids==Py_None)
+		return TRUE;
+	*sid_cnt=PySequence_Length(obsids);
+	if (*sid_cnt==-1){
+		PyErr_SetString(PyExc_TypeError,fmt_msg);
+		return FALSE;
+		}
+	*psid_attr_array=(SID_AND_ATTRIBUTES *)malloc((*sid_cnt)*sizeof(SID_AND_ATTRIBUTES));
+	if (*psid_attr_array==NULL){
+		PyErr_Format(PyExc_MemoryError,"Unable to allocate array of %d SID_AND_ATTRIBUTES structures",sid_cnt);
+		return FALSE;
+		}
+	BOOL bsuccess=TRUE;
+	for (DWORD sid_ind=0;sid_ind<*sid_cnt;sid_ind++){
+		obsid_attr=PySequence_GetItem(obsids,sid_ind);
+		if (obsid_attr==NULL)
+			bsuccess=FALSE;
+		else
+			bsuccess=PyWinObject_AsSID_AND_ATTRIBUTES(obsid_attr,&(*psid_attr_array)[sid_ind]);
+		Py_XDECREF(obsid_attr);
+		if (!bsuccess)
+			break;
+		}
+	if (!bsuccess){
+		free(*psid_attr_array);
+		*psid_attr_array=NULL;
+		}
+	return bsuccess;
+}
+
+// @object PyLUID_AND_ATTRIBUTES|A sequence containing (LUID,Attributes) representing an LUID_AND_ATTRIBUTES structure
+// @comm LUID is a large integer, and attributes is an integer containing flags
+BOOL PyWinObject_AsLUID_AND_ATTRIBUTES(PyObject *obluid_attr, PLUID_AND_ATTRIBUTES luid_attr)
+{
+	static char *fmt_msg="LUID_AND_ATTRIBUTES must be a sequence of (LARGE_INTEGER,int)";
+	PyObject *obluid, *obluid_attr_tuple;
+	BOOL bsuccess=TRUE;
+	obluid_attr_tuple=PySequence_Tuple(obluid_attr);
+	if (obluid_attr_tuple==NULL){
+		PyErr_Clear();
+		PyErr_SetString(PyExc_TypeError,fmt_msg);
+		bsuccess=FALSE;
+		}
+	else if (!PyArg_ParseTuple(obluid_attr_tuple,"Ol",&obluid,&luid_attr->Attributes)){
+		PyErr_Clear();
+		PyErr_SetString(PyExc_TypeError,fmt_msg);
+		bsuccess=FALSE;
+		}
+	else
+		bsuccess=PyWinObject_AsLARGE_INTEGER(obluid, (LARGE_INTEGER *)&luid_attr->Luid);
+	Py_XDECREF(obluid_attr_tuple);
+	return bsuccess;
+}
+
+BOOL PyWinObject_AsLUID_AND_ATTRIBUTESArray(PyObject *obluids, PLUID_AND_ATTRIBUTES *pluid_attr_array, DWORD *luid_cnt)
+{
+	PyObject *obluid_attr; 
+	*pluid_attr_array=NULL;
+	*luid_cnt=0;
+	static char *fmt_msg="Object must be a sequence of PyLUID_AND_ATTRIBUTES tuples, or None";
+
+	if (obluids==Py_None)
+		return TRUE;
+	*luid_cnt=PySequence_Length(obluids);
+	if (*luid_cnt==-1){
+		PyErr_SetString(PyExc_TypeError,fmt_msg);
+		return FALSE;
+		}
+	*pluid_attr_array=(LUID_AND_ATTRIBUTES *)malloc((*luid_cnt)*sizeof(LUID_AND_ATTRIBUTES));
+	if (*pluid_attr_array==NULL){
+		PyErr_Format(PyExc_MemoryError,"Unable to allocate array of %d LUID_AND_ATTRIBUTES structures",luid_cnt);
+		return FALSE;
+		}
+	BOOL bsuccess=TRUE;
+	for (DWORD luid_ind=0;luid_ind<*luid_cnt;luid_ind++){
+		obluid_attr=PySequence_GetItem(obluids,luid_ind);
+		if (obluid_attr==NULL)
+			bsuccess=FALSE;
+		else{
+			bsuccess=PyWinObject_AsLUID_AND_ATTRIBUTES(obluid_attr,&(*pluid_attr_array)[luid_ind]);
+			Py_DECREF(obluid_attr);
+			}
+		if (!bsuccess)
+			break;
+		}
+	if (!bsuccess){
+		free(*pluid_attr_array);
+		*pluid_attr_array=NULL;
+		}
+	return bsuccess;
 }
 
 BOOL PyWinObject_AsLSA_UNICODE_STRING(PyObject *obstr, LSA_UNICODE_STRING *plsaus, BOOL bNoneOk)
@@ -163,90 +295,82 @@ PyObject* PyWinObject_FromLSA_UNICODE_STRING(LSA_UNICODE_STRING lsaus)
 
 BOOL PyWinObject_AsTOKEN_GROUPS(PyObject *groups, TOKEN_GROUPS **ptg)
 {
-	BOOL ok = FALSE;
-	char *errMsg = "TOKEN_GROUPS must be a sequence of (PySID,int)";
-	if (!PySequence_Check(groups)) {
-		PyErr_SetString(PyExc_TypeError, errMsg);
-		return NULL;
-	}
-	int groupind = 0;
-	int groupcnt = PySequence_Length(groups);
-	TOKEN_GROUPS *tg = (TOKEN_GROUPS *)malloc(sizeof(DWORD) + (sizeof(SID_AND_ATTRIBUTES) * groupcnt));
+	BOOL ok = TRUE;
+	PyObject *group;
+	int groupind, groupcnt;
+	static char *errMsg = "TOKEN_GROUPS must be a sequence of ((PySID,int),...)";
 
+	groupcnt = PySequence_Length(groups);
+	if (groupcnt==-1){
+		PyErr_SetString(PyExc_TypeError, errMsg);
+		return FALSE;
+		}
+	TOKEN_GROUPS *tg = (TOKEN_GROUPS *)malloc(sizeof(DWORD) + (sizeof(SID_AND_ATTRIBUTES) * groupcnt));
+	if (tg==NULL){
+		PyErr_Format(PyExc_MemoryError, "Unable to allocate TOKEN_GROUPS (%d Groups)", groupcnt);
+		return FALSE;
+		}
 	tg->GroupCount = groupcnt;
-	PyObject *group = NULL;
-	PyObject *sid = NULL;
-	PSID psid;
 	for (groupind=0; groupind<groupcnt; groupind++){
 		group = PySequence_GetItem(groups, groupind);
-		if (!PySequence_Check(group)){
-			PyErr_SetString(PyExc_TypeError, errMsg);
-			goto done;
+		if (group==NULL)
+			ok=FALSE;
+		else{
+			ok=PyWinObject_AsSID_AND_ATTRIBUTES(group,&tg->Groups[groupind]);
+			Py_DECREF(group);
 			}
-		if (!PyArg_ParseTuple(group, "Ol", &sid, &tg->Groups[groupind].Attributes)){
-			PyErr_SetString(PyExc_TypeError, errMsg);
-			goto done;
-			}
-		if (!PySID_Check(sid)){
-			PyErr_SetString(PyExc_TypeError, errMsg);
-			goto done;
-			}
-		psid = ((PySID *)sid)->GetSID();
-		if (!IsValidSid(psid)){
-			PyErr_SetString(PyExc_TypeError,"Invalid Sid");
-			goto done;
-			}
-		tg->Groups[groupind].Sid = psid;
+		if (!ok)
+			break;
 		}
-	ok = TRUE;
-	done:
-		if (ok)
-			*ptg = tg;
-		else
-			free(tg);
-		return ok;
+	if (!ok){
+		free(tg);
+		*ptg=NULL;
+		}
+	else
+		*ptg = tg;
+	return ok;
+}
+
+void PyWinObject_FreeTOKEN_GROUPS(TOKEN_GROUPS *ptg)
+{
+	if (ptg!=NULL)
+		free(ptg);
 }
 
 BOOL PyWinObject_AsTOKEN_PRIVILEGES(PyObject *ob, TOKEN_PRIVILEGES **ppRest, BOOL bNoneOK /*= TRUE*/)
 {
-	BOOL ok = FALSE;
-	char *errMsg = "A TOKEN_PRIVILEGES object must be a tuple of (LARGE_INTEGER, int)";
+	BOOL ok = TRUE;
+	static char *errMsg = "A TOKEN_PRIVILEGES object must be a tuple of (LARGE_INTEGER, int)";
 	PyObject *subObj = NULL;
-	if (!PySequence_Check(ob)) {
-		PyErr_SetString(PyExc_TypeError, errMsg);
-		return NULL;
-	}
 	int num = PySequence_Length(ob);
+	if (num==-1){
+		PyErr_SetString(PyExc_TypeError, errMsg);
+		return FALSE;
+		}
 	// space for the array and the priv. count.
 	TOKEN_PRIVILEGES *pRet = (TOKEN_PRIVILEGES *)malloc((sizeof(LUID_AND_ATTRIBUTES) * num) + sizeof(DWORD));
-	if (pRet==NULL) {
-		PyErr_SetString(PyExc_MemoryError, "allocating TOKEN_PRIVILEGES");
-		return NULL;
-	}
+	if (pRet==NULL){
+		PyErr_Format(PyExc_MemoryError, "Unable to allocate TOKEN_PRIVILEGES with %d LUID_AND_ATTRIBUTES", num);
+		return FALSE;
+		}
 	pRet->PrivilegeCount = num;
 	for (int i =0;i<num;i++) {
 		subObj = PySequence_GetItem(ob, i);
 		if (subObj==NULL)
-			goto done;
-		if (!PySequence_Check(subObj)) {
-			PyErr_SetString(PyExc_TypeError, errMsg);
-			goto done;
+			ok=FALSE;
+		else{
+			ok=PyWinObject_AsLUID_AND_ATTRIBUTES(subObj,&pRet->Privileges[i]);
+			Py_DECREF(subObj);
+			}
+		if (!ok)
+			break;
 		}
-		PyObject *obLUID;
-		if (!PyArg_ParseTuple(subObj, "Ol", &obLUID, &pRet->Privileges[i].Attributes))
-			goto done;
-		if (!PyWinObject_AsLARGE_INTEGER(obLUID, (LARGE_INTEGER *)&pRet->Privileges[i].Luid))
-			goto done;
-		Py_DECREF(subObj);
-		subObj = NULL;
-	}
-	ok = TRUE;
-done:
-	Py_XDECREF(subObj);
 	if (ok)
 		*ppRest = pRet;
-	else
+	else{
 		free(pRet);
+		*ppRest=NULL;
+		}
 	return ok;
 }
 
@@ -255,6 +379,7 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 	free(pPriv);
 }
 
+
 static BOOL (WINAPI *cstss)(PSID, WCHAR **) = NULL;
 static BOOL (WINAPI *cssts)(LPCWSTR, PSID) = NULL;
 static BOOL (WINAPI *csdtssd)(PSECURITY_DESCRIPTOR,DWORD,SECURITY_INFORMATION, LPTSTR*,PULONG) = NULL;
@@ -262,14 +387,21 @@ static BOOL (WINAPI *cssdtsd)(LPCTSTR,DWORD,PSECURITY_DESCRIPTOR*,PULONG) = NULL
 static long (WINAPI *lsarpcn)(POLICY_NOTIFICATION_INFORMATION_CLASS,HANDLE) = NULL;
 static long (WINAPI *lsaupcn)(POLICY_NOTIFICATION_INFORMATION_CLASS,HANDLE) = NULL;
 static BOOL (WINAPI *cryptenumproviders)(DWORD, DWORD *, DWORD, DWORD *, LPTSTR, DWORD *) = NULL;
-
+static BOOL (WINAPI *checktokenmembership)(HANDLE, PSID, PBOOL) = NULL;
+static BOOL (WINAPI *createrestrictedtoken)(HANDLE,DWORD,DWORD,PSID_AND_ATTRIBUTES,
+	DWORD,PLUID_AND_ATTRIBUTES,DWORD,PSID_AND_ATTRIBUTES,PHANDLE) = NULL;
+static SECURITY_STATUS (WINAPI *enumeratesecuritypackages)(PULONG, PSecPkgInfoW*) = NULL;
+static SECURITY_STATUS (WINAPI *freecontextbuffer)(PVOID) = NULL;
 
 BOOL CheckIfSupported(char *funcname, WCHAR *dllname, FARPROC *fp)
 {
     *fp=NULL;
     HMODULE hmodule = GetModuleHandle(dllname);
-    if (hmodule==NULL)
-        return false;
+    if (hmodule==NULL){
+        hmodule = LoadLibrary(dllname);
+        if (hmodule==NULL)
+            return false;
+        }
     *fp = GetProcAddress(hmodule, funcname);
     if (*fp==NULL)
         return false;
@@ -362,6 +494,11 @@ BOOL CheckIfSupported(char *funcname, WCHAR *dllname, FARPROC *fp)
 		cstss=  (BOOL (WINAPI *)(PSID, WCHAR **))(fp);
 	if (CheckIfSupported("ConvertStringSidToSidW",_T("Advapi32.dll"),&fp))
 		cssts=  (BOOL (WINAPI *)(LPCWSTR, PSID))(fp);
+	if (CheckIfSupported("CheckTokenMembership",  _T("Advapi32.dll"),&fp))
+		checktokenmembership=(BOOL (WINAPI *)(HANDLE, PSID, PBOOL))(fp);
+	if (CheckIfSupported("CreateRestrictedToken", _T("Advapi32.dll"),&fp))
+		createrestrictedtoken=(BOOL (WINAPI *)(HANDLE,DWORD,DWORD,PSID_AND_ATTRIBUTES,
+			DWORD,PLUID_AND_ATTRIBUTES,DWORD,PSID_AND_ATTRIBUTES,PHANDLE))(fp);
 	if (CheckIfSupported("ConvertSecurityDescriptorToStringSecurityDescriptorW",_T("Advapi32.dll"),&fp))
 		csdtssd=(BOOL (WINAPI *)(PSECURITY_DESCRIPTOR,DWORD,SECURITY_INFORMATION, LPTSTR*,PULONG))(fp);
 	if (CheckIfSupported("ConvertStringSecurityDescriptorToSecurityDescriptorW",_T("Advapi32.dll"),&fp))
@@ -372,8 +509,17 @@ BOOL CheckIfSupported(char *funcname, WCHAR *dllname, FARPROC *fp)
 		lsaupcn=(NTSTATUS (NTAPI *)(POLICY_NOTIFICATION_INFORMATION_CLASS,HANDLE))(fp);
 	if (CheckIfSupported("CryptEnumProvidersW", _T("Advapi32.dll"),&fp))
 		cryptenumproviders=(BOOL (WINAPI *)(DWORD, DWORD *, DWORD, DWORD *, LPTSTR, DWORD *))(fp);
+	if (CheckIfSupported("EnumerateSecurityPackagesW",_T("Secur32.dll"),&fp))
+		enumeratesecuritypackages=(SECURITY_STATUS (WINAPI *)(PULONG, PSecPkgInfoW*))(fp);
+	else
+		if (CheckIfSupported("EnumerateSecurityPackagesW",_T("security.dll"),&fp))
+			enumeratesecuritypackages=(SECURITY_STATUS (WINAPI *)(PULONG, PSecPkgInfoW*))(fp);
+	if (CheckIfSupported("FreeContextBuffer",_T("Secur32.dll"),&fp))
+		freecontextbuffer=(SECURITY_STATUS (WINAPI *)(PVOID))(fp);
+	else
+		if (CheckIfSupported("FreeContextBuffer",_T("security.dll"),&fp))
+			freecontextbuffer=(SECURITY_STATUS (WINAPI *)(PVOID))(fp);
 %}
-
 
 // @pyswig PyACL|ACL|Creates a new <o PyACL> object.
 // @pyparm int|bufSize|64|The size of the buffer for the ACL.
@@ -407,7 +553,6 @@ BOOLAPI LogonUser(
     DWORD logonProvider, // @pyparm int|logonProvider||Specifies the logon provider to use.
     PyHANDLE *OUTPUT
 );
-
 
 // @pyswig <o PySID>, string, int|LookupAccountName|Accepts the name of a system and an account as input. It retrieves a security identifier (SID) for the account and the name of the domain on which the account was found.
 // @rdesc The result is a tuple of new SID object, the domain name where the account was found, and the type of account the SID is for.
@@ -1030,51 +1175,58 @@ TOKEN_PRIVILEGES *MyAdjustTokenPrivileges(
 %{
 static PyObject *PyAdjustTokenGroups(PyObject *self, PyObject *args)
 {
-	PyObject *obHandle=NULL;
-	PyObject *obtg = NULL;
+	PyObject *obHandle, *obtg;
 	PyObject *ret = NULL;
 	HANDLE th;
-	TOKEN_GROUPS *newstate;
-	BOOL reset = 0;
+	TOKEN_GROUPS *newstate=NULL, *oldstate=NULL;
+	BOOL ok = TRUE, reset;
+	DWORD reqdbufsize=0, origgroupcnt=1, origbufsize, err;
 
 	if (!PyArg_ParseTuple(args, "OiO", 
 		&obHandle, // @pyparm <o PyHANDLE>|obHandle||The handle to access token to be modified
-		&reset,    // @pyparm int|ResetToDefault||Sets groups to default enabled/disabled states,
-		&obtg))     // @pyparm PyTOKEN_GROUPS|NewState||Groups and attributes to be set for token
+		&reset,    // @pyparm boolean|ResetToDefault||Sets groups to default enabled/disabled states,
+		&obtg))     // @pyparm <o PyTOKEN_GROUPS>|NewState||Groups and attributes to be set for token
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obHandle, &th, FALSE))
 		return NULL;
 	if (!PyWinObject_AsTOKEN_GROUPS(obtg, &newstate))
 		return NULL;
-
-	DWORD bufsize = 0, origbufsize = 10;  //pick a number out of a hat
-	TOKEN_GROUPS *oldstate = (TOKEN_GROUPS *)malloc(origbufsize);
-	if (oldstate==NULL) {
-		PyErr_SetString(PyExc_MemoryError, "AdjustTokenGroups: unable to allocate memory");
-		return NULL;
+	origbufsize=sizeof(DWORD) + (sizeof(SID_AND_ATTRIBUTES) * origgroupcnt);
+	oldstate=(TOKEN_GROUPS *)malloc(origbufsize);
+	if (oldstate==NULL){
+		PyErr_Format(PyExc_MemoryError, "AdjustTokenGroups: unable to allocate %d SID_AND_ATTRIBUTES structs", origgroupcnt);
+		ok=FALSE;
 		}
-
-	if (!AdjustTokenGroups(th, reset, newstate, origbufsize, oldstate, &bufsize)){
-		if (bufsize <= origbufsize){
-			PyWin_SetAPIError("AdjustTokenGroups");
-			goto done;
-			}
-		free (oldstate);
-		oldstate = (TOKEN_GROUPS *)malloc(bufsize);
-		if (oldstate==NULL) {
-			PyErr_SetString(PyExc_MemoryError, "AdjustTokenGroups: unable to allocate memory");
-			return NULL;
-			}
-		if (!AdjustTokenGroups(th, reset, newstate, bufsize, oldstate, &bufsize)){
-			PyWin_SetAPIError("AdjustTokenGroups");
-			goto done;
+	else{
+		oldstate->GroupCount=origgroupcnt;
+		if (!AdjustTokenGroups(th, reset, newstate, origbufsize, oldstate, &reqdbufsize)){
+			err=GetLastError();
+			if (err!=ERROR_INSUFFICIENT_BUFFER){
+				PyWin_SetAPIError("AdjustTokenGroups",err);
+				ok=FALSE;
+				}
+			else{
+				free (oldstate);
+				oldstate = (TOKEN_GROUPS *)malloc(reqdbufsize);
+				if (oldstate==NULL){
+					PyErr_Format(PyExc_MemoryError, "AdjustTokenGroups: unable to allocate %d bytes", reqdbufsize);
+					ok=FALSE;
+					}
+				else{
+					if (!AdjustTokenGroups(th, reset, newstate, reqdbufsize, oldstate, &reqdbufsize)){
+						PyWin_SetAPIError("AdjustTokenGroups",GetLastError());
+						ok=FALSE;
+						}
+					}
+				}
 			}
 		}
-	ret = PyWinObject_FromTOKEN_GROUPS(oldstate);
-	done:
-		if (oldstate != NULL)
-			free(oldstate);
-		return ret;
+	if (ok)
+		ret = PyWinObject_FromTOKEN_GROUPS(oldstate);
+	if (oldstate != NULL)
+		free(oldstate);
+	PyWinObject_FreeTOKEN_GROUPS(newstate);
+	return ret;
 }
 %}
 
@@ -1936,8 +2088,9 @@ static PyObject *PyLsaEnumerateAccountsWithUserRight(PyObject *self, PyObject *a
 	ULONG sid_cnt=0, sid_ind=0;
 	HANDLE hpolicy;
 	LSA_ENUMERATION_INFORMATION *buf;
-	void *buf_start;
+	void *buf_start=NULL;
 	NTSTATUS err;
+	DWORD win32err;
 	// @pyparm <o PyHANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
 	// @pyparm str/unicode|UserRight||Name of privilege (SE_*_NAME unicode constant)
 	if (!PyArg_ParseTuple(args, "OO:LsaEnumerateAccountsWithUserRight", &policy_handle, &obpriv))
@@ -1947,19 +2100,25 @@ static PyObject *PyLsaEnumerateAccountsWithUserRight(PyObject *self, PyObject *a
 	if (!PyWinObject_AsLSA_UNICODE_STRING(obpriv,&lsau,FALSE))
 		return NULL;
 	err=LsaEnumerateAccountsWithUserRight(hpolicy,&lsau,&buf_start,&sid_cnt);
-	if (err != STATUS_SUCCESS){
-		PyWin_SetAPIError("LsaEnumerateAccountsWithUserRight",LsaNtStatusToWinError(err));
-		goto done;
+	if (err == STATUS_SUCCESS){
+		sids=PyTuple_New(sid_cnt);
+		if (sids!=NULL){
+			buf=(LSA_ENUMERATION_INFORMATION *)buf_start;
+			for (sid_ind=0; sid_ind<sid_cnt; sid_ind++){
+				sid=PyWinObject_FromSID(buf->Sid);
+				PyTuple_SetItem(sids, sid_ind, sid);
+				buf++;
+				}
+			}
 		}
-
-	sids=PyTuple_New(sid_cnt);
-	buf=(LSA_ENUMERATION_INFORMATION *)buf_start;
-	for (sid_ind=0; sid_ind<sid_cnt; sid_ind++){
-        sid=PyWinObject_FromSID(buf->Sid);
-		PyTuple_SetItem(sids, sid_ind, sid);
-		buf++;
+	else{
+		win32err=LsaNtStatusToWinError(err);
+		// real error code is STATUS_NO_MORE_ENTRIES, which is only defined in ntstatus.h that only comes with Driver Development Kit
+		if (win32err==ERROR_NO_MORE_ITEMS)
+			sids=PyTuple_New(0);
+		else
+			PyWin_SetAPIError("LsaEnumerateAccountsWithUserRight",win32err);
 		}
-	done:
 	if (buf_start)
 		LsaFreeMemory(buf_start);
 	PyWinObject_FreeTCHAR(lsau.Buffer);
@@ -2281,13 +2440,15 @@ static PyObject *PyCryptEnumProviders(PyObject *self, PyObject *args)
 %{
 static PyObject *PyEnumerateSecurityPackages(PyObject *self, PyObject *args)
 {
+	if (enumeratesecuritypackages==NULL || freecontextbuffer==NULL)
+		return PyErr_Format(PyExc_NotImplementedError,"EnumerateSecurityPackages not supported by this version of Windows");
 	if (!PyArg_ParseTuple(args, ":EnumerateSecurityPackages"))
 		return NULL;
 	PSecPkgInfoW pbuf=NULL, psecpkg=NULL;
 	PyObject *ret=NULL, *obsecpkg=NULL;
 	SECURITY_STATUS result;
 	ULONG pkg_cnt, pkg_ind;
-	result = EnumerateSecurityPackagesW(&pkg_cnt, &pbuf);
+	result = (*enumeratesecuritypackages)(&pkg_cnt, &pbuf);
 	if (result!=SEC_E_OK)
 		goto done;
 	ret=PyTuple_New(pkg_cnt);
@@ -2312,12 +2473,98 @@ static PyObject *PyEnumerateSecurityPackages(PyObject *self, PyObject *args)
 		}
 	done:
 	if (pbuf!=NULL)
-		FreeContextBuffer(pbuf);
+		(*freecontextbuffer)(pbuf);
 	return ret;
 }
 %}
 
+// @pyswig |AllocateLocallyUniqueId|Creates a new LUID
+BOOLAPI AllocateLocallyUniqueId(
+  LUID *OUTPUT
+);
 
+// @pyswig |ImpersonateSelf|Assigns an impersonation token for current security context to current process
+// @pyparm int|ImpersonationLevel||A value from SECURITY_IMPERSONATION_LEVEL enum
+BOOLAPI ImpersonateSelf(
+SECURITY_IMPERSONATION_LEVEL ImpersonationLevel
+);
+
+// @pyswig |DuplicateToken|Creates a copy of an access token with specified impersonation level
+// @pyparm <o PyHANDLE>|ExistingTokenHandle||Handle to an access token (see <om win32security.LogonUser>,<om win32security.OpenProcessToken>)
+// @pyparm int|ImpersonationLevel||A value from SECURITY_IMPERSONATION_LEVEL enum
+BOOLAPI DuplicateToken(
+  HANDLE ExistingTokenHandle,
+  SECURITY_IMPERSONATION_LEVEL ImpersonationLevel,
+  HANDLE *OUTPUT
+);
+
+// @pyswig bool|CheckTokenMembership|Checks if a SID is enabled in a token
+%native(CheckTokenMembership) PyCheckTokenMembership;
+%{
+static PyObject *PyCheckTokenMembership(PyObject *self, PyObject *args)
+{
+	PyObject *ret=NULL;
+	HANDLE htoken;
+	PSID sid;
+	BOOL enabled;
+	PyObject *obsid=NULL, *obtoken=NULL;
+	if (checktokenmembership==NULL)
+		return PyErr_Format(PyExc_NotImplementedError,"CheckTokenMembership not supported by this version of Windows");
+	// @pyparm <o PyHANDLE>|TokenHandle||Handle to an access token, current process token used if None
+	// @pyparm <o PySID>|SidToCheck||Sid to be checked for presence in token
+	if (!PyArg_ParseTuple(args, "OO:CheckTokenMembership",&obtoken, &obsid))
+		return NULL; 
+	if (!PyWinObject_AsHANDLE(obtoken, &htoken, TRUE))
+		return NULL;
+	if (!PyWinObject_AsSID(obsid, &sid, FALSE))
+		return NULL;
+	if (!(*checktokenmembership)(htoken,sid,&enabled))
+		PyWin_SetAPIError("CheckTokenMembership",GetLastError());
+	else
+		ret=PyBool_FromLong(enabled);
+	return ret;
+}
+%}
+
+// @pyswig <o PyHANDLE>|CreateRestrictedToken|Creates a restricted copy of an access token with reduced privs - requires win2K or higher
+%native(CreateRestrictedToken) PyCreateRestrictedToken;
+%{
+static PyObject *PyCreateRestrictedToken(PyObject *self, PyObject *args)
+{
+	PyObject *obExistingTokenHandle, *ret=NULL;
+	PyObject *obSidsToDisable, *obSidsToRestrict, *obPrivilegesToDelete;
+	HANDLE ExistingTokenHandle, NewTokenHandle;
+	DWORD Flags,DisableSidCount=0,DeletePrivilegeCount=0,RestrictedSidCount=0;
+	PSID_AND_ATTRIBUTES SidsToDisable=NULL,SidsToRestrict=NULL;
+	PLUID_AND_ATTRIBUTES PrivilegesToDelete=NULL;
+	BOOL bsuccess=TRUE;
+	if (createrestrictedtoken==NULL)
+		return PyErr_Format(PyExc_NotImplementedError,"CreateRestrictedToken not supported by this version of Windows");
+	if (!PyArg_ParseTuple(args,"OlOOO",
+		&obExistingTokenHandle,	// @pyparm <o PyHANDLE>|ExistingTokenHandle||Handle to an access token (see <om win32security.LogonUser>,<om win32security.OpenProcessToken>
+		&Flags,					// @pyparm int|Flags||Valid values are zero or a combination of DISABLE_MAX_PRIVILEGE and SANDBOX_INERT
+		&obSidsToDisable,		// @pyparm (<o PySID_AND_ATTRIBUTES>,...)|SidsToDisable||Can be None, otherwise must be a sequence of <o PySID_AND_ATTRIBUTES> tuples (attributes must be 0)
+		&obPrivilegesToDelete,	// @pyparm (<o PyLUID_AND_ATTRIBUTES>,...)|PrivilegesToDelete||Privilege LUIDS to remove from token (attributes are ignored), or None 
+		&obSidsToRestrict))		// @pyparm (<o PySID_AND_ATTRIBUTES>,...)|SidsToRestrict||Can be None, otherwise must be a sequence of <o PySID_AND_ATTRIBUTES> tuples (attributes must be 0)
+		return NULL;
+	if (PyWinObject_AsHANDLE(obExistingTokenHandle, &ExistingTokenHandle, FALSE))
+		if (PyWinObject_AsSID_AND_ATTRIBUTESArray(obSidsToDisable, &SidsToDisable, &DisableSidCount))
+			if (PyWinObject_AsSID_AND_ATTRIBUTESArray(obSidsToRestrict, &SidsToRestrict, &RestrictedSidCount))
+				if (PyWinObject_AsLUID_AND_ATTRIBUTESArray(obPrivilegesToDelete, &PrivilegesToDelete, &DeletePrivilegeCount))
+					if ((*createrestrictedtoken)(ExistingTokenHandle,Flags,DisableSidCount,SidsToDisable,
+							DeletePrivilegeCount,PrivilegesToDelete,RestrictedSidCount,SidsToRestrict,&NewTokenHandle))
+						ret=PyWinObject_FromHANDLE(NewTokenHandle);
+					else
+						PyWin_SetAPIError("CreateRestrictedToken",GetLastError());
+	if (SidsToDisable!=NULL)
+		free(SidsToDisable);
+	if (PrivilegesToDelete!=NULL)
+		free(PrivilegesToDelete);
+	if (SidsToRestrict!=NULL)
+		free(SidsToRestrict);
+	return ret;
+}
+%}
 
 #define TOKEN_ADJUST_DEFAULT TOKEN_ADJUST_DEFAULT // Required to change the default ACL, primary group, or owner of an access token.
 #define TOKEN_ADJUST_GROUPS TOKEN_ADJUST_GROUPS // Required to change the groups specified in an access token.
@@ -2612,3 +2859,5 @@ static PyObject *PyEnumerateSecurityPackages(PyObject *self, PyObject *args)
 #define SECPKG_CRED_INBOUND SECPKG_CRED_INBOUND
 #define SECPKG_CRED_OUTBOUND SECPKG_CRED_OUTBOUND
 #define SECPKG_CRED_BOTH SECPKG_CRED_BOTH
+#define DISABLE_MAX_PRIVILEGE DISABLE_MAX_PRIVILEGE
+#define SANDBOX_INERT SANDBOX_INERT
