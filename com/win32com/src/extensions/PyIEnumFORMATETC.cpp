@@ -71,6 +71,7 @@ PyObject *PyIEnumFORMATETC::Next(PyObject *self, PyObject *args)
 				result = NULL;
 				break;
 			}
+			/* reference consumed by PyList_SET_ITEM */
 			PyList_SET_ITEM(result, i, ob);
 		}
 	}
@@ -191,9 +192,11 @@ STDMETHODIMP PyGEnumFORMATETC::Next(
 
 		if ( !PyObject_AsFORMATETC(ob, &pi[i] ))
 		{
+			Py_DECREF(ob);
 			Py_DECREF(result);
 			return PyCom_SetCOMErrorFromPyException(IID_IEnumFORMATETC);
 		}
+		Py_DECREF(ob);
 	}
 
 	Py_DECREF(result);
