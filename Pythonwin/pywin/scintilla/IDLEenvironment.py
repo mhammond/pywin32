@@ -200,7 +200,9 @@ def TkIndexToOffset(bm, edit, marks):
 				if line > edit.GetLineCount():
 					pos = edit.GetTextLength()+1
 				else:
-					pos = edit.LineIndex(line)+int(col)
+					pos = edit.LineIndex(line)
+					if pos==-1: pos = edit.GetTextLength()
+					pos = pos + int(col)
 		except (ValueError, IndexError):
 			raise ValueError, "Unexpected literal in '%s'" % base 
 	elif base == 'insert':
@@ -208,7 +210,7 @@ def TkIndexToOffset(bm, edit, marks):
 	elif base=='end':
 		pos = edit.GetTextLength()
 		# Pretend there is a trailing '\n' if necessary
-		if edit.SCIGetCharAt(pos) != "\n":
+		if pos and edit.SCIGetCharAt(pos-1) != "\n":
 			pos = pos+1
 	else:
 		try:
