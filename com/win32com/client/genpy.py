@@ -23,7 +23,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.4.0" # Written to generated file.
+makepy_version = "0.4.1" # Written to generated file.
 
 GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
@@ -215,8 +215,21 @@ class VTableItem(build.VTableItem, WritableItem):
 
     def WriteVTableMap(self, generator):
         print "%s_vtables_dispatch_ = %d" % (self.python_name, self.bIsDispatch)
-        print "%s_vtables_ = " % (self.python_name, ) ,
-        print repr(self.vtableFuncs)
+        print "%s_vtables_ = [" % (self.python_name, ) 
+        for v in self.vtableFuncs:
+            chunks = []
+            name, dispid, arg_desc, ret_desc, named_params = v
+            chunks.append("\t(%s, %d, (" % (repr(name), dispid))
+            for arg in arg_desc:
+                chunks.append("(%d,%d," % (arg[0], arg[1]))
+                defval = build.MakeDefaultArgRepr(arg)
+                if defval is None:
+                    chunks.append("None), ")
+                else:
+                    chunks.append(defval + "), ")
+            chunks.append("), %s, %s)," % (repr(ret_desc), repr(named_params)))
+            print "".join(chunks)
+        print "]"
         print
 
 class DispatchItem(build.DispatchItem, WritableItem):
@@ -421,11 +434,13 @@ class DispatchItem(build.DispatchItem, WritableItem):
             for line in ret:
                 print line
             print "\t# str(ob) and int(ob) will use __call__"
-            print "\tdef __str__(self, *args):"
+            print "\tdef __unicode__(self, *args):"
             print "\t\ttry:"
-            print "\t\t\treturn str(apply( self.__call__, args))"
+            print "\t\t\treturn unicode(apply( self.__call__, args))"
             print "\t\texcept pythoncom.com_error:"
             print "\t\t\treturn repr(self)"
+            print "\tdef __str__(self, *args):"
+            print "\t\treturn str(apply(self.__unicode__, args))"
             print "\tdef __int__(self, *args):"
             print "\t\treturn int(apply( self.__call__, args))"
             

@@ -23,7 +23,7 @@ from keyword import iskeyword
 from win32com.client import NeedUnicodeConversions
 
 import pythoncom
-from pywintypes import UnicodeType
+from pywintypes import UnicodeType, TimeType
 
 # A string ending with a quote can not be safely triple-quoted.
 def _safeQuotedString(s):
@@ -521,6 +521,9 @@ def MakeDefaultArgRepr(defArgVal):
     val = defArgVal[2]
     if type(val) is UnicodeType:
       return repr(str(val))
+    elif type(val) is TimeType:
+      year=val.year; month=val.month; day=val.day; hour=val.hour; minute=val.minute; second=val.second; msec=val.msec
+      return "pythoncom.MakeTime((%(year)d, %(month)d, %(day)d, %(hour)d, %(minute)d, %(second)d,0,0,0,%(msec)d))" % locals()
     else:
       return repr(val)
   return None
