@@ -316,6 +316,7 @@ CString ui_base_class::repr()
 }
 void ui_base_class::cleanup()
 {
+	CEnterLeavePython _celp;
 	CString rep = repr();
 	const char *szRep = rep;
 	TRACE("cleanup detected %s, refcount = %d\n",szRep,ob_refcnt);
@@ -1976,6 +1977,7 @@ int AddConstants(PyObject *dict)
 
 
 	ADD_CONSTANT(IDC_SPIN1); // @const win32ui|IDC_SPIN1|
+	ADD_CONSTANT(IDC_SPIN2); // @const win32ui|IDC_SPIN2|
 	
 	ADD_CONSTANT(IDC_TAB_SIZE);// @const win32ui|IDC_TAB_SIZE|
 	ADD_CONSTANT(IDC_USE_TABS);// @const win32ui|IDC_USE_TABS|
@@ -2200,6 +2202,10 @@ static PyThreadState *threadStateSave = NULL;
 
 void Win32uiFinalize()
 {
+	// These are primarily here as a debugging aid.  Destroy what I created
+	// to help MFC detect useful memory leak reports
+	ui_assoc_object::handleMgr.cleanup();
+
 	if (threadStateSave)
 		PyEval_RestoreThread(threadStateSave);
 
@@ -2207,10 +2213,6 @@ void Win32uiFinalize()
 		Py_Finalize();
 	}
 	bInFatalShutdown = TRUE;
-	// These are primarily here as a debugging aid.  Destroy what I created
-	// to help MFC detect useful memory leak reports
-//	PyCWinApp::cleanup();
-	ui_assoc_object::handleMgr.cleanup();
 }
 
 int Win32uiExitInstance(void)
