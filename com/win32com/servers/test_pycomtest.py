@@ -19,7 +19,6 @@ class PyCOMTest:
 	_reg_progid_ = "Python.Test.PyCOMTest"
 
 	def DoubleString(self, str):
-		print "******************** doubling the string!"
 		return str*2
 	def DoubleInOutString(self, str):
 		return str*2
