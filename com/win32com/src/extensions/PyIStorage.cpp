@@ -556,11 +556,12 @@ STDMETHODIMP PyGStorage::CreateStream(
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	PyObject *obppstm;
-	if (!PyArg_Parse(result, "O" , &obppstm)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!PyArg_Parse(result, "O" , &obppstm)) return
+		MAKE_PYCOM_GATEWAY_FAILURE_CODE("CreateStream");
 	BOOL bPythonIsHappy = TRUE;
 	if (!PyCom_InterfaceFromPyObject(obppstm, IID_IStream, (void **)ppstm, FALSE /* bNoneOK */))
 		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("CreateStream");
 	Py_DECREF(result);
 	return hr;
 }
@@ -581,11 +582,12 @@ STDMETHODIMP PyGStorage::OpenStream(
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	PyObject *obppstm;
-	if (!PyArg_Parse(result, "O" , &obppstm)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!PyArg_Parse(result, "O" , &obppstm)) return
+		MAKE_PYCOM_GATEWAY_FAILURE_CODE("OpenStream");
 	BOOL bPythonIsHappy = TRUE;
 	if (!PyCom_InterfaceFromPyObject(obppstm, IID_IStream, (void **)ppstm, FALSE /* bNoneOK */))
 		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("OpenStream");
 	Py_DECREF(result);
 	return hr;
 }
@@ -606,11 +608,12 @@ STDMETHODIMP PyGStorage::CreateStorage(
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	PyObject *obppstg;
-	if (!PyArg_Parse(result, "O" , &obppstg)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!PyArg_Parse(result, "O" , &obppstg))
+		return MAKE_PYCOM_GATEWAY_FAILURE_CODE("CreateStorage");
 	BOOL bPythonIsHappy = TRUE;
 	if (!PyCom_InterfaceFromPyObject(obppstg, IID_IStorage, (void **)ppstg, FALSE /* bNoneOK */))
 		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("CreateStorage");
 	Py_DECREF(result);
 	return hr;
 }
@@ -637,11 +640,12 @@ STDMETHODIMP PyGStorage::OpenStorage(
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	PyObject *obppstg;
-	if (!PyArg_Parse(result, "O" , &obppstg)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!PyArg_Parse(result, "O" , &obppstg))
+		return MAKE_PYCOM_GATEWAY_FAILURE_CODE("OpenStorage");
 	BOOL bPythonIsHappy = TRUE;
 	if (!PyCom_InterfaceFromPyObject(obppstg, IID_IStorage, (void **)ppstg, FALSE /* bNoneOK */))
 		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("OpenStorage");
 	Py_DECREF(result);
 	return hr;
 }
@@ -710,11 +714,12 @@ STDMETHODIMP PyGStorage::EnumElements(
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	PyObject *obppenum;
-	if (!PyArg_Parse(result, "O" , &obppenum)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!PyArg_Parse(result, "O" , &obppenum))
+		return MAKE_PYCOM_GATEWAY_FAILURE_CODE("Revert");
 	BOOL bPythonIsHappy = TRUE;
 	if (!PyCom_InterfaceFromPyObject(obppenum, IID_IEnumSTATSTG, (void **)ppenum, FALSE /* bNoneOK */))
 		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("Revert");
 	Py_DECREF(result);
 	return hr;
 }
@@ -790,10 +795,11 @@ STDMETHODIMP PyGStorage::Stat(
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	PyObject *obpstatstg;
-	if (!PyArg_Parse(result, "O" , &obpstatstg)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!PyArg_Parse(result, "O" , &obpstatstg))
+		return MAKE_PYCOM_GATEWAY_FAILURE_CODE("Stat");
 	BOOL bPythonIsHappy = TRUE;
 	if (!PyCom_PyObjectAsSTATSTG(obpstatstg, pstatstg, 0/*flags*/)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("Stat");
 	Py_DECREF(result);
 	return hr;
 }

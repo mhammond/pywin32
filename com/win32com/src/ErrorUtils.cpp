@@ -22,6 +22,9 @@ static PyObject *PyCom_PyObjectFromIErrorInfo(IErrorInfo *, HRESULT errorhr);
 
 static const char *traceback_prefix = "Traceback (most recent call last):\n";
 
+// todo: nuke me!
+PYCOM_EXPORT void PyCom_StreamMessage(const char *msg);
+
 ////////////////////////////////////////////////////////////////////////
 //
 // Server Side Errors - translate a Python exception to COM error information
@@ -325,6 +328,11 @@ PYCOM_EXPORT HRESULT PyCom_SetCOMErrorFromPyException(REFIID riid /* = IID_NULL 
 		// No error occurred
 		return S_OK;
 
+	// These errors are generally 'unexpected' (ie, errors converting args on
+	// the way into a gateway method.  If not explicitly raised by the user,
+	// log it.
+	PyCom_LoggerNonServerException(NULL, "Unexpected gateway error");
+
 	EXCEPINFO einfo;
 	PyCom_ExcepInfoFromPyException(&einfo);
 
@@ -343,7 +351,7 @@ PYCOM_EXPORT HRESULT PyCom_SetAndLogCOMErrorFromPyException(const char *methodNa
 	if (!PyErr_Occurred())
 		// No error occurred
 		return S_OK;
-	PyCom_LogNonServerError("Unexpected exception in gateway method '%s'", methodName);
+	PyCom_LoggerNonServerException(NULL, "Unexpected exception in gateway method '%s'", methodName);
 	return PyCom_SetCOMErrorFromPyException(riid);
 }
 
@@ -558,7 +566,10 @@ void _LogException(PyObject *exc_typ, PyObject *exc_val, PyObject *exc_tb)
 	PyCom_StreamMessage("\n");
 }
 
-void _DoLogError(const char *fmt, va_list argptr)
+// XXX - _DoLogError() was a really bad name in retrospect, given
+// the "logger" module and my dumb choice of _DoLogger() for logger errors :)
+// Thankfully both are private.
+static void _DoLogError(const char *fmt, va_list argptr)
 {
 	PyCom_StreamMessage("pythoncom error: ");
 	VLogF(fmt, argptr);
@@ -574,41 +585,7 @@ void _DoLogError(const char *fmt, va_list argptr)
 	PyErr_Restore(exc_typ, exc_val, exc_tb);
 }
 
-PYCOM_EXPORT 
-void PyCom_LogError(const char *fmt, ...)
-{
-	va_list marker;
-	va_start(marker, fmt);
-	_DoLogError(fmt, marker);
-}
-
-BOOL IsNonServerErrorCurrent() {
-	BOOL rc = FALSE;
-	PyObject *exc_typ = NULL, *exc_val = NULL, *exc_tb = NULL;
-	PyErr_Fetch( &exc_typ, &exc_val, &exc_tb);
-	if (exc_typ) {
-		PyErr_NormalizeException( &exc_typ, &exc_val, &exc_tb);
-		rc = (!PyErr_GivenExceptionMatches(exc_val, PyWinExc_COMError) ||
-		     ((PyInstance_Check(exc_val) && 
-		      (PyObject *)(((PyInstanceObject *)exc_val)->in_class)==PyWinExc_COMError)));
-	}
-	PyErr_Restore(exc_typ, exc_val, exc_tb);
-	return rc;
-}
-
-PYCOM_EXPORT 
-void PyCom_LogNonServerError(const char *fmt, ...)
-{
-	// If any error other than our explicit 'com server error' is current,
-	// assume it is unintended, and log it.
-	if (IsNonServerErrorCurrent()) {
-		va_list marker;
-		va_start(marker, fmt);
-		_DoLogError(fmt, marker);
-	}
-}
-
-void _DoLogger(PyObject *logProvider, char *log_method, const char *fmt, va_list argptr)
+static void _DoLogger(PyObject *logProvider, char *log_method, const char *fmt, va_list argptr)
 {
 	PyObject *exc_typ = NULL, *exc_val = NULL, *exc_tb = NULL;
 	PyErr_Fetch( &exc_typ, &exc_val, &exc_tb);
@@ -633,6 +610,28 @@ void _DoLogger(PyObject *logProvider, char *log_method, const char *fmt, va_list
 		// No logger, or logger error - normal stdout stream.
 		_DoLogError(fmt, argptr);
 	Py_XDECREF(logger);
+}
+
+PYCOM_EXPORT 
+void PyCom_LogError(const char *fmt, ...)
+{
+	va_list marker;
+	va_start(marker, fmt);
+	_DoLogger(NULL, "error", fmt, marker);
+}
+
+BOOL IsNonServerErrorCurrent() {
+	BOOL rc = FALSE;
+	PyObject *exc_typ = NULL, *exc_val = NULL, *exc_tb = NULL;
+	PyErr_Fetch( &exc_typ, &exc_val, &exc_tb);
+	if (exc_typ) {
+		PyErr_NormalizeException( &exc_typ, &exc_val, &exc_tb);
+		rc = (!PyErr_GivenExceptionMatches(exc_val, PyWinExc_COMError) ||
+		     ((PyInstance_Check(exc_val) && 
+		      (PyObject *)(((PyInstanceObject *)exc_val)->in_class)==PyWinExc_COMError)));
+	}
+	PyErr_Restore(exc_typ, exc_val, exc_tb);
+	return rc;
 }
 
 PYCOM_EXPORT void PyCom_LoggerException(PyObject *logProvider, const char *fmt, ...)

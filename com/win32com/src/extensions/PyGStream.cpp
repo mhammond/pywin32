@@ -32,7 +32,7 @@ STDMETHODIMP PyGStream::Read(
 	}
 
 	Py_DECREF(result);
-	return PyCom_SetCOMErrorFromPyException(GetIID());
+	return MAKE_PYCOM_GATEWAY_FAILURE_CODE("Read");
 }
 
 STDMETHODIMP PyGStream::Write(
@@ -75,7 +75,7 @@ STDMETHODIMP PyGStream::Seek(
 	if (!PyArg_Parse(result, "O" , &obplibNewPosition)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
 	BOOL bPythonIsHappy = TRUE;
 	if (!PyWinObject_AsULARGE_INTEGER(obplibNewPosition, plibNewPosition)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("Seek");
 	Py_DECREF(result);
 	return hr;
 }
@@ -111,7 +111,7 @@ STDMETHODIMP PyGStream::CopyTo(
 	BOOL bPythonIsHappy = TRUE;
 	if (pcbRead && !PyWinObject_AsULARGE_INTEGER(obpcbRead, pcbRead)) bPythonIsHappy = FALSE;
 	if (pcbWritten && !PyWinObject_AsULARGE_INTEGER(obpcbWritten, pcbWritten)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("CopyTo");
 	Py_DECREF(result);
 	return hr;
 }
@@ -173,7 +173,7 @@ STDMETHODIMP PyGStream::Stat(
 	if (!PyArg_Parse(result, "O" , &obpstatstg)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
 	BOOL bPythonIsHappy = TRUE;
 	if (!PyCom_PyObjectAsSTATSTG(obpstatstg, pstatstg, 0/*flags*/)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("Stat");
 	Py_DECREF(result);
 	return hr;
 }
@@ -192,7 +192,7 @@ STDMETHODIMP PyGStream::Clone(
 	BOOL bPythonIsHappy = TRUE;
 	if (!PyCom_InterfaceFromPyObject(obppstm, IID_IStream, (void **)ppstm, FALSE /* bNoneOK */))
 		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("Clone");
 	Py_DECREF(result);
 	return hr;
 }

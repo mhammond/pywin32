@@ -14,6 +14,11 @@ extern const GUID IID_IInternalUnwrapPythonObject =
 extern void PyCom_LogF(const char *fmt, ...);
 #define LogF PyCom_LogF
 
+// Internal ErrorUtil helpers we reach in for.
+// Free the strings from an excep-info.
+extern void PyCom_CleanupExcepInfo(EXCEPINFO *pexcepinfo);
+PYCOM_EXPORT BOOL PyCom_SetCOMErrorFromExcepInfo(const EXCEPINFO *pexcepinfo, REFIID riid);
+
 // #define DEBUG_FULL
 static LONG cGateways = 0;
 LONG _PyCom_GetGatewayCount(void)

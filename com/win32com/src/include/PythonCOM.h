@@ -301,33 +301,18 @@ PYCOM_EXPORT PyObject* PyCom_BuildPyExceptionFromEXCEPINFO(HRESULT hr, EXCEPINFO
 // Sets a pythoncom.internal_error - no one should ever see these!
 PYCOM_EXPORT PyObject* PyCom_BuildInternalPyException(char *msg);
 
-// The old names, for b/w compat - but we have purged it
-// from the COM core, so we may as well remove it completely from the core :-)
-#ifndef BUILD_PYTHONCOM
-	#define OleSetOleError PyCom_BuildPyException
-#endif
-
-// Log an internal error, including traceback.
-PYCOM_EXPORT void PyCom_LogError(const char *fmt, ...);
-
-// Log an error if not a COM Server exception, including traceback.
-PYCOM_EXPORT void PyCom_LogNonServerError(const char *fmt, ...);
-
 // Log an error to a Python logger object if one can be found, or
 // to stderr if no log available.
 // If logProvider is not NULL, we will call a "_GetLogger_()" method on it.
 // If logProvider is NULL, we attempt to fetch "win32com.logger".
 // If they do not exist, return None, or raise an error fetching them
 // (or even writing to them once fetched), the message still goes to stderr.
-// NOTE: By default, win32com does *not* provide a logger.
+// NOTE: By default, win32com does *not* provide a logger, so default is that
+// all errors are written to stdout.
 PYCOM_EXPORT void PyCom_LoggerNonServerException(PyObject *logProvider,
 											     const char *fmt, ...);
 
 PYCOM_EXPORT void PyCom_LoggerException(PyObject *logProvider, const char *fmt, ...);
-
-// Write a raw string to the error device.
-PYCOM_EXPORT void PyCom_StreamMessage(const char *msg);
-
 
 // Server related error functions
 // These are supplied so that any Python errors we detect can be
@@ -346,8 +331,10 @@ PYCOM_EXPORT HRESULT PyCom_SetAndLogCOMErrorFromPyExceptionEx(PyObject *provider
 // NOTE: this function is usuable from outside the Python context
 PYCOM_EXPORT HRESULT PyCom_SetCOMErrorFromSimple(HRESULT hr, REFIID riid = IID_NULL, const char *description = NULL);
 
-// Used in gateways to SetErrorInfo() the current Python exception
-// NOTE: this function assumes it is operating within the Python context
+// Used in gateways to SetErrorInfo() the current Python exception, and
+// (assuming not a server error explicitly raised) also logs an error
+// to stdout/win32com.logger.
+// NOTE: this function assumes GIL held
 PYCOM_EXPORT HRESULT PyCom_SetCOMErrorFromPyException(REFIID riid = IID_NULL);
 
 // A couple of EXCEPINFO helpers - could be private to IDispatch
@@ -367,18 +354,6 @@ PYCOM_EXPORT BOOL PyCom_ExcepInfoFromPyObject(PyObject *obExcepInfo, EXCEPINFO *
 // information is *not* freed by this function.  Python exceptions are
 // raised and NULL is returned if an error occurs.
 PYCOM_EXPORT PyObject *PyCom_PyObjectFromExcepInfo(const EXCEPINFO *pexcepInfo);
-
-// Used by gateways to SetErrorInfo() from the data contained in an EXCEPINFO
-// structure.  Mainly used internally, but handy for functions that have special
-// error requirements (particularly those with IDispatch::Invoke() semantics - 
-// ie, you have an EXCEPINFO structure, but it turns out you can't return it
-// as the HRESULT will not be DISP_E_EXCEPTION - therefore you can make the
-// EXCEPINFO data available via SetErrorInfo() just incase the client can use it
-PYCOM_EXPORT BOOL PyCom_SetCOMErrorFromExcepInfo(const EXCEPINFO *pexcepinfo, REFIID riid);
-
-// Free the strings etc in an EXCEPINFO
-PYCOM_EXPORT void PyCom_CleanupExcepInfo(EXCEPINFO *pexcepinfo);
-
 
 ///////////////////////////////////////////////////////////////////
 //

@@ -149,7 +149,14 @@ private:
 #endif // _MSC_VER
 
 // B/W compat hack for gateways.
-#define PyCom_HandlePythonFailureToCOM() PyCom_SetCOMErrorFromPyException(GetIID())
+#define PyCom_HandlePythonFailureToCOM() \
+	PyCom_SetAndLogCOMErrorFromPyExceptionEx(this->m_pPyObject, "gateway method", GetIID())
+
+// F/W compat hack for gateways!  Must be careful about updating
+// PyGatewayBase vtable, so a slightly older pythoncomXX.dll will work
+// with slightly later extensions.  So use a #define.
+#define MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name) \
+	PyCom_SetAndLogCOMErrorFromPyExceptionEx(this->m_pPyObject, method_name, GetIID())
 
 
 #endif /* __PYTHONCOMSERVER_H__ */

@@ -193,9 +193,7 @@ HRESULT PyCom_CoInitializeEx(LPVOID reserved, DWORD dwInit)
 
 	if ( (hr != RPC_E_CHANGED_MODE) && FAILED(hr) )
 	{
-#ifdef _DEBUG
-		PyCom_LogError(_T("OLE initialization failed! (0x%08lx)"), hr);
-#endif
+		PyCom_LoggerException(NULL, "OLE initialization failed! (0x%08lx)", hr);
 		return hr;
 	}
 	// If we have never been initialized before, then consider this
@@ -227,9 +225,7 @@ HRESULT PyCom_CoInitialize(LPVOID reserved)
 #endif // MS_WINCE
 	if ( (hr != RPC_E_CHANGED_MODE) && FAILED(hr) )
 	{
-#ifdef _DEBUG
-		PyCom_LogError(_T("OLE initialization failed! (0x%08lx)"), hr);
-#endif
+		PyCom_LoggerException(NULL, "OLE initialization failed! (0x%08lx)", hr);
 		return hr;
 	}
 	// If we have never been initialized before, then consider this
