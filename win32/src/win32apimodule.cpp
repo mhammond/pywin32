@@ -681,6 +681,7 @@ cleanup:
 	return rc;
 }
 
+#ifndef DONT_HAVE_GENERATE_CONSOLE_CTRL_EVENT
 // @pymethod int|win32api|GenerateConsoleCtrlEvent|Send a specified signal to a console process group that shares the console associated with the calling process.
 static PyObject *
 PyGenerateConsoleCtrlEvent (PyObject *self, PyObject *args)
@@ -699,6 +700,7 @@ PyGenerateConsoleCtrlEvent (PyObject *self, PyObject *args)
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+#endif // DONT_HAVE_GENERATE_CONSOLE_CTRL_EVENT
 
 // @pymethod int|win32api|GetLogicalDrives|Returns a bitmask representing the currently available disk drives.
 static PyObject *
@@ -1215,6 +1217,7 @@ PyGetSystemDefaultLangID(PyObject * self, PyObject * args)
 	return Py_BuildValue("i",::GetSystemDefaultLangID());
 }
 
+#ifndef DONT_HAVE_SYSTEM_SHUTDOWN
 // @pymethod |win32api|AbortSystemShutdown|Aborts a system shutdown
 static PyObject *
 PyAbortSystemShutdown(PyObject * self, PyObject * args)
@@ -1273,6 +1276,7 @@ PyInitiateSystemShutdown(PyObject * self, PyObject * args)
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+#endif // DONT_HAVE_SYSTEM_SHUTDOWN
 
 // @pymethod |win32api|ExitWindows|Logs off the current user
 static PyObject *
@@ -1517,7 +1521,13 @@ PyGetSystemInfo(PyObject * self, PyObject * args)
 	// @pyseeapi GetSystemInfo
 	SYSTEM_INFO info;
 	GetSystemInfo( &info );
-	return Py_BuildValue("iiiiiiii(ii)", info.dwOemId, info.dwPageSize, 
+	return Py_BuildValue("iiiiiiii(ii)",
+#if !defined(MAINWIN)
+						 info.dwOemId,
+#else
+						 0,
+#endif // MAINWIN
+						 info.dwPageSize, 
                          info.lpMinimumApplicationAddress, info.lpMaximumApplicationAddress,
                          info.dwActiveProcessorMask, info.dwNumberOfProcessors,
                          info.dwProcessorType, info.dwAllocationGranularity,
@@ -3955,6 +3965,7 @@ int PyApplyExceptionFilter(
 	return ret;
 }
 
+#ifndef MAINWIN
 // @pymethod object|win32api|Apply|Calls a Python function, but traps Win32 exceptions.
 static PyObject *PyApply(PyObject *self, PyObject *args)
 {
@@ -4020,6 +4031,7 @@ static PyObject *PyApply(PyObject *self, PyObject *args)
 // exception handler, it is as if None were returned (ie, no tracebacks 
 // or other diagnostics are printed)
 }
+#endif // MAINWIN
 
 // @pymethod |GetFileVersionInfo||Retrieve version info for specified file
 PyObject *PyGetFileVersionInfo(PyObject *self, PyObject *args)
@@ -4191,8 +4203,13 @@ PyObject *Pymouse_event(PyObject *self, PyObject *args)
 /* List of functions exported by this module */
 // @module win32api|A module, encapsulating the Windows Win32 API.
 static struct PyMethodDef win32api_functions[] = {
+#ifndef DONT_HAVE_SYSTEM_SHUTDOWN
 	{"AbortSystemShutdown",	PyAbortSystemShutdown,1},     // @pymeth AbortSystemShutdown|Aborts a system shutdown
+	{"InitiateSystemShutdown",  PyInitiateSystemShutdown,1}, // @pymeth InitiateSystemShutdown|Initiates a shutdown and optional restart of the specified computer.
+#endif
+#ifndef MAINWIN	
 	{"Apply",               PyApply, 1}, // @pymeth Apply|Calls a Python function, but traps Win32 exceptions.
+#endif
 	{"Beep",				PyBeep,         1},     // @pymeth Beep|Generates a simple tone on the speaker.
 	{"BeginUpdateResource", PyBeginUpdateResource, 1 }, // @pymeth BeginUpdateResource|Begins an update cycle for a PE file.
 	{"ClipCursor",			PyClipCursor,       1}, // @pymeth ClipCursor|Confines the cursor to a rectangular area on the screen.
@@ -4218,7 +4235,10 @@ static struct PyMethodDef win32api_functions[] = {
 	{"FormatMessage",		PyFormatMessage,    1}, // @pymeth FormatMessage|Return an error message string.
 	{"FormatMessageW",		PyFormatMessageW,    1}, // @pymeth FormatMessageW|Return an error message string (as a Unicode object).
 	{"FreeLibrary",			PyFreeLibrary,1},       // @pymeth FreeLibrary|Decrements the reference count of the loaded dynamic-link library (DLL) module.
+#ifndef DONT_HAVE_GENERATE_CONSOLE_CTRL_EVENT
 	{"GenerateConsoleCtrlEvent",	PyGenerateConsoleCtrlEvent,  1}, // @pymeth GenerateConsoleCtrlEvent|Send a specified signal to a console process group that shares the console associated with the calling process.
+#endif
+	
 	{"GetAsyncKeyState",	PyGetAsyncKeyState,1}, // @pymeth GetAsyncKeyState|Retrieves the asynch state of a virtual key code.
 	{"GetCommandLine",		PyGetCommandLine,   1}, // @pymeth GetCommandLine|Return the application's command line.
 	{"GetComputerName",     PyGetComputerName,  1}, // @pymeth GetComputerName|Returns the local computer name
@@ -4271,7 +4291,6 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetWindowLong",       PyGetWindowLong,1}, // @pymeth GetWindowLong|Retrieves a long value at the specified offset into the extra window memory of the given window.
 	{"GetUserDefaultLangID",PyGetUserDefaultLangID,1}, // @pymeth GetUserDefaultLangID|Retrieves the user default language identifier. 
 	{"GetUserDefaultLCID",  PyGetUserDefaultLCID,1}, // @pymeth GetUserDefaultLCID|Retrieves the user default locale identifier.
-	{"InitiateSystemShutdown",  PyInitiateSystemShutdown,1}, // @pymeth InitiateSystemShutdown|Initiates a shutdown and optional restart of the specified computer. 
 	{"keybd_event",         Pykeybd_event, 1}, // @pymeth keybd_event|Simulate a keyboard event
 	{"mouse_event",         Pymouse_event, 1}, // @pymeth mouse_event|Simulate a mouse event
 	{"LoadCursor",          PyLoadCursor, 1}, // @pymeth LoadCursor|Loads a cursor.
