@@ -126,10 +126,6 @@ SOURCE=.\win32comext\axcontrol\src\PyIOleObject.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\win32comext\axcontrol\src\PyIOleWindow.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\win32comext\axcontrol\src\PyISpecifyPropertyPages.cpp
 # End Source File
 # Begin Source File
