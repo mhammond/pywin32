@@ -20,7 +20,7 @@
 # This module is thread safe - output can originate from any thread.  If any thread 
 # other than the main thread attempts to print, it is always queued until next idle time
 
-import sys, string, regex
+import sys, string, re
 from pywin.mfc import docview
 from pywin.framework import app, window
 from pywintypes import UnicodeType
@@ -78,7 +78,7 @@ class WindowOutputFrame(window.MDIChildWnd):
 
 class WindowOutputViewImpl:
 	def __init__(self):
-		self.patErrorMessage=regex.compile('.*File "\(.*\)", line \([0-9]+\)')
+		self.patErrorMessage=re.compile('.*File "(.*)", line ([0-9]+)')
 		self.template = self.GetDocument().GetDocTemplate()
 
 	def HookHandlers(self):
@@ -140,20 +140,20 @@ class WindowOutputViewImpl:
 				win32ui.SetStatusText("Line is a COM error, but no WinHelp details can be parsed");
 		# Look for a Python traceback.
 		matchResult = self.patErrorMessage.match(line)
-		if matchResult<=0:
+		if matchResult is None:
 			# No match - try the previous line
 			lineNo = self.LineFromChar()
 			if lineNo > 0:
 				line = self.GetLine(lineNo-1)
 				matchResult = self.patErrorMessage.match(line)
-		if matchResult>0:
+		if matchResult is not None:
 			# we have an error line.
-			fileName = self.patErrorMessage.group(1)
+			fileName = matchResult.group(1)
 			if fileName[0]=="<":
 				win32ui.SetStatusText("Can not load this file")
 				return 1	# still was an error message.
 			else:
-				lineNoString = self.patErrorMessage.group(2)
+				lineNoString = matchResult.group(2)
 				# Attempt to locate the file (in case it is a relative spec)
 				fileNameSpec = fileName
 				fileName = scriptutils.LocatePythonFile(fileName)
