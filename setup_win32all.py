@@ -398,7 +398,7 @@ class my_build_ext(build_ext):
         # We build the DLL into our own temp directory, then copy it to the
         # real directory - this avoids the generated .lib/.exp
         build_temp = os.path.abspath(os.path.join(self.build_temp, "scintilla"))
-        dir_util.mkpath(build_temp, verbose=self.verbose, dry_run=self.dry_run)
+        self.mkpath(build_temp)
         makeargs.append("SUB_DIR_O=%s" % build_temp)
         makeargs.append("SUB_DIR_BIN=%s" % build_temp)
 
@@ -415,10 +415,19 @@ class my_build_ext(build_ext):
             base_name = "scintilla_d.dll"
         else:
             base_name = "scintilla.dll"
-        file_util.copy_file(
+        self.copy_file(
                     os.path.join(self.build_temp, "scintilla", base_name),
-                    os.path.join(self.build_lib, "pythonwin"),
-                    verbose = self.verbose, dry_run = self.dry_run)
+                    os.path.join(self.build_lib, "pythonwin"))
+
+        # Copy cpp lib files needed to create Python COM extensions
+        clib_files = (['win32', 'pywintypes.lib'],
+                      ['win32com', 'pythoncom.lib'])
+        for clib_file in clib_files:
+            target_dir = os.path.join(self.build_lib, clib_file[0], "libs")
+            if not os.path.exists(target_dir):
+                self.mkpath(target_dir)
+            self.copy_file(
+                    os.path.join(self.build_temp, clib_file[1]), target_dir)
 
     def build_exefile(self, ext):
         from types import ListType, TupleType
@@ -1107,6 +1116,13 @@ dist = setup(name="pywin32",
                 'com/win32comext/taskscheduler/test/*.py',
                 'com/win32comext/ifilter/demo/*.py',
                  ]) +
+                # The headers and .lib files
+                [
+                    ('win32/include',    ('win32/src/PyWinTypes.h',)),
+                    ('win32com/include', ('com/win32com/src/include/PythonCOM.h',
+                                         'com/win32com/src/include/PythonCOMRegister.h',
+                                         'com/win32com/src/include/PythonCOMServer.h'))
+                ] +
                 # And data files convert_data_files can't handle.
                 [
                     ('win32com', ('com/License.txt',)),
