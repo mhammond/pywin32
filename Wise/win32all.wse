@@ -231,6 +231,19 @@ item: End Block
 end
 item: End Block
 end
+item: Remark
+  Text=Python 2.2 and later have "site-packages" - install there.
+end
+item: Check if File/Dir Exists
+  Pathname=%PY_INST_PATH%\lib\site-packages
+  Flags=00000100
+end
+item: Set Variable
+  Variable=PY_INST_PATH
+  Value=%PY_INST_PATH%\lib\site-packages
+end
+item: End Block
+end
 item: Set Variable
   Variable=MAINDIR
   Value=%PY_INST_PATH%
