@@ -322,7 +322,6 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL       (OleObject),
 	PYCOM_INTERFACE_IID_ONLY   (OleLink),
 	PYCOM_INTERFACE_FULL       (OleInPlaceObject),
-	PYCOM_INTERFACE_FULL       (OleWindow),
 	PYCOM_INTERFACE_FULL       (ViewObject),
 	PYCOM_INTERFACE_FULL       (ViewObject2),
 	PYCOM_INTERFACE_FULL       (OleInPlaceSite),
