@@ -289,9 +289,10 @@ PyCListBox_add_string(PyObject *self, PyObject *args)
 	PyObject *ob;
 	if (!PyArg_ParseTuple(args, "O", &ob )) // @pyparm any|object||Any object.  If not a string, __str__, __repr__ or a default repr() will be used
 		return NULL;
+	CString cstrRepr = GetReprText(ob);
 	//@pyseemfc CListBox|AddString
 	GUI_BGN_SAVE;
-	int rc=pLB->AddString( GetReprText(ob) );
+	int rc=pLB->AddString( cstrRepr );
 	GUI_END_SAVE;
 	if (IS_LB_ERR(rc))
 		RETURN_ERR("PyCListBox.AddString failed");
@@ -351,8 +352,9 @@ PyCListBox_insert_string(PyObject *self, PyObject *args)
 	CListBox *pLB = GetListBox(self);
 	if (!pLB)
 		return NULL;
+	CString cstrRepr = GetReprText(ob);
 	GUI_BGN_SAVE;
-	int rc=pLB->InsertString( pos, GetReprText(ob) ); // @pyseemfc CListBox|InsertString
+	int rc=pLB->InsertString( pos, cstrRepr ); // @pyseemfc CListBox|InsertString
 	GUI_END_SAVE;
 	if (IS_LB_ERR(rc))
 		RETURN_ERR("PyCListBox.InsertString failed");
@@ -890,8 +892,9 @@ PyCComboBox_add_string(PyObject *self, PyObject *args)
 	PyObject *ob;
 	if (!PyArg_ParseTuple(args, "O", &ob ))	// @pyparm any|object||Any object.  If not a string, __str__, __repr__ or a default repr() will be used
 		return NULL;
+	CString cstrRepr = GetReprText(ob);
 	GUI_BGN_SAVE;
-	int rc=pCB->AddString( GetReprText(ob) );
+	int rc=pCB->AddString( cstrRepr );
 	GUI_END_SAVE;
 	//@pyseemfc CComboBox|AddString
 	if (IS_CB_ERR(rc))
@@ -948,8 +951,9 @@ PyCComboBox_insert_string(PyObject *self, PyObject *args)
 	CComboBox *pLB = GetCombo(self);
 	if (!pLB)
 		return NULL;
+	CString cstrRepr = GetReprText(ob);
 	GUI_BGN_SAVE;
-	int rc = pLB->InsertString( pos, GetReprText(ob) );
+	int rc = pLB->InsertString( pos, cstrRepr );
 	GUI_END_SAVE;
 	return Py_BuildValue("i", rc);	// @pyseemfc CComboBox|InsertString
 	// @rdesc The zero based index of the new string added.
