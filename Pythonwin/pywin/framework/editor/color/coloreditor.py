@@ -3,14 +3,7 @@
 import win32ui
 import win32con
 import win32api
-import afxres
-import regex
-import regsub
-import string
 import sys
-import array
-import struct
-import traceback
 
 import pywin.scintilla.keycodes
 from pywin.scintilla import bindings
@@ -19,8 +12,6 @@ from pywin.framework.editor import GetEditorOption, SetEditorOption, GetEditorFo
 #from pywin.framework.editor import EditorPropertyPage
 
 MSG_CHECK_EXTERNAL_FILE = win32con.WM_USER+1999 ## WARNING: Duplicated in document.py and editor.py
-
-from pywin.mfc import docview, window, dialog, afxres
 
 # Define a few common markers
 MARKER_BOOKMARK = 0
