@@ -80,7 +80,7 @@ class WinExt (Extension):
         for line in open(dsp, "r"):
             fields = line.strip().split("=", 2)
             if fields[0]=="SOURCE":
-                if os.path.splitext(fields[1])[1].lower() in ['.cpp', '.c', '.i']:
+                if os.path.splitext(fields[1])[1].lower() in ['.cpp', '.c', '.i', '.mc']:
                     pathname = os.path.normpath(os.path.join(dsp_path, fields[1]))
                     result.append(pathname)
         return result
@@ -199,11 +199,18 @@ class my_build_ext(build_ext):
         # The pywintypes and pythoncom extensions have special names
         if name == "system32.pywintypes":
             extra = self.debug and "_d.dll" or ".dll"
-            return "system32\pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
+            return r"system32\pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
         elif name == "system32.pythoncom":
             extra = self.debug and "_d.dll" or ".dll"
-            return "system32\pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
+            return r"system32\pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
+        elif name.endswith("win32.perfmondata"):
+            return r"win32\perfmondata.dll"
         return build_ext.get_ext_filename(self, name)
+
+    def get_export_symbols(self, ext):
+        if ext.name.endswith("perfmondata"):
+            return ext.export_symbols
+        return build_ext.get_export_symbols(self, ext)
 
     def find_swig (self):
         # We know where swig is
@@ -259,6 +266,14 @@ pywintypes = WinExt_system32('pywintypes',
 
 win32_extensions = [pywintypes]
 
+win32_extensions.append(
+    WinExt_win32("perfmondata", 
+                 libraries="advapi32",
+                 extra_compile_args=["-DUNICODE", "-D_UNICODE", "-DWINNT"],
+                 export_symbol_file = "win32/src/PerfMon/perfmondata.def",
+        ),
+    )
+
 for name, lib_names, is_unicode in (
         ("dbi", "", False),
         ("mmapfile", "", False),
@@ -294,6 +309,7 @@ for name, lib_names, is_unicode in (
                  libraries=lib_names,
                  extra_compile_args = extra_compile_args)
     win32_extensions.append(ext)
+
 # The few that need slightly special treatment
 win32_extensions += [
     WinExt_win32("win32gui", 
@@ -316,27 +332,27 @@ pythoncom = WinExt_system32('pythoncom',
                    )
 com_extensions = [pythoncom]
 com_extensions += [
-    WinExt_win32com('adsi', libraries="ACTIVEDS ADSIID"),
+###    WinExt_win32com('adsi', libraries="ACTIVEDS ADSIID"),
     WinExt_win32com('axcontrol'),
     WinExt_win32com('axscript',
             dsp_file=r"com\Active Scripting.dsp",
             extra_compile_args = ['-DPY_BUILD_AXSCRIPT'],
     ),
-    WinExt_win32com('axdebug',
-            dsp_file=r"com\Active Debugging.dsp",
-            libraries="axscript msdbg",
-    ),
+###    WinExt_win32com('axdebug',
+###            dsp_file=r"com\Active Debugging.dsp",
+###            libraries="axscript msdbg",
+###    ),
     WinExt_win32com('internet'),
-    WinExt_win32com('mapi', libraries="mapi32"),
-    WinExt_win32com_mapi('exchange',
-                         libraries="""MBLOGON ADDRLKUP mapi32 exchinst                         
-                                      EDKCFG EDKUTILS EDKMAPI
-                                      ACLCLS version""",
-                         extra_link_args=["/nodefaultlib:libc"]),
-    WinExt_win32com_mapi('exchdapi',
-                         libraries="""DAPI ADDRLKUP exchinst EDKCFG EDKUTILS
-                                      EDKMAPI mapi32 version""",
-                         extra_link_args=["/nodefaultlib:libc"]),
+###    WinExt_win32com('mapi', libraries="mapi32"),
+###    WinExt_win32com_mapi('exchange',
+###                         libraries="""MBLOGON ADDRLKUP mapi32 exchinst                         
+###                                      EDKCFG EDKUTILS EDKMAPI
+###                                      ACLCLS version""",
+###                         extra_link_args=["/nodefaultlib:libc"]),
+###    WinExt_win32com_mapi('exchdapi',
+###                         libraries="""DAPI ADDRLKUP exchinst EDKCFG EDKUTILS
+###                                      EDKMAPI mapi32 version""",
+###                         extra_link_args=["/nodefaultlib:libc"]),
     WinExt_win32com('shell', libraries='shell32')
 ]
 
@@ -344,9 +360,10 @@ pythonwin_extensions = [
     WinExt_pythonwin("win32ui",
                      extra_compile_args =
                         ['-DBUILD_PYW']),
-    WinExt_pythonwin("win32uiole"),
+###    WinExt_pythonwin("win32uiole"),
     WinExt_pythonwin("dde"),
 ]
+
 ################################################################
 
 setup(name="pywin32",
@@ -360,44 +377,51 @@ setup(name="pywin32",
       cmdclass = { #'install_lib': my_install_lib,
                    'build_ext': my_build_ext,
                    },
-
+      options = {"bdist_wininst": {"install_script": "pywin32_postinstall.py"}},
+      
+      scripts = ["pywin32_postinstall.py"],
+      
       ext_modules = win32_extensions + com_extensions + pythonwin_extensions,
 
-##      packages=['win32',
-    
-##                'win32com',
-##                'win32com.client',
-##                'win32com.demos',
-##                'win32com.makegw',
-##                'win32com.server',
-##                'win32com.servers',
-##                'win32com.test',
+      package_dir = {"win32": "win32/lib",
+                     "win32com": "com/win32com",
+                     "win32comext": "com/win32comext",
+                     "Pythonwin": "Pythonwin/pywin"},
 
-##                'win32comext.axscript',
-##                'win32comext.axscript.client',
-##                'win32comext.axscript.server',
+      packages=['win32',
+                'win32com',
+                'win32com.client',
+                'win32com.demos',
+                'win32com.makegw',
+                'win32com.server',
+                'win32com.servers',
+                'win32com.test',
 
-##                'win32comext.axscript.demos',      # XXX not a package
-##                'win32comext.axscript.demos.client',
-##                'win32comext.axscript.demos.client.asp',
-##                'win32comext.axscript.demos.client.ie',
-##                'win32comext.axscript.demos.client.wsh',
-##                'win32comext.axscript.test',       # XXX not a package
-##                'win32comext.axdebug',
-##                'win32comext.axscript',
-##                'win32comext.axscript.client',
-##                'win32comext.axscript.server',
+                'win32comext.axscript',
+                'win32comext.axscript.client',
+                'win32comext.axscript.server',
 
-##                'pywin',
-##                'pywin.debugger',
-##                'pywin.dialogs',
-##                'pywin.docking',
-##                'pywin.framework',
-##                'pywin.framework.editor',
-##                'pywin.framework.editor.color',
-##                'pywin.idle',
-##                'pywin.mfc',
-##                'pywin.scintilla',
-##                'pywin.tools',
-##                ],
+                'win32comext.axscript.demos',      # XXX not a package
+                'win32comext.axscript.demos.client',
+                'win32comext.axscript.demos.client.asp',
+                'win32comext.axscript.demos.client.ie',
+                'win32comext.axscript.demos.client.wsh',
+                'win32comext.axscript.test',       # XXX not a package
+                'win32comext.axdebug',
+                'win32comext.axscript',
+                'win32comext.axscript.client',
+                'win32comext.axscript.server',
+
+                'Pythonwin',
+                'Pythonwin.debugger',
+                'Pythonwin.dialogs',
+                'Pythonwin.docking',
+                'Pythonwin.framework',
+                'Pythonwin.framework.editor',
+                'Pythonwin.framework.editor.color',
+                'Pythonwin.idle',
+                'Pythonwin.mfc',
+                'Pythonwin.scintilla',
+                'Pythonwin.tools',
+                ],
       )
