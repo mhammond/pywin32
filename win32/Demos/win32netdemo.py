@@ -6,7 +6,13 @@ import win32security
 import getopt
 import traceback
 
+verbose_level = 0
+
 server = None # Run on local machine.
+
+def verbose(msg):
+	if verbose_level:
+		print msg
 
 def CreateUser():
 	"Creates a new test user, then deletes the user"
@@ -36,52 +42,64 @@ def CreateUser():
 	print "Created a user, changed their password, and deleted them!"
 	
 def UserEnum():
-	"Enumerates all the local servers"
+	"Enumerates all the local users"
 	resume = 0
+	nuser = 0
 	while 1:
 		data, total, resume = win32net.NetUserEnum(server, 3, win32netcon.FILTER_NORMAL_ACCOUNT, resume)
-		print "Call to NetUserEnum obtained %d entries of %d total" % (len(data), total)
+		verbose("Call to NetUserEnum obtained %d entries of %d total" % (len(data), total))
 		for user in data:
-			print "Found user %s" % user['name']
+			verbose("Found user %s" % user['name'])
+			nuser = nuser + 1
 		if not resume:
 			break
+	assert nuser, "Could not find any users!"
+	print "Enumerated all the local users"
 
 def GroupEnum():
 	"Enumerates all the domain groups"
+	nmembers = 0
 	resume = 0
 	while 1:
 		data, total, resume = win32net.NetGroupEnum(server, 1, resume)
 #		print "Call to NetGroupEnum obtained %d entries of %d total" % (len(data), total)
 		for group in data:
-			print "Found group %(name)s:%(comment)s " % group
+			verbose("Found group %(name)s:%(comment)s " % group)
 			memberresume = 0
 			while 1:
 				memberdata, total, memberresume = win32net.NetGroupGetUsers(server, group['name'], 0, resume)
 				for member in memberdata:
-					print " Member %(name)s" % member
+					verbose(" Member %(name)s" % member)
+					nmembers = nmembers + 1
 				if memberresume==0:
 					break
 		if not resume:
 			break
+	assert nmembers, "Couldnt find a single member in a single group!"
+	print "Enumerated all the groups"
 			
 def LocalGroupEnum():
 	"Enumerates all the local groups"
 	resume = 0
+	nmembers = 0
 	while 1:
 		data, total, resume = win32net.NetLocalGroupEnum(server, 1, resume)
 		for group in data:
-			print "Found group %(name)s:%(comment)s " % group
+			verbose("Found group %(name)s:%(comment)s " % group)
 			memberresume = 0
 			while 1:
 				memberdata, total, memberresume = win32net.NetLocalGroupGetMembers(server, group['name'], 2, resume)
 				for member in memberdata:
 					# Just for the sake of it, we convert the SID to a username
 					username, domain, type = win32security.LookupAccountSid(server, member['sid'])
-					print " Member %s (%s)" % (username, member['domainandname'])
+					nmembers = nmembers + 1
+					verbose(" Member %s (%s)" % (username, member['domainandname']))
 				if memberresume==0:
 					break
 		if not resume:
 			break
+	assert nmembers, "Couldnt find a single member in a single group!"
+	print "Enumerated all the local groups"
 
 def ServerEnum():
 	"Enumerates all servers on the network"
@@ -89,25 +107,26 @@ def ServerEnum():
 	while 1:
 		data, total, resume = win32net.NetServerEnum(server, 100, win32netcon.SV_TYPE_ALL, None, resume)
 		for s in data:
-			print "Found server %s" % s['name']
+			verbose("Found server %s" % s['name'])
 			# Now loop over the shares.
 			shareresume=0
 			while 1:
 				sharedata, total, shareresume = win32net.NetShareEnum(server, 2, shareresume)
 				for share in sharedata:
-					print " %(netname)s (%(path)s):%(remark)s - in use by %(current_uses)d users" % share
+					verbose(" %(netname)s (%(path)s):%(remark)s - in use by %(current_uses)d users" % share)
 				if not shareresume:
 					break
 		if not resume:
 			break
+	print "Enumerated all the servers on the network"
 	
 def GetInfo(userName=None):
 	"Dumps level 3 information about the current user"
 	if userName is None: userName=win32api.GetUserName()
-	print "Dumping level 3 information about user", userName
+	print "Dumping level 3 information about user"
 	info = win32net.NetUserGetInfo(server, userName, 3)
 	for key, val in info.items():
-		print key,"=",str(val)
+		verbose("%s=%s" % (key,val))
 
 def SetInfo(userName=None):
 	"Attempts to change the current users comment, then set it back"
@@ -120,15 +139,20 @@ def SetInfo(userName=None):
 		new = win32net.NetUserGetInfo(server, userName, 3)['usr_comment']
 		if  str(new) != "Test comment":
 			raise RuntimeError, "Could not read the same comment back - got %s" % new
+		print "Changed the data for the user"
 	finally:
 		win32net.NetUserSetInfo(server, userName, 3, oldData)
 
 def usage(tests):
 	import os
-	print "Usage: %s [-s server ] Test [Test ...]" % os.path.basename(sys.argv[0])
-	print "where Test is 'all' or one of:"
+	print "Usage: %s [-s server ] [-v] [Test ...]" % os.path.basename(sys.argv[0])
+	print "  -v : Verbose - print more information"
+	print "  -s : server - execute the tests against the named server"
+	print "where Test is one of:"
 	for t in tests:
 		print t.__name__,":", t.__doc__
+	print
+	print "If not tests are specified, all tests are run"
 	sys.exit(1)
 
 def main():
@@ -136,15 +160,19 @@ def main():
 	for ob in globals().values():
 		if type(ob)==type(main) and ob.__doc__:
 			tests.append(ob)
-	opts, args = getopt.getopt(sys.argv[1:], "s:")
+	opts, args = getopt.getopt(sys.argv[1:], "s:hv")
 	for opt, val in opts:
 		if opt=="-s":
 			global server
 			server = val
+		if opt=="-h":
+			usage(tests)
+		if opt=="-v":
+			global verbose_level
+			verbose_level = verbose_level + 1
 
 	if len(args)==0:
-		usage(tests)			
-	if args[0]=="all":
+		print "Running all tests - use '-h' to see command-line options..."
 		dotests = tests
 	else:
 		dotests = []
