@@ -99,6 +99,7 @@ class Dispatcher(win32com.server.policy.DispatcherWin32trace):
 			return rc
 		except Exception:
 			t, v, tb = sys.exc_info()
+			tb = None # A cycle
 			scode = v.scode
 			try:
 				desc = " (" + str(v.description) + ")"

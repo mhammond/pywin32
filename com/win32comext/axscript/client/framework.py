@@ -858,6 +858,8 @@ class COMScript:
 		if result_exception is not None:
 			self.scriptSite.OnScriptTerminate(None, result_exception)
 			self.SetScriptState(axscript.SCRIPTSTATE_INITIALIZED)
+		# Ensure the traceback doesnt cause a cycle.
+		exc_traceback = None
 		raise result_exception
 		
 		
