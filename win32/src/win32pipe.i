@@ -238,7 +238,7 @@ PyObject *MyConnectNamedPipe(PyObject *self, PyObject *args)
 	DWORD rc = GetLastError();
 	// These error conditions are documented as "acceptable" - ie,
 	// the function has still worked.
-	if (rc!= 0 && rc != ERROR_IO_PENDING && rc != ERROR_PIPE_CONNECTED)
+	if (!ok && rc!= 0 && rc != ERROR_IO_PENDING && rc != ERROR_PIPE_CONNECTED)
 		return PyWin_SetAPIError("ConnectNamedPipe");
 	return PyInt_FromLong(rc);
 }
