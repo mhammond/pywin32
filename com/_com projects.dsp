@@ -37,8 +37,8 @@ CFG=_com projects - Win32 Debug
 # PROP BASE Bsc_Name "_com projects.bsc"
 # PROP BASE Target_Dir ""
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
-# PROP Intermediate_Dir "Release"
+# PROP Output_Dir "Build\Release"
+# PROP Intermediate_Dir "Build\Release"
 # PROP Cmd_Line ""
 # PROP Rebuild_Opt ""
 # PROP Target_File "_com projects.exe"
@@ -56,8 +56,8 @@ CFG=_com projects - Win32 Debug
 # PROP BASE Bsc_Name "_com projects.bsc"
 # PROP BASE Target_Dir ""
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Debug"
-# PROP Intermediate_Dir "Debug"
+# PROP Output_Dir "Build\Debug"
+# PROP Intermediate_Dir "Build\Debug"
 # PROP Cmd_Line ""
 # PROP Rebuild_Opt ""
 # PROP Target_File "_com projects.exe"
