@@ -388,7 +388,7 @@ class Compiler:
 ##                    raise EnvironmentError(ENOENT, "The COM+ system assembly ('System.dll') can not be loaded: %s" % (msg,))
             for name in self.options.reference:
                 try:
-                    self.extra_assemblies.append(glue.Assembly_Load(name))
+                    self.extra_assemblies.append(glue.Assembly_LoadFrom(name))
                 except pythoncom.com_error, (hr, msg, exc, arg):
                     if exc and exc[2]: msg = exc[2]
                     raise EnvironmentError(ENOENT, "The specified DLL ('%s') can not be loaded: %s" % (name, msg))
@@ -1121,15 +1121,18 @@ class Generator:
         func.is_ctor = func.is_instance_method and func.name=='__init__' 
 
         user_sig = find_compiler_directive(func.code, "_com_params_")
-        if user_sig:
-            if func.varargs or func.kwargs: raise source_error("Dont support variable or kw args with a user-specified signature")
-            arg_types = string.split(str(user_sig), ",")
-            arg_types = map(string.strip, arg_types)
-            arg_types = map(self.compiler.getCORType, arg_types)
-            if (not func.is_instance_method and len(arg_types) != len(func.argnames)) or \
-                 (func.is_instance_method and len(arg_types)!=len(func.argnames)-1):
-                raise source_error("The number of params does not match those specified in '_com_params_'")
-            ret_type = find_compiler_directive(func.code, "_com_return_type_")
+        ret_type = find_compiler_directive(func.code, "_com_return_type_")
+        if user_sig or ret_type:
+            if user_sig:
+                if func.varargs or func.kwargs: raise source_error("Dont support variable or kw args with a user-specified signature")
+                arg_types = string.split(str(user_sig), ",")
+                arg_types = map(string.strip, arg_types)
+                arg_types = map(self.compiler.getCORType, arg_types)
+                if (not func.is_instance_method and len(arg_types) != len(func.argnames)) or \
+                     (func.is_instance_method and len(arg_types)!=len(func.argnames)-1):
+                    raise source_error("The number of params does not match those specified in '_com_params_'")
+            else:
+                arg_types = ()
             cor_ret_type = None
             if ret_type is None:
                 if not func.is_ctor:
@@ -1138,6 +1141,8 @@ class Generator:
                 if func.is_ctor:
                     raise source_error("You can not define the return type for a constructor")
                 cor_ret_type = self.compiler.getCORType(ret_type)
+                if cor_ret_type is None:
+                    self.compiler.warning(2, "_com_return_type_ specified as '%s' - no such type" % (ret_type,))
             method_attributes = constants.MethodAttributes_Public
             if func.is_instance_method:
                 if not func.is_ctor:
