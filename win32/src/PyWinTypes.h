@@ -523,6 +523,7 @@ class CEnterLeavePython {
 public:
 	CEnterLeavePython() {
 		acquire();
+		released = FALSE;
 	}
 	void acquire(void) {
 		state = PyGILState_Ensure();
@@ -531,10 +532,14 @@ public:
 		release();
 	}
 	void release(void) {
-		PyGILState_Release(state);
+		if (!released) {
+			PyGILState_Release(state);
+			released = TRUE;
+		}
 	}
 private:
 	PyGILState_STATE state;
+	BOOL released;
 };
 #endif // PYWIN_USE_GILSTATE
 
