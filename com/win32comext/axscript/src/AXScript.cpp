@@ -18,6 +18,90 @@ generates Windows .hlp files.
 #include "PyIProvideMultipleClassInfo.h"
 #include "PyIActiveScriptParseProcedure.h"
 
+// Some Dispatch helpers.  Very similar to the standard ones
+// provided with PyGatewayBase, except we have special handling
+// for EXCEPINFO
+static PyObject *do_dispatch(
+	PyObject *pPyObject,
+	const char *szMethodName,
+	const char *szFormat,
+	va_list va
+	)
+{
+	// Build the Invoke arguments...
+	PyObject *args;
+	if ( szFormat )
+		args = Py_VaBuildValue((char *)szFormat, va);
+	else
+		args = PyTuple_New(0);
+	if ( !args )
+		return NULL;
+
+	// make sure a tuple.
+	if ( !PyTuple_Check(args) )
+    {
+		PyObject *a = PyTuple_New(1);
+		if ( a == NULL )
+		{
+			Py_DECREF(args);
+			return NULL;
+		}
+		PyTuple_SET_ITEM(a, 0, args);
+		args = a;
+    }
+
+	PyObject *method = PyObject_GetAttrString(pPyObject, "_InvokeEx_");
+	if ( !method )
+    {
+		PyErr_SetString(PyExc_AttributeError, (char *)szMethodName);
+		return NULL;
+    }
+
+	// Make the call to _Invoke_
+	PyObject *result = PyObject_CallFunction(method,
+											 "siiOOO",
+											 szMethodName,
+											 0,
+											 DISPATCH_METHOD,
+											 args, Py_None, Py_None);
+	Py_DECREF(method);
+	Py_DECREF(args);
+	return result;
+}
+
+HRESULT InvokeGatewayViaPolicy(
+    PyGatewayBase *pGateway,
+	const char *szMethodName,
+	EXCEPINFO *pei,
+	PyObject **ppResult /* = NULL */,
+	const char *szFormat /* = NULL */,
+	...
+	)
+{
+	va_list va;
+
+	if ( pGateway->m_pPyObject == NULL || szMethodName == NULL )
+		return E_POINTER;
+
+	va_start(va, szFormat);
+	PyObject *result = do_dispatch(pGateway->m_pPyObject, szMethodName, szFormat, va);
+	va_end(va);
+
+
+	HRESULT hr = S_OK;
+	if (PyErr_Occurred()) {
+		PyCom_ExcepInfoFromPyException(pei);
+		hr = DISP_E_EXCEPTION;
+	}
+
+
+	if ( ppResult )
+		*ppResult = result;
+	else
+		Py_XDECREF(result);
+
+	return hr;
+}
 
 /* List of module functions */
 // @module axscript|A module, encapsulating the ActiveX Scripting interfaces
