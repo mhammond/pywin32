@@ -70,6 +70,7 @@ def _WaitForFinish(ob, timeout):
         pythoncom.PumpWaitingMessages()
         stopEvent.wait(.2)
         if stopEvent.isSet():
+            stopEvent.clear()
             break
         if not ob.Visible:
             # Gone invisible - we need to pretend we timed
