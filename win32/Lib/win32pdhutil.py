@@ -132,10 +132,13 @@ def BrowseCallBackDemo(counter):
 	print "Added '%s' on object '%s' (machine %s), instance %s(%d)-parent of %s" % (counterName, object, machine, instance, index, parentInstance)
 
 def browse( callback = BrowseCallBackDemo, title="Python Browser", level=win32pdh.PERF_DETAIL_WIZARD):
-	print "Virtual Bytes = ", FindPerformanceAttributesByName("python", counter="Virtual Bytes")	 
-	print "Available Bytes = ", GetPerformanceAttributes("Memory", "Available Bytes")
+	win32pdh.BrowseCounters(None,0, callback, level, title)
 
 if __name__=='__main__':
 	ShowAllProcesses()
+	# Show how to get a couple of attributes by name.
+	print "Virtual Bytes = ", FindPerformanceAttributesByName("python", counter="Virtual Bytes")
+	print "Available Bytes = ", GetPerformanceAttributes("Memory", "Available Bytes")
+	# And a browser.
 	print "Browsing for counters..."
 	browse()
