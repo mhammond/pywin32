@@ -41,7 +41,7 @@ from distutils.core import setup, Extension, Command
 from distutils.command.install_lib import install_lib
 from distutils.command.build_ext import build_ext
 from distutils.command.install_data import install_data
-from distutils.dep_util import newer_group
+from distutils.dep_util import newer_group, newer
 from distutils import dir_util, file_util
 from distutils.sysconfig import get_python_lib
 from distutils.filelist import FileList
@@ -622,17 +622,24 @@ class my_build_ext(build_ext):
                         swig_cmd.extend(
                                 ["-com_interface_parent", interface_parent])
 
-            swig_cmd.extend(["-o",
-                             os.path.abspath(target),
-                             os.path.abspath(source)])
-            log.info("swigging %s to %s", source, target)
-            out_dir = os.path.dirname(source)
-            cwd = os.getcwd()
-            os.chdir(out_dir)
-            try:
-                self.spawn(swig_cmd)
-            finally:
-                os.chdir(cwd)
+            # This 'newer' check helps python 2.2 builds, which otherwise
+            # *always* regenerate the .cpp files, meaning every future
+            # build for any platform sees these as dirty.
+            # This could probably go once we generate .cpp into the temp dir.
+            if newer(os.path.abspath(source), os.path.abspath(target)):
+                swig_cmd.extend(["-o",
+                                 os.path.abspath(target),
+                                 os.path.abspath(source)])
+                log.info("swigging %s to %s", source, target)
+                out_dir = os.path.dirname(source)
+                cwd = os.getcwd()
+                os.chdir(out_dir)
+                try:
+                    self.spawn(swig_cmd)
+                finally:
+                    os.chdir(cwd)
+            else:
+                log.info("skipping swig of %s", source)
 
         return new_sources
 
@@ -908,9 +915,9 @@ else:
 dist = setup(name="pywin32",
       version="200",
       description="Python for Window Extensions",
-      long_description="Includes access to much of the Win32 API, the "
-                       "ability to create and use COM objects, and the "
-                       "Pythonwin environment",
+      long_description="Includes access to much of the Win32 API, the\n"
+                       "ability to create and use COM objects, and the\n"
+                       "Pythonwin environment.",
       author="Mark Hammond (et al)",
       author_email = "mhammond@users.sourceforge.net",
       url="http://sourceforge.net/projects/pywin32/",
@@ -919,7 +926,11 @@ dist = setup(name="pywin32",
                    'build_ext': my_build_ext,
                    'install_data': my_install_data,
                    },
-      options = {"bdist_wininst": {"install_script": "pywin32_postinstall.py"}},
+      options = {"bdist_wininst":
+                    {"install_script": "pywin32_postinstall.py",
+                     "pre_install_script": "pywin32_preinstall.py",
+                    },
+                },
 
       scripts = ["pywin32_postinstall.py"],
       
