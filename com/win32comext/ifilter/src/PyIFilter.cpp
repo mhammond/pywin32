@@ -331,7 +331,14 @@ extern "C" __declspec(dllexport) void initifilter()
 
 	// Register all of our interfaces, gateways and IIDs.
 	PyCom_RegisterExtensionSupport(dict, g_interfaceSupportData, sizeof(g_interfaceSupportData)/sizeof(PyCom_InterfaceSupportInfo));
-	
+
+	// Tell pywintypes that IFilter error messages can be extracted from
+	// query.dll
+	HMODULE hmod = GetModuleHandle("query.dll");
+	if (hmod)
+		// According to FiltErr.h, "Codes 0x1700-0x172F are reserved for FILTER"
+		PyWin_RegisterErrorMessageModule(0x80041700, 0x8004172F, hmod);
+
 	// NOTE: New constants should go in ifiltercon.py
 	// IFilter Init functions
 	ADD_CONSTANT(IFILTER_INIT_CANON_PARAGRAPHS);
