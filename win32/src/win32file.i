@@ -558,7 +558,7 @@ MyLockFileEx(PyObject *self, PyObject *args)
 		&obhFile, // @pyparm <o PyHANDLE>/int|hFile||Handle to the file
         &dwFlags, // @pyparm dwFlags|int||Flags that specify exclusive/shared and blocking/non-blocking mode
         &nbytesLow, // @pyparm nbytesLow|int||low-order part of number of bytes to lock
-        &nbytesHigh, // @pyparm nbytesLow|int||high-order part of number of bytes to lock
+        &nbytesHigh, // @pyparm nbytesHigh|int||high-order part of number of bytes to lock
 		&obOverlapped))	// @pyparm <o PyOVERLAPPED>|ol|None|An overlapped structure
 		return NULL;
 	if (obOverlapped==NULL)
