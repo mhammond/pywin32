@@ -748,7 +748,7 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
 			pe->klass = LoadPythonServiceClass(svcInitBuf);
 		}
 	} else
-		PY_SERVICE_TABLE_ENTRY *pe = FindPythonServiceEntry(lpszArgv[0]);
+		pe = FindPythonServiceEntry(lpszArgv[0]);
 	if (!pe) {
 		LPTSTR  lpszStrings[] = {lpszArgv[0], NULL};
 		ReportError(E_PYS_NO_SERVICE, (LPCTSTR *)lpszStrings);
