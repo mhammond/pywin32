@@ -186,6 +186,9 @@ def RegisterServer(clsid,
                  { None : dllName,
                    "ThreadingModel" : threadingModel,
                    })
+  else: # Remove an old InProcServer32 registration
+    _remove_key(keyNameRoot + "\\InprocServer32")
+
   if not clsctx or clsctx & pythoncom.CLSCTX_LOCAL_SERVER:
     exeName = _find_localserver_exe(clsctx)
     if exeName:
@@ -198,6 +201,8 @@ def RegisterServer(clsid,
       _set_string(keyNameRoot + '\\LocalServer32', '%s%s %s' % (exeName, pyfile_insert, str(clsid)))
     else:
       sys.stderr.write("Warning:  Can not locate a host .EXE for the COM server\nThe server will not be registered with LocalServer32 support.")
+  else: # Remove an old LocalServer32 registration
+    _remove_key(keyNameRoot + "\\LocalServer32")
 
   if pythonInstString:
     _set_string(keyNameRoot + '\\PythonCOM', pythonInstString)
