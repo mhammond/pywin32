@@ -545,10 +545,10 @@ class CEnterLeavePython {
 public:
 	CEnterLeavePython() {
 		acquire();
-		released = FALSE;
 	}
 	void acquire(void) {
 		state = PyGILState_Ensure();
+		released = FALSE;
 	}
 	~CEnterLeavePython() {
 		release();
