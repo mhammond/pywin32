@@ -17,7 +17,7 @@ def ReadLog(computer, logType="Application", dumpEachRecord = 0):
             break
         for object in objects:
             # get it for testing purposes, but dont print it.
-            msg = str(SafeFormatMessage(object, logType))
+            msg = SafeFormatMessage(object, logType).encode("mbcs")
             if object.Sid is not None:
                 try:
                     domain, user, typ = win32security.LookupAccountSid(computer, object.Sid)
@@ -34,7 +34,7 @@ def ReadLog(computer, logType="Application", dumpEachRecord = 0):
         num = num + len(objects)
 
     if numRecords == num:
-        print "Successfully read all records"
+        print "Successfully read all", numRecords, "records"
     else:
         print "Couldn't get all records - reported %d, but found %d" % (numRecords, num)
         print "(Note that some other app may have written records while we were running!)"
