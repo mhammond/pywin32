@@ -233,6 +233,9 @@ SVSI_TRANSLATEPT = 32
 SVGIO_BACKGROUND = 0
 SVGIO_SELECTION = 1
 SVGIO_ALLVIEW = 2
+SVGIO_CHECKED	= 0x3,
+SVGIO_TYPE_MASK	= 0xf,
+SVGIO_FLAG_VIEWORDER = -2147483648 # 0x80000000
 STRRET_WSTR = 0
 STRRET_OFFSET = 1
 STRRET_CSTR = 2
@@ -566,6 +569,7 @@ SHCONTF_STORAGE             = 2048
 
 SHGDN_NORMAL            = 0        # default (display purpose)
 SHGDN_INFOLDER          = 1        # displayed under a folder (relative)
+SHGDN_FOREDITING         = 4096   # for in-place editing
 SHGDN_INCLUDE_NONFILESYS = 8192   # if not set, display names for shell name space items that are not in the file system will fail.
 SHGDN_FORADDRESSBAR     = 16384   # for displaying in the address (drives dropdown) bar
 SHGDN_FORPARSING        = 32768   # for ParseDisplayName or path
@@ -846,3 +850,14 @@ FVM_DETAILS	= 4
 FVM_THUMBNAIL	= 5
 FVM_TILE	= 6
 FVM_THUMBSTRIP	= 7
+
+SVUIA_DEACTIVATE	= 0
+SVUIA_ACTIVATE_NOFOCUS	= 1
+SVUIA_ACTIVATE_FOCUS	= 2
+SVUIA_INPLACEACTIVATE	= 3
+
+# SHChangeNotifyRegister flags
+SHCNRF_InterruptLevel = 1
+SHCNRF_ShellLevel = 2
+SHCNRF_RecursiveInterrupt = 4096
+SHCNRF_NewDelivery = 32768
