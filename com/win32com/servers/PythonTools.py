@@ -24,11 +24,19 @@ class Tools:
 
 
 if __name__=='__main__':
-	print "Registering COM server..."
-	from win32com.server.register import RegisterServer
-	RegisterServer("{06ce7630-1d81-11d0-ae37-c2fa70000000}",
+	from win32com.server.register import RegisterServer, UnregisterServer
+	clsid = "{06ce7630-1d81-11d0-ae37-c2fa70000000}"
+	progid = "Python.Tools"
+	verprogid = "Python.Tools.1"
+	if "--unregister" in sys.argv:
+		print "Unregistering..."
+		UnregisterServer(clsid, progid, verprogid)
+		print "Unregistered OK"
+	else:
+		print "Registering COM server..."
+		RegisterServer(clsid,
                        "win32com.servers.PythonTools.Tools",
                        "Python Tools",
-                       "Python.Tools",
-                       "Python.Tools.1")
-	print "Class registered."
+                       progid,
+                       verprogid)
+		print "Class registered."
