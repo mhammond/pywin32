@@ -3,6 +3,8 @@ import win32com.client
 import pythoncom
 import winerror
 
+import unittest
+
 class Error(Exception):
     pass
 
@@ -47,7 +49,6 @@ def DispExTest(ob):
     dispids.sort()
     if dispids <> [pythoncom.DISPID_EVALUATE, pythoncom.DISPID_NEWENUM, 10, 11, 1000]:
         raise Error, "Got back the wrong dispids: %s" % dispids
-    print "IDispatchEx semantics worked"
 
 def SemanticTest(ob):
     # First just check our object "generally" as expected.
@@ -64,20 +65,24 @@ def SemanticTest(ob):
     if rc != 6:
         raise Error, "Evaluate returned", rc
 
-    dispexob = dispob.QueryInterface(pythoncom.IID_IDispatchEx)
-    DispExTest(dispexob)
-    print "Python policy semantics worked."
 
-def TestAll():
-    debug=0
-    import win32com.server.dispatcher
-    if debug:
-        dispatcher=win32com.server.dispatcher.DefaultDebugDispatcher
-    else:
-        dispatcher=None
-    disp = win32com.server.util.wrap(PythonSemanticClass(), useDispatcher=dispatcher)
-    ob = win32com.client.Dispatch(disp)
-    SemanticTest(ob)
+class Tester(unittest.TestCase):
+    def setUp(self):
+        debug=0
+        import win32com.server.dispatcher
+        if debug:
+            dispatcher=win32com.server.dispatcher.DefaultDebugDispatcher
+        else:
+            dispatcher=None
+        disp = win32com.server.util.wrap(PythonSemanticClass(), useDispatcher=dispatcher)
+        self.ob = win32com.client.Dispatch(disp)
+    def tearDown(self):
+        self.ob = None
+    def testSemantics(self):
+        SemanticTest(self.ob)
+    def testIDispatchEx(self):
+        dispexob = self.ob._oleobj_.QueryInterface(pythoncom.IID_IDispatchEx)
+        DispExTest(dispexob)
 
 if __name__=='__main__':
-    TestAll()
+    unittest.main()
