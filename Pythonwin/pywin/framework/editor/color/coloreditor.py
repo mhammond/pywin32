@@ -342,6 +342,15 @@ class SyntEditView(SyntEditViewParent):
 		# Call the IDLE event.
 		return self.bindings.fire("<<smart-indent>>", event)
 
+	def EnterKeyEvent(self, event):
+		"""Handle the enter key with special handling for auto-complete
+		"""
+		# Handle auto-complete first.
+		if self.SCIAutoCActive():
+			self.SCIAutoCCancel()
+		# Call the IDLE event.
+		return self.bindings.fire("<<newline-and-indent>>", event)
+
 	def ShowInteractiveWindowEvent(self, event):
 		import pywin.framework.interact
 		pywin.framework.interact.ShowInteractiveWindow()
