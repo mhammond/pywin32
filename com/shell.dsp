@@ -94,6 +94,10 @@ LINK32=link.exe
 # PROP Default_Filter "cxx;cpp;c"
 # Begin Source File
 
+SOURCE=.\win32comext\shell\src\PyIBrowserFrameOptions.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32comext\shell\src\PyIContextMenu.cpp
 # End Source File
 # Begin Source File
@@ -110,6 +114,14 @@ SOURCE=.\win32comext\shell\src\PyIExtractIcon.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32comext\shell\src\PyIPersistFolder.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIShellBrowser.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32comext\shell\src\PyIShellExtInit.cpp
 # End Source File
 # Begin Source File
@@ -122,12 +134,20 @@ SOURCE=.\win32comext\shell\src\PyIShellLink.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32comext\shell\src\PyIShellView.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32comext\shell\src\shell.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h"
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIBrowserFrameOptions.h
+# End Source File
 # Begin Source File
 
 SOURCE=.\win32comext\shell\src\PyIContextMenu.h
@@ -146,6 +166,14 @@ SOURCE=.\win32comext\shell\src\PyIExtractIcon.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32comext\shell\src\PyIPersistFolder.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIShellBrowser.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32comext\shell\src\PyIShellExtInit.h
 # End Source File
 # Begin Source File
@@ -155,6 +183,10 @@ SOURCE=.\win32comext\shell\src\PyIShellFolder.h
 # Begin Source File
 
 SOURCE=.\win32comext\shell\src\PyIShellLink.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\shell\src\PyIShellView.h
 # End Source File
 # Begin Source File
 
