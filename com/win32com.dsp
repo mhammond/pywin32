@@ -32,7 +32,6 @@ CFG=win32com - Win32 Debug
 # PROP AllowPerConfigDependencies 0
 # PROP Scc_ProjName ""$/Python/com/win32com", SAAAAAAA"
 # PROP Scc_LocalPath "./win32com"
-# PROP WCE_FormatVersion "6.0"
 
 !IF  "$(CFG)" == "win32com - Win32 Release"
 
@@ -132,25 +131,25 @@ SOURCE="$(InputPath)"
 # PROP Intermediate_Dir "Build\Temp\win32event\ce\mips\Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-PFILE=pfile.exe
-# ADD BASE PFILE COPY
-# ADD PFILE COPY
-CPP=clmips.exe
-# ADD BASE CPP /nologo /ML /W3 /Zi /O2 /I "win32com\src\include" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_WINDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /D "STRICT" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /M$(CECrtMT) /W3 /O1 /I "win32com\src\include" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_WINDLL" /D "BUILD_PYTHONCOM" /D "STRICT" /Yu"stdafx.h" /FD /c
-RSC=rc.exe
-# ADD BASE RSC /l 0x409 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-# ADD RSC /l 0x409 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 ole32.lib oleaut32.lib uuid.lib commctrl.lib coredll.lib /nologo /dll /pdb:"Build\System\pythoncom15.pdb" /debug /machine:MIPS /def:".\win32com\src\PythonCOM.def" /out:"Build\System\pythoncom15.dll" /implib:"Build\pythoncom.lib"
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
-# ADD LINK32 ole32.lib oleaut32.lib uuid.lib commctrl.lib coredll.lib winsock.lib  /nologo /dll /pdb:none /machine:MIPS /nodefaultlib:"$(CENoDefaultLib)" /def:".\win32com\src\PythonCOM.def" /out:"Build\ce\mips\pythoncom15.dll" /implib:"Build\ce\mips\pythoncom.lib" /subsystem:$(CESubsystem)
+# ADD LINK32 ole32.lib oleaut32.lib uuid.lib commctrl.lib coredll.lib winsock.lib /nologo /dll /pdb:none /machine:MIPS /nodefaultlib:"$(CENoDefaultLib)" /def:".\win32com\src\PythonCOM.def" /out:"Build\ce\mips\pythoncom15.dll" /implib:"Build\ce\mips\pythoncom.lib" /subsystem:$(CESubsystem)
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+# ADD RSC /l 0x409 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+CPP=clmips.exe
+# ADD BASE CPP /nologo /ML /W3 /Zi /O2 /I "win32com\src\include" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_WINDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /D "STRICT" /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /M$(CECrtMT) /W3 /O1 /I "win32com\src\include" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_WINDLL" /D "BUILD_PYTHONCOM" /D "STRICT" /Yu"stdafx.h" /FD /c
+PFILE=pfile.exe
+# ADD BASE PFILE COPY
+# ADD PFILE COPY
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
 
@@ -166,25 +165,25 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Build\Temp\win32event\ce\sh\Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-PFILE=pfile.exe
-# ADD BASE PFILE COPY
-# ADD PFILE COPY
-CPP=shcl.exe
-# ADD BASE CPP /nologo /ML /W3 /Zi /O2 /I "win32com\src\include" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_WINDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /D "STRICT" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /M$(CECrtMT) /W3 /O1 /I "win32com\src\include" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_WINDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /D "STRICT" /Yu"stdafx.h" /FD /c
-RSC=rc.exe
-# ADD BASE RSC /l 0x409 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-# ADD RSC /l 0x409 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 ole32.lib oleaut32.lib uuid.lib commctrl.lib coredll.lib /nologo /dll /pdb:"Build\System\pythoncom15.pdb" /debug /machine:SH3 /def:".\win32com\src\PythonCOM.def" /out:"Build\System\pythoncom15.dll" /implib:"Build\pythoncom.lib"
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
-# ADD LINK32 ole32.lib oleaut32.lib uuid.lib commctrl.lib coredll.lib  /nologo /dll /pdb:none /machine:SH3 /nodefaultlib:"$(CENoDefaultLib)" /def:".\win32com\src\PythonCOM.def" /out:"Build\ce\sh\pythoncom15.dll" /implib:"Build\ce\sh\pythoncom.lib" /subsystem:$(CESubsystem)
+# ADD LINK32 ole32.lib oleaut32.lib uuid.lib commctrl.lib coredll.lib /nologo /dll /pdb:none /machine:SH3 /nodefaultlib:"$(CENoDefaultLib)" /def:".\win32com\src\PythonCOM.def" /out:"Build\ce\sh\pythoncom15.dll" /implib:"Build\ce\sh\pythoncom.lib" /subsystem:$(CESubsystem)
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+# ADD RSC /l 0x409 /r /d "SHx" /d "SH3" /d "_SH3_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "NDEBUG"
+CPP=shcl.exe
+# ADD BASE CPP /nologo /ML /W3 /Zi /O2 /I "win32com\src\include" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_WINDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /D "STRICT" /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /M$(CECrtMT) /W3 /O1 /I "win32com\src\include" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "NDEBUG" /D "SHx" /D "SH3" /D "_SH3_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_WINDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /D "STRICT" /Yu"stdafx.h" /FD /c
+PFILE=pfile.exe
+# ADD BASE PFILE COPY
+# ADD PFILE COPY
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
 
@@ -200,26 +199,26 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Build\Temp\win32com\ce\x86em\Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-EMPFILE=empfile.exe
-# ADD BASE EMPFILE COPY
-# ADD EMPFILE COPY
-CPP=cl.exe
-# ADD BASE CPP /nologo /MLd /W3 /Gm /ZI /Od /I "win32com\src\include" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "_DEBUG" /D "x86" /D "i486" /D "_x86_" /D "_WINDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MTd /W3 /Gm /Zi /Od /I "win32com\src\include" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "_DEBUG" /D "x86" /D "i486" /D "_x86_" /D "_WINDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /YX"stdafx.h" /FD /c
-RSC=rc.exe
-# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "_DEBUG" /d "x86" /d "i486" /d "_x86_"
-# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "_DEBUG" /d "x86" /d "i486" /d "_x86_"
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 ole32.lib oleaut32.lib uuid.lib commctrl.lib coredll.lib /nologo /base:"0x1e2a0000" /subsystem:windows /dll /pdb:"Build\System\pythoncom15_d.pdb" /debug /machine:IX86 /def:".\win32com\src\PythonCOM.def" /out:"Build\System\pythoncom15_d.dll" /implib:"Build\pythoncom_d.lib" /pdbtype:sept
 # SUBTRACT BASE LINK32 /pdb:none /incremental:no
-# ADD LINK32 coredll.lib corelibc.lib ole32.lib oleaut32.lib uuid.lib  /nologo /base:"0x1e2a0000" /subsystem:windows /dll /debug /machine:IX86 /nodefaultlib:"$(CENoDefaultLib)" /def:".\win32com\src\PythonCOM.def" /out:"Build\ce\x86em\pythoncom15_d.dll" /implib:"Build\pythoncom_d.lib" /pdbtype:sept
+# ADD LINK32 coredll.lib corelibc.lib ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e2a0000" /subsystem:windows /dll /debug /machine:IX86 /nodefaultlib:"$(CENoDefaultLib)" /def:".\win32com\src\PythonCOM.def" /out:"Build\ce\x86em\pythoncom15_d.dll" /implib:"Build\pythoncom_d.lib" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "_DEBUG" /d "x86" /d "i486" /d "_x86_"
+# ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "_DEBUG" /d "x86" /d "i486" /d "_x86_"
+CPP=cl.exe
+# ADD BASE CPP /nologo /MLd /W3 /Gm /ZI /Od /I "win32com\src\include" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "_DEBUG" /D "x86" /D "i486" /D "_x86_" /D "_WINDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MTd /W3 /Gm /Zi /Od /I "win32com\src\include" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "_DEBUG" /D "x86" /D "i486" /D "_x86_" /D "_WINDLL" /D "_MBCS" /D "BUILD_PYTHONCOM" /YX"stdafx.h" /FD /c
+EMPFILE=empfile.exe
+# ADD BASE EMPFILE COPY
+# ADD EMPFILE COPY
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Debug"
 
@@ -235,26 +234,26 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Build\Temp\win32com\ce\mips\Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-PFILE=pfile.exe
-# ADD BASE PFILE COPY
-# ADD PFILE COPY
-CPP=clmips.exe
-# ADD BASE CPP /nologo /MLd /W3 /Zi /Od /I "win32com\src\include" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /M$(CECrtMT) /W3 /Zi /Od /I "win32com\src\include" /D "BUILD_PYTHONCOM" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /Yu"stdafx.h" /FD /c
-RSC=rc.exe
-# ADD BASE RSC /l 0x409 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "DEBUG"
-# ADD RSC /l 0x409 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "DEBUG"
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 corelibc.lib ole32.lib oleaut32.lib uuid.lib commctrl.lib coredll.lib /nologo /dll /debug /machine:MIPS /def:".\win32com\src\PythonCOM.def" /out:"Build\ce\x86em\pythoncom15_d.dll" /implib:"Build\pythoncom_d.lib" /pdbtype:sept
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
-# ADD LINK32 corelibc.lib ole32.lib oleaut32.lib uuid.lib commctrl.lib coredll.lib  /nologo /dll /debug /machine:MIPS /nodefaultlib:"$(CENoDefaultLib)" /def:".\win32com\src\PythonCOM.def" /out:"Build\ce\mips\pythoncom15_d.dll" /implib:"Build\ce\mips\pythoncom_d.lib" /pdbtype:sept /subsystem:$(CESubsystem)
+# ADD LINK32 corelibc.lib ole32.lib oleaut32.lib uuid.lib commctrl.lib coredll.lib /nologo /dll /debug /machine:MIPS /nodefaultlib:"$(CENoDefaultLib)" /def:".\win32com\src\PythonCOM.def" /out:"Build\ce\mips\pythoncom15_d.dll" /implib:"Build\ce\mips\pythoncom_d.lib" /pdbtype:sept /subsystem:$(CESubsystem)
 # SUBTRACT LINK32 /pdb:none
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /o /win32 "NUL"
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "DEBUG"
+# ADD RSC /l 0x409 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "$(CEConfigName)" /d "UNICODE" /d "DEBUG"
+CPP=clmips.exe
+# ADD BASE CPP /nologo /MLd /W3 /Zi /Od /I "win32com\src\include" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /M$(CECrtMT) /W3 /Zi /Od /I "win32com\src\include" /D "BUILD_PYTHONCOM" /D _WIN32_WCE=$(CEVersion) /D "$(CEConfigName)" /D "DEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /Yu"stdafx.h" /FD /c
+PFILE=pfile.exe
+# ADD BASE PFILE COPY
+# ADD PFILE COPY
 
 !ENDIF 
 
@@ -335,45 +334,47 @@ DEP_CPP_DLLMA=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_DLLMA=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -449,45 +450,47 @@ NODEP_CPP_ERROR=\
 DEP_CPP_ERROR=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_ERROR=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -561,45 +564,47 @@ NODEP_CPP_MISCT=\
 DEP_CPP_MISCT=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_MISCT=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -673,45 +678,47 @@ NODEP_CPP_OLEAR=\
 DEP_CPP_OLEAR=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_OLEAR=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -788,46 +795,48 @@ DEP_CPP_PYCOM=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYCOM=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinObjects.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -909,45 +918,47 @@ DEP_CPP_PYFAC=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYFAC=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -1027,45 +1038,47 @@ DEP_CPP_PYGAT=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYGAT=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -1141,45 +1154,47 @@ NODEP_CPP_PYIBA=\
 DEP_CPP_PYIBA=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIBA=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -1255,45 +1270,47 @@ DEP_CPP_PYICL=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYICL=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -1368,45 +1385,47 @@ NODEP_CPP_PYIDI=\
 DEP_CPP_PYIDI=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIDI=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -1482,45 +1501,47 @@ DEP_CPP_PYIUN=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIUN=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -1597,45 +1618,47 @@ DEP_CPP_PYSTO=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYSTO=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -1714,45 +1737,47 @@ DEP_CPP_PYTHO=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYTHO=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -1787,7 +1812,6 @@ DEP_CPP_REGIS=\
 	".\win32com\src\include\PyIBindCtx.h"\
 	".\win32com\src\include\PyICatInformation.h"\
 	".\win32com\src\include\PyICatRegister.h"\
-	".\win32com\src\include\PyIEnumConnections.h"\
 	".\win32com\src\include\PyIEnumGUID.h"\
 	".\win32com\src\include\PyIEnumSTATSTG.h"\
 	".\win32com\src\include\PyIEnumVARIANT.h"\
@@ -1807,6 +1831,7 @@ DEP_CPP_REGIS=\
 	".\win32com\src\include\PythonCOMRegister.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
+	{$(INCLUDE)}"PyIEnumConnections.h"\
 	
 NODEP_CPP_REGIS=\
 	".\angeobject.h"\
@@ -1860,7 +1885,6 @@ DEP_CPP_REGIS=\
 	".\win32com\src\include\PyICatRegister.h"\
 	".\win32com\src\include\pyicreatetypeinfo.h"\
 	".\win32com\src\include\pyicreatetypelib.h"\
-	".\win32com\src\include\PyIEnumConnections.h"\
 	".\win32com\src\include\PyIEnumGUID.h"\
 	".\win32com\src\include\pyienumstatpropstg.h"\
 	".\win32com\src\include\PyIEnumSTATSTG.h"\
@@ -1883,45 +1907,48 @@ DEP_CPP_REGIS=\
 	".\win32com\src\include\PythonCOMRegister.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	{$(INCLUDE)}"PyIEnumConnections.h"\
+	
+NODEP_CPP_REGIS=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -1936,7 +1963,6 @@ DEP_CPP_REGIS=\
 	".\win32com\src\include\PyIBindCtx.h"\
 	".\win32com\src\include\PyICatInformation.h"\
 	".\win32com\src\include\PyICatRegister.h"\
-	".\win32com\src\include\PyIEnumConnections.h"\
 	".\win32com\src\include\PyIEnumGUID.h"\
 	".\win32com\src\include\PyIEnumSTATSTG.h"\
 	".\win32com\src\include\PyIEnumVARIANT.h"\
@@ -1956,6 +1982,7 @@ DEP_CPP_REGIS=\
 	".\win32com\src\include\PythonCOMRegister.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
+	{$(INCLUDE)}"PyIEnumConnections.h"\
 	
 
 !ENDIF 
@@ -2022,43 +2049,45 @@ NODEP_CPP_STDAF=\
 
 DEP_CPP_STDAF=\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
+	
+NODEP_CPP_STDAF=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -2092,46 +2121,48 @@ DEP_CPP_PYFUN=\
 	".\win32com\src\include\pycomtypeobjects.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"structmember.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYFUN=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\tructmember.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
@@ -2140,46 +2171,48 @@ DEP_CPP_PYFUN=\
 	".\win32com\src\include\pycomtypeobjects.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"structmember.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYFUN=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\tructmember.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -2190,46 +2223,48 @@ DEP_CPP_PYFUN=\
 	".\win32com\src\include\pycomtypeobjects.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"structmember.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYFUN=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\tructmember.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
@@ -2298,45 +2333,47 @@ DEP_CPP_PYGCO=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYGCO=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -2416,45 +2453,47 @@ DEP_CPP_PYGCON=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYGCON=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -2534,45 +2573,47 @@ DEP_CPP_PYGEN=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYGEN=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -2654,45 +2695,47 @@ DEP_CPP_PYGER=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYGER=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -2775,45 +2818,47 @@ DEP_CPP_PYGPE=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYGPE=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -2896,45 +2941,47 @@ DEP_CPP_PYGPER=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYGPER=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -3017,45 +3064,47 @@ DEP_CPP_PYGPERS=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYGPERS=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -3140,45 +3189,47 @@ DEP_CPP_PYGPERSI=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYGPERSI=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -3266,45 +3317,47 @@ DEP_CPP_PYGPERSIS=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYGPERSIS=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -3389,45 +3442,47 @@ DEP_CPP_PYGPR=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYGPR=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -3508,45 +3563,47 @@ DEP_CPP_PYGST=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYGST=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -3624,45 +3681,47 @@ DEP_CPP_PYIBI=\
 	".\win32com\src\include\PyIBindCtx.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIBI=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -3739,45 +3798,47 @@ DEP_CPP_PYICA=\
 	".\win32com\src\include\PyICatInformation.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYICA=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -3854,45 +3915,47 @@ DEP_CPP_PYICAT=\
 	".\win32com\src\include\PyICatRegister.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYICAT=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -3967,45 +4030,47 @@ NODEP_CPP_PYICO=\
 DEP_CPP_PYICO=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYICO=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -4079,45 +4144,47 @@ NODEP_CPP_PYICON=\
 DEP_CPP_PYICON=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYICON=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -4148,45 +4215,47 @@ DEP_CPP_PYICR=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYICR=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
@@ -4197,45 +4266,47 @@ DEP_CPP_PYICR=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYICR=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -4248,45 +4319,47 @@ DEP_CPP_PYICR=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYICR=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
@@ -4307,45 +4380,47 @@ DEP_CPP_PYICRE=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYICRE=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
@@ -4355,45 +4430,47 @@ DEP_CPP_PYICRE=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYICRE=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -4405,45 +4482,47 @@ DEP_CPP_PYICRE=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYICRE=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
@@ -4510,45 +4589,47 @@ DEP_CPP_PYIEN=\
 	".\win32com\src\include\PyIEnumGUID.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIEN=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -4566,6 +4647,25 @@ DEP_CPP_PYIEN=\
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32com\src\extensions\PyIEnumConnectionPoints.cpp
+
+!IF  "$(CFG)" == "win32com - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Release"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
+
+!ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Debug"
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32com\src\extensions\PyIEnumConnections.cpp
 
 !IF  "$(CFG)" == "win32com - Win32 Release"
@@ -4575,10 +4675,10 @@ SOURCE=.\win32com\src\extensions\PyIEnumConnections.cpp
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Release"
 
 DEP_CPP_PYIENU=\
-	".\win32com\src\include\PyIEnumConnections.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
+	{$(INCLUDE)}"PyIEnumConnections.h"\
 	
 NODEP_CPP_PYIENU=\
 	".\angeobject.h"\
@@ -4623,49 +4723,51 @@ NODEP_CPP_PYIENU=\
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
 
 DEP_CPP_PYIENU=\
-	".\win32com\src\include\PyIEnumConnections.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	{$(INCLUDE)}"PyIEnumConnections.h"\
+	
+NODEP_CPP_PYIENU=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -4673,10 +4775,10 @@ DEP_CPP_PYIENU=\
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE MIPS) Debug"
 
 DEP_CPP_PYIENU=\
-	".\win32com\src\include\PyIEnumConnections.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
+	{$(INCLUDE)}"PyIEnumConnections.h"\
 	
 
 !ENDIF 
@@ -4743,45 +4845,47 @@ DEP_CPP_PYIENUM=\
 	".\win32com\src\include\PyIEnumGUID.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIENUM=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -4811,45 +4915,47 @@ DEP_CPP_PYIENUMS=\
 	".\win32com\src\include\pyienumstatpropstg.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIENUMS=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
@@ -4858,45 +4964,47 @@ DEP_CPP_PYIENUMS=\
 	".\win32com\src\include\pyienumstatpropstg.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIENUMS=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -4907,45 +5015,47 @@ DEP_CPP_PYIENUMS=\
 	".\win32com\src\include\pyienumstatpropstg.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIENUMS=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
@@ -5014,45 +5124,47 @@ DEP_CPP_PYIENUMST=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIENUMST=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -5132,45 +5244,47 @@ DEP_CPP_PYIENUMV=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIENUMV=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -5252,45 +5366,47 @@ DEP_CPP_PYIER=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIER=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -5371,45 +5487,47 @@ DEP_CPP_PYIEX=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIEX=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -5489,45 +5607,47 @@ DEP_CPP_PYILO=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYILO=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -5613,45 +5733,47 @@ DEP_CPP_PYIMO=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIMO=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -5734,45 +5856,47 @@ DEP_CPP_PYIPE=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIPE=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -5854,45 +5978,47 @@ DEP_CPP_PYIPER=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIPER=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -5975,45 +6101,47 @@ DEP_CPP_PYIPERS=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIPERS=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -6096,45 +6224,47 @@ DEP_CPP_PYIPERSI=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIPERSI=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -6219,45 +6349,47 @@ DEP_CPP_PYIPERSIS=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIPERSIS=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -6345,45 +6477,47 @@ DEP_CPP_PYIPERSIST=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIPERSIST=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -6468,45 +6602,47 @@ DEP_CPP_PYIPR=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIPR=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -6538,45 +6674,47 @@ DEP_CPP_PYIPRO=\
 	".\win32com\src\include\pyipropertysetstorage.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIPRO=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
@@ -6585,45 +6723,47 @@ DEP_CPP_PYIPRO=\
 	".\win32com\src\include\pyipropertysetstorage.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIPRO=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -6634,45 +6774,47 @@ DEP_CPP_PYIPRO=\
 	".\win32com\src\include\pyipropertysetstorage.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIPRO=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
@@ -6692,45 +6834,47 @@ DEP_CPP_PYIPROP=\
 	".\win32com\src\include\pyipropertystorage.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIPROP=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
@@ -6739,45 +6883,47 @@ DEP_CPP_PYIPROP=\
 	".\win32com\src\include\pyipropertystorage.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIPROP=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -6788,45 +6934,47 @@ DEP_CPP_PYIPROP=\
 	".\win32com\src\include\pyipropertystorage.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIPROP=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
@@ -6891,45 +7039,47 @@ NODEP_CPP_PYIPROV=\
 DEP_CPP_PYIPROV=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIPROV=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -7015,45 +7165,47 @@ DEP_CPP_PYIRU=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIRU=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -7137,45 +7289,47 @@ DEP_CPP_PYISE=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYISE=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -7256,46 +7410,48 @@ DEP_CPP_PYIST=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinObjects.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYIST=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinObjects.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -7378,45 +7534,47 @@ DEP_CPP_PYISTR=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\PythonCOMServer.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYISTR=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -7493,45 +7651,47 @@ DEP_CPP_PYITY=\
 	".\win32com\src\include\pycomtypeobjects.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYITY=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -7559,45 +7719,47 @@ SOURCE=.\win32com\src\extensions\PyITypeObjects.cpp
 DEP_CPP_PYITYP=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYITYP=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
@@ -7605,45 +7767,47 @@ DEP_CPP_PYITYP=\
 DEP_CPP_PYITYP=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYITYP=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -7653,45 +7817,47 @@ DEP_CPP_PYITYP=\
 DEP_CPP_PYITYP=\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYITYP=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
@@ -7711,46 +7877,48 @@ DEP_CPP_PYTYP=\
 	".\win32com\src\include\pycomtypeobjects.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"structmember.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYTYP=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\tructmember.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
@@ -7759,46 +7927,48 @@ DEP_CPP_PYTYP=\
 	".\win32com\src\include\pycomtypeobjects.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"structmember.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYTYP=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\tructmember.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -7809,46 +7979,48 @@ DEP_CPP_PYTYP=\
 	".\win32com\src\include\pycomtypeobjects.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"structmember.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYTYP=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\tructmember.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
@@ -7868,46 +8040,48 @@ DEP_CPP_PYVAR=\
 	".\win32com\src\include\pycomtypeobjects.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"structmember.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYVAR=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\tructmember.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE SH3) Release"
@@ -7916,46 +8090,48 @@ DEP_CPP_PYVAR=\
 	".\win32com\src\include\pycomtypeobjects.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"structmember.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYVAR=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\tructmember.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32com - Win32 (WCE x86em) Debug"
@@ -7966,46 +8142,48 @@ DEP_CPP_PYVAR=\
 	".\win32com\src\include\pycomtypeobjects.h"\
 	".\win32com\src\include\PythonCOM.h"\
 	".\win32com\src\include\stdafx.h"\
-	{$(INCLUDE)}"abstract.h"\
-	{$(INCLUDE)}"bufferobject.h"\
-	{$(INCLUDE)}"ce\crtapi.h"\
-	{$(INCLUDE)}"ceval.h"\
-	{$(INCLUDE)}"classobject.h"\
-	{$(INCLUDE)}"cobject.h"\
-	{$(INCLUDE)}"complexobject.h"\
-	{$(INCLUDE)}"config.h"\
-	{$(INCLUDE)}"dictobject.h"\
-	{$(INCLUDE)}"fileobject.h"\
-	{$(INCLUDE)}"floatobject.h"\
-	{$(INCLUDE)}"funcobject.h"\
-	{$(INCLUDE)}"import.h"\
-	{$(INCLUDE)}"intobject.h"\
-	{$(INCLUDE)}"intrcheck.h"\
-	{$(INCLUDE)}"listobject.h"\
-	{$(INCLUDE)}"longobject.h"\
-	{$(INCLUDE)}"methodobject.h"\
-	{$(INCLUDE)}"modsupport.h"\
-	{$(INCLUDE)}"moduleobject.h"\
-	{$(INCLUDE)}"mymalloc.h"\
-	{$(INCLUDE)}"myproto.h"\
-	{$(INCLUDE)}"object.h"\
-	{$(INCLUDE)}"objimpl.h"\
-	{$(INCLUDE)}"patchlevel.h"\
-	{$(INCLUDE)}"pydebug.h"\
-	{$(INCLUDE)}"pyerrors.h"\
-	{$(INCLUDE)}"pyfpe.h"\
-	{$(INCLUDE)}"pystate.h"\
-	{$(INCLUDE)}"python.h"\
-	{$(INCLUDE)}"pythonrun.h"\
-	{$(INCLUDE)}"PyWinTypes.h"\
-	{$(INCLUDE)}"rangeobject.h"\
-	{$(INCLUDE)}"sliceobject.h"\
-	{$(INCLUDE)}"stringobject.h"\
-	{$(INCLUDE)}"structmember.h"\
-	{$(INCLUDE)}"sysmodule.h"\
-	{$(INCLUDE)}"traceback.h"\
-	{$(INCLUDE)}"tupleobject.h"\
-	{$(INCLUDE)}"unicodeobject.h"\
+	
+NODEP_CPP_PYVAR=\
+	".\angeobject.h"\
+	".\atchlevel.h"\
+	".\bject.h"\
+	".\bjimpl.h"\
+	".\bstract.h"\
+	".\e\crtapi.h"\
+	".\ethodobject.h"\
+	".\eval.h"\
+	".\ictobject.h"\
+	".\ileobject.h"\
+	".\istobject.h"\
+	".\lassobject.h"\
+	".\liceobject.h"\
+	".\loatobject.h"\
+	".\mport.h"\
+	".\nicodeobject.h"\
+	".\ntobject.h"\
+	".\ntrcheck.h"\
+	".\object.h"\
+	".\odsupport.h"\
+	".\oduleobject.h"\
+	".\omplexobject.h"\
+	".\onfig.h"\
+	".\ongobject.h"\
+	".\raceback.h"\
+	".\tringobject.h"\
+	".\tructmember.h"\
+	".\ufferobject.h"\
+	".\uncobject.h"\
+	".\upleobject.h"\
+	".\ydebug.h"\
+	".\yerrors.h"\
+	".\yfpe.h"\
+	".\ymalloc.h"\
+	".\yproto.h"\
+	".\ysmodule.h"\
+	".\ystate.h"\
+	".\ython.h"\
+	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ENDIF 
@@ -8046,6 +8224,10 @@ SOURCE=.\win32com\src\include\PyICatInformation.h
 # Begin Source File
 
 SOURCE=.\win32com\src\include\PyICatRegister.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32com\src\include\PyIEnumConnectionPoints.h
 # End Source File
 # Begin Source File
 
