@@ -135,16 +135,12 @@ extern PyObject *PyPopen4(PyObject *self, PyObject  *args);
 // @pymeth popen4|Like popen2, but stdout/err are combined.
 %native(popen4) PyPopen4;
 
-// @pymeth GetNamedPipeHandleState|Returns the state of a named pipe.
 %native(GetNamedPipeHandleState) MyGetNamedPipeHandleState;
 
-// @pymeth SetNamedPipeHandleState|Sets the state of a named pipe.
 %native(SetNamedPipeHandleState) MySetNamedPipeHandleState;
 
-// @pymeth ConnectNamedPipe|Connects to a named pipe
 %native(ConnectNamedPipe) MyConnectNamedPipe;
 
-// @pymeth CallNamedPipe|Calls a named pipe
 %native(CallNamedPipe) MyCallNamedPipe;
 
 %name(CreatePipe)
