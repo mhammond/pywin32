@@ -141,7 +141,8 @@ PyObject *PyIApplicationDebugger::onHandleBreakPoint(PyObject *self, PyObject *a
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = pIAD->onHandleBreakPoint( prpt, br, pError );
 	prpt->Release();
-	pError->Release();
+	if (pError)
+		pError->Release();
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return SetPythonCOMError(self,hr);
