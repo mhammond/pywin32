@@ -1486,7 +1486,7 @@ static PyObject *PyCIDAAsString(PyObject *self, PyObject *args)
 #define CHECK_SET_VAL(mask1, mask2, x) \
 	if (mask1 & mask2 ) PyDict_SetItemString(ret, #x, state.x ? Py_True : Py_False);
 
-// @pymethod dict|SHGetSettings|Retrieves the current shell option settings.
+// @pymethod dict|shell|SHGetSettings|Retrieves the current shell option settings.
 static PyObject *PySHGetSettings(PyObject *self, PyObject *args)
 {
 	DWORD mask = -1;
@@ -1519,7 +1519,7 @@ static PyObject *PySHGetSettings(PyObject *self, PyObject *args)
 		}
 	}
 	return ret;
-	// @rdesc, the resule is a dictionary, the contents of which depend on
+	// @rdesc The result is a dictionary, the contents of which depend on
 	// the mask param.  Key names are the same as the SHELLFLAGSTATE
 	// structure members - 'fShowExtensions', 'fNoConfirmRecycle', etc
 }
@@ -1817,6 +1817,110 @@ done:
 	return ret;
 }
 
+// @pymethod dict|shell|ShellExecuteEx|Performs an operation on a file.
+static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
+{
+	PyObject *ret = NULL;
+	BOOL ok;
+	SHELLEXECUTEINFO *p = (SHELLEXECUTEINFO *)malloc(sizeof(*p));
+	if (!p)
+		return PyErr_NoMemory();
+
+	memset(p, 0, sizeof(*p));
+	p->cbSize = sizeof(*p);
+
+	static char *kw_items[]= {
+		"fMask","hwnd","lpVerb","lpFile", "lpParameters", "lpDirectory",
+		"nShow", "lpIDList", "lpClass", "hkeyClass", "dwHotKey",
+		"hIcon", "hMonitor", NULL,
+	};
+	PyObject *obVerb = NULL, *obFile = NULL, *obParams = NULL;
+	PyObject *obDirectory = NULL, *obIDList = NULL, *obClass = NULL;
+	PyObject *obhkeyClass = NULL, *obHotKey = NULL, *obhIcon = NULL;
+	PyObject *obhMonitor = NULL;
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "|llOOOOlOOOOOO", kw_items,
+							// @pyparm int|fMask|0|The default mask for the
+							// structure.  Other masks may be added based on
+							// what paramaters are supplied.
+		                             &p->fMask, 
+									 &p->hwnd, // @pyparm int|hwnd|0|
+									 &obVerb, // @pyparm string|lpVerb||
+									 &obFile, // @pyparm string|lpFile||
+									 &obParams, // @pyparm string|lpParams||
+									 &obDirectory, // @pyparm string|lpDirectory||
+									 &p->nShow, // @pyparm int|nShow|0|
+									 &obIDList, // @pyparm <o PIDL>|lpIDList||
+									 &obClass, // @pyparm string|obClass||
+									 &obhkeyClass, // @pyparm int|hkeyClass||
+									 &obHotKey, // @pyparm int|dwHotKey||
+									 &obhIcon, // @pyparm <o PyHANDLE>|hIcon||
+									 &obhMonitor)) // @pyparm <o PyHANDLE>|hMonitor||
+		goto done;
+
+	if (obVerb && !PyWinObject_AsString(obVerb, (char **)&p->lpVerb))
+		goto done;
+	if (obFile && !PyWinObject_AsString(obFile, (char **)&p->lpFile))
+		goto done;
+	if (obParams && !PyWinObject_AsString(obParams, (char **)&p->lpParameters))
+		goto done;
+	if (obDirectory && !PyWinObject_AsString(obDirectory, (char **)&p->lpDirectory))
+		goto done;
+	if (obIDList) {
+		p->fMask |= SEE_MASK_IDLIST;
+		if (!PyObject_AsPIDL(obIDList, (ITEMIDLIST **)&p->lpIDList))
+			goto done;
+	}
+	if (obClass) {
+		p->fMask |= SEE_MASK_CLASSNAME;
+		if (!PyWinObject_AsString(obClass, (char **)&p->lpClass))
+			goto done;
+	}
+	if (obhkeyClass) {
+		p->fMask |= SEE_MASK_CLASSKEY;
+		if (!PyWinObject_AsHKEY(obhkeyClass, &p->hkeyClass))
+			goto done;
+	}
+	if (obHotKey) {
+		p->fMask |= SEE_MASK_HOTKEY;
+		p->dwHotKey = PyInt_AsLong(obHotKey);
+		if (PyErr_Occurred())
+			goto done;
+	}
+	if (obhIcon) {
+		p->fMask |= SEE_MASK_ICON;
+		if (!PyWinObject_AsHANDLE(obhIcon, &p->hIcon))
+			goto done;
+	}
+	if (obhMonitor) {
+		p->fMask |= SEE_MASK_HMONITOR;
+		if (!PyWinObject_AsHANDLE(obhMonitor, &p->hMonitor))
+			goto done;
+	}
+	{ // new scope to avoid warnings about the goto
+	PY_INTERFACE_PRECALL;
+	ok = ShellExecuteEx(p);
+	PY_INTERFACE_POSTCALL;
+	}
+	if (ok) {
+		ret = Py_BuildValue("{s:l,s:N}",
+							"hInstApp", p->hInstApp,
+							"hProcess", PyWinObject_FromHANDLE(p->hProcess));
+		// @rdesc The result is a dictionary based on documented result values
+		// in the structure.  Currently this is "hInstApp" and "hProcess"
+	} else
+		PyWin_SetAPIError("ShellExecuteEx");
+	
+done:
+	PyWinObject_FreeString((char *)p->lpVerb);
+	PyWinObject_FreeString((char *)p->lpFile);
+	PyWinObject_FreeString((char *)p->lpParameters);
+	PyWinObject_FreeString((char *)p->lpDirectory);
+	PyWinObject_FreeString((char *)p->lpClass);
+	PyObject_FreePIDL((ITEMIDLIST *)p->lpIDList);
+	return ret;
+}
+
+
 /* List of module functions */
 // @module shell|A module, encapsulating the ActiveX Control interfaces
 static struct PyMethodDef shell_methods[]=
@@ -1848,6 +1952,7 @@ static struct PyMethodDef shell_methods[]=
 	{ "SHGetSettings", PySHGetSettings, 1}, // @pymeth SHGetSettings|Retrieves the current shell option settings.
 	{ "FILEGROUPDESCRIPTORAsString", PyFILEGROUPDESCRIPTORAsString, 1}, // @pymeth FILEGROUPDESCRIPTORAsString|Creates a FILEGROUPDESCRIPTOR from a sequence of mapping objects, each with FILEDESCRIPTOR attributes
 	{ "StringAsFILEGROUPDESCRIPTOR", PyStringAsFILEGROUPDESCRIPTOR, 1}, // @pymeth StringAsFILEGROUPDESCRIPTOR|Decodes a FILEGROUPDESCRIPTOR packed in a string
+	{ "ShellExecuteEx", (PyCFunction)PyShellExecuteEx, METH_VARARGS|METH_KEYWORDS}, // @pymeth ShellExecuteEx|Performs an action on a file.
 	{ NULL, NULL },
 };
 
