@@ -9,6 +9,7 @@
 //#include "assert.h"
 #endif
 #include "windows.h"
+#include "Psapi.h"
 #include "PyWinTypes.h"
 %}
 
@@ -20,6 +21,18 @@ typedef long HWND
 
 %{
 #include "structmember.h"
+
+static BOOL (WINAPI *fpEnumProcesses)(DWORD *, DWORD, DWORD *) = NULL;
+static BOOL (WINAPI *fpEnumProcessModules)(HANDLE, HMODULE *, DWORD, LPDWORD) = NULL;
+static DWORD (WINAPI *fpGetModuleFileNameEx)(HANDLE, HMODULE, WCHAR *, DWORD) = NULL;
+static BOOL (WINAPI *fpGetProcessMemoryInfo)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD) = NULL;
+static BOOL	(WINAPI *fpGetProcessTimes)(HANDLE, LPFILETIME, LPFILETIME, LPFILETIME, LPFILETIME) = NULL;
+static HWINSTA (WINAPI *fpGetProcessWindowStation)(void) = NULL;
+static BOOL (WINAPI *fpGetProcessIoCounters)(HANDLE, PIO_COUNTERS) = NULL;
+static BOOL (WINAPI *fpGetProcessWorkingSetSize)(HANDLE, PSIZE_T, PSIZE_T) = NULL;
+static BOOL (WINAPI *fpSetProcessWorkingSetSize)(HANDLE, SIZE_T, SIZE_T) = NULL;
+static BOOL (WINAPI *fpGetProcessShutdownParameters)(LPDWORD, LPDWORD) = NULL;
+static BOOL (WINAPI *fpSetProcessShutdownParameters)(DWORD, DWORD) = NULL;
 
 // Support for a STARTUPINFO object.
 class PySTARTUPINFO : public PyObject
@@ -844,6 +857,430 @@ void ExitProcess(
 	// <om win32process.TerminateProcess>, the DLLs that the process is attached to are 
 	// not notified of the process termination. 
 );
+
+// @pyswig (long,....)|EnumProcesses|Returns Pids for currently running processes
+%native(EnumProcesses) PyEnumProcesses;
+%{
+PyObject *PyEnumProcesses(PyObject *self, PyObject *args)
+{
+	if (fpEnumProcesses==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"EnumProcesses does not exist on this platform");
+		return NULL;
+		}
+
+	DWORD *pids=NULL, *pid=NULL;
+	DWORD nbr_pids_allocated=100, nbr_pids_returned=0, tuple_ind=0;
+	DWORD bytes_allocated=0,bytes_returned=0;
+	PyObject *ret=NULL, *obpid=NULL;
+	if (!PyArg_ParseTuple(args, ":EnumProcesses"))
+		return NULL;
+
+	// function gives no indicator that not all were returned, so loop until fewer returned than allocated
+	do{
+		if (pids){
+			nbr_pids_allocated*=2;
+			free(pids);
+			}
+		bytes_allocated=nbr_pids_allocated*sizeof(DWORD);
+		pids=(DWORD *)malloc(bytes_allocated);
+		if (pids==NULL){
+			PyErr_SetString(PyExc_MemoryError,"EnumProcesses: unable to allocate Pid list");
+			return NULL;
+			}
+		if (!(*fpEnumProcesses)(pids, bytes_allocated, &bytes_returned)){
+			PyWin_SetAPIError("EnumProcesses",GetLastError());
+			goto done;
+			}
+		nbr_pids_returned=bytes_returned/sizeof(DWORD);
+		}
+	while (nbr_pids_returned==nbr_pids_allocated);
+
+	ret=PyTuple_New(nbr_pids_returned);
+	if (ret==NULL){
+		PyErr_SetString(PyExc_MemoryError,"EnumProcesses: unable to allocate return tuple");
+		goto done;
+		}
+	pid=pids;
+	for (tuple_ind=0;tuple_ind<nbr_pids_returned;tuple_ind++){
+		obpid=Py_BuildValue("l",*pid);
+		if (obpid==NULL){
+			Py_DECREF(ret);
+			ret=NULL;
+			goto done;
+			}
+		PyTuple_SetItem(ret,tuple_ind,obpid);
+		pid++;
+		}
+done:
+	if (pids)
+		free (pids);
+	return ret;
+}
+%}
+
+// @pyswig (long,....)|EnumProcessModules|Lists loaded modules for a process handle
+%native(EnumProcessModules) PyEnumProcessModules;
+%{
+PyObject *PyEnumProcessModules(PyObject *self, PyObject *args)
+{
+	if (fpEnumProcessModules==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"EnumProcessModules does not exist on this platform");
+		return NULL;
+		}
+
+	HMODULE *hmods=NULL, *hmod=NULL;
+	HANDLE hprocess=NULL;
+	DWORD nbr_hmods_allocated=100, nbr_hmods_returned=0, tuple_ind=0;
+	DWORD bytes_allocated=0,bytes_needed=0;
+	PyObject *ret=NULL, *obhmod=NULL;
+	// @pyparm <o PyHANDLE>|hProcess||Process handle as returned by OpenProcess
+	if (!PyArg_ParseTuple(args, "l:EnumProcessModules", &hprocess))
+		return NULL;
+
+	bytes_allocated=nbr_hmods_allocated*sizeof(HMODULE);
+	do{
+		if (hmods){
+			free(hmods);
+			bytes_allocated=bytes_needed; // unlike EnumProcesses, this one tells you if more space is needed
+			}
+		hmods=(HMODULE *)malloc(bytes_allocated);
+		if (hmods==NULL){
+			PyErr_SetString(PyExc_MemoryError,"EnumProcessModules: unable to allocate HMODULE list");
+			return NULL;
+			}
+		if (!(*fpEnumProcessModules)(hprocess, hmods, bytes_allocated, &bytes_needed)){
+			PyWin_SetAPIError("EnumProcessModules",GetLastError());
+			goto done;
+			}
+		}
+	while (bytes_needed>bytes_allocated);
+
+	nbr_hmods_returned=bytes_needed/sizeof(HMODULE);
+	ret=PyTuple_New(nbr_hmods_returned);
+	if (ret==NULL){
+		PyErr_SetString(PyExc_MemoryError,"EnumProcessModules: unable to allocate return tuple");
+		goto done;
+		}
+	hmod=hmods;
+	for (tuple_ind=0;tuple_ind<nbr_hmods_returned;tuple_ind++){
+		obhmod=Py_BuildValue("l",*hmod);
+		if (obhmod==NULL){
+			Py_DECREF(ret);
+			ret=NULL;
+			goto done;
+			}
+		PyTuple_SetItem(ret,tuple_ind,obhmod);
+		hmod++;
+		}
+done:
+	if (hmods)
+		free (hmods);
+	return ret;
+}
+%}
+
+// @pyswig <o PyUNICODE>|GetModuleFileNameEx|Return name of module loaded by another process (uses process handle, not pid)
+%native(GetModuleFileNameEx) PyGetModuleFileNameEx;
+%{
+PyObject *PyGetModuleFileNameEx(PyObject *self, PyObject *args)
+{
+	if (fpGetModuleFileNameEx==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"GetModuleFileNameEx does not exist on this platform");
+		return NULL;
+		}
+	WCHAR *fname=NULL;
+	DWORD chars_allocated=256, chars_returned=0;
+	// chars_allocated=5; // test allocation loop
+	HMODULE hmod;
+	HANDLE hprocess;
+	PyObject *ret=NULL;
+	// @pyparm <o PyHANDLE>|hProcess||Process handle as returned by OpenProcess
+	// @pyparm int|hModule||Module handle
+	if (!PyArg_ParseTuple(args, "ll:GetModuleFileNameEx", &hprocess, &hmod))
+		return NULL;
+
+	do{
+		if (fname){
+			free(fname);
+			chars_allocated*=2;
+			}
+		fname=(WCHAR *)malloc(chars_allocated*sizeof(WCHAR));
+		if (fname==NULL){
+			PyErr_SetString(PyExc_MemoryError,"GetModuleFileNameEx: unable to allocate WCHAR buffer");
+			return NULL;
+			}
+		chars_returned=(*fpGetModuleFileNameEx)(hprocess, hmod, fname, chars_allocated);
+		if (!chars_returned){
+			PyWin_SetAPIError("GetModuleFileNameEx",GetLastError());
+			goto done;
+			}
+		}
+	while (chars_returned==chars_allocated);
+	ret=PyWinObject_FromWCHAR(fname,chars_returned);
+
+done:
+	if (fname)
+		free (fname);
+	return ret;
+}
+%}
+
+// @pyswig <o dict>|GetProcessMemoryInfo|Returns process memory statistics as a dict representing a PROCESS_MEMORY_COUNTERS struct
+%native(GetProcessMemoryInfo) PyGetProcessMemoryInfo;
+%{
+PyObject *PyGetProcessMemoryInfo(PyObject *self, PyObject *args)
+{
+	if (fpGetProcessMemoryInfo==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"GetProcessMemoryInfo does not exist on this platform");
+		return NULL;
+		}
+	HANDLE hProcess;
+	PROCESS_MEMORY_COUNTERS pmc;
+	DWORD cb=sizeof(PROCESS_MEMORY_COUNTERS);
+	pmc.cb=cb;
+
+	// @pyparm <o PyHANDLE>|hProcess||Process handle as returned by OpenProcess
+	if (!PyArg_ParseTuple(args, "l:GetProcessMemoryInfo", &hProcess))
+		return NULL;
+	if (!(*fpGetProcessMemoryInfo)(hProcess, &pmc, cb)){
+		PyWin_SetAPIError("GetProcessMemoryInfo",GetLastError());
+		return NULL;
+		}
+	return Py_BuildValue("{s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l}",
+		"PageFaultCount",pmc.PageFaultCount,
+		"PeakWorkingSetSize",pmc.PeakWorkingSetSize,
+		"WorkingSetSize",pmc.WorkingSetSize,
+		"QuotaPeakPagedPoolUsage",pmc.QuotaPeakPagedPoolUsage,
+		"QuotaPagedPoolUsage",pmc.QuotaPagedPoolUsage,
+		"QuotaPeakNonPagedPoolUsage",pmc.QuotaPeakNonPagedPoolUsage,
+		"QuotaNonPagedPoolUsage",pmc.QuotaNonPagedPoolUsage,
+		"PagefileUsage",pmc.PagefileUsage,
+		"PeakPagefileUsage",pmc.PeakPagefileUsage);
+}
+%}
+
+// @pyswig <o dict>|GetProcessTimes|Retrieve time statics for a process by handle.  (KernelTime and UserTime in 100 nanosecond units)
+%native(GetProcessTimes) PyGetProcessTimes;
+%{
+PyObject *PyGetProcessTimes(PyObject *self, PyObject *args)
+{
+	if (fpGetProcessTimes==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"GetProcessTimes does not exist on this platform");
+		return NULL;
+		}
+	HANDLE hProcess;
+	FILETIME CreationTime, ExitTime, KernelTime, UserTime;
+	ULARGE_INTEGER ulKernelTime, ulUserTime;
+	// @pyparm <o PyHANDLE>|hProcess||Process handle as returned by OpenProcess
+	if (!PyArg_ParseTuple(args, "l:GetProcessTimes", &hProcess))
+		return NULL;
+	if (!(*fpGetProcessTimes)(hProcess, &CreationTime, &ExitTime, &KernelTime, &UserTime)){
+		PyWin_SetAPIError("GetProcessTimes",GetLastError());
+		return NULL;
+		}
+	memcpy(&ulKernelTime,&KernelTime,sizeof(FILETIME));
+	memcpy(&ulUserTime,&UserTime,sizeof(FILETIME));
+	return Py_BuildValue("{s:N,s:N,s:N,s:N}",
+		"CreationTime", PyWinObject_FromFILETIME(CreationTime),
+		"ExitTime", PyWinObject_FromFILETIME(ExitTime),
+		"KernelTime", PyLong_FromUnsignedLongLong(ulKernelTime.QuadPart),
+		"UserTime", PyLong_FromUnsignedLongLong(ulUserTime.QuadPart));
+}
+%}
+
+// @pyswig <o dict>|GetProcessIoCounters|Return I/O statistics for a process as a dictionary representing an IO_COUNTERS struct.
+%native(GetProcessIoCounters) PyGetProcessIoCounters;
+%{
+PyObject *PyGetProcessIoCounters(PyObject *self, PyObject *args)
+{
+	if (fpGetProcessIoCounters==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"GetProcessIoCounters does not exist on this platform");
+		return NULL;
+		}
+	HANDLE hProcess;
+	IO_COUNTERS ioc;
+	// @pyparm <o PyHANDLE>|hProcess||Process handle as returned by OpenProcess
+	if (!PyArg_ParseTuple(args, "l:GetProcessIoCounters", &hProcess))
+		return NULL;
+	if (!(*fpGetProcessIoCounters)(hProcess, &ioc)){
+		PyWin_SetAPIError("GetProcessIoCounters",GetLastError());
+		return NULL;
+		}
+	return Py_BuildValue("{s:N,s:N,s:N,s:N,s:N,s:N}",
+		"ReadOperationCount", PyLong_FromUnsignedLongLong(ioc.ReadOperationCount),
+		"WriteOperationCount", PyLong_FromUnsignedLongLong(ioc.WriteOperationCount),
+		"OtherOperationCount", PyLong_FromUnsignedLongLong(ioc.OtherOperationCount),
+		"ReadTransferCount", PyLong_FromUnsignedLongLong(ioc.ReadTransferCount),
+		"WriteTransferCount", PyLong_FromUnsignedLongLong(ioc.WriteTransferCount),
+		"OtherTransferCount", PyLong_FromUnsignedLongLong(ioc.OtherTransferCount));
+}
+%}
+
+// @pyswig |GetProcessWindowStation|Returns a handle to the window station for the calling process
+%native(GetProcessWindowStation) PyGetProcessWindowStation;
+%{
+PyObject *PyGetProcessWindowStation(PyObject *self, PyObject *args)
+{
+	if (fpGetProcessWindowStation==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"GetProcessWindowStation does not exist on this platform");
+		return NULL;
+		}
+	if (!PyArg_ParseTuple(args, ":GetProcessWindowStation"))
+		return NULL;
+	HWINSTA hwinsta=(*fpGetProcessWindowStation)();
+	return PyWinObject_FromHANDLE(hwinsta);
+}
+%}
+
+// @pyswig int,int|GetProcessWorkingSetSize|Returns min and max working set sizes for a process by handle
+%native(GetProcessWorkingSetSize) PyGetProcessWorkingSetSize;
+%{
+PyObject *PyGetProcessWorkingSetSize(PyObject *self, PyObject *args)
+{
+	SIZE_T MinimumWorkingSetSize=0,MaximumWorkingSetSize=0;
+	HANDLE hProcess;
+	if (fpGetProcessWorkingSetSize==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"GetProcessWorkingSetSize does not exist on this platform");
+		return NULL;
+		}
+	// @pyparm <o PyHANDLE>|hProcess||Process handle as returned by OpenProcess
+	if (!PyArg_ParseTuple(args, "l:GetProcessWorkingSetSize", &hProcess))
+		return NULL;
+	if (!(*fpGetProcessWorkingSetSize)(hProcess, &MinimumWorkingSetSize, &MaximumWorkingSetSize)){
+		PyWin_SetAPIError("GetProcessWorkingSetSize",GetLastError());
+		return NULL;
+		}
+	return Py_BuildValue("ll",MinimumWorkingSetSize,MaximumWorkingSetSize);
+}
+%}
+
+// @pyswig |SetProcessWorkingSetSize|Sets minimum and maximum working set sizes for a process
+// @comm Set both min and max to -1 to have process swapped out completely
+%native(SetProcessWorkingSetSize) PySetProcessWorkingSetSize;
+%{
+PyObject *PySetProcessWorkingSetSize(PyObject *self, PyObject *args)
+{
+	SIZE_T MinimumWorkingSetSize=0,MaximumWorkingSetSize=0;
+	HANDLE hProcess;
+	if (fpSetProcessWorkingSetSize==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"SetProcessWorkingSetSize does not exist on this platform");
+		return NULL;
+		}
+	// @pyparm <o PyHANDLE>|hProcess||Process handle as returned by OpenProcess
+	// @pyparm int|MinimumWorkingSetSize||Minimum number of bytes to keep in physical memory
+	// @pyparm int|MaximumWorkingSetSize||Maximum number of bytes to keep in physical memory
+	if (!PyArg_ParseTuple(args, "lll:SetProcessWorkingSetSize", &hProcess, &MinimumWorkingSetSize, &MaximumWorkingSetSize))
+		return NULL;
+	if (!(*fpSetProcessWorkingSetSize)(hProcess, MinimumWorkingSetSize, MaximumWorkingSetSize)){
+		PyWin_SetAPIError("SetProcessWorkingSetSize",GetLastError());
+		return NULL;
+		}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+
+// @pyswig int,int|GetProcessShutdownParameters|Retrieves shutdown priority and flags for current process
+// @comm Ranges are 000-0FF Reserved by windows, 100-1FF Last, 200-2FF Middle, 300-3FF First, 400-4FF Reserved by Windows
+%native(GetProcessShutdownParameters) PyGetProcessShutdownParameters;
+%{
+PyObject *PyGetProcessShutdownParameters(PyObject *self, PyObject *args)
+{
+	DWORD Level=0, Flags=0;
+	if (fpGetProcessShutdownParameters==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"GetProcessShutdownParameters does not exist on this platform");
+		return NULL;
+		}
+	if (!PyArg_ParseTuple(args, ":GetProcessShutdownParameters"))
+		return NULL;
+	if (!(*fpGetProcessShutdownParameters)(&Level, &Flags)){
+		PyWin_SetAPIError("GetProcessShutdownParameters",GetLastError());
+		return NULL;
+		}
+	return Py_BuildValue("ll",Level,Flags);
+}
+%}
+
+// @pyswig |SetProcessShutdownParameters|Sets shutdown priority and flags for current process
+// @comm Ranges are 000-0FF Reserved by windows, 100-1FF Last, 200-2FF Middle, 300-3FF First, 400-4FF Reserved by windows
+%native(SetProcessShutdownParameters) PySetProcessShutdownParameters;
+%{
+PyObject *PySetProcessShutdownParameters(PyObject *self, PyObject *args)
+{
+	DWORD Level=0, Flags=0;
+	if (fpSetProcessShutdownParameters==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"SetProcessShutdownParameters does not exist on this platform");
+		return NULL;
+		}
+	// @pyparm int|Level||Priority, higher means earlier
+	// @pyparm int|Flags||Currently only SHUTDOWN_NORETRY valid
+	if (!PyArg_ParseTuple(args, "ll:SetProcessShutdownParameters", &Level, &Flags))
+		return NULL;
+	if (!(*fpSetProcessShutdownParameters)(Level, Flags)){
+		PyWin_SetAPIError("SetProcessShutdownParameters",GetLastError());
+		return NULL;
+		}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+
+
+%init %{
+	FARPROC fp=NULL;
+	HMODULE hmodule=NULL;
+	hmodule=GetModuleHandle(_T("Psapi.dll"));
+	if (hmodule==NULL)
+		hmodule=LoadLibrary(_T("Psapi.dll"));
+	if (hmodule!=NULL){
+		fp=GetProcAddress(hmodule, "EnumProcesses");
+		if (fp!=NULL)
+			fpEnumProcesses=(BOOL (WINAPI *)(DWORD *, DWORD, DWORD *))(fp);
+		fp=GetProcAddress(hmodule, "EnumProcessModules");
+		if (fp!=NULL)
+			fpEnumProcessModules=(BOOL (WINAPI *)(HANDLE, HMODULE *, DWORD, LPDWORD))(fp);
+		fp=GetProcAddress(hmodule, "GetModuleFileNameExW");
+		if (fp!=NULL)
+			fpGetModuleFileNameEx=(DWORD (WINAPI *)(HANDLE, HMODULE, WCHAR *, DWORD))(fp);
+		fp=GetProcAddress(hmodule,"GetProcessMemoryInfo");
+		if (fp!=NULL)
+			fpGetProcessMemoryInfo=(BOOL (WINAPI *)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD))(fp);
+		}
+
+	hmodule=GetModuleHandle(_T("Kernel32.dll"));
+	if (hmodule==NULL)
+		hmodule=LoadLibrary(_T("Kernel32.dll"));
+	if (hmodule!=NULL){
+		fp=GetProcAddress(hmodule, "GetProcessTimes");
+		if (fp!=NULL)
+			fpGetProcessTimes=(BOOL (WINAPI *)(HANDLE, LPFILETIME, LPFILETIME, LPFILETIME, LPFILETIME))(fp);
+		fp=GetProcAddress(hmodule, "GetProcessIoCounters");
+		if (fp!=NULL)
+			fpGetProcessIoCounters=(BOOL (WINAPI *)(HANDLE, PIO_COUNTERS))(fp);
+		fp=GetProcAddress(hmodule, "GetProcessWorkingSetSize");
+		if (fp!=NULL)
+			fpGetProcessWorkingSetSize=(BOOL (WINAPI *)(HANDLE, PSIZE_T, PSIZE_T))(fp);
+		fp=GetProcAddress(hmodule, "SetProcessWorkingSetSize");
+		if (fp!=NULL)
+			fpSetProcessWorkingSetSize=(BOOL (WINAPI *)(HANDLE, SIZE_T, SIZE_T))(fp);
+		fp=GetProcAddress(hmodule, "GetProcessShutdownParameters");
+		if (fp!=NULL)
+			fpGetProcessShutdownParameters=(BOOL (WINAPI *)(LPDWORD, LPDWORD))(fp);
+		fp=GetProcAddress(hmodule, "SetProcessShutdownParameters");
+		if (fp!=NULL)
+			fpSetProcessShutdownParameters=(BOOL (WINAPI *)(DWORD, DWORD))(fp);
+		}
+
+	hmodule=GetModuleHandle(_T("User32.dll"));
+	if (hmodule==NULL)
+		hmodule=LoadLibrary(_T("User32.dll"));
+	if (hmodule!=NULL){
+		fp=GetProcAddress(hmodule, "GetProcessWindowStation");
+		if (fp!=NULL)
+			fpGetProcessWindowStation=(HWINSTA (WINAPI *)(void))(fp);
+		}
+
+%}
 
 #define CREATE_SUSPENDED CREATE_SUSPENDED 
 
