@@ -13,8 +13,26 @@ def GetPropTagName(pt):
 	if not prTable:
 		for name, value in mapitags.__dict__.items():
 			if name[:3] == 'PR_':
+				# Store both the full ID (including type) and just the ID.
+				# This is so PR_FOO_A and PR_FOO_W are still differentiated,
+				# but should we get a PT_FOO with PT_ERROR set, we fallback
+				# to the ID.
 				prTable[value] = name
-	return prTable.get(pt, hex(pt))
+				prTable[mapitags.PROP_ID(value)] = name
+	try:
+		try:
+			return prTable[pt]
+		except KeyError:
+			# Can't find it exactly - see if the raw ID exists.
+			return prTable[mapitags.PROP_ID(pt)]
+	except KeyError:
+		# god-damn bullshit hex() warnings: I don't see a way to get the
+		# old behaviour without a warning!!
+		ret = hex(long(pt))
+		# -0x8000000L -> 0x80000000
+		if ret[0]=='-': ret = ret[1:]
+		if ret[-1]=='L': ret = ret[:-1]
+		return ret
 
 mapiErrorTable = {}
 def GetScodeString(hr):
