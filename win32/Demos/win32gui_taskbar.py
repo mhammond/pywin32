@@ -3,6 +3,7 @@
 from win32api import *
 from win32gui import *
 import win32con
+import sys, os
 
 class MainWindow:
 	def __init__(self):
@@ -27,8 +28,18 @@ class MainWindow:
 	                0, 0, hinst, None)
 		UpdateWindow(self.hwnd)
 
-		# Add the taskbar icon
-		hicon = LoadIcon(0, win32con.IDI_APPLICATION)
+		# Try and find a custom icon
+		iconPathName = os.path.abspath(os.path.join( os.path.split(sys.executable)[0], "pyc.ico" ))
+		if not os.path.isfile(iconPathName):
+			# Look in the source tree.
+			iconPathName = os.path.abspath(os.path.join( os.path.split(sys.executable)[0], "..\\PC\\pyc.ico" ))
+		if os.path.isfile(iconPathName):
+			icon_flags = win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE
+			hicon = LoadImage(hinst, iconPathName, win32con.IMAGE_ICON, 0, 0, icon_flags)
+		else:
+			print "Can't find a Python icon file - using default"
+			hicon = LoadIcon(0, win32con.IDI_APPLICATION)
+
 		flags = NIF_ICON | NIF_MESSAGE | NIF_TIP
 		nid = (self.hwnd, 0, flags, win32con.WM_USER+20, hicon, "Python Demo")
 		Shell_NotifyIcon(NIM_ADD, nid)
@@ -47,6 +58,7 @@ class MainWindow:
 		elif lparam==win32con.WM_RBUTTONUP:
 			print "You right clicked me."
 			menu = CreatePopupMenu()
+			AppendMenu( menu, win32con.MF_STRING, 1023, "Display Dialog")
 			AppendMenu( menu, win32con.MF_STRING, 1024, "Say Hello")
 			AppendMenu( menu, win32con.MF_STRING, 1025, "Exit program" )
 			pos = GetCursorPos()
@@ -55,7 +67,10 @@ class MainWindow:
 
 	def OnCommand(self, hwnd, msg, wparam, lparam):
 		id = LOWORD(wparam)
-		if id == 1024:
+		if id == 1023:
+			import win32gui_dialog
+			win32gui_dialog.DemoModal()
+		elif id == 1024:
 			print "Hello"
 		elif id == 1025:
 			print "Goodbye"
