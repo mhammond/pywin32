@@ -15,9 +15,6 @@ generates Windows .hlp files.
 #include "PythonCOMServer.h"
 #include "PyFactory.h"
 
-extern HRESULT (WINAPI *myStgOpenStorageEx)(WCHAR *, DWORD, DWORD, DWORD, 
-				STGOPTIONS *, void *, REFIID, void **);
-
 extern int PyCom_RegisterCoreIIDs(PyObject *dict);
 
 extern int PyCom_RegisterCoreSupport(void);
@@ -1887,15 +1884,6 @@ extern "C" __declspec(dllexport) void initpythoncom()
 	// obfmtid=PyWinObject_FromIID(FMTID_MediaFileSummaryInfo);
 	// PyDict_SetItemString(dict,"FMTID_MediaFileSummaryInfo",obfmtid);
 	// Py_DECREF(obfmtid);
-
-	myStgOpenStorageEx=NULL;
-	HMODULE hmodule=GetModuleHandle("Ole32.dll");
-	if (hmodule!=NULL){
-		FARPROC fp = GetProcAddress(hmodule,"StgOpenStorageEx");
-		if (fp!=NULL)
-			myStgOpenStorageEx=(HRESULT (WINAPI *)(WCHAR *, DWORD, DWORD, DWORD, 
-				STGOPTIONS *, void *, REFIID, void **))(fp);
-		}
 
 	// @prop int|dcom|1 if the system is DCOM aware, else 0.  Only Win95 without DCOM extensions should return 0
 

@@ -6,10 +6,6 @@
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
 
-
-HRESULT (WINAPI *myStgOpenStorageEx)(WCHAR *, DWORD, DWORD, DWORD, 
-				STGOPTIONS *, void *, REFIID, void **);
-
 // @doc
 
 // @pymethod <o PyIID>|pythoncom|ReadClassStg|Reads a CLSID from a storage object.
@@ -160,10 +156,20 @@ PyObject *pythoncom_StgOpenStorage(PyObject *self, PyObject *args)
 // @pymethod <o PyIStorage>|pythoncom|StgOpenStorageEx|Advanced version of StgOpenStorage, win2k or better
 PyObject *pythoncom_StgOpenStorageEx(PyObject *self, PyObject *args)
 {
-	if (myStgOpenStorageEx==NULL){
-		PyErr_SetString(PyExc_NotImplementedError,"StgOpenStorageEx not supported by this version of Windows");
-		return NULL;
+	typedef HRESULT (WINAPI *PFNStgOpenStorageEx)(WCHAR *, DWORD, DWORD, DWORD, 
+						STGOPTIONS *, void *, REFIID, void **);;
+	static PFNStgOpenStorageEx myStgOpenStorageEx = NULL;
+	if (myStgOpenStorageEx==NULL) { // Haven't tried to fetch it yet.
+		myStgOpenStorageEx = (PFNStgOpenStorageEx)-1;
+		HMODULE hmodule=GetModuleHandle("Ole32.dll");
+		if (hmodule!=NULL){
+			FARPROC fp = GetProcAddress(hmodule,"StgOpenStorageEx");
+			if (fp!=NULL)
+				myStgOpenStorageEx=(PFNStgOpenStorageEx)fp;
 		}
+	}
+	if (myStgOpenStorageEx == (PFNStgOpenStorageEx)-1)
+		return PyErr_Format(PyExc_NotImplementedError,"StgOpenStorageEx not supported by this version of Windows");
 	PyObject *obfname=NULL, *obriid=NULL, *obstgoptions=NULL;
 	WCHAR *fname;
 	DWORD mode=0, attrs=0;
