@@ -1,7 +1,7 @@
 from isapi import isapicon
 import isapi.simple
 from win32file import GetQueuedCompletionStatus, CreateIoCompletionPort, \
-                      PostQueuedCompletionStatus
+                      PostQueuedCompletionStatus, CloseHandle
 from win32security import SetThreadToken
 from win32event import INFINITE
 from pywintypes import OVERLAPPED
@@ -57,7 +57,7 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
         }
 
     def GetExtensionVersion(self, vi):
-        vi.ExtensionDesc = self.__doc__
+        isapi.simple.SimpleExtension.GetExtensionVersion(self, vi)
         # As per Q192800, the CompletionPort should be created with the number
         # of processors, even if the number of worker threads is much larger.
         # Passing 0 means the system picks the number.
@@ -83,6 +83,7 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
         for worker in self.workers:
             worker.join(self.worker_shutdown_wait)
         self.dispatch_map = {} # break circles
+        CloseHandle(self.io_req_port)
 
     # This is the one operation the base class supports - a simple
     # Connection request.  We setup the thread-token, and dispatch to the
