@@ -155,6 +155,12 @@ class EditorWhitespacePropertyPage(dialog.PropertyPage):
 		self.HookCommand(self.OnButTabTimmy, win32ui.IDC_TABTIMMY_NONE)
 		self.HookCommand(self.OnButTabTimmy, win32ui.IDC_TABTIMMY_IND)
 		self.HookCommand(self.OnButTabTimmy, win32ui.IDC_TABTIMMY_BG)
+		# Set ranges for the spinners.
+		for spinner_id in [win32ui.IDC_SPIN1, win32ui.IDC_SPIN2]:
+			spinner = self.GetDlgItem(spinner_id)
+			spinner.SetRange(1, 16)
+
+			
 		return rc
 
 	def OnButTabTimmy(self, id, code):
