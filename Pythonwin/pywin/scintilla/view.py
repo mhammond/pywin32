@@ -105,6 +105,17 @@ def DoBraceMatch(control):
 			# either clear them both or set them both.
 			control.SCIBraceHighlight(braceAtPos, braceOpposite)
 
+def _get_class_attributes(ob):
+	# Recurse into base classes looking for attributes
+	items = []
+	try:
+		items = items + dir(ob)
+		for i in ob.__bases__:
+			items = items + _get_class_attributes(i)
+	except AttributeError:
+		pass
+	return items
+
 # Supposed to look like an MFC CEditView, but 
 # also supports IDLE extensions and other source code generic features.
 class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
@@ -376,10 +387,8 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 					items = items + dir(ob)
 				except AttributeError:
 					pass # object has no __dict__
-				try:
-					items = items + dir(ob.__class__)
-				except AttributeError:
-					pass
+				if hasattr(ob, "__class__"):
+					items = items + _get_class_attributes(ob.__class__)
 				# All names that start with "_" go!
 				items = filter(lambda word: word[0]!='_', items)
 				# The object may be a COM object with typelib support - lets see if we can get its props.
