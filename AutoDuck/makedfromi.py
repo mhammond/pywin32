@@ -55,7 +55,7 @@ def make_doc_summary(inFile, outFile):
 			elif line[:7]=="#define" and not bInRawBlock:
 				cname = string.split(line)[1]
 				doc, lineNo = GetComments(line, lineNo, lines)
-				constants.append(cname, doc)
+				constants.append((cname, doc))
 			else:
 				pos = string.find(line, '// @')
 				if pos>=0:
