@@ -264,9 +264,38 @@ py_enum_clipboard_formats(PyObject* self, PyObject* args)
 
 //*****************************************************************************
 //
+// @pymethod int|win32clipboard|GetClipboardDataHandle|Retrieves data from the 
+// clipboard in a specified format, and returns an integer handle to the data.
+//  To get the data bytes, use the  <om win32clipboard.GetClipboardData> function.
+static PyObject *
+py_get_clipboard_data_handle(PyObject* self, PyObject* args)
+{
+  // @pyparm int|format|CF_TEXT|Specifies a clipboard format. For a description of
+  // the standard clipboard formats, see Standard Clipboard Formats.
+  int format = CF_TEXT;
+  if (!PyArg_ParseTuple(args, "|i:GetClipboardDataHandle:", &format))
+    return NULL;
+
+  if (!IsClipboardFormatAvailable(format))
+      return PyErr_Format(PyExc_TypeError, 
+                          "The clipboard format %d is not available", format);
+  HANDLE handle;
+  Py_BEGIN_ALLOW_THREADS;
+  handle = GetClipboardData((UINT)format);
+  Py_END_ALLOW_THREADS;
+  if (!handle)
+    return ReturnAPIError("GetClipboardData");
+  return PyLong_FromVoidPtr(handle);
+}
+
+
+//*****************************************************************************
+//
 // @pymethod string/unicode|win32clipboard|GetClipboardData|The GetClipboardData function
 // retrieves data from the clipboard in a specified format. The clipboard
-// must have been opened previously.
+// must have been opened previously.  Note that not all data formats are supported,
+// and that the underlying handle can be retrieved with 
+// <om win32clipboard.GetClipboardDataHandle>
 
 static PyObject *
 py_get_clipboard_data(PyObject* self, PyObject* args)
@@ -341,6 +370,7 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
       break;
     case CF_DIB:
       PyErr_SetString(PyExc_NotImplementedError, "GetClipboardData(CF_DIB) unimplemented");
+      return NULL;
       break;
     default:
       cData = GlobalLock(handle);
@@ -1029,6 +1059,10 @@ static struct PyMethodDef clipboard_functions[] = {
   // @pymeth GetClipboardData|Retrieves data from the clipboard in a
   // specified format. 
   {"GetClipboardData", py_get_clipboard_data, 1},
+
+    // @pymeth GetClipboardDataHandle|Retrieves data from the clipboard in a
+  // specified format, returning the underlying integer handle.
+  {"GetClipboardDataHandle", py_get_clipboard_data_handle, 1},
 
   // @pymeth GetClipboardFormatName|Retrieves from the clipboard the name
   // of the specified registered format. 
