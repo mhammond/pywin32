@@ -392,9 +392,9 @@ static PyObject * univgw_CreateVTable(PyObject *self, PyObject *args)
 	vtbl->methods[2] = (pfnGWMethod)univgw_Release;
 
 	if (isDispatch) {
-		vtbl->methods[3] = (pfnGWMethod)univgw_GetIDsOfNames;
+		vtbl->methods[3] = (pfnGWMethod)univgw_GetTypeInfoCount;
 		vtbl->methods[4] = (pfnGWMethod)univgw_GetTypeInfo;
-		vtbl->methods[5] = (pfnGWMethod)univgw_GetTypeInfoCount;
+		vtbl->methods[5] = (pfnGWMethod)univgw_GetIDsOfNames;
 		vtbl->methods[6] = (pfnGWMethod)univgw_Invoke;
 	}
 
@@ -501,8 +501,25 @@ static PyObject * univgw_CreateTearOff(PyObject *self, PyObject *args)
 		return NULL;
 	}
 
+	PyGatewayBase *base = NULL;
+	PY_INTERFACE_PRECALL;
+	HRESULT hr = PyCom_MakeRegisteredGatewayObject(IID_IUnknown, 
+		                                           obInstance,
+		                                           NULL,
+		                                           (void **)&base);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		return NULL;
+	}
+
 	// Do all of the grunt work.
-	punk = CreateTearOff(obInstance, NULL, obVTable);
+	punk = CreateTearOff(obInstance, base, obVTable);
+	if (base) {
+		PY_INTERFACE_PRECALL;
+		base->Release();
+		PY_INTERFACE_POSTCALL;
+	}
 	if (!punk)
 	{
 		Py_DECREF(obVTable);
