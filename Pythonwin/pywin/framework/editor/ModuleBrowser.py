@@ -108,9 +108,8 @@ class BrowserView(pywin.mfc.docview.TreeView):
         self.bDirty = 0
         return rc
 
-    def OnDestroy(self, msg):
+    def DestroyBrowser(self):
         self.DestroyList()
-        return pywin.mfc.docview.TreeView.OnDestroy(self, msg)
 
     def OnActivateView(self, activate, av, dv):
 #        print "AV", self.bDirty, activate

@@ -27,3 +27,7 @@ class EditorFrame(pywin.framework.window.MDIChildWnd):
         # In a multi-view (eg, splitter) environment, get
         # an editor (ie, scintilla) view
         return self.GetActiveDocument().GetFirstView()
+    def OnClose(self):
+        # Must force the module browser to close itself here (OnDestroy for the view itself is too late!)
+        self.GetActiveDocument().GetAllViews()[1].DestroyBrowser()
+        return self._obj_.OnClose()
