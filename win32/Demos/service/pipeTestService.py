@@ -8,16 +8,18 @@
 # * Start the service.
 # * Run the "pipeTestServiceClient.py" program as the client pipe side.
 
-import win32serviceutil, pywintypes
+import win32serviceutil, win32service
+import pywintypes, win32con, winerror
+# Use "import *" to keep this looking as much as a "normal" service
+# as possible.  Real code shouldn't do this.
 from win32event import *
 from win32file import *
 from win32pipe import *
 from win32api import *
-import win32con
-import thread
 from ntsecuritycon import *
 
-import win32service, winerror, traceback
+import traceback
+import thread
 
 def ApplyIgnoreError(fn, args):
 	try:
@@ -38,7 +40,6 @@ class TestPipeService(win32serviceutil.ServiceFramework):
 	def CreatePipeSecurityObject(self):
 		# Create a security object giving World read/write access,
 		# but only "Owner" modify access.
-		import pywintypes
 		sa = pywintypes.SECURITY_ATTRIBUTES()
 		sidEveryone = pywintypes.SID()
 		sidEveryone.Initialize(SECURITY_WORLD_SID_AUTHORITY,1)
@@ -152,4 +153,3 @@ class TestPipeService(win32serviceutil.ServiceFramework):
 
 if __name__=='__main__':
 	win32serviceutil.HandleCommandLine(TestPipeService)
-
