@@ -112,6 +112,7 @@ class SyntEditView(SyntEditViewParent):
 
 		self.SCISetViewWS( GetEditorOption("View Whitespace", 0) )
 		self.SCISetViewEOL( GetEditorOption("View EOL", 0) )
+		self.SCISetIndentationGuides( GetEditorOption("View Indentation Guides", 0) )
 
 		width = GetEditorOption("Marker Margin Width", 16)
 		self.SCISetMarginWidthN(1, width)
@@ -170,6 +171,7 @@ class SyntEditView(SyntEditViewParent):
 		else:
 			# Dont want smart-tabs - just set the options!
 			ext.config(usetabs=bUseTabs, tabwidth=tabSize, indentwidth=indentSize)
+		self.SCISetIndent(indentSize)
 		self.SCISetTabWidth(tabSize)
 
 	def OnDebuggerStateChange(self, state):

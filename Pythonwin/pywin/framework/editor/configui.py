@@ -118,6 +118,7 @@ class EditorWhitespacePropertyPage(dialog.PropertyPage):
 		self._AddEditorOption(win32ui.IDC_USE_SMART_TABS, "i", "Smart Tabs", 1)
 		self._AddEditorOption(win32ui.IDC_VIEW_WHITESPACE, "i", "View Whitespace", 0)
 		self._AddEditorOption(win32ui.IDC_VIEW_EOL, "i", "View EOL", 0)
+		self._AddEditorOption(win32ui.IDC_VIEW_INDENTATIONGUIDES, "i", "View Indentation Guides", 0)
 
 	def _AddEditorOption(self, idd, typ, optionName, defaultVal):
 		self.AddDDX(idd, optionName, typ)
@@ -159,8 +160,6 @@ class EditorWhitespacePropertyPage(dialog.PropertyPage):
 		for spinner_id in [win32ui.IDC_SPIN1, win32ui.IDC_SPIN2]:
 			spinner = self.GetDlgItem(spinner_id)
 			spinner.SetRange(1, 16)
-
-			
 		return rc
 
 	def OnButTabTimmy(self, id, code):

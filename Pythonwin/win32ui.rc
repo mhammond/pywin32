@@ -188,6 +188,7 @@ BEGIN
         MENUITEM "&Interactive Window",         ID_VIEW_INTERACTIVE
         MENUITEM SEPARATOR
         MENUITEM "&Whitespace",                 ID_VIEW_WHITESPACE
+        MENUITEM "Indentation &guides",         ID_VIEW_INDENTATIONGUIDES
         MENUITEM "&End-of-line markers",        ID_VIEW_EOL
         MENUITEM "&Fixed Font",                 ID_VIEW_FIXED_FONT
         MENUITEM "&Options...",                 ID_VIEW_OPTIONS
@@ -283,6 +284,7 @@ BEGIN
         MENUITEM "&Interactive Window",         ID_VIEW_INTERACTIVE
         MENUITEM SEPARATOR
         MENUITEM "&Whitespace",                 ID_VIEW_WHITESPACE
+        MENUITEM "Indentation &guides",         ID_VIEW_INDENTATIONGUIDES
         MENUITEM "&End-of-line markers",        ID_VIEW_EOL
         MENUITEM "&Fixed Font",                 ID_VIEW_FIXED_FONT
         MENUITEM "&Options...",                 ID_VIEW_OPTIONS
@@ -887,6 +889,8 @@ BEGIN
                     WS_GROUP | WS_TABSTOP,141,11,82,11
     CONTROL         "Keep tabs",IDC_USE_TABS,"Button",BS_AUTORADIOBUTTON | 
                     WS_TABSTOP,141,27,82,11
+    CONTROL         "View indentation guides",IDC_VIEW_INDENTATIONGUIDES,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,141,38,97,12
     CONTROL         "View end of line markers",IDC_VIEW_EOL,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,141,50,97,12
     GROUPBOX        "Tab-Timmy",IDC_STATIC,7,67,242,48
@@ -1287,6 +1291,8 @@ BEGIN
     ID_VIEW_FOLD_COLLAPSE_ALL 
                             "Collapse all currently expanded folds.\nCollapse all"
     ID_VIEW_FOLD_COLLAPSE   "Collapse the current fold.\nCollapse"
+    ID_VIEW_INDENTATIONGUIDES 
+                            "Toggle display of indentation guides\nHide/show Indentation guides"
 END
 
 #endif    // English (U.S.) resources
