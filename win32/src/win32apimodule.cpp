@@ -4259,6 +4259,53 @@ PyObject *Pymouse_event(PyObject *self, PyObject *args)
   return Py_None;
 }
 
+//@pymethod <o PyDEVMODE>|win32api|EnumDisplaySettings|List available modes for specified display device
+PyObject *PyEnumDisplaySettings(PyObject *self, PyObject *args)
+{
+	PyObject *obDeviceName=NULL;
+	char *DeviceName;
+	DWORD ModeNum;
+	DEVMODE devmode;
+	// @pyparm string|DeviceName||Name of device, use None for current display device
+	// @pyparm int|ModeNum||Index of setting to return, or one of ENUM_CURRENT_SETTINGS, ENUM_REGISTRY_SETTINGS 
+	if (!PyArg_ParseTuple(args, "Ol:EnumDisplaySettings",&obDeviceName, &ModeNum))
+		return NULL;
+	if (obDeviceName==NULL || obDeviceName==Py_None)
+		DeviceName=NULL;
+	else{
+		DeviceName=PyString_AsString(obDeviceName);
+		if (DeviceName==NULL)
+			return NULL;
+		}
+	ZeroMemory(&devmode,sizeof(DEVMODE));
+	devmode.dmSize=sizeof(DEVMODE);
+	if (!EnumDisplaySettings(DeviceName, ModeNum, &devmode)){
+		// msdn says GetLastError should return something on win2k and up, I get 0
+		PyWin_SetAPIError("EnumDisplaySettings");
+		return NULL;
+		}
+	return PyWinObject_FromDEVMODE(&devmode);
+}
+
+// @pymethod int|win32api|ChangeDisplaySettings|Changes video mode for default display
+// @comm Returns DISP_CHANGE_SUCCESSFUL on success, or one of the DISP_CHANGE_* error constants on failure
+PyObject *PyChangeDisplaySettings(PyObject *self, PyObject *args)
+{
+	DWORD Flags;
+	PDEVMODE pdevmode;
+	PyObject *obdevmode;
+	long ret;
+	// @pyparm <o PyDEVMODE>|DevMode||A PyDEVMODE object as returned from EnumDisplaySettings, or None to reset to default settings from registry
+	// @pyparm int|Flags||One of the CDS_* constants, or 0
+	if (!PyArg_ParseTuple(args, "Ol:ChangeDisplaySettings",&obdevmode, &Flags))
+		return NULL;
+	if (!PyWinObject_AsDEVMODE(obdevmode, &pdevmode, TRUE))
+		return NULL;
+	// DISP_CHANGE_* errors don't translate as win32 error codes, just return it
+	ret=::ChangeDisplaySettings(pdevmode, Flags);
+	return Py_BuildValue("l",ret);
+}
+
 /* List of functions exported by this module */
 // @module win32api|A module, encapsulating the Windows Win32 API.
 static struct PyMethodDef win32api_functions[] = {
@@ -4271,6 +4318,7 @@ static struct PyMethodDef win32api_functions[] = {
 #endif
 	{"Beep",				PyBeep,         1},     // @pymeth Beep|Generates a simple tone on the speaker.
 	{"BeginUpdateResource", PyBeginUpdateResource, 1 }, // @pymeth BeginUpdateResource|Begins an update cycle for a PE file.
+	{"ChangeDisplaySettings", PyChangeDisplaySettings, 1}, // @pymeth ChangeDisplaySettings|Changes video mode for default display
 	{"ClipCursor",			PyClipCursor,       1}, // @pymeth ClipCursor|Confines the cursor to a rectangular area on the screen.
 	{"CloseHandle",		    PyCloseHandle,     1},  // @pymeth CloseHandle|Closes an open handle.
 	{"CopyFile",			PyCopyFile,         1}, // @pymeth CopyFile|Copy a file.
@@ -4280,6 +4328,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"DragFinish",			PyDragFinish,       1}, // @pymeth DragFinish|Free memory associated with dropped files.
 	{"DuplicateHandle",     PyDuplicateHandle,  1}, // @pymeth DuplicateHandle|Duplicates a handle.
 	{"EndUpdateResource",   PyEndUpdateResource, 1 }, // @pymeth EndUpdateResource|Ends a resource update cycle of a PE file.
+	{"EnumDisplaySettings", PyEnumDisplaySettings,1}, //@pymeth EnumDisplaySettings|Lists available modes for specified device 
 	{"EnumResourceLanguages",   PyEnumResourceLanguages, 1 }, // @pymeth EnumResourceLanguages|List languages for specified resource
 	{"EnumResourceNames",   PyEnumResourceNames, 1 }, // @pymeth EnumResourceNames|Enumerates all the resources of the specified type from the nominated file.
 	{"EnumResourceTypes",   PyEnumResourceTypes, 1 }, // @pymeth EnumResourceTypes|Return list of all resource types contained in module

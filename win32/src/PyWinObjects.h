@@ -217,3 +217,32 @@ public:
 	virtual const char *GetTypeName() {return "PyHKEY";}
 };
 #endif /* __PYWINTYPES_H__ */
+
+class PYWINTYPES_EXPORT PyDEVMODE : public PyObject
+{
+public:
+#ifdef _MSC_VER
+#pragma warning( disable : 4251 )
+#endif // _MSC_VER
+	static struct PyMemberDef members[];
+	static struct PyMethodDef methods[];
+#ifdef _MSC_VER
+#pragma warning( default : 4251 )
+#endif // _MSC_VER
+
+	static void deallocFunc(PyObject *ob);
+	PyDEVMODE(PDEVMODE);
+	PyDEVMODE(void);
+	PyDEVMODE(USHORT);
+	static PyObject *getattro(PyObject *self, PyObject *name);
+	static int setattro(PyObject *self, PyObject *obname, PyObject *obvalue);
+	static PyObject *Clear(PyObject *self, PyObject *args);
+	static PyObject *tp_new(PyTypeObject *, PyObject *, PyObject *);
+	PDEVMODE GetDEVMODE(void);
+protected:
+	// Pointer to variable length DEVMODE with dmDriverExtra bytes allocated at end, always use this externally
+	PDEVMODE pdevmode;
+	// copy of fixed portion of DEVMODE for structmember api to access
+	DEVMODE  devmode;   
+	~PyDEVMODE();
+};

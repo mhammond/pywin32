@@ -535,6 +535,7 @@ void initpywintypes(void)
 #endif
   PyDict_SetItemString(dict, "HANDLEType", (PyObject *)&PyHANDLEType);
   PyDict_SetItemString(dict, "OVERLAPPEDType", (PyObject *)&PyHANDLEType);
+  PyDict_SetItemString(dict, "DEVMODEType", (PyObject *)&PyDEVMODEType);
 
 
 }
