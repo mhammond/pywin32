@@ -25,9 +25,14 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsOVERLAPPED(PyObject *ob, OVERLAPPED **ppOve
 	PyOVERLAPPED *po = NULL;
 	if (!PyWinObject_AsPyOVERLAPPED(ob, &po, bNoneOK))
 		return FALSE;
+	if (bNoneOK && po==NULL) {
+		*ppOverlapped = NULL;
+		return TRUE;
+	}
 	assert(po);
-	if (po)
-		*ppOverlapped = po->GetOverlapped();
+	if (!po)
+		return FALSE;
+	*ppOverlapped = po->GetOverlapped();
 	return TRUE;
 }
 
