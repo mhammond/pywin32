@@ -17,14 +17,14 @@ item: Global
   Patch Flags=0000000000000001
   Patch Threshold=85
   Patch Memory=4000
-  EXE Filename=win32all-150.exe
+  EXE Filename=win32all-152.exe
   Code Sign Name=Python Win32 combined extensions
   Code Sign Info=skippinet.com.au
   Crystal Format=10111100101100000010001001001001
   Distribute Type=1
   Step View=&Properties
   Variable Name1=_WISE_
-  Variable Default1=F:\Program Files\Wise InstallMaster 8.1
+  Variable Default1=E:\PROGRA~1\WISEIN~1.1
   Variable Flags1=00001000
   Variable Name2=_COMBINEDINST_
   Variable Default2=1
@@ -1095,145 +1095,145 @@ item: Set Variable
   Value=%MAINDIR%\win32
 end
 item: Install File
-  Source=f:\src\pythonex\win32\License.txt
+  Source=e:\src\pythonex\win32\License.txt
   Destination=%INSTDIR%\License.txt
   Description=win32 extension files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\win32\lib\*.py
+  Source=e:\src\pythonex\win32\lib\*.py
   Destination=%INSTDIR%\lib
   Description=win32 extension files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\dde.pyd
+  Source=e:\src\pythonex\win32\Build\dde.pyd
   Destination=%INSTDIR%\dde.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\mmapfile.pyd
+  Source=e:\src\pythonex\win32\Build\mmapfile.pyd
   Destination=%INSTDIR%\mmapfile.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\odbc.pyd
+  Source=e:\src\pythonex\win32\Build\odbc.pyd
   Destination=%INSTDIR%\odbc.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\timer.pyd
+  Source=e:\src\pythonex\win32\Build\timer.pyd
   Destination=%INSTDIR%\timer.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\win32api.pyd
+  Source=e:\src\pythonex\win32\Build\win32api.pyd
   Destination=%INSTDIR%\win32api.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\win32clipboard.pyd
+  Source=e:\src\pythonex\win32\Build\win32clipboard.pyd
   Destination=%INSTDIR%\win32clipboard.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\win32event.pyd
+  Source=e:\src\pythonex\win32\Build\win32event.pyd
   Destination=%INSTDIR%\win32event.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\win32file.pyd
+  Source=e:\src\pythonex\win32\Build\win32file.pyd
   Destination=%INSTDIR%\win32file.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\win32gui.pyd
+  Source=e:\src\pythonex\win32\Build\win32gui.pyd
   Destination=%INSTDIR%\win32gui.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\win32help.pyd
+  Source=e:\src\pythonex\win32\Build\win32help.pyd
   Destination=%INSTDIR%\win32help.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\win32lz.pyd
+  Source=e:\src\pythonex\win32\Build\win32lz.pyd
   Destination=%INSTDIR%\win32lz.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\win32net.pyd
+  Source=e:\src\pythonex\win32\Build\win32net.pyd
   Destination=%INSTDIR%\win32net.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\win32pipe.pyd
+  Source=e:\src\pythonex\win32\Build\win32pipe.pyd
   Destination=%INSTDIR%\win32pipe.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\win32popenWin9x.exe
+  Source=e:\src\pythonex\win32\Build\win32popenWin9x.exe
   Destination=%INSTDIR%\win32popenWin9x.exe
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\win32print.pyd
+  Source=e:\src\pythonex\win32\Build\win32print.pyd
   Destination=%INSTDIR%\win32print.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\win32process.pyd
+  Source=e:\src\pythonex\win32\Build\win32process.pyd
   Destination=%INSTDIR%\win32process.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\win2kras.pyd
+  Source=e:\src\pythonex\win32\Build\win2kras.pyd
   Destination=%INSTDIR%\win2kras.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\win32ras.pyd
+  Source=e:\src\pythonex\win32\Build\win32ras.pyd
   Destination=%INSTDIR%\win32ras.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\win32security.pyd
+  Source=e:\src\pythonex\win32\Build\win32security.pyd
   Destination=%INSTDIR%\win32security.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\win32service.pyd
+  Source=e:\src\pythonex\win32\Build\win32service.pyd
   Destination=%INSTDIR%\win32service.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\win32trace.pyd
+  Source=e:\src\pythonex\win32\Build\win32trace.pyd
   Destination=%INSTDIR%\win32trace.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\win32wnet.pyd
+  Source=e:\src\pythonex\win32\Build\win32wnet.pyd
   Destination=%INSTDIR%\win32wnet.pyd
   Description=win32 extension files
   Flags=0000000000000011
@@ -1245,7 +1245,7 @@ remarked item: Install File
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\dbi.dll
+  Source=e:\src\pythonex\win32\Build\dbi.dll
   Destination=%INSTDIR%\dbi.dll
   Description=win32 extension files
   Flags=0000000000000011
@@ -1254,36 +1254,36 @@ item: Check Configuration
   Flags=10100000
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\win32pdh.pyd
+  Source=e:\src\pythonex\win32\Build\win32pdh.pyd
   Destination=%INSTDIR%\win32pdh.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\win32evtlog.pyd
+  Source=e:\src\pythonex\win32\Build\win32evtlog.pyd
   Destination=%INSTDIR%\win32evtlog.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\perfmon.pyd
+  Source=e:\src\pythonex\win32\Build\perfmon.pyd
   Destination=%INSTDIR%\perfmon.pyd
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\perfmondata.dll
+  Source=e:\src\pythonex\win32\Build\perfmondata.dll
   Destination=%INSTDIR%\perfmondata.dll
   Description=win32 extension files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\SharedDlls\NT\pdh.dll
+  Source=e:\src\pythonex\SharedDlls\NT\pdh.dll
   Destination=%SYS32%\pdh.dll
   Flags=0000001000010011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\PythonService.exe
+  Source=e:\src\pythonex\win32\Build\PythonService.exe
   Destination=%INSTDIR%\PythonService.exe
   Description=win32 extension files
   Flags=0000000000000011
@@ -1291,67 +1291,67 @@ end
 item: End Block
 end
 item: Install File
-  Source=f:\src\pythonex\SharedDlls\MSVCIRT.DLL
+  Source=e:\src\pythonex\SharedDlls\MSVCIRT.DLL
   Destination=%SYS32%\MSVCIRT.DLL
   Description=Visual C++ DLLs
   Flags=0000001000010011
 end
 item: Install File
-  Source=f:\src\pythonex\SharedDlls\MSVCRT.DLL
+  Source=e:\src\pythonex\SharedDlls\MSVCRT.DLL
   Destination=%SYS32%\MSVCRT.DLL
   Description=Visual C++ DLLs
   Flags=0000001000010011
 end
 item: Install File
-  Source=f:\src\pythonex\win32\demos\*.py
+  Source=e:\src\pythonex\win32\demos\*.py
   Destination=%INSTDIR%\demos
   Description=win32 extension demos
   Flags=0000000100000010
 end
 item: Install File
-  Source=f:\src\pythonex\win32\demos\*.txt
+  Source=e:\src\pythonex\win32\demos\*.txt
   Destination=%INSTDIR%\demos
   Description=win32 extension demos
   Flags=0000000100000010
 end
 item: Install File
-  Source=f:\src\pythonex\win32\demos\*.htm*
+  Source=e:\src\pythonex\win32\demos\*.htm*
   Destination=%INSTDIR%\demos
   Description=win32 extension demos
   Flags=0000000100000010
 end
 item: Install File
-  Source=f:\src\pythonex\win32\demos\*.bat
+  Source=e:\src\pythonex\win32\demos\*.bat
   Destination=%INSTDIR%\demos
   Description=win32 extension demos
   Flags=0000000100000010
 end
 item: Install File
-  Source=f:\src\pythonex\win32\demos\*.pys
+  Source=e:\src\pythonex\win32\demos\*.pys
   Destination=%INSTDIR%\demos
   Description=win32 extension demos
   Flags=0000000100000010
 end
 item: Install File
-  Source=f:\src\pythonex\win32\demos\*.js
+  Source=e:\src\pythonex\win32\demos\*.js
   Destination=%INSTDIR%\demos
   Description=win32 extension demos
   Flags=0000000100000010
 end
 item: Install File
-  Source=f:\src\pythonex\win32\demos\*.vbs
+  Source=e:\src\pythonex\win32\demos\*.vbs
   Destination=%INSTDIR%\demos
   Description=win32 extension demos
   Flags=0000000100000010
 end
 item: Install File
-  Source=f:\src\pythonex\win32\scripts\*.*
+  Source=e:\src\pythonex\win32\scripts\*.*
   Destination=%INSTDIR%\scripts
   Description=win32 extension demos
   Flags=0000000100000010
 end
 item: Install File
-  Source=f:\src\pythonex\win32\demos\service\install\*.*
+  Source=e:\src\pythonex\win32\demos\service\install\*.*
   Destination=%INSTDIR%\demos\service\install
   Description=win32 extension demos
   Flags=0000000100000010
@@ -1388,19 +1388,19 @@ item: Remark
   Text=win32com
 end
 item: Install File
-  Source=f:\src\pythonex\com\pythoncom.py
+  Source=e:\src\pythonex\com\pythoncom.py
   Destination=%MAINDIR%\pythoncom.py
   Description=COM Support files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32com\*.txt
+  Source=e:\src\pythonex\com\win32com\*.txt
   Destination=%INSTDIR%
   Description=COM Readme
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32com\*.htm
+  Source=e:\src\pythonex\com\win32com\*.htm
   Destination=%INSTDIR%
   Description=COM Readme
   Flags=0000000000000010
@@ -1410,79 +1410,79 @@ item: Set Variable
   Value=%SYS32%\PythonCOM%PYVER_NODOT%.dll
 end
 item: Install File
-  Source=f:\src\pythonex\com\License.txt
+  Source=e:\src\pythonex\com\License.txt
   Destination=%INSTDIR%\License.txt
   Description=COM License
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32com\*.py
+  Source=e:\src\pythonex\com\win32com\*.py
   Destination=%INSTDIR%\
   Description=COM Support files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32com\servers\*.py
+  Source=e:\src\pythonex\com\win32com\servers\*.py
   Destination=%INSTDIR%\servers
   Description=COM Support files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32com\server\*.py
+  Source=e:\src\pythonex\com\win32com\server\*.py
   Destination=%INSTDIR%\server
   Description=COM Support files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32com\client\*.py
+  Source=e:\src\pythonex\com\win32com\client\*.py
   Destination=%INSTDIR%\client
   Description=COM Support files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32com\demos\*.py
+  Source=e:\src\pythonex\com\win32com\demos\*.py
   Destination=%INSTDIR%\demos
   Description=COM Support files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32com\test\*.txt
+  Source=e:\src\pythonex\com\win32com\test\*.txt
   Destination=%INSTDIR%\test
   Description=COM Test files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32com\test\*.py
+  Source=e:\src\pythonex\com\win32com\test\*.py
   Destination=%INSTDIR%\test
   Description=COM Test files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32com\test\*.vbs
+  Source=e:\src\pythonex\com\win32com\test\*.vbs
   Destination=%INSTDIR%\test
   Description=COM Test files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32com\test\*.js
+  Source=e:\src\pythonex\com\win32com\test\*.js
   Destination=%INSTDIR%\test
   Description=COM Test files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32com\test\*.sct
+  Source=e:\src\pythonex\com\win32com\test\*.sct
   Destination=%INSTDIR%\test
   Description=COM Test files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32com\HTML\*
+  Source=e:\src\pythonex\com\win32com\HTML\*
   Destination=%INSTDIR%\HTML
   Description=Win32com HTML Documentation
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32com\HTML\image\*
+  Source=e:\src\pythonex\com\win32com\HTML\image\*
   Destination=%INSTDIR%\HTML\image
   Description=Win32com HTML Documentation
   Flags=0000000000000010
@@ -1491,73 +1491,73 @@ item: Remark
   Text=AXScript and AXDebug files
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32comext\axscript\*.py
+  Source=e:\src\pythonex\com\win32comext\axscript\*.py
   Destination=%EXTDIR%\axscript
   Description=ActiveX Script Files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32comext\axscript\client\*.py
+  Source=e:\src\pythonex\com\win32comext\axscript\client\*.py
   Destination=%EXTDIR%\axscript\client
   Description=ActiveX Script Files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32comext\axscript\server\*.py
+  Source=e:\src\pythonex\com\win32comext\axscript\server\*.py
   Destination=%EXTDIR%\axscript\server
   Description=ActiveX Script Files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32comext\axscript\test\*.py
+  Source=e:\src\pythonex\com\win32comext\axscript\test\*.py
   Destination=%EXTDIR%\axscript\test
   Description=ActiveX Script Files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32comext\axscript\test\*.vbs
+  Source=e:\src\pythonex\com\win32comext\axscript\test\*.vbs
   Destination=%EXTDIR%\axscript\test
   Description=ActiveX Script Files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32comext\axscript\test\*.pys
+  Source=e:\src\pythonex\com\win32comext\axscript\test\*.pys
   Destination=%EXTDIR%\axscript\test
   Description=ActiveX Script Files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\Build\axscript.pyd
+  Source=e:\src\pythonex\com\Build\axscript.pyd
   Destination=%EXTDIR%\axscript\axscript.pyd
   Description=ActiveX Script Files - Extennsion module
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32comext\axscript\demos\client\ie\*.*
+  Source=e:\src\pythonex\com\win32comext\axscript\demos\client\ie\*.*
   Destination=%EXTDIR%\axscript\demos\client\ie
   Description=ActiveX Script Files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32comext\axscript\demos\client\wsh\*.*
+  Source=e:\src\pythonex\com\win32comext\axscript\demos\client\wsh\*.*
   Destination=%EXTDIR%\axscript\demos\client\wsh
   Description=ActiveX Script Files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32comext\axscript\demos\client\asp\*.*
+  Source=e:\src\pythonex\com\win32comext\axscript\demos\client\asp\*.*
   Destination=%EXTDIR%\axscript\demos\client\asp
   Description=ActiveX Script Files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32comext\axdebug\*.py
+  Source=e:\src\pythonex\com\win32comext\axdebug\*.py
   Destination=%EXTDIR%\axdebug
   Description=Active Debugging files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\Build\axdebug.pyd
+  Source=e:\src\pythonex\com\Build\axdebug.pyd
   Destination=%EXTDIR%\axdebug\axdebug.pyd
   Description=Active Debugging files
   Flags=0000000000000011
@@ -1566,25 +1566,25 @@ item: Remark
   Text=MAPI and Exchange files
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32comext\mapi\*.py
+  Source=e:\src\pythonex\com\win32comext\mapi\*.py
   Destination=%EXTDIR%\mapi
   Description=MAPI files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\Build\mapi.pyd
+  Source=e:\src\pythonex\com\Build\mapi.pyd
   Destination=%EXTDIR%\mapi\mapi.pyd
   Description=MAPI files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\com\Build\exchdapi.pyd
+  Source=e:\src\pythonex\com\Build\exchdapi.pyd
   Destination=%EXTDIR%\mapi\exchdapi.pyd
   Description=MAPI files
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\com\Build\exchange.pyd
+  Source=e:\src\pythonex\com\Build\exchange.pyd
   Destination=%EXTDIR%\mapi\exchange.pyd
   Description=MAPI files
   Flags=0000000000000011
@@ -1593,13 +1593,13 @@ item: Remark
   Text=AXControl files
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32comext\axcontrol\*.py
+  Source=e:\src\pythonex\com\win32comext\axcontrol\*.py
   Destination=%EXTDIR%\axcontrol
   Description=ActiveX Control files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\Build\axcontrol.pyd
+  Source=e:\src\pythonex\com\Build\axcontrol.pyd
   Destination=%EXTDIR%\axcontrol\axcontrol.pyd
   Description=ActiveX Control files
   Flags=0000000000000011
@@ -1608,19 +1608,19 @@ item: Remark
   Text=Shell Extenion files
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32comext\shell\*.py
+  Source=e:\src\pythonex\com\win32comext\shell\*.py
   Destination=%EXTDIR%\shell
   Description=ActiveX Shell Extension files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32comext\shell\test\*.py
+  Source=e:\src\pythonex\com\win32comext\shell\test\*.py
   Destination=%EXTDIR%\shell\test
   Description=ActiveX Shell Extension files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\Build\shell.pyd
+  Source=e:\src\pythonex\com\Build\shell.pyd
   Destination=%EXTDIR%\shell\shell.pyd
   Description=ActiveX Shell Extension files
   Flags=0000000000000011
@@ -1629,13 +1629,13 @@ item: Remark
   Text=Internet Extenion files
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32comext\internet\*.py
+  Source=e:\src\pythonex\com\win32comext\internet\*.py
   Destination=%EXTDIR%\internet
   Description=ActiveX Internet Extension files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\Build\internet.pyd
+  Source=e:\src\pythonex\com\Build\internet.pyd
   Destination=%EXTDIR%\internet\internet.pyd
   Description=ActiveX Internet Extension files
   Flags=0000000000000011
@@ -1644,13 +1644,13 @@ item: Remark
   Text=ADSI
 end
 item: Install File
-  Source=f:\src\pythonex\com\win32comext\adsi\*.py
+  Source=e:\src\pythonex\com\win32comext\adsi\*.py
   Destination=%EXTDIR%\adsi
   Description=ADSI Extension files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\Build\adsi.pyd
+  Source=e:\src\pythonex\com\Build\adsi.pyd
   Destination=%EXTDIR%\adsi\adsi.pyd
   Description=ADSI Extension files
   Flags=0000000000000011
@@ -1717,42 +1717,42 @@ item: Set Variable
   Value=%MAINDIR%\Pythonwin
 end
 item: Install File
-  Source=f:\src\pythonex\pythonwin\License.txt
+  Source=e:\src\pythonex\pythonwin\License.txt
   Destination=%INSTDIR%\License.txt
   Description=Library files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\pythonwin\pywin\*.py
+  Source=e:\src\pythonex\pythonwin\pywin\*.py
   Destination=%INSTDIR%\pywin
   Description=Library files
   Flags=0000000100000010
 end
 item: Install File
-  Source=f:\src\pythonex\pythonwin\pywin\*.cfg
+  Source=e:\src\pythonex\pythonwin\pywin\*.cfg
   Destination=%INSTDIR%\pywin
   Description=Library files
   Flags=0000000100000010
 end
 item: Install File
-  Source=f:\src\pythonex\pythonwin\pywin\*.txt
+  Source=e:\src\pythonex\pythonwin\pywin\*.txt
   Destination=%INSTDIR%\pywin
   Description=Library files
   Flags=0000000100000010
 end
 item: Install File
-  Source=f:\src\pythonex\pythonwin\doc\*.*
+  Source=e:\src\pythonex\pythonwin\doc\*.*
   Destination=%INSTDIR%\doc
   Description=Documentation
   Flags=0000000100000010
 end
 item: Install File
-  Source=f:\src\pythonex\pythonwin\Build\scintilla.dll
+  Source=e:\src\pythonex\pythonwin\Build\scintilla.dll
   Destination=%INSTDIR%\scintilla.dll
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\pythonwin\start_pythonwin.pyw
+  Source=e:\src\pythonex\pythonwin\start_pythonwin.pyw
   Destination=%INSTDIR%\start_pythonwin.pyw
   Description=Library files
   Flags=0000000000000010
@@ -1761,7 +1761,7 @@ item: Remark
   Text=Make sure I get all the demo stuff!
 end
 item: Install File
-  Source=f:\src\pythonex\pythonwin\pywin\*.dll
+  Source=e:\src\pythonex\pythonwin\pywin\*.dll
   Destination=%INSTDIR%\pywin
   Description=Library files
   Flags=0000000100000010
@@ -1778,7 +1778,7 @@ item: Compiler Variable If
   Flags=00000001
 end
 item: Install File
-  Source=f:\src\pythonex\pythonwin\Build\Pythonwin.exe
+  Source=e:\src\pythonex\pythonwin\Build\Pythonwin.exe
   Destination=%INSTDIR%\Pythonwin.exe
   Description=Extension modules
   Flags=0000000000000011
@@ -1822,19 +1822,19 @@ end
 item: Compiler Variable End
 end
 item: Install File
-  Source=f:\src\pythonex\pythonwin\Build\win32ui.pyd
+  Source=e:\src\pythonex\pythonwin\Build\win32ui.pyd
   Destination=%INSTDIR%\win32ui.pyd
   Description=Extension modules
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\pythonwin\Build\win32uiole.pyd
+  Source=e:\src\pythonex\pythonwin\Build\win32uiole.pyd
   Destination=%INSTDIR%\win32uiole.pyd
   Description=Extension modules
   Flags=0000000000000011
 end
 item: Install File
-  Source=f:\src\pythonex\pythonwin\readme.html
+  Source=e:\src\pythonex\pythonwin\readme.html
   Destination=%INSTDIR%\readme.html
   Description=Help files
   Flags=0000000000000010
@@ -1849,13 +1849,13 @@ item: Remark
   Text=The help file
 end
 item: Install File
-  Source=f:\src\pythonex\PyWin32.chm
+  Source=e:\src\pythonex\PyWin32.chm
   Destination=%MAINDIR%\PyWin32.chm
   Description=Help Files
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\SharedDlls\MFC42.DLL
+  Source=e:\src\pythonex\SharedDlls\MFC42.DLL
   Destination=%SYS32%\MFC42.DLL
   Flags=0000001000000011
 end
@@ -1962,13 +1962,13 @@ end
 item: Compiler Variable End
 end
 item: Install File
-  Source=f:\src\pythonex\win32\Build\System\PyWinTypes%PYVER_NODOT%.dll
+  Source=e:\src\pythonex\win32\Build\System\PyWinTypes%PYVER_NODOT%.dll
   Destination=%SYSDLL_PATH%\PyWinTypes%PYVER_NODOT%.dll
   Description=Core COM Extension DLL
   Flags=0000000000000010
 end
 item: Install File
-  Source=f:\src\pythonex\com\Build\System\PythonCOM%PYVER_NODOT%.dll
+  Source=e:\src\pythonex\com\Build\System\PythonCOM%PYVER_NODOT%.dll
   Destination=%SYSDLL_PATH%\PythonCOM%PYVER_NODOT%.dll
   Description=Core COM Extension DLL
   Flags=0000000000000010
@@ -2026,12 +2026,12 @@ item: Compiler Variable If
   Flags=00000001
 end
 item: Install File
-  Source=f:\src\pythonex\Wise\Install Scripts\FinishInstall.py
+  Source=e:\src\pythonex\Wise\Install Scripts\FinishInstall.py
   Destination=%TEMP%\FinishInstall.py
   Flags=0000000000100010
 end
 item: Install File
-  Source=f:\src\pythonex\Wise\PyWise\Build\Release\PyWise%PYVER_NODOT%.dll
+  Source=e:\src\pythonex\Wise\PyWise\Build\Release\PyWise%PYVER_NODOT%.dll
   Destination=%MAINDIR%\PyWise%PYVER_NODOT%.dll
   Flags=0000000000100010
 end
