@@ -13,9 +13,6 @@
 // Class Factories do not count against the DLLs total reference count.
 static LONG factoryRefCount = 0;
 
-extern void PyCom_LogF(const TCHAR *fmt, ...);
-#define LogF PyCom_LogF
-
 CPyFactory::CPyFactory(REFCLSID guidClassID) :
 	m_guidClassID(guidClassID),
 	m_cRef(1)
@@ -164,7 +161,7 @@ BOOL LoadGatewayModule(PyObject **ppModule)
 	pPyModule = PyImport_ImportModule("win32com.server.policy");
  	if ( !pPyModule )
 	{
-		LogF(_T("PythonCOM Server - The policy module could not be loaded."));
+		PyCom_LogError("PythonCOM Server - The 'win32com.server.policy' module could not be loaded.");
 		/* ### propagate the exception? */
 		PyErr_Clear();
 		return FALSE;
