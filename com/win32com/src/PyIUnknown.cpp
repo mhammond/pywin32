@@ -232,23 +232,31 @@ PyObject *PyIUnknown::QueryInterface(PyObject *self, PyObject *args)
 	IUnknown *pMyUnknown = GetI(self);
 	if (pMyUnknown==NULL) return NULL;
 
-	IUnknown *punk;
+	IUnknown *punk = NULL;
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = pMyUnknown->QueryInterface(iid, (LPVOID*)&punk);
 	PY_INTERFACE_POSTCALL;
 
 	/* Note that this failure may include E_NOINTERFACE */
-	if ( FAILED(hr) )
+	if ( FAILED(hr) || punk==NULL)
 		return PyCom_BuildPyException(hr, pMyUnknown, IID_IUnknown);
 
-	/* Return a type based on the IID (with no extra ref) */
-	PyObject *rc = PyCom_PyObjectFromIUnknown(punk, iid, FALSE);
+	/* Return a type based on the IID.  Note we can't ask PyCom_PyObjectFromIUnknown
+	   to own the reference, as we expect failure - and this will release our reference,
+	   which means we can't try again.  So a new ref is added should they work.
+	*/
+	PyObject *rc = PyCom_PyObjectFromIUnknown(punk, iid, TRUE);
 
 	/* we may have been asked to use a different interface */
 	if ( rc == NULL && obUseIID != NULL )
 	{
 		PyErr_Clear();
-		rc = PyCom_PyObjectFromIUnknown(punk, useIID, FALSE);
+		rc = PyCom_PyObjectFromIUnknown(punk, useIID, TRUE);
+	}
+	{
+	PY_INTERFACE_PRECALL;
+	punk->Release();
+	PY_INTERFACE_POSTCALL;
 	}
 	return rc;
 }
