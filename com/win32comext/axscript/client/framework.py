@@ -922,7 +922,10 @@ class COMScript:
 		exc_traceback = None
 		result_exception = error.ProcessAXScriptException(self.scriptSite, self.debugManager, exception)
 		if result_exception is not None:
-			self.scriptSite.OnScriptTerminate(None, result_exception)
+			try:
+				self.scriptSite.OnScriptTerminate(None, result_exception)
+			except pythoncom.com_error:
+				pass # Ignore errors telling engine we stopped.
 			# reset ourselves to 'connected' so further events continue to fire.
 			self.SetScriptState(axscript.SCRIPTSTATE_CONNECTED)
 			raise result_exception
