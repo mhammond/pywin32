@@ -25,6 +25,11 @@ from win32com.client import NeedUnicodeConversions
 import pythoncom
 from pywintypes import UnicodeType
 
+# A string ending with a quote can not be safely triple-quoted.
+def _safeQuotedString(s):
+	if s[-1]=='"': s = s[:-1]+'\\"'
+	return '"""%s"""' % s
+
 error = "PythonCOM.Client.Build error"
 class NotSupportedException(Exception): pass # Raised when we cant support a param type.
 DropIndirection="DropIndirection"
@@ -325,7 +330,7 @@ class DispatchItem(OleItem):
 		s = linePrefix + 'def ' + name + '(self' + BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg) + '):'
 		ret.append(s)
 		if doc and doc[1]:
-			ret.append(linePrefix + '\t"""' + doc[1] + '"""')
+			ret.append(linePrefix + '\t' + _safeQuotedString(doc[1]))
 
 #		print "fdesc is ", fdesc
 
@@ -380,7 +385,7 @@ class DispatchItem(OleItem):
 			linePrefix = ""
 			defArg = "pythoncom.Missing"
 		ret.append(linePrefix + 'def ' + name + '(' + argPrefix + ', *args):')
-		if doc and doc[1]: ret.append(linePrefix + '\t"' + doc[1] + '"')
+		if doc and doc[1]: ret.append(linePrefix + '\t' + _safeQuotedString(doc[1]))
 		if fdesc:
 			invoketype = fdesc[4]
 		else:
