@@ -10,7 +10,6 @@ class PyHandleTestCase(unittest.TestCase):
             if invalidate:
                 import win32api
                 win32api.CloseHandle(int(h))
-            print "raise 1"
             1/0
 
         def f2(invalidate):
@@ -18,7 +17,6 @@ class PyHandleTestCase(unittest.TestCase):
             try:
                 f1(invalidate)
             except ZeroDivisionError, exc:
-                print "caught 1"
                 raise IOError("raise 2")
 
         self.assertRaises(IOError, f2, False)
@@ -52,6 +50,13 @@ class PyHandleTestCase(unittest.TestCase):
         import win32event, win32api
         h = win32event.CreateEvent(None, 0, 0, None)
         win32api.CloseHandle(int(h))
+        self.assertRaises(win32api.error, h.Close)
+        # A following Close is documented as working
+        h.Close()
+
+    def testInvalid(self):
+        import pywintypes
+        h=pywintypes.HANDLE(-2)
         self.assertRaises(win32api.error, h.Close)
 
 if __name__ == '__main__':
