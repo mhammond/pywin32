@@ -27,7 +27,14 @@ def doit():
 	if len(args) != 1:
 		print "You must enter the build number"
 		return
-	build = args[0]
+	if args[0] == "cvs":
+		import time
+		# days since epoch <wink>
+		build = str(int(time.time() / 3600 / 24))
+		build_suffix = time.strftime("%Y%m%d", time.gmtime(time.time()))
+	else:
+		build = args[0]
+		build_suffix = build
 #	projectName = "$/Python/Wise/win32all"
 	
 #	build = MakeNewBuildNo(projectName, desc, auto, bRebrand)
@@ -45,7 +52,7 @@ def doit():
 		return
 
 	import stampWise
-	stampWise.UpdateWiseExeName("win32all.wse", "win32all-%s.exe" % (build) )
+	stampWise.UpdateWiseExeName("win32all.wse", "win32all-%s.exe" % (build_suffix) )
 
 	import brandutils
 	subst_dict = {"build_no" : build }

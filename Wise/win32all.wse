@@ -12,12 +12,12 @@ item: Global
   Log Pathname=%MAINDIR%\W32INST.LOG
   Message Font=MS Sans Serif
   Font Size=8
-  Extra Pages=00000000000000000000000000100000
+  Extra Pages=00000000000000000000000000110000
   Disk Filename=SETUP
   Patch Flags=0000000000000001
   Patch Threshold=85
   Patch Memory=4000
-  EXE Filename=win32all-147.exe
+  EXE Filename=win32all-20021008.exe
   Code Sign Name=Python Win32 combined extensions
   Code Sign Info=skippinet.com.au
   Crystal Format=10111100101100000010001001001001
@@ -40,6 +40,7 @@ item: Global
   Variable Values4=2.0
   Variable Values4=2.1
   Variable Values4=2.2
+  Variable Values4=2.3
   Variable Flags4=00000010
   Variable Name5=PYVER_NODOT
   Variable Description5=Python version number, without a dot.
@@ -49,7 +50,14 @@ item: Global
   Variable Values5=20
   Variable Values5=21
   Variable Values5=22
+  Variable Values5=23
   Variable Flags5=00000010
+  Variable Name6=PY_DEV_BUILD
+  Variable Description6=For Python CVS developers
+  Variable Default6=0
+  Variable Values6=False
+  Variable Values6=True
+  Variable Flags6=00000010
 end
 item: Open/Close INSTALL.LOG
   Flags=00000001
@@ -89,6 +97,15 @@ item: Set Variable
   Variable=PY_REG_VERSION
   Value=%PYVER_DOTTED%
 end
+item: Compiler Variable If
+  Variable=PY_DEV_BUILD
+  Value=True
+end
+item: Set Variable
+  Variable=PY_INST_PATH
+end
+item: Compiler Variable Else
+end
 item: Get Registry Key Value
   Variable=PY_INST_PATH
   Key=Software\Python\PythonCore\%PY_REG_VERSION%\InstallPath
@@ -100,6 +117,8 @@ item: Get Registry Key Value
   Default=%GROUP%
   Flags=00000100
 end
+item: Compiler Variable End
+end
 item: Set Variable
   Variable=USE_HKLM
   Value=1
@@ -110,6 +129,11 @@ item: If/While Statement
 end
 item: Remark
   Text=Check HKEY_CURRENT_USER too.
+end
+item: Compiler Variable If
+  Variable=PY_DEV_BUILD
+  Value=True
+  Flags=00000001
 end
 item: Get Registry Key Value
   Variable=PY_INST_PATH
@@ -126,8 +150,20 @@ item: Set Variable
   Variable=USE_HKLM
   Value=0
 end
+item: Compiler Variable End
+end
 item: If/While Statement
   Variable=PY_INST_PATH
+end
+item: Compiler Variable If
+  Variable=PY_DEV_BUILD
+  Value=True
+end
+item: Set Variable
+  Variable=CONTINUE
+  Value=1
+end
+item: Compiler Variable Else
 end
 item: Set Variable
   Variable=CONTINUE
@@ -175,6 +211,8 @@ item: Custom Dialog Set
     end
   end
 end
+item: Compiler Variable End
+end
 item: If/While Statement
   Variable=CONTINUE
   Value=1
@@ -187,6 +225,10 @@ item: Wizard Block
   Y Position=0
   Filler Color=11173759
   Flags=00000010
+end
+item: Compiler Variable If
+  Variable=PY_DEV_BUILD
+  Value=True
 end
 item: Custom Dialog Set
   Name=Select Destination Directory
@@ -322,6 +364,8 @@ item: Custom Dialog Set
     end
   end
 end
+item: Compiler Variable Else
+end
 item: Check if File/Dir Exists
   Pathname=PY_INST_PATH\Python%PYVER_NODOT%.dll
   Flags=00000101
@@ -336,6 +380,8 @@ item: Set Variable
 end
 item: End Block
 end
+item: Compiler Variable End
+end
 item: End Block
 end
 item: Else Statement
@@ -347,6 +393,11 @@ end
 item: End Block
 end
 item: End Block
+end
+item: Compiler Variable If
+  Variable=PY_DEV_BUILD
+  Value=True
+  Flags=00000001
 end
 item: Remark
   Text=Python 2.2 and later have "site-packages" - install there.
@@ -360,6 +411,8 @@ item: Set Variable
   Value=%PY_INST_PATH%\lib\site-packages
 end
 item: End Block
+end
+item: Compiler Variable End
 end
 item: Set Variable
   Variable=MAINDIR
@@ -531,9 +584,21 @@ item: Check if File/Dir Exists
 end
 item: End Block
 end
+item: Compiler Variable If
+  Variable=PY_DEV_BUILD
+  Value=True
+end
+item: Set Variable
+  Variable=ADD_EDIT_MENU
+  Value=a
+end
+item: Compiler Variable Else
+end
 item: Set Variable
   Variable=ADD_EDIT_MENU
   Value=A
+end
+item: Compiler Variable End
 end
 item: Wizard Block
   Direction Variable=DIRECTION
@@ -1345,6 +1410,12 @@ item: Install File
   Flags=0000000000000010
 end
 item: Install File
+  Source=f:\src\pythonex\com\pythoncom.py
+  Destination=%INSTDIR%\pythoncom.py
+  Description=COM Support files
+  Flags=0000000000000010
+end
+item: Install File
   Source=f:\src\pythonex\com\win32com\*.py
   Destination=%INSTDIR%\
   Description=COM Support files
@@ -1622,6 +1693,11 @@ end
 item: Add Text to INSTALL.LOG
   Text=File Tree: %INSTDIR%\gen_py\*.*
 end
+item: Compiler Variable If
+  Variable=PY_DEV_BUILD
+  Value=True
+  Flags=00000001
+end
 item: Check Configuration
   Flags=10111011
 end
@@ -1633,6 +1709,8 @@ item: Create Shortcut
   Flags=00000001
 end
 item: End Block
+end
+item: Compiler Variable End
 end
 item: Set Variable
   Variable=INSTDIR
@@ -1673,6 +1751,12 @@ item: Install File
   Destination=%INSTDIR%\scintilla.dll
   Flags=0000000000000010
 end
+item: Install File
+  Source=f:\src\pythonex\pythonwin\start_pythonwin.pyw
+  Destination=%INSTDIR%\start_pythonwin.pyw
+  Description=Library files
+  Flags=0000000000000010
+end
 item: Remark
   Text=Make sure I get all the demo stuff!
 end
@@ -1687,6 +1771,11 @@ remarked item: Install File
   Destination=%INSTDIR%\pywin\demos\Resource_Dll\src
   Description=Demo files
   Flags=0000000000000010
+end
+item: Compiler Variable If
+  Variable=PY_DEV_BUILD
+  Value=True
+  Flags=00000001
 end
 item: Install File
   Source=f:\src\pythonex\pythonwin\Build\Pythonwin.exe
@@ -1729,6 +1818,8 @@ item: Edit Registry
   New Value=%INSTDIR%\pythonwin.exe /edit "%%1"
 end
 item: End Block
+end
+item: Compiler Variable End
 end
 item: Install File
   Source=f:\src\pythonex\pythonwin\Build\win32ui.pyd
@@ -1817,23 +1908,31 @@ item: Edit Registry
 end
 item: End Block
 end
-item: Add Text to INSTALL.LOG
+item: Remark
+  Text=Dont uninstall all preferences
+end
+remarked item: Add Text to INSTALL.LOG
   Text=RegDB TREE: SOFTWARE\Python %PYVER_DOTTED%\Python for Win32
 end
-item: Add Text to INSTALL.LOG
+remarked item: Add Text to INSTALL.LOG
   Text=RegDB Root: 1
 end
-item: Add Text to INSTALL.LOG
+remarked item: Add Text to INSTALL.LOG
   Text=RegDB TREE: SOFTWARE\Python %PYVER_DOTTED%\win32ui module
 end
-item: Add Text to INSTALL.LOG
+remarked item: Add Text to INSTALL.LOG
   Text=RegDB Root: 1
 end
-item: Add Text to INSTALL.LOG
+remarked item: Add Text to INSTALL.LOG
   Text=RegDB TREE: SOFTWARE\Python %PYVER_DOTTED%\Pythonwin Debugger
 end
-item: Add Text to INSTALL.LOG
+remarked item: Add Text to INSTALL.LOG
   Text=RegDB Root: 1
+end
+item: Compiler Variable If
+  Variable=PY_DEV_BUILD
+  Value=True
+  Flags=00000001
 end
 item: Check Configuration
   Flags=10111011
@@ -1860,6 +1959,8 @@ item: Remark
 end
 item: End Block
 end
+item: Compiler Variable End
+end
 item: Install File
   Source=f:\src\pythonex\win32\Build\System\PyWinTypes%PYVER_NODOT%.dll
   Destination=%SYSDLL_PATH%\PyWinTypes%PYVER_NODOT%.dll
@@ -1871,42 +1972,6 @@ item: Install File
   Destination=%SYSDLL_PATH%\PythonCOM%PYVER_NODOT%.dll
   Description=Core COM Extension DLL
   Flags=0000000000000010
-end
-item: If/While Statement
-  Variable=USE_HKLM
-  Value=1
-end
-item: Edit Registry
-  Total Keys=1
-  Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\pythoncom
-  New Value=%SYSDLL_PATH%\pythoncom%PYVER_NODOT%.dll
-  New Value=
-  Root=2
-end
-item: Edit Registry
-  Total Keys=1
-  Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\pywintypes
-  New Value=%SYSDLL_PATH%\PyWinTypes%PYVER_NODOT%.dll
-  New Value=
-  Root=2
-end
-item: Else Statement
-end
-item: Edit Registry
-  Total Keys=1
-  Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\pythoncom
-  New Value=%SYSDLL_PATH%\pythoncom%PYVER_NODOT%.dll
-  New Value=
-  Root=1
-end
-item: Edit Registry
-  Total Keys=1
-  Key=Software\Python\PythonCore\%PY_REG_VERSION%\Modules\pywintypes
-  New Value=%SYSDLL_PATH%\PyWinTypes%PYVER_NODOT%.dll
-  New Value=
-  Root=1
-end
-item: End Block
 end
 item: Remark
   Text=Uninstall support
@@ -1955,38 +2020,15 @@ end
 item: Remark
   Text=Call Python to finish the installation off
 end
+item: Compiler Variable If
+  Variable=PY_DEV_BUILD
+  Value=True
+  Flags=00000001
+end
 item: Install File
   Source=f:\src\pythonex\Wise\Install Scripts\FinishInstall.py
   Destination=%TEMP%\FinishInstall.py
   Flags=0000000000100010
-end
-item: Compiler Variable If
-  Variable=PYVER_DOTTED
-  Value=1.5
-end
-item: Install File
-  Source=f:\src\pythonex\Wise\PyWise\Build\Release\PyWise.dll
-  Destination=%TEMP%\PyWise.dll
-  Flags=0000000000100010
-end
-item: Call DLL Function
-  Pathname=%TEMP%\PyWise.dll
-  Function Name=Wise_CallObject
-  Variables Added=DISPLAY_MSG
-  Parameter=%TEMP%\FinishInstall.CompileAllAndRegisterCOM|winerror=%MAINDIR%\win32\lib|%MAINDIR%\win32;%MAINDIR%\win32com;%MAINDIR%\win32comext;%MAINDIR%\Pythonwin
-  Return Variable=0
-  Flags=00000010
-end
-item: Display Message
-  Title=Finialization failed
-  Text=The finalization of the installation failed.
-  Text=
-  Text=Installation will continue, but .pyc files may not have been created, and COM Servers will not have been registered.
-  Flags=00100000
-end
-item: End Block
-end
-item: Compiler Variable Else
 end
 item: Install File
   Source=f:\src\pythonex\Wise\PyWise\Build\Release\PyWise%PYVER_NODOT%.dll
@@ -2016,17 +2058,10 @@ end
 item: Delete File
   Pathname=%TEMP%\FinishInstall.pyc
 end
-item: Compiler Variable If
-  Variable=PYVER_DOTTED
-  Value=1.5
-end
-item: Delete File
-  Pathname=%TEMP%\PyWise.dll
-end
-item: Compiler Variable Else
-end
 item: Delete File
   Pathname=%MAINDIR%\PyWise%PYVER_NODOT%.dll
+end
+item: Compiler Variable End
 end
 item: Wizard Block
   Direction Variable=DIRECTION
