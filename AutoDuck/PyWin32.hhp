@@ -11,7 +11,7 @@ Index file=PyWin32.hhk
 Language=0x409 English (United States)
 
 [WINDOWS]
-Home="PyWin32","PyWin32.hhc","PyWin32.hhk","PyWin32.HTML","PyWin32.HTML",,,,,0x63520,,0x307e,,,,,,3,,0
+Home="PyWin32","PyWin32.hhc","PyWin32.hhk","PyWin32.HTML","PyWin32.HTML",,,,,0x63520,,0x387e,,,,,,2,,0
 
 
 [FILES]
@@ -23,3 +23,4 @@ win32com.chm
 Python Win32 Extensions.chm
 
 [INFOTYPES]
+

@@ -21,7 +21,7 @@ Index file=%(output)s.hhk
 Language=0x409 English (United States)
 
 [WINDOWS]
-Home="%(target)s","%(target)s.hhc","%(target)s.hhk","%(target)s.HTML","%(target)s.HTML",,,,,0x63520,,0x307e,,,,,,3,,0
+Home="%(target)s","%(target)s.hhc","%(target)s.hhk","%(target)s.HTML","%(target)s.HTML",,,,,0x63520,,0x387e,,,,,,2,,0
 
 
 [FILES]
