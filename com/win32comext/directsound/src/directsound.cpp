@@ -460,3 +460,50 @@ buffer.Play(0)
 
 win32event.WaitForSingleObject(event, -1)
 */
+
+/* @topic DirectSoundCapture examples|
+
+@ex This shows how to record into a wav file:|
+
+import pywintypes
+import struct
+import win32event
+import win32com.directsound.directsound as ds
+
+def wav_header_pack(wfx, datasize):
+    return struct.pack('<4sl4s4slhhllhh4sl', 'RIFF', 36 + datasize,
+                       'WAVE', 'fmt ', 16,
+                       wfx.wFormatTag, wfx.nChannels, wfx.nSamplesPerSec,
+                       wfx.nAvgBytesPerSec, wfx.nBlockAlign,
+                       wfx.wBitsPerSample, 'data', datasize);
+
+d = ds.DirectSoundCaptureCreate(None, None)
+
+sdesc = ds.DSCBUFFERDESC()
+sdesc.dwBufferBytes = 352800 # 2 seconds
+sdesc.lpwfxFormat = pywintypes.WAVEFORMATEX()
+sdesc.lpwfxFormat.wFormatTag = pywintypes.WAVE_FORMAT_PCM
+sdesc.lpwfxFormat.nChannels = 2
+sdesc.lpwfxFormat.nSamplesPerSec = 44100
+sdesc.lpwfxFormat.nAvgBytesPerSec = 176400
+sdesc.lpwfxFormat.nBlockAlign = 4
+sdesc.lpwfxFormat.wBitsPerSample = 16
+
+buffer = d.CreateCaptureBuffer(sdesc)
+
+event = win32event.CreateEvent(None, 0, 0, None)
+notify = buffer.QueryInterface(ds.IID_IDirectSoundNotify)
+
+notify.SetNotificationPositions((ds.DSBPN_OFFSETSTOP, event))
+
+buffer.Start(0)
+
+win32event.WaitForSingleObject(event, -1)
+
+# in real life, more, smaller buffers should be retrieved
+data = buffer.Update(0, 352800)
+
+f = open('recording.wav', 'wb')
+f.write(wav_header_pack(sdesc.lpwfxFormat, 352800))
+f.write(data)
+*/
