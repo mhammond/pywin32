@@ -14,7 +14,8 @@ def doit(buildDesc=None, auto=0, bRebrand = 0, build = None):
 		return
 	
 	import bulkstamp
-	bulkstamp.scan( build, path, "desc.txt" )
+	major, minor = string.split(sys.winver, ".")
+	bulkstamp.scan( build, path, "desc.txt", major=major, minor=minor )
 	subst_dict = {"vss_label" : build }
 
 #	SubstituteVSSInFile(projectName, os.path.join(path,"Pythonwin.txt.in"), os.path.join(path,"Pythonwin.txt"))
