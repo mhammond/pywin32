@@ -33,7 +33,7 @@ protected:
 
 	// IExtractIcon
 	STDMETHOD(Extract)(
-		LPCSTR pszFile,
+		LPCTSTR pszFile,
 		UINT nIconIndex,
 		HICON * phiconLarge,
 		HICON * phiconSmall,
@@ -41,7 +41,7 @@ protected:
 
 	STDMETHOD(GetIconLocation)(
 		UINT uFlags,
-		LPSTR szIconFile,
+		LPTSTR szIconFile,
 		UINT cchMax,
 		LPINT piIndex,
 		UINT *pwFlags);
