@@ -18,7 +18,12 @@ should be used.
 If you don't use the extensions that fail to build, you can ignore these
 warnings; if you do use them, you must install the correct libraries.
 
-The 'axdebug' extension requires Active Debugging dev files available here:
+The 'mapi' and 'exchange' extensions require the Exchange 2000 SDK from:
+  http://www.microsoft.com/downloads/details.aspx?FamilyID={guid}
+    where guid is 4afe3504-c209-4a73-ac5d-ff2a4a3b48b7
+Just install it - this setup script will automatically locate it.
+
+The 'axdebug' extension requires Active Debugging dev files available from:
   http://support.microsoft.com/default.aspx?kbid=223389
 Download Scriptng.exe, unpack the files to a temporary directory and manually
 copy the .h and .lib files to your Platform SDK installation's include
@@ -26,10 +31,10 @@ and lib directories, respectively -- overwriting some files of the same name.
 
 To install the pywin32 extensions, execute:
   python setup.py -q install
-  
+
 This will install the built extensions into your site-packages directory,
 create an appropriate .pth file, and should leave everything ready to use.
-There should be no need to modify the registry.
+There is no need to modify the registry.
 
 To build or install debug (_d) versions of these extensions, ensure you have
 built or installed a debug version of Python itself, then pass the "--debug"
@@ -219,6 +224,7 @@ class WinExt_win32com(WinExt):
 # Exchange extensions get special treatment:
 # * Look for the Exchange SDK in the registry.
 # * Output directory is different than the module's basename.
+# * Require use of the Exchange 2000 SDK - this works for both VC6 and 7
 class WinExt_win32com_mapi(WinExt_win32com):
     def __init__ (self, name, **kw):
         # The Exchange 2000 SDK seems to install itself without updating 
@@ -243,12 +249,9 @@ class WinExt_win32com_mapi(WinExt_win32com):
             d = os.path.join(sdk_install_dir, "SDK", "Lib")
             if os.path.isdir(d):
                 kw.setdefault("library_dirs", []).insert(0, d)
-            # The stand-alone exchange SDK has these libs
-            libs += " Ex2KSdk sadapi mapi32 netapi32"
-        else:
-            # The MSVC6 included exchange SDK has these libs
-            libs += """ MBLOGON ADDRLKUP mapi32 exchinst
-                       EDKCFG EDKUTILS EDKMAPI ACLCLS"""
+                
+        # The stand-alone exchange SDK has these libs
+        libs += " Ex2KSdk sadapi mapi32 netapi32"
         kw["libraries"] = libs
         WinExt_win32com.__init__(self, name, **kw)
 
@@ -907,14 +910,8 @@ com_extensions += [
     ),
     WinExt_win32com('internet'),
     WinExt_win32com('mapi', libraries="mapi32", pch_header="PythonCOM.h"),
-    WinExt_win32com_mapi('exchange',
-                         libraries="""version""",
-                         extra_link_args=["/nodefaultlib:libc"]),
-    WinExt_win32com_mapi('exchdapi',
-                         # This still needs work for vs.net.
-                         libraries="""DAPI ADDRLKUP exchinst EDKCFG EDKUTILS
-                                      EDKMAPI mapi32 version""",
-                         extra_link_args=["/nodefaultlib:libc"]),
+    WinExt_win32com_mapi('exchange', libraries="version"),
+    WinExt_win32com_mapi('exchdapi'),
     WinExt_win32com('shell', libraries='shell32', pch_header="shell_pch.h"),
     WinExt_win32com('taskscheduler', libraries='mstask'),
     WinExt_win32com('ifilter', libraries='ntquery'),
