@@ -44,7 +44,7 @@ def UnpackWMNOTIFY(lparam):
 # structures.  We also have special handling for the 'fMask' item in that
 # structure to avoid the caller needing to explicitly check validity
 # (None is used if the mask excludes/should exclude the value)
-menuitem_fmt = '9IP2I'
+menuitem_fmt = '9iP2i'
 
 def PackMENUITEMINFO(fType=None, fState=None, wID=None, hSubMenu=None,
                      hbmpChecked=None, hbmpUnchecked=None, dwTypeData=None,
@@ -68,13 +68,15 @@ def PackMENUITEMINFO(fType=None, fState=None, wID=None, hSubMenu=None,
     else:
         assert hbmpUnchecked is not None, \
                 "neither or both checkmark bmps must be given"
-        fMask |= win32con.MMIM_CHECKMARKS
+        fMask |= win32con.MIIM_CHECKMARKS
     if dwTypeData is None: dwTypeData = 0
     else: fMask |= win32con.MIIM_DATA
     if hbmpItem is None: hbmpItem = 0
     else: fMask |= win32con.MIIM_BITMAP
     if text is not None:
         fMask |= win32con.MIIM_STRING
+        if isinstance(text, unicode):
+            text = text.encode("mbcs")
         str_buf = array.array("c", text+'\0')
         cch = len(str_buf)
         # We are taking address of strbuf - it must not die until windows
@@ -106,7 +108,7 @@ def PackMENUITEMINFO(fType=None, fState=None, wID=None, hSubMenu=None,
     return array.array("c", item), extras
 
 def UnpackMENUITEMINFO(s):
-    cb,
+    (cb,
     fMask,
     fType,
     fState,
@@ -117,7 +119,7 @@ def UnpackMENUITEMINFO(s):
     dwItemData,
     lptext,
     cch,
-    hbmpItem = struct.unpack(menuitem_fmt, s)
+    hbmpItem) = struct.unpack(menuitem_fmt, s)
     assert cb==len(s)
     if fMask & win32con.MIIM_FTYPE==0: fType = None
     if fMask & win32con.MIIM_STATE==0: fState = None
@@ -127,11 +129,44 @@ def UnpackMENUITEMINFO(s):
     if fMask & win32con.MIIM_DATA==0: dwItemData = None
     if fMask & win32con.MIIM_BITMAP==0: hbmpItem = None
     if fMask & win32con.MIIM_STRING:
-        text = PyGetString(lptext, cch)
+        text = win32gui.PyGetString(lptext, cch)
     else:
         text = None
-    return fType, fState, wID, hSubMenu, bmpChecked, bmpUnchecked, \
-           dwTypeData, text, hbmpItem
+    return fType, fState, wID, hSubMenu, hbmpChecked, hbmpUnchecked, \
+           dwItemData, text, hbmpItem
+
+def EmptyMENUITEMINFO(mask = None, text_buf_size=512):
+    extra = []
+    if mask is None:
+        mask = win32con.MIIM_BITMAP | win32con.MIIM_CHECKMARKS | \
+               win32con.MIIM_DATA | win32con.MIIM_FTYPE | \
+               win32con.MIIM_ID | win32con.MIIM_STATE | \
+               win32con.MIIM_STRING | win32con.MIIM_SUBMENU | \
+               win32con.MIIM_TYPE
+ 
+    if mask & win32con.MIIM_STRING:
+        text_buffer = array.array("c", "\0" * text_buf_size)
+        extra.append(text_buffer)
+        text_addr, text_len = text_buffer.buffer_info()
+    else:
+        text_addr = text_len = 0
+
+    buf = struct.pack(
+                menuitem_fmt,
+                struct.calcsize(menuitem_fmt), # cbSize
+                mask,
+                0, #fType,
+                0, #fState,
+                0, #wID,
+                0, #hSubMenu,
+                0, #hbmpChecked,
+                0, #hbmpUnchecked,
+                0, #dwItemData,
+                text_addr,
+                text_len,
+                0, #hbmpItem
+                )
+    return array.array("c", buf), extra
 
 ##########################################################################
 #
@@ -173,6 +208,8 @@ def PackTVITEM(hitem, state, stateMask, text, image, selimage, citems, param):
     if text is None:
         text_addr = text_len = 0
     else:
+        if isinstance(text, unicode):
+            text = text.encode("mbcs")
         text_buffer = array.array("c", text+"\0")
         extra.append(text_buffer)
         text_addr, text_len = text_buffer.buffer_info()
@@ -235,15 +272,15 @@ def UnpackTVNOTIFY(lparam):
     buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
     hwndFrom, id, code, action, buf_old, buf_new \
           = struct.unpack(format, buf)
-    item_old = UnpackTVItem(buf_old)
-    item_new = UnpackTVItem(buf_new)
+    item_old = UnpackTVITEM(buf_old)
+    item_new = UnpackTVITEM(buf_new)
     return hwndFrom, id, code, action, item_old, item_new
 
 def UnpackTVDISPINFO(lparam):
     format = "iii40s"
     buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
     hwndFrom, id, code, buf_item = struct.unpack(format, buf)
-    item = UnpackTVItem(buf_item)
+    item = UnpackTVITEM(buf_item)
     return hwndFrom, id, code, item
 
 #
@@ -263,6 +300,8 @@ def PackLVITEM(item=None, subItem=None, state=None, stateMask=None, text=None, i
     if text is None:
         text_addr = text_len = 0
     else:
+        if isinstance(text, unicode):
+            text = text.encode("mbcs")
         text_buffer = array.array("c", text+"\0")
         extra.append(text_buffer)
         text_addr, text_len = text_buffer.buffer_info()
@@ -292,6 +331,23 @@ def UnpackLVITEM(buffer):
         text = None
     return item_item, item_subItem, item_state, item_stateMask, \
         text, item_image, item_param, item_indent
+
+# Unpack an "LVNOTIFY" message
+def UnpackLVDISPINFO(lparam):
+    format = "iii40s"
+    buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
+    hwndFrom, id, code, buf_item = struct.unpack(format, buf)
+    item = UnpackLVITEM(buf_item)
+    return hwndFrom, id, code, item
+
+def UnpackLVNOTIFY(lparam):
+    format = "3i8i"
+    buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
+    hwndFrom, id, code, item, subitem, newstate, oldstate, \
+        changed, pt_x, pt_y, lparam = struct.unpack(format, buf)
+    return hwndFrom, id, code, item, subitem, newstate, oldstate, \
+        changed, (pt_x, pt_y), lparam
+
 
 # Make a new buffer suitable for querying an items attributes.
 def EmptyLVITEM(item, subitem, mask = None, text_buf_size=512):
@@ -327,6 +383,8 @@ def PackLVCOLUMN(fmt=None, cx=None, text=None, subItem=None, image=None, order=N
     if text is None:
         text_addr = text_len = 0
     else:
+        if isinstance(text, unicode):
+            text = text.encode("mbcs")
         text_buffer = array.array("c", text+"\0")
         extra.append(text_buffer)
         text_addr, text_len = text_buffer.buffer_info()
