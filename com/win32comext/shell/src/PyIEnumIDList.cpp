@@ -25,13 +25,6 @@ PyIEnumIDList::~PyIEnumIDList()
 }
 
 PyObject *
-PyIEnumIDList::iter()
-{
-	Py_INCREF(this);
-	return this;
-}
-
-PyObject *
 PyIEnumIDList::iternext()
 {
 	ULONG celtFetched = 0;
@@ -178,7 +171,7 @@ static struct PyMethodDef PyIEnumIDList_methods[] =
 	{ NULL }
 };
 
-PyComTypeObject PyIEnumIDList::type("PyIEnumIDList",
+PyComEnumTypeObject PyIEnumIDList::type("PyIEnumIDList",
 		&PyIUnknown::type,
 		sizeof(PyIEnumIDList),
 		PyIEnumIDList_methods,

@@ -9,9 +9,8 @@ class PyIEnumIDList : public PyIUnknown
 public:
 	MAKE_PYCOM_CTOR(PyIEnumIDList);
 	static IEnumIDList *GetI(PyObject *self);
-	static PyComTypeObject type;
+	static PyComEnumTypeObject type;
 
-	virtual PyObject *iter();
 	virtual PyObject *iternext();
 
 	// The Python methods
