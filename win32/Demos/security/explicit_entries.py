@@ -1,6 +1,12 @@
-fname=r'h:\tmp.txt'
+import os
 import win32security,win32file,win32api,ntsecuritycon,win32con
 from security_enums import TRUSTEE_TYPE,TRUSTEE_FORM,ACE_FLAGS,ACCESS_MODE
+
+fname = os.path.join(win32api.GetTempPath(), "win32security_test.txt")
+f=open(fname, "w")
+f.write("Hello from Python\n");
+f.close()
+print "Testing on file", fname
 
 new_privs = ((win32security.LookupPrivilegeValue('',ntsecuritycon.SE_SECURITY_NAME),win32con.SE_PRIVILEGE_ENABLED),
              (win32security.LookupPrivilegeValue('',ntsecuritycon.SE_SHUTDOWN_NAME),win32con.SE_PRIVILEGE_ENABLED),
