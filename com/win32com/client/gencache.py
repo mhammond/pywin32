@@ -170,7 +170,10 @@ def GetModuleForCLSID(clsid):
 	except KeyError:
 		return None
 
-	mod = GetModuleForTypelib(typelibCLSID, lcid, major, minor)
+	try:
+		mod = GetModuleForTypelib(typelibCLSID, lcid, major, minor)
+	except ImportError:
+		mod = None
 	if mod is not None:
 		sub_mod = mod.CLSIDToPackageMap.get(clsid_str)
 		if sub_mod is None:
@@ -204,11 +207,7 @@ def GetModuleForTypelib(typelibCLSID, lcid, major, minor):
 	lcid -- Integer LCID for the library.
 	"""
 	modName = GetGeneratedFileName(typelibCLSID, lcid, major, minor)
-	try:
-		return _GetModule(modName)
-	except ImportError:
-		# module seems to be missing!
-		return None
+	return _GetModule(modName)
 
 def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = None, bGUIProgress = None, bForDemand = 0, bBuildHidden = 1):
 	"""Generate support for a type library.
