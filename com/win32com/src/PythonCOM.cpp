@@ -369,6 +369,27 @@ static PyObject *pythoncom_CoResumeClassObjects(PyObject *self, PyObject *args)
 }
 #pragma optimize ("", on)
 
+// @pymethod |pythoncom|CoTreatAsClass|Establishes or removes an emulation, in which objects of one class are treated as objects of a different class.
+static PyObject *pythoncom_CoTreatAsClass(PyObject *self, PyObject *args)
+{
+	PyObject *obguid1, *obguid2 = NULL;
+	if (!PyArg_ParseTuple(args, "O|O", &obguid1, &obguid2))
+		return NULL;
+	CLSID clsid1, clsid2 = GUID_NULL;
+	// @pyparm <o PyIID>|clsidold||CLSID of the object to be emulated. 
+	// @pyparm <o PyIID>|clsidnew|CLSID_NULL|CLSID of the object that should emulate the original object. This replaces any existing emulation for clsidOld. Can be ommitted or CLSID_NULL, in which case any existing emulation for clsidOld is removed. 
+	if (!PyWinObject_AsIID(obguid1, &clsid1))
+		return NULL;
+	if (obguid2!=NULL && !PyWinObject_AsIID(obguid2, &clsid2))
+			return NULL;
+	PY_INTERFACE_PRECALL;
+	HRESULT hr = CoTreatAsClass(clsid1, clsid2);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
 #endif // MS_WINCE
 
 // @pymethod <o PyIClassFactory>|pythoncom|MakePyFactory|Creates a new <o PyIClassFactory> object wrapping a PythonCOM Class Factory object.
@@ -1215,6 +1236,7 @@ static struct PyMethodDef pythoncom_methods[]=
 	{ "CoRegisterClassObject",pythoncom_CoRegisterClassObject, 1 },// @pymeth CoRegisterClassObject|Registers an EXE class object with OLE so other applications can connect to it.
 	{ "CoResumeClassObjects", pythoncom_CoResumeClassObjects, 1},  // @pymeth CoResumeClassObjects|Called by a server that can register multiple class objects to inform the OLE SCM about all registered classes, and permits activation requests for those class objects.
 	{ "CoRevokeClassObject",pythoncom_CoRevokeClassObject, 1 },// @pymeth CoRevokeClassObject|Informs OLE that a class object, previously registered with the <om pythoncom.CoRegisterClassObject> method, is no longer available for use. 
+	{ "CoTreatAsClass",      pythoncom_CoTreatAsClass, 1}, // @pymeth CoTreatAsClass|Establishes or removes an emulation, in which objects of one class are treated as objects of a different class.
 	{ "Connect",             pythoncom_connect, 1 },			 // @pymeth Connect|Connects to a running instance of an OLE automation server.
 	{ "connect",             pythoncom_connect, 1 },
 	{ "CreateGuid",          pythoncom_createguid, 1 },          // @pymeth CreateGuid|Creates a new, unique GUIID.
