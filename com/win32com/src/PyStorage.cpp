@@ -221,7 +221,16 @@ PyObject *pythoncom_FmtIdToPropStgName(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsIID(obfmtid, &fmtid))
 		return NULL;
-	err=FmtIdToPropStgName(&fmtid, oszName);
+
+	typedef HRESULT (WINAPI * PFNFmtIdToPropStgName)(const FMTID*, LPOLESTR);
+	HMODULE hmod = GetModuleHandle(TEXT("ole32.dll"));
+	PFNFmtIdToPropStgName pfnFmtIdToPropStgName = (PFNFmtIdToPropStgName)GetProcAddress(hmod, "FmtIdToPropStgName");
+	if (pfnFmtIdToPropStgName==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+	PY_INTERFACE_PRECALL;
+	err = (*pfnFmtIdToPropStgName)(&fmtid, oszName);
+	PY_INTERFACE_POSTCALL;
+
 	if (err!=S_OK)
 		return PyCom_BuildPyException(err);
 	return PyWinObject_FromWCHAR(oszName);
@@ -239,7 +248,16 @@ PyObject *pythoncom_PropStgNameToFmtId(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obName,&oszName))
 		return NULL;
-	err=PropStgNameToFmtId(oszName,&fmtid);
+
+	typedef HRESULT (WINAPI * PFNPropStgNameToFmtId)(const LPOLESTR, FMTID*);
+	HMODULE hmod = GetModuleHandle(TEXT("ole32.dll"));
+	PFNPropStgNameToFmtId pfnPropStgNameToFmtId = (PFNPropStgNameToFmtId)GetProcAddress(hmod, "PropStgNameToFmtId");
+	if (pfnPropStgNameToFmtId==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+	PY_INTERFACE_PRECALL;
+	err = (*pfnPropStgNameToFmtId)(oszName, &fmtid);
+	PY_INTERFACE_POSTCALL;
+
 	PyWinObject_FreeWCHAR(oszName);
 	if (err!=S_OK)
 		return PyCom_BuildPyException(err);
