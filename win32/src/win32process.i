@@ -1306,7 +1306,11 @@ PyObject *PySetProcessShutdownParameters(PyObject *self, PyObject *args)
 
 #define CREATE_SHARED_WOW_VDM CREATE_SHARED_WOW_VDM // Windows NT: The flag is valid only when starting a 16-bit Windows-based application. If the DefaultSeparateVDM switch in the Windows section of WIN.INI is TRUE, this flag causes the CreateProcess function to override the switch and run the new process in the shared Virtual DOS Machine. 
 
-#define CREATE_UNICODE_ENVIRONMENT CREATE_UNICODE_ENVIRONMENT // If set, the environment block pointed to by lpEnvironment uses Unicode characters. If clear, the environment block uses ANSI characters. 
+#define CREATE_UNICODE_ENVIRONMENT CREATE_UNICODE_ENVIRONMENT // If set, the environment block pointed to by lpEnvironment uses Unicode characters. If clear, the environment block uses ANSI characters.
+#define CREATE_BREAKAWAY_FROM_JOB CREATE_BREAKAWAY_FROM_JOB
+#define CREATE_PRESERVE_CODE_AUTHZ_LEVEL CREATE_PRESERVE_CODE_AUTHZ_LEVEL
+#define CREATE_NO_WINDOW CREATE_NO_WINDOW
+
 #endif // MS_WINCE
 
 #define DEBUG_PROCESS DEBUG_PROCESS // If this flag is set, the calling process is treated as a debugger, and the new process is a process being debugged. The system notifies the debugger of all debug events that occur in the process being debugged.
