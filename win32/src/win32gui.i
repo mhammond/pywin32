@@ -1800,7 +1800,9 @@ static PyObject *PyGetWindowText(PyObject *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
     len = GetWindowText(hwnd, buffer, sizeof(buffer)/sizeof(TCHAR));
     Py_END_ALLOW_THREADS
-    if (len == 0) return PyUnicodeObject_FromString("");
+    // @comm Note that previous versions of PyWin32 returned a (empty) Unicode 
+    // object when the string was empty, or an MBCS encoded string value 
+    // otherwise.  A String is now returned in all cases.
 	return PyWinObject_FromTCHAR(buffer, len);
 }
 %}
