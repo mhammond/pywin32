@@ -1,7 +1,7 @@
 # distutils setup-script for win32all core dlls, currently only
 # pywintypes and pythoncom.
 #
-# Thomas Heller, started in 2000 or so.
+# Thomas Heller, startet in 2000 or so.
 
 from distutils.core import setup, Extension, Command
 from distutils.command.install_lib import install_lib
@@ -10,11 +10,12 @@ from distutils.dep_util import newer_group
 import os, string, sys
 
 class WinExt (Extension):
-    # Base class for all win32 extensions, with some predefined
-    # library and include dirs, and predefined windows libraries.
-    # Additionally a method to parse .def files into lists of exported
-    # symbols, and to read 
-    def __init__ (self, name, sources=None,
+    # Base class for all win32 extensions, with
+    # some predefined library and include dirs,
+    # and predefined windows libraries.
+    # Additionally a method to parse .def files
+    # into lists of exported symbols.
+    def __init__ (self, name, sources,
                   include_dirs=[],
                   define_macros=None,
                   undef_macros=None,
@@ -26,23 +27,15 @@ class WinExt (Extension):
                   extra_link_args=None,
                   export_symbols=None,
                   export_symbol_file=None,
-                  dsp_file=None,
                  ):
-        assert dsp_file or sources, "Either dsp_file or sources must be specified"
         libary_dirs = library_dirs,
         include_dirs = ['com/win32com/src/include',
                         'win32/src'] + include_dirs
         libraries = ['user32', 'odbc32', 'advapi32',
                      'oleaut32', 'ole32', 'shell32'] + libraries
-
         if export_symbol_file:
             export_symbols = export_symbols or []
             export_symbols.extend(self.parse_def_file(export_symbol_file))
-
-        if dsp_file:
-            sources = sources or []
-            sources.extend(self.get_source_files(dsp_file))
-            
         Extension.__init__ (self, name, sources,
                             include_dirs,
                             define_macros,
@@ -67,26 +60,96 @@ class WinExt (Extension):
                 result.append(string.join(tokens, ','))
         return result
 
-    def get_source_files(self, dsp):
-        result = []
-        dsp_path = os.path.dirname(dsp)
-        for line in open(dsp, "r"):
-            fields = line.strip().split("=", 2)
-            if fields[0]=="SOURCE":
-                if os.path.splitext(fields[1])[1].lower() in ['.cpp', '.c']:
-                    pathname = os.path.normpath(os.path.join(dsp_path, fields[1]))
-                    result.append(pathname)
-        return result
-
-################################################################
-
 pywintypes = WinExt('pywintypes',
-                    dsp_file = r"win32\PyWinTypes.dsp",
-                    extra_compile_args = ['-DBUILD_PYWINTYPES']
-                    )
+                       ['win32/src/PyACL.cpp',
+                        'win32/src/PyHandle.cpp',
+                        'win32/src/PyIID.cpp',
+                        'win32/src/PyLARGE_INTEGER.cpp',
+                        'win32/src/PyOVERLAPPED.cpp',
+                        'win32/src/PySECURITY_ATTRIBUTES.cpp',
+                        'win32/src/PySECURITY_DESCRIPTOR.cpp',
+
+                        'win32/src/PySID.cpp',
+                        'win32/src/PyTime.cpp',
+                        'win32/src/PyUnicode.cpp',
+                        'win32/src/PyWinTypesmodule.cpp',
+                        ],
+                       extra_compile_args = ['-DBUILD_PYWINTYPES']
+                       )
+
+# source directories for win32com
+com_src = 'com/win32com/src/'
+com_ext = 'com/win32com/src/extensions/'
 
 pythoncom = WinExt('pythoncom',
-                   dsp_file=r"com\win32com.dsp",
+                   [com_src + 'dllmain.cpp',
+                    com_src + 'ErrorUtils.cpp',
+                    com_src + 'MiscTypes.cpp',
+                    com_src + 'oleargs.cpp',
+                    com_src + 'PyComHelpers.cpp',
+                    com_src + 'PyFactory.cpp',
+                    com_src + 'PyGatewayBase.cpp',
+                    com_src + 'PyIBase.cpp',
+                    com_src + 'PyIClassFactory.cpp',
+                    com_src + 'PyIDispatch.cpp',
+                    com_src + 'PyIUnknown.cpp',
+                    com_src + 'PyRecord.cpp',
+                    com_src + 'PyStorage.cpp',
+                    com_src + 'PythonCOM.cpp',
+                    com_src + 'Register.cpp',
+                    com_src + 'stdafx.cpp',
+                    com_src + 'univgw.cpp',
+                    com_src + 'univgw_dataconv.cpp',
+                    
+                    com_ext + 'PyFUNCDESC.cpp',
+                    com_ext + 'PyGConnectionPoint.cpp',
+                    com_ext + 'PyGConnectionPointContainer.cpp',
+                    com_ext + 'PyGEnumVariant.cpp',
+                    com_ext + 'PyGErrorLog.cpp',
+                    com_ext + 'PyGPersist.cpp',
+                    com_ext + 'PyGPersistPropertyBag.cpp',
+                    com_ext + 'PyGPersistStorage.cpp',
+                    com_ext + 'PyGPersistStream.cpp',
+                    com_ext + 'PyGPersistStreamInit.cpp',
+                    com_ext + 'PyGPropertyBag.cpp',
+                    com_ext + 'PyGStream.cpp',
+                    com_ext + 'PyIBindCtx.cpp',
+                    com_ext + 'PyICatInformation.cpp',
+                    com_ext + 'PyICatRegister.cpp',
+                    com_ext + 'PyIConnectionPoint.cpp',
+                    com_ext + 'PyIConnectionPointContainer.cpp',
+                    com_ext + 'PyICreateTypeInfo.cpp',
+                    com_ext + 'PyICreateTypeLib.cpp',
+                    com_ext + 'PyIEnumCATEGORYINFO.cpp',
+                    com_ext + 'PyIEnumConnectionPoints.cpp',
+                    com_ext + 'PyIEnumConnections.cpp',
+                    com_ext + 'PyIEnumGUID.cpp',
+                    com_ext + 'PyIEnumSTATPROPSTG.cpp',
+                    com_ext + 'PyIEnumSTATSTG.cpp',
+                    com_ext + 'PyIEnumVariant.cpp',
+                    com_ext + 'PyIErrorLog.cpp',
+                    com_ext + 'PyIExternalConnection.cpp',
+                    com_ext + 'PyILockBytes.cpp',
+                    com_ext + 'PyIMoniker.cpp',
+                    com_ext + 'PyIPersist.cpp',
+                    com_ext + 'PyIPersistFile.cpp',
+                    com_ext + 'PyIPersistPropertyBag.cpp',
+                    com_ext + 'PyIPersistStorage.cpp',
+                    com_ext + 'PyIPersistStream.cpp',
+                    com_ext + 'PyIPersistStreamInit.cpp',
+                    com_ext + 'PyIPropertyBag.cpp',
+                    com_ext + 'PyIPropertySetStorage.cpp',
+                    com_ext + 'PyIPropertyStorage.cpp',
+                    com_ext + 'PyIprovideClassInfo.cpp',
+                    com_ext + 'PyIRunningObjectTable.cpp',
+                    com_ext + 'PyIServiceProvider.cpp',
+                    com_ext + 'PyIStorage.cpp',
+                    com_ext + 'PyIStream.cpp',
+                    com_ext + 'PyIType.cpp',
+                    com_ext + 'PyITypeObjects.cpp',
+                    com_ext + 'PyTYPEATTR.cpp',
+                    com_ext + 'PyVARDESC.cpp',
+                    ],
                    export_symbol_file = 'com/win32com/src/PythonCOM.def',
 ##                   libraries = ['PyWintypes'],
                    extra_compile_args = ['-DBUILD_PYTHONCOM'],
@@ -94,8 +157,7 @@ pythoncom = WinExt('pythoncom',
 
 
 class my_install_lib (install_lib):
-    # A special install_lib command, which will install into the windows
-    # system directory instead of Lib/site-packages
+
     def finalize_options(self):
         install_lib.finalize_options(self)
         self.install_dir = os.getenv("windir") + '\\system32'
@@ -140,13 +202,7 @@ class my_build_ext(build_ext):
             else:
                 prefix = ''
                 extra = extra + '.lib'
-
-            # MSVCCompiler constructs the .lib file in the same directory
-            # as the first source file's object file:
-            #    os.path.dirname(objects[0])
-            src = os.path.join(self.build_temp,
-                               os.path.dirname(ext.sources[0]),
-                               prefix + name + extra)
+            src = os.path.join(self.build_temp, prefix + name + extra)
             dst = os.path.join(self.build_temp, "..", prefix + ext.name + extra)
             self.copy_file(src, dst)#, update=1)
 
