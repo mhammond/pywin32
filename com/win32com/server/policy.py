@@ -538,7 +538,14 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
           # May have a dispid, but that doesnt mean we have the function!
           raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
         # Should check callable here
-        return func(*args)
+        try:
+            return func(*args)
+        except TypeError, v:
+            # Particularly nasty is "wrong number of args" type error
+            # This helps you see what 'func' and 'args' actually is
+            if str(v).index("arguments")>=0:
+                print "** TypeError calling function %r(%r)" % (func, args)
+            raise
 
     if wFlags & DISPATCH_PROPERTYGET:
       try:
