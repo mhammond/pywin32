@@ -30,7 +30,7 @@ PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args)
 				&sid_ia.Value[3],&sid_ia.Value[4],&sid_ia.Value[5],
 				&obSubs))
 				return NULL;
-			long sub0, sub1, sub2, sub3, sub4, sub5, sub6, sub7;
+			unsigned long sub0, sub1, sub2, sub3, sub4, sub5, sub6, sub7;
 			if (!PySequence_Check(obSubs)) {
 				PyErr_SetString(PyExc_TypeError, "sub authorities must be a sequence of integers.");
 				return NULL;
@@ -42,7 +42,7 @@ PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args)
 			}
 #define GET_SUB(i) if (i<numSubs) { \
 			PyObject *t = PySequence_GetItem(obSubs, i);\
-			sub##i = PyInt_AsLong(t);\
+			sub##i = PyLong_AsUnsignedLong(t);\
 			Py_XDECREF(t);\
 		}
 			GET_SUB(0);
