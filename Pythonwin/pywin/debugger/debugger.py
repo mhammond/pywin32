@@ -151,7 +151,7 @@ class DebuggerWindow(window.Wnd):
 	def OnKeyDown(self, msg):
 		key = msg[2]
 		if key in [13, 27, 32]: return 1
-		if key == 46: # delete key
+		if key in [46,8]: # delete/BS key
 			self.DeleteSelected()
 			return 0
 		view = scriptutils.GetActiveView()
@@ -165,6 +165,9 @@ class DebuggerWindow(window.Wnd):
 			return 1
 
 	def DeleteSelected(self):
+		win32api.MessageBeep()
+
+	def EditSelected(self):
 		win32api.MessageBeep()
 
 class DebuggerStackWindow(DebuggerWindow):
@@ -228,12 +231,57 @@ class DebuggerListViewWindow(DebuggerWindow):
 			itemDetails = (commctrl.LVCFMT_LEFT, width, title, 0)
 			list.InsertColumn(col, itemDetails)
 		parent.HookNotify( self.OnListEndLabelEdit, commctrl.LVN_ENDLABELEDIT)
+		parent.HookNotify(self.OnItemRightClick, commctrl.NM_RCLICK)
+		parent.HookNotify(self.OnItemDoubleClick, commctrl.NM_DBLCLK)
 
 	def RespondDebuggerData(self):
 		pass
 
 	def RespondDebuggerState(self, state):
 		pass
+
+	def EditSelected(self):
+		sel = self.GetNextItem(-1, commctrl.LVNI_SELECTED)
+		if sel == -1:
+			return
+		self.EditLabel(sel)
+
+	def OnKeyDown(self, msg):
+		key = msg[2]
+		# If someone starts typing, they probably are trying to edit the text!
+		if chr(key) in string.uppercase:
+			self.EditSelected()
+			return 0
+		return DebuggerWindow.OnKeyDown(self, msg)
+
+	def OnItemDoubleClick(self, notify_data, extra):
+		self.EditSelected()
+
+	def OnItemRightClick(self, notify_data, extra):
+		# First select the item we right-clicked on.
+		pt = self.ScreenToClient(win32api.GetCursorPos())
+		flags, hItem, subitem = self.HitTest(pt)
+		if hItem==-1 or commctrl.TVHT_ONITEM & flags==0:
+			return None
+		self.SetItemState(hItem, commctrl.LVIS_SELECTED, commctrl.LVIS_SELECTED)
+
+		menu = win32ui.CreatePopupMenu()
+		menu.AppendMenu(win32con.MF_STRING|win32con.MF_ENABLED,1000, "Edit item")
+		menu.AppendMenu(win32con.MF_STRING|win32con.MF_ENABLED,1001, "Delete item")
+		dockbar = self.GetParent()
+		if dockbar.IsFloating():
+			hook_parent = win32ui.GetMainFrame()
+		else:
+			hook_parent = self.GetParentFrame()
+		hook_parent.HookCommand(self.OnEditItem, 1000)
+		hook_parent.HookCommand(self.OnDeleteItem, 1001)
+		menu.TrackPopupMenu(win32api.GetCursorPos()) # track at mouse position.
+		return None
+
+	def OnDeleteItem(self,command, code):
+		self.DeleteSelected()
+	def OnEditItem(self, command, code):
+		self.EditSelected()
 
 class DebuggerBreakpointsWindow(DebuggerListViewWindow):
 	title = "Breakpoints"
@@ -799,7 +847,8 @@ class Debugger(debugger_parent):
 		doc = editor.editorTemplate.FindOpenDocument(fileName)
 		if doc is not None:
 			marker = _LineStateToMarker(lineState)
-			doc.MarkerAdd(lineNo, marker)
+			if not doc.MarkerCheck(lineNo, marker):
+				doc.MarkerAdd(lineNo, marker)
 
 	def ResetLineState(self, fileName, lineNo, lineState):
 		# Set the state of a line if the document is open.
@@ -819,9 +868,11 @@ class Debugger(debugger_parent):
 			doc.MarkerAdd(line, MARKER_BREAKPOINT)
 		# And the current line if in this document.
 		if self.shownLineCurrent and fname == self.shownLineCurrent[0]:
-			doc.MarkerAdd(self.shownLineCurrent[1], MARKER_CURRENT)
-		if self.shownLineCallstack and fname == self.shownLineCallstack[0]:
-			doc.MarkerAdd(self.shownLineCallstack[1], MARKER_CURRENT)
+			lineNo = self.shownLineCurrent[1]
+			if not doc.MarkerCheck(lineNo, MARKER_CURRENT):
+				doc.MarkerAdd(lineNo, MARKER_CURRENT)
+#		if self.shownLineCallstack and fname == self.shownLineCallstack[0]:
+#			doc.MarkerAdd(self.shownLineCallstack[1], MARKER_CURRENT)
 
 	def UpdateAllLineStates(self):
 		for doc in editor.editorTemplate.GetDocumentList():
