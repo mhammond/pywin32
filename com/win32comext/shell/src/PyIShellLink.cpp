@@ -69,7 +69,7 @@ PyObject *PyIShellLink::GetPath(PyObject *self, PyObject *args)
 	return ret;
 }
 
-// @pymethod |PyIShellLink|GetIDList|Description of GetIDList.
+// @pymethod string|PyIShellLink|GetIDList|Retrieves the list of item identifiers for a shell link object.
 PyObject *PyIShellLink::GetIDList(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
@@ -88,7 +88,7 @@ PyObject *PyIShellLink::GetIDList(PyObject *self, PyObject *args)
 	return PyObject_FromPIDL(pidl);
 }
 
-// @pymethod |PyIShellLink|SetIDList|Description of SetIDList.
+// @pymethod |PyIShellLink|SetIDList|Sets the list of item identifiers for a shell link object.
 PyObject *PyIShellLink::SetIDList(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
@@ -213,13 +213,13 @@ PyObject *PyIShellLink::SetWorkingDirectory(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIShellLink|GetArguments|Description of GetArguments.
+// @pymethod string|PyIShellLink|GetArguments|Retrieves the command-line arguments associated with a shell link object.
 PyObject *PyIShellLink::GetArguments(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
-	// @pyparm int|cchMaxName|1024|Description for cchMaxName
+	// @pyparm int|cchMaxName|1024|Number of characters to fetch.
 	int cchMaxName = 1024;
 	if ( !PyArg_ParseTuple(args, "|i:GetArguments", &cchMaxName) )
 		return NULL;
@@ -242,13 +242,14 @@ PyObject *PyIShellLink::GetArguments(PyObject *self, PyObject *args)
 	return ret;
 }
 
-// @pymethod |PyIShellLink|SetArguments|Description of SetArguments.
+// @pymethod |PyIShellLink|SetArguments|Sets the command-line arguments associated with a shell link object.
 PyObject *PyIShellLink::SetArguments(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
 	LPCSTR pszArgs;
+	// @pyparm string|args||The new arguments.
 	if ( !PyArg_ParseTuple(args, "s:SetArguments", &pszArgs) )
 		return NULL;
 	HRESULT hr;
@@ -263,7 +264,7 @@ PyObject *PyIShellLink::SetArguments(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIShellLink|GetHotkey|Description of GetHotkey.
+// @pymethod int|PyIShellLink|GetHotkey|Retrieves the hot key for a shell link object.
 PyObject *PyIShellLink::GetHotkey(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
@@ -278,15 +279,21 @@ PyObject *PyIShellLink::GetHotkey(PyObject *self, PyObject *args)
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
 	return PyInt_FromLong(hotkey);
+	// @comm Note: My tests do not seem to be working. at least, the values returned
+	// seem not to match what the documentation says should be returned.
+	// I would expect with a Hotkey of CTRL-ALT-T, to get an integer where
+	// integer & 256 == ord('T'), i.e. 116 or 84, instead I get 1620
 }
 
-// @pymethod |PyIShellLink|SetHotkey|Description of SetHotkey.
+// @pymethod |PyIShellLink|SetHotkey|Sets the hot key for a shell link object.
 PyObject *PyIShellLink::SetHotkey(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
-	// @pyparm int|wHotkey||Description for wHotkey
+	// @pyparm int|wHotkey||The virtual key code is in the low-order byte, and the modifier
+	// flags are in the high-order byte. The modifier flags can be a combination of the
+	// values specified in the description of the <om PyIShellLink::GetHotkey> method.
 	WORD wHotkey;
 	if ( !PyArg_ParseTuple(args, "i:SetHotkey", &wHotkey) )
 		return NULL;
@@ -302,7 +309,7 @@ PyObject *PyIShellLink::SetHotkey(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIShellLink|GetShowCmd|Description of GetShowCmd.
+// @pymethod int|PyIShellLink|GetShowCmd|Retrieves the show (SW_) command for a shell link object.
 PyObject *PyIShellLink::GetShowCmd(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
@@ -319,13 +326,13 @@ PyObject *PyIShellLink::GetShowCmd(PyObject *self, PyObject *args)
 	return PyInt_FromLong(iShowCmd);
 }
 
-// @pymethod |PyIShellLink|SetShowCmd|Description of SetShowCmd.
+// @pymethod |PyIShellLink|SetShowCmd|Sets the show (SW_) command for a shell link object.
 PyObject *PyIShellLink::SetShowCmd(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
-	// @pyparm int|iShowCmd||Description for iShowCmd
+	// @pyparm int|iShowCmd||The new show command value.
 	int iShowCmd;
 	if ( !PyArg_ParseTuple(args, "i:SetShowCmd", &iShowCmd) )
 		return NULL;
@@ -341,13 +348,13 @@ PyObject *PyIShellLink::SetShowCmd(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIShellLink|GetIconLocation|Description of GetIconLocation.
+// @pymethod string|PyIShellLink|GetIconLocation|Retrieves the location (path and index) of the icon for a shell link object.
 PyObject *PyIShellLink::GetIconLocation(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
-	// @pyparm int|cchMaxPath|_MAX_PATH|Description for cchMaxName
+	// @pyparm int|cchMaxPath|_MAX_PATH|Number of characters to allocate for the result string.
 	int cchIconPath = _MAX_PATH;
 	if ( !PyArg_ParseTuple(args, "|i:GetIconLocation", &cchIconPath) )
 		return NULL;
@@ -371,15 +378,15 @@ PyObject *PyIShellLink::GetIconLocation(PyObject *self, PyObject *args)
 	return ret;
 }
 
-// @pymethod |PyIShellLink|SetIconLocation|Description of SetIconLocation.
+// @pymethod |PyIShellLink|SetIconLocation|Sets the location (path and index) of the icon for a shell link object.
 PyObject *PyIShellLink::SetIconLocation(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
 	LPCSTR pszIconPath;
-	// @pyparm string|iconPath||Description for iconPath
-	// @pyparm int|iIcon||Description for iIcon
+	// @pyparm string|iconPath||Path to the file with the icon.
+	// @pyparm int|iIcon||Index of the icon.
 	int iIcon;
 	if ( !PyArg_ParseTuple(args, "si:SetIconLocation", &pszIconPath, &iIcon) )
 		return NULL;
@@ -395,15 +402,15 @@ PyObject *PyIShellLink::SetIconLocation(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIShellLink|SetRelativePath|Description of SetRelativePath.
+// @pymethod |PyIShellLink|SetRelativePath|Sets the relative path for a shell link object.
 PyObject *PyIShellLink::SetRelativePath(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
 	LPCSTR pszPathRel;
-	// @pyparm string|relPath||Description for relPath
-	// @pyparm int|reserved|0|Description for reserved
+	// @pyparm string|relPath||The relative path.
+	// @pyparm int|reserved|0|Reserved - must be zero.
 	DWORD dwReserved = 0;
 	if ( !PyArg_ParseTuple(args, "s|l:SetRelativePath", &pszPathRel, &dwReserved) )
 		return NULL;
@@ -416,16 +423,38 @@ PyObject *PyIShellLink::SetRelativePath(PyObject *self, PyObject *args)
 		return OleSetOleError(hr);
 	Py_INCREF(Py_None);
 	return Py_None;
+	// @comm This mechanism allows for moved link files
+	// to reestablish connection with relative files through
+	// similar-prefix comparisons
 }
 
-// @pymethod |PyIShellLink|Resolve|Description of Resolve.
+// @pymethod |PyIShellLink|Resolve|Resolves a shell link by searching for the shell link object and updating the
+// shell link path and its list of identifiers (if necessary)
 PyObject *PyIShellLink::Resolve(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
-	// @pyparm HWND|hwnd||Description for hwnd
-	// @pyparm int|fFlags||Description for fFlags
+	// @pyparm HWND|hwnd||The parent window of a dialog which will pop up if resolution fails.
+	// @pyparm int|fFlags||One of the following constants:
+	// @flagh Value|Description
+	// @flag SLR_INVOKE_MSI|Call the Microsoft Windows Installer. 
+	// @flag SLR_NOLINKINFO |Disable distributed link tracking. By default, distributed
+	//			link tracking tracks removable media across multiple devices based on the
+	//			volume name. It also uses the UNC path to track remote file systems whose
+	//			drive letter has changed. Setting SLR_NOLINKINFO disables both types of tracking. 
+	// @flag SLR_NO_UI|Do not display a dialog box if the link cannot be resolved. When
+	//			SLR_NO_UI is set, the high-order word of fFlags can be set to a time-out value
+	//			that specifies the maximum amount of time to be spent resolving the link. The
+	//			function returns if the link cannot be resolved within the time-out duration.
+	//			If the high-order word is set to zero, the time-out duration will be set to the
+	//			default value of 3,000 milliseconds (3 seconds). To specify a value, set the high
+	//			word of fFlags to the desired time-out duration, in milliseconds. 
+	// @flag SLR_NOUPDATE|Do not update the link information. 
+	// @flag SLR_NOSEARCH|Do not execute the search heuristics. 
+	// @flag SLR_NOTRACK|Do not use distributed link tracking. 
+	// @flag SLR_UPDATE|If the link object has changed, update its path and list of identifiers. If SLR_UPDATE is set, you do not need to call IPersistFile::IsDirty to determine whether or not the link object has changed. 
+
 	HWND hwnd;
 	DWORD fFlags;
 	if ( !PyArg_ParseTuple(args, "ll:Resolve", &hwnd, &fFlags) )
@@ -442,13 +471,14 @@ PyObject *PyIShellLink::Resolve(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIShellLink|SetPath|Description of SetPath.
+// @pymethod |PyIShellLink|SetPath|Sets the path and file name of a shell link object.
 PyObject *PyIShellLink::SetPath(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
 	if ( pISL == NULL )
 		return NULL;
 	LPCSTR pszFile;
+	// @pyparm string|path||The path and filename of the link.
 	if ( !PyArg_ParseTuple(args, "s:SetPath", &pszFile) )
 		return NULL;
 	HRESULT hr;
@@ -466,23 +496,23 @@ PyObject *PyIShellLink::SetPath(PyObject *self, PyObject *args)
 static struct PyMethodDef PyIShellLink_methods[] =
 {
 	{ "GetPath", PyIShellLink::GetPath, 1 }, // @pymeth GetPath|Retrieves the path and file name of a shell link object.
-	{ "GetIDList", PyIShellLink::GetIDList, 1 }, // @pymeth GetIDList|Description of GetIDList
-	{ "SetIDList", PyIShellLink::SetIDList, 1 }, // @pymeth SetIDList|Description of SetIDList
+	{ "GetIDList", PyIShellLink::GetIDList, 1 }, // @pymeth GetIDList|Retrieves the list of item identifiers for a shell link object.
+	{ "SetIDList", PyIShellLink::SetIDList, 1 }, // @pymeth SetIDList|Sets the list of item identifiers for a shell link object.
 	{ "GetDescription", PyIShellLink::GetDescription, 1 }, // @pymeth GetDescription|Description of GetDescription
 	{ "SetDescription", PyIShellLink::SetDescription, 1 }, // @pymeth SetDescription|Description of SetDescription
 	{ "GetWorkingDirectory", PyIShellLink::GetWorkingDirectory, 1 }, // @pymeth GetWorkingDirectory|Description of GetWorkingDirectory
 	{ "SetWorkingDirectory", PyIShellLink::SetWorkingDirectory, 1 }, // @pymeth SetWorkingDirectory|Description of SetWorkingDirectory
-	{ "GetArguments", PyIShellLink::GetArguments, 1 }, // @pymeth GetArguments|Description of GetArguments
-	{ "SetArguments", PyIShellLink::SetArguments, 1 }, // @pymeth SetArguments|Description of SetArguments
-	{ "GetHotkey", PyIShellLink::GetHotkey, 1 }, // @pymeth GetHotkey|Description of GetHotkey
-	{ "SetHotkey", PyIShellLink::SetHotkey, 1 }, // @pymeth SetHotkey|Description of SetHotkey
-	{ "GetShowCmd", PyIShellLink::GetShowCmd, 1 }, // @pymeth GetShowCmd|Description of GetShowCmd
-	{ "SetShowCmd", PyIShellLink::SetShowCmd, 1 }, // @pymeth SetShowCmd|Description of SetShowCmd
-	{ "GetIconLocation", PyIShellLink::GetIconLocation, 1 }, // @pymeth GetIconLocation|Description of GetIconLocation
-	{ "SetIconLocation", PyIShellLink::SetIconLocation, 1 }, // @pymeth SetIconLocation|Description of SetIconLocation
-	{ "SetRelativePath", PyIShellLink::SetRelativePath, 1 }, // @pymeth SetRelativePath|Description of SetRelativePath
-	{ "Resolve", PyIShellLink::Resolve, 1 }, // @pymeth Resolve|Description of Resolve
-	{ "SetPath", PyIShellLink::SetPath, 1 }, // @pymeth SetPath|Description of SetPath
+	{ "GetArguments", PyIShellLink::GetArguments, 1 }, // @pymeth GetArguments|Retrieves the command-line arguments associated with a shell link object.
+	{ "SetArguments", PyIShellLink::SetArguments, 1 }, // @pymeth SetArguments|Sets the command-line arguments associated with a shell link object.
+	{ "GetHotkey", PyIShellLink::GetHotkey, 1 }, // @pymeth GetHotkey|Retrieves the hot key for a shell link object.
+	{ "SetHotkey", PyIShellLink::SetHotkey, 1 }, // @pymeth SetHotkey|Sets the hot key for a shell link object.
+	{ "GetShowCmd", PyIShellLink::GetShowCmd, 1 }, // @pymeth GetShowCmd|Retrieves the show (SW_) command for a shell link object.
+	{ "SetShowCmd", PyIShellLink::SetShowCmd, 1 }, // @pymeth SetShowCmd|Sets the show (SW_) command for a shell link object.
+	{ "GetIconLocation", PyIShellLink::GetIconLocation, 1 }, // @pymeth GetIconLocation|Retrieves the location (path and index) of the icon for a shell link object.
+	{ "SetIconLocation", PyIShellLink::SetIconLocation, 1 }, // @pymeth SetIconLocation|Sets the location (path and index) of the icon for a shell link object.
+	{ "SetRelativePath", PyIShellLink::SetRelativePath, 1 }, // @pymeth SetRelativePath|Sets the relative path for a shell link object.
+	{ "Resolve", PyIShellLink::Resolve, 1 }, // @pymeth Resolve|Resolves a shell link
+	{ "SetPath", PyIShellLink::SetPath, 1 }, // @pymeth SetPath|Sets the path and file name of a shell link object.
 	{ NULL }
 };
 
