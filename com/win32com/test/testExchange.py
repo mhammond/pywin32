@@ -2,6 +2,7 @@
 
 from win32com.client import gencache, constants
 import pythoncom
+import os
 
 ammodule = gencache.EnsureModule('{3FA7DEA7-6438-101B-ACC1-00AA00423326}', 0, 1, 1)
 
@@ -64,6 +65,7 @@ def TestUser(session):
 			
 def test():
 	import win32com.client
+	oldcwd = os.getcwd()
 	session = win32com.client.Dispatch("MAPI.Session")
 	try:
 		session.Logon(GetDefaultProfileName())
@@ -75,7 +77,9 @@ def test():
 		TestAddress(session)
 		DumpFolders(session)
 	finally:
-		session.Logoff
+		session.Logoff()
+		# It appears Exchange will change the cwd on us :(
+		os.chdir(oldcwd)
 
 if __name__=='__main__':
 	from util import CheckClean
