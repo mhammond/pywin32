@@ -200,6 +200,7 @@ def install():
                           "due to insufficient permissions.  You must " \
                           "reinstall this software as an Administrator" \
                           % dst
+                    print msg
                     raise RuntimeError, msg
                 continue
             raise
@@ -224,6 +225,10 @@ def install():
     except:
         print "FAILED to register the Python COM objects"
         traceback.print_exc()
+
+    # There may be no main Python key in HKCU if, eg, an admin installed
+    # python itself.
+    _winreg.CreateKey(get_root_hkey(), root_key_name)
 
     # Register the .chm help file.
     chm_file = os.path.join(lib_dir, "PyWin32.chm")
