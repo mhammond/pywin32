@@ -5,7 +5,7 @@ import win32api, win32con, winerror, win32evtlog, string
 
 error = win32api.error # The error the evtlog module raises.
 
-langid = win32api.MAKELANGID(win32con.LANG_ENGLISH, win32con.SUBLANG_ENGLISH_US)
+langid = win32api.MAKELANGID(win32con.LANG_NEUTRAL, win32con.SUBLANG_NEUTRAL)
 
 def AddSourceToRegistry(appName, msgDLL, eventLogType = "Application", eventLogFlags = None):
   """Add a source of messages to the event log.
