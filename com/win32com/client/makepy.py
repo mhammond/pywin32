@@ -50,12 +50,7 @@ import selecttlb
 import gencache
 from win32com.client import NeedUnicodeConversions
 
-# Python 2.4 will crash on a huge typelib (eg, Excel) if bForDemand is False.
-# That looks like a good excuse to try and move to that more efficient
-# (for large typelibs) scheme.
-# Default value of bForDemand - override this (also in gencache.py) to 
-# change the world.
-bForDemandDefault = sys.hexversion >= 0x2040000 
+bForDemandDefault = 0 # Default value of bForDemand - toggle this to change the world - see also gencache.py
 
 error = "makepy.error"
 
@@ -184,9 +179,13 @@ def GetTypeLibsForSpec(arg):
 		tb = None # Storing tb in a local is a cycle!
 		sys.exit(1)
 
-def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progressInstance = None, bUnicodeToString=NeedUnicodeConversions, bForDemand = bForDemandDefault, bBuildHidden = 1):
+def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progressInstance = None, bUnicodeToString=NeedUnicodeConversions, bQuiet = None, bGUIProgress = None, bForDemand = bForDemandDefault, bBuildHidden = 1):
+	if bQuiet is not None or bGUIProgress is not None:
+		print "Please dont use the bQuiet or bGUIProgress params"
+		print "use the 'verboseLevel', and 'progressClass' params"
 	if verboseLevel is None:
-		verboseLevel = 0
+		verboseLevel = 0 # By default, we use a gui, and no verbose level!
+
 	if bForDemand and file is not None:
 		raise RuntimeError, "You can only perform a demand-build when the output goes to the gen_py directory"
 	if type(typelibInfo)==type(()):

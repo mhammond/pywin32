@@ -485,8 +485,14 @@ def _BuildArgList(fdesc, names):
     	i = names.index(None)
     	names[i] = "arg%d" % (i,)
     names = map(MakePublicAttributeName, names[1:])
+    name_num = 0
     while len(names) < numArgs:
         names.append("arg%d" % (len(names),))
+    # As per BuildCallList(), avoid huge lines.
+    # Hack a "\n" at the end of every 5th name - "strides" would be handy
+    # here but don't exist in 2.2
+    for i in range(0, len(names), 5):
+        names[i] = names[i] + "\n\t\t\t"
     return "," + string.join(names, ", ")
 
 valid_identifier_chars = string.letters + string.digits + "_"
@@ -546,7 +552,7 @@ def MakeDefaultArgRepr(defArgVal):
       return repr(val)
   return None
 
-def BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg, defOutArg):
+def BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg, defOutArg, is_comment = False):
   "Builds a Python declaration for a method."
   # Names[0] is the func name - param names are from 1.
   numArgs = len(fdesc[2])
@@ -583,6 +589,15 @@ def BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg
           defArgVal = defUnnamedArg
 
     argName = MakePublicAttributeName(argName)
+    # insanely long lines with an 'encoding' flag crashes python 2.4.0
+    # keep 5 args per line
+    # This may still fail if the arg names are insane, but that seems
+    # unlikely.  See also _BuildArgList()
+    if (arg+1) % 5 == 0:
+        strval = strval + "\n"
+        if is_comment:
+            strval = strval + "#"
+        strval = strval + "\t\t\t"
     strval = strval + ", " + argName
     if defArgVal:
       strval = strval + "=" + defArgVal

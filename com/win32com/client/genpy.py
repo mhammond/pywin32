@@ -23,7 +23,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.4.92" # Written to generated file.
+makepy_version = "0.4.93" # Written to generated file.
 
 GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
@@ -229,21 +229,33 @@ class VTableItem(build.VTableItem, WritableItem):
         print >> stream, "%s_vtables_dispatch_ = %d" % (self.python_name, self.bIsDispatch)
         print >> stream, "%s_vtables_ = [" % (self.python_name, ) 
         for v in self.vtableFuncs:
-            chunks = []
             names, dispid, desc = v
             arg_desc = desc[2]
 
             arg_reprs = []
+            # more hoops so we don't generate huge lines.
+            item_num = 0
+            print >> stream, "\t((",
+            for name in names:
+                print >> stream, repr(name), ",",
+                item_num = item_num + 1
+                if item_num % 5 == 0:
+                    print >> stream, "\n\t\t\t",
+            print >> stream, "), %d, (%r, %r, [" % (dispid, desc[0], desc[1]),
             for arg in arg_desc:
+                item_num = item_num + 1
+                if item_num % 5 == 0:
+                    print >> stream, "\n\t\t\t",
                 defval = build.MakeDefaultArgRepr(arg)
                 if arg[3] is None:
                     arg3_repr = None
                 else:
                     arg3_repr = repr(arg[3])
-                arg_reprs.append((arg[0], arg[1], defval, arg3_repr))
-            desc = desc[:2] + (arg_reprs,) + desc[3:]
-            chunks.append("\t(%r, %d, %r)," % (names, dispid, desc))
-            print >> stream, "".join(chunks)
+                print >> stream, repr((arg[0], arg[1], defval, arg3_repr)), ",",
+            print >> stream, "],",
+            for d in desc[3:]:
+                print >> stream, repr(d), ",", 
+            print >> stream, ")),"
         print >> stream, "]"
         print >> stream
 
@@ -339,7 +351,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
         for name, entry in self.propMapGet.items() + self.propMapPut.items() + self.mapFuncs.items():
             fdesc = entry.desc
             methName = MakeEventMethodName(entry.names[0])
-            print >> stream, '#\tdef ' + methName + '(self' + build.BuildCallList(fdesc, entry.names, "defaultNamedOptArg", "defaultNamedNotOptArg","defaultUnnamedArg", "pythoncom.Missing") + '):'
+            print >> stream, '#\tdef ' + methName + '(self' + build.BuildCallList(fdesc, entry.names, "defaultNamedOptArg", "defaultNamedNotOptArg","defaultUnnamedArg", "pythoncom.Missing", is_comment = True) + '):'
             if entry.doc and entry.doc[1]:
                 print >> stream, '#\t\t' + build._safeQuotedString(entry.doc[1])
         print >> stream

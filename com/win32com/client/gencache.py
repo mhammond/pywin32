@@ -28,12 +28,7 @@ import traceback
 import CLSIDToClass
 import operator
 
-# Python 2.4 will crash on a huge typelib (eg, Excel) if bForDemand is False.
-# That looks like a good excuse to try and move to that more efficient
-# (for large typelibs) scheme.
-# Default value of bForDemand - override this (also in makepy.py) to 
-# change the world.
-bForDemandDefault = sys.hexversion >= 0x2040000 
+bForDemandDefault = 0 # Default value of bForDemand - toggle this to change the world - see also makepy.py
 
 # The global dictionary
 clsidToTypelib = {}
