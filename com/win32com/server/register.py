@@ -169,7 +169,9 @@ def RegisterServer(clsid,
 
   keyNameRoot = "CLSID\\%s" % str(clsid)
   _set_string(keyNameRoot, desc)
-  
+
+  # Also register as an "Application" so DCOM etc all see us.
+  _set_string("AppID\\%s" % clsid, progID)
   # Depending on contexts requested, register the specified server type.
   if not clsctx or clsctx & pythoncom.CLSCTX_INPROC_SERVER:
     # get the module loaded
