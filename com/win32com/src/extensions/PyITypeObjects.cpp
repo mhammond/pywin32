@@ -210,7 +210,7 @@ BOOL PyObject_AsELEMDESC( PyObject *ob, ELEMDESC *pDesc, void *pMore )
 
 	if (obDefaultVal != Py_None) {
 		pDesc->paramdesc.wParamFlags |= PARAMFLAG_FHASDEFAULT;
-		pDesc->paramdesc.pparamdescex = (LPPARAMDESCEX)AllocMore( pMore, sizeof(VARIANT), TRUE);
+		pDesc->paramdesc.pparamdescex = (LPPARAMDESCEX)AllocMore( pMore, sizeof(LPPARAMDESCEX), TRUE);
 		pDesc->paramdesc.pparamdescex->cBytes = sizeof(PARAMDESCEX);
 		/// XXX - this leaks this variant :-(
 		// To avoid, we could maybe alloc a new More block with VARIANT set
@@ -235,7 +235,7 @@ BOOL PyObject_AsELEMDESCArray( PyObject *ob, ELEMDESC **ppDesc, short *pNum, voi
 	}
 	*pNum = PySequence_Length(ob);
 	*ppDesc = (ELEMDESC *)AllocMore(pMore, sizeof(ELEMDESC) * *pNum);
-	if (ppDesc==NULL) return NULL;
+	if (*ppDesc==NULL) return NULL;
 	
 	for (int i=0;i<*pNum;i++) {
 		PyObject *sub = PySequence_GetItem(ob, i);
