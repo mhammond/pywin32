@@ -3,6 +3,16 @@ import win32api, win32ui, win32con, commctrl
 from pywin.mfc import window, docview, dialog
 import hierlist
 import regutil
+import string
+
+def SafeApply( fn, args, err_desc = "" ):
+	try:
+		apply(fn, args)
+		return 1
+	except win32api.error, (rc, fn, msg):
+		msg = "Error " + err_desc + "\r\n\r\n" + msg
+		win32ui.MessageBox(msg)
+		return 0
 
 class SplitterFrame(window.MDIChildWnd):
 	def __init__(self):
@@ -22,12 +32,12 @@ class SplitterFrame(window.MDIChildWnd):
 		self.keysview = RegistryTreeView(doc)
 		# CListControl view
 		self.valuesview = RegistryValueView(doc)
-		
+
 		splitter.CreatePane (self.keysview, 0, 0, (sub_size))
 		splitter.CreatePane (self.valuesview, 0, 1, (0,0)) # size ignored.
 		splitter.SetRowInfo(0, size[1] ,0)
 		# Setup items in the imagelist
-		
+
 		return 1
 
 	def OnItemDoubleClick(self,(hwndFrom, idFrom, code), extra):
@@ -55,41 +65,85 @@ class RegistryTreeView(docview.TreeView):
 	def OnInitialUpdate(self):
 		rc = self._obj_.OnInitialUpdate()
 		self.frame = self.GetParent().GetParent()
-		doc = self.GetDocument()
-		regroot = doc.root
-		subkey = doc.subkey
-		self.hierList = hierlist.HierListWithItems( HLIRegistryKey(regroot, subkey, "Root"), win32ui.IDB_HIERFOLDERS, win32ui.AFX_IDW_PANE_FIRST)
+		self.hierList = hierlist.HierListWithItems( self.GetHLIRoot(), win32ui.IDB_HIERFOLDERS, win32ui.AFX_IDW_PANE_FIRST)
 		self.hierList.HierInit(self.frame, self.GetTreeCtrl())
 		self.hierList.SetStyle(commctrl.TVS_HASLINES | commctrl.TVS_LINESATROOT | commctrl.TVS_HASBUTTONS)
 		self.hierList.PerformItemSelected = self.PerformItemSelected
 
 		self.frame.HookNotify(self.frame.OnItemDoubleClick, commctrl.NM_DBLCLK)
-#		self.frame.HookNotify(self.frame.OnItemRightClick, commctrl.NM_RCLICK)
-		self.HookMessage(self.OnItemRightClick, win32con.WM_RBUTTONUP)
-		
-	def OnItemRightClick(self, msg):
+		self.frame.HookNotify(self.OnItemRightClick, commctrl.NM_RCLICK)
+#		self.HookMessage(self.OnItemRightClick, win32con.WM_RBUTTONUP)
+
+	def GetHLIRoot(self):
+		doc = self.GetDocument()
+		regroot = doc.root
+		subkey = doc.subkey
+		return HLIRegistryKey(regroot, subkey, "Root")
+
+	def OnItemRightClick(self, notify_data, extra):
+		# First select the item we right-clicked on.
+		pt = self.ScreenToClient(win32api.GetCursorPos())
+		flags, hItem = self.HitTest(pt)
+		if hItem==0 or commctrl.TVHT_ONITEM & flags==0:
+			return None
+		self.Select(hItem, commctrl.TVGN_CARET)
+
 		menu = win32ui.CreatePopupMenu()
-		menu.AppendMenu(win32con.MF_STRING|win32con.MF_ENABLED,1000, "Delete Key")
-		self.HookCommand(self.OnDeleteKey, 1000)
+		menu.AppendMenu(win32con.MF_STRING|win32con.MF_ENABLED,1000, "Add Key")
+		menu.AppendMenu(win32con.MF_STRING|win32con.MF_ENABLED,1001, "Add Value")
+		menu.AppendMenu(win32con.MF_STRING|win32con.MF_ENABLED,1002, "Delete Key")
+		self.HookCommand(self.OnAddKey, 1000)
+		self.HookCommand(self.OnAddValue, 1001)
+		self.HookCommand(self.OnDeleteKey, 1002)
 		menu.TrackPopupMenu(win32api.GetCursorPos()) # track at mouse position.
 		return None
 
 	def OnDeleteKey(self,command, code):
-		print "Have Delete Key"
-		print self.SelectedItem().GetText()
-		print self.SearchSelectedItem().GetText()
+		hitem = self.hierList.GetSelectedItem()
+		item = self.hierList.ItemFromHandle(hitem)
+		msg = "Are you sure you wish to delete the key '%s'?" % (item.keyName,)
+		id = win32ui.MessageBox(msg, None, win32con.MB_YESNO)
+		if id != win32con.IDYES:
+			return
+		if SafeApply(win32api.RegDeleteKey, (item.keyRoot, item.keyName), "deleting registry key" ):
+			# Get the items parent.
+			try:
+				hparent = self.GetParentItem(hitem)
+			except win32ui.error:
+				hparent = None
+			self.hierList.Refresh(hparent)
+
+	def OnAddKey(self,command, code):
+		from pywin.mfc import dialog
+		val = dialog.GetSimpleInput("New key name", '', "Add new key")
+		if val is None: return # cancelled.
+		hitem = self.hierList.GetSelectedItem()
+		item = self.hierList.ItemFromHandle(hitem)
+		if SafeApply(win32api.RegCreateKey, (item.keyRoot, item.keyName + "\\" + val)):
+			self.hierList.Refresh(hitem)
+
+	def OnAddValue(self,command, code):
+		from pywin.mfc import dialog
+		val = dialog.GetSimpleInput("New value", "", "Add new value")
+		if val is None: return # cancelled.
+		hitem = self.hierList.GetSelectedItem()
+		item = self.hierList.ItemFromHandle(hitem)
+		if SafeApply(win32api.RegSetValue, (item.keyRoot, item.keyName, win32con.REG_SZ, val)):
+			# Simply re-select the current item to refresh the right spitter.
+			self.PerformItemSelected(item)
+#			self.Select(hitem, commctrl.TVGN_CARET)
 
 	def PerformItemSelected(self, item):
 		return self.frame.PerformItemSelected(item)
 
 	def SelectedItem(self):
 		return self.hierList.ItemFromHandle(self.hierList.GetSelectedItem())
-		
+
 	def SearchSelectedItem(self):
 		handle = self.hierList.GetChildItem(0)
 		while 1:
 #			print "State is", self.hierList.GetItemState(handle, -1)
-			if self.hierList.GetItemState(handle, commctrl.TVIS_FOCUSED):
+			if self.hierList.GetItemState(handle, commctrl.TVIS_SELECTED):
 #				print "Item is ", self.hierList.ItemFromHandle(handle)
 				return self.hierList.ItemFromHandle(handle)
 			handle = self.hierList.GetNextSiblingItem(handle)
@@ -227,16 +281,27 @@ class HLIRegistryKey(hierlist.HierListItem):
 		self.keyName = keyName
 		self.userName = userName
 		hierlist.HierListItem.__init__(self)
+	def __cmp__(self, other):
+		rc = cmp(self.keyRoot, other.keyRoot)
+		if rc==0:
+			rc = cmp(self.keyName, other.keyName)
+		if rc==0:
+			rc = cmp(self.userName, other.userName)
+		return rc
+	def __repr__(self):
+		return "<%s with root=%s, key=%s>" % (self.__class__.__name__, self.keyRoot, self.keyName)
 	def GetText(self):
 		return self.userName
 	def IsExpandable(self):
-		hkey = win32api.RegOpenKey(self.keyRoot, self.keyName)
-		try:
-			keys, vals, dt = win32api.RegQueryInfoKey(hkey)
-			return (keys>0)
-		finally:
-			win32api.RegCloseKey(hkey)
-		
+		# All keys are expandable, even if they currently have zero children.
+		return 1
+##		hkey = win32api.RegOpenKey(self.keyRoot, self.keyName)
+##		try:
+##			keys, vals, dt = win32api.RegQueryInfoKey(hkey)
+##			return (keys>0)
+##		finally:
+##			win32api.RegCloseKey(hkey)
+
 	def GetSubList(self):
 		hkey = win32api.RegOpenKey(self.keyRoot, self.keyName)
 		win32ui.DoWaitCursor(1)
