@@ -21,6 +21,13 @@
 #include <string.h>
 #include <sys/types.h>
 
+// Python 1.5.2 doesn't have PyObject_New
+// PyObject_NEW is not *quite* as safe, but seem to work fine
+// (as all win32all for 1.5.2 used it!
+#ifndef PyObject_New 
+#define PyObject_New PyObject_NEW
+#endif
+
 static PyObject *mmapfile_module_error;
 
 typedef struct {
@@ -39,7 +46,11 @@ mmapfile_object_dealloc(mmapfile_object * m_obj)
   UnmapViewOfFile (m_obj->data);
   CloseHandle (m_obj->map_handle);
   CloseHandle ((HANDLE)m_obj->file_handle);
-  PyMem_DEL(m_obj);
+#ifdef PyObject_Del // see top of file for 1.5.2 comments
+  PyObject_Del(m_obj);
+#else
+  PyMem_Free(m_obj);
+#endif
 }
 
 static PyObject *
@@ -403,7 +414,7 @@ new_mmapfile_object (PyObject * self, PyObject * args)
 	}
   }
 
-  m_obj = PyObject_NEW (mmapfile_object, &mmapfile_object_type);
+  m_obj = PyObject_New (mmapfile_object, &mmapfile_object_type);
 	
   if (fh) {
 	m_obj->file_handle = fh;

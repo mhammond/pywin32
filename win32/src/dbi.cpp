@@ -57,7 +57,7 @@ static void dbiDealloc(PyObject *self)
 #ifdef PyObject_Del // see top of file for 1.5.2 comments
 	PyObject_Del(self);
 #else
-	PyMem_DEL(self);
+	PyMem_Free(self);
 #endif
 }
 
@@ -175,7 +175,7 @@ static int dt_nb_coerce(PyObject **pv, PyObject **pw)
 {
 	if (PyNumber_Check(*pw))
 	{
-		DbiContainer *dbt = PyObject_NEW(DbiContainer, &DbiDate_Type);
+		DbiContainer *dbt = PyObject_New(DbiContainer, &DbiDate_Type);
 		dbt->objectOf = PyNumber_Int(*pw);
 		Py_INCREF(*pv);
 		*pw = (PyObject *)dbt;
@@ -234,7 +234,7 @@ static PyObject *makeRowId(PyObject *self, PyObject *args)
 
 static PyObject *makeDbiType(PyObject *o, PyTypeObject *ty)
 {
-  DbiContainer *dbt = PyObject_NEW(DbiContainer, ty);
+  DbiContainer *dbt = PyObject_New(DbiContainer, ty);
   dbt->objectOf = o;
   return (PyObject*) dbt;
 }
