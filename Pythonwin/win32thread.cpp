@@ -132,13 +132,17 @@ void CProtectedWinThread::PumpMessages()
 	ASSERT(FALSE);  // not reachable
 }
 
-void CProtectedWinThread::PumpWaitingMessages(UINT firstMsg, UINT lastMsg)
+bool CProtectedWinThread::PumpWaitingMessages(UINT firstMsg, UINT lastMsg)
 {
+	bool bHaveQuit = false;
 	MSG msg;
 	if (::PeekMessage(&msg, NULL, firstMsg, lastMsg, PM_REMOVE))
 	{
+		if (msg.message==WM_QUIT)
+			bHaveQuit = true;
 		::DispatchMessage(&msg);
 	}
+	return bHaveQuit;
 /**************88
 	while(::PeekMessage(&m_msgCur, NULL, NULL, NULL, PM_NOREMOVE))
 		if (!PumpMessage()) {

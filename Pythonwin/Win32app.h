@@ -66,7 +66,7 @@ public:
 class CProtectedWinThread : public CWinThread {
 public:
 	void PumpIdle();
-	void PumpWaitingMessages(UINT firstMsg, UINT lastMsg);
+	bool PumpWaitingMessages(UINT firstMsg, UINT lastMsg);
 	void PumpMessages();
 };
 

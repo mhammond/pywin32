@@ -1210,7 +1210,7 @@ ui_stop_debugger_pump(PyObject *self, PyObject *args)
 	GUI_END_SAVE;
 	RETURN_NONE;
 }
-// @pymethod |win32ui|PumpWaitingMessages|Recursively start a new message dispatching loop while any message remain in the queue.
+// @pymethod int|win32ui|PumpWaitingMessages|Recursively start a new message dispatching loop while any message remain in the queue.
 static PyObject *
 ui_pump_waiting_messages(PyObject *self, PyObject *args)
 {
@@ -1222,10 +1222,11 @@ ui_pump_waiting_messages(PyObject *self, PyObject *args)
 	CProtectedWinThread *pThread = GetProtectedThread();
 	if (!pThread) return NULL;
 	GUI_BGN_SAVE;
-	pThread->PumpWaitingMessages(firstMsg, lastMsg);
+	bool rc = pThread->PumpWaitingMessages(firstMsg, lastMsg);
 	GUI_END_SAVE;
-	RETURN_NONE;
+	return PyInt_FromLong((int)rc==true);
 	// @comm This allows an application which is performing a long operation to dispatch paint messages during the operation.
+	// @rdesc The result is 1 if a WM_QUIT message was processed, otherwise 0.
 }
 // @pymethod |win32ui|CreateDebuggerThread|Starts a debugging thread (ie, creates the "break" button).
 static PyObject *
