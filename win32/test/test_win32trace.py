@@ -21,6 +21,12 @@ def CheckNoOtherReaders():
                             "running - please stop this process and try again"
 
 class TestInitOps(unittest.TestCase):
+    def setUp(self):
+        # clear old data
+        win32trace.InitRead()
+        win32trace.read()
+        win32trace.TermRead()
+
     def tearDown(self):
         try:
             win32trace.TermRead()
@@ -58,10 +64,12 @@ class TestInitOps(unittest.TestCase):
         win32trace.write('Ta da')
 
         # if we both Write and Read are terminated at the same time,
-        # we lose the data is that acceptable?
+        # we lose the data as the win32 object is closed.  Note that
+        # if another writer is running, we do *not* lose the data - so
+        # test for either the correct data or an empty string
         win32trace.TermWrite()
         win32trace.InitRead()
-        self.assertEquals('', win32trace.read())
+        self.failUnless(win32trace.read() in ['Ta da', ''])
         win32trace.TermRead()
 
         # we keep the data because we init read before terminating write
@@ -76,6 +84,10 @@ class TestInitOps(unittest.TestCase):
 class BasicSetupTearDown(unittest.TestCase):
     def setUp(self):
         win32trace.InitRead()
+        # If any other writers are running (even if not actively writing),
+        # terminating the module will *not* close the handle, meaning old data
+        # will remain. This can cause other tests to fail.
+        win32trace.read()
         win32trace.InitWrite()
 
     def tearDown(self):
@@ -140,6 +152,7 @@ class TestMultipleThreadsWriting(unittest.TestCase):
     def setUp(self):
         WriterThread.BucketCount = self.BucketCount        
         win32trace.InitRead()
+        win32trace.read() # clear any old data.
         win32trace.InitWrite()
         CheckNoOtherReaders()
         self.threads = [WriterThread() for each in range(self.FullBucket)]
@@ -188,6 +201,7 @@ class TestHugeChunks(unittest.TestCase):
     BiggestChunk = 2**16 # 256k should do it.
     def setUp(self):
         win32trace.InitRead()
+        win32trace.read() # clear any old data
         win32trace.InitWrite()
     def testHugeChunks(self):
         data = "*" * 1023 + "\n"
