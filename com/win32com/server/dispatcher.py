@@ -8,6 +8,7 @@ from sys import exc_info
 #
 from win32com.server.exception import IsCOMServerException
 from win32com.util import IIDToInterfaceName
+import win32com
 
 class DispatcherBase:
   """ The base class for all Dispatchers.  
@@ -21,6 +22,9 @@ class DispatcherBase:
   """
   def __init__(self, policyClass, object):
     self.policy = policyClass(object)
+    # The logger we should dump to.  If None, we should send to the
+    # default location (typically 'print')
+    self.logger = getattr(win32com, "logger", None)
 
   def _CreateInstance_(self, clsid, reqIID):
     try:
@@ -44,6 +48,18 @@ class DispatcherBase:
   def _GetIDsOfNames_(self, names, lcid):
     try:
       return self.policy._GetIDsOfNames_(names, lcid)
+    except:
+      self._HandleException_()
+
+  def _GetTypeInfo_(self, index, lcid):
+    try:
+      return self.policy._GetTypeInfo_(index, lcid)
+    except:
+      self._HandleException_()
+
+  def _GetTypeInfoCount_(self):
+    try:
+      return self.policy._GetTypeInfoCount_()
     except:
       self._HandleException_()
 
@@ -102,15 +118,22 @@ class DispatcherBase:
     """
     # If not a COM exception, print it for the developer.
     if not IsCOMServerException():
-      traceback.print_exc()
+      if self.logger is not None:
+        self.logger.exception("pythoncom server error")
+      else:
+        traceback.print_exc()
     # But still raise it for the framework.
     reraise()
 
   def _trace_(self, *args):
-    for arg in args[:-1]:
-      print arg,
-    print args[-1]
-    
+    if self.logger is not None:
+      record = " ".join(map(str, args))
+      self.logger.debug(record)
+    else:
+      for arg in args[:-1]:
+        print arg,
+      print args[-1]
+
 class DispatcherTrace(DispatcherBase):
   """A dispatcher, which causes a 'print' line for each COM function called.
   """
@@ -123,6 +146,14 @@ class DispatcherTrace(DispatcherBase):
   def _GetIDsOfNames_(self, names, lcid):
     self._trace_("in _GetIDsOfNames_ with '%s' and '%d'\n" % (names, lcid))
     return DispatcherBase._GetIDsOfNames_(self, names, lcid)
+
+  def _GetTypeInfo_(self, index, lcid):
+    self._trace_("in _GetTypeInfo_ with index=%d, lcid=%d\n" % (index, lcid))
+    return DispatcherBase._GetTypeInfo_(self, index, lcid)
+
+  def _GetTypeInfoCount_(self):
+    self._trace_("in _GetTypeInfoCount_\n")
+    return DispatcherBase._GetTypeInfoCount_(self)
 
   def _Invoke_(self, dispid, lcid, wFlags, args):
     self._trace_("in _Invoke_ with", dispid, lcid, wFlags, args)
@@ -167,8 +198,10 @@ class DispatcherWin32trace(DispatcherTrace):
   """
   def __init__(self, policyClass, object):
     DispatcherTrace.__init__(self, policyClass, object)
-    import win32traceutil # Sets up everything.
-    print "Object with win32trace dispatcher created (object=%s)" % `object`
+    if self.logger is None:
+      # If we have no logger, setup our output.
+      import win32traceutil # Sets up everything.
+    self._trace_("Object with win32trace dispatcher created (object=%s)" % `object`)
 
 
 class DispatcherOutputDebugString(DispatcherTrace):
@@ -190,8 +223,13 @@ class DispatcherWin32dbg(DispatcherBase):
   Requires Pythonwin.
   """
   def __init__(self, policyClass, ob):
-    import pywin.debugger 
+    # No one uses this, and it just causes py2exe to drag all of
+    # pythonwin in.
+    #import pywin.debugger 
     pywin.debugger.brk()
+    print "The DispatcherWin32dbg dispatcher is deprecated!"
+    print "Please let me know if this is a problem."
+    print "Uncomment the relevant lines in dispatcher.py to re-enable"
     # DEBUGGER Note - You can either:
     # * Hit Run and wait for a (non Exception class) exception to occur!
     # * Set a breakpoint and hit run.
@@ -202,7 +240,7 @@ class DispatcherWin32dbg(DispatcherBase):
     """ Invoke the debugger post mortem capability """
     # Save details away.
     typ, val, tb = exc_info()
-    import pywin.debugger, pywin.debugger.dbgcon
+    #import pywin.debugger, pywin.debugger.dbgcon
     debug = 0
     try:
       raise typ, val
