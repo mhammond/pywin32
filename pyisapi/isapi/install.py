@@ -9,8 +9,8 @@ import pythoncom
 import winerror
 import traceback
 
-_APP_INPROC  = 0;
-_APP_OUTPROC = 1;
+_APP_INPROC  = 0
+_APP_OUTPROC = 1
 _APP_POOLED  = 2
 _IIS_OBJECT  = "IIS://LocalHost/W3SVC"
 _IIS_SERVER  = "IIsWebServer"
@@ -34,8 +34,8 @@ _DEFAULT_ENABLE_DIR_BROWSING = False
 _DEFAULT_ENABLE_DEFAULT_DOC = False
 
 is_debug_build = False
-for ext, _, _ in imp.get_suffixes():
-    if ext == "_d.pyd":
+for imp_ext, _, _ in imp.get_suffixes():
+    if imp_ext == "_d.pyd":
         is_debug_build = True
         break
 
@@ -45,6 +45,7 @@ class FilterParameters:
     Name = None
     Description = None
     Path = None
+    Server = None
     def __init__(self, **kw):
         self.__dict__.update(kw)
 
@@ -52,7 +53,7 @@ class VirtualDirParameters:
     Name = None # Must be provided.
     Description = None # defaults to Name
     AppProtection = _DEFAULT_PROTECTION
-    Headers       = _DEFAULT_HEADERS;
+    Headers       = _DEFAULT_HEADERS
     Path          = None # defaults to WWW root.
     AccessExecute  = _DEFAULT_ACCESS_EXECUTE
     AccessRead     = _DEFAULT_ACCESS_READ
@@ -63,6 +64,7 @@ class VirtualDirParameters:
     EnableDefaultDoc  = _DEFAULT_ENABLE_DEFAULT_DOC
     ScriptMaps       = []
     ScriptMapUpdate = "end" # can be 'start', 'end', 'replace'
+    Server = None
     def __init__(self, **kw):
         self.__dict__.update(kw)
 
@@ -73,9 +75,9 @@ class ScriptMapParams:
     Verbs = ""
     def __init__(self, **kw):
         self.__dict__.update(kw)
-    
+
 class ISAPIParameters:
-    ServerName     = _DEFAULT_SERVER_NAME;
+    ServerName     = _DEFAULT_SERVER_NAME
     # Description = None
     Filters = []
     VirtualDirs = []
@@ -101,58 +103,74 @@ class InstallationError(Exception): pass
 class ItemNotFound(InstallationError): pass
 class ConfigurationError(InstallationError): pass
 
-def FindWebServiceObject(class_name = None, obj_name = None):
-    #webService = adsi.ADsGetObject(_IIS_OBJECT, adsi.IID_IADsContainer)
-    webService = GetObject(_IIS_OBJECT)
-    if class_name is None and obj_name is None:
-        return webService
-    raise ItemNotFound, "WebService %s.%s" % (class_name, obj_name)
+def FindPath(options, server, name):
+    if name.lower().startswith("iis://"):
+        return name
+    else:
+        if name and name[0] != "/":
+            name = "/"+name
+        return FindWebServer(options, server)+"/ROOT"+name
 
-def FindWebServer(server_desc):
-    webService = GetObject(_IIS_OBJECT)
-    for ob in webService:
-        if ob.Class == _IIS_SERVER and ob.ServerComment == server_desc:
-            return ob
-    raise ItemNotFound, "WebServer %s" % (server_desc,)
- 
-def FindADSIObject(adsiObject, clsName, objName):
-    # IIS6 seems to have different case for the same objects compared to IIS5.
-    # So do all ADSI searches case-insensitive.
-    clsName = clsName.lower()
-    objName = objName.lower()
-    for child in adsiObject:
-#        print "Checking", child.Class, child.Name
-        if child.Class.lower() == clsName and child.Name.lower() == objName:
-            return child
-    raise ItemNotFound, "ADSI object %s.%s" % (clsName, objName)
+def FindWebServer(options, server_desc):
+    # command-line options get first go.
+    if options.server:
+        server = options.server
+    # If the config passed by the caller doesn't specify one, use the default
+    elif server_desc is None:
+        server = _IIS_OBJECT+"/1"
+    else:
+        server = server_desc
+    # Check it is good.
+    try:
+        GetObject(server)
+    except pythoncom.com_error, details:
+        hr, msg, exc, arg_err = details
+        if exc and exc[2]:
+            msg = exc[2]
+        raise ItemNotFound, \
+              "WebServer %s: %s" % (server, msg)
+    return server
 
-def CreateVirtualDir(webRootDir, params, options):
+def CreateDirectory(params, options):
     if not params.Name:
         raise ConfigurationError, "No Name param"
+    slash = params.Name.rfind("/")
+    if slash >= 0:
+        parent = params.Name[:slash]
+        name = params.Name[slash+1:]
+    else:
+        parent = ""
+        name = params.Name
+    webDir = GetObject(FindPath(options, params.Server, parent))
+    if parent:
+        # Note that the directory won't be visible in the IIS UI
+        # unless the directory exists on the filesystem.
+        keyType = _IIS_WEBDIR
+    else:
+        keyType = _IIS_WEBVIRTUALDIR
     _CallHook(params, "PreInstall", options)
     try:
-        newDir = webRootDir.Create(_IIS_WEBVIRTUALDIR, params.Name)
+        newDir = webDir.Create(keyType, name)
     except pythoncom.com_error, details:
         rc = _GetWin32ErrorCode(details)
         if rc != winerror.ERROR_ALREADY_EXISTS:
             raise
-        # I don't understand this "WEBDIR" vs "WEBVIRTUALDIR"
-        try:
-            newDir = FindADSIObject(webRootDir, _IIS_WEBVIRTUALDIR, params.Name)
-        except ItemNotFound:
-            newDir = FindADSIObject(webRootDir, _IIS_WEBDIR, params.Name)
-        log(2, "Updating existing directory '%s'..." % (params.Name,));
+        newDir = GetObject(FindPath(options, params.Server, params.Name))
+        log(2, "Updating existing directory '%s'..." % (params.Name,))
     else:
         log(2, "Creating new directory '%s'..." % (params.Name,))
         
         friendly = params.Description or params.Name
         newDir.AppFriendlyName = friendly
-        path = params.Path or webRootDir.Path
-        newDir.Path = path
+        try:
+            path = params.Path or webDir.Path
+            newDir.Path = path
+        except AttributeError:
+            pass
         newDir.AppCreate2(params.AppProtection)
         newDir.HttpCustomHeaders = params.Headers
-        
-    log(2, "Setting directory options...");
+
+    log(2, "Setting directory options...")
     newDir.AccessExecute  = params.AccessExecute
     newDir.AccessRead     = params.AccessRead
     newDir.AccessWrite    = params.AccessWrite
@@ -186,9 +204,10 @@ def CreateVirtualDir(webRootDir, params, options):
     log(1, "Configured Virtual Directory: %s" % (params.Name,))
     return newDir
 
-def CreateISAPIFilter(webServer, filterParams, options):
+def CreateISAPIFilter(filterParams, options):
+    server = FindWebServer(options, filterParams.Server)
     _CallHook(filterParams, "PreInstall", options)
-    filters = FindADSIObject(webServer, _IIS_FILTERS, "Filters")
+    filters = GetObject(server+"/Filters")
     try:
         newFilter = filters.Create(_IIS_FILTER, filterParams.Name)
         log(2, "Created new ISAPI filter...")
@@ -196,7 +215,7 @@ def CreateISAPIFilter(webServer, filterParams, options):
         if exc is None or exc[-1]!=-2147024713:
             raise
         log(2, "Updating existing filter '%s'..." % (filterParams.Name,))
-        newFilter = FindADSIObject(filters, _IIS_FILTER, filterParams.Name)
+        newFilter = GetObject(server+"/Filters/"+filterParams.Name)
     assert os.path.isfile(filterParams.Path)
     newFilter.FilterPath  = filterParams.Path
     newFilter.FilterDescription = filterParams.Description
@@ -210,11 +229,12 @@ def CreateISAPIFilter(webServer, filterParams, options):
     log (1, "Configured Filter: %s" % (filterParams.Name,))
     return newFilter
 
-def DeleteISAPIFilter(webServer, filterParams, options):
+def DeleteISAPIFilter(filterParams, options):
     _CallHook(filterParams, "PreRemove", options)
-    filters = FindADSIObject(webServer, _IIS_FILTERS, "Filters")
+    server = FindWebServer(options, filterParams.Server)
+    filters = GetObject(server+"/Filters")
     try:
-        newFilter = filters.Delete(_IIS_FILTER, filterParams.Name)
+        filters.Delete(_IIS_FILTER, filterParams.Name)
         log(2, "Deleted ISAPI filter '%s'" % (filterParams.Name,))
     except pythoncom.com_error, details:
         rc = _GetWin32ErrorCode(details)
@@ -236,9 +256,9 @@ def CheckLoaderModule(dll_name):
     template = os.path.join(this_dir,
                             "PyISAPI_loader" + suffix + ".dll")
     if not os.path.isfile(template):
-        raise isapi.install.ConfigurationError, \
-              "Template loader '%s' does not exist"
-    # We can't do a simple "is newer" check, as the DLL is specific to the 
+        raise ConfigurationError, \
+              "Template loader '%s' does not exist" % (template,)
+    # We can't do a simple "is newer" check, as the DLL is specific to the
     # Python version.  So we check the date-time and size are identical,
     # and skip the copy in that case.
     src_stat = os.stat(template)
@@ -263,39 +283,23 @@ def _CallHook(ob, hook_name, options, *extra_args):
         func(*args)
 
 def Install(params, options):
-    server_name = _DEFAULT_SERVER_NAME
     _CallHook(params, "PreInstall", options)
-    web_service = FindWebServiceObject()
-    server = FindWebServer(server_name)
-    root = FindADSIObject(server, _IIS_WEBVIRTUALDIR, "Root")
     for vd in params.VirtualDirs:
-        CreateVirtualDir(root, vd, options)
+        CreateDirectory(vd, options)
         
     for filter_def in params.Filters:
-        f = CreateISAPIFilter(server, filter_def, options)
+        CreateISAPIFilter(filter_def, options)
     _CallHook(params, "PostInstall", options)
 
 def Uninstall(params, options):
     _CallHook(params, "PreRemove", options)
-    server_name = _DEFAULT_SERVER_NAME
-    web_service = FindWebServiceObject()
-    server = FindWebServer(server_name)
-    root = FindADSIObject(server, _IIS_WEBVIRTUALDIR, "Root")
     for vd in params.VirtualDirs:
         _CallHook(vd, "PreRemove", options)
-        # Find the virtual dir, and unload it.  This should stop the app
-        # immediately, rather than needing to restart IIS.
         try:
-            d = FindADSIObject(root, _IIS_WEBVIRTUALDIR, vd.Name)
-        except ItemNotFound:
-            # This can happen when the VD has not yet been loaded
-            pass
-        else:
-            d.AppUnload()
-            log (2, "Unloaded Virtual Directory: %s" % (vd.Name,))
-        # Now actually delete the directory.
-        try:
-            newDir = root.Delete(_IIS_WEBVIRTUALDIR, vd.Name)
+            directory = GetObject(FindPath(options, vd.Server, vd.Name))
+            directory.AppUnload()
+            parent = GetObject(directory.Parent)
+            parent.Delete(directory.Class, directory.Name)
         except pythoncom.com_error, details:
             rc = _GetWin32ErrorCode(details)
             if rc != winerror.ERROR_PATH_NOT_FOUND:
@@ -304,7 +308,7 @@ def Uninstall(params, options):
         log (1, "Deleted Virtual Directory: %s" % (vd.Name,))
 
     for filter_def in params.Filters:
-        DeleteISAPIFilter(server, filter_def, options)
+        DeleteISAPIFilter(filter_def, options)
     _CallHook(params, "PostRemove", options)
 
 # Patch up any missing module names in the params, replacing them with
@@ -313,7 +317,7 @@ def _PatchParamsModule(params, dll_name, file_must_exist = True):
     if file_must_exist:
         if not os.path.isfile(dll_name):
             raise ConfigurationError, "%s does not exist" % (dll_name,)
-    
+
     # Patch up all references to the DLL.
     for f in params.Filters:
         if f.Path is None: f.Path = dll_name
@@ -366,10 +370,6 @@ standard_arguments = {
     "remove"  : "Remove the extension"
 }
 
-# Later we will probably need arguments that allow us to change the
-# name of the default server, etc - ie, at the moment, we only work
-# when the WWW server is named _DEFAULT_SERVER_NAME ("Default Web Site")
-#
 # We support 2 ways of extending our command-line/install support.
 # * Many of the installation items allow you to specify "PreInstall",
 #   "PostInstall", "PreRemove" and "PostRemove" hooks
@@ -389,7 +389,6 @@ def HandleCommandLine(params, argv=None, conf_module_name = None,
 
     argv = argv or sys.argv
     conf_module_name = conf_module_name or sys.argv[0]
-    
     if opt_parser is None:
         # Build our own parser.
         parser = OptionParser(usage='')
@@ -415,7 +414,10 @@ def HandleCommandLine(params, argv=None, conf_module_name = None,
                       help="don't print status messages to stdout")
     parser.add_option("-v", "--verbosity", action="count",
                       dest="verbose", default=1,
-                      help="set the verbosity of status messages")
+                      help="increase the verbosity of status messages")
+    parser.add_option("", "--server", action="store",
+                      help="Specifies the IIS server to install/uninstall on." \
+                           " Default is '%s/1'" % (_IIS_OBJECT,))
 
     (options, args) = parser.parse_args(argv[1:])
     verbose = options.verbose
@@ -434,7 +436,7 @@ def HandleCommandLine(params, argv=None, conf_module_name = None,
                 if handler is None:
                     parser.error("Invalid arg '%s'" % (arg,))
                 handler(options, log, arg)
-    except InstallationError, details:
+    except (ItemNotFound, InstallationError), details:
         if options.verbose > 1:
             traceback.print_exc()
         print "%s: %s" % (details.__class__.__name__, details)
