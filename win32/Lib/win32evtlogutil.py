@@ -67,7 +67,6 @@ def RemoveSourceFromRegistry(appName, eventLogType = "Application"):
 def ReportEvent(appName, eventID, eventCategory = 0, eventType=win32evtlog.EVENTLOG_ERROR_TYPE, strings = None, data = None, sid=None):
   """Report an event for a previously added event source.
   """
-	
   # Get a handle to the Application event log 
   hAppLog = win32evtlog.RegisterEventSource(None, appName)
 
@@ -105,16 +104,19 @@ def FormatMessage( eventLogRecord, logType="Application" ):
 		# Win2k etc appear to allow multiple DLL names
 		data = None
 		for dllName in dllNames:
-			# Expand environment variable strings in the message DLL path name,
-			# in case any are there.
-			dllName = win32api.ExpandEnvironmentStrings(dllName)
-
-			dllHandle = win32api.LoadLibraryEx(dllName, 0, win32con.DONT_RESOLVE_DLL_REFERENCES)
 			try:
-				data = win32api.FormatMessageW(win32con.FORMAT_MESSAGE_FROM_HMODULE, 
-						dllHandle, eventLogRecord.EventID, langid, eventLogRecord.StringInserts)
-			finally:
-				win32api.FreeLibrary(dllHandle)
+				# Expand environment variable strings in the message DLL path name,
+				# in case any are there.
+				dllName = win32api.ExpandEnvironmentStrings(dllName)
+
+				dllHandle = win32api.LoadLibraryEx(dllName, 0, win32con.DONT_RESOLVE_DLL_REFERENCES)
+				try:
+					data = win32api.FormatMessageW(win32con.FORMAT_MESSAGE_FROM_HMODULE, 
+							dllHandle, eventLogRecord.EventID, langid, eventLogRecord.StringInserts)
+				finally:
+					win32api.FreeLibrary(dllHandle)
+			except win32api.error:
+				pass # Not in this DLL - try the next
 			if data is not None:
 				break
 	finally:
