@@ -166,6 +166,8 @@ Public Sub DoSomeCallbacks(ob As Object)
     Dim i, i2 As Integer
     Dim s As String
     Dim ret As Integer
+    Dim variantResult As Variant
+    On Error GoTo failed
     Rem Can check byrefs for gateways here, as VB passes all params byref!
     i = 99
     ret = ob.CallbackResultOneByRef(i)
@@ -177,5 +179,19 @@ Public Sub DoSomeCallbacks(ob As Object)
     i2 = 50
     ob.CallbackVoidTwoByRef i, i2
     If i <> 150 And i2 <> 50 Then MsgBox "After CallbackVoidTwoByRef, the param was in error - was " & i & "/" & i2 & " but expected 150/50"
+    i = 100
+    variantResult = ob.CallbackResultOneByRefButReturnNone(i)
+    ' i should remain the same
+    If i <> 100 Then MsgBox "After CallbackResultOneByRefButReturnNone, the param was in error - was " & i & " but expected 100"
+    If variantResult <> Null Then MsgBox "After CallbackResultOneByRefButReturnNone, the param was in error - was " & variantResult & " but expected Null"
+    ' See what happens to a ByRef with a void function!
+    ' XXX - was expecting this to fail - VB passes as VT_VARIANT|VT_BYREF
+    ' and Python sets the Variant to NULL - but VB doesnt complain!
+    ob.CallbackVoidOneByRefButReturnNone i
+    If i <> 100 Then MsgBox "After CallbackVoidOneByRefButReturnNone, the param was in error - was " & i & " but expected 100"
+    Exit Sub
+failed:
+    MsgBox ("Calling back into Python failed" & Chr(11) & Err.Description)
+    Err.Raise Err.Number
 End Sub
 

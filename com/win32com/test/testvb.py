@@ -37,7 +37,10 @@ error = "VB Test Error"
 # Set up a COM object that VB will do some callbacks on.  This is used
 # to test byref params for gateway IDispatch.
 class TestObject:
-	_public_methods_ = ["CallbackVoidOneByRef","CallbackResultOneByRef", "CallbackVoidTwoByRef", "CallbackString"]
+	_public_methods_ = ["CallbackVoidOneByRef","CallbackResultOneByRef", "CallbackVoidTwoByRef",
+					    "CallbackString","CallbackResultOneByRefButReturnNone",
+						"CallbackVoidOneByRefButReturnNone",
+					   ]
 	def CallbackVoidOneByRef(self, intVal):
 		return intVal + 1
 	def CallbackResultOneByRef(self, intVal):
@@ -46,7 +49,10 @@ class TestObject:
 		return int1+int2, int1-int2
 	def CallbackString(self, strVal):
 		return 0, strVal + " has visited Python"
-
+	def CallbackResultOneByRefButReturnNone(self, intVal):
+		return
+	def CallbackVoidOneByRefButReturnNone(self, intVal):
+		return
 
 def TestVB( vbtest, bUseGenerated ):
 	vbtest.LongProperty = -1
@@ -105,8 +111,13 @@ def TestVB( vbtest, bUseGenerated ):
 		if testData != list(byRefParam):
 			raise error, "The safe array data was not what we expected - got " + str(byRefParam)
 
+		# These are sub's that have a single byref param
+		# Result should be just the byref.
 		if vbtest.IncrementIntegerParam(1) != 2:
 			raise error, "Could not pass an integer byref"
+
+		if vbtest.IncrementIntegerParam() != 1:
+			raise error, "Could not pass an omitted integer byref"
 
 		if vbtest.IncrementVariantParam(1) != 2:
 			raise error, "Could not pass an int VARIANT byref:"+str(vbtest.IncrementVariantParam(1))
@@ -114,6 +125,8 @@ def TestVB( vbtest, bUseGenerated ):
 		if vbtest.IncrementVariantParam(1.5) != 2.5:
 			raise error, "Could not pass a float VARIANT byref"
 		
+		# Can't test IncrementVariantParam with the param omitted as it
+		# it not declared in the VB code as "Optional"
 
 		vbtest.DoSomeCallbacks(wrap(TestObject()))
 
@@ -123,6 +136,8 @@ def TestVB( vbtest, bUseGenerated ):
 
 	# Python doesnt support byrefs without some sort of generated support.
 	if bUseGenerated:
+		# This is a VB function that takes a single byref
+		# Hence 2 return values - function and byref.
 		ret = vbtest.PassIntByRef(1)
 		if ret != (1,2):
 			raise error, "Could not increment the integer - "+str(ret)
