@@ -112,7 +112,7 @@ def GetClassForProgID(progid):
 		return None
 	import CLSIDToClass
 	try:
-		return CLSIDToClass.GetClass(iid)
+		return CLSIDToClass.GetClass(str(iid))
 	except KeyError:
 		return None
 
@@ -317,6 +317,24 @@ def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bVal
 			AddModuleToCache(typelibCLSID, lcid, major, minor)
 	return module
 
+def EnsureDispatch(prog_id, bForDemand = 0):
+	"""Given a COM prog_id, return an object that is using makepy support, building if necessary"""
+	disp = win32com.client.Dispatch(prog_id)
+	if not disp.__dict__.get("CLSID"): # Eeek - no makepy support - try and build it.
+		try:
+			ti = disp._oleobj_.GetTypeInfo()
+			disp_clsid = ti.GetTypeAttr()[0]
+			tlb, index = ti.GetContainingTypeLib()
+			tla = tlb.GetLibAttr()
+			mod = EnsureModule(tla[0], tla[1], tla[3], tla[4], bForDemand=bForDemand)
+			GetModuleForCLSID(disp_clsid)
+			# Get the class from the module.
+			import CLSIDToClass
+			disp_class = CLSIDToClass.GetClass(str(disp_clsid))
+			disp = disp_class(disp._oleobj_)
+		except "pythoncom.com_error":
+			raise TypeError, "This COM object can not automate the makepy process - please run makepy manually for this object"
+	return disp
 
 def AddModuleToCache(typelibclsid, lcid, major, minor, verbose = 1, bFlushNow = 1):
 	"""Add a newly generated file to the cache dictionary.
