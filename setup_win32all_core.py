@@ -105,6 +105,8 @@ class WinExt_win32(WinExt):
     def get_pywin32_dir(self):
         return "win32"
 
+# Note this is used only for "win32com extensions", not pythoncom
+# itself - thus, output is "win32comext"
 class WinExt_win32com(WinExt):
     def __init__ (self, name, **kw):
         if not kw.has_key("dsp_file"):
@@ -112,7 +114,7 @@ class WinExt_win32com(WinExt):
         kw["libraries"] = kw.get("libraries", "") + " oleaut32 ole32"
         WinExt.__init__(self, name, **kw)
     def get_pywin32_dir(self):
-        return "win32com/" + self.name
+        return "win32comext/" + self.name
 
 # 'win32com.mapi.exchange' and 'win32com.mapi.exchdapi' currently only
 # ones with this special requirement
@@ -518,8 +520,8 @@ com_extensions += [
 
 pythonwin_extensions = [
     WinExt_pythonwin("win32ui", extra_compile_args = ['-DBUILD_PYW'],
-                     pch_header = "stdafx.h"),
-    WinExt_pythonwin("win32uiole"),
+                     pch_header="stdafx.h"),
+    WinExt_pythonwin("win32uiole", pch_header="stdafxole.h"),
     WinExt_pythonwin("dde", pch_header="stdafxdde.h"),
 ]
 
@@ -547,10 +549,10 @@ dist = setup(name="pywin32",
       
       ext_modules = win32_extensions + com_extensions + pythonwin_extensions,
 
-      package_dir = {"win32": "win32/lib",
+      package_dir = {"win32": "win32",
                      "win32com": "com/win32com",
                      "win32comext": "com/win32comext",
-                     "Pythonwin": "Pythonwin/pywin"},
+                     "Pythonwin": "Pythonwin"},
 
       packages=['win32',
                 'win32com',
@@ -576,17 +578,23 @@ dist = setup(name="pywin32",
                 'win32comext.axscript.client',
                 'win32comext.axscript.server',
 
+                'win32comext.shell',
+                'win32comext.mapi',
+                'win32comext.internet',
+                'win32comext.axcontrol',
+
                 'Pythonwin',
-                'Pythonwin.debugger',
-                'Pythonwin.dialogs',
-                'Pythonwin.docking',
-                'Pythonwin.framework',
-                'Pythonwin.framework.editor',
-                'Pythonwin.framework.editor.color',
-                'Pythonwin.idle',
-                'Pythonwin.mfc',
-                'Pythonwin.scintilla',
-                'Pythonwin.tools',
+                'Pythonwin.pywin',
+                'Pythonwin.pywin.debugger',
+                'Pythonwin.pywin.dialogs',
+                'Pythonwin.pywin.docking',
+                'Pythonwin.pywin.framework',
+                'Pythonwin.pywin.framework.editor',
+                'Pythonwin.pywin.framework.editor.color',
+                'Pythonwin.pywin.idle',
+                'Pythonwin.pywin.mfc',
+                'Pythonwin.pywin.scintilla',
+                'Pythonwin.pywin.tools',
                 ],
       )
 # If we did any extension building...
