@@ -365,10 +365,8 @@ def RegisterClasses(*classes, **flags):
       debuggingDesc = ""
       options['Debugging'] = "0"
 
-    if spec is None and policySpec in [None, 'DynamicPolicy', 'DesignatedWrapPolicy', 'DefaultPolicy']: 
-      # No class or policy has been specified (or a policy we know requires it!)
-      # We assume sys.argv[0] holds the script name
-      # so we build the info our-self.
+    if spec is None:
+      # Always write out path - the policy may or may not need it
       scriptDir = os.path.split(sys.argv[0])[0]
       if not scriptDir: scriptDir = "."
       # Use the win32api to find the case-sensitive name
