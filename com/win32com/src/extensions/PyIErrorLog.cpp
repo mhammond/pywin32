@@ -25,7 +25,7 @@ PyObject *PyIErrorLog::AddError(PyObject *self, PyObject *args)
 	PyObject *obName;
 	PyObject *obExcepInfo = Py_None;
 	// @pyparm string|propName||The name of the error
-	// @pyparm <o EXCEPINFO>|excepInfo|None|
+	// @pyparm exception|excepInfo|None|A COM exception.  Must be a complete COM exception (ie, pythoncom.com_error, or win32com.server.exceptions.COMException())
 	if ( !PyArg_ParseTuple(args, "O|O:AddError", &obName, &obExcepInfo) )
 		return NULL;
 
