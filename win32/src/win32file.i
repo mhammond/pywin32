@@ -342,6 +342,23 @@ BOOLAPI FindNextChangeNotification(
 #endif // MS_WINCE
 
 %{
+
+PyObject *PyObject_FromFIND_DATA(WIN32_FIND_DATAW *pData)
+{
+	// @object FIND_DATA|A tuple representing a Win32 WIN32_FIND_DATA structure.
+	return Py_BuildValue("lNNNlllluu",
+		pData->dwFileAttributes, // @tupleitem 0|int|attributes|File Attributes.  A combination of the win32com.FILE_ATTRIBUTE_* flags.
+		PyWinObject_FromFILETIME(pData->ftCreationTime), // @tupleitem 1|<o PyTime>|createTime|File creation time.
+		PyWinObject_FromFILETIME(pData->ftLastAccessTime), // @tupleitem 2|<o PyTime>|accessTime|File access time.
+		PyWinObject_FromFILETIME(pData->ftLastWriteTime), // @tupleitem 3|<o PyTime>|writeTime|Time of last file write
+		pData->nFileSizeHigh, // @tupleitem 4|int|nFileSizeHigh|high order word of file size.
+		pData->nFileSizeLow,	// @tupleitem 5|int|nFileSizeLow|low order word of file size.
+		pData->dwReserved0,	// @tupleitem 6|int|reserved0|Reserved.
+		pData->dwReserved1,   // @tupleitem 7|int|reserved1|Reserved.
+		pData->cFileName,     // @tupleitem 8|Unicode|fileName|The name of the file.
+		pData->cAlternateFileName); // @tupleitem 9|Unicode|alternateFilename|Alternative name of the file, expressed in 8.3 format.
+}
+
 // @pyswig list|FindFilesW|Retrieves a list of matching filenames, using the Windows Unicode API.  An interface to the API FindFirstFileW/FindNextFileW/Find close functions.
 static PyObject *
 PyFindFilesW(PyObject *self, PyObject *args)
@@ -357,6 +374,7 @@ PyFindFilesW(PyObject *self, PyObject *args)
 	// @pyseeapi FindFirstFile
 	HANDLE hFind;
 
+	memset(&findData, 0, sizeof(findData));
 	hFind =  ::FindFirstFileW(fileSpec, &findData);
 	PyWinObject_FreeWCHAR(fileSpec);
 	if (hFind==INVALID_HANDLE_VALUE) {
@@ -370,43 +388,19 @@ PyFindFilesW(PyObject *self, PyObject *args)
 		::FindClose(hFind);
 		return NULL;
 	}
+	// @rdesc The return value is a list of <o FIND_DATA> tuples.
 	BOOL ok = TRUE;
 	while (ok) {
-		PyObject *obCreateTime = PyWinObject_FromFILETIME(findData.ftCreationTime);
-		PyObject *obAccessTime = PyWinObject_FromFILETIME(findData.ftLastAccessTime);
-		PyObject *obWriteTime = PyWinObject_FromFILETIME(findData.ftLastWriteTime);
-		if (obCreateTime==NULL || obAccessTime==NULL || obWriteTime==NULL) {
-			Py_XDECREF(obCreateTime);
-			Py_XDECREF(obAccessTime);
-			Py_XDECREF(obWriteTime);
-			Py_DECREF(retList);
+		PyObject *newItem = PyObject_FromFIND_DATA(&findData);
+		if (!newItem) {
 			::FindClose(hFind);
+			Py_DECREF(retList);
 			return NULL;
 		}
-		PyObject *obName = PyWinObject_FromWCHAR(findData.cFileName);
-		PyObject *obAltName = PyWinObject_FromWCHAR(findData.cAlternateFileName);
-		PyObject *newItem = Py_BuildValue("lOOOllllOO",
-		// @rdesc The return value is a list of tuples, in the same format as the WIN32_FIND_DATA structure:
-			findData.dwFileAttributes, // @tupleitem 0|int|attributes|File Attributes.  A combination of the win32com.FILE_ATTRIBUTE_* flags.
-			obCreateTime, // @tupleitem 1|<o PyTime>|createTime|File creation time.
-    		obAccessTime, // @tupleitem 2|<o PyTime>|accessTime|File access time.
-    		obWriteTime, // @tupleitem 3|<o PyTime>|writeTime|Time of last file write
-    		findData.nFileSizeHigh, // @tupleitem 4|int|nFileSizeHigh|high order word of file size.
-    		findData.nFileSizeLow,	// @tupleitem 5|int|nFileSizeLow|low order word of file size.
-    		findData.dwReserved0,	// @tupleitem 6|int|reserved0|Reserved.
-    		findData.dwReserved1,   // @tupleitem 7|int|reserved1|Reserved.
-    		obName,                 // @tupleitem 8|Unicode|fileName|The name of the file.
-    		obAltName);             // @tupleitem 9|Unicode|alternateFilename|Alternative name of the file, expressed in 8.3 format.
-		Py_XDECREF(obName);
-		Py_XDECREF(obAltName);
-		if (newItem!=NULL) {
-			PyList_Append(retList, newItem);
-			Py_DECREF(newItem);
-		}
+		PyList_Append(retList, newItem);
+		Py_DECREF(newItem);
 		// @pyseeapi FindNextFile
-		Py_DECREF(obCreateTime);
-		Py_DECREF(obAccessTime);
-		Py_DECREF(obWriteTime);
+		memset(&findData, 0, sizeof(findData));
 		ok=::FindNextFileW(hFind, &findData);
 	}
 	ok = (GetLastError()==ERROR_NO_MORE_FILES);
@@ -421,6 +415,137 @@ PyFindFilesW(PyObject *self, PyObject *args)
 %}
 
 %native(FindFilesW) PyFindFilesW;
+
+%{
+
+typedef struct {
+	PyObject_HEAD
+	HANDLE hFind;
+	WIN32_FIND_DATAW buffer;
+	BOOL seen_first;
+	BOOL empty;
+} FindFileIterator;
+
+
+static void
+ffi_dealloc(FindFileIterator *it)
+{
+	if (it->hFind != INVALID_HANDLE_VALUE)
+		::FindClose(it->hFind);
+	PyObject_Del(it);
+}
+
+static PyObject *
+ffi_iternext(PyObject *iterator)
+{
+	FindFileIterator *ffi = (FindFileIterator *)iterator;
+	if (ffi->empty) {
+		PyErr_SetNone(PyExc_StopIteration);
+		return NULL;
+	}
+	if (!ffi->seen_first)
+		ffi->seen_first = TRUE;
+	else {
+		BOOL ok;
+		Py_BEGIN_ALLOW_THREADS
+		memset(&ffi->buffer, 0, sizeof(ffi->buffer));
+		ok = ::FindNextFileW(ffi->hFind, &ffi->buffer);
+		Py_END_ALLOW_THREADS
+		if (!ok) {
+			if (GetLastError()==ERROR_NO_MORE_FILES) {
+				PyErr_SetNone(PyExc_StopIteration);
+				return NULL;
+			}
+			return PyWin_SetAPIError("FindNextFileW");
+		}
+	}
+	return PyObject_FromFIND_DATA(&ffi->buffer);
+}
+
+PyTypeObject FindFileIterator_Type = {
+	PyObject_HEAD_INIT(&PyType_Type)
+	0,					/* ob_size */
+	"FindFileIterator",				/* tp_name */
+	sizeof(FindFileIterator),			/* tp_basicsize */
+	0,					/* tp_itemsize */
+	/* methods */
+	(destructor)ffi_dealloc, 		/* tp_dealloc */
+	0,					/* tp_print */
+	0,					/* tp_getattr */
+	0,					/* tp_setattr */
+	0,					/* tp_compare */
+	0,					/* tp_repr */
+	0,					/* tp_as_number */
+	0,					/* tp_as_sequence */
+	0,					/* tp_as_mapping */
+	0,					/* tp_hash */
+	0,					/* tp_call */
+	0,					/* tp_str */
+	PyObject_GenericGetAttr,		/* tp_getattro */
+	0,					/* tp_setattro */
+	0,					/* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT, /* tp_flags */
+ 	0,					/* tp_doc */
+ 	0,					/* tp_traverse */
+ 	0,					/* tp_clear */
+	0,					/* tp_richcompare */
+	0,					/* tp_weaklistoffset */
+	PyObject_SelfIter,	/* tp_iter */
+	(iternextfunc)ffi_iternext,		/* tp_iternext */
+	0,					/* tp_methods */
+	0,					/* tp_members */
+	0,					/* tp_getset */
+	0,					/* tp_base */
+	0,					/* tp_dict */
+	0,					/* tp_descr_get */
+	0,					/* tp_descr_set */
+};
+
+// @pyswig iterator|FindFilesIterator|Returns an interator based on
+// FindFirstFile/FindNextFile. Similar to <om win32file.FindFiles>, but
+// avoids the creation of the list for huge directories
+static PyObject *
+PyFindFilesIterator(PyObject *self, PyObject *args)
+{
+	WCHAR *fileSpec;
+	PyObject *obfileSpec=NULL;
+	// @pyparm unicode|filespec||
+	if (!PyArg_ParseTuple (args, "O:FindFilesIterator", &obfileSpec))
+		return NULL;
+
+	if (!PyWinObject_AsWCHAR(obfileSpec,&fileSpec,FALSE))
+		return NULL;
+
+	FindFileIterator *it = PyObject_New(FindFileIterator, &FindFileIterator_Type);
+	if (it == NULL) {
+		PyWinObject_FreeWCHAR(fileSpec);
+		return NULL;
+	}
+	it->seen_first = FALSE;
+	it->empty = FALSE;
+	it->hFind = INVALID_HANDLE_VALUE;
+	memset(&it->buffer, 0, sizeof(it->buffer));
+
+	Py_BEGIN_ALLOW_THREADS
+	it->hFind =  ::FindFirstFileW(fileSpec, &it->buffer);
+	Py_END_ALLOW_THREADS
+	PyWinObject_FreeWCHAR(fileSpec);
+
+	if (it->hFind==INVALID_HANDLE_VALUE) {
+		if (::GetLastError()!=ERROR_FILE_NOT_FOUND) {	// this is OK
+			Py_DECREF(it);
+			return PyWin_SetAPIError("FindNextFileW");
+		}
+		it->empty = TRUE;
+	}
+	return (PyObject *)it;
+	// @rdesc The result is a Python iterator, with each next() method
+	// returning a <o FIND_DATA> tuple.
+}
+%}
+
+%native(FindFilesIterator) PyFindFilesIterator;
+
 
 // @pyswig |FlushFileBuffers|Clears the buffers for the specified file and causes all buffered data to be written to the file. 
 BOOLAPI FlushFileBuffers(
@@ -3038,6 +3163,9 @@ py_AddUsersToEncryptedFile(PyObject *self, PyObject *args)
 %native (AddUsersToEncryptedFile) py_AddUsersToEncryptedFile;
 
 %init %{
+
+	PyDict_SetItemString(d, "error", PyWinExc_ApiError);
+
 	HMODULE hmodule;
 	FARPROC fp;
 
