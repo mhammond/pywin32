@@ -13,9 +13,13 @@
 <P><A HREF="win32com.txt">The release notes</A> is where we do a poor job of keeping a list of significant enhancements and changes at the C/C++ level (yeah, right!) and also contains the log from the source control system.</P>
 <P>The <A HREF="test/.">win32com\test directory</A> contains some interesting scripts (and a new <A HREF="test/readme.txt">readme.txt</A>). Although these are used for testing, they do show a variety of COM techniques.</P>
 <H3>Recent Changes</H3>
-<H4>win32all-126 fixes.</H4>
-<P>Threading bug that was exposed when using MTS has been fixed.  Minor (but regular) memory leak plugged.  Can now run for (nearly :-) ever under MTS with huge thread numbers.</P>
-<P>makepy has better support for objects that expose multiple IDispatch interfaces,  Also sorts the list of type-libraries correctly, and hides libraries marked as hidden.</P>
+<H4>win32all-127 fixes (includes win32all-126 which was never publicly released).</H4>
+<P>All Arrays of VARIANT's of type VT_UI1 are now converted to a <I>buffer</I> object rather than the previous list of integers.  In addition, a <I>buffer</I> object can be passed to COM and an array of type VT_UI1 will be created.  This type is often used when passing raw binary data, and this change is far more efficient for large data sets.  For example, if you have a string or array.array object holding binary data, you can use the <I>buffer()</I> built-in on the object to create a buffer object that will force the new behaviour.  <B>Note</B>:  This may break some code that uses arrays of this type, but after much soul-searching it was decided this new behaviour is worth the pain.</P>
+<P>A bug that caused the Active Scripting implementation to die has been fixed.  (Specifically, the implementation of to <I>IActiveScript::AddTypeLib()</I> was buggy)</P>
+<P>Active Scripting bug when using IE5 fixed (it has a method called "print" which messed us up)</P>
+<P>Error handling when setting erroneous properties on COM objects fixed.  There were cases where errors would not be reported.</P>
+<P>Threading bug that was exposed when using MTS has been fixed. Minor (but regular) memory leak plugged. Can now run for (nearly :-) ever under MTS with huge thread numbers.</P>
+<P>makepy has better support for objects that expose multiple IDispatch interfaces, Also sorts the list of type-libraries correctly, and hides libraries marked as hidden.</P>
 <P>COM now supports byref date arguments.</P>
 <H4>win32all-125 fixes.</H4>
 <P>Better support for DCOM via <CODE>win32com.client.DispathEx(progId, machineName=None, …)</CODE>. Small DCOM demo in <I>win32com\test\testDCOM.py</I>.</P>
