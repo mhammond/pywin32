@@ -146,7 +146,14 @@ public:
 			_BaseOnClose();
 	}
 	void _BaseOnClose() {
-		T::OnClose();
+		__try {
+			T::OnClose();
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER) {
+			// *sob* - no idea what is causing this in VC7 (other than vaguely
+			// "docking toolbars"
+			;
+		}
 	}
 	afx_msg void OnPaletteChanged(CWnd* pFocusWnd) {
 		// @comm The MFC base class is always called before the Python method.
