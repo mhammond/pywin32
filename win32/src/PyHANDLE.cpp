@@ -176,8 +176,13 @@ PyHANDLE::~PyHANDLE(void)
 
 BOOL PyHANDLE::Close(void)
 {
-	BOOL rc = m_handle ? CloseHandle(m_handle) : TRUE;
-	m_handle = 0;
+	BOOL rc = TRUE;
+	if (m_handle) {
+		Py_BEGIN_ALLOW_THREADS
+		rc = CloseHandle(m_handle);
+		Py_END_ALLOW_THREADS
+		m_handle = 0;
+	}
 	if (!rc)
 		PyWin_SetAPIError("CloseHandle");
 	return rc;
