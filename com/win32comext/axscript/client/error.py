@@ -11,6 +11,7 @@ import winerror
 import win32com.server.exception
 import win32com.server.util
 import pythoncom
+import re
 
 debugging = 0
 
@@ -21,12 +22,10 @@ def FormatForAX(text):
 	return ExpandTabs(AddCR(text))
 
 def ExpandTabs(text):
-	import regsub
-	return regsub.gsub('\t','    ', text)
+	return re.sub('\t','    ', text)
 
 def AddCR(text):
-	import regsub
-	return regsub.gsub('\n','\r\n',text)
+	return re.sub('\n','\r\n',text)
 #	return string.join(string.split(text,'\n'),'\r\n')
 
 class IActiveScriptError:

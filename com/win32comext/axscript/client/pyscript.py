@@ -18,7 +18,7 @@ import sys
 import string
 import traceback
 import scriptdispatch
-import regsub
+import re
 import win32com.client.dynamic
 
 from framework import RaiseAssert, trace, Exception, SCRIPTTEXT_FORCEEXECUTION, SCRIPTTEXT_ISEXPRESSION
@@ -32,17 +32,17 @@ def debug_attr_print(*args):
 		apply(trace, args)
 
 def ExpandTabs(text):
-	return regsub.gsub('\t','    ', text)
+	return re.sub('\t','    ', text)
 
 def AddCR(text):
-	return regsub.gsub('\n','\r\n',text)
+	return re.sub('\n','\r\n',text)
 #	return string.join(string.split(text,'\n'),'\r\n')
 
 def RemoveCR(text):
 # No longer just "RemoveCR" - should be renamed to
 # FixNewlines, or something.  Idea is to fix arbitary newlines into
 # something Python can compile...
-	return regsub.gsub('\(\r\n\)\|\r\|\(\n\r\)','\n',text)
+	return re.sub('(\r\n)|\r|(\n\r)','\n',text)
 	
 class AXScriptCodeBlock(framework.AXScriptCodeBlock):
 	def GetDisplayName(self):
