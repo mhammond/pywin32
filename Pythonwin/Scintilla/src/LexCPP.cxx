@@ -46,6 +46,7 @@ static void ColouriseCppDoc(unsigned int startPos, int length, int initStyle, Wo
 	styler.StartAt(startPos);
 	
 	bool fold = styler.GetPropertyInt("fold");
+	bool stylingWithinPreprocessor = styler.GetPropertyInt("styling.within.preprocessor");
 	int lineCurrent = styler.GetLine(startPos);
 	int levelPrev = styler.LevelAt(lineCurrent) & SC_FOLDLEVELNUMBERMASK;
 	int levelCurrent = levelPrev;
@@ -118,6 +119,12 @@ static void ColouriseCppDoc(unsigned int startPos, int length, int initStyle, Wo
 			} else if (ch == '#') {
 				styler.ColourTo(i-1, state);
 				state = SCE_C_PREPROCESSOR;
+				// Skip whitespace between # and preprocessor word
+				do {
+					i++;
+					ch = chNext;
+					chNext = styler.SafeGetCharAt(i + 1);
+				} while (isspace(ch) && (i < lengthDoc));
 			} else if (isoperator(ch)) {
 				styler.ColourTo(i-1, state);
 				styler.ColourTo(i, SCE_C_OPERATOR);
@@ -140,8 +147,6 @@ static void ColouriseCppDoc(unsigned int startPos, int length, int initStyle, Wo
 					state = SCE_C_STRING;
 				} else if (ch == '\'') {
 					state = SCE_C_CHARACTER;
-				} else if (ch == '#') {
-					state = SCE_C_PREPROCESSOR;
 				} else if (isoperator(ch)) {
 					styler.ColourTo(i, SCE_C_OPERATOR);
 					if ((ch == '{') || (ch == '}')) {
@@ -151,9 +156,16 @@ static void ColouriseCppDoc(unsigned int startPos, int length, int initStyle, Wo
 			}
 		} else {
 			if (state == SCE_C_PREPROCESSOR) {
-				if ((ch == '\r' || ch == '\n') && !(chPrev == '\\' || chPrev == '\r')) {
-					styler.ColourTo(i-1, state);
-					state = SCE_C_DEFAULT;
+				if (stylingWithinPreprocessor) {
+					if (isspace(ch)) {
+						styler.ColourTo(i-1, state);
+						state = SCE_C_DEFAULT;
+					}
+				} else {
+					if ((ch == '\r' || ch == '\n') && !(chPrev == '\\' || chPrev == '\r')) {
+						styler.ColourTo(i-1, state);
+						state = SCE_C_DEFAULT;
+					}
 				}
 			} else if (state == SCE_C_COMMENT) {
 				if (ch == '/' && chPrev == '*') {
@@ -188,13 +200,10 @@ static void ColouriseCppDoc(unsigned int startPos, int length, int initStyle, Wo
 				} else if (ch == '\"') {
 					styler.ColourTo(i, state);
 					state = SCE_C_DEFAULT;
-					i++;
-					ch = chNext;
-					chNext = styler.SafeGetCharAt(i + 1);
-                } else if (chNext == '\r' || chNext == '\n') {
+				} else if (chNext == '\r' || chNext == '\n') {
 					styler.ColourTo(i-1, SCE_C_STRINGEOL);
 					state = SCE_C_STRINGEOL;
-                }
+				}
 			} else if (state == SCE_C_CHARACTER) {
 				if ((ch == '\r' || ch == '\n') && (chPrev != '\\')) {
 					styler.ColourTo(i-1, SCE_C_STRINGEOL);
@@ -208,37 +217,13 @@ static void ColouriseCppDoc(unsigned int startPos, int length, int initStyle, Wo
 				} else if (ch == '\'') {
 					styler.ColourTo(i, state);
 					state = SCE_C_DEFAULT;
-					i++;
-					ch = chNext;
-					chNext = styler.SafeGetCharAt(i + 1);
 				}
 			} else if (state == SCE_C_UUID) {
 				if (ch == '\r' || ch == '\n' || ch == ')') {
 					styler.ColourTo(i-1, state);
+					if (ch == ')')
+						styler.ColourTo(i, SCE_C_OPERATOR);
 					state = SCE_C_DEFAULT;
-				}
-			}
-			if (state == SCE_C_DEFAULT) {    // One of the above succeeded
-				if (ch == '/' && chNext == '*') {
-					if (styler.SafeGetCharAt(i + 2) == '*')
-						state = SCE_C_COMMENTDOC;
-					else
-						state = SCE_C_COMMENT;
-				} else if (ch == '/' && chNext == '/') {
-					state = SCE_C_COMMENTLINE;
-				} else if (ch == '\"') {
-					state = SCE_C_STRING;
-				} else if (ch == '\'') {
-					state = SCE_C_CHARACTER;
-				} else if (ch == '#') {
-					state = SCE_C_PREPROCESSOR;
-				} else if (iswordstart(ch)) {
-					state = SCE_C_WORD;
-				} else if (isoperator(ch)) {
-					styler.ColourTo(i, SCE_C_OPERATOR);
-					if ((ch == '{') || (ch == '}')) {
-						levelCurrent += (ch == '{') ? 1 : -1;
-					}
 				}
 			}
 		}

@@ -20,20 +20,21 @@
 static int classifyWordVB(unsigned int start, unsigned int end, WordList &keywords, Accessor &styler) {
 
 	char s[100];
-	bool wordIsNumber = isdigit(styler[start]) || (styler[start] == '.');
-	for (unsigned int i = 0; i < end - start + 1 && i < 30; i++) {
+	bool wordIsNumber = isdigit(styler[start]) || (styler[start] == '.') ||
+		(styler[start] == '&' && tolower(styler[start+1]) == 'h');
+	unsigned int i;
+	for (i = 0; i < end - start + 1 && i < 30; i++) {
 		s[i] = static_cast<char>(tolower(styler[start + i]));
-		s[i + 1] = '\0';
 	}
+	s[i] = '\0';
 	char chAttr = SCE_C_DEFAULT;
 	if (wordIsNumber)
 		chAttr = SCE_C_NUMBER;
 	else {
-		if (keywords.InList(s)) {
+		if (strcmp(s, "rem") == 0)
+			chAttr = SCE_C_COMMENTLINE;
+		else if (keywords.InList(s))
 			chAttr = SCE_C_WORD;
-			if (strcmp(s, "rem") == 0)
-				chAttr = SCE_C_COMMENTLINE;
-		}
 	}
 	styler.ColourTo(end, chAttr);
 	if (chAttr == SCE_C_COMMENTLINE)
@@ -73,6 +74,15 @@ static void ColouriseVBDoc(unsigned int startPos, int length, int initStyle,
 			} else if (ch == '\"') {
 				styler.ColourTo(i - 1, state);
 				state = SCE_C_STRING;
+			} else if (ch == '#') {
+				styler.ColourTo(i - 1, state);
+				state = SCE_C_PREPROCESSOR;
+			} else if (ch == '&' && tolower(chNext) == 'h') {
+				styler.ColourTo(i - 1, state);
+				state = SCE_C_WORD;
+			} else if (isoperator(ch)) {
+				styler.ColourTo(i - 1, state);
+				styler.ColourTo(i, SCE_C_OPERATOR);
 			}
 		} else if (state == SCE_C_WORD) {
 			if (!iswordchar(ch)) {
@@ -82,6 +92,9 @@ static void ColouriseVBDoc(unsigned int startPos, int length, int initStyle,
 						state = SCE_C_COMMENTLINE;
 					} else if (ch == '\"') {
 						state = SCE_C_STRING;
+					} else if (isoperator(ch)) {
+						styler.ColourTo(i - 1, state);
+						styler.ColourTo(i, SCE_C_OPERATOR);
 					}
 				}
 			}
@@ -99,6 +112,11 @@ static void ColouriseVBDoc(unsigned int startPos, int length, int initStyle,
 					i++;
 					ch = chNext;
 					chNext = styler.SafeGetCharAt(i + 1);
+				}
+			} else if (state == SCE_C_PREPROCESSOR) {
+				if (ch == '\r' || ch == '\n') {
+					styler.ColourTo(i - 1, state);
+					state = SCE_C_DEFAULT;
 				}
 			}
 			if (state == SCE_C_DEFAULT) {    // One of the above succeeded

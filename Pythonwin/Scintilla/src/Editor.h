@@ -31,6 +31,8 @@ public:
 	// Drawing is only performed for maxLineLength characters on each line.
 	enum {maxLineLength = 4000};
 	int numCharsInLine;
+	int xHighlightGuide;
+	bool highlightColumn;
 	char chars[maxLineLength];
 	char styles[maxLineLength];
 	char indicators[maxLineLength];
@@ -69,6 +71,8 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	Surface pixmapLine;
 	Surface pixmapSelMargin;
 	Surface pixmapSelPattern;
+	Surface pixmapIndentGuide;
+	Surface pixmapIndentGuideHighlight;
 	// Intellimouse support - currently only implemented for Windows
 	unsigned int ucWheelScrollLines;
 	int cWheelDelta; //wheel delta from roll
@@ -98,6 +102,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	bool needUpdateUI;
 	Position braces[2];
 	int bracesMatchStyle;
+	int highlightGuideColumn;
 	
 	int edgeState;
 	int theEdge;
@@ -183,7 +188,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 
 	void PaintSelMargin(Surface *surface, PRectangle &rc);
         void LayoutLine(int line, Surface *surface, ViewStyle &vstyle, LineLayout &ll);
-	void DrawLine(Surface *surface, ViewStyle &vsDraw, int line, int xStart, 
+	void DrawLine(Surface *surface, ViewStyle &vsDraw, int line, int lineVisible, int xStart, 
 		PRectangle rcLine, LineLayout &ll);
 	void Paint(Surface *surfaceWindow, PRectangle rcArea);
 	long FormatRange(bool draw, FORMATRANGE *pfr);
@@ -241,8 +246,8 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	virtual int KeyDefault(int /* key */, int /*modifiers*/);
 	int KeyDown(int key, bool shift, bool ctrl, bool alt);
 
-	bool GetWhitespaceVisible();
-	void SetWhitespaceVisible(bool view);
+	int GetWhitespaceVisible();
+	void SetWhitespaceVisible(int view);
 
 	void Indent(bool forwards);
 

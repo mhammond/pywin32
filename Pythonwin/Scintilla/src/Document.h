@@ -113,9 +113,10 @@ public:
 	bool CanUndo() { return cb.CanUndo(); }
 	bool CanRedo() { return cb.CanRedo(); }
 	void DeleteUndoHistory() { cb.DeleteUndoHistory(); }
-	undoCollectionType SetUndoCollection(undoCollectionType collectUndo) {
+	bool SetUndoCollection(bool collectUndo) {
 		return cb.SetUndoCollection(collectUndo);
 	}
+	bool IsCollectingUndo() { return cb.IsCollectingUndo(); }
 	void BeginUndoAction() { cb.BeginUndoAction(); }
 	void EndUndoAction() { cb.EndUndoAction(); }
 	void SetSavePoint();
@@ -124,9 +125,11 @@ public:
 	int GetLineIndentation(int line);
 	void SetLineIndentation(int line, int indent);
 	int GetLineIndentPosition(int line);
+	int GetColumn(int position);
 	void Indent(bool forwards, int lineBottom, int lineTop);
 	void ConvertLineEnds(int eolModeSet);
 	void SetReadOnly(bool set) { cb.SetReadOnly(set); }
+	bool IsReadOnly() { return cb.IsReadOnly(); }
 
 	void InsertChar(int pos, char ch);
 	void InsertString(int position, const char *s);

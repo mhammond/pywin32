@@ -84,7 +84,7 @@ void PropSet::EnsureCanAddEntry() {
 void PropSet::Set(const char *key, const char *val) {
 	EnsureCanAddEntry();
 	for (int i = 0; i < used; i += 2) {
-		if (EqualCaseInsensitive(vals[i], key)) {
+		if (0 == strcmp(vals[i], key)) {
 			// Replace current value
 			delete [](vals[i + 1]);
 			vals[i + 1] = StringDup(val);
@@ -107,7 +107,7 @@ void PropSet::Set(char *keyval) {
 
 SString PropSet::Get(const char *key) {
 	for (int i = 0; i < used; i += 2) {
-		if (EqualCaseInsensitive(vals[i], key)) {
+		if (0 == strcmp(vals[i], key)) {
 			return vals[i + 1];
 		}
 	}
@@ -129,7 +129,7 @@ int PropSet::GetInt(const char *key, int defaultValue) {
 
 bool isprefix(const char *target, const char *prefix) {
 	while (*target && *prefix) {
-		if (toupper(*target) != toupper(*prefix))
+		if (*target != *prefix)
 			return false;
 		target++;
 		prefix++;
@@ -146,7 +146,7 @@ bool issuffix(const char *target, const char *suffix) {
 	if (lensuffix > lentarget)
 		return false;
 	for (int i = lensuffix - 1; i >= 0; i--) {
-		if (toupper(target[i + lentarget - lensuffix]) != toupper(suffix[i]))
+		if (target[i + lentarget - lensuffix] != suffix[i])
 			return false;
 	}
 	return true;
@@ -161,12 +161,9 @@ SString PropSet::GetWild(const char *keybase, const char *filename) {
 			if (strstr(orgkeyfile, "$(") == orgkeyfile) {
 				char *cpendvar = strchr(orgkeyfile, ')');
 				if (cpendvar) {
-					int lenvar = cpendvar - orgkeyfile - 2; 	// Subtract the $()
-					char *var = static_cast<char *>(malloc(lenvar + 1));
-					strncpy(var, orgkeyfile + 2, lenvar);
-					var[lenvar] = '\0';
-					SString s = Get(var);
-					free(var);
+					*cpendvar = '\0';
+					SString s = Get(orgkeyfile + 2);
+					*cpendvar= ')';
 					keyfile = strdup(s.c_str());
 				}
 			}
@@ -187,7 +184,7 @@ SString PropSet::GetWild(const char *keybase, const char *filename) {
 						free(keyptr);
 						return vals[i + 1];
 					}
-				} else if (EqualCaseInsensitive(keyfile, filename)) {
+				} else if (0 == strcmp(keyfile, filename)) {
 					*del = delchr;
 					free(keyptr);
 					return vals[i + 1];
@@ -199,7 +196,7 @@ SString PropSet::GetWild(const char *keybase, const char *filename) {
 			}
 			free(keyptr);
 
-			if (EqualCaseInsensitive(vals[i], keybase)) {
+			if (0 == strcmp(vals[i], keybase)) {
 				return vals[i + 1];
 			}
 		}

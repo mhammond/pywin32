@@ -325,7 +325,7 @@ LRESULT ScintillaBase::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 		break;
 
 	case SCI_AUTOCSETSEPARATOR:
-		ac.SetSeparator(wParam);
+		ac.SetSeparator(static_cast<char>(wParam));
 		break;
 
 	case SCI_AUTOCGETSEPARATOR:
@@ -390,6 +390,7 @@ LRESULT ScintillaBase::WndProc(UINT iMessage, WPARAM wParam, LPARAM lParam) {
 		
 	case SCI_COLOURISE:
 		Colourise(wParam, lParam);
+		Redraw();
 		break;
 		
 	case SCI_SETPROPERTY:

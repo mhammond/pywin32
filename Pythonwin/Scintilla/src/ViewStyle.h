@@ -26,6 +26,7 @@ public:
 	const char *Save(const char *name);
 };
 
+enum WhiteSpaceVisibility {wsInvisible=0, wsVisibleAlways=1, wsVisibleAfterIndent=2};
 class ViewStyle {
 public:
 	FontNames fontNames;
@@ -52,7 +53,8 @@ public:
 	MarginStyle ms[margins];
 	int fixedColumnWidth;
 	int zoomLevel;
-	bool viewWhitespace;
+	WhiteSpaceVisibility viewWhitespace;
+	bool viewIndentationGuides;
 	bool viewEOL;
 	bool showMarkedLines;
 	ColourPair caretcolour;

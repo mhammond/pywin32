@@ -54,7 +54,7 @@ int Document::AddRef() {
 	return refCount++;
 }
 
-// Decrease reference count and return its provius value.
+// Decrease reference count and return its previous value.
 // Delete the document if reference count reaches zero.
 int Document::Release() {
 	int curRefCount = --refCount;
@@ -334,6 +334,8 @@ void Document::ModifiedAt(int pos) {
 
 // Unlike Undo, Redo, and InsertStyledString, the pos argument is a cell number not a char number
 void Document::DeleteChars(int pos, int len) {
+    if ((pos + len) > Length())
+        return;
 	if (cb.IsReadOnly() && enteredReadOnlyCount==0) {
 		enteredReadOnlyCount++;
 		NotifyModifyAttempt();
@@ -590,12 +592,33 @@ void Document::SetLineIndentation(int line, int indent) {
 }
 
 int Document::GetLineIndentPosition(int line) {
+    if (line < 0)
+        return 0;
 	int pos = LineStart(line);
 	int length = Length();
 	while ((pos < length) && isindentchar(cb.CharAt(pos))) {
 		pos++;
 	}
 	return pos;
+}
+
+int Document::GetColumn(int pos) {
+	int column = 0;
+	int line = LineFromPosition(pos);
+	if ((line >= 0) && (line < LinesTotal())) {
+		for (int i=LineStart(line);i<pos;i++) {
+			char ch = cb.CharAt(i);
+			if (ch == '\t')
+				column = NextTab(column, tabInChars);
+			else if (ch == '\r')
+				return column;
+			else if (ch == '\n')
+				return column;
+			else
+				column++;
+		}
+	}
+	return column;
 }
 
 void Document::Indent(bool forwards, int lineBottom, int lineTop) {

@@ -567,7 +567,7 @@ CellBuffer::CellBuffer(int initialLength) {
 	gaplen = initialLength;
 	part2body = body + gaplen;
 	readOnly = false;
-	collectingUndo = undoCollectAutoStart;
+	collectingUndo = true;
 }
 
 CellBuffer::~CellBuffer() {
@@ -952,7 +952,7 @@ void CellBuffer::BasicDeleteChars(int position, int deleteLength) {
 	part2body = body + gaplen;
 }
 
-undoCollectionType CellBuffer::SetUndoCollection(undoCollectionType collectUndo) {
+bool CellBuffer::SetUndoCollection(bool collectUndo) {
 	collectingUndo = collectUndo;
 	uh.DropUndoSequence();
 	return collectingUndo;

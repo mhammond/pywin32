@@ -15,18 +15,29 @@ To build Scintilla, use the makefile located in the scintilla/gtk directory
 	make
 	cd ../..
 	
-To build SciTE, use the makefile located in the scite/gtk directory
+To build and install SciTE, use the makefile located in the scite/gtk directory
 	cd scite/gtk
 	make
-
-Install to /usr/local/bin
 	make install
 
-The current make file only supports static linking between SciTE and Scintilla.
+This installs SciTE into $prefix/bin. The value of $prefix is determined from
+the location of Gnome if it is installed. This is usually /usr if installed 
+with Linux or /usr/local if built from source. If Gnome is not installed 
+/usr/bin is used as the prefix. The prefix can be overridden on the command 
+line like "make prefix=/opt" but the same value should be used for both make 
+and make install as this location is compiled into the executable. The global 
+properties file is installed at $prefix/share/scite/SciTEGlobal.properties.
 
-The SciTEGTK.properties file is better than the SciTEGlobal.properties for use 
-on Linux/GTK+ as it specifies fonts that are likely to be installed. 
-SciTE reads its SciTEGlobal.properties file from the user's home directory.
+If Gnome is installed then a .desktop file and icon are installed into the 
+correct Gnome places so that SciTE will be in the Gnome Applications menu.
+
+To remove SciTE
+	make uninstall
+	
+To clean the object files which may be needed to change $prefix
+	make clean
+	
+The current make file only supports static linking between SciTE and Scintilla.
 
 
 *** Windows version ***
@@ -40,12 +51,12 @@ For VC++, nmake /f makefile_vc
 For Borland C++ 5.02 (MAKE Version 5.0), make -l -fmakefile_bor
 For Borland C++ Builder, make -fmakefile_bor
 
-To build Scintilla, make in the scintilla/gtk directory
+To build Scintilla, make in the scintilla/win32 directory
 	cd scintilla\win32
 	[make command as described above for your compiler]
 	cd ..\..
 	
-To build SciTE, use the makefile located in the scite/gtk directory
+To build SciTE, use the makefile located in the scite/win32 directory
 	cd scite\win32
 	[make command as described above for your compiler]
 

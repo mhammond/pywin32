@@ -9,53 +9,17 @@
 // Compile-time configuration options
 #define MACRO_SUPPORT 1  // Comment out to remove macro hooks
 
-#if PLAT_GTK
-#include <gdk/gdk.h>
-#include <gtk/gtkvbox.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#define SCINTILLA(obj)          GTK_CHECK_CAST (obj, scintilla_get_type (), ScintillaObject)
-#define SCINTILLA_CLASS(klass)  GTK_CHECK_CLASS_CAS	T (klass, scintilla_get_type (), ScintillaClass)
-#define IS_SCINTILLA(obj)       GTK_CHECK_TYPE (obj, scintilla_get_type ())
-
-	typedef struct _ScintillaObject ScintillaObject;
-	typedef struct _ScintillaClass  ScintillaClass;
-
-	struct _ScintillaObject
-	{
-		GtkFixed vbox;
-		void *pscin;
-	};
-
-	struct _ScintillaClass
-	{
-		GtkFixedClass parent_class;
-
-		void (* command) (ScintillaObject *ttt);
-		void (* notify) (ScintillaObject *ttt);
-	};
-
-	guint		scintilla_get_type	(void);
-	GtkWidget*	scintilla_new		(void);
-	void		scintilla_set_id	(ScintillaObject *sci,int id);
-	long 		scintilla_send_message	(ScintillaObject *sci,int iMessage,int wParam,int lParam);
-
-#include "WinDefs.h"
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
-
-#if PLAT_WX
+#if PLAT_WX || PLAT_GTK
 #include "WinDefs.h"
 #endif
 
-// Both GTK and Windows
+#if PLAT_WIN
+#ifdef STATIC_BUILD
+void Scintilla_RegisterClasses(HINSTANCE hInstance);
+#endif
+#endif
+
+// Start of section which could be automatically generated from Scintilla.iface
 
 #define INVALID_POSITION -1 
 
@@ -83,10 +47,12 @@ extern "C" {
 #define SCI_CANREDO SCI_START + 16
 #define SCI_MARKERLINEFROMHANDLE SCI_START + 17
 #define SCI_MARKERDELETEHANDLE SCI_START + 18
+#define SCI_GETUNDOCOLLECTION SCI_START + 19
 
-#define SC_UNDOCOLLECT_NONE 0
-#define SC_UNDOCOLLECT_AUTOSTART 1
-
+#define SCWS_INVISIBLE 0
+#define SCWS_VISIBLEALWAYS 1
+#define SCWS_VISIBLEAFTERINDENT 2
+	
 #define SCI_GETVIEWWS SCI_START + 20
 #define SCI_SETVIEWWS SCI_START + 21
 #define SCI_GOTOLINE SCI_START + 24
@@ -109,6 +75,7 @@ extern "C" {
 // This is the same value as CP_UTF8 in Windows
 #define SC_CP_UTF8 65001
 
+#define SCI_GETBUFFEREDDRAW SCI_START + 34
 #define SCI_SETBUFFEREDDRAW SCI_START + 35
 #define SCI_SETTABWIDTH SCI_START + 36
 #define SCI_SETCODEPAGE SCI_START + 37
@@ -139,8 +106,6 @@ extern "C" {
 #define SC_MARKNUM_FOLDER 30
 #define SC_MARKNUM_FOLDEROPEN 31
 
-#define SC_MASK_FOLDERS ((1<<SC_MARKNUM_FOLDER) | (1<<SC_MARKNUM_FOLDEROPEN))
-
 #define SC_MARGIN_SYMBOL 0
 #define SC_MARGIN_NUMBER 1
 
@@ -158,7 +123,28 @@ extern "C" {
 #define STYLE_BRACELIGHT 34
 #define STYLE_BRACEBAD 35
 #define STYLE_CONTROLCHAR 36
+#define STYLE_INDENTGUIDE 37
 #define STYLE_MAX 127
+
+#define SC_CHARSET_ANSI 0
+#define SC_CHARSET_DEFAULT 1
+#define SC_CHARSET_BALTIC 186
+#define SC_CHARSET_CHINESEBIG5 136
+#define SC_CHARSET_EASTEUROPE 238
+#define SC_CHARSET_GB2312 134
+#define SC_CHARSET_GREEK 161
+#define SC_CHARSET_HANGUL 129
+#define SC_CHARSET_MAC 77
+#define SC_CHARSET_OEM 255
+#define SC_CHARSET_RUSSIAN 204
+#define SC_CHARSET_SHIFTJIS 128
+#define SC_CHARSET_SYMBOL 2
+#define SC_CHARSET_TURKISH 162
+#define SC_CHARSET_JOHAB 130
+#define SC_CHARSET_HEBREW 177
+#define SC_CHARSET_ARABIC 178
+#define SC_CHARSET_VIETNAMESE 163
+#define SC_CHARSET_THAI 222
 
 #define SCI_STYLECLEARALL SCI_START + 50
 #define SCI_STYLESETFORE SCI_START + 51
@@ -169,6 +155,8 @@ extern "C" {
 #define SCI_STYLESETFONT SCI_START + 56
 #define SCI_STYLESETEOLFILLED SCI_START + 57
 #define SCI_STYLERESETDEFAULT SCI_START + 58
+#define SCI_STYLESETUNDERLINE SCI_START + 59
+#define SCI_STYLESETCHARACTERSET SCI_START + 66
 
 #define SCI_SETSELFORE SCI_START + 67
 #define SCI_SETSELBACK SCI_START + 68
@@ -192,6 +180,8 @@ extern "C" {
 #define INDIC_PLAIN 0
 #define INDIC_SQUIGGLE 1
 #define INDIC_TT 2
+#define INDIC_DIAGONAL 3
+#define INDIC_STRIKE 4
 
 #define INDIC0_MASK 32
 #define INDIC1_MASK 64
@@ -227,9 +217,25 @@ extern "C" {
 #define SCI_SETLINEINDENTATION SCI_START + 126
 #define SCI_GETLINEINDENTATION SCI_START + 127
 #define SCI_GETLINEINDENTPOSITION SCI_START + 128
+#define SCI_GETCOLUMN SCI_START + 129
 
 #define SCI_SETHSCROLLBAR SCI_START + 130
 #define SCI_GETHSCROLLBAR SCI_START + 131
+#define SCI_SETINDENTATIONGUIDES SCI_START + 132
+#define SCI_GETINDENTATIONGUIDES SCI_START + 133
+#define SCI_SETHIGHLIGHTGUIDE SCI_START + 134
+#define SCI_GETHIGHLIGHTGUIDE SCI_START + 135
+#define SCI_GETLINEENDPOSITION SCI_START + 136
+#define SCI_GETCODEPAGE SCI_START + 137
+#define SCI_GETCARETFORE SCI_START + 138
+#define SCI_GETUSEPALETTE SCI_START + 139
+
+#define SCI_GETREADONLY SCI_START + 140
+#define SCI_SETCURRENTPOS SCI_START + 141
+#define SCI_SETSELECTIONSTART SCI_START + 142
+#define SCI_GETSELECTIONSTART SCI_START + 143
+#define SCI_SETSELECTIONEND SCI_START + 144
+#define SCI_GETSELECTIONEND SCI_START + 145
 
 #define SCI_CALLTIPSHOW SCI_START + 200
 #define SCI_CALLTIPCANCEL SCI_START + 201
@@ -341,6 +347,12 @@ extern "C" {
 #define SCI_SETZOOM SCI_START + 373
 #define SCI_GETZOOM SCI_START + 374
 
+#define SCI_CREATEDOCUMENT SCI_START + 375
+#define SCI_ADDREFDOCUMENT SCI_START + 376
+#define SCI_RELEASEDOCUMENT SCI_START + 377
+
+#define SCI_GETMODEVENTMASK SCI_START + 378
+
 // GTK+ Specific
 #define SCI_GRABFOCUS SCI_START + 400
 
@@ -377,6 +389,27 @@ typedef void (tMacroRecorder)(UINT iMessage, WPARAM wParam, LPARAM lParam,
 
 #define SC_MODEVENTMASKALL 0xF77
 
+#define SCN_STYLENEEDED 2000
+#define SCN_CHARADDED 2001
+#define SCN_SAVEPOINTREACHED 2002
+#define SCN_SAVEPOINTLEFT 2003
+#define SCN_MODIFYATTEMPTRO 2004
+// GTK+ Specific to work around focus and accelerator problems:
+#define SCN_KEY 2005
+#define SCN_DOUBLECLICK 2006
+#define SCN_UPDATEUI 2007
+// The old name for SCN_UPDATEUI:
+#define SCN_CHECKBRACE 2007
+#define SCN_MODIFIED 2008
+// Optional module for macro recording
+#ifdef MACRO_SUPPORT
+#define SCN_MACRORECORD 2009
+#endif
+#define SCN_MARGINCLICK 2010
+#define SCN_NEEDSHOWN 2011
+
+// End of definitions that could be generated from Scintilla.iface
+
 struct SCNotification {
 	NMHDR nmhdr;
 	int position;			// SCN_STYLENEEDED, SCN_MODIFIED
@@ -397,28 +430,7 @@ struct SCNotification {
 	int margin;	// SCN_MARGINCLICK
 };
 
-#define SCN_STYLENEEDED 2000
-#define SCN_CHARADDED 2001
-#define SCN_SAVEPOINTREACHED 2002
-#define SCN_SAVEPOINTLEFT 2003
-#define SCN_MODIFYATTEMPTRO 2004
-// GTK+ Specific to work around focus and accelerator problems:
-#define SCN_KEY 2005
-#define SCN_DOUBLECLICK 2006
-#define SCN_UPDATEUI 2007
-// The old name for SCN_UPDATEUI:
-#define SCN_CHECKBRACE 2007
-#define SCN_MODIFIED 2008
-// Optional module for macro recording
-#ifdef MACRO_SUPPORT
-#define SCN_MACRORECORD 2009
-#endif
-#define SCN_MARGINCLICK 2010
-#define SCN_NEEDSHOWN 2011
-
-#ifdef STATIC_BUILD
-void Scintilla_RegisterClasses(HINSTANCE hInstance);
-#endif
+#define SC_MASK_FOLDERS ((1<<SC_MARKNUM_FOLDER) | (1<<SC_MARKNUM_FOLDEROPEN))
 
 // Deprecation section listing all API features that are deprecated and will
 // will be removed completely in a future version.
@@ -426,23 +438,9 @@ void Scintilla_RegisterClasses(HINSTANCE hInstance);
 
 #ifdef INCLUDE_DEPRECATED_FEATURES
 
-#define SCI_CHANGEPOSITION SCI_START + 22
-
-// Default style settings. These are deprecated and will be removed in a future version.
-#define SCI_SETFORE SCI_START + 60
-#define SCI_SETBACK SCI_START + 61
-#define SCI_SETBOLD SCI_START + 62
-#define SCI_SETITALIC SCI_START + 63
-#define SCI_SETSIZE SCI_START + 64
-#define SCI_SETFONT SCI_START + 65
-
-#define SCI_APPENDUNDOSTARTACTION SCI_START + 74
-
-#define SC_UNDOCOLLECT_MANUALSTART 2
-
-// Deprecated in release 1.22
-#define SCI_SETMARGINWIDTH SCI_START + 34
-#define SCI_SETLINENUMBERWIDTH SCI_START + 38
+// Deprecated in 1.27
+#define SC_UNDOCOLLECT_NONE 0
+#define SC_UNDOCOLLECT_AUTOSTART 1
 
 #endif
 

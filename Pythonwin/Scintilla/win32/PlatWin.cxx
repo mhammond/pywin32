@@ -128,7 +128,7 @@ Font::Font() {
 Font::~Font() {
 }
 
-void Font::Create(const char *faceName, int size, bool bold, bool italic) {
+void Font::Create(const char *faceName, int characterSet, int size, bool bold, bool italic) {
 	Release();
 	
 	LOGFONT lf;
@@ -137,7 +137,7 @@ void Font::Create(const char *faceName, int size, bool bold, bool italic) {
 	lf.lfHeight = -(abs(size));
 	lf.lfWeight = bold ? FW_BOLD : FW_NORMAL;
 	lf.lfItalic = static_cast<BYTE>(italic ? 1 : 0);
-	lf.lfCharSet = DEFAULT_CHARSET;
+	lf.lfCharSet = characterSet;
 	strcpy(lf.lfFaceName, faceName);
 
 	id = ::CreateFontIndirect(&lf);
@@ -150,6 +150,7 @@ void Font::Release() {
 }
 
 Surface::Surface() :
+	unicodeMode(false),
 	hdc(0), 	hdcOwned(false),
 	pen(0), 	penOld(0), 
 	brush(0), brushOld(0), 
@@ -720,18 +721,21 @@ int Platform::Maximum(int a, int b) {
 		return b;
 }
 
-#define TRACE
+//#define TRACE
 
-void Platform::DebugPrintf(const char *format, ...) {
 #ifdef TRACE
+void Platform::DebugPrintf(const char *format, ...) {
 	char buffer[2000];
 	va_list pArguments;
 	va_start(pArguments, format);
 	vsprintf(buffer,format,pArguments);
 	va_end(pArguments);
 	Platform::DebugDisplay(buffer);
-#endif
 }
+#else
+void Platform::DebugPrintf(const char *, ...) {
+}
+#endif
 
 int Platform::Clamp(int val, int minVal, int maxVal) {
 	if (val > maxVal)

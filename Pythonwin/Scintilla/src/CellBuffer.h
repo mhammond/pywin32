@@ -88,8 +88,6 @@ public:
 	void Grab(Action *source);
 };
 
-enum undoCollectionType { undoCollectNone, undoCollectAutoStart, undoCollectManualStart };
-
 class UndoHistory {
 	Action *actions;
 	int lenActions;
@@ -141,7 +139,7 @@ private:
 	char *part2body;
 	bool readOnly;
 
-	undoCollectionType collectingUndo;
+	bool collectingUndo;
 	UndoHistory uh;
 
 	LineVector lv;
@@ -199,7 +197,7 @@ public:
 	void BasicInsertString(int position, char *s, int insertLength);
 	void BasicDeleteChars(int position, int deleteLength);
 
-	undoCollectionType SetUndoCollection(undoCollectionType collectUndo);
+	bool SetUndoCollection(bool collectUndo);
 	bool IsCollectingUndo();
 	void BeginUndoAction();
 	void EndUndoAction();
