@@ -270,8 +270,7 @@ def TkIndexToOffset(bm, edit, marks):
 				pos = pos + 1
 		else:
 			raise ValueError, "Unsupported relative offset '%s'" % word
-	return pos
-#	return max(pos, 0) # Tkinter is tollerant of -ve indexes.
+	return max(pos, 0) # Tkinter is tollerant of -ve indexes - we aren't
 
 # A class that resembles an IDLE (ie, a Tk) text widget.
 # Construct with an edit object (eg, an editor view)
