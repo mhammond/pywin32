@@ -16,6 +16,7 @@ lastLocateFileName = ".py" # used in the "File/Locate" dialog...
 
 class MainFrame(app.MainFrame):
 	def OnCreate(self, createStruct):
+		self.closing = 0
 		if app.MainFrame.OnCreate(self, createStruct)==-1:
 			return -1
 		style = win32con.WS_CHILD | afxres.CBRS_SIZE_DYNAMIC | afxres.CBRS_TOP | afxres.CBRS_TOOLTIPS | afxres.CBRS_FLYBY
@@ -56,6 +57,7 @@ class MainFrame(app.MainFrame):
 				return
 		except win32ui.error:
 			pass
+		self.closing = 1
 		self.SaveBarState("ToolbarDefault")
 		self.SetActiveView(None) # Otherwise MFC's OnClose may _not_ prompt for save.
 
