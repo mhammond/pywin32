@@ -167,6 +167,7 @@ PyObject *PyICreateTypeInfo::AddRefTypeInfo(PyObject *self, PyObject *args)
 	HREFTYPE hRefType;
 	PY_INTERFACE_PRECALL;
 	hr = pICTI->AddRefTypeInfo( pTInfo, &hRefType );
+	if (pTInfo) pTInfo->Release();
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
@@ -628,6 +629,7 @@ PyObject *PyICreateTypeInfo::SetTypeIdldesc(PyObject *self, PyObject *args)
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pICTI->SetTypeIdldesc( pIdlDesc );
+	if (pIdlDesc) pIdlDesc->Release();
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )

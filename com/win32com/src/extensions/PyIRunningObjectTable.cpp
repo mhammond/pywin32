@@ -40,6 +40,7 @@ PyObject *PyIRunningObjectTable::IsRunning(PyObject *self, PyObject *args)
 		return NULL;
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = pMy->IsRunning(pMoniker);
+	pMoniker->Release();
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
 		return PyCom_BuildPyException(hr, pMy, IID_IRunningObjectTable);
@@ -65,6 +66,7 @@ PyObject *PyIRunningObjectTable::GetObject(PyObject *self, PyObject *args)
 	IUnknown *punk = NULL;
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = pMy->GetObject(pMoniker, &punk);
+	pMoniker->Release();
 	PY_INTERFACE_POSTCALL;
 	if (S_OK!=hr) // S_OK only acceptable
 		return PyCom_BuildPyException(hr, pMy, IID_IRunningObjectTable);
