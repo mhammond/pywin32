@@ -76,7 +76,7 @@ def BuildFileList(spec, local, recurse, filter, filter_args, recursed_path = "")
             rel_name = os.path.join(recursed_path, src_name)
             filter_data = filter( full_src_name, rel_name, info, local, filter_args )
             if filter_data is not None:
-                files.append( full_src_name, info, filter_data )
+                files.append( (full_src_name, info, filter_data) )
     return files
 
 def _copyfilter(full_name, rel_name, info, local, bMaintainDir):

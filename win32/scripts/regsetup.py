@@ -407,7 +407,7 @@ def RegisterPythonwin(searchPaths):
 	fnamePythonwin = regutil.GetRegisteredExe("Pythonwin%s.exe" % suffix)
 	fnamePython = regutil.GetRegisteredExe("Python%s.exe" % suffix)
 
-	regutil.RegisterShellCommand("Edit", QuotedFileName(fnamePythonwin)+" /edit %1")
+	regutil.RegisterShellCommand("Edit", QuotedFileName(fnamePythonwin)+" /edit \"%1\"")
 	regutil.RegisterDDECommand("Edit", "Pythonwin", "System", '[self.OpenDocumentFile(r"%1")]')
 
 	FindRegisterPackage("pywin", "__init__.py", searchPaths, "Pythonwin")
@@ -416,7 +416,7 @@ def RegisterPythonwin(searchPaths):
 	
 	regutil.RegisterFileExtensions(defPyIcon=fnamePythonwin+",0", 
 	                               defPycIcon = fnamePythonwin+",5",
-	                               runCommand = QuotedFileName(fnamePython)+" %1 %*")
+	                               runCommand = QuotedFileName(fnamePython)+" \"%1\" %*")
 
 def UnregisterPythonwin():
 	"""Knows how to unregister Pythonwin components

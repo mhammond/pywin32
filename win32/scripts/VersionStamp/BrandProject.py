@@ -60,7 +60,7 @@ if __name__=='__main__':
 			bAuto = 1
 		if opt == '-f':
 			infile, outfile = string.split(val, "=", 2)
-			stampFiles.append(infile, outfile)
+			stampFiles.append((infile, outfile))
 		if opt == '-d':
 			desc = val
 		if opt == '-r':
