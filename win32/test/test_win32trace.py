@@ -167,6 +167,22 @@ class TestMultipleThreadsWriting(unittest.TestCase):
             assert each.verifyWritten()
         assert self.areBucketsFull()
 
+class TestHugeChunks(unittest.TestCase):
+    # BiggestChunk is the size where we stop stressing the writer
+    BiggestChunk = 2**16 # 256k should do it.
+    def setUp(self):
+        win32trace.InitRead()
+        win32trace.InitWrite()
+    def testHugeChunks(self):
+        data = "*" * 1023 + "\n"
+        while len(data) <= self.BiggestChunk:
+            win32trace.write(data)
+            data = data + data
+        # If we made it here, we passed.
+
+    def tearDown(self):
+        win32trace.TermRead()
+        win32trace.TermWrite()
 
 import win32event
 import win32process

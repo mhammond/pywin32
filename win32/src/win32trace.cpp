@@ -23,6 +23,9 @@ Currently, the memmapped file is allocated in the system swap space, and only 64
 data is allocated.  If this buffer fills before a server gets to read it, the _entire_
 output is discarded, and the text written to the new, empty buffer.
 
+However, the most we will write at a time is "buffer_size/2" bytes, then we
+will have a short, optimized sleep between chunks.
+
 See - I told you the implementation was simple :-)
 
 */
@@ -40,6 +43,7 @@ const size_t BUFFER_SIZE = 0x10000; // Includes size integer.
 const char *MAP_OBJECT_NAME = "PythonTraceOutputMapping";
 const char *MUTEX_OBJECT_NAME = "PythonTraceOutputMutex";
 const char *EVENT_OBJECT_NAME = "PythonTraceOutputEvent";
+const char *EVENT_EMPTY_OBJECT_NAME = "PythonTraceOutputEmptyEvent";
 
 // no const because of python api, this is the name of the entry
 // in the sys module that we store our PyTraceObject pointer
@@ -48,6 +52,9 @@ char *TRACEOBJECT_NAME = "__win32traceObject__";
 HANDLE hMutex = NULL;
 // An auto-reset event so a reader knows when data is avail without polling.
 HANDLE hEvent = NULL;
+// An auto-reset event so writing large data can know when the buffer has
+// been read.
+HANDLE hEventEmpty = NULL;
 
 SECURITY_ATTRIBUTES  sa;       // Security attributes.
 PSECURITY_DESCRIPTOR pSD = NULL;      // Pointer to SD.
@@ -288,25 +295,31 @@ BOOL PyTraceObject::WriteData(const char *data, unsigned len)
         ReturnError("The module has not been setup for writing");
         return FALSE;
     }
-    if (len>BUFFER_SIZE-sizeof(size_t)-1) {
-        ReturnError("The data is too large.");
-        return FALSE;
-    }
     BOOL rc = FALSE;
     Py_BEGIN_ALLOW_THREADS
-    if (GetMyMutex()) {
+    const char *data_this = data;
+    while (len) {
+        unsigned len_this = min(len, BUFFER_SIZE/2);
+        if (GetMyMutex()) {
+            size_t *pLen = (size_t *)pMapBaseWrite;
+            char *buffer = (char *)(((size_t *)pMapBaseWrite)+1);
 
-	size_t *pLen = (size_t *)pMapBaseWrite;
-	char *buffer = (char *)(((size_t *)pMapBaseWrite)+1);
-
-	size_t sizeLeft = (BUFFER_SIZE-sizeof(size_t)) - *pLen;
-	if (sizeLeft<len)
-	    *pLen = 0;
-		
-	memcpy(buffer+(*pLen), data, len);
-	*pLen += len;
-	rc = ReleaseMyMutex();
-	SetEvent(hEvent);
+            size_t sizeLeft = (BUFFER_SIZE-sizeof(size_t)) - *pLen;
+            if (sizeLeft<len_this)
+                *pLen = 0;
+            memcpy(buffer+(*pLen), data_this, len_this);
+            *pLen += len_this;
+            rc = ReleaseMyMutex();
+            SetEvent(hEvent);
+            data_this += len_this;
+            len -= len_this;
+            if (len) {
+                // If we had to split up the data, we can have little sleep
+                // to let a reader grab the data (but if a reader empties us
+                // before the timeout, then we wake up)
+                WaitForSingleObject(hEventEmpty, 10);
+            }
+        }
     }
     Py_END_ALLOW_THREADS
     return rc;
@@ -344,6 +357,7 @@ BOOL PyTraceObject::ReadData(char **ppResult, int *retSize, int waitMilliseconds
 	    *pLen = 0;
 	}
 	rc = ReleaseMyMutex();
+	SetEvent(hEventEmpty); // in case anyone wants to optimize waiting.
     }
     Py_END_ALLOW_THREADS
     if (!rc && result) {
@@ -581,8 +595,6 @@ initwin32trace(void)
     sa.lpSecurityDescriptor = pSD;
     sa.bInheritHandle = TRUE;
 
-
-
     assert(hMutex == NULL);
     hMutex = CreateMutex(&sa, FALSE, MUTEX_OBJECT_NAME);
     if (hMutex==NULL) {
@@ -594,5 +606,11 @@ initwin32trace(void)
     if (hEvent==NULL) {
         PyWin_SetAPIError("CreateEvent");
         return ;
-    }  
+    }
+    assert (hEventEmpty==NULL);
+    hEventEmpty = CreateEvent(&sa, FALSE, FALSE, EVENT_EMPTY_OBJECT_NAME);
+    if (hEventEmpty==NULL) {
+        PyWin_SetAPIError("CreateEvent");
+        return ;
+    }
 }
