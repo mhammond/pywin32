@@ -403,9 +403,9 @@ PyFindFiles(PyObject *self, PyObject *args)
     		findData.dwReserved0,	// @tupleitem 6|int|reserved0|Reserved.
     		findData.dwReserved1,   // @tupleitem 7|int|reserved1|Reserved.
     		findData.cFileName,		// @tupleitem 8|string|fileName|The name of the file.
-    		findData.cAlternateFileName );
+    		findData.cAlternateFileName ); // @tupleitem 9|string|alternateFilename|Alternative name of the file, expressed in 8.3 format.
 		if (newItem!=NULL) {
-			PyList_Append(retList, newItem); // @tupleitem 9|string|alternateFilename|Alternative name of the file, expressed in 8.3 format.
+			PyList_Append(retList, newItem);
 			Py_DECREF(newItem);
 		}
 		// @pyseeapi FindNextFile
@@ -1759,7 +1759,7 @@ PyObject *PyPostThreadMessage(PyObject *self, PyObject *args)
 	WPARAM wParam=0;
 	LPARAM lParam=0;
 	if (!PyArg_ParseTuple(args, "ii|ii:PostThreadMessage", 
-	          &threadId,    // @pyparm int|hwnd||The hWnd of the window to receive the message.
+	          &threadId,    // @pyparm int|tid||Identifier of the thread to which the message will be posted.
 	          &message, // @pyparm int|idMessage||The ID of the message to post.
 	          &wParam,  // @pyparm int|wParam||The wParam for the message
 	          &lParam)) // @pyparm int|lParam||The lParam for the message
@@ -3066,6 +3066,30 @@ PyGetSystemTime (PyObject * self, PyObject * args)
   }
 }						  
 
+// @pymethod tuple|win32api|GetLocalTime|Returns the current local time
+static PyObject *
+PyGetLocalTime (PyObject * self, PyObject * args)
+{
+  SYSTEMTIME t;
+  if (!PyArg_ParseTuple (args, "")) {
+ return NULL;
+  } else {
+ // GetLocalTime is a void function
+ GetLocalTime(&t);
+ return Py_BuildValue ("(iiiiiiii)",
+        t.wYear,
+        t.wMonth,
+        t.wDayOfWeek,
+        t.wDay,
+        t.wHour,
+        t.wMinute,
+        t.wSecond,
+        t.wMilliseconds
+        );
+  }
+}
+
+
 // @pymethod int|win32api|SetSystemTime|Returns the current system time
 static PyObject *
 PySetSystemTime (PyObject * self, PyObject * args)
@@ -3594,6 +3618,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetFullPathName",     PyGetFullPathName,1},   // @pymeth GetFullPathName|Returns the full path of a (possibly relative) path
 	{"GetKeyState",			PyGetKeyState,      1}, // @pymeth GetKeyState|Retrives the last known key state for a key.
 	{"GetLastError",		PyGetLastError,     1}, // @pymeth GetLastError|Retrieves the last error code known by the system.
+	{"GetLocalTime",         PyGetLocalTime,      1},  // @pymeth GetLocalTime|Returns the current local time.
 	{"GetLogicalDrives",	PyGetLogicalDrives,     1}, // @pymeth GetLogicalDrives|Returns a bitmask representing the currently available disk drives.
 	{"GetLogicalDriveStrings",	PyGetLogicalDriveStrings,     1}, // @pymeth GetLogicalDriveStrings|Returns a list of strings for all the drives.
 	{"GetModuleFileName",	PyGetModuleFileName,1}, // @pymeth GetModuleFileName|Retrieves the filename of the specified module.
