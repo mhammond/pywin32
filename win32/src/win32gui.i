@@ -524,11 +524,11 @@ int PyWNDCLASS::setattr(PyObject *self, char *name, PyObject *v)
 		return SetTCHAR(v, &pW->m_obClassName, &pW->m_WNDCLASS.lpszClassName);
 	}
 	if (strcmp("lpfnWndProc", name)==0) {
-		Py_XDECREF(pW->m_obClassName);
 		if (!PyCallable_Check(v) && !PyDict_Check(v)) {
 			PyErr_SetString(PyExc_TypeError, "lpfnWndProc must be callable, or a dictionary");
 			return -1;
 		}
+		Py_XDECREF(pW->m_obWndProc);
 		pW->m_obWndProc = v;
 		Py_INCREF(v);
 		return 0;
