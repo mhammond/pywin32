@@ -7,15 +7,43 @@ import sys
 import regutil
 import string, os
 
+htmlhelp_handle = None
+
+html_help_command_translators = {
+	win32con.HELP_CONTENTS : 1, # HH_DISPLAY_TOC
+	win32con.HELP_CONTEXT : 15, # HH_HELP_CONTEXT
+}
+
+def FinalizeHelp():
+	if htmlhelp_handle is not None:
+			import win32help
+			global htmlhelp_handle
+			try:
+				#frame = win32ui.GetMainFrame().GetSafeHwnd()
+				frame = 0
+				win32help.HtmlHelp(frame, None, win32help.HH_UNINITIALIZE, htmlhelp_handle)
+			except win32help.error:
+				print "Failed to finalize htmlhelp!"
+			htmlhelp_handle = None
+			
 def OpenHelpFile(fileName, helpCmd = None, helpArg = None):
 	"Open a help file, given a full path"
 	# default help arg.
 	win32ui.DoWaitCursor(1)
 	try:
-		ext = os.path.splitext(fileName)[1]
-		if string.lower(ext) == ".hlp":
-			if helpCmd is None: helpCmd = win32con.HELP_CONTENTS
+		if helpCmd is None: helpCmd = win32con.HELP_CONTENTS
+		ext = string.lower(os.path.splitext(fileName)[1])
+		if ext == ".hlp":
 			win32api.WinHelp( win32ui.GetMainFrame().GetSafeHwnd(), fileName, helpCmd, helpArg)
+		elif ext == ".chm":
+			import win32help
+			global htmlhelp_handle
+			helpCmd = html_help_command_translators.get(helpCmd, helpCmd)
+			#frame = win32ui.GetMainFrame().GetSafeHwnd()
+			frame = 0 # Dont want it overlapping ours!
+			if htmlhelp_handle is None:
+				htmlhelp_hwnd, htmlhelp_handle = win32help.HtmlHelp(frame, None, win32help.HH_INITIALIZE)
+			win32help.HtmlHelp(frame, fileName, helpCmd, helpArg)
 		else:
 			# Hope that the extension is registered, and we know what to do!
 			win32api.ShellExecute(0, "open", fileName, None, "", win32con.SW_SHOW)
@@ -74,9 +102,16 @@ def SetHelpMenuOtherHelp(mainMenu):
 		cmdID = win32ui.ID_HELP_OTHER
 		excludeList = ['Main Python Documentation', 'Pythonwin Reference']
 		firstList = ListAllHelpFiles()
+		# We actually want to not only exclude these entries, but
+		# their help file names (as many entries may share the same name)
+		excludeFnames = []
+		for desc, fname in firstList:
+			if desc in excludeList:
+				excludeFnames.append(fname)
+
 		helpDescs = []
 		for desc, fname in firstList:
-			if desc not in excludeList:
+			if fname not in excludeFnames:
 				helpIDMap[cmdID] = (desc, fname)
 				win32ui.GetMainFrame().HookCommand(HandleHelpOtherCommand, cmdID)
 				cmdID = cmdID + 1
