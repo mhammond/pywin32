@@ -570,10 +570,9 @@ void PyCWnd::DoKillAssoc( BOOL bDestructing /*= FALSE*/ )
 	obKeyStrokeHandler = NULL;
 	PyCCmdTarget::DoKillAssoc(bDestructing);
 	if (bManualDelete || bDidSubclass) {
-		CWnd *pWnd = GetWndPtr(this);	// get pointer before killing it.
-		if (!pWnd)
-			PyErr_Clear();
-		else {
+		// Can't use GetWndPtr(this) as ob_type has been nuked.
+		CWnd *pWnd = (CWnd *)this->assoc; // get pointer before killing it.
+		if (pWnd) {
 			if (bDidSubclass) {
 	//			pWnd->Detach();
 				pWnd->UnsubclassWindow();
@@ -663,7 +662,7 @@ void PyCWnd::DoKillAssoc( BOOL bDestructing /*= FALSE*/ )
 static PyObject *
 ui_window_activate_frame(PyObject *self, PyObject *args)
 {
-	CWnd *pWnd = GetWndPtr(self);
+	CWnd *pWnd = GetWndPtrGoodHWnd(self);
 	if (!pWnd)
 		return NULL;
 	int cmdShow = SW_SHOW;
@@ -692,7 +691,7 @@ ui_window_bring_window_to_top(PyObject *self, PyObject *args)
 	// change a window's position in the Z order. The BringWindowToTop method 
 	// does not change the window style to make it a top-level window of the desktop.
 	CHECK_NO_ARGS(args);
-	CWnd *pWnd = GetWndPtr(self);
+	CWnd *pWnd = GetWndPtrGoodHWnd(self);
 	if (!pWnd)
 		return NULL;
 	GUI_BGN_SAVE;
@@ -815,7 +814,7 @@ ui_window_dlg_dir_list(PyObject *self, PyObject *args)
 static PyObject *
 ui_window_dlg_dir_list_combo(PyObject *self, PyObject *args)
 {
-	CWnd *pWnd = GetWndPtr(self);
+	CWnd *pWnd = GetWndPtrGoodHWnd(self);
 	if (!pWnd)
 		return NULL;
 	char *defPath;
@@ -840,7 +839,7 @@ ui_window_dlg_dir_list_combo(PyObject *self, PyObject *args)
 static PyObject *
 ui_window_dlg_dir_select(PyObject *self, PyObject *args)
 {
-	CWnd *pWnd = GetWndPtr(self);
+	CWnd *pWnd = GetWndPtrGoodHWnd(self);
 	if (!pWnd)
 		return NULL;
 	int nIDListBox;
@@ -862,7 +861,7 @@ ui_window_dlg_dir_select(PyObject *self, PyObject *args)
 static PyObject *
 ui_window_dlg_dir_select_combo(PyObject *self, PyObject *args)
 {
-	CWnd *pWnd = GetWndPtr(self);
+	CWnd *pWnd = GetWndPtrGoodHWnd(self);
 	if (!pWnd)
 		return NULL;
 	int nIDListBox;
@@ -885,7 +884,7 @@ static PyObject *
 ui_window_drag_accept_files(PyObject *self, PyObject *args)
 {
 	BOOL accept = TRUE;
-	CWnd *pWnd = GetWndPtr(self);
+	CWnd *pWnd = GetWndPtrGoodHWnd(self);
 	if (!pWnd)
 		return NULL;
 	// @pyparm int|bAccept|1|A flag indicating if files are accepted.
@@ -903,7 +902,7 @@ static PyObject *
 ui_window_destroy_window(PyObject *self, PyObject *args)
 {
 	CHECK_NO_ARGS(args);
-	CWnd *pWnd = GetWndPtr(self);
+	CWnd *pWnd = GetWndPtrGoodHWnd(self);
 	if (!pWnd)
 		return NULL;
 	BOOL rc;
@@ -934,11 +933,11 @@ ui_window_draw_menu_bar(PyObject *self, PyObject *args)
 	GUI_END_SAVE;
 	RETURN_NONE;
 }
-// @pymethod |PyCWnd|EnableWindow|Enables or disables the window.  Typically used for dialog controls.
+// @pymethod int|PyCWnd|EnableWindow|Enables or disables the window.  Typically used for dialog controls.
 static PyObject *
 ui_window_enable_window(PyObject *self, PyObject *args)
 {
-	CWnd *pWnd = GetWndPtr(self);
+	CWnd *pWnd = GetWndPtrGoodHWnd(self);
 	if (!pWnd)
 		return NULL;
 	BOOL bEnable = TRUE;
@@ -951,6 +950,7 @@ ui_window_enable_window(PyObject *self, PyObject *args)
 	// @pyseemfc CWnd|EnableWindow
 	GUI_END_SAVE;
 	return Py_BuildValue("i", rc);
+	// @rdesc Returns the state before the EnableWindow member function was called
 }
 
 // @pymethod int|PyCWnd|GetCheckedRadioButton|Returns the ID of the checked radio button, or 0 if none is selected.
@@ -962,7 +962,7 @@ ui_window_get_checked_rb(PyObject *self, PyObject *args)
 	           &idFirst, // @pyparm int|idFirst||The Id of the first radio button in the group.
 	           &idLast ))// @pyparm int|idLast||The Id of the last radio button in the group.
 		return NULL;
-	CWnd *pWnd = GetWndPtr(self);
+	CWnd *pWnd = GetWndPtrGoodHWnd(self);
 	if (!pWnd)
 		return NULL;
 	// @pyseemfc CWnd|GetCheckedRadioButton
@@ -977,7 +977,7 @@ static PyObject *
 ui_window_get_client_rect(PyObject *self, PyObject *args)
 {
 	CHECK_NO_ARGS(args);
-	CWnd *pWnd = GetWndPtr(self);
+	CWnd *pWnd = GetWndPtrGoodHWnd(self);
 	CRect rect;
 	if (!pWnd)
 		return NULL;
@@ -997,7 +997,7 @@ ui_window_set_dlg_item_text(PyObject *self, PyObject *args)
 	// @pyparm string|text||The new text
 	if (!PyArg_ParseTuple(args, "is:SetDlgItemText", &id, &szText ))
 		return NULL;
-	CWnd *pWnd = GetWndPtr(self);
+	CWnd *pWnd = GetWndPtrGoodHWnd(self);
 	if (!pWnd)
 		return NULL;
 	GUI_BGN_SAVE;
@@ -2161,18 +2161,31 @@ ui_window_send_message(PyObject *self, PyObject *args)
 	int message;
 	int wParam=0;
 	int lParam=0;
-	if (!PyArg_ParseTuple(args, "i|ii:SendMessage",
+	WPARAM wp;
+	LPARAM lp;
+	if (PyArg_ParseTuple(args, "i|ii:SendMessage",
 		      &message, // @pyparm int|idMessage||The ID of the message to send.
 	          &wParam,  // @pyparm int|wParam|0|The wParam for the message
-	          &lParam)) // @pyparm int|lParam|0|The lParam for the message
-
-		return NULL;
+		  &lParam)) {// @pyparm int|lParam|0|The lParam for the message
+		wp = (WPARAM)wParam;
+		lp = (LPARAM)lParam;
+	} else {
+		// Allow a buffer object to be passed as (size, address)
+		PyErr_Clear();
+		void *p;
+		if (!PyArg_ParseTuple(args, "is#",
+				&message, // @pyparmalt1 int|idMessage||The ID of the message to send.
+				&p, &wParam )) // @pyparmalt1 buffer|ob||A buffer whose size is passed in wParam, and address is passed in lParam
+			return NULL;
+		lp = (LPARAM)p;
+		wp = (WPARAM)wParam;
+	}
 	int rc;
 	GUI_BGN_SAVE;
 	// @pyseemfc CWnd|SendMessage
-	rc = pWnd->SendMessage(message, wParam, lParam);
+	rc = pWnd->SendMessage(message, wp, lp);
 	GUI_END_SAVE;
-	return Py_BuildValue("i",rc);
+	return PyInt_FromLong(rc);
 }
 // @pymethod |PyCWnd|SendMessageToDescendants|Send a message to all descendant windows.
 PyObject *
