@@ -199,6 +199,11 @@ class ScintillaControlInterface:
 	# Call tips
 	def SCICallTipShow(self, text, pos=-1):
 		if pos==-1: pos = self.GetSel()[0]
+		if isinstance(text, unicode):
+			# I'm really not sure what the correct encoding
+			# to use is - but it has gotta be better than total
+			# failure due to the array module
+			text = text.encode("mbcs")
 		buff = array.array('c', text + "\0")
 		addressBuffer = buff.buffer_info()[0]
 		self.SendScintilla(SCI_CALLTIPSHOW, pos, addressBuffer)
