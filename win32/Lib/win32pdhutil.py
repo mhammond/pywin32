@@ -36,13 +36,15 @@ def GetPerformanceAttributes(object, counter, instance = None, inum=-1, format =
 	finally:
 		win32pdh.CloseQuery(hq)
 
-def FindPerformanceAttributesByName(instanceName, object = "Process", counter = "ID Process", format = win32pdh.PDH_FMT_LONG, machine = None):
+def FindPerformanceAttributesByName(instanceName, object = "Process", counter = "ID Process", format = win32pdh.PDH_FMT_LONG, machine = None, bRefresh=0):
 	"""Find peformance attributes by (case insensitive) instance name.
 	
 	Given a process name, return a list with the requested attributes.
 	Most useful for returning a tuple of PIDs given a process name.
 	"""
 
+	if bRefresh: # PDH docs say this is how you do a refresh.
+		win32pdh.EnumObjects(None, machine, 0, 1)
 	instanceName = string.lower(instanceName)
 	items, instances = win32pdh.EnumObjectItems(None,None,object, -1)
 	# Track multiple instances.
