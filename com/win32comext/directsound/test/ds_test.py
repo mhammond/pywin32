@@ -190,27 +190,20 @@ class DirectSoundTest(unittest.TestCase):
         d.SetCooperativeLevel(None, ds.DSSCL_PRIORITY)
 
         sdesc = ds.DSBUFFERDESC()
-        sdesc.dwFlags = ds.DSBCAPS_PRIMARYBUFFER
-        sdesc.dwBufferBytes = 0
-        sdesc.lpwfxFormat = None
-
-        # create primary buffer
-        primary = d.CreateSoundBuffer(sdesc, None)
-
         sdesc.dwFlags = ds.DSBCAPS_STICKYFOCUS | ds.DSBCAPS_CTRLPOSITIONNOTIFY
         sdesc.dwBufferBytes = size
         sdesc.lpwfxFormat = wfx
 
-        secondary = d.CreateSoundBuffer(sdesc, None)
+        buffer = d.CreateSoundBuffer(sdesc, None)
 
         event = win32event.CreateEvent(None, 0, 0, None)
-        notify = secondary.QueryInterface(ds.IID_IDirectSoundNotify)
+        notify = buffer.QueryInterface(ds.IID_IDirectSoundNotify)
 
         notify.SetNotificationPositions((ds.DSBPN_OFFSETSTOP, event))
 
-        secondary.Update(0, f.read(size))
+        buffer.Update(0, f.read(size))
 
-        secondary.Play(0)
+        buffer.Play(0)
 
         win32event.WaitForSingleObject(event, -1)
 
