@@ -327,8 +327,9 @@ class DispatchItem(OleItem):
 			defNamedOptArg = "pythoncom.Missing"
 			defNamedNotOptArg = "pythoncom.Missing"
 			defUnnamedArg = "pythoncom.Missing"
+		defOutArg = "pythoncom.Missing"
 		id = fdesc[0]
-		s = linePrefix + 'def ' + name + '(self' + BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg) + '):'
+		s = linePrefix + 'def ' + name + '(self' + BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg, defOutArg) + '):'
 		ret.append(s)
 		if doc and doc[1]:
 			ret.append(linePrefix + '\t' + _safeQuotedString(doc[1]))
@@ -531,7 +532,7 @@ def MakeDefaultArgRepr(defArgVal):
       return repr(val)
   return None
 
-def BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg):
+def BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg, defOutArg):
   "Builds a Python declaration for a method."
   # Names[0] is the func name - param names are from 1.
   numArgs = len(fdesc[2])
@@ -549,19 +550,23 @@ def BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg
     except IndexError:
       namedArg = 0
     if not namedArg: argName = "arg%d" % (arg)
-      
+    thisdesc = fdesc[2][arg]
     # See if the IDL specified a default value
-    defArgVal = MakeDefaultArgRepr(fdesc[2][arg])
+    defArgVal = MakeDefaultArgRepr(thisdesc)
     if defArgVal is None:
-      # Unnamed arg - always allow default values.
-      if namedArg:
-        # Is a named argument
-        if arg >= firstOptArg:
-          defArgVal = defNamedOptArg
+      # Out params always get their special default
+      if thisdesc[1] & (pythoncom.PARAMFLAG_FOUT | pythoncom.PARAMFLAG_FIN) == pythoncom.PARAMFLAG_FOUT:
+        defArgVal = defOutArg
+      else:          
+        # Unnamed arg - always allow default values.
+        if namedArg:
+          # Is a named argument
+          if arg >= firstOptArg:
+            defArgVal = defNamedOptArg
+          else:
+            defArgVal = defNamedNotOptArg
         else:
-          defArgVal = defNamedNotOptArg
-      else:
-        defArgVal = defUnnamedArg
+          defArgVal = defUnnamedArg
 
     argName = MakePublicAttributeName(argName)
     strval = strval + ", " + argName

@@ -8,16 +8,8 @@ from win32com.client import gencache
 com_error = pythoncom.com_error
 _univgw = pythoncom._univgw
 
-# Make it clear to the user they are playing with fire ATM ;-)
-msg = "win32com.universal argument passing support is incomplete - only types covered in win32com.servers.test_pycomtest are supported"
-try:
-    import warnings
-    warnings.warn(msg)
-except ImportError:
-    print msg
-
-
 def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names = None):
+    ret = [] # return a list of (dispid, funcname for our policy's benefit
     # First see if we have makepy support.  If so, we can probably satisfy the request without loading the typelib.
     try:
         mod = gencache.GetModuleForTypelib(typelibGUID, lcid, major, minor)
@@ -28,6 +20,15 @@ def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names = None):
         # Load up the typelib and build (but don't cache) it now
         tlb = pythoncom.LoadRegTypeLib(typelibGUID, major, minor, lcid)
         typecomp_lib = tlb.GetTypeComp()
+        if interface_names is None:
+          interface_names = []
+          for i in range(tlb.GetTypeInfoCount()):
+            info = tlb.GetTypeInfo(i)
+            doc = tlb.GetDocumentation(i)
+            attr = info.GetTypeAttr()
+            if attr.typekind == pythoncom.TKIND_INTERFACE or \
+               (attr.typekind == pythoncom.TKIND_DISPATCH and attr.wTypeFlags & pythoncom.TYPEFLAG_FDUAL):
+                interface_names.append(doc[0])
         for name in interface_names:
             type_info, type_comp = typecomp_lib.BindType(name, )
             # If we got back a Dispatch interface, convert to the real interface.
@@ -38,21 +39,29 @@ def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names = None):
                 attr = type_info.GetTypeAttr()
             item = win32com.client.build.VTableItem(type_info, attr, type_info.GetDocumentation(-1))
             _doCreateVTable(item.clsid, item.python_name, item.bIsDispatch, item.vtableFuncs)
+            for info in item.vtableFuncs:
+                ret.append((info[1], info[0]))
     else:
         # Cool - can used cached info.
         if not interface_names:
-            interface_names = mod.VTablesNamesToIIDMap.keys()
+            interface_names = mod.NamesToIIDMap.keys()
         for name in interface_names:
             try:
-                iid = mod.VTablesNamesToIIDMap[name]
+                iid = mod.NamesToIIDMap[name]
             except KeyError:
                 raise ValueError, "Interface '%s' does not exist in this cached typelib" % (name,)
 #            print "Processing interface", name
             sub_mod = gencache.GetModuleForCLSID(iid)
-            is_dispatch = getattr(sub_mod, name + "_vtables_dispatch_")
-            method_defs = getattr(sub_mod, name + "_vtables_")
+            is_dispatch = getattr(sub_mod, name + "_vtables_dispatch_", None)
+            method_defs = getattr(sub_mod, name + "_vtables_", None)
+            if is_dispatch is None or method_defs is None:
+                raise ValueError, "Interface '%s' is IDispatch only" % (name,)
+
             # And create the univgw defn
             _doCreateVTable(iid, name, is_dispatch, method_defs)
+            for info in method_defs:
+                ret.append((info[1], info[0]))
+    return ret
 
 def _doCreateVTable(iid, interface_name, is_dispatch, method_defs):
     defn = Definition(iid, is_dispatch, method_defs)

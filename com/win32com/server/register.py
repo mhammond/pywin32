@@ -145,7 +145,7 @@ def RegisterServer(clsid,
                    addPyComCat=1,
                    dispatcher = None,
                    clsctx = None,
-                   addnPath = None
+                   addnPath = None,
                   ):
   """Registers a Python object as a COM Server.  This enters almost all necessary
      information in the system registry, allowing COM to use the object.
@@ -349,6 +349,7 @@ def RegisterClasses(*classes, **flags):
     options = _get(cls, '_reg_options_', {})
     policySpec = _get(cls, '_reg_policy_spec_')
     clsctx = _get(cls, '_reg_clsctx_')
+    tlb_filename = _get(cls, '_reg_typelib_filename_')
     addPyComCat = not _get(cls, '_reg_disable_pycomcat_', 0)
     addnPath = None
     if debugging:
@@ -384,7 +385,13 @@ def RegisterClasses(*classes, **flags):
                    addPyComCat, dispatcherSpec, clsctx, addnPath)
     if not quiet:
       print 'Registered:', progID or spec, debuggingDesc
-
+    # Register the typelibrary
+    if tlb_filename:
+      tlb_filename = os.path.abspath(tlb_filename)
+      typelib = pythoncom.LoadTypeLib(tlb_filename)
+      pythoncom.RegisterTypeLib(typelib, tlb_filename)
+      if not quiet:
+        print 'Registered type library:', tlb_filename
 
 def UnregisterClasses(*classes, **flags):
   quiet = flags.has_key('quiet') and flags['quiet']
@@ -393,11 +400,25 @@ def UnregisterClasses(*classes, **flags):
     progID = _get(cls, '_reg_progid_')
     verProgID = _get(cls, '_reg_verprogid_')
     customKeys = _get(cls, '_reg_remove_keys_')
+    unregister_typelib = _get(cls, '_reg_typelib_filename_') is not None
 
     UnregisterServer(clsid, progID, verProgID, customKeys)
     if not quiet:
       print 'Unregistered:', progID or str(clsid)
-
+    if unregister_typelib:
+      tlb_guid = _get(cls, "_typelib_guid_")
+      if tlb_guid is None:
+        # I guess I could load the typelib, but they need the GUID anyway.
+        print "Have typelib filename, but no GUID - can't unregister"
+      else:
+        major, minor = _get(cls, "_typelib_version_", (1,0))
+        lcid = _get(cls, "_typelib_lcid_", 0)
+        try:
+          pythoncom.UnRegisterTypeLib(tlb_guid, major, minor, lcid)
+          if not quiet:
+            print 'Unregistered type library'
+        except pythoncom.com_error:
+          pass
 #
 # Unregister info is for installers or external uninstallers.
 # The WISE installer, for example firstly registers the COM server,

@@ -326,7 +326,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
         for name, entry in self.propMapGet.items() + self.propMapPut.items() + self.mapFuncs.items():
             fdesc = entry.desc
             methName = MakeEventMethodName(entry.names[0])
-            print '#\tdef ' + methName + '(self' + build.BuildCallList(fdesc, entry.names, "defaultNamedOptArg", "defaultNamedNotOptArg","defaultUnnamedArg") + '):'
+            print '#\tdef ' + methName + '(self' + build.BuildCallList(fdesc, entry.names, "defaultNamedOptArg", "defaultNamedNotOptArg","defaultUnnamedArg", "pythoncom.Missing") + '):'
             if entry.doc and entry.doc[1]: print '#\t\t' + build._safeQuotedString(entry.doc[1])
         print
         self.bWritten = 1
@@ -843,9 +843,17 @@ class Generator:
       print 
 
     print
-    print "VTablesNamesToIIDMap = {"
-    for item in vtableItems.values():
-        print "\t'%s' : '%s'," % (item.python_name, item.clsid)
+    # Bit of a hack - build a temp map of iteItems + vtableItems - coClasses
+    map = {}
+    for item in oleItems.values():
+        if item is not None and not isinstance(item, CoClassItem):
+            map[item.python_name] = item.clsid
+    for item in vtableItems.values(): # No nones or CoClasses in this map
+        map[item.python_name] = item.clsid
+            
+    print "NamesToIIDMap = {"
+    for name, iid in map.items():
+        print "\t'%s' : '%s'," % (name, iid)
     print '}'
     print
 

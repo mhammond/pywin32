@@ -13,11 +13,8 @@ error = "testPyCOMTest error"
 
 from win32com.client import gencache
 try:
-	PyCOMTest = gencache.EnsureModule('{6BCDCB60-5605-11D0-AE5F-CADD4C000000}', 0, 1, 1)
+	gencache.EnsureModule('{6BCDCB60-5605-11D0-AE5F-CADD4C000000}', 0, 1, 1)
 except pythoncom.com_error:
-	PyCOMTest = None
-
-if PyCOMTest is None:
 	print "The PyCOMTest module can not be located or generated."
 	print importMsg
 	raise RuntimeError, importMsg
@@ -48,9 +45,8 @@ def TestApplyResult(fn, args, result):
 
 	
 # Simple handler class.  This demo only fires one event.
-class RandomEventHandler (PyCOMTest.IPyCOMTestEvent):
-	def __init__(self, oobj = None):
-		PyCOMTest.IPyCOMTestEvent.__init__(self, oobj)
+class RandomEventHandler:
+	def _Init(self):
 		self.fireds = {}
 	def OnFire(self, no):
 		try:
@@ -108,11 +104,12 @@ def TestDynamic():
 
 def TestGenerated():
 	# Create an instance of the server.
-	o=PyCOMTest.CoPyCOMTest()
+	from win32com.client.gencache import EnsureDispatch
+	o = EnsureDispatch("PyCOMTest.PyCOMTest")
 	counter = o.GetSimpleCounter()
 	TestCounter(counter, 1)
 	
-	counter = win32com.client.Dispatch("PyCOMTest.SimpleCounter")
+	counter = EnsureDispatch("PyCOMTest.SimpleCounter")
 	TestCounter(counter, 1)
 	
 	i1, i2 = o.GetMultipleInterfaces()
@@ -151,7 +148,7 @@ def TestGenerated():
 	if type(o.GetSetDispatch(o)) !=types.InstanceType:
 		raise error, "GetSetDispatch failed"
 	if verbose: print "Checking getting/passing IDispatch of known type"
-	if o.GetSetInterface(o).__class__ != PyCOMTest.IPyCOMTest:
+	if o.GetSetInterface(o).__class__ != o.__class__:
 		raise error, "GetSetDispatch failed"
 
 	o.GetSimpleSafeArray(None)
@@ -187,22 +184,19 @@ def TestGenerated():
 	# Create a connection object.
 	if verbose: print "Testing connection points"
 	sessions = []
-	handler = RandomEventHandler()
+	o = win32com.client.DispatchWithEvents( o, RandomEventHandler)
+	o._Init()
 
 	try:
 		for i in range(3):
 			session = o.Start()
-			# Create an event handler instance, and connect it to the server.
-			connection = win32com.client.connect.SimpleConnection(o, handler)
-			sessions.append((session, connection))
-
+			sessions.append(session)
 		time.sleep(.5)
 	finally:
 		# Stop the servers
-		for session, connection in sessions:
+		for session in sessions:
 			o.Stop(session)
-			connection.Disconnect()
-		if handler: handler._DumpFireds()
+		o._DumpFireds()
 	if verbose: print "Finished generated .py test."
 
 def TestCounter(counter, bIsGenerated):
@@ -258,11 +252,21 @@ def TestCounter(counter, bIsGenerated):
 		raise error, "*** Unexpected number of loop iterations - got %d ***" % num
 	if verbose: print "Finished testing counter"
 
+def TestLocalVTable(ob):
+	# Python doesn't fully implement this interface.
+	if ob.DoubleString("foo") != "foofoo":
+		raise error("couldn't foofoo")
+
 ###############################
 ##
 ## Some vtable tests of the interface
 ##
 def TestVTable(clsctx=pythoncom.CLSCTX_ALL):
+	# Any vtable interfaces marked as dual *should* be able to be
+	# correctly implemented as IDispatch.
+	ob = win32com.client.Dispatch("Python.Test.PyCOMTest")
+	TestLocalVTable(ob)
+	# Now test it via vtable - use some C++ code to help here as Python can't do it directly yet.
 	tester = win32com.client.Dispatch("PyCOMTest.PyCOMTest")
 	testee = pythoncom.CoCreateInstance("Python.Test.PyCOMTest", None, clsctx, pythoncom.IID_IUnknown)
 	tester.TestMyInterface(testee)

@@ -426,9 +426,10 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
 
      Attributes:
 
-     _public_methods_ -- Required -- A list of strings, which must be the names of 
-                  methods the object provides.  These methods will be exposed and 
-                  callable from other COM hosts.
+     _public_methods_ -- Required, unless a typelib GUID is given -- A list
+                  of strings, which must be the names of methods the object
+                  provides.  These methods will be exposed and callable
+                  from other COM hosts.
      _public_attrs_ A list of strings, which must be the names of attributes on the object.
                   These attributes will be exposed and readable and possibly writeable from other COM hosts.
      _readonly_attrs_ -- A list of strings, which must also appear in _public_attrs.  These
@@ -439,14 +440,27 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
                   object (ie, calls Invoke with dispid==DISPID_NEWENUM.)
                   It is the responsibility of the method to ensure the returned
                   object conforms to the required Enum interface.
-                  
+
+    _typelib_guid_ -- The GUID of the typelibrary with interface definitions we use.
+    _typelib_version_ -- A tuple of (major, minor) with a default of 1,1
+    _typelib_lcid_ -- The LCID of the typelib, default = LOCALE_USER_DEFAULT
+
      _Evaluate -- Dunno what this means, except the host has called Invoke with dispid==DISPID_EVALUATE!
                   See the COM documentation for details.
   """
   def _wrap_(self, ob):
+    # If we have nominated universal interfaces to support, load them now
+    tlb_guid = getattr(ob, '_typelib_guid_', None)
+    if tlb_guid is not None:
+      tlb_major, tlb_minor = getattr(ob, '_typelib_version_', (1,0))
+      tlb_lcid = getattr(ob, '_typelib_lcid_', 0)
+      from win32com import universal
+      universal_data = universal.RegisterInterfaces(tlb_guid, tlb_lcid, tlb_major, tlb_minor)
+    else:
+      universal_data = []
     MappedWrapPolicy._wrap_(self, ob)
-    if not hasattr(ob, '_public_methods_'):
-      raise error, "Object does not support DesignatedWrapPolicy, as it does not have an _public_methods_ attribute."
+    if not hasattr(ob, '_public_methods_') and not hasattr(ob, "_typelib_guid_"):
+      raise error, "Object does not support DesignatedWrapPolicy, as it does not have either _public_methods_ or _typelib_guid_ attributes."
 
     # Copy existing _dispid_to_func_ entries to _name_to_dispid_
     for dispid, name in self._dispid_to_func_.items():
@@ -456,12 +470,11 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
     for dispid, name in self._dispid_to_put_.items():
       self._name_to_dispid_[string.lower(name)]=dispid
 
-    # add the pythonObject property (always DISPID==999)
-    # unless some object (eg, Event Source) has already used it!
-#    if not self._dispid_to_func_.has_key(999):
-#        self._name_to_dispid_["pythonobject"] = 999
-#        self._dispid_to_func_[999] = lambda i=id(ob): i
-
+    # Patch up the universal stuff.
+    for dispid, name in universal_data:
+      self._name_to_dispid_[string.lower(name)]=dispid
+      self._dispid_to_func_[dispid] = name
+    
     # look for reserved methods
     if hasattr(ob, '_value_'):
       self._dispid_to_get_[DISPID_VALUE] = '_value_'
@@ -473,7 +486,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
       self._name_to_dispid_['_evaluate'] = DISPID_EVALUATE
       self._dispid_to_func_[DISPID_EVALUATE] = '_Evaluate'
 
-    dispid = 1000
+    dispid = self._getnextdispid(999)
     # note: funcs have precedence over attrs (install attrs first)
     if hasattr(ob, '_public_attrs_'):
       if hasattr(ob, '_readonly_attrs_'):
@@ -485,11 +498,20 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
         self._dispid_to_get_[dispid] = name
         if name not in readonly:
           self._dispid_to_put_[dispid] = name
-        dispid = dispid + 1
-    for name in ob._public_methods_:
-      self._name_to_dispid_[string.lower(name)] = dispid
-      self._dispid_to_func_[dispid] = name
-      dispid = dispid + 1
+        dispid = self._getnextdispid(dispid)
+    for name in getattr(ob, "_public_methods_", []):
+      if not self._name_to_dispid_.has_key(string.lower(name)):
+         self._name_to_dispid_[string.lower(name)] = dispid
+         self._dispid_to_func_[dispid] = name
+         dispid = self._getnextdispid(dispid)
+
+  def _getnextdispid(self, last_dispid):
+      while 1:
+        last_dispid = last_dispid + 1
+        if not self._dispid_to_func_.has_key(last_dispid) and \
+           not self._dispid_to_get_.has_key(last_dispid) and \
+           not self._dispid_to_put_.has_key(last_dispid):
+              return last_dispid
 
   def _invokeex_(self, dispid, lcid, wFlags, args, kwArgs, serviceProvider):
     ### note: lcid is being ignored...
