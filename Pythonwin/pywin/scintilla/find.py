@@ -208,7 +208,7 @@ class FindDialog(FindReplaceDialog):
 		dt = [
 			["Find", (0, 2, 240, 75), style, None, (8, "MS Sans Serif")],
 			["Static", "Fi&nd What:", 101, (5, 8, 40, 10), visible],
-			["Edit", "", 102, (50, 7, 120, 12), visible | win32con.WS_BORDER | win32con.WS_TABSTOP],
+			["Edit", "", 102, (50, 7, 120, 12), visible | win32con.WS_BORDER | win32con.WS_TABSTOP | win32con.ES_AUTOHSCROLL],
 			["Button", "Match &whole word only", 105, (5, 23, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "Match &case", 107, (5, 33, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "Keep &dialog open", 115, (5, 43, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
@@ -226,9 +226,9 @@ class ReplaceDialog(FindReplaceDialog):
 		dt = [
 			["Replace", (0, 2, 240, 95), style, None, (8, "MS Sans Serif")],
 			["Static", "Fi&nd What:", 101, (5, 8, 40, 10), visible],
-			["Edit", "", 102, (60, 7, 110, 12), visible | win32con.WS_BORDER | win32con.WS_TABSTOP],
+			["Edit", "", 102, (60, 7, 110, 12), visible | win32con.WS_BORDER | win32con.WS_TABSTOP | win32con.ES_AUTOHSCROLL],
 			["Static", "Re&place with:", 103, (5, 25, 50, 10), visible],
-			["Edit", "", 104, (60, 24, 110, 12), visible | win32con.WS_BORDER | win32con.WS_TABSTOP],
+			["Edit", "", 104, (60, 24, 110, 12), visible | win32con.WS_BORDER | win32con.WS_TABSTOP | win32con.ES_AUTOHSCROLL],
 			["Button", "Match &whole word only", 105, (5, 42, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "Match &case", 107, (5, 52, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 			["Button", "Keep &dialog open", 115, (5, 62, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
