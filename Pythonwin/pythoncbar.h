@@ -54,6 +54,9 @@ public:
 
 class CPythonControlBar : public CPythonControlBarFramework<CControlBar>
 {
+	// @pyvirtual int|PyCControlBar|OnUpdateCmdUI|
+	// @pyparm <o PyCFrameWnd>|frame||
+	// @pyparm int|bDisableIsNoHandler||
 	virtual void OnUpdateCmdUI(CFrameWnd* pTarget, BOOL bDisableIfNoHndler) {
 		CVirtualHelper helper( "OnUpdateCmdUI", this );
 		helper.call(pTarget, bDisableIfNoHndler);
