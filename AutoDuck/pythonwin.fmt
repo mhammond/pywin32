@@ -142,9 +142,9 @@ $[index:module]
 
 $(reset)$(heading_1)
 #{\footnote # ctx_comobj}
-$${\footnote $$ Contents: Modules}
+$${\footnote $$ Contents: Objects}
 +{\footnote + Contents:0000} 
-Modules\par 
+Objects\par 
 
 $[index:pyobject,object]
 
