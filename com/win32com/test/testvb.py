@@ -21,7 +21,7 @@ importMsg = """\
 
 # Import the type library for the test module.
 try:
-	win32com.client.gencache.EnsureModule('{32C85CE8-0035-11D3-8546-204C4F4F5020}', 0, 5, 0)
+	win32com.client.gencache.EnsureDispatch("PyCOMVBTest.Tester")
 except pythoncom.com_error:
 	raise RuntimeError, importMsg
 
