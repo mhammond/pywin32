@@ -97,11 +97,15 @@ class CScintillaDocument(ParentScintillaDocument):
 	def MarkerAdd( self, lineNo, marker ):
 		self.GetEditorView().SCIMarkerAdd(lineNo-1, marker)
 
-	def MarkerToggle( self, lineNo, marker ):
+	def MarkerCheck(self, lineNo, marker ):
 		v = self.GetEditorView()
 		lineNo = lineNo - 1 # Make 0 based
 		markerState = v.SCIMarkerGet(lineNo)
-		if markerState & (1<<marker):
+		return markerState & (1<<marker) != 0
+
+	def MarkerToggle( self, lineNo, marker ):
+		v = self.GetEditorView()
+		if self.MarkerCheck(lineNo, marker):
 			v.SCIMarkerDelete(lineNo, marker)
 		else:
 			v.SCIMarkerAdd(lineNo, marker)
