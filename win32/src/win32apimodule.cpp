@@ -3701,6 +3701,29 @@ static PyObject *PyApply(PyObject *self, PyObject *args)
 // or other diagnostics are printed)
 }
 
+// @pymethod |win32api|keybd_event|Simulate a keyboard event
+PyObject *Pykeybd_event(PyObject *self, PyObject *args)
+{
+        BYTE bVk;
+        BYTE bScan;
+        DWORD dwFlags;
+        DWORD dwExtraInfo;
+
+  if (!PyArg_ParseTuple(args, "ii|ii:keybd_event",
+           &bVk,    // @pyparm BYTE|bVk||Virtual-key code
+           &bScan, // @pyparm BYTE|bScan||Hardware scan code
+           &dwFlags,  // @pyparm DWORD|dwFlags||Flags specifying various function options
+           &dwExtraInfo)) // @pyparm DWORD|dwExtraInfo||Additional data associated with keystroke
+
+    return NULL;
+  // @pyseeapi keybd_event
+  PyW32_BEGIN_ALLOW_THREADS
+  ::keybd_event(bVk,bScan,dwFlags,dwExtraInfo);
+  PyW32_END_ALLOW_THREADS
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
 /* List of functions exported by this module */
 // @module win32api|A module, encapsulating the Windows Win32 API.
 static struct PyMethodDef win32api_functions[] = {
@@ -3776,6 +3799,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetUserDefaultLangID",PyGetUserDefaultLangID,1}, // @pymeth GetUserDefaultLangID|Retrieves the user default language identifier. 
 	{"GetUserDefaultLCID",  PyGetUserDefaultLCID,1}, // @pymeth GetUserDefaultLCID|Retrieves the user default locale identifier.
 	{"InitiateSystemShutdown",  PyInitiateSystemShutdown,1}, // @pymeth InitiateSystemShutdown|Initiates a shutdown and optional restart of the specified computer. 
+	{"keybd_event",         Pykeybd_event, 1}, // @pymeth keybd_event|Simulate a keyboard event
 	{"LoadCursor",          PyLoadCursor, 1}, // @pymeth LoadCursor|Loads a cursor.
 	{"LoadLibrary",	        PyLoadLibrary,1}, // @pymeth LoadLibrary|Loads the specified DLL, and returns the handle.
 	{"LoadLibraryEx",	    PyLoadLibraryEx,1}, // @pymeth LoadLibraryEx|Loads the specified DLL, and returns the handle.
