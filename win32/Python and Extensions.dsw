@@ -1,0 +1,853 @@
+Microsoft Developer Studio Workspace File, Format Version 5.00
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "Active Debugging"=".\com\Active Debugging.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/com/win32comext/axdebug", TKAAAAAA
+    .\com\win32comext\axdebug
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32com
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name Active Scripting
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "Active Scripting"=".\com\Active Scripting.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/com/win32comext/axscript", RJAAAAAA
+    .\com\win32comext\axscript
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32com
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "PyWinTypes"=.\win32\PyWinTypes.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32", CDAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "PythonService EXE"=".\win32\PythonService EXE.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32", CDAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "_All Pythonwin"=".\Pythonwin\_All Pythonwin.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/Pythonwin", OOAAAAAA
+    .\pythonwin
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name pythonwin
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32ui
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32uiole
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "_com projects"=".\com\_com projects.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name Active Scripting Debugging
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name exchdapi
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name mapi
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32com
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name Active Debugging
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name Active Scripting
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name axcontrol
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name internet
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name shell
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name exchange
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "_win32 projects"=".\win32\_win32 projects.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32", IOAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name dbi
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name dde
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name mmapfile
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name odbc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PythonService EXE
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name timer
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32event
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32evtlog
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32file
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32lz
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32net
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32pdh
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32pipe
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32ras
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32service
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32trace
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32security
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32api
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name perfmon
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name perfmondata
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32print
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32process
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "axcontrol"=.\com\axcontrol.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/com/win32comext/axcontrol", LFCAAAAA
+    .\com\win32comext\axcontrol
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name win32com
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "dbi"=.\win32\dbi.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32", MJAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "dde"=.\win32\dde.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32", EJAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name win32ui
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "exchange"=.\com\exchange.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/com/win32comext/mapi", WHAAAAAA
+    .\com\win32comext\mapi
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name win32com
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "exchdapi"=.\com\exchdapi.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name win32com
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "internet"=.\com\internet.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/com/win32comext/internet", QGCAAAAA
+    .\com\win32comext\internet
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name win32com
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "mapi"=.\com\mapi.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/com/win32comext/mapi", WHAAAAAA
+    .\com\win32comext\mapi
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32com
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "mmapfile"=.\win32\mmapfile.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32", NNAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "odbc"=.\win32\odbc.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32", RNAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name dbi
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "parser"="..\Python-1.5.1\PCbuild\parser.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "perfmon"=.\win32\perfmon.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "perfmondata"=.\win32\perfmondata.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32/PerfMon", PNCAAAAA
+    .\win32\perfmon
+    end source code control
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "python"="..\Python-1.5.1\PCbuild\python.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "python15"="..\Python-1.5.1\PCbuild\python15.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "pythonwin"=.\Pythonwin\pythonwin.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/Pythonwin/pythonwin", FTAAAAAA
+    .\pythonwin
+    end source code control
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "shell"=.\com\shell.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/com/win32comext/shell", FOCAAAAA
+    .\com\win32comext\shell
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name win32com
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "timer"=.\win32\timer.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32", VNAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "win32api"=.\win32\win32api.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32", MEAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "win32com"=.\com\win32com.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/com/win32com", XAAAAAAA
+    .\com\win32com
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "win32event"=.\win32\win32event.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32", DGAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "win32evtlog"=.\win32\win32evtlog.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32", IGAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "win32file"=.\win32\win32file.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32", OGAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "win32lz"=.\win32\win32lz.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python", IOAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "win32net"=.\win32\win32net.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32", NHAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "win32pdh"=.\win32\win32pdh.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32", JHAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "win32pipe"=.\win32\win32pipe.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32", DHAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "win32print"=.\win32\win32print.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32/win32print", AUBAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "win32process"=.\win32\win32process.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32", OGAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "win32ras"=.\win32\win32ras.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32", RHAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "win32security"=.\win32\win32security.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32", DOAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "win32service"=.\win32\win32service.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32", TGAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "win32trace"=.\win32\win32trace.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/win32", ZGAAAAAA
+    .\win32
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "win32ui"=.\Pythonwin\win32ui.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/Pythonwin/win32ui", POAAAAAA
+    .\pythonwin
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "win32uiole"=.\Pythonwin\win32uiole.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+    begin source code control
+    "$/Python/Pythonwin/win32uiole", XSAAAAAA
+    .\pythonwin
+    end source code control
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name win32ui
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name win32com
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PyWinTypes
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Global:
+
+Package=<5>
+{{{
+}}}
+
+Package=<3>
+{{{
+}}}
+
+###############################################################################
+
