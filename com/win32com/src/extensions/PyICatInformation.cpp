@@ -137,7 +137,9 @@ PyObject *PyICatInformation::GetCategoryDesc(PyObject *self, PyObject *args)
 	// @comm The return type is a true PyString, not a Uniocode object.
 	// @todo Upgrade the return type to be Unicode.  Should wait until Python has Unicode support.
 
-	return PyString_FromString(W2A(pResult));
+	PyObject *rc = PyString_FromString(W2A(pResult));
+	CoTaskMemFree(pResult);
+	return rc;
 }
 
 // @object PyICatInformation|A Python interface to ICatInformation
