@@ -31,7 +31,7 @@ class COMException(pythoncom.com_error):
 	"""
 	def __init__(self, description = None, scode = None,
 	             source = None, helpfile = None, helpContext = None,
-	             hresult = None, desc = None):
+	             desc = None):
 		"""Initialize an exception
 		**Params**
 
@@ -41,7 +41,6 @@ class COMException(pythoncom.com_error):
 		source -- A string which identifies the source of the error.
 		helpfile -- A string which points to a help file which contains details on the error.
 		helpContext -- An integer context in the help file.
-		hresult -- The HRESULT to be returned to COM, or DISP_E_EXCEPTION is not specified.
 		desc -- A short-cut for description.
 		"""
 
@@ -62,8 +61,6 @@ class COMException(pythoncom.com_error):
 		self.helpfile = helpfile
 		self.helpcontext = helpContext
 
-		# The HRESULT to be returned to COM - default = DISP_E_EXCEPTION.
-		self.hresult = hresult
 		# todo - fill in the exception value
 		pythoncom.com_error.__init__(self, scode, self.description, None, -1)
 
@@ -90,4 +87,3 @@ def IsCOMServerException(t = None):
 		return issubclass(t, COMException)
 	except TypeError: # String exception
 		return 0
-    
