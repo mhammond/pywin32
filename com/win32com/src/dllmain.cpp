@@ -5,8 +5,8 @@
 #include <windows.h>
 
 #include <Python.h>
-#include <PythonRun.h>	/* for Py_Initialize() */
-#include <Import.h>		/* for PyImport_GetModuleDict() */
+#include <pythonrun.h>  /* for Py_Initialize() */
+#include <import.h>     /* for PyImport_GetModuleDict() */
 
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
@@ -106,20 +106,11 @@ void PyCom_DLLReleaseRef(void)
 static DWORD g_dwCoInitThread = 0;
 static BOOL g_bCoInitThreadHasInit = FALSE;
 
-#ifndef BUILD_FREEZE
-#define DLLMAIN DllMain
-#define DLLMAIN_DECL
-#else
-#define DLLMAIN DllMainpythoncom
-#define DLLMAIN_DECL __declspec(dllexport)
-#endif
-
 #ifndef MS_WINCE
-extern "C" DLLMAIN_DECL
-BOOL WINAPI DLLMAIN(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
+extern "C" __declspec(dllexport)
+BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 #else
-DLLMAIN_DECL
-BOOL WINAPI DLLMAIN(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
+BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 #endif
 {
 	if ( dwReason == DLL_PROCESS_ATTACH )
