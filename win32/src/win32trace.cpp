@@ -45,6 +45,18 @@ const char *MUTEX_OBJECT_NAME = "Global\\PythonTraceOutputMutex";
 const char *EVENT_OBJECT_NAME = "Global\\PythonTraceOutputEvent";
 const char *EVENT_EMPTY_OBJECT_NAME = "Global\\PythonTraceOutputEmptyEvent";
 
+// Function to remove the "Global\\" prefix on NT4/9x
+static const char *FixupObjectName(const char *global_name)
+{
+    OSVERSIONINFO info;
+    info.dwOSVersionInfoSize = sizeof(info);
+    GetVersionEx(&info);
+    if (info.dwMajorVersion <= 4) // NT, 9x
+        return strchr(global_name, '\\')+1;
+    // 2000 or later - "Global\\" prefix OK.
+    return global_name;
+}
+
 // no const because of python api, this is the name of the entry
 // in the sys module that we store our PyTraceObject pointer
 char *TRACEOBJECT_NAME = "__win32traceObject__";
@@ -220,7 +232,7 @@ BOOL DoOpenMap(HANDLE *pHandle, VOID **ppPtr)
 	return FALSE;
     }
     Py_BEGIN_ALLOW_THREADS
-    *pHandle = CreateFileMapping((HANDLE)-1, &sa, PAGE_READWRITE, 0, BUFFER_SIZE, MAP_OBJECT_NAME);
+    *pHandle = CreateFileMapping((HANDLE)-1, &sa, PAGE_READWRITE, 0, BUFFER_SIZE, FixupObjectName(MAP_OBJECT_NAME));
     Py_END_ALLOW_THREADS
     if (*pHandle==NULL) {
         PyWin_SetAPIError("CreateFileMapping");
@@ -571,7 +583,6 @@ static struct PyMethodDef win32trace_functions[] = {
     {NULL,			NULL}
 };
 
-
 extern "C" __declspec(dllexport) void
 initwin32trace(void)
 {
@@ -602,19 +613,19 @@ initwin32trace(void)
     sa.bInheritHandle = TRUE;
 
     assert(hMutex == NULL);
-    hMutex = CreateMutex(&sa, FALSE, MUTEX_OBJECT_NAME);
+    hMutex = CreateMutex(&sa, FALSE, FixupObjectName(MUTEX_OBJECT_NAME));
     if (hMutex==NULL) {
         PyWin_SetAPIError("CreateMutex");
         return ;
     }
     assert (hEvent==NULL);
-    hEvent = CreateEvent(&sa, FALSE, FALSE, EVENT_OBJECT_NAME);
+    hEvent = CreateEvent(&sa, FALSE, FALSE, FixupObjectName(EVENT_OBJECT_NAME));
     if (hEvent==NULL) {
         PyWin_SetAPIError("CreateEvent");
         return ;
     }
     assert (hEventEmpty==NULL);
-    hEventEmpty = CreateEvent(&sa, FALSE, FALSE, EVENT_EMPTY_OBJECT_NAME);
+    hEventEmpty = CreateEvent(&sa, FALSE, FALSE, FixupObjectName(EVENT_EMPTY_OBJECT_NAME));
     if (hEventEmpty==NULL) {
         PyWin_SetAPIError("CreateEvent");
         return ;
