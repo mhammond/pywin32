@@ -294,6 +294,9 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 	def OnCmdViewFixedFont(self, cmd, code): # Handle the menu command
 		self._GetColorizer().bUseFixed = not self._GetColorizer().bUseFixed
 		self.ApplyFormattingStyles(0)
+		# Ensure the selection is visible!
+		self.ScrollCaret()
+
 	def OnUpdateViewFixedFont(self, cmdui): # Update the tick on the UI.
 		c = self._GetColorizer()
 		if c is not None: cmdui.SetCheck(c.bUseFixed)
@@ -353,30 +356,34 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 			ob = self._GetObjectAtPos(bAllowCalls = 1)
 		if ob is not None:
 			items = []
-			try:
-				items = items + dir(ob)
-			except AttributeError:
-				pass # object has no __dict__
-			try:
-				items = items + dir(ob.__class__)
-			except AttributeError:
-				pass
-			# All names that start with "_" go!
-			items = filter(lambda word: word[0]!='_', items)
-			# The object may be a COM object with typelib support - lets see if we can get its props.
-			# (contributed by Stefan Migowsky)
-			try:
-				# Get the automation attributes
-				list = ob.__class__._prop_map_get_.keys()
-				# See if there is an write only property 
-				# could be optimized
-				for i in ob.__class__._prop_map_put_.keys():
-					if i not in list:
-						list.append(i)
-				# append to the already evaluated list
-				items = items + list
-			except AttributeError:
-				pass
+			try: # Catch unexpected errors when fetching attribute names from the object
+				try:
+					items = items + dir(ob)
+				except AttributeError:
+					pass # object has no __dict__
+				try:
+					items = items + dir(ob.__class__)
+				except AttributeError:
+					pass
+				# All names that start with "_" go!
+				items = filter(lambda word: word[0]!='_', items)
+				# The object may be a COM object with typelib support - lets see if we can get its props.
+				# (contributed by Stefan Migowsky)
+				try:
+					# Get the automation attributes
+					list = ob.__class__._prop_map_get_.keys()
+					# See if there is an write only property 
+					# could be optimized
+					for i in ob.__class__._prop_map_put_.keys():
+						if i not in list:
+							list.append(i)
+					# append to the already evaluated list
+					items = items + list
+				except AttributeError:
+					pass
+			except:
+				win32ui.SetStatusText("Error attempting to get object attributes - %s" % (`sys.exc_info()[0]`,))
+
 
 			if items:
 				self.SCIAutoCShow(items)
