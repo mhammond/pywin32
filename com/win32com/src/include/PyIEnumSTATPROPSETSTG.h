@@ -1,7 +1,7 @@
 // Cloned from PyIEnumSTATPROPSTG.h
 
 
-class PyIEnumSTATPROPSETSTG : public PyIEnum
+class PyIEnumSTATPROPSETSTG : public PyIUnknown
 {
 public:
 	MAKE_PYCOM_CTOR(PyIEnumSTATPROPSETSTG);

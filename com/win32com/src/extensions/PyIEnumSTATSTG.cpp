@@ -13,7 +13,7 @@
 // Interface Implementation
 
 PyIEnumSTATSTG::PyIEnumSTATSTG(IUnknown *pdisp):
-	PyIEnum(pdisp)
+	PyIUnknown(pdisp)
 {
 	ob_type = &type;
 }

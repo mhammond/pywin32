@@ -4,7 +4,7 @@
 //
 // Interface Declaration
 
-class PyIEnumFORMATETC : public PyIEnum
+class PyIEnumFORMATETC : public PyIUnknown
 {
 public:
 	MAKE_PYCOM_CTOR(PyIEnumFORMATETC);

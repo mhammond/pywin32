@@ -13,7 +13,7 @@
 // Interface Implementation
 
 PyIPropertySetStorage::PyIPropertySetStorage(IUnknown *pdisp):
-	PyIEnumProvider(pdisp)
+	PyIUnknown(pdisp)
 {
 	ob_type = &type;
 }

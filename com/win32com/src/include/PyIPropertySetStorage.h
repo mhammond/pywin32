@@ -4,7 +4,7 @@
 //
 // Interface Declaration
 
-class PyIPropertySetStorage : public PyIEnumProvider
+class PyIPropertySetStorage : public PyIUnknown
 {
 public:
 	MAKE_PYCOM_CTOR(PyIPropertySetStorage);

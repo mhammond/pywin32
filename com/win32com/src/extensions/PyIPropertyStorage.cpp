@@ -246,7 +246,7 @@ void PyObject_FreePROPIDs(PROPID *pFree, ULONG)
 // Interface Implementation
 
 PyIPropertyStorage::PyIPropertyStorage(IUnknown *pdisp):
-	PyIEnumProvider(pdisp)
+	PyIUnknown(pdisp)
 {
 	ob_type = &type;
 }

@@ -15,7 +15,7 @@ extern PyObject *PyObject_FromFORMATETC(FORMATETC *petc);
 // Interface Implementation
 
 PyIEnumFORMATETC::PyIEnumFORMATETC(IUnknown *pdisp):
-	PyIEnum(pdisp)
+	PyIUnknown(pdisp)
 {
 	ob_type = &type;
 }

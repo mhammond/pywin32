@@ -3,7 +3,7 @@
 #include "PyIEnumVARIANT.h"
 
 PyIEnumVARIANT::PyIEnumVARIANT(IUnknown *pdisp):
-	PyIEnum(pdisp)
+	PyIUnknown(pdisp)
 {
 	ob_type = &type;
 }

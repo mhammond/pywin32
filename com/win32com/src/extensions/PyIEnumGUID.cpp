@@ -10,7 +10,7 @@
 #include "PyIEnumGUID.h"
 
 PyIEnumGUID::PyIEnumGUID(IUnknown *pDisp) :
-	PyIEnum(pDisp)
+	PyIUnknown(pDisp)
 {
 	ob_type = &type;
 }

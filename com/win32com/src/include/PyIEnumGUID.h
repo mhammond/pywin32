@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // class PyIEnumGUID
 #ifndef NO_PYCOM_IENUMGUID
-class PyIEnumGUID : public PyIEnum
+class PyIEnumGUID : public PyIUnknown
 {
 public:
 	MAKE_PYCOM_CTOR(PyIEnumGUID);
@@ -22,7 +22,7 @@ protected:
 /////////////////////////////////////////////////////////////////////////////
 // class PyIEnumCATEGORYINFO
 #ifndef NO_PYCOM_IENUMCATEGORYINFO
-class PyIEnumCATEGORYINFO : public PyIEnum
+class PyIEnumCATEGORYINFO : public PyIUnknown
 {
 public:
 	MAKE_PYCOM_CTOR(PyIEnumCATEGORYINFO);

@@ -10,7 +10,7 @@
 #include "PyIEnumGUID.h"
 
 PyIEnumCATEGORYINFO::PyIEnumCATEGORYINFO(IUnknown *pDisp) :
-	PyIEnum(pDisp)
+	PyIUnknown(pDisp)
 {
 	ob_type = &type;
 }

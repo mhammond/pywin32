@@ -13,7 +13,7 @@
 // Interface Implementation
 
 PyIEnumConnectionPoints::PyIEnumConnectionPoints(IUnknown *pdisp):
-	PyIEnum(pdisp)
+	PyIUnknown(pdisp)
 {
 	ob_type = &type;
 }

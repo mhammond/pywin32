@@ -4,7 +4,7 @@
 //
 // Interface Declaration
 
-class PyIEnumConnectionPoints : public PyIEnum
+class PyIEnumConnectionPoints : public PyIUnknown
 {
 public:
 	MAKE_PYCOM_CTOR(PyIEnumConnectionPoints);

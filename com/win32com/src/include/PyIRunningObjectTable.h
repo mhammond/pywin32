@@ -3,7 +3,7 @@ class PyIRunningObjectTable : public PyIUnknown
 {
 public:
 	MAKE_PYCOM_CTOR(PyIRunningObjectTable);
-	static PyComTypeObject type;
+	static PyComEnumProviderTypeObject type;
 	static IRunningObjectTable *GetI(PyObject *self);
 
 	static PyObject *IsRunning(PyObject *self, PyObject *args);

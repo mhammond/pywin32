@@ -100,9 +100,9 @@ static struct PyMethodDef PyIRunningObjectTable_methods[] =
 	{NULL,  NULL}        
 };
 
-PyComTypeObject PyIRunningObjectTable::type("PyIRunningObjectTable",
+PyComEnumProviderTypeObject PyIRunningObjectTable::type("PyIRunningObjectTable",
                  &PyIUnknown::type, // @base PyIRunningObjectTable|PyIUnknown
                  sizeof(PyIRunningObjectTable),
                  PyIRunningObjectTable_methods,
-				 GET_PYCOM_CTOR(PyIRunningObjectTable));
-
+                 GET_PYCOM_CTOR(PyIRunningObjectTable),
+                 "EnumRunning");
