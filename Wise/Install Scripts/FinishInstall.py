@@ -208,10 +208,10 @@ def RegisterCOMServer(desc, module, function, cmdlineList):
 		for attr in string.split(module, ".")[1:]:
 			mod = getattr(mod, attr)
 		fn = getattr(mod, function)
-		sys.argv = ['Wise Installer']+cmdlineList
+		sys.argv = [mod.__file__]+cmdlineList
 		fn()
 		Progress()
-		sys.argv = ['Wise Installer', '--unregister_info']+cmdlineList
+		sys.argv = [mod.__file__, '--unregister_info']+cmdlineList
 		ret = fn()
 		if ret:
 			WriteCOMUninstallToLog(ret)
