@@ -6,6 +6,7 @@
 #include "structmember.h"
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
+#include "assert.h"
 
 // @pymethod <o PyOVERLAPPED>|pywintypes|OVERLAPPED|Creates a new OVERLAPPED object
 PyObject *PyWinMethod_NewOVERLAPPED(PyObject *self, PyObject *args)
@@ -21,13 +22,24 @@ PyObject *PyWinMethod_NewOVERLAPPED(PyObject *self, PyObject *args)
 // the object attributes will be automatically updated.
 PYWINTYPES_EXPORT BOOL PyWinObject_AsOVERLAPPED(PyObject *ob, OVERLAPPED **ppOverlapped, BOOL bNoneOK /*= TRUE*/)
 {
+	PyOVERLAPPED *po = NULL;
+	if (!PyWinObject_AsPyOVERLAPPED(ob, &po, bNoneOK))
+		return FALSE;
+	assert(po);
+	if (po)
+		*ppOverlapped = po->GetOverlapped();
+	return TRUE;
+}
+
+PYWINTYPES_EXPORT BOOL PyWinObject_AsPyOVERLAPPED(PyObject *ob, PyOVERLAPPED **ppOverlapped, BOOL bNoneOK /*= TRUE*/)
+{
 	if (bNoneOK && ob==Py_None) {
 		*ppOverlapped = NULL;
 	} else if (!PyOVERLAPPED_Check(ob)) {
 		PyErr_SetString(PyExc_TypeError, "The object is not a PyOVERLAPPED object");
 		return FALSE;
 	} else {
-		*ppOverlapped = ((PyOVERLAPPED *)ob)->GetOverlapped();
+		*ppOverlapped = ((PyOVERLAPPED *)ob);
 	}
 	return TRUE;
 }
@@ -137,6 +149,12 @@ PyObject *PyOVERLAPPED::getattr(PyObject *self, char *name)
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
+// @prop int|dword|An integer buffer that may be used by overlapped functions (eg, <om win32file.WaitCommEvent>)
+	else if (strcmp("dword", name) == 0)
+	{
+		PyOVERLAPPED *pO = (PyOVERLAPPED *)self;
+		return PyInt_FromLong(pO->m_overlapped.dwValue);
+	}
 	return PyMember_Get((char *)self, memberlist, name);
 }
 
@@ -167,6 +185,15 @@ int PyOVERLAPPED::setattr(PyObject *self, char *name, PyObject *v)
 		pO->m_overlapped.obState = v;
 		return 0;
 	}
+	else if (strcmp("dword", name) == 0)
+	{
+		PyOVERLAPPED *pO = (PyOVERLAPPED *)self;
+		PyErr_Clear();
+		pO->m_overlapped.dwValue = PyInt_AsLong(v);
+		if (PyErr_Occurred())
+			PyErr_SetString(PyExc_TypeError, "The 'dword' value must be an integer");
+		return 0;
+	}
 	return PyMember_Set((char *)self, memberlist, name, v);
 }
 
@@ -174,4 +201,3 @@ int PyOVERLAPPED::setattr(PyObject *self, char *name, PyObject *v)
 {
 	delete (PyOVERLAPPED *)ob;
 }
-
