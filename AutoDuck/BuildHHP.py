@@ -56,12 +56,16 @@ def handle_globs(lGlobs):
     i = i + 1
   # Find the common prefix of all of the files
   sCommonPrefix = os.path.commonprefix(lFiles)
-  # if that prefix isnt a directory, turn it into one!
-  if not os.path.isdir(sCommonPrefix):
-    sCommonPrefix = os.path.split(sCommonPrefix)[0]
-  # 1.6/2.0 beta bugs in commonprefix
+  # Damn - more commonprefix problems
+  # "win32com" and "win32comext" appear, screwing things :-(
   if sCommonPrefix[-1] not in "\\/":
-    sCommonPrefix = os.path.normcase(sCommonPrefix + "/")
+    # No trailing slash - the common prefix is not always used as a path
+    # (eg, "win32com/" vs "win32comext/"
+    sCommonPrefix = os.path.split(sCommonPrefix)[0]
+    sCommonPrefix = os.path.normpath(sCommonPrefix) + "\\"
+  # else we have a trailing slash - it means we _expect_ it to be a patch as-is.
+  assert os.path.isdir(sCommonPrefix) and sCommonPrefix[-1]=="\\", "commonprefix splitting aint gunna work!"
+  print "sCommonPrefix=", sCommonPrefix
   # Ok, now remove this common prefix from every file:
   lRelativeFiles = []
   for file in lFiles:
