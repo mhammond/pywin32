@@ -7,7 +7,9 @@ import sys, os
 
 class MainWindow:
     def __init__(self):
+        msg_TaskbarRestart = RegisterWindowMessage("TaskbarCreated");
         message_map = {
+                msg_TaskbarRestart: self.OnRestart,
                 win32con.WM_DESTROY: self.OnDestroy,
                 win32con.WM_COMMAND: self.OnCommand,
                 win32con.WM_USER+20 : self.OnTaskbarNotify,
@@ -27,8 +29,10 @@ class MainWindow:
                 0, 0, win32con.CW_USEDEFAULT, win32con.CW_USEDEFAULT, \
                 0, 0, hinst, None)
         UpdateWindow(self.hwnd)
-
+        self._DoCreateIcons()
+    def _DoCreateIcons(self):
         # Try and find a custom icon
+        hinst =  GetModuleHandle(None)
         iconPathName = os.path.abspath(os.path.join( os.path.split(sys.executable)[0], "pyc.ico" ))
         if not os.path.isfile(iconPathName):
             # Look in the source tree.
@@ -43,6 +47,9 @@ class MainWindow:
         flags = NIF_ICON | NIF_MESSAGE | NIF_TIP
         nid = (self.hwnd, 0, flags, win32con.WM_USER+20, hicon, "Python Demo")
         Shell_NotifyIcon(NIM_ADD, nid)
+
+    def OnRestart(self, hwnd, msg, wparam, lparam):
+        self._DoCreateIcons()
 
     def OnDestroy(self, hwnd, msg, wparam, lparam):
         nid = (self.hwnd, 0)
