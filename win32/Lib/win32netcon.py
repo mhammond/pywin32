@@ -635,3 +635,11 @@ WNCON_FORNETCARD = 1
 WNCON_NOTROUTED = 2
 WNCON_SLOWLINK = 4
 WNCON_DYNAMIC = 8
+
+## NETSETUP_NAME_TYPE, used with NetValidateName
+NetSetupUnknown = 0
+NetSetupMachine = 1
+NetSetupWorkgroup = 2
+NetSetupDomain = 3
+NetSetupNonExistentDomain = 4
+NetSetupDnsMachine = 5
