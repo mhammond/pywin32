@@ -154,6 +154,7 @@ def CastTo(ob, target):
         # resolve coclass to interface
         target_class = getattr(target_class, "default_interface", target_class)
         return target_class(ob) # auto QI magic happens
+    raise ValueError, "This object can not be cast"
 
 class Constants:
   """A container for generated COM constants.
@@ -246,7 +247,7 @@ def DispatchWithEvents(clsid, user_event_class):
       disp_clsid = ti.GetTypeAttr()[0]
       tlb, index = ti.GetContainingTypeLib()
       tla = tlb.GetLibAttr()
-      mod = gencache.EnsureModule(tla[0], tla[1], tla[3], tla[4])
+      gencache.EnsureModule(tla[0], tla[1], tla[3], tla[4])
       # Get the class from the module.
       disp_class = gencache.GetClassForProgID(str(disp_clsid))
     except pythoncom.com_error:
@@ -298,7 +299,7 @@ def WithEvents(disp, user_event_class):
       disp_clsid = ti.GetTypeAttr()[0]
       tlb, index = ti.GetContainingTypeLib()
       tla = tlb.GetLibAttr()
-      mod = gencache.EnsureModule(tla[0], tla[1], tla[3], tla[4])
+      gencache.EnsureModule(tla[0], tla[1], tla[3], tla[4])
       # Get the class from the module.
       disp_class = gencache.GetClassForProgID(str(disp_clsid))
     except pythoncom.com_error:
