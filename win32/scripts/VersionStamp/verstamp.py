@@ -128,7 +128,7 @@ def VS_VERSION_INFO(maj, min, sub, build, sdata, vdata, debug=0, is_dll=1):
   result = pad32(result) + StringFileInfo(sdata) + VarFileInfo(vdata)
   return addlen(result)
 
-def stamp(vars, pathname, desc, verbose=0, is_dll=1):
+def stamp(vars, pathname, desc, verbose=0, debug=0, is_dll=1):
   # For some reason, the API functions report success if the file is open
   # but doesnt work!  Try and open the file for writing, just to see if it is
   # likely the stamp will work!
@@ -170,7 +170,7 @@ def stamp(vars, pathname, desc, verbose=0, is_dll=1):
   vdata = {
     'Translation' : struct.pack('hh', 0x409, 1200),
     }
-  vs = VS_VERSION_INFO(maj, min, sub, build, sdata, vdata)
+  vs = VS_VERSION_INFO(maj, min, sub, build, sdata, vdata, debug, is_dll)
 
   h = BeginUpdateResource(pathname, 0)
   UpdateResource(h, 16, 1, vs)

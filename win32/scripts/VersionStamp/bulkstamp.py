@@ -58,11 +58,11 @@ def walk(arg, dirname, names):
         base, ext = os.path.splitext(name)
         if base[-2:]=='_d':
           name = base[:-2] + ext
-        is_dll = 1				### do something real, someday
+        is_dll = ext.lower() != ".exe"
         if descriptions.has_key(os.path.normcase(name)):
           desc = descriptions[os.path.normcase(name)]
           try:
-            verstamp.stamp(vars, pathname, desc)
+            verstamp.stamp(vars, pathname, desc, is_dll=is_dll)
             numStamped = numStamped + 1
           except win32api.error, (hr, func, desc):
             print "Could not stamp", pathname, "Error", hr, "-", desc
