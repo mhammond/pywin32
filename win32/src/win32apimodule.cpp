@@ -4167,7 +4167,7 @@ static PyObject *PyApply(PyObject *self, PyObject *args)
 }
 #endif // MAINWIN
 
-// @pymethod |GetFileVersionInfo||Retrieve version info for specified file
+// @pymethod |win32api|GetFileVersionInfo|Retrieve version info for specified file
 PyObject *PyGetFileVersionInfo(PyObject *self, PyObject *args)
 {
 	int wcharcmp=0, nbr_langs=0, lang_ind=0;
@@ -4401,6 +4401,9 @@ static BOOL WINAPI PyCtrlHandler(DWORD dwCtrlType)
 		PyObject *ob = PyList_GET_ITEM(consoleControlHandlers, i-1);
 		PyObject *ret = PyObject_Call(ob, args, NULL);
 		if (ret == NULL) {
+			// EEK - this is printed in the case of SystemExit - but SystemExit
+			// *is* honoured by virtue of PyErr_Print() doing the termination.
+			// This will not be the main thread.  I don't think we want this.
 			PySys_WriteStderr("ConsoleCtrlHandler function failed");
 			PyErr_Print();
 			PyErr_Clear();
