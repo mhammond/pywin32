@@ -23,14 +23,19 @@ import sys
 
 verbose = 0
 
+def progress(*args):
+    if verbose:
+        for arg in args:
+            print arg,
+        print
+
 def TestApplyResult(fn, args, result):
     try:
         import string
         fnName = string.split(str(fn))[1]
     except:
         fnName = str(fn)
-    if verbose:
-        print "Testing ", fnName,
+    progress("Testing ", fnName)
     pref = "function " + fnName
     try:
         rc  = apply(fn, args)
@@ -40,9 +45,6 @@ def TestApplyResult(fn, args, result):
         t, v, tb = sys.exc_info()
         tb = None
         raise error, "%s caused exception %s,%s" % (pref, t, v)
-
-    if verbose: print
-
 
 # Simple handler class.  This demo only fires one event.
 class RandomEventHandler:
@@ -57,19 +59,18 @@ class RandomEventHandler:
         if not self.fireds:
             print "ERROR: Nothing was recieved!"
         for firedId, no in self.fireds.items():
-            if verbose:
-                print "ID %d fired %d times" % (firedId, no)
+            progress("ID %d fired %d times" % (firedId, no))
 
 def TestDynamic():
-    if verbose: print "Testing Dynamic"
+    progress("Testing Dynamic")
     import win32com.client.dynamic
     o = win32com.client.dynamic.DumbDispatch("PyCOMTest.PyCOMTest")
 
-    if verbose: print "Getting counter"
+    progress("Getting counter")
     counter = o.GetSimpleCounter()
     TestCounter(counter, 0)
 
-    if verbose: print "Checking default args"
+    progress("Checking default args")
     rc = o.TestOptionals()
     if  rc[:-1] != ("def", 0, 1) or abs(rc[-1]-3.14)>.01:
         print rc
@@ -89,7 +90,6 @@ def TestDynamic():
 
 #       if verbose: print "Testing structs"
     r = o.GetStruct()
-    print str(r.str_value)
     assert r.int_value == 99 and str(r.str_value)=="Hello from C++"
     counter = win32com.client.dynamic.DumbDispatch("PyCOMTest.SimpleCounter")
     TestCounter(counter, 0)
@@ -122,7 +122,7 @@ def TestGenerated():
     del i1
     del i2
 
-    if verbose: print "Checking default args"
+    progress("Checking default args")
     rc = o.TestOptionals()
     if  rc[:-1] != ("def", 0, 1) or abs(rc[-1]-3.14)>.01:
         print rc
@@ -140,17 +140,17 @@ def TestGenerated():
         print rc
         raise error, "Did not get the specified optional2 values correctly"
 
-    if verbose: print "Checking var args"
+    progress("Checking var args")
     o.SetVarArgs("Hi", "There", "From", "Python", 1)
     if o.GetLastVarArgs() != ("Hi", "There", "From", "Python", 1):
         raise error, "VarArgs failed -" + str(o.GetLastVarArgs())
-    if verbose: print "Checking getting/passing IUnknown"
+    progress("Checking getting/passing IUnknown")
     if o.GetSetUnknown(o) != o:
         raise error, "GetSetUnknown failed"
-    if verbose: print "Checking getting/passing IDispatch"
+    progress("Checking getting/passing IDispatch")
     if type(o.GetSetDispatch(o)) !=types.InstanceType:
         raise error, "GetSetDispatch failed"
-    if verbose: print "Checking getting/passing IDispatch of known type"
+    progress("Checking getting/passing IDispatch of known type")
     if o.GetSetInterface(o).__class__ != o.__class__:
         raise error, "GetSetDispatch failed"
 
@@ -189,7 +189,7 @@ def TestGenerated():
 
     # Do the connection point thing...
     # Create a connection object.
-    if verbose: print "Testing connection points"
+    progress("Testing connection points")
     sessions = []
     o = win32com.client.DispatchWithEvents( o, RandomEventHandler)
     o._Init()
@@ -204,11 +204,11 @@ def TestGenerated():
         for session in sessions:
             o.Stop(session)
         o._DumpFireds()
-    if verbose: print "Finished generated .py test."
+    progress("Finished generated .py test.")
 
 def TestCounter(counter, bIsGenerated):
     # Test random access into container
-    if verbose: print "Testing counter", `counter`
+    progress("Testing counter", `counter`)
     import random
     for i in xrange(50):
         num = int(random.random() * len(counter))
@@ -257,7 +257,7 @@ def TestCounter(counter, bIsGenerated):
         num = num + 1
     if num <> 10:
         raise error, "*** Unexpected number of loop iterations - got %d ***" % num
-    if verbose: print "Finished testing counter"
+    progress("Finished testing counter")
 
 def TestLocalVTable(ob):
     # Python doesn't fully implement this interface.
@@ -304,7 +304,7 @@ def TestQueryInterface(long_lived_server = 0, iterations=5):
     ]
 
     for i in range(iterations):
-        print prompt[long_lived_server!=0] % (i+1, iterations)
+        progress(prompt[long_lived_server!=0] % (i+1, iterations))
         tester.TestQueryInterface()
 
 def TestMultiVTable():
@@ -313,11 +313,11 @@ def TestMultiVTable():
     # memory read to bubble up out of python. Set the range
     # to 1 to pass this test, i.e. for i in range(1)
     for i in range(2):
-        print "Testing VTables in-process #%d..." % (i+1)
+        progress("Testing VTables in-process #%d..." % (i+1))
         TestVTable(pythoncom.CLSCTX_INPROC_SERVER)
 
     for i in range(2):
-        print "Testing VTables out-of-process #%d..." % (i+1)
+        progress("Testing VTables out-of-process #%d..." % (i+1))
         TestVTable(pythoncom.CLSCTX_LOCAL_SERVER)
 
 def TestMultiQueryInterface():
@@ -341,11 +341,11 @@ def TestAll():
         print importMsg
         return
 
-    print "Testing Universal Gateway..."
+    progress("Testing Universal Gateway...")
     TestMultiVTable()
     TestMultiQueryInterface()
 
-    print "Testing Python COM Test Horse..."
+    progress("Testing Python COM Test Horse...")
     TestDynamic()
     TestGenerated()
 
