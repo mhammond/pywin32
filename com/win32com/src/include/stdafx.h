@@ -8,11 +8,5 @@
 //
 #define _WIN32_DCOM
 
-#include <limits.h>
-
-#include <Python.h>
-
-#ifndef MS_WINCE // win32 wont need that soon?
-// Must come after Python headers.
-#include <windows.h>
-#endif
+// PyWinTypes.h pulls in Python.h and windows.h.
+#include <PyWinTypes.h>
