@@ -96,6 +96,21 @@ ErrScript = """\
 bad code for everyone!
 """
 
+state_map = {
+	axscript.SCRIPTSTATE_UNINITIALIZED: "SCRIPTSTATE_UNINITIALIZED",
+	axscript.SCRIPTSTATE_INITIALIZED: "SCRIPTSTATE_INITIALIZED",
+	axscript.SCRIPTSTATE_STARTED: "SCRIPTSTATE_STARTED",
+	axscript.SCRIPTSTATE_CONNECTED: "SCRIPTSTATE_CONNECTED",
+	axscript.SCRIPTSTATE_DISCONNECTED: "SCRIPTSTATE_DISCONNECTED",
+	axscript.SCRIPTSTATE_CLOSED: "SCRIPTSTATE_CLOSED",
+}
+
+def _CheckEngineState(engine, name, state):
+  got = engine.engine.eScript.GetScriptState()
+  if got != state:
+    got_name = state_map.get(got, str(got))
+    state_name = state_map.get(state, str(state))
+    raise RuntimeError, "Warning - engine %s has state %s, but expected %s" % (name, got_name, state_name)
 
 def TestEngine(engineName, code, bShouldWork = 1):
   echoer = Test()
@@ -105,8 +120,10 @@ def TestEngine(engineName, code, bShouldWork = 1):
 
   site = MySite(model)
   engine = site._AddEngine(engineName)
+  _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_INITIALIZED)
   engine.AddCode(code)
   engine.Start()
+  _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_STARTED)
 
   if not bShouldWork: return
   # Now call into the scripts IDispatch
@@ -129,7 +146,28 @@ def TestEngine(engineName, code, bShouldWork = 1):
   result = engine.eParse.ParseScriptText("1+1", None, None, None, 0, 0, axscript.SCRIPTTEXT_ISEXPRESSION)
   if result != 2:
     print "Engine could not evaluate '1+1' - said the result was", result
+
+  # re-initialize to make sure it transitions back to initialized again.
+  engine.SetScriptState(axscript.SCRIPTSTATE_INITIALIZED)
+  _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_INITIALIZED)
+  engine.Start()
+  _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_STARTED)
+  
+  # Transition back to initialized, then through connected too.
+  engine.SetScriptState(axscript.SCRIPTSTATE_INITIALIZED)
+  _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_INITIALIZED)
+  engine.SetScriptState(axscript.SCRIPTSTATE_CONNECTED)
+  _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_CONNECTED)
+  engine.SetScriptState(axscript.SCRIPTSTATE_INITIALIZED)
+  _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_INITIALIZED)
+
+  engine.SetScriptState(axscript.SCRIPTSTATE_CONNECTED)
+  _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_CONNECTED)
+  engine.SetScriptState(axscript.SCRIPTSTATE_DISCONNECTED)
+  _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_DISCONNECTED)
   engine.Close()
+  #_CheckEngineState(site, engineName, axscript.SCRIPTSTATE_CLOSED)
+  
 
 def dotestall():
   TestEngine("VBScript", VBScript)
