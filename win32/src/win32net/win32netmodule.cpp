@@ -715,6 +715,64 @@ done:
 	return ret;
 }
 
+/* Other misc functions */
+// @method <o PyUnicode>|win32net|NetGetDCName|Returns the name of the primary domain controller (PDC).
+PyObject *PyNetGetDCName(PyObject *self, PyObject *args)
+{
+	PyObject *obServer = Py_None, *obDomain = Py_None;
+	WCHAR *szServer = NULL, *szDomain = NULL, *result = NULL;
+	PyObject *ret = NULL;
+	NET_API_STATUS err;
+
+	// @pyparm <o PyUnicode>|server|None|Specifies the name of the remote server on which the function is to execute. If this parameter is None, the local computer is used.
+	// @pyparm <o PyUnicode>|domain|None|Specifies the name of the domain. If this parameter is None, the name of the domain controller for the primary domain is used.
+	if (!PyArg_ParseTuple(args, "|OO", &obServer, &obDomain))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obServer, &szServer, TRUE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(obDomain, &szDomain, TRUE))
+		goto done;
+    err = NetGetDCName(szServer, szDomain, (LPBYTE *)&result);
+	if (err) {
+		ReturnNetError("NetGetDCName", err);
+		goto done;
+	}
+	ret = PyWinObject_FromWCHAR(result);
+done:
+	PyWinObject_FreeWCHAR(szServer);
+	PyWinObject_FreeWCHAR(szDomain);
+	NetApiBufferFree(result);
+	return ret;
+}
+
+// @method <o PyUnicode>|win32net|NetGetAnyDCName|Returns the name of any domain controller trusted by the specified server.
+PyObject *PyNetGetAnyDCName(PyObject *self, PyObject *args)
+{
+	PyObject *obServer = Py_None, *obDomain = Py_None;
+	WCHAR *szServer = NULL, *szDomain = NULL, *result = NULL;
+	PyObject *ret = NULL;
+	NET_API_STATUS err;
+
+	// @pyparm <o PyUnicode>|server|None|Specifies the name of the remote server on which the function is to execute. If this parameter is None, the local computer is used.
+	// @pyparm <o PyUnicode>|domain|None|Specifies the name of the domain. If this parameter is None, the name of the domain controller for the primary domain is used.
+	if (!PyArg_ParseTuple(args, "|OO", &obServer, &obDomain))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obServer, &szServer, TRUE))
+		goto done;
+	if (!PyWinObject_AsWCHAR(obDomain, &szDomain, TRUE))
+		goto done;
+    err = NetGetAnyDCName(szServer, szDomain, (LPBYTE *)&result);
+	if (err) {
+		ReturnNetError("NetGetAnyDCName", err);
+		goto done;
+	}
+	ret = PyWinObject_FromWCHAR(result);
+done:
+	PyWinObject_FreeWCHAR(szServer);
+	PyWinObject_FreeWCHAR(szDomain);
+	NetApiBufferFree(result);
+	return ret;
+}
 
 /*************************************************************************************************************
 **
@@ -834,6 +892,9 @@ static struct PyMethodDef win32net_functions[] = {
     {"NetUseDel",               PyNetUseDel,               1}, // @pymeth NetUseDel|Ends connection to a shared resource.
     {"NetUseEnum",              PyNetUseEnum,               1}, // @pymeth NetUseEnum|Enumerates connection between local machine and shared resources on remote computers.
     {"NetUseGetInfo",           PyNetUseGetInfo,               1}, // @pymeth NetUseGetInfo|Get information about locally mapped shared resource on remote computer.
+
+	{"NetGetAnyDCName",         PyNetGetAnyDCName,         1}, // @pymeth NetGetAnyDCName|Returns the name of any domain controller trusted by the specified server.
+	{"NetGetDCName",            PyNetGetDCName,            1}, // @pymeth NetGetDCName|Returns the name of the primary domain controller (PDC).
 	{NULL,			NULL}
 };
 
