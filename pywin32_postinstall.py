@@ -18,6 +18,9 @@ silent = 0
 # Verbosity of output messages.
 verbose = 1
 
+ver_string = "%d.%d" % (sys.version_info[0], sys.version_info[1])
+root_key_name = "Software\\Python\\PythonCore\\" + ver_string
+
 try:
     # When this script is run from inside the bdist_wininst installer,
     # file_created() and directory_created() are additional builtin
@@ -30,22 +33,34 @@ except NameError:
         pass
     def directory_created(directory):
         pass
+    def get_root_hkey():
+        try:
+            _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+                            root_key_name, _winreg.KEY_CREATE_SUB_KEY)
+            return _winreg.HKEY_LOCAL_MACHINE
+        except OSError, details:
+            # Either not exist, or no permissions to create subkey means
+            # must be HKCU
+            return _winreg.HKEY_CURRENT_USER
 
-def AbortRetryIgnore(desc, func, *args):
+def CopyTo(desc, src, dest):
     import win32api, win32con
     while 1:
         try:
-            return func(*args)
-        except:
+            win32api.CopyFile(src, dest, 0)
+            return
+        except win32api.error, details:
+            if details[0]==5: # access denied - user not admin.
+                raise
             if silent:
                 # Running silent mode - just re-raise the error.
                 raise
-            exc_type, exc_val, tb = sys.exc_info()
+            err_msg = details[2]
             tb = None
             full_desc = "Error %s\n\n" \
                         "If you have any Python applications running, " \
                         "please close them now\nand select 'Retry'\n\n%s" \
-                        % (desc, exc_val)
+                        % (desc, err_msg)
             rc = win32api.MessageBox(0,
                                      full_desc,
                                      "Installation Error",
@@ -53,17 +68,34 @@ def AbortRetryIgnore(desc, func, *args):
             if rc == win32con.IDABORT:
                 raise
             elif rc == win32con.IDIGNORE:
-                return None
+                return
             # else retry - around we go again.
 
+# We need to import win32api to determine the Windows system directory,
+# so we can copy our system files there - but importing win32api will
+# load the pywintypes.dll already in the system directory preventing us
+# from updating them!
+# So, we pull the same trick pywintypes.py does, but it loads from
+# our pywintypes_system32 directory.
+def LoadSystemModule(lib_dir, modname):
+    # See if this is a debug build.
+    import imp
+    for suffix_item in imp.get_suffixes():
+        if suffix_item[0]=='_d.pyd':
+            suffix = '_d'
+            break
+    else:
+        suffix = ""
+    filename = "%s%d%d%s.dll" % \
+               (modname, sys.version_info[0], sys.version_info[1], suffix)
+    filename = os.path.join(lib_dir, "pywin32_system32", filename)
+    mod = imp.load_module(modname, None, filename, 
+                          ('.dll', 'rb', imp.C_EXTENSION))
+
+
 def SetPyKeyVal(key_name, value_name, value):
-    ver_string = "%d.%d" % (sys.version_info[0], sys.version_info[1])
-    root_key_name = "Software\\Python\\PythonCore\\" + ver_string
-    try:
-        root_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, root_key_name)
-    except OSError:
-        root_key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER_MACHINE,
-                                   root_key_name)
+    root_hkey = get_root_hkey()
+    root_key = _winreg.OpenKey(root_hkey, root_key_name)
     try:
         my_key = _winreg.CreateKey(root_key, key_name)
         try:
@@ -92,6 +124,7 @@ def RegisterCOMObjects(register = 1):
 
 def install():
     import distutils.sysconfig
+    import traceback
     lib_dir = distutils.sysconfig.get_python_lib(plat_specific=1)
     fname = os.path.join(sys.prefix, "pywin32.pth")
     if verbose:
@@ -119,38 +152,57 @@ def install():
                 _winreg.DeleteKey(root, keyname)
             except WindowsError:
                 pass
-    # To be able to import win32api, PyWinTypesxx.dll must be on the PATH
-    # We must be careful to use the one we just installed, not one already
-    # in the system directory, otherwise we will not be able to copy the one
-    # just installed into the system dir.
-    os.environ["PATH"] = "%s;%s" % (os.path.join(lib_dir, "pywin32_system32"), os.environ["PATH"])
-    # importing pywintypes explicitly before win32api means our one in sys.path
-    # is found, rather than whatever Windows implicitly finds as a side-effect
-    # of importing win32api.
-    import pywintypes
+    LoadSystemModule(lib_dir, "pywintypes")
+    LoadSystemModule(lib_dir, "pythoncom")
     import win32api
     # and now we can get the system directory:
-    sysdir = win32api.GetSystemDirectory()
-    # and copy some files over there
     files = glob.glob(os.path.join(lib_dir, "pywin32_system32\\*.*"))
     if not files:
         raise RuntimeError, "No system files to copy!!"
-    for fname in files:
-        base = os.path.basename(fname)
-        dst = os.path.join(sysdir, base)
-        if verbose:
-            print "Copy %s to %s" % (base, sysdir)
-        AbortRetryIgnore("installing %s" % base,
-                         shutil.copyfile, fname, dst)
-        # Register the files with the uninstaller
-        file_created(dst)
+    # Try the system32 directory first - if that fails due to "access denied",
+    # it implies a non-admin user, and we use sys.prefix
+    for dest_dir in [win32api.GetSystemDirectory(), sys.prefix]:
+        # and copy some files over there
+        worked = 0
+        try:
+            for fname in files:
+                base = os.path.basename(fname)
+                dst = os.path.join(dest_dir, base)
+                CopyTo("installing %s" % base, fname, dst)
+                if verbose:
+                    print "Copied %s to %s" % (base, dst)
+                # Register the files with the uninstaller
+                file_created(dst)
+                worked = 1
+            if worked:
+                break
+        except win32api.error, details:
+            if details[0]==5:
+                # access denied - user not admin - try sys.prefix dir.
+                continue
+            raise
+    else:
+        raise RuntimeError, \
+              "You don't have enough permissions to install the system files"
+
     # Pythonwin 'compiles' config files - record them for uninstall.
     pywin_dir = os.path.join(lib_dir, "Pythonwin", "pywin")
     for fname in glob.glob(os.path.join(pywin_dir, "*.cfg")):
         file_created(fname[:-1] + "c") # .cfg->.cfc
 
     # Register our demo COM objects.
-    RegisterCOMObjects()
+    try:
+        try:
+            RegisterCOMObjects()
+        except win32api.error, details:
+            if details[0]!=5: # ERROR_ACCESS_DENIED
+                raise
+            print "You do not have the permissions to install COM objects."
+            print "The sample COM objects were not registered."
+    except:
+        print "FAILED to register the Python COM objects"
+        traceback.print_exc()
+
     # Register the .chm help file.
     chm_file = os.path.join(lib_dir, "PyWin32.chm")
     if os.path.isfile(chm_file):
@@ -176,24 +228,39 @@ def install():
     else:
         try:
             # use bdist_wininst builtins to create a shortcut.
-            try:
-                # CSIDL_COMMON_PROGRAMS only available works on NT/2000/XP:
-                fldr = get_special_folder_path("CSIDL_COMMON_PROGRAMS")
-            except OSError:
-                # CSIDL_PROGRAMS should work on Win 98
+            # CSIDL_COMMON_PROGRAMS only available works on NT/2000/XP, and
+            # will fail there if the user has no admin rights.
+            if get_root_hkey()==_winreg.HKEY_LOCAL_MACHINE:
+                try:
+                    fldr = get_special_folder_path("CSIDL_COMMON_PROGRAMS")
+                except OSError:
+                    # No CSIDL_COMMON_PROGRAMS on this platform
+                    fldr = get_special_folder_path("CSIDL_PROGRAMS")
+            else:
+                # non-admin install - always goes in this user's start menu.
                 fldr = get_special_folder_path("CSIDL_PROGRAMS")
-            dst = os.path.join(fldr, "Python %d.%d\\PythonWin.lnk" % \
-                               (sys.version_info[0], sys.version_info[1]))
+
+            vi = sys.version_info
+            fldr = os.path.join(fldr, "Python %d.%d" % (vi[0], vi[1]))
+            if not os.path.isdir(fldr):
+                os.mkdir(fldr)
+
+            dst = os.path.join(fldr, "PythonWin.lnk")
             create_shortcut(os.path.join(lib_dir, "Pythonwin\\Pythonwin.exe"),
-                            "The Pythonwin IDE",
-                            dst)
+                            "The Pythonwin IDE", dst, "", sys.prefix)
             file_created(dst)
+            if verbose:
+                print "Shortcut for Pythonwin created"
+            # And the docs.
+            dst = os.path.join(fldr, "Python for Windows Documentation.lnk")
+            doc = "Documentation for the PyWin32 extensions"
+            create_shortcut(chm_file, doc, dst)
+            file_created(dst)
+            if verbose:
+                print "Shortcut to documentation created"
         except Exception, details:
             if verbose:
                 print details
-        else:
-            if verbose:
-                print "Shortcut for Pythonwin created"
 
     print "The pywin32 extensions were successfully installed."
 
@@ -249,7 +316,9 @@ if __name__=='__main__':
         elif arg == "-quiet":
             verbose = 0
         elif arg == "-remove":
-            break # we do nothing for now
+            # Nothing to do here - we can't unregister much, as we have
+            # already been uninstalled.
+            pass
         else:
             print "Unknown option:", arg
             usage()
