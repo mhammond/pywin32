@@ -17,7 +17,6 @@ class DebuggerPythonApp(intpyapp.InteractivePythonApp):
 		self.frame.LoadFrame(win32ui.IDR_DEBUGGER, win32con.WS_OVERLAPPEDWINDOW)
 		self.frame.DragAcceptFiles()	# we can accept these.
 		self.frame.ShowWindow(win32con.SW_HIDE);
-#		self.frame.ShowWindow(win32ui.GetInitialStateRequest());
 		self.frame.UpdateWindow();
 
 		# but we do rehook, hooking the new code objects.
@@ -28,7 +27,7 @@ class DebuggerPythonApp(intpyapp.InteractivePythonApp):
 		win32ui.SetAppName(win32ui.LoadString(win32ui.IDR_DEBUGGER))
 		win32ui.SetRegistryKey("Python")
 		# We _need_ the Scintilla color editor.
-		win32ui.WriteProfileVal("Editor","Module", "pywin.framework.editor.color.coloreditor")
+		# (and we _always_ get it now :-)
 
 		numMRU = win32ui.GetProfileVal("Settings","Recent File List Size", 10)
 		win32ui.LoadStdProfileSettings(numMRU)

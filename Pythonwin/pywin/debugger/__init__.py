@@ -21,20 +21,9 @@ def _CheckNeedGUI():
 		pywin.framework.app.CreateDefaultGUI(dbgpyapp.DebuggerPythonApp)
 
 	else:
-		# Check we have the appropriate editor.
-		import pywin.framework.editor
-		try:
-			import pywin.framework.editor.color.coloreditor
-			ok = pywin.framework.editor.editorTemplate==pywin.framework.editor.color.coloreditor.editorTemplate
-		except ImportError:
-			ok = 0
-		if not ok:
-			msg = "This debugger requires the Pythonwin color editor.\r\nDebugging can not continue.\r\n\r\nWould you like to make the color editor the default?"
-			rc = win32ui.MessageBox(msg, "Can't initialize debugger", win32con.MB_YESNO)
-			if rc == win32con.IDYES:
-				pywin.framework.editor.WriteDefaultEditorModule("pywin.framework.editor.color.coloreditor")
-				win32ui.MessageBox("The debugger will be available when you restart the application.")
-			raise RuntimeError, "Can't initialize debugger, as the required editor is not the default"
+		# Check we have the appropriate editor
+		# No longer necessary!
+		pass
 	return need
 
 # Inject some methods in the top level name-space.

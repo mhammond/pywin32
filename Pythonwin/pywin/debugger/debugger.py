@@ -19,7 +19,6 @@ import types
 import win32ui
 import win32api
 import win32con
-import pywin;pywin.editormodulename = "pywin.framework.editor.color.coloreditor"
 import pywin.docking.DockingBar
 from pywin.mfc import dialog, object, afxres, window
 from pywin.framework import app, interact, editor, scriptutils
