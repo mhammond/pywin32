@@ -171,6 +171,9 @@ if __name__=='__main__':
     if verbosity:
         print "Executing level %d tests - %d test cases will be run" \
                 % (testLevel, suite.countTestCases())
+        if verbosity==1:
+            # A little row of markers so the dots show how close to finished
+            print '|' * suite.countTestCases()
     testRunner = unittest.TextTestRunner(verbosity=verbosity)
     testResult = testRunner.run(suite)
     if import_failures:
