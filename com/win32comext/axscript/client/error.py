@@ -82,7 +82,7 @@ class AXScriptException(win32com.server.exception.COMException):
 			import linecache
 			linecache.clearcache()
 		try:
-			if type is SyntaxError:
+			if issubclass(type, SyntaxError):
 				self._BuildFromSyntaxError(site, value, tb)
 			else:
 				self._BuildFromOther(site, type, value, tb)
