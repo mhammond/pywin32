@@ -1,3 +1,4 @@
+build_number=200
 """distutils setup-script for win32all
 
 To build the win32all extensions, simply execute:
@@ -913,9 +914,10 @@ else:
     py_modules = expand_modules("win32\\lib")
 
 dist = setup(name="pywin32",
-      version="200",
+      version=build_number,
       description="Python for Window Extensions",
-      long_description="Includes access to much of the Win32 API, the\n"
+      long_description="Python extensions for Microsoft Windows\n"
+                       "Provides access to much of the Win32 API, the\n"
                        "ability to create and use COM objects, and the\n"
                        "Pythonwin environment.",
       author="Mark Hammond (et al)",
@@ -929,6 +931,7 @@ dist = setup(name="pywin32",
       options = {"bdist_wininst":
                     {"install_script": "pywin32_postinstall.py",
                      "pre_install_script": "pywin32_preinstall.py",
+                     "title": "pywin32 extensions (build %s)" % (build_number,),
                     },
                 },
 
