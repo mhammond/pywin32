@@ -95,6 +95,7 @@ class OleItem:
     self.bIsDispatch = 0
     self.bIsSink = 0
     self.clsid = None
+    self.co_class = None
 
 class DispatchItem(OleItem):
 	typename = "DispatchItem"
@@ -352,21 +353,21 @@ class DispatchItem(OleItem):
 		if len(bad_params)==0 and len(retDesc)==2 and retDesc[1]==0:
 			rd = retDesc[0]
 			if NoTranslateMap.has_key(rd):
-				s = '%s\treturn self._oleobj_.InvokeTypes(0x%x, LCID, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, argsDesc, _BuildArgList(fdesc, names))
+				s = '%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, argsDesc, _BuildArgList(fdesc, names))
 			elif rd==pythoncom.VT_DISPATCH:
-				s = '%s\tret = self._oleobj_.InvokeTypes(0x%x, LCID, %s, %s, %s%s)\n' % (linePrefix, id, fdesc[4], retDesc, `argsDesc`, _BuildArgList(fdesc, names))
+				s = '%s\tret = self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)\n' % (linePrefix, id, fdesc[4], retDesc, `argsDesc`, _BuildArgList(fdesc, names))
 				s = s + '%s\tif ret is not None: ret = win32com.client.Dispatch(ret, %s, %s, UnicodeToString=%d)\n' % (linePrefix,`name`, resclsid, NeedUnicodeConversions) 
 				s = s + '%s\treturn ret' % (linePrefix)
 			elif rd == pythoncom.VT_BSTR:
 				if NeedUnicodeConversions:
 					s = "%s\t# Result is a Unicode object - perform automatic string conversion\n" % (linePrefix,)
-					s = s + '%s\treturn str(self._oleobj_.InvokeTypes(0x%x, LCID, %s, %s, %s%s))' % (linePrefix, id, fdesc[4], retDesc, `argsDesc`, _BuildArgList(fdesc, names))
+					s = s + '%s\treturn str(self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s))' % (linePrefix, id, fdesc[4], retDesc, `argsDesc`, _BuildArgList(fdesc, names))
 				else:
 					s = "%s\t# Result is a Unicode object - return as-is for this version of Python\n" % (linePrefix,)
-					s = s + '%s\treturn self._oleobj_.InvokeTypes(0x%x, LCID, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, `argsDesc`, _BuildArgList(fdesc, names))
+					s = s + '%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, `argsDesc`, _BuildArgList(fdesc, names))
 			# else s remains None
 		if s is None:
-			s = '%s\treturn self._ApplyTypes_(0x%x, %s, %s, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, argsDesc, `name`, resclsid, _BuildArgList(fdesc, names))
+			s = '%s\treturn self._ApplyTypes_(%d, %s, %s, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, argsDesc, `name`, resclsid, _BuildArgList(fdesc, names))
 
 		ret.append(s)
 		ret.append("")
@@ -389,7 +390,7 @@ class DispatchItem(OleItem):
 		else:
 			invoketype = pythoncom.DISPATCH_METHOD
 		s = linePrefix + '\treturn self._get_good_object_(apply(self._oleobj_.Invoke,('
-		ret.append(s + hex(entry.dispid) + ",0,%d,1)+args),'%s')" % (invoketype, names[0]))
+		ret.append(s + str(entry.dispid) + ",0,%d,1)+args),'%s')" % (invoketype, names[0]))
 		ret.append("")
 		return ret
 
@@ -427,7 +428,6 @@ typeSubstMap = {
 
 def _ResolveType(typerepr, itypeinfo):
 	# Resolve VT_USERDEFINED (often aliases or typed IDispatches)
-#	sys.stderr.write("- resolving %s - " % (typerepr,))
 
 	if type(typerepr)==types.TupleType:
 		indir_vt, subrepr = typerepr
@@ -450,7 +450,10 @@ def _ResolveType(typerepr, itypeinfo):
 			# resolve the array element, and convert to VT_ARRAY
 			subrepr, sub_clsid, sub_doc = _ResolveType(subrepr, itypeinfo)
 			return pythoncom.VT_ARRAY | subrepr, sub_clsid, sub_doc
-
+		if indir_vt == pythoncom.VT_CARRAY: # runtime has no support for this yet.
+			# resolve the array element, and convert to VT_CARRAY
+			# sheesh - return _something_
+			return pythoncom.VT_CARRAY, None, None
 		if indir_vt == pythoncom.VT_USERDEFINED:
 			resultTypeInfo = itypeinfo.GetRefTypeInfo(subrepr)
 			resultAttr = resultTypeInfo.GetTypeAttr()
