@@ -2534,6 +2534,69 @@ PyRegSetValueEx( PyObject *self, PyObject *args )
 	// <nl>The key identified by the key parameter must have been opened with KEY_SET_VALUE access.
 }
 
+// @pymethod |win32api|RegSetKeySecurity|Sets the security on the specified registry key.
+static PyObject *PyRegSetKeySecurity(PyObject *self, PyObject *args)
+{
+	long si;
+	HKEY hKey;
+	PyObject *obKey, *obSD;
+	DWORD rc;
+	SECURITY_DESCRIPTOR *sd;
+	if (!PyArg_ParseTuple(args, "OlO:RegSetKeySecurity", 
+		&obKey, // @pyparm <o PyHKEY>/int|key||Handle to an open key for which the security descriptor is set.
+		&si, //@pyparm int|security_info||] Specifies the components of the security descriptor to set. The value can be a combination of the *_SECURITY_INFORMATION constants.
+		&obSD)) // @pyparm <o PySECURITY_DESCRIPTOR>|sd||The new security descriptor for the key
+		return NULL;
+	if (!PyWinObject_AsHKEY(obKey, &hKey))
+		return NULL;
+	if (!PyWinObject_AsSECURITY_DESCRIPTOR(obSD, &sd, FALSE))
+		return NULL;
+	// @pyseeapi PyRegSetKeySecurity
+	PyW32_BEGIN_ALLOW_THREADS
+	rc=RegSetKeySecurity(hKey, si, sd);
+	PyW32_END_ALLOW_THREADS
+	if (rc!=ERROR_SUCCESS)
+		return ReturnAPIError("RegSetKeySecurity", rc);
+	Py_INCREF(Py_None);
+	return Py_None;
+	// @comm If key is one of the predefined keys, the predefined key should be closed with <om win32api.RegCloseKey>. That ensures that the new security information is in effect the next time the predefined key is referenced.
+}
+
+// @pymethod <o PySECURITY_DESCRIPTOR>|win32api|RegGetKeySecurity|Retrieves the security on the specified registry key.
+static PyObject *PyRegGetKeySecurity(PyObject *self, PyObject *args)
+{
+	long si;
+	HKEY hKey;
+	PyObject *obKey;
+	if (!PyArg_ParseTuple(args, "Ol:RegGetKeySecurity", 
+		&obKey, // @pyparm <o PyHKEY>/int|key||Handle to an open key for which the security descriptor is set.
+		&si)) //@pyparm int|security_info||Specifies the components of the security descriptor to retrieve. The value can be a combination of the *_SECURITY_INFORMATION constants.
+		return NULL;
+	if (!PyWinObject_AsHKEY(obKey, &hKey))
+		return NULL;
+	// @pyseeapi PyRegGetKeySecurity
+	DWORD cb = 0;
+	DWORD rc;
+	PyW32_BEGIN_ALLOW_THREADS
+	rc=RegGetKeySecurity(hKey, si, NULL, &cb);
+	PyW32_END_ALLOW_THREADS
+	if (rc!=ERROR_INSUFFICIENT_BUFFER)
+		return ReturnAPIError("RegGetKeySecurity", rc);
+	SECURITY_DESCRIPTOR *sd = (SECURITY_DESCRIPTOR *)malloc(cb);
+	if (sd==NULL)
+		return PyErr_NoMemory();
+	Py_BEGIN_ALLOW_THREADS
+	rc=RegGetKeySecurity(hKey, si, sd, &cb);
+	Py_END_ALLOW_THREADS
+	if (rc!=ERROR_SUCCESS) {
+		free(sd);
+		return ReturnAPIError("RegGetKeySecurity", rc);
+	}
+	PyObject *ret = PyWinObject_FromSECURITY_DESCRIPTOR(sd, cb);
+	free(sd);
+	return ret;
+}
+
 // @pymethod |win32api|RegisterWindowMessage|The RegisterWindowMessage method, given a string, returns a system wide unique
 // message ID, suitable for sending messages between applications who both register the same string.
 static PyObject *
@@ -3692,6 +3755,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"RegEnumKey",          PyRegEnumKey, 1}, // @pymeth RegEnumKey|Enumerates subkeys of the specified open registry key.
 	{"RegEnumValue",        PyRegEnumValue, 1}, // @pymeth RegEnumValue|Enumerates values of the specified open registry key.
 	{"RegFlushKey",	        PyRegFlushKey, 1}, // @pymeth RegFlushKey|Writes all the attributes of the specified key to the registry.
+	{"RegGetKeySecurity",   PyRegGetKeySecurity, 1}, // @pymeth RegGetKeySecurity|Retrieves the security on the specified registry key.
 	{"RegLoadKey",          PyRegLoadKey, 1}, // @pymeth RegLoadKey|Creates a subkey under HKEY_USER or HKEY_LOCAL_MACHINE and stores registration information from a specified file into that subkey.
 	{"RegOpenKey",          PyRegOpenKey, 1}, // @pymeth RegOpenKey|Alias for <om win32api.RegOpenKeyEx>
 	{"RegOpenKeyEx",        PyRegOpenKey, 1}, // @pymeth RegOpenKeyEx|Opens the specified key.
@@ -3699,6 +3763,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"RegQueryValueEx",	PyRegQueryValueEx, 1}, // @pymeth RegQueryValueEx|Retrieves the type and data for a specified value name associated with an open registry key. 
 	{"RegQueryInfoKey",	PyRegQueryInfoKey, 1}, // @pymeth RegQueryInfoKey|Returns information about the specified key.
 	{"RegSaveKey",          PyRegSaveKey, 1}, // @pymeth RegSaveKey|Saves the specified key, and all its subkeys to the specified file.
+	{"RegSetKeySecurity",   PyRegSetKeySecurity, 1}, // @pymeth RegSetKeySecurity|Sets the security on the specified registry key.
 	{"RegSetValue",         PyRegSetValue, 1}, // @pymeth RegSetValue|Associates a value with a specified key.  Currently, only strings are supported.
 	{"RegSetValueEx",       PyRegSetValueEx, 1}, // @pymeth RegSetValueEx|Stores data in the value field of an open registry key.
 	{"RegisterWindowMessage",PyRegisterWindowMessage, 1}, // @pymeth RegisterWindowMessage|Given a string, return a system wide unique message ID.
