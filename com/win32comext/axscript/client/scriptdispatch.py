@@ -59,7 +59,7 @@ class ScriptDispatch:
 			except AttributeError:
 				raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
 			except COMException, instance:
-				raise COMException, instance
+				raise
 			except:
 				ret = self.engine.HandleException()
 			return ret

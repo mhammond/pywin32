@@ -208,9 +208,7 @@ def ProcessAXScriptException(scriptingSite, debugManager, exceptionInstance):
 	if result==winerror.S_OK:
 		# If the above  returns NOERROR, it is assumed the error has been 
 		# correctly registered and the value SCRIPT_E_REPORTED is returned.
-		ret = win32com.server.exception.COMException()
-		ret.hresult = axscript.SCRIPT_E_REPORTED
-#		import win32api;win32api.DebugBreak()
+		ret = win32com.server.exception.COMException(scode=axscript.SCRIPT_E_REPORTED)
 		return ret
 	else:
 		# The error is taken to be unreported and is propagated up the call stack 

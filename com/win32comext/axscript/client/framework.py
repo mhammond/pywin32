@@ -814,7 +814,7 @@ class COMScript:
 			self.HandleException(codeBlock)
 
 	def HandleException(self, codeBlock):
-		# NOTE - Never returns - raises a ComExcepption
+		# NOTE - Never returns - raises a ComException
 		exc_type, exc_value, exc_traceback = sys.exc_info()
 		# Is a SERVER exception, re-raise it.  If a client side COM error, it is
 		# likely to have originated from the script code itself, and therefore
@@ -823,7 +823,7 @@ class COMScript:
 			raise
 		# It could be an error by another script.
 		if issubclass(pythoncom.com_error, exc_type) and exc_value[0]==axscript.SCRIPT_E_REPORTED:
-			raise Exception(hresult=exc_value[0])
+			raise Exception(scode=exc_value[0])
 		
 		exception = error.AXScriptException(self, \
 		                       codeBlock, exc_type, exc_value, exc_traceback)
