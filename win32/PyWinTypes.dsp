@@ -119,6 +119,10 @@ SOURCE=.\src\PyACL.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\src\PyDEVMODE.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\src\PyHANDLE.cpp
 # End Source File
 # Begin Source File
