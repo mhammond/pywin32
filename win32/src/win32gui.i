@@ -257,7 +257,8 @@ LRESULT CALLBACK PyWndProcClass(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 {
 	PyObject *obFunc = (PyObject *)GetClassLong( hWnd, 0);
 	LRESULT rc = 0;
-	PyWndProc_Call(obFunc, hWnd, uMsg, wParam, lParam, &rc);
+	if (!PyWndProc_Call(obFunc, hWnd, uMsg, wParam, lParam, &rc))
+		rc = DefWindowProc(hWnd, uMsg, wParam, lParam);
 	return rc;
 }
 
