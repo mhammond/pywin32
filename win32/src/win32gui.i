@@ -71,23 +71,32 @@ typedef int UINT;
 			return PyWin_SetAPIError("$name");
 		}
 		$target = &r;
+    } else {
+        return PyWin_SetAPIError("$name");
+	}
+}
+
+%typemap(python,in) RECT *INPUT_NULLOK {
+    RECT r;
+	if (PyTuple_Check($source)) {
+		if (PyArg_ParseTuple($source, "llll", &r.left, &r.top, &r.right, &r.bottom) == 0) {
+			return PyWin_SetAPIError("$name");
+		}
+		$target = &r;
 	} else {
-		if (PyInt_Check($source)) {
-			if (PyInt_AsLong($source) == 0) {
-				$target = NULL;
-			} else {
-				return PyWin_SetAPIError("$name");
-			}
+		if ($source == Py_None) {
+            $target = NULL;
+        } else {
+            PyErr_SetString(PyExc_TypeError, "This param must be a tuple of four integers or None");
+            return NULL;
 		}
 	}
 }
 
-%typemap(python,in) struct HRGN__ *INPUT {
-    /* Currently only allow NULL as a value -- I don't know of the 'right' way to do this.
-       DAA 1/9/2000
-    */
-    RECT r;
-	if (PyInt_Check($source)) {
+%typemap(python,in) struct HRGN__ *NONE_ONLY {
+ /* Currently only allow NULL as a value -- I don't know of the
+    'right' way to do this.   DAA 1/9/2000 */
+	if ($source == Py_None) {
         $target = NULL;
     } else {
         return PyWin_SetAPIError("$name");
@@ -1457,10 +1466,10 @@ int ScrollWindowEx(
 	HWND hWnd,        // @pyparm int|hWnd||handle to window to scroll
 	int dx,           // @pyparm int|dx||amount of horizontal scrolling
 	int dy,           // @pyparm int|dy||amount of vertical scrolling
-	RECT *INPUT, // @pyparm int|prcScroll||address of structure with scroll rectangle
-	RECT *INPUT,  // @pyparm int|prcClip||address of structure with clip rectangle
-	struct HRGN__ *INPUT,  // @pyparm int|hrgnUpdate||handle to update region
-	RECT *INPUT, // @pyparm int|prcUpdate||address of structure for update rectangle
+	RECT *INPUT_NULLOK, // @pyparm int|prcScroll||address of structure with scroll rectangle
+	RECT *INPUT_NULLOK,  // @pyparm int|prcClip||address of structure with clip rectangle
+	struct HRGN__ *NONE_ONLY,  // @pyparm int|hrgnUpdate||handle to update region
+	RECT *INPUT_NULLOK, // @pyparm int|prcUpdate||address of structure for update rectangle
 	UINT flags        // @pyparm int|flags||scrolling flags
 ); 
 
@@ -1592,20 +1601,20 @@ static PyObject *PySetScrollInfo(PyObject *self, PyObject *args) {
 	// @pyparm int|bRedraw|1|Should the bar be redrawn?
 	if (!PyArg_ParseTuple(args, "liO|i:SetScrollInfo",
 						  &hwnd, &nBar, &obInfo, &bRedraw)) {
-		PyWin_SetAPIError("ParseTuple failed, SetScrollInfo");
+		PyWin_SetAPIError("SetScrollInfo");
 		return NULL;
 	}
 	SCROLLINFO info;
 	info.cbSize = sizeof(SCROLLINFO);
 	if (ParseSCROLLINFOTuple(obInfo, &info) == 0) {
-		PyWin_SetAPIError("ParseSCROLLINFO failed, SetScrollInfo");
+		PyWin_SetAPIError("SetScrollInfo");
 		return NULL;
 	}
 	GUI_BGN_SAVE;
 	BOOL ok = SetScrollInfo(hwnd, nBar, &info, bRedraw);
 	GUI_END_SAVE;
 	if (!ok) {
-		PyWin_SetAPIError("SetScrollInfo failed, SetScrollInfo");
+		PyWin_SetAPIError("SetScrollInfo");
 		return NULL;
 	}
 	RETURN_NONE;
