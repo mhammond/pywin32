@@ -204,8 +204,11 @@ def GetModuleForTypelib(typelibCLSID, lcid, major, minor):
 	lcid -- Integer LCID for the library.
 	"""
 	modName = GetGeneratedFileName(typelibCLSID, lcid, major, minor)
-	return _GetModule(modName)
-
+	try:
+		return _GetModule(modName)
+	except ImportError:
+		# module seems to be missing!
+		return None
 
 def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = None, bGUIProgress = None, bForDemand = 0, bBuildHidden = 1):
 	"""Generate support for a type library.
