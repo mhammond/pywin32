@@ -362,7 +362,7 @@ PyObject *PyIDirectSoundBuffer::Update(PyObject *self, PyObject *args)
 
 	// Raise error if assumption isn't met
 
-	if (dwAudioBytes1 + dwAudioBytes2 != PyString_Size(obData)) {
+	if (dwAudioBytes1 + dwAudioBytes2 != (DWORD)PyString_Size(obData)) {
 
 		PY_INTERFACE_PRECALL;
 		hr = pIDSB->Unlock(lpAudioPtr1, dwAudioBytes1, lpAudioPtr2, dwAudioBytes2);
