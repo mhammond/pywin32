@@ -18,6 +18,11 @@ PyIDirectSoundBuffer::PyIDirectSoundBuffer(IUnknown *pdisp):
 
 PyIDirectSoundBuffer::~PyIDirectSoundBuffer()
 {
+	// Release should be called before IDirectSound::Release, which may be
+	// triggered below
+	SafeRelease(this);
+
+	// This may trigger IDirectSound::Release
 	if (m_DS)
 		Py_DECREF(m_DS);
 }
