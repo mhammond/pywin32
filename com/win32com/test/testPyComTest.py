@@ -296,11 +296,19 @@ def TestVTable(clsctx=pythoncom.CLSCTX_ALL):
     # Now test it via vtable - use some C++ code to help here as Python can't do it directly yet.
     tester = win32com.client.Dispatch("PyCOMTest.PyCOMTest")
     testee = pythoncom.CoCreateInstance("Python.Test.PyCOMTest", None, clsctx, pythoncom.IID_IUnknown)
+    # check we fail gracefully with None passed.
+    try:
+        tester.TestMyInterface(None)
+    except pythoncom.com_error, details:
+        pass
+    # and a real object.
     tester.TestMyInterface(testee)
 
+def TestVTable2():
     # We once crashed creating our object with the native interface as
     # the first IID specified.  We must do it _after_ the tests, so that
     # Python has already had the gateway registered from last run.
+    ob = win32com.client.Dispatch("Python.Test.PyCOMTest")
     iid = pythoncom.InterfaceNames["IPyCOMTest"]
     clsid = "Python.Test.PyCOMTest"
     clsctx = pythoncom.CLSCTX_SERVER
@@ -310,7 +318,6 @@ def TestVTable(clsctx=pythoncom.CLSCTX_ALL):
         # Python can't actually _use_ this interface yet, so this is
         # "expected".  Any COM error is not.
         pass
-
 
 def TestQueryInterface(long_lived_server = 0, iterations=5):
     tester = win32com.client.Dispatch("PyCOMTest.PyCOMTest")
@@ -327,44 +334,33 @@ def TestQueryInterface(long_lived_server = 0, iterations=5):
         progress(prompt[long_lived_server!=0] % (i+1, iterations))
         tester.TestQueryInterface()
 
-def TestMultiVTable():
-    # We used to crash running this the second time - do it a few times
-    for i in range(3):
-        progress("Testing VTables in-process #%d..." % (i+1))
-        TestVTable(pythoncom.CLSCTX_INPROC_SERVER)
-
-    for i in range(3):
-        progress("Testing VTables out-of-process #%d..." % (i+1))
-        TestVTable(pythoncom.CLSCTX_LOCAL_SERVER)
-
-def TestMultiQueryInterface():
-    TestQueryInterface(0,6)
-    # When we use the custom interface in the presence of a long-lived
-    # local server, i.e. a local server that is already running when
-    # we request an instance of our COM object, and remains afterwards,
-    # then after repeated requests to create an instance of our object
-    # the custom interface disappears -- i.e. QueryInterface fails with
-    # E_NOINTERFACE. Set the upper range of the following test to 2 to
-    # pass this test, i.e. TestQueryInterface(1,2)
-    TestQueryInterface(1,6)
-
-
-def TestAll():
-    try:
-        # Make sure server installed
-        import win32com.client.dynamic
-        win32com.client.dynamic.DumbDispatch("PyCOMTest.PyCOMTest")
-    except pythoncom.com_error:
-        print importMsg
-        return
-
-    progress("Testing Universal Gateway...")
-    TestMultiVTable()
-    TestMultiQueryInterface()
-
-    progress("Testing Python COM Test Horse...")
-    TestDynamic()
-    TestGenerated()
+class Tester(win32com.test.util.TestCase):
+    def testVTableInProc(self):
+        # We used to crash running this the second time - do it a few times
+        for i in range(3):
+            progress("Testing VTables in-process #%d..." % (i+1))
+            TestVTable(pythoncom.CLSCTX_INPROC_SERVER)
+    def testVTableLocalServer(self):
+        for i in range(3):
+            progress("Testing VTables out-of-process #%d..." % (i+1))
+            TestVTable(pythoncom.CLSCTX_LOCAL_SERVER)
+    def testVTable2(self):
+        for i in range(3):
+            TestVTable2()
+    def testMultiQueryInterface(self):
+        TestQueryInterface(0,6)
+        # When we use the custom interface in the presence of a long-lived
+        # local server, i.e. a local server that is already running when
+        # we request an instance of our COM object, and remains afterwards,
+        # then after repeated requests to create an instance of our object
+        # the custom interface disappears -- i.e. QueryInterface fails with
+        # E_NOINTERFACE. Set the upper range of the following test to 2 to
+        # pass this test, i.e. TestQueryInterface(1,2)
+        TestQueryInterface(1,6)
+    def testDynamic(self):
+        TestDynamic()
+    def testGenerated(self):
+        TestGenerated()
 
 if __name__=='__main__':
     # XXX - todo - Complete hack to crank threading support.
@@ -374,9 +370,6 @@ if __name__=='__main__':
     import thread
     thread.start_new( NullThreadFunc, () )
 
-    if "-q" not in sys.argv: verbose = 1
-    TestAll()
-    CheckClean()
-    pythoncom.CoUninitialize()
-    if verbose:
-        print "C++ test harness worked OK."
+    if "-v" in sys.argv: verbose = 1
+    
+    win32com.test.util.testmain()
