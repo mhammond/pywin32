@@ -259,9 +259,9 @@ class DockingBar(window.Wnd):
 
 		# Convert unsigned 16 bit to signed 32 bit.
 		x=win32api.LOWORD(lparam)
-		if x & 0x8000: x = x | 0xFFFF0000
+		if x & 32768: x = x | -65536
 		y = win32api.HIWORD(lparam)
-		if y & 0x8000: y = y | 0xFFFF0000
+		if y & 32768: y = y | -65536
 		pt = x, y
 		cpt = CenterPoint(self.rectTracker)
 		pt = self.ClientToWnd(pt)
