@@ -722,10 +722,10 @@ DWORD SetThreadAffinityMask (
 // This function does not exist on all platforms.
 static PyObject *MySetThreadIdealProcessor( HANDLE hThread, DWORD dwIdealProc )
 {
-	DWORD (*pfnSetThreadIdealProcessor)( HANDLE hThread, DWORD dwIdealProc ) = NULL;
+	DWORD (WINAPI *pfnSetThreadIdealProcessor)( HANDLE hThread, DWORD dwIdealProc ) = NULL;
 	HMODULE hmod = GetModuleHandle("kernel32.dll");
 	if (hmod)
-		pfnSetThreadIdealProcessor = (DWORD (*)( HANDLE hThread, DWORD dwIdealProc ))
+		pfnSetThreadIdealProcessor = (DWORD (WINAPI *)( HANDLE hThread, DWORD dwIdealProc ))
 			GetProcAddress(hmod, "SetThreadIdealProcessor");
 	if (pfnSetThreadIdealProcessor==NULL)
 		return PyWin_SetAPIError("SetThreadIdealProcessor", E_NOTIMPL);
@@ -749,10 +749,10 @@ PyObject *MySetThreadIdealProcessor(
 // This function does not exist on all platforms.
 static PyObject *MySetProcessAffinityMask( HANDLE hThread, DWORD dwMask )
 {
-	DWORD (*pfnSetProcessAffinityMask)( HANDLE hThread, DWORD dwMask ) = NULL;
+	DWORD (WINAPI *pfnSetProcessAffinityMask)( HANDLE hThread, DWORD dwMask ) = NULL;
 	HMODULE hmod = GetModuleHandle("kernel32.dll");
 	if (hmod)
-		pfnSetProcessAffinityMask = (DWORD (*)( HANDLE hThread, DWORD dwMask ))
+		pfnSetProcessAffinityMask = (DWORD (WINAPI *)( HANDLE hThread, DWORD dwMask ))
 			GetProcAddress(hmod, "SetProcessAffinityMask");
 	if (pfnSetProcessAffinityMask==NULL)
 		return PyWin_SetAPIError("SetProcessAffinityMask", E_NOTIMPL);
