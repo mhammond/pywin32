@@ -149,27 +149,27 @@ static struct PyNET_STRUCT_ITEM wki302[] = {
 #define WKI402_ENTRY(name, t, r) { _T(#name), t, offsetof(WKSTA_INFO_402, wki402_##name), r }
 // @object PyWKSTA_INFO_402|A dictionary holding the infomation in a Win32 WKSTA_INFO_402 structure.
 static struct PyNET_STRUCT_ITEM wki402[] = {
-	WKI402_ENTRY(char_wait, NSI_DWORD, 0), // @prop int|number of seconds the computer will wait for a remote resource to become available|
-	WKI402_ENTRY(collection_time, NSI_DWORD, 0), // @prop int|number of milliseconds the computer will collect data before sending the data to a character device resource. The workstation waits the specified time or collects the number of characters specified by wki402_maximum_collection_count, whichever comes first.|
-	WKI402_ENTRY(maximum_collection_count , NSI_DWORD, 0), // @prop string/<o PyUnicode>|Name of the domain to which computer belongs|
-	WKI402_ENTRY(keep_conn, NSI_DWORD, 0), // @prop int|Major version number of operating system running on the computer|
-	WKI402_ENTRY(keep_search, NSI_DWORD, 0), // @prop int|Minor version number of operating system running on the computer|
-	WKI402_ENTRY(max_cmds, NSI_DWORD, 0), // @prop int| .. |
-	WKI402_ENTRY(num_work_buf, NSI_DWORD, 0), // @prop int|Number of users who are logged on to the local computer|
-	WKI402_ENTRY(siz_work_buf, NSI_DWORD, 0), // @prop int|Number of users who are logged on to the local computer|
-	WKI402_ENTRY(max_wrk_cache, NSI_DWORD, 0), // @prop int| .. |
-    WKI402_ENTRY(sess_timeout, NSI_DWORD, 0), // @prop int| .. |
-    WKI402_ENTRY(siz_error, NSI_DWORD, 0),    // @prop int| .. |
-    WKI402_ENTRY(num_alerts, NSI_DWORD, 0),	  // @prop int| .. |
-    WKI402_ENTRY(num_services, NSI_DWORD, 0), // @prop int| .. |
-    WKI402_ENTRY(errlog_sz, NSI_DWORD, 0), 	  // @prop int| .. |
-    WKI402_ENTRY(print_buf_time, NSI_DWORD, 0), // @prop int| .. |
-    WKI402_ENTRY(num_char_buf, NSI_DWORD, 0),  // @prop int| .. |
+	WKI402_ENTRY(char_wait, NSI_DWORD, 0), // @prop int|char_wait|number of seconds the computer will wait for a remote resource to become available
+	WKI402_ENTRY(collection_time, NSI_DWORD, 0), // @prop int|collection_time|number of milliseconds the computer will collect data before sending the data to a character device resource. The workstation waits the specified time or collects the number of characters specified by wki402_maximum_collection_count, whichever comes first.
+	WKI402_ENTRY(maximum_collection_count , NSI_DWORD, 0), // @prop string/<o PyUnicode>|maximum_collection_count|Name of the domain to which computer belongs
+	WKI402_ENTRY(keep_conn, NSI_DWORD, 0), // @prop int|keep_conn|Major version number of operating system running on the computer
+	WKI402_ENTRY(keep_search, NSI_DWORD, 0), // @prop int|keep_search|Minor version number of operating system running on the computer
+	WKI402_ENTRY(max_cmds, NSI_DWORD, 0), // @prop int|max_cmds|.. 
+	WKI402_ENTRY(num_work_buf, NSI_DWORD, 0), // @prop int|num_work_buf|Number of users who are logged on to the local computer
+	WKI402_ENTRY(siz_work_buf, NSI_DWORD, 0), // @prop int|siz_work_buf|Number of users who are logged on to the local computer
+	WKI402_ENTRY(max_wrk_cache, NSI_DWORD, 0), // @prop int|max_wrk_cache|.. 
+    WKI402_ENTRY(sess_timeout, NSI_DWORD, 0), // @prop int|sess_timeout|.. 
+    WKI402_ENTRY(siz_error, NSI_DWORD, 0),    // @prop int|siz_error|.. 
+    WKI402_ENTRY(num_alerts, NSI_DWORD, 0),	  // @prop int|num_alerts|.. 
+    WKI402_ENTRY(num_services, NSI_DWORD, 0), // @prop int|num_services|.. 
+    WKI402_ENTRY(errlog_sz, NSI_DWORD, 0), 	  // @prop int|errlog_sz|.. 
+    WKI402_ENTRY(print_buf_time, NSI_DWORD, 0), // @prop int|print_buf_time|.. 
+    WKI402_ENTRY(num_char_buf, NSI_DWORD, 0),  // @prop int|num_char_buf|.. 
     WKI402_ENTRY(siz_char_buf, NSI_DWORD, 0), // @prop int|siz_char_buf|Specifies the maximum size, in bytes, of a character pipe buffer and device buffer.
-    WKI402_ENTRY(wrk_heuristics, NSI_WSTR, 0), // @prop string/<o PyUnicode>|..|
-    WKI402_ENTRY(mailslots, NSI_DWORD, 0), // @prop int| .. |
-    WKI402_ENTRY(num_dgram_buf, NSI_DWORD, 0), // @prop int| .. |
-    WKI402_ENTRY(max_threads, NSI_DWORD, 0), // @prop int|Number of threads the computer can dedicate to the network|
+    WKI402_ENTRY(wrk_heuristics, NSI_WSTR, 0), // @prop string/<o PyUnicode>|siz_char_buf|..
+    WKI402_ENTRY(mailslots, NSI_DWORD, 0), // @prop int|mailslots|.. 
+    WKI402_ENTRY(num_dgram_buf, NSI_DWORD, 0), // @prop int|num_dgram_buf|.. 
+    WKI402_ENTRY(max_threads, NSI_DWORD, 0), // @prop int|max_threads|Number of threads the computer can dedicate to the network
 	{NULL}
 };
 
