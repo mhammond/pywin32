@@ -1481,7 +1481,7 @@ static PyObject *
 PyGetSystemMetrics(PyObject * self, PyObject * args)
 {
 	int which;
-	// @pyparm int|index||Which metric is being requested.  See the API documentation for a fill list.
+	// @pyparm int|index||Which metric is being requested.  See the API documentation for a full list.
 	if (!PyArg_ParseTuple(args, "i:GetSystemMetrics", &which))
 		return NULL;
 	// @pyseeapi GetSystemMetrics
