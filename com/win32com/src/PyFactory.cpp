@@ -4,7 +4,7 @@
 
 #include "stdafx.h"
 
-#include <Import.h>		/* for PyImport_ImportModule() */
+#include <import.h>  /* for PyImport_ImportModule() */
 
 #include "PythonCOM.h"
 #include "PyFactory.h"
