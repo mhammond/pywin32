@@ -100,7 +100,7 @@ BOOL PyLong_AsUI64(PyObject *val, unsigned __int64 *lval)
 PyObject *PyLong_FromTwoInts(int hidword, unsigned lodword)
 {
     // If it fits in a normal Python int, we return one of them.
-	if (hidword==0 && ((lodword & 0x8000)==0))
+	if (hidword==0 && ((lodword & 0x80000000)==0))
 		return PyInt_FromLong(lodword);
 	else {
 		__int64 ival = hidword;
@@ -115,13 +115,13 @@ BOOL PyLong_AsTwoInts(PyObject *ob, int *hiint, unsigned *loint)
 {
 	if (PyInt_Check(ob)) {
 		PyErr_Clear();
-		*hiint = 0;
 		*loint = PyInt_AsLong(ob);
+		*hiint = (*(int *)loint) < 0 ? -1 : 0;
 		return !PyErr_Occurred();
 	}
 	// Otherwize a long integer.
 	__int64 newval = PyLong_AsLongLong(ob);
-	if (newval==(__int64)-1)
+	if (newval==(__int64)-1 && PyErr_Occurred())
 		return FALSE;
 	if (hiint) *hiint=(int)(newval>>32);
 	if (loint) *loint=(unsigned)newval; // just lob the top 32 bits off!
