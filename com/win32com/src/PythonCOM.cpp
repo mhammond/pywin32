@@ -761,7 +761,8 @@ static PyObject *pythoncom_Unicode(PyObject *self, PyObject *args)
 // @pymethod <o PyIMoniker>,int,<o PyIBindCtx>|pythoncom|MkParseDisplayName|Parses a moniker display name into a moniker object. The inverse of <om PyIMoniker.GetDisplayName>
 static PyObject *pythoncom_MkParseDisplayName(PyObject *self, PyObject *args)
 {
-	WCHAR *displayName;
+	WCHAR *displayName = NULL;
+	PyObject *obDisplayName;
 	PyObject *obBindCtx = NULL;
 
 	// @pyparm string|displayName||The display name to parse
@@ -769,9 +770,12 @@ static PyObject *pythoncom_MkParseDisplayName(PyObject *self, PyObject *args)
 	// @comm If a binding context is not provided, then one will be created.
 	// Any binding context created or passed in will be returned to the
 	// caller.
-	if ( !PyArg_ParseTuple(args, "et|O:MkParseDisplayName", 
-			Py_FileSystemDefaultEncoding, &displayName, 
+	if ( !PyArg_ParseTuple(args, "O|O:MkParseDisplayName", 
+			&obDisplayName, 
 			&obBindCtx) )
+		return NULL;
+
+	if (!PyWinObject_AsWCHAR(obDisplayName, &displayName, FALSE))
 		return NULL;
 
 	HRESULT hr;
@@ -780,7 +784,7 @@ static PyObject *pythoncom_MkParseDisplayName(PyObject *self, PyObject *args)
 	{
 		hr = CreateBindCtx(0, &pBC);
 		if ( FAILED(hr) ) {
-			PyMem_Free(displayName);
+			PyWinObject_FreeWCHAR(displayName);
 			return PyCom_BuildPyException(hr);
 		}
 
@@ -790,7 +794,7 @@ static PyObject *pythoncom_MkParseDisplayName(PyObject *self, PyObject *args)
 	else
 	{
 		if ( !PyCom_InterfaceFromPyObject(obBindCtx, IID_IBindCtx, (LPVOID*)&pBC, FALSE) ) {
-			PyMem_Free(displayName);
+			PyWinObject_FreeWCHAR(displayName);
 			return NULL;
 		}
 
@@ -804,7 +808,7 @@ static PyObject *pythoncom_MkParseDisplayName(PyObject *self, PyObject *args)
 	PY_INTERFACE_PRECALL;
 	hr = MkParseDisplayName(pBC, displayName, &chEaten, &pmk);
 	PY_INTERFACE_POSTCALL;
-	PyMem_Free(displayName);
+	PyWinObject_FreeWCHAR(displayName);
 	if ( FAILED(hr) )
 	{
 		Py_DECREF(obBindCtx);
