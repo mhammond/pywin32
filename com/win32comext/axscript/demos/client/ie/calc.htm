@@ -2,7 +2,6 @@
 <HEAD><TITLE>Python Script sample:  Calculator</TITLE></HEAD>
 <BODY><FONT FACE=ARIAL SIZE=3> <!-- global default -->
 <SCRIPT LANGUAGE="Python">
-<!-- 
 # globals
 Accum = 0.0	  # Previous number (operand) awaiting operation
 FlagNewNum = 1    # Flag to indicate a new number (operand) is being entered
@@ -28,8 +27,7 @@ for i in range(len(numberButNames)):
 	exec "def %s_OnClick():\tNumPressed(%d)\n" % (numberButNames[i],i)
 
 def Decimal_OnClick():
-        print "Decimal_onClick"
-        global curReadOut, FlagNewNum
+	global curReadOut, FlagNewNum
 	curReadOut = ax.document.Keypad.ReadOut.Value
 	if FlagNewNum:
 		curReadOut = "0."
@@ -42,7 +40,7 @@ def Decimal_OnClick():
 import sys, string
 
 def Operation(Op, fn):
-        global FlagNewNum, PendingOp, Accum
+	global FlagNewNum, PendingOp, Accum
 	ReadOut = ax.document.Keypad.ReadOut.Value
 	print "Operation", Op, ReadOut, PendingOp, Accum
 	if FlagNewNum:
@@ -50,25 +48,24 @@ def Operation(Op, fn):
 		PendingOp = NullOp
 	else:
 		FlagNewNum = 1
-                Accum = PendingOp( Accum, string.atof(ReadOut) )
+		Accum = PendingOp( Accum, string.atof(ReadOut) )
 	ax.document.Keypad.ReadOut.Value = str(Accum)
 	PendingOp = fn
 
 def ClearEntry_OnClick():
-    # Remove current number and reset state
-    global FlagNewNum
-    ax.document.Keypad.ReadOut.Value = "0"
-    FlagNewNum = 1
+	# Remove current number and reset state
+	global FlagNewNum
+	ax.document.Keypad.ReadOut.Value = "0"
+	FlagNewNum = 1
 
 def Clear_OnClick():
-    global Accum, PendingOp
-    Accum = 0
-    PendingOp = NullOp
-    ClearEntry_OnClick()
+	global Accum, PendingOp
+	Accum = 0
+	PendingOp = NullOp
+	ClearEntry_OnClick()
 
 def Neg_OnClick():
 	ax.document.Keypad.ReadOut.Value = str(-string.atof(ax.document.Keypad.ReadOut.Value))
--->
 </SCRIPT>
 
 
