@@ -295,6 +295,28 @@ class ArgFormatterOLECHAR(ArgFormatterPythonCOM):
 	def GetBuildForGatewayPostCode(self):
 		return "\tPy_XDECREF(ob%s);\n" % self.arg.name
 
+class ArgFormatterTCHAR(ArgFormatterPythonCOM):
+	def _GetPythonTypeDesc(self):
+		return "string/<o unicode>"
+	def GetUnconstType(self):
+		if self.arg.type[:3]=="LPC":
+			return self.arg.type[:2] + self.arg.type[3:]
+		else:
+			return self.arg.unc_type
+	def GetParsePostCode(self):
+		return "\tif (bPythonIsHappy && !PyWinObject_AsTCHAR(ob%s, %s)) bPythonIsHappy = FALSE;\n" % (self.arg.name, self.GetIndirectedArgName(None, 2))
+	def GetInterfaceArgCleanup(self):
+		return "\tPyWinObject_FreeTCHAR(%s);\n" % self.GetIndirectedArgName(None, 1)
+	def GetBuildForInterfacePreCode(self):
+		# the variable was declared with just its builtin indirection
+		notdirected = self.GetIndirectedArgName(self.builtinIndirection, 1)
+		return "\tob%s = PyWinObject_FromTCHAR(%s);\n" % \
+			   (self.arg.name, notdirected)
+	def GetBuildForInterfacePostCode(self):
+		return "// ??? - TCHAR post code\n"
+	def GetBuildForGatewayPostCode(self):
+		return "\tPy_XDECREF(ob%s);\n" % self.arg.name
+
 class ArgFormatterIID(ArgFormatterPythonCOM):
 	def _GetPythonTypeDesc(self):
 		return "<o PyIID>"
@@ -468,6 +490,8 @@ AllConverters = {"const OLECHAR":	(ArgFormatterOLECHAR, 0, 1),
 				 "LPCWSTR":			(ArgFormatterOLECHAR, 1, 1),
 				 "LPWSTR":			(ArgFormatterOLECHAR, 1, 1),
 				 "LPCSTR":			(ArgFormatterOLECHAR, 1, 1),
+				 "LPTSTR":			(ArgFormatterTCHAR, 1, 1),
+				 "LPCTSTR":         (ArgFormatterTCHAR, 1, 1),
 				 "HANDLE":			(ArgFormatterHANDLE, 0),
 				 "BSTR":			(ArgFormatterBSTR, 1, 0),
 				 "const IID":		(ArgFormatterIID, 0),
