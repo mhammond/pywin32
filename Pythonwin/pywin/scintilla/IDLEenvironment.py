@@ -79,7 +79,7 @@ class IDLEEditorWindow:
 					for text, event in filter(lambda item: item is not None, items):
 						text = string.replace(text, "&", "&&")
 						text = string.replace(text, "_", "&")
-						ret.append(text, event)
+						ret.append((text, event))
 		return ret
 
 	######################################################################
