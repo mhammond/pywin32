@@ -14,5 +14,5 @@
 
 #ifndef MS_WINCE // win32 wont need that soon?
 // Must come after Python headers.
-#include <atlbase.h>
+#include <windows.h>
 #endif
