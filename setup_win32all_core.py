@@ -35,6 +35,7 @@ class WinExt (Extension):
                   export_symbols=None,
                   export_symbol_file=None,
                   dsp_file=None,
+                  pch_header=None
                  ):
         assert dsp_file or sources, "Either dsp_file or sources must be specified"
         libary_dirs = library_dirs,
@@ -50,6 +51,7 @@ class WinExt (Extension):
             sources = sources or []
             sources.extend(self.get_source_files(dsp_file))
             
+        self.pch_header = pch_header
         Extension.__init__ (self, name, sources,
                             include_dirs,
                             define_macros,
@@ -147,10 +149,12 @@ class my_build_ext(build_ext):
 
     def _why_cant_build_extension(self, ext):
         # Return None, or a reason it can't be built.
+        common_dirs = self.compiler.library_dirs
+        common_dirs += os.environ.get("LIB").split(os.pathsep)
         for lib in ext.libraries:
             if self.found_libraries.has_key(lib.lower()):
                 continue
-            for dir in self.compiler.library_dirs + ext.library_dirs:
+            for dir in common_dirs + ext.library_dirs:
                 if os.path.isfile(os.path.join(dir, lib + ".lib")):
                     self.found_libraries[lib.lower()] = True
                     break
@@ -304,6 +308,10 @@ class my_build_ext(build_ext):
             self.excluded_extensions.append((ext, why))
             return
 
+        if not self.mingw32 and ext.pch_header:
+            ext.extra_compile_args = ext.extra_compile_args or []
+            ext.extra_compile_args.append("/YX"+ext.pch_header)
+
         # some source files are compiled for different extensions
         # with special defines. So we cannot use a shared
         # directory for objects, we must use a special one for each extension.
@@ -410,6 +418,7 @@ pywintypes = WinExt_system32('pywintypes',
                     dsp_file = r"win32\PyWinTypes.dsp",
                     extra_compile_args = ['-DBUILD_PYWINTYPES'],
                     libraries = "advapi32 user32 ole32 oleaut32",
+                    pch_header = "PyWinTypes.h",
                     )
 
 win32_extensions = [pywintypes]
@@ -477,21 +486,24 @@ pythoncom = WinExt_system32('pythoncom',
                    libraries = "oleaut32 ole32 user32",
                    export_symbol_file = 'com/win32com/src/PythonCOM.def',
                    extra_compile_args = ['-DBUILD_PYTHONCOM'],
+                   pch_header = "stdafx.h",
                    )
 com_extensions = [pythoncom]
 com_extensions += [
     WinExt_win32com('adsi', libraries="ACTIVEDS ADSIID"),
-    WinExt_win32com('axcontrol'),
+    WinExt_win32com('axcontrol', pch_header="axcontrol_pch.h"),
     WinExt_win32com('axscript',
             dsp_file=r"com\Active Scripting.dsp",
             extra_compile_args = ['-DPY_BUILD_AXSCRIPT'],
+            pch_header = "stdafx.h"
     ),
     WinExt_win32com('axdebug',
             dsp_file=r"com\Active Debugging.dsp",
             libraries="axscript msdbg",
+            pch_header = "stdafx.h",
     ),
     WinExt_win32com('internet'),
-    WinExt_win32com('mapi', libraries="mapi32"),
+    WinExt_win32com('mapi', libraries="mapi32", pch_header="PythonCOM.h"),
     WinExt_win32com_mapi('exchange',
                          libraries="""MBLOGON ADDRLKUP mapi32 exchinst                         
                                       EDKCFG EDKUTILS EDKMAPI
@@ -501,22 +513,20 @@ com_extensions += [
                          libraries="""DAPI ADDRLKUP exchinst EDKCFG EDKUTILS
                                       EDKMAPI mapi32 version""",
                          extra_link_args=["/nodefaultlib:libc"]),
-    WinExt_win32com('shell', libraries='shell32')
+    WinExt_win32com('shell', libraries='shell32', pch_header="shell_pch.h")
 ]
 
 pythonwin_extensions = [
-    WinExt_pythonwin("win32ui",
-                     extra_compile_args =
-                        ['-DBUILD_PYW']),
+    WinExt_pythonwin("win32ui", extra_compile_args = ['-DBUILD_PYW'],
+                     pch_header = "stdafx.h"),
     WinExt_pythonwin("win32uiole"),
-    WinExt_pythonwin("dde"),
+    WinExt_pythonwin("dde", pch_header="stdafxdde.h"),
 ]
 
 W32_exe_files = [
     WinExt_win32("win32popenWin9x",
                  libraries = "user32"),
-    WinExt_pythonwin("Pythonwin"),
-##                     extra_compile_args = ['-D_WINDOWS', '-D_AFXDLL', '-D_MBCS']),
+    WinExt_pythonwin("Pythonwin", extra_link_args=["/SUBSYSTEM:WINDOWS"]),
     ]
 ################################################################
 
