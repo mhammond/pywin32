@@ -6,7 +6,6 @@ from pywin.mfc import docview
 from pywin.mfc import dialog
 from scintillacon import *
 import win32con
-import win32api
 import win32ui
 import afxres
 import string
@@ -21,8 +20,7 @@ import struct
 import re
 import os
 
-import __builtin__
-is_platform_unicode = hasattr(__builtin__, "unicode") and win32api.GetVersionEx()[3] == win32con.VER_PLATFORM_WIN32_NT
+from pywin import is_platform_unicode
 
 PRINTDLGORD = 1538
 IDC_PRINT_MAG_EDIT = 1010
@@ -379,6 +377,8 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 	def SaveTextFile(self, filename):
 		doc = self.GetDocument()
 		s = self.GetTextRange()
+		if is_platform_unicode:
+			s = unicode(s,"utf-8").encode("mbcs")
 		f  = open(filename, 'wb')
 		f.write(s)
 		f.close()

@@ -43,7 +43,7 @@ class flags:
 #WindowOutputDocumentParent=docview.Document
 import pywin.scintilla.document
 from pywin.scintilla import scintillacon
-from pywin.scintilla.view import is_platform_unicode
+from pywin import is_platform_unicode
 
 WindowOutputDocumentParent=pywin.scintilla.document.CScintillaDocument
 class WindowOutputDocument(WindowOutputDocumentParent):

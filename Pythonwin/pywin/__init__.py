@@ -1,8 +1,7 @@
-import sys
+# See if we run in Unicode mode.
+# This may be referenced all over the place, so we save it globally.
+import win32api, win32con, __builtin__
 
-# Old names for bw compat.
-#import pywin.mfc.object; sys.modules['object'] = pywin.mfc.object
-#import pywin.mfc.dialog; sys.modules['pywindialog'] = pywin.mfc.dialog
-#import pywin.mfc.window; sys.modules['window'] = pywin.mfc.window
-#import pywin.mfc.docview; sys.modules['docview'] = pywin.mfc.docview
+is_platform_unicode = hasattr(__builtin__, "unicode") and win32api.GetVersionEx()[3] == win32con.VER_PLATFORM_WIN32_NT
 
+del win32api, win32con, __builtin__

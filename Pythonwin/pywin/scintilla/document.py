@@ -1,5 +1,6 @@
 import win32ui
 from pywin.mfc import docview
+from pywin import is_platform_unicode
 from scintillacon import *
 import win32con
 import string
@@ -9,25 +10,33 @@ ParentScintillaDocument=docview.Document
 class CScintillaDocument(ParentScintillaDocument):
 	"A SyntEdit document. "
 	def DeleteContents(self):
-		self.text = ""
+		pass
 
 	def OnOpenDocument(self, filename):
 		# init data members
 		#print "Opening", filename
 		self.SetPathName(filename) # Must set this early!
 		try:
-			f = open(filename, 'rb')
+			if is_platform_unicode:
+				# Scintilla in UTF-8 mode - translate accordingly.
+				import codecs
+				f = codecs.open(filename, 'rb', "mbcs")
+			else:
+				f = open(filename, 'rb')
 			try:
-				self.text = f.read()
+				text = f.read()
 			finally:
 				f.close()
+			if is_platform_unicode:
+				# Translate from locale-specific (MCBS) encoding to UTF-8 for Scintilla
+				text = text.encode("utf-8")
 		except IOError:
 			win32ui.MessageBox("Could not load the file from %s" % filename)
 			return 0
 
-		self._SetLoadedText(self.text)
+		self._SetLoadedText(text)
 ##		if self.GetFirstView():
-##			self.GetFirstView()._SetLoadedText(self.text)
+##			self.GetFirstView()._SetLoadedText(text)
 ##		self.SetModifiedFlag(0) # No longer dirty
 		return 1
 
