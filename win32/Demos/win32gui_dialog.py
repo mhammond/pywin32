@@ -81,6 +81,8 @@ class _WIN32MASKEDSTRUCT:
         return apply(struct.pack, (full_fmt,) + tuple(vals) )
 
 
+# NOTE: See the win32gui_struct module for an alternative way of dealing 
+# with these structures
 class LVITEM(_WIN32MASKEDSTRUCT):
     _struct_items_ = [
         ("mask", "I", 0, None),
