@@ -44,7 +44,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 F90=df.exe
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "ADSI_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\win32\src" /I "..\com\win32com\src\include" /D "NDEBUG" /D "__WIN32__" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "ADSI_EXPORTS" /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /Zi /O2 /I "..\win32\src" /I "..\com\win32com\src\include" /D "NDEBUG" /D "__WIN32__" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "ADSI_EXPORTS" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0xc09 /d "NDEBUG"
@@ -54,7 +54,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 ACTIVEDS.LIB ADSIID.LIB kernel32.lib user32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e7f0000" /dll /machine:I386 /out:"Build\adsi.pyd" /libpath:"..\win32\build"
+# ADD LINK32 ACTIVEDS.LIB ADSIID.LIB kernel32.lib user32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e7f0000" /dll /debug /machine:I386 /out:"Build\adsi.pyd" /libpath:"..\win32\build"
 
 !ELSEIF  "$(CFG)" == "adsi - Win32 Debug"
 
