@@ -1,6 +1,13 @@
 //  MODULE:   PythonService.exe
 //
 //  PURPOSE:  An executable that hosts Python services.
+//            This source file is used to compile 2 discrete targets:
+//            * servicemanager.pyd - A Python extension that contains
+//              all the functionality.
+//            * PythonService.exe - This simply loads servicemanager.pyd, and
+//              calls a public function.  Note that PythonService.exe may one
+//              day die - it is now possible for python.exe to directly host
+//              services.
 //
 // @doc
 
@@ -10,42 +17,74 @@
 #include "windows.h"
 #include "objbase.h"
 #include "Python.h"
-#undef main
 #include "tchar.h"
-
-#include "PythonServiceMessages.h"
-
 #include "PyWinTypes.h"
 
-
-#ifdef BUILD_FREEZE
-extern "C" void PyWinFreeze_ExeInit();
-extern "C" void PyWinFreeze_ExeTerm();
-extern "C" int PyInitFrozenExtensions();
+#ifdef PYSERVICE_BUILD_DLL
+#define PYSERVICE_EXPORT extern "C" __declspec(dllexport)
+#else
+#define PYSERVICE_EXPORT extern "C" __declspec(dllimport)
 #endif
 
-SERVICE_STATUS          ssStatus;       // current status of the service
-SERVICE_STATUS_HANDLE   sshStatusHandle = 0;
-DWORD                   dwErr = 0;
-BOOL                    bServiceDebug = FALSE;
-TCHAR                   szErr[256];
+PYSERVICE_EXPORT BOOL PythonService_Initialize(const TCHAR *evtsrc_name, const TCHAR *evtsrc_file);
+PYSERVICE_EXPORT void PythonService_Finalize();
+PYSERVICE_EXPORT BOOL PythonService_PrepareToHostSingle(PyObject *);
+PYSERVICE_EXPORT BOOL PythonService_PrepareToHostMultiple(const TCHAR *service_name, PyObject *klass);
+PYSERVICE_EXPORT BOOL PythonService_StartServiceCtrlDispatcher();
+PYSERVICE_EXPORT int PythonService_main(int argc, char **argv);
 
-#define RESOURCE_SERVICE_NAME 1016 // resource ID in the EXE of the service name
+TCHAR g_szEventSourceName[MAX_PATH] = _T("Python Service");
+BOOL bServiceDebug = FALSE;
 
-TCHAR g_szEventSourceName[MAX_PATH] = _T("PythonServiceManager");
-
-// internal function prototypes
-VOID WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv);
-BOOL WINAPI ControlHandler ( DWORD dwCtrlType );
 static void ReportAPIError(DWORD msgCode, DWORD errCode = 0);
 static void ReportPythonError(DWORD);
 static BOOL ReportError(DWORD, LPCTSTR *inserts = NULL, WORD errorType = EVENTLOG_ERROR_TYPE);
 
-BOOL RegisterPythonServiceExe(void);
+#include "PythonServiceMessages.h"
+
+#ifdef PYSERVICE_BUILD_DLL // The bulk of this file is only used when building the core DLL.
+
+#define MAX_SERVICES 10
+
+typedef struct {
+	PyObject *klass; // The Python class we instantiate as the service.
+	SERVICE_STATUS_HANDLE   sshStatusHandle; // the handle for this service.
+	PyObject *obServiceCtrlHandler; // The Python control handler for the service.
+} PY_SERVICE_TABLE_ENTRY;
+
+// Globals
+HINSTANCE g_hdll = 0;
+// Will be set to one of SERVICE_WIN32_OWN_PROCESS etc flags.
+DWORD g_serviceProcessFlags = 0; 
+
+// The global SCM dispatch table.  A trailing NULL indicates to the SCM
+// how many are used - as we add new entries, we null the next.
+static SERVICE_TABLE_ENTRY   DispatchTable[] = 
+{ 
+    { NULL,              NULL         } 
+}; 
+// A parallel array of Python information for the service.
+static PY_SERVICE_TABLE_ENTRY PythonServiceTable[MAX_SERVICES];
+
+#define RESOURCE_SERVICE_NAME 1016 // resource ID in the EXE of the service name
+
+// internal function prototypes
+VOID WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv);
 BOOL WINAPI DebugControlHandler ( DWORD dwCtrlType );
+DWORD WINAPI service_ctrl_ex(DWORD, DWORD, LPVOID, LPVOID);
 
-BOOL LocatePythonServiceClass( DWORD dwArgc, LPTSTR *lpszArgv, PyObject **result );
+BOOL RegisterPythonServiceExe(void);
 
+static PY_SERVICE_TABLE_ENTRY *FindPythonServiceEntry(LPCTSTR svcName);
+
+static PyObject *LoadPythonServiceClass(char *svcInitString);
+static PyObject *LoadPythonServiceInstance(PyObject *,
+										DWORD dwArgc,
+										LPTSTR *lpszArgv );
+static BOOL LocatePythonServiceClassString( TCHAR *svcName, char *buf, int cchBuf);
+
+
+// Some handy service statuses we can use without filling at runtime.
 SERVICE_STATUS neverStartedStatus = {
 	SERVICE_WIN32_OWN_PROCESS,
 	SERVICE_STOPPED,
@@ -82,27 +121,15 @@ SERVICE_STATUS stoppedStatus = {
     0, // dwCheckPoint; 
     0 };
 
-// The built-in Python module.
+///////////////////////////////////////////////////////////////////////
+//
+//
+// ** The builtin Python module - referenced as 'servicemanager' by
+// ** Python code
+//
+//
+///////////////////////////////////////////////////////////////////////
 static PyObject *servicemanager_startup_error;
-static PyObject *g_obServiceCtrlHandler = NULL;
-
-VOID WINAPI service_ctrl(DWORD dwCtrlCode)
-{
-	if (g_obServiceCtrlHandler==NULL) { // Python is in error.
-		if (!bServiceDebug)
-			SetServiceStatus( sshStatusHandle, &errorStatus );
-		return;
-	}
-	// Ensure we have a context for our thread.
-	CEnterLeavePython celp;
-	PyObject *args = Py_BuildValue("(l)", dwCtrlCode);
-	PyObject *result = PyObject_CallObject(g_obServiceCtrlHandler, args);
-	Py_XDECREF(args);
-	if (result==NULL)
-		ReportPythonError(PYS_E_SERVICE_CONTROL_FAILED);
-	else
-		Py_DECREF(result);
-}
 
 static PyObject *DoLogMessage(WORD errorType, PyObject *obMsg)
 {
@@ -227,27 +254,32 @@ static PyObject *PyRegisterServiceCtrlHandler(PyObject *self, PyObject *args)
 	BSTR bstrName;
 	if (!PyWinObject_AsBstr(nameOb, &bstrName))
 		return NULL;
-	Py_XDECREF(g_obServiceCtrlHandler);
-	g_obServiceCtrlHandler = obCallback;
+	PY_SERVICE_TABLE_ENTRY *pe = FindPythonServiceEntry(bstrName);
+	if (pe==NULL) {
+		PyErr_SetString(PyExc_ValueError, "The service name is not hosted by this process");
+		SysFreeString(bstrName);
+		return NULL;
+	}
+	Py_XDECREF(pe->obServiceCtrlHandler);
+	pe->obServiceCtrlHandler = obCallback;
 	Py_INCREF(obCallback);
 	if (bServiceDebug) { // If debugging, get out now, and give None back.
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
-	sshStatusHandle = RegisterServiceCtrlHandler(bstrName, service_ctrl);
+	pe->sshStatusHandle = RegisterServiceCtrlHandlerEx(bstrName, service_ctrl_ex, pe);
 	SysFreeString(bstrName);
 	PyObject *rc;
-	if (sshStatusHandle==0) {
+	if (pe->sshStatusHandle==0) {
 		Py_DECREF(obCallback);
 		obCallback = NULL;
-		rc = PyWin_SetAPIError("RegisterServiceCtrlHandler");
+		rc = PyWin_SetAPIError("RegisterServiceCtrlHandlerEx");
 	} else {
-		rc = PyInt_FromLong((long)sshStatusHandle);
+		rc = PyInt_FromLong((long)pe->sshStatusHandle);
 	}
 	return rc;
 	// @rdesc If the service manager is in debug mode, this returns None, indicating
 	// there is no service control manager handle, otherwise the handle to the Win32 service manager.
-
 }
 
 // @pymethod |servicemanager|CoInitializeEx|Initialize OLE with additional options.
@@ -270,12 +302,14 @@ static PyObject *PyCoUninitialize(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @pymethod |servicemanager|Debugging|Indicates if the service is running in debug mode.
+// @pymethod True/False|servicemanager|Debugging|Indicates if the service is running in debug mode.
 static PyObject *PyDebugging(PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ":Debugging"))
 		return NULL;
-	return PyInt_FromLong(bServiceDebug);
+	PyObject *rc = bServiceDebug ? Py_True : Py_False;
+	Py_INCREF(rc);
+	return rc;
 }
 
 // @pymethod int|servicemanager|PumpWaitingMessages|Pumps all waiting messages.
@@ -300,6 +334,84 @@ static PyObject *PyPumpWaitingMessages(PyObject *self, PyObject *args)
 	return PyInt_FromLong(result);
 }
 
+static PyObject *PyStartServiceCtrlDispatcher(PyObject *self)
+{
+	BOOL ok;
+	Py_BEGIN_ALLOW_THREADS
+	ok = PythonService_StartServiceCtrlDispatcher();
+	Py_END_ALLOW_THREADS
+	if (!ok)
+		return PyWin_SetAPIError("StartServiceCtrlDispatcher");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod |Initialize|Initialize the module for hosting a service.  This is generally called automatically
+static PyObject *PyServiceInitialize(PyObject *self, PyObject *args)
+{
+	PyObject *nameOb = Py_None, *fileOb = Py_None;
+	// @pyparm <o PyUnicode>|eventSourceName|None|The event source name
+	if (!PyArg_ParseTuple(args, "|OO", &nameOb, &fileOb))
+		return NULL;
+	TCHAR *name, *file;
+	if (!PyWinObject_AsTCHAR(nameOb, &name, TRUE))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(fileOb, &file, TRUE)) {
+		PyWinObject_FreeTCHAR(name);
+		return NULL;
+	}
+	PythonService_Initialize(name, file);
+	PyWinObject_FreeTCHAR(name);
+	PyWinObject_FreeTCHAR(file);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod |Finalize|
+static PyObject *PyServiceFinalize(PyObject *self)
+{
+	PythonService_Finalize();
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod |PrepareToHostSingle|Prepare for hosting a single service in this EXE
+static PyObject *PyPrepareToHostSingle(PyObject *self, PyObject *args)
+{
+	PyObject *klass = Py_None;
+	// @pyparm object|klass|None|The Python class to host.  If not specified, the
+	// service name is looked up in the registry and the specified class instantiated.
+	if (!PyArg_ParseTuple(args, "|O", &klass))
+		return NULL;
+	BOOL ok = PythonService_PrepareToHostSingle(klass);
+	if (!ok) {
+		PyErr_SetString(servicemanager_startup_error, "PrepareToHostSingle failed!");
+		return NULL;
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod |PrepareToHostMultiple|Prepare for hosting a multiple services in this EXE
+static PyObject *PyPrepareToHostMultiple(PyObject *self, PyObject *args)
+{
+	PyObject *klass, *obSvcName;
+	// @pyparm string/unicode|service_name||The name of the service hosted by the class
+	// @pyparm object|klass||The Python class to host.
+	if (!PyArg_ParseTuple(args, "OO", &obSvcName, &klass))
+		return NULL;
+	TCHAR *name;
+	if (!PyWinObject_AsTCHAR(obSvcName, &name, FALSE))
+		return NULL;
+	BOOL ok = PythonService_PrepareToHostMultiple(name, klass);
+	if (!ok) {
+		PyErr_SetString(servicemanager_startup_error, "PrepareToHostMultiple failed!");
+		return NULL;
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 // @module servicemanager|A module built in to PythonService.exe (and therefore only available to Python service programs).
 // <nl>The module <o win32service> provides other service facilities.
 static struct PyMethodDef servicemanager_functions[] = {
@@ -312,6 +424,11 @@ static struct PyMethodDef servicemanager_functions[] = {
 	{"LogWarningMsg",              PyLogWarningMsg, 1}, // @pymeth LogWarningMsg|Logs a generic warning message to the event log
 	{"PumpWaitingMessages",        PyPumpWaitingMessages, 1},  // @pymeth PumpWaitingMessages|Pumps waiting window messages for the service.
 	{"Debugging",                  PyDebugging, 1},  // @pymeth Debugging|Indicates if the service is running in debug mode.
+	{"StartServiceCtrlDispatcher", (PyCFunction)PyStartServiceCtrlDispatcher, METH_NOARGS}, // @pymeth StartServiceCtrlDispatcher|Starts the service by calling the win32 StartServiceCtrlDispatcher function.
+	{"Initialize",                 PyServiceInitialize, 1}, // @pymeth Initialize|
+	{"Finalize",                   (PyCFunction)PyServiceFinalize, METH_NOARGS}, // @pymeth Finalize|
+	{"PrepareToHostSingle",        PyPrepareToHostSingle, 1}, // @pymeth  PrepareToHostSingle|
+	{"PrepareToHostMultiple",      PyPrepareToHostMultiple, 1}, // @pymeth  PrepareToHostMultiple|
 	{NULL}
 };
 
@@ -359,11 +476,17 @@ initservicemanager(void)
   ADD_CONSTANT(EVENTLOG_WARNING_TYPE);
   ADD_CONSTANT(EVENTLOG_AUDIT_SUCCESS);
   ADD_CONSTANT(EVENTLOG_AUDIT_FAILURE);
+  PyWinGlobals_Ensure();
 }
 
 // Couple of helpers for the service manager
 static void PyService_InitPython()
 {
+	// XXX - this assumes GIL held, so no races possible
+	static BOOL have_init = FALSE;
+	if (have_init)
+		return;
+	have_init = TRUE;
 	// Often for a service, __argv[0] will be just "ExeName", rather
 	// than "c:\path\to\ExeName.exe"
 	// This, however, shouldnt be a problem, as Python itself
@@ -378,19 +501,377 @@ static void PyService_InitPython()
 #endif
 	// Ensure we are set for threading.
 	PyEval_InitThreads();
-	PyWinGlobals_Ensure();
 	PySys_SetArgv(__argc, __argv);
 
 	initservicemanager();
 }
 
-// The Service Manager
-//
+/*************************************************************************
+ *
+ *
+ * Our Python Service "public API" - allows clients to use our DLL
+ * in almost any possible way
+ *
+ *
+ *************************************************************************/
 
+//  FUNCTION: PythonService_Initialize
+//
+//  PURPOSE: Initialize the DLL
+//
+//  PARAMETERS:
+//    evtsrc_name - The event source name, as it appears in the event log (and
+//                  as used to obtain the eventsource handle.
+//    evtsrc_file - The name of the file registered with the event viewer for this
+//                  source.
+//   Both params can be NULL, meaning a default source name is used, and this
+//   DLL as the file.  If either param is non-NULL, both must be non-NULL.
+//
+//  RETURN VALUE:
+//    TRUE if we registered OK.
+BOOL PythonService_Initialize( const TCHAR *evtsrc_name, const TCHAR *evtsrc_file)
+{
+	TCHAR evtsrc_file_buf[MAX_PATH+_MAX_FNAME];
+	if (!evtsrc_name && !evtsrc_file) {
+		// g_szEventSourceName keeps default of "Python Service"
+		GetModuleFileName(g_hdll, evtsrc_file_buf,
+		                  sizeof evtsrc_file_buf/sizeof TCHAR);
+		evtsrc_file = evtsrc_file_buf;
+	} else {
+		if (!evtsrc_name || !evtsrc_file)
+			return FALSE;
+		_tcsncpy(g_szEventSourceName, evtsrc_name,
+				 sizeof g_szEventSourceName/sizeof TCHAR);
+	}
+	// And register the event source with the event log.
+	HKEY hkey;
+	TCHAR keyName[MAX_PATH];
+	_tcscpy(keyName, _T("SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\"));
+	_tcscat(keyName, g_szEventSourceName );
+	// ignore all failures when setting up - for whatever reason it fails,
+	// we are probably still better off calling ReportEvent than
+	// not calling due to some other failure here.
+	BOOL rc = FALSE;
+	if (RegCreateKeyEx(HKEY_LOCAL_MACHINE, 
+		               keyName, 
+		               0, 
+		               NULL, 
+		               REG_OPTION_NON_VOLATILE, 
+		               KEY_WRITE, NULL, 
+		               &hkey, 
+		               NULL) == ERROR_SUCCESS) {
+		RegSetValueEx(hkey, TEXT("EventMessageFile"), 0, REG_SZ, 
+			          (const BYTE *)evtsrc_file, (_tcslen(evtsrc_file)+1)*sizeof(TCHAR));
+		DWORD types = EVENTLOG_ERROR_TYPE | EVENTLOG_WARNING_TYPE | EVENTLOG_INFORMATION_TYPE;
+		RegSetValueEx(hkey, TEXT("TypesSupported"), 0, REG_DWORD, 
+			          (const BYTE *)&types, sizeof(types));
+		RegCloseKey(hkey);
+		rc = TRUE;
+	}
+	return rc;
+}
+
+//  FUNCTION: PythonService_Finalize
+//
+//  PURPOSE: Finalize our service hosting framework
+void PythonService_Finalize()
+{
+	UINT i;
+	for (i=0;i<MAX_SERVICES;i++) {
+		if (DispatchTable[i].lpServiceName==NULL)
+			break;
+		Py_XDECREF(PythonServiceTable[i].klass);
+		PythonServiceTable[i].klass = NULL;
+	}
+}
+
+//  FUNCTION: PythonService_PrepareToHostSingle
+//
+//  PURPOSE: Prepare this EXE for hosting a single service.  The service name
+//           need not be given - the service named passed by Windows as the
+//           service starts is used.
+//
+//  PARAMETERS:
+//    klass - The Python class which implements this service.  Note this may be NULL,
+//            which means we will lookup and instantiate the class using the service
+//            name that Windows starts us with
+//
+//  RETURN VALUE:
+//    FALSE if we have exceeded the maximum number of services in this executable, 
+//    or if this service name has already been prepared.
+//
+//  COMMENTS:
+//    Theoretically could be called multiple times, once for each service hosted
+//    by this process - however, some code will need tweaking to get it working
+//    correctly for more than one service.
+BOOL PythonService_PrepareToHostSingle(PyObject *klass)
+{
+	if (g_serviceProcessFlags==0)
+		g_serviceProcessFlags = SERVICE_WIN32_OWN_PROCESS;
+	else if (g_serviceProcessFlags != SERVICE_WIN32_OWN_PROCESS)
+		return FALSE;
+	DispatchTable[0].lpServiceName = _tcsdup(_T(""));
+	DispatchTable[0].lpServiceProc = service_main;
+	PythonServiceTable[0].klass = klass;
+	Py_XINCREF(klass);
+	PythonServiceTable[0].sshStatusHandle = 0;
+	PythonServiceTable[0].obServiceCtrlHandler = NULL;
+	return TRUE;
+}
+
+
+//  FUNCTION: PythonService_PrepareToHostMultiple
+//
+//  PURPOSE: Prepare this EXE for hosting the nominated Python service.
+//
+//  PARAMETERS:
+//    service_name - name of the service.
+//    klass - The Python class which implements this service.
+//
+//  RETURN VALUE:
+//    FALSE if we have exceeded the maximum number of services in this executable, 
+//    if the exe is already setup to host an "own process" service, or if this 
+//    service name has already been prepared.
+//
+//  COMMENTS:
+//    Should be called multiple times, once for each service hosted
+//    by this process - however, some code will need tweaking to get it working
+//    correctly for more than one service.
+BOOL PythonService_PrepareToHostMultiple(const TCHAR *service_name, PyObject *klass)
+{
+	if (g_serviceProcessFlags==0)
+		g_serviceProcessFlags = SERVICE_WIN32_SHARE_PROCESS;
+	else if (g_serviceProcessFlags != SERVICE_WIN32_SHARE_PROCESS)
+		return FALSE;
+	UINT i;
+	for (i=0;i<MAX_SERVICES;i++) {
+		if (DispatchTable[i].lpServiceName==NULL)
+			break;
+		if (_tcscmp(service_name, DispatchTable[i].lpServiceName)==0)
+			return FALSE;
+	}
+	if (i>=MAX_SERVICES)
+		return FALSE;
+
+	DispatchTable[i].lpServiceName = _tcsdup(service_name);
+	DispatchTable[i].lpServiceProc = service_main;
+
+	PythonServiceTable[i].klass = klass;
+	Py_INCREF(klass);
+	PythonServiceTable[i].sshStatusHandle = 0;
+	PythonServiceTable[i].obServiceCtrlHandler = NULL;
+	return TRUE;
+}
+
+//  FUNCTION: PythonService_StartServiceCtrlDispatcher
+//
+//  PURPOSE: Calls the Windows StartServiceCtrlDispatcher with
+//           the DispatchTable setup by previous calls to PrepareToHost 
+//           functions.
+//
+//  RETURN VALUE:
+//    As per the API.  Call GetLastError() to work out why.
+BOOL PythonService_StartServiceCtrlDispatcher()
+{
+    return StartServiceCtrlDispatcher( DispatchTable);
+}
+
+/*************************************************************************
+ *
+ *
+ * Service Implementation - the main service entry point, and our magic
+ * of delegating to Python.
+ *
+ *
+ *************************************************************************/
+// Find a previously registered SERVICE_TABLE_ENTRY for the named service,
+// or NULL if not found.
+PY_SERVICE_TABLE_ENTRY *FindPythonServiceEntry(LPCTSTR svcName)
+{
+	PY_SERVICE_TABLE_ENTRY *ppy = PythonServiceTable;
+	if (g_serviceProcessFlags==SERVICE_WIN32_OWN_PROCESS)
+		return ppy;
+	SERVICE_TABLE_ENTRY *ps = DispatchTable;
+	while (ps->lpServiceName) {
+		if (_tcscmp(ps->lpServiceName, svcName)==0)
+			break;
+		ppy++;
+		ps++;
+	}
+	if (ps->lpServiceName)
+		return ppy;
+	return NULL;
+}
+
+//
+//  FUNCTION: service_main
+//
+//  PURPOSE: To perform actual initialization and execution of the service
+//
+//  PARAMETERS:
+//    dwArgc   - number of command line arguments
+//    lpszArgv - array of command line arguments
+//
+//  RETURN VALUE:
+//    none
+//
+//  COMMENTS:
+//    This routine is called by the Service Control Manager.  It loads 
+//    the "SvcRun" function from the class instance and calls it.
+void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
+{
+	PyObject *instance = NULL;
+	PyObject *start = NULL;
+
+	if (bServiceDebug)
+		SetConsoleCtrlHandler( DebugControlHandler, TRUE );
+
+	CEnterLeavePython _celp;
+	PY_SERVICE_TABLE_ENTRY *pe;
+	if (g_serviceProcessFlags == SERVICE_WIN32_OWN_PROCESS) {
+		pe = PythonServiceTable;
+		if (!pe->klass) {
+			char svcInitBuf[256];
+			LocatePythonServiceClassString(lpszArgv[0], svcInitBuf, sizeof(svcInitBuf));
+			pe->klass = LoadPythonServiceClass(svcInitBuf);
+		}
+	} else
+		PY_SERVICE_TABLE_ENTRY *pe = FindPythonServiceEntry(lpszArgv[0]);
+	if (!pe) {
+		LPTSTR  lpszStrings[] = {lpszArgv[0], NULL};
+		ReportError(E_PYS_NO_SERVICE, (LPCTSTR *)lpszStrings);
+		goto cleanup;
+	}
+	assert(pe->sshStatusHandle==0); // should have no scm handle yet.
+	instance = LoadPythonServiceInstance(pe->klass, dwArgc, lpszArgv);
+	// If Python has not yet registered the service control handler, then
+	// we are in serious trouble - it is likely the service will enter a 
+	// zombie state, where it wont do anything, but you can not start 
+	// another.  Therefore, we still create register the handler, thereby 
+	// getting a handle, so we can immediately tell Windows the service 
+	// is rooted (that is a technical term!)
+	if (!bServiceDebug && pe->sshStatusHandle==0) {
+		// If Python seemed to init OK, but hasnt done what we expect,
+		// report an error, as we are gunna fail!
+		if (instance) 
+			ReportPythonError(E_PYS_NOT_CONTROL_HANDLER);
+		if (!bServiceDebug)
+			// Note - we upgraded this to the win2k only "Ex" function.
+			// If this was a problem for someone, you could do a LoadLibrary
+			// RegisterServiceCtrlHandlerEx(), and if that fails, fallback to
+			// RegisterServiceCtrlHandler(), manually passing the first entry
+			// of our PY_SERVICE_TABLE_ENTRY table.  You would also need to
+			// insist that only 1 service is being hosted.
+			pe->sshStatusHandle = RegisterServiceCtrlHandlerEx( lpszArgv[0], service_ctrl_ex, pe);
+	}
+	// No instance - we can't start.
+	if (!instance) {
+		if (pe->sshStatusHandle) {
+			SetServiceStatus( pe->sshStatusHandle, &neverStartedStatus );
+			pe->sshStatusHandle = 0; // reset so we don't attempt to set 'stopped'
+		}
+		goto cleanup;
+	}
+	if (!bServiceDebug)
+		if (!SetServiceStatus( pe->sshStatusHandle, &startingStatus ))
+			ReportAPIError(PYS_E_API_CANT_SET_PENDING);
+	start = PyObject_GetAttrString(instance, "SvcRun");
+	if (start==NULL)
+		ReportPythonError(E_PYS_NO_RUN_METHOD);
+	else {
+		// Call the Python service entry point - when this returns, the
+		// service has stopped!
+		PyObject *result = PyObject_CallObject(start, NULL);
+		if (result==NULL)
+			ReportPythonError(E_PYS_START_FAILED);
+		else
+			Py_DECREF(result);
+	}
+	// We are all done.
+cleanup:
+	// try to report the stopped status to the service control manager.
+	Py_XDECREF(start);
+	Py_XDECREF(instance);
+	if (pe && pe->sshStatusHandle) { // Wont be true if debugging.
+		if (!SetServiceStatus( pe->sshStatusHandle, &stoppedStatus ))
+			ReportAPIError(PYS_E_API_CANT_SET_STOPPED);
+	}
+	return;
+}
+
+// The service control handler - receives async notifications from the
+// SCM, and delegates to the Python instance.
+DWORD WINAPI service_ctrl_ex(
+	  DWORD dwCtrlCode,     // requested control code
+	  DWORD dwEventType,   // event type
+	  LPVOID lpEventData,  // event data
+	  LPVOID lpContext     // user-defined context data
+	  )
+{
+	PY_SERVICE_TABLE_ENTRY *pse = (PY_SERVICE_TABLE_ENTRY *)lpContext;
+	if (pse->obServiceCtrlHandler==NULL) { // Python is in error.
+		if (!bServiceDebug)
+			SetServiceStatus( pse->sshStatusHandle, &errorStatus );
+		return ERROR_CALL_NOT_IMPLEMENTED;
+	}
+	// Ensure we have a context for our thread.
+	DWORD dwResult;
+	CEnterLeavePython celp;
+	PyObject *args = Py_BuildValue("(l)", dwCtrlCode);
+	PyObject *result = PyObject_CallObject(pse->obServiceCtrlHandler, args);
+	Py_XDECREF(args);
+	if (result==NULL) {
+		ReportPythonError(PYS_E_SERVICE_CONTROL_FAILED);
+		dwResult = ERROR_CALL_NOT_IMPLEMENTED; // correct code?
+	} else if (PyInt_Check(result)||PyLong_Check(result))
+		dwResult = PyInt_AsLong(result);
+	else
+		dwResult = NOERROR;
+
+	Py_XDECREF(result);
+	return dwResult;
+}
+
+
+// When debugging, a console event handler that simulates a service 
+// stop control.
+BOOL WINAPI DebugControlHandler ( DWORD dwCtrlType )
+{
+    switch( dwCtrlType )
+    {
+        case CTRL_BREAK_EVENT:  // use Ctrl+C or Ctrl+Break to simulate
+        case CTRL_C_EVENT:      // SERVICE_CONTROL_STOP in debug mode
+			{
+            _tprintf(TEXT("Stopping debug service.\n"));
+			// simulate a stop even to each service
+			PY_SERVICE_TABLE_ENTRY *ppy = PythonServiceTable;
+			SERVICE_TABLE_ENTRY *ps = DispatchTable;
+			while (ps->lpServiceName) {
+	            service_ctrl_ex(SERVICE_CONTROL_STOP, 0, NULL, ppy);
+				ppy++;
+				ps++;
+			}
+            return TRUE;
+            break;
+			}
+
+    }
+    return FALSE;
+}
+
+/*************************************************************************
+ *
+ *
+ * Generic Service Host implementation - handles command-line args,
+ * uses the registry to work out what Python classes to load, etc.
+ * This section could be split into the EXE.
+ *
+ *
+ *************************************************************************/
 //
 //  FUNCTION: PythonService_main
 //
-//  PURPOSE: entrypoint for service
+//  PURPOSE: entrypoint for our generic PythonService host 
 //
 //  PARAMETERS:
 //    argc - number of command line arguments
@@ -405,27 +886,30 @@ static void PyService_InitPython()
 //    main service thread.  When the this call returns,
 //    the service has stopped, so exit.
 //
-
-extern "C" int PythonService_main(int argc, char **argv)
+int PythonService_main(int argc, char **argv)
 {
-	SERVICE_TABLE_ENTRY   DispatchTable[] = 
-    { 
-        { TEXT(""), 	service_main      }, 
-        { NULL,              NULL         } 
-    }; 
+	// Note that we don't know the service name we are hosting yet!
+	// If only one service is hosted, then it is no real problem - our dispatch
+	// table has a single entry, and this must be our service (and indeed
+	// Windows doesn't care - it ignores the service name in the dispatch table
+	// if SERVICE_WIN32_OWN_PROCESS is set.
+	// However, if we want to host multiple services, we have a problem.
+	// For now, the solution is to not support multiple services via this
+	// generic PythonService.exe.  However, py2exe etc is free to register
+	// multiple services (and we don't care how it find out the service names)
+	// Later, we could add support to the service registration code so that
+	// the service names are always passed on the command-line (-services=)
+	// (This is also the reason "-debug" requires the service name on the
+	// command-line.)
+	int temp;
+	LPTSTR *targv;
 
-	// Get the name of the EXE, and store it in the global variable
-	// for the Event Source name
-	TCHAR tempFileNameBuf[MAX_PATH];
-	GetModuleFileName(0, tempFileNameBuf, sizeof(tempFileNameBuf)/sizeof(TCHAR));
-	TCHAR *posSlash = _tcsrchr(tempFileNameBuf, _T('\\'));
-	if (posSlash)
-		_tcscpy( g_szEventSourceName, posSlash+1 );
-	TCHAR *posDot = _tcsrchr(g_szEventSourceName, _T('.'));
-	if (posDot)
-		*posDot = _T('\0');
-
-
+#ifdef UNICODE
+	targv = CommandLineToArgvW(GetCommandLineW(), &temp);
+#else
+	targv = argv;
+#endif
+	
     if ( (argc > 1) &&
          ((*argv[1] == '-') || (*argv[1] == '/')) )
     {
@@ -442,204 +926,66 @@ extern "C" int PythonService_main(int argc, char **argv)
 			   embedded in it, use it, otherwise insist one is passed on the
 			   command line
 			*/
-			char svcNameBuf[256];
-			char *svcName;
+			TCHAR svcNameBuf[256];
+			TCHAR *svcName;
 			int argOffset = 1;
-			if (LoadStringA(GetModuleHandle(NULL), RESOURCE_SERVICE_NAME, svcNameBuf, sizeof(svcNameBuf))>1) {
+			if (LoadString(GetModuleHandle(NULL), RESOURCE_SERVICE_NAME, svcNameBuf, sizeof(svcNameBuf)/sizeof(TCHAR))>1) {
 				svcName = svcNameBuf;
 			} else {
-	        	if (argc<3) {
+				if (argc<3) {
 		    		printf("-debug requires a service name");
 					return 1;
-        		}
-				svcName = argv[2];
+				}
+				svcName = targv[2];
 				argOffset = 2;
 			}
 			bServiceDebug = TRUE;
-			printf("Debugging service %s\n", svcName);
-		    int dwArgc;
-		    LPTSTR *lpszArgv;
-
-#ifdef UNICODE
-		    lpszArgv = CommandLineToArgvW(GetCommandLineW(), &(dwArgc) );
-#else
-		    dwArgc   = argc;
-		    lpszArgv = argv;
-#endif
-	        SetConsoleCtrlHandler( DebugControlHandler, TRUE );
-			service_main(dwArgc-argOffset, lpszArgv+argOffset);
-        	return 0; // gotta assume OK...
-        }
-    }
-
-	// To be friendly, say what we are doing
-    printf("%s - Python Service Manager\n", argv[0]);
-    printf("Options:\n");
-#ifndef BUILD_FREEZE
-	printf(" -register - register the EXE - this must be done at least once.\n");
-#endif
-    printf(" -debug servicename [parms] - debug the Python service.\n");
-    printf("\nNOTE: You do not start the service using this program - start the\n");
-    printf("service using Control Panel, or 'net start service_name'\n");
-    printf("\nConnecting to the service control manager....\n");
-
-    if (!StartServiceCtrlDispatcher( DispatchTable)) {
-    	ReportAPIError(PYS_E_API_CANT_START_SERVICE);
-    	printf("Could not start the service - error %d\n", GetLastError());
-#ifndef BUILD_FREEZE
-		RegisterPythonServiceExe();
-#endif
-    }
-	return 2;
-}
-
-#ifndef BUILD_FREEZE
-int main(int argc, char **argv)
-{
-	return PythonService_main(argc, argv);
-}
-#endif
-
-
-BOOL WINAPI DebugControlHandler ( DWORD dwCtrlType )
-{
-    switch( dwCtrlType )
-    {
-        case CTRL_BREAK_EVENT:  // use Ctrl+C or Ctrl+Break to simulate
-        case CTRL_C_EVENT:      // SERVICE_CONTROL_STOP in debug mode
-            _tprintf(TEXT("Stopping debug service.\n"));
-            service_ctrl(SERVICE_CONTROL_STOP);
-            return TRUE;
-            break;
-
-    }
-    return FALSE;
-}
-
-//
-//  FUNCTION: service_main
-//
-//  PURPOSE: To perform actual initialization of the service
-//
-//  PARAMETERS:
-//    dwArgc   - number of command line arguments
-//    lpszArgv - array of command line arguments
-//
-//  RETURN VALUE:
-//    none
-//
-//  COMMENTS:
-//    This routine performs the service initialization and then calls
-//    the user defined ServiceStart() routine to perform majority
-//    of the work.
-//
-void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
-{
-	PyObject *instance = NULL;
-	PyObject *start = NULL;
-
-	BOOL bPythonInitedOK = LocatePythonServiceClass(dwArgc, lpszArgv, &instance);
-
-	// If Python has not yet registered the service control handler, then
-	// we are in serious trouble - it is likely the service will enter a zombie
-	// state, where it wont do anything, but you can not start another.
-	if (g_obServiceCtrlHandler==NULL) {
-		// If Python seemed to init OK, but hasnt done what we expect,
-		// report an error, as we are gunna fail!
-		if (bPythonInitedOK) 
-			ReportPythonError(E_PYS_NOT_CONTROL_HANDLER);
-		if (!bServiceDebug)
-			sshStatusHandle = RegisterServiceCtrlHandler( lpszArgv[0], service_ctrl);
-	}
-	// Not much we can do here.
-    if ( !bPythonInitedOK || (!sshStatusHandle && !bServiceDebug) || !instance) {
-		if (sshStatusHandle)
-			SetServiceStatus( sshStatusHandle, &neverStartedStatus );
-        goto cleanup;
-	}
-
-	if (!bServiceDebug)
-		if (!SetServiceStatus( sshStatusHandle, &startingStatus ))
-			ReportAPIError(PYS_E_API_CANT_SET_PENDING);
-
-	start = PyObject_GetAttrString(instance, "SvcRun");
-	if (start==NULL)
-		ReportPythonError(E_PYS_NO_RUN_METHOD);
-	else {
-		PyObject *result = PyObject_CallObject(start, NULL);
-		if (result==NULL)
-			ReportPythonError(E_PYS_START_FAILED);
-		else
-			Py_DECREF(result);
-	}
-	// We are all done.
-cleanup:
-
-    // try to report the stopped status to the service control manager.
-    //
-	Py_XDECREF(start);
-	Py_XDECREF(instance);
-		
-    if (sshStatusHandle) { // Wont be true if debugging.
-		if (!SetServiceStatus( sshStatusHandle, &stoppedStatus ))
-			ReportAPIError(PYS_E_API_CANT_SET_STOPPED);
-    }
-    return;
-}
-
-static BOOL LocatePythonServiceClassString( DWORD dwArgc, LPTSTR *lpszArgv, char *buf, int cchBuf)
-{
-	char keyName[1024];
-
-	// If not error loading, and not an empty string
-	if (LoadStringA(GetModuleHandle(NULL), RESOURCE_SERVICE_NAME, buf, cchBuf)>1)
-		// Get out of here now!
-		return TRUE;
-
-
-	HKEY key = NULL;
-	BOOL ok = TRUE;
-	wsprintfA(keyName, "System\\CurrentControlSet\\Services\\%S\\PythonClass", lpszArgv[0]);
-	if (RegOpenKeyA(HKEY_LOCAL_MACHINE, keyName, &key) != ERROR_SUCCESS) {
-		ReportAPIError(PYS_E_API_CANT_LOCATE_PYTHON_CLASS);
-		return FALSE;
-	}
-	DWORD dataType;
-	DWORD valueBufSize = cchBuf;
-	if ((RegQueryValueExA(key, "", 0, &dataType, (LPBYTE)buf, &valueBufSize)!=ERROR_SUCCESS) ||
-		(dataType != REG_SZ)) {
-		ReportAPIError(PYS_E_API_CANT_LOCATE_PYTHON_CLASS);
-		ok = FALSE;
-	}
-
-/***
-	// See if the optimized flag is turned on.
-	BOOL bOptimize;
-	DWORD readSize = sizeof(bOptimize);
-	if (key) {
-		if ((RegQueryValueExA(key, "Optimize", 0, &dataType, (LPBYTE)&bOptimize, &readSize)!=ERROR_SUCCESS) || 
-			(dataType != REG_DWORD)) {
-			bOptimize = FALSE;
+			_tprintf(_T("Debugging service %s\n"), svcName);
+			PythonService_Initialize(NULL, NULL);
+			PythonService_PrepareToHostSingle(NULL);
+			service_main(argc-argOffset, targv+argOffset);
+		return 0; // gotta assume OK...
 		}
 	}
+	PythonService_Initialize(NULL, NULL);
+	PythonService_PrepareToHostSingle(NULL);
 
-***/
-
-	if (key)
-		RegCloseKey(key);
-	return ok;
+	if (!PythonService_StartServiceCtrlDispatcher()) {
+		DWORD errCode = GetLastError();
+		if (errCode==ERROR_FAILED_SERVICE_CONTROLLER_CONNECT) {
+			// We are not being run by the SCM - print a debug message.
+			printf("%s - Python Service Manager\n", argv[0]);
+			printf("Options:\n");
+#ifndef BUILD_FREEZE
+			printf(" -register - register the EXE - this must be done at least once.\n");
+#endif
+		    printf(" -debug servicename [parms] - debug the Python service.\n");
+		    printf("\nNOTE: You do not start the service using this program - start the\n");
+		    printf("service using Control Panel, or 'net start service_name'\n");
+		} else {
+			// Some other nasty error - log it.
+			ReportAPIError(PYS_E_API_CANT_START_SERVICE, errCode);
+			printf("Could not start the service - error %d\n", errCode);
+			// Just incase the error was caused by this EXE not being registered
+#ifndef BUILD_FREEZE
+			RegisterPythonServiceExe();
+#endif
+		}
+		return 2;
+	}
+	// life is good!
+	return 0;
 }
 
-static BOOL LocatePythonServiceClass( DWORD dwArgc, LPTSTR *lpszArgv, PyObject **result )
+
+// Given the string in form [path\]module.ClassName, return
+// an instance of the class
+PyObject *LoadPythonServiceClass(char *svcInitString)
 {
 	char valueBuf[512];
-
-	BOOL ok = LocatePythonServiceClassString( dwArgc, lpszArgv, valueBuf, sizeof(valueBuf));
-	if (!ok)
-		return FALSE;
-	
 	// Initialize Python
 	PyService_InitPython();
+	strncpy(valueBuf, svcInitString, sizeof(valueBuf));
 	// Find the last "\\"
 	char *sep = strrchr(valueBuf, '\\');
 	char *fname;
@@ -662,38 +1008,45 @@ static BOOL LocatePythonServiceClass( DWORD dwArgc, LPTSTR *lpszArgv, PyObject *
 	} else {
 		fname = valueBuf;
 	}
-	
 	// Find the last "." in the name, and assume it is a module name.
 	char *classNamePos = strrchr(fname, '.');
 	if (classNamePos==NULL) {
 		ReportError(PYS_E_CANT_LOCATE_MODULE_NAME);
-		return FALSE;
+		return NULL;
 	}
 	PyObject *module;
+	// XXX - does this work for packages?  I fear that like Python,
+	// PyImport_ImportModule("foo.bar") will return 'foo', not bar.
 	*classNamePos++ = '\0';
-	// If we have another '.', then likely a 'ni' package.
-/* And we hate ni now :-)
-	if (strrchr(keyName, '.')!=NULL) {
-		module = PyImport_ImportModule("ni");
-		Py_XDECREF(module);
-	}
-*/
 	module = PyImport_ImportModule(fname);
 	if (module==NULL) {
 		ReportPythonError(E_PYS_NO_MODULE);
-		return FALSE;
+		return NULL;
 	}
 	PyObject *pyclass = PyObject_GetAttrString(module, classNamePos);
 	Py_DECREF(module);
 	if (pyclass==NULL) {
 		ReportPythonError(E_PYS_NO_CLASS);
-		return FALSE;
+		return NULL;
+	}
+	return pyclass;
+}
+
+// Given a Python class and an "argv" array, instantiate our
+// instance.
+PyObject *LoadPythonServiceInstance(	PyObject *pyclass,
+										DWORD dwArgc,
+										LPTSTR *lpszArgv )
+{
+	if (pyclass==NULL) {
+		ReportPythonError(PYS_E_BAD_CLASS);
+		return NULL;
 	}
 	PyObject *args = PyTuple_New(dwArgc);
 	if (args==NULL) {
 		Py_DECREF(pyclass);
 		ReportPythonError(PYS_E_NO_MEMORY_FOR_ARGS);
-		return FALSE;
+		return NULL;
 	}
 	for (DWORD i=0;i<dwArgc;i++) {
 		PyObject *arg = PyWinObject_FromWCHAR(lpszArgv[i]);
@@ -701,25 +1054,110 @@ static BOOL LocatePythonServiceClass( DWORD dwArgc, LPTSTR *lpszArgv, PyObject *
 			Py_DECREF(args);
 			Py_DECREF(pyclass);
 			ReportPythonError(PYS_E_BAD_ARGS);
-			return FALSE;
+			return NULL;
 		}
 		PyTuple_SET_ITEM(args, i, arg);
 	}
 	PyObject *realArgs = PyTuple_New(1);
 	PyTuple_SET_ITEM(realArgs, 0, args);
-	*result = PyObject_CallObject(pyclass, realArgs);
-	if (*result==NULL) {
-		ok = FALSE;
+	PyObject *result = PyObject_CallObject(pyclass, realArgs);
+	if (result==NULL) {
 		BOOL bHandledError = PyErr_ExceptionMatches(servicemanager_startup_error);
 		if (bHandledError)
 			PyErr_Clear();
 		else
 			ReportPythonError(PYS_E_BAD_CLASS);
 	}
-	Py_DECREF(pyclass);
+	return result;
+}
+
+BOOL LocatePythonServiceClassString( TCHAR *svcName, char *buf, int cchBuf)
+{
+	char keyName[1024];
+
+	// If not error loading, and not an empty string
+	if (LoadStringA(GetModuleHandle(NULL), RESOURCE_SERVICE_NAME, buf, cchBuf)>1)
+		// Get out of here now!
+		return TRUE;
+
+	HKEY key = NULL;
+	BOOL ok = TRUE;
+	wsprintfA(keyName, "System\\CurrentControlSet\\Services\\%S\\PythonClass", svcName);
+	if (RegOpenKeyA(HKEY_LOCAL_MACHINE, keyName, &key) != ERROR_SUCCESS) {
+		ReportAPIError(PYS_E_API_CANT_LOCATE_PYTHON_CLASS);
+		return FALSE;
+	}
+	DWORD dataType;
+	DWORD valueBufSize = cchBuf;
+	if ((RegQueryValueExA(key, "", 0, &dataType, (LPBYTE)buf, &valueBufSize)!=ERROR_SUCCESS) ||
+		(dataType != REG_SZ)) {
+		ReportAPIError(PYS_E_API_CANT_LOCATE_PYTHON_CLASS);
+		ok = FALSE;
+	}
+/***
+	// See if the optimized flag is turned on.
+	BOOL bOptimize;
+	DWORD readSize = sizeof(bOptimize);
+	if (key) {
+		if ((RegQueryValueExA(key, "Optimize", 0, &dataType, (LPBYTE)&bOptimize, &readSize)!=ERROR_SUCCESS) || 
+			(dataType != REG_DWORD)) {
+			bOptimize = FALSE;
+		}
+	}
+
+***/
+	if (key)
+		RegCloseKey(key);
 	return ok;
 }
 
+// Register the EXE.
+// This writes an entry to the Python registry and also
+// to the EventLog so I can stick in messages.
+static BOOL RegisterPythonServiceExe(void)
+{
+	printf("Registering the Python Service Manager...\n");
+	const int fnameBufSize = MAX_PATH + 1;
+	TCHAR fnameBuf[fnameBufSize];
+	if (GetModuleFileName( NULL, fnameBuf, fnameBufSize)==0) {
+		printf("Registration failed due to GetModuleFileName() failing (error %d)\n", GetLastError());
+		return FALSE;
+	}
+	if (!Py_IsInitialized())
+		Py_Initialize();
+	// Register this specific EXE against this specific DLL version
+	PyObject *obVerString = PySys_GetObject("winver");
+	if (obVerString==NULL || !PyString_Check(obVerString)) {
+		Py_XDECREF(obVerString);
+		printf("Registration failed as sys.winver is not available or not a string\n");
+		return FALSE;
+	}
+	char *szVerString = PyString_AsString(obVerString);
+	Py_DECREF(obVerString);
+	// note wsprintf allows %hs to be "char *" even when UNICODE!
+	TCHAR keyBuf[256];
+	wsprintf(keyBuf, _T("Software\\Python\\PythonService\\%hs"), szVerString);
+	DWORD rc;
+	if ((rc=RegSetValue(HKEY_LOCAL_MACHINE,
+	                keyBuf, REG_SZ, 
+					fnameBuf, _tcslen(fnameBuf)))!=ERROR_SUCCESS) {
+		printf("Registration failed due to RegSetValue() of service EXE - error %d\n", rc);
+		return FALSE;
+	}
+	// don't bother registering in the event log - do it when we write a log entry.
+	return TRUE;
+}
+
+#endif // PYSERVICE_BUILD_DLL
+
+// Code that exists in both EXE and DLL - mainly error handling code.
+/*************************************************************************
+ *
+ *
+ * Error and Event Log related functions.
+ *
+ *
+ *************************************************************************/
 static void ReportAPIError(DWORD msgCode, DWORD errCode /*= 0*/)
 {
 	if (errCode==0)
@@ -829,17 +1267,17 @@ static void ReportPythonError(DWORD code)
 		}
 		inserts[0] = szTracebackUse;
 		PyObject *obStr = PyObject_Str(type);
-		PyWinObject_AsBstr(obStr, inserts+1);
+		PyWinObject_AsWCHAR(obStr, inserts+1);
 		Py_XDECREF(obStr);
 		obStr = PyObject_Str(value);
-		PyWinObject_AsBstr(PyObject_Str(obStr), inserts+2);
+		PyWinObject_AsWCHAR(PyObject_Str(obStr), inserts+2);
 		Py_XDECREF(obStr);
 	    ReportError(code, (LPCTSTR *)inserts);
 		if (szTraceback) free(szTraceback);
-	    SysFreeString(inserts[1]);
-	    SysFreeString(inserts[2]);
-	    if (bServiceDebug) { // If debugging, restore for traceback print,
-		    PyErr_Restore(type, value, traceback);
+		PyWinObject_FreeWCHAR(inserts[1]);
+		PyWinObject_FreeWCHAR(inserts[2]);
+		if (bServiceDebug) { // If debugging, restore for traceback print,
+			PyErr_Restore(type, value, traceback);
 		} else {	// free em up.
 			Py_XDECREF(type);
 			Py_XDECREF(value);
@@ -847,12 +1285,8 @@ static void ReportPythonError(DWORD code)
 		}
 	} else {
 		LPCTSTR inserts[] = {L"<No Python Error!>", L"", L"", NULL};
-    	ReportError(code, inserts);
+		ReportError(code, inserts);
 	}
-//    if (bServiceDebug) {
-//	    if (PyErr_Occurred())
-//		    PyErr_Print();
-//    }
 	PyErr_Clear();
 }
 
@@ -895,32 +1329,6 @@ static BOOL ReportError(DWORD code, LPCTSTR *inserts, WORD errorType /* = EVENTL
     	}
 		return TRUE;
 	} else {
-		// Ensure we are setup in the eventlog
-		HKEY hkey;
-		TCHAR keyName[MAX_PATH];
-		_tcscpy(keyName, _T("SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\"));
-		_tcscat(keyName, g_szEventSourceName );
-		// ignore all failures when settingup - for whatever reason it fails,
-		// we are probably still better off calling ReportEvent than
-		// not calling due to some other failure here.
-		if (RegCreateKeyEx(HKEY_LOCAL_MACHINE, 
-		                   keyName, 
-		                   0, 
-		                   NULL, 
-		                   REG_OPTION_NON_VOLATILE, 
-		                   KEY_WRITE, NULL, 
-		                   &hkey, 
-		                   NULL) == ERROR_SUCCESS) {
-			TCHAR fnameBuf[MAX_PATH+MAX_PATH];
-			const DWORD fnameBufSize = sizeof(fnameBuf)/sizeof(fnameBuf[0]);
-			GetModuleFileName( NULL, fnameBuf, fnameBufSize);
-			RegSetValueEx(hkey, TEXT("EventMessageFile"), 0, REG_SZ, 
-			              (const BYTE *)fnameBuf, (_tcslen(fnameBuf)+1)*sizeof(TCHAR));
-			DWORD types = EVENTLOG_ERROR_TYPE | EVENTLOG_WARNING_TYPE | EVENTLOG_INFORMATION_TYPE;
-			RegSetValueEx(hkey, TEXT("TypesSupported"), 0, REG_DWORD, 
-			              (const BYTE *)&types, sizeof(types));
-			RegCloseKey(hkey);
-		}
 		hEventSource = RegisterEventSource(NULL, g_szEventSourceName);
 		if (hEventSource==NULL)
 			return FALSE;
@@ -940,40 +1348,59 @@ static BOOL ReportError(DWORD code, LPCTSTR *inserts, WORD errorType /* = EVENTL
     }
 }
 
-// Register the EXE.
-// This writes an entry to the Python registry and also
-// to the EventLog so I can stick in messages.
-static BOOL RegisterPythonServiceExe(void)
+
+/*************************************************************************
+ *
+ *
+ * Entry points
+ *
+ *
+ *************************************************************************/
+#ifdef PYSERVICE_BUILD_DLL
+extern "C" __declspec(dllexport)
+BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
-	printf("Registering the Python Service Manager...\n");
-	const int fnameBufSize = MAX_PATH + 1;
-	TCHAR fnameBuf[fnameBufSize];
-	if (GetModuleFileName( NULL, fnameBuf, fnameBufSize)==0) {
-		printf("Registration failed due to GetModuleFileName() failing (error %d)\n", GetLastError());
-		return FALSE;
-	}
-	if (!Py_IsInitialized())
-		Py_Initialize();
-	// Register this specific EXE against this specific DLL version
-	PyObject *obVerString = PySys_GetObject("winver");
-	if (obVerString==NULL || !PyString_Check(obVerString)) {
-		Py_XDECREF(obVerString);
-		printf("Registration failed as sys.winver is not available or not a string\n");
-		return FALSE;
-	}
-	char *szVerString = PyString_AsString(obVerString);
-	Py_DECREF(obVerString);
-	// note wsprintf allows %hs to be "char *" even when UNICODE!
-	TCHAR keyBuf[256];
-	wsprintf(keyBuf, _T("Software\\Python\\PythonService\\%hs"), szVerString);
-	DWORD rc;
-	if ((rc=RegSetValue(HKEY_LOCAL_MACHINE,
-	                keyBuf, REG_SZ, 
-					fnameBuf, _tcslen(fnameBuf)))!=ERROR_SUCCESS) {
-		printf("Registration failed due to RegSetValue() of service EXE - error %d\n", rc);
-		return FALSE;
-	}
-	// don't bother registering in the event log - do it when we write a log entry.
+	if ( dwReason == DLL_PROCESS_ATTACH )
+		g_hdll = hInstance;
 	return TRUE;
 }
+
+#else // PYSERVICE_BUILD_DLL
+// Our EXE entry point.
+int main(int argc, char **argv)
+{
+	PyObject *module, *f;
+	HMODULE hmod;
+	FARPROC proc;
+	Py_Initialize();
+	module = PyImport_ImportModule("servicemanager");
+	if (!module) goto failed;
+	f = PyObject_GetAttrString(module, "__file__");
+	Py_DECREF(module);
+	if (!f) goto failed;
+	if (!PyString_Check(f)) {
+		PyErr_SetString(PyExc_TypeError, "servicemanager.__file__ is not a string!");
+		goto failed;
+	}
+	// now get the handle to the DLL, and call the main function.
+	hmod = GetModuleHandleA(PyString_AsString(f));
+	Py_DECREF(f);
+	if (!hmod) {
+		PyErr_Format(PyExc_RuntimeError, "servicemanager.__file__ could not be loaded - win32 error code is %d", GetLastError());
+		goto failed;
+	}
+	proc = GetProcAddress(hmod, "PythonService_main");
+	if (!proc) {
+		PyErr_Format(PyExc_RuntimeError, "servicemanager.__file__ does not contain PythonService_main - win32 error code is %d", GetLastError());
+		goto failed;
+	}
+	typedef int (* FNPythonService_main)(int argc, char **argv);
+	return ((FNPythonService_main)proc)(argc, argv);
+failed:
+	fprintf(stderr, "PythonService was unable to locate the service manager. "
+	                "Please see the event log for details\n");
+	ReportPythonError(PYS_E_NO_SERVICEMANAGER);
+	return 1;
+}
+#endif
 
