@@ -23,7 +23,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.4.3" # Written to generated file.
+makepy_version = "0.4.4" # Written to generated file.
 
 GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
@@ -233,9 +233,14 @@ class VTableItem(build.VTableItem, WritableItem):
                 chunks.append("(%d,%d," % (arg[0], arg[1]))
                 defval = build.MakeDefaultArgRepr(arg)
                 if defval is None:
-                    chunks.append("None), ")
+                    chunks.append("None, ")
                 else:
-                    chunks.append(defval + "), ")
+                    chunks.append(defval + ", ")
+                if arg[3] is None:
+                    chunks.append("None")
+                else:
+                    chunks.append("pythoncom.MakeIID('" + str(arg[3]) + "')" )
+                chunks.append("),")
             chunks.append("), %s, %s)," % (repr(ret_desc), repr(named_params)))
             #chunks.append(' # vtable entry %d' % (desc[7]/4,) )
             print "".join(chunks)

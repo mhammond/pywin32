@@ -44,7 +44,6 @@ NoTranslateTypes = [
 	pythoncom.VT_STREAM,
 	pythoncom.VT_UI1,            pythoncom.VT_UI2,           pythoncom.VT_UI4,
 	pythoncom.VT_UI8,            pythoncom.VT_UINT,          pythoncom.VT_VOID,
-	pythoncom.VT_UNKNOWN,
 ]
 
 NoTranslateMap = {}
@@ -173,13 +172,14 @@ class DispatchItem(OleItem):
 #		sys.stderr.write("%s result - %s -> " % (name, typerepr))
 		typerepr, resultCLSID, resultDoc = _ResolveType(typerepr, typeinfo)
 #		sys.stderr.write("%s\n" % (typerepr,))
-		fdesc.rettype = typerepr, flag, defval
+		fdesc.rettype = typerepr, flag, defval, resultCLSID
 		# Translate any Alias or Enums in argument list.
 		argList = []
 		for argDesc in fdesc.args:
 			typerepr, flag, defval = argDesc
 #			sys.stderr.write("%s arg - %s -> " % (name, typerepr))
-			argDesc = _ResolveType(typerepr, typeinfo)[0], flag, defval
+			arg_type, arg_clsid, arg_doc = _ResolveType(typerepr, typeinfo)
+			argDesc = arg_type, flag, defval, arg_clsid
 #			sys.stderr.write("%s\n" % (argDesc[0],))
 			argList.append(argDesc)
 		fdesc.args = tuple(argList)
@@ -347,7 +347,7 @@ class DispatchItem(OleItem):
 			rd = retDesc[0]
 			if NoTranslateMap.has_key(rd):
 				s = '%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, argsDesc, _BuildArgList(fdesc, names))
-			elif rd==pythoncom.VT_DISPATCH:
+			elif rd in [pythoncom.VT_DISPATCH, pythoncom.VT_UNKNOWN]:
 				s = '%s\tret = self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)\n' % (linePrefix, id, fdesc[4], retDesc, `argsDesc`, _BuildArgList(fdesc, names))
 				s = s + '%s\tif ret is not None: ret = win32com.client.Dispatch(ret, %s, %s, UnicodeToString=%d)\n' % (linePrefix,`name`, resclsid, NeedUnicodeConversions) 
 				s = s + '%s\treturn ret' % (linePrefix)
@@ -459,13 +459,17 @@ def _ResolveType(typerepr, itypeinfo):
 				# For now, assume Long
 				return pythoncom.VT_I4, None, None
 
-			elif typeKind in [pythoncom.TKIND_DISPATCH,
-							  pythoncom.TKIND_INTERFACE,
+			elif typeKind == pythoncom.TKIND_DISPATCH:
+				clsid = resultTypeInfo.GetTypeAttr()[0]
+				retdoc = resultTypeInfo.GetDocumentation(-1)
+				return pythoncom.VT_DISPATCH, clsid, retdoc
+
+			elif typeKind in [pythoncom.TKIND_INTERFACE,
 							  pythoncom.TKIND_COCLASS]:
 				# XXX - should probably get default interface for CO_CLASS???
 				clsid = resultTypeInfo.GetTypeAttr()[0]
 				retdoc = resultTypeInfo.GetDocumentation(-1)
-				return pythoncom.VT_DISPATCH, clsid, retdoc
+				return pythoncom.VT_UNKNOWN, clsid, retdoc
 
 			elif typeKind == pythoncom.TKIND_RECORD:
 				return pythoncom.VT_RECORD, None, None
