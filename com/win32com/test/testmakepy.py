@@ -11,28 +11,35 @@ import traceback
 import win32com.test.util
 from win32com.client import makepy, selecttlb
 import pythoncom
+import winerror
 
 def TestBuildAll(verbose = 1):
+    num = 0
     tlbInfos = selecttlb.EnumTlbs()
     for info in tlbInfos:
         if verbose:
             print "%s (%s)" % (info.desc, info.dll)
         try:
             makepy.GenerateFromTypeLibSpec(info)
+            num += 1
         except pythoncom.com_error, details:
-
-            print "COM error on", info.desc
-            print details
+            # Ignore these 2 errors, as the are very common and can obscure
+            # useful warnings.
+            if details[0] not in [winerror.TYPE_E_CANTLOADLIBRARY,
+                              winerror.TYPE_E_LIBNOTREGISTERED]:
+                print "** COM error on", info.desc
+                print details
         except KeyboardInterrupt:
             print "Interrupted!"
             raise KeyboardInterrupt
         except:
             print "Failed:", info.desc
             traceback.print_exc()
-
+    return num
 
 def TestAll(verbose = 0):
-    TestBuildAll(verbose)
+    num = TestBuildAll(verbose)
+    print "Generated and imported", num, "modules"
     win32com.test.util.CheckClean()
 
 if __name__=='__main__':
