@@ -14,8 +14,9 @@ def GenerateAndRunOldStyle():
 
 def Prepare():
 	import win32com, shutil
-	print "Deleting files from %s" % (win32com.__gen_path__)
-	shutil.rmtree(win32com.__gen_path__)
+	if os.path.isdir(win32com.__gen_path__):
+		print "Deleting files from %s" % (win32com.__gen_path__)
+		shutil.rmtree(win32com.__gen_path__)
 	import win32com.client.gencache
 	win32com.client.gencache.__init__() # Reset
 
