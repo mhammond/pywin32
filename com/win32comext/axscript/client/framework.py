@@ -18,9 +18,6 @@ import types
 
 SCRIPTTEXT_FORCEEXECUTION = 0x80000000
 SCRIPTTEXT_ISEXPRESSION   = 0x00000020
-INTERFACE_USES_DISPEX = 0x00000004	# Object knows to use IDispatchEx
-INTERFACE_USES_SECURITY_MANAGER = 0x00000008 # Object knows to use IInternetHostSecurityManager
-
 
 from win32com.server.exception import Exception, IsCOMServerException
 import error # ax.client.error
@@ -660,19 +657,21 @@ class COMScript:
 		if iid in [pythoncom.IID_IPersist, pythoncom.IID_IPersistStream, pythoncom.IID_IPersistStreamInit,
 		            axscript.IID_IActiveScript, axscript.IID_IActiveScriptParse]:
 			self.safetyOptions = 0
-			if optionsMask & enabledOptions & axscript.INTERFACESAFE_FOR_UNTRUSTED_CALLER:
+			supported = self._GetSupportedInterfaceSafetyOptions()
+			if optionsMask & supported & enabledOptions & axscript.INTERFACESAFE_FOR_UNTRUSTED_CALLER:
 				self.safetyOptions = self.safetyOptions | axscript.INTERFACESAFE_FOR_UNTRUSTED_CALLER
-			if optionsMask & enabledOptions & axscript.INTERFACESAFE_FOR_UNTRUSTED_DATA:
+			if optionsMask & supported & enabledOptions & axscript.INTERFACESAFE_FOR_UNTRUSTED_DATA:
 				self.safetyOptions = self.safetyOptions | axscript.INTERFACESAFE_FOR_UNTRUSTED_DATA
 		else:
 			raise Exception(scode=winerror.E_NOINTERFACE)
-		
+
+	def _GetSupportedInterfaceSafetyOptions(self):
+		return 0
+
 	def GetInterfaceSafetyOptions(self, iid):
 		if iid in [pythoncom.IID_IPersist, pythoncom.IID_IPersistStream, pythoncom.IID_IPersistStreamInit,
 		            axscript.IID_IActiveScript, axscript.IID_IActiveScriptParse]:
-			supported = axscript.INTERFACESAFE_FOR_UNTRUSTED_DATA | axscript.INTERFACESAFE_FOR_UNTRUSTED_CALLER
-			# We tell the host we support em all, even tho we refuse to accept some.
-			supported = supported | INTERFACE_USES_DISPEX | INTERFACE_USES_SECURITY_MANAGER
+			supported = self._GetSupportedInterfaceSafetyOptions()
 			return supported, self.safetyOptions
 		else:
 			raise Exception(scode=winerror.E_NOINTERFACE)

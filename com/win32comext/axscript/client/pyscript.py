@@ -395,17 +395,17 @@ class PyScript(framework.COMScript):
 		self.rexec_env = None
 		
 
-def Register():
+def Register(klass=PyScript):
 	import sys
-	ret = win32com.server.register.UseCommandLine(PyScript)
+	ret = win32com.server.register.UseCommandLine(klass)
 	if '--unregister' not in sys.argv and \
 	   '--unregister_info' not in sys.argv:
 		# If we are registering, do our extra stuff.
-		win32com.server.register._set_subkeys(PyScript._reg_progid_ + "\\OLEScript", {}) # Just a CreateKey
+		win32com.server.register._set_subkeys(klass._reg_progid_ + "\\OLEScript", {}) # Just a CreateKey
 		# Basic Registration for wsh.
 		win32com.server.register._set_string(".pys", "pysFile")
-		win32com.server.register._set_string("pysFile\\ScriptEngine", PyScript._reg_progid_)
-		print "Registration of Scripting Engine complete."
+		win32com.server.register._set_string("pysFile\\ScriptEngine", klass._reg_progid_)
+		print "Registration of %s complete." % (klass._reg_desc_,)
 	return ret
 	
 if __name__=='__main__':
