@@ -60,6 +60,12 @@ class ScintillaControlInterface:
 		return chr(self.SendScintilla(SCI_GETCHARAT, pos) & 0xFF)
 	def SCIGotoLine(self, line):
 		self.SendScintilla(SCI_GOTOLINE, line)
+	def SCIBraceMatch(self, pos, maxReStyle):
+		return self.SendScintilla(SCI_BRACEMATCH, pos, maxReStyle)
+	def SCIBraceHighlight(self, pos, posOpposite):
+		return self.SendScintilla(SCI_BRACEHIGHLIGHT, pos, posOpposite)
+	def SCIBraceBadHighlight(self, pos):
+		return self.SendScintilla(SCI_BRACEBADLIGHT, pos)
 
 	####################################
 	# Styling
@@ -81,6 +87,11 @@ class ScintillaControlInterface:
 		return self.SendScintilla(SCI_GETVIEWWS)
 	def SCISetViewWS(self, val):
 		self.SendScintilla(SCI_SETVIEWWS, not (val==0))
+		self.InvalidateRect()
+	def SCIGetViewEOL(self):
+		return self.SendScintilla(SCI_GETVIEWEOL)
+	def SCISetViewEOL(self, val):
+		self.SendScintilla(SCI_SETVIEWEOL, not(val==0))
 		self.InvalidateRect()
 	def SCISetTabWidth(self, width):
 		self.SendScintilla(SCI_SETTABWIDTH, width, 0)
@@ -189,7 +200,10 @@ class CScintillaEditInterface(ScintillaControlInterface):
 		if end < 0: end = self.GetTextLength()
 		assert start <= self.GetTextLength(), "The start postion is invalid"
 		assert end <= self.GetTextLength(), "The end postion is invalid"
-		self.SendScintilla(EM_EXSETSEL, start, end)
+		cr = struct.pack('ll', start, end)
+		crBuff = array.array('c', cr)
+		addressCrBuff = crBuff.buffer_info()[0]
+		rc = self.SendScintilla(EM_EXSETSEL, 0, addressCrBuff)
 
 	def GetLineCount(self):
 		return self.SendScintilla(win32con.EM_GETLINECOUNT)
@@ -197,7 +211,9 @@ class CScintillaEditInterface(ScintillaControlInterface):
 	def LineFromChar(self, charPos=-1):
 		if charPos==-1: charPos = self.GetSel()[0]
 		assert charPos >= 0 and charPos <= self.GetTextLength(), "The charPos postion is invalid"
-		return self.SendScintilla(EM_EXLINEFROMCHAR, charPos)
+		#return self.SendScintilla(EM_EXLINEFROMCHAR, charPos)
+		# EM_EXLINEFROMCHAR puts charPos in lParam, not wParam
+		return self.SendScintilla(EM_EXLINEFROMCHAR, 0, charPos)
 		
 	def LineIndex(self, line):
 		return self.SendScintilla(win32con.EM_LINEINDEX, line)
