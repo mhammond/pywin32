@@ -1,7 +1,7 @@
 # Originally contributed by Stefan Schukat as part of this arbitrary-sized
 # arrays patch.
 from win32com.client import gencache
-import win32com.test.util
+import util
 import unittest
 
 ZeroD = 0
@@ -75,6 +75,10 @@ FourD = [
           ]
           ]
 
+LargeD = [
+    [ [range(10)] * 10],
+] * 512
+
 def _normalize_array(a):
     if type(a) != type(()):
         return a
@@ -83,7 +87,7 @@ def _normalize_array(a):
         ret.append(_normalize_array(i))
     return ret
 
-class ArrayTest(win32com.test.util.TestCase):
+class ArrayTest(util.TestCase):
     def setUp(self):
         self.arr = gencache.EnsureDispatch("PyCOMTest.ArrayTest")
     def tearDown(self):
@@ -109,6 +113,12 @@ class ArrayTest(win32com.test.util.TestCase):
         self._doTest(OneD1)
     def testOneD2(self):
         self._doTest(OneD2)
+    def testLargeD(self):
+        self._doTest(LargeD)
 
 if __name__ == "__main__":
-    unittest.main()
+    try:
+        util.testmain()
+    except SystemExit, rc:
+        if not rc:
+            raise
