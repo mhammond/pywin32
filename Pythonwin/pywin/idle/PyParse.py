@@ -117,7 +117,7 @@ class Parser:
         self.tabwidth = tabwidth
 
     def set_str(self, str):
-        assert len(str) == 0 or str[-1] == '\n'
+        assert len(str) == 0 or str[-1] == '\n', "Oops - have str %r" % (str,)
         if type(str) == UnicodeType:
             # The parse functions have no idea what to do with Unicode, so
             # replace all Unicode characters with "x".  This is "safe"
