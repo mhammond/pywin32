@@ -114,7 +114,7 @@ class EditorDocumentBase(ParentEditorDocument):
 		for view, info in map(None, views, states):
 			if info is not None:
 				view._EndUserStateChange(info)
-		views[0].SCISetSavePoint()
+		self._DocumentStateChanged()
 		win32ui.SetStatusText("Document reloaded.")
 
 	# Reloading the file
@@ -162,6 +162,8 @@ class EditorDocumentBase(ParentEditorDocument):
 		self.watcherThread._DocumentStateChanged()
 		self._UpdateUIForState()
 		self._ApplyOptionalToViews("_UpdateUIForState")
+		self._ApplyOptionalToViews("SetReadOnly", self._IsReadOnly())
+		self._ApplyOptionalToViews("SCISetSavePoint")
 		# Allow the debugger to reset us too.
 		import pywin.debugger
 		if pywin.debugger.currentDebugger is not None:
@@ -191,7 +193,8 @@ class EditorDocumentBase(ParentEditorDocument):
 		self.SetTitle(title)
 
 	def MakeDocumentWritable(self):
-		if not self.scModuleName: # No Source Control support.
+		pretend_ss = 0 # Set to 1 to test this without source safe :-)
+		if not self.scModuleName and not pretend_ss: # No Source Control support.
 			win32ui.SetStatusText("Document is read-only, and no source-control system is configured")
 			win32api.MessageBeep()
 			return 0
@@ -204,6 +207,12 @@ class EditorDocumentBase(ParentEditorDocument):
 			defButton = win32con.MB_YESNO
 		if win32ui.MessageBox(msg, None, defButton)!=win32con.IDYES:
 			return 0
+
+		if pretend_ss:
+			print "We are only pretending to check it out!"
+			win32api.SetFileAttributes(self.GetPathName(), win32con.FILE_ATTRIBUTE_NORMAL)
+			self.ReloadDocument()
+			return 1
 			
 		# Now call on the module to do it.
 		if self.scModule is None:
