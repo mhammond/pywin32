@@ -525,7 +525,7 @@ PyObject *PyCTreeCtrl_GetItem( PyObject *self, PyObject *args )
 	tvItem.hItem = item;
 	tvItem.pszText = textBuf;
 	tvItem.cchTextMax = sizeof(textBuf);
-	tvItem.mask = TVIF_CHILDREN | TVIF_HANDLE | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE | TVIF_STATE | TVIF_TEXT; 
+	tvItem.mask = mask;
  	GUI_BGN_SAVE;
 	BOOL ok = pList->GetItem( &tvItem);
  	GUI_END_SAVE;
@@ -582,10 +582,7 @@ PyObject *PyCTreeCtrl_GetItemData( PyObject *self, PyObject *args )
 	GUI_BGN_SAVE;
 	long rc = pList->GetItemData(item);
 	GUI_END_SAVE;
-	PyObject *ret = PyWin_GetPythonObjectFromLong(rc);
-	// inc ref count for return value.
-	Py_XINCREF(ret);
-	return ret;
+	return PyInt_FromLong(rc);
 }
 
 // @pymethod int|PyCTreeCtrl|SetItemData|Sets the item's application-specific value.
@@ -594,14 +591,13 @@ PyObject *PyCTreeCtrl_SetItemData( PyObject *self, PyObject *args )
 	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
 	HTREEITEM item;
-	PyObject *data;
-	if (!PyArg_ParseTuple( args, "iO:SetItemData", 
+	int data;
+	if (!PyArg_ParseTuple( args, "ii:SetItemData", 
 		                   &item, // @pyparm HTREEITEM|item||The item whose Data is to be set.
-						   &data)) // @pyparm object|Data||New value for the data.
+						   &data)) // @pyparm int|Data||New value for the data.
 		return NULL;
-	if (data==Py_None) data = NULL;
 	GUI_BGN_SAVE;
-	BOOL ok = pList->SetItemData(item, (DWORD)data);
+	BOOL ok = pList->SetItemData(item, data);
 	GUI_END_SAVE;
 	if (!ok)
 		RETURN_ERR("SetItemData failed");
@@ -768,12 +764,12 @@ static struct PyMethodDef PyCTreeCtrl_methods[] = {
 	{"SetItem",           PyCTreeCtrl_SetItem, 1}, // @pymeth SetItem|Sets some of all of an items attributes.
 	{"GetItemState",      PyCTreeCtrl_GetItemState,  1}, // @pymeth GetItemState|Retrieves the state of an item.
 	{"SetItemState",      PyCTreeCtrl_SetItemState, 1}, // @pymeth SetItemState|Sets the state of an item.
-	{"GetItemImage",      PyCTreeCtrl_GetItemImage,  1}, // @pymeth GetItemState|Retrieves the index of an items image.
-	{"SetItemImage",      PyCTreeCtrl_SetItemImage, 1}, // @pymeth SetItemState|Sets the state of an item.
+	{"GetItemImage",      PyCTreeCtrl_GetItemImage,  1}, // @pymeth GetItemImage|Retrieves the index of an items images.
+	{"SetItemImage",      PyCTreeCtrl_SetItemImage, 1}, // @pymeth SetItemImage|Sets the index of an items images.
 	{"SetItemText",    PyCTreeCtrl_SetItemText, 1}, // @pymeth SetItemText|Changes the text of a list view item or subitem.
 	{"GetItemText",    PyCTreeCtrl_GetItemText, 1}, // @pymeth GetItemText|Retrieves the text of a list view item or subitem.
-	{"GetItemData",      PyCTreeCtrl_GetItemData,  1}, // @pymeth GetItemState|Retrieves the object associated with an item.
-	{"SetItemData",      PyCTreeCtrl_SetItemData, 1}, // @pymeth SetItemState|Sets the object associated with an item.
+	{"GetItemData",      PyCTreeCtrl_GetItemData,  1}, // @pymeth GetItemData|Retrieves the application-specific value associated with an item.
+	{"SetItemData",      PyCTreeCtrl_SetItemData, 1}, // @pymeth SetItemData|Sets the item's application-specific value
 	{"GetItemRect",      PyCTreeCtrl_GetItemRect, 1}, // @pymeth GetItemRect|Retrieves the bounding rectangle of a tree view item.
 	{"GetEditControl",   PyCTreeCtrl_GetEditControl, 1}, // @pymeth GetEditControl|Retrieves the handle of the edit control used to edit the specified tree view item.
 	{"GetVisibleCount",   PyCTreeCtrl_GetVisibleCount, 1}, // @pymeth GetVisibleCount|Retrieves the number of visible tree items associated with a tree view control.
