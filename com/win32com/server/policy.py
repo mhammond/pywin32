@@ -521,6 +521,37 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
          self._name_to_dispid_[string.lower(name)] = dispid
          self._dispid_to_func_[dispid] = name
          dispid = self._allocnextdispid(dispid)
+    self._typeinfos_ = None # load these on demand.
+
+  def _build_typeinfos_(self):
+    # Can only ever be one for now.
+    tlb_guid = getattr(self._obj_, '_typelib_guid_', None)
+    if tlb_guid is None:
+      return []
+    tlb_major, tlb_minor = getattr(self._obj_, '_typelib_version_', (1,0))
+    tlb = pythoncom.LoadRegTypeLib(tlb_guid, tlb_major, tlb_minor, lcid)
+    typecomp = tlb.GetTypeComp()
+    # Not 100% sure what semantics we should use for the default interface.
+    # Look for the first name in _com_interfaces_ that exists in the typelib.
+    for iname in self._obj_._com_interfaces_:
+      try:
+        type_info, type_comp = typecomp.BindType(iname)
+        return [type_info]
+      except pythoncom.com_error:
+        pass
+    return []
+
+  def _GetTypeInfoCount_(self):
+    if self._typeinfos_ is None:
+      self._typeinfos_ = self._build_typeinfos_()
+    return len(self._typeinfos_)
+  
+  def _GetTypeInfo_(self, index, lcid):
+    if self._typeinfos_ is None:
+      self._typeinfos_ = self._build_typeinfos_()
+    if index < 0 or index >= len(self._typeinfos_):
+      raise COMException(scode=winerror.DISP_E_BADINDEX)
+    return 0, self._typeinfos_[index]
 
   def _allocnextdispid(self, last_dispid):
       while 1:
