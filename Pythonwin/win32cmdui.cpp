@@ -26,8 +26,6 @@ inline void*GetPythonOleProcAddress(const char *procName)
 		wsprintf(buf, "PythonCOM%d.dll", i);
 #endif
 		hMod = GetModuleHandle(buf);
-		if (i==15) // No 16->19.
-			i = 19;
 	}
 	if (hMod) {
 		void *rc = GetProcAddress(hMod, procName);
