@@ -247,11 +247,14 @@ class DispatchItem(build.DispatchItem, WritableItem):
 		WriteSinkEventMap(self)
 		print
 		print '\tdef __init__(self, oobj = None):'
-		print '\t\timport win32com.server.util'
-		print '\t\tcpc=oobj._oleobj_.QueryInterface(pythoncom.IID_IConnectionPointContainer)'
-		print '\t\tcp=cpc.FindConnectionPoint(self.CLSID_Sink)'
-		print '\t\tcookie=cp.Advise(win32com.server.util.wrap(self))'
-		print '\t\tself._olecp,self._olecp_cookie = cp,cookie'
+		print "\t\tif oobj is None:"
+		print "\t\t\tself._olecp = None"
+		print "\t\telse:"
+		print '\t\t\timport win32com.server.util'
+		print '\t\t\tcpc=oobj._oleobj_.QueryInterface(pythoncom.IID_IConnectionPointContainer)'
+		print '\t\t\tcp=cpc.FindConnectionPoint(self.CLSID_Sink)'
+		print '\t\t\tcookie=cp.Advise(win32com.server.util.wrap(self))'
+		print '\t\t\tself._olecp,self._olecp_cookie = cp,cookie'
 		print '\tdef __del__(self):'
 		print '\t\tself.close()'
 		print '\tdef close(self):'
