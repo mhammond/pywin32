@@ -4,7 +4,7 @@
 %module win32security // An interface to the win32 security API's
 
 %{
-#define _WIN32_WINNT 0x0400 // make sure we get all the constants.
+#define _WIN32_WINNT 0x0500 // We are 2k specific
 %}
 
 
@@ -12,9 +12,12 @@
 %include "pywin32.i"
 
 %{
+#include "windows.h"
 #include "PySecurityObjects.h"
 #include "accctrl.h"
 #include "aclapi.h"
+#include "Ntsecapi.h"
+#include "subauth.h"
 %}
 
 %apply LARGE_INTEGER {LUID};
@@ -48,8 +51,89 @@ typedef LARGE_INTEGER LUID;
 %{
 PyObject *PyWinObject_FromTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 {
-	PyErr_SetString(PyExc_RuntimeError, "Not yet implemented");
+	PyErr_SetString(PyExc_NotImplementedError, "Not yet implemented");
 	return NULL;
+}
+
+
+
+PyObject *PyWinObject_FromTOKEN_GROUPS(TOKEN_GROUPS *tg)
+{
+	unsigned int groupInd;
+	PyObject *groups = PyTuple_New(tg->GroupCount);
+	PyObject *group = NULL;
+	PyObject *groupSID = NULL;
+	for (groupInd = 0; groupInd < tg->GroupCount; groupInd++){
+		groupSID = PyWinObject_FromSID(tg->Groups[groupInd].Sid);
+		group = Py_BuildValue("(Ol)", groupSID, tg->Groups[groupInd].Attributes );
+		PyTuple_SET_ITEM(groups, groupInd, group);
+		Py_DECREF(groupSID);
+		}
+	return groups;
+}
+
+BOOL PyWinObject_AsLSA_UNICODE_STRING(PyObject *obstr, LSA_UNICODE_STRING *plsaus, BOOL bNoneOk)
+{
+	TCHAR *ret_string = NULL;
+	USHORT strlen = 0;
+	if (!PyWinObject_AsTCHAR(obstr, &ret_string, bNoneOk))
+		return FALSE;
+	strlen = wcslen(ret_string);
+	plsaus->Buffer = ret_string;
+	plsaus->Length = strlen * sizeof(WCHAR);
+	plsaus->MaximumLength= (strlen+1) * sizeof(WCHAR);
+	return TRUE;
+}
+
+PyObject* PyWinObject_FromLSA_UNICODE_STRING(LSA_UNICODE_STRING lsaus)
+{
+	return PyWinObject_FromWCHAR(lsaus.Buffer, lsaus.Length/sizeof(WCHAR));
+}
+
+BOOL PyWinObject_AsTOKEN_GROUPS(PyObject *groups, TOKEN_GROUPS **ptg)
+{
+	BOOL ok = FALSE;
+	char *errMsg = "TOKEN_GROUPS must be a sequence of (PySID,int)";
+	if (!PySequence_Check(groups)) {
+		PyErr_SetString(PyExc_TypeError, errMsg);
+		return NULL;
+	}
+	int groupind = 0;
+	int groupcnt = PySequence_Length(groups);
+	TOKEN_GROUPS *tg = (TOKEN_GROUPS *)malloc(sizeof(DWORD) + (sizeof(SID_AND_ATTRIBUTES) * groupcnt));
+
+	tg->GroupCount = groupcnt;
+	PyObject *group = NULL;
+	PyObject *sid = NULL;
+	PSID psid;
+	for (groupind=0; groupind<groupcnt; groupind++){
+		group = PySequence_GetItem(groups, groupind);
+		if (!PySequence_Check(group)){
+			PyErr_SetString(PyExc_TypeError, errMsg);
+			goto done;
+			}
+		if (!PyArg_ParseTuple(group, "Ol", &sid, &tg->Groups[groupind].Attributes)){
+			PyErr_SetString(PyExc_TypeError, errMsg);
+			goto done;
+			}
+		if (!PySID_Check(sid)){
+			PyErr_SetString(PyExc_TypeError, errMsg);
+			goto done;
+			}
+		psid = ((PySID *)sid)->GetSID();
+		if (!IsValidSid(psid)){
+			PyErr_SetString(PyExc_TypeError,"Invalid Sid");
+			goto done;
+			}
+		tg->Groups[groupind].Sid = psid;
+		}
+	ok = TRUE;
+	done:
+		if (ok)
+			*ptg = tg;
+		else
+			free(tg);
+		return ok;
 }
 
 BOOL PyWinObject_AsTOKEN_PRIVILEGES(PyObject *ob, TOKEN_PRIVILEGES **ppRest, BOOL bNoneOK /*= TRUE*/)
@@ -218,17 +302,19 @@ PyObject *LookupAccountName(PyObject *self, PyObject *args)
 		goto done;
 	}
 
-	obNewSid = new PySID(sidSize);
-	PyWinObject_AsSID(obNewSid, &pSid);
+	pSid = (PSID)malloc(sidSize);
 
 	if (!LookupAccountName(szSystemName, szAcctName, pSid, &sidSize, refDomain, &refDomainSize, &sidType)) {
 		PyWin_SetAPIError("LookupAccountName");
 		goto done;
 	}
 	obDomain = PyWinObject_FromTCHAR(refDomain);
+	obNewSid = new PySID(pSid);
 	result = Py_BuildValue("OOl", obNewSid, obDomain, sidType);
 
 done:
+	if (pSid)
+		free (pSid);
 	PyWinObject_FreeTCHAR(szSystemName);
 	PyWinObject_FreeTCHAR(szAcctName);
 	Py_XDECREF(obDomain);
@@ -438,7 +524,7 @@ static PyObject *PyGetBinarySid (PyObject *self, PyObject *args)
 	}
 	PyWinObject_FreeTCHAR(TextualSid);
 
-	obSid= new PySID(pSid, 1);
+	obSid= new PySID(pSid);
 	return obSid;
 }
 %}
@@ -518,6 +604,134 @@ BOOLAPI LookupPrivilegeValue(
 	LUID *OUTPUT 
 ); 
  
+
+// @pyswig <o PyUnicode>|LookupPrivilegeName|return the text name for a privilege LUID
+%native(LookupPrivilegeName) LookupPrivilegeName;
+%{
+PyObject *LookupPrivilegeName(PyObject *self, PyObject *args)
+{
+	PyObject *obsystem_name = NULL;
+	PyObject *obluid = NULL;
+	PyObject *ret = NULL;
+    LUID priv_value;           // @pyparm int|luid||64 bit value representing a privilege
+
+	DWORD origbufsize = 6;
+	DWORD bufsize = 0;
+	if (!PyArg_ParseTuple(args, "OO:LookupPrivilegeName", 
+		&obsystem_name, // @pyparm string/<o PyUnicode>|obsystem_name||System name, local system assumed if not specified
+		&obluid))  // @pyparm LARGE_INTEGER|LUID||64 bit value representing a privilege
+		return NULL;
+	TCHAR *system_name = NULL;
+	TCHAR *priv_name = NULL;
+
+	if (!PyWinObject_AsTCHAR(obsystem_name, &system_name, TRUE))
+		goto done;
+	if (!PyWinObject_AsLARGE_INTEGER(obluid, (LARGE_INTEGER *)&priv_value))
+		goto done;
+
+	// if first call fails due to too small buffer, get required size
+	priv_name = (TCHAR *)malloc(origbufsize*sizeof(TCHAR));
+	if (priv_name == NULL){
+		PyErr_SetString(PyExc_MemoryError, "Unable to allocate memory for privilege name");
+		return NULL;
+		}
+
+	bufsize = origbufsize;
+    if (!::LookupPrivilegeName(system_name, &priv_value, priv_name, &bufsize)){
+		if (bufsize <= origbufsize){
+			PyWin_SetAPIError("LookupPrivilegeName");
+			goto done;
+			}
+		else{
+			free (priv_name);
+			bufsize += 1;
+			priv_name = (TCHAR *)malloc(bufsize*sizeof(TCHAR));
+			if (priv_name == NULL){
+				PyErr_SetString(PyExc_MemoryError, "Unable to allocate memory for privilege name");
+				return NULL;
+				}
+			if (!::LookupPrivilegeName(system_name, &priv_value, priv_name, &bufsize)){
+				PyWin_SetAPIError("LookupPrivilegeName");
+				goto done;
+				}
+			}
+		}
+
+	ret = PyWinObject_FromTCHAR(priv_name);
+	done:
+		if (obsystem_name != NULL)
+			PyWinObject_FreeTCHAR(system_name);
+		if (priv_name != NULL)
+			free(priv_name);
+		return ret;
+}
+%}
+
+
+// @pyswig <o PyUnicode>|LookupPrivilegeDisplayName|returns long description for a privilege LUID
+%native(LookupPrivilegeDisplayName) LookupPrivilegeDisplayName;
+%{
+PyObject *LookupPrivilegeDisplayName(PyObject *self, PyObject *args)
+{
+	PyObject *obsystem_name = NULL;
+	PyObject *obpriv_name = NULL;
+	PyObject *ret = NULL;
+
+	DWORD origbufsize = 6, bufsize = 0;
+	DWORD language_id = 0;
+	if (!PyArg_ParseTuple(args, "OO:LookupPrivilegeDisplayName", 
+		&obsystem_name, // @pyparm string/<o PyUnicode>|obsystem_name||System name, local system assumed if not specified
+		&obpriv_name))  // @pyparm string/<o PyUnicode>|obpriv_name||Name of privilege, Se...Privilege string constants
+		return NULL;
+
+	TCHAR *system_name = NULL;
+	TCHAR *priv_name = NULL;
+	TCHAR *priv_desc = NULL;
+	if (!PyWinObject_AsTCHAR(obsystem_name, &system_name, TRUE))
+		goto done;
+	if (!PyWinObject_AsTCHAR(obpriv_name, &priv_name, FALSE))
+		goto done;
+
+	// if first call fails due to too small buffer, get required size
+	priv_desc = (TCHAR *)malloc(origbufsize*sizeof(TCHAR));
+	if (priv_desc == NULL){
+		PyErr_SetString(PyExc_MemoryError, "Unable to allocate memory for privilege description");
+		return NULL;
+		}
+	bufsize = origbufsize;
+    if (!::LookupPrivilegeDisplayName(system_name, priv_name, priv_desc, &bufsize, &language_id)){
+		if (bufsize <= origbufsize){
+			PyWin_SetAPIError("LookupPrivilegeDisplayName");
+			goto done;
+			}
+		else{
+			free (priv_desc);
+			bufsize += 1;
+			priv_desc = (TCHAR *)malloc(bufsize*sizeof(TCHAR));
+			if (priv_desc == NULL){
+				PyErr_SetString(PyExc_MemoryError, "Unable to allocate memory for privilege description");
+				return NULL;
+				}
+			if (!::LookupPrivilegeDisplayName(system_name, priv_name, priv_desc, &bufsize, &language_id)){
+				PyWin_SetAPIError("LookupPrivilegeDisplayName");
+				goto done;
+				}
+			}
+		}
+
+	ret = PyWinObject_FromTCHAR(priv_desc);
+	done:
+		if (system_name != NULL)
+			PyWinObject_FreeTCHAR(system_name);
+		if (priv_name != NULL)
+			PyWinObject_FreeTCHAR(priv_name);
+		if (priv_desc != NULL)
+			free(priv_desc);
+		return ret;
+}
+%}
+
+
 %{
 BOOL MyAdjustTokenPrivileges(
 	HANDLE TokenHandle,
@@ -540,34 +754,111 @@ BOOL MyAdjustTokenPrivileges(
 	TOKEN_PRIVILEGES *NewState // @pyparm <o PyTOKEN_PRIVILEGES>|NewState||The new state
 );
 
+
+
+// @pyswig <o PyTOKEN_GROUPS>|AdjustTokenGroups|Sets the groups associated to an access token,returns previous group info
+%native(AdjustTokenGroups) PyAdjustTokenGroups;
+%{
+static PyObject *PyAdjustTokenGroups(PyObject *self, PyObject *args)
+{
+	PyObject *obHandle=NULL;
+	PyObject *obtg = NULL;
+	PyObject *ret = NULL;
+	HANDLE th;
+	TOKEN_GROUPS *newstate;
+	BOOL reset = 0;
+
+	if (!PyArg_ParseTuple(args, "OiO", 
+		&obHandle, // @pyparm <o PyHANDLE>|obHandle||The handle to access token to be modified
+		&reset,    // @pyparm int|ResetToDefault||Sets groups to default enabled/disabled states,
+		&obtg))     // @pyparm PyTOKEN_GROUPS|NewState||Groups and attributes to be set for token
+	if (!PyWinObject_AsHANDLE(obHandle, &th, FALSE))
+		return NULL;
+    if (!PyWinObject_AsTOKEN_GROUPS(obtg, &newstate))
+		return NULL;
+
+	DWORD bufsize = 0, origbufsize = 10;  //pick a number out of a hat
+    TOKEN_GROUPS *oldstate = (TOKEN_GROUPS *)malloc(origbufsize);
+	if (oldstate==NULL) {
+		PyErr_SetString(PyExc_MemoryError, "AdjustTokenGroups: unable to allocate memory");
+		return NULL;
+		}
+
+	if (!AdjustTokenGroups(th, reset, newstate, origbufsize, oldstate, &bufsize)){
+		if (bufsize <= origbufsize){
+			PyWin_SetAPIError("AdjustTokenGroups");
+			goto done;
+			}
+		free (oldstate);
+		oldstate = (TOKEN_GROUPS *)malloc(bufsize);
+		if (oldstate==NULL) {
+			PyErr_SetString(PyExc_MemoryError, "AdjustTokenGroups: unable to allocate memory");
+			return NULL;
+			}
+		if (!AdjustTokenGroups(th, reset, newstate, bufsize, oldstate, &bufsize)){
+			PyWin_SetAPIError("AdjustTokenGroups");
+			goto done;
+			}
+		}
+	ret = PyWinObject_FromTOKEN_GROUPS(oldstate);
+	done:
+		if (oldstate != NULL)
+			free(oldstate);
+		return ret;
+}
+%}
+
+
+
 // @pyswig object|GetTokenInformation|Retrieves a specified type of information about an access token. The calling process must have appropriate access rights to obtain the information.
 %native(GetTokenInformation) PyGetTokenInformation;
 %{
 static PyObject *PyGetTokenInformation(PyObject *self, PyObject *args)
 {
-	int bufSize = 1024;
 	PyObject *obHandle;
+	int bufSize = 0;
+	DWORD retLength = 0;
+	DWORD dwordbuf;
+	void *buf = NULL;
 	TOKEN_INFORMATION_CLASS typ;
-	if (!PyArg_ParseTuple(args, "Ol|i", 
+	if (!PyArg_ParseTuple(args, "Ol", 
 		&obHandle, // @pyparm <o PyHANDLE>|handle||The handle to query the information for.
-		(long *)&typ, // @pyparm int|TokenInformationClass||Specifies a value from the TOKEN_INFORMATION_CLASS enumerated type identifying the type of information the function retrieves.
-		&bufSize)) // @pyparm int|bufSize|1024|The buffer size to use to query the information
+		(long *)&typ)) // @pyparm int|TokenInformationClass||Specifies a value from the TOKEN_INFORMATION_CLASS enumerated type identifying the type of information the function retrieves.
 		return NULL;
 	HANDLE handle;
 	if (!PyWinObject_AsHANDLE(obHandle, &handle, FALSE))
 		return NULL;
 
-	DWORD retLength = 0;
 	PyObject *ret = NULL;
-	void *buf = malloc(bufSize);
-	if (bufSize==NULL) {
-		PyErr_SetString(PyExc_MemoryError, "Allocating buffer for token info");
-		return NULL;
-	}
-	if (!GetTokenInformation(handle, typ, buf, bufSize, &retLength)) {
-		PyWin_SetAPIError("GetTokenInformation");
-		goto done;
-	}
+    // null buffer call doesn't seem to work for these two (both return DWORDS, not structs), special case them
+	if ((typ==TokenSessionId) || (typ == TokenSandBoxInert)){
+		bufSize = sizeof(DWORD);
+		if (!GetTokenInformation(handle, typ, &dwordbuf, bufSize, &retLength)) {
+			PyWin_SetAPIError("GetTokenInformation");
+			goto done;
+			}
+		}
+	else{
+	    // first call with NULL in the TokenInformation buffer pointer should return the required size
+		GetTokenInformation(handle, typ, buf, bufSize, &retLength);
+		if (retLength == 0){
+			PyWin_SetAPIError("GetTokenInformation - size call");
+			goto done;
+			}
+
+		bufSize = retLength;
+		buf = malloc(retLength);
+		if (buf==NULL) {
+			PyErr_SetString(PyExc_MemoryError, "Allocating buffer for token info");
+			return NULL;
+			}
+
+		if (!GetTokenInformation(handle, typ, buf, bufSize, &retLength)) {
+			PyWin_SetAPIError("GetTokenInformation");
+			goto done;
+			}
+		}
+
 	// @rdesc The following types are supported
 	// @flagh TokenInformationClass|Return type
 	switch (typ) {
@@ -579,12 +870,94 @@ static PyObject *PyGetTokenInformation(PyObject *self, PyObject *args)
 			Py_XDECREF(obSid);
 			break;
 			}
+		case TokenOwner: {
+			// @flag TokenOwner|<o PySID>
+			TOKEN_OWNER *p = (TOKEN_OWNER *)buf;
+			ret = PyWinObject_FromSID(p->Owner);
+			break;
+			}
+		case TokenGroups: {
+			// @flag TokenGroups|((<o PySID>,int),)
+			// returns a list of tuples containing (group Sid, attribute flags)
+			TOKEN_GROUPS *tg = (TOKEN_GROUPS *)buf;
+			ret = PyWinObject_FromTOKEN_GROUPS(tg);
+			break;
+			}
+		case TokenRestrictedSids: {
+			// @flag TokenRestrictedSids|((<o PySID>,int),)
+			TOKEN_GROUPS *tg = (TOKEN_GROUPS *)buf;
+			ret = PyWinObject_FromTOKEN_GROUPS(tg);
+			break;
+			}
+		case TokenPrivileges: {
+			// @flag TokenPrivileges|((int,int),)
+			// returns PyTOKEN_PRIVILEGES (tuple of LUID and attribute flags for each privilege)
+			// attributes are combination of SE_PRIVILEGE_ENABLED,SE_PRIVILEGE_ENABLED_BY_DEFAULT,SE_PRIVILEGE_USED_FOR_ACCESS
+			// should make this into body of PyWinObject_FromTOKEN_PRIVILEGES
+			unsigned int privInd;
+			PyObject *priv = NULL;
+			PyObject *obluid = NULL;
+			PLUID pluid;
+			TOKEN_PRIVILEGES *tp = (TOKEN_PRIVILEGES *)buf;
+			PyObject *privs = PyTuple_New(tp->PrivilegeCount);
+			for (privInd = 0; privInd < tp->PrivilegeCount; privInd++){
+				pluid = &tp->Privileges[privInd].Luid;
+				obluid = PyWinObject_FromLARGE_INTEGER(*((LARGE_INTEGER *) pluid));
+				priv = Py_BuildValue("(Ol)",obluid,tp->Privileges[privInd].Attributes );
+				PyTuple_SET_ITEM(privs, privInd, priv);
+				Py_DECREF(obluid);
+				}
+			ret = privs;
+			break;
+			}
+		case TokenPrimaryGroup: {
+			TOKEN_PRIMARY_GROUP *pg = (TOKEN_PRIMARY_GROUP *)buf;
+            ret = PyWinObject_FromSID(pg->PrimaryGroup);
+			break;
+			}
+		case TokenSource: {
+			// @flag TokenSource|(string,LUID)
+			TOKEN_SOURCE *ts = (TOKEN_SOURCE *)buf;
+			PLUID pluid = &ts->SourceIdentifier;
+			PyObject *obluid = PyWinObject_FromLARGE_INTEGER(*((LARGE_INTEGER *) pluid));
+			ret = Py_BuildValue("(s#O)",ts->SourceName,8,obluid);
+			Py_DECREF(obluid);
+			break;
+			}
+		case TokenDefaultDacl: {
+			TOKEN_DEFAULT_DACL *dacl = (TOKEN_DEFAULT_DACL *)buf;
+			ret = new PyACL(dacl->DefaultDacl);
+			break;
+			}
+		case TokenType: {
+			// returns TokenPrimary or TokenImpersonation
+			TOKEN_TYPE *tt = (TOKEN_TYPE *)buf;
+			ret=Py_BuildValue("i",*tt);
+			break;
+			}
+		case TokenImpersonationLevel: {
+			SECURITY_IMPERSONATION_LEVEL *sil = (SECURITY_IMPERSONATION_LEVEL *)buf;
+			ret=Py_BuildValue("i",*sil);
+			break;
+			}
+		case TokenSandBoxInert: {
+			// ??? I get "The parameter is incorrect" error for this one, maybe only valid for impersonation token ???
+			ret = Py_BuildValue("l",dwordbuf);
+			break;
+			}
+		case TokenSessionId: {
+			// always returns zero when handle does not refer to a Terminal Services client session
+			//  - not yet tested with such
+			ret = Py_BuildValue("l",dwordbuf);
+			break;
+			}
 		default:
-			PyErr_SetString(PyExc_TypeError, "The TokenInformationClass param is not supported");
+			PyErr_SetString(PyExc_TypeError, "The TokenInformationClass param is not supported yet");
 			break;
 	}
 done:
-	free(buf);
+    if (buf != NULL)
+		free(buf);
 	return ret;
 }
 %}
@@ -611,7 +984,7 @@ static PyObject *MyGetFileSecurity(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O|l", &obFname, &info))
 		return NULL;
 
-	SECURITY_DESCRIPTOR *psd = NULL;
+	PSECURITY_DESCRIPTOR psd = NULL;
 	DWORD dwSize = 0;
 	TCHAR *fname = NULL;
 	if (!PyWinObject_AsTCHAR(obFname, &fname))
@@ -621,7 +994,7 @@ static PyObject *MyGetFileSecurity(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_RuntimeError, "Can't query for SECURITY_DESCRIPTOR size info?");
 		goto done;
 	}
-	psd = (SECURITY_DESCRIPTOR *)malloc(dwSize);
+	psd = (PSECURITY_DESCRIPTOR)malloc(dwSize);
 	if (psd==NULL) {
 		PyErr_SetString(PyExc_MemoryError, "allocating SECURITY_DESCRIPTOR");
 		goto done;
@@ -630,9 +1003,11 @@ static PyObject *MyGetFileSecurity(PyObject *self, PyObject *args)
 		PyWin_SetAPIError("GetFileSecurity");
 		goto done;
 	}
-	rc = PyWinObject_FromSECURITY_DESCRIPTOR(psd, dwSize);
+	rc = PyWinObject_FromSECURITY_DESCRIPTOR(psd);
 done:
 	PyWinObject_FreeTCHAR(fname);
+	if (psd)
+		free(psd);
 	return rc;
 }
 %}
@@ -657,7 +1032,7 @@ static PyObject *MySetFileSecurity(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsTCHAR(obFname, &fname))
 		goto done;
 
-	SECURITY_DESCRIPTOR *psd;
+	PSECURITY_DESCRIPTOR psd;
 	if (!PyWinObject_AsSECURITY_DESCRIPTOR(obsd, &psd))
 		goto done;
 	if (!SetFileSecurity(fname, info, psd)) {
@@ -705,7 +1080,7 @@ static PyObject *MyGetUserObjectSecurity(PyObject *self, PyObject *args)
 		PyWin_SetAPIError("GetUserObjectSecurity");
 		goto done;
 	}
-	rc = PyWinObject_FromSECURITY_DESCRIPTOR(psd, dwSize);
+	rc = PyWinObject_FromSECURITY_DESCRIPTOR(psd);
 done:
 	return rc;
 }
@@ -731,7 +1106,7 @@ static PyObject *MySetUserObjectSecurity(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(obHandle, &handle))
 		goto done;
 
-	SECURITY_DESCRIPTOR *psd;
+	PSECURITY_DESCRIPTOR psd;
 	if (!PyWinObject_AsSECURITY_DESCRIPTOR(obsd, &psd))
 		goto done;
 	if (SetUserObjectSecurity(handle, &info, psd)) {
@@ -778,7 +1153,7 @@ static PyObject *MyGetKernelObjectSecurity(PyObject *self, PyObject *args)
 		PyWin_SetAPIError("GetKernelObjectSecurity");
 		goto done;
 	}
-	rc = PyWinObject_FromSECURITY_DESCRIPTOR(psd, dwSize);
+	rc = PyWinObject_FromSECURITY_DESCRIPTOR(psd);
 done:
 	return rc;
 }
@@ -804,7 +1179,7 @@ static PyObject *MySetKernelObjectSecurity(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(obHandle, &handle))
 		goto done;
 
-	SECURITY_DESCRIPTOR *psd;
+	PSECURITY_DESCRIPTOR psd;
 	if (!PyWinObject_AsSECURITY_DESCRIPTOR(obsd, &psd))
 		goto done;
 	if (SetKernelObjectSecurity(handle, info, psd)) {
@@ -817,6 +1192,526 @@ done:
 	return rc;
 }
 %}
+
+// @pyswig object|SetTokenInformation|Set a specified type of information in an access token
+%native(SetTokenInformation) PySetTokenInformation;
+%{
+static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
+{
+	PyObject *obth;
+	HANDLE th;
+	PyObject *obinfo;
+	int bufsize = 0;
+	void *buf = NULL;
+	TOKEN_INFORMATION_CLASS typ;
+
+	if (!PyArg_ParseTuple(args, "OiO", 
+		&obth,        // @pyparm <o PyHANDLE>|handle||Handle to an access token to be modified
+		(long *)&typ, // @pyparm int|TokenInformationClass||Specifies a value from the TOKEN_INFORMATION_CLASS enumerated type identifying the type of information the function retrieves.
+		&obinfo))     // @pyparm <o>|obinfo||PyACL, PySID, or int depending on type parm
+		return NULL;
+
+	if (!PyWinObject_AsHANDLE(obth, &th, FALSE ))
+		return NULL;
+
+	switch (typ) {
+		case TokenOwner: {
+			PSID psid;
+			TOKEN_OWNER towner; 
+			if (!PyWinObject_AsSID(obinfo, &psid, FALSE))
+				return NULL;
+			if (!IsValidSid(psid)){
+				PyErr_SetString(PyExc_ValueError, "Invalid SID");
+				return NULL;
+				}
+			towner.Owner = psid;
+			buf = (void *)&towner;
+			if (!IsValidSid(towner.Owner)){
+				PyErr_SetString(PyExc_ValueError, "Invalid SID in tokenowner");
+				return NULL;
+				}
+			bufsize = sizeof(TOKEN_OWNER);
+			break;
+			}
+		case TokenPrimaryGroup: {
+			PSID psid;
+			TOKEN_PRIMARY_GROUP tpg;
+			if (!PyWinObject_AsSID(obinfo, &psid, FALSE))
+				return NULL;
+			if (!IsValidSid(psid)){
+				PyErr_SetString(PyExc_ValueError, "Invalid SID");
+				return NULL;
+				}
+			ZeroMemory(&tpg,sizeof(TOKEN_PRIMARY_GROUP));
+			tpg.PrimaryGroup = psid;
+			buf = (void *)&tpg;
+			bufsize = sizeof(TOKEN_PRIMARY_GROUP);
+			break;
+			}
+		case TokenDefaultDacl: {
+			PACL pacl;
+			TOKEN_DEFAULT_DACL tdd;
+			if (!PyWinObject_AsACL(obinfo, &pacl, TRUE))
+				return NULL;
+			tdd.DefaultDacl = pacl;
+			buf = (void *)&tdd;
+			bufsize = sizeof(TOKEN_DEFAULT_DACL);
+			break;
+			}
+		case TokenSessionId: {
+			DWORD sessionid = PyLong_AsUnsignedLong(obinfo);
+			buf = (void *)&sessionid;
+			bufsize = sizeof(DWORD);
+			break;
+			}
+		default:
+			PyErr_SetString(PyExc_TypeError, "Invalid TokenInformationClass parm");
+			return NULL;
+	}
+	if (!SetTokenInformation(th,typ,buf,bufsize)){
+		PyWin_SetAPIError("SetTokenInformation");
+		return NULL;
+		}
+
+	Py_INCREF(Py_None);
+	return Py_None;
+
+}
+%}
+
+// @pyswig <o PyHandle>|GetPolicyHandle|Opens a policy handle for the specified system
+%native(GetPolicyHandle) PyGetPolicyHandle;
+%{
+static PyObject *PyGetPolicyHandle(PyObject *self, PyObject *args)
+{
+	PyObject *obsystem_name = NULL;
+	PyObject *ret = NULL;
+	DWORD access_mask = 0;
+	LSA_UNICODE_STRING system_name;
+	NTSTATUS ntsResult;
+	LSA_HANDLE lsahPolicyHandle;
+	LSA_OBJECT_ATTRIBUTES ObjectAttributes;  // reserved, must be zeros or NULL
+	ZeroMemory(&ObjectAttributes, sizeof(ObjectAttributes));
+
+	if (!PyArg_ParseTuple(args, "Oi:GetPolicyHandle", 
+		&obsystem_name, // @pyparm string/<o PyUnicode>|obsystem_name||System name, local system assumed if not specified
+		&access_mask))  // @pyparm int|access_mask||Bitmask of requested access types
+		return NULL;
+	if (!PyWinObject_AsLSA_UNICODE_STRING(obsystem_name, &system_name, TRUE))
+		goto done;
+
+	ntsResult = LsaOpenPolicy(&system_name, &ObjectAttributes, access_mask, &lsahPolicyHandle);
+	if (ntsResult != STATUS_SUCCESS){
+		PyWin_SetAPIError("GetPolicyHandle",LsaNtStatusToWinError(ntsResult));
+		goto done;
+		}
+	ret = PyWinObject_FromHANDLE(lsahPolicyHandle);
+	done:
+		PyWinObject_FreeTCHAR(system_name.Buffer);
+		return ret;
+}
+%}
+
+// @pyswig |LsaClose|Closes a policy handle created by GetPolicyHandle
+%native(LsaClose) PyLsaClose;
+%{
+static PyObject *PyLsaClose(PyObject *self, PyObject *args)
+{
+	PyObject *obhandle;
+	LSA_HANDLE lsah;
+	NTSTATUS err;
+	if (!PyArg_ParseTuple(args, "O:LsaClose", &obhandle))
+		return NULL; 
+	if (!PyWinObject_AsHANDLE(obhandle, &lsah))
+		return NULL;
+	err=LsaClose(lsah);
+	if (err != STATUS_SUCCESS){
+		PyWin_SetAPIError("LsaClose",LsaNtStatusToWinError(err));
+		return NULL;
+		}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+
+// @pyswig |LsaQueryInformationPolicy|Retrieves information from the policy handle
+%native(LsaQueryInformationPolicy) PyLsaQueryInformationPolicy;
+%{
+static PyObject *PyLsaQueryInformationPolicy(PyObject *self, PyObject *args)
+{
+	PyObject *ret=NULL;
+	PyObject *obhandle;
+	LSA_HANDLE lsah;
+	NTSTATUS err;
+	void* buf = NULL;
+	POLICY_INFORMATION_CLASS info_class;
+	if (!PyArg_ParseTuple(args, "Oi:LsaQueryInformationPolicy", &obhandle, (long *)&info_class))
+		return NULL; 
+	if (!PyWinObject_AsHANDLE(obhandle, &lsah))
+		return NULL;;
+	
+	err = LsaQueryInformationPolicy(lsah, info_class, &buf);
+	if (err != STATUS_SUCCESS){
+		PyWin_SetAPIError("LsaQueryInformationPolicy",LsaNtStatusToWinError(err));
+		return NULL;
+		}
+
+	switch (info_class){
+		case PolicyAuditEventsInformation:{
+			// return tuple of
+			//   int (auditing enabled),
+			//   tuple of event auditing options, indexed by POLICY_AUDIT_EVENT_TYPE values
+			POLICY_AUDIT_EVENTS_INFO *info = (POLICY_AUDIT_EVENTS_INFO *)buf;
+			PyObject *events = PyTuple_New(info->MaximumAuditEventCount);
+			DWORD *auditing_option = info->EventAuditingOptions;
+			for (unsigned long event_ind=0;event_ind<info->MaximumAuditEventCount;event_ind++){
+				PyTuple_SetItem(events, event_ind, Py_BuildValue("i", *auditing_option));
+				auditing_option++;
+				}
+			ret=Py_BuildValue("iO",info->AuditingMode,events);
+			Py_DECREF(events);
+			break;
+			}
+
+		case PolicyDnsDomainInformation:{
+			POLICY_DNS_DOMAIN_INFO *info = (POLICY_DNS_DOMAIN_INFO *)buf;
+			PyObject *domain_name =     PyWinObject_FromLSA_UNICODE_STRING(info->Name);
+			PyObject *dns_domain_name = PyWinObject_FromLSA_UNICODE_STRING(info->DnsDomainName);
+			PyObject *dns_forest_name = PyWinObject_FromLSA_UNICODE_STRING(info->DnsForestName);
+			PyObject *domain_guid = PyWinUnicodeObject_FromIID(info->DomainGuid);
+			PyObject *domain_sid = PyWinObject_FromSID(info->Sid);
+			ret = Py_BuildValue("(OOOOO)",domain_name,dns_domain_name,dns_forest_name,domain_guid,domain_sid);
+			Py_DECREF(domain_name);
+			Py_DECREF(dns_domain_name);
+			Py_DECREF(dns_forest_name);
+			Py_DECREF(domain_guid);
+			Py_DECREF(domain_sid);
+			break;
+			}
+
+		case PolicyPrimaryDomainInformation:{
+			POLICY_PRIMARY_DOMAIN_INFO *info = (POLICY_PRIMARY_DOMAIN_INFO *)buf;
+			PyObject *domain_name = PyWinObject_FromLSA_UNICODE_STRING(info->Name);
+			PyObject *domain_sid = PyWinObject_FromSID(info->Sid);
+			ret = Py_BuildValue("(OO)",domain_name,domain_sid);
+			Py_DECREF(domain_name);
+			Py_DECREF(domain_sid);
+			break;
+			}
+
+		case PolicyAccountDomainInformation:{
+			POLICY_ACCOUNT_DOMAIN_INFO *info = (POLICY_ACCOUNT_DOMAIN_INFO *)buf;
+			PyObject *domain_name = PyWinObject_FromLSA_UNICODE_STRING(info->DomainName);
+			PyObject *domain_sid = PyWinObject_FromSID(info->DomainSid);
+			ret = Py_BuildValue("(OO)",domain_name,domain_sid);
+			Py_DECREF(domain_name);
+			Py_DECREF(domain_sid);
+			break;
+			}
+
+		case PolicyLsaServerRoleInformation:{
+			POLICY_LSA_SERVER_ROLE_INFO *info = (POLICY_LSA_SERVER_ROLE_INFO *)buf;
+			ret=Py_BuildValue("i",info->LsaServerRole);
+			break;
+			}
+
+		case PolicyModificationInformation:{
+			/* ???????? This alway blows up in the LsaQueryInformationPolicy call
+			   (87, 'LsaQueryInformationPolicy', 'The parameter is incorrect.')
+			   Tried it with local handle, PDC and BDC with no luck
+			   Running test case with everything hardcoded produced same result
+			   Maybe only works locally on PDC ?
+			   Data conversions below are untested
+			*/
+			POLICY_MODIFICATION_INFO *info = (POLICY_MODIFICATION_INFO *)buf;
+			PyObject *modserial = PyWinObject_FromLARGE_INTEGER(info->ModifiedId);
+			FILETIME modtimeft;
+			memcpy(&modtimeft, &(info->DatabaseCreationTime), sizeof(FILETIME));
+			PyObject *modtime = PyWinObject_FromFILETIME(modtimeft);
+			ret = Py_BuildValue("(OO)",modserial,modtime);
+			Py_DECREF(modserial);
+			Py_DECREF(modtime);
+			break;
+			}
+		default:
+			PyErr_SetString(PyExc_NotImplementedError, "The POLICY_INFORMATION_CLASS specified is not supported yet");
+			break;
+		}
+
+	LsaFreeMemory(buf);
+	return ret;
+}
+%}
+
+// @pyswig |LsaSetInformationPolicy|Sets policy options
+%native(LsaSetInformationPolicy) PyLsaSetInformationPolicy;
+%{
+static PyObject *PyLsaSetInformationPolicy(PyObject *self, PyObject *args)
+{
+	PyObject *ret=NULL;
+	PyObject *obhandle=NULL;
+	PyObject *obinfo=NULL;
+	LSA_HANDLE lsah;
+	NTSTATUS err;
+	void* buf = NULL;
+	POLICY_INFORMATION_CLASS info_class;
+	if (!PyArg_ParseTuple(args, "OiO:PyLsaSetInformationPolicy", &obhandle, (long *)&info_class, &obinfo))
+		return NULL; 
+	if (!PyWinObject_AsHANDLE(obhandle, &lsah))
+		return NULL;;
+	switch (info_class){
+		case PolicyAuditEventsInformation:{
+			// input is tuple of (bool, tuple of eventauditingoptions)
+			BOOL auditing_mode;
+			unsigned long *auditing_options = NULL, *auditing_option = NULL;
+			PyObject *obauditing_options = NULL, *obauditing_option = NULL;
+			int option_ind, option_cnt;
+			POLICY_AUDIT_EVENTS_INFO info;
+
+			if (!PyArg_ParseTuple(obinfo, "iO:PyLsaSetInformationPolicy", &auditing_mode, &obauditing_options)){
+				PyErr_SetString(PyExc_TypeError, "Info for PolicyAuditEventsInformation must be (int, sequence of ints)");
+				return NULL; 
+				}
+			if (!PySequence_Check(obauditing_options)){
+				PyErr_SetString(PyExc_TypeError, "Info for PolicyAuditEventsInformation must be (int, sequence of ints)");
+				return NULL; 
+				}
+
+			option_cnt = PySequence_Length(obauditing_options);
+			auditing_options = (unsigned long *)calloc(option_cnt, sizeof(unsigned long));
+			auditing_option = auditing_options;
+
+			info.AuditingMode = auditing_mode;
+			info.EventAuditingOptions = auditing_options;
+			info.MaximumAuditEventCount = option_cnt;
+
+			for (option_ind=0; option_ind<option_cnt; option_ind++){
+				obauditing_option = PySequence_GetItem(obauditing_options, option_ind);
+				if(!PyInt_Check(obauditing_option)){
+					Py_DECREF(obauditing_option);
+					PyErr_SetString(PyExc_TypeError, "Info for PolicyAuditEventsInformation must be (int, sequence of ints)");
+					goto done;
+					}
+				*auditing_option=PyInt_AsLong(obauditing_option);
+				Py_DECREF(obauditing_option);
+				auditing_option++;
+				}
+			err = LsaSetInformationPolicy(lsah, info_class, &info);
+			if (err != STATUS_SUCCESS){
+				PyWin_SetAPIError("LsaSetInformationPolicy",LsaNtStatusToWinError(err));
+				goto done;
+				}
+			ret = Py_None;
+			done:
+				if (auditing_options)
+					free (auditing_options);
+				Py_XINCREF(ret);
+				return ret;
+			break;
+			}
+
+		default:{
+			PyErr_SetString(PyExc_NotImplementedError, "The specified POLICY_INFORMATION_CLASS is not supported yet");
+			return NULL;
+			}
+		}
+}
+%}
+
+// @pyswig |LsaAddAccountRights|Adds a list of privliges to an account - account is created if it doesn't already exist
+%native(LsaAddAccountRights) PyLsaAddAccountRights;
+%{
+static PyObject *PyLsaAddAccountRights(PyObject *self, PyObject *args)
+{
+	PyObject *privs=NULL, *priv=NULL, *policy_handle=NULL;
+	PyObject *obsid=NULL, *ret=NULL;
+	PSID psid=NULL;
+	PLSA_UNICODE_STRING plsau=NULL, plsau_start=NULL;
+	DWORD priv_cnt=0,priv_ind=0;
+	HANDLE hpolicy;
+	NTSTATUS err;
+	if (!PyArg_ParseTuple(args, "OOO:LsaAddAccountRights", &policy_handle, &obsid, &privs))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(policy_handle, &hpolicy))
+		return NULL;
+	if (!PyWinObject_AsSID(obsid, &psid, FALSE))
+		return NULL;
+	if (!PySequence_Check(privs))
+		return NULL;
+	priv_cnt=PySequence_Length(privs);
+	plsau_start=(PLSA_UNICODE_STRING)calloc(priv_cnt,sizeof(LSA_UNICODE_STRING));
+	plsau=plsau_start;
+	for (priv_ind=0; priv_ind<priv_cnt; priv_ind++){
+		plsau->Buffer=NULL;
+		priv=PySequence_GetItem(privs, priv_ind);
+		if (!PyWinObject_AsLSA_UNICODE_STRING(priv,plsau,FALSE)){
+			Py_DECREF(priv);
+			goto done;
+			}
+		Py_DECREF(priv);
+		plsau++;
+		}
+	err=LsaAddAccountRights(hpolicy, psid, plsau_start, priv_cnt);
+	if (err != STATUS_SUCCESS){
+		PyWin_SetAPIError("LsaAddAccountRights",LsaNtStatusToWinError(err));
+		goto done;
+		}
+	ret=Py_None;
+
+	done:
+	if (plsau_start){
+		plsau=plsau_start;
+		for (priv_ind=0; priv_ind<priv_cnt; priv_ind++){
+			// in case object in privs is not a string
+			if(plsau->Buffer==NULL)
+				break;
+			PyWinObject_FreeTCHAR(plsau->Buffer);
+			plsau++;
+			}
+		free(plsau_start);
+		}
+	Py_XINCREF(ret);
+	return ret;
+}
+%}
+
+// @pyswig |LsaRemoveAccountRights|Removes privs from an account - if AllRights parm is true, account is *deleted*
+%native(LsaRemoveAccountRights) PyLsaRemoveAccountRights;
+%{
+static PyObject *PyLsaRemoveAccountRights(PyObject *self, PyObject *args)
+{
+	PyObject *privs=NULL, *priv=NULL, *policy_handle=NULL;
+	PyObject *obsid=NULL, *ret=NULL;
+	PSID psid=NULL;
+	BOOL AllRights=FALSE;
+	PLSA_UNICODE_STRING plsau=NULL, plsau_start=NULL;
+	DWORD priv_cnt=0,priv_ind=0;
+	HANDLE hpolicy;
+	NTSTATUS err;
+	if (!PyArg_ParseTuple(args, "OOiO:LsaAddAccountRights", &policy_handle, &obsid,  &AllRights, &privs))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(policy_handle, &hpolicy))
+		return NULL;
+	if (!PyWinObject_AsSID(obsid, &psid, FALSE))
+		return NULL;
+	if (!PySequence_Check(privs))
+		return NULL;
+	priv_cnt=PySequence_Length(privs);
+	plsau_start=(PLSA_UNICODE_STRING)calloc(priv_cnt,sizeof(LSA_UNICODE_STRING));
+	plsau=plsau_start;
+	for (priv_ind=0; priv_ind<priv_cnt; priv_ind++){
+		plsau->Buffer=NULL;
+		priv=PySequence_GetItem(privs, priv_ind);
+		if (!PyWinObject_AsLSA_UNICODE_STRING(priv,plsau,FALSE)){
+			Py_DECREF(priv);
+			goto done;
+			}
+		Py_DECREF(priv);
+		plsau++;
+		}
+	err=LsaRemoveAccountRights(hpolicy, psid, AllRights, plsau_start, priv_cnt);
+	if (err != STATUS_SUCCESS){
+		PyWin_SetAPIError("LsaRemoveAccountRights",LsaNtStatusToWinError(err));
+		goto done;
+		}
+	ret=Py_None;
+
+	done:
+	if (plsau_start){
+		plsau=plsau_start;
+		for (priv_ind=0; priv_ind<priv_cnt; priv_ind++){
+			// in case object in privs is not a string
+			if(plsau->Buffer==NULL)
+				break;
+			PyWinObject_FreeTCHAR(plsau->Buffer);
+			plsau++;
+			}
+		free(plsau_start);
+		}
+	Py_XINCREF(ret);
+	return ret;
+}
+%}
+
+// @pyswig |LsaEnumerateAccountRights|Lists privileges held by SID
+%native(LsaEnumerateAccountRights) PyLsaEnumerateAccountRights;
+%{
+static PyObject *PyLsaEnumerateAccountRights(PyObject *self, PyObject *args)
+{
+	PyObject *privs=NULL, *priv=NULL, *policy_handle=NULL;
+	PyObject *obsid=NULL, *ret=NULL;
+	PSID psid=NULL;
+	PLSA_UNICODE_STRING plsau=NULL, plsau_start=NULL;
+	ULONG priv_cnt=0,priv_ind=0;
+	HANDLE hpolicy;
+	NTSTATUS err;
+	if (!PyArg_ParseTuple(args, "OO:LsaAddAccountRights", &policy_handle, &obsid))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(policy_handle, &hpolicy))
+		return NULL;
+	if (!PyWinObject_AsSID(obsid, &psid, FALSE))
+		return NULL;
+	err=LsaEnumerateAccountRights(hpolicy,psid, &plsau_start, &priv_cnt);
+	if (err != STATUS_SUCCESS){
+		PyWin_SetAPIError("LsaEnumerateAccountRights",LsaNtStatusToWinError(err));
+		goto done;
+		}
+	privs=PyTuple_New(priv_cnt);
+	plsau=plsau_start;
+	for (priv_ind=0; priv_ind<priv_cnt; priv_ind++){
+        priv=PyWinObject_FromLSA_UNICODE_STRING(*plsau);
+		PyTuple_SetItem(privs, priv_ind, priv);
+		plsau++;
+		}
+	done:
+	if (plsau_start)
+		LsaFreeMemory(plsau_start);
+	return privs;
+}
+%}
+
+// @pyswig |LsaEnumerateAccountsWithUserRight|Return SIDs that hold specified priv
+%native(LsaEnumerateAccountsWithUserRight) PyLsaEnumerateAccountsWithUserRight;
+%{
+static PyObject *PyLsaEnumerateAccountsWithUserRight(PyObject *self, PyObject *args)
+{
+	PyObject *obpriv=NULL, *policy_handle=NULL;
+	PyObject *sids=NULL, *sid=NULL;
+	PSID psid=NULL;
+	LSA_UNICODE_STRING lsau;
+	ULONG sid_cnt=0, sid_ind=0;
+	HANDLE hpolicy;
+	LSA_ENUMERATION_INFORMATION *buf;
+	void *buf_start;
+	NTSTATUS err;
+	if (!PyArg_ParseTuple(args, "OO:LsaEnumerateAccountsWithUserRight", &policy_handle, &obpriv))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(policy_handle, &hpolicy))
+		return NULL;
+	if (!PyWinObject_AsLSA_UNICODE_STRING(obpriv,&lsau,FALSE))
+		return NULL;
+	err=LsaEnumerateAccountsWithUserRight(hpolicy,&lsau,&buf_start,&sid_cnt);
+	if (err != STATUS_SUCCESS){
+		PyWin_SetAPIError("LsaEnumerateAccountsWithUserRight",LsaNtStatusToWinError(err));
+		goto done;
+		}
+
+	sids=PyTuple_New(sid_cnt);
+	buf=(LSA_ENUMERATION_INFORMATION *)buf_start;
+	for (sid_ind=0; sid_ind<sid_cnt; sid_ind++){
+        sid=PyWinObject_FromSID(buf->Sid);
+		PyTuple_SetItem(sids, sid_ind, sid);
+		buf++;
+		}
+	done:
+	if (buf_start)
+		LsaFreeMemory(buf_start);
+	PyWinObject_FreeTCHAR(lsau.Buffer);
+	return sids;
+}
+%}
+
+
 
 #define TOKEN_ADJUST_DEFAULT TOKEN_ADJUST_DEFAULT // Required to change the default ACL, primary group, or owner of an access token.
 #define TOKEN_ADJUST_GROUPS TOKEN_ADJUST_GROUPS // Required to change the groups specified in an access token.
@@ -831,7 +1726,7 @@ done:
 #define TOKEN_READ TOKEN_READ // Combines the STANDARD_RIGHTS_READ standard access rights and the TOKEN_QUERY access right. 
 #define TOKEN_WRITE TOKEN_WRITE // Combines the STANDARD_RIGHTS_WRITE standard access rights and the TOKEN_ADJUST_PRIVILEGES, TOKEN_ADJUST_GROUPS, and TOKEN_ADJUST_DEFAULT access rights. 
  
-
+// SE_OBJECT_TYPE - securable objects
 #define SE_UNKNOWN_OBJECT_TYPE SE_UNKNOWN_OBJECT_TYPE
 #define SE_FILE_OBJECT SE_FILE_OBJECT
 #define SE_SERVICE SE_SERVICE
@@ -840,6 +1735,20 @@ done:
 #define SE_LMSHARE SE_LMSHARE
 #define SE_KERNEL_OBJECT SE_KERNEL_OBJECT
 #define SE_WINDOW_OBJECT SE_WINDOW_OBJECT
+#define SE_DS_OBJECT SE_DS_OBJECT
+#define SE_DS_OBJECT_ALL SE_DS_OBJECT_ALL
+#define SE_PROVIDER_DEFINED_OBJECT SE_PROVIDER_DEFINED_OBJECT
+#define SE_WMIGUID_OBJECT SE_WMIGUID_OBJECT
+#define SE_REGISTRY_WOW64_32KEY SE_REGISTRY_WOW64_32KEY
+
+// group sid attributes
+#define SE_GROUP_ENABLED SE_GROUP_ENABLED
+#define SE_GROUP_ENABLED_BY_DEFAULT SE_GROUP_ENABLED_BY_DEFAULT
+#define SE_GROUP_LOGON_ID SE_GROUP_LOGON_ID
+#define SE_GROUP_MANDATORY SE_GROUP_MANDATORY
+#define SE_GROUP_OWNER SE_GROUP_OWNER
+#define SE_GROUP_RESOURCE SE_GROUP_RESOURCE
+#define SE_GROUP_USE_FOR_DENY_ONLY SE_GROUP_USE_FOR_DENY_ONLY
 
 #define OWNER_SECURITY_INFORMATION OWNER_SECURITY_INFORMATION // Indicates the owner identifier of the object is being referenced. 
 #define GROUP_SECURITY_INFORMATION GROUP_SECURITY_INFORMATION // Indicates the primary group identifier of the object is being referenced. 
@@ -853,21 +1762,40 @@ done:
 **/
 
 #define SidTypeUser SidTypeUser // Indicates a user SID. 
- 
 #define SidTypeGroup SidTypeGroup // Indicates a group SID. 
- 
 #define SidTypeDomain SidTypeDomain // Indicates a domain SID. 
- 
 #define SidTypeAlias SidTypeAlias // Indicates an alias SID. 
- 
 #define SidTypeWellKnownGroup SidTypeWellKnownGroup // Indicates an SID for a well-known group. 
- 
 #define SidTypeDeletedAccount SidTypeDeletedAccount // Indicates an SID for a deleted account. 
- 
 #define SidTypeInvalid SidTypeInvalid // Indicates an invalid SID. 
- 
 #define SidTypeUnknown SidTypeUnknown // Indicates an unknown SID type. 
- 
+#define SidTypeComputer SidTypeComputer // Indicates a computer SID
+
+// TokenInformationClass constatns
+#define TokenDefaultDacl TokenDefaultDacl 
+#define TokenGroups TokenGroups
+#define TokenGroupsAndPrivileges TokenGroupsAndPrivileges
+#define TokenImpersonationLevel TokenImpersonationLevel
+#define TokenOwner TokenOwner
+#define TokenPrimaryGroup TokenPrimaryGroup 
+#define TokenPrivileges TokenPrivileges 
+#define TokenRestrictedSids TokenRestrictedSids 
+#define TokenSandBoxInert TokenSandBoxInert 
+#define TokenSessionId TokenSessionId
+#define TokenSource TokenSource
+#define TokenStatistics TokenStatistics
+#define TokenType TokenType 
+#define TokenUser TokenUser 
+
+// TOKEN_TYPE constants
+#define TokenPrimary TokenPrimary
+#define TokenImpersonation TokenImpersonation
+
+// SECURITY_IMPERSONATION_LEVEL constants
+#define SecurityAnonymous SecurityAnonymous
+#define SecurityIdentification SecurityIdentification
+#define SecurityImpersonation SecurityImpersonation
+#define SecurityDelegation SecurityDelegation
 
 #define LOGON32_LOGON_BATCH LOGON32_LOGON_BATCH //This logon type is intended for batch servers, where processes may be executing on behalf of a user without their direct intervention; or for higher performance servers that process many clear-text authentication attempts at a time, such as mail or web servers. LogonUser does not cache credentials for this logon type. 
 #define LOGON32_LOGON_INTERACTIVE LOGON32_LOGON_INTERACTIVE //This logon type is intended for users who will be interactively using the machine, such as a user being logged on by a terminal server, remote shell, or similar process. This logon type has the additional expense of caching logon information for disconnected operation, and is therefore inappropriate for some client/server applications, such as a mail server. 
@@ -878,3 +1806,163 @@ done:
 #define LOGON32_PROVIDER_WINNT40 LOGON32_PROVIDER_WINNT40 // Use the Windows NT 4.0 logon provider 
 #define LOGON32_PROVIDER_WINNT35 LOGON32_PROVIDER_WINNT35 // Use the Windows NT 3.5 logon provider.  
 
+// SECURITY_IDENTIFIER_AUTHORITY Values ??? last byte of a 6 - byte array ???
+#define SECURITY_NULL_SID_AUTHORITY         0
+#define SECURITY_WORLD_SID_AUTHORITY        1
+#define SECURITY_LOCAL_SID_AUTHORITY        2
+#define SECURITY_CREATOR_SID_AUTHORITY      3
+#define SECURITY_NON_UNIQUE_AUTHORITY       4
+#define SECURITY_NT_AUTHORITY               5
+#define SECURITY_RESOURCE_MANAGER_AUTHORITY 9
+
+// SECURITY_DESCRIPTOR_CONTROL flags
+#define SE_DACL_AUTO_INHERITED SE_DACL_AUTO_INHERITED	// win2k and up
+#define SE_SACL_AUTO_INHERITED SE_SACL_AUTO_INHERITED	// win2k and up
+#define SE_DACL_PROTECTED SE_DACL_PROTECTED				// win2k and up
+#define SE_SACL_PROTECTED SE_SACL_PROTECTED				// win2k and up
+#define SE_DACL_DEFAULTED SE_DACL_DEFAULTED
+#define SE_DACL_PRESENT SE_DACL_PRESENT
+#define SE_GROUP_DEFAULTED SE_GROUP_DEFAULTED
+#define SE_OWNER_DEFAULTED SE_OWNER_DEFAULTED
+#define SE_SACL_PRESENT SE_SACL_PRESENT
+#define SE_SELF_RELATIVE SE_SELF_RELATIVE
+#define SE_SACL_DEFAULTED SE_SACL_DEFAULTED
+
+// ACL revisions
+#define ACL_REVISION ACL_REVISION
+#define ACL_REVISION_DS ACL_REVISION_DS
+
+// ACE types
+#define ACCESS_ALLOWED_ACE_TYPE ACCESS_ALLOWED_ACE_TYPE					// Access-allowed ACE that uses the ACCESS_ALLOWED_ACE structure. 
+#define ACCESS_ALLOWED_OBJECT_ACE_TYPE ACCESS_ALLOWED_OBJECT_ACE_TYPE	// Windows 2000/XP: Object-specific access-allowed ACE that uses the ACCESS_ALLOWED_OBJECT_ACE structure. 
+#define ACCESS_DENIED_ACE_TYPE ACCESS_DENIED_ACE_TYPE					// Access-denied ACE that uses the ACCESS_DENIED_ACE structure. 
+#define ACCESS_DENIED_OBJECT_ACE_TYPE ACCESS_DENIED_OBJECT_ACE_TYPE		// Windows 2000/XP: Object-specific access-denied ACE that uses the ACCESS_DENIED_OBJECT_ACE structure. 
+#define SYSTEM_AUDIT_ACE_TYPE SYSTEM_AUDIT_ACE_TYPE						// System-audit ACE that uses the SYSTEM_AUDIT_ACE structure. 
+#define SYSTEM_AUDIT_OBJECT_ACE_TYPE SYSTEM_AUDIT_OBJECT_ACE_TYPE 
+
+// policy privileges to be used with GetPolicyHandle
+#define POLICY_VIEW_LOCAL_INFORMATION POLICY_VIEW_LOCAL_INFORMATION
+#define POLICY_VIEW_AUDIT_INFORMATION POLICY_VIEW_AUDIT_INFORMATION
+#define POLICY_GET_PRIVATE_INFORMATION POLICY_GET_PRIVATE_INFORMATION
+#define POLICY_TRUST_ADMIN POLICY_TRUST_ADMIN
+#define POLICY_CREATE_ACCOUNT POLICY_CREATE_ACCOUNT
+#define POLICY_CREATE_SECRET POLICY_CREATE_SECRET
+#define POLICY_CREATE_PRIVILEGE POLICY_CREATE_PRIVILEGE
+#define POLICY_SET_DEFAULT_QUOTA_LIMITS POLICY_SET_DEFAULT_QUOTA_LIMITS
+#define POLICY_SET_AUDIT_REQUIREMENTS POLICY_SET_AUDIT_REQUIREMENTS
+#define POLICY_AUDIT_LOG_ADMIN POLICY_AUDIT_LOG_ADMIN
+#define POLICY_SERVER_ADMIN POLICY_SERVER_ADMIN
+#define POLICY_LOOKUP_NAMES POLICY_LOOKUP_NAMES
+#define POLICY_NOTIFICATION POLICY_NOTIFICATION
+#define POLICY_ALL_ACCESS POLICY_ALL_ACCESS
+#define POLICY_READ POLICY_READ
+#define POLICY_WRITE POLICY_WRITE
+#define POLICY_EXECUTE POLICY_EXECUTE
+
+//POLICY_INFORMATION_CLASS values
+#define PolicyAuditLogInformation PolicyAuditLogInformation
+#define PolicyAuditEventsInformation PolicyAuditEventsInformation
+#define PolicyPrimaryDomainInformation PolicyPrimaryDomainInformation
+#define PolicyPdAccountInformation PolicyPdAccountInformation
+#define PolicyAccountDomainInformation PolicyAccountDomainInformation
+#define PolicyLsaServerRoleInformation PolicyLsaServerRoleInformation
+#define PolicyReplicaSourceInformation PolicyReplicaSourceInformation 
+#define PolicyDefaultQuotaInformation PolicyDefaultQuotaInformation
+#define PolicyModificationInformation PolicyModificationInformation
+#define PolicyAuditFullSetInformation PolicyAuditFullSetInformation
+#define PolicyAuditFullQueryInformation PolicyAuditFullQueryInformation
+#define PolicyDnsDomainInformation PolicyDnsDomainInformation
+
+// POLICY_AUDIT_EVENT_TYPE values
+#define AuditCategorySystem AuditCategorySystem
+#define AuditCategoryLogon AuditCategoryLogon
+#define AuditCategoryObjectAccess AuditCategoryObjectAccess
+#define AuditCategoryPrivilegeUse AuditCategoryPrivilegeUse
+#define AuditCategoryDetailedTracking AuditCategoryDetailedTracking
+#define AuditCategoryPolicyChange AuditCategoryPolicyChange
+#define AuditCategoryAccountManagement AuditCategoryAccountManagement
+#define AuditCategoryDirectoryServiceAccess AuditCategoryDirectoryServiceAccess
+#define AuditCategoryAccountLogon AuditCategoryAccountLogon
+
+// EventAuditingOptions flags - bitmask of these is returned/set for each index in the above enum
+#define POLICY_AUDIT_EVENT_UNCHANGED POLICY_AUDIT_EVENT_UNCHANGED  // For set operations, specify this value to leave the current options unchanged. This is the default. 
+#define POLICY_AUDIT_EVENT_SUCCESS POLICY_AUDIT_EVENT_SUCCESS      // Generate audit records for successful events of this type. 
+#define POLICY_AUDIT_EVENT_FAILURE POLICY_AUDIT_EVENT_FAILURE      // Generate audit records for failed attempts to cause an event of this type to occur. 
+#define POLICY_AUDIT_EVENT_NONE POLICY_AUDIT_EVENT_NONE            // Do not generate audit records for events of this type. 
+
+// POLICY_LSA_SERVER_ROLE values
+#define PolicyServerRoleBackup PolicyServerRoleBackup 
+#define PolicyServerRolePrimary PolicyServerRolePrimary
+
+// POLICY_SERVER_ENABLE_STATE 
+// markh fails with these!?
+//#define PolicyServerEnabled PolicyServerEnabled 
+//#define PolicyServerDisabled PolicyServerDisabled
+
+// POLICY_NOTIFICATION_INFORMATION_CLASS
+#define PolicyNotifyAuditEventsInformation PolicyNotifyAuditEventsInformation
+#define PolicyNotifyAccountDomainInformation PolicyNotifyAccountDomainInformation
+#define PolicyNotifyServerRoleInformation PolicyNotifyServerRoleInformation
+#define PolicyNotifyDnsDomainInformation PolicyNotifyDnsDomainInformation
+#define PolicyNotifyDomainEfsInformation PolicyNotifyDomainEfsInformation
+#define PolicyNotifyDomainKerberosTicketInformation PolicyNotifyDomainKerberosTicketInformation
+#define PolicyNotifyMachineAccountPasswordInformation PolicyNotifyMachineAccountPasswordInformation
+
+// TRUSTED_INFORMATION_CLASS
+#define TrustedDomainNameInformation TrustedDomainNameInformation
+#define TrustedControllersInformation TrustedControllersInformation
+#define TrustedPosixOffsetInformation TrustedPosixOffsetInformation
+#define TrustedPasswordInformation TrustedPasswordInformation
+#define TrustedDomainInformationBasic TrustedDomainInformationBasic
+#define TrustedDomainInformationEx TrustedDomainInformationEx
+#define TrustedDomainAuthInformation TrustedDomainAuthInformation
+#define TrustedDomainFullInformation TrustedDomainFullInformation
+#define TrustedDomainAuthInformationInternal TrustedDomainAuthInformationInternal
+#define TrustedDomainFullInformationInternal TrustedDomainFullInformationInternal
+#define TrustedDomainInformationEx2Internal TrustedDomainInformationEx2Internal
+#define TrustedDomainFullInformation2Internal TrustedDomainFullInformation2Internal
+
+// AceFlags
+#define CONTAINER_INHERIT_ACE CONTAINER_INHERIT_ACE
+#define FAILED_ACCESS_ACE_FLAG FAILED_ACCESS_ACE_FLAG
+#define INHERIT_ONLY_ACE INHERIT_ONLY_ACE
+#define INHERITED_ACE INHERITED_ACE
+#define NO_PROPAGATE_INHERIT_ACE NO_PROPAGATE_INHERIT_ACE
+#define OBJECT_INHERIT_ACE OBJECT_INHERIT_ACE
+#define SUCCESSFUL_ACCESS_ACE_FLAG SUCCESSFUL_ACCESS_ACE_FLAG
+#define NO_INHERITANCE NO_INHERITANCE
+#define SUB_CONTAINERS_AND_OBJECTS_INHERIT SUB_CONTAINERS_AND_OBJECTS_INHERIT
+#define SUB_CONTAINERS_ONLY_INHERIT SUB_CONTAINERS_ONLY_INHERIT
+#define SUB_OBJECTS_ONLY_INHERIT SUB_OBJECTS_ONLY_INHERIT
+
+
+// ACCESS_MODE - used in SetEntriesInAcl
+#define NOT_USED_ACCESS NOT_USED_ACCESS  
+#define GRANT_ACCESS GRANT_ACCESS
+#define SET_ACCESS SET_ACCESS
+#define DENY_ACCESS DENY_ACCESS 
+#define REVOKE_ACCESS REVOKE_ACCESS
+#define SET_AUDIT_SUCCESS SET_AUDIT_SUCCESS
+#define SET_AUDIT_FAILURE SET_AUDIT_FAILURE
+
+// TRUSTEE_FORM enum
+#define TRUSTEE_IS_SID TRUSTEE_IS_SID
+#define TRUSTEE_IS_NAME TRUSTEE_IS_NAME
+#define TRUSTEE_BAD_FORM TRUSTEE_BAD_FORM
+#define TRUSTEE_IS_OBJECTS_AND_SID TRUSTEE_IS_OBJECTS_AND_SID
+#define TRUSTEE_IS_OBJECTS_AND_NAME TRUSTEE_IS_OBJECTS_AND_NAME
+
+// TRUSTEE_TYPE
+#define TRUSTEE_IS_UNKNOWN TRUSTEE_IS_UNKNOWN
+#define TRUSTEE_IS_USER TRUSTEE_IS_USER
+#define TRUSTEE_IS_GROUP TRUSTEE_IS_GROUP
+#define TRUSTEE_IS_DOMAIN TRUSTEE_IS_DOMAIN
+#define TRUSTEE_IS_ALIAS TRUSTEE_IS_ALIAS
+#define TRUSTEE_IS_WELL_KNOWN_GROUP TRUSTEE_IS_WELL_KNOWN_GROUP
+#define TRUSTEE_IS_DELETED TRUSTEE_IS_DELETED
+#define TRUSTEE_IS_INVALID TRUSTEE_IS_INVALID
+#define TRUSTEE_IS_COMPUTER TRUSTEE_IS_COMPUTER
+
+#define SE_PRIVILEGE_ENABLED_BY_DEFAULT SE_PRIVILEGE_ENABLED_BY_DEFAULT
+#define SE_PRIVILEGE_ENABLED SE_PRIVILEGE_ENABLED
+#define SE_PRIVILEGE_USED_FOR_ACCESS SE_PRIVILEGE_USED_FOR_ACCESS

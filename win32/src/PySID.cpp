@@ -56,7 +56,7 @@ PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args)
 			PSID pNew;
 			if (!AllocateAndInitializeSid(&sid_ia, numSubs, sub0, sub1, sub2, sub3, sub4, sub5, sub6, sub7, &pNew))
 				return PyWin_SetAPIError("AllocateAndInitializeSid");
-			return new PySID(pNew, true);
+			return new PySID(pNew);
 		}
 	}
 	return new PySID(bufSize, buf);
@@ -112,8 +112,43 @@ PyObject *PySID::IsValid(PyObject *self, PyObject *args)
 	return PyInt_FromLong( IsValidSid(This->GetSID()) );
 }
 
+// @pymethod int|PySID|GetSubAuthority|Returns specified subauthority from SID
+PyObject *PySID::GetSubAuthority(PyObject *self, PyObject *args)
+{
+	DWORD subauthInd;
+	PSID psid;
+	if (!PyArg_ParseTuple(args, "i:GetSubAuthority", &subauthInd))
+		return NULL;
+	PySID *This = (PySID *)self;
+	psid = This->GetSID();
+
+	if (subauthInd<0 || subauthInd >= *::GetSidSubAuthorityCount(psid)) {
+		PyErr_SetString(PyExc_ValueError, "The index is out of range");
+		return NULL;
+	}
+	return PyInt_FromLong(*GetSidSubAuthority(psid, subauthInd));
+}
+
+// @pymethod int|PySID|GetLength|return length of SID (GetLengthSid).
+PyObject *PySID::GetLength(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":GetLength"))
+		return NULL;
+	PySID *This = (PySID *)self;
+	return PyInt_FromLong( GetLengthSid(This->GetSID()) );
+}
+
+// @pymethod int|PySID|GetSubAuthorityCount|return nbr of subauthorities from SID
+PyObject *PySID::GetSubAuthorityCount(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":GetSubAuthorityCount"))
+		return NULL;
+	PySID *This = (PySID *)self;
+	return PyInt_FromLong(*::GetSidSubAuthorityCount(This->GetSID()));
+}
+
 // @pymethod |PySID|SetSubAuthority|Sets a SID SubAuthority
-// @comm See the function GetSidSubAuthority
+// @comm See the function SetSidSubAuthority
 PyObject *PySID::SetSubAuthority(PyObject *self, PyObject *args)
 {
 	PySID *This = (PySID *)self;
@@ -123,7 +158,7 @@ PyObject *PySID::SetSubAuthority(PyObject *self, PyObject *args)
 	// @pyparm int|val||The value for the sub authority
 	if (!PyArg_ParseTuple(args, "il", &num, &val))
 		return NULL;
-	if (num<0 || num>=*GetSidSubAuthorityCount(This->GetSID())) {
+	if (num<0 || num>=*::GetSidSubAuthorityCount(This->GetSID())) {
 		PyErr_SetString(PyExc_ValueError, "The index is out of range");
 		return NULL;
 	}
@@ -132,11 +167,29 @@ PyObject *PySID::SetSubAuthority(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod (int,int,int,int,int,int)|PySID|GetSidIdentifierAuthority|Returns a tuple of 6 SID_IDENTIFIER_AUTHORITY constants
+PyObject *PySID::GetSidIdentifierAuthority (PyObject *self, PyObject *args)
+{
+	PySID *This = (PySID *)self;
+	if (!IsValidSid(This->GetSID())){
+		PyErr_SetString(PyExc_ValueError, "GetSidIdentifierAuthority: Invalid SID in object");
+		return NULL;
+		}
+
+	SID_IDENTIFIER_AUTHORITY *psia;  //wtf is this thing ?  Give it back to the user, let *him* figure it out
+	psia = ::GetSidIdentifierAuthority(This->GetSID());
+    return Py_BuildValue("(iiiiii)",psia->Value[0],psia->Value[1],psia->Value[2],psia->Value[3],psia->Value[4],psia->Value[5]);
+}
+
 // @object PySID|A Python object, representing a SID structure
 static struct PyMethodDef PySID_methods[] = {
 	{"Initialize",     PySID::Initialize, 1}, 	// @pymeth Initialize|Initialize the SID.
 	{"IsValid",        PySID::IsValid, 1}, 	// @pymeth IsValid|Determines if the SID is valid.
 	{"SetSubAuthority",PySID::SetSubAuthority, 1}, 	// @pymeth SetSubAuthority|Sets a SID SubAuthority
+	{"GetLength",      PySID::GetLength, 1}, // @pymeth GetLength|Return length of sid (GetLengthSid)
+	{"GetSubAuthorityCount",   PySID::GetSubAuthorityCount, 1}, // @pymeth GetSubAuthorityCount|Return nbr of subauthorities from SID	
+	{"GetSubAuthority",PySID::GetSubAuthority, 1}, // @pymeth GetSubAuthority|Return specified subauthory from SID	
+	{"GetSidIdentifierAuthority",PySID::GetSidIdentifierAuthority, 1}, // @pymeth GetSidIdentifierAuthority|Return identifier for the authority who issued the SID (one of the SID_IDENTIFIER_AUTHORITY constants)
 	{NULL}
 };
 
@@ -184,31 +237,21 @@ PySID::PySID(int bufSize, void *buf /* = NULL */)
 		memset(m_psid, 0, bufSize);
 	else
 		memcpy(m_psid, buf, bufSize);
-	m_bFreeWithFreeSid = false;
 }
 
-PySID::PySID(PSID pOther, bool bFreeWithFreeSid /* = false */)
+PySID::PySID(PSID pOther)
 {
 	ob_type = &PySIDType;
 	_Py_NewReference(this);
-	if (!bFreeWithFreeSid) {
-		/* Take my own copy */
-		DWORD size = GetLengthSid(pOther);
-		m_psid = (PSID)malloc(size);
-		CopySid(size, m_psid, pOther);
-		m_bFreeWithFreeSid = false;
-	} else {
-		/* Take ownership */
-		m_psid = pOther;
-		m_bFreeWithFreeSid = true;
-	}
+	/* always Take my own copy */
+	DWORD size = GetLengthSid(pOther);
+	m_psid = (PSID)malloc(size);
+	CopySid(size, m_psid, pOther);
 }
 
 PySID::~PySID()
 {
-	if (m_bFreeWithFreeSid)
-		FreeSid(m_psid);
-	else
+	if (m_psid)
 		free(m_psid);
 }
 
@@ -358,4 +401,6 @@ BOOL GetTextualSid(
 	GetTextualSid(psid, buf+strlen(prefix), &bufSize);
 	return PyString_FromString(buf);
 }
+
+
 #endif /* MS_WINCE */

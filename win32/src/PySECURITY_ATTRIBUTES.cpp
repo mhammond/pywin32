@@ -47,52 +47,18 @@ BOOL PyWinObject_AsSECURITY_ATTRIBUTES(PyObject *ob, SECURITY_ATTRIBUTES **ppSEC
 		PyErr_SetString(PyExc_TypeError, "The object is not a PySECURITY_ATTRIBUTES object");
 		return FALSE;
 	} else {
-		*ppSECURITY_ATTRIBUTES = ((PySECURITY_ATTRIBUTES *)ob)->GetSA();
+		PySECURITY_ATTRIBUTES *pysa= (PySECURITY_ATTRIBUTES *)ob;
+		*ppSECURITY_ATTRIBUTES = pysa->GetSA();
+		// in case the PySECURITY_DESCRIPTOR has been manipulated and points to a different address now
+		((SECURITY_ATTRIBUTES *)*ppSECURITY_ATTRIBUTES)->lpSecurityDescriptor =
+			((PySECURITY_DESCRIPTOR *)pysa->m_obSD)->GetSD();
 	}
 	return TRUE;
-}
-
-// @pymethod |PySECURITY_ATTRIBUTES|Initialize|Initialize the ACL.
-// @comm It should not be necessary to call this, as the ACL object
-// is initialised by Python.  This method gives you a chance to trap
-// any errors that may occur.
-PyObject *PySECURITY_ATTRIBUTES::Initialize(PyObject *self, PyObject *args)
-{
-	PySECURITY_ATTRIBUTES *This = (PySECURITY_ATTRIBUTES *)self;
-	if (!PyArg_ParseTuple(args, ":Initialize"))
-		return NULL;
-	if (!::InitializeSecurityDescriptor(&This->m_sd, SECURITY_DESCRIPTOR_REVISION))
-		return PyWin_SetAPIError("InitializeSecurityDescriptor");
-	Py_INCREF(Py_None);
-	return Py_None;
-}
-
-// @pymethod |PySECURITY_ATTRIBUTES|SetSecurityDescriptorDacl|
-PyObject *PySECURITY_ATTRIBUTES::SetSecurityDescriptorDacl(PyObject *self, PyObject *args)
-{
-	PySECURITY_ATTRIBUTES *This = (PySECURITY_ATTRIBUTES *)self;
-	BOOL bPresent, bDefaulted;
-	PyObject *obACL;
-	if (!PyArg_ParseTuple(args, "iOi:SetSecurityDescriptorDacl", &bPresent, &obACL, &bDefaulted))
-		return NULL;
-	PACL pacl;
-	if (!PyWinObject_AsACL(obACL, &pacl, TRUE))
-		return NULL;
-	if (!::SetSecurityDescriptorDacl(&This->m_sd, bPresent, pacl, bDefaulted))
-		return PyWin_SetAPIError("SetSecurityDescriptorDacl");
-	// prevent obACL getting gc'd while This->m_sd holds pointer to pacl.
-	Py_XDECREF(This->m_obACL);
-	This->m_obACL= obACL;
-	Py_INCREF(This->m_obACL);
-	Py_INCREF(Py_None);
-	return Py_None;
 }
 
 
 // @object PySECURITY_ATTRIBUTES|A Python object, representing a SECURITY_ATTRIBUTES structure
 static struct PyMethodDef PySECURITY_ATTRIBUTES_methods[] = {
-	{"Initialize",     PySECURITY_ATTRIBUTES::Initialize, 1}, 	// @pymeth Initialize|Initializes the object.
-	{"SetSecurityDescriptorDacl",     PySECURITY_ATTRIBUTES::SetSecurityDescriptorDacl, 1}, 	// @pymeth SetSecurityDescriptorDacl|
 	{NULL}
 };
 
@@ -122,6 +88,7 @@ PYWINTYPES_EXPORT PyTypeObject PySECURITY_ATTRIBUTESType =
 
 /*static*/ struct memberlist PySECURITY_ATTRIBUTES::memberlist[] = {
 	{"bInheritHandle",  T_INT,  OFF(m_sa.bInheritHandle)}, // @prop integer|bInheritHandle|Specifies whether the returned handle is inherited when a new process is created. If this member is TRUE, the new process inherits the handle.
+	{"SECURITY_DESCRIPTOR", T_OBJECT, OFF(m_obSD)},
 	{NULL}	/* Sentinel */
 };
 
@@ -130,10 +97,9 @@ PySECURITY_ATTRIBUTES::PySECURITY_ATTRIBUTES(void)
 	ob_type = &PySECURITY_ATTRIBUTESType;
 	_Py_NewReference(this);
 	m_sa.nLength = sizeof(SECURITY_ATTRIBUTES);
-	m_sa.lpSecurityDescriptor = &m_sd;
+	m_obSD = new PySECURITY_DESCRIPTOR();
+	m_sa.lpSecurityDescriptor = ((PySECURITY_DESCRIPTOR *)m_obSD)->GetSD();
 	m_sa.bInheritHandle = TRUE;
-	m_obACL = NULL;
-	::InitializeSecurityDescriptor(&m_sd, SECURITY_DESCRIPTOR_REVISION);
 }
 
 PySECURITY_ATTRIBUTES::PySECURITY_ATTRIBUTES(const SECURITY_ATTRIBUTES &sa)
@@ -141,13 +107,14 @@ PySECURITY_ATTRIBUTES::PySECURITY_ATTRIBUTES(const SECURITY_ATTRIBUTES &sa)
 	ob_type = &PySECURITY_ATTRIBUTESType;
 	_Py_NewReference(this);
 	m_sa = sa;
-	m_obACL = NULL;
-	::InitializeSecurityDescriptor(&m_sd, SECURITY_DESCRIPTOR_REVISION);
+	m_obSD = new PySECURITY_DESCRIPTOR(sa.lpSecurityDescriptor);
+	// above creates a copy, put pointer to copy back in SECURITY_ATTRIBUTES structure
+	m_sa.lpSecurityDescriptor=((PySECURITY_DESCRIPTOR *)m_obSD)->GetSD();
 }
 
 PySECURITY_ATTRIBUTES::~PySECURITY_ATTRIBUTES()
 {
-	Py_XDECREF( m_obACL );
+	Py_XDECREF( m_obSD );
 }
 
 PyObject *PySECURITY_ATTRIBUTES::getattr(PyObject *self, char *name)
@@ -158,7 +125,14 @@ PyObject *PySECURITY_ATTRIBUTES::getattr(PyObject *self, char *name)
 	if (res != NULL)
 		return res;
 	PyErr_Clear();
-	return PyMember_Get((char *)self, memberlist, name);
+
+	res = PyMember_Get((char *)self, memberlist, name);
+	if (res != NULL)
+		return res;
+	// let it inherit methods from PySECURITY_DESCRIPTOR for backward compatibility
+	PyErr_Clear();
+	PySECURITY_ATTRIBUTES *This = (PySECURITY_ATTRIBUTES *)self;
+	return ((PySECURITY_DESCRIPTOR *)(This->m_obSD))->getattr(This->m_obSD, name);
 }
 
 int PySECURITY_ATTRIBUTES::setattr(PyObject *self, char *name, PyObject *v)
@@ -167,6 +141,15 @@ int PySECURITY_ATTRIBUTES::setattr(PyObject *self, char *name, PyObject *v)
 		PyErr_SetString(PyExc_AttributeError, "can't delete SECURITY_ATTRIBUTES attributes");
 		return -1;
 	}
+	if (strcmp(name, "SECURITY_DESCRIPTOR")==0){
+		if (!PySECURITY_DESCRIPTOR_Check(v)){
+			PyErr_SetString(PyExc_TypeError, "The object is not a PySECURITY_DESCRIPTOR object");
+			return -1;
+			}
+		PySECURITY_ATTRIBUTES *This=(PySECURITY_ATTRIBUTES *)self;
+		// Py_DECREF(This->m_obSD);
+		This->m_sa.lpSecurityDescriptor=((PySECURITY_DESCRIPTOR *)This->m_obSD)->GetSD();
+		}
 	return PyMember_Set((char *)self, memberlist, name, v);
 }
 
@@ -176,3 +159,4 @@ int PySECURITY_ATTRIBUTES::setattr(PyObject *self, char *name, PyObject *v)
 }
 
 #endif /* MS_WINCE */
+

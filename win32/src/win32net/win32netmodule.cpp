@@ -214,14 +214,14 @@ BOOL PyObject_AsNET_STRUCT( PyObject *ob, PyNET_STRUCT *pI, BYTE **ppRet )
 					}
 					break;
 				case NSI_SECURITY_DESCRIPTOR: {
-					SECURITY_DESCRIPTOR *pSDsrc;
+					PSECURITY_DESCRIPTOR pSDsrc;
 					if (!PyWinObject_AsSECURITY_DESCRIPTOR(subob, &pSDsrc ,TRUE)) {
 						Py_DECREF(subob);
 						goto done;
 					}
-					SECURITY_DESCRIPTOR **ppSDdest = ((SECURITY_DESCRIPTOR **)(buf+pItem->off));
+					PSECURITY_DESCRIPTOR *ppSDdest = ((PSECURITY_DESCRIPTOR *)(buf+pItem->off));
 					size_t len = GetSecurityDescriptorLength(pSDsrc);
-					*ppSDdest = (SECURITY_DESCRIPTOR *)malloc(len);
+					*ppSDdest = (PSECURITY_DESCRIPTOR)malloc(len);
 					memcpy(*ppSDdest, pSDsrc, len);
 					}
 					break;
@@ -279,7 +279,7 @@ PyObject *PyObject_FromNET_STRUCT(PyNET_STRUCT *pI, BYTE *buf)
 				newObj = PyWinObject_FromSID(*((SID **)(buf+pItem->off)));
 				break;
 			case NSI_SECURITY_DESCRIPTOR:
-				newObj = PyWinObject_FromSECURITY_DESCRIPTOR(*((SECURITY_DESCRIPTOR **)(buf+pItem->off)));
+				newObj = PyWinObject_FromSECURITY_DESCRIPTOR(*((PSECURITY_DESCRIPTOR *)(buf+pItem->off)));
 				break;
 			default:
 				PyErr_SetString(PyExc_RuntimeError, "invalid internal data");

@@ -2639,7 +2639,7 @@ static PyObject *PyRegSetKeySecurity(PyObject *self, PyObject *args)
 	HKEY hKey;
 	PyObject *obKey, *obSD;
 	DWORD rc;
-	SECURITY_DESCRIPTOR *sd;
+	PSECURITY_DESCRIPTOR psd;
 	if (!PyArg_ParseTuple(args, "OlO:RegSetKeySecurity", 
 		&obKey, // @pyparm <o PyHKEY>/int|key||Handle to an open key for which the security descriptor is set.
 		&si, //@pyparm int|security_info||] Specifies the components of the security descriptor to set. The value can be a combination of the *_SECURITY_INFORMATION constants.
@@ -2647,11 +2647,11 @@ static PyObject *PyRegSetKeySecurity(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHKEY(obKey, &hKey))
 		return NULL;
-	if (!PyWinObject_AsSECURITY_DESCRIPTOR(obSD, &sd, FALSE))
+	if (!PyWinObject_AsSECURITY_DESCRIPTOR(obSD, &psd, FALSE))
 		return NULL;
 	// @pyseeapi PyRegSetKeySecurity
 	PyW32_BEGIN_ALLOW_THREADS
-	rc=RegSetKeySecurity(hKey, si, sd);
+	rc=RegSetKeySecurity(hKey, si, psd);
 	PyW32_END_ALLOW_THREADS
 	if (rc!=ERROR_SUCCESS)
 		return ReturnAPIError("RegSetKeySecurity", rc);
@@ -2680,18 +2680,18 @@ static PyObject *PyRegGetKeySecurity(PyObject *self, PyObject *args)
 	PyW32_END_ALLOW_THREADS
 	if (rc!=ERROR_INSUFFICIENT_BUFFER)
 		return ReturnAPIError("RegGetKeySecurity", rc);
-	SECURITY_DESCRIPTOR *sd = (SECURITY_DESCRIPTOR *)malloc(cb);
-	if (sd==NULL)
+	PSECURITY_DESCRIPTOR psd = (SECURITY_DESCRIPTOR *)malloc(cb);
+	if (psd==NULL)
 		return PyErr_NoMemory();
 	Py_BEGIN_ALLOW_THREADS
-	rc=RegGetKeySecurity(hKey, si, sd, &cb);
+	rc=RegGetKeySecurity(hKey, si, psd, &cb);
 	Py_END_ALLOW_THREADS
 	if (rc!=ERROR_SUCCESS) {
-		free(sd);
+		free(psd);
 		return ReturnAPIError("RegGetKeySecurity", rc);
 	}
-	PyObject *ret = PyWinObject_FromSECURITY_DESCRIPTOR(sd, cb);
-	free(sd);
+	PyObject *ret = PyWinObject_FromSECURITY_DESCRIPTOR(psd);
+	free(psd);
 	return ret;
 }
 
