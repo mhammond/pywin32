@@ -444,7 +444,6 @@ SOURCE=.\src\win32eventmodule.cpp
 
 DEP_CPP_WIN32=\
 	".\src\win32eventmodule_win32.cpp"\
-	".\src\win32eventmodule_wince.cpp"\
 	
 NODEP_CPP_WIN32=\
 	".\angeobject.h"\
@@ -468,6 +467,7 @@ NODEP_CPP_WIN32=\
 	".\ongobject.h"\
 	".\raceback.h"\
 	".\rtapi.h"\
+	".\src\win32eventmodule_wince.cpp"\
 	".\tringobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
@@ -490,7 +490,6 @@ NODEP_CPP_WIN32=\
 
 DEP_CPP_WIN32=\
 	".\src\win32eventmodule_win32.cpp"\
-	".\src\win32eventmodule_wince.cpp"\
 	
 NODEP_CPP_WIN32=\
 	".\angeobject.h"\
@@ -514,6 +513,7 @@ NODEP_CPP_WIN32=\
 	".\ongobject.h"\
 	".\raceback.h"\
 	".\rtapi.h"\
+	".\src\win32eventmodule_wince.cpp"\
 	".\tringobject.h"\
 	".\uncobject.h"\
 	".\upleobject.h"\
@@ -536,8 +536,6 @@ NODEP_CPP_WIN32=\
 
 DEP_CPP_WIN32=\
 	".\src\win32eventmodule_win32.cpp"\
-	".\src\win32eventmodule_wince.cpp"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_WIN32=\
 	".\angeobject.h"\
@@ -565,6 +563,7 @@ NODEP_CPP_WIN32=\
 	".\onfig.h"\
 	".\ongobject.h"\
 	".\raceback.h"\
+	".\src\win32eventmodule_wince.cpp"\
 	".\tringobject.h"\
 	".\ufferobject.h"\
 	".\uncobject.h"\
@@ -578,18 +577,19 @@ NODEP_CPP_WIN32=\
 	".\ystate.h"\
 	".\ython.h"\
 	".\ythonrun.h"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32event - Win32 (WCE SH3) Debug"
 
 DEP_CPP_WIN32=\
 	".\src\win32eventmodule_win32.cpp"\
-	".\src\win32eventmodule_wince.cpp"\
-	{$(INCLUDE)}"PyWinTypes.h"\
 	
 NODEP_CPP_WIN32=\
 	".\src\Python.h"\
 	".\src\unicodeobject.h"\
+	".\src\win32eventmodule_wince.cpp"\
+	".\yWinTypes.h"\
 	
 
 !ELSEIF  "$(CFG)" == "win32event - Win32 (WCE x86em) Release"
