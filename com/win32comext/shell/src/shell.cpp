@@ -71,6 +71,12 @@ UINT PyShell_ILGetSize(LPCITEMIDLIST pidl)
 
 PyObject *PyObject_FromPIDL(LPCITEMIDLIST pidl, BOOL bFreeSystemPIDL)
 {
+	if (pidl==NULL) {
+		if (bFreeSystemPIDL)
+			PyShell_FreeMem( (void *)pidl);
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	PyObject *ret = PyList_New(0);
 	if (!ret)
 		return NULL;
@@ -201,6 +207,10 @@ void PyObject_FreePIDLArray(UINT cidl, LPCITEMIDLIST *pidl)
 
 PyObject *PyObject_FromPIDLArray(UINT cidl, LPCITEMIDLIST *pidl)
 {
+	if (pidl==NULL) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	PyObject *ob = PyList_New(cidl);
 	if (!ob) return NULL;
 	for (UINT i=0;i<cidl;i++) {
@@ -223,6 +233,10 @@ PyObject *PyObject_FromCIDA(CIDA *pida)
 	unsigned int i;
 	PyObject *ret = NULL;
 	PyObject *obItems = NULL;
+	if (pida==NULL) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	PyObject *obFolder = PyObject_FromPIDL(GetPIDLFolder(pida), FALSE);
 	if (obFolder==NULL)
 		goto done;
@@ -411,6 +425,12 @@ void PyObject_FreeSTRRET(STRRET &s)
 
 PyObject *PyObject_FromSTRRET(STRRET *ps, ITEMIDLIST *pidl, BOOL bFree)
 {
+	if (ps==NULL) {
+		if (bFree)
+			PyObject_FreeSTRRET(*ps);
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	PyObject *ret;
 	switch (ps->uType) {
 		case STRRET_CSTR:
@@ -438,6 +458,10 @@ BOOL PyObject_AsMSG( PyObject *obpmsg, MSG *msg )
 }
 PyObject *PyObject_FromMSG(const MSG *msg)
 {
+	if (!msg) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	return Py_BuildValue("iiiii(ii)", msg->hwnd,msg->message,msg->wParam,msg->lParam,msg->time,msg->pt.x,msg->pt.y);
 }
 
@@ -447,6 +471,10 @@ BOOL PyObject_AsFOLDERSETTINGS( PyObject *ob, FOLDERSETTINGS *pf)
 }
 PyObject *PyObject_FromFOLDERSETTINGS( const FOLDERSETTINGS *pf)
 {
+	if (!pf) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	return Py_BuildValue("ii", pf->ViewMode, pf->fFlags);
 }
 
@@ -456,6 +484,10 @@ BOOL PyObject_AsRECT( PyObject *ob, RECT *r)
 }
 PyObject *PyObject_FromRECT(const RECT *r)
 {
+	if (!r) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	return Py_BuildValue("iiii", r->left, r->top, r->right, r->bottom);
 }
 
@@ -482,6 +514,10 @@ BOOL PyObject_AsSHCOLUMNID(PyObject *ob, SHCOLUMNID *p)
 
 PyObject *PyObject_FromSHCOLUMNID(LPCSHCOLUMNID p)
 {
+	if (!p) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	PyObject *obIID = PyWinObject_FromIID(p->fmtid);
 	if (!obIID)
 		return NULL;
@@ -499,6 +535,10 @@ BOOL PyObject_AsSHCOLUMNINIT(PyObject *ob, SHCOLUMNINIT *p)
 
 PyObject *PyObject_FromSHCOLUMNINIT(LPCSHCOLUMNINIT p)
 {
+	if (!p) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	PyObject *obName = PyWinObject_FromWCHAR(p->wszFolder);
 	if (!obName)
 		return NULL;
@@ -522,6 +562,10 @@ BOOL PyObject_AsSHCOLUMNINFO(PyObject *ob, SHCOLUMNINFO *p)
 }
 PyObject *PyObject_FromSHCOLUMNINFO(LPCSHCOLUMNINFO p)
 {
+	if (!p) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	PyObject *rc = NULL, *obID = NULL;
 	PyObject *obDescription = NULL, *obTitle = NULL;
 	obID = PyObject_FromSHCOLUMNID(&p->scid);
@@ -558,6 +602,10 @@ void PyObject_FreeSHCOLUMNDATA(SHCOLUMNDATA *p)
 
 PyObject *PyObject_FromSHCOLUMNDATA(LPCSHCOLUMNDATA p)
 {
+	if (!p) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	PyObject *obFile = PyWinObject_FromWCHAR(p->wszFile);
 	if (!obFile) return NULL;
 	PyObject *obExt = PyWinObject_FromWCHAR(p->pwszExt);
@@ -573,6 +621,10 @@ PyObject *PyObject_FromSHCOLUMNDATA(LPCSHCOLUMNDATA p)
 // Represented as a tuple of (hIcon, iIcon, dwAttributes, displayName, typeName)
 PyObject *PyObject_FromSHFILEINFO(SHFILEINFO *p)
 {
+	if (!p) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	PyObject *obDisplayName = PyWinObject_FromTCHAR(p->szDisplayName);
 	PyObject *obTypeName = PyWinObject_FromTCHAR(p->szTypeName);
 	return Py_BuildValue("iiiNN", p->hIcon, p->iIcon, p->dwAttributes, 
@@ -590,6 +642,10 @@ BOOL PyObject_AsOLEMENUGROUPWIDTHS( PyObject *oblpMenuWidths, OLEMENUGROUPWIDTHS
 
 PyObject *PyObject_FromOLEMENUGROUPWIDTHS(OLEMENUGROUPWIDTHS *pWidths)
 {
+	if (!pWidths) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	return Py_BuildValue("(iiiiii)",
 						 pWidths->width[0], pWidths->width[1],
 						 pWidths->width[2], pWidths->width[3],
@@ -809,7 +865,6 @@ static PyObject *PySHGetFileInfo(PyObject *self, PyObject *args)
 	DWORD dw = SHGetFileInfo(name, attr, &info, sizeof(info), flags);
 	PY_INTERFACE_POSTCALL;
 	ret = Py_BuildValue("iN", dw, PyObject_FromSHFILEINFO(&info));
-done:
 	if (name) PyWinObject_FreeTCHAR(name);
 	if (pidl) PyObject_FreePIDL(pidl);
 	return ret;
