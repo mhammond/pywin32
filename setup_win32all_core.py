@@ -1,5 +1,30 @@
-# distutils setup-script for win32all
-#
+"""distutils setup-script for win32all
+
+To build the win32all extensions, simply execute:
+  python setup_win32all.py -q build
+
+These extensions require a number of libraries to build, some of which may
+require your to install special SDKs or toolkits.  This script will attempt
+to build as many as it can, and at the end of the build, will report any 
+extension modules that could not be built and why.  Not being able to build
+the MAPI or ActiveScripting related projects is common.
+If you don't use these extensions, you can ignore these warnings; if you do
+use them, you must install the correct libraries.
+
+To install the win32all extensions, execute:
+  python setup_win32all.py -q install
+  
+This will install the built extensions into your site-packages directory,
+and create an appropriate .pth file, and should leave everything ready to use.
+There should be no need to modify the registry.
+
+To build or install debug (_d) versions of these extensions, pass the "--debug"
+flag to the build command - eg:
+  python setup_win32all.py -q build --debug
+or to build and install a debug version:
+  python setup_win32all.py -q build --debug install
+you must have built (or installed) a debug version of Python for this to work.
+"""
 # Thomas Heller, started in 2000 or so.
 #
 # Things known to be missing:
@@ -13,7 +38,6 @@ from distutils.command.install_lib import install_lib
 from distutils.command.build_ext import build_ext
 from distutils.dep_util import newer_group
 from distutils import log
-from distutils import spawn
 from distutils import dir_util, file_util
 from distutils.sysconfig import get_python_lib
 from distutils.filelist import FileList
@@ -153,15 +177,21 @@ class my_build_ext(build_ext):
         # Return None, or a reason it can't be built.
         common_dirs = self.compiler.library_dirs
         common_dirs += os.environ.get("LIB").split(os.pathsep)
+        patched_libs = []
         for lib in ext.libraries:
             if self.found_libraries.has_key(lib.lower()):
-                continue
-            for dir in common_dirs + ext.library_dirs:
-                if os.path.isfile(os.path.join(dir, lib + ".lib")):
-                    self.found_libraries[lib.lower()] = True
-                    break
+                found = self.found_libraries[lib.lower()]
             else:
-                return "No library '%s'" % lib
+                look_dirs = common_dirs + ext.library_dirs
+                found = self.compiler.find_library_file(look_dirs, lib, self.debug)
+                if not found:
+                    return "No library '%s'" % lib
+                self.found_libraries[lib.lower()] = found
+            patched_libs.append(os.path.splitext(os.path.basename(found))[0])
+        # We update the .libraries list with the resolved library name.
+        # This is really only so "_d" works.
+        ext.libraries = patched_libs
+        return None # no reason - it can be built!
 
     def build_extensions(self):
         # Is there a better way than this?
@@ -201,8 +231,10 @@ class my_build_ext(build_ext):
         path = 'pythonwin\\Scintilla'
         makefile = 'makefile_pythonwin'
         makeargs = ["QUIET=1"]
-        if self.dry_run:
-            makeargs.append("-n")
+        if self.debug:
+            makeargs.append("DEBUG=1")
+        if not self.verbose:
+            makeargs.append("/C") # nmake: /C Suppress output messages
         # We build the DLL into our own temp directory, then copy it to the
         # real directory - this avoids the generated .lib/.exp
         build_temp = os.path.abspath(os.path.join(self.build_temp, "scintilla"))
@@ -214,14 +246,17 @@ class my_build_ext(build_ext):
         os.chdir(path)
         try:
             cmd = ["nmake.exe", "/nologo", "/f", makefile] + makeargs
-            # dry_run handled by 'make /n'
-            spawn.spawn(cmd, verbose=self.verbose, dry_run=0)
+            self.spawn(cmd)
         finally:
             os.chdir(cwd)
 
         # The DLL goes in the Pythonwin directory.
+        if self.debug:
+            base_name = "scintilla_d.dll"
+        else:
+            base_name = "scintilla.dll"
         file_util.copy_file(
-                    os.path.join(self.build_temp, "scintilla", "scintilla.dll"),
+                    os.path.join(self.build_temp, "scintilla", base_name),
                     os.path.join(self.build_lib, "Pythonwin"),
                     verbose = self.verbose, dry_run = self.dry_run)
 
@@ -235,7 +270,7 @@ class my_build_ext(build_ext):
                    "a list of source filenames") % ext.name
         sources = list(sources)
 
-        print "building exe %s" % ext.name
+        log.info("building exe '%s'", ext.name)
 
         fullname = self.get_ext_fullname(ext.name)
         if self.inplace:
@@ -350,8 +385,6 @@ class my_build_ext(build_ext):
         old_build_temp = self.build_temp
         self.swig_cpp = True
         try:
-            self.build_temp = os.path.join(self.build_temp, ext.name)
-
             build_ext.build_extension(self, ext)
 
             # XXX This has to be changed for mingw32
@@ -413,19 +446,23 @@ class my_build_ext(build_ext):
         # is fine for developers who want to distribute the generated
         # source -- but there should be an option to put SWIG output in
         # the temp dir.
+        # XXX - further, the way the win32/wince SWIG modules #include the
+        # real .cpp file prevents us generating the .cpp files in the temp dir.
         target_ext = '.cpp'
         for source in sources:
             (base, ext) = os.path.splitext(source)
             if ext == ".i":             # SWIG interface file
-                # Seems the files SWIG creates are not compiled separately,
-                # they are #included somewhere else. So we don't include
-                # the generated wrapper in the new_sources list.
+                if os.path.split(base)[1] in swig_include_files:
+                    continue
                 swig_sources.append(source)
-                # and win32all has it's own naming convention for the wrappers:
-                if base.endswith("win32pipe") or base.endswith("win32security"):
-                    swig_targets[source] = base + 'module' + target_ext
-                else:
+                # Patch up the filenames for SWIG modules that also build
+                # under WinCE - see defn of swig_wince_modules for details
+                if os.path.basename(base) in swig_interface_parents:
+                    swig_targets[source] = base + target_ext
+                elif os.path.basename(base) in swig_wince_modules:
                     swig_targets[source] = base + 'module_win32' + target_ext
+                else:
+                    swig_targets[source] = base + 'module' + target_ext
             else:
                 new_sources.append(source)
 
@@ -433,14 +470,38 @@ class my_build_ext(build_ext):
             return new_sources
 
         swig = self.find_swig()
-        swig_cmd = [swig, "-python"]
-        if self.swig_cpp:
-            swig_cmd.append("-c++")
 
         for source in swig_sources:
+            swig_cmd = [swig, "-python", "-c++"]
+            swig_cmd.append("-dnone",) # we never use the .doc files.
             target = swig_targets[source]
+            try:
+                interface_parent = swig_interface_parents[
+                                os.path.basename(os.path.splitext(source)[0])]
+            except KeyError:
+                # "normal" swig file - no special win32 issues.
+                pass
+            else:
+                # Using win32 extensions to SWIG for generating COM classes.
+                if interface_parent is not None:
+                    # generating a class, not a module.
+                    swig_cmd.append("-pythoncom")
+                    if interface_parent:
+                        # A class deriving from other than the default
+                        swig_cmd.extend(
+                                ["-com_interface_parent", interface_parent])
+
+            swig_cmd.extend(["-o",
+                             os.path.abspath(target),
+                             os.path.abspath(source)])
             log.info("swigging %s to %s", source, target)
-            self.spawn(swig_cmd + ["-o", target, source])
+            out_dir = os.path.dirname(source)
+            cwd = os.getcwd()
+            os.chdir(out_dir)
+            try:
+                self.spawn(swig_cmd)
+            finally:
+                os.chdir(cwd)
 
         return new_sources
 
@@ -561,6 +622,42 @@ W32_exe_files = [
     WinExt_pythonwin("Pythonwin", extra_link_args=["/SUBSYSTEM:WINDOWS"]),
     ]
 
+# Special definitions for SWIG.
+swig_interface_parents = {
+    # source file base,     "base class" for generated COM support
+    'mapi':                 None, # not a class, but module
+    'PyIMailUser':          'IMAPIContainer',
+    'PyIABContainer':       'IMAPIContainer',
+    'PyIAddrBook':          'IMAPIProp',
+    'PyIAttach':            'IMAPIProp',
+    'PyIDistList':          'IMAPIProp',
+    'PyIMailUser':          'IMAPIContainer',
+    'PyIMAPIContainer':     'IMAPIProp',
+    'PyIMAPIFolder':        'IMAPIContainer',
+    'PyIMAPIProp':          '', # '' == default base
+    'PyIMAPISession':       '',
+    'PyIMAPITable':         '',
+    'PyIMessage':           'IMAPIProp',
+    'PyIMsgServiceAdmin':   '',
+    'PyIMsgStore':          'IMAPIProp',
+    'PyIProfAdmin':         '',
+    'PyIProfSect':          'IMAPIProp',
+    # ADSI
+    'adsi':                 None, # module
+    'PyIADsContainer':      'IDispatch',
+    'PyIADsUser':           'IDispatch',
+    'PyIDirectoryObject':   '',
+}
+
+# A list of modules that can also be built for Windows CE.  These generate
+# their .i to _win32.cpp or _wince.cpp.
+swig_wince_modules = "win32event win32file win32gui win32process".split()
+
+# .i files that are #included, and hence are not part of the build.  Our .dsp
+# parser isn't smart enough to differentiate these.
+swig_include_files = "mapilib adsilib".split()
+
+# Helper to allow our script specifications to include wildcards.
 def expand_modules(module_dir):
     flist = FileList()
     flist.findall(module_dir)
@@ -595,13 +692,14 @@ def convert_data_files(files):
             path_use = path_use[4:]
         path_use = os.path.join(base_dir, path_use)
         ret.append( (path_use, files_use))
-    #print "DataFiles:"
-    #for f in ret:
-    #    print f
     return ret
    
 
 ################################################################
+if len(sys.argv)==1:
+    # distutils will print usage - print our docstring first.
+    print __doc__
+    print "Standard usage information follows:"
 
 dist = setup(name="pywin32",
       version="version",
@@ -615,7 +713,7 @@ dist = setup(name="pywin32",
                    'build_ext': my_build_ext,
                    },
       options = {"bdist_wininst": {"install_script": "pywin32_postinstall.py"}},
-      
+
       scripts = ["pywin32_postinstall.py"],
       
       ext_modules = win32_extensions + com_extensions + pythonwin_extensions,
