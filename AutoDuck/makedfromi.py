@@ -28,7 +28,6 @@ def GetComments(line, lineNo, lines):
 
 def make_doc_summary(inFile, outFile):
 	methods = []
-	nativeMethods = []
 	modDoc = ""
 	modName = ""
 	lines = inFile.readlines()
@@ -54,22 +53,31 @@ def make_doc_summary(inFile, outFile):
 				cname = string.split(line)[1]
 				doc, lineNo = GetComments(line, lineNo, lines)
 				constants.append((cname, doc))
-			elif line[:2]=="//":
-				rest = line[2:].strip()
-				if rest.startswith("@pyswig"):
-					doc, lineNo = GetComments(line, lineNo, lines)
-					curMethod = doc[8:], []
-					methods.append(curMethod)
-				elif rest.startswith("@pymeth "):
-					doc, lineNo = GetComments(line, lineNo, lines)
-					nativeMethods.append(line+doc)
+			else:
+				try:
+					pos = line.index("//")
+				except ValueError:
+					pass
 				else:
-					if rest.startswith("@"):
+					rest = line[pos+2:].strip()
+					if rest.startswith("@pymeth"):
+						# manual markup - reset the current method.
+						curMethod = None
+					if rest.startswith("@doc"):
+						pass
+					elif rest.startswith("@pyswig"):
 						doc, lineNo = GetComments(line, lineNo, lines)
-						if curMethod:
-							curMethod[1].append("// " + doc + '\n')
-						else:
-							extra_tags.append("// " + doc + '\n')
+						curMethod = doc[8:], []
+						methods.append(curMethod)
+					elif rest.startswith("@const"):
+						doc, lineNo = GetComments(line, lineNo, lines)
+					else:
+						if rest.startswith("@"):
+							doc, lineNo = GetComments(line, lineNo, lines)
+							if curMethod:
+								curMethod[1].append("// " + doc + '\n')
+							else:
+								extra_tags.append("// " + doc + '\n')
 		except:
 			print "Line %d is badly formed - %s" % (lineNo, str(sys.exc_value))
 			
@@ -78,9 +86,7 @@ def make_doc_summary(inFile, outFile):
 	# autoduck seems to crash when > ~97 methods.  Loop multiple times, 
 	# creating a synthetic module name when this happens.
 	max_methods = 90
-	# native ones first - hopefully never more than 90 of them!
-	assert len(nativeMethods) < max_methods
-	method_num = len(nativeMethods)
+	method_num = 0
 	chunk_number = 0
 	while 1:
 		these_methods = methods[method_num:method_num+max_methods]
@@ -96,12 +102,13 @@ def make_doc_summary(inFile, outFile):
 		else:
 			thisModName = thisModName + " (more %d)" % (chunk_number+1,)
 
+		outFile.write("\n")
 		for (meth, extras) in these_methods:
 			fields = string.split(meth,'|')
 			if len(fields)<>3:
 				print "**Error - %s does not have enough fields" % meth
 			else:
-				outFile.write("\n// @pymethod %s|%s|%s|%s\n" % (fields[0],thisModName,fields[1], fields[2]))
+				outFile.write("// @pymethod %s|%s|%s|%s\n" % (fields[0],thisModName,fields[1], fields[2]))
 			for extra in extras:
 				outFile.write(extra)
 		if g_com_parent:
@@ -112,18 +119,14 @@ def make_doc_summary(inFile, outFile):
 		for (meth, extras) in these_methods:
 			fields = string.split(meth,'|')
 			outFile.write("// @pymeth %s|%s\n" % (fields[1], fields[2]))
-		if chunk_number == 0:
-			for meth in nativeMethods:
-				outFile.write(meth)
-				outFile.write("\n")
 		chunk_number += 1
 		method_num += max_methods
 
 	outFile.write("\n")
-	for (cname, doc) in constants:
-		outFile.write("// @const %s|%s|%s\n" % (modName, cname, doc) )
 	for extra in extra_tags:
 		outFile.write("%s\n" % (extra) )
+	for (cname, doc) in constants:
+		outFile.write("// @const %s|%s|%s\n" % (modName, cname, doc) )
 
 
 def doit():
