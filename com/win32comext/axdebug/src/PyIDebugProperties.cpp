@@ -8,7 +8,7 @@
 
 #define SET_INC_NONE(x) {Py_INCREF(Py_None);(x)=Py_None;}
 
-static PyObject *PyObject_FromDebugPropertyInfo(const DebugPropertyInfo *p)
+PyObject *PyObject_FromDebugPropertyInfo(const DebugPropertyInfo *p)
 {
 	PyObject *obRet = PyTuple_New(6);
 	PyObject *ob;
@@ -54,7 +54,7 @@ error:
 	return NULL;
 }
 
-static BOOL PyObject_AsDebugPropertyInfo(PyObject *ob, DebugPropertyInfo *p)
+BOOL PyObject_AsDebugPropertyInfo(PyObject *ob, DebugPropertyInfo *p)
 {
 	memset(p, 0, sizeof(*p));
 	if (!PySequence_Check(ob)) {
