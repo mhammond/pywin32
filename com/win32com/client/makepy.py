@@ -23,7 +23,7 @@
 usageHelp = """ \
 Usage:
 
-  makepy.py [-h] [-x0|1] [-u] [typelib, ...]
+  makepy.py [-h] [-x0|1] [-u] [-o filename] [-d] [typelib, ...]
   
   typelib -- A TLB, DLL, OCX, Description, or possibly something else.
   -h    -- Generate hidden methods.
@@ -32,6 +32,7 @@ Usage:
   -i [typelib] -- Show info for specified typelib, or select the typelib if not specified.
   -v    -- Verbose output
   -q    -- Quiet output
+  -d    -- Generate the base code now and classes code on demand
   
 Examples:
   makepy.py
@@ -168,13 +169,15 @@ def GetTypeLibsForSpec(arg):
 		sys.exit(1)
 
 
-def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progressInstance = None, bUnicodeToString=1, bQuiet = None, bGUIProgress = None ):
+def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progressInstance = None, bUnicodeToString=1, bQuiet = None, bGUIProgress = None, bForDemand = 0 ):
 	if bQuiet is not None or bGUIProgress is not None:
 		print "Please dont use the bQuiet or bGUIProgress params"
 		print "use the 'verboseLevel', and 'progressClass' params"
 	if verboseLevel is None:
 		verboseLevel = 0 # By default, we use a gui, and no verbose level!
-		
+
+	if bForDemand and file is not None:
+		raise RuntimeError, "You can only perform a demand-build when the output goes to the gen_py directory"
 	if type(typelibInfo)==type(()):
 		# Tuple
 		typelibCLSID, lcid, major, minor  = typelibInfo
@@ -190,25 +193,39 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 
 	if progressInstance is None:
 		try:
-			progressInstance = GUIProgress(verboseLevel)
+			if not bForDemand: # Only go for GUI progress if not doing a demand-import
+				progressInstance = GUIProgress(verboseLevel)
 		except ImportError: # No Pythonwin GUI around.
-			progressInstance = SimpleProgress(verboseLevel)
-		
+			pass
+	if progressInstance is None:
+		progressInstance = SimpleProgress(verboseLevel)
 	progress = progressInstance
 
 	bToGenDir = (file is None)
 
 	for typelib, info in typelibs:
 		if file is None:
-			outputName = gencache.GetGeneratedFileName(info.clsid, info.lcid, info.major, info.minor)
-			outputName = os.path.join(gencache.GetGeneratePath(), outputName) + ".py"
-			progress.LogBeginGenerate(outputName)
+			this_name = gencache.GetGeneratedFileName(info.clsid, info.lcid, info.major, info.minor)
+			full_name = os.path.join(gencache.GetGeneratePath(), this_name)
+			if bForDemand:
+				try: os.unlink(full_name + ".py")
+				except os.error: pass
+				try: os.unlink(full_name + ".pyc")
+				except os.error: pass
+				try: os.unlink(full_name + ".pyo")
+				except os.error: pass
+				if not os.path.isdir(full_name):
+					os.mkdir(full_name)
+				outputName = os.path.join(full_name, "__init__.py")
+			else:
+				outputName = full_name + ".py"
 			fileUse = open(outputName, "wt")
+			progress.LogBeginGenerate(outputName)
 		else:
 			fileUse = file
 
 		gen = genpy.Generator(typelib, info.dll, progress, bUnicodeToString=bUnicodeToString)
-		gen.generate(fileUse)
+		gen.generate(fileUse, bForDemand)
 		
 		if file is None:
 			fileUse.close()
@@ -219,6 +236,29 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 
 	progress.Close()
 
+def GenerateChildFromTypeLibSpec(child, typelibInfo, verboseLevel = None, progressInstance = None, bUnicodeToString=1):
+	if verboseLevel is None:
+		verboseLevel = 0 # By default, we use a gui, and no verbose level!
+	typelibCLSID, lcid, major, minor  = typelibInfo
+	tlb = pythoncom.LoadRegTypeLib(typelibCLSID, major, minor, lcid)
+	spec = selecttlb.TypelibSpec(typelibCLSID, lcid, major, minor)
+	spec.FromTypelib(tlb, str(typelibCLSID))
+	typelibs = [(tlb, spec)]
+
+	progressInstance = SimpleProgress(verboseLevel)
+	progress = progressInstance
+
+	for typelib, info in typelibs:
+		dir_name = gencache.GetGeneratedFileName(info.clsid, info.lcid, info.major, info.minor)
+		dir_path_name = os.path.join(gencache.GetGeneratePath(), dir_name)
+		progress.LogBeginGenerate(dir_path_name)
+
+		gen = genpy.Generator(typelib, info.dll, progress, bUnicodeToString=bUnicodeToString)
+		gen.generate_child(child, dir_path_name)
+		progress.SetDescription("Importing module")
+		__import__("win32com.gen_py." + dir_name + "." + child)
+	progress.Close()
+
 def main():
 	import getopt
 	hiddenSpec = 0
@@ -226,8 +266,9 @@ def main():
 	outputName = None
 	verboseLevel = 1
 	doit = 1
+	bForDemand = 0
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], 'vo:huiq')
+		opts, args = getopt.getopt(sys.argv[1:], 'vo:huiqd')
 		for o,v in opts:
 			if o=='-h':
 				hiddenSpec = 1
@@ -240,11 +281,21 @@ def main():
 			elif o=='-q':
 				verboseLevel = verboseLevel - 1
 			elif o=='-i':
-				ShowInfo(v)
+				if len(args)==0:
+					ShowInfo(None)
+				else:
+					for arg in args:
+						ShowInfo(arg)
 				doit = 0
+			elif o=='-d':
+				bForDemand = 1
 
 	except (getopt.error, error), msg:
 		sys.stderr.write (msg + "\n")
+		usage()
+
+	if bForDemand and outputName is not None:
+		sys.stderr.write("Can not use -d and -o together\n")
 		usage()
 
 	if not doit:
@@ -261,7 +312,7 @@ def main():
 		f = None
 
 	for arg in args:
-		GenerateFromTypeLibSpec(arg, f, verboseLevel = verboseLevel)
+		GenerateFromTypeLibSpec(arg, f, verboseLevel = verboseLevel, bForDemand = bForDemand)
 
 	if f:	
 		f.close()

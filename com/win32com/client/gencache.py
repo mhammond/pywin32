@@ -144,12 +144,27 @@ def GetModuleForCLSID(clsid):
 	Params
 	progid -- A COM CLSID (ie, not the description)
 	"""
+	clsid_str = str(clsid)
 	try:
-		typelibCLSID, lcid, major, minor = clsidToTypelib[str(clsid)]
+		typelibCLSID, lcid, major, minor = clsidToTypelib[clsid_str]
 	except KeyError:
 		return None
-	
-	return GetModuleForTypelib(typelibCLSID, lcid, major, minor)
+
+	mod = GetModuleForTypelib(typelibCLSID, lcid, major, minor)
+	if mod is not None:
+		sub_mod = mod.CLSIDToPackageMap.get(clsid_str)
+		if sub_mod is not None:
+			sub_mod_name = mod.__name__ + "." + sub_mod
+			try:
+				__import__(sub_mod_name)
+			except ImportError:
+				# Force the generation.
+				import makepy
+				info = typelibCLSID, lcid, major, minor
+				makepy.GenerateChildFromTypeLibSpec(sub_mod, info)
+				# Generate does an import...
+			mod = sys.modules[sub_mod_name]
+	return mod
 
 def GetModuleForTypelib(typelibCLSID, lcid, major, minor):
 	"""Get a Python module for a type library ID
@@ -167,7 +182,7 @@ def GetModuleForTypelib(typelibCLSID, lcid, major, minor):
 	return _GetModule(modName)
 
 
-def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = None, bGUIProgress = None):
+def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = None, bGUIProgress = None, bForDemand = 0):
 	"""Generate support for a type library.
 	
 	Given the IID, LCID and version information for a type library, generate
@@ -188,12 +203,12 @@ def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = No
 
 	import makepy
 	try:
-		makepy.GenerateFromTypeLibSpec( (typelibCLSID, lcid, major, minor), progressInstance=progressInstance )
+		makepy.GenerateFromTypeLibSpec( (typelibCLSID, lcid, major, minor), progressInstance=progressInstance, bForDemand = bForDemand)
 	except pywintypes.com_error:
 		return None
 	return GetModuleForTypelib(typelibCLSID, lcid, major, minor)
 
-def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bValidateFile=1):
+def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bValidateFile=1, bForDemand = 0):
 	"""Ensure Python support is loaded for a type library, generating if necessary.
 	
 	Given the IID, LCID and version information for a type library, check and if
@@ -254,12 +269,15 @@ def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bVal
 				# try to erase the bad file from the cache
 				try:
 					os.unlink(filePath)
-				except os.error, e:
+				except os.error:
 					pass
 				try:
 					os.unlink(filePathPyc)
-				except os.error, e:
+				except os.error:
 					pass
+				if os.path.isdir(filePathPrefix):
+					import shutil
+					shutil.rmtree(filePathPrefix)
 				minor = tlbAttributes[4]
 				module = None
 				bReloadNeeded = 1
@@ -292,7 +310,7 @@ def EnsureModule(typelibCLSID, lcid, major, minor, progressInstance = None, bVal
 		module = None
 	if module is None:
 		#print "Rebuilding: ", major, minor
-		module = MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance)
+		module = MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance, bForDemand = bForDemand)
 		# If we replaced something, reload it
 		if bReloadNeeded:
 			module = reload(module)
@@ -306,8 +324,11 @@ def AddModuleToCache(typelibclsid, lcid, major, minor, verbose = 1, bFlushNow = 
 	fname = GetGeneratedFileName(typelibclsid, lcid, major, minor)
 	mod = _GetModule(fname)
 	dict = mod.CLSIDToClassMap
-
 	for clsid, cls in dict.items():
+		clsidToTypelib[clsid] = (str(typelibclsid), mod.LCID, mod.MajorVersion, mod.MinorVersion)
+
+	dict = mod.CLSIDToPackageMap
+	for clsid, name in dict.items():
 		clsidToTypelib[clsid] = (str(typelibclsid), mod.LCID, mod.MajorVersion, mod.MinorVersion)
 	if bFlushNow:
 		_SaveDicts()

@@ -17,7 +17,11 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.3.1" # Written to generated file.
+makepy_version = "0.3.2" # Written to generated file.
+
+GEN_FULL="full"
+GEN_DEMAND_BASE = "demand(base)"
+GEN_DEMAND_CHILD = "demand(child)"
 
 # This map is used purely for the users benefit -it shows the
 # raw, underlying type of Alias/Enums, etc.  The COM implementation
@@ -218,8 +222,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
     def WriteClassHeader(self, generator):
         generator.checkWriteDispatchBaseClass()
         doc = self.doc
-        className = build.MakePublicAttributeName(doc[0])
-        print 'class ' + className + '(DispatchBaseClass):'
+        print 'class ' + self.python_name + '(DispatchBaseClass):'
         if doc[1]: print '\t"""' + doc[1] + '"""'
         try:
             progId = pythoncom.ProgIDFromCLSID(self.clsid)
@@ -234,8 +237,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
     def WriteEventSinkClassHeader(self, generator):
         generator.checkWriteEventBaseClass()
         doc = self.doc
-        className = build.MakePublicAttributeName(doc[0])
-        print 'class ' + className + ':'
+        print 'class ' + self.python_name + ':'
         if doc[1]: print '\t\"' + doc[1] + '\"'
         try:
             progId = pythoncom.ProgIDFromCLSID(self.clsid)
@@ -458,13 +460,23 @@ class CoClassItem(build.OleItem, WritableItem):
   def WriteClass(self, generator):
     generator.checkWriteCoClassBaseClass()
     doc = self.doc
-    className = build.MakePublicAttributeName(doc[0])
+    if generator.generate_type == GEN_DEMAND_CHILD:
+      # Some special imports we must setup.
+      referenced_items = []
+      for ref, flag, dual in self.sources:
+        referenced_items.append(ref)
+      for ref, flag, dual in self.interfaces:
+        referenced_items.append(ref)
+      print "import sys"
+      for ref in referenced_items:
+        print "__import__('%s.%s')" % (generator.base_mod_name, ref.python_name)
+        print "%s = sys.modules['%s.%s'].%s" % (ref.python_name, generator.base_mod_name, ref.python_name, ref.python_name)
     try:
       progId = pythoncom.ProgIDFromCLSID(self.clsid)
       print "# This CoClass is known by the name '%s'" % (progId)
     except pythoncom.com_error:
       pass
-    print 'class %s(CoClassBaseClass): # A CoClass' % (className)
+    print 'class %s(CoClassBaseClass): # A CoClass' % (self.python_name)
     if doc and doc[1]: print '\t# ' + doc[1]
     clsidStr = str(self.clsid)
     print '\tCLSID = pythoncom.MakeIID("%s")' % (clsidStr)
@@ -473,19 +485,19 @@ class CoClassItem(build.OleItem, WritableItem):
     for source, flag, dual in self.sources:
       if flag & pythoncom.IMPLTYPEFLAG_FDEFAULT:
         defItem = source
-      print '\t\t%s,' % (build.MakePublicAttributeName(source.doc[0]))
+      print '\t\t%s,' % (source.python_name)
     print '\t]'
     if defItem:
-      print '\tdefault_source = %s' % (build.MakePublicAttributeName(defItem.doc[0]))
+      print '\tdefault_source = %s' % (defItem.python_name)
     print '\tcoclass_interfaces = ['
     defItem = None
     for interface, flag, dual in self.interfaces:
       if flag & pythoncom.IMPLTYPEFLAG_FDEFAULT: # and dual:
         defItem = interface
-      print '\t\t%s,' % (build.MakePublicAttributeName(interface.doc[0]))
+      print '\t\t%s,' % (interface.python_name,)
     print '\t]'
     if defItem:
-      print '\tdefault_interface = %s' % (build.MakePublicAttributeName(defItem.doc[0]))
+      print '\tdefault_interface = %s' % (defItem.python_name,)
     self.bWritten = 1
     print
 
@@ -531,7 +543,7 @@ class Generator:
     # These 2 are later additions and most of the code still 'print's...
     self.file = None
 
-  def BuildOleItemsFromType(self):
+  def BuildOleItemsFromType(self, look_name = None):
     oleItems = {}
     enumItems = {}
     aliasItems = {}
@@ -542,6 +554,7 @@ class Generator:
       attr = info.GetTypeAttr()
       itemClass = None
       if infotype == pythoncom.TKIND_ENUM or infotype == pythoncom.TKIND_MODULE:
+        if look_name is not None: continue
         newItem = EnumerationItem(info, attr, doc)
         enumItems[newItem.doc[0]] = newItem
       elif infotype in [pythoncom.TKIND_DISPATCH, pythoncom.TKIND_INTERFACE]:
@@ -560,14 +573,18 @@ class Generator:
           else:
             self.progress.VerboseProgress("Dispatch interface: %s" % doc[0])
         # Get to work.
+        if look_name is not None and doc[0]!=look_name:
+          continue
         if oleItems.has_key(attr[0]):
           continue # already built by CoClass processing.
         newItem = DispatchItem(info, attr, doc)
         oleItems[newItem.clsid] = newItem
       elif infotype == pythoncom.TKIND_RECORD or infotype == pythoncom.TKIND_UNION:
+        if look_name is not None: continue
         newItem = RecordItem(info, attr, doc)
         ### where to put the newItem ??
       elif infotype == pythoncom.TKIND_ALIAS:
+        if look_name is not None: continue
         newItem = AliasItem(info, attr, doc)
         aliasItems[newItem.doc[0]] = newItem
       elif infotype == pythoncom.TKIND_COCLASS:
@@ -577,6 +594,7 @@ class Generator:
         # predict much in this scenario, so we move the responsibility to
         # the Python programmer.
         # (It also keeps win32ui(ole) out of the core generated import dependencies.
+        if look_name is not None and look_name != doc[0]: continue
         sources = []
         interfaces = []
         for j in range(attr[8]):
@@ -602,8 +620,12 @@ class Generator:
         self.progress.LogWarning("Unknown TKIND found: %d" % infotype)
   
     return oleItems, enumItems, aliasItems
-  
-  def generate(self, file):
+
+  def generate(self, file, is_for_demand = 0):
+    if is_for_demand:
+      self.generate_type = GEN_DEMAND_BASE
+    else:
+      self.generate_type = GEN_FULL
     self.file = file
     oldOut = sys.stdout
     sys.stdout = file
@@ -614,26 +636,19 @@ class Generator:
       self.file = None
       self.progress.Finished()
 
-  def do_generate(self):
+  def do_gen_file_header(self):
+    la = self.typelib.GetLibAttr()
     moduleDoc = self.typelib.GetDocumentation(-1)
     docDesc = ""
     if moduleDoc[1]:
       docDesc = moduleDoc[1]
-    self.progress.Starting(docDesc)
-    self.progress.SetDescription("Building definitions from type library...")
-    oleItems, enumItems, aliasItems = self.BuildOleItemsFromType()
-    la = self.typelib.GetLibAttr()
-
     print '# Created by makepy.py version %s from %s' % (makepy_version,os.path.split(self.sourceFilename)[1])
     print '# On date: %s' % time.ctime(time.time())
 #    print '#\n# Command line used:', string.join(sys.argv[1:]," ")
 
-    self.progress.SetDescription("Generating...", len(oleItems.values())+len(enumItems.values()))
 
-    try:
-      print '"' + moduleDoc[1] + '"'
-    except:
-      pass
+    print '"""' + docDesc + '"""'
+
     print 'makepy_version =', `makepy_version`
     print
     print 'import win32com.client.CLSIDToClass, pythoncom'
@@ -654,6 +669,20 @@ class Generator:
     print 'LCID = ' + hex(la[1])
     print
 
+  def do_generate(self):
+    moduleDoc = self.typelib.GetDocumentation(-1)
+    docDesc = ""
+    if moduleDoc[1]:
+      docDesc = moduleDoc[1]
+    self.progress.Starting(docDesc)
+    self.progress.SetDescription("Building definitions from type library...")
+
+    self.do_gen_file_header()
+
+    oleItems, enumItems, aliasItems = self.BuildOleItemsFromType()
+
+    self.progress.SetDescription("Generating...", len(oleItems.values())+len(enumItems.values()))
+
     # Generate the constants and their support.
     if enumItems:
         print "class constants:"
@@ -667,11 +696,12 @@ class Generator:
           self.progress.Tick()
           oleitem.WriteEnumerationHeaders(aliasItems)
 
-    list = oleItems.values()
-    list.sort()
-    for oleitem in list:
-      self.progress.Tick()
-      oleitem.WriteClass(self)
+    if self.generate_type == GEN_FULL:
+      list = oleItems.values()
+      list.sort()
+      for oleitem in list:
+        self.progress.Tick()
+        oleitem.WriteClass(self)
 
 #    list = aliasItems.values()
 #    if list:
@@ -680,16 +710,67 @@ class Generator:
 #        oleitem.WriteAliasCode(aliasItems)
 
     # Write out _all_ my generated CLSID's in the map
-    print 'CLSIDToClassMap = {'
-    for item in oleItems.values():
-      if item.bWritten:
-        print "\t'%s' : %s," % (str(item.clsid), build.MakePublicAttributeName(item.doc[0]))
-    print '}'
-    print
-    print 'win32com.client.CLSIDToClass.RegisterCLSIDsFromDict( CLSIDToClassMap )'
+    if self.generate_type == GEN_FULL:
+      print 'CLSIDToClassMap = {'
+      for item in oleItems.values():
+        if item.bWritten:
+          print "\t'%s' : %s," % (str(item.clsid), item.python_name)
+      print '}'
+      print 'CLSIDToPackageMap = {}'
+      print
+      print 'win32com.client.CLSIDToClass.RegisterCLSIDsFromDict( CLSIDToClassMap )'
+    else:
+      print 'CLSIDToClassMap = {}'
+      print 'CLSIDToPackageMap = {'
+      for item in oleItems.values():
+        print "\t'%s' : %s," % (str(item.clsid), `item.python_name`)
+      print '}'
+
     if enumItems:
       print 'win32com.client.constants.__dicts__.append(constants.__dict__)'
     print
+
+  def generate_child(self, child, dir):
+    "Generate a single child.  May force a few children to be built as we generate deps"
+    self.generate_type = GEN_DEMAND_CHILD
+    oldOut = sys.stdout
+
+    la = self.typelib.GetLibAttr()
+    lcid = la[1]
+    clsid = la[0]
+    major=la[2]
+    minor=la[4]
+    self.base_mod_name = "win32com.gen_py." + str(clsid)[1:-1] + "x%sx%sx%s" % (lcid, major, minor)
+    try:
+      oleItems, enumItems, aliasItems = self.BuildOleItemsFromType(child)
+      assert len(enumItems)==0 and len(aliasItems)==0, "Not expecting anything other than oleitems"
+      assert len(oleItems)>0, "Could not find the name '%s'" % (child,)
+      list = oleItems.values()
+      self.progress.SetDescription("Generating...", len(oleItems.values()))
+      for oleitem in list:
+        self.file = open(os.path.join(dir, oleitem.python_name) + ".py", "w")
+        sys.stdout = self.file
+        try:
+          self.do_gen_child_item(oleitem)
+          self.progress.Tick()
+        finally:
+          sys.stdout = oldOut
+          self.file.close()
+          self.file = None
+    finally:
+      sys.stdout = oldOut
+      self.progress.Finished()
+
+  def do_gen_child_item(self, oleitem):
+    moduleDoc = self.typelib.GetDocumentation(-1)
+    docDesc = ""
+    if moduleDoc[1]:
+      docDesc = moduleDoc[1]
+    self.progress.Starting(docDesc)
+    self.progress.SetDescription("Building definitions from type library...")
+    self.do_gen_file_header()
+    oleitem.WriteClass(self)
+    print 'win32com.client.CLSIDToClass.RegisterCLSID( "%s", %s )' % (oleitem.clsid, oleitem.python_name)
 
 
   def checkWriteDispatchBaseClass(self):
