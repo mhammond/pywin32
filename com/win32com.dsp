@@ -61,13 +61,13 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386
-# ADD LINK32 ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e2a0000" /subsystem:windows /dll /pdb:"Build\System\pythoncom16.pdb" /debug /machine:I386 /def:".\win32com\src\PythonCOM.def" /out:"Build\System\pythoncom16.dll" /implib:"Build\pythoncom.lib" /libpath:"..\win32\build"
+# ADD LINK32 ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e2a0000" /subsystem:windows /dll /pdb:"Build\System\pythoncom16.pdb" /debug /machine:I386 /def:".\win32com\src\PythonCOM.def" /out:"Build\System\pythoncom20.dll" /implib:"Build\pythoncom.lib" /libpath:"..\win32\build"
 # SUBTRACT LINK32 /pdb:none
 # Begin Custom Build - copy to system32
 ProjDir=.
-TargetPath=.\Build\System\pythoncom16.dll
-TargetName=pythoncom16
-InputPath=.\Build\System\pythoncom16.dll
+TargetPath=.\Build\System\pythoncom20.dll
+TargetName=pythoncom20
+InputPath=.\Build\System\pythoncom20.dll
 SOURCE="$(InputPath)"
 
 "$(ProjDir)\$(TargetName).flg" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -103,13 +103,13 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e2a0000" /subsystem:windows /dll /pdb:"Build\System\pythoncom16_d.pdb" /debug /machine:I386 /def:".\win32com\src\PythonCOM.def" /out:"Build\System\pythoncom16_d.dll" /implib:"Build\pythoncom_d.lib" /pdbtype:sept /libpath:"..\win32\build"
+# ADD LINK32 ole32.lib oleaut32.lib uuid.lib /nologo /base:"0x1e2a0000" /subsystem:windows /dll /pdb:"Build\System\pythoncom16_d.pdb" /debug /machine:I386 /def:".\win32com\src\PythonCOM.def" /out:"Build\System\pythoncom20_d.dll" /implib:"Build\pythoncom_d.lib" /pdbtype:sept /libpath:"..\win32\build"
 # SUBTRACT LINK32 /pdb:none
 # Begin Custom Build - copy to system32
 ProjDir=.
-TargetPath=.\Build\System\pythoncom16_d.dll
-TargetName=pythoncom16_d
-InputPath=.\Build\System\pythoncom16_d.dll
+TargetPath=.\Build\System\pythoncom20_d.dll
+TargetName=pythoncom20_d
+InputPath=.\Build\System\pythoncom20_d.dll
 SOURCE="$(InputPath)"
 
 "$(ProjDir)\$(TargetName).flg" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
