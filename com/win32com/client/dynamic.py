@@ -48,7 +48,6 @@ dispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 _StringOrUnicodeType=[StringType, UnicodeType]
 _GoodDispatchType=[StringType,IIDType,UnicodeType]
 _defaultDispatchItem=build.DispatchItem
-mapKnownObjects = {}
 
 def _GetGoodDispatch(IDispatch, clsctx = pythoncom.CLSCTX_SERVER):
 	if type(IDispatch) in _GoodDispatchType:
@@ -98,14 +97,10 @@ def MakeOleRepr(IDispatch, typeinfo, typecomp):
 				href = typeinfo.GetRefTypeOfImplType(-1);
 				typeinfo = typeinfo.GetRefTypeInfo(href)
 				attr = typeinfo.GetTypeAttr()
-			try:
-				olerepr = mapKnownObjects[attr[0]]
-			except KeyError:
-				if typecomp is None:
-					olerepr = build.DispatchItem(typeinfo, attr, None, 0)
-				else:
-					olerepr = build.LazyDispatchItem(attr, None)
-				mapKnownObjects[attr[0]] = olerepr
+			if typecomp is None:
+				olerepr = build.DispatchItem(typeinfo, attr, None, 0)
+			else:
+				olerepr = build.LazyDispatchItem(attr, None)
 		except pythoncom.ole_error:
 			pass
 	if olerepr is None: olerepr = build.DispatchItem()
