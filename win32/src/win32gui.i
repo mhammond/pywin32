@@ -987,13 +987,25 @@ BOOLAPI DestroyWindow(HWND hwnd);
 // @pyswig int|EnableWindow|
 BOOL EnableWindow(HWND hwnd, BOOL bEnable);
 
+// @pyswig int|FindWindow|Retrieves a handle to the top-level window whose class name and window name match the specified strings.
+HWND FindWindow( 
+	STRING_OR_ATOM className, // @pyparm int/string|className||
+	TCHAR *INPUT_NULLOK); // @pyparm string|WindowName||
+
+// @pyswig int|FindWindowEx|Retrieves a handle to the top-level window whose class name and window name match the specified strings.
+HWND FindWindowEx(
+	HWND parent, // @pyparm int|hwnd||
+	HWND childAfter, // @pyparm int|childAfter||
+	STRING_OR_ATOM className, // @pyparm int/string|className||
+	TCHAR *INPUT_NULLOK); // @pyparm string|WindowName||
+
 // @pyswig |HideCaret|
 BOOLAPI HideCaret(HWND hWnd);
 
 // @pyswig |SetCaretPos|
 BOOLAPI SetCaretPos(
-	int X,  // horizontal position  
-	int Y   // vertical position
+	int X,  // @pyparm int|x||horizontal position  
+	int Y   // @pyparm int|y||vertical position
 );
 
 /*BOOLAPI GetCaretPos(
@@ -1064,6 +1076,9 @@ HANDLE GetStockObject(int object);
 // @pyswig |PostQuitMessage|
 // @pyparm int|rc||
 void PostQuitMessage(int rc);
+
+// @pyswig |WaitMessage|Waits for a message
+BOOLAPI WaitMessage();
 
 // @pyswig int|SetWindowPos|
 BOOL SetWindowPos(  HWND hWnd,             // handle to window
