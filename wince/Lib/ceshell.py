@@ -315,7 +315,8 @@ def AboutBoxDlgProc(hwnd, msg, wparam, lparam):
 def Interact(shell):
 	shell.bInteract = 1
 	locals = {}
-	sys.stdout.write("Python %s on %s\n%s\n%s" % (sys.version, sys.platform, sys.copyright, sys.ps1))
+	copyright = 'Type "copyright", "credits" or "license" for more information.'
+	sys.stdout.write("Python %s on %s\n%s\n%s" % (sys.version, sys.platform, copyright, sys.ps1))
 	
 	while 1:
 		rc = WaitForMultipleObjects( (shell.eventInteractiveInputAvailable, shell.eventClosed), 0, INFINITE)
