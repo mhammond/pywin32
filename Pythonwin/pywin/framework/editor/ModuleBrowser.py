@@ -42,7 +42,7 @@ class HierListCLBRItem(hierlist.HierListItem):
         if self.file:
             pywin.framework.scriptutils.JumpToDocument(self.file, self.lineno, bScrollToTop = 1)
         else:
-            win32ui.SetStatusText("The source of this object is unknown")
+            win32ui.SetStatusText("Can not locate the source code for this object.")
     def PerformItemSelected(self):
         if self.file is None:
             msg = "%s - source can not be located." % (self.name, )
