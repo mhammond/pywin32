@@ -5,7 +5,7 @@ import sys, string, os, getopt
 g_com_parent = ""
 
 def GetComments(line, lineNo, lines):
-	# Get the comment from this and continouos lines, if they exist.
+	# Get the comment from this and continuos lines, if they exist.
 	data = string.split(line, "//", 2)
 	doc = ""
 	if len(data)==2: doc=string.strip(data[1])
@@ -17,6 +17,9 @@ def GetComments(line, lineNo, lines):
 			break
 		if string.strip(data[0]):
 			break # Not a continutation!
+		if data[1].strip().startswith("@"):
+			# new command
+			break
 		doc = doc + "\n// " + string.strip(data[1])
 		lineNo = lineNo + 1
 	# This line doesnt match - step back
@@ -47,7 +50,8 @@ def make_doc_summary(inFile, outFile):
 					modName = string.strip(extra[0][7:])
 					modDoc = string.strip(extra[1])
 			elif line[:10]=="// @pyswig":
-				curMethod = string.strip(line[10:]), []
+				doc, lineNo = GetComments(line, lineNo, lines)
+				curMethod = doc[8:], []
 				methods.append(curMethod)
 			elif line[:11]=="// @pymeth ":
 				doc, lineNo = GetComments(line, lineNo, lines)
@@ -94,7 +98,8 @@ def make_doc_summary(inFile, outFile):
 			fields = string.split(meth,'|')
 			if len(fields)<>3:
 				print "**Error - %s does not have enough fields" % meth
-			outFile.write("\n// @pymethod %s|%s|%s|%s\n" % (fields[0],thisModName,fields[1], fields[2]))
+			else:
+				outFile.write("\n// @pymethod %s|%s|%s|%s\n" % (fields[0],thisModName,fields[1], fields[2]))
 			for extra in extras:
 				outFile.write(extra)
 		if g_com_parent:
