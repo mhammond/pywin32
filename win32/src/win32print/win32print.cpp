@@ -36,16 +36,43 @@ static ScheduleJobfunc schedulejob=NULL;
 
 static PyObject *dummy_tuple=NULL;
 
+// @object PRINTER_DEFAULTS|A dictionary representing a PRINTER_DEFAULTS structure
+// @prop string|pDatatype|Data type to be used for print jobs, see <om win32print.EnumPrintProcessorDatatypes>, can be None
+// @prop <o PyDEVMODE>|pDevMode|A PyDEVMODE that specifies default printer parameters, can be None 
+// @prop int|DesiredAccess|An ACCESS_MASK specifying what level of access is needed, eg PRINTER_ACCESS_ADMINISTER, PRINTER_ACCESS_USE 
+BOOL PyWinObject_AsPRINTER_DEFAULTS(PyObject *obdefaults, PPRINTER_DEFAULTS pdefaults)
+{
+	static char *printer_default_keys[]={"pDataType","pDevMode","DesiredAccess",NULL};
+	static char *printer_default_format="zOl";
+	PyObject *obdevmode;
+	if (!PyDict_Check(obdefaults)){
+		PyErr_SetString(PyExc_TypeError, "PRINTER_DEFAULTS must be a dictionary");
+		return FALSE;
+		}
+	ZeroMemory(pdefaults,sizeof(PRINTER_DEFAULTS));
+	return PyArg_ParseTupleAndKeywords(dummy_tuple,obdefaults,printer_default_format,printer_default_keys,
+		&pdefaults->pDatatype, &obdevmode, &pdefaults->DesiredAccess)
+		&&PyWinObject_AsDEVMODE(obdevmode, &pdefaults->pDevMode, TRUE);
+}
 // Printer stuff.
 // @pymethod int|win32print|OpenPrinter|Retrieves a handle to a printer.
 static PyObject *PyOpenPrinter(PyObject *self, PyObject *args)
 {
 	char *printer;
-	if (!PyArg_ParseTuple(args, "s:OpenPrinter", 
-	          &printer)) // @pyparm string|printer||printer or print server name.
-		return NULL;
 	HANDLE handle;
-	if (!OpenPrinter(printer, &handle, NULL))
+	PRINTER_DEFAULTS printer_defaults;
+	PRINTER_DEFAULTS *pprinter_defaults=NULL;
+	PyObject *obdefaults=Py_None;
+	if (!PyArg_ParseTuple(args, "s|O:OpenPrinter", 
+		&printer,     // @pyparm string|printer||printer or print server name.
+		&obdefaults)) // @pyparm dict|Defaults|None|<o PRINTER_DEFAULTS> dict, or None
+		return NULL;
+	if (obdefaults!=Py_None){
+		if (!PyWinObject_AsPRINTER_DEFAULTS(obdefaults, &printer_defaults))
+			return NULL;
+		pprinter_defaults=&printer_defaults;
+		}
+	if (!OpenPrinter(printer, &handle, pprinter_defaults))
 		return PyWin_SetAPIError("OpenPrinter");
 	return Py_BuildValue("i", (int)handle);
 }
@@ -63,35 +90,285 @@ static PyObject *PyClosePrinter(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @pymethod tuple|win32print|GetPrinter|Retrieves information about a printer
+// @pymethod dict|win32print|GetPrinter|Retrieves information about a printer
+// @rdesc Returns a dictionary containing PRINTER_INFO_* data for level, or
+//  returns a tuple of PRINTER_INFO_2 data if no level is passed in.
 static PyObject *PyGetPrinter(PyObject *self, PyObject *args)
 {
 	int handle;
-	DWORD needed;
-	if (!PyArg_ParseTuple(args, "i:GetPrinter", 
-	          &handle)) // @pyparm int|handle||handle to printer object
-		return NULL;
+	DWORD needed, level;
+	BOOL backward_compat;
+	LPBYTE buf=NULL;
+	PyObject *rc=NULL;
+	// @comm Original implementation used level 2 only and returned a tuple
+	// Pass single arg as indicator to use old behaviour for backward compatibility
+	if (PyArg_ParseTuple(args, "i:GetPrinter", 
+		&handle)){ // @pyparm int|handle||handle to printer object as returned by <om win32print.OpenPrinter>
+		backward_compat=TRUE;
+		level=2;
+		}
+	else{
+		PyErr_Clear();
+		if (!PyArg_ParseTuple(args, "ii:GetPrinter", &handle, &level)) // @pyparm int|Level|2|Level of data returned (1,2,3,4,5,7,8,9)
+			return NULL;
+		backward_compat=FALSE;
+		}
 	// first allocate memory.
-	GetPrinter((HANDLE)handle, 2, NULL, 0, &needed );
+	GetPrinter((HANDLE)handle, level, NULL, 0, &needed );
 	if (GetLastError()!=ERROR_INSUFFICIENT_BUFFER)
 		return PyWin_SetAPIError("GetPrinter");
-	PRINTER_INFO_2 *pInfo = (PRINTER_INFO_2 *)malloc(needed);
-	if (pInfo==NULL)
-		PyWin_SetAPIError("No memory for printer information");
-	if (!GetPrinter((HANDLE)handle, 2, (LPBYTE)pInfo, needed, &needed )) {
-		free(pInfo);
+	buf=(LPBYTE)malloc(needed);
+	if (buf==NULL)
+		return PyErr_Format(PyExc_MemoryError,"GetPrinter: Unable to allocate buffer of %d bytes", needed);
+	if (!GetPrinter((HANDLE)handle, level, buf, needed, &needed )) {
+		free(buf);
 		return PyWin_SetAPIError("GetPrinter");
 	}
-	PyObject *rc = Py_BuildValue("ssssssszssssziiiiiiii",
-		    pInfo->pServerName, pInfo->pPrinterName, 	pInfo->pShareName, pInfo->pPortName,
-			pInfo->pDriverName, pInfo->pComment, pInfo->pLocation, NULL, pInfo->pSepFile,
-			pInfo->pPrintProcessor, pInfo->pDatatype, pInfo->pParameters, NULL,
-			pInfo->Attributes, pInfo->Priority, pInfo->DefaultPriority, pInfo->StartTime, pInfo->UntilTime,
-			pInfo->Status, pInfo->cJobs, pInfo->AveragePPM);
-	free(pInfo);
+	switch (level){
+		case 1:
+			PRINTER_INFO_1 *pi1;
+			pi1=(PRINTER_INFO_1 *)buf;
+			rc=Py_BuildValue("{s:l,s:s,s:s,s:s}",
+				"Flags",pi1->Flags, "pDescription",pi1->pDescription,
+				"pName",pi1->pName, "pComment",pi1->pComment); 
+			break;
+		case 2:
+			PRINTER_INFO_2 *pi2;
+			pi2=(PRINTER_INFO_2 *)buf;
+			if (backward_compat)
+				rc = Py_BuildValue("ssssssszssssziiiiiiii",
+					pi2->pServerName, pi2->pPrinterName, 	pi2->pShareName, pi2->pPortName,
+					pi2->pDriverName, pi2->pComment, pi2->pLocation, NULL, pi2->pSepFile,
+					pi2->pPrintProcessor, pi2->pDatatype, pi2->pParameters, NULL,
+					pi2->Attributes, pi2->Priority, pi2->DefaultPriority, pi2->StartTime, pi2->UntilTime,
+					pi2->Status, pi2->cJobs, pi2->AveragePPM);
+			else
+				rc = Py_BuildValue("{s:s,s:s,s:s,s:s,s:s,s:s,s:s,s:O&,s:s,s:s,s:s,s:s,s:O&,s:i,s:i,s:i,s:i,s:i,s:i,s:i,s:i}",
+					"pServerName",pi2->pServerName, "pPrinterName",pi2->pPrinterName,
+					"pShareName",pi2->pShareName, "pPortName",pi2->pPortName,
+					"pDriverName",pi2->pDriverName, "pComment",pi2->pComment,
+					"pLocation",pi2->pLocation, "pDevMode",PyWinObject_FromDEVMODE,pi2->pDevMode,
+					"pSepFile", pi2->pSepFile, "pPrintProcessor",pi2->pPrintProcessor,
+					"pDatatype",pi2->pDatatype, "pParameters",pi2->pParameters,
+					"pSecurityDescriptor",PyWinObject_FromSECURITY_DESCRIPTOR,pi2->pSecurityDescriptor,
+					"Attributes",pi2->Attributes, "Priority",pi2->Priority,
+					"DefaultPriority",pi2->DefaultPriority,
+					"StartTime",pi2->StartTime, "UntilTime",pi2->UntilTime,
+					"Status",pi2->Status, "cJobs",pi2->cJobs, "AveragePPM",pi2->AveragePPM);
+			break;
+		case 3:
+			PRINTER_INFO_3 *pi3;
+			pi3=(PRINTER_INFO_3 *)buf;
+			rc = Py_BuildValue("{s:O&}","pSecurityDescriptor",PyWinObject_FromSECURITY_DESCRIPTOR,pi3->pSecurityDescriptor);
+			break;
+		case 4:
+			PRINTER_INFO_4 *pi4;
+			pi4=(PRINTER_INFO_4 *)buf;
+			rc = Py_BuildValue("{s:s,s:s,s:l}",
+				"pPrinterName",pi4->pPrinterName,
+				"pServerName",pi4->pServerName, 
+				"Attributes",pi4->Attributes);
+			break;
+		case 5:
+			PRINTER_INFO_5 *pi5;
+			pi5=(PRINTER_INFO_5 *)buf;
+			rc = Py_BuildValue("{s:s,s:s,s:l,s:l,s:l}",
+				"pPrinterName",pi5->pPrinterName,
+				"pPortName",pi5->pPortName,
+				"Attributes",pi5->Attributes,
+				"DeviceNotSelectedTimeout",pi5->DeviceNotSelectedTimeout,
+				"TransmissionRetryTimeout",pi5->TransmissionRetryTimeout);
+			break;
+		case 7:
+			PRINTER_INFO_7 *pi7;
+			pi7=(PRINTER_INFO_7 *)buf;
+			rc=Py_BuildValue("{s:s,s:l}","ObjectGUID",pi7->pszObjectGUID, "Action",pi7->dwAction);
+			break;
+		case 8:   // global printer defaults
+			PRINTER_INFO_8 *pi8;
+			pi8=(PRINTER_INFO_8 *)buf;
+			rc=Py_BuildValue("{s:O&}","pDevMode", PyWinObject_FromDEVMODE, pi8->pDevMode);
+			break;
+		case 9:  // per user printer defaults
+			PRINTER_INFO_9 *pi9;
+			pi9=(PRINTER_INFO_9 *)buf;
+			rc=Py_BuildValue("{s:O&}","pDevMode", PyWinObject_FromDEVMODE, pi9->pDevMode);
+			break;
+		default:
+			PyErr_Format(PyExc_NotImplementedError,"Level %d is not supported",level);
+		}
+	free(buf);
 	return rc;
 }
 
+BOOL PyWinObject_AsPRINTER_INFO(DWORD level, PyObject *obinfo, LPBYTE *pbuf)
+{
+	static char *pi2_keys[]={"pServerName","pPrinterName","pShareName","pPortName",
+		"pDriverName","pComment","pLocation","pDevMode","pSepFile","pPrintProcessor",
+		"pDatatype","pParameters","pSecurityDescriptor","Attributes","Priority",
+		"DefaultPriority","StartTime","UntilTime","Status","cJobs","AveragePPM", NULL};
+	static char *pi2_format="zzzzzzzOzzzzOllllllll:PRINTER_INFO_2";
+
+	static char *pi3_keys[]={"pSecurityDescriptor", NULL};
+	static char *pi3_format="O:PRINTER_INFO_3";
+
+	static char *pi4_keys[]={"pPrinterName","pServerName","Attributes", NULL};
+	static char *pi4_format="zzl:PRINTER_INFO_4";
+
+	static char *pi5_keys[]={"pPrinterName","pPortName","Attributes",
+		"DeviceNotSelectedTimeout","TransmissionRetryTimeout", NULL};
+	static char *pi5_format="zzlll:PRINTER_INFO_5";
+
+	static char *pi7_keys[]={"ObjectGUID","Action", NULL};
+	static char *pi7_format="zl:PRINTER_INFO_7";
+	
+	static char *pi8_keys[]={"pDevMode", NULL};
+	static char *pi8_format="O:PRINTER_INFO_8";
+
+	PyObject *obdevmode, *obsecurity_descriptor;
+	BOOL ret=FALSE;
+	size_t bufsize;
+
+	*pbuf=NULL;
+	if (level==0)
+		if (obinfo==Py_None)
+			return TRUE;
+		else{
+			*pbuf = (LPBYTE)PyInt_AsLong(obinfo);
+			if ((*pbuf==(LPBYTE)-1)&&PyErr_Occurred()){
+				PyErr_Clear();
+				PyErr_SetString(PyExc_TypeError,"Info must be None or a PRINTER_STATUS_* integer when level is 0.");
+				return FALSE;
+				}
+			return TRUE;
+			}
+
+	if (!PyDict_Check (obinfo)){
+		PyErr_Format(PyExc_TypeError, "PRINTER_INFO_%d must be a dictionary", level);
+		return FALSE;
+		}
+	switch(level){
+		case 2:
+			PRINTER_INFO_2 *pi2;
+			bufsize=sizeof(PRINTER_INFO_2);
+			if (NULL == (*pbuf= (LPBYTE)malloc(bufsize))){
+				PyErr_Format(PyExc_MemoryError, "Malloc failed for %d bytes", bufsize);
+				break;
+				}
+			ZeroMemory(*pbuf,bufsize);
+			pi2=(PRINTER_INFO_2 *)*pbuf;
+
+			if (PyArg_ParseTupleAndKeywords(dummy_tuple, obinfo, pi2_format, pi2_keys,
+				&pi2->pServerName, &pi2->pPrinterName, &pi2->pShareName, &pi2->pPortName,
+				&pi2->pDriverName, &pi2->pComment, &pi2->pLocation, &obdevmode,
+				&pi2->pSepFile, &pi2->pPrintProcessor, &pi2->pDatatype, &pi2->pParameters,
+				&obsecurity_descriptor, &pi2->Attributes, &pi2->Priority, &pi2->DefaultPriority,
+				&pi2->StartTime, &pi2->UntilTime, &pi2->Status, &pi2->cJobs, &pi2->AveragePPM)
+				&&PyWinObject_AsDEVMODE(obdevmode, &pi2->pDevMode,FALSE)
+				&&PyWinObject_AsSECURITY_DESCRIPTOR(obsecurity_descriptor, &pi2->pSecurityDescriptor, TRUE))
+				ret=TRUE;
+			break;
+		case 3:
+			PRINTER_INFO_3 *pi3;
+			bufsize=sizeof(PRINTER_INFO_3);
+			if (NULL == (*pbuf=(LPBYTE)malloc(bufsize))){
+				PyErr_Format(PyExc_MemoryError, "Malloc failed for %d bytes", bufsize);
+				break;
+				}
+			ZeroMemory(*pbuf,bufsize);
+			pi3=(PRINTER_INFO_3 *)*pbuf;
+			ret=PyArg_ParseTupleAndKeywords(dummy_tuple, obinfo, pi3_format, pi3_keys, &obsecurity_descriptor)
+				&&PyWinObject_AsSECURITY_DESCRIPTOR(obsecurity_descriptor, &pi3->pSecurityDescriptor, FALSE);
+			break;
+		case 4:
+			PRINTER_INFO_4 *pi4;
+			bufsize=sizeof(PRINTER_INFO_4);
+			if (NULL == (*pbuf=(LPBYTE)malloc(bufsize))){
+				PyErr_Format(PyExc_MemoryError, "Malloc failed for %d bytes", bufsize);
+				break;
+				}
+			ZeroMemory(*pbuf,bufsize);
+			pi4=(PRINTER_INFO_4 *)*pbuf;
+			ret=PyArg_ParseTupleAndKeywords(dummy_tuple, obinfo, pi4_format, pi4_keys,
+				&pi4->pPrinterName, &pi4->pServerName, &pi4->Attributes);
+			break;
+		case 5:
+			PRINTER_INFO_5 *pi5;
+			bufsize=sizeof(PRINTER_INFO_5);
+			if (NULL == (*pbuf=(LPBYTE)malloc(bufsize))){
+				PyErr_Format(PyExc_MemoryError, "Malloc failed for %d bytes", bufsize);
+				break;
+				}
+			ZeroMemory(*pbuf,bufsize);
+			pi5=(PRINTER_INFO_5 *)*pbuf;
+			ret=PyArg_ParseTupleAndKeywords(dummy_tuple, obinfo, pi5_format, pi5_keys,
+				&pi5->pPrinterName, &pi5->pPortName, &pi5->Attributes,
+				&pi5->DeviceNotSelectedTimeout, &pi5->TransmissionRetryTimeout);
+			break;
+		case 7:
+			PRINTER_INFO_7 *pi7;
+			bufsize=sizeof(PRINTER_INFO_7);
+			if (NULL == (*pbuf=(LPBYTE)malloc(bufsize))){
+				PyErr_Format(PyExc_MemoryError, "Malloc failed for %d bytes", bufsize);
+				break;
+				}
+			ZeroMemory(*pbuf,bufsize);
+			pi7=(PRINTER_INFO_7 *)*pbuf;
+			ret=PyArg_ParseTupleAndKeywords(dummy_tuple, obinfo, pi7_format, pi7_keys,
+				&pi7->pszObjectGUID, &pi7->dwAction);
+			break;
+		case 8:
+		case 9:   //identical structs, 8 is for global defaults and 9 is for user defaults
+			PRINTER_INFO_8 *pi8;
+			bufsize=sizeof(PRINTER_INFO_8);
+			if (NULL == (*pbuf=(LPBYTE)malloc(bufsize))){
+				PyErr_Format(PyExc_MemoryError, "Malloc failed for %d bytes", bufsize);
+				break;
+				}
+			ZeroMemory(*pbuf,bufsize);
+			pi8=(PRINTER_INFO_8 *)*pbuf;
+			ret=PyArg_ParseTupleAndKeywords(dummy_tuple, obinfo, pi8_format, pi8_keys,&obdevmode)
+				&&PyWinObject_AsDEVMODE(obdevmode,&pi8->pDevMode,FALSE);
+			break;
+		default:
+			PyErr_Format(PyExc_NotImplementedError,"Information level %d is not supported", level);
+		}
+	if (!ret){
+		if ((*pbuf!=NULL) && (level!=0))
+			free(*pbuf);
+		*pbuf=NULL;
+		}
+	return ret;
+}
+
+// @pymethod |win32print|SetPrinter|Change printer configuration and status
+static PyObject *PySetPrinter(PyObject *self, PyObject *args)
+{
+	HANDLE hprinter;
+	LPBYTE buf=NULL;
+	DWORD level, command;
+	PyObject *obinfo=NULL, *ret=NULL;
+	// @pyparm int|hPrinter||Printer handle as returned by <om win32print.OpenPrinter>
+	// @pyparm int|Level||Level of data contained in pPrinter
+	// @pyparm dict|pPrinter||PRINTER_INFO_* dict as returned by <om win32print.GetPrinter>, can be None if level is 0
+	// @pyparm int|Command||Command to send to printer - one of the PRINTER_CONTROL_* constants, or 0
+	// @comm If Level is 0 and Command is PRINTER_CONTROL_SET_STATUS, pPrinter should be an integer,
+	// and is interpreted as the new printer status to set (one of the PRINTER_STATUS_* constants). 
+	if (!PyArg_ParseTuple(args, "llOl:SetPrinter", 
+		&hprinter, &level, &obinfo, &command))
+		return NULL;
+	if (!PyWinObject_AsPRINTER_INFO(level, obinfo, &buf))
+		return NULL;
+	if (!SetPrinter(hprinter, level, buf, command))
+		PyWin_SetAPIError("SetPrinter");
+	else{
+		Py_INCREF(Py_None);
+		ret=Py_None;
+		}
+	if ((level!=0)&&(buf!=NULL))
+		free(buf);
+	return ret;
+}
 
 // @pymethod None|win32print|AddPrinterConnection|Connects to remote printer
 static PyObject *PyAddPrinterConnection(PyObject *self, PyObject *args)
@@ -653,7 +930,6 @@ BOOL PytoJob(DWORD level, PyObject *pyjobinfo, LPBYTE *pbuf)
 	static char *job3_format="ll|l:JOB_INFO_3";
 
 	PyObject *obdevmode, *obsecurity_descriptor, *obsubmitted=Py_None;
-	char *err= NULL;
 	BOOL ret=FALSE;
 
 	*pbuf=NULL;
@@ -1374,6 +1650,7 @@ static PyObject *PyScheduleJob(PyObject *self, PyObject *args)
 static struct PyMethodDef win32print_functions[] = {
 	{"OpenPrinter",				PyOpenPrinter, 1}, // @pymeth OpenPrinter|Retrieves a handle to a printer.
 	{"GetPrinter",				PyGetPrinter       ,1}, // @pymeth GetPrinter|Retrieves information about a printer
+	{"SetPrinter",				PySetPrinter, 1}, // @pymeth SetPrinter|Changes printer configuration and status
 	{"ClosePrinter",			PyClosePrinter,     1}, // @pymeth ClosePrinter|Closes a handle to a printer.
 	{"AddPrinterConnection",	PyAddPrinterConnection, 1}, // @pymeth AddPrinterConnection|Connects to a network printer.
 	{"DeletePrinterConnection",	PyDeletePrinterConnection, 1}, // @pymeth DeletePrinterConnection|Disconnects from a network printer.
@@ -1486,6 +1763,64 @@ initwin32print(void)
   AddConstant(dict, "JOB_READ",JOB_READ);
   AddConstant(dict, "JOB_WRITE",JOB_WRITE);
   AddConstant(dict, "JOB_EXECUTE",JOB_EXECUTE);
+
+  // Command values for SetPrinter
+  AddConstant(dict, "PRINTER_CONTROL_PAUSE",PRINTER_CONTROL_PAUSE);
+  AddConstant(dict, "PRINTER_CONTROL_PURGE",PRINTER_CONTROL_PURGE);
+  AddConstant(dict, "PRINTER_CONTROL_SET_STATUS",PRINTER_CONTROL_SET_STATUS);
+  AddConstant(dict, "PRINTER_CONTROL_RESUME",PRINTER_CONTROL_RESUME);
+
+  // printer status constants
+  AddConstant(dict, "PRINTER_STATUS_PAUSED",PRINTER_STATUS_PAUSED);
+  AddConstant(dict, "PRINTER_STATUS_ERROR",PRINTER_STATUS_ERROR);
+  AddConstant(dict, "PRINTER_STATUS_PENDING_DELETION",PRINTER_STATUS_PENDING_DELETION);
+  AddConstant(dict, "PRINTER_STATUS_PAPER_JAM",PRINTER_STATUS_PAPER_JAM);
+  AddConstant(dict, "PRINTER_STATUS_PAPER_OUT",PRINTER_STATUS_PAPER_OUT);
+  AddConstant(dict, "PRINTER_STATUS_MANUAL_FEED",PRINTER_STATUS_MANUAL_FEED);
+  AddConstant(dict, "PRINTER_STATUS_PAPER_PROBLEM",PRINTER_STATUS_PAPER_PROBLEM);
+  AddConstant(dict, "PRINTER_STATUS_OFFLINE",PRINTER_STATUS_OFFLINE);
+  AddConstant(dict, "PRINTER_STATUS_IO_ACTIVE",PRINTER_STATUS_IO_ACTIVE);
+  AddConstant(dict, "PRINTER_STATUS_BUSY",PRINTER_STATUS_BUSY);
+  AddConstant(dict, "PRINTER_STATUS_PRINTING",PRINTER_STATUS_PRINTING);
+  AddConstant(dict, "PRINTER_STATUS_OUTPUT_BIN_FULL",PRINTER_STATUS_OUTPUT_BIN_FULL);
+  AddConstant(dict, "PRINTER_STATUS_NOT_AVAILABLE",PRINTER_STATUS_NOT_AVAILABLE);
+  AddConstant(dict, "PRINTER_STATUS_WAITING",PRINTER_STATUS_WAITING);
+  AddConstant(dict, "PRINTER_STATUS_PROCESSING",PRINTER_STATUS_PROCESSING);
+  AddConstant(dict, "PRINTER_STATUS_INITIALIZING",PRINTER_STATUS_INITIALIZING);
+  AddConstant(dict, "PRINTER_STATUS_WARMING_UP",PRINTER_STATUS_WARMING_UP);
+  AddConstant(dict, "PRINTER_STATUS_TONER_LOW",PRINTER_STATUS_TONER_LOW);
+  AddConstant(dict, "PRINTER_STATUS_NO_TONER",PRINTER_STATUS_NO_TONER);
+  AddConstant(dict, "PRINTER_STATUS_PAGE_PUNT",PRINTER_STATUS_PAGE_PUNT);
+  AddConstant(dict, "PRINTER_STATUS_USER_INTERVENTION",PRINTER_STATUS_USER_INTERVENTION);
+  AddConstant(dict, "PRINTER_STATUS_OUT_OF_MEMORY",PRINTER_STATUS_OUT_OF_MEMORY);
+  AddConstant(dict, "PRINTER_STATUS_DOOR_OPEN",PRINTER_STATUS_DOOR_OPEN);
+  AddConstant(dict, "PRINTER_STATUS_SERVER_UNKNOWN",PRINTER_STATUS_SERVER_UNKNOWN);
+  AddConstant(dict, "PRINTER_STATUS_POWER_SAVE",PRINTER_STATUS_POWER_SAVE);
+
+  // attribute flags for PRINTER_INFO_2
+  AddConstant(dict, "PRINTER_ATTRIBUTE_QUEUED",PRINTER_ATTRIBUTE_QUEUED);
+  AddConstant(dict, "PRINTER_ATTRIBUTE_DIRECT",PRINTER_ATTRIBUTE_DIRECT);
+  AddConstant(dict, "PRINTER_ATTRIBUTE_DEFAULT",PRINTER_ATTRIBUTE_DEFAULT);
+  AddConstant(dict, "PRINTER_ATTRIBUTE_SHARED",PRINTER_ATTRIBUTE_SHARED);
+  AddConstant(dict, "PRINTER_ATTRIBUTE_NETWORK",PRINTER_ATTRIBUTE_NETWORK);
+  AddConstant(dict, "PRINTER_ATTRIBUTE_HIDDEN",PRINTER_ATTRIBUTE_HIDDEN);
+  AddConstant(dict, "PRINTER_ATTRIBUTE_LOCAL",PRINTER_ATTRIBUTE_LOCAL);
+  AddConstant(dict, "PRINTER_ATTRIBUTE_ENABLE_DEVQ",PRINTER_ATTRIBUTE_ENABLE_DEVQ);
+  AddConstant(dict, "PRINTER_ATTRIBUTE_KEEPPRINTEDJOBS",PRINTER_ATTRIBUTE_KEEPPRINTEDJOBS);
+  AddConstant(dict, "PRINTER_ATTRIBUTE_DO_COMPLETE_FIRST",PRINTER_ATTRIBUTE_DO_COMPLETE_FIRST);
+  AddConstant(dict, "PRINTER_ATTRIBUTE_WORK_OFFLINE",PRINTER_ATTRIBUTE_WORK_OFFLINE);
+  AddConstant(dict, "PRINTER_ATTRIBUTE_ENABLE_BIDI",PRINTER_ATTRIBUTE_ENABLE_BIDI);
+  AddConstant(dict, "PRINTER_ATTRIBUTE_RAW_ONLY",PRINTER_ATTRIBUTE_RAW_ONLY);
+  AddConstant(dict, "PRINTER_ATTRIBUTE_PUBLISHED",PRINTER_ATTRIBUTE_PUBLISHED);
+  AddConstant(dict, "PRINTER_ATTRIBUTE_FAX",PRINTER_ATTRIBUTE_FAX);
+  AddConstant(dict, "PRINTER_ATTRIBUTE_TS",PRINTER_ATTRIBUTE_TS);
+
+  // directory service contants for Action member of PRINTER_INFO_7
+  AddConstant(dict, "DSPRINT_PUBLISH",DSPRINT_PUBLISH);
+  AddConstant(dict, "DSPRINT_UNPUBLISH",DSPRINT_UNPUBLISH);
+  AddConstant(dict, "DSPRINT_UPDATE",DSPRINT_UPDATE);
+  AddConstant(dict, "DSPRINT_PENDING",DSPRINT_PENDING);
+  AddConstant(dict, "DSPRINT_REPUBLISH",DSPRINT_REPUBLISH);
 
   FARPROC fp;
   HMODULE hmodule=LoadLibrary("winspool.drv");
