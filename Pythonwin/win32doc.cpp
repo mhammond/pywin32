@@ -408,7 +408,7 @@ static struct PyMethodDef ui_doc_methods[] = {
 	{"GetPathName",			ui_doc_get_path_name,	1},	// @pymeth GetPathName|Returns the full path name of the current document.
 	{"GetTitle",			ui_doc_get_title,		1},	// @pymeth GetTitle|Returns the title of the current document.
 	{"IsModified",			ui_doc_is_modified,		1},	// @pymeth IsModified|Return a flag indicating if the document has been modified.
-	{"OnChangedViewList",           ui_doc_on_changed_view_list,    1},     // @pymmeth OnChangedViewList|Informs the document when a view is added or removed.
+	{"OnChangedViewList",           ui_doc_on_changed_view_list,    1},     // @pymeth OnChangedViewList|Informs the document when a view is added or removed.
 	{"OnCloseDocument",		ui_doc_on_close,		1},	// @pymeth OnCloseDocument|Call the MFC OnCloseDocument handler.
 	{"OnNewDocument",		ui_doc_on_new,			1}, // @pymeth OnNewDocument|Call the MFC OnNewDocument handler.
 	{"OnOpenDocument",		ui_doc_on_open,			1},	// @pymeth OnOpenDocument|Call the MFC OnOpenDocument handler.
