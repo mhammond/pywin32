@@ -759,38 +759,37 @@ class Generator:
     if moduleDoc[1]:
       docDesc = moduleDoc[1]
 
-    print '# Created by makepy.py version %s' % (makepy_version,)
-    print '# By python version %s' % (sys.version,)
+    print >> self.file, '# -*- coding: mbcs -*-' # Is this always correct?
+    print >> self.file, '# Created by makepy.py version %s' % (makepy_version,)
+    print >> self.file, '# By python version %s' % (sys.version,)
     if self.sourceFilename:
-        print "# From type library '%s'" % (os.path.split(self.sourceFilename)[1],)
-    print '# On %s' % time.ctime(time.time())
-#    print '#\n# Command line used:', string.join(sys.argv[1:]," ")
+        print >> self.file, "# From type library '%s'" % (os.path.split(self.sourceFilename)[1],)
+    print >> self.file, '# On %s' % time.ctime(time.time())
 
+    print >> self.file, '"""' + docDesc + '"""'
 
-    print '"""' + docDesc + '"""'
-
-    print 'makepy_version =', `makepy_version`
+    print >> self.file, 'makepy_version =', `makepy_version`
     try:
-        print 'python_version = 0x%x' % (sys.hexversion,)
+        print >> self.file, 'python_version = 0x%x' % (sys.hexversion,)
     except AttributeError:
-        print 'python_version = 0x0 # Presumably Python 1.5.2 - 0x0 is not a problem'
-    print
-    print 'import win32com.client.CLSIDToClass, pythoncom'
-    print 'from pywintypes import IID'
-    print 'from win32com.client import Dispatch'
-    print
-    print '# The following 3 lines may need tweaking for the particular server'
-    print '# Candidates are pythoncom.Missing and pythoncom.Empty'
-    print 'defaultNamedOptArg=pythoncom.Empty'
-    print 'defaultNamedNotOptArg=pythoncom.Empty'
-    print 'defaultUnnamedArg=pythoncom.Empty'
-    print
-    print 'CLSID = ' + repr(la[0])
-    print 'MajorVersion = ' + str(la[3])
-    print 'MinorVersion = ' + str(la[4])
-    print 'LibraryFlags = ' + str(la[5])
-    print 'LCID = ' + hex(la[1])
-    print
+        print >> self.file, 'python_version = 0x0 # Presumably Python 1.5.2 - 0x0 is not a problem'
+    print>> self.file
+    print >> self.file, 'import win32com.client.CLSIDToClass, pythoncom'
+    print >> self.file, 'from pywintypes import IID'
+    print >> self.file, 'from win32com.client import Dispatch'
+    print>> self.file
+    print >> self.file, '# The following 3 lines may need tweaking for the particular server'
+    print >> self.file, '# Candidates are pythoncom.Missing and pythoncom.Empty'
+    print >> self.file, 'defaultNamedOptArg=pythoncom.Empty'
+    print >> self.file, 'defaultNamedNotOptArg=pythoncom.Empty'
+    print >> self.file, 'defaultUnnamedArg=pythoncom.Empty'
+    print >> self.file
+    print >> self.file, 'CLSID = ' + repr(la[0])
+    print >> self.file, 'MajorVersion = ' + str(la[3])
+    print >> self.file, 'MinorVersion = ' + str(la[4])
+    print >> self.file, 'LibraryFlags = ' + str(la[5])
+    print >> self.file, 'LCID = ' + hex(la[1])
+    print >> self.file
 
   def do_generate(self):
     moduleDoc = self.typelib.GetDocumentation(-1)
