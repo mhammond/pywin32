@@ -27,12 +27,13 @@
 #include "Utils.h"
 #include "PyExtensionObjects.h"
 
-
+// @doc
+// @object HSE_VERSION_INFO|An object used by ISAPI GetExtensionVersion
 PyTypeObject PyVERSION_INFOType =
 {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,
-	"PyVERSION_INFO",
+	"HSE_VERSION_INFO",
 	sizeof(PyVERSION_INFO),
 	0,
 	PyVERSION_INFO::deallocFunc,	/* tp_dealloc */
@@ -83,6 +84,7 @@ int PyVERSION_INFO::setattr(PyObject *self, char *name, PyObject *v)
 		PyErr_SetString(PyExc_AttributeError, "can't delete VERSION_INFO attributes");
 		return -1;
 	}
+	// @prop string|ExtensionDesc|The description of the extension.
 	else if (strcmp(name, "ExtensionDesc")==0) {
 		if (!PyString_Check(v)) {
 			PyErr_Format(PyExc_ValueError, "FilterDesc must be a string (got %s)", v->ob_type->tp_name);
@@ -115,7 +117,8 @@ void PyVERSION_INFO::deallocFunc(PyObject *ob)
 #define ARRAYSIZE(x) (sizeof(x)/sizeof(x[0]))
 #define ECBOFF(e) offsetof(PyECB, e)
 
-
+// @object EXTENSION_CONTROL_BLOCK|A python representation of an ISAPI
+// EXTENSION_CONTROL_BLOCK.
 struct memberlist PyECB::PyECB_memberlist[] = {
 	{"Version",			T_INT,	   ECBOFF(m_version), READONLY}, 
 	{"ConnID",			T_INT,	   ECBOFF(m_connID), READONLY}, 
@@ -132,7 +135,6 @@ struct memberlist PyECB::PyECB_memberlist[] = {
 	
 	{"HttpStatusCode",	T_INT,  ECBOFF(m_HttpStatusCode)},  
 	{"LogData",			T_OBJECT,  ECBOFF(m_logData)},
-
 	{NULL}
 };
 
@@ -141,12 +143,12 @@ static struct PyMethodDef PyECB_methods[] = {
 	{"WriteClient",				PyECB::WriteClient, 1},			 // @pymeth WriteClient|
 	{"GetServerVariable",		PyECB::GetServerVariable, 1},	 // @pymeth GetServerVariable|
 	{"ReadClient",				PyECB::ReadClient, 1},			 // @pymeth ReadClient|
-	{"SendResponseHeaders",	    PyECB::SendResponseHeaders, 1},  	
-	{"DoneWithSession",	        PyECB::DoneWithSession, 1},
-	{"close",                   PyECB::DoneWithSession, 1},     // @pymeth close|A synonym for DoneWithSession.
-	{"IsSessionActive",			PyECB::IsSessionActive,1},
-	{"Redirect",				PyECB::Redirect,1},
-	{"IsKeepAlive",				PyECB::IsKeepAlive,1},
+	{"SendResponseHeaders",	    PyECB::SendResponseHeaders, 1},  // @pymeth SendResponseHeaders|
+	{"DoneWithSession",	        PyECB::DoneWithSession, 1},      // @pymeth DoneWithSession|
+	{"close",                   PyECB::DoneWithSession, 1},      // @pymeth close|A synonym for DoneWithSession.
+	{"IsSessionActive",			PyECB::IsSessionActive,1},       // @pymeth IsSessionActive|Indicates if DoneWithSession has been called
+	{"Redirect",				PyECB::Redirect,1},              // @pymeth Redirect|
+	{"IsKeepAlive",				PyECB::IsKeepAlive,1},           // @pymeth IsKeepAlive|
 	{"GetImpersonationToken",   PyECB::GetImpersonationToken, 1}, // @pymeth GetImpersonationToken|
 	{NULL}
 };
@@ -155,7 +157,7 @@ PyTypeObject PyECBType =
 {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,
-	"PyECB",
+	"EXTENSION_CONTROL_BLOCK",
 	sizeof(PyECB),
 	0,
 	PyECB::deallocFunc,	/* tp_dealloc */
@@ -174,21 +176,23 @@ PyTypeObject PyECBType =
 
 
 PyECB::PyECB(CControlBlock * pcb):
-	m_version(0),          // Version info of this spec
-	m_connID(0),           // Context number not to be modified!
+		
+	m_version(0),          // @prop integer|Version|Version info of this spec (read-only)
+	m_connID(0),           // @prop integer|ConnID|Context number (read-only)
 
-	m_method(NULL),         // REQUEST_METHOD
-	m_queryString(NULL),    // QUERY_STRING
-	m_pathInfo(NULL),       // PATH_INFO
-	m_pathTranslated(NULL), // PATH_TRANSLATED
+	m_method(NULL),         // @prop string|Method|REQUEST_METHOD
+	m_queryString(NULL),    // @prop string|QueryString|QUERY_STRING
+	m_pathInfo(NULL),       // @prop string|PathInfo|PATH_INFO
+	m_pathTranslated(NULL), // @prop string|PathTranslated|PATH_TRANSLATED
 
-	m_totalBytes(0),       // Total bytes indicated from client
-	m_available(0),        // Available number of bytes
-	m_data(NULL),          // Pointer to cbAvailable bytes
-	m_contentType(NULL),   // Content type of client data
+	m_totalBytes(0),       // @prop int|TotalBytes|Total bytes indicated from client
+	m_available(0),        // @prop int|AvailableBytes|Available number of bytes
+	m_data(NULL),          // @prop string|AvailableData|Pointer to cbAvailable bytes
+	m_contentType(NULL),   // @prop string|ContentType|Content type of client data
 
-	m_HttpStatusCode(0),   // The status of the current transaction when the request is completed. 
-	m_logData(NULL),       // log data string 
+	m_HttpStatusCode(0),   // @prop int|HttpStatusCode|The status of the current transaction when the request is completed. 
+	m_logData(NULL),       // @prop string|LogData|log data string
+	
 	m_bAsyncDone(false)    // async done
 {
 	ob_type = &PyECBType;
@@ -289,6 +293,7 @@ void PyECB::deallocFunc(PyObject *ob)
 }
 
 
+// @pymethod |EXTENSION_CONTROL_BLOCK|WriteClient|
 PyObject * PyECB::WriteClient(PyObject *self, PyObject *args)
 {
 	BOOL bRes = FALSE;
@@ -297,7 +302,8 @@ PyObject * PyECB::WriteClient(PyObject *self, PyObject *args)
 	int reserved = 0;
 
 	PyECB * pecb = (PyECB *) self;
-
+	// @pyparm string/buffer|data||The data to write
+	// @pyparm int|reserved|0|
 	if (!PyArg_ParseTuple(args, "s#|l:WriteClient", &buffer, &buffLen, &reserved))
 		return NULL;
 
@@ -313,13 +319,14 @@ PyObject * PyECB::WriteClient(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod string|EXTENSION_CONTROL_BLOCK|GetServerVariable|
 PyObject * PyECB::GetServerVariable(PyObject *self, PyObject *args)
 {
 	BOOL bRes = FALSE;
 	TCHAR * variable = NULL;
 
 	PyECB * pecb = (PyECB *) self;
-
+	// @pyparm string|variable||
 	if (!PyArg_ParseTuple(args, "s:GetServerVariable", &variable))
 		return NULL;
 
@@ -336,6 +343,7 @@ PyObject * PyECB::GetServerVariable(PyObject *self, PyObject *args)
 	return PyString_FromStringAndSize(buf, bufsize);
 }
 
+// @pymethod string|EXTENSION_CONTROL_BLOCK|ReadClient|
 PyObject * PyECB::ReadClient(PyObject *self, PyObject *args)
 {
 
@@ -348,7 +356,7 @@ PyObject * PyECB::ReadClient(PyObject *self, PyObject *args)
 	if (pecb->m_pcb){
 		nSize = pecb->m_totalBytes - pecb->m_available;
 	}
-
+	// @pyparm int|nbytes|0|
 	if (!PyArg_ParseTuple(args, "|l:ReadClient", &nSize))
 		return NULL;
 	
@@ -399,9 +407,7 @@ PyObject * PyECB::ReadClient(PyObject *self, PyObject *args)
 }
 
 // The following are wrappers for the various ServerSupportFunction
-
-// HSE_REQ_SEND_RESPONSE_HEADER_EX 
-	
+// @pymethod |EXTENSION_CONTROL_BLOCK|SendResponseHeaders|Calls ServerSupportFunction with HSE_REQ_SEND_RESPONSE_HEADER_EX 
 PyObject * PyECB::SendResponseHeaders(PyObject *self, PyObject * args)
 {
 	BOOL bRes = FALSE;
@@ -411,6 +417,9 @@ PyObject * PyECB::SendResponseHeaders(PyObject *self, PyObject * args)
 
 	PyECB * pecb = (PyECB *) self;
 
+	// @pyparm string|reply||
+	// @pyparm string|headers||
+	// @pyparm bool|keepAlive|False|
 	if (!PyArg_ParseTuple(args, "ss|i:SendResponseHeaders", &reply, &headers, &bKeepAlive))
 		return NULL;
 
@@ -426,8 +435,7 @@ PyObject * PyECB::SendResponseHeaders(PyObject *self, PyObject * args)
 	return Py_None;
 }
 
-//  HSE_REQ_SEND_URL_REDIRECT_RESP.
-
+// @pymethod |EXTENSION_CONTROL_BLOCK|Redirect|Calls ServerSupportFunction with HSE_REQ_SEND_URL_REDIRECT_RESP 
 PyObject * PyECB::Redirect(PyObject *self, PyObject * args)
 {
 	BOOL bRes = FALSE;
@@ -435,6 +443,7 @@ PyObject * PyECB::Redirect(PyObject *self, PyObject * args)
 
 	PyECB * pecb = (PyECB *) self;
 
+	// @pyparm string|url||The URL to redirect to
 	if (!PyArg_ParseTuple(args, "s:Redirect", &url))
 		return NULL;
 
@@ -450,7 +459,7 @@ PyObject * PyECB::Redirect(PyObject *self, PyObject * args)
 	return Py_None;
 }
 
-// HSE_REQ_GET_IMPERSONATION_TOKEN
+// @pymethod int|EXTENSION_CONTROL_BLOCK|GetImpersonationToken|Calls ServerSupportFunction with HSE_REQ_GET_IMPERSONATION_TOKEN 
 PyObject * PyECB::GetImpersonationToken(PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ":GetImpersonationToken"))
@@ -467,6 +476,7 @@ PyObject * PyECB::GetImpersonationToken(PyObject *self, PyObject *args)
 	return PyLong_FromVoidPtr(handle);
 }
   
+// @pymethod |EXTENSION_CONTROL_BLOCK|IsKeepAlive|
 PyObject * PyECB::IsKeepAlive(PyObject *self, PyObject * args)
 {
 	bool bKeepAlive = false;
@@ -484,8 +494,8 @@ PyObject * PyECB::IsKeepAlive(PyObject *self, PyObject * args)
 
 	return PyInt_FromLong((bKeepAlive)?1:0);
 }
- //HSE_REQ_DONE_WITH_SESSION
 
+// @pymethod |EXTENSION_CONTROL_BLOCK|DoneWithSession|Calls ServerSupportFunction with HSE_REQ_DONE_WITH_SESSION 
 PyObject * PyECB::DoneWithSession(PyObject *self, PyObject * args)
 {
 	BOOL bRes = FALSE;
@@ -507,19 +517,20 @@ PyObject * PyECB::DoneWithSession(PyObject *self, PyObject * args)
 	return Py_None;
 }
 
+// @pymethod bool|EXTENSION_CONTROL_BLOCK|IsSessionActive|Indicates if <om EXTENSION_CONTROL_BLOCK.DoneWithSession>
+// has been called.
 PyObject * PyECB::IsSessionActive(PyObject *self, PyObject * args)
 {
 	PyECB * pecb = (PyECB *) self;
 
-	if (!PyArg_ParseTuple(args, ":SessionActive"))
+	if (!PyArg_ParseTuple(args, ":IsSessionActive"))
 		return NULL;
 	
 	BOOL bActive = FALSE;
 	if (pecb->m_pcb){
 		bActive = (pecb->m_bAsyncDone) ? FALSE : TRUE;
 	}
-
-	return PyInt_FromLong(bActive);
+	return PyBool_FromLong(bActive);
 }
 
 // Setup an exception

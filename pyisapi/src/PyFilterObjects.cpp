@@ -27,12 +27,15 @@
 #include "Utils.h"
 #include "pyFilterObjects.h"
 
+// @doc
 
+// @object HTTP_FILTER_VERSION|A Python interface to the ISAPI HTTP_FILTER_VERSION
+// structure.
 PyTypeObject PyFILTER_VERSIONType =
 {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,
-	"PyFILTER_VERSION",
+	"HTTP_FILTER_VERSION",
 	sizeof(PyFILTER_VERSION),
 	0,
 	PyFILTER_VERSION::deallocFunc,	/* tp_dealloc */
@@ -66,15 +69,19 @@ PyObject *PyFILTER_VERSION::getattr(PyObject *self, char *name)
 	PyFILTER_VERSION *me = (PyFILTER_VERSION *)self;
 	if (!me->m_pfv)
 		return PyErr_Format(PyExc_RuntimeError, "FILTER_VERSION structure no longer exists");
+	// @prop int|ServerFilterVersion|(read-only)
 	if (strcmp(name, "ServerFilterVersion")==0) {
 		return PyInt_FromLong(me->m_pfv->dwServerFilterVersion);
 	}
+	// @prop int|FilterVersion|
 	if (strcmp(name, "FilterVersion")==0) {
 		return PyInt_FromLong(me->m_pfv->dwFilterVersion);
 	}
+	// @prop int|Flags|
 	if (strcmp(name, "Flags")==0) {
 		return PyInt_FromLong(me->m_pfv->dwFlags);
 	}
+	// @prop string|FilterDesc|
 	if (strcmp(name, "FilterDesc")==0) {
 		return PyString_FromString(me->m_pfv->lpszFilterDesc);
 	}
@@ -131,19 +138,25 @@ void PyFILTER_VERSION::deallocFunc(PyObject *ob)
 
 
 /////////////////////////////////////////////////////////////////////
-// Extension block wrapper
+// filter context wrapper
 /////////////////////////////////////////////////////////////////////
-
 
 #define ARRAYSIZE(x) (sizeof(x)/sizeof(x[0]))
 #define ECBOFF(e) offsetof(PyHFC, e)
 
+// @pymethod object|HTTP_FILTER_CONTEXT|GetData|Obtains the data passed to
+// The HttpFilterProc function.  This is not techinally part of the
+// HTTP_FILTER_CONTEXT structure, but packaged here for convenience.
 PyObject * PyHFC::GetData(PyObject *self, PyObject *args)
 {
 	PyHFC *me = (PyHFC *)self;
+	// @rdesc The result depends on the value of <om HTTP_FILTER_CONTEXT.NotificationType>
+	// @flagh NotificationType|Result type
 	switch (me->m_notificationType) {
+		// @flag SF_NOTIFY_URL_MAP|<o HTTP_FILTER_URL_MAP>
 		case SF_NOTIFY_URL_MAP:
 			return new PyURL_MAP(me);
+		// @flag SF_NOTIFY_PREPROC_HEADERS|<o HTTP_FILTER_PREPROC_HEADERS>
 		case SF_NOTIFY_PREPROC_HEADERS:
 			return new PyPREPROC_HEADERS(me);
 		default:
@@ -154,6 +167,7 @@ PyObject * PyHFC::GetData(PyObject *self, PyObject *args)
 	assert(false);
 }
 
+// @pymethod |HTTP_FILTER_CONTEXT|WriteClient|
 PyObject * PyHFC::WriteClient(PyObject *self, PyObject *args)
 {
 	BOOL bRes = FALSE;
@@ -162,6 +176,8 @@ PyObject * PyHFC::WriteClient(PyObject *self, PyObject *args)
 	int reserved = 0;
 
 	PyHFC * phfc = (PyHFC *) self;
+	// @pyparm string|data||
+	// @pyparm int|reserverd|0|
 	if (!PyArg_ParseTuple(args, "s#|l:WriteClient", &buffer, &buffLen, &reserved))
 		return NULL;
 
@@ -177,6 +193,7 @@ PyObject * PyHFC::WriteClient(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod string|HTTP_FILTER_CONTEXT|GetServerVariable|
 PyObject * PyHFC::GetServerVariable(PyObject *self, PyObject *args)
 {
 	BOOL bRes = FALSE;
@@ -184,6 +201,7 @@ PyObject * PyHFC::GetServerVariable(PyObject *self, PyObject *args)
 
 	PyHFC * phfc = (PyHFC *) self;
 
+	// @pyparm string|variable||
 	if (!PyArg_ParseTuple(args, "s:GetServerVariable", &variable))
 		return NULL;
 
@@ -199,7 +217,7 @@ PyObject * PyHFC::GetServerVariable(PyObject *self, PyObject *args)
 	return PyString_FromStringAndSize(buf, bufsize);
 }
 
-// @pymethod |SendResponseHeader||
+// @pymethod |HTTP_FILTER_CONTEXT|SendResponseHeader|
 PyObject * PyHFC::SendResponseHeader(PyObject *self, PyObject *args)
 {
 	BOOL bRes = FALSE;
@@ -225,19 +243,24 @@ PyObject * PyHFC::SendResponseHeader(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @object HTTP_FILTER_CONTEXT|A Python representation of an ISAPI
+// HTTP_FILTER_CONTEXT structure.
 static struct PyMethodDef PyHFC_methods[] = {
-	{"GetData",                 PyHFC::GetData, 1},	 // @pymeth |
-	{"GetServerVariable",       PyHFC::GetServerVariable, 1}, // @pymeth |
-	{"WriteClient",             PyHFC::WriteClient, 1},  // @pymeth |
+	{"GetData",                 PyHFC::GetData, 1},	 // @pymeth GetData|
+	{"GetServerVariable",       PyHFC::GetServerVariable, 1}, // @pymeth GetServerVariable|
+	{"WriteClient",             PyHFC::WriteClient, 1},  // @pymeth WriteClient|
 	{"write",				    PyHFC::WriteClient, 1},			 // @pymeth write|A synonym for WriteClient, this allows you to 'print >> fc'
-	{"SendResponseHeader",      PyHFC::SendResponseHeader, 1}, // @pymeth |
+	{"SendResponseHeader",      PyHFC::SendResponseHeader, 1}, // @pymeth SendResponseHeader|
 	{NULL}
 };
 
 
 struct memberlist PyHFC::PyHFC_memberlist[] = {
+	// @prop int|Revision|(read-only)
 	{"Revision",			T_INT,ECBOFF(m_revision), READONLY}, 
+	// @prop bool|fIsSecurePort|(read-only)
 	{"fIsSecurePort",			T_INT,	   ECBOFF(m_isSecurePort), READONLY}, 
+	// @prop int|NotificationType|(read-only)
 	{"NotificationType",			T_INT,ECBOFF(m_notificationType), READONLY}, 
 	{NULL}
 };
@@ -246,7 +269,7 @@ PyTypeObject PyHFCType =
 {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,
-	"PyHFC",
+	"HTTP_FILTER_CONTEXT",
 	sizeof(PyHFC),
 	0,
 	PyHFC::deallocFunc,	/* tp_dealloc */
@@ -343,11 +366,13 @@ PyObject * SetPyHFCError(char *fnName, long err /*= 0*/)
 /////////////////////////////////////////////////////////////////////////
 // PyURL_MAP object
 /////////////////////////////////////////////////////////////////////////
+// @object HTTP_FILTER_URL_MAP|A Python representation of an ISAPI
+// HTTP_FILTER_URL_MAP structure.
 PyTypeObject PyURL_MAPType =
 {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,
-	"PyURL_MAP",
+	"HTTP_FILTER_URL_MAP",
 	sizeof(PyURL_MAP),
 	0,
 	PyURL_MAP::deallocFunc,	/* tp_dealloc */
@@ -395,10 +420,11 @@ PyObject *PyURL_MAP::getattr(PyObject *self, char *name)
 	HTTP_FILTER_URL_MAP *pMap = ((PyURL_MAP *)self)->GetURLMap();
 	if (!pMap)
 		return NULL;
-
+	// @prop string|URL|
 	if (strcmp(name, "URL")==0) {
 		return PyString_FromString(pMap->pszURL);
 	}
+	// @prop string|PhysicalPath|
 	if (strcmp(name, "PhysicalPath")==0) {
 		return PyString_FromString(pMap->pszPhysicalPath);
 	}
@@ -437,11 +463,13 @@ void PyURL_MAP::deallocFunc(PyObject *ob)
 /////////////////////////////////////////////////////////////////////////
 // PyPREPROC_HEADERS object
 /////////////////////////////////////////////////////////////////////////
+// @pymethod string|HTTP_FILTER_PREPROC_HEADERS|GetHeader|
 PyObject * PyPREPROC_HEADERS_GetHeader(PyObject *self, PyObject *args)
 {
 	TCHAR buffer[8192];
 	DWORD bufSize = sizeof(buffer) / sizeof(TCHAR);
 	char *name;
+	// @pyparm string|header||
 	if (!PyArg_ParseTuple(args, "s:GetHeader", &name))
 		return NULL;
 	BOOL ok;
@@ -457,6 +485,7 @@ PyObject * PyPREPROC_HEADERS_GetHeader(PyObject *self, PyObject *args)
 	return PyString_FromStringAndSize(buffer, bufSize-1);
 }
 
+// @pymethod |HTTP_FILTER_PREPROC_HEADERS|SetHeader|
 PyObject * PyPREPROC_HEADERS_SetHeader(PyObject *self, PyObject *args)
 {
 	BOOL ok;
@@ -465,6 +494,8 @@ PyObject * PyPREPROC_HEADERS_SetHeader(PyObject *self, PyObject *args)
 	HTTP_FILTER_CONTEXT *pfc = ((PyPREPROC_HEADERS *)self)->GetFILTER_CONTEXT();
 	if (!pp || !pfc)
 		return NULL;
+	// @pyparm string|name||
+	// @pyparm string|val||
 	if (!PyArg_ParseTuple(args, "ss:SetHeader", &name, &val))
 		return NULL;
 	Py_BEGIN_ALLOW_THREADS
@@ -476,6 +507,7 @@ PyObject * PyPREPROC_HEADERS_SetHeader(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod |HTTP_FILTER_PREPROC_HEADERS|AddHeader|
 PyObject * PyPREPROC_HEADERS_AddHeader(PyObject *self, PyObject *args)
 {
 	BOOL ok;
@@ -495,10 +527,12 @@ PyObject * PyPREPROC_HEADERS_AddHeader(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @object HTTP_FILTER_PREPROC_HEADERS|A Python representation of an ISAPI
+// HTTP_FILTER_PREPROC_HEADERS structure.
 static struct PyMethodDef PyPREPROC_HEADERS_methods[] = {
-	{"GetHeader",		PyPREPROC_HEADERS_GetHeader, 1}, // @pymeth |
-	{"SetHeader",		PyPREPROC_HEADERS_SetHeader, 1}, // @pymeth |
-	{"AddHeader",		PyPREPROC_HEADERS_AddHeader, 1}, // @pymeth |
+	{"GetHeader",		PyPREPROC_HEADERS_GetHeader, 1}, // @pymeth GetHeader|
+	{"SetHeader",		PyPREPROC_HEADERS_SetHeader, 1}, // @pymeth SetHeader|
+	{"AddHeader",		PyPREPROC_HEADERS_AddHeader, 1}, // @pymeth AddHeader|
 	{NULL}
 };
 
@@ -506,7 +540,7 @@ PyTypeObject PyPREPROC_HEADERSType =
 {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,
-	"PyPREPROC_HEADERS",
+	"HTTP_FILTER_PREPROC_HEADERS",
 	sizeof(PyPREPROC_HEADERS),
 	0,
 	PyPREPROC_HEADERS::deallocFunc,	/* tp_dealloc */
