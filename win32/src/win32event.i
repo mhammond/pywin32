@@ -5,14 +5,54 @@
 
 %{
 //#define UNICODE
+#define _WIN32_WINNT 0x0501
 #ifndef MS_WINCE
-#include "winsock2.h"
-#include "mswsock.h"
+#include "windows.h"
+//#include "winsock2.h"
+//#include "mswsock.h"
 #endif
 %}
 
 %include "typemaps.i"
 %include "pywin32.i"
+
+%typedef void *NULL_ONLY
+
+%typemap(python,in) NULL_ONLY {
+	if ($source != Py_None) {
+		PyErr_SetString(PyExc_TypeError, "This param must be None");
+		return NULL;
+	}
+	$target = NULL;
+}
+
+// only seem able to make this work with an incorrect level of
+// indirection, and fixing it up inline with a temp.
+%typemap(python,in) PTIMERAPCROUTINE *(PTIMERAPCROUTINE temp) {
+	if ($source != Py_None) {
+		PyErr_SetString(PyExc_TypeError, "This param must be None");
+		return NULL;
+	}
+    temp = NULL;
+	$target = &temp;
+}
+
+// We can get better perf from some of these functions that don't block
+// by not releasing the Python lock as part of the call.
+%typedef BOOL BOOLAPI_NL
+
+%typemap(python,out) BOOLAPI_NL {
+	$target = Py_None;
+	Py_INCREF(Py_None);
+}
+
+%typemap(python,except) BOOLAPI {
+      $function
+      if (!$source)  {
+           $cleanup
+           return PyWin_SetAPIError("$name");
+      }
+}
 
 
 #define WAIT_FAILED WAIT_FAILED
@@ -60,9 +100,8 @@
  
 #define SYNCHRONIZE SYNCHRONIZE // Windows NT only: Enables use of the event handle in any of the wait functions to wait for the event’s state to be signaled.
 
-#if(_WIN32_WINNT >= 0x0400)
-// XXX - WTF?
-//BOOLAPI CancelWaitableTimer(HANDLE handle);
+// @pyswig |CancelWaitableTimer|Cancels a waiting timer.
+BOOLAPI CancelWaitableTimer(PyHANDLE handle);
 
 #end
 
@@ -94,12 +133,11 @@ PyHANDLE CreateSemaphore(
 );
 #endif // MS_WINCE
 
-/*PyHANDLE CreateWaitableTimer(
+PyHANDLE CreateWaitableTimer(
     SECURITY_ATTRIBUTES *inNullSA, // lpTimerAttributes,	// pointer to security attributes
     BOOL bManualReset,	// @pyparm int|bManualReset||flag for manual reset state
     TCHAR * INPUT_NULLOK	// pointer to timer object name
 );
-*/
 
 // GetOverlappedResult
 
@@ -247,13 +285,12 @@ PyHANDLE OpenSemaphore(
 
 #endif /* MS_WINCE */
 
-/*
+//@pyswig handle|OpenWaitableTimer|Opens an existing named waitable timer object
 PyHANDLE OpenWaitableTimer(
-    DWORD dwDesiredAccess,	// access flag
-    BOOL bInheritHandle,	// inherit flag
-    TCHAR *lpTimerName	// pointer to timer object name
-   );
-*/ 
+    DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||access flag
+    BOOL bInheritHandle,	// @pyparm bInheritHandle||inherit flag
+    TCHAR *lpTimerName	// @pyparm string|timerName||pointer to timer object name
+);
 
 // @pyswig |PulseEvent|Provides a single operation that sets (to signaled) the state of the specified event object and then resets it (to nonsignaled) after releasing the appropriate number of waiting threads.
 BOOLAPI PulseEvent(
@@ -261,7 +298,7 @@ BOOLAPI PulseEvent(
    );	
 
 // @pyswig |ReleaseMutex|Releases a mutex.
-BOOLAPI ReleaseMutex(
+BOOLAPI_NL ReleaseMutex(
     PyHANDLE hMutex 	// @pyparm <o PyHANDLE>|hEvent||handle of mutex object  
    );
 
@@ -276,18 +313,24 @@ BOOLAPI ReleaseSemaphore(
 #endif // MS_WINCE
 
 // @pyswig |ResetEvent|Resets an event
-BOOLAPI ResetEvent(
+BOOLAPI_NL ResetEvent(
     PyHANDLE hEvent 	// @pyparm <o PyHANDLE>|hEvent||handle of event object 
    );	
 
 // @pyswig |SetEvent|Sets an event
-BOOLAPI SetEvent(
+BOOLAPI_NL SetEvent(
     PyHANDLE hEvent 	// @pyparm <o PyHANDLE>|hEvent||handle of event object 
    );	
  
+// @pyswig |SetWaitableTimer|Sets a waitable timer.
+BOOLAPI_NL SetWaitableTimer(
+  PyHANDLE hTimer,                          // @pyparm int|handle||handle to timer
+  LARGE_INTEGER *INPUT,          // @pyparm long|dueTime||timer due time
+  long lPeriod,                           // @pyparm int|period||timer interval
+  PTIMERAPCROUTINE pfnCompletionRoutine,  // @pyparm object|func||completion routine - must be None
+  NULL_ONLY lpArgToCompletionRoutine,        // @pyparm object|param||completion routine parameter - must be None
+  BOOL fResume);                            // @pyparm bool|resume_state||resume state
 
-// SetWaitableTimer	
-/*
 BOOLAPI SignalObjectAndWait(
     PyHANDLE hObjectToSignal,	// handle of object to signal
     PyHANDLE hObjectToWaitOn,	// handle of object to wait for
@@ -295,7 +338,6 @@ BOOLAPI SignalObjectAndWait(
     BOOL bAlertable	// alertable flag
    );
 
-*/
 %{
 static PyObject *MyWaitForMultipleObjects(
 	PyObject *handleList,
