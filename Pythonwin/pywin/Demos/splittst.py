@@ -30,7 +30,7 @@ class SplitterFrame(window.MDIChildWnd):
 		sub_splitter.CreateView(self.v1, 0, 0, (sub_size))
 		sub_splitter.CreateView(self.v2, 0, 1, (0,0)) # size ignored.
 		splitter.SetRowInfo(0, size[1] ,0)
-		splitter.CreatePane (self.v3, 1, 0, (0,0)) # size ignored.
+		splitter.CreateView (self.v3, 1, 0, (0,0)) # size ignored.
 		# Setup items in the imagelist
 		self.images = win32ui.CreateImageList(32,32,1,5,5)
 		self.images.Add(win32ui.GetApp().LoadIcon(win32ui.IDR_MAINFRAME))
