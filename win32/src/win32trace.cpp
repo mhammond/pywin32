@@ -295,7 +295,7 @@ BOOL PyTraceObject::WriteData(const char *data, unsigned len)
         ReturnError("The module has not been setup for writing");
         return FALSE;
     }
-    BOOL rc = FALSE;
+    BOOL rc = TRUE;
     Py_BEGIN_ALLOW_THREADS
     const char *data_this = data;
     while (len) {
