@@ -36,11 +36,20 @@ PYSERVICE_EXPORT int PythonService_main(int argc, char **argv);
 TCHAR g_szEventSourceName[MAX_PATH] = _T("Python Service");
 BOOL bServiceDebug = FALSE;
 
+// Globals
+HINSTANCE g_hdll = 0; // remains zero in the exe stub.
+
 static void ReportAPIError(DWORD msgCode, DWORD errCode = 0);
 static void ReportPythonError(DWORD);
 static BOOL ReportError(DWORD, LPCTSTR *inserts = NULL, WORD errorType = EVENTLOG_ERROR_TYPE);
 
 #include "PythonServiceMessages.h"
+
+// Useful for debugging problems that only show themselves when run under the SCM
+#define LOG_TRACE_MESSAGE(msg) {\
+		LPTSTR  lpszStrings[] = {_T(msg), NULL}; \
+		ReportError(MSG_IR1, (LPCTSTR *)lpszStrings, EVENTLOG_INFORMATION_TYPE); \
+		}
 
 #ifdef PYSERVICE_BUILD_DLL // The bulk of this file is only used when building the core DLL.
 
@@ -53,7 +62,6 @@ typedef struct {
 } PY_SERVICE_TABLE_ENTRY;
 
 // Globals
-HINSTANCE g_hdll = 0;
 // Will be set to one of SERVICE_WIN32_OWN_PROCESS etc flags.
 DWORD g_serviceProcessFlags = 0; 
 
@@ -925,6 +933,8 @@ int PythonService_main(int argc, char **argv)
 			/* Debugging the service.  If this EXE has a service name
 			   embedded in it, use it, otherwise insist one is passed on the
 			   command line
+			   (NOTE: Embedding a resource to specify the service name is
+			   deprecated)
 			*/
 			TCHAR svcNameBuf[256];
 			TCHAR *svcName;
@@ -940,7 +950,7 @@ int PythonService_main(int argc, char **argv)
 				argOffset = 2;
 			}
 			bServiceDebug = TRUE;
-			_tprintf(_T("Debugging service %s\n"), svcName);
+			_tprintf(_T("Debugging service %s - press Ctrl+C to stop.\n"), svcName);
 			PythonService_Initialize(NULL, NULL);
 			PythonService_PrepareToHostSingle(NULL);
 			service_main(argc-argOffset, targv+argOffset);
@@ -1076,6 +1086,8 @@ BOOL LocatePythonServiceClassString( TCHAR *svcName, char *buf, int cchBuf)
 	char keyName[1024];
 
 	// If not error loading, and not an empty string
+	// (NOTE: Embedding a resource to specify the service name is
+	// deprecated)
 	if (LoadStringA(GetModuleHandle(NULL), RESOURCE_SERVICE_NAME, buf, cchBuf)>1)
 		// Get out of here now!
 		return TRUE;
@@ -1319,7 +1331,7 @@ static BOOL ReportError(DWORD code, LPCTSTR *inserts, WORD errorType /* = EVENTL
     	LPTSTR buffer;
     	// Get the message text, and just print it.
     	if (FormatMessage(FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_ARGUMENT_ARRAY,
-    			GetModuleHandle(NULL), code, 0, (LPTSTR)&buffer, 0, (va_list *)inserts)==0) {
+    			g_hdll, code, 0, (LPTSTR)&buffer, 0, (va_list *)inserts)==0) {
     		_tprintf(_T("%s 0x%X - No message available\nMessage inserts were"), szType, code);
     		for (int i=0;i<numInserts;i++)
     			_tprintf(_T("'%s',"), inserts[i]);
@@ -1367,12 +1379,15 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 
 #else // PYSERVICE_BUILD_DLL
 // Our EXE entry point.
+
 int main(int argc, char **argv)
 {
 	PyObject *module, *f;
+	PyThreadState *threadState;
 	HMODULE hmod;
 	FARPROC proc;
 	Py_Initialize();
+	PyEval_InitThreads();
 	module = PyImport_ImportModule("servicemanager");
 	if (!module) goto failed;
 	f = PyObject_GetAttrString(module, "__file__");
@@ -1394,6 +1409,11 @@ int main(int argc, char **argv)
 		PyErr_Format(PyExc_RuntimeError, "servicemanager.__file__ does not contain PythonService_main - win32 error code is %d", GetLastError());
 		goto failed;
 	}
+	// A little thread-state dance, as our module will attempt to acquire it.
+	threadState = PyThreadState_Swap(NULL);
+	PyThreadState_Swap(threadState);
+	PyEval_ReleaseThread(threadState);
+
 	typedef int (* FNPythonService_main)(int argc, char **argv);
 	return ((FNPythonService_main)proc)(argc, argv);
 failed:
