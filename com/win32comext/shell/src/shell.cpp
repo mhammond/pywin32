@@ -19,6 +19,7 @@ generates Windows .hlp files.
 #include "PyIShellExtInit.h"
 #include "PyIShellFolder.h"
 #include "PyIEnumIDList.h"
+#include "PyICopyHook.h"
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
 
 void PyShell_FreeMem(void *p)
@@ -668,6 +669,9 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL(ShellExtInit),
 	PYCOM_INTERFACE_FULL(ShellFolder),
 	PYCOM_INTERFACE_FULL(EnumIDList),
+	// IID_ICopyHook doesn't exist - hack it up
+	{ &IID_IShellCopyHook, "IShellCopyHook", "IID_IShellCopyHook", &PyICopyHook::type, GET_PYGATEWAY_CTOR(PyGCopyHook) },
+	{ &IID_IShellCopyHook, "ICopyHook", "IID_ICopyHook", NULL, NULL  },
 };
 
 static int AddConstant(PyObject *dict, const char *key, long value)
