@@ -5,7 +5,7 @@
 
 
  /* File created by MIDL compiler version 5.03.0280 */
-/* at Wed Feb 14 22:12:27 2001
+/* at Sat Apr 13 13:04:36 2002
  */
 /* Compiler settings for PyCOMTest.idl:
     Os (OptLev=s), W1, Zp8, env=Win32 (32b run), ms_ext, c_ext
@@ -856,6 +856,11 @@ EXTERN_C const IID IID_IPyCOMTest;
         virtual HRESULT STDMETHODCALLTYPE TestMyInterface( 
             /* [in] */ IUnknown __RPC_FAR *tester) = 0;
         
+        virtual HRESULT STDMETHODCALLTYPE EarliestDate( 
+            /* [in] */ DATE First,
+            /* [defaultvalue][optional][in] */ DATE Second,
+            /* [retval][out] */ DATE __RPC_FAR *pResult) = 0;
+        
     };
     
 #else 	/* C style interface */
@@ -1045,6 +1050,12 @@ EXTERN_C const IID IID_IPyCOMTest;
             IPyCOMTest __RPC_FAR * This,
             /* [in] */ IUnknown __RPC_FAR *tester);
         
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *EarliestDate )( 
+            IPyCOMTest __RPC_FAR * This,
+            /* [in] */ DATE First,
+            /* [defaultvalue][optional][in] */ DATE Second,
+            /* [retval][out] */ DATE __RPC_FAR *pResult);
+        
         END_INTERFACE
     } IPyCOMTestVtbl;
 
@@ -1170,6 +1181,9 @@ EXTERN_C const IID IID_IPyCOMTest;
 
 #define IPyCOMTest_TestMyInterface(This,tester)	\
     (This)->lpVtbl -> TestMyInterface(This,tester)
+
+#define IPyCOMTest_EarliestDate(This,First,Second,pResult)	\
+    (This)->lpVtbl -> EarliestDate(This,First,Second,pResult)
 
 #endif /* COBJMACROS */
 
@@ -1559,6 +1573,20 @@ void __RPC_STUB IPyCOMTest_TestMyInterface_Stub(
     DWORD *_pdwStubPhase);
 
 
+HRESULT STDMETHODCALLTYPE IPyCOMTest_EarliestDate_Proxy( 
+    IPyCOMTest __RPC_FAR * This,
+    /* [in] */ DATE First,
+    /* [defaultvalue][optional][in] */ DATE Second,
+    /* [retval][out] */ DATE __RPC_FAR *pResult);
+
+
+void __RPC_STUB IPyCOMTest_EarliestDate_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
 
 #endif 	/* __IPyCOMTest_INTERFACE_DEFINED__ */
 
@@ -1779,6 +1807,12 @@ EXTERN_C const IID IID_IPyCOMTest2;
             IPyCOMTest2 __RPC_FAR * This,
             /* [in] */ IUnknown __RPC_FAR *tester);
         
+        HRESULT ( STDMETHODCALLTYPE __RPC_FAR *EarliestDate )( 
+            IPyCOMTest2 __RPC_FAR * This,
+            /* [in] */ DATE First,
+            /* [defaultvalue][optional][in] */ DATE Second,
+            /* [retval][out] */ DATE __RPC_FAR *pResult);
+        
         HRESULT ( STDMETHODCALLTYPE __RPC_FAR *TestDerived )( 
             IPyCOMTest2 __RPC_FAR * This,
             /* [in] */ QsAttribute inval,
@@ -1909,6 +1943,9 @@ EXTERN_C const IID IID_IPyCOMTest2;
 
 #define IPyCOMTest2_TestMyInterface(This,tester)	\
     (This)->lpVtbl -> TestMyInterface(This,tester)
+
+#define IPyCOMTest2_EarliestDate(This,First,Second,pResult)	\
+    (This)->lpVtbl -> EarliestDate(This,First,Second,pResult)
 
 
 #define IPyCOMTest2_TestDerived(This,inval,retval)	\

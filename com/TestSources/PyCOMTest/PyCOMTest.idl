@@ -204,6 +204,12 @@ library PyCOMTestLib
 		[restricted] HRESULT NotScriptable([in,out] int *val);
 
 		HRESULT TestMyInterface([in] IUnknown *tester);
+
+		// Test date objects.  From a bug-report from a user.
+		HRESULT EarliestDate(
+						[in] DATE First,
+						[in, optional, defaultvalue(0)] DATE Second,
+						[out, retval] Date* pResult);
 	};
 
 	// Define a new class to test how Python handles derived interfaces!

@@ -451,6 +451,15 @@ HRESULT CPyCOMTest::TestMyInterface( IUnknown *unktester)
 	return S_OK;
 }
 
+HRESULT CPyCOMTest::EarliestDate(DATE first, DATE second, DATE *pResult)
+{
+	if (!pResult)
+		return E_POINTER;
+	*pResult = first <= second ? first : second;
+	return S_OK;
+}
+
+
 HRESULT CPyCOMTest::NotScriptable(int *val)
 {
 	(*val) ++;
