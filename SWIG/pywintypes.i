@@ -148,6 +148,31 @@ typedef unsigned long ULONG;
 	SysFreeString($source);
 }
 
+%typemap(python,ignore) BSTR *OUTPUT (BSTR temp) {
+	$target = &temp;
+}
+
+%typemap(python,argout) BSTR *OUTPUT {
+    PyObject *o;
+    o = PyWinObject_FromBstr(*$source, TRUE);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
+      Py_DECREF(Py_None);
+      $target = o;
+    } else {
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
+	Py_XDECREF(o2);
+      }
+      PyList_Append($target,o);
+      Py_XDECREF(o);
+    }
+}
+
+
 // An object that can be used in place of a BSTR, but guarantees
 // cleanup of the string.
 %typemap(python,in) PyWin_AutoFreeBstr inWideString {
