@@ -2286,6 +2286,7 @@ BOOLAPI TransmitCommChar(
 );
 
 %{
+// @pyswig |WaitCommEvent|Waits for an event to occur for a specified communications device. The set of events that are monitored by this function is contained in the event mask associated with the device handle.
 static PyObject *MyWaitCommEvent(PyObject *self, PyObject *args)
 {
 	PyObject *obHandle, *obOverlapped = Py_None;
@@ -2317,6 +2318,10 @@ static PyObject *MyWaitCommEvent(PyObject *self, PyObject *args)
 	if (rc!=0 && rc != ERROR_IO_PENDING)
 		return PyWin_SetAPIError("WaitCommError", rc);
 	return Py_BuildValue("ll", rc, *pmask);
+	// @rdesc The result is a tuple of (rc, mask_val), where rc is zero for success, or
+	// the result of calling GetLastError() otherwise.  The mask_val is the new mask value
+	// once the function has returned, but if an Overlapped object is passed, this value
+	// will generally be meaningless.  See the comments for more details.
 	// @comm If an overlapped structure is passed, then the <om PyOVERLAPPED.dword> 
 	// address is passed to the Win32 API as the mask.  This means that once the
 	// overlapped operation has completed, this dword attribute can be used to
