@@ -325,8 +325,10 @@ ui_assoc_CObject::~ui_assoc_CObject()
 		bManualDelete = FALSE;
 		CObject *pO = (CObject *)GetGoodCppObject(&type);	// get pointer before killing it.
 		KillAssoc(); // stop recursion - disassociate now.
-		delete pO;
-//		PyErr_Clear();
+		if (!pO)
+			PyErr_Clear();
+		else
+			delete pO;
 	}
 }
 #ifdef _DEBUG
