@@ -51,7 +51,7 @@ CFG=win32gui - Win32 Debug
 F90=df.exe
 CPP=cl.exe
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "__WIN32__" /D "WIN32GUI" /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /Zi /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "__WIN32__" /D "WIN32GUI" /YX /FD /c
 MTL=midl.exe
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o /win32 "NUL"
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o /win32 "NUL"
@@ -63,7 +63,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386
-# ADD LINK32 comdlg32.lib kernel32.lib user32.lib shell32.lib gdi32.lib ole32.lib oleaut32.lib uuid.lib comctl32.lib /nologo /base:"0x1e2e0000" /subsystem:windows /dll /machine:I386 /out:"Build/win32gui.pyd" /libpath:".\Build"
+# ADD LINK32 comdlg32.lib kernel32.lib user32.lib shell32.lib gdi32.lib ole32.lib oleaut32.lib uuid.lib comctl32.lib /nologo /base:"0x1e2e0000" /subsystem:windows /dll /debug /machine:I386 /out:"Build/win32gui.pyd" /libpath:".\Build"
 # SUBTRACT LINK32 /incremental:yes
 
 !ELSEIF  "$(CFG)" == "win32gui - Win32 Debug"
@@ -344,8 +344,8 @@ InputPath=.\src\win32gui.i
 InputName=win32gui
 
 "$(InputDir)\$(InputName)module_win32.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module_win32.cpp $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module_win32.cpp $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32gui - Win32 Debug"
@@ -356,8 +356,8 @@ InputPath=.\src\win32gui.i
 InputName=win32gui
 
 "$(InputDir)\$(InputName)module_win32.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module_win32.cpp $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -o $(InputName)module_win32.cpp $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32gui - Win32 (WCE x86em) Release"
@@ -366,8 +366,8 @@ InputName=win32gui
 InputDir=.\src	InputPath=.\src\win32gui.i	InputName=win32gui	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp           $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp           $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32gui - Win32 (WCE x86em) Debug"
@@ -376,8 +376,8 @@ InputDir=.\src	InputPath=.\src\win32gui.i	InputName=win32gui
 InputDir=.\src	InputPath=.\src\win32gui.i	InputName=win32gui	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp           $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp           $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32gui - Win32 (WCE MIPS) Release"
@@ -386,8 +386,8 @@ InputDir=.\src	InputPath=.\src\win32gui.i	InputName=win32gui
 InputDir=.\src	InputPath=.\src\win32gui.i	InputName=win32gui	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp           $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp           $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32gui - Win32 (WCE MIPS) Debug"
@@ -396,8 +396,8 @@ InputDir=.\src	InputPath=.\src\win32gui.i	InputName=win32gui
 InputDir=.\src	InputPath=.\src\win32gui.i	InputName=win32gui	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp           $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp           $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32gui - Win32 (WCE SH3) Release"
@@ -406,8 +406,8 @@ InputDir=.\src	InputPath=.\src\win32gui.i	InputName=win32gui
 InputDir=.\src	InputPath=.\src\win32gui.i	InputName=win32gui	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp           $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp           $(InputName).i
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "win32gui - Win32 (WCE SH3) Debug"
@@ -416,8 +416,8 @@ InputDir=.\src	InputPath=.\src\win32gui.i	InputName=win32gui
 InputDir=.\src	InputPath=.\src\win32gui.i	InputName=win32gui	
 
 "$(InputDir)\$(InputName)module_wince.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp           $(InputName).i 
-	
+	..\swig.bat $(InputDir) -python -c++ -DMS_WINCE -o $(InputName)module_wince.cpp           $(InputName).i
+
 # End Custom Build
 
 !ENDIF 
