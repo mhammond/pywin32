@@ -40,8 +40,11 @@ if __name__=='__main__':
 		import testMSOffice
 		testMSOffice.TestAll()
 
+		import testMSOfficeEvents
+		testMSOfficeEvents.test()
+
 		capture.capture()
-		try:	
+		try:
 			import testAccess
 			testAccess.test()
 			capture.release()

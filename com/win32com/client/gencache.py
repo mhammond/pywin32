@@ -25,6 +25,7 @@ import pythoncom
 import win32com, win32com.client
 import glob
 import traceback
+import CLSIDToClass
 
 # The global dictionary
 clsidToTypelib = {}
@@ -106,13 +107,28 @@ def GetClassForProgID(progid):
 	Params
 	progid -- A COM ProgramID or IID (eg, "Word.Application")
 	"""
-	iid = pywintypes.IID(progid)
-	mod = GetModuleForCLSID(iid)
+	clsid = pywintypes.IID(progid) # This auto-converts named to IDs.
+	return GetClassForCLSID(clsid)
+
+def GetClassForCLSID(clsid):
+	"""Get a Python class for a CLSID
+	
+	Given a CLSID, return a Python class which wraps the COM object
+	
+	Returns the Python class, or None if no module is available.
+	
+	Params
+	clsid -- A COM CLSID (or string repr of one)
+	"""
+	# first, take a short-cut - we may already have generated support ready-to-roll.
+	clsid = str(clsid)
+	if CLSIDToClass.HasClass(clsid):
+		return CLSIDToClass.GetClass(clsid)
+	mod = GetModuleForCLSID(clsid)
 	if mod is None:
 		return None
-	import CLSIDToClass
 	try:
-		return CLSIDToClass.GetClass(str(iid))
+		return CLSIDToClass.GetClass(clsid)
 	except KeyError:
 		return None
 

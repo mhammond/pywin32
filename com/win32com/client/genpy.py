@@ -23,7 +23,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.3.4" # Written to generated file.
+makepy_version = "0.3.5" # Written to generated file.
 
 GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
@@ -261,7 +261,6 @@ class DispatchItem(build.DispatchItem, WritableItem):
         clsidStr = str(self.clsid)
         print '\tCLSID = CLSID_Sink = pythoncom.MakeIID(\'' + clsidStr + '\')'
         print '\t_public_methods_ = [] # For COM Server support'
-        print "\t_arg_transformer_ = arg_transformer"
         WriteSinkEventMap(self)
         print
         print '\tdef __init__(self, oobj = None):'
@@ -269,9 +268,10 @@ class DispatchItem(build.DispatchItem, WritableItem):
         print "\t\t\tself._olecp = None"
         print "\t\telse:"
         print '\t\t\timport win32com.server.util'
+        print '\t\t\tfrom win32com.server.policy import EventHandlerPolicy'
         print '\t\t\tcpc=oobj._oleobj_.QueryInterface(pythoncom.IID_IConnectionPointContainer)'
         print '\t\t\tcp=cpc.FindConnectionPoint(self.CLSID_Sink)'
-        print '\t\t\tcookie=cp.Advise(win32com.server.util.wrap(self))'
+        print '\t\t\tcookie=cp.Advise(win32com.server.util.wrap(self, usePolicy=EventHandlerPolicy))'
         print '\t\t\tself._olecp,self._olecp_cookie = cp,cookie'
         print '\tdef __del__(self):'
         print '\t\ttry:'
@@ -822,19 +822,9 @@ class Generator:
       self.bHaveWrittenCoClassBaseClass = 1
 
   def checkWriteEventBaseClass(self):
-    # Nota base class as such...
+    # Not a base class as such...
       if not self.bHaveWrittenEventBaseClass:
-        print "# Little helper to transform event arguments to more usable objects."
-        print "from pywintypes import UnicodeType"
-        print "dispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]"
-        print "def transformarg(arg):"
-        print "\tif type(arg)==dispatchType:"
-        print "\t\treturn Dispatch(arg)"
-        print "\telif type(arg)==UnicodeType:"
-        print "\t\treturn str(arg)"
-        print "\treturn arg"
-        print "arg_transformer = lambda object, args: map(transformarg, args)"
-        print 
+        # Nothing to do any more!
         self.bHaveWrittenEventBaseClass = 1
 
 if __name__=='__main__':

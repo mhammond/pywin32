@@ -9,7 +9,7 @@ import __builtin__
 # For some bizarre reason, __builtins__ fails with attribute error on __dict__ here?
 NeedUnicodeConversions = not hasattr(__builtin__, "unicode")
 
-import dynamic, CLSIDToClass, pythoncom
+import dynamic, gencache, pythoncom
 import sys
 import pywintypes
 
@@ -28,21 +28,12 @@ def __WrapDispatch(dispatch, userName = None, resultCLSID = None, typeinfo = Non
     except pythoncom.com_error:
       pass
   if resultCLSID is not None:
-    try:
-      return CLSIDToClass.GetClass(resultCLSID)(dispatch)
-    except KeyError: # We dont know this CLSID yet
-      # Attempt to load generated module support
-      # This may load the module, and make it available
-      try:
-        import gencache
-        if gencache.GetModuleForCLSID(resultCLSID) is not None:
-          try:
-            return CLSIDToClass.GetClass(resultCLSID)(dispatch)
-          except KeyError: # still dont know it?
-            pass
-      except ImportError:
-        # no gencache avail - thats OK!
-        pass
+    import gencache
+    # Attempt to load generated module support
+    # This may load the module, and make it available
+    klass = gencache.GetClassForCLSID(resultCLSID)
+    if klass is not None:
+      return klass(dispatch)
 
   # Return a "dynamic" object - best we can do!
   if WrapperClass is None: WrapperClass = CDispatch
@@ -222,7 +213,7 @@ def DispatchWithEvents(clsid, user_event_class):
       tla = tlb.GetLibAttr()
       mod = gencache.EnsureModule(tla[0], tla[1], tla[3], tla[4])
       # Get the class from the module.
-      disp_class = mod.CLSIDToClassMap[str(disp_clsid)]
+      disp_class = gencache.GetClassForProgID(str(disp_clsid))
     except pythoncom.com_error:
       raise TypeError, "This COM object can not automate the makepy process - please run makepy manually for this object"
   else:
@@ -280,7 +271,7 @@ def getevents(clsid):
     # find clsid given progid or clsid
     clsid=str(pywintypes.IID(clsid))
     # return default outgoing interface for that class
-    return CLSIDToClass.GetClass(clsid).default_source
+    return gencache.GetClassForCLSID(clsid).default_source
 
 ############################################
 # The base of all makepy generated classes

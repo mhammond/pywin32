@@ -83,6 +83,11 @@ from pythoncom import \
 
 S_OK = 0
 
+# Few more globals to speed things.
+from pywintypes import UnicodeType
+IDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
+core_has_unicode = hasattr(__builtins__, "unicode")
+
 from exception import COMException
 error = __name__ + " error"
 
@@ -170,12 +175,6 @@ class BasicWrapPolicy:
          and only 1 property at a time can be fetched (which is all we support in getidsofnames anyway!)
          This is the new, prefered handler (the default _invoke_ handler simply called _invokeex_)
      _getnextdispid_- uses self._name_to_dispid_ to enumerate the DISPIDs
-
-  Argument conversion
-
-  If the object has a method _arg_transformer_, it will be called with the list of arguments for
-  each Invoke() call, and the result is passed as the actual argument list.  This provides an
-  opportunity to wrap IDispatch pointers, convert Unicode etc.
   """
   def __init__(self, object):
     """Initialise the policy object
@@ -234,10 +233,6 @@ class BasicWrapPolicy:
     else:
       self._com_interfaces_ = [ ]
 
-    # Allow a function to be used to specify special argument translations.
-    if hasattr(ob, '_arg_transformer_'):
-      self._arg_transformer_ = ob._arg_transformer_
-
   # "QueryInterface" handling.
   def _QueryInterface_(self, iid):
     """The main COM entry-point for QueryInterface. 
@@ -269,10 +264,6 @@ class BasicWrapPolicy:
         dispid = self._name_to_dispid_[string.lower(dispid)]
       except KeyError:
         raise COMException(scode = winerror.DISP_E_MEMBERNOTFOUND, desc="Member not found")
-    try:
-      args = self._arg_transformer_(args)
-    except AttributeError: # Some policies may not support this.
-      pass
     return self._invoke_(dispid, lcid, wFlags, args)
  
   def _invoke_(self, dispid, lcid, wFlags, args):
@@ -323,10 +314,6 @@ class BasicWrapPolicy:
         dispid = self._name_to_dispid_[string.lower(dispid)]
       except KeyError:
         raise COMException(scode = winerror.DISP_E_MEMBERNOTFOUND, desc="Member not found")
-    try:
-      args = self._arg_transformer_(args)
-    except AttributeError: # Some policies may not support this.
-      pass
     return self._invokeex_(dispid, lcid, wFlags, args, kwargs, serviceProvider)
  
   def _invokeex_(self, dispid, lcid, wFlags, args, kwargs, serviceProvider):
@@ -540,6 +527,30 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
 
     raise COMException(scode=winerror.E_INVALIDARG, desc="invalid wFlags")
 
+class EventHandlerPolicy(DesignatedWrapPolicy):
+    """The default policy used by event handlers in the win32com.client package.
+
+    In addition to the base policy, this provides argument conversion semantics for
+    params
+      * dispatch params are converted to dispatch objects.
+      * Unicode objects are converted to strings (1.5.2 and earlier)
+
+    NOTE: Later, we may allow the object to override this process??
+    """
+    def _transform_args_(self, args, kwArgs, dispid, lcid, wFlags, serviceProvider):
+        ret = []
+        for arg in args:
+            if type(arg) == IDispatchType:
+                import win32com.client
+                arg = win32com.client.Dispatch(arg)
+            elif not core_has_unicode and type(arg)==UnicodeType:
+                arg = str(arg)
+            ret.append(arg)
+        return tuple(ret), kwArgs
+    def _invokeex_(self, dispid, lcid, wFlags, args, kwArgs, serviceProvider):
+        # transform the args.
+        args, kwArgs = self._transform_args_(args, kwArgs, dispid, lcid, wFlags, serviceProvider)
+        return DesignatedWrapPolicy._invokeex_( self, dispid, lcid, wFlags, args, kwArgs, serviceProvider)
 
 class DynamicPolicy(BasicWrapPolicy):
   """A policy which dynamically (ie, at run-time) determines public interfaces.
