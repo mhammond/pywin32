@@ -283,6 +283,12 @@ def RemoveService(serviceName):
     finally:
         win32service.CloseServiceHandle(hscm)
 
+    import win32evtlogutil
+    try:
+        win32evtlogutil.RemoveSourceFromRegistry(serviceName)
+    except win32api.error:
+        pass
+
 def ControlService(serviceName, code, machine = None):
     hscm = win32service.OpenSCManager(machine,None,win32service.SC_MANAGER_ALL_ACCESS)
     try:
@@ -662,8 +668,8 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
 #
 class ServiceFramework:
     # Required Attributes:
-    # _svc_name = The service name
-    # _svc_display_name = The service display name
+    # _svc_name_ = The service name
+    # _svc_display_name_ = The service display name
 
     # Optional Attributes:
     _svc_deps_ = None        # sequence of service names on which this depends
@@ -674,6 +680,7 @@ class ServiceFramework:
     def __init__(self, args):
         import servicemanager
         self.ssh = servicemanager.RegisterServiceCtrlHandler(args[0], self.ServiceCtrlHandler)
+        servicemanager.SetEventSourceName(self._svc_name_)
         self.checkPoint = 0
 
     def GetAcceptedControls(self):
