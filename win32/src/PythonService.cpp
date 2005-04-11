@@ -34,6 +34,8 @@ PYSERVICE_EXPORT BOOL PythonService_StartServiceCtrlDispatcher();
 PYSERVICE_EXPORT int PythonService_main(int argc, char **argv);
 
 TCHAR g_szEventSourceName[MAX_PATH] = _T("Python Service");
+TCHAR g_szEventSourceFileName[MAX_PATH] = _T("");
+BOOL g_bRegisteredEventSource = FALSE;
 BOOL bServiceDebug = FALSE;
 BOOL bServiceRunning = FALSE;
 
@@ -278,6 +280,24 @@ static PyObject *PyLogErrorMsg(PyObject *self, PyObject *args)
 	return DoLogMessage(EVENTLOG_ERROR_TYPE, obMsg);
 }
 
+// @pymethod |servicemanager|SetEventSourceName|Sets the event source name
+// for event log entries written by the service.
+static PyObject *PySetEventSourceName(PyObject *self, PyObject *args)
+{
+	PyObject *obName;
+	if (!PyArg_ParseTuple(args, "O:SetEventSourceName", &obName))
+		return NULL;
+	TCHAR *msg;
+	if (!PyWinObject_AsTCHAR(obName, &msg))
+		return NULL;
+	_tcsncpy(g_szEventSourceName, msg,
+			 sizeof g_szEventSourceName/sizeof TCHAR);
+	PyWinObject_FreeTCHAR(msg);
+	g_bRegisteredEventSource = FALSE; // so this name re-registered.
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 // @pymethod int/None|servicemanager|RegisterServiceCtrlHandler|Registers the Python service control handler function.
 static PyObject *PyRegisterServiceCtrlHandler(PyObject *self, PyObject *args)
 {
@@ -490,6 +510,7 @@ static struct PyMethodDef servicemanager_functions[] = {
 	{"PrepareToHostSingle",        PyPrepareToHostSingle, 1}, // @pymeth  PrepareToHostSingle|
 	{"PrepareToHostMultiple",      PyPrepareToHostMultiple, 1}, // @pymeth  PrepareToHostMultiple|
 	{"RunningAsService",           PyRunningAsService, 1}, // @pymeth RunningAsService|Indicates if the code is running as a service.
+	{"SetEventSourceName",         PySetEventSourceName, 1}, // @pymeth SetEventSourceName|Sets the event source name for event log entries written by the service.
 	{NULL}
 };
 
@@ -602,51 +623,19 @@ static void PyService_InitPython()
 //                  as used to obtain the eventsource handle.
 //    evtsrc_file - The name of the file registered with the event viewer for this
 //                  source.
-//   Both params can be NULL, meaning a default source name is used, and this
-//   DLL as the file.  If either param is non-NULL, both must be non-NULL.
+//   Both params can be NULL, meaning defaults are used.
 //
 //  RETURN VALUE:
 //    TRUE if we registered OK.
 BOOL PythonService_Initialize( const TCHAR *evtsrc_name, const TCHAR *evtsrc_file)
 {
-	TCHAR evtsrc_file_buf[MAX_PATH+_MAX_FNAME];
-	if (!evtsrc_name && !evtsrc_file) {
-		// g_szEventSourceName keeps default of "Python Service"
-		GetModuleFileName(g_hdll, evtsrc_file_buf,
-		                  sizeof evtsrc_file_buf/sizeof TCHAR);
-		evtsrc_file = evtsrc_file_buf;
-	} else {
-		if (!evtsrc_name || !evtsrc_file)
-			return FALSE;
+	if (evtsrc_name && *evtsrc_name)
 		_tcsncpy(g_szEventSourceName, evtsrc_name,
 				 sizeof g_szEventSourceName/sizeof TCHAR);
-	}
-	// And register the event source with the event log.
-	HKEY hkey;
-	TCHAR keyName[MAX_PATH];
-	_tcscpy(keyName, _T("SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\"));
-	_tcscat(keyName, g_szEventSourceName );
-	// ignore all failures when setting up - for whatever reason it fails,
-	// we are probably still better off calling ReportEvent than
-	// not calling due to some other failure here.
-	BOOL rc = FALSE;
-	if (RegCreateKeyEx(HKEY_LOCAL_MACHINE, 
-		               keyName, 
-		               0, 
-		               NULL, 
-		               REG_OPTION_NON_VOLATILE, 
-		               KEY_WRITE, NULL, 
-		               &hkey, 
-		               NULL) == ERROR_SUCCESS) {
-		RegSetValueEx(hkey, TEXT("EventMessageFile"), 0, REG_SZ, 
-			          (const BYTE *)evtsrc_file, (_tcslen(evtsrc_file)+1)*sizeof(TCHAR));
-		DWORD types = EVENTLOG_ERROR_TYPE | EVENTLOG_WARNING_TYPE | EVENTLOG_INFORMATION_TYPE;
-		RegSetValueEx(hkey, TEXT("TypesSupported"), 0, REG_DWORD, 
-			          (const BYTE *)&types, sizeof(types));
-		RegCloseKey(hkey);
-		rc = TRUE;
-	}
-	return rc;
+	if (evtsrc_file && *evtsrc_file)
+		_tcsncpy(g_szEventSourceFileName, evtsrc_file,
+				 sizeof g_szEventSourceFileName/sizeof TCHAR);
+	return TRUE;
 }
 
 //  FUNCTION: PythonService_Finalize
@@ -1415,15 +1404,53 @@ static void ReportPythonError(DWORD code)
 	PyErr_Clear();
 }
 
+// register the event source with the event log.
+static void CheckRegisterEventSourceFile()
+{
+	// ignore all failures when setting up - for whatever reason it fails,
+	// we are probably still better off calling ReportEvent than
+	// not calling due to some other failure here.
+	if (g_bRegisteredEventSource)
+		return;
+
+	if (!g_szEventSourceFileName[0])
+		GetModuleFileName(g_hdll, g_szEventSourceFileName,
+		                  sizeof g_szEventSourceFileName/sizeof TCHAR);
+
+	HKEY hkey;
+	TCHAR keyName[MAX_PATH];
+	
+	_tcscpy(keyName, _T("SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\"));
+	_tcscat(keyName, g_szEventSourceName );
+
+	BOOL rc = FALSE;
+	if (RegCreateKeyEx(HKEY_LOCAL_MACHINE, 
+		               keyName, 
+		               0, 
+		               NULL, 
+		               REG_OPTION_NON_VOLATILE, 
+		               KEY_WRITE, NULL, 
+		               &hkey, 
+		               NULL) == ERROR_SUCCESS) {
+		RegSetValueEx(hkey, TEXT("EventMessageFile"), 0, REG_SZ, 
+			          (const BYTE *)g_szEventSourceFileName,
+					  (_tcslen(g_szEventSourceFileName)+1)*sizeof(TCHAR));
+		DWORD types = EVENTLOG_ERROR_TYPE | EVENTLOG_WARNING_TYPE | EVENTLOG_INFORMATION_TYPE;
+		RegSetValueEx(hkey, TEXT("TypesSupported"), 0, REG_DWORD, 
+			          (const BYTE *)&types, sizeof(types));
+		RegCloseKey(hkey);
+	}
+	g_bRegisteredEventSource = TRUE;
+}
+
 static BOOL ReportError(DWORD code, LPCTSTR *inserts, WORD errorType /* = EVENTLOG_ERROR_TYPE*/)
 {
 	WORD numInserts = 0;
 	while (inserts && inserts[numInserts]!=NULL)
 		numInserts++;
-		
+
     HANDLE  hEventSource;
     // Use event logging to log the error.
-	//
 
     if (bServiceDebug) {
 		TCHAR *szType;
@@ -1454,6 +1481,7 @@ static BOOL ReportError(DWORD code, LPCTSTR *inserts, WORD errorType /* = EVENTL
     	}
 		return TRUE;
 	} else {
+		CheckRegisterEventSourceFile();
 		hEventSource = RegisterEventSource(NULL, g_szEventSourceName);
 		if (hEventSource==NULL)
 			return FALSE;
