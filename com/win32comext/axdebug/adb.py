@@ -25,6 +25,16 @@ if debugging:
 	traceenter = trace # trace enter of functions
 	tracev = trace # verbose trace
 
+class OutputReflector:
+	def __init__(self, file, writefunc):
+		self.writefunc = writefunc
+		self.file = file
+	def __getattr__(self,name):
+		return getattr(self.file, name)
+	def write(self,message):
+		self.writefunc(message)
+		self.file.write(message)
+
 def _dumpf(frame):
 	if frame is None:
 		return "<None>"
@@ -87,8 +97,8 @@ class Adb(bdb.Bdb,gateways.RemoteDebugApplicationEvents):
 	def stop_here(self, frame):
 		traceenter("stop_here", _dumpf(frame), _dumpf(self.stopframe))
 		# As per bdb.stop_here, except for logicalbotframe
-		if self.stopframe is None:
-			return 1
+##		if self.stopframe is None:
+##			return 1
 		if frame is self.stopframe:
 			return 1
 		
@@ -325,9 +335,19 @@ class Adb(bdb.Bdb,gateways.RemoteDebugApplicationEvents):
 	def OnConnectDebugger(self, appDebugger):
 		traceenter("OnConnectDebugger", appDebugger)
 		self.appDebugger = appDebugger
+		# Reflect output to appDebugger
+		writefunc = lambda s: appDebugger.onDebugOutput(s)
+		sys.stdout = OutputReflector(sys.stdout, writefunc)
+		sys.stderr = OutputReflector(sys.stderr, writefunc)
 		
 	def OnDisconnectDebugger(self):
 		traceenter("OnDisconnectDebugger")
+		# Stop reflecting output
+		if isinstance(sys.stdout, OutputReflector):
+			sys.stdout = sys.stdout.file
+		if isinstance(sys.stderr, OutputReflector):
+			sys.stderr = sys.stderr.file
+		self.appDebugger = None
 		self.set_quit()
 
 	def OnSetName(self, name):
@@ -374,9 +394,9 @@ class Adb(bdb.Bdb,gateways.RemoteDebugApplicationEvents):
 			# being debugged is in a blocked call (eg, a message box) and we
 			# want to hit the debugger the instant we return
 		if self.debuggingThreadStateHandle is not None and \
-		   self.breakFlags and \
-		   self.debuggingThread != win32api.GetCurrentThreadId():
-			axdebug.SetThreadStateTrace(self.debuggingThreadStateHandle, self.trace_dispatch)
+			self.breakFlags and \
+			self.debuggingThread != win32api.GetCurrentThreadId():
+				axdebug.SetThreadStateTrace(self.debuggingThreadStateHandle, self.trace_dispatch)
 	def _OnSetBreakPoint(self, key, codeContext, bps, lineNo):
 		traceenter("_OnSetBreakPoint", self, key, codeContext, bps, lineNo)
 		if bps==axdebug.BREAKPOINT_ENABLED:

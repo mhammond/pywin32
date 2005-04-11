@@ -67,18 +67,22 @@ class Expression(gateways.DebugExpression):
 		result = _wrap(DebugProperty(self.code, self.result, None, self.hresult), axdebug.IID_IDebugProperty)
 		return self.hresult, result
 
-def MakeEnumDebugProperty(object, dwFieldSpec, nRadix, iid):
+def MakeEnumDebugProperty(object, dwFieldSpec, nRadix, iid, stackFrame = None):
 	name_vals = []
 	if hasattr(object, "has_key"): # If it is a dict.
 		name_vals = object.items()
+		dictionary = object
+	elif hasattr(object, "__dict__"):  #object with dictionary, module
+		name_vals = object.__dict__.items()
+		dictionary = object.__dict__
 	infos = []
 	for name, val in name_vals:
-		infos.append(GetPropertyInfo(name, val, dwFieldSpec, nRadix, 0))
+		infos.append(GetPropertyInfo(name, val, dwFieldSpec, nRadix, 0, dictionary, stackFrame))
 	return _wrap(EnumDebugPropertyInfo(infos), axdebug.IID_IEnumDebugPropertyInfo)
 
-def GetPropertyInfo(obname, obvalue, dwFieldSpec, nRadix, hresult=0):
+def GetPropertyInfo(obname, obvalue, dwFieldSpec, nRadix, hresult=0, dictionary = None, stackFrame = None):
 	# returns a tuple
-	name = typ = value = fullname = None
+	name = typ = value = fullname = attrib = dbgprop = None
 	if dwFieldSpec & axdebug.DBGPROP_INFO_VALUE:
 		value = MakeNiceString(obvalue)
 	if dwFieldSpec & axdebug.DBGPROP_INFO_NAME:
@@ -93,7 +97,14 @@ def GetPropertyInfo(obname, obvalue, dwFieldSpec, nRadix, hresult=0):
 				typ = str(type(obvalue))
 	if dwFieldSpec & axdebug.DBGPROP_INFO_FULLNAME:
 		fullname = obname
-	return name, typ, value, fullname
+	if dwFieldSpec & axdebug.DBGPROP_INFO_ATTRIBUTES:
+		if hasattr(obvalue, "has_key") or hasattr(obvalue, "__dict__"): # If it is a dict or object
+			attrib = axdebug.DBGPROP_ATTRIB_VALUE_IS_EXPANDABLE
+		else:
+			attrib = 0
+	if dwFieldSpec & axdebug.DBGPROP_INFO_DEBUGPROP:
+		dbgprop = _wrap(DebugProperty(name, obvalue, None, hresult, dictionary, stackFrame), axdebug.IID_IDebugProperty)
+	return name, typ, value, fullname, attrib, dbgprop
 
 from win32com.server.util import ListEnumeratorGateway
 class EnumDebugPropertyInfo(ListEnumeratorGateway):
@@ -116,25 +127,29 @@ class DebugProperty:
 	_public_methods_ = ['GetPropertyInfo', 'GetExtendedInfo', 'SetValueAsString', 
 	                    'EnumMembers', 'GetParent'
 	]
-	def __init__(self, name, value, parent = None, hresult = 0):
+	def __init__(self, name, value, parent = None, hresult = 0, dictionary = None, stackFrame = None):
 		self.name = name
 		self.value = value
 		self.parent = parent
 		self.hresult = hresult
+		self.dictionary = dictionary
+		self.stackFrame = stackFrame
 
 	def GetPropertyInfo(self, dwFieldSpec, nRadix):
-		return GetPropertyInfo(self.name, self.value, dwFieldSpec, nRadix, hresult=self.hresult)
+		return GetPropertyInfo(self.name, self.value, dwFieldSpec, nRadix, self.hresult, dictionary, stackFrame)
 
 	def GetExtendedInfo(self): ### Note - not in the framework.
 		RaiseNotImpl("DebugProperty::GetExtendedInfo")
 
 	def SetValueAsString(self, value, radix):
-		#
-		RaiseNotImpl("DebugProperty::SetValueAsString")
+		if self.stackFrame and self.dictionary:
+			self.dictionary[self.name]= eval(value,self.stackFrame.f_globals, self.stackFrame.f_locals)
+		else:
+			RaiseNotImpl("DebugProperty::SetValueAsString")
 
 	def EnumMembers(self, dwFieldSpec, nRadix, iid):
 		# Returns IEnumDebugPropertyInfo
-		return MakeEnumDebugProperty(self.value, dwFieldSpec, nRadix, iid)
+		return MakeEnumDebugProperty(self.value, dwFieldSpec, nRadix, iid, self.stackFrame)
 
 	def GetParent(self):
 		# return IDebugProperty

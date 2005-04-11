@@ -189,7 +189,7 @@ class ActiveScriptDebug:
 
 	def _query_interface_(self, iid):
 		trace("DebuggerQI with", iid)
-		return 0
+		return _wrap(self.debugMgr.scriptEngine, iid)
 
 	def GetScriptTextAttributes(self, code, delim, flags):
 		container = SourceCodeContainer(code, "<Temp Code Block>")

@@ -38,12 +38,6 @@ def AddCR(text):
 	return re.sub('\n','\r\n',text)
 #	return string.join(string.split(text,'\n'),'\r\n')
 
-def RemoveCR(text):
-# No longer just "RemoveCR" - should be renamed to
-# FixNewlines, or something.  Idea is to fix arbitary newlines into
-# something Python can compile...
-	return re.sub('(\r\n)|\r|(\n\r)','\n',text)
-	
 class AXScriptCodeBlock(framework.AXScriptCodeBlock):
 	def GetDisplayName(self):
 		return "PyScript - " + framework.AXScriptCodeBlock.GetDisplayName(self)
@@ -342,7 +336,7 @@ class PyScript(framework.COMScript):
 			pass
 		if codeBlock is not None:
 			realCode = "def %s():\n" % funcName
-			for line in string.split(RemoveCR(codeBlock.codeText),"\n"):
+			for line in string.split(framework.RemoveCR(codeBlock.codeText),"\n"):
 				realCode = realCode + '\t' + line + '\n'
 			realCode = realCode + '\n'
 			if not self.CompileInScriptedSection(codeBlock, "exec", realCode):
@@ -370,7 +364,7 @@ class PyScript(framework.COMScript):
 		return self.ApplyInScriptedSection(codeBlock, function, args)
 
 	def DoParseScriptText(self, code, sourceContextCookie, startLineNumber, bWantResult, flags):
-		code = RemoveCR(code) + "\n"
+		code = framework.RemoveCR(code) + "\n"
 		if flags & SCRIPTTEXT_ISEXPRESSION:
 			name = "Script Expression"
 			exec_type = "eval"

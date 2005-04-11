@@ -27,7 +27,7 @@ class ScriptDispatch:
 	def __init__(self, engine, scriptNamespace):
 		self.engine = engine
 		self.scriptNamespace = scriptNamespace
-		
+
 	def _dynamic_(self, name, lcid, wFlags, args):
 		if wFlags & pythoncom.INVOKE_FUNC:
 			# attempt to call a function
@@ -67,6 +67,18 @@ class ScriptDispatch:
 		raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
 
 class StrictDynamicPolicy(win32com.server.policy.DynamicPolicy):
+	def _wrap_(self, object):
+		win32com.server.policy.DynamicPolicy._wrap_(self, object)
+		if hasattr(self._obj_, 'scriptNamespace'):
+			for name in dir(self._obj_.scriptNamespace):
+				self._dyn_dispid_to_name_[self._getdispid_(name,0)] = name    
+
+	def _getmembername_(self, dispid):
+		try:
+			return str(self._dyn_dispid_to_name_[dispid])
+		except KeyError:
+			raise COMException(scode=winerror.DISP_E_UNKNOWNNAME, desc="Name not found")	
+
 	def _getdispid_(self, name, fdex):
 		try:
 			func = getattr(self._obj_.scriptNamespace, str(name))

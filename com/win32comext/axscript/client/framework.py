@@ -15,6 +15,13 @@ import win32com.client.connect # Need simple connection point support
 import win32api, winerror
 import pythoncom
 import types
+import re
+
+def RemoveCR(text):
+# No longer just "RemoveCR" - should be renamed to
+# FixNewlines, or something.  Idea is to fix arbitary newlines into
+# something Python can compile...
+	return re.sub('(\r\n)|\r|(\n\r)','\n',text)
 
 SCRIPTTEXT_FORCEEXECUTION = -2147483648 # 0x80000000
 SCRIPTTEXT_ISEXPRESSION   = 0x00000020
@@ -827,8 +834,14 @@ class COMScript:
 
 	# This stack frame is debugged - therefore we do as little as possible in it.
 	def _ApplyInScriptedSection(self, fn, args):
-		if self.debugManager: self.debugManager.OnEnterScript()
-		return apply(fn, args)
+		if self.debugManager:
+			self.debugManager.OnEnterScript()
+			if self.debugManager.adb.appDebugger:
+				return self.debugManager.adb.runcall(fn, *args)
+			else:
+				return apply(fn, args)
+		else:
+			return apply(fn, args)
 	
 	def ApplyInScriptedSection(self, codeBlock, fn, args):
 		self.BeginScriptedSection()
@@ -858,7 +871,7 @@ class COMScript:
 		self.BeginScriptedSection()
 		try:
 			try:
-				codeObject = self._CompileInScriptedSection(code, name, type)
+				codeObject = self._CompileInScriptedSection(RemoveCR(code), name, type)
 				codeBlock.codeObject = codeObject
 				return 1
 			finally:
@@ -869,8 +882,14 @@ class COMScript:
 	
 	# This stack frame is debugged - therefore we do as little as possible in it.
 	def _ExecInScriptedSection(self, codeObject, globals, locals = None):
-		if self.debugManager: self.debugManager.OnEnterScript()
-		exec codeObject in globals, locals
+		if self.debugManager:
+			self.debugManager.OnEnterScript()
+			if self.debugManager.adb.appDebugger:
+				return self.debugManager.adb.run(codeObject, globals, locals)
+			else:
+				exec codeObject in globals, locals
+		else:
+			exec codeObject in globals, locals
 
 	def ExecInScriptedSection(self, codeBlock, globals, locals = None):
 		if locals is None: locals = globals
@@ -887,8 +906,14 @@ class COMScript:
 			self.HandleException(codeBlock)
 
 	def _EvalInScriptedSection(self, codeBlock, globals, locals = None):
-		if self.debugManager: self.debugManager.OnEnterScript()
-		return eval(codeBlock, globals, locals)
+		if self.debugManager:
+			self.debugManager.OnEnterScript()
+			if self.debugManager.adb.appDebugger:
+				return self.debugManager.adb.runeval(codeBlock, globals, locals)
+			else:
+				return eval(codeBlock, globals, locals)
+		else:
+			return eval(codeBlock, globals, locals)
 		
 	def EvalInScriptedSection(self, codeBlock, globals, locals = None):
 		if locals is None: locals = globals

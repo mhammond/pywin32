@@ -140,7 +140,7 @@ class StackFrameDebugProperty:
 	def EnumMembers(self, dwFieldSpec, nRadix, iid):
 		print "EnumMembers", dwFieldSpec, nRadix, iid
 		import expressions
-		return expressions.MakeEnumDebugProperty(self.frame.f_locals, dwFieldSpec, nRadix, iid)
+		return expressions.MakeEnumDebugProperty(self.frame.f_locals, dwFieldSpec, nRadix, iid, self.frame)
 
 	def GetParent(self):
 		# return IDebugProperty
