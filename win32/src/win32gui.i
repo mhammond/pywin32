@@ -452,11 +452,13 @@ typedef int UINT;
 
 %typemap(python,except) HWND, HDC, HMENU, HICON, HBITMAP, HIMAGELIST {
       Py_BEGIN_ALLOW_THREADS
+      SetLastError(0);
       $function
       Py_END_ALLOW_THREADS
-      if ($source==0)  {
+      DWORD le;
+      if ($source==0 && (le=GetLastError())) {
            $cleanup
-           return PyWin_SetAPIError("$name");
+           return PyWin_SetAPIError("$name", le);
       }
 }
 
