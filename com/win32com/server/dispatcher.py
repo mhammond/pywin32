@@ -26,90 +26,93 @@ class DispatcherBase:
     # default location (typically 'print')
     self.logger = getattr(win32com, "logger", None)
 
+  # Note the "return self._HandleException_()" is purely to stop pychecker
+  # complaining - _HandleException_ will itself raise an exception for the
+  # pythoncom framework, so the result will never be seen.
   def _CreateInstance_(self, clsid, reqIID):
     try:
       self.policy._CreateInstance_(clsid, reqIID)
       return pythoncom.WrapObject(self, reqIID)
     except:
-      self._HandleException_()
+      return self._HandleException_()
 
   def _QueryInterface_(self, iid):
     try:
       return self.policy._QueryInterface_(iid)
     except:
-      self._HandleException_()
+      return self._HandleException_()
 
   def _Invoke_(self, dispid, lcid, wFlags, args):
     try:
       return self.policy._Invoke_(dispid, lcid, wFlags, args)
     except:
-      self._HandleException_()
+      return self._HandleException_()
 
   def _GetIDsOfNames_(self, names, lcid):
     try:
       return self.policy._GetIDsOfNames_(names, lcid)
     except:
-      self._HandleException_()
+      return self._HandleException_()
 
   def _GetTypeInfo_(self, index, lcid):
     try:
       return self.policy._GetTypeInfo_(index, lcid)
     except:
-      self._HandleException_()
+      return self._HandleException_()
 
   def _GetTypeInfoCount_(self):
     try:
       return self.policy._GetTypeInfoCount_()
     except:
-      self._HandleException_()
+      return self._HandleException_()
 
   def _GetDispID_(self, name, fdex):
     try:
       return self.policy._GetDispID_(name, fdex)
     except:
-      self._HandleException_()
+      return self._HandleException_()
 
   def _InvokeEx_(self, dispid, lcid, wFlags, args, kwargs, serviceProvider):
     try:
       return self.policy._InvokeEx_(dispid, lcid, wFlags, args, kwargs, serviceProvider)
     except:
-      self._HandleException_()
+      return self._HandleException_()
  
   def _DeleteMemberByName_(self, name, fdex):
     try:
       return self.policy._DeleteMemberByName_(name, fdex)
     except:
-      self._HandleException_()
+      return self._HandleException_()
 
   def _DeleteMemberByDispID_(self, id):
     try:
       return self.policy._DeleteMemberByDispID_(id)
     except:
-      self._HandleException_()
+      return self._HandleException_()
 
   def _GetMemberProperties_(self, id, fdex):
     try:
       return self.policy._GetMemberProperties_(id, fdex)
     except:
-      self._HandleException_()
+      return self._HandleException_()
 
   def _GetMemberName_(self, dispid):
     try:
       return self.policy._GetMemberName_(dispid)
     except:
-      self._HandleException_()
+      return self._HandleException_()
 
   def _GetNextDispID_(self, fdex, flags):
     try:
       return self.policy._GetNextDispID_(fdex, flags)
     except:
-      self._HandleException_()
+      return self._HandleException_()
 
   def _GetNameSpaceParent_(self):
     try:
       return self.policy._GetNameSpaceParent_()
     except:
-      self._HandleException_()
+      return self._HandleException_()
 
   def _HandleException_(self):
     """Called whenever an exception is raised.
