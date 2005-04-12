@@ -35,7 +35,6 @@ def UnpackWMNOTIFY(lparam):
     format = "iii"
     buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
     hwndFrom, idFrom, code = struct.unpack(format, buf)
-    code += 0x4f0000 # hrm - wtf - commctrl uses this, and it works with mfc.  *sigh*
     return hwndFrom, idFrom, code
     
 # MENUITEMINFO struct

@@ -300,7 +300,12 @@ class DemoWindowBase:
         buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
         hwndFrom, idFrom, code, iItem, iSubItem, uNewState, uOldState, uChanged, actionx, actiony, lParam \
                   = struct.unpack(format, buf)
-        code += 0x4f0000 # hrm - wtf - commctrl uses this, and it works with mfc.  *sigh*
+        # *sigh* - work around a problem with old commctrl modules, which had a
+        # bad value for PY_OU, which therefore cause most "control notification"
+        # messages to be wrong.
+        # Code that needs to work with both pre and post pywin32-204 must do
+        # this too.
+        code += commctrl.PY_0U
         if code == commctrl.NM_DBLCLK:
             print "Double click on item", iItem+1
         return 1
