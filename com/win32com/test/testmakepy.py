@@ -51,4 +51,4 @@ def TestAll(verbose = 0):
     win32com.test.util.CheckClean()
 
 if __name__=='__main__':
-    TestAll(1)
+    TestAll("-q" not in sys.argv)
