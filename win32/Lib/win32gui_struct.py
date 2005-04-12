@@ -241,6 +241,10 @@ def EmptyMENUINFO(mask = None):
 # XXX - intend checking them later - but having them is better than not at all!
 
 # Helpers for the ugly win32 structure packing/unpacking
+# XXX - Note that functions using _GetMaskAndVal run 3x faster if they are
+# 'inlined' into the function - see PackLVITEM.  If the profiler points at
+# _GetMaskAndVal(), you should nuke it (patches welcome once they have been
+# tested)
 def _GetMaskAndVal(val, default, mask, flag):
     if val is None:
         return mask, default
@@ -350,21 +354,27 @@ def UnpackTVDISPINFO(lparam):
 def PackLVITEM(item=None, subItem=None, state=None, stateMask=None, text=None, image=None, param=None, indent=None):
     extra = [] # objects we must keep references to
     mask = 0
-    mask, item = _GetMaskAndVal(item, 0, mask, None)
-    mask, subItem = _GetMaskAndVal(subItem, 0, mask, None)
-    mask, state = _GetMaskAndVal(state, 0, mask, commctrl.LVIF_STATE)
-    if not mask & commctrl.LVIF_STATE:
+    # _GetMaskAndVal adds quite a bit of overhead to this function.
+    if item is None: item = 0 # No mask for item
+    if subItem is None: subItem = 0 # No mask for sibItem
+    if state is None:
+        state = 0
         stateMask = 0
     else:
-        if stateMask is None:
-            stateMask = state
-    mask, text = _GetMaskAndVal(text, None, mask, commctrl.LVIF_TEXT)
-    mask, image = _GetMaskAndVal(image, 0, mask, commctrl.LVIF_IMAGE)
-    mask, param = _GetMaskAndVal(param, 0, mask, commctrl.LVIF_PARAM)
-    mask, indent = _GetMaskAndVal(indent, 0, mask, commctrl.LVIF_INDENT)
+        mask |= commctrl.LVIF_STATE
+        if stateMask is None: stateMask = state
+    
+    if image is None: image = 0
+    else: mask |= commctrl.LVIF_IMAGE
+    if param is None: param = 0
+    else: mask |= commctrl.LVIF_PARAM
+    if indent is None: indent = 0
+    else: mask |= commctrl.LVIF_INDENT
+
     if text is None:
         text_addr = text_len = 0
     else:
+        mask |= commctrl.LVIF_TEXT
         if isinstance(text, unicode):
             text = text.encode("mbcs")
         text_buffer = array.array("c", text+"\0")
