@@ -87,7 +87,9 @@ PYTHONWIN_SOURCE = \
 ISAPI_SOURCE = \
     $(ISAPI_SOURCE_DIR)\*.cpp $(ISAPI_SOURCE_DIR)\*.h $(GENDIR)\isapi_modules.d
 
-SOURCE=$(WIN32_SOURCE) $(WIN32COM_SOURCE) $(PYTHONWIN_SOURCE) $(ISAPI_SOURCE)
+GENERATED_D = $(GENDIR)\sspi.d
+
+SOURCE=$(WIN32_SOURCE) $(WIN32COM_SOURCE) $(PYTHONWIN_SOURCE) $(ISAPI_SOURCE) $(GENERATED_D)
 
 DOCUMENT_FILE = pywin32-document.xml
 
@@ -106,6 +108,9 @@ pseudo:
 
 $(GENDIR)\isapi_modules.d: py2d.py pseudo
     $(PYTHON) py2d.py isapi isapi.install isapi.simple isapi.threaded_extension isapi.isapicon > $(GENDIR)\isapi_modules.d
+
+$(GENDIR)\sspi.d: py2d.py pseudo
+    $(PYTHON) py2d.py sspi > $(GENDIR)\sspi.d
 
 "$(GENDIR)\$(TARGET).hhc" : $(SOURCE) Dump2HHC.py $(DOCUMENT_FILE) 
     rem Run autoduck over each category so we can create a nested TOC.
