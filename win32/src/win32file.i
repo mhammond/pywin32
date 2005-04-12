@@ -225,13 +225,52 @@ PyHANDLE CreateFileW(
 );
 
 #ifndef MS_WINCE
+// CreateIoCompletionPort gets special treatment due to its special result
+// code handling.
+
+%{
 // @pyswig <o PyHANDLE>|CreateIoCompletionPort|Can associate an instance of an opened file with a newly created or an existing input/output (I/O) completion port; or it can create an I/O completion port without associating it with a file.
-PyHANDLE CreateIoCompletionPort (
-  HANDLE FileHandle,              // @pyparm <o PyHANDLE>|handle||file handle to associate with the I/O completion port
-  HANDLE INPUT_NULLOK,  // @pyparm <o PyHANDLE>|existing||handle to the I/O completion port
-  DWORD CompletionKey,            // @pyparm int|completionKey||per-file completion key for I/O completion packets
-  DWORD NumberOfConcurrentThreads // @pyparm int|numThreads||number of threads allowed to execute concurrently
-);
+// @rdesc If an existing handle to a completion port is passed, the result
+// of this function will be that same handle.  See MSDN for more details.
+PyObject *MyCreateIoCompletionPort(PyObject *self, PyObject *args)
+{
+    PyObject *obFileHandle, *obExistingHandle;
+    int key, nt;
+    PyObject *obRet = NULL;
+    if (!PyArg_ParseTuple(args, "OOii:CreateIoCompletionPort",
+                          &obFileHandle, // @pyparm <o PyHANDLE>|handle||file handle to associate with the I/O completion port
+                          &obExistingHandle, // @pyparm <o PyHANDLE>|existing||handle to the I/O completion port
+                          &key, // @pyparm int|completionKey||per-file completion key for I/O completion packets
+                          &nt)) // @pyparm int|numThreads||number of threads allowed to execute concurrently
+        return NULL;
+    HANDLE hFile, hExisting;
+    if (!PyWinObject_AsHANDLE(obFileHandle, &hFile, FALSE))
+        return NULL;
+    if (!PyWinObject_AsHANDLE(obExistingHandle, &hExisting, TRUE))
+        return NULL;
+    if (hExisting) {
+        obRet = obExistingHandle;
+        Py_INCREF(obRet);
+    }
+    HANDLE hRet;
+    Py_BEGIN_ALLOW_THREADS
+    hRet = CreateIoCompletionPort(hFile, hExisting, key, nt);
+    Py_END_ALLOW_THREADS
+    if (!hRet) {
+        Py_XDECREF(obRet);
+        return PyWin_SetAPIError("CreateIoCompletionPort");
+    }
+    if (obRet==NULL) // New handle returned
+        obRet = PyWinObject_FromHANDLE(hRet);
+    else
+        // it better have returned the same object!
+        assert(hRet == hExisting);
+    return obRet;
+}
+
+%}
+
+%native (CreateIoCompletionPort) MyCreateIoCompletionPort;
 
 // @pyswig |DefineDosDevice|Lets an application define, redefine, or delete MS-DOS device names. 
 BOOLAPI DefineDosDevice(

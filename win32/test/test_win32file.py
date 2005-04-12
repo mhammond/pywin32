@@ -148,6 +148,35 @@ class TestOverlapped(unittest.TestCase):
                 break
         h.Close()
 
+    def testCompletionPortsMultiple(self):
+        # Mainly checking that we can "associate" an existing handle.  This
+        # failed in build 203.
+        import socket
+
+        ioport = win32file.CreateIoCompletionPort(win32file.INVALID_HANDLE_VALUE,
+                                                  0, 0, 0)
+        socks = []
+        for PORT in range(9123, 9125):
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.bind(('', PORT))
+            sock.listen(1)
+            socks.append(sock)
+            new = win32file.CreateIoCompletionPort(sock.fileno(), ioport, PORT, 0)
+            assert new is ioport
+        for s in socks:
+            s.close()
+        hv = int(ioport)
+        ioport = new = None
+        # The handle itself should be closed now (unless we leak references!)
+        # Check that.
+        try:
+            win32file.CloseHandle(hv)
+            raise RuntimeError, "Expected close to fail!"
+        except win32file.error, (hr, func, msg):
+            self.failUnlessEqual(hr, winerror.ERROR_INVALID_HANDLE)
+
+
 class TestFindFiles(unittest.TestCase):
     def testIter(self):
         dir = os.path.join(os.getcwd(), "*")
