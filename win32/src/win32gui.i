@@ -2926,18 +2926,22 @@ BOOLAPI CheckMenuRadioItem(
   UINT uFlags               // @pyparm int|uFlags||options
 );
 
+%ifdef WINXPGUI
 // @pyswig |SetMenuInfo|Sets information for a specified menu.
+// @comm To avoid complications with Windows NT, this function only exists in winxpgui (not win32gui)
 BOOLAPI SetMenuInfo(
   HMENU hmenu,       // @pyparm int|hmenu||handle to menu
   MENUINFO *INPUT  // @pyparm <o MENUINFO>|info||menu information in the format of a buffer.
   // See win32gui_struct for helper functions.
 );
 
-// @pyswig |GetMenuInfo|Sets information about a specified menu.
+// @pyswig |GetMenuInfo|Gets information about a specified menu.
+// @comm To avoid complications with Windows NT, this function only exists in winxpgui (not win32gui)
 BOOLAPI GetMenuInfo(
 	HMENU hMenu, // @pyparm int|hmenu||handle to menu
 	MENUINFO *BOTH // @pyparm buffer|info||A buffer to fill with the information.
 );
+%endif
 
 
 // @pyswig |DrawFocusRect|
