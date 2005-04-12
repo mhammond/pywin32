@@ -1245,6 +1245,7 @@ static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
 // @pyparm int|hwnd||
 // @pyparm int|bInvert||
 BOOL FlashWindow(HWND hwnd, BOOL bInvert);
+// @pyswig int|FlashWindowEx|The FlashWindowEx function flashes the specified window a specified number of times.
 
 %{
 PyObject *PyFlashWindowEx(PyObject *self, PyObject *args)
@@ -1981,6 +1982,59 @@ HANDLE LoadImage(HINSTANCE hInst, // @pyparm int|hinst||Handle to an instance of
 
 // @pyswig |DeleteObject|Deletes a logical pen, brush, font, bitmap, region, or palette, freeing all system resources associated with the object. After the object is deleted, the specified handle is no longer valid.
 BOOLAPI DeleteObject(HANDLE h); // @pyparm int|handle||handle to the object to delete.
+
+// @pyswig |BitBlt||Performs a bit-block transfer of the color data corresponding
+// to a rectangle of pixels from the specified source device context into a
+// destination device context. 
+BOOLAPI BitBlt(
+  HDC hdcDest, // @pyparm int|hdcDest||handle to destination DC
+  int nXDest,  // @pyparm int|x||x-coord of destination upper-left corner
+  int nYDest,  // @pyparm int|t||y-coord of destination upper-left corner
+  int nWidth,  // @pyparm int|width||width of destination rectangle
+  int nHeight, // @pyparm int|height||height of destination rectangle
+  HDC hdcSrc,  // @pyparm int|hdcSrc||handle to source DC
+  int nXSrc,   // @pyparm int|nXSrc||x-coordinate of source upper-left corner
+  int nYSrc,   // @pyparm int|nYSrc||y-coordinate of source upper-left corner
+  DWORD dwRop  // @pyparm int|dwRop||raster operation code
+);
+
+// @pyswig |StretchBlt||Copies a bitmap from a source rectangle into a destination
+// rectangle, stretching or compressing the bitmap to fit the dimensions of the
+// destination rectangle, if necessary
+BOOLAPI StretchBlt(
+  HDC hdcDest,      // handle to destination DC
+  int nXOriginDest, // x-coord of destination upper-left corner
+  int nYOriginDest, // y-coord of destination upper-left corner
+  int nWidthDest,   // width of destination rectangle
+  int nHeightDest,  // height of destination rectangle
+  HDC hdcSrc,       // handle to source DC
+  int nXOriginSrc,  // x-coord of source upper-left corner
+  int nYOriginSrc,  // y-coord of source upper-left corner
+  int nWidthSrc,    // width of source rectangle
+  int nHeightSrc,   // height of source rectangle
+  DWORD dwRop       // raster operation code
+);
+
+%ifdef WINXPGUI
+// @pyswig |MaskBlt|Combines the color data for the source and destination
+// bitmaps using the specified mask and raster operation.
+// @comm This function is available only in winxpgui, as it is not supported
+// on Win9x.
+BOOLAPI MaskBlt(
+  HDC hdcDest,     // handle to destination DC
+  int nXDest,      // x-coord of destination upper-left corner
+  int nYDest,      // y-coord of destination upper-left corner 
+  int nWidth,      // width of source and destination
+  int nHeight,     // height of source and destination
+  HDC hdcSrc,      // handle to source DC
+  int nXSrc,       // x-coord of upper-left corner of source
+  int nYSrc,       // y-coord of upper-left corner of source
+  HBITMAP hbmMask, // handle to monochrome bit mask
+  int xMask,       // horizontal offset into mask bitmap
+  int yMask,       // vertical offset into mask bitmap
+  DWORD dwRop      // raster operation code
+);
+%endif
 
 // @pyswig int|ImageList_Add|Adds an image or images to an image list. 
 // @rdesc Returns the index of the first new image if successful, or -1 otherwise. 
