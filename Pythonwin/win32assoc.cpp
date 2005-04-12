@@ -266,8 +266,12 @@ PyObject *ui_assoc_object::GetGoodRet()
 	if (!skipLookup)
 		ret = (ui_assoc_object*) handleMgr.GetAssocObject(search);
 	if (ret) {
-		if (!ret->is_uiobject(&makeType))
-			RETURN_ERR("Internal error - existing object is not of same type as requested new object");
+		if (!ret->is_uiobject(&makeType)) {
+			PyErr_Format(ui_module_error,
+			             "Internal error - existing object has type '%s', but '%s' was requested.",
+			             ret->ob_type->tp_name, makeType.tp_name);
+			return NULL;
+		}
 		DOINCREF( ret );
 		return ret;
 	}
