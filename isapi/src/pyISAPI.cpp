@@ -206,6 +206,8 @@ DWORD WINAPI HttpFilterProc(HTTP_FILTER_CONTEXT *phfc, DWORD NotificationType, V
 	return action;
 }
 
+// Hmm - this appears to never be called!?!?
+// http://sf.net/support/tracker.php?aid=1173795
 BOOL WINAPI TerminateFilter(DWORD status)
 {
 	BOOL bRetStatus;
