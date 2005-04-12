@@ -1,40 +1,19 @@
-#
-# stamp a file with version information
-#
-# USAGE: python verstamp.py <major> <minor> <version> <fname> <desc> \
-#                           [<debug>] [<is_dll>]
-#
-# For example:
-#  C> python verstamp.py 1 4 103 pywintypes.dll "Common Python types for Win32"
-#
-#  This will store version "1.4.0.103" (ie, build 103 for Python 1.4)
-#
-#
-# <debug> : 0 or 1 based on whether it's a debug build (DEFAULT == 0)
-# <is_dll> : 0 or 1 to indicate the file type: DLL vs EXE (DEFAULT == 1)
-#
+""" Stamp a Win32 binary with version information.
+"""
 
 from win32api import BeginUpdateResource, UpdateResource, EndUpdateResource, Unicode
-import win32api
-#print "Win32api is at", win32api.__file__
 U = Unicode
 
 import os
-import sys
 import struct
-import string
-import win32api
-import pythoncom
+import glob
 
-VS_FFI_SIGNATURE = 0xFEEF04BD
+import optparse
+
+VS_FFI_SIGNATURE = -17890115 # 0xFEEF04BD
 VS_FFI_STRUCVERSION = 0x00010000
 VS_FFI_FILEFLAGSMASK = 0x0000003f
 VOS_NT_WINDOWS32 = 0x00040004
-
-g_productname = 'Python'
-g_company = ''
-g_copyright = 'Copyright (C) A Few Assorted People 1995-1998.  All rights reserved.'
-g_trademarks = ''
 
 #
 # Set VS_FF_PRERELEASE and DEBUG if Debug
@@ -128,7 +107,7 @@ def VS_VERSION_INFO(maj, min, sub, build, sdata, vdata, debug=0, is_dll=1):
   result = pad32(result) + StringFileInfo(sdata) + VarFileInfo(vdata)
   return addlen(result)
 
-def stamp(vars, pathname, desc, verbose=0, debug=0, is_dll=1):
+def stamp(pathname, options):
   # For some reason, the API functions report success if the file is open
   # but doesnt work!  Try and open the file for writing, just to see if it is
   # likely the stamp will work!
@@ -138,62 +117,86 @@ def stamp(vars, pathname, desc, verbose=0, debug=0, is_dll=1):
   except IOError, why:
     print "WARNING: File %s could not be opened - %s" % (pathname, why)
 
+  ver = options.version
   try:
-    maj = int(vars.get("major"))
-    min = int(vars.get("minor"))
-    sub = int(vars.get("sub", 0))
-    build = int(vars.get("build"))
-  except (IndexError, TypeError):
-    raise RuntimeError, "The version params must be integers"
+    bits = [int(i) for i in ver.split(".")]
+    vmaj, vmin, vsub, vbuild = bits
+  except (IndexError, TypeError, ValueError):
+    parser.error("--version must be a.b.c.d (all integers)")
+  
+  ifn = options.internal_name
+  if not ifn:
+    ifn = os.path.basename(pathname)
+  ofn = options.original_filename
+  if not ofn:
+    ofn = os.path.basename(pathname)
 
-  company = vars.get("company", g_company)
-  copyright = vars.get("copyright", g_copyright)
-  trademarks = vars.get("trademarks", g_trademarks)
-  productname = vars.get("product", g_productname)
-
-
-  vsn = '%s.%s.%s.%s' % (maj, min, sub, build)
-  dir, fname = os.path.split(pathname)
-  fname = string.upper(fname)
   sdata = {
-    'Comments' : desc,
-    'CompanyName' : company,
-    'FileDescription' : desc,
-    'FileVersion' : vsn,
-    'InternalName' : fname,
-    'LegalCopyright' : copyright,
-    'LegalTrademarks' : trademarks,
-    'OriginalFilename' : fname,
-    'ProductName' : productname,
-    'ProductVersion' : vsn,
+    'Comments' : options.comments,
+    'CompanyName' : options.company,
+    'FileDescription' : options.description,
+    'FileVersion' : ver,
+    'InternalName' : ifn,
+    'LegalCopyright' : options.copyright,
+    'LegalTrademarks' : options.trademarks,
+    'OriginalFilename' : ofn,
+    'ProductName' : options.product,
+    'ProductVersion' : ver,
     }
   vdata = {
     'Translation' : struct.pack('hh', 0x409, 1200),
     }
-  vs = VS_VERSION_INFO(maj, min, sub, build, sdata, vdata, debug, is_dll)
+  is_dll = options.dll
+  if is_dll is None:
+    is_dll = os.path.splitext(pathname)[1].lower() in '.dll .pyd'.split()
+  is_debug = options.debug
+  if is_debug is None:
+    is_debug = os.path.splitext(pathname)[0].lower().endswith("_d")
+  # convert None to blank strings
+  for k, v in sdata.items():
+    if v is None:
+      sdata[k] = ""
+  vs = VS_VERSION_INFO(vmaj, vmin, vsub, vbuild, sdata, vdata, is_debug, is_dll)
 
   h = BeginUpdateResource(pathname, 0)
   UpdateResource(h, 16, 1, vs)
   EndUpdateResource(h, 0)
 
-  if verbose:
+  if options.verbose:
     print "Stamped:", pathname
 
 if __name__ == '__main__':
-  if len(sys.argv) < 6:
-    print "ERROR: incorrect invocation. See comments in header of script."
-    sys.exit(1)
+  parser = optparse.OptionParser("%prog [options] filespec ...",
+                                 description=__doc__)
 
-  maj = string.atoi(sys.argv[1])
-  min = string.atoi(sys.argv[2])
-  ver = string.atoi(sys.argv[3])
-
-  verbose = 0
-  is_dll = 1
-  if len(sys.argv) > 6:
-    debug = string.atoi(sys.argv[6])
-    if len(sys.argv) > 7:
-      is_dll = string.atoi(sys.argv[7])
-
-  v={'major':maj,'minor':min,'build':ver}
-  stamp(v, sys.argv[4], sys.argv[5], verbose, is_dll)
+  parser.add_option("-q", "--quiet",
+                    action="store_false", dest="verbose", default=True,
+                    help="don't print status messages to stdout")
+  parser.add_option("", "--version", default="0.0.0.0",
+                    help="The version number as m.n.s.b")
+  parser.add_option("", "--dll",
+                    help="""Stamp the file as a DLL.  Default is to look at the
+                            file extension for .dll or .pyd.""")
+  parser.add_option("", "--debug", help="""Stamp the file as a debug binary.""")
+  parser.add_option("", "--product", help="""The product name to embed.""")
+  parser.add_option("", "--company", help="""The company name to embed.""")
+  parser.add_option("", "--trademarks", help="The trademark string to embed.")
+  parser.add_option("", "--comments", help="The comments string to embed.")
+  parser.add_option("", "--copyright",
+                    help="""The copyright message string to embed.""")
+  parser.add_option("", "--description", metavar="DESC",
+                    help="The description to embed.")
+  parser.add_option("", "--internal-name", metavar="NAME",
+                    help="""The internal filename to embed. If not specified
+                         the base filename is used.""")
+  parser.add_option("", "--original-filename",
+                    help="""The original filename to embed. If not specified
+                            the base filename is used.""")
+  
+  options, args = parser.parse_args()
+  if not args:
+    parser.error("You must supply a file to stamp.  Use --help for details.")
+  
+  for g in args:
+    for f in glob.glob(g):
+      stamp(f, options)
