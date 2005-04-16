@@ -537,38 +537,55 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 
 
 %init %{
+	PyObject *s;
+	#define ADD_UNICODE_CONSTANT(constant_name)  \
+		s=PyUnicode_FromWideChar(constant_name,wcslen(constant_name)); \
+		PyDict_SetItemString(d,#constant_name,s); \
+		Py_DECREF(s);
+
 	// All errors raised by this module are of this type.
 	Py_INCREF(PyWinExc_ApiError);
 	PyDict_SetItemString(d, "error", PyWinExc_ApiError);
 
-	PyDict_SetItemString(d,"SE_CREATE_TOKEN_NAME",PyUnicode_FromWideChar(SE_CREATE_TOKEN_NAME,wcslen(SE_CREATE_TOKEN_NAME)));
-	PyDict_SetItemString(d,"SE_ASSIGNPRIMARYTOKEN_NAME",PyUnicode_FromWideChar(SE_ASSIGNPRIMARYTOKEN_NAME,wcslen(SE_ASSIGNPRIMARYTOKEN_NAME)));
-	PyDict_SetItemString(d,"SE_LOCK_MEMORY_NAME",PyUnicode_FromWideChar(SE_LOCK_MEMORY_NAME,wcslen(SE_LOCK_MEMORY_NAME)));
-	PyDict_SetItemString(d,"SE_INCREASE_QUOTA_NAME",PyUnicode_FromWideChar(SE_INCREASE_QUOTA_NAME,wcslen(SE_INCREASE_QUOTA_NAME)));
-	PyDict_SetItemString(d,"SE_UNSOLICITED_INPUT_NAME",PyUnicode_FromWideChar(SE_UNSOLICITED_INPUT_NAME,wcslen(SE_UNSOLICITED_INPUT_NAME)));
-	PyDict_SetItemString(d,"SE_MACHINE_ACCOUNT_NAME",PyUnicode_FromWideChar(SE_MACHINE_ACCOUNT_NAME,wcslen(SE_MACHINE_ACCOUNT_NAME)));
-	PyDict_SetItemString(d,"SE_TCB_NAME",PyUnicode_FromWideChar(SE_TCB_NAME,wcslen(SE_TCB_NAME)));
-	PyDict_SetItemString(d,"SE_SECURITY_NAME",PyUnicode_FromWideChar(SE_SECURITY_NAME,wcslen(SE_SECURITY_NAME)));
-	PyDict_SetItemString(d,"SE_TAKE_OWNERSHIP_NAME",PyUnicode_FromWideChar(SE_TAKE_OWNERSHIP_NAME,wcslen(SE_TAKE_OWNERSHIP_NAME)));
-	PyDict_SetItemString(d,"SE_LOAD_DRIVER_NAME",PyUnicode_FromWideChar(SE_LOAD_DRIVER_NAME,wcslen(SE_LOAD_DRIVER_NAME)));
-	PyDict_SetItemString(d,"SE_SYSTEM_PROFILE_NAME",PyUnicode_FromWideChar(SE_SYSTEM_PROFILE_NAME,wcslen(SE_SYSTEM_PROFILE_NAME)));
-	PyDict_SetItemString(d,"SE_SYSTEMTIME_NAME",PyUnicode_FromWideChar(SE_SYSTEMTIME_NAME,wcslen(SE_SYSTEMTIME_NAME)));
-	PyDict_SetItemString(d,"SE_PROF_SINGLE_PROCESS_NAME",PyUnicode_FromWideChar(SE_PROF_SINGLE_PROCESS_NAME,wcslen(SE_PROF_SINGLE_PROCESS_NAME)));
-	PyDict_SetItemString(d,"SE_INC_BASE_PRIORITY_NAME",PyUnicode_FromWideChar(SE_INC_BASE_PRIORITY_NAME,wcslen(SE_INC_BASE_PRIORITY_NAME)));
-	PyDict_SetItemString(d,"SE_CREATE_PAGEFILE_NAME",PyUnicode_FromWideChar(SE_CREATE_PAGEFILE_NAME,wcslen(SE_CREATE_PAGEFILE_NAME)));
-	PyDict_SetItemString(d,"SE_CREATE_PERMANENT_NAME",PyUnicode_FromWideChar(SE_CREATE_PERMANENT_NAME,wcslen(SE_CREATE_PERMANENT_NAME)));
-	PyDict_SetItemString(d,"SE_BACKUP_NAME",PyUnicode_FromWideChar(SE_BACKUP_NAME,wcslen(SE_BACKUP_NAME)));
-	PyDict_SetItemString(d,"SE_RESTORE_NAME",PyUnicode_FromWideChar(SE_RESTORE_NAME,wcslen(SE_RESTORE_NAME)));
-	PyDict_SetItemString(d,"SE_SHUTDOWN_NAME",PyUnicode_FromWideChar(SE_SHUTDOWN_NAME,wcslen(SE_SHUTDOWN_NAME)));
-	PyDict_SetItemString(d,"SE_DEBUG_NAME",PyUnicode_FromWideChar(SE_DEBUG_NAME,wcslen(SE_DEBUG_NAME)));
-	PyDict_SetItemString(d,"SE_AUDIT_NAME",PyUnicode_FromWideChar(SE_AUDIT_NAME,wcslen(SE_AUDIT_NAME)));
-	PyDict_SetItemString(d,"SE_SYSTEM_ENVIRONMENT_NAME",PyUnicode_FromWideChar(SE_SYSTEM_ENVIRONMENT_NAME,wcslen(SE_SYSTEM_ENVIRONMENT_NAME)));
-	PyDict_SetItemString(d,"SE_CHANGE_NOTIFY_NAME",PyUnicode_FromWideChar(SE_CHANGE_NOTIFY_NAME,wcslen(SE_CHANGE_NOTIFY_NAME)));
-	PyDict_SetItemString(d,"SE_REMOTE_SHUTDOWN_NAME",PyUnicode_FromWideChar(SE_REMOTE_SHUTDOWN_NAME,wcslen(SE_REMOTE_SHUTDOWN_NAME)));
-	PyDict_SetItemString(d,"SE_UNDOCK_NAME",PyUnicode_FromWideChar(SE_UNDOCK_NAME,wcslen(SE_UNDOCK_NAME)));
-	PyDict_SetItemString(d,"SE_SYNC_AGENT_NAME",PyUnicode_FromWideChar(SE_SYNC_AGENT_NAME,wcslen(SE_SYNC_AGENT_NAME)));
-	PyDict_SetItemString(d,"SE_ENABLE_DELEGATION_NAME",PyUnicode_FromWideChar(SE_ENABLE_DELEGATION_NAME,wcslen(SE_ENABLE_DELEGATION_NAME)));
-	PyDict_SetItemString(d,"SE_MANAGE_VOLUME_NAME",PyUnicode_FromWideChar(SE_MANAGE_VOLUME_NAME,wcslen(SE_MANAGE_VOLUME_NAME)));
+	ADD_UNICODE_CONSTANT(SE_CREATE_TOKEN_NAME);
+	ADD_UNICODE_CONSTANT(SE_ASSIGNPRIMARYTOKEN_NAME);
+	ADD_UNICODE_CONSTANT(SE_LOCK_MEMORY_NAME);
+	ADD_UNICODE_CONSTANT(SE_INCREASE_QUOTA_NAME);
+	ADD_UNICODE_CONSTANT(SE_UNSOLICITED_INPUT_NAME);
+	ADD_UNICODE_CONSTANT(SE_MACHINE_ACCOUNT_NAME);
+	ADD_UNICODE_CONSTANT(SE_TCB_NAME);
+	ADD_UNICODE_CONSTANT(SE_SECURITY_NAME);
+	ADD_UNICODE_CONSTANT(SE_TAKE_OWNERSHIP_NAME);
+	ADD_UNICODE_CONSTANT(SE_LOAD_DRIVER_NAME);
+	ADD_UNICODE_CONSTANT(SE_SYSTEM_PROFILE_NAME);
+	ADD_UNICODE_CONSTANT(SE_SYSTEMTIME_NAME);
+	ADD_UNICODE_CONSTANT(SE_PROF_SINGLE_PROCESS_NAME);
+	ADD_UNICODE_CONSTANT(SE_INC_BASE_PRIORITY_NAME);
+	ADD_UNICODE_CONSTANT(SE_CREATE_PAGEFILE_NAME);
+	ADD_UNICODE_CONSTANT(SE_CREATE_PERMANENT_NAME);
+	ADD_UNICODE_CONSTANT(SE_BACKUP_NAME);
+	ADD_UNICODE_CONSTANT(SE_RESTORE_NAME);
+	ADD_UNICODE_CONSTANT(SE_SHUTDOWN_NAME);
+	ADD_UNICODE_CONSTANT(SE_DEBUG_NAME);
+	ADD_UNICODE_CONSTANT(SE_AUDIT_NAME);
+	ADD_UNICODE_CONSTANT(SE_SYSTEM_ENVIRONMENT_NAME);
+	ADD_UNICODE_CONSTANT(SE_CHANGE_NOTIFY_NAME);
+	ADD_UNICODE_CONSTANT(SE_REMOTE_SHUTDOWN_NAME);
+	ADD_UNICODE_CONSTANT(SE_UNDOCK_NAME);
+	ADD_UNICODE_CONSTANT(SE_SYNC_AGENT_NAME);
+	ADD_UNICODE_CONSTANT(SE_ENABLE_DELEGATION_NAME);
+	ADD_UNICODE_CONSTANT(SE_MANAGE_VOLUME_NAME);
+	ADD_UNICODE_CONSTANT(SE_INTERACTIVE_LOGON_NAME);
+	ADD_UNICODE_CONSTANT(SE_NETWORK_LOGON_NAME);
+	ADD_UNICODE_CONSTANT(SE_BATCH_LOGON_NAME);
+	ADD_UNICODE_CONSTANT(SE_SERVICE_LOGON_NAME);
+	ADD_UNICODE_CONSTANT(SE_DENY_INTERACTIVE_LOGON_NAME);
+	ADD_UNICODE_CONSTANT(SE_DENY_NETWORK_LOGON_NAME);
+	ADD_UNICODE_CONSTANT(SE_DENY_BATCH_LOGON_NAME);
+	ADD_UNICODE_CONSTANT(SE_DENY_SERVICE_LOGON_NAME);
+	ADD_UNICODE_CONSTANT(SE_REMOTE_INTERACTIVE_LOGON_NAME);
+	ADD_UNICODE_CONSTANT(SE_DENY_REMOTE_INTERACTIVE_LOGON_NAME);
+	
 	PyDict_SetItemString(d,"MSV1_0_PACKAGE_NAME",PyString_FromString(MSV1_0_PACKAGE_NAME));
 	PyDict_SetItemString(d,"MICROSOFT_KERBEROS_NAME_A",PyString_FromString(MICROSOFT_KERBEROS_NAME_A));
 
@@ -2151,10 +2168,14 @@ static PyObject *PyLsaAddAccountRights(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsSID(obsid, &psid, FALSE))
 		return NULL;
-	if (!PySequence_Check(privs))
+	if (!PySequence_Check(privs)){
+		PyErr_SetString(PyExc_TypeError,"UserRights must be a sequence of unicode or string objects");
 		return NULL;
+		}
 	priv_cnt=PySequence_Length(privs);
 	plsau_start=(PLSA_UNICODE_STRING)calloc(priv_cnt,sizeof(LSA_UNICODE_STRING));
+	if (plsau_start==NULL)
+		return PyErr_Format(PyExc_MemoryError,"LsaAddAccountRights: Unable to allocate %d bytes", priv_cnt*sizeof(LSA_UNICODE_STRING));
 	plsau=plsau_start;
 	for (priv_ind=0; priv_ind<priv_cnt; priv_ind++){
 		plsau->Buffer=NULL;
@@ -2213,10 +2234,14 @@ static PyObject *PyLsaRemoveAccountRights(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsSID(obsid, &psid, FALSE))
 		return NULL;
-	if (!PySequence_Check(privs))
+	if (!PySequence_Check(privs)){
+		PyErr_SetString(PyExc_TypeError,"UserRights must be a sequence of unicode or string objects");
 		return NULL;
+		}
 	priv_cnt=PySequence_Length(privs);
 	plsau_start=(PLSA_UNICODE_STRING)calloc(priv_cnt,sizeof(LSA_UNICODE_STRING));
+	if (plsau_start==NULL)
+		return PyErr_Format(PyExc_MemoryError,"LsaRemoveAccountRights: Unable to allocate %d bytes", priv_cnt*sizeof(LSA_UNICODE_STRING));
 	plsau=plsau_start;
 	for (priv_ind=0; priv_ind<priv_cnt; priv_ind++){
 		plsau->Buffer=NULL;
