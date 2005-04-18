@@ -413,7 +413,7 @@ BOOL PySocket_AsSOCKET
 // Typical Usage:
 // PyWin_AutoFreeBstr arg;
 // PyArg_ParseTuple("O", &obStr);
-// PyWin_PyObjectAsAutoFreeBstr(obStr, &arg);
+// PyWinObject_AsAutoFreeBstr(obStr, &arg);
 // CallTheFunction(arg); // Will correctly pass BSTR/OLECHAR
 // -- when the function goes out of scope, the string owned by "arg" will
 // -- automatically be freed.
@@ -430,6 +430,10 @@ private:
 
 inline BOOL PyWinObject_AsAutoFreeBstr(PyObject *stringObject, PyWin_AutoFreeBstr *pResult, BOOL bNoneOK = FALSE)
 {
+	if (bNoneOK && stringObject == Py_None) {
+		pResult->SetBstr(NULL);
+		return TRUE;
+	}
 	BSTR bs;
 	if (!PyWinObject_AsBstr(stringObject, &bs, bNoneOK))
 		return FALSE;
