@@ -4,7 +4,7 @@ import win32ui, win32uiole, window
 import new
 
 class Control(window.Wnd):
-	"""An ActiveX control base class.  A new class must be derived from both 
+	"""An ActiveX control base class.  A new class must be derived from both
 	this class and the Events class.  See the demos for more details.
 	"""
 	def __init__(self):
@@ -20,12 +20,12 @@ class Control(window.Wnd):
 
 	def CreateControl(self, windowTitle, style, rect, parent, id, lic_string=None):
 		clsid = str(self._GetControlCLSID())
-		self.__dict__["_obj_"] = win32ui.CreateControl(clsid, windowTitle, style, rect, parent, id, lic_string)
+		self.__dict__["_obj_"] = win32ui.CreateControl(clsid, windowTitle, style, rect, parent, id, None, False, lic_string)
 		klass = self._GetDispatchClass()
 		dispobj = klass(win32uiole.GetIDispatchForWindow(self._obj_))
 		self.HookOleEvents()
 		self.__dict__["_dispobj_"] = dispobj
-		
+
 	def HookOleEvents(self):
 		dict = self._GetEventMap()
 		for dispid, methodName in dict.items():
@@ -54,7 +54,7 @@ class Control(window.Wnd):
 def MakeControlClass( controlClass, name = None ):
 	"""Given a CoClass in a generated .py file, this function will return a Class
 	object which can be used as an OCX control.
-	
+
 	This function is used when you do not want to handle any events from the OCX
 	control.  If you need events, then you should derive a class from both the
 	activex.Control class and the CoClass
@@ -62,7 +62,7 @@ def MakeControlClass( controlClass, name = None ):
 	if name is None:
 		name = controlClass.__name__
 	return new.classobj("OCX" + name, (Control, controlClass), {})
-	
+
 def MakeControlInstance( controlClass, name = None ):
 	"""As for MakeControlClass(), but returns an instance of the class.
 	"""

@@ -394,8 +394,9 @@ PyCWnd::CreateControl(PyObject *self, PyObject *args)
 	CRect rect(0,0,0,0);
 	PyObject *obPersist = Py_None;
 	int bStorage = FALSE;
-	const char *szClass, *szWndName, *szLicKey = NULL;
-	if (!PyArg_ParseTuple(args, "szi(iiii)Oi|Oiz", 
+	const char *szClass, *szWndName;
+	PyObject *obLicKey = Py_None;
+	if (!PyArg_ParseTuple(args, "szi(iiii)Oi|OiO", 
 	          &szClass,   // @pyparm string|classId||The class ID for the window.
 	          &szWndName, // @pyparm string|windowName||The title for the window.
 	          &style,     // @pyparm int|style||The style for the control.
@@ -405,7 +406,7 @@ PyCWnd::CreateControl(PyObject *self, PyObject *args)
 	          &id,        // @pyparm int|id||The child ID for the view
 			  &obPersist, // @pyparm object|obPersist|None|Place holder for future support.
 			  &bStorage,  // @pyparm int|bStorage|FALSE|Not used.
-			  &szLicKey ))// @pyparm string|licKey|None|The licence key for the control.
+			  &obLicKey ))// @pyparm string|licKey|None|The licence key for the control.
 		return NULL;
 
 	CLSID clsid;
@@ -419,12 +420,16 @@ PyCWnd::CreateControl(PyObject *self, PyObject *args)
 	CWnd *pWndParent = GetWndPtr( parent );
 	if (pWnd==NULL || pWndParent==NULL)
 		return NULL;
-	// This will cause MFC to die after dumping a message to the debugget!
+	PyWin_AutoFreeBstr bstrLicKey;
+	if (obLicKey != Py_None && !PyWinObject_AsAutoFreeBstr(obLicKey, &bstrLicKey, TRUE))
+		return NULL;
+
+	// This will cause MFC to die after dumping a message to the debugger!
 	if (afxOccManager == NULL)
 		RETURN_ERR("win32ui.EnableControlContainer() has not been called yet.");
 	BOOL ok;
 	GUI_BGN_SAVE;
-	ok = pWnd->CreateControl(clsid, szWndName, style, rect, pWndParent, id, NULL, bStorage, T2OLE(szLicKey));
+	ok = pWnd->CreateControl(clsid, szWndName, style, rect, pWndParent, id, NULL, bStorage, bstrLicKey);
 	GUI_END_SAVE;
 	if (!ok)
 		RETURN_ERR("CreateControl failed");
