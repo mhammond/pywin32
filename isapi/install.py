@@ -304,7 +304,7 @@ def _AddExtensionFile(module, def_groupid, def_desc, params, options):
                             params.AddExtensionFile_CanDelete,
                             desc)
         log(2, "Added extension file '%s' (%s)" % (module, desc))
-    except pythoncom.com_error, details:
+    except (pythoncom.com_error, AttributeError), details:
         # IIS5 always fails.  Probably should upgrade this to
         # complain more loudly if IIS6 fails.
         log(2, "Failed to add extension file '%s': %s" % (module, details))
@@ -331,7 +331,7 @@ def _DeleteExtensionFileRecord(module, options):
         ob = GetObject(_IIS_OBJECT)
         ob.DeleteExtensionFileRecord(module)
         log(2, "Deleted extension file record for '%s'" % module)
-    except pythoncom.com_error, details:
+    except (pythoncom.com_error, AttributeError), details:
         log(2, "Failed to remove extension file '%s': %s" % (module, details))
 
 def DeleteExtensionFileRecords(params, options):
