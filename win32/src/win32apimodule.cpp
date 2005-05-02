@@ -3794,25 +3794,23 @@ static PyObject *PyTerminateProcess(PyObject *self, PyObject *args)
 static PyObject * PyLoadString(PyObject *self, PyObject *args)
 {
 	HMODULE hModule;
-	int numChars = 1024;
+	int numChars = 1024, gotChars=0;
 	UINT stringId;
 	if ( !PyArg_ParseTuple(args, "ii|i",
 						   &hModule, // @pyparm int|handle||The handle of the module containing the resource.
 						   &stringId, // @pyparm int|stringId||The ID of the string to load.
 						   &numChars)) // @pyparm int|numChars|1024|Number of characters to allocate for the return buffer.
 		return NULL;
-	UINT numBytes = sizeof(WCHAR) * numChars;
+	int numBytes = sizeof(WCHAR) * numChars;
 	WCHAR *buffer = (WCHAR *)malloc(numBytes);
-	if (buffer==NULL) {
-		PyErr_SetString(PyExc_MemoryError, "Allocating buffer for LoadString");
-		return NULL;
-	}
-	int gotBytes = LoadStringW(hModule, stringId, buffer, numBytes);
+	if (buffer==NULL)
+		return PyErr_Format(PyExc_MemoryError, "Allocating buffer of %d bytes for LoadString", numBytes);
+	gotChars = LoadStringW(hModule, stringId, buffer, numChars);
 	PyObject *rc;
-	if (gotBytes==0)
+	if (gotChars==0)
 		rc = ReturnAPIError("LoadString");
 	else
-		rc = PyWinObject_FromWCHAR(buffer, gotBytes);
+		rc = PyWinObject_FromWCHAR(buffer, gotChars);
 	free(buffer);
 	return rc;
 }
