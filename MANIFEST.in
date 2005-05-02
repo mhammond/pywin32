@@ -60,6 +60,9 @@ include com/win32comext/taskscheduler/src/*.h
 include com/win32comext/taskscheduler/test/*.py
 include com/win32comext/ifilter/src/*.h
 include com/win32comext/ifilter/demo/*.py
+include com/win32comext/directsound/src/*.h
+include com/win32comext/directsound/test/*.py
+include com/win32comext/directsound/test/*.wav
 
 # Pythonwin
 include pythonwin/pythonwin.cpp
