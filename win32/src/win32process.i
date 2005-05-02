@@ -94,7 +94,7 @@ PyTypeObject PySTARTUPINFOType =
 	{"dwYCountChars",    T_INT,  OFF(m_startupinfo.dwYCountChars)}, // @prop integer|dwYCountChars|For console processes, if a new console window is created, specifies the screen buffer height in character rows.
 	{"dwFillAttribute",  T_INT,  OFF(m_startupinfo.dwFillAttribute)}, // @prop integer|dwFillAttribute|Specifies the initial text and background colors if a new console window is created in a console application. These values are ignored in GUI applications
 	{"dwFlags",          T_INT,  OFF(m_startupinfo.dwFlags)}, // @prop integer|dwFlags|This is a bit field that determines whether certain STARTUPINFO attributes are used when the process creates a window. To use many of the additional attributes, you typically must set the appropriate mask in this attribute, and also set the attributes themselves. Any combination of the win32con.STARTF_* flags can be specified. 
-	{"wShowWindow",	     T_INT,  OFF(m_startupinfo.wShowWindow)},//@prop integer|wShowWindow|Can be any of the SW_ constants defined in win32con. For GUI processes, this specifies the default value the first time ShowWindow is called.
+	{"wShowWindow",	     T_USHORT,  OFF(m_startupinfo.wShowWindow)},//@prop integer|wShowWindow|Can be any of the SW_ constants defined in win32con. For GUI processes, this specifies the default value the first time ShowWindow is called.
 	{NULL}
 };
 
