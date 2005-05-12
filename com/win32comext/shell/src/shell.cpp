@@ -40,6 +40,27 @@ generates Windows .hlp files.
 // We should not be using this!
 #define OleSetOleError PyCom_BuildPyException
 
+static HMODULE shell32 = NULL;
+static HMODULE shfolder = NULL;
+
+typedef BOOL (WINAPI * PFNSHGetSpecialFolderPath)(HWND, LPWSTR,  int, BOOL );
+static PFNSHGetSpecialFolderPath pfnSHGetSpecialFolderPath = NULL;
+
+typedef HRESULT (WINAPI * PFNSHGetFolderLocation)(HWND, int, HANDLE, DWORD, LPITEMIDLIST *);
+static PFNSHGetFolderLocation pfnSHGetFolderLocation = NULL;
+
+typedef HRESULT (WINAPI * PFNSHEmptyRecycleBin)(HWND, LPSTR, DWORD );
+static PFNSHEmptyRecycleBin pfnSHEmptyRecycleBin = NULL;
+
+typedef void (WINAPI * PFNSHGetSettings)(LPSHELLFLAGSTATE, DWORD);
+static PFNSHGetSettings pfnSHGetSettings = NULL;
+
+typedef HRESULT (WINAPI * PFNSHGetFolderPath)(HWND, int, HANDLE, DWORD, LPWSTR);
+static PFNSHGetFolderPath pfnSHGetFolderPath = NULL;
+
+typedef HRESULT (WINAPI *PFNSHQueryRecycleBin)(LPCWSTR, LPSHQUERYRBINFO);
+static PFNSHQueryRecycleBin pfnSHQueryRecycleBin = NULL;
+
 void PyShell_FreeMem(void *p)
 {
 	IMalloc *pMalloc;
@@ -984,14 +1005,10 @@ static PyObject *PySHGetSpecialFolderPath(PyObject *self, PyObject *args)
 			&bCreate)) // @pyparm int|bCreate|0|Should the path be created.
 		return NULL;
 
-	typedef BOOL (WINAPI * PFNSHGetSpecialFolderPath)(HWND, LPWSTR,  int, BOOL );
-
 	// @comm This method is only available in shell version 4.71.  If the 
 	// function is not available, a COM Exception with HRESULT=E_NOTIMPL 
 	// will be raised.  If the function fails, a COM Exception with 
 	// HRESULT=E_FAIL will be raised.
-	HMODULE hmod = GetModuleHandle(TEXT("shell32.dll"));
-	PFNSHGetSpecialFolderPath pfnSHGetSpecialFolderPath = (PFNSHGetSpecialFolderPath)GetProcAddress(hmod, "SHGetSpecialFolderPathW");
 	if (pfnSHGetSpecialFolderPath==NULL)
 		return OleSetOleError(E_NOTIMPL);
 
@@ -1092,23 +1109,15 @@ static PyObject *PySHGetFolderPath(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(obHandle, &handle, TRUE))
 		return NULL;
 
-	typedef HRESULT (WINAPI * PFNSHGetFolderPath)(HWND, int, HANDLE, DWORD, LPWSTR);
-
-	// @comm This method is only available if you have shfolder.dll installed, included with certain shell updates.
-	HMODULE hmod = LoadLibrary(TEXT("shfolder.dll"));
-	PFNSHGetFolderPath pfnSHGetFolderPath = NULL;
-	if (hmod) pfnSHGetFolderPath=(PFNSHGetFolderPath)GetProcAddress(hmod, "SHGetFolderPathW");
-	if (pfnSHGetFolderPath==NULL) {
-		if (hmod) FreeLibrary(hmod);
+	// @comm This method is only available with later versions of shell32.dll, or if you have shfolder.dll installed on earlier systems
+	if (pfnSHGetFolderPath==NULL)
 		return OleSetOleError(E_NOTIMPL);
-	}
 
 	WCHAR buf[MAX_PATH+1];
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = (*pfnSHGetFolderPath)(hwndOwner, nFolder, handle, flags, buf);
 	PY_INTERFACE_POSTCALL;
 
-	FreeLibrary(hmod);
 	if (FAILED(hr))
 		return OleSetOleError(hr);
 	return PyWinObject_FromWCHAR(buf);
@@ -1118,37 +1127,28 @@ static PyObject *PySHGetFolderPath(PyObject *self, PyObject *args)
 static PyObject *PySHGetFolderLocation(PyObject *self, PyObject *args)
 {
 	HWND hwndOwner;
+	HANDLE hToken=NULL;
 	int nFolder;
-	long flags = 0;
-	PyObject *obHandle;
-	BOOL bCreate = FALSE;
-	if(!PyArg_ParseTuple(args, "liO|l:SHGetFolderLocation",
-			&hwndOwner, // @pyparm int|hwndOwner||
+	DWORD flags = 0;
+	PyObject *obToken=Py_None;
+
+	if(!PyArg_ParseTuple(args, "li|Ol:SHGetFolderLocation",
+			&hwndOwner, // @pyparm int|hwndOwner||Window in which to display any neccessary dialogs
 			&nFolder, // @pyparm int|nFolder||One of the CSIDL_* constants specifying the path.
-			&obHandle, // @pyparm <o PyHANDLE>|handle||An access token that can be used to represent a particular user, or None
-			&flags)) // @pyparm int|reserved||Must be 0
+			&obToken, // @pyparm <o PyHANDLE>|hToken|None|An access token that can be used to represent a particular user, or None
+			&flags)) // @pyparm int|reserved|0|Must be 0
 		return NULL;
-
-	HANDLE handle;
-	if (!PyWinObject_AsHANDLE(obHandle, &handle, TRUE))
+	if (!PyWinObject_AsHANDLE(obToken, &hToken, TRUE))
 		return NULL;
-
 	LPITEMIDLIST pidl;
 
-	typedef HRESULT (WINAPI * PFNSHGetFolderLocation)(HWND, int, LPITEMIDLIST *);
-
-	// @comm This method is only available if you have a late version of shfolder.dll installed, included with certain shell updates.
-	HMODULE hmod = LoadLibrary(TEXT("shfolder.dll"));
-	PFNSHGetFolderLocation pfnSHGetFolderLocation = NULL;
-	if (hmod) pfnSHGetFolderLocation=(PFNSHGetFolderLocation)GetProcAddress(hmod, "SHGetFolderLocationW");
-	if (pfnSHGetFolderLocation==NULL) {
-		if (hmod) FreeLibrary(hmod);
+	// @comm This method is only available with version 5 or later of the shell controls
+	if (pfnSHGetFolderLocation==NULL)
 		return OleSetOleError(E_NOTIMPL);
-	}
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = (*pfnSHGetFolderLocation)(hwndOwner, nFolder, &pidl);
+	HRESULT hr = (*pfnSHGetFolderLocation)(hwndOwner, nFolder, hToken, flags, &pidl);
 	PY_INTERFACE_POSTCALL;
-	FreeLibrary(hmod);
+
 	if (FAILED(hr))
 		return OleSetOleError(hr);
 	PyObject *rc = PyObject_FromPIDL(pidl, TRUE);
@@ -1185,10 +1185,7 @@ static PyObject *PySHEmptyRecycleBin(PyObject *self, PyObject *args)
 			&flags)) // @pyparm int|flags||One of the SHERB_* values.
 		return NULL;
 
-	typedef HRESULT (WINAPI * PFNSHEmptyRecycleBin)(HWND, LPSTR, DWORD );
 	// @comm This method is only available in shell version 4.71.  If the function is not available, a COM Exception with HRESULT=E_NOTIMPL will be raised.
-	HMODULE hmod = GetModuleHandle(TEXT("shell32.dll"));
-	PFNSHEmptyRecycleBin pfnSHEmptyRecycleBin = (PFNSHEmptyRecycleBin)GetProcAddress(hmod, "SHEmptyRecycleBinA");
 	if (pfnSHEmptyRecycleBin==NULL)
 		return OleSetOleError(E_NOTIMPL);
 
@@ -1199,6 +1196,28 @@ static PyObject *PySHEmptyRecycleBin(PyObject *self, PyObject *args)
 		return OleSetOleError(hr);
 	Py_INCREF(Py_None);
 	return Py_None;
+}
+
+// @pymethod long,long|shell|SHQueryRecycleBin|Retrieves the total size and number of items in the Recycle Bin for a specified drive
+static PyObject *PySHQueryRecycleBin(PyObject *self, PyObject *args)
+{
+	PyObject *obRootPath=Py_None;
+	HRESULT hr;
+	WCHAR *RootPath=NULL;
+	SHQUERYRBINFO info;
+	if (!PyArg_ParseTuple(args, "|O:SHQueryRecycleBin",
+		&obRootPath))	// @pyparm <o PyUnicode>|RootPath|None|A path containing the drive whose recycle bin will be queried, or None for all drives
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obRootPath, &RootPath, TRUE))
+		return NULL;
+	if (pfnSHQueryRecycleBin==NULL)
+		return OleSetOleError(E_NOTIMPL);
+	info.cbSize=sizeof(SHQUERYRBINFO);
+	hr=(*pfnSHQueryRecycleBin)(RootPath, &info);
+	PyWinObject_FreeWCHAR(RootPath);
+	if (FAILED(hr))
+		return OleSetOleError(hr);
+	return Py_BuildValue("LL", info.i64Size, info.i64NumItems);
 }
 
 // @pymethod int, int|shell|SHFileOperation|Copies, moves, renames, or deletes a file system object.
@@ -1516,13 +1535,9 @@ static PyObject *PySHGetSettings(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "|l:SHGetSettings", &mask))
 		return NULL;
 
-	typedef void (WINAPI * PFNSHGetSettings)(LPSHELLFLAGSTATE, DWORD);
-
 	// @comm This method is only available in shell version 4.71.  If the 
 	// function is not available, a COM Exception with HRESULT=E_NOTIMPL 
 	// will be raised.
-	HMODULE hmod = GetModuleHandle(TEXT("shell32.dll"));
-	PFNSHGetSettings pfnSHGetSettings = (PFNSHGetSettings)GetProcAddress(hmod, "SHGetSettings");
 	if (pfnSHGetSettings==NULL)
 		return OleSetOleError(E_NOTIMPL);
 
@@ -1998,7 +2013,8 @@ static struct PyMethodDef shell_methods[]=
     { "SHAddToRecentDocs", PySHAddToRecentDocs, 1 }, // @pymeth SHAddToRecentDocs|Adds a document to the shell's list of recently used documents or clears all documents from the list. The user gains access to the list through the Start menu of the Windows taskbar.
     { "SHChangeNotify", PySHChangeNotify, 1 }, // @pymeth SHChangeNotify|Notifies the system of an event that an application has performed. An application should use this function if it performs an action that may affect the shell.
     { "SHEmptyRecycleBin", PySHEmptyRecycleBin, 1 }, // @pymeth SHEmptyRecycleBin|Empties the recycle bin on the specified drive.
-    { "SHGetDesktopFolder", PySHGetDesktopFolder, 1}, // @pymeth SHGetDesktopFolder|Retrieves the <o PyIShellFolder> interface for the desktop folder, which is the root of the shell's namespace. 
+	{ "SHQueryRecycleBin", PySHQueryRecycleBin, 1}, // @pymeth SHQueryRecycleBin|Returns the number of items and total size of recycle bin
+	{ "SHGetDesktopFolder", PySHGetDesktopFolder, 1}, // @pymeth SHGetDesktopFolder|Retrieves the <o PyIShellFolder> interface for the desktop folder, which is the root of the shell's namespace. 
     { "SHUpdateImage", PySHUpdateImage, 1}, // @pymeth SHUpdateImage|Notifies the shell that an image in the system image list has changed.
     { "SHChangeNotify", PySHChangeNotify, 1}, // @pymeth SHChangeNotify|Notifies the system of an event that an application has performed.
 	{ "SHChangeNotifyRegister", PySHChangeNotifyRegister, 1}, // @pymeth SHChangeNotifyRegister|Registers a window that receives notifications from the file system or shell.
@@ -2086,17 +2102,38 @@ extern "C" __declspec(dllexport) void initshell()
 	// Register all of our interfaces, gateways and IIDs.
 	PyCom_RegisterExtensionSupport(dict, g_interfaceSupportData, sizeof(g_interfaceSupportData)/sizeof(PyCom_InterfaceSupportInfo));
 
+	// load dll's and function pointers ahead of time
+	shell32=GetModuleHandle(TEXT("shell32.dll"));
+	if (shell32==NULL)
+		shell32 = LoadLibrary(TEXT("shell32.dll"));
+	if (shell32!=NULL){
+		pfnSHGetFolderLocation=(PFNSHGetFolderLocation)GetProcAddress(shell32, "SHGetFolderLocation");
+		pfnSHGetSpecialFolderPath = (PFNSHGetSpecialFolderPath)GetProcAddress(shell32, "SHGetSpecialFolderPathW");
+		pfnSHEmptyRecycleBin = (PFNSHEmptyRecycleBin)GetProcAddress(shell32, "SHEmptyRecycleBinA");
+		pfnSHQueryRecycleBin = (PFNSHQueryRecycleBin)GetProcAddress(shell32, "SHQueryRecycleBinW");
+		pfnSHGetSettings = (PFNSHGetSettings)GetProcAddress(shell32, "SHGetSettings");
+		pfnSHGetFolderPath=(PFNSHGetFolderPath)GetProcAddress(shell32, "SHGetFolderPathW");
+		}
+	// SHGetFolderPath comes from shfolder.dll on older systems
+	if (pfnSHGetFolderPath==NULL){
+		shfolder = GetModuleHandle(TEXT("shfolder.dll"));
+		if (shfolder==NULL)
+			shfolder = LoadLibrary(TEXT("shfolder.dll"));
+		if (shfolder!=NULL)
+			pfnSHGetFolderPath=(PFNSHGetFolderPath)GetProcAddress(shfolder, "SHGetFolderPathW");
+		}
+
 	ADD_CONSTANT(SLR_NO_UI);
 	ADD_CONSTANT(SLR_NOLINKINFO);
 	ADD_CONSTANT(SLR_INVOKE_MSI);
-    ADD_CONSTANT(SLR_ANY_MATCH);
-    ADD_CONSTANT(SLR_UPDATE);
-    ADD_CONSTANT(SLR_NOUPDATE);
+	ADD_CONSTANT(SLR_ANY_MATCH);
+	ADD_CONSTANT(SLR_UPDATE);
+	ADD_CONSTANT(SLR_NOUPDATE);
 	ADD_CONSTANT(SLR_NOSEARCH);
 	ADD_CONSTANT(SLR_NOTRACK);
-    ADD_CONSTANT(SLGP_SHORTPATH);
-    ADD_CONSTANT(SLGP_UNCPRIORITY);
-    ADD_CONSTANT(SLGP_RAWPATH);
+	ADD_CONSTANT(SLGP_SHORTPATH);
+	ADD_CONSTANT(SLGP_UNCPRIORITY);
+	ADD_CONSTANT(SLGP_RAWPATH);
 	ADD_CONSTANT(HOTKEYF_ALT);
 	ADD_CONSTANT(HOTKEYF_CONTROL);
 	ADD_CONSTANT(HOTKEYF_EXT);
@@ -2125,12 +2162,19 @@ extern "C" __declspec(dllexport) void initshell()
 #if (_WIN32_IE >= 0x0400)
 	ADD_IID(CGID_ShellServiceObject);
 	ADD_IID(CGID_ExplorerBarDoc);
+	ADD_IID(SID_SShellDesktop);
+	ADD_IID(SID_SUrlHistory);
+	ADD_IID(SID_SInternetExplorer);
+	ADD_IID(SID_SWebBrowserApp);
+	ADD_IID(SID_SProgressUI);
+	ADD_IID(SID_LinkSite);
+	ADD_IID(SID_ShellFolderViewCB);
+	ADD_IID(SID_SShellBrowser);
 #else
 #	pragma message("Please update your SDK headers - IE5 features missing!")
 #endif
 
 #if (_WIN32_IE >= 0x0500)
-
 	ADD_IID(FMTID_ShellDetails);
 	ADD_IID(FMTID_Storage);
 	ADD_IID(FMTID_ImageProperties);
@@ -2144,6 +2188,7 @@ extern "C" __declspec(dllexport) void initshell()
 	ADD_IID(FMTID_SummaryInformation);
 	ADD_IID(FMTID_MediaFileSummaryInformation);
 	ADD_IID(FMTID_ImageSummaryInformation);
+
 #else
 #	pragma message("Please update your SDK headers - IE5 features missing!")
 #endif
