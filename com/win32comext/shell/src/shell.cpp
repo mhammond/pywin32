@@ -42,6 +42,7 @@ generates Windows .hlp files.
 
 static HMODULE shell32 = NULL;
 static HMODULE shfolder = NULL;
+static HMODULE shlwapi = NULL;
 
 typedef BOOL (WINAPI * PFNSHGetSpecialFolderPath)(HWND, LPWSTR,  int, BOOL );
 static PFNSHGetSpecialFolderPath pfnSHGetSpecialFolderPath = NULL;
@@ -60,6 +61,15 @@ static PFNSHGetFolderPath pfnSHGetFolderPath = NULL;
 
 typedef HRESULT (WINAPI *PFNSHQueryRecycleBin)(LPCWSTR, LPSHQUERYRBINFO);
 static PFNSHQueryRecycleBin pfnSHQueryRecycleBin = NULL;
+
+typedef HRESULT (WINAPI *PFNSHGetViewStatePropertyBag)(LPCITEMIDLIST, LPCWSTR, DWORD, REFIID, void **);
+static PFNSHGetViewStatePropertyBag pfnSHGetViewStatePropertyBag = NULL;
+
+typedef HRESULT (WINAPI *PFNSHILCreateFromPath)(LPCWSTR, LPITEMIDLIST *, DWORD *);
+static PFNSHILCreateFromPath pfnSHILCreateFromPath = NULL;
+
+typedef HRESULT (WINAPI * PFNAssocCreate)(CLSID, REFIID, LPVOID);
+static PFNAssocCreate pfnAssocCreate = NULL;
 
 void PyShell_FreeMem(void *p)
 {
@@ -1052,10 +1062,10 @@ static PyObject *PySHGetFileInfo(PyObject *self, PyObject *args)
 	int attr, flags, info_attrs=0;
 	BOOL ok;
 	if (!PyArg_ParseTuple(args, "Oii|i", 
-			&obName, // @pyparm string/<o PIDL>|name||The path and file name. Both absolute 
+			&obName, // @pyparm string/<o PyIDL>|name||The path and file name. Both absolute 
 					 // and relative paths are valid.
 					 // <nl>If the uFlags parameter includes the SHGFI_PIDL flag, this parameter 
-					 // must be a valid <o PIDL> object that uniquely identifies the file within 
+					 // must be a valid <o PyIDL> object that uniquely identifies the file within 
 					 // the shell's namespace. The PIDL must be a fully qualified PIDL. 
 					 // Relative PIDLs are not allowed.
 					 // <nl>If the uFlags parameter includes the SHGFI_USEFILEATTRIBUTES flag, this parameter does not have to be a valid file name. 
@@ -1213,7 +1223,9 @@ static PyObject *PySHQueryRecycleBin(PyObject *self, PyObject *args)
 	if (pfnSHQueryRecycleBin==NULL)
 		return OleSetOleError(E_NOTIMPL);
 	info.cbSize=sizeof(SHQUERYRBINFO);
+	PY_INTERFACE_PRECALL;
 	hr=(*pfnSHQueryRecycleBin)(RootPath, &info);
+	PY_INTERFACE_POSTCALL;
 	PyWinObject_FreeWCHAR(RootPath);
 	if (FAILED(hr))
 		return OleSetOleError(hr);
@@ -1468,7 +1480,7 @@ static PyObject *PySHGetInstanceExplorer(PyObject *self, PyObject *args)
 static PyObject *PyPIDLAsString(PyObject *self, PyObject *args)
 {
 	PyObject *obPIDL;
-	// @pyparm <o PIDL>|pidl||The PIDL object (ie, a list of strings)
+	// @pyparm <o PyIDL>|pidl||The PIDL object (ie, a list of strings)
 	if (!PyArg_ParseTuple(args, "O:PIDLAsString", &obPIDL))
 		return NULL;
 	UINT cb;
@@ -1480,7 +1492,7 @@ static PyObject *PyPIDLAsString(PyObject *self, PyObject *args)
 	return ret;
 }
 
-// @pymethod <o PIDL>|shell|StringAsPIDL|Given a PIDL as a raw string, return a PIDL object (ie, a list of strings)
+// @pymethod <o PyIDL>|shell|StringAsPIDL|Given a PIDL as a raw string, return a PIDL object (ie, a list of strings)
 static PyObject *PyStringAsPIDL(PyObject *self, PyObject *args)
 {
 	char *szPIDL;
@@ -1491,7 +1503,7 @@ static PyObject *PyStringAsPIDL(PyObject *self, PyObject *args)
 	return PyObject_FromPIDL((LPCITEMIDLIST)szPIDL, FALSE);
 }	
 
-// @pymethod <o PIDL>|shell|AddressAsPIDL|Given the address of a PIDL in memory, return a PIDL object (ie, a list of strings)
+// @pymethod <o PyIDL>|shell|AddressAsPIDL|Given the address of a PIDL in memory, return a PIDL object (ie, a list of strings)
 static PyObject *PyAddressAsPIDL(PyObject *self, PyObject *args)
 {
 	long lpidl;
@@ -1501,7 +1513,7 @@ static PyObject *PyAddressAsPIDL(PyObject *self, PyObject *args)
 	return PyObject_FromPIDL((LPCITEMIDLIST)lpidl, FALSE);
 }	
 
-// @pymethod <o PIDL>, list|shell|StringAsCIDA|Given a CIDA as a raw string, return the folder PIDL and list of children
+// @pymethod <o PyIDL>, list|shell|StringAsCIDA|Given a CIDA as a raw string, return the folder PIDL and list of children
 static PyObject *PyStringAsCIDA(PyObject *self, PyObject *args)
 {
 	char *szCIDA;
@@ -1900,7 +1912,7 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
 									 &obParams, // @pyparm string|lpParams||
 									 &obDirectory, // @pyparm string|lpDirectory||
 									 &p->nShow, // @pyparm int|nShow|0|
-									 &obIDList, // @pyparm <o PIDL>|lpIDList||
+									 &obIDList, // @pyparm <o PyIDL>|lpIDList||
 									 &obClass, // @pyparm string|obClass||
 									 &obhkeyClass, // @pyparm int|hkeyClass||
 									 &obHotKey, // @pyparm int|dwHotKey||
@@ -1976,24 +1988,85 @@ static PyObject *PyAssocCreate(PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ":AssocCreate"))
 		return NULL;
-
-	HMODULE hmod = LoadLibrary(TEXT("shlwapi.dll"));
-	typedef HRESULT (WINAPI * PFNAssocCreate)(CLSID, REFIID, LPVOID);
-	PFNAssocCreate pfnAssocCreate = NULL;
-	if (hmod) pfnAssocCreate=(PFNAssocCreate)GetProcAddress(hmod, "AssocCreate");
-	if (pfnAssocCreate==NULL) {
-		if (hmod) FreeLibrary(hmod);
+	if (pfnAssocCreate==NULL)
 		return OleSetOleError(E_NOTIMPL);
-	}
+
 	HRESULT hr;
 	IQueryAssociations *pRet = NULL;
 	PY_INTERFACE_PRECALL;
 	hr = (*pfnAssocCreate)(CLSID_QueryAssociations, IID_IQueryAssociations, (void **)&pRet);
-	if (hmod) FreeLibrary(hmod);
 	PY_INTERFACE_POSTCALL;
+
 	if (FAILED(hr))
 		return PyCom_BuildPyException(hr);
 	return PyCom_PyObjectFromIUnknown(pRet, IID_IQueryAssociations, FALSE);
+}
+
+// @pymethod <o PyIPropertyBag>|shell|SHGetViewStatePropertyBag|Retrieves an interface for the view state of a folder
+// @comm This function will also return IPropertyBag2, but we don't have a python implementation of this interface yet
+static PyObject *PySHGetViewStatePropertyBag(PyObject *self, PyObject *args)
+{
+	LPITEMIDLIST pidl=NULL;
+	WCHAR *bagname=NULL;
+	DWORD flags;
+	IID riid;
+	void *output;
+	PyObject *obpidl, *obbagname, *obriid, *ret=NULL;
+	HRESULT hr;
+
+	if (pfnSHGetViewStatePropertyBag==NULL)
+		return OleSetOleError(E_NOTIMPL);
+	if (!PyArg_ParseTuple(args, "OOkO",
+		&obpidl,		// @pyparm <o PyIDL>|pidl||An item id list that identifies the folder
+		&obbagname,		// @pyparm <o PyUnicode>|BagName||Name of the property bag to retrieve
+		&flags,			// @pyparm int|Flags||Combination of SHGVSPB_* flags
+		&obriid))		// @pyparm <o PyIID>|riid||The interface to return, usually IID_IPropertyBag
+		return NULL;
+	if (PyWinObject_AsIID(obriid, &riid) &&
+		PyWinObject_AsWCHAR(obbagname, &bagname, FALSE) &&
+		PyObject_AsPIDL(obpidl, &pidl, FALSE, NULL)){
+		PY_INTERFACE_PRECALL;
+		hr=(*pfnSHGetViewStatePropertyBag)(pidl, bagname, flags, riid, &output);
+		PY_INTERFACE_POSTCALL;
+		if (FAILED(hr))
+			PyCom_BuildPyException(hr);
+		else
+			ret=PyCom_PyObjectFromIUnknown((IUnknown *)output, riid, FALSE);
+		}
+
+	if (bagname!=NULL)
+		PyWinObject_FreeWCHAR(bagname);
+	if (pidl!=NULL)
+		PyObject_FreePIDL(pidl);
+	return ret;
+}
+
+// @pymethod (<o PyIDL>, int)|shell|SHILCreateFromPath|Retrieves the PIDL and attributes for a path
+// @rdesc Returns the PIDL for the given path and any requested attributes
+static PyObject *PySHILCreateFromPath(PyObject *self, PyObject *args)
+{
+	WCHAR *path=NULL;
+	LPITEMIDLIST pidl=NULL;
+	DWORD flags;
+	PyObject *obpath, *obpidl;
+	HRESULT hr;
+
+	if (pfnSHILCreateFromPath==NULL)
+		return OleSetOleError(E_NOTIMPL);
+	if (!PyArg_ParseTuple(args, "Ok:SHILCreateFromPath", 
+		&obpath,		// @pyparm <o PyUnicode>|Path||The path whose PIDL will be returned
+		&flags))		// @pyparm int|Flags||A combination of SFGAO_* constants as used with GetAttributesOf
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obpath, &path, FALSE))
+		return NULL;
+	PY_INTERFACE_PRECALL;
+	hr=SHILCreateFromPath(path, &pidl, &flags);
+	PY_INTERFACE_POSTCALL;
+	PyWinObject_FreeWCHAR(path);
+	obpidl=PyObject_FromPIDL(pidl, TRUE);
+	if (obpidl==NULL)
+		return NULL;
+	return Py_BuildValue("Nk", obpidl, flags);
 }
 
 /* List of module functions */
@@ -2030,6 +2103,8 @@ static struct PyMethodDef shell_methods[]=
 	{ "FILEGROUPDESCRIPTORAsString", PyFILEGROUPDESCRIPTORAsString, 1}, // @pymeth FILEGROUPDESCRIPTORAsString|Creates a FILEGROUPDESCRIPTOR from a sequence of mapping objects, each with FILEDESCRIPTOR attributes
 	{ "StringAsFILEGROUPDESCRIPTOR", PyStringAsFILEGROUPDESCRIPTOR, 1}, // @pymeth StringAsFILEGROUPDESCRIPTOR|Decodes a FILEGROUPDESCRIPTOR packed in a string
 	{ "ShellExecuteEx", (PyCFunction)PyShellExecuteEx, METH_VARARGS|METH_KEYWORDS}, // @pymeth ShellExecuteEx|Performs an action on a file.
+	{ "SHGetViewStatePropertyBag", PySHGetViewStatePropertyBag, METH_VARARGS}, // @pymeth SHGetViewStatePropertyBag|Retrieves an interface for a folder's view state
+	{ "SHILCreateFromPath", PySHILCreateFromPath, METH_VARARGS}, // @pymeth SHILCreateFromPath|Returns the PIDL and attributes of a path
 	{ NULL, NULL },
 };
 
@@ -2113,6 +2188,7 @@ extern "C" __declspec(dllexport) void initshell()
 		pfnSHQueryRecycleBin = (PFNSHQueryRecycleBin)GetProcAddress(shell32, "SHQueryRecycleBinW");
 		pfnSHGetSettings = (PFNSHGetSettings)GetProcAddress(shell32, "SHGetSettings");
 		pfnSHGetFolderPath=(PFNSHGetFolderPath)GetProcAddress(shell32, "SHGetFolderPathW");
+		pfnSHILCreateFromPath=(PFNSHILCreateFromPath)GetProcAddress(shell32, "SHILCreateFromPath");
 		}
 	// SHGetFolderPath comes from shfolder.dll on older systems
 	if (pfnSHGetFolderPath==NULL){
@@ -2121,6 +2197,14 @@ extern "C" __declspec(dllexport) void initshell()
 			shfolder = LoadLibrary(TEXT("shfolder.dll"));
 		if (shfolder!=NULL)
 			pfnSHGetFolderPath=(PFNSHGetFolderPath)GetProcAddress(shfolder, "SHGetFolderPathW");
+		}
+
+	shlwapi=GetModuleHandle(TEXT("shlwapi"));
+	if (shlwapi==NULL)
+		shlwapi=LoadLibrary(TEXT("shlwapi"));
+	if (shlwapi!=NULL){
+		pfnSHGetViewStatePropertyBag=(PFNSHGetViewStatePropertyBag)GetProcAddress(shlwapi, "SHGetViewStatePropertyBag");
+		pfnAssocCreate=(PFNAssocCreate)GetProcAddress(shlwapi, "AssocCreate");
 		}
 
 	ADD_CONSTANT(SLR_NO_UI);
