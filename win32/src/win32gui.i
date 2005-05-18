@@ -1032,6 +1032,23 @@ static PyObject *PyGetObject(PyObject *self, PyObject *args)
 %native (GetObject) PyGetObject;
 
 %{
+// @pyswig int|GetObjectType|Returns the type (OBJ_* constant) of a GDI handle
+static PyObject *PyGetObjectType(PyObject *self, PyObject *args)
+{
+	HANDLE h;
+	DWORD t;
+	// @pyparm int|h||A handle to a GDI object
+	if (!PyArg_ParseTuple(args, "l:GetObjectType", &h))
+		return NULL;
+	t=GetObjectType(h);
+	if (t==0)
+		return PyWin_SetAPIError("GetObjectType");
+	return PyLong_FromUnsignedLong(t);
+}
+%}
+%native (GetObjectType) PyGetObjectType;
+
+%{
 // @pyswig object|PyMakeBuffer|Returns a buffer object from addr,len or just len
 static PyObject *PyMakeBuffer(PyObject *self, PyObject *args)
 {
@@ -1991,7 +2008,7 @@ BOOLAPI DeleteObject(HANDLE h); // @pyparm int|handle||handle to the object to d
 BOOLAPI BitBlt(
   HDC hdcDest, // @pyparm int|hdcDest||handle to destination DC
   int nXDest,  // @pyparm int|x||x-coord of destination upper-left corner
-  int nYDest,  // @pyparm int|t||y-coord of destination upper-left corner
+  int nYDest,  // @pyparm int|y||y-coord of destination upper-left corner
   int nWidth,  // @pyparm int|width||width of destination rectangle
   int nHeight, // @pyparm int|height||height of destination rectangle
   HDC hdcSrc,  // @pyparm int|hdcSrc||handle to source DC
@@ -2004,17 +2021,17 @@ BOOLAPI BitBlt(
 // rectangle, stretching or compressing the bitmap to fit the dimensions of the
 // destination rectangle, if necessary
 BOOLAPI StretchBlt(
-  HDC hdcDest,      // handle to destination DC
-  int nXOriginDest, // x-coord of destination upper-left corner
-  int nYOriginDest, // y-coord of destination upper-left corner
-  int nWidthDest,   // width of destination rectangle
-  int nHeightDest,  // height of destination rectangle
-  HDC hdcSrc,       // handle to source DC
-  int nXOriginSrc,  // x-coord of source upper-left corner
-  int nYOriginSrc,  // y-coord of source upper-left corner
-  int nWidthSrc,    // width of source rectangle
-  int nHeightSrc,   // height of source rectangle
-  DWORD dwRop       // raster operation code
+  HDC hdcDest,      // @pyparm int|hdcDest||handle to destination DC
+  int nXOriginDest, // @pyparm int|x||x-coord of destination upper-left corner
+  int nYOriginDest, // @pyparm int|y||y-coord of destination upper-left corner
+  int nWidthDest,   // @pyparm int|width||width of destination rectangle
+  int nHeightDest,  // @pyparm int|height||height of destination rectangle
+  HDC hdcSrc,       // @pyparm int|hdcSrc||handle to source DC
+  int nXOriginSrc,  // @pyparm int|nXSrc||x-coord of source upper-left corner
+  int nYOriginSrc,  // @pyparm int|nYSrc||y-coord of source upper-left corner
+  int nWidthSrc,    // @pyparm int|nWidthSrc||width of source rectangle
+  int nHeightSrc,   // @pyparm int|nHeightSrc||height of source rectangle
+  DWORD dwRop       // @pyparm int|dwRop||raster operation code
 );
 
 %ifdef WINXPGUI
