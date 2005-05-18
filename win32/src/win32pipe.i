@@ -216,22 +216,44 @@ PyObject *MySetNamedPipeHandleState(PyObject *self, PyObject *args)
 	unsigned long Mode;
 	unsigned long MaxCollectionCount;
 	unsigned long CollectDataTimeout;
+    unsigned long *pMaxCollectionCount = NULL;
+    unsigned long *pCollectDataTimeout = NULL;
+    unsigned long *pMode = NULL;
 	PyObject *obhNamedPipe;
+    PyObject *obMode, *obMaxCollectionCount, *obCollectDataTimeout;
 
 	// @pyparm <o PyHANDLE>|hPipe||The handle to the pipe.
-	// @pyparm int|Mode||The pipe read mode.
-	// @pyparm int|MaxCollectionCount||Maximum bytes collected before transmission to the server.
-	// @pyparm int|CollectDataTimeout||Maximum time to wait, in milliseconds, before transmission to server.
+	// @pyparm int/None|Mode||The pipe read mode.
+	// @pyparm int/None|MaxCollectionCount||Maximum bytes collected before transmission to the server.
+	// @pyparm int/None|CollectDataTimeout||Maximum time to wait, in milliseconds, before transmission to server.
 
-	if (!PyArg_ParseTuple(args, "Oiii:SetNamedPipeHandleState", 
-			      &obhNamedPipe, &Mode, 
-			      &MaxCollectionCount, &CollectDataTimeout))
+	if (!PyArg_ParseTuple(args, "OOOO:SetNamedPipeHandleState", 
+			      &obhNamedPipe, &obMode, 
+			      &obMaxCollectionCount, &obCollectDataTimeout))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
 		return NULL;
+    if (obMode!=Py_None) {
+        if (!PyInt_Check(obMode))
+            return PyErr_Format(PyExc_TypeError, "mode param must be None or an integer (got %s)", obMode->ob_type->tp_name);
+        Mode = PyInt_AsLong(obMode);
+        pMode = &Mode;
+    }
+    if (obMaxCollectionCount!=Py_None) {
+        if (!PyInt_Check(obMaxCollectionCount))
+            return PyErr_Format(PyExc_TypeError, "maxCollectionCount param must be None or an integer (got %s)", obMaxCollectionCount->ob_type->tp_name);
+        MaxCollectionCount = PyInt_AsLong(obMaxCollectionCount);
+        pMaxCollectionCount = &MaxCollectionCount;
+    }
+    if (obCollectDataTimeout!=Py_None) {
+        if (!PyInt_Check(obCollectDataTimeout))
+            return PyErr_Format(PyExc_TypeError, "collectDataTimeout param must be None or an integer (got %s)", obCollectDataTimeout->ob_type->tp_name);
+        CollectDataTimeout = PyInt_AsLong(obCollectDataTimeout);
+        pCollectDataTimeout = &CollectDataTimeout;
+    }
 
-	if (!SetNamedPipeHandleState(hNamedPipe, &Mode, &MaxCollectionCount,
-				     &CollectDataTimeout)) 
+	if (!SetNamedPipeHandleState(hNamedPipe, pMode, pMaxCollectionCount,
+				     pCollectDataTimeout)) 
 		return PyWin_SetAPIError("SetNamedPipeHandleState");
 	Py_INCREF(Py_None);
 	return Py_None;
