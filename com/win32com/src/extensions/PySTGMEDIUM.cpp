@@ -137,7 +137,8 @@ void PySTGMEDIUM::DropOwnership()
 
 BOOL PySTGMEDIUM::CopyTo(STGMEDIUM *pDest)
 {
-	assert(pDest->tymed==0);
+	// caller is responsible for ensuring this is clean.
+	assert(pDest->tymed==0 && pDest->pUnkForRelease==0 && pDest->hGlobal == 0);
 	switch (medium.tymed) {
 		// we can't just copy these handles, and there is no easy way I see
 		// to generically duplicate them.  There is a CopyStgMedium function,

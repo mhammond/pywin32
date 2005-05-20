@@ -321,6 +321,8 @@ STDMETHODIMP PyGDataObject::GetData(
 		/* [unique][in] */ FORMATETC * pformatetcIn,
 		/* [out] */ STGMEDIUM * pmedium)
 {
+	if (!pmedium)
+		return E_POINTER;
 	PY_GATEWAY_METHOD;
 	PyObject *obpformatetcIn = PyObject_FromFORMATETC(pformatetcIn);
 	if (obpformatetcIn==NULL) return PyCom_HandlePythonFailureToCOM();
@@ -331,6 +333,9 @@ STDMETHODIMP PyGDataObject::GetData(
 	// Process the Python results, and convert back to the real params
 	if (PySTGMEDIUM_Check(result)) {
 		PySTGMEDIUM *pym = (PySTGMEDIUM *)result;
+		// Documentation says pmedium is 'out' - generally it will have empty
+		// data, but not always.
+		memset(pmedium, 0, sizeof(*pmedium));
 		pym->CopyTo(pmedium);
 	}
 	hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
