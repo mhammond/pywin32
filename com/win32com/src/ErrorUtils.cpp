@@ -17,7 +17,6 @@ LPCSTR GetScodeRangeString(SCODE sc);
 LPCSTR GetSeverityString(SCODE sc);
 LPCSTR GetFacilityString(SCODE sc);
 
-static const EXCEPINFO nullExcepInfo = { 0 };
 static PyObject *PyCom_PyObjectFromIErrorInfo(IErrorInfo *, HRESULT errorhr);
 
 static const char *traceback_prefix = "Traceback (most recent call last):\n";
@@ -41,7 +40,6 @@ void PyCom_ExcepInfoFromPyException(EXCEPINFO *pExcepInfo)
 		return;
 	}
 	PyObject *exception, *v, *tb;
-	*pExcepInfo = nullExcepInfo;
 	PyErr_Fetch(&exception, &v, &tb);
 	if (PyCom_ExcepInfoFromPyObject(v, pExcepInfo, NULL))
 	{
@@ -49,6 +47,7 @@ void PyCom_ExcepInfoFromPyException(EXCEPINFO *pExcepInfo)
 	}
 	else
 	{
+		memset(pExcepInfo, 0, sizeof(EXCEPINFO));
 		// Clear the exception raised by PyCom_ExcepInfoFromPyObject,
 		// not the one we are interested in!
 		PyErr_Clear();
@@ -99,6 +98,7 @@ static BOOL PyCom_ExcepInfoFromServerExceptionInstance(PyObject *v, EXCEPINFO *p
 
 	assert(v != NULL);
 	assert(pExcepInfo != NULL);
+	memset(pExcepInfo, 0, sizeof(EXCEPINFO));
 
 	PyObject *ob = PyObject_GetAttrString(v, "description");
 	if (ob && ob != Py_None) {
@@ -191,6 +191,7 @@ BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *ph
 		PyErr_Format(PyExc_TypeError, "Must be a COM exception object (not '%s')", v->ob_type->tp_name);
 		return FALSE;
 	}
+	
 	// It is a COM exception, but may be a server or client instance.
 	// Explicit check for client.
 	// Note that with class based exceptions, a simple pointer check fails.
@@ -199,7 +200,10 @@ BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *ph
 	if (v==PyWinExc_COMError || // String exceptions
 	      (PyInstance_Check(v) && // Class exceptions
 		  (PyObject *)(((PyInstanceObject *)v)->in_class)==PyWinExc_COMError) )  {
-		// Client side error - use abstract API to get at details.
+		// Client side error
+		// Clear the state of the excep info.
+		// use abstract API to get at details.
+		memset(pExcepInfo, 0, sizeof(EXCEPINFO));
 		PyObject *ob;
 		if (phresult) {
 			ob = PySequence_GetItem(v, 0);
