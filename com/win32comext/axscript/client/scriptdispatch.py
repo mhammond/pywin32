@@ -29,6 +29,9 @@ class ScriptDispatch:
 		self.scriptNamespace = scriptNamespace
 
 	def _dynamic_(self, name, lcid, wFlags, args):
+		# Ensure any newly added items are available.
+		self.engine.RegisterNewNamedItems()
+		self.engine.ProcessNewNamedItemsConnections()
 		if wFlags & pythoncom.INVOKE_FUNC:
 			# attempt to call a function
 			try:
