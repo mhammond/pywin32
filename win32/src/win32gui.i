@@ -260,6 +260,9 @@ typedef int UINT;
     }
 }
 
+%typemap(python,in) RECT *BOTH = RECT *INPUT;
+%typemap(python,argout) RECT *BOTH = RECT *OUTPUT;
+
 %typemap(python,argout) POINT *OUTPUT {
     PyObject *o;
     o = Py_BuildValue("ll", $source->x, $source->y);
@@ -1002,7 +1005,7 @@ static PyObject *PyEnumFontFamilies(PyObject *self, PyObject *args)
 
 // @pyswig int|CreateFontIndirect|function creates a logical font that has the specified characteristics.
 // The font can subsequently be selected as the current font for any device context.
-HFONT CreateFontIndirect(LOGFONT *lf);
+HFONT CreateFontIndirect(LOGFONT *lf);	// @pyparm <o PyLOGFONT>|lplf||A LOGFONT object as returned by <om win32gui.LOGFONT> 
 
 %{
 // @pyswig object|GetObject|
@@ -2963,12 +2966,28 @@ BOOLAPI GetMenuInfo(
 
 // @pyswig |DrawFocusRect|
 BOOLAPI DrawFocusRect(HDC hDC,  RECT *INPUT);
-// @pyswig |DrawText|
-int DrawText(HDC hDC, LPCTSTR lpString, int nCount, RECT *INPUT, UINT uFormat);
-// @pyswig |SetTextColor|
-int SetTextColor(HDC hdc, COLORREF color);
-// @pyswig |SetBkMode|
-int SetBkMode(HDC hdc, int mode);
+
+// @pyswig (int, RECT)|DrawText|Draws formatted text on a device context
+// @rdesc Returns the height of the drawn text, and the rectangle coordinates
+int DrawText(
+	HDC hDC,			// @pyparm int/<o PyHANDLE>|hDC||The device context on which to draw
+	LPCTSTR lpString,	// @pyparm str|String||The text to be drawn
+	int nCount,			// @pyparm int|nCount||The number of characters, use -1 for simple null-terminated string
+	RECT *BOTH,			// @pyparm tuple|Rect||Tuple of 4 ints specifying the position (left, top, right, bottom)
+	UINT uFormat);		// @pyparm int|Format||Formatting flags, combination of win32con.DT_* values
+
+// @pyswig int|SetTextColor|Changes the text color for a device context
+// @rdesc Returns the previous color, or CLR_INVALID on failure
+int SetTextColor(
+	HDC hdc,			// @pyparm int|hdc||Handle to a device context
+	COLORREF color);	// @pyparm int|color||The RGB color value - see <om win32api.RGB>
+
+// @pyswig int|SetBkMode|Sets the background mode for a device context
+// @rdesc Returns the previous mode, or 0 on failure
+int SetBkMode(
+	HDC hdc,			// @pyparm int/<o PyHANDLE>|hdc||Handle to a device context
+	int mode);			// @pyparm int|BkMode||OPAQUE or TRANSPARENT 
+
 // @pyswig |DrawEdge|
 BOOLAPI DrawEdge(HDC hdc, RECT *INPUT, UINT edge, UINT grfFlags); 
 // @pyswig |FillRect|
