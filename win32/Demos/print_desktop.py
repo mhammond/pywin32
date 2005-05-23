@@ -1,4 +1,4 @@
-import win32print, pywintypes, win32con, win32gui, win32ui
+import win32print, pywintypes, win32con, win32gui, win32ui, win32api
 
 pname=win32print.GetDefaultPrinter()
 print pname
@@ -39,6 +39,19 @@ win32print.StartDoc(pDC,('desktop.bmp',None,None,0))
 win32print.StartPage(pDC)
 win32gui.StretchBlt(pDC, 0, 0, int(printerwidth*.9), int(printerheight*.9), pcDC, 0, 0, printerwidth, printerheight, win32con.SRCCOPY)
 
+font=win32gui.LOGFONT()
+font.lfHeight=int(printerheight/20)
+font.lfWidth=font.lfHeight
+font.lfWeight=150
+font.lfItalic=1
+font.lfUnderline=1
+hf=win32gui.CreateFontIndirect(font)
+win32gui.SelectObject(pDC,hf)
+win32gui.SetBkMode(pDC, win32con.TRANSPARENT)
+win32gui.SetTextColor(pDC,win32api.RGB(0,255,0))
+win32gui.DrawText(pDC,'Printed by Python!', -1,
+    (0,0, int(printerwidth*.9), int(printerheight*.9)),
+    win32con.DT_RIGHT|win32con.DT_BOTTOM|win32con.DT_SINGLELINE)
 win32print.EndPage(pDC)
 win32print.EndDoc(pDC)
 
