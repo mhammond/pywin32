@@ -29,7 +29,7 @@ def __WrapDispatch(dispatch, userName = None, resultCLSID = None, typeinfo = Non
       typeinfo = dispatch.GetTypeInfo()
       if typeinfo is not None: # Some objects return NULL, some raise exceptions...
         resultCLSID = str(typeinfo.GetTypeAttr()[0])
-    except pythoncom.com_error:
+    except (pythoncom.com_error, AttributeError):
       pass
   if resultCLSID is not None:
     import gencache
