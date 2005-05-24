@@ -80,6 +80,7 @@ WIN32COM_SOURCE = \
 	  $(GENDIR)\PyIADsContainer.d \
 	  $(GENDIR)\PyIADsUser.d \
 	  $(GENDIR)\PyIDirectoryObject.d \
+	  $(GENDIR)\PyIDirectorySearch.d \
 
 PYTHONWIN_SOURCE = \
 	  $(PYTHONWIN_DIR)\contents.d $(PYTHONWIN_DIR)\*.cpp $(PYTHONWIN_DIR)\*.h
@@ -227,6 +228,9 @@ $(GENDIR)\PyIADsUser.d: $(ADSI_DIR)/src/$(*B).i
 	$(PYTHON) makedfromi.py -o$*.d $(ADSI_DIR)/src/$(*B).i
 
 $(GENDIR)\PyIDirectoryObject.d: $(ADSI_DIR)/src/$(*B).i
+	$(PYTHON) makedfromi.py -o$*.d $(ADSI_DIR)/src/$(*B).i
+
+$(GENDIR)\PyIDirectorySearch.d: $(ADSI_DIR)/src/$(*B).i
 	$(PYTHON) makedfromi.py -o$*.d $(ADSI_DIR)/src/$(*B).i
 
 
