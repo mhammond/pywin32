@@ -133,13 +133,15 @@ def FindWebServer(options, server_desc):
     if not server_desc:
         server = _IIS_OBJECT+"/1"
     else:
-        # Assume the user has passed a "server description" - loop over
-        # all objects until we find it.
+        # Assume the user has passed either the instance_id or "server
+        # description" - loop over all objects until we find it.
         ob = GetObject(_IIS_OBJECT)
         look = server_desc.lower().strip()
         for sub in ob:
-            this_comment = getattr(sub, "ServerComment", "")
-            if this_comment.lower().strip() == look:
+            # ID is generally a number, but no need to assume that.
+            this_id = getattr(sub, "Name", "").lower().strip()
+            this_comment = getattr(sub, "ServerComment", "").lower().strip()
+            if this_id == look or this_comment == look:
                 server = sub.AdsPath
                 break
         else:
