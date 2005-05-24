@@ -72,6 +72,14 @@ LPCSTR GetFacilityString(SCODE sc);
 extern LONG _PyCom_GetInterfaceCount(void);
 extern LONG _PyCom_GetGatewayCount(void);
 
+// Function pointers we load at runtime.
+HRESULT (STDAPICALLTYPE *pfnCoWaitForMultipleHandles)(DWORD dwFlags,
+  DWORD dwTimeout,
+  ULONG cHandles,
+  LPHANDLE pHandles,
+  LPDWORD  lpdwindex
+) = NULL;
+
 
 BOOL PyCom_HasDCom()
 {
@@ -210,7 +218,7 @@ static PyObject *pythoncom_CoCreateInstanceEx(PyObject *self, PyObject *args)
 	}
 	// Jump hoops in case the platform doesnt have it.
 	{ // scoping
-	HRESULT (*mypfn)(REFCLSID, IUnknown *, DWORD, COSERVERINFO *, ULONG, MULTI_QI *);
+	HRESULT (STDAPICALLTYPE *mypfn)(REFCLSID, IUnknown *, DWORD, COSERVERINFO *, ULONG, MULTI_QI *);
 	HMODULE hMod = GetModuleHandle("ole32.dll");
 	if (hMod==0) {
 		PyCom_BuildInternalPyException("Can not load ole32.dll");
@@ -221,7 +229,7 @@ static PyObject *pythoncom_CoCreateInstanceEx(PyObject *self, PyObject *args)
 		PyCom_BuildPyException(E_NOTIMPL);
 		goto done;
 	}
-	mypfn = (HRESULT (*)(REFCLSID, IUnknown *, DWORD, COSERVERINFO *, ULONG, MULTI_QI *))fp;
+	mypfn = (HRESULT (STDAPICALLTYPE *)(REFCLSID, IUnknown *, DWORD, COSERVERINFO *, ULONG, MULTI_QI *))fp;
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = (*mypfn)(clsid, punk, dwClsContext, pServerInfo, numIIDs, mqi);
 	PY_INTERFACE_POSTCALL;
@@ -1310,6 +1318,70 @@ static PyObject *pythoncom_EnableQuitMessage(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+static BOOL MakeHandleList(PyObject *handleList, HANDLE **ppBuf, DWORD *pNumEntries)
+{
+	if (!PySequence_Check(handleList)) {
+		PyErr_SetString(PyExc_TypeError, "Handles must be a list of integers");
+		return FALSE;
+	}
+	DWORD numItems = (DWORD)PySequence_Length(handleList);
+	HANDLE *pItems = (HANDLE *)malloc(sizeof(HANDLE) * numItems);
+	if (pItems==NULL) {
+		PyErr_SetString(PyExc_MemoryError,"Allocating array of handles");
+		return FALSE;
+	}
+	for (DWORD i=0;i<numItems;i++) {
+		PyObject *obItem = PySequence_GetItem(handleList, i);
+		if (obItem==NULL) {
+			free(pItems);
+			return FALSE;
+		}
+		if (!PyWinObject_AsHANDLE(obItem,pItems+i)) {
+			Py_DECREF(obItem);
+			free(pItems);
+			PyErr_SetString(PyExc_TypeError, "Handles must be a list of integers");
+			return FALSE;
+		}
+		Py_DECREF(obItem);
+	}
+	*ppBuf = pItems;
+	*pNumEntries = numItems;
+	return TRUE;
+}
+
+// @pymethod int|pythoncom|CoWaitForMultipleHandles|Waits for specified handles to be signaled or for a specified timeout period to elapse.
+static PyObject *pythoncom_CoWaitForMultipleHandles(PyObject *self, PyObject *args)
+{
+	DWORD flags, timeout;
+	PyObject *obHandles;
+	DWORD numItems;
+	HANDLE *pItems = NULL;
+	if (!pfnCoWaitForMultipleHandles) {
+		return PyCom_BuildPyException(E_NOTIMPL);
+		return NULL;
+	}
+
+	if (!PyArg_ParseTuple(args, "iiO:CoWaitForMultipleHandles",
+						  &flags, // @pyparm int|flags||
+						  &timeout, // @pyparm int|timeout||
+						  &obHandles)) // @pyparm [<o PyHANDLE>, ...]|handles||
+		return NULL;
+	if (!MakeHandleList(obHandles, &pItems, &numItems))
+		return NULL;
+	DWORD index;
+	PyObject *rc = NULL;
+	HRESULT hr;
+	Py_BEGIN_ALLOW_THREADS
+	hr = (*pfnCoWaitForMultipleHandles)(flags, timeout, numItems, pItems, &index);
+	Py_END_ALLOW_THREADS
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+	} else
+		rc = PyInt_FromLong(index);
+	free(pItems);
+	return rc;
+}
+
 // @pymethod <o PyIDataObject>|pythoncom|OleGetClipboard|Retrieves a data object that you can use to access the contents of the clipboard.
 static PyObject *pythoncom_OleGetClipboard(PyObject *, PyObject *args)
 {
@@ -1510,6 +1582,7 @@ static struct PyMethodDef pythoncom_methods[]=
 	{ "CoResumeClassObjects", pythoncom_CoResumeClassObjects, 1},  // @pymeth CoResumeClassObjects|Called by a server that can register multiple class objects to inform the OLE SCM about all registered classes, and permits activation requests for those class objects.
 	{ "CoRevokeClassObject",pythoncom_CoRevokeClassObject, 1 },// @pymeth CoRevokeClassObject|Informs OLE that a class object, previously registered with the <om pythoncom.CoRegisterClassObject> method, is no longer available for use. 
 	{ "CoTreatAsClass",      pythoncom_CoTreatAsClass, 1}, // @pymeth CoTreatAsClass|Establishes or removes an emulation, in which objects of one class are treated as objects of a different class.
+	{ "CoWaitForMultipleHandles", pythoncom_CoWaitForMultipleHandles, 1}, // @pymeth CoWaitForMultipleHandles|Waits for specified handles to be signaled or for a specified timeout period to elapse.
 	{ "Connect",             pythoncom_connect, 1 },			 // @pymeth Connect|Connects to a running instance of an OLE automation server.
 	{ "connect",             pythoncom_connect, 1 },
 	{ "CreateGuid",          pythoncom_createguid, 1 },          // @pymeth CreateGuid|Creates a new, unique GUIID.
@@ -1694,6 +1767,12 @@ extern "C" __declspec(dllexport) void initpythoncom()
 	PyDict_SetItemString(dict, "PyTimeType", (PyObject *)&PyTimeType);
 	PyDict_SetItemString(dict, "PyIIDType", (PyObject *)&PyIIDType);
 	PyDict_SetItemString(dict, "PyUnicodeType", (PyObject *)&PyUnicodeType);
+
+	// Load function pointers.
+	HMODULE hModOle32 = GetModuleHandle("ole32.dll");
+	pfnCoWaitForMultipleHandles = \
+	   (HRESULT (STDAPICALLTYPE *)(DWORD, DWORD, ULONG, LPHANDLE, LPDWORD)) \
+	   GetProcAddress(hModOle32, "CoWaitForMultipleHandles");
 
 	// Symbolic constants.
 	ADD_CONSTANT(ACTIVEOBJECT_STRONG);
