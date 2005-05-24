@@ -19,15 +19,19 @@ def validate(username, password, domain = ""):
     # If we get here without exception, we worked!
 
 if __name__=='__main__':
-    if len(sys.argv) not in [3,4]:
-        print "Usage: %s username password [domain]" % (__file__,)
+    if len(sys.argv) not in [2,3,4]:
+        print "Usage: %s username [password [domain]]" % (__file__,)
         sys.exit(1)
 
-    domain = "" # optional!
-    if len(sys.argv)==4:
+    # password and domain are optional!
+    password = None
+    if len(sys.argv)>=3:
+        password = sys.argv[2]
+    domain = ""
+    if len(sys.argv)>=4:
         domain = sys.argv[3]
     try:
-        validate(sys.argv[1], sys.argv[2], domain)
+        validate(sys.argv[1], password, domain)
         print "Validated OK"
     except win32security.error, details:
         hr, func, msg = details
