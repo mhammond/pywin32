@@ -5,6 +5,7 @@
 #include "Security.h"
 #include "ntdsapi.h"
 #include "subauth.h"
+#include "Dsgetdc.h"
 
 // SecBuffer objects for SSPI functionality
 extern __declspec(dllexport) PyTypeObject PySecBufferType;
@@ -159,6 +160,7 @@ PyObject *PyDsGetSpn(PyObject *self, PyObject *args);
 PyObject *PyDsWriteAccountSpn(PyObject *self, PyObject *args);
 PyObject *PyDsBind(PyObject *self, PyObject *args);
 PyObject *PyDsUnBind(PyObject *self, PyObject *args);
+PyObject *PyDsGetDcName(PyObject *self, PyObject *args, PyObject *kw);
 
 // function pointers that are initialized in win32security.i and used in win32security_sspi.cpp
 typedef DWORD (WINAPI *DsBindfunc)(LPCTSTR, LPCTSTR, HANDLE*);
@@ -176,6 +178,15 @@ extern DsFreeSpnArrayfunc pfnDsFreeSpnArray;
 
 typedef DWORD (WINAPI *DsWriteAccountSpnfunc)(HANDLE, DS_SPN_WRITE_OP, LPCTSTR, DWORD, LPCTSTR*);
 extern DsWriteAccountSpnfunc pfnDsWriteAccountSpn;
+
+typedef DWORD (WINAPI *DsGetDcNamefunc)(LPCTSTR, LPCTSTR, GUID *, LPCTSTR, ULONG, PDOMAIN_CONTROLLER_INFO *);
+extern DsGetDcNamefunc pfnDsGetDcName;
+
+typedef DWORD (WINAPI *DsCrackNamesfunc)(HANDLE, DS_NAME_FLAGS, DS_NAME_FORMAT, DS_NAME_FORMAT, DWORD, LPTSTR *, PDS_NAME_RESULT *);
+extern DsCrackNamesfunc pfnDsCrackNames;
+
+typedef VOID (WINAPI *DsFreeNameResultfunc)(DS_NAME_RESULTW *);
+extern DsFreeNameResultfunc pfnDsFreeNameResult;
 
 #define CHECK_PFN(fname) if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);
 

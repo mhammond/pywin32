@@ -1,7 +1,7 @@
 import sys, os
 import unittest
 
-import win32api, win32con, win32security
+import win32api, win32con, win32security, ntsecuritycon
 
 class SecurityTests(unittest.TestCase):
     def setUp(self):
@@ -29,6 +29,49 @@ class SecurityTests(unittest.TestCase):
             sd2.SetSecurityDescriptorGroup(pwr_sid,0)
             sd3.SetSecurityDescriptorDacl(1,dacl,0)
             sd4.SetSecurityDescriptorSacl(1,sacl,0)
+
+class TestDS(unittest.TestCase):
+    def testDsGetDcName(self):
+        # Not sure what we can actually test here!  At least calling it
+        # does something :)
+        win32security.DsGetDcName()
+
+    def testDsCrackNames(self):
+        h = win32security.DsBind()
+        fmt_offered = ntsecuritycon.DS_FQDN_1779_NAME
+        name = win32api.GetUserNameEx(fmt_offered)
+        result = win32security.DsCrackNames(h, 0, fmt_offered, fmt_offered, (name,))
+        self.failUnlessEqual(name, result[0][2])
+
+    def testDsCrackNamesSyntax(self):
+        # Do a syntax check only - that allows us to avoid binding.
+        # But must use DS_CANONICAL_NAME (or _EX)
+        expected = win32api.GetUserNameEx(win32api.NameCanonical)
+        fmt_offered = ntsecuritycon.DS_FQDN_1779_NAME
+        name = win32api.GetUserNameEx(fmt_offered)
+        result = win32security.DsCrackNames(None, ntsecuritycon.DS_NAME_FLAG_SYNTACTICAL_ONLY,
+                                            fmt_offered, ntsecuritycon.DS_CANONICAL_NAME,
+                                            (name,))
+        self.failUnlessEqual(expected, result[0][2])
+
+class TestTranslate(unittest.TestCase):
+    def _testTranslate(self, fmt_from, fmt_to):
+        name = win32api.GetUserNameEx(fmt_from)
+        expected = win32api.GetUserNameEx(fmt_to)
+        got = win32security.TranslateName(name, fmt_from, fmt_to)
+        self.failUnlessEqual(got, expected)
+
+    def testTranslate1(self):
+        self._testTranslate(win32api.NameFullyQualifiedDN, win32api.NameSamCompatible)
+
+    def testTranslate2(self):
+        self._testTranslate(win32api.NameSamCompatible, win32api.NameFullyQualifiedDN)
+
+    def testTranslate3(self):
+        self._testTranslate(win32api.NameFullyQualifiedDN, win32api.NameUniqueId)
+
+    def testTranslate4(self):
+        self._testTranslate(win32api.NameUniqueId, win32api.NameFullyQualifiedDN)
 
 if __name__=='__main__':
     unittest.main()

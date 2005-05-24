@@ -76,18 +76,25 @@ typedef PSecurityFunctionTableW (SEC_ENTRY *InitSecurityInterfacefunc)(void);
 static InitSecurityInterfacefunc pfnInitSecurityInterface=NULL;
 extern PSecurityFunctionTableW psecurityfunctiontable=NULL;
 
+typedef BOOL (WINAPI *TranslateNamefunc)(LPCTSTR, EXTENDED_NAME_FORMAT, EXTENDED_NAME_FORMAT, LPTSTR, PULONG);
+static TranslateNamefunc pfnTranslateName=NULL;
+
 // function pointers used in win32security_sspi.cpp
 extern DsBindfunc pfnDsBind=NULL;
 extern DsUnBindfunc pfnDsUnBind=NULL;
 extern DsGetSpnfunc pfnDsGetSpn=NULL;
 extern DsWriteAccountSpnfunc pfnDsWriteAccountSpn=NULL;
 extern DsFreeSpnArrayfunc pfnDsFreeSpnArray=NULL;
+extern DsGetDcNamefunc pfnDsGetDcName=NULL;
+extern DsCrackNamesfunc pfnDsCrackNames=NULL;
+extern DsFreeNameResultfunc pfnDsFreeNameResult=NULL;
 
 static HMODULE advapi32_dll=NULL;
 static HMODULE secur32_dll =NULL;
 static HMODULE security_dll=NULL;
 static HMODULE ntdll_dll   =NULL;
 static HMODULE ntdsapi_dll =NULL;
+static HMODULE netapi32_dll=NULL;
 
 HMODULE loadmodule(WCHAR *dllname)
 {
@@ -594,6 +601,7 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 	security_dll=loadmodule(_T("security.dll"));
 	ntdll_dll   =loadmodule(_T("ntdll.dll"));
 	ntdsapi_dll =loadmodule(_T("ntdsapi.dll"));
+	netapi32_dll =loadmodule(_T("netapi32.dll"));
 	
 	pfnCheckTokenMembership=(CheckTokenMembershipfunc)loadapifunc("CheckTokenMembership", advapi32_dll);
 	pfnCreateRestrictedToken=(CreateRestrictedTokenfunc)loadapifunc("CreateRestrictedToken", advapi32_dll);
@@ -633,17 +641,29 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 		pfnInitSecurityInterface=(InitSecurityInterfacefunc)loadapifunc("InitSecurityInterfaceW",security_dll);
 	if (pfnInitSecurityInterface!=NULL)
 		psecurityfunctiontable=(*pfnInitSecurityInterface)();
+
+	pfnTranslateName=(TranslateNamefunc)loadapifunc("TranslateNameW",secur32_dll);
 	
 	pfnDsBind=(DsBindfunc)loadapifunc("DsBindW", ntdsapi_dll);
 	pfnDsUnBind=(DsUnBindfunc)loadapifunc("DsUnBindW", ntdsapi_dll);
 	pfnDsGetSpn=(DsGetSpnfunc)loadapifunc("DsGetSpnW", ntdsapi_dll);
 	pfnDsWriteAccountSpn=(DsWriteAccountSpnfunc)loadapifunc("DsWriteAccountSpnW", ntdsapi_dll);
 	pfnDsFreeSpnArray=(DsFreeSpnArrayfunc)loadapifunc("DsFreeSpnArrayW", ntdsapi_dll);
+    pfnDsCrackNames=(DsCrackNamesfunc)loadapifunc("DsCrackNamesW", ntdsapi_dll);
+    pfnDsFreeNameResult=(DsFreeNameResultfunc)loadapifunc("DsFreeNameResultW", ntdsapi_dll);
+	pfnDsGetDcName=(DsGetDcNamefunc)loadapifunc("DsGetDcNameW", netapi32_dll);
 	
 	PyDict_SetItemString(d, "SecBufferType", (PyObject *)&PySecBufferType);
 	PyDict_SetItemString(d, "SecBufferDescType", (PyObject *)&PySecBufferDescType);
 	PyDict_SetItemString(d, "CtxtHandleType", (PyObject *)&PyCtxtHandleType);
 	PyDict_SetItemString(d, "CredHandleType", (PyObject *)&PyCredHandleType);
+    
+    // Patch up any kwarg functions - SWIG doesn't like them.
+    for (PyMethodDef *pmd = win32securityMethods;pmd->ml_name;pmd++)
+        if (strcmp(pmd->ml_name, "DsGetDcName")==0) {
+            pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
+            break; // only 1 name at the moment.
+        }
 %}
 
 // functions bodies in win32security_sspi.cpp
@@ -671,6 +691,27 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 %native (DsUnBind) PyDsUnBind;
 // @pyswig |DsUnBind|Closes a directory services handle created by <om win32security.DsBind>
 // @pyparm <o PyHANDLE>|hDS||A handle to a directory service as returned by <om win32security.DsBind>
+
+%{
+// work around issues with SWIG and kwargs.
+#define PYDSGETDCNAME (PyCFunction)PyDsGetDcName
+%}
+%native (DsGetDcName) PYDSGETDCNAME;
+// @pyswig dict|DsGetDcName|Returns the name of a domain controller (DC) in a specified domain.
+// You can supply DC selection criteria to this function to indicate preference for a DC with particular characteristics.
+// @comm This function supports keyword arguments.
+// @pyparm <o PyUnicode>|computerName|None|
+// @pyparm <o PyUnicode>|domainName|None|
+// @pyparm <o PyIID>|domainGUID|None|
+// @pyparm <o PyUnicode>|siteName|None|
+// @pyparm int|flags|0|
+
+%native (DsCrackNames) extern PyObject *PyDsCrackNames(PyObject *self, PyObject *args);
+// @pyswig [ (status, domain, name) ]|DsCrackNames|Converts an array of directory service object names from one format to another.
+// @pyswig int|flags||
+// @pyparm int|formatOffered||
+// @pyparm int|formatDesired||
+// @pyparm [name, ...]|names||
 
 // @pyswig PyACL|ACL|Creates a new <o PyACL> object.
 // @pyparm int|bufSize|64|The size of the buffer for the ACL.
@@ -3349,6 +3390,46 @@ static PyObject *PyLsaCallAuthenticationPackage(PyObject *self, PyObject *args)
 	if (outputbuf!=NULL)
 		(*pfnLsaFreeReturnBuffer)(outputbuf);
 	return ret;
+}
+%}
+
+// @pyswig |TranslateName|Converts a directory service object name from one format to another.
+%native(TranslateName) PyTranslateName;
+%{
+static PyObject *PyTranslateName(PyObject *self, PyObject *args)
+{
+    PyObject *obAcctName;
+    int format, desiredFormat;
+    ULONG numChars = 1024;
+    CHECK_PFN(TranslateName);
+    WCHAR *szAcctName = NULL;
+    WCHAR *buf = NULL;
+    BOOL ok;
+    if (!PyArg_ParseTuple(args, "Oii|l",
+            &obAcctName, // @pyparm <o PyUnicode>|accountName||object name
+            &format, // @pyparm int|accountNameFormat||A value from the EXTENDED_NAME_FORMAT enumeration type indicating the format of the accountName name. 
+            &desiredFormat, // @pyparm int|accountNameFormat||A value from the EXTENDED_NAME_FORMAT enumeration type indicating the format of the desired name.
+            &numChars)) // @pyparm int|numChars|1024|Number of Unicode characters to allocate for the return buffer.
+        return NULL;
+    if (!PyWinObject_AsWCHAR(obAcctName, &szAcctName, FALSE))
+        return NULL;
+    buf = (WCHAR *)malloc(sizeof(WCHAR) * numChars);
+    if (!buf) {
+        PyWinObject_FreeWCHAR(szAcctName);
+        return PyErr_NoMemory();
+    }
+    Py_BEGIN_ALLOW_THREADS
+    ok = (*pfnTranslateName)(szAcctName, (EXTENDED_NAME_FORMAT)format,
+                       (EXTENDED_NAME_FORMAT)desiredFormat, buf, &numChars);
+    Py_END_ALLOW_THREADS
+    PyObject *ret = NULL;
+    if (ok) {
+        ret = PyWinObject_FromWCHAR(buf, numChars-1);
+    } else
+        PyWin_SetAPIError("TranslateName");
+    PyWinObject_FreeWCHAR(szAcctName);
+    free(buf);
+    return ret;
 }
 %}
 

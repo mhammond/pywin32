@@ -1,4 +1,4 @@
-build_number=204
+build_number=204.1
 # Putting buildno at the top prevents automatic __doc__ assignment, and
 # I *want* the build number at the top :)
 __doc__="""This is a distutils setup-script for the pywin32 extensions
@@ -196,7 +196,7 @@ class WinExt_pythonwin(WinExt):
 
 class WinExt_win32(WinExt):
     def __init__ (self, name, **kw):
-        if not kw.has_key("dsp_file"):
+        if not kw.has_key("dsp_file") and not kw.get("sources"):
             kw["dsp_file"] = "win32/" + name + ".dsp"
         WinExt.__init__(self, name, **kw)
     def get_pywin32_dir(self):
@@ -824,13 +824,21 @@ for info in (
         # win32gui handled below
         ("win32help", "htmlhelp user32 advapi32", False, 0x0500),
         ("win32lz", "lz32", False),
-        ("win32net", "netapi32", True),
+        ("win32net", "netapi32", True, None, """
+              win32/src/win32net/win32netfile.cpp    win32/src/win32net/win32netgroup.cpp
+              win32/src/win32net/win32netmisc.cpp    win32/src/win32net/win32netmodule.cpp
+              win32/src/win32net/win32netsession.cpp win32/src/win32net/win32netuse.cpp
+              win32/src/win32net/win32netuser.cpp
+              """),
         ("win32pdh", "", False),
         ("win32pipe", "", False),
         ("win32print", "winspool user32 gdi32", False),
         ("win32process", "advapi32 user32", False, 0x0500),
         ("win32ras", "rasapi32 user32", False),
-        ("win32security", "advapi32 user32", True),
+        ("win32security", "advapi32 user32 netapi32", True, None, """
+            win32/src/win32security.i       win32/src/win32securitymodule.cpp
+            win32/src/win32security_sspi.cpp win32/src/win32security_ds.cpp
+            """),
         ("win32service", "advapi32 oleaut32 user32", True, 0x0500),
         ("win32trace", "advapi32", False),
         ("win32wnet", "netapi32 mpr", False),
@@ -838,17 +846,19 @@ for info in (
     ):
 
     name, lib_names, is_unicode = info[:3]
+    windows_h_ver = sources = None
     if len(info)>3:
         windows_h_ver = info[3]
-    else:
-        windows_h_ver = None
+    if len(info)>4:
+        sources = info[4].split()
     extra_compile_args = []
     if is_unicode:
         extra_compile_args = ['-DUNICODE', '-D_UNICODE', '-DWINNT']
     ext = WinExt_win32(name, 
                  libraries=lib_names,
                  extra_compile_args = extra_compile_args,
-                 windows_h_version = windows_h_ver)
+                 windows_h_version = windows_h_ver,
+                 sources = sources)
     win32_extensions.append(ext)
 
 # The few that need slightly special treatment

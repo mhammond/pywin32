@@ -298,9 +298,13 @@ struct PyMethodDef PySecBuffer::methods[] = {
 #undef OFF
 #define OFF(e) offsetof(PySecBuffer, e)
 struct PyMemberDef PySecBuffer::members[] = {
+	// @prop int|BufferType|
 	{"BufferType",	T_ULONG,  OFF(secbuffer.BufferType), 0, "Type of buffer, one of the SECBUFFER_* constants -  can also be combined with SECBUFFER_READONLY"},
+	// @prop string|Buffer|
 	{"Buffer",	T_OBJECT, OFF(obdummy), 0, "Encoded data buffer"},
+	// @prop int|BufferSize|
 	{"BufferSize", T_ULONG, OFF(secbuffer.cbBuffer), 0, "Current size of data in buffer"},
+	// @prop int|MaxBufferSize|
 	{"MaxBufferSize", T_ULONG, OFF(maxbufsize), READONLY, "Maximum size of data buffer"},
 	{NULL}
 };
@@ -625,7 +629,9 @@ PyObject *PyCtxtHandle::MakeSignature(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsSecBufferDesc(obdesc, &psecbufferdesc, FALSE))
 		return NULL;
 	PCtxtHandle pctxt=((PyCtxtHandle *)self)->GetCtxtHandle();
+	Py_BEGIN_ALLOW_THREADS
 	err=(*psecurityfunctiontable->MakeSignature)(pctxt, fqop, psecbufferdesc, seq_no);
+	Py_END_ALLOW_THREADS
 	if (err<0){
 		PyWin_SetAPIError("MakeSignature",err);
 		return NULL;
@@ -685,7 +691,9 @@ PyObject *PyCtxtHandle::EncryptMessage(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsSecBufferDesc(obdesc, &psecbufferdesc, FALSE))
 		return NULL;
 	PCtxtHandle pctxt=((PyCtxtHandle *)self)->GetCtxtHandle();
+	Py_BEGIN_ALLOW_THREADS
 	err=(*psecurityfunctiontable->EncryptMessage)(pctxt, fqop, psecbufferdesc, seq_no);
+	Py_END_ALLOW_THREADS
 	if (err<0){
 		PyWin_SetAPIError("EncryptMessage",err);
 		return NULL;
@@ -717,7 +725,9 @@ PyObject *PyCtxtHandle::DecryptMessage(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsSecBufferDesc(obdesc, &psecbufferdesc, FALSE))
 		return NULL;
 	PCtxtHandle pctxt=((PyCtxtHandle *)self)->GetCtxtHandle();
+	Py_BEGIN_ALLOW_THREADS
 	err=(*psecurityfunctiontable->DecryptMessage)(pctxt, psecbufferdesc, seq_no, &fqop);
+	Py_END_ALLOW_THREADS
 	((PySecBufferDesc *)obdesc)->modify_in_place();
 	if (err==SEC_E_OK)
 		return Py_BuildValue("l",fqop);
@@ -773,7 +783,9 @@ PyObject *PyCtxtHandle::CompleteAuthToken(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsSecBufferDesc(obsecbufferdesc, &psecbufferdesc, FALSE))
 		return NULL;
 	pctxt=((PyCtxtHandle *)self)->GetCtxtHandle();
+	Py_BEGIN_ALLOW_THREADS
 	err=(*psecurityfunctiontable->CompleteAuthToken)(pctxt, psecbufferdesc);
+	Py_END_ALLOW_THREADS
 	if (err==SEC_E_OK){
 		Py_INCREF(Py_None);
 		return Py_None;
@@ -797,7 +809,9 @@ PyObject *PyCtxtHandle::QueryContextAttributes(PyObject *self, PyObject *args)
 		return NULL;
 
 	pctxt=((PyCtxtHandle *)self)->GetCtxtHandle();
+	Py_BEGIN_ALLOW_THREADS
 	err=(*psecurityfunctiontable->QueryContextAttributesW)(pctxt, attr, &buf);
+	Py_END_ALLOW_THREADS
 	if (err!=SEC_E_OK){
 		PyWin_SetAPIError("QueryContextAttributes",err);
 		return NULL;
@@ -964,7 +978,9 @@ PyObject *PyCtxtHandle::QuerySecurityContextToken(PyObject *self, PyObject *args
 	if (!PyArg_ParseTuple(args, ":QuerySecurityContextToken"))
 		return NULL;
 	pctxt=((PyCtxtHandle *)self)->GetCtxtHandle();
+	Py_BEGIN_ALLOW_THREADS
 	err=(*psecurityfunctiontable->QuerySecurityContextToken)(pctxt, &htoken);
+	Py_END_ALLOW_THREADS
 	if (err==SEC_E_OK)
 		return PyWinObject_FromHANDLE(htoken);
 	PyWin_SetAPIError("QuerySecurityContextToken",err);
@@ -980,7 +996,9 @@ PyObject *PyCtxtHandle::ImpersonateSecurityContext(PyObject *self, PyObject *arg
 	if (!PyArg_ParseTuple(args, ":ImpersonateSecurityContext"))
 		return NULL;
 	pctxt=((PyCtxtHandle *)self)->GetCtxtHandle();
+	Py_BEGIN_ALLOW_THREADS
 	err=(*psecurityfunctiontable->ImpersonateSecurityContext)(pctxt);
+	Py_END_ALLOW_THREADS
 	if (err==SEC_E_OK){
 		Py_INCREF(Py_None);
 		return Py_None;
@@ -998,7 +1016,9 @@ PyObject *PyCtxtHandle::RevertSecurityContext(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, ":RevertSecurityContext"))
 		return NULL;
 	pctxt=((PyCtxtHandle *)self)->GetCtxtHandle();
+	Py_BEGIN_ALLOW_THREADS
 	err=(*psecurityfunctiontable->RevertSecurityContext)(pctxt);
+	Py_END_ALLOW_THREADS
 	if (err==SEC_E_OK){
 		Py_INCREF(Py_None);
 		return Py_None;
@@ -1189,7 +1209,9 @@ PyObject *PyCredHandle::QueryCredentialsAttributes(PyObject *self, PyObject *arg
 	PCredHandle pcredhandle=This->GetCredHandle();
 	if (!PyArg_ParseTuple(args, "l:QueryCredentialsAttributes", &attr))
 		return NULL;
+	Py_BEGIN_ALLOW_THREADS
 	err=(*psecurityfunctiontable->QueryCredentialsAttributesW)(pcredhandle, attr, &buf);
+	Py_END_ALLOW_THREADS
 	if (err!=SEC_E_OK){
 		PyWin_SetAPIError("QueryCredentialsAttributes",err);
 		return NULL;
@@ -1215,244 +1237,3 @@ PyObject *PyCredHandle::QueryCredentialsAttributes(PyObject *self, PyObject *arg
 	return ret;
 }
 
-// Directory service handle, yet another type of PyHANDLE
-// @object PyDS_HANDLE|Directory service handle, returned by <om win32security.DsBind>
-//   Subtype of <o PyHANDLE>, inherits all properties and methods
-class PyDS_HANDLE: public PyHANDLE
-{
-public:
-	PyDS_HANDLE(HANDLE hInit) : PyHANDLE(hInit) {}
-	virtual BOOL Close(void) {
-		DWORD err;
-		if (!m_handle)
-			return TRUE;	// already closed or Detached, nothing to do
-		if (pfnDsUnBind==NULL){
-			// should not happen if functions to create a Ds handle exist ...
-			PyErr_SetString(PyExc_SystemError,"Error closing PyDS_HANDLE, DsUnBind is NULL");
-			return FALSE;
-			}
-		err = (*pfnDsUnBind)(&m_handle);
-		// ??? This function apparently never returns an error, no matter what you pass to it ???
-		if (err==NO_ERROR){
-			m_handle = 0;
-			return TRUE;
-			}
-		PyWin_SetAPIError("PyDS_HANDLE::Close", err);
-		return FALSE;
-	}
-	virtual const char *GetTypeName(){
-		return "PyDS_HANDLE";
-	}
-};
-
-// directory service functions for registering target Spns to be used with Kerberos
-extern PyObject *PyDsBind(PyObject *self, PyObject *args)
-{
-	WCHAR *dc=NULL, *domain=NULL;
-	PyObject *obdc=Py_None, *obdomain=Py_None;
-	PyObject *ret=NULL;
-	DWORD err;
-	HANDLE dshandle;
-
-	CHECK_PFN(DsBind);
-	if (!PyArg_ParseTuple(args, "|OO:DsBind", obdc, obdomain))
-		return NULL;
-	if (PyWinObject_AsWCHAR(obdc, &dc, TRUE) &&
-		PyWinObject_AsWCHAR(obdomain, &domain, TRUE)){
-		err=(*pfnDsBind)(dc, domain, &dshandle);
-		if (err==NO_ERROR)
-			ret=new PyDS_HANDLE(dshandle);
-		else
-			PyWin_SetAPIError("DsBind",err);
-		}
-	PyWinObject_FreeWCHAR(dc);
-	PyWinObject_FreeWCHAR(domain);
-	return ret;
-}
-
-extern PyObject *PyDsUnBind(PyObject *self, PyObject *args)
-{
-	DWORD err;
-	HANDLE dshandle;
-	PyObject *obhandle;
-
-	CHECK_PFN(DsUnBind);
-	if (!PyArg_ParseTuple(args, "O:DsUnBind", &obhandle))
-		return NULL;
-	if (!PyWinObject_AsHANDLE(obhandle, &dshandle))
-		return NULL;
-	err=(*pfnDsUnBind)(&dshandle);
-	if (err==NO_ERROR){
-		Py_INCREF(Py_None);
-		return Py_None;
-		}
-	PyWin_SetAPIError("DsUnBind",err);
-	return NULL;
-}
-
-void PyWinObject_FreeWCHARArray(LPWSTR *wchars, DWORD str_cnt)
-{
-	if (wchars!=NULL){
-		for (DWORD wchar_index=0; wchar_index<str_cnt; wchar_index++)
-			PyWinObject_FreeWCHAR(wchars[wchar_index]);
-		free(wchars);
-		}
-}
-
-BOOL PyWinObject_AsWCHARArray(PyObject *str_seq, LPWSTR **wchars, DWORD *str_cnt)
-{
-	BOOL ret=FALSE;
-	PyObject *str_tuple=NULL, *tuple_item;
-	DWORD bufsize, tuple_index;
-	*wchars=NULL;
-	*str_cnt=0;
-	if ((str_tuple=PySequence_Tuple(str_seq))==NULL)
-		return FALSE;
-	*str_cnt=PyTuple_Size(str_tuple);
-	bufsize=*str_cnt * sizeof(LPWSTR);
-	*wchars=(LPWSTR *)malloc(bufsize);
-	if (*wchars==NULL){
-		PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
-		goto done;
-		}
-	ZeroMemory(*wchars, bufsize);
-	for (tuple_index=0;tuple_index<*str_cnt;tuple_index++){
-		tuple_item=PyTuple_GET_ITEM(str_tuple, tuple_index);
-		if (!PyWinObject_AsWCHAR(tuple_item, &((*wchars)[tuple_index]), FALSE)){
-			PyWinObject_FreeWCHARArray(*wchars, *str_cnt);
-			*wchars=NULL;
-			*str_cnt=0;
-			goto done;
-			}
-		}
-	ret=TRUE;
-done:
-	Py_XDECREF(str_tuple);
-	return ret;
-}
-
-extern PyObject *PyDsGetSpn(PyObject *self, PyObject *args)
-{
-	DWORD err, cSpns, bufsize, name_cnt;
-	DS_SPN_NAME_TYPE ServiceType;
-	WCHAR *ServiceClass=NULL, *ServiceName=NULL;
-	PyObject *obServiceClass, *obServiceName;
-	PyObject *ret=NULL, *tuple_item;
-	LPWSTR *Spns=NULL, *InstanceNames=NULL;
-	USHORT tuple_index, InstancePort=0, cInstanceNames=0, *InstancePorts=NULL;
-	long port_nbr;
-	PyObject *obInstanceNames=Py_None, *obInstancePorts=Py_None;
-	PyObject *obInstancePorts_tuple=NULL;
-
-	CHECK_PFN(DsGetSpn);
-	CHECK_PFN(DsFreeSpnArray);
-
-	if (!PyArg_ParseTuple(args,"lOO|HOO:DsGetSpn", &ServiceType, &obServiceClass, &obServiceName,
-		&InstancePort, &obInstanceNames, &obInstancePorts))
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obServiceClass, &ServiceClass, FALSE))
-		goto done;
-	if (!PyWinObject_AsWCHAR(obServiceName, &ServiceName, TRUE))
-		goto done;
-	if (obInstanceNames!=Py_None){
-		if (!PyWinObject_AsWCHARArray(obInstanceNames, &InstanceNames, &name_cnt))
-			goto done;
-		if (name_cnt>USHRT_MAX){
-			PyErr_Format(PyExc_ValueError, "Count of InstanceNames cannot exceed %d", USHRT_MAX);
-			goto done;
-			}
-		cInstanceNames=(USHORT)name_cnt;
-		}
-
-	if (obInstancePorts!=Py_None){
-		if ((obInstancePorts_tuple=PySequence_Tuple(obInstancePorts))==NULL)
-			goto done;
-		if (PyTuple_Size(obInstancePorts_tuple)!=cInstanceNames){
-			PyErr_SetString(PyExc_ValueError,"DsGetSpn: InstancePorts must be same size sequence as InstanceNames");
-			goto done;
-			}
-		bufsize=cInstanceNames * sizeof(USHORT);
-		InstancePorts=(USHORT *)malloc(bufsize);
-		if (InstancePorts==NULL){
-			PyErr_Format(PyExc_MemoryError, "DsGetSpn: Unable to allocate %d bytes", bufsize);
-			goto done;
-			}
-		for (tuple_index=0;tuple_index<cInstanceNames;tuple_index++){
-			tuple_item=PyTuple_GET_ITEM(obInstancePorts_tuple,tuple_index);
-			// convert a python int to a USHORT
-			// ??? any API function to do this other than H format of PyArg_ParseTuple ???
-			port_nbr=PyInt_AsLong(tuple_item);
-			if ((port_nbr==(unsigned long)-1 && PyErr_Occurred()) || (port_nbr<0)){
-				PyErr_Clear();
-				PyErr_Format(PyExc_TypeError,"InstancePorts must be a sequence of ints in the range 0-%d",USHRT_MAX);
-				goto done;
-				}
-			if (port_nbr > USHRT_MAX){
-				PyErr_Format(PyExc_ValueError, "InstancePorts values cannot exceed %d", USHRT_MAX);
-				goto done;
-				}
-			InstancePorts[tuple_index]=(USHORT)port_nbr;
-			}
-		}
-
-	err=(*pfnDsGetSpn)(ServiceType, ServiceClass, ServiceName, 
-		InstancePort, cInstanceNames, (LPCWSTR *)InstanceNames,
-		InstancePorts, &cSpns, &Spns);
-	if (err!=STATUS_SUCCESS)
-		PyWin_SetAPIError("DsGetSpn",err);
-	else{
-		ret=PyTuple_New(cSpns);
-		if (ret!=NULL){
-			for (tuple_index=0;tuple_index<cSpns;tuple_index++){
-				tuple_item=PyWinObject_FromWCHAR(Spns[tuple_index]);
-				if (tuple_item==NULL){
-					Py_DECREF(ret);
-					ret=NULL;
-					break;
-					}
-				PyTuple_SET_ITEM(ret, tuple_index, tuple_item);
-				}
-			}
-		}
-	done:
-	if (Spns!=NULL)
-		(*pfnDsFreeSpnArray)(cSpns, Spns);
-	PyWinObject_FreeWCHARArray(InstanceNames, cInstanceNames);
-
-	if (InstancePorts!=NULL)
-		free(InstancePorts);
-	if (obInstancePorts_tuple!=NULL)
-		Py_DECREF(obInstancePorts_tuple);
-	PyWinObject_FreeWCHAR(ServiceClass);
-	PyWinObject_FreeWCHAR(ServiceName);
-	return ret;
-}
-
-extern PyObject *PyDsWriteAccountSpn(PyObject *self, PyObject *args)
-{
-	DWORD err, spn_cnt;
-	HANDLE dshandle;
-	DS_SPN_WRITE_OP Operation;
-	LPWSTR acct, *spns=NULL;
-	PyObject *ret=NULL, *obhandle, *obacct, *obspns;
-	CHECK_PFN(DsWriteAccountSpn);
-	if (!PyArg_ParseTuple(args, "OlOO:DsWriteAccountSpn", &obhandle, &Operation, &obacct, &obspns))
-		return NULL;
-	if (!PyWinObject_AsHANDLE(obhandle, &dshandle))
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obacct, &acct))
-		goto done;
-	if (!PyWinObject_AsWCHARArray(obspns, &spns, &spn_cnt))
-		goto done;
-	err=(*pfnDsWriteAccountSpn)(dshandle, Operation, acct, spn_cnt, (LPCWSTR *)spns);
-	if (err!=STATUS_SUCCESS)
-		PyWin_SetAPIError("DsWriteAccountSpn", err);
-	else{
-		Py_INCREF(Py_None);
-		ret=Py_None;
-		}
-done:
-	PyWinObject_FreeWCHAR(acct);
-	PyWinObject_FreeWCHARArray(spns, spn_cnt);
-	return ret;
-}
