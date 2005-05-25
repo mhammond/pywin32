@@ -107,3 +107,12 @@ HRESULT get_LoginScript(BSTR *OUTPUT);
 // @pyswig |put_LoginScript|
 // @pyparm unicode|val||
 HRESULT put_LoginScript(OLECHAR *val);
+
+// @pyswig |SetPassword|
+// @pyparm unicode|val||
+HRESULT SetPassword(OLECHAR *val);
+
+// @pyswig |ChangePassword|
+// @pyparm unicode|oldval||
+// @pyparm unicode|newval||
+HRESULT ChangePassword(OLECHAR *val, OLECHAR *val);
