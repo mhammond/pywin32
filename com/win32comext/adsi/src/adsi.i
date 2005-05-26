@@ -23,6 +23,7 @@
 %include "adsilib.i"
 
 %{
+#include "objsel.h"
 #include "PyIEnumVARIANT.h"
 #include "PythonCOMServer.h"
 #include "PythonCOMRegister.h"
@@ -30,7 +31,11 @@
 #include "PyIDirectorySearch.h"
 #include "PyIADsContainer.h"
 #include "PyIADsUser.h"
+#include "PyIDsObjectPicker.h"
 #include "ADSIID.h"
+
+extern PyTypeObject PyDSOP_SCOPE_INIT_INFOsType;
+
 %}
 
 %{
@@ -220,8 +225,20 @@ static PyObject *PyADsEnumerateNext(PyObject *self, PyObject *args)
 %}
 %native (ADsEnumerateNext) PyADsEnumerateNext;
 
+
+%{
+// @pyswig <o PyDS_SELECTION_LIST>|StringAsDS_SELECTION_LIST|Unpacks a string (generally fetched via <om PyIDataObject.GetData>) into a <o PyDS_SELECTION_LIST> list.
+// @pyparm str|buf||The raw buffer
+extern PyObject *PyStringAsDS_SELECTION_LIST(PyObject *self, PyObject *args);
+%}
+%native (StringAsDS_SELECTION_LIST) PyStringAsDS_SELECTION_LIST;
+
 %init %{
 	PyDict_SetItemString(d, "error", PyWinExc_COMError);
+
+	// @pyswig <o DSOP_SCOPE_INIT_INFOs>|DSOP_SCOPE_INIT_INFOs|The type object for <o PyDSOP_SCOPE_INIT_INFOs> objects.
+	// @pyparm int|size||The number of <o PyDSOP_SCOPE_INIT_INFO> objects to create in the array.
+	PyDict_SetItemString(d, "DSOP_SCOPE_INIT_INFOs", (PyObject *)&PyDSOP_SCOPE_INIT_INFOsType);
 
 	AddIID(d, "LIBID_ADs", LIBID_ADs);
 
@@ -261,7 +278,7 @@ static PyObject *PyADsEnumerateNext(PyObject *self, PyObject *args)
 	ADD_IID(CLSID_AccessControlEntry);
 	ADD_IID(CLSID_AccessControlList);
 	ADD_IID(CLSID_SecurityDescriptor);
-
+    ADD_IID(CLSID_DsObjectPicker);
 //	ADD_IID(IID_IDirectoryAttrMgmt);
 
 	AddIID(d, "CLSID_ADsDSOObject", CLSID_ADsDSOObject);
@@ -279,4 +296,7 @@ static PyObject *PyADsEnumerateNext(PyObject *self, PyObject *args)
 
 	if ( PyCom_RegisterClientType(&PyIADsContainer::type, &IID_IADsContainer) != 0 ) return;
 	ADD_IID(IID_IADsContainer);
+
+	if ( PyCom_RegisterClientType(&PyIDsObjectPicker::type, &IID_IDsObjectPicker) != 0 ) return;
+	ADD_IID(IID_IDsObjectPicker);
 %}
