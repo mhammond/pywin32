@@ -181,12 +181,11 @@ class WinExt (Extension):
                      for fname in result]
         decorated.sort()
         result = [item[1] for item in decorated]
-
         return result
 
 class WinExt_pythonwin(WinExt):
     def __init__ (self, name, **kw):
-        if not kw.has_key("dsp_file"):
+        if not kw.has_key("dsp_file") and not kw.get("sources"):
             kw["dsp_file"] = "pythonwin/" + name + ".dsp"
         kw.setdefault("extra_compile_args", []).extend(
                             ['-D_AFXDLL', '-D_AFXEXT','-D_MBCS'])
@@ -210,7 +209,7 @@ class WinExt_ISAPI(WinExt):
 # itself - thus, output is "win32comext"
 class WinExt_win32com(WinExt):
     def __init__ (self, name, **kw):
-        if not kw.has_key("dsp_file"):
+        if not kw.has_key("dsp_file") and not kw.get("sources"):
             kw["dsp_file"] = "com/" + name + ".dsp"
         kw["libraries"] = kw.get("libraries", "") + " oleaut32 ole32"
 
@@ -864,14 +863,20 @@ for info in (
 # The few that need slightly special treatment
 win32_extensions += [
     WinExt_win32("win32gui", 
+           sources = """
+                win32/src/win32dynamicdialog.cpp
+                win32/src/win32gui.i win32/src/win32guimodule.cpp
+               """.split(),
            libraries="gdi32 user32 comdlg32 comctl32 shell32",
            define_macros = [("WIN32GUI", None)],
         ),
     # winxpgui is built from win32gui.i, but sets up different #defines before
     # including windows.h.  It also has an XP style manifest.
     WinExt_win32("winxpgui",
-           sources = ["win32/src/winxpgui.rc"],
-           dsp_file = "win32/win32gui.dsp",
+           sources = """
+                win32/src/winxpgui.rc win32/src/win32dynamicdialog.cpp
+                win32/src/win32gui.i win32/src/win32guimodule.cpp
+               """.split(),
            libraries="gdi32 user32 comdlg32 comctl32 shell32",
            define_macros = [("WIN32GUI",None), ("WINXPGUI",None)],
            extra_swig_commands=["-DWINXPGUI"],
@@ -879,7 +884,6 @@ win32_extensions += [
     # winxptheme
     WinExt_win32("_winxptheme",
            sources = ["win32/src/_winxptheme.i", "win32/src/_winxpthememodule.cpp"],
-           dsp_file = None,
            libraries="gdi32 user32 comdlg32 comctl32 shell32 Uxtheme",
            windows_h_version=0x0500,
            extra_compile_args = ['-DUNICODE', '-D_UNICODE', '-DWINNT'],
@@ -892,6 +896,10 @@ win32_extensions += [
            windows_h_version = 0x500),
 ]
 
+dirs = {
+    'adsi' : 'com/win32comext/adsi/src',
+}
+
 # The COM modules.
 pythoncom = WinExt_system32('pythoncom',
                    dsp_file=r"com\win32com.dsp",
@@ -903,7 +911,18 @@ pythoncom = WinExt_system32('pythoncom',
                    )
 com_extensions = [pythoncom]
 com_extensions += [
-    WinExt_win32com('adsi', libraries="ACTIVEDS ADSIID"),
+    WinExt_win32com('adsi', libraries="ACTIVEDS ADSIID",
+                    sources=("""
+                        %(adsi)s/adsi.i                 %(adsi)s/adsi.cpp
+                        %(adsi)s/PyIADsContainer.i      %(adsi)s/PyIADsContainer.cpp
+                        %(adsi)s/PyIADsUser.i           %(adsi)s/PyIADsUser.cpp
+                        %(adsi)s/PyIDirectoryObject.i   %(adsi)s/PyIDirectoryObject.cpp
+                        %(adsi)s/PyIDirectorySearch.i   %(adsi)s/PyIDirectorySearch.cpp
+                        %(adsi)s/PyIDsObjectPicker.i    %(adsi)s/PyIDsObjectPicker.cpp
+
+                        %(adsi)s/adsilib.i
+                        %(adsi)s/PyADSIUtil.cpp         %(adsi)s/PyDSOPObjects.cpp 
+                        """ % dirs).split()),
     WinExt_win32com('axcontrol', pch_header="axcontrol_pch.h"),
     WinExt_win32com('axscript',
             dsp_file=r"com\Active Scripting.dsp",
@@ -996,6 +1015,7 @@ swig_interface_parents = {
     'PyIADsUser':           'IDispatch',
     'PyIDirectoryObject':   '',
     'PyIDirectorySearch':   '',
+    'PyIDsObjectPicker':   '',
 }
 
 # A list of modules that can also be built for Windows CE.  These generate
