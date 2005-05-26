@@ -48,25 +48,6 @@ extern PyObject *OleSetADSIError(HRESULT hr, IUnknown *pUnk, REFIID iid);
 %apply ADS_SEARCH_HANDLE {long};
 typedef long ADS_SEARCH_HANDLE
 
-/***
-// Some ** special cases.
-%typemap(python,freearg) IMsgStore **INPUT
-{
-	if ($source && *$source) (*$source)->Release();
-}
-
-%typemap(python,arginit) IMsgStore ** {
-	$target = NULL;
-}
-
-%typemap(python,in) IMsgStore **INPUT(IMsgStore *temp)
-{
-	$target = &temp;
-	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMsgStore, (void **)$target, 0))
-		return NULL;
-}
-***/
-
 // The types and structures.
 
 %typemap(python,ignore) ADS_OBJECT_INFO **OUTPUT (ADS_OBJECT_INFO *temp) {
@@ -142,62 +123,3 @@ typedef long ADS_SEARCH_HANDLE
 %typemap(python,freearg) ADS_OBJECT_INFO *OUTPUT {
 	if ($source) FreeADsMem($source);
 }
-
-/***
-
-%typemap(python,ignore) MAPIINIT_0 *OUTPUT (MAPIINIT_0 temp) {
-	$target = &temp;
-}
-
-%typemap(python,argout) MAPIINIT_0 *OUTPUT {
-	Py_DECREF($target);
-	$target = Py_BuildValue("ll", 
-		$source->ulVersion,
-		$source->ulFlags);
-}
-
-%typemap(python,in) MAPIINIT_0 *INPUT(MAPIINIT_0 temp)
-{
-	$target = &temp;
-	if ($source==Py_None)
-		$target = NULL;
-	else {
-		if (!PyArg_ParseTuple($source, "ii:MAPIINIT_0 tuple", &($target->ulVersion), &($target->ulFlags))) {
-			$cleanup;
-			return NULL;
-		}
-	}
-}	
-
-// A "MAPISTRINGARRAY" object - not a real type at all
-// but suitable for "returned array of strings"
-%typemap(python,ignore) TCHAR **OUTPUT_ARRAY(TCHAR *temp)
-{
-  $target = &temp;
-}
-
-%typemap(python,argout) TCHAR **OUTPUT_ARRAY {
-	$target = PyList_New(0);
-	for (int __i=0; $source[__i] != NULL ;__i++) {
-		PyObject *obNew = PyWinObject_FromTCHAR($source[__i]);
-		PyList_Append($target, obNew);
-		Py_XDECREF(obNew);
-	}
-	MAPIFreeBuffer($source);
-}
-
-%typemap(python,ignore) TCHAR **OUTPUT_MAPI(TCHAR *temp)
-{
-  $target = &temp;
-}
-
-%typemap(python,argout) TCHAR **OUTPUT_MAPI {
-	if (*$source==NULL) {
-		$target = Py_None;
-		Py_INCREF(Py_None);
-	} else {
-		$target = PyWinObject_FromTCHAR(*$source);
-		MAPIFreeBuffer(*$source);
-	}
-}
-***/
