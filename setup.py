@@ -916,12 +916,14 @@ com_extensions += [
                         %(adsi)s/adsi.i                 %(adsi)s/adsi.cpp
                         %(adsi)s/PyIADsContainer.i      %(adsi)s/PyIADsContainer.cpp
                         %(adsi)s/PyIADsUser.i           %(adsi)s/PyIADsUser.cpp
+                        %(adsi)s/PyIADsDeleteOps.i      %(adsi)s/PyIADsDeleteOps.cpp
                         %(adsi)s/PyIDirectoryObject.i   %(adsi)s/PyIDirectoryObject.cpp
                         %(adsi)s/PyIDirectorySearch.i   %(adsi)s/PyIDirectorySearch.cpp
                         %(adsi)s/PyIDsObjectPicker.i    %(adsi)s/PyIDsObjectPicker.cpp
 
                         %(adsi)s/adsilib.i
-                        %(adsi)s/PyADSIUtil.cpp         %(adsi)s/PyDSOPObjects.cpp 
+                        %(adsi)s/PyADSIUtil.cpp         %(adsi)s/PyDSOPObjects.cpp
+                        %(adsi)s/PyIADs.cpp
                         """ % dirs).split()),
     WinExt_win32com('axcontrol', pch_header="axcontrol_pch.h"),
     WinExt_win32com('axscript',
@@ -1012,10 +1014,12 @@ swig_interface_parents = {
     # ADSI
     'adsi':                 None, # module
     'PyIADsContainer':      'IDispatch',
-    'PyIADsUser':           'IDispatch',
+    'PyIADsDeleteOps':      'IDispatch',
+    'PyIADsUser':           'IADs',
     'PyIDirectoryObject':   '',
     'PyIDirectorySearch':   '',
     'PyIDsObjectPicker':   '',
+    'PyIADs':   'IDispatch',
 }
 
 # A list of modules that can also be built for Windows CE.  These generate

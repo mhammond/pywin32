@@ -24,6 +24,7 @@
 
 %{
 #include "objsel.h"
+#include "PyIADs.h"
 #include "PyIEnumVARIANT.h"
 #include "PythonCOMServer.h"
 #include "PythonCOMRegister.h"
@@ -31,10 +32,13 @@
 #include "PyIDirectorySearch.h"
 #include "PyIADsContainer.h"
 #include "PyIADsUser.h"
+#include "PyIADsDeleteOps.h"
 #include "PyIDsObjectPicker.h"
 #include "ADSIID.h"
 
 extern PyTypeObject PyDSOP_SCOPE_INIT_INFOsType;
+extern PyObject* PyIADs_getattro(PyObject *ob, PyObject *obname);
+extern PyObject* PyIADsUser_getattro(PyObject *ob, PyObject *obname);
 
 %}
 
@@ -242,7 +246,6 @@ extern PyObject *PyStringAsDS_SELECTION_LIST(PyObject *self, PyObject *args);
 
 	AddIID(d, "LIBID_ADs", LIBID_ADs);
 
-	ADD_IID(IID_IADs);
 	ADD_IID(IID_IADsNamespaces);
 	ADD_IID(IID_IADsDomain);
 	ADD_IID(IID_IADsComputerOperations);
@@ -285,6 +288,13 @@ extern PyObject *PyStringAsDS_SELECTION_LIST(PyObject *self, PyObject *args);
 	AddIID(d, "DBGUID_LDAPDialect", DBGUID_LDAPDialect);
 	AddIID(d, "DBPROPSET_ADSISEARCH", DBPROPSET_ADSISEARCH);
 
+	if ( PyCom_RegisterClientType(&PyIADs::type, &IID_IADs) != 0 ) return;
+	ADD_IID(IID_IADs);
+	// Patch up getattro for all types deriving from IADs
+	PyIADs::type.tp_getattro = PyIADs_getattro;
+	PyIADsUser::type.tp_getattro = PyIADsUser_getattro;
+
+
 	if ( PyCom_RegisterClientType(&PyIDirectoryObject::type, &IID_IDirectoryObject) != 0 ) return;
 	ADD_IID(IID_IDirectoryObject);
 
@@ -299,4 +309,7 @@ extern PyObject *PyStringAsDS_SELECTION_LIST(PyObject *self, PyObject *args);
 
 	if ( PyCom_RegisterClientType(&PyIDsObjectPicker::type, &IID_IDsObjectPicker) != 0 ) return;
 	ADD_IID(IID_IDsObjectPicker);
+
+	if ( PyCom_RegisterClientType(&PyIADsDeleteOps::type, &IID_IADsDeleteOps) != 0 ) return;
+	ADD_IID(IID_IADsDeleteOps);
 %}

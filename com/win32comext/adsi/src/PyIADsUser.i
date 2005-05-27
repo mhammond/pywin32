@@ -6,12 +6,13 @@
 %include "adsilib.i"
 
 %{
-
+#include "PyIADs.h"
 #include "PyIADsUser.h"
+
 #define SWIG_THIS_IID IID_IADsUser
 
 PyIADsUser::PyIADsUser(IUnknown *pDisp) :
-	PyIDispatch(pDisp)
+	PyIADs(pDisp)
 {
 	ob_type = &type;
 }
@@ -22,7 +23,17 @@ PyIADsUser::~PyIADsUser()
 
 IADsUser *PyIADsUser::GetI(PyObject *self)
 {
-	return (IADsUser *)PyIDispatch::GetI(self);
+	return (IADsUser *)PyIADs::GetI(self);
+}
+
+PyObject* PyIADsUser_getattro(PyObject *ob, PyObject *obname)
+{
+	char *name = PyString_AsString(obname);
+	if (!name) return NULL;
+
+	IADsUser *p = PyIADsUser::GetI(ob);
+	// todo!
+	return PyIADs::getattro(ob, obname);
 }
 
 %}
