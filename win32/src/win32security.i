@@ -2318,7 +2318,7 @@ static PyObject *PyLsaRemoveAccountRights(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig |LsaEnumerateAccountRights|Lists privileges held by SID
+// @pyswig [<o PyUnicode>, ...]|LsaEnumerateAccountRights|Lists privileges held by SID
 %native(LsaEnumerateAccountRights) PyLsaEnumerateAccountRights;
 %{
 static PyObject *PyLsaEnumerateAccountRights(PyObject *self, PyObject *args)
