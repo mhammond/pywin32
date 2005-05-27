@@ -36,7 +36,8 @@ def _get_good_ret(ob,
 	# See if the object supports IDispatch
 	if hasattr(ob, "Invoke"):
 		import win32com.client.dynamic
-		return win32com.client.dynamic.Dispatch(ob, "ADSI_object", ADSIDispatch)
+		name = "Dispatch wrapper around %r" %  ob
+		return win32com.client.dynamic.Dispatch(ob, name, ADSIDispatch)
 	return ob
 
 
@@ -79,10 +80,11 @@ class ADSIDispatch(win32com.client.CDispatch):
 			return win32com.client.CDispatch._NewEnum(self)
 
 	def __getattr__(self, attr):
-		ret = getattr(self._oleobj_, attr, None)
-		if ret is None:
-			ret = win32com.client.CDispatch.__getattr__(self, attr)
-		return ret
+		try:
+			return getattr(self._oleobj_, attr)
+		except AttributeError:
+			return win32com.client.CDispatch.__getattr__(self, attr)
+
 	def QueryInterface(self, iid):
 		ret = self._oleobj_.QueryInterface(iid)
 		return _get_good_ret(ret)
