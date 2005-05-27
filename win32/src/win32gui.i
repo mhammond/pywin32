@@ -183,6 +183,39 @@ typedef int UINT;
 	$target = NULL;
 }
 
+%typemap(python,ignore) MSG *OUTPUT(MSG temp)
+{
+  $target = &temp;
+  memset($target, 0, sizeof(MSG));
+}
+
+%typemap(python,argout) MSG *OUTPUT{
+    PyObject *o;
+    o = Py_BuildValue("iiiii(ii)",
+					$source->hwnd,
+					$source->message,
+					$source->wParam,
+					$source->lParam,
+					$source->time,
+					$source->pt.x,
+					$source->pt.y);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
+      Py_DECREF(Py_None);
+      $target = o;
+    } else {
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
+	Py_XDECREF(o2);
+      }
+      PyList_Append($target,o);
+      Py_XDECREF(o);
+    }
+}
+
 %typemap(python,in) MSG *INPUT {
     $target = (MSG *)_alloca(sizeof(MSG));
     if (!PyArg_ParseTuple($source, "iiiii(ii):MSG param for $name",
@@ -2177,6 +2210,26 @@ HWND FindWindowEx(
 	STRING_OR_ATOM className, // @pyparm int/string|className||
 	TCHAR *INPUT_NULLOK); // @pyparm string|WindowName||
 
+// @pyswig |DragAcceptFiles|Registers whether a window accepts dropped files.
+// @pyparm int|hwnd||Handle to the Window
+// @pyparm int|fAccept||Value that indicates if the window identified by the hWnd parameter accepts dropped files.
+// This value is True to accept dropped files or False to discontinue accepting dropped files. 
+void DragAcceptFiles(HWND hWnd, BOOL fAccept);
+
+// @pyswig |DragDetect|captures the mouse and tracks its movement until the user releases the left button, presses the ESC key, or moves the mouse outside the drag rectangle around the specified point.
+// @pyparm int|hwnd||Handle to the Window
+// @pyparm (int, int)|point||Initial position of the mouse, in screen coordinates. The function determines the coordinates of the drag rectangle by using this point.
+// @rdesc If the user moved the mouse outside of the drag rectangle while holding down the left button , the return value is nonzero.
+// <nl>If the user did not move the mouse outside of the drag rectangle while holding down the left button , the return value is zero.
+BOOL DragDetect(HWND hWnd, POINT INPUT);
+
+// @pyswig int|GetDoubleClickTime|
+UINT GetDoubleClickTime();
+
+// @pyswig |SetDoubleClickTime|
+// @pyparm int|newVal||
+BOOLAPI SetDoubleClickTime(UINT val);
+
 // @pyswig |HideCaret|
 BOOLAPI HideCaret(HWND hWnd);
 
@@ -2417,6 +2470,9 @@ static PyObject *PyPumpWaitingMessages(PyObject *self, PyObject *args)
 %}
 %native (PumpMessages) PyPumpMessages;
 %native (PumpWaitingMessages) PyPumpWaitingMessages;
+
+// @pyswig MSG|GetMessage|
+BOOL GetMessage(MSG *OUTPUT, HWND hwnd, UINT min, UINT max);
 
 // @pyswig int|TranslateMessage|
 // @pyparm MSG|msg||
