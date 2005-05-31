@@ -1,3 +1,4 @@
+// @doc
 %module IDirectorySearch // A COM interface to ADSI's IDirectorySearch interface.
 
 %include "typemaps.i"
@@ -30,13 +31,16 @@ IDirectorySearch *PyIDirectorySearch::GetI(PyObject *self)
 
 %{
 
-// @pyswig |SetSearchPreference|
+// @pyswig int, [int, ...]|SetSearchPreference|
+// @rdesc The result is the hresult of the call, and a list of integer status
+// codes for each of the preferences set.
 PyObject *PyIDirectorySearch::SetSearchPreference(PyObject *self, PyObject *args)
 {
 	HRESULT _result;
 	PyObject *obPrefs;
 	IDirectorySearch *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
+	// @pyparm ADS_SEARCHPREF_INFO|prefs||
 	if (!PyArg_ParseTuple(args, "O", &obPrefs))
 		return NULL;
     ADS_SEARCHPREF_INFO *p;
@@ -63,12 +67,18 @@ PyObject *PyIDirectorySearch::SetSearchPreference(PyObject *self, PyObject *args
 
 %{
 
-// @pyswig <o PyADS_OBJECT_INFO>|ExecuteSearch|Executes a search and passes the results to the caller. Some providers, such as LDAP, will defer the actual execution until the caller invokes the IDirectorySearch::GetFirstRow method or the IDirectorySearch::GetNextRow method.
+// @pyswig int|ExecuteSearch|Executes a search and passes the results to the caller.
+// Some providers, such as LDAP, will defer the actual execution until the caller invokes the
+// <om PyIDirectorySearch.GetFirstRow> method or the <om PyIDirectorySearch.GetNextRow> method.
+// @rdesc The result is an integer search handle.  <om PyIDirectorySearch.CloseSearchHandle>
+// should be called to close the handle.
 PyObject *PyIDirectorySearch::ExecuteSearch(PyObject *self, PyObject *args)
 {
 	PyObject *obNames, *obFilter;
 	IDirectorySearch *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
+	// @pyparm <o PyUnicode>|filter||
+	// @pyparm [<o PyUnicode>, ...]|attrNames||
 	if (!PyArg_ParseTuple(args, "OO", &obFilter, &obNames))
 		return NULL;
     WCHAR *szFilter = NULL;
@@ -103,21 +113,36 @@ PyObject *PyIDirectorySearch::ExecuteSearch(PyObject *self, PyObject *args)
 %}
 %native(ExecuteSearch) ExecuteSearch;
 
+// @pyswig int|GetNextRow|
+// @pyparm int|handle||
+// @rdesc The result is the HRESULT from the call - no exceptions are thrown
 HRESULT_KEEP_INFO GetNextRow(ADS_SEARCH_HANDLE handle);
+// @pyswig int|GetFirstRow|
+// @pyparm int|handle||
+// @rdesc The result is the HRESULT from the call - no exceptions are thrown
 HRESULT_KEEP_INFO GetFirstRow(ADS_SEARCH_HANDLE handle);
+// @pyswig int|GetPreviousRow|
+// @pyparm int|handle||
+// @rdesc The result is the HRESULT from the call - no exceptions are thrown
 HRESULT_KEEP_INFO GetPreviousRow(ADS_SEARCH_HANDLE handle);
 
+// @pyswig |CloseSearchHandle|Closes a previously opened search handle.
+// @pyparm int|handle||
 HRESULT CloseSearchHandle(ADS_SEARCH_HANDLE handle);
+// @pyswig |AdandonSearch|
+// @pyparm int|handle||
 HRESULT AbandonSearch(ADS_SEARCH_HANDLE handle);
 
 %{
-// @pyswig |GetColumn|
+// @pyswig (name, type, values)|GetColumn|
 PyObject *PyIDirectorySearch::GetColumn(PyObject *self, PyObject *args)
 {
 	PyObject *obName;
     long handle;
 	IDirectorySearch *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
+	// @pyparm int|handle||Handle to a search
+	// @pyparm <o PyUnicode>|name||The column name to fetch
 	if (!PyArg_ParseTuple(args, "lO:GetColumn", &handle, &obName))
 		return NULL;
     WCHAR *szName= NULL;

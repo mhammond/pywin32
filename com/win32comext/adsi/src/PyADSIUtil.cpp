@@ -78,7 +78,9 @@ PyObject *OleSetADSIError(HRESULT hr, IUnknown *pUnk, REFIID iid)
 	return PyCom_BuildPyException(hr, pUnk, iid);
 }
 
-
+// @object PyADSVALUE|A tuple:
+// @tupleitem 0|object|value|The value as a Python object.
+// @tupleitem 1|int|type|The AD type of the value.
 PyObject *PyADSIObject_FromADSVALUE(ADSVALUE &v)
 {
 	PyObject *ob = NULL;
@@ -521,7 +523,7 @@ PyTypeObject PyADS_ATTR_INFO::Type =
 	{"ADsType",         T_INT,      OFF(dwADsType)}, // @prop integer|ADsType|
 	{NULL}
 };
-
+// @prop [<o PyADS_ATTR_INFO>, ...]|Values|
 
 
 PyObject *PyADSIObject_FromADS_ATTR_INFOs(ADS_ATTR_INFO *infos, DWORD cinfos)
@@ -626,6 +628,9 @@ BOOL PyADSIObject_AsADS_ATTR_INFOs(PyObject *ob, ADS_ATTR_INFO **ppret, DWORD *p
 	return ok;
 }
 
+// @object PyADS_SEARCHPREF_INFO|A tuple of:
+// @tupleitem 0|int|attr_id|
+// @tupleitem 1|<o PyADSVALUE>|value|
 void PyADSIObject_FreeADS_SEARCHPREF_INFOs(ADS_SEARCHPREF_INFO *pattr, DWORD cattr)
 {
 	if (!pattr) return;

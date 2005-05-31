@@ -40,6 +40,7 @@ PyObject *PyIDirectoryObject::GetObjectAttributes(PyObject *self, PyObject *args
 	PyObject *obNames;
 	IDirectoryObject *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
+	// @pyparm (<o PyUnicode>, ...)|names||
 	if (!PyArg_ParseTuple(args, "O", &obNames))
 		return NULL;
 	WCHAR **names = NULL;
@@ -79,6 +80,7 @@ PyObject *PyIDirectoryObject::SetObjectAttributes(PyObject *self, PyObject *args
 	IDirectoryObject *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
 	PyObject *obAttr;
+	// @pyparm (<o PyADS_ATTR_INFO>, ...)|attrs||The attributes to set
 	if (!PyArg_ParseTuple(args, "O", &obAttr))
 		return NULL;
 
@@ -113,6 +115,8 @@ PyObject *PyIDirectoryObject::CreateDSObject(PyObject *self, PyObject *args)
 	IDirectoryObject *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
 	PyObject *obAttr, *obName;
+	// @pyparm <o PyUnicode>|rdn||The relative distinguished name (relative path) of the object to be created.
+	// @pyparm (<o PyADS_ATTR_INFO>, ...)|attrs||The attributes to set.
 	if (!PyArg_ParseTuple(args, "OO:CreateDSObject", &obName, &obAttr))
 		return NULL;
 
