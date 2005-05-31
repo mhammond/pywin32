@@ -15,6 +15,9 @@ generates Windows .hlp files.
 #include "PythonCOMServer.h"
 #include "PyFactory.h"
 
+// keep a reference to pythoncom'm __dict__ so the COM currency format can be looked up dynamically
+extern PyObject *pythoncom_dict=NULL;
+
 extern int PyCom_RegisterCoreIIDs(PyObject *dict);
 
 extern int PyCom_RegisterCoreSupport(void);
@@ -1717,6 +1720,8 @@ extern "C" __declspec(dllexport) void initpythoncom()
 
 	PyObject *dict = PyModule_GetDict(oModule);
 	if (!dict) return; /* Another serious error!*/
+	pythoncom_dict=dict;
+
 	PyDict_SetItemString(dict, "TypeIIDs", g_obPyCom_MapIIDToType);
 	PyDict_SetItemString(dict, "ServerInterfaces", g_obPyCom_MapGatewayIIDToName);
 	PyDict_SetItemString(dict, "InterfaceNames", g_obPyCom_MapInterfaceNameToIID);
@@ -2060,7 +2065,7 @@ extern "C" __declspec(dllexport) void initpythoncom()
 		AddConstant(dict, "CLSCTX_SERVER", CLSCTX_INPROC_SERVER| CLSCTX_LOCAL_SERVER );
 		AddConstant(dict, "dcom", 0 );
 	}
-
+	AddConstant(dict, "__future_currency__", 0);
 	PyObject *obfmtid=NULL;
 	obfmtid=PyWinObject_FromIID(FMTID_DocSummaryInformation);
 	PyDict_SetItemString(dict,"FMTID_DocSummaryInformation",obfmtid);

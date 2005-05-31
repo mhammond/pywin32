@@ -535,10 +535,6 @@ PyObject * dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 		case VT_DATE | VT_BYREF:
 		{
 			DATE *pdbl = *(DATE **)pbArg;
-			if ( !PyTime_Check(obOutValue) )
-			{
-				goto Error;
-			}
 			if ( !PyWinObject_AsDATE(obOutValue, pdbl) )
 			{
 				goto Error;
@@ -548,18 +544,8 @@ PyObject * dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 		case VT_CY | VT_BYREF:
 		{
 			CY *pcy = *(CY **)pbArg;
-			if (!PyTuple_Check(obOutValue) || PyTuple_Size(obOutValue) != 2 ||
-				!PyLong_Check(PyTuple_GET_ITEM(obOutValue, 0)) ||
-				!PyLong_Check(PyTuple_GET_ITEM(obOutValue, 1)))
-			{
-				PyErr_Format(
-					PyExc_TypeError,
-					"Return value[%d] is a VT_CY which requires a tuple "
-					"containing two Python longs.", i);
+			if (!PyObject_AsCurrency(obOutValue, pcy))
 				goto Error;
-			}
-			pcy->Hi = PyLong_AsLong(PyTuple_GET_ITEM(obOutValue, 0));
-			pcy->Lo = PyLong_AsLong(PyTuple_GET_ITEM(obOutValue, 1));
 			break;
 		}
 		case VT_I8 | VT_BYREF:

@@ -10,6 +10,8 @@ import winerror
 from win32com.client import constants
 from win32com.server.util import wrap
 
+import pythoncom
+pythoncom.__future_currency__ = True
 # We use the constants from the module, so must insist on a gencache.
 # Otherwise, use of gencache is not necessary (tho still advised)
 gencache.EnsureModule('{6BCDCB60-5605-11D0-AE5F-CADD4C000000}', 0, 1, 1)

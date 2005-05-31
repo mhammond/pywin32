@@ -275,6 +275,9 @@ PYCOM_EXPORT BOOL PyCom_PyObjectAsSTGOPTIONS(PyObject *obstgoptions, STGOPTIONS 
 #endif
 PYCOM_EXPORT PyObject *PyCom_PyObjectFromSTATPROPSETSTG(STATPROPSETSTG *pStat);
 
+// Currency support.
+PYCOM_EXPORT PyObject *PyObject_FromCurrency(CURRENCY &cy);
+PYCOM_EXPORT BOOL PyObject_AsCurrency(PyObject *ob, CURRENCY *pcy);
 
 /* Functions for Initializing COM, and also letting the core know about it!
 */

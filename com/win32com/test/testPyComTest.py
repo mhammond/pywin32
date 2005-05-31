@@ -112,6 +112,17 @@ def TestDynamic():
     o.LongProp = 3
     if o.LongProp != 3 or o.IntProp != 3:
         raise error, "Property value wrong - got %d/%d" % (o.LongProp,o.IntProp)
+    # currency.
+    pythoncom.__future_currency__ = 1
+    if o.CurrencyProp != 0:
+        raise error, "Expecting 0, got %r" % (o.CurrencyProp,)
+    try:
+        import decimal
+    except ImportError:
+        import win32com.decimal_23 as decimal
+    o.CurrencyProp = decimal.Decimal("1234.5678")
+    if o.CurrencyProp != decimal.Decimal("1234.5678"):
+        raise error, "got %r" % (o.CurrencyProp,)
 
 def TestGenerated():
     # Create an instance of the server.
@@ -206,6 +217,19 @@ def TestGenerated():
     o.LongProp = 3
     if o.LongProp != 3 or o.IntProp != 3:
         raise error, "Property value wrong - got %d/%d" % (o.LongProp,o.IntProp)
+
+    # currency.
+    pythoncom.__future_currency__ = 1
+    if o.CurrencyProp != 0:
+        raise error, "Expecting 0, got %r" % (o.CurrencyProp,)
+    try:
+        import decimal
+    except ImportError:
+        import win32com.decimal_23 as decimal
+    for val in ("1234.5678", "1234.56", "1234"):
+        o.CurrencyProp = decimal.Decimal(val)
+        if o.CurrencyProp != decimal.Decimal(val):
+            raise error, "%s got %r" % (val, o.CurrencyProp)
 
     # Do the connection point thing...
     # Create a connection object.

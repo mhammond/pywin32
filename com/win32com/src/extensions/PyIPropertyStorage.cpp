@@ -101,7 +101,7 @@ PyObject *PyObject_FromPROPVARIANT( PROPVARIANT *pVar )
 		case VT_R8:
 			return PyFloat_FromDouble(pVar->dblVal);
 		case VT_CY:
-			return Py_BuildValue("ll", pVar->cyVal.Hi, pVar->cyVal.Lo);
+			return PyObject_FromCurrency(pVar->cyVal);
 		case VT_DATE:
 			return PyWinObject_FromDATE(pVar->date);
 		case VT_BSTR:

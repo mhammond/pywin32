@@ -10,6 +10,7 @@
 
 extern PyObject *g_obPyCom_MapIIDToType;
 extern PyObject *g_obPyCom_MapServerIIDToGateway;
+extern PyObject *pythoncom_dict;
 
 // String conversions
 
@@ -63,6 +64,88 @@ PyObject *MakeOLECHARToObj(const OLECHAR * str)
 		return Py_None;
 	}
 	return PyString_FromUnicode(str);
+}
+
+// Currency conversions.
+PyObject *PyObject_FromCurrency(CURRENCY &cy)
+{
+	static BOOL decimal_imported=FALSE;
+	static PyObject *decimal_module=NULL;
+	static BOOL warned_future_currency=FALSE;
+	PyObject *result = NULL;
+
+	// Use decimal module if available and __future_currency__ evaluates to True, otherwise use old behaviour
+	PyObject *__future_currency__;
+	BOOL use_decimal;
+	__future_currency__=PyDict_GetItemString(pythoncom_dict,"__future_currency__");
+	if (__future_currency__==NULL){  // should not happen !
+		PyErr_Print();
+		use_decimal=FALSE;
+	}
+	else
+		use_decimal=PyObject_IsTrue(__future_currency__);
+	if (!use_decimal && !warned_future_currency) {
+		PyErr_Warn(PyExc_FutureWarning,
+				   "Currency objects will soon be changed so a decimal.Decimal instance is used."
+				   "\n (set pythoncom.__future_currency__ to get these objects now.)");
+		warned_future_currency = TRUE;
+	}
+	
+	if (use_decimal && !decimal_imported){
+		decimal_module=PyImport_ImportModule("decimal");
+		if (!decimal_module) {
+			PyErr_Clear();
+			decimal_module=PyImport_ImportModule("win32com.decimal_23");
+		}
+		decimal_imported=TRUE;
+		if (decimal_module==NULL)
+			PyErr_Print();
+	}
+	if (use_decimal && (decimal_module==NULL)){
+		PyErr_Warn(NULL,"Can't find decimal module, reverting to using tuple for currency");
+		use_decimal=FALSE;
+	}
+	if (!use_decimal)
+		result = Py_BuildValue("ll", cy.Hi, cy.Lo);
+	else {
+		PyObject *unscaled_result;
+		unscaled_result=PyObject_CallMethod(decimal_module, "Decimal", "L", cy.int64);
+		if (unscaled_result!=NULL){
+			result=PyObject_CallMethod(unscaled_result, "__div__", "l", 10000);
+			Py_DECREF(unscaled_result);
+		}
+	}
+	return result;
+}
+
+PYCOM_EXPORT BOOL PyObject_AsCurrency(PyObject *ob, CURRENCY *pcy)
+{
+	if (!PyTuple_Check(ob) || PyTuple_Size(ob) != 2 ||
+		!PyLong_Check(PyTuple_GET_ITEM(ob, 0)) ||
+		!PyLong_Check(PyTuple_GET_ITEM(ob, 1)))
+	{
+		if (strcmp(ob->ob_type->tp_name, "Decimal")==0) {
+			PyObject *scaled = PyObject_CallMethod(ob, "__mul__", "l", 10000);
+			if (!scaled) return FALSE;
+			PyObject *longval = PyNumber_Long(scaled);
+			Py_DECREF(scaled);
+			pcy->int64 = PyLong_AsLongLong(longval);
+			Py_DECREF(longval);
+			if (pcy->int64 == -1 && PyErr_Occurred())
+				return FALSE;
+		} else {
+			PyErr_Format(
+				PyExc_TypeError,
+				"Currency object must be either a tuple of 2 longs or a "
+				"Decimal instance (got %s).",
+				ob->ob_type->tp_name);
+			return FALSE;
+		}
+	} else {
+		pcy->Hi = PyLong_AsLong(PyTuple_GET_ITEM(ob, 0));
+		pcy->Lo = PyLong_AsLong(PyTuple_GET_ITEM(ob, 1));
+	}
+	return TRUE;
 }
 
 // If PyCom_PyObjectFromIUnknown is called with bAddRef==FALSE, the 

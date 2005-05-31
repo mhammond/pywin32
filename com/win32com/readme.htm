@@ -17,7 +17,42 @@
 <p>The <a href="test/.">win32com/test directory</a> contains some interesting
  scripts (and a new <a href="test/readme.txt">readme.txt</a>). Although these
  are used for testing, they do show a variety of COM techniques.</p>
-    
+
+<a name="currency"><h3>Important Currency changes</h3></a>
+<p>
+In all builds prior to 204, a COM currency value was returned as a tuple of
+integers.  Working with 2 integers to represent a currency object was a poor
+choice, but the alternative was never clear.  Now Python ships with the
+<a href="http://www.python.org/dev/doc/devel/lib/module-decimal.html">decimal</a>
+module, the alternative has arrived!
+</p>
+<p>
+To ease the transition, from pywin32 build 205 a FutureWarning will be issued
+when your code fetches a COM currency object - but a tuple will still be
+returned.  However, if your code sets <code>pythoncom.__future_currency__ = True</code>,
+a warning will not be issued, and a decimal module object will be returned.
+At some undetermined point in the future (but not before build 208) the
+new behaviour will be the default.
+</p>
+<p>
+When supplying a COM currency object, you can supply either a decimal object
+or a tuple.  This issue only applies when pythoncom passes you a currency value
+</p>
+<p>
+Python 2.3 does not ship with a decimal module.  For this reason,
+win32com/decimal_23.py is supplied with pywin32.  This is a clone of the decimal
+module, but will only be used when <code>import decimal</code> fails.  If you
+want to use this functionality in your Python 2.3 programs, you should write
+something similar to:
+<pre>
+    try:
+        import decimal
+    except ImportError:
+        import win32com.decimal_23 as decimal
+    val = decimal.Decimal("123.45")
+</pre>
+</p>
+
 <h3>Recent Changes</h3>
 <h4>win32com.shell</h4>
 The shell interfaces have undergone a number of enhancements and changes.
@@ -26,7 +61,7 @@ SHGetFileInfo was broken in its result handling, so had to be changed - this
 is the only function used by the samples that changed, but others not used by the samples also have changed.
 These shell interfaces are now generally stable.
 <h4>New win32com.taskscheduler module</h4>
-Roger Uploe has contribted an interface to the Windows task scheduler.  This is actually very neat, and it allows
+Roger Upole has contributed an interface to the Windows task scheduler.  This is actually very neat, and it allows
 Python to edit the task list as shown by Windows Control Panel.  Property page suppport may even appear later,
 now that the win32 library has the new win32rcparser module.
 <h4>ActiveX Scripting </h4>

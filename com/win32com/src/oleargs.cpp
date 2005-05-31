@@ -174,6 +174,12 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 			return FALSE;
 		V_VT(var) = VT_RECORD;
 	}
+	else if (strcmp(obj->ob_type->tp_name, "Decimal")==0)
+	{
+		if (!PyObject_AsCurrency(obj, &V_CY(var)))
+			return FALSE;
+		V_VT(var) = VT_CY;
+	}
 	/*
 	else if (obj->ob_type == &AutomatedType)
 	{
@@ -326,9 +332,7 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
 			break;
 
 		case VT_CY:
-			// Cheesy support borrowed from:
-			// PyIPropertyStorage.cpp.
-			result = Py_BuildValue("ll", varValue.cyVal.Hi, varValue.cyVal.Lo);
+			result = PyObject_FromCurrency(varValue.cyVal);
 			break;
 
 		case VT_RECORD:
