@@ -5,6 +5,7 @@ from xml.sax import make_parser, handler
 class categoryHandler(handler.ContentHandler):
     def __init__(self):
         self.document = None
+        self.in_importants = False
     def startElement(self, name, attrs):
         if name=="document":
             self.document = Document(attrs)
@@ -16,12 +17,19 @@ class categoryHandler(handler.ContentHandler):
             category.overviewItems = OverviewItems(attrs)
         elif name=="item":
             item = Item(attrs)
-            if self.document.categories:
+            if self.in_importants:
+                self.document.important.append(item)
+            elif self.document.categories:
                 category = self.document.categories[-1]
                 category.overviewItems.items.append(item)
             else:
                 self.document.links.append(item)
+        elif name=="important":
+            self.in_importants = True
 
+    def endElement(self, name):
+        if name=="important":
+            self.in_importants = False
     def endDocument(self):
         pass
 
@@ -30,6 +38,7 @@ class Document:
         self.__dict__.update(attrs)
         self.categories = []
         self.links = []
+        self.important = []
     def __iter__(self):
         return iter(self.categories)
     
@@ -58,6 +67,10 @@ def GetDocument(fname="pywin32-document.xml"):
 
 if __name__=='__main__':
     doc = GetDocument()
+    print "Important Notes"
+    for link in doc.important:
+        print " ", link.name, link.href
+    
     print "Doc links"
     for link in doc.links:
         print " ", link.name, link.href

@@ -95,6 +95,9 @@
 <BODY>
 <H1>$(title)</H1>
 <P>
+<H2>Important Release Notes</H2>
+<!--index:eximportant-->
+
 <H2>External Resources</H2>
 <!--index:exlinks-->
 <P>

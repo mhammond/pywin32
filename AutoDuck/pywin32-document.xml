@@ -1,4 +1,7 @@
 <document>
+    <important>
+        <item name="Important notes about COM currency support changes" href="html/com/win32com/readme.htm#currency"/>
+    </important>
     <links>
         <item name="Python Web Site" href="http://www.python.org"/>
         <item name="Python for Win32 Extensions Site" href="http://starship.python.net/crew/mhammond"/>

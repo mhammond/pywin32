@@ -11,13 +11,14 @@ Usage:
       AdExtTopics.py htmlfile ext_overviewfile
 """
 
-def processFile(input, out, extLinksHTML, extTopicHTML):
+def processFile(input, out, extLinksHTML, extTopicHTML, importantHTML):
   while 1:
     line = input.readline()
     if not line:
       break
     line = string.replace(line, "<!--index:exlinks-->", extLinksHTML)
     line = string.replace(line, "<!--index:extopics-->", extTopicHTML)
+    line = string.replace(line, "<!--index:eximportant-->", importantHTML)
     out.write(line + "\n")
     
 def genHTML(doc):
@@ -33,9 +34,9 @@ def genHTML(doc):
         s = s + '<LI><A HREF="html/%s">%s</A>\n' % (dict[k], k)
   return s
 
-def genLinksHTML(doc):
+def genLinksHTML(links):
   s = ""
-  for link in doc.links:
+  for link in links:
     s = s + '<LI><A HREF="%s">%s</A>\n' % (link.href, link.name)
   return s
 
@@ -49,9 +50,10 @@ def main():
   input = open(file, "r")
   out = open(file + ".2", "w")
   doc = document_object.GetDocument()
-  linksHTML = genLinksHTML(doc)
+  linksHTML = genLinksHTML(doc.links)
   extTopicHTML = genHTML(doc)
-  processFile(input, out, linksHTML, extTopicHTML)
+  importantHTML = genLinksHTML(doc.important)
+  processFile(input, out, linksHTML, extTopicHTML, importantHTML)
   input.close()
   out.close()
   sCmd = 'del "%s"' % file
