@@ -98,11 +98,10 @@ def ScpCreate(
     AllowAccessToScpProperties(account_name, new)
     return new
 
-def ScpDelete(service_class_name, container_name = None, dn = None):
-    container_name = container_name or service_class_name
+def ScpDelete(container_name, dn = None):
     if dn is None:
         dn = win32api.GetComputerObjectName(win32con.NameFullyQualifiedDN)
-    logger.debug("Removing connection point from %s", dn)
+    logger.debug("Removing connection point '%s' from %s", container_name, dn)
     
     # Compose the ADSpath and bind to the computer object for the local computer
     comp = adsi.ADsGetObject("LDAP://" + dn, adsi.IID_IDirectoryObject)
