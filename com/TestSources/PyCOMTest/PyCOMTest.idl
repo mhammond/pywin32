@@ -218,6 +218,8 @@ library PyCOMTestLib
 		[propput] HRESULT LongProp([in] long val);
 		[propget] HRESULT IntProp([out, retval] int* retval);
 		[propput] HRESULT IntProp([in] int val);
+		[propget] HRESULT CurrencyProp([out, retval] CY* retval);
+		[propput] HRESULT CurrencyProp([in] CY val);
 	};
 
 	// Define a new class to test how Python handles derived interfaces!

@@ -478,6 +478,11 @@ HRESULT CPyCOMTest::TestMyInterface( IUnknown *unktester)
 	CHECK_TRUE(lresult==4);
 	CHECK_HR(tester->get_IntProp(&result));
 	CHECK_TRUE(result==4);
+	CY cy = {123, 456};
+	CY cresult;
+	CHECK_HR(tester->put_CurrencyProp(cy));
+	CHECK_HR(tester->get_CurrencyProp(&cresult));
+	CHECK_TRUE(cresult.int64==cy.int64);
 
 	// interface tests
 	CComPtr<IPyCOMTest>param(tester);
@@ -561,5 +566,19 @@ HRESULT CPyCOMTest::get_IntProp(int *ret)
 	if (!ret)
 		return E_POINTER;
 	*ret = (int)m_long;
+	return S_OK;
+}
+
+HRESULT CPyCOMTest::put_CurrencyProp(CY val)
+{
+	m_cy = val;
+	return S_OK;
+}
+
+HRESULT CPyCOMTest::get_CurrencyProp(CY *ret)
+{
+	if (!ret)
+		return E_POINTER;
+	*ret = (CY)m_cy;
 	return S_OK;
 }

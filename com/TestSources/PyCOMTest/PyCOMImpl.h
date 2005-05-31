@@ -24,6 +24,8 @@ public:
 	  pLastArray(NULL)
 	{
 		memset(m_rsArray, 0, nMaxSessions*sizeof(PyCOMTestSessionData));
+		m_cy.int64 = 0;
+		m_long = 0;
 	}
 	~CPyCOMTest();
 
@@ -91,6 +93,8 @@ END_COM_MAP()
 	STDMETHOD(put_LongProp)(long val);
 	STDMETHOD(get_IntProp)(int *ret);
 	STDMETHOD(put_IntProp)(int val);
+	STDMETHOD(get_CurrencyProp)(CY *ret);
+	STDMETHOD(put_CurrencyProp)(CY val);
 
 	// info associated to each session
 	struct PyCOMTestSessionData
@@ -108,6 +112,7 @@ protected:
 	_ThreadModel::AutoCriticalSection m_cs;
 	SAFEARRAY *pLastArray;
 	long m_long;
+	CY m_cy;
 };
 
 class CPyCOMTest2 : public CPyCOMTest
