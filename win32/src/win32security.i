@@ -79,7 +79,7 @@ extern PSecurityFunctionTableW psecurityfunctiontable=NULL;
 typedef BOOL (WINAPI *TranslateNamefunc)(LPCTSTR, EXTENDED_NAME_FORMAT, EXTENDED_NAME_FORMAT, LPTSTR, PULONG);
 static TranslateNamefunc pfnTranslateName=NULL;
 
-// function pointers used in win32security_sspi.cpp
+// function pointers used in win32security_sspi.cpp and win32security_ds.cpp
 extern DsBindfunc pfnDsBind=NULL;
 extern DsUnBindfunc pfnDsUnBind=NULL;
 extern DsGetSpnfunc pfnDsGetSpn=NULL;
@@ -87,6 +87,12 @@ extern DsWriteAccountSpnfunc pfnDsWriteAccountSpn=NULL;
 extern DsFreeSpnArrayfunc pfnDsFreeSpnArray=NULL;
 extern DsGetDcNamefunc pfnDsGetDcName=NULL;
 extern DsCrackNamesfunc pfnDsCrackNames=NULL;
+extern DsListInfoForServerfunc pfnDsListInfoForServer=NULL;
+extern DsListServersForDomainInSitefunc pfnDsListServersForDomainInSite=NULL;
+extern DsListServersInSitefunc pfnDsListServersInSite=NULL;
+extern DsListSitesfunc pfnDsListSites=NULL;
+extern DsListDomainsInSitefunc pfnDsListDomainsInSite=NULL;
+extern DsListRolesfunc pfnDsListRoles=NULL;
 extern DsFreeNameResultfunc pfnDsFreeNameResult=NULL;
 
 static HMODULE advapi32_dll=NULL;
@@ -650,6 +656,13 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 	pfnDsWriteAccountSpn=(DsWriteAccountSpnfunc)loadapifunc("DsWriteAccountSpnW", ntdsapi_dll);
 	pfnDsFreeSpnArray=(DsFreeSpnArrayfunc)loadapifunc("DsFreeSpnArrayW", ntdsapi_dll);
     pfnDsCrackNames=(DsCrackNamesfunc)loadapifunc("DsCrackNamesW", ntdsapi_dll);
+    pfnDsListInfoForServer=(DsListInfoForServerfunc)loadapifunc("DsListInfoForServerW", ntdsapi_dll);
+    pfnDsListDomainsInSite=(DsListDomainsInSitefunc)loadapifunc("DsListDomainsInSiteW", ntdsapi_dll);
+    pfnDsListServersForDomainInSite=(DsListServersForDomainInSitefunc)loadapifunc("DsListServersForDomainInSiteW", ntdsapi_dll);
+    pfnDsListServersInSite=(DsListServersInSitefunc)loadapifunc("DsListServersInSiteW", ntdsapi_dll);
+    pfnDsListSites=(DsListSitesfunc)loadapifunc("DsListSitesW", ntdsapi_dll);
+    pfnDsListRoles=(DsListRolesfunc)loadapifunc("DsListRolesW", ntdsapi_dll);
+
     pfnDsFreeNameResult=(DsFreeNameResultfunc)loadapifunc("DsFreeNameResultW", ntdsapi_dll);
 	pfnDsGetDcName=(DsGetDcNamefunc)loadapifunc("DsGetDcNameW", netapi32_dll);
 	
@@ -708,10 +721,39 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 
 %native (DsCrackNames) extern PyObject *PyDsCrackNames(PyObject *self, PyObject *args);
 // @pyswig [ (status, domain, name) ]|DsCrackNames|Converts an array of directory service object names from one format to another.
-// @pyswig int|flags||
+// @pyparm int|hds||
+// @pyparm int|flags||
 // @pyparm int|formatOffered||
 // @pyparm int|formatDesired||
 // @pyparm [name, ...]|names||
+
+%native (DsListInfoForServer) extern PyObject *PyDsListInfoForServer(PyObject *self, PyObject *args);
+// @pyswig [ <o PyDS_NAME_RESULT>, ...]|DsListInfoForServer|Lists miscellaneous information for a server.
+// @pyparm int|hds||
+// @pyparm <o PyUnicode>|server||
+
+%native (DsListServersInSite) extern PyObject *PyDsListServersInSite(PyObject *self, PyObject *args);
+// @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListServersInSite|
+// @pyparm int|hds||
+// @pyparm <o PyUnicode>|site||
+
+%native (DsListServersForDomainInSite) extern PyObject *PyDsListServersForDomainInSite(PyObject *self, PyObject *args);
+// @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListServersInSite|
+// @pyparm int|hds||
+// @pyparm <o PyUnicode>|domain||
+// @pyparm <o PyUnicode>|site||
+
+%native (DsListSites) extern PyObject *PyDsListSites(PyObject *self, PyObject *args);
+// @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListServersInSite|
+// @pyparm int|hds||
+
+%native (DsListRoles) extern PyObject *PyDsListRoles(PyObject *self, PyObject *args);
+// @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListRoles|
+// @pyparm int|hds||
+
+%native (DsListDomainsInSite) extern PyObject *PyDsListDomainsInSite(PyObject *self, PyObject *args);
+// @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListDomainsInSite|
+// @pyparm int|hds||
 
 // @pyswig PyACL|ACL|Creates a new <o PyACL> object.
 // @pyparm int|bufSize|64|The size of the buffer for the ACL.

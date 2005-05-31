@@ -185,6 +185,24 @@ extern DsGetDcNamefunc pfnDsGetDcName;
 typedef DWORD (WINAPI *DsCrackNamesfunc)(HANDLE, DS_NAME_FLAGS, DS_NAME_FORMAT, DS_NAME_FORMAT, DWORD, LPTSTR *, PDS_NAME_RESULT *);
 extern DsCrackNamesfunc pfnDsCrackNames;
 
+typedef DWORD (WINAPI *DsListInfoForServerfunc)(HANDLE, LPTSTR, PDS_NAME_RESULT *);
+extern DsListInfoForServerfunc pfnDsListInfoForServer;
+
+typedef DWORD (WINAPI *DsListServersInSitefunc)(HANDLE, LPTSTR, PDS_NAME_RESULT *);
+extern DsListServersInSitefunc pfnDsListServersInSite;
+
+typedef DWORD (WINAPI *DsListDomainsInSitefunc)(HANDLE, LPTSTR, PDS_NAME_RESULT *);
+extern DsListDomainsInSitefunc pfnDsListDomainsInSite;
+
+typedef DWORD (WINAPI *DsListServersForDomainInSitefunc)(HANDLE, LPTSTR, LPTSTR, PDS_NAME_RESULT *);
+extern DsListServersForDomainInSitefunc pfnDsListServersForDomainInSite;
+
+typedef DWORD (WINAPI *DsListSitesfunc)(HANDLE, PDS_NAME_RESULT *);
+extern DsListSitesfunc pfnDsListSites;
+
+typedef DWORD (WINAPI *DsListRolesfunc)(HANDLE, PDS_NAME_RESULT *);
+extern DsListRolesfunc pfnDsListRoles;
+
 typedef VOID (WINAPI *DsFreeNameResultfunc)(DS_NAME_RESULTW *);
 extern DsFreeNameResultfunc pfnDsFreeNameResult;
 

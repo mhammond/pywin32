@@ -1,3 +1,4 @@
+# Tests for the win32security module.
 import sys, os
 import unittest
 
@@ -35,6 +36,15 @@ class TestDS(unittest.TestCase):
         # Not sure what we can actually test here!  At least calling it
         # does something :)
         win32security.DsGetDcName()
+
+    def testDsListServerInfo(self):
+        # again, not checking much, just exercising the code.
+        h=win32security.DsBind()
+        for (status, ignore, site) in win32security.DsListSites(h):
+            for (status, ignore, server) in win32security.DsListServersInSite(h, site):
+                info = win32security.DsListInfoForServer(h, server)
+            for (status, ignore, domain) in win32security.DsListDomainsInSite(h, site):
+                pass
 
     def testDsCrackNames(self):
         h = win32security.DsBind()
