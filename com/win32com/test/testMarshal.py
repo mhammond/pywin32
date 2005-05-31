@@ -21,7 +21,7 @@ this is a pain in the but!
 
 """
 
-import thread, traceback
+import threading, traceback
 import win32com.client
 import win32event, win32api
 import pythoncom
@@ -48,7 +48,6 @@ class ThreadInterpCase(InterpCase):
 
         interp.Exec("import win32api")
         #print "The test thread id is %d, Python.Interpreter's thread ID is %d" % (myThread, interp.Eval("win32api.GetCurrentThreadId()"))
-        interp = None
         pythoncom.CoUninitialize()
 
     def BeginThreadsSimpleMarshal(self, numThreads):
@@ -59,17 +58,23 @@ class ThreadInterpCase(InterpCase):
         Returns the handles the threads will set when complete.
         """
         interp = win32com.client.Dispatch("Python.Interpreter")
-        ret = []
+        events = []
+        threads = []
         for i in range(numThreads):
             hEvent = win32event.CreateEvent(None, 0, 0, None)
+            events.append(hEvent)
             interpStream = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, interp._oleobj_)
-            thread.start_new(self._testInterpInThread, (hEvent, interpStream))
-            ret.append(hEvent)
-        return ret
+            t = threading.Thread(target=self._testInterpInThread, args=(hEvent, interpStream))
+            t.setDaemon(1) # so errors dont cause shutdown hang
+            t.start()
+            threads.append(t)
+        interp = None
+        return threads, events
 
     #
     # NOTE - this doesnt quite work - Im not even sure it should, but Greg reckons
     # you should be able to avoid the marshal per thread!
+    # I think that refers to CoMarshalInterface though...
     def BeginThreadsFastMarshal(self, numThreads):
         """Creates multiple threads using fast (but complex) marshalling.
     
@@ -80,17 +85,20 @@ class ThreadInterpCase(InterpCase):
         interp = win32com.client.Dispatch("Python.Interpreter")
         if freeThreaded:
             interp = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, interp._oleobj_)
-        ret = []
-    
+        events = []
+        threads = []
         for i in range(numThreads):
             hEvent = win32event.CreateEvent(None, 0, 0, None)
-            thread.start_new(self._testInterpInThread, (hEvent, interp))
-            ret.append(hEvent)
-        return ret
+            t = threading.Thread(target=self._testInterpInThread, args=(hEvent, interp))
+            t.setDaemon(1) # so errors dont cause shutdown hang
+            t.start()
+            events.append(hEvent)
+            threads.append(t)
+        return threads, events
 
     def _DoTestMarshal(self, fn, bCoWait = 0):
         #print "The main thread is %d" % (win32api.GetCurrentThreadId())
-        events = fn(2)
+        threads, events = fn(2)
         numFinished = 0
         while 1:
             try:
@@ -111,6 +119,13 @@ class ThreadInterpCase(InterpCase):
                     print "Waiting for thread to stop with interfaces=%d, gateways=%d" % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
             except KeyboardInterrupt:
                 break
+        for t in threads:
+            t.join(2)
+            self.failIf(t.isAlive(), "thread failed to stop!?")
+        threads = None # threads hold references to args
+        # Seems to be a leak here I can't locate :(
+        #self.failUnlessEqual(pythoncom._GetInterfaceCount(), 0)
+        #self.failUnlessEqual(pythoncom._GetGatewayCount(), 0)
 
     def testSimpleMarshal(self):
         self._DoTestMarshal(self.BeginThreadsSimpleMarshal)
