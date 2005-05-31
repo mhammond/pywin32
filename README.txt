@@ -1,16 +1,17 @@
 This is the readme for the Python for Win32 (pywin32) extensions source code.
 
-'setup_win32all.py' (soon to be renamed to the standard 'setup.py') is
-a standard distutils build script.  You probably want to:
+See CHANGES.txt for recent changes.
 
-% setup_win32all.py install
+'setup.py' is a standard distutils build script.  You probably want to:
+
+% setup.py install
 or
-% setup_win32all.py --help
+% setup.py --help
 
 As for Python itself, these extensions require MSVC7 for Python 2.4 and
 later, otherwise MSVC6.  Some extensions require a recent "Platform SDK" 
 from Microsoft, and in general, the latest service packs should be 
-installed, but run 'setup_win32all.py' without any arguments to see 
+installed, but run 'setup.py' without any arguments to see 
 specific information about dependencies.  A vanilla MSVC installation should 
 be able to build most extensions and list any extensions that could not be 
 built due to missing libraries - if the build actually fails with your 
