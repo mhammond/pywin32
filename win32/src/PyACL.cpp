@@ -845,7 +845,7 @@ PyObject *PyACL::AddAuditAccessObjectAce(PyObject *self, PyObject *args)
 
 
 
-// @pymethod |PyACL|GetAclSize|Returns the storage size of the ACL.
+// @pymethod int|PyACL|GetAclSize|Returns the storage size of the ACL.
 PyObject *PyACL::GetAclSize(PyObject *self, PyObject *args)
 {
 	PyACL *This = (PyACL *)self;
@@ -858,7 +858,7 @@ PyObject *PyACL::GetAclSize(PyObject *self, PyObject *args)
 	return Py_BuildValue("l", pacl->AclSize);
 }
 
-// @pymethod |PyACL|GetAclRevision|Returns revision of the ACL.
+// @pymethod int|PyACL|GetAclRevision|Returns revision of the ACL.
 PyObject *PyACL::GetAclRevision(PyObject *self, PyObject *args)
 {
 	PyACL *This = (PyACL *)self;
@@ -871,7 +871,7 @@ PyObject *PyACL::GetAclRevision(PyObject *self, PyObject *args)
 	return Py_BuildValue("l", pacl->AclRevision);
 }
 
-// @pymethod |PyACL|GetAceCount|Returns the number of ACEs in the ACL.
+// @pymethod int|PyACL|GetAceCount|Returns the number of ACEs in the ACL.
 PyObject *PyACL::GetAceCount(PyObject *self, PyObject *args)
 {
 	PyACL *This = (PyACL *)self;
@@ -885,11 +885,20 @@ PyObject *PyACL::GetAceCount(PyObject *self, PyObject *args)
 }
 
 
-// @pymethod |PyACL|GetAce|Gets an Ace from the ACL
-// @comm Conventional ACE's (types ACCESS_ALLOWED_ACE, ACCESS_DENIED_ACE, SYSTEM_AUDIT_ACE) are returned as a tuple of ((aceType, AceFlags), Mask, SID).
-// Object ACE's (types ACCESS_ALLOWED_OBJECT_ACE, ACCESS_DENIED_OBJECT_ACE, SYSTEM_AUDIT_OBJECT_ACE) are returned as a tuple of
-// ((aceType, AceFlags), Mask, ObjectType, InheritedObjectType, SID). ObjectType and InheritedObjectType are <o PyIID>'s.
-// For details see the API documentation.
+// @pymethod tuple|PyACL|GetAce|Gets an Ace from the ACL
+// @rdesc Conventional ACE's (types ACCESS_ALLOWED_ACE, ACCESS_DENIED_ACE, SYSTEM_AUDIT_ACE) are returned
+// as a tuple of:
+// @tupleitem 0|(int, int)|aceType, AceFlags|
+// @tupleitem 1|int|Mask|
+// @tupleitem 2|<o PySID>|sid|
+// <nl>Object ACE's (types ACCESS_ALLOWED_OBJECT_ACE, ACCESS_DENIED_OBJECT_ACE, SYSTEM_AUDIT_OBJECT_ACE)
+// are returned as a tuple:
+// @tupleitem 0|(int, int)|aceType, AceFlags|
+// @tupleitem 1|int|mask|
+// @tupleitem 2|<o PyIID>|ObjectType|
+// @tupleitem 3|<o PyIID>|InheritedObjectType|
+// @tupleitem 4|<o PySID>|sid|
+// <nl>For details see the API documentation.
 PyObject *PyACL::GetAce(PyObject *self, PyObject *args)
 {
 	DWORD index;
