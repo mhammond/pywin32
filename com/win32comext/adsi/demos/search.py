@@ -91,6 +91,7 @@ def search():
                         raise
                     print_attribute( (a, None, None) )
         hr = gc.GetNextRow(h)
+    gc.CloseSearchHandle(h)
    
 def main():
     global options
