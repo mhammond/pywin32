@@ -141,7 +141,7 @@ PYWINTYPES_EXPORT PyTypeObject PyHANDLEType =
 	0, // PyHANDLE::setattr,				/* tp_setattr */
 	// @pymeth __cmp__|Used when HANDLE objects are compared.
 	PyHANDLE::compareFunc,	/* tp_compare */
-	0,						/* tp_repr */
+	PyHANDLE::strFunc,		/* tp_repr */
 	&PyHANDLE_NumberMethods,	/* tp_as_number */
 	0,	/* tp_as_sequence */
 	0,						/* tp_as_mapping */
