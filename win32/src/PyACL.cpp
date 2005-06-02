@@ -206,6 +206,12 @@ void PyWinObject_FreeTRUSTEE(PTRUSTEE_W ptrustee)
 	*/
   }
 
+// @object PyTRUSTEE|A dictionary representing a TRUSTEE structure.
+// @prop int|TrusteeForm|
+// @prop int|TrusteeType|
+// @prop object|Identifier|Depends on the value of TrusteeForm (string or sid)
+// @prop object|MultipleTrustee|default is None
+// @prop object|MultipleTrusteeOperation|default is None
 BOOL PyWinObject_AsTRUSTEE(PyObject *obtrustee, TRUSTEE_W *ptrustee)
 {
 	static char *trustee_items[]={"TrusteeForm","TrusteeType","Identifier","MultipleTrustee","MultipleTrusteeOperation",0};
@@ -308,7 +314,7 @@ PyObject *PyWinObject_FromTRUSTEE(TRUSTEE_W *ptrustee)
 BOOL PyWinObject_AsEXPLICIT_ACCESS(PyObject *ob, PEXPLICIT_ACCESS_W pexpl)
 {
 	static char *expl_items[]={"AccessPermissions","AccessMode","Inheritance","Trustee",0};
-	static char* err_msg="EXPLICIT_ACCESS must be a dictionary containing {AccessPermissions:int,AccessMode:int,Inheritance:int,Trustee:dict}";
+	static char* err_msg="EXPLICIT_ACCESS must be a dictionary containing {AccessPermissions:int,AccessMode:int,Inheritance:int,Trustee:<o PyTRUSTEE>}";
 	PyObject *expl_dict=NULL, *obtrustee=NULL;
 	BOOL bsuccess=FALSE;
 	ZeroMemory(pexpl,sizeof(EXPLICIT_ACCESS_W));
@@ -1035,7 +1041,7 @@ PyObject *PyACL::PyGetEffectiveRightsFromAcl(PyObject *self, PyObject *args)
 	PyACL *This = (PyACL *)self;
 	PyObject *ret=NULL, *obTrustee=NULL;
 	TRUSTEE_W trustee;
-	// @pyparm <o Dict>|trustee||Dictionary representing a TRUSTEE structure
+	// @pyparm <o PyTRUSTEE>|trustee||Dictionary representing a TRUSTEE structure
 	if (!PyArg_ParseTuple(args, "O:GetEffectiveRightsFromAcl", &obTrustee))
 		return NULL;
 	if (!PyWinObject_AsTRUSTEE(obTrustee, &trustee))
@@ -1060,7 +1066,7 @@ PyObject *PyACL::PyGetAuditedPermissionsFromAcl(PyObject *self, PyObject *args)
 	ACL *pacl=This->GetACL();
 	PyObject *ret=NULL, *obTrustee=NULL;
 	TRUSTEE_W trustee;
-	// @pyparm <o Dict>|trustee||Dictionary representing a TRUSTEE structure
+	// @pyparm <o PyTRUSTEE>|trustee||Dictionary representing a TRUSTEE structure
 	if (!PyArg_ParseTuple(args, "O:GetAuditedPermissionsFromAcl", &obTrustee))
 		return NULL;
 	if (!PyWinObject_AsTRUSTEE(obTrustee, &trustee))
