@@ -34,7 +34,7 @@ HRESULT GetObjectInformation(
 
 %{
 
-// @pyswig <o PyADS_OBJECT_INFO>|GetObjectAttributes|Gets one or more specified attributes of the directory service object, as defined in the <o PyADS_ATTR_INFO> structure.
+// @pyswig (<o PyADS_ATTR_INFO>, ...)|GetObjectAttributes|Gets one or more specified attributes of the directory service object, as defined in the <o PyADS_ATTR_INFO> structure.
 PyObject *PyIDirectoryObject::GetObjectAttributes(PyObject *self, PyObject *args)
 {
 	PyObject *obNames;
