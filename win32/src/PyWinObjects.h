@@ -134,7 +134,10 @@ public:
 	public:
 		PyObject *obState;
 		DWORD  dwValue;
-		sMyOverlapped() {obState=NULL;dwValue=0;}
+		// set to TRUE when we bump the reference count to keep the object
+		// alive while it is sitting in a completion port.
+		BOOL isArtificialReference;
+		sMyOverlapped() {obState=NULL;dwValue=0;isArtificialReference=0;}
 		sMyOverlapped(const OVERLAPPED &o) : OVERLAPPED(o) {obState=NULL;dwValue=0;}
 	};
 

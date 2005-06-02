@@ -1233,7 +1233,19 @@ PyObject *PyWinObject_FromQueuedOVERLAPPED(OVERLAPPED *p)
 	// extract it back out.
 	size_t off = offsetof(PyOVERLAPPED, m_overlapped);
 	PyOVERLAPPED *po = (PyOVERLAPPED *)(((LPBYTE)p) - off);
-	// consume reference added when it was posted.
+	// Hope like hell it hasn't already died on us (PostQueuedCompletionStatus
+	// makes it impossible it has died, but other functions do not as they
+	// don't know if the OVERLAPPED will end up in a IOCP)
+	if (po->ob_refcnt<=0) {
+		PyErr_SetString(PyExc_RuntimeError, "This overlapped object has lost all its references so was destroyed");
+		return NULL;
+	}
+	// consume reference added when it was posted, if added.
+	if (po->m_overlapped.isArtificialReference)
+		po->m_overlapped.isArtificialReference = FALSE;
+	else
+		// Overlapped we didn't actually queue so no artificial refcount
+		Py_INCREF(po);
 	return po;
 }
 
@@ -1250,8 +1262,9 @@ BOOL PyWinObject_AsQueuedOVERLAPPED(PyObject *ob, OVERLAPPED **ppOverlapped, BOO
 	if (!po)
 		return FALSE;
 	PyOVERLAPPED::sMyOverlapped *pMyOverlapped = (PyOVERLAPPED::sMyOverlapped *)po;
-	// Add a fake reference so the object lives while in the queue.
+	// Add a fake reference so the object lives while in the queue, and add the flag
 	Py_INCREF(ob);
+	pMyOverlapped->isArtificialReference = TRUE;
 	*ppOverlapped = po->GetOverlapped();
 	return TRUE;
 }
