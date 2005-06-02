@@ -132,9 +132,26 @@ PyObject *PyADSIObject_FromADSVALUE(ADSVALUE &v)
 			memcpy(buf, v.ProviderSpecific.lpValue, v.ProviderSpecific.dwLength);
 			}
 			break;
+		case ADSTYPE_NT_SECURITY_DESCRIPTOR:
+			{
+			// Get a pointer to the security descriptor.
+			PSECURITY_DESCRIPTOR pSD = (PSECURITY_DESCRIPTOR)(v.SecurityDescriptor.lpValue);
+			DWORD SDSize = v.SecurityDescriptor.dwLength;
+			// eeek - we don't pass the length - pywintypes relies on
+			// GetSecurityDescriptorLength - make noise if this may bite us.
+			if (SDSize != GetSecurityDescriptorLength(pSD))
+				PyErr_Warn(PyExc_RuntimeWarning, "Security-descriptor size mis-match");
+			ob = PyWinObject_FromSECURITY_DESCRIPTOR(pSD);
+			break;
+			}
 		default:
+			{
+			char msg[100];
+			wsprintf(msg, "Unknown ADS type code 0x%x - None will be returned", v.dwType);
+			PyErr_Warn(PyExc_RuntimeWarning, msg);
 			ob = Py_None;
 			Py_INCREF(ob);
+		}
 	}
 	if (ob==NULL)
 		return NULL;
@@ -523,7 +540,7 @@ PyTypeObject PyADS_ATTR_INFO::Type =
 	{"ADsType",         T_INT,      OFF(dwADsType)}, // @prop integer|ADsType|
 	{NULL}
 };
-// @prop [<o PyADS_ATTR_INFO>, ...]|Values|
+// @prop [<o PyADSVALUE>, ...]|Values|
 
 
 PyObject *PyADSIObject_FromADS_ATTR_INFOs(ADS_ATTR_INFO *infos, DWORD cinfos)
