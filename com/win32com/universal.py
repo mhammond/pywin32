@@ -31,6 +31,10 @@ def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names = None):
                 interface_names.append(doc[0])
         for name in interface_names:
             type_info, type_comp = typecomp_lib.BindType(name, )
+            # Not sure why we don't get an exception here - BindType's C
+            # impl looks correct..
+            if type_info is None:
+                raise ValueError, "The interface '%s' can not be located" % (name,)
             # If we got back a Dispatch interface, convert to the real interface.
             attr = type_info.GetTypeAttr()
             if attr.typekind == pythoncom.TKIND_DISPATCH:

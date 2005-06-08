@@ -126,6 +126,18 @@ class PyCOMTest:
 	def SetIntProp(self, val):
 		self.intval = val
 
+class PyCOMTestMI(PyCOMTest):
+	_typelib_guid_ = "{6BCDCB60-5605-11D0-AE5F-CADD4C000000}"
+	_typelib_version = 1,0
+	# Interfaces with a interface name, a real IID, and an IID as a string
+	_com_interfaces_ = ['IPyCOMTest',
+						pythoncom.IID_IStream,
+						str(pythoncom.IID_IStorage),
+						]
+	_reg_clsid_ = "{F506E9A1-FB46-4238-A597-FA4EB69787CA}"
+	_reg_progid_ = "Python.Test.PyCOMTestMI"
+
 if __name__ == '__main__':
 	import win32com.server.register
 	win32com.server.register.UseCommandLine(PyCOMTest)
+	win32com.server.register.UseCommandLine(PyCOMTestMI)

@@ -14,7 +14,7 @@ importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test s
 error = "testPyCOMTest error"
 
 # This test uses a Python implemented COM server - ensure correctly registered.
-RegisterPythonServer(os.path.join(win32com.__path__[0], "servers", "test_pycomtest.py"))
+RegisterPythonServer(os.path.join(os.path.dirname(__file__), '..', "servers", "test_pycomtest.py"))
 
 from win32com.client import gencache
 try:
@@ -343,6 +343,24 @@ def TestVTable2():
         # "expected".  Any COM error is not.
         pass
 
+def TestVTableMI():
+    clsctx = pythoncom.CLSCTX_SERVER
+    ob = pythoncom.CoCreateInstance("Python.Test.PyCOMTestMI", None, clsctx, pythoncom.IID_IUnknown)
+    # This inherits from IStream.
+    ob.QueryInterface(pythoncom.IID_IStream)
+    # This implements IStorage, specifying the IID as a string
+    ob.QueryInterface(pythoncom.IID_IStorage)
+    # IDispatch should always work
+    ob.QueryInterface(pythoncom.IID_IDispatch)
+    
+    iid = pythoncom.InterfaceNames["IPyCOMTest"]
+    try:
+        ob.QueryInterface(iid)
+    except TypeError:
+        # Python can't actually _use_ this interface yet, so this is
+        # "expected".  Any COM error is not.
+        pass
+
 def TestQueryInterface(long_lived_server = 0, iterations=5):
     tester = win32com.client.Dispatch("PyCOMTest.PyCOMTest")
     if long_lived_server:
@@ -371,6 +389,9 @@ class Tester(win32com.test.util.TestCase):
     def testVTable2(self):
         for i in range(3):
             TestVTable2()
+    def testVTableMI(self):
+        for i in range(3):
+            TestVTableMI()
     def testMultiQueryInterface(self):
         TestQueryInterface(0,6)
         # When we use the custom interface in the presence of a long-lived

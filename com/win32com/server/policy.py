@@ -245,6 +245,8 @@ class BasicWrapPolicy:
           # Prolly a string!
           if i[0] != "{":
             i = pythoncom.InterfaceNames[i]
+          else:
+            i = pythoncom.MakeIID(i)
         self._com_interfaces_.append(i)
     else:
       self._com_interfaces_ = [ ]
@@ -463,7 +465,11 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
       tlb_major, tlb_minor = getattr(ob, '_typelib_version_', (1,0))
       tlb_lcid = getattr(ob, '_typelib_lcid_', 0)
       from win32com import universal
-      interfaces = getattr(ob, '_com_interfaces_', None)
+      # XXX - what if the user wants to implement interfaces from multiple
+      # typelibs? 
+      # Filter out all 'normal' IIDs (ie, IID objects and strings starting with {
+      interfaces = [i for i in getattr(ob, '_com_interfaces_', [])
+                    if type(i) != pythoncom.PyIIDType and not i.startswith("{")]
       universal_data = universal.RegisterInterfaces(tlb_guid, tlb_lcid,
                                        tlb_major, tlb_minor, interfaces)
     else:
@@ -536,7 +542,8 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
     for iname in self._obj_._com_interfaces_:
       try:
         type_info, type_comp = typecomp.BindType(iname)
-        return [type_info]
+        if type_info is not None:
+          return [type_info]
       except pythoncom.com_error:
         pass
     return []
