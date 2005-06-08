@@ -643,3 +643,10 @@ NetSetupWorkgroup = 2
 NetSetupDomain = 3
 NetSetupNonExistentDomain = 4
 NetSetupDnsMachine = 5
+
+## NETSETUP_JOIN_STATUS, use with NetGetJoinInformation
+NetSetupUnknownStatus = 0
+NetSetupUnjoined = 1
+NetSetupWorkgroupName = 2
+NetSetupDomainName = 3
+

@@ -38,6 +38,8 @@ conversion is required.
 
 #include "assert.h"
 
+NetGetJoinInformationfunc pfnNetGetJoinInformation=NULL;
+
 /*****************************************************************************/
 /* error helpers */
 
@@ -939,6 +941,36 @@ done:
 	return ret;
 }
 
+// @pymethod <o PyUnicode>, int|win32net|NetGetJoinInformation|Retrieves join status information for the specified computer.
+static PyObject *PyNetGetJoinInformation(PyObject *self, PyObject *args)
+{
+	PyObject *obServer = Py_None;
+	WCHAR *server = NULL;;
+	WCHAR *result = NULL;
+	PyObject *ret = NULL;
+	NET_API_STATUS err;
+	NETSETUP_JOIN_STATUS status;
+	if (!PyArg_ParseTuple(args, "|O:NetGetJoinInformation", &obServer))
+		return NULL;
+	if (pfnNetGetJoinInformation==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"NetGetJoinInformation does not exist on this platform");
+		goto done;
+	}
+	if (!PyWinObject_AsWCHAR(obServer, &server, TRUE))
+		goto done;
+	Py_BEGIN_ALLOW_THREADS
+	err = (*pfnNetGetJoinInformation)(server, &result, &status);
+	Py_END_ALLOW_THREADS
+	if (err) {
+		ReturnNetError("NetGetJoinInformation", err);
+		goto done;
+	}
+	ret = Py_BuildValue("Nl", PyWinObject_FromWCHAR(result), status);
+done:
+	PyWinObject_FreeWCHAR(server);
+	NetApiBufferFree(result);
+	return ret;	
+}
 /*************************************************************************************************************
 **
 
@@ -1013,6 +1045,7 @@ extern PyObject * PyNetValidateName(PyObject *self, PyObject *args);
 /* List of functions exported by this module */
 // @module win32net|A module encapsulating the Windows Network API.
 static struct PyMethodDef win32net_functions[] = {
+	{"NetGetJoinInformation",   PyNetGetJoinInformation,    1}, // @pymeth NetGetJoinInformation|Retrieves join status information for the specified computer.
 	{"NetGroupGetInfo",         PyNetGroupGetInfo,          1}, // @pymeth NetGroupGetInfo|Retrieves information about a particular group on a server.
 	{"NetGroupGetUsers",        PyNetGroupGetUsers,         1}, // @pymeth NetGroupGetUsers|Enumerates the users in a group.
 	{"NetGroupSetUsers",        PyNetGroupSetUsers,         1}, // @pymeth NetGroupSetUsers|Sets the users in a group on server.
@@ -1119,6 +1152,8 @@ initwin32net(void)
   HMODULE hmodule=GetModuleHandle(_T("netapi32"));
   if (hmodule==NULL)
 	  hmodule=LoadLibrary(_T("netapi32"));
-  if (hmodule!=NULL)
+  if (hmodule!=NULL) {
 	  pfnNetValidateName=(NetValidateNamefunc)GetProcAddress(hmodule,"NetValidateName");
+	  pfnNetGetJoinInformation=(NetGetJoinInformationfunc)GetProcAddress(hmodule,"NetGetJoinInformation");
+  }
 }
