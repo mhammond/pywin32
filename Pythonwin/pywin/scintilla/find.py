@@ -171,6 +171,14 @@ class FindReplaceDialog(dialog.Dialog):
 		self.butRemember = self.GetDlgItem(117)
 
 		self.editFindText.SetWindowText(defaultSearch.findText)
+		control = _GetControl()
+		# If we have a selection, default to that.
+		sel = control.GetSelText()
+		if (len(sel) != 0):
+			self.editFindText.SetWindowText(sel)
+			if (defaultSearch.remember):
+				defaultSearch.findText = sel
+
 		self.editFindText.SetSel(0, -2)
 		self.editFindText.SetFocus()
 		self.butMatchWords.SetCheck(defaultSearch.matchWords)
