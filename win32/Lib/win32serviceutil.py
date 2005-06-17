@@ -340,7 +340,6 @@ def __ResolveDeps(findName, dict):
 def WaitForServiceStatus(serviceName, status, waitSecs, machine=None):
     """Waits for the service to return the specified status.  You
     should have already requested the service to enter that state"""
-    hscm = win32service.OpenSCManager(machine,None,win32service.SC_MANAGER_ALL_ACCESS)
     for i in range(waitSecs*4):
         now_status = QueryServiceStatus(serviceName)[1]
         if now_status == status:
