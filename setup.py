@@ -280,12 +280,7 @@ class my_build_ext(build_ext):
         # to manually add these directories via the MSVC UI.
         # (Note that just having them in INCLUDE/LIB does *not* work -
         # distutils thinks it knows better, and resets those vars.
-        try:
-            key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
-                                  r"Software\Microsoft\MicrosoftSDK\Directories")
-            sdk_dir, ignore = _winreg.QueryValueEx(key, "Install Dir")
-        except OSError:
-            sdk_dir = None
+        sdk_dir = find_platform_sdk_dir()
         if sdk_dir:
             extra = os.path.join(sdk_dir, 'include')
             if extra not in self.include_dirs and os.path.isdir(extra):
@@ -1029,6 +1024,75 @@ swig_wince_modules = "win32event win32file win32gui win32process".split()
 # .i files that are #included, and hence are not part of the build.  Our .dsp
 # parser isn't smart enough to differentiate these.
 swig_include_files = "mapilib adsilib".split()
+
+
+def find_platform_sdk_dir():
+    # Finding the Platform SDK install dir is a treat. There can be some
+    # dead ends so we only consider the job done if we find the "windows.h"
+    # landmark.
+    DEBUG = False
+    landmark = "include\\windows.h"
+    # 1. The use might have their current environment setup for the
+    #    SDK, in which case the "MSSdk" env var is set.
+    sdkdir = os.environ.get("MSSdk")
+    if sdkdir:
+        if DEBUG:
+            print "PSDK: try %MSSdk%: '%s'" % sdkdir
+        if os.path.isfile(os.path.join(sdkdir, landmark)):
+            return sdkdir
+    # 2. The "Install Dir" value in the
+    #    HKLM\Software\Microsoft\MicrosoftSDK\Directories registry key
+    #    sometimes points to the right thing. However, after upgrading to
+    #    the "Platform SDK for Windows Server 2003 SP1" this is dead end.
+    try:
+        key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+                              r"Software\Microsoft\MicrosoftSDK\Directories")
+        sdkdir, ignore = _winreg.QueryValueEx(key, "Install Dir")
+    except EnvironmentError:
+        pass
+    else:
+        if DEBUG:
+            print r"PSDK: try 'HKLM\Software\Microsoft\MicrosoftSDK"\
+                   "\Directories\Install Dir': '%s'" % sdkdir
+        if os.path.isfile(os.path.join(sdkdir, landmark)):
+            return sdkdir
+    # 3. Each installed SDK (not just the platform SDK) seems to have GUID
+    #    subkey of HKLM\Software\Microsoft\MicrosoftSDK\InstalledSDKs and
+    #    it *looks* like the latest installed Platform SDK will be the
+    #    only one with an "Install Dir" sub-value.
+    try:
+        key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+                              r"Software\Microsoft\MicrosoftSDK\InstalledSDKs")
+        i = 0
+        while True:
+            guid = _winreg.EnumKey(key, i)
+            guidkey = _winreg.OpenKey(key, guid)
+            try:
+                sdkdir, ignore = _winreg.QueryValueEx(guidkey, "Install Dir")
+            except EnvironmentError:
+                pass
+            else:
+                if DEBUG:
+                    print r"PSDK: try 'HKLM\Software\Microsoft\MicrosoftSDK"\
+                           "\InstallSDKs\%s\Install Dir': '%s'"\
+                           % (guid, sdkdir)
+                if os.path.isfile(os.path.join(sdkdir, landmark)):
+                    return sdkdir
+            i += 1
+    except EnvironmentError:
+        pass
+    # 4. Failing this just try a few well-known default install locations.
+    progfiles = os.environ.get("ProgramFiles", r"C:\Program Files")
+    defaultlocs = [
+        os.path.join(progfiles, "Microsoft Platform SDK"),
+        os.path.join(progfiles, "Microsoft SDK"),
+    ]
+    for sdkdir in defaultlocs:
+        if DEBUG:
+            print "PSDK: try default location: '%s'" % sdkdir
+        if os.path.isfile(os.path.join(sdkdir, landmark)):
+            return sdkdir
+
 
 # Helper to allow our script specifications to include wildcards.
 def expand_modules(module_dir):
