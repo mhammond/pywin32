@@ -40,6 +40,8 @@ class AppDialog(dialog.Dialog):
 	def OnQueryDragIcon(self):
 		return win32ui.GetApp().LoadIcon(self.iconId)
 
+	def PreDoModal(self):
+		pass
 
 
 class DialogApp(app.CApp):
