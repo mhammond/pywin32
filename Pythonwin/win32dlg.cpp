@@ -139,9 +139,6 @@ ui_init_dlg_instance(PyObject *self, PyObject *args)
 	CProtectedWinApp *pApp = GetProtectedApp();
 	if (!pApp) return NULL;
 
-	if (pApp->GetMainFrame())
-		RETURN_ERR(errmsgAlreadyInit);
-
 	if (!PyArg_ParseTuple(args,"O:InitDlgInstance",&obDlg))
 		return NULL;
 	// @pyparm <o PyCDialog>|dialog||The dialog object to be used as the main window for the application.
