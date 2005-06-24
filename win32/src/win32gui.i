@@ -851,6 +851,112 @@ static PyObject *MakeWNDCLASS(PyObject *self, PyObject *args)
 %native (WNDCLASS) MakeWNDCLASS;
 
 %{
+// Support for a BITMAP object.
+class PyBITMAP : public PyObject
+{
+public:
+	BITMAP *GetBM() {return &m_BITMAP;}
+	PyBITMAP(void);
+	PyBITMAP(const BITMAP *pBM);
+	~PyBITMAP();
+
+	/* Python support */
+	static void deallocFunc(PyObject *ob);
+	static PyObject *getattr(PyObject *self, char *name);
+	static int setattr(PyObject *self, char *name, PyObject *v);
+#pragma warning( disable : 4251 )
+	static struct memberlist memberlist[];
+#pragma warning( default : 4251 )
+	BITMAP m_BITMAP;
+};
+#define PyBITMAP_Check(ob)	((ob)->ob_type == &PyBITMAPType)
+
+// @object PyBITMAP|A Python object, representing an PyBITMAP structure
+// @comm Typically you get one of these from GetObject.  Note that currently 
+// the bitmap bits are not exposed via this type - but the value of the 
+// pointer is.  You can use the struct and win32gui functions to unpack 
+// these bits manually if you really need them.
+// Note that you are still responsible for the life of the win32 bitmap object.
+// The object can then be passed to any function which takes an BITMAP object
+PyTypeObject PyBITMAPType =
+{
+	PyObject_HEAD_INIT(&PyType_Type)
+	0,
+	"PyBITMAP",
+	sizeof(PyBITMAP),
+	0,
+	PyBITMAP::deallocFunc,		/* tp_dealloc */
+	0,		/* tp_print */
+	PyBITMAP::getattr,				/* tp_getattr */
+	PyBITMAP::setattr,				/* tp_setattr */
+	0,						/* tp_compare */
+	0,						/* tp_repr */
+	0,						/* tp_as_number */
+	0,	/* tp_as_sequence */
+	0,						/* tp_as_mapping */
+	0,
+	0,						/* tp_call */
+	0,		/* tp_str */
+};
+#undef OFF
+#define OFF(e) offsetof(PyBITMAP, e)
+
+/*static*/ struct memberlist PyBITMAP::memberlist[] = {
+	{"bmType",           T_LONG,  OFF(m_BITMAP.bmType)}, // @prop integer|bmType|
+	{"bmWidth",           T_LONG,  OFF(m_BITMAP.bmWidth)}, // @prop integer|bmWidth|
+	{"bmHeight",           T_LONG,  OFF(m_BITMAP.bmHeight)}, // @prop integer|bmHeight|
+	{"bmWidthBytes",     T_LONG,  OFF(m_BITMAP.bmWidthBytes)}, // @prop integer|bmWidthBytes|
+	{"bmPlanes",           T_SHORT,  OFF(m_BITMAP.bmPlanes)}, // @prop integer|bmPlanes|
+	{"bmBitsPixel",           T_SHORT,  OFF(m_BITMAP.bmBitsPixel)}, // @prop integer||
+	{NULL}
+};
+
+
+PyBITMAP::PyBITMAP()
+{
+	ob_type = &PyBITMAPType;
+	_Py_NewReference(this);
+	memset(&m_BITMAP, 0, sizeof(m_BITMAP));
+}
+
+PyBITMAP::PyBITMAP(const BITMAP *pBM)
+{
+	ob_type = &PyBITMAPType;
+	_Py_NewReference(this);
+	memcpy(&m_BITMAP, pBM, sizeof(m_BITMAP));
+}
+
+PyBITMAP::~PyBITMAP(void)
+{
+}
+
+PyObject *PyBITMAP::getattr(PyObject *self, char *name)
+{
+	PyBITMAP *pB = (PyBITMAP *)self;
+	if (strcmp("bmBits", name)==0) {
+		return PyLong_FromVoidPtr(pB->m_BITMAP.bmBits);
+	}
+	return PyMember_Get((char *)self, memberlist, name);
+}
+
+int PyBITMAP::setattr(PyObject *self, char *name, PyObject *v)
+{
+	if (v == NULL) {
+		PyErr_SetString(PyExc_AttributeError, "can't delete BITMAP attributes");
+		return -1;
+	}
+	if (strcmp("bmBits", name)==0) {
+		PyBITMAP *pB = (PyBITMAP *)self;
+		pB->m_BITMAP.bmBits = PyLong_AsVoidPtr(v);
+		return PyErr_Occurred() ? -1 : 0;
+	}
+	return PyMember_Set((char *)self, memberlist, name, v);
+}
+
+/*static*/ void PyBITMAP::deallocFunc(PyObject *ob)
+{
+	delete (PyBITMAP *)ob;
+}
 
 // Support for a LOGFONT object.
 class PyLOGFONT : public PyObject
@@ -1058,6 +1164,12 @@ static PyObject *PyGetObject(PyObject *self, PyObject *args)
 			if (GetObject((HGDIOBJ)hob, sizeof(LOGFONT), &lf)==0)
 				return PyWin_SetAPIError("GetObject");
 			return new PyLOGFONT(&lf);
+		}
+		case OBJ_BITMAP: {
+			BITMAP bm;
+			if (GetObject((HGDIOBJ)hob, sizeof(BITMAP), &bm)==0)
+				return PyWin_SetAPIError("GetObject");
+			return new PyBITMAP(&bm);
 		}
 		default:
 			PyErr_SetString(PyExc_ValueError, "This GDI object type is not supported");
@@ -2069,6 +2181,13 @@ BOOLAPI StretchBlt(
   int nHeightSrc,   // @pyparm int|nHeightSrc||height of source rectangle
   DWORD dwRop       // @pyparm int|dwRop||raster operation code
 );
+
+// @pyswig int|SetStretchBltMode|
+// @rdesc If the function succeeds, the return value is the previous stretching mode.
+// <nl>If the function fails, the return value is zero. 
+int SetStretchBltMode(HDC dc, int mode);
+// @pyparm int|dc||
+// @pyparm int|mode||
 
 %ifdef WINXPGUI
 // @pyswig |MaskBlt|Combines the color data for the source and destination
