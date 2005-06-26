@@ -466,25 +466,23 @@ static PyObject *ui_get_bitmap_bits( PyObject *self, PyObject *args )
   	CBitmap *pBitmap = ui_bitmap::GetBitmap( self );
 	BITMAP bm;
 	if (pBitmap->GetObject(sizeof(bm), &bm)==0)
-          RETURN_ERR("GetObject failed on bitmap");
-        UINT cnt = bm.bmHeight*bm.bmWidthBytes*bm.bmPlanes;
-        HGLOBAL hMem = GlobalAlloc(GHND, cnt);
-        if (!hMem) {
-          RETURN_ERR("GlobalAlloc failed on bitmap");
-        }
-        LPBYTE lpbDst=(LPBYTE)GlobalLock(hMem);
+		RETURN_ERR("GetObject failed on bitmap");
+	UINT cnt = bm.bmHeight*bm.bmWidthBytes*bm.bmPlanes;
+	char *bits = (char *)malloc(cnt);
+	if (!bits)
+		return PyErr_NoMemory();
 	HBITMAP handle = (HBITMAP)pBitmap->GetSafeHandle();
-        DWORD bytes = GetBitmapBits(handle, cnt, (LPVOID)lpbDst);
-        if (bytes != (DWORD)cnt) {
-          GlobalUnlock(hMem);
-          RETURN_ERR("GetBitmapBits failed on bitmap");
-        }
+	DWORD bytes = GetBitmapBits(handle, cnt, (void *)bits);
+	if (bytes != (DWORD)cnt) {
+		free(bits);
+		RETURN_ERR("GetBitmapBits failed on bitmap");
+	}
 	PyObject* rc = PyTuple_New(cnt);
 	for (UINT i = 0; i < cnt; i++) {
-          PyTuple_SetItem(rc, i, Py_BuildValue("i", (int)lpbDst[i]));
+		PyTuple_SetItem(rc, i, Py_BuildValue("i", (int)bits[i]));
 	}
-        GlobalUnlock(hMem);
-        return rc;
+	free(bits);
+	return rc;
 }
 
 // @pymethod None|PyBitmap|SaveBitmapFile|Saves a bitmap to a file.
