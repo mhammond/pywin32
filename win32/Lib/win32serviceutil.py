@@ -341,7 +341,7 @@ def WaitForServiceStatus(serviceName, status, waitSecs, machine=None):
     """Waits for the service to return the specified status.  You
     should have already requested the service to enter that state"""
     for i in range(waitSecs*4):
-        now_status = QueryServiceStatus(serviceName)[1]
+        now_status = QueryServiceStatus(serviceName, machine)[1]
         if now_status == status:
             break
         win32api.Sleep(250)
