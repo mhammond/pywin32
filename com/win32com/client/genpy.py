@@ -23,7 +23,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.4.93" # Written to generated file.
+makepy_version = "0.4.94" # Written to generated file.
 
 GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
@@ -677,7 +677,8 @@ class Generator:
     interfaces = {}
     for info, info_type, refType, doc, refAttr, flags in coclass_info:
 #          sys.stderr.write("Attr typeflags for coclass referenced object %s=%d (%d), typekind=%d\n" % (name, refAttr.wTypeFlags, refAttr.wTypeFlags & pythoncom.TYPEFLAG_FDUAL,refAttr.typekind))
-        if refAttr.typekind == pythoncom.TKIND_DISPATCH:
+        if refAttr.typekind == pythoncom.TKIND_DISPATCH or \
+           (refAttr.typekind == pythoncom.TKIND_INTERFACE and refAttr[11] & pythoncom.TYPEFLAG_FDISPATCHABLE):
           clsid = refAttr[0]
           if oleItems.has_key(clsid):
             dispItem = oleItems[clsid]
@@ -703,11 +704,11 @@ class Generator:
   def _Build_Interface(self, type_info_tuple):
     info, infotype, doc, attr = type_info_tuple
     oleItem = vtableItem = None
-    if infotype == pythoncom.TKIND_DISPATCH:
+    if infotype == pythoncom.TKIND_DISPATCH or \
+       (infotype == pythoncom.TKIND_INTERFACE and attr[11] & pythoncom.TYPEFLAG_FDISPATCHABLE):
         oleItem = DispatchItem(info, attr, doc)
         # If this DISPATCH interface dual, then build that too.
         if (attr.wTypeFlags & pythoncom.TYPEFLAG_FDUAL):
-#                sys.stderr.write("interface " + doc[0] + " is not dual\n");
             # Get the vtable interface
             refhtype = info.GetRefTypeOfImplType(-1)
             info = info.GetRefTypeInfo(refhtype)
