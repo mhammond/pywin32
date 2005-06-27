@@ -47,6 +47,15 @@ class PyCOMTest:
 	def GetSetInterface(self, ininterface):
 		return wrap(self)
 
+	def GetSetVariant(self, indisp):
+		return indisp
+
+	def TestByRefVariant(self, v):
+		return v * 2
+
+	def TestByRefString(self, v):
+		return v * 2
+
 	# Result is of type IPyCOMTest
 	def GetSetInterfaceArray(self, ininterface):
 		raise COMException(hresult=winerror.E_NOTIMPL)

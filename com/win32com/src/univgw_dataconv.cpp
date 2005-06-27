@@ -693,12 +693,13 @@ PyObject * dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
 				// Convert it into a PyObject:
 				obArg = PyCom_PyObjectFromVariant(&var);
 				break;
-			case VT_VARIANT: {
-				// A pointer to a _real_ variant.
-				VARIANT *pVar = (VARIANT *)pb;
-				obArg = PyCom_PyObjectFromVariant(pVar);
+			case VT_VARIANT:
+				// A _real_ variant.
+				if (bIsByRef)
+					obArg = PyCom_PyObjectFromVariant(*(VARIANT**)pb);
+				else
+					obArg = PyCom_PyObjectFromVariant((VARIANT*)pb);
 				break;
-			}
 			case VT_LPSTR:
 				obArg = PyString_FromString(*(CHAR **)pb);
 				break;

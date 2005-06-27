@@ -172,6 +172,16 @@ def TestGenerated():
     progress("Checking getting/passing IDispatch of known type")
     if o.GetSetInterface(o).__class__ != o.__class__:
         raise error, "GetSetDispatch failed"
+    if o.GetSetVariant(4) != 4:
+        raise error, "GetSetVariant (int) failed"
+    if o.GetSetVariant("foo") != "foo":
+        raise error, "GetSetVariant (str) failed"
+    if o.GetSetVariant(o) != o:
+        raise error, "GetSetVariant (dispatch) failed"
+    if o.TestByRefVariant(2) != 4:
+        raise error, "TestByRefVariant failed"
+    if o.TestByRefString("Foo") != "FooFoo":
+        raise error, "TestByRefString failed"
 
     # Pass some non-sequence objects to our array decoder, and watch it fail.
     try:

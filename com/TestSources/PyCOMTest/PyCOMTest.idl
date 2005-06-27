@@ -173,6 +173,9 @@ library PyCOMTestLib
 		HRESULT GetMultipleInterfaces([out] IPyCOMTest **outinterface1, [out] IPyCOMTest **outinterface2);
 		HRESULT GetSetDispatch([in] IDispatch *indisp, [out, retval] IDispatch **outdisp);
 		HRESULT GetSetUnknown([in] IUnknown *inunk, [out, retval] IUnknown **outunk);
+		HRESULT GetSetVariant([in] VARIANT vin, [out, retval] VARIANT *vout);
+		HRESULT TestByRefVariant([in, out] VARIANT *v);
+		HRESULT TestByRefString([in, out] BSTR *v);
 		HRESULT TakeByRefTypedDispatch([in, out] IPyCOMTest **inout);
 		HRESULT TakeByRefDispatch([in, out] IDispatch **inout);
 

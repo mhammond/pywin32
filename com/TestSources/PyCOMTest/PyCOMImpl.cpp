@@ -194,6 +194,31 @@ STDMETHODIMP CPyCOMTest::GetSetUnknown(IUnknown *inunk, IUnknown **outunk)
 	return S_OK;
 }
 
+STDMETHODIMP CPyCOMTest::GetSetVariant(VARIANT var, VARIANT *out)
+{
+	VariantClear(out); // necessary?
+	return VariantCopy(out, &var);
+}
+
+STDMETHODIMP CPyCOMTest::TestByRefVariant(VARIANT *v)
+{
+	if (V_VT(v)==VT_I4) {
+		V_I4(v) *= 2;
+		return S_OK;
+	}
+	return E_FAIL;
+}
+
+STDMETHODIMP CPyCOMTest::TestByRefString(BSTR *v)
+{
+	BSTR out = SysAllocStringLen(NULL, SysStringLen(*v)*2);
+	wcscpy(out, *v);
+	wcscat(out, *v);
+	SysFreeString(*v);
+	*v = out;
+	return S_OK;
+}
+
 STDMETHODIMP CPyCOMTest::TakeByRefTypedDispatch(IPyCOMTest **inout)
 {
 	return S_OK;
@@ -461,6 +486,10 @@ HRESULT CPyCOMTest::TestMyInterface( IUnknown *unktester)
 	CHECK_HR(tester->DoubleString(instr, &outstr));
 	CHECK_TRUE(outstr == L"FooFoo");
 
+	instr = L"Foo";
+	CHECK_HR(tester->TestByRefString(&instr));
+	CHECK_TRUE(instr == L"FooFoo");
+
 	// Arrays
 	int result;
 	SAFEARRAY *array;
@@ -488,6 +517,21 @@ HRESULT CPyCOMTest::TestMyInterface( IUnknown *unktester)
 	CComPtr<IPyCOMTest>param(tester);
 	CComPtr<IPyCOMTest>obresult;
 	CHECK_HR(tester->GetSetInterface(param, &obresult));
+
+	VARIANT v1, v2;
+	VariantInit(&v1);
+	VariantInit(&v2);
+	V_VT(&v1) = VT_I4;
+	V_I4(&v1) = 99;
+	CHECK_HR(tester->GetSetVariant(v1, &v2));
+	CHECK_TRUE(V_VT(&v2)==VT_I4);
+	CHECK_TRUE(V_I4(&v2)==99);
+	CHECK_HR(tester->TestByRefVariant(&v2));
+	CHECK_TRUE(V_VT(&v2)==VT_I4);
+	CHECK_TRUE(V_I4(&v2)==198);
+	VariantClear(&v1);
+	VariantClear(&v2);
+
 	// Make a vtable call on the returned object, so we
 	// crash if a bad vtable.  Don't care about the value tho.
 	CHECK_HR(obresult->get_IntProp(&result));

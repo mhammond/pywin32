@@ -64,6 +64,9 @@ END_COM_MAP()
 	STDMETHOD(GetMultipleInterfaces)(IPyCOMTest **outinterface1, IPyCOMTest **outinterface2);
 	STDMETHOD(GetSetDispatch)(IDispatch *indisp, IDispatch **outdisp);
 	STDMETHOD(GetSetUnknown)(IUnknown *inunk, IUnknown **outunk);
+	STDMETHOD(GetSetVariant)(VARIANT vin, VARIANT *vout);
+	STDMETHOD(TestByRefVariant)(VARIANT *v);
+	STDMETHOD(TestByRefString)(BSTR *v);
 	STDMETHOD(TakeByRefTypedDispatch)(IPyCOMTest **inout);
 	STDMETHOD(TakeByRefDispatch)(IDispatch **inout);
 	STDMETHOD(SetIntSafeArray)(SAFEARRAY* ints, int *retSize);

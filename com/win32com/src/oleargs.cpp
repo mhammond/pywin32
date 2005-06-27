@@ -732,8 +732,11 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
 			subitem = PyWinObject_FromDATE(dt);
 			break;
 			};
-		default:
-			OleSetTypeError("The VARIANT type is not supported for SAFEARRAYS");
+		default: {
+			TCHAR buf[200];
+			wsprintf(buf, _T("The VARIANT type 0x%x is not supported for SAFEARRAYS"), vt);
+			OleSetTypeErrorT(buf);
+		}
 	}
 	if (FAILED(hres)) {
 		PyCom_BuildPyException(hres);
