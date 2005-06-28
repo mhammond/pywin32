@@ -1236,7 +1236,10 @@ PyObject *PyWinObject_FromQueuedOVERLAPPED(OVERLAPPED *p)
 	// Hope like hell it hasn't already died on us (PostQueuedCompletionStatus
 	// makes it impossible it has died, but other functions do not as they
 	// don't know if the OVERLAPPED will end up in a IOCP)
-	if (po->ob_refcnt<=0) {
+	// Also check it is a valid write pointer (we don't write to it, but all
+	// PyObjects are writable, so that extra check is worthwhile)
+	// This is NOT foolproof - screw up reference counting and things may die!
+	if (po->ob_refcnt<=0 || po->ob_type==0 || IsBadWritePtr(po, sizeof(PyOVERLAPPED))) {
 		PyErr_SetString(PyExc_RuntimeError, "This overlapped object has lost all its references so was destroyed");
 		return NULL;
 	}
@@ -1261,10 +1264,11 @@ BOOL PyWinObject_AsQueuedOVERLAPPED(PyObject *ob, OVERLAPPED **ppOverlapped, BOO
 	assert(po);
 	if (!po)
 		return FALSE;
-	PyOVERLAPPED::sMyOverlapped *pMyOverlapped = (PyOVERLAPPED::sMyOverlapped *)po;
+	
+	PyOVERLAPPED *pO = (PyOVERLAPPED *)po;
 	// Add a fake reference so the object lives while in the queue, and add the flag
 	Py_INCREF(ob);
-	pMyOverlapped->isArtificialReference = TRUE;
+	pO->m_overlapped.isArtificialReference = TRUE;
 	*ppOverlapped = po->GetOverlapped();
 	return TRUE;
 }

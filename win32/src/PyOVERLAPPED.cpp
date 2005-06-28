@@ -202,5 +202,8 @@ int PyOVERLAPPED::setattr(PyObject *self, char *name, PyObject *v)
 
 /*static*/ void PyOVERLAPPED::deallocFunc(PyObject *ob)
 {
+	// set memory to zero, so our clunky check for an invalid object in
+	// win32file has more chance of success.
+	memset(ob, 0, sizeof(PyOVERLAPPED));
 	delete (PyOVERLAPPED *)ob;
 }
