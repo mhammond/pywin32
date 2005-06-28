@@ -733,9 +733,9 @@ PyGetConsoleTitle (PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple (args, ":GetConsoleTitle"))
 		return NULL;
-	char title[128];
+	char title[128] = "";
 	// @pyseeapi GetConsoleTitle
-	if (GetConsoleTitle(title, sizeof(title))==0)
+	if (GetConsoleTitle(title, sizeof(title))==0 && ::GetLastError() != 0)
 		return ReturnAPIError("GetConsoleTitle");
 	return Py_BuildValue("s", title);
 	// @rdesc The title for the current console window.  This function will
@@ -768,6 +768,7 @@ PyGetComputerNameEx(PyObject *self, PyObject *args)
 	COMPUTER_NAME_FORMAT fmt;
 	PyObject *ret = NULL;
 	ULONG nSize=0;
+	BOOL ok;
 	if (!PyArg_ParseTuple (args, "i:GetComputerNameEx", &fmt))
 		return NULL;
 	// @pyseeapi GetComputerNameEx
@@ -779,7 +780,10 @@ PyGetComputerNameEx(PyObject *self, PyObject *args)
 	formattedname=(WCHAR *)malloc(nSize*sizeof(WCHAR));
 	if (!formattedname)
 		return PyErr_NoMemory();
-	if (!myGetComputerNameEx(fmt,formattedname,&nSize)){
+	PyW32_BEGIN_ALLOW_THREADS
+	ok = (*myGetComputerNameEx)(fmt,formattedname,&nSize);
+	PyW32_END_ALLOW_THREADS
+	if (!ok){
 		PyWin_SetAPIError("GetComputerNameEx");
 		goto done;
 	}
@@ -801,6 +805,7 @@ PyGetComputerObjectName(PyObject *self, PyObject *args)
 	EXTENDED_NAME_FORMAT fmt;
 	PyObject *ret = NULL;
 	ULONG nSize=0;
+	BOOL ok;
 	if (!PyArg_ParseTuple (args, "i:GetComputerObjectName", &fmt))
 		return NULL;
 	// @pyseeapi GetComputerObjectName
@@ -812,7 +817,11 @@ PyGetComputerObjectName(PyObject *self, PyObject *args)
 	formattedname=(WCHAR *)malloc(nSize*sizeof(WCHAR));
 	if (!formattedname)
 		return PyErr_NoMemory();
-	if (!myGetComputerObjectName(fmt,formattedname,&nSize)){
+	PyW32_BEGIN_ALLOW_THREADS
+	ok = (*myGetComputerObjectName)(fmt,formattedname,&nSize);
+	PyW32_END_ALLOW_THREADS
+	
+	if (!ok){
 		PyWin_SetAPIError("GetComputerObjectName");
 		goto done;
 	}
@@ -848,6 +857,7 @@ PyGetUserNameEx (PyObject *self, PyObject *args)
 	EXTENDED_NAME_FORMAT fmt;
 	PyObject *ret = NULL;
 	ULONG nSize=0;
+	BOOL ok;
 	if (!PyArg_ParseTuple (args, "i:GetUserNameEx", &fmt))
 		return NULL;
 	// @pyseeapi GetUserNameEx
@@ -859,7 +869,10 @@ PyGetUserNameEx (PyObject *self, PyObject *args)
 	formattedname=(WCHAR *)malloc(nSize*sizeof(WCHAR));
 	if (!formattedname)
 		return PyErr_NoMemory();
-	if (!myGetUserNameEx(fmt,formattedname,&nSize)){
+	PyW32_BEGIN_ALLOW_THREADS
+	ok = (*myGetUserNameEx)(fmt,formattedname,&nSize);
+	PyW32_END_ALLOW_THREADS
+	if (!ok){
 		PyWin_SetAPIError("GetUserNameEx");
 		goto done;
 	}
