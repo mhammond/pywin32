@@ -1,5 +1,5 @@
 import unittest
-import win32api, win32file, win32pipe, win32con, pywintypes, winerror
+import win32api, win32file, win32pipe, win32con, pywintypes, winerror, win32event
 import sys
 import os
 import tempfile
@@ -176,6 +176,17 @@ class TestOverlapped(unittest.TestCase):
             raise RuntimeError, "Expected close to fail!"
         except win32file.error, (hr, func, msg):
             self.failUnlessEqual(hr, winerror.ERROR_INVALID_HANDLE)
+
+    def testCompletionPortsQueued(self):
+        class Foo: pass
+        io_req_port = win32file.CreateIoCompletionPort(-1, None, 0, 0)
+        overlapped = pywintypes.OVERLAPPED()
+        overlapped.object = Foo()
+        win32file.PostQueuedCompletionStatus(io_req_port, 0, 99, overlapped)
+        errCode, bytes, key, overlapped = \
+                win32file.GetQueuedCompletionStatus(io_req_port, win32event.INFINITE)
+        self.failUnlessEqual(errCode, 0)
+        self.failUnless(isinstance(overlapped.object, Foo))
 
     def _IOCPServerThread(self, handle, port, drop_overlapped_reference):
         overlapped = pywintypes.OVERLAPPED()
