@@ -119,7 +119,7 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
         
         This class creates a thread-pool using a Windows completion port,
         and dispatches requests via this port.  Sub-classes can generally
-        implementeach connection request using blocking reads and writes, and
+        implement each connection request using blocking reads and writes, and
         the thread-pool will still provide decent response to the end user.
         
         The sub-class can set a max_workers attribute (default is 20).  Note
