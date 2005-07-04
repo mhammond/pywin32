@@ -12,6 +12,13 @@
 #include "locale.h"
 #endif
 
+// @object PyUnicode|A Python object, representing a Unicode string.
+// @comm pywin32 uses the builtin Python Unicode object
+// <nl>In general, any pywin32/COM function documented as taking a
+// PyUnicode parameter will also accept a Python string object, which will
+// be automatically encoded using the MBCS encoding before being passed to the function.
+// Note that the reverse is generally *not* true - a function documented as accepting
+// a string must be passed a string.
 
 #ifndef MS_WINCE
 
@@ -408,12 +415,6 @@ PyObject *PyWinObject_FromOLECHAR(const OLECHAR * str)
 	return new PyUnicode(str);
 }
 
-
-// @object PyUnicode|A Python object, representing a Unicode string.
-// @comm A PyUnicode object is used primarily when exchanging string
-// information across a COM interface.
-
-
 static PySequenceMethods PyUnicode_SequenceMethods = {
 	(inquiry)PyUnicode::lengthFunc,			/*sq_length*/
 	(binaryfunc)PyUnicode::concatFunc,		/*sq_concat*/
@@ -432,21 +433,16 @@ PYWINTYPES_EXPORT PyTypeObject PyUnicodeType =
 	sizeof(PyUnicode),
 	0,
 	PyUnicode::deallocFunc,		/* tp_dealloc */
-	// @pymeth __print__|Used when the object is printed.
 	PyUnicode::printFunc,		/* tp_print */
 	PyUnicode::getattrFunc,		/* tp_getattr */
 	0,						/* tp_setattr */
-	// @pymeth __cmp__|Used when Unicode objects are compared.
 	PyUnicode::compareFunc,	/* tp_compare */
-	// @pymeth __repr__|Used when repr(object) is used.
 	PyUnicode::reprFunc,	/* tp_repr */
 	0,						/* tp_as_number */
 	&PyUnicode_SequenceMethods,	/* tp_as_sequence */
 	0,						/* tp_as_mapping */
-	// @pymeth __hash__|Used when the hash value of an object is required
 	PyUnicode::hashFunc,		/* tp_hash */
 	0,						/* tp_call */
-	// @pymeth __str__|Used when an (8-bit) string representation is required
 	PyUnicode::strFunc,		/* tp_str */
 };
 
