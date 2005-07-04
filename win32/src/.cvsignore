@@ -1,5 +1,6 @@
 PythonServiceMessages.h
 *_wrap.doc
+win32cryptmodule.cpp
 win32eventmodule_win*.cpp
 win32evtlog_messages.h
 win32evtlogmodule.cpp
