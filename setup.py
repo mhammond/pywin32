@@ -1,4 +1,4 @@
-build_number=204.1
+build_id="204.2"
 # Putting buildno at the top prevents automatic __doc__ assignment, and
 # I *want* the build number at the top :)
 __doc__="""This is a distutils setup-script for the pywin32 extensions
@@ -48,6 +48,7 @@ or to build and install a debug version:
 from distutils.core import setup, Extension, Command
 from distutils.command.install_lib import install_lib
 from distutils.command.build_ext import build_ext
+from distutils.command.build import build
 from distutils.command.install_data import install_data
 from distutils.dep_util import newer_group, newer
 from distutils import dir_util, file_util
@@ -265,6 +266,18 @@ class WinExt_system32(WinExt):
         return "pywin32_system32"
 
 ################################################################
+class my_build(build):
+    def run(self):
+        build.run(self)
+        # write a pywin32.version.txt.
+        ver_fname = os.path.join(self.build_base, "pywin32.version.txt")
+        try:
+            f = open(ver_fname, "wU")
+            f.write("%s\n" % build_id)
+            f.close()
+        except EnvironmentError, why:
+            print "Failed to open '%s': %s" % (ver_fname, why)
+
 class my_build_ext(build_ext):
 
     def finalize_options(self):
@@ -328,8 +341,9 @@ class my_build_ext(build_ext):
                    "version 0x%x is installed." \
                    % (ext.windows_h_version, self.windows_h_version)
 
+        look_dirs = self.include_dirs + self.compiler.get_msvc_paths("include")
         for h in ext.optional_headers:
-            for d in self.include_dirs:
+            for d in look_dirs:
                 if os.path.isfile(os.path.join(d, h)):
                     break
             else:
@@ -547,7 +561,6 @@ class my_build_ext(build_ext):
         self.compiler.link(
             "executable",
             objects, ext_filename, **kw)
-
 
     def build_extension(self, ext):
         # It is well known that some of these extensions are difficult to
@@ -773,15 +786,15 @@ class my_compiler(msvccompiler.MSVCCompiler):
 ################################################################
 
 class my_install_data(install_data):
-     """A custom install_data command, which will install it's files
-     into the standard directories (normally lib/site-packages).
-     """
-     def finalize_options(self):
-         if self.install_dir is None:
-             installobj = self.distribution.get_command_obj('install')
-             self.install_dir = installobj.install_lib
-         print 'Installing data files to %s' % self.install_dir
-         install_data.finalize_options(self)
+    """A custom install_data command, which will install it's files
+    into the standard directories (normally lib/site-packages).
+    """
+    def finalize_options(self):
+        if self.install_dir is None:
+            installobj = self.distribution.get_command_obj('install')
+            self.install_dir = installobj.install_lib
+        print 'Installing data files to %s' % self.install_dir
+        install_data.finalize_options(self)
 
 ################################################################
 
@@ -943,6 +956,7 @@ com_extensions += [
     WinExt_win32com('taskscheduler', libraries='mstask'),
     WinExt_win32com('ifilter', libraries='ntquery'),
     WinExt_win32com('directsound', pch_header='directsound_pch.h',
+                    optional_headers = ['dsound.h'],
                     libraries='user32 dsound dxguid'),
 ]
 
@@ -1199,7 +1213,7 @@ else:
     py_modules = expand_modules("win32\\lib")
 
 dist = setup(name="pywin32",
-      version=str(build_number),
+      version=str(build_id),
       description="Python for Window Extensions",
       long_description="Python extensions for Microsoft Windows\n"
                        "Provides access to much of the Win32 API, the\n"
@@ -1210,13 +1224,14 @@ dist = setup(name="pywin32",
       url="http://sourceforge.net/projects/pywin32/",
       license="PSA",
       cmdclass = { #'install_lib': my_install_lib,
+                   'build': my_build,
                    'build_ext': my_build_ext,
                    'install_data': my_install_data,
                    },
       options = {"bdist_wininst":
                     {"install_script": "pywin32_postinstall.py",
                      "pre_install_script": "pywin32_preinstall.py",
-                     "title": "pywin32 extensions (build %s)" % (build_number,),
+                     "title": "pywin32-%s" % (build_id,),
                     },
                 },
 
@@ -1231,10 +1246,11 @@ dist = setup(name="pywin32",
       packages = packages,
       py_modules = py_modules,
 
-      data_files=convert_optional_data_files([
+      data_files=[('', ('build/pywin32.version.txt',))] + 
+        convert_optional_data_files([
                 'PyWin32.chm',
                 ]) + 
-      convert_data_files([
+        convert_data_files([
                 'pythonwin/pywin/*.cfg',
                 'pythonwin/pywin/Demos/*.py',
                 'pythonwin/pywin/Demos/app/*.py',

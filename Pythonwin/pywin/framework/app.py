@@ -331,10 +331,14 @@ class AboutBox(dialog.Dialog):
 		text = "Pythonwin - Python IDE and GUI Framework for Windows.\n\n%s\n\nPython is %s\n\n%s\n\n%s\n\n%s" % (win32ui.copyright, sys.copyright, scintilla, idle, contributors)
 		self.SetDlgItemText(win32ui.IDC_EDIT1, text)
 		# Get the build number - written by installers.
-		# For distutils build, use the uninstall key.
-		key_name = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion" \
-		           "\\Uninstall\\pywin32-py%d.%d" % sys.version_info[:2]
-		ver = _GetRegistryValue(key_name, "DisplayName")
+		# For distutils build, read pywin32.version.txt
+		import distutils.sysconfig
+		site_packages = distutils.sysconfig.get_python_lib(plat_specific=1)
+		try:
+			build_no = open(os.path.join(site_packages, "pywin32.version.txt")).read().strip()
+			ver = "pywin32 build %s" % build_no
+		except EnvironmentError:
+			ver = None
 		if ver is None:
 			# See if we are Part of Active Python
 			ver = _GetRegistryValue("SOFTWARE\\ActiveState\\ActivePython", "CurrentVersion")
