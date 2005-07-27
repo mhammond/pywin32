@@ -159,6 +159,9 @@ PyObject * PyHFC::GetData(PyObject *self, PyObject *args)
 		// @flag SF_NOTIFY_PREPROC_HEADERS|<o HTTP_FILTER_PREPROC_HEADERS>
 		case SF_NOTIFY_PREPROC_HEADERS:
 			return new PyPREPROC_HEADERS(me);
+		// @flag SF_NOTIFY_LOG|<o HTTP_FILTER_LOG>
+		case SF_NOTIFY_LOG:
+			return new PyFILTER_LOG(me);
 		default:
 			PyErr_Format(PyExc_ValueError, "Don't understand data of type 0x%x", me->m_notificationType);
 			return NULL;
@@ -613,3 +616,141 @@ void PyPREPROC_HEADERS::deallocFunc(PyObject *ob)
 	delete (PyPREPROC_HEADERS *)ob;
 }
 
+/////////////////////////////////////////////////////////////////////////
+// PyFILTER_LOG object
+/////////////////////////////////////////////////////////////////////////
+// @object HTTP_FILTER_LOG|A Python representation of an ISAPI
+// HTTP_FILTER_LOG structure.
+PyTypeObject PyFILTER_LOGType =
+{
+	PyObject_HEAD_INIT(&PyType_Type)
+	0,
+	"HTTP_FILTER_LOG",
+	sizeof(PyFILTER_LOG),
+	0,
+	PyFILTER_LOG::deallocFunc,	/* tp_dealloc */
+	0,					/* tp_print */
+	PyFILTER_LOG::getattr,		/* tp_getattr */
+	PyFILTER_LOG::setattr,		/* tp_setattr */
+	0,
+	0,					/* tp_repr */
+	0,					/* tp_as_number */
+	0,					/* tp_as_sequence */
+	0,					/* tp_as_mapping */
+	0,
+	0,					/* tp_call */
+	0,					/* tp_str */
+};
+
+
+PyFILTER_LOG::PyFILTER_LOG(PyHFC *pParent)
+{
+	ob_type = &PyFILTER_LOGType;
+	_Py_NewReference(this);
+
+	m_parent = pParent;
+	Py_INCREF(m_parent);
+}
+
+PyFILTER_LOG::~PyFILTER_LOG()
+{
+	Py_XDECREF(m_parent);
+}
+
+HTTP_FILTER_LOG *PyFILTER_LOG::GetFilterLog()
+{
+	HTTP_FILTER_CONTEXT *pFC;
+	void *vdata;
+	DWORD requestType;
+    m_parent->GetFilterContext()->GetFilterData(&pFC, &requestType, &vdata);
+    assert(requestType==SF_NOTIFY_LOG);
+    return (HTTP_FILTER_LOG *)vdata;
+
+}
+
+PyObject *PyFILTER_LOG::getattr(PyObject *self, char *name)
+{
+	HTTP_FILTER_LOG *pLog = ((PyFILTER_LOG *)self)->GetFilterLog();
+	if (!pLog)
+		return NULL;
+	// @prop string|ClientHostName|
+	if (strcmp(name, "ClientHostName")==0)
+		return PyString_FromString(pLog->pszClientHostName);
+	// @prop string|ClientUserName|
+	if (strcmp(name, "ClientUserName")==0)
+		return PyString_FromString(pLog->pszClientUserName);
+	// @prop string|ServerName|
+	if (strcmp(name, "ServerName")==0)
+		return PyString_FromString(pLog->pszServerName);
+	// @prop string|Operation|
+	if (strcmp(name, "Operation")==0)
+		return PyString_FromString(pLog->pszOperation);
+	// @prop string|Target|
+	if (strcmp(name, "Target")==0)
+		return PyString_FromString(pLog->pszTarget);
+	// @prop string|Parameters|
+	if (strcmp(name, "Parameters")==0)
+		return PyString_FromString(pLog->pszParameters);
+	// @prop int|HttpStatus|
+	if (strcmp(name, "HttpStatus")==0)
+		return PyInt_FromLong(pLog->dwHttpStatus);
+	// @prop int|HttpStatus|
+	if (strcmp(name, "Win32Status")==0)
+		return PyInt_FromLong(pLog->dwWin32Status);
+	PyErr_Format(PyExc_AttributeError, "PyFILTER_LOG objects have no attribute '%s'", name);
+	return NULL;
+}
+
+// Note that to set the strings, we use the AllocMem function - this allows
+// IIS to automatically free the memory once the request has completed.
+
+#define CHECK_SET_FILTER_LOG_STRING(struct_elem) \
+	if (strcmp(name, #struct_elem)==0) { \
+		if (!PyString_Check(v)) { \
+			PyErr_Format(PyExc_TypeError, #struct_elem " must be a string"); \
+			return -1; \
+		} \
+		int cc = PyString_Size(v) + sizeof(CHAR); \
+		char *buf = (char *)pFC->AllocMem(pFC, cc, 0); \
+		if (!buf) { \
+			PyErr_NoMemory(); \
+			return -1; \
+		} \
+		_tcsncpy(buf, PyString_AS_STRING(v), cc); \
+		pLog->psz##struct_elem = buf; \
+		return 0; \
+	}
+
+#define CHECK_SET_FILTER_LOG_LONG(struct_elem) \
+	if (strcmp(name, #struct_elem)==0) { \
+		if (!PyInt_Check(v)) { \
+			PyErr_Format(PyExc_TypeError, #struct_elem " must be an integer"); \
+			return -1; \
+		} \
+		pLog->dw##struct_elem = PyInt_AsLong(v); \
+		return 0; \
+	}
+
+int PyFILTER_LOG::setattr(PyObject *self, char *name, PyObject *v)
+{
+	HTTP_FILTER_CONTEXT *pFC;
+    ((PyFILTER_LOG *)self)->m_parent->GetFilterContext()->GetFilterData(&pFC, NULL, NULL);
+	HTTP_FILTER_LOG *pLog = ((PyFILTER_LOG *)self)->GetFilterLog();
+	if (!pLog || !pFC)
+		return NULL;
+	CHECK_SET_FILTER_LOG_STRING(ClientHostName)
+	CHECK_SET_FILTER_LOG_STRING(ClientUserName)
+	CHECK_SET_FILTER_LOG_STRING(ServerName)
+	CHECK_SET_FILTER_LOG_STRING(Operation)
+	CHECK_SET_FILTER_LOG_STRING(Target)
+	CHECK_SET_FILTER_LOG_STRING(Parameters)
+	CHECK_SET_FILTER_LOG_LONG(HttpStatus);
+	CHECK_SET_FILTER_LOG_LONG(Win32Status);
+	PyErr_Format(PyExc_AttributeError, "PyFILTER_LOG object has no attribute '%s'", name);
+	return -1;
+}
+
+void PyFILTER_LOG::deallocFunc(PyObject *ob)
+{
+	delete (PyFILTER_LOG *)ob;
+}

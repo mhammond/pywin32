@@ -109,6 +109,21 @@ public:
 	static int setattr(PyObject *self, char *name, PyObject *v);
 };
 
+class PyFILTER_LOG:public PyObject
+{
+public:
+	PyHFC *m_parent;
+public:
+	PyFILTER_LOG(PyHFC *);
+	~PyFILTER_LOG();
+	HTTP_FILTER_LOG *GetFilterLog();
+public:	
+	// Python support 
+	static void deallocFunc(PyObject *ob);
+	static PyObject *getattr(PyObject *self, char *name);
+	static int setattr(PyObject *self, char *name, PyObject *v);
+};
+
 
 // error handling
 static PyObject * PyHFC_Error = NULL;
