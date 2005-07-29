@@ -291,11 +291,13 @@ PyObject *PyWinObject_FromTRUSTEE(TRUSTEE_W *ptrustee)
 			obIdentifier=PyWinObject_FromWCHAR(ptrustee->ptstrName);
 			break;
 			}		
+#if WINVER >= 0x0501
 		case TRUSTEE_IS_OBJECTS_AND_SID:
 		case TRUSTEE_IS_OBJECTS_AND_NAME:{
 			PyErr_SetString(PyExc_NotImplementedError, "TrusteeForm not yet supported");
 			return FALSE;
 			}
+#endif
 		default:{
 			PyErr_SetString(PyExc_ValueError, "Invalid value for TrusteeForm");
 			return FALSE;

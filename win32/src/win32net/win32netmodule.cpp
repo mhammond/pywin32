@@ -38,7 +38,9 @@ conversion is required.
 
 #include "assert.h"
 
+#if WINVER >= 0x0500
 NetGetJoinInformationfunc pfnNetGetJoinInformation=NULL;
+#endif
 
 /*****************************************************************************/
 /* error helpers */
@@ -941,6 +943,8 @@ done:
 	return ret;
 }
 
+#if WINVER >= 0x0500
+
 // @pymethod <o PyUnicode>, int|win32net|NetGetJoinInformation|Retrieves join status information for the specified computer.
 static PyObject *PyNetGetJoinInformation(PyObject *self, PyObject *args)
 {
@@ -971,6 +975,8 @@ done:
 	NetApiBufferFree(result);
 	return ret;	
 }
+#endif // WINVER
+
 /*************************************************************************************************************
 **
 
@@ -1045,7 +1051,9 @@ extern PyObject * PyNetValidateName(PyObject *self, PyObject *args);
 /* List of functions exported by this module */
 // @module win32net|A module encapsulating the Windows Network API.
 static struct PyMethodDef win32net_functions[] = {
+#if WINVER >= 0x0500
 	{"NetGetJoinInformation",   PyNetGetJoinInformation,    1}, // @pymeth NetGetJoinInformation|Retrieves join status information for the specified computer.
+#endif
 	{"NetGroupGetInfo",         PyNetGroupGetInfo,          1}, // @pymeth NetGroupGetInfo|Retrieves information about a particular group on a server.
 	{"NetGroupGetUsers",        PyNetGroupGetUsers,         1}, // @pymeth NetGroupGetUsers|Enumerates the users in a group.
 	{"NetGroupSetUsers",        PyNetGroupSetUsers,         1}, // @pymeth NetGroupSetUsers|Sets the users in a group on server.
@@ -1117,7 +1125,9 @@ static struct PyMethodDef win32net_functions[] = {
 	{"NetFileClose",            PyNetFileClose,            1}, // @pymeth NetFileClose|Closes file for specified server and file id.
 	{"NetFileGetInfo",          PyNetFileGetInfo,          1}, // @pymeth NetFileGetInfo|Get info about files open on the server.
 	{"NetStatisticsGet",		PyNetStatisticsGet,		   1}, // @pymeth NetStatisticsGet|Return server or workstation stats
+#if WINVER >= 0x0500
 	{"NetValidateName",			PyNetValidateName,		   1}, // @pymeth NetValidateName|Verify that computer/domain name is valid for given context
+#endif
 	{NULL,			NULL}
 };
 
@@ -1150,10 +1160,12 @@ initwin32net(void)
   AddConstant(dict, "USE_LOTS_OF_FORCE", USE_LOTS_OF_FORCE);
 
   HMODULE hmodule=GetModuleHandle(_T("netapi32"));
+#if WINVER >= 0x0500
   if (hmodule==NULL)
 	  hmodule=LoadLibrary(_T("netapi32"));
   if (hmodule!=NULL) {
 	  pfnNetValidateName=(NetValidateNamefunc)GetProcAddress(hmodule,"NetValidateName");
 	  pfnNetGetJoinInformation=(NetGetJoinInformationfunc)GetProcAddress(hmodule,"NetGetJoinInformation");
   }
+#endif
 }

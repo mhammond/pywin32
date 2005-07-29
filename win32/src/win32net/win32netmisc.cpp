@@ -1269,6 +1269,8 @@ PyNetStatisticsGet(PyObject *self, PyObject *args)
 	return ret;
 }
 
+#if WINVER >= 0x0500
+
 extern "C" NetValidateNamefunc pfnNetValidateName=NULL;
 // @pymethod |win32net|NetValidateName|Checks that domain/machine/workgroup name is valid for given context
 // @rdesc Returns none if valid, exception if not
@@ -1312,3 +1314,4 @@ PyNetValidateName(PyObject *self, PyObject *args)
 	Py_XINCREF(ret);
 	return ret;
 }
+#endif // WINVER

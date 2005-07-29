@@ -60,8 +60,10 @@ PyObject *PyDoDel(PyObject *self, PyObject *args, PFNDEL pfn, char *fnname);
 
 PyObject *PyDoGroupDelMembers(PyObject *self, PyObject *args);
 
+#if WINVER >= 0x0500
 typedef NET_API_STATUS (NET_API_FUNCTION *NetValidateNamefunc)(LPCWSTR, LPCWSTR, LPCWSTR, LPCWSTR, NETSETUP_NAME_TYPE);
 extern NetValidateNamefunc pfnNetValidateName;
 
 typedef NET_API_STATUS (NET_API_FUNCTION *NetGetJoinInformationfunc)(LPCWSTR, LPWSTR *, PNETSETUP_JOIN_STATUS);
 extern NetGetJoinInformationfunc pfnNetGetJoinInformation;
+#endif // WINVER

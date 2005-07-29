@@ -1,4 +1,5 @@
 // @doc - This file contains autoduck documentation
+
 #include "PyWinTypes.h"
 #include "structmember.h"
 #include "PyWinObjects.h"
@@ -42,7 +43,6 @@ struct PyMemberDef PyDEVMODE::members[] = {
 	{"PelsWidth", 		T_ULONG,   OFF(devmode.dmPelsWidth), 0, "Pixel width of display"},
 	{"PelsHeight", 		T_ULONG,   OFF(devmode.dmPelsHeight), 0, "Pixel height of display"},
 	{"DisplayFlags", 	T_ULONG,   OFF(devmode.dmDisplayFlags), 0, "Combination of DM_GRAYSCALE and DM_INTERLACED"},
-	{"Nup",				T_ULONG,   OFF(devmode.dmNup), 0, "DMNUP_SYSTEM or DMNUP_ONEUP"}, // wtf is a "Nup"?
 	{"DisplayFrequency",T_ULONG,   OFF(devmode.dmDisplayFrequency), 0, "Refresh rate"},
 	{"ICMMethod",		T_ULONG,   OFF(devmode.dmICMMethod), 0, ""},
 	{"ICMIntent",		T_ULONG,   OFF(devmode.dmICMIntent), 0, ""},
@@ -50,9 +50,12 @@ struct PyMemberDef PyDEVMODE::members[] = {
 	{"DitherType",		T_ULONG,   OFF(devmode.dmDitherType), 0, ""},
 	{"Reserved1",		T_ULONG,   OFF(devmode.dmReserved1), 0, ""},
 	{"Reserved2",		T_ULONG,   OFF(devmode.dmReserved2), 0, ""},
+	{"DriverData",		T_OBJECT,  OFF(obdummy), 0, "Driver data appended to end of structure"},
+#if WINVER >= 0x0500
+	{"Nup",				T_ULONG,   OFF(devmode.dmNup), 0, "DMNUP_SYSTEM or DMNUP_ONEUP"}, // wtf is a "Nup"?
 	{"PanningWidth",	T_ULONG,   OFF(devmode.dmPanningWidth), 0, ""},
 	{"PanningHeight",	T_ULONG,   OFF(devmode.dmPanningHeight), 0, ""},
-	{"DriverData",		T_OBJECT,  OFF(obdummy), 0, "Driver data appended to end of structure"},
+#endif
 	{NULL}
 };
 
