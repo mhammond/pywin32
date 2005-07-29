@@ -840,10 +840,10 @@ for info in (
               """),
         ("win32pdh", "", False),
         ("win32pipe", "", False),
-        ("win32print", "winspool user32 gdi32", False),
+        ("win32print", "winspool user32 gdi32", False, 0x0500),
         ("win32process", "advapi32 user32", False, 0x0500),
         ("win32ras", "rasapi32 user32", False),
-        ("win32security", "advapi32 user32 netapi32", True, None, """
+        ("win32security", "advapi32 user32 netapi32", True, 0x0500, """
             win32/src/win32security.i       win32/src/win32securitymodule.cpp
             win32/src/win32security_sspi.cpp win32/src/win32security_ds.cpp
             """),
@@ -876,6 +876,7 @@ win32_extensions += [
                 win32/src/win32dynamicdialog.cpp
                 win32/src/win32gui.i win32/src/win32guimodule.cpp
                """.split(),
+           windows_h_version=0x0500,
            libraries="gdi32 user32 comdlg32 comctl32 shell32",
            define_macros = [("WIN32GUI", None)],
         ),
@@ -887,6 +888,7 @@ win32_extensions += [
                 win32/src/win32gui.i win32/src/win32guimodule.cpp
                """.split(),
            libraries="gdi32 user32 comdlg32 comctl32 shell32",
+           windows_h_version=0x0500,
            define_macros = [("WIN32GUI",None), ("WINXPGUI",None)],
            extra_swig_commands=["-DWINXPGUI"],
         ),
@@ -944,7 +946,7 @@ com_extensions += [
     # module for details on getting it built.
     WinExt_win32com('axdebug',
             dsp_file=r"com\Active Debugging.dsp",
-            libraries="axscript ad1",
+            libraries="axscript",
             pch_header = "stdafx.h",
             optional_headers = ["activdbg.h"],
     ),
