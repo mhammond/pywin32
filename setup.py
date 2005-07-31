@@ -87,6 +87,76 @@ this_file = os.path.abspath(this_file)
 if os.path.dirname(this_file):
     os.chdir(os.path.dirname(this_file))
 
+# We need to know the platform SDK dir before we can list the extensions.
+def find_platform_sdk_dir():
+    # Finding the Platform SDK install dir is a treat. There can be some
+    # dead ends so we only consider the job done if we find the "windows.h"
+    # landmark.
+    DEBUG = False
+    landmark = "include\\windows.h"
+    # 1. The use might have their current environment setup for the
+    #    SDK, in which case the "MSSdk" env var is set.
+    sdkdir = os.environ.get("MSSdk")
+    if sdkdir:
+        if DEBUG:
+            print "PSDK: try %MSSdk%: '%s'" % sdkdir
+        if os.path.isfile(os.path.join(sdkdir, landmark)):
+            return sdkdir
+    # 2. The "Install Dir" value in the
+    #    HKLM\Software\Microsoft\MicrosoftSDK\Directories registry key
+    #    sometimes points to the right thing. However, after upgrading to
+    #    the "Platform SDK for Windows Server 2003 SP1" this is dead end.
+    try:
+        key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+                              r"Software\Microsoft\MicrosoftSDK\Directories")
+        sdkdir, ignore = _winreg.QueryValueEx(key, "Install Dir")
+    except EnvironmentError:
+        pass
+    else:
+        if DEBUG:
+            print r"PSDK: try 'HKLM\Software\Microsoft\MicrosoftSDK"\
+                   "\Directories\Install Dir': '%s'" % sdkdir
+        if os.path.isfile(os.path.join(sdkdir, landmark)):
+            return sdkdir
+    # 3. Each installed SDK (not just the platform SDK) seems to have GUID
+    #    subkey of HKLM\Software\Microsoft\MicrosoftSDK\InstalledSDKs and
+    #    it *looks* like the latest installed Platform SDK will be the
+    #    only one with an "Install Dir" sub-value.
+    try:
+        key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+                              r"Software\Microsoft\MicrosoftSDK\InstalledSDKs")
+        i = 0
+        while True:
+            guid = _winreg.EnumKey(key, i)
+            guidkey = _winreg.OpenKey(key, guid)
+            try:
+                sdkdir, ignore = _winreg.QueryValueEx(guidkey, "Install Dir")
+            except EnvironmentError:
+                pass
+            else:
+                if DEBUG:
+                    print r"PSDK: try 'HKLM\Software\Microsoft\MicrosoftSDK"\
+                           "\InstallSDKs\%s\Install Dir': '%s'"\
+                           % (guid, sdkdir)
+                if os.path.isfile(os.path.join(sdkdir, landmark)):
+                    return sdkdir
+            i += 1
+    except EnvironmentError:
+        pass
+    # 4. Failing this just try a few well-known default install locations.
+    progfiles = os.environ.get("ProgramFiles", r"C:\Program Files")
+    defaultlocs = [
+        os.path.join(progfiles, "Microsoft Platform SDK"),
+        os.path.join(progfiles, "Microsoft SDK"),
+    ]
+    for sdkdir in defaultlocs:
+        if DEBUG:
+            print "PSDK: try default location: '%s'" % sdkdir
+        if os.path.isfile(os.path.join(sdkdir, landmark)):
+            return sdkdir
+
+sdk_dir = find_platform_sdk_dir()
+
 class WinExt (Extension):
     # Base class for all win32 extensions, with some predefined
     # library and include dirs, and predefined windows libraries.
@@ -293,7 +363,7 @@ class my_build_ext(build_ext):
         # to manually add these directories via the MSVC UI.
         # (Note that just having them in INCLUDE/LIB does *not* work -
         # distutils thinks it knows better, and resets those vars.
-        sdk_dir = find_platform_sdk_dir()
+        # Note: sdk_dir is a global.
         if sdk_dir:
             extra = os.path.join(sdk_dir, 'include')
             if extra not in self.include_dirs and os.path.isdir(extra):
@@ -830,7 +900,6 @@ for info in (
         ("win32clipboard", "gdi32 user32 shell32", False),
         ("win32evtlog", "advapi32 oleaut32", False),
         # win32gui handled below
-        ("win32help", "htmlhelp user32 advapi32", False, 0x0500),
         ("win32lz", "lz32", False),
         ("win32net", "netapi32", True, None, """
               win32/src/win32net/win32netfile.cpp    win32/src/win32net/win32netgroup.cpp
@@ -905,6 +974,18 @@ win32_extensions += [
            libraries = "user32 ole32 advapi32 shell32",
            dsp_file = r"win32\Pythonservice servicemanager.dsp",
            windows_h_version = 0x500),
+]
+
+# win32help uses htmlhelp.lib which is built with MSVC7 and /GS.  This
+# causes problems with references to the @__security_check_cookie magic.
+# Use bufferoverflowu.lib if it exists.
+win32help_libs = "htmlhelp user32 advapi32"
+if sdk_dir and os.path.exists(os.path.join(sdk_dir, "Lib", "bufferoverflowu.lib")):
+    win32help_libs += " bufferoverflowu"
+win32_extensions += [
+    WinExt_win32('win32help',
+                 libraries=win32help_libs,
+                 windows_h_version = 0x500),
 ]
 
 dirs = {
@@ -1041,75 +1122,6 @@ swig_wince_modules = "win32event win32file win32gui win32process".split()
 # .i files that are #included, and hence are not part of the build.  Our .dsp
 # parser isn't smart enough to differentiate these.
 swig_include_files = "mapilib adsilib".split()
-
-
-def find_platform_sdk_dir():
-    # Finding the Platform SDK install dir is a treat. There can be some
-    # dead ends so we only consider the job done if we find the "windows.h"
-    # landmark.
-    DEBUG = False
-    landmark = "include\\windows.h"
-    # 1. The use might have their current environment setup for the
-    #    SDK, in which case the "MSSdk" env var is set.
-    sdkdir = os.environ.get("MSSdk")
-    if sdkdir:
-        if DEBUG:
-            print "PSDK: try %MSSdk%: '%s'" % sdkdir
-        if os.path.isfile(os.path.join(sdkdir, landmark)):
-            return sdkdir
-    # 2. The "Install Dir" value in the
-    #    HKLM\Software\Microsoft\MicrosoftSDK\Directories registry key
-    #    sometimes points to the right thing. However, after upgrading to
-    #    the "Platform SDK for Windows Server 2003 SP1" this is dead end.
-    try:
-        key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
-                              r"Software\Microsoft\MicrosoftSDK\Directories")
-        sdkdir, ignore = _winreg.QueryValueEx(key, "Install Dir")
-    except EnvironmentError:
-        pass
-    else:
-        if DEBUG:
-            print r"PSDK: try 'HKLM\Software\Microsoft\MicrosoftSDK"\
-                   "\Directories\Install Dir': '%s'" % sdkdir
-        if os.path.isfile(os.path.join(sdkdir, landmark)):
-            return sdkdir
-    # 3. Each installed SDK (not just the platform SDK) seems to have GUID
-    #    subkey of HKLM\Software\Microsoft\MicrosoftSDK\InstalledSDKs and
-    #    it *looks* like the latest installed Platform SDK will be the
-    #    only one with an "Install Dir" sub-value.
-    try:
-        key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
-                              r"Software\Microsoft\MicrosoftSDK\InstalledSDKs")
-        i = 0
-        while True:
-            guid = _winreg.EnumKey(key, i)
-            guidkey = _winreg.OpenKey(key, guid)
-            try:
-                sdkdir, ignore = _winreg.QueryValueEx(guidkey, "Install Dir")
-            except EnvironmentError:
-                pass
-            else:
-                if DEBUG:
-                    print r"PSDK: try 'HKLM\Software\Microsoft\MicrosoftSDK"\
-                           "\InstallSDKs\%s\Install Dir': '%s'"\
-                           % (guid, sdkdir)
-                if os.path.isfile(os.path.join(sdkdir, landmark)):
-                    return sdkdir
-            i += 1
-    except EnvironmentError:
-        pass
-    # 4. Failing this just try a few well-known default install locations.
-    progfiles = os.environ.get("ProgramFiles", r"C:\Program Files")
-    defaultlocs = [
-        os.path.join(progfiles, "Microsoft Platform SDK"),
-        os.path.join(progfiles, "Microsoft SDK"),
-    ]
-    for sdkdir in defaultlocs:
-        if DEBUG:
-            print "PSDK: try default location: '%s'" % sdkdir
-        if os.path.isfile(os.path.join(sdkdir, landmark)):
-            return sdkdir
-
 
 # Helper to allow our script specifications to include wildcards.
 def expand_modules(module_dir):
