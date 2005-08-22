@@ -1089,7 +1089,7 @@ swig_interface_parents = {
     'PyIABContainer':       'IMAPIContainer',
     'PyIAddrBook':          'IMAPIProp',
     'PyIAttach':            'IMAPIProp',
-    'PyIDistList':          'IMAPIProp',
+    'PyIDistList':          'IMAPIContainer',
     'PyIMailUser':          'IMAPIContainer',
     'PyIMAPIContainer':     'IMAPIProp',
     'PyIMAPIFolder':        'IMAPIContainer',

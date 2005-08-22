@@ -14,7 +14,7 @@
 #include "PyIDistList.h"
 
 PyIDistList::PyIDistList(IUnknown *pDisp) :
-	PyIMAPIProp(pDisp)
+	PyIMAPIContainer(pDisp)
 {
 	ob_type = &type;
 }
