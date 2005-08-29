@@ -1048,6 +1048,9 @@ extern PyObject * PyNetFileClose(PyObject *self, PyObject *args);
 extern PyObject * PyNetFileGetInfo(PyObject *self, PyObject *args);
 extern PyObject * PyNetValidateName(PyObject *self, PyObject *args);
 
+extern PyObject * PyNetServerComputerNameAdd(PyObject *self, PyObject *args);
+extern PyObject * PyNetServerComputerNameDel(PyObject *self, PyObject *args);
+
 /* List of functions exported by this module */
 // @module win32net|A module encapsulating the Windows Network API.
 static struct PyMethodDef win32net_functions[] = {
@@ -1125,6 +1128,8 @@ static struct PyMethodDef win32net_functions[] = {
 	{"NetFileClose",            PyNetFileClose,            1}, // @pymeth NetFileClose|Closes file for specified server and file id.
 	{"NetFileGetInfo",          PyNetFileGetInfo,          1}, // @pymeth NetFileGetInfo|Get info about files open on the server.
 	{"NetStatisticsGet",		PyNetStatisticsGet,		   1}, // @pymeth NetStatisticsGet|Return server or workstation stats
+	{"NetServerComputerNameAdd",PyNetServerComputerNameAdd,1}, // @pymeth NetServerComputerNameAdd|Adds an extra network name for a server
+	{"NetServerComputerNameDel",PyNetServerComputerNameDel,1}, // @pymeth NetServerComputerNameDel|Deletes an emulated computer name created by <om win32net.PyNetServerComputerNameAdd>
 #if WINVER >= 0x0500
 	{"NetValidateName",			PyNetValidateName,		   1}, // @pymeth NetValidateName|Verify that computer/domain name is valid for given context
 #endif

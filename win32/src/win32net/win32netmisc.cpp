@@ -1269,6 +1269,65 @@ PyNetStatisticsGet(PyObject *self, PyObject *args)
 	return ret;
 }
 
+
+
+// @pymethod |win32net|NetServerComputerNameAdd|Adds an additional network name for a server
+// @rdesc Returns none on success
+PyObject * PyNetServerComputerNameAdd(PyObject *self, PyObject *args)
+{
+	// @pyparm string/<o PyUnicode>|ServerName||Name of server that will receive additional name
+	// @pyparm string/<o PyUnicode>|EmulatedDomainName||Domain under which to add the new server name, can be None
+	// @pyparm string/<o PyUnicode>|EmulatedServerName||New network name that server will respond to
+	NET_API_STATUS err;
+	WCHAR *servername=NULL, *domain=NULL, *newname=NULL;
+	PyObject *observername, *obdomain, *obnewname;
+	PyObject *ret=NULL;
+	if (!PyArg_ParseTuple(args,"OOO", &observername, &obdomain, &obnewname))
+		return NULL;
+	if (PyWinObject_AsWCHAR(observername, &servername, FALSE)
+		&&PyWinObject_AsWCHAR(obdomain, &domain, TRUE)
+		&&PyWinObject_AsWCHAR(obnewname, &newname, FALSE)){
+		err=NetServerComputerNameAdd(servername, domain, newname);
+		if (err==NERR_Success){
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		else
+			ReturnNetError("NetServerComputerNameAdd", err);
+		}
+	PyWinObject_FreeWCHAR(servername);
+	PyWinObject_FreeWCHAR(domain);
+	PyWinObject_FreeWCHAR(newname);
+	return ret;
+}
+
+// @pymethod |win32net|NetServerComputerNameDel|Removes a network name added by <om win32net.NetServerComputerNameAdd>
+// @rdesc Returns none on success
+PyObject * PyNetServerComputerNameDel(PyObject *self, PyObject *args)
+{
+	// @pyparm string/<o PyUnicode>|ServerName||Name of server on which to operate
+	// @pyparm string/<o PyUnicode>|EmulatedServerName||Network name to be removed
+	NET_API_STATUS err;
+	WCHAR *servername=NULL, *newname=NULL;
+	PyObject *observername, *obnewname;
+	PyObject *ret=NULL;
+	if (!PyArg_ParseTuple(args,"OO", &observername, &obnewname))
+		return NULL;
+	if (PyWinObject_AsWCHAR(observername, &servername, FALSE)
+		&&PyWinObject_AsWCHAR(obnewname, &newname, FALSE)){
+		err=NetServerComputerNameDel(servername, newname);
+		if (err==NERR_Success){
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		else
+			ReturnNetError("NetServerComputerNameDel", err);
+		}
+	PyWinObject_FreeWCHAR(servername);
+	PyWinObject_FreeWCHAR(newname);
+	return ret;
+}
+
 #if WINVER >= 0x0500
 
 extern "C" NetValidateNamefunc pfnNetValidateName=NULL;

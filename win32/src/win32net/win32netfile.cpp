@@ -141,7 +141,7 @@ done:
 	return ret_list;
 }
 
-// @pymethod (dict,...)|win32net|NetFileClose|Closes an open network resource on a server
+// @pymethod |win32net|NetFileClose|Closes an open network resource on a server
 PyObject *
 PyNetFileClose(PyObject *self, PyObject *args)
 {
