@@ -79,6 +79,9 @@ extern PSecurityFunctionTableW psecurityfunctiontable=NULL;
 typedef BOOL (WINAPI *TranslateNamefunc)(LPCTSTR, EXTENDED_NAME_FORMAT, EXTENDED_NAME_FORMAT, LPTSTR, PULONG);
 static TranslateNamefunc pfnTranslateName=NULL;
 
+typedef BOOL (WINAPI *CreateWellKnownSidfunc)(WELL_KNOWN_SID_TYPE, PSID, PSID, DWORD *);
+static CreateWellKnownSidfunc pfnCreateWellKnownSid=NULL;
+
 // function pointers used in win32security_sspi.cpp and win32security_ds.cpp
 extern DsBindfunc pfnDsBind=NULL;
 extern DsUnBindfunc pfnDsUnBind=NULL;
@@ -649,21 +652,22 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 		psecurityfunctiontable=(*pfnInitSecurityInterface)();
 
 	pfnTranslateName=(TranslateNamefunc)loadapifunc("TranslateNameW",secur32_dll);
-	
+	pfnCreateWellKnownSid=(CreateWellKnownSidfunc)loadapifunc("CreateWellKnownSid",advapi32_dll);
+		
 	pfnDsBind=(DsBindfunc)loadapifunc("DsBindW", ntdsapi_dll);
 	pfnDsUnBind=(DsUnBindfunc)loadapifunc("DsUnBindW", ntdsapi_dll);
 	pfnDsGetSpn=(DsGetSpnfunc)loadapifunc("DsGetSpnW", ntdsapi_dll);
 	pfnDsWriteAccountSpn=(DsWriteAccountSpnfunc)loadapifunc("DsWriteAccountSpnW", ntdsapi_dll);
 	pfnDsFreeSpnArray=(DsFreeSpnArrayfunc)loadapifunc("DsFreeSpnArrayW", ntdsapi_dll);
-    pfnDsCrackNames=(DsCrackNamesfunc)loadapifunc("DsCrackNamesW", ntdsapi_dll);
-    pfnDsListInfoForServer=(DsListInfoForServerfunc)loadapifunc("DsListInfoForServerW", ntdsapi_dll);
-    pfnDsListDomainsInSite=(DsListDomainsInSitefunc)loadapifunc("DsListDomainsInSiteW", ntdsapi_dll);
-    pfnDsListServersForDomainInSite=(DsListServersForDomainInSitefunc)loadapifunc("DsListServersForDomainInSiteW", ntdsapi_dll);
-    pfnDsListServersInSite=(DsListServersInSitefunc)loadapifunc("DsListServersInSiteW", ntdsapi_dll);
-    pfnDsListSites=(DsListSitesfunc)loadapifunc("DsListSitesW", ntdsapi_dll);
-    pfnDsListRoles=(DsListRolesfunc)loadapifunc("DsListRolesW", ntdsapi_dll);
+	pfnDsCrackNames=(DsCrackNamesfunc)loadapifunc("DsCrackNamesW", ntdsapi_dll);
+	pfnDsListInfoForServer=(DsListInfoForServerfunc)loadapifunc("DsListInfoForServerW", ntdsapi_dll);
+	pfnDsListDomainsInSite=(DsListDomainsInSitefunc)loadapifunc("DsListDomainsInSiteW", ntdsapi_dll);
+	pfnDsListServersForDomainInSite=(DsListServersForDomainInSitefunc)loadapifunc("DsListServersForDomainInSiteW", ntdsapi_dll);
+	pfnDsListServersInSite=(DsListServersInSitefunc)loadapifunc("DsListServersInSiteW", ntdsapi_dll);
+	pfnDsListSites=(DsListSitesfunc)loadapifunc("DsListSitesW", ntdsapi_dll);
+	pfnDsListRoles=(DsListRolesfunc)loadapifunc("DsListRolesW", ntdsapi_dll);
 
-    pfnDsFreeNameResult=(DsFreeNameResultfunc)loadapifunc("DsFreeNameResultW", ntdsapi_dll);
+	pfnDsFreeNameResult=(DsFreeNameResultfunc)loadapifunc("DsFreeNameResultW", ntdsapi_dll);
 	pfnDsGetDcName=(DsGetDcNamefunc)loadapifunc("DsGetDcNameW", netapi32_dll);
 	
 	PyDict_SetItemString(d, "SecBufferType", (PyObject *)&PySecBufferType);
@@ -3475,6 +3479,36 @@ static PyObject *PyTranslateName(PyObject *self, PyObject *args)
 }
 %}
 
+// @pyswig |CreateWellKnownSid|Returns one of the predefined well known sids
+%native(CreateWellKnownSid) PyCreateWellKnownSid;
+%{
+static PyObject *PyCreateWellKnownSid(PyObject *self, PyObject *args)
+{
+    PyObject *obDomainSid=Py_None, *ret=NULL;
+    PSID DomainSid=NULL, outsid=NULL;
+    WELL_KNOWN_SID_TYPE sidtype;
+    DWORD bufsize=SECURITY_MAX_SID_SIZE;
+    CHECK_PFN(CreateWellKnownSid);
+    
+    outsid=malloc(bufsize);
+    if (outsid==NULL)
+		return PyErr_Format(PyExc_MemoryError, "CreateWellKnownSid: Unable to allocate %d bytes", bufsize);
+		
+    if (!PyArg_ParseTuple(args, "k|O", 
+		&sidtype,		// @pyparm int|WellKnownSidType||One of the Win*Sid constants
+		&obDomainSid))	// @pyparm <o PySID>|DomainSid|None|Domain for the new SID, or None for local machine
+		return NULL;
+	if (!PyWinObject_AsSID(obDomainSid, &DomainSid, TRUE))
+		return NULL;
+	if (!(*pfnCreateWellKnownSid)(sidtype, DomainSid, outsid, &bufsize))
+		PyWin_SetAPIError("CreateWellKnownSid");
+	else
+	    ret=new PySID(outsid);
+    free(outsid);
+    return ret;
+}
+%}
+
 #define TOKEN_ADJUST_DEFAULT TOKEN_ADJUST_DEFAULT // Required to change the default ACL, primary group, or owner of an access token.
 #define TOKEN_ADJUST_GROUPS TOKEN_ADJUST_GROUPS // Required to change the groups specified in an access token.
 #define TOKEN_ADJUST_PRIVILEGES TOKEN_ADJUST_PRIVILEGES // Required to change the privileges specified in an access token.
@@ -3779,7 +3813,70 @@ static PyObject *PyTranslateName(PyObject *self, PyObject *args)
 #define DS_SPN_NB_DOMAIN DS_SPN_NB_DOMAIN
 #define DS_SPN_SERVICE DS_SPN_SERVICE
 
-#Spn operations used with DsWriteAccountSpn
+// Spn operations used with DsWriteAccountSpn
 #define DS_SPN_ADD_SPN_OP DS_SPN_ADD_SPN_OP
 #define DS_SPN_REPLACE_SPN_OP DS_SPN_REPLACE_SPN_OP
 #define DS_SPN_DELETE_SPN_OP DS_SPN_DELETE_SPN_OP
+
+// WELL_KNOWN_SID_TYPE used with CreateWellKnownSid
+#define WinNullSid WinNullSid
+#define WinWorldSid WinWorldSid
+#define WinLocalSid WinLocalSid
+#define WinCreatorOwnerSid WinCreatorOwnerSid
+#define WinCreatorGroupSid WinCreatorGroupSid
+#define WinCreatorOwnerServerSid WinCreatorOwnerServerSid
+#define WinCreatorGroupServerSid WinCreatorGroupServerSid
+#define WinNtAuthoritySid WinNtAuthoritySid
+#define WinDialupSid WinDialupSid
+#define WinNetworkSid WinNetworkSid
+#define WinBatchSid WinBatchSid
+#define WinInteractiveSid WinInteractiveSid
+#define WinServiceSid WinServiceSid
+#define WinAnonymousSid WinAnonymousSid
+#define WinProxySid WinProxySid
+#define WinEnterpriseControllersSid WinEnterpriseControllersSid
+#define WinSelfSid WinSelfSid
+#define WinAuthenticatedUserSid WinAuthenticatedUserSid
+#define WinRestrictedCodeSid WinRestrictedCodeSid
+#define WinTerminalServerSid WinTerminalServerSid
+#define WinRemoteLogonIdSid WinRemoteLogonIdSid
+#define WinLogonIdsSid WinLogonIdsSid
+#define WinLocalSystemSid WinLocalSystemSid
+#define WinLocalServiceSid WinLocalServiceSid
+#define WinNetworkServiceSid WinNetworkServiceSid
+#define WinBuiltinDomainSid WinBuiltinDomainSid
+#define WinBuiltinAdministratorsSid WinBuiltinAdministratorsSid
+#define WinBuiltinUsersSid WinBuiltinUsersSid
+#define WinBuiltinGuestsSid WinBuiltinGuestsSid
+#define WinBuiltinPowerUsersSid WinBuiltinPowerUsersSid
+#define WinBuiltinAccountOperatorsSid WinBuiltinAccountOperatorsSid
+#define WinBuiltinSystemOperatorsSid WinBuiltinSystemOperatorsSid
+#define WinBuiltinPrintOperatorsSid WinBuiltinPrintOperatorsSid
+#define WinBuiltinBackupOperatorsSid WinBuiltinBackupOperatorsSid
+#define WinBuiltinReplicatorSid WinBuiltinReplicatorSid
+#define WinBuiltinPreWindows2000CompatibleAccessSid WinBuiltinPreWindows2000CompatibleAccessSid
+#define WinBuiltinRemoteDesktopUsersSid WinBuiltinRemoteDesktopUsersSid
+#define WinBuiltinNetworkConfigurationOperatorsSid WinBuiltinNetworkConfigurationOperatorsSid
+#define WinAccountAdministratorSid WinAccountAdministratorSid
+#define WinAccountGuestSid WinAccountGuestSid
+#define WinAccountKrbtgtSid WinAccountKrbtgtSid
+#define WinAccountDomainAdminsSid WinAccountDomainAdminsSid
+#define WinAccountDomainUsersSid WinAccountDomainUsersSid
+#define WinAccountDomainGuestsSid WinAccountDomainGuestsSid
+#define WinAccountComputersSid WinAccountComputersSid
+#define WinAccountControllersSid WinAccountControllersSid
+#define WinAccountCertAdminsSid WinAccountCertAdminsSid
+#define WinAccountSchemaAdminsSid WinAccountSchemaAdminsSid
+#define WinAccountEnterpriseAdminsSid WinAccountEnterpriseAdminsSid
+#define WinAccountPolicyAdminsSid WinAccountPolicyAdminsSid
+#define WinAccountRasAndIasServersSid WinAccountRasAndIasServersSid
+#define WinNTLMAuthenticationSid WinNTLMAuthenticationSid
+#define WinDigestAuthenticationSid WinDigestAuthenticationSid
+#define WinSChannelAuthenticationSid WinSChannelAuthenticationSid
+#define WinThisOrganizationSid WinThisOrganizationSid
+#define WinOtherOrganizationSid WinOtherOrganizationSid
+#define WinBuiltinIncomingForestTrustBuildersSid WinBuiltinIncomingForestTrustBuildersSid
+#define WinBuiltinPerfMonitoringUsersSid WinBuiltinPerfMonitoringUsersSid
+#define WinBuiltinPerfLoggingUsersSid WinBuiltinPerfLoggingUsersSid
+// #define WinBuiltinAuthorizationAccessSid WinBuiltinAuthorizationAccessSid
+// #define WinBuiltinTerminalServerLicenseServersSid WinBuiltinTerminalServerLicenseServersSid
