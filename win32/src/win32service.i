@@ -276,7 +276,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM ret)
 	return TRUE;
 }
 
-// @pymethod (PyUNICODE,...)|<o PyHWINSTA>|EnumDesktops|Lists names of desktops in the window station
+// @pymethod (PyUNICODE,...)|PyHWINSTA|EnumDesktops|Lists names of desktops in the window station
 PyObject *PyHWINSTA::EnumDesktops(PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ":EnumDesktops"))
