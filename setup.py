@@ -920,6 +920,7 @@ for info in (
         ("win32trace", "advapi32", False),
         ("win32wnet", "netapi32 mpr", False),
         ("win32inet", "wininet", False),
+        ("win32console", "kernel32", True, 0x0501, "win32/src/win32consolemodule.cpp"),
     ):
 
     name, lib_names, is_unicode = info[:3]
@@ -1027,7 +1028,7 @@ com_extensions += [
     # module for details on getting it built.
     WinExt_win32com('axdebug',
             dsp_file=r"com\Active Debugging.dsp",
-            libraries="axscript",
+            libraries="axscript ad1",
             pch_header = "stdafx.h",
             optional_headers = ["activdbg.h"],
     ),
