@@ -35,10 +35,12 @@ typedef BOOL (WINAPI *GetCurrentConsoleFontfunc)(HANDLE, BOOL, PCONSOLE_FONT_INF
 static GetCurrentConsoleFontfunc pfnGetCurrentConsoleFont;
 typedef COORD (WINAPI *GetConsoleFontSizefunc)(HANDLE, DWORD);
 static GetConsoleFontSizefunc pfnGetConsoleFontSize=NULL;
-
 typedef BOOL (WINAPI *GetConsoleSelectionInfofunc)(PCONSOLE_SELECTION_INFO);
 static GetConsoleSelectionInfofunc pfnGetConsoleSelectionInfo=NULL;
-
+typedef DWORD (WINAPI *GetNumberOfConsoleFontsfunc)(VOID);
+static GetNumberOfConsoleFontsfunc pfnGetNumberOfConsoleFonts=NULL;
+typedef BOOL (WINAPI *SetConsoleFontfunc)(HANDLE, DWORD);
+static SetConsoleFontfunc pfnSetConsoleFont=NULL;
 
 // convert python object to array of WORDS/USHORTS
 // ?????? should move this into Pywintypes, similar code used in win32security_ds.cpp
@@ -440,6 +442,9 @@ public:
 	static PyObject *PyWriteConsoleOutputCharacter(PyObject *self, PyObject *args, PyObject *kwargs);
 	static PyObject *PyWriteConsoleOutputAttribute(PyObject *self, PyObject *args, PyObject *kwargs);
 	static PyObject *PyScrollConsoleScreenBuffer(PyObject *self, PyObject *args, PyObject *kwargs);
+	static PyObject *PyGetCurrentConsoleFont(PyObject *self, PyObject *args, PyObject *kwargs);
+	static PyObject *PyGetConsoleFontSize(PyObject *self, PyObject *args, PyObject *kwargs);
+	static PyObject *PySetConsoleFont(PyObject *self, PyObject *args, PyObject *kwargs);
 };
 
 struct PyMethodDef PyConsoleScreenBuffer::methods[] = {
@@ -510,6 +515,15 @@ struct PyMethodDef PyConsoleScreenBuffer::methods[] = {
 	// @pymeth ScrollConsoleScreenBuffer|Scrolls a region of the display
 	{"ScrollConsoleScreenBuffer", (PyCFunction)PyConsoleScreenBuffer::PyScrollConsoleScreenBuffer, METH_VARARGS|METH_KEYWORDS,
 		"Scrolls a region of the display"},
+	// @pymeth GetCurrentConsoleFont|Returns the font size for the console screen buffer
+	{"GetCurrentConsoleFont", (PyCFunction)PyConsoleScreenBuffer::PyGetCurrentConsoleFont, METH_VARARGS|METH_KEYWORDS,
+		"Returns the current font for the console"},
+	// @pymeth GetConsoleFontSize|Returns size of specified font for the console
+	{"GetConsoleFontSize", (PyCFunction)PyConsoleScreenBuffer::PyGetConsoleFontSize, METH_VARARGS|METH_KEYWORDS,
+		"Returns size of specified font for the console"},
+	// @pymeth SetConsoleFont|Changes the font used by the screen buffer
+	{"SetConsoleFont", (PyCFunction)PyConsoleScreenBuffer::PySetConsoleFont, METH_VARARGS|METH_KEYWORDS,
+		"Changes the font used by the screen buffer"},
 	{NULL}
 };
 
@@ -695,7 +709,7 @@ PyObject *PyConsoleScreenBuffer::PySetConsoleWindowInfo(PyObject *self, PyObject
 	PyObject *obrect;
 	PSMALL_RECT prect;
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "lO:SetConsoleWindowInfo", keywords,
-		&absolut,	// @pyparm boolean|Absolute||Nbr of characters per line
+		&absolut,	// @pyparm boolean|Absolute||If False, coordinates are relative to current position
 		&obrect))	// @pyparm <o PySMALL_RECT>|ConsoleWindow||A SMALL_RECT containing the new window coordinates
 		return NULL;
 	if (!PyWinObject_AsSMALL_RECT(obrect, &prect, FALSE))
@@ -907,7 +921,7 @@ PyObject *PyConsoleScreenBuffer::PyScrollConsoleScreenBuffer(PyObject *self, PyO
 	CHAR_INFO char_info;
 	DWORD charlen;
 	WCHAR *fillchar=NULL;
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOOOH", keywords,
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOOOH:ScrollConsoleScreenBuffer", keywords,
 		&obscrollrect,		// @pyparm <o PySMALL_RECT>|ScrollRectangle||The region to be scrolled
 		&obcliprect,		// @pyparm <o PySMALL_RECT>|ClipRectangle||Rectangle that limits display area affected, can be None
 		&obdestcoord,		// @pyparm <o PyCOORD>|DestinationOrigin||The position to which ScrollRectangle will be moved
@@ -935,21 +949,58 @@ PyObject *PyConsoleScreenBuffer::PyScrollConsoleScreenBuffer(PyObject *self, PyO
 	return ret;
 }
 
-/*
-BOOL GetCurrentConsoleFont(
-  HANDLE hConsoleOutput,
-  BOOL bMaximumWindow,
-  PCONSOLE_FONT_INFO lpConsoleCurrentFont
-);
+// @pymethod (int, <o PyCOORD>)|PyConsoleScreenBuffer|GetCurrentConsoleFont|Returns the font size for the console screen buffer
+// @rdesc Returns the index of current font and window size
+// @comm Only exists on XP or later.<nl>
+// MSDN docs claim the returned COORD is the font size, but it's actually the window size.<nl>
+// Use <om PyConsoleScreenBuffer.GetConsoleFontSize> for the font size.
+PyObject *PyConsoleScreenBuffer::PyGetCurrentConsoleFont(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"MaximumWindow", NULL};
+	CONSOLE_FONT_INFO cfi;
+	BOOL bmax=FALSE;
+	CHECK_PFN(GetCurrentConsoleFont);
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|l:GetCurrentConsoleFont", keywords,
+		&bmax))	// @pyparm boolean|MaximumWindow|False|If True, retrieves font size for maximum window size
+		return NULL;
+	if (!(*pfnGetCurrentConsoleFont)(((PyConsoleScreenBuffer *)self)->m_handle, bmax, &cfi))
+		return PyWin_SetAPIError("GetCurrentConsoleFont");
+	return Py_BuildValue("lO", cfi.nFont, PyWinObject_FromCOORD(&cfi.dwFontSize));
+}
 
-typedef struct _CONSOLE_FONT_INFO {  DWORD nFont;  COORD dwFontSize;
-} CONSOLE_FONT_INFO, *PCONSOLE_FONT_INFO;
+// @pymethod <o PyCOORD>|PyConsoleScreenBuffer|GetConsoleFontSize|Returns size of specified font for the console
+// @comm Only exists on XP or later.
+PyObject *PyConsoleScreenBuffer::PyGetConsoleFontSize(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"Font", NULL};
+	DWORD font;
+	COORD fontsize;
+	CHECK_PFN(GetConsoleFontSize);
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "l:GetConsoleFontSize", keywords,
+		&font))	// @pyparm int|Font||Index of font as returned by GetCurrentConsoleFont
+		return NULL;
+	fontsize=(*pfnGetConsoleFontSize)(((PyConsoleScreenBuffer *)self)->m_handle, font);
+	if (fontsize.X==0 && fontsize.Y==0)
+		return PyWin_SetAPIError("GetConsoleFontSize");
+	return PyWinObject_FromCOORD(&fontsize);
+}
 
-COORD GetConsoleFontSize(
-  HANDLE hConsoleOutput,
-  DWORD nFont
-);
-*/
+// @pymethod |PyConsoleScreenBuffer|SetConsoleFont|Changes the font used by the screen buffer
+// @comm Function is not documented on MSDN
+PyObject *PyConsoleScreenBuffer::PySetConsoleFont(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"Font", NULL};
+	DWORD font;
+	CHECK_PFN(SetConsoleFont);
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "l:SetConsoleFont", keywords,
+		&font))	// @pyparm int|Font||The number of the font to be set
+		return NULL;
+	if (!(*pfnSetConsoleFont)(((PyConsoleScreenBuffer *)self)->m_handle, font))
+		return PyWin_SetAPIError("SetConsoleFont");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 
 PyTypeObject PyConsoleScreenBufferType =
 {
@@ -1316,6 +1367,86 @@ static PyObject *PyGetConsoleWindow(PyObject *self, PyObject *args)
 	return PyInt_FromLong((long)h);
 }
 
+// @pymethod int|win32console|GetNumberOfConsoleFonts|Returns the number of fonts available to the console
+// @comm Function is not documented in MSDN
+PyObject *PyGetNumberOfConsoleFonts(PyObject *self, PyObject *args)
+{
+	DWORD nbroffonts;
+	CHECK_PFN(GetNumberOfConsoleFonts);
+	if (!PyArg_ParseTuple(args, ":GetNumberOfConsoleFonts"))
+		return NULL;
+	nbroffonts=(*pfnGetNumberOfConsoleFonts)();
+	return PyLong_FromLong(nbroffonts);
+}
+
+// @pymethod |win32console|SetConsoleTitle|Sets the title of the console window
+PyObject *PySetConsoleTitle(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"ConsoleTitle", NULL};
+	WCHAR *title=NULL;
+	PyObject *obtitle, *ret=NULL;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:SetConsoleTitle", keywords,
+		&obtitle))	// @pyparm <o PyUNICODE>|ConsoleTitle||New title for the console
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obtitle, &title, FALSE))
+		return NULL;
+	if (!SetConsoleTitle(title))
+		PyWin_SetAPIError("SetConsoleTitle");
+	else{
+		Py_INCREF(Py_None);
+		ret=Py_None;
+		}
+	PyWinObject_FreeWCHAR(title);
+	return ret;
+}
+
+// @pymethod <o PyUNICODE>|win32console|GetConsoleTitle|Returns the title of the console window
+PyObject *PyGetConsoleTitle(PyObject *self, PyObject *args)
+{
+	WCHAR *title=NULL;
+	DWORD chars_allocated=64, chars_returned;
+	PyObject *ret=NULL;
+	if (!PyArg_ParseTuple(args, ":GetConsoleTitle"))
+		return NULL;\
+
+	// if buffer is too small, function still copies as much of title as will fit,
+	//  so loop until fewer characters returned than were allocated
+	while (TRUE){
+		if (title!=NULL){
+			free(title);
+			chars_allocated*=2;
+			}
+		title=(WCHAR *)malloc(chars_allocated*sizeof(WCHAR));
+		if (title==NULL)
+			return PyErr_Format(PyExc_MemoryError, "GetConsoleTitle: unable to allocate %d bytes", chars_allocated*sizeof(WCHAR));
+		chars_returned=GetConsoleTitle(title, chars_allocated);
+		if (chars_returned==0){
+			PyWin_SetAPIError("GetConsoleTitle");
+			break;
+			}
+		if ((chars_returned+1)<chars_allocated){   // returned length does *not* includes the NULL terminator
+			ret=PyWinObject_FromWCHAR(title);
+			break;
+			}
+		}
+	free(title);
+	return ret;
+}
+
+// @pymethod |win32console|GenerateConsoleCtrlEvent|Sends a control signal to a group of processes attached to a common console
+PyObject *PyGenerateConsoleCtrlEvent(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"CtrlEvent" ,"ProcessGroupId", NULL};
+	DWORD evt, pid=0;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "k|k:GenerateConsoleCtrlEvent", keywords,
+		&evt, 	// @pyparm int|CtrlEvent||Signal to be sent to specified process group - CTRL_C_EVENT or CTRL_BREAK_EVENT
+		&pid)) 	// @pyparm int|ProcessGroupId|0|Pid of a process group, use 0 for calling process
+		return NULL;
+	if (!GenerateConsoleCtrlEvent(evt, pid))
+		return PyWin_SetAPIError("GenerateConsoleCtrlEvent");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
 
 // @module win32console|Interface to the Windows Console functions for dealing with character-mode applications
 static struct PyMethodDef win32console_functions[] = {
@@ -1349,6 +1480,15 @@ static struct PyMethodDef win32console_functions[] = {
 	{"GetConsoleAliasExes", PyGetConsoleAliasExes, METH_VARARGS, "Lists all executables that have console aliases defined"},
 	// @pymeth GetConsoleWindow|Returns a handle to the console's window, or 0 if none exists
 	{"GetConsoleWindow", PyGetConsoleWindow, METH_VARARGS, "Returns a handle to the console's window, or 0 if none exists"},
+	// @pymeth GetNumberOfConsoleFonts|Returns the number of fonts available to the console
+	{"GetNumberOfConsoleFonts", PyGetNumberOfConsoleFonts, METH_VARARGS, "Returns the number of fonts available to the console"},
+	// @pymeth SetConsoleTitle|Sets the title of the console window
+	{"SetConsoleTitle", (PyCFunction)PySetConsoleTitle, METH_VARARGS|METH_KEYWORDS, "Sets the title of the console window"},
+	// @pymeth GetConsoleTitle|Returns the title of the console window
+	{"GetConsoleTitle", PyGetConsoleTitle, METH_VARARGS, "Returns the title of the console window"},
+	// @pymeth GenerateConsoleCtrlEvent|Sends a control signal to a group of processes attached to a common console
+	{"GenerateConsoleCtrlEvent", (PyCFunction)PyGenerateConsoleCtrlEvent, METH_VARARGS|METH_KEYWORDS,
+		"Sends a control signal to a group of processes attached to a common console"},
 	{NULL,	NULL}
 };
 
@@ -1377,7 +1517,9 @@ initwin32console(void)
 		pfnGetCurrentConsoleFont=(GetCurrentConsoleFontfunc)GetProcAddress(kernel32_dll, "GetCurrentConsoleFont");
 		pfnGetConsoleFontSize=(GetConsoleFontSizefunc)GetProcAddress(kernel32_dll, "GetConsoleFontSize");
 		pfnGetConsoleSelectionInfo=(GetConsoleSelectionInfofunc)GetProcAddress(kernel32_dll, "GetConsoleSelectionInfo");
-	}
+		pfnGetNumberOfConsoleFonts=(GetNumberOfConsoleFontsfunc)GetProcAddress(kernel32_dll, "GetNumberOfConsoleFonts");
+		pfnSetConsoleFont=(SetConsoleFontfunc)GetProcAddress(kernel32_dll, "SetConsoleFont");
+		}
 
 	dict = PyModule_GetDict(mod);
 	Py_INCREF(PyWinExc_ApiError);
@@ -1430,5 +1572,9 @@ initwin32console(void)
 	PyModule_AddIntConstant(mod, "WINDOW_BUFFER_SIZE_EVENT", WINDOW_BUFFER_SIZE_EVENT);
 	PyModule_AddIntConstant(mod, "MENU_EVENT", MENU_EVENT);
 	PyModule_AddIntConstant(mod, "FOCUS_EVENT", FOCUS_EVENT);
+
+	// Control events for GenerateConsoleCtrlEvent
+	PyModule_AddIntConstant(mod, "CTRL_C_EVENT", CTRL_C_EVENT);
+	PyModule_AddIntConstant(mod, "CTRL_BREAK_EVENT", CTRL_BREAK_EVENT);
 
 }  
