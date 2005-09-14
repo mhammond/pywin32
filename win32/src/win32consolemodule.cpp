@@ -409,16 +409,19 @@ PyObject *PyWinObject_FromCOORD(COORD *pcoord)
 
 
 // @object PyConsoleScreenBuffer|Handle to a console screen buffer
-// Create using <om win32console.CreateConsoleScreenBuffer>.
+// Create using <om win32console.CreateConsoleScreenBuffer> or <om win32console.GetStdHandle>
 // Use PyConsoleScreenBufferType(Handle) to wrap a pre-existing handle as returned by <om win32api.GetStdHandle>.
-// Will also accept a handle created by <om win32file.CreateFile> for CONIN$ or CONOUT$ 
+// Will also accept a handle created by <om win32file.CreateFile> for CONIN$ or CONOUT$.
+// Only handles created by CreateConsoleScreenBuffer will be closed when Python object is destroyed
 class PyConsoleScreenBuffer : public PyHANDLE
 {
 public:
-	PyConsoleScreenBuffer(HANDLE hconsole);
+	PyConsoleScreenBuffer(HANDLE hconsole, BOOL bautoclose);
 	~PyConsoleScreenBuffer(void);
-	static void deallocFunc(PyObject *ob);
-	static struct PyMemberDef members[];
+	static void tp_dealloc(PyObject *ob);
+	const char *GetTypeName() {return "PyConsoleScreenBuffer";}
+	BOOL bAutoClose;
+	// static struct PyMemberDef members[];
 	static struct PyMethodDef methods[];
 	static PyObject *tp_new(PyTypeObject *tp, PyObject *args, PyObject *kwargs);
 	static PyObject *PySetConsoleActiveScreenBuffer(PyObject *self, PyObject *args);
@@ -445,6 +448,7 @@ public:
 	static PyObject *PyGetCurrentConsoleFont(PyObject *self, PyObject *args, PyObject *kwargs);
 	static PyObject *PyGetConsoleFontSize(PyObject *self, PyObject *args, PyObject *kwargs);
 	static PyObject *PySetConsoleFont(PyObject *self, PyObject *args, PyObject *kwargs);
+	static PyObject *PySetStdHandle(PyObject *self, PyObject *args, PyObject *kwargs);
 };
 
 struct PyMethodDef PyConsoleScreenBuffer::methods[] = {
@@ -515,24 +519,33 @@ struct PyMethodDef PyConsoleScreenBuffer::methods[] = {
 	// @pymeth ScrollConsoleScreenBuffer|Scrolls a region of the display
 	{"ScrollConsoleScreenBuffer", (PyCFunction)PyConsoleScreenBuffer::PyScrollConsoleScreenBuffer, METH_VARARGS|METH_KEYWORDS,
 		"Scrolls a region of the display"},
-	// @pymeth GetCurrentConsoleFont|Returns the font size for the console screen buffer
+	// @pymeth GetCurrentConsoleFont|Returns the currently displayed font
 	{"GetCurrentConsoleFont", (PyCFunction)PyConsoleScreenBuffer::PyGetCurrentConsoleFont, METH_VARARGS|METH_KEYWORDS,
-		"Returns the current font for the console"},
+		"Returns the currently displayed font"},
 	// @pymeth GetConsoleFontSize|Returns size of specified font for the console
 	{"GetConsoleFontSize", (PyCFunction)PyConsoleScreenBuffer::PyGetConsoleFontSize, METH_VARARGS|METH_KEYWORDS,
 		"Returns size of specified font for the console"},
 	// @pymeth SetConsoleFont|Changes the font used by the screen buffer
 	{"SetConsoleFont", (PyCFunction)PyConsoleScreenBuffer::PySetConsoleFont, METH_VARARGS|METH_KEYWORDS,
 		"Changes the font used by the screen buffer"},
+	// @pymeth SetStdHandle|Replaces one of calling process's standard handles with this handle
+	{"SetStdHandle", (PyCFunction)PyConsoleScreenBuffer::PySetStdHandle, METH_VARARGS|METH_KEYWORDS,
+		"Replaces one of calling process's standard handles with this handle"},
 	{NULL}
 };
 
-
-struct PyMemberDef PyConsoleScreenBuffer::members[] = {
+/*
+?????? Class members can't be accessed thru normal means due to offsetof failing for derived classes
+	which have a base with virtual methods
+Maybe expose AutoClose via Get/Set methods ??????? 
+struct PyMemberDef PyConsoleScreenBuffer::members[] =
+{
+	{"AutoClose", T_INT, offsetof(PyConsoleScreenBuffer, bAutoClose), 0, "Indicates whether handle should be closed when python object is destroyed"}, 
 	{NULL}
 };
+*/
 
-// @pymethod |<o PyConsoleScreenBuffer>|SetConsoleActiveScreenBuffer|Sets this handle as the currently displayed screen buffer
+// @pymethod |PyConsoleScreenBuffer|SetConsoleActiveScreenBuffer|Sets this handle as the currently displayed screen buffer
 PyObject *PyConsoleScreenBuffer::PySetConsoleActiveScreenBuffer(PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ":SetConsoleActiveScreenBuffer"))
@@ -949,7 +962,7 @@ PyObject *PyConsoleScreenBuffer::PyScrollConsoleScreenBuffer(PyObject *self, PyO
 	return ret;
 }
 
-// @pymethod (int, <o PyCOORD>)|PyConsoleScreenBuffer|GetCurrentConsoleFont|Returns the font size for the console screen buffer
+// @pymethod (int, <o PyCOORD>)|PyConsoleScreenBuffer|GetCurrentConsoleFont|Returns currently displayed font
 // @rdesc Returns the index of current font and window size
 // @comm Only exists on XP or later.<nl>
 // MSDN docs claim the returned COORD is the font size, but it's actually the window size.<nl>
@@ -1001,6 +1014,20 @@ PyObject *PyConsoleScreenBuffer::PySetConsoleFont(PyObject *self, PyObject *args
 	return Py_None;
 }
 
+// @pymethod |PyConsoleScreenBuffer|SetStdHandle|Replaces one of calling process's standard handles with this handle
+PyObject *PyConsoleScreenBuffer::PySetStdHandle(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"StdHandle", NULL};
+	DWORD StdHandle;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "k:SetStdHandle", keywords,
+		&StdHandle))	// @pyparm int|StdHandle||Specifies handle to be replaced - STD_INPUT_HANDLE, STD_OUTPUT_HANDLE, or STD_ERROR_HANDLE 
+		return NULL;
+	if (!SetStdHandle(StdHandle, ((PyConsoleScreenBuffer *)self)->m_handle))
+	    return PyWin_SetAPIError("SetStdHandle");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 
 PyTypeObject PyConsoleScreenBufferType =
 {
@@ -1009,18 +1036,18 @@ PyTypeObject PyConsoleScreenBufferType =
 	"PyConsoleScreenBuffer",
 	sizeof(PyConsoleScreenBuffer),
 	0,
-	PyConsoleScreenBuffer::deallocFunc,	// tp_dealloc
+	PyConsoleScreenBuffer::tp_dealloc,	// tp_dealloc
 	0,								// tp_print
 	0,								// tp_getattr
 	0,								// tp_setattr
 	0,								// tp_compare
-	0,								// tp_repr
+	PyHANDLE::strFunc,				// tp_repr
 	PyHANDLEType.tp_as_number,		// tp_as_number
 	0,								// tp_as_sequence
 	0,								// tp_as_mapping
 	0,								// tp_hash
 	0,								// tp_call
-	0,								// tp_str
+	PyHANDLE::strFunc,				// tp_str
 	PyObject_GenericGetAttr,		// tp_getattro
 	PyObject_GenericSetAttr,		// tp_setattro
 	0,								// tp_as_buffer
@@ -1033,7 +1060,7 @@ PyTypeObject PyConsoleScreenBufferType =
 	0,								// tp_iter
 	0,								// tp_iternext
 	PyConsoleScreenBuffer::methods,		// tp_methods
-	PyConsoleScreenBuffer::members,		// tp_members
+	0,	//	PyConsoleScreenBuffer::members,		// tp_members
 	0,								// tp_getset
 	0,								// tp_base
 	0,								// tp_dict
@@ -1054,22 +1081,24 @@ PyObject *PyConsoleScreenBuffer::tp_new(PyTypeObject *tp, PyObject *args, PyObje
 	HANDLE h;
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "l", keywords, &h))
 		return NULL;
-	return new PyConsoleScreenBuffer(h);
+	return new PyConsoleScreenBuffer(h, FALSE);
 }
 
-PyConsoleScreenBuffer::PyConsoleScreenBuffer(HANDLE hconsole) : PyHANDLE(hconsole)
+PyConsoleScreenBuffer::PyConsoleScreenBuffer(HANDLE hconsole, BOOL bautoclose) : PyHANDLE(hconsole)
 {
 	ob_type = &PyConsoleScreenBufferType;
+	bAutoClose=bautoclose;
 }
 
 PyConsoleScreenBuffer::~PyConsoleScreenBuffer(void)
 {
-	// don't try to close handle if it's been Detached
-	if (m_handle)
-		::CloseHandle(m_handle);
+	// Only close handles explicitely created by CreateConsoleScreenBuffer
+	// Let PyHANDLE's exception catching logic take care of it
+	if (this->bAutoClose)
+		this->Close();
 }
 
-void PyConsoleScreenBuffer::deallocFunc(PyObject *ob)
+void PyConsoleScreenBuffer::tp_dealloc(PyObject *ob)
 {
 	delete (PyConsoleScreenBuffer *)ob;
 }
@@ -1099,7 +1128,7 @@ static PyObject *PyCreateConsoleScreenBuffer(PyObject *self, PyObject *args, PyO
 	hconsole=CreateConsoleScreenBuffer(access, sharemode, psa, flags, reserved);
 	if (hconsole==INVALID_HANDLE_VALUE)
 		return PyWin_SetAPIError("CreateConsoleScreenBuffer");
-	return new PyConsoleScreenBuffer(hconsole);
+	return new PyConsoleScreenBuffer(hconsole, TRUE);
 }
 
 // @pymethod int|win32console|GetConsoleDisplayMode|Returns the current console's display mode
@@ -1364,7 +1393,7 @@ static PyObject *PyGetConsoleWindow(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args,":GetConsoleWindow"))
 		return NULL;
 	h=(*pfnGetConsoleWindow)();
-	return PyInt_FromLong((long)h);
+	return PyWinObject_FromHANDLE(h);
 }
 
 // @pymethod int|win32console|GetNumberOfConsoleFonts|Returns the number of fonts available to the console
@@ -1448,6 +1477,27 @@ PyObject *PyGenerateConsoleCtrlEvent(PyObject *self, PyObject *args, PyObject *k
 	return Py_None;
 }
 
+// @pymethod <o PyConsoleScreenBuffer>|win32console|GetStdHandle|Returns one of calling process's standard handles
+// @rdesc Returns a <o PyConsoleScreenBuffer> wrapping the handle, or None if specified handle does not exist
+PyObject* PyGetStdHandle(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"StdHandle", NULL};
+	DWORD StdHandle;
+	HANDLE h;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "k:GetStdHandle", keywords,
+		&StdHandle)) // @pyparm int|StdHandle||Specifies the handle to return - STD_INPUT_HANDLE, STD_OUTPUT_HANDLE, or STD_ERROR_HANDLE 
+		return NULL;
+	h=GetStdHandle(StdHandle);
+	if (h==INVALID_HANDLE_VALUE)
+		return PyWin_SetAPIError("GetStdHandle");
+	if (h==NULL){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	return new PyConsoleScreenBuffer(h, FALSE);
+}
+
+
 // @module win32console|Interface to the Windows Console functions for dealing with character-mode applications
 static struct PyMethodDef win32console_functions[] = {
 	// @pymeth CreateConsoleScreenBuffer|Creates a new console handle
@@ -1482,13 +1532,15 @@ static struct PyMethodDef win32console_functions[] = {
 	{"GetConsoleWindow", PyGetConsoleWindow, METH_VARARGS, "Returns a handle to the console's window, or 0 if none exists"},
 	// @pymeth GetNumberOfConsoleFonts|Returns the number of fonts available to the console
 	{"GetNumberOfConsoleFonts", PyGetNumberOfConsoleFonts, METH_VARARGS, "Returns the number of fonts available to the console"},
-	// @pymeth SetConsoleTitle|Sets the title of the console window
-	{"SetConsoleTitle", (PyCFunction)PySetConsoleTitle, METH_VARARGS|METH_KEYWORDS, "Sets the title of the console window"},
-	// @pymeth GetConsoleTitle|Returns the title of the console window
-	{"GetConsoleTitle", PyGetConsoleTitle, METH_VARARGS, "Returns the title of the console window"},
+	// @pymeth SetConsoleTitle|Sets the title of calling process's console
+	{"SetConsoleTitle", (PyCFunction)PySetConsoleTitle, METH_VARARGS|METH_KEYWORDS, "Sets the title of calling process's console"},
+	// @pymeth GetConsoleTitle|Returns the title of console to which calling process is attached
+	{"GetConsoleTitle", PyGetConsoleTitle, METH_VARARGS, "Returns the title of console to which calling process is attached"},
 	// @pymeth GenerateConsoleCtrlEvent|Sends a control signal to a group of processes attached to a common console
 	{"GenerateConsoleCtrlEvent", (PyCFunction)PyGenerateConsoleCtrlEvent, METH_VARARGS|METH_KEYWORDS,
 		"Sends a control signal to a group of processes attached to a common console"},
+	// @pymeth GetStdHandle|Returns one of calling process's standard handles
+	{"GetStdHandle", (PyCFunction)PyGetStdHandle, METH_VARARGS|METH_KEYWORDS, "Returns one of calling process's standard handles"},
 	{NULL,	NULL}
 };
 
@@ -1577,4 +1629,8 @@ initwin32console(void)
 	PyModule_AddIntConstant(mod, "CTRL_C_EVENT", CTRL_C_EVENT);
 	PyModule_AddIntConstant(mod, "CTRL_BREAK_EVENT", CTRL_BREAK_EVENT);
 
-}  
+	// std handles
+	PyModule_AddIntConstant(mod, "STD_INPUT_HANDLE", STD_INPUT_HANDLE);
+	PyModule_AddIntConstant(mod, "STD_OUTPUT_HANDLE", STD_OUTPUT_HANDLE);
+	PyModule_AddIntConstant(mod, "STD_ERROR_HANDLE", STD_ERROR_HANDLE);
+}
