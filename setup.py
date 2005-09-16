@@ -59,6 +59,9 @@ import os, string, sys
 import re
 import _winreg
 
+pywin32_version='.'.join(sys.version.split('.')[:2])+'.'+build_id
+print pywin32_version
+
 # Python 2.2 has no True/False
 try:
     True; False
@@ -347,6 +350,32 @@ class my_build(build):
             f.close()
         except EnvironmentError, why:
             print "Failed to open '%s': %s" % (ver_fname, why)
+
+        ## add version info to dll's, exe's, and pyd's
+        if 'install' not in sys.argv:
+            import optparse
+            try:
+                import win32verstamp
+            except ImportError:
+                log.info('Unable to import verstamp, no version info will be added')
+            else:
+                v=optparse.Values()
+                v.ensure_value('version',pywin32_version)
+                v.ensure_value('comments',None)
+                v.ensure_value('company',None)
+                v.ensure_value('description',None)
+                v.ensure_value('internal_name',None)
+                v.ensure_value('copyright',None)
+                v.ensure_value('trademarks',None)
+                v.ensure_value('original_filename',None)
+                v.ensure_value('product','Pywin32')
+                v.ensure_value('dll',None)
+                v.ensure_value('debug',None)
+                v.ensure_value('verbose','1')
+                for dirname, subdirs, fnames in os.walk(self.build_base):
+                    for fname in fnames:
+                        if os.path.splitext(fname)[1].lower() in ('.dll','.exe','.pyd'):
+                            win32verstamp.stamp(os.path.join(dirname,fname),v)
 
 class my_build_ext(build_ext):
 
