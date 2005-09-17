@@ -2382,6 +2382,9 @@ BOOL IsWindowEnabled(HWND hwnd);
 // @pyparm int|hwnd||The handle to the window
 HWND SetFocus(HWND hwnd);
 
+// @pyswig |GetFocus|Returns the HWND of the window with focus.
+HWND GetFocus();
+
 // @pyswig |UpdateWindow|
 // @pyparm int|hwnd||The handle to the window
 BOOLAPI UpdateWindow(HWND hWnd);
@@ -2591,7 +2594,10 @@ static PyObject *PyPumpWaitingMessages(PyObject *self, PyObject *args)
 %native (PumpWaitingMessages) PyPumpWaitingMessages;
 
 // @pyswig MSG|GetMessage|
-BOOL GetMessage(MSG *OUTPUT, HWND hwnd, UINT min, UINT max);
+BOOL GetMessage(MSG *OUTPUT, 
+                HWND hwnd, // @pyparm int|hwnd||
+                UINT min, // @pyparm int|max||
+                UINT max); // @pyparm int|min||
 
 // @pyswig int|TranslateMessage|
 // @pyparm MSG|msg||
@@ -2607,6 +2613,13 @@ int TranslateAccelerator(
     HACCEL haccel, // @pyparm int|haccel||
     MSG *INPUT // @pyparm MSG|msg||
 );
+
+// @pyswig MSG|PeekMessage|
+BOOL PeekMessage(MSG *OUTPUT, 
+                 HWND hwnd, // @pyparm int|hwnd||
+                 UINT min, // @pyparm int|filterMin||
+                 UINT max, // @pyparm int|filterMax||
+                 UINT remove); // @pyparm int|removalOptions||
 
 // DELETE ME!
 %{
@@ -3253,7 +3266,7 @@ BOOLAPI ReleaseCapture();
 // @pyswig int|GetCapture|Returns the window with the mouse capture.
 HWND GetCapture();
 // @pyswig |SetCapture|Captures the mouse for the specified window.
-BOOLAPI SetCapture(HWND hWnd);
+HWND SetCapture(HWND hWnd);
 // @pyswig |_TrackMouseEvent|Posts messages when the mouse pointer leaves a window or hovers over a window for a specified amount of time.
 // @pyparm <o TRACKMOUSEEVENT>|tme||
 BOOLAPI _TrackMouseEvent(TRACKMOUSEEVENT *INPUT);
