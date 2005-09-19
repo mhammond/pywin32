@@ -343,7 +343,7 @@ class my_build(build):
     def run(self):
         build.run(self)
         # write a pywin32.version.txt.
-        ver_fname = os.path.join(self.build_base, "pywin32.version.txt")
+        ver_fname = os.path.join(os.environ['temp'], "pywin32.version.txt")
         try:
             f = open(ver_fname, "wU")
             f.write("%s\n" % build_id)
@@ -1290,7 +1290,7 @@ dist = setup(name="pywin32",
       packages = packages,
       py_modules = py_modules,
 
-      data_files=[('', ('build/pywin32.version.txt',))] + 
+      data_files=[('', (os.path.join(os.environ['temp'],'pywin32.version.txt'),))] + 
         convert_optional_data_files([
                 'PyWin32.chm',
                 ]) + 
