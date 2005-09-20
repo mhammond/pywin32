@@ -45,6 +45,7 @@ HINSTANCE g_hdll = 0; // remains zero in the exe stub.
 static void ReportAPIError(DWORD msgCode, DWORD errCode = 0);
 static void ReportPythonError(DWORD);
 static BOOL ReportError(DWORD, LPCTSTR *inserts = NULL, WORD errorType = EVENTLOG_ERROR_TYPE);
+static void CheckRegisterEventSourceFile();
 
 #include "PythonServiceMessages.h"
 
@@ -285,7 +286,18 @@ static PyObject *PyLogErrorMsg(PyObject *self, PyObject *args)
 static PyObject *PySetEventSourceName(PyObject *self, PyObject *args)
 {
 	PyObject *obName;
-	if (!PyArg_ParseTuple(args, "O:SetEventSourceName", &obName))
+	// @pyparm string|sourceName||The event source name
+	// @pyparm bool|registerNow|False|If True, the event source name in the
+	// registry will be updated immediately.
+	// If False, the name will be registered the first time an event log entry
+	// is written via any pythonservice methods (or possibly never if no record
+	// if written).
+	// <nl>Note that in some cases, the service itself will not have permission
+	// to write the event source in the registry.  Therefore, it would be
+	// prudent for your installation program to call this function with
+	// registerNow=True, to ensure your services can write useful entries.
+	int registerNow = 0;
+	if (!PyArg_ParseTuple(args, "O|i:SetEventSourceName", &obName, &registerNow))
 		return NULL;
 	TCHAR *msg;
 	if (!PyWinObject_AsTCHAR(obName, &msg))
@@ -294,6 +306,8 @@ static PyObject *PySetEventSourceName(PyObject *self, PyObject *args)
 			 sizeof g_szEventSourceName/sizeof TCHAR);
 	PyWinObject_FreeTCHAR(msg);
 	g_bRegisteredEventSource = FALSE; // so this name re-registered.
+	if (registerNow)
+		CheckRegisterEventSourceFile();
 	Py_INCREF(Py_None);
 	return Py_None;
 }
