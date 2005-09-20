@@ -842,7 +842,9 @@ PyObject *LookupAccountName(PyObject *self, PyObject *args)
 		goto done;
 
 	// Get the SID size.
+        Py_BEGIN_ALLOW_THREADS
 	LookupAccountName(szSystemName, szAcctName, pSid, &sidSize, refDomain, &refDomainSize, &sidType);
+        Py_END_ALLOW_THREADS
 
 	if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
 		PyWin_SetAPIError("LookupAccountName");
@@ -900,7 +902,12 @@ PyObject *LookupAccountSid(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsSID(obSid, &pSid))
 		goto done;
 
-	if (!LookupAccountSid(szSystemName, pSid, szRetAcctName, &retAcctNameSize, refDomain, &refDomainSize, &sidType)) {
+        BOOL ok;
+        Py_BEGIN_ALLOW_THREADS
+        ok = LookupAccountSid(szSystemName, pSid, szRetAcctName, &retAcctNameSize, refDomain, &refDomainSize, &sidType);
+        Py_END_ALLOW_THREADS
+
+	if (!ok) {
 		PyWin_SetAPIError("LookupAccountSid");
 		goto done;
 	}
