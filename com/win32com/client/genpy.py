@@ -664,7 +664,11 @@ class Generator:
     child_infos = []
     for j in range(attr[8]):
       flags = info.GetImplTypeFlags(j)
-      refType = info.GetRefTypeInfo(info.GetRefTypeOfImplType(j))
+      try:
+        refType = info.GetRefTypeInfo(info.GetRefTypeOfImplType(j))
+      except pythoncom.com_error:
+        # Can't load a dependent typelib?
+        continue
       refAttr = refType.GetTypeAttr()
       child_infos.append( (info, refAttr.typekind, refType, refType.GetDocumentation(-1), refAttr, flags) )
       
