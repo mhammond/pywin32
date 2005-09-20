@@ -538,7 +538,10 @@ int PyINPUT_RECORD::tp_setattro(PyObject *self, PyObject *obname, PyObject *obva
 	name=PyString_AsString(obname);
 	if (name==NULL)
 		return -1;
-
+	if (obvalue==NULL){
+		PyErr_SetString(PyExc_AttributeError, "PyINPUT_RECORD members can't be removed");
+		return -1;
+		}
 	// ??? should probably add some EventType/attribute validation for everything done thru
 	//  the normal structmember api also ???
 	if (strcmp(name,"ControlKeyState")==0){
