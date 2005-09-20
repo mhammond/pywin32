@@ -15,7 +15,7 @@ def LocatePythonServiceExe(exeName = None):
     # Try and find the specified EXE somewhere.  If specifically registered,
     # use it.  Otherwise look down sys.path, and the global PATH environment.
     if exeName is None:
-        if win32service.__file__.find("_d")>=0:
+        if os.path.splitext(win32service.__file__)[0].endswith("_d"):
             exeName = "PythonService_d.exe"
         else:
             exeName = "PythonService.exe"
