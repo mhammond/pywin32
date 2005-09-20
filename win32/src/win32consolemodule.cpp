@@ -17,6 +17,8 @@ typedef DWORD (WINAPI* GetConsoleProcessListfunc)(LPDWORD, DWORD);
 static GetConsoleProcessListfunc pfnGetConsoleProcessList=NULL;
 typedef BOOL (WINAPI *GetConsoleDisplayModefunc)(LPDWORD);
 static GetConsoleDisplayModefunc pfnGetConsoleDisplayMode=NULL;
+typedef BOOL (WINAPI *SetConsoleDisplayModefunc)(HANDLE, DWORD, PCOORD);
+static SetConsoleDisplayModefunc pfnSetConsoleDisplayMode;
 typedef BOOL (WINAPI *AttachConsolefunc)(DWORD);
 static AttachConsolefunc pfnAttachConsole=NULL;
 typedef BOOL (WINAPI *AddConsoleAliasfunc)(LPWSTR, LPWSTR, LPWSTR);
@@ -41,6 +43,7 @@ typedef DWORD (WINAPI *GetNumberOfConsoleFontsfunc)(VOID);
 static GetNumberOfConsoleFontsfunc pfnGetNumberOfConsoleFonts=NULL;
 typedef BOOL (WINAPI *SetConsoleFontfunc)(HANDLE, DWORD);
 static SetConsoleFontfunc pfnSetConsoleFont=NULL;
+
 
 // convert python object to array of WORDS/USHORTS
 // ?????? should move this into Pywintypes, similar code used in win32security_ds.cpp
@@ -97,6 +100,22 @@ BOOL PyWinObject_AsUSHORTArray(PyObject *obushorts, USHORT **pushorts, DWORD *it
 	return ret;
 }
 
+// convert python object to single unicode character
+// object *must* be unicode, and onechar should be allocated for a single WCHAR
+// used mostly for putting a WCHAR inside an existing struct - would be nice if the
+// structmember framework provided a format code for this
+BOOL PyWinObject_AsSingleWCHAR(PyObject *obchar, WCHAR *onechar)
+{
+	if (!PyUnicode_Check(obchar) || (PyUnicode_GET_SIZE(obchar)!=1)){
+		PyErr_SetString(PyExc_ValueError, "Object must be a single unicode character");
+		return FALSE;
+		}
+	if (PyUnicode_AsWideChar((PyUnicodeObject *)obchar, onechar, 1)==-1)
+		return FALSE;
+	return TRUE;
+}
+
+
 // @object PySMALL_RECT|Wrapper for a SMALL_RECT struct
 // Create using PySMALL_RECTType(Left, Top, Right, Bottom). All params optional, defaulting to 0
 
@@ -105,15 +124,12 @@ class PySMALL_RECT : public PyObject
 public:
 	static struct PyMemberDef members[];
 	// static struct PyMethodDef methods[];
-	static void deallocFunc(PyObject *ob);
+	static void tp_dealloc(PyObject *ob);
 	SMALL_RECT rect;
 	PySMALL_RECT(SMALL_RECT *);
 	PySMALL_RECT(void);
 	static PyObject *tp_new(PyTypeObject *tp, PyObject *args, PyObject *kwargs);
 	static PyObject *tp_str(PyObject *self);
-protected:
-	~PySMALL_RECT();
-
 };
 
 /*
@@ -138,7 +154,7 @@ static PyTypeObject PySMALL_RECTType =
 	"PySMALL_RECT",
 	sizeof(PySMALL_RECT),
 	0,
-	PySMALL_RECT::deallocFunc,
+	PySMALL_RECT::tp_dealloc,
 	0,			// tp_print
 	0,			// tp_getattr
 	0,			// tp_setattr
@@ -213,11 +229,7 @@ PySMALL_RECT::PySMALL_RECT(void)
 	_Py_NewReference(this);
 }
 
-PySMALL_RECT::~PySMALL_RECT()
-{
-}
-
-void PySMALL_RECT::deallocFunc(PyObject *ob)
+void PySMALL_RECT::tp_dealloc(PyObject *ob)
 {
 	delete (PySMALL_RECT *)ob;
 }
@@ -375,7 +387,7 @@ void PyCOORD::deallocFunc(PyObject *ob)
 	delete (PyCOORD *)ob;
 }
 
-BOOL PyCOORD_check(PyObject *ob)
+BOOL PyCOORD_Check(PyObject *ob)
 {
 	if (ob->ob_type!=&PyCOORDType){
 		PyErr_SetString(PyExc_TypeError,"Object must be a PyCOORD");	
@@ -393,7 +405,7 @@ BOOL PyWinObject_AsCOORD(PyObject *obcoord, COORD **ppcoord, BOOL bNoneOk=TRUE)
 		PyErr_SetString(PyExc_ValueError,"COORD must not be None in this context");
 		return FALSE;
 		}
-	if (!PyCOORD_check(obcoord))
+	if (!PyCOORD_Check(obcoord))
 		return FALSE;
 	*ppcoord=&((PyCOORD *)obcoord)->coord;
 	return TRUE;
@@ -405,6 +417,332 @@ PyObject *PyWinObject_FromCOORD(COORD *pcoord)
 	if (ret==NULL)
 		PyErr_SetString(PyExc_MemoryError, "Unable to create PyCOORD object");
 	return ret;
+}
+
+
+// @object PyINPUT_RECORD|Interface to the INPUT_RECORD struct used with console IO functions.  Create using PyINPUT_RECORDType(EventType)
+// @comm Only attributes that apply to each particular EventType can be accessed:<nl>
+//	KEY_EVENT: KeyDown, RepeatCount, VirtualKeyCode, VirtualScanCode, ControlKeyState<nl>
+//	MOUSE_EVENT: MousePosition, ButtonState, ControlKeyState, EventFlags<nl>
+//	WINDOW_BUFFER_SIZE_EVENT: Size<nl>
+//	FOCUS_EVENT: SetFocus<nl>
+//	MENU_EVENT: CommandId<nl>
+
+class PyINPUT_RECORD : public PyObject
+{
+public:
+	static struct PyMemberDef members[];
+	// static struct PyMethodDef methods[];
+	static void tp_dealloc(PyObject *self);
+	INPUT_RECORD input_record;
+	PyINPUT_RECORD(INPUT_RECORD *);
+	PyINPUT_RECORD(WORD EventType);
+	PyCOORD *obcoord;
+	static PyObject *tp_new(PyTypeObject *tp, PyObject *args, PyObject *kwargs);
+	static PyObject *tp_str(PyObject *self);
+	static PyObject *tp_getattro(PyObject *self, PyObject *obname);
+	static int tp_setattro(PyObject *self, PyObject *obname, PyObject *obvalue);
+};
+
+
+//	Many of these are handled manually in PyINPUT_RECORD::tp_setattro and tp_getattro,
+//		but kept here so they are visible
+struct PyMemberDef PyINPUT_RECORD::members[] = {
+	// @prop int|EventType|One of KEY_EVENT, MOUSE_EVENT, WINDOW_BUFFER_SIZE_EVENT, MENU_EVENT, FOCUS_EVENT. Cannot be changed after object is created
+	{"EventType", T_USHORT, offsetof(PyINPUT_RECORD, input_record.EventType), READONLY, 
+		"One of KEY_EVENT, MOUSE_EVENT, WINDOW_BUFFER_SIZE_EVENT, MENU_EVENT, FOCUS_EVENT.  Cannot be changed after object is created"},
+	// @prop boolean|KeyDown|True for a key press, False for key release
+	{"KeyDown", T_LONG, offsetof(PyINPUT_RECORD, input_record.Event.KeyEvent.bKeyDown), 0, "True for a key press, False for key release"},
+	// @prop int|RepeatCount|Nbr of repeats generated (key was held down if >1)
+	{"RepeatCount", T_USHORT, offsetof(PyINPUT_RECORD, input_record.Event.KeyEvent.wRepeatCount), 0, "Nbr of repeats generated (key was held down if >1)"},
+	// @prop int|VirtualKeyCode|Device-independent key code, win32con.VK_*
+	{"VirtualKeyCode", T_USHORT, offsetof(PyINPUT_RECORD, input_record.Event.KeyEvent.wVirtualKeyCode), 0, "Device-independent key code, win32con.VK_*"},
+	// @prop int|VirtualScanCode|Device-dependent scan code generated by keyboard
+	{"VirtualScanCode", T_USHORT, offsetof(PyINPUT_RECORD, input_record.Event.KeyEvent.wVirtualScanCode), 0, "Device-dependent scan code generated by keyboard"},
+	// @prop <o PyUnicode>|Char|Single unicode character generated by the keypress
+	{"Char", T_LONG, 0, 0, "Single unicode character generated by the keypress"},
+	// @prop int|ControlKeyState|State of modifier keys, combination of CAPSLOCK_ON, ENHANCED_KEY, LEFT_ALT_PRESSED, 
+	//  LEFT_CTRL_PRESSED, NUMLOCK_ON, RIGHT_ALT_PRESSED, RIGHT_CTRL_PRESSED, SCROLLLOCK_ON, SHIFT_PRESSED
+	{"ControlKeyState", T_ULONG, 0, 0,
+		"State of modifier keys, combination of CAPSLOCK_ON, ENHANCED_KEY, LEFT_ALT_PRESSED, LEFT_CTRL_PRESSED,"
+		"NUMLOCK_ON, RIGHT_ALT_PRESSED, RIGHT_CTRL_PRESSED, SCROLLLOCK_ON, SHIFT_PRESSED"},
+	// @prop int|ButtonState|Bitmask representing which mouse buttons were pressed.
+	{"ButtonState", T_ULONG, offsetof(PyINPUT_RECORD, input_record.Event.MouseEvent.dwButtonState), 0,
+		"Bitmask representing which mouse buttons were pressed"},
+	// @prop int|EventFlags|DOUBLE_CLICK, MOUSE_MOVED or MOUSE_WHEELED, or 0.  If 0, indicates a mouse button press
+	{"EventFlags", T_ULONG, offsetof(PyINPUT_RECORD, input_record.Event.MouseEvent.dwEventFlags), 0,
+		"DOUBLE_CLICK, MOUSE_MOVED or MOUSE_WHEELED, or 0.  If 0, indicates a mouse button press"},
+	// @prop <o PyCOORD>|MousePosition|Position in character coordinates
+	{"MousePosition", T_ULONG, 0, 0, "Position in character coordinates"},
+	// @prop <o PyCOORD>|Size|New size of screen buffer in character rows/columns
+	{"Size", T_ULONG, 0, 0, "New size of screen buffer in character rows/columns"},
+	// @prop boolean|SetFocus|Reserved - Used only with type FOCUS_EVENT.  This event is Reserved, and should be ignored.
+	{"SetFocus", T_ULONG, offsetof(PyINPUT_RECORD,input_record.Event.FocusEvent.bSetFocus), 0, "Reserved"},
+	// @prop int|CommandId|Used only with event type MENU_EVENT, which is reserved and should not be used
+	{"CommandId", T_ULONG, offsetof(PyINPUT_RECORD,input_record.Event.MenuEvent.dwCommandId), 0, "Reserved"},
+	{NULL}
+};
+
+PyObject *PyINPUT_RECORD::tp_getattro(PyObject *self, PyObject *obname)
+{
+	INPUT_RECORD *pir=&((PyINPUT_RECORD *)self)->input_record;
+	char *name=PyString_AsString(obname);
+	if (name==NULL)
+		return NULL;
+	if (strcmp(name,"ControlKeyState")==0){
+		DWORD *src_ptr;
+		if (pir->EventType==KEY_EVENT)
+			src_ptr=&pir->Event.KeyEvent.dwControlKeyState;
+		else if (pir->EventType==MOUSE_EVENT)
+			src_ptr=&pir->Event.MouseEvent.dwControlKeyState;
+		else{
+			PyErr_SetString(PyExc_AttributeError,"'ConrolKeyState' is only valid for KEY_EVENT or MOUSE_EVENT");
+			return NULL;
+			}
+		return PyLong_FromUnsignedLong(*src_ptr);
+		}
+
+	if (strcmp(name,"Char")==0){
+		if (pir->EventType!=KEY_EVENT){
+			PyErr_SetString(PyExc_AttributeError,"'Char' is only valid for type KEY_EVENT");
+			return NULL;
+			}
+		return PyWinObject_FromWCHAR(&pir->Event.KeyEvent.uChar.UnicodeChar, 1);
+		}
+
+	if (strcmp(name,"Size")==0){
+		if (pir->EventType!=WINDOW_BUFFER_SIZE_EVENT){
+			PyErr_SetString(PyExc_AttributeError,"'Size' is only valid for type WINDOW_BUFFER_SIZE_EVENT");
+			return NULL;
+			}
+		Py_INCREF(((PyINPUT_RECORD *)self)->obcoord);
+		return ((PyINPUT_RECORD *)self)->obcoord;
+		}
+
+	if (strcmp(name,"MousePosition")==0){
+		if (pir->EventType!=MOUSE_EVENT){
+			PyErr_SetString(PyExc_AttributeError,"'MousePosition' is only valid for type MOUSE_EVENT");
+			return NULL;
+			}
+		Py_INCREF(((PyINPUT_RECORD *)self)->obcoord);
+		return ((PyINPUT_RECORD *)self)->obcoord;
+		}
+
+	return PyObject_GenericGetAttr(self,obname);
+}
+
+int PyINPUT_RECORD::tp_setattro(PyObject *self, PyObject *obname, PyObject *obvalue)
+{
+	INPUT_RECORD *pir=&((PyINPUT_RECORD *)self)->input_record;
+	char *name;
+	name=PyString_AsString(obname);
+	if (name==NULL)
+		return -1;
+
+	// ??? should probably add some EventType/attribute validation for everything done thru
+	//  the normal structmember api also ???
+	if (strcmp(name,"ControlKeyState")==0){
+		// Event union contains 2 different ConrolKeyState's at different offsets depending on event type
+		DWORD *dest_ptr;
+		if (pir->EventType==KEY_EVENT)
+			dest_ptr=&pir->Event.KeyEvent.dwControlKeyState;
+		else if (pir->EventType==MOUSE_EVENT)
+			dest_ptr=&pir->Event.MouseEvent.dwControlKeyState;
+		else{
+			PyErr_SetString(PyExc_AttributeError,"'ConrolKeyState' is only valid for KEY_EVENT or MOUSE_EVENT");
+			return -1;
+			}
+		*dest_ptr=PyInt_AsUnsignedLongMask(obvalue);
+		if ((*dest_ptr==(DWORD)-1) && PyErr_Occurred())
+			return -1;
+		return 0;
+		}
+
+	if (strcmp(name,"Char")==0){
+		if (pir->EventType!=KEY_EVENT){
+			PyErr_SetString(PyExc_AttributeError,"'Char' is only valid for type KEY_EVENT");
+			return -1;
+			}
+		if (!PyWinObject_AsSingleWCHAR(obvalue, &pir->Event.KeyEvent.uChar.UnicodeChar))
+			return -1;
+		return 0;
+		}
+
+	if (strcmp(name,"Size")==0){
+		if (pir->EventType!=WINDOW_BUFFER_SIZE_EVENT){
+			PyErr_SetString(PyExc_AttributeError,"'Size' is only valid for type WINDOW_BUFFER_SIZE_EVENT");
+			return -1;
+			}
+		if (!PyCOORD_Check(obvalue))
+			return -1;
+		((PyINPUT_RECORD *)self)->input_record.Event.WindowBufferSizeEvent.dwSize=((PyCOORD *)obvalue)->coord;
+		Py_DECREF(((PyINPUT_RECORD *)self)->obcoord);
+		Py_INCREF(obvalue);
+		((PyINPUT_RECORD *)self)->obcoord=(PyCOORD *)obvalue;
+		return 0;
+		}
+
+	if (strcmp(name,"MousePosition")==0){
+		if (pir->EventType!=MOUSE_EVENT){
+			PyErr_SetString(PyExc_AttributeError,"'MousePosition' is only valid for type MOUSE_EVENT");
+			return -1;
+			}
+		if (!PyCOORD_Check(obvalue))
+			return -1;
+		((PyINPUT_RECORD *)self)->input_record.Event.MouseEvent.dwMousePosition=((PyCOORD *)obvalue)->coord;
+		Py_DECREF(((PyINPUT_RECORD *)self)->obcoord);
+		Py_INCREF(obvalue);
+		((PyINPUT_RECORD *)self)->obcoord=(PyCOORD *)obvalue;
+		return 0;
+		}
+
+	return PyObject_GenericSetAttr(self, obname, obvalue);
+}
+
+static PyTypeObject PyINPUT_RECORDType =
+{
+	PyObject_HEAD_INIT(&PyType_Type)
+	0,
+	"PyINPUT_RECORD",
+	sizeof(PyINPUT_RECORD),
+	0,
+	PyINPUT_RECORD::tp_dealloc,
+	0,			// tp_print
+	0,			// tp_getattr
+	0,			// tp_setattr
+	0,			// tp_compare
+	PyINPUT_RECORD::tp_str,		// tp_repr
+	0,			// tp_as_number
+	0,			// tp_as_sequence
+	0,			// tp_as_mapping
+	0,			// tp_hash
+	0,			// tp_call
+	PyINPUT_RECORD::tp_str,		// tp_str
+	PyINPUT_RECORD::tp_getattro,	// tp_getattro
+	PyINPUT_RECORD::tp_setattro,	// tp_setattro
+	0,			// tp_as_buffer;
+	0,			// tp_flags;
+	"Wrapper for a INPUT_RECORD struct. Create using PyINPUT_RECORDType(EventType)",	// tp_doc
+	0,			// traverseproc tp_traverse;
+	0,			// tp_clear;
+	0,			// tp_richcompare;
+	0,			// tp_weaklistoffset;
+	0,			// tp_iter
+	0,			// tp_iternext
+	0,			// PySMALL_RECT::methods
+	PyINPUT_RECORD::members,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	PyINPUT_RECORD::tp_new
+};
+
+PyINPUT_RECORD::PyINPUT_RECORD(WORD EventType)
+{
+	// EventType can't be changed after object is created
+	ob_type = &PyINPUT_RECORDType;
+	ZeroMemory(&input_record, sizeof(INPUT_RECORD));
+	input_record.EventType=EventType;
+	// keep a reference to a PyCOORD, used by 2 different types of events
+	if ((EventType==MOUSE_EVENT) || (EventType==WINDOW_BUFFER_SIZE_EVENT))
+		obcoord=new PyCOORD();
+	else
+		obcoord=NULL;
+	_Py_NewReference(this);
+}
+
+PyINPUT_RECORD::PyINPUT_RECORD(INPUT_RECORD *pinput_record)
+{
+	ob_type = &PyINPUT_RECORDType;
+	input_record=*pinput_record;
+	if (input_record.EventType==MOUSE_EVENT)
+		obcoord=new PyCOORD(&input_record.Event.MouseEvent.dwMousePosition);
+	else if (input_record.EventType==WINDOW_BUFFER_SIZE_EVENT)
+		obcoord=new PyCOORD(&input_record.Event.WindowBufferSizeEvent.dwSize);
+	else
+		obcoord=NULL;
+	_Py_NewReference(this);
+}
+
+void PyINPUT_RECORD::tp_dealloc(PyObject *self)
+{
+	Py_XDECREF(((PyINPUT_RECORD *)self)->obcoord);
+	delete (PyINPUT_RECORD *)self;
+}
+
+BOOL PyINPUT_RECORD_Check(PyObject *ob)
+{
+	if (ob->ob_type!=&PyINPUT_RECORDType){
+		PyErr_SetString(PyExc_TypeError,"Object must be a PyINPUT_RECORD");	
+		return FALSE;
+		}
+	return TRUE;
+}
+
+BOOL PyWinObject_AsINPUT_RECORD(PyObject *obir, INPUT_RECORD **ppir)
+{
+	if (!PyINPUT_RECORD_Check(obir))
+		return FALSE;
+	*ppir=&((PyINPUT_RECORD *)obir)->input_record;
+	// pick up any changes to the PyCOORD associated with the input record
+	if ((*ppir)->EventType==MOUSE_EVENT)
+		(*ppir)->Event.MouseEvent.dwMousePosition=((PyINPUT_RECORD *)obir)->obcoord->coord;
+	else if ((*ppir)->EventType==WINDOW_BUFFER_SIZE_EVENT)
+		(*ppir)->Event.WindowBufferSizeEvent.dwSize=((PyINPUT_RECORD *)obir)->obcoord->coord;
+	return TRUE;
+}
+
+PyObject *PyWinObject_FromINPUT_RECORD(INPUT_RECORD *pinput_record){
+	PyObject *ret=new PyINPUT_RECORD(pinput_record);
+	if (ret==NULL)
+		PyErr_SetString(PyExc_MemoryError, "Unable to create PyINPUT_RECORD");
+	return ret;
+}
+
+PyObject *PyINPUT_RECORD::tp_new(PyTypeObject *tp, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"EventType", NULL};
+	WORD EventType;
+	PyObject *ret;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "H:PyINPUT_RECORDType", keywords, &EventType))
+		return NULL;
+	ret=new PyINPUT_RECORD(EventType);
+	if (ret==NULL)
+		PyErr_SetString(PyExc_MemoryError,"Unable to create PyINPUT_RECORD object");
+	return ret;
+}
+
+PyObject *PyINPUT_RECORD::tp_str(PyObject *self)
+{
+	char buf[100];
+	char *rec_type;
+	int chars_printed; 
+
+	if (((PyINPUT_RECORD *)self)->input_record.EventType==KEY_EVENT)
+		rec_type="KEY_EVENT";
+	else if (((PyINPUT_RECORD *)self)->input_record.EventType==MOUSE_EVENT)
+		rec_type="MOUSE_EVENT";
+	else if (((PyINPUT_RECORD *)self)->input_record.EventType==WINDOW_BUFFER_SIZE_EVENT)
+		rec_type="WINDOW_BUFFER_SIZE_EVENT";
+	else if (((PyINPUT_RECORD *)self)->input_record.EventType==MENU_EVENT)
+		rec_type="MENU_EVENT";
+	else if (((PyINPUT_RECORD *)self)->input_record.EventType==FOCUS_EVENT)
+		rec_type="FOCUS_EVENT";
+	else
+		rec_type="<Unknown>";
+
+	chars_printed=_snprintf(buf, 100, "PyINPUT_RECORD(EventType=%d) (%s)", 
+		((PyINPUT_RECORD *)self)->input_record.EventType, rec_type); 
+	if (chars_printed<0){
+		PyErr_SetString(PyExc_SystemError, "String representation of PyINPUT_RECORD too long for buffer");
+		return NULL;
+		}
+	return PyString_FromStringAndSize(buf,chars_printed);
 }
 
 
@@ -449,6 +787,10 @@ public:
 	static PyObject *PyGetConsoleFontSize(PyObject *self, PyObject *args, PyObject *kwargs);
 	static PyObject *PySetConsoleFont(PyObject *self, PyObject *args, PyObject *kwargs);
 	static PyObject *PySetStdHandle(PyObject *self, PyObject *args, PyObject *kwargs);
+	static PyObject *PySetConsoleDisplayMode(PyObject *self, PyObject *args, PyObject *kwargs);
+	static PyObject *PyWriteConsoleInput(PyObject *self, PyObject *args, PyObject *kwargs);
+	static PyObject *PyReadConsoleInput(PyObject *self, PyObject *args, PyObject *kwargs);
+	static PyObject *PyPeekConsoleInput(PyObject *self, PyObject *args, PyObject *kwargs);
 };
 
 struct PyMethodDef PyConsoleScreenBuffer::methods[] = {
@@ -531,6 +873,18 @@ struct PyMethodDef PyConsoleScreenBuffer::methods[] = {
 	// @pymeth SetStdHandle|Replaces one of calling process's standard handles with this handle
 	{"SetStdHandle", (PyCFunction)PyConsoleScreenBuffer::PySetStdHandle, METH_VARARGS|METH_KEYWORDS,
 		"Replaces one of calling process's standard handles with this handle"},
+	// @pymeth SetConsoleDisplayMode|Sets the display mode of the console buffer
+	{"SetConsoleDisplayMode", (PyCFunction)PyConsoleScreenBuffer::PySetConsoleDisplayMode, METH_VARARGS|METH_KEYWORDS,
+		"Sets the display mode of the console buffer"},
+	// @pymeth WriteConsoleInput|Places input records in the console's input queue
+	{"WriteConsoleInput", (PyCFunction)PyConsoleScreenBuffer::PyWriteConsoleInput, METH_VARARGS|METH_KEYWORDS,
+		"Places input records in the console's input queue"},
+	// @pymeth ReadConsoleInput|Reads input records and removes them from the input queue
+	{"ReadConsoleInput", (PyCFunction)PyConsoleScreenBuffer::PyReadConsoleInput, METH_VARARGS|METH_KEYWORDS,
+		"Reads input records and removes them from the input queue"}, 
+	// @pymeth PeekConsoleInput|Returns pending input records without removing them from the input queue
+	{"PeekConsoleInput", (PyCFunction)PyConsoleScreenBuffer::PyPeekConsoleInput, METH_VARARGS|METH_KEYWORDS,
+		"Returns pending input records without removing them from the input queue"}, 
 	{NULL}
 };
 
@@ -689,7 +1043,7 @@ PyObject *PyConsoleScreenBuffer::PySetConsoleCursorPosition(PyObject *self, PyOb
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:SetConsoleCursorPosition", keywords,
 		&obcoord))	// @pyparm <o PyCOORD>|CursorPosition||A PyCOORD containing the new cursor position
 		return NULL;
-	if (!PyWinObject_AsCOORD(obcoord, &pcoord))
+	if (!PyWinObject_AsCOORD(obcoord, &pcoord, FALSE))
 		return NULL;
 	if (!SetConsoleCursorPosition(((PyConsoleScreenBuffer *)self)->m_handle, *pcoord))
 		return PyWin_SetAPIError("SetConsoleCursorPosition");
@@ -785,9 +1139,9 @@ PyObject *PyConsoleScreenBuffer::PyFillConsoleOutputAttribute(PyObject *self, Py
 PyObject *PyConsoleScreenBuffer::PyFillConsoleOutputCharacter(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	static char *keywords[]={"Character", "Length", "WriteCoord", NULL};
-	DWORD len, charlen, nbrwritten;
-	PyObject *obfillchar, *obcoord, *ret=NULL;
-	WCHAR *fillchar=NULL;
+	DWORD len, nbrwritten;
+	PyObject *obfillchar, *obcoord;
+	WCHAR fillchar;
 	PCOORD pcoord;
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OlO:FillConsoleOutputCharacter", keywords,
 		&obfillchar,	// @pyparm <o PyUNICODE>|Character||A single character to be used to fill the specified range
@@ -796,17 +1150,11 @@ PyObject *PyConsoleScreenBuffer::PyFillConsoleOutputCharacter(PyObject *self, Py
 		return NULL;
 	if (!PyWinObject_AsCOORD(obcoord, &pcoord, FALSE))
 		return NULL;
-	if (!PyWinObject_AsWCHAR(obfillchar, &fillchar, FALSE, &charlen))
+	if (!PyWinObject_AsSingleWCHAR(obfillchar, &fillchar))
 		return NULL;
-	if (charlen!=1)
-		PyErr_SetString(PyExc_ValueError, "Character must be a single character");
-	else
-		if (!FillConsoleOutputCharacter(((PyConsoleScreenBuffer *)self)->m_handle, *fillchar, len, *pcoord, &nbrwritten))
-			PyWin_SetAPIError("FillConsoleOutputCharacter");
-		else
-			ret=PyInt_FromLong(nbrwritten);
-	PyWinObject_FreeWCHAR(fillchar);
-	return ret;
+	if (!FillConsoleOutputCharacter(((PyConsoleScreenBuffer *)self)->m_handle, fillchar, len, *pcoord, &nbrwritten))
+		return PyWin_SetAPIError("FillConsoleOutputCharacter");
+	return PyInt_FromLong(nbrwritten);
 }
 
 // @pymethod <o PyUnicode>|PyConsoleScreenBuffer|ReadConsoleOutputCharacter|Reads consecutive characters from a starting position
@@ -928,12 +1276,11 @@ PyObject *PyConsoleScreenBuffer::PyScrollConsoleScreenBuffer(PyObject *self, PyO
 {
 	static char *keywords[]={"ScrollRectangle", "ClipRectangle", "DestinationOrigin",
 		"FillCharacter", "FillAttribute", NULL};
-	PyObject *obscrollrect, *obcliprect, *obdestcoord, *obfillchar, *ret=NULL;
+	PyObject *obscrollrect, *obcliprect, *obdestcoord, *obfillchar;
 	PSMALL_RECT pscrollrect, pcliprect;
 	PCOORD pdestcoord;
 	CHAR_INFO char_info;
-	DWORD charlen;
-	WCHAR *fillchar=NULL;
+
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOOOH:ScrollConsoleScreenBuffer", keywords,
 		&obscrollrect,		// @pyparm <o PySMALL_RECT>|ScrollRectangle||The region to be scrolled
 		&obcliprect,		// @pyparm <o PySMALL_RECT>|ClipRectangle||Rectangle that limits display area affected, can be None
@@ -944,22 +1291,15 @@ PyObject *PyConsoleScreenBuffer::PyScrollConsoleScreenBuffer(PyObject *self, PyO
 	if (PyWinObject_AsSMALL_RECT(obscrollrect, &pscrollrect, FALSE)
 		&&PyWinObject_AsSMALL_RECT(obcliprect, &pcliprect, TRUE)
 		&&PyWinObject_AsCOORD(obdestcoord, &pdestcoord, FALSE)
-		&&PyWinObject_AsWCHAR(obfillchar, &fillchar, FALSE, &charlen)){
-		if (charlen!=1)
-			PyErr_SetString(PyExc_ValueError, "FillCharacter must be a single character");
+		&&PyWinObject_AsSingleWCHAR(obfillchar, &char_info.Char.UnicodeChar))
+		if (!ScrollConsoleScreenBuffer(((PyConsoleScreenBuffer *)self)->m_handle, pscrollrect, pcliprect,
+			*pdestcoord, &char_info))
+			PyWin_SetAPIError("ScrollConsoleScreenBuffer");
 		else{
-			char_info.Char.UnicodeChar=*fillchar;
-			if (!ScrollConsoleScreenBuffer(((PyConsoleScreenBuffer *)self)->m_handle, pscrollrect, pcliprect,
-				*pdestcoord, &char_info))
-				PyWin_SetAPIError("ScrollConsoleScreenBuffer");
-			else{
-				Py_INCREF(Py_None);
-				ret=Py_None;
-				}
+			Py_INCREF(Py_None);
+			return Py_None;
 			}
-		}
-	PyWinObject_FreeWCHAR(fillchar);
-	return ret;
+	return NULL;
 }
 
 // @pymethod (int, <o PyCOORD>)|PyConsoleScreenBuffer|GetCurrentConsoleFont|Returns currently displayed font
@@ -1027,6 +1367,135 @@ PyObject *PyConsoleScreenBuffer::PySetStdHandle(PyObject *self, PyObject *args, 
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+
+// @pymethod |PyConsoleScreenBuffer|SetConsoleDisplayMode|Sets the display mode of the console buffer
+PyObject *PyConsoleScreenBuffer::PySetConsoleDisplayMode(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(SetConsoleDisplayMode);
+	static char *keywords[]={"Flags", "NewScreenBufferDimensions", NULL};
+	DWORD flags;
+	PCOORD dim;
+	PyObject *obdim;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "kO:SetConsoleDisplayMode", keywords,
+		&flags,		// @pyparm int|Flags||CONSOLE_FULLSCREEN_MODE or CONSOLE_WINDOWED_MODE
+		&obdim))	// @pyparm <o PyCOORD>|NewScreenBufferDimensions||New size of the screen buffer in characters
+		return NULL;
+	if (!PyWinObject_AsCOORD(obdim, &dim, FALSE))
+		return NULL;
+	if (!(*pfnSetConsoleDisplayMode)(((PyConsoleScreenBuffer *)self)->m_handle, flags, dim))
+	    return PyWin_SetAPIError("SetConsoleDisplayMode");
+	Py_INCREF(Py_None);
+	return Py_None;
+
+}
+
+// @pymethod int|PyConsoleScreenBuffer|WriteConsoleInput|Places input records in the console's input queue
+// @rdesc Returns the number of records written
+PyObject *PyConsoleScreenBuffer::PyWriteConsoleInput(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"Buffer", NULL};
+	INPUT_RECORD *pinput_records=NULL, *pinput_record;
+	DWORD nbrofrecords, nbrwritten, tuple_index;
+	PyObject *obbuf, *obtuple=NULL, *obinput_record, *ret=NULL;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:WriteConsoleInput", keywords,
+		&obbuf))	// @pyparm (<o PyINPUT_RECORD>,...)|Buffer||A sequence of <o PyINPUT_RECORD> objects
+		return NULL;
+	obtuple=PySequence_Tuple(obbuf);
+	if (obtuple==NULL)
+		return NULL;
+	nbrofrecords=PyTuple_GET_SIZE(obtuple);
+	pinput_records=(INPUT_RECORD *)malloc(nbrofrecords *sizeof(INPUT_RECORD));
+	if (pinput_records==NULL){
+		PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", nbrofrecords *sizeof(INPUT_RECORD));
+		goto done;
+		}
+	for (tuple_index=0; tuple_index<nbrofrecords; tuple_index++){
+		obinput_record=PyTuple_GET_ITEM(obtuple, tuple_index);
+		if (!PyWinObject_AsINPUT_RECORD(obinput_record, &pinput_record))
+			goto done;
+		pinput_records[tuple_index]=*pinput_record;
+		}
+	if (!WriteConsoleInput(((PyConsoleScreenBuffer *)self)->m_handle, pinput_records, nbrofrecords, &nbrwritten))
+		PyWin_SetAPIError("WriteConsoleInput");
+	else
+		ret=PyLong_FromUnsignedLong(nbrwritten);
+done:
+	if (pinput_records!=NULL)
+		free(pinput_records);
+	Py_XDECREF(obtuple);
+	return ret;
+}
+
+// @pymethod (<o PyINPUT_RECORD>,...)|PyConsoleScreenBuffer|ReadConsoleInput|Reads input records and removes them from the input queue
+// @rdesc Returns a sequence of <o PyINPUT_RECORD> objects
+// @comm This functions blocks until at least one record is read.<nl>
+// The number of records returned may be less than the nbr requested
+PyObject *PyConsoleScreenBuffer::PyReadConsoleInput(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"Length", NULL};
+	INPUT_RECORD *pinput_records=NULL;
+	DWORD nbrofrecords, nbrread, tuple_index;
+	PyObject *ret=NULL, *ret_item;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "k:ReadConsoleInput", keywords,
+		&nbrofrecords))	// @pyparm int|Length||The number of input records to read
+		return NULL;
+	pinput_records=(INPUT_RECORD *)malloc(nbrofrecords *sizeof(INPUT_RECORD));
+	if (pinput_records==NULL)
+		return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", nbrofrecords *sizeof(INPUT_RECORD));
+	if (!ReadConsoleInput(((PyConsoleScreenBuffer *)self)->m_handle, pinput_records, nbrofrecords, &nbrread))
+		PyWin_SetAPIError("ReadConsoleInput");
+	else{
+		ret=PyTuple_New(nbrread);
+		if (ret!=NULL)
+			for (tuple_index=0; tuple_index<nbrread; tuple_index++){
+				ret_item=PyWinObject_FromINPUT_RECORD(&pinput_records[tuple_index]);
+				if (ret_item==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SET_ITEM(ret, tuple_index, ret_item);
+				}
+		}
+	free(pinput_records);
+	return ret;
+}
+
+// @pymethod (<o PyINPUT_RECORD>,...)|PyConsoleScreenBuffer|PeekConsoleInput|Returns pending input records without removing them from the input queue
+// @rdesc Returns a sequence of <o PyINPUT_RECORD> objects
+// @comm This function does not block as ReadConsoleInput does.<nl>
+//	The number of records returned may be less than the nbr requested
+PyObject *PyConsoleScreenBuffer::PyPeekConsoleInput(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"Length", NULL};
+	INPUT_RECORD *pinput_records=NULL;
+	DWORD nbrofrecords, nbrread, tuple_index;
+	PyObject *ret=NULL, *ret_item;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "k:PeekConsoleInput", keywords,
+		&nbrofrecords))	// @pyparm int|Length||The number of input records to read
+		return NULL;
+	pinput_records=(INPUT_RECORD *)malloc(nbrofrecords *sizeof(INPUT_RECORD));
+	if (pinput_records==NULL)
+		return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", nbrofrecords *sizeof(INPUT_RECORD));
+	if (!PeekConsoleInput(((PyConsoleScreenBuffer *)self)->m_handle, pinput_records, nbrofrecords, &nbrread))
+		PyWin_SetAPIError("PeekConsoleInput");
+	else{
+		ret=PyTuple_New(nbrread);
+		if (ret!=NULL)
+			for (tuple_index=0; tuple_index<nbrread; tuple_index++){
+				ret_item=PyWinObject_FromINPUT_RECORD(&pinput_records[tuple_index]);
+				if (ret_item==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SET_ITEM(ret, tuple_index, ret_item);
+				}
+		}
+	free(pinput_records);
+	return ret;
+}
+
 
 
 PyTypeObject PyConsoleScreenBufferType =
@@ -1110,15 +1579,15 @@ void PyConsoleScreenBuffer::tp_dealloc(PyObject *ob)
 // @pymethod <o PyConsoleScreenBuffer>|win32console|CreateConsoleScreenBuffer|Creates a new console screen buffer
 static PyObject *PyCreateConsoleScreenBuffer(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	DWORD access, sharemode, flags=CONSOLE_TEXTMODE_BUFFER;
+	DWORD access=GENERIC_READ|GENERIC_WRITE, sharemode=FILE_SHARE_READ|FILE_SHARE_WRITE, flags=CONSOLE_TEXTMODE_BUFFER;
 	SECURITY_ATTRIBUTES* psa=NULL;
 	LPVOID reserved=NULL;
 	HANDLE hconsole;
 	PyObject *obsa=Py_None;
 	static char *keywords[]={"DesiredAccess","ShareMode","SecurityAttributes","Flags",0};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "kk|Ok", keywords,
-		&access,		// @pyparm int|DesiredAccess||GENERIC_READ and/or GENERIC_WRITE
-		&sharemode,		// @pyparm int|ShareMode||FILE_SHARE_READ and/or FILE_SHARE_WRITE
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|kkOk", keywords,
+		&access,		// @pyparm int|DesiredAccess|GENERIC_READ and GENERIC_WRITE|GENERIC_READ and/or GENERIC_WRITE
+		&sharemode,		// @pyparm int|ShareMode|FILE_SHARE_READ and FILE_SHARE_WRITE|FILE_SHARE_READ and/or FILE_SHARE_WRITE
 		&obsa,			// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Specifies security descriptor and inheritance for handle
 		&flags))		// @pyparm int|Flags|CONSOLE_TEXTMODE_BUFFER|CONSOLE_TEXTMODE_BUFFER is currently only valid flag
 		return NULL;
@@ -1559,6 +2028,7 @@ initwin32console(void)
 	if (kernel32_dll!=NULL){
 		pfnGetConsoleProcessList=(GetConsoleProcessListfunc)GetProcAddress(kernel32_dll, "GetConsoleProcessList");
 		pfnGetConsoleDisplayMode=(GetConsoleDisplayModefunc)GetProcAddress(kernel32_dll, "GetConsoleDisplayMode");
+		pfnSetConsoleDisplayMode=(SetConsoleDisplayModefunc)GetProcAddress(kernel32_dll, "SetConsoleDisplayMode");
 		pfnAttachConsole=(AttachConsolefunc)GetProcAddress(kernel32_dll, "AttachConsole");
 		pfnAddConsoleAlias=(AddConsoleAliasfunc)GetProcAddress(kernel32_dll, "AddConsoleAliasW");
 		pfnGetConsoleAliases=(GetConsoleAliasesfunc)GetProcAddress(kernel32_dll, "GetConsoleAliasesW");
@@ -1579,6 +2049,7 @@ initwin32console(void)
 	PyDict_SetItemString(dict, "PyConsoleScreenBufferType", (PyObject *)&PyConsoleScreenBufferType);
 	PyDict_SetItemString(dict, "PySMALL_RECTType", (PyObject *)&PySMALL_RECTType);
 	PyDict_SetItemString(dict, "PyCOORDType", (PyObject *)&PyCOORDType);
+	PyDict_SetItemString(dict, "PyINPUT_RECORDType", (PyObject *)&PyINPUT_RECORDType);
 
 	PyModule_AddIntConstant(mod, "CONSOLE_TEXTMODE_BUFFER", CONSOLE_TEXTMODE_BUFFER);
 	PyModule_AddIntConstant(mod, "CONSOLE_FULLSCREEN", CONSOLE_FULLSCREEN);
@@ -1633,4 +2104,9 @@ initwin32console(void)
 	PyModule_AddIntConstant(mod, "STD_INPUT_HANDLE", STD_INPUT_HANDLE);
 	PyModule_AddIntConstant(mod, "STD_OUTPUT_HANDLE", STD_OUTPUT_HANDLE);
 	PyModule_AddIntConstant(mod, "STD_ERROR_HANDLE", STD_ERROR_HANDLE);
+
+	// flags used with SetConsoleDisplayMode
+	// ?????? these aren't in my SDK headers
+	PyModule_AddIntConstant(mod, "CONSOLE_FULLSCREEN_MODE", 1);
+	PyModule_AddIntConstant(mod, "CONSOLE_WINDOWED_MODE", 2);
 }
