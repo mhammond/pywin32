@@ -794,6 +794,7 @@ public:
 	static PyObject *PyWriteConsoleInput(PyObject *self, PyObject *args, PyObject *kwargs);
 	static PyObject *PyReadConsoleInput(PyObject *self, PyObject *args, PyObject *kwargs);
 	static PyObject *PyPeekConsoleInput(PyObject *self, PyObject *args, PyObject *kwargs);
+	static PyObject *PyGetNumberOfConsoleInputEvents(PyObject *self, PyObject *args);
 };
 
 struct PyMethodDef PyConsoleScreenBuffer::methods[] = {
@@ -887,7 +888,10 @@ struct PyMethodDef PyConsoleScreenBuffer::methods[] = {
 		"Reads input records and removes them from the input queue"}, 
 	// @pymeth PeekConsoleInput|Returns pending input records without removing them from the input queue
 	{"PeekConsoleInput", (PyCFunction)PyConsoleScreenBuffer::PyPeekConsoleInput, METH_VARARGS|METH_KEYWORDS,
-		"Returns pending input records without removing them from the input queue"}, 
+		"Returns pending input records without removing them from the input queue"},
+	// @pymethod GetNumberOfConsoleInputEvents|Returns the number of unread records in the input queue
+	{"GetNumberOfConsoleInputEvents", PyConsoleScreenBuffer::PyGetNumberOfConsoleInputEvents, METH_VARARGS,
+		"Returns the number of unread records in the input queue"},
 	{NULL}
 };
 
@@ -1497,6 +1501,17 @@ PyObject *PyConsoleScreenBuffer::PyPeekConsoleInput(PyObject *self, PyObject *ar
 		}
 	free(pinput_records);
 	return ret;
+}
+
+// @pymethod int|PyConsoleScreenBuffer|GetNumberOfConsoleInputEvents|Returns the number of unread records in the input queue
+PyObject *PyConsoleScreenBuffer::PyGetNumberOfConsoleInputEvents(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":GetNumberOfConsoleInputEvents"))
+		return NULL;
+	DWORD nbrofevents;
+	if (!GetNumberOfConsoleInputEvents(((PyConsoleScreenBuffer *)self)->m_handle, &nbrofevents))
+		return PyWin_SetAPIError("GetNumberOfConsoleInputEvents");
+	return PyLong_FromUnsignedLong(nbrofevents);
 }
 
 
