@@ -889,7 +889,7 @@ struct PyMethodDef PyConsoleScreenBuffer::methods[] = {
 	// @pymeth PeekConsoleInput|Returns pending input records without removing them from the input queue
 	{"PeekConsoleInput", (PyCFunction)PyConsoleScreenBuffer::PyPeekConsoleInput, METH_VARARGS|METH_KEYWORDS,
 		"Returns pending input records without removing them from the input queue"},
-	// @pymethod GetNumberOfConsoleInputEvents|Returns the number of unread records in the input queue
+	// @pymeth GetNumberOfConsoleInputEvents|Returns the number of unread records in the input queue
 	{"GetNumberOfConsoleInputEvents", PyConsoleScreenBuffer::PyGetNumberOfConsoleInputEvents, METH_VARARGS,
 		"Returns the number of unread records in the input queue"},
 	{NULL}
