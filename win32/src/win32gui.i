@@ -107,6 +107,7 @@ PyObject *set_logger(PyObject *self, PyObject *args)
 PyEval_InitThreads(); /* Start the interpreter's thread-awareness */
 PyDict_SetItemString(d, "dllhandle", PyLong_FromVoidPtr(g_dllhandle));
 PyDict_SetItemString(d, "error", PyWinExc_ApiError);
+
 %}
 
 %{
@@ -1022,6 +1023,7 @@ PyTypeObject PyLOGFONTType =
 	{"lfClipPrecision",    T_BYTE,  OFF(m_LOGFONT.lfClipPrecision)}, // @prop integer|lfClipPrecision|
 	{"lfQuality",          T_BYTE,  OFF(m_LOGFONT.lfQuality)}, // @prop integer|lfQuality|
 	{"lfPitchAndFamily",   T_BYTE,  OFF(m_LOGFONT.lfPitchAndFamily)}, // @prop integer|lfPitchAndFamily|
+	{"lfFaceName",         T_LONG, 0}, // @prop string|lfFaceName|Name of the typeface, at most 31 characters
 	{NULL}	/* Sentinel */
 };
 
@@ -1062,9 +1064,16 @@ int PyLOGFONT::setattr(PyObject *self, char *name, PyObject *v)
 	if (strcmp("lfFaceName", name)==0) {
 		PyLOGFONT *pL = (PyLOGFONT *)self;
 		TCHAR *face;
-		if (!PyWinObject_AsTCHAR(v, &face))
-			return NULL;
+		DWORD facesize;
+		if (!PyWinObject_AsTCHAR(v, &face, FALSE, &facesize))
+			return -1;
+		if (facesize >= LF_FACESIZE){	// LF_FACESIZE includes the trailing NULL
+			PyErr_Format(PyExc_ValueError, "lfFaceName must be less than %d characters", LF_FACESIZE);
+			PyWinObject_FreeTCHAR(face);
+			return -1;
+			}
 		_tcsncpy( pL->m_LOGFONT.lfFaceName, face, LF_FACESIZE );
+		PyWinObject_FreeTCHAR(face);
 		return 0;
 	}
 	return PyMember_Set((char *)self, memberlist, name, v);
@@ -1109,10 +1118,16 @@ static PyObject *PyEnumFontFamilies(PyObject *self, PyObject *args)
 	PyObject *obProc;
 	PyObject *obExtra = Py_None;
 	long hdc;
-	// @pyparm int|hdc||
-	// @pyparm string/<o PyUnicode>|family||
-	// @pyparm function|proc||The Python function called with each font family.  This function is called with 4 arguments.
-	// @pyparm object|extra||An extra param passed to the enum procedure.
+	// @pyparm int|hdc||Handle to a device context for which to enumerate available fonts
+	// @pyparm string/<o PyUnicode>|Family||Family of fonts to enumerate. If none, first member of each font family will be returned.
+	// @pyparm function|EnumFontFamProc||The Python function called with each font family. This function is called with 4 arguments.
+	// @pyparm object|Param||An arbitrary object to be passed to the callback function
+	// @comm The parameters that the callback function will receive are as follows:<nl>
+	//	<o PyLOGFONT> - contains the font parameters<nl>
+	//	None - Placeholder for a TEXTMETRIC structure, not supported yet<nl>
+	//	int - Font type, combination of DEVICE_FONTTYPE, RASTER_FONTTYPE, TRUETYPE_FONTTYPE<nl>
+	//	object - The Param originally passed in to EnumFontFamilies
+
 	if (!PyArg_ParseTuple(args, "lOO|O", &hdc, &obFamily, &obProc, &obExtra))
 		return NULL;
 	if (!PyCallable_Check(obProc)) {
@@ -2314,8 +2329,11 @@ HWND CreateWindow(
 // @pyparm int|hwnd||The handle to the window
 BOOLAPI DestroyWindow(HWND hwnd);
 
-// @pyswig int|EnableWindow|
-BOOL EnableWindow(HWND hwnd, BOOL bEnable);
+// @pyswig int|EnableWindow|Enables and disables keyboard and mouse input to a window
+// @rdesc Returns True if window was already disabled when call was made, False otherwise
+BOOL EnableWindow(
+	HWND hwnd,	// @pyparm <o PyHANDLE>|hWnd||Handle to window
+	BOOL bEnable);	// @pyparm boolean|bEnable||True to enable input to the window, False to disable input
 
 // @pyswig int|FindWindow|Retrieves a handle to the top-level window whose class name and window name match the specified strings.
 HWND FindWindow( 
@@ -3653,3 +3671,4 @@ static PyObject *PyCreateDC(PyObject *self, PyObject *args)
 	return NULL;
 }
 %}
+
