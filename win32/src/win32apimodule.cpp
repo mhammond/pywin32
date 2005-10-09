@@ -4621,6 +4621,57 @@ PyObject *PySetConsoleCtrlHandler(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod (int,..)|win32api|GetKeyboardLayoutList|Returns a sequence of all locale ids currently loaded
+PyObject *PyGetKeyboardLayoutList(PyObject *self, PyObject *args)
+{
+	int buflen;
+	HKL *buf;
+	PyObject *ret=NULL;
+	if (!PyArg_ParseTuple(args,":GetKeyboardLayoutList"))
+		return NULL;
+	buflen=GetKeyboardLayoutList(0,NULL);
+	buf=(HKL *)malloc(buflen*sizeof(HKL));
+	if (buf==NULL)
+		return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", buflen*sizeof(HKL));
+	buflen=GetKeyboardLayoutList(buflen, buf);
+	if (buflen==0)
+		PyWin_SetAPIError("GetKeyboardLayout");
+	else{
+		ret=PyTuple_New(buflen);
+		if (ret!=NULL){
+			for (int tuple_ind=0;tuple_ind<buflen;tuple_ind++){
+				PyObject *tuple_item=PyLong_FromLong((long)buf[tuple_ind]);
+				if (tuple_item==NULL){
+					Py_DECREF(ret);
+					ret=NULL;
+					break;
+					}
+				PyTuple_SET_ITEM(ret, tuple_ind, tuple_item);
+				}
+			}
+		}
+	free(buf);
+	return ret;
+}
+
+// @pymethod int|win32api|LoadKeyboardLayout|Loads a new locale id
+// @rdesc Returns the numeric locale id that was loaded
+PyObject *PyLoadKeyboardLayout(PyObject *self, PyObject *args)
+{	
+	char *lcid_str;
+	HKL lcid;
+	UINT flags=0;
+	if (!PyArg_ParseTuple(args, "s|k:LoadKeyboardLayout",
+		&lcid_str,		// @pyparm string|KLID||Hex string containing a locale id, eg "00000409"
+		&flags))		// @pyparm int|Flags|0|Combination of win32con.KLF_* constants
+		return NULL;
+	lcid=LoadKeyboardLayout(lcid_str, flags);
+	if (lcid==NULL)
+		return PyWin_SetAPIError("LoadKeyboardLayout");
+	return PyLong_FromLong((long)lcid);
+}
+
+
 /* List of functions exported by this module */
 // @module win32api|A module, encapsulating the Windows Win32 API.
 static struct PyMethodDef win32api_functions[] = {
@@ -4684,6 +4735,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetFileVersionInfo",	PyGetFileVersionInfo, 1}, //@pymeth GetFileVersionInfo|Retrieves string version info
 	{"GetFocus",            PyGetFocus,         1}, // @pymeth GetFocus|Retrieves the handle of the keyboard focus window associated with the thread that called the method. 
 	{"GetFullPathName",     PyGetFullPathName,1},   // @pymeth GetFullPathName|Returns the full path of a (possibly relative) path
+	{"GetKeyboardLayoutList", PyGetKeyboardLayoutList, 1}, // @pymeth GetKeyboardLayoutList|Returns a sequence of all locale ids in the system
 	{"GetKeyState",			PyGetKeyState,      1}, // @pymeth GetKeyState|Retrives the last known key state for a key.
 	{"GetLastError",		PyGetLastError,     1}, // @pymeth GetLastError|Retrieves the last error code known by the system.
 	{"GetLocalTime",         PyGetLocalTime,      1},  // @pymeth GetLocalTime|Returns the current local time.
@@ -4721,6 +4773,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"keybd_event",         Pykeybd_event, 1}, // @pymeth keybd_event|Simulate a keyboard event
 	{"mouse_event",         Pymouse_event, 1}, // @pymeth mouse_event|Simulate a mouse event
 	{"LoadCursor",          PyLoadCursor, 1}, // @pymeth LoadCursor|Loads a cursor.
+	{"LoadKeyboardLayout",  PyLoadKeyboardLayout, 1}, // @pymeth LoadKeyboardLayout|Loads a new locale id
 	{"LoadLibrary",	        PyLoadLibrary,1}, // @pymeth LoadLibrary|Loads the specified DLL, and returns the handle.
 	{"LoadLibraryEx",	    PyLoadLibraryEx,1}, // @pymeth LoadLibraryEx|Loads the specified DLL, and returns the handle.
 	{"LoadResource",	    PyLoadResource,1}, // @pymeth LoadResource|Finds and loads a resource from a PE file.
