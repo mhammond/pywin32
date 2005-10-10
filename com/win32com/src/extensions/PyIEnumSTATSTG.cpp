@@ -40,45 +40,40 @@ PyObject *PyIEnumSTATSTG::Next(PyObject *self, PyObject *args)
 		return NULL;
 
 	STATSTG *rgVar = new STATSTG[celt];
-	if ( rgVar == NULL ) {
-		PyErr_SetString(PyExc_MemoryError, "allocating result STATSTGs");
-		return NULL;
-	}
+	if ( rgVar == NULL )
+		return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", celt*sizeof(STATSTG));
+	ZeroMemory(rgVar, celt*sizeof(STATSTG));
 
 	int i;
-/*	for ( i = celt; i--; )
-		// *** possibly init each structure element???
-*/
-
 	ULONG celtFetched;
+	PyObject *result;
+
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = pIESTATSTG->Next(celt, rgVar, &celtFetched);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
-	{
-		delete [] rgVar;
-		return PyCom_BuildPyException(hr);
-	}
-
-	PyObject *result = PyTuple_New(celtFetched);
-	if ( result != NULL )
-	{
-		for ( i = celtFetched; i--; )
-		{
-			PyObject *ob = PyCom_PyObjectFromSTATSTG(&rgVar[i]);
-			if ( ob == NULL )
+		result=PyCom_BuildPyException(hr);
+	else{
+		result = PyTuple_New(celtFetched);
+		if ( result != NULL ){
+			for ( i = celtFetched; i--; )
 			{
-				Py_DECREF(result);
-				result = NULL;
-				break;
+				PyObject *ob = PyCom_PyObjectFromSTATSTG(&rgVar[i]);
+				if ( ob == NULL )
+				{
+					Py_DECREF(result);
+					result = NULL;
+					break;
+				}
+				PyTuple_SET_ITEM(result, i, ob);
 			}
-			PyTuple_SET_ITEM(result, i, ob);
 		}
 	}
 
-/*	for ( i = celtFetched; i--; )
-		// *** possibly cleanup each structure element???
-*/
+	for ( i = celtFetched; i--; )
+		if (rgVar[i].pwcsName!=NULL)
+			CoTaskMemFree(rgVar[i].pwcsName);
+
 	delete [] rgVar;
 	return result;
 }
