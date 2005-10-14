@@ -13,8 +13,8 @@
 
 %{
 #define _WIN32_IE 0x0501 // to enable balloon notifications in Shell_NotifyIcon
-#ifdef WINXPGUI
 #define _WIN32_WINNT 0x0501
+#ifdef WINXPGUI
 // This changes the entire world for XP!
 #define ISOLATION_AWARE_ENABLED 1
 #endif
@@ -115,9 +115,10 @@ for (PyMethodDef *pmd = winxpguiMethods; pmd->ml_name; pmd++)
 for (PyMethodDef *pmd = win32guiMethods; pmd->ml_name; pmd++)
 #endif
 	if (strcmp(pmd->ml_name, "GetOpenFileNameW")==0 ||
-		strcmp(pmd->ml_name, "GetSaveFileNameW")==0)
+		strcmp(pmd->ml_name, "GetSaveFileNameW")==0 ||
+		strcmp(pmd->ml_name, "SystemParametersInfo")==0)
 		pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
-		
+
 %}
 
 %{
@@ -3874,4 +3875,586 @@ static PyObject *PyGetOpenFileNameW(PyObject *self, PyObject *args, PyObject *kw
 // Swig 1.2 chokes on functions that takes keywords
 PyCFunction pfnPyGetSaveFileNameW=(PyCFunction)PyGetSaveFileNameW;
 PyCFunction pfnPyGetOpenFileNameW=(PyCFunction)PyGetOpenFileNameW;
+%}
+
+%native (SystemParametersInfo) pfnPySystemParametersInfo;
+// @pyswig |SystemParametersInfo|Queries or sets system-wide parameters. This function can also update the user profile while setting a parameter. 
+// @rdesc SPI_SET functions all return None on success.  Types returned by SPI_GET functions are dependent on the operation
+// @comm Param and WinIni are not used with any of the SPI_GET operations<nl>
+// Boolean parameters can be any object that can be evaluated as True or False
+%{
+BOOL PyObject_AsUINT(PyObject *ob, UINT *puint)
+{
+	// PyLong_AsUnsignedLong throws a bogus error in 2.3 if passed an int, and there is no PyInt_AsUnsignedLong
+	// ref: http://mail.python.org/pipermail/patches/2004-September/016060.html
+	// And for some reason none of the Unsigned*Mask functions check for overflow ???
+
+	__int64 UINT_candidate=PyLong_AsLongLong(ob);
+	if (UINT_candidate==-1 && PyErr_Occurred())
+		return FALSE;
+	if (UINT_candidate<0 || UINT_candidate>UINT_MAX){
+		PyErr_Format(PyExc_ValueError, "Parameter must be in range 0 - %d", UINT_MAX);
+		return FALSE;
+		}
+	*puint=(UINT)UINT_candidate;
+	return TRUE;
+}
+
+static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"Action", "Param", "WinIni",  NULL};
+	UINT Action, uiParam=0, WinIni=0;
+	PVOID pvParam=NULL;
+	PyObject *obParam=Py_None, *ret=NULL;
+	DWORD buflen;
+	BOOL boolParam;
+	UINT uintParam;
+	long longParam;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "k|Ok", keywords,	
+		&Action,	// @pyparm int|Action||System parameter to query or set, one of the SPI_GET* or SPI_SET* constants
+		&obParam,	// @pyparm  object|Param|None|depends on action to be taken
+		&WinIni))	// @pyparm int|WinIni|0|Flags specifying whether change should be permanent, and if all windows should be notified of change. Combination of SPIF_UPDATEINIFILE, SPIF_SENDCHANGE, SPIF_SENDWININICHANGE
+		return NULL;
+
+	// @flagh Action|Input/return type
+	switch (Action){
+		// @flag SPI_GETDESKWALLPAPER|Returns the path to the bmp used as wallpaper
+		case SPI_GETDESKWALLPAPER:
+			uiParam=MAX_PATH;
+			buflen=uiParam*sizeof(TCHAR);
+			pvParam=malloc(buflen);
+			if (pvParam==NULL){
+				PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", buflen);
+				goto done;
+				}
+			break;
+		// @flag SPI_SETDESKWALLPAPER|Param should be a string specifying a .bmp file
+		case SPI_SETDESKWALLPAPER:
+			if (!PyWinObject_AsTCHAR(obParam, (TCHAR **)&pvParam, TRUE, &buflen))
+				goto done;
+			uiParam=buflen;
+			break;
+			
+		// Below actions return a boolean pointed to by Param
+		// @flag SPI_GETDROPSHADOW|Returns a boolean
+		case SPI_GETDROPSHADOW:
+		// @flag SPI_GETFLATMENU|Returns a boolean
+		case SPI_GETFLATMENU:
+		// @flag SPI_GETFONTSMOOTHING|Returns a boolean
+		case SPI_GETFONTSMOOTHING:
+		// @flag SPI_GETICONTITLEWRAP|Returns a boolean
+		case SPI_GETICONTITLEWRAP:
+		// @flag SPI_GETSNAPTODEFBUTTON|Returns a boolean
+		case SPI_GETSNAPTODEFBUTTON:
+		// @flag SPI_GETBEEP|Returns a boolean
+		case SPI_GETBEEP:
+		// @flag SPI_GETBLOCKSENDINPUTRESETS|Returns a boolean
+		case SPI_GETBLOCKSENDINPUTRESETS:
+		// @flag SPI_GETMENUUNDERLINES|Returns a boolean
+		// @flag SPI_GETKEYBOARDCUES|Returns a boolean
+		case SPI_GETKEYBOARDCUES:
+		// @flag SPI_GETKEYBOARDPREF|Returns a boolean
+		case SPI_GETKEYBOARDPREF:
+		// @flag SPI_GETSCREENSAVEACTIVE|Returns a boolean
+		case SPI_GETSCREENSAVEACTIVE:
+		// @flag SPI_GETSCREENSAVERRUNNING|Returns a boolean
+		case SPI_GETSCREENSAVERRUNNING:
+		// @flag SPI_GETMENUDROPALIGNMENT|Returns a boolean (True indicates left aligned, False right aligned)
+		case SPI_GETMENUDROPALIGNMENT:
+		// @flag SPI_GETMENUFADE|Returns a boolean
+		case SPI_GETMENUFADE:
+		// @flag SPI_GETLOWPOWERACTIVE|Returns a boolean
+		case SPI_GETLOWPOWERACTIVE:
+		// @flag SPI_GETPOWEROFFACTIVE|Returns a boolean
+		case SPI_GETPOWEROFFACTIVE:
+		// @flag SPI_GETCOMBOBOXANIMATION|Returns a boolean
+		case SPI_GETCOMBOBOXANIMATION:
+		// @flag SPI_GETCURSORSHADOW|Returns a boolean
+		case SPI_GETCURSORSHADOW:
+		// @flag SPI_GETGRADIENTCAPTIONS|Returns a boolean
+		case SPI_GETGRADIENTCAPTIONS:
+		// @flag SPI_GETHOTTRACKING|Returns a boolean
+		case SPI_GETHOTTRACKING:
+		// @flag SPI_GETLISTBOXSMOOTHSCROLLING|Returns a boolean
+		case SPI_GETLISTBOXSMOOTHSCROLLING:
+		// @flag SPI_GETMENUANIMATION|Returns a boolean
+		case SPI_GETMENUANIMATION:
+		// @flag SPI_GETSELECTIONFADE|Returns a boolean
+		case SPI_GETSELECTIONFADE:
+		// @flag SPI_GETTOOLTIPANIMATION|Returns a boolean
+		case SPI_GETTOOLTIPANIMATION:
+		// @flag SPI_GETTOOLTIPFADE|Returns a boolean (TRUE=fade, False=slide)
+		case SPI_GETTOOLTIPFADE:
+		// @flag SPI_GETUIEFFECTS|Returns a boolean
+		case SPI_GETUIEFFECTS:
+		// @flag SPI_GETACTIVEWINDOWTRACKING|Returns a boolean
+		case SPI_GETACTIVEWINDOWTRACKING:
+		// @flag SPI_GETACTIVEWNDTRKZORDER|Returns a boolean
+		case SPI_GETACTIVEWNDTRKZORDER:
+		// @flag SPI_GETDRAGFULLWINDOWS|Returns a boolean
+		case SPI_GETDRAGFULLWINDOWS:    
+		// @flag SPI_GETSHOWIMEUI|Returns a boolean
+		case SPI_GETSHOWIMEUI:
+		// @flag SPI_GETMOUSECLICKLOCK|Returns a boolean
+		case SPI_GETMOUSECLICKLOCK:
+		// @flag SPI_GETMOUSESONAR|Returns a boolean
+		case SPI_GETMOUSESONAR:
+		// @flag SPI_GETMOUSEVANISH|Returns a boolean
+		case SPI_GETMOUSEVANISH:
+		// @flag SPI_GETSCREENREADER|Returns a boolean
+		case SPI_GETSCREENREADER:
+		// @flag SPI_GETSHOWSOUNDS|Returns a boolean
+		case SPI_GETSHOWSOUNDS:
+			pvParam=&boolParam;
+			break;
+		
+		// Actions in this section accept a boolean as pvParam
+		// @flag SPI_SETDROPSHADOW|Param must be a boolean
+		case SPI_SETDROPSHADOW:
+		// @flag SPI_SETDROPSHADOW|Param must be a boolean
+		case SPI_SETFLATMENU:
+		// @flag SPI_SETMENUUNDERLINES|Param must be a boolean
+		// @flag SPI_SETKEYBOARDCUES|Param must be a boolean
+		case SPI_SETKEYBOARDCUES:
+		// @flag SPI_SETMENUFADE|Param must be a boolean
+		case SPI_SETMENUFADE:
+		// @flag SPI_SETCOMBOBOXANIMATION|Param must be a boolean
+		case SPI_SETCOMBOBOXANIMATION:
+		// @flag SPI_SETCURSORSHADOW|Param must be a boolean
+		case SPI_SETCURSORSHADOW:
+		// @flag SPI_SETGRADIENTCAPTIONS|Param must be a boolean
+		case SPI_SETGRADIENTCAPTIONS:
+		// @flag SPI_SETHOTTRACKING|Param must be a boolean
+		case SPI_SETHOTTRACKING:
+		// @flag SPI_SETLISTBOXSMOOTHSCROLLING|Param must be a boolean
+		case SPI_SETLISTBOXSMOOTHSCROLLING:
+		// @flag SPI_SETMENUANIMATION|Param must be a boolean
+		case SPI_SETMENUANIMATION:
+		// @flag SPI_SETSELECTIONFADE|Param must be a boolean
+		case SPI_SETSELECTIONFADE:
+		// @flag SPI_SETTOOLTIPANIMATION|Param must be a boolean
+		case SPI_SETTOOLTIPANIMATION:
+		// @flag SPI_SETTOOLTIPFADE|Param must be a boolean
+		case SPI_SETTOOLTIPFADE:
+		// @flag SPI_SETUIEFFECTS|Param must be a boolean
+		case SPI_SETUIEFFECTS:
+		// @flag SPI_SETACTIVEWINDOWTRACKING|Param must be a boolean
+		case SPI_SETACTIVEWINDOWTRACKING:
+		// @flag SPI_SETACTIVEWNDTRKZORDER|Param must be a boolean
+		case SPI_SETACTIVEWNDTRKZORDER:
+		// @flag SPI_SETMOUSESONAR|Param must be a boolean
+		case SPI_SETMOUSESONAR:
+		// @flag SPI_SETMOUSEVANISH|Param must be a boolean
+		case SPI_SETMOUSEVANISH:
+		// @flag SPI_SETMOUSECLICKLOCK|Param must be a boolean
+		case SPI_SETMOUSECLICKLOCK:
+			pvParam=(PVOID)PyObject_IsTrue(obParam);
+			if (pvParam==(PVOID)-1)
+				goto done;
+			break;
+
+		// These accept a boolean placed in uiParam
+		// @flag SPI_SETFONTSMOOTHING|Param should specify a boolean
+		case SPI_SETFONTSMOOTHING:
+		// @flag SPI_SETICONTITLEWRAP|Param should specify a boolean
+		case SPI_SETICONTITLEWRAP:
+		// @flag SPI_SETSNAPTODEFBUTTON|Param is a boolean
+		case SPI_SETSNAPTODEFBUTTON:
+		// @flag SPI_SETBEEP|Param is a boolean
+		case SPI_SETBEEP:
+		// @flag SPI_SETBLOCKSENDINPUTRESETS|Param is a boolean
+		case SPI_SETBLOCKSENDINPUTRESETS:
+		// @flag SPI_SETKEYBOARDPREF|Param is a boolean
+		case SPI_SETKEYBOARDPREF:
+		// @flag SPI_SETMOUSEBUTTONSWAP|Param is a boolean
+		case SPI_SETMOUSEBUTTONSWAP:
+		// @flag SPI_SETSCREENSAVEACTIVE|Param is a boolean
+		case SPI_SETSCREENSAVEACTIVE:
+		// @flag SPI_SETMENUDROPALIGNMENT|Param is a boolean (True=left aligned, False=right aligned)
+		case SPI_SETMENUDROPALIGNMENT:
+		// @flag SPI_SETLOWPOWERACTIVE|Param is a boolean
+		case SPI_SETLOWPOWERACTIVE:
+		// @flag SPI_SETPOWEROFFACTIVE|Param is a boolean
+		case SPI_SETPOWEROFFACTIVE:
+		// @flag SPI_SETDRAGFULLWINDOWS|Param is a boolean
+		case SPI_SETDRAGFULLWINDOWS:
+		// @flag SPI_SETSHOWIMEUI|Param is a boolean
+		case SPI_SETSHOWIMEUI:
+		// @flag SPI_SETSCREENREADER|Param is a boolean
+		case SPI_SETSCREENREADER:
+		// @flag SPI_SETSHOWSOUNDS|Param is a boolean
+		case SPI_SETSHOWSOUNDS:
+			uiParam=(UINT)PyObject_IsTrue(obParam);
+			if (uiParam==(UINT)-1)
+				goto done;
+			break;
+
+		// These accept an int placed in uiParam
+		// @flag SPI_SETMOUSETRAILS|Param should be an int specifying the nbr of cursors in the trail (0 or 1 means disabled)
+		case SPI_SETMOUSETRAILS:
+		// @flag SPI_SETWHEELSCROLLLINES|Param is an int specifying nbr of lines
+		case SPI_SETWHEELSCROLLLINES:
+		// @flag SPI_SETKEYBOARDDELAY|Param is an int in the range 0 - 3
+		case SPI_SETKEYBOARDDELAY:
+		// @flag SPI_SETKEYBOARDSPEED|Param is an int in the range 0 - 31
+		case SPI_SETKEYBOARDSPEED:
+		// @flag SPI_SETDOUBLECLICKTIME|Param is an int (in milliseconds),  Use <om win32gui.GetDoubleClickTime> to retrieve the value.
+		case SPI_SETDOUBLECLICKTIME:
+		// @flag SPI_SETDOUBLECLKWIDTH|Param is an int.  Use win32api.GetSystemMetrics(SM_CXDOUBLECLK) to retrieve the value.
+		case SPI_SETDOUBLECLKWIDTH:
+		// @flag SPI_SETDOUBLECLKHEIGHT|Param is an int,  Use win32api.GetSystemMetrics(SM_CYDOUBLECLK) to retrieve the value.
+		case SPI_SETDOUBLECLKHEIGHT:
+		// @flag SPI_SETMOUSEHOVERHEIGHT|Param is an int
+		case SPI_SETMOUSEHOVERHEIGHT:
+		// @flag SPI_SETMOUSEHOVERWIDTH|Param is an int
+		case SPI_SETMOUSEHOVERWIDTH:
+		// @flag SPI_SETMOUSEHOVERTIME|Param is an int
+		case SPI_SETMOUSEHOVERTIME:
+		// @flag SPI_SETSCREENSAVETIMEOUT|Param is an int specifying the timeout in seconds
+		case SPI_SETSCREENSAVETIMEOUT:
+		// @flag SPI_SETMENUSHOWDELAY|Param is an int specifying the shortcut menu delay in milliseconds
+		case SPI_SETMENUSHOWDELAY:
+		// @flag SPI_SETLOWPOWERTIMEOUT|Param is an int (in seconds)
+		case SPI_SETLOWPOWERTIMEOUT:
+		// @flag SPI_SETPOWEROFFTIMEOUT|Param is an int (in seconds)
+		case SPI_SETPOWEROFFTIMEOUT:
+		// @flag SPI_SETDRAGHEIGHT|Param is an int. Use win32api.GetSystemMetrics(SM_CYDRAG) to retrieve the value.
+		case SPI_SETDRAGHEIGHT:
+		// @flag SPI_SETDRAGWIDTH|Param is an int. Use win32api.GetSystemMetrics(SM_CXDRAG) to retrieve the value.
+		case SPI_SETDRAGWIDTH:
+		// @flag SPI_SETBORDER|Param is an int
+		case SPI_SETBORDER:
+			if (!PyObject_AsUINT(obParam, &uiParam))
+				goto done;
+			break;
+
+		// below Actions all return a UINT pointed to by Param
+		// @flag SPI_GETFONTSMOOTHINGCONTRAST|Returns an int
+		case SPI_GETFONTSMOOTHINGCONTRAST:
+		// @flag SPI_GETFONTSMOOTHINGTYPE|Returns an int
+		case SPI_GETFONTSMOOTHINGTYPE:
+		// @flag SPI_GETMOUSETRAILS|Returns an int specifying the nbr of cursor images in the trail, 0 or 1 indicates disabled
+		case SPI_GETMOUSETRAILS:
+		// @flag SPI_GETWHEELSCROLLLINES|Returns the nbr of lines to scroll for the mouse wheel
+		case SPI_GETWHEELSCROLLLINES:
+		// @flag SPI_GETKEYBOARDDELAY|Returns an int
+		case SPI_GETKEYBOARDDELAY:
+		// @flag SPI_GETKEYBOARDSPEED|Returns an int
+		case SPI_GETKEYBOARDSPEED:
+		// @flag SPI_GETMOUSESPEED|Returns an int
+		case SPI_GETMOUSESPEED:
+		// @flag SPI_GETMOUSEHOVERHEIGHT|Returns an int
+		case SPI_GETMOUSEHOVERHEIGHT:
+		// @flag SPI_GETMOUSEHOVERWIDTH|Returns an int
+		case SPI_GETMOUSEHOVERWIDTH:
+		// @flag SPI_GETMOUSEHOVERTIME|Returns an int
+		case SPI_GETMOUSEHOVERTIME:
+		// @flag SPI_GETSCREENSAVETIMEOUT|Returns an int (idle time in seconds)
+		case SPI_GETSCREENSAVETIMEOUT:
+		// @flag SPI_GETMENUSHOWDELAY|Returns an int (shortcut delay in milliseconds)
+		case SPI_GETMENUSHOWDELAY:
+		// @flag SPI_GETLOWPOWERTIMEOUT|Returns an int (in seconds)
+		case SPI_GETLOWPOWERTIMEOUT:
+		// @flag SPI_GETPOWEROFFTIMEOUT|Returns an int (in seconds)
+		case SPI_GETPOWEROFFTIMEOUT:
+		// @flag SPI_GETACTIVEWNDTRKTIMEOUT|Returns an int (milliseconds)
+		case SPI_GETACTIVEWNDTRKTIMEOUT:
+		// @flag SPI_GETBORDER|Returns an int
+		case SPI_GETBORDER:
+		// @flag SPI_GETCARETWIDTH|Returns an int
+		case SPI_GETCARETWIDTH:
+		// @flag SPI_GETFOREGROUNDFLASHCOUNT|Returns an int
+		case SPI_GETFOREGROUNDFLASHCOUNT:
+		// @flag SPI_GETFOREGROUNDLOCKTIMEOUT|Returns an int
+		case SPI_GETFOREGROUNDLOCKTIMEOUT:
+		// @flag SPI_GETFOCUSBORDERHEIGHT|Returns an int
+		case SPI_GETFOCUSBORDERHEIGHT:
+		// @flag SPI_GETFOCUSBORDERWIDTH|Returns an int
+		case SPI_GETFOCUSBORDERWIDTH:
+		// @flag SPI_GETMOUSECLICKLOCKTIME|Returns an int (in milliseconds)
+		case SPI_GETMOUSECLICKLOCKTIME:
+			pvParam=&uintParam;
+			break;
+		
+		// Actions that take pvParam as an unsigned int
+		// @flag SPI_SETFONTSMOOTHINGCONTRAST|Param should be an int in the range 1000 to 2200
+		case SPI_SETFONTSMOOTHINGCONTRAST:
+		// @flag SPI_SETFONTSMOOTHINGTYPE|Param should be one of the FE_FONTSMOOTHING* constants
+		case SPI_SETFONTSMOOTHINGTYPE:
+		// @flag SPI_SETMOUSESPEED|Param should be an int in the range 1 - 20
+		case SPI_SETMOUSESPEED:
+		// @flag SPI_SETACTIVEWNDTRKTIMEOUT|Param is an int (in milliseconds)
+		case SPI_SETACTIVEWNDTRKTIMEOUT:
+		// @flag SPI_SETCARETWIDTH|Param is an int (in pixels)
+		case SPI_SETCARETWIDTH:
+		// @flag SPI_SETFOREGROUNDFLASHCOUNT|Param is an int
+		case SPI_SETFOREGROUNDFLASHCOUNT:
+		// @flag SPI_SETFOREGROUNDLOCKTIMEOUT|Param is an int (in milliseconds)
+		case SPI_SETFOREGROUNDLOCKTIMEOUT:
+		// @flag SPI_SETFOCUSBORDERHEIGHT|Returns an int
+		case SPI_SETFOCUSBORDERHEIGHT:
+		// @flag SPI_SETFOCUSBORDERWIDTH|Returns an int
+		case SPI_SETFOCUSBORDERWIDTH:
+		// @flag SPI_SETMOUSECLICKLOCKTIME|Param is an int (in milliseconds)
+		case SPI_SETMOUSECLICKLOCKTIME:
+			if (!PyObject_AsUINT(obParam, (UINT *)&pvParam))
+				goto done;
+			break;
+			
+		// @flag SPI_GETICONTITLELOGFONT|Returns a <o PyLOGFONT>,
+		case SPI_GETICONTITLELOGFONT:
+			uiParam=sizeof(LOGFONT);
+			pvParam=malloc(uiParam);
+			if (pvParam==NULL){
+				PyErr_Format(PyExc_MemoryError,"Unable to allocate %d bytes", uiParam);
+				goto done;
+				}
+			break;
+		// @flag SPI_SETICONTITLELOGFONT|Param must be a <o PyLOGFONT>,
+		case SPI_SETICONTITLELOGFONT:
+			if (!PyLOGFONT_Check(obParam)){
+				PyErr_SetString(PyExc_TypeError, "Param must be a LOGFONT");
+				goto done;
+				}
+			pvParam=((PyLOGFONT *)obParam)->GetLF();
+			uiParam=sizeof(LOGFONT);
+			break;
+
+
+		// Set operations that take no parameter
+		// @flag SPI_SETLANGTOGGLE|Param is ignored. Sets the language toggle hotkey from registry key HKCU\keyboard layout\toggle 
+		case SPI_SETLANGTOGGLE:
+		// @flag SPI_SETICONS|Reloads the system icons.  Param is not used
+		case SPI_SETICONS:
+			break;
+
+		// @flag SPI_GETMOUSE|Returns a tuple of 3 ints containing the x and y mouse thresholds and the acceleration factor.
+		case SPI_GETMOUSE:
+		// @flag SPI_SETMOUSE|Param should be a sequence of 3 ints
+		case SPI_SETMOUSE:{
+			buflen=3*sizeof(UINT);
+			pvParam=malloc(buflen);
+			if (pvParam==NULL){
+				PyErr_Format(PyExc_MemoryError,"Unable to allocate %d bytes", buflen);
+				goto done;
+				}
+			if (Action==SPI_SETMOUSE){
+				PyObject *param_tuple=PySequence_Tuple(obParam);
+				if (param_tuple==NULL)
+					goto done;
+				if (PyTuple_GET_SIZE(param_tuple) != 3){
+					PyErr_SetString(PyExc_ValueError,"Param must be a sequence of 3 ints");
+					Py_DECREF(param_tuple);
+					goto done;
+					}
+				if (!PyArg_ParseTuple(param_tuple, "kkk", &((UINT *)pvParam)[0], &((UINT *)pvParam)[1], &((UINT *)pvParam)[2])){
+					Py_DECREF(param_tuple);
+					goto done;
+					}
+				Py_DECREF(param_tuple);
+				}
+			break;
+			}
+
+		// @flag SPI_GETDEFAULTINPUTLANG|Returns an int (locale id for default language)
+			case SPI_GETDEFAULTINPUTLANG:
+			pvParam=&longParam;
+			break;
+		// @flag SPI_SETDEFAULTINPUTLANG|Param is an int containing a locale id
+		case SPI_SETDEFAULTINPUTLANG:
+			// input is a HKL, which is actually a HANDLE, which can be treated as a long
+			longParam=PyInt_AsLong(obParam);
+			if (longParam==-1 && PyErr_Occurred())
+				goto done;
+			pvParam=&longParam;
+			break;
+		// @flag SPI_GETANIMATION|Returns an int
+		case SPI_GETANIMATION:
+		// @flag SPI_SETANIMATION|Param is an int
+		case SPI_SETANIMATION:
+			buflen=sizeof(ANIMATIONINFO);
+			pvParam=malloc(buflen);
+			if (pvParam==NULL){
+				PyErr_Format(PyExc_MemoryError,"Unable to allocate %d bytes", buflen);
+				goto done;
+				}
+			ZeroMemory(pvParam, buflen);
+			uiParam=buflen;
+			((ANIMATIONINFO *)pvParam)->cbSize=buflen;
+			if (Action==SPI_SETANIMATION){
+				((ANIMATIONINFO *)pvParam)->iMinAnimate=PyInt_AsLong(obParam);
+				if (((ANIMATIONINFO *)pvParam)->iMinAnimate==-1 && PyErr_Occurred())
+					goto done;
+				}
+			break;
+		// @flag SPI_ICONHORIZONTALSPACING|Functions as both a get and set operation.  If Param is None, functions as a get operation, otherwise Param is an int to be set as the new value
+		case SPI_ICONHORIZONTALSPACING:
+		// @flag SPI_ICONVERTICALSPACING|Functions as both a get and set operation.  If Param is None, functions as a get operation, otherwise Param is an int to be set as the new value
+		case SPI_ICONVERTICALSPACING:
+			if (obParam==Py_None)	// indicates a get operation
+				pvParam=&uintParam;
+			else			// for set operation, value is passed in uiParam
+				if (!PyObject_AsUINT(obParam, &uiParam))
+					goto done;
+			break;
+			
+		// below are not handled yet
+		// @flag SPI_SETDESKPATTERN|Unsupported (obsolete)
+		// @flag SPI_GETFASTTASKSWITCH|Unsupported (obsolete)
+		// @flag SPI_SETFASTTASKSWITCH|Unsupported (obsolete)
+		// @flag SPI_SETSCREENSAVERRUNNING|Unsupported (documented as internal use only)
+		// @flag SPI_SCREENSAVERRUNNING|Same as SPI_SETSCREENSAVERRUNNING
+		// @flag SPI_SETPENWINDOWS|Unsupported (only relevant for win95)
+		// @flag SPI_GETWINDOWSEXTENSION|Unsupported (only relevant for win95)
+		// @flag SPI_GETGRIDGRANULARITY|Unsupported (obsolete)
+		// @flag SPI_SETGRIDGRANULARITY|Unsupported (obsolete)
+		// @flag SPI_LANGDRIVER|Unsupported (use is not documented)
+		// @flag SPI_GETFONTSMOOTHINGORIENTATION|Unsupported (use is not documented)
+		// @flag SPI_SETFONTSMOOTHINGORIENTATION|Unsupported (use is not documented)
+		// @flag SPI_SETHANDHELD|Unsupported (use is not documented)
+		// @flag SPI_GETMINIMIZEDMETRICS|Not implemented yet
+		// @flag SPI_SETMINIMIZEDMETRICS|Not implemented yet
+		// @flag SPI_GETNONCLIENTMETRICS|Not implemented yet
+		// @flag SPI_SETNONCLIENTMETRICS|Not implemented yet
+		// @flag SPI_GETICONMETRICS|Not implemented yet
+		// @flag SPI_SETICONMETRICS|Not implemented yet
+		// @flag SPI_GETWORKAREA|Not implemented yet
+		// @flag SPI_SETWORKAREA|Not implemented yet
+		// @flag SPI_GETSERIALKEYS|Not implemented yet
+		// @flag SPI_SETSERIALKEYS|Not implemented yet
+		// @flag SPI_SETMOUSEKEYS|Not implemented yet
+		// @flag SPI_GETMOUSEKEYS|Not implemented yet
+		// @flag SPI_GETHIGHCONTRAST|Not implemented yet
+		// @flag SPI_SETHIGHCONTRAST|Not implemented yet
+		// @flag SPI_GETSOUNDSENTRY|Not implemented yet
+		// @flag SPI_SETSOUNDSENTRY|Not implemented yet
+		// @flag SPI_GETSTICKYKEYS|Not implemented yet
+		// @flag SPI_SETSTICKYKEYS|Not implemented yet
+		// @flag SPI_GETTOGGLEKEYS|Not implemented yet
+		// @flag SPI_SETTOGGLEKEYS|Not implemented yet
+		// @flag SPI_GETACCESSTIMEOUT|Not implemented yet
+		// @flag SPI_SETACCESSTIMEOUT|Not implemented yet
+		// @flag SPI_GETFILTERKEYS|Not implemented yet
+		// @flag SPI_SETFILTERKEYS|Not implemented yet
+		default:
+			PyErr_Format(PyExc_NotImplementedError, "Action %d is not supported yet", Action);
+			goto done;
+		}
+		
+	if (!SystemParametersInfo(Action, uiParam, pvParam, WinIni)){
+		PyWin_SetAPIError("SystemParametersInfo");
+		goto done;
+		}
+
+	switch (Action){
+		case SPI_GETDESKWALLPAPER:
+			ret=PyWinObject_FromTCHAR((TCHAR *)pvParam);
+			break;
+		case SPI_GETDROPSHADOW:
+		case SPI_GETFLATMENU:
+		case SPI_GETFONTSMOOTHING:
+		case SPI_GETICONTITLEWRAP:
+		case SPI_GETSNAPTODEFBUTTON:
+		case SPI_GETBEEP:
+		case SPI_GETBLOCKSENDINPUTRESETS:
+		case SPI_GETKEYBOARDCUES:
+		case SPI_GETKEYBOARDPREF:
+		case SPI_GETSCREENSAVEACTIVE:
+		case SPI_GETSCREENSAVERRUNNING:
+		case SPI_GETMENUDROPALIGNMENT:
+		case SPI_GETMENUFADE:
+		case SPI_GETLOWPOWERACTIVE:
+		case SPI_GETPOWEROFFACTIVE:
+		case SPI_GETCOMBOBOXANIMATION:
+		case SPI_GETCURSORSHADOW:
+		case SPI_GETGRADIENTCAPTIONS:
+		case SPI_GETHOTTRACKING:
+		case SPI_GETLISTBOXSMOOTHSCROLLING:
+		case SPI_GETMENUANIMATION:
+		case SPI_GETSELECTIONFADE:
+		case SPI_GETTOOLTIPANIMATION:
+		case SPI_GETTOOLTIPFADE:
+		case SPI_GETUIEFFECTS:
+		case SPI_GETACTIVEWINDOWTRACKING:
+		case SPI_GETACTIVEWNDTRKZORDER:
+		case SPI_GETDRAGFULLWINDOWS:    
+		case SPI_GETSHOWIMEUI:
+		case SPI_GETMOUSECLICKLOCK:
+		case SPI_GETMOUSESONAR:
+		case SPI_GETMOUSEVANISH:
+		case SPI_GETSCREENREADER:
+		case SPI_GETSHOWSOUNDS:
+			ret=PyBool_FromLong(boolParam);
+			break;
+		case SPI_GETFONTSMOOTHINGCONTRAST:
+		case SPI_GETFONTSMOOTHINGTYPE:
+		case SPI_GETMOUSETRAILS:
+		case SPI_GETWHEELSCROLLLINES:
+		case SPI_GETKEYBOARDDELAY:
+		case SPI_GETKEYBOARDSPEED:
+		case SPI_GETMOUSESPEED:
+		case SPI_GETMOUSEHOVERHEIGHT:
+		case SPI_GETMOUSEHOVERWIDTH:
+		case SPI_GETMOUSEHOVERTIME:
+		case SPI_GETSCREENSAVETIMEOUT:
+		case SPI_GETMENUSHOWDELAY:
+		case SPI_GETLOWPOWERTIMEOUT:
+		case SPI_GETPOWEROFFTIMEOUT:
+		case SPI_GETACTIVEWNDTRKTIMEOUT:
+		case SPI_GETBORDER:
+		case SPI_GETCARETWIDTH:
+		case SPI_GETFOREGROUNDFLASHCOUNT:
+		case SPI_GETFOREGROUNDLOCKTIMEOUT:
+		case SPI_GETFOCUSBORDERHEIGHT:
+		case SPI_GETFOCUSBORDERWIDTH:
+		case SPI_GETMOUSECLICKLOCKTIME:
+			ret=PyLong_FromUnsignedLong(uintParam);
+			break;
+		case SPI_GETDEFAULTINPUTLANG:
+			ret=PyLong_FromLong(longParam);
+			break;
+		case SPI_GETICONTITLELOGFONT:
+			ret=new PyLOGFONT((LOGFONT *)pvParam);
+			break;
+		case SPI_GETMOUSE:
+			ret=Py_BuildValue("kkk", ((UINT *)pvParam)[0], ((UINT *)pvParam)[1], ((UINT *)pvParam)[2]);
+			break;
+		case SPI_GETANIMATION:
+			ret=PyInt_FromLong(((ANIMATIONINFO *)pvParam)->iMinAnimate);
+			break;
+		// these 2 can be a get or set, use Param==Py_None to mean a get
+		case SPI_ICONHORIZONTALSPACING:
+		case SPI_ICONVERTICALSPACING:
+			if (obParam==Py_None)
+				ret=PyLong_FromUnsignedLong(uintParam);
+			else{
+				Py_INCREF(Py_None);
+				ret=Py_None;
+				}
+			break;
+
+		default:
+			Py_INCREF(Py_None);
+			ret=Py_None;
+		}
+
+	done:
+	switch (Action){
+		case SPI_GETDESKWALLPAPER:
+		case SPI_GETICONTITLELOGFONT:
+		case SPI_GETMOUSE:
+		case SPI_SETMOUSE:
+		case SPI_GETANIMATION:
+		case SPI_SETANIMATION:
+			if (pvParam!=NULL)
+				free(pvParam);
+			break;
+		case SPI_SETDESKWALLPAPER:
+			PyWinObject_FreeTCHAR((TCHAR *)pvParam);
+			break;
+		}
+	return ret;
+}
+PyCFunction pfnPySystemParametersInfo=(PyCFunction)PySystemParametersInfo;
 %}
