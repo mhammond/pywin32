@@ -59,6 +59,9 @@ static PFNSHGetSettings pfnSHGetSettings = NULL;
 typedef HRESULT (WINAPI * PFNSHGetFolderPath)(HWND, int, HANDLE, DWORD, LPWSTR);
 static PFNSHGetFolderPath pfnSHGetFolderPath = NULL;
 
+typedef HRESULT (WINAPI *PFNSHSetFolderPath)(int, HANDLE, DWORD, LPCWSTR);
+static PFNSHSetFolderPath pfnSHSetFolderPath = NULL;
+
 typedef HRESULT (WINAPI *PFNSHQueryRecycleBin)(LPCWSTR, LPSHQUERYRBINFO);
 static PFNSHQueryRecycleBin pfnSHQueryRecycleBin = NULL;
 
@@ -70,6 +73,9 @@ static PFNSHILCreateFromPath pfnSHILCreateFromPath = NULL;
 
 typedef HRESULT (WINAPI * PFNAssocCreate)(CLSID, REFIID, LPVOID);
 static PFNAssocCreate pfnAssocCreate = NULL;
+
+typedef LRESULT (WINAPI *PFNSHShellFolderView_Message)(HWND, UINT, LPARAM);
+static PFNSHShellFolderView_Message pfnSHShellFolderView_Message = NULL;
 
 void PyShell_FreeMem(void *p)
 {
@@ -1133,6 +1139,39 @@ static PyObject *PySHGetFolderPath(PyObject *self, PyObject *args)
 	return PyWinObject_FromWCHAR(buf);
 }
 
+// @pymethod |shell|SHSetFolderPath|Sets the location of one of the special folders
+// @comm This function is only available on Windows 2000 or later
+static PyObject *PySHSetFolderPath(PyObject *self, PyObject *args)
+{	
+	int csidl;
+	HANDLE hToken;
+	DWORD Flags=0;	// Flags is reserved
+	PyObject *obToken=Py_None, *obPath;
+	WCHAR *Path;
+
+	if (pfnSHSetFolderPath==NULL)
+		return OleSetOleError(E_NOTIMPL);
+	if(!PyArg_ParseTuple(args, "lO|O:SHSetFolderPath",
+		&csidl,		// @pyparm int|csidl||One of the shellcon.CSIDL_* values
+		&obPath,	// @pyparm str/unicode|Path||The full path to be set
+		&obToken))	// @pyparm <o PyHANDLE>|hToken|None|Handle to an access token, can be None 
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obToken, &hToken, TRUE))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obPath, &Path, FALSE))
+		return NULL;
+
+	PY_INTERFACE_PRECALL;
+	HRESULT hr = (*pfnSHSetFolderPath)(csidl, hToken, Flags, Path);
+	PY_INTERFACE_POSTCALL;
+
+	PyWinObject_FreeWCHAR(Path);
+	if (FAILED(hr))
+		return OleSetOleError(hr);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 // @pymethod <o PyIDL>|shell|SHGetFolderLocation|Retrieves the PIDL of a folder.
 static PyObject *PySHGetFolderLocation(PyObject *self, PyObject *args)
 {
@@ -1255,7 +1294,7 @@ static PyObject *PySHFileOperation(PyObject *self, PyObject *args)
 // @pymethod <o PyIShellFolder>|shell|SHGetDesktopFolder|Retrieves the <o PyIShellFolder> interface for the desktop folder, which is the root of the shell's namespace. 
 static PyObject *PySHGetDesktopFolder(PyObject *self, PyObject *args)
 {
-	if (!PyArg_ParseTuple(args, ":SHGetPathFromIDList"))
+	if (!PyArg_ParseTuple(args, ":SHGetDesktopFolder"))
 		return NULL;
 	IShellFolder *psf;
 	PY_INTERFACE_PRECALL;
@@ -1273,10 +1312,10 @@ static PyObject *PySHUpdateImage(PyObject *self, PyObject *args)
 	UINT flags;
 	int index, imageIndex;
 	if(!PyArg_ParseTuple(args, "Oiii:SHUpdateImage", 
-			&obHash, 
-			&index, 
-			&flags, 
-			&imageIndex))
+			&obHash,		// @pyparm string|HashItem||Full path of file containing the icon as returned by <om PyIExtractIcon.GetIconLocation>
+			&index,			// @pyparm int|Index||Index of the icon in the above file
+			&flags,			// @pyparm int|Flags||GIL_NOTFILENAME or GIL_SIMULATEDOC
+			&imageIndex))	// @pyparm int|ImageIndex||Index of the icon in the system image list
 		return NULL;
 
 	TCHAR *szHash;
@@ -1297,10 +1336,11 @@ static PyObject *PySHChangeNotify(PyObject *self, PyObject *args)
 	UINT flags;
 	PyObject *ob1, *ob2 = Py_None;
 	if(!PyArg_ParseTuple(args, "iiO|O:SHChangeNotify", 
-			&wEventID, 
-			&flags, 
-			&ob1, 
-			&ob2))
+			&wEventID,	// @pyparm int|EventId||Combination of shellcon.SHCNE_* constants
+			&flags,		// @pyparm int|Flags||Combination of shellcon.SHCNF_* constants that specify type of last 2 parameters
+						// Only one of the type flags may be specified, combined with one of the SHCNF_FLUSH* flags
+			&ob1,		// @pyparm object|Item1||Type is dependent on the event to be signalled
+			&ob2))		// @pyparm object|Item2||Type is dependent on the event to be signalled
 		return NULL;
 
 	void *p1, *p2;
@@ -2069,6 +2109,7 @@ static PyObject *PySHILCreateFromPath(PyObject *self, PyObject *args)
 	return Py_BuildValue("Nk", obpidl, flags);
 }
 
+
 /* List of module functions */
 // @module shell|A module, encapsulating the ActiveX Control interfaces
 static struct PyMethodDef shell_methods[]=
@@ -2080,7 +2121,8 @@ static struct PyMethodDef shell_methods[]=
     { "SHBrowseForFolder",    PySHBrowseForFolder, 1 }, // @pymeth SHBrowseForFolder|Displays a dialog box that enables the user to select a shell folder.
 	{ "SHGetFileInfo",        PySHGetFileInfo, 1}, // @pymeth SHGetFileInfo|Retrieves information about an object in the file system, such as a file, a folder, a directory, or a drive root.
     { "SHGetFolderPath", PySHGetFolderPath, 1 }, // @pymeth SHGetFolderPath|Retrieves the path of a folder.
-    { "SHGetFolderLocation", PySHGetFolderLocation, 1 }, // @pymeth SHGetFolderLocation|Retrieves the <o PyIDL> of a folder.
+    { "SHSetFolderPath", PySHSetFolderPath, 1 }, // @pymeth SHSetFolderPath|Sets the location of a special folder
+	{ "SHGetFolderLocation", PySHGetFolderLocation, 1 }, // @pymeth SHGetFolderLocation|Retrieves the <o PyIDL> of a folder.
     { "SHGetSpecialFolderPath", PySHGetSpecialFolderPath, 1 }, // @pymeth SHGetSpecialFolderPath|Retrieves the path of a special folder.
     { "SHGetSpecialFolderLocation", PySHGetSpecialFolderLocation, 1 }, // @pymeth SHGetSpecialFolderLocation|Retrieves the <o PyIDL> of a special folder.
     { "SHAddToRecentDocs", PySHAddToRecentDocs, 1 }, // @pymeth SHAddToRecentDocs|Adds a document to the shell's list of recently used documents or clears all documents from the list. The user gains access to the list through the Start menu of the Windows taskbar.
@@ -2188,7 +2230,10 @@ extern "C" __declspec(dllexport) void initshell()
 		pfnSHQueryRecycleBin = (PFNSHQueryRecycleBin)GetProcAddress(shell32, "SHQueryRecycleBinW");
 		pfnSHGetSettings = (PFNSHGetSettings)GetProcAddress(shell32, "SHGetSettings");
 		pfnSHGetFolderPath=(PFNSHGetFolderPath)GetProcAddress(shell32, "SHGetFolderPathW");
+		// For some reason, SHSetFolderPath is only exported by ordinal SHSetFolderPathA is 231
+		pfnSHSetFolderPath=(PFNSHSetFolderPath)GetProcAddress(shell32, (LPCSTR)232);
 		pfnSHILCreateFromPath=(PFNSHILCreateFromPath)GetProcAddress(shell32, "SHILCreateFromPath");
+		pfnSHShellFolderView_Message=(PFNSHShellFolderView_Message)GetProcAddress(shell32, "SHShellFolderView_Message");
 		}
 	// SHGetFolderPath comes from shfolder.dll on older systems
 	if (pfnSHGetFolderPath==NULL){
