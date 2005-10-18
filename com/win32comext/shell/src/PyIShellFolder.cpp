@@ -26,18 +26,22 @@ PyIShellFolder::~PyIShellFolder()
 	return (IShellFolder *)PyIUnknown::GetI(self);
 }
 
-// @pymethod |PyIShellFolder|ParseDisplayName|Description of ParseDisplayName.
-// @rdesc The result is a tuple of cchEaten, pidl, attr.
-// cchEaten will have been initialized to -1, and may or may not be changed
-// for the return value.
+// @pymethod tuple|PyIShellFolder|ParseDisplayName|Returns the PIDL of an item in a shell folder
+// @rdesc The result is a tuple of cchEaten, pidl, attr
+// @tupleitem 0|int|cchEaten|the number of characters of the input name that were parsed
+// @tupleitem 1|<o PyIDL>|pidl|specifies the relative path from the parsing folder to the object
+// @tupleitem 2|int|Attributes|returns any requested attributes
 PyObject *PyIShellFolder::ParseDisplayName(PyObject *self, PyObject *args)
 {
 	IShellFolder *pISF = GetI(self);
 	if ( pISF == NULL )
 		return NULL;
-	// @pyparm HWND|hwndOwner||Description for hwndOwner
-	// @pyparm <o PyIBindCtx>|pbcReserved||Description for pbcReserved
-	// @pyparm <o unicode>|lpszDisplayName||Description for lpszDisplayName
+	// @pyparm HWND|hwndOwner||Window in which to display any dialogs or message boxes, can be 0
+	// @pyparm <o PyIBindCtx>|pbc||Bind context that affects how parsing is performed, can be None
+	// @pyparm <o PyUNICODE>|DisplayName||Display name to parse, format is dependent on the shell folder.
+	// Desktop folder will accept a file path, as well as guids of the form ::{guid}
+	// Example: '::%s\\::%s' %(shell.CLSID_MyComputer,shell.CLSID_ControlPanel)
+	// @pyparm int|Attributes|0|Combination of shellcon.SFGAO_* constants specifying which attributes should be returned
 	PyObject *obpbcReserved;
 	PyObject *oblpszDisplayName;
 	HWND hwndOwner;
@@ -46,7 +50,7 @@ PyObject *PyIShellFolder::ParseDisplayName(PyObject *self, PyObject *args)
 	ULONG pchEaten = (ULONG)-1;
 	ITEMIDLIST *ppidl;
 	ULONG pdwAttributes = 0;
-	if ( !PyArg_ParseTuple(args, "lOO|l:ParseDisplayName", &hwndOwner, &obpbcReserved,
+	if ( !PyArg_ParseTuple(args, "lOO|k:ParseDisplayName", &hwndOwner, &obpbcReserved,
 						   &oblpszDisplayName, &pdwAttributes) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
@@ -73,14 +77,14 @@ PyObject *PyIShellFolder::ParseDisplayName(PyObject *self, PyObject *args)
 	return pyretval;
 }
 
-// @pymethod |PyIShellFolder|EnumObjects|Description of EnumObjects.
+// @pymethod <o PyIEnumIDList>|PyIShellFolder|EnumObjects|Creates an enumerator to list the contents of the shell folder
 PyObject *PyIShellFolder::EnumObjects(PyObject *self, PyObject *args)
 {
 	IShellFolder *pISF = GetI(self);
 	if ( pISF == NULL )
 		return NULL;
-	// @pyparm HWND|hwndOwner|0|Description for hwndOwner
-	// @pyparm int|grfFlags|SHCONTF_FOLDERS\|SHCONTF_NONFOLDERS\|SHCONTF_INCLUDEHIDDEN|Description for grfFlags
+	// @pyparm HWND|hwndOwner|0|Window to use if any user interaction is required
+	// @pyparm int|grfFlags|SHCONTF_FOLDERS\|SHCONTF_NONFOLDERS\|SHCONTF_INCLUDEHIDDEN|Combination of shellcon.SHCONTF_* constants
 	HWND hwndOwner = 0;
 	DWORD grfFlags = SHCONTF_FOLDERS|SHCONTF_NONFOLDERS|SHCONTF_INCLUDEHIDDEN;
 	IEnumIDList * ppeidl;
@@ -98,15 +102,15 @@ PyObject *PyIShellFolder::EnumObjects(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(ppeidl, IID_IEnumIDList, FALSE);
 }
 
-// @pymethod |PyIShellFolder|BindToObject|Description of BindToObject.
+// @pymethod <o PyIShellFolder>|PyIShellFolder|BindToObject|Returns an IShellFolder interface for a subfolder
 PyObject *PyIShellFolder::BindToObject(PyObject *self, PyObject *args)
 {
 	IShellFolder *pISF = GetI(self);
 	if ( pISF == NULL )
 		return NULL;
-	// @pyparm <o PyIDL>|pidl||Description for pidl
-	// @pyparm <o PyIBindCtx>|pbcReserved||Description for pbcReserved
-	// @pyparm <o PyIID>|riid||Description for riid
+	// @pyparm <o PyIDL>|pidl||Relative item id list that identifies the subfolder, can be multi-level
+	// @pyparm <o PyIBindCtx>|pbc||Bind context to be used, can be None
+	// @pyparm <o PyIID>|riid||IID of the desired interface, usually IID_IShellFolder
 	PyObject *obpidl;
 	PyObject *obpbcReserved;
 	PyObject *obriid;
@@ -121,7 +125,7 @@ PyObject *PyIShellFolder::BindToObject(PyObject *self, PyObject *args)
 	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obpbcReserved, IID_IBindCtx, (void **)&pbcReserved, TRUE /* bNoneOK */))
 		 bPythonIsHappy = FALSE;
 	if (!PyWinObject_AsIID(obriid, &riid)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!bPythonIsHappy) return NULL;	// this could leak the pidl
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISF->BindToObject( pidl, pbcReserved, riid, &out );
@@ -136,15 +140,16 @@ PyObject *PyIShellFolder::BindToObject(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown((IUnknown *)out, riid, FALSE);
 }
 
-// @pymethod |PyIShellFolder|BindToStorage|Description of BindToStorage.
+// @pymethod interface|PyIShellFolder|BindToStorage|Returns an interface to a storage object in a shell folder
+// @rdesc Returns <o PyIStream>, <o PyIStorage> or <o PyIPropertySetStorage> depending on the riid passed in
 PyObject *PyIShellFolder::BindToStorage(PyObject *self, PyObject *args)
 {
 	IShellFolder *pISF = GetI(self);
 	if ( pISF == NULL )
 		return NULL;
-	// @pyparm <o PyIDL>|pidl||Description for pidl
-	// @pyparm <o PyIBindCtx>|pbcReserved||Description for pbcReserved
-	// @pyparm <o PyIID>|riid||Description for riid
+	// @pyparm <o PyIDL>|pidl||Relative pidl for the folder item, must be a single item id
+	// @pyparm <o PyIBindCtx>|pbc||Bind context that affects how binding is performed, can be None
+	// @pyparm <o PyIID>|riid||IID of the desired interface, one of IID_IStream, IID_IStorage, IID_IPropertySetStorage 
 	PyObject *obpidl;
 	PyObject *obpbcReserved;
 	PyObject *obriid;
@@ -174,47 +179,49 @@ PyObject *PyIShellFolder::BindToStorage(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown((IUnknown *)out, riid, FALSE);
 }
 
-// @pymethod int|PyIShellFolder|CompareIDs|Description of CompareIDs.
+// @pymethod int|PyIShellFolder|CompareIDs|Determines the sorting order of 2 items in shell folder
+// @rdesc Returns 0 if items compare equal, -1 if the pidl1 comes first, or 1 if pidl2 comes first
 PyObject *PyIShellFolder::CompareIDs(PyObject *self, PyObject *args)
 {
 	IShellFolder *pISF = GetI(self);
 	if ( pISF == NULL )
 		return NULL;
-	// @pyparm int|lparam||Description for lparam
-	// @pyparm <o PyIDL>|pidl1||Description for pidl1
-	// @pyparm <o PyIDL>|pidl2||Description for pidl2
+	// @pyparm int|lparam||Lower 16 bits specify folder-dependent sorting rules, 0 means to sort by display name.
+	// System folder view uses these as a column number.<nl>
+	// Upper sixteen bits is used for flags SHCIDS_ALLFIELDS or SHCIDS_CANONICALONLY 
+	// @pyparm <o PyIDL>|pidl1||Item id list that idenfies an object relative to the folder
+	// @pyparm <o PyIDL>|pidl2||Item id list that idenfies an object relative to the folder
 	PyObject *obpidl1;
 	PyObject *obpidl2;
+	PyObject *ret=NULL;
 	long lparam;
-	ITEMIDLIST *pidl1;
-	ITEMIDLIST *pidl2;
-	if ( !PyArg_ParseTuple(args, "lOO:CompareIDs", &lparam, &obpidl1, &obpidl2) )
+	ITEMIDLIST *pidl1=NULL;
+	ITEMIDLIST *pidl2=NULL;
+	if ( !PyArg_ParseTuple(args, "kOO:CompareIDs", &lparam, &obpidl1, &obpidl2) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsPIDL(obpidl1, &pidl1)) bPythonIsHappy = FALSE;
-	if (bPythonIsHappy && !PyObject_AsPIDL(obpidl2, &pidl2)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISF->CompareIDs( lparam, pidl1, pidl2 );
+
+	if (PyObject_AsPIDL(obpidl1, &pidl1) &&
+		PyObject_AsPIDL(obpidl2, &pidl2)){
+		HRESULT hr;
+		PY_INTERFACE_PRECALL;
+		hr = pISF->CompareIDs( lparam, pidl1, pidl2 );
+		PY_INTERFACE_POSTCALL;
+		if ( FAILED(hr) )
+			PyCom_BuildPyException(hr, pISF, IID_IShellFolder );
+		else // special handling of hresult
+			if ((short)HRESULT_CODE(hr) < 0)
+				/* pidl1 comes first */
+				ret=PyInt_FromLong(-1);
+			else if ((short)HRESULT_CODE(hr) > 0) 
+				/* pidl2 comes first */
+				ret=PyInt_FromLong(1);
+			else 
+			/* the two pidls are equal */
+				ret=PyInt_FromLong(0);
+		}
 	PyObject_FreePIDL(pidl1);
 	PyObject_FreePIDL(pidl2);
-
-	PY_INTERFACE_POSTCALL;
-
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISF, IID_IShellFolder );
-
-	// special handling of hresult
-	if ((short)HRESULT_CODE(hr) < 0)
-		/* pidl1 comes first */
-		return PyInt_FromLong(-1);
-	else if ((short)HRESULT_CODE(hr) > 0) 
-		/* pidl2 comes first */
-		return PyInt_FromLong(1);
-	else 
-	/* the two pidls are equal */
-		return PyInt_FromLong(0);
+	return ret;
 }
 
 // @pymethod |PyIShellFolder|CreateViewObject|Description of CreateViewObject.

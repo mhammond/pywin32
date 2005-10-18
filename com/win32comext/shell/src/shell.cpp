@@ -79,22 +79,13 @@ static PFNSHShellFolderView_Message pfnSHShellFolderView_Message = NULL;
 
 void PyShell_FreeMem(void *p)
 {
-	IMalloc *pMalloc;
-	if (p && SHGetMalloc(&pMalloc)==S_OK) {
-		pMalloc->Free(p);
-		pMalloc->Release();
-	}
+	if (p!=NULL)
+		CoTaskMemFree(p);
 }
 
 void *PyShell_AllocMem(ULONG cb)
 {
-	IMalloc *pMalloc;
-	if (SHGetMalloc(&pMalloc)==S_OK) {
-		void *rc = pMalloc->Alloc(cb);
-		pMalloc->Release();
-		return rc;
-	}
-	return NULL;
+	return CoTaskMemAlloc(cb);
 }
 
 // Some magic hackery macros :-)
@@ -118,8 +109,6 @@ UINT PyShell_ILGetSize(LPCITEMIDLIST pidl)
 PyObject *PyObject_FromPIDL(LPCITEMIDLIST pidl, BOOL bFreeSystemPIDL)
 {
 	if (pidl==NULL) {
-		if (bFreeSystemPIDL)
-			PyShell_FreeMem( (void *)pidl);
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
