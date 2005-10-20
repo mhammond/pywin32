@@ -882,6 +882,38 @@ static PyObject *pythoncom_CreateFileMoniker(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(pmk, IID_IMoniker, FALSE);
 }
 
+// @pymethod <o PyIMoniker>|pythoncom|CreateItemMoniker|Creates an item moniker
+// that identifies an object within a containing object (typically a compound document).
+static PyObject *pythoncom_CreateItemMoniker(PyObject *self, PyObject *args)
+{
+	PyObject *obDelim, *obItem;
+	// @pyparm string|delim||String containing the delimiter (typically "!") used to separate this item's display name from the display name of its containing object.
+	// @pyparm string|item||String indicating the containing object's name for the object being identified. 
+	if ( !PyArg_ParseTuple(args, "OO:CreateItemMoniker", &obDelim, &obItem) )
+		return NULL;
+
+	BSTR bstrDelim, bstrItem;
+	if (!PyWinObject_AsBstr(obDelim, &bstrDelim, TRUE))
+		return NULL;
+
+	if (!PyWinObject_AsBstr(obItem, &bstrItem, FALSE)) {
+		PyWinObject_FreeBstr(bstrDelim);
+		return NULL;
+	}
+
+	IMoniker *pmk;
+	PY_INTERFACE_PRECALL;
+	HRESULT hr = CreateItemMoniker(bstrDelim, bstrItem, &pmk);
+	PY_INTERFACE_POSTCALL;
+	PyWinObject_FreeBstr(bstrDelim);
+	PyWinObject_FreeBstr(bstrItem);
+
+	if ( FAILED(hr) )
+		return PyCom_BuildPyException(hr);
+
+	return PyCom_PyObjectFromIUnknown(pmk, IID_IMoniker, FALSE);
+}
+
 // @pymethod <o PyIID>|pythoncom|GetClassFile|Supplies the CLSID associated with the given filename.
 static PyObject *pythoncom_GetClassFile(PyObject *self, PyObject *args)
 {
@@ -1119,6 +1151,42 @@ static PyObject *pythoncom_CoCreateFreeThreadedMarshaler(PyObject *self, PyObjec
 }
 
 #endif // MS_WINCE
+
+// @pymethod <o PyIUnknown>|pythoncom|CoGetObject|Converts a display name into a moniker that identifies the object named, and then binds to the object identified by the moniker. 
+static PyObject *pythoncom_CoGetObject(PyObject *self, PyObject*args)
+{
+	PyObject *obName;
+	PyObject *obBindOpts = Py_None;
+	PyObject *obIID = Py_None;
+	if (!PyArg_ParseTuple(args, "O|OO:CoGetObject", 
+			&obName, // @pyparm string|name||
+			&obBindOpts, // @pyparm None|bindOpts||Must be None
+			&obIID )) // @pyparm <o PyIID>|iid||The IID if the interface to unmarshal.
+		return NULL;
+
+	if (obBindOpts != Py_None)
+		return PyErr_Format(PyExc_ValueError, "BindOptions must be None");
+
+	IID iid;
+	if (obIID == Py_None)
+		iid = IID_IUnknown;
+	else {
+		if (!PyWinObject_AsIID(obIID, &iid))
+			return NULL;
+	}
+
+	PyWin_AutoFreeBstr name;
+	if (!PyWinObject_AsAutoFreeBstr(obName, &name))
+		return NULL;
+
+	IUnknown *pUnk;
+	PY_INTERFACE_PRECALL;
+	HRESULT hr = CoGetObject(name, NULL, iid, (void **)&pUnk);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	return PyCom_PyObjectFromIUnknown(pUnk, iid, /*BOOL bAddRef*/ FALSE);
+}
 
 // @pymethod |pythoncom|OleLoad|Loads into memory an object nested within a specified storage object.
 static PyObject *pythoncom_OleLoad(PyObject *self, PyObject* args)
@@ -1579,6 +1647,7 @@ static struct PyMethodDef pythoncom_methods[]=
 	{ "CoGetInterfaceAndReleaseStream", pythoncom_CoGetInterfaceAndReleaseStream, 1}, // @pymeth CoGetInterfaceAndReleaseStream|Unmarshals a buffer containing an interface pointer and releases the stream when an interface pointer has been marshaled from another thread to the calling thread.
 	{ "CoMarshalInterThreadInterfaceInStream", pythoncom_CoMarshalInterThreadInterfaceInStream, 1}, // @pymeth CoMarshalInterThreadInterfaceInStream|Marshals an interface pointer from one thread to another thread in the same process.
 #endif // MS_WINCE
+	{ "CoGetObject",         pythoncom_CoGetObject, 1}, // @pymeth CoGetObject|Converts a display name into a moniker that identifies the object named, and then binds to the object identified by the moniker. 
 	{ "CoUninitialize",      pythoncom_CoUninitialize, 1 },		   // @pymeth CoUninitialize|Uninitialize the COM libraries.
 #ifndef MS_WINCE
 	{ "CoRegisterClassObject",pythoncom_CoRegisterClassObject, 1 },// @pymeth CoRegisterClassObject|Registers an EXE class object with OLE so other applications can connect to it.
@@ -1591,6 +1660,7 @@ static struct PyMethodDef pythoncom_methods[]=
 	{ "CreateGuid",          pythoncom_createguid, 1 },          // @pymeth CreateGuid|Creates a new, unique GUIID.
 	{ "CreateBindCtx",       pythoncom_CreateBindCtx, 1 },       // @pymeth CreateBindCtx|Obtains a <o PyIBindCtx> object.
 	{ "CreateFileMoniker",   pythoncom_CreateFileMoniker, 1 }, // @pymeth CreateFileMoniker|Creates a file moniker given a file name.
+	{ "CreateItemMoniker",   pythoncom_CreateItemMoniker, 1 }, // @pymeth CreateItemMoniker|Creates an item moniker that identifies an object within a containing object (typically a compound document).
 	{ "CreatePointerMoniker", pythoncom_CreatePointerMoniker, 1 }, // @pymeth CreatePointerMoniker|Creates a pointer moniker based on a pointer to an object.
 	{ "CreateTypeLib",       pythoncom_CreateTypeLib, 1}, // @pymeth CreateTypeLib|Provides access to a new object instance that supports the ICreateTypeLib interface.
 	{ "CreateTypeLib2",       pythoncom_CreateTypeLib2, 1}, // @pymeth CreateTypeLib2|Provides access to a new object instance that supports the ICreateTypeLib2 interface.
@@ -1908,6 +1978,9 @@ extern "C" __declspec(dllexport) void initpythoncom()
 	ADD_CONSTANT(REGCLS_MULTI_SEPARATE);
 	ADD_CONSTANT(REGCLS_SUSPENDED);
 
+	// ROT
+	ADD_CONSTANT(ROTFLAGS_REGISTRATIONKEEPSALIVE);
+	ADD_CONSTANT(ROTFLAGS_ALLOWANYCLIENT);
 	// RPC
 	ADD_CONSTANT(RPC_C_AUTHN_LEVEL_NONE); // RPC_C_AUTHN_LEVEL_NONE|Performs no authentication. 
 	ADD_CONSTANT(RPC_C_AUTHN_LEVEL_CONNECT); // RPC_C_AUTHN_LEVEL_CONNECT|Authenticates only when the client establishes a relationship with the server. Datagram transports always use RPC_AUTHN_LEVEL_PKT instead. 
