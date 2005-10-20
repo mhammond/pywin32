@@ -91,9 +91,62 @@ PyObject *PyIRunningObjectTable::EnumRunning(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(pEnumMoniker, IID_IEnumMoniker, FALSE);
 }
 
+// @pymethod int|PyIRunningObjectTable|Register|Registers an object and its identifying moniker in the Running Object Table (ROT). 
+PyObject *PyIRunningObjectTable::Register(PyObject *self, PyObject *args)
+{
+	PyObject *obUnk, *obMk;
+	int flags;
+	if (!PyArg_ParseTuple(args, "iOO:Register", &flags, &obUnk, &obMk))
+		return NULL;
+
+	IRunningObjectTable *pMy = GetI(self);
+	if (pMy==NULL) return NULL;
+
+	IUnknown *pUnknown;
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obUnk, IID_IUnknown, (void **)&pUnknown, FALSE))
+		return NULL;
+
+	IMoniker *pMoniker;
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obMk, IID_IMoniker, (void **)&pMoniker, FALSE)) {
+		pUnknown->Release();
+		return NULL;
+	}
+	DWORD tok;
+	PY_INTERFACE_PRECALL;
+	HRESULT hr = pMy->Register(flags, pUnknown, pMoniker, &tok);
+	pMoniker->Release();
+	pUnknown->Release();
+	PY_INTERFACE_POSTCALL;
+	if (S_OK!=hr) // S_OK only acceptable
+		return PyCom_BuildPyException(hr, pMy, IID_IRunningObjectTable);
+	return PyInt_FromLong(tok);	
+}
+
+// @pymethod int|PyIRunningObjectTable|Revoke|Removes from the Running Object Table
+// (ROT) an entry that was previously registered by a call to <om PyIRunningObjectTable.Register>.
+PyObject *PyIRunningObjectTable::Revoke(PyObject *self, PyObject *args)
+{
+	int tok;
+	if (!PyArg_ParseTuple(args, "i:Revoke", &tok))
+		return NULL;
+
+	IRunningObjectTable *pMy = GetI(self);
+	if (pMy==NULL) return NULL;
+
+	PY_INTERFACE_PRECALL;
+	HRESULT hr = pMy->Revoke(tok);
+	PY_INTERFACE_POSTCALL;
+	if (S_OK!=hr) // S_OK only acceptable
+		return PyCom_BuildPyException(hr, pMy, IID_IRunningObjectTable);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+	
 // @object PyIRunningObjectTable|A Python interface to IRunningObjectTable
 static struct PyMethodDef PyIRunningObjectTable_methods[] =
 {
+	{"Register",          PyIRunningObjectTable::Register,  1}, // @pymeth Register|Registers an object in the ROT
+	{"Revoke",            PyIRunningObjectTable::Revoke,  1}, // @pymeth Revoke|Revokes a previously registered object
 	{"IsRunning",         PyIRunningObjectTable::IsRunning,  1}, // @pymeth IsRunning|Checks whether an object is running.
 	{"GetObject",         PyIRunningObjectTable::GetObject,  1}, // @pymeth GetObject|Checks whether an object is running.
 	{"EnumRunning",       PyIRunningObjectTable::EnumRunning,  1}, // @pymeth EnumRunning|Creates an enumerator that can list the monikers of all the objects currently registered in the Running Object Table (ROT).
