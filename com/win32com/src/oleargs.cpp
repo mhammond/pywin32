@@ -147,7 +147,7 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 		V_VT(var) = VT_ERROR;
 		V_ERROR(var) = DISP_E_PARAMNOTFOUND;
 	}
-	else if (PyTime_Check(obj))
+	else if (PyTime_Check(obj) || PyObject_HasAttrString(obj, "timetuple"))
 	{
 		V_VT(var) = VT_DATE;
 		PyWinObject_AsDATE(obj, &(V_DATE(var)));
