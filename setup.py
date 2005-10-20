@@ -1,4 +1,4 @@
-build_id="204.2"
+build_id="204.3"
 # Putting buildno at the top prevents automatic __doc__ assignment, and
 # I *want* the build number at the top :)
 __doc__="""This is a distutils setup-script for the pywin32 extensions
@@ -23,11 +23,9 @@ The 'mapi' and 'exchange' extensions require the Exchange 2000 SDK from:
     where guid is 4afe3504-c209-4a73-ac5d-ff2a4a3b48b7
 Just install it - this setup script will automatically locate it.
 
-The 'axdebug' extension requires Active Debugging dev files available from:
-  http://support.microsoft.com/default.aspx?kbid=223389
-Download Scriptng.exe, unpack the files to a temporary directory and manually
-copy the .h and .lib files to your Platform SDK installation's include
-and lib directories, respectively -- overwriting some files of the same name.
+Note: 'axdebug' appears to work with recent Platform SDKs, with no
+additional software needed.  It is probably necessary to select an appropriate
+"sub" SDK, but its not clear exactly which one yet (I just grabbed them all!)
 
 To install the pywin32 extensions, execute:
   python setup.py -q install
@@ -60,7 +58,7 @@ import re
 import _winreg
 
 pywin32_version='.'.join(sys.version.split('.')[:2])+'.'+build_id
-print pywin32_version
+print "Building pywin32", pywin32_version
 
 # Python 2.2 has no True/False
 try:
@@ -371,7 +369,7 @@ class my_build(build):
                 v.ensure_value('product','Pywin32')
                 v.ensure_value('dll',None)
                 v.ensure_value('debug',None)
-                v.ensure_value('verbose','1')
+                v.ensure_value('verbose','-v' in sys.argv)
                 for dirname, subdirs, fnames in os.walk(self.build_base):
                     for fname in fnames:
                         if os.path.splitext(fname)[1].lower() in ('.dll','.exe','.pyd'):
@@ -1057,7 +1055,7 @@ com_extensions += [
     # module for details on getting it built.
     WinExt_win32com('axdebug',
             dsp_file=r"com\Active Debugging.dsp",
-            libraries="axscript ad1",
+            libraries="axscript",
             pch_header = "stdafx.h",
             optional_headers = ["activdbg.h"],
     ),
