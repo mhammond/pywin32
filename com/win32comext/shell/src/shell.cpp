@@ -2223,7 +2223,7 @@ extern "C" __declspec(dllexport) void initshell()
 		pfnSHSetFolderPath=(PFNSHSetFolderPath)GetProcAddress(shell32, (LPCSTR)232);
 		pfnSHILCreateFromPath=(PFNSHILCreateFromPath)GetProcAddress(shell32, "SHILCreateFromPath");
 		pfnSHShellFolderView_Message=(PFNSHShellFolderView_Message)GetProcAddress(shell32, "SHShellFolderView_Message");
-		}
+	}
 	// SHGetFolderPath comes from shfolder.dll on older systems
 	if (pfnSHGetFolderPath==NULL){
 		shfolder = GetModuleHandle(TEXT("shfolder.dll"));
@@ -2231,15 +2231,15 @@ extern "C" __declspec(dllexport) void initshell()
 			shfolder = LoadLibrary(TEXT("shfolder.dll"));
 		if (shfolder!=NULL)
 			pfnSHGetFolderPath=(PFNSHGetFolderPath)GetProcAddress(shfolder, "SHGetFolderPathW");
-		}
+	}
 
-	shlwapi=GetModuleHandle(TEXT("shlwapi"));
+	shlwapi=GetModuleHandle(TEXT("shlwapi.dll"));
 	if (shlwapi==NULL)
-		shlwapi=LoadLibrary(TEXT("shlwapi"));
+		shlwapi=LoadLibrary(TEXT("shlwapi.dll"));
 	if (shlwapi!=NULL){
 		pfnSHGetViewStatePropertyBag=(PFNSHGetViewStatePropertyBag)GetProcAddress(shlwapi, "SHGetViewStatePropertyBag");
 		pfnAssocCreate=(PFNAssocCreate)GetProcAddress(shlwapi, "AssocCreate");
-		}
+	}
 
 	ADD_CONSTANT(SLR_NO_UI);
 	ADD_CONSTANT(SLR_NOLINKINFO);
