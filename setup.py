@@ -948,6 +948,7 @@ for info in (
         ("win32wnet", "netapi32 mpr", False),
         ("win32inet", "wininet", False),
         ("win32console", "kernel32", True, 0x0501, "win32/src/win32consolemodule.cpp"),
+        ("_win32sysloader", "", False, 0x0501, "win32/src/_win32sysloader.cpp"),
     ):
 
     name, lib_names, is_unicode = info[:3]
