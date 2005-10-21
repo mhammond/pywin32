@@ -860,6 +860,52 @@ orig_new_compiler = ccompiler.new_compiler
 ccompiler.new_compiler = my_new_compiler
 
 class my_compiler(msvccompiler.MSVCCompiler):
+    def link(self,
+              target_desc,
+              objects,
+              output_filename,
+              output_dir=None,
+              libraries=None,
+              library_dirs=None,
+              runtime_library_dirs=None,
+              export_symbols=None,
+              debug=0, *args, **kw):
+        # Oh joy of joys.  With latest platform SDKs, VC6 is unable to link
+        # debug mode projects.  So we use the VC7 linker.
+        old_linker = None
+        if debug and sys.hexversion < 0x02040000:
+            # msvc compiler uses __ prefix on attributes, making it hard
+            # to patch things up. So we get tricky, creating a new compiler
+            # after tricking distutils into thinking we are a later version.
+            save_env = {}
+            for key in "LIB INCLUDE PATH".split():
+                save_env[key] = os.environ[key]
+            def hack_get_build_version():
+                return 7.1
+            gbv = msvccompiler.get_build_version
+            msvccompiler.get_build_version = hack_get_build_version
+            new_compiler = msvccompiler.MSVCCompiler()
+            msvccompiler.get_build_version = gbv
+            for key in save_env.keys():
+                os.environ[key] = save_env[key]
+
+            old_linker = self.linker
+            self.linker = new_compiler.linker
+        try:
+            return msvccompiler.MSVCCompiler.link(  self,
+                                                    target_desc,
+                                                    objects,
+                                                    output_filename,
+                                                    output_dir,
+                                                    libraries,
+                                                    library_dirs,
+                                                    runtime_library_dirs,
+                                                    export_symbols,
+                                                    debug, *args, **kw)
+        finally:
+            if old_linker is not None:
+                self.linker = old_linker
+
     # overriding _setup_compile is the easiest way to get this support in.
     def _setup_compile(self, *args):
         macros, objects, extra, pp_opts, build = \
