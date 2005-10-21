@@ -1,6 +1,4 @@
 %{
-#include "mapix.h"
-#include <atlbase.h>
 #include "PythonCOM.h"
 
 #define SWIG_PYTHONCOM

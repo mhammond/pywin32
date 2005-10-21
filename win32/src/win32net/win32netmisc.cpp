@@ -11,8 +11,6 @@
 #include "win32net.h"
 #include "stddef.h"
 
-#include "atlbase.h"
-
 #define SI0_ENTRY(name, t, r) { _T(#name), t, offsetof(SHARE_INFO_0, shi0_##name), r }
 // @object PySHARE_INFO_0|A dictionary holding the infomation in a Win32 SHARE_INFO_0 structure.
 static struct PyNET_STRUCT_ITEM si0[] = {
@@ -280,10 +278,8 @@ static struct PyNET_STRUCT wkstransport_infos[] = { // @flagh Level|Data
 **
 **************************************************************************************************************/
 // Old style before we got more flexible info levels.
-static PyObject *PyNetShareEnum1(char *szServerName)
+static PyObject *PyNetShareEnum1(WCHAR *szServerName)
 {
-	USES_CONVERSION;
-
 	DWORD dwLevel = 1;
 	DWORD dwMaxLen = MAX_PREFERRED_LENGTH;
 	NET_API_STATUS Errno;
@@ -296,7 +292,7 @@ static PyObject *PyNetShareEnum1(char *szServerName)
 	do
 	{
 		Py_BEGIN_ALLOW_THREADS
-			Errno = NetShareEnum(A2W(szServerName),dwLevel,(LPBYTE *)&lpBuffer,dwMaxLen,&dwCount,&dwMaxCount,&dwResume);
+		Errno = NetShareEnum(szServerName,dwLevel,(LPBYTE *)&lpBuffer,dwMaxLen,&dwCount,&dwMaxCount,&dwResume);
 		Py_END_ALLOW_THREADS
 
 		if(Errno == NERR_Success)
@@ -309,7 +305,10 @@ static PyObject *PyNetShareEnum1(char *szServerName)
 			dwMaxCount = dwMaxCount - dwCount;	// how many more we will try to get
 			do
 			{
-				PyObject *t_ob = Py_BuildValue("(sis)",W2A(p_nr->shi1_netname),p_nr->shi1_type,W2A(p_nr->shi1_remark));
+				PyObject *t_ob = Py_BuildValue("(NiN)",
+				                  PyWinObject_FromWCHAR(p_nr->shi1_netname),
+				                  p_nr->shi1_type,
+				                  PyWinObject_FromWCHAR(p_nr->shi1_remark));
 
 				int listerr = PyList_Append(pRetlist,t_ob);	// append our PyNETRESOURCE obj...Append does an INCREF!
 
@@ -354,8 +353,15 @@ PyNetShareEnum(PyObject *self, PyObject *args)
 	LPSTR szServerName;
 	// @pyparmalt1 string|serverName||The name of the server on which the call should execute, or None for the local computer.
 	// @comm If the old style is used, the result is a list of [(shareName, type, remarks), ...]
-	if (PyArg_ParseTuple(args, "z:NetShareEnum",&szServerName))
-		return PyNetShareEnum1(szServerName);
+	if (PyArg_ParseTuple(args, "z:NetShareEnum",&szServerName)) {
+		WCHAR *wServerName = NULL;
+		if (szServerName && !PyWin_String_AsWCHAR(szServerName, -1, &wServerName))
+			return NULL;
+		PyObject *ret = PyNetShareEnum1(wServerName);
+		if (wServerName)
+			PyWinObject_FreeString(wServerName);
+		return ret;
+	}
 	PyErr_Clear();
 	// Use new style
 	// @pyparm string/<o PyUnicode>|server||The name of the server, or None.

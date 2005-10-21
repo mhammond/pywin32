@@ -32,7 +32,6 @@
 
 #include <windows.h>
 #include "python.h"
-#include <atlbase.h>
 #include "PyNCB.h"
 
 #include <crtdbg.h>

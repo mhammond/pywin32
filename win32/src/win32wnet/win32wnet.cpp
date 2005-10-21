@@ -53,7 +53,6 @@
 #endif
 
 #include "windows.h"
-#include "atlbase.h"
 #include "Python.h"
 #include "PyWinTypes.h"
 #include "PyWinObjects.h" // for the PyHANDLE impl.
@@ -136,8 +135,6 @@ PyWNetAddConnection2 (PyObject *self, PyObject *args)
 
 {
 	// @todo Eventually should update this to use a NETRESOURCE object (it was written before PyNETRESOURCE)
-	USES_CONVERSION;
-
 	DWORD	Type;  // @pyparm int|type||The resource type.  May be either RESOURCETYPE_DISK, RESOURCETYPE_PRINT, or RESOURCETYPE_ANY (from win32netcon)
 	LPSTR	LocalName; // @pyparm string|localName||holds the name of a local device to map connection to; may be NULL
 	LPSTR	RemoteName;	// @pyparm string|remoteName||holds the passed in remote machine\service name.
@@ -162,14 +159,14 @@ PyWNetAddConnection2 (PyObject *self, PyObject *args)
 
 	memset((void *)&NetResource, '\0', sizeof(NETRESOURCE));
 	NetResource.dwType = Type;
-	NetResource.lpLocalName = A2T(LocalName);
-	NetResource.lpProvider = A2T(ProviderName);
-	NetResource.lpRemoteName = A2T(RemoteName);
+	NetResource.lpLocalName = LocalName;
+	NetResource.lpProvider = ProviderName;
+	NetResource.lpRemoteName = RemoteName;
 
 #ifdef _WIN32_WCE_	// Windows CE only has the #3 version...use NULL for HWND to simulate #2
-	ErrorNo = WNetAddConnection3(NULL,&NetResource, A2T(Password), A2T(Username), flags);
+	ErrorNo = WNetAddConnection3(NULL,&NetResource, Password, Username, flags);
 #else
-	ErrorNo = WNetAddConnection2(&NetResource, A2T(Password), A2T(Username), flags);
+	ErrorNo = WNetAddConnection2(&NetResource, Password, Username, flags);
 #endif
 	Py_END_ALLOW_THREADS
 
@@ -188,8 +185,6 @@ static
 PyObject *
 PyWNetCancelConnection2 (PyObject *self, PyObject *args)
 {
-	USES_CONVERSION;
-
 	LPSTR	lpName; // @pyparm string|name||Name of existing connection to be closed
 	DWORD	dwFlags; // @pyparm int|flags||Currently determines if the persisent connection information will be updated as a result of this call.
 	DWORD	bForce; // @pyparm int|force||indicates if the close operation should be forced. (i.e. ignore open files and connections)
@@ -199,7 +194,7 @@ PyWNetCancelConnection2 (PyObject *self, PyObject *args)
 		return NULL;
 
 	Py_BEGIN_ALLOW_THREADS
-		ErrorNo = WNetCancelConnection2(A2T(lpName), dwFlags, (BOOL)bForce);
+		ErrorNo = WNetCancelConnection2(lpName, dwFlags, (BOOL)bForce);
 	Py_END_ALLOW_THREADS
 
 	if (ErrorNo != NO_ERROR)
