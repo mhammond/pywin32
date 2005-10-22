@@ -421,7 +421,6 @@ HINTERNET FtpOpenFile(
     DWORD dwContext // @pyparm int|context||Most be zero
 );
 
-%ifdef WINVER >= 0x0500
 // @pyswig <o PyHINTERNET>|FtpCommand|Allows an application to send commands directly to an FTP server.
 BOOLAPI FtpCommand(
     HINTERNET hConnect, // @pyparm <o PyHINTERNET>|hConnect||Valid HINTERNET handle to an FTP session.
@@ -435,7 +434,6 @@ BOOLAPI FtpCommand(
     DWORD dwContext,// @pyparm int|context||Must be zero.
     PyHINTERNET *OUTPUT
 );
-%endif
 
 %init %{
     PyDict_SetItemString(d, "error", PyWinExc_ApiError);
