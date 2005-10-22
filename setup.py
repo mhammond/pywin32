@@ -88,6 +88,10 @@ this_file = os.path.abspath(this_file)
 if os.path.dirname(this_file):
     os.chdir(os.path.dirname(this_file))
 
+# Start address we assign base addresses from.  See comment re
+# dll_base_address later in this file...
+dll_base_address = 0x1e200000
+
 # We need to know the platform SDK dir before we can list the extensions.
 def find_platform_sdk_dir():
     # Finding the Platform SDK install dir is a treat. There can be some
@@ -183,6 +187,7 @@ class WinExt (Extension):
                   # list of headers which may not be installed forcing us to
                   # skip this extension
                   optional_headers=[],
+                  base_address = None,
                  ):
         assert dsp_file or sources, "Either dsp_file or sources must be specified"
         libary_dirs = library_dirs,
@@ -208,6 +213,7 @@ class WinExt (Extension):
         self.windows_h_version = windows_h_version
         self.optional_headers = optional_headers
         self.is_regular_dll = is_regular_dll
+        self.base_address = base_address
         Extension.__init__ (self, name, sources,
                             include_dirs,
                             define_macros,
@@ -348,32 +354,6 @@ class my_build(build):
             f.close()
         except EnvironmentError, why:
             print "Failed to open '%s': %s" % (ver_fname, why)
-
-        ## add version info to dll's, exe's, and pyd's
-        if 'install' not in sys.argv:
-            import optparse
-            try:
-                import win32verstamp
-            except ImportError:
-                log.info('Unable to import verstamp, no version info will be added')
-            else:
-                v=optparse.Values()
-                v.ensure_value('version',pywin32_version)
-                v.ensure_value('comments',None)
-                v.ensure_value('company',None)
-                v.ensure_value('description',None)
-                v.ensure_value('internal_name',None)
-                v.ensure_value('copyright',None)
-                v.ensure_value('trademarks',None)
-                v.ensure_value('original_filename',None)
-                v.ensure_value('product','Pywin32')
-                v.ensure_value('dll',None)
-                v.ensure_value('debug',None)
-                v.ensure_value('verbose','-v' in sys.argv)
-                for dirname, subdirs, fnames in os.walk(self.build_base):
-                    for fname in fnames:
-                        if os.path.splitext(fname)[1].lower() in ('.dll','.exe','.pyd'):
-                            win32verstamp.stamp(os.path.join(dirname,fname),v)
 
 class my_build_ext(build_ext):
 
@@ -681,6 +661,13 @@ class my_build_ext(build_ext):
             pch_name = os.path.join(self.build_temp, ext.name) + ".pch"
             ext.extra_compile_args.append("/Fp"+pch_name)
 
+        # Put our DLL base address in.
+        if not self.mingw32:
+            base = ext.base_address
+            if not base:
+                base = dll_base_addresses[ext.name]
+            ext.extra_link_args.append("/BASE:0x%x" % (base,))
+
         # some source files are compiled for different extensions
         # with special defines. So we cannot use a shared
         # directory for objects, we must use a special one for each extension.
@@ -892,16 +879,38 @@ class my_compiler(msvccompiler.MSVCCompiler):
             old_linker = self.linker
             self.linker = new_compiler.linker
         try:
-            return msvccompiler.MSVCCompiler.link(  self,
-                                                    target_desc,
-                                                    objects,
-                                                    output_filename,
-                                                    output_dir,
-                                                    libraries,
-                                                    library_dirs,
-                                                    runtime_library_dirs,
-                                                    export_symbols,
-                                                    debug, *args, **kw)
+            msvccompiler.MSVCCompiler.link( self,
+                                            target_desc,
+                                            objects,
+                                            output_filename,
+                                            output_dir,
+                                            libraries,
+                                            library_dirs,
+                                            runtime_library_dirs,
+                                            export_symbols,
+                                            debug, *args, **kw)
+            # Here seems a good place to stamp the version of the built
+            # target.
+            import optparse
+            try:
+                import win32verstamp
+            except ImportError:
+                log.info('Unable to import verstamp, no version info will be added')
+            else:
+                v=optparse.Values()
+                v.ensure_value('version',pywin32_version)
+                v.ensure_value('comments',"http://pywin32.sourceforge.net")
+                v.ensure_value('company',None)
+                v.ensure_value('description',None)
+                v.ensure_value('internal_name',None)
+                v.ensure_value('copyright',None)
+                v.ensure_value('trademarks',None)
+                v.ensure_value('original_filename',os.path.basename(output_filename))
+                v.ensure_value('product','Pywin32')
+                v.ensure_value('dll',None)
+                v.ensure_value('debug',None)
+                v.ensure_value('verbose','-v' in sys.argv)
+                win32verstamp.stamp(output_filename, v)
         finally:
             if old_linker is not None:
                 self.linker = old_linker
@@ -1075,7 +1084,9 @@ pythoncom = WinExt_system32('pythoncom',
                    extra_compile_args = ['-DBUILD_PYTHONCOM'],
                    pch_header = "stdafx.h",
                    windows_h_version = 0x500,
+                   base_address = dll_base_address,
                    )
+dll_base_address += 0x80000 # pythoncom is large!
 com_extensions = [pythoncom]
 com_extensions += [
     WinExt_win32com('adsi', libraries="ACTIVEDS ADSIID",
@@ -1120,11 +1131,14 @@ com_extensions += [
 
 pythonwin_extensions = [
     WinExt_pythonwin("win32ui", extra_compile_args = ['-DBUILD_PYW'],
-                     pch_header="stdafx.h"),
+                     pch_header="stdafx.h", base_address=dll_base_address),
     WinExt_pythonwin("win32uiole", pch_header="stdafxole.h",
                      windows_h_version = 0x500),
     WinExt_pythonwin("dde", pch_header="stdafxdde.h"),
 ]
+# win32ui is large, so we reserve more bytes than normal
+dll_base_address += 0x100000
+
 
 other_extensions = []
 if sys.hexversion >= 0x2030000:
@@ -1301,6 +1315,22 @@ if sys.version_info < (2,3):
 else:
     py_modules = expand_modules("win32\\lib")
 
+ext_modules = win32_extensions + com_extensions + pythonwin_extensions + \
+                    other_extensions
+
+# Build a map of DLL base addresses.  According to Python's PC\dllbase_nt.txt,
+# we start at 0x1e200000 and go up in 0x00020000 increments.  A couple of
+# our modules just go over this limit, so we use 30000.  We also do it sorted
+# so each module gets the same addy each build.
+# Note: If a module specifies a base address it still gets a slot reserved
+# here which is unused.  We can live with that tho.
+names = [ext.name for ext in ext_modules]
+names.sort()
+dll_base_addresses = {}
+for name in names:
+    dll_base_addresses[name] = dll_base_address
+    dll_base_address += 0x30000
+
 dist = setup(name="pywin32",
       version=str(build_id),
       description="Python for Window Extensions",
@@ -1326,8 +1356,7 @@ dist = setup(name="pywin32",
 
       scripts = ["pywin32_postinstall.py"],
 
-      ext_modules = win32_extensions + com_extensions + pythonwin_extensions + \
-                    other_extensions,
+      ext_modules = ext_modules,
 
       package_dir = {"win32com": "com/win32com",
                      "win32comext": "com/win32comext",
