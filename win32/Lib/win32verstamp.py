@@ -122,7 +122,7 @@ def stamp(pathname, options):
     bits = [int(i) for i in ver.split(".")]
     vmaj, vmin, vsub, vbuild = bits
   except (IndexError, TypeError, ValueError):
-    parser.error("--version must be a.b.c.d (all integers)")
+    raise ValueError, "--version must be a.b.c.d (all integers) - got %r" % ver
   
   ifn = options.internal_name
   if not ifn:
