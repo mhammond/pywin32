@@ -24,14 +24,15 @@ def IsPackageDir(path, packageName, knownFileName):
 	return FileExists(os.path.join(os.path.join(path, packageName),knownFileName))
 
 def IsDebug():
-        """Return "_d" if we're running a debug version.
-        
-        This is to be used within DLL names when locating them.
-        """
-        import parser # This comes as a .pyd with most versions.
-        if parser.__file__[-6:] == '_d.pyd':
-                return '_d'
-        return ''
+    """Return "_d" if we're running a debug version.
+    
+    This is to be used within DLL names when locating them.
+    """
+    import imp
+    for suffix_item in imp.get_suffixes():
+        if suffix_item[0]=='_d.pyd':
+            return '_d'
+    return ''
 
 def FindPackagePath(packageName, knownFileName, searchPaths):
 	"""Find a package.
@@ -217,11 +218,11 @@ def LocatePythonCore(searchPaths):
 	corePath = None
 	suffix = IsDebug()
 	for path in presearchPaths:
-		if FileExists(os.path.join(path, "parser%s.pyd" % suffix)):
+		if FileExists(os.path.join(path, "unicodedata%s.pyd" % suffix)):
 			corePath = path
 			break
 	if corePath is None and searchPaths is not None:
-		corePath = LocatePath("parser%s.pyd" % suffix, searchPaths)
+		corePath = LocatePath("unicodedata%s.pyd" % suffix, searchPaths)
 	if corePath is None:
 		raise error, "The core Python path could not be located."
 
@@ -329,21 +330,18 @@ def SetupCore(searchPaths):
 		win32api.RegSetValue(hKey, "InstallPath", win32con.REG_SZ, installPath)
 	finally:
 		win32api.RegCloseKey(hKey)
-	# The core DLL.
-#	regutil.RegisterCoreDLL()
-
-	# Register the win32 extensions, as some of them are pretty much core!
-	# Why doesnt win32con.__file__ give me a path? (ahh - because only the .pyc exists?)
 
 	# Register the win32 core paths.
 	win32paths = os.path.abspath( os.path.split(win32api.__file__)[0]) + ";" + \
 	             os.path.abspath( os.path.split(LocateFileName("win32con.py;win32con.pyc", sys.path ) )[0] )
 
-	suffix = IsDebug()
-	ver_str = hex(sys.hexversion)[2] + hex(sys.hexversion)[4]
-	# pywintypes now has a .py stub
-	regutil.RegisterNamedPath("win32",win32paths)
-
+	# Python has builtin support for finding a "DLLs" directory, but
+	# not a PCBuild.  Having it in the core paths means it is ignored when
+	# an EXE not in the Python dir is hosting us - so we add it as a named
+	# value
+	check = os.path.join(sys.prefix, "PCBuild")
+	if os.path.isdir(check):
+		regutil.RegisterNamedPath("PCBuild",check)
 
 def RegisterShellInfo(searchPaths):
 	"""Registers key parts of the Python installation with the Windows Shell.
@@ -366,57 +364,6 @@ def RegisterShellInfo(searchPaths):
 	# stuff we need.
 #	FindRegisterApp("win32", ["win32con.pyc", "win32api%s.pyd" % suffix], searchPaths)
 
-def RegisterPythonwin(searchPaths):
-	"""Knows how to register Pythonwin components
-	"""
-	import regutil
-	suffix = IsDebug()
-#	FindRegisterApp("Pythonwin", "docview.py", searchPaths)
-
-	FindRegisterHelpFile("PyWin32.chm", searchPaths, "Pythonwin Reference")
-	
-	FindRegisterPythonExe("pythonwin%s.exe" % suffix, searchPaths, "Pythonwin%s.exe" % suffix)
-
-	fnamePythonwin = regutil.GetRegisteredExe("Pythonwin%s.exe" % suffix)
-	fnamePython = regutil.GetRegisteredExe("Python%s.exe" % suffix)
-
-	regutil.RegisterShellCommand("Edit", QuotedFileName(fnamePythonwin)+" /edit \"%1\"")
-	regutil.RegisterDDECommand("Edit", "Pythonwin", "System", '[self.OpenDocumentFile(r"%1")]')
-
-	FindRegisterPackage("pywin", "__init__.py", searchPaths, "Pythonwin")
-	
-	regutil.RegisterFileExtensions(defPyIcon=fnamePythonwin+",0", 
-	                               defPycIcon = fnamePythonwin+",5",
-	                               runCommand = QuotedFileName(fnamePython)+" \"%1\" %*")
-
-def UnregisterPythonwin():
-	"""Knows how to unregister Pythonwin components
-	"""
-	import regutil
-	regutil.UnregisterNamedPath("Pythonwin")
-	regutil.UnregisterHelpFile("Pythonwin.hlp")
-	regutil.UnregisterHelpFile("PyWin32.chm")
-
-	suffix = IsDebug()
-	regutil.UnregisterPythonExe("pythonwin%s.exe" % suffix)
-	
-	#regutil.UnregisterShellCommand("Edit")
-
-	regutil.UnregisterModule("win32ui")
-	regutil.UnregisterModule("win32uiole")
-	
-
-def RegisterWin32com(searchPaths):
-	"""Knows how to register win32com components
-	"""
-	import win32api
-#	import ni,win32dbg;win32dbg.brk()
-	corePath = FindRegisterPackage("win32com", "olectl.py", searchPaths)
-	if corePath:
-		FindRegisterHelpFile("PyWin32.chm", searchPaths + [corePath+"\\win32com"], "Python COM Reference")
-		suffix = IsDebug()
-		ver_str = hex(sys.hexversion)[2] + hex(sys.hexversion)[4]
-
 usage = """\
 regsetup.py - Setup/maintain the registry for Python apps.
 
@@ -438,9 +385,6 @@ Usage:   %s [options ...] paths ...
 -m filename     -- Find and register the specific file name as a module.
                    Do not include a path on the filename!
 --shell         -- Register everything with the Win95/NT shell.
---pythonwin     -- Find and register all Pythonwin components.
---unpythonwin   -- Unregister Pythonwin
---win32com      -- Find and register all win32com components
 --upackage name -- Unregister the package
 --uapp name     -- Unregister the app (identical to --upackage)
 --umodule name  -- Unregister the module
@@ -461,8 +405,7 @@ the other options.
 paths are search paths that the program will use to seek out a file.
 For example, when registering the core Python, you may wish to
 provide paths to non-standard places to look for the Python help files,
-library files, etc.  When registering win32com, you should pass paths
-specific to win32com.
+library files, etc.
 
 See also the "regcheck.py" utility which will check and dump the contents
 of the registry.
@@ -474,12 +417,6 @@ Examples:
 Attempts to setup the core Python.  Looks in some standard places,
 as well as the 2 wierd spots to locate the core Python files (eg, Python.exe,
 python14.dll, the standard library and Win32 Extensions.
-
-"regsetup --win32com"
-Attempts to register win32com.  No options are passed, so this is only
-likely to succeed if win32com is already successfully registered, or the
-win32com directory is current.  If neither of these are true, you should pass
-the path to the win32com directory.
 
 "regsetup -a myappname . .\subdir"
 Registers a new Pythonpath entry named myappname, with "C:\\I\\AM\\HERE" and
@@ -522,9 +459,10 @@ if __name__=='__main__':
 		searchPath.append("..\\..\\pcbuild")
 
 		print "Attempting to setup/repair the Python core"
-		
+
 		SetupCore(searchPath)
-		RegisterShellInfo(searchPath)	
+		RegisterShellInfo(searchPath)
+		FindRegisterHelpFile("PyWin32.chm", searchPath, "Pythonwin Reference")
 		# Check the registry.
 		print "Registration complete - checking the registry..."
 		import regcheck
@@ -533,7 +471,7 @@ if __name__=='__main__':
 		searchPaths = []
 		import getopt, string
 		opts, args = getopt.getopt(sys.argv[1:], 'p:a:m:c', 
-			['pythonwin','unpythonwin','win32com','shell','upackage=','uapp=','umodule=','description','examples'])
+			['shell','upackage=','uapp=','umodule=','description','examples'])
 		for arg in args:
 			searchPaths.append(arg)
 		for o,a in opts:
@@ -544,15 +482,6 @@ if __name__=='__main__':
 			if o=='--shell':
 				print "Registering the Python core."
 				RegisterShellInfo(searchPaths)
-			if o=='--pythonwin':
-				print "Registering Pythonwin"
-				RegisterPythonwin(searchPaths)
-			if o=='--win32com':
-				print "Registering win32com"
-				RegisterWin32com(searchPaths)
-			if o=='--unpythonwin':
-				print "Unregistering Pythonwin"
-				UnregisterPythonwin()
 			if o=='-p':
 				print "Registering package", a
 				FindRegisterPackage(a,None,searchPaths)

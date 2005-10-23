@@ -86,37 +86,17 @@ def CheckHelpFiles(verbose):
 	finally:
 		win32api.RegCloseKey(key)
 
-def ChcekRegisteredModules(verbose):
+def CheckRegisteredModules(verbose):
 	# Check out all registered modules.
 	k=regutil.BuildDefaultPythonKey() + "\\Modules"
 	try:
 		keyhandle = win32api.RegOpenKey(regutil.GetRootKey(), k)
+		print "WARNING: 'Modules' registry entry is deprectated and evil!"
 	except win32api.error, (code, fn, details):
 		import winerror
 		if code!=winerror.ERROR_FILE_NOT_FOUND:
 			raise win32api.error, (code, fn, details)
 		return
-	try:
-		if verbose: print "Registered Modules:"
-		num = 0
-		while 1:
-			try:
-				key = win32api.RegEnumKey(keyhandle, num)
-			except win32api.error:
-				break;
-			num = num+1
-			value = win32api.RegQueryValue(keyhandle, key)
-			if verbose: print "\t%s:" % key,
-			try:
-				os.stat(value)
-				if verbose: print value
-			except os.error:
-				if not verbose:
-					print "Error is registered module %s" % value, 
-				print "** Not found at %s" % value
-	finally:
-		win32api.RegCloseKey(keyhandle)
-
 
 def CheckRegistry(verbose=0):
 	# check the registered modules
@@ -126,9 +106,8 @@ def CheckRegistry(verbose=0):
 	
 	CheckPythonPaths(verbose)
 	CheckHelpFiles(verbose)
-	ChcekRegisteredModules(verbose)
+	CheckRegisteredModules(verbose)
 	CheckRegisteredExe("Python.exe")
-	CheckRegisteredExe("Pythonwin.exe")
 
 if __name__=='__main__':
 	if len(sys.argv)>1 and sys.argv[1]=='-q':
