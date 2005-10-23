@@ -51,8 +51,9 @@ def DumpFolders(session):
 # Build a dictionary of property tags, so I can reverse look-up
 #
 PropTagsById={}
-for name, val in ammodule.constants.__dict__.items():
-    PropTagsById[val] = name
+if ammodule:
+    for name, val in ammodule.constants.__dict__.items():
+        PropTagsById[val] = name
 
 
 def TestAddress(session):
@@ -74,6 +75,10 @@ def TestUser(session):
         print "%s/%s=%s" % (field.Name, id, field.Value)
 
 def test():
+    if not ammodule:
+        print "MAPI does not appear to be installed on this machine - skipping."
+        return
+
     import win32com.client
     oldcwd = os.getcwd()
     session = win32com.client.Dispatch("MAPI.Session")
