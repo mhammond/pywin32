@@ -57,7 +57,7 @@ import os, string, sys
 import re
 import _winreg
 
-pywin32_version='.'.join(sys.version.split('.')[:2])+'.'+build_id
+pywin32_version="%d.%d.%s" % (sys.version_info[0], sys.version_info[1], build_id)
 print "Building pywin32", pywin32_version
 
 # Python 2.2 has no True/False
@@ -349,7 +349,7 @@ class my_build(build):
         # write a pywin32.version.txt.
         ver_fname = os.path.join(os.environ['temp'], "pywin32.version.txt")
         try:
-            f = open(ver_fname, "wU")
+            f = open(ver_fname, "U")
             f.write("%s\n" % build_id)
             f.close()
         except EnvironmentError, why:
@@ -418,7 +418,12 @@ class my_build_ext(build_ext):
                    "version 0x%x is installed." \
                    % (ext.windows_h_version, self.windows_h_version)
 
-        look_dirs = self.include_dirs + self.compiler.get_msvc_paths("include")
+        try:
+            get_msvc_paths = self.compiler.get_msvc_paths
+        except AttributeError:
+            # module method in early Python versions
+            get_msvc_paths = msvccompiler.get_msvc_paths 
+        look_dirs = self.include_dirs + get_msvc_paths("include")
         for h in ext.optional_headers:
             for d in look_dirs:
                 if os.path.isfile(os.path.join(d, h)):
@@ -891,26 +896,33 @@ class my_compiler(msvccompiler.MSVCCompiler):
                                             debug, *args, **kw)
             # Here seems a good place to stamp the version of the built
             # target.
-            import optparse
             try:
                 import win32verstamp
+                import optparse
             except ImportError:
                 log.info('Unable to import verstamp, no version info will be added')
             else:
-                v=optparse.Values()
-                v.ensure_value('version',pywin32_version)
-                v.ensure_value('comments',"http://pywin32.sourceforge.net")
-                v.ensure_value('company',None)
-                v.ensure_value('description',None)
-                v.ensure_value('internal_name',None)
-                v.ensure_value('copyright',None)
-                v.ensure_value('trademarks',None)
-                v.ensure_value('original_filename',os.path.basename(output_filename))
-                v.ensure_value('product','Pywin32')
-                v.ensure_value('dll',None)
-                v.ensure_value('debug',None)
-                v.ensure_value('verbose','-v' in sys.argv)
-                win32verstamp.stamp(output_filename, v)
+                try:
+                    v=optparse.Values()
+                    v.ensure_value('version',pywin32_version)
+                    v.ensure_value('comments',"http://pywin32.sourceforge.net")
+                    v.ensure_value('company',None)
+                    v.ensure_value('description',None)
+                    v.ensure_value('internal_name',None)
+                    v.ensure_value('copyright',None)
+                    v.ensure_value('trademarks',None)
+                    v.ensure_value('original_filename',os.path.basename(output_filename))
+                    v.ensure_value('product','Pywin32')
+                    v.ensure_value('dll',None)
+                    v.ensure_value('debug',None)
+                    v.ensure_value('verbose','-v' in sys.argv)
+                    win32verstamp.stamp(output_filename, v)
+                except:
+                    # Failure to stamp files means our build stops, which
+                    # isn't good!
+                    print "FAILED to stamp files"
+                    import traceback
+                    traceback.print_exc()
         finally:
             if old_linker is not None:
                 self.linker = old_linker

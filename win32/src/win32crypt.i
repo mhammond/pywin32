@@ -7,6 +7,7 @@
 #include "wincrypt.h"
 #include "PyWinTypes.h"
 #include "malloc.h"
+#include "abstract.h" // for PyObject_AsReadBuffer
 %}
 
 %include "typemaps.i"
@@ -18,10 +19,6 @@ typedef long HWND
 %{
 BOOL PyWinObject_AsDATA_BLOB(PyObject *ob, DATA_BLOB *b)
 {
-     PyAPI_FUNC(int) PyObject_AsReadBuffer(PyObject *obj,
-					  const void **buffer,
-					  int *buffer_len);
-
     return PyObject_AsReadBuffer(ob, (const void **)(&b->pbData), (int *)(&b->cbData))==0;
 }
 

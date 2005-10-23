@@ -85,9 +85,11 @@ PyObject *PyObject_FromCurrency(CURRENCY &cy)
 	else
 		use_decimal=PyObject_IsTrue(__future_currency__);
 	if (!use_decimal && !warned_future_currency) {
+#if (PY_VERSION_HEX >= 0x02030000)
 		PyErr_Warn(PyExc_FutureWarning,
 				   "Currency objects will soon be changed so a decimal.Decimal instance is used."
 				   "\n (set pythoncom.__future_currency__ to get these objects now.)");
+#endif
 		warned_future_currency = TRUE;
 	}
 	
