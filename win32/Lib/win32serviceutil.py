@@ -32,7 +32,7 @@ def LocatePythonServiceExe(exeName = None):
                             % exeName
     except win32api.error:
         # OK - not there - lets go a-searchin'
-        for path in sys.path:
+        for path in [sys.prefix] + sys.path:
             look = os.path.join(path, exeName)
             if os.path.isfile(look):
                 return win32api.GetFullPathName(look)
