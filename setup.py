@@ -1,4 +1,4 @@
-build_id="204.3"
+build_id="205" # may optionally include a ".{patchno}" suffix.
 # Putting buildno at the top prevents automatic __doc__ assignment, and
 # I *want* the build number at the top :)
 __doc__="""This is a distutils setup-script for the pywin32 extensions
@@ -22,6 +22,8 @@ The 'mapi' and 'exchange' extensions require the Exchange 2000 SDK from:
   http://www.microsoft.com/downloads/details.aspx?FamilyID={guid}
     where guid is 4afe3504-c209-4a73-ac5d-ff2a4a3b48b7
 Just install it - this setup script will automatically locate it.
+(updated for build 205: mapi just seems to require the platform SDK, whereas
+the exchange SDK appears missing in action, so these extensions don't build)
 
 Note: 'axdebug' appears to work with recent Platform SDKs, with no
 additional software needed.  It is probably necessary to select an appropriate
@@ -57,7 +59,11 @@ import os, string, sys
 import re
 import _winreg
 
-pywin32_version="%d.%d.%s" % (sys.version_info[0], sys.version_info[1], build_id)
+build_id_patch = build_id
+if not "." in build_id_patch:
+    build_id_patch = build_id_patch + ".0"
+pywin32_version="%d.%d.%s" % (sys.version_info[0], sys.version_info[1],
+                              build_id_patch)
 print "Building pywin32", pywin32_version
 
 # Python 2.2 has no True/False
@@ -349,7 +355,7 @@ class my_build(build):
         # write a pywin32.version.txt.
         ver_fname = os.path.join(os.environ['temp'], "pywin32.version.txt")
         try:
-            f = open(ver_fname, "U")
+            f = open(ver_fname, "w")
             f.write("%s\n" % build_id)
             f.close()
         except EnvironmentError, why:
