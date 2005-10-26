@@ -224,14 +224,14 @@ PyObject *PyIShellFolder::CompareIDs(PyObject *self, PyObject *args)
 	return ret;
 }
 
-// @pymethod |PyIShellFolder|CreateViewObject|Description of CreateViewObject.
+// @pymethod <o PyIShellView>|PyIShellFolder|CreateViewObject|Creates a view object for a shell folder.
 PyObject *PyIShellFolder::CreateViewObject(PyObject *self, PyObject *args)
 {
 	IShellFolder *pISF = GetI(self);
 	if ( pISF == NULL )
 		return NULL;
-	// @pyparm HWND|hwndOwner||Description for hwndOwner
-	// @pyparm <o PyIID>|riid||Description for riid
+	// @pyparm HWND|hwndOwner||Parent window for a custom folder view, or 0
+	// @pyparm <o PyIID>|riid||IID of the desired interface, usually IID_IShellView
 	PyObject *obriid;
 	HWND hwndOwner;
 	IID riid;
@@ -253,14 +253,15 @@ PyObject *PyIShellFolder::CreateViewObject(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown((IUnknown *)out, riid, FALSE);
 }
 
-// @pymethod |PyIShellFolder|GetAttributesOf|Description of GetAttributesOf.
+// @pymethod int|PyIShellFolder|GetAttributesOf|Queries attributes of items within the shell folder
+// @rdesc The requested attributes are only returned if they are common to all of the specified items
 PyObject *PyIShellFolder::GetAttributesOf(PyObject *self, PyObject *args)
 {
 	IShellFolder *pISF = GetI(self);
 	if ( pISF == NULL )
 		return NULL;
-	// @pyparm <o PyIDL>|pidl||Description for pidl
-	// @pyparm int|rgfInOut||Description for rgfInOut
+	// @pyparm (<o PyIDL>,...)|pidl||A sequence of single-level pidls identifying items directly contained by the folder
+	// @pyparm int|rgfInOut||Combination of shellcon.SFGAO_* constants
 	PyObject *obpidl;
 	UINT cidl;
 	LPCITEMIDLIST *pidl;
@@ -282,17 +283,16 @@ PyObject *PyIShellFolder::GetAttributesOf(PyObject *self, PyObject *args)
 	return PyInt_FromLong(rgfInOut);
 }
 
-// @pymethod int, <o PyIUnknown>|PyIShellFolder|GetUIObjectOf|Description of GetUIObjectOf.
+// @pymethod int, <o PyIUnknown>|PyIShellFolder|GetUIObjectOf|Creates an interface to one or more items in a shell folder
 PyObject *PyIShellFolder::GetUIObjectOf(PyObject *self, PyObject *args)
 {
 	IShellFolder *pISF = GetI(self);
 	if ( pISF == NULL )
 		return NULL;
-	// @pyparm HWND|hwndOwner||Description for hwndOwner
-	// @pyparm <o PyIDL>|pidl||Description for pidl
-	// @pyparm <o PyIID>|riid||Description for riid
-	// @pyparm int|rgfInOut||Description for rgfInOut
-	// @pyparm <o PyIID>|iidout|None|The IID to wrap the result in.  If not specified, riid is used.
+	// @pyparm HWND|hwndOwner||Specifies a window in which to display any required dialogs or errors, can be 0
+	// @pyparm (<o PyIDL>,...)|pidl||A sequence of single-level pidls identifying items in the folder
+	// @pyparm <o PyIID>|riid||The interface to create, one of IID_IContextMenu, IID_IContextMenu2, IID_IDataObject, IID_IDropTarget, IID_IExtractIcon, IID_IQueryInfo 
+	// @pyparm int|rgfReserved|0|Reserved, use 0 if passed in
 	PyObject *obpidl;
 	PyObject *obriid;
 	PyObject *obiidout = NULL;
@@ -305,12 +305,12 @@ PyObject *PyIShellFolder::GetUIObjectOf(PyObject *self, PyObject *args)
 	if ( !PyArg_ParseTuple(args, "lOOl|O:GetUIObjectOf", &hwndOwner, &obpidl, &obriid, &rgfInOut, &obiidout) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsPIDLArray(obpidl, &cidl, &pidl)) bPythonIsHappy = FALSE;
 	if (!PyWinObject_AsIID(obriid, &riid)) bPythonIsHappy = FALSE;
 	if (obiidout==NULL)
 		iidout = riid;
 	else
 		if (!PyWinObject_AsIID(obiidout, &iidout)) bPythonIsHappy = FALSE;
+	if (bPythonIsHappy && !PyObject_AsPIDLArray(obpidl, &cidl, &pidl)) bPythonIsHappy = FALSE;
 	if (!bPythonIsHappy) return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
@@ -329,22 +329,21 @@ PyObject *PyIShellFolder::GetUIObjectOf(PyObject *self, PyObject *args)
 	return pyretval;
 }
 
-// @pymethod |PyIShellFolder|GetDisplayNameOf|Description of GetDisplayNameOf.
+// @pymethod str|PyIShellFolder|GetDisplayNameOf|Returns the display name of an item within this shell folder
 PyObject *PyIShellFolder::GetDisplayNameOf(PyObject *self, PyObject *args)
 {
 	IShellFolder *pISF = GetI(self);
 	if ( pISF == NULL )
 		return NULL;
-	// @pyparm <o PyIDL>|pidl||Description for pidl
-	// @pyparm int|uFlags||Description for uFlags
+	// @pyparm <o PyIDL>|pidl||PIDL that identifies the item relative to the parent folder
+	// @pyparm int|uFlags||Combination of shellcon.SHGDN_* flags
 	PyObject *obpidl;
 	ITEMIDLIST *pidl;
 	DWORD uFlags;
 	if ( !PyArg_ParseTuple(args, "Ol:GetDisplayNameOf", &obpidl, &uFlags) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsPIDL(obpidl, &pidl)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyObject_AsPIDL(obpidl, &pidl))
+		return NULL;
 	HRESULT hr;
 	STRRET out;
 	PY_INTERFACE_PRECALL;
@@ -358,55 +357,57 @@ PyObject *PyIShellFolder::GetDisplayNameOf(PyObject *self, PyObject *args)
 	return PyObject_FromSTRRET(&out, pidl, TRUE);
 }
 
-// @pymethod |PyIShellFolder|SetNameOf|Description of SetNameOf.
+// @pymethod <o PyIDL>|PyIShellFolder|SetNameOf|Sets the display name of an item and changes its PIDL
+// @rdesc Returns the new PIDL for item
 PyObject *PyIShellFolder::SetNameOf(PyObject *self, PyObject *args)
 {
 	IShellFolder *pISF = GetI(self);
 	if ( pISF == NULL )
 		return NULL;
-	// @pyparm HWND|hwndOwner||Description for hwndOwner
-	// @pyparm <o PyIDL>|pidl||Description for pidl
-	// @pyparm <o unicode>|lpszName||Description for lpszName
-	PyObject *obpidl;
-	PyObject *oblpszName;
+	// @pyparm HWND|hwndOwner||Window in which to display any message boxes or dialogs, can be 0
+	// @pyparm <o PyIDL>|pidl||PIDL that identifies the item relative to the parent folder
+	// @pyparm <o unicode>|lpszName||New name for the item
+	// @pyparm int|Flags||Combination of shellcon.SHGDM_* values
+	PyObject *obpidl=NULL, *ret=NULL;
+	PyObject *oblpszName=NULL;
 	HWND hwndOwner;
-	ITEMIDLIST *pidl;
+	ITEMIDLIST *pidl=NULL;
 	ITEMIDLIST *pidlRet;
-	LPOLESTR lpszName;
-	long flags;
+	LPOLESTR lpszName=NULL;
+	DWORD flags;
+
 	if ( !PyArg_ParseTuple(args, "lOOl:SetNameOf", &hwndOwner, &obpidl, &oblpszName, &flags) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsPIDL(obpidl, &pidl)) bPythonIsHappy = FALSE;
-	if (bPythonIsHappy && !PyWinObject_AsBstr(oblpszName, &lpszName)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	HRESULT hr;
-	PY_INTERFACE_PRECALL;
-	hr = pISF->SetNameOf( hwndOwner, pidl, lpszName, (SHGDNF)flags, &pidlRet );
+	if (PyObject_AsPIDL(obpidl, &pidl)&&
+		PyWinObject_AsBstr(oblpszName, &lpszName)){
+		HRESULT hr;
+		PY_INTERFACE_PRECALL;
+		hr = pISF->SetNameOf( hwndOwner, pidl, lpszName, (SHGDNF)flags, &pidlRet );
+		PY_INTERFACE_POSTCALL;
+		if ( FAILED(hr) )
+			PyCom_BuildPyException(hr, pISF, IID_IShellFolder );
+		else
+			ret = PyObject_FromPIDL(pidlRet, TRUE);
+		}
+
 	PyObject_FreePIDL(pidl);
 	SysFreeString(lpszName);
-
-	PY_INTERFACE_POSTCALL;
-
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pISF, IID_IShellFolder );
-	PyObject *ret = PyObject_FromPIDL(pidlRet, TRUE);
 	return ret;
 }
 
 // @object PyIShellFolder|Description of the interface
 static struct PyMethodDef PyIShellFolder_methods[] =
 {
-	{ "ParseDisplayName", PyIShellFolder::ParseDisplayName, 1 }, // @pymeth ParseDisplayName|Description of ParseDisplayName
-	{ "EnumObjects", PyIShellFolder::EnumObjects, 1 }, // @pymeth EnumObjects|Description of EnumObjects
-	{ "BindToObject", PyIShellFolder::BindToObject, 1 }, // @pymeth BindToObject|Description of BindToObject
-	{ "BindToStorage", PyIShellFolder::BindToStorage, 1 }, // @pymeth BindToStorage|Description of BindToStorage
-	{ "CompareIDs", PyIShellFolder::CompareIDs, 1 }, // @pymeth CompareIDs|Description of CompareIDs
-	{ "CreateViewObject", PyIShellFolder::CreateViewObject, 1 }, // @pymeth CreateViewObject|Description of CreateViewObject
-	{ "GetAttributesOf", PyIShellFolder::GetAttributesOf, 1 }, // @pymeth GetAttributesOf|Description of GetAttributesOf
-	{ "GetUIObjectOf", PyIShellFolder::GetUIObjectOf, 1 }, // @pymeth GetUIObjectOf|Description of GetUIObjectOf
-	{ "GetDisplayNameOf", PyIShellFolder::GetDisplayNameOf, 1 }, // @pymeth GetDisplayNameOf|Description of GetDisplayNameOf
-	{ "SetNameOf", PyIShellFolder::SetNameOf, 1 }, // @pymeth SetNameOf|Description of SetNameOf
+	{ "ParseDisplayName", PyIShellFolder::ParseDisplayName, 1 }, // @pymeth ParseDisplayName|Returns the PIDL of an item in a shell folder
+	{ "EnumObjects", PyIShellFolder::EnumObjects, 1 }, // @pymeth EnumObjects|Creates an enumerator to list the contents of the shell folder
+	{ "BindToObject", PyIShellFolder::BindToObject, 1 }, // @pymeth BindToObject|Returns an IShellFolder interface for a subfolder
+	{ "BindToStorage", PyIShellFolder::BindToStorage, 1 }, // @pymeth BindToStorage|Returns an interface to a storage object in a shell folder
+	{ "CompareIDs", PyIShellFolder::CompareIDs, 1 }, // @pymeth CompareIDs|Determines the sorting order of 2 items in shell folder
+	{ "CreateViewObject", PyIShellFolder::CreateViewObject, 1 }, // @pymeth CreateViewObject|Creates a view object for a shell folder.
+	{ "GetAttributesOf", PyIShellFolder::GetAttributesOf, 1 }, // @pymeth GetAttributesOf|Queries attributes of items within the shell folder
+	{ "GetUIObjectOf", PyIShellFolder::GetUIObjectOf, 1 }, // @pymeth GetUIObjectOf|Creates an interface to one or more items in a shell folder
+	{ "GetDisplayNameOf", PyIShellFolder::GetDisplayNameOf, 1 }, // @pymeth GetDisplayNameOf|Returns the display name of an item within this shell folder
+	{ "SetNameOf", PyIShellFolder::SetNameOf, 1 }, // @pymeth SetNameOf|Sets the display name of an item and changes its PIDL
 	{ NULL }
 };
 
