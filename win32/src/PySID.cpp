@@ -395,7 +395,9 @@ BOOL GetTextualSid(
 	if (buf==NULL) return PyErr_NoMemory();
 	strcpy(buf, prefix);
 	GetTextualSid(psid, buf+strlen(prefix), &bufSize);
-	return PyString_FromString(buf);
+	PyObject *ret = PyString_FromString(buf);
+	free(buf);
+	return ret;
 }
 #else /* NO_PYWINTYPES_SECURITY */
 
