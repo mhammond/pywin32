@@ -54,6 +54,8 @@ from distutils.dep_util import newer_group, newer
 from distutils import dir_util, file_util
 from distutils.sysconfig import get_python_lib
 from distutils.filelist import FileList
+from distutils.errors import DistutilsExecError
+
 import types, glob
 import os, string, sys
 import re
@@ -901,34 +903,35 @@ class my_compiler(msvccompiler.MSVCCompiler):
                                             export_symbols,
                                             debug, *args, **kw)
             # Here seems a good place to stamp the version of the built
-            # target.
+            # target.  Do this externally to avoid suddenly dragging in the
+            # modules needed by this process, and which we will soon try and
+            # update.
             try:
-                import win32verstamp
-                import optparse
+                import optparse # win32verstamp will not work without this!
+                ok = True
             except ImportError:
-                log.info('Unable to import verstamp, no version info will be added')
-            else:
+                ok = False
+            if ok:
+                stamp_script = os.path.join(sys.prefix, "Lib", "site-packages",
+                                            "win32", "lib", "win32verstamp.py")
+                ok = os.path.isfile(stamp_script)
+            if ok:
+                args = [sys.executable]
+                args.append(stamp_script)
+                args.append("--version=%s" % (pywin32_version,))
+                args.append("--comments=http://pywin32.sourceforge.net")
+                args.append("--original-filename=%s" % (os.path.basename(output_filename),))
+                args.append("--product=PyWin32")
+                if '-v' not in sys.argv:
+                    args.append("--quiet")
+                args.append(output_filename)
                 try:
-                    v=optparse.Values()
-                    v.ensure_value('version',pywin32_version)
-                    v.ensure_value('comments',"http://pywin32.sourceforge.net")
-                    v.ensure_value('company',None)
-                    v.ensure_value('description',None)
-                    v.ensure_value('internal_name',None)
-                    v.ensure_value('copyright',None)
-                    v.ensure_value('trademarks',None)
-                    v.ensure_value('original_filename',os.path.basename(output_filename))
-                    v.ensure_value('product','Pywin32')
-                    v.ensure_value('dll',None)
-                    v.ensure_value('debug',None)
-                    v.ensure_value('verbose','-v' in sys.argv)
-                    win32verstamp.stamp(output_filename, v)
-                except:
-                    # Failure to stamp files means our build stops, which
-                    # isn't good!
-                    print "FAILED to stamp files"
-                    import traceback
-                    traceback.print_exc()
+                    self.spawn(args)
+                except DistutilsExecError, msg:
+                    log.info("VersionStamp failed: %s", msg)
+                    ok = False
+            if not ok:
+                log.info('Unable to import verstamp, no version info will be added')
         finally:
             if old_linker is not None:
                 self.linker = old_linker
