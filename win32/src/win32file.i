@@ -1131,7 +1131,7 @@ static PyObject *MyCloseHandle(PyObject *self, PyObject *args)
 }
 
 #ifndef MS_WINCE
-// @pyswig |LockFileEx|locks a file. Wrapper for LockFileEx win32 API.
+// @pyswig |LockFileEx|Locks a file. Wrapper for LockFileEx win32 API.
 static PyObject *
 MyLockFileEx(PyObject *self, PyObject *args)
 {
@@ -1467,7 +1467,7 @@ BOOLAPI GetOverlappedResult(
 #endif // MS_WINCE
 
 #ifndef MS_WINCE
-// @pyswig |LockFile|Determines the type of a file.
+// @pyswig |LockFile|Locks a specified file for exclusive access by the calling process.
 BOOLAPI LockFile(
     PyHANDLE hFile,	// @pyparm <o PyHANDLE>|hFile||handle of file to lock 
     DWORD dwFileOffsetLow,	// @pyparm int|offsetLow||low-order word of lock region offset 
