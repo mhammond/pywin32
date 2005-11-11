@@ -152,15 +152,7 @@ BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 	return TRUE;    // ok
 }
 
-#ifdef _MSC_VER
-// Wierd problems with optimizer.  When anyone
-// calls this, things go very strange.  Debugger indicates
-// all params are wierd etc..  
-// Only release mode, of course :-(  Dunno what optimization!
-// Compiler version 11.00.7022
-#pragma optimize ("", off)
-#endif // _MSC_VER
-
+typedef HRESULT (WINAPI *PFNCoInitializeEx)(LPVOID pvReserved, DWORD dwCoInit);
 
 // Some clients or COM extensions (notably MAPI) are _very_
 // particular about the order of shutdown - in MAPI's case, you MUST
@@ -183,8 +175,8 @@ HRESULT PyCom_CoInitializeEx(LPVOID reserved, DWORD dwInit)
 	FARPROC fp = GetProcAddress(hMod, "CoInitializeEx");
 	if (fp==NULL) return E_NOTIMPL;
 
-	HRESULT (*mypfn)(void *pvReserved, DWORD dwCoInit);
-	mypfn = (HRESULT (*)(void *pvReserved, DWORD dwCoInit))fp;
+	PFNCoInitializeEx mypfn;
+	mypfn = (PFNCoInitializeEx)fp;
 
 	HRESULT hr = (*mypfn)(reserved, dwInit);
 #else // Windows CE _only_ has the Ex version!
@@ -204,10 +196,6 @@ HRESULT PyCom_CoInitializeEx(LPVOID reserved, DWORD dwInit)
 	}
 	return hr;
 }
-#ifdef _MSC_VER
-#pragma optimize ("", on)
-#endif // _MSC_VER
-
 
 HRESULT PyCom_CoInitialize(LPVOID reserved)
 {

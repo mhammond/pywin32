@@ -522,7 +522,7 @@ static PyObject *pythoncom_connect(PyObject *self, PyObject *args)
 	if (FAILED(sc) || disp == NULL)
 		return PyCom_BuildPyException(sc);
 	return PyCom_PyObjectFromIUnknown(disp, IID_IDispatch);
-	// @comm This function is equivilent to <om pythoncom.GetActiveObject>(clsid).<om pythoncom.QueryInterace>(pythoncom.IID_IDispatch)
+	// @comm This function is equivalent to <om pythoncom.GetActiveObject>(clsid).<om pythoncom.QueryInterace>(pythoncom.IID_IDispatch)
 }
 #endif // MS_WINCE
 
@@ -945,17 +945,33 @@ static PyObject *pythoncom_CoInitialize(PyObject *self, PyObject *args)
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = PyCom_CoInitialize(NULL);
 	PY_INTERFACE_POSTCALL;
-	if (FAILED(hr))
-		PyCom_BuildPyException(hr);
+	// @rdesc This function will ignore the RPC_E_CHANGED_MODE error, as
+	// that error indicates someone else beat you to the initialization, and
+	// did so with a different threading model.  This error is ignored as it
+	// still means COM is ready for use on this thread, and as this function
+	// does not explicitly specify a threading model the caller probably
+	// doesn't care what model it is.
+	// <nl>All other COM errors will raise pythoncom.error as usual.  Use
+	// <om pythoncom.CoInitializeEx> if you also want to handle the RPC_E_CHANGED_MODE
+	// error.
+	if (FAILED(hr) && hr != RPC_E_CHANGED_MODE)
+		return PyCom_BuildPyException(hr);
 	Py_INCREF(Py_None);
 	return Py_None;
-	// @comm Equivilent to <om pythoncom.CoInitializeEx>(pythoncom.COINIT_APARTMENTTHREADED).
+	// @comm Apart from the error handling semantics, this is equivalent
+	// to <om pythoncom.CoInitializeEx>(pythoncom.COINIT_APARTMENTTHREADED).
 	// See <om pythoncom.CoInitializeEx> for a description.
 }
 
 // @pymethod |pythoncom|CoInitializeEx|Initialize the COM libraries for the calling thread.
 static PyObject *pythoncom_CoInitializeEx(PyObject *self, PyObject *args)
 {
+	// @rdesc This function will raise pythoncom.error for all error
+	// return values, including RPC_E_CHANGED_MODE error.  This is
+	// in contrast to <om pythoncom.CoInitialize> which will hide that
+	// specific error.  If your code is happy to work in a threading model
+	// other than the one you specified, you must explicitly handle
+	// (and presumably ignore) this exception.
 	DWORD val;
 	if (!PyArg_ParseTuple(args, "l:CoInitializeEx", &val))
 	// @pyparm int|flags||Flags for the initialization.
@@ -964,7 +980,7 @@ static PyObject *pythoncom_CoInitializeEx(PyObject *self, PyObject *args)
 	HRESULT hr = PyCom_CoInitializeEx(NULL, val);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
-		PyCom_BuildPyException(hr);
+		return PyCom_BuildPyException(hr);
 	Py_INCREF(Py_None);
 	return Py_None;
 	// @comm There is no need to call this for the main Python thread, as it is called
