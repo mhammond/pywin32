@@ -593,6 +593,7 @@ static void _DoLogError(const char *fmt, va_list argptr)
 
 static void _DoLogger(PyObject *logProvider, char *log_method, const char *fmt, va_list argptr)
 {
+	CEnterLeavePython _celp;
 	PyObject *exc_typ = NULL, *exc_val = NULL, *exc_tb = NULL;
 	PyErr_Fetch( &exc_typ, &exc_val, &exc_tb);
 	PyObject *logger = NULL;
