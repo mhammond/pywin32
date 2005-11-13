@@ -1512,8 +1512,47 @@ BOOLAPI MoveFileExW(
 
 #endif // MS_WINCE
 
-// QueryDosDevice	
-
+// @pyswig string|QueryDosDevice|Returns the mapping for a device name, or all device names
+%native (QueryDosDevice) MyQueryDosDevice;
+%{
+static PyObject *MyQueryDosDevice(PyObject *self, PyObject *args)
+{
+	PyObject *ret=NULL;
+	char *devicename, *targetpath=NULL;
+	DWORD retlen, buflen, err;
+	// @pyparm string|DeviceName||Name of device to query, or None to return all defined devices
+	// @rdesc Returns a string containing substrings separated by NULLs with 2 terminating NULLs
+	if (!PyArg_ParseTuple(args, "z:QueryDosDevice", &devicename))
+		return NULL;
+	if (devicename==NULL)	// this returns a huge string
+		buflen=8192;	
+	else
+		buflen=256;
+	// function returns ERROR_INSUFFICIENT_BUFFER with no indication of how much memory is actually needed
+	while (true){
+		if (targetpath){
+			free(targetpath);
+			buflen*=2;
+			}
+		targetpath=(char *)malloc(buflen);
+		if (targetpath==NULL)
+			return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", buflen);
+		retlen=QueryDosDevice(devicename, targetpath, buflen);
+		if (retlen!=0){
+			ret=PyString_FromStringAndSize(targetpath, retlen);
+			break;
+			}
+		err=GetLastError();
+		if (err!=ERROR_INSUFFICIENT_BUFFER){
+			PyWin_SetAPIError("QueryDosDevice",err);
+			break;
+			}
+		}
+	if (targetpath)
+		free(targetpath);
+	return ret;
+}
+%}
 
 %{
 static PyObject *PyObject_FromFILE_NOTIFY_INFORMATION(void *buffer, DWORD nbytes)
@@ -2687,6 +2726,7 @@ static BOOL (WINAPI *pfnBackupSeek)(HANDLE, DWORD, DWORD, LPDWORD, LPDWORD, LPVO
 static BOOL (WINAPI *pfnBackupWrite)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL, LPVOID*)=NULL;
 
 
+
 // @pyswig <o PyUnicode>|SetVolumeMountPoint|Mounts the specified volume at the specified volume mount point.
 static PyObject*
 py_SetVolumeMountPoint(PyObject *self, PyObject *args)
@@ -3521,7 +3561,6 @@ py_BackupWrite(PyObject *self, PyObject *args)
 		}
 	return Py_BuildValue("ll", bytes_written, ctxt);
 }
- 
 %}
 
 %native (SetVolumeMountPoint) py_SetVolumeMountPoint;
@@ -3606,7 +3645,6 @@ py_BackupWrite(PyObject *self, PyObject *args)
 		
 		fp = GetProcAddress(hmodule, "BackupWrite");
 		if (fp) pfnBackupWrite = (BOOL (WINAPI *)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL, LPVOID*))(fp);
-
 		}
 %}
 
