@@ -119,6 +119,8 @@
 // Indicates that the file is to be accessed according to POSIX rules. 
 	// This includes allowing multiple files with names, differing only in case, for file systems that support such naming. 
 	// Use care when using this option because files created with this flag may not be accessible by applications written for MS-DOS or Windows.
+#define FILE_FLAG_OPEN_REPARSE_POINT FILE_FLAG_OPEN_REPARSE_POINT
+// used to open a handle for use with DeviceIoControl and FSCTL_GET_REPARSE_POINT/FSCTL_SET_REPARSE_POINT)
 
 #ifndef MS_WINCE
 #define SECURITY_ANONYMOUS SECURITY_ANONYMOUS 
