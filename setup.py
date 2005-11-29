@@ -1,4 +1,4 @@
-build_id="205" # may optionally include a ".{patchno}" suffix.
+build_id="205.1" # may optionally include a ".{patchno}" suffix.
 # Putting buildno at the top prevents automatic __doc__ assignment, and
 # I *want* the build number at the top :)
 __doc__="""This is a distutils setup-script for the pywin32 extensions
@@ -1095,6 +1095,7 @@ win32_extensions += [
 
 dirs = {
     'adsi' : 'com/win32comext/adsi/src',
+    'shell' : 'com/win32comext/shell/src',
 }
 
 # The COM modules.
@@ -1142,7 +1143,31 @@ com_extensions += [
     WinExt_win32com('mapi', libraries="mapi32", pch_header="PythonCOM.h"),
     WinExt_win32com_mapi('exchange', libraries="version"),
     WinExt_win32com_mapi('exchdapi'),
-    WinExt_win32com('shell', libraries='shell32', pch_header="shell_pch.h"),
+    WinExt_win32com('shell', libraries='shell32', pch_header="shell_pch.h",
+                    sources=("""
+                        %(shell)s/PyIAsyncOperation.cpp
+                        %(shell)s/PyIBrowserFrameOptions.cpp
+                        %(shell)s/PyIColumnProvider.cpp
+                        %(shell)s/PyIContextMenu.cpp
+                        %(shell)s/PyICopyHook.cpp
+                        %(shell)s/PyIDeskBand.cpp
+                        %(shell)s/PyIDockingWindow.cpp
+                        %(shell)s/PyIDropTargetHelper.cpp
+                        %(shell)s/PyIEnumIDList.cpp
+                        %(shell)s/PyIExtractIcon.cpp
+                        %(shell)s/PyIPersistFolder.cpp
+                        %(shell)s/PyIQueryAssociations.cpp
+                        %(shell)s/PyIShellBrowser.cpp
+                        %(shell)s/PyIShellExtInit.cpp
+                        %(shell)s/PyIShellFolder.cpp
+                        %(shell)s/PyIShellIcon.cpp
+                        %(shell)s/PyIShellIconOverlay.cpp
+                        %(shell)s/PyIShellIconOverlayIdentifier.cpp
+                        %(shell)s/PyIShellIconOverlayManager.cpp
+                        %(shell)s/PyIShellLink.cpp
+                        %(shell)s/PyIShellView.cpp
+                        %(shell)s/shell.cpp
+                        """ % dirs).split()),
     WinExt_win32com('taskscheduler', libraries='mstask'),
     WinExt_win32com('ifilter', libraries='ntquery'),
     WinExt_win32com('directsound', pch_header='directsound_pch.h',

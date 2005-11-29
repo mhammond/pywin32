@@ -34,6 +34,8 @@ generates Windows .hlp files.
 #include "PyIDropTargetHelper.h"
 #include "PyIAsyncOperation.h"
 #include "PyIQueryAssociations.h"
+#include "PyIDockingWindow.h"
+#include "PyIDeskBand.h"
 
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
 
@@ -2164,6 +2166,8 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL(ColumnProvider),
 	PYCOM_INTERFACE_FULL(DropTargetHelper),
 	PYCOM_INTERFACE_CLIENT_ONLY(QueryAssociations),
+	PYCOM_INTERFACE_SERVER_ONLY(DeskBand),
+	PYCOM_INTERFACE_SERVER_ONLY(DockingWindow),
 	// IID_ICopyHook doesn't exist - hack it up
 	{ &IID_IShellCopyHook, "IShellCopyHook", "IID_IShellCopyHook", &PyICopyHook::type, GET_PYGATEWAY_CTOR(PyGCopyHook) },
 	{ &IID_IShellCopyHook, "ICopyHook", "IID_ICopyHook", NULL, NULL  },
