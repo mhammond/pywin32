@@ -134,8 +134,30 @@ PyObject *PyObject_FromPROPVARIANT( PROPVARIANT *pVar )
 //			return PyCom_PyObjectFromIUnknown(pVar->punkVal, IID_IUnknown, TRUE);
 //		case VT_DISPATCH:
 //			return PyCom_PyObjectFromIUnknown(pVar->pdispVal, IID_IDispatch, TRUE);
+
+/*
+// Want to get VT_CF and VT_BLOB working with a test case first!
+		case VT_CF: { // special "clipboard format"
+			// cbSize is the size of the buffer pointed to 
+			// by pClipData, plus sizeof(ulClipFmt)
+			// XXX - in that case, shouldn't we pass
+			// pClipData + sizeof(DWORD) to Py_BuildValue??
+			ULONG cb = CBPCLIPDATA(*pVar->pclipdata);
+			return Py_BuildValue("is#",
+			                     pVar->pclipdata->ulClipFmt,
+			                     pVar->pclipdata->pClipData,
+			                     (int)cb);
+			}
+		case VT_BLOB:
+			// DWORD count of bytes, followed by that many bytes of data.
+			// The byte count does not include the four bytes for the
+			// length of the count itself; an empty blob member would
+			// have a count of zero, followed by zero bytes.
+			return PyString_FromStringAndSize((const char *)pVar->blob.pBlobData,
+			                                  pVar->blob.cbSize);
+*/
 		default:
-			PyErr_SetString(PyExc_TypeError, "Unsupported property type");
+			PyErr_Format(PyExc_TypeError, "Unsupported property type 0x%x", pVar->vt);
 			return NULL;
 	}
 }
