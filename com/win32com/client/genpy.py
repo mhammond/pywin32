@@ -23,7 +23,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.4.94" # Written to generated file.
+makepy_version = "0.4.95" # Written to generated file.
 
 GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
@@ -783,14 +783,7 @@ class Generator:
     self.bHaveWrittenCoClassBaseClass = 0
     self.bHaveWrittenEventBaseClass = 0
 
-    # encodings were giving me grief with McMillan's Installer
-    # until I get to the bottom of this, don't generate
-    # a coding line when frozen.
-    # *sigh* - and see http://www.python.org/sf/1163244 which is causing
-    # problems for 2.4+ - avoiding a coding line seems to avoid it.
-    if not hasattr(sys, "frozen") and sys.platform.startswith("win") and \
-       sys.hexversion < 0x2040000:
-        print >> self.file, '# -*- coding: mbcs -*-' # Is this always correct?
+    print >> self.file, '# -*- coding: mbcs -*-' # Is this always correct?
     print >> self.file, '# Created by makepy.py version %s' % (makepy_version,)
     print >> self.file, '# By python version %s' % \
                         (sys.version.replace("\n", "-"),)
