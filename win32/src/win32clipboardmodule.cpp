@@ -873,7 +873,8 @@ py_set_clipboard_data(PyObject* self, PyObject* args)
 	// @pyparm int|format||Specifies a clipboard format. For a description of
 	// the standard clipboard formats, see Standard Clipboard Formats.
 
-	// @pyparm int|hMem||Integer handle to the data in the specified format.
+	// @pyparm int/buffer|hMem||Integer handle to the data in the specified
+        // format, or a buffer object (eg, string).
 	// This parameter can be 0, indicating that the window provides data in
 	// the specified clipboard format (renders the format) upon request. If a
 	// window delays rendering, it must process the WM_RENDERFORMAT and
