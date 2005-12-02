@@ -735,6 +735,7 @@ PyGetConsoleTitle (PyObject *self, PyObject *args)
 		return NULL;
 	char title[128] = "";
 	// @pyseeapi GetConsoleTitle
+	::SetLastError(0); // sigh - stale errors can hang around.
 	if (GetConsoleTitle(title, sizeof(title))==0 && ::GetLastError() != 0)
 		return ReturnAPIError("GetConsoleTitle");
 	return Py_BuildValue("s", title);
