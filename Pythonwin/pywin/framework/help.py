@@ -76,7 +76,7 @@ def _ListAllHelpFilesInRoot(root):
 	except win32api.error, (code, fn, details):
 		import winerror
 		if code!=winerror.ERROR_FILE_NOT_FOUND:
-			raise win32api.error, (code, fn, desc)
+			raise win32api.error, (code, fn, details)
 		return retList
 	try:
 		keyNo = 0
