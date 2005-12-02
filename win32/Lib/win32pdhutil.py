@@ -46,7 +46,8 @@ def GetPerformanceAttributes(object, counter, instance = None, inum=-1, format =
 	# thread's CPU usage is either 0 or 100).  To read counters like this,
 	# you should copy this function, but keep the counter open, and call
 	# CollectQueryData() each time you need to know.
-	# See http://msdn.microsoft.com/library/en-us/dnperfmo/html/perfmonpt2.asp
+	# See http://support.microsoft.com/default.aspx?scid=kb;EN-US;q262938
+	# and http://msdn.microsoft.com/library/en-us/dnperfmo/html/perfmonpt2.asp
 	# My older explanation for this was that the "AddCounter" process forced
 	# the CPU to 100%, but the above makes more sense :)
 	path = win32pdh.MakeCounterPath( (machine,object,instance, None, inum,counter) )
