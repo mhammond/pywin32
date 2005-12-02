@@ -1506,7 +1506,7 @@ BOOLAPI SetLayeredWindowAttributes(
   DWORD dwFlags        // @pyparm int|flags||action
 );
 
-%endif // End of winxpgui only functi0ons
+%endif // End of winxpgui only functions
 
 // @pyswig int|GetWindowLong|
 // @pyparm int|hwnd||
@@ -1572,6 +1572,12 @@ static PyObject *PyCallWindowProc(PyObject *self, PyObject *args)
 {
 	long wndproc, hwnd, wparam, lparam;
 	UINT msg;
+        // @pyparm int|wndproc||The wndproc to call - this is generally the return
+        // value of SetWindowLong(GWL_WNDPROC)
+        // @pyparm int|hwnd||
+        // @pyparm int|msg||
+        // @pyparm int|wparam||
+        // @pyparm int|lparam||
 	if (!PyArg_ParseTuple(args, "llill", &wndproc, &hwnd, &msg, &wparam, &lparam))
 		return NULL;
 	LRESULT rc;
