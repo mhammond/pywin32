@@ -117,7 +117,9 @@ PyObject *pythoncom_StgIsStorageFile(PyObject *self, PyObject *args)
 	HRESULT hr = StgIsStorageFile(bstrName);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr)) return PyCom_BuildPyException(hr);
-	// @rdesc The return value is 1 if a storage file, else 0
+	// @rdesc The return value is 1 if a storage file, else 0.  This
+	// method will also raise com_error if the StgIsStorageFile function
+	// returns a failure HRESULT.
 	return PyInt_FromLong(hr==0);
 }
 #endif // MS_WINCE
