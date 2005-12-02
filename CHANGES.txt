@@ -5,6 +5,35 @@ Generally created by hand after running:
    {py_dir}\Tools\scripts\logmerge.py -t < log.out > log.out2
 However contributors are encouraged to add their own entries for their work.
 
+Build 205
+---------
+* Introduce support for Python's 'decimal' module when working with
+  COM 'currency' objects - see the included .chm for more details.
+* More reliable loading of pywintypes/pythoncom when these files are not in 
+  system32
+* Allow datetime objects to be passed directly to COM functions without 
+  requiring explicit conversion.
+* New win32crypt module for access to the windows crypto functions.
+* New win32console module (Roger Upole)
+* New win32com.shell.shell methods and leaks fixed, new win32gui methods
+  (Roger Upole)
+* pywin32.version.txt file installed, and all .dll, .pyd and .exe files
+  are stamped with the pywin32 version number.
+* Number of build related changes to work with the latest Platform SDK.
+* Fix reference leaks when using OVERLAPPED objects with completion ports.
+* win32api.GetConsoleTitle() now returns an empty string instead of
+  (0, "No Error")
+* makepy didn't catch all Dispatchable interfaces, and now doesn't die
+  if a dependent typelib can not be loaded.
+* win32com 'universal gateway' support did not handle byref args correctly.
+* Fix [ 1208530 ] PyBitmap.GetBitmapBits Memory Leak
+* [ 1208081 ] Fix: WaitForServiceStatus doesn't work for remote boxes
+* Pythonwin patch from Matthias Haldimann: if there is a selection, use 
+  that as the default search string.
+* Lots of win32com.adsi enhancements.
+* Tweaks to the new isapi support.
+* Many other minor fixes and enhancements - see the CVS log for more
+  details
 
 Build 204
 ---------
