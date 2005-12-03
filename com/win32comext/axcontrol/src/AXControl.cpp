@@ -30,6 +30,8 @@ generates Windows .hlp files.
 #include "PyIOleInPlaceSiteEx.h"
 #include "PyIOleInPlaceSiteWindowless.h"
 #include "PyISpecifyPropertyPages.h"
+#include "PyIObjectWithSite.h"
+#include "PyIOleCommandTarget.h"
 
 BOOL PyObject_AsLOGPALETTE(PyObject *pbLogPal, LOGPALETTE **ppLogPal)
 {
@@ -328,6 +330,8 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL       (OleInPlaceSiteEx),
 	PYCOM_INTERFACE_FULL       (OleInPlaceSiteWindowless),
 	PYCOM_INTERFACE_FULL       (SpecifyPropertyPages),
+	PYCOM_INTERFACE_FULL       (ObjectWithSite),
+	PYCOM_INTERFACE_FULL       (OleCommandTarget),
 };
 
 /* Module initialisation */

@@ -1096,6 +1096,7 @@ win32_extensions += [
 dirs = {
     'adsi' : 'com/win32comext/adsi/src',
     'shell' : 'com/win32comext/shell/src',
+    'axcontrol' : 'com/win32comext/axcontrol/src',
 }
 
 # The COM modules.
@@ -1125,7 +1126,16 @@ com_extensions += [
                         %(adsi)s/PyADSIUtil.cpp         %(adsi)s/PyDSOPObjects.cpp
                         %(adsi)s/PyIADs.cpp
                         """ % dirs).split()),
-    WinExt_win32com('axcontrol', pch_header="axcontrol_pch.h"),
+    WinExt_win32com('axcontrol', pch_header="axcontrol_pch.h",
+                    sources=("""
+                        %(axcontrol)s/AXControl.cpp              %(axcontrol)s/PyIOleControl.cpp
+                        %(axcontrol)s/PyIOleInPlaceSiteEx.cpp    %(axcontrol)s/PyISpecifyPropertyPages.cpp
+                        %(axcontrol)s/PyIObjectWithSite.cpp      %(axcontrol)s/PyIOleInPlaceObject.cpp
+                        %(axcontrol)s/PyIOleInPlaceSiteWindowless.cpp  %(axcontrol)s/PyIViewObject.cpp
+                        %(axcontrol)s/PyIOleClientSite.cpp       %(axcontrol)s/PyIOleInPlaceSite.cpp
+                        %(axcontrol)s/PyIOleObject.cpp           %(axcontrol)s/PyIViewObject2.cpp
+                        %(axcontrol)s/PyIOleCommandTarget.cpp
+                        """ % dirs).split()),
     WinExt_win32com('axscript',
             dsp_file=r"com\Active Scripting.dsp",
             extra_compile_args = ['-DPY_BUILD_AXSCRIPT'],
@@ -1155,6 +1165,7 @@ com_extensions += [
                         %(shell)s/PyIDropTargetHelper.cpp
                         %(shell)s/PyIEnumIDList.cpp
                         %(shell)s/PyIExtractIcon.cpp
+                        %(shell)s/PyIInputObject.cpp
                         %(shell)s/PyIPersistFolder.cpp
                         %(shell)s/PyIQueryAssociations.cpp
                         %(shell)s/PyIShellBrowser.cpp
