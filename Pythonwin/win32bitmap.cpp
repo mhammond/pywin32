@@ -458,10 +458,13 @@ static PyObject *ui_bitmap_info( PyObject *self, PyObject *args )
   return d;
 }
 
-// @pymethod tuple|PyBitmap|GetBitmapBits|Returns the bitmap bits.
+// @pymethod tuple/string|PyBitmap|GetBitmapBits|Returns the bitmap bits.
 static PyObject *ui_get_bitmap_bits( PyObject *self, PyObject *args )
 {
-	if (!PyArg_ParseTuple(args,""))
+	// @pyparm int|asString|0|If False, the result is a tuple of
+	// integers, if True, the result is a Python string
+	int asString = 0;
+	if (!PyArg_ParseTuple(args,"|i", &asString))
 		return NULL;
   	CBitmap *pBitmap = ui_bitmap::GetBitmap( self );
 	BITMAP bm;
@@ -477,9 +480,14 @@ static PyObject *ui_get_bitmap_bits( PyObject *self, PyObject *args )
 		free(bits);
 		RETURN_ERR("GetBitmapBits failed on bitmap");
 	}
-	PyObject* rc = PyTuple_New(cnt);
-	for (UINT i = 0; i < cnt; i++) {
-		PyTuple_SetItem(rc, i, Py_BuildValue("i", (int)bits[i]));
+	PyObject* rc;
+	if (asString) {
+		rc = PyString_FromStringAndSize(bits, cnt);
+	} else {
+		rc = PyTuple_New(cnt);
+		for (UINT i = 0; i < cnt; i++) {
+			PyTuple_SetItem(rc, i, PyInt_FromLong((long)bits[i]));
+		}
 	}
 	free(bits);
 	return rc;
