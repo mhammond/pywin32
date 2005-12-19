@@ -660,22 +660,6 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
 	PyObject *subitem = NULL;
 	HRESULT hres = 0;
 	switch (vt) {
-		case VT_VARIANT: {
-			VARIANT		varValue;
-			VariantInit(&varValue);
-			hres = SafeArrayGetElement(psa, arrayIndices, &varValue);
-			if (FAILED(hres)) break;
-			subitem = PyCom_PyObjectFromVariant(&varValue);
-			VariantClear(&varValue); // clean this up
-			break;
-			}
-		case VT_UI1: {
-			unsigned char i1;
-			hres = SafeArrayGetElement(psa, arrayIndices, &i1);
-			if (FAILED(hres)) break;
-			subitem = PyInt_FromLong(i1);
-			break;
-		}
 		case VT_I2: {
 			short sh;
 			hres = SafeArrayGetElement(psa, arrayIndices, &sh);
@@ -683,7 +667,8 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
 			subitem = PyInt_FromLong(sh);
 			break;
 			}
-		case VT_I4:	{
+		case VT_I4:
+		case VT_ERROR: {
 			long ln;
 			hres = SafeArrayGetElement(psa, arrayIndices, &ln);
 			if (FAILED(hres)) break;
@@ -704,18 +689,49 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
 			subitem = PyFloat_FromDouble(db);
 			break;
 			}
+		case VT_CY: {
+			CURRENCY c;
+			hres = SafeArrayGetElement(psa, arrayIndices, &c);
+			if (FAILED(hres)) break;
+			subitem = PyObject_FromCurrency(c);
+			break;
+			}
+		case VT_DATE: {
+			DATE dt;
+			hres = SafeArrayGetElement(psa, arrayIndices, &dt);
+			if (FAILED(hres)) break;
+			subitem = PyWinObject_FromDATE(dt);
+			break;
+		}
 		case VT_BSTR: {
 			BSTR str;
 			hres = SafeArrayGetElement(psa, arrayIndices, &str);
 			if (FAILED(hres)) break;
 			subitem = PyWinObject_FromBstr(str);
 			break;
-			}
+		}
 		case VT_DISPATCH: {
 			IDispatch *pDisp;
 			hres = SafeArrayGetElement(psa, arrayIndices, &pDisp);
 			if (FAILED(hres)) break;
 			subitem = PyCom_PyObjectFromIUnknown(pDisp, IID_IDispatch, TRUE);
+			break;
+		}
+		// case VT_ERROR - handled above with I4
+		case VT_BOOL: {
+			bool b1;
+			hres = SafeArrayGetElement(psa, arrayIndices, &b1);
+			if (FAILED(hres)) break;
+			subitem = PyBool_FromLong(b1);
+			break;
+		}
+		case VT_VARIANT: {
+			VARIANT		varValue;
+			VariantInit(&varValue);
+			hres = SafeArrayGetElement(psa, arrayIndices, &varValue);
+			if (FAILED(hres)) break;
+			subitem = PyCom_PyObjectFromVariant(&varValue);
+			VariantClear(&varValue); // clean this up
 			break;
 		}
 		case VT_UNKNOWN: {
@@ -725,13 +741,46 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
 			subitem = PyCom_PyObjectFromIUnknown(pUnk, IID_IUnknown, TRUE);
 			break;
 		}
-		case VT_DATE: {
-			DATE dt;
-			hres = SafeArrayGetElement(psa, arrayIndices, &dt);
+		// case VT_DECIMAL
+		// case VT_RECORD
+
+		case VT_I1:
+		case VT_UI1: {
+			unsigned char i1;
+			hres = SafeArrayGetElement(psa, arrayIndices, &i1);
 			if (FAILED(hres)) break;
-			subitem = PyWinObject_FromDATE(dt);
+			subitem = PyInt_FromLong(i1);
 			break;
-			};
+		}
+		case VT_UI2: {
+			unsigned short s1;
+			hres = SafeArrayGetElement(psa, arrayIndices, &s1);
+			if (FAILED(hres)) break;
+			subitem = PyLong_FromUnsignedLong(s1);
+			break;
+		}
+		case VT_UI4: {
+			unsigned long l1;
+			hres = SafeArrayGetElement(psa, arrayIndices, &l1);
+			if (FAILED(hres)) break;
+			subitem = PyLong_FromUnsignedLong(l1);
+			break;
+		}
+		case VT_INT: {
+			int i1;
+			hres = SafeArrayGetElement(psa, arrayIndices, &i1);
+			if (FAILED(hres)) break;
+			subitem = PyLong_FromLong(i1);
+			break;
+		}
+		case VT_UINT: {
+			unsigned int i1;
+			hres = SafeArrayGetElement(psa, arrayIndices, &i1);
+			if (FAILED(hres)) break;
+			subitem = PyLong_FromUnsignedLong(i1);
+			break;
+		}
+
 		default: {
 			TCHAR buf[200];
 			wsprintf(buf, _T("The VARIANT type 0x%x is not supported for SAFEARRAYS"), vt);
