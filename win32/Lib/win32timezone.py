@@ -62,6 +62,11 @@ registry.
 >>> gmt.displayName
 '(GMT) Greenwich Mean Time : Dublin, Edinburgh, Lisbon, London'
 
+TimeZoneInfo now supports being pickled and comparison
+>>> import pickle
+>>> tz = win32timezone.TimeZoneInfo( 'China Standard Time' )
+>>> tz == pickle.loads( pickle.dumps( tz ) )
+True
 """
 from __future__ import generators
 
@@ -96,6 +101,9 @@ class TimeZoneInfo( datetime.tzinfo ):
 			raise ValueError, 'Timezone Name %s not found.' % timeZoneName
 		self._LoadInfoFromKey( key )
 		self.fixedStandardTime = fixedStandardTime
+
+	def __getinitargs__( self ):
+		return ( self.timeZoneName, )
 
 	def _LoadInfoFromKey( self, key ):
 		"""Loads the information from an opened time zone registry key
@@ -140,10 +148,14 @@ class TimeZoneInfo( datetime.tzinfo ):
 
 	def utcoffset( self, dt ):
 		"Calculates the utcoffset according to the datetime.tzinfo spec"
+		if dt is None:
+			return None
 		return -( self.bias + self.dst( dt ) )
 
 	def dst( self, dt ):
 		"Calculates the daylight savings offset according to the datetime.tzinfo spec"
+		if dt is None:
+			return None
 		assert dt.tzinfo is self
 		result = self.standardBiasOffset
 
@@ -198,6 +210,9 @@ class TimeZoneInfo( datetime.tzinfo ):
 		while result.month == month + 1:
 			result -= datetime.timedelta( weeks = 1 )
 		return result
+
+	def __cmp__( self, other ):
+		return cmp( self.__dict__, other.__dict__ )
 
 def _RegKeyEnumerator( key ):
 	"Enumerates an open registry key as an iterable generator"
