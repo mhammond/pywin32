@@ -56,11 +56,11 @@ registry.
 
 >>> est = win32timezone.TimeZoneInfo( 'Eastern Standard Time' )
 >>> est.displayName
-'(GMT-05:00) Eastern Time (US & Canada)'
+u'(GMT-05:00) Eastern Time (US & Canada)'
 
 >>> gmt = win32timezone.TimeZoneInfo( 'GMT Standard Time', True )
 >>> gmt.displayName
-'(GMT) Greenwich Mean Time : Dublin, Edinburgh, Lisbon, London'
+u'(GMT) Greenwich Mean Time : Dublin, Edinburgh, Lisbon, London'
 
 TimeZoneInfo now supports being pickled and comparison
 >>> import pickle
@@ -75,7 +75,7 @@ __version__ = '$Revision$'[11:-2]
 __vssauthor__ = '$Author$'[9:-2]
 __date__ = '$Modtime: 04-04-14 10:52 $'[10:-2]
 
-import os, win32api, win32con, struct, datetime
+import os, _winreg, struct, datetime
 
 class TimeZoneInfo( datetime.tzinfo ):
 	"""
@@ -91,16 +91,24 @@ class TimeZoneInfo( datetime.tzinfo ):
 		
 	def __init__( self, timeZoneName, fixedStandardTime=False ):
 		self.timeZoneName = timeZoneName
-		tzRegKeyPath = os.path.join( self.tzRegKey, timeZoneName )
-		try:
-			key = win32api.RegOpenKeyEx( win32con.HKEY_LOCAL_MACHINE,
-										 tzRegKeyPath,
-										 0,
-										 win32con.KEY_READ )
-		except:
-			raise ValueError, 'Timezone Name %s not found.' % timeZoneName
+		key = self._FindTimeZoneKey()
 		self._LoadInfoFromKey( key )
 		self.fixedStandardTime = fixedStandardTime
+
+	def _FindTimeZoneKey( self ):
+		"""Find the registry key for the time zone name (self.timeZoneName)."""
+		# for multi-language compatability, match the time zone name in the
+		# "Std" key of the time zone key.
+		zoneNames = dict( GetIndexedTimeZoneNames( 'Std' ) )
+		# Also match the time zone key name itself, to be compatible with
+		# English-based hard-coded time zones.
+		timeZoneName = zoneNames.get( self.timeZoneName, self.timeZoneName )
+		tzRegKeyPath = os.path.join( self.tzRegKey, timeZoneName )
+		try:
+			key = _winreg.OpenKeyEx( _winreg.HKEY_LOCAL_MACHINE, tzRegKeyPath )
+		except:
+			raise ValueError, 'Timezone Name %s not found.' % timeZoneName
+		return key
 
 	def __getinitargs__( self ):
 		return ( self.timeZoneName, )
@@ -108,12 +116,12 @@ class TimeZoneInfo( datetime.tzinfo ):
 	def _LoadInfoFromKey( self, key ):
 		"""Loads the information from an opened time zone registry key
 		into relevant fields of this TZI object"""
-		self.displayName = win32api.RegQueryValueEx( key, "Display" )[0]
-		self.standardName = win32api.RegQueryValueEx( key, "Std" )[0]
-		self.daylightName = win32api.RegQueryValueEx( key, "Dlt" )[0]
+		self.displayName = _winreg.QueryValueEx( key, "Display" )[0]
+		self.standardName = _winreg.QueryValueEx( key, "Std" )[0]
+		self.daylightName = _winreg.QueryValueEx( key, "Dlt" )[0]
 		# TZI contains a structure of time zone information and is similar to
 		#  TIME_ZONE_INFORMATION described in the Windows Platform SDK
-		winTZI, type = win32api.RegQueryValueEx( key, "TZI" )
+		winTZI, type = _winreg.QueryValueEx( key, "TZI" )
 		winTZI = struct.unpack( '3l8h8h', winTZI )
 		makeMinuteTimeDelta = lambda x: datetime.timedelta( minutes = x )
 		self.bias, self.standardBiasOffset, self.daylightBiasOffset = \
@@ -148,14 +156,12 @@ class TimeZoneInfo( datetime.tzinfo ):
 
 	def utcoffset( self, dt ):
 		"Calculates the utcoffset according to the datetime.tzinfo spec"
-		if dt is None:
-			return None
+		if dt is None: return
 		return -( self.bias + self.dst( dt ) )
 
 	def dst( self, dt ):
 		"Calculates the daylight savings offset according to the datetime.tzinfo spec"
-		if dt is None:
-			return None
+		if dt is None: return
 		assert dt.tzinfo is self
 		result = self.standardBiasOffset
 
@@ -215,32 +221,38 @@ class TimeZoneInfo( datetime.tzinfo ):
 		return cmp( self.__dict__, other.__dict__ )
 
 def _RegKeyEnumerator( key ):
+	return _RegEnumerator( key, _winreg.EnumKey )
+
+def _RegValueEnumerator( key ):
+	return _RegEnumerator( key, _winreg.EnumValue )
+
+def _RegEnumerator( key, func ):
 	"Enumerates an open registry key as an iterable generator"
 	index = 0
 	try:
 		while 1:
-			yield win32api.RegEnumKey( key, index )
+			yield func( key, index )
 			index += 1
-	except win32api.error: pass
+	except WindowsError: pass
+	
+def _RegKeyDict( key ):
+	values = _RegValueEnumerator( key )
+	values = tuple( values )
+	return dict( map( lambda (name,value,type): (name,value), values ) )
 
 def GetTimeZoneNames( ):
 	"Returns the names of the time zones as defined in the registry"
-	key = win32api.RegOpenKeyEx( win32con.HKEY_LOCAL_MACHINE,
-								 TimeZoneInfo.tzRegKey,
-								 0,
-								 win32con.KEY_READ )
+	key = _winreg.OpenKeyEx( _winreg.HKEY_LOCAL_MACHINE, TimeZoneInfo.tzRegKey )
 	return _RegKeyEnumerator( key )
 
-def GetIndexedTimeZoneNames( ):
-	"""Returns the names of the time zones as defined in the registry, but includes
-	the index by which they may be sorted longitudinally."""
+def GetIndexedTimeZoneNames( index_key = 'Index' ):
+	"""Returns the names of the time zones as defined in the registry, but
+	includes an index by which they may be sorted.  Default index is "Index"
+	by which they may be sorted longitudinally."""
 	for timeZoneName in GetTimeZoneNames():
 		tzRegKeyPath = os.path.join( TimeZoneInfo.tzRegKey, timeZoneName )
-		key = win32api.RegOpenKeyEx( win32con.HKEY_LOCAL_MACHINE,
-									 tzRegKeyPath,
-									 0,
-									 win32con.KEY_READ )
-		tzIndex, type = win32api.RegQueryValueEx( key, 'Index' )
+		key = _winreg.OpenKeyEx( _winreg.HKEY_LOCAL_MACHINE, tzRegKeyPath )
+		tzIndex, type = _winreg.QueryValueEx( key, index_key )
 		yield ( tzIndex, timeZoneName )
 
 def GetSortedTimeZoneNames( ):
@@ -251,7 +263,10 @@ def GetSortedTimeZoneNames( ):
 	return zip( *tzs )[1]
 
 def GetLocalTimeZone( ):
-	"""Returns the local time zone as defined by the operating system in the registry
+	"""Returns the local time zone as defined by the operating system in the
+	registry.
+	Note that this will only work if the TimeZone in the registry has not been
+	customized.  It should have been selected from the Windows interface.
 	>>> localTZ = GetLocalTimeZone()
 	>>> nowLoc = datetime.datetime.now( localTZ )
 	>>> nowUTC = datetime.datetime.utcnow( )
@@ -267,9 +282,12 @@ def GetLocalTimeZone( ):
 	True
 	"""
 	tzRegKey = r'SYSTEM\CurrentControlSet\Control\TimeZoneInformation'
-	key = win32api.RegOpenKeyEx( win32con.HKEY_LOCAL_MACHINE,
-								 tzRegKey,
-								 0,
-								 win32con.KEY_READ )
-	tzName, type = win32api.RegQueryValueEx( key, 'StandardName' )
-	return TimeZoneInfo( tzName )
+	key = _winreg.OpenKeyEx( _winreg.HKEY_LOCAL_MACHINE, tzRegKey )
+	local = _RegKeyDict( key )
+	# if the user has not checked "Automatically adjust clock for daylight
+	# saving changes" in the Date and Time Properties control, the standard
+	# and daylight values will be the same.  If this is the case, create a
+	# timezone object fixed to standard time.
+	fixStandardTime = local['StandardName'] == local['DaylightName'] and \
+					local['StandardBias'] == local['DaylightBias']
+	return TimeZoneInfo( local['StandardName'], fixStandardTime )
