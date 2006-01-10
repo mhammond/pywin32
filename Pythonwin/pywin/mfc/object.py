@@ -38,3 +38,18 @@ class Object:
 class CmdTarget(Object):
 	def __init__(self, initObj):
 		Object.__init__(self, initObj)
+	def HookNotifyRange(self, handler, firstID, lastID):
+		oldhandlers = []
+		for i in range(firstID, lastID + 1):
+			oldhandlers.append(self.HookNotify(handler, i))
+		return oldhandlers
+	def HookCommandRange(self, handler, firstID, lastID):
+		oldhandlers = []
+		for i in range(firstID, lastID + 1):
+			oldhandlers.append(self.HookCommand(handler, i))
+		return oldhandlers
+	def HookCommandUpdateRange(self, handler, firstID, lastID):
+		oldhandlers = []
+		for i in range(firstID, lastID + 1):
+			oldhandlers.append(self.HookCommandUpdate(handler, i))
+		return oldhandlers
