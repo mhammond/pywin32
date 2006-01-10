@@ -91,9 +91,7 @@ static BOOL LoadModulePath(void)
 
 	// Setup g_fUsingWin9x and module path correctly...
 	{
-		if (!LoadModulePath()) {
-			PyErr_SetString(PyExc_RuntimeError, "Could not determine the module base path!?");
-		}
+		LoadModulePath();
 
 		OSVERSIONINFO osvi;
 
