@@ -28,6 +28,11 @@ char *errmsgAlreadyInit = "The application has already been initialised";
 // CProtectedWinApp Application helpers.
 //
 //////////////////////////////////////////////////////////////////////
+int CProtectedWinApp::GetRecentCount()
+{
+	return m_pRecentFileList->GetSize();
+}
+
 CString CProtectedWinApp::GetRecentFileName(int index)
 {
 	if (index>=0 && index < _AFX_MRU_MAX_COUNT) {

@@ -1154,7 +1154,7 @@ ui_get_recent_file_list(PyObject *self, PyObject *args)
 	CHECK_NO_ARGS2(args,GetRecentFileList);
 	CProtectedWinApp *pApp = GetProtectedApp();
 	if (!pApp) return NULL;
-	int cnt = pApp->GetProfileInt("Settings", "Recent File List Size", _AFX_MRU_COUNT);
+	int cnt = pApp->GetRecentCount();
 	PyObject *list = PyList_New(cnt);
 	if (list==NULL) {
 		PyErr_SetString(PyExc_MemoryError, "Allocating list for MRU documents");

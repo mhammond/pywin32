@@ -46,6 +46,7 @@ public:
 class PYW_EXPORT CProtectedWinApp : public CWinApp {
 public:
 	// how do I change from protected to public?
+	int GetRecentCount();
 	CString GetRecentFileName(int index);
 	void RemoveRecentFile(int index);
 	// Get main window - usually (but not always!) a CMDIFrameWnd
