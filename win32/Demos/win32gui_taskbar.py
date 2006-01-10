@@ -46,7 +46,14 @@ class MainWindow:
 
         flags = NIF_ICON | NIF_MESSAGE | NIF_TIP
         nid = (self.hwnd, 0, flags, win32con.WM_USER+20, hicon, "Python Demo")
-        Shell_NotifyIcon(NIM_ADD, nid)
+        try:
+            Shell_NotifyIcon(NIM_ADD, nid)
+        except error:
+            # This is common when windows is starting, and this code is hit
+            # before the taskbar has been created.
+            print "Failed to add the taskbar icon - is explorer running?"
+            # but keep running anyway - when explorer starts, we get the
+            # TaskbarCreated message.
 
     def OnRestart(self, hwnd, msg, wparam, lparam):
         self._DoCreateIcons()
