@@ -2157,6 +2157,31 @@ BOOLAPI DrawIconEx(
 // @pyswig int|CreateIconIndirect|Creates an icon or cursor from an ICONINFO structure. 
 HICON CreateIconIndirect(ICONINFO *INPUT);
 
+%{
+// @pyswig int|CreateIconFromResource|Creates an icon or cursor from resource bits describing the icon.
+static PyObject *PyCreateIconFromResource(PyObject *self, PyObject *args)
+{
+	// @pyparm string|bits||The bits
+	// @pyparm bool|fIcon||True if an icon, False if a cursor.
+	// @pyparm int|ver|0x00030000|Specifies the version number of the icon or cursor
+	// format for the resource bits pointed to by the presbits parameter.
+	// This parameter can be 0x00030000.
+	char *bits;
+	int nBits;
+	int isIcon;
+	int ver = 0x00030000;
+	if (!PyArg_ParseTuple(args, "s#i|i", &bits, &nBits, &isIcon, &ver))
+		return NULL;
+	HICON ret = CreateIconFromResource((PBYTE)bits, nBits, isIcon, ver);
+	if (!ret)
+	    return PyWin_SetAPIError("CreateIconFromResource");
+	return PyLong_FromVoidPtr(ret);
+}
+%}
+%native (CreateIconFromResource) PyCreateIconFromResource;
+
+HICON CreateIconIndirect();
+
 // @pyswig HANDLE|LoadImage|Loads a bitmap, cursor or icon
 HANDLE LoadImage(HINSTANCE hInst, // @pyparm int|hinst||Handle to an instance of the module that contains the image to be loaded. To load an OEM image, set this parameter to zero. 
 				 RESOURCE_ID name, // @pyparm int/string|name||Specifies the image to load. If the hInst parameter is non-zero and the fuLoad parameter omits LR_LOADFROMFILE, name specifies the image resource in the hInst module. If the image resource is to be loaded by name, the name parameter is a string that contains the name of the image resource.
