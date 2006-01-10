@@ -6,13 +6,11 @@ from win32com.client.gencache import EnsureDispatch
 
 class PippoTester(unittest.TestCase):
     def setUp(self):
-        try:
-            self.object = Dispatch("Python.Test.Pippo")
-        except pythoncom.com_error:
-            # register the server
-            import pippo_server
-            pippo_server.main([pippo_server.__file__])
-            self.object = Dispatch("Python.Test.Pippo")
+        # register the server
+        import pippo_server
+        pippo_server.main([pippo_server.__file__])
+        # create it.
+        self.object = Dispatch("Python.Test.Pippo")
 
     def testLeaks(self):
         try:
