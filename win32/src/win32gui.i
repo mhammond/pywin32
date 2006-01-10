@@ -3321,7 +3321,7 @@ BOOLAPI DrawEdge(HDC hdc, RECT *INPUT, UINT edge, UINT grfFlags);
 int FillRect(HDC hDC,   RECT *INPUT, HBRUSH hbr);
 // @pyswig |CreateSolidBrush|
 HBRUSH CreateSolidBrush(COLORREF color);
-// @pyswid |CreatePen|
+// @pyswig |CreatePen|
 HPEN CreatePen(int fnPenStyle, int nWidth, COLORREF crColor);
 // @pyswig |GetSysColor|
 DWORD GetSysColor(int nIndex);
