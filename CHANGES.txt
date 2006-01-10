@@ -5,6 +5,37 @@ Generally created by hand after running:
    {py_dir}\Tools\scripts\logmerge.py -t < log.out > log.out2
 However contributors are encouraged to add their own entries for their work.
 
+Build 206
+--------
+* Prevent the "display name" of a COM object ever being Unicode and
+  therefore a possible cause of unexpected Unicode decode errors.
+* Correct and document behaviour of CoInitializeEx/CoInitialize exception 
+  throwing behaviour - previously a failure would leave a stale Python 
+  exception.
+* Fix memory leak when doing str(PySID) (Roger Upole)
+* New IE Toolbar demo contributed by Leonard Ritter, plus a few new
+  AXControl related interfaces that were necessary.
+* win32timezone now works in non-English Windows versions.  timezone
+  objects can now be pickled (Jason Coombs)
+* Prevent stale Windows errors causing win32api.GetConsoleTitle() to fail.
+* Remove workaround for Python bug so we again write a file encoding to 
+  makepy generated files in all Python versions.
+* New win32gui function CreateIconFromResource.
+* Add win32file.QueryDosDevice (Roger Upole)
+* Fix error when using win32pipe in a "bundled" py2exe app.
+* Better support for py2exe based services, including debugging support.
+* Add support for all VARIANT types in COM arrays (a few were missing)
+* GetBitmapBits() can return a string or a list (a string being *much* 
+  faster)
+* Fix win32gui taskbar demo to handle the fact explorer may not (yet) be 
+  running.
+* win32 directory should again build on Windows CE (Luke Dunstan)
+* Support for IGlobalInterfaceTable (Stefan Schukat)
+* A number of pythonwin framework enhancements (Adal Chiriliuc)
+* Better Auto-Complete list in pythonwin for COM objects (Jerry Gamache)
+* win32api.GetVersionEx takes an optional param - if 1, we return a longer 
+  tuple representing the OSVERSIONINFOEX structure.
+
 Build 205
 ---------
 * Introduce support for Python's 'decimal' module when working with

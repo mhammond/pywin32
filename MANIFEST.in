@@ -16,6 +16,8 @@ include win32/src/win32popenWin9x.cpp
 include win32/scripts/*.py
 include win32/test/*.py
 include win32/Demos/*.py
+include win32/Demos/security/*.py
+include win32/Demos/security/sspi/*.py
 include win32/src/*.h
 include win32/src/*.manifest
 include win32/src/PerfMon/perfmondata.def
