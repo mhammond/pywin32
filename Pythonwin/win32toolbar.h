@@ -1,6 +1,6 @@
 // long awaited toolbar class
 
-class PyCControlBar : public PyCWnd
+class PYW_EXPORT PyCControlBar : public PyCWnd
 {
 public:
   MAKE_PY_CTOR(PyCControlBar)
