@@ -338,6 +338,10 @@ SOURCE=.\win32com\src\extensions\PyIExternalConnection.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32com\src\extensions\PyIGlobalInterfaceTable.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32com\src\extensions\PyILockBytes.cpp
 # End Source File
 # Begin Source File
@@ -503,6 +507,10 @@ SOURCE=.\win32com\src\include\PyIEnumVARIANT.h
 # Begin Source File
 
 SOURCE=.\win32com\src\include\PyIExternalConnection.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32com\src\include\PyIGlobalInterfaceTable.h
 # End Source File
 # Begin Source File
 

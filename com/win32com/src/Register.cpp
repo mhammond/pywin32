@@ -51,6 +51,7 @@ generates Windows .hlp files.
 #include "PyIDropSource.h"
 #include "PyIDropTarget.h"
 #include "PyIOleWindow.h"
+#include "PyIGlobalInterfaceTable.h"
 
 //PyObject *CLSIDMapping;  // Maps CLSIDs onto PyClassObjects
 PyObject *g_obPyCom_MapIIDToType = NULL; // map of IID's to client types.
@@ -216,6 +217,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 #ifndef NO_PYCOM_ICATINFORMATION
 	PYCOM_INTERFACE_CLSID_ONLY ( StdComponentCategoriesMgr ),
 #endif // NO_PYCOM_ICATINFORMATION
+	PYCOM_INTERFACE_CLSID_ONLY ( StdGlobalInterfaceTable ),
 	// Sort alphabetically just for us poor humans!
 	PYCOM_INTERFACE_CLIENT_ONLY( BindCtx),
 #ifndef NO_PYCOM_ICATINFORMATION
@@ -251,6 +253,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL       ( EnumVARIANT),
 	PYCOM_INTERFACE_FULL       ( ErrorLog),
 	PYCOM_INTERFACE_FULL       ( ExternalConnection),
+	PYCOM_INTERFACE_CLIENT_ONLY( GlobalInterfaceTable),
 	PYCOM_INTERFACE_FULL       ( LockBytes),
 	PYCOM_INTERFACE_IID_ONLY   ( Marshal ),
 	PYCOM_INTERFACE_CLIENT_ONLY( Moniker),
