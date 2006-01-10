@@ -2005,23 +2005,47 @@ PyGetVersion(PyObject * self, PyObject * args)
 	// word is 0 if the platform is Windows NT, or 1 if Win32s on Windows 3.1
 }
 
-// @pymethod (int,int,int,int,string)|win32api|GetVersionEx|Returns the current version of Windows, and information about the environment.
+// @pymethod tuple|win32api|GetVersionEx|Returns the current version of Windows, and information about the environment.
 static PyObject *
 PyGetVersionEx(PyObject * self, PyObject * args)
 {
-	if (!PyArg_ParseTuple(args, ":GetVersionEx"))
+	// @pyparm int|format|0|The format of the version info to return.
+	// May be 0 (for OSVERSIONINFO) or 1 (for OSVERSIONINFOEX)
+	int format = 0;
+	if (!PyArg_ParseTuple(args, "|i:GetVersionEx", &format))
 		return NULL;
-	OSVERSIONINFO ver;
-	ver.dwOSVersionInfoSize = sizeof(ver);
-	if (!::GetVersionEx(&ver))
-		return ReturnAPIError("GetVersionEx");
-	return Py_BuildValue("iiiis",
-	// @rdesc The return value is a tuple with the following information.<nl>
-		         ver.dwMajorVersion, // @tupleitem 0|int|majorVersion|Identifies the major version number of the operating system.<nl>
-				 ver.dwMinorVersion, //	@tupleitem 1|int|minorVersion|Identifies the minor version number of the operating system.<nl>
-				 ver.dwBuildNumber,  //	@tupleitem 2|int|buildNumber|Identifies the build number of the operating system in the low-order word. (The high-order word contains the major and minor version numbers.)<nl>
-				 ver.dwPlatformId, // @tupleitem 3|int|platformId|Identifies the platform supported by the operating system.  May be one of VER_PLATFORM_WIN32s, VER_PLATFORM_WIN32_WINDOWS or VER_PLATFORM_WIN32_NT<nl>
-				 ver.szCSDVersion); // @tupleitem 4|string|version|Contains arbitrary additional information about the operating system.
+	if (format == 0) {
+		OSVERSIONINFO ver;
+		ver.dwOSVersionInfoSize = sizeof(ver);
+		if (!::GetVersionEx(&ver))
+			return ReturnAPIError("GetVersionEx");
+		return Py_BuildValue("iiiis",
+		// @rdesc The return value is a tuple with the following information.<nl>
+				 ver.dwMajorVersion, // @tupleitem 0|int|majorVersion|Identifies the major version number of the operating system.<nl>
+					 ver.dwMinorVersion, //	@tupleitem 1|int|minorVersion|Identifies the minor version number of the operating system.<nl>
+					 ver.dwBuildNumber,  //	@tupleitem 2|int|buildNumber|Identifies the build number of the operating system in the low-order word. (The high-order word contains the major and minor version numbers.)<nl>
+					 ver.dwPlatformId, // @tupleitem 3|int|platformId|Identifies the platform supported by the operating system.  May be one of VER_PLATFORM_WIN32s, VER_PLATFORM_WIN32_WINDOWS or VER_PLATFORM_WIN32_NT<nl>
+					 ver.szCSDVersion); // @tupleitem 4|string|version|Contains arbitrary additional information about the operating system.
+	} else if (format == 1) {
+		OSVERSIONINFOEX ver;
+		ver.dwOSVersionInfoSize = sizeof(ver);
+		if (!::GetVersionEx((LPOSVERSIONINFO)&ver))
+			return ReturnAPIError("GetVersionEx");
+		return Py_BuildValue("iiiisiiiii",
+		// @rdesc or if the format param is 1, the return value is a tuple with:<nl>
+				 ver.dwMajorVersion, // @tupleitem 0|int|majorVersion|Identifies the major version number of the operating system.<nl>
+					 ver.dwMinorVersion, //	@tupleitem 1|int|minorVersion|Identifies the minor version number of the operating system.<nl>
+					 ver.dwBuildNumber,  //	@tupleitem 2|int|buildNumber|Identifies the build number of the operating system in the low-order word. (The high-order word contains the major and minor version numbers.)<nl>
+					 ver.dwPlatformId, // @tupleitem 3|int|platformId|Identifies the platform supported by the operating system.  May be one of VER_PLATFORM_WIN32s, VER_PLATFORM_WIN32_WINDOWS or VER_PLATFORM_WIN32_NT<nl>
+					 ver.szCSDVersion, // @tupleitem 4|string|version|Contains arbitrary additional information about the operating system.
+					 ver.wServicePackMajor, // @tupleitem 5|int|wServicePackMajor|Major version number of the latest Service Pack installed on the system. For example, for Service Pack 3, the major version number is 3. If no Service Pack has been installed, the value is zero. 
+					 ver.wServicePackMinor, // @tupleitem 6|int|wServicePackMinor|Minor version number of the latest Service Pack installed on the system. For example, for Service Pack 3, the minor version number is 0.
+					 ver.wSuiteMask, // @tupleitem 7|int|wSuiteMask|Bit flags that identify the product suites available on the system. This member can be a combination of the VER_SUITE_* values. 
+					 ver.wProductType, // @tupleitem 8|int|wProductType|Additional information about the system. This member can be one of the VER_NT_* values.
+					 ver.wReserved); // @tupleitem 9|int|wReserved|
+
+	}
+	return PyErr_Format(PyExc_ValueError, "format must be 0 or 1 (got %d)", format);
 }
 
 // @pymethod tuple|win32api|GetVolumeInformation|Returns information about a file system and colume whose root directory is specified.
