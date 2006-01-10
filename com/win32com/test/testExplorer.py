@@ -49,7 +49,11 @@ def TestExplorer(iexplore):
 #                       win32api.Sleep(100)
 #               iexplore.Navigate(win32api.GetFullPathName(fname))
     win32api.Sleep(4000)
-    iexplore.Quit()
+    try:
+        iexplore.Quit()
+    except (AttributeError, pythoncom.com_error):
+        # User got sick of waiting :)
+        pass
 
 def TestAll():
     try:
