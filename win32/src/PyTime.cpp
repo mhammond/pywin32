@@ -14,11 +14,11 @@
 #ifdef MS_WINCE
 #include <oleauto.h> // Time conversion functions on CE.
 // The Python helpers.
-DL_IMPORT(BOOL) PyCE_UnixTimeToFileTime(time_t t, LPFILETIME pft);
-DL_IMPORT(BOOL) PyCE_UnixTimeToSystemTime(time_t t, LPSYSTEMTIME pst);
-DL_IMPORT(BOOL) PyCE_FileTimeToUnixTime(FILETIME *pft, time_t *pt);
-DL_IMPORT(BOOL) PyCE_SystemTimeToUnixTime(SYSTEMTIME *pst, time_t *pt);
-DL_IMPORT(void) PyCE_TimeStructToSystemTime(struct tm *ptm, SYSTEMTIME *pst);
+BOOL PyCE_UnixTimeToFileTime(time_t t, LPFILETIME pft);
+BOOL PyCE_UnixTimeToSystemTime(time_t t, LPSYSTEMTIME pst);
+BOOL PyCE_FileTimeToUnixTime(FILETIME *pft, time_t *pt);
+BOOL PyCE_SystemTimeToUnixTime(SYSTEMTIME *pst, time_t *pt);
+void PyCE_TimeStructToSystemTime(struct tm *ptm, SYSTEMTIME *pst);
 #endif
 
 #if _MSC_VER < 1100
@@ -701,9 +701,47 @@ PyObject *PyTime::reprFunc(PyObject *ob)
 #else // NO_PYWINTYPES_TIME
 // We dont have a decent time implementation, but
 // we need _some_ implementation of these functions!
-extern "C" {
-DL_IMPORT(double) PyCE_SystemTimeToCTime(SYSTEMTIME* pstTime);
-DL_IMPORT(BOOL) PyCE_UnixTimeToFileTime(time_t t, LPFILETIME pft);
+
+double PyCE_SystemTimeToCTime(SYSTEMTIME* pstTime)
+{
+	SYSTEMTIME stBase;
+	FILETIME   ftTime;
+	FILETIME   ftBase; 
+	__int64    iTime;
+	__int64    iBase;
+
+	SystemTimeToFileTime(pstTime, &ftTime);
+
+	stBase.wYear         = 1970;
+	stBase.wMonth        = 1;
+	stBase.wDayOfWeek    = 1;
+	stBase.wDay          = 1;
+	stBase.wHour         = 0;
+	stBase.wMinute       = 0;
+	stBase.wSecond       = 0;
+	stBase.wMilliseconds = 0;
+	SystemTimeToFileTime(&stBase, &ftBase);
+
+	iTime=ftTime.dwHighDateTime;	
+	iTime=iTime << 32;				
+	iTime |= ftTime.dwLowDateTime;
+
+	iBase=ftBase.dwHighDateTime;
+	iBase=iBase << 32;
+	iBase |= ftBase.dwLowDateTime;
+
+	return (double)((iTime - iBase) / 10000000L);
+}
+
+BOOL PyCE_UnixTimeToFileTime(time_t t, LPFILETIME pft)
+{
+	// Note that LONGLONG is a 64-bit value
+	LONGLONG ll;
+	ll = ((__int64)t * 10000000) + 116444736000000000;
+//	ll = Int32x32To64(t, 10000000) + 116444736000000000;
+	pft->dwLowDateTime = (DWORD)ll;
+	pft->dwHighDateTime = (DWORD)(ll >> 32);
+	return TRUE;
 }
 
 // We expose some time functions, but just return

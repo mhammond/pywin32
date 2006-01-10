@@ -100,8 +100,10 @@
  
 #define SYNCHRONIZE SYNCHRONIZE // Windows NT only: Enables use of the event handle in any of the wait functions to wait for the event’s state to be signaled.
 
+#ifndef MS_WINCE
 // @pyswig |CancelWaitableTimer|Cancels a waiting timer.
 BOOLAPI CancelWaitableTimer(PyHANDLE handle);
+#endif
 
 #end
 
@@ -131,13 +133,13 @@ PyHANDLE CreateSemaphore(
     LONG lMaximumCount,	// maximum count 
     TCHAR * INPUT_NULLOK // @pyparm <o PyIUnicode>|semaphoreName||semaphore-object name, or None
 );
-#endif // MS_WINCE
 
 PyHANDLE CreateWaitableTimer(
     SECURITY_ATTRIBUTES *inNullSA, // lpTimerAttributes,	// pointer to security attributes
     BOOL bManualReset,	// @pyparm int|bManualReset||flag for manual reset state
     TCHAR * INPUT_NULLOK	// pointer to timer object name
 );
+#endif // MS_WINCE
 
 // GetOverlappedResult
 
@@ -283,14 +285,14 @@ PyHANDLE OpenSemaphore(
     TCHAR *lpName 	// @pyparm <o PyUnicode>|name||name of semaphore to open.
    );
 
-#endif /* MS_WINCE */
-
 //@pyswig handle|OpenWaitableTimer|Opens an existing named waitable timer object
 PyHANDLE OpenWaitableTimer(
     DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||access flag
     BOOL bInheritHandle,	// @pyparm int|bInheritHandle||inherit flag
     TCHAR *lpTimerName	// @pyparm string|timerName||pointer to timer object name
 );
+
+#endif /* MS_WINCE */
 
 // @pyswig |PulseEvent|Provides a single operation that sets (to signaled) the state of the specified event object and then resets it (to nonsignaled) after releasing the appropriate number of waiting threads.
 BOOLAPI PulseEvent(
@@ -322,6 +324,7 @@ BOOLAPI_NL SetEvent(
     PyHANDLE hEvent 	// @pyparm <o PyHANDLE>|hEvent||handle of event object 
    );	
  
+#ifndef MS_WINCE
 // @pyswig |SetWaitableTimer|Sets a waitable timer.
 BOOLAPI_NL SetWaitableTimer(
   PyHANDLE hTimer,                          // @pyparm int|handle||handle to timer
@@ -337,6 +340,7 @@ BOOLAPI SignalObjectAndWait(
     DWORD dwMilliseconds,	// time-out interval in milliseconds
     BOOL bAlertable	// alertable flag
    );
+#endif
 
 %{
 static PyObject *MyWaitForMultipleObjects(

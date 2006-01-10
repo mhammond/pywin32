@@ -33,6 +33,7 @@
 
 #ifdef MS_WINCE
 #include "winbase.h"
+#define IS_INTRESOURCE(res) (((DWORD)(res) & 0xffff0000) == 0)
 #endif
 
 static PyObject *g_AtomMap = NULL; // Mapping class atoms to Python WNDPROC
@@ -122,10 +123,19 @@ for (PyMethodDef *pmd = win32guiMethods; pmd->ml_name; pmd++)
 %}
 
 %{
-extern "C" __declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
+#ifdef MS_WINCE
+typedef HANDLE HINST_ARG;
+// WinCE gives a compile error this with dllexport
+#define DECLSPEC_DLLMAIN
+#else
+typedef HINSTANCE HINST_ARG;
+#define DECLSPEC_DLLMAIN __declspec(dllexport)
+#endif
+
+extern "C" DECLSPEC_DLLMAIN BOOL WINAPI DllMain(HINST_ARG hInstance, DWORD dwReason, LPVOID lpReserved)
 {
 	if ( dwReason == DLL_PROCESS_ATTACH )
-		g_dllhandle = hInstance;
+		g_dllhandle = (HINSTANCE)hInstance;
 	return TRUE;
 }
 %}
@@ -167,6 +177,9 @@ typedef long HDC
 
 %apply HBRUSH {long};
 typedef long HBRUSH
+
+%apply HPEN {long};
+typedef long HPEN
 
 %apply HRGN {long};
 typedef long HRGN
@@ -1434,6 +1447,7 @@ static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
 		;
 }
 
+#ifndef MS_WINCE
 // @pyswig int|FlashWindow|The FlashWindow function flashes the specified window one time. It does not change the active state of the window.
 // @pyparm int|hwnd||
 // @pyparm int|bInvert||
@@ -1454,7 +1468,7 @@ PyObject *PyFlashWindowEx(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "iiii", &f.hwnd, &f.dwFlags, &f.uCount, &f.dwTimeout))
 		return NULL;
     // not on NT
-    HMODULE hmod = GetModuleHandle("user32");
+	HMODULE hmod = GetModuleHandle(_T("user32"));
     BOOL (WINAPI *pfnFW)(PFLASHWINFO) = NULL;
     if (hmod)
         pfnFW = (BOOL (WINAPI *)(PFLASHWINFO))GetProcAddress(hmod, "FlashWindowEx");
@@ -1470,6 +1484,7 @@ PyObject *PyFlashWindowEx(PyObject *self, PyObject *args)
 }
 %}
 %native(FlashWindowEx) PyFlashWindowEx;
+#endif // MS_WINCE
 
 // To avoid LoadLibrary etc (ie, keep my life simple) for functions
 // that don't exist on NT, only put them in winxpgui.
@@ -1709,8 +1724,10 @@ BOOLAPI PostMessage(HWND hwnd, UINT msg, WPARAM wParam = 0, LPARAM lParam = 0);
 // @pyparm int|lparam||An integer whose value depends on the message
 BOOLAPI PostThreadMessage(DWORD dwThreadId, UINT msg, WPARAM wParam, LPARAM lParam);
 
+#ifndef MS_WINCE
 // @pyswig int|ReplyMessage|Used to reply to a message sent through the SendMessage function without returning control to the function that called SendMessage. 
 BOOLAPI ReplyMessage(int lResult); // @pyparm int|result||Specifies the result of the message processing. The possible values are based on the message sent.
+#endif	/* not MS_WINCE */
 
 // @pyswig int|RegisterWindowMessage|Defines a new window message that is guaranteed to be unique throughout the system. The message value can be used when sending or posting messages.
 // @pyparm string/unicode|name||The string
@@ -1770,6 +1787,7 @@ static PyObject *PyEnumWindows(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+#ifndef MS_WINCE
 // @pyswig |EnumThreadWindows|Enumerates all top-level windows associated with a thread on the screen by passing the handle to each window, in turn, to an application-defined callback function. EnumThreadWindows continues until the last top-level window associated with the thread is enumerated or the callback function returns FALSE
 static PyObject *PyEnumThreadWindows(PyObject *self, PyObject *args)
 {
@@ -1824,10 +1842,13 @@ static PyObject *PyEnumChildWindows(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+#endif	/* not MS_WINCE */
 %}
 %native (EnumWindows) PyEnumWindows;
+#ifndef MS_WINCE
 %native (EnumThreadWindows) PyEnumThreadWindows;
 %native (EnumChildWindows) PyEnumChildWindows;
+#endif	/* not MS_WINCE */
 
 
 // @pyswig int|DialogBox|Creates a modal dialog box.
@@ -2008,6 +2029,8 @@ static PyObject *PyGetWindowText(PyObject *self, PyObject *args)
 %}
 %native (GetWindowText) PyGetWindowText;
 
+int GetWindowTextLength(HWND hwnd);
+
 // @pyswig |InitCommonControls|Initializes the common controls.
 void InitCommonControls();
 
@@ -2044,6 +2067,7 @@ HCURSOR SetCursor(
 // @pyswig HCURSOR|GetCursor|
 HCURSOR GetCursor();
 
+#ifndef MS_WINCE
 %{
 // @pyswig flags, hcursor, (x,y)|GetCursorInfo|Retrieves information about the global cursor.
 PyObject *PyGetCursorInfo(PyObject *self, PyObject *args)
@@ -2058,6 +2082,7 @@ PyObject *PyGetCursorInfo(PyObject *self, PyObject *args)
 }
 %}
 %native(GetCursorInfo) PyGetCursorInfo;
+#endif
 
 // @pyswig HACCEL|CreateAcceleratorTable|Creates an accelerator table
 %{
@@ -2126,9 +2151,11 @@ BOOLAPI SetMenu( HWND hwnd, HMENU hmenu );
 // @pyswig HCURSOR|LoadIcon|Loads an icon
 HICON LoadIcon(HINSTANCE hInst, RESOURCE_ID name);
 
+#ifndef MS_WINCE
 // @pyswig HICON|CopyIcon|Copies an icon
 // @pyparm int|hicon||Existing icon
 HICON CopyIcon(HICON hicon);
+#endif
 
 // @pyswig |DrawIcon|Draws an icon or cursor into the specified device context.
 // To specify additional drawing options, use the <om win32gui.DrawIconEx> function. 
@@ -2180,8 +2207,6 @@ static PyObject *PyCreateIconFromResource(PyObject *self, PyObject *args)
 %}
 %native (CreateIconFromResource) PyCreateIconFromResource;
 
-HICON CreateIconIndirect();
-
 // @pyswig HANDLE|LoadImage|Loads a bitmap, cursor or icon
 HANDLE LoadImage(HINSTANCE hInst, // @pyparm int|hinst||Handle to an instance of the module that contains the image to be loaded. To load an OEM image, set this parameter to zero. 
 				 RESOURCE_ID name, // @pyparm int/string|name||Specifies the image to load. If the hInst parameter is non-zero and the fuLoad parameter omits LR_LOADFROMFILE, name specifies the image resource in the hInst module. If the image resource is to be loaded by name, the name parameter is a string that contains the name of the image resource.
@@ -2195,6 +2220,7 @@ HANDLE LoadImage(HINSTANCE hInst, // @pyparm int|hinst||Handle to an instance of
 #define	IMAGE_ICON		IMAGE_ICON
 
 #define	LR_DEFAULTCOLOR	LR_DEFAULTCOLOR
+#ifndef MS_WINCE
 #define	LR_CREATEDIBSECTION	LR_CREATEDIBSECTION
 #define	LR_DEFAULTSIZE	LR_DEFAULTSIZE
 #define	LR_LOADFROMFILE	LR_LOADFROMFILE
@@ -2203,6 +2229,7 @@ HANDLE LoadImage(HINSTANCE hInst, // @pyparm int|hinst||Handle to an instance of
 #define	LR_MONOCHROME	LR_MONOCHROME
 #define	LR_SHARED	LR_SHARED
 #define	LR_VGACOLOR	LR_VGACOLOR
+#endif	/* not MS_WINCE */
 
 // @pyswig |DeleteObject|Deletes a logical pen, brush, font, bitmap, region, or palette, freeing all system resources associated with the object. After the object is deleted, the specified handle is no longer valid.
 BOOLAPI DeleteObject(HANDLE h); // @pyparm int|handle||handle to the object to delete.
@@ -2239,12 +2266,14 @@ BOOLAPI StretchBlt(
   DWORD dwRop       // @pyparm int|dwRop||raster operation code
 );
 
+#ifndef MS_WINCE
 // @pyswig int|SetStretchBltMode|
 // @rdesc If the function succeeds, the return value is the previous stretching mode.
 // <nl>If the function fails, the return value is zero. 
 int SetStretchBltMode(HDC dc, int mode);
 // @pyparm int|dc||
 // @pyparm int|mode||
+#endif	/* not MS_WINCE */
 
 %ifdef WINXPGUI
 // @pyswig |MaskBlt|Combines the color data for the source and destination
@@ -2279,11 +2308,13 @@ HIMAGELIST ImageList_Create(int cx, int cy, UINT flags, int cInitial, int cGrow)
 
 
 #define	ILC_COLOR	ILC_COLOR
+#ifndef MS_WINCE
 #define	ILC_COLOR4	ILC_COLOR4
 #define	ILC_COLOR8	ILC_COLOR8
 #define	ILC_COLOR16	ILC_COLOR16
 #define	ILC_COLOR24	ILC_COLOR24
 #define	ILC_COLOR32	ILC_COLOR32
+#endif	/* not MS_WINCE */
 #define	ILC_COLORDDB	ILC_COLORDDB
 #define	ILC_MASK	ILC_MASK
 
@@ -2382,6 +2413,7 @@ HWND FindWindow(
 	STRING_OR_ATOM className, // @pyparm int/string|className||
 	TCHAR *INPUT_NULLOK); // @pyparm string|WindowName||
 
+#ifndef MS_WINCE
 // @pyswig int|FindWindowEx|Retrieves a handle to the top-level window whose class name and window name match the specified strings.
 HWND FindWindowEx(
 	HWND parent, // @pyparm int|hwnd||
@@ -2402,12 +2434,13 @@ void DragAcceptFiles(HWND hWnd, BOOL fAccept);
 // <nl>If the user did not move the mouse outside of the drag rectangle while holding down the left button , the return value is zero.
 BOOL DragDetect(HWND hWnd, POINT INPUT);
 
-// @pyswig int|GetDoubleClickTime|
-UINT GetDoubleClickTime();
-
 // @pyswig |SetDoubleClickTime|
 // @pyparm int|newVal||
 BOOLAPI SetDoubleClickTime(UINT val);
+#endif	/* not MS_WINCE */
+
+// @pyswig int|GetDoubleClickTime|
+UINT GetDoubleClickTime();
 
 // @pyswig |HideCaret|
 BOOLAPI HideCaret(HWND hWnd);
@@ -2507,10 +2540,7 @@ HGDIOBJ SelectObject(
   HGDIOBJ object     // @pyparm int|object||The GDI object
 );
 
-
-#ifndef MS_WINCE
 HINSTANCE GetModuleHandle(TCHAR *INPUT_NULLOK);
-#endif
 
 // @pyswig (left, top, right, bottom)|GetWindowRect|
 // @pyparm int|hwnd||The handle to the window
@@ -2523,8 +2553,10 @@ HANDLE GetStockObject(int object);
 // @pyparm int|rc||
 void PostQuitMessage(int rc);
 
+#ifndef MS_WINCE
 // @pyswig |WaitMessage|Waits for a message
 BOOLAPI WaitMessage();
+#endif	/* MS_WINCE */
 
 // @pyswig int|SetWindowPos|
 BOOL SetWindowPos(  HWND hWnd,             // handle to window
@@ -2720,6 +2752,24 @@ PyLOWORD(PyObject *self, PyObject *args)
 
 // Should go in win32sh?
 %{
+#ifdef MS_WINCE
+BOOL PyObject_AsNOTIFYICONDATA(PyObject *ob, NOTIFYICONDATA *pnid)
+{
+	PyObject *obTip=NULL;
+	memset(pnid, 0, sizeof(*pnid));
+	pnid->cbSize = sizeof(*pnid);
+	if (!PyArg_ParseTuple(ob, "l|iiilO:NOTIFYICONDATA tuple", &pnid->hWnd, &pnid->uID, &pnid->uFlags, &pnid->uCallbackMessage, &pnid->hIcon, &obTip))
+		return FALSE;
+	if (obTip) {
+		TCHAR *szTip;
+		if (!PyWinObject_AsTCHAR(obTip, &szTip))
+			return NULL;
+		_tcsncpy(pnid->szTip, szTip, sizeof(pnid->szTip)/sizeof(TCHAR));
+		PyWinObject_FreeTCHAR(szTip);
+	}
+	return TRUE;
+}
+#else	// MS_WINCE
 BOOL PyObject_AsNOTIFYICONDATA(PyObject *ob, NOTIFYICONDATA *pnid)
 {
 	PyObject *obTip=NULL, *obInfo=NULL, *obInfoTitle=NULL;
@@ -2754,15 +2804,19 @@ BOOL PyObject_AsNOTIFYICONDATA(PyObject *ob, NOTIFYICONDATA *pnid)
 	}
 	return TRUE;
 }
+#endif // MS_WINCE
 %}
 #define NIF_ICON NIF_ICON
 #define NIF_MESSAGE NIF_MESSAGE
 #define NIF_TIP NIF_TIP
+
+#ifndef MS_WINCE
 #define NIF_INFO NIF_INFO
 #define NIIF_WARNING NIIF_WARNING
 #define NIIF_ERROR NIIF_ERROR
 #define NIIF_NONE NIIF_NONE
 #define NIIF_INFO NIIF_INFO
+#endif
 
 #define NIM_ADD NIM_ADD // Adds an icon to the status area. 
 #define NIM_DELETE  NIM_DELETE // Deletes an icon from the status area. 
@@ -2850,8 +2904,7 @@ static PyObject *PyEdit_GetLine(PyObject *self, PyObject *args)
 
 #ifdef MS_WINCE
 %{
-// Where oh where has this function gone, oh where oh where can it be?
-//#include "dbgapi.h"
+#include "dbgapi.h"
 static PyObject *PyNKDbgPrintfW(PyObject *self, PyObject *args)
 {
 	PyObject *obtext;
@@ -2860,7 +2913,7 @@ static PyObject *PyNKDbgPrintfW(PyObject *self, PyObject *args)
 	TCHAR *text;
 	if (!PyWinObject_AsTCHAR(obtext, &text))
 		return NULL;
-//	NKDbgPrintfW(_T("%s"), text);
+	NKDbgPrintfW(_T("%s"), text);
 	PyWinObject_FreeTCHAR(text);
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -2935,8 +2988,10 @@ LRESULT TrackPopupMenu(HMENU hmenu, UINT flags, int x, int y, int reserved, HWND
 #define	TPM_VCENTERALIGN	TPM_VCENTERALIGN
 #define	TPM_NONOTIFY	TPM_NONOTIFY
 #define	TPM_RETURNCMD	TPM_RETURNCMD
+#ifndef MS_WINCE
 #define	TPM_LEFTBUTTON	TPM_LEFTBUTTON
 #define	TPM_RIGHTBUTTON	TPM_RIGHTBUTTON
+#endif	/* not MS_WINCE */
 
 %{
 #include "commdlg.h"
@@ -2963,6 +3018,7 @@ DWORD CommDlgExtendedError(void);
 	$target = ( OPENFILENAME *)PyString_AS_STRING($source);
 }
 
+#ifndef MS_WINCE
 // @pyswig int|ExtractIcon|
 // @pyparm int|hinstance||
 // @pyparm string/<o PyUnicode>|moduleName||
@@ -2970,6 +3026,7 @@ DWORD CommDlgExtendedError(void);
 // @comm You must destroy the icon handle returned by calling the <om win32gui.DestroyIcon> function. 
 // @rdesc The result is a HICON.
 HICON ExtractIcon(HINSTANCE hinst, TCHAR *modName, UINT index);
+#endif	/* not MS_WINCE */
 
 // @pyswig int|ExtractIconEx|
 // @pyparm string|moduleName||
@@ -2982,16 +3039,24 @@ HICON ExtractIcon(HINSTANCE hinst, TCHAR *modName, UINT index);
 static PyObject *PyExtractIconEx(PyObject *self, PyObject *args)
 {
     int i;
-	char *fname;
+    PyObject *obFname;
+    TCHAR *fname;
     int index, nicons=1, nicons_got;
-	if (!PyArg_ParseTuple(args, "si|i", &fname, &index, &nicons))
+    if (!PyArg_ParseTuple(args, "Oi|i", &obFname, &index, &nicons))
+        return NULL;
+    if (!PyWinObject_AsTCHAR(obFname, &fname, TRUE))
 		return NULL;
+#ifndef MS_WINCE // CE doesn't have this special "-1" handling.
     if (index==-1) {
-        nicons = ExtractIconEx(fname, index, NULL, NULL, 0);
+        nicons = (int)ExtractIconEx(fname, index, NULL, NULL, 0);
+        PyWinObject_FreeTCHAR(fname);
         return PyInt_FromLong(nicons);
     }
-    if (nicons<=0)
+#endif // MS_WINCE
+    if (nicons<=0) {
+        PyWinObject_FreeTCHAR(fname);
         return PyErr_Format(PyExc_ValueError, "Must supply a valid number of icons to fetch.");
+    }
     HICON *rgLarge = NULL;
     HICON *rgSmall = NULL;
     PyObject *ret = NULL;
@@ -3007,11 +3072,15 @@ static PyObject *PyExtractIconEx(PyObject *self, PyObject *args)
         PyErr_NoMemory();
         goto done;
     }
-    nicons_got = ExtractIconEx(fname, index, rgLarge, rgSmall, nicons);
+    nicons_got = (int)ExtractIconEx(fname, index, rgLarge, rgSmall, nicons);
     if (nicons_got==-1) {
         PyWin_SetAPIError("ExtractIconEx");
         goto done;
     }
+#ifdef MS_WINCE
+    /* On WinCE >= 2.1 the API actually returns a HICON */
+    nicons_got = 1;
+#endif
     // Asking for 1 always says it got 2!?
     nicons = min(nicons, nicons_got);
     objects_large = PyList_New(nicons);
@@ -3024,6 +3093,7 @@ static PyObject *PyExtractIconEx(PyObject *self, PyObject *args)
     }
     ret = Py_BuildValue("OO", objects_large, objects_small);
 done:
+    PyWinObject_FreeTCHAR(fname);
     Py_XDECREF(objects_large);
     Py_XDECREF(objects_small);
     if (rgLarge) free(rgLarge);
@@ -3037,11 +3107,13 @@ done:
 // @pyparm int|hicon||The icon to destroy.
 BOOLAPI DestroyIcon( HICON hicon);
 
+#ifndef MS_WINCE
 // @pyswig tuple|GetIconInfo|
 // @pyparm int|hicon||The icon to query
 // @rdesc The result is a tuple of (fIcon, xHotspot, yHotspot, hbmMask, hbmColor)
 // The hbmMask and hbmColor items are bitmaps created for the caller, so must be freed.
 BOOLAPI GetIconInfo( HICON hicon, ICONINFO *OUTPUT);
+#endif	/* not MS_WINCE */
 
 // @pyswig |ScreenToClient|Convert screen coordinates to client coords
 BOOLAPI ScreenToClient(HWND hWnd,POINT *BOTH);
@@ -3132,6 +3204,7 @@ BOOLAPI GetMenuItemInfo(HMENU hMenu, UINT uItem, BOOL fByPosition, MENUITEMINFO 
 
 #endif
 
+#ifndef MS_WINCE
 // @pyswig int|GetMenuItemCount|
 int GetMenuItemCount(HMENU hMenu);
 
@@ -3146,6 +3219,7 @@ BOOLAPI SetMenuDefaultItem(HMENU hMenu, UINT flags, UINT fByPos);
 
 // @pyswig |GetMenuDefaultItem|
 int GetMenuDefaultItem(HMENU hMenu, UINT fByPos, UINT flags);
+#endif	/* not MS_WINCE */
 
 // @pyswig |AppendMenu|
 BOOLAPI AppendMenu(HMENU hMenu, UINT uFlags, UINT uIDNewItem, TCHAR *lpNewItem);
@@ -3154,18 +3228,22 @@ BOOLAPI AppendMenu(HMENU hMenu, UINT uFlags, UINT uIDNewItem, TCHAR *lpNewItem);
 BOOLAPI InsertMenu(HMENU hMenu, UINT uPosition, UINT uFlags, UINT uIDNewItem, TCHAR *INPUT_NULLOK);
 
 // @pyswig |EnableMenuItem|
-BOOLAPI EnableMenuItem(HMENU hMenu, UINT uIDEnableItem, UINT uEnable);
+BOOL EnableMenuItem(HMENU hMenu, UINT uIDEnableItem, UINT uEnable);
 
 // @pyswig int|CheckMenuItem|
 int CheckMenuItem(HMENU hMenu, UINT uIDCheckItem, UINT uCheck);
 
+// @pyswig HMENU|GetSubMenu|
+HMENU GetSubMenu(HMENU hMenu, int nPos);
+
+#ifndef MS_WINCE
 // @pyswig |ModifyMenu|Changes an existing menu item. This function is used to specify the content, appearance, and behavior of the menu item.
 BOOLAPI ModifyMenu(
   HMENU hMnu, // @pyparm int|hMnu||handle to menu
   UINT uPosition, // @pyparm int|uPosition||menu item to modify
   UINT uFlags,          // @pyparm int|uFlags||options
   UINT uIDNewItem,  // @pyparm int|uIDNewItem||identifier, menu, or submenu
-  LPCTSTR lpNewItem     // @pyparm string|newItem||menu item content
+  TCHAR *INPUT	   // @pyparm string|newItem||menu item content
 );
 
 // @pyswig int|GetMenuItemID|Retrieves the menu item identifier of a menu item located at the specified position in a menu. 
@@ -3182,6 +3260,7 @@ BOOLAPI SetMenuItemBitmaps(
   HBITMAP hBitmapUnchecked,  // @pyparm int|hBitmapUnchecked||handle to unchecked bitmap
   HBITMAP hBitmapChecked     // @pyparm int|hBitmapChecked||handle to checked bitmap
 );
+#endif	/* not MS_WINCE */
 
 // @pyswig |CheckMenuRadioItem|Checks a specified menu item and makes it a
 // radio item. At the same time, the function clears all other menu items in
@@ -3219,7 +3298,7 @@ BOOLAPI DrawFocusRect(HDC hDC,  RECT *INPUT);
 // @rdesc Returns the height of the drawn text, and the rectangle coordinates
 int DrawText(
 	HDC hDC,			// @pyparm int/<o PyHANDLE>|hDC||The device context on which to draw
-	LPCTSTR lpString,	// @pyparm str|String||The text to be drawn
+	TCHAR *INPUT,		// @pyparm str|String||The text to be drawn
 	int nCount,			// @pyparm int|nCount||The number of characters, use -1 for simple null-terminated string
 	RECT *BOTH,			// @pyparm tuple|Rect||Tuple of 4 ints specifying the position (left, top, right, bottom)
 	UINT uFormat);		// @pyparm int|Format||Formatting flags, combination of win32con.DT_* values
@@ -3242,16 +3321,22 @@ BOOLAPI DrawEdge(HDC hdc, RECT *INPUT, UINT edge, UINT grfFlags);
 int FillRect(HDC hDC,   RECT *INPUT, HBRUSH hbr);
 // @pyswig |CreateSolidBrush|
 HBRUSH CreateSolidBrush(COLORREF color);
+// @pyswid |CreatePen|
+HPEN CreatePen(int fnPenStyle, int nWidth, COLORREF crColor);
 // @pyswig |GetSysColor|
 DWORD GetSysColor(int nIndex);
 // @pyswig |GetSysColorBrush|
 HBRUSH GetSysColorBrush(int nIndex);
 // @pyswig |InvalidateRect|
 BOOLAPI InvalidateRect(HWND hWnd,  RECT *INPUT_NULLOK , BOOL bErase);
+#ifndef MS_WINCE
 // @pyswig |FrameRect|
 int FrameRect(HDC hDC,   RECT *INPUT, HBRUSH hbr);
+#endif	/* not MS_WINCE */
 // @pyswig |GetUpdateRgn|
 int GetUpdateRgn(HWND hWnd, HRGN hRgn, BOOL bErase);
+// @pyswig |Rectangle|
+BOOLAPI Rectangle(HDC hdc, int nLeftRect, int nTopRect, int nRightRect, int nBottomRect);
 
 // @pyswig hdc, paintstruct|BeginPaint|
 HDC BeginPaint(HWND hwnd, PAINTSTRUCT *OUTPUT);
@@ -3306,9 +3391,11 @@ HDC GetWindowDC(
 	HWND hWnd   // @pyparm int|hWnd||handle of window
 ); 
 
+#ifndef MS_WINCE
 // @pyswig |IsIconic|determines whether the specified window is minimized (iconic).
 BOOL IsIconic(  HWND hWnd   // @pyparm int|hWnd||handle to window
 ); 
+#endif	/* not MS_WINCE */
 
 
 // @pyswig |IsWindow|determines whether the specified window handle identifies an existing window.
@@ -3327,9 +3414,12 @@ BOOLAPI ReleaseCapture();
 HWND GetCapture();
 // @pyswig |SetCapture|Captures the mouse for the specified window.
 HWND SetCapture(HWND hWnd);
+
+#ifndef MS_WINCE
 // @pyswig |_TrackMouseEvent|Posts messages when the mouse pointer leaves a window or hovers over a window for a specified amount of time.
 // @pyparm <o TRACKMOUSEEVENT>|tme||
 BOOLAPI _TrackMouseEvent(TRACKMOUSEEVENT *INPUT);
+#endif
 
 // @pyswig int|ReleaseDC|Releases a device context.
 int ReleaseDC(
@@ -3528,7 +3618,7 @@ static PyObject *
 PyGetClassName(PyObject *self, PyObject *args)
 {
 	HWND hwnd;
-	char buf[256];
+	TCHAR buf[256];
 	// @pyparm int|hwnd||The handle to the window
 	if (!PyArg_ParseTuple(args, "i:GetClassName", &hwnd))
 		return NULL;
@@ -3536,7 +3626,7 @@ PyGetClassName(PyObject *self, PyObject *args)
 	int nchars = GetClassName(hwnd, buf, sizeof buf/sizeof buf[0]);
 	if (nchars==0)
 		PyWin_SetAPIError("GetClassName");
-	return PyString_FromStringAndSize(buf, nchars);
+	return PyWinObject_FromTCHAR(buf, nchars);
 }
 %}
 %native (GetClassName) PyGetClassName;
@@ -3550,11 +3640,13 @@ HWND WindowFromPoint(POINT INPUT);
 // @pyparm (int, int)|point||The point.
 HWND ChildWindowFromPoint(HWND INPUT, POINT INPUT);
 
+#ifndef MS_WINCE
 // @pyswig int|ChildWindowFromPoint|Determines which, if any, of the child windows belonging to a parent window contains the specified point.
 // @pyparm int|hwndParent||The parent.
 // @pyparm (int, int)|point||The point.
 // @pyparm int|flags||Specifies which child windows to skip. This parameter can be one or more of the CWP_* constants.
 HWND ChildWindowFromPointEx(HWND INPUT, POINT INPUT, int flags);
+#endif
 
 // Sorting for controls
 %{
@@ -3634,6 +3726,21 @@ PyListView_SortItems(PyObject *self, PyObject *args)
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+#else // PYVERSION
+static PyObject *PyListView_SortItems(PyObject *self, PyObject *args)
+{
+	PyErr_SetString(PyExc_NotImplementedError,
+					"This requires Python 2.3 or greater");
+	return NULL;
+}
+#endif // PYVERSION 2.3+
+%}
+
+%native (ListView_SortItems) PyListView_SortItems;
+
+#ifndef MS_WINCE
+%{
+#if (PY_VERSION_HEX >= 0x02030000) // PyGILState only in 2.3+
 // @pyswig |ListView_SortItemsEx|Uses an application-defined comparison function to sort the items of a list view control.
 static PyObject *
 PyListView_SortItemsEx(PyObject *self, PyObject *args)
@@ -3668,41 +3775,27 @@ static PyObject *PyListView_SortItemsEx(PyObject *self, PyObject *args)
 	                "This requires Python 2.3 or greater");
 	return NULL;
 }
-static PyObject *PyListView_SortItems(PyObject *self, PyObject *args)
+#endif // PYVERSION
+%}
+%native (ListView_SortItemsEx) PyListView_SortItemsEx;
+#endif	// !MS_WINCE
+
+%typemap(python,in) DEVMODE *INPUT
 {
-	PyErr_SetString(PyExc_NotImplementedError,
-	                "This requires Python 2.3 or greater");
+	if(!PyWinObject_AsDEVMODE($source, &$target, TRUE))
 	return NULL;
 }
-#endif // PYVERSION 2.3+
-%}
 
-%native (ListView_SortItems) PyListView_SortItems;
-%native (ListView_SortItemsEx) PyListView_SortItemsEx;
+%typemap(python,arginit) DEVMODE *
+{
+	$target = NULL;
+}
 
 // @pyswig int|CreateDC|Creates a device context for a printer or display device
-%native (CreateDC) PyCreateDC;
-%{
-static PyObject *PyCreateDC(PyObject *self, PyObject *args)
-{
-	PDEVMODE pdevmode;
-	PyObject *obdevmode=NULL;
-	char *driver, *device, *dummyoutput=NULL;
-	HDC hdc;
-	// @pyparm string|Driver||Name of display or print provider, usually DISPLAY or WINSPOOL
-	// @pyparm string|Device||Name of specific device, eg printer name returned from GetDefaultPrinter
-	// @pyparm <o PyDEVMODE>|InitData||A PyDEVMODE that specifies printing parameters, use None for printer defaults
-	if (!PyArg_ParseTuple(args, "szO", &driver, &device, &obdevmode))
-		return NULL;
-	if (!PyWinObject_AsDEVMODE(obdevmode, &pdevmode, TRUE))
-		return NULL;
-	hdc=CreateDC(driver, device, dummyoutput, pdevmode);
-	if (hdc!=NULL)
-		return Py_BuildValue("l",hdc);
-	PyWin_SetAPIError("CreateDC",GetLastError());
-	return NULL;
-}
-%}
+// @pyparm string|Driver||Name of display or print provider, usually DISPLAY or WINSPOOL
+// @pyparm string|Device||Name of specific device, eg printer name returned from GetDefaultPrinter
+// @pyparm <o PyDEVMODE>|InitData||A PyDEVMODE that specifies printing parameters, use None for printer defaults
+HDC CreateDC(TCHAR *INPUT_NULLOK, TCHAR *INPUT_NULLOK, TCHAR *INPUT, DEVMODE *INPUT);
 
 %{
 void PyWinObject_FreeOPENFILENAMEW(OPENFILENAMEW *pofn)
@@ -3940,7 +4033,9 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 	DWORD buflen;
 	BOOL boolParam;
 	UINT uintParam;
+#ifndef MS_WINCE
 	long longParam;
+#endif
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "k|Ok", keywords,	
 		&Action,	// @pyparm int|Action||System parameter to query or set, one of the SPI_GET* or SPI_SET* constants
@@ -3950,6 +4045,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 
 	// @flagh Action|Input/return type
 	switch (Action){
+#ifndef MS_WINCE
 		// @flag SPI_GETDESKWALLPAPER|Returns the path to the bmp used as wallpaper
 		case SPI_GETDESKWALLPAPER:
 			uiParam=MAX_PATH;
@@ -4035,11 +4131,13 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		case SPI_GETMOUSEVANISH:
 		// @flag SPI_GETSCREENREADER|Returns a boolean
 		case SPI_GETSCREENREADER:
+#endif	// !MS_WINCE
 		// @flag SPI_GETSHOWSOUNDS|Returns a boolean
 		case SPI_GETSHOWSOUNDS:
 			pvParam=&boolParam;
 			break;
 		
+#ifndef MS_WINCE
 		// Actions in this section accept a boolean as pvParam
 		// @flag SPI_SETDROPSHADOW|Param must be a boolean
 		case SPI_SETDROPSHADOW:
@@ -4114,6 +4212,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		case SPI_SETSHOWIMEUI:
 		// @flag SPI_SETSCREENREADER|Param is a boolean
 		case SPI_SETSCREENREADER:
+#endif	// !MS_WINCE
 		// @flag SPI_SETSHOWSOUNDS|Param is a boolean
 		case SPI_SETSHOWSOUNDS:
 			uiParam=(UINT)PyObject_IsTrue(obParam);
@@ -4121,11 +4220,14 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 				goto done;
 			break;
 
+#ifndef MS_WINCE
 		// These accept an int placed in uiParam
 		// @flag SPI_SETMOUSETRAILS|Param should be an int specifying the nbr of cursors in the trail (0 or 1 means disabled)
 		case SPI_SETMOUSETRAILS:
+#endif	// !MS_WINCE
 		// @flag SPI_SETWHEELSCROLLLINES|Param is an int specifying nbr of lines
 		case SPI_SETWHEELSCROLLLINES:
+#ifndef MS_WINCE
 		// @flag SPI_SETKEYBOARDDELAY|Param is an int in the range 0 - 3
 		case SPI_SETKEYBOARDDELAY:
 		// @flag SPI_SETKEYBOARDSPEED|Param is an int in the range 0 - 31
@@ -4156,6 +4258,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		case SPI_SETDRAGWIDTH:
 		// @flag SPI_SETBORDER|Param is an int
 		case SPI_SETBORDER:
+#endif	// !MS_WINCE
 			if (!PyObject_AsUINT(obParam, &uiParam))
 				goto done;
 			break;
@@ -4163,6 +4266,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		// below Actions all return a UINT pointed to by Param
 		// @flag SPI_GETFONTSMOOTHINGCONTRAST|Returns an int
 		case SPI_GETFONTSMOOTHINGCONTRAST:
+#ifndef MS_WINCE
 		// @flag SPI_GETFONTSMOOTHINGTYPE|Returns an int
 		case SPI_GETFONTSMOOTHINGTYPE:
 		// @flag SPI_GETMOUSETRAILS|Returns an int specifying the nbr of cursor images in the trail, 0 or 1 indicates disabled
@@ -4181,8 +4285,10 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		case SPI_GETMOUSEHOVERWIDTH:
 		// @flag SPI_GETMOUSEHOVERTIME|Returns an int
 		case SPI_GETMOUSEHOVERTIME:
+#endif	// !MS_WINCE
 		// @flag SPI_GETSCREENSAVETIMEOUT|Returns an int (idle time in seconds)
 		case SPI_GETSCREENSAVETIMEOUT:
+#ifndef MS_WINCE
 		// @flag SPI_GETMENUSHOWDELAY|Returns an int (shortcut delay in milliseconds)
 		case SPI_GETMENUSHOWDELAY:
 		// @flag SPI_GETLOWPOWERTIMEOUT|Returns an int (in seconds)
@@ -4205,12 +4311,14 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		case SPI_GETFOCUSBORDERWIDTH:
 		// @flag SPI_GETMOUSECLICKLOCKTIME|Returns an int (in milliseconds)
 		case SPI_GETMOUSECLICKLOCKTIME:
+#endif	// !MS_WINCE
 			pvParam=&uintParam;
 			break;
 		
 		// Actions that take pvParam as an unsigned int
 		// @flag SPI_SETFONTSMOOTHINGCONTRAST|Param should be an int in the range 1000 to 2200
 		case SPI_SETFONTSMOOTHINGCONTRAST:
+#ifndef MS_WINCE
 		// @flag SPI_SETFONTSMOOTHINGTYPE|Param should be one of the FE_FONTSMOOTHING* constants
 		case SPI_SETFONTSMOOTHINGTYPE:
 		// @flag SPI_SETMOUSESPEED|Param should be an int in the range 1 - 20
@@ -4229,10 +4337,12 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		case SPI_SETFOCUSBORDERWIDTH:
 		// @flag SPI_SETMOUSECLICKLOCKTIME|Param is an int (in milliseconds)
 		case SPI_SETMOUSECLICKLOCKTIME:
+#endif	// !MS_WINCE
 			if (!PyObject_AsUINT(obParam, (UINT *)&pvParam))
 				goto done;
 			break;
 			
+#ifndef MS_WINCE
 		// @flag SPI_GETICONTITLELOGFONT|Returns a <o PyLOGFONT>,
 		case SPI_GETICONTITLELOGFONT:
 			uiParam=sizeof(LOGFONT);
@@ -4259,6 +4369,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		// @flag SPI_SETICONS|Reloads the system icons.  Param is not used
 		case SPI_SETICONS:
 			break;
+#endif	// !MS_WINCE
 
 		// @flag SPI_GETMOUSE|Returns a tuple of 3 ints containing the x and y mouse thresholds and the acceleration factor.
 		case SPI_GETMOUSE:
@@ -4288,6 +4399,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 			break;
 			}
 
+#ifndef MS_WINCE
 		// @flag SPI_GETDEFAULTINPUTLANG|Returns an int (locale id for default language)
 			case SPI_GETDEFAULTINPUTLANG:
 			pvParam=&longParam;
@@ -4329,6 +4441,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 				if (!PyObject_AsUINT(obParam, &uiParam))
 					goto done;
 			break;
+#endif	// !MS_WINCE
 			
 		// below are not handled yet
 		// @flag SPI_SETDESKPATTERN|Unsupported (obsolete)
@@ -4379,6 +4492,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		}
 
 	switch (Action){
+#ifndef MS_WINCE
 		case SPI_GETDESKWALLPAPER:
 			ret=PyWinObject_FromTCHAR((TCHAR *)pvParam);
 			break;
@@ -4415,20 +4529,19 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		case SPI_GETMOUSESONAR:
 		case SPI_GETMOUSEVANISH:
 		case SPI_GETSCREENREADER:
+#endif	// !MS_WINCE
 		case SPI_GETSHOWSOUNDS:
 			ret=PyBool_FromLong(boolParam);
 			break;
-		case SPI_GETFONTSMOOTHINGCONTRAST:
+#ifndef MS_WINCE
 		case SPI_GETFONTSMOOTHINGTYPE:
 		case SPI_GETMOUSETRAILS:
-		case SPI_GETWHEELSCROLLLINES:
 		case SPI_GETKEYBOARDDELAY:
 		case SPI_GETKEYBOARDSPEED:
 		case SPI_GETMOUSESPEED:
 		case SPI_GETMOUSEHOVERHEIGHT:
 		case SPI_GETMOUSEHOVERWIDTH:
 		case SPI_GETMOUSEHOVERTIME:
-		case SPI_GETSCREENSAVETIMEOUT:
 		case SPI_GETMENUSHOWDELAY:
 		case SPI_GETLOWPOWERTIMEOUT:
 		case SPI_GETPOWEROFFTIMEOUT:
@@ -4440,17 +4553,24 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		case SPI_GETFOCUSBORDERHEIGHT:
 		case SPI_GETFOCUSBORDERWIDTH:
 		case SPI_GETMOUSECLICKLOCKTIME:
+#endif	// !MS_WINCE
+		case SPI_GETFONTSMOOTHINGCONTRAST:
+		case SPI_GETWHEELSCROLLLINES:
+		case SPI_GETSCREENSAVETIMEOUT:
 			ret=PyLong_FromUnsignedLong(uintParam);
 			break;
+#ifndef MS_WINCE
 		case SPI_GETDEFAULTINPUTLANG:
 			ret=PyLong_FromLong(longParam);
 			break;
 		case SPI_GETICONTITLELOGFONT:
 			ret=new PyLOGFONT((LOGFONT *)pvParam);
 			break;
+#endif	// !MS_WINCE
 		case SPI_GETMOUSE:
 			ret=Py_BuildValue("kkk", ((UINT *)pvParam)[0], ((UINT *)pvParam)[1], ((UINT *)pvParam)[2]);
 			break;
+#ifndef MS_WINCE
 		case SPI_GETANIMATION:
 			ret=PyInt_FromLong(((ANIMATIONINFO *)pvParam)->iMinAnimate);
 			break;
@@ -4464,6 +4584,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 				ret=Py_None;
 				}
 			break;
+#endif	// !MS_WINCE
 
 		default:
 			Py_INCREF(Py_None);
@@ -4472,12 +4593,14 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 
 	done:
 	switch (Action){
+#ifndef MS_WINCE
 		case SPI_GETDESKWALLPAPER:
 		case SPI_GETICONTITLELOGFONT:
-		case SPI_GETMOUSE:
-		case SPI_SETMOUSE:
 		case SPI_GETANIMATION:
 		case SPI_SETANIMATION:
+#endif	// !MS_WINCE
+		case SPI_GETMOUSE:
+		case SPI_SETMOUSE:
 			if (pvParam!=NULL)
 				free(pvParam);
 			break;

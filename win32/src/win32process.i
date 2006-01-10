@@ -23,6 +23,7 @@ typedef long HWND
 static BOOL (WINAPI *fpEnumProcesses)(DWORD *, DWORD, DWORD *) = NULL;
 static BOOL (WINAPI *fpEnumProcessModules)(HANDLE, HMODULE *, DWORD, LPDWORD) = NULL;
 static DWORD (WINAPI *fpGetModuleFileNameEx)(HANDLE, HMODULE, WCHAR *, DWORD) = NULL;
+#ifndef MS_WINCE
 static BOOL (WINAPI *fpGetProcessMemoryInfo)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD) = NULL;
 static BOOL	(WINAPI *fpGetProcessTimes)(HANDLE, LPFILETIME, LPFILETIME, LPFILETIME, LPFILETIME) = NULL;
 static HWINSTA (WINAPI *fpGetProcessWindowStation)(void) = NULL;
@@ -31,6 +32,7 @@ static BOOL (WINAPI *fpGetProcessWorkingSetSize)(HANDLE, PSIZE_T, PSIZE_T) = NUL
 static BOOL (WINAPI *fpSetProcessWorkingSetSize)(HANDLE, SIZE_T, SIZE_T) = NULL;
 static BOOL (WINAPI *fpGetProcessShutdownParameters)(LPDWORD, LPDWORD) = NULL;
 static BOOL (WINAPI *fpSetProcessShutdownParameters)(DWORD, DWORD) = NULL;
+#endif
 
 // Support for a STARTUPINFO object.
 class PySTARTUPINFO : public PyObject
@@ -1024,6 +1026,7 @@ done:
 }
 %}
 
+#ifndef MS_WINCE
 // @pyswig <o dict>|GetProcessMemoryInfo|Returns process memory statistics as a dict representing a PROCESS_MEMORY_COUNTERS struct
 %native(GetProcessMemoryInfo) PyGetProcessMemoryInfo;
 %{
@@ -1223,7 +1226,7 @@ PyObject *PySetProcessShutdownParameters(PyObject *self, PyObject *args)
 	return Py_None;
 }
 %}
-
+#endif	// MS_WINCE
 
 %init %{
 	FARPROC fp=NULL;
@@ -1232,20 +1235,23 @@ PyObject *PySetProcessShutdownParameters(PyObject *self, PyObject *args)
 	if (hmodule==NULL)
 		hmodule=LoadLibrary(_T("Psapi.dll"));
 	if (hmodule!=NULL){
-		fp=GetProcAddress(hmodule, "EnumProcesses");
+		fp=GetProcAddress(hmodule, _T("EnumProcesses"));
 		if (fp!=NULL)
 			fpEnumProcesses=(BOOL (WINAPI *)(DWORD *, DWORD, DWORD *))(fp);
-		fp=GetProcAddress(hmodule, "EnumProcessModules");
+		fp=GetProcAddress(hmodule, _T("EnumProcessModules"));
 		if (fp!=NULL)
 			fpEnumProcessModules=(BOOL (WINAPI *)(HANDLE, HMODULE *, DWORD, LPDWORD))(fp);
-		fp=GetProcAddress(hmodule, "GetModuleFileNameExW");
+		fp=GetProcAddress(hmodule, _T("GetModuleFileNameExW"));
 		if (fp!=NULL)
 			fpGetModuleFileNameEx=(DWORD (WINAPI *)(HANDLE, HMODULE, WCHAR *, DWORD))(fp);
-		fp=GetProcAddress(hmodule,"GetProcessMemoryInfo");
+#ifndef MS_WINCE
+		fp=GetProcAddress(hmodule,_T("GetProcessMemoryInfo"));
 		if (fp!=NULL)
 			fpGetProcessMemoryInfo=(BOOL (WINAPI *)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD))(fp);
+#endif
 		}
 
+#ifndef MS_WINCE
 	hmodule=GetModuleHandle(_T("Kernel32.dll"));
 	if (hmodule==NULL)
 		hmodule=LoadLibrary(_T("Kernel32.dll"));
@@ -1278,6 +1284,7 @@ PyObject *PySetProcessShutdownParameters(PyObject *self, PyObject *args)
 		if (fp!=NULL)
 			fpGetProcessWindowStation=(HWINSTA (WINAPI *)(void))(fp);
 		}
+#endif	// MS_WINCE
 
 %}
 

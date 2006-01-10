@@ -45,7 +45,9 @@
 #include "tchar.h"
 
 #define	BASED_CODE
+#ifndef ASSERT
 #define	ASSERT(a)
+#endif
 
 #define RETURN_TYPE_ERR(err)	do {PyErr_SetString(PyExc_TypeError,err);return NULL;} while (0)
 #define RETURN_ERR(err)			do {PyErr_SetString(PyExc_ValueError,err);return NULL;} while (0)

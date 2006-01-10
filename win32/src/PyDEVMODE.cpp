@@ -4,6 +4,10 @@
 #include "structmember.h"
 #include "PyWinObjects.h"
 
+#ifdef MS_WINCE
+#define DM_SPECVERSION 0
+#endif
+
 // @object PyDEVMODE|Python object wrapping a DEVMODE structure
 struct PyMethodDef PyDEVMODE::methods[] = {
 	{"Clear",     PyDEVMODE::Clear, 1}, 	// @pymeth Clear|Resets all members of the structure
@@ -24,8 +28,10 @@ struct PyMemberDef PyDEVMODE::members[] = {
 	{"PaperSize", 		T_SHORT,  OFF(devmode.dmPaperSize), 0, "Use 0 if PaperWidth and PaperLength are set, otherwise DMPAPER_* constant"},
 	{"PaperLength", 	T_SHORT,  OFF(devmode.dmPaperLength), 0, "Specified in 1/10 millimeters"},
 	{"PaperWidth", 		T_SHORT,  OFF(devmode.dmPaperWidth), 0, "Specified in 1/10 millimeters"},
+#ifndef MS_WINCE
 	{"Position_x", 		T_LONG,   OFF(devmode.dmPosition.x), 0, "Position of display relative to desktop"},
 	{"Position_y", 		T_LONG,   OFF(devmode.dmPosition.y), 0, "Position of display relative to desktop"},
+#endif
 	// {"DisplayOrientation",T_ULONG,OFF(devmode.dmDisplayOrientation), 0, "Display rotation: DMDO_DEFAULT,DMDO_90, DMDO_180, DMDO_270"},
 	// {"DisplayFixedOutput",T_ULONG,OFF(devmode.dmDisplayFixedOutput), 0, "DMDFO_DEFAULT, DMDFO_CENTER, DMDFO_STRETCH"}, 
 	{"Scale",			T_SHORT,  OFF(devmode.dmScale), 0, "Specified as percentage, eg 50 means half size of original"},
@@ -44,6 +50,9 @@ struct PyMemberDef PyDEVMODE::members[] = {
 	{"PelsHeight", 		T_ULONG,   OFF(devmode.dmPelsHeight), 0, "Pixel height of display"},
 	{"DisplayFlags", 	T_ULONG,   OFF(devmode.dmDisplayFlags), 0, "Combination of DM_GRAYSCALE and DM_INTERLACED"},
 	{"DisplayFrequency",T_ULONG,   OFF(devmode.dmDisplayFrequency), 0, "Refresh rate"},
+#ifdef MS_WINCE
+	{"DisplayOrientation",T_ULONG,OFF(devmode.dmDisplayOrientation), 0, "Display rotation: DMDO_DEFAULT,DMDO_90, DMDO_180, DMDO_270"},
+#else
 	{"ICMMethod",		T_ULONG,   OFF(devmode.dmICMMethod), 0, ""},
 	{"ICMIntent",		T_ULONG,   OFF(devmode.dmICMIntent), 0, ""},
 	{"MediaType",		T_ULONG,   OFF(devmode.dmMediaType), 0, ""},
@@ -55,7 +64,9 @@ struct PyMemberDef PyDEVMODE::members[] = {
 	{"Nup",				T_ULONG,   OFF(devmode.dmNup), 0, "DMNUP_SYSTEM or DMNUP_ONEUP"}, // wtf is a "Nup"?
 	{"PanningWidth",	T_ULONG,   OFF(devmode.dmPanningWidth), 0, ""},
 	{"PanningHeight",	T_ULONG,   OFF(devmode.dmPanningHeight), 0, ""},
-#endif
+	{"DriverData",		T_OBJECT,  OFF(obdummy), 0, "Driver data appended to end of structure"},
+#endif	// WINVER >= 0x0500
+#endif	// !MS_WINCE
 	{NULL}
 };
 
