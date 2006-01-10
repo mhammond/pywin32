@@ -26,6 +26,9 @@ OFN_NODEREFERENCELINKS = 1048576
 OFN_LONGNAMES = 2097152           # force long names for 3.x modules
 OFN_ENABLEINCLUDENOTIFY = 4194304 # send include message to callback
 OFN_ENABLESIZING = 8388608
+OFN_DONTADDTORECENT = 33554432
+OFN_FORCESHOWHIDDEN = 268435456 # Show All files including System and hidden files
+OFN_EX_NOPLACESBAR = 1
 OFN_SHAREFALLTHROUGH = 2
 OFN_SHARENOWARN = 1
 OFN_SHAREWARN = 0
@@ -3387,11 +3390,11 @@ def PALETTEINDEX(i): return ((16777216 | (i)))
 PC_RESERVED = 1
 PC_EXPLICIT = 2
 PC_NOCOLLAPSE = 4
-def GetRValue(rgb): return ((rgb))
+def GetRValue(rgb): return rgb & 0xff
 
-def GetGValue(rgb): return ((((rgb)) >> 8))
+def GetGValue(rgb): return (rgb >> 8) & 0xff
 
-def GetBValue(rgb): return (((rgb)>>16))
+def GetBValue(rgb): return (rgb >> 16) & 0xff
 
 TRANSPARENT = 1
 OPAQUE = 2
@@ -4819,3 +4822,14 @@ ULW_COLORKEY = 0x00000001
 ULW_ALPHA = 0x00000002
 ULW_OPAQUE = 0x00000004
 
+# WinDef.h
+TRUE = 1
+FALSE = 0
+MAX_PATH = 260
+# WinGDI.h
+AC_SRC_OVER = 0
+AC_SRC_ALPHA = 1
+GRADIENT_FILL_RECT_H = 0
+GRADIENT_FILL_RECT_V = 1
+GRADIENT_FILL_TRIANGLE = 2
+GRADIENT_FILL_OP_FLAG = 255
