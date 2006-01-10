@@ -381,13 +381,19 @@ static PyObject *PyCoUninitialize(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @pymethod True/False|servicemanager|Debugging|Indicates if the service is running in debug mode.
+// @pymethod True/False|servicemanager|Debugging|Indicates if the service is running in debug mode
+// and optionally toggles the debug flag.
 static PyObject *PyDebugging(PyObject *self, PyObject *args)
 {
-	if (!PyArg_ParseTuple(args, ":Debugging"))
+	// @pyparm int|newVal|-1|If not -1, a new value for the debugging flag.
+	// The result is the value of the flag before it is changed.
+	int newVal = (int)-1;
+	if (!PyArg_ParseTuple(args, "|i:Debugging", &newVal))
 		return NULL;
 	PyObject *rc = bServiceDebug ? Py_True : Py_False;
 	Py_INCREF(rc);
+	if (newVal != (int)-1)
+		bServiceDebug = newVal;
 	return rc;
 }
 
@@ -441,6 +447,8 @@ static PyObject *PyServiceInitialize(PyObject *self, PyObject *args)
 {
 	PyObject *nameOb = Py_None, *fileOb = Py_None;
 	// @pyparm <o PyUnicode>|eventSourceName|None|The event source name
+	// @pyparm <o PyUnicode>|eventSourceFile|None|The name of the file
+	// (generally a DLL) with the event source messages.
 	if (!PyArg_ParseTuple(args, "|OO", &nameOb, &fileOb))
 		return NULL;
 	TCHAR *name, *file;
