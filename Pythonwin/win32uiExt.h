@@ -222,6 +222,13 @@ public:
 		if (!helper.HaveHandler() || !helper.call())
 			T::OnPaint();
 	}
+	afx_msg void OnTimer(UINT nIDEvent) {
+		// @pyvirtual void|PyCWnd|OnTimer|Called for the WM_TIMER message.
+		// @pyparm <int>|nIDEvent||Specifies the identifier of the timer.
+		CVirtualHelper helper( "OnTimer", this );
+		if (!helper.HaveHandler() || !helper.call(static_cast<int>(nIDEvent)))
+			T::OnTimer(nIDEvent);
+	}
 	afx_msg HCURSOR OnQueryDragIcon() {
 		// @pyvirtual int|PyCWnd|OnQueryDragIcon|Called for the WM_QUERYDRAGICON message.
 		// @rdesc The result is an integer containing a HCURSOR for the icon.
@@ -385,6 +392,7 @@ const AFX_MSGMAP_ENTRY CPythonWndFramework<T>::_messageEntries[] = {
 	ON_WM_ERASEBKGND()
 	ON_WM_QUERYNEWPALETTE()
 	ON_WM_PAINT()
+	ON_WM_TIMER()
 	ON_WM_QUERYDRAGICON()
 	ON_WM_CREATE()
 	ON_WM_CLOSE()
