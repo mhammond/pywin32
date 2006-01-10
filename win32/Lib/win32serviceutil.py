@@ -12,6 +12,10 @@ import sys, string, pywintypes, os
 error = "Python Service Utility Error"
 
 def LocatePythonServiceExe(exeName = None):
+    if not exeName and hasattr(sys, "frozen"):
+        # If py2exe etc calls this with no exeName, default is current exe.
+        return sys.executable
+
     # Try and find the specified EXE somewhere.  If specifically registered,
     # use it.  Otherwise look down sys.path, and the global PATH environment.
     if exeName is None:
@@ -420,6 +424,35 @@ def RestartService(serviceName, args = None, waitSeconds = 30, machine = None):
     else:
         print "Gave up waiting for the old service to stop!"
 
+def _DebugCtrlHandler(evt):
+    if evt in (win32con.CTRL_C_EVENT, win32con.CTRL_BREAK_EVENT):
+        assert g_debugService
+        print "Stopping debug service."
+        g_debugService.SvcStop()
+        return True
+    return False
+
+def DebugService(cls, argv = []):
+    # Run a service in "debug" mode.  Re-implements what pythonservice.exe
+    # does when it sees a "-debug" param.
+    # Currently only used by "frozen" (ie, py2exe) programs (but later may
+    # end up being used for all services should we ever remove
+    # pythonservice.exe)
+    import servicemanager
+    global g_debugService
+
+    print "Debugging service %s - press Ctrl+C to stop." % (cls._svc_name_,)
+    servicemanager.Debugging(True)
+    servicemanager.PrepareToHostSingle(cls)
+    g_debugService = cls(argv)
+    # Setup a ctrl+c handler to simulate a "stop"
+    win32api.SetConsoleCtrlHandler(_DebugCtrlHandler, True)
+    try:
+        g_debugService.SvcRun()
+    finally:
+        win32api.SetConsoleCtrlHandler(_DebugCtrlHandler, False)
+        servicemanager.Debugging(False)
+        g_debugService = None
 
 def GetServiceClassString(cls, argv = None):
     if argv is None:
@@ -553,17 +586,24 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
 
     elif arg=="debug":
         knownArg = 1
-        svcArgs = string.join(args[1:])
-        exeName = LocateSpecificServiceExe(serviceName)
-        try:
-            os.system("%s -debug %s %s" % (exeName, serviceName, svcArgs))
-        # ^C is used to kill the debug service.  Sometimes Python also gets
-        # interrupted - ignore it...
-        except KeyboardInterrupt:
-            pass
+        if not hasattr(sys, "frozen"):
+            # non-frozen services use pythonservice.exe which handles a
+            # -debug option
+            svcArgs = string.join(args[1:])
+            exeName = LocateSpecificServiceExe(serviceName)
+            try:
+                os.system("%s -debug %s %s" % (exeName, serviceName, svcArgs))
+            # ^C is used to kill the debug service.  Sometimes Python also gets
+            # interrupted - ignore it...
+            except KeyboardInterrupt:
+                pass
+        else:
+            # py2exe services don't use pythonservice - so we simulate
+            # debugging here.
+            DebugService(cls, args)
 
-    if len(args)<>1:
-        usage()
+    if not knownArg and len(args)<>1:
+        usage() # the rest of the cmds don't take addn args
 
     if arg=="install":
         knownArg = 1
@@ -583,7 +623,7 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
             description = cls._svc_description_
         except AttributeError:
             description = None
-        print "Installing service %s to Python class %s" % (serviceName,serviceClassString)
+        print "Installing service %s" % (serviceName,)
         # Note that we install the service before calling the custom option
         # handler, so if the custom handler fails, we have an installed service (from NT's POV)
         # but is unlikely to work, as the Python code controlling it failed.  Therefore
@@ -633,6 +673,8 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
         print "Changing service configuration"
         try:
             ChangeServiceConfig(serviceClassString, serviceName, serviceDeps = serviceDeps, startType=startup, bRunInteractive=interactive, userName=userName,password=password, exeName=exeName, displayName = serviceDisplayName, perfMonIni=perfMonIni,perfMonDll=perfMonDll,exeArgs=exeArgs,description=description)
+            if customOptionHandler:
+                apply( customOptionHandler, (opts,) )
             print "Service updated"
         except win32service.error, (hr, fn, msg):
             print "Error changing service configuration: %s (%d)" % (msg,hr)
