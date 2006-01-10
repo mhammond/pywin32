@@ -42,7 +42,7 @@ ERRORS_BAD_CONTEXT = [
 	winerror.DISP_E_BADPARAMCOUNT,
 	winerror.DISP_E_PARAMNOTOPTIONAL,
 	winerror.DISP_E_TYPEMISMATCH,
-    winerror.E_INVALIDARG,
+	winerror.E_INVALIDARG,
 ]
 
 ALL_INVOKE_TYPES = [
@@ -64,10 +64,9 @@ def debug_attr_print(*args):
 			print arg,
 		print
 
-# get the dispatch type in use.
+# get the type objects for IDispatch and IUnknown
 dispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 iunkType = pythoncom.TypeIIDs[pythoncom.IID_IUnknown]
-_StringOrUnicodeType=[StringType, UnicodeType]
 _GoodDispatchType=[StringType,IIDType,UnicodeType]
 _defaultDispatchItem=build.DispatchItem
 
@@ -82,12 +81,20 @@ def _GetGoodDispatch(IDispatch, clsctx = pythoncom.CLSCTX_SERVER):
 		IDispatch = getattr(IDispatch, "_oleobj_", IDispatch)
 	return IDispatch
 
-def _GetGoodDispatchAndUserName(IDispatch,userName,clsctx):
+def _GetGoodDispatchAndUserName(IDispatch, userName, clsctx):
+	# Get a dispatch object, and a 'user name' (ie, the name as
+	# displayed to the user in repr() etc.
 	if userName is None:
-		if type(IDispatch) in _StringOrUnicodeType:
+		if type(IDispatch) == StringType:
 			userName = IDispatch
-		else:
-			userName = "<unknown>"
+		elif type(IDispatch) == UnicodeType:
+			# We always want the displayed name to be a real string
+			userName = IDispatch.encode("ascii", "replace")
+	elif type(userName) == UnicodeType:
+		# As above - always a string...
+		userName = userName.encode("ascii", "replace")
+	else:
+		userName = str(userName)
 	return (_GetGoodDispatch(IDispatch, clsctx), userName)
 
 def _GetDescInvokeType(entry, default_invoke_type):
