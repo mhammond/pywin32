@@ -224,7 +224,7 @@ public:
 	}
 	afx_msg void OnTimer(UINT nIDEvent) {
 		// @pyvirtual void|PyCWnd|OnTimer|Called for the WM_TIMER message.
-		// @pyparm <int>|nIDEvent||Specifies the identifier of the timer.
+		// @pyparm int|nIDEvent||Specifies the identifier of the timer.
 		CVirtualHelper helper( "OnTimer", this );
 		if (!helper.HaveHandler() || !helper.call(static_cast<int>(nIDEvent)))
 			T::OnTimer(nIDEvent);
