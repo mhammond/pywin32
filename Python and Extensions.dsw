@@ -279,21 +279,6 @@ Package=<4>
 
 ###############################################################################
 
-Project: "axcontrol"=.\com\axcontrol.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name win32com
-    End Project Dependency
-}}}
-
-###############################################################################
-
 Project: "dbi"=.\win32\dbi.dsp - Package Owner=<4>
 
 Package=<5>
@@ -476,21 +461,6 @@ Package=<5>
 
 Package=<4>
 {{{
-}}}
-
-###############################################################################
-
-Project: "shell"=.\com\shell.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name win32com
-    End Project Dependency
 }}}
 
 ###############################################################################
