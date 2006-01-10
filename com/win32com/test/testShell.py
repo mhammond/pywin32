@@ -28,7 +28,9 @@ class ShellTester(win32com.test.util.TestCase):
             fname, findData = shellLink.GetPath(0)
             unc = shellLink.GetPath(shell.SLGP_UNCPRIORITY)[0]
             num += 1
-        self.failIf(num<3, "Only found %d items on the desktop??" % num)
+        if num == 0:
+            # This isn't a fatal error, but is unlikely.
+            print "Could not find any links on your desktop, which is unusual"
 
     def testShellFolder(self):
         sf = shell.SHGetDesktopFolder()
