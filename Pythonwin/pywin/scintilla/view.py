@@ -425,6 +425,19 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 					# append to the already evaluated list
 				except AttributeError:
 					pass
+				# The object might be a pure COM dynamic dispatch with typelib support - lets see if we can get its props.
+				if hasattr(ob, "_oleobj_"):
+					try:
+						for iTI in xrange(0,ob._oleobj_.GetTypeInfoCount()):
+							typeInfo = ob._oleobj_.GetTypeInfo(iTI)
+							typeAttr = typeInfo.GetTypeAttr()
+							for iFun in xrange(0,typeAttr.cFuncs):
+								funDesc = typeInfo.GetFuncDesc(iFun)
+								funName = typeInfo.GetNames(funDesc.memid)[0]
+								if not items_dict.has_key(funName):
+									items_dict[funName] = None
+					except:
+						pass
 			except:
 				win32ui.SetStatusText("Error attempting to get object attributes - %s" % (`sys.exc_info()[0]`,))
 
