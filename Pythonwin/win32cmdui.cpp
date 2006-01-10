@@ -13,6 +13,7 @@ generates Windows .hlp files.
 
 */
 #include "stdafx.h"
+#include "win32menu.h"
 #include "win32cmdui.h"
 
 inline void*GetPythonOleProcAddress(const char *procName)
@@ -269,6 +270,22 @@ PyCCmdUI::getattr(char *name)
 		if (!pCU)
 			return NULL;
 		return PyInt_FromLong(pCU->m_nID);
+	} else if (strcmp(name, "m_pMenu")==0) { // @prop <o PyCMenu>|m_pMenu|
+		CCmdUI *pCU = PyCCmdUI::GetCCmdUIPtr(this);
+		if (!pCU)
+			return NULL;
+		if (pCU->m_pMenu)
+			return ui_assoc_object::make(PyCMenu::type, pCU->m_pMenu->GetSafeHmenu());
+		Py_INCREF(Py_None);
+		return Py_None;
+	} else if (strcmp(name, "m_pSubMenu")==0) { // @prop <o PyCMenu>|m_pSubMenu|
+		CCmdUI *pCU = PyCCmdUI::GetCCmdUIPtr(this);
+		if (!pCU)
+			return NULL;
+		if (pCU->m_pSubMenu)
+			return ui_assoc_object::make(PyCMenu::type, pCU->m_pSubMenu->GetSafeHmenu());
+		Py_INCREF(Py_None);
+		return Py_None;
 	}
 	return ui_assoc_object::getattr(name);
 }
