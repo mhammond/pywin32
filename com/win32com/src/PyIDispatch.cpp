@@ -290,11 +290,19 @@ PyObject * PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
 	if ( argc < 5 )
 		return OleSetTypeError("not enough arguments (at least 5 needed)");
 
-	DISPID dispid = PyInt_AsLong(PyTuple_GET_ITEM(args, 0)); // @pyparm int|dispid||The dispid to use.  Please see <om PyIDispatch.Invoke>.
-	LCID lcid = PyInt_AsLong(PyTuple_GET_ITEM(args, 1)); // @pyparm int|lcid||The locale ID.  Please see <om PyIDispatch.Invoke>.
-	UINT wFlags = PyInt_AsLong(PyTuple_GET_ITEM(args, 2)); // @pyparm int|wFlags||Flags for the call.  Please see <om PyIDispatch.Invoke>.
-	PyObject *resultElemDesc = PyTuple_GET_ITEM(args, 3); // @pyparm tuple|resultTypeDesc||A tuple describing the type of the result.
-	PyObject *argsElemDescArray = PyTuple_GET_ITEM(args, 4); // @pyparm  (tuple, ...)|typeDesc||A sequence of tuples describing the types of the parameters for the function.
+	// @pyparm int|dispid||The dispid to use.  Please see <om PyIDispatch.Invoke>.
+	DISPID dispid = PyInt_AsLong(PyTuple_GET_ITEM(args, 0));
+	// @pyparm int|lcid||The locale ID.  Please see <om PyIDispatch.Invoke>.
+	LCID lcid = PyInt_AsLong(PyTuple_GET_ITEM(args, 1));
+	// @pyparm int|wFlags||Flags for the call.  Please see <om PyIDispatch.Invoke>.
+	UINT wFlags = PyInt_AsLong(PyTuple_GET_ITEM(args, 2));
+	// @pyparm tuple|resultTypeDesc||A tuple describing the type of the
+	// result.  See the comments for more information.
+	PyObject *resultElemDesc = PyTuple_GET_ITEM(args, 3);
+	// @pyparm  (tuple, ...)|typeDescs||A sequence of tuples describing
+	// the types of the parameters for the function.  See the comments
+	// for more information.
+	PyObject *argsElemDescArray = PyTuple_GET_ITEM(args, 4);
 	// @pyparm object, ...|args||The args to the function.
 	if ( PyErr_Occurred() )
 		return NULL;
@@ -455,6 +463,26 @@ PyObject * PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
 	}
 	delete [] ArgHelpers;
 	return result;
+// @comm The Microsoft documentation for IDispatch should be used for all 
+// params except 'resultTypeDesc' and 'typeDescs'. 'resultTypeDesc' describes 
+// the return value of the function, and is a tuple of (type_id, flags).
+// 'typeDescs' describes the type of each parameters, and is a list of the 
+// same (type_id, flags) tuple.
+// @flagh item|Description
+// @flag type_id|A valid "variant type" constant (eg, VT_I4 \| VT_ARRAY, VT_DATE, etc - see VARIANT at MSDN).
+// @flag flags|One of the PARAMFLAG constants (eg, PARAMFLAG_FIN, PARAMFLAG_FOUT etc - see PARAMFLAG at MSDN).
+// @ex An example from the makepy generated file for Word|
+//
+// class Cells(DispatchBaseClass):
+// ...
+//     def SetWidth(self, ColumnWidth=..., RulerStyle=...):
+//         return self._oleobj_.InvokeTypes(202, LCID, 1, (24, 0), ((4, 1), (3, 1)),...)
+
+// @ex The interesting bits are|
+// resultTypeDesc: (24, 0) - (VT_VOID, <no flags>)
+// typeDescs: ((4, 1), (3, 1)) - ((VT_R4, PARAMFLAG_FIN), (VT_I4, PARAMFLAG_FIN))
+// @ex So, in this example, the function returns no value and takes 2 "in" 
+// params - ColumnWidth is a float, and RulerStule is an int.|
 }
 
 // @pymethod <o PyITypeInfo>|PyIDispatch|GetTypeInfo|Get type information for the object.
