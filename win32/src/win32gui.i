@@ -3795,7 +3795,39 @@ static PyObject *PyListView_SortItemsEx(PyObject *self, PyObject *args)
 // @pyparm string|Driver||Name of display or print provider, usually DISPLAY or WINSPOOL
 // @pyparm string|Device||Name of specific device, eg printer name returned from GetDefaultPrinter
 // @pyparm <o PyDEVMODE>|InitData||A PyDEVMODE that specifies printing parameters, use None for printer defaults
-HDC CreateDC(TCHAR *INPUT_NULLOK, TCHAR *INPUT_NULLOK, TCHAR *INPUT, DEVMODE *INPUT);
+
+%native (CreateDC) PyCreateDC;
+%{
+static PyObject *PyCreateDC(PyObject *self, PyObject *args)
+{
+    PDEVMODE pdevmode;
+    PyObject *obdevmode=NULL;
+    PyObject *obdriver, *obdevice;
+    char *driver, *device, *dummyoutput=NULL;
+    HDC hdc;
+    if (!PyArg_ParseTuple(args, "OOO", &obdriver, &obdevice, &obdevmode))
+	return NULL;
+    if (!PyWinObject_AsDEVMODE(obdevmode, &pdevmode, TRUE))
+	return NULL;
+    if (!PyWinObject_AsTCHAR(obdriver, &driver, FALSE))
+	return NULL;
+    if (!PyWinObject_AsTCHAR(obdevice, &device, TRUE)) {
+	PyWinObject_FreeTCHAR(driver);
+	return NULL;
+    }
+    PyObject *ret;
+    hdc=CreateDC(driver, device, dummyoutput, pdevmode);
+    if (hdc!=NULL)
+	ret = Py_BuildValue("l",hdc);
+    else {
+	PyWin_SetAPIError("CreateDC",GetLastError());
+	ret = NULL;
+    }
+    PyWinObject_FreeTCHAR(driver);
+    PyWinObject_FreeTCHAR(device);
+    return ret;
+}
+%}
 
 %{
 void PyWinObject_FreeOPENFILENAMEW(OPENFILENAMEW *pofn)
