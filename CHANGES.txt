@@ -5,6 +5,11 @@ Generally created by hand after running:
    {py_dir}\Tools\scripts\logmerge.py -t < log.out > log.out2
 However contributors are encouraged to add their own entries for their work.
 
+Build 207
+--------
+* Fix an error in win32gui.CreateDC() arg handling, introduced with the
+  Windows CE changes in build 206.
+
 Build 206
 --------
 * Prevent the "display name" of a COM object ever being Unicode and
