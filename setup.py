@@ -402,7 +402,7 @@ class my_build_ext(build_ext):
         # Return None, or a reason it can't be built.
         if self.windows_h_version is None:
             include_dirs = self.compiler.include_dirs + \
-                           os.environ.get("INCLUDE").split(os.pathsep)
+                           os.environ.get("INCLUDE", "").split(os.pathsep)
             for d in include_dirs:
                 look = os.path.join(d, "WINDOWS.H")
                 if os.path.isfile(look):
@@ -440,7 +440,7 @@ class my_build_ext(build_ext):
                 return "The header '%s' can not be located" % (h,)
 
         common_dirs = self.compiler.library_dirs[:]
-        common_dirs += os.environ.get("LIB").split(os.pathsep)
+        common_dirs += os.environ.get("LIB", "").split(os.pathsep)
         patched_libs = []
         for lib in ext.libraries:
             if self.found_libraries.has_key(lib.lower()):
