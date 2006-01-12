@@ -1112,7 +1112,7 @@ pythoncom = WinExt_system32('pythoncom',
 dll_base_address += 0x80000 # pythoncom is large!
 com_extensions = [pythoncom]
 com_extensions += [
-    WinExt_win32com('adsi', libraries="ACTIVEDS ADSIID",
+    WinExt_win32com('adsi', libraries="ACTIVEDS ADSIID user32 advapi32",
                     sources=("""
                         %(adsi)s/adsi.i                 %(adsi)s/adsi.cpp
                         %(adsi)s/PyIADsContainer.i      %(adsi)s/PyIADsContainer.cpp
