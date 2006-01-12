@@ -435,9 +435,20 @@ PyObject *PyWinObject_FromRESOURCESTRING(LPCSTR str)
 	return PyString_FromString(str);
 }
 
+// @object PyCMINVOKECOMMANDINFO|A tuple of parameters to be converted to a CMINVOKECOMMANDINFO struct
+// @tupleitem 0|int|Mask|Combination of shellcon.CMIC_MASK_* constants, can be 0
+// @tupleitem 1|<o PyHANDLE>|hwnd|Window that owns the shortcut menu
+// @tupleitem 2|int or str|Vert|Action to be carried out, specified as a string command or integer menu item id
+// @tupleitem 3|str|Parameters|Extra parameters to be passed to the command line for the action, can be None
+// @tupleitem 4|str|Directory|Working directory, can be None
+// @tupleitem 5|int|Show|Combination of win32con.SW_* constants for any windows that may be created
+// @tupleitem 6|int|HotKey|Hot key for any application that may be started
+// @tupleitem 7|<o PyHANDLE>|Icon|Handle to icon to use for application, can be None
 BOOL PyObject_AsCMINVOKECOMMANDINFO(PyObject *ob, CMINVOKECOMMANDINFO *pci)
 {
 	PyObject *obVerb;
+	ZeroMemory(pci, sizeof(CMINVOKECOMMANDINFO));
+	pci->cbSize=sizeof(CMINVOKECOMMANDINFO);
 	if (!PyArg_ParseTuple(ob, "iiOzziii:CMINVOKECOMMANDINFO tuple", &pci->fMask, &pci->hwnd, 
 	                                 &obVerb, &pci->lpParameters, &pci->lpDirectory, 
 	                                 &pci->nShow, &pci->dwHotKey, &pci->hIcon))
@@ -747,30 +758,20 @@ static BOOL MakeDoubleTerminatedStringList(PyObject *ob, TCHAR **ret)
 		*ret = NULL;
 		return TRUE;
 	}
-	if (PyString_Check(ob) || PyUnicode_Check(ob)) {
-		// single string specified.
-		DWORD len;
-		TCHAR *sz;
-		if (!PyWinObject_AsTCHAR(ob, &sz, FALSE, &len))
-			return FALSE;
-		*ret = (TCHAR *)malloc( sizeof(TCHAR) * (len+2) );
-		if (!*ret)
-			PyErr_NoMemory();
-		else {
-			_tcscpy(*ret, sz);
-			(*ret)[len+1] = '\0'; // second term.
-		}
+	DWORD len;
+	TCHAR *sz;
+	if (!PyWinObject_AsTCHAR(ob, &sz, FALSE, &len))
+		return FALSE;
+	*ret = (TCHAR *)malloc( sizeof(TCHAR) * (len+2) );
+	if (!*ret){
 		PyWinObject_FreeTCHAR(sz);
-		return TRUE;
-	}
-	
-	if (!PySequence_Check(ob)) {
-		PyErr_Format(PyExc_TypeError,
-					 "Must be a string or sequence of strings (got '%s')", ob->ob_type->tp_name);
+		PyErr_NoMemory();
 		return FALSE;
 	}
-	PyErr_Format(PyExc_RuntimeError, "Sequences of names not yet supported");
-	return FALSE;
+	memcpy(*ret, sz, sizeof(TCHAR) * (len+1));
+	(*ret)[len+1] = '\0'; // second term.
+	PyWinObject_FreeTCHAR(sz);
+	return TRUE;
 }
 
 void PyObject_FreeSHFILEOPSTRUCT(SHFILEOPSTRUCT *p)
@@ -783,23 +784,26 @@ void PyObject_FreeSHFILEOPSTRUCT(SHFILEOPSTRUCT *p)
 		PyWinObject_FreeTCHAR((TCHAR *)p->lpszProgressTitle);
 }
 
-// @object SHFILEOPSTRUCT|A tuple representing a Win32 shell SHFILEOPSTRUCT structure.
+// @object SHFILEOPSTRUCT|A tuple representing a Win32 shell SHFILEOPSTRUCT structure, used with <om shell.SHFileOperation>
+// @comm From and To can contain multiple file names concatenated with a single null between them, eg
+// "c:\\file1.txt\0c:\\file2.txt".  A double null terminator will be appended automatically.
+// If To specifies multiple file names, flags must contain FOF_MULTIDESTFILES
 BOOL PyObject_AsSHFILEOPSTRUCT(PyObject *ob, SHFILEOPSTRUCT *p)
 {
 	PyObject *obFrom, *obTo, *obNameMappings = Py_None, *obProgressTitle = Py_None;
 	memset(p, 0, sizeof(*p));
 	if (!PyArg_ParseTuple(ob, "iiOO|iOO",
-						  &p->hwnd, // @tupleitem 0|int|hwnd|
-						  &p->wFunc, // @tupleitem 1|int|wFunc|
-						  &obFrom, // @tupleitem 2|string/list of stringsfrom|obFrom|
-						  &obTo, // @tupleitem 3|string/list of strings|to|
-						  &p->fFlags, // @tupleitem 4|int|flags|Default=0
-						  &obNameMappings, // @tupleitem 5|None|nameMappings|Default=None
-						  &obProgressTitle)) // @tupleitem 6|string|progressTitle|Default=None
+						  &p->hwnd, // @tupleitem 0|int|hwnd|Handle of window in which to display status messages
+						  &p->wFunc, // @tupleitem 1|int|wFunc|One of the shellcon.FO_* values
+						  &obFrom, // @tupleitem 2|str/unicode|From|String containing source file name(s) separated by nulls
+						  &obTo, // @tupleitem 3|str/unicode|To|String containing destination file name(s) separated by nulls, can be None
+						  &p->fFlags, // @tupleitem 4|int|flags|Combination of shellcon.FOF_* flags. Default=0
+						  &obNameMappings, // @tupleitem 5|None|NameMappings|Maps input file names to their new names, must be None. Default=None
+						  &obProgressTitle)) // @tupleitem 6|string|ProgressTitle|Title for progress dialog (flags must contain FOF_SIMPLEPROGRESS). Default=None
 		return FALSE;
 	
 	if (obNameMappings != Py_None) {
-		PyErr_SetString(PyExc_TypeError, "The nameMappings value must be None");
+		PyErr_SetString(PyExc_TypeError, "The NameMappings value must be None");
 		return FALSE;
 	}
 	if (!MakeDoubleTerminatedStringList(obFrom, (LPTSTR *)&p->pFrom))
@@ -819,7 +823,8 @@ error:
 //////////////////////////////////////////////////
 //
 // WIN32_FIND_DATA implementation.
-// NOTE: Cloned from win32api.cpp
+// NOTE: Cloned from win32api.cpp - Also exists in win32file !
+// @object WIN32_FIND_DATA|A tuple representing a Win32 WIN32_FIND_DATA structure.
 PyObject *PyObject_FromWIN32_FIND_DATA(WIN32_FIND_DATA &findData)
 {
 	PyObject *obCreateTime = PyWinObject_FromFILETIME(findData.ftCreationTime);
