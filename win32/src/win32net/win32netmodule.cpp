@@ -181,9 +181,13 @@ BOOL PyObject_AsNET_STRUCT( PyObject *ob, PyNET_STRUCT *pI, BYTE **ppRet )
 						goto done;
 					}
 					PSECURITY_DESCRIPTOR *ppSDdest = ((PSECURITY_DESCRIPTOR *)(buf+pItem->off));
-					size_t len = GetSecurityDescriptorLength(pSDsrc);
-					*ppSDdest = (PSECURITY_DESCRIPTOR)malloc(len);
-					memcpy(*ppSDdest, pSDsrc, len);
+					if (pSDsrc==NULL)
+						*ppSDdest=NULL;
+					else{
+						size_t len = GetSecurityDescriptorLength(pSDsrc);
+						*ppSDdest = (PSECURITY_DESCRIPTOR)malloc(len);
+						memcpy(*ppSDdest, pSDsrc, len);
+						}
 					}
 					break;
 				
