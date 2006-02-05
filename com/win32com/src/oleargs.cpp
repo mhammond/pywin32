@@ -206,6 +206,10 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
 	VARIANT		varValue;
 	PyObject *	result = NULL;
 
+	if (!var) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	/* skip past any variant references to a "real" variant 
 	  (Why do we do this?  Why is it only a VARIANT?  whats the story, morning glory?
 	*/
