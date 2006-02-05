@@ -1,7 +1,10 @@
 // stddde.cpp
 // From KB Article ID: Q92829 
 
-#define _CALLHACK_
+// See pywin32 bug [ 1414160 ] DDE sets off DEP (in demos and pythonwin too)
+// _CALLHACK_ appears to be the cause :(
+// #define _CALLHACK_
+
 
 #include "stdafxdde.h"
 
