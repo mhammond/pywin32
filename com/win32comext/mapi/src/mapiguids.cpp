@@ -18,6 +18,7 @@
 #define USES_IID_IABContainer
 #define USES_IID_IProfSect
 #define USES_IID_IMsgServiceAdmin
+#define USES_IID_IProviderAdmin
 
 
 #define USES_PS_PUBLIC_STRINGS

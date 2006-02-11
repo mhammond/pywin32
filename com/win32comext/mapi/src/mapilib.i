@@ -66,6 +66,10 @@ typedef unsigned long BOOKMARK;
 {
   $target = &temp;
 }
+%typemap(python,ignore) IProviderAdmin **OUTPUT(IProviderAdmin *temp)
+{
+  $target = &temp;
+}
 %typemap(python,ignore) IMAPIAdviseSink **OUTPUT(IMAPIAdviseSink *temp)
 {
   $target = &temp;
@@ -114,6 +118,9 @@ typedef unsigned long BOOKMARK;
 %typemap(python,argout) IProfSect **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IProfSect)
 }
+%typemap(python,argout) IProviderAdmin **OUTPUT {
+	MAKE_OUTPUT_INTERFACE($source, $target, IID_IProviderAdmin)
+}
 %typemap(python,argout) IMAPIAdviseSink **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IMAPIAdviseSink)
 }
@@ -148,6 +155,8 @@ typedef unsigned long BOOKMARK;
 						 IProfAdmin *INPUT_NULLOK,
 						 IProfSect *INPUT,
 						 IProfSect *INPUT_NULLOK,
+                                                 IProviderAdmin *INPUT,
+                                                 IProviderAdmin *INPUT_NULLOK,
 						 IMAPIAdviseSink *INPUT,
 						 IMAPIAdviseSink *INPUT_NULLOK,
 						 IAddrBook *INPUT,
@@ -254,6 +263,16 @@ typedef unsigned long BOOKMARK;
 
 %typemap(python,in) IProfSect *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IProfSect, (void **)&$target, 1))
+		return NULL;
+}
+
+%typemap(python,in) IProviderAdmin *INPUT {
+	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IProviderAdmin, (void **)&$target, 0))
+		return NULL;
+}
+
+%typemap(python,in) IProviderAdmin *INPUT_NULLOK {
+	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IProviderAdmin, (void **)&$target, 1))
 		return NULL;
 }
 

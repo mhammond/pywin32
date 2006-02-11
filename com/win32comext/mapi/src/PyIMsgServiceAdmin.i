@@ -1,5 +1,5 @@
 /* File : PyIMsgServiceAdmin.i */
-
+ 
 %module IMsgServiceAdmin // An COM interface to MAPI's IMsgServiceAdmin interface.
 
 %include "typemaps.i"
@@ -112,4 +112,12 @@ HRESULT OpenProfileSection(
 	IID *INPUT_NULLOK, // @pyparm <o PyIID>|iid||The IID of the resulting object, or None for the default
 	unsigned long ulFlags, // @pyparm int|flags||
 	IProfSect **OUTPUT
+);
+
+// @pyswig <o PyIProfSect>|AdminProviders|Returns an object providing access
+// to a provider administration object.
+HRESULT AdminProviders(
+	MAPIUID *INPUT, // @pyparm <o PyIID>|uuid||The ID of the service
+	unsigned long ulFlags, // @pyparm int|flags||
+	IProviderAdmin  **OUTPUT
 );
