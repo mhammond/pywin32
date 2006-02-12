@@ -476,4 +476,4 @@ MsV1_0DeriveCredential = 10
 MsV1_0CacheLookup = 11
 MsV1_0SetProcessOption = 12
 
-
+SEC_E_OK = 0
