@@ -3516,6 +3516,27 @@ static PyObject *PyCreateWellKnownSid(PyObject *self, PyObject *args)
 }
 %}
 
+// @pyswig int|MapGenericMask|Translates generic access rights into specific rights
+%native(MapGenericMask) PyMapGenericMask;
+%{
+static PyObject *PyMapGenericMask(PyObject *self, PyObject *args)
+{
+	DWORD mask;
+	GENERIC_MAPPING mapping;
+	// @rdesc The input AccessMask will be returned with any generic access rights translated into specific equivalents
+	// @pyparm int|AccessMask||A bitmask of generic rights to be interpreted according to GenericMapping
+	// @pyparm (int,int,int,int)|GenericMapping||A tuple of 4 bitmasks (GenericRead, GenericWrite, GenericExecute, GenericAll)
+	// containing the standard and specific rights that correspond to the generic rights.
+	if (!PyArg_ParseTuple(args,"k(kkkk)", &mask, &mapping.GenericRead, &mapping.GenericWrite,
+		&mapping.GenericExecute, &mapping.GenericAll))
+		return NULL;
+	Py_BEGIN_ALLOW_THREADS
+	MapGenericMask(&mask, &mapping);
+	Py_END_ALLOW_THREADS
+	return PyLong_FromUnsignedLong(mask);
+}
+%}
+
 #define TOKEN_ADJUST_DEFAULT TOKEN_ADJUST_DEFAULT // Required to change the default ACL, primary group, or owner of an access token.
 #define TOKEN_ADJUST_GROUPS TOKEN_ADJUST_GROUPS // Required to change the groups specified in an access token.
 #define TOKEN_ADJUST_PRIVILEGES TOKEN_ADJUST_PRIVILEGES // Required to change the privileges specified in an access token.
