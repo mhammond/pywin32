@@ -71,7 +71,9 @@ PySequenceMethods PySecBufferDesc_sequencemethods=
 	NULL							// intargfunc sq_inplace_repeat;
 };  // ??? why isnt append included ???
 
-// @object PySecBufferDesc|Sequence-like object that contains a group of buffers to be used with SSPI functions
+// @object PySecBufferDesc|Sequence-like object that contains a group of buffers to be used with SSPI functions.
+// @comm This object is created using win32security.SecBufferDescType(Version), where Version is an int that
+// defaults to SECBUFFER_VERSION if not passed in.
 struct PyMethodDef PySecBufferDesc::methods[] = {
 	{"append",     PySecBufferDesc::append, 1}, 	// @pymeth append|Adds a <o PySecBuffer> to the list of buffers
 	{NULL}
@@ -483,7 +485,9 @@ PyObject *PyWinObject_FromSecBuffer(PSecBuffer psecbuffer)
 // PyCtxtHandle
 //
 ////////////////////////////////////////////////////////////////////////
-// @object PyCtxtHandle|Security context handle
+// @object PyCtxtHandle|Security context handle, as used with sspi functions
+// @comm Create using win32security.CtxtHandleType().  The handle must be initialized by passing it to 
+// <om win32security.InitializeSecurityContext> or <om win32security.AcceptSecurityContext>
 struct PyMethodDef PyCtxtHandle::methods[] = {
 	{"Detach",     PyCtxtHandle::Detach, 1}, 	// @pymeth Detach|Disassociates object from handle and returns integer value of handle
 	{"CompleteAuthToken", PyCtxtHandle::CompleteAuthToken,1},	//@pymeth CompleteAuthToken|Completes the authentication token
@@ -1044,9 +1048,9 @@ PyObject *PyWinObject_FromSecPkgInfo(PSecPkgInfoW psecpkginfo)
 }
 
 
-// @object PyCredHandle|Wrapper for a credentials handle
-// @comm This object should be created using win32security.CredHandleType(), and will only be usable after it is 
-// initialized by passing it to <om win32security.AcquireCredentialsHandle>
+// @object PyCredHandle|Handle to a set of logon credentials, used with sspi authentication functions
+// @comm This object is usually created using <om win32security.AcquireCredentialsHandle>.
+// An uninitialized handle can also be created using win32security.CredHandleType()
 struct PyMethodDef PyCredHandle::methods[] = {
 	{"Detach",     PyCredHandle::Detach, 1}, 	// @pymeth Detach|Disassociates object from handle and returns integer value of handle (prevents automatic freeing of credentials when object is deallocated), 
 	{"FreeCredentialsHandle", PyCredHandle::FreeCredentialsHandle,1}, // @pymeth FreeCredentialsHandle|Releases the credentials handle
