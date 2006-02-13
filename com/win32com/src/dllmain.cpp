@@ -38,12 +38,26 @@ PYCOM_EXPORT void PyCom_EnableQuitMessage( DWORD threadId )
 	dwQuitThreadId = threadId;
 }
 
+static BOOL hasInitialized = FALSE;
+
 void PyCom_DLLAddRef(void)
 {
 	// Must be thread-safe, although cant have the Python lock!
 	CEnterLeaveFramework _celf;
 	LONG cnt = InterlockedIncrement(&g_cLockCount);
 	if (cnt==1) { // First call 
+		// There is a situation where this code falls down.  An IClassFactory destructor
+		// imcrements the DLL ref count, to make up for the decrement done by PyIUnknown
+		// (as we don't want class factories in the count).  This works fine until the last
+		// reference is that IClassFactory - the g_cLockCount was zero, so transitions
+		// temporarily to 1 - leading us to this sad situation where we try and re-init
+		// Python as we tear down.
+		if (hasInitialized) {
+			return;
+		}
+		hasInitialized = TRUE; // must be set even if we didn't actually Py_Init.
+
+		// the last COM object
 		if (!Py_IsInitialized()) {
 			Py_Initialize();
 			// Make sure our Windows framework is all setup.
