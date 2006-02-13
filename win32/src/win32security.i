@@ -670,11 +670,17 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 	pfnDsFreeNameResult=(DsFreeNameResultfunc)loadapifunc("DsFreeNameResultW", ntdsapi_dll);
 	pfnDsGetDcName=(DsGetDcNamefunc)loadapifunc("DsGetDcNameW", netapi32_dll);
 	
+	// old names, these should not be used
 	PyDict_SetItemString(d, "SecBufferType", (PyObject *)&PySecBufferType);
 	PyDict_SetItemString(d, "SecBufferDescType", (PyObject *)&PySecBufferDescType);
 	PyDict_SetItemString(d, "CtxtHandleType", (PyObject *)&PyCtxtHandleType);
 	PyDict_SetItemString(d, "CredHandleType", (PyObject *)&PyCredHandleType);
-    
+	// aliases with correct naming conventions
+	PyDict_SetItemString(d, "PySecBufferType", (PyObject *)&PySecBufferType);
+	PyDict_SetItemString(d, "PySecBufferDescType", (PyObject *)&PySecBufferDescType);
+	PyDict_SetItemString(d, "PyCtxtHandleType", (PyObject *)&PyCtxtHandleType);
+	PyDict_SetItemString(d, "PyCredHandleType", (PyObject *)&PyCredHandleType);
+
     // Patch up any kwarg functions - SWIG doesn't like them.
     for (PyMethodDef *pmd = win32securityMethods;pmd->ml_name;pmd++)
         if (strcmp(pmd->ml_name, "DsGetDcName")==0) {

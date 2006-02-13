@@ -49,18 +49,18 @@ class _BaseAuth(object):
         pkg_size_info=self.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
         trailersize=pkg_size_info['SecurityTrailer']
 
-        encbuf=win32security.SecBufferDescType()
-        encbuf.append(win32security.SecBufferType(len(data), sspicon.SECBUFFER_DATA))
-        encbuf.append(win32security.SecBufferType(trailersize, sspicon.SECBUFFER_TOKEN))
+        encbuf=win32security.PySecBufferDescType()
+        encbuf.append(win32security.PySecBufferType(len(data), sspicon.SECBUFFER_DATA))
+        encbuf.append(win32security.PySecBufferType(trailersize, sspicon.SECBUFFER_TOKEN))
         encbuf[0].Buffer=data
         self.ctxt.EncryptMessage(0,encbuf,self._get_next_seq_num())
         return encbuf[0].Buffer, encbuf[1].Buffer
 
     def decrypt(self, data, trailer):
         """Decrypt a previously encrypted string, returning the orignal data"""
-        encbuf=win32security.SecBufferDescType()
-        encbuf.append(win32security.SecBufferType(len(data), sspicon.SECBUFFER_DATA))
-        encbuf.append(win32security.SecBufferType(len(trailer), sspicon.SECBUFFER_TOKEN))
+        encbuf=win32security.PySecBufferDescType()
+        encbuf.append(win32security.PySecBufferType(len(data), sspicon.SECBUFFER_DATA))
+        encbuf.append(win32security.PySecBufferType(len(trailer), sspicon.SECBUFFER_TOKEN))
         encbuf[0].Buffer=data
         encbuf[1].Buffer=trailer
         self.ctxt.DecryptMessage(encbuf,self._get_next_seq_num())
@@ -73,9 +73,9 @@ class _BaseAuth(object):
         """
         pkg_size_info=self.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
         sigsize=pkg_size_info['MaxSignature']
-        sigbuf=win32security.SecBufferDescType()
-        sigbuf.append(win32security.SecBufferType(len(data), sspicon.SECBUFFER_DATA))
-        sigbuf.append(win32security.SecBufferType(sigsize, sspicon.SECBUFFER_TOKEN))
+        sigbuf=win32security.PySecBufferDescType()
+        sigbuf.append(win32security.PySecBufferType(len(data), sspicon.SECBUFFER_DATA))
+        sigbuf.append(win32security.PySecBufferType(sigsize, sspicon.SECBUFFER_TOKEN))
         sigbuf[0].Buffer=data
 
         self.ctxt.MakeSignature(0,sigbuf,self._get_next_seq_num())
@@ -85,9 +85,9 @@ class _BaseAuth(object):
         """Verifies data and its signature.  If verification fails, an sspi.error
         will be raised.
         """
-        sigbuf=win32security.SecBufferDescType()
-        sigbuf.append(win32security.SecBufferType(len(data), sspicon.SECBUFFER_DATA))
-        sigbuf.append(win32security.SecBufferType(len(sig), sspicon.SECBUFFER_TOKEN))
+        sigbuf=win32security.PySecBufferDescType()
+        sigbuf.append(win32security.PySecBufferType(len(data), sspicon.SECBUFFER_DATA))
+        sigbuf.append(win32security.PySecBufferType(len(sig), sspicon.SECBUFFER_TOKEN))
 
         sigbuf[0].Buffer=data
         sigbuf[1].Buffer=sig
@@ -119,21 +119,21 @@ class ClientAuth(_BaseAuth):
 
     # Perform *one* step of the client authentication process.
     def authorize(self, sec_buffer_in):
-        if sec_buffer_in is not None and type(sec_buffer_in) != win32security.SecBufferDescType:
+        if sec_buffer_in is not None and type(sec_buffer_in) != win32security.PySecBufferDescType:
             # User passed us the raw data - wrap it into a SecBufferDesc
-            sec_buffer_new=win32security.SecBufferDescType()
-            tokenbuf=win32security.SecBufferType(self.pkg_info['MaxToken'],
+            sec_buffer_new=win32security.PySecBufferDescType()
+            tokenbuf=win32security.PySecBufferType(self.pkg_info['MaxToken'],
                                                  sspicon.SECBUFFER_TOKEN)
             tokenbuf.Buffer=sec_buffer_in
             sec_buffer_new.append(tokenbuf)
             sec_buffer_in = sec_buffer_new
-        sec_buffer_out=win32security.SecBufferDescType()
-        tokenbuf=win32security.SecBufferType(self.pkg_info['MaxToken'], sspicon.SECBUFFER_TOKEN)
+        sec_buffer_out=win32security.PySecBufferDescType()
+        tokenbuf=win32security.PySecBufferType(self.pkg_info['MaxToken'], sspicon.SECBUFFER_TOKEN)
         sec_buffer_out.append(tokenbuf)
         ## input context handle should be NULL on first call
         ctxtin=self.ctxt
         if self.ctxt is None:
-            self.ctxt=win32security.CtxtHandleType()
+            self.ctxt=win32security.PyCtxtHandleType()
         err, attr, exp=win32security.InitializeSecurityContext(
             self.credentials,
             ctxtin,
@@ -180,22 +180,22 @@ class ServerAuth(_BaseAuth):
 
     # Perform *one* step of the server authentication process.
     def authorize(self, sec_buffer_in):
-        if sec_buffer_in is not None and type(sec_buffer_in) != win32security.SecBufferDescType:
+        if sec_buffer_in is not None and type(sec_buffer_in) != win32security.PySecBufferDescType:
             # User passed us the raw data - wrap it into a SecBufferDesc
-            sec_buffer_new=win32security.SecBufferDescType()
-            tokenbuf=win32security.SecBufferType(self.pkg_info['MaxToken'],
+            sec_buffer_new=win32security.PySecBufferDescType()
+            tokenbuf=win32security.PySecBufferType(self.pkg_info['MaxToken'],
                                                  sspicon.SECBUFFER_TOKEN)
             tokenbuf.Buffer=sec_buffer_in
             sec_buffer_new.append(tokenbuf)
             sec_buffer_in = sec_buffer_new
 
-        sec_buffer_out=win32security.SecBufferDescType()
-        tokenbuf=win32security.SecBufferType(self.pkg_info['MaxToken'], sspicon.SECBUFFER_TOKEN)
+        sec_buffer_out=win32security.PySecBufferDescType()
+        tokenbuf=win32security.PySecBufferType(self.pkg_info['MaxToken'], sspicon.SECBUFFER_TOKEN)
         sec_buffer_out.append(tokenbuf)
         ## input context handle is None initially, then handle returned from last call thereafter
         ctxtin=self.ctxt
         if self.ctxt is None:
-            self.ctxt=win32security.CtxtHandleType()
+            self.ctxt=win32security.PyCtxtHandleType()
         err, attr, exp = win32security.AcceptSecurityContext(self.credentials, ctxtin,
             sec_buffer_in, self.scflags,
             self.datarep, self.ctxt, sec_buffer_out)

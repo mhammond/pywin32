@@ -44,9 +44,9 @@ class TestSSPI(unittest.TestCase):
         msg='some data to be encrypted ......'
 
         trailersize=pkg_size_info['SecurityTrailer']
-        encbuf=win32security.SecBufferDescType()
-        encbuf.append(win32security.SecBufferType(len(msg), sspicon.SECBUFFER_DATA))
-        encbuf.append(win32security.SecBufferType(trailersize, sspicon.SECBUFFER_TOKEN))
+        encbuf=win32security.PySecBufferDescType()
+        encbuf.append(win32security.PySecBufferType(len(msg), sspicon.SECBUFFER_DATA))
+        encbuf.append(win32security.PySecBufferType(trailersize, sspicon.SECBUFFER_TOKEN))
         encbuf[0].Buffer=msg
         sspiclient.ctxt.EncryptMessage(0,encbuf,1)
         sspiserver.ctxt.DecryptMessage(encbuf,1)
@@ -72,9 +72,9 @@ class TestSSPI(unittest.TestCase):
         msg='some data to be encrypted ......'
         
         sigsize=pkg_size_info['MaxSignature']
-        sigbuf=win32security.SecBufferDescType()
-        sigbuf.append(win32security.SecBufferType(len(msg), sspicon.SECBUFFER_DATA))
-        sigbuf.append(win32security.SecBufferType(sigsize, sspicon.SECBUFFER_TOKEN))
+        sigbuf=win32security.PySecBufferDescType()
+        sigbuf.append(win32security.PySecBufferType(len(msg), sspicon.SECBUFFER_DATA))
+        sigbuf.append(win32security.PySecBufferType(sigsize, sspicon.SECBUFFER_TOKEN))
         sigbuf[0].Buffer=msg
         sspiclient.ctxt.MakeSignature(0,sigbuf,0)
         sspiserver.ctxt.VerifySignature(sigbuf,0)
