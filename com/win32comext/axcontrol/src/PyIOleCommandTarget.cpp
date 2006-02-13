@@ -4,6 +4,23 @@
 #include "axcontrol_pch.h"
 #include "PyIOleCommandTarget.h"
 
+static BOOL FillOLECMDsWithSequence(OLECMD *pCmds, UINT ncmds, PyObject *obCmds)
+{
+	for (UINT i=0;i<ncmds;i++) {
+		OLECMD *pThis = pCmds + i;
+		PyObject *sub = PySequence_GetItem(obCmds, i);
+		if (!sub)
+			return FALSE;
+		if (!PyArg_ParseTuple(sub, "ii",  &pThis->cmdID, &pThis->cmdf)) {
+			PyErr_Format(PyExc_TypeError, "Element %d of command buffer was not a tuple of 2 integers", i);
+			Py_DECREF(sub);
+			return FALSE;
+		}
+		Py_DECREF(sub);
+	}
+	return TRUE;
+}
+
 // @doc - This file contains autoduck documentation
 // ---------------------------------------------------
 //
@@ -50,7 +67,6 @@ PyObject *PyIOleCommandTarget::QueryStatus(PyObject *self, PyObject *args)
 		return PyErr_Format(PyExc_TypeError, "cmds must be a sequence");
 
 	int ncmds = PySequence_Length(obCmds);
-	int i;
 	HRESULT hr;
 	// From here, exit via 'goto done'
 	const unsigned cbCmdText = 1024;
@@ -66,18 +82,8 @@ PyObject *PyIOleCommandTarget::QueryStatus(PyObject *self, PyObject *args)
 		PyErr_NoMemory();
 		goto done;
 	}
-	for (i=0;i<ncmds;i++) {
-		OLECMD *pThis = pCmds + i;
-		PyObject *sub = PySequence_GetItem(obCmds, i);
-		if (!sub)
-			goto done;
-		if (!PyArg_ParseTuple(sub, "ii",  &pThis->cmdID, &pThis->cmdf)) {
-			PyErr_Format(PyExc_TypeError, "Element %d of command buffer was not a tuple of 2 integers", i);
-			Py_DECREF(sub);
-			goto done;
-		}
-		Py_DECREF(sub);
-	}
+	if (!FillOLECMDsWithSequence(pCmds, ncmds, obCmds))
+		goto done;
 	{ // scope to prevent goto warning.
 	PY_INTERFACE_PRECALL;
 	hr = pIOCT->QueryStatus( pguid, ncmds, pCmds, retText );
@@ -182,11 +188,53 @@ STDMETHODIMP PyGOleCommandTarget::QueryStatus(
 		PyList_SET_ITEM(cmds, i,
 				Py_BuildValue("ll", prgCmds[i].cmdID, prgCmds[i].cmdf));
 	}
-	PyObject *obTest = Py_None; // tbd
+	PyObject *obText;
+	if (!pCmdText) {
+		obText = Py_None;
+		Py_INCREF(Py_None);
+	} else
+		obText = PyInt_FromLong(pCmdText->cmdtextf);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("QueryStatus", &result, "NNO", obGUID, cmds, obTest);
+	HRESULT hr=InvokeViaPolicy("QueryStatus", &result, "NNN", obGUID, cmds, obText);
 	if (FAILED(hr)) return hr;
+
+	BOOL ok = PyArg_ParseTuple(result, "OO", &cmds, &obText);
+	if (ok) {
+		if (pCmdText == NULL) {
+			if (obText != Py_None) {
+				PyErr_SetString(PyExc_ValueError,
+						"String value returned but caller didn't request it (check the 3rd param!)");
+				ok = FALSE;
+			}
+		} else {
+			PyWin_AutoFreeBstr tempString;
+			ok = PyWinObject_AsAutoFreeBstr(obText, &tempString);
+			if (ok) {
+				UINT strLen = SysStringLen(tempString);
+				UINT nwrite = min(strLen, pCmdText->cwBuf);
+				wcsncpy(pCmdText->rgwz, (WCHAR *)(BSTR)tempString,
+					nwrite);
+				pCmdText->cwActual = nwrite;
+			}
+		}
+	}
+	if (ok) {
+		if (!PySequence_Check(cmds)) {
+			PyErr_SetString(PyExc_TypeError, "OLECMD objects must be a sequence");
+			ok = FALSE;
+		}
+		if (ok && (UINT)PySequence_Length(cmds) != cCmds) {
+			PyErr_Format(PyExc_ValueError, "Sequence must have %d items (got %d)",
+				     cCmds, PySequence_Length(cmds));
+			ok = FALSE;
+			
+		}
+		if (ok)
+			ok = FillOLECMDsWithSequence(prgCmds, cCmds, cmds);
+	}
 	Py_DECREF(result);
+	if (!ok)
+		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("QueryStatus");
 	return hr;
 }
 
@@ -209,7 +257,7 @@ STDMETHODIMP PyGOleCommandTarget::Exec(
 	PyObject *result;
 	HRESULT hr=InvokeViaPolicy("Exec", &result, "NllN", obGUID, nCmdID, nCmdexecopt, obpvaIn);
 	if (FAILED(hr)) return hr;
-	hr = PyCom_VariantFromPyObject(result, pvaOut);
+	hr = pvaOut ? PyCom_VariantFromPyObject(result, pvaOut) : S_OK;
 	Py_DECREF(result);
 	return hr;
 }

@@ -351,5 +351,15 @@ extern "C" __declspec(dllexport) void initaxcontrol()
 
 	ADD_CONSTANT(OLECLOSE_SAVEIFDIRTY); // @const axcontrol|OLECLOSE_SAVEIFDIRTY|The object should be saved if it is dirty. 
 	ADD_CONSTANT(OLECLOSE_NOSAVE); // @const axcontrol|OLECLOSE_NOSAVE|The object should not be saved, even if it is dirty. This flag is typically used when an object is being deleted. 
-	ADD_CONSTANT(OLECLOSE_PROMPTSAVE); // @const axcontrol|OLECLOSE_PROMPTSAVE|If the object is dirty, the <om PyIOleObject.Close> implementation should display a dialog box to let the end user determine whether to save the object. However, if the object is in the running state but its user interface is invisible, the end user should not be prompted, and the close should be handled as if OLECLOSE_SAVEIFDIRTY had been specified. 
+	ADD_CONSTANT(OLECLOSE_PROMPTSAVE); // @const axcontrol|OLECLOSE_PROMPTSAVE|If the object is dirty, the <om PyIOleObject.Close> implementation should display a dialog box to let the end user determine whether to save the object. However, if the object is in the running state but its user interface is invisible, the end user should not be prompted, and the close should be handled as if OLECLOSE_SAVEIFDIRTY had been specified.
+
+	ADD_CONSTANT(OLECMDTEXTF_NONE); // @const axcontrol|OLECMDTEXTF_NONE|
+	ADD_CONSTANT(OLECMDTEXTF_NAME); // @const axcontrol|OLECMDTEXTF_NAME|
+	ADD_CONSTANT(OLECMDTEXTF_STATUS); // @const axcontrol|OLECMDTEXTF_STATUS|
+
+	ADD_CONSTANT(OLECMDF_SUPPORTED); // @const axcontrol|OLECMDF_SUPPORTED|
+	ADD_CONSTANT(OLECMDF_ENABLED); // @const axcontrol|OLECMDF_ENABLED|
+	ADD_CONSTANT(OLECMDF_LATCHED); // @const axcontrol|OLECMDF_LATCHED|
+	ADD_CONSTANT(OLECMDF_NINCHED); // @const axcontrol|OLECMDF_NINCHED|
+
 }
