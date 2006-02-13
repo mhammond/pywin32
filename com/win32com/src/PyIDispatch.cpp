@@ -4,13 +4,6 @@
 #include "stdafx.h"
 #include "PythonCOM.h"
 
-// A little helper just for this file
-static PyObject* OleSetTypeError(char *msg)
-{
-	PyErr_SetString(PyExc_TypeError, msg);
-	return NULL;
-}
-
 static BOOL HandledDispatchFailure(HRESULT hr, EXCEPINFO *einfo, UINT nArgErr, UINT cArgs)
 {
 	if ( hr == DISP_E_EXCEPTION )
@@ -66,7 +59,7 @@ PyObject *PyIDispatch::GetIDsOfNames(PyObject *self, PyObject *args)
 	if ( argc == -1 )
 		return NULL;
 	if ( argc < 1 )
-		return OleSetTypeError("At least one argument must be supplied");
+		return PyErr_Format(PyExc_TypeError, "At least one argument must be supplied");
 
 	LCID lcid = LOCALE_SYSTEM_DEFAULT;
 	UINT offset = 0;
@@ -170,7 +163,7 @@ static BOOL PyCom_MakeUntypedDISPPARAMS( PyObject *args, int numArgs, WORD wFlag
 			if ( !PyCom_VariantFromPyObject(PyTuple_GET_ITEM(args, argc-i-1), &pParm->rgvarg[i]) )
 			{
 				if ( !PyErr_Occurred() )
-					OleSetTypeError("Bad argument");
+					PyErr_Format(PyExc_TypeError, "Bad argument");
 				while ( i-- > 0 )
 					VariantClear(&pParm->rgvarg[i]);
 				return FALSE;
@@ -214,7 +207,7 @@ PyObject * PyIDispatch::Invoke(PyObject *self, PyObject *args)
 	if ( argc == -1 )
 		return NULL;
 	if ( argc < 4 )
-		return OleSetTypeError("not enough arguments (at least 4 needed)");
+		return PyErr_Format(PyExc_TypeError, "not enough arguments (at least 4 needed)");
 
 	// @pyparm int|dispid||The dispid to use.  Typically this value will come from <om PyIDispatch.GetIDsOfNames> or from a type library.
 	DISPID dispid = PyInt_AsLong(PyTuple_GET_ITEM(args, 0));
@@ -288,7 +281,7 @@ PyObject * PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
 	if ( argc == -1 )
 		return NULL;
 	if ( argc < 5 )
-		return OleSetTypeError("not enough arguments (at least 5 needed)");
+		return PyErr_Format(PyExc_TypeError, "not enough arguments (at least 5 needed)");
 
 	// @pyparm int|dispid||The dispid to use.  Please see <om PyIDispatch.Invoke>.
 	DISPID dispid = PyInt_AsLong(PyTuple_GET_ITEM(args, 0));
@@ -309,7 +302,7 @@ PyObject * PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
 	int numArgs;
 	int argTypesLen = PyObject_Length(argsElemDescArray);
 	if (!PyTuple_Check(argsElemDescArray) || argTypesLen<argc-5)
-		return OleSetTypeError("The array of argument types must be a tuple whose size is <= to the number of arguments.");
+		return PyErr_Format(PyExc_TypeError, "The array of argument types must be a tuple whose size is <= to the number of arguments.");
 	// See how many _real_ entries - count until end or
 	// first param marked as Missing.
 	for (numArgs = 0;numArgs<argc-5; numArgs++) {
