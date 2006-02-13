@@ -112,6 +112,16 @@ def TestDynamic():
     o.LongProp = 3
     if o.LongProp != 3 or o.IntProp != 3:
         raise error, "Property value wrong - got %d/%d" % (o.LongProp,o.IntProp)
+    o.LongProp = o.IntProp = -3
+    if o.LongProp != -3 or o.IntProp != -3:
+        raise error, "Property value wrong - got %d/%d" % (o.LongProp,o.IntProp)
+    # This number fits in an unsigned long.  Attempting to set it to a normal
+    # long will involve overflow, which is to be expected. But we do
+    # expect it to work in a property explicitly a VT_UI4.
+    check = 3 *10 **9
+    o.ULongProp = check
+    if o.ULongProp != check:
+        raise error, "Property value wrong - got %d (expected %d)" % (o.ULongProp, check)
     # currency.
     pythoncom.__future_currency__ = 1
     if o.CurrencyProp != 0:
@@ -227,6 +237,15 @@ def TestGenerated():
     o.LongProp = 3
     if o.LongProp != 3 or o.IntProp != 3:
         raise error, "Property value wrong - got %d/%d" % (o.LongProp,o.IntProp)
+
+    o.LongProp = o.IntProp = -3
+    if o.LongProp != -3 or o.IntProp != -3:
+        raise error, "Property value wrong - got %d/%d" % (o.LongProp,o.IntProp)
+
+    check = 3 *10 **9
+    o.ULongProp = check
+    if o.ULongProp != check:
+        raise error, "Property value wrong - got %d (expected %d)" % (o.ULongProp, check)
 
     # currency.
     pythoncom.__future_currency__ = 1

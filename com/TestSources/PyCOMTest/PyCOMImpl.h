@@ -94,6 +94,8 @@ END_COM_MAP()
 	STDMETHOD(NotScriptable)(int *val);
 	STDMETHOD(get_LongProp)(long *ret);
 	STDMETHOD(put_LongProp)(long val);
+	STDMETHOD(get_ULongProp)(unsigned long *ret);
+	STDMETHOD(put_ULongProp)(unsigned long val);
 	STDMETHOD(get_IntProp)(int *ret);
 	STDMETHOD(put_IntProp)(int val);
 	STDMETHOD(get_CurrencyProp)(CY *ret);
@@ -115,6 +117,7 @@ protected:
 	_ThreadModel::AutoCriticalSection m_cs;
 	SAFEARRAY *pLastArray;
 	long m_long;
+	unsigned long m_ulong;
 	CY m_cy;
 };
 

@@ -127,9 +127,13 @@ class PyCOMTest:
 		return 1
 
 	def LongProp(self):
-		return self.intval
+		return self.longval
 	def SetLongProp(self, val):
-		self.intval = val
+		self.longval = val
+	def ULongProp(self):
+		return self.ulongval
+	def SetULongProp(self, val):
+		self.ulongval = val
 	def IntProp(self):
 		return self.intval
 	def SetIntProp(self, val):

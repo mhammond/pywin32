@@ -219,6 +219,8 @@ library PyCOMTestLib
 		// Some test properties
 		[propget] HRESULT LongProp([out, retval] long* retval);
 		[propput] HRESULT LongProp([in] long val);
+		[propget] HRESULT ULongProp([out, retval] unsigned long* retval);
+		[propput] HRESULT ULongProp([in] unsigned long val);
 		[propget] HRESULT IntProp([out, retval] int* retval);
 		[propput] HRESULT IntProp([in] int val);
 		[propget] HRESULT CurrencyProp([out, retval] CY* retval);

@@ -71,8 +71,8 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 			DWORD dwval = (DWORD)dval;
 			if ((double)dwval == dval)
 			{
-				V_VT(var) = VT_I4;
-				V_I4(var) = dwval;
+				V_VT(var) = VT_UI4;
+				V_UI4(var) = dwval;
 				isDword = TRUE;
 			}
 		}
@@ -258,7 +258,12 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
 				OleSetTypeErrorT(buf);
 				break;
 			}
-			result = PyInt_FromLong(V_UI4(&varValue));
+			// The result may be too large for a simple "long".  If so,
+			// we must return a long.
+			if (V_UI4(&varValue) <= LONG_MAX)
+				result = PyInt_FromLong(V_UI4(&varValue));
+			else
+				result = PyLong_FromUnsignedLong(V_UI4(&varValue));
 			break;
 
 		case VT_I1:

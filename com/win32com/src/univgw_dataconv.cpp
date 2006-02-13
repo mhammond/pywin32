@@ -391,17 +391,30 @@ PyObject * dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 				goto Error;
 			}
 			*pi = PyInt_AsLong(obUse);
+			if (*pi == (UINT)-1 && PyErr_Occurred())
+				goto Error;
 			break;
 		}
 		case VT_UI4 | VT_BYREF:
 		{
 			UINT *pui = *(UINT **)pbArg;
-			obUse = PyNumber_Int(obOutValue);
-			if (obUse == NULL)
-			{
-				goto Error;
+			// special care here as we could be > sys.maxint,
+			// in which case we must work with longs.
+			// Avoiding PyInt_AsUnsignedLongMask as it doesn't
+			// exist in 2.2.
+			if (PyLong_Check(obOutValue)) {
+				*pui = PyLong_AsUnsignedLong(obOutValue);
+			} else {
+				// just do the generic "number" thing.
+				obUse = PyNumber_Int(obOutValue);
+				if (obUse == NULL)
+				{
+					goto Error;
+				}
+				*pui = (UINT)PyInt_AsLong(obUse);
 			}
-		    *pui = (UINT)PyInt_AsLong(obUse);
+			if (*pui == (UINT)-1 && PyErr_Occurred())
+				goto Error;
 			break;
 		}
 		case VT_I2 | VT_BYREF:
@@ -413,6 +426,8 @@ PyObject * dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 				goto Error;
 			}
 			*ps = (short)PyInt_AsLong(obUse);
+			if (*ps == (UINT)-1 && PyErr_Occurred())
+				goto Error;
 			break;
 		}
 		case VT_UI2 | VT_BYREF:
@@ -424,6 +439,8 @@ PyObject * dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 				goto Error;
 			}
 			*pus = (unsigned short)PyInt_AsLong(obUse);
+			if (*pus == (UINT)-1 && PyErr_Occurred())
+				goto Error;
 			break;
 		}
 		case VT_I1 | VT_BYREF:
@@ -435,6 +452,8 @@ PyObject * dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 				goto Error;
 			}
 			*pb = (signed char)PyInt_AsLong(obUse);
+			if (*pb == (UINT)-1 && PyErr_Occurred())
+				goto Error;
 			break;
 		}
 		case VT_UI1 | VT_BYREF:
@@ -461,6 +480,8 @@ PyObject * dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 					goto Error;
 				}
 				*pb = (BYTE)PyInt_AsLong(obUse);
+				if (*pb == (UINT)-1 && PyErr_Occurred())
+					goto Error;
 			}
 			break;
 		}
@@ -473,6 +494,8 @@ PyObject * dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 				goto Error;
 			}
 			*pbool = PyInt_AsLong(obUse) ? VARIANT_TRUE : VARIANT_FALSE;
+			if (*pbool == (UINT)-1 && PyErr_Occurred())
+				goto Error;
 			break;
 		}
 		case VT_R8 | VT_BYREF:

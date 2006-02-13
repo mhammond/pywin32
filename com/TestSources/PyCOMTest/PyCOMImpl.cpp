@@ -505,6 +505,15 @@ HRESULT CPyCOMTest::TestMyInterface( IUnknown *unktester)
 	CHECK_HR(tester->put_LongProp(4));
 	CHECK_HR(tester->get_LongProp(&lresult));
 	CHECK_TRUE(lresult==4);
+	CHECK_HR(tester->put_LongProp(-4));
+	CHECK_HR(tester->get_LongProp(&lresult));
+	CHECK_TRUE(lresult==-4);
+	unsigned long ulresult;
+	CHECK_HR(tester->put_ULongProp(0x80000001));
+	CHECK_HR(tester->get_ULongProp(&ulresult));
+	CHECK_TRUE(ulresult==0x80000001);
+
+	CHECK_HR(tester->put_IntProp(4));
 	CHECK_HR(tester->get_IntProp(&result));
 	CHECK_TRUE(result==4);
 	CY cy = {123, 456};
@@ -596,6 +605,20 @@ HRESULT CPyCOMTest::get_LongProp(long *ret)
 	if (!ret)
 		return E_POINTER;
 	*ret = m_long;
+	return S_OK;
+}
+
+HRESULT CPyCOMTest::put_ULongProp(unsigned long val)
+{
+	m_ulong = val;
+	return S_OK;
+}
+
+HRESULT CPyCOMTest::get_ULongProp(unsigned long *ret)
+{
+	if (!ret)
+		return E_POINTER;
+	*ret = m_ulong;
 	return S_OK;
 }
 
