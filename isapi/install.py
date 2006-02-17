@@ -265,7 +265,7 @@ def CreateISAPIFilter(filterParams, options):
     newFilter.FilterPath  = filterParams.Path
     newFilter.FilterDescription = filterParams.Description
     newFilter.SetInfo()
-    load_order = [b.strip() for b in filters.FilterLoadOrder.split(",")]
+    load_order = [b.strip() for b in filters.FilterLoadOrder.split(",") if b]
     if filterParams.Name not in load_order:
         load_order.append(filterParams.Name)
         filters.FilterLoadOrder = ",".join(load_order)
@@ -286,12 +286,12 @@ def DeleteISAPIFilter(filterParams, options):
         if rc != winerror.ERROR_PATH_NOT_FOUND:
             raise
         log(2, "ISAPI filter '%s' did not exist." % (filterParams.Name,))
-    if filterParams.Path:
-        load_order = [b.strip() for b in filters.FilterLoadOrder.split(",")]
-        if filterParams.Path in load_order:
-            load_order.remove(filterParams.Path)
-            filters.FilterLoadOrder = ",".join(load_order)
-            filters.SetInfo()
+    # Remove from the load order
+    load_order = [b.strip() for b in filters.FilterLoadOrder.split(",") if b]
+    if filterParams.Name in load_order:
+        load_order.remove(filterParams.Name)
+        filters.FilterLoadOrder = ",".join(load_order)
+        filters.SetInfo()
     _CallHook(filterParams, "PostRemove", options)
     log (1, "Deleted Filter: %s" % (filterParams.Name,))
 
