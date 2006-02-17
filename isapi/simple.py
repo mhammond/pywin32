@@ -66,4 +66,3 @@ class SimpleFilter:
         """Called by the ISAPI framework as the filter terminates.
         """
         pass
- 
