@@ -2,7 +2,7 @@
 # $Id$
 
 import sys
-from isapi import isapicon
+from isapi import isapicon, ExtensionError
 import isapi.simple
 from win32file import GetQueuedCompletionStatus, CreateIoCompletionPort, \
                       PostQueuedCompletionStatus, CloseHandle
@@ -152,6 +152,10 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
                        traceback.format_exception_only(exc_typ, exc_val)
                 print >> ecb, "<PRE>%s<B>%s</B></PRE>" % (
                     cgi.escape("".join(list[:-1])), cgi.escape(list[-1]),)
+            except ExtensionError:
+                # The client disconnected without reading the error body -
+                # its probably not a real browser at the other end, ignore it.
+                pass
             except:
                 print "FAILED to render the error message!"
                 traceback.print_exc()
