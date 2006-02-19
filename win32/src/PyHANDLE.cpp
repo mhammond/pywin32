@@ -94,6 +94,7 @@ PyObject *PyHANDLE::Detach(PyObject *self, PyObject *args)
 
 static struct PyMethodDef PyHANDLE_methods[] = {
 	{"Close",     PyHANDLE::Close, 1}, 	// @pymeth Close|Closes the handle
+	{"close",     PyHANDLE::Close, 1}, 	// @pymeth close|Synonym for <om PyHANDLE.Close>
 	{"Detach",     PyHANDLE::Detach, 1}, 	// @pymeth Detach|Detaches the Win32 handle from the handle object.
 	{NULL}
 };
