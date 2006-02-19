@@ -1022,7 +1022,10 @@ for info in (
         ("win32service", "advapi32 oleaut32 user32", True, 0x0500),
         ("win32trace", "advapi32", False),
         ("win32wnet", "netapi32 mpr", False),
-        ("win32inet", "wininet", False, 0x500),
+        ("win32inet", "wininet", False, 0x500, """
+            win32/src/win32inet.i           win32/src/win32inetmodule.cpp
+            win32/src/win32inet_winhttp.cpp"""
+                        ),
         ("win32console", "kernel32", True, 0x0501, "win32/src/win32consolemodule.cpp"),
         ("_win32sysloader", "", False, 0x0501, "win32/src/_win32sysloader.cpp"),
     ):

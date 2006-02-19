@@ -435,6 +435,13 @@ BOOLAPI FtpCommand(
     PyHINTERNET *OUTPUT
 );
 
+%{
+extern void init_win32inetstuff();
+extern PyObject *PyWinHttpGetIEProxyConfigForCurrentUser(PyObject *, PyObject *);
+%}
+
+%native(WinHttpGetIEProxyConfigForCurrentUser) PyWinHttpGetIEProxyConfigForCurrentUser;
+
 %init %{
     PyDict_SetItemString(d, "error", PyWinExc_ApiError);
     HMODULE hmod = GetModuleHandle("wininet.dll");
@@ -442,4 +449,5 @@ BOOLAPI FtpCommand(
     PyWin_RegisterErrorMessageModule(INTERNET_ERROR_BASE,
                                      INTERNET_ERROR_LAST,
                                      hmod);
+    init_win32inetstuff();
 %}
