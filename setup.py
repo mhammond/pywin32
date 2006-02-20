@@ -1003,6 +1003,7 @@ for info in (
         ("win32clipboard", "gdi32 user32 shell32", False),
         ("win32evtlog", "advapi32 oleaut32", False),
         # win32gui handled below
+        ("win32job", "user32", False, 0x0500, 'win32/src/win32job.i win32/src/win32jobmodule.cpp'),
         ("win32lz", "lz32", False),
         ("win32net", "netapi32", True, None, """
               win32/src/win32net/win32netfile.cpp    win32/src/win32net/win32netgroup.cpp
