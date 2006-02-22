@@ -6,6 +6,7 @@ win32evtlog_messages.h
 win32evtlogmodule.cpp
 win32filemodule_win*.cpp
 win32guimodule_win*.cpp
+win32jobmodule.cpp
 win32pipemodule.cpp
 win32processmodule_win*.cpp
 win32securitymodule.cpp
