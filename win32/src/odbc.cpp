@@ -895,6 +895,50 @@ static int ibindString(cursorObject *cur, int column, PyObject *item)
   return 1;
 }
 
+static int ibindUnicode(cursorObject *cur, int column, PyObject *item)
+{
+  const WCHAR *wval = PyUnicode_AsUnicode(item);
+  int nchars = PyUnicode_GetSize(item);
+  int nbytes = nchars * sizeof(WCHAR);
+
+  InputBinding *ib = initInputBinding(cur, nbytes);
+  if (!ib)
+      return 0;
+
+  wcscpy((WCHAR *)ib->bind_area, wval);
+  int sqlType = SQL_WCHAR;
+  if (nbytes > 255)
+  {
+	  ib->sqlBytesAvailable = SQL_LEN_DATA_AT_EXEC(ib->len);
+	  sqlType = SQL_WLONGVARCHAR;
+	  ib->bPutData = true;
+  }
+  else
+  {
+	  ib->sqlBytesAvailable = ib->len;
+	  ib->bPutData = false;
+  }
+
+  RETCODE rc = SQLBindParameter(
+	  cur->hstmt,
+	  column,
+	  SQL_PARAM_INPUT,
+	  SQL_C_WCHAR, 
+	  sqlType,
+	  nbytes,
+	  0, 
+	  ib->bind_area,
+	  nbytes,
+	  &NTS);
+  if (unsuccessful(rc))
+  {
+      cursorError(cur, "input-binding");
+      return 0;
+  }
+
+  return 1;
+}
+
 static int rewriteQuery
 (
 	char *out,
@@ -949,6 +993,10 @@ static int bindInput
 		else if (PyString_Check(item))
 		{
 			rv = ibindString(cur, iCol, item);
+		}
+		else if (PyUnicode_Check(item))
+		{
+			rv = ibindUnicode(cur, iCol, item);
 		}
 		else if (item==Py_None)
 		{
@@ -1227,7 +1275,7 @@ static PyObject *odbcCurExec(PyObject *self, PyObject *args)
 	{
 		temp = PySequence_GetItem(inputvars, 0);
 		/* Strings don't count as a list in this case. */
-		if (PySequence_Check(temp) && !PyString_Check(temp))
+		if (PySequence_Check(temp) && !PyString_Check(temp) && !PyUnicode_Check(temp))
 		{
 			rows = inputvars;
 			inputvars = NULL;
