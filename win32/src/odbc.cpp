@@ -1088,6 +1088,7 @@ static int bindOutput(cursorObject *cur)
 		prec = 0;
 
 		switch(vtype) {
+		case SQL_BIT:
 		case SQL_SMALLINT:
 		case SQL_INTEGER:
 		case SQL_TINYINT:
