@@ -580,7 +580,7 @@ PyFindFilesIterator(PyObject *self, PyObject *args)
 	if (it->hFind==INVALID_HANDLE_VALUE) {
 		if (::GetLastError()!=ERROR_FILE_NOT_FOUND) {	// this is OK
 			Py_DECREF(it);
-			return PyWin_SetAPIError("FindNextFileW");
+			return PyWin_SetAPIError("FindFirstFileW");
 		}
 		it->empty = TRUE;
 	}
@@ -1847,7 +1847,7 @@ static PyObject *MyAcceptEx
 	Py_END_ALLOW_THREADS
 	if (rc == SOCKET_ERROR)
 	{
-		PyWin_SetAPIError("AcceptEx", WSAGetLastError());
+		PyWin_SetAPIError("getsockopt", WSAGetLastError());
 		return NULL;
 	}
 	iMinBufferSize = (wsProtInfo.iMaxSockAddr + 16) * 2;
@@ -2017,7 +2017,7 @@ PyObject *MyGetAcceptExSockaddrs
 	Py_END_ALLOW_THREADS
 	if (rc == SOCKET_ERROR)
 	{
-			PyWin_SetAPIError("AcceptEx", WSAGetLastError());
+			PyWin_SetAPIError("getsockopt", WSAGetLastError());
 			return NULL;
 	}
 	iMinBufferSize = (wsProtInfo.iMaxSockAddr + 16) * 2;
@@ -2352,7 +2352,7 @@ PyObject *MyWSARecv
 		rc = WSAGetLastError();
 		if (rc != ERROR_IO_PENDING)
 		{
-			PyWin_SetAPIError("WSASend", rc);
+			PyWin_SetAPIError("WSARecv", rc);
 			goto Error;
 		}
 	}
@@ -2692,7 +2692,7 @@ static PyObject *MyWaitCommEvent(PyObject *self, PyObject *args)
 	Py_END_ALLOW_THREADS
 	DWORD rc = ok ? 0 : GetLastError();
 	if (rc!=0 && rc != ERROR_IO_PENDING)
-		return PyWin_SetAPIError("WaitCommError", rc);
+		return PyWin_SetAPIError("WaitCommEvent", rc);
 	return Py_BuildValue("ll", rc, *pmask);
 	// @rdesc The result is a tuple of (rc, mask_val), where rc is zero for success, or
 	// the result of calling GetLastError() otherwise.  The mask_val is the new mask value
