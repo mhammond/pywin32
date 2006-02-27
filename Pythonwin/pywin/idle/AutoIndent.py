@@ -544,7 +544,7 @@ class IndentSearcher:
         try:
             try:
                 _tokenize.tokenize(self.readline, self.tokeneater)
-            except _tokenize.TokenError:
+            except (_tokenize.TokenError, IndentationError):
                 # since we cut off the tokenizer early, we can trigger
                 # spurious errors
                 pass
