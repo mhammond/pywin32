@@ -1639,7 +1639,7 @@ static PyObject *PyFILEGROUPDESCRIPTORAsString(PyObject *self, PyObject *args)
 	// you only need specify attributes you care about.
 	// <nl>In general, you can omit dwFlags - it will be set correctly based
 	// on what other attributes exist.
-	// @pyparm bool|make_unicode|False|Should a FILEDESCRIPTORW be created?
+	// @pyparm bool|make_unicode|False|If true, a FILEDESCRIPTORW object is created
 	int make_unicode = FALSE;
 	if (!PyArg_ParseTuple(args, "O|i", &ob, &make_unicode))
 		return NULL;
