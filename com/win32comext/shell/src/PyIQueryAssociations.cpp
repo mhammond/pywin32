@@ -68,7 +68,7 @@ PyObject *PyIQueryAssociations::GetKey(PyObject *self, PyObject *args)
     PyObject *obExtra = Py_None;
     HKEY ret = NULL;
     WCHAR *pszExtra= NULL;
-	if (!PyArg_ParseTuple(args, "ll|O:GetKey", &flags, &assoc, &obExtra))
+	if (!PyArg_ParseTuple(args, "ii|O:GetKey", &flags, &assoc, &obExtra))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obExtra, &pszExtra, TRUE))
         return NULL;
@@ -79,7 +79,9 @@ PyObject *PyIQueryAssociations::GetKey(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIQA, IID_IQueryAssociations );
-    return PyLong_FromVoidPtr(ret);
+	// observation of the "open handles" count in task-manager indicates
+	// this key needs to be closed!
+	return PyWinObject_FromHKEY(ret);
 }
 
 // @pymethod int|PyIQueryAssociations|GetString|Searches for and retrieves a file association-related string from the registry.
