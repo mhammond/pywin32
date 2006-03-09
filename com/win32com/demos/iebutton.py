@@ -19,7 +19,7 @@ To demonstrate:
 * Switch back to the Pythonwin window - you should see:
    IOleCommandTarget::Exec called.
   This is the button being clicked.  Extending this to do something more
-  useful is left as an excercise.
+  useful is left as an exercise.
 
 Contribtions to this sample to make it a little "friendlier" welcome!
 """
