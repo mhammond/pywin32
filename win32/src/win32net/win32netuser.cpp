@@ -365,7 +365,7 @@ PyObject *PyNetUserEnum(PyObject *self, PyObject *args)
 	// @pyparm int|filter|win32netcon.FILTER_NORMAL_ACCOUNT|The types of accounts to enumerate.
 	// @pyparm int|resumeHandle|0|A resume handle.  See the return description for more information.
 	// @pyparm int|prefLen|MAX_PREFERRED_LENGTH|The preferred length of the data buffer.
-	if (!PyArg_ParseTuple(args, "Oii|ii", &obServer, &level, &filter, &resumeHandle, &dwPrefLen))
+	if (!PyArg_ParseTuple(args, "Oi|iii", &obServer, &level, &filter, &resumeHandle, &dwPrefLen))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obServer, &szServer, TRUE))
 		goto done;
