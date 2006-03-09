@@ -9,6 +9,19 @@
 """
 This sample implements a simple IE Button COM server
 with access to the IWebBrowser2 interface.
+
+To demonstrate:
+* Execute this script to register the server.
+* Open Pythonwin's Tools -> Trace Collector Debugging Tool, so you can
+  see the output of 'print' statements in this demo.
+* Open a new IE instance.  The toolbar should have a new "scissors" icon,
+  with tooltip text "IE Button" - this is our new button - click it.
+* Switch back to the Pythonwin window - you should see:
+   IOleCommandTarget::Exec called.
+  This is the button being clicked.  Extending this to do something more
+  useful is left as an excercise.
+
+Contribtions to this sample to make it a little "friendlier" welcome!
 """
 
 # imports section
@@ -19,6 +32,14 @@ from win32com.client import constants, getevents
 import win32com.server.register
 import win32com
 import pythoncom
+import win32api
+
+# This demo uses 'print' - use win32traceutil to see it if we have no
+# console.
+try:
+    win32api.GetConsoleTitle()
+except win32api.error:
+    import win32traceutil
 
 from win32com.axcontrol import axcontrol
 
