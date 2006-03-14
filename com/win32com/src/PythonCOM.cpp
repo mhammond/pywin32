@@ -30,6 +30,7 @@ extern PyObject *g_obPyCom_MapInterfaceNameToIID;
 
 static PyObject *g_obEmpty = NULL;
 static PyObject *g_obMissing = NULL;
+static PyObject *g_obArgNotFound = NULL;
 
 PyObject *PyCom_InternalError = NULL;
 
@@ -1817,6 +1818,9 @@ extern "C" __declspec(dllexport) void initpythoncom()
 
 	g_obMissing = new PyOleMissing;
 	PyDict_SetItemString(dict, "Missing", g_obMissing);
+
+	g_obArgNotFound = new PyOleArgNotFound;
+	PyDict_SetItemString(dict, "ArgNotFound", g_obArgNotFound);
 
 	// Add some symbolic constants to the module   
 	// pycom_Error = PyString_FromString("pythoncom.error");

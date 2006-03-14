@@ -221,6 +221,7 @@ public:
 /* Special Type objects */
 extern PYCOM_EXPORT PyTypeObject PyOleEmptyType;     // equivalent to VT_EMPTY
 extern PYCOM_EXPORT PyTypeObject PyOleMissingType;     // special Python handling.
+extern PYCOM_EXPORT PyTypeObject PyOleArgNotFoundType;     // special VT_ERROR value
 
 // ALL of these set an appropriate Python error on bad return.
 
@@ -393,6 +394,12 @@ class PYCOM_EXPORT PyOleMissing : public PyObject
 {
 public:
 	PyOleMissing();
+};
+
+class PYCOM_EXPORT PyOleArgNotFound : public PyObject
+{
+public:
+	PyOleArgNotFound();
 };
 
 // We need to dynamically create C++ Python objects

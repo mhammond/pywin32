@@ -805,7 +805,7 @@ class Generator:
     print >> self.file, 'from win32com.client import Dispatch'
     print >> self.file
     print >> self.file, '# The following 3 lines may need tweaking for the particular server'
-    print >> self.file, '# Candidates are pythoncom.Missing and pythoncom.Empty'
+    print >> self.file, '# Candidates are pythoncom.Missing, .Empty and .ArgNotFound'
     print >> self.file, 'defaultNamedOptArg=pythoncom.Empty'
     print >> self.file, 'defaultNamedNotOptArg=pythoncom.Empty'
     print >> self.file, 'defaultUnnamedArg=pythoncom.Empty'

@@ -261,4 +261,35 @@ PYCOM_EXPORT PyTypeObject PyOleMissingType =
 	0,                      /*tp_as_sequence*/
 	0,                      /*tp_as_mapping*/
 };
+/////////////////////////////////////////////////////////////////////////////
+// class PyOleArgNotFound
+PyOleArgNotFound::PyOleArgNotFound()
+{
+	ob_type = &PyOleArgNotFoundType;
+	_Py_NewReference(this);
+}
+
+static void notfound_dealloc(PyOleArgNotFound *o)
+{
+	delete o;
+}
+
+PyTypeObject PyOleArgNotFoundType =
+{
+	PyObject_HEAD_INIT(&PyType_Type)
+	0,
+	"ArgNotFound",
+	sizeof(PyOleArgNotFound),
+	0,
+	(destructor)notfound_dealloc,  /*tp_dealloc*/
+	0,                      /*tp_print*/
+	0,                      /*tp_getattr*/
+	0,                      /*tp_setattr*/
+	0,                      /*tp_compare*/
+	0,                      /*tp_repr*/
+	0,                      /*tp_as_number*/
+	0,                      /*tp_as_sequence*/
+	0,                      /*tp_as_mapping*/
+};
+
 ////////////////////////////////

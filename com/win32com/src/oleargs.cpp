@@ -53,6 +53,7 @@ static PyObject* OleSetTypeErrorW(TCHAR *msg)
 // you need to use the complicated ArgHelpers class for that!
 BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 {
+	BOOL bGoodEmpty = FALSE; // Set if VT_EMPTY should really be used.
 	V_VT(var) = VT_EMPTY;
 	if ( PyString_Check(obj) || PyUnicode_Check(obj) )
 	{
@@ -131,7 +132,10 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 		V_UNKNOWN(var) = PyIUnknown::GetI(obj);
 		V_UNKNOWN(var)->AddRef();
 	}
-	else if (obj->ob_type == &PyOleEmptyType)
+	else if (obj->ob_type == &PyOleEmptyType) {
+		bGoodEmpty = TRUE;
+	}
+	else if (obj->ob_type == &PyOleArgNotFoundType)
 	{
 		// use default parameter
 		// Note the SDK documentation for FUNCDESC describes this behaviour
@@ -185,7 +189,7 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 	{
 	}
 	*/
-	if (V_VT(var) == VT_EMPTY) {
+	if (V_VT(var) == VT_EMPTY && !bGoodEmpty) {
 		// Must ensure we have a Python error set if we fail!
 		if (!PyErr_Occurred()) {
 			char *extraMessage = "";
