@@ -197,7 +197,9 @@ HRESULT PyCom_CoInitializeEx(LPVOID reserved, DWORD dwInit)
 	HRESULT hr = CoInitializeEx(reserved, dwInit);
 #endif // MS_WINCE
 
-	if ( (hr != RPC_E_CHANGED_MODE) && FAILED(hr) )
+	// Unlike PyCom_CoInitialize, we return _all_ errors including
+	// RPC_E_CHANGED_MODE
+	if ( FAILED(hr) )
 	{
 		PyCom_LoggerException(NULL, "OLE initialization failed! (0x%08lx)", hr);
 		return hr;
