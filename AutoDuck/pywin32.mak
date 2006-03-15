@@ -43,6 +43,7 @@ WIN32_SOURCE = $(WIN32_SOURCE_DIR)/*.cpp \
 	  $(GENDIR)/win32service.d $(GENDIR)/win32pipe.d $(GENDIR)/win32security.d \
 	  $(GENDIR)/win32process.d $(GENDIR)/wincerapi.d $(GENDIR)/win32gui.d \
 	  $(GENDIR)/win32inet.d $(GENDIR)/_winxptheme.d  $(GENDIR)/win32crypt.d \
+	  $(GENDIR)/win32job.d \
 	  winxpgui.d
 
 WIN32COM_SOURCE = \
@@ -68,6 +69,7 @@ WIN32COM_SOURCE = \
 	  $(GENDIR)\PyIMAPIFolder.d \
 	  $(GENDIR)\PyIMAPIProp.d \
 	  $(GENDIR)\PyIMAPISession.d \
+	  $(GENDIR)\PyIMAPIStatus.d \
 	  $(GENDIR)\PyIMAPITable.d \
 	  $(GENDIR)\PyIMessage.d \
 	  $(GENDIR)\PyIMsgServiceAdmin.d \
@@ -163,6 +165,9 @@ $(GENDIR)/_winxptheme.d: $(WIN32_SOURCE_DIR)/$(*B).i
 $(GENDIR)/win32crypt.d: $(WIN32_SOURCE_DIR)/$(*B).i
 	$(PYTHON) makedfromi.py -o$*.d $(WIN32_SOURCE_DIR)/$(*B).i
 
+$(GENDIR)/win32job.d: $(WIN32_SOURCE_DIR)/$(*B).i
+	$(PYTHON) makedfromi.py -o$*.d $(WIN32_SOURCE_DIR)/$(*B).i
+
 ##
 ## win32com generated
 ##
@@ -195,6 +200,9 @@ $(GENDIR)\PyIMAPIProp.d: $(MAPI_DIR)/src/$(*B).i
 
 $(GENDIR)\PyIMAPISession.d: $(MAPI_DIR)/src/$(*B).i
 	$(PYTHON) makedfromi.py -o$*.d -p PyIUnknown $(MAPI_DIR)/src/$(*B).i
+
+$(GENDIR)\PyIMAPIStatus.d: $(MAPI_DIR)/src/$(*B).i
+	$(PYTHON) makedfromi.py -o$*.d -p PyIMAPIProp $(MAPI_DIR)/src/$(*B).i
 
 $(GENDIR)\PyIMAPITable.d: $(MAPI_DIR)/src/$(*B).i
 	$(PYTHON) makedfromi.py -o$*.d -p PyIUnknown $(MAPI_DIR)/src/$(*B).i
