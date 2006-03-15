@@ -662,10 +662,19 @@ long GetDriveTypeW(
 
 
 // @pyswig int|GetFileAttributes|Determines a files attributes.
+// @comm The win32file module exposes <om win32file.GetFileAttributes> and
+// <om win32file.GetFileAttributesW> separately - both functions will accept
+// either strings or Unicode objects but will always call the named function.
+// This is different than <om win32api.GetFileAttributes>, which only exposes
+// one Python function and automatically calls the appropriate win32 function
+// based on the type of the filename param.
 DWORD GetFileAttributes(
     TCHAR *fileName); // @pyparm <o PyUnicode>|fileName||Name of the file to retrieve attributes for.
 
 // @pyswig int|GetFileAttributesW|Determines a files attributes (NT/2000 Unicode specific version).
+// @comm Note that <om win32api.GetFileAttributes> will automatically call
+// GetFileAttributesW when passed a unicode filename param.  See <om win32file.GetFileAttributes>
+// and <om win32api.GetFileAttributes> for more.
 DWORD GetFileAttributesW(
     WCHAR *fileName); // @pyparm <o PyUnicode>|fileName||Name of the file to retrieve attributes for.
 
@@ -776,7 +785,7 @@ static PyObject *PyGetFileAttributesEx(PyObject *self, PyObject *args)
 {
 	return _DoGetFileAttributesEx(self, args, FALSE);
 }
-// @pyswig tuple|GetFileAttributesEx|Retrieves attributes for a specified file or directory using Unicode paths.
+// @pyswig tuple|GetFileAttributesExW|Retrieves attributes for a specified file or directory using Unicode paths.
 // @comm See <om win32file.GetFileAttributesEx> for a description of the arguments and return type.
 static PyObject *PyGetFileAttributesExW(PyObject *self, PyObject *args)
 {
