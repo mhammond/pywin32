@@ -28,6 +28,7 @@
 #include "PythonCOMRegister.h"
 #include <mapiutil.h>
 #include "PyIMAPIProp.h"
+#include "PyIMAPIStatus.h"
 #include "PyIMAPITable.h"
 #include "PyIMAPISession.h"
 #include "PyIMAPIContainer.h"
@@ -125,6 +126,9 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 %init %{
 	if ( PyCom_RegisterClientType(&PyIMAPISession::type, &IID_IMAPISession) != 0 ) return;
 	ADD_IID(IID_IMAPISession);
+
+	if ( PyCom_RegisterClientType(&PyIMAPIStatus::type, &IID_IMAPIStatus) != 0 ) return;
+	ADD_IID(IID_IMAPIStatus);
 
 	if ( PyCom_RegisterClientType(&PyIMAPITable::type, &IID_IMAPITable) != 0 ) return;
 	ADD_IID(IID_IMAPITable);

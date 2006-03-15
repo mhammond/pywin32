@@ -1,6 +1,7 @@
 #define INITGUID
 
 #define USES_IID_IMAPISession
+#define USES_IID_IMAPIStatus
 #define USES_IID_IMAPITable
 #define USES_IID_IMAPIProp
 #define USES_IID_IMAPIFolder

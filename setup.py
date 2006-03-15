@@ -1167,6 +1167,7 @@ com_extensions += [
                         %(mapi)s/PyIMAPIFolder.i        %(mapi)s/PyIMAPIFolder.cpp
                         %(mapi)s/PyIMAPIProp.i          %(mapi)s/PyIMAPIProp.cpp
                         %(mapi)s/PyIMAPISession.i       %(mapi)s/PyIMAPISession.cpp
+                        %(mapi)s/PyIMAPIStatus.i        %(mapi)s/PyIMAPIStatus.cpp
                         %(mapi)s/PyIMAPITable.i         %(mapi)s/PyIMAPITable.cpp
                         %(mapi)s/PyIMessage.i           %(mapi)s/PyIMessage.cpp
                         %(mapi)s/PyIMsgServiceAdmin.i   %(mapi)s/PyIMsgServiceAdmin.cpp
@@ -1273,6 +1274,7 @@ swig_interface_parents = {
     'PyIMAPIFolder':        'IMAPIContainer',
     'PyIMAPIProp':          '', # '' == default base
     'PyIMAPISession':       '',
+    'PyIMAPIStatus':       'IMAPIProp',
     'PyIMAPITable':         '',
     'PyIMessage':           'IMAPIProp',
     'PyIMsgServiceAdmin':   '',
