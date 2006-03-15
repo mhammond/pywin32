@@ -1221,6 +1221,28 @@ PyGetKeyState(PyObject * self, PyObject * args)
 	// reads key messages from its message queue. The status does not reflect the
 	// interrupt-level state associated with the hardware. Use the <om win32api.GetAsyncKeyState> method to retrieve that information.
 }
+
+// @pymethod string|win32api|GetKeyboardState|Retrieves the status of the 256 virtual keys on the keyboard.
+static PyObject *
+PyGetKeyboardState(PyObject * self, PyObject * args)
+{
+	BYTE buf[256];
+	if (!PyArg_ParseTuple(args, ":GetKeyboardState"))
+		return (NULL);
+	BOOL ok;
+	PyW32_BEGIN_ALLOW_THREADS
+	// @pyseeapi GetKeyboardState
+	ok = GetKeyboardState(buf);
+	PyW32_END_ALLOW_THREADS
+	if (!ok)
+		return PyWin_SetAPIError("GetKeyboardState");
+
+	return PyString_FromStringAndSize((char *)buf, 256);
+	// @rdesc The return value is a string of exactly 256 characters.
+	// Each character represents the bitmask for a key - see the Win32
+	// documentation for more details.
+}
+
 // @pymethod int|win32api|GetLastError|Retrieves the calling threads last error code value.
 static PyObject *
 PyGetLastError(PyObject * self, PyObject * args)
@@ -4772,6 +4794,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetFocus",            PyGetFocus,         1}, // @pymeth GetFocus|Retrieves the handle of the keyboard focus window associated with the thread that called the method. 
 	{"GetFullPathName",     PyGetFullPathName,1},   // @pymeth GetFullPathName|Returns the full path of a (possibly relative) path
 	{"GetKeyboardLayoutList", PyGetKeyboardLayoutList, 1}, // @pymeth GetKeyboardLayoutList|Returns a sequence of all locale ids in the system
+	{"GetKeyboardState", PyGetKeyboardState, 1}, // @pymeth GetKeyboardState|Retrieves the status of the 256 virtual keys on the keyboard.
 	{"GetKeyState",			PyGetKeyState,      1}, // @pymeth GetKeyState|Retrives the last known key state for a key.
 	{"GetLastError",		PyGetLastError,     1}, // @pymeth GetLastError|Retrieves the last error code known by the system.
 	{"GetLocalTime",         PyGetLocalTime,      1},  // @pymeth GetLocalTime|Returns the current local time.
