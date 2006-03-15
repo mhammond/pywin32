@@ -191,7 +191,7 @@ static void odbcPrintError
 
 		if (conn && errorType && (errorType->connected == 0))
 		{
-			printf("Disconnected\n");
+//			printf("Disconnected\n");
 			SQLDisconnect(conn->hdbc);
 			conn->connected = 0;
 		}
@@ -1778,11 +1778,60 @@ static PyObject *odbcLogon(PyObject *self, PyObject *args)
 	return (PyObject*)conn;
 }
 
+/* @pymethod (name, desc)/None|odbc|SQLDataSources|Enumerates ODBC data sources */
+// @rdesc The result is None when SQL_NO_DATA is returned from ODBC.
+static PyObject *odbcSQLDataSources(PyObject *self, PyObject *args)
+{
+	int direction;
+	// @pyparm int|direction||
+	if (!PyArg_ParseTuple(args, "i:SQLDataSources", &direction))
+		return NULL;
+
+	PyObject *ret;
+	SQLCHAR svr[256];
+	SQLCHAR desc[1024];
+	SQLSMALLINT svr_size = sizeof(svr) / sizeof(svr[0]);
+	SQLSMALLINT desc_size = sizeof(desc) / sizeof(desc[0]);
+	RETCODE rc;
+	Py_BEGIN_ALLOW_THREADS
+	rc = SQLDataSources(Env, direction,
+	                    svr, svr_size, &svr_size,
+	                    desc, desc_size, &desc_size);
+	Py_END_ALLOW_THREADS
+
+	if (rc == SQL_NO_DATA) {
+		ret = Py_None;
+		Py_INCREF(Py_None);
+	} else if (unsuccessful(rc)){
+		connectionError(NULL, "SQLDataSources");
+		ret = NULL;
+	} else
+		ret = Py_BuildValue("s#s#", svr, svr_size, desc, desc_size);
+	return ret;
+}
+
 /* @module odbc|A Python wrapper around the ODBC API. */
 static PyMethodDef globalMethods[] = {
   { "odbc", odbcLogon, 1} , /* @pymeth odbc|Creates an <o connection> object. */
+  { "SQLDataSources", odbcSQLDataSources, 1}, /* @pymeth SQLDataSources|Enumerates ODBC data sources. */
   {0,     0}
 };
+
+int AddConstant(PyObject *dict, char *key, long value)
+{
+	PyObject *okey = PyString_FromString(key);
+	PyObject *oval = PyInt_FromLong(value);
+	if (!okey || !oval) {
+		Py_XDECREF(okey);
+		Py_XDECREF(oval);
+		return 1;
+	}
+	int rc = PyDict_SetItem(dict,okey, oval);
+	Py_XDECREF(okey);
+	Py_XDECREF(oval);
+	return rc;
+}
+#define ADD_CONSTANT(tok) AddConstant(dict,#tok, tok)
 
 
 extern "C" __declspec(dllexport) void initodbc()
@@ -1800,6 +1849,7 @@ extern "C" __declspec(dllexport) void initodbc()
 			return;
 		if (m)
 		{
+			PyObject *dict = PyModule_GetDict (m);
 			/* The indices go to indices in the ODBC error table */
 			dbiErrors[0] = DbiNoError;
 			dbiErrors[1] = DbiOpError;
@@ -1807,7 +1857,15 @@ extern "C" __declspec(dllexport) void initodbc()
 			dbiErrors[3] = DbiIntegrityError;
 			dbiErrors[4] = DbiDataError;
 			dbiErrors[5] = DbiInternalError;
-			PyDict_SetItemString(PyModule_GetDict (m), "error", odbcError);
+			PyDict_SetItemString(dict, "error", odbcError);
+			ADD_CONSTANT(SQL_FETCH_NEXT);
+			ADD_CONSTANT(SQL_FETCH_FIRST);
+			ADD_CONSTANT(SQL_FETCH_LAST);
+			ADD_CONSTANT(SQL_FETCH_PRIOR);
+			ADD_CONSTANT(SQL_FETCH_ABSOLUTE);
+			ADD_CONSTANT(SQL_FETCH_RELATIVE);
+			ADD_CONSTANT(SQL_FETCH_FIRST_USER);
+			ADD_CONSTANT(SQL_FETCH_FIRST_SYSTEM);
 		}
     }
     else
