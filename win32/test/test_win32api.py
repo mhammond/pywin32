@@ -106,6 +106,17 @@ class FileNames(unittest.TestCase):
             if details[0]!=winerror.ERROR_ALREADY_EXISTS:
                 raise
         try:
+            # GetFileAttributes automatically calls GetFileAttributesW when
+            # passed unicode
+            try:
+                attr = win32api.GetFileAttributes(fname)
+            except win32api.error, details:
+                if details[0] != winerror.ERROR_FILENAME_EXCED_RANGE:
+                    raise
+        
+            attr = win32api.GetFileAttributes(unicode(fname))
+            self.failUnless(attr & win32con.FILE_ATTRIBUTE_DIRECTORY, attr)
+
             long_name = win32api.GetLongPathNameW(fname)
             self.failUnlessEqual(long_name, fname)
         finally:

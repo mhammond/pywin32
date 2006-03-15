@@ -1170,17 +1170,28 @@ PyGetAsyncKeyState(PyObject * self, PyObject * args)
 static PyObject *
 PyGetFileAttributes (PyObject *self, PyObject *args)
 {
-	char *pathName;
+	PyObject *obPathName;
 	// @pyparm string|pathName||The name of the file whose attributes are to be returned.
-	if (!PyArg_ParseTuple (args, "s:GetFileAttributes", &pathName))
+	// If this param is a unicode object, GetFileAttributesW is called.
+	if (!PyArg_ParseTuple (args, "O:GetFileAttributes", &obPathName))
 		return NULL;
-	PyW32_BEGIN_ALLOW_THREADS
-	DWORD rc = ::GetFileAttributes(pathName);
-	PyW32_END_ALLOW_THREADS
+	DWORD rc;
+	if (PyString_Check(obPathName)) {
+		PyW32_BEGIN_ALLOW_THREADS
+		rc = ::GetFileAttributes(PyString_AS_STRING(obPathName));
+		PyW32_END_ALLOW_THREADS
+	} else if (PyUnicode_Check(obPathName)) {
+		PyW32_BEGIN_ALLOW_THREADS
+		rc = ::GetFileAttributesW(PyUnicode_AS_UNICODE(obPathName));
+		PyW32_END_ALLOW_THREADS
+	} else
+		return PyErr_Format(PyExc_TypeError, "pathName arg must be string or unicode");
+
 	if (rc==(DWORD)0xFFFFFFFF)
 		return ReturnAPIError("GetFileAttributes");
 	return Py_BuildValue("i", rc);
 	// @pyseeapi GetFileAttributes
+	// @pyseeapi GetFileAttributesW
 	// @rdesc The return value is a combination of the win32con.FILE_ATTRIBUTE_* constants.
 	// <nl>An exception is raised on failure.
 }
