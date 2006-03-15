@@ -13,12 +13,22 @@ extern PyObject *OleSetADSIError(HRESULT hr, IUnknown *pUnk, REFIID iid);
 	Py_END_ALLOW_THREADS
 	if (FAILED($source))  {
 		$cleanup
-			
+
 #ifndef SWIG_THIS_IID
 #error This interface must have SWIG_THIS_IID defined!
 #endif
 		return OleSetADSIError($source, _swig_self,  SWIG_THIS_IID);
 	}
+}
+
+%typemap(python,except) HRESULT_KEEP_INFO {
+      Py_BEGIN_ALLOW_THREADS
+      $function
+      Py_END_ALLOW_THREADS
+      if (FAILED($source))  {
+           $cleanup
+           return OleSetADSIError($source, _swig_self,  SWIG_THIS_IID);
+      }
 }
 
 %typemap(python,ignore) IDirectoryObject **OUTPUT(IDirectoryObject *temp)

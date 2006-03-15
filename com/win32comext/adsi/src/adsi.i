@@ -229,6 +229,24 @@ static PyObject *PyADsEnumerateNext(PyObject *self, PyObject *args)
 %}
 %native (ADsEnumerateNext) PyADsEnumerateNext;
 
+%{
+// @pyswig (int, unicode, unicode)|ADsGetLastError|
+static PyObject *PyADsGetLastError(PyObject *self, PyObject *args)
+{
+	if ( !PyArg_ParseTuple(args, ":ADsGetLastError") )
+		return NULL;
+	WCHAR szErrorBuf[MAX_PATH] = {0};
+	WCHAR szNameBuf[MAX_PATH] = {0};
+	DWORD dwErrCode = 0;
+	ADsGetLastError( &dwErrCode,
+			 szErrorBuf,
+			 MAX_PATH-1,
+			 szNameBuf,
+			 MAX_PATH-1);
+	return Py_BuildValue("iuu", dwErrCode, szErrorBuf, szNameBuf);
+}
+%}
+%native (ADsGetLastError) PyADsGetLastError;
 
 %{
 // @pyswig <o PyDS_SELECTION_LIST>|StringAsDS_SELECTION_LIST|Unpacks a string (generally fetched via <om PyIDataObject.GetData>) into a <o PyDS_SELECTION_LIST> list.
