@@ -36,9 +36,14 @@ PyObject *PyMAPIObject_FromTypedUnknown( ULONG typ, IUnknown *pUnk, BOOL bAddRef
 		case MAPI_ABCONT:
 			pIID = &IID_IABContainer;
 			break;
-		case MAPI_STORE:
-		case MAPI_PROFSECT:
 		case MAPI_STATUS:
+			pIID = &IID_IMAPIStatus;
+			break;
+		case MAPI_PROFSECT:
+			pIID = &IID_IProfSect;
+			break;
+
+		case MAPI_STORE:
 		case MAPI_FORMINFO:
 			pIID = &IID_IUnknown;
 			break;
