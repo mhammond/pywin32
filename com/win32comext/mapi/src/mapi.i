@@ -436,6 +436,15 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 
 #define TBL_ALL_COLUMNS TBL_ALL_COLUMNS  // The table should return all available columns. 
 
+// IMAPIStatus consts.
+#define STATUS_FLUSH_QUEUES STATUS_FLUSH_QUEUES
+#define STATUS_INBOUND_FLUSH STATUS_INBOUND_FLUSH
+#define STATUS_OUTBOUND_FLUSH STATUS_OUTBOUND_FLUSH
+#define FLUSH_UPLOAD FLUSH_UPLOAD
+#define FLUSH_DOWNLOAD FLUSH_DOWNLOAD
+#define FLUSH_FORCE FLUSH_FORCE
+#define FLUSH_NO_UI FLUSH_NO_UI
+#define FLUSH_ASYNC_OK FLUSH_ASYNC_OK
 
 // @object MAPIINIT_0|A MAPIINIT_0 is represented as a tuple of:
 // @tupleitem 0|int|version|This must be MAPI_INIT_VERSION.
