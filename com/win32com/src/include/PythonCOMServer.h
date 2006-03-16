@@ -83,7 +83,7 @@ class PYCOM_EXPORT PyGatewayBase :
 {
 protected:
 	PyGatewayBase(PyObject *instance);
-	~ PyGatewayBase();
+	virtual ~PyGatewayBase();
 
 	// Invoke the Python method (via the policy object)
 	STDMETHOD(InvokeViaPolicy)(
