@@ -1102,6 +1102,8 @@ dirs = {
     'shell' : 'com/win32comext/shell/src',
     'axcontrol' : 'com/win32comext/axcontrol/src',
     'mapi' : 'com/win32comext/mapi/src',
+    'authorization' : 'com/win32comext/authorization/src',
+    'taskscheduler' : 'com/win32comext/taskscheduler/src',
 }
 
 # The COM modules.
@@ -1217,6 +1219,11 @@ com_extensions += [
     WinExt_win32com('directsound', pch_header='directsound_pch.h',
                     optional_headers = ['dsound.h'],
                     libraries='user32 dsound dxguid'),
+    WinExt_win32com('authorization', libraries='aclui advapi32',
+                    sources=("""
+                        %(authorization)s/authorization.cpp
+                        %(authorization)s/PyGSecurityInformation.cpp
+                        """ % dirs).split()),
 ]
 
 pythonwin_extensions = [
@@ -1383,7 +1390,8 @@ packages=['win32com',
           'win32comext.axcontrol',
           'win32comext.taskscheduler',
           'win32comext.directsound',
-
+          'win32comext.authorization',
+          
           'pythonwin.pywin',
           'pythonwin.pywin.debugger',
           'pythonwin.pywin.dialogs',
@@ -1484,6 +1492,7 @@ dist = setup(name="pywin32",
                 'com/win32comext/shell/demos/*.py',
                 'com/win32comext/taskscheduler/test/*.py',
                 'com/win32comext/ifilter/demo/*.py',
+                'com/win32comext/authorization/demos/*.py',
                 'isapi/*.txt',
                 'isapi/samples/*.py',
                 'isapi/samples/*.txt',
