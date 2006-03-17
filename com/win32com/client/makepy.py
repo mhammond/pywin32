@@ -179,12 +179,9 @@ def GetTypeLibsForSpec(arg):
 		tb = None # Storing tb in a local is a cycle!
 		sys.exit(1)
 
-def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progressInstance = None, bUnicodeToString=NeedUnicodeConversions, bQuiet = None, bGUIProgress = None, bForDemand = bForDemandDefault, bBuildHidden = 1):
-	if bQuiet is not None or bGUIProgress is not None:
-		print "Please dont use the bQuiet or bGUIProgress params"
-		print "use the 'verboseLevel', and 'progressClass' params"
+def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progressInstance = None, bUnicodeToString=NeedUnicodeConversions, bForDemand = bForDemandDefault, bBuildHidden = 1):
 	if verboseLevel is None:
-		verboseLevel = 0 # By default, we use a gui, and no verbose level!
+		verboseLevel = 0 # By default, we use no gui and no verbose level!
 
 	if bForDemand and file is not None:
 		raise RuntimeError, "You can only perform a demand-build when the output goes to the gen_py directory"
@@ -214,26 +211,6 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 	else:
 		typelibs = GetTypeLibsForSpec(typelibInfo)
 
-	if progressInstance is None:
-		try:
-			if not bForDemand: # Only go for GUI progress if not doing a demand-import
-				# Win9x console programs don't seem to like our GUI!
-				# (Actually, NT/2k wouldnt object to having them threaded - later!)
-				import win32api, win32con
-				if win32api.GetVersionEx()[3]==win32con.VER_PLATFORM_WIN32_NT:
-					bMakeGuiProgress = 1
-				else:
-					try:
-						win32api.GetConsoleTitle()
-						# Have a console - can't handle GUI
-						bMakeGuiProgress = 0
-					except win32api.error:
-						# no console - we can have a GUI
-						bMakeGuiProgress = 1
-				if bMakeGuiProgress:
-					progressInstance = GUIProgress(verboseLevel)
-		except ImportError: # No Pythonwin GUI around.
-			pass
 	if progressInstance is None:
 		progressInstance = SimpleProgress(verboseLevel)
 	progress = progressInstance
