@@ -258,6 +258,7 @@ PyObject *CPythonHandler::Callback(
 {
 	va_list va;
 	PyObject *args;
+	PyObject *ret = NULL;
 
 	if (format && *format) {
 		va_start(va, format);
@@ -275,13 +276,16 @@ PyObject *CPythonHandler::Callback(
 
 		a = PyTuple_New(1);
 		if (a == NULL)
-			return NULL;
-		if (PyTuple_SetItem(a, 0, args) < 0)
-			return NULL;
+			goto done;
+		if (PyTuple_SET_ITEM(a, 0, args) < 0) {
+			Py_DECREF(a);
+			goto done;
+		}
+		// 'args' ref consumed by _SET_ITEM.
 		args = a;
 	}
 
-	PyObject *ret = DoCallback(typ, args);
+	ret = DoCallback(typ, args);
 	if (!ret) {
 		if (m_engine->m_reload_exception &&
 			PyErr_ExceptionMatches(m_engine->m_reload_exception)) {
@@ -297,7 +301,7 @@ PyObject *CPythonHandler::Callback(
 			Py_XDECREF(ret);
 			// Now force the reload and refresh of all callbacks.
 			if (!LoadHandler(true))
-				return NULL;
+				goto done;
 			Py_XDECREF(m_callback_init);
 			m_callback_init = NULL;
 			Py_XDECREF(m_callback_do);
@@ -317,9 +321,9 @@ PyObject *CPythonHandler::Callback(
 			ret = DoCallback(typ, args);			
 		}
 	}
+done:
 	Py_DECREF(args);
 	return ret;
-
 }
 
 void CPythonHandler::Term(void)
