@@ -67,7 +67,9 @@ extern PyObject *PyDsBind(PyObject *self, PyObject *args)
 		return NULL;
 	if (PyWinObject_AsWCHAR(obdc, &dc, TRUE) &&
 		PyWinObject_AsWCHAR(obdomain, &domain, TRUE)){
+		Py_BEGIN_ALLOW_THREADS
 		err=(*pfnDsBind)(dc, domain, &dshandle);
+		Py_END_ALLOW_THREADS
 		if (err==NO_ERROR)
 			ret=new PyDS_HANDLE(dshandle);
 		else
