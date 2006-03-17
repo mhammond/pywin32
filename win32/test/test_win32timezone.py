@@ -4,7 +4,7 @@ import unittest, win32timezone, doctest
 
 class Win32TimeZoneTest(unittest.TestCase):
     def testWin32TZ(self):
-        failed, total = doctest.testmod( win32timezone, verbose = True )
+        failed, total = doctest.testmod( win32timezone, verbose = False )
         self.failIf( failed )
 
 if __name__ == '__main__':
