@@ -1287,7 +1287,7 @@ BOOL PyWinObject_AsQueuedOVERLAPPED(PyObject *ob, OVERLAPPED **ppOverlapped, BOO
 // @pyswig (int, int, int, <o PyOVERLAPPED>)|GetQueuedCompletionStatus|Attempts to dequeue an I/O completion packet from a specified input/output completion port.
 // @comm This method never throws an API error.
 // <nl>The result is a tuple of (rc, numberOfBytesTransferred, completionKey, overlapped)
-// <nl>If the function succeeds, rc will be set to 1, otherwise it will be set to the win32 error code.
+// <nl>If the function succeeds, rc will be set to 0, otherwise it will be set to the win32 error code.
 static PyObject *myGetQueuedCompletionStatus(PyObject *self, PyObject *args)
 {
 	PyObject *obHandle;
