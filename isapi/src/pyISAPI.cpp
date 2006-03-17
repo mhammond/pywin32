@@ -76,7 +76,7 @@ BOOL WINAPI GetExtensionVersion(HSE_VERSION_INFO *pVer)
 
 	// create the Python object
 	PyVERSION_INFO *pyVO = new PyVERSION_INFO(pVer);
-	resultobject = extensionHandler.Callback(HANDLER_INIT, "N", pyVO);
+	resultobject = extensionHandler.Callback(HANDLER_INIT, "(N)", pyVO);
 	if (! resultobject) {
 		ExtensionError(NULL, "Extension version function failed!");
 		bRetStatus = false;
@@ -100,8 +100,15 @@ DWORD WINAPI HttpExtensionProc(EXTENSION_CONTROL_BLOCK *pECB)
 	DWORD result;
 	PyGILState_STATE state = PyGILState_Ensure();
 	CControlBlock * pcb = new CControlBlock(pECB);
+	// PyECB takes ownership of pcb - so when it dies, so does pcb.
+	// As this may die inside Callback, we need to keep our own
+	// reference so it is still valid should we wind up in ExtensionError.
 	PyECB *pyECB = new PyECB(pcb);
-	PyObject *resultobject = extensionHandler.Callback(HANDLER_DO, "N", pyECB);
+	if (!pyECB)
+		// This is pretty fatal!
+		return HSE_STATUS_ERROR;
+	Py_INCREF(pyECB);
+	PyObject *resultobject = extensionHandler.Callback(HANDLER_DO, "(N)", pyECB);
 	if (! resultobject) {
 		ExtensionError(pcb, "HttpExtensionProc function failed!");
 		result = HSE_STATUS_ERROR;
@@ -113,6 +120,7 @@ DWORD WINAPI HttpExtensionProc(EXTENSION_CONTROL_BLOCK *pECB)
 			result = HSE_STATUS_ERROR;
 		}
 	}
+	Py_DECREF(pyECB);
 	Py_XDECREF(resultobject);
 	PyGILState_Release(state);
 	return result;
@@ -123,7 +131,7 @@ BOOL WINAPI TerminateExtension(DWORD dwFlags)
 	// extension is being terminated
 	BOOL bRetStatus;
 	PyGILState_STATE state = PyGILState_Ensure();
-	PyObject *resultobject = extensionHandler.Callback(HANDLER_TERM, "i", dwFlags);
+	PyObject *resultobject = extensionHandler.Callback(HANDLER_TERM, "(i)", dwFlags);
 	if (! resultobject) {
 		ExtensionError(NULL, "Extension term function failed!");
 		bRetStatus = false;
@@ -154,7 +162,7 @@ BOOL WINAPI GetFilterVersion(HTTP_FILTER_VERSION *pVer)
 
 	PyGILState_STATE state = PyGILState_Ensure();
 	PyFILTER_VERSION *pyFV = new PyFILTER_VERSION(pVer);
-	PyObject *resultobject = filterHandler.Callback(HANDLER_INIT, "N", pyFV);
+	PyObject *resultobject = filterHandler.Callback(HANDLER_INIT, "(N)", pyFV);
 	BOOL bRetStatus;
 	if (! resultobject) {
 		FilterError(NULL, "Filter version function failed!");
@@ -184,7 +192,11 @@ DWORD WINAPI HttpFilterProc(HTTP_FILTER_CONTEXT *phfc, DWORD NotificationType, V
 	// create the Python object
 	CFilterContext fc(phfc, NotificationType, pvData);
 	PyHFC *pyHFC = new PyHFC(&fc);
-	resultobject = filterHandler.Callback(HANDLER_DO, "O", pyHFC);
+	if (!pyHFC) {
+		FilterError(&fc, "Out of memory!");
+		return SF_STATUS_REQ_ERROR;
+	}
+	resultobject = filterHandler.Callback(HANDLER_DO, "(O)", pyHFC);
 	if (! resultobject) {
 		FilterError(&fc, "Filter function failed!");
 		action = SF_STATUS_REQ_ERROR;
@@ -212,7 +224,7 @@ BOOL WINAPI TerminateFilter(DWORD status)
 {
 	BOOL bRetStatus;
 	PyGILState_STATE state = PyGILState_Ensure();
-	PyObject *resultobject = filterHandler.Callback(HANDLER_TERM, "i", status);
+	PyObject *resultobject = filterHandler.Callback(HANDLER_TERM, "(i)", status);
 	if (! resultobject) {
 		FilterError(NULL, "Filter version function failed!");
 		bRetStatus = false;
