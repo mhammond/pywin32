@@ -5,6 +5,36 @@ Generally created by hand after running:
    {py_dir}\Tools\scripts\logmerge.py -t < log.out > log.out2
 However contributors are encouraged to add their own entries for their work.
 
+Build 208
+---------
+* pywintypes: fix reference leak in PyOVERLAPPED objects.
+* isapi: fix memory leak; filter "load order" handling; error
+  rendering.
+* pythonwin: Disable some old DDE hacks to prevent Data Execution Prevention 
+  (DEP) errors in Pythonwin.
+* odbc: gets support for Unicode, corrects support for BIT, and 
+  SQLDataSources() method.
+* win32job: New win32job module for access to the win32 "job" functions
+* win32inet: Add WinHttpGetIEProxyConfigForCurrentUser()
+* pythoncom.Empty now does what it implies - passes a variant with VT_EMPTY.
+  New pythoncom.ArgNotFound supports the old behaviour (of VT_ERROR with
+  DISP_E_PARAMNOTFOUND); CoInitializeEx change described in Build 206 was 
+  not implemented - now it is!
+* win32com: large unsigned ints may previously have been returned as negative
+  Python integers; makepy no longer displays a GUI progress dialog by default.
+* win32com.authorization: New package from Roger Upole.
+* win32com.mapi: New IProviderAdmin support from John Nielsen; add
+  IMAPIStatus support
+* win32com.shell: Allow SHFileOperation to accept a string containing 
+  multiple file names, prevent Windows handle leak in IQueryAssociations.
+* win32com.adsi: Always return extended error info when available, and expose
+  ADsGetLastError explicitly.
+* Leonard Ritter and Robert Förtsch contributed some IE extension samples
+  (see win32com\demos)
+* .chm documentation now includes a link to search MSDN and google for many 
+  API functions
+* Many other minor fixes and enhancements.
+
 Build 207
 --------
 * Fix an error in win32gui.CreateDC() arg handling, introduced with the
