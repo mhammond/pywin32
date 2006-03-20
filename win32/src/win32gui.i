@@ -2144,9 +2144,12 @@ HMENU LoadMenu(HINSTANCE hInst, RESOURCE_ID name);
 BOOLAPI DestroyMenu( HMENU hmenu );
 
 #ifndef MS_WINCE
-// @pyswig |SetMenu|Sets the window for the specified window.
+// @pyswig |SetMenu|Sets the menu for the specified window.
 BOOLAPI SetMenu( HWND hwnd, HMENU hmenu );
 #endif
+
+// @pyswig |GetMenu|Gets the menu for the specified window.
+HMENU GetMenu( HWND hwnd);
 
 // @pyswig HCURSOR|LoadIcon|Loads an icon
 HICON LoadIcon(HINSTANCE hInst, RESOURCE_ID name);
