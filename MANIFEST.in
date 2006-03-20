@@ -52,6 +52,8 @@ include com/win32comext/axscript/demos/client/wsh/*.pys
 include com/win32comext/axdebug/src/*.h
 include com/win32comext/adsi/src/*.h
 include com/win32comext/adsi/demos/*.py
+include com/win32comext/authorization/demos/*.py
+include com/win32comext/authorization/src/*.h
 include com/win32comext/axcontrol/src/*.h
 include com/win32comext/internet/src/*.h
 include com/win32comext/mapi/src/*.h
