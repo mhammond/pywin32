@@ -39,9 +39,10 @@ static const PyCom_InterfaceSupportInfo interface_info[] =
 	PYCOM_INTERFACE_SERVER_ONLY (SecurityInformation)
 };
 
+// @module win32com.authorization.authorization|
 static struct PyMethodDef authorization_methods[]=
 {
-	{ "EditSecurity", (PyCFunction)PyEditSecurity, METH_VARARGS|METH_KEYWORDS, "Creates a security descriptor editor dialog"}, //@pymeth EditSecurity|Creates a security descriptor editor dialog
+	{ "EditSecurity", (PyCFunction)PyEditSecurity, METH_VARARGS|METH_KEYWORDS, "Creates a security descriptor editor dialog"}, // @pymeth EditSecurity|Creates a security descriptor editor dialog
 	{NULL}
 };
 
