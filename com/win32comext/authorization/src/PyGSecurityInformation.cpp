@@ -282,7 +282,11 @@ STDMETHODIMP PyGSecurityInformation::MapGeneric(
 	else{
 		hr=InvokeViaPolicy("MapGeneric", &result, "OBk", obObjectType, *pAceFlags, *pMask);
 		if (!FAILED(hr)){
+#if (PY_VERSION_HEX < 0x02030000)
+			*pMask=PyLong_AsUnsignedLong(result);
+#else
 			*pMask=PyInt_AsUnsignedLongMask(result);
+#endif
 			if ((*pMask==-1) && PyErr_Occurred())
 				hr=MAKE_PYCOM_GATEWAY_FAILURE_CODE("MapGeneric");	
 			else
