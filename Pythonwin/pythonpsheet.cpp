@@ -145,8 +145,11 @@ CPythonPropertySheet::OnCmdMsg (UINT nID, int nCode,
   // yield to Python first
   if (Python_OnCmdMsg (this, nID, nCode, pExtra, pHandlerInfo))
     return TRUE;
-  else
+  else {
+    if (!IsWindow( this->m_hWnd ))
+      return TRUE;
     return CPropertySheet::OnCmdMsg (nID, nCode, pExtra, pHandlerInfo);
+  }
 }
 
 BOOL CPythonPropertySheet::OnCommand(WPARAM wParam, LPARAM lParam) 
@@ -172,8 +175,11 @@ CPythonPropertySheet::OnNotify (WPARAM wParam, LPARAM lParam, LRESULT *pResult)
   // yield to Python first
   if (Python_OnNotify (this, wParam, lParam, pResult))
     return TRUE;
-  else
+  else {
+    if (!IsWindow( this->m_hWnd ))
+      return TRUE;
     return CPropertySheet::OnNotify (wParam, lParam, pResult);
+  }
 }
 
 #ifdef PYWIN_WITH_WINDOWPROC

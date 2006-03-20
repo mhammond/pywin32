@@ -67,15 +67,21 @@ public:
 		// yield to Python first
 		if (Python_OnCmdMsg (this, nID, nCode, pExtra, pHandlerInfo))
 			return TRUE;
-		 else
+		else {
+			if (!IsWindow( this->m_hWnd ))
+				return TRUE;
 			return T::OnCmdMsg (nID, nCode, pExtra, pHandlerInfo);
+		}
 	}
 	virtual BOOL OnNotify (WPARAM wParam, LPARAM lParam, LRESULT *pResult) {
 		// yield to Python first
 		if (Python_OnNotify (this, wParam, lParam, pResult))
 			return TRUE;
-		else
+		else {
+			if (!IsWindow( this->m_hWnd ))
+				return TRUE;
 			return T::OnNotify (wParam, lParam, pResult);
+		}
 	}
 #ifdef PYWIN_WITH_WINDOWPROC
 		virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
