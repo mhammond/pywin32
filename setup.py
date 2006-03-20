@@ -1,10 +1,13 @@
-build_id="207.1" # may optionally include a ".{patchno}" suffix.
+build_id="207.9" # may optionally include a ".{patchno}" suffix.
 # Putting buildno at the top prevents automatic __doc__ assignment, and
 # I *want* the build number at the top :)
 __doc__="""This is a distutils setup-script for the pywin32 extensions
 
 To build the pywin32 extensions, simply execute:
   python setup.py -q build
+or
+  python setup.py -q install
+to build and install into your current Python installation.
 
 These extensions require a number of libraries to build, some of which may
 require you to install special SDKs or toolkits.  This script will attempt
@@ -506,6 +509,16 @@ class my_build_ext(build_ext):
         # real directory - this avoids the generated .lib/.exp
         build_temp = os.path.abspath(os.path.join(self.build_temp, "scintilla"))
         self.mkpath(build_temp)
+        # Use short-names, as the scintilla makefiles barf with spaces.
+        if " " in build_temp:
+            # ack - can't use win32api!!!  This is the best I could come up
+            # with:
+            # C:\>for %I in ("C:\Program Files",) do @echo %~sI
+            # C:\PROGRA~1
+            cs = os.environ.get('comspec', 'cmd.exe')
+            cmd = cs + ' /c for %I in ("' + build_temp + '",) do @echo %~sI'
+            build_temp = os.popen(cmd).read().strip()
+            assert os.path.isdir(build_temp), build_temp
         makeargs.append("SUB_DIR_O=%s" % build_temp)
         makeargs.append("SUB_DIR_BIN=%s" % build_temp)
 
