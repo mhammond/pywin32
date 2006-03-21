@@ -1,11 +1,13 @@
 import unittest
-import win32api, win32file, win32pipe, win32con, pywintypes, winerror, win32event
+import win32api, win32file, win32pipe, pywintypes, winerror, win32event
+import win32con, ntsecuritycon
 import sys
 import os
 import tempfile
 import sets
 import threading
 import time
+import shutil
 
 class TestSimpleOps(unittest.TestCase):
     def testSimpleFiles(self):
@@ -287,6 +289,120 @@ class TestFindFiles(unittest.TestCase):
             self.failUnlessEqual(2, num)
         finally:
             os.rmdir(test_path)
+
+class TestDirectoryChanges(unittest.TestCase):
+    num_test_dirs = 1
+    def setUp(self):
+        self.watcher_threads = []
+        self.watcher_thread_changes = []
+        self.dir_names = []
+        self.dir_handles = []
+        for i in range(self.num_test_dirs):
+            td = tempfile.mktemp("-test-directory-changes-%d" % i)
+            os.mkdir(td)
+            self.dir_names.append(td)
+            hdir = win32file.CreateFile(td, 
+                                        ntsecuritycon.FILE_LIST_DIRECTORY,
+                                        win32con.FILE_SHARE_READ,
+                                        None, # security desc
+                                        win32con.OPEN_EXISTING,
+                                        win32con.FILE_FLAG_BACKUP_SEMANTICS |
+                                        win32con.FILE_FLAG_OVERLAPPED,
+                                        None)
+            self.dir_handles.append(hdir)
+
+            changes = []
+            t = threading.Thread(target=self._watcherThreadOverlapped,
+                                 args=(td, hdir, changes))
+            t.start()
+            self.watcher_threads.append(t)
+            self.watcher_thread_changes.append(changes)
+
+    def _watcherThread(self, dn, dh, changes):
+        # A synchronous version:
+        # XXX - not used - I was having a whole lot of problems trying to
+        # get this to work.  Specifically:
+        # * ReadDirectoryChangesW without an OVERLAPPED blocks infinitely.
+        # * If another thread attempts to close the handle while
+        #   ReadDirectoryChangesW is waiting on it, the ::CloseHandle() method
+        #   blocks (which has nothing to do with the GIL - it is correctly
+        #   managed)
+        # Which ends up with no way to kill the thread!
+        flags = win32con.FILE_NOTIFY_CHANGE_FILE_NAME
+        while 1:
+            try:
+                print "waiting", dh
+                changes = win32file.ReadDirectoryChangesW(dh,
+                                                          8192,
+                                                          False, #sub-tree
+                                                          flags)
+                print "got", changes
+            except 'xx':
+                xx
+            changes.extend(changes)
+
+    def _watcherThreadOverlapped(self, dn, dh, changes):
+        flags = win32con.FILE_NOTIFY_CHANGE_FILE_NAME
+        buf = win32file.AllocateReadBuffer(8192)
+        overlapped = pywintypes.OVERLAPPED()
+        overlapped.hEvent = win32event.CreateEvent(None, 0, 0, None)
+        while 1:
+            win32file.ReadDirectoryChangesW(dh,
+                                            buf,
+                                            False, #sub-tree
+                                            flags,
+                                            overlapped)
+            # Wait for our event, or for 5 seconds.
+            rc = win32event.WaitForSingleObject(overlapped.hEvent, 5000)
+            if rc == win32event.WAIT_OBJECT_0:
+                # got some data!  Must use GetOverlappedResult to find out
+                # how much is valid!  0 generally means the handle has
+                # been closed.  Blocking is OK here, as the event has
+                # already been set.
+                nbytes = win32file.GetOverlappedResult(dh, overlapped, True)
+                if nbytes:
+                    bits = win32file.FILE_NOTIFY_INFORMATION(buf, 8192)
+                    changes.extend(bits)
+                else:
+                    # This is "normal" exit - our 'tearDown' closes the
+                    # handle.
+                    # print "looks like dir handle was closed!"
+                    return
+            else:
+                print "ERROR: Watcher thread timed-out!"
+                return # kill the thread!
+
+    def tearDown(self):
+        # be careful about raising errors at teardown!
+        for h in self.dir_handles:
+            # See comments in _watcherThread above - this appears to
+            # deadlock if a synchronous ReadDirectoryChangesW is waiting...
+            # (No such problems with an asynch ReadDirectoryChangesW)
+            h.Close()
+        for dn in self.dir_names:
+            try:
+                shutil.rmtree(dn)
+            except OSError:
+                print "FAILED to remove directory", dn
+
+        for t in self.watcher_threads:
+            # closing dir handle should have killed threads!
+            t.join(5)
+            if t.isAlive():
+                print "FAILED to wait for thread termination"
+
+    def stablize(self):
+        time.sleep(0.5)
+
+    def testSimple(self):
+        self.stablize()
+        for dn in self.dir_names:
+            fn = os.path.join(dn, "test_file")
+            open(fn, "w").close()
+
+        self.stablize()
+        changes = self.watcher_thread_changes[0]
+        self.failUnlessEqual(changes, [(1, "test_file")])
 
 class TestEncrypt(unittest.TestCase):
     def testEncrypt(self):

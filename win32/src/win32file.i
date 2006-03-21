@@ -1606,8 +1606,7 @@ static PyObject *PyReadDirectoryChangesW(PyObject *self, PyObject *args)
 	HANDLE handle;
 	BOOL bWatchSubtree;
 	DWORD filter;
-	DWORD buf_size, bytes_returned;
-	void *buffer;
+	DWORD bytes_returned;
 	PyObject *obBuffer;
 	PyObject *ret = NULL;
 	PyObject *obOverlapped = Py_None;
@@ -1617,42 +1616,96 @@ static PyObject *PyReadDirectoryChangesW(PyObject *self, PyObject *args)
 	                      &obBuffer, // @pyparm int|size||Size of the buffer to allocate for the results.
 	                      &bWatchSubtree, // @pyparm int|bWatchSubtree||Specifies whether the ReadDirectoryChangesW function will monitor the directory or the directory tree. If TRUE is specified, the function monitors the directory tree rooted at the specified directory. If FALSE is specified, the function monitors only the directory specified by the hDirectory parameter.
 	                      &filter, // @pyparm int|dwNotifyFilter||Specifies filter criteria the function checks to determine if the wait operation has completed. This parameter can be one or more of the FILE_NOTIFY_CHANGE_* values.
-	                      &obOverlapped, // @pyparm <o PyOVERLAPPED>|overlapped|None|Must be None
+	                      &obOverlapped, // @pyparm <o PyOVERLAPPED>|overlapped|None|An overlapped object.  The directory must also be opened with FILE_FLAG_OVERLAPPED.
 	                      &obOverlappedRoutine))
 		return NULL;
-	// Todo: overlapped support.  Possibly borrow from ReadFile - return a buffer
-	// object, and expose our method to decode the returned info.
-	if (obOverlappedRoutine != Py_None || obOverlapped != Py_None)
-		return PyErr_Format(PyExc_ValueError, "overlapped and overlappedRoutine must be None");
 
-	if (!PyInt_Check(obBuffer))
-		return PyErr_Format(PyExc_TypeError, "The 'buffer/size' param must be an integer if no overlapped object is provided");
-	buf_size = PyInt_AsLong(obBuffer);
-	buffer = malloc(buf_size);
-	if (buffer==NULL)
-		return PyErr_Format(PyExc_MemoryError, "Error allocating %d bytes as a buffer", buf_size);
+	// @comm If you pass an overlapped object, you almost certainly
+	// must pass a buffer object for the asynchronous results - failure
+	// to do so may crash Python as the asynchronous result writes to
+	// invalid memory.
+	OVERLAPPED *pOverlapped = NULL;
+	if (obOverlapped && obOverlapped != Py_None)
+		if (!PyWinObject_AsOVERLAPPED(obOverlapped, &pOverlapped))
+			return NULL;
+
+	// Todo: overlappedRoutine support.
+	if (obOverlappedRoutine != Py_None)
+		return PyErr_Format(PyExc_ValueError, "overlappedRoutine must be None");
+
+	void *buf = NULL;
+	int bufSize = 0;
+	BOOL bBufMallocd = FALSE;
+	if (PyInt_Check(obBuffer)) {
+		bufSize = PyInt_AsLong(obBuffer);
+		buf = malloc(bufSize);
+		if (buf==NULL) {
+			PyErr_SetString(PyExc_MemoryError, "Allocating read buffer");
+			goto done;
+		}
+		bBufMallocd = TRUE;
+	}
+	else if (obBuffer->ob_type->tp_as_buffer) {
+		PyBufferProcs *pb = obBuffer->ob_type->tp_as_buffer;
+		bufSize = (*pb->bf_getreadbuffer)(obBuffer, 0, &buf);
+	}
+	 else {
+		PyErr_SetString(PyExc_TypeError, "buffer param must be an integer or a buffer object");
+		goto done;
+	}
 
 	// OK, have a buffer and a size.
-    Py_BEGIN_ALLOW_THREADS
-	ok = ::ReadDirectoryChangesW(handle, buffer, buf_size, bWatchSubtree, filter, &bytes_returned, NULL, NULL);
+	Py_BEGIN_ALLOW_THREADS
+	ok = ::ReadDirectoryChangesW(handle, buf, bufSize, bWatchSubtree, filter, &bytes_returned, pOverlapped, NULL);
 	Py_END_ALLOW_THREADS
 	if (!ok) {
 		return PyWin_SetAPIError("ReadDirectoryChangesW");
 		goto done;
 	}
-	ret = PyObject_FromFILE_NOTIFY_INFORMATION(buffer, bytes_returned);
-    // @rdesc The result is a list of (action, filename)
+	// If they passed a size, we return the buffer, already unpacked.
+	if (bBufMallocd) {
+		ret = PyObject_FromFILE_NOTIFY_INFORMATION(buf, bytes_returned);
+	} else {
+		// asynch call - bytes_returned is undefined - so just return None.
+		ret = Py_None;
+		Py_INCREF(Py_None);
+	}
+    // @rdesc If a buffer size is passed, the result is a list of (action, filename)
+    // @rdesc If a buffer is passed, the result is None - you must use the overlapped
+    // object to determine when the information is available and how much is valid.
+    // The buffer can then be passed to <om win32file.FILE_NOTIFY_INFORMATION>
     // @comm The FILE_NOTIFY_INFORMATION structure used by this function
     // is variable length, depending on the length of the filename.
     // The size of the buffer must be at least 6 bytes long + the length
     // of the filenames returned.  The number of notifications that can be
     // returned for a given buffer size depends on the filename lengths.
 done:
-	free(buffer);
+	if (bBufMallocd && buf)
+		free(buf);
 	return ret;
 }
+
+// @pyswig [(action, filename), ...|FILE_NOTIFY_INFORMATION|Decodes a PyFILE_NOTIFY_INFORMATION buffer.
+PyObject *PyFILE_NOTIFY_INFORMATION(PyObject *self, PyObject *args)
+{
+	// @pyparam string|buffer||The buffer to decode.
+	// @pyparm int|size||The number of bytes to refer to.  Generally this
+	// will be smaller than the size of the buffer (and certainly never greater!)
+	// @comm See <om win32file.ReadDirectoryChangesW> for more information.
+	int bufSize, size;
+	char *buf;
+	if (!PyArg_ParseTuple(args, "s#i", &buf, &bufSize, &size))
+		return NULL;
+	if (size > bufSize)
+		return PyErr_Format(PyExc_ValueError, "buffer is only %d bytes long, but %d bytes were requested",
+		                    bufSize, size);
+
+	return PyObject_FromFILE_NOTIFY_INFORMATION((void *)buf, size);
+}
+
 %}
 %native(ReadDirectoryChangesW) PyReadDirectoryChangesW;
+%native(FILE_NOTIFY_INFORMATION) PyFILE_NOTIFY_INFORMATION;
 
 // ReadFileEx	
 
