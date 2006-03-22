@@ -518,6 +518,10 @@ def MakePublicAttributeName(className, is_global = False):
 		return demunge_leading_underscores(className)
 	elif iskeyword(className): # all keywords are lower case
 		return string.capitalize(className)
+	elif className == 'None':
+		# assign to None is evil (and SyntaxError in 2.4) - note
+		# that if it was a global it would get picked up below
+		className = 'NONE'
 	elif is_global and __builtins__.has_key(className):
 		# builtins may be mixed case.  If capitalizing it doesn't change it,
 		# force to all uppercase (eg, "None", "True" become "NONE", "TRUE"
