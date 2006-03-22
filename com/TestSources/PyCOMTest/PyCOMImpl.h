@@ -101,6 +101,9 @@ END_COM_MAP()
 	STDMETHOD(get_CurrencyProp)(CY *ret);
 	STDMETHOD(put_CurrencyProp)(CY val);
 
+	STDMETHOD(None)();
+	STDMETHOD(def)();
+
 	// info associated to each session
 	struct PyCOMTestSessionData
 	{

@@ -649,3 +649,13 @@ HRESULT CPyCOMTest::get_CurrencyProp(CY *ret)
 	*ret = (CY)m_cy;
 	return S_OK;
 }
+
+HRESULT CPyCOMTest::None()
+{
+	return S_OK;
+}
+
+HRESULT CPyCOMTest::def()
+{
+	return S_OK;
+}

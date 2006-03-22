@@ -54,6 +54,8 @@ library PyCOMTestLib
 
 	enum TestAttributes3{ // Note missing the enum name.
 		TestAttr3,
+		None, // Few keywords etc here
+		print,
 	};
 	// Some test structures
 	typedef [uuid(7a4ce6a7-7959-4e85-a3c0-b41442ff0f67), version(1.0)]
@@ -192,12 +194,12 @@ library PyCOMTestLib
 		[vararg] HRESULT SetVarArgs([in]SAFEARRAY(VARIANT) vars);
 		HRESULT GetLastVarArgs([out, retval]SAFEARRAY(VARIANT) *result);
 		HRESULT Fire([in]long nId);
-        HRESULT TestOptionals( [in,optional,defaultvalue("def")] BSTR strArg,
+		HRESULT TestOptionals( [in,optional,defaultvalue("def")] BSTR strArg,
 							   [in,optional,defaultvalue(0)] short sval,
 							   [in,optional,defaultvalue(1)] long lval, 
 							   [in,optional,defaultvalue(3.14)] double dval,
 							   [out,retval] SAFEARRAY(VARIANT) *pret );
-        HRESULT TestOptionals2( 
+		HRESULT TestOptionals2( 
 							   double dval, 
 							   [optional, defaultvalue("")] BSTR strval, 
 							   [optional, defaultvalue(1)] short sval,
@@ -225,6 +227,8 @@ library PyCOMTestLib
 		[propput] HRESULT IntProp([in] int val);
 		[propget] HRESULT CurrencyProp([out, retval] CY* retval);
 		[propput] HRESULT CurrencyProp([in] CY val);
+		HRESULT None();
+		HRESULT def();
 	};
 
 	// Define a new class to test how Python handles derived interfaces!
