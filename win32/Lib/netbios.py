@@ -166,7 +166,7 @@ FIND_NAME_BUFFER_ITEMS = [
     (UCHAR,   "length"),
     (UCHAR,   "access_control"),
     (UCHAR,   "frame_control"),
-    ("6s"   "destination_addr"),
+    ("6s",   "destination_addr"),
     ("6s", "source_addr"), 
     ("18s", "routing_info"),
 ]
