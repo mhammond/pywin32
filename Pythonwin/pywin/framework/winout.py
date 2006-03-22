@@ -78,7 +78,7 @@ class WindowOutputFrame(window.MDIChildWnd):
 
 class WindowOutputViewImpl:
 	def __init__(self):
-		self.patErrorMessage=re.compile('.*File "(.*)", line ([0-9]+)')
+		self.patErrorMessage=re.compile('\W*File "(.*)", line ([0-9]+)')
 		self.template = self.GetDocument().GetDocTemplate()
 
 	def HookHandlers(self):
