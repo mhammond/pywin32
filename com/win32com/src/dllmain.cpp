@@ -201,7 +201,8 @@ HRESULT PyCom_CoInitializeEx(LPVOID reserved, DWORD dwInit)
 	// RPC_E_CHANGED_MODE
 	if ( FAILED(hr) )
 	{
-		PyCom_LoggerException(NULL, "OLE initialization failed! (0x%08lx)", hr);
+		if (hr != RPC_E_CHANGED_MODE)
+			PyCom_LoggerException(NULL, "CoInitializeEx failed (0x%08lx)", hr);
 		return hr;
 	}
 	// If we have never been initialized before, then consider this
