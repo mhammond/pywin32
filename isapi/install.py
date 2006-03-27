@@ -126,9 +126,13 @@ def FindPath(options, server, name):
         return FindWebServer(options, server)+"/ROOT"+name
 
 def FindWebServer(options, server_desc):
-    # command-line options get first go.
+    # command-line options get first go, and are assumed in 'mbcs' encoding
+    # (well, assumed MBCS by the time they got to sys.argv...)
     if options.server:
         server_desc = options.server
+        # but someone may have explicitly already set unicode...
+        if type(server_desc) != unicode:
+            server_desc = server_desc.decode("mbcs")
     # If the config passed by the caller doesn't specify one, use the default
     if not server_desc:
         server = _IIS_OBJECT+"/1"
