@@ -1203,6 +1203,7 @@ com_extensions += [
                                   """ % dirs).split()),
     WinExt_win32com('shell', libraries='shell32', pch_header="shell_pch.h",
                     sources=("""
+                        %(shell)s/PyIActiveDesktop.cpp
                         %(shell)s/PyIAsyncOperation.cpp
                         %(shell)s/PyIBrowserFrameOptions.cpp
                         %(shell)s/PyIColumnProvider.cpp
@@ -1224,8 +1225,11 @@ com_extensions += [
                         %(shell)s/PyIShellIconOverlayIdentifier.cpp
                         %(shell)s/PyIShellIconOverlayManager.cpp
                         %(shell)s/PyIShellLink.cpp
+                        %(shell)s/PyIShellLinkDataList.cpp
                         %(shell)s/PyIShellView.cpp
+                        %(shell)s/PyIUniformResourceLocator.cpp
                         %(shell)s/shell.cpp
+
                         """ % dirs).split()),
     WinExt_win32com('taskscheduler', libraries='mstask'),
     WinExt_win32com('ifilter', libraries='ntquery'),
