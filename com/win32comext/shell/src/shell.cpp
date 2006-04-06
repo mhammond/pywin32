@@ -36,6 +36,9 @@ generates Windows .hlp files.
 #include "PyIQueryAssociations.h"
 #include "PyIDockingWindow.h"
 #include "PyIDeskBand.h"
+#include "PyIShellLinkDataList.h"
+#include "PyIUniformResourceLocator.h"
+#include "PyIActiveDesktop.h"
 
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
 
@@ -782,6 +785,8 @@ void PyObject_FreeSHFILEOPSTRUCT(SHFILEOPSTRUCT *p)
 		free((void *)p->pTo);
 	if (p->lpszProgressTitle)
 		PyWinObject_FreeTCHAR((TCHAR *)p->lpszProgressTitle);
+	if ((p->fFlags&FOF_WANTMAPPINGHANDLE) && (p->hNameMappings!=NULL))
+		SHFreeNameMappings(p->hNameMappings);
 }
 
 // @object SHFILEOPSTRUCT|A tuple representing a Win32 shell SHFILEOPSTRUCT structure, used with <om shell.SHFileOperation>
@@ -798,7 +803,7 @@ BOOL PyObject_AsSHFILEOPSTRUCT(PyObject *ob, SHFILEOPSTRUCT *p)
 						  &obFrom, // @tupleitem 2|str/unicode|From|String containing source file name(s) separated by nulls
 						  &obTo, // @tupleitem 3|str/unicode|To|String containing destination file name(s) separated by nulls, can be None
 						  &p->fFlags, // @tupleitem 4|int|flags|Combination of shellcon.FOF_* flags. Default=0
-						  &obNameMappings, // @tupleitem 5|None|NameMappings|Maps input file names to their new names, must be None. Default=None
+						  &obNameMappings, // @tupleitem 5|None|NameMappings|Maps input file names to their new names.  This is actually output, and must be None if passed as input. Default=None
 						  &obProgressTitle)) // @tupleitem 6|string|ProgressTitle|Title for progress dialog (flags must contain FOF_SIMPLEPROGRESS). Default=None
 		return FALSE;
 	
@@ -1267,12 +1272,42 @@ static PyObject *PySHQueryRecycleBin(PyObject *self, PyObject *args)
 	return Py_BuildValue("LL", info.i64Size, info.i64NumItems);
 }
 
+static PyObject *PyWinObject_FromSHNAMEMAPPINGS(LPVOID hNameMappings)
+{
+	if (hNameMappings==NULL)
+		return PyTuple_New(0);
+	PyObject *ret, *ret_item;
+	// according to the SDK, SHFILEOPSTRUCT.hNameMappings should be interpreted thusly:
+	struct SHNAMEMAPPINGS{
+		UINT nbr_of_mappings;
+		LPSHNAMEMAPPINGW pmappings;  // on WinNT and up, the unicode version will always be returned
+		};
+	SHNAMEMAPPINGS *mappings=(SHNAMEMAPPINGS *)hNameMappings;
+	ret=PyTuple_New(mappings->nbr_of_mappings);
+	if (!ret)
+		return NULL;
+	for (UINT mapping_index=0; mapping_index<mappings->nbr_of_mappings; mapping_index++){
+		ret_item=Py_BuildValue("NN",
+			PyWinObject_FromWCHAR(mappings->pmappings[mapping_index].pszOldPath, mappings->pmappings[mapping_index].cchOldPath),
+			PyWinObject_FromWCHAR(mappings->pmappings[mapping_index].pszNewPath, mappings->pmappings[mapping_index].cchNewPath));
+		if (ret_item==NULL){
+			Py_DECREF(ret);
+			return NULL;
+			}
+		PyTuple_SET_ITEM(ret, mapping_index, ret_item);
+		}
+	return ret;
+}
+
 // @pymethod int, int|shell|SHFileOperation|Copies, moves, renames, or deletes a file system object.
-// The result is the int result of the function itself, and the result of the
-// fAnyOperationsAborted member after the operation.
+// @rdesc The result is a tuple containing int result of the function itself, and the result of the
+// fAnyOperationsAborted member after the operation.  If Flags contains FOF_WANTMAPPINGHANDLE,
+// returned tuple will have a 3rd member containing a sequence of 2-tuples with the old and new file names
+// of renamed files.  This will only have any content if FOF_RENAMEONCOLLISION was specified, and some
+// filename conflicts actually occurred.
 static PyObject *PySHFileOperation(PyObject *self, PyObject *args)
 {
-	PyObject *ob;
+	PyObject *ob, *ret;
 	if (!PyArg_ParseTuple(args, "O:SHFileOperation",
 						  &ob)) // @pyparm <o SHFILEOPSTRUCT>|operation||Defines the operation to perform.
 		return NULL;
@@ -1282,9 +1317,14 @@ static PyObject *PySHFileOperation(PyObject *self, PyObject *args)
 	PY_INTERFACE_PRECALL;
 	int rc = SHFileOperation(&op);
 	PY_INTERFACE_POSTCALL;
-	BOOL did_cancel = op.fAnyOperationsAborted;
+
+	if (op.fFlags&FOF_WANTMAPPINGHANDLE)
+		ret=Py_BuildValue("iOO&", rc, op.fAnyOperationsAborted ? Py_True : Py_False, PyWinObject_FromSHNAMEMAPPINGS, op.hNameMappings);
+	else
+		ret=Py_BuildValue("iO", rc, op.fAnyOperationsAborted ? Py_True : Py_False);
 	PyObject_FreeSHFILEOPSTRUCT(&op);
-	return Py_BuildValue("iO", rc, did_cancel ? Py_True : Py_False);
+	return ret;
+
 }
 
 // @pymethod <o PyIShellFolder>|shell|SHGetDesktopFolder|Retrieves the <o PyIShellFolder> interface for the desktop folder, which is the root of the shell's namespace. 
@@ -1329,8 +1369,8 @@ static PyObject *PySHUpdateImage(PyObject *self, PyObject *args)
 static PyObject *PySHChangeNotify(PyObject *self, PyObject *args)
 {
 	LONG wEventID;
-	UINT flags;
-	PyObject *ob1, *ob2 = Py_None;
+	UINT flags, datatype;
+	PyObject *ob1, *ob2 = Py_None, *ret=NULL;
 	if(!PyArg_ParseTuple(args, "iiO|O:SHChangeNotify", 
 			&wEventID,	// @pyparm int|EventId||Combination of shellcon.SHCNE_* constants
 			&flags,		// @pyparm int|Flags||Combination of shellcon.SHCNF_* constants that specify type of last 2 parameters
@@ -1338,44 +1378,68 @@ static PyObject *PySHChangeNotify(PyObject *self, PyObject *args)
 			&ob1,		// @pyparm object|Item1||Type is dependent on the event to be signalled
 			&ob2))		// @pyparm object|Item2||Type is dependent on the event to be signalled
 		return NULL;
+	// SHCFN_IDLIST is 0, so shift away upper bits containing *FLUSH* flags for comparison
+	datatype=(flags<<20)>>20;
+	void *p1=NULL, *p2=NULL;
+	BOOL bsuccess=TRUE;
+	switch (datatype){
+		case SHCNF_IDLIST:
+			bsuccess=PyObject_AsPIDL(ob1, (ITEMIDLIST **)&p1, FALSE) 
+				  && PyObject_AsPIDL(ob2, (ITEMIDLIST **)&p2, TRUE);
+			break;
+		case SHCNF_DWORD:
+			p1 = (void *)PyInt_AsLong(ob1);
+			if (p1==(VOID *)-1 && PyErr_Occurred())
+				bsuccess=FALSE;
+			else if (ob2!=Py_None){
+				p2 = (void *)PyInt_AsLong(ob2);
+				if (p2==(void *)-1 && PyErr_Occurred())
+					bsuccess=FALSE;
+				}
+			break;
+		case SHCNF_PATHA:
+		case SHCNF_PRINTERA:
+			p1 = (void *)PyString_AsString(ob1);
+			if (p1==NULL)
+				bsuccess=FALSE;
+			else if (ob2!=Py_None){
+				p2 = (void *)PyString_AsString(ob2);
+				if (p2==NULL)
+					bsuccess=FALSE;
+				}
+			break;
+		case SHCNF_PATHW:
+		case SHCNF_PRINTERW:
+			bsuccess=PyWinObject_AsWCHAR(ob1, (WCHAR **)&p1, FALSE) 
+				  && PyWinObject_AsWCHAR(ob2, (WCHAR **)&p2, TRUE);
+			break;
+		default:
+			PyErr_Format(PyExc_ValueError, "Type %d is not supported", datatype);
+			bsuccess=FALSE;
+		}
 
-	void *p1, *p2;
-	if ((flags & SHCNF_DWORD)== SHCNF_DWORD) {
-		if (!PyInt_Check(ob1) || !(ob2==Py_None || PyInt_Check(ob2))) {
-			PyErr_SetString(PyExc_TypeError, "SHCNF_DWORD is set - items must be integers");
-			return NULL;
+	if (bsuccess){
+		PY_INTERFACE_PRECALL;
+		SHChangeNotify(wEventID, flags, p1, p2);
+		PY_INTERFACE_POSTCALL;
+		Py_INCREF(Py_None);
+		ret=Py_None;
 		}
-		p1 = (void *)PyInt_AsLong(ob1);
-		p2 = (void *)(ob2==Py_None ? NULL : PyInt_AsLong(ob2));
-	} else if ((flags & SHCNF_IDLIST)==SHCNF_IDLIST) {
-		ITEMIDLIST *pidl1, *pidl2;
-		if (!PyObject_AsPIDL(ob1, &pidl1, FALSE))
-			return NULL;
-		if (!PyObject_AsPIDL(ob2, &pidl2, TRUE)) {
-			PyObject_FreePIDL(pidl1);
-			return NULL;
+
+	switch (datatype){
+		case SHCNF_IDLIST:
+			PyObject_FreePIDL((ITEMIDLIST *)p1);
+			PyObject_FreePIDL((ITEMIDLIST *)p2);
+			break;
+		case SHCNF_PATHW:
+		case SHCNF_PRINTERW:
+			PyWinObject_FreeWCHAR((WCHAR *)p1);
+			PyWinObject_FreeWCHAR((WCHAR *)p2);
+			break;
+		default:
+			break;
 		}
-		p1 = (void *)pidl1;
-		p2 = (void *)pidl2;
-	} else if ((flags & SHCNF_PATH) || (flags & SHCNF_PRINTER)) {
-		if (!PyString_Check(ob1) || !(ob2==Py_None || PyString_Check(ob2))) {
-			PyErr_SetString(PyExc_TypeError, "SHCNF_PATH/PRINTER is set - items must be strings");
-			return NULL;
-		}
-		p1 = (void *)PyString_AsString(ob1);
-		p2 = (void *)(ob2==Py_None ? NULL : PyString_AsString(ob2));
-	} else {
-		return PyErr_Format(PyExc_ValueError, "unknown data flags 0x%x", flags);
-	}
-	PY_INTERFACE_PRECALL;
-	SHChangeNotify(wEventID, flags, p1, p2);
-	PY_INTERFACE_POSTCALL;
-	if (flags & SHCNF_IDLIST) {
-		PyObject_FreePIDL((ITEMIDLIST *)p1);
-		PyObject_FreePIDL((ITEMIDLIST *)p2);
-	}
-	Py_INCREF(Py_None);
-	return Py_None;
+	return ret;
 }
 
 // @pymethod int|shell|SHChangeNotifyRegister|Registers a window that receives notifications from the file system or shell.
@@ -2176,6 +2240,11 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	// IID_ICopyHook doesn't exist - hack it up
 	{ &IID_IShellCopyHook, "IShellCopyHook", "IID_IShellCopyHook", &PyICopyHook::type, GET_PYGATEWAY_CTOR(PyGCopyHook) },
 	{ &IID_IShellCopyHook, "ICopyHook", "IID_ICopyHook", NULL, NULL  },
+	PYCOM_INTERFACE_CLIENT_ONLY(ShellLinkDataList),
+	PYCOM_INTERFACE_CLIENT_ONLY(UniformResourceLocator),
+	PYCOM_INTERFACE_CLIENT_ONLY (ActiveDesktop),
+	PYCOM_INTERFACE_CLIENT_ONLY (ActiveDesktopP),
+	PYCOM_INTERFACE_CLIENT_ONLY (ADesktopP2),
 };
 
 static int AddConstant(PyObject *dict, const char *key, long value)
@@ -2285,6 +2354,8 @@ extern "C" __declspec(dllexport) void initshell()
 
 	ADD_IID(CGID_Explorer);
 	ADD_IID(CGID_ShellDocView);
+	ADD_IID(CLSID_InternetShortcut);
+	ADD_IID(CLSID_ActiveDesktop);
 
 #if (_WIN32_IE >= 0x0400)
 	ADD_IID(CGID_ShellServiceObject);

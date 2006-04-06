@@ -1,13 +1,13 @@
 // shell_pch.h : header file for PCH generation for the shell COM extension
 
 #define _WIN32_IE 0x0601
-
 #include <windows.h>
 #include <oleauto.h>
 #include <ocidl.h> // Used to be <multinfo.h>
 #include <Python.h>
 #include <PythonCOM.h>
 #include <PythonCOMServer.h>
+#include <wininet.h>
 #include <shlobj.h>
 
 BOOL PyObject_AsPIDL(PyObject *ob, LPITEMIDLIST *ppidl, BOOL bNoneOK = FALSE, UINT *pcb = NULL);
