@@ -122,16 +122,16 @@ BOOL PyWinObject_AsCOMPONENT(PyObject *ob, COMPONENT *component)
 	PyObject *obFriendlyName, *obSource, *obSubscribedURL;
 	WCHAR *FriendlyName=NULL, *Source=NULL, *SubscribedURL=NULL;
 	bool bsuccess=PyArg_ParseTupleAndKeywords(dummy_args, ob, "kiiiiO&OOOkO&O&|k:COMPONENT", COMPONENT_keywords,
-		&component->dwID,		// @prop int|ID|
-		&component->iComponentType,		// @prop int|ComponentType|
-		&component->fChecked,	// @prop bool|Checked|
-		&component->fDirty,		// @prop bool|fDirty|
-		&component->fNoScroll,	// @prop bool|NoScroll|
-		PyWinObject_AsCOMPPOS, &component->cpPos,	// @prop dict|Pos|<o COMPPOS> dictionary
-		&obFriendlyName,		// @prop <o PyUNICODE>|FriendlyName|String of at most MAX_PATH characters, truncated if longer
-		&obSource,				// @prop <o PyUNICODE>|Source|String of at most INTERNET_MAX_URL_LENGTH characters
-		&obSubscribedURL,		// @prop <o PyUNICODE>|SubscribedURL|String of at most INTERNET_MAX_URL_LENGTH characters
-		&component->dwCurItemState,	// @prop int|CurItemState|
+		&component->dwID,		// @prop int|ID|Id of component, ignored when adding a new component
+		&component->iComponentType,		// @prop int|ComponentType|One of shellcon.COMP_TYPE_* values
+		&component->fChecked,	// @prop bool|Checked|True indicates item is currently displayed
+		&component->fDirty,		// @prop bool|fDirty|Indicates if unsaved changes exist
+		&component->fNoScroll,	// @prop bool|NoScroll|True disables scrolling
+		PyWinObject_AsCOMPPOS, &component->cpPos,	// @prop dict|Pos|<o COMPPOS> dictionary determining window size and placement
+		&obFriendlyName,		// @prop <o PyUNICODE>|FriendlyName|String of at most MAX_PATH-1 characters, truncated if longer
+		&obSource,				// @prop <o PyUNICODE>|Source|String of at most INTERNET_MAX_URL_LENGTH-1 characters
+		&obSubscribedURL,		// @prop <o PyUNICODE>|SubscribedURL|String of at most INTERNET_MAX_URL_LENGTH-1 characters
+		&component->dwCurItemState,	// @prop int|CurItemState|One of shellcon.IS_* flags
 		PyWinObject_AsCOMPSTATEINFO, &component->csiOriginal,	// @prop dict|Original|<o COMPSTATEINFO> dictionary
 		PyWinObject_AsCOMPSTATEINFO, &component->csiRestored,	// @prop dict|Restored|<o COMPSTATEINFO> dictionary
 		&component->dwSize)	// @prop int|Size|Size of structure, ignored on input
@@ -139,9 +139,9 @@ BOOL PyWinObject_AsCOMPONENT(PyObject *ob, COMPONENT *component)
 		&& PyWinObject_AsWCHAR(obSource, &Source, FALSE)
 		&& PyWinObject_AsWCHAR(obSubscribedURL, &SubscribedURL, FALSE);
 	if (bsuccess){
-		wcsncpy(component->wszFriendlyName, FriendlyName, MAX_PATH);
-		wcsncpy(component->wszSource, Source, INTERNET_MAX_URL_LENGTH);
-		wcsncpy(component->wszSubscribedURL, SubscribedURL, INTERNET_MAX_URL_LENGTH);
+		wcsncpy(component->wszFriendlyName, FriendlyName, MAX_PATH-1);
+		wcsncpy(component->wszSource, Source, INTERNET_MAX_URL_LENGTH-1);
+		wcsncpy(component->wszSubscribedURL, SubscribedURL, INTERNET_MAX_URL_LENGTH-1);
 		}
 	component->dwSize=sizeof(COMPONENT);
 	PyWinObject_FreeWCHAR(FriendlyName);
