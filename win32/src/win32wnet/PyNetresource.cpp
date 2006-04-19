@@ -30,7 +30,6 @@
 #endif
 
 #include <windows.h>
-#include "atlbase.h"	// for UNICODE conversion macros
 #include "Python.h"
 #include "PyWinTypes.h"
 #include "netres.h"			// C++ header file for NETRESOURCE object
@@ -192,22 +191,20 @@ PyNETRESOURCE::~PyNETRESOURCE(void)
 
 PyObject *PyNETRESOURCE::getattr(PyObject *self, char *name)
 {
-	USES_CONVERSION;
-
 #ifdef UNICODE
 	PyNETRESOURCE *This = (PyNETRESOURCE *)self;
 
 	if (strcmp(name, "lpProvider") == 0)
-		return(PyString_FromString(T2A(This->m_nr.lpProvider)));
+		return PyWinObject_FromWCHAR(This->m_nr.lpProvider);
 	else if
 		(strcmp(name, "lpRemoteName") == 0)
-		return(PyString_FromString(T2A(This->m_nr.lpRemoteName)));
+		return PyWinObject_FromWCHAR(This->m_nr.lpRemoteName);
 	else if
 		(strcmp(name, "lpLocalName") == 0)
-		return(PyString_FromString(T2A(This->m_nr.lpLocalName)));
+		return PyWinObject_FromWCHAR(This->m_nr.lpLocalName);
 	else if
 		(strcmp(name, "lpComment") == 0)
-		return(PyString_FromString(T2A(This->m_nr.lpComment)));
+		return PyWinObject_FromWCHAR(This->m_nr.lpComment);
 	else
 #endif
 	return PyMember_Get((char *)self, memberlist, name);
@@ -217,8 +214,6 @@ PyObject *PyNETRESOURCE::getattr(PyObject *self, char *name)
 
 int PyNETRESOURCE::setattr(PyObject *self, char *name, PyObject *v)
 {
-	USES_CONVERSION;
-
 	PyNETRESOURCE *This = (PyNETRESOURCE *)self;
 
 	if (v == NULL) {
@@ -230,43 +225,45 @@ int PyNETRESOURCE::setattr(PyObject *self, char *name, PyObject *v)
 
 	if (PyString_Check(v))
 	{
+		int ret;
+		TCHAR *value;
+		if (!PyWinObject_AsTCHAR(v, &value, FALSE))
+			return -1;
 		if (strcmp (name, "lpProvider") == 0)
 		{
-		_tcsncpy(This->szProv, A2T(PyString_AsString(v)), MAX_NAME);	// no overflow allowed!
-		This->szProv[MAX_NAME-1] = _T('\0');				// make sure NULL terminated!
-		return 0;
+			_tcsncpy(This->szProv, value, MAX_NAME);	// no overflow allowed!
+			This->szProv[MAX_NAME-1] = _T('\0');				// make sure NULL terminated!
+			ret = 0;
 		}
 		else
 		if (strcmp(name, "lpRemoteName") == 0)
 		{
-			_tcsncpy(This->szRName, A2T(PyString_AsString(v)), MAX_NAME);
+			_tcsncpy(This->szRName, value, MAX_NAME);
 			This->szRName[MAX_NAME-1] = _T('\0');
-			return 0;
+			ret = 0;
 		}
 		else
 		if (strcmp(name, "lpLocalName") == 0)
 		{
-			_tcsncpy(This->szLName, A2T(PyString_AsString(v)), MAX_NAME);
+			_tcsncpy(This->szLName, value, MAX_NAME);
 			This->szLName[MAX_NAME-1] = _T('\0');
-			return 0;
+			ret = 0;
 		}
 		else
 		if (strcmp(name, "lpComment") == 0)
 		{
-			_tcsncpy(This->szComment, A2T(PyString_AsString(v)), MAX_COMMENT);
+			_tcsncpy(This->szComment, value, MAX_COMMENT);
 			This->szComment[MAX_COMMENT-1] = _T('\0');
-			return 0;
+			ret = 0;
 		}
 		else
 		{
 			PyErr_SetString(PyExc_AttributeError, "The attribute is not a PyNETRESOURCE string");
-			return -1;
+			ret = -1;
 		}
-
-
+		PyWinObject_FreeTCHAR(value);
+		return ret;
 	} // PyString_Check
-
-
 
 	return PyMember_Set((char *)self, memberlist, name, v);
 }

@@ -20,7 +20,7 @@
 #ifndef _NTRES
 #define _NTRES
 #endif
-// including .cpp file must have already included atlbase.h
+
 #include "structmember.h"
 
 #define MAX_COMMENT	256 * sizeof(TCHAR)
