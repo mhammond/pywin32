@@ -118,12 +118,16 @@ STDMETHODIMP PyGatewayBase::QueryInterface(
 	void ** ppv
 	)
 {
+
 #ifdef DEBUG_FULL
 	{
-		USES_CONVERSION;
+		PY_GATEWAY_METHOD;	// apparently you have to have the thread lock to call the debug print function
 		OLECHAR oleRes[128];
+		char cRes[256];
 		StringFromGUID2(iid, oleRes, sizeof(oleRes));
-		LogF("PyGatewayBase::QueryInterface: %s", OLE2T(oleRes));
+		// Only for a special debug build, don't worry about error checking
+		WideCharToMultiByte(CP_ACP, 0, oleRes, -1, cRes, 256, NULL, NULL);
+		LogF("PyGatewayBase::QueryInterface: %s", cRes);
 	}
 #endif
 

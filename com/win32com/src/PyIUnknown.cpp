@@ -46,8 +46,7 @@ PyObject * PyIUnknown::repr()
 #ifdef _DEBUG
 	int numInMap = m_obTrackList ? PyMapping_Length(m_obTrackList) : 0;
 	LogF("Cleaning up %d COM objects...", numInMap);
-	USES_CONVERSION;
-	OLECHAR FAR *pythonOb = A2OLE("pythonObject");
+	OLECHAR FAR *pythonOb = L"pythonObject";
 #endif
 	if (m_obTrackList) {
 		AllocThreadState();
