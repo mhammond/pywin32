@@ -1231,7 +1231,17 @@ com_extensions += [
                         %(shell)s/shell.cpp
 
                         """ % dirs).split()),
-    WinExt_win32com('taskscheduler', libraries='mstask'),
+
+    WinExt_win32com('taskscheduler', libraries='mstask',
+                    sources=("""
+                        %(taskscheduler)s/taskscheduler.cpp
+                        %(taskscheduler)s/PyIProvideTaskPage.cpp
+                        %(taskscheduler)s/PyIScheduledWorkItem.cpp
+                        %(taskscheduler)s/PyITask.cpp
+                        %(taskscheduler)s/PyITaskScheduler.cpp
+                        %(taskscheduler)s/PyITaskTrigger.cpp
+
+                        """ % dirs).split()),
     WinExt_win32com('ifilter', libraries='ntquery'),
     WinExt_win32com('directsound', pch_header='directsound_pch.h',
                     optional_headers = ['dsound.h'],
