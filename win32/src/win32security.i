@@ -1267,10 +1267,10 @@ BOOLAPI OpenProcessToken(
 	PyHANDLE *OUTPUT
 );
 
-// @pyswig <o LARGE_INTEGER>|LookupPrivilegeValue|
+// @pyswig <o LARGE_INTEGER>|LookupPrivilegeValue|Retrieves the locally unique id for a privilege name
 BOOLAPI LookupPrivilegeValue(
-	TCHAR *INPUT_NULLOK, // @pyparm string|systemName||String specifying the system
-	TCHAR *lpName, // @pyparm string|privilegeName||String specifying the privilege
+	TCHAR *INPUT_NULLOK, // @pyparm string|systemName||String specifying the system, use None for local machine
+	TCHAR *lpName, // @pyparm string|privilegeName||String specifying the privilege (win32security.SE_*_NAME)
 	LUID *OUTPUT 
 ); 
  
@@ -1283,13 +1283,13 @@ PyObject *LookupPrivilegeName(PyObject *self, PyObject *args)
 	PyObject *obsystem_name = NULL;
 	PyObject *obluid = NULL;
 	PyObject *ret = NULL;
-    LUID priv_value;           // @pyparm int|luid||64 bit value representing a privilege
+	LUID priv_value;
 
 	DWORD origbufsize = 6;
 	DWORD bufsize = 0;
 	if (!PyArg_ParseTuple(args, "OO:LookupPrivilegeName", 
-		&obsystem_name, // @pyparm string/<o PyUnicode>|obsystem_name||System name, local system assumed if not specified
-		&obluid))  // @pyparm LARGE_INTEGER|LUID||64 bit value representing a privilege
+		&obsystem_name, // @pyparm string/<o PyUnicode>|SystemName||System name, local system assumed if not specified
+		&obluid))  // @pyparm LARGE_INTEGER|luid||64 bit value representing a privilege
 		return NULL;
 	TCHAR *system_name = NULL;
 	TCHAR *priv_name = NULL;
@@ -1338,7 +1338,7 @@ PyObject *LookupPrivilegeName(PyObject *self, PyObject *args)
 %}
 
 
-// @pyswig <o PyUnicode>|LookupPrivilegeDisplayName|returns long description for a privilege LUID
+// @pyswig <o PyUnicode>|LookupPrivilegeDisplayName|Returns long description for a privilege name
 %native(LookupPrivilegeDisplayName) LookupPrivilegeDisplayName;
 %{
 PyObject *LookupPrivilegeDisplayName(PyObject *self, PyObject *args)
@@ -1350,8 +1350,8 @@ PyObject *LookupPrivilegeDisplayName(PyObject *self, PyObject *args)
 	DWORD origbufsize = 6, bufsize = 0;
 	DWORD language_id = 0;
 	if (!PyArg_ParseTuple(args, "OO:LookupPrivilegeDisplayName", 
-		&obsystem_name, // @pyparm string/<o PyUnicode>|obsystem_name||System name, local system assumed if not specified
-		&obpriv_name))  // @pyparm string/<o PyUnicode>|obpriv_name||Name of privilege, Se...Privilege string constants
+		&obsystem_name, // @pyparm string/<o PyUnicode>|SystemName||System name, local system assumed if not specified
+		&obpriv_name))  // @pyparm string/<o PyUnicode>|Name||Name of privilege, Se...Privilege string constants (win32security.SE_*_NAME)
 		return NULL;
 
 	TCHAR *system_name = NULL;
