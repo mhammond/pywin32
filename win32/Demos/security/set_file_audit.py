@@ -1,47 +1,58 @@
-fname=r'h:\tmp.txt'
-import win32security,win32file,win32api,ntsecuritycon,win32con
+import win32security,win32file,win32api,ntsecuritycon,win32con, os
+from win32security import ACL_REVISION_DS, CONTAINER_INHERIT_ACE, OBJECT_INHERIT_ACE, \
+     PROTECTED_DACL_SECURITY_INFORMATION, DACL_SECURITY_INFORMATION, SACL_SECURITY_INFORMATION, \
+     OWNER_SECURITY_INFORMATION, GROUP_SECURITY_INFORMATION, SE_FILE_OBJECT
 
+## SE_SECURITY_NAME needed to access SACL, SE_RESTORE_NAME needed to change owner to someone other than yourself
 new_privs = ((win32security.LookupPrivilegeValue('',ntsecuritycon.SE_SECURITY_NAME),win32con.SE_PRIVILEGE_ENABLED),
-             (win32security.LookupPrivilegeValue('',ntsecuritycon.SE_SHUTDOWN_NAME),win32con.SE_PRIVILEGE_ENABLED),
              (win32security.LookupPrivilegeValue('',ntsecuritycon.SE_RESTORE_NAME),win32con.SE_PRIVILEGE_ENABLED),
-             (win32security.LookupPrivilegeValue('',ntsecuritycon.SE_TAKE_OWNERSHIP_NAME),win32con.SE_PRIVILEGE_ENABLED),
-             (win32security.LookupPrivilegeValue('',ntsecuritycon.SE_CREATE_PERMANENT_NAME),win32con.SE_PRIVILEGE_ENABLED),
-             (win32security.LookupPrivilegeValue('','SeEnableDelegationPrivilege'),win32con.SE_PRIVILEGE_ENABLED) ##doesn't seem to be in ntsecuritycon.py ?
             )
-
 ph = win32api.GetCurrentProcess()
 th = win32security.OpenProcessToken(ph,win32security.TOKEN_ALL_ACCESS|win32con.TOKEN_ADJUST_PRIVILEGES)
-win32security.AdjustTokenPrivileges(th,0,new_privs)
+modified_privs=win32security.AdjustTokenPrivileges(th,0,new_privs)
 
-all_security_info = \
-    win32security.OWNER_SECURITY_INFORMATION|win32security.GROUP_SECURITY_INFORMATION| \
-    win32security.DACL_SECURITY_INFORMATION|win32security.SACL_SECURITY_INFORMATION
-
-sd=win32security.GetFileSecurity(fname,all_security_info)
-old_dacl=sd.GetSecurityDescriptorDacl()
-old_sacl=sd.GetSecurityDescriptorSacl()
-old_group=sd.GetSecurityDescriptorGroup()
-
-if old_dacl==None:
-    old_dacl=win32security.ACL()
-if old_sacl==None:
-    old_sacl=win32security.ACL()
-
-new_sd=win32security.SECURITY_DESCRIPTOR()
-
+## look up a few sids that should be available on most systems
 my_sid = win32security.GetTokenInformation(th,ntsecuritycon.TokenUser)[0]
-tmp_sid = win32security.LookupAccountName('','tmp')[0]
 pwr_sid = win32security.LookupAccountName('','Power Users')[0]
+admin_sid = win32security.LookupAccountName('','Administrators')[0]
+everyone_sid=win32security.LookupAccountName('','EveryOne')[0]
 
-old_dacl.AddAccessDeniedAce(old_dacl.GetAclRevision(),win32con.GENERIC_ALL,pwr_sid)
-old_dacl.AddAccessAllowedAce(old_dacl.GetAclRevision(),win32con.GENERIC_ALL,my_sid)
-old_dacl.AddAccessAllowedAce(old_dacl.GetAclRevision(),win32con.GENERIC_ALL,pwr_sid)
-old_sacl.AddAuditAccessAce(old_dacl.GetAclRevision(),win32con.GENERIC_ALL,tmp_sid,1,1)
+## create a dir and set security so Everyone has read permissions, and all files and subdirs inherit its ACLs
+temp_dir=win32api.GetTempPath()
+dir_name=win32api.GetTempFileName(temp_dir,'sfa')[0]
+os.remove(dir_name)
+os.mkdir(dir_name)
+dir_dacl=win32security.ACL()
+dir_dacl.AddAccessAllowedAceEx(ACL_REVISION_DS, CONTAINER_INHERIT_ACE|OBJECT_INHERIT_ACE, win32con.GENERIC_READ, everyone_sid)
+## make sure current user has permissions on dir
+dir_dacl.AddAccessAllowedAceEx(ACL_REVISION_DS, CONTAINER_INHERIT_ACE|OBJECT_INHERIT_ACE, win32con.GENERIC_ALL, my_sid)
+## keep dir from inheriting any permissions so it only has ACEs explicitely set here
+win32security.SetNamedSecurityInfo(dir_name, SE_FILE_OBJECT,
+    OWNER_SECURITY_INFORMATION|GROUP_SECURITY_INFORMATION|DACL_SECURITY_INFORMATION|PROTECTED_DACL_SECURITY_INFORMATION,
+    pwr_sid, pwr_sid, dir_dacl, None)
 
-new_sd.SetSecurityDescriptorOwner(tmp_sid,0)
-new_sd.SetSecurityDescriptorGroup(old_group,0)
+## Create a file in the dir and add some specific permissions to it
+fname=win32api.GetTempFileName(dir_name,'sfa')[0]
+print fname
+file_sd=win32security.GetNamedSecurityInfo(fname, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION|SACL_SECURITY_INFORMATION)
+file_dacl=file_sd.GetSecurityDescriptorDacl()
+file_sacl=file_sd.GetSecurityDescriptorSacl()
 
-new_sd.SetSecurityDescriptorSacl(1,old_sacl,1)
-new_sd.SetSecurityDescriptorDacl(1,old_dacl,1)
+if file_dacl is None:
+    file_dacl=win32security.ACL()
+if file_sacl is None:
+    file_sacl=win32security.ACL()
 
-win32security.SetFileSecurity(fname,all_security_info,new_sd)
+file_dacl.AddAccessDeniedAce(file_dacl.GetAclRevision(),win32con.DELETE,admin_sid)
+file_dacl.AddAccessDeniedAce(file_dacl.GetAclRevision(),win32con.DELETE,my_sid)
+file_dacl.AddAccessAllowedAce(file_dacl.GetAclRevision(),win32con.GENERIC_ALL,pwr_sid)
+file_sacl.AddAuditAccessAce(file_dacl.GetAclRevision(),win32con.GENERIC_ALL,my_sid,True,True)
+
+win32security.SetNamedSecurityInfo(fname, SE_FILE_OBJECT,
+    DACL_SECURITY_INFORMATION|SACL_SECURITY_INFORMATION,
+    None, None, file_dacl, file_sacl)
+    
+win32security.AdjustTokenPrivileges(th, 0, modified_privs)
+
+
+
