@@ -17,54 +17,94 @@ struct PyMethodDef PyDEVMODE::methods[] = {
 #define OFF(e) offsetof(PyDEVMODE, e)
 struct PyMemberDef PyDEVMODE::members[] = {
 	// DeviceName is a dummy so it will show up in property list, get and set handle manually
-	{"DeviceName",		T_OBJECT, OFF(obdummy), 0, "String of at most 32 chars"}, 
+	// @prop str|DeviceName|String of at most 32 chars
+	{"DeviceName",		T_OBJECT, OFF(obdummy), 0, "String of at most 32 chars"},
+	// @prop int|SpecVersion|Should always be set to DM_SPECVERSION
 	{"SpecVersion", 	T_USHORT, OFF(devmode.dmSpecVersion), 0, "Should always be set to DM_SPECVERSION"},
-	{"DriverVersion", 	T_USHORT, OFF(devmode.dmDriverVersion), 0, ""},
+	// @prop int|DriverVersion|Version nbr assigned to printer driver by vendor
+	{"DriverVersion", 	T_USHORT, OFF(devmode.dmDriverVersion), 0, "Version nbr assigned to printer driver by vendor"},
+	// @prop int|Size|Size of structure
 	{"Size",	 		T_USHORT, OFF(devmode.dmSize), READONLY, "Size of structure"},
+	// @prop int|DriverExtra|Number of extra bytes allocated for driver data, can only be set when new object is created
 	{"DriverExtra", 	T_USHORT, OFF(devmode.dmDriverExtra), READONLY, 
 		"Number of extra bytes allocated for driver data, can only be set when new object is created"},
-	{"Fields",			T_ULONG,  OFF(devmode.dmFields), 0, "Bitmask of DM_* constants indicating which members are set"},
+	// @prop int|Fields|Bitmask of win32con.DM_* constants indicating which members are set
+	{"Fields",			T_ULONG,  OFF(devmode.dmFields), 0, "Bitmask of win32con.DM_* constants indicating which members are set"},
+	// @prop int|Orientation|Only applies to printers, DMORIENT_PORTRAIT or DMORIENT_LANDSCAPE
 	{"Orientation", 	T_SHORT,  OFF(devmode.dmOrientation), 0, "Only applies to printers, DMORIENT_PORTRAIT or DMORIENT_LANDSCAPE"},
-	{"PaperSize", 		T_SHORT,  OFF(devmode.dmPaperSize), 0, "Use 0 if PaperWidth and PaperLength are set, otherwise DMPAPER_* constant"},
+	// @prop int|PaperSize|Use 0 if PaperWidth and PaperLength are set, otherwise win32con.DMPAPER_* constant
+	{"PaperSize", 		T_SHORT,  OFF(devmode.dmPaperSize), 0, "Use 0 if PaperWidth and PaperLength are set, otherwise win32con.DMPAPER_* constant"},
+	// @prop int|PaperLength|Specified in 1/10 millimeters
 	{"PaperLength", 	T_SHORT,  OFF(devmode.dmPaperLength), 0, "Specified in 1/10 millimeters"},
+	// @prop int|PaperWidth|Specified in 1/10 millimeters
 	{"PaperWidth", 		T_SHORT,  OFF(devmode.dmPaperWidth), 0, "Specified in 1/10 millimeters"},
 #ifndef MS_WINCE
+	// @prop int|Position_x|Position of display relative to desktop
 	{"Position_x", 		T_LONG,   OFF(devmode.dmPosition.x), 0, "Position of display relative to desktop"},
+	// @prop int|Position_y|Position of display relative to desktop
 	{"Position_y", 		T_LONG,   OFF(devmode.dmPosition.y), 0, "Position of display relative to desktop"},
 #endif
-	// {"DisplayOrientation",T_ULONG,OFF(devmode.dmDisplayOrientation), 0, "Display rotation: DMDO_DEFAULT,DMDO_90, DMDO_180, DMDO_270"},
-	// {"DisplayFixedOutput",T_ULONG,OFF(devmode.dmDisplayFixedOutput), 0, "DMDFO_DEFAULT, DMDFO_CENTER, DMDFO_STRETCH"}, 
+	// @prop int|DisplayOrientation|Display rotation: DMDO_DEFAULT,DMDO_90, DMDO_180, DMDO_270
+	{"DisplayOrientation",T_ULONG,OFF(devmode.dmDisplayOrientation), 0, "Display rotation: DMDO_DEFAULT,DMDO_90, DMDO_180, DMDO_270"},
+	// @prop int|DisplayFixedOutput|DMDFO_DEFAULT, DMDFO_CENTER, DMDFO_STRETCH
+	{"DisplayFixedOutput",T_ULONG,OFF(devmode.dmDisplayFixedOutput), 0, "DMDFO_DEFAULT, DMDFO_CENTER, DMDFO_STRETCH"}, 
+	// @prop int|Scale|Specified as percentage, eg 50 means half size of original
 	{"Scale",			T_SHORT,  OFF(devmode.dmScale), 0, "Specified as percentage, eg 50 means half size of original"},
-	{"Copies",			T_SHORT,  OFF(devmode.dmCopies), 0, ""},
+	// @prop int|Copies|Nbr of copies to print
+	{"Copies",			T_SHORT,  OFF(devmode.dmCopies), 0, "Nbr of copies to print"},
+	// @prop int|DefaultSource|DMBIN_* constant, or can be a printer-specific value
 	{"DefaultSource",	T_SHORT,  OFF(devmode.dmDefaultSource), 0, "DMBIN_* constant, or can be a printer-specific value"},
+	// @prop int|PrintQuality|DMRES_* constant, interpreted as DPI if positive
 	{"PrintQuality",	T_SHORT,  OFF(devmode.dmPrintQuality), 0, "DMRES_* constant, interpreted as DPI if positive"},
+	// @prop int|Color|DMCOLOR_COLOR or DMCOLOR_MONOCHROME
 	{"Color",			T_SHORT,  OFF(devmode.dmColor), 0, "DMCOLOR_COLOR or DMCOLOR_MONOCHROME"},
+	// @prop int|Duplex|For printers that do two-sided printing: DMDUP_SIMPLEX, DMDUP_HORIZONTAL, DMDUP_VERTICAL
 	{"Duplex",			T_SHORT,  OFF(devmode.dmDuplex), 0, "For printers that do two-sided printing: DMDUP_SIMPLEX, DMDUP_HORIZONTAL, DMDUP_VERTICAL"},
+	// @prop int|YResolution|Vertical printer resolution in DPI - if this is set, PrintQuality indicates horizontal DPI
 	{"YResolution", 	T_SHORT,  OFF(devmode.dmYResolution), 0, "Vertical printer resolution in DPI - if this is set, PrintQuality indicates horizontal DPI"},
+	// @prop int|TTOption|TrueType options: DMTT_BITMAP, DMTT_DOWNLOAD, DMTT_DOWNLOAD_OUTLINE, DMTT_SUBDEV
 	{"TTOption", 		T_SHORT,  OFF(devmode.dmTTOption), 0, "TrueType options: DMTT_BITMAP, DMTT_DOWNLOAD, DMTT_DOWNLOAD_OUTLINE, DMTT_SUBDEV"},
-	{"Collate", 		T_SHORT,   OFF(devmode.dmCollate), 0, "DMCOLLATE_TRUE or DMCOLLATE_FLASE"},
-	{"FormName",		T_OBJECT,  OFF(obdummy), 0, "String of at most 32 chars"},  // same semantics as DeviceName
+	// @prop int|Collate|DMCOLLATE_TRUE or DMCOLLATE_FALSE
+	{"Collate", 		T_SHORT,   OFF(devmode.dmCollate), 0, "DMCOLLATE_TRUE or DMCOLLATE_FALSE"},
+	// @prop str|FormName|Name of form as returned by <om win32print.EnumForms>, at most 32 chars
+	{"FormName",		T_OBJECT,  OFF(obdummy), 0, "Name of form as returned by EnumForms, at most 32 chars"},  // same semantics as DeviceName
+	// @prop int|LogPixels|Pixels per inch (only for display devices
 	{"LogPixels", 		T_USHORT,  OFF(devmode.dmLogPixels), 0, "Pixels per inch (only for display devices)"},
+	// @prop int|BitsPerPel|Color resolution in bits per pixel
 	{"BitsPerPel", 		T_ULONG,   OFF(devmode.dmBitsPerPel), 0, "Color resolution in bits per pixel"},
+	// @prop int|PelsWidth|Pixel width of display
 	{"PelsWidth", 		T_ULONG,   OFF(devmode.dmPelsWidth), 0, "Pixel width of display"},
+	// @prop int|PelsHeight|Pixel height of display
 	{"PelsHeight", 		T_ULONG,   OFF(devmode.dmPelsHeight), 0, "Pixel height of display"},
+	// @prop int|DisplayFlags|Combination of DM_GRAYSCALE and DM_INTERLACED
 	{"DisplayFlags", 	T_ULONG,   OFF(devmode.dmDisplayFlags), 0, "Combination of DM_GRAYSCALE and DM_INTERLACED"},
+	// @prop int|DisplayFrequency|Refresh rate
 	{"DisplayFrequency",T_ULONG,   OFF(devmode.dmDisplayFrequency), 0, "Refresh rate"},
 #ifdef MS_WINCE
+	// @prop int|DisplayOrientation|Display rotation: DMDO_DEFAULT,DMDO_90, DMDO_180, DMDO_270
 	{"DisplayOrientation",T_ULONG,OFF(devmode.dmDisplayOrientation), 0, "Display rotation: DMDO_DEFAULT,DMDO_90, DMDO_180, DMDO_270"},
 #else
-	{"ICMMethod",		T_ULONG,   OFF(devmode.dmICMMethod), 0, ""},
-	{"ICMIntent",		T_ULONG,   OFF(devmode.dmICMIntent), 0, ""},
-	{"MediaType",		T_ULONG,   OFF(devmode.dmMediaType), 0, ""},
-	{"DitherType",		T_ULONG,   OFF(devmode.dmDitherType), 0, ""},
-	{"Reserved1",		T_ULONG,   OFF(devmode.dmReserved1), 0, ""},
-	{"Reserved2",		T_ULONG,   OFF(devmode.dmReserved2), 0, ""},
+	// @prop int|ICMMethod|Indicates where ICM is performed, one of win32con.DMICMMETHOD_* values
+	{"ICMMethod",		T_ULONG,   OFF(devmode.dmICMMethod), 0, "Indicates where ICM is performed, one of win32con.DMICMMETHOD_* values"},
+	// @prop int|ICMIntent|Intent of ICM, one of win32con.DMICM_* values
+	{"ICMIntent",		T_ULONG,   OFF(devmode.dmICMIntent), 0, "Intent of ICM, one of win32con.DMICM_* values"},
+	// @prop int|MediaType|win32con.DMMEDIA_*, can also be a printer-specific value greater then DMMEDIA_USER
+	{"MediaType",		T_ULONG,   OFF(devmode.dmMediaType), 0, "win32con.DMMEDIA_*, can also be a printer-specific value greater then DMMEDIA_USER"},
+	// @prop int|DitherType|Dithering option, win32con.DMDITHER_*
+	{"DitherType",		T_ULONG,   OFF(devmode.dmDitherType), 0, "Dithering options, win32con.DMDITHER_*"},
+	// @prop int|Reserved1|Reserved, use only 0
+	{"Reserved1",		T_ULONG,   OFF(devmode.dmReserved1), 0, "Reserved, use only 0"},
+	// @prop int|Reserved2|Reserved, use only 0
+	{"Reserved2",		T_ULONG,   OFF(devmode.dmReserved2), 0, "Reserved, use only 0"},
+	// @prop str|DriverData|Driver data appended to end of structure
 	{"DriverData",		T_OBJECT,  OFF(obdummy), 0, "Driver data appended to end of structure"},
 #if WINVER >= 0x0500
-	{"Nup",				T_ULONG,   OFF(devmode.dmNup), 0, "DMNUP_SYSTEM or DMNUP_ONEUP"}, // wtf is a "Nup"?
-	{"PanningWidth",	T_ULONG,   OFF(devmode.dmPanningWidth), 0, ""},
-	{"PanningHeight",	T_ULONG,   OFF(devmode.dmPanningHeight), 0, ""},
-	{"DriverData",		T_OBJECT,  OFF(obdummy), 0, "Driver data appended to end of structure"},
+	// @prop int|Nup|Controls printing of multiple logical pages per physical page, DMNUP_SYSTEM or DMNUP_ONEUP
+	{"Nup",				T_ULONG,   OFF(devmode.dmNup), 0, "Controls printing of multiple logical pages per physical page, DMNUP_SYSTEM or DMNUP_ONEUP"},
+	// @prop int|PanningWidth|Not used, leave as 0
+	{"PanningWidth",	T_ULONG,   OFF(devmode.dmPanningWidth), 0, "Not used, leave as 0"},
+	// @prop int|PanningHeight|Not used, leave as 0
+	{"PanningHeight",	T_ULONG,   OFF(devmode.dmPanningHeight), 0, "Not used, leave as 0"},
 #endif	// WINVER >= 0x0500
 #endif	// !MS_WINCE
 	{NULL}
@@ -229,7 +269,7 @@ PyObject *PyDEVMODE::getattro(PyObject *self, PyObject *obname)
 			return Py_None;
 			}
 		else
-			return PyString_FromStringAndSize((char *)((long)pdevmode + pdevmode->dmSize), pdevmode->dmDriverExtra);
+			return PyString_FromStringAndSize((char *)((ULONG_PTR)pdevmode + pdevmode->dmSize), pdevmode->dmDriverExtra);
 
 	return PyObject_GenericGetAttr(self,obname);
 }
@@ -280,7 +320,7 @@ int PyDEVMODE::setattro(PyObject *self, PyObject *obname, PyObject *obvalue)
 			return -1;
 			}
 		// This is not a real struct member, calculate address after end of fixed part of structure
-		char *driverdata=(char *)((long)pdevmode + pdevmode->dmSize); 
+		char *driverdata=(char *)((ULONG_PTR)pdevmode + pdevmode->dmSize); 
 		ZeroMemory(driverdata, pdevmode->dmDriverExtra);
 		memcpy(driverdata, value, valuelen);
 		return 0;
