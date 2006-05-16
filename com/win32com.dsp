@@ -326,6 +326,10 @@ SOURCE=.\win32com\src\extensions\PyIEnumSTATSTG.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32com\src\extensions\PyIEnumString.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32com\src\extensions\PyIEnumVARIANT.cpp
 # End Source File
 # Begin Source File
@@ -499,6 +503,10 @@ SOURCE=.\win32com\src\include\PyIEnumSTATPROPSETSTG.h
 # Begin Source File
 
 SOURCE=.\win32com\src\include\PyIEnumSTATSTG.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32com\src\include\PyIEnumString.h
 # End Source File
 # Begin Source File
 
