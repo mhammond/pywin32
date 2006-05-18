@@ -1688,7 +1688,7 @@ done:
 // @pyswig [(action, filename), ...|FILE_NOTIFY_INFORMATION|Decodes a PyFILE_NOTIFY_INFORMATION buffer.
 PyObject *PyFILE_NOTIFY_INFORMATION(PyObject *self, PyObject *args)
 {
-	// @pyparam string|buffer||The buffer to decode.
+	// @pyparm string|buffer||The buffer to decode.
 	// @pyparm int|size||The number of bytes to refer to.  Generally this
 	// will be smaller than the size of the buffer (and certainly never greater!)
 	// @comm See <om win32file.ReadDirectoryChangesW> for more information.
