@@ -13,7 +13,6 @@ of the Network API.  This is part of the win32net module.
 #include "PyWinTypes.h"
 #include "win32net.h"
 #include "stddef.h"
-#include "atlbase.h"
 
 #define UI0_ENTRY(name, t, r) { _T(#name), t, offsetof(USER_INFO_0, usri0_##name), r }
 #define UI1_ENTRY(name, t, r) { _T(#name), t, offsetof(USER_INFO_1, usri1_##name), r }

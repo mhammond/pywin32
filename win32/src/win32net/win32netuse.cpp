@@ -11,8 +11,6 @@
 #include "win32net.h"
 #include "stddef.h"
 
-#include "atlbase.h"
-
 #define UI0_ENTRY(name, t, r) { _T(#name), t, offsetof(USE_INFO_0, ui0_##name), r }
 // @object PyUSE_INFO_0|A dictionary holding the infomation in a Win32 USE_INFO_0 structure.
 static struct PyNET_STRUCT_ITEM ui0[] = {
