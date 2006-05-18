@@ -69,10 +69,11 @@ class VirtualDirParameters:
     ContentIndexed = _DEFAULT_CONTENT_INDEXED
     EnableDirBrowsing = _DEFAULT_ENABLE_DIR_BROWSING
     EnableDefaultDoc  = _DEFAULT_ENABLE_DEFAULT_DOC
-    ScriptMaps       = []
+    DefaultDoc = None # Only set in IIS if not None
+    ScriptMaps = []
     ScriptMapUpdate = "end" # can be 'start', 'end', 'replace'
     Server = None
-    
+
     def __init__(self, **kw):
         self.__dict__.update(kw)
 
@@ -163,6 +164,7 @@ def FindWebServer(options, server_desc):
     return server
 
 def CreateDirectory(params, options):
+    _CallHook(params, "PreInstall", options)
     if not params.Name:
         raise ConfigurationError, "No Name param"
     slash = params.Name.rfind("/")
@@ -179,7 +181,6 @@ def CreateDirectory(params, options):
         keyType = _IIS_WEBDIR
     else:
         keyType = _IIS_WEBVIRTUALDIR
-    _CallHook(params, "PreInstall", options)
     # We used to go to lengths to keep an existing virtual directory
     # in place.  However, in some cases the existing directories got
     # into a bad state, and an update failed to get them working.
@@ -215,6 +216,8 @@ def CreateDirectory(params, options):
     newDir.ContentIndexed = params.ContentIndexed
     newDir.EnableDirBrowsing = params.EnableDirBrowsing
     newDir.EnableDefaultDoc  = params.EnableDefaultDoc
+    if params.DefaultDoc is not None:
+        newDir.DefaultDoc = params.DefaultDoc
     newDir.SetInfo()
     smp_items = []
     for smp in params.ScriptMaps:
