@@ -584,34 +584,42 @@ PyObject *PyTime::getattr(char *name)
 		PyWin_SetAPIError("VariantTimeToSystemTime");
 		return NULL;
 	}
+	// @prop int|year|
 	if ( !strcmp(name, "year") )
 	{
 		return PyInt_FromLong(st.wYear);
 	}
+	// @prop int|month|
 	else if ( !strcmp(name, "month") )
 	{
 		return PyInt_FromLong(st.wMonth);
 	}
+	// @prop int|weekday|
 	else if ( !strcmp(name, "weekday") )
 	{
 		return PyInt_FromLong(st.wDayOfWeek);
 	}
+	// @prop int|day|
 	else if ( !strcmp(name, "day") )
 	{
 		return PyInt_FromLong(st.wDay);
 	}
+	// @prop int|hour|
 	else if ( !strcmp(name, "hour") )
 	{
 		return PyInt_FromLong(st.wHour);
 	}
+	// @prop int|minute|
 	else if ( !strcmp(name, "minute") )
 	{
 		return PyInt_FromLong(st.wMinute);
 	}
+	// @prop int|second|
 	else if ( !strcmp(name, "second") )
 	{
 		return PyInt_FromLong(st.wSecond);
 	}
+	// @prop int|msec|
 	else if ( !strcmp(name, "msec") )
 	{
 		return PyInt_FromLong(st.wMilliseconds);
