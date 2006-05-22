@@ -34,11 +34,40 @@ generates Windows .hlp files.
 typedef int COMPUTER_NAME_FORMAT;
 #endif
 
-static BOOL (WINAPI *myGetUserNameEx)(EXTENDED_NAME_FORMAT, LPWSTR, PULONG)=NULL;
-static BOOL (WINAPI *myGetComputerNameEx)(COMPUTER_NAME_FORMAT, LPWSTR, LPDWORD)=NULL;
-static BOOL (WINAPI *myGetComputerObjectName)(EXTENDED_NAME_FORMAT, LPWSTR, LPDWORD)=NULL;
-static BOOL (WINAPI *myGetLongPathNameA)(LPCSTR, LPSTR, DWORD)=NULL;
-static BOOL (WINAPI *myGetLongPathNameW)(LPCWSTR, LPWSTR, DWORD)=NULL;
+
+#define CHECK_PFN(fname) if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);
+
+// from kernel32.dll
+typedef BOOL (WINAPI *GetComputerNameExfunc)(COMPUTER_NAME_FORMAT,LPWSTR,PULONG);
+static GetComputerNameExfunc pfnGetComputerNameEx=NULL;
+typedef DWORD (WINAPI *GetLongPathNameAfunc)(LPCSTR, LPSTR, DWORD);
+static GetLongPathNameAfunc pfnGetLongPathNameA =NULL;
+typedef DWORD (WINAPI *GetLongPathNameWfunc)(LPCWSTR, LPWSTR, DWORD);
+static GetLongPathNameWfunc pfnGetLongPathNameW=NULL;
+
+// from user32.dll
+typedef BOOL (WINAPI *EnumDisplayMonitorsfunc)(HDC, LPCRECT,  MONITORENUMPROC, LPARAM);
+static EnumDisplayMonitorsfunc pfnEnumDisplayMonitors=NULL;
+typedef BOOL (WINAPI *EnumDisplayDevicesfunc)(LPCTSTR,DWORD,PDISPLAY_DEVICE,DWORD);
+static EnumDisplayDevicesfunc pfnEnumDisplayDevices=NULL;
+typedef LONG (WINAPI *ChangeDisplaySettingsExfunc)(LPCTSTR,LPDEVMODE,HWND,DWORD,LPVOID);
+static ChangeDisplaySettingsExfunc pfnChangeDisplaySettingsEx=NULL;
+typedef HMONITOR (WINAPI *MonitorFromWindowfunc)(HWND,DWORD);
+static MonitorFromWindowfunc pfnMonitorFromWindow=NULL;
+typedef HMONITOR (WINAPI *MonitorFromRectfunc)(LPCRECT,DWORD);
+static MonitorFromRectfunc pfnMonitorFromRect=NULL;
+typedef HMONITOR (WINAPI *MonitorFromPointfunc)(POINT,DWORD);
+static MonitorFromPointfunc pfnMonitorFromPoint=NULL;
+typedef BOOL (WINAPI *GetMonitorInfofunc)(HMONITOR,LPMONITORINFOEX);
+static GetMonitorInfofunc pfnGetMonitorInfo=NULL;
+typedef BOOL (WINAPI *EnumDisplaySettingsExfunc)(LPCTSTR,DWORD,LPDEVMODE,DWORD);
+static EnumDisplaySettingsExfunc pfnEnumDisplaySettingsEx=NULL;
+
+// from secur32.dll
+typedef BOOLEAN (WINAPI *GetUserNameExfunc)(EXTENDED_NAME_FORMAT,LPWSTR,PULONG);
+static GetUserNameExfunc pfnGetUserNameEx=NULL;
+static GetUserNameExfunc pfnGetComputerObjectName=NULL;
+
 
 /* error helper */
 PyObject *ReturnError(char *msg, char *fnName = NULL)
@@ -762,27 +791,27 @@ PyGetComputerName (PyObject *self, PyObject *args)
 static PyObject *
 PyGetComputerNameEx(PyObject *self, PyObject *args)
 {
-	if (myGetComputerNameEx==NULL)
-		return ReturnError("GetComputerNameEx is not supported on current platform","GetComputerNameEx");
-
+	CHECK_PFN(GetComputerNameEx);
 	WCHAR *formattedname=NULL;
 	COMPUTER_NAME_FORMAT fmt;
 	PyObject *ret = NULL;
 	ULONG nSize=0;
 	BOOL ok;
-	if (!PyArg_ParseTuple (args, "i:GetComputerNameEx", &fmt))
-		return NULL;
 	// @pyseeapi GetComputerNameEx
+	if (!PyArg_ParseTuple (args, "i:GetComputerNameEx",
+		&fmt))	// @pyparm int|NameType||Value from COMPUTER_NAME_FORMAT enum, win32con.ComputerName*
+		return NULL;
+
 	// We always get into trouble with WinXP vs 2k error codes.
 	// Simply assume that if we have a size, the function gave us the correct one.
-	myGetComputerNameEx(fmt,formattedname,&nSize);
+	(*pfnGetComputerNameEx)(fmt,formattedname,&nSize);
 	if (!nSize)
 		return PyWin_SetAPIError("GetComputerNameExW");
 	formattedname=(WCHAR *)malloc(nSize*sizeof(WCHAR));
 	if (!formattedname)
 		return PyErr_NoMemory();
 	PyW32_BEGIN_ALLOW_THREADS
-	ok = (*myGetComputerNameEx)(fmt,formattedname,&nSize);
+	ok = (*pfnGetComputerNameEx)(fmt,formattedname,&nSize);
 	PyW32_END_ALLOW_THREADS
 	if (!ok){
 		PyWin_SetAPIError("GetComputerNameEx");
@@ -799,27 +828,27 @@ PyGetComputerNameEx(PyObject *self, PyObject *args)
 static PyObject *
 PyGetComputerObjectName(PyObject *self, PyObject *args)
 {
-	if (myGetComputerObjectName==NULL)
-		return ReturnError("GetComputerObjectName is not supported on current platform","GetComputerNameEx");
-
+	CHECK_PFN(GetComputerObjectName);
 	WCHAR *formattedname=NULL;
 	EXTENDED_NAME_FORMAT fmt;
 	PyObject *ret = NULL;
 	ULONG nSize=0;
 	BOOL ok;
-	if (!PyArg_ParseTuple (args, "i:GetComputerObjectName", &fmt))
-		return NULL;
 	// @pyseeapi GetComputerObjectName
+	if (!PyArg_ParseTuple (args, "i:GetComputerObjectName", 
+		&fmt))	// @pyparm int|NameFormat||EXTENDED_NAME_FORMAT value, win32con.Name*
+		return NULL;
+
 	// We always get into trouble with WinXP vs 2k error codes.
 	// Simply assume that if we have a size, the function gave us the correct one.
-	myGetComputerObjectName(fmt,formattedname,&nSize);
+	(*pfnGetComputerObjectName)(fmt,formattedname,&nSize);
 	if (!nSize)
 		return PyWin_SetAPIError("GetComputerObjectName");
 	formattedname=(WCHAR *)malloc(nSize*sizeof(WCHAR));
 	if (!formattedname)
 		return PyErr_NoMemory();
 	PyW32_BEGIN_ALLOW_THREADS
-	ok = (*myGetComputerObjectName)(fmt,formattedname,&nSize);
+	ok = (*pfnGetComputerObjectName)(fmt,formattedname,&nSize);
 	PyW32_END_ALLOW_THREADS
 	
 	if (!ok){
@@ -851,27 +880,27 @@ PyGetUserName (PyObject *self, PyObject *args)
 static PyObject *
 PyGetUserNameEx (PyObject *self, PyObject *args)
 {
-	if (myGetUserNameEx==NULL)
-		return ReturnError("GetUserNameEx is not supported on current platform","GetUserNameEx");
-
+	CHECK_PFN(GetUserNameEx);
 	WCHAR *formattedname=NULL;
 	EXTENDED_NAME_FORMAT fmt;
 	PyObject *ret = NULL;
 	ULONG nSize=0;
 	BOOL ok;
-	if (!PyArg_ParseTuple (args, "i:GetUserNameEx", &fmt))
-		return NULL;
 	// @pyseeapi GetUserNameEx
+	if (!PyArg_ParseTuple (args, "i:GetUserNameEx", 
+		&fmt))	// @pyparm int|NameFormat||EXTENDED_NAME_FORMAT value, win32con.Name*
+		return NULL;
+
 	// We always get into trouble with WinXP vs 2k error codes.
 	// Simply assume that if we have a size, the function gave us the correct one.
-	myGetUserNameEx(fmt,formattedname,&nSize);
+	(*pfnGetUserNameEx)(fmt,formattedname,&nSize);
 	if (!nSize)
 		return PyWin_SetAPIError("GetUserNameExW");
 	formattedname=(WCHAR *)malloc(nSize*sizeof(WCHAR));
 	if (!formattedname)
 		return PyErr_NoMemory();
 	PyW32_BEGIN_ALLOW_THREADS
-	ok = (*myGetUserNameEx)(fmt,formattedname,&nSize);
+	ok = (*pfnGetUserNameEx)(fmt,formattedname,&nSize);
 	PyW32_END_ALLOW_THREADS
 	if (!ok){
 		PyWin_SetAPIError("GetUserNameEx");
@@ -1703,40 +1732,61 @@ PyGetShortPathName(PyObject * self, PyObject * args)
 static PyObject *
 PyGetLongPathNameA (PyObject *self, PyObject *args)
 {
-	char pathBuf[MAX_PATH];
-	char *fileName;
-	if (!myGetLongPathNameA)
-		PyErr_SetString(PyExc_NotImplementedError, "GetLongPathNameA does not exist in this version of Windows");
-	// @pyparm string|fileName||The file name.
-	if (!PyArg_ParseTuple (args, "s:GetLongPathName", &fileName))
-		return NULL;
-	PyW32_BEGIN_ALLOW_THREADS
-	BOOL ok = (*myGetLongPathNameA)(fileName, pathBuf, sizeof(pathBuf));
-	PyW32_END_ALLOW_THREADS
-	if (!ok)
-		return ReturnAPIError("GetLongPathName");
-	return Py_BuildValue("s", pathBuf);
 	// @comm This function may raise a NotImplementedError exception if the version
 	// of Windows does not support this function.
+	CHECK_PFN(GetLongPathNameA);
+
+	char *fileName, *pathBuf=NULL;
+	DWORD bufsize=MAX_PATH, reqd_bufsize;
+	PyObject *ret=NULL;
+
+	if (!PyArg_ParseTuple (args, "s:GetLongPathName", 
+		&fileName))	// @pyparm string|fileName||The file name.
+		return NULL;
+
+	while (1){
+		if (pathBuf)
+			free(pathBuf);
+		pathBuf=(char *)malloc(bufsize);
+		if (pathBuf==NULL)
+			return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
+		PyW32_BEGIN_ALLOW_THREADS
+		reqd_bufsize = (*pfnGetLongPathNameA)(fileName, pathBuf, bufsize);
+		PyW32_END_ALLOW_THREADS
+		if (reqd_bufsize==0){
+			PyWin_SetAPIError("GetLongPathName");
+			break;
+			}
+		if (reqd_bufsize<=bufsize){
+			ret=PyString_FromStringAndSize(pathBuf, reqd_bufsize);
+			break;
+			}
+		bufsize=reqd_bufsize+1;
+		}
+	free(pathBuf);
+	return ret;
 }
 
-// @pymethod unicode|win32api|GetLongPathNameW|Converts the specified path to its long form.
+// @pymethod <o PyUnicode|win32api|GetLongPathNameW|Converts the specified path to its long form.
 static PyObject *
 PyGetLongPathNameW (PyObject *self, PyObject *args)
 {
+	// @comm This function may raise a NotImplementedError exception if the version
+	// of Windows does not support this function.
+	CHECK_PFN(GetLongPathNameW);
+
 	WCHAR pathBuf[MAX_PATH];
 	WCHAR *fileName;
 	PyObject *obLongPathNameW = NULL;
-	if (!myGetLongPathNameW)
-		PyErr_SetString(PyExc_NotImplementedError, "GetLongPathNameW does not exist in this version of Windows");
-	// @pyparm string|fileName||The file name.
+
+	// @pyparm <o PyUnicode>|fileName||The file name.
 	PyObject *obFileName;
 	if (!PyArg_ParseTuple (args, "O:GetLongPathNameW", &obFileName))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obFileName, &fileName))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
-	DWORD length = (*myGetLongPathNameW)(fileName, pathBuf, sizeof(pathBuf)/sizeof(pathBuf[0]));
+	DWORD length = (*pfnGetLongPathNameW)(fileName, pathBuf, sizeof(pathBuf)/sizeof(pathBuf[0]));
 	PyW32_END_ALLOW_THREADS
 	if (length)
 	{
@@ -1756,7 +1806,7 @@ PyGetLongPathNameW (PyObject *self, PyObject *args)
 			}
 			buf = PyUnicode_AS_UNICODE(obLongPathNameW);
 			PyW32_BEGIN_ALLOW_THREADS
-			DWORD length2 = (*myGetLongPathNameW)(fileName, buf, length);
+			DWORD length2 = (*pfnGetLongPathNameW)(fileName, buf, length);
 			PyW32_END_ALLOW_THREADS
 			if (length2==0) {
 				Py_DECREF(obLongPathNameW);
@@ -1771,8 +1821,6 @@ PyGetLongPathNameW (PyObject *self, PyObject *args)
 	if(!obLongPathNameW)
 		return ReturnAPIError("GetLongPathNameW");
 	return obLongPathNameW;
-	// @comm This function may raise a NotImplementedError exception if the version
-	// of Windows does not support this function.
 }
 
 // @pymethod string|win32api|GetTickCount|Returns the number of milliseconds since windows started.
@@ -4528,7 +4576,7 @@ PyObject *PyEnumDisplaySettings(PyObject *self, PyObject *args)
 	char *DeviceName;
 	DWORD ModeNum;
 	DEVMODE devmode;
-	// @pyparm string|DeviceName||Name of device, use None for current display device
+	// @pyparm string|DeviceName||Name of device as returned by <om win32api.EnumDisplayDevices>, use None for default display device
 	// @pyparm int|ModeNum||Index of setting to return, or one of ENUM_CURRENT_SETTINGS, ENUM_REGISTRY_SETTINGS 
 	if (!PyArg_ParseTuple(args, "Ol:EnumDisplaySettings",&obDeviceName, &ModeNum))
 		return NULL;
@@ -4550,7 +4598,7 @@ PyObject *PyEnumDisplaySettings(PyObject *self, PyObject *args)
 }
 
 // @pymethod int|win32api|ChangeDisplaySettings|Changes video mode for default display
-// @comm Returns DISP_CHANGE_SUCCESSFUL on success, or one of the DISP_CHANGE_* error constants on failure
+// @rdesc Returns DISP_CHANGE_SUCCESSFUL on success, or one of the DISP_CHANGE_* error constants on failure
 PyObject *PyChangeDisplaySettings(PyObject *self, PyObject *args)
 {
 	DWORD Flags;
@@ -4558,14 +4606,14 @@ PyObject *PyChangeDisplaySettings(PyObject *self, PyObject *args)
 	PyObject *obdevmode;
 	long ret;
 	// @pyparm <o PyDEVMODE>|DevMode||A PyDEVMODE object as returned from EnumDisplaySettings, or None to reset to default settings from registry
-	// @pyparm int|Flags||One of the CDS_* constants, or 0
+	// @pyparm int|Flags||One of the win32con.CDS_* constants, or 0
 	if (!PyArg_ParseTuple(args, "Ol:ChangeDisplaySettings",&obdevmode, &Flags))
 		return NULL;
 	if (!PyWinObject_AsDEVMODE(obdevmode, &pdevmode, TRUE))
 		return NULL;
 	// DISP_CHANGE_* errors don't translate as win32 error codes, just return it
 	ret=::ChangeDisplaySettings(pdevmode, Flags);
-	return Py_BuildValue("l",ret);
+	return PyLong_FromLong(ret);
 }
 
 static BOOL addedCtrlHandler = FALSE;
@@ -4975,25 +5023,34 @@ initwin32api(void)
   PyModule_AddIntConstant(module, "VS_FF_PRIVATEBUILD",VS_FF_PRIVATEBUILD);
   PyModule_AddIntConstant(module, "VS_FF_SPECIALBUILD",VS_FF_SPECIALBUILD);
 
-  HMODULE hmodule = LoadLibrary("secur32.dll");
+  HMODULE hmodule = GetModuleHandle("secur32.dll");
+  if (hmodule==NULL)
+    hmodule=LoadLibrary("secur32.dll");
   if (hmodule!=NULL){
-    FARPROC fp = GetProcAddress(hmodule,"GetUserNameExW");
-    if (fp!=NULL)
-      myGetUserNameEx=(BOOL (WINAPI *)(EXTENDED_NAME_FORMAT, LPWSTR, PULONG))(fp);
-    fp = GetProcAddress(hmodule,"GetComputerObjectNameW");
-    if (fp!=NULL)
-      myGetComputerObjectName=(BOOL (WINAPI *)(EXTENDED_NAME_FORMAT, LPWSTR, PULONG))(fp);
+    pfnGetUserNameEx=(GetUserNameExfunc)GetProcAddress(hmodule,"GetUserNameExW");
+    pfnGetComputerObjectName=(GetUserNameExfunc)GetProcAddress(hmodule,"GetComputerObjectNameW");
   }
-  hmodule = LoadLibrary("kernel32.dll");
+
+  hmodule = GetModuleHandle("kernel32.dll");
+  if (hmodule==NULL)
+	  hmodule=LoadLibrary("kernel32.dll");
   if (hmodule!=NULL){
-    FARPROC fp = GetProcAddress(hmodule,"GetLongPathNameA");
-    if (fp!=NULL)
-      myGetLongPathNameA=(BOOL (WINAPI *)(LPCSTR, LPSTR, DWORD))(fp);
-    fp = GetProcAddress(hmodule,"GetLongPathNameW");
-    if (fp!=NULL)
-      myGetLongPathNameW=(BOOL (WINAPI *)(LPCWSTR, LPWSTR, DWORD))(fp);
-    fp = GetProcAddress(hmodule,"GetComputerNameExW");
-    if (fp!=NULL)
-      myGetComputerNameEx=(BOOL (WINAPI *)(COMPUTER_NAME_FORMAT, LPWSTR, LPDWORD))(fp);
+    pfnGetComputerNameEx=(GetComputerNameExfunc)GetProcAddress(hmodule,"GetComputerNameExW");
+	pfnGetLongPathNameA=(GetLongPathNameAfunc)GetProcAddress(hmodule,"GetLongPathNameA");
+    pfnGetLongPathNameW=(GetLongPathNameWfunc)GetProcAddress(hmodule,"GetLongPathNameW");
+  }
+
+  hmodule = GetModuleHandle("user32.dll");
+  if (hmodule==NULL)
+    hmodule=LoadLibrary("user32.dll");
+  if (hmodule!=NULL){
+	pfnEnumDisplayMonitors=(EnumDisplayMonitorsfunc)GetProcAddress(hmodule, "EnumDisplayMonitors");
+	pfnEnumDisplayDevices=(EnumDisplayDevicesfunc)GetProcAddress(hmodule, "EnumDisplayDevicesA");
+	pfnChangeDisplaySettingsEx=(ChangeDisplaySettingsExfunc)GetProcAddress(hmodule,"ChangeDisplaySettingsExA");
+	pfnMonitorFromWindow=(MonitorFromWindowfunc)GetProcAddress(hmodule,"MonitorFromWindow");
+	pfnMonitorFromRect=(MonitorFromRectfunc)GetProcAddress(hmodule,"MonitorFromRect");
+	pfnMonitorFromPoint=(MonitorFromPointfunc)GetProcAddress(hmodule,"MonitorFromPoint");
+	pfnGetMonitorInfo=(GetMonitorInfofunc)GetProcAddress(hmodule,"GetMonitorInfoA");
+	pfnEnumDisplaySettingsEx=(EnumDisplaySettingsExfunc)GetProcAddress(hmodule,"EnumDisplaySettingsExA");
   }
 }  
