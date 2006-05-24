@@ -862,7 +862,7 @@ static int ibindString(cursorObject *cur, int column, PyObject *item)
       return 0;
 
   strcpy(ib->bind_area, val);
-  int sqlType = SQL_CHAR;
+  int sqlType = SQL_VARCHAR; // SQL_CHAR can cause padding in some drivers..
   if (len > 255)
   {
 	  ib->sqlBytesAvailable = SQL_LEN_DATA_AT_EXEC(ib->len);
@@ -906,7 +906,8 @@ static int ibindUnicode(cursorObject *cur, int column, PyObject *item)
       return 0;
 
   wcscpy((WCHAR *)ib->bind_area, wval);
-  int sqlType = SQL_WCHAR;
+  // See above re SQL_VARCHAR
+  int sqlType = SQL_WVARCHAR;
   if (nbytes > 255)
   {
 	  ib->sqlBytesAvailable = SQL_LEN_DATA_AT_EXEC(ib->len);
