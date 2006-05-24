@@ -108,5 +108,21 @@ class TestStuff(unittest.TestCase):
     def testVarchar(self, ):
         self._test_val('username', 'foo')
 
+    def test_set_nonzero_length(self):
+        self.assertEqual(self.cur.execute("insert into users (userid,username) "
+            "values (?,?)",['Frank', 'Frank Millman']),1)
+        self.assertEqual(self.cur.execute("update users set username = ?",
+            ['Frank']),1)
+        self.assertEqual(self.cur.execute("select * from users"),0)
+        self.assertEqual(len(self.cur.fetchone()[1]),5)
+
+    def test_set_zero_length(self):
+        self.assertEqual(self.cur.execute("insert into users (userid,username) "
+            "values (?,?)",['Frank', 'Frank Millman']),1)
+        self.assertEqual(self.cur.execute("update users set username = ?",
+            ['']),1)
+        self.assertEqual(self.cur.execute("select * from users"),0)
+        self.assertEqual(len(self.cur.fetchone()[1]),0)
+
 if __name__ == '__main__':
     unittest.main()
