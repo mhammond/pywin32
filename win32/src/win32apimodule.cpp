@@ -14,7 +14,7 @@ generates Windows .hlp files.
 
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
-
+#include "win32api_display.h"
 #include "malloc.h"
 
 #include "math.h" // for some of the date stuff...
@@ -34,9 +34,6 @@ generates Windows .hlp files.
 typedef int COMPUTER_NAME_FORMAT;
 #endif
 
-
-#define CHECK_PFN(fname) if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);
-
 // from kernel32.dll
 typedef BOOL (WINAPI *GetComputerNameExfunc)(COMPUTER_NAME_FORMAT,LPWSTR,PULONG);
 static GetComputerNameExfunc pfnGetComputerNameEx=NULL;
@@ -44,24 +41,6 @@ typedef DWORD (WINAPI *GetLongPathNameAfunc)(LPCSTR, LPSTR, DWORD);
 static GetLongPathNameAfunc pfnGetLongPathNameA =NULL;
 typedef DWORD (WINAPI *GetLongPathNameWfunc)(LPCWSTR, LPWSTR, DWORD);
 static GetLongPathNameWfunc pfnGetLongPathNameW=NULL;
-
-// from user32.dll
-typedef BOOL (WINAPI *EnumDisplayMonitorsfunc)(HDC, LPCRECT,  MONITORENUMPROC, LPARAM);
-static EnumDisplayMonitorsfunc pfnEnumDisplayMonitors=NULL;
-typedef BOOL (WINAPI *EnumDisplayDevicesfunc)(LPCTSTR,DWORD,PDISPLAY_DEVICE,DWORD);
-static EnumDisplayDevicesfunc pfnEnumDisplayDevices=NULL;
-typedef LONG (WINAPI *ChangeDisplaySettingsExfunc)(LPCTSTR,LPDEVMODE,HWND,DWORD,LPVOID);
-static ChangeDisplaySettingsExfunc pfnChangeDisplaySettingsEx=NULL;
-typedef HMONITOR (WINAPI *MonitorFromWindowfunc)(HWND,DWORD);
-static MonitorFromWindowfunc pfnMonitorFromWindow=NULL;
-typedef HMONITOR (WINAPI *MonitorFromRectfunc)(LPCRECT,DWORD);
-static MonitorFromRectfunc pfnMonitorFromRect=NULL;
-typedef HMONITOR (WINAPI *MonitorFromPointfunc)(POINT,DWORD);
-static MonitorFromPointfunc pfnMonitorFromPoint=NULL;
-typedef BOOL (WINAPI *GetMonitorInfofunc)(HMONITOR,LPMONITORINFOEX);
-static GetMonitorInfofunc pfnGetMonitorInfo=NULL;
-typedef BOOL (WINAPI *EnumDisplaySettingsExfunc)(LPCTSTR,DWORD,LPDEVMODE,DWORD);
-static EnumDisplaySettingsExfunc pfnEnumDisplaySettingsEx=NULL;
 
 // from secur32.dll
 typedef BOOLEAN (WINAPI *GetUserNameExfunc)(EXTENDED_NAME_FORMAT,LPWSTR,PULONG);
@@ -1767,7 +1746,7 @@ PyGetLongPathNameA (PyObject *self, PyObject *args)
 	return ret;
 }
 
-// @pymethod <o PyUnicode|win32api|GetLongPathNameW|Converts the specified path to its long form.
+// @pymethod <o PyUnicode>|win32api|GetLongPathNameW|Converts the specified path to its long form.
 static PyObject *
 PyGetLongPathNameW (PyObject *self, PyObject *args)
 {
@@ -4569,52 +4548,6 @@ PyObject *Pymouse_event(PyObject *self, PyObject *args)
   return Py_None;
 }
 
-//@pymethod <o PyDEVMODE>|win32api|EnumDisplaySettings|List available modes for specified display device
-PyObject *PyEnumDisplaySettings(PyObject *self, PyObject *args)
-{
-	PyObject *obDeviceName=NULL;
-	char *DeviceName;
-	DWORD ModeNum;
-	DEVMODE devmode;
-	// @pyparm string|DeviceName||Name of device as returned by <om win32api.EnumDisplayDevices>, use None for default display device
-	// @pyparm int|ModeNum||Index of setting to return, or one of ENUM_CURRENT_SETTINGS, ENUM_REGISTRY_SETTINGS 
-	if (!PyArg_ParseTuple(args, "Ol:EnumDisplaySettings",&obDeviceName, &ModeNum))
-		return NULL;
-	if (obDeviceName==NULL || obDeviceName==Py_None)
-		DeviceName=NULL;
-	else{
-		DeviceName=PyString_AsString(obDeviceName);
-		if (DeviceName==NULL)
-			return NULL;
-		}
-	ZeroMemory(&devmode,sizeof(DEVMODE));
-	devmode.dmSize=sizeof(DEVMODE);
-	if (!EnumDisplaySettings(DeviceName, ModeNum, &devmode)){
-		// msdn says GetLastError should return something on win2k and up, I get 0
-		PyWin_SetAPIError("EnumDisplaySettings");
-		return NULL;
-		}
-	return PyWinObject_FromDEVMODE(&devmode);
-}
-
-// @pymethod int|win32api|ChangeDisplaySettings|Changes video mode for default display
-// @rdesc Returns DISP_CHANGE_SUCCESSFUL on success, or one of the DISP_CHANGE_* error constants on failure
-PyObject *PyChangeDisplaySettings(PyObject *self, PyObject *args)
-{
-	DWORD Flags;
-	PDEVMODE pdevmode;
-	PyObject *obdevmode;
-	long ret;
-	// @pyparm <o PyDEVMODE>|DevMode||A PyDEVMODE object as returned from EnumDisplaySettings, or None to reset to default settings from registry
-	// @pyparm int|Flags||One of the win32con.CDS_* constants, or 0
-	if (!PyArg_ParseTuple(args, "Ol:ChangeDisplaySettings",&obdevmode, &Flags))
-		return NULL;
-	if (!PyWinObject_AsDEVMODE(obdevmode, &pdevmode, TRUE))
-		return NULL;
-	// DISP_CHANGE_* errors don't translate as win32 error codes, just return it
-	ret=::ChangeDisplaySettings(pdevmode, Flags);
-	return PyLong_FromLong(ret);
-}
 
 static BOOL addedCtrlHandler = FALSE;
 static PyObject *consoleControlHandlers = NULL;
@@ -4791,6 +4724,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"Beep",				PyBeep,         1},     // @pymeth Beep|Generates a simple tone on the speaker.
 	{"BeginUpdateResource", PyBeginUpdateResource, 1 }, // @pymeth BeginUpdateResource|Begins an update cycle for a PE file.
 	{"ChangeDisplaySettings", PyChangeDisplaySettings, 1}, // @pymeth ChangeDisplaySettings|Changes video mode for default display
+	{"ChangeDisplaySettingsEx", (PyCFunction)PyChangeDisplaySettingsEx, METH_VARARGS|METH_KEYWORDS}, // @pymeth ChangeDisplaySettingsEx|Changes video mode for specified display
 	{"ClipCursor",			PyClipCursor,       1}, // @pymeth ClipCursor|Confines the cursor to a rectangular area on the screen.
 	{"CloseHandle",		    PyCloseHandle,     1},  // @pymeth CloseHandle|Closes an open handle.
 	{"CopyFile",			PyCopyFile,         1}, // @pymeth CopyFile|Copy a file.
@@ -4800,7 +4734,8 @@ static struct PyMethodDef win32api_functions[] = {
 	{"DragFinish",			PyDragFinish,       1}, // @pymeth DragFinish|Free memory associated with dropped files.
 	{"DuplicateHandle",     PyDuplicateHandle,  1}, // @pymeth DuplicateHandle|Duplicates a handle.
 	{"EndUpdateResource",   PyEndUpdateResource, 1 }, // @pymeth EndUpdateResource|Ends a resource update cycle of a PE file.
-	{"EnumDisplaySettings", PyEnumDisplaySettings,1}, //@pymeth EnumDisplaySettings|Lists available modes for specified device 
+	{"EnumDisplayDevices",	(PyCFunction)PyEnumDisplayDevices,	METH_VARARGS|METH_KEYWORDS}, //@pymeth EnumDisplayDevices|Obtain information about the display devices in a system 
+	{"EnumDisplaySettings", (PyCFunction)PyEnumDisplaySettings,	METH_VARARGS|METH_KEYWORDS}, //@pymeth EnumDisplaySettings|Lists available modes for specified device 
 	{"EnumResourceLanguages",   PyEnumResourceLanguages, 1 }, // @pymeth EnumResourceLanguages|List languages for specified resource
 	{"EnumResourceNames",   PyEnumResourceNames, 1 }, // @pymeth EnumResourceNames|Enumerates all the resources of the specified type from the nominated file.
 	{"EnumResourceTypes",   PyEnumResourceTypes, 1 }, // @pymeth EnumResourceTypes|Return list of all resource types contained in module
@@ -4974,7 +4909,7 @@ initwin32api(void)
 		       PyInt_FromLong(STD_OUTPUT_HANDLE));
   PyDict_SetItemString(dict,"STD_ERROR_HANDLE",
 		       PyInt_FromLong(STD_ERROR_HANDLE));
-
+  PyDict_SetItemString(dict, "PyDISPLAY_DEVICEType", (PyObject *)&PyDISPLAY_DEVICEType);
   PyModule_AddIntConstant(module, "NameUnknown", NameUnknown);
   PyModule_AddIntConstant(module, "NameFullyQualifiedDN", NameFullyQualifiedDN);
   PyModule_AddIntConstant(module, "NameSamCompatible", NameSamCompatible);
@@ -5036,7 +4971,7 @@ initwin32api(void)
 	  hmodule=LoadLibrary("kernel32.dll");
   if (hmodule!=NULL){
     pfnGetComputerNameEx=(GetComputerNameExfunc)GetProcAddress(hmodule,"GetComputerNameExW");
-	pfnGetLongPathNameA=(GetLongPathNameAfunc)GetProcAddress(hmodule,"GetLongPathNameA");
+    pfnGetLongPathNameA=(GetLongPathNameAfunc)GetProcAddress(hmodule,"GetLongPathNameA");
     pfnGetLongPathNameW=(GetLongPathNameWfunc)GetProcAddress(hmodule,"GetLongPathNameW");
   }
 
