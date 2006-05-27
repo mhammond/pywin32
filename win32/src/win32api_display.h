@@ -3,7 +3,13 @@
 PyObject *PyChangeDisplaySettings(PyObject *self, PyObject *args);
 PyObject *PyChangeDisplaySettingsEx(PyObject *self, PyObject *args, PyObject *kwargs);
 PyObject *PyEnumDisplayDevices(PyObject *self, PyObject *args, PyObject *kwargs);
+PyObject *PyEnumDisplayMonitors(PyObject *self, PyObject *args, PyObject *kwargs);
 PyObject *PyEnumDisplaySettings(PyObject *self, PyObject *args, PyObject *kwargs);
+PyObject *PyEnumDisplaySettingsEx(PyObject *self, PyObject *args, PyObject *kwargs);
+PyObject *PyGetMonitorInfo(PyObject *self, PyObject *args, PyObject *kwargs);
+PyObject *PyMonitorFromPoint(PyObject *self, PyObject *args, PyObject *kwargs);
+PyObject *PyMonitorFromRect(PyObject *self, PyObject *args, PyObject *kwargs);
+PyObject *PyMonitorFromWindow(PyObject *self, PyObject *args, PyObject *kwargs);
 
 // from user32.dll
 typedef LONG (WINAPI *ChangeDisplaySettingsExfunc)(LPCTSTR,LPDEVMODE,HWND,DWORD,LPVOID);

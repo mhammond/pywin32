@@ -4735,7 +4735,9 @@ static struct PyMethodDef win32api_functions[] = {
 	{"DuplicateHandle",     PyDuplicateHandle,  1}, // @pymeth DuplicateHandle|Duplicates a handle.
 	{"EndUpdateResource",   PyEndUpdateResource, 1 }, // @pymeth EndUpdateResource|Ends a resource update cycle of a PE file.
 	{"EnumDisplayDevices",	(PyCFunction)PyEnumDisplayDevices,	METH_VARARGS|METH_KEYWORDS}, //@pymeth EnumDisplayDevices|Obtain information about the display devices in a system 
+	{"EnumDisplayMonitors", (PyCFunction)PyEnumDisplayMonitors, METH_VARARGS|METH_KEYWORDS}, // @pymeth EnumDisplayMonitors|Lists monitors for a device context
 	{"EnumDisplaySettings", (PyCFunction)PyEnumDisplaySettings,	METH_VARARGS|METH_KEYWORDS}, //@pymeth EnumDisplaySettings|Lists available modes for specified device 
+	{"EnumDisplaySettingsEx", (PyCFunction)PyEnumDisplaySettingsEx,METH_VARARGS|METH_KEYWORDS}, //@pymeth EnumDisplaySettingsEx|Lists available modes for a display device, with optional flags
 	{"EnumResourceLanguages",   PyEnumResourceLanguages, 1 }, // @pymeth EnumResourceLanguages|List languages for specified resource
 	{"EnumResourceNames",   PyEnumResourceNames, 1 }, // @pymeth EnumResourceNames|Enumerates all the resources of the specified type from the nominated file.
 	{"EnumResourceTypes",   PyEnumResourceTypes, 1 }, // @pymeth EnumResourceTypes|Return list of all resource types contained in module
@@ -4759,6 +4761,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetComputerName",     PyGetComputerName,  1}, // @pymeth GetComputerName|Returns the local computer name
 	{"GetComputerNameEx",   PyGetComputerNameEx,  1}, // @pymeth GetComputerNameEx|Retrieves a NetBIOS or DNS name associated with the local computer
 	{"GetComputerObjectName",PyGetComputerObjectName,  1}, // @pymeth GetComputerObjectName|Retrieves the local computer's name in a specified format
+	{"GetMonitorInfo",		(PyCFunction)PyGetMonitorInfo, METH_VARARGS|METH_KEYWORDS},	// @pymeth GetMonitorInfo|Retrieves information for a monitor by handle
 	{"GetUserName",         PyGetUserName,  1},     // @pymeth GetUserName|Returns the current user name.
 	{"GetUserNameEx",       PyGetUserNameEx,  1},     // @pymeth GetUserNameEx|Returns the current user name in format specified by Name* constants
 	{"GetCursorPos",		PyGetCursorPos,   1},   // @pymeth GetCursorPos|Returns the position of the cursor, in screen co-ordinates.
@@ -4823,6 +4826,9 @@ static struct PyMethodDef win32api_functions[] = {
 	{"MessageBeep",         PyMessageBeep,1}, // @pymeth MessageBeep|Plays a predefined waveform sound.
 	{"MessageBoxEx",        PyMessageBox, 1},
 	{"MessageBox",          PyMessageBox, 1}, // @pymeth MessageBox|Display a message box.
+	{"MonitorFromPoint",	(PyCFunction)PyMonitorFromPoint, METH_VARARGS|METH_KEYWORDS},// @pymeth MonitorFromPoint|Finds monitor that contains a point
+	{"MonitorFromRect",		(PyCFunction)PyMonitorFromRect, METH_VARARGS|METH_KEYWORDS},// @pymeth MonitorFromRect|Finds monitor that has largest intersection with a rectangle
+	{"MonitorFromWindow",	(PyCFunction)PyMonitorFromWindow, METH_VARARGS|METH_KEYWORDS},// @pymeth MonitorFromWindow|Finds monitor that contains a window
 	{"MoveFile",			PyMoveFile,			1}, // @pymeth MoveFile|Moves or renames a file.
 	{"MoveFileEx",			PyMoveFileEx,		1}, // @pymeth MoveFileEx|Moves or renames a file.
 	{"OpenProcess",         PyOpenProcess, 1}, // @pymeth OpenProcess|Retrieves a handle to an existing process.

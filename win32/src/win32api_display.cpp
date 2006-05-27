@@ -276,6 +276,38 @@ PyObject *PyWinObject_FromDISPLAY_DEVICE(PDISPLAY_DEVICE pDISPLAY_DEVICE)
 	return ret;
 }
 
+BOOL PyWinObject_AsPOINT(PyObject *obpoint, LPPOINT ppoint)
+{
+	if (!PyTuple_Check(obpoint)){
+		PyErr_SetString(PyExc_TypeError, "POINT must be a tuple of 2 ints (x,y)");
+		return FALSE;
+		}
+	return PyArg_ParseTuple(obpoint, "ll;POINT must be a tuple of 2 ints (x,y)", 
+			&ppoint->x, &ppoint->y);
+}
+
+// @object PyRECT|Tuple of 4 ints: (left, top, right, bottom)
+BOOL PyWinObject_AsRECT(PyObject *obrect, LPRECT prect)
+{
+	if (!PyTuple_Check(obrect)){
+		PyErr_SetString(PyExc_TypeError, "RECT must be a tuple of 4 ints (left, top, right, bottom)");
+		return FALSE;
+		}
+	return PyArg_ParseTuple(obrect, "llll;RECT must be a tuple of 4 ints (left, top, right, bottom)", 
+			&prect->left, &prect->top, &prect->right, &prect->bottom);
+}
+
+PyObject *PyWinObject_FromRECT(LPRECT prect)
+{
+	if (prect==NULL){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	return Py_BuildValue("llll",
+		prect->left, prect->top,
+		prect->right, prect->bottom);
+}
+
 
 // @pymethod int|win32api|ChangeDisplaySettings|Changes video mode for default display
 // @rdesc Returns DISP_CHANGE_SUCCESSFUL on success, or one of the DISP_CHANGE_* error constants on failure
@@ -375,4 +407,193 @@ PyObject *PyEnumDisplaySettings(PyObject *self, PyObject *args, PyObject *kwargs
 		}
 	return PyWinObject_FromDEVMODE(&devmode);
 }
+
+// @pymethod <o PyDEVMODE>|win32api|EnumDisplaySettingsEx|Lists available modes for a display device, with optional flags
+// @comm Accepts keyword arguments
+PyObject *PyEnumDisplaySettingsEx(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(EnumDisplaySettingsEx);
+	static char *keywords[]={"DeviceName","ModeNum","Flags", NULL};
+	char *DeviceName=NULL;
+	DWORD ModeNum=0;
+	DEVMODE devmode;
+	DWORD Flags=0;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|zkk:EnumDisplaySettingsEx", keywords,
+		&DeviceName,	// @pyparm string|DeviceName|None|Name of device as returned by <om win32api.EnumDisplayDevices>. Can be None for default display
+		&ModeNum,		// @pyparm int|ModeNum||Index of setting to return, or one of ENUM_CURRENT_SETTINGS, ENUM_REGISTRY_SETTINGS
+		&Flags))		// @pyparm int|Flags|0|EDS_RAWMODE (2) is only defined flag
+		return NULL;
+	ZeroMemory(&devmode,sizeof(DEVMODE));
+	devmode.dmSize=sizeof(DEVMODE);
+	if (!(*pfnEnumDisplaySettingsEx)(DeviceName, ModeNum, &devmode, Flags)){
+		PyWin_SetAPIError("EnumDisplaySettingsEx");
+		return NULL;
+		}
+	return PyWinObject_FromDEVMODE(&devmode);
+}
+
+
+BOOL CALLBACK EnumDisplayMonitors_Callback(
+  HMONITOR hMonitor,
+  HDC hdcMonitor,
+  LPRECT lprcMonitor,
+  LPARAM dwData)
+{
+	PyObject *ret=Py_BuildValue("O&O&O&",
+		PyWinObject_FromHANDLE, hMonitor,
+		PyWinObject_FromHANDLE, hdcMonitor,
+		PyWinObject_FromRECT, lprcMonitor);
+	if (ret==NULL)
+		return FALSE;
+	if (PyList_Append((PyObject *)dwData, ret)==-1){
+		Py_DECREF(ret);
+		return FALSE;
+		}
+	Py_DECREF(ret);
+	return TRUE;
+}
+
+// @pymethod list|win32api|EnumDisplayMonitors|Lists display monitors for a given device context and area
+// @rdesc Returns a sequence of tuples.  For each monitor found, returns a handle to the monitor,
+// device context handle, and intersection rectangle: (hMonitor, hdcMonitor, <o PyRECT>)
+// @comm Accepts keyword arguments
+PyObject *PyEnumDisplayMonitors(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(EnumDisplayMonitors);
+	static char *keywords[]={"hdc", "rcClip", NULL};
+	HDC hdc=NULL;
+	RECT rect;
+	LPRECT prect;
+	PyObject *obhdc=Py_None, *obrect=Py_None;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OO", keywords, 
+		&obhdc,		// @pyparm <o PyHANDLE>|hdc|None|Handle to device context, use None for virtual desktop
+		&obrect))	// @pyparm <o PyRECT>|rcClip|None|Clipping rectangle, can be None
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhdc, (HANDLE *)&hdc, TRUE))
+		return NULL;
+	if (obrect==Py_None)
+		prect=NULL;
+	else{
+		if (!PyWinObject_AsRECT(obrect, &rect))
+			return NULL;
+		prect=&rect;
+		}
+
+	PyObject *ret=PyList_New(0);
+	if (ret==NULL)
+		return NULL;
+	if (!(*pfnEnumDisplayMonitors)(hdc, prect, EnumDisplayMonitors_Callback, (LPARAM)ret)){
+		Py_DECREF(ret);
+		return NULL;
+		}
+	return ret;
+}
+
+// @pymethod dict|win32api|GetMonitorInfo|Retrieves information for a monitor by handle
+// @rdesc Returns a dictionary representing a MONITORINFOEX structure
+// @comm Accepts keyword args
+PyObject *PyGetMonitorInfo(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(GetMonitorInfo);
+	static char *keywords[]={"hMonitor", NULL};
+	PyObject *obhMonitor;
+	HMONITOR hMonitor;
+	MONITORINFOEX mi;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:GetMonitorInfo", keywords,
+		&obhMonitor))	// @pyparm <o PyHANDLE>|hMonitor||Handle to a monitor
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhMonitor, (HANDLE *)&hMonitor))
+		return NULL;
+	ZeroMemory(&mi, sizeof(mi));
+	mi.cbSize=sizeof(mi);
+	if (!(*pfnGetMonitorInfo)(hMonitor, &mi)){
+		PyWin_SetAPIError("GetMonitorInfo");
+		return NULL;
+		}
+	return Py_BuildValue("{s:O&,s:O&,s:k,s:s}",
+		"Monitor", PyWinObject_FromRECT, &mi.rcMonitor,
+		"Work", PyWinObject_FromRECT, &mi.rcWork,
+		"Flags", mi.dwFlags,
+		"Device", mi.szDevice);
+}
+
+// @pymethod <o PyHANDLE>|win32api|MonitorFromPoint|Finds monitor that contains a point
+// @comm Accepts keyword arguments
+// @rdesc Returns None if no monitor was found
+PyObject *PyMonitorFromPoint(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(MonitorFromPoint);
+	static char *keywords[]={"pt","Flags",NULL};
+	DWORD Flags=0;
+	HMONITOR hmonitor;
+	PyObject *obpoint;
+	POINT point;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|k:MonitorFromPoint", keywords,
+		&obpoint,		// @pyparm (int, int)|pt||Tuple of 2 ints (x,y) specifying screen coordinates
+		&Flags))		// @pyparm int|Flags|0|Flags that determine default behaviour, one of MONITOR_DEFAULTTONEAREST,MONITOR_DEFAULTTONULL,MONITOR_DEFAULTTOPRIMARY
+		return NULL;
+	if (!PyWinObject_AsPOINT(obpoint, &point))
+		return NULL;
+	hmonitor=(*pfnMonitorFromPoint)(point, Flags);
+	if (hmonitor==NULL){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	return PyWinObject_FromHANDLE(hmonitor);
+}
+
+// @pymethod <o PyHANDLE>|win32api|MonitorFromRect|Finds monitor that has largest intersection with a rectangle
+// @comm Accepts keyword arguments
+// @rdesc Returns None if no monitor was found
+PyObject *PyMonitorFromRect(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(MonitorFromRect);
+	static char *keywords[]={"rc","Flags",NULL};
+	DWORD Flags=0;
+	RECT rect;
+	HMONITOR hmonitor;
+	PyObject *obrect;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|k:MonitorFromRect", keywords,
+		&obrect,		// @pyparm <o PyRECT>|rc||Rectangle to be examined
+		&Flags))		// @pyparm int|Flags|0|Flags that determine default behaviour, one of MONITOR_DEFAULTTONEAREST,MONITOR_DEFAULTTONULL,MONITOR_DEFAULTTOPRIMARY
+		return NULL;
+	if (!PyWinObject_AsRECT(obrect, &rect))
+		return NULL;
+	hmonitor=(*pfnMonitorFromRect)(&rect, Flags);
+	if (hmonitor==NULL){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	return PyWinObject_FromHANDLE(hmonitor);
+}
+
+// @pymethod <o PyHANDLE>|win32api|MonitorFromWindow|Finds monitor that contains a window
+// @comm Accepts keyword arguments
+// @rdesc Returns None if no monitor was found
+PyObject *PyMonitorFromWindow(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(MonitorFromWindow);
+	static char *keywords[]={"hwnd","Flags",NULL};
+	DWORD Flags=0;
+	HWND hwnd;
+	HMONITOR hmonitor;
+	PyObject *obhwnd;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|k:MonitorFromWindow", keywords,
+		&obhwnd,		// @pyparm <o PyHANDLE>|hwnd||Handle to a window
+		&Flags))		// @pyparm int|Flags|0|Flags that determine default behaviour, one of MONITOR_DEFAULTTONEAREST,MONITOR_DEFAULTTONULL,MONITOR_DEFAULTTOPRIMARY
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+		return NULL;
+	hmonitor=(*pfnMonitorFromWindow)(hwnd, Flags);
+	if (hmonitor==NULL){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	return PyWinObject_FromHANDLE(hmonitor);
+}
+
 
