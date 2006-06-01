@@ -7,9 +7,6 @@
 // We should not be using this!
 #define OleSetOleError PyCom_BuildPyException
 
-PyObject *PyObject_FromWIN32_FIND_DATA(WIN32_FIND_DATA &findData);
-
-
 // @doc - This file contains autoduck documentation
 // ---------------------------------------------------
 //
@@ -30,7 +27,8 @@ PyIShellLink::~PyIShellLink()
 	return (IShellLink *)PyIUnknown::GetI(self);
 }
 
-// @pymethod name, WIN32_FIND_DATA|PyIShellLink|GetPath|Retrieves the path and file name of a shell link object.
+// @pymethod name, <o WIN32_FIND_DATA>|PyIShellLink|GetPath|Retrieves the path and file name of a shell link object
+// @comm The AlternateFileName (8.3) member of WIN32_FIND_DATA does not return information
 PyObject *PyIShellLink::GetPath(PyObject *self, PyObject *args)
 {
 	IShellLink *pISL = GetI(self);
@@ -53,6 +51,7 @@ PyObject *PyIShellLink::GetPath(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_MemoryError, "allocating string buffer");
 		return NULL;
 	}
+	ZeroMemory(&fd, sizeof(fd));
 	PY_INTERFACE_PRECALL;
 	hr = pISL->GetPath( pszFile, cchMaxPath, &fd, fFlags );
 	PY_INTERFACE_POSTCALL;
@@ -61,7 +60,7 @@ PyObject *PyIShellLink::GetPath(PyObject *self, PyObject *args)
 		free(pszFile);
 		return OleSetOleError(hr);
 	}
-	PyObject *obFD = PyObject_FromWIN32_FIND_DATA(fd);
+	PyObject *obFD = PyObject_FromWIN32_FIND_DATAA(&fd);
 	PyObject *obFile = PyWinObject_FromTCHAR(pszFile);
 	PyObject *ret = Py_BuildValue("NN", obFile, obFD);
 	free(pszFile);

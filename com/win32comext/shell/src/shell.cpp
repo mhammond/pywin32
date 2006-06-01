@@ -825,37 +825,6 @@ error:
 	return FALSE;
 }
 
-//////////////////////////////////////////////////
-//
-// WIN32_FIND_DATA implementation.
-// NOTE: Cloned from win32api.cpp - Also exists in win32file !
-// @object WIN32_FIND_DATA|A tuple representing a Win32 WIN32_FIND_DATA structure.
-PyObject *PyObject_FromWIN32_FIND_DATA(WIN32_FIND_DATA &findData)
-{
-	PyObject *obCreateTime = PyWinObject_FromFILETIME(findData.ftCreationTime);
-	PyObject *obAccessTime = PyWinObject_FromFILETIME(findData.ftLastAccessTime);
-	PyObject *obWriteTime = PyWinObject_FromFILETIME(findData.ftLastWriteTime);
-	if (obCreateTime==NULL || obAccessTime==NULL || obWriteTime==NULL)
-		return NULL;
-
-	PyObject *ret = Py_BuildValue("lOOOllllNN",
-		// @rdesc The return value is a list of tuples, in the same format as the WIN32_FIND_DATA structure:
-			findData.dwFileAttributes, // @tupleitem 0|int|attributes|File Attributes.  A combination of the win32com.FILE_ATTRIBUTE_* flags.
-			obCreateTime, // @tupleitem 1|<o PyTime>|createTime|File creation time.
-    		obAccessTime, // @tupleitem 2|<o PyTime>|accessTime|File access time.
-    		obWriteTime, // @tupleitem 3|<o PyTime>|writeTime|Time of last file write
-    		findData.nFileSizeHigh, // @tupleitem 4|int|nFileSizeHigh|high order word of file size.
-    		findData.nFileSizeLow,	// @tupleitem 5|int|nFileSizeLow|low order word of file size.
-    		findData.dwReserved0,	// @tupleitem 6|int|reserved0|Reserved.
-    		findData.dwReserved1,   // @tupleitem 7|int|reserved1|Reserved.
-    		PyWinObject_FromTCHAR(findData.cFileName),		// @tupleitem 8|string|fileName|The name of the file.
-    		PyWinObject_FromTCHAR(findData.cAlternateFileName) ); // @tupleitem 9|string|alternateFilename|Alternative name of the file, expressed in 8.3 format.
-	Py_DECREF(obCreateTime);
-	Py_DECREF(obAccessTime);
-	Py_DECREF(obWriteTime);
-	return ret;
-}
-
 #if (PY_VERSION_HEX >= 0x02030000) // PyGILState only in 2.3+
 
 // Callback for BrowseForFolder
