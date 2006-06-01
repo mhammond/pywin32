@@ -419,6 +419,37 @@ static PyObject *PyWin_DosDateTimeToTime(PyObject *self, PyObject *args)
 }
 #endif /* MS_WINCE */
 
+PyObject *PyObject_FromWIN32_FIND_DATAA(WIN32_FIND_DATAA *pData)
+{
+	// @object WIN32_FIND_DATA|A tuple representing a WIN32_FIND_DATA structure.
+	return Py_BuildValue("lNNNNNNNss",
+		pData->dwFileAttributes, // @tupleitem 0|int|attributes|File Attributes.  A combination of the win32com.FILE_ATTRIBUTE_* flags.
+		PyWinObject_FromFILETIME(pData->ftCreationTime), // @tupleitem 1|<o PyTime>|createTime|File creation time.
+		PyWinObject_FromFILETIME(pData->ftLastAccessTime), // @tupleitem 2|<o PyTime>|accessTime|File access time.
+		PyWinObject_FromFILETIME(pData->ftLastWriteTime), // @tupleitem 3|<o PyTime>|writeTime|Time of last file write
+		PyLong_FromUnsignedLong(pData->nFileSizeHigh), // @tupleitem 4|int|nFileSizeHigh|high order DWORD of file size.
+		PyLong_FromUnsignedLong(pData->nFileSizeLow),	// @tupleitem 5|int|nFileSizeLow|low order DWORD of file size.
+		PyLong_FromUnsignedLong(pData->dwReserved0),	// @tupleitem 6|int|reserved0|Contains reparse tag if path is a reparse point
+		PyLong_FromUnsignedLong(pData->dwReserved1),   // @tupleitem 7|int|reserved1|Reserved.
+		pData->cFileName,     // @tupleitem 8|str/unicode|fileName|The name of the file.
+		pData->cAlternateFileName); // @tupleitem 9|str/unicode|alternateFilename|Alternative name of the file, expressed in 8.3 format.
+}
+
+PyObject *PyObject_FromWIN32_FIND_DATAW(WIN32_FIND_DATAW *pData)
+{
+	return Py_BuildValue("lNNNNNNNuu",
+		pData->dwFileAttributes,
+		PyWinObject_FromFILETIME(pData->ftCreationTime),
+		PyWinObject_FromFILETIME(pData->ftLastAccessTime),
+		PyWinObject_FromFILETIME(pData->ftLastWriteTime),
+		PyLong_FromUnsignedLong(pData->nFileSizeHigh),
+		PyLong_FromUnsignedLong(pData->nFileSizeLow),
+		PyLong_FromUnsignedLong(pData->dwReserved0),
+		PyLong_FromUnsignedLong(pData->dwReserved1),
+		pData->cFileName,
+		pData->cAlternateFileName);
+}
+
 /* List of functions exported by this module */
 // @module pywintypes|A module which supports common Windows types.
 static struct PyMethodDef pywintypes_functions[] = {

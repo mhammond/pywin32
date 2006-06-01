@@ -386,23 +386,6 @@ BOOLAPI FindNextChangeNotification(
 #endif // MS_WINCE
 
 %{
-
-PyObject *PyObject_FromFIND_DATA(WIN32_FIND_DATAW *pData)
-{
-	// @object FIND_DATA|A tuple representing a Win32 WIN32_FIND_DATA structure.
-	return Py_BuildValue("lNNNlllluu",
-		pData->dwFileAttributes, // @tupleitem 0|int|attributes|File Attributes.  A combination of the win32com.FILE_ATTRIBUTE_* flags.
-		PyWinObject_FromFILETIME(pData->ftCreationTime), // @tupleitem 1|<o PyTime>|createTime|File creation time.
-		PyWinObject_FromFILETIME(pData->ftLastAccessTime), // @tupleitem 2|<o PyTime>|accessTime|File access time.
-		PyWinObject_FromFILETIME(pData->ftLastWriteTime), // @tupleitem 3|<o PyTime>|writeTime|Time of last file write
-		pData->nFileSizeHigh, // @tupleitem 4|int|nFileSizeHigh|high order word of file size.
-		pData->nFileSizeLow,	// @tupleitem 5|int|nFileSizeLow|low order word of file size.
-		pData->dwReserved0,	// @tupleitem 6|int|reserved0|Reserved.
-		pData->dwReserved1,   // @tupleitem 7|int|reserved1|Reserved.
-		pData->cFileName,     // @tupleitem 8|Unicode|fileName|The name of the file.
-		pData->cAlternateFileName); // @tupleitem 9|Unicode|alternateFilename|Alternative name of the file, expressed in 8.3 format.
-}
-
 // @pyswig list|FindFilesW|Retrieves a list of matching filenames, using the Windows Unicode API.  An interface to the API FindFirstFileW/FindNextFileW/Find close functions.
 static PyObject *
 PyFindFilesW(PyObject *self, PyObject *args)
@@ -432,10 +415,10 @@ PyFindFilesW(PyObject *self, PyObject *args)
 		::FindClose(hFind);
 		return NULL;
 	}
-	// @rdesc The return value is a list of <o FIND_DATA> tuples.
+	// @rdesc The return value is a list of <o WIN32_FIND_DATA> tuples.
 	BOOL ok = TRUE;
 	while (ok) {
-		PyObject *newItem = PyObject_FromFIND_DATA(&findData);
+		PyObject *newItem = PyObject_FromWIN32_FIND_DATAW(&findData);
 		if (!newItem) {
 			::FindClose(hFind);
 			Py_DECREF(retList);
@@ -503,7 +486,7 @@ ffi_iternext(PyObject *iterator)
 			return PyWin_SetAPIError("FindNextFileW");
 		}
 	}
-	return PyObject_FromFIND_DATA(&ffi->buffer);
+	return PyObject_FromWIN32_FIND_DATAW(&ffi->buffer);
 }
 
 PyTypeObject FindFileIterator_Type = {
@@ -586,7 +569,7 @@ PyFindFilesIterator(PyObject *self, PyObject *args)
 	}
 	return (PyObject *)it;
 	// @rdesc The result is a Python iterator, with each next() method
-	// returning a <o FIND_DATA> tuple.
+	// returning a <o WIN32_FIND_DATA> tuple.
 }
 %}
 

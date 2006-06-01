@@ -307,6 +307,10 @@ PYWINTYPES_EXPORT PyObject *PyWinMethod_NewTime( PyObject *self, PyObject *args)
 
 #endif // NO_PYWINTYPES_TIME
 
+// functions to return WIN32_FIND_DATA tuples, used in shell, win32api, and win32file
+PYWINTYPES_EXPORT PyObject *PyObject_FromWIN32_FIND_DATAA(WIN32_FIND_DATAA *pData);
+PYWINTYPES_EXPORT PyObject *PyObject_FromWIN32_FIND_DATAW(WIN32_FIND_DATAW *pData);
+
 /*
 ** SECURITY_ATTRIBUTES support
 */

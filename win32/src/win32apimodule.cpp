@@ -359,30 +359,19 @@ PyFindExecutable( PyObject *self, PyObject *args )
 }
 
 // @pymethod list|win32api|FindFiles|Retrieves a list of matching filenames.  An interface to the API FindFirstFile/FindNextFile/Find close functions.
+// @rdesc Returns a sequence of <o WIN32_FIND_DATA> tuples
 static PyObject *
 PyFindFiles(PyObject *self, PyObject *args)
 {
 	char *fileSpec;
 	// @pyparm string|fileSpec||A string that specifies a valid directory or path and filename, which can contain wildcard characters (* and ?).
-
-	// !!! NOT!!! comm This function detects a '\\?' in the first 3 characters, and automatically calls
-	// FindFirstFileW.  This allows fileSpec to be greater than 256 characters, and
-	// also the specifications "\\\\?\\C:\\python\\lib" is seen as "C:\\python\\lib", and "\\\\?\\UNC\\\\skippy\\hotstuff\\grail" is seen as "\\\\skippy\\hotstuff\\grail".
 	if (!PyArg_ParseTuple (args, "s:FindFiles", &fileSpec))
 		return NULL;
 	WIN32_FIND_DATA findData;
 	// @pyseeapi FindFirstFile
 	HANDLE hFind;
-	/* 	if (strcmp(fileSpec, "\\\\?")==0) */
+
 	hFind =  ::FindFirstFile(fileSpec, &findData);
-	/* else {
-		int len=strlen(fileSpec);
-		WCHAR *pBuf = new WCHAR[len+1];
-		if (0==MultiByteToWideChar( CP_ACP, 0, fileSpec, len, pBuf, sizeof(WCHAR)*(len+1)))
-			return ReturnAPIError("MultiByteToWideChar")
-		hFind =  ::FindFirstFileW(pBuf, &findData);
-		delete [] pBuf;
-	} */
 	if (hFind==INVALID_HANDLE_VALUE) {
 		if (::GetLastError()==ERROR_FILE_NOT_FOUND) {	// this is OK
 			return PyList_New(0);
@@ -395,46 +384,27 @@ PyFindFiles(PyObject *self, PyObject *args)
 		return NULL;
 	}
 	BOOL ok = TRUE;
-	while (ok) {
-		PyObject *obCreateTime = PyWinObject_FromFILETIME(findData.ftCreationTime);
-		PyObject *obAccessTime = PyWinObject_FromFILETIME(findData.ftLastAccessTime);
-		PyObject *obWriteTime = PyWinObject_FromFILETIME(findData.ftLastWriteTime);
-		if (obCreateTime==NULL || obAccessTime==NULL || obWriteTime==NULL) {
-			Py_XDECREF(obCreateTime);
-			Py_XDECREF(obAccessTime);
-			Py_XDECREF(obWriteTime);
-			Py_DECREF(retList);
-			::FindClose(hFind);
-			return NULL;
-		}
-		PyObject *newItem = Py_BuildValue("lOOOllllss",
-		// @rdesc The return value is a list of tuples, in the same format as the WIN32_FIND_DATA structure:
-			findData.dwFileAttributes, // @tupleitem 0|int|attributes|File Attributes.  A combination of the win32com.FILE_ATTRIBUTE_* flags.
-			obCreateTime, // @tupleitem 1|<o PyTime>|createTime|File creation time.
-    		obAccessTime, // @tupleitem 2|<o PyTime>|accessTime|File access time.
-    		obWriteTime, // @tupleitem 3|<o PyTime>|writeTime|Time of last file write
-    		findData.nFileSizeHigh, // @tupleitem 4|int|nFileSizeHigh|high order word of file size.
-    		findData.nFileSizeLow,	// @tupleitem 5|int|nFileSizeLow|low order word of file size.
-    		findData.dwReserved0,	// @tupleitem 6|int|reserved0|Reserved.
-    		findData.dwReserved1,   // @tupleitem 7|int|reserved1|Reserved.
-    		findData.cFileName,		// @tupleitem 8|string|fileName|The name of the file.
-    		findData.cAlternateFileName ); // @tupleitem 9|string|alternateFilename|Alternative name of the file, expressed in 8.3 format.
-		if (newItem!=NULL) {
-			PyList_Append(retList, newItem);
-			Py_DECREF(newItem);
-		}
+	while (1) {
+		PyObject *newItem = PyObject_FromWIN32_FIND_DATAA(&findData);
+		if (newItem==NULL || PyList_Append(retList, newItem)==-1)
+			ok=FALSE;
+		Py_XDECREF(newItem);
+		if (!ok)
+			break;
 		// @pyseeapi FindNextFile
-		Py_DECREF(obCreateTime);
-		Py_DECREF(obAccessTime);
-		Py_DECREF(obWriteTime);
-		ok=::FindNextFile(hFind, &findData);
-	}
-	ok = (GetLastError()==ERROR_NO_MORE_FILES);
+		if (!FindNextFile(hFind, &findData)){
+			ok=(GetLastError()==ERROR_NO_MORE_FILES);
+			if (!ok)
+				PyWin_SetAPIError("FindNextFile");
+			break;
+			}
+		}
+
 	// @pyseeapi FindClose
 	::FindClose(hFind);
 	if (!ok) {
 		Py_DECREF(retList);
-		return ReturnAPIError("FindNextFile");
+		retList=NULL;
 	}
 	return retList;
 }
