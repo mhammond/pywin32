@@ -521,7 +521,7 @@ class COMScript:
 
 	def AddScriptlet(self, defaultName, code, itemName, subItemName, eventName, delimiter, sourceContextCookie, startLineNumber):
 #		trace ("AddScriptlet", defaultName, code, itemName, subItemName, eventName, delimiter, sourceContextCookie, startLineNumber)
-		self.DoAddScriptlet(defaultName, str(code), itemName, subItemName, eventName, delimiter,sourceContextCookie, startLineNumber)
+		self.DoAddScriptlet(defaultName, code, itemName, subItemName, eventName, delimiter,sourceContextCookie, startLineNumber)
 
 	def ParseScriptText(self, code, itemName, context, delimiter, sourceContextCookie, startLineNumber, flags, bWantResult):
 #		trace ("ParseScriptText", code[:20],"...", itemName, context, delimiter, sourceContextCookie, startLineNumber, flags, bWantResult)
@@ -535,7 +535,7 @@ class COMScript:
 		if flags & SCRIPTTEXT_FORCEEXECUTION:
 			# About to execute the code.
 			self.RegisterNewNamedItems()
-		return self.DoParseScriptText(str(code), sourceContextCookie, startLineNumber, bWantResult, flags)
+		return self.DoParseScriptText(code, sourceContextCookie, startLineNumber, bWantResult, flags)
 
 	#
 	# IActiveScriptParseProcedure
@@ -549,7 +549,7 @@ class COMScript:
 		# <SCRIPT for="whatever" event="onClick" language="Python">
 		# (but even for those blocks, the "onClick" information is still missing!?!?!?)
 
-#		self.DoAddScriptlet(None, str(code), itemName, subItemName, eventName, delimiter,sourceContextCookie, startLineNumber)
+#		self.DoAddScriptlet(None, code, itemName, subItemName, eventName, delimiter,sourceContextCookie, startLineNumber)
 		return None
 	#
 	# IActiveScript
@@ -652,7 +652,6 @@ class COMScript:
 
 	def AddNamedItem(self, name, flags):
 		if self.scriptSite is None: raise Exception(scode=winerror.E_INVALIDARG)
-		name = str(name) # Convert from Unicode.
 		try:
 			unknown = self.scriptSite.GetItemInfo(name, axscript.SCRIPTINFO_IUNKNOWN)[0]
 			dispatch = unknown.QueryInterface(pythoncom.IID_IDispatch)

@@ -29,7 +29,7 @@ class Expression(gateways.DebugExpression):
 	def __init__(self, frame, code, radix, delim, flags):
 		self.callback = None
 		self.frame = frame
-		self.code = str(code)
+		self.code = code
 		self.radix = radix
 		self.delim = delim
 		self.flags = flags

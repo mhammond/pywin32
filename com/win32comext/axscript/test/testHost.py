@@ -107,7 +107,8 @@ sub testcollection
    end if
 end sub
 """
-PyScript = """\
+PyScript = u"""\
+# A unicode \xa9omment.
 prop = "Property Value"
 def hello(arg1):
    test.echo(arg1)

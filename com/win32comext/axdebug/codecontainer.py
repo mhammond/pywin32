@@ -24,10 +24,9 @@ for name in string.split("""
 class SourceCodeContainer:
 	def __init__(self, text, fileName = "<Remove Me!>", sourceContext = 0, startLineNumber = 0, site = None, debugDocument = None):
 		self.sourceContext = sourceContext # The source context added by a smart host.
-		self.text = None
+		self.text = text
 		if text: 
-			self.text = str(text)# Convert from Unicode if necessary.
-			self._buildlines()
+		    self._buildlines()
 		self.nextLineNo = 0
 		self.fileName = fileName
 		self.codeContexts = {}
