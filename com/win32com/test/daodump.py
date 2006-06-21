@@ -48,17 +48,14 @@ def TestEngine(engine):
     DumpDB(db)
 
 def test():
-    import win32com.client.gencache
-    if win32com.client.gencache.GetModuleForProgID("DAO.DBEngine.35") is None:
-        print "DAO 3.5 does not seem to be installed or have makepy support"
-    else:
-        TestEngine(win32com.client.Dispatch("DAO.DBEngine.35"))
-
-    if win32com.client.gencache.GetModuleForProgID("DAO.DBEngine.30") is None:
-        print "DAO 3.0 does not seem to be installed or have makepy support"
-    else:
-        TestEngine(win32com.client.Dispatch("DAO.DBEngine.30"))
-
+    for progid in ("DAO.DBEngine.36", "DAO.DBEngine.35", "DAO.DBEngine.30"):
+        try:
+            ob = win32com.client.gencache.EnsureDispatch(progid)
+        except pythoncom.com_error:
+            print progid, "does not seem to be installed"
+        else:
+            TestEngine(ob)
+            break
 
 if __name__=='__main__':
     test()
