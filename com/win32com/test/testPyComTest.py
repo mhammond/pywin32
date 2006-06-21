@@ -188,6 +188,9 @@ def TestGenerated():
         raise error, "GetSetVariant (str) failed"
     if o.GetSetVariant(o) != o:
         raise error, "GetSetVariant (dispatch) failed"
+    for l in sys.maxint, sys.maxint+1, 1 << 65L:
+        if o.GetSetVariant(l) != l:
+            raise error, "GetSetVariant (long) failed"
     if o.TestByRefVariant(2) != 4:
         raise error, "TestByRefVariant failed"
     if o.TestByRefString("Foo") != "FooFoo":
