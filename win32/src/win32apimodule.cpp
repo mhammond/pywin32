@@ -1221,6 +1221,45 @@ PyGetKeyboardState(PyObject * self, PyObject * args)
 	// documentation for more details.
 }
 
+// @pymethod int|win32api|VkKeyScan|Translates a character to the corresponding virtual-key code and shift state. 
+static PyObject *
+PyVkKeyScan(PyObject * self, PyObject * args)
+{
+	char *key;
+	int len;
+	// @pyparm chr|char||Specifies a character
+	if (!PyArg_ParseTuple(args, "s#:VkKeyScan", &key, &len))
+		return (NULL);
+	if (len != 1)
+		return PyErr_Format(PyExc_ValueError, "arg must be a string of length 1");
+	int ret;
+	PyW32_BEGIN_ALLOW_THREADS
+	// @pyseeapi VkKeyScan
+	ret = VkKeyScan(key[0]);
+	PyW32_END_ALLOW_THREADS
+	return PyInt_FromLong(ret);
+}
+
+// @pymethod int|win32api|VkKeyScanEx|Translates a character to the corresponding virtual-key code and shift state. 
+static PyObject *
+PyVkKeyScanEx(PyObject * self, PyObject * args)
+{
+	char *key;
+	int len;
+	long kl;
+	// @pyparm chr|char||Specifies a character
+	if (!PyArg_ParseTuple(args, "s#l:VkKeyScanEx", &key, &len, &kl))
+		return (NULL);
+	if (len != 1)
+		return PyErr_Format(PyExc_ValueError, "arg must be a string of length 1");
+	int ret;
+	PyW32_BEGIN_ALLOW_THREADS
+	// @pyseeapi VkKeyScanEx
+	ret = VkKeyScanEx(key[0], (HKL)kl);
+	PyW32_END_ALLOW_THREADS
+	return PyInt_FromLong(ret);
+}
+
 // @pymethod int|win32api|GetLastError|Retrieves the calling threads last error code value.
 static PyObject *
 PyGetLastError(PyObject * self, PyObject * args)
@@ -1660,21 +1699,44 @@ PyGetSystemMetrics(PyObject * self, PyObject * args)
 static PyObject *
 PyGetShortPathName(PyObject * self, PyObject * args)
 {
-	char *path;
-	if (!PyArg_ParseTuple(args, "s:GetShortPathName", &path))
+	PyObject *obPath;
+	// @pyparm string/unicode|path||If a unicode object is passed,
+	// GetShortPathNameW will be called and a unicode object returned.
+	if (!PyArg_ParseTuple(args, "O:GetShortPathName", &obPath))
 		return NULL;
-	char szOutPath[_MAX_PATH];
-	// @pyseeapi GetShortPathName
-	PyW32_BEGIN_ALLOW_THREADS
-	DWORD rc = GetShortPathName(path, szOutPath, sizeof(szOutPath));
-	PyW32_END_ALLOW_THREADS
-	if (rc==0)
-		return ReturnAPIError("GetShortPathName");
-	if (rc>=sizeof(szOutPath))
-		return ReturnError("The pathname would be too big!!!");
-	return Py_BuildValue("s", szOutPath);
+	if (PyString_Check(obPath)) {
+		char *path;
+		if (!PyWinObject_AsString(obPath, &path))
+			return NULL;
+
+		char szOutPath[_MAX_PATH];
+		// @pyseeapi GetShortPathName
+		PyW32_BEGIN_ALLOW_THREADS
+		DWORD rc = GetShortPathName(path, szOutPath, sizeof(szOutPath));
+		PyW32_END_ALLOW_THREADS
+		if (rc==0)
+			return ReturnAPIError("GetShortPathName");
+		if (rc>=sizeof(szOutPath))
+			return ReturnError("The pathname would be too big!!!");
+		return Py_BuildValue("s", szOutPath);
+	} else {
+		WCHAR *path;
+		if (!PyWinObject_AsWCHAR(obPath, &path))
+			return NULL;
+		WCHAR szOutPath[_MAX_PATH];
+		// @pyseeapi GetShortPathName
+		PyW32_BEGIN_ALLOW_THREADS
+		DWORD rc = GetShortPathNameW(path, szOutPath, sizeof(szOutPath));
+		PyW32_END_ALLOW_THREADS
+		if (rc==0)
+			return ReturnAPIError("GetShortPathNameW");
+		if (rc>=sizeof(szOutPath))
+			return ReturnError("The (unicode) pathname would be too big!!!");
+		return Py_BuildValue("u", szOutPath);
+	}
 	// @comm The short path name is an 8.3 compatible file name.  As the input path does
 	// not need to be absolute, the returned name may be longer than the input path.
+	return PyErr_Format(PyExc_RuntimeError, "not reached!?");
 }
 
 // @pymethod string|win32api|GetLongPathName|Converts the specified path to its long form.
@@ -4852,6 +4914,8 @@ static struct PyMethodDef win32api_functions[] = {
 	{"TerminateProcess",	PyTerminateProcess,	1}, // @pymeth TerminateProcess|Terminates a process.
 	{"Unicode",             PyWin_NewUnicode,         1},	// @pymeth Unicode|Creates a new <o PyUnicode> object
 	{"UpdateResource",     PyUpdateResource, 1 },  // @pymeth UpdateResource|Updates a resource in a PE file.
+	{"VkKeyScan",           PyVkKeyScan,     1}, // @pymeth VkKeyScan|Translates a character to the corresponding virtual-key code and shift state. 
+	{"VkKeyScanEx",         PyVkKeyScanEx,   1}, // @pymeth VkKeyScan|Translates a character to the corresponding virtual-key code and shift state. 
 	{"WinExec",             PyWinExec,  		1}, // @pymeth WinExec|Execute a program.
 	{"WinHelp",             PyWinHelp,  		1}, // @pymeth WinHelp|Invokes the Windows Help engine.
 	{"WriteProfileSection",	PyWriteProfileSection,  1}, // @pymeth WriteProfileSection|Writes a complete section to an INI file or registry.
