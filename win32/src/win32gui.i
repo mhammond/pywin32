@@ -2138,6 +2138,8 @@ done:
 BOOLAPI DestroyAcceleratorTable(HACCEL haccel);
 
 // @pyswig HMENU|LoadMenu|Loads a menu
+// @pyparm int|hinstance||
+// @pyparm int/string|resource_id||
 HMENU LoadMenu(HINSTANCE hInst, RESOURCE_ID name);
 
 // @pyswig |DestroyMenu|Destroys a previously loaded menu.
@@ -2145,6 +2147,8 @@ BOOLAPI DestroyMenu( HMENU hmenu );
 
 #ifndef MS_WINCE
 // @pyswig |SetMenu|Sets the menu for the specified window.
+// @pyparm int|hwnd||
+// @pyparm int|hmenu||
 BOOLAPI SetMenu( HWND hwnd, HMENU hmenu );
 #endif
 
@@ -2152,6 +2156,8 @@ BOOLAPI SetMenu( HWND hwnd, HMENU hmenu );
 HMENU GetMenu( HWND hwnd);
 
 // @pyswig HCURSOR|LoadIcon|Loads an icon
+// @pyparm int|hinstance||
+// @pyparm int/string|resource_id||
 HICON LoadIcon(HINSTANCE hInst, RESOURCE_ID name);
 
 #ifndef MS_WINCE
@@ -2570,7 +2576,68 @@ BOOL SetWindowPos(  HWND hWnd,             // handle to window
   int cy,                // height
   UINT uFlags            // window-positioning flags
 );
-  
+
+%{
+// @pyswig tuple|GetWindowPlacement|Returns placement information about the current window.
+static PyObject *
+PyGetWindowPlacement(PyObject *self, PyObject *args)
+{
+	int hwnd;
+	if (!PyArg_ParseTuple(args, "i:GetWindowPlacement", &hwnd))
+		return NULL;
+
+	WINDOWPLACEMENT pment;
+	pment.length=sizeof(pment);
+	BOOL ok;
+	Py_BEGIN_ALLOW_THREADS
+	ok = GetWindowPlacement( (HWND)hwnd, &pment );
+	Py_END_ALLOW_THREADS
+	if (!ok)
+		return PyWin_SetAPIError("GetWindowPlacement");
+	// @rdesc The result is a tuple of
+	// (flags, showCmd, (minposX, minposY), (maxposX, maxposY), (normalposX, normalposY))
+	// @flagh Item|Description
+	// @flag flags|One of the WPF_* constants
+	// @flag showCmd|Current state - one of the SW_* constants.
+	// @flag minpos|Specifies the coordinates of the window's upper-left corner when the window is minimized.
+	// @flag maxpos|Specifies the coordinates of the window's upper-left corner when the window is maximized. 
+	// @flag normalpos|Specifies the window's coordinates when the window is in the restored position.
+	return Py_BuildValue("(ii(ii)(ii)(iiii))",pment.flags, pment.showCmd,
+	                     pment.ptMinPosition.x,pment.ptMinPosition.y,
+	                     pment.ptMaxPosition.x,pment.ptMaxPosition.y,
+	                     pment.rcNormalPosition.left, pment.rcNormalPosition.top,
+	                     pment.rcNormalPosition.right, pment.rcNormalPosition.bottom);
+}
+// @pyswig |SetWindowPlacement|Sets the windows placement
+static PyObject *
+PySetWindowPlacement(PyObject *self, PyObject *args)
+{
+	int hwnd;
+	WINDOWPLACEMENT pment;
+	pment.length=sizeof(pment);
+	// @pyparm (tuple)|placement||A tuple representing the WINDOWPLACEMENT structure.
+	if (!PyArg_ParseTuple(args,"i(ii(ii)(ii)(iiii)):SetWindowPlacement",
+	                      &hwnd,
+	                      &pment.flags, &pment.showCmd,
+	                      &pment.ptMinPosition.x,&pment.ptMinPosition.y,
+	                      &pment.ptMaxPosition.x,&pment.ptMaxPosition.y,
+	                      &pment.rcNormalPosition.left, &pment.rcNormalPosition.top,
+	                      &pment.rcNormalPosition.right, &pment.rcNormalPosition.bottom))
+		return NULL;
+	BOOL rc;
+	Py_BEGIN_ALLOW_THREADS
+	rc = SetWindowPlacement( (HWND)hwnd, &pment );
+	Py_END_ALLOW_THREADS
+	if (!rc)
+		return PyWin_SetAPIError("SetWindowPlacement");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+%}
+%native (GetWindowPlacement) PyGetWindowPlacement;
+%native (SetWindowPlacement) PySetWindowPlacement;
+
 %{
 // @pyswig int|RegisterClass|Registers a window class.
 static PyObject *PyRegisterClass(PyObject *self, PyObject *args)
@@ -2691,8 +2758,8 @@ static PyObject *PyPumpWaitingMessages(PyObject *self, PyObject *args)
 // @pyswig MSG|GetMessage|
 BOOL GetMessage(MSG *OUTPUT, 
                 HWND hwnd, // @pyparm int|hwnd||
-                UINT min, // @pyparm int|max||
-                UINT max); // @pyparm int|min||
+                UINT min, // @pyparm int|min||
+                UINT max); // @pyparm int|max||
 
 // @pyswig int|TranslateMessage|
 // @pyparm MSG|msg||
