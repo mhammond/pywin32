@@ -37,7 +37,7 @@ def BuildModule(module, built_nodes, rootNode, create_node_fn, create_node_args 
             keep = string.lower(os.path.splitext(module.__file__)[1]) not in [".pyd", ".dll"]
 #               keep = keep and module.__name__=='__main__'
     if module and keep:
-#               print "keeping", module.__name__
+#        print "keeping", module.__name__
         node = ModuleTreeNode(module)
         built_nodes[module] = node
         realNode = apply(create_node_fn, (node,)+create_node_args)
@@ -51,7 +51,8 @@ def BuildModule(module, built_nodes, rootNode, create_node_fn, create_node_args 
         if parent:
             parentModule = sys.modules[parent]
             BuildModule(parentModule, built_nodes, rootNode, create_node_fn, create_node_args)
-            parentNode = built_nodes[parentModule].realNode
+            if parentModule in built_nodes:
+                parentNode = built_nodes[parentModule].realNode
         node.Attach(parentNode)
 
 def RefreshAllModules(builtItems, rootNode, create_node, create_node_args):
