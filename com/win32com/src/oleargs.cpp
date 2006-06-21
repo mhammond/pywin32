@@ -65,22 +65,28 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 	}
 	else if (PyLong_Check(obj))
 	{
-		double dval = PyLong_AsDouble(obj);
-		BOOL isDword = FALSE;
-		if (dval >= 0 && dval < (double)ULONG_MAX)
-		{
-			DWORD dwval = (DWORD)dval;
-			if ((double)dwval == dval)
-			{
-				V_VT(var) = VT_UI4;
-				V_UI4(var) = dwval;
-				isDword = TRUE;
-			}
-		}
-		if (!isDword)
-		{
+		__int64 lval = PyLong_AsLongLong(obj);
+		if (PyErr_Occurred() && !PyErr_ExceptionMatches(PyExc_OverflowError))
+			return FALSE;
+		if (PyErr_Occurred()) {
+			PyErr_Clear();
+			// too big for 64 bits!  Use a double.
+			double dval = PyLong_AsDouble(obj);
 			V_VT(var) = VT_R8;
 			V_R8(var) = dval;
+		} else {
+			// 64 bits is OK - but if it fits in 32 we will
+			// use that.
+			if (lval >= 0 && lval <= ULONG_MAX) {
+				V_VT(var) = VT_UI4;
+				V_UI4(var) = (unsigned long)lval;
+			} else if (lval >= LONG_MIN && lval <= LONG_MAX) {
+				V_VT(var) = VT_I4;
+				V_I4(var) = (long)lval;
+			} else {
+				V_VT(var) = VT_I8;
+				V_I8(var) = lval;
+			}
 		}
 	}
 	else if (PyFloat_Check(obj))
