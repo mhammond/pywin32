@@ -361,7 +361,7 @@ class TestDirectoryChanges(unittest.TestCase):
                 # already been set.
                 nbytes = win32file.GetOverlappedResult(dh, overlapped, True)
                 if nbytes:
-                    bits = win32file.FILE_NOTIFY_INFORMATION(buf, 8192)
+                    bits = win32file.FILE_NOTIFY_INFORMATION(buf, nbytes)
                     changes.extend(bits)
                 else:
                     # This is "normal" exit - our 'tearDown' closes the
