@@ -52,5 +52,5 @@ class DDEServer(object.Object):
 		try:
 			win32ui.SetStatusText(msg)
 		except win32ui.error:
-			print msg
+			pass
 
