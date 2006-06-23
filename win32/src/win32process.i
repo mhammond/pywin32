@@ -381,6 +381,63 @@ static PyObject *mybeginthreadex(PyObject *self, PyObject *args)
 
 %native (beginthreadex) mybeginthreadex;
 
+%{
+// @pyswig <o PyHANDLE>, int|CreateRemoteThread|creates a thread that runs in
+// the virtual address space of another process.
+static PyObject *myCreateRemoteThread(PyObject *self, PyObject *args)
+{
+	PyObject *obFunc, *obArgs, *obSA;
+	unsigned stackSize, flags;
+	int hprocess;
+	if (!PyArg_ParseTuple(args, "iOiOOi",
+		&hprocess, // @pyparm int|hprocess||The handle to the remote process.
+		&obSA, // @pyparm <o PySECURITY_ATTRIBUTES>|sa||The security attributes, or None
+		&stackSize, // @pyparm int|stackSize||Stack size for the new thread, or zero for the default size.
+		&obFunc, // @pyparm function|entryPoint||The thread function's address.
+		&obArgs, // @pyparm tuple|args||Args passed to the function.
+		&flags)) // @pyparm int|flags||
+		return NULL;
+	if (!PyInt_Check(obFunc)) {
+		PyErr_SetString(PyExc_TypeError, "function must be an address");
+		return NULL;
+	}
+	if (!PyInt_Check(obArgs)) {
+		PyErr_SetString(PyExc_TypeError, "args must be an address");
+		return NULL;
+	}
+	SECURITY_ATTRIBUTES *pSA;
+	if (!PyWinObject_AsSECURITY_ATTRIBUTES( obSA, &pSA, TRUE ))
+		return NULL;
+
+	HANDLE (WINAPI *pfnCreateRemoteThread)( HANDLE, LPSECURITY_ATTRIBUTES, SIZE_T, LPTHREAD_START_ROUTINE, LPVOID, DWORD, LPDWORD) = NULL;
+	HMODULE hmod = GetModuleHandle("kernel32.dll");
+	if (hmod)
+		pfnCreateRemoteThread = (HANDLE (WINAPI *)( HANDLE, LPSECURITY_ATTRIBUTES, SIZE_T, LPTHREAD_START_ROUTINE, LPVOID, DWORD, LPDWORD))
+			GetProcAddress(hmod, "CreateRemoteThread");
+	if (pfnCreateRemoteThread==NULL)
+		return PyWin_SetAPIError("CreateRemoteThread", E_NOTIMPL);
+
+	PyEval_InitThreads();
+	HANDLE handle;
+	DWORD tid;
+	handle = (*pfnCreateRemoteThread)((HANDLE)hprocess, pSA, stackSize,
+	                                  (LPTHREAD_START_ROUTINE )PyLong_AsVoidPtr(obFunc),
+	                                  PyLong_AsVoidPtr(obArgs),
+	                                  flags, &tid);
+	if (handle==(HANDLE)-1 || handle==(HANDLE)0) {
+		return PyWin_SetAPIError("CreateRemoteThread");
+	}
+	// @comm The result is a tuple of the thread handle and thread ID.
+	PyObject *obHandle = PyWinObject_FromHANDLE((HANDLE)handle);
+	PyObject *rc = Py_BuildValue("Oi", obHandle, tid);
+	Py_DECREF(obHandle);
+	return rc;
+}
+
+%}
+
+%native (CreateRemoteThread) myCreateRemoteThread;
+
 #endif // MS_WINCE
 
 // Wont expose ExitThread!!!  May leak all sorts of things!
