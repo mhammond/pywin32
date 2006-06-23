@@ -79,29 +79,7 @@ void HandleError(char *prefix)
 		PyErr_Print();
 	}
 }
-
-// @pyswig |set_logger|Sets a logger object for exceptions and error information
-// @comm Once a logger has been set for the module, unhandled exceptions, such as
-// from a window's WNDPROC, will be written (via logger.exception()) to the log
-// instead of to stderr.
-// <nl>Note that using this with the Python 2.3 logging package will prevent the
-// traceback from being written to the log.  However, it is possible to use
-// the Python 2.4 logging package directly with Python 2.3
-PyObject *set_logger(PyObject *self, PyObject *args)
-{
-	Py_XDECREF(logger);
-	logger = NULL;
-	// @pyparm object|logger||A logger object, generally from the standard logger package.
-	if (!PyArg_ParseTuple(args, "O|set_logger", &logger))
-		return NULL;
-	if (logger==Py_None)
-		logger = NULL;
-	Py_XINCREF(logger);
-	Py_INCREF(Py_None);
-	return Py_None;
-}
 %}
-%native (set_logger) set_logger;
 
 // Written to the module init function.
 %init %{
@@ -747,6 +725,12 @@ PyTypeObject PyWNDCLASSType =
 	{"hCursor",          T_INT,  OFF(m_WNDCLASS.hCursor)}, // @prop integer|hCursor|
 	{"hbrBackground",    T_INT,  OFF(m_WNDCLASS.hbrBackground)}, // @prop integer|hbrBackground|
 	{NULL}	/* Sentinel */
+	// These 3 handled manually in PyWNDCLASS::getattr/setattr.  The pymeth below is used as an
+	// end tag, so these props will be lost if below it
+	// @prop string/<o PyUnicode>|lpszMenuName|
+	// @prop string/<o PyUnicode>|lpszClassName|
+	// @prop function|lpfnWndProc|
+
 };
 
 static PyObject *meth_SetDialogProc(PyObject *self, PyObject *args)
@@ -761,6 +745,7 @@ static PyObject *meth_SetDialogProc(PyObject *self, PyObject *args)
 
 static struct PyMethodDef PyWNDCLASS_methods[] = {
 	{"SetDialogProc",     meth_SetDialogProc, 1}, 	// @pymeth SetDialogProc|Sets the WNDCLASS to be for a dialog box.
+	// @pymethod |PyWNDCLASS|SetDialogProc|Sets the WNDCLASS to be for a dialog box
 	{NULL}
 };
 
@@ -789,9 +774,6 @@ PyObject *PyWNDCLASS::getattr(PyObject *self, char *name)
 		return ret;
 	PyErr_Clear();
 	PyWNDCLASS *pW = (PyWNDCLASS *)self;
-	// @prop string/<o PyUnicode>|lpszMenuName|
-	// @prop string/<o PyUnicode>|lpszClassName|
-	// @prop function|lpfnWndProc|
 	if (strcmp("lpszMenuName", name)==0) {
 		ret = pW->m_obMenuName ? pW->m_obMenuName : Py_None;
 		Py_INCREF(ret);
@@ -1169,6 +1151,30 @@ static PyObject *PyEnumFontFamilies(PyObject *self, PyObject *args)
 
 }
 %}
+
+%{
+// @pyswig |set_logger|Sets a logger object for exceptions and error information
+// @comm Once a logger has been set for the module, unhandled exceptions, such as
+// from a window's WNDPROC, will be written (via logger.exception()) to the log
+// instead of to stderr.
+// <nl>Note that using this with the Python 2.3 logging package will prevent the
+// traceback from being written to the log.  However, it is possible to use
+// the Python 2.4 logging package directly with Python 2.3
+PyObject *set_logger(PyObject *self, PyObject *args)
+{
+	Py_XDECREF(logger);
+	logger = NULL;
+	// @pyparm object|logger||A logger object, generally from the standard logger package.
+	if (!PyArg_ParseTuple(args, "O|set_logger", &logger))
+		return NULL;
+	if (logger==Py_None)
+		logger = NULL;
+	Py_XINCREF(logger);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+%native (set_logger) set_logger;
 
 %typemap(python,in) LOGFONT *{
 	if (!PyLOGFONT_Check($source))
