@@ -3923,6 +3923,97 @@ void PyWinObject_FreeOPENFILENAMEW(OPENFILENAMEW *pofn)
 	ZeroMemory(pofn, sizeof(OPENFILENAMEW));
 }
 
+// Forward declared so autoduck comments for parms will appear with GetOpenFileNameW
+BOOL PyParse_OPENFILENAMEW_Args(PyObject *args, PyObject *kwargs, OPENFILENAMEW *pofn);
+
+PyObject *PyReturn_OPENFILENAMEW_Output(OPENFILENAMEW *pofn)
+{
+	DWORD filechars, filterchars;
+	// there is no returned length, and lpstrFile can contain NULL's if multiple files are selected
+	// Walk the string backwards until a non-NULL is found
+	for (filechars=pofn->nMaxFile; filechars>0; filechars--)
+		if (pofn->lpstrFile[filechars-1]!=0)
+			break;
+
+	if (pofn->lpstrCustomFilter==NULL)
+		return Py_BuildValue("NOk",
+			PyWinObject_FromWCHAR(pofn->lpstrFile, filechars),
+			Py_None,
+			pofn->Flags);
+	// if CustomFilter if present, can contain NULL's also
+	for (filterchars=pofn->nMaxCustFilter; filterchars>0; filterchars--)
+		if (pofn->lpstrCustomFilter[filterchars-1]!=0)
+			break;
+	return Py_BuildValue("NNk",
+		PyWinObject_FromWCHAR(pofn->lpstrFile, filechars),
+		// include trailing NULL so returned value can be passed back in as a filter unmodified
+		PyWinObject_FromWCHAR(pofn->lpstrCustomFilter, filterchars+1),
+		pofn->Flags);
+}
+%}
+
+
+%native (GetSaveFileNameW) pfnPyGetSaveFileNameW;
+%native (GetOpenFileNameW) pfnPyGetOpenFileNameW;
+
+%{
+// @pyswig (<o PyUNICODE>,<o PyUNICODE>,int)|GetSaveFileNameW|Creates a dialog for user to specify location to save a file or files
+// @comm Accepts keyword arguments, all arguments optional
+// @rdesc Returns a tuple of 3 values (<o PyUNICODE>, <o PyUNICODE>, int):<nl>
+// First is the selected file(s). If multiple files are selected, returned string will be the directory followed by files names
+// separated by nulls, otherwise it will be the full path.<nl>
+// Second is a unicode string containing user-selected filter, will be None if CustomFilter was not specified<nl>
+// Third item contains flags pertaining to users input, such as OFN_READONLY and OFN_EXTENSIONDIFFERENT
+// @pyparm <o PyHANDLE>|hwndOwner|None|Handle to window that owns dialog
+// @pyparm <o PyHANDLE>|hInstance|None|Handle to module that contains dialog template
+// @pyparm <o PyUNICODE>|Filter|None|Contains pairs of descriptions and filespecs separated by NULLS, with a final trailing NULL.
+// Example: 'Python Scripts\0*.py;*.pyw;*.pys\0Text files\0*.txt\0'
+// @pyparm <o PyUNICODE>|CustomFilter|None|Description to be used for filter that user selected or typed, can also contain a filespec as above
+// @pyparm int|FilterIndex|0|Specifies which of the filters is initially selected, use 0 for CustomFilter
+// @pyparm <o PyUNICODE>|File|None|The file name initially displayed
+// @pyparm int|MaxFile|1024|Number of characters to allocate for selected filename(s), override if large number of files expected
+// @pyparm <o PyUNICODE>|InitialDir|None|The starting directory
+// @pyparm <o PyUNICODE>|Title|None|The title of the dialog box
+// @pyparm int|Flags|0|Combination of win32con.OFN_* constants
+// @pyparm <o PyUNICODE>|DefExt|None|The default extension to use
+// @pyparm <o PyUNICODE>|TemplateName|None|Name of dialog box template
+static PyObject *PyGetSaveFileNameW(PyObject *self, PyObject *args, PyObject *kwargs)
+{	
+	PyObject *ret=NULL;
+	OPENFILENAMEW ofn;
+
+	if (!PyParse_OPENFILENAMEW_Args(args, kwargs, &ofn))
+		return NULL;
+
+	if (!GetSaveFileNameW(&ofn))
+		PyWin_SetAPIError("GetSaveFileNameW", CommDlgExtendedError());
+	else
+		ret=PyReturn_OPENFILENAMEW_Output(&ofn);
+
+	PyWinObject_FreeOPENFILENAMEW(&ofn);
+	return ret;
+}
+
+// @pyswig (<o PyUNICODE>,<o PyUNICODE>, int)|GetOpenFileNameW|Creates a dialog to allow user to select file(s) to open
+// @comm Accepts keyword arguments, all arguments optional
+// Input parameters and return values are identical to <om win32gui.GetSaveFileNameW>
+static PyObject *PyGetOpenFileNameW(PyObject *self, PyObject *args, PyObject *kwargs)
+{	
+	PyObject *ret=NULL;
+	OPENFILENAMEW ofn;
+
+	if (!PyParse_OPENFILENAMEW_Args(args, kwargs, &ofn))
+		return NULL;
+
+	if (!GetOpenFileNameW(&ofn))
+		PyWin_SetAPIError("GetOpenFileNameW", CommDlgExtendedError());
+	else
+		ret=PyReturn_OPENFILENAMEW_Output(&ofn);
+
+	PyWinObject_FreeOPENFILENAMEW(&ofn);
+	return ret;
+}
+
 BOOL PyParse_OPENFILENAMEW_Args(PyObject *args, PyObject *kwargs, OPENFILENAMEW *pofn)
 {
 	BOOL ret=FALSE;
@@ -4013,94 +4104,6 @@ BOOL PyParse_OPENFILENAMEW_Args(PyObject *args, PyObject *kwargs, OPENFILENAMEW 
 		PyWinObject_FreeOPENFILENAMEW(pofn);
 	PyWinObject_FreeWCHAR(initfile);
 	PyWinObject_FreeWCHAR(customfilter);
-	return ret;
-}
-
-PyObject *PyReturn_OPENFILENAMEW_Output(OPENFILENAMEW *pofn)
-{
-	DWORD filechars, filterchars;
-	// there is no returned length, and lpstrFile can contain NULL's if multiple files are selected
-	// Walk the string backwards until a non-NULL is found
-	for (filechars=pofn->nMaxFile; filechars>0; filechars--)
-		if (pofn->lpstrFile[filechars-1]!=0)
-			break;
-
-	if (pofn->lpstrCustomFilter==NULL)
-		return Py_BuildValue("NOk",
-			PyWinObject_FromWCHAR(pofn->lpstrFile, filechars),
-			Py_None,
-			pofn->Flags);
-	// if CustomFilter if present, can contain NULL's also
-	for (filterchars=pofn->nMaxCustFilter; filterchars>0; filterchars--)
-		if (pofn->lpstrCustomFilter[filterchars-1]!=0)
-			break;
-	return Py_BuildValue("NNk",
-		PyWinObject_FromWCHAR(pofn->lpstrFile, filechars),
-		// include trailing NULL so returned value can be passed back in as a filter unmodified
-		PyWinObject_FromWCHAR(pofn->lpstrCustomFilter, filterchars+1),
-		pofn->Flags);
-}
-%}
-
-
-%native (GetSaveFileNameW) pfnPyGetSaveFileNameW;
-%native (GetOpenFileNameW) pfnPyGetOpenFileNameW;
-
-%{
-// @pyswig (<o PyUNICODE>,<o PyUNICODE>,int)|GetSaveFileNameW|Creates a dialog for user to specify location to save a file or files
-// @comm Accepts keyword arguments, all arguments optional
-// @rdesc Returns a tuple of 3 values (<o PyUNICODE>, <o PyUNICODE>, int):<nl>
-// First is the selected file(s). If multiple files are selected, returned string will be the directory followed by files names
-// separated by nulls, otherwise it will be the full path.<nl>
-// Second is a unicode string containing user-selected filter, will be None if CustomFilter was not specified<nl>
-// Third item contains flags pertaining to users input, such as OFN_READONLY and OFN_EXTENSIONDIFFERENT
-// @pyparm <o PyHANDLE>|hwndOwner|None|Handle to window that owns dialog
-// @pyparm <o PyHANDLE>|hInstance|None|Handle to module that contains dialog template
-// @pyparm <o PyUNICODE>|Filter|None|Contains pairs of descriptions and filespecs separated by NULLS, with a final trailing NULL.
-// Example: 'Python Scripts\0*.py;*.pyw;*.pys\0Text files\0*.txt\0'
-// @pyparm <o PyUNICODE>|CustomFilter|None|Description to be used for filter that user selected or typed, can also contain a filespec as above
-// @pyparm int|FilterIndex|0|Specifies which of the filters is initially selected, use 0 for CustomFilter
-// @pyparm <o PyUNICODE>|File|None|The file name initially displayed
-// @pyparm int|MaxFile|1024|Number of characters to allocate for selected filename(s), override if large number of files expected
-// @pyparm <o PyUNICODE>|InitialDir|None|The starting directory
-// @pyparm <o PyUNICODE>|Title|None|The title of the dialog box
-// @pyparm int|Flags|0|Combination of win32con.OFN_* constants
-// @pyparm <o PyUNICODE>|DefExt|None|The default extension to use
-// @pyparm <o PyUNICODE>|TemplateName|None|Name of dialog box template
-static PyObject *PyGetSaveFileNameW(PyObject *self, PyObject *args, PyObject *kwargs)
-{	
-	PyObject *ret=NULL;
-	OPENFILENAMEW ofn;
-
-	if (!PyParse_OPENFILENAMEW_Args(args, kwargs, &ofn))
-		return NULL;
-
-	if (!GetSaveFileNameW(&ofn))
-		PyWin_SetAPIError("GetSaveFileNameW", CommDlgExtendedError());
-	else
-		ret=PyReturn_OPENFILENAMEW_Output(&ofn);
-
-	PyWinObject_FreeOPENFILENAMEW(&ofn);
-	return ret;
-}
-
-// @pyswig (<o PyUNICODE>,<o PyUNICODE>, int)|GetOpenFileNameW|Creates a dialog to allow user to select file(s) to open
-// @comm Accepts keyword arguments, all arguments optional
-// Input parameters and return values are identical to <om win32gui.GetSaveFileNameW>
-static PyObject *PyGetOpenFileNameW(PyObject *self, PyObject *args, PyObject *kwargs)
-{	
-	PyObject *ret=NULL;
-	OPENFILENAMEW ofn;
-
-	if (!PyParse_OPENFILENAMEW_Args(args, kwargs, &ofn))
-		return NULL;
-
-	if (!GetOpenFileNameW(&ofn))
-		PyWin_SetAPIError("GetOpenFileNameW", CommDlgExtendedError());
-	else
-		ret=PyReturn_OPENFILENAMEW_Output(&ofn);
-
-	PyWinObject_FreeOPENFILENAMEW(&ofn);
 	return ret;
 }
 
