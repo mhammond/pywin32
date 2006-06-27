@@ -1988,14 +1988,103 @@ static PyObject *PyCreateDialogIndirect(PyObject *self, PyObject *args)
 BOOLAPI EndDialog( HWND hwnd, int result );
 
 // @pyswig HWND|GetDlgItem|Retrieves the handle to a control in the specified dialog box. 
-HWND GetDlgItem( HWND hDlg, int nIDDlgItem ); 
+HWND GetDlgItem(
+	HWND hDlg,		// @pyparm <o PyHANDLE>|hDlg||Handle to a dialog window
+	int nIDDlgItem	// @pyparm int|IDDlgItem||Identifier of one of the dialog's controls
+	); 
+
+// @pyswig |GetDlgItemInt|Returns the integer value of a dialog control
+%{
+static PyObject *PyGetDlgItemInt(PyObject *self, PyObject *args)
+{
+	BOOL bTranslated, bSigned;
+	int id;
+	UINT val;
+	HWND hDlg;
+	PyObject *obhDlg;
+	if (!PyArg_ParseTuple(args, "Oii:GetDlgItemInt", 
+		&obhDlg,	// @pyparm <o PyHANDLE>|hDlg||Handle to a dialog window
+		&id,		// @pyparm int|IDDlgItem||Identifier of one of the dialog's controls
+		&bSigned))	// @pyparm boolean|Signed||Indicates whether control value should be interpreted as signed
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhDlg, (HANDLE *)&hDlg), FALSE)
+		return NULL;
+
+	val=GetDlgItemInt(hDlg, id, &bTranslated, bSigned);
+	if (!bTranslated)
+		return PyWin_SetAPIError("GetDlgItemInt");
+	if (bSigned)
+		return PyLong_FromLong(val);
+	return PyLong_FromUnsignedLong(val);
+}
+%}
+%native (GetDlgItemInt) PyGetDlgItemInt;
+
+// @pyswig |SetDlgItemInt|Places an integer value in a dialog control
+BOOLAPI SetDlgItemInt(
+	HWND hDlg,		// @pyparm <o PyHANDLE>|hDlg||Handle to a dialog window
+	int nIDDlgItem,	// @pyparm int|IDDlgItem||Identifier of one of the dialog's controls
+	UINT uValue,	// @pyparm int|Value||Value to placed in the control
+	BOOL bSigned	// @pyparm boolean|Signed||Indicates if the input value is signed
+);
 
 // @pyswig int|GetDlgCtrlID|Retrieves the identifier of the specified control.
 // @pyparm int|hwnd||The handle to the control
 HWND GetDlgCtrlID( HWND hwnd);
 
-// @pyswig HWND|SetDlgItemText|Sets the text for a window or control
-BOOLAPI SetDlgItemText( HWND hDlg, int nIDDlgItem, TCHAR *text ); 
+// @pyswig string|GetDlgItemText|Returns the text of a dialog control
+%native (GetDlgItemText) PyGetDlgItemText;
+%{
+static PyObject *PyGetDlgItemText(PyObject *self, PyObject *args)
+{	
+	int dlgitem;
+	HWND hwnd;
+	TCHAR *buf=NULL;
+	UINT chars_returned;
+	DWORD chars_allocated=128, bufsize;
+	#ifdef Py_DEBUG
+	chars_allocated=3;
+	#endif
+	PyObject *ret=NULL, *obhwnd;
+	if (!PyArg_ParseTuple(args, "Oi",
+		&obhwnd,	// @pyparm <o PyHANDLE>|hDlg||Handle to a dialog window
+		&dlgitem))	// @pyparm int|IDDlgItem||The Id of a control within the dialog
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+		return NULL;
+	// If text is too long for buffer, it's truncated and truncated size returned
+	// Loop until fewer characters returned than were allocated
+	while(TRUE){
+		if (buf!=NULL){
+			free(buf);
+			chars_allocated*=2;
+			}
+		bufsize=chars_allocated*sizeof(TCHAR);
+		buf=(TCHAR *)malloc(bufsize);
+		if (buf==NULL)
+			return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
+		chars_returned=GetDlgItemText(hwnd, dlgitem, buf, chars_allocated);
+		if (chars_returned==0){
+			PyWin_SetAPIError("GetDlgItemText");
+			break;
+			}
+		// Return count doesn't include trailing NULL
+		if (chars_returned+1 < chars_allocated){
+			ret=PyWinObject_FromTCHAR(buf, chars_returned);
+			break;
+			}
+		}
+	if (buf!=NULL)
+		free(buf);
+	return ret;
+}
+%}
+
+// @pyswig |SetDlgItemText|Sets the text for a window or control
+BOOLAPI SetDlgItemText(
+	HWND hDlg,		// @pyparm <o PyHANDLE>|hDlg||Handle to a dialog window
+	int nIDDlgItem,	// @pyparm int|IDDlgItem||The Id of a control within the dialog
+	TCHAR *text);	// @pyparm str/unicode|String||The text to put in the control
 
 // @pyswig HWND|GetNextDlgTabItem|Retrieves a handle to the first control that has the WS_TABSTOP style that precedes (or follows) the specified control.
 HWND GetNextDlgTabItem(
@@ -4723,3 +4812,4 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 }
 PyCFunction pfnPySystemParametersInfo=(PyCFunction)PySystemParametersInfo;
 %}
+
