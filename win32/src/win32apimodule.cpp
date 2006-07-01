@@ -41,6 +41,10 @@ typedef DWORD (WINAPI *GetLongPathNameAfunc)(LPCSTR, LPSTR, DWORD);
 static GetLongPathNameAfunc pfnGetLongPathNameA =NULL;
 typedef DWORD (WINAPI *GetLongPathNameWfunc)(LPCWSTR, LPWSTR, DWORD);
 static GetLongPathNameWfunc pfnGetLongPathNameW=NULL;
+typedef BOOL (WINAPI *GetHandleInformationfunc)(HANDLE, LPDWORD);
+static GetHandleInformationfunc pfnGetHandleInformation=NULL;
+typedef BOOL (WINAPI *SetHandleInformationfunc)(HANDLE, DWORD, DWORD);
+static SetHandleInformationfunc pfnSetHandleInformation=NULL;
 
 // from secur32.dll
 typedef BOOLEAN (WINAPI *GetUserNameExfunc)(EXTENDED_NAME_FORMAT,LPWSTR,PULONG);
@@ -157,6 +161,47 @@ static PyObject *PyDuplicateHandle(PyObject *self, PyObject *args)
 	if (!DuplicateHandle(hSourceProcess, hSource, hTarget, &hResult, access, bInherit, options))
 		return ReturnAPIError("DuplicateHandle");
 	return PyWinObject_FromHANDLE(hResult);
+}
+
+// @pymethod int|win32api|GetHandleInformation|Retrieves a handle's flags.
+// @comm Not available on Win98/Me
+// @rdesc Returns a combination of HANDLE_FLAG_INHERIT, HANDLE_FLAG_PROTECT_FROM_CLOSE
+static PyObject *PyGetHandleInformation(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(GetHandleInformation);
+	PyObject *obObject;
+	HANDLE h;
+	DWORD Flags;
+	if (!PyArg_ParseTuple(args, "O:GetHandleInformation", 
+		&obObject))  // @pyparm <o PyHANDLE>|Object||Handle to an object
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obObject, &h))
+		return NULL;
+	if (!(*pfnGetHandleInformation)(h, &Flags))
+		return PyWin_SetAPIError("GetHandleInformation");
+	return PyLong_FromUnsignedLong(Flags);
+
+}
+
+// @pymethod |win32api|SetHandleInformation|Sets a handles's flags
+// @comm Not available on Win98/Me
+static PyObject *PySetHandleInformation(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(SetHandleInformation);
+	PyObject *obObject;
+	HANDLE h;
+	DWORD Mask, Flags;
+	if (!PyArg_ParseTuple(args, "Okk:SetHandleInformation", 
+		&obObject,	// @pyparm <o PyHANDLE>|Object||Handle to an object
+		&Mask,		// @pyparm int|Mask||Bitmask specifying which flags should be set
+		&Flags))	// @pyparm int|Flags||Bitmask of flag values to be set. Valid Flags are HANDLE_FLAG_INHERIT, HANDLE_FLAG_PROTECT_FROM_CLOSE
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obObject, &h))
+		return NULL;
+	if (!(*pfnSetHandleInformation)(h, Mask, Flags))
+		return PyWin_SetAPIError("SetHandleInformation");
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 // @pymethod |win32api|CopyFile|Copies an existing file to a new file
@@ -4811,6 +4856,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetFileVersionInfo",	PyGetFileVersionInfo, 1}, //@pymeth GetFileVersionInfo|Retrieves string version info
 	{"GetFocus",            PyGetFocus,         1}, // @pymeth GetFocus|Retrieves the handle of the keyboard focus window associated with the thread that called the method. 
 	{"GetFullPathName",     PyGetFullPathName,1},   // @pymeth GetFullPathName|Returns the full path of a (possibly relative) path
+	{"GetHandleInformation",     PyGetHandleInformation,1},   // @pymeth GetHandleInformation|Retrieves a handle's flags.
 	{"GetKeyboardLayoutList", PyGetKeyboardLayoutList, 1}, // @pymeth GetKeyboardLayoutList|Returns a sequence of all locale ids in the system
 	{"GetKeyboardState", PyGetKeyboardState, 1}, // @pymeth GetKeyboardState|Retrieves the status of the 256 virtual keys on the keyboard.
 	{"GetKeyState",			PyGetKeyState,      1}, // @pymeth GetKeyState|Retrives the last known key state for a key.
@@ -4904,6 +4950,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"SetClassWord",       PySetClassWord,1}, // @pymeth SetClassWord|Replaces the specified 32-bit (long) value at the specified offset into the extra class memory for the window.
 	{"SetClassWord",       PySetWindowWord,1}, // @pymeth SetWindowWord|
 	{"SetCursor",           PySetCursor,1}, // @pymeth SetCursor|Set the cursor to the HCURSOR object.
+	{"SetHandleInformation",	PySetHandleInformation,1}, // @pymeth SetHandleInformation|Sets a handles's flags
 	{"SetStdHandle",	PySetStdHandle,	1}, // @pymeth SetStdHandle|Sets a handle for the standard input, standard output, or standard error device
 	{"SetThreadLocale",     PySetThreadLocale, 1}, // @pymeth SetThreadLocale|Sets the current thread's locale.
 	{"SetWindowLong",       PySetWindowLong,1}, // @pymeth SetWindowLong|Places a long value at the specified offset into the extra window memory of the given window.
@@ -5013,6 +5060,8 @@ initwin32api(void)
     pfnGetComputerNameEx=(GetComputerNameExfunc)GetProcAddress(hmodule,"GetComputerNameExW");
     pfnGetLongPathNameA=(GetLongPathNameAfunc)GetProcAddress(hmodule,"GetLongPathNameA");
     pfnGetLongPathNameW=(GetLongPathNameWfunc)GetProcAddress(hmodule,"GetLongPathNameW");
+    pfnGetHandleInformation=(GetHandleInformationfunc)GetProcAddress(hmodule,"GetHandleInformation");
+    pfnSetHandleInformation=(SetHandleInformationfunc)GetProcAddress(hmodule,"SetHandleInformation");
   }
 
   hmodule = GetModuleHandle("user32.dll");
