@@ -46,11 +46,21 @@ def UnpackWMNOTIFY(lparam):
 menuitem_fmt = '9iP2i'
 
 def PackMENUITEMINFO(fType=None, fState=None, wID=None, hSubMenu=None,
-                     hbmpChecked=None, hbmpUnchecked=None, dwTypeData=None,
-                     text=None, hbmpItem=None):
+                     hbmpChecked=None, hbmpUnchecked=None, dwItemData=None,
+                     text=None, hbmpItem=None, dwTypeData=None):
     # 'extras' are objects the caller must keep a reference to (as their
     # memory is used) for the lifetime of the INFO item.
     extras = []
+    # ack - dwItemData and dwTypeData were confused for a while...
+    assert dwItemData is None or dwTypeData is None, \
+           "sorry - these were confused - you probably want dwItemData"
+    # if we are a long way past 209, then we can nuke the above...
+    if dwTypeData is not None:
+        import warnings
+        warnings.warn("PackMENUITEMINFO: please use dwItemData instead of dwTypeData")
+    if dwItemData is None:
+        dwItemData = dwTypeData or 0
+
     fMask = 0
     if fType is None: fType = 0
     else: fMask |= win32con.MIIM_FTYPE
@@ -68,7 +78,7 @@ def PackMENUITEMINFO(fType=None, fState=None, wID=None, hSubMenu=None,
         assert hbmpUnchecked is not None, \
                 "neither or both checkmark bmps must be given"
         fMask |= win32con.MIIM_CHECKMARKS
-    if dwTypeData is None: dwTypeData = 0
+    if dwItemData is None: dwItemData = 0
     else: fMask |= win32con.MIIM_DATA
     if hbmpItem is None: hbmpItem = 0
     else: fMask |= win32con.MIIM_BITMAP
@@ -86,7 +96,6 @@ def PackMENUITEMINFO(fType=None, fState=None, wID=None, hSubMenu=None,
         lptext = 0
         cch = 0
     # Create the struct.
-    dwItemData = 0
     item = struct.pack(
                 menuitem_fmt,
                 struct.calcsize(menuitem_fmt), # cbSize
