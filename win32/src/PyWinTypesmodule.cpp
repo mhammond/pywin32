@@ -125,7 +125,7 @@ void PyWinInterpreterState_Ensure()
 	if (PyWin_InterpreterState==NULL) {
 		PyThreadState *threadStateSave = PyThreadState_Swap(NULL);
 		if (threadStateSave==NULL)
-			Py_FatalError("Can not setup interpreter state, as current state is invalid");
+			Py_FatalError("pywintypes: can not setup interpreter state, as current state is invalid");
 
 		PyWin_InterpreterState = threadStateSave->interp;
 		PyThreadState_Swap(threadStateSave);
