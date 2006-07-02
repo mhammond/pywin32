@@ -28,6 +28,9 @@ class MainWindow:
                 win32con.WM_DESTROY: self.OnDestroy,
                 win32con.WM_COMMAND: self.OnCommand,
                 win32con.WM_USER+20 : self.OnTaskbarNotify,
+                # owner-draw related handlers.
+                win32con.WM_MEASUREITEM: self.OnMeasureItem,
+                win32con.WM_DRAWITEM: self.OnDrawItem,
         }
         # Register the Window class.
         wc = WNDCLASS()
@@ -53,7 +56,22 @@ class MainWindow:
             print "Can't find a Python icon file - using default"
             hicon = LoadIcon(0, win32con.IDI_APPLICATION)
         self.iconPathName = iconPathName
+
+        # Load up some information about menus needed by our owner-draw code.
+        # The font to use on the menu.
+        ncm = SystemParametersInfo(win32con.SPI_GETNONCLIENTMETRICS)
+        self.font_menu = CreateFontIndirect(ncm['lfMenuFont'])
+        # spacing for our ownerdraw menus - not sure exactly what constants
+        # should be used (and if you owner-draw all items on the menu, it
+        # doesn't matter!)
+        self.menu_icon_height = GetSystemMetrics(win32con.SM_CYMENU) - 4
+        self.menu_icon_width = self.menu_icon_height
+        self.icon_x_pad = 8 # space from end of icon to start of text.
+        # A map we use to stash away data we need for ownerdraw.  Keyed
+        # by integer ID - that ID will be set in dwTypeData of the menu item.
+        self.menu_item_map = {}
         
+        # Finally, create the menu
         self.createMenu()
 
         flags = NIF_ICON | NIF_MESSAGE | NIF_TIP
@@ -86,9 +104,16 @@ class MainWindow:
                                         wID=1002)
         InsertMenuItem(menu, 0, 1, item)
         
-        # Create one with an icon - this is a fair bit more work, as we need
-        # to convert the icon to a bitmap.
-        # First load the icon.
+        # Owner-draw menus mainly from:
+        # http://windowssdk.msdn.microsoft.com/en-us/library/ms647558.aspx
+        # and:
+        # http://www.codeguru.com/cpp/controls/menu/bitmappedmenus/article.php/c165
+        
+        # Create one with an icon - this is *lots* more work - we do it
+        # owner-draw!  The primary reason is to handle transparency better -
+        # converting to a bitmap causes the background to be incorrect when
+        # the menu item is selected.  I can't see a simpler way.
+        # First, load the icon we want to use.
         ico_x = GetSystemMetrics(win32con.SM_CXSMICON)
         ico_y = GetSystemMetrics(win32con.SM_CYSMICON)
         if self.iconPathName:
@@ -99,23 +124,12 @@ class MainWindow:
             hicon = small[0]
             DestroyIcon(large[0])
 
-        hdcBitmap = CreateCompatibleDC(0)
-        hdcScreen = GetDC(0)
-        hbm = CreateCompatibleBitmap(hdcScreen, ico_x, ico_y)
-        hbmOld = SelectObject(hdcBitmap, hbm)
-        # Fill the background.
-        brush = GetSysColorBrush(win32con.COLOR_MENU)
-        FillRect(hdcBitmap, (0, 0, 16, 16), brush)
-        # unclear if brush needs to be feed.  Best clue I can find is:
-        # "GetSysColorBrush returns a cached brush instead of allocating a new
-        # one." - implies no DeleteObject
-        # draw the icon
-        DrawIconEx(hdcBitmap, 0, 0, hicon, ico_x, ico_y, 0, 0, win32con.DI_NORMAL)
-        SelectObject(hdcBitmap, hbmOld)
-        DeleteDC(hdcBitmap)
-
-        item, extras = PackMENUITEMINFO(text="Menu with icon",
-                                        hbmpItem=hbm,
+        # Stash away the text and hicon in our map, and add the owner-draw
+        # item to the menu.
+        index = 0
+        self.menu_item_map[index] = (hicon, "Menu with icon")
+        item, extras = PackMENUITEMINFO(fType=win32con.MFT_OWNERDRAW,
+                                        dwTypeData=index,
                                         wID=1009)
         InsertMenuItem(menu, 0, 1, item)
 
@@ -148,7 +162,30 @@ class MainWindow:
 
         # Set 'Exit' as the default option.
         SetMenuDefaultItem(menu, 1000, 0)
-        
+
+    # For reference: old code that converted icon to bitmap (but that
+    # code left an ugly background on the icons when the item was selected)
+    """
+        hdcBitmap = CreateCompatibleDC(0)
+        hdcScreen = GetDC(0)
+        hbm = CreateCompatibleBitmap(hdcScreen, ico_x, ico_y)
+        hbmOld = SelectObject(hdcBitmap, hbm)
+        SetBkMode(hdcBitmap, win32con.TRANSPARENT)
+        # Fill the background.
+        brush = GetSysColorBrush(win32con.COLOR_MENU)
+        FillRect(hdcBitmap, (0, 0, 16, 16), brush)
+        # unclear if brush needs to be freed.  Best clue I can find is:
+        # "GetSysColorBrush returns a cached brush instead of allocating a new
+        # one." - implies no DeleteObject.
+        # draw the icon
+        DrawIconEx(hdcBitmap, 0, 0, hicon, ico_x, ico_y, 0, 0, win32con.DI_NORMAL)
+        SelectObject(hdcBitmap, hbmOld)
+        DeleteDC(hdcBitmap)
+        item, extras = PackMENUITEMINFO(text="Menu with icon",
+                                        hbmpItem=hbm,
+                                        wID=1009)
+    """
+
     def OnDestroy(self, hwnd, msg, wparam, lparam):
         nid = (self.hwnd, 0)
         Shell_NotifyIcon(NIM_DELETE, nid)
@@ -172,9 +209,6 @@ class MainWindow:
             self.OnCommand(hwnd, win32con.WM_COMMAND, cmd, 0)
         return 1
 
-    def OnCommand(self, hwnd, msg, wparam, lparam):
-        id = LOWORD(wparam)
-        print "OnCommand for control ID", id
     def OnCommand(self, hwnd, msg, wparam, lparam):
         id = LOWORD(wparam)
         if id == 1000:
@@ -206,6 +240,69 @@ class MainWindow:
                 raise RuntimeError, "The new item didn't get the new checked state!"
         else:
             print "OnCommand for ID", id
+
+    # Owner-draw related functions.  We only have 1 owner-draw item, but
+    # we pretend we have more than that :)
+    def OnMeasureItem(self, hwnd, msg, wparam, lparam):
+        fmt = "6i"
+        buf = PyMakeBuffer(struct.calcsize(fmt), lparam)
+        data = struct.unpack(fmt, buf)
+        ctlType, ctlID, itemID, itemWidth, itemHeight, itemData = data
+
+        hicon, text = self.menu_item_map[itemData]
+        dc = GetDC(hwnd)
+        oldFont = SelectObject(dc, self.font_menu)
+        cx, cy = GetTextExtentPoint32(dc, text)
+        SelectObject(dc, oldFont)
+        ReleaseDC(hwnd, dc)
+
+        cx += GetSystemMetrics(win32con.SM_CXMENUCHECK)
+        cx += self.menu_icon_width + self.icon_x_pad
+
+        cy = GetSystemMetrics(win32con.SM_CYMENU)
+        new_data = struct.pack(fmt, ctlType, ctlID, itemID, cx, cy, itemData)
+        PySetMemory(lparam, new_data)
+        return True 
+
+    def OnDrawItem(self, hwnd, msg, wparam, lparam):
+        fmt = "12i"
+        data = struct.unpack(fmt, PyGetString(lparam, struct.calcsize(fmt)))
+        ctlType, ctlID, itemID, itemAction, itemState, hwndItem, \
+                hDC, left, top, right, bot, itemData = data
+
+        rect = left, top, right, bot
+        hicon, text = self.menu_item_map[itemData]
+
+        # If the user has selected the item, use the selected 
+        # text and background colors to display the item.
+        selected = itemState & win32con.ODS_SELECTED
+        if selected:
+            crText = SetTextColor(hDC, GetSysColor(win32con.COLOR_HIGHLIGHTTEXT))
+            crBkgnd = SetBkColor(hDC, GetSysColor(win32con.COLOR_HIGHLIGHT))
+
+        each_pad = self.icon_x_pad / 2
+        x_icon = left + GetSystemMetrics(win32con.SM_CXMENUCHECK) + each_pad
+        x_text = x_icon + self.menu_icon_width + each_pad
+
+        # Draw text first, specifying a complete rect to fill - this sets
+        # up the background (but overwrites anything else already there!)
+        # Select the font, draw it, and restore the previous font.
+        hfontOld = SelectObject(hDC, self.font_menu)
+        ExtTextOut(hDC, x_text, top+2, win32con.ETO_OPAQUE, rect, text)
+        SelectObject(hDC, hfontOld)
+
+        # Icon image next.  Icons are transparent - no need to handle
+        # selection specially.
+        DrawIconEx(hDC, x_icon, top+2, hicon,
+                   self.menu_icon_width, self.menu_icon_height,
+                   0, 0, win32con.DI_NORMAL)
+ 
+        # Return the text and background colors to their 
+        # normal state (not selected). 
+        if selected:
+            SetTextColor(hDC, crText)
+            SetBkColor(hDC, crBkgnd)
+
 
 def main():
     w=MainWindow()
