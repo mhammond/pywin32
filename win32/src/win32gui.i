@@ -1097,6 +1097,16 @@ static PyObject *MakeLOGFONT(PyObject *self, PyObject *args)
 	return new PyLOGFONT();
 }
 
+BOOL PyWinObject_AsLOGFONT(PyObject *ob, LOGFONT *plf)
+{
+	if (!PyLOGFONT_Check(ob)){
+		PyErr_SetString(PyExc_TypeError, "Object must be a PyLOGFONT");
+		return FALSE;
+		}
+	*plf=*((PyLOGFONT *)ob)->GetLF();
+	return TRUE;
+}
+
 BOOL CALLBACK EnumFontFamProc(const LOGFONT FAR *lpelf, const TEXTMETRIC *lpntm, DWORD FontType, LPARAM lParam)
 {
 	PyObject *obFunc;
@@ -1287,7 +1297,8 @@ static PyObject *PyGetString(PyObject *self, PyObject *args)
 %native (PyGetString) PyGetString;
 
 %{
-// @pyswig object|PySetString|Copies a string to an address (null terminated)
+// @pyswig object|PySetString|Copies a string to an address (null terminated).
+// You almost certainly should use <om win32gui.PySetMemory> instead.
 static PyObject *PySetString(PyObject *self, PyObject *args)
 {
 	TCHAR *addr = 0;
@@ -1321,6 +1332,30 @@ static PyObject *PySetString(PyObject *self, PyObject *args)
 %}
 %native (PySetString) PySetString;
 
+%{
+// @pyswig object|PySetMemory|Copies bytes to an address.
+static PyObject *PySetMemory(PyObject *self, PyObject *args)
+{
+	long addr;
+	char *src;
+	int nbytes;
+
+	// @pyparm int|addr||Address of the memory to reference 
+	// @pyparm string or buffer|String||The string to copy
+	if (!PyArg_ParseTuple(args, "ls#:PySetMemory",&addr,&src,&nbytes))
+		return NULL;
+
+	if (IsBadWritePtr((void *)addr, nbytes)) {
+		PyErr_SetString(PyExc_ValueError,
+		                "The value is not a valid address for writing");
+		return NULL;
+	}
+	memcpy( (void *)addr, src, nbytes);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+%native (PySetMemory) PySetMemory;
 
 
 
@@ -3468,6 +3503,78 @@ int DrawText(
 	RECT *BOTH,			// @pyparm tuple|Rect||Tuple of 4 ints specifying the position (left, top, right, bottom)
 	UINT uFormat);		// @pyparm int|Format||Formatting flags, combination of win32con.DT_* values
 
+%{
+//@pyswig int|ExtTextOut|Writes text to a DC.
+static PyObject *PyExtTextOut(PyObject *self, PyObject *args)
+{
+	char *text;
+	int strLen, x, y;
+	UINT options;
+	PyObject *rectObject, *widthObject = NULL;
+	RECT rect, *rectPtr;
+	int *widths = NULL;
+	int hdc;
+	if (!PyArg_ParseTuple (args, "iiiiOs#|O",
+		&hdc,
+		&x,		// @pyparm x|int||The x coordinate to write the text to.
+		&y,		// @pyparm y|int||The y coordinate to write the text to.
+		&options,	// @pyparm nOptions|int||Specifies the rectangle type. This parameter can be one, both, or neither of ETO_CLIPPED and ETO_OPAQUE
+		&rectObject,// @pyparm (left, top, right, bottom)|rect||Specifies the text's bounding rectangle.  (Can be None.)
+		&text,	// @pyparm text|string||The text to write.
+		&strLen,
+		&widthObject))	// @pyparm (width1, width2, ...)|tuple||Optional array of values that indicate distance between origins of character cells.
+		return NULL;
+
+	// Parse out rectangle object
+	if (rectObject != Py_None) {
+		if (!PyArg_ParseTuple(rectObject, "iiii", &rect.left,
+			&rect.top, &rect.right, &rect.bottom))
+			return NULL;
+		rectPtr = &rect;
+	}
+	else
+		rectPtr = NULL;
+
+	// Parse out widths
+	if (widthObject) {
+		BOOL error = !PyTuple_Check(widthObject);
+		if (!error) {
+			int len = PyTuple_Size(widthObject);
+			if (len == (strLen - 1)) {
+				widths = new int[len + 1];
+				for (int i = 0; i < len; i++) {
+					PyObject *item = PyTuple_GetItem(widthObject, i);
+					if (!PyInt_Check(item))
+						error = TRUE;
+					else 
+						widths[i] = PyInt_AsLong(item);
+				}
+			}
+		}
+		if (error) {
+			delete [] widths;
+			return PyErr_Format(PyExc_TypeError,
+			                    "The width param must be a tuple of integers with a length one less than that of the string");
+		}
+	}
+
+	BOOL ok;
+	Py_BEGIN_ALLOW_THREADS;
+	// @pyseeapi ExtTextOut
+	ok = ExtTextOut((HDC)hdc, x, y, options, rectPtr, text, strLen, widths);
+	Py_END_ALLOW_THREADS;
+	delete [] widths;
+	if (!ok)
+		return PyWin_SetAPIError("ExtTextOut");
+	Py_INCREF(Py_None);
+	return Py_None;
+	// @rdesc Always none.  If the function fails, an exception is raised.
+}
+
+%}
+%native (ExtTextOut) PyExtTextOut;
+
+
 // @pyswig int|SetTextColor|Changes the text color for a device context
 // @rdesc Returns the previous color, or CLR_INVALID on failure
 int SetTextColor(
@@ -3480,10 +3587,23 @@ int SetBkMode(
 	HDC hdc,			// @pyparm int/<o PyHANDLE>|hdc||Handle to a device context
 	int mode);			// @pyparm int|BkMode||OPAQUE or TRANSPARENT 
 
+// @pyswig int|SetBkColor|Sets the background color for a device context
+// @rdesc Returns the previous color, or CLR_INVALID on failure
+int SetBkColor(
+	HDC hdc,			// @pyparm int/<o PyHANDLE>|hdc||Handle to a device context
+	COLORREF col);			// @pyparm int|color||
+
 // @pyswig |DrawEdge|
 BOOLAPI DrawEdge(HDC hdc, RECT *INPUT, UINT edge, UINT grfFlags); 
 // @pyswig |FillRect|
 int FillRect(HDC hDC,   RECT *INPUT, HBRUSH hbr);
+// @pyswig |DrawAnimatedRects|
+BOOLAPI DrawAnimatedRects(
+  HWND hwnd,            // @pyparm int|hwnd||handle to clipping window
+  int idAni,            // @pyparm int|idAni||type of animation
+  RECT *INPUT, // @pyparm RECT|minCoords||rectangle coordinates (minimized)
+  RECT *INPUT // // @pyparm RECT|restCoords||rectangle coordinates (restored)
+);
 // @pyswig |CreateSolidBrush|
 HBRUSH CreateSolidBrush(COLORREF color);
 // @pyswig |CreatePen|
@@ -4224,6 +4344,38 @@ BOOL PyObject_AsUINT(PyObject *ob, UINT *puint)
 	return TRUE;
 }
 
+BOOL PyWinObject_AsNONCLIENTMETRICS(PyObject *ob, NONCLIENTMETRICS *ncm)
+{
+	static char *keywords[]={"iBorderWidth","iScrollWidth","iScrollHeight",
+		"iCaptionWidth","iCaptionHeight","lfCaptionFont",
+		"iSmCaptionWidth","iSmCaptionHeight","lfSmCaptionFont",
+		"iMenuWidth","iMenuHeight","lfMenuFont","lfStatusFont",
+		"lfMessageFont", NULL};
+	BOOL ret;
+	ZeroMemory(ncm, sizeof(NONCLIENTMETRICS));
+	ncm->cbSize=sizeof(NONCLIENTMETRICS);
+
+	if (!PyDict_Check(ob)){
+		PyErr_SetString(PyExc_TypeError, "NONCLIENTMETRICS must be a dict");
+		return FALSE;
+		}
+	PyObject *dummy_args=PyTuple_New(0);
+	if (dummy_args==NULL)	// should not happen, interpreter apparently caches the empty tuple
+		return FALSE;
+	ret=PyArg_ParseTupleAndKeywords(dummy_args, ob, "iiiiiO&iiO&iiO&O&O&:NONCLIENTMETRICS", keywords,
+		&ncm->iBorderWidth, &ncm->iScrollWidth, &ncm->iScrollHeight,
+		&ncm->iCaptionWidth, &ncm->iCaptionHeight, 
+		PyWinObject_AsLOGFONT, &ncm->lfCaptionFont,
+		&ncm->iSmCaptionWidth, &ncm->iSmCaptionHeight,
+		PyWinObject_AsLOGFONT, &ncm->lfSmCaptionFont,
+		&ncm->iMenuWidth, &ncm->iMenuHeight, 
+		PyWinObject_AsLOGFONT, &ncm->lfMenuFont, 
+		PyWinObject_AsLOGFONT, &ncm->lfStatusFont,
+		PyWinObject_AsLOGFONT, &ncm->lfMessageFont);
+	Py_DECREF(dummy_args);
+	return ret;
+}
+
 static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	static char *keywords[]={"Action", "Param", "WinIni",  NULL};
@@ -4641,8 +4793,31 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 				if (!PyObject_AsUINT(obParam, &uiParam))
 					goto done;
 			break;
+		// @flag SPI_GETNONCLIENTMETRICS|Param must be None.  The result is a dict.
+		case SPI_GETNONCLIENTMETRICS:
+		// @flag SPI_SETNONCLIENTMETRICS|Param is a dict in the form of a NONCLIENTMETRICS struct, as returned by SPI_GETNONCLIENTMETRICS operation
+		case SPI_SETNONCLIENTMETRICS:
+			buflen = sizeof(NONCLIENTMETRICS);
+			pvParam=malloc(buflen);
+			if (pvParam==NULL){
+				PyErr_Format(PyExc_MemoryError,"Unable to allocate %d bytes", buflen);
+				goto done;
+			}
+			if (Action==SPI_GETNONCLIENTMETRICS){
+				if (obParam!=Py_None) {
+					PyErr_Format(PyExc_ValueError,
+				             "Don't supply a param for SPI_GETNONCLIENTMETRICS");
+					goto done;
+					}
+				memset(pvParam, 0, buflen);
+				((NONCLIENTMETRICS *)pvParam)->cbSize = buflen;
+				}
+			else
+				if (!PyWinObject_AsNONCLIENTMETRICS(obParam, (NONCLIENTMETRICS *)pvParam))
+					goto done;
+			break;
 #endif	// !MS_WINCE
-			
+
 		// below are not handled yet
 		// @flag SPI_SETDESKPATTERN|Unsupported (obsolete)
 		// @flag SPI_GETFASTTASKSWITCH|Unsupported (obsolete)
@@ -4659,8 +4834,6 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		// @flag SPI_SETHANDHELD|Unsupported (use is not documented)
 		// @flag SPI_GETMINIMIZEDMETRICS|Not implemented yet
 		// @flag SPI_SETMINIMIZEDMETRICS|Not implemented yet
-		// @flag SPI_GETNONCLIENTMETRICS|Not implemented yet
-		// @flag SPI_SETNONCLIENTMETRICS|Not implemented yet
 		// @flag SPI_GETICONMETRICS|Not implemented yet
 		// @flag SPI_SETICONMETRICS|Not implemented yet
 		// @flag SPI_GETWORKAREA|Not implemented yet
@@ -4784,6 +4957,26 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 				ret=Py_None;
 				}
 			break;
+
+		case SPI_GETNONCLIENTMETRICS: {
+			NONCLIENTMETRICS *p = (NONCLIENTMETRICS *)pvParam;
+			ret = Py_BuildValue("{s:i,s:i,s:i,s:i,s:i,s:N,s:i,s:i,s:N,s:i,s:i,s:N,s:N,s:N}",
+					"iBorderWidth", p->iBorderWidth,
+					"iScrollWidth", p->iScrollWidth,
+					"iScrollHeight", p->iScrollHeight,
+					"iCaptionWidth", p->iCaptionWidth,
+					"iCaptionHeight", p->iCaptionHeight,
+					"lfCaptionFont", new PyLOGFONT(&p->lfCaptionFont),
+					"iSmCaptionWidth", p->iSmCaptionWidth,
+					"iSmCaptionHeight", p->iSmCaptionHeight,
+					"lfSmCaptionFont", new PyLOGFONT(&p->lfSmCaptionFont),
+					"iMenuWidth", p->iMenuWidth,
+					"iMenuHeight", p->iMenuHeight,
+					"lfMenuFont", new PyLOGFONT(&p->lfMenuFont),
+					"lfStatusFont", new PyLOGFONT(&p->lfStatusFont),
+					"lfMessageFont",new PyLOGFONT(&p->lfMessageFont));
+			break;
+		}
 #endif	// !MS_WINCE
 
 		default:
@@ -4799,6 +4992,8 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		case SPI_GETANIMATION:
 		case SPI_SETANIMATION:
 #endif	// !MS_WINCE
+		case SPI_GETNONCLIENTMETRICS:
+		case SPI_SETNONCLIENTMETRICS:
 		case SPI_GETMOUSE:
 		case SPI_SETMOUSE:
 			if (pvParam!=NULL)
