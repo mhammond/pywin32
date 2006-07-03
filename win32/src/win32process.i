@@ -816,6 +816,13 @@ DWORD SetThreadAffinityMask (
   DWORD dwThreadAffinityMask  // @pyparm int|mask||a thread affinity mask
 );
 
+// @pyswig |AttachThreadInput|Attaches or detaches the input of two threads
+BOOLAPI AttachThreadInput(
+	DWORD idAttach,		// @pyparm int|idAttach||The id of a thread
+	DWORD idAttachTo,	// @pyparm int|idAttachTo||The id of the thread to which it will be attached
+	BOOL Attach		// @pyparm bool|Attach||Indicates whether thread should be attached or detached
+);
+
 %{
 // This function does not exist on all platforms.
 static PyObject *MySetThreadIdealProcessor( HANDLE hThread, DWORD dwIdealProc )
