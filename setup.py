@@ -1041,6 +1041,7 @@ for info in (
             win32/src/win32inet_winhttp.cpp"""
                         ),
         ("win32console", "kernel32", True, 0x0501, "win32/src/win32consolemodule.cpp"),
+        ("win32ts", "WtsApi32", True, 0x0501, "win32/src/win32tsmodule.cpp"),
         ("_win32sysloader", "", False, 0x0501, "win32/src/_win32sysloader.cpp"),
     ):
 
