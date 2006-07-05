@@ -247,8 +247,8 @@ static PyObject *PyWTSEnumerateServers(PyObject *self, PyObject *args, PyObject 
 	return ret;
 }
 
-// @pymethod ((int,<o PyUnicode>,int),...)|win32ts|WTSEnumerateSessions|Lists sessions on a server
-// @rdesc Returns a sequence of 3-tuples representing WTS_SESSION_INFO structs, containing (SessionId, WinStationName, State)
+// @pymethod (dict,...)|win32ts|WTSEnumerateSessions|Lists sessions on a server
+// @rdesc Returns a sequence of dictionaries representing WTS_SESSION_INFO structs, containing {SessionId:int, WinStationName:str, State:int}
 static PyObject *PyWTSEnumerateSessions(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	static char *keywords[]={"Server","Version","Reserved", NULL};
@@ -271,7 +271,7 @@ static PyObject *PyWTSEnumerateSessions(PyObject *self, PyObject *args, PyObject
 		ret=PyTuple_New(cnt);
 		if (ret)
 			for (DWORD i=0; i<cnt; i++){
-				PyObject *tuple_item=Py_BuildValue("s:k,s:u,s:k",
+				PyObject *tuple_item=Py_BuildValue("{s:k,s:u,s:k}",
 					"SessionId", buf[i].SessionId,
 					"WinStationName", buf[i].pWinStationName,
 					"State", buf[i].State);
