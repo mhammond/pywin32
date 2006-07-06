@@ -383,15 +383,18 @@ PyWNetGetUser(PyObject *self, PyObject *args)
 	// get the buffer size
 	{
 	Py_BEGIN_ALLOW_THREADS
-	WNetGetUser(szConnection, NULL, &length);
+	errcode=WNetGetUser(szConnection, NULL, &length);
 	Py_END_ALLOW_THREADS
 	}
 	if (length==0) {
-		PyErr_SetString(PyExc_RuntimeError, "Couldn't get the buffer size!");
+		ReturnNetError("WNetGetUser", errcode);
 		goto done;
 	}
 	buf = (TCHAR *)malloc( sizeof( TCHAR) * length);
-	if (buf == NULL) goto done;
+	if (buf == NULL){
+		PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", sizeof(TCHAR)*length);
+		goto done;
+	}
 	Py_BEGIN_ALLOW_THREADS
 	errcode = WNetGetUser(szConnection, buf, &length);
 	Py_END_ALLOW_THREADS
