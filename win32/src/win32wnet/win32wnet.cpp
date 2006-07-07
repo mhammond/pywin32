@@ -557,6 +557,21 @@ PyWinMethod_NCBBuffer(PyObject *self, PyObject *args)
 	return PyBuffer_New(size);
 }
 
+// @pymethod (int,str,str)|win32wnet|WNetGetLastError|Retrieves extended error information set by a network provider when one of the WNet* functions fails
+// @rdesc Returns the error code, a text description of the error, and the name of the network provider
+// @comm The error description or the network provider name may be truncated if they exceed 1024 and 256 characters, respectively
+PyObject *PyWNetGetLastError(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":WNetGetLastError"))
+		return NULL;
+	DWORD err, extendederr;
+	TCHAR errstr[1024], provider[256];
+	err=WNetGetLastError(&extendederr, errstr, sizeof(errstr), provider, sizeof(provider));
+	if (err==NO_ERROR)
+		return Py_BuildValue("kNN", extendederr, PyWinObject_FromTCHAR(errstr), PyWinObject_FromTCHAR(provider));
+	return ReturnNetError("WNetGetLastError", err);
+}
+
 // @module win32wnet|A module that exposes the Windows Networking API.
 static PyMethodDef win32wnet_functions[] = {
 	// @pymeth NETRESOURCE|Creates a new <o NETRESOURCE> object
@@ -584,6 +599,8 @@ static PyMethodDef win32wnet_functions[] = {
 #if 0
 	{"WNetGetResourceInformation", PyWNetGetResourceInformation, 1, "NT_5 Only? DO NOT USE YET"},
 #endif
+	// @pymeth WNetGetLastError|Retrieves extended error information set by a network provider when one of the WNet* functions fails
+	{"WNetGetLastError", PyWNetGetLastError, 1, "Retrieves extended error information set by a network provider when one of the WNet* functions fails"},
 	{NULL,			NULL}
 };
 
