@@ -36,6 +36,12 @@
 #define IS_INTRESOURCE(res) (((DWORD)(res) & 0xffff0000) == 0)
 #endif
 
+#define CHECK_PFN(fname)if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);
+typedef BOOL (WINAPI *SetLayeredWindowAttributesfunc)(HWND, COLORREF, BYTE,DWORD);
+static SetLayeredWindowAttributesfunc pfnSetLayeredWindowAttributes=NULL;
+typedef BOOL (WINAPI *GetLayeredWindowAttributesfunc)(HWND, COLORREF *, BYTE *, DWORD *);
+static GetLayeredWindowAttributesfunc pfnGetLayeredWindowAttributes=NULL;
+
 static PyObject *g_AtomMap = NULL; // Mapping class atoms to Python WNDPROC
 static PyObject *g_HWNDMap = NULL; // Mapping HWND to Python WNDPROC
 static PyObject *g_DLGMap = NULL;  // Mapping Dialog HWND to Python WNDPROC
@@ -93,10 +99,20 @@ for (PyMethodDef *pmd = winxpguiMethods; pmd->ml_name; pmd++)
 #else
 for (PyMethodDef *pmd = win32guiMethods; pmd->ml_name; pmd++)
 #endif
-	if (strcmp(pmd->ml_name, "GetOpenFileNameW")==0 ||
+	if (strcmp(pmd->ml_name, "SetLayeredWindowAttributes")==0 ||
+		strcmp(pmd->ml_name, "GetLayeredWindowAttributes")==0 ||
+		strcmp(pmd->ml_name, "GetOpenFileNameW")==0 ||
 		strcmp(pmd->ml_name, "GetSaveFileNameW")==0 ||
 		strcmp(pmd->ml_name, "SystemParametersInfo")==0)
 		pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
+
+HMODULE hmodule=GetModuleHandle("user32.dll");
+if (hmodule==NULL)
+	hmodule=LoadLibrary("user32.dll");
+if (hmodule){
+	pfnSetLayeredWindowAttributes=(SetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"SetLayeredWindowAttributes");
+	pfnGetLayeredWindowAttributes=(GetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"GetLayeredWindowAttributes");
+	}
 
 %}
 
@@ -1553,16 +1569,8 @@ BOOLAPI UpdateLayeredWindow(
   DWORD dwFlags          // @pyparm int|flags||options
 );
 
-// @pyswig |SetLayeredWindowAttributes|Sets the opacity and transparency color key of a layered window.
-// @comm To avoid complications with Windows NT, this function only exists in winxpgui (not win32gui)
-BOOLAPI SetLayeredWindowAttributes(
-  HWND hwnd,           // @pyparm int|hwnd||handle to the layered window
-  COLORREF crKey,      // @pyparm int|colorKey||specifies the color key
-  int bAlpha,         // @pyparm int|alpha||value for the blend function
-  DWORD dwFlags        // @pyparm int|flags||action
-);
-
 %endif // End of winxpgui only functions
+
 
 // @pyswig int|GetWindowLong|
 // @pyparm int|hwnd||
@@ -5008,3 +5016,59 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 PyCFunction pfnPySystemParametersInfo=(PyCFunction)PySystemParametersInfo;
 %}
 
+%native (SetLayeredWindowAttributes) pfnPySetLayeredWindowAttributes;
+%{
+// @pyswig |SetLayeredWindowAttributes|Sets the opacity and transparency color key of a layered window.
+// @comm This function only exists on Win2k and later
+// @comm Accepts keyword arguments
+PyObject *PySetLayeredWindowAttributes(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(SetLayeredWindowAttributes);
+	static char *keywords[]={"hwnd", "Key", "Alpha", "Flags",  NULL};
+	HWND hwnd;
+	COLORREF Key;
+	BYTE Alpha;
+	DWORD Flags;
+	PyObject *obhwnd;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Okbk:SetLayeredWindowAttributes", keywords,
+		&obhwnd,	// @pyparm <o PyHANDLE>|hwnd||handle to the layered window
+		&Key,		// @pyparm int|Key||Specifies the color key.  Use <om win32api.RGB> to generate value.
+		&Alpha,		// @pyparm int|Alpha||Opacity, in the range 0-255
+		&Flags))	// @pyparm int|Flags||Combination of win32con.LWA_* values
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+		return NULL;
+	if (!(*pfnSetLayeredWindowAttributes)(hwnd,Key,Alpha,Flags))
+		return PyWin_SetAPIError("SetLayeredWindowAttributes");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+PyCFunction pfnPySetLayeredWindowAttributes=(PyCFunction)PySetLayeredWindowAttributes;
+%}
+
+%native (GetLayeredWindowAttributes) pfnPyGetLayeredWindowAttributes;
+%{
+// @pyswig (int,int,int)|GetLayeredWindowAttributes|Retrieves the layering parameters of a window with the WS_EX_LAYERED extended style
+// @comm This function only exists on WinXP and later.
+// @comm Accepts keyword arguments.
+// @rdesc Returns a tuple of (color key, alpha, flags)
+PyObject *PyGetLayeredWindowAttributes(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(GetLayeredWindowAttributes);
+	static char *keywords[]={"hwnd",  NULL};
+	HWND hwnd;
+	COLORREF Key;
+	BYTE Alpha;
+	DWORD Flags;
+	PyObject *obhwnd;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:GetLayeredWindowAttributes", keywords,
+		&obhwnd))	// @pyparm <o PyHANDLE>|hwnd||Handle to a layered window
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+		return NULL;
+	if (!(*pfnGetLayeredWindowAttributes)(hwnd, &Key, &Alpha, &Flags))
+		return PyWin_SetAPIError("GetLayeredWindowAttributes");
+	return Py_BuildValue("kbk", Key, Alpha, Flags);
+}
+PyCFunction pfnPyGetLayeredWindowAttributes=(PyCFunction)PyGetLayeredWindowAttributes;
+%}
