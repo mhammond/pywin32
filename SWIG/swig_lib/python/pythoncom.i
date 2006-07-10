@@ -73,6 +73,10 @@ typedef long FLAGS;
 {
   $target = &temp;
 }
+%typemap(python,ignore) IDispatch **OUTPUT(IDispatch *temp)
+{
+  $target = &temp;
+}
 
 %{
 #define MAKE_OUTPUT_INTERFACE(source, target, iid) \
@@ -110,6 +114,10 @@ typedef long FLAGS;
 %typemap(python,in) IUnknown *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IUnknown, (void **)&$target, 1))
 		return NULL;
+}
+
+%typemap(python,argout) IDispatch **OUTPUT {
+	MAKE_OUTPUT_INTERFACE($source, $target, IID_IDispatch)
 }
 
 %typemap(python,freearg) IUnknown *INPUT,
