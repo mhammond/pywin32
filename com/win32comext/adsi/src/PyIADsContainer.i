@@ -27,6 +27,11 @@ IADsContainer *PyIADsContainer::GetI(PyObject *self)
 
 %}
 
+// @pyswig <o PyIDispatch>|GetObject|
+// @pyparm string|class||Specifies the name of the object class as known in the underlying directory and identical to the one retrieved through the get_Class property method. If the class name is None, the provider returns the first item found in the container.
+// @pyparm string|relativeName||Specifies the name of the object as known in the underlying directory and identical to the one retrieved through the get_Name property method.
+HRESULT GetObject(WCHAR *INPUT_NULLOK, WCHAR *INPUT_NULLOK, IDispatch **OUTPUT);
+
 // @pyswig int|get_Count|
 HRESULT get_Count(long *OUTPUT);
 
