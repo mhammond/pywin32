@@ -476,59 +476,54 @@ done:
 	if (buf) free(buf);
 	return ret;
 }
-#if 0
-/**********************************************************************************************************
-**	Implements the WNetGetResourceInformation api call.
 
-New functionality 
-NOT TESTED, DO NOT USE (YET)
-**
-**********************************************************************************************************/
-
-//static
+// @pymethod (<o NETRESOURCE>, str)|win32wnet|WNetGetResourceInformation|Finds the type and provider of a network resource
+// @rdesc Returns a NETRESOURCE and a string containing the trailing part of the remote path
 PyObject *
 PyWNetGetResourceInformation(PyObject *self, PyObject *args)
 {
-	PyObject *NRT;	//object placeholder for incoming NETRESOURCE object
-	NETRESOURCE *p_nr;
-	DWORD	dwRefsize, dwBuffsize;
-	LPVOID	lpBuffer;
-	DWORD	Errno = NO_ERROR;
-	LPTSTR	*szFilePath = NULL;
+	PyObject *NRT, *ret=NULL;	//object placeholder for incoming NETRESOURCE object
+	NETRESOURCE *nrin, *nrout=NULL;
+	// buffer holds a NETRESOURCE struct and all its string members
+	DWORD bufsize=sizeof(NETRESOURCE)+256;
+	DWORD err;
+	LPTSTR	szFilePath = NULL;
+#ifdef Py_DEBUG
+	bufsize=sizeof(NETRESOURCE);	// make sure it loops thru again in debug mode
+#endif
 
-
-	if (!PyArg_ParseTuple(args, "O!", &PyNETRESOURCEType, &NRT))
+	if (!PyArg_ParseTuple(args, "O!", &PyNETRESOURCEType, 
+		&NRT))	// @pyparm <o NETRESOURCE>|NetResource||Describes a network resource.  lpRemoteName is required, dwType and lpProvider can be supplied if known
 		return NULL;
 
-	if (!PyWinObject_AsNETRESOURCE(NRT, &p_nr, FALSE))
-		return(ReturnError("failed converting NetResource Object","WNetGetResourceInformation"));
+	if (!PyWinObject_AsNETRESOURCE(NRT, &nrin, FALSE))
+		return NULL;
 
-	dwRefsize = dwBuffsize = 128*1024;	//size of memory buffer..worse case net/file path is 64K?
-	lpBuffer = VirtualAlloc(NULL, dwBuffsize, MEM_COMMIT, PAGE_READWRITE); // allocate out of Virtual Memory
-
-	if (lpBuffer == NULL)	// whoops, not that much!!??
-		{
-			PyErr_SetString(PyExc_MemoryError, "VirtualAlloc error in WNetGetResourceInformation");
-			return NULL;
+	while (1){
+		// function will not take NULL to return the buffer size, always pass in a valid buffer
+		if (nrout)
+			free(nrout);
+		nrout=(NETRESOURCE *)malloc(bufsize);
+		if (nrout==NULL)
+			return PyErr_Format(PyExc_MemoryError,"Unable to allocate %d bytes", bufsize);
+		Py_BEGIN_ALLOW_THREADS
+		err = WNetGetResourceInformation(nrin, nrout, &bufsize, &szFilePath);
+		Py_END_ALLOW_THREADS
+		if (err == NO_ERROR){
+			ret=Py_BuildValue("NN",
+				PyWinObject_FromNETRESOURCE(nrout),
+				PyWinObject_FromTCHAR(szFilePath));
+			break;
+			}
+		else if (err!=ERROR_MORE_DATA){
+			ReturnNetError("WNetGetResourceInformation", err);
+			break;
+			}
 		}
-
-	Py_BEGIN_ALLOW_THREADS
-	Errno = WNetGetResourceInformation(p_nr, lpBuffer, &dwBuffsize, szFilePath);
-	Py_END_ALLOW_THREADS
-
-	if (Errno == NO_ERROR)
-	{
-		PyObject *t_ob = PyWinObject_FromNETRESOURCE((NETRESOURCE *)lpBuffer);
-		PyObject *ret = Py_BuildValue("(O,s)", t_ob, szFilePath);
-		Py_DECREF(t_ob);
-		return ret;
-	}
-	else
-		return(ReturnNetError("WNetGetResourceInformation", Errno));
-
-
+	if (nrout)
+		free(nrout);
+	return ret;
 }
-#endif
 
 // @pymethod int|win32wnet|Netbios|Executes a Netbios call.
 PyObject *
@@ -566,11 +561,53 @@ PyObject *PyWNetGetLastError(PyObject *self, PyObject *args)
 		return NULL;
 	DWORD err, extendederr;
 	TCHAR errstr[1024], provider[256];
+	Py_BEGIN_ALLOW_THREADS
 	err=WNetGetLastError(&extendederr, errstr, sizeof(errstr), provider, sizeof(provider));
+	Py_END_ALLOW_THREADS
 	if (err==NO_ERROR)
 		return Py_BuildValue("kNN", extendederr, PyWinObject_FromTCHAR(errstr), PyWinObject_FromTCHAR(provider));
 	return ReturnNetError("WNetGetLastError", err);
 }
+
+// @pymethod <o NETRESOURCE>|win32wnet|WNetGetResourceParent|Finds the parent resource of a network resource
+PyObject *PyWNetGetResourceParent(PyObject *self, PyObject *args)
+{
+	NETRESOURCE *nr, *parentnr=NULL;
+	DWORD err, bufsize=sizeof(NETRESOURCE)+256;
+#ifdef Py_DEBUG
+	bufsize=sizeof(NETRESOURCE);
+#endif
+	PyObject *obnr, *ret=NULL;
+	if (!PyArg_ParseTuple(args, "O:WNetGetResourceParent", 
+		&obnr))		// @pyparm <o NETRESOURCE>|NetResource||Describes a network resource.  lpRemoteName and lpProvider are required, dwType is recommended for efficiency
+		return NULL;
+	if (!PyWinObject_AsNETRESOURCE(obnr, &nr, FALSE))
+		return NULL;
+	// buffer includes NETRESOURCE plus character strings it contains
+	// Will not accept NULL to retrieve buffer size
+	while (1){
+		if (parentnr)
+			free(parentnr);
+		parentnr=(NETRESOURCE *)malloc(bufsize);
+		if (parentnr==NULL)
+			return PyErr_Format(PyExc_MemoryError,"Unable to allocate %d bytes", bufsize);
+		Py_BEGIN_ALLOW_THREADS
+		err=WNetGetResourceParent(nr, parentnr, &bufsize);
+		Py_END_ALLOW_THREADS
+		if (err==NO_ERROR){
+			ret=PyWinObject_FromNETRESOURCE(parentnr);
+			break;
+			}
+		else if (err!=ERROR_MORE_DATA){
+			ReturnNetError("WNetGetResourceParent", err);
+			break;
+			}
+		}
+	if (parentnr)
+		free(parentnr);
+	return ret;
+}
+
 
 // @module win32wnet|A module that exposes the Windows Networking API.
 static PyMethodDef win32wnet_functions[] = {
@@ -596,11 +633,12 @@ static PyMethodDef win32wnet_functions[] = {
 	{"WNetGetUser",             PyWNetGetUser,              1,  "connectionName=None"},
 	// @pymeth WNetGetUniversalName|Takes a drive-based path for a network resource and returns an information structure that contains a more universal form of the name.
 	{"WNetGetUniversalName",    PyWNetGetUniversalName,     1,  "localPath, infoLevel=UNIVERSAL_NAME_INFO_LEVEL"},
-#if 0
-	{"WNetGetResourceInformation", PyWNetGetResourceInformation, 1, "NT_5 Only? DO NOT USE YET"},
-#endif
+	// @pymeth WNetGetResourceInformation|Finds the type and provider of a network resource
+	{"WNetGetResourceInformation", PyWNetGetResourceInformation, 1, "Finds the type and provider of a network resource"},
 	// @pymeth WNetGetLastError|Retrieves extended error information set by a network provider when one of the WNet* functions fails
 	{"WNetGetLastError", PyWNetGetLastError, 1, "Retrieves extended error information set by a network provider when one of the WNet* functions fails"},
+	// @pymeth WNetGetResourceParent|Finds the parent resource of a network resource
+	{"WNetGetResourceParent", PyWNetGetResourceParent, 1, "Finds the parent resource of a network resource"},
 	{NULL,			NULL}
 };
 
