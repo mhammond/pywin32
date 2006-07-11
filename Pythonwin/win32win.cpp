@@ -263,7 +263,12 @@ ui_window_create(PyObject *self, PyObject *args)
 {
 	CHECK_NO_ARGS(args);
 	CWnd *pWnd = new CPythonWndFramework< CWnd >();
-	return ui_assoc_object::make( PyCWnd::type, pWnd );
+	PyCWnd *pRet = (PyCWnd *)ui_assoc_object::make( PyCWnd::type, pWnd );
+	// We explicitly created this CWnd, so we must explicitly nuke it!
+	if (pRet) {
+		pRet->bManualDelete = TRUE;
+	}
+	return pRet;
 }
 // @pymethod |PyCWnd|CreateWindow|Creates the actual window
 PyObject *

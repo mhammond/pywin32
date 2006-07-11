@@ -773,8 +773,14 @@ PyObject *Python_do_callback(PyObject *themeth, PyObject *thearglst)
 		PyObject *newarglst = Py_BuildValue("(OO)",themeth,thearglst);
 		result = gui_call_object( pCallbackCaller, newarglst );
 		DODECREF(newarglst);
-	} else
+	} else {
+		// Only ref to 'themeth' may be map - and if the message hook
+		// updates the map (ie, removes the function), things get
+		// a little pear-shaped - as witnessed in bug 1489690.
+		Py_XINCREF(themeth);
 		result = gui_call_object( themeth, thearglst );
+		Py_XDECREF(themeth);
+	}
 	DODECREF(thearglst);
 	if (result==NULL) {
 		TRACE("Python_do_callback: callback failed with exception\n");

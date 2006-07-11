@@ -219,7 +219,7 @@ PyObject *add_hook_list(PyObject *hookedObject, PyObject *args, CMapWordToPtr **
 	// (ie, ref go to zero) between the 2 calls!)
 	if (pList->Lookup(message, oldMethod)) {
 		pList->RemoveKey(message);
-//		DODECREF((PyObject *)oldMethod);
+		// oldMethod is returned - don't drop its reference.
 		DODECREF(hookedObject);
 	}
 	if (method!=Py_None) {

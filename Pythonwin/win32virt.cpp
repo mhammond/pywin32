@@ -53,7 +53,6 @@ CVirtualHelper::CVirtualHelper(const char *iname, const void *iassoc, EnumVirtua
 	}
 	py_ob = py_bob;
 	Py_INCREF(py_ob);
-//	Py_XINCREF(handler);
 }
 CVirtualHelper::~CVirtualHelper()
 {
@@ -386,7 +385,6 @@ BOOL CVirtualHelper::call(const MSG *msg)
 	if (!handler) return FALSE;
 	PyObject *arglst = Py_BuildValue("((iiiii(ii)))",msg->hwnd,msg->message,msg->wParam,msg->lParam,msg->time,msg->pt.x,msg->pt.y);
 	BOOL ret = do_call(arglst);
-	DODECREF(arglst); // my reference.
 	return ret;
 }
 
@@ -395,7 +393,6 @@ BOOL CVirtualHelper::call(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO*
 	if (!handler) return FALSE;
 	PyObject *arglst = Py_BuildValue("iill",nID, nCode, (long)pExtra, (long)pHandlerInfo);
 	BOOL ret = do_call(arglst);
-	DODECREF(arglst); // my reference.
 	return ret;
 }
 
