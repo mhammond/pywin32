@@ -311,6 +311,12 @@ PYWINTYPES_EXPORT PyObject *PyWinMethod_NewTime( PyObject *self, PyObject *args)
 PYWINTYPES_EXPORT PyObject *PyObject_FromWIN32_FIND_DATAA(WIN32_FIND_DATAA *pData);
 PYWINTYPES_EXPORT PyObject *PyObject_FromWIN32_FIND_DATAW(WIN32_FIND_DATAW *pData);
 
+// POINT tuple, used in win32api_display.cpp and win32gui.i
+PYWINTYPES_EXPORT BOOL PyWinObject_AsPOINT(PyObject *obpoint, LPPOINT ppoint);
+
+// IO_COUNTERS dict, used in win32process and win32job
+PYWINTYPES_EXPORT PyObject *PyWinObject_FromIO_COUNTERS(PIO_COUNTERS pioc);
+
 /*
 ** SECURITY_ATTRIBUTES support
 */

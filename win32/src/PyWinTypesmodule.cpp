@@ -450,6 +450,29 @@ PyObject *PyObject_FromWIN32_FIND_DATAW(WIN32_FIND_DATAW *pData)
 		pData->cAlternateFileName);
 }
 
+// @object PyPOINT|Tuple of two ints (x,y) representing a POINT struct
+BOOL PyWinObject_AsPOINT(PyObject *obpoint, LPPOINT ppoint)
+{
+	if (!PyTuple_Check(obpoint)){
+		PyErr_SetString(PyExc_TypeError, "POINT must be a tuple of 2 ints (x,y)");
+		return FALSE;
+		}
+	return PyArg_ParseTuple(obpoint, "ll;POINT must be a tuple of 2 ints (x,y)", 
+			&ppoint->x, &ppoint->y);
+}
+
+// Return an IO_COUNTERS structure, used in win32process,i and win32job.i
+PyObject *PyWinObject_FromIO_COUNTERS(PIO_COUNTERS pioc)
+{
+	return Py_BuildValue("{s:N,s:N,s:N,s:N,s:N,s:N}",
+		"ReadOperationCount",  PyLong_FromUnsignedLongLong(pioc->ReadOperationCount),
+		"WriteOperationCount", PyLong_FromUnsignedLongLong(pioc->WriteOperationCount),
+		"OtherOperationCount", PyLong_FromUnsignedLongLong(pioc->OtherOperationCount),
+		"ReadTransferCount",   PyLong_FromUnsignedLongLong(pioc->ReadTransferCount),
+		"WriteTransferCount",  PyLong_FromUnsignedLongLong(pioc->WriteTransferCount),
+		"OtherTransferCount",  PyLong_FromUnsignedLongLong(pioc->OtherTransferCount));
+}
+
 /* List of functions exported by this module */
 // @module pywintypes|A module which supports common Windows types.
 static struct PyMethodDef pywintypes_functions[] = {
