@@ -85,7 +85,9 @@ def make_doc_summary(inFile, outFile):
 
 	# autoduck seems to crash when > ~97 methods.  Loop multiple times, 
 	# creating a synthetic module name when this happens.
-	max_methods = 90
+	# Hrmph - maybe this was related to the way we generate -
+	# see rev 1.80 of win32gui.i for a change that prevents this!
+	max_methods = 999
 	method_num = 0
 	chunk_number = 0
 	while 1:
