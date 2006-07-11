@@ -1172,13 +1172,7 @@ PyObject *PyGetProcessIoCounters(PyObject *self, PyObject *args)
 		PyWin_SetAPIError("GetProcessIoCounters",GetLastError());
 		return NULL;
 		}
-	return Py_BuildValue("{s:N,s:N,s:N,s:N,s:N,s:N}",
-		"ReadOperationCount", PyLong_FromUnsignedLongLong(ioc.ReadOperationCount),
-		"WriteOperationCount", PyLong_FromUnsignedLongLong(ioc.WriteOperationCount),
-		"OtherOperationCount", PyLong_FromUnsignedLongLong(ioc.OtherOperationCount),
-		"ReadTransferCount", PyLong_FromUnsignedLongLong(ioc.ReadTransferCount),
-		"WriteTransferCount", PyLong_FromUnsignedLongLong(ioc.WriteTransferCount),
-		"OtherTransferCount", PyLong_FromUnsignedLongLong(ioc.OtherTransferCount));
+	return PyWinObject_FromIO_COUNTERS(&ioc);
 }
 %}
 
