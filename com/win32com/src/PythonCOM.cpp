@@ -48,6 +48,7 @@ extern PyObject *pythoncom_StgCreateDocfileOnILockBytes(PyObject *self, PyObject
 extern PyObject *pythoncom_WriteClassStg(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_ReadClassStg(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_GetRecordFromGuids(PyObject *self, PyObject *args);
+extern PyObject *pythoncom_GetRecordFromTypeInfo(PyObject *self, PyObject *args);
 
 extern PyObject *Py_NewSTGMEDIUM(PyObject *self, PyObject *args);
 
@@ -1690,6 +1691,7 @@ static struct PyMethodDef pythoncom_methods[]=
 #endif // MS_WINCE
 	{ "GetFacilityString",   pythoncom_GetFacilityString, 1 },   // @pymeth GetFacilityString|Returns the facility string, given an OLE scode.
 	{ "GetRecordFromGuids",  pythoncom_GetRecordFromGuids, 1},   // @pymeth GetRecordFromGuids|Creates a new record object from the given GUIDs
+	{ "GetRecordFromTypeInfo", pythoncom_GetRecordFromTypeInfo, 1},   // @pymeth GetRecordFromTypeInfo|Creates a <o PyRecord> object from a <o PyITypeInfo> interface
 #ifndef MS_WINCE
 	{ "GetRunningObjectTable", pythoncom_GetRunningObjectTable, 1 }, // @pymeth GetRunningObjectTable|Obtains a <o PyIRunningObjectTable> object.
 #endif // MS_WINCE

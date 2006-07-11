@@ -235,6 +235,31 @@ PyObject *pythoncom_GetRecordFromGuids(PyObject *self, PyObject *args)
 	return ret;
 }
 
+// @pymethod <o PyRecord>|pythoncom|GetRecordFromTypeInfo|Creates a new record object from a <o PyITypeInfo> interface
+// @comm This function will fail if the specified type info does not have a guid defined
+PyObject *pythoncom_GetRecordFromTypeInfo(PyObject *self, PyObject *args)
+{
+	PyObject *obtypeinfo, *ret;
+	ITypeInfo *pITI=NULL;
+	IRecordInfo *pIRI=NULL;
+	HRESULT hr;
+	if (!PyArg_ParseTuple(args, "O:GetRecordFromTypeInfo", 
+		&obtypeinfo)) // @pyparm <o PyITypeInfo>|TypeInfo||The type information to be converted into a PyRecord object
+		return NULL;
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obtypeinfo, IID_ITypeInfo, (void **)&pITI, FALSE))
+		return NULL;
+
+	hr=GetRecordInfoFromTypeInfo(pITI, &pIRI);
+	if (FAILED(hr))
+		ret=PyCom_BuildPyException(hr);
+	else
+		ret = PyObject_FromRecordInfo(pIRI, NULL, 0);
+	pITI->Release();
+	if (pIRI!=NULL)
+		pIRI->Release();
+	return ret;
+}
+
 PyRecord::PyRecord(IRecordInfo *ri, PVOID data, PyRecordBuffer *owner)
 {
 	ob_type = &PyRecord::Type;
