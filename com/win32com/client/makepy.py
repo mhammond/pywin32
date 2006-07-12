@@ -21,27 +21,48 @@
  
 """
 usageHelp = """ \
+
 Usage:
 
-  makepy.py [-h] [-x0|1] [-u] [-o filename] [-d] [typelib, ...]
+  makepy.py [-i] [-v|q] [-h] [-u] [-o output_file] [-d] [typelib, ...]
   
-  typelib -- A TLB, DLL, OCX, Description, or possibly something else.
+  -i    -- Show information for the specified typelib.
+  
+  -v    -- Verbose output.
+  
+  -q    -- Quiet output.
+  
   -h    -- Do not generate hidden methods.
-  -u    -- Python 1.5 and earlier: Do not convert all Unicode objects to strings.
-           Python 1.6 and later: Do convert all Unicode objects to strings.
-  -o outputFile -- Generate to named file - dont generate to standard directory.
-  -i [typelib] -- Show info for specified typelib, or select the typelib if not specified.
-  -v    -- Verbose output
-  -q    -- Quiet output
-  -d    -- Generate the base code now and classes code on demand
   
+  -u    -- Python 1.5 and earlier: Do NOT convert all Unicode objects to 
+           strings.
+                                   
+           Python 1.6 and later: Convert all Unicode objects to strings.
+  
+  -o    -- Create output in a specified output file.  If the path leading
+           to the file does not exist, any missing directories will be
+           created.
+           NOTE: -o cannot be used with -d.  This will generate an error.
+  
+  -d    -- Generate the base code now and the class code on demand.
+           Recommended for large type libraries.
+           
+  typelib -- A TLB, DLL, OCX or anything containing COM type information.
+             If a typelib is not specified, a window containing a textbox
+             will open from which you can select a registered type
+             library.
+               
 Examples:
-  makepy.py
-    Present a list of type libraries.
+
+  makepy.py -d
+  
+    Presents a list of registered type libraries from which you can make
+    a selection.
     
-  makepy.py "Microsoft Excel 8.0 Object Library"
-    Generate support for the typelibrary with the specified description
-    (in this case, MS Excel object model)
+  makepy.py -d "Microsoft Excel 8.0 Object Library"
+  
+    Generate support for the type library with the specified description
+    (in this case, the MS Excel object model).
 
 """
 
@@ -331,6 +352,9 @@ def main():
 		args = [ rc ]
 
 	if outputName is not None:
+		path = os.path.dirname(outputName)
+		if path is not '' and not os.path.exists(path):
+			os.makedirs(path)
 		f = open(outputName, "w")
 	else:
 		f = None
