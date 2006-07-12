@@ -4384,6 +4384,26 @@ BOOL PyWinObject_AsNONCLIENTMETRICS(PyObject *ob, NONCLIENTMETRICS *ncm)
 	return ret;
 }
 
+BOOL PyWinObject_AsMINIMIZEDMETRICS(PyObject *ob, MINIMIZEDMETRICS *mm)
+{
+	static char *keywords[]={"iWidth","iHorzGap","iVertGap","iArrange",NULL};
+	BOOL ret;
+	ZeroMemory(mm, sizeof(MINIMIZEDMETRICS));
+	mm->cbSize=sizeof(MINIMIZEDMETRICS);
+
+	if (!PyDict_Check(ob)){
+		PyErr_SetString(PyExc_TypeError, "MINIMIZEDMETRICS must be a dict");
+		return FALSE;
+		}
+	PyObject *dummy_args=PyTuple_New(0);
+	if (dummy_args==NULL)	// should not happen, interpreter apparently caches the empty tuple
+		return FALSE;
+	ret=PyArg_ParseTupleAndKeywords(dummy_args, ob, "iiii:MINIMIZEDMETRICS", keywords,
+		&mm->iWidth, &mm->iHorzGap, &mm->iVertGap, &mm->iArrange);
+	Py_DECREF(dummy_args);
+	return ret;
+}
+
 static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	static char *keywords[]={"Action", "Param", "WinIni",  NULL};
@@ -4824,6 +4844,32 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 				if (!PyWinObject_AsNONCLIENTMETRICS(obParam, (NONCLIENTMETRICS *)pvParam))
 					goto done;
 			break;
+
+		// @flag SPI_GETMINIMIZEDMETRICS|Returns a dict representing a MINIMIZEDMETRICS struct.  Param is not used.
+		case SPI_GETMINIMIZEDMETRICS:		
+		// @flag SPI_SETMINIMIZEDMETRICS|Param should be a MINIMIZEDMETRICS dict as returned by SPI_GETMINIMIZEDMETRICS action
+		case SPI_SETMINIMIZEDMETRICS:
+			buflen = sizeof(MINIMIZEDMETRICS);
+			uiParam=buflen;
+			pvParam=malloc(buflen);
+			if (pvParam==NULL){
+				PyErr_Format(PyExc_MemoryError,"Unable to allocate %d bytes", buflen);
+				goto done;
+			}
+			if (Action==SPI_GETMINIMIZEDMETRICS){
+				if (obParam!=Py_None) {
+					PyErr_Format(PyExc_ValueError,
+				             "Don't supply a param for SPI_GETMINIMIZEDMETRICS");
+					goto done;
+					}
+				memset(pvParam, 0, buflen);
+				((MINIMIZEDMETRICS *)pvParam)->cbSize = buflen;
+				}
+			else
+				if (!PyWinObject_AsMINIMIZEDMETRICS(obParam, (MINIMIZEDMETRICS *)pvParam))
+					goto done;
+			break;
+
 #endif	// !MS_WINCE
 
 		// below are not handled yet
@@ -4840,8 +4886,6 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		// @flag SPI_GETFONTSMOOTHINGORIENTATION|Unsupported (use is not documented)
 		// @flag SPI_SETFONTSMOOTHINGORIENTATION|Unsupported (use is not documented)
 		// @flag SPI_SETHANDHELD|Unsupported (use is not documented)
-		// @flag SPI_GETMINIMIZEDMETRICS|Not implemented yet
-		// @flag SPI_SETMINIMIZEDMETRICS|Not implemented yet
 		// @flag SPI_GETICONMETRICS|Not implemented yet
 		// @flag SPI_SETICONMETRICS|Not implemented yet
 		// @flag SPI_GETWORKAREA|Not implemented yet
@@ -4984,7 +5028,16 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 					"lfStatusFont", new PyLOGFONT(&p->lfStatusFont),
 					"lfMessageFont",new PyLOGFONT(&p->lfMessageFont));
 			break;
-		}
+			}
+		case SPI_GETMINIMIZEDMETRICS: {
+			MINIMIZEDMETRICS *p = (MINIMIZEDMETRICS *)pvParam;
+			ret = Py_BuildValue("{s:i,s:i,s:i,s:i}",
+					"iWidth", p->iWidth,
+					"iHorzGap", p->iHorzGap,
+					"iVertGap", p->iVertGap,
+					"iArrange", p->iArrange);
+			break;
+			}
 #endif	// !MS_WINCE
 
 		default:
@@ -5002,6 +5055,8 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 #endif	// !MS_WINCE
 		case SPI_GETNONCLIENTMETRICS:
 		case SPI_SETNONCLIENTMETRICS:
+		case SPI_GETMINIMIZEDMETRICS:
+		case SPI_SETMINIMIZEDMETRICS:
 		case SPI_GETMOUSE:
 		case SPI_SETMOUSE:
 			if (pvParam!=NULL)
