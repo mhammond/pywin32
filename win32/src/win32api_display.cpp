@@ -276,16 +276,6 @@ PyObject *PyWinObject_FromDISPLAY_DEVICE(PDISPLAY_DEVICE pDISPLAY_DEVICE)
 	return ret;
 }
 
-BOOL PyWinObject_AsPOINT(PyObject *obpoint, LPPOINT ppoint)
-{
-	if (!PyTuple_Check(obpoint)){
-		PyErr_SetString(PyExc_TypeError, "POINT must be a tuple of 2 ints (x,y)");
-		return FALSE;
-		}
-	return PyArg_ParseTuple(obpoint, "ll;POINT must be a tuple of 2 ints (x,y)", 
-			&ppoint->x, &ppoint->y);
-}
-
 // @object PyRECT|Tuple of 4 ints: (left, top, right, bottom)
 BOOL PyWinObject_AsRECT(PyObject *obrect, LPRECT prect)
 {
