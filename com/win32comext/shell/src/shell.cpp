@@ -124,7 +124,25 @@ PyObject *PyObject_FromPIDL(LPCITEMIDLIST pidl, BOOL bFreeSystemPIDL)
 	__try {
 		while (pidl->mkid.cb) {
 			// cb includes sizeof(cb) itself - so string len is cb-sizeof(cb)
-			PyObject *sub = PyString_FromStringAndSize((char *)pidl->mkid.abID, pidl->mkid.cb-sizeof(pidl->mkid.cb));
+			if (pidl->mkid.cb <= sizeof(pidl->mkid.cb)) {
+				Py_DECREF(ret);
+				ret = NULL;
+				PyErr_SetString(PyExc_ValueError, "This string has an invalid sub-item (too short)");
+				break;
+			}
+			// The length may be too large to read (and causing an
+			// exception deep inside Python doesn't always leave
+			// things in a good state!  Its also inconvenient to
+			// always pass the size of the object - so explicitly
+			// check we can read the memory.
+			UINT cbdata = pidl->mkid.cb-sizeof(pidl->mkid.cb);
+			if (IsBadReadPtr(pidl->mkid.abID, cbdata)) {
+				Py_DECREF(ret);
+				ret = NULL;
+				PyErr_SetString(PyExc_ValueError, "This string has an invalid sub-item (too long)");
+				break;
+			}
+			PyObject *sub = PyString_FromStringAndSize((char *)pidl->mkid.abID, cbdata);
 			if (sub) {
 				PyList_Append(ret, sub);
 				Py_DECREF(sub);

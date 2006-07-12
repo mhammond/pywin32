@@ -80,6 +80,14 @@ class PIDLTester(win32com.test.util.TestCase):
         self._rtCIDA(["\1"], [ ["\2"] ])
         self._rtCIDA(["\0"], [ ["\0"], ["\1"], ["\2"] ])
 
+    def testBadShortPIDL(self):
+        # A too-short child element:   cb    pidl   cb
+        pidl =                       "\01\00" "\1"
+        self.assertRaises(ValueError, shell.StringAsPIDL, pidl)
+
+        # ack - tried to test too long PIDLs, but a len of 0xFFFF may not
+        # always fail.
+
 class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
     def _testRT(self, fd):
         fgd_string = shell.FILEGROUPDESCRIPTORAsString([fd])
