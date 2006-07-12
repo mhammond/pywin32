@@ -29,6 +29,9 @@ py_win32_timer_callback (HWND hwnd, UINT msg, UINT event, DWORD time)
 
 	// call the user's function
 	if (callback_function) {
+	  // create a 'death grip' on the callback function, just incase
+	  // the callback itself removes the function from the map.
+	  Py_INCREF(callback_function);
 	  PyObject * callback_args = Py_BuildValue ("(il)", (int) event, (long) time);
 	  PyObject * result = \
 		PyEval_CallObject (callback_function, callback_args);
@@ -40,13 +43,14 @@ py_win32_timer_callback (HWND hwnd, UINT msg, UINT event, DWORD time)
 	  }
 
 	  // everything's ok, return
+	  Py_DECREF(callback_function);
 	  Py_XDECREF(callback_args);
 	  Py_XDECREF(result);
 	  Py_DECREF (py_event);
 	  return;
 	}
-	// invalid key or callback: remove the key and kill the timer.
-	PyDict_DelItem(timer_id_callback_map, py_event);
+	// invalid key or callback: kill the timer (note there is no
+	// key to remove - we have already determined it is not there!)
 	Py_DECREF (py_event);
 	::KillTimer (NULL, event);
 	return;
