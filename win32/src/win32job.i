@@ -125,10 +125,10 @@ PyObject *PyQueryInformationJobObject(PyObject *self, PyObject *args)
 	HANDLE jh;
 	JOBOBJECTINFOCLASS infoclass;
 	if (!PyArg_ParseTuple(args, "Ok",
-		&objh,			// @pyparm <o PyHANDLE>|Job||Handle to a job
+		&objh,			// @pyparm <o PyHANDLE>|Job||Handle to a job, use None for job that calling process is part of
 		&infoclass))	// @pyparm int|JobObjectInfoClass||The type of data required, one of JobObject* values
 		return NULL;
-	if (!PyWinObject_AsHANDLE(objh, &jh, FALSE))
+	if (!PyWinObject_AsHANDLE(objh, &jh, TRUE))
 		return NULL;
 	// @flagh JobObjectInfoClass|Type of information returned
 	switch (infoclass){
@@ -462,8 +462,8 @@ PyObject *PySetInformationJobObject(PyObject *self, PyObject *args)
 #define JOB_OBJECT_LIMIT_RESERVED4 JOB_OBJECT_LIMIT_RESERVED4
 #define JOB_OBJECT_LIMIT_RESERVED5 JOB_OBJECT_LIMIT_RESERVED5
 #define JOB_OBJECT_LIMIT_RESERVED6 JOB_OBJECT_LIMIT_RESERVED6
-
 #define JOB_OBJECT_LIMIT_VALID_FLAGS JOB_OBJECT_LIMIT_VALID_FLAGS
+
 #define JOB_OBJECT_BASIC_LIMIT_VALID_FLAGS JOB_OBJECT_BASIC_LIMIT_VALID_FLAGS
 #define JOB_OBJECT_EXTENDED_LIMIT_VALID_FLAGS JOB_OBJECT_EXTENDED_LIMIT_VALID_FLAGS
 #define JOB_OBJECT_RESERVED_LIMIT_VALID_FLAGS JOB_OBJECT_RESERVED_LIMIT_VALID_FLAGS
