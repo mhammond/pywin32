@@ -98,7 +98,7 @@ def FindPerformanceAttributesByName(instanceName, object = None,
     return ret
 
 def ShowAllProcesses():
-    object = "Process"
+    object = find_pdh_counter_localized_name("Process")
     items, instances = win32pdh.EnumObjectItems(None,None,object,
                                                 win32pdh.PERF_DETAIL_WIZARD)
     # Need to track multiple instances of the same name.
@@ -110,7 +110,7 @@ def ShowAllProcesses():
             instance_dict[instance] = 0
 
     # Bit of a hack to get useful info.
-    items = ["ID Process"] + items[:5]
+    items = [find_pdh_counter_localized_name("ID Process")] + items[:5]
     print "Process Name", string.join(items,",")
     for instance, max_instances in instance_dict.items():
         for inum in xrange(max_instances+1):
@@ -150,8 +150,12 @@ def browse(callback = BrowseCallBackDemo, title="Python Browser",
 if __name__=='__main__':
     ShowAllProcesses()
     # Show how to get a couple of attributes by name.
-    print "Virtual Bytes = ", FindPerformanceAttributesByName("python", counter="Virtual Bytes")
-    print "Available Bytes = ", GetPerformanceAttributes("Memory", "Available Bytes")
+    counter = find_pdh_counter_localized_name("Virtual Bytes")
+    print "Virtual Bytes = ", FindPerformanceAttributesByName("python",
+                                                              counter=counter)
+    print "Available Bytes = ", GetPerformanceAttributes(
+                                        find_pdh_counter_localized_name("Memory"),
+                                        find_pdh_counter_localized_name("Available Bytes"))
     # And a browser.
     print "Browsing for counters..."
     browse()
