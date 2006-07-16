@@ -5,6 +5,38 @@ Generally created by hand after running:
    {py_dir}\Tools\scripts\logmerge.py -t < log.out > log.out2
 However contributors are encouraged to add their own entries for their work.
 
+Build 209
+---------
+* Roger Upole added IEnumString, IShellLinkDataList, IUniformResourceLocator
+  and IActiveDesktop interfaces, win32gui.GetDlgItemText/GetDlgItemInt, 
+  win32process.AttachThreadInput, win32api.Get/SetHandleInformation, amongst
+  others
+* Roger added a new win32ts module, wrapping Terminal Service functions
+* Roger enhanced/fixed win32api.GetLongPathName, PyIBindCtx, 
+  win32gui.SystemParametersInfo/SetLayeredWindowAttributes/
+  GetLayeredWindowAttributes, win32net.WNetGetResourceParent, various 
+  win32job methods, shell.SHFileOperation and added many monitor and display 
+  related functions.
+* Stefan Rank and Roger enhanced DEVMODE support
+* Add asynch (overlapped) support for ReadDirectoryChangesW
+* Prevent warnings in later Python 2.5 releases.
+* Makepy now generates working code when a method etc is named 'None'
+* isapi package now handles site names with extended characters.
+* Fix unwanted string value padding by using SQL_VARCHAR instead of SQL_CHAR
+  in ODBC module.
+* Allow extended chars in comments in IE/ASP and other AXScript applications.
+* win32api.GetShortPathName now handled unicode (callingGetShortPathNameW)
+* When passing large integers via win32com, we now attempt to pass as a 64 
+  bit integer before falling back to a float.
+* Added win32process.CreateRemoteThread, win32gui.ExtTextOut/SetBkColor/
+  DrawAnimatedRects, win32api.SetLastError
+* Fix return code from ConnectNamedPipe when the function succeeds.
+* win32gui_menu demo shows how to do owner-draw menus.
+* set_file_audit demo shows ACL inheritance.
+* win32gui is no longer 'split' in the help file.
+* Fix errors if a timer callback or win32ui Window handler removed themselves.
+* Fix memory leaks related to win32ui.CreateWnd
+
 Build 208
 ---------
 * pywintypes: fix reference leak in PyOVERLAPPED objects.
