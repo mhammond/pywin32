@@ -258,8 +258,11 @@ PyObject *MySetNamedPipeHandleState(PyObject *self, PyObject *args)
 }
 
 // @pyswig int|ConnectNamedPipe|Connects to a named pipe
-// @comm The result is the HRESULT from the underlying function.
-// If an overlapped object is passed, the result may be ERROR_IO_PENDING or ERROR_PIPE_CONNECTED.
+// @comm The result is zero if the function succeeds.  If the function fails,
+// GetLastError() is called, and if the result is ERROR_IO_PENDING or ERROR_PIPE_CONNECTED
+// (common when passing an overlapped object), this value is returned.  All
+// other error values raise a win32 exception (from which the error code
+// can be extracted)
 PyObject *MyConnectNamedPipe(PyObject *self, PyObject *args)
 {
 	HANDLE hNamedPipe;
@@ -279,13 +282,13 @@ PyObject *MyConnectNamedPipe(PyObject *self, PyObject *args)
 			return NULL;
 	}
 	BOOL ok;
-    Py_BEGIN_ALLOW_THREADS
+	Py_BEGIN_ALLOW_THREADS
 	ok = ConnectNamedPipe(hNamedPipe, pOverlapped);
-    Py_END_ALLOW_THREADS
-	DWORD rc = GetLastError();
+	Py_END_ALLOW_THREADS
+	DWORD rc = ok ? 0 : GetLastError();
 	// These error conditions are documented as "acceptable" - ie,
 	// the function has still worked.
-	if (!ok && rc!= 0 && rc != ERROR_IO_PENDING && rc != ERROR_PIPE_CONNECTED)
+	if (!ok && rc != ERROR_IO_PENDING && rc != ERROR_PIPE_CONNECTED)
 		return PyWin_SetAPIError("ConnectNamedPipe");
 	return PyInt_FromLong(rc);
 }
