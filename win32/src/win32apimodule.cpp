@@ -1305,12 +1305,25 @@ PyVkKeyScanEx(PyObject * self, PyObject * args)
 	return PyInt_FromLong(ret);
 }
 
-// @pymethod int|win32api|GetLastError|Retrieves the calling threads last error code value.
+// @pymethod int|win32api|GetLastError|Retrieves the calling thread's last error code value.
 static PyObject *
 PyGetLastError(PyObject * self, PyObject * args)
 {
 	// @pyseeapi GetLastError
 	return Py_BuildValue("i",::GetLastError());
+}
+
+// @pymethod int|win32api|SetLastError|Sets the calling thread's last error code value.
+static PyObject *
+PySetLastError(PyObject * self, PyObject * args)
+{
+	long errVal;
+	if (!PyArg_ParseTuple(args, "k", &errVal))
+		return NULL;
+	// @pyseeapi SetLastError
+	::SetLastError(errVal);
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 // @pymethod string|win32api|GetLogicalDriveStrings|Returns a string with all logical drives currently mapped.
@@ -4944,6 +4957,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"SetCursorPos",		PySetCursorPos,1}, // @pymeth SetCursorPos|The SetCursorPos function moves the cursor to the specified screen coordinates.
 	{"SetErrorMode",        PySetErrorMode, 1}, // @pymeth SetErrorMode|Controls whether the system will handle the specified types of serious errors, or whether the process will handle them.
 	{"SetFileAttributes",   PySetFileAttributes,1}, // @pymeth SetFileAttributes|Sets the named file's attributes.
+	{"SetLastError",        PySetLastError,     1}, // @pymeth SetLastError|Sets the last error code known for the current thread.
 	{"SetSysColors",		PySetSysColors,      1}, // @pymeth SetSysColors|Changes color of various window elements
 	{"SetSystemTime",		PySetSystemTime,	1},	// @pymeth SetSystemTime|Sets the system time.	
 	{"SetClassLong",       PySetClassLong,1}, // @pymeth SetClassLong|Replaces the specified 32-bit (long) value at the specified offset into the extra class memory for the window.

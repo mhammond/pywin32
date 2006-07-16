@@ -151,5 +151,11 @@ class FormatMessage(unittest.TestCase):
                                inserts)
         self.assertEqual(result, "Hello Mark, how are you today?")
 
+class Misc(unittest.TestCase):
+    def test_last_error(self):
+        for x in (0, 1, -1, winerror.TRUST_E_PROVIDER_UNKNOWN):
+            win32api.SetLastError(x)
+            self.failUnlessEqual(x, win32api.GetLastError())
+
 if __name__ == '__main__':
     unittest.main()
