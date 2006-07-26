@@ -2753,7 +2753,7 @@ static PyObject *MyWaitCommEvent(PyObject *self, PyObject *args)
 
 // Some Win2k specific volume mounting functions, thanks to Roger Upole
 %{
-
+#define CHECK_PFN(fname) if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);
 static BOOL (WINAPI *pfnGetVolumeNameForVolumeMountPointW)(LPCWSTR, LPCWSTR, DWORD) = NULL;
 static BOOL (WINAPI *pfnSetVolumeMountPointW)(LPCWSTR, LPCWSTR) = NULL;
 static BOOL (WINAPI *pfnDeleteVolumeMountPointW)(LPCWSTR) = NULL;
@@ -2772,6 +2772,8 @@ static BOOL (WINAPI *pfnBackupRead)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL, 
 static BOOL (WINAPI *pfnBackupSeek)(HANDLE, DWORD, DWORD, LPDWORD, LPDWORD, LPVOID*)=NULL;
 static BOOL (WINAPI *pfnBackupWrite)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL, LPVOID*)=NULL;
 
+typedef BOOL (WINAPI *SetFileShortNamefunc)(HANDLE, LPCWSTR);
+static SetFileShortNamefunc pfnSetFileShortName=NULL;
 
 
 // @pyswig <o PyUnicode>|SetVolumeMountPoint|Mounts the specified volume at the specified volume mount point.
@@ -3608,6 +3610,36 @@ py_BackupWrite(PyObject *self, PyObject *args)
 		}
 	return Py_BuildValue("ll", bytes_written, ctxt);
 }
+
+// @pyswig |SetFileShortName|Set the 8.3 name of a file
+// @comm This function is only available on WinXP and later
+// @comm File handle must be opened with FILE_FLAG_BACKUP_SEMANTICS, and SE_RESTORE_NAME privilege must be enabled
+static PyObject*
+py_SetFileShortName(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(SetFileShortName);
+	HANDLE h;
+	WCHAR *shortname=NULL;
+	PyObject *obh, *obshortname;
+	BOOL bsuccess;
+	if (!PyArg_ParseTuple(args, "OO:SetFileShortName",
+		&obh,			// @pyparm <o PyHANDLE>|hFile||Handle to a file or directory
+		&obshortname))	// @pyparm <o PyUNICODE>|ShortName||The 8.3 name to be applied to the file
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obh, &h, FALSE))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obshortname, &shortname, FALSE))
+		return NULL;
+	Py_BEGIN_ALLOW_THREADS
+	bsuccess=(*pfnSetFileShortName)(h, (LPCWSTR)shortname);
+	Py_END_ALLOW_THREADS
+	PyWinObject_FreeWCHAR(shortname);
+	if (bsuccess){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	return PyWin_SetAPIError("SetFileShortName");
+}
 %}
 
 %native (SetVolumeMountPoint) py_SetVolumeMountPoint;
@@ -3628,6 +3660,7 @@ py_BackupWrite(PyObject *self, PyObject *args)
 %native (BackupRead) py_BackupRead;
 %native (BackupSeek) py_BackupSeek;
 %native (BackupWrite) py_BackupWrite;
+%native (SetFileShortName) py_SetFileShortName;
 
 %init %{
 
@@ -3692,6 +3725,8 @@ py_BackupWrite(PyObject *self, PyObject *args)
 		
 		fp = GetProcAddress(hmodule, "BackupWrite");
 		if (fp) pfnBackupWrite = (BOOL (WINAPI *)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL, LPVOID*))(fp);
+
+		pfnSetFileShortName=(SetFileShortNamefunc)GetProcAddress(hmodule,"SetFileShortNameW");
 		}
 %}
 
