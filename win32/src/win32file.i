@@ -1490,14 +1490,14 @@ BOOLAPI MoveFileW(
 // @pyswig |MoveFileEx|Renames an existing file or a directory (including all its children). 
 BOOLAPI MoveFileEx(
     TCHAR *lpExistingFileName,	// @pyparm <o PyUnicode>|existingFileName||Name of the existing file  
-    TCHAR *lpNewFileName, 	// @pyparm <o PyUnicode>|newFileName||New name for the file 
-    DWORD dwFlags 	        // @pyparm int|flags||flag to determine how to move file 
+    TCHAR *INPUT_NULLOK, 	// @pyparm <o PyUnicode>|newFileName||New name for the file, can be None for delayed delete operation
+    DWORD dwFlags 	        // @pyparm int|flags||flag to determine how to move file (win32file.MOVEFILE_*)
 );
 // @pyswig |MoveFileExW|Renames an existing file or a directory (including all its children). (NT/2000 Unicode specific version).
 BOOLAPI MoveFileExW(
     WCHAR *lpExistingFileName,	// @pyparm <o PyUnicode>|existingFileName||Name of the existing file  
-    WCHAR *lpNewFileName, 	// @pyparm <o PyUnicode>|newFileName||New name for the file 
-    DWORD dwFlags 	        // @pyparm int|flags||flag to determine how to move file 
+    WCHAR *INPUT_NULLOK, 	// @pyparm <o PyUnicode>|newFileName||New name for the file, can be None for delayed delete operation
+    DWORD dwFlags 	        // @pyparm int|flags||flag to determine how to move file (win32file.MOVEFILE_*)
 );
 #define MOVEFILE_COPY_ALLOWED MOVEFILE_COPY_ALLOWED // If the file is to be moved to a different volume, the function simulates the move by using the CopyFile and DeleteFile functions. Cannot be combined with the MOVEFILE_DELAY_UNTIL_REBOOT flag.
 #define MOVEFILE_DELAY_UNTIL_REBOOT MOVEFILE_DELAY_UNTIL_REBOOT // Windows NT only: The function does not move the file until the operating system is restarted. The system moves the file immediately after AUTOCHK is executed, but before creating any paging files. Consequently, this parameter enables the function to delete paging files from previous startups.
