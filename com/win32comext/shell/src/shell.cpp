@@ -477,7 +477,7 @@ BOOL PyObject_AsCMINVOKECOMMANDINFO(PyObject *ob, CMINVOKECOMMANDINFO *pci)
 	if (PyString_Check(obVerb)) {
 		pci->lpVerb = PyString_AsString(obVerb);
 	} else if (PyInt_Check(obVerb)) {
-		pci->lpVerb = MAKEINTRESOURCE(PyInt_AsLong(obVerb));
+		pci->lpVerb = MAKEINTRESOURCEA(PyInt_AsLong(obVerb));
 	} else {
 		PyErr_Format(PyExc_TypeError, "verb must be an int or string");
 		return FALSE;
@@ -835,7 +835,7 @@ BOOL PyObject_AsSHFILEOPSTRUCT(PyObject *ob, SHFILEOPSTRUCT *p)
 	if (!MakeDoubleTerminatedStringList(obTo, (LPTSTR *)&p->pTo))
 		goto error;
 
-	if (!PyWinObject_AsTCHAR(obProgressTitle, (LPSTR *)&p->lpszProgressTitle, TRUE))
+	if (!PyWinObject_AsTCHAR(obProgressTitle, (LPTSTR *)&p->lpszProgressTitle, TRUE))
 		return FALSE;
 	return TRUE;
 error:
@@ -971,10 +971,10 @@ done:
 	// information.
 }
 
-// @pymethod string/<o PyUnicode>|shell|SHGetPathFromIDList|Converts an IDLIST to a path.
+// @pymethod string|shell|SHGetPathFromIDList|Converts an IDLIST to a path.
 static PyObject *PySHGetPathFromIDList(PyObject *self, PyObject *args)
 {
-	TCHAR buffer[MAX_PATH];
+	CHAR buffer[MAX_PATH];
 	PyObject *rc;
 	LPITEMIDLIST pidl;
 	PyObject *obPidl;
@@ -986,18 +986,44 @@ static PyObject *PySHGetPathFromIDList(PyObject *self, PyObject *args)
 		return NULL;
 
 	PY_INTERFACE_PRECALL;
-	BOOL ok = SHGetPathFromIDList(pidl, buffer);
+	BOOL ok = SHGetPathFromIDListA(pidl, buffer);
 	PY_INTERFACE_POSTCALL;
 	if (!ok) {
 		OleSetOleError(E_FAIL);
 		rc = NULL;
 	} else
-		rc = PyWinObject_FromTCHAR(buffer);
+		rc = PyString_FromString(buffer);
 	PyObject_FreePIDL(pidl);
 	return rc;
 }
 
-// @pymethod string/<o PyUnicode>|shell|SHGetSpecialFolderPath|Retrieves the path of a special folder. 
+// @pymethod <o PyUnicode>|shell|SHGetPathFromIDListW|Converts an IDLIST to a path.
+static PyObject *PySHGetPathFromIDListW(PyObject *self, PyObject *args)
+{
+	WCHAR buffer[MAX_PATH];
+	PyObject *rc;
+	LPITEMIDLIST pidl;
+	PyObject *obPidl;
+
+	if (!PyArg_ParseTuple(args, "O:SHGetPathFromIDListW", &obPidl))
+		// @pyparm <o PyIDL>|idl||The ITEMIDLIST
+		return NULL;
+	if (!PyObject_AsPIDL(obPidl, &pidl))
+		return NULL;
+
+	PY_INTERFACE_PRECALL;
+	BOOL ok = SHGetPathFromIDListW(pidl, buffer);
+	PY_INTERFACE_POSTCALL;
+	if (!ok) {
+		OleSetOleError(E_FAIL);
+		rc = NULL;
+	} else
+		rc = PyWinObject_FromWCHAR(buffer);
+	PyObject_FreePIDL(pidl);
+	return rc;
+}
+
+// @pymethod <o PyUnicode>|shell|SHGetSpecialFolderPath|Retrieves the path of a special folder. 
 static PyObject *PySHGetSpecialFolderPath(PyObject *self, PyObject *args)
 {
 	HWND hwndOwner;
@@ -1442,7 +1468,7 @@ static PyObject *PySHChangeNotifyRegister(PyObject *self, PyObject *args)
 	HMODULE hmod = GetModuleHandle(TEXT("shell32.dll"));
 	PFNSHChangeNotifyRegister pfnSHChangeNotifyRegister = NULL;
 	// This isn't always exported by name - but by ordinal 2!!
-	if (hmod) pfnSHChangeNotifyRegister=(PFNSHChangeNotifyRegister)GetProcAddress(hmod, MAKEINTRESOURCE(2));
+	if (hmod) pfnSHChangeNotifyRegister=(PFNSHChangeNotifyRegister)GetProcAddress(hmod, MAKEINTRESOURCEA(2));
 	if (pfnSHChangeNotifyRegister==NULL)
 		return OleSetOleError(E_NOTIMPL);
 	// The SDK says of the array of entries:
@@ -1482,7 +1508,7 @@ static PyObject *PySHChangeNotifyDeregister(PyObject *self, PyObject *args)
 	HMODULE hmod = GetModuleHandle(TEXT("shell32.dll"));
 	PFNSHChangeNotifyDeregister pfnSHChangeNotifyDeregister = NULL;
 	// This isn't always exported by name - but by ordinal 4!!
-	if (hmod) pfnSHChangeNotifyDeregister=(PFNSHChangeNotifyDeregister)GetProcAddress(hmod, MAKEINTRESOURCE(4));
+	if (hmod) pfnSHChangeNotifyDeregister=(PFNSHChangeNotifyDeregister)GetProcAddress(hmod, MAKEINTRESOURCEA(4));
 	if (pfnSHChangeNotifyDeregister==NULL)
 		return OleSetOleError(E_NOTIMPL);
     LONG id;
@@ -1500,11 +1526,7 @@ static PyObject *PySHChangeNotifyDeregister(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @pymethod string/int|shell|DragQueryFile|Notifies the shell that an 
-// image in the system image list has changed.
-// @rdesc If the value for index is -1, the result is the number of 
-// filenames available, otherwise the result is a string with the
-// requested filename.
+// @pymethod int|string|shell|DragQueryFile|
 static PyObject *PyDragQueryFile(PyObject *self, PyObject *args)
 {
 	int iglobal;
@@ -1523,7 +1545,31 @@ static PyObject *PyDragQueryFile(PyObject *self, PyObject *args)
 	if (sz==NULL)
 		return PyErr_NoMemory();
 	nchars = ::DragQueryFile(hglobal, index, sz, nchars);
-	PyObject *ret = PyWinObject_FromTCHAR(sz, nchars);
+	PyObject *ret = PyString_FromStringAndSize(sz, nchars);
+	free(sz);
+	return ret;
+}
+
+// @pymethod int|<o PyUnicode>|shell|DragQueryFileW|
+static PyObject *PyDragQueryFileW(PyObject *self, PyObject *args)
+{
+	int iglobal;
+	UINT index;
+	if(!PyArg_ParseTuple(args, "ii:DragQueryFileW", 
+			&iglobal, // @pyparm int|hglobal||The HGLOBAL object - generally obtained via the 'data_handle' property of a <o PySTGMEDIUM> object.
+			&index)) // @pyparm int|index||The index to retrieve.  If -1, the result if an integer representing the valid index values.
+		return NULL;
+	HDROP hglobal = (HDROP)iglobal;
+	if (index==0xFFFFFFFF) {
+		return PyInt_FromLong(DragQueryFileW(hglobal, index, NULL, 0));
+	}
+	// get the buffer size
+	UINT nchars = DragQueryFileW(hglobal, index, NULL, 0)+2;
+	WCHAR *sz = (WCHAR *)malloc(nchars * sizeof(WCHAR));
+	if (sz==NULL)
+		return PyErr_NoMemory();
+	nchars = ::DragQueryFileW(hglobal, index, sz, nchars);
+	PyObject *ret = PyWinObject_FromWCHAR(sz, nchars);
 	free(sz);
 	return ret;
 }
@@ -2163,8 +2209,10 @@ static struct PyMethodDef shell_methods[]=
 {
     { "AssocCreate",    PyAssocCreate, 1 }, // @pymeth AssocCreate|Creates a <o PyIQueryAssociations> object
     { "DragQueryFile",    PyDragQueryFile, 1 }, // @pymeth DragQueryFile|Retrieves the file names of dropped files that have resulted from a successful drag-and-drop operation.
+    { "DragQueryFileW",   PyDragQueryFileW, 1 }, // @pymeth DragQueryFileW|Retrieves the file names of dropped files that have resulted from a successful drag-and-drop operation.
 	{ "DragQueryPoint",   PyDragQueryPoint, 1}, // @pymeth DragQueryPoint|Retrieves the position of the mouse pointer at the time a file was dropped during a drag-and-drop operation.
     { "SHGetPathFromIDList",    PySHGetPathFromIDList, 1 }, // @pymeth SHGetPathFromIDList|Converts an <o PyIDL> to a path.
+    { "SHGetPathFromIDListW",   PySHGetPathFromIDListW, 1 }, // @pymeth SHGetPathFromIDListW|Converts an <o PyIDL> to a unicode path.
     { "SHBrowseForFolder",    PySHBrowseForFolder, 1 }, // @pymeth SHBrowseForFolder|Displays a dialog box that enables the user to select a shell folder.
 	{ "SHGetFileInfo",        PySHGetFileInfo, 1}, // @pymeth SHGetFileInfo|Retrieves information about an object in the file system, such as a file, a folder, a directory, or a drive root.
     { "SHGetFolderPath", PySHGetFolderPath, 1 }, // @pymeth SHGetFolderPath|Retrieves the path of a folder.
