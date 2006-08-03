@@ -527,7 +527,7 @@ PyFormatMessage (PyObject *self, PyObject *args)
 {
 	int errCode=0;
 	// @pyparm int|errCode|0|The error code to return the message for,  If this value is 0, then GetLastError() is called to determine the error code.
-	if (PyArg_ParseTuple (args, "|i:FormatMessage", &errCode)) {
+	if (PyArg_ParseTuple (args, "|k:FormatMessage", &errCode)) {
 		if (errCode==0)
 			// @pyseeapi GetLastError
 			errCode = GetLastError();
