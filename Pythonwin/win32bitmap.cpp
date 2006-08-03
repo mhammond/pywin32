@@ -47,13 +47,13 @@ void ui_bitmap::ClearSupportData()
 	sizeBitmap = CSize(0,0);
 }
 
-// @pymethod <o PyBitMap>|win32ui|CreateBitmap|Creates a bitmap object.
+// @pymethod <o PyCBitMap>|win32ui|CreateBitmap|Creates a bitmap object.
 PyObject *ui_bitmap::create( PyObject *self, PyObject *args )
 {
 	return ui_assoc_object::make( ui_bitmap::type, new CBitmap);
 }
 
-// @pymethod <o PyBitMap>|win32ui|CreateBitmapFromHandle|Creates a bitmap object from a HBITMAP.
+// @pymethod <o PyCBitMap>|win32ui|CreateBitmapFromHandle|Creates a bitmap object from a HBITMAP.
 PyObject *ui_bitmap::create_from_handle( PyObject *self, PyObject *args )
 {
 	PyObject *pObj;
@@ -76,7 +76,7 @@ PyObject *ui_bitmap::create_from_handle( PyObject *self, PyObject *args )
 	return pObj;
 }
 
-// @pymethod |PyBitmap|LoadBitmap|Loads a bitmap from a DLL object.
+// @pymethod |PyCBitmap|LoadBitmap|Loads a bitmap from a DLL object.
 static PyObject *ui_bitmap_load_bitmap( PyObject *self, PyObject *args )
 {
 	int idRes;
@@ -117,7 +117,7 @@ static PyObject *ui_bitmap_load_bitmap( PyObject *self, PyObject *args )
 	RETURN_NONE;
 }
 
-// @pymethod |PyBitmap|CreateCompatibleBitmap|Creates a bitmap compatible with the specified device context.
+// @pymethod |PyCBitmap|CreateCompatibleBitmap|Creates a bitmap compatible with the specified device context.
 static PyObject *ui_bitmap_create_compatible_bitmap( PyObject *self, PyObject *args )
 {
 	int width, height;
@@ -144,7 +144,7 @@ static PyObject *ui_bitmap_create_compatible_bitmap( PyObject *self, PyObject *a
 // Load BMP format file
 //
 //
-// @pymethod |PyBitmap|LoadBitmapFile|Loads a bitmap (.BMP) format
+// @pymethod |PyCBitmap|LoadBitmapFile|Loads a bitmap (.BMP) format
 // from a file object.
 PyObject *ui_bitmap_load_bitmap_file( PyObject *self, PyObject *args )
 {
@@ -280,7 +280,7 @@ if (bmFileHeader.bfOffBits) {
 // Load PPM format file
 //
 //
-// @pymethod |PyBitmap|LoadPPMFile|Loads a bitmap in Portable Pix Map (PPM) format
+// @pymethod |PyCBitmap|LoadPPMFile|Loads a bitmap in Portable Pix Map (PPM) format
 // from a file object.
 PyObject *ui_bitmap_load_ppm_file( PyObject *self, PyObject *args )
 {
@@ -367,14 +367,14 @@ PyObject *ui_bitmap_load_ppm_file( PyObject *self, PyObject *args )
 }
 
 
-// @pymethod (cx,cy)|PyBitmap|GetSize|Returns the size of the bitmap object.
+// @pymethod (cx,cy)|PyCBitmap|GetSize|Returns the size of the bitmap object.
 static PyObject *ui_bitmap_get_size( PyObject *self, PyObject *args )
 {
 	ui_bitmap *pDIB = (ui_bitmap *)self;
 	return Py_BuildValue("(ii)", pDIB->sizeBitmap.cx, pDIB->sizeBitmap.cy);
 }
 
-// @pymethod int|PyBitmap|GetHandle|Returns the HBITMAP for a bitmap object
+// @pymethod int|PyCBitmap|GetHandle|Returns the HBITMAP for a bitmap object
 static PyObject *ui_bitmap_get_handle( PyObject *self, PyObject *args )
 {
 //	ui_bitmap *pDIB = (ui_bitmap *)self;
@@ -383,7 +383,7 @@ static PyObject *ui_bitmap_get_handle( PyObject *self, PyObject *args )
 	return Py_BuildValue ("i", (HBITMAP) *pBitmap);
 }
 
-// @pymethod |PyBitmap|Paint|Paint a bitmap.
+// @pymethod |PyCBitmap|Paint|Paint a bitmap.
 static PyObject *ui_bitmap_paint( PyObject *self, PyObject *args )
 {
 	ui_bitmap *pDIB = (ui_bitmap *)self;
@@ -436,7 +436,7 @@ static PyObject *ui_bitmap_paint( PyObject *self, PyObject *args )
 
 #define DICTADD(D,ST,M,TYPE) PyDict_SetItemString (D, #M, Py_BuildValue (TYPE, ST.M))
 
-// @pymethod dict|PyBitmap|GetInfo|Returns the BITMAP structure info
+// @pymethod dict|PyCBitmap|GetInfo|Returns the BITMAP structure info
 static PyObject *ui_bitmap_info( PyObject *self, PyObject *args )
 {
 	if (!PyArg_ParseTuple(args,""))
@@ -458,7 +458,7 @@ static PyObject *ui_bitmap_info( PyObject *self, PyObject *args )
   return d;
 }
 
-// @pymethod tuple/string|PyBitmap|GetBitmapBits|Returns the bitmap bits.
+// @pymethod tuple/string|PyCBitmap|GetBitmapBits|Returns the bitmap bits.
 static PyObject *ui_get_bitmap_bits( PyObject *self, PyObject *args )
 {
 	// @pyparm int|asString|0|If False, the result is a tuple of
@@ -493,7 +493,7 @@ static PyObject *ui_get_bitmap_bits( PyObject *self, PyObject *args )
 	return rc;
 }
 
-// @pymethod None|PyBitmap|SaveBitmapFile|Saves a bitmap to a file.
+// @pymethod None|PyCBitmap|SaveBitmapFile|Saves a bitmap to a file.
 static PyObject *ui_bitmap_save_bitmap_file( PyObject *self, PyObject *args )
 {
   PyObject *dcobject;
@@ -648,7 +648,7 @@ static PyObject *ui_bitmap_save_bitmap_file( PyObject *self, PyObject *args )
 //
 // ui_bitmap
 //
-// @object PyBitmap|A bitmap class, derived from a <o PyCGdiObject>.
+// @object PyCBitmap|A bitmap class, derived from a <o PyCGdiObject>.
 static struct PyMethodDef ui_bitmap_methods[] = {
 	{"CreateCompatibleBitmap", ui_bitmap_create_compatible_bitmap, 1}, // @pymeth CreateCompatibleBitmap|Creates a bitmap compatible with the specified device context.
 	{"GetSize",			ui_bitmap_get_size,        1}, // @pymeth GetSize|Gets the size of the bitmap object, in pixels.
@@ -663,7 +663,7 @@ static struct PyMethodDef ui_bitmap_methods[] = {
 	{NULL,			NULL}		/* sentinel */
 };
 
-ui_type_CObject ui_bitmap::type("PyBitmap", 
+ui_type_CObject ui_bitmap::type("PyCBitmap", 
 								&PyCGdiObject::type, 
 								RUNTIME_CLASS(CBitmap),
 								sizeof(ui_bitmap), 
