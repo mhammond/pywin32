@@ -310,6 +310,11 @@ PYWINTYPES_EXPORT PyObject *PyWinMethod_NewTime( PyObject *self, PyObject *args)
 // functions to return WIN32_FIND_DATA tuples, used in shell, win32api, and win32file
 PYWINTYPES_EXPORT PyObject *PyObject_FromWIN32_FIND_DATAA(WIN32_FIND_DATAA *pData);
 PYWINTYPES_EXPORT PyObject *PyObject_FromWIN32_FIND_DATAW(WIN32_FIND_DATAW *pData);
+#ifdef UNICODE
+#define PyObject_FromWIN32_FIND_DATA PyObject_FromWIN32_FIND_DATAW
+#else
+#define PyObject_FromWIN32_FIND_DATA PyObject_FromWIN32_FIND_DATAA
+#endif
 
 // POINT tuple, used in win32api_display.cpp and win32gui.i
 PYWINTYPES_EXPORT BOOL PyWinObject_AsPOINT(PyObject *obpoint, LPPOINT ppoint);
