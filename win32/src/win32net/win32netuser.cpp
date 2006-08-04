@@ -18,6 +18,7 @@ of the Network API.  This is part of the win32net module.
 #define UI1_ENTRY(name, t, r) { _T(#name), t, offsetof(USER_INFO_1, usri1_##name), r }
 #define UI2_ENTRY(name, t, r) { _T(#name), t, offsetof(USER_INFO_2, usri2_##name), r }
 #define UI3_ENTRY(name, t, r) { _T(#name), t, offsetof(USER_INFO_3, usri3_##name), r }
+#define UI4_ENTRY(name, t, r) { _T(#name), t, offsetof(USER_INFO_4, usri4_##name), r }
 #define UI10_ENTRY(name, t, r) { _T(#name), t, offsetof(USER_INFO_10, usri10_##name), r }
 #define UI11_ENTRY(name, t, r) { _T(#name), t, offsetof(USER_INFO_11, usri11_##name), r }
 #define UI20_ENTRY(name, t, r) { _T(#name), t, offsetof(USER_INFO_20, usri20_##name), r }
@@ -113,6 +114,40 @@ static struct PyNET_STRUCT_ITEM ui3[] = {
 	UI3_ENTRY(profile, NSI_WSTR, 0), // @prop string/<o PyUnicode>|profile|
 	UI3_ENTRY(home_dir_drive, NSI_WSTR, 0), // @prop string/<o PyUnicode>|home_dir_drive|
 	UI3_ENTRY(password_expired, NSI_DWORD, 0), // @prop int|password_expired|
+	{NULL}
+};
+
+// @object PyUSER_INFO_4|A dictionary holding the information in a Win32 USER_INFO_4 structure.
+static struct PyNET_STRUCT_ITEM ui4[] = {
+	UI4_ENTRY(name, NSI_WSTR, 0), // @prop string/<o PyUnicode>|name|
+	UI4_ENTRY(password, NSI_WSTR, 0), // @prop string/<o PyUnicode>|password|
+	UI4_ENTRY(password_age, NSI_DWORD, 0), // @prop int|password_age|
+	UI4_ENTRY(priv, NSI_DWORD, 0), // @prop int|priv|
+	UI4_ENTRY(home_dir, NSI_WSTR, 0), // @prop string/<o PyUnicode>|home_dir|
+	UI4_ENTRY(comment, NSI_WSTR, 0), // @prop string/<o PyUnicode>|comment|
+	UI4_ENTRY(flags, NSI_DWORD, 0), // @prop int|flags|
+	UI4_ENTRY(script_path, NSI_WSTR, 0), // @prop string/<o PyUnicode>|script_path|
+	UI4_ENTRY(auth_flags, NSI_DWORD, 0), // @prop int|auth_flags|
+	UI4_ENTRY(full_name, NSI_WSTR, 0), // @prop string/<o PyUnicode>|full_name|
+	UI4_ENTRY(usr_comment,NSI_WSTR, 0), // @prop string/<o PyUnicode>|usr_comment|
+	UI4_ENTRY(parms, NSI_WSTR, 0), // @prop string/<o PyUnicode>|parms|
+	UI4_ENTRY(workstations, NSI_WSTR, 0), // @prop string/<o PyUnicode>|workstations|
+	UI4_ENTRY(last_logon, NSI_DWORD, 0), // @prop int|last_logon|
+	UI4_ENTRY(last_logoff, NSI_DWORD, 0), // @prop int|last_logoff|
+	UI4_ENTRY(acct_expires, NSI_DWORD, 0), // @prop int|acct_expires|
+	UI4_ENTRY(max_storage, NSI_DWORD, 0), // @prop int|max_storage|
+	UI4_ENTRY(units_per_week, NSI_DWORD, 0), // @prop int|units_per_week|
+	UI4_ENTRY(logon_hours, NSI_HOURS, 0), // @prop string|logon_hours|
+	UI4_ENTRY(bad_pw_count, NSI_DWORD, 0), // @prop int|bad_pw_count|
+	UI4_ENTRY(num_logons, NSI_DWORD, 0), // @prop int|num_logons|
+	UI4_ENTRY(logon_server, NSI_WSTR, 0), // @prop string/<o PyUnicode>|logon_server|
+	UI4_ENTRY(country_code, NSI_DWORD, 0), // @prop int|country_code|
+	UI4_ENTRY(code_page, NSI_DWORD, 0), // @prop int|code_page|
+	UI4_ENTRY(user_sid, NSI_SID, 0), // @prop <o PySID>|user_sid|
+	UI4_ENTRY(primary_group_id, NSI_DWORD, 0), // @prop int|primary_group_id|
+	UI4_ENTRY(profile, NSI_WSTR, 0), // @prop string/<o PyUnicode>|profile|
+	UI4_ENTRY(home_dir_drive, NSI_WSTR, 0), // @prop string/<o PyUnicode>|home_dir_drive|
+	UI4_ENTRY(password_expired, NSI_DWORD, 0), // @prop int|password_expired|
 	{NULL}
 };
 
@@ -215,6 +250,7 @@ static struct PyNET_STRUCT user_infos[] = { // @flagh Level|Data
 	{ 1, ui1, sizeof(USER_INFO_1) },		// @flag 1|<o PyUSER_INFO_1>
 	{ 2, ui2, sizeof(USER_INFO_2) },		// @flag 2|<o PyUSER_INFO_2>
 	{ 3, ui3, sizeof(USER_INFO_3) },		// @flag 3|<o PyUSER_INFO_3>
+	{ 4, ui4, sizeof(USER_INFO_4) },		// @flag 4|<o PyUSER_INFO_4>
 	{ 10, ui10, sizeof(USER_INFO_10) },		// @flag 10|<o PyUSER_INFO_10>
 	{ 11, ui11, sizeof(USER_INFO_11) },		// @flag 11|<o PyUSER_INFO_11>
 	{ 20, ui20, sizeof(USER_INFO_20) },		// @flag 20|<o PyUSER_INFO_20>
@@ -249,7 +285,7 @@ static struct PyNET_STRUCT_ITEM umi1[] = {
 // @object PyUSER_MODALS_INFO_2|A dictionary holding the information in a Win32 USER_MODALS_INFO_2 structure.
 static struct PyNET_STRUCT_ITEM umi2[] = {
   UMI2_ENTRY(domain_name, NSI_WSTR, 0), // @prop string/<o PyUnicode>|domain_name|
-  UMI2_ENTRY(domain_id, NSI_SID, 0), // @prop int|domain_id|
+  UMI2_ENTRY(domain_id, NSI_SID, 0), // @prop <o PySID>|domain_id|
   {NULL}
 };
 
