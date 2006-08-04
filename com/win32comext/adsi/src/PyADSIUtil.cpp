@@ -1,5 +1,6 @@
 // @doc
 #include "Python.h"
+#include "pyerrors.h" // for PyErr_Warn in 2.5...
 #include "Windows.h"
 #include "PyWinTypes.h"
 #include "PythonCOM.h"
