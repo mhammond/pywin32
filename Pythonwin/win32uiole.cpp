@@ -97,8 +97,55 @@ static PyObject *DaoGetEngine(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(pDisp, IID_IDispatch, FALSE);
 }
 
+// @pymethod |win32uiole|SetMessagePendingDelay|
+static PyObject *win32uiole_SetMessagePendingDelay(PyObject *self, PyObject *args)
+{
+	// @pyparm int|delay||
+	int delay;
+	if (!PyArg_ParseTuple(args, "i", &delay))
+		return NULL;
+	AfxOleGetMessageFilter()->SetMessagePendingDelay(delay);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod |win32uiole|EnableNotRespondingDialog|
+static PyObject *win32uiole_EnableNotRespondingDialog(PyObject *self, PyObject *args)
+{
+	// @pyparm bool|enabled||
+	int enabled;
+	if (!PyArg_ParseTuple(args, "i", &enabled))
+		return NULL;
+	AfxOleGetMessageFilter()->EnableNotRespondingDialog(enabled);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod |win32uiole|EnableBusyDialog|
+static PyObject *win32uiole_EnableBusyDialog(PyObject *self, PyObject *args)
+{
+	// @pyparm bool|enabled||
+	int enabled;
+	if (!PyArg_ParseTuple(args, "i", &enabled))
+		return NULL;
+	AfxOleGetMessageFilter()->EnableBusyDialog(enabled);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod |win32uiole|AfxOleInit|
+static PyObject *win32uiole_AfxOleInit(PyObject *self, PyObject *args)
+{
+	// @pyparm bool|enabled||
+	if (!PyArg_ParseTuple(args, ""))
+		return NULL;
+	BOOL rc = AfxOleInit();
+	return PyBool_FromLong(rc);
+}
+
 // @module win32uiole|A module, encapsulating the Microsoft Foundation Classes OLE functionality.
 static struct PyMethodDef uiole_functions[] = {
+	{"AfxOleInit",   win32uiole_AfxOleInit, 1}, // @pymeth AfxOleInit|
 	{"CreateInsertDialog",   PyCOleInsertDialog::create, 1}, // @pymeth CreateInsertDialog|Creates a InsertObject dialog.
 	{"CreateOleClientItem",  PyCOleClientItem_Create, 1}, // @pymeth CreateOleClientItem|Creates a <o PyCOleClientItem> object.
 	{"CreateOleDocument",    PyCOleDocument::Create, 1}, // @pymeth CreateOleDocument|Creates a <o PyCOleDocument> object.
@@ -106,6 +153,9 @@ static struct PyMethodDef uiole_functions[] = {
 	{"GetIDispatchForWindow",win32uiole_GetIDispatchForWindow,1}, // @pymeth GetIDispatchForWindow|Gets an OCX IDispatch pointer, if the window has one!
 	{"OleGetUserCtrl",       win32uiole_get_user_ctrl, 1}, // @pymeth OleGetUserCtrl|Retrieves the current user-control flag.
 	{"OleSetUserCtrl",       win32uiole_set_user_ctrl, 1}, // @pymeth OleSetUserCtrl|Sets the current user-control flag.
+	{"SetMessagePendingDelay", win32uiole_SetMessagePendingDelay, 1}, // @pymeth SetMessagePendingDelay|
+	{"EnableNotRespondingDialog", win32uiole_EnableNotRespondingDialog, 1}, // @pymeth EnableNotRespondingDialog|
+	{"EnableBusyDialog",     win32uiole_EnableBusyDialog, 1}, // @pymeth EnableNotRespondingDialog|
 	{NULL,			NULL}
 };
 
