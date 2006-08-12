@@ -160,8 +160,6 @@ BOOLAPI CopyFileW(
     WCHAR *to, // @pyparm <o PyUnicode>|to||The name of the file to copy to
     BOOL bFailIfExists); // @pyparm int|bFailIfExists||Indicates if the operation should fail if the file exists.
 
-// CopyFileEx
-
 // @pyswig |CreateDirectory|Creates a directory
 BOOLAPI CreateDirectory(
     TCHAR *name, // @pyparm <o PyUnicode>|name||The name of the directory to create
@@ -1778,7 +1776,7 @@ BOOLAPI SetVolumeLabel(
     TCHAR *lpVolumeName 	// @pyparm <o PyUnicode>|volumeName||name for the volume 
    );
 
-// @pyswig |UnlockFile|Determines the type of a file.
+// @pyswig |UnlockFile|Unlocks a region of a file locked by <om win32file.LockFile> or <om win32file.LockFileEx>
 BOOLAPI UnlockFile(
     PyHANDLE hFile,	// @pyparm <o PyHANDLE>|hFile||handle of file to unlock 
     DWORD dwFileOffsetLow,	// @pyparm int|offsetLow||low-order word of lock region offset 
@@ -2774,6 +2772,10 @@ static BOOL (WINAPI *pfnBackupWrite)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL,
 
 typedef BOOL (WINAPI *SetFileShortNamefunc)(HANDLE, LPCWSTR);
 static SetFileShortNamefunc pfnSetFileShortName=NULL;
+typedef BOOL (WINAPI *CopyFileExfunc)(LPWSTR,LPWSTR,LPPROGRESS_ROUTINE,LPVOID,LPBOOL,DWORD);
+static CopyFileExfunc pfnCopyFileEx=NULL;
+typedef BOOL (WINAPI *MoveFileWithProgressfunc)(LPWSTR,LPWSTR,LPPROGRESS_ROUTINE,LPVOID,DWORD);
+static MoveFileWithProgressfunc pfnMoveFileWithProgress=NULL;
 
 
 // @pyswig <o PyUnicode>|SetVolumeMountPoint|Mounts the specified volume at the specified volume mount point.
@@ -3640,6 +3642,166 @@ py_SetFileShortName(PyObject *self, PyObject *args)
 		}
 	return PyWin_SetAPIError("SetFileShortName");
 }
+
+// @object CopyProgressRoutine|Python function used as a callback for <om win32file.CopyFileEx> and <om win32file.MoveFileWithProgress><nl>
+// Function will receive 9 parameters:<nl>
+// (TotalFileSize, TotalBytesTransferred, StreamSize, StreamBytesTransferred,
+//  StreamNumber, CallbackReason, SourceFile, DestinationFile)<nl>
+// SourceFile and DestinationFile are <o PyHANDLE>s, all others are longs.<nl>
+// CallbackReason will be one of CALLBACK_CHUNK_FINISHED or CALLBACK_STREAM_SWITCH<nl>
+// Your implementation of this function must return one of the PROGRESS_* constants.
+DWORD CALLBACK CopyFileEx_ProgressRoutine(
+  LARGE_INTEGER TotalFileSize,
+  LARGE_INTEGER TotalBytesTransferred,
+  LARGE_INTEGER StreamSize,
+  LARGE_INTEGER StreamBytesTransferred,
+  DWORD dwStreamNumber,
+  DWORD dwCallbackReason,
+  HANDLE hSourceFile,
+  HANDLE hDestinationFile,
+  LPVOID lpData)
+{
+	PyObject *args=NULL, *hsrc=NULL, *hdst=NULL, *ret=NULL;
+	DWORD retcode;
+	CEnterLeavePython _celp;
+	PyObject **callback_objects=(PyObject **)lpData;
+	hsrc=PyWinObject_FromHANDLE(hSourceFile);
+	hdst=PyWinObject_FromHANDLE(hDestinationFile);
+	// Py_BuildValue should catch PyHANDLEs NULL
+	args=Py_BuildValue("LLLLkkOOO", 
+		TotalFileSize, TotalBytesTransferred,
+		StreamSize, StreamBytesTransferred,
+		dwStreamNumber, dwCallbackReason,
+		hsrc, hdst, callback_objects[1]);
+	if (args==NULL)	// Some serious error, cancel operation.
+		retcode=PROGRESS_CANCEL;
+	else{
+		ret=PyObject_Call(callback_objects[0], args, NULL);
+		if (ret==NULL)
+			retcode=PROGRESS_CANCEL;
+		else{
+			retcode=PyInt_AsLong(ret);
+			if (PyErr_Occurred())
+				retcode=PROGRESS_CANCEL;
+			}
+		}
+
+	Py_XDECREF(args);
+	Py_XDECREF(ret);
+	// Detach PyHANDLEs so they don't prematurely close file handles when destroyed
+	if (hsrc!=NULL){
+		ret=PyObject_CallMethod(hsrc,"Detach",NULL);
+		Py_DECREF(hsrc);
+		Py_XDECREF(ret);
+		}
+	if (hdst!=NULL){
+		ret=PyObject_CallMethod(hdst,"Detach",NULL);
+		Py_DECREF(hdst);
+		Py_XDECREF(ret);
+		}
+	return retcode;
+}
+
+// @pyswig |CopyFileEx|Restartable file copy with optional progress routine
+static PyObject*
+py_CopyFileEx(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(CopyFileEx);
+	PyObject *obsrc, *obdst, *obcallback=Py_None, *obdata=Py_None, *ret=NULL;
+	WCHAR *src=NULL, *dst=NULL;
+	BOOL bcancel, bsuccess;
+	LPPROGRESS_ROUTINE callback=NULL;
+	LPVOID callback_data=NULL;
+	PyObject *callback_objects[2];
+	DWORD flags=0;
+	if (!PyArg_ParseTuple(args, "OO|OOik:CopyFileEx",
+		&obsrc,		// @pyparm <o PyUNICODE>|ExistingFileName||File to be copied
+		&obdst,		// @pyparm <o PyUNICODE>|NewFileName||Place to which it will be copied
+		&obcallback,	// @pyparm <o CopyProgressRoutine>|ProgressRoutine|None|A python function that receives progress updates, can be None
+		&obdata,		// @pyparm object|Data|None|An arbitrary object to be passed to the callback function
+		&bcancel,		// @pyparm boolean|Cancel|False|Pass True to cancel a restartable copy that was previously interrupted
+		&flags))	// @pyparm int|CopyFlags|0|Combination of COPY_FILE_* flags
+		return NULL;
+
+	if (obcallback!=Py_None){
+		if (!PyCallable_Check(obcallback)){
+			PyErr_SetString(PyExc_TypeError,"ProgressRoutine must be callable");
+			return NULL;
+			}
+		callback=CopyFileEx_ProgressRoutine;
+		callback_objects[0]=obcallback;
+		callback_objects[1]=obdata;
+		callback_data=callback_objects;
+		}
+
+	if (PyWinObject_AsWCHAR(obsrc, &src, FALSE) && PyWinObject_AsWCHAR(obdst, &dst, FALSE)){
+		Py_BEGIN_ALLOW_THREADS
+		bsuccess=(*pfnCopyFileEx)(src, dst, callback, callback_data, &bcancel, flags);
+		Py_END_ALLOW_THREADS
+		if (!bsuccess){
+			// progress routine may have already thrown an exception
+			if (!PyErr_Occurred())
+				PyWin_SetAPIError("CopyFileEx");
+			}
+		else{
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		}
+	PyWinObject_FreeWCHAR(src);
+	PyWinObject_FreeWCHAR(dst);
+	return ret;
+}
+
+// @pyswig |MoveFileWithProgress|Moves a file, and reports progress to a callback function
+static PyObject*
+py_MoveFileWithProgress(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(MoveFileWithProgress);
+	PyObject *obsrc, *obdst, *obcallback=Py_None, *obdata=Py_None, *ret=NULL;
+	WCHAR *src=NULL, *dst=NULL;
+	BOOL bsuccess;
+	LPPROGRESS_ROUTINE callback=NULL;
+	LPVOID callback_data=NULL;
+	PyObject *callback_objects[2];
+	DWORD flags=0;
+	if (!PyArg_ParseTuple(args, "OO|OOk:MoveFileWithProgress",
+		&obsrc,		// @pyparm <o PyUNICODE>|ExistingFileName||File or directory to be moved
+		&obdst,		// @pyparm <o PyUNICODE>|NewFileName||Destination, can be None if flags contain MOVEFILE_DELAY_UNTIL_REBOOT
+		&obcallback,	// @pyparm <o CopyProgressRoutine>|ProgressRoutine|None|A python function that receives progress updates, can be None
+		&obdata,	// @pyparm object|Data|None|An arbitrary object to be passed to the callback function
+		&flags))	// @pyparm int|Flags|0|Combination of MOVEFILE_* flags
+		return NULL;
+
+	if (obcallback!=Py_None){
+		if (!PyCallable_Check(obcallback)){
+			PyErr_SetString(PyExc_TypeError,"ProgressRoutine must be callable");
+			return NULL;
+			}
+		callback=CopyFileEx_ProgressRoutine;
+		callback_objects[0]=obcallback;
+		callback_objects[1]=obdata;
+		callback_data=callback_objects;
+		}
+
+	if (PyWinObject_AsWCHAR(obsrc, &src, FALSE) && PyWinObject_AsWCHAR(obdst, &dst, TRUE)){
+		Py_BEGIN_ALLOW_THREADS
+		bsuccess=(*pfnMoveFileWithProgress)(src, dst, callback, callback_data, flags);
+		Py_END_ALLOW_THREADS
+		if (!bsuccess){
+			// progress routine may have already thrown an exception
+			if (!PyErr_Occurred())
+				PyWin_SetAPIError("MoveFileWithProgress");
+			}
+		else{
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		}
+	PyWinObject_FreeWCHAR(src);
+	PyWinObject_FreeWCHAR(dst);
+	return ret;
+}
 %}
 
 %native (SetVolumeMountPoint) py_SetVolumeMountPoint;
@@ -3661,6 +3823,8 @@ py_SetFileShortName(PyObject *self, PyObject *args)
 %native (BackupSeek) py_BackupSeek;
 %native (BackupWrite) py_BackupWrite;
 %native (SetFileShortName) py_SetFileShortName;
+%native (CopyFileEx) py_CopyFileEx;
+%native (MoveFileWithProgress) py_MoveFileWithProgress;
 
 %init %{
 
@@ -3727,6 +3891,8 @@ py_SetFileShortName(PyObject *self, PyObject *args)
 		if (fp) pfnBackupWrite = (BOOL (WINAPI *)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL, LPVOID*))(fp);
 
 		pfnSetFileShortName=(SetFileShortNamefunc)GetProcAddress(hmodule,"SetFileShortNameW");
+		pfnCopyFileEx=(CopyFileExfunc)GetProcAddress(hmodule,"CopyFileExW");
+		pfnMoveFileWithProgress=(MoveFileWithProgressfunc)GetProcAddress(hmodule,"MoveFileWithProgressW");
 		}
 %}
 
@@ -3791,3 +3957,18 @@ py_SetFileShortName(PyObject *self, PyObject *args)
 #define FILE_SYSTEM_NOT_SUPPORT FILE_SYSTEM_NOT_SUPPORT
 #define FILE_USER_DISALLOWED FILE_USER_DISALLOWED
 #define FILE_READ_ONLY FILE_READ_ONLY
+
+// flags used with CopyFileEx
+#define COPY_FILE_ALLOW_DECRYPTED_DESTINATION COPY_FILE_ALLOW_DECRYPTED_DESTINATION
+#define COPY_FILE_FAIL_IF_EXISTS COPY_FILE_FAIL_IF_EXISTS
+#define COPY_FILE_RESTARTABLE COPY_FILE_RESTARTABLE
+
+// return codes from CopyFileEx progress routine
+#define PROGRESS_CONTINUE PROGRESS_CONTINUE
+#define PROGRESS_CANCEL PROGRESS_CANCEL
+#define PROGRESS_STOP PROGRESS_STOP
+#define PROGRESS_QUIET PROGRESS_QUIET
+
+// callback reasons from CopyFileEx
+#define CALLBACK_CHUNK_FINISHED CALLBACK_CHUNK_FINISHED
+#define CALLBACK_STREAM_SWITCH CALLBACK_STREAM_SWITCH
