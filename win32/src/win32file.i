@@ -9,7 +9,7 @@
 #ifndef MS_WINCE
 //#define FAR
 #ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0400
+#define _WIN32_WINNT 0x0500
 #endif
 #include "winsock2.h"
 #include "mswsock.h"
@@ -1501,6 +1501,8 @@ BOOLAPI MoveFileExW(
 #define MOVEFILE_DELAY_UNTIL_REBOOT MOVEFILE_DELAY_UNTIL_REBOOT // Windows NT only: The function does not move the file until the operating system is restarted. The system moves the file immediately after AUTOCHK is executed, but before creating any paging files. Consequently, this parameter enables the function to delete paging files from previous startups.
 #define MOVEFILE_REPLACE_EXISTING MOVEFILE_REPLACE_EXISTING // If a file of the name specified by lpNewFileName already exists, the function replaces its contents with those specified by lpExistingFileName.
 #define MOVEFILE_WRITE_THROUGH MOVEFILE_WRITE_THROUGH // Windows NT only: The function does not return until the file has actually been moved on the disk. Setting this flag guarantees that a move perfomed as a copy and delete operation is flushed to disk before the function returns. The flush occurs at the end of the copy operation.<nl>This flag has no effect if the MOVEFILE_DELAY_UNTIL_REBOOT flag is set. 
+#define MOVEFILE_CREATE_HARDLINK MOVEFILE_CREATE_HARDLINK
+#define MOVEFILE_FAIL_IF_NOT_TRACKABLE MOVEFILE_FAIL_IF_NOT_TRACKABLE
 
 #endif // MS_WINCE
 
@@ -2776,6 +2778,8 @@ typedef BOOL (WINAPI *CopyFileExfunc)(LPWSTR,LPWSTR,LPPROGRESS_ROUTINE,LPVOID,LP
 static CopyFileExfunc pfnCopyFileEx=NULL;
 typedef BOOL (WINAPI *MoveFileWithProgressfunc)(LPWSTR,LPWSTR,LPPROGRESS_ROUTINE,LPVOID,DWORD);
 static MoveFileWithProgressfunc pfnMoveFileWithProgress=NULL;
+typedef BOOL (WINAPI *ReplaceFilefunc)(LPCWSTR,LPCWSTR,LPCWSTR,DWORD,LPVOID,LPVOID);
+static ReplaceFilefunc pfnReplaceFile=NULL;
 
 
 // @pyswig <o PyUnicode>|SetVolumeMountPoint|Mounts the specified volume at the specified volume mount point.
@@ -3754,6 +3758,7 @@ py_CopyFileEx(PyObject *self, PyObject *args)
 }
 
 // @pyswig |MoveFileWithProgress|Moves a file, and reports progress to a callback function
+// @comm Only available on Windows 2000 or later
 static PyObject*
 py_MoveFileWithProgress(PyObject *self, PyObject *args)
 {
@@ -3802,6 +3807,49 @@ py_MoveFileWithProgress(PyObject *self, PyObject *args)
 	PyWinObject_FreeWCHAR(dst);
 	return ret;
 }
+
+// @pyswig |ReplaceFile|Replaces one file with another
+// @comm Only available on Windows 2000 or later
+static PyObject*
+py_ReplaceFile(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(ReplaceFile);
+	PyObject *obsrc, *obdst, *obbackup=Py_None, *obExclude=Py_None, *obReserved=Py_None, *ret=NULL;
+	WCHAR *src=NULL, *dst=NULL, *backup=NULL;
+	LPVOID Exclude=NULL, Reserved=NULL;
+	BOOL bsuccess;
+	DWORD flags=0;
+	if (!PyArg_ParseTuple(args, "OO|OkOO:ReplaceFile",
+		&obdst,		// @pyparm <o PyUNICODE>|ReplacedFileName||File to be replaced
+		&obsrc,		// @pyparm <o PyUNICODE>|ReplacementFileName||File that will replace it
+		&obbackup,	// @pyparm <o PyUNICODE>|BackupFileName|None|Place at which to create a backup of the replaced file, can be None
+		&flags,		// @pyparm int|ReplaceFlags|0|Combination of REPLACEFILE_* flags
+		&obExclude,	// @pyparm None|Exclude|None|Reserved, use None if passed in
+		&obReserved))	// @pyparm None|Reserved|None|Reserved, use None if passed in
+		return NULL;
+
+	if (obExclude!=Py_None || obReserved!=Py_None){
+		PyErr_SetString(PyExc_ValueError,"Exclude and Reserved must be None");
+		return NULL;
+		}
+	if (PyWinObject_AsWCHAR(obsrc, &dst, FALSE) 
+		&&PyWinObject_AsWCHAR(obdst, &src, FALSE)
+		&&PyWinObject_AsWCHAR(obbackup, &backup, TRUE)){
+		Py_BEGIN_ALLOW_THREADS
+		bsuccess=(*pfnReplaceFile)(dst, src, backup, flags, Exclude, Reserved);
+		Py_END_ALLOW_THREADS
+		if (bsuccess){
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		else
+			PyWin_SetAPIError("ReplaceFile");
+		}
+	PyWinObject_FreeWCHAR(dst);
+	PyWinObject_FreeWCHAR(src);
+	PyWinObject_FreeWCHAR(backup);
+	return ret;
+}
 %}
 
 %native (SetVolumeMountPoint) py_SetVolumeMountPoint;
@@ -3825,6 +3873,7 @@ py_MoveFileWithProgress(PyObject *self, PyObject *args)
 %native (SetFileShortName) py_SetFileShortName;
 %native (CopyFileEx) py_CopyFileEx;
 %native (MoveFileWithProgress) py_MoveFileWithProgress;
+%native (ReplaceFile) py_ReplaceFile;
 
 %init %{
 
@@ -3893,6 +3942,7 @@ py_MoveFileWithProgress(PyObject *self, PyObject *args)
 		pfnSetFileShortName=(SetFileShortNamefunc)GetProcAddress(hmodule,"SetFileShortNameW");
 		pfnCopyFileEx=(CopyFileExfunc)GetProcAddress(hmodule,"CopyFileExW");
 		pfnMoveFileWithProgress=(MoveFileWithProgressfunc)GetProcAddress(hmodule,"MoveFileWithProgressW");
+		pfnReplaceFile=(ReplaceFilefunc)GetProcAddress(hmodule,"ReplaceFileW");
 		}
 %}
 
@@ -3962,6 +4012,7 @@ py_MoveFileWithProgress(PyObject *self, PyObject *args)
 #define COPY_FILE_ALLOW_DECRYPTED_DESTINATION COPY_FILE_ALLOW_DECRYPTED_DESTINATION
 #define COPY_FILE_FAIL_IF_EXISTS COPY_FILE_FAIL_IF_EXISTS
 #define COPY_FILE_RESTARTABLE COPY_FILE_RESTARTABLE
+#define COPY_FILE_OPEN_SOURCE_FOR_WRITE COPY_FILE_OPEN_SOURCE_FOR_WRITE
 
 // return codes from CopyFileEx progress routine
 #define PROGRESS_CONTINUE PROGRESS_CONTINUE
@@ -3972,3 +4023,7 @@ py_MoveFileWithProgress(PyObject *self, PyObject *args)
 // callback reasons from CopyFileEx
 #define CALLBACK_CHUNK_FINISHED CALLBACK_CHUNK_FINISHED
 #define CALLBACK_STREAM_SWITCH CALLBACK_STREAM_SWITCH
+
+// flags used with ReplaceFile
+#define REPLACEFILE_IGNORE_MERGE_ERRORS REPLACEFILE_IGNORE_MERGE_ERRORS
+#define REPLACEFILE_WRITE_THROUGH REPLACEFILE_WRITE_THROUGH
