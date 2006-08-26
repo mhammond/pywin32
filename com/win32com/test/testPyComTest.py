@@ -45,14 +45,9 @@ def TestApplyResult(fn, args, result):
         fnName = str(fn)
     progress("Testing ", fnName)
     pref = "function " + fnName
-    try:
-        rc  = apply(fn, args)
-        if rc != result:
-            raise error, "%s failed - result not %d but %d" % (pref, result, rc)
-    except:
-        t, v, tb = sys.exc_info()
-        tb = None
-        raise error, "%s caused exception %s,%s" % (pref, t, v)
+    rc  = apply(fn, args)
+    if rc != result:
+        raise error, "%s failed - result not %r but %r" % (pref, result, rc)
 
 # Simple handler class.  This demo only fires one event.
 class RandomEventHandler:
@@ -133,6 +128,14 @@ def TestDynamic():
     o.CurrencyProp = decimal.Decimal("1234.5678")
     if o.CurrencyProp != decimal.Decimal("1234.5678"):
         raise error, "got %r" % (o.CurrencyProp,)
+
+    try:
+        import datetime
+        now = datetime.datetime.now()
+        expect = pythoncom.MakeTime(now)
+        TestApplyResult(o.EarliestDate, (now, now), expect)
+    except ImportError:
+        pass # py 2.2 - no datetime
 
 def TestGenerated():
     # Create an instance of the server.
@@ -233,6 +236,13 @@ def TestGenerated():
     now = pythoncom.MakeTime(time.gmtime(time.time()))
     later = pythoncom.MakeTime(time.gmtime(time.time()+1))
     TestApplyResult(o.EarliestDate, (now, later), now)
+    try:
+        import datetime
+        now = datetime.datetime.now()
+        expect = pythoncom.MakeTime(now)
+        TestApplyResult(o.EarliestDate, (now, now), expect)
+    except ImportError:
+        pass # py 2.2 - no datetime
 
     assert o.DoubleString("foo") == "foofoo"
     assert o.DoubleInOutString("foo") == "foofoo"
