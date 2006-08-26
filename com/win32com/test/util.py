@@ -11,7 +11,7 @@ from pythoncom import _GetInterfaceCount, _GetGatewayCount
 def CheckClean():
     # Ensure no lingering exceptions - Python should have zero outstanding
     # COM objects
-    sys.exc_traceback = sys.exc_value = sys.exc_type = None
+    sys.exc_clear()
     c = _GetInterfaceCount()
     if c:
         print "Warning - %d com interface objects still alive" % c
@@ -220,4 +220,4 @@ def testmain(*args, **kw):
     if not new_kw.has_key('testLoader'):
         new_kw['testLoader'] = TestLoader()
     unittest.main(*args, **new_kw)
-    
+    CheckClean()
