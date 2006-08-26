@@ -44,6 +44,7 @@ PyObject *PyWin_NewTime(PyObject *timeOb)
 		result = new PyTime(PyFloat_AS_DOUBLE((PyFloatObject *)timeOb));
 	}
 	else *****/
+	PyObject *cleanupOb = NULL; // must be xdefref'd.
 	// Support objects with a "timetuple" method.
 	PyObject *method = PyObject_GetAttrString(timeOb, "timetuple");
 	if (method==NULL)
@@ -53,6 +54,7 @@ PyObject *PyWin_NewTime(PyObject *timeOb)
 		Py_DECREF(method);
 		if (!timeOb)
 			return NULL;
+		cleanupOb = timeOb; // new reference that must be nuked.
 		// now we should fall into the sequence check!
 	}
 	if ( PyNumber_Check(timeOb) )
@@ -62,16 +64,17 @@ PyObject *PyWin_NewTime(PyObject *timeOb)
 		{
 			if ( !PyErr_Occurred() )
 				PyErr_BadArgument();
-			return NULL;
-		}
-
-		result = new PyTime(t);
+		} else
+			result = new PyTime(t);
 	}
 	else if ( PySequence_Check(timeOb) )
 	{
 		PyErr_Clear(); // ensure stale errors don't trip us.
 		if (PySequence_Length(timeOb) < 6)
+		{
+			Py_XDECREF(cleanupOb);
 			return PyErr_Format(PyExc_ValueError, "time tuple must have at least 6 elements");
+		}
 		SYSTEMTIME	st = {
 			SequenceIndexAsWORD(timeOb, 0),
 			SequenceIndexAsWORD(timeOb, 1),
@@ -89,8 +92,10 @@ PyObject *PyWin_NewTime(PyObject *timeOb)
 			result = new PyTime(st);
 	}
 	else
-		return PyErr_Format(PyExc_TypeError, "Objects of type '%s' can not be used as a time object",
-							timeOb->ob_type->tp_name);
+		// result stays NULL.
+		PyErr_Format(PyExc_TypeError, "Objects of type '%s' can not be used as a time object",
+		             timeOb->ob_type->tp_name);
+	Py_XDECREF(cleanupOb);
 	return result;
 }
 
