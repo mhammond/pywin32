@@ -1834,6 +1834,9 @@ PyObject *myopen_osfhandle (PyHANDLE osfhandle, int flags)
 
 %{
 // @pyswig |AcceptEx|Version of accept that uses Overlapped I/O
+// @rdesc The result is 0 or ERROR_IO_PENDING.  All other values will raise
+// win32file.error.  Specifically: if the win32 function returns FALSE,
+// WSAGetLastError() is checked for ERROR_IO_PENDING.
 static PyObject *MyAcceptEx
 (
 	PyObject *self,
@@ -1852,7 +1855,8 @@ static PyObject *MyAcceptEx
 	PyObject *pORB = NULL;
 	void *buf = NULL;
 	DWORD cBytesRecvd = 0;
-	int rc;
+	BOOL ok;
+	int rc = 0;
 	int iMinBufferSize = (sizeof(SOCKADDR_IN) + 16) * 2;
 	WSAPROTOCOL_INFO wsProtInfo;
 	UINT cbSize = sizeof(wsProtInfo);
@@ -1930,7 +1934,7 @@ static PyObject *MyAcceptEx
 
 	// Phew... finally, all the arguments are converted...
 	Py_BEGIN_ALLOW_THREADS
-	rc = AcceptEx(
+	ok = AcceptEx(
 		sListening,
 		sAccepting,
 		buf,
@@ -1940,7 +1944,7 @@ static PyObject *MyAcceptEx
 		&cBytesRecvd,
 		pOverlapped);
 	Py_END_ALLOW_THREADS
-	if (!rc)
+	if (!ok)
 	{
 		rc = WSAGetLastError();
 		if (rc != ERROR_IO_PENDING)
@@ -1949,10 +1953,8 @@ static PyObject *MyAcceptEx
 			goto Error;
 		}
 	}
-
 	Py_DECREF(pORB);
-	Py_INCREF(Py_None);
-	rv = Py_None;
+	rv = PyInt_FromLong(rc);
 Cleanup:
 	return rv;
 Error:
