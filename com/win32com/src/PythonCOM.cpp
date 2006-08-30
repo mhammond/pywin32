@@ -1492,6 +1492,8 @@ static PyObject *pythoncom_OleGetClipboard(PyObject *, PyObject *args)
 static PyObject *pythoncom_OleSetClipboard(PyObject *, PyObject *args)
 {
 	PyObject *obd;
+	// @pyparm <o PyIDataObject>|dataObj||The data object to place on the clipboard.
+	// This parameter can be None in which case the clipboard is emptied. 
 	if (!PyArg_ParseTuple(args, "O:OleSetClipboard", &obd))
 		return NULL;
 	IDataObject *pd;
@@ -1517,6 +1519,7 @@ static PyObject *pythoncom_OleIsCurrentClipboard(PyObject *, PyObject *args)
 	PyObject *obd;
 	if (!PyArg_ParseTuple(args, "O:OleIsCurrentClipboard", &obd))
 		return NULL;
+	// @pyparm <o PyIDataObject>|dataObj||The data object to check
 	IDataObject *pd;
 	if (!PyCom_InterfaceFromPyObject(obd, IID_IDataObject, (void**)&pd, FALSE))
 		return NULL;
@@ -1561,6 +1564,8 @@ static PyObject *pythoncom_RegisterDragDrop(PyObject *, PyObject *args)
 	HWND hwnd;
 	if (!PyArg_ParseTuple(args, "lO:RegisterDragDrop", &hwnd, &obd))
 		return NULL;
+	// @pyparm long|hwnd||
+	// @pyparm <o PyIDropTarget>|dropTarget||
 	IDropTarget *dt;
 	if (!PyCom_InterfaceFromPyObject(obd, IID_IDropTarget, (void**)&dt, FALSE))
 		return NULL;
@@ -1583,6 +1588,7 @@ static PyObject *pythoncom_RegisterDragDrop(PyObject *, PyObject *args)
 static PyObject *pythoncom_RevokeDragDrop(PyObject *, PyObject *args)
 {
 	HWND hwnd;
+	// @pyparm long|hwnd||
 	if (!PyArg_ParseTuple(args, "l:RevokeDragDrop", &hwnd))
 		return NULL;
 	HRESULT hr;

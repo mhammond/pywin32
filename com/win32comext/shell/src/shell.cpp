@@ -1526,7 +1526,7 @@ static PyObject *PySHChangeNotifyDeregister(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @pymethod int|string|shell|DragQueryFile|
+// @pymethod int/string|shell|DragQueryFile|
 static PyObject *PyDragQueryFile(PyObject *self, PyObject *args)
 {
 	int iglobal;
@@ -1550,7 +1550,7 @@ static PyObject *PyDragQueryFile(PyObject *self, PyObject *args)
 	return ret;
 }
 
-// @pymethod int|<o PyUnicode>|shell|DragQueryFileW|
+// @pymethod int/<o PyUnicode>|shell|DragQueryFileW|
 static PyObject *PyDragQueryFileW(PyObject *self, PyObject *args)
 {
 	int iglobal;
