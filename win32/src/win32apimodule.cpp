@@ -339,6 +339,31 @@ PyGetEnvironmentVariable( PyObject *self, PyObject *args )
 	return ret;
 }
 
+// @pymethod |win32api|SetEnvironmentVariable|Creates, deletes, or changes the value of an environment variable.
+static PyObject *
+PySetEnvironmentVariable(PyObject *self, PyObject *args)
+{
+	TCHAR *key=NULL, *val=NULL;
+	PyObject *obkey, *obval, *ret=NULL;
+	if (!PyArg_ParseTuple(args, "OO:SetEnvironmentVariable", 
+		&obkey,		// @pyparm str/unicode|Name||Name of the environment variable
+		&obval))	// @pyparm str/unicode|Value||Value to be set, use None to remove variable
+		return NULL;
+	// @pyseeapi SetEnvironmentVariable
+	if (PyWinObject_AsTCHAR(obkey, &key, FALSE)
+		&&PyWinObject_AsTCHAR(obval, &val, TRUE)){
+		if (SetEnvironmentVariable(key, val)){
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		else
+			PyWin_SetAPIError("SetEnvironmentVariable");
+		}
+	PyWinObject_FreeTCHAR(key);
+	PyWinObject_FreeTCHAR(val);
+	return ret;
+}
+
 // @pymethod string|win32api|ExpandEnvironmentStrings|Expands environment-variable strings and replaces them with their defined values. 
 static PyObject *
 PyExpandEnvironmentStrings( PyObject *self, PyObject *args )
@@ -4964,6 +4989,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"SetClassWord",       PySetClassWord,1}, // @pymeth SetClassWord|Replaces the specified 32-bit (long) value at the specified offset into the extra class memory for the window.
 	{"SetClassWord",       PySetWindowWord,1}, // @pymeth SetWindowWord|
 	{"SetCursor",           PySetCursor,1}, // @pymeth SetCursor|Set the cursor to the HCURSOR object.
+	{"SetEnvironmentVariable", PySetEnvironmentVariable,1}, // @pymeth SetEnvironmentVariable|Creates, deletes, or changes the value of an environment variable.
 	{"SetHandleInformation",	PySetHandleInformation,1}, // @pymeth SetHandleInformation|Sets a handles's flags
 	{"SetStdHandle",	PySetStdHandle,	1}, // @pymeth SetStdHandle|Sets a handle for the standard input, standard output, or standard error device
 	{"SetThreadLocale",     PySetThreadLocale, 1}, // @pymeth SetThreadLocale|Sets the current thread's locale.
