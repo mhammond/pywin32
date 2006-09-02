@@ -20,18 +20,26 @@ typedef long HWND
 %{
 #include "structmember.h"
 
+#define CHECK_PFN(fname)if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);
 static BOOL (WINAPI *fpEnumProcesses)(DWORD *, DWORD, DWORD *) = NULL;
 static BOOL (WINAPI *fpEnumProcessModules)(HANDLE, HMODULE *, DWORD, LPDWORD) = NULL;
 static DWORD (WINAPI *fpGetModuleFileNameEx)(HANDLE, HMODULE, WCHAR *, DWORD) = NULL;
 #ifndef MS_WINCE
 static BOOL (WINAPI *fpGetProcessMemoryInfo)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD) = NULL;
 static BOOL	(WINAPI *fpGetProcessTimes)(HANDLE, LPFILETIME, LPFILETIME, LPFILETIME, LPFILETIME) = NULL;
-static HWINSTA (WINAPI *fpGetProcessWindowStation)(void) = NULL;
 static BOOL (WINAPI *fpGetProcessIoCounters)(HANDLE, PIO_COUNTERS) = NULL;
-static BOOL (WINAPI *fpGetProcessWorkingSetSize)(HANDLE, PSIZE_T, PSIZE_T) = NULL;
-static BOOL (WINAPI *fpSetProcessWorkingSetSize)(HANDLE, SIZE_T, SIZE_T) = NULL;
 static BOOL (WINAPI *fpGetProcessShutdownParameters)(LPDWORD, LPDWORD) = NULL;
 static BOOL (WINAPI *fpSetProcessShutdownParameters)(DWORD, DWORD) = NULL;
+
+typedef BOOL (WINAPI *GetProcessWorkingSetSizefunc)(HANDLE, PSIZE_T, PSIZE_T);
+static GetProcessWorkingSetSizefunc pfnGetProcessWorkingSetSize = NULL;
+typedef BOOL (WINAPI *SetProcessWorkingSetSizefunc)(HANDLE, SIZE_T, SIZE_T);
+static SetProcessWorkingSetSizefunc pfnSetProcessWorkingSetSize = NULL;
+
+typedef HWINSTA (WINAPI *GetProcessWindowStationfunc)(void);
+static GetProcessWindowStationfunc pfnGetProcessWindowStation = NULL;
+typedef DWORD (WINAPI *GetGuiResourcesfunc)(HANDLE,DWORD);
+static GetGuiResourcesfunc pfnGetGuiResources = NULL;
 #endif
 
 // Support for a STARTUPINFO object.
@@ -1181,13 +1189,10 @@ PyObject *PyGetProcessIoCounters(PyObject *self, PyObject *args)
 %{
 PyObject *PyGetProcessWindowStation(PyObject *self, PyObject *args)
 {
-	if (fpGetProcessWindowStation==NULL){
-		PyErr_SetString(PyExc_NotImplementedError,"GetProcessWindowStation does not exist on this platform");
-		return NULL;
-		}
+	CHECK_PFN(GetProcessWindowStation);
 	if (!PyArg_ParseTuple(args, ":GetProcessWindowStation"))
 		return NULL;
-	HWINSTA hwinsta=(*fpGetProcessWindowStation)();
+	HWINSTA hwinsta=(*pfnGetProcessWindowStation)();
 	return PyWinObject_FromHANDLE(hwinsta);
 }
 %}
@@ -1197,20 +1202,23 @@ PyObject *PyGetProcessWindowStation(PyObject *self, PyObject *args)
 %{
 PyObject *PyGetProcessWorkingSetSize(PyObject *self, PyObject *args)
 {
+	CHECK_PFN(GetProcessWorkingSetSize);
 	SIZE_T MinimumWorkingSetSize=0,MaximumWorkingSetSize=0;
 	HANDLE hProcess;
-	if (fpGetProcessWorkingSetSize==NULL){
-		PyErr_SetString(PyExc_NotImplementedError,"GetProcessWorkingSetSize does not exist on this platform");
+	PyObject *obhProcess;
+	// @pyparm <o PyHANDLE>|hProcess||Process handle as returned by <om win32api.OpenProcess>
+	if (!PyArg_ParseTuple(args, "O:GetProcessWorkingSetSize", &obhProcess))
 		return NULL;
-		}
-	// @pyparm <o PyHANDLE>|hProcess||Process handle as returned by OpenProcess
-	if (!PyArg_ParseTuple(args, "l:GetProcessWorkingSetSize", &hProcess))
+	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess, FALSE))
 		return NULL;
-	if (!(*fpGetProcessWorkingSetSize)(hProcess, &MinimumWorkingSetSize, &MaximumWorkingSetSize)){
+	if (!(*pfnGetProcessWorkingSetSize)(hProcess, &MinimumWorkingSetSize, &MaximumWorkingSetSize)){
 		PyWin_SetAPIError("GetProcessWorkingSetSize",GetLastError());
 		return NULL;
 		}
-	return Py_BuildValue("ll",MinimumWorkingSetSize,MaximumWorkingSetSize);
+	// integer promotion happens automatically, so this should work for both 32 and 64-bit SIZE_T
+	return Py_BuildValue("NN",
+		PyLong_FromUnsignedLongLong(MinimumWorkingSetSize),
+		PyLong_FromUnsignedLongLong(MaximumWorkingSetSize));
 }
 %}
 
@@ -1220,21 +1228,25 @@ PyObject *PyGetProcessWorkingSetSize(PyObject *self, PyObject *args)
 %{
 PyObject *PySetProcessWorkingSetSize(PyObject *self, PyObject *args)
 {
+	CHECK_PFN(SetProcessWorkingSetSize);
 	SIZE_T MinimumWorkingSetSize=0,MaximumWorkingSetSize=0;
 	HANDLE hProcess;
-	if (fpSetProcessWorkingSetSize==NULL){
-		PyErr_SetString(PyExc_NotImplementedError,"SetProcessWorkingSetSize does not exist on this platform");
+	PyObject *obhProcess;
+
+#ifdef _WIN64
+	static char *fmt="OLL:SetProcessWorkingSetSize";
+#else
+	static char *fmt="Oll:SetProcessWorkingSetSize";
+#endif
+	if (!PyArg_ParseTuple(args, fmt,
+		&obhProcess,				// @pyparm <o PyHANDLE>|hProcess||Process handle as returned by OpenProcess
+		&MinimumWorkingSetSize,		// @pyparm int|MinimumWorkingSetSize||Minimum number of bytes to keep in physical memory
+		&MaximumWorkingSetSize))	// @pyparm int|MaximumWorkingSetSize||Maximum number of bytes to keep in physical memory
 		return NULL;
-		}
-	// @pyparm <o PyHANDLE>|hProcess||Process handle as returned by OpenProcess
-	// @pyparm int|MinimumWorkingSetSize||Minimum number of bytes to keep in physical memory
-	// @pyparm int|MaximumWorkingSetSize||Maximum number of bytes to keep in physical memory
-	if (!PyArg_ParseTuple(args, "lll:SetProcessWorkingSetSize", &hProcess, &MinimumWorkingSetSize, &MaximumWorkingSetSize))
+	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess, FALSE))
 		return NULL;
-	if (!(*fpSetProcessWorkingSetSize)(hProcess, MinimumWorkingSetSize, MaximumWorkingSetSize)){
-		PyWin_SetAPIError("SetProcessWorkingSetSize",GetLastError());
-		return NULL;
-		}
+	if (!(*pfnSetProcessWorkingSetSize)(hProcess, MinimumWorkingSetSize, MaximumWorkingSetSize))
+		return PyWin_SetAPIError("SetProcessWorkingSetSize");
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -1284,6 +1296,31 @@ PyObject *PySetProcessShutdownParameters(PyObject *self, PyObject *args)
 	return Py_None;
 }
 %}
+
+// @pyswig int|GetGuiResources|Returns the number of GDI or user object handles held by a process
+// @comm Available on Win2k and up
+%native(GetGuiResources) PyGetGuiResources;
+%{
+PyObject *PyGetGuiResources(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(GetGuiResources);
+	HANDLE hprocess;
+	DWORD flags, handle_cnt;
+	PyObject *obhprocess;
+	// @pyparm <o PyHANDLE>|Process||Handle to a process as returned by <om win32api.OpenProcess>
+	// @pyparm int|Flags||GR_GDIOBJECTS or GR_USEROBJECTS (from win32con)
+	if (!PyArg_ParseTuple(args, "Ok:GetGuiResources", &obhprocess, &flags))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess, FALSE))
+		return NULL;
+	handle_cnt=(*pfnGetGuiResources)(hprocess, flags);
+	// can return 0 for a non-GUI process with no error occurring
+	if ((handle_cnt==0)	&& (GetLastError()!=0))
+		return PyWin_SetAPIError("GetGuiResources");
+	return PyLong_FromUnsignedLong(handle_cnt);
+}
+%}
+
 #endif	// MS_WINCE
 
 %init %{
@@ -1320,27 +1357,23 @@ PyObject *PySetProcessShutdownParameters(PyObject *self, PyObject *args)
 		fp=GetProcAddress(hmodule, "GetProcessIoCounters");
 		if (fp!=NULL)
 			fpGetProcessIoCounters=(BOOL (WINAPI *)(HANDLE, PIO_COUNTERS))(fp);
-		fp=GetProcAddress(hmodule, "GetProcessWorkingSetSize");
-		if (fp!=NULL)
-			fpGetProcessWorkingSetSize=(BOOL (WINAPI *)(HANDLE, PSIZE_T, PSIZE_T))(fp);
-		fp=GetProcAddress(hmodule, "SetProcessWorkingSetSize");
-		if (fp!=NULL)
-			fpSetProcessWorkingSetSize=(BOOL (WINAPI *)(HANDLE, SIZE_T, SIZE_T))(fp);
 		fp=GetProcAddress(hmodule, "GetProcessShutdownParameters");
 		if (fp!=NULL)
 			fpGetProcessShutdownParameters=(BOOL (WINAPI *)(LPDWORD, LPDWORD))(fp);
 		fp=GetProcAddress(hmodule, "SetProcessShutdownParameters");
 		if (fp!=NULL)
 			fpSetProcessShutdownParameters=(BOOL (WINAPI *)(DWORD, DWORD))(fp);
+
+		pfnGetProcessWorkingSetSize=(GetProcessWorkingSetSizefunc)GetProcAddress(hmodule,"GetProcessWorkingSetSize");
+		pfnSetProcessWorkingSetSize=(SetProcessWorkingSetSizefunc)GetProcAddress(hmodule,"SetProcessWorkingSetSize");
 		}
 
 	hmodule=GetModuleHandle(_T("User32.dll"));
 	if (hmodule==NULL)
 		hmodule=LoadLibrary(_T("User32.dll"));
 	if (hmodule!=NULL){
-		fp=GetProcAddress(hmodule, "GetProcessWindowStation");
-		if (fp!=NULL)
-			fpGetProcessWindowStation=(HWINSTA (WINAPI *)(void))(fp);
+		pfnGetProcessWindowStation=(GetProcessWindowStationfunc)GetProcAddress(hmodule,"GetProcessWindowStation");
+		pfnGetGuiResources=(GetGuiResourcesfunc)GetProcAddress(hmodule,"GetGuiResources");
 		}
 #endif	// MS_WINCE
 
