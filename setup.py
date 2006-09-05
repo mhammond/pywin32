@@ -1010,6 +1010,7 @@ for info in (
         ("timer", "user32", False),
         ("win2kras", "rasapi32", False, 0x0500),
         ("win32api", "user32 advapi32 shell32 version", False, 0x0500, 'win32/src/win32apimodule.cpp win32/src/win32api_display.cpp'),
+        ("win32cred", "AdvAPI32 credui", True, 0x0501, 'win32/src/win32credmodule.cpp'),
         ("win32crypt", "Crypt32", False, 0x0500, 'win32/src/win32crypt.i win32/src/win32cryptmodule.cpp'),
         ("win32file", "oleaut32", False, 0x0500),
         ("win32event", "user32", False),
