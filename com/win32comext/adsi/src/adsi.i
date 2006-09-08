@@ -61,7 +61,7 @@ static PyObject *PyADsOpenObject(PyObject *self, PyObject *args)
 	HRESULT hr;
 	IUnknown *pOb = NULL;
 	PyObject *obPath, *obUserName, *obPassword, *obiid = NULL;
-	PyObject *ret;
+	PyObject *ret = NULL;
 	long lres = 0;
 	if (!PyArg_ParseTuple(args, "OOO|lO:ADsOpenObject",
 			&obPath, // @pyparm unicode|path||
@@ -71,9 +71,9 @@ static PyObject *PyADsOpenObject(PyObject *self, PyObject *args)
 			&obiid)) // @pyparm <o PyIID>|iid|IID_IDispatch|The requested interface
 		return NULL;
 	IID iid = IID_IDispatch;
+	WCHAR *path = NULL, *userName = NULL, *password = NULL;
 	if (obiid != NULL && !PyWinObject_AsIID(obiid, &iid))
 		goto done;
-	WCHAR *path, *userName, *password;
 	if (!PyWinObject_AsWCHAR(obPath, &path, FALSE))
 		goto done;
 	if (!PyWinObject_AsWCHAR(obUserName, &userName, TRUE))
@@ -103,15 +103,15 @@ static PyObject *PyADsGetObject(PyObject *self, PyObject *args)
 	HRESULT hr;
 	IUnknown *pOb = NULL;
 	PyObject *obPath, *obiid = NULL;
-	PyObject *ret;
+	PyObject *ret = NULL;
 	if (!PyArg_ParseTuple(args, "O|O:ADsGetObject",
 			&obPath, // @pyparm unicode|path||
 			&obiid)) // @pyparm <o PyIID>|iid|IID_IDispatch|The requested interface
 		return NULL;
 	IID iid = IID_IDispatch;
+	WCHAR *path = NULL;
 	if (obiid != NULL && !PyWinObject_AsIID(obiid, &iid))
 		goto done;
-	WCHAR *path;
 	if (!PyWinObject_AsWCHAR(obPath, &path, FALSE))
 		goto done;
 	Py_BEGIN_ALLOW_THREADS;
@@ -146,22 +146,22 @@ static PyObject *PyADsBuildEnumerator(PyObject *self, PyObject *args)
 	HRESULT hr;
 	IUnknown *pOb = NULL;
 	PyObject *obCont;
-	PyObject *ret;
+	PyObject *ret = NULL;
 	if (!PyArg_ParseTuple(args, "O:ADsBuildEnumerator",
 			&obCont)) // @pyparm <o PyIADsContainer>|container||
 		return NULL;
-	IADsContainer *pC;
+	IADsContainer *pC = NULL;
 	if (!PyCom_InterfaceFromPyInstanceOrObject(obCont, IID_IADsContainer, (void **)&pC, FALSE))
-		goto done;
+		return NULL;
 	IEnumVARIANT *pev;
 	Py_BEGIN_ALLOW_THREADS;
 	hr = ADsBuildEnumerator(pC, &pev);
+	pC->Release();
 	Py_END_ALLOW_THREADS;
 	if (FAILED(hr))
 		ret = OleSetADSIError(hr, NULL, IID_NULL);
 	else
 		ret = PyIADsEnumVARIANT::PyObConstruct(pev);
-done:
 	return ret;
 }
 %}
@@ -184,6 +184,7 @@ static PyObject *PyADsEnumerateNext(PyObject *self, PyObject *args)
 
 	VARIANT *rgVar = new VARIANT[celt];
 	if ( rgVar == NULL ) {
+		pev->Release();
 		PyErr_SetString(PyExc_MemoryError, "allocating result VARIANTs");
 		return NULL;
 	}
@@ -194,6 +195,7 @@ static PyObject *PyADsEnumerateNext(PyObject *self, PyObject *args)
 	ULONG celtFetched;
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = pev->Next(celt, rgVar, &celtFetched);
+	pev->Release();
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 	{
