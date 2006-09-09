@@ -165,7 +165,7 @@ if __name__=='__main__':
     params.VirtualDirs = [vd]
     # Setup our custom option parser.
     from optparse import OptionParser
-    parser = OptionParser('') # black usage, so isapi sets it.
+    parser = OptionParser('') # blank usage, so isapi sets it.
     parser.add_option("", "--description",
                       action="store",
                       help="custom description to use for the virtual directory")
