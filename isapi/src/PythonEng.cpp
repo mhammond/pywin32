@@ -121,7 +121,18 @@ bool CPythonEngine::AddToPythonPath(LPCTSTR pPathName)
 		return false;
 	}
 
-	PyObject *obNew = PyString_FromString(pPathName);
+	// Some pathnames have a leading '\\?\', which tells allows Unicode
+	// win32 functions to avoid MAX_PATH limitations.  Notably,
+	// GetModulePath for our extension DLL may - presumably as such a
+	// path was specified by IIS when loading the DLL.
+	// Current Python versions handle neither this, nor Unicode on
+	// sys.path, so correct this here.
+	size_t len = strlen(pPathName);
+	if (len > 4 && strncmp(pPathName, "\\\\?\\", 4)==0) {
+		pPathName += 4;
+		len -= 4;
+	}
+	PyObject *obNew = PyString_FromStringAndSize(pPathName, len);
 	if (obNew==NULL) {
 		return false;
 	}
