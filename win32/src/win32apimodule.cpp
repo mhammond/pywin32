@@ -1393,7 +1393,25 @@ PyGetModuleFileName(PyObject * self, PyObject * args)
 	PyW32_END_ALLOW_THREADS
 	if (rc==0)
 		return ReturnAPIError("GetModuleFileName");
-	return Py_BuildValue("s",buf);
+	return PyString_FromString(buf);
+}
+
+// @pymethod unicode|win32api|GetModuleFileNameW|Retrieves the unicode filename of the specified module.
+static PyObject *
+PyGetModuleFileNameW(PyObject * self, PyObject * args)
+{
+	int iMod;
+	wchar_t buf[_MAX_PATH];
+	// @pyparm int|hModule||Specifies the handle to the module.
+	if (!PyArg_ParseTuple(args, "i:GetModuleFileNameW", &iMod))
+		return (NULL);
+	// @pyseeapi GetModuleFileName
+	PyW32_BEGIN_ALLOW_THREADS
+	long rc = ::GetModuleFileNameW( (HMODULE)iMod, buf, sizeof(buf));
+	PyW32_END_ALLOW_THREADS
+	if (rc==0)
+		return ReturnAPIError("GetModuleFileNameW");
+	return PyUnicode_FromUnicode(buf, wcslen(buf));
 }
 
 // @pymethod int|win32api|GetModuleHandle|Returns the handle of an already loaded DLL.
@@ -4905,6 +4923,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetLogicalDrives",	PyGetLogicalDrives,     1}, // @pymeth GetLogicalDrives|Returns a bitmask representing the currently available disk drives.
 	{"GetLogicalDriveStrings",	PyGetLogicalDriveStrings,     1}, // @pymeth GetLogicalDriveStrings|Returns a list of strings for all the drives.
 	{"GetModuleFileName",	PyGetModuleFileName,1}, // @pymeth GetModuleFileName|Retrieves the filename of the specified module.
+	{"GetModuleFileNameW",	PyGetModuleFileNameW,1}, // @pymeth GetModuleFileNameW|Retrieves the unicode filename of the specified module.
 	{"GetModuleHandle",     PyGetModuleHandle,1},   // @pymeth GetModuleHandle|Returns the handle of an already loaded DLL.
 	{"GetProfileSection",	PyGetProfileSection,1}, // @pymeth GetProfileSection|Returns a list of entries in an INI file.
 	{"GetProcAddress",      PyGetProcAddress,1},    // @pymeth GetProcAddress|Returns the address of the specified exported dynamic-link library (DLL) function.
