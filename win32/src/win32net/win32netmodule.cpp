@@ -80,9 +80,11 @@ void PyObject_FreeNET_STRUCT(PyNET_STRUCT *pI, BYTE *pBuf)
 			case NSI_SID:
 				if (*((SID **)(pBuf+pItem->off)))
 					free(*((SID **)(pBuf+pItem->off)));
+				break;
 			case NSI_SECURITY_DESCRIPTOR:
 				if (*((SECURITY_DESCRIPTOR **)(pBuf+pItem->off)))
 					free(*((SECURITY_DESCRIPTOR **)(pBuf+pItem->off)));
+				break;
 			default:
 				break;
 		}
