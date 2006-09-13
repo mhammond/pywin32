@@ -1,3 +1,5 @@
+// This file is not processed by Autoduck.  Tags for objects and functions are in win32security.i.
+
 #include "PyWinTypes.h"
 #include "structmember.h"
 #include "PyWinObjects.h"
@@ -5,10 +7,6 @@
 #include "win32security_sspi.h"
 #include "Lm.h" // for NetApiBufferFree, for some Ds functions.
 
-// @object PyDS_NAME_RESULT_ITEM|A tuple representing a DS_NAME_RESULT_ITEM
-// @tupleitem 0|int|status|
-// @tupleitem 1|<o PyUnicode>|domain|
-// @tupleitem 2|<o PyUnicode>|name|
 static PyObject *PyObject_FromDS_NAME_RESULT(DS_NAME_RESULT *dsresult)
 {
 	PyObject *ret = PyList_New(dsresult->cItems);
@@ -24,8 +22,6 @@ static PyObject *PyObject_FromDS_NAME_RESULT(DS_NAME_RESULT *dsresult)
 }
 
 // Directory service handle, yet another type of PyHANDLE
-// @object PyDS_HANDLE|Directory service handle, returned by <om win32security.DsBind>
-//   Subtype of <o PyHANDLE>, inherits all properties and methods
 class PyDS_HANDLE: public PyHANDLE
 {
 public:

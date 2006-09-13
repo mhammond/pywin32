@@ -689,6 +689,16 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
         }
 %}
 
+// Autoduck for objects defined in win32security_ds.cpp
+// @object PyDS_HANDLE|Directory service handle, returned by <om win32security.DsBind>
+//	Subtype of <o PyHANDLE>, inherits all properties and methods.<nl>
+//	When closed, DsUnBind is called.
+
+// @object PyDS_NAME_RESULT_ITEM|A tuple representing a DS_NAME_RESULT_ITEM
+// @tupleitem 0|int|status|One of ntsecuritycon.DS_NAME_* error codes
+// @tupleitem 1|<o PyUnicode>|Domain|Dns domain that object belongs to
+// @tupleitem 2|<o PyUnicode>|Name|Formatted object name
+
 // functions bodies in win32security_sspi.cpp
 %native(DsGetSpn) PyDsGetSpn;
 // @pyswig (<o PyUnicode>,...)|DsGetSpn|Compose one or more service principal names to be registered using <om win32security.DsWriteAccountSpn>
@@ -701,19 +711,19 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 
 %native(DsWriteAccountSpn) PyDsWriteAccountSpn;
 // @pyswig |DsWriteAccountSpn|Associates a set of service principal names with an account
-// @pyparm <o PyHANDLE>|hDS||Directory service handle as returned from <om win32security.DsBind>
+// @pyparm <o PyDS_HANDLE>|hDS||Directory service handle as returned from <om win32security.DsBind>
 // @pyparm int|Operation||Constant from DS_SPN_WRITE_OP enum
 // @pyparm <o PyUnicode>|Account||Distinguished name of account whose Spn's will be modified
 // @pyparm (<o PyUnicode>,...)|Spns||A sequence of target Spn's as returned by <om win32security.DsGetSpn>
 
 %native (DsBind) PyDsBind;
-// @pyswig <o PyHANDLE>|DsBind|Creates a connection to a directory service
+// @pyswig <o PyDS_HANDLE>|DsBind|Creates a connection to a directory service
 // @pyparm <o PyUnicode>|DomainController||Name of domain controller to contact, can be None
 // @pyparm <o PyUnicode>|DnsDomainName||Dotted name of domain to bind to, can be None
 
 %native (DsUnBind) PyDsUnBind;
 // @pyswig |DsUnBind|Closes a directory services handle created by <om win32security.DsBind>
-// @pyparm <o PyHANDLE>|hDS||A handle to a directory service as returned by <om win32security.DsBind>
+// @pyparm <o PyDS_HANDLE>|hDS||A handle to a directory service as returned by <om win32security.DsBind>
 
 %{
 // work around issues with SWIG and kwargs.
@@ -731,39 +741,39 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 
 %native (DsCrackNames) extern PyObject *PyDsCrackNames(PyObject *self, PyObject *args);
 // @pyswig [ (status, domain, name) ]|DsCrackNames|Converts an array of directory service object names from one format to another.
-// @pyparm int|hds||
+// @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 // @pyparm int|flags||
 // @pyparm int|formatOffered||
 // @pyparm int|formatDesired||
 // @pyparm [name, ...]|names||
 
 %native (DsListInfoForServer) extern PyObject *PyDsListInfoForServer(PyObject *self, PyObject *args);
-// @pyswig [ <o PyDS_NAME_RESULT>, ...]|DsListInfoForServer|Lists miscellaneous information for a server.
-// @pyparm int|hds||
+// @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListInfoForServer|Lists miscellaneous information for a server.
+// @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 // @pyparm <o PyUnicode>|server||
 
 %native (DsListServersInSite) extern PyObject *PyDsListServersInSite(PyObject *self, PyObject *args);
 // @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListServersInSite|
-// @pyparm int|hds||
+// @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 // @pyparm <o PyUnicode>|site||
 
 %native (DsListServersForDomainInSite) extern PyObject *PyDsListServersForDomainInSite(PyObject *self, PyObject *args);
 // @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListServersInSite|
-// @pyparm int|hds||
+// @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 // @pyparm <o PyUnicode>|domain||
 // @pyparm <o PyUnicode>|site||
 
 %native (DsListSites) extern PyObject *PyDsListSites(PyObject *self, PyObject *args);
 // @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListServersInSite|
-// @pyparm int|hds||
+// @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 
 %native (DsListRoles) extern PyObject *PyDsListRoles(PyObject *self, PyObject *args);
 // @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListRoles|
-// @pyparm int|hds||
+// @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 
 %native (DsListDomainsInSite) extern PyObject *PyDsListDomainsInSite(PyObject *self, PyObject *args);
 // @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListDomainsInSite|
-// @pyparm int|hds||
+// @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 
 // @pyswig PyACL|ACL|Creates a new <o PyACL> object.
 // @pyparm int|bufSize|64|The size of the buffer for the ACL.
@@ -3281,7 +3291,8 @@ static PyObject *PyAcceptSecurityContext(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig |QuerySecurityPackageInfo|Retrieves parameters for a security package
+// @pyswig dict|QuerySecurityPackageInfo|Retrieves parameters for a security package
+// @rdesc Returns a dictionary representing a SecPkgInfo struct
 %native(QuerySecurityPackageInfo) PyQuerySecurityPackageInfo;
 %{
 static PyObject *PyQuerySecurityPackageInfo(PyObject *self, PyObject *args)
@@ -3293,6 +3304,7 @@ static PyObject *PyQuerySecurityPackageInfo(PyObject *self, PyObject *args)
 	SECURITY_STATUS err;
 	WCHAR *packagename;
 	PyObject *obpackagename, *ret=NULL;
+	// @pyparm <o PyUNICODE>|PackageName||Name of the security package to query
 	if (!PyArg_ParseTuple(args,"O:QuerySecurityPackageInfo",&obpackagename))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obpackagename, &packagename, FALSE))
