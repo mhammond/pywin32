@@ -1029,6 +1029,7 @@ for info in (
         ("win32pipe", "", False),
         ("win32print", "winspool user32 gdi32", False, 0x0500),
         ("win32process", "advapi32 user32", False, 0x0500),
+        ("win32profile", "Userenv", True, None, 'win32/src/win32profilemodule.cpp'),
         ("win32ras", "rasapi32 user32", False),
         ("win32security", "advapi32 user32 netapi32", True, 0x0500, """
             win32/src/win32security.i       win32/src/win32securitymodule.cpp
