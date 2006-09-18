@@ -2770,9 +2770,14 @@ static DWORD (WINAPI *pfnQueryRecoveryAgentsOnEncryptedFile)(WCHAR *, PENCRYPTIO
 static DWORD (WINAPI *pfnRemoveUsersFromEncryptedFile)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST)=NULL;
 static DWORD (WINAPI *pfnAddUsersToEncryptedFile)(WCHAR *, PENCRYPTION_CERTIFICATE_LIST)=NULL;
 static BOOL (WINAPI *pfnGetVolumePathNameW)(WCHAR *, WCHAR *, DWORD)=NULL;
-static BOOL (WINAPI *pfnBackupRead)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL, LPVOID*)=NULL;
-static BOOL (WINAPI *pfnBackupSeek)(HANDLE, DWORD, DWORD, LPDWORD, LPDWORD, LPVOID*)=NULL;
-static BOOL (WINAPI *pfnBackupWrite)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL, LPVOID*)=NULL;
+
+
+typedef BOOL (WINAPI *BackupReadfunc)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL, LPVOID*);
+static BackupReadfunc pfnBackupRead=NULL;
+typedef BOOL (WINAPI *BackupSeekfunc)(HANDLE, DWORD, DWORD, LPDWORD, LPDWORD, LPVOID*);
+static BackupSeekfunc pfnBackupSeek=NULL;
+typedef BOOL (WINAPI *BackupWritefunc)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL, LPVOID*);
+static BackupWritefunc pfnBackupWrite=NULL;
 
 typedef BOOL (WINAPI *SetFileShortNamefunc)(HANDLE, LPCWSTR);
 static SetFileShortNamefunc pfnSetFileShortName=NULL;
@@ -2782,6 +2787,15 @@ typedef BOOL (WINAPI *MoveFileWithProgressfunc)(LPWSTR,LPWSTR,LPPROGRESS_ROUTINE
 static MoveFileWithProgressfunc pfnMoveFileWithProgress=NULL;
 typedef BOOL (WINAPI *ReplaceFilefunc)(LPCWSTR,LPCWSTR,LPCWSTR,DWORD,LPVOID,LPVOID);
 static ReplaceFilefunc pfnReplaceFile=NULL;
+
+typedef DWORD (WINAPI *OpenEncryptedFileRawfunc)(LPCWSTR,ULONG,PVOID *);
+static OpenEncryptedFileRawfunc pfnOpenEncryptedFileRaw=NULL;
+typedef DWORD (WINAPI *ReadEncryptedFileRawfunc)(PFE_EXPORT_FUNC,PVOID,PVOID);
+static ReadEncryptedFileRawfunc pfnReadEncryptedFileRaw=NULL;
+typedef DWORD (WINAPI *WriteEncryptedFileRawfunc)(PFE_IMPORT_FUNC,PVOID,PVOID);
+static WriteEncryptedFileRawfunc pfnWriteEncryptedFileRaw=NULL;
+typedef void (WINAPI *CloseEncryptedFileRawfunc)(PVOID);
+static CloseEncryptedFileRawfunc pfnCloseEncryptedFileRaw=NULL;
 
 
 // @pyswig <o PyUnicode>|SetVolumeMountPoint|Mounts the specified volume at the specified volume mount point.
@@ -3506,6 +3520,7 @@ py_AddUsersToEncryptedFile(PyObject *self, PyObject *args)
 static PyObject*
 py_BackupRead(PyObject *self, PyObject *args)
 {
+	CHECK_PFN(BackupRead);
 	// @pyparm <o PyHANDLE>|hFile||File handle opened by CreateFile
 	// @pyparm int|NumberOfBytesToRead||Number of bytes to be read from file
 	// @pyparm buffer|Buffer||Writeable buffer object that receives data read
@@ -3519,8 +3534,6 @@ py_BackupRead(PyObject *self, PyObject *args)
 	BOOL bAbort,bProcessSecurity;
 	LPVOID ctxt;
 	PyObject *obbuf=NULL, *obbufout=NULL;
-	if (pfnBackupRead==NULL)
-        return PyErr_Format(PyExc_NotImplementedError,"BackupRead not supported by this version of Windows");
 
 	if (!PyArg_ParseTuple(args, "llOlll", &h, &bytes_requested, &obbuf, &bAbort, &bProcessSecurity, &ctxt))
 		return NULL;
@@ -3556,6 +3569,7 @@ py_BackupRead(PyObject *self, PyObject *args)
 static PyObject*
 py_BackupSeek(PyObject *self, PyObject *args)
 {
+	CHECK_PFN(BackupSeek);
 	// @pyparm <o PyHANDLE>|hFile||File handle used by a BackupRead operation
 	// @pyparm long|NumberOfBytesToSeek||Number of bytes to move forward in current stream
 	// @pyparm int|lpContext||Context pointer returned from a BackupRead operation
@@ -3564,8 +3578,6 @@ py_BackupSeek(PyObject *self, PyObject *args)
 	ULARGE_INTEGER bytes_moved;
 	LPVOID ctxt;
 	PyObject *obbytes_to_seek;
-	if (pfnBackupSeek==NULL)
-        return PyErr_Format(PyExc_NotImplementedError,"BackupSeek not supported by this version of Windows");
 	if (!PyArg_ParseTuple(args,"lOl", &h, &obbytes_to_seek, &ctxt))
 		return NULL;
 	if (!PyWinObject_AsULARGE_INTEGER(obbytes_to_seek, &bytes_to_seek))
@@ -3589,6 +3601,7 @@ py_BackupSeek(PyObject *self, PyObject *args)
 static PyObject*
 py_BackupWrite(PyObject *self, PyObject *args)
 {
+	CHECK_PFN(BackupWrite);
 	// @pyparm <o PyHANDLE>|hFile||File handle opened by CreateFile
 	// @pyparm int|NumberOfBytesToWrite||Length of data to be written to file
 	// @pyparm string|Buffer||A string or buffer object that contains the data to be written
@@ -3602,8 +3615,6 @@ py_BackupWrite(PyObject *self, PyObject *args)
 	BOOL bAbort, bProcessSecurity;
 	LPVOID ctxt;
 	PyObject *obbuf;
-	if (pfnBackupWrite==NULL)
-        return PyErr_Format(PyExc_NotImplementedError,"BackupWrite not supported by this version of Windows");
 
 	if (!PyArg_ParseTuple(args, "llOlll", &h, &bytes_to_write, &obbuf, &bAbort, &bProcessSecurity, &ctxt))
 		return NULL;
@@ -3852,6 +3863,207 @@ py_ReplaceFile(PyObject *self, PyObject *args)
 	PyWinObject_FreeWCHAR(backup);
 	return ret;
 }
+ 
+
+// @pyswig PyCObject|OpenEncryptedFileRaw|Initiates a backup or restore operation on an encrypted file
+// @rdesc Returns a PyCObject containing an operation context that can be passed to 
+// <om win32file.ReadEncryptedFileRaw> or <om win32file.WriteEncryptedFileRaw>.  Context must be
+// destroyed using <om win32file.CloseEncryptedFileRaw>.
+// @comm Only available on Windows 2000 or later
+static PyObject*
+py_OpenEncryptedFileRaw(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(OpenEncryptedFileRaw);
+	CHECK_PFN(CloseEncryptedFileRaw);
+	PyObject *obfname, *ret=NULL;
+	DWORD flags, err;
+	WCHAR *fname=NULL;
+	void *ctxt;
+	if (!PyArg_ParseTuple(args, "Ok:OpenEncryptedFileRaw",
+		&obfname,	// @pyparm <o PyUNICODE>|FileName||Name of file on which to operate
+		&flags))	// @pyparm int|Flags||CREATE_FOR_IMPORT, CREATE_FOR_DIR, OVERWRITE_HIDDEN, or 0 for export
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
+		return NULL;
+	Py_BEGIN_ALLOW_THREADS
+	err=(*pfnOpenEncryptedFileRaw)(fname, flags, &ctxt),
+	Py_END_ALLOW_THREADS
+	if (err!=ERROR_SUCCESS)
+		PyWin_SetAPIError("OpenEncryptedFileRaw", err);
+	else{
+		// ??? maybe use pfnCloseEncryptedFileRaw as destructor ???
+		ret=PyCObject_FromVoidPtr(ctxt, NULL); 
+		if (ret==NULL)
+			(*pfnCloseEncryptedFileRaw)(ctxt);
+		}
+	PyWinObject_FreeWCHAR(fname);
+	return ret;
+}
+
+// @object ExportCallback|User-defined callback function used with <om win32file.ReadEncryptedFileRaw>.<nl>
+// Function is called with 3 parameters: (Data, CallbackContext, Length)<nl>
+// &nbsp&nbsp Data: Read-only buffer containing the raw data read from the file.  Must not be referenced outside of the callback function.<nl>
+// &nbsp&nbsp CallbackContext: Arbitrary object passed to ReadEncryptedFileRaw.<nl>
+// &nbsp&nbsp Length: Number of bytes in the Data buffer.<nl>
+// On success, function should return ERROR_SUCCESS.  Otherwise, it can return a win32 error code, or simply raise an exception.
+DWORD WINAPI PyExportCallback(PBYTE file_data, PVOID callback_data, ULONG length)
+{
+	CEnterLeavePython _celp;
+	PyObject *args=NULL, *ret=NULL;
+	DWORD retcode;
+	PyObject **callback_objects=(PyObject **)callback_data;
+	PyObject *obfile_data=PyBuffer_FromMemory(file_data, length);
+	if (obfile_data==NULL)
+		retcode=ERROR_OUTOFMEMORY;
+	else{
+		args=Py_BuildValue("OOk", obfile_data, callback_objects[1], length);
+		if (args==NULL)	// exception already set, return any error code
+			retcode=ERROR_OUTOFMEMORY;
+		else{
+			ret=PyObject_Call(callback_objects[0], args, NULL);
+			if (ret==NULL)
+				retcode=ERROR_OUTOFMEMORY;	// specific code shouldn't matter
+			else
+				retcode=PyLong_AsUnsignedLong(ret);
+			}
+		}
+	Py_XDECREF(ret);
+	Py_XDECREF(args);
+	Py_XDECREF(obfile_data);
+	return retcode;
+}
+
+// @pyswig |ReadEncryptedFileRaw|Reads the encrypted bytes of a file for backup and restore purposes
+// @comm Only available on Windows 2000 or later
+static PyObject*
+py_ReadEncryptedFileRaw(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(ReadEncryptedFileRaw);
+	PyObject *obcallback, *obcallback_data, *obctxt;
+	PVOID ctxt;
+	PyObject *callback_objects[2];
+	DWORD retcode;
+	if (!PyArg_ParseTuple(args, "OOO:ReadEncryptedFileRaw",
+		&obcallback,		// @pyparm <o ExportCallBack>|ExportCallback||Python function that receives chunks of data as it is read
+		&obcallback_data,	// @pyparm object|CallbackContext||Arbitrary Python object to be passed to callback function
+		&obctxt))			// @pyparm PyCObject|Context||Context object returned from <om win32file.OpenEncryptedFileRaw>
+		return NULL;
+	ctxt=PyCObject_AsVoidPtr(obctxt);
+	if (ctxt==NULL)
+		return NULL;
+	if (!PyCallable_Check(obcallback)){
+		PyErr_SetString(PyExc_TypeError,"ExportCallback must be callable");
+		return NULL;
+		}
+	callback_objects[0]=obcallback;
+	callback_objects[1]=obcallback_data;
+
+	Py_BEGIN_ALLOW_THREADS
+	retcode=(*pfnReadEncryptedFileRaw)(PyExportCallback, callback_objects, ctxt);
+	Py_END_ALLOW_THREADS
+	if (retcode==ERROR_SUCCESS){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	// Don't overwrite any error that callback may have thrown
+	if (!PyErr_Occurred())
+		PyWin_SetAPIError("ReadEncryptedFileRaw",retcode);
+	return NULL;
+}
+
+// @object ImportCallback|User-defined callback function used with <om win32file.WriteEncryptedFileRaw><nl>
+// Function is called with 3 parameters: (Data, CallbackContext, Length)<nl>
+// &nbsp&nbsp Data: Writeable buffer to be filled with raw encrypted data.  Buffer memory is only valid within the callback function.<nl>
+// &nbsp&nbsp CallbackContext: The arbitrary object passed to WriteEncryptedFileRaw.<nl>
+// &nbsp&nbsp Length: Size of the data buffer.<nl>
+// Your implementation of this function should return a tuple of 2 ints containing
+// an error code (ERROR_SUCCESS on success), and the length of data written to the buffer.<nl>
+// Function exits when 0 is returned for the data length.
+DWORD WINAPI PyImportCallback(PBYTE file_data, PVOID callback_data, PULONG plength)
+{
+	CEnterLeavePython _celp;
+	PyObject *args=NULL, *ret=NULL;
+	DWORD retcode;
+	PyObject **callback_objects=(PyObject **)callback_data;
+	PyObject *obfile_data=PyBuffer_FromReadWriteMemory(file_data, *plength);
+	if (obfile_data==NULL)
+		retcode=ERROR_OUTOFMEMORY;
+	else{
+		args=Py_BuildValue("OOk", obfile_data, callback_objects[1], *plength);
+		if (args==NULL)
+			retcode=ERROR_OUTOFMEMORY;
+		else{
+			ret=PyObject_Call(callback_objects[0], args, NULL);
+			if (ret==NULL)
+				retcode=ERROR_OUTOFMEMORY;
+			else
+				if (!PyArg_ParseTuple(ret,"kk", &retcode, plength))
+					retcode=ERROR_OUTOFMEMORY;
+			}
+		}
+	Py_XDECREF(ret);
+	Py_XDECREF(args);
+	Py_XDECREF(obfile_data);
+	return retcode;
+}
+
+// @pyswig |WriteEncryptedFileRaw|Writes raw bytes to an encrypted file
+// @comm Only available on Windows 2000 or later
+static PyObject*
+py_WriteEncryptedFileRaw(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(WriteEncryptedFileRaw);
+	PyObject *obcallback, *obcallback_data, *obctxt;
+	PVOID ctxt;
+	PyObject *callback_objects[2];
+	DWORD retcode;
+	if (!PyArg_ParseTuple(args, "OOO:WriteEncryptedFileRaw",
+		&obcallback,		// @pyparm <o ImportCallBack>|ImportCallback||Python function that supplies data to be written
+		&obcallback_data,	// @pyparm object|CallbackContext||Arbitrary Python object to be passed to callback function
+		&obctxt))			// @pyparm PyCObject|Context||Context object returned from <om win32file.OpenEncryptedFileRaw>
+		return NULL;
+	ctxt=PyCObject_AsVoidPtr(obctxt);
+	if (ctxt==NULL)
+		return NULL;
+	if (!PyCallable_Check(obcallback)){
+		PyErr_SetString(PyExc_TypeError,"ExportCallback must be callable");
+		return NULL;
+		}
+	callback_objects[0]=obcallback;
+	callback_objects[1]=obcallback_data;
+
+	Py_BEGIN_ALLOW_THREADS
+	retcode=(*pfnWriteEncryptedFileRaw)(PyImportCallback, callback_objects, ctxt);
+	Py_END_ALLOW_THREADS
+	if (retcode==ERROR_SUCCESS){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	// Don't overwrite any error that callback may have thrown
+	if (!PyErr_Occurred())
+		PyWin_SetAPIError("WriteEncryptedFileRaw",retcode);
+	return NULL;
+}
+
+// @pyswig |CloseEncryptedFileRaw|Frees a context created by <om win32file.OpenEncryptedFileRaw>
+// @comm Only available on Windows 2000 or later
+static PyObject*
+py_CloseEncryptedFileRaw(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(CloseEncryptedFileRaw);
+	PyObject *obctxt;
+	PVOID ctxt;
+	if (!PyArg_ParseTuple(args, "O:CloseEncryptedFileRaw",
+		&obctxt))	// @pyparm PyCObject|Context||Context object returned from <om win32file.OpenEncryptedFileRaw>
+		return NULL;
+	ctxt=PyCObject_AsVoidPtr(obctxt);
+	if (ctxt==NULL)
+		return NULL;
+	// function has no return value, make sure to check for memory leaks!
+	(*pfnCloseEncryptedFileRaw)(ctxt);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
 %}
 
 %native (SetVolumeMountPoint) py_SetVolumeMountPoint;
@@ -3876,6 +4088,10 @@ py_ReplaceFile(PyObject *self, PyObject *args)
 %native (CopyFileEx) py_CopyFileEx;
 %native (MoveFileWithProgress) py_MoveFileWithProgress;
 %native (ReplaceFile) py_ReplaceFile;
+%native (OpenEncryptedFileRaw) py_OpenEncryptedFileRaw;
+%native (ReadEncryptedFileRaw) py_ReadEncryptedFileRaw;
+%native (WriteEncryptedFileRaw) py_WriteEncryptedFileRaw;
+%native (CloseEncryptedFileRaw) py_CloseEncryptedFileRaw;
 
 %init %{
 
@@ -3912,8 +4128,12 @@ py_ReplaceFile(PyObject *self, PyObject *args)
 
 		fp=GetProcAddress(hmodule,"AddUsersToEncryptedFile");
 		if (fp) pfnAddUsersToEncryptedFile=(DWORD (WINAPI *)(WCHAR *,PENCRYPTION_CERTIFICATE_LIST))(fp);
-		}
 
+		pfnOpenEncryptedFileRaw=(OpenEncryptedFileRawfunc)GetProcAddress(hmodule, "OpenEncryptedFileRawW");
+		pfnReadEncryptedFileRaw=(ReadEncryptedFileRawfunc)GetProcAddress(hmodule, "ReadEncryptedFileRaw");
+		pfnWriteEncryptedFileRaw=(WriteEncryptedFileRawfunc)GetProcAddress(hmodule, "WriteEncryptedFileRaw");
+		pfnCloseEncryptedFileRaw=(CloseEncryptedFileRawfunc)GetProcAddress(hmodule, "CloseEncryptedFileRaw");
+		}
 
 	hmodule = GetModuleHandle("kernel32.dll");
 	if (hmodule){
@@ -3931,16 +4151,10 @@ py_ReplaceFile(PyObject *self, PyObject *args)
 
 		fp = GetProcAddress(hmodule, "CreateHardLinkW");
 		if (fp) pfnCreateHardLinkW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES))(fp);
-		
-		fp = GetProcAddress(hmodule, "BackupRead");
-		if (fp) pfnBackupRead = (BOOL (WINAPI *)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL, LPVOID*))(fp);
-
-		fp = GetProcAddress(hmodule, "BackupSeek");
-		if (fp) pfnBackupSeek = (BOOL (WINAPI *)(HANDLE, DWORD, DWORD, LPDWORD, LPDWORD, LPVOID*))(fp);
-		
-		fp = GetProcAddress(hmodule, "BackupWrite");
-		if (fp) pfnBackupWrite = (BOOL (WINAPI *)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL, LPVOID*))(fp);
-
+	
+		pfnBackupRead=(BackupReadfunc)GetProcAddress(hmodule,"BackupRead");
+		pfnBackupSeek=(BackupSeekfunc)GetProcAddress(hmodule,"BackupSeek");
+		pfnBackupWrite=(BackupWritefunc)GetProcAddress(hmodule,"BackupWrite");
 		pfnSetFileShortName=(SetFileShortNamefunc)GetProcAddress(hmodule,"SetFileShortNameW");
 		pfnCopyFileEx=(CopyFileExfunc)GetProcAddress(hmodule,"CopyFileExW");
 		pfnMoveFileWithProgress=(MoveFileWithProgressfunc)GetProcAddress(hmodule,"MoveFileWithProgressW");
@@ -4029,3 +4243,8 @@ py_ReplaceFile(PyObject *self, PyObject *args)
 // flags used with ReplaceFile
 #define REPLACEFILE_IGNORE_MERGE_ERRORS REPLACEFILE_IGNORE_MERGE_ERRORS
 #define REPLACEFILE_WRITE_THROUGH REPLACEFILE_WRITE_THROUGH
+
+// flags for OpenEncryptedFileRaw
+#define CREATE_FOR_IMPORT CREATE_FOR_IMPORT
+#define CREATE_FOR_DIR CREATE_FOR_DIR
+#define OVERWRITE_HIDDEN OVERWRITE_HIDDEN
