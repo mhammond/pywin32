@@ -109,6 +109,22 @@ public:
 	static int setattr(PyObject *self, char *name, PyObject *v);
 };
 
+class PyRAW_DATA:public PyObject
+{
+public:
+	PyHFC *m_parent;
+public:
+	PyRAW_DATA(PyHFC *);
+	~PyRAW_DATA();
+	HTTP_FILTER_CONTEXT *GetFILTER_CONTEXT();
+	HTTP_FILTER_RAW_DATA *GetRAW_DATA();
+public:	
+	// Python support 
+	static void deallocFunc(PyObject *ob);
+	static PyObject *getattr(PyObject *self, char *name);
+	static int setattr(PyObject *self, char *name, PyObject *v);
+};
+
 class PyFILTER_LOG:public PyObject
 {
 public:

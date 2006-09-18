@@ -141,6 +141,9 @@ void PyFILTER_VERSION::deallocFunc(PyObject *ob)
 // filter context wrapper
 /////////////////////////////////////////////////////////////////////
 
+#ifdef ARRAYSIZE
+#undef ARRAYSIZE
+#endif
 #define ARRAYSIZE(x) (sizeof(x)/sizeof(x[0]))
 #define ECBOFF(e) offsetof(PyHFC, e)
 
@@ -162,6 +165,9 @@ PyObject * PyHFC::GetData(PyObject *self, PyObject *args)
 		// @flag SF_NOTIFY_LOG|<o HTTP_FILTER_LOG>
 		case SF_NOTIFY_LOG:
 			return new PyFILTER_LOG(me);
+		// @flag SF_NOTIFY_SEND_RAW_DATA|<o SF_NOTIFY_SEND_RAW_DATA>
+		case SF_NOTIFY_SEND_RAW_DATA:
+			return new PyRAW_DATA(me);
 		default:
 			PyErr_Format(PyExc_ValueError, "Don't understand data of type 0x%x", me->m_notificationType);
 			return NULL;
@@ -614,6 +620,121 @@ PyObject *PyPREPROC_HEADERS::getattr(PyObject *self, char *name)
 void PyPREPROC_HEADERS::deallocFunc(PyObject *ob)
 {
 	delete (PyPREPROC_HEADERS *)ob;
+}
+
+/////////////////////////////////////////////////////////////////////////
+// HTTP_FILTER_RAW_DATA object
+/////////////////////////////////////////////////////////////////////////
+
+// @object HTTP_FILTER_RAW_DATA|A Python representation of an ISAPI
+// HTTP_FILTER_RAW_DATA structure.
+static struct PyMethodDef PyRAW_DATA_methods[] = {
+	{NULL}
+};
+
+PyTypeObject PyRAW_DATAType =
+{
+	PyObject_HEAD_INIT(&PyType_Type)
+	0,
+	"HTTP_FILTER_RAW_DATA",
+	sizeof(PyRAW_DATA),
+	0,
+	PyRAW_DATA::deallocFunc,	/* tp_dealloc */
+	0,					/* tp_print */
+	PyRAW_DATA::getattr,		/* tp_getattr */
+	0,		/* tp_setattr */
+	0,
+	0,					/* tp_repr */
+	0,					/* tp_as_number */
+	0,					/* tp_as_sequence */
+	0,					/* tp_as_mapping */
+	0,
+	0,					/* tp_call */
+	0,					/* tp_str */
+};
+
+PyRAW_DATA::PyRAW_DATA(PyHFC *pParent)
+{
+	ob_type = &PyRAW_DATAType;
+	_Py_NewReference(this);
+
+	m_parent = pParent;
+	Py_INCREF(m_parent);
+}
+
+PyRAW_DATA::~PyRAW_DATA()
+{
+	Py_XDECREF(m_parent);
+}
+
+HTTP_FILTER_CONTEXT *PyRAW_DATA::GetFILTER_CONTEXT()
+{
+	HTTP_FILTER_CONTEXT *pFC;
+	m_parent->GetFilterContext()->GetFilterData(&pFC, NULL, NULL);
+	return pFC;
+}
+
+HTTP_FILTER_RAW_DATA *PyRAW_DATA::GetRAW_DATA()
+{
+	HTTP_FILTER_CONTEXT *pFC;
+	void *vdata;
+	DWORD requestType;
+	m_parent->GetFilterContext()->GetFilterData(&pFC, &requestType, &vdata);
+	assert(requestType==SF_NOTIFY_RAW_DATA);
+	return (HTTP_FILTER_RAW_DATA *)vdata;
+}
+
+PyObject *PyRAW_DATA::getattr(PyObject *self, char *name)
+{
+	HTTP_FILTER_RAW_DATA *pRD = ((PyRAW_DATA*)self)->GetRAW_DATA();
+	if (!pRD)
+		return NULL;
+	// @prop string|InData|
+	if (strcmp(name, "InData")==0) {
+		if (pRD->pvInData==NULL) {
+			Py_INCREF(Py_None);
+			return Py_None;
+		}
+		return PyString_FromStringAndSize((const char *)pRD->pvInData,
+						  pRD->cbInData);
+	}
+	PyErr_Format(PyExc_AttributeError, "HTTP_FILTER_RAW_DATA objects have no attribute '%s'", name);
+	return NULL;
+}
+
+int PyRAW_DATA::setattr(PyObject *self, char *name, PyObject *v)
+{
+	HTTP_FILTER_RAW_DATA *pRD = ((PyRAW_DATA*)self)->GetRAW_DATA();
+	HTTP_FILTER_CONTEXT *pFC = NULL;
+	((PyFILTER_LOG *)self)->m_parent->GetFilterContext()->GetFilterData(&pFC, NULL, NULL);
+	if (!pRD || !pFC)
+		return NULL;
+
+	if (strcmp(name, "InData")==0) {
+		if (!PyString_Check(v)) {
+			PyErr_Format(PyExc_TypeError,
+			             "InData must be a string (got %s)", v->ob_type->tp_name);
+			return -1;
+		}
+		int cch = PyString_Size(v);
+		void *nb = pFC->AllocMem(pFC, cch+sizeof(char), 0);
+		if (nb) {
+			pRD->cbInData = cch;
+			pRD->cbInBuffer = cch+1;
+			pRD->pvInData =  nb;
+		} else {
+			PyErr_NoMemory();
+			return -1;
+		}
+		return 0;
+	}
+	PyErr_Format(PyExc_AttributeError, "HTTP_FILTER_RAW_DATA objects have no attribute '%s'", name);
+	return -1;
+}
+
+void PyRAW_DATA::deallocFunc(PyObject *ob)
+{
+	delete (PyRAW_DATA *)ob;
 }
 
 /////////////////////////////////////////////////////////////////////////
