@@ -3984,6 +3984,7 @@ DWORD WINAPI PyImportCallback(PBYTE file_data, PVOID callback_data, PULONG pleng
 	CEnterLeavePython _celp;
 	PyObject *args=NULL, *ret=NULL;
 	DWORD retcode;
+	*plength=0;
 	PyObject **callback_objects=(PyObject **)callback_data;
 	PyObject *obfile_data=PyBuffer_FromReadWriteMemory(file_data, *plength);
 	if (obfile_data==NULL)
@@ -3996,8 +3997,11 @@ DWORD WINAPI PyImportCallback(PBYTE file_data, PVOID callback_data, PULONG pleng
 			ret=PyObject_Call(callback_objects[0], args, NULL);
 			if (ret==NULL)
 				retcode=ERROR_OUTOFMEMORY;
-			else
-				if (!PyArg_ParseTuple(ret,"kk", &retcode, plength))
+			else if ((!PyTuple_Check(ret)) || (PyTuple_GET_SIZE(ret)!=2)){
+				PyErr_SetString(PyExc_TypeError,"ImportCallback must return a tuple of 2 ints");
+				retcode=ERROR_OUTOFMEMORY;	// doesn't matter which error code if exception is set
+				}
+			else if (!PyArg_ParseTuple(ret,"kk", &retcode, plength))
 					retcode=ERROR_OUTOFMEMORY;
 			}
 		}
