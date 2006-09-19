@@ -1,8 +1,16 @@
+# This module is very old and useless in this day and age!  It will be
+# removed in a few years (ie, 2009 or so...)
+
+import warnings
+warnings.warn("The regcheck module has been pending deprecation since build 210",
+	      category=warnings.PendingDeprecationWarning)
+
 import win32con
 import regutil
 import win32api
 import os
 import sys
+
 
 def CheckRegisteredExe(exename):
 	try:
@@ -100,8 +108,8 @@ def CheckRegisteredModules(verbose):
 
 def CheckRegistry(verbose=0):
 	# check the registered modules
-	if os.environ.has_key('pythonpath'):
-		print "Warning - PythonPath in environment - registry PythonPath will be ignored"
+	if verbose and os.environ.has_key('pythonpath'):
+		print "Warning - PythonPath in environment - please check it!"
 	# Check out all paths on sys.path
 	
 	CheckPythonPaths(verbose)
