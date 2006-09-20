@@ -3863,7 +3863,11 @@ py_ReplaceFile(PyObject *self, PyObject *args)
 	PyWinObject_FreeWCHAR(backup);
 	return ret;
 }
- 
+
+void encryptedfilecontextdestructor(void *ctxt){
+	if (pfnCloseEncryptedFileRaw)
+		(*pfnCloseEncryptedFileRaw)(ctxt);
+}
 
 // @pyswig PyCObject|OpenEncryptedFileRaw|Initiates a backup or restore operation on an encrypted file
 // @rdesc Returns a PyCObject containing an operation context that can be passed to 
@@ -3891,8 +3895,7 @@ py_OpenEncryptedFileRaw(PyObject *self, PyObject *args)
 	if (err!=ERROR_SUCCESS)
 		PyWin_SetAPIError("OpenEncryptedFileRaw", err);
 	else{
-		// ??? maybe use pfnCloseEncryptedFileRaw as destructor ???
-		ret=PyCObject_FromVoidPtr(ctxt, NULL); 
+		ret=PyCObject_FromVoidPtr(ctxt, encryptedfilecontextdestructor); 
 		if (ret==NULL)
 			(*pfnCloseEncryptedFileRaw)(ctxt);
 		}
@@ -3984,7 +3987,6 @@ DWORD WINAPI PyImportCallback(PBYTE file_data, PVOID callback_data, PULONG pleng
 	CEnterLeavePython _celp;
 	PyObject *args=NULL, *ret=NULL;
 	DWORD retcode;
-	*plength=0;
 	PyObject **callback_objects=(PyObject **)callback_data;
 	PyObject *obfile_data=PyBuffer_FromReadWriteMemory(file_data, *plength);
 	if (obfile_data==NULL)
