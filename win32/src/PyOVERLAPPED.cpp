@@ -77,7 +77,7 @@ PYWINTYPES_EXPORT PyTypeObject PyOVERLAPPEDType =
 	0,						/* tp_as_number */
 	0,	/* tp_as_sequence */
 	0,						/* tp_as_mapping */
-	0,
+	PyOVERLAPPED::hashFunc,				/* tp_hash */
 	0,						/* tp_call */
 	0,		/* tp_str */
 };
@@ -201,6 +201,12 @@ int PyOVERLAPPED::setattr(PyObject *self, char *name, PyObject *v)
 		return 0;
 	}
 	return PyMember_Set((char *)self, memberlist, name, v);
+}
+
+/*static*/ long PyOVERLAPPED::hashFunc(PyObject *ob)
+{
+	// Just use the address.
+	return _Py_HashPointer(ob);
 }
 
 /*static*/ void PyOVERLAPPED::deallocFunc(PyObject *ob)

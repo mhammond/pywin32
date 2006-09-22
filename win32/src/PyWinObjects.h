@@ -155,6 +155,7 @@ public:
 
 	static PyObject *getattr(PyObject *self, char *name);
 	static int setattr(PyObject *self, char *name, PyObject *v);
+	static long hashFunc(PyObject *self);
 #ifdef _MSC_VER
 #pragma warning( disable : 4251 )
 #endif // _MSC_VER

@@ -247,6 +247,10 @@ class TestOverlapped(unittest.TestCase):
     def testCompletionPortsNonQueuedBadReference(self):
         self.testCompletionPortsNonQueued(True)
 
+    def testHashable(self):
+        overlapped = pywintypes.OVERLAPPED()
+        d = {}
+        d[overlapped] = "hello"
 
 class TestFindFiles(unittest.TestCase):
     def testIter(self):
