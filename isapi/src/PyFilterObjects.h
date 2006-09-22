@@ -125,6 +125,22 @@ public:
 	static int setattr(PyObject *self, char *name, PyObject *v);
 };
 
+class PyAUTHENT :public PyObject
+{
+public:
+	PyHFC *m_parent;
+public:
+	PyAUTHENT(PyHFC *);
+	~PyAUTHENT();
+	HTTP_FILTER_CONTEXT *GetFILTER_CONTEXT();
+	HTTP_FILTER_AUTHENT *GetAUTHENT();
+public:	
+	// Python support 
+	static void deallocFunc(PyObject *ob);
+	static PyObject *getattr(PyObject *self, char *name);
+	static int setattr(PyObject *self, char *name, PyObject *v);
+};
+
 class PyFILTER_LOG:public PyObject
 {
 public:

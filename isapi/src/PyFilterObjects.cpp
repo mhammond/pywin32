@@ -165,9 +165,18 @@ PyObject * PyHFC::GetData(PyObject *self, PyObject *args)
 		// @flag SF_NOTIFY_LOG|<o HTTP_FILTER_LOG>
 		case SF_NOTIFY_LOG:
 			return new PyFILTER_LOG(me);
-		// @flag SF_NOTIFY_SEND_RAW_DATA|<o SF_NOTIFY_SEND_RAW_DATA>
+		// @flag SF_NOTIFY_SEND_RAW_DATA|<o HTTP_FILTER_RAW_DATA>
+		// @flag SF_NOTIFY_READ_RAW_DATA|<o HTTP_FILTER_RAW_DATA>
 		case SF_NOTIFY_SEND_RAW_DATA:
+		case SF_NOTIFY_READ_RAW_DATA:
 			return new PyRAW_DATA(me);
+		// @flag SF_NOTIFY_AUTHENTICATION|<o HTTP_FILTER_AUTHENT>
+		case SF_NOTIFY_AUTHENTICATION:
+			return new PyAUTHENT(me);
+		// todo:
+		// SF_NOTIFY_ACCESS_DENIED HTTP_FILTER_ACCESS_DENIED
+		// SF_NOTIFY_SEND_RESPONSE HTTP_FILTER_SEND_RESPONSE
+		// SF_NOTIFY_AUTH_COMPLETE HTTP_FILTER_AUTH_COMPLETE_INFO 
 		default:
 			PyErr_Format(PyExc_ValueError, "Don't understand data of type 0x%x", me->m_notificationType);
 			return NULL;
@@ -680,7 +689,7 @@ HTTP_FILTER_RAW_DATA *PyRAW_DATA::GetRAW_DATA()
 	void *vdata;
 	DWORD requestType;
 	m_parent->GetFilterContext()->GetFilterData(&pFC, &requestType, &vdata);
-	assert(requestType==SF_NOTIFY_RAW_DATA);
+	assert(requestType==SF_NOTIFY_SEND_RAW_DATA || requestType==SF_NOTIFY_READ_RAW_DATA);
 	return (HTTP_FILTER_RAW_DATA *)vdata;
 }
 
@@ -706,7 +715,7 @@ int PyRAW_DATA::setattr(PyObject *self, char *name, PyObject *v)
 {
 	HTTP_FILTER_RAW_DATA *pRD = ((PyRAW_DATA*)self)->GetRAW_DATA();
 	HTTP_FILTER_CONTEXT *pFC = NULL;
-	((PyFILTER_LOG *)self)->m_parent->GetFilterContext()->GetFilterData(&pFC, NULL, NULL);
+	((PyRAW_DATA *)self)->m_parent->GetFilterContext()->GetFilterData(&pFC, NULL, NULL);
 	if (!pRD || !pFC)
 		return NULL;
 
@@ -735,6 +744,138 @@ int PyRAW_DATA::setattr(PyObject *self, char *name, PyObject *v)
 void PyRAW_DATA::deallocFunc(PyObject *ob)
 {
 	delete (PyRAW_DATA *)ob;
+}
+
+/////////////////////////////////////////////////////////////////////////
+// HTTP_FILTER_AUTHENT object
+/////////////////////////////////////////////////////////////////////////
+
+// @object HTTP_FILTER_AUTHENT|A Python representation of an ISAPI
+// HTTP_FILTER_AUTHENT structure.
+static struct PyMethodDef PyAUTHENT_methods[] = {
+	{NULL}
+};
+
+PyTypeObject PyAUTHENTType =
+{
+	PyObject_HEAD_INIT(&PyType_Type)
+	0,
+	"HTTP_FILTER_AUTHENT",
+	sizeof(PyAUTHENT),
+	0,
+	PyAUTHENT::deallocFunc,	/* tp_dealloc */
+	0,					/* tp_print */
+	PyAUTHENT::getattr,		/* tp_getattr */
+	0,		/* tp_setattr */
+	0,
+	0,					/* tp_repr */
+	0,					/* tp_as_number */
+	0,					/* tp_as_sequence */
+	0,					/* tp_as_mapping */
+	0,
+	0,					/* tp_call */
+	0,					/* tp_str */
+};
+
+PyAUTHENT::PyAUTHENT(PyHFC *pParent)
+{
+	ob_type = &PyAUTHENTType;
+	_Py_NewReference(this);
+
+	m_parent = pParent;
+	Py_INCREF(m_parent);
+}
+
+PyAUTHENT::~PyAUTHENT()
+{
+	Py_XDECREF(m_parent);
+}
+
+HTTP_FILTER_CONTEXT *PyAUTHENT::GetFILTER_CONTEXT()
+{
+	HTTP_FILTER_CONTEXT *pFC;
+	m_parent->GetFilterContext()->GetFilterData(&pFC, NULL, NULL);
+	return pFC;
+}
+
+HTTP_FILTER_AUTHENT *PyAUTHENT::GetAUTHENT()
+{
+	HTTP_FILTER_CONTEXT *pFC;
+	void *vdata;
+	DWORD requestType;
+	m_parent->GetFilterContext()->GetFilterData(&pFC, &requestType, &vdata);
+	assert(requestType==SF_NOTIFY_AUTHENTICATION);
+	return (HTTP_FILTER_AUTHENT *)vdata;
+}
+
+PyObject *PyAUTHENT::getattr(PyObject *self, char *name)
+{
+	HTTP_FILTER_AUTHENT *pAE = ((PyAUTHENT*)self)->GetAUTHENT();
+	if (!pAE)
+		return NULL;
+	// @prop string|User|
+	if (strcmp(name, "User")==0) {
+		if (pAE->pszUser==NULL) {
+			Py_INCREF(Py_None);
+			return Py_None;
+		}
+		return PyString_FromString((const char *)pAE->pszUser);
+	}
+	// @prop string|Password|
+	if (strcmp(name, "Password")==0) {
+		if (pAE->pszPassword==NULL) {
+			Py_INCREF(Py_None);
+			return Py_None;
+		}
+		return PyString_FromString((const char *)pAE->pszPassword);
+	}
+	PyErr_Format(PyExc_AttributeError, "HTTP_FILTER_AUTHENT objects have no attribute '%s'", name);
+	return NULL;
+}
+
+int PyAUTHENT::setattr(PyObject *self, char *name, PyObject *v)
+{
+	HTTP_FILTER_AUTHENT *pAE = ((PyAUTHENT*)self)->GetAUTHENT();
+	HTTP_FILTER_CONTEXT *pFC = NULL;
+	((PyAUTHENT *)self)->m_parent->GetFilterContext()->GetFilterData(&pFC, NULL, NULL);
+	if (!pAE || !pFC)
+		return NULL;
+
+	if (strcmp(name, "User")==0) {
+		if (!PyString_Check(v)) {
+			PyErr_Format(PyExc_TypeError,
+			             "User must be a string (got %s)", v->ob_type->tp_name);
+			return -1;
+		}
+		DWORD cch = PyString_Size(v);
+		if (cch >= pAE->cbUserBuff) {
+			PyErr_Format(PyExc_ValueError, "The value is too long - max size is %d", pAE->cbUserBuff);
+			return -1;
+		}
+		strcpy(pAE->pszUser, PyString_AS_STRING(v));
+		return 0;
+	}
+	if (strcmp(name, "Password")==0) {
+		if (!PyString_Check(v)) {
+			PyErr_Format(PyExc_TypeError,
+			             "Password must be a string (got %s)", v->ob_type->tp_name);
+			return -1;
+		}
+		DWORD cch = PyString_Size(v);
+		if (cch >= pAE->cbPasswordBuff) {
+			PyErr_Format(PyExc_ValueError, "The value is too long - max size is %d", pAE->cbPasswordBuff);
+			return -1;
+		}
+		strcpy(pAE->pszPassword, PyString_AS_STRING(v));
+		return 0;
+	}
+	PyErr_Format(PyExc_AttributeError, "HTTP_FILTER_AUTHENT objects have no attribute '%s'", name);
+	return -1;
+}
+
+void PyAUTHENT::deallocFunc(PyObject *ob)
+{
+	delete (PyAUTHENT *)ob;
 }
 
 /////////////////////////////////////////////////////////////////////////
