@@ -24,6 +24,7 @@ from win32com.client import NeedUnicodeConversions
 
 import pythoncom
 from pywintypes import UnicodeType, TimeType
+import winerror
 
 # A string ending with a quote can not be safely triple-quoted.
 def _safeQuotedString(s):
@@ -449,7 +450,15 @@ def _ResolveType(typerepr, itypeinfo):
 			# sheesh - return _something_
 			return pythoncom.VT_CARRAY, None, None
 		if indir_vt == pythoncom.VT_USERDEFINED:
-			resultTypeInfo = itypeinfo.GetRefTypeInfo(subrepr)
+			try:
+				resultTypeInfo = itypeinfo.GetRefTypeInfo(subrepr)
+			except pythoncom.com_error, details:
+				if details[0] in [winerror.TYPE_E_CANTLOADLIBRARY,
+				                  winerror.TYPE_E_LIBNOTREGISTERED]:
+					# an unregistered interface
+					return pythoncom.VT_UNKNOWN, None, None
+				raise
+
 			resultAttr = resultTypeInfo.GetTypeAttr()
 			typeKind = resultAttr.typekind
 			if typeKind == pythoncom.TKIND_ALIAS:
