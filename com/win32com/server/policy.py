@@ -509,7 +509,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
       self._name_to_dispid_['_evaluate'] = DISPID_EVALUATE
       self._dispid_to_func_[DISPID_EVALUATE] = '_Evaluate'
 
-    dispid = self._allocnextdispid(999)
+    next_dispid = self._allocnextdispid(999)
     # note: funcs have precedence over attrs (install attrs first)
     if hasattr(ob, '_public_attrs_'):
       if hasattr(ob, '_readonly_attrs_'):
@@ -517,16 +517,21 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
       else:
         readonly = [ ]
       for name in ob._public_attrs_:
-        self._name_to_dispid_[string.lower(name)] = dispid
+        dispid = self._name_to_dispid_.get(name.lower())
+        if dispid is None:
+          dispid = next_dispid
+          self._name_to_dispid_[name.lower()] = dispid
+          next_dispid = self._allocnextdispid(next_dispid)
         self._dispid_to_get_[dispid] = name
         if name not in readonly:
           self._dispid_to_put_[dispid] = name
-        dispid = self._allocnextdispid(dispid)
     for name in getattr(ob, "_public_methods_", []):
-      if not self._name_to_dispid_.has_key(string.lower(name)):
-         self._name_to_dispid_[string.lower(name)] = dispid
-         self._dispid_to_func_[dispid] = name
-         dispid = self._allocnextdispid(dispid)
+      dispid = self._name_to_dispid_.get(name.lower())
+      if dispid is None:
+        dispid = next_dispid
+        self._name_to_dispid_[name.lower()] = dispid
+        next_dispid = self._allocnextdispid(next_dispid)
+      self._dispid_to_func_[dispid] = name
     self._typeinfos_ = None # load these on demand.
 
   def _build_typeinfos_(self):
