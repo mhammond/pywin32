@@ -113,7 +113,9 @@ void PyVERSION_INFO::deallocFunc(PyObject *ob)
 // Extension block wrapper
 /////////////////////////////////////////////////////////////////////
 
-
+#ifdef ARRAYSIZE
+#undef ARRAYSIZE
+#endif
 #define ARRAYSIZE(x) (sizeof(x)/sizeof(x[0]))
 #define ECBOFF(e) offsetof(PyECB, e)
 
