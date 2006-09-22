@@ -132,6 +132,43 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
                  nFileSize=sys.maxint + 1)
         self._testRT(d)
 
+    def testUnicode(self):
+        # exercise a bug fixed in build 210 - multiple unicode objects failed.
+        if sys.hexversion < 0x2030000:
+            # no kw-args to dict in 2.2 - not worth converting!
+            return
+        d = [dict(cFileName=u"foo.txt",
+                 sizel=(1,2),
+                 pointl=(3,4),
+                 dwFileAttributes = win32con.FILE_ATTRIBUTE_NORMAL,
+                 ftCreationTime=pythoncom.MakeTime(10),
+                 ftLastAccessTime=pythoncom.MakeTime(11),
+                 ftLastWriteTime=pythoncom.MakeTime(12),
+                 nFileSize=sys.maxint + 1),
+            dict(cFileName=u"foo2.txt",
+                 sizel=(1,2),
+                 pointl=(3,4),
+                 dwFileAttributes = win32con.FILE_ATTRIBUTE_NORMAL,
+                 ftCreationTime=pythoncom.MakeTime(10),
+                 ftLastAccessTime=pythoncom.MakeTime(11),
+                 ftLastWriteTime=pythoncom.MakeTime(12),
+                 nFileSize=sys.maxint + 1),
+            dict(cFileName=u"foo\xa9.txt",
+                 sizel=(1,2),
+                 pointl=(3,4),
+                 dwFileAttributes = win32con.FILE_ATTRIBUTE_NORMAL,
+                 ftCreationTime=pythoncom.MakeTime(10),
+                 ftLastAccessTime=pythoncom.MakeTime(11),
+                 ftLastWriteTime=pythoncom.MakeTime(12),
+                 nFileSize=sys.maxint + 1),
+            ]
+        s = shell.FILEGROUPDESCRIPTORAsString(d, 1)
+        d2 = shell.StringAsFILEGROUPDESCRIPTOR(s)
+        # clobber 'dwFlags' - they are not expected to be identical
+        for t in d2:
+            del t['dwFlags']
+        self.assertEqual(d, d2)
+
 class FileOperationTester(win32com.test.util.TestCase):
     def setUp(self):
         import tempfile

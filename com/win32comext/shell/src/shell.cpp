@@ -1759,10 +1759,19 @@ static PyObject *PyFILEGROUPDESCRIPTORAsString(PyObject *self, PyObject *args)
 	fgd->cItems = num;
 	for (i=0;i<num;i++) {
 		BOOL ok = TRUE;
-		FILEDESCRIPTORA *fd = fgd->fgd+i;
-		FILEDESCRIPTORW *fdw = fgdw->fgd+i;
 		// These structures are the same until the very end, where the
 		// unicode/ascii buffer is - so we can use either pointer
+		// BUT - their start pointer *does* depend on Unicode - so
+		// handle that.
+		FILEDESCRIPTORA *fd;
+		FILEDESCRIPTORW *fdw;
+		if (make_unicode) {
+			fdw = fgdw->fgd+i;
+			fd = (FILEDESCRIPTORA *)fdw;
+		} else {
+			fd = fgd->fgd+i;
+			fdw = (FILEDESCRIPTORW *)fd;
+		}
 		PyObject *attr;
 		PyObject *sub = PySequence_GetItem(ob, i);
 		if (!sub) goto done;
@@ -1940,8 +1949,15 @@ static PyObject *PyStringAsFILEGROUPDESCRIPTOR(PyObject *self, PyObject *args)
 	ret = PyList_New(num);
 	if (!ret) return NULL;
 	for (i=0;i<num;i++) {
-		FILEDESCRIPTORA *fd = fgd->fgd+i;
-		FILEDESCRIPTORW *fdw = fgdw->fgd+i;
+		FILEDESCRIPTORA *fd;
+		FILEDESCRIPTORW *fdw;
+		if (make_unicode) {
+			fdw = fgdw->fgd+i;
+			fd = (FILEDESCRIPTORA *)fdw;
+		} else {
+			fd = fgd->fgd+i;
+			fdw = (FILEDESCRIPTORW *)fd;
+		}
 		PyObject *sub = PyDict_New();
 		if (!sub) goto done;
 		PyObject *val;
