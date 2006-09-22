@@ -278,7 +278,7 @@ long PyHANDLE::hashFunc(PyObject *ob)
 long PyHANDLE::hash(void)
 {
 	// Just use the address.
-	return (long)this;
+	return _Py_HashPointer(this);
 }
 
 int PyHANDLE::print(FILE *fp, int flags)
