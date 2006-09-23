@@ -5,6 +5,28 @@ Generally created by hand after running:
    {py_dir}\Tools\scripts\logmerge.py -t < log.out > log.out2
 However contributors are encouraged to add their own entries for their work.
 
+Build 210 - Sept. 23 2006
+-------------------------
+* Roger created win32profile module for working with user profiles
+* Roger created win32cred module - interface to credentials management
+* Roger added win32file functions for backing up and restoring encrypted files
+* Add win32api.GetModuleFileNameW(), SetEnvironmentVariable()
+* win32file.AcceptEx now indicates if the function was successful.
+* OVERLAPPED objects are now hashable [ 1408485 ]
+* Roger added win32file.ReplaceFile, CopyFileEx and MoveFileWithProgress
+* Added win32uiole.AfxOleInit, SetMessagePendingDelay, 
+  EnableNotRespondingDialog and EnableBusyDialog.
+* win32net gets support for USER_INFO_4 structures
+* Roger changes win32file.MoveFileEx to accept NULL for destination, added 
+  SetFileShortName
+* Missing typelibs could cause incomplete gen_py cache file [ 1548903 ]
+* DISPIDs would sometime be incorrect when multiple typelibs used [ 1457673 ]
+* ISAPI filters get support for HTTP_FILTER_AUTHENT and HTTP_FILTER_RAW_DATA
+* Prevent ISAPI filters and extensions getting "\\?\c:\" style filenames.
+* win32com.shell.shell fixes bug in FILEDESCRIPTORW packing, gets a few
+  unicode related additions.
+* Fix memory leak when passing datetime() objects to COM functions.
+
 Build 209
 ---------
 * Roger Upole added IEnumString, IShellLinkDataList, IUniformResourceLocator
