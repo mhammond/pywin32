@@ -2718,7 +2718,8 @@ static PyObject *PyLsaUnregisterPolicyChangeNotification(PyObject *self, PyObjec
 %}
 
 
-// @pyswig object|CryptEnumProviders|List cryptography providers
+// @pyswig [(<o PyUnicode>,int),...]|CryptEnumProviders|List cryptography providers
+// @rdesc Returns a sequence of tuples containing provider name and type
 %native(CryptEnumProviders) PyCryptEnumProviders;
 %{
 static PyObject *PyCryptEnumProviders(PyObject *self, PyObject *args)
@@ -2729,41 +2730,43 @@ static PyObject *PyCryptEnumProviders(PyObject *self, PyObject *args)
 	DWORD dwFlags=0, dwIndex=0, dwReserved=NULL, dwProvType=0, cbProvName=0;
 	WCHAR *pszProvName=NULL;
 	PyObject *ret=PyList_New(0);
+	if (ret==NULL)
+		return NULL;
 	PyObject *ret_item=NULL;
-	BOOL succeeded = TRUE;
 	DWORD err = 0;
-	do{
+	while(TRUE){
 		cbProvName=0;
 		pszProvName=NULL;
-		succeeded = (*pfnCryptEnumProviders)(dwIndex, NULL, dwFlags, &dwProvType, NULL, &cbProvName);
-		if (!succeeded)
+		ret_item=NULL;
+		if(!(*pfnCryptEnumProviders)(dwIndex, NULL, dwFlags, &dwProvType, NULL, &cbProvName)){
+			err=GetLastError();
 			break;
-		// test breaking out of loop if out of memory
-		// if (dwIndex==3)
-		//	cbProvName=0x77777777;
+			}
 		pszProvName = (WCHAR *)malloc(cbProvName);
 		if (pszProvName==NULL){
-			Py_DECREF(ret);
-			PyErr_SetString(PyExc_MemoryError, "CryptEnumProviders: SOM");
-			return NULL;
-			}
-		succeeded = (*pfnCryptEnumProviders)(dwIndex, NULL, dwFlags, &dwProvType, pszProvName, &cbProvName);
-		if (!succeeded){
-			free(pszProvName);
+			PyErr_Format(PyExc_MemoryError, "CryptEnumProviders: Unable to allocate %d bytes", cbProvName);
 			break;
 			}
-		ret_item = Py_BuildValue("ul",pszProvName, dwProvType);
-		PyList_Append(ret, ret_item);
+		if (!(*pfnCryptEnumProviders)(dwIndex, NULL, dwFlags, &dwProvType, pszProvName, &cbProvName)){
+			err=GetLastError();
+			break;
+			}
+		ret_item = Py_BuildValue("uk",pszProvName, dwProvType);
+		if ((ret_item==NULL) || (PyList_Append(ret, ret_item)==-1))
+			break;
 		Py_DECREF(ret_item);
 		free(pszProvName);
 		dwIndex++;
 		}
-	while (succeeded);
-	err=GetLastError();
+	// cleanup in case loop exited with error
+	Py_XDECREF(ret_item);
+	if (pszProvName)
+		free(pszProvName);
 	if (err != ERROR_NO_MORE_ITEMS){
 		Py_DECREF(ret);
 		ret=NULL;
-		PyWin_SetAPIError("CryptEnumProviders",err);
+		if (!PyErr_Occurred())
+			PyWin_SetAPIError("CryptEnumProviders",err);
 		}
 	return ret;
 }
