@@ -66,6 +66,7 @@ public:
 	static PyObject * GetServerVariable(PyObject *self, PyObject *args);
 	// ServerSupportFunction implemented functions.
 	static PyObject * SendResponseHeader(PyObject *self, PyObject *args);
+	static PyObject * DisableNotifications(PyObject *self, PyObject *args);
 
 protected:
 

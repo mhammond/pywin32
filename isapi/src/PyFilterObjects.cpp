@@ -269,6 +269,28 @@ PyObject * PyHFC::SendResponseHeader(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod |HTTP_FILTER_CONTEXT|DisableNotifications|
+PyObject * PyHFC::DisableNotifications(PyObject *self, PyObject *args)
+{
+	BOOL bRes = FALSE;
+	DWORD flags;
+	PyHFC * phfc = (PyHFC *) self;
+	// @pyparm int|flags||
+	if (!PyArg_ParseTuple(args, "l:DisableNotifications", &flags))
+		return NULL;
+
+	if (!phfc->m_pfc)
+		return PyErr_Format(PyExc_RuntimeError, "No filtercontext!");
+	Py_BEGIN_ALLOW_THREADS
+	bRes = phfc->m_pfc->ServerSupportFunction(SF_REQ_DISABLE_NOTIFICATIONS,
+	                                          0, flags, 0);
+	Py_END_ALLOW_THREADS
+	if (!bRes)
+		return SetPyHFCError("DisableNotifications");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 // @object HTTP_FILTER_CONTEXT|A Python representation of an ISAPI
 // HTTP_FILTER_CONTEXT structure.
 static struct PyMethodDef PyHFC_methods[] = {
@@ -277,6 +299,7 @@ static struct PyMethodDef PyHFC_methods[] = {
 	{"WriteClient",             PyHFC::WriteClient, 1},  // @pymeth WriteClient|
 	{"write",				    PyHFC::WriteClient, 1},			 // @pymeth write|A synonym for WriteClient, this allows you to 'print >> fc'
 	{"SendResponseHeader",      PyHFC::SendResponseHeader, 1}, // @pymeth SendResponseHeader|
+	{"DisableNotifications",    PyHFC::DisableNotifications, 1}, // @pymeth DisableNotifications|
 	{NULL}
 };
 
@@ -651,7 +674,7 @@ PyTypeObject PyRAW_DATAType =
 	PyRAW_DATA::deallocFunc,	/* tp_dealloc */
 	0,					/* tp_print */
 	PyRAW_DATA::getattr,		/* tp_getattr */
-	0,		/* tp_setattr */
+	PyRAW_DATA::setattr,		/* tp_setattr */
 	0,
 	0,					/* tp_repr */
 	0,					/* tp_as_number */
@@ -766,7 +789,7 @@ PyTypeObject PyAUTHENTType =
 	PyAUTHENT::deallocFunc,	/* tp_dealloc */
 	0,					/* tp_print */
 	PyAUTHENT::getattr,		/* tp_getattr */
-	0,		/* tp_setattr */
+	PyAUTHENT::setattr,		/* tp_setattr */
 	0,
 	0,					/* tp_repr */
 	0,					/* tp_as_number */
