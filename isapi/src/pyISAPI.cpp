@@ -72,7 +72,7 @@ BOOL WINAPI GetExtensionVersion(HSE_VERSION_INFO *pVer)
 	}
 	PyObject *resultobject = NULL;
 	bool bRetStatus = true;
-	PyGILState_STATE state = PyGILState_Ensure();
+	CEnterLeavePython celp;
 
 	// create the Python object
 	PyVERSION_INFO *pyVO = new PyVERSION_INFO(pVer);
@@ -91,14 +91,13 @@ BOOL WINAPI GetExtensionVersion(HSE_VERSION_INFO *pVer)
 		}
 	}
 	Py_XDECREF(resultobject);
-	PyGILState_Release(state);
 	return bRetStatus;
 }
 
 DWORD WINAPI HttpExtensionProc(EXTENSION_CONTROL_BLOCK *pECB)
 {
 	DWORD result;
-	PyGILState_STATE state = PyGILState_Ensure();
+	CEnterLeavePython celp;
 	CControlBlock * pcb = new CControlBlock(pECB);
 	// PyECB takes ownership of pcb - so when it dies, so does pcb.
 	// As this may die inside Callback, we need to keep our own
@@ -122,7 +121,6 @@ DWORD WINAPI HttpExtensionProc(EXTENSION_CONTROL_BLOCK *pECB)
 	}
 	Py_DECREF(pyECB);
 	Py_XDECREF(resultobject);
-	PyGILState_Release(state);
 	return result;
 }
 
@@ -130,7 +128,7 @@ BOOL WINAPI TerminateExtension(DWORD dwFlags)
 {
 	// extension is being terminated
 	BOOL bRetStatus;
-	PyGILState_STATE state = PyGILState_Ensure();
+	CEnterLeavePython celp;
 	PyObject *resultobject = extensionHandler.Callback(HANDLER_TERM, "(i)", dwFlags);
 	if (! resultobject) {
 		ExtensionError(NULL, "Extension term function failed!");
@@ -146,7 +144,6 @@ BOOL WINAPI TerminateExtension(DWORD dwFlags)
 		}
 	}
 	Py_XDECREF(resultobject);
-	PyGILState_Release(state);
 	extensionHandler.Term();
 	return bRetStatus;
 }
@@ -160,7 +157,7 @@ BOOL WINAPI GetFilterVersion(HTTP_FILTER_VERSION *pVer)
 		// error already imported.
 		return FALSE;
 
-	PyGILState_STATE state = PyGILState_Ensure();
+	CEnterLeavePython celp;
 	PyFILTER_VERSION *pyFV = new PyFILTER_VERSION(pVer);
 	PyObject *resultobject = filterHandler.Callback(HANDLER_INIT, "(N)", pyFV);
 	BOOL bRetStatus;
@@ -178,14 +175,13 @@ BOOL WINAPI GetFilterVersion(HTTP_FILTER_VERSION *pVer)
 		}
 	}
 	Py_XDECREF(resultobject);
-	PyGILState_Release(state);
 	return bRetStatus;
 }
 
 DWORD WINAPI HttpFilterProc(HTTP_FILTER_CONTEXT *phfc, DWORD NotificationType, VOID *pvData)
 {
 	DWORD action;
-	PyGILState_STATE state = PyGILState_Ensure();
+	CEnterLeavePython celp;
 
 	PyObject *resultobject = NULL;
 
@@ -214,7 +210,6 @@ DWORD WINAPI HttpFilterProc(HTTP_FILTER_CONTEXT *phfc, DWORD NotificationType, V
 	pyHFC->Reset();
 	Py_DECREF(pyHFC);
 	Py_XDECREF(resultobject);
-	PyGILState_Release(state);
 	return action;
 }
 
@@ -223,7 +218,7 @@ DWORD WINAPI HttpFilterProc(HTTP_FILTER_CONTEXT *phfc, DWORD NotificationType, V
 BOOL WINAPI TerminateFilter(DWORD status)
 {
 	BOOL bRetStatus;
-	PyGILState_STATE state = PyGILState_Ensure();
+	CEnterLeavePython celp;
 	PyObject *resultobject = filterHandler.Callback(HANDLER_TERM, "(i)", status);
 	if (! resultobject) {
 		FilterError(NULL, "Filter version function failed!");
@@ -239,7 +234,6 @@ BOOL WINAPI TerminateFilter(DWORD status)
 		}
 	}
 	Py_XDECREF(resultobject);
-	PyGILState_Release(state);
 	// filter is being terminated
 	filterHandler.Term();
 	return bRetStatus;

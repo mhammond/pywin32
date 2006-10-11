@@ -93,4 +93,14 @@ protected:
 
 void ExtensionError(CControlBlock *pcb, LPCTSTR errmsg);
 void FilterError(CFilterContext *pfc,  LPCTSTR errmsg);
+
+class CEnterLeavePython {
+public:
+	CEnterLeavePython() : state(PyGILState_Ensure()) {;}
+	~CEnterLeavePython() {PyGILState_Release(state);}
+protected:
+	PyGILState_STATE state;
+
+};
+
 #endif // __PythonEngine_H

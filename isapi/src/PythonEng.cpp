@@ -84,7 +84,7 @@ bool CPythonEngine::InitMainInterp(void)
 		PyObject *isapi_package = PyImport_ImportModule("isapi");
 		if (isapi_package)
 			m_reload_exception = PyObject_GetAttrString(isapi_package,
-														"InternalReloadException");
+			                             "InternalReloadException");
 		Py_XDECREF(isapi_package);
 		PyGILState_Release(old_state);
 		FindModuleName();
@@ -189,7 +189,7 @@ bool CPythonHandler::LoadHandler(bool reload)
 {
 	char szErrBuf[1024];
 	PyObject *m;
-	PyGILState_STATE old_state = PyGILState_Ensure();
+	CEnterLeavePython celp;
 	m = PyImport_ImportModule(m_engine->m_module_name);
 	if (m && reload) {
 		PyObject *m_orig = m;
@@ -209,8 +209,7 @@ bool CPythonHandler::LoadHandler(bool reload)
 			ExtensionError(NULL, szErrBuf);
 		}
 		Py_DECREF(m);
-    }
-	PyGILState_Release(old_state);
+	}
 	return m_handler != NULL;
 }
 
@@ -220,7 +219,7 @@ bool CPythonHandler::CheckCallback(const char *cbname, PyObject **cb)
 	if (*cb!=NULL)
 		return true; // already have the callback.
 
-	PyGILState_STATE old_state = PyGILState_Ensure();
+	CEnterLeavePython celp;
 	if (!m_handler) {
 		PyErr_SetString(PyExc_RuntimeError, "The handler failed to load");
 		return false;
@@ -228,7 +227,6 @@ bool CPythonHandler::CheckCallback(const char *cbname, PyObject **cb)
 	*cb = PyObject_GetAttrString(m_handler, (char *)cbname);
 	if (!*cb)
 		ExtensionError(NULL, "Failed to locate the callback");
-	PyGILState_Release(old_state);
 	return (*cb) != NULL;
 }
 
@@ -353,7 +351,8 @@ void ExtensionError(CControlBlock *pcb, LPCTSTR errmsg)
 {
 	char *windows_error = ::GetLastError() ?
 	                          ::FormatSysError(::GetLastError()) : NULL;
-	PyGILState_STATE s = PyGILState_Ensure();
+	{ // temp scope to release python lock
+	CEnterLeavePython celp;
 	PySys_WriteStderr("Internal Extension Error: %s\n", errmsg);
 	if (windows_error)
 		PySys_WriteStderr("Last Windows error: %s\n", windows_error);
@@ -361,7 +360,7 @@ void ExtensionError(CControlBlock *pcb, LPCTSTR errmsg)
 		PyErr_Print();
 		PyErr_Clear();
 	}
-	PyGILState_Release(s);
+	} // end temp scope
 	if (pcb) {
 		char *htmlStream = HTMLErrorResp(errmsg);
 	
@@ -381,12 +380,11 @@ void ExtensionError(CControlBlock *pcb, LPCTSTR errmsg)
 
 void FilterError(CFilterContext *pfc,  LPCTSTR errmsg)
 {
-	PyGILState_STATE s = PyGILState_Ensure();
+	CEnterLeavePython celp;
 	PySys_WriteStderr("Internal Filter Error: %s\n", errmsg);
 	if (PyErr_Occurred()) {
 		PyErr_Print();
 		PyErr_Clear();
 	}
-	PyGILState_Release(s);
 	// what else to do here? AddResponseHeaders->WriteClient?
 }
