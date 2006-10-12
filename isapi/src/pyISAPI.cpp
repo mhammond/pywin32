@@ -174,6 +174,9 @@ BOOL WINAPI GetFilterVersion(HTTP_FILTER_VERSION *pVer)
 			bRetStatus = FALSE;
 		}
 	}
+	if (bRetStatus)
+		// We need the SF_NOTIFY_END_OF_NET_SESSION notification for cleanup
+		pVer->dwFlags |= SF_NOTIFY_END_OF_NET_SESSION;
 	Py_XDECREF(resultobject);
 	return bRetStatus;
 }
@@ -210,6 +213,9 @@ DWORD WINAPI HttpFilterProc(HTTP_FILTER_CONTEXT *phfc, DWORD NotificationType, V
 	pyHFC->Reset();
 	Py_DECREF(pyHFC);
 	Py_XDECREF(resultobject);
+	// If last message for this filter context, free our context object.
+	if (NotificationType == SF_NOTIFY_END_OF_NET_SESSION)
+		Py_XDECREF((PyObject *)phfc->pFilterContext);
 	return action;
 }
 

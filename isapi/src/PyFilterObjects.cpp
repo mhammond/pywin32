@@ -370,6 +370,19 @@ PyObject *PyHFC::getattr(PyObject *self, char *name)
 	if (_tcscmp(name, _T("__members__"))==0)
 		return PyMember_Get((char *)self, PyHFC::PyHFC_memberlist, name);
 
+	// other manual attributes.
+	if (_tcscmp(name, _T("FilterContext"))==0) {
+	// @prop object|FilterContext|Any object you wish to associate with the request.
+
+		HTTP_FILTER_CONTEXT *pfc;
+		((PyHFC *)self)->GetFilterContext()->GetFilterData(&pfc, NULL, NULL);
+		PyObject *ret = (PyObject *)pfc->pFilterContext;
+		if (!ret)
+			ret = Py_None;
+		Py_INCREF(ret);
+		return ret;
+	}
+
 	// must be a method
 	return Py_FindMethod(PyHFC_methods, self, name);
 }
@@ -379,6 +392,24 @@ int PyHFC::setattr(PyObject *self, char *name, PyObject *v)
 	if (v == NULL) {
 		PyErr_SetString(PyExc_AttributeError, "can't delete ECB attributes");
 		return -1;
+	}
+
+	// other manual attributes.
+	if (_tcscmp(name, _T("FilterContext"))==0) {
+		HTTP_FILTER_CONTEXT *pfc;
+		((PyHFC *)self)->GetFilterContext()->GetFilterData(&pfc, NULL, NULL);
+		// Use C++ reference so pyfc really *is* pFilterContext
+		PyObject *&pyfc = (PyObject *&)pfc->pFilterContext;
+		Py_XDECREF(pyfc);
+		if (v == Py_None)
+			pyfc = NULL;
+		else {
+			pyfc = v;
+			// This reference cleaned up in SF_NOTIFY_END_OF_NET_SESSION
+			// handler in pyISAPI.cpp.
+			Py_INCREF(v);
+		}
+		return 0;
 	}
 
 	PyErr_SetString(PyExc_AttributeError, "can't modify read only ECB attributes.");
