@@ -26,6 +26,7 @@
 #include "stdafx.h"
 #include "Utils.h"
 #include "PyExtensionObjects.h"
+#include "PythonEng.h"
 
 // @doc
 // @object HSE_VERSION_INFO|An object used by ISAPI GetExtensionVersion
@@ -146,6 +147,8 @@ static struct PyMethodDef PyECB_methods[] = {
 	{"GetServerVariable",		PyECB::GetServerVariable, 1},	 // @pymeth GetServerVariable|
 	{"ReadClient",				PyECB::ReadClient, 1},			 // @pymeth ReadClient|
 	{"SendResponseHeaders",	    PyECB::SendResponseHeaders, 1},  // @pymeth SendResponseHeaders|
+	{"TransmitFile",	    PyECB::TransmitFile, 1},  // @pymeth TransmitFile|
+	{"MapURLToPath",	    PyECB::MapURLToPath, 1},  // @pymeth MapURLToPath|
 	
 	{"DoneWithSession",	        PyECB::DoneWithSession, 1},      // @pymeth DoneWithSession|
 	{"close",                   PyECB::DoneWithSession, 1},      // @pymeth close|A synonym for DoneWithSession.
@@ -246,6 +249,9 @@ PyObject *PyECB::getattr(PyObject *self, char *name)
 	// see if its the special members attribute
 	if (_tcscmp(name, _T("__members__"))==0)
 		return PyMember_Get((char *)self, PyECB::PyECB_memberlist, name);
+
+	if (_tcscmp(name, _T("softspace"))==0) // help 'print' semantics.
+		return PyInt_FromLong(1);
 
 	// must be a method
 	return Py_FindMethod(PyECB_methods, self, name);
@@ -486,7 +492,101 @@ PyObject * PyECB::GetImpersonationToken(PyObject *self, PyObject *args)
 			return SetPyECBError("GetImpersonationToken");
 	return PyLong_FromVoidPtr(handle);
 }
-  
+
+class PyTFD {
+public:
+	PyTFD(PyObject *aCallable, PyObject *aArg) {
+		callable = aCallable;
+		Py_INCREF(callable);
+		arg = aArg;
+		Py_INCREF(arg);
+	}
+	void Cleanup() { // NOTE: This not valid after Cleanup!
+		Py_DECREF(callable);
+		Py_DECREF(arg);
+		delete this; // unusual, but ok :)
+	}
+	PyObject *callable;
+	PyObject *arg;
+};
+
+VOID WINAPI transmitFileCompletion(EXTENSION_CONTROL_BLOCK * pECB,
+                                   PVOID    pContext,
+                                   DWORD    cbIO,
+                                   DWORD    dwError)
+{
+	PyTFD *context = (PyTFD *)pContext;
+	CEnterLeavePython celp;
+
+	CControlBlock * pcb = new CControlBlock(pECB);
+	// PyECB takes ownership of pcb - so when it dies, so does pcb.
+	PyECB *pyECB = new PyECB(pcb);
+	if (pyECB && pcb) {
+		Py_INCREF(pyECB);
+		PyObject *realArgs = Py_BuildValue("NOii", pyECB, context->arg, cbIO, dwError);
+		if (realArgs) {
+			PyObject *rc = PyObject_Call(context->callable, realArgs, NULL);
+			if (rc)
+				Py_DECREF(rc);
+			else
+				ExtensionError(pcb, "TransmitFile callback failed");
+			Py_DECREF(realArgs);
+		Py_DECREF(pyECB);
+		}
+	}
+	context->Cleanup(); // let's hope we never get called again ;)
+}
+
+
+// @pymethod int|EXTENSION_CONTROL_BLOCK|TransmitFile|Calls ServerSupportFunction with HSE_REQ_TRANSMIT_FILE
+PyObject * PyECB::TransmitFile(PyObject *self, PyObject *args)
+{
+	PY_LONG_LONG hFile; // int no good for 64bit - but can find no "pointer" format!
+	HSE_TF_INFO info;
+	memset(&info, 0, sizeof(info));
+	PyObject *obCallback, *obCallbackParam;
+	if (!PyArg_ParseTuple(args, "OOKsiiz#z#i:TransmitFile",
+			      &obCallback, // @pyparm callable|callback||
+			      &obCallbackParam, // @pyparm object|param||Any object - passed as 2nd arg to callback.
+			      &hFile, // @pyparm int|hFile||
+			      &info.pszStatusCode, // @pyparm string|statusCode|
+			      &info.BytesToWrite, // @pyparm int|BytesToWrite||
+			      &info.Offset, // @pyparm int|Offset||
+			      &info.pHead, // @pyparm string|head||
+			      &info.HeadLength,
+			      &info.pTail, // @pyparm string|tail||
+			      &info.TailLength,
+			      &info.dwFlags // @pyparm int|flags||
+			      ))
+		return NULL;
+	info.hFile = (HANDLE)hFile;
+	// @desc The callback is called with 4 args - (<o PyECB>, param, cbIO, dwErrCode)
+
+	if (!PyCallable_Check(obCallback))
+		return PyErr_Format(PyExc_TypeError, "Callback is not callable");
+	// The 'pContext' is a pointer to a PyTFD structure.  The callback
+	// also free's the memory.
+	PyTFD *context = new PyTFD(obCallback, obCallbackParam);
+	if (!context)
+		return PyErr_NoMemory();
+	info.pfnHseIO = transmitFileCompletion;
+	info.pContext = context;
+
+	PyECB * pecb = (PyECB *) self;
+
+	BOOL bRes;
+	Py_BEGIN_ALLOW_THREADS
+	bRes = pecb->m_pcb->TransmitFile(&info);
+	Py_END_ALLOW_THREADS
+	if (!bRes) {
+		// ack - the completion routine will not be called - clean up!
+		context->Cleanup();
+		return SetPyECBError("TransmitFile");
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 // @pymethod |EXTENSION_CONTROL_BLOCK|IsKeepAlive|
 PyObject * PyECB::IsKeepAlive(PyObject *self, PyObject * args)
 {
@@ -504,6 +604,29 @@ PyObject * PyECB::IsKeepAlive(PyObject *self, PyObject * args)
 	}
 
 	return PyInt_FromLong((bKeepAlive)?1:0);
+}
+
+// @pymethod |EXTENSION_CONTROL_BLOCK|MapURLToPath|
+PyObject * PyECB::MapURLToPath(PyObject *self, PyObject * args)
+{
+	PyECB * pecb = (PyECB *) self;
+	// todo - handle ERROR_INSUFFICIENT_BUFFER - but 4k will do for now.
+	char buffer[1024*4];
+
+	char *url;
+	if (!PyArg_ParseTuple(args, "s:MapURLToPath", &url))
+		return NULL;
+	strncpy(buffer, url, sizeof(buffer));
+	buffer[sizeof(buffer)-1] = '\0';
+	DWORD bufSize = sizeof(buffer);
+	BOOL ok;
+
+	Py_BEGIN_ALLOW_THREADS
+	ok = pecb->m_pcb->MapURLToPath(buffer, &bufSize);
+	Py_END_ALLOW_THREADS
+	if (!ok)
+		return SetPyECBError("MapURLToPath");
+	return PyString_FromString(buffer);
 }
 
 // @pymethod |EXTENSION_CONTROL_BLOCK|DoneWithSession|Calls ServerSupportFunction with HSE_REQ_DONE_WITH_SESSION 

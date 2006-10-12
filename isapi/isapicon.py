@@ -102,3 +102,12 @@ SF_STATUS_REQ_NEXT_NOTIFICATION = 134217728 + 2
 SF_STATUS_REQ_HANDLED_NOTIFICATION = 134217728 + 3
 SF_STATUS_REQ_ERROR = 134217728 + 4
 SF_STATUS_REQ_READ_NEXT = 134217728 + 5
+
+HSE_IO_SYNC =                    0x00000001   # for WriteClient
+HSE_IO_ASYNC =                   0x00000002   # for WriteClient/TF/EU
+HSE_IO_DISCONNECT_AFTER_SEND =   0x00000004   # for TF
+HSE_IO_SEND_HEADERS =            0x00000008   # for TF
+HSE_IO_NODELAY =                 0x00001000   # turn off nagling 
+# These two are only used by VectorSend
+HSE_IO_FINAL_SEND =              0x00000010
+HSE_IO_CACHE_RESPONSE =          0x00000020

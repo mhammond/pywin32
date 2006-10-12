@@ -103,7 +103,7 @@ DWORD WINAPI HttpExtensionProc(EXTENSION_CONTROL_BLOCK *pECB)
 	// As this may die inside Callback, we need to keep our own
 	// reference so it is still valid should we wind up in ExtensionError.
 	PyECB *pyECB = new PyECB(pcb);
-	if (!pyECB)
+	if (!pyECB || !pcb)
 		// This is pretty fatal!
 		return HSE_STATUS_ERROR;
 	Py_INCREF(pyECB);

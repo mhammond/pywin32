@@ -110,10 +110,24 @@ public:
 			true : false;
 	}
 
+	bool TransmitFile(HSE_TF_INFO *info)
+	{
+		return (m_pECB->ServerSupportFunction)( m_pECB->ConnID,  DWORD HSE_REQ_TRANSMIT_FILE, info, 0,0) ?
+			true : false;
+	}
+
 	BOOL Redirect(LPCTSTR url)
 	{
 		DWORD buffSize = strlen(url);
 		BOOL bOK = (m_pECB->ServerSupportFunction)( m_pECB->ConnID,   HSE_REQ_SEND_URL_REDIRECT_RESP, (LPSTR) url, &buffSize,0);
+		return bOK;
+	}
+
+	BOOL MapURLToPath(LPCTSTR buffer, LPDWORD pSizeofBuffer)
+	{
+		BOOL bOK = (m_pECB->ServerSupportFunction)(m_pECB->ConnID,
+							   HSE_REQ_MAP_URL_TO_PATH,
+							   (void *)buffer, pSizeofBuffer,0);
 		return bOK;
 	}
 
