@@ -77,7 +77,9 @@ class Filter(SimpleFilter):
     def HttpFilterProc(self, fc):
         #print "Filter Dispatch"
         nt = fc.NotificationType
-        assert nt == isapicon.SF_NOTIFY_PREPROC_HEADERS
+        if nt != isapicon.SF_NOTIFY_PREPROC_HEADERS:
+            return isapicon.SF_STATUS_REQ_NEXT_NOTIFICATION
+
         pp = fc.GetData()
         url = pp.GetHeader("url")
         #print "URL is '%s'" % (url,)
@@ -86,7 +88,15 @@ class Filter(SimpleFilter):
             new_url = prefix + url
             print "New proxied URL is '%s'" % (new_url,)
             pp.SetHeader("url", new_url)
-            return isapicon.SF_STATUS_REQ_HANDLED_NOTIFICATION;
+            # For the sake of demonstration, show how the FilterContext
+            # attribute is used.  It always starts out life as None, and
+            # any assignments made are automatically decref'd by the
+            # framework during a SF_NOTIFY_END_OF_NET_SESSION notification.
+            if fc.FilterContext is None:
+                fc.FilterContext = 0
+            fc.FilterContext += 1
+            print "This is request number", fc.FilterContext, "on this connection"
+            return isapicon.SF_STATUS_REQ_HANDLED_NOTIFICATION
         else:
             print "Filter ignoring URL '%s'" % (url,)
             
