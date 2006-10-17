@@ -92,8 +92,18 @@ class AXScriptException(win32com.server.exception.COMException):
 			raise sys.exc_info()
 
 	def _BuildFromSyntaxError(self, site, value, tb):
+		# All syntax errors should have a message as element 0
 		try:
-			msg, (filename, lineno, offset, line) = value
+			msg = value[0]
+		except:
+			msg = "Unknown Error (%s)" % (value,)
+		try:
+			(filename, lineno, offset, line) = value[1]
+			# Some of these may be None, which upsets us!
+			if offset is None:
+				offset = 0
+			if line is None:
+				line = ""
 		except:
 			msg = "Unknown"
 			lineno = 0
