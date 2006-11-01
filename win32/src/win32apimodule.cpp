@@ -571,37 +571,29 @@ PyFormatMessage (PyObject *self, PyObject *args)
 	// Support for "full" argument list
 	//
 	// @pyparmalt1 int|flags||Flags for the call.  Note that FORMAT_MESSAGE_ALLOCATE_BUFFER and FORMAT_MESSAGE_ARGUMENT_ARRAY will always be added.
-	// @pyparmalt1 int/string|source||The source object.  If flags contain FORMAT_MESSAGE_FROM_HMODULE it should be an int, if flags contain FORMAT_MESSAGE_FROM_STRING, otherwise it is ignored.
+	// @pyparmalt1 int/string|source||The source object.  If flags contain FORMAT_MESSAGE_FROM_HMODULE it should be an int; 
+	//		if flags contain FORMAT_MESSAGE_FROM_STRING it should be a string containing the error msg;
+	//		otherwise it is ignored.
 	// @pyparmalt1 int|messageId||The message ID.
 	// @pyparmalt1 int|languageID||The language ID.
 	// @pyparmalt1 [string,...]/None|inserts||The string inserts to insert.
-	// @pyparmalt1 int|bufSize|1024|
 	DWORD  flags, msgId, langId;
 	PyObject *obSource;
 	PyObject *obInserts;
-	HANDLE hSource;
-	char *szSource;
+
 	char **pInserts;
 	void *pSource;
-	if (!PyArg_ParseTuple (args, "iOiiO:FormatMessage", &flags, &obSource, &msgId, &langId, &obInserts))
+	if (!PyArg_ParseTuple (args, "kOkkO:FormatMessage", &flags, &obSource, &msgId, &langId, &obInserts))
 		return NULL;
 	if (flags & FORMAT_MESSAGE_FROM_HMODULE) {
-		if (!PyInt_Check(obSource)) {
-			PyErr_SetString(PyExc_TypeError, "Flags has FORMAT_MESSAGE_FROM_HMODULE, but object not an integer");
+		if (!PyWinObject_AsHANDLE(obSource, (HANDLE *)&pSource, TRUE))
 			return NULL;
-		}
-		hSource = (HANDLE)PyInt_AsLong(obSource);
-		pSource = (void *)hSource;
-	}
-	else if (flags & FORMAT_MESSAGE_FROM_STRING) {
-		if (!PyString_Check(obSource)) {
-			PyErr_SetString(PyExc_TypeError, "Flags has FORMAT_MESSAGE_FROM_STRING, but object not a string");
+	} else if (flags & FORMAT_MESSAGE_FROM_STRING) {
+		if ((pSource = PyString_AsString(obSource)) == NULL)
 			return NULL;
-		}
-		szSource = PyString_AsString(obSource);
-		pSource = (void *)szSource;
 	} else
 		pSource = NULL;
+
 	if (obInserts==NULL || obInserts==Py_None) {
 		pInserts = NULL;
 	} else if (PySequence_Check(obInserts)) {
@@ -654,40 +646,36 @@ PyFormatMessageW(PyObject *self, PyObject *args)
 {
 	// Only support for "full" argument list
 	//
-	// @pyparmalt1 int|flags||Flags for the call.  Note that FORMAT_MESSAGE_ALLOCATE_BUFFER and FORMAT_MESSAGE_ARGUMENT_ARRAY will always be added.
-	// @pyparmalt1 int/<o PyUnicode>|source||The source object.  If flags contain FORMAT_MESSAGE_FROM_HMODULE it should be an int, if flags contain FORMAT_MESSAGE_FROM_STRING, otherwise it is ignored.
-	// @pyparmalt1 int|messageId||The message ID.
-	// @pyparmalt1 int|languageID||The language ID.
-	// @pyparmalt1 [<o PyUnicode>,...]/None|inserts||The string inserts to insert.
-	// @pyparmalt1 int|bufSize|1024|
+	// @pyparm int|flags||Flags for the call.  Note that FORMAT_MESSAGE_ALLOCATE_BUFFER and FORMAT_MESSAGE_ARGUMENT_ARRAY will always be added.
+	// @pyparm int/<o PyUnicode>|source||The source object.  If flags contain FORMAT_MESSAGE_FROM_HMODULE it should be an int or <o PyHANDLE>;
+	//		if flags contain FORMAT_MESSAGE_FROM_STRING it should be a unicode string;
+	//		otherwise it is ignored.
+	// @pyparm int|messageId||The message ID.
+	// @pyparm int|languageID||The language ID.
+	// @pyparm [<o PyUnicode>,...]/None|inserts||The string inserts to insert.
 	DWORD  flags, msgId, langId;
 	PyObject *obSource;
 	PyObject *obInserts;
-	HANDLE hSource;
 	WCHAR *szSource = NULL;
 	WCHAR **pInserts = NULL;
 	int numInserts = 0;
 	void *pSource;
 	PyObject *rc = NULL;
-	WCHAR *resultBuf;
+	WCHAR *resultBuf=NULL;
 	int i;
 	long lrc;
-	if (!PyArg_ParseTuple (args, "iOiiO:FormatMessageW", &flags, &obSource, &msgId, &langId, &obInserts))
+	if (!PyArg_ParseTuple (args, "kOkkO:FormatMessageW", &flags, &obSource, &msgId, &langId, &obInserts))
 		goto cleanup;
 	if (flags & FORMAT_MESSAGE_FROM_HMODULE) {
-		if (!PyInt_Check(obSource)) {
-			PyErr_SetString(PyExc_TypeError, "Flags has FORMAT_MESSAGE_FROM_HMODULE, but object not an integer");
+		if (!PyWinObject_AsHANDLE(obSource, (HANDLE *)&pSource, TRUE))
 			goto cleanup;
-		}
-		hSource = (HANDLE)PyInt_AsLong(obSource);
-		pSource = (void *)hSource;
-	}
-	else if (flags & FORMAT_MESSAGE_FROM_STRING) {
+	} else if (flags & FORMAT_MESSAGE_FROM_STRING) {
 		if (!PyWinObject_AsWCHAR(obSource, &szSource))
 			goto cleanup;
 		pSource = (void *)szSource;
 	} else
 		pSource = NULL;
+
 	if (obInserts==NULL || obInserts==Py_None) {
 		; // do nothing - already NULL
 	} else if (PySequence_Check(obInserts)) {
