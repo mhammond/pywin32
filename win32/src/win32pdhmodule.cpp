@@ -209,6 +209,10 @@ BOOL LoadPointers()
 	pPdhConnectMachine = (FuncPdhConnectMachine)GetProcAddress(handle, "PdhConnectMachineA");
 	pPdhLookupPerfNameByIndex = (FuncPdhLookupPerfNameByIndex)GetProcAddress(handle, "PdhLookupPerfNameByIndexA");
 	pPdhLookupPerfIndexByName = (FuncPdhLookupPerfIndexByName)GetProcAddress(handle, "PdhLookupPerfIndexByName");
+
+	// Pdh error codes are in 2 different ranges
+	PyWin_RegisterErrorMessageModule(PDH_CSTATUS_NO_MACHINE, PDH_CANNOT_SET_DEFAULT_REALTIME_DATASOURCE, handle);
+	PyWin_RegisterErrorMessageModule(PDH_CSTATUS_NO_OBJECT, PDH_QUERY_PERF_DATA_TIMEOUT, handle);
 	return TRUE;
 }
 
