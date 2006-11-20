@@ -8,6 +8,7 @@ import win32con
 import string
 import traceback
 import win32api
+import shutil
 
 BAK_NONE=0
 BAK_DOT_BAK=1
@@ -67,7 +68,10 @@ class EditorDocumentBase(ParentEditorDocument):
 		except (os.error, NameError):
 			pass
 		try:
-			os.rename(fileName, bakFileName)
+			# Do a copy as it might be on different volumes,
+			# and the file may be a hard-link, causing the link
+			# to follow the backup.
+			shutil.copy2(fileName, bakFileName)
 		except (os.error, NameError):
 			pass
 		try:
