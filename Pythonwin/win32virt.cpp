@@ -33,8 +33,8 @@ CVirtualHelper::CVirtualHelper(const char *iname, const void *iassoc, EnumVirtua
 		return;
 	}
 	// ok - have the python data type - now see if it has an override.
+	CEnterLeavePython _celp;
 	if (py_bob->virtualInst) {
-		CEnterLeavePython _celp;
 		PyObject *t, *v, *tb;
 		PyErr_Fetch(&t,&v,&tb);
 		handler = PyObject_GetAttrString(py_bob->virtualInst, (char *)iname);
@@ -56,16 +56,11 @@ CVirtualHelper::CVirtualHelper(const char *iname, const void *iassoc, EnumVirtua
 }
 CVirtualHelper::~CVirtualHelper()
 {
-	// XXX - Gross hack for speed.  This is called for eachh window message
-	// so only grabs the Python lock if the objects need Python,
-	if ((retVal && retVal->ob_refcnt==1) || 
-		(handler && handler->ob_refcnt==1) || 
-		(py_ob && py_ob->ob_refcnt==1)) {
+	// This is called for each window message, so should be as fast
+	// as possible - but DECREF is not atomic on multi-core CPU's, so
+	// take the reliable option...
+	if (py_ob || handler || retVal) { 
 		CEnterLeavePython _celp;
-		XDODECREF(retVal);
-		XDODECREF(handler);
-		XDODECREF(py_ob);
-	} else {
 		XDODECREF(retVal);
 		XDODECREF(handler);
 		XDODECREF(py_ob);
@@ -77,7 +72,6 @@ PyObject *CVirtualHelper::GetHandler()
 }
 BOOL CVirtualHelper::do_call(PyObject *args)
 {
-	CEnterLeavePython _celp;
 	XDODECREF(retVal);	// our old one.
 	retVal = NULL;
 	ASSERT(handler);	// caller must trap this.
@@ -119,36 +113,42 @@ BOOL CVirtualHelper::do_call(PyObject *args)
 BOOL CVirtualHelper::call_args(PyObject *arglst)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	return do_call(arglst);
 }
 
 BOOL CVirtualHelper::call()
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	PyObject *arglst = Py_BuildValue("()");
 	return do_call(arglst);
 }
 BOOL CVirtualHelper::call(int val)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	PyObject *arglst = Py_BuildValue("(i)",val);
 	return do_call(arglst);
 }
 BOOL CVirtualHelper::call(int val, int val2)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	PyObject *arglst = Py_BuildValue("(ii)",val, val2);
 	return do_call(arglst);
 }
 BOOL CVirtualHelper::call(int val1, int val2, int val3)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	PyObject *arglst = Py_BuildValue("(iii)",val1, val2, val3);
 	return do_call(arglst);
 }
 BOOL CVirtualHelper::call(long val)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	PyObject *arglst = Py_BuildValue("(l)",val);
 	return do_call(arglst);
 }
@@ -156,18 +156,21 @@ BOOL CVirtualHelper::call(long val)
 BOOL CVirtualHelper::call(const char *val)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	PyObject *arglst = Py_BuildValue("(z)",val);
 	return do_call(arglst);
 }
 BOOL CVirtualHelper::call(const char *val, int ival)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	PyObject *arglst = Py_BuildValue("(zi)",val,ival);
 	return do_call(arglst);
 }
 BOOL CVirtualHelper::call(PyObject *ob)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	if (!ob)
 		ob=Py_None;
 	PyObject *arglst = Py_BuildValue("(O)",ob);
@@ -176,6 +179,7 @@ BOOL CVirtualHelper::call(PyObject *ob)
 BOOL CVirtualHelper::call(PyObject *ob, PyObject *ob2)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	if (!ob)
 		ob=Py_None;
 	if (!ob2)
@@ -186,6 +190,7 @@ BOOL CVirtualHelper::call(PyObject *ob, PyObject *ob2)
 BOOL CVirtualHelper::call(PyObject *ob, PyObject *ob2, int i)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	if (!ob)
 		ob=Py_None;
 	if (!ob2)
@@ -197,6 +202,7 @@ BOOL CVirtualHelper::call(PyObject *ob, PyObject *ob2, int i)
 BOOL CVirtualHelper::call(CDC *pDC)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	PyObject *dc = (PyObject *) ui_assoc_object::make (ui_dc_object::type,
 												   pDC)->GetGoodRet();
 	if (!dc) return FALSE;
@@ -208,6 +214,7 @@ BOOL CVirtualHelper::call(CDC *pDC)
 BOOL CVirtualHelper::call(CDC *pDC, CPrintInfo *pInfo)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	PyObject *dc = (PyObject *) ui_assoc_object::make (ui_dc_object::type,
 												   pDC)->GetGoodRet();
 	if (!dc) return FALSE;
@@ -232,6 +239,7 @@ BOOL CVirtualHelper::call(CDC *pDC, CPrintInfo *pInfo)
 BOOL CVirtualHelper::call(CPrintInfo *pInfo)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
         PyObject *info = NULL;
         PyObject *arglst;
         if (pInfo) {
@@ -249,6 +257,7 @@ BOOL CVirtualHelper::call(CPrintInfo *pInfo)
 BOOL CVirtualHelper::call(CWnd *pWnd)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	PyObject *wnd = PyWinObject_FromCWnd(pWnd);
 	if (!wnd) return FALSE;
 	PyObject *arglst = Py_BuildValue("(O)",wnd);
@@ -260,6 +269,7 @@ BOOL CVirtualHelper::call(CWnd *pWnd)
 BOOL CVirtualHelper::call(CWnd *pWnd, int i)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	PyObject *wnd = PyWinObject_FromCWnd(pWnd);
 	if (!wnd) return FALSE;
 	PyObject *arglst = Py_BuildValue("(Oi)",wnd, i);
@@ -271,6 +281,7 @@ BOOL CVirtualHelper::call(CWnd *pWnd, int i)
 BOOL CVirtualHelper::call(CWnd *pWnd, int i, int i2)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	PyObject *wnd = PyWinObject_FromCWnd(pWnd);
 	if (!wnd) return FALSE;
 	PyObject *arglst = Py_BuildValue("(Oii)",wnd, i, i2);
@@ -282,6 +293,7 @@ BOOL CVirtualHelper::call(CWnd *pWnd, int i, int i2)
 BOOL CVirtualHelper::call(CDC *pDC, CWnd *pWnd, int i)
 {
 	PyObject *wnd ;
+	CEnterLeavePython _celp;
 	if (pWnd==NULL) {
 		wnd = Py_None;
 		DOINCREF(wnd);
@@ -305,6 +317,7 @@ BOOL CVirtualHelper::call(CDC *pDC, CWnd *pWnd, int i)
 BOOL CVirtualHelper::call(CView *pWnd, PyObject *ob)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	if (!ob)
 		ob=Py_None;
 	PyObject *wnd ;
@@ -324,6 +337,7 @@ BOOL CVirtualHelper::call(CView *pWnd, PyObject *ob)
 BOOL CVirtualHelper::call(BOOL boolVal, CWnd *pWnd1, CWnd *pWnd2)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	PyObject *wnd1;
 	if (pWnd1) {
 		wnd1 = PyWinObject_FromCWnd(pWnd1);
@@ -350,6 +364,7 @@ BOOL CVirtualHelper::call(BOOL boolVal, CWnd *pWnd1, CWnd *pWnd2)
 BOOL CVirtualHelper::call(CDocument *pDoc)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	PyObject *doc = (PyObject *) ui_assoc_object::make (PyCDocument::type,
 												   pDoc)->GetGoodRet();
 	if (!doc) return FALSE;
@@ -361,6 +376,7 @@ BOOL CVirtualHelper::call(CDocument *pDoc)
 BOOL CVirtualHelper::call(LPCREATESTRUCT lpcs, PyObject *ob)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	PyObject *cs = PyObjectFromCreateStruct(lpcs);
 	if (!cs) return FALSE;
 	if (ob==NULL) ob = Py_None;
@@ -372,6 +388,7 @@ BOOL CVirtualHelper::call(LPCREATESTRUCT lpcs, PyObject *ob)
 BOOL CVirtualHelper::call(LPCREATESTRUCT lpcs)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	PyObject *cs = PyObjectFromCreateStruct(lpcs);
 	if (!cs) return FALSE;
 	PyObject *arglst = Py_BuildValue("(O)", cs);
@@ -383,6 +400,7 @@ BOOL CVirtualHelper::call(LPCREATESTRUCT lpcs)
 BOOL CVirtualHelper::call(const MSG *msg)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	PyObject *arglst = Py_BuildValue("((iiiii(ii)))",msg->hwnd,msg->message,msg->wParam,msg->lParam,msg->time,msg->pt.x,msg->pt.y);
 	BOOL ret = do_call(arglst);
 	return ret;
@@ -391,6 +409,7 @@ BOOL CVirtualHelper::call(const MSG *msg)
 BOOL CVirtualHelper::call(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO*pHandlerInfo)
 {
 	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
 	PyObject *arglst = Py_BuildValue("iill",nID, nCode, (long)pExtra, (long)pHandlerInfo);
 	BOOL ret = do_call(arglst);
 	return ret;

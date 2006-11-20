@@ -252,9 +252,10 @@ PyObject *ui_assoc_object::GetGoodRet()
 {
 	if (this==NULL) return NULL;
 	if (virtualInst) {
+		PyObject *vi = virtualInst;
+		DOINCREF(vi);
 		DODECREF(this);
-		DOINCREF(virtualInst);
-		return virtualInst;
+		return vi;
 	} else
 		return this;
 }
