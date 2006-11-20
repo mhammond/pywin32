@@ -408,6 +408,16 @@ class TestDirectoryChanges(unittest.TestCase):
         changes = self.watcher_thread_changes[0]
         self.failUnlessEqual(changes, [(1, "test_file")])
 
+    def testSmall(self):
+        self.stablize()
+        for dn in self.dir_names:
+            fn = os.path.join(dn, "x")
+            open(fn, "w").close()
+
+        self.stablize()
+        changes = self.watcher_thread_changes[0]
+        self.failUnlessEqual(changes, [(1, "x")])
+
 class TestEncrypt(unittest.TestCase):
     def testEncrypt(self):
         fname = tempfile.mktemp("win32file_test")

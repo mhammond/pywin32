@@ -1553,7 +1553,11 @@ static PyObject *PyObject_FromFILE_NOTIFY_INFORMATION(void *buffer, DWORD nbytes
 {
 	FILE_NOTIFY_INFORMATION *p = (FILE_NOTIFY_INFORMATION *)buffer;
 	PyObject *ret = PyList_New(0);
-	if (nbytes < sizeof FILE_NOTIFY_INFORMATION)
+	// comparing against the sizeof(FILE_NOTIFY_INFORMATION) fails when
+	// the filename is exactly 1 byte!  Not clear the best way to
+	// check this, but this works for now - is it at least the size of
+	// the *head* of the struct.
+	if (nbytes < sizeof DWORD*3+2)
 		return ret;
 	DWORD nbytes_read = 0;
 	while (1) {
