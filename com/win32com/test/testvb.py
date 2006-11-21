@@ -84,6 +84,9 @@ def TestVB( vbtest, bUseGenerated ):
     vbtest.VariantProperty = 10
     if vbtest.VariantProperty != 10:
         raise error, "Could not set the variant integer property correctly."
+    vbtest.VariantProperty = buffer('raw\0data')
+    if vbtest.VariantProperty != buffer('raw\0data'):
+        raise error, "Could not set the variant buffer property correctly."
     vbtest.StringProperty = "Hello from Python"
     if vbtest.StringProperty != "Hello from Python":
         raise error, "Could not set the string property correctly."
