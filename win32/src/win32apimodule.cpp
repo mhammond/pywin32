@@ -2452,6 +2452,48 @@ PyRegCreateKey( PyObject *self, PyObject *args )
 	// @rdesc The return value is the handle of the opened key.
 	// If the function fails, an exception is raised.
 }
+
+// @pymethod <o PyHKEY>, int|win32api|RegCreateKeyEx|Extended version of RegCreateKey
+// @rdesc Returns registry handle and flag indicating if key was opened or created (REG_CREATED_NEW_KEY or REG_OPENED_EXISTING_KEY)
+// @pyseeapi RegCreateKeyEx
+// @comm Implemented only as Unicode (RegCreateKeyExW).  Accepts keyword arguments.
+static PyObject *PyRegCreateKeyEx(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"Key","SubKey","samDesired","Class","Options","SecurityAttributes", NULL};
+	HKEY hKey;
+	PyObject *obKey, *obsubKey, *obclass=Py_None, *obsa=Py_None, *ret=NULL;
+	WCHAR *subKey=NULL, *class_name=NULL;
+	PSECURITY_ATTRIBUTES psa;
+	DWORD access, disp, options=REG_OPTION_NON_VOLATILE, reserved=NULL;
+	HKEY retKey;
+	long rc;
+	
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOk|OkO:RegCreateKeyEx", keywords, 
+		&obKey,		// @pyparm <o PyHKEY>/int|Key||Registry key or one of win32con.HKEY_* values
+		&obsubKey,	// @pyparm <o PyUnicode>|SubKey||Name of subkey to open or create.
+		&access,	// @pyparm int|samDesired||Access allowed to handle, combination of win32con.KEY_* constants.  Can also contain
+					//	standard access rights such as DELETE, WRITE_OWNER, etc.
+		&obclass,	// @pyparm <o PyUnicode>|Class|None|Name of registry key class
+		&options,	// @pyparm int|Options|REG_OPTION_NON_VOLATILE|One of the winnt.REG_OPTION_* values
+		&obsa))		// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Specifies security for key and handle inheritance
+		return NULL;
+	if (PyWinObject_AsHKEY(obKey, &hKey)
+		&&PyWinObject_AsWCHAR(obsubKey, &subKey, TRUE)
+		&&PyWinObject_AsWCHAR(obclass, &class_name, TRUE)
+		&&PyWinObject_AsSECURITY_ATTRIBUTES(obsa, &psa, TRUE)){
+		rc=RegCreateKeyExW(hKey, subKey, reserved, class_name, options,
+			access, psa, &retKey, &disp);
+		if (rc!=ERROR_SUCCESS)
+			PyWin_SetAPIError("RegCreateKeyEx", rc);
+		else
+			ret=Py_BuildValue("Nk", PyWinObject_FromHKEY(retKey), disp);
+		}
+
+	PyWinObject_FreeWCHAR(subKey);
+	PyWinObject_FreeWCHAR(class_name);
+	return ret;
+}
+
 // @pymethod |win32api|RegDeleteKey|Deletes the specified key.  This method can not delete keys with subkeys.
 static PyObject *
 PyRegDeleteKey( PyObject *self, PyObject *args )
@@ -2530,49 +2572,140 @@ PyRegEnumKey( PyObject *self, PyObject *args )
 	return Py_BuildValue("s", retBuf);
 }
 
-// @pymethod <o PyTuple>|win32api|RegEnumKeyEx|Returns list of subkeys, info is (name, reserved, class, last write time) - class currently not defined, will always be None, reserved always 0
+// @pymethod tuple|win32api|RegEnumKeyEx|Lists subkeys of a registry key
+// @rdesc Returns subkeys as tuples of  (name, reserved, class, last write time). Reserved will always be 0.
 static PyObject *
 PyRegEnumKeyEx( PyObject *self, PyObject *args )
 {
-	PyObject *obreghandle=NULL, *obretitem=NULL, *obtimestamp=NULL;
+	PyObject *obreghandle=NULL, *obretitem;
 	HKEY reghandle;
 	FILETIME timestamp;
 	long err;
-	char *key_name;
-    DWORD key_len=0, max_len=0, key_ind=0, nbr_keys=0;
-    PyObject *ret=NULL;
-	// @pyparm <o PyHKEY>/int|key||An already open key, or any one of the following win32con constants:<nl>HKEY_CLASSES_ROOT<nl>HKEY_CURRENT_USER<nl>HKEY_LOCAL_MACHINE<nl>HKEY_USERS.
+	char *key_name=NULL, *class_name=NULL;
+	DWORD key_len, max_key_len, key_ind=0, nbr_keys=0;
+	DWORD class_len, max_class_len;
+	PyObject *ret=NULL;
+
+	// @pyparm <o PyHKEY>/int|Key||An already open key, or any one of the following win32con constants:<nl>HKEY_CLASSES_ROOT<nl>HKEY_CURRENT_USER<nl>HKEY_LOCAL_MACHINE<nl>HKEY_USERS.
 	if (!PyArg_ParseTuple(args, "O:RegEnumKeyEx", &obreghandle))
 		return NULL;
 	if (!PyWinObject_AsHKEY(obreghandle, &reghandle))
 		return NULL;
 
-	err=RegQueryInfoKey(reghandle,NULL,NULL,NULL, &nbr_keys, &max_len, NULL,NULL,NULL,NULL,NULL,NULL);
+	err=RegQueryInfoKey(reghandle,NULL,NULL,NULL, &nbr_keys, &max_key_len, &max_class_len, NULL,NULL,NULL,NULL,NULL);
 	if (err!=ERROR_SUCCESS)
 		return ReturnAPIError("RegEnumKeyEx:RegQueryInfoKey",err);
-	max_len++;						 // trailing NULL not included
-	key_name=(char *)malloc(max_len);
+	max_key_len++;		// trailing NULL not included
+	key_name=(char *)malloc(max_key_len);
 	if (key_name==NULL){
-		PyErr_SetString(PyExc_MemoryError, "RegEnumKeyEx: SOM");
-		return NULL;
+		PyErr_Format(PyExc_MemoryError, "RegEnumKeyEx: Unable to allocate %d bytes", max_key_len);
+		goto cleanup;
+		}
+	max_class_len++;
+	class_name=(char *)malloc(max_class_len);
+	if (class_name==NULL){
+		PyErr_Format(PyExc_MemoryError, "RegEnumKeyEx: Unable to allocate %d bytes", max_class_len);
+		goto cleanup;
 		}
 
 	ret=PyTuple_New(nbr_keys);
-	for (key_ind=0;key_ind<nbr_keys;key_ind++){
-		key_len=max_len;
-		err=RegEnumKeyEx(reghandle, key_ind, key_name, &key_len, NULL, NULL, NULL, &timestamp);
-		if (err!=ERROR_SUCCESS){
-			Py_DECREF(ret);
-			ret=NULL;
-			PyWin_SetAPIError("RegEnumKeyEx",err);
-			break;
+	if (ret!=NULL)
+		for (key_ind=0;key_ind<nbr_keys;key_ind++){
+			key_len=max_key_len;
+			class_len=max_class_len;
+			err=RegEnumKeyEx(reghandle, key_ind, key_name, &key_len, NULL, class_name, &class_len, &timestamp);
+			if (err!=ERROR_SUCCESS){
+				Py_DECREF(ret);
+				ret=NULL;
+				PyWin_SetAPIError("RegEnumKeyEx",err);
+				break;
+				}
+			obretitem=Py_BuildValue("NiNN",
+				PyString_FromStringAndSize(key_name, key_len), 
+				0, 
+				PyString_FromStringAndSize(class_name, class_len),
+				PyWinObject_FromFILETIME(timestamp));
+			if (obretitem==NULL){
+				Py_DECREF(ret);
+				ret=NULL;
+				break;
+				}
+			PyTuple_SET_ITEM(ret, key_ind, obretitem);
 			}
-		obtimestamp=PyWinObject_FromFILETIME(timestamp);
-		obretitem=Py_BuildValue("s#iOO", key_name, key_len, 0, Py_None, obtimestamp);
-		Py_DECREF(obtimestamp);
-		PyTuple_SET_ITEM(ret, key_ind, obretitem);
+
+	cleanup:
+	if (key_name)
+		free(key_name);
+	if (class_name)
+		free(class_name);
+	return ret;
+}
+
+// @pymethod tuple|win32api|RegEnumKeyExW|Unicode version of RegEnumKeyEx
+// @rdesc Returns subkeys as tuples of  (name, reserved, class, last write time). Reserved will always be 0.
+static PyObject *PyRegEnumKeyExW(PyObject *self, PyObject *args)
+{
+	PyObject *obreghandle=NULL, *obretitem;
+	HKEY reghandle;
+	FILETIME timestamp;
+	long err;
+	WCHAR *key_name=NULL, *class_name=NULL;
+	DWORD key_len, max_key_len, key_ind, nbr_keys;
+	DWORD class_len, max_class_len;
+	PyObject *ret=NULL;
+
+	// @pyparm <o PyHKEY>|Key||Registry handle opened with KEY_ENUMERATE_SUB_KEYS, or one of win32con.HKEY_* constants
+	if (!PyArg_ParseTuple(args, "O:RegEnumKeyExW", &obreghandle))
+		return NULL;
+	if (!PyWinObject_AsHKEY(obreghandle, &reghandle))
+		return NULL;
+
+	err=RegQueryInfoKey(reghandle,NULL,NULL,NULL, &nbr_keys, &max_key_len, &max_class_len, NULL,NULL,NULL,NULL,NULL);
+	if (err!=ERROR_SUCCESS)
+		return ReturnAPIError("RegEnumKeyExW:RegQueryInfoKey",err);
+	max_key_len++;		// trailing NULL not included
+	key_name=(WCHAR *)malloc(max_key_len * sizeof(WCHAR));
+	if (key_name==NULL){
+		PyErr_Format(PyExc_MemoryError, "RegEnumKeyExW: Unable to allocate %d bytes", max_key_len);
+		goto cleanup;
 		}
-	free(key_name);
+	max_class_len++;
+	class_name=(WCHAR *)malloc(max_class_len * sizeof(WCHAR));
+	if (class_name==NULL){
+		PyErr_Format(PyExc_MemoryError, "RegEnumKeyExW: Unable to allocate %d bytes", max_class_len);
+		goto cleanup;
+		}
+
+	ret=PyTuple_New(nbr_keys);
+	if (ret!=NULL)
+		for (key_ind=0;key_ind<nbr_keys;key_ind++){
+			key_len=max_key_len;
+			class_len=max_class_len;
+			err=RegEnumKeyExW(reghandle, key_ind, key_name, &key_len, NULL, class_name, &class_len, &timestamp);
+			if (err!=ERROR_SUCCESS){
+				Py_DECREF(ret);
+				ret=NULL;
+				PyWin_SetAPIError("RegEnumKeyExW",err);
+				break;
+				}
+			obretitem=Py_BuildValue("NiNN",
+				PyWinObject_FromWCHAR(key_name, key_len), 
+				0, 
+				PyWinObject_FromWCHAR(class_name, class_len),
+				PyWinObject_FromFILETIME(timestamp));
+			if (obretitem==NULL){
+				Py_DECREF(ret);
+				ret=NULL;
+				break;
+				}
+			PyTuple_SET_ITEM(ret, key_ind, obretitem);
+			}
+
+	cleanup:
+	if (key_name)
+		free(key_name);
+	if (class_name)
+		free(class_name);
 	return ret;
 }
 
@@ -3017,6 +3150,63 @@ PyRegQueryInfoKey( PyObject *self, PyObject *args)
   return ret;
 }
 
+// @pymethod dict|win32api|RegQueryInfoKeyW|Returns information about an open registry key 
+// @pyseeapi RegQueryInfoKeyW
+static PyObject *PyRegQueryInfoKeyW(PyObject *self, PyObject *args)
+{
+	HKEY hKey;
+	PyObject *obKey, *ret=NULL;
+	long rc;
+	DWORD classlen=256, SubKeys, MaxSubKeyLen, MaxClassLen, Values, MaxValueNameLen, MaxValueLen, cbSecurityDescriptor;
+	FILETIME ft;
+	WCHAR *classname=NULL;
+
+	// @pyparm <o PyHKEY>|Key||Handle to a registry key, or one of win32con.HKEY_* constants
+	if (!PyArg_ParseTuple(args, "O:RegQueryInfoKeyW", &obKey))
+		return NULL;
+	if (!PyWinObject_AsHKEY(obKey, &hKey))
+		return NULL;
+
+#ifdef Py_DEBUG
+	// make sure we always do the reallocation in debug mode
+	classlen=1;
+#endif
+	classname=(WCHAR *)malloc(classlen*sizeof(WCHAR));
+	if (classname==NULL)
+		return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", classlen*sizeof(WCHAR));
+
+	rc=RegQueryInfoKeyW(hKey, classname, &classlen, NULL, &SubKeys, &MaxSubKeyLen, 
+		&MaxClassLen, &Values, &MaxValueNameLen, &MaxValueLen, &cbSecurityDescriptor, &ft);
+	// MSDN says it should return ERROR_MORE_DATA, but I get ERROR_INSUFFICIENT_BUFFER on WinXP
+	if ((rc==ERROR_INSUFFICIENT_BUFFER) || (rc==ERROR_MORE_DATA)){
+		free(classname);
+		classlen++;		// returned value doesn't include null terminator
+		classname=(WCHAR *)malloc(classlen*sizeof(WCHAR));
+		if (classname==NULL)
+			return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", classlen*sizeof(WCHAR));
+		rc=RegQueryInfoKeyW(hKey, classname, &classlen, NULL, &SubKeys, &MaxSubKeyLen, 
+			&MaxClassLen, &Values, &MaxValueNameLen, &MaxValueLen, &cbSecurityDescriptor, &ft);
+		}
+
+	if (rc!=ERROR_SUCCESS)
+		PyWin_SetAPIError("RegQueryInfoKeyW", rc);
+	else
+		ret = Py_BuildValue("{s:N,s:O,s:k,s:k,s:k,s:k,s:k,s:k,s:k,s:N}",
+			"Class",	PyWinObject_FromWCHAR(classname, classlen),
+			"Reserved",	Py_None,
+			"SubKeys",	SubKeys,
+			"MaxSubKeyLen",	MaxSubKeyLen,
+			"MaxClassLen", MaxClassLen,
+			"Values",	Values,
+			"MaxValueNameLen",	MaxValueNameLen,
+			"MaxValueLen",	MaxValueLen,
+			"cbSecurityDescriptor",	cbSecurityDescriptor,
+			"LastWriteTime", PyWinObject_FromFILETIME(ft));
+
+	free(classname);
+	return ret;
+}
+
 // @pymethod string|win32api|RegQueryValue|The RegQueryValue method retrieves the value associated with
 // the unnamed value for a specified key in the registry.
 static PyObject *
@@ -3273,7 +3463,7 @@ static PyObject *PyRegGetKeySecurity(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHKEY(obKey, &hKey))
 		return NULL;
-	// @pyseeapi PyRegGetKeySecurity
+	// @pyseeapi RegGetKeySecurity
 	DWORD cb = 0;
 	DWORD rc;
 	PyW32_BEGIN_ALLOW_THREADS
@@ -4962,10 +5152,12 @@ static struct PyMethodDef win32api_functions[] = {
 	{"RegCloseKey",			PyRegCloseKey, 1}, // @pymeth RegCloseKey|Closes a registry key.
 	{"RegConnectRegistry",	PyRegConnectRegistry, 1}, // @pymeth RegConnectRegistry|Establishes a connection to a predefined registry handle on another computer.
 	{"RegCreateKey",        PyRegCreateKey, 1}, // @pymeth RegCreateKey|Creates the specified key, or opens the key if it already exists.
+	{"RegCreateKeyEx",      (PyCFunction)PyRegCreateKeyEx, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegCreateKeyEx|Extended version of RegCreateKey
 	{"RegDeleteKey",        PyRegDeleteKey, 1}, // @pymeth RegDeleteKey|Deletes the specified key.
 	{"RegDeleteValue",      PyRegDeleteValue, 1}, // @pymeth RegDeleteValue|Removes a named value from the specified registry key.
 	{"RegEnumKey",          PyRegEnumKey, 1}, // @pymeth RegEnumKey|Enumerates subkeys of the specified open registry key.
-	{"RegEnumKeyEx",        PyRegEnumKeyEx, 1}, // @pymeth RegEnumKey|Enumerates subkeys of the specified open registry key.
+	{"RegEnumKeyEx",        PyRegEnumKeyEx, 1}, // @pymeth RegEnumKeyEx|Enumerates subkeys of the specified open registry key.
+	{"RegEnumKeyExW",       PyRegEnumKeyExW, 1}, // @pymeth RegEnumKeyExW|Unicode version of RegEnumKeyEx
 	{"RegEnumValue",        PyRegEnumValue, 1}, // @pymeth RegEnumValue|Enumerates values of the specified open registry key.
 	{"RegFlushKey",	        PyRegFlushKey, 1}, // @pymeth RegFlushKey|Writes all the attributes of the specified key to the registry.
 	{"RegGetKeySecurity",   PyRegGetKeySecurity, 1}, // @pymeth RegGetKeySecurity|Retrieves the security on the specified registry key.
@@ -4973,8 +5165,9 @@ static struct PyMethodDef win32api_functions[] = {
 	{"RegOpenKey",          PyRegOpenKey, 1}, // @pymeth RegOpenKey|Alias for <om win32api.RegOpenKeyEx>
 	{"RegOpenKeyEx",        PyRegOpenKey, 1}, // @pymeth RegOpenKeyEx|Opens the specified key.
 	{"RegQueryValue",       PyRegQueryValue, 1}, // @pymeth RegQueryValue|Retrieves the value associated with the unnamed value for a specified key in the registry.
-	{"RegQueryValueEx",	PyRegQueryValueEx, 1}, // @pymeth RegQueryValueEx|Retrieves the type and data for a specified value name associated with an open registry key. 
-	{"RegQueryInfoKey",	PyRegQueryInfoKey, 1}, // @pymeth RegQueryInfoKey|Returns information about the specified key.
+	{"RegQueryValueEx",		PyRegQueryValueEx, 1}, // @pymeth RegQueryValueEx|Retrieves the type and data for a specified value name associated with an open registry key. 
+	{"RegQueryInfoKey",		PyRegQueryInfoKey, 1}, // @pymeth RegQueryInfoKey|Returns information about the specified key.
+	{"RegQueryInfoKeyW",	PyRegQueryInfoKeyW, 1}, // @pymeth RegQueryInfoKeyW|Returns information about an open registry key
 	{"RegSaveKey",          PyRegSaveKey, 1}, // @pymeth RegSaveKey|Saves the specified key, and all its subkeys to the specified file.
 	{"RegSetKeySecurity",   PyRegSetKeySecurity, 1}, // @pymeth RegSetKeySecurity|Sets the security on the specified registry key.
 	{"RegSetValue",         PyRegSetValue, 1}, // @pymeth RegSetValue|Associates a value with a specified key.  Currently, only strings are supported.
