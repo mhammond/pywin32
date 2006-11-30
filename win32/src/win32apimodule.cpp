@@ -51,6 +51,12 @@ typedef BOOLEAN (WINAPI *GetUserNameExfunc)(EXTENDED_NAME_FORMAT,LPWSTR,PULONG);
 static GetUserNameExfunc pfnGetUserNameEx=NULL;
 static GetUserNameExfunc pfnGetComputerObjectName=NULL;
 
+// from Advapi32.dll
+typedef LONG (WINAPI *RegRestoreKeyfunc)(HKEY,LPCWSTR,DWORD);
+static RegRestoreKeyfunc pfnRegRestoreKey=NULL;
+typedef LONG (WINAPI *RegSaveKeyExfunc)(HKEY,LPCWSTR,LPSECURITY_ATTRIBUTES,DWORD);
+static RegSaveKeyExfunc pfnRegSaveKeyEx=NULL;
+
 
 /* error helper */
 PyObject *ReturnError(char *msg, char *fnName = NULL)
@@ -3276,6 +3282,37 @@ PyRegQueryValueEx( PyObject *self, PyObject *args )
 }
 
 
+// @pymethod |win32api|RegRestoreKey|Restores a key and subkeys from a saved registry file
+// @pyseeapi RegRestoreKey
+// @comm Implemented only as Unicode (RegRestoreKeyW).  Accepts keyword arguments.
+// @comm Requires SeBackupPrivilege and SeRestorePrivilege
+static PyObject *PyRegRestoreKey(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"Key","File","Flags",NULL};
+	CHECK_PFN(RegRestoreKey);
+	HKEY hKey;
+	DWORD flags=0;
+	PyObject *obKey, *obfilename, *ret=NULL;
+	WCHAR *filename=NULL;
+	
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|k:RegRestoreKey", keywords, 
+		&obKey,			// @pyparm <o PyHKEY>|Key||Handle to registry key to be restored.  Can also be one of win32con.HKEY_* values.
+		&obfilename,	// @pyparm <o PyUnicode>|File||File from which to restore registry data
+		&flags))		// @pyparm int|Flags|0|One of REG_FORCE_RESTORE,REG_NO_LAZY_FLUSH,REG_REFRESH_HIVE,REG_WHOLE_HIVE_VOLATILE (from winnt)
+		return NULL;
+	if (PyWinObject_AsHKEY(obKey, &hKey)
+		&&PyWinObject_AsWCHAR(obfilename, &filename, FALSE)){
+		LONG rc=(*pfnRegRestoreKey)(hKey, filename, flags);
+		if (rc!=ERROR_SUCCESS)
+			PyWin_SetAPIError("RegRestoreKey", rc);
+		else{
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		}
+	PyWinObject_FreeWCHAR(filename);
+	return ret;
+}
 
 // @pymethod |win32api|RegSaveKey|The RegSaveKey method saves the specified key, and all its subkeys to the specified file.
 static PyObject *
@@ -3309,6 +3346,42 @@ PyRegSaveKey( PyObject *self, PyObject *args )
 	// @comm If key represents a key on a remote computer, the path described by fileName is relative to the remote computer.
 	// <nl>The caller of this method must possess the SeBackupPrivilege security privilege.
 }
+
+// @pymethod |win32api|RegSaveKeyEx|Extended version of RegSaveKey
+// @pyseeapi RegSaveKeyEx
+// @comm Implemented only as Unicode (RegSaveKeyExW).  Accepts keyword arguments.
+// @comm SE_BACKUP_NAME privilege must be enabled.
+static PyObject *PyRegSaveKeyEx(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"Key","File","SecurityAttributes","Flags",NULL};
+	CHECK_PFN(RegSaveKeyEx);
+	HKEY hKey;
+	DWORD flags=REG_LATEST_FORMAT;
+	PyObject *obKey, *obfilename, *obsa=Py_None, *ret=NULL;
+	PSECURITY_ATTRIBUTES psa;
+	WCHAR *filename=NULL;
+	
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|Ok:RegSaveKeyEx", keywords, 
+		&obKey,			// @pyparm <o PyHKEY>|Key||Handle to a registry key or one of HKEY_CURRENT_CONFIG, HKEY_CURRENT_USER
+		&obfilename,	// @pyparm <o PyUnicode>|File||Name of file in which to save data.  File must not already exist.
+		&obsa,			// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Specifies security for the file to be created
+		&flags))		// @pyparm int|Flags|REG_LATEST_FORMAT|One of REG_STANDARD_FORMAT,REG_LATEST_FORMAT,REG_NO_COMPRESSION (from winnt.py)
+		return NULL;
+	if (PyWinObject_AsHKEY(obKey, &hKey)
+		&&PyWinObject_AsWCHAR(obfilename, &filename, FALSE)
+		&&PyWinObject_AsSECURITY_ATTRIBUTES(obsa, &psa, TRUE)){
+		LONG rc=(*pfnRegSaveKeyEx)(hKey, filename, psa, flags);
+		if (rc!=ERROR_SUCCESS)
+			PyWin_SetAPIError("RegSaveKeyEx", rc);
+		else{
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		}
+	PyWinObject_FreeWCHAR(filename);
+	return ret;
+}
+
 // @pymethod |win32api|RegSetValue|Associates a value with a specified key.  Currently, only strings are supported.
 static PyObject *
 PyRegSetValue( PyObject *self, PyObject *args )
@@ -5168,7 +5241,9 @@ static struct PyMethodDef win32api_functions[] = {
 	{"RegQueryValueEx",		PyRegQueryValueEx, 1}, // @pymeth RegQueryValueEx|Retrieves the type and data for a specified value name associated with an open registry key. 
 	{"RegQueryInfoKey",		PyRegQueryInfoKey, 1}, // @pymeth RegQueryInfoKey|Returns information about the specified key.
 	{"RegQueryInfoKeyW",	PyRegQueryInfoKeyW, 1}, // @pymeth RegQueryInfoKeyW|Returns information about an open registry key
+	{"RegRestoreKey",		(PyCFunction)PyRegRestoreKey, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegRestoreKey|Restores a key and subkeys from a saved registry file
 	{"RegSaveKey",          PyRegSaveKey, 1}, // @pymeth RegSaveKey|Saves the specified key, and all its subkeys to the specified file.
+	{"RegSaveKeyEx",		(PyCFunction)PyRegSaveKeyEx, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegSaveKeyEx|Extended version of RegSaveKey
 	{"RegSetKeySecurity",   PyRegSetKeySecurity, 1}, // @pymeth RegSetKeySecurity|Sets the security on the specified registry key.
 	{"RegSetValue",         PyRegSetValue, 1}, // @pymeth RegSetValue|Associates a value with a specified key.  Currently, only strings are supported.
 	{"RegSetValueEx",       PyRegSetValueEx, 1}, // @pymeth RegSetValueEx|Stores data in the value field of an open registry key.
@@ -5317,4 +5392,13 @@ initwin32api(void)
 	pfnGetMonitorInfo=(GetMonitorInfofunc)GetProcAddress(hmodule,"GetMonitorInfoA");
 	pfnEnumDisplaySettingsEx=(EnumDisplaySettingsExfunc)GetProcAddress(hmodule,"EnumDisplaySettingsExA");
   }
+
+  hmodule = GetModuleHandle("Advapi32.dll");
+  if (hmodule==NULL)
+    hmodule=LoadLibrary("Advapi32.dll");
+  if (hmodule!=NULL){
+	pfnRegRestoreKey=(RegRestoreKeyfunc)GetProcAddress(hmodule, "RegRestoreKeyW");
+	pfnRegSaveKeyEx=(RegSaveKeyExfunc)GetProcAddress(hmodule, "RegSaveKeyExW");
+  }
+
 }  
