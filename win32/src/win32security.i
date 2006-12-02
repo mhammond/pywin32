@@ -683,10 +683,10 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 
     // Patch up any kwarg functions - SWIG doesn't like them.
     for (PyMethodDef *pmd = win32securityMethods;pmd->ml_name;pmd++)
-        if (strcmp(pmd->ml_name, "DsGetDcName")==0) {
+        if ((strcmp(pmd->ml_name, "DsGetDcName")==0) ||
+			(strcmp(pmd->ml_name, "DuplicateTokenEx")==0)){
             pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
-            break; // only 1 name at the moment.
-        }
+	        }
 %}
 
 // Autoduck for objects defined in win32security_ds.cpp
@@ -1683,12 +1683,14 @@ BOOLAPI OpenThreadToken(
 );
 
 %{
-// @pyswig <o PyHandle>|SetThreadToken|Assigns an impersonation token to a thread. The function 
+// @pyswig |SetThreadToken|Assigns an impersonation token to a thread. The function 
 // can also cause a thread to stop using an impersonation token.
 static PyObject *PySetThreadToken(PyObject *self, PyObject *args)
 {
 	PyObject *obThread, *obToken;
-	if (!PyArg_ParseTuple(args, "OO", &obThread, &obToken))
+	if (!PyArg_ParseTuple(args, "OO", 
+		&obThread,	// @pyparm <o PyHANDLE>|Thread||Handle to a thread.  Use None to indicate calling thread.
+		&obToken))	// @pyparm <o PyHANDLE>|Token||Handle to an impersonation token.  Use None to end impersonation.
 		return NULL;
     HANDLE *phThread;
 	HANDLE hThread, hToken;
@@ -2821,7 +2823,7 @@ BOOLAPI ImpersonateSelf(
 SECURITY_IMPERSONATION_LEVEL ImpersonationLevel
 );
 
-// @pyswig |DuplicateToken|Creates a copy of an access token with specified impersonation level
+// @pyswig <o PyHANDLE>|DuplicateToken|Creates a copy of an access token with specified impersonation level
 // @pyparm <o PyHANDLE>|ExistingTokenHandle||Handle to an access token (see <om win32security.LogonUser>,<om win32security.OpenProcessToken>)
 // @pyparm int|ImpersonationLevel||A value from SECURITY_IMPERSONATION_LEVEL enum
 BOOLAPI DuplicateToken(
@@ -2829,6 +2831,38 @@ BOOLAPI DuplicateToken(
   SECURITY_IMPERSONATION_LEVEL ImpersonationLevel,
   HANDLE *OUTPUT
 );
+
+// @pyswig <o PyHANDLE>|DuplicateTokenEx|Extended version of DuplicateToken.
+// @comm Accepts keyword arguments
+%native(DuplicateTokenEx) pfnPyDuplicateTokenEx;
+%{
+static PyObject *PyDuplicateTokenEx(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *keywords[]={"ExistingToken","ImpersonationLevel","DesiredAccess","TokenType","TokenAttributes", NULL};
+	HANDLE htoken, hnewtoken;
+	PSECURITY_ATTRIBUTES psa;
+	SECURITY_IMPERSONATION_LEVEL lvl;
+	DWORD access;
+	TOKEN_TYPE tokentype;
+	PyObject *obtoken, *obsa=Py_None;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Okkk|O:DuplicateTokenEx", keywords,
+		&obtoken,	// @pyparm <o PyHANDLE>|ExistingToken||Logon token opened with TOKEN_DUPLICATE access
+		&lvl,		// @pyparm int|ImpersonationLevel||One of win32security.Security* values
+		&access,	// @pyparm int|DesiredAccess||Type of access required for the handle, combination of win32security.TOKEN_* flags
+		&tokentype,	// @pyparm int|TokenType||Type of token to be created, TokenPrimary or TokenImpersonation
+		&obsa))		// @pyparm <o PySECURITY_ATTRIBUTES>|TokenAttributes|None|Specifies security and inheritance for the new handle.  None results in default DACL and no inheritance,
+		return NULL; 
+	if (!PyWinObject_AsHANDLE(obtoken, &htoken, FALSE))
+		return NULL;
+	if (!PyWinObject_AsSECURITY_ATTRIBUTES(obsa, &psa, TRUE))
+		return NULL;
+	if (!DuplicateTokenEx(htoken, access, psa, lvl, tokentype, &hnewtoken))
+		return PyWin_SetAPIError("DuplicateTokenEx");
+	return PyWinObject_FromHANDLE(hnewtoken);
+}
+PyCFunction pfnPyDuplicateTokenEx=(PyCFunction)PyDuplicateTokenEx;
+%}
 
 // @pyswig bool|CheckTokenMembership|Checks if a SID is enabled in a token
 %native(CheckTokenMembership) PyCheckTokenMembership;
