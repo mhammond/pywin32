@@ -3051,6 +3051,22 @@ ui_window_on_query_new_palette(PyObject *self, PyObject *args)
 	return Py_BuildValue("i", rc);
 }
 
+// @pymethod HICON|PyCWnd|SetIcon|Calls the underlying MFC SetIcon method.
+PyObject* ui_window_set_icon(PyObject* self, PyObject *args)
+{
+	HICON hiconPrevIcon;
+	BOOL  bBigIcon = TRUE;
+	if (!PyArg_ParseTuple(args, "ii:SetIcon", &hiconPrevIcon, &bBigIcon))
+		return NULL;
+	CWnd *pWnd = GetWndPtr(self);
+	if (!pWnd)
+		return NULL;
+	GUI_BGN_SAVE;
+	HICON hiconRetVal = pWnd->SetIcon(hiconPrevIcon, bBigIcon);
+	GUI_END_SAVE;
+	return Py_BuildValue("i", hiconRetVal);
+}
+
 ///////////////////////////////////////
 //
 // Window Methods
@@ -3157,6 +3173,7 @@ static struct PyMethodDef PyCWnd_methods[] = {
 	{"SetDlgItemText",      ui_window_set_dlg_item_text,    1}, // @pymeth SetDlgItemText|Sets the text for the child window or control with the specified ID.
 	{"SetFocus",			ui_window_set_focus,			1}, // @pymeth SetFocus|Sets focus to the window.
 	{"SetFont",				ui_window_set_font,				1}, // @pymeth SetFont|Sets the window's current font to the specified font.
+	{"SetIcon",             ui_window_set_icon,             1}, // @pymeth SetIcon | Sets the handle to a specific icon.
 	{"SetMenu",				ui_window_set_menu,				1}, // @pymeth SetMenu|Sets the menu for a window.
 	{"SetRedraw",			ui_window_set_redraw,			1}, // @pymeth SetRedraw|Sets the redraw flag for the window.
 	{"SetScrollPos",	    ui_window_set_scroll_pos,		1}, // @pymeth SetScrollPos|Sets the current position of the scroll box of a scroll bar. 
@@ -4138,3 +4155,5 @@ ui_type_CObject PyCMDIChildWnd::type("PyCMDIChildWnd",
 									 sizeof(PyCMDIChildWnd), 
 									 PyCMDIChildWnd_methods, 
 									 GET_PY_CTOR(PyCMDIChildWnd));
+
+ 	  	 
