@@ -156,7 +156,11 @@ BOOL _MakeSelfRelativeSD(PSECURITY_DESCRIPTOR psd_absolute, PSECURITY_DESCRIPTOR
 	DWORD orig_buflen=buflen;
 
 	*ppsd_relative = malloc(buflen);
-    if (MakeSelfRelativeSD(psd_absolute,*ppsd_relative,&buflen))
+	if (*ppsd_relative==NULL){
+		PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", buflen);
+		return FALSE;
+		}
+	if (MakeSelfRelativeSD(psd_absolute,*ppsd_relative,&buflen))
 		return TRUE;
 	free(*ppsd_relative);
 	// if function fails because buffer is too small, required len is returned
@@ -166,9 +170,14 @@ BOOL _MakeSelfRelativeSD(PSECURITY_DESCRIPTOR psd_absolute, PSECURITY_DESCRIPTOR
 		}
 
 	*ppsd_relative = malloc(buflen);
+	if (*ppsd_relative==NULL){
+		PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", buflen);
+		return FALSE;
+		}
 	if (MakeSelfRelativeSD(psd_absolute,*ppsd_relative,&buflen))
 		return TRUE;
 	free(*ppsd_relative);
+	*ppsd_relative=NULL;
 	PyWin_SetAPIError("MakeSelfRelativeSD");
 	return FALSE;
 }
@@ -253,7 +262,7 @@ BOOL _MakeAbsoluteSD(PSECURITY_DESCRIPTOR psd_relative, PSECURITY_DESCRIPTOR *pp
 	
 	error_exit:
 	*ppsd_absolute=NULL;
-	// *Don't* use FreeAbsoluteSD aince function may exit without the sd having been constructed yet
+	// *Don't* use FreeAbsoluteSD since function may exit without the sd having been constructed yet
 	if (psd_absolute!=NULL)
 		free(psd_absolute);
 	if (pdacl!=NULL)
