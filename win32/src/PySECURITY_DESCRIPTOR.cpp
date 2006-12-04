@@ -186,11 +186,14 @@ BOOL _MakeAbsoluteSD(PSECURITY_DESCRIPTOR psd_relative, PSECURITY_DESCRIPTOR *pp
 	DWORD saclsize = 0;
 	DWORD ownersize = 0;
 	DWORD groupsize = 0;
+	BOOL resize = FALSE;
 
 	psd_absolute = malloc(sdsize);
+	if (psd_absolute==NULL){
+		PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", sdsize);
+		goto error_exit;
+		}
 	ZeroMemory(psd_absolute,sdsize);
-	::InitializeSecurityDescriptor(psd_absolute,SECURITY_DESCRIPTOR_REVISION);
-	BOOL resize = FALSE;
 
 	if(MakeAbsoluteSD(psd_relative, psd_absolute, &sdsize,
 					pdacl, &daclsize, psacl, &saclsize,
@@ -202,37 +205,65 @@ BOOL _MakeAbsoluteSD(PSECURITY_DESCRIPTOR psd_relative, PSECURITY_DESCRIPTOR *pp
 		resize=TRUE;
 		free (psd_absolute);
 		psd_absolute = malloc(sdsize);
-		::InitializeSecurityDescriptor(psd_absolute,SECURITY_DESCRIPTOR_REVISION);
+		if (psd_absolute==NULL){
+			PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", sdsize);
+			goto error_exit;
+			}
+		ZeroMemory(psd_absolute,sdsize);
 		}
 	if (daclsize > 0){
 		resize = TRUE;
 		pdacl =  (ACL *)malloc(daclsize);
+		if (pdacl==NULL){
+			PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", daclsize);
+			goto error_exit;
+			}
 		}
 	if (saclsize > 0){
 		resize = TRUE;
 		psacl = (ACL *)malloc(saclsize);
+		if (psacl==NULL){
+			PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", saclsize);
+			goto error_exit;
+			}
 		}
 	if (ownersize > 0){
 		resize = TRUE;
 		powner = (SID *)malloc(ownersize);
+		if (powner==NULL){
+			PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", ownersize);
+			goto error_exit;
+			}
 		}
 	if (groupsize > 0){
 		resize = TRUE;
 		pgroup = (SID *)malloc(groupsize);
+		if (pgroup==NULL){
+			PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", groupsize);
+			goto error_exit;
+			}
 		}
-	if (!resize){
-		FreeAbsoluteSD(psd_absolute);
-		PyWin_SetAPIError("MakeAbsoluteSD");
-		return FALSE;
-		}
-	if(MakeAbsoluteSD(psd_relative, psd_absolute, &sdsize,
-					pdacl, &daclsize, psacl, &saclsize,
-					powner, &ownersize, pgroup, &groupsize)){
+	if (resize && MakeAbsoluteSD(psd_relative, psd_absolute, &sdsize,
+			pdacl, &daclsize, psacl, &saclsize,
+			powner, &ownersize, pgroup, &groupsize)){
 		*ppsd_absolute = psd_absolute;
 		return TRUE;
 		}
-	FreeAbsoluteSD(psd_absolute);
 	PyWin_SetAPIError("MakeAbsoluteSD");
+	
+	error_exit:
+	*ppsd_absolute=NULL;
+	// *Don't* use FreeAbsoluteSD aince function may exit without the sd having been constructed yet
+	if (psd_absolute!=NULL)
+		free(psd_absolute);
+	if (pdacl!=NULL)
+		free(pdacl);
+	if (psacl!=NULL)
+		free(psacl);
+	if (powner!=NULL)
+		free(powner);
+	if (pgroup!=NULL)
+		free(pgroup);
 	return FALSE;
 }
 
