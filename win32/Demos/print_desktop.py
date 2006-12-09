@@ -1,4 +1,4 @@
-import win32print, pywintypes, win32con, win32gui, win32ui, win32api
+import win32print, pywintypes, win32con, win32gui, win32api
 
 pname=win32print.GetDefaultPrinter()
 print pname
@@ -16,8 +16,8 @@ dm.Copies=2
 win32print.DocumentProperties(0, p, pname, dm, dm, win32con.DM_IN_BUFFER|win32con.DM_OUT_BUFFER)
 
 pDC=win32gui.CreateDC(print_processor,pname,dm)
-printerwidth=win32ui.GetDeviceCaps(pDC, 110) ##PHYSICALWIDTH
-printerheight=win32ui.GetDeviceCaps(pDC, 111) ##PHYSICALHEIGHT
+printerwidth=win32print.GetDeviceCaps(pDC, win32con.PHYSICALWIDTH)
+printerheight=win32print.GetDeviceCaps(pDC, win32con.PHYSICALHEIGHT)
 
 hwnd=win32gui.GetDesktopWindow()
 l,t,r,b=win32gui.GetWindowRect(hwnd)
