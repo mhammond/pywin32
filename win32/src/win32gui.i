@@ -3511,6 +3511,78 @@ int DrawText(
 	RECT *BOTH,			// @pyparm tuple|Rect||Tuple of 4 ints specifying the position (left, top, right, bottom)
 	UINT uFormat);		// @pyparm int|Format||Formatting flags, combination of win32con.DT_* values
 
+// @pyswig |LineTo|Draw a line from current position to specified point
+BOOLAPI LineTo(
+	HDC hdc,	// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+	int XEnd,	// @pyparm int|XEnd||Horizontal position in logical units
+	int YEnd);	// @pyparm int|YEnd||Vertical position in logical units
+
+// @pyswig |Ellipse|Draws a filled ellipse on a device context
+BOOLAPI Ellipse(
+	HDC hdc,			// @pyparm <o PyHANDLE>|hdc||Device context on which to draw
+	int LeftRect,		// @pyparm int|LeftRect||Left limit of ellipse
+	int TopRect,		// @pyparm int|TopRect||Top limit of ellipse
+	int RightRect,		// @pyparm int|RightRect||Right limit of ellipse
+	int BottomRect);	// @pyparm int|BottomRect||Bottom limit of ellipse
+
+// @pyswig |Pie|Draws a section of an ellipse cut by 2 radials
+BOOLAPI Pie(
+	HDC hdc,		// @pyparm <o PyHANDLE>|hdc||Device context on which to draw
+	int LeftRect,	// @pyparm int|LeftRect||Left limit of ellipse
+	int TopRect,	// @pyparm int|TopRect||Top limit of ellipse
+	int RightRect,	// @pyparm int|RightRect||Right limit of ellipse
+	int BottomRect,	// @pyparm int|BottomRect||Bottom limit of ellipse
+	int XRadial1,	// @pyparm int|XRadial1||Horizontal pos of Radial1 endpoint
+	int YRadial1,	// @pyparm int|YRadial1||Vertical pos of Radial1 endpoint
+	int XRadial2,	// @pyparm int|XRadial2||Horizontal pos of Radial2 endpoint
+	int YRadial2);	// @pyparm int|YRadial2||Vertical pos of Radial2 endpoint
+
+// @pyswig |Arc|Draws an arc defined by an ellipse and 2 radials
+BOOLAPI Arc(
+	HDC hdc,		// @pyparm <o PyHANDLE>|hdc||Device context on which to draw
+	int LeftRect,	// @pyparm int|LeftRect||Left limit of ellipse
+	int TopRect,	// @pyparm int|TopRect||Top limit of ellipse
+	int RightRect,	// @pyparm int|RightRect||Right limit of ellipse
+	int BottomRect,	// @pyparm int|BottomRect||Bottom limit of ellipse
+	int XStartArc,	// @pyparm int|XRadial1||Horizontal pos of Radial1 endpoint
+	int YStartArc,	// @pyparm int|YRadial1||Vertical pos of Radial1 endpoint
+	int XEndArc,	// @pyparm int|XRadial2||Horizontal pos of Radial2 endpoint
+	int XEndArc);	// @pyparm int|YRadial2||Vertical pos of Radial2 endpoint
+
+// @pyswig |ArcTo|Draws an arc defined by an ellipse and 2 radials
+// @comm Draws exactly as <om win32gui.Arc>, but changes current drawing position
+BOOLAPI ArcTo(
+	HDC hdc,		// @pyparm <o PyHANDLE>|hdc||Device context on which to draw
+	int LeftRect,	// @pyparm int|LeftRect||Left limit of ellipse
+	int TopRect,	// @pyparm int|TopRect||Top limit of ellipse
+	int RightRect,	// @pyparm int|RightRect||Right limit of ellipse
+	int BottomRect,	// @pyparm int|BottomRect||Bottom limit of ellipse
+	int XRadial1,	// @pyparm int|XRadial1||Horizontal pos of Radial1 endpoint
+	int YRadial1,	// @pyparm int|YRadial1||Vertical pos of Radial1 endpoint
+	int XRadial2,	// @pyparm int|XRadial2||Horizontal pos of Radial2 endpoint
+	int YRadial2);	// @pyparm int|YRadial2||Vertical pos of Radial2 endpoint
+
+// @pyswig |Chord|Draws a chord defined by an ellipse and 2 radials
+BOOLAPI Chord(
+	HDC hdc,		// @pyparm <o PyHANDLE>|hdc||Device context on which to draw
+	int LeftRect,	// @pyparm int|LeftRect||Left limit of ellipse
+	int TopRect,	// @pyparm int|TopRect||Top limit of ellipse
+	int RightRect,	// @pyparm int|RightRect||Right limit of ellipse
+	int BottomRect,	// @pyparm int|BottomRect||Bottom limit of ellipse
+	int XRadial1,	// @pyparm int|XRadial1||Horizontal pos of Radial1 endpoint
+	int YRadial1,	// @pyparm int|YRadial1||Vertical pos of Radial1 endpoint
+	int XRadial2,	// @pyparm int|XRadial2||Horizontal pos of Radial2 endpoint
+	int YRadial2);	// @pyparm int|YRadial2||Vertical pos of Radial2 endpoint
+
+// @pyswig (int, int)|MoveToEx|Changes the current drawing position
+// @rdesc Returns the previous position as (X, Y)
+BOOLAPI MoveToEx(
+	HDC hdc,	// @pyparm <o PyHANDLE>|hcl||Device context handle
+	int X,	// @pyparm int|X||Horizontal pos in logical units
+	int Y,	// @pyparm int|Y||Vertical pos in logical units
+	POINT *OUTPUT);
+
+
 %{
 //@pyswig int|ExtTextOut|Writes text to a DC.
 static PyObject *PyExtTextOut(PyObject *self, PyObject *args)
@@ -3601,10 +3673,22 @@ int SetBkColor(
 	HDC hdc,			// @pyparm int/<o PyHANDLE>|hdc||Handle to a device context
 	COLORREF col);			// @pyparm int|color||
 
-// @pyswig |DrawEdge|
-BOOLAPI DrawEdge(HDC hdc, RECT *INPUT, UINT edge, UINT grfFlags); 
-// @pyswig |FillRect|
-int FillRect(HDC hDC,   RECT *INPUT, HBRUSH hbr);
+// @pyswig <o RECT>|DrawEdge|Draws edge(s) of a rectangle
+// @rdesc BF_ADJUST flag causes input rectange to be shrunk by size of border.. Rectangle is always returned.
+BOOLAPI DrawEdge(
+	/* ??? This function can change the input rectange if BF_ADJUST is in Flags.
+		Need to send it back as output also. ??? */
+	HDC hdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+	RECT *BOTH,		// @pyparm <o RECT>|rc||Rectangle whose edge(s) will be drawn
+	UINT edge,		// @pyparm int|edge||Combination of win32con.BDR_* flags, or one of win32con.EDGE_* flags
+	UINT Flags);	// @pyparm int|Flags||Combination of win32con.BF_* flags
+
+// @pyswig |FillRect|Fills a rectangular area with specified brush
+int FillRect(
+	HDC hDC,		// @pyparm <o PyHANDLE>|hDC||Handle to a device context
+	RECT *INPUT,	// @pyparm <o RECT>|rc||Rectangle to be filled
+	HBRUSH hbr);	// @pyparm <o PyHANDLE>|hbr||Handle to brush to be used to fill area
+
 // @pyswig |DrawAnimatedRects|
 BOOLAPI DrawAnimatedRects(
   HWND hwnd,            // @pyparm int|hwnd||handle to clipping window
@@ -3612,24 +3696,53 @@ BOOLAPI DrawAnimatedRects(
   RECT *INPUT, // @pyparm RECT|minCoords||rectangle coordinates (minimized)
   RECT *INPUT // // @pyparm RECT|restCoords||rectangle coordinates (restored)
 );
-// @pyswig |CreateSolidBrush|
-HBRUSH CreateSolidBrush(COLORREF color);
-// @pyswig |CreatePen|
-HPEN CreatePen(int fnPenStyle, int nWidth, COLORREF crColor);
-// @pyswig |GetSysColor|
-DWORD GetSysColor(int nIndex);
-// @pyswig |GetSysColorBrush|
-HBRUSH GetSysColorBrush(int nIndex);
+
+// @pyswig <o PyHANDLE>|CreateSolidBrush|Creates a solid brush of specified color
+HBRUSH CreateSolidBrush(
+	COLORREF Color);	// @pyparm int|Color||RGB color value.  See <om win32api.RGB>.
+
+// @pyswig <o PyHANDLE>|CreatePatternBrush|Creates a brush using a bitmap as a pattern
+HBRUSH CreatePatternBrush(
+	HBITMAP hbmp);	// @pyparm <o PyHANDLE>|hbmp||Handle to a bitmap
+
+// @pyswig <o PyHANDLE>|CreateHatchBrush|Creates a hatch brush with specified style and color
+HBRUSH CreateHatchBrush(
+  int Style,		// @pyparm int|Style||Hatch style, one of win32con.HS_* constants
+  COLORREF clrref);	// @pyparm int|clrref||Rgb color value.  See <om win32api.RGB>.
+
+// @pyswig <o PyHANDLE>|CreatePen|Create a GDI pen
+HPEN CreatePen(
+	int PenStyle,		// @pyparm int|PenStyle||One of win32con.PS_* pen styles
+	int Width,			// @pyparm int|Width||Drawing width in pixels
+	COLORREF Color);	// @pyparm int|Color||RGB color value.  See <om win32api.RGB>.
+
+// @pyswig int|GetSysColor|Returns the color of a window element
+DWORD GetSysColor(int Index);	// @pyparm int|Index||One of win32con.COLOR_* values
+
+// @pyswig <o PyHANDLE>|GetSysColorBrush|Creates a handle to a system color brush
+HBRUSH GetSysColorBrush(int nIndex);	// @pyparm int|Index||Index of a window element color (win32con.COLOR_*)
+
 // @pyswig |InvalidateRect|
 BOOLAPI InvalidateRect(HWND hWnd,  RECT *INPUT_NULLOK , BOOL bErase);
+
 #ifndef MS_WINCE
-// @pyswig |FrameRect|
-int FrameRect(HDC hDC,   RECT *INPUT, HBRUSH hbr);
+// @pyswig |FrameRect|Draws an outline around a rectangle
+int FrameRect(
+	HDC hDC,		// @pyparm <o PyHANDLE>|hDC||Handle to a device context
+	RECT *INPUT,	// @pyparm <o RECT>|rc||Rectangle around which to draw
+	HBRUSH hbr);	// @pyparm <o PyHANDLE>|hbr||Handle to brush created using CreateHatchBrush, CreatePatternBrush, CreateSolidBrush, or GetStockObject 
 #endif	/* not MS_WINCE */
+
 // @pyswig |GetUpdateRgn|
 int GetUpdateRgn(HWND hWnd, HRGN hRgn, BOOL bErase);
-// @pyswig |Rectangle|
-BOOLAPI Rectangle(HDC hdc, int nLeftRect, int nTopRect, int nRightRect, int nBottomRect);
+
+// @pyswig |Rectangle|Creates a solid rectangle using currently selected pen and brush
+BOOLAPI Rectangle(
+	HDC hdc,			// @pyparm <o PyHANDLE>|hdc||Handle to device context
+	int nLeftRect,		// @pyparm int|LeftRect||Position of left edge of rectangle
+	int nTopRect,		// @pyparm int|TopRect||Position of top edge of rectangle
+	int nRightRect,		// @pyparm int|RightRect||Posistion of right edge of rectangle
+	int nBottomRect);	// @pyparm int|BottomRect||Position of bottom edge of rectangle
 
 // @pyswig hdc, paintstruct|BeginPaint|
 HDC BeginPaint(HWND hwnd, PAINTSTRUCT *OUTPUT);
@@ -3666,10 +3779,9 @@ HWND SetParent(
 	HWND hWndNewParent // @pyparm int|child||handle to new parent window
 ); 
 
-// @pyswig |GetCursorPos|retrieves the cursor's position, in screen coordinates. 
+// @pyswig (int, int)|GetCursorPos|retrieves the cursor's position, in screen coordinates. 
 BOOLAPI GetCursorPos(
-  POINT *OUTPUT   // @pyparm int, int|point||address of structure for cursor position
-);
+	POINT *OUTPUT);
  
 // @pyswig int|GetDesktopWindow|returns the desktop window 
 HWND GetDesktopWindow();
