@@ -2064,6 +2064,25 @@ static PyObject *PyDeviceCapabilities(PyObject *self, PyObject *args)
 	return ret;
 }
 
+// @pymethod int|win32print|GetDeviceCaps|Retrieves device-specific parameters and settings
+// @comm Can also be used for Display DCs in addition to printer DCs
+// @pyseeapi GetDeviceCaps
+static PyObject *PyGetDeviceCaps(PyObject *self, PyObject *args)
+{
+	PyObject *obdc;
+	DWORD index;
+	int ret;
+	HDC hdc;
+	if (!PyArg_ParseTuple(args, "Ok",
+		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a printer or display device context
+		&index))	// @pyparm int|Index||The capability to return.  See MSDN for valid values.
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
+		return NULL;
+	ret=GetDeviceCaps(hdc, index);
+	return Py_BuildValue("i", ret);
+}
+
 // @pymethod (dict,...)|win32print|EnumMonitors|Lists installed printer port monitors
 static PyObject *PyEnumMonitors(PyObject *self, PyObject *args)
 {
@@ -2479,6 +2498,7 @@ static struct PyMethodDef win32print_functions[] = {
 	{"AddJob", PyAddJob, 1}, //@pymeth AddJob|Adds a job to be spooled to a printer queue
 	{"ScheduleJob", PyScheduleJob, 1}, //@pymeth ScheduleJob|Schedules a spooled job to be printed
 	{"DeviceCapabilities", PyDeviceCapabilities, 1}, //@pymeth DeviceCapabilities|Queries a printer for its capabilities
+	{"GetDeviceCaps", PyGetDeviceCaps, METH_VARARGS}, //@pymeth GetDeviceCaps|Retrieves device-specific parameters and settings
 	{"EnumMonitors", PyEnumMonitors, 1}, //@pymeth EnumMonitors|Lists installed printer port monitors
 	{"EnumPorts", PyEnumPorts, 1}, //@pymeth EnumPorts|Lists printer ports on a server
 	{"GetPrintProcessorDirectory", PyGetPrintProcessorDirectory, 1}, //@pymeth GetPrintProcessorDirectory|Returns the directory where print processor files reside
