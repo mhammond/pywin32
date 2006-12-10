@@ -45,6 +45,8 @@ typedef BOOL (WINAPI *GetHandleInformationfunc)(HANDLE, LPDWORD);
 static GetHandleInformationfunc pfnGetHandleInformation=NULL;
 typedef BOOL (WINAPI *SetHandleInformationfunc)(HANDLE, DWORD, DWORD);
 static SetHandleInformationfunc pfnSetHandleInformation=NULL;
+typedef BOOL (WINAPI *GlobalMemoryStatusExfunc)(LPMEMORYSTATUSEX);
+static GlobalMemoryStatusExfunc pfnGlobalMemoryStatusEx=NULL;
 
 // from secur32.dll
 typedef BOOLEAN (WINAPI *GetUserNameExfunc)(EXTENDED_NAME_FORMAT,LPWSTR,PULONG);
@@ -5094,6 +5096,51 @@ PyObject *PyLoadKeyboardLayout(PyObject *self, PyObject *args)
 	return PyLong_FromLong((long)lcid);
 }
 
+// @pymethod dict|win32api|GlobalMemoryStatus|Returns systemwide memory usage
+// @rdesc Returns a dictionary representing a MEMORYSTATUS structure
+PyObject *PyGlobalMemoryStatus(PyObject *self, PyObject *args)
+{
+#ifdef _WIN64
+	static char *fmt="{s:k,s:k,s:K,s:K,s:K,s:K,s:K,s:K}";
+#else
+	static char *fmt="{s:k,s:k,s:k,s:k,s:k,s:k,s:k,s:k}";
+#endif
+	MEMORYSTATUS ms;
+	GlobalMemoryStatus(&ms);
+	return Py_BuildValue(fmt,
+		"Length",		ms.dwLength,
+		"MemoryLoad",	ms.dwMemoryLoad,
+		"TotalPhys",	ms.dwTotalPhys,
+		"AvailPhys",	ms.dwAvailPhys,
+		"TotalPageFile",ms.dwTotalPageFile,
+		"AvailPageFile",ms.dwAvailPageFile,
+		"TotalVirtual",	ms.dwTotalVirtual,
+		"AvailVirtual",	ms.dwAvailVirtual);
+}
+
+// @pymethod dict|win32api|GlobalMemoryStatusEx|Returns physical and virtual memory usage
+// @rdesc Returns a dictionary representing a MEMORYSTATUSEX structure
+// @comm Only available on Win2k and later.
+PyObject *PyGlobalMemoryStatusEx(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(GlobalMemoryStatusEx);
+	static char *fmt="{s:k,s:k,s:K,s:K,s:K,s:K,s:K,s:K,s:K}";
+	MEMORYSTATUSEX ms;
+	ms.dwLength=sizeof(ms);
+	if (!(*pfnGlobalMemoryStatusEx)(&ms))
+		return PyWin_SetAPIError("GlobalMemoryStatusEx");
+	return Py_BuildValue(fmt,
+		"Length",		ms.dwLength,
+		"MemoryLoad",	ms.dwMemoryLoad,
+		"TotalPhys",	ms.ullTotalPhys,
+		"AvailPhys",	ms.ullAvailPhys,
+		"TotalPageFile",ms.ullTotalPageFile,
+		"AvailPageFile",ms.ullAvailPageFile,
+		"TotalVirtual",	ms.ullTotalVirtual,
+		"AvailVirtual",	ms.ullAvailVirtual,
+		"AvailExtendedVirtual", ms.ullAvailExtendedVirtual);
+}
+
 
 /* List of functions exported by this module */
 // @module win32api|A module, encapsulating the Windows Win32 API.
@@ -5201,6 +5248,8 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetWindowLong",       PyGetWindowLong,1}, // @pymeth GetWindowLong|Retrieves a long value at the specified offset into the extra window memory of the given window.
 	{"GetUserDefaultLangID",PyGetUserDefaultLangID,1}, // @pymeth GetUserDefaultLangID|Retrieves the user default language identifier. 
 	{"GetUserDefaultLCID",  PyGetUserDefaultLCID,1}, // @pymeth GetUserDefaultLCID|Retrieves the user default locale identifier.
+	{"GlobalMemoryStatus",  PyGlobalMemoryStatus,	METH_NOARGS}, // @pymeth GlobalMemoryStatus|Returns systemwide memory usage
+	{"GlobalMemoryStatusEx",  PyGlobalMemoryStatusEx,	METH_NOARGS}, // @pymeth GlobalMemoryStatusEx|Returns physical and virtual memory usage
 	{"keybd_event",         Pykeybd_event, 1}, // @pymeth keybd_event|Simulate a keyboard event
 	{"mouse_event",         Pymouse_event, 1}, // @pymeth mouse_event|Simulate a mouse event
 	{"LoadCursor",          PyLoadCursor, 1}, // @pymeth LoadCursor|Loads a cursor.
@@ -5377,6 +5426,7 @@ initwin32api(void)
     pfnGetLongPathNameW=(GetLongPathNameWfunc)GetProcAddress(hmodule,"GetLongPathNameW");
     pfnGetHandleInformation=(GetHandleInformationfunc)GetProcAddress(hmodule,"GetHandleInformation");
     pfnSetHandleInformation=(SetHandleInformationfunc)GetProcAddress(hmodule,"SetHandleInformation");
+    pfnGlobalMemoryStatusEx=(GlobalMemoryStatusExfunc)GetProcAddress(hmodule,"GlobalMemoryStatusEx");
   }
 
   hmodule = GetModuleHandle("user32.dll");
