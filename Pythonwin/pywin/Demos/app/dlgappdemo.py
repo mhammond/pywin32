@@ -9,7 +9,6 @@
 from pywin.framework import dlgappcore, app
 import win32ui
 import sys
-import regsub
 
 class TestDialogApp(dlgappcore.DialogApp):
 	def CreateDialog(self):
@@ -36,7 +35,7 @@ class TestAppDialog(dlgappcore.AppDialog):
 		if self.edit:
 			self.edit.SetSel(-2)
 			# translate \n to \n\r
-			self.edit.ReplaceSel(regsub.gsub('\n','\r\n',str))
+			self.edit.ReplaceSel(str.replace('\n','\r\n'))
 		else:
 			win32ui.OutputDebug("dlgapp - no edit control! >>\n%s\n<<\n" % str )
 

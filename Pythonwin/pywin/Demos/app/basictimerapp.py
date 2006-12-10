@@ -9,7 +9,6 @@ from pywin.framework import app, cmdline, dlgappcore, cmdline
 import timer
 import time
 import string
-import regsub
 
 class TimerAppDialog(dlgappcore.AppDialog):
 	softspace=1
@@ -37,7 +36,7 @@ class TimerAppDialog(dlgappcore.AppDialog):
 		self.buildTimer = win32ui.GetProfileVal(self.timerAppName, "Timer", "EachMinuteIntervaler()")
 		self.doWork = win32ui.GetProfileVal(self.timerAppName, "Work", "DoDemoWork()")
 		# replace "\n" with real \n.
-		self.doWork =  regsub.gsub('\\\\n','\n', self.doWork)
+		self.doWork =  self.doWork.replace('\\n','\n')
 		dlgappcore.AppDialog.OnInitDialog(self)
 
 		self.SetWindowText(self.title)
