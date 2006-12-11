@@ -757,15 +757,15 @@ PyObject *PyINPUT_RECORD::tp_str(PyObject *self)
 // Create using <om win32console.CreateConsoleScreenBuffer> or <om win32console.GetStdHandle>
 // Use PyConsoleScreenBufferType(Handle) to wrap a pre-existing handle as returned by <om win32api.GetStdHandle>.
 // Will also accept a handle created by <om win32file.CreateFile> for CONIN$ or CONOUT$.
-// Only handles created by CreateConsoleScreenBuffer will be closed when Python object is destroyed
+// When an existing handle is wrapped, a copy is made using DuplicateHandle, and caller is still responsible
+// for any cleanup of original handle.
 class PyConsoleScreenBuffer : public PyHANDLE
 {
 public:
-	PyConsoleScreenBuffer(HANDLE hconsole, BOOL bautoclose);
+	PyConsoleScreenBuffer(HANDLE hconsole);
 	~PyConsoleScreenBuffer(void);
 	static void tp_dealloc(PyObject *ob);
 	const char *GetTypeName() {return "PyConsoleScreenBuffer";}
-	BOOL bAutoClose;
 	// static struct PyMemberDef members[];
 	static struct PyMethodDef methods[];
 	static PyObject *tp_new(PyTypeObject *tp, PyObject *args, PyObject *kwargs);
@@ -899,16 +899,6 @@ struct PyMethodDef PyConsoleScreenBuffer::methods[] = {
 	{NULL}
 };
 
-/*
-?????? Class members can't be accessed thru normal means due to offsetof failing for derived classes
-	which have a base with virtual methods
-Maybe expose AutoClose via Get/Set methods ??????? 
-struct PyMemberDef PyConsoleScreenBuffer::members[] =
-{
-	{"AutoClose", T_INT, offsetof(PyConsoleScreenBuffer, bAutoClose), 0, "Indicates whether handle should be closed when python object is destroyed"}, 
-	{NULL}
-};
-*/
 
 // @pymethod |PyConsoleScreenBuffer|SetConsoleActiveScreenBuffer|Sets this handle as the currently displayed screen buffer
 PyObject *PyConsoleScreenBuffer::PySetConsoleActiveScreenBuffer(PyObject *self, PyObject *args)
@@ -1566,32 +1556,53 @@ PyTypeObject PyConsoleScreenBufferType =
 
 #define PyConsoleScreenBuffer_Check(ob)	((ob)->ob_type == &PyConsoleScreenBufferType)
 
+PyObject *PyWinObject_FromConsoleScreenBuffer(HANDLE h, BOOL bDuplicate)
+{
+	HANDLE hdup;
+	if (!bDuplicate)
+		hdup=h;
+	else{
+		HANDLE hprocess=GetCurrentProcess();
+		if (!DuplicateHandle(hprocess, h, hprocess, &hdup, 0, FALSE, DUPLICATE_SAME_ACCESS))
+			return PyWin_SetAPIError("DuplicateHandle");
+		}
+	PyObject *ret=new PyConsoleScreenBuffer(hdup);
+	if (ret==NULL)
+		PyErr_NoMemory();
+	return ret;
+}
+
 PyObject *PyConsoleScreenBuffer::tp_new(PyTypeObject *tp, PyObject *args, PyObject *kwargs)
 {
 	static char *keywords[]={"Handle", NULL};
 	HANDLE h;
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "l", keywords, &h))
+	PyObject *obh;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &obh))
 		return NULL;
-	return new PyConsoleScreenBuffer(h, FALSE);
+	if (!PyWinObject_AsHANDLE(obh, &h, FALSE))
+		return NULL;
+	// Handle will be duplicated so caller is still responsible for original handle
+	return PyWinObject_FromConsoleScreenBuffer(h, TRUE);
 }
 
-PyConsoleScreenBuffer::PyConsoleScreenBuffer(HANDLE hconsole, BOOL bautoclose) : PyHANDLE(hconsole)
+PyConsoleScreenBuffer::PyConsoleScreenBuffer(HANDLE hconsole) : PyHANDLE(hconsole)
 {
 	ob_type = &PyConsoleScreenBufferType;
-	bAutoClose=bautoclose;
 }
 
 PyConsoleScreenBuffer::~PyConsoleScreenBuffer(void)
 {
-	// Only close handles explicitely created by CreateConsoleScreenBuffer
-	// Let PyHANDLE's exception catching logic take care of it
-	if (this->bAutoClose)
-		this->Close();
+	// Close happens in tp_dealloc below
 }
 
 void PyConsoleScreenBuffer::tp_dealloc(PyObject *ob)
 {
+	// use same error logic as in PyHANDLE::deallocFunc
+	PyObject *typ, *val, *tb;
+	PyErr_Fetch(&typ, &val, &tb);
+	((PyConsoleScreenBuffer *)ob)->Close();
 	delete (PyConsoleScreenBuffer *)ob;
+	PyErr_Restore(typ, val, tb);	
 }
 
 
@@ -1619,7 +1630,8 @@ static PyObject *PyCreateConsoleScreenBuffer(PyObject *self, PyObject *args, PyO
 	hconsole=CreateConsoleScreenBuffer(access, sharemode, psa, flags, reserved);
 	if (hconsole==INVALID_HANDLE_VALUE)
 		return PyWin_SetAPIError("CreateConsoleScreenBuffer");
-	return new PyConsoleScreenBuffer(hconsole, TRUE);
+	// Newly created handle doesn't need to be duplicated
+	return PyWinObject_FromConsoleScreenBuffer(hconsole, FALSE);
 }
 
 // @pymethod int|win32console|GetConsoleDisplayMode|Returns the current console's display mode
@@ -1985,7 +1997,8 @@ PyObject* PyGetStdHandle(PyObject *self, PyObject *args, PyObject *kwargs)
 		Py_INCREF(Py_None);
 		return Py_None;
 		}
-	return new PyConsoleScreenBuffer(h, FALSE);
+	// Duplicate the handle so the processwide std handles aren't closed prematurely
+	return PyWinObject_FromConsoleScreenBuffer(h, TRUE);
 }
 
 
