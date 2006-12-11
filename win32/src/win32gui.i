@@ -2655,6 +2655,15 @@ BOOLAPI GetClientRect(HWND hWnd, RECT *OUTPUT);
 // @pyparm int|hwnd||The handle to the window
 HDC GetDC(  HWND hWnd );
 
+// @pyswig int|SaveDC|Save the state of a device context
+// @rdesc Returns a value identifying the state that can be passed to <om win32gui.RestoreDC>.  On error, returns 0.
+int SaveDC(HDC hdc);	// @pyparm <o PyHANDLE>|hdc||Handle to device context
+
+// @pyswig |RestoreDC|Restores a device context state
+BOOLAPI RestoreDC(
+	HDC hdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+	int SavedDC);	// @pyparm int|SavedDC||Identifier of state to be restored, as returned by <om win32gui.SaveDC>.
+
 // @pyswig |DeleteDC|Deletes a DC
 BOOLAPI DeleteDC(
     HDC dc // @pyparm int|hdc||The source DC
@@ -3577,11 +3586,200 @@ BOOLAPI Chord(
 // @pyswig (int, int)|MoveToEx|Changes the current drawing position
 // @rdesc Returns the previous position as (X, Y)
 BOOLAPI MoveToEx(
-	HDC hdc,	// @pyparm <o PyHANDLE>|hcl||Device context handle
+	HDC hdc,	// @pyparm <o PyHANDLE>|hdc||Device context handle
 	int X,	// @pyparm int|X||Horizontal pos in logical units
 	int Y,	// @pyparm int|Y||Vertical pos in logical units
 	POINT *OUTPUT);
 
+// @pyswig (int,int)|GetCurrentPositionEx|Returns a device context's current drawing position
+BOOLAPI GetCurrentPositionEx(
+	HDC hdc,		// @pyparm <o PyHANDLE>|hdc||Device context
+	POINT *OUTPUT);
+
+// @pyswig int|GetArcDirection|Returns the direction in which rectangles and arcs are drawn
+// @rdesc Recturns one of win32con.AD_* values
+int GetArcDirection(
+	HDC hdc);	// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+
+// @pyswig int|SetArcDirection|Sets the drawing direction for arcs and rectangles
+// @rdesc Returns the previous direction, or 0 on error.
+int SetArcDirection(
+	HDC hdc,			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+	int ArcDirection);	// @pyparm int|ArcDirection||One of win32con.AD_* constants
+
+%{
+BOOL PyWinObject_AsPOINTArray(PyObject *obpoints, POINT **ppoints, DWORD *item_cnt)
+{
+	BOOL ret=TRUE;
+	DWORD bufsize, tuple_index;
+	PyObject *points_tuple=NULL, *tuple_item;
+	*ppoints=NULL;
+	*item_cnt=0;
+
+	if ((points_tuple=PySequence_Tuple(obpoints))==NULL)
+		return FALSE;
+	*item_cnt=PyTuple_GET_SIZE(points_tuple);
+	bufsize=*item_cnt * sizeof(POINT);
+	*ppoints=(POINT *)malloc(bufsize);
+	if (*ppoints==NULL){
+		PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
+		ret=FALSE;
+		}
+	else
+		for (tuple_index=0; tuple_index<*item_cnt; tuple_index++){
+			tuple_item=PyTuple_GET_ITEM(points_tuple,tuple_index);
+			if (!PyWinObject_AsPOINT(tuple_item, &(*ppoints)[tuple_index])){
+				ret=FALSE;
+				break;
+				}
+			}
+	if (!ret)
+		if (*ppoints!=NULL){
+			free(*ppoints);
+			*ppoints=NULL;
+			*item_cnt=0;
+			}
+	Py_XDECREF(points_tuple);
+	return ret;
+}
+
+// @pyswig |Polygon|Draws a closed filled polygon defined by a sequence of points
+static PyObject *PyPolygon(PyObject *self, PyObject *args)
+{
+	HDC hdc;
+	POINT *points=NULL;
+	DWORD point_cnt;
+	PyObject *obpoints, *obdc, *ret=NULL;
+	if (!PyArg_ParseTuple(args, "OO:PolyGon",
+		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		&obpoints))	// @pyparm [(int,int),...]|Points||Sequence of POINT tuples: ((x,y),...)
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	if (!PyWinObject_AsPOINTArray(obpoints, &points, &point_cnt))
+		return NULL;
+	if (!Polygon(hdc, points, point_cnt))
+		PyWin_SetAPIError("PolyGon");
+	else{
+		Py_INCREF(Py_None);
+		ret=Py_None;
+		}
+	if (points)
+		free(points);
+	return ret;
+}
+
+// @pyswig |Polyline|Connects a sequence of points using currently selected pen
+static PyObject *PyPolyline(PyObject *self, PyObject *args)
+{
+	HDC hdc;
+	POINT *points=NULL;
+	DWORD point_cnt;
+	PyObject *obpoints, *obdc, *ret=NULL;
+	if (!PyArg_ParseTuple(args, "OO:Polyline", 
+		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		&obpoints))	// @pyparm [(int,int),...]|Points||Sequence of POINT tuples: ((x,y),...)
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	if (!PyWinObject_AsPOINTArray(obpoints, &points, &point_cnt))
+		return NULL;
+	if (!Polyline(hdc, points, point_cnt))
+		PyWin_SetAPIError("Polyline");
+	else{
+		Py_INCREF(Py_None);
+		ret=Py_None;
+		}
+	if (points)
+		free(points);
+	return ret;
+}
+
+// @pyswig |PolylineTo|Draws a series of lines starting from current position.  Updates current position with end point.
+static PyObject *PyPolylineTo(PyObject *self, PyObject *args)
+{
+	HDC hdc;
+	POINT *points=NULL;
+	DWORD point_cnt;
+	PyObject *obpoints, *obdc, *ret=NULL;
+	if (!PyArg_ParseTuple(args, "OO:PolylineTo", 
+		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		&obpoints))	// @pyparm [(int,int),...]|Points||Sequence of POINT tuples: ((x,y),...)
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	if (!PyWinObject_AsPOINTArray(obpoints, &points, &point_cnt))
+		return NULL;
+	if (!PolylineTo(hdc, points, point_cnt))
+		PyWin_SetAPIError("PolylineTo");
+	else{
+		Py_INCREF(Py_None);
+		ret=Py_None;
+		}
+	if (points)
+		free(points);
+	return ret;
+}
+
+// @pyswig |PolyBezier|Draws a series of Bezier curves starting from first point specified.
+// @comm Number of points must be a multiple of 3 plus 1.
+static PyObject *PyPolyBezier(PyObject *self, PyObject *args)
+{
+	HDC hdc;
+	POINT *points=NULL;
+	DWORD point_cnt;
+	PyObject *obpoints, *obdc, *ret=NULL;
+	if (!PyArg_ParseTuple(args, "OO:PolyBezier", 
+		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		&obpoints))	// @pyparm [(int,int),...]|Points||Sequence of POINT tuples: ((x,y),...).
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	if (!PyWinObject_AsPOINTArray(obpoints, &points, &point_cnt))
+		return NULL;
+	if (!PolyBezier(hdc, points, point_cnt))
+		PyWin_SetAPIError("PolyBezier");
+	else{
+		Py_INCREF(Py_None);
+		ret=Py_None;
+		}
+	if (points)
+		free(points);
+	return ret;
+}
+
+// @pyswig |PolyBezierTo|Draws a series of Bezier curves starting from current drawing position.
+// @comm Points must contain 3 points for each curve.  Current position is updated with last endpoint.
+static PyObject *PyPolyBezierTo(PyObject *self, PyObject *args)
+{
+	HDC hdc;
+	POINT *points=NULL;
+	DWORD point_cnt;
+	PyObject *obpoints, *obdc, *ret=NULL;
+	if (!PyArg_ParseTuple(args, "OO:PolyBezierTo", 
+		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		&obpoints))	// @pyparm [(int,int),...]|Points||Sequence of POINT tuples: ((x,y),...).
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	if (!PyWinObject_AsPOINTArray(obpoints, &points, &point_cnt))
+		return NULL;
+	if (!PolyBezierTo(hdc, points, point_cnt))
+		PyWin_SetAPIError("PolyBezierTo");
+	else{
+		Py_INCREF(Py_None);
+		ret=Py_None;
+		}
+	if (points)
+		free(points);
+	return ret;
+}
+%}
+%native (Polygon) PyPolygon;
+%native (Polyline) PyPolyline;
+%native (PolylineTo) PyPolylineTo;
+%native (PolyBezier) PyPolyBezier;
+%native (PolyBezierTo) PyPolyBezierTo;
 
 %{
 //@pyswig int|ExtTextOut|Writes text to a DC.
@@ -3733,6 +3931,11 @@ int FrameRect(
 	HBRUSH hbr);	// @pyparm <o PyHANDLE>|hbr||Handle to brush created using CreateHatchBrush, CreatePatternBrush, CreateSolidBrush, or GetStockObject 
 #endif	/* not MS_WINCE */
 
+// @pyswig |InvertRect|Inverts the colors in a regtangular region
+BOOLAPI InvertRect(
+	HDC hDC,		// @pyparm <o PyHANDLE>|hDC||Handle to a device context
+	RECT *INPUT);	// @pyparm <o RECT>|rc||Coordinates of rectangle to invert
+
 // @pyswig |GetUpdateRgn|
 int GetUpdateRgn(HWND hWnd, HRGN hRgn, BOOL bErase);
 
@@ -3741,8 +3944,18 @@ BOOLAPI Rectangle(
 	HDC hdc,			// @pyparm <o PyHANDLE>|hdc||Handle to device context
 	int nLeftRect,		// @pyparm int|LeftRect||Position of left edge of rectangle
 	int nTopRect,		// @pyparm int|TopRect||Position of top edge of rectangle
-	int nRightRect,		// @pyparm int|RightRect||Posistion of right edge of rectangle
+	int nRightRect,		// @pyparm int|RightRect||Position of right edge of rectangle
 	int nBottomRect);	// @pyparm int|BottomRect||Position of bottom edge of rectangle
+
+// @pyswig |RoundRect|Draws a rectangle with elliptically rounded corners, filled using using current brush
+BOOLAPI RoundRect(
+	HDC hdc,			// @pyparm <o PyHANDLE>|hdc||Handle to device context
+	int nLeftRect,		// @pyparm int|LeftRect||Position of left edge of rectangle
+	int nTopRect,		// @pyparm int|TopRect||Position of top edge of rectangle
+	int nRightRect,		// @pyparm int|RightRect||Position of right edge of rectangle
+	int nBottomRect,	// @pyparm int|BottomRect||Position of bottom edge of rectangle
+	int Width,			// @pyparm int|Width||Width of ellipse
+	int Height);		// @pyparm int|Height||Height of ellipse
 
 // @pyswig hdc, paintstruct|BeginPaint|
 HDC BeginPaint(HWND hwnd, PAINTSTRUCT *OUTPUT);
