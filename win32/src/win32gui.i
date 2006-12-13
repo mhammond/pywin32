@@ -43,6 +43,8 @@ typedef BOOL (WINAPI *GetLayeredWindowAttributesfunc)(HWND, COLORREF *, BYTE *, 
 static GetLayeredWindowAttributesfunc pfnGetLayeredWindowAttributes=NULL;
 typedef BOOL (WINAPI *AngleArcfunc)(HDC, int, int, DWORD, FLOAT, FLOAT);
 static AngleArcfunc pfnAngleArc=NULL;
+typedef BOOL (WINAPI *PlgBltfunc)(HDC,CONST POINT *,HDC,int,int,int,int,HBITMAP,int,int);
+static PlgBltfunc pfnPlgBlt=NULL;
 
 static PyObject *g_AtomMap = NULL; // Mapping class atoms to Python WNDPROC
 static PyObject *g_HWNDMap = NULL; // Mapping HWND to Python WNDPROC
@@ -121,6 +123,7 @@ if (hmodule==NULL)
 	hmodule=LoadLibrary("gdi32.dll");
 if (hmodule){
 	pfnAngleArc=(AngleArcfunc)GetProcAddress(hmodule,"AngleArc");
+	pfnPlgBlt=(PlgBltfunc)GetProcAddress(hmodule,"PlgBlt");
 	}
 
 %}
@@ -3878,12 +3881,55 @@ static PyObject *PyPolyBezierTo(PyObject *self, PyObject *args)
 		free(points);
 	return ret;
 }
+
+// @pyswig |PlgBlt|Copies color from a rectangle into a parallelogram
+static PyObject *PyPlgBlt(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(PlgBlt);
+	HDC srcdc, dstdc;
+	POINT *points=NULL;
+	int x, y, width, height, xmask=0, ymask=0;
+	DWORD point_cnt;
+	HBITMAP mask;
+	PyObject *obsrc, *obdst, *obmask=Py_None, *obpoints, *ret=NULL;
+	if (!PyArg_ParseTuple(args, "OOOiiii|Oii:PlgBlt",
+		&obdst,		// @pyparm <o PyHANDLE>|Dest||Destination DC
+		&obpoints,	// @pyparm tuple|Point||Sequence of 3 POINT tuples (x,y) describing a paralellogram
+		&obsrc,		// @pyparm <o PyHANDLE>|Src||Source device context
+		&x,			// @pyparm int|XSrc||Left edge of source rectangle
+		&y,			// @pyparm int|YSrc||Top of source rectangle
+		&width,		// @pyparm int|Width||Width of source rectangle
+		&height,	// @pyparm int|Height||Height of source rectangle
+		&obmask,	// @pyparm <o PyHANDLE>|Mask|None|Handle to monochrome bitmap to mask source
+		&xmask,		// @pyparm int|xMask|0|x pos in mask
+		&ymask))	// @pyparm int|yMask|0|y pos in mask
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdst, (HANDLE *)&dstdc, FALSE))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obsrc, (HANDLE *)&srcdc, FALSE))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obmask, (HANDLE *)&mask, TRUE))
+		return NULL;
+	if (!PyWinObject_AsPOINTArray(obpoints, &points, &point_cnt))
+		return NULL;
+	if (point_cnt!=3)
+		PyErr_SetString(PyExc_ValueError, "Points must contain exactly 3 points.");
+	else if (!(*pfnPlgBlt)(dstdc, points, srcdc, x, y, width, height, mask, xmask, ymask))
+		PyWin_SetAPIError("PlgBlt");
+	else{
+		Py_INCREF(Py_None);
+		ret=Py_None;
+		}
+	free(points);
+	return ret;
+}
 %}
 %native (Polygon) PyPolygon;
 %native (Polyline) PyPolyline;
 %native (PolylineTo) PyPolylineTo;
 %native (PolyBezier) PyPolyBezier;
 %native (PolyBezierTo) PyPolyBezierTo;
+%native (PlgBlt) PyPlgBlt;
 
 %{
 //@pyswig int|ExtTextOut|Writes text to a DC.
@@ -4174,16 +4220,6 @@ static PyObject *PyGetPath(PyObject *self, PyObject *args)
 }
 %}
 %native (GetPath) PyGetPath;
-
-/*
-int GetPath(
-  HDC hdc,           // handle to DC
-  LPPOINT lpPoints,  // path vertices
-  LPBYTE lpTypes,    // array of path vertex types
-  int nSize          // count of points defining path
-);
-*/
-
 
 // @pyswig int|CreateWindowEx|Creates a new window with Extended Style.
 HWND CreateWindowEx( 
