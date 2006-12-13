@@ -41,6 +41,8 @@ typedef BOOL (WINAPI *SetLayeredWindowAttributesfunc)(HWND, COLORREF, BYTE,DWORD
 static SetLayeredWindowAttributesfunc pfnSetLayeredWindowAttributes=NULL;
 typedef BOOL (WINAPI *GetLayeredWindowAttributesfunc)(HWND, COLORREF *, BYTE *, DWORD *);
 static GetLayeredWindowAttributesfunc pfnGetLayeredWindowAttributes=NULL;
+typedef BOOL (WINAPI *AngleArcfunc)(HDC, int, int, DWORD, FLOAT, FLOAT);
+static AngleArcfunc pfnAngleArc=NULL;
 
 static PyObject *g_AtomMap = NULL; // Mapping class atoms to Python WNDPROC
 static PyObject *g_HWNDMap = NULL; // Mapping HWND to Python WNDPROC
@@ -112,6 +114,13 @@ if (hmodule==NULL)
 if (hmodule){
 	pfnSetLayeredWindowAttributes=(SetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"SetLayeredWindowAttributes");
 	pfnGetLayeredWindowAttributes=(GetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"GetLayeredWindowAttributes");
+	}
+
+hmodule=GetModuleHandle("gdi32.dll");
+if (hmodule==NULL)
+	hmodule=LoadLibrary("gdi32.dll");
+if (hmodule){
+	pfnAngleArc=(AngleArcfunc)GetProcAddress(hmodule,"AngleArc");
 	}
 
 %}
@@ -2414,12 +2423,16 @@ BOOLAPI StretchBlt(
 );
 
 #ifndef MS_WINCE
-// @pyswig int|SetStretchBltMode|
+// @pyswig int|SetStretchBltMode|Sets the stretching mode used by <om win32gui.StretchBlt>
 // @rdesc If the function succeeds, the return value is the previous stretching mode.
 // <nl>If the function fails, the return value is zero. 
-int SetStretchBltMode(HDC dc, int mode);
-// @pyparm int|dc||
-// @pyparm int|mode||
+int SetStretchBltMode(
+	HDC hdc,			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+	int StretchMode);	// @pyparm int|StretchMode||One of BLACKONWHITE,COLORONCOLOR,HALFTONE,STRETCH_ANDSCANS,STRETCH_DELETESCANS,STRETCH_HALFTONE,STRETCH_ORSCANS, or WHITEONBLACK (from win32con)
+
+// @pyswig int|GetStretchBltMode|Returns the stretching mode used by <om win32gui.StretchBlt>
+// @rdesc Returns one of BLACKONWHITE,COLORONCOLOR,HALFTONE,STRETCH_ANDSCANS,STRETCH_DELETESCANS,STRETCH_HALFTONE,STRETCH_ORSCANS,WHITEONBLACK, or 0 on error.
+int GetStretchBltMode(HDC hdc);	// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 #endif	/* not MS_WINCE */
 
 %ifdef WINXPGUI
@@ -3571,6 +3584,35 @@ BOOLAPI ArcTo(
 	int XRadial2,	// @pyparm int|XRadial2||Horizontal pos of Radial2 endpoint
 	int YRadial2);	// @pyparm int|YRadial2||Vertical pos of Radial2 endpoint
 
+%{
+// @pyswig |AngleArc|Draws a line from current pos and a section of a circle's arc
+static PyObject *PyAngleArc(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(AngleArc);
+	HDC hdc;
+	int x,y;
+	DWORD radius;
+	FLOAT startangle, sweepangle;
+	PyObject *obdc;
+	if (!PyArg_ParseTuple(args, "Oiikff",
+		&obdc,			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		&x,				// @pyparm int|Y||x pos of circle
+		&y,				// @pyparm int|Y||y pos of circle
+		&radius,		// @pyparm int|Radius||Radius of circle
+		&startangle,	// @pyparm float|StartAngle||Angle where arc starts, in degrees
+		&sweepangle))	// @pyparm float|SweepAngle||Angle that arc covers, in degrees
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	if (!(*pfnAngleArc)(hdc, x, y, radius, startangle, sweepangle))
+		return PyWin_SetAPIError("AngleArc");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+%native (AngleArc) PyAngleArc;
+
+
 // @pyswig |Chord|Draws a chord defined by an ellipse and 2 radials
 BOOLAPI Chord(
 	HDC hdc,		// @pyparm <o PyHANDLE>|hdc||Device context on which to draw
@@ -3582,6 +3624,68 @@ BOOLAPI Chord(
 	int YRadial1,	// @pyparm int|YRadial1||Vertical pos of Radial1 endpoint
 	int XRadial2,	// @pyparm int|XRadial2||Horizontal pos of Radial2 endpoint
 	int YRadial2);	// @pyparm int|YRadial2||Vertical pos of Radial2 endpoint
+
+// @pyswig |ExtFloodFill|Fills an area with current brush
+BOOLAPI ExtFloodFill(
+	HDC hdc,		// @pyparm <o PyHANDLE>||hdc|Handle to a device context
+	int XStart,		// @pyparm int|XStart||Horizontal starting pos
+	int YStart,		// @pyparm int|YStart||Vertical starting pos
+	COLORREF Color,	// @pyparm int|Color||RGB color value.  See <om win32api.RGB>.
+	UINT FillType);	// @pyparm int|FillType||One of win32con.FLOODFILL* values
+
+%{
+// @pyswig int|SetPixel|Set the color of a single pixel
+// @rdesc Returns the RGB color actually set, which may be different from the one passed in
+static PyObject *PySetPixel(PyObject *self, PyObject *args)
+{
+	PyObject *obdc;
+	HDC hdc;
+	int x,y;
+	COLORREF color, ret;
+	if (!PyArg_ParseTuple(args, "Oiik:SetPixel",
+		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		&x,			// @pyparm int|X||Horizontal pos
+		&y,			// @pyparm int|Y||Vertical pos
+		&color))	// @pyparm int|Color||RGB color to be set.
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	ret=SetPixel(hdc, x, y, color);
+	if (ret==CLR_INVALID)
+		return PyWin_SetAPIError("SetPixel");
+	return PyLong_FromUnsignedLong(ret);
+}
+
+// @pyswig int|GetPixel|Returns the RGB color of a single pixel
+static PyObject *PyGetPixel(PyObject *self, PyObject *args)
+{
+	PyObject *obdc;
+	HDC hdc;
+	int x,y;
+	COLORREF ret;
+	if (!PyArg_ParseTuple(args, "Oii:GetPixel",
+		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		&x,			// @pyparm int|XPos||Horizontal pos
+		&y))		// @pyparm int|YPos||Vertical pos
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	ret=GetPixel(hdc, x, y);
+	if (ret==CLR_INVALID)
+		return PyWin_SetAPIError("GetPixel");
+	return PyLong_FromUnsignedLong(ret);
+}
+%}
+%native (SetPixel) PySetPixel;
+%native (GetPixel) PyGetPixel;
+
+// @pyswig |SetPixelV|Sets the color of a single pixel to an approximation of specified color
+BOOLAPI SetPixelV(
+	HDC hdc,			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+	int X,				// @pyparm int|X||Horizontal pos
+	int Y,				// @pyparm int|Y||Vertical pos
+	COLORREF Color);	// @pyparm int|Color||RGB color to be set.
+
 
 // @pyswig (int, int)|MoveToEx|Changes the current drawing position
 // @rdesc Returns the previous position as (X, Y)
@@ -3964,6 +4068,122 @@ HDC BeginPaint(HWND hwnd, PAINTSTRUCT *OUTPUT);
 // @pyparm int|hwnd||
 // @pyparm paintstruct|ps||As returned from <om win32gui.BeginPaint>
 BOOLAPI EndPaint(HWND hWnd,  PAINTSTRUCT *INPUT); 
+
+// @pyswig |BeginPath|Initializes a path in a DC
+BOOLAPI BeginPath(HDC hdc);	// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+
+// @pyswig |EndPath|Finalizes a path begun by <om win32gui.BeginPath>
+BOOLAPI EndPath(HDC hdc);	// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+
+// @pyswig |AbortPath|Cancels a path begun by <om win32gui.BeginPath>
+BOOLAPI AbortPath(HDC hdc);	// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+
+// @pyswig |CloseFigure|Closes a section of a path by connecting the beginning pos with the current pos
+BOOLAPI CloseFigure(HDC hdc);	// @pyparm <o PyHANDLE>|hdc||Handle to a device context that contains an open path. See <om win32gui.BeginPath>.
+
+// @pyswig |FlattenPath|Flattens any curves in current path into a series of lines
+BOOLAPI FlattenPath(HDC hdc);	// @pyparm <o PyHANDLE>|hdc||Handle to a device context that contains a closed path. See <om win32gui.EndPath>.
+
+// @pyswig |FillPath|Fills a path with currently selected brush
+// @comm Any open figures are closed and path is deselected from the DC.
+BOOLAPI FillPath(HDC hdc);	// @pyparm <o PyHANDLE>|hdc||Handle to a device context that contains a finalized path. See <om win32gui.EndPath>.
+
+// @pyswig |WidenPath|Widens current path by amount it would increase by if drawn with currently selected pen
+BOOLAPI WidenPath(HDC hdc);	// @pyparm <o PyHANDLE>|hdc||Handle to a device context that contains a closed path. See <om win32gui.EndPath>.
+
+// @pyswig |StrokePath|Draws current path with currently selected pen
+BOOLAPI StrokePath(HDC hdc);	// @pyparm <o PyHANDLE>|hdc||Handle to a device context that contains a closed path. See <om win32gui.EndPath>.
+
+// @pyswig |StrokeAndFillPath|Combines operations of StrokePath and FillPath with no overlap
+BOOLAPI StrokeAndFillPath(HDC hdc);	// @pyparm <o PyHANDLE>|hdc||Handle to a device context that contains a closed path. See <om win32gui.EndPath>.
+
+// @pyswig float|GetMiterLimit|Retrieves the limit of miter joins for a DC
+BOOLAPI GetMiterLimit(
+	HDC hdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+	float *OUTPUT);
+
+// @pyswig float|SetMiterLimit|Set the limit of miter joins for a DC
+// @rdesc Returns the previous limit
+BOOLAPI SetMiterLimit(
+ 	HDC hdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+	float NewLimit,	// @pyparm float|NewLimit||New limit to be set
+	float *OUTPUT);
+
+// @pyswig <o PyHANDLE>|PathToRegion|Converts a closed path in a DC to a region
+// @comm On success, the path is deselected from the DC
+HRGN PathToRegion(HDC hdc);	// @pyparm <o PyHANDLE>|hdc||Handle to a device context that contains a closed path. See <om win32gui.EndPath>.
+
+%{
+// @pyswig tuple,tuple|GetPath|Returns a sequence of points that describe the current path
+// @rdesc Returns a sequence of POINT tuples, and a sequence of ints designating each point's function (combination of win32con.PT_* values)
+static PyObject *PyGetPath(PyObject *self, PyObject *args)
+{
+	HDC hdc;
+	POINT *points=NULL;
+	BYTE *types=NULL;
+	DWORD point_cnt=0, point_ind;
+	PyObject *obpoints=NULL, *obtypes=NULL, *obdc, *ret=NULL;
+	if (!PyArg_ParseTuple(args, "O:GetPath", 
+		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context containing a finalized path.  See <om win32gui.EndPath>
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	point_cnt=GetPath(hdc, points, types, point_cnt);
+	if (point_cnt==-1)
+		return PyWin_SetAPIError("GetPath");
+
+	points=(POINT *)malloc(point_cnt*sizeof(POINT));
+	if (points==NULL){
+		PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes",point_cnt*sizeof(POINT));
+		goto cleanup;
+		}
+	types=(BYTE *)malloc(point_cnt);
+	if (types==NULL){
+		PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes",point_cnt);
+		goto cleanup;
+		}
+	point_cnt=GetPath(hdc, points, types, point_cnt);
+	if (point_cnt==-1){
+		PyWin_SetAPIError("GetPath");
+		goto cleanup;
+		}
+	obpoints=PyTuple_New(point_cnt);
+	obtypes=PyTuple_New(point_cnt);
+	if ((obpoints==NULL) || (obtypes==NULL))
+		goto cleanup;
+	for (point_ind=0; point_ind<point_cnt; point_ind++){
+		PyObject *tuple_item=Py_BuildValue("ll", points[point_ind].x, points[point_ind].y);
+		if (tuple_item==NULL)
+			goto cleanup;
+		PyTuple_SET_ITEM(obpoints, point_ind, tuple_item);
+		tuple_item=PyInt_FromLong(types[point_ind]);
+		if (tuple_item==NULL)
+			goto cleanup;
+		PyTuple_SET_ITEM(obtypes, point_ind, tuple_item);
+		}
+	ret=Py_BuildValue("OO", obpoints, obtypes);
+
+	cleanup:
+	Py_XDECREF(obpoints);
+	Py_XDECREF(obtypes);
+	if (points!=NULL)
+		free(points);
+	if (types!=NULL)
+		free(types);
+	return ret;
+}
+%}
+%native (GetPath) PyGetPath;
+
+/*
+int GetPath(
+  HDC hdc,           // handle to DC
+  LPPOINT lpPoints,  // path vertices
+  LPBYTE lpTypes,    // array of path vertex types
+  int nSize          // count of points defining path
+);
+*/
+
 
 // @pyswig int|CreateWindowEx|Creates a new window with Extended Style.
 HWND CreateWindowEx( 
