@@ -2425,6 +2425,15 @@ BOOLAPI StretchBlt(
   DWORD dwRop       // @pyparm int|dwRop||raster operation code
 );
 
+// @pyswig |PatBlt|Paints a rectangle by combining the current brush with existing colors
+BOOLAPI PatBlt(
+	HDC hdc,	// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+	int XLeft,	// @pyparm int|XLeft||Horizontal pos
+	int YLeft,	// @pyparm int|YLeft||Vertical pos
+	int Width,	// @pyparm int|Width||Width of rectangular area
+	int Height,	// @pyparm int|Height||Height of rectangular area
+	DWORD Rop);	// @pyparm int|Rop||Raster operation, one of PATCOPY,PATINVERT,DSTINVERT,BLACKNESS,WHITENESS
+
 #ifndef MS_WINCE
 // @pyswig int|SetStretchBltMode|Sets the stretching mode used by <om win32gui.StretchBlt>
 // @rdesc If the function succeeds, the return value is the previous stretching mode.
@@ -3678,9 +3687,48 @@ static PyObject *PyGetPixel(PyObject *self, PyObject *args)
 		return PyWin_SetAPIError("GetPixel");
 	return PyLong_FromUnsignedLong(ret);
 }
+
+// @pyswig int|GetROP2|Returns the foreground mixing mode of a DC
+// @rdesc Returns one of win32con.R2_* values
+static PyObject *PyGetROP2(PyObject *self, PyObject *args)
+{
+	PyObject *obdc;
+	HDC hdc;
+	int ret;
+	if (!PyArg_ParseTuple(args, "O:GetROP2",
+		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	ret=GetROP2(hdc);
+	if (ret==0)
+		return PyWin_SetAPIError("GetROP2");
+	return PyInt_FromLong(ret);
+}
+
+// @pyswig int|SetROP2|Sets the foreground mixing mode of a DC
+// @rdesc Returns previous mode
+static PyObject *PySetROP2(PyObject *self, PyObject *args)
+{
+	PyObject *obdc;
+	HDC hdc;
+	int newmode, oldmode;
+	if (!PyArg_ParseTuple(args, "Oi:SetROP2",
+		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		&newmode))	// @pyparm int|DrawMode||Mixing mode, one of win32con.R2_*.
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	oldmode=SetROP2(hdc, newmode);
+	if (oldmode==0)
+		return PyWin_SetAPIError("SetROP2");
+	return PyInt_FromLong(oldmode);
+}
 %}
 %native (SetPixel) PySetPixel;
 %native (GetPixel) PyGetPixel;
+%native (GetROP2) PyGetROP2;
+%native (SetROP2) PySetROP2;
 
 // @pyswig |SetPixelV|Sets the color of a single pixel to an approximation of specified color
 BOOLAPI SetPixelV(
