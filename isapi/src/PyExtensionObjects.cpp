@@ -343,13 +343,36 @@ PyObject * PyECB::GetServerVariable(PyObject *self, PyObject *args)
 		return NULL;
 
 	char buf[8192] = "";
-	DWORD bufsize = sizeof(buf)/sizeof(buf[0]);
+	DWORD bufsize = sizeof(buf);
+	char *bufUse = buf;
 
 	if (pecb->m_pcb){
 		Py_BEGIN_ALLOW_THREADS
 		bRes = pecb->m_pcb->GetServerVariable(variable, buf, &bufsize);
+		if (!bRes && GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+			// Although the IIS docs say it should be good, IIS5
+			// returns -1 for 'bufsize' and MS samples show not
+			// to trust it too.  Like the MS sample, we max out
+			// at some value - we choose 64k.  We double each
+			// time, meaning we get 3 goes around the loop
+			bufUse = NULL;
+			bufsize = sizeof(buf);
+			for (int i=0;i<3;i++) {
+				bufsize *= 2;
+				bufUse = (char *)realloc(bufUse, bufsize);
+				if (!bufUse)
+					break;
+				bRes = pecb->m_pcb->GetServerVariable(variable, bufUse, &bufsize);
+				if (bRes || GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+					break;
+			}
+		}
 		Py_END_ALLOW_THREADS
+		if (!bufUse)
+			return PyErr_NoMemory();
 		if (!bRes) {
+			if (bufUse != buf)
+				free(bufUse);
 			if (def) {
 				Py_INCREF(def);
 				return def;
@@ -357,7 +380,12 @@ PyObject * PyECB::GetServerVariable(PyObject *self, PyObject *args)
 			return SetPyECBError("GetServerVariable");
 		}
 	}
-	return PyString_FromStringAndSize(buf, bufsize);
+	PyObject *ret = strncmp("UNICODE_", variable, 8) == 0 ?
+	                  PyUnicode_FromWideChar((WCHAR *)bufUse, bufsize / sizeof(WCHAR)) :
+	                  PyString_FromStringAndSize(bufUse, bufsize);
+	if (bufUse != buf)
+		free(bufUse);
+	return ret;
 }
 
 // @pymethod string|EXTENSION_CONTROL_BLOCK|ReadClient|
