@@ -245,13 +245,7 @@ BOOL WINAPI TerminateFilter(DWORD status)
 	return bRetStatus;
 }
 
-///////////////////////////////////////////////////////////////////////
-// If your extension will not use MFC, you'll need this code to make
-// sure the extension objects can find the resource handle for the
-// module.  If you convert your extension to not be dependent on MFC,
-// remove the comments arounn the following AfxGetResourceHandle()
-// and DllMain() functions, as well as the g_hInstance global.
-
+// DLL entry point - store the handle to our module.
 HINSTANCE g_hInstance = 0;
 
 BOOL WINAPI DllMain(HINSTANCE hInst, ULONG ulReason,
