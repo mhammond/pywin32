@@ -40,6 +40,18 @@ typedef HWINSTA (WINAPI *GetProcessWindowStationfunc)(void);
 static GetProcessWindowStationfunc pfnGetProcessWindowStation = NULL;
 typedef DWORD (WINAPI *GetGuiResourcesfunc)(HANDLE,DWORD);
 static GetGuiResourcesfunc pfnGetGuiResources = NULL;
+typedef BOOL (WINAPI *GetProcessPriorityBoostfunc)(HANDLE,PBOOL);
+static GetProcessPriorityBoostfunc pfnGetProcessPriorityBoost = NULL;
+typedef BOOL (WINAPI *SetProcessPriorityBoostfunc)(HANDLE,BOOL);
+static SetProcessPriorityBoostfunc pfnSetProcessPriorityBoost = NULL;
+typedef BOOL (WINAPI *GetThreadPriorityBoostfunc)(HANDLE,PBOOL);
+static GetThreadPriorityBoostfunc pfnGetThreadPriorityBoost = NULL;
+typedef BOOL (WINAPI *SetThreadPriorityBoostfunc)(HANDLE,BOOL);
+static SetThreadPriorityBoostfunc pfnSetThreadPriorityBoost = NULL;
+typedef BOOL (WINAPI *GetThreadIOPendingFlagfunc)(HANDLE,PBOOL);
+static GetThreadIOPendingFlagfunc pfnGetThreadIOPendingFlag = NULL;
+typedef BOOL (WINAPI *GetThreadTimesfunc)(HANDLE,LPFILETIME,LPFILETIME,LPFILETIME,LPFILETIME);
+static GetThreadTimesfunc pfnGetThreadTimes =  NULL;
 #endif
 
 // Support for a STARTUPINFO object.
@@ -810,6 +822,131 @@ DWORD GetThreadPriority(
 	HANDLE hThread // @pyparm <o PyHANDLE>|handle||handle to the thread
 );
 
+%{
+// @pyswig bool|GetProcessPriorityBoost|Determines if dynamic priority adjustment is enabled for a process
+static PyObject *PyGetProcessPriorityBoost(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(GetProcessPriorityBoost);
+	PyObject *obth;
+	HANDLE th;
+	BOOL ret;
+	if (!PyArg_ParseTuple(args, "O:GetProcessPriorityBoost",
+		&obth))		// @pyparm <o PyHANDLE>|Process||Handle to a process
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obth, &th, FALSE))
+		return NULL;
+	if (!(*pfnGetProcessPriorityBoost)(th, &ret))
+		return PyWin_SetAPIError("GetProcessPriorityBoost");
+	return PyBool_FromLong(ret);
+}
+
+// @pyswig |SetProcessPriorityBoost|Enables or disables dynamic priority adjustment for a process
+static PyObject *PySetProcessPriorityBoost(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(SetProcessPriorityBoost);
+	PyObject *obth;
+	HANDLE th;
+	BOOL disable;
+	if (!PyArg_ParseTuple(args, "Ol:SetProcessPriorityBoost",
+		&obth,		// @pyparm <o PyHANDLE>|Process||Handle to a process
+		&disable))	// @pyparm boolean|DisablePriorityBoost||True to disable or False to enable
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obth, &th, FALSE))
+		return NULL;
+	if (!(*pfnSetProcessPriorityBoost)(th, disable))
+		return PyWin_SetAPIError("SetProcessPriorityBoost");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pyswig bool|GetThreadPriorityBoost|Determines if dynamic priority adjustment is enabled for a thread
+static PyObject *PyGetThreadPriorityBoost(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(GetThreadPriorityBoost);
+	PyObject *obth;
+	HANDLE th;
+	BOOL ret;
+	if (!PyArg_ParseTuple(args, "O:GetThreadPriorityBoost",
+		&obth))		// @pyparm <o PyHANDLE>|Thread||Handle to a thread
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obth, &th, FALSE))
+		return NULL;
+	if (!(*pfnGetThreadPriorityBoost)(th, &ret))
+		return PyWin_SetAPIError("GetThreadPriorityBoost");
+	return PyBool_FromLong(ret);
+}
+
+// @pyswig |SetThreadPriorityBoost|Enables or disables dynamic priority adjustment for a thread
+static PyObject *PySetThreadPriorityBoost(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(SetThreadPriorityBoost);
+	PyObject *obth;
+	HANDLE th;
+	BOOL disable;
+	if (!PyArg_ParseTuple(args, "Ol:SetThreadPriorityBoost",
+		&obth,		// @pyparm <o PyHANDLE>|Thread||Handle to a thread
+		&disable))	// @pyparm boolean|DisablePriorityBoost||True to disable or False to enable
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obth, &th, FALSE))
+		return NULL;
+	if (!(*pfnSetThreadPriorityBoost)(th, disable))
+		return PyWin_SetAPIError("SetThreadPriorityBoost");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pyswig bool|GetThreadIOPendingFlag|Determines if thread has any outstanding IO requests
+static PyObject *PyGetThreadIOPendingFlag(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(GetThreadIOPendingFlag);
+	PyObject *obth;
+	HANDLE th;
+	BOOL ret;
+	if (!PyArg_ParseTuple(args, "O:GetThreadIOPendingFlag",
+		&obth))		// @pyparm <o PyHANDLE>|Thread||Handle to a thread
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obth, &th, FALSE))
+		return NULL;
+	if (!(*pfnGetThreadPriorityBoost)(th, &ret))
+		return PyWin_SetAPIError("GetThreadIOPendingFlag");
+	return PyBool_FromLong(ret);
+}
+
+// @pyswig dict|GetThreadTimes|Returns a thread's time statistics
+static PyObject *PyGetThreadTimes(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(GetThreadTimes);
+	PyObject *obth;
+	HANDLE th;
+	FILETIME ft[4];
+	if (!PyArg_ParseTuple(args, "O:GetThreadTimes",
+		&obth))		// @pyparm <o PyHANDLE>|Thread||Handle to a thread
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obth, &th, FALSE))
+		return NULL;
+	if (!(*pfnGetThreadTimes)(th, &ft[0], &ft[1], &ft[2], &ft[3]))
+		return PyWin_SetAPIError("GetThreadTimes");
+
+	// UserTime and KernelTime are elapsed times, return as ints
+	ULARGE_INTEGER usertime, kerneltime;
+	kerneltime.LowPart=ft[2].dwLowDateTime;
+	kerneltime.HighPart=ft[2].dwHighDateTime;
+	usertime.LowPart=ft[3].dwLowDateTime;
+	usertime.HighPart=ft[3].dwHighDateTime;
+	return Py_BuildValue("{s:N, s:N, s:N, s:N}",
+		"CreationTime", PyWinObject_FromFILETIME(ft[0]),
+		"ExitTime",		PyWinObject_FromFILETIME(ft[1]),
+		"KernelTime",	PyLong_FromUnsignedLongLong(kerneltime.QuadPart),
+		"UserTime",		PyLong_FromUnsignedLongLong(usertime.QuadPart));
+}
+%}
+%native (GetProcessPriorityBoost) PyGetProcessPriorityBoost;
+%native (SetProcessPriorityBoost) PySetProcessPriorityBoost;
+%native (GetThreadPriorityBoost) PyGetThreadPriorityBoost;
+%native (SetThreadPriorityBoost) PySetThreadPriorityBoost;
+%native (GetThreadIOPendingFlag) PyGetThreadIOPendingFlag;
+%native (GetThreadTimes) PyGetThreadTimes;
+
 #ifndef MS_WINCE
 
 // @pyswig |SetPriorityClass|
@@ -1366,6 +1503,12 @@ PyObject *PyGetGuiResources(PyObject *self, PyObject *args)
 
 		pfnGetProcessWorkingSetSize=(GetProcessWorkingSetSizefunc)GetProcAddress(hmodule,"GetProcessWorkingSetSize");
 		pfnSetProcessWorkingSetSize=(SetProcessWorkingSetSizefunc)GetProcAddress(hmodule,"SetProcessWorkingSetSize");
+		pfnGetProcessPriorityBoost=(GetProcessPriorityBoostfunc)GetProcAddress(hmodule,"GetProcessPriorityBoost");
+		pfnSetProcessPriorityBoost=(SetProcessPriorityBoostfunc)GetProcAddress(hmodule,"SetProcessPriorityBoost");
+		pfnGetThreadPriorityBoost=(GetThreadPriorityBoostfunc)GetProcAddress(hmodule,"GetThreadPriorityBoost");
+		pfnSetThreadPriorityBoost=(SetThreadPriorityBoostfunc)GetProcAddress(hmodule,"SetThreadPriorityBoost");
+		pfnGetThreadIOPendingFlag=(GetThreadIOPendingFlagfunc)GetProcAddress(hmodule,"GetThreadIOPendingFlag");
+		pfnGetThreadTimes=(GetThreadTimesfunc)GetProcAddress(hmodule,"GetThreadTimes");
 		}
 
 	hmodule=GetModuleHandle(_T("User32.dll"));
