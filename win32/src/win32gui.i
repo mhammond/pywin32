@@ -3357,21 +3357,27 @@ BOOLAPI DestroyIcon( HICON hicon);
 BOOLAPI GetIconInfo( HICON hicon, ICONINFO *OUTPUT);
 #endif	/* not MS_WINCE */
 
-// @pyswig |ScreenToClient|Convert screen coordinates to client coords
-BOOLAPI ScreenToClient(HWND hWnd,POINT *BOTH);
+// @pyswig (int,int)|ScreenToClient|Convert screen coordinates to client coords
+BOOLAPI ScreenToClient(
+	HWND hWnd,		// @pyparm <o PyHANDLE>|hWnd||Handle to a window
+	POINT *BOTH);	// @pyparm (int,int)|Point||Screen coordinates to be converted
 
-// @pyswig |ClientToScreen|Convert client coordinates to screen coords
-BOOLAPI ClientToScreen(HWND hWnd,POINT *BOTH);
+// @pyswig (int,int)|ClientToScreen|Convert client coordinates to screen coords
+BOOLAPI ClientToScreen(
+	HWND hWnd,		// @pyparm <o PyHANDLE>|hWnd||Handle to a window
+	POINT *BOTH);	// @pyparm (int,int)|Point||Client coordinates to be converted
 
 %{
 // @pyswig cx, cy|GetTextExtentPoint32|Computes the width and height of the specified string of text.
 static PyObject *PyGetTextExtentPoint32(PyObject *self, PyObject *args)
 {
-	// @pyparm int|dc||The device context
+	// @pyparm <o PyHANDLE>|hdc||The device context
 	// @pyparm string|str||The string to measure.
-	int dc;
-	PyObject *obString;
-	if (!PyArg_ParseTuple(args, "iO:GetTextExtentPoint32", &dc, &obString))
+	HDC hdc;
+	PyObject *obString, *obdc;
+	if (!PyArg_ParseTuple(args, "OO:GetTextExtentPoint32", &obdc, &obString))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
 		return NULL;
 	TCHAR *szString = NULL;
 	DWORD nchars;
@@ -3380,16 +3386,190 @@ static PyObject *PyGetTextExtentPoint32(PyObject *self, PyObject *args)
 	SIZE size = {0,0};
 	BOOL rc;
 	Py_BEGIN_ALLOW_THREADS
-	rc = GetTextExtentPoint32( (HDC)dc, szString, nchars, &size);
+	rc = GetTextExtentPoint32(hdc, szString, nchars, &size);
 	Py_END_ALLOW_THREADS
 	PyWinObject_FreeTCHAR(szString);
 	if (!rc)
 		return PyWin_SetAPIError("GetTextExtentPoint32");
 	return Py_BuildValue("ll", size.cx, size.cy);
 }
+
+// @pyswig dict|GetTextMetrics|Returns info for the font selected into a DC
+static PyObject *PyGetTextMetrics(PyObject *self, PyObject *args)
+{
+	HDC hdc;
+	PyObject *obdc;
+	TEXTMETRICW tm;
+	if (!PyArg_ParseTuple(args, "O:GetTextMetrics",
+		&obdc))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	if (!GetTextMetricsW(hdc, &tm))
+		return PyWin_SetAPIError("GetTextMetrics");
+	return Py_BuildValue("{s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:N,s:N,s:N,s:N,s:B,s:B,s:B,s:B,s:B}",
+		"Height", tm.tmHeight,
+		"Ascent", tm.tmAscent,
+		"Descent", tm.tmDescent,
+		"InternalLeading", tm.tmInternalLeading,
+		"ExternalLeading", tm.tmExternalLeading,
+		"AveCharWidth", tm.tmAveCharWidth,
+		"MaxCharWidth", tm.tmMaxCharWidth,
+		"Weight", tm.tmWeight,
+		"Overhang", tm.tmOverhang,
+		"DigitizedAspectX", tm.tmDigitizedAspectX,
+		"DigitizedAspectY", tm.tmDigitizedAspectY,
+		"FirstChar", PyWinObject_FromWCHAR(&tm.tmFirstChar, 1),
+		"LastChar", PyWinObject_FromWCHAR(&tm.tmLastChar, 1),
+		"DefaultChar", PyWinObject_FromWCHAR(&tm.tmDefaultChar, 1),
+		"BreakChar", PyWinObject_FromWCHAR(&tm.tmBreakChar, 1),
+		"Italic", tm.tmItalic,
+		"Underlined", tm.tmUnderlined,
+		"StruckOut", tm.tmStruckOut,
+		"PitchAndFamily", tm.tmPitchAndFamily,
+		"CharSet", tm.tmCharSet); 
+}
+
+// @pyswig int|GetTextCharacterExtra|Returns the space between characters
+static PyObject *PyGetTextCharacterExtra(PyObject *self, PyObject *args)
+{
+	HDC hdc;
+	PyObject *obdc;
+	int ret;
+	if (!PyArg_ParseTuple(args, "O:GetTextCharacterExtra",
+		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	ret=GetTextCharacterExtra(hdc);
+	if (ret==0x80000000)
+		return PyWin_SetAPIError("GetTextCharacterExtra");
+	return PyInt_FromLong(ret);
+}
+
+// @pyswig int|SetTextCharacterExtra|Sets the spacing between characters
+// @rdesc Returns the previous spacing
+static PyObject *PySetTextCharacterExtra(PyObject *self, PyObject *args)
+{
+	HDC hdc;
+	PyObject *obdc;
+	int newspacing, prevspacing;
+	if (!PyArg_ParseTuple(args, "Oi:SetTextCharacterExtra",
+		&obdc,			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		&newspacing))	// @pyparm int|CharExtra||Space between adjacent chars, in logical units
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	prevspacing=SetTextCharacterExtra(hdc, newspacing);
+	if (prevspacing==0x80000000)
+		return PyWin_SetAPIError("SetTextCharacterExtra");
+	return PyInt_FromLong(prevspacing);
+}
+
+// @pyswig int|GetTextAlign|Returns horizontal and vertical alignment for text in a device context
+// @rdesc Returns combination of win32con.TA_* flags
+static PyObject *PyGetTextAlign(PyObject *self, PyObject *args)
+{
+	HDC hdc;
+	PyObject *obdc;
+	int prevalign;
+	if (!PyArg_ParseTuple(args, "O:GetTextAlign",
+		&obdc))			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	prevalign=GetTextAlign(hdc);
+	if (prevalign==GDI_ERROR)
+		return PyWin_SetAPIError("GetTextAlign");
+	return PyInt_FromLong(prevalign);
+}
+
+// @pyswig int|SetTextAlign|Sets horizontal and vertical alignment for text in a device context
+// @rdesc Returns the previous alignment flags
+static PyObject *PySetTextAlign(PyObject *self, PyObject *args)
+{
+	HDC hdc;
+	PyObject *obdc;
+	int newalign, prevalign;
+	if (!PyArg_ParseTuple(args, "Oi:SetTextAlign",
+		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		&newalign))	// @pyparm int|Mode||Combination of win32con.TA_* constants
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	prevalign=SetTextAlign(hdc, newalign);
+	if (prevalign==GDI_ERROR)
+		return PyWin_SetAPIError("SetTextAlign");
+	return PyInt_FromLong(prevalign);
+}
+
+// @pyswig <o PyUnicode>|GetTextFace|Retrieves the name of the font currently selected in a DC
+// @comm Calls unicode api function (GetTextFaceW)
+static PyObject *PyGetTextFace(PyObject *self, PyObject *args)
+{
+	HDC hdc;
+	PyObject *obdc;
+	WCHAR face[256];
+	int returned_size;
+	if (!PyArg_ParseTuple(args, "O:GetTextFace",
+		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	returned_size=GetTextFaceW(hdc, 256, face);
+	if (returned_size==0)
+		return PyWin_SetAPIError("GetTextFace");
+	// Char count includes trailing null
+	return PyWinObject_FromWCHAR(face, returned_size-1);
+}
+
+// @pyswig int|GetMapMode|Returns the method a device context uses to translate logical units to physical units
+// @rdesc Returns one of win32con.MM_* values
+static PyObject *PyGetMapMode(PyObject *self, PyObject *args)
+{
+	HDC hdc;
+	PyObject *obdc;
+	int ret;
+	if (!PyArg_ParseTuple(args, "O:GetMapMode",
+		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	ret=GetMapMode(hdc);
+	if (ret==0)
+		return PyWin_SetAPIError("GetMapMode");
+	return PyInt_FromLong(ret);
+}
+
+// @pyswig int|SetMapMode|Sets the method used for translating logical units to device units
+// @rdesc Returns the previous mapping mode, one of win32con.MM_* constants
+static PyObject *PySetMapMode(PyObject *self, PyObject *args)
+{
+	HDC hdc;
+	PyObject *obdc;
+	int newmode, prevmode;
+	if (!PyArg_ParseTuple(args, "Oi:SetMapMode",
+		&obdc,			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		&newmode))		// @pyparm int|MapMode||The new mapping mode (win32con.MM_*)
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	prevmode=SetMapMode(hdc, newmode);
+	if (prevmode==0)
+		return PyWin_SetAPIError("SetMapMode");
+	return PyInt_FromLong(prevmode);
+}
 %}
 
 %native (GetTextExtentPoint32) PyGetTextExtentPoint32;
+%native (GetTextMetrics) PyGetTextMetrics;
+%native (GetTextCharacterExtra) PyGetTextCharacterExtra;
+%native (SetTextCharacterExtra) PySetTextCharacterExtra;
+%native (GetTextAlign) PyGetTextAlign;
+%native (SetTextAlign) PySetTextAlign;
+%native (GetTextFace) PyGetTextFace;
+%native (GetMapMode) PyGetMapMode;
+%native (SetMapMode) PySetMapMode;
 
 // @pyswig int|GetOpenFileName|Creates an Open dialog box that lets the user specify the drive, directory, and the name of a file or set of files to open.
 // @rdesc If the user presses OK, the function returns TRUE.  Otherwise, use CommDlgExtendedError for error details.
@@ -4051,17 +4231,32 @@ static PyObject *PyExtTextOut(PyObject *self, PyObject *args)
 %native (ExtTextOut) PyExtTextOut;
 
 
+// @pyswig int|GetTextColor|Returns the text color for a DC
+// @rdesc Returns an RGB color.  On error, returns CLR_INVALID
+COLORREF GetTextColor(
+	HDC hdc);			// @pyparm int|hdc||Handle to a device context
+
 // @pyswig int|SetTextColor|Changes the text color for a device context
 // @rdesc Returns the previous color, or CLR_INVALID on failure
 int SetTextColor(
 	HDC hdc,			// @pyparm int|hdc||Handle to a device context
 	COLORREF color);	// @pyparm int|color||The RGB color value - see <om win32api.RGB>
 
+// @pyswig int|GetBkMode|Returns the background mode for a device context
+// @rdesc Returns OPAQUE, TRANSPARENT, or 0 on failure
+int GetBkMode(
+	HDC hdc);				// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+
 // @pyswig int|SetBkMode|Sets the background mode for a device context
 // @rdesc Returns the previous mode, or 0 on failure
 int SetBkMode(
 	HDC hdc,			// @pyparm int/<o PyHANDLE>|hdc||Handle to a device context
 	int mode);			// @pyparm int|BkMode||OPAQUE or TRANSPARENT 
+
+// @pyswig int|GetBkColor|Returns the background color for a device context
+// @rdesc Returns an RGB color value.  On error, returns CLR_INVALID.
+int GetBkColor(
+	HDC hdc);			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 
 // @pyswig int|SetBkColor|Sets the background color for a device context
 // @rdesc Returns the previous color, or CLR_INVALID on failure
