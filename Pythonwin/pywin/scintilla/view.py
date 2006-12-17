@@ -638,7 +638,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 	def FormatRange(self, dc, pageStart, lengthDoc, rc, draw):
 		hdcRender = dc.GetHandleOutput()
 		hdcFormat = dc.GetHandleAttrib()
-		fr = struct.pack('LLIIIIIIIIll', hdcRender, hdcFormat, rc[0], rc[1], rc[2], rc[3], rc[0], rc[1], rc[2], rc[3], pageStart, lengthDoc)
+		fr = struct.pack('llIIIIIIIIll', hdcRender, hdcFormat, rc[0], rc[1], rc[2], rc[3], rc[0], rc[1], rc[2], rc[3], pageStart, lengthDoc)
 		frBuff = array.array('c', fr)
 		addressFrBuff = frBuff.buffer_info()[0]
 		nextPageStart = self.SendScintilla(EM_FORMATRANGE, draw, addressFrBuff)
