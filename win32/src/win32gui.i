@@ -45,6 +45,14 @@ typedef BOOL (WINAPI *AngleArcfunc)(HDC, int, int, DWORD, FLOAT, FLOAT);
 static AngleArcfunc pfnAngleArc=NULL;
 typedef BOOL (WINAPI *PlgBltfunc)(HDC,CONST POINT *,HDC,int,int,int,int,HBITMAP,int,int);
 static PlgBltfunc pfnPlgBlt=NULL;
+typedef BOOL (WINAPI *GetWorldTransformfunc)(HDC,XFORM *);
+static GetWorldTransformfunc pfnGetWorldTransform=NULL;
+typedef BOOL (WINAPI *SetWorldTransformfunc)(HDC,XFORM *);
+static SetWorldTransformfunc pfnSetWorldTransform=NULL;
+typedef BOOL (WINAPI *ModifyWorldTransformfunc)(HDC,XFORM *,DWORD);
+static ModifyWorldTransformfunc pfnModifyWorldTransform=NULL;
+typedef BOOL (WINAPI *CombineTransformfunc)(LPXFORM,CONST XFORM *,CONST XFORM *);
+static CombineTransformfunc pfnCombineTransform=NULL;
 
 static PyObject *g_AtomMap = NULL; // Mapping class atoms to Python WNDPROC
 static PyObject *g_HWNDMap = NULL; // Mapping HWND to Python WNDPROC
@@ -124,6 +132,10 @@ if (hmodule==NULL)
 if (hmodule){
 	pfnAngleArc=(AngleArcfunc)GetProcAddress(hmodule,"AngleArc");
 	pfnPlgBlt=(PlgBltfunc)GetProcAddress(hmodule,"PlgBlt");
+	pfnGetWorldTransform=(GetWorldTransformfunc)GetProcAddress(hmodule,"GetWorldTransform");
+	pfnSetWorldTransform=(SetWorldTransformfunc)GetProcAddress(hmodule,"SetWorldTransform");
+	pfnModifyWorldTransform=(ModifyWorldTransformfunc)GetProcAddress(hmodule,"ModifyWorldTransform");
+	pfnCombineTransform=(CombineTransformfunc)GetProcAddress(hmodule,"CombineTransform");
 	}
 
 %}
@@ -3367,6 +3379,10 @@ BOOLAPI ClientToScreen(
 	HWND hWnd,		// @pyparm <o PyHANDLE>|hWnd||Handle to a window
 	POINT *BOTH);	// @pyparm (int,int)|Point||Client coordinates to be converted
 
+// @pyswig |PaintDesktop|Fills a DC with the destop background
+BOOLAPI PaintDesktop(
+	HDC hdc);		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+
 %{
 // @pyswig cx, cy|GetTextExtentPoint32|Computes the width and height of the specified string of text.
 static PyObject *PyGetTextExtentPoint32(PyObject *self, PyObject *args)
@@ -3559,6 +3575,43 @@ static PyObject *PySetMapMode(PyObject *self, PyObject *args)
 		return PyWin_SetAPIError("SetMapMode");
 	return PyInt_FromLong(prevmode);
 }
+
+// @pyswig int|GetGraphicsMode|Determines if advanced GDI features are enabled for a device context
+// @rdesc Returns GM_COMPATIBLE or GM_ADVANCED 
+static PyObject *PyGetGraphicsMode(PyObject *self, PyObject *args)
+{
+	HDC hdc;
+	PyObject *obdc;
+	int ret;
+	if (!PyArg_ParseTuple(args, "O:GetGraphicsMode",
+		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	ret=GetGraphicsMode(hdc);
+	if (ret==0)
+		return PyWin_SetAPIError("GetGraphicsMode");
+	return PyInt_FromLong(ret);
+}
+
+// @pyswig int|SetGraphicsMode|Enables or disables advanced graphics features for a DC
+// @rdesc Returns the previous mode, one of win32con.GM_COMPATIBLE or win32con.GM_ADVANCED 
+static PyObject *PySetGraphicsMode(PyObject *self, PyObject *args)
+{
+	HDC hdc;
+	PyObject *obdc;
+	int newmode, prevmode;
+	if (!PyArg_ParseTuple(args, "Oi:SetGraphicsMode",
+		&obdc,			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		&newmode))		// @pyparm int|Mode||GM_COMPATIBLE or GM_ADVANCED (from win32con)
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	prevmode=SetGraphicsMode(hdc, newmode);
+	if (prevmode==0)
+		return PyWin_SetAPIError("SetGraphicsMode");
+	return PyInt_FromLong(prevmode);
+}
 %}
 
 %native (GetTextExtentPoint32) PyGetTextExtentPoint32;
@@ -3570,6 +3623,249 @@ static PyObject *PySetMapMode(PyObject *self, PyObject *args)
 %native (GetTextFace) PyGetTextFace;
 %native (GetMapMode) PyGetMapMode;
 %native (SetMapMode) PySetMapMode;
+%native (GetGraphicsMode) PyGetGraphicsMode;
+%native (SetGraphicsMode) PySetGraphicsMode;
+
+%{
+// @object PyXFORM|Dict representing an XFORM struct used as a world transformation matrix
+//	All members are optional, defaulting to 0.0.
+// @pyseeapi XFORM struct
+BOOL PyWinObject_AsXFORM(PyObject *obxform, XFORM *pxform)
+{
+	static char *keywords[]={"M11","M12","M21","M22","Dx","Dy", NULL};
+	ZeroMemory(pxform, sizeof(XFORM));
+	if (!PyDict_Check(obxform)){
+		PyErr_SetString(PyExc_TypeError,"XFORM must be a dict");
+		return FALSE;
+		}
+	PyObject *dummy_tuple=PyTuple_New(0);
+	if (dummy_tuple==NULL)
+		return FALSE;
+	BOOL ret=PyArg_ParseTupleAndKeywords(dummy_tuple, obxform, "|ffffff", keywords,
+		&pxform->eM11,	// @prop float|M11|Usage is dependent on operation performed, see MSDN docs
+		&pxform->eM12,	// @prop float|M12|Usage is dependent on operation performed, see MSDN docs
+		&pxform->eM21,	// @prop float|M21|Usage is dependent on operation performed, see MSDN docs
+		&pxform->eM22,	// @prop float|M22|Usage is dependent on operation performed, see MSDN docs
+		&pxform->eDx,	// @prop float|Dx|Horizontal offset in logical units
+		&pxform->eDy);	// @prop float|Dy|Vertical offset in logical units
+	Py_DECREF(dummy_tuple);
+	return ret;
+}
+
+PyObject *PyWinObject_FromXFORM(XFORM *pxform)
+{
+	return Py_BuildValue("{s:f,s:f,s:f,s:f,s:f,s:f}",
+		"M11",	pxform->eM11,
+		"M12",	pxform->eM12,
+		"M21",	pxform->eM21,
+		"M22",	pxform->eM22,
+		"Dx",	pxform->eDx,
+		"Dy",	pxform->eDy);
+}
+
+// @pyswig <o PyXFORM>|GetWorldTransform|Retrieves a device context's coordinate space translation matrix
+// @comm DC's mode must be set to GM_ADVANCED.  See <om win32gui.SetGraphicsMode>.
+static PyObject *PyGetWorldTransform(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(GetWorldTransform);
+	PyObject *obdc;
+	HDC hdc;
+	XFORM xform;
+	if (!PyArg_ParseTuple(args, "O:GetWorldTransform",
+		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	if (!(*pfnGetWorldTransform)(hdc, &xform))
+		return PyWin_SetAPIError("GetWorldTransform");
+	return PyWinObject_FromXFORM(&xform);
+}
+
+// @pyswig |SetWorldTransform|Transforms a device context's coordinate space
+// @comm DC's mode must be set to GM_ADVANCED.  See <om win32gui.SetGraphicsMode>.
+static PyObject *PySetWorldTransform(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(SetWorldTransform);
+	PyObject *obdc, *obxform;
+	HDC hdc;
+	XFORM xform;
+	if (!PyArg_ParseTuple(args, "OO:SetWorldTransform",
+		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		&obxform))	// @pyparm <o PyXFORM>|Xform||Matrix defining the transformation
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	if (!PyWinObject_AsXFORM(obxform, &xform))
+		return NULL;
+	if (!(*pfnSetWorldTransform)(hdc, &xform))
+		return PyWin_SetAPIError("SetWorldTransform");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pyswig |ModifyWorldTransform|Combines a coordinate tranformation with device context's current transformation
+// @comm DC's mode must be set to GM_ADVANCED.  See <om win32gui.SetGraphicsMode>.
+static PyObject *PyModifyWorldTransform(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(ModifyWorldTransform);
+	PyObject *obdc, *obxform;
+	HDC hdc;
+	XFORM xform;
+	DWORD mode;
+	if (!PyArg_ParseTuple(args, "OOk:ModifyWorldTransform",
+		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		&obxform,	// @pyparm <o PyXFORM>|Xform||Transformation to be applied.  Ignored if Mode is MWT_IDENTITY.
+		&mode))		// @pyparm int|Mode||One of win32con.MWT_* values specifying how transformations will be combined
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	if (!PyWinObject_AsXFORM(obxform, &xform))
+		return NULL;
+	if (!(*pfnModifyWorldTransform)(hdc, &xform, mode))
+		return PyWin_SetAPIError("ModifyWorldTransform");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pyswig <o PyXFORM>|CombineTransform|Combines two coordinate space transformations
+static PyObject *PyCombineTransform(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(CombineTransform);
+	PyObject *obxform1, *obxform2;
+	XFORM xform1, xform2, ret_xform;
+	if (!PyArg_ParseTuple(args, "OO:CombineTransform",
+		&obxform1,		// @pyparm <o PyXFORM>|xform1||First transformation
+		&obxform2))		// @pyparm <o PyXFORM>|xform2||Second transformation
+		return NULL;
+	if (!PyWinObject_AsXFORM(obxform1, &xform1))
+		return NULL;
+	if (!PyWinObject_AsXFORM(obxform2, &xform2))
+		return NULL;
+
+	if (!(*pfnCombineTransform)(&ret_xform, &xform1, &xform2))
+		return PyWin_SetAPIError("CombineTransform");
+	return PyWinObject_FromXFORM(&ret_xform);
+}
+%}
+%native (GetWorldTransform) PyGetWorldTransform;
+%native (SetWorldTransform) PySetWorldTransform;
+%native (ModifyWorldTransform) PyModifyWorldTransform;
+%native (CombineTransform) PyCombineTransform;
+
+
+// @pyswig (int,int)|GetWindowOrgEx|Retrievs the window origin for a DC
+BOOLAPI GetWindowOrgEx(
+	HDC hdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+	POINT *OUTPUT);
+
+// @pyswig (int,int)|SetWindowOrgEx|Changes the window origin for a DC
+// @rdesc Returns the previous origin
+BOOLAPI SetWindowOrgEx(
+	HDC hdc,	// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+	int X,		// @pyparm int|X||New X coord in logical units
+	int Y,		// @pyparm int|Y||New Y coord in logical units
+	POINT *OUTPUT);
+
+// @pyswig (int,int)|GetViewportOrgEx|Retrievs the origin for a DC's viewport
+BOOLAPI GetViewportOrgEx(
+	HDC hdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+	POINT *OUTPUT);
+
+// @pyswig (int,int)|SetViewportOrgEx|Changes the viewport origin for a DC
+// @rdesc Returns the previous origin as (x,y)
+BOOLAPI SetViewportOrgEx(
+	HDC hdc,	// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+	int X,		// @pyparm int|X||New X coord in logical units
+	int Y,		// @pyparm int|Y||New Y coord in logical units
+	POINT *OUTPUT);
+
+
+
+%{
+PyObject *PyWinObject_FromSIZE(PSIZE psize)
+{
+	return Py_BuildValue("ll", psize->cx, psize->cy);
+}
+
+// @pyswig (int,int)|GetWindowExtEx|Retrieves the window extents for a DC
+// @rdesc Returns the extents as (x,y) in logical units
+static PyObject *PyGetWindowExtEx(PyObject *self, PyObject *args)
+{
+	PyObject *obdc;
+	HDC hdc;
+	SIZE sz;
+	if (!PyArg_ParseTuple(args, "O:GetWindowExtEx",
+		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	if (!GetWindowExtEx(hdc, &sz))
+		return PyWin_SetAPIError("GetWindowExtEx");
+	return PyWinObject_FromSIZE(&sz);
+}
+
+// @pyswig (int,int)|SetWindowExtEx|Changes the window extents for a DC
+// @rdesc Returns the previous extents
+static PyObject *PySetWindowExtEx(PyObject *self, PyObject *args)
+{
+	PyObject *obdc;
+	HDC hdc;
+	SIZE sz;
+	int x,y;
+	if (!PyArg_ParseTuple(args, "Oii:SetWindowExtEx",
+		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		&x,			// @pyparm int|XExtent||New X extent in logical units
+		&y))		// @pyparm int|YExtent||New Y extent in logical units
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	if (!SetWindowExtEx(hdc, x, y, &sz))
+		return PyWin_SetAPIError("SetWindowExtEx");
+	return PyWinObject_FromSIZE(&sz);
+}
+
+// @pyswig (int,int)|GetViewportExtEx|Retrieves the viewport extents for a DC
+// @rdesc Returns the extents as (x,y) in logical units
+static PyObject *PyGetViewportExtEx(PyObject *self, PyObject *args)
+{
+	PyObject *obdc;
+	HDC hdc;
+	SIZE sz;
+	if (!PyArg_ParseTuple(args, "O:GetViewportExtEx",
+		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	if (!GetViewportExtEx(hdc, &sz))
+		return PyWin_SetAPIError("GetViewportExtEx");
+	return PyWinObject_FromSIZE(&sz);
+}
+
+// @pyswig (int,int)|SetViewportExtEx|Changes the viewport extents for a DC
+// @rdesc Returns the previous extents as (x,y) in logical units
+static PyObject *PySetViewportExtEx(PyObject *self, PyObject *args)
+{
+	PyObject *obdc;
+	HDC hdc;
+	SIZE sz;
+	int x,y;
+	if (!PyArg_ParseTuple(args, "Oii:SetViewportExtEx",
+		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		&x,			// @pyparm int|XExtent||New X extent in logical units
+		&y))		// @pyparm int|YExtent||New Y extent in logical units
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	if (!SetViewportExtEx(hdc, x, y, &sz))
+		return PyWin_SetAPIError("SetViewportExtEx");
+	return PyWinObject_FromSIZE(&sz);
+}
+%}
+%native (GetWindowExtEx) PyGetWindowExtEx;
+%native (SetWindowExtEx) PySetWindowExtEx;
+%native (GetViewportExtEx) PyGetViewportExtEx;
+%native (SetViewportExtEx) PySetViewportExtEx;
+
 
 // @pyswig int|GetOpenFileName|Creates an Open dialog box that lets the user specify the drive, directory, and the name of a file or set of files to open.
 // @rdesc If the user presses OK, the function returns TRUE.  Otherwise, use CommDlgExtendedError for error details.
