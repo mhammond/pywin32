@@ -133,6 +133,7 @@ BOOL CPythonDocTemp<P>::OnOpenDocument(const char *fileName)
 	// be called.  If necessary, the handler must call this function explicitely.
 	CVirtualHelper helper( "OnOpenDocument", this );
 	if (!helper.HaveHandler()) {
+		CEnterLeavePython _celp; // grab lock to report error
 		PyErr_SetString(ui_module_error,"PyCDocument::OnOpenDocument handler does not exist.");
 		gui_print_error();
 		return FALSE;
@@ -163,9 +164,10 @@ BOOL CPythonDocTemp<P>::OnNewDocument()
 	if (helper.call()) {
 		int ret;
 		// @rdesc TRUE if a new document could be created, else FALSE.
-        if (helper.retval(ret))
+	if (helper.retval(ret))
 			return ret;
 		else {
+			CEnterLeavePython _celp; // grab lock to report error
 			PyErr_SetString(PyExc_TypeError, "PyCDocument.OnNewDocument - bad return type.");
 			gui_print_error();
 			return FALSE;
