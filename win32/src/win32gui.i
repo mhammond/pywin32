@@ -41,6 +41,8 @@ typedef BOOL (WINAPI *SetLayeredWindowAttributesfunc)(HWND, COLORREF, BYTE,DWORD
 static SetLayeredWindowAttributesfunc pfnSetLayeredWindowAttributes=NULL;
 typedef BOOL (WINAPI *GetLayeredWindowAttributesfunc)(HWND, COLORREF *, BYTE *, DWORD *);
 static GetLayeredWindowAttributesfunc pfnGetLayeredWindowAttributes=NULL;
+typedef BOOL (WINAPI *UpdateLayeredWindowfunc)(HWND,HDC,POINT *,SIZE *,HDC,POINT *,COLORREF,BLENDFUNCTION *,DWORD);
+static UpdateLayeredWindowfunc pfnUpdateLayeredWindow=NULL;
 typedef BOOL (WINAPI *AngleArcfunc)(HDC, int, int, DWORD, FLOAT, FLOAT);
 static AngleArcfunc pfnAngleArc=NULL;
 typedef BOOL (WINAPI *PlgBltfunc)(HDC,CONST POINT *,HDC,int,int,int,int,HBITMAP,int,int);
@@ -53,6 +55,20 @@ typedef BOOL (WINAPI *ModifyWorldTransformfunc)(HDC,XFORM *,DWORD);
 static ModifyWorldTransformfunc pfnModifyWorldTransform=NULL;
 typedef BOOL (WINAPI *CombineTransformfunc)(LPXFORM,CONST XFORM *,CONST XFORM *);
 static CombineTransformfunc pfnCombineTransform=NULL;
+typedef BOOL (WINAPI *GradientFillfunc)(HDC,PTRIVERTEX,ULONG,PVOID,ULONG,ULONG);
+static GradientFillfunc pfnGradientFill=NULL;
+typedef BOOL (WINAPI *TransparentBltfunc)(HDC,int,int,int,int,HDC,int,int,int,int,UINT);
+static TransparentBltfunc pfnTransparentBlt=NULL;
+typedef BOOL (WINAPI *MaskBltfunc)(HDC,int,int,int,int,HDC,int,int,HBITMAP,int,int,DWORD);
+static MaskBltfunc pfnMaskBlt=NULL;
+typedef BOOL (WINAPI *AlphaBlendfunc)(HDC,int,int,int,int,HDC,int,int,int,int,BLENDFUNCTION);
+static AlphaBlendfunc pfnAlphaBlend=NULL;
+typedef BOOL (WINAPI *AnimateWindowfunc)(HWND,DWORD,DWORD);
+static AnimateWindowfunc pfnAnimateWindow=NULL;
+typedef DWORD (WINAPI *GetLayoutfunc)(HDC);
+static GetLayoutfunc pfnGetLayout=NULL;
+typedef DWORD (WINAPI *SetLayoutfunc)(HDC, DWORD);
+static SetLayoutfunc pfnSetLayout=NULL;
 
 static PyObject *g_AtomMap = NULL; // Mapping class atoms to Python WNDPROC
 static PyObject *g_HWNDMap = NULL; // Mapping HWND to Python WNDPROC
@@ -97,6 +113,33 @@ void HandleError(char *prefix)
 		PyErr_Print();
 	}
 }
+
+// @object PyBLENDFUNCTION|Tuple of four small ints used to fill a BLENDFUNCTION struct
+// All 4 ints must fit in a byte (0-255).
+// @pyseeapi BLENDFUNCTION
+BOOL PyWinObject_AsBLENDFUNCTION(PyObject *obbl, BLENDFUNCTION *pbl)
+{
+	if (!PyTuple_Check(obbl)){
+		PyErr_SetString(PyExc_TypeError, "BLENDFUNCTION must be a tuple of four small ints (0-255)");
+		return FALSE;
+		}
+	return PyArg_ParseTuple(obbl, "BBBB:BLENDFUNCTION",
+		&pbl->BlendOp,				// @tupleitem 0|int|BlendOp|Only defined value is AC_SRC_OVER (0)
+		&pbl->BlendFlags,			// @tupleitem 1|int|BlendFlags|None currently defined, must be 0
+		&pbl->SourceConstantAlpha,	// @tupleitem 2|int|SourceConstantAlpha|Transparency to be applied to entire source. (255 is opaque)
+		&pbl->AlphaFormat);			// @tupleitem 3|int|AlphaFormat|Only defined flag is AC_SRC_ALPHA, used when src bitmap contains per-pixel alpha
+}
+
+// @object PySIZE|Tuple of two ints (cx,cy) representing a SIZE struct
+BOOL PyWinObject_AsSIZE(PyObject *obsize, SIZE *psize)
+{
+	if (!PyTuple_Check(obsize)){
+		PyErr_SetString(PyExc_TypeError, "SIZE must be a tuple of 2 ints (x,y)");
+		return FALSE;
+		}
+	return PyArg_ParseTuple(obsize, "ll;SIZE must be a tuple of 2 ints (x,y)", 
+		&psize->cx, &psize->cy);
+}
 %}
 
 // Written to the module init function.
@@ -113,6 +156,8 @@ for (PyMethodDef *pmd = win32guiMethods; pmd->ml_name; pmd++)
 #endif
 	if (strcmp(pmd->ml_name, "SetLayeredWindowAttributes")==0 ||
 		strcmp(pmd->ml_name, "GetLayeredWindowAttributes")==0 ||
+		strcmp(pmd->ml_name, "UpdateLayeredWindow")==0 ||
+		strcmp(pmd->ml_name, "AnimateWindow")==0 ||
 		strcmp(pmd->ml_name, "GetOpenFileNameW")==0 ||
 		strcmp(pmd->ml_name, "GetSaveFileNameW")==0 ||
 		strcmp(pmd->ml_name, "SystemParametersInfo")==0)
@@ -124,6 +169,8 @@ if (hmodule==NULL)
 if (hmodule){
 	pfnSetLayeredWindowAttributes=(SetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"SetLayeredWindowAttributes");
 	pfnGetLayeredWindowAttributes=(GetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"GetLayeredWindowAttributes");
+	pfnUpdateLayeredWindow=(UpdateLayeredWindowfunc)GetProcAddress(hmodule,"UpdateLayeredWindow");
+	pfnAnimateWindow=(AnimateWindowfunc)GetProcAddress(hmodule,"AnimateWindow");
 	}
 
 hmodule=GetModuleHandle("gdi32.dll");
@@ -136,8 +183,20 @@ if (hmodule){
 	pfnSetWorldTransform=(SetWorldTransformfunc)GetProcAddress(hmodule,"SetWorldTransform");
 	pfnModifyWorldTransform=(ModifyWorldTransformfunc)GetProcAddress(hmodule,"ModifyWorldTransform");
 	pfnCombineTransform=(CombineTransformfunc)GetProcAddress(hmodule,"CombineTransform");
+	pfnMaskBlt=(MaskBltfunc)GetProcAddress(hmodule,"MaskBlt");
+	pfnGetLayout=(GetLayoutfunc)GetProcAddress(hmodule,"GetLayout");
+	pfnSetLayout=(SetLayoutfunc)GetProcAddress(hmodule,"SetLayout");
+
 	}
 
+hmodule=GetModuleHandle("msimg32.dll");
+if (hmodule==NULL)
+	hmodule=LoadLibrary("msimg32.dll");
+if (hmodule){
+	pfnGradientFill=(GradientFillfunc)GetProcAddress(hmodule,"GradientFill");
+	pfnTransparentBlt=(TransparentBltfunc)GetProcAddress(hmodule,"TransparentBlt");
+	pfnAlphaBlend=(AlphaBlendfunc)GetProcAddress(hmodule,"AlphaBlend");
+	}
 %}
 
 %{
@@ -365,31 +424,21 @@ typedef int UINT;
 }
 
 %typemap(python,in) POINT *INPUT {
-    POINT r;
-	if (PyTuple_Check($source)) {
-		if (PyArg_ParseTuple($source, "ll", &r.x, &r.y) == 0) {
-			return PyErr_Format(PyExc_TypeError, "%s: a POINT must be a tuple of integers", "$name");
-		}
-		$target = &r;
-    } else {
-		return PyErr_Format(PyExc_TypeError, "%s: a POINT must be a tuple of integers", "$name");
-	}
+	POINT pt;
+	if (!PyWinObject_AsPOINT($source, &pt))
+		return NULL;
+	$target = &pt;
 }
 
 
 %typemap(python,in) POINT *BOTH = POINT *INPUT;
 %typemap(python,argout) POINT *BOTH = POINT *OUTPUT;
 
-%typemap(python,in) SIZE *INPUT {
+%typemap(python,in) SIZE *INPUT{
     SIZE s;
-	if (PyTuple_Check($source)) {
-		if (PyArg_ParseTuple($source, "ll", &s.cx, &s.cy) == 0) {
-			return PyErr_Format(PyExc_TypeError, "%s: a SIZE must be a tuple of integers", "$name");
-		}
-		$target = &s;
-    } else {
-		return PyErr_Format(PyExc_TypeError, "%s: a SIZE must be a tuple of integers", "$name");
-	}
+	if (!PyWinObject_AsSIZE($source, &s))
+		return NULL;
+	$target = &s;
 }
 
 %typemap(python,in) ICONINFO *INPUT {
@@ -433,16 +482,9 @@ typedef int UINT;
 
 %typemap(python,in) BLENDFUNCTION *INPUT {
     BLENDFUNCTION bf;
-	if (PyTuple_Check($source)) {
-		if (PyArg_ParseTuple($source, "bbbb:" "$name" " tuple",
-                             &bf.BlendOp, &bf.BlendFlags,
-                             &bf.SourceConstantAlpha, &bf.AlphaFormat) == 0) {
-            return NULL;
-		}
-		$target = &bf;
-	} else {
-		return PyErr_Format(PyExc_TypeError, "%s: This param must be a tuple of four integers", "$name");
-	}
+	if (!PyWinObject_AsBLENDFUNCTION($source, &bf))
+		return NULL;
+	$target = &bf;
 }
 
 %typemap(python,argout) PAINTSTRUCT *OUTPUT {
@@ -1171,10 +1213,10 @@ BOOL CALLBACK EnumFontFamProc(const LOGFONT FAR *lpelf, const TEXTMETRIC *lpntm,
 static PyObject *PyEnumFontFamilies(PyObject *self, PyObject *args)
 {
 	PyObject *obFamily;
-	PyObject *obProc;
+	PyObject *obProc, *obdc;
 	PyObject *obExtra = Py_None;
-	long hdc;
-	// @pyparm int|hdc||Handle to a device context for which to enumerate available fonts
+	HDC hdc;
+	// @pyparm <o PyHANDLE>|hdc||Handle to a device context for which to enumerate available fonts
 	// @pyparm string/<o PyUnicode>|Family||Family of fonts to enumerate. If none, first member of each font family will be returned.
 	// @pyparm function|EnumFontFamProc||The Python function called with each font family. This function is called with 4 arguments.
 	// @pyparm object|Param||An arbitrary object to be passed to the callback function
@@ -1184,7 +1226,9 @@ static PyObject *PyEnumFontFamilies(PyObject *self, PyObject *args)
 	//	int - Font type, combination of DEVICE_FONTTYPE, RASTER_FONTTYPE, TRUETYPE_FONTTYPE<nl>
 	//	object - The Param originally passed in to EnumFontFamilies
 
-	if (!PyArg_ParseTuple(args, "lOO|O", &hdc, &obFamily, &obProc, &obExtra))
+	if (!PyArg_ParseTuple(args, "OOO|O", &obdc, &obFamily, &obProc, &obExtra))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
 		return NULL;
 	if (!PyCallable_Check(obProc)) {
 		PyErr_SetString(PyExc_TypeError, "The 3rd argument must be callable");
@@ -1194,7 +1238,7 @@ static PyObject *PyEnumFontFamilies(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsTCHAR(obFamily, &szFamily, TRUE))
 		return NULL;
 	PyObject *lparam = Py_BuildValue("OO", obProc, obExtra);
-	int rc = EnumFontFamilies((HDC)hdc, szFamily, EnumFontFamProc, (LPARAM)lparam);
+	int rc = EnumFontFamilies(hdc, szFamily, EnumFontFamProc, (LPARAM)lparam);
 	Py_XDECREF(lparam);
 	PyWinObject_FreeTCHAR(szFamily);
 	return PyInt_FromLong(rc);
@@ -1242,27 +1286,30 @@ PyObject *set_logger(PyObject *self, PyObject *args)
 HFONT CreateFontIndirect(LOGFONT *lf);	// @pyparm <o PyLOGFONT>|lplf||A LOGFONT object as returned by <om win32gui.LOGFONT> 
 
 %{
-// @pyswig object|GetObject|
+// @pyswig object|GetObject|Returns a struct containing the parameters used to create a GDI object
 static PyObject *PyGetObject(PyObject *self, PyObject *args)
 {
-	long hob;
-	// @pyparm int|handle||Handle to the object.
-	if (!PyArg_ParseTuple(args, "l", &hob))
+	HGDIOBJ hob;
+	PyObject *ob;
+	// @pyparm <o PyHANDLE>|handle||Handle to the object.
+	if (!PyArg_ParseTuple(args, "O", &ob))
 		return NULL;
-	DWORD typ = GetObjectType((HGDIOBJ)hob);
+	if (!PyWinObject_AsHANDLE(ob, &hob, FALSE))
+		return NULL;
+	DWORD typ = GetObjectType(hob);
 	// @comm The result depends on the type of the handle.
 	// For example, if the handle identifies a Font, a <o LOGFONT> object
 	// is returned.
 	switch (typ) {
 		case OBJ_FONT: {
 			LOGFONT lf;
-			if (GetObject((HGDIOBJ)hob, sizeof(LOGFONT), &lf)==0)
+			if (GetObject(hob, sizeof(LOGFONT), &lf)==0)
 				return PyWin_SetAPIError("GetObject");
 			return new PyLOGFONT(&lf);
 		}
 		case OBJ_BITMAP: {
 			BITMAP bm;
-			if (GetObject((HGDIOBJ)hob, sizeof(BITMAP), &bm)==0)
+			if (GetObject(hob, sizeof(BITMAP), &bm)==0)
 				return PyWin_SetAPIError("GetObject");
 			return new PyBITMAP(&bm);
 		}
@@ -1280,8 +1327,11 @@ static PyObject *PyGetObjectType(PyObject *self, PyObject *args)
 {
 	HANDLE h;
 	DWORD t;
-	// @pyparm int|h||A handle to a GDI object
-	if (!PyArg_ParseTuple(args, "l:GetObjectType", &h))
+	PyObject *ob;
+	// @pyparm <o PyHANDLE>|h||A handle to a GDI object
+	if (!PyArg_ParseTuple(args, "O:GetObjectType", &ob))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(ob, &h, FALSE))
 		return NULL;
 	t=GetObjectType(h);
 	if (t==0)
@@ -1530,23 +1580,25 @@ static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
 
 #ifndef MS_WINCE
 // @pyswig int|FlashWindow|The FlashWindow function flashes the specified window one time. It does not change the active state of the window.
-// @pyparm int|hwnd||
-// @pyparm int|bInvert||
+// @pyparm <o PyHANDLE>|hwnd||Handle to a window
+// @pyparm int|bInvert||Indicates if window should toggle between active and inactive
 BOOL FlashWindow(HWND hwnd, BOOL bInvert);
-// @pyswig int|FlashWindowEx|The FlashWindowEx function flashes the specified window a specified number of times.
 
+// @pyswig int|FlashWindowEx|The FlashWindowEx function flashes the specified window a specified number of times.
 %{
 PyObject *PyFlashWindowEx(PyObject *self, PyObject *args)
 {
-	PyObject *ret;
+	PyObject *ret, *obhwnd;
 	BOOL rc;
 	FLASHWINFO f;
 	f.cbSize = sizeof f;
-	// @pyparm int|hwnd||
-	// @pyparm int|dwFlags||
-	// @pyparm int|uCount||
-	// @pyparm int|dwTimeout||
-	if (!PyArg_ParseTuple(args, "iiii", &f.hwnd, &f.dwFlags, &f.uCount, &f.dwTimeout))
+	// @pyparm <o PyHANDLE>|hwnd||Handle to a window
+	// @pyparm int|dwFlags||Combination of win32con.FLASHW_* flags
+	// @pyparm int|uCount||Nbr of times to flash
+	// @pyparm int|dwTimeout||Elapsed time between flashes, in milliseconds
+	if (!PyArg_ParseTuple(args, "Oiii", &obhwnd, &f.dwFlags, &f.uCount, &f.dwTimeout))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&f.hwnd, FALSE))
 		return NULL;
     // not on NT
 	HMODULE hmod = GetModuleHandle(_T("user32"));
@@ -1567,34 +1619,6 @@ PyObject *PyFlashWindowEx(PyObject *self, PyObject *args)
 %native(FlashWindowEx) PyFlashWindowEx;
 #endif // MS_WINCE
 
-// To avoid LoadLibrary etc (ie, keep my life simple) for functions
-// that don't exist on NT, only put them in winxpgui.
-%ifdef WINXPGUI
-
-// @pyswig |AnimateWindow|Enables you to produce special effects when showing or hiding windows. There are three types of animation: roll, slide, and alpha-blended fade.
-// @comm To avoid complications with Windows NT, this function only exists in winxpgui (not win32gui)
-BOOLAPI AnimateWindow(
-  HWND hwnd,     // @pyparm int|hwnd||handle to window
-  DWORD dwTime,  // @pyparm int|dwTime||duration of animation
-  DWORD dwFlags  // @pyparm int|dwFlags||animation type
-);
-
-// @pyswig |UpdateLayeredWindow|Updates the position, size, shape, content, and translucency of a layered window. 
-// @comm To avoid complications with Windows NT, this function only exists in winxpgui (not win32gui)
-BOOLAPI UpdateLayeredWindow(
-  HWND hwnd,             // @pyparm int|hwnd||handle to layered window
-  HDC hdcDst,            // @pyparm int|hdcDst||handle to screen DC
-  POINT *INPUT,         // @pyparm (x,y)|pointDest||new screen position
-  SIZE *INPUT,           // @pyparm (cx, cy)|size||new size of the layered window
-  HDC hdcSrc,            // @pyparm int|hdcSrc||handle to surface DC
-  POINT *INPUT,         // @pyparm (x,y)|pointSrc||layer position
-  COLORREF crKey,        // @pyparm int|colorKey||color key
-  BLENDFUNCTION *INPUT, // @pyparm (int, int, int, int)|blend||blend function
-  DWORD dwFlags          // @pyparm int|flags||options
-);
-
-%endif // End of winxpgui only functions
-
 
 // @pyswig int|GetWindowLong|
 // @pyparm int|hwnd||
@@ -1612,12 +1636,14 @@ static PyObject *PySetWindowLong(PyObject *self, PyObject *args)
 {
 	HWND hwnd;
 	int index;
-	PyObject *ob;
+	PyObject *ob, *obhwnd;
 	long l;
 	// @pyparm int|hwnd||The handle to the window
 	// @pyparm int|index||The index of the item to set.
 	// @pyparm object|value||The value to set.
-	if (!PyArg_ParseTuple(args, "liO", &hwnd, &index, &ob))
+	if (!PyArg_ParseTuple(args, "OiO", &obhwnd, &index, &ob))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
 	switch (index) {
 		// @comm If index is GWL_WNDPROC, then the value parameter
@@ -2459,26 +2485,129 @@ int SetStretchBltMode(
 int GetStretchBltMode(HDC hdc);	// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 #endif	/* not MS_WINCE */
 
-%ifdef WINXPGUI
+%{
+// @pyswig |TransparentBlt|Transfers color from one DC to another, with one color treated as transparent
+static PyObject *PyTransparentBlt(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(TransparentBlt);
+	PyObject *obsrc, *obdst;
+	HDC src, dst;
+	int src_x, src_y, src_width, src_height;
+	int dst_x, dst_y, dst_width, dst_height;
+	UINT transparent;
+	BOOL ret;
+	if (!PyArg_ParseTuple(args,"OiiiiOiiiiI:TransparentBlt",
+		&obdst,			// @pyparm <o PyHANDLE>|Dest||Destination device context handle
+		&dst_x,			// @pyparm int|XOriginDest||X pos of dest rect
+		&dst_y,			// @pyparm int|YOriginDest||Y pos of dest rect
+		&dst_width,		// @pyparm int|WidthDest||Width of dest rect
+		&dst_height,	// @pyparm int|HeightDest||Height of dest rect
+		&obsrc,			// @pyparm <o PyHANDLE>|Src||Source DC handle
+		&src_x,			// @pyparm int|XOriginSrc||X pos of src rect
+		&src_y,			// @pyparm int|YOriginSrc||Y pos of src rect
+		&src_width,		// @pyparm int|WidthSrc||Width of src rect
+		&src_height,	// @pyparm int|HeightSrc||Height of src rect
+		&transparent))	// @pyparm int|Transparent||RGB color value that will be transparent
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdst, (HANDLE *)&dst, FALSE))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obsrc, (HANDLE *)&src, FALSE))
+		return NULL;
+	Py_BEGIN_ALLOW_THREADS
+	ret=(*pfnTransparentBlt)(
+		dst, dst_x, dst_y, dst_width, dst_height,
+		src, src_x, src_y, src_width, src_height,
+		transparent);
+	Py_END_ALLOW_THREADS
+	if (!ret)
+		return PyWin_SetAPIError("TransparentBlt");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 // @pyswig |MaskBlt|Combines the color data for the source and destination
 // bitmaps using the specified mask and raster operation.
-// @comm This function is available only in winxpgui, as it is not supported
-// on Win9x.
-BOOLAPI MaskBlt(
-  HDC hdcDest,     // handle to destination DC
-  int nXDest,      // x-coord of destination upper-left corner
-  int nYDest,      // y-coord of destination upper-left corner 
-  int nWidth,      // width of source and destination
-  int nHeight,     // height of source and destination
-  HDC hdcSrc,      // handle to source DC
-  int nXSrc,       // x-coord of upper-left corner of source
-  int nYSrc,       // y-coord of upper-left corner of source
-  HBITMAP hbmMask, // handle to monochrome bit mask
-  int xMask,       // horizontal offset into mask bitmap
-  int yMask,       // vertical offset into mask bitmap
-  DWORD dwRop      // raster operation code
-);
-%endif
+// @comm This function is not supported on Win9x.
+// @pyseeapi MaskBlt
+static PyObject *PyMaskBlt(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(MaskBlt);
+	PyObject *obsrc, *obdst, *obmask;
+	HDC src, dst;
+	HBITMAP mask;
+	int dst_x, dst_y, dst_width, dst_height;
+	int src_x, src_y;
+	int mask_x, mask_y;
+	DWORD rop;
+	if (!PyArg_ParseTuple(args,"OiiiiOiiOiik:MaskBlt",
+		&obdst,			// @pyparm <o PyHANDLE>|Dest||Destination device context handle
+		&dst_x,			// @pyparm int|XDest||X pos of dest rect
+		&dst_y,			// @pyparm int|YDest||Y pos of dest rect
+		&dst_width,		// @pyparm int|Width||Width of rect to be copied
+		&dst_height,	// @pyparm int|Height||Height of rect to be copied
+		&obsrc,			// @pyparm <o PyHANDLE>|Src||Source DC handle
+		&src_x,			// @pyparm int|XSrc||X pos of src rect
+		&src_y,			// @pyparm int|YSrc||Y pos of src rect
+		&obmask,		// @pyparm <o PyHANDLE>|Mask||Handle to monochrome bitmap used to mask color
+		&mask_x,		// @pyparm int|xMask||X pos in mask
+		&mask_y,		// @pyparm int|yMask||Y pos in mask
+		&rop))			// @pyparm int|Rop||Foreground and background raster operations.  See MSDN docs for how to construct this value.
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdst, (HANDLE *)&dst, FALSE))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obsrc, (HANDLE *)&src, FALSE))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obmask, (HANDLE *)&mask, FALSE))
+		return NULL;
+	if (!(*pfnMaskBlt)(
+		dst, dst_x, dst_y, dst_width, dst_height,
+		src, src_x, src_y,
+		mask, mask_x, mask_y, rop))
+		return PyWin_SetAPIError("MaskBlt");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pyswig |AlphaBlend|Transfers color information using alpha blending
+static PyObject *PyAlphaBlend(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(AlphaBlend);
+	PyObject *obsrc, *obdst, *obbl;
+	HDC src, dst;
+	int src_x, src_y, src_width, src_height;
+	int dst_x, dst_y, dst_width, dst_height;
+	BLENDFUNCTION bl;
+	if (!PyArg_ParseTuple(args,"OiiiiOiiiiO:AlphaBlend",
+		&obdst,			// @pyparm <o PyHANDLE>|Dest||Destination device context handle
+		&dst_x,			// @pyparm int|XOriginDest||X pos of dest rect
+		&dst_y,			// @pyparm int|YOriginDest||Y pos of dest rect
+		&dst_width,		// @pyparm int|WidthDest||Width of dest rect
+		&dst_height,	// @pyparm int|HeightDest||Height of dest rect
+		&obsrc,			// @pyparm <o PyHANDLE>|Src||Source DC handle
+		&src_x,			// @pyparm int|XOriginSrc||X pos of src rect
+		&src_y,			// @pyparm int|YOriginSrc||Y pos of src rect
+		&src_width,		// @pyparm int|WidthSrc||Width of src rect
+		&src_height,	// @pyparm int|HeightSrc||Height of src rect
+		&obbl))			// @pyparm <o PyBLENDFUNCTION>|blendFunction||Alpha blending parameters
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdst, (HANDLE *)&dst, FALSE))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obsrc, (HANDLE *)&src, FALSE))
+		return NULL;
+	if (!PyWinObject_AsBLENDFUNCTION(obbl, &bl))
+		return NULL;
+	if (!(*pfnAlphaBlend)(
+		dst, dst_x, dst_y, dst_width, dst_height,
+		src, src_x, src_y, src_width, src_height,
+		bl))
+		return PyWin_SetAPIError("AlphaBlend");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+%native (TransparentBlt) PyTransparentBlt;
+%native (MaskBlt) PyMaskBlt;
+%native (AlphaBlend) PyAlphaBlend;
 
 // @pyswig int|ImageList_Add|Adds an image or images to an image list. 
 // @rdesc Returns the index of the first new image if successful, or -1 otherwise. 
@@ -2733,6 +2862,11 @@ HGDIOBJ SelectObject(
   HGDIOBJ object     // @pyparm int|object||The GDI object
 );
 
+// @pyswig <o PyHANDLE>|GetCurrentObject|Retrieves currently selected object from a DC
+HGDIOBJ GetCurrentObject(
+	HDC hdc,			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+	UINT ObjectType);	// @pyparm int|ObjectType||Type of object to retrieve, one of win32con.OBJ_*;
+
 HINSTANCE GetModuleHandle(TCHAR *INPUT_NULLOK);
 
 // @pyswig (left, top, right, bottom)|GetWindowRect|
@@ -2766,15 +2900,18 @@ BOOL SetWindowPos(  HWND hWnd,             // handle to window
 static PyObject *
 PyGetWindowPlacement(PyObject *self, PyObject *args)
 {
-	int hwnd;
-	if (!PyArg_ParseTuple(args, "i:GetWindowPlacement", &hwnd))
+	HWND hwnd;
+	PyObject *obhwnd;
+	if (!PyArg_ParseTuple(args, "O:GetWindowPlacement", &obhwnd))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 
 	WINDOWPLACEMENT pment;
 	pment.length=sizeof(pment);
 	BOOL ok;
 	Py_BEGIN_ALLOW_THREADS
-	ok = GetWindowPlacement( (HWND)hwnd, &pment );
+	ok = GetWindowPlacement(hwnd, &pment );
 	Py_END_ALLOW_THREADS
 	if (!ok)
 		return PyWin_SetAPIError("GetWindowPlacement");
@@ -3383,6 +3520,13 @@ BOOLAPI ClientToScreen(
 BOOLAPI PaintDesktop(
 	HDC hdc);		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 
+// @pyswig RedrawWindow|Causes a portion of a window to be redrawn
+BOOLAPI RedrawWindow(
+	HWND hWnd,			// @pyparm <o PyHANDLE>|hWnd||Handle to window to be redrawn
+	RECT *INPUT_NULLOK,	// @pyparm (int,int,int,int)|rcUpdate||Rectangle (left, top, right, bottom) identifying part of window to be redrawn, can be None
+	HRGN hrgnUpdate,	// @pyparm <o PyHANDLE>|hrgnUpdate||Handle to region to be updated
+	UINT flags);		// @pyparm int|flags||Combination of win32con.RDW_* flags
+
 %{
 // @pyswig cx, cy|GetTextExtentPoint32|Computes the width and height of the specified string of text.
 static PyObject *PyGetTextExtentPoint32(PyObject *self, PyObject *args)
@@ -3612,6 +3756,45 @@ static PyObject *PySetGraphicsMode(PyObject *self, PyObject *args)
 		return PyWin_SetAPIError("SetGraphicsMode");
 	return PyInt_FromLong(prevmode);
 }
+
+// @pyswig int|GetLayout|Retrieves the layout mode of a device context
+// @rdesc Returns one of win32con.LAYOUT_*
+static PyObject *PyGetLayout(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(GetLayout);
+	HDC hdc;
+	PyObject *obdc;
+	DWORD prevlayout;
+	if (!PyArg_ParseTuple(args, "O:GetLayout",
+		&obdc))			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	prevlayout=(*pfnGetLayout)(hdc);
+	if (prevlayout==GDI_ERROR)
+		return PyWin_SetAPIError("GetLayout");
+	return PyLong_FromUnsignedLong(prevlayout);
+}
+
+// @pyswig int|SetLayout|Sets the layout for a device context
+// @rdesc Returns the previous layout mode
+static PyObject *PySetLayout(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(SetLayout);
+	HDC hdc;
+	PyObject *obdc;
+	DWORD newlayout, prevlayout;
+	if (!PyArg_ParseTuple(args, "Ok:SetLayout",
+		&obdc,			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		&newlayout))	// @pyparm int|Layout||One of win32con.LAYOUT_* constants
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	prevlayout=(*pfnSetLayout)(hdc, newlayout);
+	if (prevlayout==GDI_ERROR)
+		return PyWin_SetAPIError("SetLayout");
+	return PyLong_FromUnsignedLong(prevlayout);
+}
 %}
 
 %native (GetTextExtentPoint32) PyGetTextExtentPoint32;
@@ -3625,6 +3808,8 @@ static PyObject *PySetGraphicsMode(PyObject *self, PyObject *args)
 %native (SetMapMode) PySetMapMode;
 %native (GetGraphicsMode) PyGetGraphicsMode;
 %native (SetGraphicsMode) PySetGraphicsMode;
+%native (GetLayout) PyGetLayout;
+%native (SetLayout) PySetLayout;
 
 %{
 // @object PyXFORM|Dict representing an XFORM struct used as a world transformation matrix
@@ -3865,6 +4050,172 @@ static PyObject *PySetViewportExtEx(PyObject *self, PyObject *args)
 %native (SetWindowExtEx) PySetWindowExtEx;
 %native (GetViewportExtEx) PyGetViewportExtEx;
 %native (SetViewportExtEx) PySetViewportExtEx;
+
+%{
+// @object PyTRIVERTEX|Dict representing a TRIVERTEX struct containing color information at a point
+// @pyseeapi TRIVERTEX
+BOOL PyWinObject_AsTRIVERTEX(PyObject *obtv, TRIVERTEX *ptv)
+{
+	static char *keywords[]={"x","y","Red","Green","Blue","Alpha", NULL};
+	if (!PyDict_Check(obtv)){
+		PyErr_SetString(PyExc_TypeError,"TRIVERTEX must be a dict");
+		return FALSE;
+		}
+	PyObject *dummy_tuple=PyTuple_New(0);
+	if (dummy_tuple==NULL)
+		return FALSE;
+	BOOL ret=PyArg_ParseTupleAndKeywords(dummy_tuple, obtv, "llHHHH", keywords,
+		&ptv->x,		// @prop int|x|X coord in logical units
+		&ptv->y,		// @prop int|y|Y coord in logical units
+		&ptv->Red,		// @prop int|Red|Red component
+		&ptv->Green,	// @prop int|Green|Green component
+		&ptv->Blue,		// @prop int|Blue|Blue component
+		&ptv->Alpha);	// @prop int|Alpha|Transparency value
+	Py_DECREF(dummy_tuple);
+	return ret;
+}
+
+BOOL PyWinObject_AsTRIVERTEXArray(PyObject *obtvs, TRIVERTEX **ptvs, DWORD *item_cnt)
+{
+	BOOL ret=TRUE;
+	DWORD bufsize, tuple_index;
+	PyObject *trivertex_tuple=NULL, *tuple_item;
+	*ptvs=NULL;
+	*item_cnt=0;
+
+	if ((trivertex_tuple=PySequence_Tuple(obtvs))==NULL)
+		return FALSE;
+	*item_cnt=PyTuple_GET_SIZE(trivertex_tuple);
+	bufsize=*item_cnt * sizeof(TRIVERTEX);
+	*ptvs=(TRIVERTEX *)malloc(bufsize);
+	if (*ptvs==NULL){
+		PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
+		ret=FALSE;
+		}
+	else
+		for (tuple_index=0; tuple_index<*item_cnt; tuple_index++){
+			tuple_item=PyTuple_GET_ITEM(trivertex_tuple,tuple_index);
+			if (!PyWinObject_AsTRIVERTEX(tuple_item, &(*ptvs)[tuple_index])){
+				ret=FALSE;
+				break;
+				}
+			}
+	if (!ret)
+		if (*ptvs!=NULL){
+			free(*ptvs);
+			*ptvs=NULL;
+			*item_cnt=0;
+			}
+	Py_XDECREF(trivertex_tuple);
+	return ret;
+}
+
+BOOL PyWinObject_AsMeshArray(PyObject *obmesh, ULONG mode, void **pmesh, DWORD *item_cnt)
+{
+	BOOL ret=TRUE, triangle;
+	DWORD bufsize, tuple_index;
+	PyObject *mesh_tuple=NULL, *tuple_item;
+	*pmesh=NULL;
+	*item_cnt=0;
+
+	if ((mesh_tuple=PySequence_Tuple(obmesh))==NULL)
+		return FALSE;
+	*item_cnt=PyTuple_GET_SIZE(mesh_tuple);
+	switch (mode){
+		case GRADIENT_FILL_TRIANGLE:
+			bufsize=*item_cnt * sizeof(GRADIENT_TRIANGLE);
+			triangle=TRUE;
+			break;
+		case GRADIENT_FILL_RECT_H:
+		case GRADIENT_FILL_RECT_V:
+			bufsize=*item_cnt * sizeof(GRADIENT_RECT);
+			triangle=FALSE;
+			break;
+		default:
+			PyErr_Format(PyExc_ValueError,"Unrecognized value for gradient fill mode: %d", mode);
+			return FALSE;
+		}
+
+	*pmesh=malloc(bufsize);
+	if (*pmesh==NULL){
+		PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
+		ret=FALSE;
+		}
+	else
+		for (tuple_index=0; tuple_index<*item_cnt; tuple_index++){
+			tuple_item=PyTuple_GET_ITEM(mesh_tuple,tuple_index);
+			if (!PyTuple_Check(tuple_item)){
+				PyErr_SetString(PyExc_TypeError,"Mesh elements must be tuples of 2 or 3 ints");
+				ret=FALSE;
+				break;
+				}
+			if (triangle){
+				if (!PyArg_ParseTuple(tuple_item, "kkk:GRADIENT_TRIANGLE",
+					&((GRADIENT_TRIANGLE *)(*pmesh))[tuple_index].Vertex1,
+					&((GRADIENT_TRIANGLE *)(*pmesh))[tuple_index].Vertex2,
+					&((GRADIENT_TRIANGLE *)(*pmesh))[tuple_index].Vertex3)){
+					ret=FALSE;
+					break;
+					}
+				}
+			else
+				if (!PyArg_ParseTuple(tuple_item, "kk:GRADIENT_RECT", 
+					&((GRADIENT_RECT *)(*pmesh))[tuple_index].UpperLeft,
+					&((GRADIENT_RECT *)(*pmesh))[tuple_index].LowerRight)){
+					ret=FALSE;
+					break;
+					}
+			}
+	if (!ret)
+		if (*pmesh!=NULL){
+			free(*pmesh);
+			*pmesh=NULL;
+			*item_cnt=0;
+			}
+	Py_XDECREF(mesh_tuple);
+	return ret;
+}
+
+// @pyswig |GradientFill|Shades triangles or rectangles by interpolating between vertex colors
+static PyObject *PyGradientFill(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(GradientFill);
+	HDC hdc;
+	PTRIVERTEX ptv=NULL;
+	ULONG tv_cnt, mesh_cnt, mode;
+	PVOID pmesh=NULL;
+	BOOL bres;
+	PyObject *obdc, *obtvs, *obmesh, *ret=NULL;
+	if (!PyArg_ParseTuple(args, "OOOk:GradientFill",
+		&obdc,		// @pyparm int|hdc||Handle to device context
+		&obtvs,		// @pyparm (<o PyTRIVERTEX>,...)|Vertex||Sequence of TRIVERTEX dicts defining color info
+		&obmesh,	// @pyparm tuple|Mesh||Sequence of tuples containing either 2 or 3 ints that index into the trivertex array to define either triangles or rectangles
+		&mode))		// @pyparm int|Mode||win32con.GRADIENT_FILL_* value defining whether to fill by triangle or by rectangle
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	if (!PyWinObject_AsTRIVERTEXArray(obtvs, &ptv, &tv_cnt))
+		goto cleanup;
+	if (!PyWinObject_AsMeshArray(obmesh, mode, &pmesh, &mesh_cnt))
+		goto cleanup;
+	Py_BEGIN_ALLOW_THREADS
+	bres=(*pfnGradientFill)(hdc, ptv, tv_cnt, pmesh, mesh_cnt, mode);
+	Py_END_ALLOW_THREADS
+	if (!bres)
+		PyWin_SetAPIError("GradientFill");
+	else{
+		Py_INCREF(Py_None);
+		ret=Py_None;
+		}
+	cleanup:
+	if (ptv)
+		free(ptv);
+	if (pmesh)
+		free(pmesh);
+	return ret;
+}
+%}
+%native (GradientFill) PyGradientFill;
 
 
 // @pyswig int|GetOpenFileName|Creates an Open dialog box that lets the user specify the drive, directory, and the name of a file or set of files to open.
@@ -6247,3 +6598,103 @@ PyObject *PyGetLayeredWindowAttributes(PyObject *self, PyObject *args, PyObject 
 }
 PyCFunction pfnPyGetLayeredWindowAttributes=(PyCFunction)PyGetLayeredWindowAttributes;
 %}
+
+// @pyswig |UpdateLayeredWindow|Updates the position, size, shape, content, and translucency of a layered window. 
+// @comm This function is only available on Windows 2000 and later
+// @comm Accepts keyword arguments.
+%{
+PyObject *PyUpdateLayeredWindow(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(UpdateLayeredWindow);
+	static char *keywords[]={"hwnd","hdcDst","ptDst","size","hdcSrc",
+		"ptSrc","Key","blend","Flags", NULL};
+	HWND hwnd;
+	HDC hdcDst, hdcSrc;
+	PyObject *obhwnd, *obsrc=Py_None, *obdst=Py_None;
+	PyObject *obptSrc=Py_None, *obptDst=Py_None, *obsize=Py_None, *obblend=Py_None;
+	COLORREF crKey=0;
+	POINT ptSrc, ptDst;
+	POINT *pptSrc=NULL, *pptDst=NULL;
+	SIZE size;
+	SIZE *psize=NULL;
+	BLENDFUNCTION blend={0,0,255,0};
+	DWORD Flags=0;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|OOOOOkOk:UpdateLayeredWindow", keywords,
+		&obhwnd,	// @pyparm <o PyHANDLE>|hwnd||handle to layered window
+		&obdst,		// @pyparm <o PyHANDLE>|hdcDst|None|handle to screen DC, can be None.  *Must* be None if hdcSrc is None
+		&obptDst,	// @pyparm (x,y)|ptDst|None|New screen position, can be None.
+		&obsize,	// @pyparm (cx, cy)|size|None|New size of the layered window, can be None.  *Must* be None if hdcSrc is None.
+		&obsrc,		// @pyparm int|hdcSrc|None|handle to surface DC for the window, can be None
+		&obptSrc,	// @pyparm (x,y)|ptSrc|None|layer position, can be None.  *Must* be None if hdcSrc is None.
+		&crKey,		// @pyparm int|Key|0|Color key, generate using <om win32api.RGB>
+		&obblend,	// @pyparm (int, int, int, int)|blend|(0,0,255,0)|<o PyBLENDFUNCTION> specifying alpha blending parameters
+		&Flags))	// @pyparm int|Flags|0|One of the win32con.ULW_* values.  Use 0 if hdcSrc is None.
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdst, (HANDLE *)&hdcDst, TRUE))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obsrc, (HANDLE *)&hdcSrc, TRUE))
+		return NULL;
+	if (obblend!=Py_None)
+		if (!PyWinObject_AsBLENDFUNCTION(obblend, &blend))
+			return NULL;
+	if (obptDst!=Py_None){
+		if (!PyWinObject_AsPOINT(obptDst, &ptDst))
+			return NULL;
+		pptDst=&ptDst;
+		}
+	if (obsize!=Py_None){
+		if (!PyWinObject_AsSIZE(obsize, &size))
+			return NULL;
+		psize=&size;
+		}
+	if (obptSrc!=Py_None){
+		if (!PyWinObject_AsPOINT(obptSrc, &ptSrc))
+			return NULL;
+		pptSrc=&ptSrc;
+		}
+
+	BOOL ret;
+	Py_BEGIN_ALLOW_THREADS
+	ret=(*pfnUpdateLayeredWindow)(hwnd, hdcDst, pptDst, psize, hdcSrc, pptSrc, crKey, &blend, Flags);
+	Py_END_ALLOW_THREADS
+	if (!ret)
+		return PyWin_SetAPIError("UpdateLayeredWindow");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+PyCFunction pfnPyUpdateLayeredWindow=(PyCFunction)PyUpdateLayeredWindow;
+%}
+%native (UpdateLayeredWindow) pfnPyUpdateLayeredWindow;
+
+%{
+// @pyswig |AnimateWindow|Enables you to produce special effects when showing or hiding windows. There are three types of animation: roll, slide, and alpha-blended fade.
+// @comm This function is available on Win2k and later
+// @comm Accepts keyword args
+PyObject *PyAnimateWindow(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(AnimateWindow);
+	static char *keywords[]={"hwnd","Time","Flags", NULL};
+	PyObject *obhwnd;
+	HWND hwnd;
+	DWORD duration, flags;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Okk", keywords,
+		&obhwnd,	// @pyparm <o PyHANDLE>|hwnd||handle to window
+		&duration,	// @pyparm int|Time||Duration of animation in ms
+		&flags))	// @pyparm int|Flags||Animation type, combination of win32con.AW_* flags
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+		return NULL;
+	BOOL ret;
+	Py_BEGIN_ALLOW_THREADS
+	ret=(*pfnAnimateWindow)(hwnd, duration, flags);
+	Py_END_ALLOW_THREADS
+	if (!ret)
+		return PyWin_SetAPIError("AnimateWindow");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+PyCFunction pfnPyAnimateWindow=(PyCFunction)PyAnimateWindow;
+%}
+%native (AnimateWindow) pfnPyAnimateWindow;
