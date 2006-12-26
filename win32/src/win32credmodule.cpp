@@ -270,8 +270,8 @@ BOOL PyWinObject_AsDWORDArray(PyObject *obdwords, DWORD **pdwords, DWORD *item_c
 	else
 		for (tuple_index=0; tuple_index<*item_cnt; tuple_index++){
 			tuple_item=PyTuple_GET_ITEM(dwords_tuple,tuple_index);
-			*pdwords[tuple_index]=PyInt_AsLong(tuple_item);
-			if (*pdwords[tuple_index]==-1 && PyErr_Occurred()){
+			(*pdwords)[tuple_index]=PyInt_AsLong(tuple_item);
+			if (((*pdwords)[tuple_index]==-1) && PyErr_Occurred()){
 				ret=FALSE;
 				break;
 				}
