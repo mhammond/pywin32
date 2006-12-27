@@ -473,6 +473,48 @@ PyObject *PyWinObject_FromIO_COUNTERS(PIO_COUNTERS pioc)
 		"OtherTransferCount",  PyLong_FromUnsignedLongLong(pioc->OtherTransferCount));
 }
 
+// Alocates and populates an array of DWORDS from a sequence of Python ints
+BOOL PyWinObject_AsDWORDArray(PyObject *obdwords, DWORD **pdwords, DWORD *item_cnt, BOOL bNoneOk)
+{
+	BOOL ret=TRUE;
+	DWORD bufsize, tuple_index;
+	PyObject *dwords_tuple=NULL, *tuple_item;
+	*pdwords=NULL;
+	*item_cnt=0;
+	if (obdwords==Py_None){
+		if (bNoneOk)
+			return TRUE;
+		PyErr_SetString(PyExc_ValueError,"Sequence of dwords cannot be None");
+		return FALSE;
+		}
+	if ((dwords_tuple=PySequence_Tuple(obdwords))==NULL)
+		return FALSE;	// last exit without cleaning up
+	*item_cnt=PyTuple_Size(dwords_tuple);
+	bufsize=*item_cnt * sizeof(DWORD);
+	*pdwords=(DWORD *)malloc(bufsize);
+	if (*pdwords==NULL){
+		PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
+		ret=FALSE;
+		}
+	else
+		for (tuple_index=0; tuple_index<*item_cnt; tuple_index++){
+			tuple_item=PyTuple_GET_ITEM(dwords_tuple,tuple_index);
+			(*pdwords)[tuple_index]=PyInt_AsLong(tuple_item);
+			if (((*pdwords)[tuple_index]==-1) && PyErr_Occurred()){
+				ret=FALSE;
+				break;
+				}
+			}
+	if (!ret)
+		if (*pdwords!=NULL){
+			free(*pdwords);
+			*pdwords=NULL;
+			*item_cnt=0;
+			}
+	Py_XDECREF(dwords_tuple);
+	return ret;
+}
+
 /* List of functions exported by this module */
 // @module pywintypes|A module which supports common Windows types.
 static struct PyMethodDef pywintypes_functions[] = {

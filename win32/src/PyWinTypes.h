@@ -322,6 +322,9 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsPOINT(PyObject *obpoint, LPPOINT ppoint);
 // IO_COUNTERS dict, used in win32process and win32job
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromIO_COUNTERS(PIO_COUNTERS pioc);
 
+// Make an array of DWORD's from a sequence of Python ints
+PYWINTYPES_EXPORT BOOL PyWinObject_AsDWORDArray(PyObject *obdwords, DWORD **pdwords, DWORD *item_cnt, BOOL bNoneOk=TRUE);
+
 /*
 ** SECURITY_ATTRIBUTES support
 */
@@ -357,6 +360,9 @@ extern PYWINTYPES_EXPORT PyTypeObject PySECURITY_DESCRIPTORType;
 PYWINTYPES_EXPORT PyObject *PyWinMethod_NewSECURITY_DESCRIPTOR(PyObject *self, PyObject *args);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsSECURITY_DESCRIPTOR(PyObject *ob, PSECURITY_DESCRIPTOR *ppSECURITY_DESCRIPTOR, BOOL bNoneOK = TRUE);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromSECURITY_DESCRIPTOR(PSECURITY_DESCRIPTOR psd);
+
+PYWINTYPES_EXPORT BOOL _MakeAbsoluteSD(PSECURITY_DESCRIPTOR psd_relative, PSECURITY_DESCRIPTOR *ppsd_absolute);
+PYWINTYPES_EXPORT void FreeAbsoluteSD(PSECURITY_DESCRIPTOR psd);
 
 /*
 ** SID support

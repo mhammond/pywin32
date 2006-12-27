@@ -245,47 +245,6 @@ PyObject *PyWinObject_FromCREDENTIAL_TARGET_INFORMATION(PCREDENTIAL_TARGET_INFOR
 		"CredTypes",			cred_types);
 }
 
-BOOL PyWinObject_AsDWORDArray(PyObject *obdwords, DWORD **pdwords, DWORD *item_cnt, BOOL bNoneOk=TRUE)
-{
-	BOOL ret=TRUE;
-	DWORD bufsize, tuple_index;
-	PyObject *dwords_tuple=NULL, *tuple_item;
-	*pdwords=NULL;
-	*item_cnt=0;
-	if (obdwords==Py_None){
-		if (bNoneOk)
-			return TRUE;
-		PyErr_SetString(PyExc_ValueError,"Sequence of dwords cannot be None");
-		return FALSE;
-		}
-	if ((dwords_tuple=PySequence_Tuple(obdwords))==NULL)
-		return FALSE;	// last exit without cleaning up
-	*item_cnt=PyTuple_Size(dwords_tuple);
-	bufsize=*item_cnt * sizeof(DWORD);
-	*pdwords=(DWORD *)malloc(bufsize);
-	if (*pdwords==NULL){
-		PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
-		ret=FALSE;
-		}
-	else
-		for (tuple_index=0; tuple_index<*item_cnt; tuple_index++){
-			tuple_item=PyTuple_GET_ITEM(dwords_tuple,tuple_index);
-			(*pdwords)[tuple_index]=PyInt_AsLong(tuple_item);
-			if (((*pdwords)[tuple_index]==-1) && PyErr_Occurred()){
-				ret=FALSE;
-				break;
-				}
-			}
-	if (!ret)
-		if (*pdwords!=NULL){
-			free(*pdwords);
-			*pdwords=NULL;
-			*item_cnt=0;
-			}
-	Py_XDECREF(dwords_tuple);
-	return ret;
-}
-
 void PyWinObject_FreeCREDENTIAL_TARGET_INFORMATION(PCREDENTIAL_TARGET_INFORMATION targetinfo)
 {
 	PyWinObject_FreeWCHAR(targetinfo->TargetName);
