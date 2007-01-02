@@ -337,24 +337,24 @@ typedef int UINT;
 }
 
 %typemap(python,in) RECT *INPUT {
-    RECT r;
+	RECT *r = (RECT *)_alloca(sizeof(RECT));
 	if (PyTuple_Check($source)) {
-		if (PyArg_ParseTuple($source, "llll", &r.left, &r.top, &r.right, &r.bottom) == 0) {
+		if (PyArg_ParseTuple($source, "llll", &r->left, &r->top, &r->right, &r->bottom) == 0) {
 			return PyErr_Format(PyExc_TypeError, "%s: This param must be a tuple of four integers", "$name");
 		}
-		$target = &r;
+		$target = r;
 	} else {
 		return PyErr_Format(PyExc_TypeError, "%s: This param must be a tuple of four integers", "$name");
 	}
 }
 
 %typemap(python,in) RECT *INPUT_NULLOK {
-    RECT r;
+	RECT *r = (RECT *)_alloca(sizeof(RECT));
 	if (PyTuple_Check($source)) {
-		if (PyArg_ParseTuple($source, "llll", &r.left, &r.top, &r.right, &r.bottom) == 0) {
+		if (PyArg_ParseTuple($source, "llll", &r->left, &r->top, &r->right, &r->bottom) == 0) {
 			return PyErr_Format(PyExc_TypeError, "%s: This param must be a tuple of four integers or None", "$name");
 		}
-		$target = &r;
+		$target = r;
 	} else {
 		if ($source == Py_None) {
             $target = NULL;
@@ -424,10 +424,10 @@ typedef int UINT;
 }
 
 %typemap(python,in) POINT *INPUT {
-	POINT pt;
-	if (!PyWinObject_AsPOINT($source, &pt))
+	POINT *pt = (POINT *)_alloca(sizeof(POINT));
+	if (!PyWinObject_AsPOINT($source, pt))
 		return NULL;
-	$target = &pt;
+	$target = pt;
 }
 
 
@@ -435,20 +435,20 @@ typedef int UINT;
 %typemap(python,argout) POINT *BOTH = POINT *OUTPUT;
 
 %typemap(python,in) SIZE *INPUT{
-    SIZE s;
-	if (!PyWinObject_AsSIZE($source, &s))
+	SIZE *s = (SIZE *)_alloca(sizeof(SIZE));
+	if (!PyWinObject_AsSIZE($source, s))
 		return NULL;
-	$target = &s;
+	$target = s;
 }
 
 %typemap(python,in) ICONINFO *INPUT {
-    ICONINFO s;
+	ICONINFO *s = (ICONINFO *)_alloca(sizeof(ICONINFO));
 	if (PyTuple_Check($source)) {
-		if (PyArg_ParseTuple($source, "lllll", &s.fIcon, &s.xHotspot, &s.yHotspot,
-                                               &s.hbmMask, &s.hbmColor) == 0) {
+		if (PyArg_ParseTuple($source, "lllll", &s->fIcon, &s->xHotspot, &s->yHotspot,
+                                               &s->hbmMask, &s->hbmColor) == 0) {
 			return PyErr_Format(PyExc_TypeError, "%s: a ICONINFO must be a tuple of integers", "$name");
 		}
-		$target = &s;
+		$target = s;
     } else {
 		return PyErr_Format(PyExc_TypeError, "%s: a ICONINFO must be a tuple of integers", "$name");
 	}
@@ -481,10 +481,10 @@ typedef int UINT;
 }
 
 %typemap(python,in) BLENDFUNCTION *INPUT {
-    BLENDFUNCTION bf;
-	if (!PyWinObject_AsBLENDFUNCTION($source, &bf))
+	BLENDFUNCTION *bf = (BLENDFUNCTION *)_alloca(sizeof(BLENDFUNCTION));
+	if (!PyWinObject_AsBLENDFUNCTION($source, bf))
 		return NULL;
-	$target = &bf;
+	$target = bf;
 }
 
 %typemap(python,argout) PAINTSTRUCT *OUTPUT {
@@ -520,26 +520,26 @@ typedef int UINT;
 }
 
 %typemap(python,in) PAINTSTRUCT *INPUT {
-    PAINTSTRUCT r;
+    PAINTSTRUCT *r = (PAINTSTRUCT *)_alloca(sizeof(PAINTSTRUCT));
     char *szReserved;
     int lenReserved;
 	if (PyTuple_Check($source)) {
 		if (!PyArg_ParseTuple($source,
                              "ll(iiii)lls#",
-                            &r.hdc,
-                            &r.fErase,
-                            &r.rcPaint.left, &r.rcPaint.top, &r.rcPaint.right, &r.rcPaint.bottom,
-                            &r.fRestore,
-                            &r.fIncUpdate,
+                            &r->hdc,
+                            &r->fErase,
+                            &r->rcPaint.left, &r->rcPaint.top, &r->rcPaint.right, &r->rcPaint.bottom,
+                            &r->fRestore,
+                            &r->fIncUpdate,
                             &szReserved,
                             &lenReserved)) {
 			return NULL;
 		}
-        if (lenReserved != sizeof(r.rgbReserved))
+        if (lenReserved != sizeof(r->rgbReserved))
             return PyErr_Format(PyExc_ValueError, "%s: last element must be string of %d bytes",
-                                "$name", sizeof(r.rgbReserved));
-        memcpy(&r.rgbReserved, szReserved, sizeof(r.rgbReserved));
-		$target = &r;
+                                "$name", sizeof(r->rgbReserved));
+        memcpy(&r->rgbReserved, szReserved, sizeof(r->rgbReserved));
+		$target = r;
     } else {
 		return PyErr_Format(PyExc_TypeError, "%s: a PAINTSTRUCT must be a tuple", "$name");
 	}
@@ -547,13 +547,13 @@ typedef int UINT;
 
 // @object TRACKMOUSEEVENT|A tuple of (dwFlags, hwndTrack, dwHoverTime)
 %typemap(python,in) TRACKMOUSEEVENT *INPUT {
-    TRACKMOUSEEVENT e;
-	e.cbSize = sizeof e;
+	TRACKMOUSEEVENT *e = (TRACKMOUSEEVENT*)_alloca(sizeof(TRACKMOUSEEVENT));
+	e->cbSize = sizeof e;
 	if (PyTuple_Check($source)) {
-		if (PyArg_ParseTuple($source, "lll", &e.dwFlags, &e.hwndTrack, &e.dwHoverTime) == 0) {
+		if (PyArg_ParseTuple($source, "lll", &e->dwFlags, &e->hwndTrack, &e->dwHoverTime) == 0) {
 			return PyErr_Format(PyExc_TypeError, "%s: a TRACKMOUSEEVENT must be a tuple of 3 integers", "$name");
 		}
-		$target = &e;
+		$target = e;
     } else {
 		return PyErr_Format(PyExc_TypeError, "%s: a TRACKMOUSEEVENT must be a tuple of 3 integers", "$name");
 	}
