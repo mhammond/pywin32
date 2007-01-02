@@ -115,7 +115,7 @@ void HandleError(char *prefix)
 }
 
 // @object PyBLENDFUNCTION|Tuple of four small ints used to fill a BLENDFUNCTION struct
-// All 4 ints must fit in a byte (0-255).
+// Each int must fit in a byte (0-255).
 // @pyseeapi BLENDFUNCTION
 BOOL PyWinObject_AsBLENDFUNCTION(PyObject *obbl, BLENDFUNCTION *pbl)
 {
@@ -140,7 +140,72 @@ BOOL PyWinObject_AsSIZE(PyObject *obsize, SIZE *psize)
 	return PyArg_ParseTuple(obsize, "ll;SIZE must be a tuple of 2 ints (x,y)", 
 		&psize->cx, &psize->cy);
 }
+
+// @object PyGdiHANDLE|Gdi objects such as brush (HBRUSH), pen (HPEN), font (HFONT), region (HRGN)
+//	On destruction, the handle is closed using DeleteObject.  The object's Close() method also calls DeleteObject.
+//	The gdi object should be deselected from any DC that it is selected into before it's closed.
+//	Inherits the methods and properties of <o PyHANDLE>.
+class PyGdiHANDLE: public PyHANDLE
+{
+public:
+	PyGdiHANDLE(HANDLE hInit) : PyHANDLE(hInit) {}
+	virtual BOOL Close(void){
+		BOOL ret=DeleteObject(m_handle);
+		if (!ret)
+			PyWin_SetAPIError("DeleteObject");
+		m_handle = 0;
+		return ret;
+		}
+	virtual const char *GetTypeName(){
+		return "PyGdiHANDLE";
+		}
+};
+
+PyObject *PyWinObject_FromGdiHANDLE(HGDIOBJ h)
+{
+	PyObject *ret=new PyGdiHANDLE(h);
+	if (ret==NULL)
+		PyErr_NoMemory();
+	return ret;
+}
 %}
+
+// SWIG support for GDI handles.
+%typemap(python,except) HPEN, HBRUSH, HFONT, HRGN {
+	Py_BEGIN_ALLOW_THREADS
+	$function
+	Py_END_ALLOW_THREADS
+	if ($source==NULL){
+		$cleanup
+		return PyWin_SetAPIError("$name");
+		}
+}
+/* ??? If you don't map these to a known type, swig obstinately ignores the input and output typemaps and tries to treat them as pointers.
+		However, it doesn't seem to matter what you typedef them to as long as they have in and out typemaps. ??? */
+typedef float HPEN, HBRUSH, HFONT, HRGN;
+%typemap(python,out) HPEN, HBRUSH, HFONT, HRGN{
+	$target = PyWinObject_FromGdiHANDLE($source);
+}
+%typemap(python,in) HPEN, HBRUSH, HFONT, HRGN{
+	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target, FALSE))
+		return NULL;
+}
+%typemap(python,in) HRGN INPUT_NULLOK, HBRUSH INPUT_NULLOK{
+	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target, TRUE))
+		return NULL;
+}
+
+%typedef int int_regiontype;
+// Several functions return an int containg a region type (NULLREGION,SIMPLEREGION,COMPLEXREGION) or ERROR on failure
+%typemap(python,except) int_regiontype{
+	Py_BEGIN_ALLOW_THREADS
+	$function
+	Py_END_ALLOW_THREADS
+	if ($source==ERROR){
+		$cleanup
+		return PyWin_SetAPIError("$name");
+		}
+}
 
 // Written to the module init function.
 %init %{
@@ -217,6 +282,7 @@ extern "C" DECLSPEC_DLLMAIN BOOL WINAPI DllMain(HINST_ARG hInstance, DWORD dwRea
 }
 %}
 
+
 // Custom 'exception handlers' for simple types that exist only to
 // manage the thread-lock.
 %typemap(python,except) int {
@@ -246,20 +312,8 @@ typedef long HGDIOBJ
 %apply HWND {long};
 typedef long HWND
 
-%apply HFONT {long};
-typedef long HFONT
-
 %apply HDC {long};
 typedef long HDC
-
-%apply HBRUSH {long};
-typedef long HBRUSH
-
-%apply HPEN {long};
-typedef long HPEN
-
-%apply HRGN {long};
-typedef long HRGN
 
 %apply HIMAGELIST {long};
 typedef long HIMAGELIST
@@ -331,30 +385,31 @@ typedef int UINT;
         return NULL;
     }
 }
-%typemap(python,ignore) RECT *OUTPUT(RECT temp)
+%typemap(python,ignore) RECT *OUTPUT(RECT rect_output)
 {
-  $target = &temp;
+  $target = &rect_output;
 }
 
-%typemap(python,in) RECT *INPUT {
-	RECT *r = (RECT *)_alloca(sizeof(RECT));
+// @object PyRECT|Tuple of 4 ints defining a rectangle: (left, top, right, bottom)
+%typemap(python,in) RECT *INPUT(RECT rect_input)
+{
 	if (PyTuple_Check($source)) {
-		if (PyArg_ParseTuple($source, "llll", &r->left, &r->top, &r->right, &r->bottom) == 0) {
+		if (PyArg_ParseTuple($source, "llll", &rect_input.left, &rect_input.top, &rect_input.right, &rect_input.bottom) == 0) {
 			return PyErr_Format(PyExc_TypeError, "%s: This param must be a tuple of four integers", "$name");
 		}
-		$target = r;
+		$target = &rect_input;
 	} else {
 		return PyErr_Format(PyExc_TypeError, "%s: This param must be a tuple of four integers", "$name");
 	}
 }
 
-%typemap(python,in) RECT *INPUT_NULLOK {
-	RECT *r = (RECT *)_alloca(sizeof(RECT));
+%typemap(python,in) RECT *INPUT_NULLOK(RECT rect_input_nullok)
+{
 	if (PyTuple_Check($source)) {
-		if (PyArg_ParseTuple($source, "llll", &r->left, &r->top, &r->right, &r->bottom) == 0) {
+		if (PyArg_ParseTuple($source, "llll", &rect_input_nullok.left, &rect_input_nullok.top, &rect_input_nullok.right, &rect_input_nullok.bottom) == 0) {
 			return PyErr_Format(PyExc_TypeError, "%s: This param must be a tuple of four integers or None", "$name");
 		}
-		$target = r;
+		$target = &rect_input_nullok;
 	} else {
 		if ($source == Py_None) {
             $target = NULL;
@@ -362,16 +417,6 @@ typedef int UINT;
             PyErr_SetString(PyExc_TypeError, "This param must be a tuple of four integers or None");
             return NULL;
 		}
-	}
-}
-
-%typemap(python,in) struct HRGN__ *NONE_ONLY {
- /* Currently only allow NULL as a value -- I don't know of the
-    'right' way to do this.   DAA 1/9/2000 */
-	if ($source == Py_None) {
-        $target = NULL;
-    } else {
-		return PyErr_Format(PyExc_TypeError, "%s: This HRGN must currently be None", "$name");
 	}
 }
 
@@ -418,37 +463,34 @@ typedef int UINT;
     }
 }
 
-%typemap(python,ignore) POINT *OUTPUT(POINT temp)
+%typemap(python,ignore) POINT *OUTPUT(POINT point_output)
 {
-  $target = &temp;
+  $target = &point_output;
 }
 
-%typemap(python,in) POINT *INPUT {
-	POINT *pt = (POINT *)_alloca(sizeof(POINT));
-	if (!PyWinObject_AsPOINT($source, pt))
+%typemap(python,in) POINT *INPUT(POINT point_input) {
+	if (!PyWinObject_AsPOINT($source, &point_input))
 		return NULL;
-	$target = pt;
+	$target = &point_input;
 }
 
 
 %typemap(python,in) POINT *BOTH = POINT *INPUT;
 %typemap(python,argout) POINT *BOTH = POINT *OUTPUT;
 
-%typemap(python,in) SIZE *INPUT{
-	SIZE *s = (SIZE *)_alloca(sizeof(SIZE));
-	if (!PyWinObject_AsSIZE($source, s))
+%typemap(python,in) SIZE *INPUT(SIZE size_input){
+	if (!PyWinObject_AsSIZE($source, &size_input))
 		return NULL;
-	$target = s;
+	$target = &size_input;
 }
 
-%typemap(python,in) ICONINFO *INPUT {
-	ICONINFO *s = (ICONINFO *)_alloca(sizeof(ICONINFO));
+%typemap(python,in) ICONINFO *INPUT(ICONINFO iconinfo_input) {
 	if (PyTuple_Check($source)) {
-		if (PyArg_ParseTuple($source, "lllll", &s->fIcon, &s->xHotspot, &s->yHotspot,
-                                               &s->hbmMask, &s->hbmColor) == 0) {
+		if (PyArg_ParseTuple($source, "lllll", &iconinfo_input.fIcon, &iconinfo_input.xHotspot, &iconinfo_input.yHotspot,
+            &iconinfo_input.hbmMask, &iconinfo_input.hbmColor) == 0) {
 			return PyErr_Format(PyExc_TypeError, "%s: a ICONINFO must be a tuple of integers", "$name");
 		}
-		$target = s;
+		$target = &iconinfo_input;
     } else {
 		return PyErr_Format(PyExc_TypeError, "%s: a ICONINFO must be a tuple of integers", "$name");
 	}
@@ -480,11 +522,10 @@ typedef int UINT;
   $target = &temp;
 }
 
-%typemap(python,in) BLENDFUNCTION *INPUT {
-	BLENDFUNCTION *bf = (BLENDFUNCTION *)_alloca(sizeof(BLENDFUNCTION));
-	if (!PyWinObject_AsBLENDFUNCTION($source, bf))
+%typemap(python,in) BLENDFUNCTION *INPUT(BLENDFUNCTION bf_input) {
+	if (!PyWinObject_AsBLENDFUNCTION($source, &bf_input))
 		return NULL;
-	$target = bf;
+	$target = &bf_input;
 }
 
 %typemap(python,argout) PAINTSTRUCT *OUTPUT {
@@ -514,46 +555,44 @@ typedef int UINT;
     }
 }
 
-%typemap(python,ignore) PAINTSTRUCT *OUTPUT(PAINTSTRUCT temp)
+%typemap(python,ignore) PAINTSTRUCT *OUTPUT(PAINTSTRUCT ps_output)
 {
-  $target = &temp;
+  $target = &ps_output;
 }
 
-%typemap(python,in) PAINTSTRUCT *INPUT {
-    PAINTSTRUCT *r = (PAINTSTRUCT *)_alloca(sizeof(PAINTSTRUCT));
+%typemap(python,in) PAINTSTRUCT *INPUT(PAINTSTRUCT ps_input) {
     char *szReserved;
     int lenReserved;
 	if (PyTuple_Check($source)) {
 		if (!PyArg_ParseTuple($source,
                              "ll(iiii)lls#",
-                            &r->hdc,
-                            &r->fErase,
-                            &r->rcPaint.left, &r->rcPaint.top, &r->rcPaint.right, &r->rcPaint.bottom,
-                            &r->fRestore,
-                            &r->fIncUpdate,
+                            &ps_input.hdc,
+                            &ps_input.fErase,
+                            &ps_input.rcPaint.left, &ps_input.rcPaint.top, &ps_input.rcPaint.right, &ps_input.rcPaint.bottom,
+                            &ps_input.fRestore,
+                            &ps_input.fIncUpdate,
                             &szReserved,
                             &lenReserved)) {
 			return NULL;
 		}
-        if (lenReserved != sizeof(r->rgbReserved))
+        if (lenReserved != sizeof(ps_input.rgbReserved))
             return PyErr_Format(PyExc_ValueError, "%s: last element must be string of %d bytes",
-                                "$name", sizeof(r->rgbReserved));
-        memcpy(&r->rgbReserved, szReserved, sizeof(r->rgbReserved));
-		$target = r;
+                                "$name", sizeof(ps_input.rgbReserved));
+        memcpy(&ps_input.rgbReserved, szReserved, sizeof(ps_input.rgbReserved));
+		$target = &ps_input;
     } else {
 		return PyErr_Format(PyExc_TypeError, "%s: a PAINTSTRUCT must be a tuple", "$name");
 	}
 }
 
 // @object TRACKMOUSEEVENT|A tuple of (dwFlags, hwndTrack, dwHoverTime)
-%typemap(python,in) TRACKMOUSEEVENT *INPUT {
-	TRACKMOUSEEVENT *e = (TRACKMOUSEEVENT*)_alloca(sizeof(TRACKMOUSEEVENT));
-	e->cbSize = sizeof e;
+%typemap(python,in) TRACKMOUSEEVENT *INPUT(TRACKMOUSEEVENT e){
+	e.cbSize = sizeof e;
 	if (PyTuple_Check($source)) {
-		if (PyArg_ParseTuple($source, "lll", &e->dwFlags, &e->hwndTrack, &e->dwHoverTime) == 0) {
+		if (PyArg_ParseTuple($source, "lll", &e.dwFlags, &e.hwndTrack, &e.dwHoverTime) == 0) {
 			return PyErr_Format(PyExc_TypeError, "%s: a TRACKMOUSEEVENT must be a tuple of 3 integers", "$name");
 		}
-		$target = e;
+		$target = &e;
     } else {
 		return PyErr_Format(PyExc_TypeError, "%s: a TRACKMOUSEEVENT must be a tuple of 3 integers", "$name");
 	}
@@ -1281,7 +1320,7 @@ PyObject *set_logger(PyObject *self, PyObject *args)
 %native (LOGFONT) MakeLOGFONT;
 %native (EnumFontFamilies) PyEnumFontFamilies;
 
-// @pyswig int|CreateFontIndirect|function creates a logical font that has the specified characteristics.
+// @pyswig <o PyGdiHandle>|CreateFontIndirect|function creates a logical font that has the specified characteristics.
 // The font can subsequently be selected as the current font for any device context.
 HFONT CreateFontIndirect(LOGFONT *lf);	// @pyparm <o PyLOGFONT>|lplf||A LOGFONT object as returned by <om win32gui.LOGFONT> 
 
@@ -1297,24 +1336,37 @@ static PyObject *PyGetObject(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(ob, &hob, FALSE))
 		return NULL;
 	DWORD typ = GetObjectType(hob);
+	if (typ==0)
+		return PyWin_SetAPIError("GetObjectType");
 	// @comm The result depends on the type of the handle.
-	// For example, if the handle identifies a Font, a <o LOGFONT> object
-	// is returned.
 	switch (typ) {
+		// @flagh Object type as determined by <om win32gui.GetObjectType>|Returned object
+		// @flag OBJ_FONT|<o PyLOGFONT>
 		case OBJ_FONT: {
 			LOGFONT lf;
 			if (GetObject(hob, sizeof(LOGFONT), &lf)==0)
 				return PyWin_SetAPIError("GetObject");
 			return new PyLOGFONT(&lf);
 		}
+		// @flag OBJ_BITMAP|<o PyBITMAP>
 		case OBJ_BITMAP: {
 			BITMAP bm;
 			if (GetObject(hob, sizeof(BITMAP), &bm)==0)
 				return PyWin_SetAPIError("GetObject");
 			return new PyBITMAP(&bm);
 		}
+		// @flag OBJ_PEN|Dict representing a LOGPEN struct
+		case OBJ_PEN:{
+			LOGPEN lp;
+			if (GetObject(hob, sizeof(LOGPEN), &lp)==0)
+				return PyWin_SetAPIError("GetObject");
+			return Py_BuildValue("{s:I, s:l, s:k}",
+				"Style", lp.lopnStyle,
+				"Width", lp.lopnWidth.x,	// Docs say y member is not used, so ignore it
+				"Color", lp.lopnColor);
+		}
 		default:
-			PyErr_SetString(PyExc_ValueError, "This GDI object type is not supported");
+			PyErr_Format(PyExc_ValueError, "This GDI object type is not supported: %d", typ);
 			return NULL;
 	}
 }
@@ -1751,10 +1803,12 @@ static BOOL make_param(PyObject *ob, long *pl)
 // @pyparm int|lparam|0|An integer whose value depends on the message
 static PyObject *PySendMessage(PyObject *self, PyObject *args)
 {
-	long hwnd;
-	PyObject *obwparam=NULL, *oblparam=NULL;
+	HWND hwnd;
+	PyObject *obhwnd, *obwparam=NULL, *oblparam=NULL;
 	UINT msg;
-	if (!PyArg_ParseTuple(args, "li|OO", &hwnd, &msg, &obwparam, &oblparam))
+	if (!PyArg_ParseTuple(args, "Oi|OO", &obhwnd, &msg, &obwparam, &oblparam))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
 	long wparam, lparam;
 	if (!make_param(obwparam, &wparam))
@@ -1764,7 +1818,7 @@ static PyObject *PySendMessage(PyObject *self, PyObject *args)
 
 	LRESULT rc;
     Py_BEGIN_ALLOW_THREADS
-	rc = SendMessage((HWND)hwnd, msg, wparam, lparam);
+	rc = SendMessage(hwnd, msg, wparam, lparam);
     Py_END_ALLOW_THREADS
 
 	return PyInt_FromLong(rc);
@@ -1782,11 +1836,13 @@ static PyObject *PySendMessage(PyObject *self, PyObject *args)
 // @pyparm int|timeout||Timeout duration in milliseconds.
 static PyObject *PySendMessageTimeout(PyObject *self, PyObject *args)
 {
-	long hwnd;
-	PyObject *obwparam, *oblparam;
+	HWND hwnd;
+	PyObject *obhwnd, *obwparam, *oblparam;
 	UINT msg;
 	UINT flags, timeout;
-	if (!PyArg_ParseTuple(args, "liOOii", &hwnd, &msg, &obwparam, &oblparam, &flags, &timeout))
+	if (!PyArg_ParseTuple(args, "OiOOii", &obhwnd, &msg, &obwparam, &oblparam, &flags, &timeout))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
 	long wparam, lparam;
 	if (!make_param(obwparam, &wparam))
@@ -1797,7 +1853,7 @@ static PyObject *PySendMessageTimeout(PyObject *self, PyObject *args)
 	LRESULT rc;
 	DWORD dwresult;
 	Py_BEGIN_ALLOW_THREADS
-	rc = SendMessageTimeout((HWND)hwnd, msg, wparam, lparam, flags, timeout, &dwresult);
+	rc = SendMessageTimeout(hwnd, msg, wparam, lparam, flags, timeout, &dwresult);
 	Py_END_ALLOW_THREADS
 	if (rc==0)
 		return PyWin_SetAPIError("SendMessageTimeout");
@@ -1918,12 +1974,14 @@ static PyObject *PyEnumThreadWindows(PyObject *self, PyObject *args)
 static PyObject *PyEnumChildWindows(PyObject *self, PyObject *args)
 {
 	BOOL rc;
-	PyObject *obFunc, *obOther;
-	long hwnd;
-	// @pyparm int|hwnd||The handle to the window to enumerate.
+	PyObject *obhwnd, *obFunc, *obOther;
+	HWND hwnd;
+	// @pyparm <o PyHANDLE>|hwnd||The handle to the window to enumerate.
 	// @pyparm object|callback||A Python function to be used as the callback.
 	// @pyparm object|extra||Any python object - this is passed to the callback function as the second param (first is the hwnd).
-	if (!PyArg_ParseTuple(args, "lOO", &hwnd, &obFunc, &obOther))
+	if (!PyArg_ParseTuple(args, "OOO", &obhwnd, &obFunc, &obOther))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
 	if (!PyCallable_Check(obFunc)) {
 		PyErr_SetString(PyExc_TypeError, "First param must be a callable object");
@@ -1933,7 +1991,7 @@ static PyObject *PyEnumChildWindows(PyObject *self, PyObject *args)
 	cb.func = obFunc;
 	cb.extra = obOther;
     Py_BEGIN_ALLOW_THREADS
-	rc = EnumChildWindows((HWND)hwnd, PyEnumWindowsProc, (LPARAM)&cb);
+	rc = EnumChildWindows(hwnd, PyEnumWindowsProc, (LPARAM)&cb);
     Py_END_ALLOW_THREADS
 	if (!rc)
 		return PyWin_SetAPIError("EnumChildWindows");
@@ -2201,10 +2259,12 @@ static PyObject *PyGetWindowText(PyObject *self, PyObject *args)
 {
     HWND hwnd;
     int len;
-   
+	PyObject *obhwnd;
 	TCHAR buffer[512];
-	// @pyparm int|hwnd||The handle to the window
-	if (!PyArg_ParseTuple(args, "l", &hwnd))
+	// @pyparm <o PyHANDLE>|hwnd||The handle to the window
+	if (!PyArg_ParseTuple(args, "O", &obhwnd))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
     Py_BEGIN_ALLOW_THREADS
     len = GetWindowText(hwnd, buffer, sizeof(buffer)/sizeof(TCHAR));
@@ -2374,8 +2434,8 @@ BOOLAPI DrawIconEx(
   int cxWidth,               // @pyparm int|cxWidth||icon width
   int cyWidth,               // @pyparm int|cyWidth||icon height
   int istepIfAniCur,        // @pyparm int|istepIfAniCur||frame index, animated cursor
-  HBRUSH hbrFlickerFreeDraw, // @pyparm int|hbrFlickerFreeDraw||handle to background brush
-  int diFlags               // @pyparm int|diFlags||icon-drawing flags
+  HBRUSH INPUT_NULLOK,		// @pyparm <o PyGdiHANDLE>|hbrFlickerFreeDraw||handle to background brush, can be None
+  int diFlags				// @pyparm int|diFlags||icon-drawing flags (win32con.DI_*)
 );
 
 // @pyswig int|CreateIconIndirect|Creates an icon or cursor from an ICONINFO structure. 
@@ -2755,26 +2815,25 @@ BOOLAPI SetDoubleClickTime(UINT val);
 // @pyswig int|GetDoubleClickTime|
 UINT GetDoubleClickTime();
 
-// @pyswig |HideCaret|
-BOOLAPI HideCaret(HWND hWnd);
+// @pyswig |HideCaret|Hides the caret
+BOOLAPI HideCaret(HWND hWnd);	// @pyparm <o PyHANDLE>|hWnd||Window that owns the caret, can be 0.
 
-// @pyswig |SetCaretPos|
+// @pyswig |SetCaretPos|Changes the position of the caret
 BOOLAPI SetCaretPos(
 	int X,  // @pyparm int|x||horizontal position  
 	int Y   // @pyparm int|y||vertical position
 );
 
-/*BOOLAPI GetCaretPos(
-  POINT *lpPoint   // address of structure to receive coordinates
-);*/
+// @pyswig int,int|GetCaretPos|Returns the current caret position
+BOOLAPI GetCaretPos(POINT *OUTPUT);
 
-// @pyswig |ShowCaret|
-BOOLAPI ShowCaret(HWND hWnd);
+// @pyswig |ShowCaret|Shows the caret at its current position
+BOOLAPI ShowCaret(HWND hWnd);	// @pyparm <o PyHANDLE>|hWnd||Window that owns the caret, can be 0.
 
-// @pyswig int|ShowWindow|
-// @pyparm int|hwnd||The handle to the window
-// @pyparm int|cmdShow||
-BOOL ShowWindow(HWND hWndMain, int nCmdShow);
+// @pyswig boolean|ShowWindow|Shows or hides a window and changes its state
+BOOL ShowWindow(
+	HWND hWnd,		// @pyparm int|hWnd||The handle to the window
+	int nCmdShow);	// @pyparm int|cmdShow||Combination of win32con.SW_* flags
 
 // @pyswig int|IsWindowVisible|Indicates if the window has the WS_VISIBLE style.
 // @pyparm int|hwnd||The handle to the window
@@ -2813,7 +2872,7 @@ BOOLAPI SetForegroundWindow(HWND hWnd);
 // @pyswig HWND|GetForegroundWindow|
 HWND GetForegroundWindow();
 
-// @pyswig (left, top, right, bottom)|GetClientRect|
+// @pyswig (left, top, right, bottom)|GetClientRect|Returns the rectangle of the client area of a window, in client coordinates
 // @pyparm int|hwnd||The handle to the window
 BOOLAPI GetClientRect(HWND hWnd, RECT *OUTPUT);
 
@@ -2869,12 +2928,12 @@ HGDIOBJ GetCurrentObject(
 
 HINSTANCE GetModuleHandle(TCHAR *INPUT_NULLOK);
 
-// @pyswig (left, top, right, bottom)|GetWindowRect|
+// @pyswig (left, top, right, bottom)|GetWindowRect|Returns the rectangle for a window in screen coordinates
 // @pyparm int|hwnd||The handle to the window
 BOOLAPI GetWindowRect(HWND hWnd, RECT *OUTPUT);
 
-// @pyswig int|GetStockObject|
-HANDLE GetStockObject(int object);
+// @pyswig <o PyHANDLE>|GetStockObject|Creates a handle to one of the standard system Gdi objects
+HGDIOBJ GetStockObject(int object);	// @pyparm int|Object||One of *_BRUSH, *_PEN, *_FONT, or *_PALLETTE constants
 
 // @pyswig |PostQuitMessage|
 // @pyparm int|rc||
@@ -2885,15 +2944,15 @@ void PostQuitMessage(int rc);
 BOOLAPI WaitMessage();
 #endif	/* MS_WINCE */
 
-// @pyswig int|SetWindowPos|
-BOOL SetWindowPos(  HWND hWnd,             // handle to window
-  HWND hWndInsertAfter,  // placement-order handle
-  int X,                 // horizontal position
-  int Y,                 // vertical position  
-  int cx,                // width
-  int cy,                // height
-  UINT uFlags            // window-positioning flags
-);
+// @pyswig |SetWindowPos|Sets the position and size of a window
+BOOLAPI SetWindowPos(
+	HWND hWnd,			// @pyparm <o PyHANDLE>|hWnd||Handle to the window
+	HWND InsertAfter,	// @pyparm <o PyHANDLE>|InsertAfter||Window that hWnd will be placed below.  Can be a window handle or one of HWND_BOTTOM,HWND_NOTOPMOST,HWND_TOP, or HWND_TOPMOST
+	int X,				// @pyparm int|X||New X coord
+	int Y,				// @pyparm int|Y||New Y coord
+	int cx,				// @pyparm int|cx||New width of window
+	int cy,				// @pyparm int|cy||New height of window
+	UINT Flags);		// @pyparm int|Flags||Combination of win32con.SWP_* flags
 
 %{
 // @pyswig tuple|GetWindowPlacement|Returns placement information about the current window.
@@ -2933,17 +2992,21 @@ PyGetWindowPlacement(PyObject *self, PyObject *args)
 static PyObject *
 PySetWindowPlacement(PyObject *self, PyObject *args)
 {
-	int hwnd;
+	PyObject *obhwnd;
+	HWND hwnd;
 	WINDOWPLACEMENT pment;
 	pment.length=sizeof(pment);
+	// @pyparm <o PyHANDLE>|hWnd||Handle to a window
 	// @pyparm (tuple)|placement||A tuple representing the WINDOWPLACEMENT structure.
-	if (!PyArg_ParseTuple(args,"i(ii(ii)(ii)(iiii)):SetWindowPlacement",
-	                      &hwnd,
+	if (!PyArg_ParseTuple(args,"O(ii(ii)(ii)(iiii)):SetWindowPlacement",
+	                      &obhwnd,
 	                      &pment.flags, &pment.showCmd,
 	                      &pment.ptMinPosition.x,&pment.ptMinPosition.y,
 	                      &pment.ptMaxPosition.x,&pment.ptMaxPosition.y,
 	                      &pment.rcNormalPosition.left, &pment.rcNormalPosition.top,
 	                      &pment.rcNormalPosition.right, &pment.rcNormalPosition.bottom))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
 	BOOL rc;
 	Py_BEGIN_ALLOW_THREADS
@@ -2975,33 +3038,56 @@ static PyObject *PyRegisterClass(PyObject *self, PyObject *args)
 	if (at==0)
 		return PyWin_SetAPIError("RegisterClass");
 	// Save the atom in a global dictionary.
-	if (g_AtomMap==NULL)
+	if (g_AtomMap==NULL){
 		g_AtomMap = PyDict_New();
+		if (g_AtomMap==NULL)
+			return NULL;
+		}
 
 	PyObject *key = PyInt_FromLong(at);
-	PyDict_SetItem(g_AtomMap, key, obwc);
+	if (key==NULL)
+		return NULL;
+	if (PyDict_SetItem(g_AtomMap, key, obwc)==-1){
+		Py_DECREF(key);
+		return NULL;
+		}
 	return key;
 }
 %}
 %native (RegisterClass) PyRegisterClass;
 
 %{
-// @pyswig |UnregisterClass|
+// @pyswig |UnregisterClass|Unregisters a window class created by <om win32gui.RegisterClass>
+// @comm Only accepts a class atom, not the class name
 static PyObject *PyUnregisterClass(PyObject *self, PyObject *args)
 {
-	long atom, hinst;
-	// @pyparm int|atom||The atom identifying the class previously registered.
-	// @pyparm int|hinst||The handle to the instance unregistering the class.
-	if (!PyArg_ParseTuple(args, "ll", &atom, &hinst))
+	LPTSTR atom;
+	HINSTANCE hinst;
+	PyObject *obhinst, *obatom;	
+	if (!PyArg_ParseTuple(args, "OO", 
+		&obatom,		// @pyparm int|atom||The atom identifying the class previously registered.
+		&obhinst))		// @pyparm <o PyHANDLE>|hinst||The handle to the instance unregistering the class, can be None
 		return NULL;
-
-	if (!UnregisterClass((LPCTSTR)atom, (HINSTANCE)hinst))
+	if (!PyWinObject_AsHANDLE(obhinst, (HANDLE *)&hinst, TRUE))
+		return NULL;
+	atom=(LPTSTR)PyLong_AsVoidPtr(obatom);
+	if (atom==NULL)
+		return NULL;
+	// Only low word can be set when using an atom
+	if ((DWORD_PTR)atom >> 16)
+		return PyErr_Format(PyExc_ValueError,"Invalid value for ATOM: %d", atom);
+	if (!UnregisterClass(atom, hinst))
 		return PyWin_SetAPIError("UnregisterClass");
 
 	// Delete the atom from the global dictionary.
 	if (g_AtomMap) {
-		PyObject *key = PyInt_FromLong(atom);
-		PyDict_DelItem(g_AtomMap, key);
+		PyObject *key = PyLong_FromVoidPtr(atom);
+		if (key==NULL)
+			return NULL;
+		if (PyDict_DelItem(g_AtomMap, key)==-1){
+			Py_DECREF(key);
+			return NULL;
+			}
 		Py_DECREF(key);
 	}
 	Py_INCREF(Py_None);
@@ -3367,7 +3453,7 @@ HMENU CreatePopupMenu();
 // @pyparm int|y||y pos
 // @pyparm int|reserved||reserved
 // @pyparm hwnd|hwnd||owner window
-// @pyparm REC|prcRect||Pointer to rec (can be None)
+// @pyparm <o PyRECT>|prcRect||Pointer to rec (can be None)
 
 LRESULT TrackPopupMenu(HMENU hmenu, UINT flags, int x, int y, int reserved, HWND hwnd, const RECT *INPUT_NULLOK);
 
@@ -3520,11 +3606,11 @@ BOOLAPI ClientToScreen(
 BOOLAPI PaintDesktop(
 	HDC hdc);		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 
-// @pyswig RedrawWindow|Causes a portion of a window to be redrawn
+// @pyswig |RedrawWindow|Causes a portion of a window to be redrawn
 BOOLAPI RedrawWindow(
 	HWND hWnd,			// @pyparm <o PyHANDLE>|hWnd||Handle to window to be redrawn
 	RECT *INPUT_NULLOK,	// @pyparm (int,int,int,int)|rcUpdate||Rectangle (left, top, right, bottom) identifying part of window to be redrawn, can be None
-	HRGN hrgnUpdate,	// @pyparm <o PyHANDLE>|hrgnUpdate||Handle to region to be updated
+	HRGN INPUT_NULLOK,	// @pyparm <o PyGdiHANDLE>|hrgnUpdate||Handle to region to be redrawn, can be None to indicate entire client area
 	UINT flags);		// @pyparm int|flags||Combination of win32con.RDW_* flags
 
 %{
@@ -3795,8 +3881,44 @@ static PyObject *PySetLayout(PyObject *self, PyObject *args)
 		return PyWin_SetAPIError("SetLayout");
 	return PyLong_FromUnsignedLong(prevlayout);
 }
-%}
 
+// @pyswig int|GetPolyFillMode|Returns the polygon filling mode for a device context
+// @rdesc Returns win32con.ALTERNATE or win32con.WINDING 
+static PyObject *PyGetPolyFillMode(PyObject *self, PyObject *args)
+{
+	HDC hdc;
+	PyObject *obdc;
+	int ret;
+	if (!PyArg_ParseTuple(args, "O:GetPolyFillMode",
+		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	ret=GetPolyFillMode(hdc);
+	if (ret==0)
+		return PyWin_SetAPIError("GetPolyFillMode");
+	return PyInt_FromLong(ret);
+}
+
+// @pyswig int|SetPolyFillMode|Sets the polygon filling mode for a device context
+// @rdesc Returns the previous mode, one of win32con.ALTERNATE or win32con.WINDING 
+static PyObject *PySetPolyFillMode(PyObject *self, PyObject *args)
+{
+	HDC hdc;
+	PyObject *obdc;
+	int newmode, prevmode;
+	if (!PyArg_ParseTuple(args, "Oi:SetPolyFillMode",
+		&obdc,			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
+		&newmode))		// @pyparm int|PolyFillMode||One of ALTERNATE or WINDING 
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	prevmode=SetPolyFillMode(hdc, newmode);
+	if (prevmode==0)
+		return PyWin_SetAPIError("SetPolyFillMode");
+	return PyInt_FromLong(prevmode);
+}
+%}
 %native (GetTextExtentPoint32) PyGetTextExtentPoint32;
 %native (GetTextMetrics) PyGetTextMetrics;
 %native (GetTextCharacterExtra) PyGetTextCharacterExtra;
@@ -3810,6 +3932,8 @@ static PyObject *PySetLayout(PyObject *self, PyObject *args)
 %native (SetGraphicsMode) PySetGraphicsMode;
 %native (GetLayout) PyGetLayout;
 %native (SetLayout) PySetLayout;
+%native (GetPolyFillMode) PyGetPolyFillMode;
+%native (SetPolyFillMode) PySetPolyFillMode;
 
 %{
 // @object PyXFORM|Dict representing an XFORM struct used as a world transformation matrix
@@ -4360,16 +4484,18 @@ BOOLAPI GetMenuInfo(
 %endif
 
 
-// @pyswig |DrawFocusRect|
-BOOLAPI DrawFocusRect(HDC hDC,  RECT *INPUT);
+// @pyswig |DrawFocusRect|Draws a standard focus outline around a rectangle
+BOOLAPI DrawFocusRect(
+	HDC hDC,		// @pyparm <o PyHANDLE>|hDC||Handle to a device context
+	RECT *INPUT);	// @pyparm (int, int, int,int)|rc||Tuple of (left,top,right,bottom) defining the rectangle
 
-// @pyswig (int, RECT)|DrawText|Draws formatted text on a device context
+// @pyswig (int, <o PyRECT>)|DrawText|Draws formatted text on a device context
 // @rdesc Returns the height of the drawn text, and the rectangle coordinates
 int DrawText(
 	HDC hDC,			// @pyparm int/<o PyHANDLE>|hDC||The device context on which to draw
 	TCHAR *INPUT,		// @pyparm str|String||The text to be drawn
 	int nCount,			// @pyparm int|nCount||The number of characters, use -1 for simple null-terminated string
-	RECT *BOTH,			// @pyparm tuple|Rect||Tuple of 4 ints specifying the position (left, top, right, bottom)
+	RECT *BOTH,			// @pyparm <o PyRECT>|Rect||Tuple of 4 ints specifying the position (left, top, right, bottom)
 	UINT uFormat);		// @pyparm int|Format||Formatting flags, combination of win32con.DT_* values
 
 // @pyswig |LineTo|Draw a line from current position to specified point
@@ -4798,6 +4924,30 @@ static PyObject *PyPlgBlt(PyObject *self, PyObject *args)
 	free(points);
 	return ret;
 }
+
+// @pyswig <o PyGdiHANDLE>|CreatePolygonRgn|Creates a region from a sequence of vertices
+static PyObject *PyCreatePolygonRgn(PyObject *self, PyObject *args)
+{
+	POINT *points=NULL;
+	DWORD point_cnt;
+	int fillmode;
+	PyObject *obpoints, *ret=NULL;
+	HRGN hrgn;
+	if (!PyArg_ParseTuple(args, "Oi:CreatePolygonRgn",
+		&obpoints,	// @pyparm [(int,int),...]|Points||Sequence of POINT tuples: ((x,y),...).
+		&fillmode))	// @pyparm int|PolyFillMode||Filling mode, one of ALTERNATE, WINDING 
+		return NULL;
+	if (!PyWinObject_AsPOINTArray(obpoints, &points, &point_cnt))
+		return NULL;
+	hrgn=CreatePolygonRgn(points, point_cnt, fillmode);
+	if (hrgn==NULL)
+		PyWin_SetAPIError("CreatePolygonRgn");
+	else
+		ret=PyWinObject_FromGdiHANDLE(hrgn);
+	if (points)
+		free(points);
+	return ret;
+}
 %}
 %native (Polygon) PyPolygon;
 %native (Polyline) PyPolyline;
@@ -4805,6 +4955,7 @@ static PyObject *PyPlgBlt(PyObject *self, PyObject *args)
 %native (PolyBezier) PyPolyBezier;
 %native (PolyBezierTo) PyPolyBezierTo;
 %native (PlgBlt) PyPlgBlt;
+%native (CreatePolygonRgn) PyCreatePolygonRgn;
 
 %{
 //@pyswig int|ExtTextOut|Writes text to a DC.
@@ -4813,21 +4964,22 @@ static PyObject *PyExtTextOut(PyObject *self, PyObject *args)
 	char *text;
 	int strLen, x, y;
 	UINT options;
-	PyObject *rectObject, *widthObject = NULL;
+	PyObject *obdc, *rectObject, *widthObject = NULL;
 	RECT rect, *rectPtr;
 	int *widths = NULL;
-	int hdc;
-	if (!PyArg_ParseTuple (args, "iiiiOs#|O",
-		&hdc,
+	HDC hdc;
+	if (!PyArg_ParseTuple (args, "OiiiOs#|O",
+		&obdc,
 		&x,		// @pyparm x|int||The x coordinate to write the text to.
 		&y,		// @pyparm y|int||The y coordinate to write the text to.
 		&options,	// @pyparm nOptions|int||Specifies the rectangle type. This parameter can be one, both, or neither of ETO_CLIPPED and ETO_OPAQUE
-		&rectObject,// @pyparm (left, top, right, bottom)|rect||Specifies the text's bounding rectangle.  (Can be None.)
+		&rectObject,	// @pyparm <o PyRECT>|rect||Specifies the text's bounding rectangle.  (Can be None.)
 		&text,	// @pyparm text|string||The text to write.
 		&strLen,
 		&widthObject))	// @pyparm (width1, width2, ...)|tuple||Optional array of values that indicate distance between origins of character cells.
 		return NULL;
-
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
 	// Parse out rectangle object
 	if (rectObject != Py_None) {
 		if (!PyArg_ParseTuple(rectObject, "iiii", &rect.left,
@@ -4864,7 +5016,7 @@ static PyObject *PyExtTextOut(PyObject *self, PyObject *args)
 	BOOL ok;
 	Py_BEGIN_ALLOW_THREADS;
 	// @pyseeapi ExtTextOut
-	ok = ExtTextOut((HDC)hdc, x, y, options, rectPtr, text, strLen, widths);
+	ok = ExtTextOut(hdc, x, y, options, rectPtr, text, strLen, widths);
 	Py_END_ALLOW_THREADS;
 	delete [] widths;
 	if (!ok)
@@ -4911,73 +5063,187 @@ int SetBkColor(
 	HDC hdc,			// @pyparm int/<o PyHANDLE>|hdc||Handle to a device context
 	COLORREF col);			// @pyparm int|color||
 
-// @pyswig <o RECT>|DrawEdge|Draws edge(s) of a rectangle
+// @pyswig <o PyRECT>|DrawEdge|Draws edge(s) of a rectangle
 // @rdesc BF_ADJUST flag causes input rectange to be shrunk by size of border.. Rectangle is always returned.
 BOOLAPI DrawEdge(
 	/* ??? This function can change the input rectange if BF_ADJUST is in Flags.
 		Need to send it back as output also. ??? */
 	HDC hdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
-	RECT *BOTH,		// @pyparm <o RECT>|rc||Rectangle whose edge(s) will be drawn
+	RECT *BOTH,		// @pyparm <o PyRECT>|rc||Rectangle whose edge(s) will be drawn
 	UINT edge,		// @pyparm int|edge||Combination of win32con.BDR_* flags, or one of win32con.EDGE_* flags
 	UINT Flags);	// @pyparm int|Flags||Combination of win32con.BF_* flags
 
 // @pyswig |FillRect|Fills a rectangular area with specified brush
 int FillRect(
 	HDC hDC,		// @pyparm <o PyHANDLE>|hDC||Handle to a device context
-	RECT *INPUT,	// @pyparm <o RECT>|rc||Rectangle to be filled
-	HBRUSH hbr);	// @pyparm <o PyHANDLE>|hbr||Handle to brush to be used to fill area
+	RECT *INPUT,	// @pyparm <o PyRECT>|rc||Rectangle to be filled
+	HBRUSH hbr);	// @pyparm <o PyGdiHANDLE>|hbr||Handle to brush to be used to fill area
 
-// @pyswig |DrawAnimatedRects|
+// @pyswig |FillRgn|Fills a region with specified brush
+BOOLAPI FillRgn(
+	HDC hdc,		// @pyparm <o PyHANDLE>|hdc||Handle to the device context
+	HRGN hrgn,		// @pyparm <o PyGdiHANDLE>|hrgn||Handle to the region
+	HBRUSH hbr);	// @pyparm <o PyGdiHANDLE>|hbr||Brush to be used
+
+// @pyswig |PaintRgn|Paints a region with current brush
+BOOLAPI PaintRgn(
+	HDC hdc,		// @pyparm <o PyHANDLE>|hdc||Handle to the device context
+	HRGN hrgn);		// @pyparm <o PyGdiHANDLE>|hrgn||Handle to the region
+
+// @pyswig |FrameRgn|Draws a frame around a region
+BOOLAPI FrameRgn(
+	HDC hdc,		// @pyparm <o PyHANDLE>|hdc||Handle to the device context
+	HRGN hrgn,		// @pyparm <o PyGdiHandle>|hrgn||Handle to the region
+	HBRUSH hbr,		// @pyparm <o PyGdiHandle>|hbr||Handle to brush to be used
+	int Width,		// @pyparm int|Width||Frame width
+	int Height);	// @pyparm int|Height||Frame height
+
+// @pyswig |InvertRgn|Inverts the colors in a region
+BOOLAPI InvertRgn(
+	HDC hdc,		// @pyparm <o PyHANDLE>|hdc||Handle to the device context
+	HRGN hrgn);		// @pyparm <o PyGdiHandle>|hrgn||Handle to the region
+
+// @pyswig boolean|EqualRgn|Determines if 2 regions are equal
+BOOL EqualRgn(
+	HRGN SrcRgn1,	// @pyparm <o PyGdiHandle>|SrcRgn1||Handle to a region
+	HRGN SrcRgn2);	// @pyparm <o PyGdiHandle>|SrcRgn2||Handle to a region
+
+// @pyswig boolean|PtInRegion|Determines if a region contains a point
+BOOL PtInRegion(
+	HRGN hrgn,	// @pyparm <o PyGdiHandle>|hrgn||Handle to a region
+	int X,		// @pyparm int|X||X coord
+	int Y);		// @pyparm int|Y||Y coord
+
+// @pyswig boolean|RectInRegion|Determines if a region and rectangle overlap at any point
+BOOL RectInRegion(
+	HRGN hrgn,		// @pyparm <o PyGdiHandle>|hrgn||Handle to a region
+	RECT *INPUT);	// @pyparm <o PyRECT>|rc||Rectangle coordinates in logical units
+
+// @pyswig |SetRectRgn|Makes an existing region rectangular
+BOOLAPI SetRectRgn(
+	HRGN hrgn,			// @pyparm <o PyGdiHandle>|hrgn||Handle to a region
+	int LeftRect,		// @pyparm int|LeftRect||Left edge in logical units
+	int TopRect,		// @pyparm int|TopRect||Top edge in logical units
+	int RightRect,		// @pyparm int|RightRect||Right edge in logical units
+	int BottomRect);	// @pyparm int|BottomRect||Bottom edge in logical units
+
+// @pyswig int|CombineRgn|Combines two regions
+// @rdesc Returns the type of region created, one of NULLREGION, SIMPLEREGION, COMPLEXREGION
+int_regiontype CombineRgn(
+	HRGN Dest,			// @pyparm <o PyGdiHandle>|Dest||Handle to existing region that will receive combined region
+	HRGN Src1,			// @pyparm <o PyGdiHandle>|Src1||Handle to first region
+	HRGN Src2,			// @pyparm <o PyGdiHandle>|Src2||Handle to second region
+	int CombineMode);	// @pyparm int|CombineMode||One of RGN_AND,RGN_COPY,RGN_DIFF,RGN_OR,RGN_XOR 
+
+// @pyswig |DrawAnimatedRects|Animates a rectangle in the manner of minimizing, mazimizing, or opening
 BOOLAPI DrawAnimatedRects(
-  HWND hwnd,            // @pyparm int|hwnd||handle to clipping window
-  int idAni,            // @pyparm int|idAni||type of animation
-  RECT *INPUT, // @pyparm RECT|minCoords||rectangle coordinates (minimized)
-  RECT *INPUT // // @pyparm RECT|restCoords||rectangle coordinates (restored)
+  HWND hwnd,	// @pyparm int|hwnd||handle to clipping window
+  int idAni,	// @pyparm int|idAni||type of animation, win32con.IDANI_*
+  RECT *INPUT,	// @pyparm <o PyRECT>|minCoords||rectangle coordinates (minimized)
+  RECT *INPUT	// @pyparm <o PyRECT>|restCoords||rectangle coordinates (restored)
 );
 
-// @pyswig <o PyHANDLE>|CreateSolidBrush|Creates a solid brush of specified color
+// @pyswig <o PyGdiHANDLE>|CreateSolidBrush|Creates a solid brush of specified color
 HBRUSH CreateSolidBrush(
 	COLORREF Color);	// @pyparm int|Color||RGB color value.  See <om win32api.RGB>.
 
-// @pyswig <o PyHANDLE>|CreatePatternBrush|Creates a brush using a bitmap as a pattern
+// @pyswig <o PyGdiHANDLE>|CreatePatternBrush|Creates a brush using a bitmap as a pattern
 HBRUSH CreatePatternBrush(
 	HBITMAP hbmp);	// @pyparm <o PyHANDLE>|hbmp||Handle to a bitmap
 
-// @pyswig <o PyHANDLE>|CreateHatchBrush|Creates a hatch brush with specified style and color
+// @pyswig <o PyGdiHANDLE>|CreateHatchBrush|Creates a hatch brush with specified style and color
 HBRUSH CreateHatchBrush(
   int Style,		// @pyparm int|Style||Hatch style, one of win32con.HS_* constants
   COLORREF clrref);	// @pyparm int|clrref||Rgb color value.  See <om win32api.RGB>.
 
-// @pyswig <o PyHANDLE>|CreatePen|Create a GDI pen
+// @pyswig <o PyGdiHANDLE>|CreatePen|Create a GDI pen
 HPEN CreatePen(
 	int PenStyle,		// @pyparm int|PenStyle||One of win32con.PS_* pen styles
-	int Width,			// @pyparm int|Width||Drawing width in pixels
+	int Width,			// @pyparm int|Width||Drawing width in logical units.  Use zero for single pixel.
 	COLORREF Color);	// @pyparm int|Color||RGB color value.  See <om win32api.RGB>.
 
 // @pyswig int|GetSysColor|Returns the color of a window element
 DWORD GetSysColor(int Index);	// @pyparm int|Index||One of win32con.COLOR_* values
 
-// @pyswig <o PyHANDLE>|GetSysColorBrush|Creates a handle to a system color brush
+// @pyswig <o PyGdiHANDLE>|GetSysColorBrush|Creates a handle to a system color brush
 HBRUSH GetSysColorBrush(int nIndex);	// @pyparm int|Index||Index of a window element color (win32con.COLOR_*)
 
-// @pyswig |InvalidateRect|
-BOOLAPI InvalidateRect(HWND hWnd,  RECT *INPUT_NULLOK , BOOL bErase);
+// @pyswig |InvalidateRect|Invalidates a rectangular area of a window and adds it to the window's update region
+BOOLAPI InvalidateRect(
+	HWND hWnd,			// @pyparm <o PyHANDLE>|hWnd||Handle to the window
+	RECT *INPUT_NULLOK,	// @pyparm <o PyRECT>|Rect||Client coordinates defining area to be redrawn.  Use None for entire client area.
+	BOOL bErase);		// @pyparm boolean|Erase||Indicates if background should be erased
 
 #ifndef MS_WINCE
+// Function is defined as returning int, but semantics are same as a boolean
 // @pyswig |FrameRect|Draws an outline around a rectangle
-int FrameRect(
+BOOLAPI FrameRect(
 	HDC hDC,		// @pyparm <o PyHANDLE>|hDC||Handle to a device context
-	RECT *INPUT,	// @pyparm <o RECT>|rc||Rectangle around which to draw
-	HBRUSH hbr);	// @pyparm <o PyHANDLE>|hbr||Handle to brush created using CreateHatchBrush, CreatePatternBrush, CreateSolidBrush, or GetStockObject 
+	RECT *INPUT,	// @pyparm <o PyRECT>|rc||Rectangle around which to draw
+	HBRUSH hbr);	// @pyparm <o PyGdiHANDLE>|hbr||Handle to brush created using CreateHatchBrush, CreatePatternBrush, CreateSolidBrush, or GetStockObject 
 #endif	/* not MS_WINCE */
 
 // @pyswig |InvertRect|Inverts the colors in a regtangular region
 BOOLAPI InvertRect(
 	HDC hDC,		// @pyparm <o PyHANDLE>|hDC||Handle to a device context
-	RECT *INPUT);	// @pyparm <o RECT>|rc||Coordinates of rectangle to invert
+	RECT *INPUT);	// @pyparm <o PyRECT>|rc||Coordinates of rectangle to invert
 
-// @pyswig |GetUpdateRgn|
-int GetUpdateRgn(HWND hWnd, HRGN hRgn, BOOL bErase);
+// @pyswig <o PyHANDLE>|WindowFromDC|Finds the window associated with a device context
+// @rdesc Returns a handle to the window, or 0 if the DC is not associated with a window
+HWND WindowFromDC(
+	HDC hDC);	// @pyparm <o PyHANDLE>|hDC||Handle to a device context
+
+// @pyswig int|GetUpdateRgn|Copies the update region of a window into an existing region
+// @rdesc Returns type of region, one of COMPLEXREGION, NULLREGION, or SIMPLEREGION 
+int_regiontype GetUpdateRgn(
+	HWND hWnd,		// @pyparm <o PyHANDLE>|hWnd||Handle to a window
+	HRGN hRgn,		// @pyparm <o PyGdiHANDLE>|hRgn||Handle to an existing region to receive update area
+	BOOL Erase);	// @pyparm boolean|Erase||Indicates if window background is to be erased
+
+// @pyswig int|GetWindowRgn|Copies the window region of a window into an existing region
+// @rdesc Returns type of region, one of COMPLEXREGION, NULLREGION, or SIMPLEREGION 
+int_regiontype GetWindowRgn(
+	HWND hWnd,		// @pyparm <o PyHANDLE>|hWnd||Handle to a window
+	HRGN hRgn);		// @pyparm <o PyGdiHANDLE>|hRgn||Handle to an existing region that receives window region
+
+// Function is declared as returning an int, but acts same as boolean
+// @pyswig |SetWindowRgn|Sets the visible region of a window
+// @comm On success, the system assumes ownership of the region so you should call the handle's Detach()
+//	method to prevent it from being automatically closed.
+BOOLAPI SetWindowRgn(
+	HWND hWnd,			// @pyparm <o PyHANDLE>|hWnd||Handle to a window
+	HRGN INPUT_NULLOK,	// @pyparm <o PyGdiHANDLE>|hRgn||Handle to region to be set, can be None
+	BOOL Redraw);		// @pyparm boolean|Redraw||Indicates if window should be completely redrawn
+
+// @pyswig int, <o PyRECT>|GetWindowRgnBox|Returns the bounding box for a window's region
+// @rdesc Returns type of region and rectangle coordinates in device units
+int_regiontype GetWindowRgnBox(
+	HWND hWnd,		// @pyparm <o PyHANDLE>|hWnd||Handle to a window that has a window region. (see <om win32gui.SetWindowRgn>)
+	RECT *OUTPUT);
+
+// @pyswig |ValidateRgn|Removes a region from a window's update region
+BOOLAPI ValidateRgn(
+	HWND hWnd,		// @pyparm <o PyHANDLE>|hWnd||Handle to the window
+	HRGN hRgn);		// @pyparm <o PyGdiHANDLE>|hRgn||Region to be validated
+
+// @pyswig |InvalidateRgn|Adds a region to a window's update region
+BOOLAPI InvalidateRgn(
+	HWND hWnd,		// @pyparm <o PyHANDLE>|hWnd||Handle to the window
+	HRGN hRgn,		// @pyparm <o PyGdiHANDLE>|hRgn||Region to be redrawn
+	BOOL Erase);	// @pyparm boolean|Erase||Indidates if background should be erased
+
+// @pyswig int, <o PyRECT>|GetRgnBox|Calculates the bounding box of a region
+// @rdesc Returns type of region (COMPLEXREGION, NULLREGION, or SIMPLEREGION) and rectangle in logical units 
+int_regiontype GetRgnBox(
+	HRGN hrgn,   // @pyparm <o PyGdiHANDLE>|hrgn||Handle to a region 
+	RECT *OUTPUT);
+
+// @pyswig int|OffsetRgn|Relocates a region
+// @rdesc Returns type of region (COMPLEXREGION, NULLREGION, or SIMPLEREGION) 
+int_regiontype OffsetRgn(
+	HRGN hrgn,		// @pyparm <o PyGdiHANDLE>|hrgn||Handle to a region 
+	int XOffset,	// @pyparm int|XOffset||Horizontal offset
+	int YOffset);	// @pyparm int|YOffset||Vertical offset
 
 // @pyswig |Rectangle|Creates a solid rectangle using currently selected pen and brush
 BOOLAPI Rectangle(
@@ -5045,7 +5311,7 @@ BOOLAPI SetMiterLimit(
 	float NewLimit,	// @pyparm float|NewLimit||New limit to be set
 	float *OUTPUT);
 
-// @pyswig <o PyHANDLE>|PathToRegion|Converts a closed path in a DC to a region
+// @pyswig <o PyGdiHANDLE>|PathToRegion|Converts a closed path in a DC to a region
 // @comm On success, the path is deselected from the DC
 HRGN PathToRegion(HDC hdc);	// @pyparm <o PyHANDLE>|hdc||Handle to a device context that contains a closed path. See <om win32gui.EndPath>.
 
@@ -5110,6 +5376,21 @@ static PyObject *PyGetPath(PyObject *self, PyObject *args)
 }
 %}
 %native (GetPath) PyGetPath;
+
+// @pyswig <o PyGdiHandle>|CreateRoundRectRgn|Create a rectangular region with elliptically rounded corners,
+HRGN CreateRoundRectRgn(
+	int LeftRect,		// @pyparm int|LeftRect||Position of left edge of rectangle
+	int TopRect,		// @pyparm int|TopRect||Position of top edge of rectangle
+	int RightRect,		// @pyparm int|RightRect||Position of right edge of rectangle
+	int BottomRect,		// @pyparm int|BottomRect||Position of bottom edge of rectangle
+	int WidthEllipse,	// @pyparm int|WidthEllipse||Width of ellipse
+	int HeightEllipse);	// @pyparm int|HeightEllipse||Height of ellipse
+
+// @pyswig <o PyGdiHandle>|CreateRectRgnIndirect|Creates a rectangular region,
+HRGN CreateRectRgnIndirect(RECT *INPUT);	// @pyparm <o PyRECT>|rc||Coordinates of rectangle
+
+// @pyswig <o PyGdiHandle>|CreateEllipticRgnIndirect|Creates an ellipse region,
+HRGN CreateEllipticRgnIndirect(RECT *INPUT);	// @pyparm <o PyRECT>|rc||Coordinates of bounding rectangle in logical units
 
 // @pyswig int|CreateWindowEx|Creates a new window with Extended Style.
 HWND CreateWindowEx( 
@@ -5191,7 +5472,7 @@ int ReleaseDC(
 	HDC hDC     // @pyparm int|hDC||handle to device context
 ); 
 
-// @pyswig |CreateCaret|
+// @pyswig |CreateCaret|Creates a new caret for a window
 BOOLAPI CreateCaret(
 	HWND hWnd,        // @pyparm int|hWnd||handle to owner window
 	HBITMAP hBitmap,  // @pyparm int|hBitmap||handle to bitmap for caret shape
@@ -5199,22 +5480,23 @@ BOOLAPI CreateCaret(
 	int nHeight       // @pyparm int|nHeight||caret height
 ); 
 
-// @pyswig |DestroyCaret|
+// @pyswig |DestroyCaret|Destroys caret for current task
 BOOLAPI DestroyCaret();
 
-// @pyswig int|ScrollWindowEx|scrolls the content of the specified window's client area. 
-int ScrollWindowEx(
-	HWND hWnd,        // @pyparm int|hWnd||handle to window to scroll
-	int dx,           // @pyparm int|dx||amount of horizontal scrolling
-	int dy,           // @pyparm int|dy||amount of vertical scrolling
-	RECT *INPUT_NULLOK, // @pyparm int|prcScroll||address of structure with scroll rectangle
-	RECT *INPUT_NULLOK,  // @pyparm int|prcClip||address of structure with clip rectangle
-	struct HRGN__ *NONE_ONLY,  // @pyparm int|hrgnUpdate||handle to update region
-	RECT *INPUT_NULLOK, // @pyparm int|prcUpdate||address of structure for update rectangle
-	UINT flags        // @pyparm int|flags||scrolling flags
+// @pyswig int,<o PyRECT>|ScrollWindowEx|scrolls the content of the specified window's client area.
+// @rdesc Returns the type of region invalidated by scrolling, and a rectangle defining the affected area.
+int_regiontype ScrollWindowEx(
+	HWND hWnd,			// @pyparm int|hWnd||handle to window to scroll
+	int dx,				// @pyparm int|dx||Amount of horizontal scrolling, in device units
+	int dy,				// @pyparm int|dy||Amount of vertical scrolling, in device units
+	RECT *INPUT_NULLOK, // @pyparm <o PyRECT>|rcScroll||Scroll rectangle, can be None for entire client area
+	RECT *INPUT_NULLOK,	// @pyparm <o PyRECT>|rcClip||Clipping rectangle, can be None
+	HRGN INPUT_NULLOK,	// @pyparm <o PyGdiHandle>|hrgnUpdate||Handle to region which will be updated with area invalidated by scroll operation, can be None
+	RECT *OUTPUT,
+	UINT flags			// @pyparm int|flags||Scrolling flags, combination of SW_ERASE,SW_INVALIDATE,SW_SCROLLCHILDREN,SW_SMOOTHSCROLL.
+						//	If SW_SMOOTHSCROLL is specified, use upper 16 bits to specify time in milliseconds.
 ); 
 
-// Get/SetScrollInfo
 
 %{
 
@@ -5382,9 +5664,12 @@ static PyObject *
 PyGetClassName(PyObject *self, PyObject *args)
 {
 	HWND hwnd;
+	PyObject *obhwnd;
 	TCHAR buf[256];
-	// @pyparm int|hwnd||The handle to the window
-	if (!PyArg_ParseTuple(args, "i:GetClassName", &hwnd))
+	// @pyparm <o PyHANDLE>|hwnd||The handle to the window
+	if (!PyArg_ParseTuple(args, "O:GetClassName", &obhwnd))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
 	// dont bother with lock - no callback possible.
 	int nchars = GetClassName(hwnd, buf, sizeof buf/sizeof buf[0]);
@@ -6698,3 +6983,73 @@ PyObject *PyAnimateWindow(PyObject *self, PyObject *args, PyObject *kwargs)
 PyCFunction pfnPyAnimateWindow=(PyCFunction)PyAnimateWindow;
 %}
 %native (AnimateWindow) pfnPyAnimateWindow;
+
+%{
+// @object PyLOGBRUSH|Dict representing a LOGBRUSH struct as used with <om win32gui.CreateBrushIndirect> and <om win32gui.ExtCreatePen>
+// @pyseeapi LOGBRUSH
+BOOL PyWinObject_AsLOGBRUSH(PyObject *oblb, LOGBRUSH *plb)
+{
+	static char *keywords[]={"Style","Color","Hatch", NULL};
+	PyObject *obhatch;
+	if (!PyDict_Check(oblb)){
+		PyErr_SetString(PyExc_TypeError,"LOGBRUSH must be a dict");
+		return FALSE;
+		}
+	PyObject *dummy_tuple=PyTuple_New(0);
+	if (dummy_tuple==NULL)
+		return FALSE;
+	BOOL ret=PyArg_ParseTupleAndKeywords(dummy_tuple, oblb, "kkO", keywords,
+		&plb->lbStyle,	// @prop int|Style|Brush style, one of win32con.BS_* values
+		&plb->lbColor,	// @prop int|Color|RGB color value.  Can also be DIB_PAL_COLORS or DIB_RGB_COLORS if Style is BS_DIBPATTERN or BS_DIBPATTERNPT=
+		&obhatch)		// @prop int/<o PyHANDLE>|Hatch|For BS_HATCH style, one of win32con.HS_*. Not used For BS_SOLID or BS_HOLLOW.
+						// For a pattern brush, this should be a handle to a bitmap
+		&&PyWinObject_AsHANDLE(obhatch, (HANDLE *)&plb->lbHatch, TRUE);
+	Py_DECREF(dummy_tuple);
+	return ret;
+}
+
+// @pyswig <o PyGdiHANDLE>|CreateBrushIndirect|Creates a GDI brush from a LOGBRUSH struct
+static PyObject *PyCreateBrushIndirect(PyObject *self, PyObject *args)
+{
+	PyObject *oblb;
+	LOGBRUSH lb;
+	HBRUSH hbrush;
+	if (!PyArg_ParseTuple(args, "O:CreateBrushIndirect",
+		&oblb))	// @pyparm <o PyLOGBRUSH>|lb||Dict containing brush creation parameters
+	return NULL;
+	if (!PyWinObject_AsLOGBRUSH(oblb, &lb))
+		return NULL;
+	hbrush=CreateBrushIndirect(&lb);
+	if (hbrush==NULL)
+		return PyWin_SetAPIError("CreateBrushIndirect");
+	return PyWinObject_FromGdiHANDLE(hbrush);
+}
+
+// @pyswig <o PyHANDLE>|ExtCreatePen|Creates a GDI pen object
+static PyObject *PyExtCreatePen(PyObject *self, PyObject *args)
+{
+	PyObject *oblb, *obcustom_style=Py_None;
+	LOGBRUSH lb;
+	HPEN hpen;
+	DWORD style, width, custom_style_cnt;
+	DWORD *custom_style=NULL;
+	if (!PyArg_ParseTuple(args, "kkO|O:ExtCreatePen",
+		&style,		// @pyparm int|PenStyle||Combination of win32con.PS_*.  Must contain either PS_GEOMETRIC or PS_COSMETIC.
+		&width,		// @pyparm int|Width||Width of pen in logical units.  Must be 1 for PS_COSMETIC.
+		&oblb,		// @pyparm <o PyLOGBRUSH>|lb||Dict containing brush creation parameters
+		&obcustom_style))	// @pyparm (int, ...)|Style|None|Sequence containing lengths of dashes and spaces  Used only with PS_USERSTYLE, otherwise must be None.
+		return NULL;
+	if (!PyWinObject_AsLOGBRUSH(oblb, &lb))
+		return NULL;
+	if (!PyWinObject_AsDWORDArray(obcustom_style, &custom_style, &custom_style_cnt, TRUE))
+		return NULL;
+	hpen=ExtCreatePen(style, width, &lb, custom_style_cnt, custom_style);
+	if (custom_style)
+		free(custom_style);
+	if (hpen==NULL)
+		return PyWin_SetAPIError("ExtCreatePen");
+	return PyWinObject_FromGdiHANDLE(hpen);
+}
+%}
+%native (CreateBrushIndirect) PyCreateBrushIndirect;
+%native (ExtCreatePen) PyExtCreatePen;
