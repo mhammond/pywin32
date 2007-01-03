@@ -284,7 +284,14 @@ def CreateISAPIFilter(filterParams, options):
 def DeleteISAPIFilter(filterParams, options):
     _CallHook(filterParams, "PreRemove", options)
     server = FindWebServer(options, filterParams.Server)
-    filters = GetObject(server+"/Filters")
+    ob_path = server+"/Filters"
+    try:
+        filters = GetObject(ob_path)
+    except pythoncom.com_error, details:
+        # failure to open the filters just means a totally clean IIS install
+        # (IIS5 at least has no 'Filters' key when freshly installed).
+        log(2, "ISAPI filter path '%s' did not exist." % (ob_path,))
+        return
     try:
         filters.Delete(_IIS_FILTER, filterParams.Name)
         log(2, "Deleted ISAPI filter '%s'" % (filterParams.Name,))
