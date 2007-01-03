@@ -5215,12 +5215,14 @@ BOOLAPI SetWindowRgn(
 	HRGN INPUT_NULLOK,	// @pyparm <o PyGdiHANDLE>|hRgn||Handle to region to be set, can be None
 	BOOL Redraw);		// @pyparm boolean|Redraw||Indicates if window should be completely redrawn
 
+#ifdef WINXPGUI
 // @pyswig int, <o PyRECT>|GetWindowRgnBox|Returns the bounding box for a window's region
 // @rdesc Returns type of region and rectangle coordinates in device units
 int_regiontype GetWindowRgnBox(
 	HWND hWnd,		// @pyparm <o PyHANDLE>|hWnd||Handle to a window that has a window region. (see <om win32gui.SetWindowRgn>)
 	RECT *OUTPUT);
-
+// @comm Only available in winxpgui
+#endif
 // @pyswig |ValidateRgn|Removes a region from a window's update region
 BOOLAPI ValidateRgn(
 	HWND hWnd,		// @pyparm <o PyHANDLE>|hWnd||Handle to the window
