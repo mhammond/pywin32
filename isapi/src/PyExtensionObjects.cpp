@@ -156,6 +156,7 @@ static struct PyMethodDef PyECB_methods[] = {
 	{"Redirect",				PyECB::Redirect,1},              // @pymeth Redirect|
 	{"IsKeepAlive",				PyECB::IsKeepAlive,1},           // @pymeth IsKeepAlive|
 	{"GetImpersonationToken",   PyECB::GetImpersonationToken, 1}, // @pymeth GetImpersonationToken|
+	{"IsKeepConn",              PyECB::IsKeepConn, 1}, // @pymeth IsKeepConn|Calls ServerSupportFunction with HSE_REQ_IS_KEEP_CONN
 	{NULL}
 };
 
@@ -521,6 +522,23 @@ PyObject * PyECB::GetImpersonationToken(PyObject *self, PyObject *args)
 	return PyLong_FromVoidPtr(handle);
 }
 
+// @pymethod int|EXTENSION_CONTROL_BLOCK|IsKeepConn|Calls ServerSupportFunction with HSE_REQ_IS_KEEP_CONN
+PyObject * PyECB::IsKeepConn(PyObject *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args, ":IsKeepConn"))
+		return NULL;
+
+	PyECB * pecb = (PyECB *) self;
+	BOOL bRes, bIs;
+	Py_BEGIN_ALLOW_THREADS
+	bRes = pecb->m_pcb->IsKeepConn(&bIs);
+	Py_END_ALLOW_THREADS
+	if (!bRes)
+		return SetPyECBError("IsKeepCon");
+	return PyBool_FromLong(bIs);
+}
+
+
 class PyTFD {
 public:
 	PyTFD(PyObject *aCallable, PyObject *aArg) {
@@ -577,7 +595,7 @@ PyObject * PyECB::TransmitFile(PyObject *self, PyObject *args)
 			      &obCallback, // @pyparm callable|callback||
 			      &obCallbackParam, // @pyparm object|param||Any object - passed as 2nd arg to callback.
 			      &hFile, // @pyparm int|hFile||
-			      &info.pszStatusCode, // @pyparm string|statusCode|
+			      &info.pszStatusCode, // @pyparm string|statusCode||
 			      &info.BytesToWrite, // @pyparm int|BytesToWrite||
 			      &info.Offset, // @pyparm int|Offset||
 			      &info.pHead, // @pyparm string|head||
@@ -588,7 +606,7 @@ PyObject * PyECB::TransmitFile(PyObject *self, PyObject *args)
 			      ))
 		return NULL;
 	info.hFile = (HANDLE)hFile;
-	// @desc The callback is called with 4 args - (<o PyECB>, param, cbIO, dwErrCode)
+	// @comm The callback is called with 4 args - (<o PyECB>, param, cbIO, dwErrCode)
 
 	if (!PyCallable_Check(obCallback))
 		return PyErr_Format(PyExc_TypeError, "Callback is not callable");
@@ -616,6 +634,8 @@ PyObject * PyECB::TransmitFile(PyObject *self, PyObject *args)
 }
 
 // @pymethod |EXTENSION_CONTROL_BLOCK|IsKeepAlive|
+// @comm This method simply checks a HTTP_CONNECTION header for 'keep-alive',
+// making it fairly useless.  See <om EXTENSION_CONTROL_BLOCK.IsKeepCon>
 PyObject * PyECB::IsKeepAlive(PyObject *self, PyObject * args)
 {
 	bool bKeepAlive = false;

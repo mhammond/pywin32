@@ -94,6 +94,7 @@ public:
 	static PyObject * GetImpersonationToken(PyObject *self, PyObject * args); // HSE_REQ_GET_IMPERSONATION_TOKEN
 	static PyObject * TransmitFile(PyObject *self, PyObject * args); // HSE_REQ_TRANSMIT_FILE
 	static PyObject * MapURLToPath(PyObject *self, PyObject * args); // HSE_REQ_MAP_URL_TO_PATH
+	static PyObject * IsKeepConn(PyObject *self, PyObject * args); // HSE_REQ_IS_KEEP_CONN
 
 	static PyObject * IsSessionActive(PyObject *self, PyObject * args);
 

@@ -131,6 +131,14 @@ public:
 		return bOK;
 	}
 
+	BOOL IsKeepConn(LPBOOL bIs)
+	{
+		BOOL bOK = (m_pECB->ServerSupportFunction)(m_pECB->ConnID,
+							   HSE_REQ_IS_KEEP_CONN,
+							   (void *)bIs, 0,0);
+		return bOK;
+	}
+
 	bool IsKeepAlive(void)
 	{
 		bool bKeepAlive = false;
