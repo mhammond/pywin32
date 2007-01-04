@@ -20,7 +20,7 @@ if "--noxp" in sys.argv:
 else:
     import winxpgui as win32gui
 import win32api
-import win32con
+import win32con, winerror
 import struct, array
 import commctrl
 import Queue
@@ -33,16 +33,6 @@ IDC_LISTBOX = 1027
 
 WM_SEARCH_RESULT = win32con.WM_USER + 512
 WM_SEARCH_FINISHED = win32con.WM_USER + 513
-
-g_registeredClass = 0
-
-g_iconPathName = os.path.abspath(os.path.join( os.path.split(sys.executable)[0], "pyc.ico" ))
-if not os.path.isfile(g_iconPathName):
-    # Look in the source tree.
-    g_iconPathName = os.path.abspath(os.path.join( os.path.split(sys.executable)[0], "..\\PC\\pyc.ico" ))
-    if not os.path.isfile(g_iconPathName):
-        print "Can't find the icon file"
-        g_iconPathName = None
 
 class _WIN32MASKEDSTRUCT:
     def __init__(self, **kw):
@@ -127,23 +117,30 @@ class DemoWindowBase:
 
     def _RegisterWndClass(self):
         className = "PythonDocSearch"
-        global g_registeredClass
-        if not g_registeredClass:
-            message_map = {}
-            wc = win32gui.WNDCLASS()
-            wc.SetDialogProc() # Make it a dialog class.
-            wc.hInstance = self.hinst
-            wc.lpszClassName = className
-            wc.style = win32con.CS_VREDRAW | win32con.CS_HREDRAW
-            wc.hCursor = win32gui.LoadCursor( 0, win32con.IDC_ARROW )
-            wc.hbrBackground = win32con.COLOR_WINDOW + 1
-            wc.lpfnWndProc = message_map # could also specify a wndproc.
-            # C code: wc.cbWndExtra = DLGWINDOWEXTRA + sizeof(HBRUSH) + (sizeof(COLORREF));
-            wc.cbWndExtra = win32con.DLGWINDOWEXTRA + struct.calcsize("Pi")
-            icon_flags = win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE
-            wc.hIcon = win32gui.LoadImage(self.hinst, g_iconPathName, win32con.IMAGE_ICON, 0, 0, icon_flags)
+        message_map = {}
+        wc = win32gui.WNDCLASS()
+        wc.SetDialogProc() # Make it a dialog class.
+        wc.hInstance = self.hinst
+        wc.lpszClassName = className
+        wc.style = win32con.CS_VREDRAW | win32con.CS_HREDRAW
+        wc.hCursor = win32gui.LoadCursor( 0, win32con.IDC_ARROW )
+        wc.hbrBackground = win32con.COLOR_WINDOW + 1
+        wc.lpfnWndProc = message_map # could also specify a wndproc.
+        # C code: wc.cbWndExtra = DLGWINDOWEXTRA + sizeof(HBRUSH) + (sizeof(COLORREF));
+        wc.cbWndExtra = win32con.DLGWINDOWEXTRA + struct.calcsize("Pi")
+        icon_flags = win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE
+
+        ## py.ico went away in python 2.5, load from executable instead
+        this_app=win32api.GetModuleHandle(None)
+        try:
+            wc.hIcon=win32gui.LoadIcon(this_app, 1)    ## python.exe and pythonw.exe
+        except win32gui.error:
+            wc.hIcon=win32gui.LoadIcon(this_app, 135)  ## pythonwin's icon
+        try:
             classAtom = win32gui.RegisterClass(wc)
-            g_registeredClass = 1
+        except win32gui.error, err_info:
+            if err_info[0]!=winerror.ERROR_CLASS_ALREADY_EXISTS:
+                raise
         return className
 
     def _GetDialogTemplate(self, dlgClassName):
