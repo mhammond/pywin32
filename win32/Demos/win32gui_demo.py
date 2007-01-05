@@ -2,7 +2,7 @@
 # Feel free to contribute more demos back ;-)
 
 import win32gui, win32con, win32api
-import time, math
+import time, math, random
 
 def _MyCallback( hwnd, extra ):
     hwnds, classes = extra
@@ -18,7 +18,7 @@ def TestEnumWindows():
         print "Hrmmmm - I'm very surprised to not find a 'tooltips_class32' class."
 
 
-def OnPaint(hwnd, msg, wp, lp):
+def OnPaint_1(hwnd, msg, wp, lp):
     dc, ps=win32gui.BeginPaint(hwnd)
     win32gui.SetGraphicsMode(dc, win32con.GM_ADVANCED)
     br=win32gui.CreateSolidBrush(win32api.RGB(255,0,0))
@@ -41,18 +41,31 @@ def OnPaint(hwnd, msg, wp, lp):
     win32gui.StrokeAndFillPath(dc)
     win32gui.EndPaint(hwnd, ps)
     return 0
+wndproc_1={win32con.WM_PAINT:OnPaint_1}
+
+def OnPaint_2(hwnd, msg, wp, lp):
+    dc, ps=win32gui.BeginPaint(hwnd)
+    win32gui.SetGraphicsMode(dc, win32con.GM_ADVANCED)
+    l,t,r,b=win32gui.GetClientRect(hwnd)
     
-def wndproc(hwnd, msg, wp, lp):
-	if msg==win32con.WM_PAINT:
-		return OnPaint(hwnd, msg, wp, lp)
-	return win32gui.DefWindowProc(hwnd, msg, wp, lp)
+    for x in xrange(25):
+        vertices=(
+            {'x':int(random.random()*r), 'y':int(random.random()*b), 'Red':int(random.random()*0xff00), 'Green':0, 'Blue':0, 'Alpha':0},
+            {'x':int(random.random()*r), 'y':int(random.random()*b), 'Red':0, 'Green':int(random.random()*0xff00), 'Blue':0, 'Alpha':0},
+            {'x':int(random.random()*r), 'y':int(random.random()*b), 'Red':0, 'Green':0, 'Blue':int(random.random()*0xff00), 'Alpha':0},
+            )
+        mesh=((0,1,2),)
+        win32gui.GradientFill(dc,vertices, mesh, win32con.GRADIENT_FILL_TRIANGLE)
+    win32gui.EndPaint(hwnd, ps)
+    return 0
+wndproc_2={win32con.WM_PAINT:OnPaint_2}
 
 def TestSetWorldTransform():
     wc = win32gui.WNDCLASS()
-    wc.lpszClassName = 'test_win32gui'
+    wc.lpszClassName = 'test_win32gui_1'
     wc.style =  win32con.CS_GLOBALCLASS|win32con.CS_VREDRAW | win32con.CS_HREDRAW
     wc.hbrBackground = win32con.COLOR_WINDOW+1
-    wc.lpfnWndProc=wndproc
+    wc.lpfnWndProc=wndproc_1
     class_atom=win32gui.RegisterClass(wc)       
     hwnd = win32gui.CreateWindow(class_atom,'Spin the Lobster!',
         win32con.WS_CAPTION|win32con.WS_VISIBLE,
@@ -64,8 +77,29 @@ def TestSetWorldTransform():
     win32gui.DestroyWindow(hwnd)
     win32gui.UnregisterClass(class_atom,None)
 
+def TestGradientFill():
+    wc = win32gui.WNDCLASS()
+    wc.lpszClassName = 'test_win32gui_2'
+    wc.style =  win32con.CS_GLOBALCLASS|win32con.CS_VREDRAW | win32con.CS_HREDRAW
+    wc.hbrBackground = win32con.COLOR_WINDOW+1
+    wc.lpfnWndProc=wndproc_2
+    class_atom=win32gui.RegisterClass(wc)       
+    hwnd = win32gui.CreateWindowEx(0, class_atom,'Kaleidoscope',
+        win32con.WS_CAPTION|win32con.WS_VISIBLE|win32con.WS_THICKFRAME|win32con.WS_SYSMENU,
+        100,100,900,900, 0, 0, 0, None)
+    s=win32gui.GetWindowLong(hwnd,win32con.GWL_EXSTYLE)
+    win32gui.SetWindowLong(hwnd, win32con.GWL_EXSTYLE, s|win32con.WS_EX_LAYERED)
+    win32gui.SetLayeredWindowAttributes(hwnd, 0, 175, win32con.LWA_ALPHA)
+    for x in xrange(30):
+        win32gui.InvalidateRect(hwnd,None,True)
+        win32gui.PumpWaitingMessages()
+        time.sleep(0.3)
+    win32gui.DestroyWindow(hwnd)
+    win32gui.UnregisterClass(class_atom,None)
+
 print "Enumerating all windows..."
 TestEnumWindows()
 print "Testing drawing functions ..."
 TestSetWorldTransform()
+TestGradientFill()
 print "All tests done!"
