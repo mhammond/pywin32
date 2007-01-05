@@ -72,7 +72,7 @@ class EditorDocumentBase(ParentEditorDocument):
 			# and the file may be a hard-link, causing the link
 			# to follow the backup.
 			shutil.copy2(fileName, bakFileName)
-		except (os.error, NameError):
+		except (os.error, NameError, IOError):
 			pass
 		try:
 			self.SaveFile(fileName)
