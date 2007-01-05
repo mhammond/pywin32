@@ -483,22 +483,33 @@ typedef int UINT;
 	$target = &size_input;
 }
 
+// @object PyICONINFO|Tuple describing an icon or cursor
+// @pyseeapi ICONINFO
 %typemap(python,in) ICONINFO *INPUT(ICONINFO iconinfo_input) {
+	PyObject *obmask, *obcolor;
 	if (PyTuple_Check($source)) {
-		if (PyArg_ParseTuple($source, "lllll", &iconinfo_input.fIcon, &iconinfo_input.xHotspot, &iconinfo_input.yHotspot,
-            &iconinfo_input.hbmMask, &iconinfo_input.hbmColor) == 0) {
-			return PyErr_Format(PyExc_TypeError, "%s: a ICONINFO must be a tuple of integers", "$name");
-		}
+		if (!PyArg_ParseTuple($source, "lllOO", 
+			&iconinfo_input.fIcon,		// @tupleitem 0|boolean|Icon|True indicates an icon, False for a cursor
+			&iconinfo_input.xHotspot,	// @tupleitem 1|int|xHotSpot|For a cursor, X coord of hotspot.  Ignored for icons
+			&iconinfo_input.yHotspot,	// @tupleitem 2|int|yHotSpot|For a cursor, Y coord of hotspot.  Ignored for icons
+            &obmask,					// @tupleitem 3|<o PyGdiHANDLE>|hbmMask|Monochrome mask bitmap
+			&obcolor))					// @tupleitem 4|<o PyGdiHANDLE>|hbmColor|Color bitmap, may be None for black and white icon
+			return PyErr_Format(PyExc_TypeError, "%s: an ICONINFO must be a tuple of (int,int,int,HANDLE,HANDLE)", "$name");
+
+		if (!PyWinObject_AsHANDLE(obmask, (HANDLE *)&iconinfo_input.hbmMask, FALSE))
+			return NULL;
+		if (!PyWinObject_AsHANDLE(obcolor, (HANDLE *)&iconinfo_input.hbmColor, TRUE))
+			return NULL;
 		$target = &iconinfo_input;
     } else {
-		return PyErr_Format(PyExc_TypeError, "%s: a ICONINFO must be a tuple of integers", "$name");
+		return PyErr_Format(PyExc_TypeError, "%s: an ICONINFO must be a tuple of (int,int,int,HANDLE,HANDLE)", "$name");
 	}
 }
 
 %typemap(python,argout) ICONINFO *OUTPUT {
     PyObject *o;
-    o = Py_BuildValue("lllll", $source->fIcon, $source->xHotspot,
-	                 $source->yHotspot, $source->hbmMask, $source->hbmColor);
+    o = Py_BuildValue("lllNN", $source->fIcon, $source->xHotspot, $source->yHotspot, 
+		PyWinObject_FromGdiHANDLE($source->hbmMask), PyWinObject_FromGdiHANDLE($source->hbmColor));
     if (!$target) {
       $target = o;
     } else if ($target == Py_None) {
@@ -589,11 +600,14 @@ typedef int UINT;
 
 // @object TRACKMOUSEEVENT|A tuple of (dwFlags, hwndTrack, dwHoverTime)
 %typemap(python,in) TRACKMOUSEEVENT *INPUT(TRACKMOUSEEVENT e){
+	PyObject *obhwnd;
 	e.cbSize = sizeof e;
 	if (PyTuple_Check($source)) {
-		if (PyArg_ParseTuple($source, "lll", &e.dwFlags, &e.hwndTrack, &e.dwHoverTime) == 0) {
+		if (PyArg_ParseTuple($source, "lOl", &e.dwFlags, &obhwnd, &e.dwHoverTime) == 0) {
 			return PyErr_Format(PyExc_TypeError, "%s: a TRACKMOUSEEVENT must be a tuple of 3 integers", "$name");
 		}
+		if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&e.hwndTrack, FALSE))
+			return NULL;
 		$target = &e;
     } else {
 		return PyErr_Format(PyExc_TypeError, "%s: a TRACKMOUSEEVENT must be a tuple of 3 integers", "$name");
@@ -1738,7 +1752,9 @@ static PyObject *PySetWindowLong(PyObject *self, PyObject *args)
 %{
 static PyObject *PyCallWindowProc(PyObject *self, PyObject *args)
 {
-	long wndproc, hwnd, wparam, lparam;
+	long wndproc, wparam, lparam;
+	HWND hwnd;
+	PyObject *obhwnd;
 	UINT msg;
         // @pyparm int|wndproc||The wndproc to call - this is generally the return
         // value of SetWindowLong(GWL_WNDPROC)
@@ -1746,11 +1762,13 @@ static PyObject *PyCallWindowProc(PyObject *self, PyObject *args)
         // @pyparm int|msg||
         // @pyparm int|wparam||
         // @pyparm int|lparam||
-	if (!PyArg_ParseTuple(args, "llill", &wndproc, &hwnd, &msg, &wparam, &lparam))
+	if (!PyArg_ParseTuple(args, "lOill", &wndproc, &obhwnd, &msg, &wparam, &lparam))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
 	LRESULT rc;
     Py_BEGIN_ALLOW_THREADS
-	rc = CallWindowProc((MYWNDPROC)wndproc, (HWND)hwnd, msg, wparam, lparam);
+	rc = CallWindowProc((MYWNDPROC)wndproc, hwnd, msg, wparam, lparam);
     Py_END_ALLOW_THREADS
 	return PyInt_FromLong(rc);
 }
@@ -2468,7 +2486,7 @@ BOOLAPI DrawIconEx(
 );
 
 // @pyswig int|CreateIconIndirect|Creates an icon or cursor from an ICONINFO structure. 
-HICON CreateIconIndirect(ICONINFO *INPUT);
+HICON CreateIconIndirect(ICONINFO *INPUT);	// @pyparm <o PyICONINFO>|iconinfo||Tuple defining the icon parameters
 
 %{
 // @pyswig int|CreateIconFromResource|Creates an icon or cursor from resource bits describing the icon.
@@ -3410,17 +3428,20 @@ int     CommandBar_Height(HWND hwndCB);
 %{
 static PyObject *PyEdit_GetLine(PyObject *self, PyObject *args)
 {
-	long hwnd;
+	HWND hwnd;
+	PyObject *obhwnd;
 	int line, size=0;
-	if (!PyArg_ParseTuple(args, "li|i", &hwnd, &line, &size))
+	if (!PyArg_ParseTuple(args, "Oi|i", &obhwnd, &line, &size))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
 	int numChars;
 	TCHAR *buf;
 	Py_BEGIN_ALLOW_THREADS
 	if (size==0)
-		size = Edit_LineLength((HWND)hwnd, line)+1;
+		size = Edit_LineLength(hwnd, line)+1;
 	buf = (TCHAR *)malloc(size * sizeof(TCHAR));
-	numChars = Edit_GetLine((HWND)hwnd, line, buf, size);
+	numChars = Edit_GetLine(hwnd, line, buf, size);
 	Py_END_ALLOW_THREADS
 	PyObject *ret;
 	if (numChars==0) {
@@ -3641,8 +3662,8 @@ done:
 BOOLAPI DestroyIcon( HICON hicon);
 
 #ifndef MS_WINCE
-// @pyswig tuple|GetIconInfo|
-// @pyparm int|hicon||The icon to query
+// @pyswig <o PyICONINFO>|GetIconInfo|Returns parameters for an icon or cursor
+// @pyparm <o PyHANDLE>|hicon||The icon to query
 // @rdesc The result is a tuple of (fIcon, xHotspot, yHotspot, hbmMask, hbmColor)
 // The hbmMask and hbmColor items are bitmaps created for the caller, so must be freed.
 BOOLAPI GetIconInfo( HICON hicon, ICONINFO *OUTPUT);
@@ -4615,7 +4636,7 @@ static PyObject *PyAngleArc(PyObject *self, PyObject *args)
 	DWORD radius;
 	FLOAT startangle, sweepangle;
 	PyObject *obdc;
-	if (!PyArg_ParseTuple(args, "Oiikff",
+	if (!PyArg_ParseTuple(args, "Oiikff:AngleArc",
 		&obdc,			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		&x,				// @pyparm int|Y||x pos of circle
 		&y,				// @pyparm int|Y||y pos of circle
@@ -5024,7 +5045,7 @@ static PyObject *PyExtTextOut(PyObject *self, PyObject *args)
 	RECT rect, *rectPtr;
 	int *widths = NULL;
 	HDC hdc;
-	if (!PyArg_ParseTuple (args, "OiiiOs#|O",
+	if (!PyArg_ParseTuple (args, "OiiiOs#|O:ExtTextOut",
 		&obdc,
 		&x,		// @pyparm x|int||The x coordinate to write the text to.
 		&y,		// @pyparm y|int||The y coordinate to write the text to.
@@ -5664,17 +5685,17 @@ static PyObject *PySetScrollInfo(PyObject *self, PyObject *args) {
 	int nBar;
 	HWND hwnd;
 	BOOL bRedraw = TRUE;
-	PyObject *obInfo;
+	PyObject *obhwnd, *obInfo;
 
 	// @pyparm int|hwnd||The handle to the window.
 	// @pyparm int|nBar||Identifies the bar.
 	// @pyparm <o PySCROLLINFO>|scollInfo||Scollbar info.
 	// @pyparm int|bRedraw|1|Should the bar be redrawn?
-	if (!PyArg_ParseTuple(args, "liO|i:SetScrollInfo",
-						  &hwnd, &nBar, &obInfo, &bRedraw)) {
-		PyWin_SetAPIError("SetScrollInfo");
+	if (!PyArg_ParseTuple(args, "OiO|i:SetScrollInfo",
+		&obhwnd, &nBar, &obInfo, &bRedraw))
 		return NULL;
-	}
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+		return NULL;
 	SCROLLINFO info;
 	info.cbSize = sizeof(SCROLLINFO);
 	if (ParseSCROLLINFOTuple(obInfo, &info) == 0)
@@ -5694,12 +5715,15 @@ static PyObject *
 PyGetScrollInfo (PyObject *self, PyObject *args)
 {
 	HWND hwnd;
+	PyObject *obhwnd;
 	int nBar;
 	UINT fMask = SIF_ALL;
 	// @pyparm int|hwnd||The handle to the window.
 	// @pyparm int|nBar||The scroll bar to examine.  Can be one of win32con.SB_CTL, win32con.SB_VERT or win32con.SB_HORZ
 	// @pyparm int|mask|SIF_ALL|The mask for attributes to retrieve.
-	if (!PyArg_ParseTuple(args, "li|i:GetScrollInfo", &hwnd, &nBar, &fMask))
+	if (!PyArg_ParseTuple(args, "Oi|i:GetScrollInfo", &obhwnd, &nBar, &fMask))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
 	SCROLLINFO info;
 	info.cbSize = sizeof(SCROLLINFO);
@@ -5811,12 +5835,14 @@ static PyObject *
 PyListView_SortItems(PyObject *self, PyObject *args)
 {
 	HWND hwnd;
-	PyObject *ob;
+	PyObject *ob, *obhwnd;
 	PyObject *obParam = Py_None;
 	// @pyparm int|hwnd||The handle to the window
 	// @pyparm object|callback||A callback object, taking 3 params.
 	// @pyparm object|param|None|The third param to the callback function.
-	if (!PyArg_ParseTuple(args, "iO|O:ListView_SortItems", &hwnd, &ob, &obParam))
+	if (!PyArg_ParseTuple(args, "OO|O:ListView_SortItems", &obhwnd, &ob, &obParam))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
 	if (!PyCallable_Check(ob))
 		return PyErr_Format(PyExc_TypeError,
@@ -5853,12 +5879,14 @@ static PyObject *
 PyListView_SortItemsEx(PyObject *self, PyObject *args)
 {
 	HWND hwnd;
-	PyObject *ob;
+	PyObject *ob, *obhwnd;
 	PyObject *obParam = Py_None;
 	// @pyparm int|hwnd||The handle to the window
 	// @pyparm object|callback||A callback object, taking 3 params.
 	// @pyparm object|param|None|The third param to the callback function.
-	if (!PyArg_ParseTuple(args, "iO|O:ListView_SortItemsEx", &hwnd, &ob, &obParam))
+	if (!PyArg_ParseTuple(args, "OO|O:ListView_SortItemsEx", &obhwnd, &ob, &obParam))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
 	if (!PyCallable_Check(ob))
 		return PyErr_Format(PyExc_TypeError,
