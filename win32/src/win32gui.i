@@ -141,7 +141,7 @@ BOOL PyWinObject_AsSIZE(PyObject *obsize, SIZE *psize)
 		&psize->cx, &psize->cy);
 }
 
-// @object PyGdiHANDLE|Gdi objects such as brush (HBRUSH), pen (HPEN), font (HFONT), region (HRGN)
+// @object PyGdiHANDLE|Gdi objects such as brush (HBRUSH), pen (HPEN), font (HFONT), region (HRGN), bitmap (HBITMAP)
 //	On destruction, the handle is closed using DeleteObject.  The object's Close() method also calls DeleteObject.
 //	The gdi object should be deselected from any DC that it is selected into before it's closed.
 //	Inherits the methods and properties of <o PyHANDLE>.
@@ -171,7 +171,7 @@ PyObject *PyWinObject_FromGdiHANDLE(HGDIOBJ h)
 %}
 
 // SWIG support for GDI handles.
-%typemap(python,except) HPEN, HBRUSH, HFONT, HRGN {
+%typemap(python,except) HPEN, HBRUSH, HFONT, HRGN, HBITMAP {
 	Py_BEGIN_ALLOW_THREADS
 	$function
 	Py_END_ALLOW_THREADS
@@ -182,15 +182,15 @@ PyObject *PyWinObject_FromGdiHANDLE(HGDIOBJ h)
 }
 /* ??? If you don't map these to a known type, swig obstinately ignores the input and output typemaps and tries to treat them as pointers.
 		However, it doesn't seem to matter what you typedef them to as long as they have in and out typemaps. ??? */
-typedef float HPEN, HBRUSH, HFONT, HRGN;
-%typemap(python,out) HPEN, HBRUSH, HFONT, HRGN{
+typedef float HPEN, HBRUSH, HFONT, HRGN, HBITMAP;
+%typemap(python,out) HPEN, HBRUSH, HFONT, HRGN, HBITMAP{
 	$target = PyWinObject_FromGdiHANDLE($source);
 }
-%typemap(python,in) HPEN, HBRUSH, HFONT, HRGN{
+%typemap(python,in) HPEN, HBRUSH, HFONT, HRGN, HBITMAP{
 	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target, FALSE))
 		return NULL;
 }
-%typemap(python,in) HRGN INPUT_NULLOK, HBRUSH INPUT_NULLOK{
+%typemap(python,in) HRGN INPUT_NULLOK, HBRUSH INPUT_NULLOK, HBITMAP INPUT_NULLOK{
 	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target, TRUE))
 		return NULL;
 }
@@ -303,9 +303,6 @@ typedef long HMENU
 %apply HICON {long};
 typedef long HICON
 
-%apply HBITMAP {long};
-typedef long HBITMAP
-
 %apply HGDIOBJ {long};
 typedef long HGDIOBJ
 
@@ -373,17 +370,19 @@ typedef int UINT;
 }
 
 %typemap(python,in) MSG *INPUT {
+	PyObject *obhwnd;
     $target = (MSG *)_alloca(sizeof(MSG));
-    if (!PyArg_ParseTuple($source, "iiiii(ii):MSG param for $name",
-            &$target->hwnd,
+    if (!PyArg_ParseTuple($source, "Oiiii(ii):MSG param for $name",
+			&obhwnd,
             &$target->message,
             &$target->wParam,
             &$target->lParam,
             &$target->time,
             &$target->pt.x,
-            &$target->pt.y)) {
+            &$target->pt.y))
         return NULL;
-    }
+    if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&$target->hwnd, FALSE))
+		return NULL;
 }
 %typemap(python,ignore) RECT *OUTPUT(RECT rect_output)
 {
@@ -563,10 +562,11 @@ typedef int UINT;
 %typemap(python,in) PAINTSTRUCT *INPUT(PAINTSTRUCT ps_input) {
     char *szReserved;
     int lenReserved;
+	PyObject *obdc;
 	if (PyTuple_Check($source)) {
 		if (!PyArg_ParseTuple($source,
-                             "ll(iiii)lls#",
-                            &ps_input.hdc,
+                             "Ol(iiii)lls#",
+                            &obdc,
                             &ps_input.fErase,
                             &ps_input.rcPaint.left, &ps_input.rcPaint.top, &ps_input.rcPaint.right, &ps_input.rcPaint.bottom,
                             &ps_input.fRestore,
@@ -575,6 +575,8 @@ typedef int UINT;
                             &lenReserved)) {
 			return NULL;
 		}
+		if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&ps_input.hdc, FALSE))
+			return NULL;
         if (lenReserved != sizeof(ps_input.rgbReserved))
             return PyErr_Format(PyExc_ValueError, "%s: last element must be string of %d bytes",
                                 "$name", sizeof(ps_input.rgbReserved));
@@ -1298,7 +1300,7 @@ PyObject *set_logger(PyObject *self, PyObject *args)
 	Py_XDECREF(logger);
 	logger = NULL;
 	// @pyparm object|logger||A logger object, generally from the standard logger package.
-	if (!PyArg_ParseTuple(args, "O|set_logger", &logger))
+	if (!PyArg_ParseTuple(args, "O:set_logger", &logger))
 		return NULL;
 	if (logger==Py_None)
 		logger = NULL;
@@ -2013,22 +2015,36 @@ static PyObject *PyEnumChildWindows(PyObject *self, PyObject *args)
 static PyObject *PyDialogBox(PyObject *self, PyObject *args)
 {
 	/// XXX - todo - add support for a dialogproc!
-	long hinst, hwnd, param=0;
-	PyObject *obResId, *obDlgProc;
-	BOOL bFreeString = FALSE;
-	if (!PyArg_ParseTuple(args, "lOlO|l", &hinst, &obResId, &hwnd, &obDlgProc, &param))
+	HINSTANCE hinst;
+	HWND hwnd;
+	LPARAM param=0;
+	PyObject *obResId, *obDlgProc, *obhinst, *obhwnd;
+	if (!PyArg_ParseTuple(args, "OOOO|l", 
+		&obhinst,	// @pyparm <o PyHANDLE>|hInstance||Handle to module that contains the dialog template
+		&obResId,	// @pyparm str/int|TemplateName||Name or resource id of the dialog resource
+		&obhwnd,	// @pyparm <o PyHANDLE>|hWndParent||Handle to dialog's parent window
+		&obDlgProc,	// @pyparm function|DialogFunc||Dialog box procedure to process messages
+		&param))	// @pyparm int|InitParam|0|Initialization data to be passed to above procedure during WM_INITDIALOG processing
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhinst, (HANDLE *)&hinst, FALSE))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
 		return NULL;
 	LPTSTR resid;
-	if (PyInt_Check(obResId))
-		resid = (LPTSTR)MAKEINTRESOURCE(PyInt_AsLong(obResId));
-	else {
+	resid = (LPTSTR)PyLong_AsVoidPtr(obResId);
+	if ((resid==NULL) && PyErr_Occurred()){
+		PyErr_Clear();
 		if (!PyWinObject_AsTCHAR(obResId, &resid)) {
 			PyErr_Clear();
-			PyErr_SetString(PyExc_TypeError, "Resource ID must be a string or int");
+			PyErr_SetString(PyExc_TypeError, "Resource ID must be a string or int in the range 0-65535");
 			return NULL;
+			}
 		}
-		bFreeString = TRUE;
-	}
+	else
+		if (!IS_INTRESOURCE(resid)){
+			PyErr_SetString(PyExc_ValueError,"Int resource id must be in the range 0-65535");
+			return NULL;
+			}
 	PyObject *obExtra = Py_BuildValue("Ol", obDlgProc, param);
 
 	int rc;
@@ -2036,7 +2052,7 @@ static PyObject *PyDialogBox(PyObject *self, PyObject *args)
 	rc = DialogBoxParam((HINSTANCE)hinst, resid, (HWND)hwnd, PyDlgProcHDLG, (LPARAM)obExtra);
     Py_END_ALLOW_THREADS
 	Py_DECREF(obExtra);
-	if (bFreeString)
+	if (!IS_INTRESOURCE(resid))
 		PyWinObject_FreeTCHAR(resid);
 	if (rc==-1)
 		return PyWin_SetAPIError("DialogBox");
@@ -2055,17 +2071,24 @@ static PyObject *PyDialogBox(PyObject *self, PyObject *args)
 static PyObject *PyDialogBoxIndirect(PyObject *self, PyObject *args)
 {
 	/// XXX - todo - add support for a dialogproc!
-	long hinst, hwnd, param=0;
-	PyObject *obList, *obDlgProc;
+	HINSTANCE hinst;
+	HWND hwnd;
+	LPARAM param=0;
+	PyObject *obhinst, *obhwnd, *obList, *obDlgProc;
 	BOOL bFreeString = FALSE;
-	// @pyparm int|hinst||
-	// @pyparm object|controlList||
-	// @pyparm int|hwnd||
-	// @pyparm object|dlgproc||
-	// @pyparm int|param|0|
-	if (!PyArg_ParseTuple(args, "lOlO|l", &hinst, &obList, &hwnd, &obDlgProc, &param))
-		return NULL;
 	
+	if (!PyArg_ParseTuple(args, "OOOO|l", 
+		&obhinst,		// @pyparm <o PyHANDLE>|hInstance||Handle to module creating the dialog box
+		&obList,		// @pyparm list|controlList||List containing a <o Dialog Header Tuple>, followed by variable number of <o Dialog Item Tuple>s
+		&obhwnd,		// @pyparm <o PyHANDLE>|hWndParent||Handle to dialog's parent window
+		&obDlgProc,		// @pyparm function|DialogFunc||Dialog box procedure to process messages
+		&param))		// @pyparm int|InitParam|0|Initialization data to be passed to above procedure during WM_INITDIALOG processing
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhinst, (HANDLE *)&hinst, FALSE))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
+		return NULL;
+
 	HGLOBAL h = MakeResourceFromDlgList(obList);
 	if (h == NULL)
 		return NULL;
@@ -2096,17 +2119,23 @@ static PyObject *PyDialogBoxIndirect(PyObject *self, PyObject *args)
 static PyObject *PyCreateDialogIndirect(PyObject *self, PyObject *args)
 {
 	/// XXX - todo - add support for a dialogproc!
-	long hinst, hwnd, param=0;
-	PyObject *obList, *obDlgProc;
+	HINSTANCE hinst;
+	HWND hwnd;
+	LPARAM param=0;
+	PyObject *obhinst, *obhwnd, *obList, *obDlgProc;
 	BOOL bFreeString = FALSE;
-	// @pyparm int|hinst||
-	// @pyparm object|controlList||
-	// @pyparm int|hwnd||
-	// @pyparm object|dlgproc||
-	// @pyparm int|param|0|
-	if (!PyArg_ParseTuple(args, "lOlO|l", &hinst, &obList, &hwnd, &obDlgProc, &param))
+	if (!PyArg_ParseTuple(args, "OOOO|l",
+		&obhinst,		// @pyparm <o PyHANDLE>|hInstance||Handle to module creating the dialog box
+		&obList,		// @pyparm list|controlList||List containing a <o Dialog Header Tuple>, followed by variable number of <o Dialog Item Tuple>s
+		&obhwnd,		// @pyparm <o PyHANDLE>|hWndParent||Handle to dialog's parent window
+		&obDlgProc,		// @pyparm function|DialogFunc||Dialog box procedure to process messages
+		&param))		// @pyparm int|InitParam|0|Initialization data to be passed to above procedure during WM_INITDIALOG processing
 		return NULL;
-	
+	if (!PyWinObject_AsHANDLE(obhinst, (HANDLE *)&hinst, FALSE))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
+		return NULL;
+
 	HGLOBAL h = MakeResourceFromDlgList(obList);
 	if (h == NULL)
 		return NULL;
@@ -2608,7 +2637,7 @@ static PyObject *PyMaskBlt(PyObject *self, PyObject *args)
 		&obsrc,			// @pyparm <o PyHANDLE>|Src||Source DC handle
 		&src_x,			// @pyparm int|XSrc||X pos of src rect
 		&src_y,			// @pyparm int|YSrc||Y pos of src rect
-		&obmask,		// @pyparm <o PyHANDLE>|Mask||Handle to monochrome bitmap used to mask color
+		&obmask,		// @pyparm <o PyGdiHANDLE>|Mask||Handle to monochrome bitmap used to mask color
 		&mask_x,		// @pyparm int|xMask||X pos in mask
 		&mask_y,		// @pyparm int|yMask||Y pos in mask
 		&rop))			// @pyparm int|Rop||Foreground and background raster operations.  See MSDN docs for how to construct this value.
@@ -2672,8 +2701,8 @@ static PyObject *PyAlphaBlend(PyObject *self, PyObject *args)
 // @pyswig int|ImageList_Add|Adds an image or images to an image list. 
 // @rdesc Returns the index of the first new image if successful, or -1 otherwise. 
 int ImageList_Add(HIMAGELIST himl, // @pyparm int|himl||Handle to the image list. 
-                  HBITMAP hbmImage, // @pyparm int|hbmImage||Handle to the bitmap that contains the image or images. The number of images is inferred from the width of the bitmap. 
-				  HBITMAP hbmMask); // @pyparm int|hbmMask||Handle to the bitmap that contains the mask. If no mask is used with the image list, this parameter is ignored
+                  HBITMAP hbmImage, // @pyparm <o PyGdiHANDLE>|hbmImage||Handle to the bitmap that contains the image or images. The number of images is inferred from the width of the bitmap. 
+				  HBITMAP hbmMask); // @pyparm <o PyGdiHANDLE>|hbmMask||Handle to the bitmap that contains the mask. If no mask is used with the image list, this parameter is ignored
 
 
 // @pyswig HIMAGELIST|ImageList_Create|Create an image list
@@ -2899,14 +2928,14 @@ HDC CreateCompatibleDC(
   HDC hdc   // @pyparm int|dc||handle to DC
 );
 
-// @pyswig HBITMAP|CreateCompatibleBitmap|Creates a bitmap compatible with the device that is associated with the specified device context. 
+// @pyswig <o PyGdiHANDLE>|CreateCompatibleBitmap|Creates a bitmap compatible with the device that is associated with the specified device context. 
 HBITMAP CreateCompatibleBitmap(
   HDC hdc,        // @pyparm int|hdc||handle to DC
   int nWidth,     // @pyparm int|width||width of bitmap, in pixels
   int nHeight     // @pyparm int|height||height of bitmap, in pixels
 );
 
-// @pyswig HBITMAP|CreateBitmap|Creates a bitmap
+// @pyswig <o PyGdiHANDLE>|CreateBitmap|Creates a bitmap
 HBITMAP CreateBitmap(
   int nWidth,         // @pyparm int|width||bitmap width, in pixels
   int nHeight,        // @pyparm int|height||bitmap height, in pixels
@@ -3233,10 +3262,15 @@ PyLOWORD(PyObject *self, PyObject *args)
 BOOL PyObject_AsNOTIFYICONDATA(PyObject *ob, NOTIFYICONDATA *pnid)
 {
 	PyObject *obTip=NULL;
+	PyObject *obhwnd, *obhicon=Py_None;
 	memset(pnid, 0, sizeof(*pnid));
 	pnid->cbSize = sizeof(*pnid);
-	if (!PyArg_ParseTuple(ob, "l|iiilO:NOTIFYICONDATA tuple", &pnid->hWnd, &pnid->uID, &pnid->uFlags, &pnid->uCallbackMessage, &pnid->hIcon, &obTip))
+	if (!PyArg_ParseTuple(ob, "O|iiiOO:NOTIFYICONDATA tuple", &obhwnd, &pnid->uID, &pnid->uFlags, &pnid->uCallbackMessage, &obhicon, &obTip))
 		return FALSE;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&pnid->hWnd, FALSE))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhicon, (HANDLE *)&pnid->hIcon, TRUE))
+		return NULL;
 	if (obTip) {
 		TCHAR *szTip;
 		if (!PyWinObject_AsTCHAR(obTip, &szTip))
@@ -3250,14 +3284,27 @@ BOOL PyObject_AsNOTIFYICONDATA(PyObject *ob, NOTIFYICONDATA *pnid)
 BOOL PyObject_AsNOTIFYICONDATA(PyObject *ob, NOTIFYICONDATA *pnid)
 {
 	PyObject *obTip=NULL, *obInfo=NULL, *obInfoTitle=NULL;
+	PyObject *obhwnd, *obhicon=Py_None;
 	memset(pnid, 0, sizeof(*pnid));
 	pnid->cbSize = sizeof(*pnid);
-	if (!PyArg_ParseTuple(ob, "l|iiilOOiOi:NOTIFYICONDATA tuple", 
-	                     &pnid->hWnd, &pnid->uID, &pnid->uFlags, 
-	                     &pnid->uCallbackMessage, &pnid->hIcon, &obTip, 
-	                     &obInfo, &pnid->uTimeout, &obInfoTitle, 
-	                     &pnid->dwInfoFlags))
+	// @object PyNOTIFYICONDATA|Tuple used to fill a NOTIFYICONDATA struct as used with <om win32gui.Shell_NotifyIcon>
+	// @pyseeapi NOTIFYICONDATA
+	if (!PyArg_ParseTuple(ob, "O|iiiOOOiOi:NOTIFYICONDATA tuple", 
+		&obhwnd,		// @tupleitem 0|<o PyHANDLE>|hWnd|Handle to window that will process icon's messages
+		&pnid->uID,		// @tupleitem 1|int|ID|Unique id used when hWnd processes messages from more than one icon
+		&pnid->uFlags,	// @tupleitem 2|int|Flags|Combination of win32gui.NIF_* flags
+		&pnid->uCallbackMessage,	// @tupleitem 3|int|CallbackMessage|Message id to be pass to hWnd when processing messages
+		&obhicon,		// @tupleitem 4|<o PyHANDLE>|hIcon|Handle to the icon to be displayed
+		&obTip,			// @tupleitem 5|str|Tip|Tooltip text (optional)
+		&obInfo,		// @tupleitem 6|str|Info|Balloon tooltip text (optional)
+		&pnid->uTimeout,	// @tupleitem 7|int|Timeout|Timeout for balloon tooltip, in milliseconds (optional)
+		&obInfoTitle,	// @tupleitem 8|str|InfoTitle|Title for balloon tooltip (optional)
+		&pnid->dwInfoFlags))	// @tupleitem 9|int|InfoFlags|Combination of win32gui.NIIF_* flags (optional)
 		return FALSE;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&pnid->hWnd, FALSE))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhicon, (HANDLE *)&pnid->hIcon, TRUE))
+		return NULL;
 	if (obTip) {
 		TCHAR *szTip;
 		if (!PyWinObject_AsTCHAR(obTip, &szTip))
@@ -3289,15 +3336,21 @@ BOOL PyObject_AsNOTIFYICONDATA(PyObject *ob, NOTIFYICONDATA *pnid)
 
 #ifndef MS_WINCE
 #define NIF_INFO NIF_INFO
+#define NIF_STATE NIF_STATE
+// #define NIF_GUID NIF_GUID
 #define NIIF_WARNING NIIF_WARNING
 #define NIIF_ERROR NIIF_ERROR
 #define NIIF_NONE NIIF_NONE
 #define NIIF_INFO NIIF_INFO
+// #define NIIF_USER NIIF_USER
+#define NIIF_ICON_MASK NIIF_ICON_MASK
+#define NIIF_NOSOUND NIIF_NOSOUND
 #endif
 
 #define NIM_ADD NIM_ADD // Adds an icon to the status area. 
 #define NIM_DELETE  NIM_DELETE // Deletes an icon from the status area. 
-#define NIM_MODIFY  NIM_MODIFY // Modifies an icon in the status area.  
+#define NIM_MODIFY  NIM_MODIFY // Modifies an icon in the status area.
+#define NIM_SETVERSION NIM_SETVERSION
 #ifdef NIM_SETFOCUS
 #define NIM_SETFOCUS NIM_SETFOCUS // Give the icon focus.  
 #endif
@@ -3306,12 +3359,15 @@ BOOL PyObject_AsNOTIFYICONDATA(PyObject *ob, NOTIFYICONDATA *pnid)
 	if (!PyObject_AsNOTIFYICONDATA($source, $target))
 		return NULL;
 }
-%typemap(python,arginit) NOTIFYICONDATA *{
-	NOTIFYICONDATA nid;
+%typemap(python,arginit) NOTIFYICONDATA *(NOTIFYICONDATA nid){
+	ZeroMemory(&nid, sizeof(nid));
 	$target = &nid;
 }
-// @pyswig |Shell_NotifyIcon|Adds, removes or modifies a taskbar icon,
-BOOLAPI Shell_NotifyIcon(DWORD dwMessage, NOTIFYICONDATA *pnid);
+
+// @pyswig |Shell_NotifyIcon|Adds, removes or modifies a taskbar icon.
+BOOLAPI Shell_NotifyIcon(
+	DWORD dwMessage,		// @pyparm int|Message||One of win32gui.NIM_* flags
+	NOTIFYICONDATA *pnid);	// @pyparm <o PyNOTIFYICONDATA>|nid||Tuple containing NOTIFYICONDATA info
 
 #ifdef MS_WINCE
 HWND    CommandBar_Create(HINSTANCE hInst, HWND hwndParent, int idCmdBar);
@@ -4450,8 +4506,8 @@ BOOLAPI SetMenuItemBitmaps(
   HMENU hMenu,               // @pyparm int|hMenu||handle to menu
   UINT uPosition,            // @pyparm int|uPosition||menu item
   UINT uFlags,               // @pyparm int|uFlags||options
-  HBITMAP hBitmapUnchecked,  // @pyparm int|hBitmapUnchecked||handle to unchecked bitmap
-  HBITMAP hBitmapChecked     // @pyparm int|hBitmapChecked||handle to checked bitmap
+  HBITMAP INPUT_NULLOK,		// @pyparm <o PyGdiHANDLE>|hBitmapUnchecked||handle to unchecked bitmap, can be None
+  HBITMAP INPUT_NULLOK		// @pyparm <o PyGdiHANDLE>|hBitmapChecked||handle to checked bitmap, can be None
 );
 #endif	/* not MS_WINCE */
 
@@ -4901,7 +4957,7 @@ static PyObject *PyPlgBlt(PyObject *self, PyObject *args)
 		&y,			// @pyparm int|YSrc||Top of source rectangle
 		&width,		// @pyparm int|Width||Width of source rectangle
 		&height,	// @pyparm int|Height||Height of source rectangle
-		&obmask,	// @pyparm <o PyHANDLE>|Mask|None|Handle to monochrome bitmap to mask source
+		&obmask,	// @pyparm <o PyGdiHANDLE>|Mask|None|Handle to monochrome bitmap to mask source, can be None
 		&xmask,		// @pyparm int|xMask|0|x pos in mask
 		&ymask))	// @pyparm int|yMask|0|y pos in mask
 		return NULL;
@@ -5149,7 +5205,7 @@ HBRUSH CreateSolidBrush(
 
 // @pyswig <o PyGdiHANDLE>|CreatePatternBrush|Creates a brush using a bitmap as a pattern
 HBRUSH CreatePatternBrush(
-	HBITMAP hbmp);	// @pyparm <o PyHANDLE>|hbmp||Handle to a bitmap
+	HBITMAP hbmp);	// @pyparm <o PyGdiHANDLE>|hbmp||Handle to a bitmap
 
 // @pyswig <o PyGdiHANDLE>|CreateHatchBrush|Creates a hatch brush with specified style and color
 HBRUSH CreateHatchBrush(
@@ -5477,7 +5533,7 @@ int ReleaseDC(
 // @pyswig |CreateCaret|Creates a new caret for a window
 BOOLAPI CreateCaret(
 	HWND hWnd,        // @pyparm int|hWnd||handle to owner window
-	HBITMAP hBitmap,  // @pyparm int|hBitmap||handle to bitmap for caret shape
+	HBITMAP hBitmap,  // @pyparm <o PyGdiHANDLE>|hBitmap||handle to bitmap for caret shape
 	int nWidth,       // @pyparm int|nWidth||caret width
 	int nHeight       // @pyparm int|nHeight||caret height
 ); 
