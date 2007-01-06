@@ -1594,12 +1594,12 @@ static PyObject *PyReadDirectoryChangesW(PyObject *self, PyObject *args)
 	BOOL bWatchSubtree;
 	DWORD filter;
 	DWORD bytes_returned;
-	PyObject *obBuffer;
+	PyObject *obBuffer, *obhandle;
 	PyObject *ret = NULL;
 	PyObject *obOverlapped = Py_None;
 	PyObject *obOverlappedRoutine = Py_None;
-	if (!PyArg_ParseTuple(args, "iOii|OO",
-	                      &handle, // @pyparm int|handle||Handle to the directory to be monitored. This directory must be opened with the FILE_LIST_DIRECTORY access right.
+	if (!PyArg_ParseTuple(args, "OOii|OO:ReadDirectoryChangesW",
+	                      &obhandle, // @pyparm <o PyHANDLE>|handle||Handle to the directory to be monitored. This directory must be opened with the FILE_LIST_DIRECTORY access right.
 	                      &obBuffer, // @pyparm int|size||Size of the buffer to allocate for the results.
 	                      &bWatchSubtree, // @pyparm int|bWatchSubtree||Specifies whether the ReadDirectoryChangesW function will monitor the directory or the directory tree. If TRUE is specified, the function monitors the directory tree rooted at the specified directory. If FALSE is specified, the function monitors only the directory specified by the hDirectory parameter.
 	                      &filter, // @pyparm int|dwNotifyFilter||Specifies filter criteria the function checks to determine if the wait operation has completed. This parameter can be one or more of the FILE_NOTIFY_CHANGE_* values.
@@ -1615,7 +1615,8 @@ static PyObject *PyReadDirectoryChangesW(PyObject *self, PyObject *args)
 	if (obOverlapped && obOverlapped != Py_None)
 		if (!PyWinObject_AsOVERLAPPED(obOverlapped, &pOverlapped))
 			return NULL;
-
+	if (!PyWinObject_AsHANDLE(obhandle, &handle, FALSE))
+		return NULL;
 	// Todo: overlappedRoutine support.
 	if (obOverlappedRoutine != Py_None)
 		return PyErr_Format(PyExc_ValueError, "overlappedRoutine must be None");
@@ -1743,7 +1744,7 @@ PyObject *MySetFilePointer(PyObject *self, PyObject *args)
 	PyObject *obHandle, *obOffset;
 	DWORD iMethod;
 	HANDLE handle;
-	if (!PyArg_ParseTuple(args, "OOl", 
+	if (!PyArg_ParseTuple(args, "OOl:SetFilePointer", 
 			&obHandle,  // @pyparm <o PyHANDLE>|handle||The file to perform the operation on.
 			&obOffset, // @pyparm <o Py_LARGEINTEGER>|offset||Offset to move the file pointer.
 			&iMethod)) // @pyparm int|moveMethod||Starting point for the file pointer move. This parameter can be one of the following values.
@@ -2823,7 +2824,7 @@ py_SetVolumeMountPoint(PyObject *self, PyObject *args)
 	if ((pfnSetVolumeMountPointW==NULL)||(pfnGetVolumeNameForVolumeMountPointW==NULL))
 		return PyErr_Format(PyExc_NotImplementedError,"SetVolumeMountPoint not supported by this version of Windows");
 
-    if (!PyArg_ParseTuple(args,"OO", &mount_point_obj, &volume_obj))
+	if (!PyArg_ParseTuple(args,"OO:SetVolumeMountPoint", &mount_point_obj, &volume_obj))
         return NULL;
 
     if (!PyWinObject_AsWCHAR(mount_point_obj, &mount_point, false)){
@@ -2872,7 +2873,7 @@ py_DeleteVolumeMountPoint(PyObject *self, PyObject *args)
     if (pfnDeleteVolumeMountPointW==NULL)
         return PyErr_Format(PyExc_NotImplementedError,"DeleteVolumeMountPoint not supported by this version of Windows");
 
-    if (!PyArg_ParseTuple(args,"O", &mount_point_obj))
+	if (!PyArg_ParseTuple(args,"O:DeleteVolumeMountPoint", &mount_point_obj))
         return NULL;
 
     if (!PyWinObject_AsWCHAR(mount_point_obj, &mount_point, false)){
@@ -2920,7 +2921,7 @@ py_CreateHardLink(PyObject *self, PyObject *args)
 
     if (pfnCreateHardLinkW==NULL)
         return PyErr_Format(PyExc_NotImplementedError,"CreateHardLink not supported by this version of Windows");
-    if (!PyArg_ParseTuple(args,"OO|O", &new_file_obj, &existing_file_obj, &sa_obj))
+	if (!PyArg_ParseTuple(args,"OO|O:CreateHardLink", &new_file_obj, &existing_file_obj, &sa_obj))
         return NULL;
 
     if (!PyWinObject_AsWCHAR(new_file_obj, &new_file, false)){
@@ -3032,7 +3033,7 @@ py_EncryptFile(PyObject *self, PyObject *args)
     WCHAR *fname = NULL;
 	if (pfnEncryptFile==NULL)
 		return PyErr_Format(PyExc_NotImplementedError,"EncryptFile not supported by this version of Windows");
-    if (!PyArg_ParseTuple(args,"O", &obfname))
+	if (!PyArg_ParseTuple(args,"O:EncryptFile", &obfname))
         return NULL;
     if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
         return NULL;
@@ -3079,7 +3080,7 @@ py_EncryptionDisable(PyObject *self, PyObject *args)
 	BOOL Disable;
 	if (pfnEncryptionDisable==NULL)
 		return PyErr_Format(PyExc_NotImplementedError,"EncryptionDisable not supported by this version of Windows");
-    if (!PyArg_ParseTuple(args,"Oi", &obfname, &Disable))
+	if (!PyArg_ParseTuple(args,"Oi:EncryptionDisable", &obfname, &Disable))
         return NULL;
     if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
         return NULL;
@@ -3107,7 +3108,7 @@ py_FileEncryptionStatus(PyObject *self, PyObject *args)
 	DWORD Status=0;
 	if (pfnFileEncryptionStatus==NULL)
 		return PyErr_Format(PyExc_NotImplementedError,"FileEncryptionStatus not supported by this version of Windows");
-    if (!PyArg_ParseTuple(args,"O", &obfname))
+	if (!PyArg_ParseTuple(args,"O:FileEncryptionStatus", &obfname))
         return NULL;
     if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
         return NULL;
@@ -3537,9 +3538,14 @@ py_BackupRead(PyObject *self, PyObject *args)
 	DWORD bytes_requested, bytes_read;
 	BOOL bAbort,bProcessSecurity;
 	LPVOID ctxt;
-	PyObject *obbuf=NULL, *obbufout=NULL;
+	PyObject *obbuf=NULL, *obbufout=NULL, *obh, *obctxt;
 
-	if (!PyArg_ParseTuple(args, "llOlll", &h, &bytes_requested, &obbuf, &bAbort, &bProcessSecurity, &ctxt))
+	if (!PyArg_ParseTuple(args, "OlOllO:BackupRead", &obh, &bytes_requested, &obbuf, &bAbort, &bProcessSecurity, &obctxt))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obh, &h, FALSE))
+		return NULL;
+	ctxt=PyLong_AsVoidPtr(obctxt);
+	if ((ctxt==NULL) && PyErr_Occurred())
 		return NULL;
 	if (obbuf==Py_None){
 		obbufout=PyBuffer_New(bytes_requested); // ??? any way to create a writable buffer from Python level ???
@@ -3581,8 +3587,13 @@ py_BackupSeek(PyObject *self, PyObject *args)
 	ULARGE_INTEGER bytes_to_seek;
 	ULARGE_INTEGER bytes_moved;
 	LPVOID ctxt;
-	PyObject *obbytes_to_seek;
-	if (!PyArg_ParseTuple(args,"lOl", &h, &obbytes_to_seek, &ctxt))
+	PyObject *obbytes_to_seek, *obh, *obctxt;
+	if (!PyArg_ParseTuple(args,"OOO:BackupSeek", &obh, &obbytes_to_seek, &obctxt))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obh, &h, FALSE))
+		return NULL;
+	ctxt=PyLong_AsVoidPtr(obctxt);
+	if ((ctxt==NULL) && PyErr_Occurred())
 		return NULL;
 	if (!PyWinObject_AsULARGE_INTEGER(obbytes_to_seek, &bytes_to_seek))
 		return NULL;
@@ -3618,9 +3629,14 @@ py_BackupWrite(PyObject *self, PyObject *args)
 	DWORD bytes_to_write, bytes_written;
 	BOOL bAbort, bProcessSecurity;
 	LPVOID ctxt;
-	PyObject *obbuf;
+	PyObject *obbuf, *obh, *obctxt;
 
-	if (!PyArg_ParseTuple(args, "llOlll", &h, &bytes_to_write, &obbuf, &bAbort, &bProcessSecurity, &ctxt))
+	if (!PyArg_ParseTuple(args, "OlOllO:BackupWrite", &obh, &bytes_to_write, &obbuf, &bAbort, &bProcessSecurity, &obctxt))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obh, &h, FALSE))
+		return NULL;
+	ctxt=PyLong_AsVoidPtr(obctxt);
+	if ((ctxt==NULL) && PyErr_Occurred())
 		return NULL;
 	if (PyObject_AsReadBuffer(obbuf, (const void **)&buf, &buflen)==-1)
 		return NULL;
