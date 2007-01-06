@@ -3569,7 +3569,7 @@ py_BackupRead(PyObject *self, PyObject *args)
 		Py_DECREF(obbufout);
 		return NULL;
 		}
-	return Py_BuildValue("lNl", bytes_read, obbufout, ctxt);
+	return Py_BuildValue("lNN", bytes_read, obbufout, PyLong_FromVoidPtr(ctxt));
 }
 
 // @pyswig long|BackupSeek|Seeks forward in a file stream
@@ -3647,7 +3647,7 @@ py_BackupWrite(PyObject *self, PyObject *args)
 		PyWin_SetAPIError("BackupWrite");
 		return NULL;
 		}
-	return Py_BuildValue("ll", bytes_written, ctxt);
+	return Py_BuildValue("lN", bytes_written, PyLong_FromVoidPtr(ctxt));
 }
 
 // @pyswig |SetFileShortName|Set the 8.3 name of a file
