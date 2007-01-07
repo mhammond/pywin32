@@ -208,23 +208,49 @@ PyObject *PyWinObject_FromLSA_HANDLE(LSA_HANDLE h)
 
 BOOL PyWinObject_CloseLSA_HANDLE(PyObject *obHandle)
 {
-	BOOL ok;
-	if (PyHANDLE_Check(obHandle))
-		// Python error already set.
-		ok = ((PyLSA_HANDLE *)obHandle)->Close();
-	else if PyInt_Check(obHandle) {
-		NTSTATUS err;
-		err=LsaClose((HKEY)PyInt_AsLong(obHandle));
-		ok = err == STATUS_SUCCESS;
-		if (!ok)
-			PyWin_SetAPIError("LsaClose",LsaNtStatusToWinError(err));
-	} else {
-		PyErr_SetString(PyExc_TypeError, "A handle must be a LSA_HANDLE object or an integer");
-		ok = FALSE;
-	}
-	return ok;
+	if (PyHANDLE_Check(obHandle)){
+		// If it's a PyHANDLE, make sure it's the right type, since any other handle's Close method could be called successfully
+		if (strcmp(((PyHANDLE *)obHandle)->GetTypeName(),"PyLSA_HANDLE")!=0){
+			PyErr_SetString(PyExc_TypeError,"PyHANDLE passed to LsaClose must be a PyLSA_HANDLE");
+			return FALSE;
+			}
+		return ((PyHANDLE *)obHandle)->Close();
+		}
+
+	HANDLE lsahandle;
+	NTSTATUS err;
+	if (!PyWinObject_AsHANDLE(obHandle, &lsahandle, FALSE))
+		return FALSE;
+	err=LsaClose(lsahandle);
+	if (err==STATUS_SUCCESS)
+		return TRUE;
+	PyWin_SetAPIError("LsaClose",LsaNtStatusToWinError(err));
+	return FALSE;
 }
 
+BOOL PyWinObject_CloseLsaLogon_HANDLE(PyObject *obHandle)
+{
+	if (PyHANDLE_Check(obHandle)){
+		// If it's a PyHANDLE, make sure it's the right type, since any other handle's Close method could be called successfully
+		if (strcmp(((PyHANDLE *)obHandle)->GetTypeName(),"PyLsaLogon_HANDLE")!=0){
+			PyErr_SetString(PyExc_TypeError,"PyHANDLE passed to LsaDeregisterLogonProcess must be a PyLsaLogon_HANDLE");
+			return FALSE;
+			}
+		return ((PyHANDLE *)obHandle)->Close();
+		}
+	
+	HANDLE lsahandle;
+	NTSTATUS err;
+	if (!PyWinObject_AsHANDLE(obHandle, &lsahandle, FALSE))
+		return FALSE;
+	// function pointer checked in PyLsaDeregisterLogonProcess
+	err=(*pfnLsaDeregisterLogonProcess)(lsahandle);
+	if (err==STATUS_SUCCESS)
+		return TRUE;
+	PyWin_SetAPIError("LsaDeregisterLogonProcess",LsaNtStatusToWinError(err));
+	return FALSE;
+}		
+	
 // And re-define, so PyHANDLE in function sigs gets the PyHANDLE treatment.
 #define PyHANDLE HANDLE
 
@@ -1466,7 +1492,7 @@ static PyObject *PyAdjustTokenGroups(PyObject *self, PyObject *args)
 	BOOL ok = TRUE, reset;
 	DWORD reqdbufsize=0, origgroupcnt=1, origbufsize, err;
 
-	if (!PyArg_ParseTuple(args, "OiO", 
+	if (!PyArg_ParseTuple(args, "OiO:AdjustTokenGroups", 
 		&obHandle, // @pyparm <o PyHANDLE>|obHandle||The handle to access token to be modified
 		&reset,    // @pyparm boolean|ResetToDefault||Sets groups to default enabled/disabled states,
 		&obtg))     // @pyparm <o PyTOKEN_GROUPS>|NewState||Groups and attributes to be set for token
@@ -1525,7 +1551,7 @@ static PyObject *PyGetTokenInformation(PyObject *self, PyObject *args)
 	DWORD dwordbuf;
 	void *buf = NULL;
 	TOKEN_INFORMATION_CLASS typ;
-	if (!PyArg_ParseTuple(args, "Ol", 
+	if (!PyArg_ParseTuple(args, "Ol:GetTokenInformation", 
 		&obHandle, // @pyparm <o PyHANDLE>|handle||The handle to query the information for.
 		(long *)&typ)) // @pyparm int|TokenInformationClass||Specifies a value from the TOKEN_INFORMATION_CLASS enumerated type identifying the type of information the function retrieves.
 		return NULL;
@@ -1688,7 +1714,7 @@ BOOLAPI OpenThreadToken(
 static PyObject *PySetThreadToken(PyObject *self, PyObject *args)
 {
 	PyObject *obThread, *obToken;
-	if (!PyArg_ParseTuple(args, "OO", 
+	if (!PyArg_ParseTuple(args, "OO:SetThreadToken", 
 		&obThread,	// @pyparm <o PyHANDLE>|Thread||Handle to a thread.  Use None to indicate calling thread.
 		&obToken))	// @pyparm <o PyHANDLE>|Token||Handle to an impersonation token.  Use None to end impersonation.
 		return NULL;
@@ -1727,7 +1753,7 @@ static PyObject *MyGetFileSecurity(PyObject *self, PyObject *args)
 
 	// @pyparm string|filename||The name of the file
 	// @pyparm int|info|OWNER_SECURITY_INFORMATION \| GROUP_SECURITY_INFORMATION \| DACL_SECURITY_INFORMATION \| SACL_SECURITY_INFORMATION|Flags that specify the information requested.
-	if (!PyArg_ParseTuple(args, "O|l", &obFname, &info))
+	if (!PyArg_ParseTuple(args, "O|l:GetFileSecurity", &obFname, &info))
 		return NULL;
 
 	PSECURITY_DESCRIPTOR psd = NULL;
@@ -1771,7 +1797,7 @@ static PyObject *MySetFileSecurity(PyObject *self, PyObject *args)
 	// @pyparm string|filename||The name of the file
 	// @pyparm int|info||The type of information to set.
 	// @pyparm <o PySECURITY_DESCRIPTOR>|security||The security information
-	if (!PyArg_ParseTuple(args, "OlO", &obFname, &info, &obsd))
+	if (!PyArg_ParseTuple(args, "OlO:SetFileSecurity", &obFname, &info, &obsd))
 		return NULL;
 
 	TCHAR *fname = NULL;
@@ -1804,7 +1830,7 @@ static PyObject *MyGetUserObjectSecurity(PyObject *self, PyObject *args)
 
 	// @pyparm <o PyHANDLE>|handle||The handle to the object
 	// @pyparm int|info|OWNER_SECURITY_INFORMATION \| GROUP_SECURITY_INFORMATION \| DACL_SECURITY_INFORMATION \| SACL_SECURITY_INFORMATION|Flags that specify the information requested.
-	if (!PyArg_ParseTuple(args, "O|l", &obHandle, &info))
+	if (!PyArg_ParseTuple(args, "O|l:GetUserObjectSecurity", &obHandle, &info))
 		return NULL;
 
 	SECURITY_DESCRIPTOR *psd = NULL;
@@ -1847,7 +1873,7 @@ static PyObject *MySetUserObjectSecurity(PyObject *self, PyObject *args)
 	// @pyparm <o PyHANDLE>|handle||The handle to an object for which security information will be set.
 	// @pyparm int|info||The type of information to set - combination of SECURITY_INFORMATION values
 	// @pyparm <o PySECURITY_DESCRIPTOR>|security||The security information
-	if (!PyArg_ParseTuple(args, "OlO", &obHandle, &info, &obsd))
+	if (!PyArg_ParseTuple(args, "OlO:SetUserObjectSecurity", &obHandle, &info, &obsd))
 		return NULL;
 
 	HANDLE handle;
@@ -1879,7 +1905,7 @@ static PyObject *MyGetKernelObjectSecurity(PyObject *self, PyObject *args)
 
 	// @pyparm <o PyHANDLE>|handle||The handle to the object
 	// @pyparm int|info|OWNER_SECURITY_INFORMATION \| GROUP_SECURITY_INFORMATION \| DACL_SECURITY_INFORMATION \| SACL_SECURITY_INFORMATION|Flags that specify the information requested.
-	if (!PyArg_ParseTuple(args, "O|l", &obHandle, &info))
+	if (!PyArg_ParseTuple(args, "O|l:GetKernelObjectSecurity", &obHandle, &info))
 		return NULL;
 
 	SECURITY_DESCRIPTOR *psd = NULL;
@@ -1922,7 +1948,7 @@ static PyObject *MySetKernelObjectSecurity(PyObject *self, PyObject *args)
 	// @pyparm <o PyHANDLE>|handle||The handle to an object for which security information will be set.
 	// @pyparm int|info||The type of information to set - combination of SECURITY_INFORMATION values
 	// @pyparm <o PySECURITY_DESCRIPTOR>|security||The security information
-	if (!PyArg_ParseTuple(args, "OlO", &obHandle, &info, &obsd))
+	if (!PyArg_ParseTuple(args, "OlO:SetKernelObjectSecurity", &obHandle, &info, &obsd))
 		return NULL;
 
 	HANDLE handle;
@@ -1959,7 +1985,7 @@ static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 	void *buf = NULL;
 	TOKEN_INFORMATION_CLASS typ;
 
-	if (!PyArg_ParseTuple(args, "OiO", 
+	if (!PyArg_ParseTuple(args, "OiO:SetTokenInformation", 
 		&obth,        // @pyparm <o PyHANDLE>|handle||Handle to an access token to be modified
 		(long *)&typ, // @pyparm int|TokenInformationClass||Specifies a value from the TOKEN_INFORMATION_CLASS enumerated type identifying the type of information the function retrieves.
 		&obinfo))     // @pyparm <o PyACL>|obinfo||PyACL, PySID, or int depending on type parm
@@ -2049,7 +2075,7 @@ static PyObject *PyLsaOpenPolicy(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig |LsaClose|Closes a policy handle created by GetPolicyHandle
+// @pyswig |LsaClose|Closes a policy handle created by <om win32security.LsaOpenPolicy>
 %native(LsaClose) PyLsaClose;
 %{
 static PyObject *PyLsaClose(PyObject *self, PyObject *args)
@@ -2077,7 +2103,7 @@ static PyObject *PyLsaQueryInformationPolicy(PyObject *self, PyObject *args)
 	NTSTATUS err;
 	void* buf = NULL;
 	POLICY_INFORMATION_CLASS info_class;
-	// @pyparm <o PyHANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
+	// @pyparm <o PyLSA_HANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
 	// @pyparm int|InformationClass||POLICY_INFORMATION_CLASS value 
 	if (!PyArg_ParseTuple(args, "Oi:LsaQueryInformationPolicy", &obhandle, (long *)&info_class))
 		return NULL; 
@@ -2193,7 +2219,7 @@ static PyObject *PyLsaSetInformationPolicy(PyObject *self, PyObject *args)
 	NTSTATUS err;
 	void* buf = NULL;
 	POLICY_INFORMATION_CLASS info_class;
-	// @pyparm <o PyHANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
+	// @pyparm <o PyLSA_HANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
 	// @pyparm int|InformationClass||POLICY_INFORMATION_CLASS value
 	// @pyparm object|Information||Type is dependent on InformationClass
 	if (!PyArg_ParseTuple(args, "OiO:PyLsaSetInformationPolicy", &obhandle, (long *)&info_class, &obinfo))
@@ -2259,7 +2285,7 @@ static PyObject *PyLsaSetInformationPolicy(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig |LsaAddAccountRights|Adds a list of privliges to an account - account is created if it doesn't already exist
+// @pyswig |LsaAddAccountRights|Adds a list of privileges to an account - account is created if it doesn't already exist
 %native(LsaAddAccountRights) PyLsaAddAccountRights;
 %{
 static PyObject *PyLsaAddAccountRights(PyObject *self, PyObject *args)
@@ -2271,7 +2297,7 @@ static PyObject *PyLsaAddAccountRights(PyObject *self, PyObject *args)
 	DWORD priv_cnt=0,priv_ind=0;
 	HANDLE hpolicy;
 	NTSTATUS err;
-	// @pyparm <o PyHANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
+	// @pyparm <o PyLSA_HANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
 	// @pyparm <o PySID>|AccountSid||Account to which privs will be added
 	// @pyparm (str/unicode,...)|UserRights||List of privilege names (SE_*_NAME unicode constants)
 	if (!PyArg_ParseTuple(args, "OOO:LsaAddAccountRights", &policy_handle, &obsid, &privs))
@@ -2336,7 +2362,7 @@ static PyObject *PyLsaRemoveAccountRights(PyObject *self, PyObject *args)
 	DWORD priv_cnt=0,priv_ind=0;
 	HANDLE hpolicy;
 	NTSTATUS err;
-	// @pyparm <o PyHANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
+	// @pyparm <o PyLSA_HANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
 	// @pyparm <o PySID>|AccountSid||Account whose privileges will be removed
 	// @pyparm int|AllRights||Boolean value indicating if all privs should be removed from account
 	// @pyparm (str/unicode,...)|UserRights||List of privilege names to be removed (SE_*_NAME unicode constants)
@@ -2401,7 +2427,7 @@ static PyObject *PyLsaEnumerateAccountRights(PyObject *self, PyObject *args)
 	ULONG priv_cnt=0,priv_ind=0;
 	HANDLE hpolicy;
 	NTSTATUS err;
-	// @pyparm <o PyHANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
+	// @pyparm <o PyLSA_HANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
 	// @pyparm <o PySID>|AccountSid||Security identifier of account for which to list privs
 	if (!PyArg_ParseTuple(args, "OO:LsaEnumerateAccountRights", &policy_handle, &obsid))
 		return NULL;
@@ -2443,7 +2469,7 @@ static PyObject *PyLsaEnumerateAccountsWithUserRight(PyObject *self, PyObject *a
 	void *buf_start=NULL;
 	NTSTATUS err;
 	DWORD win32err;
-	// @pyparm <o PyHANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
+	// @pyparm <o PyLSA_HANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
 	// @pyparm str/unicode|UserRight||Name of privilege (SE_*_NAME unicode constant)
 	if (!PyArg_ParseTuple(args, "OO:LsaEnumerateAccountsWithUserRight", &policy_handle, &obpriv))
 		return NULL;
@@ -2590,7 +2616,7 @@ static PyObject *PyConvertStringSecurityDescriptorToSecurityDescriptor(PyObject 
 %{
 static PyObject *PyLsaStorePrivateData(PyObject *self, PyObject *args)
 {
-	// @pyparm <o PyHANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
+	// @pyparm <o PyLSA_HANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
     // @pyparm string|KeyName||Registry key in which to store data
     // @pyparm <o PyUNICODE>|PrivateData||Unicode string to be encrypted and stored
 	PyObject *obpolicyhandle=NULL, *obkeyname=NULL, *obprivatedata=NULL; 
@@ -2635,7 +2661,7 @@ static PyObject *PyLsaStorePrivateData(PyObject *self, PyObject *args)
 %{
 static PyObject *PyLsaRetrievePrivateData(PyObject *self, PyObject *args)
 {
-	// @pyparm <o PyHANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
+	// @pyparm <o PyLSA_HANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
     // @pyparm string|KeyName||Registry key to read
 	PyObject *obpolicyhandle=NULL, *obkeyname=NULL, *obprivatedata=NULL; 
 	PyObject * ret=NULL;
@@ -2905,7 +2931,7 @@ static PyObject *PyCreateRestrictedToken(PyObject *self, PyObject *args)
 	BOOL bsuccess=TRUE;
 	
 	CHECK_PFN(CreateRestrictedToken);
-	if (!PyArg_ParseTuple(args,"OlOOO",
+	if (!PyArg_ParseTuple(args,"OlOOO:CreateRestrictedToken",
 		&obExistingTokenHandle,	// @pyparm <o PyHANDLE>|ExistingTokenHandle||Handle to an access token (see <om win32security.LogonUser>,<om win32security.OpenProcessToken>
 		&Flags,					// @pyparm int|Flags||Valid values are zero or a combination of DISABLE_MAX_PRIVILEGE and SANDBOX_INERT
 		&obSidsToDisable,		// @pyparm (<o PySID_AND_ATTRIBUTES>,...)|SidsToDisable||Can be None, otherwise must be a sequence of <o PySID_AND_ATTRIBUTES> tuples (attributes must be 0)
@@ -2981,18 +3007,14 @@ static PyObject *PyLsaConnectUntrusted(PyObject *self, PyObject *args)
 static PyObject *PyLsaDeregisterLogonProcess(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(LsaDeregisterLogonProcess);
-	HANDLE lsahandle;
-	NTSTATUS err;
-	// @pyparm int|LsaHandle||An Lsa handle as returned by LsaConnectUntrusted or LsaRegisterLogonProcess
-	if (!PyArg_ParseTuple(args, "l:LsaDeregisterLogonProcess",&lsahandle))
+	PyObject *obhandle;
+	// @pyparm <o PyLsaLogon_HANDLE>|LsaHandle||An Lsa handle as returned by <om win32security.LsaConnectUntrusted> or <om win32security.LsaRegisterLogonProcess>
+	if (!PyArg_ParseTuple(args, "O:LsaDeregisterLogonProcess",&obhandle))
 		return NULL;
-	err=(*pfnLsaDeregisterLogonProcess)(lsahandle);
-	if (err==STATUS_SUCCESS){
-		Py_INCREF(Py_None);
-		return Py_None;
-		}
-	PyWin_SetAPIError("LsaDeregisterLogonProcess",LsaNtStatusToWinError(err));
-	return NULL;
+	if (!PyWinObject_CloseLsaLogon_HANDLE(obhandle))
+		return NULL;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 %}
 
@@ -3005,13 +3027,16 @@ static PyObject *PyLsaLookupAuthenticationPackage(PyObject *self, PyObject *args
 
 	NTSTATUS err;
 	HANDLE lsahandle;
+	PyObject *obhandle;
 	LSA_STRING packagename;
 	ULONG packageid;
-	// @pyparm int|<o PyLsaLogon_HANDLE>||An Lsa handle as returned by <om win32security.LsaConnectUntrusted> or <om win32security.LsaRegisterLogonProcess>
+	// @pyparm <o PyLsaLogon_HANDLE>|LsaHandle||An Lsa handle as returned by <om win32security.LsaConnectUntrusted> or <om win32security.LsaRegisterLogonProcess>
 	// @pyparm string|PackageName||Name of security package to be identified
-
-	if (!PyArg_ParseTuple(args,"ls#:LsaLookupAuthenticationPackage", &lsahandle, &packagename.Buffer, &packagename.Length))
+	if (!PyArg_ParseTuple(args,"Os#:LsaLookupAuthenticationPackage", &obhandle, &packagename.Buffer, &packagename.Length))
 		return NULL;
+	if (!PyWinObject_AsHANDLE(obhandle, &lsahandle, FALSE))
+		return NULL;
+
 	packagename.MaximumLength=packagename.Length+1;
 	err=(*pfnLsaLookupAuthenticationPackage)(lsahandle, &packagename, &packageid);
 	if (err!=STATUS_SUCCESS)
@@ -3185,7 +3210,7 @@ static PyObject *PyAcquireCredentialsHandle(PyObject *self, PyObject *args)
 	TimeStamp Expiry;
 	SECURITY_STATUS err;
 
-	if (!PyArg_ParseTuple(args,"OOlOO|OO",
+	if (!PyArg_ParseTuple(args,"OOlOO|OO:AcquireCredentialsHandle",
 		&obPrincipal,						// @pyparm str/unicode|Principal||Use None for current security context
 		&obPackage,							// @pyparm str/unicode|Package||Name of security package that credentials will be used with
 		&CredentialUse,						// @pyparm int|CredentialUse||Intended use of requested credentials, SECPKG_CRED_INBOUND, SECPKG_CRED_OUTBOUND, or SECPKG_CRED_BOTH
@@ -3244,7 +3269,7 @@ static PyObject *PyInitializeSecurityContext(PyObject *self, PyObject *args)
 	TimeStamp expiry;
 	SECURITY_STATUS	err;
 	PyObject *ret=NULL;
-	if (!PyArg_ParseTuple(args,"OOOllOOO",
+	if (!PyArg_ParseTuple(args,"OOOllOOO:InitializeSecurityContext",
 		&obcredhandle,			// @pyparm <o PyCredHandle>|Credential||A credentials handle as returned by <om win32security.AcquireCredentialsHandle>
 		&obctxt,				// @pyparm <o PyCtxtHandle>|Context||Use None on initial call, then handle returned in NewContext thereafter
 		&obtargetname,			// @pyparm str/unicode|TargetName||Target of context, security package specific - Use None with NTLM
@@ -3296,7 +3321,7 @@ static PyObject *PyAcceptSecurityContext(PyObject *self, PyObject *args)
 	SECURITY_STATUS	err;
 	PyObject *ret=NULL;
 
-	if (!PyArg_ParseTuple(args,"OOOllOO",
+	if (!PyArg_ParseTuple(args,"OOOllOO:AcceptSecurityContext",
 		&obcredhandle,			// @pyparm <o PyCredHandle>|Credential||Handle to server's credentials (see AcquireCredentialsHandle)
 		&obctxt,				// @pyparm <o PyCtxtHandle>|Context||Use None on initial call, then handle returned in NewContext thereafter
 		&obsecbufferdesc,		// @pyparm <o PySecBufferDesc>|pInput||Data buffer received from client
@@ -3373,13 +3398,16 @@ static PyObject *PyLsaCallAuthenticationPackage(PyObject *self, PyObject *args)
 	CHECK_PFN(LsaCallAuthenticationPackage);
 	CHECK_PFN(LsaFreeReturnBuffer);
 	HANDLE lsahandle;
+	PyObject *obhandle;
 	NTSTATUS err, protocol_status;
 	ULONG pkgid, inputbuflen, outputbuflen, msgtype;
 	PVOID inputbuf=NULL, outputbuf=NULL;
 	PyObject *ret=NULL, *obinputbuf;
-	if (!PyArg_ParseTuple(args, "lllO:LsaCallAuthenticationPackage", &lsahandle, &pkgid, &msgtype, &obinputbuf))
+	if (!PyArg_ParseTuple(args, "OllO:LsaCallAuthenticationPackage", &obhandle, &pkgid, &msgtype, &obinputbuf))
 		return NULL;
-		
+	if (!PyWinObject_AsHANDLE(obhandle, &lsahandle, FALSE))
+		return NULL;
+
 	// Message-specific input
 	// @flagh MessageType|Input type
 	switch (msgtype){
@@ -3513,7 +3541,7 @@ static PyObject *PyTranslateName(PyObject *self, PyObject *args)
     WCHAR *szAcctName = NULL;
     WCHAR *buf = NULL;
     BOOL ok;
-    if (!PyArg_ParseTuple(args, "Oii|l",
+    if (!PyArg_ParseTuple(args, "Oii|l:TranslateName",
             &obAcctName, // @pyparm <o PyUnicode>|accountName||object name
             &format, // @pyparm int|accountNameFormat||A value from the EXTENDED_NAME_FORMAT enumeration type indicating the format of the accountName name. 
             &desiredFormat, // @pyparm int|accountNameFormat||A value from the EXTENDED_NAME_FORMAT enumeration type indicating the format of the desired name.
@@ -3556,7 +3584,7 @@ static PyObject *PyCreateWellKnownSid(PyObject *self, PyObject *args)
     if (outsid==NULL)
 		return PyErr_Format(PyExc_MemoryError, "CreateWellKnownSid: Unable to allocate %d bytes", bufsize);
 		
-    if (!PyArg_ParseTuple(args, "k|O", 
+	if (!PyArg_ParseTuple(args, "k|O:CreateWellKnownSid", 
 		&sidtype,		// @pyparm int|WellKnownSidType||One of the Win*Sid constants
 		&obDomainSid))	// @pyparm <o PySID>|DomainSid|None|Domain for the new SID, or None for local machine
 		return NULL;
@@ -3582,7 +3610,7 @@ static PyObject *PyMapGenericMask(PyObject *self, PyObject *args)
 	// @pyparm int|AccessMask||A bitmask of generic rights to be interpreted according to GenericMapping
 	// @pyparm (int,int,int,int)|GenericMapping||A tuple of 4 bitmasks (GenericRead, GenericWrite, GenericExecute, GenericAll)
 	// containing the standard and specific rights that correspond to the generic rights.
-	if (!PyArg_ParseTuple(args,"k(kkkk)", &mask, &mapping.GenericRead, &mapping.GenericWrite,
+	if (!PyArg_ParseTuple(args,"k(kkkk):MapGenericMask", &mask, &mapping.GenericRead, &mapping.GenericWrite,
 		&mapping.GenericExecute, &mapping.GenericAll))
 		return NULL;
 	Py_BEGIN_ALLOW_THREADS
