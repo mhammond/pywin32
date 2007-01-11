@@ -9,7 +9,10 @@
 PyObject *PyWinMethod_NewHANDLE(PyObject *self, PyObject *args)
 {
 	HANDLE hInit;
-	if (!PyArg_ParseTuple(args, "|i:HANDLE", &hInit))
+	PyObject *obhInit=Py_None;
+	if (!PyArg_ParseTuple(args, "|O:HANDLE", &obhInit))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhInit, &hInit, TRUE))
 		return NULL;
 	return new PyHANDLE(hInit);
 }
@@ -26,7 +29,13 @@ BOOL PyWinObject_AsHANDLE(PyObject *ob, HANDLE *pHANDLE, BOOL bNoneOK /*= TRUE*/
 		PyHANDLE *pH = (PyHANDLE *)ob;
 		*pHANDLE = (HANDLE)(*pH);
 	} else{ // Support integer objects for b/w compat.
+		// Can't use PyLong_AsVoidPtr here, since it calls PyLong_AsLong.  See
+		// http://sourceforge.net/tracker/?func=detail&atid=105470&aid=1630863&group_id=5470
+#ifdef _WIN64
+		*pHANDLE = (HANDLE)PyLong_AsLongLong(ob);
+#else
 		*pHANDLE = (HANDLE)PyInt_AsLong(ob);
+#endif
 		if ((*pHANDLE==(HANDLE)-1)&&PyErr_Occurred()){
 			PyErr_SetString(PyExc_TypeError, "The object is not a PyHANDLE object");
 			return FALSE;
@@ -38,6 +47,18 @@ BOOL PyWinObject_AsHANDLE(PyObject *ob, HANDLE *pHANDLE, BOOL bNoneOK /*= TRUE*/
 PyObject *PyWinObject_FromHANDLE(HANDLE h)
 {
 	return new PyHANDLE(h);
+}
+
+// For handles that aren't returned as PyHANDLE or a subclass thereof (HDC, HWND, etc).
+// Return as python ints or longs 
+// ??? Maybe make this a macro to avoid extra function call ???
+PyObject *PyWinLong_FromHANDLE(HANDLE h)
+{
+#ifdef _WIN64
+	return PyLong_FromLongLong((long long)h);
+#else
+	return PyInt_FromLong((long)h);
+#endif
 }
 
 BOOL PyWinObject_CloseHANDLE(PyObject *obHandle)
@@ -80,9 +101,10 @@ PyObject *PyHANDLE::Detach(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, ":Detach"))
 		return NULL;
 	PyHANDLE *pThis = (PyHANDLE *)self;
-	long ret = (long)pThis->m_handle;
-	pThis->m_handle = 0;
-	return PyInt_FromLong(ret);
+	PyObject *ret = PyWinLong_FromHANDLE(pThis->m_handle);
+	if (ret!=NULL)
+		pThis->m_handle = 0;
+	return ret;
 }
 
 // @object PyHANDLE|A Python object, representing a win32 HANDLE.
@@ -121,7 +143,7 @@ static PyNumberMethods PyHANDLE_NumberMethods =
 	PyHANDLE::binaryFailureFunc,	/* nb_or */
 	0,							/* nb_coerce (allowed to be zero) */
 	PyHANDLE::intFunc,			/* nb_int */
-	PyHANDLE::unaryFailureFunc,	/* nb_long */
+	PyHANDLE::longFunc,			/* nb_long */
 	PyHANDLE::unaryFailureFunc,	/* nb_float */
 	PyHANDLE::unaryFailureFunc,	/* nb_oct */
 	PyHANDLE::unaryFailureFunc,	/* nb_hex */
@@ -232,21 +254,18 @@ int PyHANDLE::compare(PyObject *ob)
 		(m_handle < ((PyHANDLE *)ob)->m_handle ? -1 : 1);
 }
 
-long PyHANDLE::asLong(void)
-{
-	return (long)m_handle;
-}
-
 // @pymethod |PyHANDLE|__int__|Used when the handle as an integer is required.
 // @comm To get the underling win32 handle from a PyHANDLE object, use int(handleObject)
 PyObject * PyHANDLE::intFunc(PyObject *ob)
 {
-	long result = ((PyHANDLE *)ob)->asLong();
-	/* PyHANDLE::asLong sets no errors 
-	if ( result == -1 )
-		return NULL;
-	*/
-	return PyInt_FromLong(result);
+	return PyWinLong_FromHANDLE(((PyHANDLE *)ob)->m_handle);
+}
+
+// @pymethod |PyHANDLE|__long__|Used when the handle as an integer is required.
+// @comm To get the underling win32 handle from a PyHANDLE object, use long(handleObject)
+PyObject * PyHANDLE::longFunc(PyObject *ob)
+{
+	return PyWinLong_FromHANDLE(((PyHANDLE *)ob)->m_handle);
 }
 
 // @pymethod |PyHANDLE|__print__|Used when the HANDLE object is printed.
@@ -284,7 +303,7 @@ long PyHANDLE::hash(void)
 int PyHANDLE::print(FILE *fp, int flags)
 {
 	TCHAR resBuf[160];
-	wsprintf(resBuf, _T("<%hs at %ld (%ld)>"), GetTypeName(), (long)this, (long)m_handle);
+	wsprintf(resBuf, _T("<%hs at %Id (%Id)>"), GetTypeName(), this, m_handle);
     // ### ACK! Python uses a non-debug runtime. We can't use stream
 	// ### functions when in DEBUG mode!!  (we link against a different
 	// ### runtime library)  Hack it by getting Python to do the print!
@@ -305,7 +324,7 @@ int PyHANDLE::print(FILE *fp, int flags)
 PyObject * PyHANDLE::asStr(void)
 {
 	TCHAR resBuf[160];
-	wsprintf(resBuf, _T("<%s:%ld>"), GetTypeName(), (long)m_handle);
+	wsprintf(resBuf, _T("<%s:%Id>"), GetTypeName(), m_handle);
 	return PyString_FromTCHAR(resBuf);
 }
 
@@ -318,7 +337,7 @@ PyObject *PyHANDLE::getattr(PyObject *self, char *name)
 		return res;
 	PyErr_Clear();
 	if (strcmp(name, "handle")==0)
-		return PyInt_FromLong((long)((PyHANDLE *)self)->m_handle);
+		return PyWinLong_FromHANDLE(((PyHANDLE *)self)->m_handle);
 	return PyMember_Get((char *)self, memberlist, name);
 }
 
@@ -366,7 +385,7 @@ char *failMsg = "bad operand type";
 
 
 // A Registry handle.
-// @object PyHKEY|A Python object, representing a win32 HKEY (a HANDLE> to a registry key).
+// @object PyHKEY|A Python object, representing a win32 HKEY (a HANDLE to a registry key).
 // See the <o PyHANDLE> object for more details
 BOOL PyWinObject_AsHKEY(PyObject *ob, HKEY *pRes, BOOL bNoneOK)
 {
@@ -380,26 +399,32 @@ PyObject *PyWinObject_FromHKEY(HKEY h)
 PyObject *PyWinMethod_NewHKEY(PyObject *self, PyObject *args)
 {
 	HANDLE hInit;
-	if (!PyArg_ParseTuple(args, "|i:HANDLERegistry", &hInit))
+	PyObject *obhInit=Py_None;	// ??? hInit previously not initialized but treated as optional ???
+	if (!PyArg_ParseTuple(args, "|O:HANDLERegistry", &obhInit))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhInit, &hInit, TRUE))
 		return NULL;
 	return new PyHKEY(hInit);
 }
 
 BOOL PyWinObject_CloseHKEY(PyObject *obHandle)
 {
-	BOOL ok;
-	if (PyHANDLE_Check(obHandle))
+	if (PyHANDLE_Check(obHandle)){
+		// Make sure we don't call Close() for any other type of PyHANDLE
+		if (strcmp(((PyHANDLE *)obHandle)->GetTypeName(),"PyHKEY")!=0){
+			PyErr_SetString(PyExc_TypeError,"HANDLE must be a PyHKEY");
+			return FALSE;
+			}
 		// Python error already set.
-		ok = ((PyHKEY *)obHandle)->Close();
-	else if PyInt_Check(obHandle) {
-		long rc = ::RegCloseKey((HKEY)PyInt_AsLong(obHandle));
-		ok = (rc==ERROR_SUCCESS);
-		if (!ok)
-			PyWin_SetAPIError("RegCloseKey", rc);
-	} else {
-		PyErr_SetString(PyExc_TypeError, "A handle must be a HKEY object or an integer");
+		return ((PyHKEY *)obHandle)->Close();
+		}
+	HKEY hkey;
+	if (!PyWinObject_AsHANDLE(obHandle, (HANDLE *)&hkey, FALSE))
 		return FALSE;
-	}
+	long rc = ::RegCloseKey(hkey);
+	BOOL ok = (rc==ERROR_SUCCESS);
+	if (!ok)
+		PyWin_SetAPIError("RegCloseKey", rc);
 	return ok;
 }
 

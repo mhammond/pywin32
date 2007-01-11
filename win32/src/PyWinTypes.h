@@ -393,6 +393,7 @@ extern PYWINTYPES_EXPORT PyTypeObject PyHANDLEType; // the Type for PyHANDLE
 
 PYWINTYPES_EXPORT BOOL PyWinObject_AsHANDLE(PyObject *ob, HANDLE *pRes, BOOL bNoneOK = FALSE);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromHANDLE(HANDLE h);
+PYWINTYPES_EXPORT PyObject *PyWinLong_FromHANDLE(HANDLE h);
 
 // A global function that can work as a module method for making a HANDLE object.
 PYWINTYPES_EXPORT PyObject *PyWinMethod_NewHANDLE( PyObject *self, PyObject *args);

@@ -182,7 +182,6 @@ public:
 	int compare(PyObject *ob);
 	int print(FILE *fp, int flags);
 	PyObject *asStr(void);
-	long asLong(void);
 	long hash(void);
 
 	static void deallocFunc(PyObject *ob);
@@ -192,6 +191,7 @@ public:
 	static long hashFunc(PyObject *ob);
 	static PyObject * strFunc(PyObject *ob);
 	static PyObject * intFunc(PyObject *ob);
+	static PyObject * longFunc(PyObject *ob);
 	static PyObject * unaryFailureFunc(PyObject *ob);
 	static PyObject * binaryFailureFunc(PyObject *ob1, PyObject *ob2);
 	static PyObject * ternaryFailureFunc(PyObject *ob1, PyObject *ob2, PyObject *ob3);
