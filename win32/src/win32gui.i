@@ -2535,8 +2535,35 @@ HANDLE LoadImage(HINSTANCE hInst, // @pyparm int|hinst||Handle to an instance of
 #define	LR_VGACOLOR	LR_VGACOLOR
 #endif	/* not MS_WINCE */
 
+%{
 // @pyswig |DeleteObject|Deletes a logical pen, brush, font, bitmap, region, or palette, freeing all system resources associated with the object. After the object is deleted, the specified handle is no longer valid.
-BOOLAPI DeleteObject(HANDLE h); // @pyparm int|handle||handle to the object to delete.
+static PyObject *PyDeleteObject(PyObject *self, PyObject *args)
+{
+	PyObject *obhgdiobj;
+	if (!PyArg_ParseTuple(args, "O:DeleteObject",
+		&obhgdiobj))	// @pyparm <o PyGdiHANDLE>|handle||handle to the object to delete.
+		return NULL;
+	if (PyHANDLE_Check(obhgdiobj)){
+		// Make sure we don't call Close() for any other type of PyHANDLE
+		if (strcmp(((PyHANDLE *)obhgdiobj)->GetTypeName(),"PyGdiHANDLE")!=0){
+			PyErr_SetString(PyExc_TypeError,"DeleteObject requires a PyGdiHANDLE");
+			return NULL;
+			}
+		if (!((PyHANDLE *)obhgdiobj)->Close())
+			return NULL;
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	HGDIOBJ hgdiobj;
+	if (!PyWinObject_AsHANDLE(obhgdiobj, &hgdiobj, FALSE))
+		return NULL;
+	if (!DeleteObject(hgdiobj))
+		return PyWin_SetAPIError("DeleteObject");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+%native (DeleteObject) PyDeleteObject;
 
 // @pyswig |BitBlt|Performs a bit-block transfer of the color data corresponding
 // to a rectangle of pixels from the specified source device context into a
