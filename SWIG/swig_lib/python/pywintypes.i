@@ -293,9 +293,8 @@ typedef unsigned long ULONG;
            return PyWin_SetAPIError("$name");
       }
 }
-%apply long {HANDLE};
-typedef long HANDLE;
 
+typedef long HANDLE;
 typedef HANDLE PyHANDLE;
 %{
 #define PyHANDLE HANDLE // Use a #define so we can undef it later if we need the true defn.
@@ -325,13 +324,13 @@ typedef HANDLE PyHANDLE;
 		return NULL;
 }
 
-%typemap(python,ignore) PyHANDLE *OUTPUT(HANDLE temp)
+%typemap(python,ignore) PyHANDLE *OUTPUT(HANDLE handle_output)
 {
-  $target = &temp;
+  $target = &handle_output;
 }
-%typemap(python,ignore) PyHKEY *OUTPUT(HKEY temp)
+%typemap(python,ignore) PyHKEY *OUTPUT(HKEY hkey_output)
 {
-  $target = &temp;
+  $target = &hkey_output;
 }
 
 %typemap(python,out) PyHANDLE {
@@ -339,6 +338,9 @@ typedef HANDLE PyHANDLE;
 }
 %typemap(python,out) PyHKEY {
   $target = PyWinObject_FromHKEY($source);
+}
+%typemap(python,out) HANDLE {
+  $target = PyWinLong_FromHANDLE($source);
 }
 
 %typemap(python,argout) PyHANDLE *OUTPUT {
