@@ -291,32 +291,15 @@ extern "C" DECLSPEC_DLLMAIN BOOL WINAPI DllMain(HINST_ARG hInstance, DWORD dwRea
     Py_END_ALLOW_THREADS
 }
 
-%apply HCURSOR {long};
-typedef long HCURSOR;
-
-%apply HINSTANCE {long};
-typedef long HINSTANCE;
-
-%apply HMENU {long};
-typedef long HMENU
-
-%apply HICON {long};
-typedef long HICON
-
-%apply HGDIOBJ {long};
-typedef long HGDIOBJ
-
-%apply HWND {long};
-typedef long HWND
-
-%apply HDC {long};
-typedef long HDC
-
-%apply HIMAGELIST {long};
-typedef long HIMAGELIST
-
-%apply HACCEL {long};
-typedef long HACCEL
+// Handles types with no specific PyHANDLE subclass, returned to Python as plain ints or longs
+typedef float HDC, HWND, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL;
+%typemap(python, in) HDC, HWND, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL{
+	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target, FALSE))
+		return NULL;
+}
+%typemap(python, out) HDC, HWND, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL{
+	$target=PyWinLong_FromHANDLE($source);
+}
 
 %apply COLORREF {long};
 typedef long COLORREF
@@ -344,8 +327,8 @@ typedef int UINT;
 
 %typemap(python,argout) MSG *OUTPUT{
     PyObject *o;
-    o = Py_BuildValue("iiiii(ii)",
-					$source->hwnd,
+    o = Py_BuildValue("Niiii(ii)",
+					PyWinLong_FromHANDLE($source->hwnd),
 					$source->message,
 					$source->wParam,
 					$source->lParam,
@@ -540,8 +523,8 @@ typedef int UINT;
 
 %typemap(python,argout) PAINTSTRUCT *OUTPUT {
     PyObject *o;
-    o = Py_BuildValue("(ll(iiii)lls#)",
-                $source->hdc,
+    o = Py_BuildValue("(Nl(iiii)lls#)",
+                PyWinLong_FromHANDLE($source->hdc),
                 $source->fErase,
                 $source->rcPaint.left, $source->rcPaint.top, $source->rcPaint.right, $source->rcPaint.bottom,
                 $source->fRestore,
@@ -661,18 +644,25 @@ BOOL PyWndProc_Call(PyObject *obFuncOrMap, HWND hWnd, UINT uMsg, WPARAM wParam, 
 	if (obFuncOrMap!=NULL) {
 		if (PyDict_Check(obFuncOrMap)) {
 			PyObject *key = PyInt_FromLong(uMsg);
+			if (key==NULL){
+				HandleError("Internal error converting Msg param of window procedure");
+				return FALSE;
+				}
 			obFunc = PyDict_GetItem(obFuncOrMap, key);
 			Py_DECREF(key);
 		} else {
 			obFunc = obFuncOrMap;
 		}
 	}
-	if (obFunc==NULL) {
-		PyErr_Clear();
+	if (obFunc==NULL)
 		return FALSE;
-	}
+
 	// We are dispatching to Python...
-	PyObject *args = Py_BuildValue("llll", hWnd, uMsg, wParam, lParam);
+	PyObject *args = Py_BuildValue("Nlll", PyWinLong_FromHANDLE(hWnd), uMsg, wParam, lParam);
+	if (args==NULL){
+		HandleError("Error building argument tuple for python callback");
+		return FALSE;
+		}
 	PyObject *ret = PyObject_CallObject(obFunc, args);
 	Py_DECREF(args);
 	LRESULT rc = 0;
@@ -689,7 +679,7 @@ BOOL PyWndProc_Call(PyObject *obFuncOrMap, HWND hWnd, UINT uMsg, WPARAM wParam, 
 
 LRESULT CALLBACK PyWndProcClass(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	PyObject *obFunc = (PyObject *)GetClassLong( hWnd, 0);
+	PyObject *obFunc = (PyObject *)GetClassLongPtr( hWnd, 0);
 	LRESULT rc = 0;
 	CEnterLeavePython _celp;
 	if (!PyWndProc_Call(obFunc, hWnd, uMsg, wParam, lParam, &rc)) {
@@ -701,7 +691,7 @@ LRESULT CALLBACK PyWndProcClass(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 
 LRESULT CALLBACK PyDlgProcClass(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	PyObject *obFunc = (PyObject *)GetClassLong( hWnd, 0);
+	PyObject *obFunc = (PyObject *)GetClassLongPtr( hWnd, 0);
 	LRESULT rc = 0;
 	CEnterLeavePython _celp;
 	if (!PyWndProc_Call(obFunc, hWnd, uMsg, wParam, lParam, &rc)) {
@@ -714,7 +704,7 @@ LRESULT CALLBACK PyDlgProcClass(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 LRESULT CALLBACK PyWndProcHWND(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	CEnterLeavePython _celp;
-	PyObject *key = PyInt_FromLong((long)hWnd);
+	PyObject *key = PyWinLong_FromHANDLE(hWnd);
 	PyObject *obInfo = PyDict_GetItem(g_HWNDMap, key);
 	Py_DECREF(key);
 	MYWNDPROC oldWndProc = NULL;
@@ -737,7 +727,7 @@ LRESULT CALLBACK PyWndProcHWND(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 	if (uMsg==WM_DESTROY) {
 #endif
 		_celp.acquire(); // in case we released above - safe if already acquired.
-		PyObject *key = PyInt_FromLong((long)hWnd);
+		PyObject *key = PyWinLong_FromHANDLE(hWnd);
 		if (PyDict_DelItem(g_HWNDMap, key) != 0)
 			PyErr_Clear();
 		Py_DECREF(key);
@@ -756,7 +746,7 @@ BOOL CALLBACK PyDlgProcHDLG(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		PyObject *obWndProc = PyTuple_GET_ITEM(obTuple, 0);
 		// Replace the lParam with the one the user specified.
 		lParam = PyInt_AsLong( PyTuple_GET_ITEM(obTuple, 1) );
-		PyObject *key = PyInt_FromLong((long)hWnd);
+		PyObject *key = PyWinLong_FromHANDLE(hWnd);
 		if (g_DLGMap==NULL)
 			g_DLGMap = PyDict_New();
 		if (g_DLGMap)
@@ -773,7 +763,7 @@ BOOL CALLBACK PyDlgProcHDLG(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	// If our HWND is in the map, then call it.
 	PyObject *obFunc = NULL;
 	if (g_DLGMap) {
-		PyObject *key = PyInt_FromLong((long)hWnd);
+		PyObject *key = PyWinLong_FromHANDLE(hWnd);
 		obFunc = PyDict_GetItem(g_DLGMap, key);
 		Py_XDECREF(key);
 		if (!obFunc)
@@ -790,7 +780,7 @@ BOOL CALLBACK PyDlgProcHDLG(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 #else // CE doesnt have this message!
 	if (uMsg==WM_DESTROY) {
 #endif
-		PyObject *key = PyInt_FromLong((long)hWnd);
+		PyObject *key = PyWinLong_FromHANDLE(hWnd);
 
 		if (g_DLGMap != NULL)
 			if (PyDict_DelItem(g_DLGMap, key) != 0)
@@ -1577,7 +1567,7 @@ static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_ValueError,"Could not get buffer address");
 		return NULL;
 	}
-	return Py_BuildValue("ll",(long) addr, len);
+	return Py_BuildValue("Nl", PyLong_FromVoidPtr(addr), len);
 }
 %}
 %native (PyGetBufferAddressAndLen) PyGetBufferAddressAndLen;
@@ -1928,7 +1918,7 @@ BOOL CALLBACK PyEnumWindowsProc(
 	BOOL result = TRUE;
 	PyEnumWindowsCallback *cb = (PyEnumWindowsCallback *)lParam;
 	CEnterLeavePython _celp;
-	PyObject *args = Py_BuildValue("(iO)", hwnd, cb->extra);
+	PyObject *args = Py_BuildValue("(NO)", PyWinLong_FromHANDLE(hwnd), cb->extra);
 	PyObject *ret = PyEval_CallObject(cb->func, args);
 	Py_XDECREF(args);
 	if (ret && PyInt_Check(ret))
@@ -2067,7 +2057,7 @@ static PyObject *PyDialogBox(PyObject *self, PyObject *args)
 
 	int rc;
     Py_BEGIN_ALLOW_THREADS
-	rc = DialogBoxParam((HINSTANCE)hinst, resid, (HWND)hwnd, PyDlgProcHDLG, (LPARAM)obExtra);
+	rc = DialogBoxParam(hinst, resid, hwnd, PyDlgProcHDLG, (LPARAM)obExtra);
     Py_END_ALLOW_THREADS
 	Py_DECREF(obExtra);
 	if (!IS_INTRESOURCE(resid))
@@ -2116,7 +2106,7 @@ static PyObject *PyDialogBoxIndirect(PyObject *self, PyObject *args)
 	int rc;
     Py_BEGIN_ALLOW_THREADS
 	HGLOBAL templ = (HGLOBAL) GlobalLock(h);
-	rc = DialogBoxIndirectParam((HINSTANCE)hinst, (const DLGTEMPLATE *) templ, (HWND)hwnd, PyDlgProcHDLG, (LPARAM)obExtra);
+	rc = DialogBoxIndirectParam(hinst, (const DLGTEMPLATE *) templ, hwnd, PyDlgProcHDLG, (LPARAM)obExtra);
 	GlobalUnlock(h);
 	GlobalFree(h);
     Py_END_ALLOW_THREADS
@@ -2163,7 +2153,7 @@ static PyObject *PyCreateDialogIndirect(PyObject *self, PyObject *args)
 	HWND rc;
     Py_BEGIN_ALLOW_THREADS
 	HGLOBAL templ = (HGLOBAL) GlobalLock(h);
-	rc = CreateDialogIndirectParam((HINSTANCE)hinst, (const DLGTEMPLATE *) templ, (HWND)hwnd, PyDlgProcHDLG, (LPARAM)obExtra);
+	rc = CreateDialogIndirectParam(hinst, (const DLGTEMPLATE *) templ, hwnd, PyDlgProcHDLG, (LPARAM)obExtra);
 	GlobalUnlock(h);
 	GlobalFree(h);
     Py_END_ALLOW_THREADS
@@ -2369,11 +2359,11 @@ PyObject *PyGetCursorInfo(PyObject *self, PyObject *args)
 {
 	CURSORINFO ci;
 	ci.cbSize = sizeof(ci);
-	if (!PyArg_NoArgs(args))
+	if (!PyArg_ParseTuple(args,":GetCursorInfo"))
 		return NULL;
 	if (!::GetCursorInfo(&ci))
 		return PyWin_SetAPIError("GetCursorInfo");
-	return Py_BuildValue("ii(ii)", ci.flags, ci.hCursor, ci.ptScreenPos.x, ci.ptScreenPos.y);
+	return Py_BuildValue("iN(ii)", ci.flags, PyWinLong_FromHANDLE(ci.hCursor), ci.ptScreenPos.x, ci.ptScreenPos.y);
 }
 %}
 %native(GetCursorInfo) PyGetCursorInfo;
@@ -2417,7 +2407,7 @@ PyObject *PyCreateAcceleratorTable(PyObject *self, PyObject *args)
     }
     ha = ::CreateAcceleratorTable(accels, num);
     if (ha)
-        ret = PyLong_FromVoidPtr((void *)ha);
+        ret = PyWinLong_FromHANDLE(ha);
     else
         PyWin_SetAPIError("CreateAcceleratorTable");
 done:
@@ -2489,7 +2479,7 @@ BOOLAPI DrawIconEx(
 HICON CreateIconIndirect(ICONINFO *INPUT);	// @pyparm <o PyICONINFO>|iconinfo||Tuple defining the icon parameters
 
 %{
-// @pyswig int|CreateIconFromResource|Creates an icon or cursor from resource bits describing the icon.
+// @pyswig <o PyHANDLE>|CreateIconFromResource|Creates an icon or cursor from resource bits describing the icon.
 static PyObject *PyCreateIconFromResource(PyObject *self, PyObject *args)
 {
 	// @pyparm string|bits||The bits
@@ -2506,7 +2496,7 @@ static PyObject *PyCreateIconFromResource(PyObject *self, PyObject *args)
 	HICON ret = CreateIconFromResource((PBYTE)bits, nBits, isIcon, ver);
 	if (!ret)
 	    return PyWin_SetAPIError("CreateIconFromResource");
-	return PyLong_FromVoidPtr(ret);
+	return PyWinLong_FromHANDLE(ret);
 }
 %}
 %native (CreateIconFromResource) PyCreateIconFromResource;
@@ -3084,7 +3074,7 @@ PySetWindowPlacement(PyObject *self, PyObject *args)
 		return NULL;
 	BOOL rc;
 	Py_BEGIN_ALLOW_THREADS
-	rc = SetWindowPlacement( (HWND)hwnd, &pment );
+	rc = SetWindowPlacement(hwnd, &pment );
 	Py_END_ALLOW_THREADS
 	if (!rc)
 		return PyWin_SetAPIError("SetWindowPlacement");
@@ -3145,7 +3135,7 @@ static PyObject *PyUnregisterClass(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(obhinst, (HANDLE *)&hinst, TRUE))
 		return NULL;
 	atom=(LPTSTR)PyLong_AsVoidPtr(obatom);
-	if (atom==NULL)
+	if (atom==NULL && PyErr_Occurred())
 		return NULL;
 	// Only low word can be set when using an atom
 	if ((DWORD_PTR)atom >> 16)
@@ -3669,8 +3659,8 @@ static PyObject *PyExtractIconEx(PyObject *self, PyObject *args)
     objects_small = PyList_New(nicons);
     if (!objects_small) goto done;
     for (i=0;i<nicons;i++) {
-        PyList_SET_ITEM(objects_large, i, PyInt_FromLong((long)rgLarge[i]));
-        PyList_SET_ITEM(objects_small, i, PyInt_FromLong((long)rgSmall[i]));
+        PyList_SET_ITEM(objects_large, i, PyWinLong_FromHANDLE(rgLarge[i]));
+        PyList_SET_ITEM(objects_small, i, PyWinLong_FromHANDLE(rgSmall[i]));
     }
     ret = Py_BuildValue("OO", objects_large, objects_small);
 done:
@@ -5980,7 +5970,7 @@ static PyObject *PyCreateDC(PyObject *self, PyObject *args)
 	PyObject *ret;
 	hdc=CreateDC(driver, device, dummyoutput, pdevmode);
 	if (hdc!=NULL)
-		ret = Py_BuildValue("l",hdc);
+		ret = PyWinLong_FromHANDLE(hdc);
 	else {
 		PyWin_SetAPIError("CreateDC",GetLastError());
 		ret = NULL;
