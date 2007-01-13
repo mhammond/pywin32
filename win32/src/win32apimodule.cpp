@@ -105,7 +105,7 @@ static PyObject* PyGetStdHandle (PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple(args, "i:GetStdHandle",
 			&nStdHandle)) // @pyparm int|handle||input, output, or error device
     return NULL;
-  return Py_BuildValue("i", ::GetStdHandle (nStdHandle));
+  return PyWinLong_FromHANDLE(GetStdHandle (nStdHandle));
 }
 
 // @pymethod |win32api|SetStdHandle|Set the handle for the standard input, standard output, or standard error device
@@ -283,10 +283,13 @@ PyDragQueryFile( PyObject *self, PyObject *args )
 {
 	char buf[MAX_PATH];
 	HDROP hDrop;
+	PyObject *obhDrop;
 	int iFileNum = 0xFFFFFFFF;
-	if (!PyArg_ParseTuple(args, "i|i:DragQueryFile", 
-	           &hDrop, // @pyparm int|hDrop||Handle identifying the structure containing the file names.
+	if (!PyArg_ParseTuple(args, "O|i:DragQueryFile", 
+	           &obhDrop, // @pyparm int|hDrop||Handle identifying the structure containing the file names.
 	           &iFileNum)) // @pyparm int|fileNum|0xFFFFFFFF|Specifies the index of the file to query.
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhDrop, (HANDLE *)&hDrop, FALSE))
 		return NULL;
 	if (iFileNum<0)
 		return Py_BuildValue("i", ::DragQueryFile( hDrop, (UINT)-1, NULL, 0));
@@ -309,8 +312,11 @@ static PyObject *
 PyDragFinish( PyObject *self, PyObject *args )
 {
 	HDROP hDrop;
+	PyObject *obhDrop;
 	// @pyparm int|hDrop||Handle identifying the structure containing the file names.
-	if (!PyArg_ParseTuple(args, "i:DragFinish", &hDrop))
+	if (!PyArg_ParseTuple(args, "O:DragFinish", &obhDrop))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhDrop, (HANDLE *)&hDrop, FALSE))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
 	::DragFinish( hDrop); // @pyseeapi DragFinish
@@ -427,7 +433,7 @@ PyFindExecutable( PyObject *self, PyObject *args )
 			return ReturnError("There is no association for the file");
 		return ReturnAPIError("FindExecutable", (int)rc );
 	}
-	return Py_BuildValue("(is)", rc, res );
+	return Py_BuildValue("(Ns)", PyWinLong_FromHANDLE(rc), res );
 	// @rdesc The return value is a tuple of (integer, string)<nl>
 	// The integer is the instance handle of the executable file associated
 	// with the specified filename. (This handle could also be the handle of
@@ -505,7 +511,7 @@ PyFindFirstChangeNotification(PyObject *self, PyObject *args)
 	// @flag FILE_NOTIFY_CHANGE_SIZE|Any file-size change in the watched directory or subtree causes a change notification wait operation to return. The operating system detects a change in file size only when the file is written to the disk. For operating systems that use extensive caching, detection occurs only when the cache is sufficiently flushed. 
 	// @flag FILE_NOTIFY_CHANGE_LAST_WRITE|Any change to the last write-time of files in the watched directory or subtree causes a change notification wait operation to return. The operating system detects a change to the last write-time only when the file is written to the disk. For operating systems that use extensive caching, detection occurs only when the cache is sufficiently flushed. 
 	// @flag FILE_NOTIFY_CHANGE_SECURITY|Any security-descriptor change in the watched directory or subtree causes a change notification wait operation to return 
-	if (!PyArg_ParseTuple(args, "Oil", &obPathName, &subDirs, &dwFilter))
+	if (!PyArg_ParseTuple(args, "Oil:FindFirstChangeNotification", &obPathName, &subDirs, &dwFilter))
 		return NULL;
 	TCHAR *pathName;
 	if (!PyWinObject_AsTCHAR(obPathName, &pathName, FALSE))
@@ -516,7 +522,7 @@ PyFindFirstChangeNotification(PyObject *self, PyObject *args)
 	PyWinObject_FreeTCHAR(pathName);
 	if (h==NULL || h==INVALID_HANDLE_VALUE)
 		return ReturnAPIError("FindFirstChangeNotification");
-	return PyInt_FromLong((long)h);
+	return PyWinLong_FromHANDLE(h);
 }
 
 // @pymethod |win32api|FindNextChangeNotification|Requests that the operating system signal a change notification handle the next time it detects an appropriate change.
@@ -524,8 +530,11 @@ static PyObject *
 PyFindNextChangeNotification(PyObject *self, PyObject *args)
 {
 	HANDLE h;
-	// @pyparm int|handle||The handle returned from <om win32api.FindFirstChangeNotification>
-	if (!PyArg_ParseTuple(args, "l", &h))
+	PyObject *obh;
+	// @pyparm <o PyHANDLE>|handle||The handle returned from <om win32api.FindFirstChangeNotification>
+	if (!PyArg_ParseTuple(args, "O:FindNextChangeNotification", &obh))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obh, &h, FALSE))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
 	BOOL ok = FindNextChangeNotification(h);
@@ -541,8 +550,11 @@ static PyObject *
 PyFindCloseChangeNotification(PyObject *self, PyObject *args)
 {
 	HANDLE h;
+	PyObject *obh;
 	// @pyparm int|handle||The handle returned from <om win32api.FindFirstChangeNotification>
-	if (!PyArg_ParseTuple(args, "l", &h))
+	if (!PyArg_ParseTuple(args, "O:FindCloseChangeNotification", &obh))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obh, &h, FALSE))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
 	BOOL ok = FindCloseChangeNotification(h);
@@ -988,7 +1000,7 @@ PyGetCurrentThread (PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple (args, ":GetCurrentThread"))
 		return NULL;
 	// @pyseeapi GetCurrentThread
-	return PyInt_FromLong((long)::GetCurrentThread());
+	return PyWinLong_FromHANDLE(::GetCurrentThread());
 	// @comm A pseudohandle is a special constant that is interpreted as the current thread handle. The calling thread can use this handle to specify itself whenever a thread handle is required. Pseudohandles are not inherited by child processes.
 	// The method <om win32api.DuplicateHandle> can be used to create a handle that other threads and processes can use.
 	// As this handle can not be closed, and integer is returned rather than
@@ -1003,7 +1015,7 @@ PyGetCurrentThreadId (PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple (args, ":GetCurrentThreadId"))
 		return NULL;
 	// @pyseeapi GetCurrentThreadId
-	return Py_BuildValue("i", ::GetCurrentThreadId());
+	return PyLong_FromUnsignedLong(::GetCurrentThreadId());
 }
 
 // @pymethod int|win32api|GetCurrentProcess|Returns a pseudohandle for the current process.
@@ -1013,7 +1025,7 @@ PyGetCurrentProcess (PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple (args, ":GetCurrentProcess"))
 		return NULL;
 	// @pyseeapi GetCurrentProcess
-	return PyInt_FromLong((long)::GetCurrentProcess());
+	return PyWinLong_FromHANDLE(::GetCurrentProcess());
 	// @comm A pseudohandle is a special constant that is interpreted as the current thread handle. The calling thread can use this handle to specify itself whenever a thread handle is required. Pseudohandles are not inherited by child processes.
 	// The method <om win32api.DuplicateHandle> can be used to create a handle that other threads and processes can use.
 	// As this handle can not be closed, and integer is returned rather than
@@ -1027,7 +1039,7 @@ PyGetCurrentProcessId (PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple (args, ":GetCurrentProcessId"))
 		return NULL;
 	// @pyseeapi GetCurrentProcessId
-	return Py_BuildValue("i", ::GetCurrentProcessId());
+	return PyLong_FromUnsignedLong(::GetCurrentProcessId());
 }
 
 // @pymethod int|win32api|GetFocus|Retrieves the handle of the keyboard focus window associated with the thread that called the method. 
@@ -1042,7 +1054,7 @@ PyGetFocus (PyObject *self, PyObject *args)
 	PyW32_END_ALLOW_THREADS
 	if (rc==NULL)
 		return ReturnError("No window has the focus");
-	return Py_BuildValue("i", rc);
+	return PyWinLong_FromHANDLE(rc);
 	// @rdesc The method raises an exception if no window with the focus exists.
 }
 
@@ -1086,38 +1098,49 @@ PyGetCursorPos (PyObject *self, PyObject *args)
 	return Py_BuildValue("ii", pt.x, pt.y);
 }
 
-// @pymethod int|win32api|SetCursor|Set the cursor to the HCURSOR object.
+// @pymethod <o PyHANDLE>|win32api|SetCursor|Set the cursor to the HCURSOR object.
 static PyObject *
 PySetCursor( PyObject *self, PyObject *args )
 {
-	long hCursor;
-	if (!PyArg_ParseTuple(args,"l:SetCursor",
-		&hCursor)) // @pyparm long|hCursor||The new cursor.
+	HCURSOR hCursor;
+	PyObject *obhCursor;
+	if (!PyArg_ParseTuple(args,"O:SetCursor",
+		&obhCursor)) // @pyparm <o PyHANDLE>|hCursor||The new cursor. Can be None to remove cursor.
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhCursor, (HANDLE *)&hCursor, TRUE))
 		return NULL;
 	// @pyseeapi SetCursor
 	PyW32_BEGIN_ALLOW_THREADS
-	HCURSOR ret = ::SetCursor((HCURSOR)hCursor); 
+	HCURSOR ret = ::SetCursor(hCursor); 
 	PyW32_END_ALLOW_THREADS
-	return PyLong_FromLong((long)ret);
+	return PyWinLong_FromHANDLE(ret);
 	// @rdesc The result is the previous cursor if there was one.
 }
 
-// @pymethod int|win32api|LoadCursor|Loads a cursor.
+// @pymethod <o PyHANDLE>|win32api|LoadCursor|Loads a cursor.
 static PyObject *
 PyLoadCursor( PyObject *self, PyObject *args )
 {
-	long hInstance;
-	long id;
-	if (!PyArg_ParseTuple(args,"ll:LoadCursor",
-		&hInstance, // @pyparm int|hInstance||Handle to the instance to load the resource from.
-		&id)) // @pyparm int|cursorid||The ID of the cursor.
+	HINSTANCE hInstance;
+	PyObject *obhInstance, *obid;
+	LPCTSTR id;
+	if (!PyArg_ParseTuple(args,"OO:LoadCursor",
+		&obhInstance, // @pyparm <o PyHANDLE>|hInstance||Handle to the instance to load the resource from, or None to load a standard system cursor
+		&obid)) // @pyparm int|cursorid||The ID of the cursor.  Can be a resource id or for system cursors, one of win32con.IDC_*
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhInstance, (HANDLE *)&hInstance, TRUE))
+		return NULL;
+	/* ??? Cursor id should also accept a string.  Need to create a function for this, same logic used several
+		places in win32api and win32gui for resource id's. ??? */
+	id=(LPCTSTR)PyLong_AsVoidPtr(obid);
+	if (id==NULL && PyErr_Occurred())
 		return NULL;
 	// @pyseeapi LoadCursor
 	PyW32_BEGIN_ALLOW_THREADS
-	HCURSOR ret = ::LoadCursor((HINSTANCE)hInstance, MAKEINTRESOURCE(id));
+	HCURSOR ret = ::LoadCursor(hInstance, MAKEINTRESOURCE(id));
 	PyW32_END_ALLOW_THREADS
 	if (ret==NULL) ReturnAPIError("LoadCursor");
-	return PyLong_FromLong((long)ret);
+	return PyWinLong_FromHANDLE(ret);
 }
 
 // @pymethod string|win32api|GetCommandLine|Retrieves the current application's command line.
@@ -1378,14 +1401,17 @@ static PyObject * PyGetLogicalDriveStrings (PyObject * self, PyObject *args)
 static PyObject *
 PyGetModuleFileName(PyObject * self, PyObject * args)
 {
-	int iMod;
+	HMODULE hMod;
+	PyObject *obhMod;
 	char buf[_MAX_PATH];
-	// @pyparm int|hModule||Specifies the handle to the module.
-	if (!PyArg_ParseTuple(args, "i:GetModuleFileName", &iMod))
+	// @pyparm <o PyHANDLE>|hModule||Specifies the handle to the module.
+	if (!PyArg_ParseTuple(args, "O:GetModuleFileName", &obhMod))
 		return (NULL);
+	if (!PyWinObject_AsHANDLE(obhMod, (HANDLE *)&hMod, TRUE))
+		return NULL;
 	// @pyseeapi GetModuleFileName
 	PyW32_BEGIN_ALLOW_THREADS
-	long rc = ::GetModuleFileName( (HMODULE)iMod, buf, sizeof(buf));
+	long rc = ::GetModuleFileName(hMod, buf, sizeof(buf));
 	PyW32_END_ALLOW_THREADS
 	if (rc==0)
 		return ReturnAPIError("GetModuleFileName");
@@ -1396,14 +1422,17 @@ PyGetModuleFileName(PyObject * self, PyObject * args)
 static PyObject *
 PyGetModuleFileNameW(PyObject * self, PyObject * args)
 {
-	int iMod;
+	HMODULE hMod;
+	PyObject *obhMod;
 	wchar_t buf[_MAX_PATH];
-	// @pyparm int|hModule||Specifies the handle to the module.
-	if (!PyArg_ParseTuple(args, "i:GetModuleFileNameW", &iMod))
+	// @pyparm <o PyHANDLE>|hModule||Specifies the handle to the module.
+	if (!PyArg_ParseTuple(args, "O:GetModuleFileNameW", &obhMod))
 		return (NULL);
+	if (!PyWinObject_AsHANDLE(obhMod, (HANDLE *)&hMod, TRUE))
+		return NULL;
 	// @pyseeapi GetModuleFileName
 	PyW32_BEGIN_ALLOW_THREADS
-	long rc = ::GetModuleFileNameW( (HMODULE)iMod, buf, sizeof(buf));
+	long rc = ::GetModuleFileNameW(hMod, buf, sizeof(buf));
 	PyW32_END_ALLOW_THREADS
 	if (rc==0)
 		return ReturnAPIError("GetModuleFileNameW");
@@ -1422,7 +1451,7 @@ PyGetModuleHandle(PyObject * self, PyObject * args)
 	HINSTANCE hInst = ::GetModuleHandle(fname);
 	if (hInst==NULL)
 		return ReturnAPIError("GetModuleHandle");
-	return Py_BuildValue("i",hInst);
+	return PyWinLong_FromHANDLE(hInst);
 }
 
 // @pymethod int|win32api|GetUserDefaultLCID|Retrieves the user default locale identifier.
@@ -1574,28 +1603,31 @@ PyLoadLibrary(PyObject * self, PyObject * args)
 	PyW32_END_ALLOW_THREADS
 	if (hInst==NULL)
 		return ReturnAPIError("LoadLibrary");
-	return Py_BuildValue("i",hInst);
+	return PyWinLong_FromHANDLE(hInst);
 }
 
-// @pymethod int|win32api|LoadLibraryEx|Loads the specified DLL, and returns the handle.
+// @pymethod <o PyHANDLE>|win32api|LoadLibraryEx|Loads the specified DLL, and returns the handle.
 static PyObject *
 PyLoadLibraryEx(PyObject * self, PyObject * args)
 {
 	char *fname;
 	HANDLE handle;
+	PyObject *obhandle;
 	DWORD flags;
 	// @pyparm string|fileName||Specifies the file name of the module to load.
-	// @pyparm int|handle||Reserved - must be zero
+	// @pyparm <o PyHANDLE>|handle||Reserved - must be zero
 	// @pyparm flags|handle||Specifies the action to take when loading the module.
-	if (!PyArg_ParseTuple(args, "sll:LoadLibraryEx", &fname, &handle, &flags))
+	if (!PyArg_ParseTuple(args, "sOl:LoadLibraryEx", &fname, &obhandle, &flags))
 		return (NULL);
+	if (!PyWinObject_AsHANDLE(obhandle, &handle, TRUE))
+		return NULL;
 	// @pyseeapi LoadLibraryEx
 	PyW32_BEGIN_ALLOW_THREADS
 	HINSTANCE hInst = ::LoadLibraryEx(fname, handle, flags);
 	PyW32_END_ALLOW_THREADS
 	if (hInst==NULL)
 		return ReturnAPIError("LoadLibraryEx");
-	return Py_BuildValue("i",hInst);
+	return PyWinLong_FromHANDLE(hInst);
 }
 
 // @pymethod |win32api|FreeLibrary|Decrements the reference count of the loaded dynamic-link library (DLL) module.
@@ -1603,9 +1635,12 @@ static PyObject *
 PyFreeLibrary(PyObject * self, PyObject * args)
 {
 	HINSTANCE handle;
-	// @pyparm int|hModule||Specifies the handle to the module.
-	if (!PyArg_ParseTuple(args, "i:FreeLibrary", &handle))
+	PyObject *obhandle;
+	// @pyparm <o PyHANDLE>|hModule||Specifies the handle to the module.
+	if (!PyArg_ParseTuple(args, "O:FreeLibrary", &obhandle))
 		return (NULL);
+	if (!PyWinObject_AsHANDLE(obhandle, (HANDLE *)&handle, FALSE))
+		return NULL;
 	// @pyseeapi FreeLibrary
 	PyW32_BEGIN_ALLOW_THREADS
 	BOOL ok = ::FreeLibrary(handle);
@@ -1621,11 +1656,15 @@ static PyObject *
 PyGetProcAddress(PyObject * self, PyObject * args)
 {
 	HINSTANCE handle;
+	PyObject *obhandle;
 	char *fnName;
-	// @pyparm int|hModule||Specifies the handle to the module.
+	// @pyparm <o PyHANDLE>|hModule||Specifies the handle to the module.
 	// @pyparm string|functionName||Specifies the name of the procedure.
-	if (!PyArg_ParseTuple(args, "is:GetProcAddress", &handle, &fnName))
+	if (!PyArg_ParseTuple(args, "Os:GetProcAddress", &obhandle, &fnName))
 		return (NULL);
+	if (!PyWinObject_AsHANDLE(obhandle, (HANDLE *)&handle, FALSE))
+		return NULL;
+
 	FARPROC proc = ::GetProcAddress(handle, fnName);
 	if (proc==NULL)
 		return ReturnAPIError("GetProcAddress");
@@ -1761,15 +1800,17 @@ PyGetSystemInfo(PyObject * self, PyObject * args)
 	// @pyseeapi GetSystemInfo
 	SYSTEM_INFO info;
 	GetSystemInfo( &info );
-	return Py_BuildValue("iiiiiiii(ii)",
+	return Py_BuildValue("iiNNNiii(ii)",
 #if !defined(MAINWIN)
 						 info.dwOemId,
 #else
 						 0,
 #endif // MAINWIN
 						 info.dwPageSize, 
-                         info.lpMinimumApplicationAddress, info.lpMaximumApplicationAddress,
-                         info.dwActiveProcessorMask, info.dwNumberOfProcessors,
+                         PyLong_FromVoidPtr(info.lpMinimumApplicationAddress),
+						 PyLong_FromVoidPtr(info.lpMaximumApplicationAddress),
+                         PyLong_FromUnsignedLongLong(info.dwActiveProcessorMask),
+						 info.dwNumberOfProcessors,
                          info.dwProcessorType, info.dwAllocationGranularity,
 						 info.wProcessorLevel, info.wProcessorRevision);
 	// @rdesc The return value is a tuple of 9 values, which corresponds
@@ -2340,14 +2381,17 @@ PyMoveFileEx( PyObject *self, PyObject *args )
 PyObject *PyPostMessage(PyObject *self, PyObject *args)
 {
 	HWND hwnd;
+	PyObject *obhwnd;
 	UINT message;
 	WPARAM wParam=0;
 	LPARAM lParam=0;
-	if (!PyArg_ParseTuple(args, "ii|ii:PostMessage", 
-	          &hwnd,    // @pyparm int|hwnd||The hWnd of the window to receive the message.
+	if (!PyArg_ParseTuple(args, "Oi|ii:PostMessage", 
+	          &obhwnd,    // @pyparm <o PyHANDLE>|hwnd||The hWnd of the window to receive the message.
 	          &message, // @pyparm int|idMessage||The ID of the message to post.
 	          &wParam,  // @pyparm int|wParam||The wParam for the message
 	          &lParam)) // @pyparm int|lParam||The lParam for the message
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
 	// @pyseeapi PostMessage
 	PyW32_BEGIN_ALLOW_THREADS
@@ -3620,15 +3664,18 @@ PySearchPath (PyObject *self, PyObject *args)
 PyObject *PySendMessage(PyObject *self, PyObject *args)
 {
 	HWND hwnd;
+	PyObject *obhwnd;
 	int message;
 	int wParam=0;
 	int lParam=0;
-	if (!PyArg_ParseTuple(args, "ii|ii:SendMessage",
-	          &hwnd,    // @pyparm int|hwnd||The hWnd of the window to receive the message.
+	if (!PyArg_ParseTuple(args, "Oi|ii:SendMessage",
+	          &obhwnd,  // @pyparm <o PyHANDLE>|hwnd||The hWnd of the window to receive the message.
 		      &message, // @pyparm int|idMessage||The ID of the message to send.
 	          &wParam,  // @pyparm int|wParam||The wParam for the message
 	          &lParam)) // @pyparm int|lParam||The lParam for the message
 
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
 	int rc;
 	// @pyseeapi SendMessage
@@ -3717,15 +3764,18 @@ static PyObject *
 PyShellExecute( PyObject *self, PyObject *args )
 {
 	HWND hwnd;
+	PyObject *obhwnd;
 	char *op, *file, *params, *dir;
 	int show;
-	if (!PyArg_ParseTuple(args, "izszzi:ShellExecute", 
-		      &hwnd, // @pyparm int|hwnd||The handle of the parent window, or 0 for no parent.  This window receives any message boxes an application produces (for example, for error reporting).
+	if (!PyArg_ParseTuple(args, "Ozszzi:ShellExecute", 
+		      &obhwnd, // @pyparm <o PyHANDLE>|hwnd||The handle of the parent window, or 0 for no parent.  This window receives any message boxes an application produces (for example, for error reporting).
 		      &op,   // @pyparm string|op||The operation to perform.  May be "open", "print", or None, which defaults to "open".
 		      &file, // @pyparm string|file||The name of the file to open.
 		      &params,// @pyparm string|params||The parameters to pass, if the file name contains an executable.  Should be None for a document file.
 		      &dir,  // @pyparm string|dir||The initial directory for the application.
 		      &show))// @pyparm int|bShow||Specifies whether the application is shown when it is opened. If the lpszFile parameter specifies a document file, this parameter is zero.
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
 		return NULL;
 	if (dir==NULL)
 		dir="";
@@ -3783,15 +3833,18 @@ static PyObject *
 PyWinHelp( PyObject *self, PyObject *args )
 {
 	HWND hwnd;
+	PyObject *obhwnd;
 	char *hlpFile;
 	UINT cmd;
 	PyObject *dataOb = Py_None;
 	DWORD data;
-	if (!PyArg_ParseTuple(args, "isi|O:WinHelp",
-		      &hwnd,   // @pyparm int|hwnd||The handle of the window requesting help.
+	if (!PyArg_ParseTuple(args, "Osi|O:WinHelp",
+		      &obhwnd,   // @pyparm int|hwnd||The handle of the window requesting help.
 			  &hlpFile,// @pyparm string|hlpFile||The name of the help file.
 			  &cmd,    // @pyparm int|cmd||The type of help.  See the api for full details.
 			  &dataOb))   // @pyparm int/string|data|0|Additional data specific to the help call.
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
 		return NULL;
 	if (dataOb==Py_None)
 		data = 0;
@@ -3887,8 +3940,9 @@ PyMessageBox(PyObject * self, PyObject * args)
   long style = MB_OK;
   const char *title = NULL;
   HWND hwnd = NULL;
+  PyObject *obhwnd;
   WORD langId = MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT);
-  // @pyparm int|hwnd||The handle of the parent window.  See the comments section.
+  // @pyparm <o PyHANDLE>|hwnd||The handle of the parent window.  See the comments section.
   // @pyparm string|message||The message to be displayed in the message box.
   // @pyparm string/None|title||The title for the message box.  If None, the applications title will be used.
   // @pyparm int|style|win32con.MB_OK|The style of the message box.
@@ -3896,8 +3950,11 @@ PyMessageBox(PyObject * self, PyObject * args)
 
   // @comm Normally, a program in a GUI environment will use one of the MessageBox
   // methods supplied by the GUI (eg, <om win32ui.MessageBox> or <om PyCWnd.MessageBox>)
-  if (!PyArg_ParseTuple(args, "is|zli:MessageBox(Ex)", &hwnd, &message, &title, &style, &langId))
+  if (!PyArg_ParseTuple(args, "Os|zli:MessageBox(Ex)", &obhwnd, &message, &title, &style, &langId))
     return NULL;
+  if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
+		return NULL;
+
   PyW32_BEGIN_ALLOW_THREADS
   int rc = ::MessageBoxEx(hwnd, message, title, style, langId);
   PyW32_END_ALLOW_THREADS
@@ -3926,87 +3983,115 @@ PySetFileAttributes(PyObject * self, PyObject * args)
 }
 
 // @pymethod int|win32api|GetWindowLong|Retrieves a long value at the specified offset into the extra window memory of the given window.
+// @comm This function calls the GetWindowLongPtr Api function
 static PyObject *
 PyGetWindowLong(PyObject * self, PyObject * args)
 {
-	int hwnd;
+	HWND hwnd;
+	PyObject *obhwnd;
 	int offset;
-	// @pyparm int|hwnd||The handle to the window.
+	// @pyparm <o PyHANDLE>|hwnd||The handle to the window.
 	// @pyparm int|offset||Specifies the zero-based byte offset of the value to change. Valid values are in the range zero through the number of bytes of extra window memory, minus four (for example, if 12 or more bytes of extra memory were specified, a value of 8 would be an index to the third long integer), or one of the GWL_ constants.
-	if (!PyArg_ParseTuple(args, "ii:GetWindowLong", &hwnd, &offset))
+	if (!PyArg_ParseTuple(args, "Oi:GetWindowLong", &obhwnd, &offset))
 		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+		return NULL;
+
 	PyW32_BEGIN_ALLOW_THREADS
-	long rc = ::GetWindowLong( (HWND)hwnd, offset );
+	LONG_PTR rc = ::GetWindowLongPtr(hwnd, offset );
 	PyW32_END_ALLOW_THREADS
-	return Py_BuildValue("l", rc);
+	return PyLong_FromVoidPtr((void *)rc);
 }
 
 // @pymethod int|win32api|SetWindowLong|Places a long value at the specified offset into the extra window memory of the given window.
+// @comm This function calls the SetWindowLongPtr Api function
 static PyObject *
 PySetWindowLong(PyObject * self, PyObject * args)
 {
-	int hwnd;
+	HWND hwnd;
+	PyObject *obhwnd, *obval;
 	int offset;
-	long newVal;
+	LONG_PTR newVal;
 	// @pyparm int|hwnd||The handle to the window.
 	// @pyparm int|offset||Specifies the zero-based byte offset of the value to change. Valid values are in the range zero through the number of bytes of extra window memory, minus four (for example, if 12 or more bytes of extra memory were specified, a value of 8 would be an index to the third long integer), or one of the GWL_ constants.
 	// @pyparm int|val||Specifies the long value to place in the window's reserved memory.
-	if (!PyArg_ParseTuple(args, "iil:SetWindowLong", &hwnd, &offset, &newVal))
+	if (!PyArg_ParseTuple(args, "OiO:SetWindowLong", &obhwnd, &offset, &obval))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+		return NULL;
+	newVal=(LONG_PTR)PyLong_AsVoidPtr(obval);
+	if (newVal==NULL && PyErr_Occurred())
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
-	long rc = ::SetWindowLong( (HWND)hwnd, offset, newVal ) ;
+	LONG_PTR rc = ::SetWindowLongPtr(hwnd, offset, newVal ) ;
 	PyW32_END_ALLOW_THREADS
-	return Py_BuildValue("l", rc);
+	return PyLong_FromVoidPtr((void *)rc);
 }
 // @pymethod int|win32api|SetWindowWord|
+// @comm This function is obsolete, use <om win32api.SetWindowLong> instead
 static PyObject *
 PySetWindowWord(PyObject * self, PyObject * args)
 {
-	int hwnd;
+	HWND hwnd;
+	PyObject *obhwnd;
 	int offset;
 	WORD newVal;
-	// @pyparm int|hwnd||The handle to the window.
+	// @pyparm <o PyHANDLE>|hwnd||The handle to the window.
 	// @pyparm int|offset||Specifies the zero-based byte offset of the value to change. Valid values are in the range zero through the number of bytes of extra window memory, minus four (for example, if 12 or more bytes of extra memory were specified, a value of 8 would be an index to the third long integer), or one of the GWL_ constants.
 	// @pyparm int|val||Specifies the long value to place in the window's reserved memory.
-	if (!PyArg_ParseTuple(args, "iii:SetWindowWord", &hwnd, &offset, (int *)(&newVal)))
+	if (!PyArg_ParseTuple(args, "OiH:SetWindowWord", &obhwnd, &offset, &newVal))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
-	long rc = ::SetWindowWord( (HWND)hwnd, offset, newVal );
+	long rc = ::SetWindowWord(hwnd, offset, newVal );
 	PyW32_END_ALLOW_THREADS
 	return Py_BuildValue("l", rc);
 }
 
-// @pymethod int|win32api|SetClassLong|Replaces the specified 32-bit (long) value at the specified offset into the extra class memory for the window.
+// @pymethod int|win32api|SetClassLong|Replaces the specified 32 or 64 bit value at the specified offset into the extra class memory for the window.
+// @comm This function calls the SetClassLongPtr Api function
 static PyObject *
 PySetClassLong(PyObject * self, PyObject * args)
 {
-	int hwnd;
+	HWND hwnd;
+	PyObject *obhwnd, *obval;
 	int offset;
-	long newVal;
-	// @pyparm int|hwnd||The handle to the window.
+	LONG_PTR newVal;
+	// @pyparm <o PyHANDLE>|hwnd||The handle to the window.
 	// @pyparm int|offset||Specifies the zero-based byte offset of the value to change. Valid values are in the range zero through the number of bytes of extra window memory, minus four (for example, if 12 or more bytes of extra memory were specified, a value of 8 would be an index to the third long integer), or one of the GWL_ constants.
 	// @pyparm int|val||Specifies the long value to place in the window's reserved memory.
-	if (!PyArg_ParseTuple(args, "iil:SetClassLong", &hwnd, &offset, &newVal))
+	if (!PyArg_ParseTuple(args, "OiO:SetClassLong", &obhwnd, &offset, &obval))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+		return NULL;
+	newVal=(LONG_PTR)PyLong_AsVoidPtr(obval);
+	if (newVal==NULL && PyErr_Occurred())
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
-	long rc = ::SetClassLong( (HWND)hwnd, offset, newVal );
+	LONG_PTR rc = ::SetClassLongPtr(hwnd, offset, newVal );
 	PyW32_END_ALLOW_THREADS
-	return Py_BuildValue("l", rc);
+	return PyLong_FromVoidPtr((void *)rc);
 }
+
 // @pymethod int|win32api|SetClassWord|
+// @comm This function is obsolete, use <om win32api.SetClassLong> instead
 static PyObject *
 PySetClassWord(PyObject * self, PyObject * args)
 {
-	int hwnd;
+	HWND hwnd;
+	PyObject *obhwnd;
 	int offset;
 	WORD newVal;
 	// @pyparm int|hwnd||The handle to the window.
 	// @pyparm int|offset||Specifies the zero-based byte offset of the value to change. Valid values are in the range zero through the number of bytes of extra window memory, minus four (for example, if 12 or more bytes of extra memory were specified, a value of 8 would be an index to the third long integer), or one of the GWL_ constants.
 	// @pyparm int|val||Specifies the long value to place in the window's reserved memory.
-	if (!PyArg_ParseTuple(args, "iii:SetClassWord", &hwnd, &offset, (int *)(&newVal)))
+	if (!PyArg_ParseTuple(args, "OiH:SetClassWord", &obhwnd, &offset, &newVal))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
-	long rc = ::SetClassWord( (HWND)hwnd, offset, newVal );
+	long rc = ::SetClassWord(hwnd, offset, newVal );
 	PyW32_END_ALLOW_THREADS
 	return Py_BuildValue("l", rc);
 }
@@ -4121,7 +4206,7 @@ static PyObject *
 PyGetSystemTime (PyObject * self, PyObject * args)
 {
   SYSTEMTIME t;
-  if (!PyArg_ParseTuple (args, "")) {
+  if (!PyArg_ParseTuple (args, ":GetSystemTime")) {
  return NULL;
   } else {
  // GetSystemTime is a void function
@@ -4146,7 +4231,7 @@ static PyObject *
 PyGetLocalTime (PyObject * self, PyObject * args)
 {
   SYSTEMTIME t;
-  if (!PyArg_ParseTuple (args, "")) {
+  if (!PyArg_ParseTuple (args, ":GetLocalTime")) {
  return NULL;
   } else {
  // GetLocalTime is a void function
@@ -4173,7 +4258,7 @@ PySetSystemTime (PyObject * self, PyObject * args)
   int result;
 
   if (!PyArg_ParseTuple (args,
-       "hhhhhhhh",
+	  "hhhhhhhh:SetSystemTime",
        &t.wYear,   	// @pyparm int|year||
        &t.wMonth, // @pyparm int|month||
        &t.wDayOfWeek, // @pyparm int|dayOfWeek||
@@ -4278,12 +4363,15 @@ static PyObject *PyTerminateProcess(PyObject *self, PyObject *args)
 static PyObject * PyLoadString(PyObject *self, PyObject *args)
 {
 	HMODULE hModule;
+	PyObject *obhModule;
 	int numChars = 1024, gotChars=0;
 	UINT stringId;
-	if ( !PyArg_ParseTuple(args, "ii|i",
-						   &hModule, // @pyparm int|handle||The handle of the module containing the resource.
+	if ( !PyArg_ParseTuple(args, "Oi|i:LoadString",
+						   &obhModule, // @pyparm <o PyHANDLE>|handle||The handle of the module containing the resource.
 						   &stringId, // @pyparm int|stringId||The ID of the string to load.
 						   &numChars)) // @pyparm int|numChars|1024|Number of characters to allocate for the return buffer.
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhModule, (HANDLE *)&hModule, FALSE))
 		return NULL;
 	int numBytes = sizeof(WCHAR) * numChars;
 	WCHAR *buffer = (WCHAR *)malloc(numBytes);
@@ -4304,18 +4392,20 @@ static PyObject * PyLoadString(PyObject *self, PyObject *args)
 static PyObject * PyLoadResource(PyObject *self, PyObject *args)
 {
 	HMODULE hModule;
+	PyObject *obhModule;
 	PyObject *obType;
 	PyObject *obName;
 	WORD wLanguage = MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL);
 
-	if ( !PyArg_ParseTuple(args, "iOO|i",
-						   &hModule, // @pyparm int|handle||The handle of the module containing the resource.
-						   &obType, // @pyparm object|type||The type of resource to load.
-						   &obName, // @pyparm object|name||The name of the resource to load.
-						   &wLanguage // @pyparm int|language|NEUTRAL|Language to use, defaults to LANG_NEUTRAL.
+	if ( !PyArg_ParseTuple(args, "OOO|i:LoadResource",
+			&obhModule, // @pyparm <o PyHANDLE>|handle||The handle of the module containing the resource.  Use None for currrent process executable.
+			&obType, // @pyparm object|type||The type of resource to load.
+			&obName, // @pyparm object|name||The name of the resource to load.
+			&wLanguage // @pyparm int|language|NEUTRAL|Language to use, defaults to LANG_NEUTRAL.
 		) )
 		return NULL;
-
+	if (!PyWinObject_AsHANDLE(obhModule, (HANDLE *)&hModule, TRUE))
+		return NULL;
 
 	BOOL bFreeType = FALSE, bFreeName = FALSE;
 	LPTSTR lpType;
@@ -4363,7 +4453,7 @@ static PyObject * PyBeginUpdateResource(PyObject *self, PyObject *args)
 	const char *szFileName;
 	int bDeleteExistingResources;
 
-	if ( !PyArg_ParseTuple(args, "si",
+	if ( !PyArg_ParseTuple(args, "si:BeginUpdateResource",
 						   &szFileName, // @pyparm string|filename||File in which to update resources.
 						   &bDeleteExistingResources // @pyparm int|delete||Flag to indicate that all existing resources should be deleted.
 		) )
@@ -4373,21 +4463,22 @@ static PyObject * PyBeginUpdateResource(PyObject *self, PyObject *args)
 	if ( h == NULL )
 		return ReturnAPIError("BeginUpdateResource");
 
-	return PyInt_FromLong((int)h);
+	return PyWinLong_FromHANDLE(h);
 }
 
 // @pymethod |win32api|UpdateResource|Updates a resource in a PE file.
 static PyObject * PyUpdateResource(PyObject *self, PyObject *args)
 {
 	HMODULE hUpdate;
+	PyObject *obhUpdate;
 	PyObject *obType;
 	PyObject *obName;
 	LPVOID lpData;
 	DWORD cbData;
 	WORD wLanguage = MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL);
 
-	if ( !PyArg_ParseTuple(args, "iOOs#|i",
-						   &hUpdate, // @pyparm int|handle||The update-file handle.
+	if ( !PyArg_ParseTuple(args, "OOOs#|i:UpdateResource",
+						   &obhUpdate, // @pyparm <o PyHANDLE>|handle||The update-file handle.
 						   &obType, // @pyparm object|type||The type of resource to load.
 						   &obName, // @pyparm object|name||The name of the resource to load.
 						   &lpData, // @pyparm string|data||The data to place into the resource.
@@ -4396,6 +4487,8 @@ static PyObject * PyUpdateResource(PyObject *self, PyObject *args)
 		) )
 		return NULL;
 
+	if (!PyWinObject_AsHANDLE(obhUpdate, (HANDLE *)&hUpdate, FALSE))
+		return NULL;
 	BOOL bFreeType = FALSE, bFreeName = FALSE;
 	LPWSTR lpType;
 	if ( PyInt_Check(obType) )
@@ -4429,14 +4522,16 @@ static PyObject * PyUpdateResource(PyObject *self, PyObject *args)
 static PyObject * PyEndUpdateResource(PyObject *self, PyObject *args)
 {
 	HMODULE hUpdate;
+	PyObject *obhUpdate;
 	int fDiscard;
 
-	if ( !PyArg_ParseTuple(args, "ii",
-						   &hUpdate, // @pyparm int|handle||The update-file handle.
+	if ( !PyArg_ParseTuple(args, "Oi:EndUpdateResource",
+						   &obhUpdate, // @pyparm <o PyHANDLE>|handle||The update-file handle.
 						   &fDiscard // @pyparm int|discard||Flag to discard all writes.
 		) )
 		return NULL;
-
+	if (!PyWinObject_AsHANDLE(obhUpdate, (HANDLE *)&hUpdate, FALSE))
+		return NULL;
 	if ( !EndUpdateResource(hUpdate, fDiscard) )
 		return ReturnAPIError("EndUpdateResource");
 
@@ -4484,25 +4579,28 @@ BOOL CALLBACK EnumResProc(HMODULE module, LPCSTR type, LPSTR name, PyObject
 PyObject *PyEnumResourceNames(PyObject *, PyObject *args)
 {
 	HMODULE hmodule;
+	PyObject *obhmodule;
 	LPCSTR restype;
 	char buf[20];
 	// NOTE:  MH can't make the string version of the param
 	// return anything useful, so I undocumented its use!
-	// pyparm int|hmodule||The handle to the module to enumerate.
+	// pyparm <o PyHANDLE>|hmodule||The handle to the module to enumerate.
 	// pyparm string|resType||The type of resource to enumerate as a string (eg, 'RT_DIALOG')
-	if (!PyArg_ParseTuple(args, "is", &hmodule, &restype))
+	if (!PyArg_ParseTuple(args, "Os:EnumResourceNames", &obhmodule, &restype))
 	{
 		PyErr_Clear();
 		int restypeint;
-		// @pyparm int|hmodule||The handle to the module to enumerate.
+		// @pyparm <o PyHANDLE>|hmodule||The handle to the module to enumerate.
 		// @pyparm int|resType||The type of resource to enumerate as an integer (eg, win32con.RT_DIALOG)
-		if (!PyArg_ParseTuple(args, "ii", &hmodule, &restypeint))
+		if (!PyArg_ParseTuple(args, "Oi:EnumResourceNames", &obhmodule, &restypeint))
 		{
 			return NULL;
 		}
 		sprintf(buf, "#%d", restypeint);
 		restype = buf;
 	}
+	if (!PyWinObject_AsHANDLE(obhmodule, (HANDLE *)&hmodule, FALSE))
+		return NULL;
 	// @rdesc The result is a list of string or integers, one for each resource enumerated.
 	PyObject *result = PyList_New(0);
 	EnumResourceNames(
@@ -4537,7 +4635,7 @@ PyObject *PyEnumResourceTypes(PyObject *, PyObject *args)
 	// @pyparm <o PyHandle>|hmodule||The handle to the module to enumerate.
 	if (!PyArg_ParseTuple(args, "O:EnumResourceTypes", &pyhandle))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(pyhandle, (void **)&hmodule))
+	if (!PyWinObject_AsHANDLE(pyhandle, (HANDLE *)&hmodule))
 		return NULL;
 	ret=PyList_New(0);
 	if(!EnumResourceTypesW(hmodule, 
@@ -4572,7 +4670,7 @@ PyObject *PyEnumResourceLanguages(PyObject *, PyObject *args)
 		// @pyparm string/unicode/int|lpName||Resource name, can be string or integer
 	if (!PyArg_ParseTuple(args, "OOO:EnumResourceLanguages", &pyhandle, &obtypname, &obresname))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(pyhandle, (void **)&hmodule))
+	if (!PyWinObject_AsHANDLE(pyhandle, (HANDLE *)&hmodule))
 		return NULL;
 	if(!PyWinObject_AsResourceID(obtypname,(long *)&typname))
 		goto done;
@@ -4783,7 +4881,7 @@ PyObject *PyGetFileVersionInfo(PyObject *self, PyObject *args)
 	VS_FIXEDFILEINFO *fixed_info;
 	FILETIME ft;
 	BOOL success;
-	if (!PyArg_ParseTuple(args,"OO", 
+	if (!PyArg_ParseTuple(args,"OO:GetFileVersionInfo", 
 		&obfile_name, // @pyparm string/unicode|Filename||File to query for version info
 		&obinfo))	  // @pyparm string/unicode|SubBlock||Information to return: \ for VS_FIXEDFILEINFO, \VarFileInfo\Translation for languages/codepages available
 		return NULL;
