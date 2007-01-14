@@ -47,6 +47,36 @@ QueryServiceConfig2func fpQueryServiceConfig2=NULL;
 
 %{
 #include "structmember.h"
+
+// @object PySC_HANDLE|Handle to a service or service control manager.
+//	This is a variant of <o PyHANDLE> that releases its handle using CloseServiceHandle.
+class PySC_HANDLE: public PyHANDLE
+{
+public:
+	PySC_HANDLE(HANDLE hInit) : PyHANDLE(hInit) {}
+	virtual BOOL Close(void){
+		BOOL ret=TRUE;
+		if (m_handle!=NULL){
+			ret=CloseServiceHandle((SC_HANDLE)m_handle);
+			m_handle = NULL;
+			}
+		if (!ret)
+			PyWin_SetAPIError("CloseServiceHandle");
+		return ret;
+		}
+	virtual const char *GetTypeName(){
+		return "PySC_HANDLE";
+		}
+};
+
+PyObject *PyWinObject_FromSC_HANDLE(SC_HANDLE sch)
+{
+	PyObject *ret=new PySC_HANDLE(sch);
+	if (ret==NULL)
+		PyErr_NoMemory();
+	return ret;
+}
+
 // @object PyHWINSTA|Wrapper for a handle to a window station - returned by CreateWindowStation, OpenWindowStation, or GetProcessWindowStation
 class PyHWINSTA : public PyHANDLE
 {
@@ -80,7 +110,10 @@ PyObject *PyHWINSTA::PyHWINSTA_new(PyTypeObject *tp, PyObject *args, PyObject *k
 {
 	static char *keywords[]={"handle",0};
 	HWINSTA hwinsta;
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "l", keywords, &hwinsta))
+	PyObject *obh;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &obh))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obh, (HANDLE *)&hwinsta, FALSE))
 		return NULL;
 	return new PyHWINSTA(hwinsta);
 }
@@ -181,7 +214,10 @@ PyObject *PyHDESK::PyHDESK_new(PyTypeObject *tp, PyObject *args, PyObject *kwarg
 {
 	static char *keywords[]={"handle",0};
 	HDESK hdesk;
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "l", keywords, &hdesk))
+	PyObject *obh;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &obh))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obh, (HANDLE *)&hdesk, FALSE))
 		return NULL;
 	return new PyHDESK(hdesk);
 }
@@ -384,7 +420,7 @@ PyObject *PyGetThreadDesktop(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig (PyUNICODE,...)|EnumWindowStations|Lists names of window stations
+// @pyswig (<o PyUnicode>,,...)|EnumWindowStations|Lists names of window stations
 // @comm Only window stations for which you have WINSTA_ENUMERATE access will be returned
 %native(EnumWindowStations) PyEnumWindowStations;
 %{
@@ -759,9 +795,9 @@ PyObject *MyCreateService(
 		rc = NULL;
 	} else {
 		if (bFetchTag)
-			rc = Py_BuildValue("ll", sh, tagID);
+			rc = Py_BuildValue("Nl", PyWinLong_FromHANDLE(sh), tagID);
 		else
-			rc = PyInt_FromLong((long)sh);
+			rc = PyWinLong_FromHANDLE(sh);
 	}
 cleanup:
 	delete [] lpDeps;
@@ -857,17 +893,19 @@ PyObject *MyStartService( SC_HANDLE scHandle, PyObject *serviceArgs )
 %{
 static PyObject *MyEnumServicesStatus(PyObject *self, PyObject *args)
 {
-	// @pyparm int|hSCManager||Handle to service control manager as returned by <om win32service.OpenSCManager>
+	// @pyparm <o PySC_HANDLE>|hSCManager||Handle to service control manager as returned by <om win32service.OpenSCManager>
 	// @pyparm int|ServiceType|SERVICE_WIN32|Types of services to enumerate (SERVICE_DRIVER and/or SERVICE_WIN32)
 	// @pyparm int|ServiceState|SERVICE_STATE_ALL|Limits to services in specified state
-	SC_HANDLE hscm;		
+	SC_HANDLE hscm;
+	PyObject *obhscm;
 	DWORD serviceType = SERVICE_WIN32;
 	DWORD serviceState = SERVICE_STATE_ALL;
-	if (!PyArg_ParseTuple(args, "l|ll:EnumServicesStatus", &hscm, &serviceType, &serviceState))
+	if (!PyArg_ParseTuple(args, "O|ll:EnumServicesStatus", &obhscm, &serviceType, &serviceState))
 	{
 		return NULL;
 	}
-
+	if (!PyWinObject_AsHANDLE(obhscm, (HANDLE *)&hscm, FALSE))
+		return NULL;
 	long tmp;
 	LPENUM_SERVICE_STATUS services = (LPENUM_SERVICE_STATUS)&tmp;
 	DWORD bytesNeeded, servicesReturned, resumeHandle = 0;
@@ -925,14 +963,17 @@ static PyObject *MyEnumServicesStatus(PyObject *self, PyObject *args)
 %{
 static PyObject *MyEnumDependentServices(PyObject *self, PyObject *args)
 {
-	// @pyparm int|hService||Handle to service for which to list dependent services (as returned by <om win32service.OpenService>)
+	// @pyparm <o PySC_HANDLE>|hService||Handle to service for which to list dependent services (as returned by <om win32service.OpenService>)
 	// @pyparm int|ServiceState|SERVICE_STATE_ALL|Limits to services in specified state - One of SERVICE_STATE_ALL, SERVICE_ACTIVE, SERVICE_INACTIVE
 	SC_HANDLE hsc;
+	PyObject *obhsc;
 	DWORD serviceState = SERVICE_STATE_ALL;
-	if (!PyArg_ParseTuple(args, "l|l:EnumDependentServices", &hsc, &serviceState))
+	if (!PyArg_ParseTuple(args, "O|l:EnumDependentServices", &obhsc, &serviceState))
 	{
 		return NULL;
 	}
+	if (!PyWinObject_AsHANDLE(obhsc, (HANDLE *)&hsc, FALSE))
+		return NULL;
 
 	long tmp;
 	LPENUM_SERVICE_STATUS services = (LPENUM_SERVICE_STATUS)&tmp;
@@ -993,12 +1034,15 @@ static PyObject *MyEnumDependentServices(PyObject *self, PyObject *args)
 %{
 static PyObject *MyQueryServiceConfig(PyObject *self, PyObject *args)
 {
-	// @pyparm int|hService||Service handle as returned by <om win32service.OpenService>
+	// @pyparm <o PySC_HANDLE>|hService||Service handle as returned by <om win32service.OpenService>
 	SC_HANDLE hsc;
-	if (!PyArg_ParseTuple(args, "l:QueryServiceConfig", &hsc))
+	PyObject *obhsc;
+	if (!PyArg_ParseTuple(args, "O:QueryServiceConfig", &obhsc))
 	{
 		return NULL;
 	}
+	if (!PyWinObject_AsHANDLE(obhsc, (HANDLE *)&hsc, FALSE))
+		return NULL;
 
 	long tmp;
 	LPQUERY_SERVICE_CONFIG config = (LPQUERY_SERVICE_CONFIG)&tmp;
@@ -1051,10 +1095,22 @@ static PyObject *MyQueryServiceConfig(PyObject *self, PyObject *args)
 }
 %}
 
-typedef long SC_HANDLE; // 32 bit?
-typedef long SC_LOCK;
-typedef long SERVICE_STATUS_HANDLE
-//typedef unsigned int TCHAR;
+typedef float SC_HANDLE, SERVICE_STATUS_HANDLE, SC_LOCK;	// This is just to keep Swig from treating them as pointers
+%typemap(python,out) SC_HANDLE{
+	$target = PyWinObject_FromSC_HANDLE($source);
+}
+%typemap(python,in) SC_HANDLE, SERVICE_STATUS_HANDLE{
+	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target, FALSE))
+		return NULL;
+}
+%typemap(python,out) SC_LOCK{
+	$target = PyLong_FromVoidPtr($source);
+}
+%typemap(python,in) SC_LOCK{
+	$target=PyLong_AsVoidPtr($source);
+	if ($target==NULL && PyErr_Occurred())
+		return NULL;
+}
 
 %typemap(python,except) SC_HANDLE {
       Py_BEGIN_ALLOW_THREADS
@@ -1099,27 +1155,54 @@ typedef long SERVICE_STATUS_HANDLE
 
 // @pyswig |StartService|Starts the specified service
 %name (StartService) PyObject *MyStartService (
-     SC_HANDLE  scHandle, // @pyparm int|scHandle||Handle to the Service Control Mananger
+     SC_HANDLE  hService, // @pyparm <o PySC_HANDLE>|hService||Handle to the service to be started
      PyObject *pyobject /* serviceArgs */); // @pyparm [string, ...]|args||Arguments to the service.
 
-// @pyswig int|OpenService|Returns a handle to the specified service.
+// @pyswig <o PySC_HANDLE>|OpenService|Returns a handle to the specified service.
 SC_HANDLE OpenService(
-	SC_HANDLE hSCManager, // @pyparm int|scHandle||Handle to the Service Control Mananger
+	SC_HANDLE hSCManager, // @pyparm <o PySC_HANDLE>|scHandle||Handle to the Service Control Mananger
 	TCHAR *name, // @pyparm <o PyUnicode>|name||The name of the service to open.
 	unsigned long desiredAccess); // @pyparm int|desiredAccess||The access desired.
 
-// @pyswig int|OpenSCManager|Returns a handle to the service control manager
+// @pyswig <o PySC_HANDLE>|OpenSCManager|Returns a handle to the service control manager
 SC_HANDLE OpenSCManager(
 	TCHAR *INPUT_NULLOK, // @pyparm <o PyUnicode>|machineName||The name of the computer, or None
 	TCHAR *INPUT_NULLOK, // @pyparm <o PyUnicode>|dbName||The name of the service database, or None
-	unsigned long desiredAccess); // @pyparm int|desiredAccess||The access desired.
+	unsigned long desiredAccess); // @pyparm int|desiredAccess||The access desired. (combination of win32service.SC_MANAGER_* flags)
 
-// @pyswig |CloseServiceHandle|Closes a service handle
-BOOLAPI CloseServiceHandle(SC_HANDLE handle); // @pyparm int|scHandle||Handle to close
+%{
+// @pyswig |CloseServiceHandle|Closes a service or SCM handle
+static PyObject *PyCloseServiceHandle(PyObject *self, PyObject *args)
+{
+	PyObject *obsch;
+	SC_HANDLE sch;
+	if (!PyArg_ParseTuple(args, "O:CloseServiceHandle",
+		&obsch))	// @pyparm <o PySC_HANDLE>|scHandle||Handle to close
+		return NULL;
+	if (PyHANDLE_Check(obsch)){
+		// Calling Close() in this manner could close any type of PyHANDLE.
+		if (strcmp(((PyHANDLE *)obsch)->GetTypeName(),"PySC_HANDLE")!=0){
+			PyErr_SetString(PyExc_TypeError,"PyHANDLE passed to CloseServiceHandle must be a PySC_HANDLE");
+			return NULL;
+			}
+		if (!((PySC_HANDLE *)obsch)->Close())
+			return NULL;
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	if (!PyWinObject_AsHANDLE(obsch, (HANDLE *)&sch, FALSE))
+		return NULL;
+	if (!CloseServiceHandle(sch))
+		return PyWin_SetAPIError("CloseServiceHandle");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+%native (CloseServiceHandle) PyCloseServiceHandle;
 
 // @pyswig <o SERVICE_STATUS>|QueryServiceStatus|Queries a service status
 BOOLAPI QueryServiceStatus(SC_HANDLE handle, SERVICE_STATUS *outServiceStatus);
-// @pyparm int|scHandle||Handle to query
+// @pyparm <o PySC_HANDLE>|hService||Handle to service to be queried
 
 // @pyswig <o SERVICE_STATUS>|QueryServiceStatusEx|Queries a service status
 %native (QueryServiceStatusEx) MyQueryServiceStatusEx;
@@ -1131,13 +1214,17 @@ PyObject *MyQueryServiceStatusEx(PyObject *self, PyObject *args)
 		return NULL;
 		}
 	SC_HANDLE hService;
+	PyObject *obhService;
 	SC_STATUS_TYPE InfoLevel=SC_STATUS_PROCESS_INFO;  // only existing info level
 	SERVICE_STATUS_PROCESS info;
 	DWORD bufsize=sizeof(SERVICE_STATUS_PROCESS);
 	DWORD reqdbufsize;
-	// @pyparm int|scHandle||Handle to query
-	if (!PyArg_ParseTuple(args,"l:QueryServiceStatusEx",&hService))
+	// @pyparm <o PySC_HANDLE>|hService||Handle to service to be queried
+	if (!PyArg_ParseTuple(args,"O:QueryServiceStatusEx",&obhService))
 		return NULL;
+	if (!PyWinObject_AsHANDLE(obhService, (HANDLE *)&hService, FALSE))
+		return NULL;
+
 	if (!(*fpQueryServiceStatusEx)(hService,InfoLevel,(BYTE *)&info,bufsize,&reqdbufsize))
 		return PyWin_SetAPIError("QueryServiceStatusEx", GetLastError());
 	return Py_BuildValue("{s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l}",
@@ -1162,11 +1249,15 @@ PyObject *MySetServiceObjectSecurity(PyObject *self, PyObject *args)
 	PSECURITY_DESCRIPTOR pSD;
 	SECURITY_INFORMATION info;
 	SC_HANDLE hsvc;
-	// @pyparm int|Handle||Service handle
+	PyObject *obhsvc;
+	// @pyparm <o PySC_HANDLE>|Handle||Service handle
 	// @pyparm int|SecurityInformation||Type of infomation to set, combination of values from SECURITY_INFORMATION enum
 	// @pyparm <o PySECURITY_DESCRIPTOR>|SecurityDescriptor||PySECURITY_DESCRIPTOR containing infomation to set
-	if (!PyArg_ParseTuple(args,"llO:SetServiceObjectSecurity",&hsvc, &info, &obSD))
+	if (!PyArg_ParseTuple(args,"OlO:SetServiceObjectSecurity",&obhsvc, &info, &obSD))
 		return NULL;
+	if (!PyWinObject_AsHANDLE(obhsvc, (HANDLE *)&hsvc, FALSE))
+		return NULL;
+
 	if (!PyWinObject_AsSECURITY_DESCRIPTOR(obSD,&pSD,FALSE))
 		return NULL;
 	if (!SetServiceObjectSecurity(hsvc,info,pSD))
@@ -1186,10 +1277,14 @@ PyObject *MyQueryServiceObjectSecurity(PyObject *self, PyObject *args)
 	SECURITY_INFORMATION info;
 	DWORD err, origbufsize=SECURITY_DESCRIPTOR_MIN_LENGTH, reqdbufsize=0;
 	SC_HANDLE hsvc;
-	// @pyparm int|Handle||Service handle
+	PyObject *obhsvc;
+	// @pyparm <o PySC_HANDLE>|Handle||Service handle
 	// @pyparm int|SecurityInformation||Type of infomation to retrieve, combination of values from SECURITY_INFORMATION enum
-	if (!PyArg_ParseTuple(args,"ll:QueryServiceObjectSecurity",&hsvc, &info))
+	if (!PyArg_ParseTuple(args,"Ol:QueryServiceObjectSecurity",&obhsvc, &info))
 		return NULL;
+	if (!PyWinObject_AsHANDLE(obhsvc, (HANDLE *)&hsvc, FALSE))
+		return NULL;
+
 	pSD=(PSECURITY_DESCRIPTOR)malloc(origbufsize);
 	if (pSD==NULL){
 		PyErr_Format(PyExc_MemoryError, "QueryServiceObjectSecurity: unable to allocate %d bytes", origbufsize);
@@ -1224,14 +1319,17 @@ PyObject *MyQueryServiceObjectSecurity(PyObject *self, PyObject *args)
 %{
 PyObject *MyGetServiceKeyName(PyObject *self, PyObject *args)
 {
-	// @pyparm int|hSCManager||Handle to service control manager as returned by <om win32service.OpenSCManager>
+	// @pyparm <o PySC_HANDLE>|hSCManager||Handle to service control manager as returned by <om win32service.OpenSCManager>
 	// @pyparm <o PyUNICODE>|DisplayName||Display name of a service
 	SC_HANDLE h;
+	PyObject *obh;
 	WCHAR *displayname;
 	WCHAR keyname[MAX_SERVICE_NAME_LEN];
 	DWORD bufsize=MAX_SERVICE_NAME_LEN;
 	PyObject *obdisplayname, *ret=NULL;
-	if (!PyArg_ParseTuple(args,"lO", &h, &obdisplayname))
+	if (!PyArg_ParseTuple(args,"OO:GetServiceKeyName", &obh, &obdisplayname))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obh, (HANDLE *)&h, FALSE))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obdisplayname, &displayname, FALSE))
 		return NULL;
@@ -1249,14 +1347,17 @@ PyObject *MyGetServiceKeyName(PyObject *self, PyObject *args)
 %{
 PyObject *MyGetServiceDisplayName(PyObject *self, PyObject *args)
 {
-	// @pyparm int|hSCManager||Handle to service control manager as returned by <om win32service.OpenSCManager>
+	// @pyparm <o PySC_HANDLE>|hSCManager||Handle to service control manager as returned by <om win32service.OpenSCManager>
 	// @pyparm <o PyUNICODE>|ServiceName||Name of service
 	SC_HANDLE h;
+	PyObject *obh;
 	WCHAR *keyname;
 	WCHAR displayname[MAX_SERVICE_NAME_LEN];
 	DWORD bufsize=MAX_SERVICE_NAME_LEN;
 	PyObject *obkeyname, *ret=NULL;
-	if (!PyArg_ParseTuple(args,"lO", &h, &obkeyname))
+	if (!PyArg_ParseTuple(args,"OO:GetServiceDisplayName", &obh, &obkeyname))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obh, (HANDLE *)&h, FALSE))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obkeyname, &keyname, FALSE))
 		return NULL;
@@ -1277,19 +1378,19 @@ BOOLAPI SetServiceStatus(
 // @pyswig <o SERVICE_STATUS>|ControlService|Sends a control message to a service.
 // @rdesc The result is the new service status.
 BOOLAPI ControlService(
-    SC_HANDLE handle, // @pyparm int|scHandle||Handle to control
+    SC_HANDLE handle, // @pyparm <o PySC_HANDLE>|scHandle||Handle to control
     DWORD status, // @pyparm int|code||The service control code.
     SERVICE_STATUS *outServiceStatus);
 
 // @pyswig |DeleteService|Deletes the specified service
 BOOLAPI DeleteService(SC_HANDLE);
-// @pyparm int|scHandle||Handle to delete
+// @pyparm <o PySC_HANDLE>|scHandle||Handle to service to be deleted
 
-// @pyswig int/(int, int)|CreateService|Creates a new service.
+// @pyswig <o PySC_HANDLE>/(<o PySC_HANDLE>, int)|CreateService|Creates a new service.
 %name (CreateService) PyObject * MyCreateService(
-    SC_HANDLE hSCManager,	// @pyparm int|scHandle||handle to service control manager database  
-    TCHAR *name,	// @pyparm <o PyUnicode>|name||Name of service
-    TCHAR *displayName,	// @pyparm <o PyUnicode>|displayName||Display name 
+    SC_HANDLE hSCManager,	// @pyparm <o PySC_HANDLE>|scHandle||handle to service control manager database  
+    TCHAR *name,			// @pyparm <o PyUnicode>|name||Name of service
+    TCHAR *displayName,		// @pyparm <o PyUnicode>|displayName||Display name 
     DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||type of access to service 
     DWORD dwServiceType,	// @pyparm int|serviceType||type of service 
     DWORD dwStartType,		// @pyparm int|startType||When/how to start service 
@@ -1304,22 +1405,22 @@ BOOLAPI DeleteService(SC_HANDLE);
 
 // @pyswig int/None|ChangeServiceConfig|Changes the configuration of an existing service.
 %name (ChangeServiceConfig) PyObject * MyChangeServiceConfig(
-    SC_HANDLE hSCManager,	// @pyparm int|scHandle||handle to service control manager database  
+    SC_HANDLE hService,		// @pyparm <o PySC_HANDLE>|hService||handle to service to be modified
     DWORD dwServiceType,	// @pyparm int|serviceType||type of service, or SERVICE_NO_CHANGE
     DWORD dwStartType,		// @pyparm int|startType||When/how to start service, or SERVICE_NO_CHANGE
     DWORD dwErrorControl,	// @pyparm int|errorControl||severity if service fails to start, or SERVICE_NO_CHANGE
     TCHAR *INPUT_NULLOK,	// @pyparm <o PyUnicode>|binaryFile||name of binary file, or None
     TCHAR *INPUT_NULLOK,	// @pyparm <o PyUnicode>|loadOrderGroup||name of load ordering group , or None
-    BOOL  bFetchTag,            // @pyparm int|bFetchTag||Should the tag be fetched and returned?  If TRUE, the result is the tag, else None.
+    BOOL  bFetchTag,		// @pyparm int|bFetchTag||Should the tag be fetched and returned?  If TRUE, the result is the tag, else None.
     PyObject *pyobject,		// @pyparm [<o PyUnicode>,...]|serviceDeps||sequence of dependency names 
     TCHAR *INPUT_NULLOK,	// @pyparm <o PyUnicode>|acctName||account name of service, or None
-    TCHAR *INPUT_NULLOK, 	// @pyparm <o PyUnicode>|password||password for service account , or None
-    TCHAR *INPUT_NULLOK	// @pyparm <o PyUnicode>|displayName||Display name 
+    TCHAR *INPUT_NULLOK,	// @pyparm <o PyUnicode>|password||password for service account , or None
+    TCHAR *INPUT_NULLOK		// @pyparm <o PyUnicode>|displayName||Display name 
    );
 
 // @pyswig int|LockServiceDatabase|Locks the service database.
 SC_LOCK LockServiceDatabase(
-	SC_HANDLE handle // @pyparm int|sc_handle||A handle to the SCM.
+	SC_HANDLE handle // @pyparm <o PySC_HANDLE>|sc_handle||A handle to the SCM.
 );
 
 // @pyswig int|UnlockServiceDatabase|Unlocks the service database.
@@ -1331,13 +1432,15 @@ BOOLAPI UnlockServiceDatabase(
 // @pyswig (int, <o PyUnicode>, int)|QueryServiceLockStatus|Retrieves the lock status of the specified service control manager database. 
 static PyObject *PyQueryServiceLockStatus(PyObject *self, PyObject *args)
 {
-	long handle;
-	// @pyparm int|handle||Handle to the SCM.
-	if (!PyArg_ParseTuple(args, "l:QueryServiceLockStatus", &handle))
+	SC_HANDLE handle;
+	PyObject *obhandle;
+	// @pyparm <o PySC_HANDLE>|hSCManager||Handle to the SCM.
+	if (!PyArg_ParseTuple(args, "O:QueryServiceLockStatus", &obhandle))
 		return NULL;
-
+	if (!PyWinObject_AsHANDLE(obhandle, (HANDLE *)&handle, FALSE))
+		return NULL;
 	DWORD bufSize;
-	QueryServiceLockStatus((SC_HANDLE)handle, NULL, 0, &bufSize);
+	QueryServiceLockStatus(handle, NULL, 0, &bufSize);
 	if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
 		return PyWin_SetAPIError("QueryServiceLockStatus");
 	QUERY_SERVICE_LOCK_STATUS *buf;
@@ -1498,15 +1601,18 @@ PyObject *PyChangeServiceConfig2(PyObject *self, PyObject *args)
 		return NULL;
 		}
 	SC_HANDLE hService;
+	PyObject *obhService;
 	DWORD level;
 	BOOL bsuccess;
 	SERVICE_DESCRIPTIONW description_buf;
 	SERVICE_FAILURE_ACTIONSW failure_actions_buf;
 	PyObject *obinfo;
-	// @pyparm int|hService||Service handle as returned by <om win32service.OpenService>
+	// @pyparm <o PySC_HANDLE>|hService||Service handle as returned by <om win32service.OpenService>
 	// @pyparm int|InfoLevel||Indicates type of config parameters being set, one of SERVICE_CONFIG_DESCRIPTION or SERVICE_CONFIG_FAILURE_ACTIONS
 	// @pyparm object|info||For SERVICE_CONFIG_DESCRIPTION a string  For SERVICE_CONFIG_FAILURE_ACTIONS a <o SERVICE_FAILURE_ACTIONS> dictionary 
-	if (!PyArg_ParseTuple(args,"llO:ChangeServiceConfig2", &hService, &level, &obinfo))
+	if (!PyArg_ParseTuple(args,"OlO:ChangeServiceConfig2", &obhService, &level, &obinfo))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhService, (HANDLE *)&hService, FALSE))
 		return NULL;
 	switch (level){
 		case SERVICE_CONFIG_DESCRIPTION:
@@ -1542,12 +1648,15 @@ PyObject *PyQueryServiceConfig2(PyObject *self, PyObject *args)
 		return NULL;
 		}
 	SC_HANDLE hService;
+	PyObject *obhService;
 	DWORD level, bytes_needed=0, bufsize=0;
 	LPBYTE buf=NULL;
 	PyObject *ret=NULL;
-	// @pyparm int|hService||Service handle as returned by <om win32service.OpenService>
+	// @pyparm <o PySC_HANDLE>|hService||Service handle as returned by <om win32service.OpenService>
 	// @pyparm int|InfoLevel||SERVICE_CONFIG_DESCRIPTION or SERVICE_CONFIG_FAILURE_ACTIONS
-	if (!PyArg_ParseTuple(args,"ll:QueryServiceConfig2", &hService, &level))
+	if (!PyArg_ParseTuple(args,"Ol:QueryServiceConfig2", &obhService, &level))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhService, (HANDLE *)&hService, FALSE))
 		return NULL;
 	(*fpQueryServiceConfig2)(hService, level, buf, bufsize, &bytes_needed);
 	if (bytes_needed==0){
