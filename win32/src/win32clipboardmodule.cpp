@@ -55,11 +55,15 @@ py_change_clipboard_chain(PyObject* self, PyObject* args)
 
   HWND hWndRemove;
   HWND hWndNewNext;
-
-  if (!PyArg_ParseTuple(args, "ii:ChangeClipboardChain",
-                        &hWndRemove, &hWndNewNext)) {
+  PyObject *obhWndRemove, *obhWndNewNext;
+  if (!PyArg_ParseTuple(args, "OO:ChangeClipboardChain",
+                        &obhWndRemove, &obhWndNewNext)) {
     return NULL;
   }
+  if (!PyWinObject_AsHANDLE(obhWndRemove, (HANDLE *)&hWndRemove, FALSE))
+	  return NULL;
+  if (!PyWinObject_AsHANDLE(obhWndNewNext, (HANDLE *)&hWndNewNext, TRUE))
+	  return NULL;
 
   BOOL rc;
   Py_BEGIN_ALLOW_THREADS;
@@ -285,7 +289,7 @@ py_get_clipboard_data_handle(PyObject* self, PyObject* args)
   Py_END_ALLOW_THREADS;
   if (!handle)
     return ReturnAPIError("GetClipboardData");
-  return PyLong_FromVoidPtr(handle);
+  return PyWinLong_FromHANDLE(handle);
 }
 
 
@@ -455,12 +459,14 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
 static PyObject *
 py_get_global_memory(PyObject* self, PyObject* args)
 {
-    int iglobal;
-    // @pyparm int|hglobal||The handle to the global memory object
-    if (!PyArg_ParseTuple(args, "i", &iglobal))
+    HGLOBAL hglobal;
+    PyObject *obhglobal;
+    // @pyparm <o PyHANDLE>|hglobal||The handle to the global memory object
+    if (!PyArg_ParseTuple(args, "O", &obhglobal))
         return NULL;
-    HGLOBAL hglobal = (HGLOBAL)iglobal;
-    DWORD size = GlobalSize(hglobal);
+    if (!PyWinObject_AsHANDLE(obhglobal, &hglobal, FALSE))
+    return NULL;
+    size_t size = GlobalSize(hglobal);
     if (!size)
         return ReturnAPIError("GlobalSize");
     void *p = GlobalLock(hglobal);
@@ -529,11 +535,9 @@ py_get_clipboard_owner(PyObject* self, PyObject* args)
   rc = GetClipboardOwner();
   Py_END_ALLOW_THREADS;
 
-  if (!rc) {
+  if (!rc)
     return ReturnAPIError("GetClipboardOwner");
-  }
-
-  return (Py_BuildValue("i", (int)rc));
+  return PyWinLong_FromHANDLE(rc);
 
   // @comm The clipboard can still contain data even if the clipboard is not
   // currently owned.<nl>
@@ -612,11 +616,9 @@ py_get_clipboard_viewer(PyObject* self, PyObject* args)
   rc = GetClipboardViewer();
   Py_END_ALLOW_THREADS;
 
-  if (!rc) {
+  if (!rc)
     return ReturnAPIError("GetClipboardViewer");
-  }
-
-  return (Py_BuildValue("i", (int)rc));
+  return PyWinLong_FromHANDLE(rc);
 
   // @pyseeapi GetClipboardViewer
 
@@ -645,11 +647,10 @@ py_get_open_clipboard_window(PyObject* self, PyObject* args)
   rc = GetOpenClipboardWindow();
   Py_END_ALLOW_THREADS;
 
-  if (!rc) {
+  if (!rc)
     return ReturnAPIError("GetOpenClipboardWindow");
-  }
 
-  return (Py_BuildValue("i", (int)rc));
+  return PyWinLong_FromHANDLE(rc);
 
   // @comm If an application or dynamic-link library (DLL) specifies a NULL
   // window handle when calling the OpenClipboard function, the clipboard is
@@ -774,19 +775,21 @@ static PyObject *
 py_open_clipboard(PyObject* self, PyObject* args)
 {
 
-  // @pyparm int|hWnd||Integer handle to the window to be associated with the
-  // open clipboard. If this parameter is 0, the open clipboard is associated
+  // @pyparm <o PyHANDLE>|hWnd|None|Integer handle to the window to be associated with the
+  // open clipboard. If this parameter is None, the open clipboard is associated
   // with the current task. 
 
-  HWND pyHwnd = 0;
-  if (!PyArg_ParseTuple(args, "|i:OpenClipboard",
-                        &pyHwnd)) {
+  HWND hWnd;
+  PyObject *obhWnd=Py_None;
+  if (!PyArg_ParseTuple(args, "|O:OpenClipboard",
+    &obhWnd))
     return NULL;
-  }
 
+  if (!PyWinObject_AsHANDLE(obhWnd, (HANDLE *)&hWnd, TRUE))
+	  return NULL;
   BOOL rc;
   Py_BEGIN_ALLOW_THREADS;
-  rc = OpenClipboard(pyHwnd);
+  rc = OpenClipboard(hWnd);
   Py_END_ALLOW_THREADS;
 
   if (!rc) {
@@ -886,35 +889,30 @@ py_set_clipboard_data(PyObject* self, PyObject* args)
 	// function with the GMEM_MOVEABLE and GMEM_DDESHARE flags. 
 	int format;
 	HANDLE handle;
-	int ihandle;
+	PyObject *obhandle;
 
-	if (PyArg_ParseTuple(args, "ii:SetClipboardData",
-                        &format, &ihandle)) {
-		handle = (HANDLE)ihandle;
-	} else {
+	if (!PyArg_ParseTuple(args, "iO:SetClipboardData",
+		&format, &obhandle))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhandle , &handle, TRUE)){
 		PyErr_Clear();
 		// @pyparmalt1 int|format||Specifies a clipboard format. For a description of
 		// the standard clipboard formats, see Standard Clipboard Formats.
-
 		// @pyparmalt1 object|ob||An object that has a read-buffer interface.
 		// A global memory object is allocated, and the objects buffer is copied
 		// to the new memory.
-		PyObject *obBuf;
 		const void * buf = NULL;
 		int bufSize = 0;
-		if (!PyArg_ParseTuple(args, "iO:SetClipboardData",
-                      &format, &obBuf))
-		      return NULL;
 
-		if (PyObject_AsReadBuffer(obBuf,&buf,&bufSize)==-1) 
+		if (PyObject_AsReadBuffer(obhandle,&buf,&bufSize)==-1) 
 			RETURN_TYPE_ERR("The object must support the buffer interfaces");
 		// size doesnt include nulls!
-		if (PyString_Check(obBuf))
+		if (PyString_Check(obhandle))
 			bufSize += 1;
-		else if (PyUnicode_Check(obBuf))
+		else if (PyUnicode_Check(obhandle))
 			bufSize += sizeof(wchar_t);
 		// else assume buffer needs no terminator...
-		handle = GlobalAlloc(GHND, (DWORD)bufSize);
+		handle = GlobalAlloc(GHND, bufSize);
 		if (handle == NULL) {
 			return ReturnAPIError("GlobalAlloc");
 		}
@@ -927,10 +925,9 @@ py_set_clipboard_data(PyObject* self, PyObject* args)
 	data = SetClipboardData((UINT)format, handle);
 	Py_END_ALLOW_THREADS;
 
-	if (!data) {
+	if (!data)
 		return ReturnAPIError("SetClipboardData");
-	}
-	return (Py_BuildValue("i", (int)data));
+	return PyWinLong_FromHANDLE(data);
 
 	// @comm The uFormat parameter can identify a registered clipboard format,
 	// or it can be one of the standard clipboard formats. For more information,
@@ -987,11 +984,9 @@ py_set_clipboard_text(PyObject* self, PyObject* args)
   data = SetClipboardData((UINT)format, hMem);
   Py_END_ALLOW_THREADS;
 
-  if (!data) {
+  if (!data)
     return ReturnAPIError("SetClipboardText");
-  }
-
-  return (Py_BuildValue("i", (int)data));
+  return PyWinLong_FromHANDLE(data);
 
   // @pyseeapi SetClipboardData
 
@@ -1005,34 +1000,36 @@ py_set_clipboard_text(PyObject* self, PyObject* args)
 
 //*****************************************************************************
 //
-// @pymethod int|win32clipboard|SetClipboardViewer|The SetClipboardViewer function
+// @pymethod <o PyHANDLE>|win32clipboard|SetClipboardViewer|The SetClipboardViewer function
 // adds the specified window to the chain of clipboard viewers. Clipboard
 // viewer windows receive a WM_DRAWCLIPBOARD message whenever the content of
 // the clipboard changes.
-
+// @rdesc   Returns a handle to the next window in chain, or None if no other viewer exists.
 static PyObject *
 py_set_clipboard_viewer(PyObject* self, PyObject* args)
 {
 
-  // @pyparm int|hWndNewViewer||Integer handle to the window to be added to
-  // the clipboard chain. 
-
+  // @pyparm <o PyHANDLE>|hWndNewViewer||Integer handle to the window to be added to
+  // the clipboard chain.
   HWND hWndNewViewer;
-  if (!PyArg_ParseTuple(args, "i:SetClipboardViewer",
-                        &hWndNewViewer)) {
+  PyObject *obhwnd;
+  if (!PyArg_ParseTuple(args, "O:SetClipboardViewer", &obhwnd))
     return NULL;
-  }
-
+  if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hWndNewViewer, FALSE))
+	  return NULL;
   HWND rc;
   Py_BEGIN_ALLOW_THREADS;
   rc = SetClipboardViewer(hWndNewViewer);
   Py_END_ALLOW_THREADS;
 
-  if (!rc) {
-    return ReturnAPIError("SetClipboardViewer");
-  }
-
-  return (Py_BuildValue("i", (int)rc));
+  // Function can return NULL on success if there is no other viewer
+  if (rc!=NULL)
+    return PyWinLong_FromHANDLE(rc);
+  DWORD e=GetLastError();
+  if (e)
+    return PyWin_SetAPIError("SetClipboardViewer",e);
+  Py_INCREF(Py_None);
+  return Py_None;
 
   // @comm The windows that are part of the clipboard viewer chain, called
   // clipboard viewer windows, must process the clipboard messages
