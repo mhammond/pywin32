@@ -14,9 +14,6 @@
 %include "typemaps.i"
 %include "pywin32.i"
 
-%apply HWND {long};
-typedef long HWND
-
 %{
 #include "structmember.h"
 

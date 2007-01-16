@@ -12,9 +12,6 @@
 %include "typemaps.i"
 %include "pywin32.i"
 
-%apply HWND {long};
-typedef long HWND
-
 %{
 #undef PyHANDLE // undef earlier define, so we are back to the class.
 #include "pywinobjects.h"

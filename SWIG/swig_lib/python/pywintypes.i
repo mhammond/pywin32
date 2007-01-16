@@ -255,7 +255,7 @@ typedef unsigned long ULONG;
 //
 // PyHANDLE will use a PyHANDLE object.
 // PyHKEY will use a PyHKEY object
-// HANDLE will use an integer.
+// HANDLE, HWND will use an integer.
 //---------------------------------------------------------------------------
 //typedef void *HANDLE;
 
@@ -380,6 +380,17 @@ typedef HANDLE PyHANDLE;
       PyList_Append($target,o);
       Py_XDECREF(o);
     }
+}
+
+// HWND (used in win32process, adsi, win32inet, win32crypt)
+// Has to be typedef'ed to a non-pointer type or the typemaps are ignored
+typedef float HWND;
+%typemap(python, in) HWND{
+	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target, FALSE))
+		return NULL;
+}
+%typemap(python, out) HWND{
+	$target=PyWinLong_FromHANDLE($source);
 }
 
 //---------------------------------------------------------------------------

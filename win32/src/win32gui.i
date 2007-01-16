@@ -292,12 +292,12 @@ extern "C" DECLSPEC_DLLMAIN BOOL WINAPI DllMain(HINST_ARG hInstance, DWORD dwRea
 }
 
 // Handles types with no specific PyHANDLE subclass, returned to Python as plain ints or longs
-typedef float HDC, HWND, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL;
-%typemap(python, in) HDC, HWND, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL{
+typedef float HDC, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL;
+%typemap(python, in) HDC, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL{
 	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target, FALSE))
 		return NULL;
 }
-%typemap(python, out) HDC, HWND, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL{
+%typemap(python, out) HDC, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL{
 	$target=PyWinLong_FromHANDLE($source);
 }
 

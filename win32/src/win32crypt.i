@@ -13,9 +13,6 @@
 %include "typemaps.i"
 %include "pywin32.i"
 
-%apply HWND {long};
-typedef long HWND
-
 %{
 BOOL PyWinObject_AsDATA_BLOB(PyObject *ob, DATA_BLOB *b)
 {
@@ -114,15 +111,17 @@ PyObject *PyWinObject_FromDATA_BLOB(DATA_BLOB *b)
         $target = NULL;
     else if (PyTuple_Check($source)) {
         $target = (CRYPTPROTECT_PROMPTSTRUCT *)_alloca(sizeof(CRYPTPROTECT_PROMPTSTRUCT));
-        PyObject *obPrompt = Py_None;
+        PyObject *obPrompt = Py_None, *obhwndApp = Py_None;
         memset($target, 0, sizeof(*$target));
         $target->cbSize = sizeof(*$target);
-        if (!PyArg_ParseTuple($source, "l|lO", &$target->dwPromptFlags,
-                                              &$target->hwndApp,
+        if (!PyArg_ParseTuple($source, "l|OO", &$target->dwPromptFlags,
+                                              &obhwndApp,
                                               &obPrompt))
             return NULL;
         if (!PyWinObject_AsWCHAR(obPrompt, (WCHAR **)(&$target->szPrompt), TRUE))
             return NULL;
+		if (!PyWinObject_AsHANDLE(obhwndApp, (HANDLE *)&$target->hwndApp, TRUE))
+			return NULL;
     } else {
         PyErr_Format(PyExc_TypeError, "CRYPTPROTECT_PROMPTSTRUCT must be None or a tuple (got %s)",
                     $source->ob_type->tp_name);
