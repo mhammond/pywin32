@@ -1,4 +1,4 @@
-build_id="210" # may optionally include a ".{patchno}" suffix.
+build_id="210.1" # may optionally include a ".{patchno}" suffix.
 # Putting buildno at the top prevents automatic __doc__ assignment, and
 # I *want* the build number at the top :)
 __doc__="""This is a distutils setup-script for the pywin32 extensions
@@ -1274,15 +1274,17 @@ if sys.hexversion >= 0x2030000:
         WinExt_ISAPI('PyISAPI_loader',
            sources=[os.path.join("isapi", "src", s) for s in
                    """PyExtensionObjects.cpp PyFilterObjects.cpp
-                      pyISAPI.cpp PythonEng.cpp StdAfx.cpp
-                      Utils.cpp
+                      pyISAPI.cpp pyISAPI_messages.mc
+                      PythonEng.cpp StdAfx.cpp Utils.cpp
                    """.split()],
            pch_header = "StdAfx.h",
            is_regular_dll = 1,
            export_symbols = """HttpExtensionProc GetExtensionVersion
                                TerminateExtension GetFilterVersion
                                HttpFilterProc TerminateFilter
-                               PyISAPISetOptions""".split(),
+                               PyISAPISetOptions WriteEventLogMessage
+                               """.split(),
+           libraries='advapi32',
            )
     )
 
