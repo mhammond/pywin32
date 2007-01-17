@@ -304,11 +304,14 @@ PyObject *PyIScheduledWorkItem::EditWorkItem(PyObject *self, PyObject *args)
 	IScheduledWorkItem *pISWI = GetI(self);
 	if ( pISWI == NULL )
 		return NULL;
-	// @pyparm HWND|hParent||Reserved, use 0 if passed
+	// @pyparm <o PyHANDLE>|hParent||Reserved, use 0 or None if passed
 	// @pyparm int|dwReserved||Reserved, use 0 if passed
 	HWND hParent=NULL;
+	PyObject *obhParent=Py_None;
 	DWORD dwReserved=0;
-	if (!PyArg_ParseTuple(args, "|ll:PyIScheduledWorkItem::EditWorkItem", &hParent, &dwReserved))
+	if (!PyArg_ParseTuple(args, "|Ol:PyIScheduledWorkItem::EditWorkItem", &obhParent, &dwReserved))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhParent, (HANDLE *)&hParent, TRUE))
 		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
