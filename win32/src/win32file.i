@@ -2192,14 +2192,14 @@ PyObject* MyWSAEventSelect
 PyObject* MyWSAAsyncSelect
 (
 	SOCKET *s, 
-	LONG hwnd,
+	HWND hwnd,
 	LONG wMsg,
 	LONG lNetworkEvents
 )
 {
 	int rc;
 	Py_BEGIN_ALLOW_THREADS;
-	rc = WSAAsyncSelect(*s, (HWND)hwnd, wMsg, lNetworkEvents);
+	rc = WSAAsyncSelect(*s, hwnd, wMsg, lNetworkEvents);
 	Py_END_ALLOW_THREADS;
 	if (rc == SOCKET_ERROR)
 	{
@@ -2216,7 +2216,7 @@ PyObject* MyWSAAsyncSelect
 %name(WSAAsyncSelect) PyObject *MyWSAAsyncSelect
 (
 	SOCKET *s, // @pyparm <o PySocket>|socket||socket to attach to the event
-	LONG hwnd, // @pyparm <o hwnd>|hwnd||Window handle for the socket to become attached to.
+	HWND hwnd, // @pyparm <o hwnd>|hwnd||Window handle for the socket to become attached to.
 	LONG wMsg, // @pyparm <o int>|int||Window message that will be posted.
 	LONG lNetworkEvents // @pyparm int|networkEvents||A bitmask of network events that will cause wMsg to be posted. e.g. (FD_CLOSE \| FD_READ)
 );
