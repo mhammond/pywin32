@@ -471,14 +471,16 @@ PyObject *PyIActiveDesktop::AddDesktopItemWithUI(PyObject *self, PyObject *args)
 	IActiveDesktop *pIAD = GetI(self);
 	if ( pIAD == NULL )
 		return NULL;
-	PyObject *obcomp;
+	PyObject *obcomp, *obhwnd;
 	COMPONENT comp;
 	DWORD flags;
 	HWND hwnd;
-	if (!PyArg_ParseTuple(args, "lOk:AddDesktopItemWithUI",
-		&hwnd,	// @pyparm <o PyHANDLE>|hwnd||Handle to parent window
+	if (!PyArg_ParseTuple(args, "OOk:AddDesktopItemWithUI",
+		&obhwnd,	// @pyparm <o PyHANDLE>|hwnd||Handle to parent window
 		&obcomp,	// @pyparm dict|comp||<o COMPONENT> dictionary
 		&flags))	// @pyparm int|Flags||One of shellcon.DTI_ADDUI_* flags
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
 		return NULL;
 	if (!PyWinObject_AsCOMPONENT(obcomp, &comp))
 		return NULL;
@@ -656,15 +658,17 @@ PyObject *PyIActiveDesktop::AddUrl(PyObject *self, PyObject *args)
 	if ( pIAD == NULL )
 		return NULL;
 	HWND hwnd;
-	PyObject *obcomp, *obSource;
+	PyObject *obcomp, *obSource, *obhwnd;
 	WCHAR *Source=NULL;
 	COMPONENT comp;
 	DWORD flags;
-	if ( !PyArg_ParseTuple(args, "lOOk:AddUrl",
-		&hwnd,		// @pyparm <o PyHANDLE>|hwnd||Parent windows for any user interactive
+	if ( !PyArg_ParseTuple(args, "OOOk:AddUrl",
+		&obhwnd,		// @pyparm <o PyHANDLE>|hwnd||Parent windows for any user interactive
 		&obSource,	// @pyparm <o PyUNICODE>|Source||Source URL
 		&obcomp,	// @pyparm dict|comp||<o COMPONENT> dictionary
 		&flags))	// @pyparm int|Flags||ADDURL_SILENT, or 0
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
 		return NULL;
 	if (!PyWinObject_AsCOMPONENT(obcomp, &comp))
 		return NULL;
