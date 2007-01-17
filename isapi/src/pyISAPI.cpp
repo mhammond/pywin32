@@ -154,7 +154,7 @@ BOOL WINAPI GetFilterVersion(HTTP_FILTER_VERSION *pVer)
 	// ensure our handler ready to go
 	if (!filterHandler.Init(&pyEngine, name_filter_factory,
 	                        name_filter_init, name_filter_do, name_filter_term))
-		// error already imported.
+		// error already reported.
 		return FALSE;
 
 	CEnterLeavePython celp;
