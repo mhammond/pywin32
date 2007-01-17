@@ -57,5 +57,8 @@ char *HTMLErrorResp(LPCTSTR msg);
 // returns the pathname of this module
 char *GetModulePath(void);
 
+// Write entry to the event log
+BOOL WriteEventLogMessage(WORD eventType, DWORD eventID, WORD num_inserts,
+                          const char **inserts);
 
 #endif // __UTILS_H

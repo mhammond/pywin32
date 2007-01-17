@@ -31,6 +31,7 @@
 #include "PythonEng.h"
 #include "pyExtensionObjects.h"
 #include "pyFilterObjects.h"
+#include "pyISAPI_messages.h"
 
 extern HINSTANCE g_hInstance;
 extern bool g_IsFrozen;
@@ -374,17 +375,28 @@ void ExtensionError(CControlBlock *pcb, LPCTSTR errmsg)
 			pcb->WriteStream(windows_error, strlen(windows_error));
 		}
 	}
+	const char *inserts[] = {errmsg, windows_error ? windows_error : "n/a"};
+	WriteEventLogMessage(EVENTLOG_ERROR_TYPE, E_PYISAPI_EXTENSION_FAILED,
+			     2, inserts);
 	if (windows_error)
 		free(windows_error);
 }
 
 void FilterError(CFilterContext *pfc,  LPCTSTR errmsg)
 {
+	char *windows_error = ::GetLastError() ?
+	                          ::FormatSysError(::GetLastError()) : NULL;
+	
 	CEnterLeavePython celp;
 	PySys_WriteStderr("Internal Filter Error: %s\n", errmsg);
 	if (PyErr_Occurred()) {
 		PyErr_Print();
 		PyErr_Clear();
 	}
+	const char *inserts[] = {errmsg, windows_error ? windows_error : "n/a"};
+	WriteEventLogMessage(EVENTLOG_ERROR_TYPE, E_PYISAPI_FILTER_FAILED,
+			     2, inserts);
+	if (windows_error)
+		free(windows_error);
 	// what else to do here? AddResponseHeaders->WriteClient?
 }

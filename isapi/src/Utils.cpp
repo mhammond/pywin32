@@ -28,6 +28,10 @@
 
 extern HINSTANCE g_hInstance;
 
+static bool g_bRegisteredEventSource = false;
+
+static WCHAR *source_name = L"ISAPI Filter or Extension";
+
 // returns the pathname of this module
 
 char *GetModulePath(void)
@@ -89,4 +93,70 @@ char *HTMLErrorResp(LPCTSTR msg)
 	if (result)
 		sprintf(result, htmlBody, msg);
 	return result;
+}
+
+// register the event source with the event log.
+static void CheckRegisterEventSourceFile()
+{
+	WCHAR mod_name[MAX_PATH] = L"";
+	if (g_bRegisteredEventSource)
+		return;
+
+	GetModuleFileNameW(g_hInstance, mod_name,
+			  sizeof mod_name/sizeof WCHAR);
+	if (!mod_name[0]) {
+		OutputDebugString("GetModuleFileNameW failed!");
+		return;
+	}
+
+	HKEY hkey;
+	WCHAR keyName[MAX_PATH];
+
+	wcscpy(keyName, L"SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\");
+	wcscat(keyName, source_name);
+
+	BOOL rc = FALSE;
+	if (RegCreateKeyExW(HKEY_LOCAL_MACHINE, 
+		               keyName, 
+		               0, 
+		               NULL, 
+		               REG_OPTION_NON_VOLATILE, 
+		               KEY_WRITE, NULL, 
+		               &hkey, 
+		               NULL) == ERROR_SUCCESS) {
+		RegSetValueExW(hkey, L"EventMessageFile", 0, REG_SZ, 
+		               (const BYTE *)mod_name,
+		               wcslen(mod_name)*sizeof(WCHAR));
+		DWORD types = EVENTLOG_ERROR_TYPE | EVENTLOG_WARNING_TYPE | EVENTLOG_INFORMATION_TYPE;
+		RegSetValueExW(hkey, L"TypesSupported", 0, REG_DWORD,
+		               (const BYTE *)&types, sizeof(types));
+		RegCloseKey(hkey);
+	}
+	g_bRegisteredEventSource = true;
+}
+
+// Write stuff to the event log.
+BOOL WriteEventLogMessage(WORD eventType, DWORD eventID, WORD num_inserts,
+                          const char **inserts)
+{
+	BOOL ok = FALSE;
+	HANDLE hEventSource;
+
+	CheckRegisterEventSourceFile();
+
+	hEventSource = RegisterEventSourceW(NULL, source_name);
+	if (hEventSource) {
+		ReportEvent(hEventSource, // handle of event source
+		            eventType,  // event type
+		            0,                    // event category
+		            eventID,                 // event ID
+		            NULL,                 // current user's SID
+		            num_inserts,           // strings in lpszStrings
+		            0,                    // no bytes of raw data
+		            inserts,          // array of error strings
+		            NULL);                // no raw data
+		DeregisterEventSource(hEventSource);
+		ok = TRUE;
+	}
+	return ok;
 }
