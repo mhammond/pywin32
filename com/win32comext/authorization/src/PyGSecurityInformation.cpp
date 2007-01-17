@@ -375,6 +375,6 @@ STDMETHODIMP PyGSecurityInformation::PropertySheetPageCallback(
 
 {
 	PY_GATEWAY_METHOD;
-	return InvokeViaPolicy("PropertySheetPageCallback", NULL, "lkk", hwnd, uMsg, uPage);
+	return InvokeViaPolicy("PropertySheetPageCallback", NULL, "Nkk", PyWinLong_FromHANDLE(hwnd), uMsg, uPage);
 }
 
