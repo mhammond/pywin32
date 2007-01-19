@@ -140,7 +140,7 @@ PyObject *PyOVERLAPPED::getattr(PyObject *self, char *name)
 			Py_INCREF(pO->m_obHandle);
 			return pO->m_obHandle;
 		}
-		return PyInt_FromLong((long)pO->m_overlapped.hEvent);
+		return PyWinLong_FromHANDLE(pO->m_overlapped.hEvent);
 	}
 // @prop object|object|Any python object that you want to attach to your overlapped I/O request.
 	else if (strcmp("object", name) == 0)
@@ -172,15 +172,18 @@ int PyOVERLAPPED::setattr(PyObject *self, char *name, PyObject *v)
 	}
 	if (strcmp("hEvent", name)==0) {
 		PyOVERLAPPED *pO = (PyOVERLAPPED *)self;
+		// Use an intermediate so the original isn't lost if conversion fails
+		HANDLE htmp;	
+		if (!PyWinObject_AsHANDLE(v, &htmp, FALSE))
+			return -1;
+		pO->m_overlapped.hEvent=htmp;
 		Py_XDECREF(pO->m_obHandle);
-		pO->m_obHandle = NULL;
 		if (PyHANDLE_Check(v)) {
 			pO->m_obHandle = v;
-			PyWinObject_AsHANDLE(v, &pO->m_overlapped.hEvent, FALSE);
 			Py_INCREF(v);
-		} else if (PyInt_Check(v)) {
-			pO->m_overlapped.hEvent = (HANDLE)PyInt_AsLong(v);
-		}
+			}
+		else
+			pO->m_obHandle = NULL;
 		return 0;
 	}
 	else if (strcmp("object", name) == 0)
@@ -194,10 +197,10 @@ int PyOVERLAPPED::setattr(PyObject *self, char *name, PyObject *v)
 	else if (strcmp("dword", name) == 0)
 	{
 		PyOVERLAPPED *pO = (PyOVERLAPPED *)self;
-		PyErr_Clear();
-		pO->m_overlapped.dwValue = PyInt_AsLong(v);
-		if (PyErr_Occurred())
-			PyErr_SetString(PyExc_TypeError, "The 'dword' value must be an integer");
+		DWORD dwordtmp=PyInt_AsLong(v);
+		if ((dwordtmp==(DWORD)-1) && PyErr_Occurred())
+			return -1;
+		pO->m_overlapped.dwValue=dwordtmp;
 		return 0;
 	}
 	return PyMember_Set((char *)self, memberlist, name, v);
