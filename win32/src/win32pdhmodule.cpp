@@ -469,7 +469,7 @@ static PyObject *PyAddCounter(PyObject *self, PyObject *args)
     if (pdhStatus != ERROR_SUCCESS) 
 		return PyWin_SetAPIError("AddCounter", pdhStatus);
 	// @comm See also <om win32pdh.RemoveCounter>
-	return PyInt_FromLong((long)hCounter);
+	return PyWinLong_FromHANDLE(hCounter);
 }
 
 // @pymethod |win32pdh|RemoveCounter|Removes a previously opened counter
