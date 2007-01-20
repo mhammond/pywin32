@@ -442,14 +442,16 @@ static PyObject *PyEnumObjects(PyObject *self, PyObject *args)
 static PyObject *PyAddCounter(PyObject *self, PyObject *args)
 {
 	HQUERY hQuery;
+	PyObject *obhQuery;
 	PyObject *obPath;
 	DWORD userData = 0;
-	if (!PyArg_ParseTuple(args, "iO|i:AddCounter", 
-	          &hQuery, // @pyparm int|hQuery||Handle to an open query.
+	if (!PyArg_ParseTuple(args, "OO|i:AddCounter", 
+	          &obhQuery, // @pyparm int|hQuery||Handle to an open query.
 	          &obPath, // @pyparm string|path||Full path to the performance data
 	          &userData)) // @pyparm int|userData|0|User data associated with the counter.
 		return NULL;
-
+	if (!PyWinObject_AsHANDLE(obhQuery, &hQuery, FALSE))
+		return NULL;
 	TCHAR *szPath;
 	if (!PyWinObject_AsTCHAR(obPath, &szPath, FALSE))
 		return NULL;
@@ -474,8 +476,11 @@ static PyObject *PyAddCounter(PyObject *self, PyObject *args)
 static PyObject *PyRemoveCounter(PyObject *self, PyObject *args)
 {
 	HQUERY handle;
-	if (!PyArg_ParseTuple(args, "i:RemoveCounter", 
-	          &handle)) // @pyparm int|handle||Handle to an open counter.
+	PyObject *obhandle;
+	if (!PyArg_ParseTuple(args, "O:RemoveCounter", 
+	          &obhandle)) // @pyparm int|handle||Handle to an open counter.
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhandle, &handle, FALSE))
 		return NULL;
 	// @comm See also <om win32pdh.AddCounter>
 	CHECK_PDH_PTR(pPdhRemoveCounter);
@@ -512,7 +517,7 @@ static PyObject *PyOpenQuery(PyObject *self, PyObject *args)
 
     if (pdhStatus != ERROR_SUCCESS) 
 		return PyWin_SetAPIError("OpenQuery", pdhStatus);
-	return PyInt_FromLong((long)hQuery);
+	return PyWinLong_FromHANDLE(hQuery);
 	// @comm See also <om win32pdh.CloseQuery>
 }
 
@@ -520,8 +525,11 @@ static PyObject *PyOpenQuery(PyObject *self, PyObject *args)
 static PyObject *PyCloseQuery(PyObject *self, PyObject *args)
 {
 	HQUERY handle;
-	if (!PyArg_ParseTuple(args, "i:CloseQuery", 
-	          &handle)) // @pyparm int|handle||Handle to an open query.
+	PyObject *obhandle;
+	if (!PyArg_ParseTuple(args, "O:CloseQuery", 
+	          &obhandle)) // @pyparm int|handle||Handle to an open query.
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhandle, &handle, FALSE))
 		return NULL;
 	// @comm See also <om win32pdh.OpenQuery>
 	CHECK_PDH_PTR(pPdhCloseQuery);
@@ -614,10 +622,13 @@ done:
 static PyObject *PyGetCounterInfo(PyObject *self, PyObject *args)
 {
 	HCOUNTER handle;
+	PyObject *obhandle;
 	BOOL bExplainText = TRUE;	
-	if (!PyArg_ParseTuple(args, "i|i:GetCounterInfo", 
-			&handle, // @pyparm int|handle||The handle of the item to query
+	if (!PyArg_ParseTuple(args, "O|i:GetCounterInfo", 
+			&obhandle, // @pyparm int|handle||The handle of the item to query
 			&bExplainText)) // @pyparm int|bRetrieveExplainText||Should explain text be retrieved?
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhandle, &handle, FALSE))
 		return NULL;
 	// First call to get buffer size
 	DWORD bufSize = 0;
@@ -674,11 +685,14 @@ static PyObject *PyGetCounterInfo(PyObject *self, PyObject *args)
 static PyObject *PyGetFormattedCounterValue(PyObject *self, PyObject *args)
 {
 	HCOUNTER handle;
+	PyObject *obhandle;
 	DWORD format;
-	if (!PyArg_ParseTuple(args, "ii:GetFormattedCounterValue", 
-			&handle, // @pyparm int|handle||Handle to the counter
+	if (!PyArg_ParseTuple(args, "Oi:GetFormattedCounterValue", 
+			&obhandle, // @pyparm int|handle||Handle to the counter
 			&format)) // @pyparm int|format||Format of result.  Can be PDH_FMT_DOUBLE, PDH_FMT_LARGE, PDH_FMT_LONG and or'd with PDH_FMT_NOSCALE, PDH_FMT_1000
 
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhandle, &handle, FALSE))
 		return NULL;
 	DWORD type;
 	PDH_FMT_COUNTERVALUE result;
@@ -711,10 +725,12 @@ static PyObject *PyGetFormattedCounterValue(PyObject *self, PyObject *args)
 static PyObject *PyCollectQueryData(PyObject *self, PyObject *args)
 {
 	HQUERY hQuery;
-	if (!PyArg_ParseTuple(args, "i:CollectQueryData", 
-	          &hQuery)) // @pyparm int|hQuery||Handle to an open query.
+	PyObject *obhQuery;
+	if (!PyArg_ParseTuple(args, "O:CollectQueryData", 
+	          &obhQuery)) // @pyparm int|hQuery||Handle to an open query.
 		return NULL;
-
+	if (!PyWinObject_AsHANDLE(obhQuery, &hQuery, FALSE))
+		return NULL;
 	CHECK_PDH_PTR(pPdhCollectQueryData);
 	PDH_STATUS pdhStatus;
 	Py_BEGIN_ALLOW_THREADS
@@ -871,12 +887,14 @@ static PyObject *PyParseInstanceName(PyObject *self, PyObject *args)
 static PyObject *PySetCounterScaleFactor(PyObject *self, PyObject *args)
 {
 	HCOUNTER hCounter;
+	PyObject *obhCounter;
 	LONG lFactor;
-	if (!PyArg_ParseTuple(args, "il:SetCounterScaleFactor", 
-	          &hCounter, // @pyparm int|hCounter||Handle to the counter.
+	if (!PyArg_ParseTuple(args, "Ol:SetCounterScaleFactor", 
+	          &obhCounter, // @pyparm int|hCounter||Handle to the counter.
 			  &lFactor)) // @pyparm int|factor||power of ten used to multiply value.
 		return NULL;
-
+	if (!PyWinObject_AsHANDLE(obhCounter, &hCounter, FALSE))
+		return NULL;
 	CHECK_PDH_PTR(pPdhSetCounterScaleFactor);
 	PyW32_BEGIN_ALLOW_THREADS
     PDH_STATUS pdhStatus = (*pPdhSetCounterScaleFactor) (hCounter, lFactor);
@@ -925,20 +943,21 @@ PDH_STATUS __stdcall CounterPathCallback(DWORD dwArg)
 // @pymethod string|win32pdh|BrowseCounters|Displays the counter browsing dialog box so that the user can select the counters to be returned to the caller. 
 static PyObject *PyBrowseCounters(PyObject *self, PyObject *args)
 {
-	PyObject *obFlags;
+	PyObject *obFlags, *obhwnd;
 	PDH_BROWSE_DLG_CONFIG cfg;
 	PDH_BROWSE_DLG_CONFIG *pcfg = &cfg;
 	MY_DLG_CONFIG myCfg;
 	// Note - this has set caption and others to default of zero.
 	memset(&cfg, 0, sizeof(cfg));
-	if (!PyArg_ParseTuple(args, "OiOi|z:BrowseCounters", 
+	if (!PyArg_ParseTuple(args, "OOOi|z:BrowseCounters", 
 	          &obFlags, // @pyparm tuple|flags||Tuple describing the bitmasks, or None.
-			  &pcfg->hWndOwner, // @pyparm int|hWnd||parent for the dialog.
+			  &obhwnd, // @pyparm <o PyHANDLE>|hWnd||parent for the dialog.
 			  &myCfg.func, // @pyparm object|callback||A callable object to function as the callback.
 			  &pcfg->dwDefaultDetailLevel, // @pyparm int|defDetailLevel||The default detail level to show on startup in the Detail Level combo box. If the Detail Level combo box is not shown, this is the detail level to use in filtering the displayed performance counters and objects. 
 			  &pcfg->szDialogBoxCaption)) // @pyparm string|dlgCaption||The dialog coption, or None for default.
 		return NULL;
-
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&pcfg->hWndOwner, FALSE))
+		return NULL;
 	if (!PyCallable_Check(myCfg.func)) {
 		PyErr_SetString(PyExc_TypeError, "The callback object must be a callable object");
 		return NULL;
