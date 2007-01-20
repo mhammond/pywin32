@@ -40,13 +40,16 @@ PyObject *PyICopyHook::CopyCallback(PyObject *self, PyObject *args)
 	PyObject *obsrcFile;
 	PyObject *obdestFile;
 	HWND hwnd;
+	PyObject *obhwnd;
 	UINT wFunc;
 	UINT wFlags;
 	LPTSTR srcFile;
 	DWORD srcAttribs;
 	LPTSTR destFile;
 	DWORD destAttribs;
-	if ( !PyArg_ParseTuple(args, "liiOlOl:CopyCallback", &hwnd, &wFunc, &wFlags, &obsrcFile, &srcAttribs, &obdestFile, &destAttribs) )
+	if ( !PyArg_ParseTuple(args, "OiiOlOl:CopyCallback", &obhwnd, &wFunc, &wFlags, &obsrcFile, &srcAttribs, &obdestFile, &destAttribs) )
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
 	if (bPythonIsHappy && !PyWinObject_AsTCHAR(obsrcFile, &srcFile)) bPythonIsHappy = FALSE;
@@ -95,17 +98,21 @@ STDMETHODIMP_(UINT) PyGCopyHook::CopyCallback(
 	PyObject *obsrcFile;
 	PyObject *obdestFile;
 	obsrcFile = PyWinObject_FromTCHAR((LPTSTR)srcFile);
-	obdestFile = PyWinObject_FromTCHAR((LPTSTR)destFile);
+	// Dest file can be NULL for FO_DELETE
+	if (destFile!=NULL)
+		obdestFile = PyWinObject_FromTCHAR((LPTSTR)destFile);
+	else{
+		obdestFile=Py_None;
+		Py_INCREF(Py_None);
+		}
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("CopyCallback", &result, "liiOlOl", hwnd, wFunc, wFlags, obsrcFile, srcAttribs, obdestFile, destAttribs);
+	HRESULT hr=InvokeViaPolicy("CopyCallback", &result, "NiiOlOl", PyWinLong_FromHANDLE(hwnd), wFunc, wFlags, obsrcFile, srcAttribs, obdestFile, destAttribs);
 	Py_XDECREF(obsrcFile);
 	Py_XDECREF(obdestFile);
 	if (FAILED(hr)) return hr;
-	if (!PyInt_Check(result) || !PyLong_Check(result)) {
-		PyErr_Format(PyExc_TypeError, "CopyCallBack should return an int, not a '%s'", result->ob_type->tp_name);
+	hr = PyInt_AsLong(result);
+	if ((hr==-1) && PyErr_Occurred())
 		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("CopyCallBack");
-	} else
-		hr = PyInt_AsLong(result);
 	Py_DECREF(result);
 	return hr;
 }
