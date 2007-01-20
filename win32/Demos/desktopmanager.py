@@ -126,6 +126,7 @@ def icon_wndproc(hwnd, msg, wp, lp):
         d=win32gui.TrackPopupMenu(m,win32con.TPM_LEFTBUTTON|win32con.TPM_RETURNCMD|win32con.TPM_NONOTIFY,
             x,y, 0, hwnd, None)
         win32gui.PumpWaitingMessages()
+        win32gui.DestroyMenu(m)
         if d==desktop_cnt+1:      ## Create new
             get_new_desktop_name(hwnd)
         elif d==desktop_cnt+2:    ## Exit
