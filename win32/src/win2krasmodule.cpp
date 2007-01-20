@@ -133,8 +133,9 @@ PyRasGetEapUserIdentity( PyObject *self, PyObject *args )
 {
 	char *phoneBook, *entry;
 	int flags;
-	int hwnd = 0;
-	if (!PyArg_ParseTuple(args, "zsi|i:GetEapUserIdentity", 
+	HWND hwnd;
+	PyObject *obhwnd=Py_None;
+	if (!PyArg_ParseTuple(args, "zsi|O:GetEapUserIdentity", 
 			  &phoneBook, // @pyparm string|phoneBook||string containing the full path of the phone-book (PBK) file. If this parameter is None, the function will use the system phone book.
 			  &entry,// @pyparm string|entry||string containing an existing entry name.
 			  &flags,  // @pyparm int|flags||Specifies zero or more of the following flags that qualify the authentication process.
@@ -142,15 +143,16 @@ PyRasGetEapUserIdentity( PyObject *self, PyObject *args )
 						// @flag RASEAPF_NonInteractive|Specifies that the authentication protocol should not bring up a graphical user-interface. If this flag is not present, it is okay for the protocol to display a user interface. 
 						// @flag RASEAPF_Logon|Specifies that the user data is obtained from Winlogon. 
 						// @flag RASEAPF_Preview|Specifies that the user should be prompted for identity information before dialing. 
-			  &hwnd))   // @pyparm int|hwnd|0|Handle to the parent window for the UI dialog.
-
+			  &obhwnd))   // @pyparm <o PyHANDLE>|hwnd|None|Handle to the parent window for the UI dialog.
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
 		return NULL;
 
 	// @pyseeapi RasGetEapUserIdentity
 	DWORD rc;
 	RASEAPUSERIDENTITY *identity;
 	Py_BEGIN_ALLOW_THREADS
-	rc = RasGetEapUserIdentity(phoneBook, entry, flags, (HWND)hwnd, &identity);
+	rc = RasGetEapUserIdentity(phoneBook, entry, flags, hwnd, &identity);
 	Py_END_ALLOW_THREADS
 	if (rc != 0)
 		return ReturnRasError("RasGetEapUserIdentity",rc);
