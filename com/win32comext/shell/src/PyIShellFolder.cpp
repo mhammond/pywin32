@@ -36,7 +36,7 @@ PyObject *PyIShellFolder::ParseDisplayName(PyObject *self, PyObject *args)
 	IShellFolder *pISF = GetI(self);
 	if ( pISF == NULL )
 		return NULL;
-	// @pyparm HWND|hwndOwner||Window in which to display any dialogs or message boxes, can be 0
+	// @pyparm <o PyHANDLE>|hwndOwner||Window in which to display any dialogs or message boxes, can be 0
 	// @pyparm <o PyIBindCtx>|pbc||Bind context that affects how parsing is performed, can be None
 	// @pyparm <o PyUNICODE>|DisplayName||Display name to parse, format is dependent on the shell folder.
 	// Desktop folder will accept a file path, as well as guids of the form ::{guid}
@@ -45,13 +45,16 @@ PyObject *PyIShellFolder::ParseDisplayName(PyObject *self, PyObject *args)
 	PyObject *obpbcReserved;
 	PyObject *oblpszDisplayName;
 	HWND hwndOwner;
+	PyObject *obhwndOwner;
 	IBindCtx * pbcReserved;
 	LPOLESTR lpszDisplayName;
 	ULONG pchEaten = (ULONG)-1;
 	ITEMIDLIST *ppidl;
 	ULONG pdwAttributes = 0;
-	if ( !PyArg_ParseTuple(args, "lOO|k:ParseDisplayName", &hwndOwner, &obpbcReserved,
+	if ( !PyArg_ParseTuple(args, "OOO|k:ParseDisplayName", &obhwndOwner, &obpbcReserved,
 						   &oblpszDisplayName, &pdwAttributes) )
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner, TRUE))
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
 	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obpbcReserved, IID_IBindCtx, (void **)&pbcReserved, TRUE /* bNoneOK */))
@@ -83,13 +86,17 @@ PyObject *PyIShellFolder::EnumObjects(PyObject *self, PyObject *args)
 	IShellFolder *pISF = GetI(self);
 	if ( pISF == NULL )
 		return NULL;
-	// @pyparm HWND|hwndOwner|0|Window to use if any user interaction is required
+	// @pyparm <o PyHANDLE>|hwndOwner|None|Window to use if any user interaction is required
 	// @pyparm int|grfFlags|SHCONTF_FOLDERS\|SHCONTF_NONFOLDERS\|SHCONTF_INCLUDEHIDDEN|Combination of shellcon.SHCONTF_* constants
 	HWND hwndOwner = 0;
+	PyObject *obhwndOwner=Py_None;
 	DWORD grfFlags = SHCONTF_FOLDERS|SHCONTF_NONFOLDERS|SHCONTF_INCLUDEHIDDEN;
 	IEnumIDList * ppeidl;
-	if ( !PyArg_ParseTuple(args, "|ll:EnumObjects", &hwndOwner, &grfFlags) )
+	if ( !PyArg_ParseTuple(args, "|Ol:EnumObjects", &obhwndOwner, &grfFlags) )
 		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner, TRUE))
+		return NULL;
+
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISF->EnumObjects( hwndOwner, grfFlags, &ppeidl );
@@ -234,9 +241,12 @@ PyObject *PyIShellFolder::CreateViewObject(PyObject *self, PyObject *args)
 	// @pyparm <o PyIID>|riid||IID of the desired interface, usually IID_IShellView
 	PyObject *obriid;
 	HWND hwndOwner;
+	PyObject *obhwndOwner;
 	IID riid;
 	void * out;
-	if ( !PyArg_ParseTuple(args, "lO:CreateViewObject", &hwndOwner, &obriid) )
+	if ( !PyArg_ParseTuple(args, "OO:CreateViewObject", &obhwndOwner, &obriid) )
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner, TRUE))
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
 	if (!PyWinObject_AsIID(obriid, &riid)) bPythonIsHappy = FALSE;
@@ -289,20 +299,23 @@ PyObject *PyIShellFolder::GetUIObjectOf(PyObject *self, PyObject *args)
 	IShellFolder *pISF = GetI(self);
 	if ( pISF == NULL )
 		return NULL;
-	// @pyparm HWND|hwndOwner||Specifies a window in which to display any required dialogs or errors, can be 0
+	// @pyparm <o PyHANDLE>|hwndOwner||Specifies a window in which to display any required dialogs or errors, can be 0
 	// @pyparm (<o PyIDL>,...)|pidl||A sequence of single-level pidls identifying items in the folder
 	// @pyparm <o PyIID>|riid||The interface to create, one of IID_IContextMenu, IID_IContextMenu2, IID_IDataObject, IID_IDropTarget, IID_IExtractIcon, IID_IQueryInfo 
 	// @pyparm int|rgfReserved|0|Reserved, use 0 if passed in
 	PyObject *obpidl;
 	PyObject *obriid;
 	PyObject *obiidout = NULL;
+	PyObject *obhwndOwner;
 	HWND hwndOwner;
 	UINT cidl;
 	LPCITEMIDLIST *pidl;
 	IID riid, iidout;
 	UINT rgfInOut;
 	void * out;
-	if ( !PyArg_ParseTuple(args, "lOOl|O:GetUIObjectOf", &hwndOwner, &obpidl, &obriid, &rgfInOut, &obiidout) )
+	if ( !PyArg_ParseTuple(args, "OOOl|O:GetUIObjectOf", &obhwndOwner, &obpidl, &obriid, &rgfInOut, &obiidout) )
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner, TRUE))
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
 	if (!PyWinObject_AsIID(obriid, &riid)) bPythonIsHappy = FALSE;
@@ -370,14 +383,18 @@ PyObject *PyIShellFolder::SetNameOf(PyObject *self, PyObject *args)
 	// @pyparm int|Flags||Combination of shellcon.SHGDM_* values
 	PyObject *obpidl=NULL, *ret=NULL;
 	PyObject *oblpszName=NULL;
+	PyObject *obhwndOwner;
 	HWND hwndOwner;
 	ITEMIDLIST *pidl=NULL;
 	ITEMIDLIST *pidlRet;
 	LPOLESTR lpszName=NULL;
 	DWORD flags;
 
-	if ( !PyArg_ParseTuple(args, "lOOl:SetNameOf", &hwndOwner, &obpidl, &oblpszName, &flags) )
+	if ( !PyArg_ParseTuple(args, "OOOl:SetNameOf", &obhwndOwner, &obpidl, &oblpszName, &flags) )
 		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner, TRUE))
+		return NULL;
+
 	if (PyObject_AsPIDL(obpidl, &pidl)&&
 		PyWinObject_AsBstr(oblpszName, &lpszName)){
 		HRESULT hr;
@@ -436,7 +453,7 @@ STDMETHODIMP PyGShellFolder::ParseDisplayName(
 	obpbcReserved = PyCom_PyObjectFromIUnknown(pbcReserved, IID_IBindCtx, TRUE);
 	oblpszDisplayName = MakeOLECHARToObj(lpszDisplayName);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("ParseDisplayName", &result, "lOOl", hwndOwner,
+	HRESULT hr=InvokeViaPolicy("ParseDisplayName", &result, "NOOl", PyWinLong_FromHANDLE(hwndOwner),
 							   obpbcReserved,
 							   oblpszDisplayName, pdwAttributes ? *pdwAttributes : 0);
 	Py_XDECREF(obpbcReserved);
@@ -469,7 +486,7 @@ STDMETHODIMP PyGShellFolder::EnumObjects(
 {
 	PY_GATEWAY_METHOD;
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("EnumObjects", &result, "ll", hwndOwner, grfFlags);
+	HRESULT hr=InvokeViaPolicy("EnumObjects", &result, "Nl", PyWinLong_FromHANDLE(hwndOwner), grfFlags);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	PyCom_InterfaceFromPyInstanceOrObject(result, IID_IEnumIDList, (void **)ppeidl, FALSE /* bNoneOK */);
@@ -563,7 +580,7 @@ STDMETHODIMP PyGShellFolder::CreateViewObject(
 	PyObject *obriid;
 	obriid = PyWinObject_FromIID(riid);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy(szMethodName, &result, "lO", hwndOwner, obriid);
+	HRESULT hr=InvokeViaPolicy(szMethodName, &result, "NO", PyWinLong_FromHANDLE(hwndOwner), obriid);
 	Py_XDECREF(obriid);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
@@ -608,7 +625,7 @@ STDMETHODIMP PyGShellFolder::GetUIObjectOf(
 	obpidl = PyObject_FromPIDLArray(cidl, apidl);
 	obriid = PyWinObject_FromIID(riid);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy(szMethodName, &result, "lOOl", hwndOwner, obpidl, obriid, rgfInOut ? *rgfInOut : 0);
+	HRESULT hr=InvokeViaPolicy(szMethodName, &result, "NOOl", PyWinLong_FromHANDLE(hwndOwner), obpidl, obriid, rgfInOut ? *rgfInOut : 0);
 	Py_XDECREF(obpidl);
 	Py_XDECREF(obriid);
 	if (FAILED(hr)) return hr;
@@ -663,7 +680,7 @@ STDMETHODIMP PyGShellFolder::SetNameOf(
 	obpidl = PyObject_FromPIDL(pidl, FALSE);
 	oblpszName = MakeOLECHARToObj(pszName);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy(szMethodName, &result, "lOOl", hwnd, obpidl, oblpszName, uFlags);
+	HRESULT hr=InvokeViaPolicy(szMethodName, &result, "NOOl", PyWinLong_FromHANDLE(hwnd), obpidl, oblpszName, uFlags);
 	Py_XDECREF(obpidl);
 	Py_XDECREF(oblpszName);
 	if (FAILED(hr)) return hr;
