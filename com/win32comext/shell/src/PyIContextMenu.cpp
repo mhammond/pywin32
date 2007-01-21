@@ -24,29 +24,30 @@ PyIContextMenu::~PyIContextMenu()
 	return (IContextMenu *)PyIUnknown::GetI(self);
 }
 
-// @pymethod |PyIContextMenu|QueryContextMenu|Description of QueryContextMenu.
+// @pymethod |PyIContextMenu|QueryContextMenu|Adds options to a context menu
 PyObject *PyIContextMenu::QueryContextMenu(PyObject *self, PyObject *args)
 {
 	IContextMenu *pICM = GetI(self);
 	if ( pICM == NULL )
 		return NULL;
-	// @pyparm int|hmenu||Description for hmenu
-	// @pyparm int|indexMenu||Description for indexMenu
-	// @pyparm int|idCmdFirst||Description for idCmdFirst
-	// @pyparm int|idCmdLast||Description for idCmdLast
-	// @pyparm int|uFlags||Description for uFlags
-	INT hmenu;
+	HMENU hmenu;
+	PyObject *obhmenu;
 	UINT indexMenu;
 	UINT idCmdFirst;
 	UINT idCmdLast;
 	UINT uFlags;
-	if ( !PyArg_ParseTuple(args, "iiiii:QueryContextMenu", &hmenu, &indexMenu, &idCmdFirst, &idCmdLast, &uFlags) )
+	if ( !PyArg_ParseTuple(args, "OIIII:QueryContextMenu",
+		&obhmenu,		// @pyparm <o PyHANDLE>|hmenu||Handle to menu to which items should be added
+		&indexMenu,		// @pyparm int|indexMenu||Zero-based index at which to add first item
+		&idCmdFirst,	// @pyparm int|idCmdFirst||Minimum menu item Id
+		&idCmdLast,		// @pyparm int|idCmdLast||Max menu item Id
+		&uFlags))		// @pyparm int|uFlags||Combination of shellcon.CMF_* flags, can be 0
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsHANDLE(obhmenu, (HANDLE *)&hmenu, FALSE))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	hr = pICM->QueryContextMenu( (HMENU)hmenu, indexMenu, idCmdFirst, idCmdLast, uFlags );
+	hr = pICM->QueryContextMenu(hmenu, indexMenu, idCmdFirst, idCmdLast, uFlags );
 
 	PY_INTERFACE_POSTCALL;
 
@@ -55,7 +56,7 @@ PyObject *PyIContextMenu::QueryContextMenu(PyObject *self, PyObject *args)
 	return PyInt_FromLong(hr);
 }
 
-// @pymethod |PyIContextMenu|InvokeCommand|Description of InvokeCommand.
+// @pymethod |PyIContextMenu|InvokeCommand|Executes a context menu option
 PyObject *PyIContextMenu::InvokeCommand(PyObject *self, PyObject *args)
 {
 	IContextMenu *pICM = GetI(self);
@@ -65,9 +66,10 @@ PyObject *PyIContextMenu::InvokeCommand(PyObject *self, PyObject *args)
 	PyObject *oblpici;
 	if ( !PyArg_ParseTuple(args, "O:InvokeCommand", &oblpici) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsCMINVOKECOMMANDINFO( oblpici, &ci )) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+
+	if (!PyObject_AsCMINVOKECOMMANDINFO( oblpici, 
+		&ci ))	// @pyparm <o PyCMINVOKECOMMANDINFO>|pici||Tuple of parameters representing a CMINVOKECOMMANDINFO struct
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pICM->InvokeCommand( &ci );
@@ -81,19 +83,19 @@ PyObject *PyIContextMenu::InvokeCommand(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIContextMenu|GetCommandString|Description of GetCommandString.
+// @pymethod |PyIContextMenu|GetCommandString|Retrieves verb or help text for a context menu option
 PyObject *PyIContextMenu::GetCommandString(PyObject *self, PyObject *args)
 {
 	IContextMenu *pICM = GetI(self);
 	if ( pICM == NULL )
 		return NULL;
-	// @pyparm int|idCmd||Description for idCmd
-	// @pyparm int|uType||Description for uType
-	// @pyparm int|cchMax|2048|Description for cchMax
+	// @pyparm int|idCmd||Id of the command
+	// @pyparm int|uType||One of the shellcon.GCS_* constants
+	// @pyparm int|cchMax|2048|Size of buffer to create for returned string
 	UINT idCmd;
 	UINT uType;
 	UINT cchMax = 2048;
-	if ( !PyArg_ParseTuple(args, "ii|i:GetCommandString", &idCmd, &uType, &cchMax) )
+	if ( !PyArg_ParseTuple(args, "II|I:GetCommandString", &idCmd, &uType, &cchMax) )
 		return NULL;
 
 	char *buf = (char *)malloc(cchMax);
@@ -117,9 +119,9 @@ PyObject *PyIContextMenu::GetCommandString(PyObject *self, PyObject *args)
 // @object PyIContextMenu|Description of the interface
 static struct PyMethodDef PyIContextMenu_methods[] =
 {
-	{ "QueryContextMenu", PyIContextMenu::QueryContextMenu, 1 }, // @pymeth QueryContextMenu|Description of QueryContextMenu
-	{ "InvokeCommand", PyIContextMenu::InvokeCommand, 1 }, // @pymeth InvokeCommand|Description of InvokeCommand
-	{ "GetCommandString", PyIContextMenu::GetCommandString, 1 }, // @pymeth GetCommandString|Description of GetCommandString
+	{ "QueryContextMenu", PyIContextMenu::QueryContextMenu, 1 }, // @pymeth QueryContextMenu|Adds options to a context menu
+	{ "InvokeCommand", PyIContextMenu::InvokeCommand, 1 }, // @pymeth InvokeCommand|Executes a context menu option
+	{ "GetCommandString", PyIContextMenu::GetCommandString, 1 }, // @pymeth GetCommandString|Retrieves verb or help text for a context menu option
 	{ NULL }
 };
 
@@ -140,7 +142,7 @@ STDMETHODIMP PyGContextMenu::QueryContextMenu(
 {
 	PY_GATEWAY_METHOD;
 	PyObject *ret;
-	HRESULT hr=InvokeViaPolicy("QueryContextMenu", &ret, "iiiii", hmenu, indexMenu, idCmdFirst, idCmdLast, uFlags);
+	HRESULT hr=InvokeViaPolicy("QueryContextMenu", &ret, "NIIII", PyWinLong_FromHANDLE(hmenu), indexMenu, idCmdFirst, idCmdLast, uFlags);
 	if (FAILED(hr)) return hr;
 	if (PyInt_Check(ret))
 		hr = MAKE_HRESULT(SEVERITY_SUCCESS, 0, PyInt_AsLong(ret));
@@ -167,7 +169,7 @@ STDMETHODIMP PyGContextMenu::GetCommandString(
 {
 	PyObject *result;
 	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("GetCommandString", &result, "ii", idCmd, uFlags);
+	HRESULT hr=InvokeViaPolicy("GetCommandString", &result, "II", idCmd, uFlags);
 	if (FAILED(hr))
 		return hr;
 	if (result && (PyString_Check(result) || PyUnicode_Check(result))) {
