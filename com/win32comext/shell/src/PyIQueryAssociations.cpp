@@ -30,20 +30,26 @@ PyObject *PyIQueryAssociations::Init(PyObject *self, PyObject *args)
 	IQueryAssociations *pIQA = GetI(self);
 	if ( pIQA == NULL )
 		return NULL;
-	// @pyparm int|flags||
+	// @pyparm int|flags||One of shellcon.ASSOCF_* flags
     // @pyparm string|assoc||The string data (ie, extension, prog-id, etc)
-    // @pyparm <o PyHANDLE>|hkeyProgId|0|
-    // @pyparm int|hwnd|0|Must be 0
-    int flags, hwnd=0, hkProgid = 0;
-    PyObject *obAssoc;
+    // @pyparm <o PyHKEY>|hkeyProgId|None|Root registry key, can be None
+    // @pyparm <o PyHANDLE>|hwnd|None|Reserved, must be 0 or None
+    int flags;
+	HWND hwnd;
+	HKEY hkProgid;
+    PyObject *obAssoc, *obhwnd=Py_None, *obhkProgid=Py_None;
     WCHAR *pszAssoc = NULL;
-	if (!PyArg_ParseTuple(args, "lO|ll:Init", &flags, &obAssoc, &hkProgid, &hwnd))
+	if (!PyArg_ParseTuple(args, "lO|OO:Init", &flags, &obAssoc, &obhkProgid, &obhwnd))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obAssoc, &pszAssoc, TRUE))
         return NULL;
+	if (!PyWinObject_AsHKEY(obhkProgid, &hkProgid, TRUE))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	hr = pIQA->Init( flags, pszAssoc, (HKEY)hkProgid, (HWND)hwnd);
+	hr = pIQA->Init( flags, pszAssoc, hkProgid, hwnd);
 	PyWinObject_FreeWCHAR(pszAssoc);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
