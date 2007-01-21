@@ -40,17 +40,21 @@ PyObject *PyIDropTargetHelper::DragEnter(PyObject *self, PyObject *args)
 	IDropTargetHelper *pIDT = GetI(self);
 	if ( pIDT == NULL )
 		return NULL;
-	// @pyparm int|hwnd||
-	// @pyparm <o PyIDataObject *>|pDataObj||Description for pDataObj
 	POINT pt;
 	PyObject *obpt;
-	// @pyparm (int, int)|pt||Description for pt
 	PyObject *obpDataObj;
 	IDataObject *pDataObj;
 	HWND hwnd;
+	PyObject *obhwnd;
     DWORD dwEffect;
-	// @pyparm int|pdwEffect||Description for pdwEffect
-	if ( !PyArg_ParseTuple(args, "lOOl:DragEnter", &hwnd, &obpDataObj, &obpt, &dwEffect) )
+	
+	if (!PyArg_ParseTuple(args, "OOOl:DragEnter", 
+		&obhwnd,		// @pyparm <o PyHANDLE>|hwnd||Handle to target window
+		&obpDataObj,	// @pyparm <o PyIDataObject>|pDataObj||Object that is dragged onto the window
+		&obpt,			// @pyparm (int, int)|pt||Coordinates where drag operation entered the window
+		&dwEffect))		// @pyparm int|dwEffect||One of shellcon.DROPEFFECT_* values
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
 	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obpDataObj, IID_IDataObject, (void **)&pDataObj, TRUE /* bNoneOK */))
@@ -180,7 +184,7 @@ STDMETHODIMP PyGDropTargetHelper::DragEnter(
 	PyObject *obpDataObj;
 	obpDataObj = PyCom_PyObjectFromIUnknown(pDataObj, IID_IDataObject, TRUE);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("DragEnter", &result, "OOl", obpDataObj, obpt, dwEffect);
+	HRESULT hr=InvokeViaPolicy("DragEnter", &result, "NOOl", PyWinLong_FromHANDLE(hwnd), obpDataObj, obpt, dwEffect);
 	Py_XDECREF(obpDataObj);
 	Py_DECREF(obpt);
 	if (FAILED(hr)) return hr;
