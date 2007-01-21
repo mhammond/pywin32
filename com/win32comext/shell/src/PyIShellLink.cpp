@@ -474,8 +474,11 @@ PyObject *PyIShellLink::Resolve(PyObject *self, PyObject *args)
 	// @flag SLR_UPDATE|If the link object has changed, update its path and list of identifiers. If SLR_UPDATE is set, you do not need to call IPersistFile::IsDirty to determine whether or not the link object has changed. 
 
 	HWND hwnd;
+	PyObject *obhwnd;
 	DWORD fFlags;
-	if ( !PyArg_ParseTuple(args, "ll:Resolve", &hwnd, &fFlags) )
+	if ( !PyArg_ParseTuple(args, "Ol:Resolve", &obhwnd, &fFlags) )
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
 		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
