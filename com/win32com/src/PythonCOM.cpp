@@ -280,16 +280,16 @@ static PyObject *pythoncom_CoInitializeSecurity(PyObject *self, PyObject *args)
 	DWORD dwAuthnLevel;
 	DWORD dwImpLevel;
 	DWORD dwCapabilities;
-	PSECURITY_DESCRIPTOR pSD;
+	PSECURITY_DESCRIPTOR pSD, pSD_absolute=NULL;
 	PyObject *obSD, *obAuthSvc, *obReserved1, *obReserved2, *obAuthInfo;
 	if (!PyArg_ParseTuple(args, "OOOiiOiO:CoInitializeSecurity",
-		&obSD, // @pyparm <o PySECURITY_DESCRIPTOR>|sd||
+		&obSD, // @pyparm <o PySECURITY_DESCRIPTOR>|sd||Security descriptor containing access permissions for process' objects, can be None
 		&obAuthSvc, // @pyparm object|authInfo||A value of None tells COM to choose which authentication services to use.  An empty list means use no services.
 		&obReserved1,// @pyparm object|reserved1||Must be None
-		&dwAuthnLevel, // @pyparm int|authnLevel||The default authentication level for proxies. On the server side, COM will fail calls that arrive at a lower level. All calls to AddRef and Release are made at this level.
-		&dwImpLevel, // @pyparm int|impLevel||The default impersonation level for proxies. This value is not checked on the server side. AddRef and Release calls are made with this impersonation level so even security aware apps should set this carefully. Setting IUnknown security only affects calls to QueryInterface, not AddRef or Release. 
+		&dwAuthnLevel, // @pyparm int|authnLevel||One of pythoncom.RPC_C_AUTHN_LEVEL_* values. The default authentication level for proxies. On the server side, COM will fail calls that arrive at a lower level. All calls to AddRef and Release are made at this level.
+		&dwImpLevel, // @pyparm int|impLevel||One of pythoncom.RPC_C_IMP_LEVEL_* values.  The default impersonation level for proxies. This value is not checked on the server side. AddRef and Release calls are made with this impersonation level so even security aware apps should set this carefully. Setting IUnknown security only affects calls to QueryInterface, not AddRef or Release. 
 		&obAuthInfo, // @pyparm object|authInfo||Must be None
-		&dwCapabilities, // @pyparm int|capabilities||Additional client and/or server-side capabilities. Any set of EOAC flags may be passed. Currently only EOAC_MUTUAL_AUTH, EOAC_SECURE_REFS, and EOAC_NONE are defined
+		&dwCapabilities, // @pyparm int|capabilities||Additional client and/or server-side capabilities. Any set of pythoncom.EOAC_* flags may be passed. Currently only EOAC_MUTUAL_AUTH, EOAC_SECURE_REFS, and EOAC_NONE are defined
 		&obReserved2)) // @pyparm object|reserved2||Must be None
 		return NULL;
 	if (obReserved1 != Py_None || obReserved2 != Py_None || obAuthInfo != Py_None) {
@@ -315,10 +315,17 @@ static PyObject *pythoncom_CoInitializeSecurity(PyObject *self, PyObject *args)
 		(PSECURITY_DESCRIPTOR, LONG, SOLE_AUTHENTICATION_SERVICE*, void *, DWORD, DWORD, void *, DWORD, void *);
 	CoInitializeSecurityfunc mypfn=(CoInitializeSecurityfunc)fp;
 
+	// Security descriptor must be in absolute form
+	if (pSD!=NULL)
+		if (!_MakeAbsoluteSD(pSD, &pSD_absolute))
+			return NULL;
+
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = (*mypfn)(pSD, cAuthSvc, pAS, NULL, dwAuthnLevel, dwImpLevel, NULL, dwCapabilities, NULL);
+	HRESULT hr = (*mypfn)(pSD_absolute, cAuthSvc, pAS, NULL, dwAuthnLevel, dwImpLevel, NULL, dwCapabilities, NULL);
 //	HRESULT hr = CoInitializeSecurity(pSD, cAuthSvc, pAS, NULL, dwAuthnLevel, dwImpLevel, NULL, dwCapabilities, NULL);
 	PY_INTERFACE_POSTCALL;
+	if (pSD_absolute!=NULL)
+		FreeAbsoluteSD(pSD_absolute);
 	if (FAILED(hr))
 		return PyCom_BuildPyException(hr);
 	Py_INCREF(Py_None);
@@ -2015,7 +2022,10 @@ extern "C" __declspec(dllexport) void initpythoncom()
 	// ROT
 	ADD_CONSTANT(ROTFLAGS_REGISTRATIONKEEPSALIVE);
 	ADD_CONSTANT(ROTFLAGS_ALLOWANYCLIENT);
+
 	// RPC
+	// Authentication Level used with CoInitializeSecurity
+	ADD_CONSTANT(RPC_C_AUTHN_LEVEL_DEFAULT);	// RPC_C_AUTHN_LEVEL_DEFAULT|Lets DCOM negotiate the authentication level automatically. (Win2k or later)
 	ADD_CONSTANT(RPC_C_AUTHN_LEVEL_NONE); // RPC_C_AUTHN_LEVEL_NONE|Performs no authentication. 
 	ADD_CONSTANT(RPC_C_AUTHN_LEVEL_CONNECT); // RPC_C_AUTHN_LEVEL_CONNECT|Authenticates only when the client establishes a relationship with the server. Datagram transports always use RPC_AUTHN_LEVEL_PKT instead. 
 	ADD_CONSTANT(RPC_C_AUTHN_LEVEL_CALL); // RPC_C_AUTHN_LEVEL_CALL|Authenticates only at the beginning of each remote procedure call when the server receives the request. Datagram transports use RPC_C_AUTHN_LEVEL_PKT instead. 
@@ -2023,10 +2033,29 @@ extern "C" __declspec(dllexport) void initpythoncom()
 	ADD_CONSTANT(RPC_C_AUTHN_LEVEL_PKT_INTEGRITY); // RPC_C_AUTHN_LEVEL_PKT_INTEGRITY|Authenticates and verifies that none of the data transferred between client and server has been modified. 
 	ADD_CONSTANT(RPC_C_AUTHN_LEVEL_PKT_PRIVACY); // RPC_C_AUTHN_LEVEL_PKT_PRIVACY|Authenticates all previous levels and encrypts the argument value of each remote procedure call. 
 
+	// Impersonation level used with CoInitializeSecurity
+	ADD_CONSTANT(RPC_C_IMP_LEVEL_DEFAULT);	// RPC_C_IMP_LEVEL_DEFAULT|Use default impersonation level (Win2k or later)
 	ADD_CONSTANT(RPC_C_IMP_LEVEL_ANONYMOUS); // RPC_C_IMP_LEVEL_ANONYMOUS|(Not supported in this release.) The client is anonymous to the server. The server process cannot obtain identification information about the client and it cannot impersonate the client. 
 	ADD_CONSTANT(RPC_C_IMP_LEVEL_IDENTIFY); // RPC_C_IMP_LEVEL_IDENTIFY|The server can obtain the client’s identity. The server can impersonate the client for ACL checking, but cannot access system objects as the client. This information is obtained when the connection is established, not on every call.<nl>Note  GetUserName will fail while impersonating at identify level. The workaround is to impersonate, OpenThreadToken, revert, call GetTokenInformation, and finally, call LookupAccountSid. 
 	ADD_CONSTANT(RPC_C_IMP_LEVEL_IMPERSONATE); // RPC_C_IMP_LEVEL_IMPERSONATE|The server process can impersonate the client's security context while acting on behalf of the client. This information is obtained when the connection is established, not on every call. 
 	ADD_CONSTANT(RPC_C_IMP_LEVEL_DELEGATE); // RPC_C_IMP_LEVEL_DELEGATE|(Not supported in this release.) The server process can impersonate the client's security context while acting on behalf of the client. The server process can also make outgoing calls to other servers while acting on behalf of the client. This information is obtained when the connection is established, not on every call. 
+
+	// Authentication capabilities used with CoInitializeSecurity (EOLE_AUTHENTICATION_CAPABILITIES enum)
+	ADD_CONSTANT(EOAC_NONE);
+	ADD_CONSTANT(EOAC_MUTUAL_AUTH);
+	ADD_CONSTANT(EOAC_SECURE_REFS);
+	ADD_CONSTANT(EOAC_ACCESS_CONTROL);
+	ADD_CONSTANT(EOAC_APPID);
+	ADD_CONSTANT(EOAC_DYNAMIC);
+	ADD_CONSTANT(EOAC_STATIC_CLOAKING);
+	ADD_CONSTANT(EOAC_DYNAMIC_CLOAKING);
+	ADD_CONSTANT(EOAC_ANY_AUTHORITY);
+	ADD_CONSTANT(EOAC_MAKE_FULLSIC);
+	ADD_CONSTANT(EOAC_REQUIRE_FULLSIC);
+	ADD_CONSTANT(EOAC_AUTO_IMPERSONATE);
+	ADD_CONSTANT(EOAC_DEFAULT);
+	ADD_CONSTANT(EOAC_DISABLE_AAA);
+	ADD_CONSTANT(EOAC_NO_CUSTOM_MARSHAL);
 
 	// STDOLE
 	ADD_CONSTANT(STDOLE_MAJORVERNUM);
