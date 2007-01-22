@@ -31,24 +31,23 @@ PyIShellBrowser::~PyIShellBrowser()
 	return (IShellBrowser *)PyIOleWindow::GetI(self);
 }
 
-// @pymethod |PyIShellBrowser|InsertMenusSB|Description of InsertMenusSB.
+// @pymethod <o PyLPOLEMENUGROUPWIDTHS>|PyIShellBrowser|InsertMenusSB|Updates a composite menu with container's options
 PyObject *PyIShellBrowser::InsertMenusSB(PyObject *self, PyObject *args)
 {
 	IShellBrowser *pISB = GetI(self);
 	if ( pISB == NULL )
 		return NULL;
-	// @pyparm int|hmenuShared||Description for hmenuShared
 	OLEMENUGROUPWIDTHS menuWidths;
-	PyObject *obMenuWidths;
-	// @pyparm <o PyLPOLEMENUGROUPWIDTHS>|lpMenuWidths||Description for lpMenuWidths
-	INT ihmenuShared;
+	PyObject *obMenuWidths, *obhmenuShared;
 	HMENU hmenuShared;
-	if ( !PyArg_ParseTuple(args, "iO:InsertMenusSB", &ihmenuShared, &obMenuWidths) )
+	if ( !PyArg_ParseTuple(args, "OO:InsertMenusSB",
+		&obhmenuShared,		// @pyparm <o PyHANDLE>|hmenuShared||Newly created menu that contains no items
+		&obMenuWidths))		// @pyparm <o PyLPOLEMENUGROUPWIDTHS>|lpMenuWidths||Tuple of 6 ints.  Items 0,2,and 4 are updated when the tuple is returned.
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	hmenuShared = (HMENU)ihmenuShared;
-	if (bPythonIsHappy && !PyObject_AsOLEMENUGROUPWIDTHS( obMenuWidths, &menuWidths )) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsHANDLE(obhmenuShared, (HANDLE *)&hmenuShared, FALSE))
+		return NULL;
+	if (!PyObject_AsOLEMENUGROUPWIDTHS( obMenuWidths, &menuWidths))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISB->InsertMenusSB( hmenuShared, &menuWidths );
@@ -58,30 +57,31 @@ PyObject *PyIShellBrowser::InsertMenusSB(PyObject *self, PyObject *args)
 	return PyObject_FromOLEMENUGROUPWIDTHS(&menuWidths);
 }
 
-// @pymethod |PyIShellBrowser|SetMenuSB|Description of SetMenuSB.
+// @pymethod |PyIShellBrowser|SetMenuSB|Attaches a shared menu to a shell view window
 PyObject *PyIShellBrowser::SetMenuSB(PyObject *self, PyObject *args)
 {
 	IShellBrowser *pISB = GetI(self);
 	if ( pISB == NULL )
 		return NULL;
-	// @pyparm int|hmenuShared||Description for hmenuShared
-	// @pyparm int|holemenuRes||Description for holemenuRes
-	// @pyparm HWND|hwndActiveObject||Description for hwndActiveObject
-	INT ihmenuShared;
-	INT iholemenuRes;
 	HMENU hmenuShared;
 	HOLEMENU holemenuRes;
 	HWND hwndActiveObject;
-	if ( !PyArg_ParseTuple(args, "iil:SetMenuSB", &ihmenuShared, &iholemenuRes, &hwndActiveObject) )
+	PyObject *obhmenuShared, *obholemenuRes, *obhwndActiveObject;
+	if (!PyArg_ParseTuple(args, "OOO:SetMenuSB",
+		&obhmenuShared,			// @pyparm <o PyHANDLE>|hmenuShared||Handle to the shared menu
+		&obholemenuRes,			// @pyparm <o PyHANDLE>|holemenuRes||Reserved, use only None (or 0)
+		&obhwndActiveObject))	// @pyparm <o PyHANDLE>|hwndActiveObject||Handle to the shell window
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	hmenuShared = (HMENU)ihmenuShared;
-	holemenuRes = (HOLEMENU)iholemenuRes;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsHANDLE(obhmenuShared, (HANDLE *)&hmenuShared, FALSE))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obholemenuRes, (HANDLE *)&holemenuRes, TRUE))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwndActiveObject, (HANDLE *)&hwndActiveObject, FALSE))
+		return NULL;
+
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISB->SetMenuSB( hmenuShared, holemenuRes, hwndActiveObject );
-
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
@@ -91,20 +91,20 @@ PyObject *PyIShellBrowser::SetMenuSB(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIShellBrowser|RemoveMenusSB|Description of RemoveMenusSB.
+// @pymethod |PyIShellBrowser|RemoveMenusSB|Asks container to remove any items it added to a composite menu
 PyObject *PyIShellBrowser::RemoveMenusSB(PyObject *self, PyObject *args)
 {
 	IShellBrowser *pISB = GetI(self);
 	if ( pISB == NULL )
 		return NULL;
-	// @pyparm int|hmenuShared||Description for hmenuShared
-	INT ihmenuShared;
+	PyObject *obhmenuShared;
 	HMENU hmenuShared;
-	if ( !PyArg_ParseTuple(args, "i:RemoveMenusSB", &ihmenuShared) )
+	if (!PyArg_ParseTuple(args, "O:RemoveMenusSB", 
+		&obhmenuShared))	// @pyparm <o PyHANDLE>|hmenuShared||Handle to the composite menu
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	hmenuShared = (HMENU)ihmenuShared;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsHANDLE(obhmenuShared, (HANDLE *)&hmenuShared, FALSE))
+		return NULL;
+
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISB->RemoveMenusSB( hmenuShared );
@@ -118,20 +118,19 @@ PyObject *PyIShellBrowser::RemoveMenusSB(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIShellBrowser|SetStatusTextSB|Description of SetStatusTextSB.
+// @pymethod |PyIShellBrowser|SetStatusTextSB|Sets the status text in view's status bar
 PyObject *PyIShellBrowser::SetStatusTextSB(PyObject *self, PyObject *args)
 {
 	IShellBrowser *pISB = GetI(self);
 	if ( pISB == NULL )
 		return NULL;
-	// @pyparm <o unicode>|pszStatusText||Description for pszStatusText
 	PyObject *obpszStatusText;
 	LPOLESTR pszStatusText;
-	if ( !PyArg_ParseTuple(args, "O:SetStatusTextSB", &obpszStatusText) )
+	if (!PyArg_ParseTuple(args, "O:SetStatusTextSB",
+		&obpszStatusText))	// @pyparm <o PyUnicode>|pszStatusText||New status to be displayed
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyWinObject_AsBstr(obpszStatusText, &pszStatusText)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsBstr(obpszStatusText, &pszStatusText))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISB->SetStatusTextSB( pszStatusText );
@@ -146,15 +145,15 @@ PyObject *PyIShellBrowser::SetStatusTextSB(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIShellBrowser|EnableModelessSB|Description of EnableModelessSB.
+// @pymethod |PyIShellBrowser|EnableModelessSB|Enables or disables modeless dialogs
 PyObject *PyIShellBrowser::EnableModelessSB(PyObject *self, PyObject *args)
 {
 	IShellBrowser *pISB = GetI(self);
 	if ( pISB == NULL )
 		return NULL;
-	// @pyparm int|fEnable||Description for fEnable
 	BOOL fEnable;
-	if ( !PyArg_ParseTuple(args, "i:EnableModelessSB", &fEnable) )
+	if (!PyArg_ParseTuple(args, "i:EnableModelessSB", 
+		&fEnable))	// @pyparm boolean|fEnable||Use True to enable or False to disable modeless dialog boxes
 		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
@@ -169,26 +168,22 @@ PyObject *PyIShellBrowser::EnableModelessSB(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIShellBrowser|TranslateAcceleratorSB|Description of TranslateAcceleratorSB.
+// @pymethod |PyIShellBrowser|TranslateAcceleratorSB|Translates keystrokes used as menu item activators
 PyObject *PyIShellBrowser::TranslateAcceleratorSB(PyObject *self, PyObject *args)
 {
 	IShellBrowser *pISB = GetI(self);
 	if ( pISB == NULL )
 		return NULL;
-// *** The input argument pmsg of type "MSG *" was not processed ***
-//     Please check the conversion function is appropriate and exists!
 	MSG msg;
 	PyObject *obpmsg;
-	// @pyparm <o PyMSG>|pmsg||Description for pmsg
-	// @pyparm int|wID||Description for wID
-	INT iwID;
 	WORD wID;
-	if ( !PyArg_ParseTuple(args, "Oi:TranslateAcceleratorSB", &obpmsg, &iwID) )
+	if (!PyArg_ParseTuple(args, "OH:TranslateAcceleratorSB",
+		&obpmsg,	// @pyparm <o PyMSG>|pmsg||Keystroke message to be translated
+		&wID))		// @pyparm int|wID||Menu command id for the keystroke
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsMSG( obpmsg, &msg )) bPythonIsHappy = FALSE;
-	wID = iwID;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyObject_AsMSG(obpmsg, &msg))
+		return NULL;
+
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISB->TranslateAcceleratorSB( &msg, wID );
@@ -199,22 +194,21 @@ PyObject *PyIShellBrowser::TranslateAcceleratorSB(PyObject *self, PyObject *args
 	return Py_None;
 }
 
-// @pymethod |PyIShellBrowser|BrowseObject|Description of BrowseObject.
+// @pymethod |PyIShellBrowser|BrowseObject|Navigates to a different location
 PyObject *PyIShellBrowser::BrowseObject(PyObject *self, PyObject *args)
 {
 	IShellBrowser *pISB = GetI(self);
 	if ( pISB == NULL )
 		return NULL;
-	// @pyparm <o PyIDL>|pidl||Description for pidl
-	// @pyparm int|wFlags||Description for wFlags
 	PyObject *obpidl;
 	LPITEMIDLIST pidl;
 	UINT wFlags;
-	if ( !PyArg_ParseTuple(args, "Oi:BrowseObject", &obpidl, &wFlags) )
+	if ( !PyArg_ParseTuple(args, "OI:BrowseObject",
+		&obpidl,	// @pyparm <o PyIDL>|pidl||Item id list that specifies the new browse location, can be None
+		&wFlags))	// @pyparm int|wFlags||Combination of shellcon.SBSP_* flags
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsPIDL(obpidl, &pidl, FALSE)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyObject_AsPIDL(obpidl, &pidl, TRUE))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISB->BrowseObject( pidl, wFlags );
@@ -226,13 +220,13 @@ PyObject *PyIShellBrowser::BrowseObject(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @pymethod |PyIShellBrowser|GetViewStateStream|Description of GetViewStateStream.
+// @pymethod <o PyIStream>|PyIShellBrowser|GetViewStateStream|Returns a stream that can be used to access view state information
 PyObject *PyIShellBrowser::GetViewStateStream(PyObject *self, PyObject *args)
 {
 	IShellBrowser *pISB = GetI(self);
 	if ( pISB == NULL )
 		return NULL;
-	// @pyparm int|grfMode||Description for grfMode
+	// @pyparm int|grfMode||Read/write mode, one of STGM_READ,STGM_WRITE,STGM_READWRITE
 	DWORD grfMode;
 	IStream * ppStrm;
 	if ( !PyArg_ParseTuple(args, "l:GetViewStateStream", &grfMode) )
@@ -246,15 +240,15 @@ PyObject *PyIShellBrowser::GetViewStateStream(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(ppStrm, IID_IStream, FALSE);
 }
 
-// @pymethod |PyIShellBrowser|GetControlWindow|Description of GetControlWindow.
+// @pymethod |PyIShellBrowser|GetControlWindow|Returns a handle to one of the browser's control elements
 PyObject *PyIShellBrowser::GetControlWindow(PyObject *self, PyObject *args)
 {
 	IShellBrowser *pISB = GetI(self);
 	if ( pISB == NULL )
 		return NULL;
-	// @pyparm int|id||Description for id
+	// @pyparm int|id||One of shellcon.FCW_* values
 	UINT id;
-	if ( !PyArg_ParseTuple(args, "i:GetControlWindow", &id) )
+	if ( !PyArg_ParseTuple(args, "I:GetControlWindow", &id) )
 		return NULL;
 	HWND hwnd;
 	HRESULT hr;
@@ -263,7 +257,7 @@ PyObject *PyIShellBrowser::GetControlWindow(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pISB, IID_IShellBrowser );
-	return PyLong_FromVoidPtr(hwnd);
+	return PyWinLong_FromHANDLE(hwnd);
 }
 
 // Little helper stolen from win32gui
@@ -297,20 +291,20 @@ static BOOL make_param(PyObject *ob, long *pl)
 	return TRUE;
 }
 
-// @pymethod |PyIShellBrowser|SendControlMsg|Description of SendControlMsg.
+// @pymethod int|PyIShellBrowser|SendControlMsg|Sends a control msg to browser's toolbar or status bar
 PyObject *PyIShellBrowser::SendControlMsg(PyObject *self, PyObject *args)
 {
 	IShellBrowser *pISB = GetI(self);
 	if ( pISB == NULL )
 		return NULL;
-	// @pyparm int|id||Description for id
-	// @pyparm int|uMsg||Description for uMsg
-	// @pyparm int|wParam||Description for wParam
-	// @pyparm long|lParam||Description for lParam
+	// @pyparm int|id||shellcon.FCW_TOOLBAR or FCW_STATUS
+	// @pyparm int|uMsg||The message to send
+	// @pyparm int|wParam||Value is dependent on the message
+	// @pyparm long|lParam||Value is dependent on the message
 	UINT id;
 	UINT uMsg;
 	PyObject *obwparam, *oblparam;
-	if ( !PyArg_ParseTuple(args, "iiOO:SendControlMsg", &id, &uMsg, &obwparam, &oblparam) )
+	if ( !PyArg_ParseTuple(args, "IIOO:SendControlMsg", &id, &uMsg, &obwparam, &oblparam) )
 		return NULL;
 	WPARAM wParam;
 	LPARAM lParam;
@@ -329,7 +323,7 @@ PyObject *PyIShellBrowser::SendControlMsg(PyObject *self, PyObject *args)
 	return PyInt_FromLong(ret);
 }
 
-// @pymethod |PyIShellBrowser|QueryActiveShellView|Description of QueryActiveShellView.
+// @pymethod <o PyIShellView>|PyIShellBrowser|QueryActiveShellView|Returns the currently displayed view
 PyObject *PyIShellBrowser::QueryActiveShellView(PyObject *self, PyObject *args)
 {
 	IShellBrowser *pISB = GetI(self);
@@ -347,21 +341,19 @@ PyObject *PyIShellBrowser::QueryActiveShellView(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(ppshv, IID_IShellView, FALSE);
 }
 
-// @pymethod |PyIShellBrowser|OnViewWindowActive|Description of OnViewWindowActive.
+// @pymethod |PyIShellBrowser|OnViewWindowActive|Callback triggered when a view window is activated
 PyObject *PyIShellBrowser::OnViewWindowActive(PyObject *self, PyObject *args)
 {
 	IShellBrowser *pISB = GetI(self);
 	if ( pISB == NULL )
 		return NULL;
-	// @pyparm <o PyIShellView>|pshv||Description for pshv
+	// @pyparm <o PyIShellView>|pshv||The activated view object
 	PyObject *obpshv;
 	IShellView *pshv;
 	if ( !PyArg_ParseTuple(args, "O:OnViewWindowActive", &obpshv) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obpshv, IID_IShellView, (void **)&pshv, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obpshv, IID_IShellView, (void **)&pshv, TRUE /* bNoneOK */))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISB->OnViewWindowActive( pshv );
@@ -374,7 +366,7 @@ PyObject *PyIShellBrowser::OnViewWindowActive(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIShellBrowser|SetToolbarItems|Description of SetToolbarItems.
+// @pymethod |PyIShellBrowser|SetToolbarItems|Adds toolbar buttons to the browser's toolbar
 PyObject *PyIShellBrowser::SetToolbarItems(PyObject *self, PyObject *args)
 {
 	IShellBrowser *pISB = GetI(self);
@@ -382,15 +374,16 @@ PyObject *PyIShellBrowser::SetToolbarItems(PyObject *self, PyObject *args)
 		return NULL;
 	LPTBBUTTONSB lpButtons;
 	PyObject *oblpButtons;
-	// @pyparm <o PyLPTBBUTTONSB>|lpButtons||Description for lpButtons
-	// @pyparm int|uFlags||Description for uFlags
+	
+	
 	UINT nButtons;
 	UINT uFlags;
-	if ( !PyArg_ParseTuple(args, "Oi:SetToolbarItems", &oblpButtons, &uFlags) )
+	if (!PyArg_ParseTuple(args, "OI:SetToolbarItems",
+		&oblpButtons,	// @pyparm <o PyLPTBBUTTONSB>|lpButtons||Sequence of tuples describing the buttons to be added
+		&uFlags))		// @pyparm int|uFlags||Indicates button positions, combination of shellcon.FCT_*
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsTBBUTTONs( oblpButtons, &lpButtons, &nButtons )) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyObject_AsTBBUTTONs( oblpButtons, &lpButtons, &nButtons ))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISB->SetToolbarItems( lpButtons, nButtons, uFlags );
@@ -407,19 +400,19 @@ PyObject *PyIShellBrowser::SetToolbarItems(PyObject *self, PyObject *args)
 // @object PyIShellBrowser|Exposed by Windows Explorer and the Open File common dialog box to provide services for namespace extensions.
 static struct PyMethodDef PyIShellBrowser_methods[] =
 {
-	{ "InsertMenusSB", PyIShellBrowser::InsertMenusSB, 1 }, // @pymeth InsertMenusSB|Description of InsertMenusSB
-	{ "SetMenuSB", PyIShellBrowser::SetMenuSB, 1 }, // @pymeth SetMenuSB|Description of SetMenuSB
-	{ "RemoveMenusSB", PyIShellBrowser::RemoveMenusSB, 1 }, // @pymeth RemoveMenusSB|Description of RemoveMenusSB
-	{ "SetStatusTextSB", PyIShellBrowser::SetStatusTextSB, 1 }, // @pymeth SetStatusTextSB|Description of SetStatusTextSB
-	{ "EnableModelessSB", PyIShellBrowser::EnableModelessSB, 1 }, // @pymeth EnableModelessSB|Description of EnableModelessSB
-	{ "TranslateAcceleratorSB", PyIShellBrowser::TranslateAcceleratorSB, 1 }, // @pymeth TranslateAcceleratorSB|Description of TranslateAcceleratorSB
-	{ "BrowseObject", PyIShellBrowser::BrowseObject, 1 }, // @pymeth BrowseObject|Description of BrowseObject
-	{ "GetViewStateStream", PyIShellBrowser::GetViewStateStream, 1 }, // @pymeth GetViewStateStream|Description of GetViewStateStream
-	{ "GetControlWindow", PyIShellBrowser::GetControlWindow, 1 }, // @pymeth GetControlWindow|Description of GetControlWindow
-	{ "SendControlMsg", PyIShellBrowser::SendControlMsg, 1 }, // @pymeth SendControlMsg|Description of SendControlMsg
-	{ "QueryActiveShellView", PyIShellBrowser::QueryActiveShellView, 1 }, // @pymeth QueryActiveShellView|Description of QueryActiveShellView
-	{ "OnViewWindowActive", PyIShellBrowser::OnViewWindowActive, 1 }, // @pymeth OnViewWindowActive|Description of OnViewWindowActive
-	{ "SetToolbarItems", PyIShellBrowser::SetToolbarItems, 1}, // @pymeth SetToolbarItems|Description of OnViewWindowActive
+	{ "InsertMenusSB", PyIShellBrowser::InsertMenusSB, 1 }, // @pymeth InsertMenusSB|Updates a composite menu with container's options
+	{ "SetMenuSB", PyIShellBrowser::SetMenuSB, 1 }, // @pymeth SetMenuSB|Attaches a shared menu to a shell view window
+	{ "RemoveMenusSB", PyIShellBrowser::RemoveMenusSB, 1 }, // @pymeth RemoveMenusSB|Asks container to remove any items it added to a composite menu
+	{ "SetStatusTextSB", PyIShellBrowser::SetStatusTextSB, 1 }, // @pymeth SetStatusTextSB|Sets the status text in view's status bar
+	{ "EnableModelessSB", PyIShellBrowser::EnableModelessSB, 1 }, // @pymeth EnableModelessSB|Enables or disables modeless dialogs
+	{ "TranslateAcceleratorSB", PyIShellBrowser::TranslateAcceleratorSB, 1 }, // @pymeth TranslateAcceleratorSB|Translates keystrokes used as menu item activators
+	{ "BrowseObject", PyIShellBrowser::BrowseObject, 1 }, // @pymeth BrowseObject|Navigates to a different location
+	{ "GetViewStateStream", PyIShellBrowser::GetViewStateStream, 1 }, // @pymeth GetViewStateStream|Returns a stream that can be used to access view state information
+	{ "GetControlWindow", PyIShellBrowser::GetControlWindow, 1 }, // @pymeth GetControlWindow|Returns a handle to one of the browser's control elements
+	{ "SendControlMsg", PyIShellBrowser::SendControlMsg, 1 }, // @pymeth SendControlMsg|Sends a control msg to browser's toolbar or status bar
+	{ "QueryActiveShellView", PyIShellBrowser::QueryActiveShellView, 1 }, // @pymeth QueryActiveShellView|Returns the currently displayed view
+	{ "OnViewWindowActive", PyIShellBrowser::OnViewWindowActive, 1 }, // @pymeth OnViewWindowActive|Callback triggered when a view window is activated
+	{ "SetToolbarItems", PyIShellBrowser::SetToolbarItems, 1}, // @pymeth SetToolbarItems|Adds toolbar buttons to the browser's toolbar
 	{ NULL }
 };
 
@@ -441,7 +434,7 @@ STDMETHODIMP PyGShellBrowser::InsertMenusSB(
 	PyObject *oblpMenuWidths = PyObject_FromOLEMENUGROUPWIDTHS(lpMenuWidths);
 	if (oblpMenuWidths==NULL) return PyCom_HandlePythonFailureToCOM();
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("InsertMenusSB", &result, "iO", hmenuShared, oblpMenuWidths);
+	HRESULT hr=InvokeViaPolicy("InsertMenusSB", &result, "NO", PyWinLong_FromHANDLE(hmenuShared), oblpMenuWidths);
 	Py_DECREF(oblpMenuWidths);
 	if (FAILED(hr)) return hr;
 	PyObject_AsOLEMENUGROUPWIDTHS(result, lpMenuWidths);
@@ -455,7 +448,8 @@ STDMETHODIMP PyGShellBrowser::SetMenuSB(
 		/* [in] */ HWND hwndActiveObject)
 {
 	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("SetMenuSB", NULL, "iil", hmenuShared, holemenuRes, hwndActiveObject);
+	HRESULT hr=InvokeViaPolicy("SetMenuSB", NULL, "NNN", PyWinLong_FromHANDLE(hmenuShared), 
+		PyWinLong_FromHANDLE(holemenuRes), PyWinLong_FromHANDLE(hwndActiveObject));
 	return hr;
 }
 
@@ -463,7 +457,7 @@ STDMETHODIMP PyGShellBrowser::RemoveMenusSB(
 		/* [in] */ HMENU hmenuShared)
 {
 	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("RemoveMenusSB", NULL, "i", hmenuShared);
+	HRESULT hr=InvokeViaPolicy("RemoveMenusSB", NULL, "N", PyWinLong_FromHANDLE(hmenuShared));
 	return hr;
 }
 
@@ -493,7 +487,7 @@ STDMETHODIMP PyGShellBrowser::TranslateAcceleratorSB(
 	PY_GATEWAY_METHOD;
 	PyObject *obpmsg = PyObject_FromMSG(pmsg);
 	if (obpmsg==NULL) return PyCom_HandlePythonFailureToCOM();
-	HRESULT hr=InvokeViaPolicy("TranslateAcceleratorSB", NULL, "Oi", obpmsg, wID);
+	HRESULT hr=InvokeViaPolicy("TranslateAcceleratorSB", NULL, "OH", obpmsg, wID);
 	Py_DECREF(obpmsg);
 	return hr;
 }
@@ -505,7 +499,7 @@ STDMETHODIMP PyGShellBrowser::BrowseObject(
 	PY_GATEWAY_METHOD;
 	PyObject *obpidl;
 	obpidl = PyObject_FromPIDL(pidl, FALSE);
-	HRESULT hr=InvokeViaPolicy("BrowseObject", NULL, "Oi", obpidl, wFlags);
+	HRESULT hr=InvokeViaPolicy("BrowseObject", NULL, "OI", obpidl, wFlags);
 	Py_XDECREF(obpidl);
 	return hr;
 }
@@ -535,11 +529,11 @@ STDMETHODIMP PyGShellBrowser::GetControlWindow(
 {
 	PY_GATEWAY_METHOD;
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetControlWindow", &result, "i", id);
+	HRESULT hr=InvokeViaPolicy("GetControlWindow", &result, "I", id);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
-	if (PyInt_Check(result) || PyLong_Check(result))
-		*phwnd = (HWND)PyInt_AsLong(result);
+	if (!PyWinObject_AsHANDLE(result, (HANDLE *)phwnd, TRUE))
+		hr = PyCom_HandlePythonFailureToCOM();
 	Py_DECREF(result);
 	return hr;
 }
