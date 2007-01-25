@@ -388,7 +388,7 @@ static PyObject *mybeginthreadex(PyObject *self, PyObject *args)
 
 	PyEval_InitThreads();
 	PythonThreadData *ptd = new PythonThreadData(obFunc, obArgs);
-	uintptr_t handle;
+	ULONG_PTR handle;
 	unsigned tid;
 	handle = _beginthreadex((void *)pSA, stackSize, ThreadEntryPoint, ptd, flags, &tid);
 	if (handle==-1 || handle==NULL){
