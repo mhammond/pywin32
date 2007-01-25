@@ -62,7 +62,7 @@ typedef	HANDLE (WINAPI *CreateRemoteThreadfunc)(HANDLE, LPSECURITY_ATTRIBUTES, S
 static CreateRemoteThreadfunc pfnCreateRemoteThread=NULL;
 typedef DWORD (WINAPI *SetThreadIdealProcessorfunc)(HANDLE, DWORD);
 static SetThreadIdealProcessorfunc pfnSetThreadIdealProcessor = NULL;
-typedef DWORD (WINAPI *SetProcessAffinityMaskfunc)(HANDLE, DWORD);
+typedef DWORD (WINAPI *SetProcessAffinityMaskfunc)(HANDLE, DWORD_PTR);
 static SetProcessAffinityMaskfunc pfnSetProcessAffinityMask = NULL;
 #endif
 
@@ -753,14 +753,22 @@ PyObject *MyCreateProcessAsUser(
 
 #endif // MS_WINCE
 
+%{
+// GetCurrentProcess returns -1 which is INVALID_HANDLE_VALUE, so can't use swig typemap for HANDLE 
+// @pyswig int|GetCurrentProcess|Retrieves a pseudo handle for the current process. 
+static PyObject *MyGetCurrentProcess(PyObject *self, PyObject *args)
+{
+	if(!PyArg_ParseTuple(args,":GetCurrentProcess")) 
+		return NULL;
+	return PyWinLong_FromHANDLE(GetCurrentProcess());
+}
+%}
+%native (GetCurrentProcess) MyGetCurrentProcess;
 
 // @pyswig int|GetProcessVersion|Obtains the major and minor version numbers of the system on which a specified process expects to run.
 DWORD GetProcessVersion(
 	DWORD ProcessId  // @pyparm int|processId||identifier specifying the process of interest.
 );
-
-// @pyswig int|GetCurrentProcess|Retrieves a pseudo handle for the current process. 
-DWORD GetCurrentProcess();
 
 // @pyswig int|GetCurrentProcessId|Retrieves the process identifier of the calling process.
 DWORD GetCurrentProcessId();
