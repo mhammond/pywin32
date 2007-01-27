@@ -261,34 +261,36 @@ PyObject *PyIShellBrowser::GetControlWindow(PyObject *self, PyObject *args)
 }
 
 // Little helper stolen from win32gui
-static BOOL make_param(PyObject *ob, long *pl)
+// Need to change win32gui also, or move this function into pywintypes
+static BOOL make_param(PyObject *ob, WPARAM *pparam)
 {
-	long &l = *pl;
-	if (ob==NULL || ob==Py_None)
-		l = 0;
-	else
+	if (ob==NULL || ob==Py_None){
+		*pparam=NULL;
+		return TRUE;
+		}
 #ifdef UNICODE
 #define TCHAR_DESC "Unicode"
-	if (PyUnicode_Check(ob))
-		l = (long)PyUnicode_AsUnicode(ob);
+	if (PyUnicode_Check(ob)){
+		*pparam = (WPARAM)PyUnicode_AS_UNICODE(ob);
+		return TRUE;
+		}
 #else
 #define TCHAR_DESC "String"	
-	if (PyString_Check(ob))
-		l = (long)PyString_AsString(ob);
-#endif
-	else if (PyInt_Check(ob))
-		l = PyInt_AsLong(ob);
-	else {
-		PyBufferProcs *pb = ob->ob_type->tp_as_buffer;
-		if (pb != NULL && pb->bf_getreadbuffer) {
-			if(-1 == pb->bf_getreadbuffer(ob,0,(void **) &l))
-				return FALSE;
-		} else {
-			PyErr_SetString(PyExc_TypeError, "Must be a" TCHAR_DESC ", int, or buffer object");
-			return FALSE;
+	if (PyString_Check(ob)){
+		*pparam = (WPARAM)PyString_AS_STRING(ob);
+		return TRUE;
 		}
-	}
-	return TRUE;
+#endif
+	*pparam=(WPARAM)PyLong_AsVoidPtr(ob);
+	if ((*pparam!=NULL) || !PyErr_Occurred())
+		return TRUE;
+
+	PyErr_Clear();
+	PyBufferProcs *pb = ob->ob_type->tp_as_buffer;
+	if (pb != NULL && pb->bf_getreadbuffer)
+		return pb->bf_getreadbuffer(ob,0,(VOID **)pparam)!=-1;
+	PyErr_SetString(PyExc_TypeError, "Must be a" TCHAR_DESC ", int, or buffer object");
+	return FALSE;
 }
 
 // @pymethod int|PyIShellBrowser|SendControlMsg|Sends a control msg to browser's toolbar or status bar
@@ -308,9 +310,10 @@ PyObject *PyIShellBrowser::SendControlMsg(PyObject *self, PyObject *args)
 		return NULL;
 	WPARAM wParam;
 	LPARAM lParam;
-	if (!make_param(obwparam, (long *)&wParam))
+	if (!make_param(obwparam, &wParam))
 		return NULL;
-	if (!make_param(oblparam, (long *)&lParam))
+	// WPARAM and LPARAM are defined as UINT_PTR and LONG_PTR, so they can't be used interchangeably without a cast
+	if (!make_param(oblparam, (WPARAM *)&lParam))
 		return NULL;
 	
 	HRESULT hr;
@@ -320,7 +323,8 @@ PyObject *PyIShellBrowser::SendControlMsg(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pISB, IID_IShellBrowser );
-	return PyInt_FromLong(ret);
+	// LRESULT is defined as LONG_PTR.  This should work for either 32 or 64 bit.
+	return PyLong_FromLongLong(ret);
 }
 
 // @pymethod <o PyIShellView>|PyIShellBrowser|QueryActiveShellView|Returns the currently displayed view
