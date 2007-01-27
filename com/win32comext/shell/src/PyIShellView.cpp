@@ -143,7 +143,7 @@ PyObject *PyIShellView::CreateViewWindow(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pISV, IID_IShellView );
-	return PyLong_FromVoidPtr(hWnd);
+	return PyWinLong_FromHANDLE(hWnd);
 }
 
 // @pymethod |PyIShellView|DestroyViewWindow|Description of DestroyViewWindow.
@@ -387,8 +387,8 @@ STDMETHODIMP PyGShellView::CreateViewWindow(
 	Py_DECREF(obrect);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
-	if (PyInt_Check(result) || PyLong_Check(result))
-		*phWnd = (HWND)PyInt_AsLong(result);
+	if (!PyWinObject_AsHANDLE(result, (HANDLE *)phWnd, TRUE))
+		hr=MAKE_PYCOM_GATEWAY_FAILURE_CODE("CreateViewWindow");
 	Py_DECREF(result);
 	return hr;
 }
