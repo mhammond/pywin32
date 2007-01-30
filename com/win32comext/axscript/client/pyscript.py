@@ -211,7 +211,7 @@ class PyScript(framework.COMScript):
 	_reg_clsid_ = PyScript_CLSID
 	_reg_class_spec_ = "win32com.axscript.client.pyscript.PyScript"
 	_reg_remove_keys_ = [(".pys",), ("pysFile",)]
-	_reg_threading_ = "Apartment"
+	_reg_threading_ = "both"
 	
 	def __init__(self):
 		framework.COMScript.__init__(self)
