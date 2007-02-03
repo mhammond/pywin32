@@ -9,7 +9,7 @@
 #ifndef MS_WINCE
 //#define FAR
 #ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0500
+#define _WIN32_WINNT 0x0501
 #endif
 #include "winsock2.h"
 #include "mswsock.h"
@@ -28,8 +28,6 @@
 #define FILE_GENERIC_READ FILE_GENERIC_READ
 #define FILE_GENERIC_WRITE FILE_GENERIC_WRITE
 #define FILE_ALL_ACCESS FILE_ALL_ACCESS
-
-#define INVALID_HANDLE_VALUE (long)INVALID_HANDLE_VALUE
 
 #define GENERIC_READ GENERIC_READ 
 // Specifies read access to the object. Data can be read from the file and the file pointer can be moved. Combine with GENERIC_WRITE for read-write access. 
@@ -2764,7 +2762,6 @@ static PyObject *MyWaitCommEvent(PyObject *self, PyObject *args)
 static BOOL (WINAPI *pfnGetVolumeNameForVolumeMountPointW)(LPCWSTR, LPCWSTR, DWORD) = NULL;
 static BOOL (WINAPI *pfnSetVolumeMountPointW)(LPCWSTR, LPCWSTR) = NULL;
 static BOOL (WINAPI *pfnDeleteVolumeMountPointW)(LPCWSTR) = NULL;
-static BOOL (WINAPI *pfnCreateHardLinkW)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES ) = NULL;
 static BOOL (WINAPI *pfnEncryptFile)(WCHAR *)=NULL;
 static BOOL (WINAPI *pfnDecryptFile)(WCHAR *, DWORD)=NULL;
 static BOOL (WINAPI *pfnEncryptionDisable)(WCHAR *, BOOL)=NULL;
@@ -2776,6 +2773,14 @@ static DWORD (WINAPI *pfnRemoveUsersFromEncryptedFile)(WCHAR *, PENCRYPTION_CERT
 static DWORD (WINAPI *pfnAddUsersToEncryptedFile)(WCHAR *, PENCRYPTION_CERTIFICATE_LIST)=NULL;
 static BOOL (WINAPI *pfnGetVolumePathNameW)(WCHAR *, WCHAR *, DWORD)=NULL;
 
+typedef BOOL (WINAPI *CreateHardLinkfunc)(LPWSTR, LPWSTR, LPSECURITY_ATTRIBUTES);
+static CreateHardLinkfunc pfnCreateHardLink=NULL;
+typedef BOOL (WINAPI *CreateHardLinkTransactedfunc)(LPWSTR, LPWSTR, LPSECURITY_ATTRIBUTES, HANDLE);
+static CreateHardLinkTransactedfunc pfnCreateHardLinkTransacted=NULL;
+typedef BOOL (WINAPI *CreateSymbolicLinkfunc)(LPWSTR,LPWSTR,DWORD);
+static CreateSymbolicLinkfunc pfnCreateSymbolicLink=NULL;
+typedef BOOL (WINAPI *CreateSymbolicLinkTransactedfunc)(LPCWSTR,LPCWSTR,DWORD,HANDLE);
+static CreateSymbolicLinkTransactedfunc pfnCreateSymbolicLinkTransacted=NULL;
 
 typedef BOOL (WINAPI *BackupReadfunc)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL, LPVOID*);
 static BackupReadfunc pfnBackupRead=NULL;
@@ -2801,6 +2806,43 @@ typedef DWORD (WINAPI *WriteEncryptedFileRawfunc)(PFE_IMPORT_FUNC,PVOID,PVOID);
 static WriteEncryptedFileRawfunc pfnWriteEncryptedFileRaw=NULL;
 typedef void (WINAPI *CloseEncryptedFileRawfunc)(PVOID);
 static CloseEncryptedFileRawfunc pfnCloseEncryptedFileRaw=NULL;
+
+// Transactional NTFS functions
+typedef HANDLE (WINAPI *CreateFileTransactedfunc)(LPWSTR,DWORD,DWORD,LPSECURITY_ATTRIBUTES,DWORD,DWORD,HANDLE,HANDLE,PUSHORT,PVOID);
+static CreateFileTransactedfunc pfnCreateFileTransacted=NULL;
+typedef BOOL (WINAPI *DeleteFileTransactedfunc)(LPWSTR,HANDLE);
+static DeleteFileTransactedfunc pfnDeleteFileTransacted=NULL;
+typedef BOOL (WINAPI *MoveFileTransactedfunc)(LPWSTR,LPWSTR,LPPROGRESS_ROUTINE,LPVOID,DWORD,HANDLE);
+static MoveFileTransactedfunc pfnMoveFileTransacted=NULL;
+typedef BOOL (WINAPI *CopyFileTransactedfunc)(LPWSTR,LPWSTR,LPPROGRESS_ROUTINE,LPVOID,LPBOOL,DWORD,HANDLE);
+static CopyFileTransactedfunc pfnCopyFileTransacted=NULL;
+typedef DWORD (WINAPI *GetFileAttributesTransactedfunc)(LPWSTR,GET_FILEEX_INFO_LEVELS,LPVOID,HANDLE);
+static GetFileAttributesTransactedfunc pfnGetFileAttributesTransacted=NULL;
+typedef BOOL (WINAPI *SetFileAttributesTransactedfunc)(LPWSTR,DWORD,HANDLE);
+static SetFileAttributesTransactedfunc pfnSetFileAttributesTransacted=NULL;
+typedef BOOL (WINAPI *CreateDirectoryTransactedfunc)(LPWSTR,LPWSTR,LPSECURITY_ATTRIBUTES,HANDLE);
+static CreateDirectoryTransactedfunc pfnCreateDirectoryTransacted=NULL;
+typedef BOOL (WINAPI *RemoveDirectoryTransactedfunc)(LPWSTR,HANDLE);
+static RemoveDirectoryTransactedfunc pfnRemoveDirectoryTransacted=NULL;
+
+// These aren't used yet
+typedef HANDLE (WINAPI *FindFirstStreamfunc)(LPWSTR, STREAM_INFO_LEVELS, LPVOID, DWORD);
+static FindFirstStreamfunc pfnFindFirstStream=NULL;
+typedef BOOL (WINAPI *FindNextStreamfunc)(HANDLE, LPVOID);
+static FindNextStreamfunc pfnFindNextStream=NULL;
+typedef HANDLE (WINAPI *FindFirstStreamTransactedfunc)(LPWSTR, STREAM_INFO_LEVELS, LPVOID, DWORD, HANDLE);
+static FindFirstStreamTransactedfunc pfnFindFirstStreamTransacted=NULL;
+typedef HANDLE (WINAPI *FindFirstFileTransactedfunc)(LPWSTR,FINDEX_INFO_LEVELS,LPVOID,FINDEX_SEARCH_OPS,LPVOID,DWORD,HANDLE);
+static FindFirstFileTransactedfunc pfnFindFirstFileTransacted=NULL;
+typedef DWORD (WINAPI *GetFullPathNameTransactedfunc)(LPCTSTR,DWORD,LPTSTR,LPTSTR*,HANDLE);
+static GetFullPathNameTransactedfunc pfnGetFullPathNameTransacted = NULL;
+typedef DWORD (WINAPI *GetLongPathNameTransactedfunc)(LPCTSTR,LPTSTR,DWORD,HANDLE);
+static GetLongPathNameTransactedfunc pfnGetLongPathNameTransacted = NULL;
+/* FILE_INFO_BY_HANDLE_CLASS and various structs used by this function are in fileextd.h, can be downloaded here:
+http://www.microsoft.com/downloads/details.aspx?familyid=1decc547-ab00-4963-a360-e4130ec079b8&displaylang=en
+typedef BOOL (WINAPI *GetFileInformationByHandleExfunc)(HANDLE,FILE_INFO_BY_HANDLE_CLASS,LPVOID,DWORD);
+static GetFileInformationByHandleExfunc pfnGetFileInformationByHandleEx = NULL;
+*/
 
 
 // @pyswig <o PyUnicode>|SetVolumeMountPoint|Mounts the specified volume at the specified volume mount point.
@@ -2895,7 +2937,7 @@ py_DeleteVolumeMountPoint(PyObject *self, PyObject *args)
 
 // @pyswig |CreateHardLink|Establishes an NTFS hard link between an existing file and a new file.
 static PyObject*
-py_CreateHardLink(PyObject *self, PyObject *args)
+py_CreateHardLink(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     // @comm  An NTFS hard link is similar to a POSIX hard link.
     // <nl>This function creates a second directory entry for an existing file, can be different name in
@@ -2903,53 +2945,146 @@ py_CreateHardLink(PyObject *self, PyObject *args)
     // Both file paths must be on the same NTFS volume.<nl>To remove the link, simply delete 
     // it and the original file will still remain.
     // @ex Usage|CreateHardLink('h:\dir\newfilename.txt','h:\otherdir\existingfile.txt')
-    // @pyparm string|fileName||The name of the new directory entry to be created.
-    // @pyparm string|existingName||The name of the existing file to which the new link will point.
-    // @pyparm <o PySECURITY_ATTRIBUTES>|security||a SECURITY_ATTRIBUTES structure that specifies a security descriptor for the new file.
-    // If this parameter is None, it leaves the file's existing security descriptor unmodified. 
-    // If this parameter is not None, it modifies the file's security descriptor. 
-    // @comm This method exists only on Windows 2000.If there
-    // is an attempt to use it on these platforms, an error with E_NOTIMPL will be raised.
+	// @comm This method exists on Windows 2000 and later.  Otherwise NotImplementedError will be raised.
+	// @comm Accepts keyword args.
+	CHECK_PFN(CreateHardLink);
+	PyObject *ret=NULL;
+	PyObject *new_file_obj;
+	PyObject *existing_file_obj;
+	PyObject *sa_obj = Py_None;
+	WCHAR *new_file = NULL;
+	WCHAR *existing_file = NULL;
+	SECURITY_ATTRIBUTES *sa;
+	static char *keywords[]={"FileName","ExistingFileName","SecurityAttributes", NULL};
 
-    PyObject *ret=NULL;
-    PyObject *new_file_obj;
-    PyObject *existing_file_obj;
-    PyObject *sa_obj = Py_None;
-    WCHAR *new_file = NULL;
-    WCHAR *existing_file = NULL;
-    SECURITY_ATTRIBUTES *sa;
-
-    if (pfnCreateHardLinkW==NULL)
-        return PyErr_Format(PyExc_NotImplementedError,"CreateHardLink not supported by this version of Windows");
-	if (!PyArg_ParseTuple(args,"OO|O:CreateHardLink", &new_file_obj, &existing_file_obj, &sa_obj))
-        return NULL;
-
-    if (!PyWinObject_AsWCHAR(new_file_obj, &new_file, false)){
-        PyErr_SetString(PyExc_TypeError,"New file name must be string or unicode");
-        goto cleanup;
-    }
-
-    if (!PyWinObject_AsWCHAR(existing_file_obj, &existing_file, false)){
-        PyErr_SetString(PyExc_TypeError,"Existing file name must be string or unicode");
-        goto cleanup;
-    }
-
-    if (!PyWinObject_AsSECURITY_ATTRIBUTES(sa_obj, &sa, true)){
-        PyErr_SetString(PyExc_TypeError,"3rd param must be a SECURITY_ATTRIBUTES, or None");
-        goto cleanup;
-    }
-
-    if (!((*pfnCreateHardLinkW)(new_file, existing_file, sa))){
-        PyWin_SetAPIError("CreateHardLink");
-        goto cleanup;
-    }
-    ret=Py_None;
-    Py_INCREF(Py_None);
-cleanup:
-    PyWinObject_FreeWCHAR(new_file);
-    PyWinObject_FreeWCHAR(existing_file);
-    return ret;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|O:CreateHardLink", keywords,
+		&new_file_obj,		// @pyparm <o PyUnicode>|FileName||The name of the new directory entry to be created.
+		&existing_file_obj,	// @pyparm <o PyUnicode>|ExistingFileName||The name of the existing file to which the new link will point.
+		&sa_obj))			// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Optional SECURITY_ATTRIBUTES object. MSDN describes this parameter as reserved, so use only None,
+		return NULL;
+	if (!PyWinObject_AsSECURITY_ATTRIBUTES(sa_obj, &sa, TRUE))
+		return NULL;
+	if (PyWinObject_AsWCHAR(new_file_obj, &new_file, FALSE)
+		&&PyWinObject_AsWCHAR(existing_file_obj, &existing_file, FALSE)){
+		if (!(*pfnCreateHardLink)(new_file, existing_file, sa))
+			PyWin_SetAPIError("CreateHardLink");
+		else{
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		}
+	PyWinObject_FreeWCHAR(new_file);
+	PyWinObject_FreeWCHAR(existing_file);
+	return ret;
 }
+PyCFunction pfnpy_CreateHardLink=(PyCFunction)py_CreateHardLink;
+
+// @pyswig |CreateHardLinkTransacted|Creates an NTFS hard link as part of a transaction
+static PyObject *py_CreateHardLinkTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	// @comm This method only exists on Vista and later.
+	// @comm Accepts keyword args.
+	CHECK_PFN(CreateHardLinkTransacted);
+	PyObject *obtrans, *ret=NULL;
+	PyObject *new_file_obj;
+	PyObject *existing_file_obj;
+	PyObject *sa_obj = Py_None;
+	WCHAR *new_file = NULL;
+	WCHAR *existing_file = NULL;
+	SECURITY_ATTRIBUTES *sa;
+	HANDLE htrans;
+	static char *keywords[]={"FileName","ExistingFileName","Transaction","SecurityAttributes", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO|O:CreateHardLinkTransacted", keywords,
+		&new_file_obj,		// @pyparm <o PyUnicode>|FileName||The name of the new directory entry to be created.
+		&existing_file_obj,	// @pyparm <o PyUnicode>|ExistingFileName||The name of the existing file to which the new link will point.
+		&obtrans,			// @pyparm <o PyHANDLE>|Transaction||Handle to a transaction
+		&sa_obj))			// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Optional SECURITY_ATTRIBUTES object. MSDN describes this parameter as reserved, so use only None,
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans, FALSE))
+		return NULL;
+	if (!PyWinObject_AsSECURITY_ATTRIBUTES(sa_obj, &sa, TRUE))
+		return NULL;
+	if (PyWinObject_AsWCHAR(new_file_obj, &new_file, FALSE)
+		&&PyWinObject_AsWCHAR(existing_file_obj, &existing_file, FALSE)){
+		if (!(*pfnCreateHardLinkTransacted)(new_file, existing_file, sa, htrans))
+			PyWin_SetAPIError("CreateHardLinkTransacted");
+		else{
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		}
+	PyWinObject_FreeWCHAR(new_file);
+	PyWinObject_FreeWCHAR(existing_file);
+	return ret;
+}
+PyCFunction pfnpy_CreateHardLinkTransacted=(PyCFunction)py_CreateHardLinkTransacted;
+
+// @pyswig |CreateSymbolicLink|Creates a symbolic link (reparse point)
+static PyObject *py_CreateSymbolicLink(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	// @comm This method only exists on Vista and later.
+	// @comm Accepts keyword args.
+	// @comm Requires SeCreateSymbolicLink priv
+	CHECK_PFN(CreateSymbolicLink);
+	WCHAR *linkname=NULL, *targetname=NULL;
+	PyObject *oblinkname, *obtargetname, *ret=NULL;
+	DWORD flags=0;
+	static char *keywords[]={"SymlinkFileName","TargetFileName","Flags", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|k:CreateSymbolicLink", keywords,
+		&oblinkname,	// @pyparm <o PyUnicode>|SymlinkFileName||Path of the symbolic link to be created
+		&obtargetname,	// @pyparm <o PyUnicode>|TargetFileName||The name of file to which link will point
+		&flags))		// @pyparm int|Flags|0|SYMLINK_FLAG_DIRECTORY is only defined flag
+		return NULL;
+	if (PyWinObject_AsWCHAR(oblinkname, &linkname, FALSE) && PyWinObject_AsWCHAR(obtargetname, &targetname, FALSE)){
+		if (!(*pfnCreateSymbolicLink)(linkname, targetname, flags))
+			PyWin_SetAPIError("CreateSymbolicLink");
+		else{
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		}
+	PyWinObject_FreeWCHAR(linkname);
+	PyWinObject_FreeWCHAR(targetname);
+	return ret;
+}
+PyCFunction pfnpy_CreateSymbolicLink=(PyCFunction)py_CreateSymbolicLink;
+
+// @pyswig |CreateSymbolicLinkTransacted|Creates a symbolic link as part of a transaction
+static PyObject *py_CreateSymbolicLinkTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	// @comm This method only exists on Vista and later.
+	// @comm Accepts keyword args.
+	// @comm Requires SeCreateSymbolicLink priv
+	CHECK_PFN(CreateSymbolicLinkTransacted);
+	WCHAR *linkname=NULL, *targetname=NULL;
+	PyObject *oblinkname, *obtargetname, *obtrans, *ret=NULL;
+	DWORD flags=0;
+	HANDLE htrans;
+	static char *keywords[]={"SymlinkFileName","TargetFileName","Flags","Transaction", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO|k:CreateSymbolicLinkTransacted", keywords,
+		&oblinkname,	// @pyparm <o PyUnicode>|SymlinkFileName||Path of the symbolic link to be created
+		&obtargetname,	// @pyparm <o PyUnicode>|TargetFileName||The name of file to which link will point
+		&obtrans,		// @pyparm <o PyHANDLE>|Transaction||Handle to a transaction
+		&flags))		// @pyparm int|Flags|0|SYMLINK_FLAG_DIRECTORY is only defined flag
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans, FALSE))
+		return NULL;
+	if (PyWinObject_AsWCHAR(oblinkname, &linkname, FALSE) && PyWinObject_AsWCHAR(obtargetname, &targetname, FALSE)){
+		if (!(*pfnCreateSymbolicLinkTransacted)(linkname, targetname, flags, htrans))
+			PyWin_SetAPIError("CreateSymbolicLinkTransacted");
+		else{
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		}
+	PyWinObject_FreeWCHAR(linkname);
+	PyWinObject_FreeWCHAR(targetname);
+	return ret;
+}
+PyCFunction pfnpy_CreateSymbolicLinkTransacted=(PyCFunction)py_CreateSymbolicLinkTransacted;
 
 // @pyswig <o PyUnicode>|GetVolumeNameForVolumeMountPoint|Returns unique volume name (Win2k or later)
 static PyObject*
@@ -3740,18 +3875,21 @@ DWORD CALLBACK CopyFileEx_ProgressRoutine(
 }
 
 // @pyswig |CopyFileEx|Restartable file copy with optional progress routine
+// @comm Accepts keyword args.
 static PyObject*
-py_CopyFileEx(PyObject *self, PyObject *args)
+py_CopyFileEx(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	CHECK_PFN(CopyFileEx);
 	PyObject *obsrc, *obdst, *obcallback=Py_None, *obdata=Py_None, *ret=NULL;
 	WCHAR *src=NULL, *dst=NULL;
-	BOOL bcancel, bsuccess;
+	BOOL bcancel=FALSE, bsuccess;
 	LPPROGRESS_ROUTINE callback=NULL;
 	LPVOID callback_data=NULL;
 	PyObject *callback_objects[2];
 	DWORD flags=0;
-	if (!PyArg_ParseTuple(args, "OO|OOik:CopyFileEx",
+	static char *keywords[]={"ExistingFileName","NewFileName","ProgressRoutine","Data","Cancel","CopyFlags", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|OOik:CopyFileEx", keywords,
 		&obsrc,		// @pyparm <o PyUNICODE>|ExistingFileName||File to be copied
 		&obdst,		// @pyparm <o PyUNICODE>|NewFileName||Place to which it will be copied
 		&obcallback,	// @pyparm <o CopyProgressRoutine>|ProgressRoutine|None|A python function that receives progress updates, can be None
@@ -3789,11 +3927,72 @@ py_CopyFileEx(PyObject *self, PyObject *args)
 	PyWinObject_FreeWCHAR(dst);
 	return ret;
 }
+PyCFunction pfnpy_CopyFileEx=(PyCFunction)py_CopyFileEx;
+
+// @pyswig |CopyFileTransacted|Copies a file as part of a transaction
+// @comm Accepts keyword arguments.
+static PyObject*
+py_CopyFileTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(CopyFileTransacted);
+	PyObject *obsrc, *obdst, *obtrans, *obcallback=Py_None, *obdata=Py_None, *ret=NULL;
+	WCHAR *src=NULL, *dst=NULL;
+	BOOL bcancel=FALSE, bsuccess;
+	LPPROGRESS_ROUTINE callback=NULL;
+	LPVOID callback_data=NULL;
+	PyObject *callback_objects[2];
+	DWORD flags=0;
+	HANDLE htrans;
+	static char *keywords[]={"ExistingFileName","NewFileName","Transaction","ProgressRoutine","Data","Cancel","CopyFlags", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO|OOik:CopyFileTransacted", keywords,
+		&obsrc,		// @pyparm <o PyUNICODE>|ExistingFileName||File to be copied
+		&obdst,		// @pyparm <o PyUNICODE>|NewFileName||Place to which it will be copied
+		&obtrans,	// @pyparm <o PyHANDLE>|Transaction||Handle to a transaction as returned by <om win32transaction.CreateTransaction>
+		&obcallback,	// @pyparm <o CopyProgressRoutine>|ProgressRoutine|None|A python function that receives progress updates, can be None
+		&obdata,		// @pyparm object|Data|None|An arbitrary object to be passed to the callback function
+		&bcancel,		// @pyparm boolean|Cancel|False|Pass True to cancel a restartable copy that was previously interrupted
+		&flags))	// @pyparm int|CopyFlags|0|Combination of COPY_FILE_* flags
+		return NULL;
+
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans, FALSE))
+		return NULL;
+	if (obcallback!=Py_None){
+		if (!PyCallable_Check(obcallback)){
+			PyErr_SetString(PyExc_TypeError,"ProgressRoutine must be callable");
+			return NULL;
+			}
+		callback=CopyFileEx_ProgressRoutine;
+		callback_objects[0]=obcallback;
+		callback_objects[1]=obdata;
+		callback_data=callback_objects;
+		}
+
+	if (PyWinObject_AsWCHAR(obsrc, &src, FALSE) && PyWinObject_AsWCHAR(obdst, &dst, FALSE)){
+		Py_BEGIN_ALLOW_THREADS
+		bsuccess=(*pfnCopyFileTransacted)(src, dst, callback, callback_data, &bcancel, flags, htrans);
+		Py_END_ALLOW_THREADS
+		if (!bsuccess){
+			// progress routine may have already thrown an exception
+			if (!PyErr_Occurred())
+				PyWin_SetAPIError("CopyFileTransacted");
+			}
+		else{
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		}
+	PyWinObject_FreeWCHAR(src);
+	PyWinObject_FreeWCHAR(dst);
+	return ret;
+}
+PyCFunction pfnpy_CopyFileTransacted=(PyCFunction)py_CopyFileTransacted;
 
 // @pyswig |MoveFileWithProgress|Moves a file, and reports progress to a callback function
 // @comm Only available on Windows 2000 or later
+// @comm Accepts keyword arguments.
 static PyObject*
-py_MoveFileWithProgress(PyObject *self, PyObject *args)
+py_MoveFileWithProgress(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	CHECK_PFN(MoveFileWithProgress);
 	PyObject *obsrc, *obdst, *obcallback=Py_None, *obdata=Py_None, *ret=NULL;
@@ -3803,7 +4002,9 @@ py_MoveFileWithProgress(PyObject *self, PyObject *args)
 	LPVOID callback_data=NULL;
 	PyObject *callback_objects[2];
 	DWORD flags=0;
-	if (!PyArg_ParseTuple(args, "OO|OOk:MoveFileWithProgress",
+	static char *keywords[]={"ExistingFileName","NewFileName","ProgressRoutine","Data","Flags", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|OOk:MoveFileWithProgress", keywords,
 		&obsrc,		// @pyparm <o PyUNICODE>|ExistingFileName||File or directory to be moved
 		&obdst,		// @pyparm <o PyUNICODE>|NewFileName||Destination, can be None if flags contain MOVEFILE_DELAY_UNTIL_REBOOT
 		&obcallback,	// @pyparm <o CopyProgressRoutine>|ProgressRoutine|None|A python function that receives progress updates, can be None
@@ -3840,6 +4041,65 @@ py_MoveFileWithProgress(PyObject *self, PyObject *args)
 	PyWinObject_FreeWCHAR(dst);
 	return ret;
 }
+PyCFunction pfnpy_MoveFileWithProgress=(PyCFunction)py_MoveFileWithProgress;
+
+// @pyswig |MoveFileTransacted|Moves a file or directory as part of a transaction
+// @pyseeapi MoveFileTransacted
+// @comm Requires Windows Vista.
+// @comm Accepts keyword arguments.  Implemented only as Unicode.
+static PyObject *py_MoveFileTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(MoveFileTransacted);
+	PyObject *obsrc, *obdst, *obtrans, *obcallback=Py_None, *obdata=Py_None, *ret=NULL;
+	WCHAR *src=NULL, *dst=NULL;
+	BOOL bsuccess;
+	LPPROGRESS_ROUTINE callback=NULL;
+	LPVOID callback_data=NULL;
+	PyObject *callback_objects[2];
+	DWORD flags=0;
+	HANDLE htransaction;
+	static char *keywords[]={"ExistingFileName","NewFileName","Transaction","ProgressRoutine","Data","Flags", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO|OOk:MoveFileTransacted", keywords,
+		&obsrc,			// @pyparm <o PyUNICODE>|ExistingFileName||File or directory to be moved
+		&obdst,			// @pyparm <o PyUNICODE>|NewFileName||Destination, can be None if flags contain MOVEFILE_DELAY_UNTIL_REBOOT
+		&obtrans,		// @pyparm <o PyHANDLE>|Transaction||Handle to the transaction.  See <om win32transaction.CreateTransaction>.
+		&obcallback,	// @pyparm <o CopyProgressRoutine>|ProgressRoutine|None|A python function that receives progress updates, can be None
+		&obdata,		// @pyparm object|Data|None|An arbitrary object to be passed to the callback function
+		&flags))		// @pyparm int|Flags|0|Combination of MOVEFILE_* flags
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obtrans, &htransaction, FALSE))
+		return NULL;
+	if (obcallback!=Py_None){
+		if (!PyCallable_Check(obcallback)){
+			PyErr_SetString(PyExc_TypeError,"ProgressRoutine must be callable");
+			return NULL;
+			}
+		callback=CopyFileEx_ProgressRoutine;
+		callback_objects[0]=obcallback;
+		callback_objects[1]=obdata;
+		callback_data=callback_objects;
+		}
+
+	if (PyWinObject_AsWCHAR(obsrc, &src, FALSE) && PyWinObject_AsWCHAR(obdst, &dst, TRUE)){
+		Py_BEGIN_ALLOW_THREADS
+		bsuccess=(*pfnMoveFileTransacted)(src, dst, callback, callback_data, flags, htransaction);
+		Py_END_ALLOW_THREADS
+		if (!bsuccess){
+			// progress routine may have already thrown an exception
+			if (!PyErr_Occurred())
+				PyWin_SetAPIError("MoveFileTransacted");
+			}
+		else{
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		}
+	PyWinObject_FreeWCHAR(src);
+	PyWinObject_FreeWCHAR(dst);
+	return ret;
+}
+PyCFunction pfnpy_MoveFileTransacted=(PyCFunction)py_MoveFileTransacted;
 
 // @pyswig |ReplaceFile|Replaces one file with another
 // @comm Only available on Windows 2000 or later
@@ -4090,11 +4350,258 @@ py_CloseEncryptedFileRaw(PyObject *self, PyObject *args)
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+
+// @pyswig <o PyHANDLE>|CreateFileTransacted|Creates a transacted file handle.
+// @pyseeapi CreateFileTransacted
+// @comm Requires Windows Vista.
+// @comm Accepts keyword arguments.
+static PyObject *py_CreateFileTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(CreateFileTransacted);
+	WCHAR *filename=NULL;
+	PyObject *obfilename, *obsa, *obhtemplate, *obhtransaction, *obminiversion=Py_None, *obextendedparameter=Py_None;
+	DWORD desiredaccess, sharemode, creationdisposition, flags;
+	USHORT miniversion=0;
+	PUSHORT pminiversion=NULL;
+	PSECURITY_ATTRIBUTES psa;
+	VOID *extendedparameter=NULL;
+	HANDLE htemplate, htransaction, hret;
+	static char *keywords[]={"FileName","DesiredAccess","ShareMode","SecurityAttributes","CreationDisposition",
+		"FlagsAndAttributes","TemplateFile","Transaction","MiniVersion","ExtendedParameter", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OkkOkkOO|OO:CreateFileTransacted", keywords,
+		&obfilename,			// @pyparm <o PyUnicode>|FileName||Name of file
+		&desiredaccess,			// @pyparm int|DesiredAccess||Combination of access mode flags.  See MSDN docs.
+		&sharemode,				// @pyparm int|ShareMode||Combination of FILE_SHARE_READ, FILE_SHARE_WRITE, FILE_SHARE_DELETE
+		&obsa,					// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes||Specifies security descriptor and handle inheritance, can be None
+		&creationdisposition,	// @pyparm int|CreationDisposition||One of CREATE_ALWAYS,CREATE_NEW,OPEN_ALWAYS,OPEN_EXISTING or TRUNCATE_EXISTING 
+		&flags,					// @pyparm int|FlagsAndAttributes||Combination of FILE_ATTRIBUTE_* and FILE_FLAG_* flags
+		&obhtemplate,			// @pyparm <o PyHANDLE>|TemplateFile||Handle to file to be used as template, can be None
+		&obhtransaction,		// @pyparm <o PyHANDLE>|Transaction||Handle to the transaction as returned by <om win32transaction.CreateTransaction>
+		&obminiversion,			// @pyparm int|MiniVersion|None|Transacted version of file to open, can be None
+		&obextendedparameter))	// @pyparm None|ExtendedParameter|None|Reserved, use only None
+		return NULL;
+
+	if (!PyWinObject_AsSECURITY_ATTRIBUTES(obsa, &psa, TRUE))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhtemplate, &htemplate, TRUE))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhtransaction, &htransaction, FALSE))
+		return NULL;
+	if (obextendedparameter!=Py_None){
+		PyErr_SetString(PyExc_TypeError,"ExtendedParameter must be None");
+		return NULL;
+		}
+	if (obminiversion!=Py_None){
+		long longversion=PyInt_AsLong(obminiversion);
+		if (longversion==-1 && PyErr_Occurred())
+			return NULL;
+		if ((longversion > USHRT_MAX) || (longversion < 0))
+			return PyErr_Format(PyExc_ValueError, "MiniVersion must be in the range 0 - %d", USHRT_MAX);
+		miniversion=(USHORT)longversion;
+		pminiversion=&miniversion;
+		}
+	if (!PyWinObject_AsWCHAR(obfilename, &filename, FALSE))
+		return NULL;
+
+	hret=(*pfnCreateFileTransacted)(filename, desiredaccess, sharemode, psa, creationdisposition,
+		flags, htemplate, htransaction, pminiversion, extendedparameter);
+	PyWinObject_FreeWCHAR(filename);
+	if (hret==INVALID_HANDLE_VALUE)
+		return PyWin_SetAPIError("CreateFileTransacted");
+	return PyWinObject_FromHANDLE(hret);
+}
+PyCFunction pfnpy_CreateFileTransacted=(PyCFunction)py_CreateFileTransacted;
+
+// @pyswig |DeleteFileTransacted|Deletes a file as part of a transaction
+// @pyseeapi DeleteFileTransacted
+// @comm Requires Windows Vista.
+// @comm Accepts keyword arguments.
+static PyObject *py_DeleteFileTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(DeleteFileTransacted);
+	WCHAR *filename=NULL;
+	PyObject *obfilename, *obhtransaction;
+	HANDLE htransaction;
+	static char *keywords[]={"FileName","Transaction", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO:DeleteFileTransacted", keywords,
+		&obfilename,		// @pyparm <o PyUnicode>|FileName||Name of file to be deleted
+		&obhtransaction))	// @pyparm <o PyHANDLE>|Transaction||Transaction handle as returned by <om win32transaction.CreateTransaction>
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhtransaction, &htransaction, FALSE))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obfilename, &filename, FALSE))
+		return NULL;
+
+	BOOL ret=(*pfnDeleteFileTransacted)(filename, htransaction);
+	PyWinObject_FreeWCHAR(filename);
+	if (!ret)
+		return PyWin_SetAPIError("DeleteFileTransacted");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+PyCFunction pfnpy_DeleteFileTransacted=(PyCFunction)py_DeleteFileTransacted;
+
+// @pyswig |GetFileAttributesTransacted|Retrieves file attributes as part of a transaction
+// @pyseeapi GetFileAttributesTransacted
+// @comm Only exists on Windows Vista or later.
+// @comm Accepts keyword arguments.  Implemented only as Unicode.
+// @rdesc Returned info is dependent on the infomation level
+static PyObject *py_GetFileAttributesTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	/* ??? This could easily be made part of GetFileAttributesEx, with Transaction as an optional
+		parameter causing GetFileAttributesTransacted to be called (if available) ??? */
+	CHECK_PFN(GetFileAttributesTransacted);
+	WCHAR *fname=NULL;
+	PyObject *obfname, *obtrans, *ret=NULL;
+	GET_FILEEX_INFO_LEVELS lvl=GetFileExInfoStandard;
+	PVOID buf=NULL;
+	size_t bufsize;
+	HANDLE htrans;
+	static char *keywords[]={"FileName","Transaction","InfoLevelId", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|k:GetFileAttributesTransacted", keywords,
+		&obfname,	// @pyparm <o PyUNICODE>|FileName||File or directory to be moved
+		&obtrans,	// @pyparm <o PyHANDLE>|Transaction||Handle to the transaction.  See <om win32transaction.CreateTransaction>.
+		&lvl))		// @pyparm int|InfoLevelId|GetFileExInfoStandard|Level of information to return (GET_FILEEX_INFO_LEVELS enum)
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans, FALSE))
+		return NULL;
+	switch (lvl){
+		// @flagh InfoLevelId|Information returned
+		// @flag GetFileExInfoStandard|Tuple representing a WIN32_FILE_ATTRIBUTE_DATA struc
+		case GetFileExInfoStandard:
+			bufsize = sizeof(WIN32_FILE_ATTRIBUTE_DATA);
+			break;
+		default:
+			return PyErr_Format(PyExc_ValueError, "Level '%d' is not supported", lvl);
+		}
+	buf = malloc(bufsize);
+	if (buf==NULL)
+		return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
+
+	if (PyWinObject_AsWCHAR(obfname, &fname, FALSE)){
+		// MSDN docs say this returns a DWORD containing the attributes, but it actually acts as a boolean
+		if (!(*pfnGetFileAttributesTransacted)(fname, lvl, buf, htrans))
+			PyWin_SetAPIError("GetFileAttributesTransacted");
+		else
+			ret=PyObject_FromFILEX_INFO(lvl, buf);
+		}
+	free(buf);
+	PyWinObject_FreeWCHAR(fname);
+	return ret;
+}
+PyCFunction pfnpy_GetFileAttributesTransacted=(PyCFunction)py_GetFileAttributesTransacted;
+
+// @pyswig |SetFileAttributesTransacted|Sets a file's attributes as part of a transaction
+// @pyseeapi SetFileAttributesTransacted
+// @comm Only exists on Windows Vista or later.
+// @comm Accepts keyword arguments.  Implemented only as Unicode.
+static PyObject *py_SetFileAttributesTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(SetFileAttributesTransacted);
+	WCHAR *fname=NULL;
+	PyObject *obfname, *obtrans;
+	DWORD attrs;
+	HANDLE htrans;
+	static char *keywords[]={"FileName","FileAttributes","Transaction", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OkO:SetFileAttributesTransacted", keywords,
+		&obfname,	// @pyparm <o PyUNICODE>|FileName||File or directory to be moved
+		&attrs,		// @pyparm int|FileAttributes||Combination of FILE_ATTRIBUTE_* flags
+		&obtrans))	// @pyparm <o PyHANDLE>|Transaction||Handle to the transaction.  See <om win32transaction.CreateTransaction>.
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans, FALSE))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
+		return NULL;
+	BOOL ret=(*pfnSetFileAttributesTransacted)(fname, attrs, htrans);
+	PyWinObject_FreeWCHAR(fname);
+	if (!ret)
+		return PyWin_SetAPIError("SetFileAttributesTransacted");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+PyCFunction pfnpy_SetFileAttributesTransacted=(PyCFunction)py_SetFileAttributesTransacted;
+
+// @pyswig |CreateDirectoryTransacted|Creates a directory as part of a transaction
+// @pyseeapi CreateDirectoryTransacted
+// @comm Only exists on Windows Vista or later.
+// @comm Accepts keyword arguments.  Implemented only as Unicode.
+static PyObject *py_CreateDirectoryTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(CreateDirectoryTransacted);
+	WCHAR *dirname=NULL, *templatedir=NULL;
+	PyObject *obdirname, *obtrans, *obtemplatedir=Py_None, *obsa=Py_None, *ret=NULL;
+	HANDLE htrans;
+	SECURITY_ATTRIBUTES *psa;
+	static char *keywords[]={"NewDirectory","Transaction","TemplateDirectory","SecurityAttributes", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|OO:CreateDirectoryTransacted", keywords,
+		&obdirname,		// @pyparm <o PyUnicode>|NewDirectory||Name of directory to be created
+		&obtrans,		// @pyparm <o PyHANDLE>|Transaction||Handle to the transaction.  See <om win32transaction.CreateTransaction>.
+		&obtemplatedir,	// @pyparm <o PyUnicode>|TemplateDirectory|None|Directory to use as a template
+		&obsa))			// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Security for new directory
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans, FALSE))
+		return NULL;
+	if (!PyWinObject_AsSECURITY_ATTRIBUTES(obsa, &psa, TRUE))
+		return NULL;
+	if (PyWinObject_AsWCHAR(obdirname, &dirname, FALSE) 
+		&& PyWinObject_AsWCHAR(obtemplatedir, &templatedir, TRUE)){
+		if (!(*pfnCreateDirectoryTransacted)(templatedir, dirname, psa, htrans))
+			PyWin_SetAPIError("CreateDirectoryTransacted");
+		else{
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		}
+	PyWinObject_FreeWCHAR(dirname);
+	PyWinObject_FreeWCHAR(templatedir);
+	return ret;
+}
+PyCFunction pfnpy_CreateDirectoryTransacted=(PyCFunction)py_CreateDirectoryTransacted;
+
+// @pyswig |RemoveDirectoryTransacted|Removes a directory as part of a transaction
+// @pyseeapi RemoveDirectoryTransacted
+// @comm Only exists on Windows Vista or later.
+// @comm Accepts keyword arguments.  Implemented only as Unicode.
+static PyObject *py_RemoveDirectoryTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(RemoveDirectoryTransacted);
+	WCHAR *dirname=NULL;
+	PyObject *obdirname, *obtrans, *ret=NULL;
+	HANDLE htrans;
+	static char *keywords[]={"PathName","Transaction", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO:RemoveDirectoryTransacted", keywords,
+		&obdirname,		// @pyparm <o PyUnicode>|PathName||Name of directory to be removed
+		&obtrans))		// @pyparm <o PyHANDLE>|Transaction||Handle to the transaction.  See <om win32transaction.CreateTransaction>.
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans, FALSE))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obdirname, &dirname, FALSE))
+		return NULL;
+
+	if (!(*pfnRemoveDirectoryTransacted)(dirname, htrans))
+		PyWin_SetAPIError("RemoveDirectoryTransacted");
+	else{
+		Py_INCREF(Py_None);
+		ret=Py_None;
+		}
+	PyWinObject_FreeWCHAR(dirname);
+	return ret;
+}
+PyCFunction pfnpy_RemoveDirectoryTransacted=(PyCFunction)py_RemoveDirectoryTransacted;
 %}
+
 
 %native (SetVolumeMountPoint) py_SetVolumeMountPoint;
 %native (DeleteVolumeMountPoint) py_DeleteVolumeMountPoint;
-%native (CreateHardLink) py_CreateHardLink;
+%native (CreateHardLink) pfnpy_CreateHardLink;
+%native (CreateHardLinkTransacted) pfnpy_CreateHardLinkTransacted;
+%native (CreateSymbolicLink) pfnpy_CreateSymbolicLink;
+%native (CreateSymbolicLinkTransacted) pfnpy_CreateSymbolicLinkTransacted;
 %native (GetVolumeNameForVolumeMountPoint) py_GetVolumeNameForVolumeMountPoint;
 %native (GetVolumePathName) py_GetVolumePathName;
 
@@ -4111,22 +4618,56 @@ py_CloseEncryptedFileRaw(PyObject *self, PyObject *args)
 %native (BackupSeek) py_BackupSeek;
 %native (BackupWrite) py_BackupWrite;
 %native (SetFileShortName) py_SetFileShortName;
-%native (CopyFileEx) py_CopyFileEx;
-%native (MoveFileWithProgress) py_MoveFileWithProgress;
+%native (CopyFileEx) pfnpy_CopyFileEx;
+%native (CopyFileTransacted) pfnpy_CopyFileTransacted;
+%native (MoveFileWithProgress) pfnpy_MoveFileWithProgress;
+%native (MoveFileTransacted) pfnpy_MoveFileTransacted;
 %native (ReplaceFile) py_ReplaceFile;
 %native (OpenEncryptedFileRaw) py_OpenEncryptedFileRaw;
 %native (ReadEncryptedFileRaw) py_ReadEncryptedFileRaw;
 %native (WriteEncryptedFileRaw) py_WriteEncryptedFileRaw;
 %native (CloseEncryptedFileRaw) py_CloseEncryptedFileRaw;
+%native (CreateFileTransacted) pfnpy_CreateFileTransacted;
+%native (DeleteFileTransacted) pfnpy_DeleteFileTransacted;
+%native (GetFileAttributesTransacted) pfnpy_GetFileAttributesTransacted;
+%native (SetFileAttributesTransacted) pfnpy_SetFileAttributesTransacted;
+%native (CreateDirectoryTransacted) pfnpy_CreateDirectoryTransacted;
+%native (RemoveDirectoryTransacted) pfnpy_RemoveDirectoryTransacted;
+
 
 %init %{
-
 	PyDict_SetItemString(d, "error", PyWinExc_ApiError);
+	PyDict_SetItemString(d, "INVALID_HANDLE_VALUE", PyWinLong_FromHANDLE(INVALID_HANDLE_VALUE));
+
+    for (PyMethodDef *pmd = win32fileMethods;pmd->ml_name;pmd++)
+		if   ((strcmp(pmd->ml_name, "CreateFileTransacted")==0)
+			||(strcmp(pmd->ml_name, "DeleteFileTransacted")==0)
+			||(strcmp(pmd->ml_name, "MoveFileWithProgress")==0)
+			||(strcmp(pmd->ml_name, "MoveFileTransacted")==0)
+			||(strcmp(pmd->ml_name, "CopyFileEx")==0)
+			||(strcmp(pmd->ml_name, "CopyFileTransacted")==0)
+			||(strcmp(pmd->ml_name, "GetFileAttributesTransacted")==0)
+			||(strcmp(pmd->ml_name, "SetFileAttributesTransacted")==0)
+			||(strcmp(pmd->ml_name, "CreateHardLink")==0)
+			||(strcmp(pmd->ml_name, "CreateHardLinkTransacted")==0)
+			||(strcmp(pmd->ml_name, "CreateSymbolicLink")==0)
+			||(strcmp(pmd->ml_name, "CreateSymbolicLinkTransacted")==0)
+			||(strcmp(pmd->ml_name, "CreateDirectoryTransacted")==0)
+			||(strcmp(pmd->ml_name, "RemoveDirectoryTransacted")==0)
+			||(strcmp(pmd->ml_name, "FindFirstFileTransacted")==0)		// not impl yet
+			||(strcmp(pmd->ml_name, "FindFirstStream")==0)				// not impl yet
+			||(strcmp(pmd->ml_name, "FindFirstStreamTransacted")==0)	// not impl yet
+			||(strcmp(pmd->ml_name, "GetFullPathNameTransacted")==0)	// not impl yet
+			||(strcmp(pmd->ml_name, "GetLongPathNameTransacted")==0)	// not impl yet
+			||(strcmp(pmd->ml_name, "GetFileInformationByHandleEx")==0)	// not impl yet
+			)
+            pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 
 	HMODULE hmodule;
 	FARPROC fp;
-
-	hmodule=LoadLibrary("AdvAPI32.dll");
+	hmodule=GetModuleHandle("AdvAPI32.dll");
+	if (hmodule==NULL)
+		hmodule=LoadLibrary("AdvAPI32.dll");
 	if (hmodule){
 		fp=GetProcAddress(hmodule,"EncryptFileW");
 		if (fp) pfnEncryptFile=(BOOL (WINAPI *)(WCHAR *))(fp);
@@ -4161,7 +4702,9 @@ py_CloseEncryptedFileRaw(PyObject *self, PyObject *args)
 		pfnCloseEncryptedFileRaw=(CloseEncryptedFileRawfunc)GetProcAddress(hmodule, "CloseEncryptedFileRaw");
 		}
 
-	hmodule = GetModuleHandle("kernel32.dll");
+	hmodule=GetModuleHandle("kernel32.dll");
+	if (hmodule==NULL)
+		hmodule=LoadLibrary("kernel32.dll");
 	if (hmodule){
 		fp = GetProcAddress(hmodule, "GetVolumeNameForVolumeMountPointW");
 		if (fp) pfnGetVolumeNameForVolumeMountPointW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR, DWORD))(fp);
@@ -4175,17 +4718,35 @@ py_CloseEncryptedFileRaw(PyObject *self, PyObject *args)
 		fp = GetProcAddress(hmodule, "DeleteVolumeMountPointW");
 		if (fp) pfnDeleteVolumeMountPointW = (BOOL (WINAPI *)(LPCWSTR))(fp);
 
-		fp = GetProcAddress(hmodule, "CreateHardLinkW");
-		if (fp) pfnCreateHardLinkW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES))(fp);
-	
+		pfnCreateHardLink=(CreateHardLinkfunc)GetProcAddress(hmodule, "CreateHardLinkW");
+		pfnCreateHardLinkTransacted=(CreateHardLinkTransactedfunc)GetProcAddress(hmodule, "CreateHardLinkTransactedW");
+		pfnCreateSymbolicLink=(CreateSymbolicLinkfunc)GetProcAddress(hmodule, "CreateSymbolicLinkW");
+		pfnCreateSymbolicLinkTransacted=(CreateSymbolicLinkTransactedfunc)GetProcAddress(hmodule, "CreateSymbolicLinkTransactedW");
 		pfnBackupRead=(BackupReadfunc)GetProcAddress(hmodule,"BackupRead");
 		pfnBackupSeek=(BackupSeekfunc)GetProcAddress(hmodule,"BackupSeek");
 		pfnBackupWrite=(BackupWritefunc)GetProcAddress(hmodule,"BackupWrite");
 		pfnSetFileShortName=(SetFileShortNamefunc)GetProcAddress(hmodule,"SetFileShortNameW");
 		pfnCopyFileEx=(CopyFileExfunc)GetProcAddress(hmodule,"CopyFileExW");
+		pfnCopyFileTransacted=(CopyFileTransactedfunc)GetProcAddress(hmodule, "CopyFileTransactedW");
 		pfnMoveFileWithProgress=(MoveFileWithProgressfunc)GetProcAddress(hmodule,"MoveFileWithProgressW");
+		pfnMoveFileTransacted=(MoveFileTransactedfunc)GetProcAddress(hmodule, "MoveFileTransactedW");
 		pfnReplaceFile=(ReplaceFilefunc)GetProcAddress(hmodule,"ReplaceFileW");
+		pfnCreateFileTransacted=(CreateFileTransactedfunc)GetProcAddress(hmodule, "CreateFileTransactedW");
+		pfnDeleteFileTransacted=(DeleteFileTransactedfunc)GetProcAddress(hmodule, "DeleteFileTransactedW");
+		pfnGetFileAttributesTransacted=(GetFileAttributesTransactedfunc)GetProcAddress(hmodule, "GetFileAttributesTransactedW");
+		pfnSetFileAttributesTransacted=(SetFileAttributesTransactedfunc)GetProcAddress(hmodule, "SetFileAttributesTransactedW");
+		pfnCreateDirectoryTransacted=(CreateDirectoryTransactedfunc)GetProcAddress(hmodule, "CreateDirectoryTransactedW");
+		pfnRemoveDirectoryTransacted=(RemoveDirectoryTransactedfunc)GetProcAddress(hmodule, "RemoveDirectoryTransactedW");
+		// these aren't wrapped yet
+		pfnFindFirstStream=(FindFirstStreamfunc)GetProcAddress(hmodule, "FindFirstStreamW");
+		pfnFindNextStream=(FindNextStreamfunc)GetProcAddress(hmodule, "FindNextStreamW");
+		pfnFindFirstStreamTransacted=(FindFirstStreamTransactedfunc)GetProcAddress(hmodule, "FindFirstStreamTransactedW");
+		pfnFindFirstFileTransacted=(FindFirstFileTransactedfunc)GetProcAddress(hmodule, "FindFirstFileTransactedW");
+		pfnGetFullPathNameTransacted=(GetFullPathNameTransactedfunc)GetProcAddress(hmodule, "GetFullPathNameTransactedW");
+		pfnGetLongPathNameTransacted=(GetLongPathNameTransactedfunc)GetProcAddress(hmodule, "GetLongPathNameTransactedW");
+		// pfnGetFileInformationByHandleEx=(GetFileInformationByHandleExfunc)GetProcAddress(hmodule, "GetFileInformationByHandleEx");
 		}
+
 %}
 
 #define EV_BREAK EV_BREAK // A break was detected on input. 
@@ -4274,3 +4835,6 @@ py_CloseEncryptedFileRaw(PyObject *self, PyObject *args)
 #define CREATE_FOR_IMPORT CREATE_FOR_IMPORT
 #define CREATE_FOR_DIR CREATE_FOR_DIR
 #define OVERWRITE_HIDDEN OVERWRITE_HIDDEN
+
+// Info level for GetFileAttributesEx and GetFileAttributesTransacted (GET_FILEEX_INFO_LEVELS enum)
+#define GetFileExInfoStandard 1
