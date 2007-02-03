@@ -1045,6 +1045,8 @@ for info in (
         ("win32console", "kernel32", True, 0x0501, "win32/src/win32consolemodule.cpp"),
         ("win32ts", "WtsApi32", True, 0x0501, "win32/src/win32tsmodule.cpp"),
         ("_win32sysloader", "", False, 0x0501, "win32/src/_win32sysloader.cpp"),
+        ("win32transaction", "kernel32", True, 0x0501, "win32/src/win32transactionmodule.cpp"),
+
     ):
 
     name, lib_names, is_unicode = info[:3]
