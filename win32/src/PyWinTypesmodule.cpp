@@ -646,7 +646,7 @@ void initpywintypes(void)
   PyDict_SetItemString(dict, "ACLType", (PyObject *)&PyACLType);
 #endif
   PyDict_SetItemString(dict, "HANDLEType", (PyObject *)&PyHANDLEType);
-  PyDict_SetItemString(dict, "OVERLAPPEDType", (PyObject *)&PyHANDLEType);
+  PyDict_SetItemString(dict, "OVERLAPPEDType", (PyObject *)&PyOVERLAPPEDType);
   PyDict_SetItemString(dict, "DEVMODEType", (PyObject *)&PyDEVMODEType);
   PyDict_SetItemString(dict, "WAVEFORMATEXType", (PyObject *)&PyWAVEFORMATEXType);
 
