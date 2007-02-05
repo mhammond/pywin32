@@ -59,6 +59,14 @@ static RegRestoreKeyfunc pfnRegRestoreKey=NULL;
 typedef LONG (WINAPI *RegSaveKeyExfunc)(HKEY,LPCWSTR,LPSECURITY_ATTRIBUTES,DWORD);
 static RegSaveKeyExfunc pfnRegSaveKeyEx=NULL;
 
+typedef LONG (WINAPI *RegCreateKeyTransactedfunc)(HKEY,LPWSTR,DWORD,LPWSTR,DWORD,
+	REGSAM,LPSECURITY_ATTRIBUTES,PHKEY,LPDWORD,HANDLE,PVOID);
+static RegCreateKeyTransactedfunc pfnRegCreateKeyTransacted=NULL;
+typedef LONG (WINAPI *RegDeleteKeyTransactedfunc)(HKEY,LPWSTR,REGSAM,DWORD,HANDLE,PVOID);
+static RegDeleteKeyTransactedfunc pfnRegDeleteKeyTransacted = NULL;
+typedef LONG (WINAPI *RegOpenKeyTransactedfunc)(HKEY,LPWSTR,DWORD,REGSAM,PHKEY,HANDLE,PVOID);
+static RegOpenKeyTransactedfunc pfnRegOpenKeyTransacted = NULL;
+
 
 /* error helper */
 PyObject *ReturnError(char *msg, char *fnName = NULL)
@@ -429,7 +437,7 @@ PyFindExecutable( PyObject *self, PyObject *args )
 	rc=::FindExecutable(file, dir, res);
 	PyW32_END_ALLOW_THREADS
 	if (rc<=(HINSTANCE)32) {
-		if ((int)rc==31) 
+		if (rc==(HINSTANCE)31) 
 			return ReturnError("There is no association for the file");
 		return ReturnAPIError("FindExecutable", (int)rc );
 	}
@@ -1333,18 +1341,19 @@ PyVkKeyScan(PyObject * self, PyObject * args)
 static PyObject *
 PyVkKeyScanEx(PyObject * self, PyObject * args)
 {
-	char *key;
-	int len;
-	long kl;
-	// @pyparm chr|char||Specifies a character
-	if (!PyArg_ParseTuple(args, "s#l:VkKeyScanEx", &key, &len, &kl))
+	char key;
+	HKL hkl;
+	PyObject *obhkl;	
+	if (!PyArg_ParseTuple(args, "cO:VkKeyScanEx", 
+		&key,	// @pyparm chr|char||Specifies a character
+		&obhkl))	// @pyparm <o PyHANDLE>|hkl||Handle to a keyboard layout at returned by <om win32api.LoadKeyboardLayout>
 		return (NULL);
-	if (len != 1)
-		return PyErr_Format(PyExc_ValueError, "arg must be a string of length 1");
+	if (!PyWinObject_AsHANDLE(obhkl, (HANDLE *)&hkl, FALSE))
+		return NULL;
 	int ret;
 	PyW32_BEGIN_ALLOW_THREADS
 	// @pyseeapi VkKeyScanEx
-	ret = VkKeyScanEx(key[0], (HKL)kl);
+	ret = VkKeyScanEx(key, hkl);
 	PyW32_END_ALLOW_THREADS
 	return PyInt_FromLong(ret);
 }
@@ -2546,6 +2555,54 @@ static PyObject *PyRegCreateKeyEx(PyObject *self, PyObject *args, PyObject *kwar
 	return ret;
 }
 
+// @pymethod <o PyHKEY>, int|win32api|RegCreateKeyTransacted|Creates a registry key as part of a transaction
+// @rdesc Returns a transacted handle and disposition flag (winnt.REG_CREATED_NEW_KEY or winnt.REG_OPENED_EXISTING_KEY)
+// @pyseeapi RegCreateKeyTransacted
+// @comm Accepts keyword args.
+// @comm Requires Vista or later.
+static PyObject *PyRegCreateKeyTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(RegCreateKeyTransacted);
+	HKEY hKey;
+	PyObject *obKey, *obsubKey, *obtrans, *obclass=Py_None, *obsa=Py_None, *ret=NULL;
+	WCHAR *subKey=NULL, *class_name=NULL;
+	PSECURITY_ATTRIBUTES psa;
+	REGSAM access;
+	DWORD disp, options=REG_OPTION_NON_VOLATILE, reserved=0;
+	PVOID extparam=NULL;	// Documented as Reserved
+	HKEY retKey;
+	HANDLE htrans;
+	long rc;
+	static char *keywords[]={"Key","SubKey","samDesired","Transaction","Class","Options","SecurityAttributes", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOkO|OkO:RegCreateKeyTransacted", keywords, 
+		&obKey,		// @pyparm <o PyHKEY>/int|Key||Registry key or one of win32con.HKEY_* values
+		&obsubKey,	// @pyparm <o PyUnicode>|SubKey||Name of subkey to open or create.
+		&access,	// @pyparm int|samDesired||Access allowed to handle, combination of win32con.KEY_* constants.  Can also contain
+					//	standard access rights such as DELETE, WRITE_OWNER, etc.
+		&obtrans,	// @pyparm <o PyHANDLE>|Transaction||Handle to a transaction as returned by <om win32transaction.CreateTransaction>
+		&obclass,	// @pyparm <o PyUnicode>|Class|None|Name of registry key class
+		&options,	// @pyparm int|Options|REG_OPTION_NON_VOLATILE|One of the winnt.REG_OPTION_* values
+		&obsa))		// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Specifies security for key and handle inheritance
+		return NULL;
+	if (PyWinObject_AsHKEY(obKey, &hKey)
+		&&PyWinObject_AsWCHAR(obsubKey, &subKey, FALSE)
+		&&PyWinObject_AsHANDLE(obtrans, &htrans, FALSE)
+		&&PyWinObject_AsWCHAR(obclass, &class_name, TRUE)
+		&&PyWinObject_AsSECURITY_ATTRIBUTES(obsa, &psa, TRUE)){
+		rc=(*pfnRegCreateKeyTransacted)(hKey, subKey, reserved, class_name, options,
+			access, psa, &retKey, &disp, htrans, extparam);
+		if (rc!=ERROR_SUCCESS)
+			PyWin_SetAPIError("RegCreateKeyTransacted", rc);
+		else
+			ret=Py_BuildValue("Nk", PyWinObject_FromHKEY(retKey), disp);
+		}
+
+	PyWinObject_FreeWCHAR(subKey);
+	PyWinObject_FreeWCHAR(class_name);
+	return ret;
+}
+
 // @pymethod |win32api|RegDeleteKey|Deletes the specified key.  This method can not delete keys with subkeys.
 static PyObject *
 PyRegDeleteKey( PyObject *self, PyObject *args )
@@ -2571,6 +2628,45 @@ PyRegDeleteKey( PyObject *self, PyObject *args )
 	// @comm If the method succeeds, the entire key, including all of its values, is removed.
 	// If the method fails, and exception is raised.
 }
+
+// @pymethod |win32api|RegDeleteKeyTransacted|Deletes a registry key as part of a transaction
+// @comm Accepts keyword args.
+// @comm Requires Vista or later.
+// @comm Key to be deleted cannot contain subkeys
+static PyObject *PyRegDeleteKeyTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(RegDeleteKeyTransacted);
+	HKEY hKey;
+	PyObject *obKey, *obsubKey, *obtrans, *ret=NULL;
+	PVOID extparam=NULL;	// Reserved, ignore for now
+	WCHAR *subKey=NULL, *class_name=NULL;
+	REGSAM access=0;
+	DWORD reserved=0;
+	HANDLE htrans;
+	long rc;
+	static char *keywords[]={"Key","SubKey","Transaction","samDesired", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO|k:RegDeleteKeyTransacted", keywords,
+		&obKey,		// @pyparm <o PyHKEY>/int|Key||Registry key or one of win32con.HKEY_* values
+		&obsubKey,	// @pyparm <o PyUnicode>|SubKey||Name of subkey to be deleted.
+		&obtrans,	// @pyparm <o PyHANDLE>|Transaction||Handle to a transaction as returned by <om win32transaction.CreateTransaction>
+		&access))	// @pyparm int|samDesired|0|Can be KEY_WOW64_32KEY or KEY_WOW64_64KEY to specify alternate registry view
+		return NULL;
+	if (PyWinObject_AsHKEY(obKey, &hKey)
+		&&PyWinObject_AsWCHAR(obsubKey, &subKey, FALSE)
+		&&PyWinObject_AsHANDLE(obtrans, &htrans, FALSE)){
+		rc=(*pfnRegDeleteKeyTransacted)(hKey, subKey, access, reserved, htrans, extparam);
+		if (rc!=ERROR_SUCCESS)
+			PyWin_SetAPIError("RegDeleteKeyTransacted", rc);
+		else{
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		}
+	PyWinObject_FreeWCHAR(subKey);
+	return ret;
+}
+
 // @pymethod |win32api|RegDeleteValue|Removes a named value from the specified registry key.
 static PyObject *
 PyRegDeleteValue( PyObject *self, PyObject *args )
@@ -3165,6 +3261,46 @@ PyRegOpenKey( PyObject *self, PyObject *args )
 
 	// @rdesc The return value is the handle of the opened key.
 	// If the function fails, an exception is raised.
+}
+
+// @pymethod <o PyHKEY>|win32api|RegOpenKeyTransacted|Opens a registry key as part of a transaction
+// @rdesc Returns a transacted registry handle.  Note that operations on subkeys are not automatically transacted.
+// @pyseeapi RegOpenKeyTransacted
+// @comm Accepts keyword arguments.
+// @comm Requires Vista or later.
+static PyObject *PyRegOpenKeyTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(RegOpenKeyTransacted);
+	HKEY hKey;
+	PyObject *obKey, *obsubKey, *obtrans, *ret=NULL;
+	WCHAR *subKey=NULL;
+	REGSAM access;
+	DWORD options=0;		// Reserved
+	PVOID extparam=NULL;	// Reserved, not accepted as arg for now
+	HKEY retKey;
+	HANDLE htrans;
+	long rc;
+	static char *keywords[]={"Key","SubKey","samDesired","Transaction","Options", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOkO|k:RegOpenKeyTransacted", keywords, 
+		&obKey,		// @pyparm <o PyHKEY>/int|Key||Registry key or one of win32con.HKEY_* values
+		&obsubKey,	// @pyparm <o PyUnicode>|SubKey||Name of subkey to open.  Can be None to reopen an existing key.
+		&access,	// @pyparm int|samDesired||Access allowed to handle, combination of win32con.KEY_* constants.  Can also contain
+					//	standard access rights such as DELETE, WRITE_OWNER, etc.
+		&obtrans,	// @pyparm <o PyHANDLE>|Transaction||Handle to a transaction as returned by <om win32transaction.CreateTransaction>
+		&options))	// @pyparm int|Options|0|Reserved, use only 0
+		return NULL;
+	if (PyWinObject_AsHKEY(obKey, &hKey)
+		&&PyWinObject_AsWCHAR(obsubKey, &subKey, TRUE)
+		&&PyWinObject_AsHANDLE(obtrans, &htrans, FALSE)){
+		rc=(*pfnRegOpenKeyTransacted)(hKey, subKey, options, access, &retKey, htrans, extparam);
+		if (rc!=ERROR_SUCCESS)
+			PyWin_SetAPIError("RegOpenKeyTransacted", rc);
+		else
+			ret=PyWinObject_FromHKEY(retKey);
+		}
+	PyWinObject_FreeWCHAR(subKey);
+	return ret;
 }
 
 // @pymethod (int, int, long)|win32api|RegQueryInfoKey|Returns the number of 
@@ -3786,7 +3922,7 @@ PyShellExecute( PyObject *self, PyObject *args )
 	if ((rc) <= (HINSTANCE)32) {
 		return ReturnAPIError("ShellExecute", (int)rc );
 	}
-	return Py_BuildValue("i", rc );
+	return PyLong_FromVoidPtr(rc);
 	// @rdesc The instance handle of the application that was run. (This handle could also be the handle of a dynamic data exchange [DDE] server application.)
 	// If there is an error, the method raises an exception.
 }
@@ -3837,7 +3973,7 @@ PyWinHelp( PyObject *self, PyObject *args )
 	char *hlpFile;
 	UINT cmd;
 	PyObject *dataOb = Py_None;
-	DWORD data;
+	ULONG_PTR data;
 	if (!PyArg_ParseTuple(args, "Osi|O:WinHelp",
 		      &obhwnd,   // @pyparm int|hwnd||The handle of the window requesting help.
 			  &hlpFile,// @pyparm string|hlpFile||The name of the help file.
@@ -3849,13 +3985,14 @@ PyWinHelp( PyObject *self, PyObject *args )
 	if (dataOb==Py_None)
 		data = 0;
 	else if (PyString_Check(dataOb))
-		data = (DWORD)PyString_AsString(dataOb);
-	else if (PyInt_Check(dataOb))
-		data = (DWORD)PyInt_AsLong(dataOb);
-	else {
-		PyErr_SetString(PyExc_TypeError, "4th argument must be a None, string or an integer.");
-		return NULL;
-	}
+		data = (ULONG_PTR)PyString_AsString(dataOb);
+	else{
+		data = (ULONG_PTR)PyLong_AsVoidPtr(dataOb);
+		if (data==NULL && PyErr_Occurred()){
+			PyErr_SetString(PyExc_TypeError, "4th argument must be a None, string or an integer.");
+			return NULL;
+			}
+		}
 		
 	PyW32_BEGIN_ALLOW_THREADS
 	BOOL ok = ::WinHelp(hwnd, hlpFile, cmd, data);
@@ -4603,11 +4740,13 @@ PyObject *PyEnumResourceNames(PyObject *, PyObject *args)
 		return NULL;
 	// @rdesc The result is a list of string or integers, one for each resource enumerated.
 	PyObject *result = PyList_New(0);
+	if (result==NULL)
+		return NULL;
 	EnumResourceNames(
 		hmodule,
 		restype,
 		reinterpret_cast<ENUMRESNAMEPROC>(EnumResProc),
-		reinterpret_cast<LONG>(result));
+		reinterpret_cast<LONG_PTR>(result));
 
 	return result;
 }
@@ -4640,7 +4779,7 @@ PyObject *PyEnumResourceTypes(PyObject *, PyObject *args)
 	ret=PyList_New(0);
 	if(!EnumResourceTypesW(hmodule, 
 			reinterpret_cast<ENUMRESTYPEPROCW>(EnumResourceTypesProc),
-			reinterpret_cast<LONG>(ret))){
+			reinterpret_cast<LONG_PTR>(ret))){
 		Py_DECREF(ret);
 		ret=NULL;
 		PyWin_SetAPIError("EnumResourceTypes",GetLastError());
@@ -4681,7 +4820,7 @@ PyObject *PyEnumResourceLanguages(PyObject *, PyObject *args)
 			typname,
 			resname,
 			reinterpret_cast<ENUMRESLANGPROCW>(EnumResourceLanguagesProc),
-			reinterpret_cast<LONG>(ret))){
+			reinterpret_cast<LONG_PTR>(ret))){
 		Py_DECREF(ret);
 		ret=NULL;
 		PyWin_SetAPIError("EnumResourceLanguages",GetLastError());
@@ -5163,7 +5302,7 @@ PyObject *PyGetKeyboardLayoutList(PyObject *self, PyObject *args)
 		ret=PyTuple_New(buflen);
 		if (ret!=NULL){
 			for (int tuple_ind=0;tuple_ind<buflen;tuple_ind++){
-				PyObject *tuple_item=PyLong_FromLong((long)buf[tuple_ind]);
+				PyObject *tuple_item=PyWinLong_FromHANDLE(buf[tuple_ind]);
 				if (tuple_item==NULL){
 					Py_DECREF(ret);
 					ret=NULL;
@@ -5191,7 +5330,7 @@ PyObject *PyLoadKeyboardLayout(PyObject *self, PyObject *args)
 	lcid=LoadKeyboardLayout(lcid_str, flags);
 	if (lcid==NULL)
 		return PyWin_SetAPIError("LoadKeyboardLayout");
-	return PyLong_FromLong((long)lcid);
+	return PyWinLong_FromHANDLE(lcid);
 }
 
 // @pymethod dict|win32api|GlobalMemoryStatus|Returns systemwide memory usage
@@ -5373,7 +5512,9 @@ static struct PyMethodDef win32api_functions[] = {
 	{"RegConnectRegistry",	PyRegConnectRegistry, 1}, // @pymeth RegConnectRegistry|Establishes a connection to a predefined registry handle on another computer.
 	{"RegCreateKey",        PyRegCreateKey, 1}, // @pymeth RegCreateKey|Creates the specified key, or opens the key if it already exists.
 	{"RegCreateKeyEx",      (PyCFunction)PyRegCreateKeyEx, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegCreateKeyEx|Extended version of RegCreateKey
+	{"RegCreateKeyTransacted",(PyCFunction)PyRegCreateKeyTransacted, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegCreateKeyTransacted|Creates a registry key as part of a transaction
 	{"RegDeleteKey",        PyRegDeleteKey, 1}, // @pymeth RegDeleteKey|Deletes the specified key.
+	{"RegDeleteKeyTransacted",(PyCFunction)PyRegDeleteKeyTransacted, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegDeleteKeyTransacted|Deletes a registry key as part of a transaction
 	{"RegDeleteValue",      PyRegDeleteValue, 1}, // @pymeth RegDeleteValue|Removes a named value from the specified registry key.
 	{"RegEnumKey",          PyRegEnumKey, 1}, // @pymeth RegEnumKey|Enumerates subkeys of the specified open registry key.
 	{"RegEnumKeyEx",        PyRegEnumKeyEx, 1}, // @pymeth RegEnumKeyEx|Enumerates subkeys of the specified open registry key.
@@ -5384,6 +5525,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"RegLoadKey",          PyRegLoadKey, 1}, // @pymeth RegLoadKey|Creates a subkey under HKEY_USER or HKEY_LOCAL_MACHINE and stores registration information from a specified file into that subkey.
 	{"RegOpenKey",          PyRegOpenKey, 1}, // @pymeth RegOpenKey|Alias for <om win32api.RegOpenKeyEx>
 	{"RegOpenKeyEx",        PyRegOpenKey, 1}, // @pymeth RegOpenKeyEx|Opens the specified key.
+	{"RegOpenKeyTransacted",(PyCFunction)PyRegOpenKeyTransacted, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegOpenKeyTransacted|Opens a registry key as part of a transaction.
 	{"RegQueryValue",       PyRegQueryValue, 1}, // @pymeth RegQueryValue|Retrieves the value associated with the unnamed value for a specified key in the registry.
 	{"RegQueryValueEx",		PyRegQueryValueEx, 1}, // @pymeth RegQueryValueEx|Retrieves the type and data for a specified value name associated with an open registry key. 
 	{"RegQueryInfoKey",		PyRegQueryInfoKey, 1}, // @pymeth RegQueryInfoKey|Returns information about the specified key.
@@ -5547,6 +5689,9 @@ initwin32api(void)
   if (hmodule!=NULL){
 	pfnRegRestoreKey=(RegRestoreKeyfunc)GetProcAddress(hmodule, "RegRestoreKeyW");
 	pfnRegSaveKeyEx=(RegSaveKeyExfunc)GetProcAddress(hmodule, "RegSaveKeyExW");
+	pfnRegCreateKeyTransacted=(RegCreateKeyTransactedfunc)GetProcAddress(hmodule, "RegCreateKeyTransactedW");
+	pfnRegOpenKeyTransacted=(RegOpenKeyTransactedfunc)GetProcAddress(hmodule, "RegOpenKeyTransactedW");
+	pfnRegDeleteKeyTransacted=(RegDeleteKeyTransactedfunc)GetProcAddress(hmodule, "RegDeleteKeyTransactedW");
   }
 
 }  
