@@ -260,6 +260,7 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
 		case VT_UI1:
 		case VT_UI2:
 		case VT_UI4:
+		case VT_UINT:
 			hr = VariantChangeType(&varValue, &varValue, 0, VT_UI4);
 			if ( FAILED(hr) )
 			{
@@ -270,7 +271,7 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
 			}
 			// The result may be too large for a simple "long".  If so,
 			// we must return a long.
-			if (V_UI4(&varValue) <= LONG_MAX)
+			if (V_UI4(&varValue) <= (unsigned)PyInt_GetMax())
 				result = PyInt_FromLong(V_UI4(&varValue));
 			else
 				result = PyLong_FromUnsignedLong(V_UI4(&varValue));
@@ -280,7 +281,6 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
 		case VT_I2:
 		case VT_I4:
 		case VT_INT:
-		case VT_UINT:
 			hr = VariantChangeType(&varValue, &varValue, 0, VT_I4);
 			if ( FAILED(hr) )
 			{

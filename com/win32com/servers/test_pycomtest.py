@@ -117,6 +117,9 @@ class PyCOMTest:
 		else:
 			return -1
 
+	def Test6(self, inval):
+		return inval
+
 	def TestOptionals(self, strArg='def', sval=0, lval=1, dval=3.1400001049041748):
 		raise COMException(hresult=winerror.E_NOTIMPL)
 

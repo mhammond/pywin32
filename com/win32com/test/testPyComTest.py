@@ -49,6 +49,14 @@ def TestApplyResult(fn, args, result):
     if rc != result:
         raise error, "%s failed - result not %r but %r" % (pref, result, rc)
 
+def TestConstant(constName, pyConst):
+    try: 
+        comConst = getattr(constants, constName)
+    except:
+        raise error, "Constant %s missing" % (constName,)
+    if comConst != pyConst:
+        raise error, "Constant value wrong for %s - got %d, wanted %d" % (constName, comConst, pyConst)
+
 # Simple handler class.  This demo only fires one event.
 class RandomEventHandler:
     def _Init(self):
@@ -232,6 +240,19 @@ def TestGenerated():
     TestApplyResult(o.Test3, (constants.Attr2,), constants.Attr2)
     TestApplyResult(o.Test4, (constants.Attr2,), constants.Attr2)
     TestApplyResult(o.Test5, (constants.Attr2,), constants.Attr2)
+
+    TestApplyResult(o.Test6, (constants.WideAttr1,), constants.WideAttr1)
+    TestApplyResult(o.Test6, (constants.WideAttr2,), constants.WideAttr2)
+    TestApplyResult(o.Test6, (constants.WideAttr3,), constants.WideAttr3)
+    TestApplyResult(o.Test6, (constants.WideAttr4,), constants.WideAttr4)
+    TestApplyResult(o.Test6, (constants.WideAttr5,), constants.WideAttr5)
+
+    TestConstant("ULongTest1", 0xFFFFFFFFL)
+    TestConstant("ULongTest2", 0x7FFFFFFFL)
+    TestConstant("LongTest1", -0x7FFFFFFFL)
+    TestConstant("LongTest2", 0x7FFFFFFFL)
+    TestConstant("UCharTest", 255)
+    TestConstant("CharTest", -1)
 
     now = pythoncom.MakeTime(time.gmtime(time.time()))
     later = pythoncom.MakeTime(time.gmtime(time.time()+1))

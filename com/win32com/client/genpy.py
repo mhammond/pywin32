@@ -205,7 +205,7 @@ class EnumerationItem(build.OleItem, WritableItem):
       vdesc = entry.desc
       if vdesc[4] == pythoncom.VAR_CONST:
         val = vdesc[1]
-        if type(val)==type(0):
+        if type(val) in (type(0), type(0L)):
           if val==0x80000000L: # special case
             use = "0x80000000L" # 'L' for future warning
           elif val > 0x80000000L or val < 0: # avoid a FutureWarning

@@ -58,6 +58,7 @@ END_COM_MAP()
 	STDMETHOD(Test3)(TestAttributes1, TestAttributes1 *);
 	STDMETHOD(Test4)(TestAttributes2, TestAttributes2 *);
 	STDMETHOD(Test5)(TestAttributes1 *);
+	STDMETHOD(Test6)(QsAttributeWide, QsAttributeWide *);
 	STDMETHOD(GetSetInterface)(IPyCOMTest *ininterface, IPyCOMTest **outinterface);
 	STDMETHOD(GetSetInterfaceArray)(SAFEARRAY *pin, SAFEARRAY **pout);
 

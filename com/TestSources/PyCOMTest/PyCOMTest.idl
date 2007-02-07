@@ -52,6 +52,25 @@ library PyCOMTestLib
 	      NumberOfAttribs
 	   } QsAttribute;
 
+	// v1_enum specifies a 32 bit enum value
+	typedef [public, v1_enum] enum tagQsAttributeWide {
+		WideAttr1 = 0,
+		WideAttr2 = -1,
+		WideAttr3 = 1,
+		WideAttr4 = -70000,
+		WideAttr5 = 70000
+	} QsAttributeWide;
+
+	// constant test values
+	module Constants {
+		const unsigned long ULongTest1 = 0xFFFFFFFFUL;
+		const unsigned long ULongTest2 = 0x7FFFFFFFUL;
+		const long LongTest1 = -0x7FFFFFFFL;
+		const long LongTest2 = 0x7FFFFFFFL;
+		const unsigned char UCharTest = 255;
+		const char CharTest = -1;
+	};
+
 	enum TestAttributes3{ // Note missing the enum name.
 		TestAttr3,
 		None, // Few keywords etc here
@@ -168,6 +187,7 @@ library PyCOMTestLib
 		HRESULT Test3([in] TestAttributes1 inval, [out, retval] TestAttributes1* retval);
 		HRESULT Test4([in] TestAttributes2 inval, [out, retval] TestAttributes2* retval);
 		HRESULT Test5([in, out] TestAttributes1 *inout);
+		HRESULT Test6([in] QsAttributeWide inval, [out, retval] QsAttributeWide* retval);
 
 		// Test IDispatch in and byref.
 		HRESULT GetSetInterface([in] IPyCOMTest *ininterface, [out, retval] IPyCOMTest **outinterface);
@@ -336,6 +356,6 @@ library PyCOMTestLib
 	{
 		[default] interface IArrayTest;
 	};
-	
+
 };
 

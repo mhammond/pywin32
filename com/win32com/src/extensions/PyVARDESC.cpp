@@ -143,9 +143,21 @@ PyVARDESC::PyVARDESC(const VARDESC *pVD)
 
 	if (pVD->varkind == VAR_PERINSTANCE)
 		value = PyInt_FromLong(pVD->oInst);
-	else if (pVD->varkind == VAR_CONST)
-		value  = PyCom_PyObjectFromVariant(pVD->lpvarValue);
-	else {
+	else if (pVD->varkind == VAR_CONST) {
+		VARIANT varValue;
+
+		// Cast the variant type here to the correct value for this constant
+		// so that the correct Python type will be created below.
+		//
+		// I am not sure why is there a difference between the variant data
+		// passed in from the type library and the exported type...
+		VariantInit(&varValue);
+		VariantChangeType(&varValue, pVD->lpvarValue, 0, pVD->elemdescVar.tdesc.vt);
+
+		value  = PyCom_PyObjectFromVariant(&varValue);
+
+		VariantClear(&varValue);
+	} else {
 		value = Py_None;
 		Py_INCREF(Py_None);
 	}

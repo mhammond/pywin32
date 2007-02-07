@@ -74,7 +74,8 @@ STDMETHODIMP CPyCOMTest::Start(long* pnID)
 	*pnID = 0;
 	HRESULT hRes = S_OK;
 	m_cs.Lock();
-	for (long i=0;i<nMaxSessions;i++)
+	long i=0;
+	for (;i<nMaxSessions;i++)
 	{
 		if (m_rsArray[i].m_hEvent == NULL)
 		{
@@ -152,6 +153,11 @@ STDMETHODIMP CPyCOMTest::Test4(TestAttributes2 in,TestAttributes2* out)
 
 STDMETHODIMP CPyCOMTest::Test5(TestAttributes1 *inout)
 {
+	return S_OK;
+}
+STDMETHODIMP CPyCOMTest::Test6(QsAttributeWide in, QsAttributeWide *out)
+{
+	*out = in;
 	return S_OK;
 }
 
@@ -471,6 +477,31 @@ HRESULT CPyCOMTest::TestMyInterface( IUnknown *unktester)
 	attr = Attr3;
 	CHECK_HR(tester->Test2( attr, &ret_attr));
 	CHECK_TRUE( attr == ret_attr );
+
+	// TEST6
+	QsAttributeWide ret_wideAttr;
+	QsAttributeWide wideAttr;
+
+	wideAttr = WideAttr1;
+	CHECK_HR(tester->Test6( wideAttr, &ret_wideAttr));
+	CHECK_TRUE( wideAttr == ret_wideAttr );
+
+	wideAttr = WideAttr2;
+	CHECK_HR(tester->Test6( wideAttr, &ret_wideAttr));
+	CHECK_TRUE( wideAttr == ret_wideAttr );
+
+	wideAttr = WideAttr3;
+	CHECK_HR(tester->Test6( wideAttr, &ret_wideAttr));
+	CHECK_TRUE( wideAttr == ret_wideAttr );
+
+	wideAttr = WideAttr4;
+	CHECK_HR(tester->Test6( wideAttr, &ret_wideAttr));
+	CHECK_TRUE( wideAttr == ret_wideAttr );
+
+	wideAttr = WideAttr5;
+	CHECK_HR(tester->Test6( wideAttr, &ret_wideAttr));
+	CHECK_TRUE( wideAttr == ret_wideAttr );
+
 
 	// TEST5
 	TestAttributes1 tattr = TestAttr1;
