@@ -4,7 +4,6 @@
 %module win32file // An interface to the win32 File API's
 
 %{
-
 //#define UNICODE
 #ifndef MS_WINCE
 //#define FAR
@@ -370,10 +369,6 @@ HANDLE FindFirstChangeNotification(
     DWORD dwNotifyFilter 	// @pyparm int|notifyFilter||filter conditions to watch for.  See <om win32api.FindFirstChangeNotification> for details.
 );
 
-//FindFirstFile	
-//FindFirstFileEx	
-// FindNextFile	
-
 // @pyswig int|FindNextChangeNotification|Requests that the operating system signal a change notification handle the next time it detects an appropriate change,
 BOOLAPI FindNextChangeNotification(
     HANDLE hChangeHandle 	//  @pyparm int|hChangeHandle||handle to change notification to signal  
@@ -381,63 +376,6 @@ BOOLAPI FindNextChangeNotification(
 
 #endif // MS_WINCE
 
-%{
-// @pyswig list|FindFilesW|Retrieves a list of matching filenames, using the Windows Unicode API.  An interface to the API FindFirstFileW/FindNextFileW/Find close functions.
-static PyObject *
-PyFindFilesW(PyObject *self, PyObject *args)
-{
-	WCHAR *fileSpec;
-	// @pyparm string|fileSpec||A string that specifies a valid directory or path and filename, which can contain wildcard characters (* and ?).
-	PyObject *obfileSpec=NULL;
-	if (!PyArg_ParseTuple (args, "O:FindFilesW", &obfileSpec))
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obfileSpec,&fileSpec,FALSE))
-		return NULL;
-	WIN32_FIND_DATAW findData;
-	// @pyseeapi FindFirstFile
-	HANDLE hFind;
-
-	memset(&findData, 0, sizeof(findData));
-	hFind =  ::FindFirstFileW(fileSpec, &findData);
-	PyWinObject_FreeWCHAR(fileSpec);
-	if (hFind==INVALID_HANDLE_VALUE) {
-		if (::GetLastError()==ERROR_FILE_NOT_FOUND) {	// this is OK
-			return PyList_New(0);
-		}
-		return PyWin_SetAPIError("FindFirstFileW");
-	}
-	PyObject *retList = PyList_New(0);
-	if (!retList) {
-		::FindClose(hFind);
-		return NULL;
-	}
-	// @rdesc The return value is a list of <o WIN32_FIND_DATA> tuples.
-	BOOL ok = TRUE;
-	while (ok) {
-		PyObject *newItem = PyObject_FromWIN32_FIND_DATAW(&findData);
-		if (!newItem) {
-			::FindClose(hFind);
-			Py_DECREF(retList);
-			return NULL;
-		}
-		PyList_Append(retList, newItem);
-		Py_DECREF(newItem);
-		// @pyseeapi FindNextFile
-		memset(&findData, 0, sizeof(findData));
-		ok=::FindNextFileW(hFind, &findData);
-	}
-	ok = (GetLastError()==ERROR_NO_MORE_FILES);
-	// @pyseeapi FindClose
-	::FindClose(hFind);
-	if (!ok) {
-		Py_DECREF(retList);
-		return PyWin_SetAPIError("FindNextFileW");
-	}
-	return retList;
-}
-%}
-
-%native(FindFilesW) PyFindFilesW;
 
 %{
 
@@ -525,52 +463,7 @@ PyTypeObject FindFileIterator_Type = {
 	0,					/* tp_descr_set */
 #endif // PY_VERSION
 };
-
-// @pyswig iterator|FindFilesIterator|Returns an interator based on
-// FindFirstFile/FindNextFile. Similar to <om win32file.FindFiles>, but
-// avoids the creation of the list for huge directories
-static PyObject *
-PyFindFilesIterator(PyObject *self, PyObject *args)
-{
-	WCHAR *fileSpec;
-	PyObject *obfileSpec=NULL;
-	// @pyparm unicode|filespec||
-	if (!PyArg_ParseTuple (args, "O:FindFilesIterator", &obfileSpec))
-		return NULL;
-
-	if (!PyWinObject_AsWCHAR(obfileSpec,&fileSpec,FALSE))
-		return NULL;
-
-	FindFileIterator *it = PyObject_New(FindFileIterator, &FindFileIterator_Type);
-	if (it == NULL) {
-		PyWinObject_FreeWCHAR(fileSpec);
-		return NULL;
-	}
-	it->seen_first = FALSE;
-	it->empty = FALSE;
-	it->hFind = INVALID_HANDLE_VALUE;
-	memset(&it->buffer, 0, sizeof(it->buffer));
-
-	Py_BEGIN_ALLOW_THREADS
-	it->hFind =  ::FindFirstFileW(fileSpec, &it->buffer);
-	Py_END_ALLOW_THREADS
-	PyWinObject_FreeWCHAR(fileSpec);
-
-	if (it->hFind==INVALID_HANDLE_VALUE) {
-		if (::GetLastError()!=ERROR_FILE_NOT_FOUND) {	// this is OK
-			Py_DECREF(it);
-			return PyWin_SetAPIError("FindFirstFileW");
-		}
-		it->empty = TRUE;
-	}
-	return (PyObject *)it;
-	// @rdesc The result is a Python iterator, with each next() method
-	// returning a <o WIN32_FIND_DATA> tuple.
-}
 %}
-
-%native(FindFilesIterator) PyFindFilesIterator;
-
 
 // @pyswig |FlushFileBuffers|Clears the buffers for the specified file and causes all buffered data to be written to the file. 
 BOOLAPI FlushFileBuffers(
@@ -2824,6 +2717,8 @@ typedef BOOL (WINAPI *CreateDirectoryTransactedfunc)(LPWSTR,LPWSTR,LPSECURITY_AT
 static CreateDirectoryTransactedfunc pfnCreateDirectoryTransacted=NULL;
 typedef BOOL (WINAPI *RemoveDirectoryTransactedfunc)(LPWSTR,HANDLE);
 static RemoveDirectoryTransactedfunc pfnRemoveDirectoryTransacted=NULL;
+typedef HANDLE (WINAPI *FindFirstFileTransactedfunc)(LPWSTR,FINDEX_INFO_LEVELS,LPVOID,FINDEX_SEARCH_OPS,LPVOID,DWORD,HANDLE);
+static FindFirstFileTransactedfunc pfnFindFirstFileTransacted=NULL;
 
 // These aren't used yet
 typedef HANDLE (WINAPI *FindFirstStreamfunc)(LPWSTR, STREAM_INFO_LEVELS, LPVOID, DWORD);
@@ -2832,8 +2727,6 @@ typedef BOOL (WINAPI *FindNextStreamfunc)(HANDLE, LPVOID);
 static FindNextStreamfunc pfnFindNextStream=NULL;
 typedef HANDLE (WINAPI *FindFirstStreamTransactedfunc)(LPWSTR, STREAM_INFO_LEVELS, LPVOID, DWORD, HANDLE);
 static FindFirstStreamTransactedfunc pfnFindFirstStreamTransacted=NULL;
-typedef HANDLE (WINAPI *FindFirstFileTransactedfunc)(LPWSTR,FINDEX_INFO_LEVELS,LPVOID,FINDEX_SEARCH_OPS,LPVOID,DWORD,HANDLE);
-static FindFirstFileTransactedfunc pfnFindFirstFileTransacted=NULL;
 typedef DWORD (WINAPI *GetFullPathNameTransactedfunc)(LPCTSTR,DWORD,LPTSTR,LPTSTR*,HANDLE);
 static GetFullPathNameTransactedfunc pfnGetFullPathNameTransacted = NULL;
 typedef DWORD (WINAPI *GetLongPathNameTransactedfunc)(LPCTSTR,LPTSTR,DWORD,HANDLE);
@@ -4593,8 +4486,133 @@ static PyObject *py_RemoveDirectoryTransacted(PyObject *self, PyObject *args, Py
 	return ret;
 }
 PyCFunction pfnpy_RemoveDirectoryTransacted=(PyCFunction)py_RemoveDirectoryTransacted;
-%}
 
+// @pyswig list|FindFilesW|Retrieves a list of matching filenames, using the Windows Unicode API.  An interface to the API FindFirstFileW/FindNextFileW/Find close functions.
+// @comm Accepts keyword args.
+// @comm FindFirstFileTransacted will be called if a transaction handle is passed in.
+static PyObject *py_FindFilesW(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	WCHAR *fileSpec;
+	HANDLE htrans;
+	PyObject *obfileSpec, *obtrans=Py_None; 	
+	static char *keywords[]={"FileName","Transaction", NULL};
+	
+	if (!PyArg_ParseTupleAndKeywords (args, kwargs, "O|O:FindFilesW", keywords,
+		&obfileSpec,	// @pyparm string|FileName||A string that specifies a valid directory or path and filename, which can contain wildcard characters (* and ?).
+		&obtrans))		// @pyparm <o PyHANDLE>|Transaction|None|Transaction handle as returned by <om win32transaction.CreateTransaction>.  Can be None.
+						//	If this parameter is not None, FindFirstFileTransacted will be called to perform a transacted search
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans, TRUE))
+		return NULL;
+	if (htrans!=NULL)
+		CHECK_PFN(FindFirstFileTransacted);
+	if (!PyWinObject_AsWCHAR(obfileSpec,&fileSpec,FALSE))
+		return NULL;
+	WIN32_FIND_DATAW findData;
+	// @pyseeapi FindFirstFile
+	// @pyseeapi FindFirstFileTransacted
+	HANDLE hFind;
+
+	memset(&findData, 0, sizeof(findData));
+	if (htrans!=NULL)
+		hFind=(*pfnFindFirstFileTransacted)(fileSpec, FindExInfoStandard, &findData,
+			FindExSearchNameMatch, NULL, 0, htrans);
+	else
+		hFind =  ::FindFirstFileW(fileSpec, &findData);
+	PyWinObject_FreeWCHAR(fileSpec);
+	if (hFind==INVALID_HANDLE_VALUE) {
+		if (::GetLastError()==ERROR_FILE_NOT_FOUND) {	// this is OK
+			return PyList_New(0);
+		}
+		return PyWin_SetAPIError("FindFirstFileW");
+	}
+	PyObject *retList = PyList_New(0);
+	if (!retList) {
+		::FindClose(hFind);
+		return NULL;
+	}
+	// @rdesc The return value is a list of <o WIN32_FIND_DATA> tuples.
+	BOOL ok = TRUE;
+	while (ok) {
+		PyObject *newItem = PyObject_FromWIN32_FIND_DATAW(&findData);
+		if (!newItem) {
+			::FindClose(hFind);
+			Py_DECREF(retList);
+			return NULL;
+		}
+		PyList_Append(retList, newItem);
+		Py_DECREF(newItem);
+		// @pyseeapi FindNextFile
+		memset(&findData, 0, sizeof(findData));
+		ok=::FindNextFileW(hFind, &findData);
+	}
+	ok = (GetLastError()==ERROR_NO_MORE_FILES);
+	// @pyseeapi FindClose
+	::FindClose(hFind);
+	if (!ok) {
+		Py_DECREF(retList);
+		return PyWin_SetAPIError("FindNextFileW");
+	}
+	return retList;
+}
+PyCFunction pfnpy_FindFilesW=(PyCFunction)py_FindFilesW;
+
+// @pyswig iterator|FindFilesIterator|Returns an interator based on
+// FindFirstFile/FindNextFile. Similar to <om win32file.FindFiles>, but
+// avoids the creation of the list for huge directories.
+// @comm Accepts keyword args.
+// @comm FindFirstFileTransacted will be called if a transaction handle is passed in.
+static PyObject *py_FindFilesIterator(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	WCHAR *fileSpec;
+	HANDLE htrans;
+	PyObject *obfileSpec, *obtrans=Py_None;
+	static char *keywords[]={"FileName","Transaction", NULL};
+	
+	if (!PyArg_ParseTupleAndKeywords (args, kwargs, "O|O:FindFilesIterator", keywords,
+		&obfileSpec,	// @pyparm string|FileName||A string that specifies a valid directory or path and filename, which can contain wildcard characters (* and ?).
+		&obtrans))		// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, can be None.
+						//	If this parameter is not None, FindFirstFileTransacted will be called to perform a transacted search
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans, TRUE))
+		return NULL;
+	if (htrans!=NULL)
+		CHECK_PFN(FindFirstFileTransacted);
+	if (!PyWinObject_AsWCHAR(obfileSpec,&fileSpec,FALSE))
+		return NULL;
+
+	FindFileIterator *it = PyObject_New(FindFileIterator, &FindFileIterator_Type);
+	if (it == NULL) {
+		PyWinObject_FreeWCHAR(fileSpec);
+		return NULL;
+	}
+	it->seen_first = FALSE;
+	it->empty = FALSE;
+	it->hFind = INVALID_HANDLE_VALUE;
+	memset(&it->buffer, 0, sizeof(it->buffer));
+
+	Py_BEGIN_ALLOW_THREADS
+	if (htrans!=NULL)
+		it->hFind=(*pfnFindFirstFileTransacted)(fileSpec, FindExInfoStandard, &it->buffer,
+			FindExSearchNameMatch, NULL, 0, htrans);
+	else
+		it->hFind =  ::FindFirstFileW(fileSpec, &it->buffer);
+	Py_END_ALLOW_THREADS
+	PyWinObject_FreeWCHAR(fileSpec);
+
+	if (it->hFind==INVALID_HANDLE_VALUE) {
+		if (::GetLastError()!=ERROR_FILE_NOT_FOUND) {	// this is OK
+			Py_DECREF(it);
+			return PyWin_SetAPIError("FindFirstFileW");
+		}
+		it->empty = TRUE;
+	}
+	return (PyObject *)it;
+	// @rdesc The result is a Python iterator, with each next() method
+	// returning a <o WIN32_FIND_DATA> tuple.
+}
+PyCFunction pfnpy_FindFilesIterator=(PyCFunction)py_FindFilesIterator;
+%}
 
 %native (SetVolumeMountPoint) py_SetVolumeMountPoint;
 %native (DeleteVolumeMountPoint) py_DeleteVolumeMountPoint;
@@ -4633,7 +4651,8 @@ PyCFunction pfnpy_RemoveDirectoryTransacted=(PyCFunction)py_RemoveDirectoryTrans
 %native (SetFileAttributesTransacted) pfnpy_SetFileAttributesTransacted;
 %native (CreateDirectoryTransacted) pfnpy_CreateDirectoryTransacted;
 %native (RemoveDirectoryTransacted) pfnpy_RemoveDirectoryTransacted;
-
+%native (FindFilesW) pfnpy_FindFilesW;
+%native (FindFilesIterator) pfnpy_FindFilesIterator;
 
 %init %{
 	PyDict_SetItemString(d, "error", PyWinExc_ApiError);
@@ -4654,7 +4673,8 @@ PyCFunction pfnpy_RemoveDirectoryTransacted=(PyCFunction)py_RemoveDirectoryTrans
 			||(strcmp(pmd->ml_name, "CreateSymbolicLinkTransacted")==0)
 			||(strcmp(pmd->ml_name, "CreateDirectoryTransacted")==0)
 			||(strcmp(pmd->ml_name, "RemoveDirectoryTransacted")==0)
-			||(strcmp(pmd->ml_name, "FindFirstFileTransacted")==0)		// not impl yet
+			||(strcmp(pmd->ml_name, "FindFilesW")==0)
+			||(strcmp(pmd->ml_name, "FindFilesIterator")==0)
 			||(strcmp(pmd->ml_name, "FindFirstStream")==0)				// not impl yet
 			||(strcmp(pmd->ml_name, "FindFirstStreamTransacted")==0)	// not impl yet
 			||(strcmp(pmd->ml_name, "GetFullPathNameTransacted")==0)	// not impl yet
