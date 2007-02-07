@@ -251,7 +251,9 @@ BOOL PyCom_InterfaceFromPyObject(PyObject *ob, REFIID iid, LPVOID *ppv, BOOL bNo
 
 	if ( !PyIBase::is_object(ob, &PyIUnknown::type) )
 	{
-		PyErr_SetString(PyExc_ValueError, "argument is not a COM object");
+		PyErr_Format(PyExc_ValueError,
+                             "argument is not a COM object (got type=%s)",
+                             ob->ob_type->tp_name);
 		return FALSE;
 	}
 	IUnknown *punk = PyIUnknown::GetI(ob);
