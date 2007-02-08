@@ -2720,13 +2720,14 @@ static RemoveDirectoryTransactedfunc pfnRemoveDirectoryTransacted=NULL;
 typedef HANDLE (WINAPI *FindFirstFileTransactedfunc)(LPWSTR,FINDEX_INFO_LEVELS,LPVOID,FINDEX_SEARCH_OPS,LPVOID,DWORD,HANDLE);
 static FindFirstFileTransactedfunc pfnFindFirstFileTransacted=NULL;
 
-// These aren't used yet
 typedef HANDLE (WINAPI *FindFirstStreamfunc)(LPWSTR, STREAM_INFO_LEVELS, LPVOID, DWORD);
 static FindFirstStreamfunc pfnFindFirstStream=NULL;
 typedef BOOL (WINAPI *FindNextStreamfunc)(HANDLE, LPVOID);
 static FindNextStreamfunc pfnFindNextStream=NULL;
 typedef HANDLE (WINAPI *FindFirstStreamTransactedfunc)(LPWSTR, STREAM_INFO_LEVELS, LPVOID, DWORD, HANDLE);
 static FindFirstStreamTransactedfunc pfnFindFirstStreamTransacted=NULL;
+
+// These aren't used yet
 typedef DWORD (WINAPI *GetFullPathNameTransactedfunc)(LPCTSTR,DWORD,LPTSTR,LPTSTR*,HANDLE);
 static GetFullPathNameTransactedfunc pfnGetFullPathNameTransacted = NULL;
 typedef DWORD (WINAPI *GetLongPathNameTransactedfunc)(LPCTSTR,LPTSTR,DWORD,HANDLE);
@@ -4612,6 +4613,69 @@ static PyObject *py_FindFilesIterator(PyObject *self, PyObject *args, PyObject *
 	// returning a <o WIN32_FIND_DATA> tuple.
 }
 PyCFunction pfnpy_FindFilesIterator=(PyCFunction)py_FindFilesIterator;
+
+// @pyswig [(long, <o PyUnicode>),...]|FindStreams|List the data streams for a file
+// @rdesc Returns a list of tuples containing each stream's size and name
+// @comm This uses the API functions FindFirstStreamW, FindNextStreamW and FindClose
+// @comm Available on Windows Server 2003 and Vista
+// @comm If the Transaction arg is not None, FindFirstStreamTransacted will be called in place of FindFirstStreamW
+static PyObject *py_FindStreams(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(FindFirstStream);
+	CHECK_PFN(FindNextStream);
+	
+	PyObject *obfname, *obtrans=Py_None, *ret=NULL, *ret_item;
+	WCHAR *fname=NULL;
+	HANDLE hfind, htrans;
+	STREAM_INFO_LEVELS lvl =  FindStreamInfoStandard;  // only level that currently exists
+	WIN32_FIND_STREAM_DATA fsd;
+	DWORD err=0, flags=0, ret_cnt=0;   // flags are reserved, don't even accept as input
+	static char *keywords[]={"FileName","Transaction", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O:FindStreams", keywords,
+		&obfname,	// @pyparm <o PyUnicode>|FileName||Name of file (or directory) to operate on
+		&obtrans))	// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, can be None
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans, TRUE))
+		return NULL;
+	if (htrans!=NULL)
+		CHECK_PFN(FindFirstStreamTransacted);
+	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
+		return NULL;
+
+	if (htrans!=NULL)
+		hfind=(*pfnFindFirstStreamTransacted)(fname, lvl, &fsd, flags, htrans);
+	else
+		hfind=(*pfnFindFirstStream)(fname, lvl, &fsd, flags);
+	PyWinObject_FreeWCHAR(fname);
+	if (hfind==INVALID_HANDLE_VALUE)
+		return PyWin_SetAPIError("FindFirstStreamW");
+	ret=PyList_New(0);
+	if (ret!=NULL){
+		while (1){
+			ret_item=Py_BuildValue("Lu", fsd.StreamSize, fsd.cStreamName);
+			if ((ret_item==NULL) || (PyList_Append(ret, ret_item)==-1)){
+				Py_XDECREF(ret_item);
+				Py_DECREF(ret);
+				ret=NULL;
+				break;
+				}
+			Py_DECREF(ret_item);
+			if (!(*pfnFindNextStream)(hfind, &fsd)){
+				err=GetLastError();
+				if (err!=ERROR_HANDLE_EOF){
+					Py_DECREF(ret);
+					ret=NULL;
+					PyWin_SetAPIError("FindNextStream",err);
+					}
+				break;
+				}
+			}
+		}
+	FindClose(hfind);
+	return ret;
+}
+PyCFunction pfnpy_FindStreams=(PyCFunction)py_FindStreams;
 %}
 
 %native (SetVolumeMountPoint) py_SetVolumeMountPoint;
@@ -4653,6 +4717,8 @@ PyCFunction pfnpy_FindFilesIterator=(PyCFunction)py_FindFilesIterator;
 %native (RemoveDirectoryTransacted) pfnpy_RemoveDirectoryTransacted;
 %native (FindFilesW) pfnpy_FindFilesW;
 %native (FindFilesIterator) pfnpy_FindFilesIterator;
+%native (FindStreams) pfnpy_FindStreams;
+
 
 %init %{
 	PyDict_SetItemString(d, "error", PyWinExc_ApiError);
@@ -4675,8 +4741,7 @@ PyCFunction pfnpy_FindFilesIterator=(PyCFunction)py_FindFilesIterator;
 			||(strcmp(pmd->ml_name, "RemoveDirectoryTransacted")==0)
 			||(strcmp(pmd->ml_name, "FindFilesW")==0)
 			||(strcmp(pmd->ml_name, "FindFilesIterator")==0)
-			||(strcmp(pmd->ml_name, "FindFirstStream")==0)				// not impl yet
-			||(strcmp(pmd->ml_name, "FindFirstStreamTransacted")==0)	// not impl yet
+			||(strcmp(pmd->ml_name, "FindStreams")==0)
 			||(strcmp(pmd->ml_name, "GetFullPathNameTransacted")==0)	// not impl yet
 			||(strcmp(pmd->ml_name, "GetLongPathNameTransacted")==0)	// not impl yet
 			||(strcmp(pmd->ml_name, "GetFileInformationByHandleEx")==0)	// not impl yet
@@ -4757,11 +4822,11 @@ PyCFunction pfnpy_FindFilesIterator=(PyCFunction)py_FindFilesIterator;
 		pfnSetFileAttributesTransacted=(SetFileAttributesTransactedfunc)GetProcAddress(hmodule, "SetFileAttributesTransactedW");
 		pfnCreateDirectoryTransacted=(CreateDirectoryTransactedfunc)GetProcAddress(hmodule, "CreateDirectoryTransactedW");
 		pfnRemoveDirectoryTransacted=(RemoveDirectoryTransactedfunc)GetProcAddress(hmodule, "RemoveDirectoryTransactedW");
-		// these aren't wrapped yet
 		pfnFindFirstStream=(FindFirstStreamfunc)GetProcAddress(hmodule, "FindFirstStreamW");
 		pfnFindNextStream=(FindNextStreamfunc)GetProcAddress(hmodule, "FindNextStreamW");
 		pfnFindFirstStreamTransacted=(FindFirstStreamTransactedfunc)GetProcAddress(hmodule, "FindFirstStreamTransactedW");
 		pfnFindFirstFileTransacted=(FindFirstFileTransactedfunc)GetProcAddress(hmodule, "FindFirstFileTransactedW");
+		// these aren't wrapped yet
 		pfnGetFullPathNameTransacted=(GetFullPathNameTransactedfunc)GetProcAddress(hmodule, "GetFullPathNameTransactedW");
 		pfnGetLongPathNameTransacted=(GetLongPathNameTransactedfunc)GetProcAddress(hmodule, "GetLongPathNameTransactedW");
 		// pfnGetFileInformationByHandleEx=(GetFileInformationByHandleExfunc)GetProcAddress(hmodule, "GetFileInformationByHandleEx");
