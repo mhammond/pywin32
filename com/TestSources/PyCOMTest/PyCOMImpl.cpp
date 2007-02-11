@@ -681,6 +681,23 @@ HRESULT CPyCOMTest::get_CurrencyProp(CY *ret)
 	return S_OK;
 }
 
+HRESULT CPyCOMTest::get_ParamProp(int which, int *ret)
+{
+	if (!ret)
+		return E_POINTER;
+	*ret = which==0 ? m_paramprop1 : m_paramprop2;
+	return S_OK;
+}
+
+HRESULT CPyCOMTest::put_ParamProp(int which, int val)
+{
+	if (which==0)
+		m_paramprop1 = val;
+	else
+		m_paramprop2 = val;
+	return S_OK;
+}
+
 HRESULT CPyCOMTest::None()
 {
 	return S_OK;

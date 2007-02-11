@@ -101,6 +101,8 @@ END_COM_MAP()
 	STDMETHOD(put_IntProp)(int val);
 	STDMETHOD(get_CurrencyProp)(CY *ret);
 	STDMETHOD(put_CurrencyProp)(CY val);
+	STDMETHOD(get_ParamProp)(int which, int *ret2);
+	STDMETHOD(put_ParamProp)(int which, int val);
 
 	STDMETHOD(None)();
 	STDMETHOD(def)();
@@ -123,6 +125,7 @@ protected:
 	long m_long;
 	unsigned long m_ulong;
 	CY m_cy;
+	int m_paramprop1, m_paramprop2;
 };
 
 class CPyCOMTest2 : public CPyCOMTest

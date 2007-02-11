@@ -247,6 +247,9 @@ library PyCOMTestLib
 		[propput] HRESULT IntProp([in] int val);
 		[propget] HRESULT CurrencyProp([out, retval] CY* retval);
 		[propput] HRESULT CurrencyProp([in] CY val);
+		[propget] HRESULT ParamProp([in] int which, [out, retval] int *retval);
+		[propput] HRESULT ParamProp([in] int which, [in]int val);
+		// reserved words etc
 		HRESULT None();
 		HRESULT def();
 	};
@@ -275,7 +278,6 @@ library PyCOMTestLib
 		import "oaidl.idl";
 		// Test enum in and byref params.
 		HRESULT TestDerived([in] QsAttribute inval, [out, retval] QsAttribute* retval);
-
 	};
 	// The event interface.
 	//

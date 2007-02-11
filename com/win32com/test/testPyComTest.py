@@ -137,6 +137,11 @@ def TestDynamic():
     if o.CurrencyProp != decimal.Decimal("1234.5678"):
         raise error, "got %r" % (o.CurrencyProp,)
 
+    # damn - props with params don't work for dynamic objects :(
+    # o.SetParamProp(0, 1)
+    # if o.ParamProp(0) != 1:
+    #    raise RuntimeError, o.paramProp(0)
+
     try:
         import datetime
         now = datetime.datetime.now()
@@ -293,6 +298,10 @@ def TestGenerated():
         o.CurrencyProp = decimal.Decimal(val)
         if o.CurrencyProp != decimal.Decimal(val):
             raise error, "%s got %r" % (val, o.CurrencyProp)
+
+    o.SetParamProp(0, 1)
+    if o.ParamProp(0) != 1:
+        raise RuntimeError, o.paramProp(0)
 
     # Do the connection point thing...
     # Create a connection object.
