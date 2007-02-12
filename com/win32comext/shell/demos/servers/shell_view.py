@@ -50,7 +50,8 @@ import sys, os
 import thread
 import pyclbr
 import pythoncom
-import win32gui, win32api, win32con, winerror
+import win32gui, win32gui_struct, win32api, win32con, winerror
+import commctrl
 from win32com.shell import shell, shellcon
 from win32com.server.util import wrap, NewEnum
 from win32com.server.exception import COMException
@@ -60,6 +61,10 @@ from pywin.scintilla import scintillacon
 # Set this to 1 to cause debug version to be registered and used.  A debug
 # version will spew output to win32traceutil.
 debug=0
+
+# markh is toying with an implementation that allows auto reload of a module
+# if this attribute exists.
+com_auto_reload = True 
 
 # Helper function to get a system IShellFolder interface, and the PIDL within
 # that folder for an existing file/directory.
@@ -164,7 +169,7 @@ class ShellFolderFileSystem(ShellFolderBase):
         folder, child_pidl = self._GetFolderAndPIDLForPIDL(pidl)
         try:
             inout, ret = folder.GetUIObjectOf(hwndOwner, [child_pidl], iid,
-                                              inout, pythoncom.IID_IUnknown)
+                                              inout, iid)
         except pythoncom.com_error, (hr, desc, exc, arg):
             raise COMException(hresult=hr)
         return inout, ret
@@ -320,15 +325,348 @@ class ShellFolderRoot(ShellFolderFileSystem):
         # top-level ID.  All other items under us have PIDLs defined
         # by us - see the notes at the top of the file.
         #print "Initialize called with pidl", repr(pidl)
-        pass
+        self.pidl = pidl
     def CreateViewObject(self, hwnd, iid):
-        raise COMException(hresult=winerror.E_NOTIMPL)
+        return wrap(FileSystemView(self, hwnd), useDispatcher=debug>0)
+
     def EnumObjects(self, hwndOwner, flags):
         items = [ ["directory\0" + p] for p in sys.path if os.path.isdir(p)]
         return NewEnum(items, iid=shell.IID_IEnumIDList,
                        useDispatcher=(debug>0))
 
-# A Simple shell view implementation
+# Simple shell view implementations
+
+# Uses a builtin listview control to display simple lists of directories
+# or filenames.
+class FileSystemView:
+    _public_methods_ = IShellView_Methods
+    _com_interfaces_ = [pythoncom.IID_IOleWindow,
+                        shell.IID_IShellView,
+                        ]
+    def __init__(self, folder, hwnd):
+        self.hwnd_parent = hwnd # provided by explorer.
+        self.hwnd = None # intermediate window for catching command notifications.
+        self.hwnd_child = None # our ListView
+        self.activate_state = None
+        self.hmenu = None
+        self.browser = None
+        self.folder = folder
+        self.children = None
+
+    # IOleWindow
+    def GetWindow(self):
+        return self.hwnd
+
+    def ContextSensitiveHelp(self, enter_mode):
+        raise COMException(hresult=winerror.E_NOTIMPL)
+
+   # IShellView
+    def CreateViewWindow(self, prev, settings, browser, rect):
+        print "CreateViewWindow", prev, settings, browser, rect
+        self.cur_foldersettings = settings
+        self.browser = browser
+        self._CreateMainWindow(prev, settings, browser, rect)
+        self._CreateChildWindow(prev)
+
+    def _CreateMainWindow(self, prev, settings, browser, rect):
+        # Creates a parent window that hosts the view window.  This window
+        # gets the control notifications etc sent from the child.
+        style = win32con.WS_CHILD | win32con.WS_VISIBLE #
+        wclass_name = "EnfoldDesktop_DefView"
+        # Register the Window class.
+        wc = win32gui.WNDCLASS()
+        wc.hInstance = win32gui.dllhandle
+        wc.lpszClassName = wclass_name
+        wc.style = win32con.CS_VREDRAW | win32con.CS_HREDRAW
+        try:
+            win32gui.RegisterClass(wc)
+        except win32gui.error, details:
+            # Should only happen when this module is reloaded
+            if details[0] != winerror.ERROR_CLASS_ALREADY_EXISTS:
+                raise
+
+        message_map = {
+                win32con.WM_DESTROY: self.OnDestroy,
+                win32con.WM_COMMAND: self.OnCommand,
+                win32con.WM_NOTIFY:  self.OnNotify,
+                win32con.WM_CONTEXTMENU: self.OnContextMenu,
+        }
+    
+        self.hwnd = win32gui.CreateWindow( wclass_name, "", style, \
+                rect[0], rect[1], rect[2]-rect[0], rect[3]-rect[1],
+                self.hwnd_parent, 0, win32gui.dllhandle, None)
+        win32gui.SetWindowLong(self.hwnd, win32con.GWL_WNDPROC, message_map)
+        print "View 's hwnd is", self.hwnd
+
+    def _CreateChildWindow(self, prev):
+        # Creates the list view window.
+        print "_CreateChildWindow"
+        assert self.hwnd_child is None, "already have a window"
+        assert self.cur_foldersettings is not None, "no settings"
+        style = win32con.WS_CHILD | win32con.WS_VISIBLE | win32con.WS_BORDER | \
+                commctrl.LVS_SHAREIMAGELISTS | commctrl.LVS_EDITLABELS
+
+        view_mode, view_flags = self.cur_foldersettings
+        if view_mode==shellcon.FVM_ICON:
+            style |= commctrl.LVS_ICON | commctrl.LVS_AUTOARRANGE
+        elif view_mode==shellcon.FVM_SMALLICON:
+            style |= commctrl.LVS_SMALLICON | commctrl.LVS_AUTOARRANGE
+        elif view_mode==shellcon.FVM_LIST:
+            style |= commctrl.LVS_LIST | commctrl.LVS_AUTOARRANGE
+        elif view_mode==shellcon.FVM_DETAILS:
+            style |= commctrl.LVS_REPORT | commctrl.LVS_AUTOARRANGE
+        else:
+            # XP 'thumbnails' etc
+            view_mode = shellcon.FVM_DETAILS
+            # Default to 'report'
+            style |= commctrl.LVS_REPORT | commctrl.LVS_AUTOARRANGE
+
+        for f_flag, l_flag in [
+            (shellcon.FWF_SINGLESEL,        commctrl.LVS_SINGLESEL),
+            (shellcon.FWF_ALIGNLEFT,        commctrl.LVS_ALIGNLEFT),
+            (shellcon.FWF_SHOWSELALWAYS,    commctrl.LVS_SHOWSELALWAYS),
+                              ]:
+            if view_flags & f_flag:
+                style |= l_flag
+
+        self.hwnd_child = win32gui.CreateWindowEx(
+                              win32con.WS_EX_CLIENTEDGE,
+                              "SysListView32", None, style,
+                              0, 0, 0, 0,
+                              self.hwnd, 1000, 0, None)
+
+        cr = win32gui.GetClientRect(self.hwnd)
+        win32gui.MoveWindow(self.hwnd_child,
+                            0, 0, cr[2]-cr[0], cr[3]-cr[1],
+                            True)
+
+        # Setup the columns for the view.
+        lvc, extras = win32gui_struct.PackLVCOLUMN(fmt=commctrl.LVCFMT_LEFT,
+                                                   subItem=1,
+                                                   text='Name',
+                                                   cx=300)
+        win32gui.SendMessage(self.hwnd_child, commctrl.LVM_INSERTCOLUMN,
+                             0, lvc)
+
+        lvc, extras = win32gui_struct.PackLVCOLUMN(fmt=commctrl.LVCFMT_RIGHT,
+                                                   subItem=1,
+                                                   text='Exists',
+                                                   cx=50)
+        win32gui.SendMessage(self.hwnd_child, commctrl.LVM_INSERTCOLUMN,
+                             1, lvc)
+        # and fill it with the content
+        self.Refresh()
+
+    def GetCurrentInfo(self):
+        return self.cur_foldersettings
+
+    def UIActivate(self, activate_state):
+        print "OnActivate"
+
+    def _OnActivate(self, activate_state):
+        if self.activate_state == activate_state:
+            return
+        self._OnDeactivate() # restore menu's first, if necessary.
+        if activate_state != shellcon.SVUIA_DEACTIVATE:
+            assert self.hmenu is None, "Should have destroyed it!"
+            self.hmenu = win32gui.CreateMenu()
+            widths = 0,0,0,0,0,0
+            # Ask explorer to add its standard items.
+            self.browser.InsertMenusSB(self.hmenu, widths)
+            # Merge with these standard items
+            self._MergeMenus(activate_state)
+            self.browser.SetMenuSB(self.hmenu, 0, self.hwnd);
+        self.activate_state = activate_state
+
+    def _OnDeactivate(self):
+        if self.browser is not None and self.hmenu is not None:
+            self.browser.SetMenuSB(0, 0, 0)
+            self.browser.RemoveMenusSB(self.hmenu)
+            win32gui.DestroyMenu(self.hmenu)
+            self.hmenu = None
+        self.hsubmenus = None
+        self.activate_state = shellcon.SVUIA_DEACTIVATE
+
+    def _MergeMenus(self, activate_state):
+        # Merge the operations we support into the top-level menus.
+        # NOTE: This function it *not* called each time the selection changes.
+        # SVUIA_ACTIVATE_FOCUS really means "have a selection?"
+        have_sel = activate_state == shellcon.SVUIA_ACTIVATE_FOCUS
+        # only do "file" menu here, and only 1 item on it!
+        mid = shellcon.FCIDM_MENU_FILE
+        # Get the hmenu for the menu
+        buf, extras = win32gui_struct.EmptyMENUITEMINFO(win32con.MIIM_SUBMENU)
+        win32gui.GetMenuItemInfo(self.hmenu,
+                                 mid,
+                                 False,
+                                 buf)
+        data = win32gui_struct.UnpackMENUITEMINFO(buf)
+        submenu = data[3]
+        print "Do someting with the file menu!"
+
+    def Refresh(self):
+        stateMask = commctrl.LVIS_SELECTED | commctrl.LVIS_DROPHILITED
+        state = 0
+        self.children = []
+        # Enumerate and store the child PIDLs
+        for cid in self.folder.EnumObjects(self.hwnd, 0):
+            print "Have CID"
+            self.children.append(cid)
+            
+        for row_index, data in enumerate(self.children):
+            assert len(data)==1, "expecting just a child PIDL"
+            typ, path = data[0].split('\0')
+            desc = os.path.exists(path) and "Yes" or "No"
+            prop_vals = (path, desc)
+            # first col
+            data, extras = win32gui_struct.PackLVITEM(
+                                        item=row_index,
+                                        subItem=0,
+                                        text=prop_vals[0],
+                                        state=state,
+                                        stateMask=stateMask)
+            win32gui.SendMessage(self.hwnd_child,
+                                 commctrl.LVM_INSERTITEM,
+                                 row_index, data)
+            # rest of the cols.
+            col_index = 1
+            for prop_val in prop_vals[1:]:
+                data, extras = win32gui_struct.PackLVITEM(
+                                            item=row_index,
+                                            subItem=col_index,
+                                            text=prop_val)
+    
+                win32gui.SendMessage(self.hwnd_child,
+                                     commctrl.LVM_SETITEM,
+                                     0, data)
+                col_index += 1
+
+    def SelectItem(self, pidl, flag):
+        # For the sake of brevity, we don't implement this yet.
+        # You would need to locate the index of the item in the shell-view
+        # with that PIDL, then ask the list-view to select it.
+        print "Please implement SelectItem for PIDL", pidl
+
+    def GetItemObject(self, item_num, iid):
+        raise COMException(hresult=winerror.E_NOTIMPL)
+
+    def TranslateAccelerator(self, msg):
+        return winerror.S_FALSE
+
+    def DestroyViewWindow(self):
+        win32gui.DestroyWindow(self.hwnd)
+        self.hwnd = None
+        print "Destroyed view window"
+
+    # Message handlers.
+    def OnDestroy(self, hwnd, msg, wparam, lparam):
+        print "OnDestory"
+
+    def OnCommand(self, hwnd, msg, wparam, lparam):
+        print "OnCommand"
+
+    def OnNotify(self, hwnd, msg, wparam, lparam):
+        hwndFrom, idFrom, code = win32gui_struct.UnpackWMNOTIFY(lparam)
+        print "OnNotify code=0x%x (0x%x, 0x%x)" % (code, wparam, lparam)
+        if code == commctrl.NM_SETFOCUS:
+            # Control got focus - Explorer may not know - tell it
+            if self.browser is not None:
+                self.browser.OnViewWindowActive(None)
+            # And do our menu thang
+            self._OnActivate(shellcon.SVUIA_ACTIVATE_FOCUS)
+        elif code == commctrl.NM_KILLFOCUS:
+            self._OnDeactivate()
+        elif code == commctrl.NM_DBLCLK:
+            # This DblClick implementation leaves a little to be desired :)
+            # It demonstrates some useful concepts, such as asking the
+            # folder for its context-menu and invoking a command from it.
+            # However, as our folder delegates IContextMenu to the shell
+            # itself, the end result is that the folder is opened in
+            # its "normal" place in Windows explorer rather than inside
+            # our shell-extension.
+            # Determine the selected items.
+            sel = []
+            n = -1
+            while 1:
+                n = win32gui.SendMessage(self.hwnd_child,
+                                         commctrl.LVM_GETNEXTITEM,
+                                         n,
+                                         commctrl.LVNI_SELECTED)
+                if n==-1:
+                    break
+                sel.append(self.children[n][-1:])
+            print "Selection is", sel
+            # Get the IContextMenu for the items.
+            inout, cm = self.folder.GetUIObjectOf(self.hwnd_parent, sel,
+                                                  shell.IID_IContextMenu, 0)
+            hmenu = win32gui.CreateMenu()
+            try:
+                # As per 'Q179911', we need to determine if the default operation
+                # should be 'open' or 'explore'
+                flags = shellcon.CMF_DEFAULTONLY
+                try:
+                    self.browser.GetControlWindow(shellcon.FCW_TREE)
+                    flags |= shellcon.CMF_EXPLORE
+                except pythoncom.com_error:
+                    pass
+                id_cmd_first = 1 # TrackPopupMenu makes it hard to use 0
+                cm.QueryContextMenu(hmenu, 0, id_cmd_first, -1, flags)
+                # Find the default item in the returned menu.
+                cmd = win32gui.GetMenuDefaultItem(hmenu, False, 0)
+                if cmd == -1:
+                    print "Oops: _doDefaultActionFor found no default menu"
+                else:
+                    ci = 0, self.hwnd_parent, cmd-id_cmd_first, None, None, 0, 0, 0
+                    cm.InvokeCommand(ci)
+            finally:
+                win32gui.DestroyMenu(hmenu)
+
+    def OnContextMenu(self, hwnd, msg, wparam, lparam):
+        # Get the selected items.
+        pidls = []
+        n = -1
+        while 1:
+            n = win32gui.SendMessage(self.hwnd_child,
+                                     commctrl.LVM_GETNEXTITEM,
+                                     n,
+                                     commctrl.LVNI_SELECTED)
+            if n==-1:
+                break
+            pidls.append(self.children[n][-1:])
+        
+        spt = win32api.GetCursorPos()
+        if not pidls:
+            print "Ignoring background click"
+            return
+        # Get the IContextMenu for the items.
+        inout, cm = self.folder.GetUIObjectOf(self.hwnd_parent, pidls, shell.IID_IContextMenu, 0)
+        hmenu = win32gui.CreatePopupMenu()
+        sel = None
+        # As per 'Q179911', we need to determine if the default operation
+        # should be 'open' or 'explore'
+        try:
+            flags = 0
+            try:
+                self.browser.GetControlWindow(shellcon.FCW_TREE)
+                flags |= shellcon.CMF_EXPLORE
+            except pythoncom.com_error:
+                pass
+            id_cmd_first = 1 # TrackPopupMenu makes it hard to use 0
+            cm.QueryContextMenu(hmenu, 0, id_cmd_first, -1, flags)
+            tpm_flags = win32con.TPM_LEFTALIGN | win32con.TPM_RETURNCMD | \
+                        win32con.TPM_RIGHTBUTTON
+            sel = win32gui.TrackPopupMenu(hmenu,
+                                          tpm_flags,
+                                          spt[0], spt[1],
+                                          0, self.hwnd, None)
+            print "TrackPopupMenu returned", sel
+        finally:
+            win32gui.DestroyMenu(hmenu)
+        if sel:
+            ci = 0, self.hwnd_parent, sel-id_cmd_first, None, None, 0, 0, 0
+            cm.InvokeCommand(ci)
+
+
 # This uses scintilla to display a filename, and optionally jump to a line
 # number.
 class ScintillaShellView:
