@@ -459,7 +459,7 @@ PyObject *PyWinObject_FromRESOURCESTRING(LPCSTR str)
 // @object PyCMINVOKECOMMANDINFO|A tuple of parameters to be converted to a CMINVOKECOMMANDINFO struct
 // @tupleitem 0|int|Mask|Combination of shellcon.CMIC_MASK_* constants, can be 0
 // @tupleitem 1|<o PyHANDLE>|hwnd|Window that owns the shortcut menu
-// @tupleitem 2|int or str|Vert|Action to be carried out, specified as a string command or integer menu item id
+// @tupleitem 2|int or str|Verb|Action to be carried out, specified as a string command or integer menu item id
 // @tupleitem 3|str|Parameters|Extra parameters to be passed to the command line for the action, can be None
 // @tupleitem 4|str|Directory|Working directory, can be None
 // @tupleitem 5|int|Show|Combination of win32con.SW_* constants for any windows that may be created
@@ -467,13 +467,17 @@ PyObject *PyWinObject_FromRESOURCESTRING(LPCSTR str)
 // @tupleitem 7|<o PyHANDLE>|Icon|Handle to icon to use for application, can be None
 BOOL PyObject_AsCMINVOKECOMMANDINFO(PyObject *ob, CMINVOKECOMMANDINFO *pci)
 {
-	PyObject *obVerb;
+	PyObject *obVerb, *obhwnd, *obhIcon;
 	ZeroMemory(pci, sizeof(CMINVOKECOMMANDINFO));
 	pci->cbSize=sizeof(CMINVOKECOMMANDINFO);
-	if (!PyArg_ParseTuple(ob, "iiOzziii:CMINVOKECOMMANDINFO tuple", &pci->fMask, &pci->hwnd, 
+	if (!PyArg_ParseTuple(ob, "iOOzziiO:CMINVOKECOMMANDINFO tuple", &pci->fMask, &obhwnd, 
 	                                 &obVerb, &pci->lpParameters, &pci->lpDirectory, 
-	                                 &pci->nShow, &pci->dwHotKey, &pci->hIcon))
+	                                 &pci->nShow, &pci->dwHotKey, &obhIcon))
 		return FALSE;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&pci->hwnd, FALSE))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhIcon, (HANDLE *)&pci->hIcon, TRUE))
+		return NULL;
 	if (PyString_Check(obVerb)) {
 		pci->lpVerb = PyString_AsString(obVerb);
 	} else if (PyInt_Check(obVerb)) {
@@ -515,9 +519,9 @@ PyObject *PyObject_FromCMINVOKECOMMANDINFO(const CMINVOKECOMMANDINFO *pci)
 		Py_DECREF(obParams);
 		return NULL;
 	}
-	return Py_BuildValue("iiNNNiii", pci->fMask, pci->hwnd, 
+	return Py_BuildValue("iNNNNiiN", pci->fMask, PyWinLong_FromHANDLE(pci->hwnd), 
 	                                 obVerb, obParams, obDir, 
-	                                 pci->nShow, pci->dwHotKey, pci->hIcon);
+	                                 pci->nShow, pci->dwHotKey, PyWinLong_FromHANDLE(pci->hIcon));
 }
 
 BOOL PyObject_AsSTRRET( PyObject *ob, STRRET &out )
@@ -575,15 +579,18 @@ PyObject *PyObject_FromSTRRET(STRRET *ps, ITEMIDLIST *pidl, BOOL bFree)
 
 BOOL PyObject_AsMSG( PyObject *obpmsg, MSG *msg )
 {
-	return PyArg_ParseTuple(obpmsg, "iiiii(ii)", &msg->hwnd,&msg->message,&msg->wParam,&msg->lParam,&msg->time,&msg->pt.x,&msg->pt.y);
+	PyObject *obhwnd;
+	return PyArg_ParseTuple(obpmsg, "Oiiii(ii)", &obhwnd,&msg->message,&msg->wParam,&msg->lParam,&msg->time,&msg->pt.x,&msg->pt.y)
+		&& PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&msg->hwnd, FALSE);
 }
+
 PyObject *PyObject_FromMSG(const MSG *msg)
 {
 	if (!msg) {
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
-	return Py_BuildValue("iiiii(ii)", msg->hwnd,msg->message,msg->wParam,msg->lParam,msg->time,msg->pt.x,msg->pt.y);
+	return Py_BuildValue("Niiii(ii)", PyWinLong_FromHANDLE(msg->hwnd),msg->message,msg->wParam,msg->lParam,msg->time,msg->pt.x,msg->pt.y);
 }
 
 BOOL PyObject_AsFOLDERSETTINGS( PyObject *ob, FOLDERSETTINGS *pf)
@@ -752,7 +759,7 @@ PyObject *PyObject_FromSHFILEINFO(SHFILEINFO *p)
 	                              obDisplayName, obTypeName);
 }
 
-
+// @object PyLPOLEMENUGROUPWIDTHS|Tuple containing 6 ints indicating nbr of options in each menu group
 BOOL PyObject_AsOLEMENUGROUPWIDTHS( PyObject *oblpMenuWidths, OLEMENUGROUPWIDTHS *pWidths)
 {
 	return PyArg_ParseTuple(oblpMenuWidths, "iiiiii",
@@ -813,10 +820,10 @@ void PyObject_FreeSHFILEOPSTRUCT(SHFILEOPSTRUCT *p)
 // If To specifies multiple file names, flags must contain FOF_MULTIDESTFILES
 BOOL PyObject_AsSHFILEOPSTRUCT(PyObject *ob, SHFILEOPSTRUCT *p)
 {
-	PyObject *obFrom, *obTo, *obNameMappings = Py_None, *obProgressTitle = Py_None;
+	PyObject *obFrom, *obTo, *obNameMappings = Py_None, *obProgressTitle = Py_None, *obhwnd;
 	memset(p, 0, sizeof(*p));
-	if (!PyArg_ParseTuple(ob, "iiOO|iOO",
-						  &p->hwnd, // @tupleitem 0|int|hwnd|Handle of window in which to display status messages
+	if (!PyArg_ParseTuple(ob, "OiOO|iOO",
+						  &obhwnd, // @tupleitem 0|int|hwnd|Handle of window in which to display status messages
 						  &p->wFunc, // @tupleitem 1|int|wFunc|One of the shellcon.FO_* values
 						  &obFrom, // @tupleitem 2|str/unicode|From|String containing source file name(s) separated by nulls
 						  &obTo, // @tupleitem 3|str/unicode|To|String containing destination file name(s) separated by nulls, can be None
@@ -824,7 +831,8 @@ BOOL PyObject_AsSHFILEOPSTRUCT(PyObject *ob, SHFILEOPSTRUCT *p)
 						  &obNameMappings, // @tupleitem 5|None|NameMappings|Maps input file names to their new names.  This is actually output, and must be None if passed as input. Default=None
 						  &obProgressTitle)) // @tupleitem 6|string|ProgressTitle|Title for progress dialog (flags must contain FOF_SIMPLEPROGRESS). Default=None
 		return FALSE;
-	
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&p->hwnd, TRUE))
+		return NULL;
 	if (obNameMappings != Py_None) {
 		PyErr_SetString(PyExc_TypeError, "The NameMappings value must be None");
 		return FALSE;
@@ -869,7 +877,7 @@ static int CALLBACK PyBrowseCallbackProc(
 		goto done;
 	}
 	assert(!PyErr_Occurred());
-	args = Py_BuildValue("lilO", hwnd, uMsg, lParam, pc->data);
+	args = Py_BuildValue("NilO", PyWinLong_FromHANDLE(hwnd), uMsg, lParam, pc->data);
 	if (!args) goto done;
 	result = PyEval_CallObject(pc->fn, args);
 	// API says must return 0, but there might be a good reason.
@@ -898,6 +906,7 @@ static PyObject *PySHBrowseForFolder( PyObject *self, PyObject *args)
 	BROWSEINFO bi;
 	memset(&bi, 0, sizeof(BROWSEINFO));
 	PyObject *rc = NULL;
+	PyObject *obhwndOwner=Py_None;
 	PyObject *obPIDL = Py_None;
 	PyObject *obTitle = Py_None;
 	PyObject *obcb = Py_None;
@@ -909,15 +918,16 @@ static PyObject *PySHBrowseForFolder( PyObject *self, PyObject *args)
 	PyCallback pycb;
 #endif
 
-	if(!PyArg_ParseTuple(args, "|lOOlOO:SHBrowseForFolder",
-			&bi.hwndOwner, // @pyparm int|hwndOwner|0|
-			&obPIDL,		// @pyparm <o PyIDL>|pidlRoot|None|
-			&obTitle,		// @pyparm <o Unicode>/string|title|None|
-			&bi.ulFlags,	// @pyparm int|flags|0|
+	if(!PyArg_ParseTuple(args, "|OOOlOO:SHBrowseForFolder",
+			&obhwndOwner, // @pyparm <o PyHANDLE>|hwndOwner|None|Parent window for the dialog box, can be None
+			&obPIDL,		// @pyparm <o PyIDL>|pidlRoot|None|PIDL identifying the place to start browsing. Desktop is used if not specified
+			&obTitle,		// @pyparm <o Unicode>/string|title|None|Title to be displayed with the directory tree
+			&bi.ulFlags,	// @pyparm int|flags|0|Combination of shellcon.BIF_* flags
 			&obcb,  // @pyparm object|callback|None|A callable object to be used as the callback, or None
 			&obcbparam))   // @pyparm object|callback_data|None|An object passed to the callback function
 		return NULL;
-
+	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&bi.hwndOwner, TRUE))
+		return NULL;
 	if (obcb != Py_None) {
 #if (PY_VERSION_HEX >= 0x02030000) // PyGILState only in 2.3+
 		if (!PyCallable_Check(obcb)) {
@@ -1027,14 +1037,16 @@ static PyObject *PySHGetPathFromIDListW(PyObject *self, PyObject *args)
 static PyObject *PySHGetSpecialFolderPath(PyObject *self, PyObject *args)
 {
 	HWND hwndOwner;
+	PyObject *obhwndOwner;
 	int nFolder;
 	BOOL bCreate = FALSE;
-	if(!PyArg_ParseTuple(args, "li|i:SHGetSpecialFolderPath",
-			&hwndOwner, // @pyparm int|hwndOwner||
+	if(!PyArg_ParseTuple(args, "Oi|i:SHGetSpecialFolderPath",
+			&obhwndOwner, // @pyparm <o PyHANDLE>|hwndOwner||Parent window, can be None (or 0)
 			&nFolder, // @pyparm int|nFolder||One of the CSIDL_* constants specifying the path.
 			&bCreate)) // @pyparm int|bCreate|0|Should the path be created.
 		return NULL;
-
+	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner, TRUE))
+		return NULL;
 	// @comm This method is only available in shell version 4.71.  If the 
 	// function is not available, a COM Exception with HRESULT=E_NOTIMPL 
 	// will be raised.  If the function fails, a COM Exception with 
@@ -1055,12 +1067,14 @@ static PyObject *PySHGetSpecialFolderPath(PyObject *self, PyObject *args)
 static PyObject *PySHGetSpecialFolderLocation(PyObject *self, PyObject *args)
 {
 	HWND hwndOwner;
+	PyObject *obhwndOwner;
 	int nFolder;
-	if(!PyArg_ParseTuple(args, "li|i:SHGetSpecialFolderLocation",
-			&hwndOwner, // @pyparm int|hwndOwner||
+	if(!PyArg_ParseTuple(args, "Oi:SHGetSpecialFolderLocation",
+			&obhwndOwner, // @pyparm <o PyHANDLE>|hwndOwner||Parent window, can be None (or 0)
 			&nFolder)) // @pyparm int|nFolder||One of the CSIDL_* constants specifying the path.
 		return NULL;
-
+	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner, TRUE))
+		return NULL;
 	LPITEMIDLIST pidl;
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = SHGetSpecialFolderLocation(hwndOwner, nFolder, &pidl);
@@ -1112,9 +1126,9 @@ static PyObject *PySHGetFileInfo(PyObject *self, PyObject *args)
 	memset(&info, 0, sizeof(info));
 	info.dwAttributes = info_attrs;
 	PY_INTERFACE_PRECALL;
-	DWORD dw = SHGetFileInfo(name, attr, &info, sizeof(info), flags);
+	DWORD_PTR dw = SHGetFileInfo(name, attr, &info, sizeof(info), flags);
 	PY_INTERFACE_POSTCALL;
-	ret = Py_BuildValue("iN", dw, PyObject_FromSHFILEINFO(&info));
+	ret = Py_BuildValue("NN", PyLong_FromUnsignedLongLong(dw), PyObject_FromSHFILEINFO(&info));
 	if (name) PyWinObject_FreeTCHAR(name);
 	if (pidl) PyObject_FreePIDL(pidl);
 	return ret;
@@ -1124,17 +1138,19 @@ static PyObject *PySHGetFileInfo(PyObject *self, PyObject *args)
 static PyObject *PySHGetFolderPath(PyObject *self, PyObject *args)
 {
 	HWND hwndOwner;
+	PyObject *obhwndOwner;
 	int nFolder;
 	long flags;
 	PyObject *obHandle;
 	BOOL bCreate = FALSE;
-	if(!PyArg_ParseTuple(args, "liOl:SHGetFolderPath",
-			&hwndOwner, // @pyparm int|hwndOwner||
+	if(!PyArg_ParseTuple(args, "OiOl:SHGetFolderPath",
+			&obhwndOwner,  // @pyparm <o PyHANDLE>|hwndOwner||Parent window, can be None (or 0)
 			&nFolder, // @pyparm int|nFolder||One of the CSIDL_* constants specifying the path.
 			&obHandle, // @pyparm <o PyHANDLE>|handle||An access token that can be used to represent a particular user, or None
 			&flags)) // @pyparm int|flags||Controls which path is returned.  May be SHGFP_TYPE_CURRENT or SHGFP_TYPE_DEFAULT
 		return NULL;
-
+	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner, TRUE))
+		return NULL;
 	HANDLE handle;
 	if (!PyWinObject_AsHANDLE(obHandle, &handle, TRUE))
 		return NULL;
@@ -1193,13 +1209,15 @@ static PyObject *PySHGetFolderLocation(PyObject *self, PyObject *args)
 	HANDLE hToken=NULL;
 	int nFolder;
 	DWORD flags = 0;
-	PyObject *obToken=Py_None;
+	PyObject *obToken=Py_None, *obhwndOwner;
 
-	if(!PyArg_ParseTuple(args, "li|Ol:SHGetFolderLocation",
-			&hwndOwner, // @pyparm int|hwndOwner||Window in which to display any neccessary dialogs
+	if(!PyArg_ParseTuple(args, "Oi|Ol:SHGetFolderLocation",
+			&obhwndOwner, // @pyparm int|hwndOwner||Window in which to display any neccessary dialogs
 			&nFolder, // @pyparm int|nFolder||One of the CSIDL_* constants specifying the path.
 			&obToken, // @pyparm <o PyHANDLE>|hToken|None|An access token that can be used to represent a particular user, or None
 			&flags)) // @pyparm int|reserved|0|Must be 0
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner, TRUE))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obToken, &hToken, TRUE))
 		return NULL;
@@ -1240,14 +1258,16 @@ static PyObject *PySHAddToRecentDocs(PyObject *self, PyObject *args)
 static PyObject *PySHEmptyRecycleBin(PyObject *self, PyObject *args)
 {
 	HWND hwnd;
+	PyObject *obhwnd;
 	char *path;
 	DWORD flags;
-	if(!PyArg_ParseTuple(args, "lzl:SHEmptyRecycleBin",
-			&hwnd, // @pyparm int|hwnd||
+	if(!PyArg_ParseTuple(args, "Ozl:SHEmptyRecycleBin",
+			&obhwnd, // @pyparm <o PyHANDLE>|hwnd||Handle to parent window, can be None
 			&path, // @pyparm string|path||A NULL-terminated string that contains the path of the root drive on which the recycle bin is located. This parameter can contain the address of a string formatted with the drive, folder, and subfolder names (c:\windows\system . . .). It can also contain an empty string or NULL. If this value is an empty string or NULL, all recycle bins on all drives will be emptied.
 			&flags)) // @pyparm int|flags||One of the SHERB_* values.
 		return NULL;
-
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
+		return NULL;
 	// @comm This method is only available in shell version 4.71.  If the function is not available, a COM Exception with HRESULT=E_NOTIMPL will be raised.
 	if (pfnSHEmptyRecycleBin==NULL)
 		return OleSetOleError(E_NOTIMPL);
@@ -1480,17 +1500,18 @@ static PyObject *PySHChangeNotifyRegister(PyObject *self, PyObject *args)
 	int sources;
     LONG events;
     UINT msg;
-	PyObject *obPIDL;
+	PyObject *obPIDL, *obhwnd;
 	SHChangeNotifyEntry entry;
-	if(!PyArg_ParseTuple(args, "iiii(Oi):SHChangeNotifyRegister",
-			&hwnd, // @pyparm int|hwnd||Handle to the window that receives the change or notification messages.
+	if(!PyArg_ParseTuple(args, "Oiii(Oi):SHChangeNotifyRegister",
+			&obhwnd, // @pyparm <o PyHANDLE>|hwnd||Handle to the window that receives the change or notification messages.
 			&sources, // @pyparm int|sources||One or more values that indicate the type of events for which to receive notifications.
 			&events, // @pyparm int|events||Change notification events for which to receive notification.
 			&msg,  // @pyparm int|msg||Message to be posted to the window procedure.
 			&obPIDL,
 			&entry.fRecursive))
 		return NULL;
-
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+		return NULL;
 	if (!PyObject_AsPIDL(obPIDL, (ITEMIDLIST **)&entry.pidl, TRUE))
 		return NULL;
 	ULONG rc;
@@ -1526,16 +1547,18 @@ static PyObject *PySHChangeNotifyDeregister(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @pymethod int/string|shell|DragQueryFile|
+// @pymethod int/string|shell|DragQueryFile|Retrieves the names (or count) of dropped files
 static PyObject *PyDragQueryFile(PyObject *self, PyObject *args)
 {
-	int iglobal;
+	HDROP hglobal;
+	PyObject *obhglobal;
 	UINT index;
-	if(!PyArg_ParseTuple(args, "ii:DragQueryFile", 
-			&iglobal, // @pyparm int|hglobal||The HGLOBAL object - generally obtained via the 'data_handle' property of a <o PySTGMEDIUM> object.
+	if(!PyArg_ParseTuple(args, "Oi:DragQueryFile", 
+			&obhglobal, // @pyparm <o PyHANDLE>|hglobal||The HGLOBAL object - generally obtained via the 'data_handle' property of a <o PySTGMEDIUM> object.
 			&index)) // @pyparm int|index||The index to retrieve.  If -1, the result if an integer representing the valid index values.
 		return NULL;
-	HDROP hglobal = (HDROP)iglobal;
+	if (!PyWinObject_AsHANDLE(obhglobal, (HANDLE *)&hglobal, FALSE))
+		return NULL;
 	if (index==0xFFFFFFFF) {
 		return PyInt_FromLong(DragQueryFile(hglobal, index, NULL, 0));
 	}
@@ -1550,16 +1573,18 @@ static PyObject *PyDragQueryFile(PyObject *self, PyObject *args)
 	return ret;
 }
 
-// @pymethod int/<o PyUnicode>|shell|DragQueryFileW|
+// @pymethod int/<o PyUnicode>|shell|DragQueryFileW|Retrieves the names (or count) of dropped files
 static PyObject *PyDragQueryFileW(PyObject *self, PyObject *args)
 {
-	int iglobal;
+	HDROP hglobal;
+	PyObject *obhglobal;
 	UINT index;
-	if(!PyArg_ParseTuple(args, "ii:DragQueryFileW", 
-			&iglobal, // @pyparm int|hglobal||The HGLOBAL object - generally obtained via the 'data_handle' property of a <o PySTGMEDIUM> object.
+	if(!PyArg_ParseTuple(args, "Oi:DragQueryFileW", 
+			&obhglobal, // @pyparm <o PyHANDLE>|hglobal||The HGLOBAL object - generally obtained via the 'data_handle' property of a <o PySTGMEDIUM> object.
 			&index)) // @pyparm int|index||The index to retrieve.  If -1, the result if an integer representing the valid index values.
 		return NULL;
-	HDROP hglobal = (HDROP)iglobal;
+	if (!PyWinObject_AsHANDLE(obhglobal, (HANDLE *)&hglobal, FALSE))
+		return NULL;
 	if (index==0xFFFFFFFF) {
 		return PyInt_FromLong(DragQueryFileW(hglobal, index, NULL, 0));
 	}
@@ -1579,11 +1604,13 @@ static PyObject *PyDragQueryFileW(PyObject *self, PyObject *args)
 // @comm The window for which coordinates are returned is the window that received the WM_DROPFILES message
 static PyObject *PyDragQueryPoint(PyObject *self, PyObject *args)
 {
-	int iglobal;
-	if(!PyArg_ParseTuple(args, "i:DragQueryFile", 
-			&iglobal)) // @pyparm int|hglobal||The HGLOBAL object - generally obtained the 'data_handle' property of a <o PySTGMEDIUM>
+	HDROP hglobal;
+	PyObject *obhglobal;
+	if(!PyArg_ParseTuple(args, "O:DragQueryFile", 
+			&obhglobal)) // @pyparm <o PyHANDLE>|hglobal||The HGLOBAL object - generally obtained the 'data_handle' property of a <o PySTGMEDIUM>
 		return NULL;
-	HDROP hglobal = (HDROP)iglobal;
+	if (!PyWinObject_AsHANDLE(obhglobal, (HANDLE *)&hglobal, FALSE))
+		return NULL;
 	POINT pt;
 	BOOL result = ::DragQueryPoint(hglobal, &pt);
 	return Py_BuildValue("O(ii)", result ? Py_True : Py_False, pt.x, pt.y);
@@ -1639,11 +1666,15 @@ static PyObject *PyStringAsPIDL(PyObject *self, PyObject *args)
 // @pymethod <o PyIDL>|shell|AddressAsPIDL|Given the address of a PIDL in memory, return a PIDL object (ie, a list of strings)
 static PyObject *PyAddressAsPIDL(PyObject *self, PyObject *args)
 {
-	long lpidl;
+	LPCITEMIDLIST lpidl;
+	PyObject *obpidl;
 	// @pyparm int|address||The address of the PIDL
-	if (!PyArg_ParseTuple(args, "l:AddressAsPIDL", &lpidl))
+	if (!PyArg_ParseTuple(args, "O:AddressAsPIDL", &obpidl))
 		return NULL;
-	return PyObject_FromPIDL((LPCITEMIDLIST)lpidl, FALSE);
+	lpidl=(LPCITEMIDLIST)PyLong_AsVoidPtr(obpidl);
+	if (lpidl==NULL && PyErr_Occurred())
+		return NULL;
+	return PyObject_FromPIDL(lpidl, FALSE);
 }	
 
 // @pymethod <o PyIDL>, list|shell|StringAsCIDA|Given a CIDA as a raw string, return the folder PIDL and list of children
@@ -2046,16 +2077,16 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
 		"nShow", "lpIDList", "lpClass", "hkeyClass", "dwHotKey",
 		"hIcon", "hMonitor", NULL,
 	};
-	PyObject *obVerb = NULL, *obFile = NULL, *obParams = NULL;
+	PyObject *obhwnd=Py_None, *obVerb = NULL, *obFile = NULL, *obParams = NULL;
 	PyObject *obDirectory = NULL, *obIDList = NULL, *obClass = NULL;
 	PyObject *obhkeyClass = NULL, *obHotKey = NULL, *obhIcon = NULL;
 	PyObject *obhMonitor = NULL;
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "|llOOOOlOOOOOO", kw_items,
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "|lOOOOOlOOOOOO", kw_items,
 							// @pyparm int|fMask|0|The default mask for the
 							// structure.  Other masks may be added based on
 							// what paramaters are supplied.
 		                             &p->fMask, 
-									 &p->hwnd, // @pyparm int|hwnd|0|
+									 &obhwnd, // @pyparm <o PyHANDLE>|hwnd|0|
 									 &obVerb, // @pyparm string|lpVerb||
 									 &obFile, // @pyparm string|lpFile||
 									 &obParams, // @pyparm string|lpParams||
@@ -2068,7 +2099,8 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
 									 &obhIcon, // @pyparm <o PyHANDLE>|hIcon||
 									 &obhMonitor)) // @pyparm <o PyHANDLE>|hMonitor||
 		goto done;
-
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&p->hwnd, TRUE))
+		goto done;
 	if (obVerb && !PyWinObject_AsString(obVerb, (char **)&p->lpVerb))
 		goto done;
 	if (obFile && !PyWinObject_AsString(obFile, (char **)&p->lpFile))
