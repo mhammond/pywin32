@@ -13,11 +13,14 @@ generates Windows .hlp files.
 ***/
 
 #include "shell_pch.h"
+#include "EmptyVC.h"
 #include "PyIShellLink.h"
 #include "PyIContextMenu.h"
 #include "PyIExtractIcon.h"
 #include "PyIShellExtInit.h"
 #include "PyIShellFolder.h"
+#include "PyIEmptyVolumeCache.h"
+#include "PyIEmptyVolumeCacheCallBack.h"
 #include "PyIEnumIDList.h"
 #include "PyICopyHook.h"
 #include "PyIOleWindow.h"
@@ -2317,9 +2320,12 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL(PersistFolder),
 	PYCOM_INTERFACE_FULL(ColumnProvider),
 	PYCOM_INTERFACE_FULL(DropTargetHelper),
+	PYCOM_INTERFACE_CLIENT_ONLY(EmptyVolumeCacheCallBack),
 	PYCOM_INTERFACE_CLIENT_ONLY(QueryAssociations),
 	PYCOM_INTERFACE_SERVER_ONLY(DeskBand),
 	PYCOM_INTERFACE_SERVER_ONLY(DockingWindow),
+	PYCOM_INTERFACE_SERVER_ONLY(EmptyVolumeCache),
+	PYCOM_INTERFACE_SERVER_ONLY(EmptyVolumeCache2),
 	// IID_ICopyHook doesn't exist - hack it up
 	{ &IID_IShellCopyHook, "IShellCopyHook", "IID_IShellCopyHook", &PyICopyHook::type, GET_PYGATEWAY_CTOR(PyGCopyHook) },
 	{ &IID_IShellCopyHook, "ICopyHook", "IID_ICopyHook", NULL, NULL  },

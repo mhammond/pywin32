@@ -1236,6 +1236,8 @@ com_extensions += [
                         %(shell)s/PyIDropTargetHelper.cpp
                         %(shell)s/PyIEnumIDList.cpp
                         %(shell)s/PyIExtractIcon.cpp
+                        %(shell)s/PyIEmptyVolumeCache.cpp
+                        %(shell)s/PyIEmptyVolumeCacheCallBack.cpp
                         %(shell)s/PyIInputObject.cpp
                         %(shell)s/PyIPersistFolder.cpp
                         %(shell)s/PyIQueryAssociations.cpp
