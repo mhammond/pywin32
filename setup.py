@@ -687,13 +687,6 @@ class my_build_ext(build_ext):
             pch_name = os.path.join(self.build_temp, ext.name) + ".pch"
             ext.extra_compile_args.append("/Fp"+pch_name)
 
-        # Put our DLL base address in.
-        if not self.mingw32:
-            base = ext.base_address
-            if not base:
-                base = dll_base_addresses[ext.name]
-            ext.extra_link_args.append("/BASE:0x%x" % (base,))
-
         # some source files are compiled for different extensions
         # with special defines. So we cannot use a shared
         # directory for objects, we must use a special one for each extension.
@@ -701,6 +694,30 @@ class my_build_ext(build_ext):
         if sys.version_info < (2,3):
             # 2.3+ - Wrong dir, numbered name
             self.build_temp = os.path.join(self.build_temp, ext.name)
+
+        if not self.mingw32:
+            # Put our DLL base address in.
+            base = ext.base_address
+            if not base:
+                base = dll_base_addresses[ext.name]
+            ext.extra_link_args.append("/BASE:0x%x" % (base,))
+
+            # like Python, always use debug info, even in release builds
+            # (note the compiler doesn't include debug info, so you only get
+            # basic info - but its better than nothing!)
+            # For now use the temp dir - later we may package them, so should
+            # maybe move them next to the output file.
+            # ack - but fails with obscure errors in py23 :(
+            if sys.version_info > (2,4):
+                pch_dir = os.path.join(self.build_temp)
+                if not self.debug:
+                    ext.extra_compile_args.append("/Zi")
+                ext.extra_compile_args.append("/Fd%s\%s_vc.pdb" %
+                                              (pch_dir, ext.name))
+                ext.extra_link_args.append("/DEBUG")
+                ext.extra_link_args.append("/PDB:%s\%s.pdb" %
+                                           (pch_dir, ext.name))
+
         self.swig_cpp = True
         try:
             build_ext.build_extension(self, ext)
