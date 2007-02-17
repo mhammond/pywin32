@@ -284,7 +284,7 @@ PyObject *PyWin_SetAPIError(char *fnName, long err /*= 0*/)
 		free_buf = FALSE;
 	}
 	/* strip trailing cr/lf */
-	int end = _tcslen(buf)-1;
+	size_t end = _tcslen(buf)-1;
 	if (end>1 && (buf[end-1]==_T('\n') || buf[end-1]==_T('\r')))
 		buf[end-1] = _T('\0');
 	else
@@ -514,6 +514,104 @@ BOOL PyWinObject_AsDWORDArray(PyObject *obdwords, DWORD **pdwords, DWORD *item_c
 	Py_XDECREF(dwords_tuple);
 	return ret;
 }
+
+/*
+PyLong_AsVoidPtr is unsuitable for use in many places due to the following issues:
+
+1. It fails to convert some types.  On 32-bit, it calls PyLong_AsLong
+	which doesn't check if the type has number methods defined (tp_as_number).
+	This causes it to fail for PyHANDLE's.
+	However, it doesn't even fail consistently since on 64-bit it uses
+	PyLong_AsLongLong which does check tp_as_number.
+
+2. When it fails to convert an object (even one for which it should succeed!)
+	it uses PyErr_BadInternalCall which returns a vague and misleading error.
+
+3. The documentation says it's only guaranteed to work for objects created using
+	PyLong_FromVoidPtr.  However, there's no way to call this from the
+	interpreter which means that places which can also accept a plain number
+	as well as an address have no way to ensure that both will be converted
+	consistently.  Additionally, PyLong_FromVoidPtr just returns a python int or
+	long so there is actually no way to verify that an object was created using
+	that function and can be converted back to a usable address.
+
+From the response to this bug report:
+http://sourceforge.net/tracker/?func=detail&atid=105470&aid=1630863&group_id=5470
+apparently if you want any reasonable or consistent behaviour from this function
+you're expected to perform the type checking yourself first.
+And if you have to do all that, why use the damn function at all ?
+Accordingly, here is our own version.
+*/
+BOOL PyWinLong_AsVoidPtr(PyObject *ob, void **pptr)
+{
+#ifdef _WIN64
+	*pptr=(void *)PyLong_AsLongLong(ob);
+#else
+	*pptr=(void *)PyInt_AsLong(ob);
+#endif
+	if (*pptr==(void *)-1 && PyErr_Occurred()){
+		PyErr_Format(PyExc_TypeError,"Unable to convert %s to pointer-sized value", ob->ob_type->tp_name);
+		return FALSE;
+		}
+	return TRUE;
+}
+
+PyObject *PyWinLong_FromVoidPtr(void *ptr)
+{
+#ifdef _WIN64
+	return PyLong_FromLongLong((LONG_PTR)ptr);
+#else
+	return PyInt_FromLong((LONG_PTR)ptr);
+#endif
+}
+
+
+// @object PyResourceId|Identifies a resource or function in a module.
+//	This can be a WORD-sized integer value (0-65536), or string/unicode
+//	depending on whether the *A or *W API function is to be called.
+//	Class atoms as used with <om win32gui.CreateWindow> are also treated
+//	as resource ids since they can also be represented by a name or WORD id.
+//	When passing resource names and types as strings, they are usually formatted
+//	as a pound sign followed by decimal form of the id.  ('#42' for example)
+BOOL PyWinObject_AsResourceIdA(PyObject *ob, char **presource_id)
+{
+	// Plain character conversion
+	if (PyWinObject_AsString(ob, presource_id))
+		return TRUE;
+	PyErr_Clear();
+	if (PyWinLong_AsVoidPtr(ob, (void **)presource_id) && IS_INTRESOURCE(*presource_id))
+		return TRUE;
+	*presource_id=NULL;
+	PyErr_SetString(PyExc_TypeError, "Resource id/name must be string or int in the range 0-65536");
+	return FALSE;
+}
+
+BOOL PyWinObject_AsResourceIdW(PyObject *ob, WCHAR **presource_id)
+{
+	// Unicode version of above
+	if (PyWinObject_AsWCHAR(ob, presource_id))
+		return TRUE;
+	PyErr_Clear();
+	if (PyWinLong_AsVoidPtr(ob, (void **)presource_id) && IS_INTRESOURCE(*presource_id))
+		return TRUE;
+	*presource_id=NULL;
+	PyErr_SetString(PyExc_TypeError, "Resource id/name must be unicode or int in the range 0-65536");
+	return FALSE;
+}
+
+// PyWinObject_FreeString is overloaded to accept either char * or WCHAR *
+void PyWinObject_FreeResourceId(char *resource_id)
+{
+	if ((resource_id!=NULL) && !IS_INTRESOURCE(resource_id))
+		PyWinObject_FreeString(resource_id);
+}
+
+void PyWinObject_FreeResourceId(WCHAR *resource_id)
+{
+	if ((resource_id!=NULL) && !IS_INTRESOURCE(resource_id))
+		PyWinObject_FreeString(resource_id);
+}
+
 
 /* List of functions exported by this module */
 // @module pywintypes|A module which supports common Windows types.
