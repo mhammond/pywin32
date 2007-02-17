@@ -29,14 +29,8 @@ BOOL PyWinObject_AsHANDLE(PyObject *ob, HANDLE *pHANDLE, BOOL bNoneOK /*= TRUE*/
 		PyHANDLE *pH = (PyHANDLE *)ob;
 		*pHANDLE = (HANDLE)(*pH);
 	} else{ // Support integer objects for b/w compat.
-		// Can't use PyLong_AsVoidPtr here, since it calls PyLong_AsLong.  See
-		// http://sourceforge.net/tracker/?func=detail&atid=105470&aid=1630863&group_id=5470
-#ifdef _WIN64
-		*pHANDLE = (HANDLE)PyLong_AsLongLong(ob);
-#else
-		*pHANDLE = (HANDLE)PyInt_AsLong(ob);
-#endif
-		if ((*pHANDLE==(HANDLE)-1)&&PyErr_Occurred()){
+		// treat int handles same a void pointers
+		if (!PyWinLong_AsVoidPtr(ob, (void **)pHANDLE)){
 			PyErr_SetString(PyExc_TypeError, "The object is not a PyHANDLE object");
 			return FALSE;
 		}
@@ -50,15 +44,11 @@ PyObject *PyWinObject_FromHANDLE(HANDLE h)
 }
 
 // For handles that aren't returned as PyHANDLE or a subclass thereof (HDC, HWND, etc).
-// Return as python ints or longs 
+// Treated same as void pointers.
 // ??? Maybe make this a macro to avoid extra function call ???
 PyObject *PyWinLong_FromHANDLE(HANDLE h)
 {
-#ifdef _WIN64
-	return PyLong_FromLongLong((long long)h);
-#else
-	return PyInt_FromLong((long)h);
-#endif
+	return PyWinLong_FromVoidPtr(h);
 }
 
 BOOL PyWinObject_CloseHANDLE(PyObject *obHandle)
