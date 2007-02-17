@@ -12,8 +12,11 @@ and not Windows 95/98/Me.
 	This module may be tested using the doctest module.
 
 	Written by Jason R. Coombs (jaraco@jaraco.com).
-	Copyright © 2003.
-	All Rights Reserved.	
+	Copyright Â© 2003-2006.
+	All Rights Reserved.
+
+	This module is licenced for use in Mark Hammond's pywin32
+library under the same terms as the pywin32 library.
 
 	To use this time zone module with the datetime module, simply pass
 the TimeZoneInfo object to the datetime constructor.  For example,
@@ -39,9 +42,9 @@ datetime.timedelta(-1, 61200)
 >>> aug2 = datetime.datetime( 2003, 8, 2, tzinfo = tzi )
 >>> aug2.utctimetuple()
 (2003, 8, 2, 6, 0, 0, 5, 214, 0)
->>> nov2 = datetime.datetime( 2003, 11, 2, tzinfo = tzi )
+>>> nov2 = datetime.datetime( 2003, 11, 25, tzinfo = tzi )
 >>> nov2.utctimetuple()
-(2003, 11, 2, 7, 0, 0, 6, 306, 0)
+(2003, 11, 25, 7, 0, 0, 1, 329, 0)
 
 To convert from one timezone to another, just use the astimezone method.
 
@@ -67,15 +70,63 @@ TimeZoneInfo now supports being pickled and comparison
 >>> tz = win32timezone.TimeZoneInfo( 'China Standard Time' )
 >>> tz == pickle.loads( pickle.dumps( tz ) )
 True
+
+>>> aest = win32timezone.TimeZoneInfo( 'AUS Eastern Standard Time' )
+>>> est = win32timezone.TimeZoneInfo( 'E. Australia Standard Time' )
+>>> dt = datetime.datetime( 2006, 11, 11, 1, 0, 0, tzinfo = aest )
+>>> estdt = dt.astimezone( est )
+>>> estdt.strftime( '%Y-%m-%d %H:%M:%S' )
+'2006-11-11 00:00:00'
+
+>>> dt = datetime.datetime( 2007, 1, 12, 1, 0, 0, tzinfo = aest )
+>>> estdt = dt.astimezone( est )
+>>> estdt.strftime( '%Y-%m-%d %H:%M:%S' )
+'2007-01-12 00:00:00'
+
+>>> dt = datetime.datetime( 2007, 6, 13, 1, 0, 0, tzinfo = aest )
+>>> estdt = dt.astimezone( est )
+>>> estdt.strftime( '%Y-%m-%d %H:%M:%S' )
+'2007-06-13 01:00:00'
+
+Microsoft now has a patch for handling time zones in 2007 (see
+http://support.microsoft.com/gp/cp_dst)
+
+As a result, the following test will fail in Windows Vista and machines with the patch.
+#>>> nov2 = datetime.datetime( 2003, 11, 2, tzinfo = tzi )
+#>>> nov2.utctimetuple()
+(2003, 11, 2, 7, 0, 0, 6, 306, 0)
+
+Note that is the correct response beginning in 2007
+This test will fail in Windows versions prior to Vista
+#>>> nov2 = datetime.datetime( 2007, 11, 2, tzinfo = tzi )
+#>>> nov2.utctimetuple()
+(2007, 11, 2, 6, 0, 0, 4, 306, 0)
+
+Eventually, I would like to correct the problem for the Vista platform by using
+Vista Dynamic Time Zones (which is really just a term for historic & future time
+zone accomodation).  For now, however, note that time zones not in the current year
+could be calculated incorrectly.
+
+There is a function you can call to get some capabilities of the time
+zone data.
+>>> caps = GetTZCapabilities()
+>>> isinstance( caps, dict )
+True
+>>> caps.has_key( 'MissingTZPatch' )
+True
+
+Currently, this library doesn't support dynamic TZs, even if the platform does.
+>>> caps['DynamicTZSupport']
+False
 """
 from __future__ import generators
 
 __author__ = 'Jason R. Coombs <jaraco@jaraco.com>'
 __version__ = '$Revision$'[11:-2]
-__vssauthor__ = '$Author$'[9:-2]
-__date__ = '$Modtime: 04-04-14 10:52 $'[10:-2]
+__sccauthor__ = '$Author$'[9:-2]
+__date__ = '$Date$'[10:-2]
 
-import os, _winreg, struct, datetime
+import os, _winreg, struct, datetime, win32api, re, sys
 
 class TimeZoneInfo( datetime.tzinfo ):
 	"""
@@ -128,6 +179,16 @@ class TimeZoneInfo( datetime.tzinfo ):
 				   map( makeMinuteTimeDelta, winTZI[:3] )
 		# daylightEnd and daylightStart are 8-tuples representing a Win32 SYSTEMTIME structure
 		self.daylightEnd, self.daylightStart = winTZI[3:11], winTZI[11:19]
+		self._LoadDynamicInfoFromKey( key )
+
+	def _LoadDynamicInfoFromKey( self, key ):
+		try:
+			dkey = _winreg.OpenKeyEx( key, 'Dynamic DST' )
+		except WindowsError:
+			return
+		self.dynamicInfo = _RegKeyDict( dkey )
+		del self.dynamicInfo['FirstEntry']
+		del self.dynamicInfo['LastEntry']
 
 	def __repr__( self ):
 		result = '%s( %s' % ( self.__class__.__name__, repr( self.timeZoneName ) )
@@ -168,8 +229,15 @@ class TimeZoneInfo( datetime.tzinfo ):
 		try:
 			dstStart = self.GetDSTStartTime( dt.year )
 			dstEnd = self.GetDSTEndTime( dt.year )
+			
+			if dstStart < dstEnd:
+				inDaylightSavings = dstStart <= dt.replace( tzinfo=None ) < dstEnd
+			else:
+				# in the southern hemisphere, daylight savings time
+				#  typically ends before it begins in a given year.
+				inDaylightSavings = not ( dstEnd < dt.replace( tzinfo=None ) <= dstStart )
 
-			if dstStart <= dt.replace( tzinfo=None ) < dstEnd and not self.fixedStandardTime:
+			if inDaylightSavings and not self.fixedStandardTime:
 				result = self.daylightBiasOffset
 		except ValueError:
 			# there was an error parsing the time zone, which is normal when a
@@ -290,4 +358,60 @@ def GetLocalTimeZone( ):
 	# timezone object fixed to standard time.
 	fixStandardTime = local['StandardName'] == local['DaylightName'] and \
 					local['StandardBias'] == local['DaylightBias']
-	return TimeZoneInfo( local['StandardName'], fixStandardTime )
+	keyName = [ 'StandardName', 'TimeZoneKeyName' ][ sys.getwindowsversion() >= (6,) ]
+	standardName = local[ keyName ]
+	standardName = __TimeZoneKeyNameWorkaround( standardName )
+	return TimeZoneInfo( standardName, fixStandardTime )
+
+def __TimeZoneKeyNameWorkaround( name ):
+	"""It may be a bug in Vista, but in standard Windows Vista install
+	(both 32-bit and 64-bit), it appears the TimeZoneKeyName returns a
+	string with extraneous characters."""
+	try:
+		return name[:name.index('\x00')]
+	except ValueError:
+		#null character not found
+		return name
+
+def GetTZCapabilities():
+	"""Run a few known tests to determine the capabilities of the time zone database
+	on this machine.
+	Note Dynamic Time Zone support is not available on any platform at this time; this
+	is a limitation of this library, not the platform."""
+	tzi = TimeZoneInfo( 'Mountain Standard Time' )
+	MissingTZPatch = datetime.datetime( 2007,11,2,tzinfo=tzi ).utctimetuple() != (2007,11,2,6,0,0,4,306,0)
+	DynamicTZSupport = not MissingTZPatch and datetime.datetime( 2003,11,2,tzinfo=tzi).utctimetuple() == (2003,11,2,7,0,0,6,306,0)
+	del tzi
+	return vars()
+	
+
+class DLLHandleCache( object ):
+	def __init__( self ):
+		self.__cache = {}
+
+	def __getitem__( self, filename ):
+		key = filename.lower()
+		return self.__cache.setdefault( key, win32api.LoadLibrary( key ) )
+
+DLLCache = DLLHandleCache()	
+
+def resolveMUITimeZone( spec ):
+	"""Resolve a multilingual user interface resource for the time zone name
+	>>> result = resolveMUITimeZone( '@tzres.dll,-110' )
+	>>> expectedResultType = [type(None),unicode][sys.getwindowsversion() >= (6,)]
+	>>> type( result ) is expectedResultType
+	True
+	
+	spec should be of the format @path,-stringID[;comment]
+	see http://msdn2.microsoft.com/en-us/library/ms725481.aspx for details
+	"""
+	pattern = re.compile( '@(?P<dllname>.*),-(?P<index>\d+)(?:;(?P<comment>.*))?' )
+	matcher = pattern.match( spec )
+	assert matcher, 'Could not parse MUI spec'
+
+	try:
+		handle = DLLCache[ matcher.groupdict()[ 'dllname' ] ]
+		result = win32api.LoadString( handle, int( matcher.groupdict()[ 'index' ] ) )
+	except win32api.error, e:
+		result = None
+	return result
