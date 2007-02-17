@@ -47,6 +47,10 @@ typedef BOOL (WINAPI *SetHandleInformationfunc)(HANDLE, DWORD, DWORD);
 static SetHandleInformationfunc pfnSetHandleInformation=NULL;
 typedef BOOL (WINAPI *GlobalMemoryStatusExfunc)(LPMEMORYSTATUSEX);
 static GlobalMemoryStatusExfunc pfnGlobalMemoryStatusEx=NULL;
+typedef BOOL (WINAPI *GetSystemFileCacheSizefunc)(PSIZE_T,PSIZE_T,PDWORD);
+static GetSystemFileCacheSizefunc pfnGetSystemFileCacheSize = NULL;
+typedef BOOL (WINAPI *SetSystemFileCacheSizefunc)(SIZE_T,SIZE_T,DWORD);
+static SetSystemFileCacheSizefunc pfnSetSystemFileCacheSize = NULL;
 
 // from secur32.dll
 typedef BOOLEAN (WINAPI *GetUserNameExfunc)(EXTENDED_NAME_FORMAT,LPWSTR,PULONG);
@@ -1131,22 +1135,20 @@ PyLoadCursor( PyObject *self, PyObject *args )
 {
 	HINSTANCE hInstance;
 	PyObject *obhInstance, *obid;
-	LPCTSTR id;
+	LPTSTR id=NULL;
 	if (!PyArg_ParseTuple(args,"OO:LoadCursor",
 		&obhInstance, // @pyparm <o PyHANDLE>|hInstance||Handle to the instance to load the resource from, or None to load a standard system cursor
-		&obid)) // @pyparm int|cursorid||The ID of the cursor.  Can be a resource id or for system cursors, one of win32con.IDC_*
+		&obid)) // @pyparm <o PyResourceId>|cursorid||The ID of the cursor.  Can be a resource id or for system cursors, one of win32con.IDC_*
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhInstance, (HANDLE *)&hInstance, TRUE))
 		return NULL;
-	/* ??? Cursor id should also accept a string.  Need to create a function for this, same logic used several
-		places in win32api and win32gui for resource id's. ??? */
-	id=(LPCTSTR)PyLong_AsVoidPtr(obid);
-	if (id==NULL && PyErr_Occurred())
+	if (!PyWinObject_AsResourceId(obid, &id))
 		return NULL;
 	// @pyseeapi LoadCursor
 	PyW32_BEGIN_ALLOW_THREADS
 	HCURSOR ret = ::LoadCursor(hInstance, MAKEINTRESOURCE(id));
 	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeResourceId(id);
 	if (ret==NULL) ReturnAPIError("LoadCursor");
 	return PyWinLong_FromHANDLE(ret);
 }
@@ -1665,20 +1667,24 @@ static PyObject *
 PyGetProcAddress(PyObject * self, PyObject * args)
 {
 	HINSTANCE handle;
-	PyObject *obhandle;
-	char *fnName;
-	// @pyparm <o PyHANDLE>|hModule||Specifies the handle to the module.
-	// @pyparm string|functionName||Specifies the name of the procedure.
-	if (!PyArg_ParseTuple(args, "Os:GetProcAddress", &obhandle, &fnName))
+	PyObject *obhandle, *obfnName;
+	char *fnName=NULL;
+
+	if (!PyArg_ParseTuple(args, "OO:GetProcAddress",
+		&obhandle,	// @pyparm <o PyHANDLE>|hModule||Specifies the handle to the module.
+		&obfnName))	// @pyparm <o PyResourceId>|functionName||Specifies the name of the procedure, or its ordinal value
 		return (NULL);
 	if (!PyWinObject_AsHANDLE(obhandle, (HANDLE *)&handle, FALSE))
 		return NULL;
-
+	// GetProcAddress is char only
+	if (!PyWinObject_AsResourceIdA(obfnName, &fnName))
+		return NULL;
 	FARPROC proc = ::GetProcAddress(handle, fnName);
+	PyWinObject_FreeResourceId(fnName);
 	if (proc==NULL)
 		return ReturnAPIError("GetProcAddress");
 	// @pyseeapi GetProcAddress
-	return PyLong_FromVoidPtr(proc);
+	return PyWinLong_FromVoidPtr(proc);
 }
 
 // @pymethod int/string|win32api|GetProfileVal|Retrieves entries from a windows INI file.  This method encapsulates GetProfileString, GetProfileInt, GetPrivateProfileString and GetPrivateProfileInt.
@@ -1816,8 +1822,8 @@ PyGetSystemInfo(PyObject * self, PyObject * args)
 						 0,
 #endif // MAINWIN
 						 info.dwPageSize, 
-                         PyLong_FromVoidPtr(info.lpMinimumApplicationAddress),
-						 PyLong_FromVoidPtr(info.lpMaximumApplicationAddress),
+                         PyWinLong_FromVoidPtr(info.lpMinimumApplicationAddress),
+						 PyWinLong_FromVoidPtr(info.lpMaximumApplicationAddress),
                          PyLong_FromUnsignedLongLong(info.dwActiveProcessorMask),
 						 info.dwNumberOfProcessors,
                          info.dwProcessorType, info.dwAllocationGranularity,
@@ -2231,6 +2237,49 @@ PyGetSystemDirectory (PyObject *self, PyObject *args)
 	::GetSystemDirectory(buf, sizeof(buf));
 	PyW32_END_ALLOW_THREADS
 	return Py_BuildValue("s", buf);
+}
+
+// @pymethod tuple|win32api|GetSystemFileCacheSize|Returns the amount of memory reserved for file cache
+static PyObject *
+PyGetSystemFileCacheSize(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(GetSystemFileCacheSize);
+	SIZE_T minsize,maxsize;
+	DWORD flags;
+	if (!(*pfnGetSystemFileCacheSize)(&minsize, &maxsize, &flags))
+		return PyWin_SetAPIError("GetSystemFileCacheSize");
+	// @rdesc Returns a tuple containing the minimum and maximum cache sizes, and flags (combination of win32con.MM_WORKING_SET_* flags)
+	return Py_BuildValue("NNN",
+		PyLong_FromUnsignedLongLong(minsize),
+		PyLong_FromUnsignedLongLong(maxsize),
+		PyLong_FromUnsignedLong(flags));
+}
+
+// @pymethod |win32api|SetSystemFileCacheSize|Sets the amount of memory reserved for file cache
+// @comm Requires SE_INCREASE_QUOTA_NAME priv
+// @comm Pass -1 for both min and max to flush file cache.
+// @comm Accepts keyword args.
+static PyObject *
+PySetSystemFileCacheSize(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(SetSystemFileCacheSize);
+	SIZE_T minsize,maxsize;
+	DWORD flags=0;
+#ifdef _WIN64
+	static char *input_fmt="kk|k:SetSystemFileCacheSize";
+#else
+	static char *input_fmt="KK|k:SetSystemFileCacheSize";
+#endif
+	static char *keywords[]={"MinimumFileCacheSize","MaximumFileCacheSize","Flags", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, input_fmt, keywords,
+		&minsize,	// @pyparm long|MinimumFileCacheSize||Minimum size in bytes.
+		&maxsize,	// @pyparm long|MaximumFileCacheSize||Maximum size in bytes.
+		&flags))	// @pyparm int|Flags|0|Combination of win32con.MM_WORKING_SET_* flags
+		return NULL;
+	if (!(*pfnSetSystemFileCacheSize)(minsize, maxsize, flags))
+		return PyWin_SetAPIError("SetSystemFileCacheSize");
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 // @pymethod int|win32api|GetVersion|Returns the current version of Windows, and information about the environment.
@@ -3813,12 +3862,12 @@ PyObject *PySendMessage(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
-	int rc;
+	LRESULT rc;
 	// @pyseeapi SendMessage
 	PyW32_BEGIN_ALLOW_THREADS
 	rc = ::SendMessage(hwnd, message, wParam, lParam);
 	PyW32_END_ALLOW_THREADS
-	return Py_BuildValue("i",rc);
+	return PyWinLong_FromVoidPtr((void *)rc);
 }
 
 // @pymethod |win32api|SetConsoleTitle|Sets the title for the current console.
@@ -3919,10 +3968,10 @@ PyShellExecute( PyObject *self, PyObject *args )
 	HINSTANCE rc=::ShellExecute(hwnd, op, file, params, dir, show);
 	PyW32_END_ALLOW_THREADS
 	// @pyseeapi ShellExecute
-	if ((rc) <= (HINSTANCE)32) {
+	if (rc <= (HINSTANCE)32) {
 		return ReturnAPIError("ShellExecute", (int)rc );
 	}
-	return PyLong_FromVoidPtr(rc);
+	return PyWinLong_FromVoidPtr(rc);
 	// @rdesc The instance handle of the application that was run. (This handle could also be the handle of a dynamic data exchange [DDE] server application.)
 	// If there is an error, the method raises an exception.
 }
@@ -3986,13 +4035,9 @@ PyWinHelp( PyObject *self, PyObject *args )
 		data = 0;
 	else if (PyString_Check(dataOb))
 		data = (ULONG_PTR)PyString_AsString(dataOb);
-	else{
-		data = (ULONG_PTR)PyLong_AsVoidPtr(dataOb);
-		if (data==NULL && PyErr_Occurred()){
-			PyErr_SetString(PyExc_TypeError, "4th argument must be a None, string or an integer.");
+	else
+		if (!PyWinLong_AsVoidPtr(dataOb, (void **)&data))
 			return NULL;
-			}
-		}
 		
 	PyW32_BEGIN_ALLOW_THREADS
 	BOOL ok = ::WinHelp(hwnd, hlpFile, cmd, data);
@@ -4137,7 +4182,7 @@ PyGetWindowLong(PyObject * self, PyObject * args)
 	PyW32_BEGIN_ALLOW_THREADS
 	LONG_PTR rc = ::GetWindowLongPtr(hwnd, offset );
 	PyW32_END_ALLOW_THREADS
-	return PyLong_FromVoidPtr((void *)rc);
+	return PyWinLong_FromVoidPtr((void *)rc);
 }
 
 // @pymethod int|win32api|SetWindowLong|Places a long value at the specified offset into the extra window memory of the given window.
@@ -4156,13 +4201,12 @@ PySetWindowLong(PyObject * self, PyObject * args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
-	newVal=(LONG_PTR)PyLong_AsVoidPtr(obval);
-	if (newVal==NULL && PyErr_Occurred())
+	if (!PyWinLong_AsVoidPtr(obval, (void **)&newVal))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
 	LONG_PTR rc = ::SetWindowLongPtr(hwnd, offset, newVal ) ;
 	PyW32_END_ALLOW_THREADS
-	return PyLong_FromVoidPtr((void *)rc);
+	return PyWinLong_FromVoidPtr((void *)rc);
 }
 // @pymethod int|win32api|SetWindowWord|
 // @comm This function is obsolete, use <om win32api.SetWindowLong> instead
@@ -4202,13 +4246,12 @@ PySetClassLong(PyObject * self, PyObject * args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
-	newVal=(LONG_PTR)PyLong_AsVoidPtr(obval);
-	if (newVal==NULL && PyErr_Occurred())
+	if (!PyWinLong_AsVoidPtr(obval, (void **)&newVal))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
 	LONG_PTR rc = ::SetClassLongPtr(hwnd, offset, newVal );
 	PyW32_END_ALLOW_THREADS
-	return PyLong_FromVoidPtr((void *)rc);
+	return PyWinLong_FromVoidPtr((void *)rc);
 }
 
 // @pymethod int|win32api|SetClassWord|
@@ -4532,59 +4575,47 @@ static PyObject * PyLoadResource(PyObject *self, PyObject *args)
 	PyObject *obhModule;
 	PyObject *obType;
 	PyObject *obName;
+	PyObject *ret=NULL;
 	WORD wLanguage = MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL);
+	LPTSTR lpType=NULL,lpName=NULL;
 
-	if ( !PyArg_ParseTuple(args, "OOO|i:LoadResource",
+	if ( !PyArg_ParseTuple(args, "OOO|H:LoadResource",
 			&obhModule, // @pyparm <o PyHANDLE>|handle||The handle of the module containing the resource.  Use None for currrent process executable.
-			&obType, // @pyparm object|type||The type of resource to load.
-			&obName, // @pyparm object|name||The name of the resource to load.
+			&obType, // @pyparm <o PyResourceId>|type||The type of resource to load.
+			&obName, // @pyparm <o PyResourceId>|name||The name or Id of the resource to load.
 			&wLanguage // @pyparm int|language|NEUTRAL|Language to use, defaults to LANG_NEUTRAL.
 		) )
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhModule, (HANDLE *)&hModule, TRUE))
-		return NULL;
-
-	BOOL bFreeType = FALSE, bFreeName = FALSE;
-	LPTSTR lpType;
-	if ( PyInt_Check(obType) )
-		lpType = MAKEINTRESOURCE(PyInt_AS_LONG((PyIntObject *)obType));
-	else if (PyWinObject_AsTCHAR(obType, &lpType))
-		bFreeType = TRUE;
-	else
-		return ReturnError("Bad type for resource type.", "LoadResource");
-
-	LPTSTR lpName;
-	if ( PyInt_Check(obName) )
-		lpName = MAKEINTRESOURCE(PyInt_AS_LONG((PyIntObject *)obName));
-	else if (PyWinObject_AsTCHAR(obName, &lpName))
-		bFreeName = TRUE;
-	else {
-		if (bFreeType) PyWinObject_FreeTCHAR(lpType);
-		return ReturnError("Bad type for resource name.", "LoadResource");
-	}
-
-	HRSRC hrsrc = FindResourceEx(hModule, lpType, lpName, wLanguage);
-	if (bFreeType) PyWinObject_FreeTCHAR(lpType);
-	if (bFreeName) PyWinObject_FreeTCHAR(lpName);
-	if ( hrsrc == NULL )
-		return ReturnAPIError("LoadResource");
-
-	DWORD size = SizeofResource(hModule, hrsrc);
-	if ( size == 0 )
-		return ReturnAPIError("LoadResource");
-
-	HGLOBAL hglob = LoadResource(hModule, hrsrc);
-	if ( hglob == NULL )
-		return ReturnAPIError("LoadResource");
-
-	LPVOID p = LockResource(hglob);
-	if ( p == NULL )
-		return ReturnAPIError("LoadResource");
-
-	return PyString_FromStringAndSize((char *)p, size);
+	if (PyWinObject_AsHANDLE(obhModule, (HANDLE *)&hModule, TRUE)
+		&&PyWinObject_AsResourceId(obType, &lpType) 
+		&&PyWinObject_AsResourceId(obName, &lpName)){
+		HRSRC hrsrc = FindResourceEx(hModule, lpType, lpName, wLanguage);
+		if ( hrsrc == NULL )
+			PyWin_SetAPIError("FindResourceEx");
+		else{
+			DWORD size = SizeofResource(hModule, hrsrc);
+			if ( size == 0 )
+				PyWin_SetAPIError("SizeofResource");
+			else{
+				HGLOBAL hglob = LoadResource(hModule, hrsrc);
+				if ( hglob == NULL )
+					PyWin_SetAPIError("LoadResource");
+				else{
+					LPVOID p = LockResource(hglob);
+					if ( p == NULL )
+						PyWin_SetAPIError("LockResource");
+					else
+						ret=PyString_FromStringAndSize((char *)p, size);
+					}
+				}
+			}
+		}
+	PyWinObject_FreeResourceId(lpType);
+	PyWinObject_FreeResourceId(lpName);
+	return ret;
 }
 
-// @pymethod |win32api|BeginUpdateResource|Begins an update cycle for a PE file.
+// @pymethod <o PyHANDLE>|win32api|BeginUpdateResource|Begins an update cycle for a PE file.
 static PyObject * PyBeginUpdateResource(PyObject *self, PyObject *args)
 {
 	const char *szFileName;
@@ -4610,49 +4641,35 @@ static PyObject * PyUpdateResource(PyObject *self, PyObject *args)
 	PyObject *obhUpdate;
 	PyObject *obType;
 	PyObject *obName;
+	PyObject *ret=NULL;
 	LPVOID lpData;
 	DWORD cbData;
 	WORD wLanguage = MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL);
+	LPWSTR lpType=NULL,lpName=NULL;
 
-	if ( !PyArg_ParseTuple(args, "OOOs#|i:UpdateResource",
+	if ( !PyArg_ParseTuple(args, "OOOs#|H:UpdateResource",
 						   &obhUpdate, // @pyparm <o PyHANDLE>|handle||The update-file handle.
-						   &obType, // @pyparm object|type||The type of resource to load.
-						   &obName, // @pyparm object|name||The name of the resource to load.
+						   &obType, // @pyparm <o PyResourceId>|type||The type of resource to update
+						   &obName, // @pyparm <o PyResourceId>|name||The id/name of the resource to update
 						   &lpData, // @pyparm string|data||The data to place into the resource.
 						   &cbData,
 						   &wLanguage // @pyparm int|language|NEUTRAL|Language to use, defaults to LANG_NEUTRAL.
 		) )
 		return NULL;
 
-	if (!PyWinObject_AsHANDLE(obhUpdate, (HANDLE *)&hUpdate, FALSE))
-		return NULL;
-	BOOL bFreeType = FALSE, bFreeName = FALSE;
-	LPWSTR lpType;
-	if ( PyInt_Check(obType) )
-		lpType = MAKEINTRESOURCEW(PyInt_AS_LONG((PyIntObject *)obType));
-	else if (PyWinObject_AsWCHAR(obType, &lpType) )
-		bFreeType = TRUE;
-	else
-		return ReturnError("Bad type for resource type.", "UpdateResource");
-
-	LPWSTR lpName;
-	if ( PyInt_Check(obName) )
-		lpName = MAKEINTRESOURCEW(PyInt_AS_LONG((PyIntObject *)obName));
-	else if ( PyWinObject_AsWCHAR(obName, &lpName) )
-		bFreeName = TRUE;
-	else {
-		if (bFreeType) PyWinObject_FreeBstr(lpType);
-		return ReturnError("Bad type for resource name.", "UpdateResource");
-	}
-
-	BOOL ok = UpdateResourceW(hUpdate, lpType, lpName, wLanguage, lpData, cbData);
-	if (bFreeType) PyWinObject_FreeWCHAR(lpType);
-	if (bFreeName) PyWinObject_FreeWCHAR(lpName);
-	if ( !ok )
-		return ReturnAPIError("UpdateResource");
-
-	Py_INCREF(Py_None);
-	return Py_None;
+	if (PyWinObject_AsHANDLE(obhUpdate, (HANDLE *)&hUpdate, FALSE)
+		&&PyWinObject_AsResourceIdW(obType, &lpType) 
+		&&PyWinObject_AsResourceIdW(obName, &lpName)){
+		if (UpdateResourceW(hUpdate, lpType, lpName, wLanguage, lpData, cbData)){
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		else
+			PyWin_SetAPIError("UpdateResource");
+		}
+	PyWinObject_FreeResourceId(lpType);
+	PyWinObject_FreeResourceId(lpName);
+	return ret;
 }
 
 // @pymethod |win32api|EndUpdateResource|Ends a resource update cycle of a PE file.
@@ -4663,8 +4680,8 @@ static PyObject * PyEndUpdateResource(PyObject *self, PyObject *args)
 	int fDiscard;
 
 	if ( !PyArg_ParseTuple(args, "Oi:EndUpdateResource",
-						   &obhUpdate, // @pyparm <o PyHANDLE>|handle||The update-file handle.
-						   &fDiscard // @pyparm int|discard||Flag to discard all writes.
+		&obhUpdate, // @pyparm <o PyHANDLE>|handle||The update-file handle.
+		&fDiscard // @pyparm int|discard||Flag to discard all writes.
 		) )
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhUpdate, (HANDLE *)&hUpdate, FALSE))
@@ -4676,39 +4693,18 @@ static PyObject * PyEndUpdateResource(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-BOOL PyWinObject_AsResourceID(PyObject *ob, long *resource_id)
+BOOL CALLBACK EnumResProc(HMODULE module, LPCSTR type, LPSTR name, PyObject *ret)
 {
-	// resource names and types can be either string pointers or long ints
-	if (PyWinObject_AsWCHAR(ob, (WCHAR **)resource_id))
-		return TRUE;
-	PyErr_Clear();
-	if (PyInt_Check(ob)){
-		*resource_id=PyInt_AsLong(ob);
-		return TRUE;
-		}
-	PyErr_Clear();
-	PyErr_SetString(PyExc_TypeError, "Resource name/type must be integer or string");
-	return FALSE;
-}
-
-BOOL CALLBACK EnumResProc(HMODULE module, LPCSTR type, LPSTR name, PyObject
-*param)
-{
-	PyObject *pyname;
-	if (HIWORD(name) == 0)
-	{
-		pyname = PyInt_FromLong(reinterpret_cast<long>(name));
-	}
-	else if (name[0] == '#')
-	{
-		pyname = PyInt_FromLong(_ttoi(name + 1));
-	}
+	PyObject *obname;
+	if (IS_INTRESOURCE(name))
+		obname=PyWinLong_FromVoidPtr(name);
 	else
-	{
-		pyname = PyString_FromString(name);
-	}
-	PyList_Append(param, pyname);
-	Py_DECREF(pyname);
+		obname=PyString_FromString(name);
+	if ((obname==NULL) || (PyList_Append(ret, obname)==-1)){
+		Py_XDECREF(obname);
+		return FALSE;
+		}
+	Py_DECREF(obname);
 	return TRUE;
 }
 
@@ -4716,38 +4712,46 @@ BOOL CALLBACK EnumResProc(HMODULE module, LPCSTR type, LPSTR name, PyObject
 PyObject *PyEnumResourceNames(PyObject *, PyObject *args)
 {
 	HMODULE hmodule;
-	PyObject *obhmodule;
-	LPCSTR restype;
-	char buf[20];
-	// NOTE:  MH can't make the string version of the param
-	// return anything useful, so I undocumented its use!
-	// pyparm <o PyHANDLE>|hmodule||The handle to the module to enumerate.
-	// pyparm string|resType||The type of resource to enumerate as a string (eg, 'RT_DIALOG')
-	if (!PyArg_ParseTuple(args, "Os:EnumResourceNames", &obhmodule, &restype))
-	{
-		PyErr_Clear();
-		int restypeint;
-		// @pyparm <o PyHANDLE>|hmodule||The handle to the module to enumerate.
-		// @pyparm int|resType||The type of resource to enumerate as an integer (eg, win32con.RT_DIALOG)
-		if (!PyArg_ParseTuple(args, "Oi:EnumResourceNames", &obhmodule, &restypeint))
-		{
-			return NULL;
-		}
-		sprintf(buf, "#%d", restypeint);
-		restype = buf;
-	}
+	PyObject *obhmodule, *obrestype;
+	char *restype=NULL;
+	// @pyparm <o PyHANDLE>|hmodule||The handle to the module to enumerate.
+	// @pyparm <o PyResourceId>|resType||The type of resource to enumerate. (win32con.RT_*).
+	//	If passed as a string, form is '#' sign followed by decimal number. eg RT_ANICURSOR would be '#21'
+	if (!PyArg_ParseTuple(args, "OO:EnumResourceNames",
+		&obhmodule,
+		&obrestype))
+		return NULL;
+
 	if (!PyWinObject_AsHANDLE(obhmodule, (HANDLE *)&hmodule, FALSE))
 		return NULL;
-	// @rdesc The result is a list of string or integers, one for each resource enumerated.
-	PyObject *result = PyList_New(0);
-	if (result==NULL)
+	if (!PyWinObject_AsResourceId(obrestype, &restype))
 		return NULL;
-	EnumResourceNames(
-		hmodule,
-		restype,
-		reinterpret_cast<ENUMRESNAMEPROC>(EnumResProc),
-		reinterpret_cast<LONG_PTR>(result));
 
+	PyObject *result = PyList_New(0);
+	if (result!=NULL){
+		// @rdesc The result is a list of string or integers, one for each resource enumerated.
+		if (!EnumResourceNames(
+			hmodule,
+			restype,
+			reinterpret_cast<ENUMRESNAMEPROC>(EnumResProc),
+			reinterpret_cast<LONG_PTR>(result))){
+			// don't overwrite any error that may have been set by callback function
+			if (PyErr_Occurred()){
+				Py_DECREF(result);
+				result=NULL;
+				}
+			else{
+				DWORD err=GetLastError();
+				// These two errors indicate no resource of specified type found in module, just return empty list if so
+				if ((err!=ERROR_RESOURCE_TYPE_NOT_FOUND) && (err!=NO_ERROR)){
+					PyWin_SetAPIError("EnumResourceNames", err);
+					Py_DECREF(result);
+					result=NULL;
+					}
+				}
+			}
+		}
+	PyWinObject_FreeResourceId(restype);
 	return result;
 }
 
@@ -4755,12 +4759,13 @@ BOOL CALLBACK EnumResourceTypesProc(HMODULE hmodule, WCHAR* typname, PyObject *r
 {
 	PyObject *obname=NULL;
 	if (IS_INTRESOURCE(typname))
-		obname=PyInt_FromLong((LONG)typname);
+		obname=PyWinLong_FromVoidPtr(typname);
 	else
 		obname=PyWinObject_FromWCHAR(typname);
-	if (obname==NULL)
+	if ((obname==NULL) || (PyList_Append(ret, obname)==-1)){
+		Py_XDECREF(obname);
 		return FALSE;
-	PyList_Append(ret, obname);
+		}
 	Py_DECREF(obname);
 	return TRUE;
 }
@@ -4771,12 +4776,14 @@ PyObject *PyEnumResourceTypes(PyObject *, PyObject *args)
 	PyObject *ret=NULL, *pyhandle=NULL;
 	HMODULE hmodule;
 
-	// @pyparm <o PyHandle>|hmodule||The handle to the module to enumerate.
+	// @pyparm <o PyHANDLE>|hmodule||The handle to the module to enumerate.
 	if (!PyArg_ParseTuple(args, "O:EnumResourceTypes", &pyhandle))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(pyhandle, (HANDLE *)&hmodule))
 		return NULL;
 	ret=PyList_New(0);
+	if (ret==NULL)
+		return NULL;
 	if(!EnumResourceTypesW(hmodule, 
 			reinterpret_cast<ENUMRESTYPEPROCW>(EnumResourceTypesProc),
 			reinterpret_cast<LONG_PTR>(ret))){
@@ -4792,44 +4799,45 @@ BOOL CALLBACK EnumResourceLanguagesProc(HMODULE hmodule, WCHAR* typname, WCHAR *
 	long resid;
 	resid=wIDLanguage;
 	PyObject *oblangid = PyInt_FromLong(resid);
-	PyList_Append(ret, oblangid);
+	if ((oblangid==NULL)||(PyList_Append(ret, oblangid)==-1)){
+		Py_XDECREF(oblangid);
+		return FALSE;
+		}
 	Py_DECREF(oblangid);
 	return TRUE;
 }
 
-// @pymethod [<o PyUnicode>,...]|win32api|EnumResourceLanguages|List languages for a resource
-PyObject *PyEnumResourceLanguages(PyObject *, PyObject *args)
+// @pymethod [int,...]|win32api|EnumResourceLanguages|List languages for a resource
+PyObject *PyEnumResourceLanguages(PyObject *self, PyObject *args)
 {
 	PyObject *ret=NULL, *pyhandle=NULL;
 	HMODULE hmodule;
 	WCHAR *resname=NULL, *typname=NULL;
 	PyObject *obresname=NULL, *obtypname=NULL;
-		// @pyparm <o PyHandle>|hmodule||Handle to the module that contains resource
-		// @pyparm string/unicode/int|lpType||Resource type, can be string or integer
-		// @pyparm string/unicode/int|lpName||Resource name, can be string or integer
-	if (!PyArg_ParseTuple(args, "OOO:EnumResourceLanguages", &pyhandle, &obtypname, &obresname))
+
+	if (!PyArg_ParseTuple(args, "OOO:EnumResourceLanguages",
+		&pyhandle,		// @pyparm <o PyHANDLE>|hmodule||Handle to the module that contains resource
+		&obtypname,		// @pyparm <o PyResourceId>|lpType||Resource type, can be string or integer
+		&obresname))	// @pyparm <o PyResourceId>|lpName||Resource name, can be string or integer
 		return NULL;
-	if (!PyWinObject_AsHANDLE(pyhandle, (HANDLE *)&hmodule))
-		return NULL;
-	if(!PyWinObject_AsResourceID(obtypname,(long *)&typname))
-		goto done;
-	if(!PyWinObject_AsResourceID(obresname,(long *)&resname))
-		goto done;
-	ret=PyList_New(0);
-	if(!EnumResourceLanguagesW(hmodule,
-			typname,
-			resname,
-			reinterpret_cast<ENUMRESLANGPROCW>(EnumResourceLanguagesProc),
-			reinterpret_cast<LONG_PTR>(ret))){
-		Py_DECREF(ret);
-		ret=NULL;
-		PyWin_SetAPIError("EnumResourceLanguages",GetLastError());
+
+	if (PyWinObject_AsHANDLE(pyhandle, (HANDLE *)&hmodule)
+		&&PyWinObject_AsResourceIdW(obtypname,&typname)
+		&&PyWinObject_AsResourceIdW(obresname,&resname)){
+		ret=PyList_New(0);
+		if (ret!=NULL)
+			if(!EnumResourceLanguagesW(hmodule,
+				typname,
+				resname,
+				reinterpret_cast<ENUMRESLANGPROCW>(EnumResourceLanguagesProc),
+				reinterpret_cast<LONG_PTR>(ret))){
+				Py_DECREF(ret);
+				ret=NULL;
+				PyWin_SetAPIError("EnumResourceLanguages",GetLastError());
+				}
 		}
-done:
-	if ((typname!=NULL)&&(!IS_INTRESOURCE(typname)))
-		PyWinObject_FreeWCHAR(typname);
-	if ((resname!=NULL)&&(!IS_INTRESOURCE(resname)))
-		PyWinObject_FreeWCHAR(resname);
+	PyWinObject_FreeResourceId(typname);
+	PyWinObject_FreeResourceId(resname);
 	return ret;
 }
 
@@ -5469,6 +5477,8 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetSystemDefaultLangID",PyGetSystemDefaultLangID,1}, // @pymeth GetSystemDefaultLangID|Retrieves the system default language identifier. 
 	{"GetSystemDefaultLCID",PyGetSystemDefaultLCID,1}, // @pymeth GetSystemDefaultLCID|Retrieves the system default locale identifier. 
 	{"GetSystemDirectory",	PyGetSystemDirectory,1}, // @pymeth GetSystemDirectory|Returns the Windows system directory.
+	{"GetSystemFileCacheSize", PyGetSystemFileCacheSize,METH_NOARGS},	// @pymeth GetSystemFileCacheSize|Returns the amount of memory reserved for file cache
+	{"SetSystemFileCacheSize", (PyCFunction)PySetSystemFileCacheSize, METH_KEYWORDS|METH_VARARGS},	// @pymeth SetSystemFileCacheSize|Sets the amount of memory reserved for file cache
 	{"GetSystemInfo",		PyGetSystemInfo, 1},    // @pymeth GetSystemInfo|Retrieves information about the current system.
 	{"GetSystemMetrics",	PyGetSystemMetrics, 1}, // @pymeth GetSystemMetrics|Returns the specified system metrics.
 	{"GetSystemTime",		PyGetSystemTime,	1},	// @pymeth GetSystemTime|Returns the current system time.
@@ -5667,6 +5677,8 @@ initwin32api(void)
     pfnGetHandleInformation=(GetHandleInformationfunc)GetProcAddress(hmodule,"GetHandleInformation");
     pfnSetHandleInformation=(SetHandleInformationfunc)GetProcAddress(hmodule,"SetHandleInformation");
     pfnGlobalMemoryStatusEx=(GlobalMemoryStatusExfunc)GetProcAddress(hmodule,"GlobalMemoryStatusEx");
+	pfnGetSystemFileCacheSize=(GetSystemFileCacheSizefunc)GetProcAddress(hmodule,"GetSystemFileCacheSize");
+	pfnSetSystemFileCacheSize=(SetSystemFileCacheSizefunc)GetProcAddress(hmodule,"SetSystemFileCacheSize");
   }
 
   hmodule = GetModuleHandle("user32.dll");
