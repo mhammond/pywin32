@@ -190,7 +190,8 @@ class ShellFolderFileSystem(ShellFolderBase):
             # All our items, even files, have sub-items
             extras = shellcon.SFGAO_HASSUBFOLDER | \
                      shellcon.SFGAO_FOLDER | \
-                     shellcon.SFGAO_FILESYSANCESTOR
+                     shellcon.SFGAO_FILESYSANCESTOR | \
+                     shellcon.SFGAO_BROWSABLE
             ret_flags &= (dwAttr | extras)
         return ret_flags
  
@@ -219,7 +220,15 @@ class ShellFolderDirectory(ShellFolderFileSystem):
                 pidls.append( [type_name + "\0" + fqn] )
         return NewEnum(pidls, iid=shell.IID_IEnumIDList,
                        useDispatcher=(debug>0))
-  
+
+    def GetDisplayNameOf(self, pidl, flags):
+        final_pidl=pidl[-1]
+        full_fname=final_pidl.split('\0')[-1]
+        return os.path.split(full_fname)[-1]
+
+    def GetAttributesOf(self, pidls, attrFlags):
+        return shellcon.SFGAO_HASSUBFOLDER|shellcon.SFGAO_FOLDER|shellcon.SFGAO_FILESYSANCESTOR|shellcon.SFGAO_BROWSABLE
+
 # As per comments above, even though this manages a file, it is *not* a
 # ShellFolderFileSystem, as the children are not on the file system.
 class ShellFolderFile(ShellFolderBase):
@@ -333,6 +342,11 @@ class ShellFolderRoot(ShellFolderFileSystem):
         items = [ ["directory\0" + p] for p in sys.path if os.path.isdir(p)]
         return NewEnum(items, iid=shell.IID_IEnumIDList,
                        useDispatcher=(debug>0))
+    def GetDisplayNameOf(self, pidl, flags):
+        ## return full path for sys.path dirs, since they don't appear under a parent folder
+        final_pidl=pidl[-1]
+        display_name=final_pidl.split('\0')[-1]
+        return display_name
 
 # Simple shell view implementations
 
@@ -397,6 +411,7 @@ class FileSystemView:
                 self.hwnd_parent, 0, win32gui.dllhandle, None)
         win32gui.SetWindowLong(self.hwnd, win32con.GWL_WNDPROC, message_map)
         print "View 's hwnd is", self.hwnd
+        return self.hwnd
 
     def _CreateChildWindow(self, prev):
         # Creates the list view window.
