@@ -2439,17 +2439,21 @@ PyMoveFileEx( PyObject *self, PyObject *args )
 PyObject *PyPostMessage(PyObject *self, PyObject *args)
 {
 	HWND hwnd;
-	PyObject *obhwnd;
+	PyObject *obhwnd, *obwParam=Py_None, *oblParam=Py_None;
 	UINT message;
 	WPARAM wParam=0;
 	LPARAM lParam=0;
-	if (!PyArg_ParseTuple(args, "Oi|ii:PostMessage", 
+	if (!PyArg_ParseTuple(args, "OI|OO:PostMessage", 
 	          &obhwnd,    // @pyparm <o PyHANDLE>|hwnd||The hWnd of the window to receive the message.
 	          &message, // @pyparm int|idMessage||The ID of the message to post.
-	          &wParam,  // @pyparm int|wParam||The wParam for the message
-	          &lParam)) // @pyparm int|lParam||The lParam for the message
+	          &obwParam,  // @pyparm int|wParam|None|The wParam for the message
+	          &oblParam)) // @pyparm int|lParam|None|The lParam for the message
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+		return NULL;
+	if (!PyWinObject_AsPARAM(obwParam, &wParam))
+		return NULL;
+	if (!PyWinObject_AsPARAM(oblParam, (WPARAM *)&lParam))
 		return NULL;
 	// @pyseeapi PostMessage
 	PyW32_BEGIN_ALLOW_THREADS
@@ -2468,12 +2472,18 @@ PyObject *PyPostThreadMessage(PyObject *self, PyObject *args)
 	UINT message;
 	WPARAM wParam=0;
 	LPARAM lParam=0;
-	if (!PyArg_ParseTuple(args, "ii|ii:PostThreadMessage", 
+	PyObject *obwParam=Py_None, *oblParam=Py_None;
+	if (!PyArg_ParseTuple(args, "iI|OO:PostThreadMessage", 
 	          &threadId,    // @pyparm int|tid||Identifier of the thread to which the message will be posted.
 	          &message, // @pyparm int|idMessage||The ID of the message to post.
-	          &wParam,  // @pyparm int|wParam||The wParam for the message
-	          &lParam)) // @pyparm int|lParam||The lParam for the message
+	          &obwParam,  // @pyparm int/str|wParam|None|The wParam for the message
+	          &oblParam)) // @pyparm int/str|lParam|None|The lParam for the message
 		return NULL;
+	if (!PyWinObject_AsPARAM(obwParam, &wParam))
+		return NULL;
+	if (!PyWinObject_AsPARAM(oblParam, (WPARAM *)&lParam))
+		return NULL;
+
 	// @pyseeapi PostThreadMessage
 	PyW32_BEGIN_ALLOW_THREADS
 	BOOL ok = ::PostThreadMessage(threadId, message, wParam, lParam);
@@ -3849,18 +3859,21 @@ PySearchPath (PyObject *self, PyObject *args)
 PyObject *PySendMessage(PyObject *self, PyObject *args)
 {
 	HWND hwnd;
-	PyObject *obhwnd;
-	int message;
-	int wParam=0;
-	int lParam=0;
-	if (!PyArg_ParseTuple(args, "Oi|ii:SendMessage",
-	          &obhwnd,  // @pyparm <o PyHANDLE>|hwnd||The hWnd of the window to receive the message.
-		      &message, // @pyparm int|idMessage||The ID of the message to send.
-	          &wParam,  // @pyparm int|wParam||The wParam for the message
-	          &lParam)) // @pyparm int|lParam||The lParam for the message
-
+	PyObject *obhwnd, *obwParam=Py_None, *oblParam=Py_None;
+	UINT message;
+	WPARAM wParam=0;
+	LPARAM lParam=0;
+	if (!PyArg_ParseTuple(args, "OI|OO:SendMessage",
+		&obhwnd,		// @pyparm <o PyHANDLE>|hwnd||The hWnd of the window to receive the message.
+		&message,		// @pyparm int|idMessage||The ID of the message to send.
+		&obwParam,		// @pyparm int/string|wParam|None|The wParam for the message
+		&oblParam))		// @pyparm int/string|lParam|None|The lParam for the message
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+		return NULL;
+	if (!PyWinObject_AsPARAM(obwParam, &wParam))
+		return NULL;
+	if (!PyWinObject_AsPARAM(oblParam, (WPARAM *)&lParam))
 		return NULL;
 	LRESULT rc;
 	// @pyseeapi SendMessage
