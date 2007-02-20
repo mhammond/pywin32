@@ -340,6 +340,9 @@ PYWINTYPES_EXPORT void PyWinObject_FreeResourceId(WCHAR *resource_id);
 #define PyWinObject_AsResourceId PyWinObject_AsResourceIdA
 #endif
 
+// WPARAM and LPARAM conversion
+PYWINTYPES_EXPORT BOOL PyWinObject_AsPARAM(PyObject *ob, WPARAM *pparam);
+
 /*
 ** SECURITY_ATTRIBUTES support
 */

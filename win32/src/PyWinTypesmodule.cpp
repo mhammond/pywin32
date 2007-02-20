@@ -613,6 +613,40 @@ void PyWinObject_FreeResourceId(WCHAR *resource_id)
 }
 
 
+// Conversion for WPARAM and LPARAM
+/* ??? WPARAM is defined as UINT_PTR, and LPARAM is defined as LONG_PTR.
+	Make separate functions to avoid cast ??? */
+BOOL PyWinObject_AsPARAM(PyObject *ob, WPARAM *pparam)
+{
+	if (ob==NULL || ob==Py_None){
+		*pparam=NULL;
+		return TRUE;
+		}
+#ifdef UNICODE
+#define TCHAR_DESC "Unicode"
+	if (PyUnicode_Check(ob)){
+		*pparam = (WPARAM)PyUnicode_AS_UNICODE(ob);
+		return TRUE;
+		}
+#else
+#define TCHAR_DESC "String"	
+	if (PyString_Check(ob)){
+		*pparam = (WPARAM)PyString_AS_STRING(ob);
+		return TRUE;
+		}
+#endif
+	if (PyWinLong_AsVoidPtr(ob, (void **)pparam))
+		return TRUE;
+
+	PyErr_Clear();
+	PyBufferProcs *pb = ob->ob_type->tp_as_buffer;
+	if (pb != NULL && pb->bf_getreadbuffer)
+		return pb->bf_getreadbuffer(ob,0,(VOID **)pparam)!=-1;
+	PyErr_SetString(PyExc_TypeError, "WPARAM must be a " TCHAR_DESC ", int, or buffer object");
+	return FALSE;
+}
+
+
 /* List of functions exported by this module */
 // @module pywintypes|A module which supports common Windows types.
 static struct PyMethodDef pywintypes_functions[] = {
