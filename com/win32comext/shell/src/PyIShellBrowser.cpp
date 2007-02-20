@@ -260,39 +260,6 @@ PyObject *PyIShellBrowser::GetControlWindow(PyObject *self, PyObject *args)
 	return PyWinLong_FromHANDLE(hwnd);
 }
 
-// Little helper stolen from win32gui
-// Need to change win32gui also, or move this function into pywintypes
-static BOOL make_param(PyObject *ob, WPARAM *pparam)
-{
-	if (ob==NULL || ob==Py_None){
-		*pparam=NULL;
-		return TRUE;
-		}
-#ifdef UNICODE
-#define TCHAR_DESC "Unicode"
-	if (PyUnicode_Check(ob)){
-		*pparam = (WPARAM)PyUnicode_AS_UNICODE(ob);
-		return TRUE;
-		}
-#else
-#define TCHAR_DESC "String"	
-	if (PyString_Check(ob)){
-		*pparam = (WPARAM)PyString_AS_STRING(ob);
-		return TRUE;
-		}
-#endif
-	*pparam=(WPARAM)PyLong_AsVoidPtr(ob);
-	if ((*pparam!=NULL) || !PyErr_Occurred())
-		return TRUE;
-
-	PyErr_Clear();
-	PyBufferProcs *pb = ob->ob_type->tp_as_buffer;
-	if (pb != NULL && pb->bf_getreadbuffer)
-		return pb->bf_getreadbuffer(ob,0,(VOID **)pparam)!=-1;
-	PyErr_SetString(PyExc_TypeError, "Must be a" TCHAR_DESC ", int, or buffer object");
-	return FALSE;
-}
-
 // @pymethod int|PyIShellBrowser|SendControlMsg|Sends a control msg to browser's toolbar or status bar
 PyObject *PyIShellBrowser::SendControlMsg(PyObject *self, PyObject *args)
 {
@@ -310,10 +277,10 @@ PyObject *PyIShellBrowser::SendControlMsg(PyObject *self, PyObject *args)
 		return NULL;
 	WPARAM wParam;
 	LPARAM lParam;
-	if (!make_param(obwparam, &wParam))
+	if (!PyWinObject_AsPARAM(obwparam, &wParam))
 		return NULL;
 	// WPARAM and LPARAM are defined as UINT_PTR and LONG_PTR, so they can't be used interchangeably without a cast
-	if (!make_param(oblparam, (WPARAM *)&lParam))
+	if (!PyWinObject_AsPARAM(oblparam, (WPARAM *)&lParam))
 		return NULL;
 	
 	HRESULT hr;
