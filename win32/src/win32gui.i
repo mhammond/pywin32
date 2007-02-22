@@ -210,8 +210,18 @@ typedef float HPEN, HBRUSH, HFONT, HRGN, HBITMAP;
 // Written to the module init function.
 %init %{
 PyEval_InitThreads(); /* Start the interpreter's thread-awareness */
-PyDict_SetItemString(d, "dllhandle", PyLong_FromVoidPtr(g_dllhandle));
+PyDict_SetItemString(d, "dllhandle", PyWinLong_FromVoidPtr(g_dllhandle));
 PyDict_SetItemString(d, "error", PyWinExc_ApiError);
+
+// Expose the window procedure and window class dicts to aid debugging
+g_AtomMap = PyDict_New();
+g_HWNDMap = PyDict_New();
+g_DLGMap = PyDict_New();
+#ifdef Py_DEBUG
+PyDict_SetItemString(d, "g_AtomMap", g_AtomMap);
+PyDict_SetItemString(d, "g_HWNDMap", g_HWNDMap);
+PyDict_SetItemString(d, "g_DLGMap", g_DLGMap);
+#endif
 
 // hack borrowed from win32security since version of SWIG we use doesn't do keyword arguments
 #ifdef WINXPGUI
@@ -712,7 +722,7 @@ LRESULT CALLBACK PyWndProcHWND(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 	if (obInfo!=NULL) { // Is one of ours!
 		obFunc = PyTuple_GET_ITEM(obInfo, 0);
 		PyObject *obOldWndProc = PyTuple_GET_ITEM(obInfo, 1);
-		oldWndProc = (MYWNDPROC)PyInt_AsLong(obOldWndProc);
+		PyWinLong_AsVoidPtr(obOldWndProc, (void **)&oldWndProc);
 	}
 	LRESULT rc = 0;
 	if (!PyWndProc_Call(obFunc, hWnd, uMsg, wParam, lParam, &rc))
@@ -746,11 +756,9 @@ BOOL CALLBACK PyDlgProcHDLG(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		PyObject *obWndProc = PyTuple_GET_ITEM(obTuple, 0);
 		// Replace the lParam with the one the user specified.
 		lParam = PyInt_AsLong( PyTuple_GET_ITEM(obTuple, 1) );
+
 		PyObject *key = PyWinLong_FromHANDLE(hWnd);
-		if (g_DLGMap==NULL)
-			g_DLGMap = PyDict_New();
-		if (g_DLGMap)
-			PyDict_SetItem(g_DLGMap, key, obWndProc);
+		PyDict_SetItem(g_DLGMap, key, obWndProc);
 		Py_DECREF(key);
 		// obWndProc has no reference.
 		rc = TRUE;
@@ -762,13 +770,12 @@ BOOL CALLBACK PyDlgProcHDLG(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 	// If our HWND is in the map, then call it.
 	PyObject *obFunc = NULL;
-	if (g_DLGMap) {
-		PyObject *key = PyWinLong_FromHANDLE(hWnd);
-		obFunc = PyDict_GetItem(g_DLGMap, key);
-		Py_XDECREF(key);
-		if (!obFunc)
-			PyErr_Clear();
-	}
+	PyObject *key = PyWinLong_FromHANDLE(hWnd);
+	obFunc = PyDict_GetItem(g_DLGMap, key);
+	Py_XDECREF(key);
+	if (!obFunc)
+		PyErr_Clear();
+
 	if (obFunc) {
 		LRESULT lrc;
 		if (PyWndProc_Call(obFunc, hWnd, uMsg, wParam, lParam, &lrc))
@@ -1068,7 +1075,7 @@ PyObject *PyBITMAP::getattr(PyObject *self, char *name)
 {
 	PyBITMAP *pB = (PyBITMAP *)self;
 	if (strcmp("bmBits", name)==0) {
-		return PyLong_FromVoidPtr(pB->m_BITMAP.bmBits);
+		return PyWinLong_FromVoidPtr(pB->m_BITMAP.bmBits);
 	}
 	return PyMember_Get((char *)self, memberlist, name);
 }
@@ -1081,8 +1088,9 @@ int PyBITMAP::setattr(PyObject *self, char *name, PyObject *v)
 	}
 	if (strcmp("bmBits", name)==0) {
 		PyBITMAP *pB = (PyBITMAP *)self;
-		pB->m_BITMAP.bmBits = PyLong_AsVoidPtr(v);
-		return PyErr_Occurred() ? -1 : 0;
+		if (!PyWinLong_AsVoidPtr(v, &pB->m_BITMAP.bmBits))
+			return -1;
+		return 0;
 	}
 	return PyMember_Set((char *)self, memberlist, name, v);
 }
@@ -1403,17 +1411,22 @@ static PyObject *PyGetObjectType(PyObject *self, PyObject *args)
 // @pyswig object|PyMakeBuffer|Returns a buffer object from addr,len or just len
 static PyObject *PyMakeBuffer(PyObject *self, PyObject *args)
 {
-	long len,addr = 0;
+	size_t len;
+	void *addr=NULL;
+#ifdef _WIN64
+	static char *input_fmt="L|L:PyMakeBuffer";
+#else
+	static char *input_fmt="l|l:PyMakeBuffer";
+#endif
 	// @pyparm int|len||length of the buffer object
 	// @pyparm int|addr||Address of the memory to reference
-	if (!PyArg_ParseTuple(args, "l|l:PyMakeBuffer", &len,&addr))
+	if (!PyArg_ParseTuple(args, input_fmt, &len,&addr))
 		return NULL;
 
-	if(0 == addr) 
+	if(NULL == addr) 
 		return PyBuffer_New(len);
 	else
-		return PyBuffer_FromMemory((void *) addr, len);
-
+		return PyBuffer_FromMemory(addr, len);
 }
 %}
 %native (PyMakeBuffer) PyMakeBuffer;
@@ -1423,11 +1436,16 @@ static PyObject *PyMakeBuffer(PyObject *self, PyObject *args)
 static PyObject *PyGetString(PyObject *self, PyObject *args)
 {
 	TCHAR *addr = 0;
-	int len = -1;
+	size_t len = -1;
+#ifdef _WIN64
+	static char *input_fmt="L|L:PyGetString";
+#else
+	static char *input_fmt="l|l:PyGetString";
+#endif
 	// @pyparm int|addr||Address of the memory to reference
 	// @pyparm int|len||Number of characters to read.  If not specified, the
 	// string must be NULL terminated.
-	if (!PyArg_ParseTuple(args, "l|i:PyGetString",&addr, &len))
+	if (!PyArg_ParseTuple(args, input_fmt, &addr, &len))
 		return NULL;
 
 	if (len==-1)
@@ -1452,12 +1470,17 @@ static PyObject *PySetString(PyObject *self, PyObject *args)
 	TCHAR *addr = 0;
 	PyObject *str;
 	TCHAR *source;
-	long maxLen = 0;
+	size_t maxLen = 0;
+#ifdef _WIN64
+	static char *input_fmt="LO|L:PySetString";
+#else
+	static char *input_fmt="lO|l:PySetString";
+#endif
 
 	// @pyparm int|addr||Address of the memory to reference 
 	// @pyparm str|String||The string to copy
 	// @pyparm int|maxLen||Maximum number of chars to copy (optional)
-	if (!PyArg_ParseTuple(args, "lO|l:PySetString",&addr,&str,&maxLen))
+	if (!PyArg_ParseTuple(args, input_fmt, &addr,&str,&maxLen))
 		return NULL;
 
 	if (!PyWinObject_AsTCHAR(str, &source)) {
@@ -1484,21 +1507,26 @@ static PyObject *PySetString(PyObject *self, PyObject *args)
 // @pyswig object|PySetMemory|Copies bytes to an address.
 static PyObject *PySetMemory(PyObject *self, PyObject *args)
 {
-	long addr;
+	void *addr;
 	char *src;
-	int nbytes;
+	size_t nbytes;
+#ifdef _WIN64
+	static char *input_fmt="Ls#:PySetMemory";
+#else
+	static char *input_fmt="ls#:PySetMemory";
+#endif
 
 	// @pyparm int|addr||Address of the memory to reference 
 	// @pyparm string or buffer|String||The string to copy
-	if (!PyArg_ParseTuple(args, "ls#:PySetMemory",&addr,&src,&nbytes))
+	if (!PyArg_ParseTuple(args, input_fmt, &addr,&src,&nbytes))
 		return NULL;
 
-	if (IsBadWritePtr((void *)addr, nbytes)) {
+	if (IsBadWritePtr(addr, nbytes)) {
 		PyErr_SetString(PyExc_ValueError,
 		                "The value is not a valid address for writing");
 		return NULL;
 	}
-	memcpy( (void *)addr, src, nbytes);
+	memcpy(addr, src, nbytes);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -1567,7 +1595,7 @@ static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_ValueError,"Could not get buffer address");
 		return NULL;
 	}
-	return Py_BuildValue("Nl", PyLong_FromVoidPtr(addr), len);
+	return Py_BuildValue("Nl", PyWinLong_FromVoidPtr(addr), len);
 }
 %}
 %native (PyGetBufferAddressAndLen) PyGetBufferAddressAndLen;
@@ -1576,64 +1604,44 @@ static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
 %typedef TCHAR *STRING_OR_ATOM
 %typedef TCHAR *STRING_OR_ATOM_CW
 
+%typemap(python,arginit) STRING_OR_ATOM, STRING_OR_ATOM_CW, RESOURCE_ID{
+	$target=NULL;
+}
+
 %typemap(python,in) STRING_OR_ATOM, STRING_OR_ATOM_CW {
-	if (PyWinObject_AsTCHAR($source, &$target, TRUE))
-		;
-	else { 
-		PyErr_Clear();
-		if (PyInt_Check($source))
-			$target = (LPTSTR) PyInt_AsLong($source);
-		else {
-			return PyErr_Format(PyExc_TypeError, 
-			                    "Must pass an integer or a string (got '%s')",
-			                    $source->ob_type->tp_name);
-		}
-	}
+	if (!PyWinObject_AsResourceId($source, &$target))
+		return NULL;
 }
 
 // A hack for CreateWindow - need to post-process...
 %typemap(python,freearg) STRING_OR_ATOM_CW {
-	if (PyUnicode_Check($target) || PyString_Check($target))
-		PyWinObject_FreeTCHAR($source);
-	else {
+	// Look up the WNDCLASS object by either atom->wndclass or name->atom->wndclass to set window proc
+	PyObject *obwc=NULL;
+	if (_result) {
+		if (IS_INTRESOURCE($source))
+			obwc = PyDict_GetItem(g_AtomMap, $target);
+		else{
+			// Use the name to retrieve the atom, and use it to retrieve the PyWNDCLASS
+			PyObject *obatom=PyDict_GetItem(g_AtomMap, $target);
+			if (obatom!=NULL)
+				obwc = PyDict_GetItem(g_AtomMap, obatom);
+			}
 		// A HUGE HACK - set the class extra bytes.
-		if (_result) {
-			PyObject *obwc = PyDict_GetItem(g_AtomMap, PyInt_FromLong((ATOM)$source));
-			if (obwc)
-				SetClassLong(_result, 0, (long)((PyWNDCLASS *)obwc)->m_obWndProc);
+		if (obwc)
+			SetClassLongPtr(_result, 0, (LONG_PTR)((PyWNDCLASS *)obwc)->m_obWndProc);
 		}
-	}
+	PyWinObject_FreeResourceId($source);
 }
 
 %typedef TCHAR *RESOURCE_ID
 
 %typemap(python,in) RESOURCE_ID {
-#ifdef UNICODE
-	if (PyUnicode_Check($source)) {
-		if (!PyWinObject_AsTCHAR($source, &$target, TRUE))
-			return NULL;
-	}
-#else
-	if (PyString_Check($source)) {
-		$target = PyString_AsString($source);
-	}
-#endif
-	else {
-		if (PyInt_Check($source))
-			$target = MAKEINTRESOURCE(PyInt_AsLong($source));
-	}
+	if (!PyWinObject_AsResourceId($source, &$target))
+		return NULL;
 }
 
 %typemap(python,freearg) RESOURCE_ID {
-#ifdef UNICODE
-	if (PyUnicode_Check($target))
-		PyWinObject_FreeTCHAR($source);
-#else
-	if (PyString_Check($target))
-		;
-#endif
-	else 
-		;
+	PyWinObject_FreeResourceId($source);
 }
 
 #ifndef MS_WINCE
@@ -1688,18 +1696,19 @@ long GetWindowLong(HWND hwnd, int index);
 // @pyparm int|index||
 long GetClassLong(HWND hwnd, int index);
 
-// @pyswig int|SetWindowLong|
+// @pyswig int|SetWindowLong|Places a long value at the specified offset into the extra window memory of the given window.
+// @comm This function calls the SetWindowLongPtr Api function
 %{
 static PyObject *PySetWindowLong(PyObject *self, PyObject *args)
 {
 	HWND hwnd;
 	int index;
 	PyObject *ob, *obhwnd;
-	long l;
-	// @pyparm int|hwnd||The handle to the window
-	// @pyparm int|index||The index of the item to set.
-	// @pyparm object|value||The value to set.
-	if (!PyArg_ParseTuple(args, "OiO", &obhwnd, &index, &ob))
+	LONG_PTR oldval, newval;
+	if (!PyArg_ParseTuple(args, "OiO", 
+		&obhwnd,	// @pyparm <o PyHANDLE>|hwnd||The handle to the window
+		&index,		// @pyparm int|index||The index of the item to set.
+		&ob))		// @pyparm object|value||The value to set.
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
@@ -1713,27 +1722,21 @@ static PyObject *PySetWindowLong(PyObject *self, PyObject *args)
 				PyErr_SetString(PyExc_TypeError, "object must be callable or a dictionary");
 				return NULL;
 			}
-			if (g_HWNDMap==NULL)
-				g_HWNDMap = PyDict_New();
 
-			PyObject *key = PyInt_FromLong((long)hwnd);
-			PyObject *value = Py_BuildValue("Ol", ob, GetWindowLong(hwnd, GWL_WNDPROC));
+			PyObject *key = PyWinLong_FromHANDLE(hwnd);
+			PyObject *value = Py_BuildValue("ON", ob, PyWinLong_FromVoidPtr((void *)GetWindowLongPtr(hwnd, GWL_WNDPROC)));
 			PyDict_SetItem(g_HWNDMap, key, value);
 			Py_DECREF(value);
 			Py_DECREF(key);
-			l = (long)PyWndProcHWND;
+			newval = (LONG_PTR)PyWndProcHWND;
 			break;
 		}
 		default:
-			if (!PyInt_Check(ob)) {
-				return PyErr_Format(PyExc_TypeError, 
-				                    "object must be an integer (got '%s')",
-				                    ob->ob_type->tp_name);
-			}
-			l = PyInt_AsLong(ob);
+			if (!PyWinLong_AsVoidPtr(ob, (void **)&newval))
+				return NULL;
 	}
-	long ret = SetWindowLong(hwnd, index, l);
-	return PyInt_FromLong(ret);
+	oldval = SetWindowLongPtr(hwnd, index, newval);
+	return PyWinLong_FromVoidPtr((void *)oldval);
 }
 %}
 %native (SetWindowLong) PySetWindowLong;
@@ -1742,88 +1745,66 @@ static PyObject *PySetWindowLong(PyObject *self, PyObject *args)
 %{
 static PyObject *PyCallWindowProc(PyObject *self, PyObject *args)
 {
-	long wndproc, wparam, lparam;
+	MYWNDPROC wndproc;
+	WPARAM wparam;
+	LPARAM lparam;
 	HWND hwnd;
-	PyObject *obhwnd;
+	PyObject *obwndproc, *obhwnd, *obwparam, *oblparam;
 	UINT msg;
-        // @pyparm int|wndproc||The wndproc to call - this is generally the return
-        // value of SetWindowLong(GWL_WNDPROC)
-        // @pyparm int|hwnd||
-        // @pyparm int|msg||
-        // @pyparm int|wparam||
-        // @pyparm int|lparam||
-	if (!PyArg_ParseTuple(args, "lOill", &wndproc, &obhwnd, &msg, &wparam, &lparam))
+	if (!PyArg_ParseTuple(args, "OOIOO",
+		&obwndproc,	// @pyparm int|wndproc||The wndproc to call - this is generally the return value of SetWindowLong(GWL_WNDPROC)
+		&obhwnd,	// @pyparm <o PyHANDLE>|hwnd||Handle to the window
+		&msg,		// @pyparm int|msg||A window message
+		&obwparam,	// @pyparm int/str|wparam||Type is dependent on the message
+		&oblparam))	// @pyparm int/str|lparam||Type is dependent on the message
+		return NULL;
+	if (!PyWinLong_AsVoidPtr(obwndproc, (void **)&wndproc))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
+	if (!PyWinObject_AsPARAM(obwparam, &wparam))
+		return NULL;
+	if (!PyWinObject_AsPARAM(oblparam, (WPARAM *)&lparam))
+		return NULL;
 	LRESULT rc;
     Py_BEGIN_ALLOW_THREADS
-	rc = CallWindowProc((MYWNDPROC)wndproc, hwnd, msg, wparam, lparam);
+	rc = CallWindowProc(wndproc, hwnd, msg, wparam, lparam);
     Py_END_ALLOW_THREADS
-	return PyInt_FromLong(rc);
+	return PyWinLong_FromVoidPtr((void *)rc);
 }
 %}
 %native (CallWindowProc) PyCallWindowProc;
 
 %typemap(python,in) WPARAM {
-   if (!make_param($source, (long *)&$target))
+   if (!PyWinObject_AsPARAM($source, &$target))
        return NULL;
 }
 
 %typemap(python,in) LPARAM {
-   if (!make_param($source, (long *)&$target))
+   if (!PyWinObject_AsPARAM($source, (WPARAM *)&$target))
        return NULL;
 }
 
 %{
-static BOOL make_param(PyObject *ob, long *pl)
-{
-	long &l = *pl;
-	if (ob==NULL || ob==Py_None)
-		l = 0;
-	else
-#ifdef UNICODE
-#define TCHAR_DESC "Unicode"
-	if (PyUnicode_Check(ob))
-		l = (long)PyUnicode_AsUnicode(ob);
-#else
-#define TCHAR_DESC "String"	
-	if (PyString_Check(ob))
-		l = (long)PyString_AsString(ob);
-#endif
-	else if (PyInt_Check(ob))
-		l = PyInt_AsLong(ob);
-	else {
-		PyBufferProcs *pb = ob->ob_type->tp_as_buffer;
-		if (pb != NULL && pb->bf_getreadbuffer) {
-			if(-1 == pb->bf_getreadbuffer(ob,0,(void **) &l))
-				return FALSE;
-		} else {
-			PyErr_SetString(PyExc_TypeError, "Must be a" TCHAR_DESC ", int, or buffer object");
-			return FALSE;
-		}
-	}
-	return TRUE;
-}
-
 // @pyswig int|SendMessage|Sends a message to the window.
 // @pyparm int|hwnd||The handle to the Window
 // @pyparm int|message||The ID of the message to post
-// @pyparm int|wparam|0|An integer whose value depends on the message
-// @pyparm int|lparam|0|An integer whose value depends on the message
+// @pyparm int/str|wparam|None|Type depends on the message
+// @pyparm int/str|lparam|None|Type depends on the message
 static PyObject *PySendMessage(PyObject *self, PyObject *args)
 {
 	HWND hwnd;
-	PyObject *obhwnd, *obwparam=NULL, *oblparam=NULL;
+	PyObject *obhwnd, *obwparam=Py_None, *oblparam=Py_None;
 	UINT msg;
 	if (!PyArg_ParseTuple(args, "Oi|OO", &obhwnd, &msg, &obwparam, &oblparam))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
-	long wparam, lparam;
-	if (!make_param(obwparam, &wparam))
+	WPARAM wparam;
+	LPARAM lparam;
+	if (!PyWinObject_AsPARAM(obwparam, &wparam))
 		return NULL;
-	if (!make_param(oblparam, &lparam))
+	if (!PyWinObject_AsPARAM(oblparam, (WPARAM *)&lparam))
 		return NULL;
 
 	LRESULT rc;
@@ -1831,7 +1812,7 @@ static PyObject *PySendMessage(PyObject *self, PyObject *args)
 	rc = SendMessage(hwnd, msg, wparam, lparam);
     Py_END_ALLOW_THREADS
 
-	return PyInt_FromLong(rc);
+	return PyWinLong_FromVoidPtr((void *)rc);
 }
 %}
 %native (SendMessage) PySendMessage;
@@ -1854,10 +1835,11 @@ static PyObject *PySendMessageTimeout(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
-	long wparam, lparam;
-	if (!make_param(obwparam, &wparam))
+	WPARAM wparam;
+	LPARAM lparam;
+	if (!PyWinObject_AsPARAM(obwparam, &wparam))
 		return NULL;
-	if (!make_param(oblparam, &lparam))
+	if (!PyWinObject_AsPARAM(oblparam, (WPARAM *)&lparam))
 		return NULL;
 
 	LRESULT rc;
@@ -1870,7 +1852,7 @@ static PyObject *PySendMessageTimeout(PyObject *self, PyObject *args)
 	// @rdesc The result is the result of the SendMessageTimeout call, plus the last 'result' param.
 	// If the timeout period expires, a pywintypes.error exception will be thrown,
 	// with zero as the error code.  See the Microsoft documentation for more information.
-	return Py_BuildValue("ii", rc, dwresult);
+	return Py_BuildValue("Ni", PyWinLong_FromVoidPtr((void *)rc), dwresult);
 }
 %}
 %native (SendMessageTimeout) PySendMessageTimeout;
@@ -2029,7 +2011,7 @@ static PyObject *PyDialogBox(PyObject *self, PyObject *args)
 	PyObject *obResId, *obDlgProc, *obhinst, *obhwnd;
 	if (!PyArg_ParseTuple(args, "OOOO|l", 
 		&obhinst,	// @pyparm <o PyHANDLE>|hInstance||Handle to module that contains the dialog template
-		&obResId,	// @pyparm str/int|TemplateName||Name or resource id of the dialog resource
+		&obResId,	// @pyparm <o PyResourceId>|TemplateName||Name or resource id of the dialog resource
 		&obhwnd,	// @pyparm <o PyHANDLE>|hWndParent||Handle to dialog's parent window
 		&obDlgProc,	// @pyparm function|DialogFunc||Dialog box procedure to process messages
 		&param))	// @pyparm int|InitParam|0|Initialization data to be passed to above procedure during WM_INITDIALOG processing
@@ -2039,33 +2021,20 @@ static PyObject *PyDialogBox(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
 		return NULL;
 	LPTSTR resid;
-	resid = (LPTSTR)PyLong_AsVoidPtr(obResId);
-	if ((resid==NULL) && PyErr_Occurred()){
-		PyErr_Clear();
-		if (!PyWinObject_AsTCHAR(obResId, &resid)) {
-			PyErr_Clear();
-			PyErr_SetString(PyExc_TypeError, "Resource ID must be a string or int in the range 0-65535");
-			return NULL;
-			}
-		}
-	else
-		if (!IS_INTRESOURCE(resid)){
-			PyErr_SetString(PyExc_ValueError,"Int resource id must be in the range 0-65535");
-			return NULL;
-			}
-	PyObject *obExtra = Py_BuildValue("Ol", obDlgProc, param);
+	if (!PyWinObject_AsResourceId(obResId, &resid))
+		return NULL;
 
-	int rc;
+	PyObject *obExtra = Py_BuildValue("Ol", obDlgProc, param);
+	INT_PTR rc;
     Py_BEGIN_ALLOW_THREADS
 	rc = DialogBoxParam(hinst, resid, hwnd, PyDlgProcHDLG, (LPARAM)obExtra);
     Py_END_ALLOW_THREADS
+	
+	PyWinObject_FreeResourceId(resid);
 	Py_DECREF(obExtra);
-	if (!IS_INTRESOURCE(resid))
-		PyWinObject_FreeTCHAR(resid);
 	if (rc==-1)
 		return PyWin_SetAPIError("DialogBox");
-
-	return PyInt_FromLong(rc);
+	return PyWinLong_FromVoidPtr((void *)rc);
 }
 %}
 %native (DialogBox) PyDialogBox;
@@ -2103,7 +2072,7 @@ static PyObject *PyDialogBoxIndirect(PyObject *self, PyObject *args)
 
 	PyObject *obExtra = Py_BuildValue("Ol", obDlgProc, param);
 
-	int rc;
+	INT_PTR rc;
     Py_BEGIN_ALLOW_THREADS
 	HGLOBAL templ = (HGLOBAL) GlobalLock(h);
 	rc = DialogBoxIndirectParam(hinst, (const DLGTEMPLATE *) templ, hwnd, PyDlgProcHDLG, (LPARAM)obExtra);
@@ -2114,7 +2083,7 @@ static PyObject *PyDialogBoxIndirect(PyObject *self, PyObject *args)
 	if (rc==-1)
 		return PyWin_SetAPIError("DialogBoxIndirect");
 
-	return PyInt_FromLong(rc);
+	return PyWinLong_FromVoidPtr((void *)rc);
 }
 %}
 %native (DialogBoxIndirect) PyDialogBoxIndirect;
@@ -2161,7 +2130,7 @@ static PyObject *PyCreateDialogIndirect(PyObject *self, PyObject *args)
 	if (NULL == rc)
 		return PyWin_SetAPIError("CreateDialogIndirect");
 
-	return PyInt_FromLong((long) rc);
+	return PyWinLong_FromHANDLE(rc);
 
 }
 %}
@@ -2218,7 +2187,7 @@ BOOLAPI SetDlgItemInt(
 
 // @pyswig int|GetDlgCtrlID|Retrieves the identifier of the specified control.
 // @pyparm int|hwnd||The handle to the control
-HWND GetDlgCtrlID( HWND hwnd);
+int GetDlgCtrlID( HWND hwnd);
 
 // @pyswig string|GetDlgItemText|Returns the text of a dialog control
 %native (GetDlgItemText) PyGetDlgItemText;
@@ -3101,59 +3070,61 @@ static PyObject *PyRegisterClass(PyObject *self, PyObject *args)
 	ATOM at = RegisterClass( &((PyWNDCLASS *)obwc)->m_WNDCLASS );
 	if (at==0)
 		return PyWin_SetAPIError("RegisterClass");
-	// Save the atom in a global dictionary.
-	if (g_AtomMap==NULL){
-		g_AtomMap = PyDict_New();
-		if (g_AtomMap==NULL)
-			return NULL;
-		}
 
-	PyObject *key = PyInt_FromLong(at);
-	if (key==NULL)
+	// Save atom/PyWNDCLASS and name/atom pairs in global dict.  These are used in
+	// CreateWindow to lookup the python window proc function for the class
+	PyObject *ret = PyInt_FromLong(at);
+	if (ret==NULL)
 		return NULL;
-	if (PyDict_SetItem(g_AtomMap, key, obwc)==-1){
-		Py_DECREF(key);
+	if (PyDict_SetItem(g_AtomMap, ((PyWNDCLASS *)obwc)->m_obClassName, ret)==-1){
+		Py_DECREF(ret);
 		return NULL;
 		}
-	return key;
+	if (PyDict_SetItem(g_AtomMap, ret, obwc)==-1){
+		PyDict_DelItem(g_AtomMap, ((PyWNDCLASS *)obwc)->m_obClassName);
+		Py_DECREF(ret);
+		return NULL;
+		}
+	return ret;
 }
 %}
 %native (RegisterClass) PyRegisterClass;
 
 %{
 // @pyswig |UnregisterClass|Unregisters a window class created by <om win32gui.RegisterClass>
-// @comm Only accepts a class atom, not the class name
 static PyObject *PyUnregisterClass(PyObject *self, PyObject *args)
 {
 	LPTSTR atom;
 	HINSTANCE hinst;
-	PyObject *obhinst, *obatom;	
+	PyObject *obhinst, *obatom, *ret=NULL;
 	if (!PyArg_ParseTuple(args, "OO", 
-		&obatom,		// @pyparm int|atom||The atom identifying the class previously registered.
+		&obatom,		// @pyparm <o PyResourceId>|atom||The atom or classname identifying the class previously registered.
 		&obhinst))		// @pyparm <o PyHANDLE>|hinst||The handle to the instance unregistering the class, can be None
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhinst, (HANDLE *)&hinst, TRUE))
 		return NULL;
-	atom=(LPTSTR)PyLong_AsVoidPtr(obatom);
-	if (atom==NULL && PyErr_Occurred())
+	if (!PyWinObject_AsResourceId(obatom, &atom))
 		return NULL;
-	// Only low word can be set when using an atom
-	if ((DWORD_PTR)atom >> 16)
-		return PyErr_Format(PyExc_ValueError,"Invalid value for ATOM: %d", atom);
-	if (!UnregisterClass(atom, hinst))
+	BOOL bsuccess=UnregisterClass(atom, hinst);
+	if (!bsuccess){
+		PyWinObject_FreeResourceId(atom);
 		return PyWin_SetAPIError("UnregisterClass");
+		}
 
-	// Delete the atom from the global dictionary.
-	if (g_AtomMap) {
-		PyObject *key = PyLong_FromVoidPtr(atom);
-		if (key==NULL)
-			return NULL;
-		if (PyDict_DelItem(g_AtomMap, key)==-1){
-			Py_DECREF(key);
-			return NULL;
-			}
-		Py_DECREF(key);
-	}
+	// Delete the atom/PyWNDCLASS and name/atom from the global dictionary.
+	PyObject *val=PyDict_GetItem(g_AtomMap, obatom);
+	if (val!=NULL){
+		if (IS_INTRESOURCE(atom))	// val is the PyWNDCLASS, use it's name to delete the name/atom pair
+			PyDict_DelItem(g_AtomMap, ((PyWNDCLASS *)val)->m_obClassName);
+		else	// val is numeric atom, use it to delete the atom/PyWNDCLASS pair
+			PyDict_DelItem(g_AtomMap, val);
+		PyDict_DelItem(g_AtomMap, obatom);
+		}
+
+	// Don't throw an exception if dict items can't be deleted since UnregisterClass has already succeeded
+	PyWinObject_FreeResourceId(atom);
+	if (PyErr_Occurred())
+		PyErr_Print();
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -3183,7 +3154,7 @@ static PyObject *PyPumpMessages(PyObject *self, PyObject *args)
 	if (-1 == rc)
 		return PyWin_SetAPIError("GetMessage");
 
-	return PyInt_FromLong(msg.wParam);
+	return PyWinLong_FromVoidPtr((void *)msg.wParam);
 
 	// @xref <om win32gui.PumpWaitingMessages>
 }
@@ -3198,7 +3169,7 @@ static PyObject *PyPumpWaitingMessages(PyObject *self, PyObject *args)
 	// @pyseeapi PeekMessage and DispatchMessage
 
     MSG msg;
-	long result = 0;
+	WPARAM result = 0;
 	// Read all of the messages in this next loop, 
 	// removing each message as we read it.
 	Py_BEGIN_ALLOW_THREADS
@@ -3219,7 +3190,7 @@ static PyObject *PyPumpWaitingMessages(PyObject *self, PyObject *args)
 	} // End of PeekMessage while loop
 	// @xref <om win32gui.PumpMessages>
 	Py_END_ALLOW_THREADS
-	return PyInt_FromLong(result);
+	return PyWinLong_FromVoidPtr((void *)result);
 }
 
 %}
@@ -3568,11 +3539,14 @@ LRESULT TrackPopupMenu(HMENU hmenu, UINT flags, int x, int y, int reserved, HWND
 #include "commdlg.h"
 
 PyObject *Pylpstr(PyObject *self, PyObject *args) {
-	long address;
-	PyArg_ParseTuple(args, "l", &address);
-	return PyString_FromString((char *)address);
+	char *address;
+	PyObject *obaddress;
+	if (!PyArg_ParseTuple(args, "O", &obaddress))
+		return NULL;
+	if (!PyWinLong_AsVoidPtr(obaddress, (void **)&address))
+		return NULL;
+	return PyString_FromString(address);
 }
-
 %}
 %native (lpstr) Pylpstr;
 
@@ -5993,9 +5967,7 @@ void PyWinObject_FreeOPENFILENAMEW(OPENFILENAMEW *pofn)
 	PyWinObject_FreeWCHAR((WCHAR *)pofn->lpstrInitialDir);
 	PyWinObject_FreeWCHAR((WCHAR *)pofn->lpstrTitle);
 	PyWinObject_FreeWCHAR((WCHAR *)pofn->lpstrDefExt);
-	// lpTemplateName can also be a resource id
-	if ((pofn->lpTemplateName!=NULL) && !IS_INTRESOURCE(pofn->lpTemplateName))
-		PyWinObject_FreeWCHAR((WCHAR *)pofn->lpTemplateName);
+	PyWinObject_FreeResourceId((WCHAR *)pofn->lpTemplateName);
 	ZeroMemory(pofn, sizeof(OPENFILENAMEW));
 }
 
@@ -6052,7 +6024,7 @@ PyObject *PyReturn_OPENFILENAMEW_Output(OPENFILENAMEW *pofn)
 // @pyparm <o PyUNICODE>|Title|None|The title of the dialog box
 // @pyparm int|Flags|0|Combination of win32con.OFN_* constants
 // @pyparm <o PyUNICODE>|DefExt|None|The default extension to use
-// @pyparm <o PyUNICODE>|TemplateName|None|Name of dialog box template
+// @pyparm <o PyResourceId>|TemplateName|None|Name or resource id of dialog box template
 static PyObject *PyGetSaveFileNameW(PyObject *self, PyObject *args, PyObject *kwargs)
 {	
 	PyObject *ret=NULL;
@@ -6101,7 +6073,6 @@ BOOL PyParse_OPENFILENAMEW_Args(PyObject *args, PyObject *kwargs, OPENFILENAMEW 
 		*obOwner=Py_None, *obhInstance=Py_None;
 	WCHAR *initfile=NULL, *customfilter=NULL;
 	DWORD bufsize, initfilechars, customfilterchars;
-	long template_id;
 	ZeroMemory(pofn, sizeof(OPENFILENAMEW));
 	// ??? may need to set size to OPENFILENAME_SIZE_VERSION_400 to be compatible with NT
 	pofn->lStructSize=sizeof(OPENFILENAMEW);
@@ -6120,7 +6091,7 @@ BOOL PyParse_OPENFILENAMEW_Args(PyObject *args, PyObject *kwargs, OPENFILENAMEW 
 		&obTitle,				// @pyparm <o PyUNICODE>|Title|None|The title of the dialog box
 		&pofn->Flags,			// @pyparm int|Flags|0|Combination of win32con.OFN_* constants
 		&obDefExt,				// @pyparm <o PyUNICODE>|DefExt|None|The default extension to use
-		&obTemplateName))		// @pyparm <o PyUNICODE>|TemplateName|None|Name of dialog box template
+		&obTemplateName))		// @pyparm <o PyResourceId>|TemplateName|None|Name or resource id of dialog box template
 		goto done;
 
 	// CustomFilter will have user-selected (or typed) wildcard pattern appended to it
@@ -6152,28 +6123,13 @@ BOOL PyParse_OPENFILENAMEW_Args(PyObject *args, PyObject *kwargs, OPENFILENAMEW 
 	if (initfile!=NULL)
 		memcpy(pofn->lpstrFile, initfile, initfilechars*sizeof(WCHAR));
 
-	// lpTemplateName can be a string or a numeric resource id
-	if (obTemplateName!=Py_None)
-		if (PyInt_Check(obTemplateName) || PyLong_Check(obTemplateName)){
-			template_id=PyInt_AsLong(obTemplateName);
-			if (template_id==-1 && PyErr_Occurred())
-				goto done;
-			if (!IS_INTRESOURCE(template_id)){
-				PyErr_Format(PyExc_ValueError, "%d is not a valid Resource Id", template_id);
-				goto done;
-				}
-			pofn->lpTemplateName=MAKEINTRESOURCEW(template_id);
-			}
-		else
-			if (!PyWinObject_AsWCHAR(obTemplateName, (WCHAR **)&pofn->lpTemplateName))
-				goto done;
-
 	ret=PyWinObject_AsHANDLE(obOwner, (PHANDLE)&pofn->hwndOwner, TRUE) &&
 		PyWinObject_AsHANDLE(obhInstance, (PHANDLE)&pofn->hInstance, TRUE) &&
 		PyWinObject_AsWCHAR(obFilter, (WCHAR **)&pofn->lpstrFilter, TRUE) &&
 		PyWinObject_AsWCHAR(obInitialDir, (WCHAR **)&pofn->lpstrInitialDir, TRUE) &&
 		PyWinObject_AsWCHAR(obTitle, (WCHAR **)&pofn->lpstrTitle, TRUE) &&
-		PyWinObject_AsWCHAR(obDefExt, (WCHAR **)&pofn->lpstrDefExt, TRUE);
+		PyWinObject_AsWCHAR(obDefExt, (WCHAR **)&pofn->lpstrDefExt, TRUE) &&
+		((obTemplateName==Py_None)||PyWinObject_AsResourceIdW(obTemplateName, (WCHAR **)&pofn->lpTemplateName));
 		
 	done:
 	if (!ret)
