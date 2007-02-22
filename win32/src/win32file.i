@@ -3573,8 +3573,7 @@ py_BackupRead(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obh, &h, FALSE))
 		return NULL;
-	ctxt=PyLong_AsVoidPtr(obctxt);
-	if ((ctxt==NULL) && PyErr_Occurred())
+	if (!PyWinLong_AsVoidPtr(obctxt, &ctxt))
 		return NULL;
 	if (obbuf==Py_None){
 		obbufout=PyBuffer_New(bytes_requested); // ??? any way to create a writable buffer from Python level ???
@@ -3598,7 +3597,7 @@ py_BackupRead(PyObject *self, PyObject *args)
 		Py_DECREF(obbufout);
 		return NULL;
 		}
-	return Py_BuildValue("lNN", bytes_read, obbufout, PyLong_FromVoidPtr(ctxt));
+	return Py_BuildValue("lNN", bytes_read, obbufout, PyWinLong_FromVoidPtr(ctxt));
 }
 
 // @pyswig long|BackupSeek|Seeks forward in a file stream
@@ -3621,8 +3620,7 @@ py_BackupSeek(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obh, &h, FALSE))
 		return NULL;
-	ctxt=PyLong_AsVoidPtr(obctxt);
-	if ((ctxt==NULL) && PyErr_Occurred())
+	if (!PyWinLong_AsVoidPtr(obctxt, &ctxt))
 		return NULL;
 	if (!PyWinObject_AsULARGE_INTEGER(obbytes_to_seek, &bytes_to_seek))
 		return NULL;
@@ -3664,8 +3662,7 @@ py_BackupWrite(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obh, &h, FALSE))
 		return NULL;
-	ctxt=PyLong_AsVoidPtr(obctxt);
-	if ((ctxt==NULL) && PyErr_Occurred())
+	if (!PyWinLong_AsVoidPtr(obctxt, &ctxt))
 		return NULL;
 	if (PyObject_AsReadBuffer(obbuf, (const void **)&buf, &buflen)==-1)
 		return NULL;
@@ -3676,7 +3673,7 @@ py_BackupWrite(PyObject *self, PyObject *args)
 		PyWin_SetAPIError("BackupWrite");
 		return NULL;
 		}
-	return Py_BuildValue("lN", bytes_written, PyLong_FromVoidPtr(ctxt));
+	return Py_BuildValue("lN", bytes_written, PyWinLong_FromVoidPtr(ctxt));
 }
 
 // @pyswig |SetFileShortName|Set the 8.3 name of a file
@@ -3727,18 +3724,18 @@ DWORD CALLBACK CopyFileEx_ProgressRoutine(
   HANDLE hDestinationFile,
   LPVOID lpData)
 {
-	PyObject *args=NULL, *hsrc=NULL, *hdst=NULL, *ret=NULL;
+	PyObject *args=NULL, *ret=NULL;
 	DWORD retcode;
 	CEnterLeavePython _celp;
 	PyObject **callback_objects=(PyObject **)lpData;
-	hsrc=PyWinObject_FromHANDLE(hSourceFile);
-	hdst=PyWinObject_FromHANDLE(hDestinationFile);
 	// Py_BuildValue should catch PyHANDLEs NULL
-	args=Py_BuildValue("LLLLkkOOO", 
+	args=Py_BuildValue("LLLLkkNNO",
 		TotalFileSize, TotalBytesTransferred,
 		StreamSize, StreamBytesTransferred,
 		dwStreamNumber, dwCallbackReason,
-		hsrc, hdst, callback_objects[1]);
+		PyWinLong_FromHANDLE(hSourceFile),
+		PyWinLong_FromHANDLE(hDestinationFile),
+		callback_objects[1]);
 	if (args==NULL)	// Some serious error, cancel operation.
 		retcode=PROGRESS_CANCEL;
 	else{
@@ -3747,24 +3744,13 @@ DWORD CALLBACK CopyFileEx_ProgressRoutine(
 			retcode=PROGRESS_CANCEL;
 		else{
 			retcode=PyInt_AsLong(ret);
-			if (PyErr_Occurred())
+			if ((retcode==(DWORD)-1) && PyErr_Occurred())
 				retcode=PROGRESS_CANCEL;
 			}
 		}
 
 	Py_XDECREF(args);
 	Py_XDECREF(ret);
-	// Detach PyHANDLEs so they don't prematurely close file handles when destroyed
-	if (hsrc!=NULL){
-		ret=PyObject_CallMethod(hsrc,"Detach",NULL);
-		Py_DECREF(hsrc);
-		Py_XDECREF(ret);
-		}
-	if (hdst!=NULL){
-		ret=PyObject_CallMethod(hdst,"Detach",NULL);
-		Py_DECREF(hdst);
-		Py_XDECREF(ret);
-		}
 	return retcode;
 }
 
