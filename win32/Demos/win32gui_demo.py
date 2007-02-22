@@ -67,7 +67,8 @@ def TestSetWorldTransform():
     wc.hbrBackground = win32con.COLOR_WINDOW+1
     wc.lpfnWndProc=wndproc_1
     class_atom=win32gui.RegisterClass(wc)       
-    hwnd = win32gui.CreateWindow(class_atom,'Spin the Lobster!',
+    hwnd = win32gui.CreateWindow(wc.lpszClassName,
+        'Spin the Lobster!',
         win32con.WS_CAPTION|win32con.WS_VISIBLE,
         100,100,900,900, 0, 0, 0, None)
     for x in xrange(500):
@@ -75,7 +76,7 @@ def TestSetWorldTransform():
         win32gui.PumpWaitingMessages()
         time.sleep(0.01)
     win32gui.DestroyWindow(hwnd)
-    win32gui.UnregisterClass(class_atom,None)
+    win32gui.UnregisterClass(wc.lpszClassName, None)
 
 def TestGradientFill():
     wc = win32gui.WNDCLASS()
