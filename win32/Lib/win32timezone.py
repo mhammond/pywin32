@@ -12,7 +12,7 @@ and not Windows 95/98/Me.
 	This module may be tested using the doctest module.
 
 	Written by Jason R. Coombs (jaraco@jaraco.com).
-	Copyright © 2003-2006.
+	Copyright © 2003-2007.
 	All Rights Reserved.
 
 	This module is licenced for use in Mark Hammond's pywin32
@@ -91,7 +91,9 @@ True
 Microsoft now has a patch for handling time zones in 2007 (see
 http://support.microsoft.com/gp/cp_dst)
 
-As a result, the following test will fail in Windows Vista and machines with the patch.
+As a result, the following test will fail in machines with the patch
+except for Vista and its succssors, which have dynamic time
+zone support.
 #>>> nov2 = datetime.datetime( 2003, 11, 2, tzinfo = tzi )
 #>>> nov2.utctimetuple()
 (2003, 11, 2, 7, 0, 0, 6, 306, 0)
@@ -102,11 +104,6 @@ This test will fail in Windows versions prior to Vista
 #>>> nov2.utctimetuple()
 (2007, 11, 2, 6, 0, 0, 4, 306, 0)
 
-Eventually, I would like to correct the problem for the Vista platform by using
-Vista Dynamic Time Zones (which is really just a term for historic & future time
-zone accomodation).  For now, however, note that time zones not in the current year
-could be calculated incorrectly.
-
 There is a function you can call to get some capabilities of the time
 zone data.
 >>> caps = GetTZCapabilities()
@@ -114,10 +111,8 @@ zone data.
 True
 >>> caps.has_key( 'MissingTZPatch' )
 True
-
-Currently, this library doesn't support dynamic TZs, even if the platform does.
->>> caps['DynamicTZSupport']
-False
+>>> caps.has_key( 'DynamicTZSupport' )
+True
 """
 from __future__ import generators
 
@@ -126,7 +121,73 @@ __version__ = '$Revision$'[11:-2]
 __sccauthor__ = '$Author$'[9:-2]
 __date__ = '$Date$'[10:-2]
 
-import os, _winreg, struct, datetime, win32api, re, sys
+import os, _winreg, struct, datetime, win32api, re, sys, operator
+
+import logging
+log = logging.getLogger( __file__ )
+
+class WinTZI( object ):
+	format = '3l8h8h'
+
+	def __init__( self, key, name = None ):
+		if( not name and len( key ) == struct.calcsize( self.format ) ):
+			self.__init_from_bytes__( key )
+		else:
+			self.__init_from_reg_key__( key, name )
+		
+	def __init_from_reg_key__( self, key, name = None ):
+		if not name:
+			key, name = os.path.split( key )
+		value, type = _winreg.QueryValueEx( key, name ) 
+		self.__init_from_bytes__( value )
+		
+	def __init_from_bytes__( self, bytes ):
+		components = struct.unpack( self.format, bytes )
+		makeMinuteTimeDelta = lambda x: datetime.timedelta( minutes = x )
+		self.bias, self.standardBiasOffset, self.daylightBiasOffset = \
+				   map( makeMinuteTimeDelta, components[:3] )
+		# daylightEnd and daylightStart are 8-tuples representing a Win32 SYSTEMTIME structure
+		self.daylightEnd, self.daylightStart = components[3:11], components[11:19]
+
+	def LocateStartDay( self, year ):
+		return self._LocateDay( year, self.daylightStart )
+
+	def LocateEndDay( self, year ):
+		return self._LocateDay( year, self.daylightEnd )
+
+	def _LocateDay( self, year, win32SystemTime ):
+		"""
+		Takes a SYSTEMTIME structure as retrieved from a TIME_ZONE_INFORMATION
+		structure and interprets it based on the given year to identify the actual day.
+
+		This method is necessary because the SYSTEMTIME structure refers to a day by its
+		day of the week or week of the month (e.g. 4th saturday in April).
+
+		Refer to the Windows Platform SDK for more information on the SYSTEMTIME
+		and TIME_ZONE_INFORMATION structures.
+		"""
+		month = win32SystemTime[ 1 ]
+		# MS stores Sunday as 0, Python datetime stores Monday as zero
+		targetWeekday = ( win32SystemTime[ 2 ] + 6 ) % 7
+		# win32SystemTime[3] is the week of the month, so the following
+		#  is the first day of that week
+		day = ( win32SystemTime[ 3 ] - 1 ) * 7 + 1
+		hour, min, sec, msec = win32SystemTime[4:]
+		result = datetime.datetime( year, month, day, hour, min, sec, msec )
+		# now the result is the correct week, but not necessarily the correct day of the week
+		daysToGo = targetWeekday - result.weekday()
+		result += datetime.timedelta( daysToGo )
+		# if we selected a day in the month following the target month,
+		#  move back a week or two.
+		# This is necessary because Microsoft defines the fifth week in a month
+		#  to be the last week in a month and adding the time delta might have
+		#  pushed the result into the next month.
+		while result.month == month + 1:
+			result -= datetime.timedelta( weeks = 1 )
+		return result
+
+	def __cmp__( self, other ):
+		return cmp( self.__dict__, other.__dict__ )
 
 class TimeZoneInfo( datetime.tzinfo ):
 	"""
@@ -170,15 +231,7 @@ class TimeZoneInfo( datetime.tzinfo ):
 		self.displayName = _winreg.QueryValueEx( key, "Display" )[0]
 		self.standardName = _winreg.QueryValueEx( key, "Std" )[0]
 		self.daylightName = _winreg.QueryValueEx( key, "Dlt" )[0]
-		# TZI contains a structure of time zone information and is similar to
-		#  TIME_ZONE_INFORMATION described in the Windows Platform SDK
-		winTZI, type = _winreg.QueryValueEx( key, "TZI" )
-		winTZI = struct.unpack( '3l8h8h', winTZI )
-		makeMinuteTimeDelta = lambda x: datetime.timedelta( minutes = x )
-		self.bias, self.standardBiasOffset, self.daylightBiasOffset = \
-				   map( makeMinuteTimeDelta, winTZI[:3] )
-		# daylightEnd and daylightStart are 8-tuples representing a Win32 SYSTEMTIME structure
-		self.daylightEnd, self.daylightStart = winTZI[3:11], winTZI[11:19]
+		self.staticInfo = WinTZI( key, "TZI" )
 		self._LoadDynamicInfoFromKey( key )
 
 	def _LoadDynamicInfoFromKey( self, key ):
@@ -186,9 +239,14 @@ class TimeZoneInfo( datetime.tzinfo ):
 			dkey = _winreg.OpenKeyEx( key, 'Dynamic DST' )
 		except WindowsError:
 			return
-		self.dynamicInfo = _RegKeyDict( dkey )
-		del self.dynamicInfo['FirstEntry']
-		del self.dynamicInfo['LastEntry']
+		info = _RegKeyDict( dkey )
+		del info['FirstEntry']
+		del info['LastEntry']
+		years = map( int, info.keys() )
+		values = map( WinTZI, info.values() )
+		# create a range mapping that searches by descending year and matches
+		# if the target year is greater or equal.
+		self.dynamicInfo = RangeMap( zip( years, values ), descending, operator.ge )
 
 	def __repr__( self ):
 		result = '%s( %s' % ( self.__class__.__name__, repr( self.timeZoneName ) )
@@ -201,31 +259,48 @@ class TimeZoneInfo( datetime.tzinfo ):
 		return self.displayName
 
 	def tzname( self, dt ):
-		if self.dst( dt ) == self.daylightBiasOffset:
+		winInfo = self.getWinInfo( dt )
+		if self.dst( dt ) == winInfo.daylightBiasOffset:
 			result = self.daylightName
-		elif self.dst( dt ) == self.standardBiasOffset:
+		elif self.dst( dt ) == winInfo.standardBiasOffset:
 			result = self.standardName
 		return result
-		
-	def _getStandardBias( self ):
-		return self.bias + self.standardBiasOffset
-	standardBias = property( _getStandardBias )
 
-	def _getDaylightBias( self ):
-		return self.bias + self.daylightBiasOffset
-	daylightBias = property( _getDaylightBias )
+	def getWinInfo( self, targetYear ):
+		if not hasattr( self, 'dynamicInfo' ) or not self.dynamicInfo:
+			return self.staticInfo
+		# Find the greatest year entry in self.dynamicInfo which is for
+		#  a year greater than or equal to our targetYear. If not found,
+		#  default to the earliest year.
+		return self.dynamicInfo.get( targetYear, self.dynamicInfo[ RangeItemLast() ] )
+		
+	def _getStandardBias( self, dt ):
+		winInfo = self.getWinInfo( dt.year )
+		return winInfo.bias + winInfo.standardBiasOffset
+
+	def _getDaylightBias( self, dt ):
+		winInfo = self.getWinInfo( dt.year )
+		return winInfo.bias + winInfo.daylightBiasOffset
 
 	def utcoffset( self, dt ):
 		"Calculates the utcoffset according to the datetime.tzinfo spec"
 		if dt is None: return
-		return -( self.bias + self.dst( dt ) )
+		winInfo = self.getWinInfo( dt.year )
+		return -( winInfo.bias + self.dst( dt ) )
 
 	def dst( self, dt ):
 		"Calculates the daylight savings offset according to the datetime.tzinfo spec"
 		if dt is None: return
 		assert dt.tzinfo is self
-		result = self.standardBiasOffset
 
+		winInfo = self.getWinInfo( dt.year )
+		if not self.fixedStandardTime and self._inDaylightSavings( dt ):
+			result = winInfo.daylightBiasOffset
+		else:
+			result = winInfo.standardBiasOffset
+		return result
+
+	def _inDaylightSavings( self, dt ):
 		try:
 			dstStart = self.GetDSTStartTime( dt.year )
 			dstEnd = self.GetDSTEndTime( dt.year )
@@ -236,55 +311,21 @@ class TimeZoneInfo( datetime.tzinfo ):
 				# in the southern hemisphere, daylight savings time
 				#  typically ends before it begins in a given year.
 				inDaylightSavings = not ( dstEnd < dt.replace( tzinfo=None ) <= dstStart )
-
-			if inDaylightSavings and not self.fixedStandardTime:
-				result = self.daylightBiasOffset
 		except ValueError:
 			# there was an error parsing the time zone, which is normal when a
 			#  start and end time are not specified.
-			pass
+			inDaylightSavings = False
 
-		return result
+		return inDaylightSavings
 
 	def GetDSTStartTime( self, year ):
 		"Given a year, determines the time when daylight savings time starts"
-		return self._LocateDay( year, self.daylightStart )
+		return self.getWinInfo( year ).LocateStartDay( year )
 
 	def GetDSTEndTime( self, year ):
 		"Given a year, determines the time when daylight savings ends."
-		return self._LocateDay( year, self.daylightEnd )
+		return self.getWinInfo( year ).LocateEndDay( year )
 	
-	def _LocateDay( self, year, win32SystemTime ):
-		"""
-		Takes a SYSTEMTIME structure as retrieved from a TIME_ZONE_INFORMATION
-		structure and interprets it based on the given year to identify the actual day.
-
-		This method is necessary because the SYSTEMTIME structure refers to a day by its
-		day of the week or week of the month (e.g. 4th saturday in April).
-
-		Refer to the Windows Platform SDK for more information on the SYSTEMTIME
-		and TIME_ZONE_INFORMATION structures.
-		"""
-		month = win32SystemTime[ 1 ]
-		# MS stores Sunday as 0, Python datetime stores Monday as zero
-		targetWeekday = ( win32SystemTime[ 2 ] + 6 ) % 7
-		# win32SystemTime[3] is the week of the month, so the following
-		#  is the first day of that week
-		day = ( win32SystemTime[ 3 ] - 1 ) * 7 + 1
-		hour, min, sec, msec = win32SystemTime[4:]
-		result = datetime.datetime( year, month, day, hour, min, sec, msec )
-		# now the result is the correct week, but not necessarily the correct day of the week
-		daysToGo = targetWeekday - result.weekday()
-		result += datetime.timedelta( daysToGo )
-		# if we selected a day in the month following the target month,
-		#  move back a week or two.
-		# This is necessary because Microsoft defines the fifth week in a month
-		#  to be the last week in a month and adding the time delta might have
-		#  pushed the result into the next month.
-		while result.month == month + 1:
-			result -= datetime.timedelta( weeks = 1 )
-		return result
-
 	def __cmp__( self, other ):
 		return cmp( self.__dict__, other.__dict__ )
 
@@ -415,3 +456,87 @@ def resolveMUITimeZone( spec ):
 	except win32api.error, e:
 		result = None
 	return result
+
+# the following code implements a RangeMap and its support classes
+
+ascending = cmp
+def descending( a, b ):
+	return -ascending( a, b )
+
+class RangeMap( dict ):
+	"""A dictionary-like object that uses the keys as bounds for a range.
+	Inclusion of the value for that range is determined by the
+	keyMatchComparator, which defaults to greater-than-or-equal.
+	A value is returned for a key if it is the first key that matches in
+	the sorted list of keys.  By default, keys are sorted in ascending
+	order, but can be sorted in any other order using the keySortComparator.
+
+	Let's create a map that maps 1-3 -> 'a', 4-6 -> 'b'
+	>>> r = RangeMap( { 3: 'a', 6: 'b' } )  # boy, that was easy
+	>>> r[1], r[2], r[3], r[4], r[5], r[6]
+	('a', 'a', 'a', 'b', 'b', 'b')
+
+	But you'll notice that the way rangemap is defined, it must be open-ended on one side.
+	>>> r[0]
+	'a'
+	>>> r[-1]
+	'a'
+
+	One can close the open-end of the RangeMap by using RangeValueUndefined
+	>>> r = RangeMap( { 0: RangeValueUndefined(), 3: 'a', 6: 'b' } )
+	>>> r[0]
+	Traceback (most recent call last):
+	  ...
+	KeyError: 0
+
+	One can get the first or last elements in the range by using RangeItem
+	>>> last_item = RangeItem( -1 )
+	>>> r[last_item]
+	'b'
+
+	>>> r[RangeItemLast()]
+	'b'
+
+	>>> r.bounds()
+	(0, 6)
+	
+	"""
+	def __init__( self, source, keySortComparator = ascending, keyMatchComparator = operator.le ):
+		dict.__init__( self, source )
+		self.sort = keySortComparator
+		self.match = keyMatchComparator
+
+	def __getitem__( self, item ):
+		sortedKeys = self.keys()
+		sortedKeys.sort( self.sort )
+		if isinstance( item, RangeItem ):
+			result = self.__getitem__( sortedKeys[ item ] )
+		else:
+			key = self._find_first_match_( sortedKeys, item )
+			result = dict.__getitem__( self, key )
+			if isinstance( result, RangeValueUndefined ): raise KeyError, key
+		return result
+
+	def _find_first_match_( self, keys, item ):
+		is_match = lambda k: self.match( item, k )
+		# use of ifilter here would be more efficent
+		matches = filter( is_match, keys )
+		if matches:
+			return matches[0]
+		raise KeyError( item )
+
+	def bounds( self ):
+		sortedKeys = self.keys()
+		sortedKeys.sort( self.sort )
+		return sortedKeys[ RangeItemFirst() ], sortedKeys[ RangeItemLast() ]
+
+class RangeValueUndefined( object ): pass
+class RangeItem( int ):
+	def __new__( cls, value ):
+		return int.__new__( cls, value )
+class RangeItemFirst( RangeItem ):
+	def __new__( cls ):
+		return RangeItem.__new__( cls, 0 )
+class RangeItemLast( RangeItem ):
+	def __new__( cls ):
+		return RangeItem.__new__( cls, -1 )
