@@ -745,7 +745,7 @@ BOOL BuildDeps(PyObject *obDeps, TCHAR **ppDeps)
 				Py_DECREF(obString);
 				goto cleanup;
 			}
-			int len = _tcslen(pStr);
+			size_t len = _tcslen(pStr);
 			_tcsncpy(p, pStr, len);
 			p += len;
 			*p++ = L'\0';
@@ -1104,11 +1104,10 @@ typedef float SC_HANDLE, SERVICE_STATUS_HANDLE, SC_LOCK;	// This is just to keep
 		return NULL;
 }
 %typemap(python,out) SC_LOCK{
-	$target = PyLong_FromVoidPtr($source);
+	$target = PyWinLong_FromVoidPtr($source);
 }
 %typemap(python,in) SC_LOCK{
-	$target=PyLong_AsVoidPtr($source);
-	if ($target==NULL && PyErr_Occurred())
+	if (!PyWinLong_AsVoidPtr($source, &$target))
 		return NULL;
 }
 
