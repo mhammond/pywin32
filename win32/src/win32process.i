@@ -429,11 +429,9 @@ static PyObject *myCreateRemoteThread(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess, FALSE))
 		return NULL;
-	Func=(LPTHREAD_START_ROUTINE)PyLong_AsVoidPtr(obFunc);
-	if (Func==NULL && PyErr_Occurred())
+	if (!PyWinLong_AsVoidPtr(obFunc, (void **)&Func))
 		return NULL;
-	Parameter=PyLong_AsVoidPtr(obParameter);
-	if (Parameter==NULL && PyErr_Occurred())
+	if (!PyWinLong_AsVoidPtr(obParameter, &Parameter))
 		return NULL;
 	SECURITY_ATTRIBUTES *pSA;
 	if (!PyWinObject_AsSECURITY_ATTRIBUTES( obSA, &pSA, TRUE ))
