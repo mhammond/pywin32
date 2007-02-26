@@ -13,17 +13,17 @@ typedef BOOL (WINAPI *CommitTransactionfunc)(HANDLE);
 static CommitTransactionfunc pfnCommitTransaction=NULL;
 typedef BOOL (WINAPI *CommitTransactionAsyncfunc)(HANDLE);
 static CommitTransactionAsyncfunc pfnCommitTransactionAsync=NULL;
-
 typedef BOOL (WINAPI *GetTransactionIdfunc)(HANDLE,LPGUID);
 static GetTransactionIdfunc pfnGetTransactionId = NULL;
+typedef HANDLE (WINAPI *OpenTransactionfunc)(DWORD,LPGUID);
+static OpenTransactionfunc pfnOpenTransaction = NULL;
+
+
 typedef BOOL (WINAPI *GetTransactionInformationfunc)(HANDLE,PDWORD,PDWORD,PDWORD,PDWORD,DWORD,LPWSTR);
 static GetTransactionInformationfunc pfnGetTransactionInformation = NULL;
 typedef BOOL (WINAPI *SetTransactionInformationfunc)(HANDLE,DWORD,DWORD,DWORD,LPWSTR);
 static SetTransactionInformationfunc pfnSetTransactionInformation = NULL;
 // static char *keywords[]={"TransactionHandle","IsolationLevel","IsolationFlags","Timeout","Description", NULL};
-typedef HANDLE (WINAPI *OpenTransactionfunc)(DWORD,LPGUID);
-static OpenTransactionfunc pfnOpenTransaction = NULL;
-// static char *keywords[]={"DesiredAccess","TransactionId", NULL};
 typedef HANDLE (WINAPI *OpenResourceManagerfunc)(DWORD,HANDLE,LPGUID);
 static OpenResourceManagerfunc pfnOpenResourceManager = NULL;
 // static char *keywords[]={"DesiredAccess","TmHandle","RmGuid", NULL};
@@ -175,6 +175,51 @@ static PyObject *PyCommitTransactionAsync(PyObject *self, PyObject *args, PyObje
 	return Py_None;
 }
 
+// @pymethod <o PyIID>|win32transaction|GetTransactionId|Returns the transaction's GUID
+static PyObject *PyGetTransactionId(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(GetTransactionId);
+	PyObject *obtrans;
+	HANDLE htrans;
+	BOOL ret;
+	GUID guid;
+	static char *keywords[]={"TransactionHandle", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:GetTransactionId", keywords,
+		&obtrans))	// @pyparm <o PyHANDLE>|TransactionHandle||Handle to a transaction
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans, FALSE))
+		return NULL;
+	Py_BEGIN_ALLOW_THREADS
+	ret=(*pfnGetTransactionId)(htrans, &guid);
+	Py_END_ALLOW_THREADS
+	if (!ret)
+		return PyWin_SetAPIError("GetTransactionId");
+	return PyWinObject_FromIID(guid);
+}
+
+// @pymethod <o PyHANDLE>|win32transaction|OpenTransaction|Creates a handle to an existing transaction
+static PyObject *PyOpenTransaction(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(OpenTransaction);
+	PyObject *obguid;
+	HANDLE htrans;
+	DWORD access;
+	GUID guid;
+	static char *keywords[]={"DesiredAccess","TransactionId", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "kO:OpenTransaction", keywords,
+		&access,	// @pyparm int|DesiredAccess||Combination of TRANSACTION_* access rights
+		&obguid))	// @pyparm <o PyIID>|TransactionId||GUID identifying the transaction
+		return NULL;
+	if (!PyWinObject_AsIID(obguid, &guid))
+		return NULL;
+	Py_BEGIN_ALLOW_THREADS
+	htrans=(*pfnOpenTransaction)(access, &guid);
+	Py_END_ALLOW_THREADS
+	if (htrans==INVALID_HANDLE_VALUE)
+		return PyWin_SetAPIError("OpenTransaction");
+	return PyWinObject_FromHANDLE(htrans);
+}
+
 
 // @module win32transaction|Module wrapping Kernal Transaction Manager functions, as used with
 //	transacted NTFS and transacted registry functions.
@@ -191,6 +236,10 @@ static PyMethodDef win32transaction_functions[] = {
 	{ "CommitTransaction", (PyCFunction)PyCommitTransaction, METH_KEYWORDS|METH_VARARGS},
 	// @pymeth CommitTransactionAsync|Commits a transaction asynchronously
 	{ "CommitTransactionAsync", (PyCFunction)PyCommitTransactionAsync, METH_KEYWORDS|METH_VARARGS},
+	// @pymeth GetTransactionId|Returns the transaction's GUID
+	{ "GetTransactionId", (PyCFunction)PyGetTransactionId, METH_KEYWORDS|METH_VARARGS},
+	// @pymeth OpenTransaction|Creates a handle to an existing transaction
+	{ "OpenTransaction", (PyCFunction)PyOpenTransaction, METH_KEYWORDS|METH_VARARGS},
 	{ NULL, NULL }
 };
 
@@ -228,64 +277,3 @@ initwin32transaction(void)
 	PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
 
 }
-
-/* Transaction access rights used with OpenTransaction:
-TRANSACTION_QUERY_INFORMATION
-TRANSACTION_SET_INFORMATION
-TRANSACTION_ENLIST
-TRANSACTION_COMMIT
-TRANSACTION_ROLLBACK 
-TRANSACTION_GENERIC_READ
-TRANSACTION_GENERIC_WRITE
-TRANSACTION_GENERIC_EXECUTE
-TRANSACTION_ALL_ACCESS
-TRANSACTION_RESOURCE_MANAGER_RIGHTS
-TRANSACTION_PROPAGATE
-*/
-
-/*
-Transaction manager access rights used with OpenTransactionManager
-TRANSACTIONMANAGER_QUERY_INFORMATION
-TRANSACTIONMANAGER_SET_INFORMATION
-TRANSACTIONMANAGER_RECOVER
-TRANSACTIONMANAGER_RENAME
-TRANSACTIONMANAGER_CREATE_RM
-TRANSACTIONMANAGER_GENERIC_READ
-TRANSACTIONMANAGER_GENERIC_WRITE
-TRANSACTIONMANAGER_GENERIC_EXECUTE 
-TRANSACTIONMANAGER_ALL_ACCESS
-*/
-
-/*
-Resource manager rights:
-RESOURCEMANAGER_QUERY_INFORMATION
-RESOURCEMANAGER_SET_INFORMATION
-RESOURCEMANAGER_RECOVER
-RESOURCEMANAGER_ENLIST
-RESOURCEMANAGER_GET_NOTIFICATION
-RESOURCEMANAGER_GENERIC_READ
-RESOURCEMANAGER_GENERIC_WRITE
-RESOURCEMANAGER_GENERIC_EXECUTE
-RESOURCEMANAGER_ALL_ACCESS
-*/
-
-/* NOTIFICATION_MASK enum:
-TRANSACTION_NOTIFY_MASK
-TRANSACTION_NOTIFY_PREPREPARE
-TRANSACTION_NOTIFY_PREPARE
-TRANSACTION_NOTIFY_COMMIT
-TRANSACTION_NOTIFY_ROLLBACK
-TRANSACTION_NOTIFY_PREPREPARE_COMPLETE
-TRANSACTION_NOTIFY_PREPARE_COMPLETE
-TRANSACTION_NOTIFY_COMMIT_COMPLETE
-TRANSACTION_NOTIFY_ROLLBACK_COMPLETE
-TRANSACTION_NOTIFY_RECOVER
-TRANSACTION_NOTIFY_SINGLE_PHASE_COMMIT
-TRANSACTION_NOTIFY_DELEGATE_COMMIT
-TRANSACTION_NOTIFY_RECOVER_QUERY
-TRANSACTION_NOTIFY_ENLIST_PREPREPARE
-TRANSACTION_NOTIFY_LAST_RECOVER
-TRANSACTION_NOTIFY_INDOUBT
-TRANSACTION_NOTIFY_TM_ONLINE
-TRANSACTION_NOTIFY_REQUEST_OUTCOME
-*/
