@@ -70,6 +70,10 @@ typedef LONG (WINAPI *RegDeleteKeyTransactedfunc)(HKEY,LPWSTR,REGSAM,DWORD,HANDL
 static RegDeleteKeyTransactedfunc pfnRegDeleteKeyTransacted = NULL;
 typedef LONG (WINAPI *RegOpenKeyTransactedfunc)(HKEY,LPWSTR,DWORD,REGSAM,PHKEY,HANDLE,PVOID);
 static RegOpenKeyTransactedfunc pfnRegOpenKeyTransacted = NULL;
+typedef LONG (WINAPI *RegCopyTreefunc)(HKEY,LPWSTR,HKEY);
+static RegCopyTreefunc pfnRegCopyTree = NULL;
+typedef LONG (WINAPI *RegDeleteTreefunc)(HKEY,LPWSTR);
+static RegDeleteTreefunc pfnRegDeleteTree = NULL;
 
 
 /* error helper */
@@ -2546,6 +2550,39 @@ PyRegConnectRegistry( PyObject *self, PyObject *args )
 	// @rdesc The return value is the handle of the opened key. 
 	// If the function fails, an exception is raised.
 }
+
+// @pymethod |win32api|RegCopyTree|Copies an entire registry key to another location
+// @comm Accepts keyword args.
+// @comm Requires Vista or later.
+static PyObject *PyRegCopyTree(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(RegCopyTree);
+	static char *keywords[]={"KeySrc","SubKey","KeyDest", NULL};
+	HKEY src, dst;
+	PyObject *obsrc, *obsubkey, *obdst, *ret=NULL;
+	WCHAR *subkey=NULL;
+	long rc;
+	
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO:RegCopyTree", keywords,
+		&obsrc,		// @pyparm <o PyHKEY>|KeySrc||Registry key to be copied
+		&obsubkey,	// @pyparm <o PyUnicode>|SubKey||Subkey to be copied, can be None
+		&obdst))	// @pyparm <o PyHKEY>|KeyDest||The destination key
+		return NULL;
+	if (PyWinObject_AsHKEY(obsrc, &src)
+		&&PyWinObject_AsWCHAR(obsubkey, &subkey, TRUE)
+		&&PyWinObject_AsHKEY(obdst, &dst)){
+		rc=(*pfnRegCopyTree)(src, subkey, dst);
+		if (rc!=ERROR_SUCCESS)
+			PyWin_SetAPIError("RegCopyTree", rc);
+		else{
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		}
+	PyWinObject_FreeWCHAR(subkey);
+	return ret;
+}
+
 // @pymethod <o PyHKEY>|win32api|RegCreateKey|Creates the specified key, or opens the key if it already exists.
 static PyObject *
 PyRegCreateKey( PyObject *self, PyObject *args )
@@ -2698,7 +2735,7 @@ static PyObject *PyRegDeleteKeyTransacted(PyObject *self, PyObject *args, PyObje
 	HKEY hKey;
 	PyObject *obKey, *obsubKey, *obtrans, *ret=NULL;
 	PVOID extparam=NULL;	// Reserved, ignore for now
-	WCHAR *subKey=NULL, *class_name=NULL;
+	WCHAR *subKey=NULL;
 	REGSAM access=0;
 	DWORD reserved=0;
 	HANDLE htrans;
@@ -2717,6 +2754,36 @@ static PyObject *PyRegDeleteKeyTransacted(PyObject *self, PyObject *args, PyObje
 		rc=(*pfnRegDeleteKeyTransacted)(hKey, subKey, access, reserved, htrans, extparam);
 		if (rc!=ERROR_SUCCESS)
 			PyWin_SetAPIError("RegDeleteKeyTransacted", rc);
+		else{
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		}
+	PyWinObject_FreeWCHAR(subKey);
+	return ret;
+}
+
+// @pymethod |win32api|RegDeleteTree|Recursively deletes a key's subkeys and values
+// @comm Accepts keyword args.
+// @comm Requires Vista or later.
+static PyObject *PyRegDeleteTree(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(RegDeleteTree);
+	HKEY hKey;
+	PyObject *obKey, *obsubKey, *ret=NULL;
+	WCHAR *subKey=NULL;
+	long rc;
+	static char *keywords[]={"Key","SubKey", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO:RegDeleteTree", keywords,
+		&obKey,		// @pyparm <o PyHKEY>|Key||Handle to a registry key
+		&obsubKey))	// @pyparm <o PyUnicode>|SubKey||Name of subkey to be deleted, or None for all subkeys and values
+		return NULL;
+
+	if (PyWinObject_AsHKEY(obKey, &hKey)
+		&&PyWinObject_AsWCHAR(obsubKey, &subKey, TRUE)){
+		rc=(*pfnRegDeleteTree)(hKey, subKey);
+		if (rc!=ERROR_SUCCESS)
+			PyWin_SetAPIError("RegDeleteTree", rc);
 		else{
 			Py_INCREF(Py_None);
 			ret=Py_None;
@@ -5533,11 +5600,13 @@ static struct PyMethodDef win32api_functions[] = {
 	{"PostThreadMessage",   PyPostThreadMessage, 1}, // @pymeth PostThreadMessage|Post a message to a thread.
 	{"RegCloseKey",			PyRegCloseKey, 1}, // @pymeth RegCloseKey|Closes a registry key.
 	{"RegConnectRegistry",	PyRegConnectRegistry, 1}, // @pymeth RegConnectRegistry|Establishes a connection to a predefined registry handle on another computer.
+	{"RegCopyTree",			(PyCFunction)PyRegCopyTree, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegCopyTree|Copies an entire registry key to another location
 	{"RegCreateKey",        PyRegCreateKey, 1}, // @pymeth RegCreateKey|Creates the specified key, or opens the key if it already exists.
 	{"RegCreateKeyEx",      (PyCFunction)PyRegCreateKeyEx, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegCreateKeyEx|Extended version of RegCreateKey
 	{"RegCreateKeyTransacted",(PyCFunction)PyRegCreateKeyTransacted, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegCreateKeyTransacted|Creates a registry key as part of a transaction
 	{"RegDeleteKey",        PyRegDeleteKey, 1}, // @pymeth RegDeleteKey|Deletes the specified key.
 	{"RegDeleteKeyTransacted",(PyCFunction)PyRegDeleteKeyTransacted, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegDeleteKeyTransacted|Deletes a registry key as part of a transaction
+	{"RegDeleteTree",		(PyCFunction)PyRegDeleteTree, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegDeleteTree|Recursively deletes a key's subkeys and values
 	{"RegDeleteValue",      PyRegDeleteValue, 1}, // @pymeth RegDeleteValue|Removes a named value from the specified registry key.
 	{"RegEnumKey",          PyRegEnumKey, 1}, // @pymeth RegEnumKey|Enumerates subkeys of the specified open registry key.
 	{"RegEnumKeyEx",        PyRegEnumKeyEx, 1}, // @pymeth RegEnumKeyEx|Enumerates subkeys of the specified open registry key.
@@ -5717,6 +5786,8 @@ initwin32api(void)
 	pfnRegCreateKeyTransacted=(RegCreateKeyTransactedfunc)GetProcAddress(hmodule, "RegCreateKeyTransactedW");
 	pfnRegOpenKeyTransacted=(RegOpenKeyTransactedfunc)GetProcAddress(hmodule, "RegOpenKeyTransactedW");
 	pfnRegDeleteKeyTransacted=(RegDeleteKeyTransactedfunc)GetProcAddress(hmodule, "RegDeleteKeyTransactedW");
+	pfnRegCopyTree=(RegCopyTreefunc)GetProcAddress(hmodule, "RegCopyTreeW");
+	pfnRegDeleteTree=(RegDeleteTreefunc)GetProcAddress(hmodule, "RegDeleteTreeW");
   }
 
 }  
