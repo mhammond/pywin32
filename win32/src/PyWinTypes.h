@@ -228,6 +228,14 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromLARGE_INTEGER(LARGE_INTEGER &val);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromULARGE_INTEGER(ULARGE_INTEGER &val);
 #define PyLong_FromLARGE_INTEGER PyWinObject_FromLARGE_INTEGER
 #define PyLong_FromULARGE_INTEGER PyWinObject_FromULARGE_INTEGER
+// Helpers that take a Py_LONG_LONG, but (a) have pywin32 consistent signatures
+// and (b) handle int *and* long (where Python only starts doing that in the
+// PyLong_* APIs post 2.4)
+// We also happen to know a LARGE_INTEGER is an __int64, so do it the easy way
+#define PyWinObject_AsPY_LONG_LONG(ob, pResult) PyWinObject_AsLARGE_INTEGER((ob), (LARGE_INTEGER *)(pResult))
+#define PyWinObject_AsUPY_LONG_LONG(ob, pResult) PyWinObject_AsULARGE_INTEGER((ob), (ULARGE_INTEGER *)(pResult))
+#define PyWinObject_FromPY_LONG_LONG(val) PyWinObject_FromLARGE_INTEGER((LARGE_INTEGER)val)
+#define PyWinObject_FromUPY_LONG_LONG(val) PyWinObject_FromULARGE_INTEGER((ULARGE_INTEGER)val)
 
 PyObject *PyLong_FromI64(__int64 ival);
 BOOL PyLong_AsI64(PyObject *val, __int64 *lval);
@@ -410,7 +418,10 @@ extern PYWINTYPES_EXPORT PyTypeObject PyHANDLEType; // the Type for PyHANDLE
 #define PyHANDLE_Check(ob)	((ob)->ob_type == &PyHANDLEType)
 
 PYWINTYPES_EXPORT BOOL PyWinObject_AsHANDLE(PyObject *ob, HANDLE *pRes, BOOL bNoneOK = FALSE);
+// For handles that use PyHANDLE.
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromHANDLE(HANDLE h);
+// For handles that aren't returned as PyHANDLE or a subclass thereof (HDC, HWND, etc).
+// Return as python ints or longs 
 PYWINTYPES_EXPORT PyObject *PyWinLong_FromHANDLE(HANDLE h);
 
 // A global function that can work as a module method for making a HANDLE object.
