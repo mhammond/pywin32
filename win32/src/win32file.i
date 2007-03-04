@@ -2726,12 +2726,21 @@ typedef BOOL (WINAPI *FindNextStreamfunc)(HANDLE, LPVOID);
 static FindNextStreamfunc pfnFindNextStream=NULL;
 typedef HANDLE (WINAPI *FindFirstStreamTransactedfunc)(LPWSTR, STREAM_INFO_LEVELS, LPVOID, DWORD, HANDLE);
 static FindFirstStreamTransactedfunc pfnFindFirstStreamTransacted=NULL;
+typedef DWORD (WINAPI *GetFinalPathNameByHandlefunc)(HANDLE,LPWSTR,DWORD,DWORD);
+static GetFinalPathNameByHandlefunc pfnGetFinalPathNameByHandle = NULL;
 
 // These aren't used yet
 typedef DWORD (WINAPI *GetFullPathNameTransactedfunc)(LPCTSTR,DWORD,LPTSTR,LPTSTR*,HANDLE);
 static GetFullPathNameTransactedfunc pfnGetFullPathNameTransacted = NULL;
 typedef DWORD (WINAPI *GetLongPathNameTransactedfunc)(LPCTSTR,LPTSTR,DWORD,HANDLE);
 static GetLongPathNameTransactedfunc pfnGetLongPathNameTransacted = NULL;
+typedef HANDLE (WINAPI *FindFirstFileNamefunc)(LPCWSTR,DWORD,LPDWORD,PWCHAR);
+static FindFirstFileNamefunc pfnFindFirstFileName = NULL;
+typedef HANDLE (WINAPI *FindFirstFileNameTransactedfunc)(LPCWSTR,DWORD,LPDWORD,PWCHAR,HANDLE);
+static FindFirstFileNameTransactedfunc pfnFindFirstFileNameTransacted = NULL;	// HFILE_ERROR
+// static char *keywords[]={"FileName","Flags","StringLength","LinkName","Transaction", NULL};
+typedef BOOL (WINAPI *FindNextFileNamefunc)(HANDLE,LPDWORD,PWCHAR);
+static FindNextFileNamefunc pfnFindNextFileName = NULL;				// ERROR_HANDLE_EOF
 /* FILE_INFO_BY_HANDLE_CLASS and various structs used by this function are in fileextd.h, can be downloaded here:
 http://www.microsoft.com/downloads/details.aspx?familyid=1decc547-ab00-4963-a360-e4130ec079b8&displaylang=en
 typedef BOOL (WINAPI *GetFileInformationByHandleExfunc)(HANDLE,FILE_INFO_BY_HANDLE_CLASS,LPVOID,DWORD);
@@ -4662,6 +4671,45 @@ static PyObject *py_FindStreams(PyObject *self, PyObject *args, PyObject *kwargs
 	return ret;
 }
 PyCFunction pfnpy_FindStreams=(PyCFunction)py_FindStreams;
+
+// @pyswig <o PyUnicode>|GetFinalPathNameByHandle|Returns the file name for an open file handle
+// @pyseeapi GetFinalPathNameByHandle
+// @comm Exists on Windows Vista or later.
+// @comm Accepts keyword arguments.
+static PyObject *py_GetFinalPathNameByHandle(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(GetFinalPathNameByHandle);
+	WCHAR *path=NULL;
+	DWORD path_len=0, reqd_len, flags;
+	HANDLE hfile;
+	PyObject *obhfile, *ret=NULL;
+	static char *keywords[]={"File","Flags", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Ok:GetFinalPathNameByHandle", keywords,
+		&obhfile,	// @pyparm <o PyHANDLE>|File||An open file handle
+		&flags))	// @pyparm int|Flags||Specifies type of path to return. (win32con.FILE_NAME_NORMALIZED,FILE_NAME_OPENED,VOLUME_NAME_DOS,VOLUME_NAME_GUID,VOLUME_NAME_NONE,VOLUME_NAME_NT)
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhfile, &hfile, FALSE))
+		return NULL;
+
+	reqd_len=(*pfnGetFinalPathNameByHandle)(hfile, path, path_len, flags);
+	if (reqd_len==0)
+		return PyWin_SetAPIError("GetFinalPathNameByHandle");
+	path_len=reqd_len+1;  // returned valued doesn't include NULL terminator
+	path=(WCHAR *)malloc(path_len*sizeof(WCHAR));
+	if (path==NULL)
+		return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", path_len*sizeof(WCHAR));
+	reqd_len=(*pfnGetFinalPathNameByHandle)(hfile, path, path_len, flags);
+	if (reqd_len==0)
+		PyWin_SetAPIError("GetFinalPathNameByHandle");
+	else if (reqd_len > path_len)	// should not happen
+		PyErr_Format(PyExc_RuntimeError, "Unexpected increase in reqd_len %d - %d", path_len, reqd_len);
+	else
+		ret=PyWinObject_FromWCHAR(path,reqd_len);
+	free(path);
+	return ret;
+}
+PyCFunction pfnpy_GetFinalPathNameByHandle=(PyCFunction)py_GetFinalPathNameByHandle;
 %}
 
 %native (SetVolumeMountPoint) py_SetVolumeMountPoint;
@@ -4704,6 +4752,7 @@ PyCFunction pfnpy_FindStreams=(PyCFunction)py_FindStreams;
 %native (FindFilesW) pfnpy_FindFilesW;
 %native (FindFilesIterator) pfnpy_FindFilesIterator;
 %native (FindStreams) pfnpy_FindStreams;
+%native (GetFinalPathNameByHandle) pfnpy_GetFinalPathNameByHandle;
 
 
 %init %{
@@ -4728,8 +4777,12 @@ PyCFunction pfnpy_FindStreams=(PyCFunction)py_FindStreams;
 			||(strcmp(pmd->ml_name, "FindFilesW")==0)
 			||(strcmp(pmd->ml_name, "FindFilesIterator")==0)
 			||(strcmp(pmd->ml_name, "FindStreams")==0)
+			||(strcmp(pmd->ml_name, "GetFinalPathNameByHandle")==0)
 			||(strcmp(pmd->ml_name, "GetFullPathNameTransacted")==0)	// not impl yet
 			||(strcmp(pmd->ml_name, "GetLongPathNameTransacted")==0)	// not impl yet
+			||(strcmp(pmd->ml_name, "FindFirstFileName")==0)			// not impl yet
+			||(strcmp(pmd->ml_name, "FindFirstFileNameTransacted")==0)	// not impl yet
+			||(strcmp(pmd->ml_name, "FindNextFileName")==0)				// not impl yet
 			||(strcmp(pmd->ml_name, "GetFileInformationByHandleEx")==0)	// not impl yet
 			)
             pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
@@ -4812,9 +4865,14 @@ PyCFunction pfnpy_FindStreams=(PyCFunction)py_FindStreams;
 		pfnFindNextStream=(FindNextStreamfunc)GetProcAddress(hmodule, "FindNextStreamW");
 		pfnFindFirstStreamTransacted=(FindFirstStreamTransactedfunc)GetProcAddress(hmodule, "FindFirstStreamTransactedW");
 		pfnFindFirstFileTransacted=(FindFirstFileTransactedfunc)GetProcAddress(hmodule, "FindFirstFileTransactedW");
+		pfnGetFinalPathNameByHandle=(GetFinalPathNameByHandlefunc)GetProcAddress(hmodule, "GetFinalPathNameByHandleW");
+
 		// these aren't wrapped yet
 		pfnGetFullPathNameTransacted=(GetFullPathNameTransactedfunc)GetProcAddress(hmodule, "GetFullPathNameTransactedW");
 		pfnGetLongPathNameTransacted=(GetLongPathNameTransactedfunc)GetProcAddress(hmodule, "GetLongPathNameTransactedW");
+		pfnFindFirstFileName=(FindFirstFileNamefunc)GetProcAddress(hmodule, "FindFirstFileNameW");
+		pfnFindFirstFileNameTransacted=(FindFirstFileNameTransactedfunc)GetProcAddress(hmodule, "FindFirstFileNameTransactedW");
+		pfnFindNextFileName=(FindNextFileNamefunc)GetProcAddress(hmodule, "FindNextFileNameW");
 		// pfnGetFileInformationByHandleEx=(GetFileInformationByHandleExfunc)GetProcAddress(hmodule, "GetFileInformationByHandleEx");
 		}
 
