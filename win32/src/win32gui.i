@@ -65,6 +65,10 @@ typedef BOOL (WINAPI *AlphaBlendfunc)(HDC,int,int,int,int,HDC,int,int,int,int,BL
 static AlphaBlendfunc pfnAlphaBlend=NULL;
 typedef BOOL (WINAPI *AnimateWindowfunc)(HWND,DWORD,DWORD);
 static AnimateWindowfunc pfnAnimateWindow=NULL;
+typedef BOOL (WINAPI *GetMenuInfofunc)(HMENU, LPCMENUINFO);
+static GetMenuInfofunc pfnGetMenuInfo=NULL;
+typedef BOOL (WINAPI *SetMenuInfofunc)(HMENU, LPCMENUINFO);
+static GetMenuInfofunc pfnSetMenuInfo=NULL;
 typedef DWORD (WINAPI *GetLayoutfunc)(HDC);
 static GetLayoutfunc pfnGetLayout=NULL;
 typedef DWORD (WINAPI *SetLayoutfunc)(HDC, DWORD);
@@ -246,6 +250,8 @@ if (hmodule){
 	pfnGetLayeredWindowAttributes=(GetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"GetLayeredWindowAttributes");
 	pfnUpdateLayeredWindow=(UpdateLayeredWindowfunc)GetProcAddress(hmodule,"UpdateLayeredWindow");
 	pfnAnimateWindow=(AnimateWindowfunc)GetProcAddress(hmodule,"AnimateWindow");
+	pfnGetMenuInfo=(GetMenuInfofunc)GetProcAddress(hmodule,"GetMenuInfo");
+	pfnSetMenuInfo=(SetMenuInfofunc)GetProcAddress(hmodule,"SetMenuInfo");
 	}
 
 hmodule=GetModuleHandle("gdi32.dll");
@@ -4534,23 +4540,79 @@ BOOLAPI CheckMenuRadioItem(
   UINT uFlags               // @pyparm int|uFlags||options
 );
 
-%ifdef WINXPGUI
 // @pyswig |SetMenuInfo|Sets information for a specified menu.
-// @comm To avoid complications with Windows NT, this function only exists in winxpgui (not win32gui)
-BOOLAPI SetMenuInfo(
-  HMENU hmenu,       // @pyparm int|hmenu||handle to menu
-  MENUINFO *INPUT  // @pyparm <o MENUINFO>|info||menu information in the format of a buffer.
-  // See win32gui_struct for helper functions.
-);
+// @comm See win32gui_struct for helper functions.
+// @comm This function will raise NotImplementedError on early platforms (eg, Windows NT.)
+%{
+PyObject *PySetMenuInfo(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(SetMenuInfo);
+	PyObject *obMenu, *obInfo;
+	HMENU hmenu;
+	int cbInfo;
+	MENUINFO *pInfo;
+	BOOL result;
+	// @pyparm int|hmenu||handle to menu
+	// @pyparm <o MENUINFO>|info||menu information in the format of a buffer.
+	if (!PyArg_ParseTuple(args, "OO", &obMenu, &obInfo))
+		return NULL;
+
+	if (!PyWinObject_AsHANDLE(obMenu, (HANDLE *)&hmenu, FALSE))
+		return NULL;
+
+	if (0 != PyObject_AsReadBuffer(obInfo, (const void **)&pInfo, &cbInfo))
+		return NULL;
+	if (sizeof MENUINFO != cbInfo)
+		return PyErr_Format(PyExc_TypeError, "Argument must be a %d byte string/buffer (got %d bytes)", sizeof MENUINFO, cbInfo);
+
+	Py_BEGIN_ALLOW_THREADS
+	result = (*pfnSetMenuInfo)(hmenu, pInfo);
+	Py_END_ALLOW_THREADS
+	if (!result)
+		return PyWin_SetAPIError("SetMenuInfo");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+%native (SetMenuInfo) PySetMenuInfo;
+
 
 // @pyswig |GetMenuInfo|Gets information about a specified menu.
-// @comm To avoid complications with Windows NT, this function only exists in winxpgui (not win32gui)
-BOOLAPI GetMenuInfo(
-	HMENU hMenu, // @pyparm int|hmenu||handle to menu
-	MENUINFO *BOTH // @pyparm buffer|info||A buffer to fill with the information.
-);
-%endif
+// @comm See win32gui_struct for helper functions.
+// @comm This function will raise NotImplementedError on early platforms (eg, Windows NT.)
+%{
+PyObject *PyGetMenuInfo(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(GetMenuInfo);
+	PyObject *obMenu, *obInfo;
+	HMENU hmenu;
+	int cbInfo;
+	MENUINFO *pInfo;
+	BOOL result;
+	// @pyparm int|hmenu||handle to menu
+	// @pyparm buffer|info||A buffer to fill with the information.
+	if (!PyArg_ParseTuple(args, "OO", &obMenu, &obInfo))
+		return NULL;
 
+	if (!PyWinObject_AsHANDLE(obMenu, (HANDLE *)&hmenu, FALSE))
+		return NULL;
+
+	if (0 != PyObject_AsWriteBuffer(obInfo, (void **)&pInfo, &cbInfo))
+		return NULL;
+	if (sizeof MENUINFO != cbInfo)
+		return PyErr_Format(PyExc_TypeError, "Argument must be a %d byte buffer (got %d bytes)", sizeof MENUINFO, cbInfo);
+
+	Py_BEGIN_ALLOW_THREADS
+	result = (*pfnGetMenuInfo)(hmenu, pInfo);
+	Py_END_ALLOW_THREADS
+	if (!result)
+		return PyWin_SetAPIError("GetMenuInfo");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+
+%native (GetMenuInfo) PyGetMenuInfo;
 
 // @pyswig |DrawFocusRect|Draws a standard focus outline around a rectangle
 BOOLAPI DrawFocusRect(
