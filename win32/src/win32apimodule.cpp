@@ -4509,6 +4509,21 @@ PyGetLocalTime (PyObject * self, PyObject * args)
   }
 }
 
+// @pymethod |win32api|SetLocalTime|Changes the system's local time
+static PyObject *PySetLocalTime (PyObject * self, PyObject * args)
+{
+	SYSTEMTIME st;
+	PyObject *obst;
+	if (!PyArg_ParseTuple (args, "O:SetLocalTime",
+		&obst))	// @pyparm <o PyTime>|SystemTime||The local time to be set.  Can also be a time tuple.
+		return NULL;
+	if (!PyWinObject_AsSYSTEMTIME(obst, &st))		
+		return NULL;
+	if (!SetLocalTime(&st))
+		return PyWin_SetAPIError("SetLocalTime");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
 
 // @pymethod int|win32api|SetSystemTime|Returns the current system time
 static PyObject *
@@ -5640,6 +5655,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"SetFileAttributes",   PySetFileAttributes,1}, // @pymeth SetFileAttributes|Sets the named file's attributes.
 	{"SetLastError",        PySetLastError,     1}, // @pymeth SetLastError|Sets the last error code known for the current thread.
 	{"SetSysColors",		PySetSysColors,      1}, // @pymeth SetSysColors|Changes color of various window elements
+	{"SetLocalTime",		PySetLocalTime,	1},	// @pymeth SetLocalTime|Changes the system's local time.
 	{"SetSystemTime",		PySetSystemTime,	1},	// @pymeth SetSystemTime|Sets the system time.	
 	{"SetClassLong",       PySetClassLong,1}, // @pymeth SetClassLong|Replaces the specified 32-bit (long) value at the specified offset into the extra class memory for the window.
 	{"SetClassWord",       PySetClassWord,1}, // @pymeth SetClassWord|Replaces the specified 32-bit (long) value at the specified offset into the extra class memory for the window.
