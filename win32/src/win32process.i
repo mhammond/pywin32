@@ -25,6 +25,8 @@ typedef BOOL (WINAPI *EnumProcessModulesfunc)(HANDLE, HMODULE *, DWORD, LPDWORD)
 static EnumProcessModulesfunc pfnEnumProcessModules = NULL;
 typedef DWORD (WINAPI *GetModuleFileNameExfunc)(HANDLE, HMODULE, WCHAR *, DWORD);
 static GetModuleFileNameExfunc pfnGetModuleFileNameEx = NULL;
+typedef DWORD (WINAPI *GetProcessIdfunc)(HANDLE);
+static GetProcessIdfunc pfnGetProcessId = NULL;
 
 #ifndef MS_WINCE
 typedef BOOL (WINAPI *GetProcessMemoryInfofunc)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD);
@@ -931,6 +933,24 @@ static PyObject *PyGetThreadTimes(PyObject *self, PyObject *args)
 		"KernelTime",	PyLong_FromUnsignedLongLong(kerneltime.QuadPart),
 		"UserTime",		PyLong_FromUnsignedLongLong(usertime.QuadPart));
 }
+
+// @pyswig int|GetProcessId|Returns the Pid for a process handle
+static PyObject *PyGetProcessId(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(GetProcessId);
+	PyObject *obhprocess;
+	HANDLE hprocess;
+	DWORD pid;
+	if (!PyArg_ParseTuple(args, "O:GetProcessId",
+		&obhprocess))	// @pyparm <o PyHANDLE>|Process||Handle to a process
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess, FALSE))
+		return NULL;
+	pid=(*pfnGetProcessId)(hprocess);
+	if (pid==0)
+		return PyWin_SetAPIError("GetProcessId");
+	return PyLong_FromUnsignedLong(pid);
+}
 %}
 %native (GetProcessPriorityBoost) PyGetProcessPriorityBoost;
 %native (SetProcessPriorityBoost) PySetProcessPriorityBoost;
@@ -938,6 +958,7 @@ static PyObject *PyGetThreadTimes(PyObject *self, PyObject *args)
 %native (SetThreadPriorityBoost) PySetThreadPriorityBoost;
 %native (GetThreadIOPendingFlag) PyGetThreadIOPendingFlag;
 %native (GetThreadTimes) PyGetThreadTimes;
+%native (GetProcessId) PyGetProcessId;
 
 #ifndef MS_WINCE
 
@@ -1512,6 +1533,7 @@ PyObject *PyGetGuiResources(PyObject *self, PyObject *args)
 		pfnCreateRemoteThread=(CreateRemoteThreadfunc)GetProcAddress(hmodule,"CreateRemoteThread");
 		pfnSetThreadIdealProcessor=(SetThreadIdealProcessorfunc)GetProcAddress(hmodule,"SetThreadIdealProcessor");
 		pfnSetProcessAffinityMask=(SetProcessAffinityMaskfunc)GetProcAddress(hmodule,"SetProcessAffinityMask");
+		pfnGetProcessId=(GetProcessIdfunc)GetProcAddress(hmodule, "GetProcessId");
 		}
 
 	hmodule=GetModuleHandle(_T("User32.dll"));
