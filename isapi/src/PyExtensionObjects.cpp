@@ -152,7 +152,6 @@ static struct PyMethodDef PyECB_methods[] = {
 	
 	{"DoneWithSession",	        PyECB::DoneWithSession, 1},      // @pymeth DoneWithSession|
 	{"close",                   PyECB::DoneWithSession, 1},      // @pymeth close|A synonym for DoneWithSession.
-	{"IsSessionActive",			PyECB::IsSessionActive,1},       // @pymeth IsSessionActive|Indicates if DoneWithSession has been called
 	{"Redirect",				PyECB::Redirect,1},              // @pymeth Redirect|
 	{"IsKeepAlive",				PyECB::IsKeepAlive,1},           // @pymeth IsKeepAlive|
 	{"GetImpersonationToken",   PyECB::GetImpersonationToken, 1}, // @pymeth GetImpersonationToken|
@@ -198,9 +197,7 @@ PyECB::PyECB(CControlBlock * pcb):
 	m_contentType(NULL),   // @prop string|ContentType|Content type of client data
 
 	m_HttpStatusCode(0),   // @prop int|HttpStatusCode|The status of the current transaction when the request is completed. 
-	m_logData(NULL),       // @prop string|LogData|log data string
-	
-	m_bAsyncDone(false)    // async done
+	m_logData(NULL)       // @prop string|LogData|log data string
 {
 	ob_type = &PyECBType;
 	_Py_NewReference(this);
@@ -392,52 +389,43 @@ PyObject * PyECB::GetServerVariable(PyObject *self, PyObject *args)
 // @pymethod string|EXTENSION_CONTROL_BLOCK|ReadClient|
 PyObject * PyECB::ReadClient(PyObject *self, PyObject *args)
 {
-
 	PyECB * pecb = (PyECB *) self;
+	if (!pecb || !pecb->Check()) return NULL;
 
 	BOOL bRes = FALSE;
 	BYTE * pBuff = NULL;
-	DWORD nSize = 0;
-
-	if (pecb->m_pcb){
-		nSize = pecb->m_totalBytes - pecb->m_available;
-	}
-	// @pyparm int|nbytes|0|
+	DWORD nSize = pecb->m_totalBytes - pecb->m_available;
+	// @pyparm int|nbytes||Default is to read all available data.
 	if (!PyArg_ParseTuple(args, "|l:ReadClient", &nSize))
 		return NULL;
-	
-	if (pecb->m_pcb){
-		Py_BEGIN_ALLOW_THREADS
-		if (nSize < 1)
-			nSize = 1;
+	Py_BEGIN_ALLOW_THREADS
+	assert (nSize >= 0); // DWORD == unsigned == >= 0
 
-		DWORD orgSize = nSize;
-		DWORD bytesGot= nSize;
+	DWORD orgSize = nSize;
+	DWORD bytesGot= nSize;
 
-		pBuff = new BYTE[nSize];
-		bRes = pecb->m_pcb->ReadClient(pBuff, &bytesGot);
-		if (bytesGot<orgSize){
-			DWORD extraBytes = orgSize-bytesGot;
-			DWORD offset=bytesGot;
-            while (extraBytes > 0){
+	pBuff = new BYTE[nSize];
+	bRes = pecb->m_pcb->ReadClient(pBuff, &bytesGot);
+	if (bytesGot<orgSize){
+		DWORD extraBytes = orgSize-bytesGot;
+		DWORD offset=bytesGot;
+			while (extraBytes > 0){
 				bytesGot=extraBytes;
-                bRes = pecb->m_pcb->ReadClient(&pBuff[offset], &bytesGot);
-                if (bytesGot <1)
-                    break;
-                
-                extraBytes -= bytesGot;
+				bRes = pecb->m_pcb->ReadClient(&pBuff[offset], &bytesGot);
+				if (bytesGot <1)
+					break;
+
+				extraBytes -= bytesGot;
 				offset += bytesGot;
 			}
 			if (extraBytes>0)
 				nSize -= extraBytes;
-		}
+	}
 
-
-		Py_END_ALLOW_THREADS
-		if (!bRes){
-			delete [] pBuff;
-			return SetPyECBError("ReadClient");
-		}
+	Py_END_ALLOW_THREADS
+	if (!bRes){
+		delete [] pBuff;
+		return SetPyECBError("ReadClient");
 	}
 
 	PyObject * pyRes = NULL;
@@ -449,7 +437,6 @@ PyObject * PyECB::ReadClient(PyObject *self, PyObject *args)
 	delete [] pBuff;
 
 	return pyRes;
-
 }
 
 // The following are wrappers for the various ServerSupportFunction
@@ -462,6 +449,7 @@ PyObject * PyECB::SendResponseHeaders(PyObject *self, PyObject * args)
 	int bKeepAlive = 0;
 
 	PyECB * pecb = (PyECB *) self;
+	if (!pecb || !pecb->Check()) return NULL;
 
 	// @pyparm string|reply||
 	// @pyparm string|headers||
@@ -488,6 +476,7 @@ PyObject * PyECB::Redirect(PyObject *self, PyObject * args)
 	TCHAR * url = NULL;
 
 	PyECB * pecb = (PyECB *) self;
+	if (!pecb || !pecb->Check()) return NULL;
 
 	// @pyparm string|url||The URL to redirect to
 	if (!PyArg_ParseTuple(args, "s:Redirect", &url))
@@ -512,6 +501,7 @@ PyObject * PyECB::GetImpersonationToken(PyObject *self, PyObject *args)
 		return NULL;
 
 	PyECB * pecb = (PyECB *) self;
+	if (!pecb || !pecb->Check()) return NULL;
 	HANDLE handle;
 	BOOL bRes;
 	Py_BEGIN_ALLOW_THREADS
@@ -529,6 +519,7 @@ PyObject * PyECB::IsKeepConn(PyObject *self, PyObject *args)
 		return NULL;
 
 	PyECB * pecb = (PyECB *) self;
+	if (!pecb || !pecb->Check()) return NULL;
 	BOOL bRes, bIs;
 	Py_BEGIN_ALLOW_THREADS
 	bRes = pecb->m_pcb->IsKeepConn(&bIs);
@@ -619,6 +610,7 @@ PyObject * PyECB::TransmitFile(PyObject *self, PyObject *args)
 	info.pContext = context;
 
 	PyECB * pecb = (PyECB *) self;
+	if (!pecb || !pecb->Check()) return NULL;
 
 	BOOL bRes;
 	Py_BEGIN_ALLOW_THREADS
@@ -641,6 +633,7 @@ PyObject * PyECB::IsKeepAlive(PyObject *self, PyObject * args)
 	bool bKeepAlive = false;
 
 	PyECB * pecb = (PyECB *) self;
+	if (!pecb || !pecb->Check()) return NULL;
 
 	if (!PyArg_ParseTuple(args, ":IsKeepAlive"))
 		return NULL;
@@ -658,6 +651,7 @@ PyObject * PyECB::IsKeepAlive(PyObject *self, PyObject * args)
 PyObject * PyECB::MapURLToPath(PyObject *self, PyObject * args)
 {
 	PyECB * pecb = (PyECB *) self;
+	if (!pecb || !pecb->Check()) return NULL;
 	// todo - handle ERROR_INSUFFICIENT_BUFFER - but 4k will do for now.
 	char buffer[1024*4];
 
@@ -682,36 +676,20 @@ PyObject * PyECB::DoneWithSession(PyObject *self, PyObject * args)
 {
 	DWORD status = HSE_STATUS_SUCCESS;
 	PyECB * pecb = (PyECB *) self;
+	if (!pecb || !pecb->Check()) return NULL;
 
 	// @pyparm int|status|HSE_STATUS_SUCCESS|An optional status.
 	// HSE_STATUS_SUCCESS_AND_KEEP_CONN is supported by IIS to keep the connection alive.
 	if (!PyArg_ParseTuple(args, "|i:DoneWithSession", &status))
 		return NULL;
 
-	if (pecb->m_pcb){
-		Py_BEGIN_ALLOW_THREADS
-		pecb->m_pcb->DoneWithSession(status);
-		pecb->m_bAsyncDone = true;
-		Py_END_ALLOW_THREADS
-	}
+	Py_BEGIN_ALLOW_THREADS
+	pecb->m_pcb->DoneWithSession(status);
+	Py_END_ALLOW_THREADS
+	pecb->m_pcb->Done();
+	pecb->m_pcb = NULL;
 	Py_INCREF(Py_None);
 	return Py_None;
-}
-
-// @pymethod bool|EXTENSION_CONTROL_BLOCK|IsSessionActive|Indicates if <om EXTENSION_CONTROL_BLOCK.DoneWithSession>
-// has been called.
-PyObject * PyECB::IsSessionActive(PyObject *self, PyObject * args)
-{
-	PyECB * pecb = (PyECB *) self;
-
-	if (!PyArg_ParseTuple(args, ":IsSessionActive"))
-		return NULL;
-	
-	BOOL bActive = FALSE;
-	if (pecb->m_pcb){
-		bActive = (pecb->m_bAsyncDone) ? FALSE : TRUE;
-	}
-	return PyBool_FromLong(bActive);
 }
 
 // Setup an exception

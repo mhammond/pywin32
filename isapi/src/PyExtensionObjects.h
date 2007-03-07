@@ -64,14 +64,18 @@ class PyECB :public PyObject
 	DWORD	   m_HttpStatusCode;     // The status of the current transaction when the request is completed. 
 	PyObject * m_logData;            // log data string 
 
-	bool	   m_bAsyncDone;		// sent the async done
-
 public:
 	PyECB(CControlBlock * pcb = NULL);
 	~PyECB();
-	
-	bool FinishedResponse(void) { return m_bAsyncDone; }
-public:	
+
+	BOOL Check() {
+		if (!m_pcb || !m_pcb->GetECB()) {
+			assert(!PyErr_Occurred());
+			PyErr_SetString(PyExc_RuntimeError, "Invalid ECB (DoneWithSession has been called)");
+			return FALSE;
+		}
+		return TRUE;
+	}
 	// Python support 
 	static void deallocFunc(PyObject *ob);
 	static PyObject *getattr(PyObject *self, char *name);
@@ -97,18 +101,14 @@ public:
 	static PyObject * IsKeepConn(PyObject *self, PyObject * args); // HSE_REQ_IS_KEEP_CONN
 
 	static PyObject * IsSessionActive(PyObject *self, PyObject * args);
-
 protected:
-
 #pragma warning( disable : 4251 )
 	static struct memberlist PyECB_memberlist[];
 #pragma warning( default : 4251 )
-
 };
 
 // error handling
 static PyObject * PyECB_Error = NULL;
 PyObject * SetPyECBError(char *fnName, long err=0);
-
 
 #endif // __PyExtensionObjects_H__
