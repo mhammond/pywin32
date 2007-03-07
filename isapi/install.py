@@ -433,12 +433,12 @@ def Uninstall(params, options):
             try:
                 parent = GetObject(directory.Parent)
                 parent.Delete(directory.Class, directory.Name)
+                log (1, "Deleted Virtual Directory: %s" % (vd.Name,))
             except:
                 exc_val = sys.exc_info()[1]
                 log(1, "Failed to remove directory %s: %s" % (vd.Name, exc_val))
 
         _CallHook(vd, "PostRemove", options)
-        log (1, "Deleted Virtual Directory: %s" % (vd.Name,))
 
     for filter_def in params.Filters:
         DeleteISAPIFilter(filter_def, options)
