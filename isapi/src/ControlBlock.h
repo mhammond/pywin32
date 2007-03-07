@@ -7,32 +7,22 @@
 class CControlBlock
 {
 public:
-	CControlBlock(EXTENSION_CONTROL_BLOCK *pECB=NULL) :
+	CControlBlock(EXTENSION_CONTROL_BLOCK *pECB) :
 		m_pECB(pECB)
 	{
+		assert(pECB);
 	}
-	
 	~CControlBlock()
 	{
 	}
-
-	CControlBlock(const CControlBlock & rhs)
-	{
-		Copy(rhs);
+	void Done() {
+		assert(m_pECB); // destructed more than once?
+		m_pECB = NULL;
 	}
-
-	CControlBlock & operator=(const CControlBlock & rhs)
-	{
-		if (this != &rhs)
-			Copy(rhs);
-		return *this;
-	}
-
 	// member retrieval functions
-
-
 	EXTENSION_CONTROL_BLOCK * GetECB(void)
 	{
+		assert(m_pECB);
 		return m_pECB;
 	}
 
@@ -152,12 +142,6 @@ public:
 
 private:
 	EXTENSION_CONTROL_BLOCK * m_pECB;		// IIS control block
-private:
-
-	void Copy(const CControlBlock & rhs)
-	{
-		m_pECB = rhs.m_pECB;
-	}
 };
 
 #endif // __CONTROL_BLOCK_H__
