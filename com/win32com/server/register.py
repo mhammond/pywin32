@@ -22,7 +22,7 @@ def _set_subkeys(keyName, valueDict, base=win32con.HKEY_CLASSES_ROOT):
       win32api.RegSetValueEx(hkey, key, None, win32con.REG_SZ, value)
   finally:
     win32api.RegCloseKey(hkey)
-			
+
 def _set_string(path, value, base=win32con.HKEY_CLASSES_ROOT):
   "Set a string value in the registry."
 
@@ -249,6 +249,8 @@ def RegisterServer(clsid,
 
   if defIcon:
     _set_string(keyNameRoot + '\\DefaultIcon', defIcon)
+  else:
+    _remove_key(keyNameRoot + '\\DefaultIcon')
 
   if addnPath:
     _set_string(keyNameRoot + "\\PythonCOMPath", addnPath)
