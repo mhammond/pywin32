@@ -386,7 +386,7 @@ PyObject *PyIShellFolder::SetNameOf(PyObject *self, PyObject *args)
 	PyObject *obhwndOwner;
 	HWND hwndOwner;
 	ITEMIDLIST *pidl=NULL;
-	ITEMIDLIST *pidlRet;
+	ITEMIDLIST *pidlRet = NULL;
 	LPOLESTR lpszName=NULL;
 	DWORD flags;
 
