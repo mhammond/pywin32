@@ -1029,3 +1029,60 @@ void PyWinObject_FreeWCHAR(WCHAR *str)
 {
 	PyMem_Free(str);
 }
+
+// Converts a series of consecutive null terminated strings into a list
+// Note that a read overflow can result if the input is not properly terminated with an extra NULL.
+// Should probably also add a counted version, as win32api uses for REG_MULTI_SZ
+PyObject *PyWinObject_FromMultipleString(WCHAR *multistring)
+{
+	PyObject *obelement, *ret=NULL;
+	int elementlen;
+	if (multistring==NULL){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	ret=PyList_New(0);
+	if (ret==NULL)
+		return NULL;
+	elementlen=wcslen(multistring);
+	do{
+		obelement=PyWinObject_FromWCHAR(multistring, elementlen);
+		if ((obelement==NULL)||(PyList_Append(ret,obelement)==-1)){
+			Py_XDECREF(obelement);
+			Py_DECREF(ret);
+			return NULL;
+			}
+		Py_DECREF(obelement);
+		multistring+=elementlen+1;
+		elementlen=wcslen(multistring);
+		}
+	while (elementlen>0);
+	return ret;
+}
+
+PyObject *PyWinObject_FromMultipleString(char *multistring)
+{
+	PyObject *obelement, *ret=NULL;
+	int elementlen;
+	if (multistring==NULL){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	ret=PyList_New(0);
+	if (ret==NULL)
+		return NULL;
+	elementlen=strlen(multistring);
+	do{
+		obelement=PyString_FromStringAndSize(multistring, elementlen);
+		if ((obelement==NULL)||(PyList_Append(ret,obelement)==-1)){
+			Py_XDECREF(obelement);
+			Py_DECREF(ret);
+			return NULL;
+			}
+		Py_DECREF(obelement);
+		multistring+=elementlen+1;
+		elementlen=strlen(multistring);
+		}
+	while (elementlen>0);
+	return ret;
+}

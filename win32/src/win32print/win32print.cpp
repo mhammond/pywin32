@@ -1333,34 +1333,6 @@ done:
 		free(buf);
 	return ret;
 }
-
-PyObject * PyWinObject_FromWCHARMultiple(WCHAR *multistring)
-{
-	PyObject *obelement, *ret=NULL;
-	// takes a consecutive sequence of NULL terminated unicode strings,
-	// terminated by an additional NULL and returns a list
-	int elementlen;
-	if (multistring==NULL){
-		Py_INCREF(Py_None);
-		return Py_None;
-		}
-	ret=PyList_New(0);
-	if (ret==NULL)
-		return NULL;
-	elementlen=wcslen(multistring);
-	do{
-		obelement=PyWinObject_FromWCHAR(multistring, elementlen);
-		if ((obelement==NULL)||(PyList_Append(ret,obelement)==-1)){
-			Py_DECREF(ret);
-			return NULL;
-			}
-		Py_DECREF(obelement);
-		multistring+=elementlen+1;
-		elementlen=wcslen(multistring);
-		}
-	while (elementlen>0);
-	return ret;
-}
 		
 // @pymethod (dict,...)|win32print|EnumPrinterDrivers|Lists installed printer drivers
 static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
@@ -1445,7 +1417,7 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 		case 3:
 			di3=(DRIVER_INFO_3W *)buf;
 			for (i=0; i<return_cnt; i++){
-				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u,s:u,s:O&,s:u,s:u}",
+				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u,s:u,s:N,s:u,s:u}",
 					"Version",di3->cVersion,
 					"Name",di3->pName,
 					"Environment",di3->pEnvironment,
@@ -1453,7 +1425,7 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 					"DataFile",di3->pDataFile,
 					"ConfigFile",di3->pConfigFile,
 					"HelpFile", di3->pHelpFile,
-					"DependentFiles",PyWinObject_FromWCHARMultiple,di3->pDependentFiles,
+					"DependentFiles",PyWinObject_FromMultipleString(di3->pDependentFiles),
 					"MonitorName",di3->pMonitorName,
 					"DefaultDataType",di3->pDefaultDataType);
 				if (tuple_item==NULL){
@@ -1468,7 +1440,7 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 		case 4:
 			di4=(DRIVER_INFO_4W *)buf;
 			for (i=0; i<return_cnt; i++){
-				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u,s:u,s:O&,s:u,s:u,s:u}",
+				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u,s:u,s:N,s:u,s:u,s:u}",
 					"Version",di4->cVersion,
 					"Name",di4->pName,
 					"Environment",di4->pEnvironment,
@@ -1476,7 +1448,7 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 					"DataFile",di4->pDataFile,
 					"ConfigFile",di4->pConfigFile,
 					"HelpFile", di4->pHelpFile,
-					"DependentFiles",PyWinObject_FromWCHARMultiple,di4->pDependentFiles,
+					"DependentFiles",PyWinObject_FromMultipleString(di4->pDependentFiles),
 					"MonitorName",di4->pMonitorName,
 					"DefaultDataType",di4->pDefaultDataType,
 					"PreviousNames",di4->pszzPreviousNames);
@@ -1514,7 +1486,7 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 		case 6:
 			di6=(DRIVER_INFO_6W *)buf;
 			for (i=0; i<return_cnt; i++){
-				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u,s:u,s:O&,s:u,s:u,s:u,s:O&,s:L,s:u,s:u,s:u}",
+				tuple_item=Py_BuildValue("{s:l,s:u,s:u,s:u,s:u,s:u,s:u,s:N,s:u,s:u,s:u,s:O&,s:L,s:u,s:u,s:u}",
 					"Version",di6->cVersion,
 					"Name",di6->pName,
 					"Environment",di6->pEnvironment,
@@ -1522,7 +1494,7 @@ static PyObject *PyEnumPrinterDrivers(PyObject *self, PyObject *args)
 					"DataFile",di6->pDataFile,
 					"ConfigFile",di6->pConfigFile,
 					"HelpFile", di6->pHelpFile,
-					"DependentFiles",PyWinObject_FromWCHARMultiple,di6->pDependentFiles,
+					"DependentFiles",PyWinObject_FromMultipleString(di6->pDependentFiles),
 					"MonitorName",di6->pMonitorName,
 					"DefaultDataType",di6->pDefaultDataType,
 					"PreviousNames",di6->pszzPreviousNames,

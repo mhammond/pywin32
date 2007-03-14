@@ -173,6 +173,10 @@ inline PyObject *PyWinObject_FromTCHAR( TCHAR *str, int numChars ) {return PyStr
 
 #define PyWinObject_FromWCHAR PyWinObject_FromOLECHAR
 
+// Converts a series of consecutive null terminated strings into a list
+PYWINTYPES_EXPORT PyObject *PyWinObject_FromMultipleString(WCHAR *multistring);
+PYWINTYPES_EXPORT PyObject *PyWinObject_FromMultipleString(char *multistring);
+
 PYWINTYPES_EXPORT PyObject *PyString_FromUnicode( const OLECHAR *str );
 PYWINTYPES_EXPORT PyObject *PyUnicodeObject_FromString(const char *string);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromOLECHAR(const OLECHAR * str);
