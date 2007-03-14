@@ -1027,10 +1027,7 @@ static PyObject *MyEnumDependentServices(PyObject *self, PyObject *args)
 %}
 
 // @pyswig tuple|QueryServiceConfig|Retrieves configuration parameters for a service
-// @rdesc Returns a tuple representing a QUERY_SERVICE_CONFIG struct:
-//   (ServiceType, StartType, ErrorControl, BinaryPathName, LoadOrderGroup, TagId, Dependencies, ServiceStartName, DisplayName)
 %native (QueryServiceConfig) MyQueryServiceConfig;
-
 %{
 static PyObject *MyQueryServiceConfig(PyObject *self, PyObject *args)
 {
@@ -1069,27 +1066,26 @@ static PyObject *MyQueryServiceConfig(PyObject *self, PyObject *args)
 		return PyWin_SetAPIError("QueryServiceConfig");
 	}
 
-	PyObject *obBinaryPathName = PyWinObject_FromTCHAR(config->lpBinaryPathName);
-	PyObject *obLoadOrderGroup = PyWinObject_FromTCHAR(config->lpLoadOrderGroup);
-	PyObject *obDependencies = PyWinObject_FromTCHAR(config->lpDependencies);
-	PyObject *obServiceStartName = PyWinObject_FromTCHAR(config->lpServiceStartName);
-	PyObject *obDisplayName = PyWinObject_FromTCHAR(config->lpDisplayName);
-	PyObject *retval = Py_BuildValue("lllOOlOOO",
+	// @rdesc Returns a tuple representing a QUERY_SERVICE_CONFIG struct:
+	// @tupleitem 0|int|ServiceType|Combination of SERVICE_*_DRIVER or SERVICE_*_PROCESS constants
+	// @tupleitem 1|int|StartType|One of SERVICE_*_START constants
+	// @tupleitem 2|int|ErrorControl|One of SERVICE_ERROR_* constants
+	// @tupleitem 3|<o PyUnicode>|BinaryPathName|Service's binary executable, can also contain command line args
+	// @tupleitem 4|<o PyUnicode>|LoadOrderGroup|Loading group that service is a member of
+	// @tupleitem 5|int|TagId|Order of service within its load order group
+	// @tupleitem 6|[<o PyUnicode>,...]|Dependencies|Sequence of names of services on which this service depends
+	// @tupleitem 7|<o PyUnicode>|ServiceStartName|Account name under which service will run
+	// @tupleitem 8|<o PyUnicode>|DisplayName|Name of service
+	PyObject *retval = Py_BuildValue("lllNNlNNN",
 			config->dwServiceType,
 			config->dwStartType,
 			config->dwErrorControl,
-			obBinaryPathName,
-			obLoadOrderGroup,
+			PyWinObject_FromTCHAR(config->lpBinaryPathName),
+			PyWinObject_FromTCHAR(config->lpLoadOrderGroup),
 			config->dwTagId,
-			obDependencies,
-			obServiceStartName,
-			obDisplayName);
-	Py_XDECREF(obBinaryPathName);
-	Py_XDECREF(obLoadOrderGroup);
-	Py_XDECREF(obDependencies);
-	Py_XDECREF(obServiceStartName);
-	Py_XDECREF(obDisplayName);
-
+			PyWinObject_FromMultipleString(config->lpDependencies),
+			PyWinObject_FromTCHAR(config->lpServiceStartName),
+			PyWinObject_FromTCHAR(config->lpDisplayName));
 	delete buffer;
 	return retval;
 }
