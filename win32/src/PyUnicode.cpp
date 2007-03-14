@@ -1036,7 +1036,7 @@ void PyWinObject_FreeWCHAR(WCHAR *str)
 PyObject *PyWinObject_FromMultipleString(WCHAR *multistring)
 {
 	PyObject *obelement, *ret=NULL;
-	int elementlen;
+	size_t elementlen;
 	if (multistring==NULL){
 		Py_INCREF(Py_None);
 		return Py_None;
@@ -1045,7 +1045,7 @@ PyObject *PyWinObject_FromMultipleString(WCHAR *multistring)
 	if (ret==NULL)
 		return NULL;
 	elementlen=wcslen(multistring);
-	do{
+	while (elementlen){
 		obelement=PyWinObject_FromWCHAR(multistring, elementlen);
 		if ((obelement==NULL)||(PyList_Append(ret,obelement)==-1)){
 			Py_XDECREF(obelement);
@@ -1056,14 +1056,13 @@ PyObject *PyWinObject_FromMultipleString(WCHAR *multistring)
 		multistring+=elementlen+1;
 		elementlen=wcslen(multistring);
 		}
-	while (elementlen>0);
 	return ret;
 }
 
 PyObject *PyWinObject_FromMultipleString(char *multistring)
 {
 	PyObject *obelement, *ret=NULL;
-	int elementlen;
+	size_t elementlen;
 	if (multistring==NULL){
 		Py_INCREF(Py_None);
 		return Py_None;
@@ -1072,7 +1071,7 @@ PyObject *PyWinObject_FromMultipleString(char *multistring)
 	if (ret==NULL)
 		return NULL;
 	elementlen=strlen(multistring);
-	do{
+	while (elementlen){
 		obelement=PyString_FromStringAndSize(multistring, elementlen);
 		if ((obelement==NULL)||(PyList_Append(ret,obelement)==-1)){
 			Py_XDECREF(obelement);
@@ -1083,6 +1082,5 @@ PyObject *PyWinObject_FromMultipleString(char *multistring)
 		multistring+=elementlen+1;
 		elementlen=strlen(multistring);
 		}
-	while (elementlen>0);
 	return ret;
 }
