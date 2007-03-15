@@ -2652,9 +2652,18 @@ static PyObject *MyWaitCommEvent(PyObject *self, PyObject *args)
 // Some Win2k specific volume mounting functions, thanks to Roger Upole
 %{
 #define CHECK_PFN(fname) if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);
-static BOOL (WINAPI *pfnGetVolumeNameForVolumeMountPointW)(LPCWSTR, LPCWSTR, DWORD) = NULL;
-static BOOL (WINAPI *pfnSetVolumeMountPointW)(LPCWSTR, LPCWSTR) = NULL;
-static BOOL (WINAPI *pfnDeleteVolumeMountPointW)(LPCWSTR) = NULL;
+
+typedef BOOL (WINAPI *GetVolumeNameForVolumeMountPointfunc)(LPCWSTR, LPCWSTR, DWORD);
+static GetVolumeNameForVolumeMountPointfunc pfnGetVolumeNameForVolumeMountPoint = NULL;
+typedef BOOL (WINAPI *SetVolumeMountPointfunc)(LPCWSTR, LPCWSTR);
+static SetVolumeMountPointfunc pfnSetVolumeMountPoint = NULL;
+typedef BOOL (WINAPI *DeleteVolumeMountPointfunc)(LPCWSTR);
+static DeleteVolumeMountPointfunc pfnDeleteVolumeMountPoint = NULL;
+typedef BOOL (WINAPI *GetVolumePathNamefunc)(WCHAR *, WCHAR *, DWORD);
+static GetVolumePathNamefunc pfnGetVolumePathName=NULL;
+typedef BOOL (WINAPI *GetVolumePathNamesForVolumeNamefunc)(LPCWSTR,LPWSTR,DWORD,PDWORD);
+static GetVolumePathNamesForVolumeNamefunc pfnGetVolumePathNamesForVolumeName = NULL;
+
 static BOOL (WINAPI *pfnEncryptFile)(WCHAR *)=NULL;
 static BOOL (WINAPI *pfnDecryptFile)(WCHAR *, DWORD)=NULL;
 static BOOL (WINAPI *pfnEncryptionDisable)(WCHAR *, BOOL)=NULL;
@@ -2664,7 +2673,7 @@ static BOOL (WINAPI *pfnFreeEncryptionCertificateHashList)(PENCRYPTION_CERTIFICA
 static DWORD (WINAPI *pfnQueryRecoveryAgentsOnEncryptedFile)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST *)=NULL;
 static DWORD (WINAPI *pfnRemoveUsersFromEncryptedFile)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST)=NULL;
 static DWORD (WINAPI *pfnAddUsersToEncryptedFile)(WCHAR *, PENCRYPTION_CERTIFICATE_LIST)=NULL;
-static BOOL (WINAPI *pfnGetVolumePathNameW)(WCHAR *, WCHAR *, DWORD)=NULL;
+
 
 typedef BOOL (WINAPI *CreateHardLinkfunc)(LPWSTR, LPWSTR, LPSECURITY_ATTRIBUTES);
 static CreateHardLinkfunc pfnCreateHardLink=NULL;
@@ -2748,95 +2757,185 @@ static GetFileInformationByHandleExfunc pfnGetFileInformationByHandleEx = NULL;
 */
 
 
-// @pyswig <o PyUnicode>|SetVolumeMountPoint|Mounts the specified volume at the specified volume mount point.
+// @pyswig <o PyUnicode>|SetVolumeMountPoint|Mounts	the	specified volume at	the	specified volume mount point.
+// @comm Accepts keyword args.
 static PyObject*
-py_SetVolumeMountPoint(PyObject *self, PyObject *args)
+py_SetVolumeMountPoint(PyObject	*self, PyObject	*args, PyObject *kwargs)
 {
-    // @ex Usage|SetVolumeMountPoint('h:\tmp\','c:\')
-    // @pyparm string|mountPoint||The mount point - must be an existing empty directory on an NTFS volume
-    // @pyparm string|volumeName||The volume to mount there 
-    // @comm Note that both parameters must have trailing backslashes.
-    // @rdesc The result is the GUID of the volume mounted, as a string.
-    // @comm This method exists only on Windows 2000.If there
-    // is an attempt to use it on these platforms, an error with E_NOTIMPL will be raised.
-    PyObject *ret=NULL;
-    PyObject *volume_obj = NULL, *mount_point_obj = NULL;
-    // LPWSTR volume = NULL, mount_point = NULL;
+	// @ex Usage|SetVolumeMountPoint('h:\tmp\','c:\')
+	// @comm Note that both	parameters must	have trailing backslashes.
+	// @rdesc The result is	the	GUID of	the	volume mounted,	as a string.
+	// @comm This method exists only on Windows 2000 or later.  On earlier platforms, NotImplementedError will be raised.
+	CHECK_PFN(GetVolumeNameForVolumeMountPoint);
+	CHECK_PFN(SetVolumeMountPoint);
+	PyObject *ret=NULL;
+	PyObject *volume_obj = NULL, *mount_point_obj =	NULL;
+	WCHAR *volume =	NULL;
+	WCHAR *mount_point = NULL;
+	WCHAR volume_name[50];
+	static char *keywords[]={"VolumeMountPoint", "VolumeName", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args,kwargs,"OO:SetVolumeMountPoint",keywords,
+		&mount_point_obj,	// @pyparm <o PyUnicode>|VolumeMountPoint||The mount point - must be an existing empty directory on an NTFS volume
+		&volume_obj))		// @pyparm <o PyUnicode>|VolumeName||The volume to	mount there	
+		return NULL;
 
-    WCHAR *volume = NULL;
-    WCHAR *mount_point = NULL;
-    WCHAR volume_name[50];
-	if ((pfnSetVolumeMountPointW==NULL)||(pfnGetVolumeNameForVolumeMountPointW==NULL))
-		return PyErr_Format(PyExc_NotImplementedError,"SetVolumeMountPoint not supported by this version of Windows");
-
-	if (!PyArg_ParseTuple(args,"OO:SetVolumeMountPoint", &mount_point_obj, &volume_obj))
-        return NULL;
-
-    if (!PyWinObject_AsWCHAR(mount_point_obj, &mount_point, false)){
-        PyErr_SetString(PyExc_TypeError,"Mount point must be string or unicode");
-        goto cleanup;
-    }
-
-    if (!PyWinObject_AsWCHAR(volume_obj, &volume, false)){
-        PyErr_SetString(PyExc_TypeError,"Volume name must be string or unicode");
-        goto cleanup;
-    }
-
-    assert(pfnGetVolumeNameForVolumeMountPointW);
-    if (!(*pfnGetVolumeNameForVolumeMountPointW)(volume,volume_name,sizeof(volume_name)/sizeof(volume_name[0]))){
-        PyWin_SetAPIError("GetVolumeNameForVolumeMountPoint");
-        goto cleanup;
-    }
-    assert(pfnSetVolumeMountPointW);
-    if (!(*pfnSetVolumeMountPointW)(mount_point, volume_name)){
-        PyWin_SetAPIError("SetVolumeMountPoint");
-        goto cleanup;
-    }
-    ret=PyWinObject_FromWCHAR(volume_name);
-cleanup:
-    PyWinObject_FreeWCHAR(volume);
-    PyWinObject_FreeWCHAR(mount_point);
-
-    return ret;
+	if (PyWinObject_AsWCHAR(mount_point_obj, &mount_point, false)
+		&&PyWinObject_AsWCHAR(volume_obj, &volume, false)){
+		if (!(*pfnGetVolumeNameForVolumeMountPoint)(volume,volume_name,sizeof(volume_name)/sizeof(volume_name[0])))
+			PyWin_SetAPIError("GetVolumeNameForVolumeMountPoint");
+		else if (!(*pfnSetVolumeMountPoint)(mount_point, volume_name))
+			PyWin_SetAPIError("SetVolumeMountPoint");
+		else
+			ret=PyWinObject_FromWCHAR(volume_name);
+		}
+	PyWinObject_FreeWCHAR(volume);
+	PyWinObject_FreeWCHAR(mount_point);
+	return ret;
 }
+PyCFunction pfnpy_SetVolumeMountPoint=(PyCFunction)py_SetVolumeMountPoint;
 
-// @pyswig |DeleteVolumeMountPoint|Unmounts the volume from the specified volume mount point.
+// @pyswig |DeleteVolumeMountPoint|Unmounts	the	volume from	the	specified volume mount point.
+// @comm Accepts keyword args.
 static PyObject*
-py_DeleteVolumeMountPoint(PyObject *self, PyObject *args)
+py_DeleteVolumeMountPoint(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    // @ex Usage|DeleteVolumeMountPoint('h:\tmp\')
-    // @pyparm string|mountPoint||The mount point to delete - must have a trailing backslash.
-    // @comm Throws an error if it is not a valid mount point, returns None on success.
-    // <nl>Use carefully - will remove drive letter assignment if no directory specified
-    // @comm This method exists only on Windows 2000.If there
-    // is an attempt to use it on these platforms, an error with E_NOTIMPL will be raised.
+	// @ex Usage|DeleteVolumeMountPoint('h:\tmp\')
+	// @comm Throws	an error if	it is not a	valid mount	point, returns None	on success.
+	// <nl>Use carefully - will	remove drive letter	assignment if no directory specified
+	// @comm This method requires Windows 2000 or later.  On earlier platforms, NotImplementedError will be raised.
+	CHECK_PFN(DeleteVolumeMountPoint);
+	PyObject *ret=NULL;
+	PyObject *mount_point_obj =	NULL;
+	WCHAR *mount_point = NULL;
+	static char *keywords[]={"VolumeMountPoint", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:DeleteVolumeMountPoint", keywords,
+		&mount_point_obj))	// @pyparm <o PyUnicode>|VolumeMountPoint||The mount point to delete - must have a trailing backslash.
+		return NULL;
+	if (!PyWinObject_AsWCHAR(mount_point_obj, &mount_point,	FALSE))
+		return NULL;
 
-    PyObject *ret=NULL;
-    PyObject *mount_point_obj = NULL;
-    WCHAR *mount_point = NULL;
-
-    if (pfnDeleteVolumeMountPointW==NULL)
-        return PyErr_Format(PyExc_NotImplementedError,"DeleteVolumeMountPoint not supported by this version of Windows");
-
-	if (!PyArg_ParseTuple(args,"O:DeleteVolumeMountPoint", &mount_point_obj))
-        return NULL;
-
-    if (!PyWinObject_AsWCHAR(mount_point_obj, &mount_point, false)){
-        PyErr_SetString(PyExc_TypeError,"Mount point must be string or unicode");
-        goto cleanup;
-    }
-
-    if (!(*pfnDeleteVolumeMountPointW)(mount_point)){
-        PyWin_SetAPIError("DeleteVolumeMountPoint");
-    }
-    else
-        ret=Py_None;
-    PyWinObject_FreeWCHAR(mount_point);
-
-    cleanup:
-    Py_XINCREF(ret);
-    return ret;
+	if (!(*pfnDeleteVolumeMountPoint)(mount_point))
+		PyWin_SetAPIError("DeleteVolumeMountPoint");
+	else{
+		Py_INCREF(Py_None);
+		ret=Py_None;
+		}
+	PyWinObject_FreeWCHAR(mount_point);
+	return ret;
 }
+PyCFunction pfnpy_DeleteVolumeMountPoint=(PyCFunction)py_DeleteVolumeMountPoint;
+
+// @pyswig <o PyUnicode>|GetVolumeNameForVolumeMountPoint|Returns unique volume name.
+// @comm Requires Win2K or later.
+// @comm Accepts keyword args.
+static PyObject *py_GetVolumeNameForVolumeMountPoint(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	PyObject *ret=NULL;
+	PyObject *obvolume_name = NULL, *obmount_point = NULL;
+
+	WCHAR *mount_point = NULL;
+	WCHAR volume_name[50];
+	CHECK_PFN(GetVolumeNameForVolumeMountPoint);
+	static char *keywords[]={"VolumeMountPoint", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:GetVolumeNameForVolumeMountPoint", keywords,
+		&obmount_point))	// @pyparm <o PyUnicode>|VolumeMountPoint||Volume mount point or root drive - trailing backslash required
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obmount_point, &mount_point, false))
+		return NULL;
+	if (!(*pfnGetVolumeNameForVolumeMountPoint)(mount_point, volume_name, sizeof(volume_name)/sizeof(volume_name[0])))
+		PyWin_SetAPIError("GetVolumeNameForVolumeMountPoint");
+	else
+		ret=PyWinObject_FromWCHAR(volume_name);
+	PyWinObject_FreeWCHAR(mount_point);
+	return ret;
+}
+PyCFunction pfnpy_GetVolumeNameForVolumeMountPoint=(PyCFunction)py_GetVolumeNameForVolumeMountPoint;
+
+// @pyswig <o PyUnicode>|GetVolumePathName|Returns volume mount point for a path
+// @comm Api gives no indication of how much memory is needed, so function assumes returned path
+//       will not be longer that length of input path + 1.
+//       Use GetFullPathName first for relative paths, or GetLongPathName for 8.3 paths.
+//       Optional second parm can also be used to override the buffer size for returned path
+// @comm Accepts keyword args.
+static PyObject *py_GetVolumePathName(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	PyObject *ret=NULL;
+	PyObject *obpath = NULL;
+	WCHAR *path=NULL, *mount_point=NULL;
+	DWORD pathlen, bufsize=0;
+	CHECK_PFN(GetVolumePathName);
+	static char *keywords[]={"FileName","BufferLength", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|l:GetVolumePathName", keywords,
+		&obpath,	// @pyparm <o PyUnicode|FileName||File/dir for which to return volume mount point
+		&bufsize))	// @pyparm int|BufferLength|0|Optional parm to allocate extra space for returned string
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obpath, &path, FALSE, &pathlen))
+		return NULL;
+
+	// yet another function that doesn't tell us how much memory it needs ...
+	if (bufsize>0)
+		bufsize+=1;
+	else
+		bufsize=pathlen+2;  // enough to accomodate trailing null, and possibly extra backslash
+	mount_point=(WCHAR *)malloc(bufsize*sizeof(WCHAR));
+	if (mount_point==NULL)
+		PyErr_SetString(PyExc_MemoryError,"GetVolumePathName: Unable to allocate return buffer");
+	else
+		if (!(*pfnGetVolumePathName)(path, mount_point, bufsize))
+			PyWin_SetAPIError("GetVolumePathName");
+		else
+			ret=PyWinObject_FromWCHAR(mount_point);
+	if (path != NULL)
+		PyWinObject_FreeWCHAR(path);
+	if (mount_point!=NULL)
+		free(mount_point);
+	return ret;
+}
+PyCFunction pfnpy_GetVolumePathName=(PyCFunction)py_GetVolumePathName;
+
+// @pyswig [<o PyUnicode>,...]|GetVolumePathNamesForVolumeName|Returns mounted paths for a volume
+// @comm Requires WinXP or later
+// @comm Accepts keyword args
+static PyObject *py_GetVolumePathNamesForVolumeName(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	PyObject *obvolume, *ret=NULL;
+	WCHAR *volume=NULL, *paths=NULL;
+	// Preallocate for most common case: 'x:\\' + 2 nulls
+	DWORD buf_len=5, reqd_len=0, err;
+	static char *keywords[]={"VolumeName", NULL};
+	CHECK_PFN(GetVolumePathNamesForVolumeName);
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:GetVolumePathNamesForVolumeName", keywords, 
+		&obvolume))		// @pyparm <o PyUnicode>|VolumeName||Name of a volume as returned by <om win32file.GetVolumeNameForVolumeMountPoint>
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obvolume, &volume, FALSE))
+		return NULL;
+
+	while(true){
+		if (paths)
+			free(paths);
+		paths=(WCHAR *)malloc(buf_len*sizeof(WCHAR));
+		if (paths==NULL){
+			PyErr_Format(PyExc_MemoryError,"Unable to allocate %d characters", buf_len);
+			break;
+			}
+		if ((*pfnGetVolumePathNamesForVolumeName)(volume, paths, buf_len, &reqd_len)){
+			ret=PyWinObject_FromMultipleString(paths);
+			break;
+			}
+		err=GetLastError();
+		if (err!=ERROR_MORE_DATA){
+			PyWin_SetAPIError("GetVolumePathNamesForVolumeName", err);
+			break;
+			}
+		buf_len=reqd_len+2;
+		}
+	PyWinObject_FreeWCHAR(volume);
+	if (paths)
+		free(paths);
+	return ret;
+}
+PyCFunction pfnpy_GetVolumePathNamesForVolumeName=(PyCFunction)py_GetVolumePathNamesForVolumeName;
 
 // @pyswig |CreateHardLink|Establishes an NTFS hard link between an existing file and a new file.
 static PyObject*
@@ -2988,78 +3087,6 @@ static PyObject *py_CreateSymbolicLinkTransacted(PyObject *self, PyObject *args,
 	return ret;
 }
 PyCFunction pfnpy_CreateSymbolicLinkTransacted=(PyCFunction)py_CreateSymbolicLinkTransacted;
-
-// @pyswig <o PyUnicode>|GetVolumeNameForVolumeMountPoint|Returns unique volume name (Win2k or later)
-static PyObject*
-py_GetVolumeNameForVolumeMountPoint(PyObject *self, PyObject *args)
-{
-    // @pyparm string|mountPoint||Volume mount point or root drive - trailing backslash required
-    PyObject *ret=NULL;
-    PyObject *obvolume_name = NULL, *obmount_point = NULL;
-
-    WCHAR *mount_point = NULL;
-    WCHAR volume_name[50];
-    if (pfnGetVolumeNameForVolumeMountPointW==NULL)
-        return PyErr_Format(PyExc_NotImplementedError,"GetVolumeNameForVolumeMountPoint not supported by this version of Windows");
-
-    if (!PyArg_ParseTuple(args,"O:GetVolumeNameForVolumeMountPoint", &obmount_point))
-        return NULL;
-
-    if (!PyWinObject_AsWCHAR(obmount_point, &mount_point, false)){
-        PyErr_SetString(PyExc_TypeError,"Mount point must be string or unicode");
-        goto cleanup;
-    }
-
-    assert(pfnGetVolumeNameForVolumeMountPointW);
-    if (!(*pfnGetVolumeNameForVolumeMountPointW)(mount_point, volume_name, sizeof(volume_name)/sizeof(volume_name[0])))
-        PyWin_SetAPIError("GetVolumeNameForVolumeMountPoint");
-	else
-        ret=PyWinObject_FromWCHAR(volume_name);
-cleanup:
-	PyWinObject_FreeWCHAR(mount_point);
-	return ret;
-}
-
-// @pyswig <o PyUnicode>|GetVolumePathName|Returns volume mount point for a path
-// @comm Api gives no indication of how much memory is needed, so function assumes returned path
-//       will not be longer that length of input path + 1.
-//       Use GetFullPathName first for relative paths, or GetLongPathName for 8.3 paths.
-//       Optional second parm can also be used to override the buffer size for returned path
-static PyObject*
-py_GetVolumePathName(PyObject *self, PyObject *args)
-{
-	// @pyparm string/unicode|FileName||File/dir for which to return volume mount point
-	// @pyparm int|bufsize|0|Optional parm to allocate extra space for returned string
-	PyObject *ret=NULL;
-	PyObject *obpath = NULL;
-	WCHAR *path=NULL, *mount_point=NULL;
-	DWORD pathlen, bufsize=0;
-	if (pfnGetVolumePathNameW==NULL)
-		return PyErr_Format(PyExc_NotImplementedError,"GetVolumePathName not supported by this version of Windows");
-	if (!PyArg_ParseTuple(args,"O|l:GetVolumePathName", &obpath, &bufsize))
-		return NULL;
-	if (!PyWinObject_AsWCHAR(obpath, &path, FALSE, &pathlen))
-		return NULL;
-
-	// yet another function that doesn't tell us how much memory it needs ...
-	if (bufsize>0)
-		bufsize+=1;
-	else
-		bufsize=pathlen+2;  // enough to accomodate trailing null, and possibly extra backslash
-	mount_point=(WCHAR *)malloc(bufsize*sizeof(WCHAR));
-	if (mount_point==NULL)
-		PyErr_SetString(PyExc_MemoryError,"GetVolumePathName: Unable to allocate return buffer");
-	else
-		if (!(*pfnGetVolumePathNameW)(path, mount_point, bufsize))
-			PyWin_SetAPIError("GetVolumePathName");
-		else
-			ret=PyWinObject_FromWCHAR(mount_point);
-	if (path != NULL)
-		PyWinObject_FreeWCHAR(path);
-	if (mount_point!=NULL)
-		free(mount_point);
-	return ret;
-}
 
 // @pyswig |EncryptFile|Encrypts specified file (requires Win2k or higher and NTFS)
 static PyObject*
@@ -4712,14 +4739,16 @@ static PyObject *py_GetFinalPathNameByHandle(PyObject *self, PyObject *args, PyO
 PyCFunction pfnpy_GetFinalPathNameByHandle=(PyCFunction)py_GetFinalPathNameByHandle;
 %}
 
-%native (SetVolumeMountPoint) py_SetVolumeMountPoint;
-%native (DeleteVolumeMountPoint) py_DeleteVolumeMountPoint;
+%native (SetVolumeMountPoint) pfnpy_SetVolumeMountPoint;
+%native (DeleteVolumeMountPoint) pfnpy_DeleteVolumeMountPoint;
+%native (GetVolumeNameForVolumeMountPoint) pfnpy_GetVolumeNameForVolumeMountPoint;
+%native (GetVolumePathName) pfnpy_GetVolumePathName;
+%native (GetVolumePathNamesForVolumeName) pfnpy_GetVolumePathNamesForVolumeName;
+
 %native (CreateHardLink) pfnpy_CreateHardLink;
 %native (CreateHardLinkTransacted) pfnpy_CreateHardLinkTransacted;
 %native (CreateSymbolicLink) pfnpy_CreateSymbolicLink;
 %native (CreateSymbolicLinkTransacted) pfnpy_CreateSymbolicLinkTransacted;
-%native (GetVolumeNameForVolumeMountPoint) py_GetVolumeNameForVolumeMountPoint;
-%native (GetVolumePathName) py_GetVolumePathName;
 
 // end of win2k volume mount functions.
 %native (EncryptFile) py_EncryptFile;
@@ -4778,6 +4807,11 @@ PyCFunction pfnpy_GetFinalPathNameByHandle=(PyCFunction)py_GetFinalPathNameByHan
 			||(strcmp(pmd->ml_name, "FindFilesIterator")==0)
 			||(strcmp(pmd->ml_name, "FindStreams")==0)
 			||(strcmp(pmd->ml_name, "GetFinalPathNameByHandle")==0)
+			||(strcmp(pmd->ml_name, "SetVolumeMountPoint")==0)
+			||(strcmp(pmd->ml_name, "DeleteVolumeMountPoint")==0)
+			||(strcmp(pmd->ml_name, "GetVolumeNameForVolumeMountPoint")==0)
+			||(strcmp(pmd->ml_name, "GetVolumePathName")==0)
+			||(strcmp(pmd->ml_name, "GetVolumePathNamesForVolumeName")==0)
 			||(strcmp(pmd->ml_name, "GetFullPathNameTransacted")==0)	// not impl yet
 			||(strcmp(pmd->ml_name, "GetLongPathNameTransacted")==0)	// not impl yet
 			||(strcmp(pmd->ml_name, "FindFirstFileName")==0)			// not impl yet
@@ -4830,17 +4864,11 @@ PyCFunction pfnpy_GetFinalPathNameByHandle=(PyCFunction)py_GetFinalPathNameByHan
 	if (hmodule==NULL)
 		hmodule=LoadLibrary("kernel32.dll");
 	if (hmodule){
-		fp = GetProcAddress(hmodule, "GetVolumeNameForVolumeMountPointW");
-		if (fp) pfnGetVolumeNameForVolumeMountPointW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR, DWORD))(fp);
-
-		fp = GetProcAddress(hmodule, "GetVolumePathNameW");
-		if (fp) pfnGetVolumePathNameW = (BOOL (WINAPI *)(WCHAR *, WCHAR *, DWORD))(fp);
-
-		fp = GetProcAddress(hmodule, "SetVolumeMountPointW");
-		if (fp) pfnSetVolumeMountPointW = (BOOL (WINAPI *)(LPCWSTR, LPCWSTR))(fp);
-
-		fp = GetProcAddress(hmodule, "DeleteVolumeMountPointW");
-		if (fp) pfnDeleteVolumeMountPointW = (BOOL (WINAPI *)(LPCWSTR))(fp);
+		pfnSetVolumeMountPoint=(SetVolumeMountPointfunc)GetProcAddress(hmodule, "SetVolumeMountPointW");
+		pfnDeleteVolumeMountPoint=(DeleteVolumeMountPointfunc)GetProcAddress(hmodule, "DeleteVolumeMountPointW");
+		pfnGetVolumeNameForVolumeMountPoint=(GetVolumeNameForVolumeMountPointfunc)GetProcAddress(hmodule, "GetVolumeNameForVolumeMountPointW");
+		pfnGetVolumePathName=(GetVolumePathNamefunc)GetProcAddress(hmodule, "GetVolumePathNameW");
+		pfnGetVolumePathNamesForVolumeName=(GetVolumePathNamesForVolumeNamefunc)GetProcAddress(hmodule, "GetVolumePathNamesForVolumeNameW");
 
 		pfnCreateHardLink=(CreateHardLinkfunc)GetProcAddress(hmodule, "CreateHardLinkW");
 		pfnCreateHardLinkTransacted=(CreateHardLinkTransactedfunc)GetProcAddress(hmodule, "CreateHardLinkTransactedW");
