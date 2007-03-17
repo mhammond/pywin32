@@ -2664,16 +2664,26 @@ static GetVolumePathNamefunc pfnGetVolumePathName=NULL;
 typedef BOOL (WINAPI *GetVolumePathNamesForVolumeNamefunc)(LPCWSTR,LPWSTR,DWORD,PDWORD);
 static GetVolumePathNamesForVolumeNamefunc pfnGetVolumePathNamesForVolumeName = NULL;
 
-static BOOL (WINAPI *pfnEncryptFile)(WCHAR *)=NULL;
-static BOOL (WINAPI *pfnDecryptFile)(WCHAR *, DWORD)=NULL;
-static BOOL (WINAPI *pfnEncryptionDisable)(WCHAR *, BOOL)=NULL;
-static BOOL (WINAPI *pfnFileEncryptionStatus)(WCHAR *, LPDWORD)=NULL;
-static DWORD (WINAPI *pfnQueryUsersOnEncryptedFile)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST *)=NULL;
-static BOOL (WINAPI *pfnFreeEncryptionCertificateHashList)(PENCRYPTION_CERTIFICATE_HASH_LIST)=NULL;
-static DWORD (WINAPI *pfnQueryRecoveryAgentsOnEncryptedFile)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST *)=NULL;
-static DWORD (WINAPI *pfnRemoveUsersFromEncryptedFile)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST)=NULL;
-static DWORD (WINAPI *pfnAddUsersToEncryptedFile)(WCHAR *, PENCRYPTION_CERTIFICATE_LIST)=NULL;
-
+typedef BOOL (WINAPI *EncryptFilefunc)(WCHAR *);
+static EncryptFilefunc pfnEncryptFile=NULL;
+typedef BOOL (WINAPI *DecryptFilefunc)(WCHAR *, DWORD);
+static DecryptFilefunc pfnDecryptFile=NULL;
+typedef BOOL (WINAPI *EncryptionDisablefunc)(WCHAR *, BOOL);
+static EncryptionDisablefunc pfnEncryptionDisable=NULL;
+typedef BOOL (WINAPI *FileEncryptionStatusfunc)(WCHAR *, LPDWORD);
+static FileEncryptionStatusfunc pfnFileEncryptionStatus=NULL;
+typedef DWORD (WINAPI *QueryUsersOnEncryptedFilefunc)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST *);
+static QueryUsersOnEncryptedFilefunc pfnQueryUsersOnEncryptedFile=NULL;
+typedef BOOL (WINAPI *FreeEncryptionCertificateHashListfunc)(PENCRYPTION_CERTIFICATE_HASH_LIST);
+static FreeEncryptionCertificateHashListfunc pfnFreeEncryptionCertificateHashList=NULL;
+typedef DWORD (WINAPI *QueryRecoveryAgentsOnEncryptedFilefunc)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST *);
+static QueryRecoveryAgentsOnEncryptedFilefunc pfnQueryRecoveryAgentsOnEncryptedFile=NULL;
+typedef DWORD (WINAPI *RemoveUsersFromEncryptedFilefunc)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST);
+static RemoveUsersFromEncryptedFilefunc pfnRemoveUsersFromEncryptedFile=NULL;
+typedef DWORD (WINAPI *AddUsersToEncryptedFilefunc)(WCHAR *, PENCRYPTION_CERTIFICATE_LIST);
+static AddUsersToEncryptedFilefunc pfnAddUsersToEncryptedFile=NULL;
+typedef DWORD (WINAPI *DuplicateEncryptionInfoFilefunc)(LPWSTR,LPWSTR,DWORD,DWORD,LPSECURITY_ATTRIBUTES);
+static DuplicateEncryptionInfoFilefunc pfnDuplicateEncryptionInfoFile = NULL;
 
 typedef BOOL (WINAPI *CreateHardLinkfunc)(LPWSTR, LPWSTR, LPSECURITY_ATTRIBUTES);
 static CreateHardLinkfunc pfnCreateHardLink=NULL;
@@ -2867,7 +2877,7 @@ static PyObject *py_GetVolumePathName(PyObject *self, PyObject *args, PyObject *
 	CHECK_PFN(GetVolumePathName);
 	static char *keywords[]={"FileName","BufferLength", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|l:GetVolumePathName", keywords,
-		&obpath,	// @pyparm <o PyUnicode|FileName||File/dir for which to return volume mount point
+		&obpath,	// @pyparm <o PyUnicode>|FileName||File/dir for which to return volume mount point
 		&bufsize))	// @pyparm int|BufferLength|0|Optional parm to allocate extra space for returned string
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obpath, &path, FALSE, &pathlen))
@@ -3092,35 +3102,34 @@ PyCFunction pfnpy_CreateSymbolicLinkTransacted=(PyCFunction)py_CreateSymbolicLin
 static PyObject*
 py_EncryptFile(PyObject *self, PyObject *args)
 {
-    // @pyparm string/unicode|filename||File to encrypt
+	CHECK_PFN(EncryptFile);
+	// @pyparm string/unicode|filename||File to encrypt
+	PyObject *ret=NULL, *obfname=NULL;
+	WCHAR *fname = NULL;
 
-    PyObject *ret=NULL, *obfname=NULL;
-    WCHAR *fname = NULL;
-	if (pfnEncryptFile==NULL)
-		return PyErr_Format(PyExc_NotImplementedError,"EncryptFile not supported by this version of Windows");
 	if (!PyArg_ParseTuple(args,"O:EncryptFile", &obfname))
-        return NULL;
-    if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
-        return NULL;
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
+		return NULL;
 	if (!(*pfnEncryptFile)(fname))
-        PyWin_SetAPIError("EncryptFile");
-    else
-        ret=Py_None;
-    PyWinObject_FreeWCHAR(fname);
-    Py_XINCREF(ret);
-    return ret;
+		PyWin_SetAPIError("EncryptFile");
+	else
+		ret=Py_None;
+	PyWinObject_FreeWCHAR(fname);
+	Py_XINCREF(ret);
+	return ret;
 }
 
 // @pyswig |DecryptFile|Decrypts specified file (requires Win2k or higher and NTFS)
 static PyObject*
 py_DecryptFile(PyObject *self, PyObject *args)
 {
+	CHECK_PFN(DecryptFile);
 	// @pyparm string/unicode|filename||File to decrypt
 	PyObject *ret=NULL, *obfname=NULL;
 	WCHAR *fname = NULL;
 	DWORD reserved=0;
-	if (pfnDecryptFile==NULL)
-		return PyErr_Format(PyExc_NotImplementedError,"DecryptFile not supported by this version of Windows");
+
 	if (!PyArg_ParseTuple(args,"O:DecryptFile", &obfname))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
@@ -3138,24 +3147,24 @@ py_DecryptFile(PyObject *self, PyObject *args)
 static PyObject*
 py_EncryptionDisable(PyObject *self, PyObject *args)
 {
-    // @pyparm string/unicode|DirName||Directory to enable or disable
+	CHECK_PFN(EncryptionDisable);
+	// @pyparm string/unicode|DirName||Directory to enable or disable
 	// @pyparm boolean|Disable||Set to False to enable encryption
-    PyObject *ret=NULL, *obfname=NULL;
-    WCHAR *fname = NULL;
+	PyObject *ret=NULL, *obfname=NULL;
+	WCHAR *fname = NULL;
 	BOOL Disable;
-	if (pfnEncryptionDisable==NULL)
-		return PyErr_Format(PyExc_NotImplementedError,"EncryptionDisable not supported by this version of Windows");
+
 	if (!PyArg_ParseTuple(args,"Oi:EncryptionDisable", &obfname, &Disable))
-        return NULL;
-    if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
-        return NULL;
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
+		return NULL;
 	if (!(*pfnEncryptionDisable)(fname,Disable))
-        PyWin_SetAPIError("EncryptionDisable");
-    else
-        ret=Py_None;
-    PyWinObject_FreeWCHAR(fname);
-    Py_XINCREF(ret);
-    return ret;
+		PyWin_SetAPIError("EncryptionDisable");
+	else
+		ret=Py_None;
+	PyWinObject_FreeWCHAR(fname);
+	Py_XINCREF(ret);
+	return ret;
 }
 
 // @pyswig int|FileEncryptionStatus|retrieves the encryption status of the specified file.
@@ -3167,22 +3176,22 @@ py_EncryptionDisable(PyObject *self, PyObject *args)
 static PyObject*
 py_FileEncryptionStatus(PyObject *self, PyObject *args)
 {
-    // @pyparm string/unicode|FileName||file to query
-    PyObject *ret=NULL, *obfname=NULL;
-    WCHAR *fname = NULL;
+	CHECK_PFN(FileEncryptionStatus);
+	// @pyparm string/unicode|FileName||file to query
+	PyObject *ret=NULL, *obfname=NULL;
+	WCHAR *fname = NULL;
 	DWORD Status=0;
-	if (pfnFileEncryptionStatus==NULL)
-		return PyErr_Format(PyExc_NotImplementedError,"FileEncryptionStatus not supported by this version of Windows");
+
 	if (!PyArg_ParseTuple(args,"O:FileEncryptionStatus", &obfname))
-        return NULL;
-    if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
-        return NULL;
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
+		return NULL;
 	if (!(*pfnFileEncryptionStatus)(fname, &Status))
-        PyWin_SetAPIError("FileEncryptionStatus");
-    else
-        ret=Py_BuildValue("i",Status);
-    PyWinObject_FreeWCHAR(fname);
-    return ret;
+		PyWin_SetAPIError("FileEncryptionStatus");
+	else
+		ret=Py_BuildValue("i",Status);
+	PyWinObject_FreeWCHAR(fname);
+	return ret;
 }
 
 void PyWinObject_FreePENCRYPTION_CERTIFICATE_LIST(PENCRYPTION_CERTIFICATE_LIST pecl)
@@ -3455,9 +3464,8 @@ BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_HASH_LIST(PyObject *obhash_list, PENC
 static PyObject*
 py_QueryUsersOnEncryptedFile(PyObject *self, PyObject *args)
 {
-    // @pyparm string/unicode|FileName||file to query
-	if ((pfnQueryUsersOnEncryptedFile==NULL)||(pfnFreeEncryptionCertificateHashList==NULL))
-		return PyErr_Format(PyExc_NotImplementedError,"QueryUsersOnEncryptedFile not supported by this version of Windows");
+	CHECK_PFN(QueryUsersOnEncryptedFile);
+	// @pyparm string/unicode|FileName||file to query
 	PyObject *ret=NULL, *obfname=NULL, *ret_item=NULL;
 	WCHAR *fname=NULL;
 	DWORD err=0;
@@ -3487,9 +3495,8 @@ py_QueryUsersOnEncryptedFile(PyObject *self, PyObject *args)
 static PyObject*
 py_QueryRecoveryAgentsOnEncryptedFile(PyObject *self, PyObject *args)
 {
-    // @pyparm string/unicode|FileName||file to query
-	if ((pfnQueryRecoveryAgentsOnEncryptedFile==NULL)||(pfnFreeEncryptionCertificateHashList==NULL))
-		return PyErr_Format(PyExc_NotImplementedError,"QueryRecoveryAgentsOnEncryptedFile not supported by this version of Windows");
+	CHECK_PFN(QueryRecoveryAgentsOnEncryptedFile);
+	// @pyparm string/unicode|FileName||file to query
 	PyObject *ret=NULL, *obfname=NULL, *ret_item=NULL;
 	WCHAR *fname=NULL;
 	DWORD user_cnt=0, err=0;
@@ -3508,20 +3515,19 @@ py_QueryRecoveryAgentsOnEncryptedFile(PyObject *self, PyObject *args)
 		ret=PyWinObject_FromPENCRYPTION_CERTIFICATE_HASH_LIST(pechl);
 
 	if (fname!=NULL)
-	    PyWinObject_FreeWCHAR(fname);
+		PyWinObject_FreeWCHAR(fname);
 	if (pechl!=NULL)
 		(*pfnFreeEncryptionCertificateHashList)(pechl);
-    return ret;
+	return ret;
 }
 
 // @pyswig |RemoveUsersFromEncryptedFile|Removes specified certificates from file - if certificate is not found, it is ignored
 static PyObject*
 py_RemoveUsersFromEncryptedFile(PyObject *self, PyObject *args)
 {
-    // @pyparm string/unicode|FileName||File from which to remove users
+	CHECK_PFN(RemoveUsersFromEncryptedFile);
+	// @pyparm string/unicode|FileName||File from which to remove users
 	// @pyparm ((<o PySID>,string,unicode),...)|pHashes||Sequence representing an ENCRYPTION_CERTIFICATE_HASH_LIST structure, as returned by QueryUsersOnEncryptedFile
-	if (pfnRemoveUsersFromEncryptedFile==NULL)
-		return PyErr_Format(PyExc_NotImplementedError,"RemoveUsersFromEncryptedFile not supported by this version of Windows");
 	PyObject *ret=NULL, *obfname=NULL, *obechl=NULL;
 	WCHAR *fname=NULL;
 	DWORD err=0;
@@ -3544,20 +3550,19 @@ py_RemoveUsersFromEncryptedFile(PyObject *self, PyObject *args)
 	if (fname!=NULL)
 		PyWinObject_FreeWCHAR(fname);
 	Py_XINCREF(ret);
-    return ret;
+	return ret;
 }
 
 // @pyswig |AddUsersToEncryptedFile|Allows user identified by SID and EFS certificate access to decrypt specified file
 static PyObject*
 py_AddUsersToEncryptedFile(PyObject *self, PyObject *args)
 {
+	CHECK_PFN(AddUsersToEncryptedFile);
 	// @pyparm string/unicode|FileName||File that additional users will be allowed to decrypt
 	// @pyparm ((<o PySID>,string,int),...)|pUsers||Sequence representing
 	// ENCRYPTION_CERTIFICATE_LIST - elements are sequences consisting of
 	// users' Sid, encoded EFS certficate (user must export a .cer to obtain
 	// this data), and encoding type (usually 1 for X509_ASN_ENCODING)
-	if (pfnAddUsersToEncryptedFile==NULL)
-		return PyErr_Format(PyExc_NotImplementedError,"AddUsersToEncryptedFile not supported by this version of Windows");
 	PyObject *ret=NULL, *obfname=NULL, *obecl=NULL;
 	WCHAR *fname=NULL;
 	DWORD err=0;
@@ -3576,11 +3581,49 @@ py_AddUsersToEncryptedFile(PyObject *self, PyObject *args)
 	else
 		ret=Py_None;
 	if (fname!=NULL)
-	    PyWinObject_FreeWCHAR(fname);
+		PyWinObject_FreeWCHAR(fname);
 	PyWinObject_FreePENCRYPTION_CERTIFICATE_LIST(&ecl);
 	Py_XINCREF(ret);
-    return ret;
+	return ret;
 }
+
+// @pyswig |DuplicateEncryptionInfoFile|Duplicates EFS encryption from one file to another
+// @pyseeapi DuplicateEncryptionInfoFile
+// @comm Requires Windows XP or later
+// @comm Accepts keyword arguments.
+static PyObject *py_DuplicateEncryptionInfoFile(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(DuplicateEncryptionInfoFile);
+	WCHAR *src=NULL, *dst=NULL;
+	PSECURITY_ATTRIBUTES psa;
+	PyObject *obsrc, *obdst, *obsa=Py_None, *ret=NULL;
+	DWORD disp, attr;
+	static char *keywords[]={"SrcFileName","DstFileName","CreationDisposition","Attributes","SecurityAttributes", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOkk|O:DuplicateEncryptionInfoFile", keywords,
+		&obsrc,		// @pyparm <o PyUnicode>|SrcFileName||Encrypted file to read EFS metadata from
+		&obdst,		// @pyparm <o PyUnicode>|DstFileName||File to be encrypted using EFS data from source file
+		&disp,		// @pyparm int|CreationDisposition||Specifies whether an existing file should be overwritten (CREATE_NEW or CREATE_ALWAYS)
+		&attr,		// @pyparm int|Attributes||File attributes
+		&obsa))		// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Specifies security for destination file
+		return NULL;
+
+	if (PyWinObject_AsWCHAR(obsrc, &src, FALSE)
+		&&PyWinObject_AsWCHAR(obdst, &dst, FALSE)
+		&&PyWinObject_AsSECURITY_ATTRIBUTES(obsa, &psa, TRUE)){
+		DWORD err=(*pfnDuplicateEncryptionInfoFile)(src, dst, disp, attr, psa);
+		if (err==ERROR_SUCCESS){
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		else
+			PyWin_SetAPIError("DuplicateEncryptionInfoFile", err);
+		}
+	PyWinObject_FreeWCHAR(src);
+	PyWinObject_FreeWCHAR(dst);
+	return ret;
+}
+PyCFunction pfnpy_DuplicateEncryptionInfoFile=(PyCFunction)py_DuplicateEncryptionInfoFile;
 
 // @pyswig (int, buffer, int)|BackupRead|Reads streams of data from a file
 // @comm Returns number of bytes read, data buffer, and context pointer for next operation
@@ -4759,6 +4802,8 @@ PyCFunction pfnpy_GetFinalPathNameByHandle=(PyCFunction)py_GetFinalPathNameByHan
 %native (QueryRecoveryAgentsOnEncryptedFile) py_QueryRecoveryAgentsOnEncryptedFile;
 %native (RemoveUsersFromEncryptedFile) py_RemoveUsersFromEncryptedFile;
 %native (AddUsersToEncryptedFile) py_AddUsersToEncryptedFile;
+%native (DuplicateEncryptionInfoFile) pfnpy_DuplicateEncryptionInfoFile;
+
 %native (BackupRead) py_BackupRead;
 %native (BackupSeek) py_BackupSeek;
 %native (BackupWrite) py_BackupWrite;
@@ -4812,6 +4857,7 @@ PyCFunction pfnpy_GetFinalPathNameByHandle=(PyCFunction)py_GetFinalPathNameByHan
 			||(strcmp(pmd->ml_name, "GetVolumeNameForVolumeMountPoint")==0)
 			||(strcmp(pmd->ml_name, "GetVolumePathName")==0)
 			||(strcmp(pmd->ml_name, "GetVolumePathNamesForVolumeName")==0)
+			||(strcmp(pmd->ml_name, "DuplicateEncryptionInfoFile")==0)
 			||(strcmp(pmd->ml_name, "GetFullPathNameTransacted")==0)	// not impl yet
 			||(strcmp(pmd->ml_name, "GetLongPathNameTransacted")==0)	// not impl yet
 			||(strcmp(pmd->ml_name, "FindFirstFileName")==0)			// not impl yet
@@ -4822,37 +4868,20 @@ PyCFunction pfnpy_GetFinalPathNameByHandle=(PyCFunction)py_GetFinalPathNameByHan
             pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 
 	HMODULE hmodule;
-	FARPROC fp;
 	hmodule=GetModuleHandle("AdvAPI32.dll");
 	if (hmodule==NULL)
 		hmodule=LoadLibrary("AdvAPI32.dll");
 	if (hmodule){
-		fp=GetProcAddress(hmodule,"EncryptFileW");
-		if (fp) pfnEncryptFile=(BOOL (WINAPI *)(WCHAR *))(fp);
-
-		fp=GetProcAddress(hmodule,"DecryptFileW");
-		if (fp) pfnDecryptFile=(BOOL (WINAPI *)(WCHAR *, DWORD))(fp);
-
-		fp=GetProcAddress(hmodule,"EncryptionDisable");
-		if (fp) pfnEncryptionDisable=(BOOL (WINAPI *)(WCHAR *, BOOL))(fp);
-
-		fp=GetProcAddress(hmodule,"FileEncryptionStatusW");
-		if (fp) pfnFileEncryptionStatus=(BOOL (WINAPI *)(WCHAR *, LPDWORD))(fp);
-
-		fp=GetProcAddress(hmodule,"QueryUsersOnEncryptedFile");
-		if (fp) pfnQueryUsersOnEncryptedFile=(DWORD (WINAPI *)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST *))(fp);
-
-		fp=GetProcAddress(hmodule,"FreeEncryptionCertificateHashList");
-		if (fp) pfnFreeEncryptionCertificateHashList=(BOOL (WINAPI *)(PENCRYPTION_CERTIFICATE_HASH_LIST))(fp);
-
-		fp=GetProcAddress(hmodule,"QueryRecoveryAgentsOnEncryptedFile");
-		if (fp) pfnQueryRecoveryAgentsOnEncryptedFile=(DWORD (WINAPI *)(WCHAR *,PENCRYPTION_CERTIFICATE_HASH_LIST *))(fp);
-
-		fp=GetProcAddress(hmodule,"RemoveUsersFromEncryptedFile");
-		if (fp) pfnRemoveUsersFromEncryptedFile=(DWORD (WINAPI *)(WCHAR *,PENCRYPTION_CERTIFICATE_HASH_LIST))(fp);
-
-		fp=GetProcAddress(hmodule,"AddUsersToEncryptedFile");
-		if (fp) pfnAddUsersToEncryptedFile=(DWORD (WINAPI *)(WCHAR *,PENCRYPTION_CERTIFICATE_LIST))(fp);
+		pfnEncryptFile=(EncryptFilefunc)GetProcAddress(hmodule, "EncryptFileW");
+		pfnDecryptFile=(DecryptFilefunc)GetProcAddress(hmodule, "DecryptFileW");
+		pfnEncryptionDisable=(EncryptionDisablefunc)GetProcAddress(hmodule, "EncryptionDisable");
+		pfnFileEncryptionStatus=(FileEncryptionStatusfunc)GetProcAddress(hmodule, "FileEncryptionStatusW");
+		pfnQueryUsersOnEncryptedFile=(QueryUsersOnEncryptedFilefunc)GetProcAddress(hmodule, "QueryUsersOnEncryptedFile");
+		pfnFreeEncryptionCertificateHashList=(FreeEncryptionCertificateHashListfunc)GetProcAddress(hmodule, "FreeEncryptionCertificateHashList");
+		pfnQueryRecoveryAgentsOnEncryptedFile=(QueryRecoveryAgentsOnEncryptedFilefunc)GetProcAddress(hmodule, "QueryRecoveryAgentsOnEncryptedFile");
+		pfnRemoveUsersFromEncryptedFile=(RemoveUsersFromEncryptedFilefunc)GetProcAddress(hmodule, "RemoveUsersFromEncryptedFile");
+		pfnAddUsersToEncryptedFile=(AddUsersToEncryptedFilefunc)GetProcAddress(hmodule, "AddUsersToEncryptedFile");
+		pfnDuplicateEncryptionInfoFile=(DuplicateEncryptionInfoFilefunc)GetProcAddress(hmodule, "DuplicateEncryptionInfoFile");
 
 		pfnOpenEncryptedFileRaw=(OpenEncryptedFileRawfunc)GetProcAddress(hmodule, "OpenEncryptedFileRawW");
 		pfnReadEncryptedFileRaw=(ReadEncryptedFileRawfunc)GetProcAddress(hmodule, "ReadEncryptedFileRaw");
