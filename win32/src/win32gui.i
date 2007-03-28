@@ -3561,9 +3561,14 @@ DWORD CommDlgExtendedError(void);
 
 %typemap (python, in) OPENFILENAME *INPUT (int size){
 	size = sizeof(OPENFILENAME);
-/*	$source = PyObject_Str($source); */
-	if ( (! PyString_Check($source)) || (size != PyString_GET_SIZE($source)) ) {
-		PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string", size);
+	if (!PyString_Check($source)) {
+		PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string (got type %s)",
+		             size, $source->ob_type->tp_name);
+		return NULL;
+	}
+	if (size != PyString_GET_SIZE($source)) {
+		PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string (got string of %d bytes)",
+		             size, PyString_GET_SIZE($source));
 		return NULL;
 	}
 	$target = ( OPENFILENAME *)PyString_AS_STRING($source);
@@ -6107,6 +6112,9 @@ static PyObject *PyGetSaveFileNameW(PyObject *self, PyObject *args, PyObject *kw
 // @pyswig (<o PyUNICODE>,<o PyUNICODE>, int)|GetOpenFileNameW|Creates a dialog to allow user to select file(s) to open
 // @comm Accepts keyword arguments, all arguments optional
 // Input parameters and return values are identical to <om win32gui.GetSaveFileNameW>
+// @rdesc The result is a tuple of (filename, filter, flags), where the first 2 elements are
+// unicode strings, and the last an integer.  If the user presses cancel or an error occurs, a
+// win32gui.error is raised (and if the user pressed cancel, the error number will be zero)
 static PyObject *PyGetOpenFileNameW(PyObject *self, PyObject *args, PyObject *kwargs)
 {	
 	PyObject *ret=NULL;
