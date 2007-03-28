@@ -70,7 +70,7 @@ PyTypeObject PyTYPEATTR::Type =
 #define OFF(e) offsetof(PyTYPEATTR, e)
 
 /*static*/ struct memberlist PyTYPEATTR::memberlist[] = {
-	{"iid",            T_OBJECT,OFF(iid)},// @prop <o PyIID>|IID|The IID
+	{"iid",            T_OBJECT,OFF(iid)},// @prop <o PyIID>|iid|The IID
 	{"lcid",           T_INT,   OFF(lcid)}, // @prop int|lcid|The lcid
 	{"memidConstructor",T_INT,  OFF(memidConstructor)}, // @prop int|memidConstructor|ID of constructor
 	{"memidDestructor",T_INT,   OFF(memidDestructor)}, // @prop int|memidDestructor|ID of destructor
@@ -84,8 +84,8 @@ PyTypeObject PyTYPEATTR::Type =
 	{"wTypeFlags",     T_INT,   OFF(wTypeFlags)}, // @prop int|wTypeFlags|One of the pythoncom TYPEFLAG_
 	{"wMajorVerNum",   T_INT,   OFF(wMajorVerNum)}, // @prop int|wMajorVerNum|Major version number.
 	{"wMinorVerNum",   T_INT,   OFF(wMinorVerNum)}, // @prop int|wMinorVerNum|Minor version number.
-	{"tdescAlias",     T_OBJECT,OFF(obDescAlias)}, // @prop <o TYPEDESC>|obDescAlias|If TypeKind == pythoncom.TKIND_ALIAS, specifies the type for which this type is an alias.
-	{"idldescType",    T_OBJECT,OFF(obIDLDesc)}, // @prop <o IDLDESC>|obIDLDesc|IDL attributes of the described type.
+	{"tdescAlias",     T_OBJECT,OFF(obDescAlias)}, // @prop <o TYPEDESC>|tdescAlias|If TypeKind == pythoncom.TKIND_ALIAS, specifies the type for which this type is an alias.
+	{"idldescType",    T_OBJECT,OFF(obIDLDesc)}, // @prop <o IDLDESC>|idldeskType|IDL attributes of the described type.
 	{NULL}
 };
 
