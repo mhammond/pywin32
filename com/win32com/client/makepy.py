@@ -69,7 +69,7 @@ Examples:
 import genpy, string, sys, os, types, pythoncom
 import selecttlb
 import gencache
-from win32com.client import NeedUnicodeConversions
+from win32com.client import NeedUnicodeConversions, Dispatch
 
 bForDemandDefault = 0 # Default value of bForDemand - toggle this to change the world - see also gencache.py
 
@@ -163,9 +163,9 @@ class GUIProgress(SimpleProgress):
 			self.dialog.SetText(desc)
 
 def GetTypeLibsForSpec(arg):
-	"""Given an argument on the command line (either a file name or a library description)
-	return a list of actual typelibs to use.
-	"""
+	"""Given an argument on the command line (either a file name, library
+	description, or ProgID of an object) return a list of actual typelibs
+	to use. """
 	typelibs = []
 	try:
 		try:
@@ -176,6 +176,17 @@ def GetTypeLibsForSpec(arg):
 		except pythoncom.com_error:
 			# See if it is a description
 			tlbs = selecttlb.FindTlbsWithDescription(arg)
+			if len(tlbs)==0:
+				# Maybe it is the name of a COM object?
+				try:
+					ob = Dispatch(arg)
+					# and if so, it must support typelib info
+					tlb, index = ob._oleobj_.GetTypeInfo().GetContainingTypeLib()
+					spec = selecttlb.TypelibSpec(None, 0,0,0)
+					spec.FromTypelib(tlb)
+					tlbs.append(spec)
+				except pythoncom.com_error:
+					pass
 			if len(tlbs)==0:
 				print "Could not locate a type library matching '%s'" % (arg)
 			for spec in tlbs:
