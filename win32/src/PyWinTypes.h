@@ -355,6 +355,11 @@ PYWINTYPES_EXPORT void PyWinObject_FreeResourceId(WCHAR *resource_id);
 // WPARAM and LPARAM conversion
 PYWINTYPES_EXPORT BOOL PyWinObject_AsPARAM(PyObject *ob, WPARAM *pparam);
 
+// RECT conversions
+// @object PyRECT|Tuple of 4 ints defining a rectangle: (left, top, right, bottom)
+PYWINTYPES_EXPORT BOOL PyWinObject_AsRECT(PyObject *obrect, LPRECT prect);
+PYWINTYPES_EXPORT PyObject *PyWinObject_FromRECT(LPRECT prect);
+
 /*
 ** SECURITY_ATTRIBUTES support
 */

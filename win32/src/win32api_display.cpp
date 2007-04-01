@@ -276,29 +276,6 @@ PyObject *PyWinObject_FromDISPLAY_DEVICE(PDISPLAY_DEVICE pDISPLAY_DEVICE)
 	return ret;
 }
 
-// @object PyRECT|Tuple of 4 ints: (left, top, right, bottom)
-BOOL PyWinObject_AsRECT(PyObject *obrect, LPRECT prect)
-{
-	if (!PyTuple_Check(obrect)){
-		PyErr_SetString(PyExc_TypeError, "RECT must be a tuple of 4 ints (left, top, right, bottom)");
-		return FALSE;
-		}
-	return PyArg_ParseTuple(obrect, "llll;RECT must be a tuple of 4 ints (left, top, right, bottom)", 
-			&prect->left, &prect->top, &prect->right, &prect->bottom);
-}
-
-PyObject *PyWinObject_FromRECT(LPRECT prect)
-{
-	if (prect==NULL){
-		Py_INCREF(Py_None);
-		return Py_None;
-		}
-	return Py_BuildValue("llll",
-		prect->left, prect->top,
-		prect->right, prect->bottom);
-}
-
-
 // @pymethod int|win32api|ChangeDisplaySettings|Changes video mode for default display
 // @rdesc Returns DISP_CHANGE_SUCCESSFUL on success, or one of the DISP_CHANGE_* error constants on failure
 PyObject *PyChangeDisplaySettings(PyObject *self, PyObject *args)
@@ -361,7 +338,7 @@ PyObject *PyEnumDisplayDevices(PyObject *self, PyObject *args, PyObject *kwargs)
 	// @pyparm string|Device|None|Name of device, use None to obtain information for the display adapter(s) on the machine, based on DevNum
 	// @pyparm int|DevNum|0|Index of device of interest, starting with zero
 	// @pyparm int|Flags|0|Reserved, use 0 if passed in
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|zkk", keywords, 
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|zkk:EnumDisplayDevices", keywords, 
 		&Device, &DevNum, &Flags))
 		return NULL;
 
@@ -456,7 +433,7 @@ PyObject *PyEnumDisplayMonitors(PyObject *self, PyObject *args, PyObject *kwargs
 	RECT rect;
 	LPRECT prect;
 	PyObject *obhdc=Py_None, *obrect=Py_None;
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OO", keywords, 
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OO:EnumDisplayMonitors", keywords, 
 		&obhdc,		// @pyparm <o PyHANDLE>|hdc|None|Handle to device context, use None for virtual desktop
 		&obrect))	// @pyparm <o PyRECT>|rcClip|None|Clipping rectangle, can be None
 		return NULL;

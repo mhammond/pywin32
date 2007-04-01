@@ -646,6 +646,28 @@ BOOL PyWinObject_AsPARAM(PyObject *ob, WPARAM *pparam)
 	return FALSE;
 }
 
+// @object PyRECT|Tuple of 4 ints defining a rectangle: (left, top, right, bottom)
+BOOL PyWinObject_AsRECT(PyObject *obrect, LPRECT prect)
+{
+	if (!PyTuple_Check(obrect)){
+		PyErr_SetString(PyExc_TypeError, "RECT must be a tuple of 4 ints (left, top, right, bottom)");
+		return FALSE;
+		}
+	return PyArg_ParseTuple(obrect, "llll;RECT must be a tuple of 4 ints (left, top, right, bottom)", 
+			&prect->left, &prect->top, &prect->right, &prect->bottom);
+}
+
+PyObject *PyWinObject_FromRECT(LPRECT prect)
+{
+	if (prect==NULL){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	return Py_BuildValue("llll",
+		prect->left, prect->top,
+		prect->right, prect->bottom);
+}
+
 
 /* List of functions exported by this module */
 // @module pywintypes|A module which supports common Windows types.
