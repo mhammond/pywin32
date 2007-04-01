@@ -73,6 +73,8 @@ typedef DWORD (WINAPI *GetLayoutfunc)(HDC);
 static GetLayoutfunc pfnGetLayout=NULL;
 typedef DWORD (WINAPI *SetLayoutfunc)(HDC, DWORD);
 static SetLayoutfunc pfnSetLayout=NULL;
+typedef int (WINAPI *DrawTextWfunc)(HDC,LPWSTR,int,LPRECT,UINT);
+static DrawTextWfunc pfnDrawTextW = NULL;
 
 static PyObject *g_AtomMap = NULL; // Mapping class atoms to Python WNDPROC
 static PyObject *g_HWNDMap = NULL; // Mapping HWND to Python WNDPROC
@@ -233,13 +235,15 @@ for (PyMethodDef *pmd = winxpguiMethods; pmd->ml_name; pmd++)
 #else
 for (PyMethodDef *pmd = win32guiMethods; pmd->ml_name; pmd++)
 #endif
-	if (strcmp(pmd->ml_name, "SetLayeredWindowAttributes")==0 ||
-		strcmp(pmd->ml_name, "GetLayeredWindowAttributes")==0 ||
-		strcmp(pmd->ml_name, "UpdateLayeredWindow")==0 ||
-		strcmp(pmd->ml_name, "AnimateWindow")==0 ||
-		strcmp(pmd->ml_name, "GetOpenFileNameW")==0 ||
-		strcmp(pmd->ml_name, "GetSaveFileNameW")==0 ||
-		strcmp(pmd->ml_name, "SystemParametersInfo")==0)
+	if	 (strcmp(pmd->ml_name, "SetLayeredWindowAttributes")==0
+		||strcmp(pmd->ml_name, "GetLayeredWindowAttributes")==0
+		||strcmp(pmd->ml_name, "UpdateLayeredWindow")==0
+		||strcmp(pmd->ml_name, "AnimateWindow")==0
+		||strcmp(pmd->ml_name, "GetOpenFileNameW")==0
+		||strcmp(pmd->ml_name, "GetSaveFileNameW")==0
+		||strcmp(pmd->ml_name, "SystemParametersInfo")==0
+		||strcmp(pmd->ml_name, "DrawTextW")==0
+		)
 		pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 
 HMODULE hmodule=GetModuleHandle("user32.dll");
@@ -252,6 +256,7 @@ if (hmodule){
 	pfnAnimateWindow=(AnimateWindowfunc)GetProcAddress(hmodule,"AnimateWindow");
 	pfnGetMenuInfo=(GetMenuInfofunc)GetProcAddress(hmodule,"GetMenuInfo");
 	pfnSetMenuInfo=(SetMenuInfofunc)GetProcAddress(hmodule,"SetMenuInfo");
+	pfnDrawTextW=(DrawTextWfunc)GetProcAddress(hmodule, "DrawTextW");
 	}
 
 hmodule=GetModuleHandle("gdi32.dll");
@@ -267,7 +272,6 @@ if (hmodule){
 	pfnMaskBlt=(MaskBltfunc)GetProcAddress(hmodule,"MaskBlt");
 	pfnGetLayout=(GetLayoutfunc)GetProcAddress(hmodule,"GetLayout");
 	pfnSetLayout=(SetLayoutfunc)GetProcAddress(hmodule,"SetLayout");
-
 	}
 
 hmodule=GetModuleHandle("msimg32.dll");
@@ -388,7 +392,6 @@ typedef int UINT;
   $target = &rect_output;
 }
 
-// @object PyRECT|Tuple of 4 ints defining a rectangle: (left, top, right, bottom)
 %typemap(python,in) RECT *INPUT(RECT rect_input)
 {
 	if (PyTuple_Check($source)) {
@@ -7182,3 +7185,44 @@ static PyObject *PyExtCreatePen(PyObject *self, PyObject *args)
 %}
 %native (CreateBrushIndirect) PyCreateBrushIndirect;
 %native (ExtCreatePen) PyExtCreatePen;
+
+// @pyswig int,<o PyRECT>|DrawTextW|Draws Unicode text on a device context. 
+// @comm Accepts keyword args.
+// @rdesc Returns the height of the drawn text, and the rectangle coordinates
+%{
+PyObject *PyDrawTextW(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(DrawTextW);
+	static char *keywords[]={"hDC","String","Count","Rect","Format", NULL};
+	HDC hdc;
+	WCHAR *input_text;
+	int len, height;
+	RECT rc;
+	UINT fmt;
+	PyObject *obhdc, *obtxt, *obrc;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOiOI:DrawTextW", keywords,
+		&obhdc,		// @pyparm <o PyHANDLE>|hDC||Handle to a device context
+		&obtxt,		// @pyparm <o PyUnicode>|String||Text to be drawn
+		&len,		// @pyparm int|Count||Number of characters to draw, use -1 for entire null terminated string
+		&obrc,		// @pyparm <o PyRECT>|Rect||Rectangle in which to draw text
+		&fmt))		// @pyparm int|Format||Formatting flags, combination of win32con.DT_* values
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhdc, (HANDLE *)&hdc, FALSE))
+		return NULL;
+	if (!PyWinObject_AsRECT(obrc, &rc))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obtxt, &input_text, FALSE))
+		return NULL;
+
+	height=(*pfnDrawTextW)(hdc, input_text, len, &rc, fmt);
+	PyWinObject_FreeWCHAR(input_text);
+	if (!height)
+		return PyWin_SetAPIError("DrawTextW");
+	return Py_BuildValue("iN",
+		height,
+		PyWinObject_FromRECT(&rc));
+}
+PyCFunction pfnPyDrawTextW=(PyCFunction)PyDrawTextW;
+%}
+%native (DrawTextW) pfnPyDrawTextW;
