@@ -1411,8 +1411,10 @@ ui_window_get_window_placement(PyObject *self, PyObject *args)
 	pment.length=sizeof(pment);
 	// @pyseemfc CWnd|GetWindowPlacement
 	GUI_BGN_SAVE;
-	pWnd->GetWindowPlacement( &pment );
+	BOOL bsuccess=pWnd->GetWindowPlacement( &pment );
 	GUI_END_SAVE;
+	if (!bsuccess)
+		return NULL;
 	// @rdesc The result is a tuple of
 	// (flags, showCmd, (minposX, minposY), (maxposX, maxposY), (normalposX, normalposY))
 	// @flagh Item|Description
