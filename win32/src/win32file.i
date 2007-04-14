@@ -16,6 +16,7 @@
 #include "winbase.h"
 #include "assert.h"
 #include <stddef.h>
+#include "sfc.h"
 #endif
 
 #define NEED_PYWINOBJECTS_H
@@ -2766,6 +2767,12 @@ typedef BOOL (WINAPI *GetFileInformationByHandleExfunc)(HANDLE,FILE_INFO_BY_HAND
 static GetFileInformationByHandleExfunc pfnGetFileInformationByHandleEx = NULL;
 */
 
+// From sfc.dll
+typedef BOOL (WINAPI *SfcGetNextProtectedFilefunc)(HANDLE,PPROTECTED_FILE_DATA);
+static SfcGetNextProtectedFilefunc pfnSfcGetNextProtectedFile = NULL;
+typedef BOOL (WINAPI *SfcIsFileProtectedfunc)(HANDLE,LPCWSTR);
+static SfcIsFileProtectedfunc pfnSfcIsFileProtected = NULL;
+
 
 // @pyswig <o PyUnicode>|SetVolumeMountPoint|Mounts	the	specified volume at	the	specified volume mount point.
 // @comm Accepts keyword args.
@@ -4780,6 +4787,64 @@ static PyObject *py_GetFinalPathNameByHandle(PyObject *self, PyObject *args, PyO
 	return ret;
 }
 PyCFunction pfnpy_GetFinalPathNameByHandle=(PyCFunction)py_GetFinalPathNameByHandle;
+
+// @pyswig [<o PyUnicode>,...]|SfcGetNextProtectedFile|Returns list of protected operating system files
+// @pyseeapi SfcGetNextProtectedFile
+static PyObject *py_SfcGetNextProtectedFile(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(SfcGetNextProtectedFile);
+	PROTECTED_FILE_DATA pfd;	
+	DWORD err=0;
+	HANDLE rpchandle=NULL; // reserved
+	PyObject *ret, *ret_item;
+
+	if (!PyArg_ParseTuple(args, ":SfcGetNextProtectedFile"))
+		return NULL;
+	ret=PyList_New(0);
+	if (ret==NULL)
+		return NULL;
+	pfd.FileNumber=0;
+
+	while ((*pfnSfcGetNextProtectedFile)(rpchandle, &pfd)){
+		ret_item=PyWinObject_FromWCHAR(pfd.FileName);
+		if (ret_item==NULL || PyList_Append(ret, ret_item)==-1){
+			Py_XDECREF(ret_item);
+			Py_DECREF(ret);
+			return NULL;
+			}
+		Py_DECREF(ret_item);
+		}
+	err=GetLastError();
+	if (err==ERROR_NO_MORE_FILES)
+		return ret;
+	Py_DECREF(ret);
+	return PyWin_SetAPIError("SfcGetNextProtectedFile",err);
+}
+
+// @pyswig boolean|SfcIsFileProtected|Checks if a file is protected
+static PyObject *py_SfcIsFileProtected(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(SfcIsFileProtected);
+	PyObject *obfname;
+	WCHAR *fname;	
+	HANDLE rpchandle=NULL; // reserved
+	BOOL ret;
+
+	if (!PyArg_ParseTuple(args, "O:SfcIsFileProtected",
+		&obfname))	// @pyparm <o PyUnicode>|ProtFileName||Name of file to be checked
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
+		return NULL;
+
+	ret=(*pfnSfcIsFileProtected)(rpchandle, fname);
+	PyWinObject_FreeWCHAR(fname);
+	if (!ret){
+		DWORD err=GetLastError();
+		if (err!=ERROR_FILE_NOT_FOUND)
+			return PyWin_SetAPIError("SfcIsFileProtected",err);
+		}
+	return PyBool_FromLong(ret);
+}
 %}
 
 %native (SetVolumeMountPoint) pfnpy_SetVolumeMountPoint;
@@ -4828,12 +4893,14 @@ PyCFunction pfnpy_GetFinalPathNameByHandle=(PyCFunction)py_GetFinalPathNameByHan
 %native (FindStreams) pfnpy_FindStreams;
 %native (GetFinalPathNameByHandle) pfnpy_GetFinalPathNameByHandle;
 
+%native (SfcGetNextProtectedFile) py_SfcGetNextProtectedFile;
+%native (SfcIsFileProtected) py_SfcIsFileProtected;
 
 %init %{
 	PyDict_SetItemString(d, "error", PyWinExc_ApiError);
 	PyDict_SetItemString(d, "INVALID_HANDLE_VALUE", PyWinLong_FromHANDLE(INVALID_HANDLE_VALUE));
 
-    for (PyMethodDef *pmd = win32fileMethods;pmd->ml_name;pmd++)
+	for (PyMethodDef *pmd = win32fileMethods;pmd->ml_name;pmd++)
 		if   ((strcmp(pmd->ml_name, "CreateFileTransacted")==0)
 			||(strcmp(pmd->ml_name, "DeleteFileTransacted")==0)
 			||(strcmp(pmd->ml_name, "MoveFileWithProgress")==0)
@@ -4865,7 +4932,7 @@ PyCFunction pfnpy_GetFinalPathNameByHandle=(PyCFunction)py_GetFinalPathNameByHan
 			||(strcmp(pmd->ml_name, "FindNextFileName")==0)				// not impl yet
 			||(strcmp(pmd->ml_name, "GetFileInformationByHandleEx")==0)	// not impl yet
 			)
-            pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
+			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 
 	HMODULE hmodule;
 	hmodule=GetModuleHandle("AdvAPI32.dll");
@@ -4931,6 +4998,14 @@ PyCFunction pfnpy_GetFinalPathNameByHandle=(PyCFunction)py_GetFinalPathNameByHan
 		pfnFindFirstFileNameTransacted=(FindFirstFileNameTransactedfunc)GetProcAddress(hmodule, "FindFirstFileNameTransactedW");
 		pfnFindNextFileName=(FindNextFileNamefunc)GetProcAddress(hmodule, "FindNextFileNameW");
 		// pfnGetFileInformationByHandleEx=(GetFileInformationByHandleExfunc)GetProcAddress(hmodule, "GetFileInformationByHandleEx");
+		}
+
+	hmodule=GetModuleHandle("sfc.dll");
+	if (hmodule==NULL)
+		hmodule=LoadLibrary("sfc.dll");
+	if (hmodule){
+		pfnSfcGetNextProtectedFile=(SfcGetNextProtectedFilefunc)GetProcAddress(hmodule, "SfcGetNextProtectedFile");
+		pfnSfcIsFileProtected=(SfcIsFileProtectedfunc)GetProcAddress(hmodule, "SfcIsFileProtected");
 		}
 
 %}
