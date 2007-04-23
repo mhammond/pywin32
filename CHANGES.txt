@@ -5,6 +5,65 @@ Generally created by hand after running:
    {py_dir}\Tools\scripts\logmerge.py -t < log.out > log.out2
 However contributors are encouraged to add their own entries for their work.
 
+Since build 210:
+----------------
+* makepy accepts a program id to process its typelib
+
+* win32transaction: New module containing Kernel Transaction Manager (KTM) functions
+	as used with transacted NTFS and transacted registry functions
+
+* win32api:
+	Transacted registry functions added
+	RegCopyTree and RegDeleteTree
+	RegSaveKeyEx and RegRestoreKey
+	Get/SetSystemFileCacheSize
+	GlobalMemoryStatus and GlobalMemoryStatusEx
+	RegCreateKeyEx, RegQueryInfoKeyW, and RegEnumKeyExW
+
+* win32file:
+	Fixed bug in ReadDirectoryChanges that ignored 1 char filenames.
+		(from Niki Spahiev)
+	Transactional NTFS functions added
+	FindFiles and FindFilesIterator now accept an optional transaction handle to
+		perform a transacted search
+	FindStreams function that calls FindFirstStream and FindNextStream to enumerate
+		a file's data streams
+	CreateSymbolicLink and other new Vista API functions
+	System file checker (Sfc) functions
+	DuplicateEncryptionInfoFile
+	GetVolumePathNamesForVolumeName
+	GetFinalPathNameByHandle
+	FindFileNames using FindFirstFileName, FindFirstFileNameTransacted, and FindNextFileName
+
+* win32service:
+	Service and service control manager handles are now returned
+		as self-closing PySC_HANDLEs instead of plain int handles
+	Service dependencies are returned as list of Unicode strings instead
+		of a single string, which lost multiple dependencies (could break
+		code)
+
+* win32gui:
+	GDI object handles (bitmaps, fonts, regions, pens, brushes) are returned
+		as another PyHANDLE subclass (PyGdiHandle)
+	A large number of new text drawing, line and curve drawing, region, path,
+		and coordinate space functions
+	Window class name can now be used interchangeably with class atom
+		(fixes bug #1267366)
+	Add DrawTextW (feature request #1173716)
+
+* win32process:
+	Get/SetThreadPriorityBoost and Get/SetProcessPriorityBoost
+	GetGuiResources
+	GetProcessId
+
+* win32print:
+	Printer handles are now returned as self-closing PyHANDLE subclass
+	FlushPrinter, GetDefaultPrinterW, and SetDefaultPrinterW
+
+* win32security:
+	Added DuplicateTokenEx
+
+
 Build 210 - Sept. 23 2006
 -------------------------
 * Roger created win32profile module for working with user profiles
