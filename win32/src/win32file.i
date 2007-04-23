@@ -2746,6 +2746,12 @@ typedef BOOL (WINAPI *FindNextStreamfunc)(HANDLE, LPVOID);
 static FindNextStreamfunc pfnFindNextStream=NULL;
 typedef HANDLE (WINAPI *FindFirstStreamTransactedfunc)(LPWSTR, STREAM_INFO_LEVELS, LPVOID, DWORD, HANDLE);
 static FindFirstStreamTransactedfunc pfnFindFirstStreamTransacted=NULL;
+typedef HANDLE (WINAPI *FindFirstFileNamefunc)(LPCWSTR,DWORD,LPDWORD,PWCHAR);
+static FindFirstFileNamefunc pfnFindFirstFileName = NULL;
+typedef HANDLE (WINAPI *FindFirstFileNameTransactedfunc)(LPCWSTR,DWORD,LPDWORD,PWCHAR,HANDLE);
+static FindFirstFileNameTransactedfunc pfnFindFirstFileNameTransacted = NULL;
+typedef BOOL (WINAPI *FindNextFileNamefunc)(HANDLE,LPDWORD,PWCHAR);
+static FindNextFileNamefunc pfnFindNextFileName = NULL;
 typedef DWORD (WINAPI *GetFinalPathNameByHandlefunc)(HANDLE,LPWSTR,DWORD,DWORD);
 static GetFinalPathNameByHandlefunc pfnGetFinalPathNameByHandle = NULL;
 
@@ -2754,13 +2760,6 @@ typedef DWORD (WINAPI *GetFullPathNameTransactedfunc)(LPCTSTR,DWORD,LPTSTR,LPTST
 static GetFullPathNameTransactedfunc pfnGetFullPathNameTransacted = NULL;
 typedef DWORD (WINAPI *GetLongPathNameTransactedfunc)(LPCTSTR,LPTSTR,DWORD,HANDLE);
 static GetLongPathNameTransactedfunc pfnGetLongPathNameTransacted = NULL;
-typedef HANDLE (WINAPI *FindFirstFileNamefunc)(LPCWSTR,DWORD,LPDWORD,PWCHAR);
-static FindFirstFileNamefunc pfnFindFirstFileName = NULL;
-typedef HANDLE (WINAPI *FindFirstFileNameTransactedfunc)(LPCWSTR,DWORD,LPDWORD,PWCHAR,HANDLE);
-static FindFirstFileNameTransactedfunc pfnFindFirstFileNameTransacted = NULL;	// HFILE_ERROR
-// static char *keywords[]={"FileName","Flags","StringLength","LinkName","Transaction", NULL};
-typedef BOOL (WINAPI *FindNextFileNamefunc)(HANDLE,LPDWORD,PWCHAR);
-static FindNextFileNamefunc pfnFindNextFileName = NULL;				// ERROR_HANDLE_EOF
 /* FILE_INFO_BY_HANDLE_CLASS and various structs used by this function are in fileextd.h, can be downloaded here:
 http://www.microsoft.com/downloads/details.aspx?familyid=1decc547-ab00-4963-a360-e4130ec079b8&displaylang=en
 typedef BOOL (WINAPI *GetFileInformationByHandleExfunc)(HANDLE,FILE_INFO_BY_HANDLE_CLASS,LPVOID,DWORD);
@@ -2774,7 +2773,7 @@ typedef BOOL (WINAPI *SfcIsFileProtectedfunc)(HANDLE,LPCWSTR);
 static SfcIsFileProtectedfunc pfnSfcIsFileProtected = NULL;
 
 
-// @pyswig <o PyUnicode>|SetVolumeMountPoint|Mounts	the	specified volume at	the	specified volume mount point.
+// @pyswig <o PyUnicode>|SetVolumeMountPoint|Mounts the specified volume at the specified volume mount point.
 // @comm Accepts keyword args.
 static PyObject*
 py_SetVolumeMountPoint(PyObject	*self, PyObject	*args, PyObject *kwargs)
@@ -2811,7 +2810,7 @@ py_SetVolumeMountPoint(PyObject	*self, PyObject	*args, PyObject *kwargs)
 }
 PyCFunction pfnpy_SetVolumeMountPoint=(PyCFunction)py_SetVolumeMountPoint;
 
-// @pyswig |DeleteVolumeMountPoint|Unmounts	the	volume from	the	specified volume mount point.
+// @pyswig |DeleteVolumeMountPoint|Unmounts the volume from the specified volume mount point.
 // @comm Accepts keyword args.
 static PyObject*
 py_DeleteVolumeMountPoint(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -4749,6 +4748,110 @@ static PyObject *py_FindStreams(PyObject *self, PyObject *args, PyObject *kwargs
 }
 PyCFunction pfnpy_FindStreams=(PyCFunction)py_FindStreams;
 
+// @pyswig [<o PyUnicode>,...]|FindFileNames|Enumerates hard links that point to specified file
+// @comm This uses the API functions FindFirstFileNameW, FindNextFileNameW and FindClose
+// @comm Available on Vista and later
+// @comm If Transaction is specified, a transacted search is performed using FindFirstFileNameTransacted
+static PyObject *py_FindFileNames(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(FindFirstFileName);
+	CHECK_PFN(FindNextFileName);
+	
+	PyObject *obfname, *obtrans=Py_None, *ret=NULL, *ret_item;
+	WCHAR *fname=NULL, *linkname=NULL;
+	HANDLE hfind=INVALID_HANDLE_VALUE, htrans=NULL;
+	DWORD err=0, flags=0;   // flags are reserved, don't even accept as input
+	DWORD alloc_size=MAX_PATH, ret_size=0;
+	BOOL bfindfirst=TRUE, bsuccess=TRUE;
+#ifdef Py_DEBUG
+	alloc_size=3;	// test reallocation logic
+#endif
+	static char *keywords[]={"FileName","Transaction", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O:FindFileNames", keywords,
+		&obfname,	// @pyparm <o PyUnicode>|FileName||Name of file for which to find links
+		&obtrans))	// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, can be None
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans, TRUE))
+		return NULL;
+	if (htrans!=NULL)
+		CHECK_PFN(FindFirstFileNameTransacted);
+	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
+		return NULL;
+
+	while (TRUE){
+		ret_size=alloc_size;
+		if (linkname==NULL){
+			linkname=(WCHAR *)malloc(alloc_size*sizeof(WCHAR));
+			if (linkname==NULL){
+				bsuccess=FALSE;
+				PyErr_Format(PyExc_MemoryError,"Unable to allocate %d bytes", alloc_size*sizeof(WCHAR));
+				break;
+				}
+			}
+		if (bfindfirst){
+			if (htrans!=NULL)
+				hfind=(*pfnFindFirstFileNameTransacted)(fname, flags, &ret_size, linkname, htrans);
+			else
+				hfind=(*pfnFindFirstFileName)(fname, flags, &ret_size, linkname);
+			bsuccess=(hfind!=INVALID_HANDLE_VALUE);
+			if (bsuccess){
+				bfindfirst=FALSE;
+				ret=PyList_New(0);
+				if (ret==NULL){
+					bsuccess=FALSE;
+					break;
+					}
+				}
+			}
+		else
+			bsuccess=(*pfnFindNextFileName)(hfind, &ret_size, linkname);
+		if (bsuccess){
+			ret_item=PyWinObject_FromWCHAR(linkname, ret_size);
+			if ((ret_item==NULL) || (PyList_Append(ret, ret_item)==-1)){
+				Py_XDECREF(ret_item);
+				bsuccess=FALSE;
+				break;
+				}
+			Py_DECREF(ret_item);
+			}
+		else{
+			err=GetLastError();
+			if (err==ERROR_MORE_DATA){
+				/* FindNextFileName leaks memory when it fails due to insufficient buffer !
+				if (!bfindfirst)
+					for (int x=0; x<10000; x++){
+						alloc_size=3;
+						(*pfnFindNextFileName)(hfind, &alloc_size, linkname);
+					}
+				*/
+				free(linkname);
+				linkname=NULL;
+				alloc_size=ret_size+1;
+				}
+			else if (err==ERROR_HANDLE_EOF){
+				bsuccess=TRUE;
+				break;
+				}
+			else{
+				PyWin_SetAPIError("FindFileNames", err);
+				break;
+				}
+			}
+		}
+	if (!bsuccess){
+		Py_XDECREF(ret);
+		ret=NULL;
+		}
+	if (hfind!=INVALID_HANDLE_VALUE)
+		FindClose(hfind);
+	PyWinObject_FreeWCHAR(fname);
+	if (linkname)
+		free(linkname);
+	return ret;
+}
+PyCFunction pfnpy_FindFileNames=(PyCFunction)py_FindFileNames;
+
 // @pyswig <o PyUnicode>|GetFinalPathNameByHandle|Returns the file name for an open file handle
 // @pyseeapi GetFinalPathNameByHandle
 // @comm Exists on Windows Vista or later.
@@ -4891,6 +4994,7 @@ static PyObject *py_SfcIsFileProtected(PyObject *self, PyObject *args)
 %native (FindFilesW) pfnpy_FindFilesW;
 %native (FindFilesIterator) pfnpy_FindFilesIterator;
 %native (FindStreams) pfnpy_FindStreams;
+%native (FindFileNames) pfnpy_FindFileNames;
 %native (GetFinalPathNameByHandle) pfnpy_GetFinalPathNameByHandle;
 
 %native (SfcGetNextProtectedFile) py_SfcGetNextProtectedFile;
@@ -4918,6 +5022,7 @@ static PyObject *py_SfcIsFileProtected(PyObject *self, PyObject *args)
 			||(strcmp(pmd->ml_name, "FindFilesW")==0)
 			||(strcmp(pmd->ml_name, "FindFilesIterator")==0)
 			||(strcmp(pmd->ml_name, "FindStreams")==0)
+			||(strcmp(pmd->ml_name, "FindFileNames")==0)
 			||(strcmp(pmd->ml_name, "GetFinalPathNameByHandle")==0)
 			||(strcmp(pmd->ml_name, "SetVolumeMountPoint")==0)
 			||(strcmp(pmd->ml_name, "DeleteVolumeMountPoint")==0)
@@ -4927,9 +5032,6 @@ static PyObject *py_SfcIsFileProtected(PyObject *self, PyObject *args)
 			||(strcmp(pmd->ml_name, "DuplicateEncryptionInfoFile")==0)
 			||(strcmp(pmd->ml_name, "GetFullPathNameTransacted")==0)	// not impl yet
 			||(strcmp(pmd->ml_name, "GetLongPathNameTransacted")==0)	// not impl yet
-			||(strcmp(pmd->ml_name, "FindFirstFileName")==0)			// not impl yet
-			||(strcmp(pmd->ml_name, "FindFirstFileNameTransacted")==0)	// not impl yet
-			||(strcmp(pmd->ml_name, "FindNextFileName")==0)				// not impl yet
 			||(strcmp(pmd->ml_name, "GetFileInformationByHandleEx")==0)	// not impl yet
 			)
 			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
@@ -4989,14 +5091,14 @@ static PyObject *py_SfcIsFileProtected(PyObject *self, PyObject *args)
 		pfnFindNextStream=(FindNextStreamfunc)GetProcAddress(hmodule, "FindNextStreamW");
 		pfnFindFirstStreamTransacted=(FindFirstStreamTransactedfunc)GetProcAddress(hmodule, "FindFirstStreamTransactedW");
 		pfnFindFirstFileTransacted=(FindFirstFileTransactedfunc)GetProcAddress(hmodule, "FindFirstFileTransactedW");
+		pfnFindFirstFileName=(FindFirstFileNamefunc)GetProcAddress(hmodule, "FindFirstFileNameW");
+		pfnFindFirstFileNameTransacted=(FindFirstFileNameTransactedfunc)GetProcAddress(hmodule, "FindFirstFileNameTransactedW");
+		pfnFindNextFileName=(FindNextFileNamefunc)GetProcAddress(hmodule, "FindNextFileNameW");
 		pfnGetFinalPathNameByHandle=(GetFinalPathNameByHandlefunc)GetProcAddress(hmodule, "GetFinalPathNameByHandleW");
 
 		// these aren't wrapped yet
 		pfnGetFullPathNameTransacted=(GetFullPathNameTransactedfunc)GetProcAddress(hmodule, "GetFullPathNameTransactedW");
 		pfnGetLongPathNameTransacted=(GetLongPathNameTransactedfunc)GetProcAddress(hmodule, "GetLongPathNameTransactedW");
-		pfnFindFirstFileName=(FindFirstFileNamefunc)GetProcAddress(hmodule, "FindFirstFileNameW");
-		pfnFindFirstFileNameTransacted=(FindFirstFileNameTransactedfunc)GetProcAddress(hmodule, "FindFirstFileNameTransactedW");
-		pfnFindNextFileName=(FindNextFileNamefunc)GetProcAddress(hmodule, "FindNextFileNameW");
 		// pfnGetFileInformationByHandleEx=(GetFileInformationByHandleExfunc)GetProcAddress(hmodule, "GetFileInformationByHandleEx");
 		}
 
@@ -5055,7 +5157,7 @@ static PyObject *py_SfcIsFileProtected(PyObject *self, PyObject *args)
 #define SETRTS SETRTS // Sends the RTS (request-to-send) signal. 
 #define SETXOFF SETXOFF // Causes transmission to act as if an XOFF character has been received. 
 #define SETXON SETXON // Causes transmission to act as if an XON character has been received. 
-#define SETBREAK SETBREAK // Suspends character transmission and places the transmission line in a break state until the ClearCommBreak function is called (or EscapeCommFunction is called with the CLRBREAK extended function code). The SETBREAK extended function code is identical to the SetCommBreak function. Note that this extended function does not flush data that has not been transmitted. 
+#define SETBREAK SETBREAK // Suspends character transmission and places the transmission line in a break state until the ClearCommBreak function is called (or EscapeCommFunction is called with the CLRBREAK extended function code). The SETBREAK extended function code is identical to the SetCommBreak function. Note that this extended function does not flush data that has not been transmitted.
 #define CLRBREAK CLRBREAK // Restores character transmission and places the transmission line in a nonbreak state. The CLRBREAK extended function code is identical to the ClearCommBreak function. 
 #define PURGE_TXABORT PURGE_TXABORT // Terminates all outstanding overlapped write operations and returns immediately, even if the write operations have not been completed. 
 #define PURGE_RXABORT PURGE_RXABORT // Terminates all outstanding overlapped read operations and returns immediately, even if the read operations have not been completed. 
