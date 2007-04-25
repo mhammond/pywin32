@@ -46,7 +46,7 @@
   
 """
 
-import regsub
+import re
 import string
 import makegwparse
 
@@ -171,7 +171,7 @@ Py%(name)s::~Py%(name)s()
 
 ''' % (interface.__dict__))
 
-  ptr = regsub.gsub('[a-z]', '', interface.name)
+  ptr = re.sub('[a-z]', '', interface.name)
   strdict = {'interfacename':interface.name, 'ptr': ptr}
   for method in interface.methods:
     strdict['method'] = method.name
