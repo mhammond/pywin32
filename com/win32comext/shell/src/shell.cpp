@@ -42,6 +42,7 @@ generates Windows .hlp files.
 #include "PyIShellLinkDataList.h"
 #include "PyIUniformResourceLocator.h"
 #include "PyIActiveDesktop.h"
+#include "PyIExtractImage.h"
 
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
 
@@ -2306,6 +2307,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL(AsyncOperation),
 	PYCOM_INTERFACE_FULL(ContextMenu),
 	PYCOM_INTERFACE_FULL(ExtractIcon),
+	PYCOM_INTERFACE_CLIENT_ONLY		(ExtractImage),
 	PYCOM_INTERFACE_IID_ONLY		  (ExtractIconW),
 	PYCOM_INTERFACE_FULL(ShellExtInit),
 	PYCOM_INTERFACE_FULL(ShellFolder),
