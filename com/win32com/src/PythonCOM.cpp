@@ -1153,6 +1153,7 @@ static PyObject *pythoncom_CoGetInterfaceAndReleaseStream(PyObject *self, PyObje
 		return PyCom_BuildPyException(hr);
 	return PyCom_PyObjectFromIUnknown(pUnk, iid, /*BOOL bAddRef*/ FALSE);
 }
+
 // @pymethod <o PyIUnknown>|pythoncom|CoCreateFreeThreadedMarshaler|Creates an aggregatable object capable of context-dependent marshaling. 
 static PyObject *pythoncom_CoCreateFreeThreadedMarshaler(PyObject *self, PyObject*args)
 {
@@ -1173,6 +1174,90 @@ static PyObject *pythoncom_CoCreateFreeThreadedMarshaler(PyObject *self, PyObjec
 	if (FAILED(hr))
 		return PyCom_BuildPyException(hr);
 	return PyCom_PyObjectFromIUnknown(pUnkRet, IID_IUnknown, FALSE);
+}
+
+// @pymethod |pythoncom|CoMarshalInterface|Marshals an interface into a stream
+static PyObject *pythoncom_CoMarshalInterface(PyObject *self, PyObject*args)
+{
+	PyObject *obriid, *obIStream, *obUnk, *ret=NULL;
+	IID riid;
+	IStream *pIStream=NULL;
+	IUnknown *pIUnknown=NULL;
+	void *pvdestctxt=NULL;	// reserved
+	DWORD destctxt, flags=MSHLFLAGS_NORMAL;
+	if ( !PyArg_ParseTuple(args, "OOOk|k:CoMarshalInterface",
+		&obIStream,		// @pyparm <o PyIStream>|Stm||An IStream interface into which marshalled interface will be written
+		&obriid,		// @pyparm <o PyIID>|riid||IID of interface to be marshalled
+		&obUnk,			// @pyparm <o PyIUnknown>|Unk||Base IUnknown of the object to be marshalled
+		&destctxt,		// @pyparm int|DestContext||MSHCTX_* flag indicating where object will be unmarshalled
+		&flags))		// @pyparm int|flags|MSHLFLAGS_NORMAL|MSHLFLAGS_* flag indicating marshalling options
+       return NULL;
+	if (PyWinObject_AsIID(obriid, &riid)
+		&&PyCom_InterfaceFromPyObject(obIStream, IID_IStream, (void **)&pIStream, FALSE)
+		&&PyCom_InterfaceFromPyObject(obUnk, IID_IUnknown, (void **)&pIUnknown, FALSE)){
+		PY_INTERFACE_PRECALL;
+		HRESULT hr = CoMarshalInterface(pIStream, riid, pIUnknown, destctxt, pvdestctxt, flags);
+		PY_INTERFACE_POSTCALL;
+		if (FAILED(hr))
+			PyCom_BuildPyException(hr);
+		else{
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		}
+	PY_INTERFACE_PRECALL;
+	if (pIUnknown)
+		pIUnknown->Release();
+	if (pIStream)
+		pIStream->Release();
+	PY_INTERFACE_POSTCALL;
+	return ret;
+}
+
+// @pymethod interface|pythoncom|CoUnmarshalInterface|Unmarshals an interface
+static PyObject *pythoncom_CoUnmarshalInterface(PyObject *self, PyObject*args)
+{
+	PyObject *obriid, *obIStream, *ret=NULL;
+	IID riid;
+	IStream *pIStream=NULL;
+	IUnknown *pIUnknown=NULL;
+	if (!PyArg_ParseTuple(args, "OO:CoUnmarshalInterface",
+		&obIStream,		// @pyparm <o PyIStream>|Stm||Stream containing marshalled interface
+		&obriid))		// @pyparm <o PyIID>|riid||IID of interface to be unmarshalled
+		return NULL;
+	if (PyWinObject_AsIID(obriid, &riid)
+		&&PyCom_InterfaceFromPyObject(obIStream, IID_IStream, (void **)&pIStream, FALSE)){
+		PY_INTERFACE_PRECALL;
+		HRESULT hr = CoUnmarshalInterface(pIStream, riid, (void **)&pIUnknown);
+		pIStream->Release();
+		PY_INTERFACE_POSTCALL;
+		if (FAILED(hr))
+			PyCom_BuildPyException(hr);
+		else
+			ret=PyCom_PyObjectFromIUnknown(pIUnknown, riid, FALSE);
+		}
+	return ret;
+}
+
+// @pymethod |pythoncom|CoReleaseMarshalData|Frees resources used by a marshalled interface
+// @comm This is usually only needed when the interface could not be successfully unmarshalled
+static PyObject *pythoncom_CoReleaseMarshalData(PyObject *self, PyObject*args)
+{
+	PyObject *obIStream, *ret=NULL;
+	IStream *pIStream=NULL;
+	if (!PyArg_ParseTuple(args, "O:CoReleaseMarshalData",
+		&obIStream))		// @pyparm <o PyIStream>|Stm||Stream containing marshalled interface
+		return NULL;
+	if (!PyCom_InterfaceFromPyObject(obIStream, IID_IStream, (void **)&pIStream, FALSE))
+		return NULL;
+	PY_INTERFACE_PRECALL;
+	HRESULT hr = CoReleaseMarshalData(pIStream);
+	pIStream->Release();
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 #endif // MS_WINCE
@@ -1683,6 +1768,9 @@ static struct PyMethodDef pythoncom_methods[]=
 	{ "CoInitializeSecurity",pythoncom_CoInitializeSecurity, 1}, // @pymeth CoInitializeSecurity|Registers security and sets the default security values. 
 	{ "CoGetInterfaceAndReleaseStream", pythoncom_CoGetInterfaceAndReleaseStream, 1}, // @pymeth CoGetInterfaceAndReleaseStream|Unmarshals a buffer containing an interface pointer and releases the stream when an interface pointer has been marshaled from another thread to the calling thread.
 	{ "CoMarshalInterThreadInterfaceInStream", pythoncom_CoMarshalInterThreadInterfaceInStream, 1}, // @pymeth CoMarshalInterThreadInterfaceInStream|Marshals an interface pointer from one thread to another thread in the same process.
+	{ "CoMarshalInterface", pythoncom_CoMarshalInterface, 1}, // @pymeth CoMarshalInterface|Marshals an interface into a stream
+	{ "CoUnmarshalInterface", pythoncom_CoUnmarshalInterface, 1}, // @pymeth CoUnmarshalInterface|Unmarshals an interface
+	{ "CoReleaseMarshalData", pythoncom_CoReleaseMarshalData, 1}, // @pymeth CoReleaseMarshalData|Frees resources used by a marshalled interface
 #endif // MS_WINCE
 	{ "CoGetObject",         pythoncom_CoGetObject, 1}, // @pymeth CoGetObject|Converts a display name into a moniker that identifies the object named, and then binds to the object identified by the moniker. 
 	{ "CoUninitialize",      pythoncom_CoUninitialize, 1 },		   // @pymeth CoUninitialize|Uninitialize the COM libraries.
@@ -2157,6 +2245,18 @@ extern "C" __declspec(dllexport) void initpythoncom()
 	ADD_CONSTANT(VT_ILLEGAL);
 	ADD_CONSTANT(VT_ILLEGALMASKED);
 	ADD_CONSTANT(VT_TYPEMASK);
+
+	// DestContext for CoMarshalInterface (MSHCTX enum)
+	ADD_CONSTANT(MSHCTX_LOCAL);
+	ADD_CONSTANT(MSHCTX_NOSHAREDMEM);
+	ADD_CONSTANT(MSHCTX_DIFFERENTMACHINE);
+	ADD_CONSTANT(MSHCTX_INPROC);
+
+	// Marshalling flags used with CoMarshalInterface (MSHLFLAGS enum)
+	ADD_CONSTANT(MSHLFLAGS_NORMAL);
+	ADD_CONSTANT(MSHLFLAGS_TABLESTRONG);
+	ADD_CONSTANT(MSHLFLAGS_TABLEWEAK);
+	ADD_CONSTANT(MSHLFLAGS_NOPING);
 
 #ifndef NO_PYCOM_IDISPATCHEX
 	ADD_CONSTANT(fdexNameCaseSensitive);  // Request that the name lookup be done in a case-sensitive manner. May be ignored by object that does not support case-sensitive lookup.  
