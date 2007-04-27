@@ -26,13 +26,14 @@ PyObject *pythoncom_ReadClassStg(PyObject *self, PyObject *args)
 	if (FAILED(hr)) return PyCom_BuildPyException(hr);
 	return PyWinObject_FromIID(clsidRet);
 }
-// @pymethod |pythoncom|WriteClassStg|Writes a CLSID to a storage.
+
+// @pymethod |pythoncom|WriteClassStg|Writes a CLSID to a storage object
 PyObject *pythoncom_WriteClassStg(PyObject *self, PyObject *args)
 {
 	PyObject *obStg;
 	PyObject *obCLSID;
 	if (!PyArg_ParseTuple(args, "OO:WriteClassStg",
-					   &obStg, // @pyparm <o PyIStorage>|storage||The storage to read the CLSID from.
+					   &obStg, // @pyparm <o PyIStorage>|storage||Storage object into which CLSID will be written.
 					   &obCLSID)) // @pyparm <o PyIID>|iid||The IID to write
 		return NULL;
 
@@ -53,6 +54,72 @@ PyObject *pythoncom_WriteClassStg(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod <o PyIID>|pythoncom|ReadClassStm|Retrieves the CLSID from a stream
+PyObject *pythoncom_ReadClassStm(PyObject *self, PyObject *args)
+{
+	PyObject *obStm;
+	if (!PyArg_ParseTuple(args, "O:ReadClassStm",
+		&obStm))	// @pyparm <o PyIStream>|Stm||An IStream interface
+		return NULL;
+	IStream *pStm;
+	if (!PyCom_InterfaceFromPyObject(obStm, IID_IStream, (void **)&pStm, FALSE))
+		return NULL;
+	CLSID clsidRet;
+	PY_INTERFACE_PRECALL;
+	HRESULT hr = ReadClassStm(pStm, &clsidRet);
+	pStm->Release();
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr)) return PyCom_BuildPyException(hr);
+	return PyWinObject_FromIID(clsidRet);
+}
+
+// @pymethod |pythoncom|WriteClassStm|Writes a CLSID to a stream.
+PyObject *pythoncom_WriteClassStm(PyObject *self, PyObject *args)
+{
+	PyObject *obStm;
+	PyObject *obCLSID;
+	if (!PyArg_ParseTuple(args, "OO:WriteClassStm",
+		&obStm,		// @pyparm <o PyIStream>|Stm||An IStream interface
+		&obCLSID))	// @pyparm <o PyIID>|clsid||The IID to write
+		return NULL;
+
+	CLSID clsid;
+	if (!PyWinObject_AsIID(obCLSID, &clsid))
+		return NULL;
+
+	IStream *pStm;
+	if (!PyCom_InterfaceFromPyObject(obStm, IID_IStream, (void **)&pStm, FALSE))
+		return NULL;
+
+	PY_INTERFACE_PRECALL;
+	HRESULT hr = WriteClassStm(pStm, clsid);
+	pStm->Release();
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr)) return PyCom_BuildPyException(hr);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// @pymethod <o PyIStream>|pythoncom|CreateStreamOnHGlobal|Creates an in-memory stream storage object
+PyObject *pythoncom_CreateStreamOnHGlobal(PyObject *self, PyObject *args)
+{
+	PyObject *obhglobal=Py_None;
+	HGLOBAL hglobal=NULL;
+	BOOL bdelete=TRUE;
+	IStream *pIStream=NULL;
+	if (!PyArg_ParseTuple(args, "|Ol:CreateStreamOnHGlobal",
+		&obhglobal,	// @pyparm <o PyHANDLE>|hGlobal|None|Global memory handle.  If None, a new global memory object is allocated.
+		&bdelete))	// @pyparm bool|DeleteOnRelease|True|Indicates if global memory should be freed when IStream object is destroyed.
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhglobal, &hglobal, TRUE))
+		return NULL;
+	PY_INTERFACE_PRECALL;
+	HRESULT hr = CreateStreamOnHGlobal(hglobal, bdelete, &pIStream);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	return PyCom_PyObjectFromIUnknown(pIStream, IID_IStream, FALSE);
+}
 
 // @pymethod <o PyIStorage>|pythoncom|StgCreateDocfile|Creates a new compound file storage object using the OLE-provided compound file implementation for the <o PyIStorage> interface.
 PyObject *pythoncom_StgCreateDocfile(PyObject *self, PyObject *args)
@@ -63,9 +130,9 @@ PyObject *pythoncom_StgCreateDocfile(PyObject *self, PyObject *args)
 	IStorage *pResult;
 
 	if (!PyArg_ParseTuple(args, "Oi|i:StgCreateDocfile",
-		               &obName, // @pyparm string|name||the path of the compound file to create. It is passed uninterpreted to the file system. This can be a relative name or None.  If None, a temporary stream is created.
-					   &mode, // @pyparm int|mode||Specifies the access mode used to open the storage.
-					   &reserved)) // @pyparm int|reserved|0|A reserved value
+		&obName, // @pyparm string|name||the path of the compound file to create. It is passed uninterpreted to the file system. This can be a relative name or None.  If None, a temporary stream is created.
+		&mode, // @pyparm int|mode||Specifies the access mode used to open the storage.
+		&reserved)) // @pyparm int|reserved|0|A reserved value
 		return NULL;
 	PyWin_AutoFreeBstr bstrName;
 	if ( !PyWinObject_AsAutoFreeBstr(obName, &bstrName, TRUE) )

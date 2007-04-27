@@ -47,6 +47,9 @@ extern PyObject *pythoncom_StgCreateDocfile(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_StgCreateDocfileOnILockBytes(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_WriteClassStg(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_ReadClassStg(PyObject *self, PyObject *args);
+extern PyObject *pythoncom_WriteClassStm(PyObject *self, PyObject *args);
+extern PyObject *pythoncom_ReadClassStm(PyObject *self, PyObject *args);
+extern PyObject *pythoncom_CreateStreamOnHGlobal(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_GetRecordFromGuids(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_GetRecordFromTypeInfo(PyObject *self, PyObject *args);
 
@@ -1790,6 +1793,7 @@ static struct PyMethodDef pythoncom_methods[]=
 	{ "CreateTypeLib",       pythoncom_CreateTypeLib, 1}, // @pymeth CreateTypeLib|Provides access to a new object instance that supports the ICreateTypeLib interface.
 	{ "CreateTypeLib2",       pythoncom_CreateTypeLib2, 1}, // @pymeth CreateTypeLib2|Provides access to a new object instance that supports the ICreateTypeLib2 interface.
 #endif // MS_WINCE
+	{ "CreateStreamOnHGlobal",   pythoncom_CreateStreamOnHGlobal, 1 }, // @pymeth CreateStreamOnHGlobal|Creates an in-memory stream storage object
 	{ "EnableQuitMessage",   pythoncom_EnableQuitMessage, 1 }, // @pymeth EnableQuitMessage|Indicates the thread PythonCOM should post a WM_QUIT message to.
 	{ "FUNCDESC",            Py_NewFUNCDESC, 1}, // @pymeth FUNCDESC|Returns a new <o FUNCDESC> object.
 #ifndef MS_WINCE
@@ -1833,6 +1837,7 @@ static struct PyMethodDef pythoncom_methods[]=
 	{ "QueryPathOfRegTypeLib",pythoncom_querypathofregtypelib, 1}, // @pymeth QueryPathOfRegTypeLib|Retrieves the path of a registered type library
 #endif // MS_WINCE
 	{ "ReadClassStg",        pythoncom_ReadClassStg, 1}, // @pymeth ReadClassStg|Reads a CLSID from a storage object
+	{ "ReadClassStm",        pythoncom_ReadClassStm, 1}, // @pymeth ReadClassStm|Reads a CLSID from a <o PyIStream> object
 	{ "RegisterTypeLib",     pythoncom_registertypelib, 1}, // @pymeth RegisterTypeLib|Adds information about a type library to the system registry.
 	{ "UnRegisterTypeLib",     pythoncom_unregistertypelib, 1}, // @pymeth UnRegisterTypeLib|Removes a type library from the system registry.
 #ifndef MS_WINCE
@@ -1854,6 +1859,7 @@ static struct PyMethodDef pythoncom_methods[]=
 	{ "VARDESC",             Py_NewVARDESC, 1}, // @pymeth VARDESC|Returns a new <o VARDESC> object.
 	{ "WrapObject",          pythoncom_WrapObject, 1 }, // @pymeth WrapObject|Wraps an object in a gateway.
 	{ "WriteClassStg",       pythoncom_WriteClassStg, 1}, // @pymeth WriteClassStg|Stores a CLSID from a storage object
+	{ "WriteClassStm",       pythoncom_WriteClassStm, 1}, // @pymeth WriteClassStm|Sets the CLSID of a stream
 	{ "UnwrapObject",        pythoncom_UnwrapObject, 1 }, // @pymeth UnwrapObject|Unwraps a Python instance in a gateway object.
 	{ "Unicode",			pythoncom_Unicode, 1 }, // @pymeth Unicode|Converts a string into a <o PyUnicode> object.
 	{ "FmtIdToPropStgName",	pythoncom_FmtIdToPropStgName, 1}, //@pymeth FmtIdToPropStgName|Convert a FMTID to its stream name
