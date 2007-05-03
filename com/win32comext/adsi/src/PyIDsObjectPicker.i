@@ -5,9 +5,6 @@
 %include "pythoncom.i"
 %include "adsilib.i"
 
-%apply HWND {long};
-typedef long HWND
-
 %{
 
 #include "Objsel.h"
