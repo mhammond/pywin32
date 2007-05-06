@@ -15,7 +15,6 @@ import pythoncom
 from win32com.axscript import axscript
 import win32com.server.register
 import sys
-import string
 import traceback
 import scriptdispatch
 import re
@@ -36,7 +35,6 @@ def ExpandTabs(text):
 
 def AddCR(text):
 	return re.sub('\n','\r\n',text)
-#	return string.join(string.split(text,'\n'),'\r\n')
 
 class AXScriptCodeBlock(framework.AXScriptCodeBlock):
 	def GetDisplayName(self):
@@ -102,7 +100,7 @@ class AXScriptAttribute:
 
 	def _DoFindAttribute_(self, obj, attr):
 		try:
-			return obj.subItems[string.lower(attr)].attributeObject
+			return obj.subItems[attr.lower()].attributeObject
 		except KeyError:
 			pass
 		# Check out the sub-items
@@ -137,7 +135,7 @@ class NamedScriptAttribute:
 	def __getattr__(self, attr):
 		# If a known subitem, return it.
 		try:
-			return self._scriptItem_.subItems[string.lower(attr)].attributeObject
+			return self._scriptItem_.subItems[attr.lower()].attributeObject
 		except KeyError:
 			# Otherwise see if the dispatch can give it to us
 			if self._scriptItem_.dispatchContainer:
@@ -146,7 +144,7 @@ class NamedScriptAttribute:
 	def __setattr__(self, attr, value):
 		# XXX - todo - if a known item, then should call its default
 		# dispatch method.
-		attr=string.lower(attr)
+		attr=attr.lower()
 		if self._scriptItem_.dispatchContainer:
 			try:
 				return setattr(self._scriptItem_.dispatchContainer,attr, value)
@@ -308,7 +306,7 @@ class PyScript(framework.COMScript):
 		return self.scriptDispatch
 
 	def MakeEventMethodName(self, subItemName, eventName):
-		return string.upper(subItemName[0])+subItemName[1:] + "_" + string.upper(eventName[0])+eventName[1:]
+		return subItemName[0].upper()+subItemName[1:] + "_" + eventName[0].upper()+eventName[1:]
 
 	def DoAddScriptlet(self, defaultName, code, itemName, subItemName, eventName, delimiter,sourceContextCookie, startLineNumber):
 		# Just store the code away - compile when called.  (JIT :-)
@@ -336,7 +334,7 @@ class PyScript(framework.COMScript):
 			pass
 		if codeBlock is not None:
 			realCode = "def %s():\n" % funcName
-			for line in string.split(framework.RemoveCR(codeBlock.codeText),"\n"):
+			for line in framework.RemoveCR(codeBlock.codeText).split("\n"):
 				realCode = realCode + '\t' + line + '\n'
 			realCode = realCode + '\n'
 			if not self.CompileInScriptedSection(codeBlock, "exec", realCode):
@@ -352,9 +350,9 @@ class PyScript(framework.COMScript):
 				function = self.globalNameSpaceModule.__dict__[funcName]
 			except KeyError:
 				# Not there _exactly_ - do case ins search.
-				funcNameLook = string.lower(funcName)
+				funcNameLook = funcName.lower()
 				for attr in self.globalNameSpaceModule.__dict__.keys():
-					if funcNameLook==string.lower(attr):
+					if funcNameLook==attr.lower():
 						function = self.globalNameSpaceModule.__dict__[attr]
 						# cache back in scriptlets, to avoid this overhead next time
 						item.scriptlets[funcName] = function

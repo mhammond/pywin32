@@ -5,7 +5,7 @@
  
 """
 
-import sys, string, traceback
+import sys, traceback
 from win32com.axscript import axscript
 import winerror
 import win32com.server.exception
@@ -26,7 +26,6 @@ def ExpandTabs(text):
 
 def AddCR(text):
 	return re.sub('\n','\r\n',text)
-#	return string.join(string.split(text,'\n'),'\r\n')
 
 class IActiveScriptError:
 	"""An implementation of IActiveScriptError
@@ -112,14 +111,14 @@ class AXScriptException(win32com.server.exception.COMException):
 		self.description=FormatForAX(msg)
 		self.lineno = lineno
 		self.colno = offset - 1
-		self.linetext = ExpandTabs(string.rstrip(line))
+		self.linetext = ExpandTabs(line.rstrip())
 
 	def _BuildFromOther(self, site, type, value, tb):
 		self.colno = -1
 		self.lineno = 0
 		if debugging: # Full traceback if debugging.
 			list=traceback.format_exception(type, value, tb)
-			self.description = ExpandTabs(string.join(list,""))
+			self.description = ExpandTabs(''.join(list))
 			print "Script Traceback is", self.description
 			return
 		# Run down the traceback list, looking for the first "<Script..>"
@@ -165,7 +164,7 @@ class AXScriptException(win32com.server.exception.COMException):
 		else:
 			list = list + traceback.format_exception_only(type, value)
 #		list=traceback.format_exception(type, value, tb_top, depth)
-		self.description = ExpandTabs(string.join(list,""))
+		self.description = ExpandTabs(''.join(list))
 		# Clear tracebacks etc.
 		tb = tb_top = tb_look = None
 #		sys.exc_type = sys.exc_value = sys.exc_traceback = None
@@ -186,7 +185,7 @@ class AXScriptException(win32com.server.exception.COMException):
 			if codeBlock:
 				line = codeBlock.GetLineNo(lineno)
 		if line: 
-			line = string.strip(line)
+			line = line.strip()
 		else: 
 			line = None
 		return filename, lineno, name, line

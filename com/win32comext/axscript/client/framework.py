@@ -6,7 +6,7 @@
 
   There are classes defined for the engine itself, and for ScriptItems
 """
-import sys, string
+import sys
 from win32com.axscript import axscript
 import win32com.server.util
 
@@ -121,12 +121,12 @@ class AXScriptCodeBlock:
 	def GetLineNo(self, no):
 		pos = -1
 		for i in range(no-1):
-			pos = string.find(self.codeText, '\n', pos+1)
+			pos = self.codeText.find('\n', pos+1)
 			if pos==-1: pos=len(self.codeText)
-		epos = string.find(self.codeText, '\n', pos+1)
+		epos = self.codeText.find('\n', pos+1)
 		if epos==-1:
 			epos=len(self.codeText)
-		return string.strip(self.codeText[pos+1:epos])
+		return self.codeText[pos+1:epos].strip()
 
 class Event:
 	"""A single event for a ActiveX named object.
@@ -337,10 +337,10 @@ class ScriptItem:
 		return self.__class__
 
 	def GetSubItem(self, name):
-		return self.subItems[string.lower(name)]
+		return self.subItems[name.lower()]
 
 	def GetCreateSubItem(self, parentItem, name, dispatch, flags):
-		keyName = string.lower(name)
+		keyName = name.lower()
 		try:
 			rc = self.subItems[keyName]
 			# No changes allowed to existing flags.
