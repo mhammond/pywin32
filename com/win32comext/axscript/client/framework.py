@@ -687,8 +687,10 @@ class COMScript:
 		from win32com.client import gencache
 		gencache.EnsureModule(uuid, self.lcid, major, minor, bForDemand = 1)
 
-	def InterruptScriptThread(self, state, flags):
-		raise Exception("Not Implemented", scode=winerror.E_NOTIMPL)
+	# This is never called by the C++ framework - it does magic.
+	# See PyGActiveScript.cpp
+	#def InterruptScriptThread(self, stidThread, exc_info, flags):
+	#	raise Exception("Not Implemented", scode=winerror.E_NOTIMPL)
 
 	def Clone(self):
 		raise Exception("Not Implemented", scode=winerror.E_NOTIMPL)
