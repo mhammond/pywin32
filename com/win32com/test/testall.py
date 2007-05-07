@@ -90,8 +90,8 @@ unittest_modules = [
 output_checked_programs = [
         # Level 1 tests.
         [
-            ("cscript.exe /nologo testInterp.vbs", "VBScript test worked OK"),
-            ("cscript.exe /nologo testDictionary.vbs",
+            ("cscript.exe /nologo //E:vbscript testInterp.vbs", "VBScript test worked OK"),
+            ("cscript.exe /nologo //E:vbscript testDictionary.vbs",
                          "VBScript has successfully tested Python.Dictionary"),
         ],
         # Level 2 tests.
