@@ -573,10 +573,10 @@ PyObject *PyWinLong_FromVoidPtr(void *ptr)
 //	as resource ids since they can also be represented by a name or WORD id.
 //	When passing resource names and types as strings, they are usually formatted
 //	as a pound sign followed by decimal form of the id.  ('#42' for example)
-BOOL PyWinObject_AsResourceIdA(PyObject *ob, char **presource_id)
+BOOL PyWinObject_AsResourceIdA(PyObject *ob, char **presource_id, BOOL bNoneOK)
 {
 	// Plain character conversion
-	if (PyWinObject_AsString(ob, presource_id))
+	if (PyWinObject_AsString(ob, presource_id, bNoneOK))
 		return TRUE;
 	PyErr_Clear();
 	if (PyWinLong_AsVoidPtr(ob, (void **)presource_id) && IS_INTRESOURCE(*presource_id))
@@ -586,10 +586,10 @@ BOOL PyWinObject_AsResourceIdA(PyObject *ob, char **presource_id)
 	return FALSE;
 }
 
-BOOL PyWinObject_AsResourceIdW(PyObject *ob, WCHAR **presource_id)
+BOOL PyWinObject_AsResourceIdW(PyObject *ob, WCHAR **presource_id, BOOL bNoneOK)
 {
 	// Unicode version of above
-	if (PyWinObject_AsWCHAR(ob, presource_id))
+	if (PyWinObject_AsWCHAR(ob, presource_id, bNoneOK))
 		return TRUE;
 	PyErr_Clear();
 	if (PyWinLong_AsVoidPtr(ob, (void **)presource_id) && IS_INTRESOURCE(*presource_id))

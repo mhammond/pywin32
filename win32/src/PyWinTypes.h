@@ -342,8 +342,8 @@ PYWINTYPES_EXPORT BOOL PyWinLong_AsVoidPtr(PyObject *ob, void **pptr);
 PYWINTYPES_EXPORT PyObject *PyWinLong_FromVoidPtr(void *ptr);
 
 // Conversion for resource id/name and class atom
-PYWINTYPES_EXPORT BOOL PyWinObject_AsResourceIdA(PyObject *ob, char **presource_id);
-PYWINTYPES_EXPORT BOOL PyWinObject_AsResourceIdW(PyObject *ob, WCHAR **presource_id);
+PYWINTYPES_EXPORT BOOL PyWinObject_AsResourceIdA(PyObject *ob, char **presource_id, BOOL bNoneOK = FALSE);
+PYWINTYPES_EXPORT BOOL PyWinObject_AsResourceIdW(PyObject *ob, WCHAR **presource_id, BOOL bNoneOK = FALSE);
 PYWINTYPES_EXPORT void PyWinObject_FreeResourceId(char *resource_id);
 PYWINTYPES_EXPORT void PyWinObject_FreeResourceId(WCHAR *resource_id);
 #ifdef UNICODE
