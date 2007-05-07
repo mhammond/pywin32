@@ -26,44 +26,19 @@ BOOL PyCom_BstrFromPyObject(PyObject *stringObject, BSTR *pResult, BOOL bNoneOK 
 // NOTE - does not use standard macros, so NULLs get through!
 PyObject *MakeBstrToObj(const BSTR bstr)
 {
-	if (bstr==NULL) {
-		Py_INCREF(Py_None);
-		return Py_None;
-	}
-
-	int numChars = SysStringLen(bstr);
-	int numBytes = numChars * 2;
-	LPSTR str = (LPSTR)malloc(numBytes);
-   	numChars = WideCharToMultiByte(CP_ACP, 0, bstr, numChars, str, numBytes, NULL, NULL);
-
-	PyObject *ret = PyString_FromStringAndSize(str, numChars);
-	free(str);
-	return ret;
+	return PyWinObject_FromBstr(bstr, FALSE);
 }
 
 // Size info is available (eg, a fn returns a string and also fills in a size variable)
 PyObject *MakeOLECHARToObj(const OLECHAR * str, int numChars)
 {
-	if (str==NULL) {
-		Py_INCREF(Py_None);
-		return Py_None;
-	}
-	int numBytes = numChars * 2;
-	LPSTR ascstr = (LPSTR)malloc(numBytes);
-   	numChars = WideCharToMultiByte(CP_ACP, 0, str, numChars, ascstr, numBytes, NULL, NULL);
-	PyObject *rc = PyString_FromStringAndSize(ascstr, numChars);
-	free(ascstr);
-	return rc;
+	return PyWinObject_FromOLECHAR(str, numChars);
 }
 
 // No size info avail.
 PyObject *MakeOLECHARToObj(const OLECHAR * str)
 {
-	if (str==NULL) {
-		Py_INCREF(Py_None);
-		return Py_None;
-	}
-	return PyString_FromUnicode(str);
+	return PyWinObject_FromOLECHAR(str);
 }
 
 // Currency conversions.

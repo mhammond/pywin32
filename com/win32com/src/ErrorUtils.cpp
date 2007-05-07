@@ -769,9 +769,9 @@ PyObject *PyCom_PyObjectFromExcepInfo(const EXCEPINFO *pexcepInfo)
 	}
 
 	 // ### should these by PyUnicode values?  Still strings for compatibility.
-	PyObject *obSource = PyString_FromUnicode(pexcepInfo->bstrSource);
-	PyObject *obDescription = PyString_FromUnicode(pexcepInfo->bstrDescription);
-	PyObject *obHelpFile = PyString_FromUnicode(pexcepInfo->bstrHelpFile);
+	PyObject *obSource = PyWinObject_FromBstr(pexcepInfo->bstrSource);
+	PyObject *obDescription = PyWinObject_FromBstr(pexcepInfo->bstrDescription);
+	PyObject *obHelpFile = PyWinObject_FromBstr(pexcepInfo->bstrHelpFile);
 	PyObject *rc = Py_BuildValue("iOOOii",
 						 (int)pexcepInfo->wCode,
 						 obSource,
