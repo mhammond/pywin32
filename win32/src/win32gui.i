@@ -1610,15 +1610,21 @@ static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
 %native (PyGetBufferAddressAndLen) PyGetBufferAddressAndLen;
 
 
-%typedef TCHAR *STRING_OR_ATOM
 %typedef TCHAR *STRING_OR_ATOM_CW
+%typedef TCHAR *RESOURCE_ID
+%typedef TCHAR *RESOURCE_ID_NULLOK
 
-%typemap(python,arginit) STRING_OR_ATOM, STRING_OR_ATOM_CW, RESOURCE_ID{
+%typemap(python,arginit) STRING_OR_ATOM_CW, RESOURCE_ID, RESOURCE_ID_NULLOK{
 	$target=NULL;
 }
 
-%typemap(python,in) STRING_OR_ATOM, STRING_OR_ATOM_CW {
-	if (!PyWinObject_AsResourceId($source, &$target))
+%typemap(python,in) RESOURCE_ID {
+	if (!PyWinObject_AsResourceId($source, &$target, FALSE))
+		return NULL;
+}
+
+%typemap(python,in) STRING_OR_ATOM_CW, RESOURCE_ID_NULLOK {
+	if (!PyWinObject_AsResourceId($source, &$target, TRUE))
 		return NULL;
 }
 
@@ -1642,14 +1648,7 @@ static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
 	PyWinObject_FreeResourceId($source);
 }
 
-%typedef TCHAR *RESOURCE_ID
-
-%typemap(python,in) RESOURCE_ID {
-	if (!PyWinObject_AsResourceId($source, &$target))
-		return NULL;
-}
-
-%typemap(python,freearg) RESOURCE_ID {
+%typemap(python,freearg) RESOURCE_ID,RESOURCE_ID_NULLOK {
 	PyWinObject_FreeResourceId($source);
 }
 
@@ -2823,18 +2822,18 @@ BOOL EnableWindow(
 	HWND hwnd,	// @pyparm <o PyHANDLE>|hWnd||Handle to window
 	BOOL bEnable);	// @pyparm boolean|bEnable||True to enable input to the window, False to disable input
 
-// @pyswig int|FindWindow|Retrieves a handle to the top-level window whose class name and window name match the specified strings.
+// @pyswig <o PyHANDLE>|FindWindow|Retrieves a handle to the top-level window whose class name and window name match the specified strings.
 HWND FindWindow( 
-	STRING_OR_ATOM className, // @pyparm int/string|className||
-	TCHAR *INPUT_NULLOK); // @pyparm string|WindowName||
+	RESOURCE_ID_NULLOK className, // @pyparm <o PyResourceId>|ClassName||Name or atom of window class to find, can be None
+	TCHAR *INPUT_NULLOK); // @pyparm string|WindowName||Title of window to find, can be None
 
 #ifndef MS_WINCE
-// @pyswig int|FindWindowEx|Retrieves a handle to the top-level window whose class name and window name match the specified strings.
+// @pyswig <o PyHANDLE>|FindWindowEx|Retrieves a handle to the top-level window whose class name and window name match the specified strings.
 HWND FindWindowEx(
-	HWND parent, // @pyparm int|hwnd||
-	HWND childAfter, // @pyparm int|childAfter||
-	STRING_OR_ATOM className, // @pyparm int/string|className||
-	TCHAR *INPUT_NULLOK); // @pyparm string|WindowName||
+	HWND parent, // @pyparm <o PyHANDLE>|Parent||Window whose child windows will be searched.  If 0, desktop window is assumed.
+	HWND childAfter, // @pyparm <o PyHANDLE>|ChildAfter||Child window after which to search in Z-order, can be 0 to search all
+	RESOURCE_ID_NULLOK className, // @pyparm <o PyResourceId>|ClassName||Name or atom of window class to find, can be None
+	TCHAR *INPUT_NULLOK); // @pyparm string|WindowName||Title of window to find, can be None
 
 // @pyswig |DragAcceptFiles|Registers whether a window accepts dropped files.
 // @pyparm int|hwnd||Handle to the Window
@@ -6202,7 +6201,7 @@ BOOL PyParse_OPENFILENAMEW_Args(PyObject *args, PyObject *kwargs, OPENFILENAMEW 
 		PyWinObject_AsWCHAR(obInitialDir, (WCHAR **)&pofn->lpstrInitialDir, TRUE) &&
 		PyWinObject_AsWCHAR(obTitle, (WCHAR **)&pofn->lpstrTitle, TRUE) &&
 		PyWinObject_AsWCHAR(obDefExt, (WCHAR **)&pofn->lpstrDefExt, TRUE) &&
-		((obTemplateName==Py_None)||PyWinObject_AsResourceIdW(obTemplateName, (WCHAR **)&pofn->lpTemplateName));
+		PyWinObject_AsResourceIdW(obTemplateName, (WCHAR **)&pofn->lpTemplateName, TRUE);
 		
 	done:
 	if (!ret)
@@ -7226,3 +7225,63 @@ PyObject *PyDrawTextW(PyObject *self, PyObject *args, PyObject *kwargs)
 PyCFunction pfnPyDrawTextW=(PyCFunction)PyDrawTextW;
 %}
 %native (DrawTextW) pfnPyDrawTextW;
+
+%{
+BOOL CALLBACK PyEnumPropsExCallback(HWND hwnd, LPWSTR propname, HANDLE propdata, ULONG_PTR callback_data)
+{
+	PyObject *args=NULL, *obret=NULL;
+	BOOL ret;
+	CEnterLeavePython _celp;
+	PyObject **callback_objects=(PyObject **)callback_data;
+	args=Py_BuildValue("NNNO",
+		PyWinLong_FromHANDLE(hwnd),
+		IS_INTRESOURCE(propname) ? PyWinLong_FromVoidPtr(propname):PyWinObject_FromWCHAR(propname),
+		PyWinLong_FromHANDLE(propdata),
+		callback_objects[1]);
+	if (args==NULL)
+		return FALSE;
+	obret=PyObject_Call(callback_objects[0], args, NULL);
+	if (obret==NULL)
+		ret=FALSE;
+	else
+		ret=TRUE;
+
+	Py_XDECREF(args);
+	Py_XDECREF(obret);
+	return ret;
+}
+
+// @pyswig |EnumPropsEx|Enumerates properties attached to a window.
+// Each property is passed to a callback function, which receives 4 arguments:<nl>
+//	Handle to the window, name of the property, handle to the property data, and Param object passed to this function
+//  
+PyObject *PyEnumPropsEx(PyObject *self, PyObject *args)
+{
+	HWND hwnd;
+	PyObject *obhwnd, *callback, *callback_data;
+	PyObject *callback_objects[2];
+
+	if (!PyArg_ParseTuple(args, "OOO:EnumPropsEx",
+		&obhwnd,			// @pyparm <o PyHANDLE>|hWnd||Handle to a window
+		&callback,			// @pyparm function|EnumFunc||Callback function
+		&callback_data))	// @pyparm object|Param||Arbitrary object to be passed to callback function
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+		return NULL;
+	if (!PyCallable_Check(callback)){
+		PyErr_SetString(PyExc_TypeError,"EnumFunc must be callable");
+		return NULL;
+		}
+	callback_objects[0]=callback;
+	callback_objects[1]=callback_data;
+
+	if (!EnumPropsExW(hwnd, PyEnumPropsExCallback, (LPARAM)callback_objects)){
+		if (!PyErr_Occurred())
+			PyWin_SetAPIError("EnumPropsEx");
+		return NULL;
+		}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+%}
+%native(EnumPropsEx) PyEnumPropsEx;
