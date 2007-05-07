@@ -88,7 +88,7 @@ class AXScriptException(win32com.server.exception.COMException):
 		except: # Error extracting traceback info!!!
 			traceback.print_exc()
 			# re-raise.
-			raise sys.exc_info()
+			raise
 
 	def _BuildFromSyntaxError(self, site, value, tb):
 		# All syntax errors should have a message as element 0
@@ -113,13 +113,12 @@ class AXScriptException(win32com.server.exception.COMException):
 		self.colno = offset - 1
 		self.linetext = ExpandTabs(line.rstrip())
 
-	def _BuildFromOther(self, site, type, value, tb):
+	def _BuildFromOther(self, site, exc_type, value, tb):
 		self.colno = -1
 		self.lineno = 0
 		if debugging: # Full traceback if debugging.
-			list=traceback.format_exception(type, value, tb)
+			list=traceback.format_exception(exc_type, value, tb)
 			self.description = ExpandTabs(''.join(list))
-			print "Script Traceback is", self.description
 			return
 		# Run down the traceback list, looking for the first "<Script..>"
 		# Hide traceback above this.  In addition, keep going down
@@ -156,18 +155,22 @@ class AXScriptException(win32com.server.exception.COMException):
 			
 		list = ['Traceback (most recent call last):\n']
 		list = list + traceback.format_list(format_items)
-		if type==pythoncom.com_error:
+		if exc_type==pythoncom.com_error:
 			desc = "%s (0x%x)" % (value[1], value[0])
 			if value[0]==winerror.DISP_E_EXCEPTION and value[2] and value[2][2]:
 				desc = value[2][2]
 			list.append("COM Error: "+desc)
 		else:
-			list = list + traceback.format_exception_only(type, value)
-#		list=traceback.format_exception(type, value, tb_top, depth)
-		self.description = ExpandTabs(''.join(list))
+			list = list + traceback.format_exception_only(exc_type, value)
+		# all items in the list are utf8 courtesy of Python magically
+		# converting unicode to utf8 before compilation.
+		for i in range(len(list)):
+			if type(list[i]) is str:
+			#assert type(list[i]) is str, type(list[i])
+				list[i] = list[i].decode('utf8')
+		self.description = ExpandTabs(u''.join(list))
 		# Clear tracebacks etc.
 		tb = tb_top = tb_look = None
-#		sys.exc_type = sys.exc_value = sys.exc_traceback = None
 
 	def ExtractTracebackInfo(self, tb, site):
 		import linecache
@@ -183,6 +186,7 @@ class AXScriptException(win32com.server.exception.COMException):
 			except KeyError:
 				codeBlock = None
 			if codeBlock:
+				# Note: 'line' will now be unicode.
 				line = codeBlock.GetLineNo(lineno)
 		if line: 
 			line = line.strip()

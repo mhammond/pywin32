@@ -5,6 +5,8 @@ from win32com.axscript.server import axsite
 import pythoncom
 from win32com.server import util, connect
 import win32com.server.policy
+from win32com.client.dynamic import Dispatch
+from win32com.server.exception import COMException
 
 import unittest
 import win32com.test.util
@@ -13,13 +15,12 @@ verbose = "-v" in sys.argv
 
 class MySite(axsite.AXSite):
   def __init__(self, *args):
-    self.seen_exception = 0
+    self.exception_seen = None
     axsite.AXSite.__init__(self, *args)
 
   def OnScriptError(self, error):
-    exc = error.GetExceptionInfo()
+    self.exception_seen = exc = error.GetExceptionInfo()
     context, line, char = error.GetSourcePosition()
-    self.seen_exception = 1
     if not verbose:
       return
     print " >Exception:", exc[1]
@@ -33,8 +34,8 @@ class MySite(axsite.AXSite):
       print "  >" + line
 
 class MyCollection(util.Collection):
-	def _NewEnum(self):
-		return util.Collection._NewEnum(self)
+  def _NewEnum(self):
+    return util.Collection._NewEnum(self)
 
 class Test:
   _public_methods_ = [ 'echo', 'fail' ]
@@ -123,6 +124,11 @@ def testcollection():
    pass
 """
 
+PyScript_Exc = u"""\
+def hello(arg1):
+  raise RuntimeError, "exc with extended \xa9har"
+"""
+
 ErrScript = """\
 bad code for everyone!
 """
@@ -144,29 +150,31 @@ def _CheckEngineState(engine, name, state):
     raise RuntimeError, "Warning - engine %s has state %s, but expected %s" % (name, got_name, state_name)
 
 class EngineTester(win32com.test.util.TestCase):
-  def _TestEngine(self, engineName, code, bShouldWork = 1):
+  def _TestEngine(self, engineName, code, expected_exc = None):
     echoer = Test()
     model = {
       'test' : util.wrap(echoer),
       }
+    site = MySite(model)
+    engine = site._AddEngine(engineName)
     try:
-      try:
-        site = MySite(model)
-        engine = site._AddEngine(engineName)
-        _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_INITIALIZED)
-        engine.AddCode(code)
-        engine.Start()
-        _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_STARTED)
-      finally:
-        if bShouldWork:
-          self.failUnless(not site.seen_exception, "Script site should not have seen an exception")
-        else:
-          self.failUnless(site.seen_exception, "Script site should have seen an exception")
+      _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_INITIALIZED)
+      engine.AddCode(code)
+      engine.Start()
+      _CheckEngineState(site, engineName, axscript.SCRIPTSTATE_STARTED)
       self.failUnless(not echoer.fail_called, "Fail should not have been called")
       # Now call into the scripts IDispatch
-      from win32com.client.dynamic import Dispatch
       ob = Dispatch(engine.GetScriptDispatch())
-      ob.hello("Goober")
+      try:
+        ob.hello("Goober")
+        self.failUnless(expected_exc is None,
+                        "Expected %r, but no exception seen" % (expected_exc,))
+      except pythoncom.com_error:
+        if expected_exc is None:
+          self.fail("Unexpected failure from script code: %s" % (site.exception_seen,))
+        if expected_exc not in site.exception_seen[2]:
+          self.fail("Could not find %r in %r" % (expected_exc, site.exception_seen[2]))
+        return
       self.assertEqual(echoer.last, "Goober")
   
       self.assertEqual(str(ob.prop), "Property Value")
@@ -203,12 +211,14 @@ class EngineTester(win32com.test.util.TestCase):
     self._TestEngine("VBScript", VBScript)
   def testPython(self):
     self._TestEngine("Python", PyScript)
+  def testPythonUnicodeError(self):
+    self._TestEngine("Python", PyScript)
   def testVBExceptions(self):
     self.assertRaises(pythoncom.com_error,
-                      self._TestEngine, "VBScript", ErrScript, 0)
+                      self._TestEngine, "VBScript", ErrScript)
   def testPythonExceptions(self):
-    self.assertRaises(pythoncom.com_error,
-                      self._TestEngine, "Python", ErrScript, 0)
+    expected = u"RuntimeError: exc with extended \xa9har"
+    self._TestEngine("Python", PyScript_Exc, expected)
 
 if __name__ == '__main__':
   unittest.main()

@@ -61,7 +61,7 @@ class SafeOutput:
 		try:
 			self.redir.write(message)
 		except:
-			win32api.OutputDebugString(message)
+			win32api.OutputDebugString(message.encode('mbcs'))
 	def flush(self):
 		pass
 	def close(self):
