@@ -199,7 +199,7 @@ PyHANDLE CreateFile(
 			// @flag FILE_SHARE_READ|Subsequent open operations on the object will succeed only if read access is requested.
 			// @flag FILE_SHARE_WRITE|Subsequent open operations on the object will succeed only if write access is requested.
     SECURITY_ATTRIBUTES *lpSecurityAttributes,	// @pyparm <o PySECURITY_ATTRIBUTES>|attributes||The security attributes, or None
-    DWORD dwCreationDistribution,	// @pyparm int|creationDisposition||Specifies which action to take on files that exist, and which action to take when files do not exist. For more information about this parameter, see the Remarks section. This parameter must be one of the following values:
+    DWORD dwCreationDisposition,	// @pyparm int|CreationDisposition||Specifies which action to take on files that exist, and which action to take when files do not exist. For more information about this parameter, see the Remarks section. This parameter must be one of the following values:
 			// @flagh Value|Meaning
 			// @flag CREATE_NEW|Creates a new file. The function fails if the specified file already exists. 
 			// @flag CREATE_ALWAYS|Creates a new file. If the file exists, the function overwrites the file and clears the existing attributes. 
@@ -232,14 +232,17 @@ PyHANDLE CreateFileW(
 // of this function will be that same handle.  See MSDN for more details.
 PyObject *MyCreateIoCompletionPort(PyObject *self, PyObject *args)
 {
-    PyObject *obFileHandle, *obExistingHandle;
-    int key, nt;
+    PyObject *obFileHandle, *obExistingHandle, *obkey;
+    DWORD nt;
+    ULONG_PTR key;
     PyObject *obRet = NULL;
-    if (!PyArg_ParseTuple(args, "OOii:CreateIoCompletionPort",
+    if (!PyArg_ParseTuple(args, "OOOi:CreateIoCompletionPort",
                           &obFileHandle, // @pyparm <o PyHANDLE>|handle||file handle to associate with the I/O completion port
                           &obExistingHandle, // @pyparm <o PyHANDLE>|existing||handle to the I/O completion port
-                          &key, // @pyparm int|completionKey||per-file completion key for I/O completion packets
+                          &obkey, // @pyparm int|completionKey||per-file completion key for I/O completion packets
                           &nt)) // @pyparm int|numThreads||number of threads allowed to execute concurrently
+        return NULL;
+    if (!PyWinLong_AsVoidPtr(obkey, (void **)&key))
         return NULL;
     HANDLE hFile, hExisting;
     if (!PyWinObject_AsHANDLE(obFileHandle, &hFile, FALSE))
@@ -1172,30 +1175,35 @@ static PyObject *myGetQueuedCompletionStatus(PyObject *self, PyObject *args)
 	HANDLE handle;
 	if (!PyWinObject_AsHANDLE(obHandle, &handle, FALSE))
 		return NULL;
-	DWORD bytes = 0, key = 0;
+	DWORD bytes = 0;
+	ULONG_PTR key = 0;
 	OVERLAPPED *pOverlapped = NULL;
 	UINT errCode;
 	Py_BEGIN_ALLOW_THREADS
 	BOOL ok = GetQueuedCompletionStatus(handle, &bytes, &key, &pOverlapped, timeout);
 	errCode = ok ? 0 : GetLastError();
 	Py_END_ALLOW_THREADS
-	PyObject *obOverlapped = PyWinObject_FromQueuedOVERLAPPED(pOverlapped);
-	PyObject *rc = Py_BuildValue("illO", errCode, bytes, key, obOverlapped);
-	Py_XDECREF(obOverlapped);
+	PyObject *rc = Py_BuildValue("ilNN", errCode, bytes,
+		PyWinLong_FromVoidPtr((void *)key),
+		PyWinObject_FromQueuedOVERLAPPED(pOverlapped));
 	return rc;
 }
 
 // @pyswig None|PostQueuedCompletionStatus|lets you post an I/O completion packet to an I/O completion port. The I/O completion packet will satisfy an outstanding call to the GetQueuedCompletionStatus function.
 PyObject *myPostQueuedCompletionStatus(PyObject *self, PyObject *args)
 {
-	PyObject *obHandle, *obOverlapped = NULL;
-	DWORD bytesTransfered = 0, key = 0;
+	PyObject *obHandle, *obOverlapped = NULL, *obkey=Py_None;
+	DWORD bytesTransfered = 0;
+	ULONG_PTR key = 0;
 	// @pyparm <o PyHANDLE>|handle||handle to an I/O completion port
 	// @pyparm int|numberOfbytes|0|value to return via GetQueuedCompletionStatus' first result
 	// @pyparm int|completionKey|0|value to return via GetQueuedCompletionStatus' second result
 	// @pyparm <o PyOVERLAPPED>|overlapped|None|value to return via GetQueuedCompletionStatus' third result
-	if (!PyArg_ParseTuple(args, "O|iiO", &obHandle, &bytesTransfered, &key, &obOverlapped))
+	if (!PyArg_ParseTuple(args, "O|iOO", &obHandle, &bytesTransfered, &obkey, &obOverlapped))
 		return NULL;
+	if (obkey!=Py_None)
+		if (!PyWinLong_AsVoidPtr(obkey, (void **)&key))
+			return NULL;
 	HANDLE handle;
 	if (!PyWinObject_AsHANDLE(obHandle, &handle, FALSE))
 		return NULL;
@@ -1235,96 +1243,7 @@ unsigned long GetFileType( // DWORD
 #define FILE_TYPE_DISK FILE_TYPE_DISK // The specified file is a disk file.
 #define FILE_TYPE_CHAR FILE_TYPE_CHAR // The specified file is a character file, typically an LPT device or a console.
 #define FILE_TYPE_PIPE FILE_TYPE_PIPE // The specified file is either a named or anonymous pipe.
- 
-#endif // MS_WINCE
 
-// GetFullPathName	
-// @pyswig str/unicode|GetFullPathName|Returns full path for path passed in
-// @comm This function takes either a plain string or a unicode string, and returns the same type
-//       If unicode is passed in, GetFullPathNameW is called, which supports filenames longer than MAX_PATH
-%native(GetFullPathName) MyGetFullPathName;
-%{
-static PyObject *MyGetFullPathName(PyObject *self, PyObject *args)
-{
-	PyObject *ret=NULL, *obpathin;
-	int pathlen, retlen;
-
-	// @pyparm str/unicode|FileName||Path on which to operate
-	if (!PyArg_ParseTuple(args, "O", &obpathin))
-		return NULL;
-	WCHAR *wpathin;
-	if (wpathin=PyUnicode_AsUnicode(obpathin)){
-		WCHAR *wpathret, *wfilepart;
-		pathlen=wcslen(wpathin)+1;
-		wpathret=(WCHAR *)malloc(pathlen*sizeof(WCHAR));
-		if (wpathret==NULL){
-			PyErr_SetString(PyExc_MemoryError,"GetFullPathNameW: unable to allocate unicode return buffer");
-			return NULL;
-			}
-		Py_BEGIN_ALLOW_THREADS
-		retlen=GetFullPathNameW(wpathin, pathlen, wpathret, &wfilepart);
-		Py_END_ALLOW_THREADS
-		if (retlen>pathlen){
-			pathlen=retlen;
-			wpathret=(WCHAR *)realloc(wpathret,pathlen*sizeof(WCHAR));
-			if (wpathret==NULL){
-				PyErr_SetString(PyExc_MemoryError,"GetFullPathNameW: unable to allocate unicode return buffer");
-				return NULL;
-				}
-			Py_BEGIN_ALLOW_THREADS
-			retlen=GetFullPathNameW(wpathin, retlen, wpathret, &wfilepart);
-			Py_END_ALLOW_THREADS
-			}
-		if (retlen>pathlen)
-			PyErr_SetString(PyExc_SystemError,"GetFullPathNameW: Unexpected second increase in required buffer size");
-		else
-			if (retlen==0)
-				PyWin_SetAPIError("GetFullPathNameW", GetLastError());
-			else
-				ret=PyUnicode_FromWideChar(wpathret,retlen);
-		free(wpathret);
-		return ret;
-		}
-
-	PyErr_Clear();
-	char *cpathin;
-	if (PyString_AsStringAndSize(obpathin, &cpathin, &pathlen)!=-1){
-		char *cpathret, *cfilepart;
-		pathlen+=1;
-		cpathret=(char *)malloc(pathlen);
-		if (cpathret==NULL){
-			PyErr_SetString(PyExc_MemoryError,"GetFullPathName: unable to allocate character return buffer");
-			return NULL;
-			}
-		Py_BEGIN_ALLOW_THREADS
-		retlen=GetFullPathName(cpathin, pathlen, cpathret, &cfilepart);
-		Py_END_ALLOW_THREADS
-		if (retlen>pathlen){
-			pathlen=retlen;
-			cpathret=(char *)realloc(cpathret,pathlen);
-			if (cpathret==NULL){
-				PyErr_SetString(PyExc_MemoryError,"GetFullPathName: unable to allocate character return buffer");
-				return NULL;
-				}
-			Py_BEGIN_ALLOW_THREADS
-			retlen=GetFullPathName(cpathin, retlen, cpathret, &cfilepart);
-			Py_END_ALLOW_THREADS
-			}
-		if (retlen>pathlen)
-			PyErr_SetString(PyExc_SystemError,"GetFullPathName: Unexpected second increase in required buffer size");
-		else
-			if (retlen==0)
-				PyWin_SetAPIError("GetFullPathName", GetLastError());
-			else
-				ret=PyString_FromStringAndSize(cpathret,retlen);
-		free(cpathret);
-		}
-	return ret;
-}
-%}
-
-
-#ifndef MS_WINCE
 // @pyswig int|GetLogicalDrives|Returns a bitmaks of the logical drives installed.
 unsigned long GetLogicalDrives( // DWORD
 );
@@ -1701,23 +1620,24 @@ PyObject *myopen_osfhandle ( PyHANDLE osfhandle, int flags );
 %{
 PyObject *myget_osfhandle (int filehandle)
 {
-  long result = _get_osfhandle (filehandle);
-  if (result == -1)
+  HANDLE result = (HANDLE)_get_osfhandle (filehandle);
+  if (result == (HANDLE)-1)
     return PyErr_SetFromErrno(PyExc_IOError);
 
-  return Py_BuildValue ("l",result);
+  return PyWinLong_FromHANDLE(result);
 }
 
 PyObject *myopen_osfhandle (PyHANDLE osfhandle, int flags)
 {
-  int result = _open_osfhandle ((long) osfhandle, flags);
+  int result = _open_osfhandle ((ULONG_PTR)osfhandle, flags);
   if (result == -1)
     return PyErr_SetFromErrno(PyExc_IOError);
 
-  return Py_BuildValue ("i",result);
+  return PyInt_FromLong(result);
 }
 
 %}
+
 
 // Overlapped Socket stuff
 %{
@@ -2754,12 +2674,15 @@ typedef BOOL (WINAPI *FindNextFileNamefunc)(HANDLE,LPDWORD,PWCHAR);
 static FindNextFileNamefunc pfnFindNextFileName = NULL;
 typedef DWORD (WINAPI *GetFinalPathNameByHandlefunc)(HANDLE,LPWSTR,DWORD,DWORD);
 static GetFinalPathNameByHandlefunc pfnGetFinalPathNameByHandle = NULL;
-
-// These aren't used yet
-typedef DWORD (WINAPI *GetFullPathNameTransactedfunc)(LPCTSTR,DWORD,LPTSTR,LPTSTR*,HANDLE);
-static GetFullPathNameTransactedfunc pfnGetFullPathNameTransacted = NULL;
-typedef DWORD (WINAPI *GetLongPathNameTransactedfunc)(LPCTSTR,LPTSTR,DWORD,HANDLE);
+typedef DWORD (WINAPI *GetLongPathNamefunc)(LPCWSTR,LPWSTR,DWORD);
+static GetLongPathNamefunc pfnGetLongPathName = NULL;
+typedef DWORD (WINAPI *GetLongPathNameTransactedfunc)(LPCWSTR,LPWSTR,DWORD,HANDLE);
 static GetLongPathNameTransactedfunc pfnGetLongPathNameTransacted = NULL;
+typedef DWORD (WINAPI *GetFullPathNameTransactedWfunc)(LPCWSTR,DWORD,LPWSTR,LPWSTR*,HANDLE);
+static GetFullPathNameTransactedWfunc pfnGetFullPathNameTransactedW = NULL;
+typedef DWORD (WINAPI *GetFullPathNameTransactedAfunc)(LPCSTR,DWORD,LPSTR,LPSTR*,HANDLE);
+static GetFullPathNameTransactedAfunc pfnGetFullPathNameTransactedA = NULL;
+
 /* FILE_INFO_BY_HANDLE_CLASS and various structs used by this function are in fileextd.h, can be downloaded here:
 http://www.microsoft.com/downloads/details.aspx?familyid=1decc547-ab00-4963-a360-e4130ec079b8&displaylang=en
 typedef BOOL (WINAPI *GetFileInformationByHandleExfunc)(HANDLE,FILE_INFO_BY_HANDLE_CLASS,LPVOID,DWORD);
@@ -2965,26 +2888,41 @@ py_CreateHardLink(PyObject *self, PyObject *args, PyObject *kwargs)
     // @ex Usage|CreateHardLink('h:\dir\newfilename.txt','h:\otherdir\existingfile.txt')
 	// @comm This method exists on Windows 2000 and later.  Otherwise NotImplementedError will be raised.
 	// @comm Accepts keyword args.
-	CHECK_PFN(CreateHardLink);
+	// @comm If the Transaction parameter is specified, CreateHardLinkTransacted will be called (requires Vista or later)
 	PyObject *ret=NULL;
 	PyObject *new_file_obj;
 	PyObject *existing_file_obj;
-	PyObject *sa_obj = Py_None;
+	PyObject *trans_obj=Py_None, *sa_obj = Py_None;
 	WCHAR *new_file = NULL;
 	WCHAR *existing_file = NULL;
 	SECURITY_ATTRIBUTES *sa;
-	static char *keywords[]={"FileName","ExistingFileName","SecurityAttributes", NULL};
+	HANDLE htrans;
+	static char *keywords[]={"FileName","ExistingFileName","SecurityAttributes","Transaction", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|O:CreateHardLink", keywords,
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|OO:CreateHardLink", keywords,
 		&new_file_obj,		// @pyparm <o PyUnicode>|FileName||The name of the new directory entry to be created.
 		&existing_file_obj,	// @pyparm <o PyUnicode>|ExistingFileName||The name of the existing file to which the new link will point.
-		&sa_obj))			// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Optional SECURITY_ATTRIBUTES object. MSDN describes this parameter as reserved, so use only None,
+		&sa_obj,			// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Optional SECURITY_ATTRIBUTES object. MSDN describes this parameter as reserved, so use only None
+		&trans_obj))		// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, as returned by <om win32transaction.CreateTransaction>
+		return NULL;
+	if (!PyWinObject_AsHANDLE(trans_obj, &htrans, TRUE))
 		return NULL;
 	if (!PyWinObject_AsSECURITY_ATTRIBUTES(sa_obj, &sa, TRUE))
 		return NULL;
+	if (htrans){
+		CHECK_PFN(CreateHardLinkTransacted);
+		}
+	else{
+		CHECK_PFN(CreateHardLink);
+		}
 	if (PyWinObject_AsWCHAR(new_file_obj, &new_file, FALSE)
 		&&PyWinObject_AsWCHAR(existing_file_obj, &existing_file, FALSE)){
-		if (!(*pfnCreateHardLink)(new_file, existing_file, sa))
+		BOOL bsuccess;
+		if (htrans)
+			bsuccess=(*pfnCreateHardLinkTransacted)(new_file, existing_file, sa, htrans);
+		else
+			bsuccess=(*pfnCreateHardLink)(new_file, existing_file, sa);
+		if (!bsuccess)
 			PyWin_SetAPIError("CreateHardLink");
 		else{
 			Py_INCREF(Py_None);
@@ -2997,66 +2935,41 @@ py_CreateHardLink(PyObject *self, PyObject *args, PyObject *kwargs)
 }
 PyCFunction pfnpy_CreateHardLink=(PyCFunction)py_CreateHardLink;
 
-// @pyswig |CreateHardLinkTransacted|Creates an NTFS hard link as part of a transaction
-static PyObject *py_CreateHardLinkTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-	// @comm This method only exists on Vista and later.
-	// @comm Accepts keyword args.
-	CHECK_PFN(CreateHardLinkTransacted);
-	PyObject *obtrans, *ret=NULL;
-	PyObject *new_file_obj;
-	PyObject *existing_file_obj;
-	PyObject *sa_obj = Py_None;
-	WCHAR *new_file = NULL;
-	WCHAR *existing_file = NULL;
-	SECURITY_ATTRIBUTES *sa;
-	HANDLE htrans;
-	static char *keywords[]={"FileName","ExistingFileName","Transaction","SecurityAttributes", NULL};
-
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO|O:CreateHardLinkTransacted", keywords,
-		&new_file_obj,		// @pyparm <o PyUnicode>|FileName||The name of the new directory entry to be created.
-		&existing_file_obj,	// @pyparm <o PyUnicode>|ExistingFileName||The name of the existing file to which the new link will point.
-		&obtrans,			// @pyparm <o PyHANDLE>|Transaction||Handle to a transaction
-		&sa_obj))			// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Optional SECURITY_ATTRIBUTES object. MSDN describes this parameter as reserved, so use only None,
-		return NULL;
-	if (!PyWinObject_AsHANDLE(obtrans, &htrans, FALSE))
-		return NULL;
-	if (!PyWinObject_AsSECURITY_ATTRIBUTES(sa_obj, &sa, TRUE))
-		return NULL;
-	if (PyWinObject_AsWCHAR(new_file_obj, &new_file, FALSE)
-		&&PyWinObject_AsWCHAR(existing_file_obj, &existing_file, FALSE)){
-		if (!(*pfnCreateHardLinkTransacted)(new_file, existing_file, sa, htrans))
-			PyWin_SetAPIError("CreateHardLinkTransacted");
-		else{
-			Py_INCREF(Py_None);
-			ret=Py_None;
-			}
-		}
-	PyWinObject_FreeWCHAR(new_file);
-	PyWinObject_FreeWCHAR(existing_file);
-	return ret;
-}
-PyCFunction pfnpy_CreateHardLinkTransacted=(PyCFunction)py_CreateHardLinkTransacted;
-
 // @pyswig |CreateSymbolicLink|Creates a symbolic link (reparse point)
 static PyObject *py_CreateSymbolicLink(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	// @comm This method only exists on Vista and later.
 	// @comm Accepts keyword args.
-	// @comm Requires SeCreateSymbolicLink priv
-	CHECK_PFN(CreateSymbolicLink);
+	// @comm Requires SeCreateSymbolicLink priv.
+	// @comm If the Transaction parameter is passed in, CreateSymbolicLinkTransacted will be called
 	WCHAR *linkname=NULL, *targetname=NULL;
-	PyObject *oblinkname, *obtargetname, *ret=NULL;
+	PyObject *oblinkname, *obtargetname, *obtrans=Py_None, *ret=NULL;
 	DWORD flags=0;
-	static char *keywords[]={"SymlinkFileName","TargetFileName","Flags", NULL};
+	HANDLE htrans;
+	static char *keywords[]={"SymlinkFileName","TargetFileName","Flags","Transaction", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|k:CreateSymbolicLink", keywords,
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|kO:CreateSymbolicLink", keywords,
 		&oblinkname,	// @pyparm <o PyUnicode>|SymlinkFileName||Path of the symbolic link to be created
 		&obtargetname,	// @pyparm <o PyUnicode>|TargetFileName||The name of file to which link will point
-		&flags))		// @pyparm int|Flags|0|SYMLINK_FLAG_DIRECTORY is only defined flag
+		&flags,			// @pyparm int|Flags|0|SYMLINK_FLAG_DIRECTORY is only defined flag
+		&obtrans))		// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, as returned by <om win32transaction.CreateTransaction>
 		return NULL;
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans, TRUE))
+			return NULL;
+	if (htrans){
+		CHECK_PFN(CreateSymbolicLinkTransacted);
+		}
+	else{
+		CHECK_PFN(CreateSymbolicLink);
+		}
+
 	if (PyWinObject_AsWCHAR(oblinkname, &linkname, FALSE) && PyWinObject_AsWCHAR(obtargetname, &targetname, FALSE)){
-		if (!(*pfnCreateSymbolicLink)(linkname, targetname, flags))
+		BOOL bsuccess;
+		if (htrans)
+			bsuccess=(*pfnCreateSymbolicLinkTransacted)(linkname, targetname, flags, htrans);
+		else
+			bsuccess=(*pfnCreateSymbolicLink)(linkname, targetname, flags);
+		if (!bsuccess)
 			PyWin_SetAPIError("CreateSymbolicLink");
 		else{
 			Py_INCREF(Py_None);
@@ -3068,41 +2981,6 @@ static PyObject *py_CreateSymbolicLink(PyObject *self, PyObject *args, PyObject 
 	return ret;
 }
 PyCFunction pfnpy_CreateSymbolicLink=(PyCFunction)py_CreateSymbolicLink;
-
-// @pyswig |CreateSymbolicLinkTransacted|Creates a symbolic link as part of a transaction
-static PyObject *py_CreateSymbolicLinkTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-	// @comm This method only exists on Vista and later.
-	// @comm Accepts keyword args.
-	// @comm Requires SeCreateSymbolicLink priv
-	CHECK_PFN(CreateSymbolicLinkTransacted);
-	WCHAR *linkname=NULL, *targetname=NULL;
-	PyObject *oblinkname, *obtargetname, *obtrans, *ret=NULL;
-	DWORD flags=0;
-	HANDLE htrans;
-	static char *keywords[]={"SymlinkFileName","TargetFileName","Flags","Transaction", NULL};
-
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO|k:CreateSymbolicLinkTransacted", keywords,
-		&oblinkname,	// @pyparm <o PyUnicode>|SymlinkFileName||Path of the symbolic link to be created
-		&obtargetname,	// @pyparm <o PyUnicode>|TargetFileName||The name of file to which link will point
-		&obtrans,		// @pyparm <o PyHANDLE>|Transaction||Handle to a transaction
-		&flags))		// @pyparm int|Flags|0|SYMLINK_FLAG_DIRECTORY is only defined flag
-		return NULL;
-	if (!PyWinObject_AsHANDLE(obtrans, &htrans, FALSE))
-		return NULL;
-	if (PyWinObject_AsWCHAR(oblinkname, &linkname, FALSE) && PyWinObject_AsWCHAR(obtargetname, &targetname, FALSE)){
-		if (!(*pfnCreateSymbolicLinkTransacted)(linkname, targetname, flags, htrans))
-			PyWin_SetAPIError("CreateSymbolicLinkTransacted");
-		else{
-			Py_INCREF(Py_None);
-			ret=Py_None;
-			}
-		}
-	PyWinObject_FreeWCHAR(linkname);
-	PyWinObject_FreeWCHAR(targetname);
-	return ret;
-}
-PyCFunction pfnpy_CreateSymbolicLinkTransacted=(PyCFunction)py_CreateSymbolicLinkTransacted;
 
 // @pyswig |EncryptFile|Encrypts specified file (requires Win2k or higher and NTFS)
 static PyObject*
@@ -4948,6 +4826,172 @@ static PyObject *py_SfcIsFileProtected(PyObject *self, PyObject *args)
 		}
 	return PyBool_FromLong(ret);
 }
+
+// @pyswig <o PyUnicode>|GetLongPathName|Retrieves the long path for a short path (8.3 filename)
+// @comm Accepts keyword args
+static PyObject *py_GetLongPathName(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	PyObject *ret=NULL;
+	DWORD pathlen=MAX_PATH+1, retlen;
+	WCHAR *short_path=NULL, *long_path=NULL, *long_path_save=NULL;
+	PyObject *obfname, *obtrans=Py_None;
+	HANDLE htrans;
+	static char *keywords[]={"ShortPath","Transaction", NULL};
+#ifdef Py_DEBUG
+	pathlen=3;	// test reallocation logic
+#endif
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O:GetLongPathName", keywords,
+		&obfname,	// @pyparm <o PyUnicode>|ShortPath||8.3 path to be expanded
+		&obtrans))	// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction.  If specified, GetLongPathNameTransacted will be called.
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans, TRUE))
+		return NULL;
+	if (htrans){
+		CHECK_PFN(GetLongPathNameTransacted);
+		}
+	else{
+		CHECK_PFN(GetLongPathName);
+		}
+	if (!PyWinObject_AsWCHAR(obfname, &short_path, FALSE))
+		return NULL;
+
+	while (1){
+		if (long_path){
+			long_path_save=long_path;
+			long_path=(WCHAR *)realloc(long_path, pathlen*sizeof(WCHAR));
+			}
+		else
+			long_path=(WCHAR *)malloc(pathlen*sizeof(WCHAR));
+		if (long_path==NULL){
+			if (long_path_save)
+				free(long_path_save);
+			PyErr_Format(PyExc_MemoryError,"Unable to allocate %d bytes", pathlen*sizeof(WCHAR));
+			break;
+			}
+		Py_BEGIN_ALLOW_THREADS
+		if (htrans)
+			retlen=(*pfnGetLongPathNameTransacted)(short_path, long_path, pathlen, htrans);
+		else
+			retlen=(*pfnGetLongPathName)(short_path, long_path, pathlen);
+		Py_END_ALLOW_THREADS
+		if (retlen==0){
+			PyWin_SetAPIError("GetLongPathName");
+			break;
+			}
+		if (retlen<=pathlen){
+			ret=PyUnicode_FromWideChar(long_path,retlen);
+			break;
+			}
+		pathlen=retlen+1;
+		}
+
+	PyWinObject_FreeWCHAR(short_path);
+	if (long_path)
+		free(long_path);
+	return ret;
+}
+PyCFunction pfnpy_GetLongPathName=(PyCFunction)py_GetLongPathName;
+
+// @pyswig str/unicode|GetFullPathName|Returns full path for path passed in
+// @comm This function takes either a plain string or a unicode string, and returns the same type
+//       If unicode is passed in, GetFullPathNameW is called, which supports filenames longer than MAX_PATH
+// @comm If Transaction parameter is specified, GetFullPathNameTransacted is called (requires Vista or later)
+static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	HANDLE htrans;
+	PyObject *obtrans=Py_None, *ret=NULL, *obpathin;
+	DWORD pathlen=MAX_PATH+1, retlen;
+	static char *keywords[]={"FileName","Transaction", NULL};
+#ifdef Py_DEBUG
+	pathlen=3;	// test reallocation logic
+#endif
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O:GetFullPathName", keywords,
+		&obpathin,	// @pyparm str/unicode|FileName||Path on which to operate
+		&obtrans))	// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction as returned by <om win32transaction.CreateTransaction>
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans, TRUE))
+		return NULL;
+
+	WCHAR *wpathin;
+	if (wpathin=PyUnicode_AsUnicode(obpathin)){
+		if (htrans)
+			CHECK_PFN(GetFullPathNameTransactedW);
+		WCHAR *wpathret=NULL, *wfilepart, *wpathsave=NULL;
+		while (1){
+			if (wpathret){
+				wpathsave=wpathret;
+				wpathret=(WCHAR *)realloc(wpathret,pathlen*sizeof(WCHAR));
+				}
+			else
+				wpathret=(WCHAR *)malloc(pathlen*sizeof(WCHAR));
+			if (wpathret==NULL){
+				if (wpathsave)
+					free(wpathsave);
+				PyErr_SetString(PyExc_MemoryError,"GetFullPathNameW: unable to allocate unicode return buffer");
+				return NULL;
+				}
+			Py_BEGIN_ALLOW_THREADS
+			if (htrans)
+				retlen=(*pfnGetFullPathNameTransactedW)(wpathin, pathlen, wpathret, &wfilepart, htrans);
+			else
+				retlen=GetFullPathNameW(wpathin, pathlen, wpathret, &wfilepart);
+			Py_END_ALLOW_THREADS
+			if (retlen==0){
+				PyWin_SetAPIError("GetFullPathNameW");
+				break;
+				}
+			if (retlen<=pathlen){
+				ret=PyUnicode_FromWideChar(wpathret,retlen);
+				break;
+				}
+			pathlen=retlen;
+			}
+		free(wpathret);
+		return ret;
+		}
+
+	PyErr_Clear();
+	char *cpathin;
+	if (cpathin=PyString_AsString(obpathin)){
+		if (htrans)
+			CHECK_PFN(GetFullPathNameTransactedA);
+		char *cpathret=NULL, *cfilepart, *cpathsave=NULL;
+		while (1){
+			if (cpathret){
+				cpathsave=cpathret;
+				cpathret=(char *)realloc(cpathret,pathlen);
+				}
+			else
+				cpathret=(char *)malloc(pathlen);
+			if (cpathret==NULL){
+				if (cpathsave)
+					free(cpathsave);
+				PyErr_SetString(PyExc_MemoryError,"GetFullPathNameW: unable to allocate unicode return buffer");
+				return NULL;
+				}
+			Py_BEGIN_ALLOW_THREADS
+			if (htrans)
+				retlen=(*pfnGetFullPathNameTransactedA)(cpathin, pathlen, cpathret, &cfilepart, htrans);
+			else
+				retlen=GetFullPathNameA(cpathin, pathlen, cpathret, &cfilepart);
+			Py_END_ALLOW_THREADS
+			if (retlen==0){
+				PyWin_SetAPIError("GetFullPathNameA");
+				break;
+				}
+			if (retlen<=pathlen){
+				ret=PyString_FromStringAndSize(cpathret,retlen);
+				break;
+				}
+			pathlen=retlen;
+			}
+		free(cpathret);
+		}
+	return ret;
+}
+PyCFunction pfnpy_GetFullPathName=(PyCFunction)py_GetFullPathName;
 %}
 
 %native (SetVolumeMountPoint) pfnpy_SetVolumeMountPoint;
@@ -4957,9 +5001,7 @@ static PyObject *py_SfcIsFileProtected(PyObject *self, PyObject *args)
 %native (GetVolumePathNamesForVolumeName) pfnpy_GetVolumePathNamesForVolumeName;
 
 %native (CreateHardLink) pfnpy_CreateHardLink;
-%native (CreateHardLinkTransacted) pfnpy_CreateHardLinkTransacted;
 %native (CreateSymbolicLink) pfnpy_CreateSymbolicLink;
-%native (CreateSymbolicLinkTransacted) pfnpy_CreateSymbolicLinkTransacted;
 
 // end of win2k volume mount functions.
 %native (EncryptFile) py_EncryptFile;
@@ -4996,6 +5038,8 @@ static PyObject *py_SfcIsFileProtected(PyObject *self, PyObject *args)
 %native (FindStreams) pfnpy_FindStreams;
 %native (FindFileNames) pfnpy_FindFileNames;
 %native (GetFinalPathNameByHandle) pfnpy_GetFinalPathNameByHandle;
+%native (GetLongPathName) pfnpy_GetLongPathName;
+%native (GetFullPathName) pfnpy_GetFullPathName;
 
 %native (SfcGetNextProtectedFile) py_SfcGetNextProtectedFile;
 %native (SfcIsFileProtected) py_SfcIsFileProtected;
@@ -5014,9 +5058,7 @@ static PyObject *py_SfcIsFileProtected(PyObject *self, PyObject *args)
 			||(strcmp(pmd->ml_name, "GetFileAttributesTransacted")==0)
 			||(strcmp(pmd->ml_name, "SetFileAttributesTransacted")==0)
 			||(strcmp(pmd->ml_name, "CreateHardLink")==0)
-			||(strcmp(pmd->ml_name, "CreateHardLinkTransacted")==0)
 			||(strcmp(pmd->ml_name, "CreateSymbolicLink")==0)
-			||(strcmp(pmd->ml_name, "CreateSymbolicLinkTransacted")==0)
 			||(strcmp(pmd->ml_name, "CreateDirectoryTransacted")==0)
 			||(strcmp(pmd->ml_name, "RemoveDirectoryTransacted")==0)
 			||(strcmp(pmd->ml_name, "FindFilesW")==0)
@@ -5030,8 +5072,8 @@ static PyObject *py_SfcIsFileProtected(PyObject *self, PyObject *args)
 			||(strcmp(pmd->ml_name, "GetVolumePathName")==0)
 			||(strcmp(pmd->ml_name, "GetVolumePathNamesForVolumeName")==0)
 			||(strcmp(pmd->ml_name, "DuplicateEncryptionInfoFile")==0)
-			||(strcmp(pmd->ml_name, "GetFullPathNameTransacted")==0)	// not impl yet
-			||(strcmp(pmd->ml_name, "GetLongPathNameTransacted")==0)	// not impl yet
+			||(strcmp(pmd->ml_name, "GetLongPathName")==0)
+			||(strcmp(pmd->ml_name, "GetFullPathName")==0)
 			||(strcmp(pmd->ml_name, "GetFileInformationByHandleEx")==0)	// not impl yet
 			)
 			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
@@ -5095,10 +5137,10 @@ static PyObject *py_SfcIsFileProtected(PyObject *self, PyObject *args)
 		pfnFindFirstFileNameTransacted=(FindFirstFileNameTransactedfunc)GetProcAddress(hmodule, "FindFirstFileNameTransactedW");
 		pfnFindNextFileName=(FindNextFileNamefunc)GetProcAddress(hmodule, "FindNextFileNameW");
 		pfnGetFinalPathNameByHandle=(GetFinalPathNameByHandlefunc)GetProcAddress(hmodule, "GetFinalPathNameByHandleW");
-
-		// these aren't wrapped yet
-		pfnGetFullPathNameTransacted=(GetFullPathNameTransactedfunc)GetProcAddress(hmodule, "GetFullPathNameTransactedW");
+		pfnGetLongPathName=(GetLongPathNamefunc)GetProcAddress(hmodule, "GetLongPathNameW");
 		pfnGetLongPathNameTransacted=(GetLongPathNameTransactedfunc)GetProcAddress(hmodule, "GetLongPathNameTransactedW");
+		pfnGetFullPathNameTransactedW=(GetFullPathNameTransactedWfunc)GetProcAddress(hmodule, "GetFullPathNameTransactedW");
+		pfnGetFullPathNameTransactedA=(GetFullPathNameTransactedAfunc)GetProcAddress(hmodule, "GetFullPathNameTransactedA");
 		// pfnGetFileInformationByHandleEx=(GetFileInformationByHandleExfunc)GetProcAddress(hmodule, "GetFileInformationByHandleEx");
 		}
 
