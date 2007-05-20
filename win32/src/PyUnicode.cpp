@@ -265,6 +265,10 @@ int PyUnicode_Size(PyObject *op)
 #ifndef NO_PYWINTYPES_BSTR
 PyObject *PyWinObject_FromBstr(const BSTR bstr, BOOL takeOwnership /*=FALSE*/)
 {
+	if (bstr==NULL) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
 	PyObject *ret = PyUnicode_FromWideChar(bstr, SysStringLen(bstr));
 	if (takeOwnership) SysFreeString(bstr);
 	return ret;
