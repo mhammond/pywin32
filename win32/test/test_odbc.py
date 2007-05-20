@@ -55,7 +55,8 @@ class TestStuff(unittest.TestCase):
             """create table pywin32test_users (
                     userid varchar(5),  username varchar(25),
                     bitfield bit,       intfield integer,
-                    floatfield float
+                    floatfield float,
+                    datefield date,
                 )"""),-1)
 
     def tearDown(self):
@@ -129,6 +130,14 @@ class TestStuff(unittest.TestCase):
 
     def testVarchar(self, ):
         self._test_val('username', 'foo')
+
+    def testDates(self):
+        import datetime
+        for v in (
+            (1800, 12, 25, 23, 59,),
+            ):
+            d = datetime.datetime(*v)
+            self._test_val('datefield', 'd')
 
     def test_set_nonzero_length(self):
         self.assertEqual(self.cur.execute("insert into pywin32test_users (userid,username) "
