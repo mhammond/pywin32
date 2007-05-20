@@ -5,6 +5,11 @@
 #include "EmptyVC.h"
 #include "PyIEmptyVolumeCacheCallBack.h"
 
+#ifndef PY_LONG_LONG
+// Python 2.2 apparently didn't use a PY_ prefix here...
+# define PY_LONG_LONG LONG_LONG
+#endif
+
 // @doc - This file contains autoduck documentation
 // @object PyIEmptyVolumeCacheCallBack|Callback used by <o PyIEmptyVolumeCacheCallBack>
 // ---------------------------------------------------
