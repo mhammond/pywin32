@@ -582,8 +582,7 @@ class my_build_ext(build_ext):
 
         # Not sure how to make this completely generic, and there is no
         # need at this stage.
-        if is_32bit:
-            self._build_scintilla()
+        self._build_scintilla()
         # Copy cpp lib files needed to create Python COM extensions
         clib_files = (['win32', 'pywintypes%s.lib'],
                       ['win32com', 'pythoncom%s.lib'])
@@ -765,6 +764,9 @@ class my_build_ext(build_ext):
                 ext.extra_link_args.append("/DEBUG")
                 ext.extra_link_args.append("/PDB:%s\%s.pdb" %
                                            (pch_dir, ext.name))
+            # enable unwind semantics - some stuff needs it and I can't see 
+            # it hurting
+            ext.extra_compile_args.append("/EHsc")
 
         self.swig_cpp = True
         try:
@@ -1328,13 +1330,14 @@ com_extensions += [
                         """ % dirs).split()),
 ]
 
-pythonwin_extensions = []
+pythonwin_extensions = [
+    WinExt_pythonwin("win32ui", extra_compile_args = ['-DBUILD_PYW'],
+                     pch_header="stdafx.h", base_address=dll_base_address),
+    WinExt_pythonwin("win32uiole", pch_header="stdafxole.h",
+                     windows_h_version = 0x500),
+]
 if is_32bit:
     pythonwin_extensions += [
-        WinExt_pythonwin("win32ui", extra_compile_args = ['-DBUILD_PYW'],
-                         pch_header="stdafx.h", base_address=dll_base_address),
-        WinExt_pythonwin("win32uiole", pch_header="stdafxole.h",
-                         windows_h_version = 0x500),
         WinExt_pythonwin("dde", pch_header="stdafxdde.h"),
     ]
 # win32ui is large, so we reserve more bytes than normal
@@ -1370,11 +1373,8 @@ W32_exe_files = [
                  extra_compile_args = ['-DUNICODE', '-D_UNICODE', '-DWINNT'],
                  extra_link_args=["/SUBSYSTEM:CONSOLE"],
                  libraries = "user32 advapi32 ole32 shell32"),
-    ]
-if is_32bit:
-    W32_exe_files += [
         WinExt_pythonwin("Pythonwin", extra_link_args=["/SUBSYSTEM:WINDOWS"]),
-    ]
+]
 
 # Special definitions for SWIG.
 swig_interface_parents = {

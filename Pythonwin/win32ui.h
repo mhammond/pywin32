@@ -267,9 +267,12 @@ public:
 	// All the "call" functions return FALSE if the call failed, or no handler exists.
 	BOOL call();
 	BOOL call(int);
-	BOOL call(int, int);
+	BOOL call(DWORD, DWORD);
+	BOOL call(BOOL, BOOL);
+	BOOL call(int v1, DWORD v2) {return call((DWORD)v1, v2);}
 	BOOL call(int, int, int);
 	BOOL call(long);
+	BOOL call(UINT_PTR);
 	BOOL call(const char *);
 	BOOL call(const char *, int);
 	BOOL call(CDC *, CPrintInfo *);
@@ -288,6 +291,7 @@ public:
 	BOOL call(CView *pWnd, PyObject *ob);
 	BOOL call(CDC *pDC, CWnd *pWnd, int i);
 	BOOL call(const MSG *);
+	BOOL call(WPARAM, LPARAM);
 	BOOL call(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO*pHandlerInfo);
 	BOOL call_args(PyObject *arglst);
 	// All the retval functions will ASSERT if the call failed!

@@ -62,8 +62,8 @@ public:
 	~PyCRect() {if (m_owned) delete m_pRect;}
 	virtual PyObject *getattr(char *name);
 	virtual int setattr(char *name, PyObject *v);
-	static PyObject *getitem(PyObject *self, int index);
-	static int getlength(PyObject *self);
+	static PyObject *getitem(PyObject *self, Py_ssize_t index);
+	static Py_ssize_t getlength(PyObject *self);
 	CString repr();
 protected:
 	bool m_owned;
@@ -110,14 +110,14 @@ CString PyCRect::repr()
 	return csRet;
 }
 
-/* static */ int PyCRect::getlength(PyObject *self)
+/* static */ Py_ssize_t PyCRect::getlength(PyObject *self)
 {
 	// NEVER CHANGE THIS - you will break all the old
 	// code written when these object were tuples!
 	return 4;
 }
 
-/* static */ PyObject *PyCRect::getitem(PyObject *self, int index)
+/* static */ PyObject *PyCRect::getitem(PyObject *self, Py_ssize_t index)
 {
 	PyCRect *p = (PyCRect *)self;
 	switch (index) {
@@ -882,7 +882,7 @@ BOOL ParseParaFormatTuple( PyObject *args, PARAFORMAT *pFmt)
 	BOOL rc = PyArg_ParseTuple(args, "|iiiiiiiO:PARAFORMAT tuple", 
 		       &pFmt->dwMask, // @tupleitem 0|int|mask|The mask to use.  Bits in this mask indicate which of the following parameters are interpreted.  Must be a combination the win32con.PFM_* constants.
 			   &pFmt->wNumbering, // @tupleitem 1|int|numbering|The numbering style to use.
-			   &pFmt->wReserved, // @tupleitem 2|int|yHeight|Reserved
+			   &pFmt->wEffects, // @tupleitem 2|int|yHeight|Reserved
 			   &pFmt->dxStartIndent, // @tupleitem 3|int|dxStartIndent|Indentation of the first line.
 			   &pFmt->dxRightIndent,// @tupleitem 4|int|dxRightIndent|Indentation from the right.
 			   &pFmt->dxOffset,// @tupleitem 5|int|dxOffset|The indent of second and subsequent lines.
@@ -917,7 +917,7 @@ PyObject *MakeParaFormatTuple(PARAFORMAT *pFmt)
 	PyObject *ret = Py_BuildValue("iiiiiiiO", 
 		       pFmt->dwMask,
 			   pFmt->wNumbering,
-			   pFmt->wReserved,
+			   pFmt->wEffects,
 			   pFmt->dxStartIndent,
 			   pFmt->dxRightIndent,
 			   pFmt->dxOffset,

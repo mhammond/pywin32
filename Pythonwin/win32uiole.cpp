@@ -10,7 +10,9 @@
 // (although replacing transact.h with a later Platform SDK
 // version does *not* give the error.  Whatever.
 #include "transact.h"
+#ifndef _M_X64
 #include "afxdao.h"
+#endif
 
 #if _MFC_VER >= 0x0700
 #include "afxocc.h"
@@ -87,6 +89,9 @@ static PyObject *DaoGetEngine(PyObject *self, PyObject *args)
 {
 	CHECK_NO_ARGS2(args, "DaoGetEngine");
 
+#	ifdef _M_X64
+	return NULL;
+#	else
 	AfxDaoInit();
 	DAODBEngine* pEngine = AfxDaoGetEngine();
 	IDispatch *pDisp;
@@ -95,6 +100,7 @@ static PyObject *DaoGetEngine(PyObject *self, PyObject *args)
 		return PyCom_BuildPyException(hr);
 	pEngine->Release();
 	return PyCom_PyObjectFromIUnknown(pDisp, IID_IDispatch, FALSE);
+#endif
 }
 
 // @pymethod |win32uiole|SetMessagePendingDelay|

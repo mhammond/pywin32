@@ -228,11 +228,11 @@ public:
 		if (!helper.HaveHandler() || !helper.call())
 			T::OnPaint();
 	}
-	afx_msg void OnTimer(UINT nIDEvent) {
+	afx_msg void OnTimer(UINT_PTR nIDEvent) {
 		// @pyvirtual void|PyCWnd|OnTimer|Called for the WM_TIMER message.
 		// @pyparm int|nIDEvent||Specifies the identifier of the timer.
 		CVirtualHelper helper( "OnTimer", this );
-		if (!helper.HaveHandler() || !helper.call(static_cast<int>(nIDEvent)))
+		if (!helper.HaveHandler() || !helper.call(nIDEvent))
 			T::OnTimer(nIDEvent);
 	}
 	afx_msg HCURSOR OnQueryDragIcon() {
@@ -290,7 +290,13 @@ public:
 		} else
 			T::OnNcCalcSize(bCalcValidRects, lpncsp);
 	}
-    afx_msg UINT OnNcHitTest(CPoint pt) {
+    afx_msg
+#ifdef _M_X64 // add one more thing to things I don't understand..
+            LRESULT
+#else
+            UINT
+#endif
+                     OnNcHitTest(CPoint pt) {
 		// @pyvirtual int|PyCWnd|OnNcHitTest|Called for the WM_NCHITTEST message.
 		// @xref <om PyCWnd.OnNcHitTest>
 		CVirtualHelper helper( "OnNcHitTest", this );
@@ -388,6 +394,7 @@ AFX_DATADEF const AFX_MSGMAP CPythonWndFramework<T>::messageMap =
 	{ &CPythonWndFramework<T>::_GetBaseMessageMap, &CPythonWndFramework<T>::_messageEntries[0] 
 };
 
+#define ThisClass CPythonWndFramework<T>
 template <class T>
 const AFX_MSGMAP_ENTRY CPythonWndFramework<T>::_messageEntries[] = {
 	ON_WM_PALETTECHANGED()
@@ -409,7 +416,7 @@ const AFX_MSGMAP_ENTRY CPythonWndFramework<T>::_messageEntries[] = {
 	ON_WM_MOUSEACTIVATE()
 	{0, 0, 0, 0, AfxSig_end, (AFX_PMSG)0 }
 };
-
+#undef ThisClass
 
 template <class T>
 class CPythonDlgFramework : public CPythonWndFramework<T>
@@ -981,10 +988,10 @@ AFX_DATADEF const AFX_MSGMAP CPythonPrtDlgFramework<T>::messageMap =
 
 template <class T>
 const AFX_MSGMAP_ENTRY CPythonPrtDlgFramework<T>::_messageEntries[] = {
-        ON_MESSAGE(WM_INITDIALOG,     HandleInitDialog)
-        ON_COMMAND(IDC_PRINT_TO_FILE, HandlePrintToFile)
-        ON_COMMAND(IDC_PRINT_COLLATE, HandleCollate)
-        ON_COMMAND_RANGE(IDC_PRINT_RANGE_ALL, IDC_PRINT_RANGE_PAGES, HandlePrintRange)
+        ON_MESSAGE(WM_INITDIALOG,     &CPythonPrtDlgFramework<T>::HandleInitDialog)
+        ON_COMMAND(IDC_PRINT_TO_FILE, &CPythonPrtDlgFramework<T>::HandlePrintToFile)
+        ON_COMMAND(IDC_PRINT_COLLATE, &CPythonPrtDlgFramework<T>::HandleCollate)
+        ON_COMMAND_RANGE(IDC_PRINT_RANGE_ALL, IDC_PRINT_RANGE_PAGES, &CPythonPrtDlgFramework<T>::HandlePrintRange)
 	{0, 0, 0, 0, AfxSig_end, (AFX_PMSG)0 }
 };
 

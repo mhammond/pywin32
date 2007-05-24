@@ -425,7 +425,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	void NotifyModified(Document *document, DocModification mh, void *userData);
 	void NotifyDeleted(Document *document, void *userData);
 	void NotifyStyleNeeded(Document *doc, void *userData, int endPos);
-	void NotifyMacroRecord(unsigned int iMessage, uptr_t wParam, sptr_t lParam);
+	void NotifyMacroRecord(unsigned int iMessage, unsigned long wParam, long lParam);
 
 	void PageMove(int direction, selTypes sel=noSel, bool stuttered = false);
 	void ChangeCaseOfSelection(bool makeUpperCase);

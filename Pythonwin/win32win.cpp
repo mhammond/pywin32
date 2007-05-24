@@ -614,7 +614,7 @@ void PyCWnd::DoKillAssoc( BOOL bDestructing /*= FALSE*/ )
 	BOOL bMadeNew = FALSE;
 	pSearch = CWnd::FromHandlePermanent(wnd);
 	// FromHandlePerm is thread specific!
-	if (pSearch==NULL && GetWindowLong(wnd, GWL_WNDPROC)==(LONG)AfxGetAfxWndProc()) {
+	if (pSearch==NULL && GetWindowLong(wnd, GWLP_WNDPROC)==(LONG)AfxGetAfxWndProc()) {
 
 /******* 
 	Windows are per thread.  This gross hack lets me get windows across
@@ -2797,8 +2797,9 @@ ui_window_map_window_points(PyObject *self, PyObject *args)
 
 	// Convert the list of point tuples into an array of POINT structs
 	int num = PyList_Size (point_list);
+	int i;
 	POINT * point_array = new POINT[num];
-	for (int i=0; i < num; i++) 
+	for (i=0; i < num; i++) 
 		{
 		PyObject * point_tuple = PyList_GetItem (point_list, i);
 		if (!PyTuple_Check (point_tuple) || PyTuple_Size (point_tuple) != 2) 

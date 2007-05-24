@@ -35,7 +35,7 @@ protected:
 	afx_msg void OnClose();
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	//}}AFX_MSG
-	afx_msg LONG OnResizePage (UINT, LONG);
+	afx_msg LRESULT OnResizePage (WPARAM, LPARAM);
 	DECLARE_MESSAGE_MAP()
 #ifdef _DEBUG
 	virtual void Dump( CDumpContext &dc ) const;

@@ -79,7 +79,7 @@ static PyObject *PyCRichEditCtrl_create_window(PyObject *self, PyObject *args)
 	RETURN_NONE;
 }
 
-DWORD CALLBACK PyCRichEditCallbackIn(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb)
+DWORD CALLBACK PyCRichEditCallbackIn(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb)
 {
 	// documentation for ths function seems to be wrong WRT return values.
 	// I need to return 0 on all success, rather than bytes in buffer.
@@ -108,12 +108,12 @@ DWORD CALLBACK PyCRichEditCallbackIn(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LON
 	return retval;
 }
 
-DWORD CALLBACK PyCRichEditCallbackOut(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb)
+DWORD CALLBACK PyCRichEditCallbackOut(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb)
 {
 	CEnterLeavePython _celp;
 	int retval = 0; // default abort stream
 	PyObject *method = (PyObject *)dwCookie;
-	PyObject *args = Py_BuildValue("(s#)", pbBuff, cb);
+	PyObject *args = Py_BuildValue("(s#)", pbBuff, (Py_ssize_t)cb);
 	PyObject *result = gui_call_object( method, args );
 	Py_DECREF(args);
 	if (result==NULL) {

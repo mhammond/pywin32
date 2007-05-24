@@ -36,7 +36,7 @@ RC=rc
 LD=link
 
 #-Zc:forScope -Zc:wchar_t
-CXXFLAGS=-Zi -TP -W4
+CXXFLAGS=-Zi -TP -W4  -D_CRT_SECURE_NO_DEPRECATE
 # For something scary:-Wp64
 CXXDEBUG=-Od -MTd -DDEBUG
 CXXNDEBUG=-O1 -MT -DNDEBUG

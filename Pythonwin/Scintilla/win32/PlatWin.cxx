@@ -952,7 +952,7 @@ public:
 	}
 	void Draw(DRAWITEMSTRUCT *pDrawItem);
 	long WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
-	static long PASCAL StaticWndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+	static LRESULT PASCAL StaticWndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 };
 
 ListBox *ListBox::Allocate() {
@@ -1182,7 +1182,7 @@ long ListBoxX::WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam) {
 	return 0;
 }
 
-long PASCAL ListBoxX::StaticWndProc(
+LRESULT PASCAL ListBoxX::StaticWndProc(
     HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam) {
 	if (iMessage == WM_CREATE) {
 		CREATESTRUCT *pCreate = reinterpret_cast<CREATESTRUCT *>(lParam);

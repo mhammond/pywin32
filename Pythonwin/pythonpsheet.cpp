@@ -245,7 +245,7 @@ void CPythonPropertySheet::BuildPropPageArray()
 	VERIFY (m_fntPage.CreatePointFont (wSize*10, strFace));
 }
 
-LONG CPythonPropertySheet::OnResizePage (UINT, LONG)
+LRESULT CPythonPropertySheet::OnResizePage (WPARAM, LPARAM)
 {
 	// resize the page
 	if (m_customizeFont) {

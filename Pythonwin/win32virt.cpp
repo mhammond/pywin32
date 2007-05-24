@@ -131,13 +131,21 @@ BOOL CVirtualHelper::call(int val)
 	PyObject *arglst = Py_BuildValue("(i)",val);
 	return do_call(arglst);
 }
-BOOL CVirtualHelper::call(int val, int val2)
+BOOL CVirtualHelper::call(DWORD val, DWORD val2)
 {
 	if (!handler) return FALSE;
 	CEnterLeavePython _celp;
 	PyObject *arglst = Py_BuildValue("(ii)",val, val2);
 	return do_call(arglst);
 }
+BOOL CVirtualHelper::call(BOOL v1, BOOL v2)
+{
+	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
+	PyObject *arglst = Py_BuildValue("(NN)",PyBool_FromLong(v1), PyBool_FromLong(v2));
+	return do_call(arglst);
+}
+
 BOOL CVirtualHelper::call(int val1, int val2, int val3)
 {
 	if (!handler) return FALSE;
@@ -150,6 +158,14 @@ BOOL CVirtualHelper::call(long val)
 	if (!handler) return FALSE;
 	CEnterLeavePython _celp;
 	PyObject *arglst = Py_BuildValue("(l)",val);
+	return do_call(arglst);
+}
+
+BOOL CVirtualHelper::call(UINT_PTR val)
+{
+	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
+	PyObject *arglst = Py_BuildValue("(N)",PyWinObject_FromULONG_PTR(val));
 	return do_call(arglst);
 }
 
@@ -413,6 +429,14 @@ BOOL CVirtualHelper::call(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO*
 	PyObject *arglst = Py_BuildValue("iill",nID, nCode, (long)pExtra, (long)pHandlerInfo);
 	BOOL ret = do_call(arglst);
 	return ret;
+}
+
+BOOL CVirtualHelper::call(WPARAM w, LPARAM l)
+{
+	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
+	PyObject *arglst = Py_BuildValue("NN",PyWinObject_FromPARAM(w), PyWinObject_FromPARAM(l));
+	return do_call(arglst);
 }
 
 BOOL CVirtualHelper::retnone()
