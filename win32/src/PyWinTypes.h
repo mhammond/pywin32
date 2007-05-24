@@ -162,7 +162,7 @@ PYWINTYPES_EXPORT void PyWinObject_FreeWCHAR(WCHAR *pResult);
 // As of Python 2.6, Python switched to 'wchar_t' for unicode.  Some old
 // win32 structures that still use 'unsigned short' now fail from C++ with
 // VS8 so we provide a couple of helpers.
-#if PY_VERSION_HEX >= 0x02060000 && _MSC_VER > 1500
+#if _MSC_VER >= 1400
 inline BOOL PyWinObject_AsWCHAR(PyObject *stringObject, unsigned short **pResult, BOOL bNoneOK = FALSE, DWORD *pResultLen = NULL)
 {
     return PyWinObject_AsWCHAR(stringObject, (WCHAR **)pResult, bNoneOK, pResultLen);
