@@ -35,7 +35,12 @@ def suite():
     for file in files:
         base, ext = os.path.splitext(file)
         if ext=='.py' and os.path.basename(me) != file:
-            mod = __import__(base)
+            try:
+                mod = __import__(base)
+            except ImportError, why:
+                print "FAILED to import test module"
+                print why
+                continue
             if hasattr(mod, "suite"):
                 test = mod.suite()
             else:
