@@ -203,7 +203,11 @@ class GrepDocument(docview.RichEditDoc):
 		self.verbose = int(params[5])
 		# setup some reasonable defaults.
 		if not self.dirpattern:
-			self.dirpattern = os.getcwd()
+			try: 
+				editor=win32ui.GetMainFrame().MDIGetActive()[0].GetEditorView()
+				self.dirpattern=os.path.abspath(os.path.dirname(editor.GetDocument().GetPathName()))
+			except (AttributeError, win32ui.error):
+				self.dirpattern = os.getcwd()
 		if not self.filpattern:
 			self.filpattern = "*.py"
 

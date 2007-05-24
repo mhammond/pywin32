@@ -14,6 +14,16 @@ import dbgcommands
 
 lastLocateFileName = ".py" # used in the "File/Locate" dialog...
 
+# todo - _SetupSharedMenu should be moved to a framework class.
+def _SetupSharedMenu_(self):
+        sharedMenu = self.GetSharedMenu()
+        from pywin.framework import toolmenu
+        toolmenu.SetToolsMenu(sharedMenu)
+        from pywin.framework import help
+        help.SetHelpMenuOtherHelp(sharedMenu)
+from pywin.mfc import docview
+docview.DocTemplate._SetupSharedMenu_=_SetupSharedMenu_
+
 class MainFrame(app.MainFrame):
 	def OnCreate(self, createStruct):
 		self.closing = 0
@@ -272,7 +282,7 @@ class InteractivePythonApp(app.CApp):
 	def LoadUserModules(self, moduleNames = None):
 		# Load the users modules.
 		if moduleNames is None:
-			default = "sgrepmdi"
+			default = "sgrepmdi,mdi_pychecker"
 			moduleNames=win32ui.GetProfileVal('Python','Startup Modules',default)
 		self.DoLoadModules(moduleNames)
 
