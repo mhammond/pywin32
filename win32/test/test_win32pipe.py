@@ -34,7 +34,7 @@ class CurrentUserTestCase(unittest.TestCase):
         threading.Thread(target=self._workerThread, args=(event,)).start()
     
         hr = win32pipe.ConnectNamedPipe(pipeHandle)
-        self.failUnlessEqual(0, hr)
+        self.failUnless(hr in (0, winerror.ERROR_PIPE_CONNECTED), "Got error code 0x%x" % (hr,))
         win32file.WriteFile(pipeHandle, "bar\0foo")
         hr, got = win32file.ReadFile(pipeHandle, 100)
         self.failUnless(got == "foo\0bar")
