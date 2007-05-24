@@ -26,6 +26,8 @@ def RegisterPythonServer(filename, verbose=0):
 #       print cmd
     rc = os.system(cmd)
     if rc:
+        print "Registration command was:"
+        print cmd
         raise RuntimeError, "Registration of engine '%s' failed" % filename
 
 def ExecuteShellCommand(cmd, testcase,
