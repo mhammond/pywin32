@@ -25,6 +25,10 @@
 
 #include "dbi.h"
 
+#ifdef _WIN64
+# define ctime _ctime32
+#endif
+
 typedef struct
 {
 	PyObject_HEAD

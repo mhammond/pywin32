@@ -16,7 +16,11 @@
 %{
 BOOL PyWinObject_AsDATA_BLOB(PyObject *ob, DATA_BLOB *b)
 {
-    return PyObject_AsReadBuffer(ob, (const void **)(&b->pbData), (int *)(&b->cbData))==0;
+    Py_ssize_t cb;
+    if (PyObject_AsReadBuffer(ob, (const void **)(&b->pbData), &cb)!=0)
+        return FALSE;
+    b->cbData = PyWin_SAFE_DOWNCAST(cb, Py_ssize_t, int);
+    return TRUE;
 }
 
 PyObject *PyWinObject_FromDATA_BLOB(DATA_BLOB *b)

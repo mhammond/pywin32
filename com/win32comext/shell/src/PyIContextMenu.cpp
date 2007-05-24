@@ -161,7 +161,7 @@ STDMETHODIMP PyGContextMenu::InvokeCommand(
 }
 
 STDMETHODIMP PyGContextMenu::GetCommandString(
-		/* [unique][in] */ UINT idCmd,
+		/* [unique][in] */ UINT_PTR idCmd,
 		/* [unique][in] */ UINT uFlags,
 		/* [unique][in] */ UINT * pwReserved,
 		/* [unique][in] */ LPSTR pszName,
@@ -169,7 +169,7 @@ STDMETHODIMP PyGContextMenu::GetCommandString(
 {
 	PyObject *result;
 	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("GetCommandString", &result, "II", idCmd, uFlags);
+	HRESULT hr=InvokeViaPolicy("GetCommandString", &result, "NI", PyWinObject_FromULONG_PTR(idCmd), uFlags);
 	if (FAILED(hr))
 		return hr;
 	if (result && (PyString_Check(result) || PyUnicode_Check(result))) {

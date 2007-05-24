@@ -45,6 +45,11 @@ flag to the build command - eg:
   python setup.py -q build --debug
 or to build and install a debug version:
   python setup.py -q build --debug install
+
+To build 64bit versions of this, you must manually setup your compiler and SDK environment
+variables, then set the environment variables 'DISTUTILS_USE_SDK' and 'MSSdk' to any value
+before running setup.  This will prevent distutils trying to sniff out the correct directories, which
+it generally fails to do these days...
 """
 # Originally by Thomas Heller, started in 2000 or so.
 
@@ -58,6 +63,15 @@ from distutils import dir_util, file_util
 from distutils.sysconfig import get_python_lib
 from distutils.filelist import FileList
 from distutils.errors import DistutilsExecError
+try:
+    from distutils.msvccompiler import get_build_architecture
+except ImportError:
+    def get_build_architecture():
+        return "Intel"
+
+ARCHITECTURES_64 = ("Itanium", "AMD64")
+is_64bit = get_build_architecture() in ARCHITECTURES_64
+is_32bit = not is_64bit
 
 import types, glob
 import os, string, sys
@@ -159,7 +173,21 @@ def find_platform_sdk_dir():
             i += 1
     except EnvironmentError:
         pass
-    # 4. Failing this just try a few well-known default install locations.
+    # 4.  Vista's SDK
+    try:
+        key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+                              r"Software\Microsoft\Microsoft SDKs\Windows")
+        sdkdir, ignore = _winreg.QueryValueEx(key, "CurrentInstallFolder")
+    except EnvironmentError:
+        pass
+    else:
+        if DEBUG:
+            print r"PSDK: try 'HKLM\Software\Microsoft\MicrosoftSDKs"\
+                   "\Windows\CurrentInstallFolder': '%s'" % sdkdir
+        if os.path.isfile(os.path.join(sdkdir, landmark)):
+            return sdkdir
+
+    # 5. Failing this just try a few well-known default install locations.
     progfiles = os.environ.get("ProgramFiles", r"C:\Program Files")
     defaultlocs = [
         os.path.join(progfiles, "Microsoft Platform SDK"),
@@ -214,7 +242,10 @@ class WinExt (Extension):
             sources = sources or []
             sources.extend(self.get_source_files(dsp_file))
         extra_link_args = extra_link_args or []
-        extra_link_args.append("/MACHINE:ix86")
+        if is_64bit:
+            extra_link_args.append("/MACHINE:%s" % get_build_architecture())
+        else:
+            extra_link_args.append("/MACHINE:ix86")
         # Some of our swigged files behave differently in distutils vs
         # MSVC based builds.  Always define DISTUTILS_BUILD so they can tell.
         define_macros = define_macros or []
@@ -387,6 +418,10 @@ class my_build_ext(build_ext):
             if extra not in self.include_dirs and os.path.isdir(extra):
                 self.include_dirs.insert(0, extra)
             extra = os.path.join(sdk_dir, 'lib')
+            assert os.path.isdir(extra)
+            if is_64bit:
+                extra = os.path.join(extra, 'x64')
+                assert os.path.isdir(extra), extra
             if extra not in self.library_dirs and os.path.isdir(extra):
                 self.library_dirs.insert(0, extra)
         else:
@@ -423,7 +458,12 @@ class my_build_ext(build_ext):
                 if self.windows_h_version is not None:
                     break
             else:
-                raise RuntimeError, "Can't find a version in Windows.h"
+                if is_64bit:
+                    # *sob*
+                    print "x64 build - assuming winver == 0x600"
+                    self.windows_h_version = 0x600
+                else:
+                    raise RuntimeError, "Can't find a version in Windows.h"
         if ext.windows_h_version > self.windows_h_version:
             return "WINDOWS.H with version 0x%x is required, but only " \
                    "version 0x%x is installed." \
@@ -434,7 +474,9 @@ class my_build_ext(build_ext):
         except AttributeError:
             # module method in early Python versions
             get_msvc_paths = msvccompiler.get_msvc_paths 
-        look_dirs = self.include_dirs + get_msvc_paths("include")
+        look_dirs = self.include_dirs
+        if is_32bit: # don't sniff MSVC paths on x64
+            get_msvc_paths("include")
         for h in ext.optional_headers:
             for d in look_dirs:
                 if os.path.isfile(os.path.join(d, h)):
@@ -464,40 +506,7 @@ class my_build_ext(build_ext):
         ext.libraries = patched_libs
         return None # no reason - it can be built!
 
-    def build_extensions(self):
-        # Is there a better way than this?
-        # Just one GUIDS.CPP and it gives trouble on mainwin too
-        # Maybe I should just rename the file, but a case-only rename is likely to be
-        # worse!
-        if ".CPP" not in self.compiler.src_extensions:
-            self.compiler._cpp_extensions.append(".CPP")
-            self.compiler.src_extensions.append(".CPP")
-
-        # First, sanity-check the 'extensions' list
-        self.check_extensions_list(self.extensions)
-
-        self.found_libraries = {}        
-
-        # Here we hack a "pywin32" directory (one of 'win32', 'win32com',
-        # 'pythonwin' etc), as distutils doesn't seem to like the concept
-        # of multiple top-level directories.
-        assert self.package is None
-        for ext in self.extensions:
-            try:
-                self.package = ext.get_pywin32_dir()
-            except AttributeError:
-                raise RuntimeError, "Not a win32 package!"
-            self.build_extension(ext)
-
-        for ext in W32_exe_files:
-            try:
-                self.package = ext.get_pywin32_dir()
-            except AttributeError:
-                raise RuntimeError, "Not a win32 package!"
-            self.build_exefile(ext)
-
-        # Not sure how to make this completely generic, and there is no
-        # need at this stage.
+    def _build_scintilla(self):
         path = 'pythonwin\\Scintilla'
         makefile = 'makefile_pythonwin'
         makeargs = ["QUIET=1"]
@@ -539,6 +548,42 @@ class my_build_ext(build_ext):
                     os.path.join(self.build_temp, "scintilla", base_name),
                     os.path.join(self.build_lib, "pythonwin"))
 
+    def build_extensions(self):
+        # Is there a better way than this?
+        # Just one GUIDS.CPP and it gives trouble on mainwin too
+        # Maybe I should just rename the file, but a case-only rename is likely to be
+        # worse!
+        if ".CPP" not in self.compiler.src_extensions:
+            self.compiler._cpp_extensions.append(".CPP")
+            self.compiler.src_extensions.append(".CPP")
+
+        # First, sanity-check the 'extensions' list
+        self.check_extensions_list(self.extensions)
+
+        self.found_libraries = {}        
+
+        # Here we hack a "pywin32" directory (one of 'win32', 'win32com',
+        # 'pythonwin' etc), as distutils doesn't seem to like the concept
+        # of multiple top-level directories.
+        assert self.package is None
+        for ext in self.extensions:
+            try:
+                self.package = ext.get_pywin32_dir()
+            except AttributeError:
+                raise RuntimeError, "Not a win32 package!"
+            self.build_extension(ext)
+
+        for ext in W32_exe_files:
+            try:
+                self.package = ext.get_pywin32_dir()
+            except AttributeError:
+                raise RuntimeError, "Not a win32 package!"
+            self.build_exefile(ext)
+
+        # Not sure how to make this completely generic, and there is no
+        # need at this stage.
+        if is_32bit:
+            self._build_scintilla()
         # Copy cpp lib files needed to create Python COM extensions
         clib_files = (['win32', 'pywintypes%s.lib'],
                       ['win32com', 'pythoncom%s.lib'])
@@ -678,12 +723,15 @@ class my_build_ext(build_ext):
         why = self._why_cant_build_extension(ext)
         if why is not None:
             self.excluded_extensions.append((ext, why))
+            assert why, "please give a reason, or None"
+            print "Skipping", ext.name, why
             return
         self.current_extension = ext
 
         if not self.mingw32 and ext.pch_header:
             ext.extra_compile_args = ext.extra_compile_args or []
-            ext.extra_compile_args.append("/YX"+ext.pch_header)
+            if is_32bit:
+                ext.extra_compile_args.append("/YX"+ext.pch_header)
             pch_name = os.path.join(self.build_temp, ext.name) + ".pch"
             ext.extra_compile_args.append("/Fp"+pch_name)
 
@@ -1112,6 +1160,8 @@ win32_extensions += [
            windows_h_version=0x0500,
            extra_compile_args = ['-DUNICODE', '-D_UNICODE', '-DWINNT'],
         ),
+]
+win32_extensions += [
     WinExt_win32('servicemanager',
            extra_compile_args = ['-DUNICODE', '-D_UNICODE', 
                                  '-DWINNT', '-DPYSERVICE_BUILD_DLL'],
@@ -1278,13 +1328,15 @@ com_extensions += [
                         """ % dirs).split()),
 ]
 
-pythonwin_extensions = [
-    WinExt_pythonwin("win32ui", extra_compile_args = ['-DBUILD_PYW'],
-                     pch_header="stdafx.h", base_address=dll_base_address),
-    WinExt_pythonwin("win32uiole", pch_header="stdafxole.h",
-                     windows_h_version = 0x500),
-    WinExt_pythonwin("dde", pch_header="stdafxdde.h"),
-]
+pythonwin_extensions = []
+if is_32bit:
+    pythonwin_extensions += [
+        WinExt_pythonwin("win32ui", extra_compile_args = ['-DBUILD_PYW'],
+                         pch_header="stdafx.h", base_address=dll_base_address),
+        WinExt_pythonwin("win32uiole", pch_header="stdafxole.h",
+                         windows_h_version = 0x500),
+        WinExt_pythonwin("dde", pch_header="stdafxdde.h"),
+    ]
 # win32ui is large, so we reserve more bytes than normal
 dll_base_address += 0x100000
 
@@ -1318,7 +1370,10 @@ W32_exe_files = [
                  extra_compile_args = ['-DUNICODE', '-D_UNICODE', '-DWINNT'],
                  extra_link_args=["/SUBSYSTEM:CONSOLE"],
                  libraries = "user32 advapi32 ole32 shell32"),
-    WinExt_pythonwin("Pythonwin", extra_link_args=["/SUBSYSTEM:WINDOWS"]),
+    ]
+if is_32bit:
+    W32_exe_files += [
+        WinExt_pythonwin("Pythonwin", extra_link_args=["/SUBSYSTEM:WINDOWS"]),
     ]
 
 # Special definitions for SWIG.

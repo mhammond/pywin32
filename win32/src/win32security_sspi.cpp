@@ -17,13 +17,13 @@
 // PySecBufferDesc
 //
 ////////////////////////////////////////////////////////////////////////
-int PySecBufferDesc_sq_length(PyObject *self)
+Py_ssize_t PySecBufferDesc_sq_length(PyObject *self)
 {
 	PSecBufferDesc psecbufferdesc=((PySecBufferDesc *)self)->GetSecBufferDesc();
 	return psecbufferdesc->cBuffers;
 }
 
-PyObject *PySecBufferDesc_sq_item(PyObject *self, int i)
+PyObject *PySecBufferDesc_sq_item(PyObject *self, Py_ssize_t i)
 {
 	PySecBufferDesc *This=(PySecBufferDesc *)self;
 	PSecBufferDesc psecbufferdesc=This->GetSecBufferDesc();
@@ -35,7 +35,7 @@ PyObject *PySecBufferDesc_sq_item(PyObject *self, int i)
 	return This->obBuffers[i];
 }
 
-int PySecBufferDesc_sq_ass_item(PyObject *self, int i, PyObject *ob)
+int PySecBufferDesc_sq_ass_item(PyObject *self, Py_ssize_t i, PyObject *ob)
 {
 	if (ob==NULL){
 		PyErr_SetString(PyExc_NotImplementedError,"Removing buffers not yet supported");
@@ -423,7 +423,7 @@ int PySecBuffer::setattro(PyObject *self, PyObject *obname, PyObject *obvalue)
 {
 	PySecBuffer *This=(PySecBuffer *)self;
 	char *name, *value;
-	int valuelen;
+	Py_ssize_t valuelen;
 	name=PyString_AsString(obname);
 	if (name==NULL)
 		return -1;
@@ -431,7 +431,7 @@ int PySecBuffer::setattro(PyObject *self, PyObject *obname, PyObject *obvalue)
 		if (PyString_AsStringAndSize(obvalue, &value, &valuelen)==-1)
 			return -1;
 		PSecBuffer psecbuffer=This->GetSecBuffer();
-		if (valuelen>(int)This->maxbufsize){
+		if (valuelen>(Py_ssize_t)This->maxbufsize){
 			PyErr_Format(PyExc_ValueError, "Data size (%d) greater than allocated buffer size (%d)",valuelen, This->maxbufsize);
 			return -1;
 			}

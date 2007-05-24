@@ -44,7 +44,7 @@ protected:
 		CMINVOKECOMMANDINFO __RPC_FAR * lpici);
 
 	STDMETHOD(GetCommandString)(
-		UINT idCmd,
+		UINT_PTR idCmd,
 		UINT uType,
 		UINT     __RPC_FAR * pwReserved,
 		LPSTR pszName,

@@ -12,7 +12,13 @@ generates Windows .hlp files.
 ******************************************************************/
 
 #ifndef WINVER
-#define WINVER 0x400
+// hrm - the RASEAPUSERIDENTITY structures on the Vista SDK now want
+// a WINVER > 0x500.
+# ifdef _WIN64
+#  define WINVER 0x501
+# else
+#  define WINVER 0x400
+# endif
 #endif
 
 #include "windows.h"

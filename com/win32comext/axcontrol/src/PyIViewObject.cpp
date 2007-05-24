@@ -254,8 +254,8 @@ STDMETHODIMP PyGViewObject::Draw(
 		/* [in] */ HDC hdcDraw,
 		/* [in] */ LPCRECTL lprcBounds,
 		/* [unique][in] */ LPCRECTL lprcWBounds,
-		/* [in] */ BOOL ( STDMETHODCALLTYPE __RPC_FAR *pfnContinue )( DWORD dwContinueArg ),
-		/* [in] */ DWORD dwContinue)
+		/* [in] */ BOOL ( STDMETHODCALLTYPE __RPC_FAR *pfnContinue )( ULONG_PTR dwContinueArg ),
+		/* [in] */ ULONG_PTR dwContinue)
 {
 	PY_GATEWAY_METHOD;
 	PyObject *obpvAspect = PyInt_FromLong(((DVASPECTINFO *)pvAspect)->dwFlags);
@@ -266,14 +266,16 @@ STDMETHODIMP PyGViewObject::Draw(
 	if (oblprcBounds==NULL) return PyCom_HandlePythonFailureToCOM();
 	PyObject *oblprcWBounds = Py_BuildValue("llll", lprcWBounds->left,lprcWBounds->top, lprcWBounds->right, lprcWBounds->bottom);
 	if (oblprcWBounds==NULL) return PyCom_HandlePythonFailureToCOM();
-	PyObject *obFuncContinue = PyInt_FromLong((long)pfnContinue);
+	PyObject *obFuncContinue = PyLong_FromVoidPtr(pfnContinue);
 	if (obFuncContinue==NULL) return PyCom_HandlePythonFailureToCOM();
-	HRESULT hr=InvokeViaPolicy("Draw", NULL, "iiOOiiOOOi", dwDrawAspect, lindex, obpvAspect, obptd, hdcTargetDev, hdcDraw, oblprcBounds, oblprcWBounds, obFuncContinue, dwContinue);
-	Py_DECREF(obpvAspect);
-	Py_DECREF(obptd);
-	Py_DECREF(oblprcBounds);
-	Py_DECREF(oblprcWBounds);
-	Py_DECREF(obFuncContinue);
+	PyObject *obContinue = PyWinObject_FromULONG_PTR(dwContinue);
+	HRESULT hr=InvokeViaPolicy("Draw", NULL, "iiOOiiOOOO", dwDrawAspect, lindex, obpvAspect, obptd, hdcTargetDev, hdcDraw, oblprcBounds, oblprcWBounds, obFuncContinue, obContinue);
+	Py_XDECREF(obpvAspect);
+	Py_XDECREF(obptd);
+	Py_XDECREF(oblprcBounds);
+	Py_XDECREF(oblprcWBounds);
+	Py_XDECREF(obFuncContinue);
+	Py_XDECREF(obContinue);
 	return hr;
 }
 

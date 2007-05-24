@@ -14,6 +14,20 @@
 #include "Python.h"
 #include "windows.h"
 
+// See PEP-353 - this is the "official" test...
+#if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
+// 2.3 and before have no Py_ssize_t
+typedef int Py_ssize_t;
+#define PyInt_FromSsize_t PyInt_FromLong
+#define PyInt_AsSsize_t PyInt_AsLong
+#define PY_SSIZE_T_MAX INT_MAX
+#define PY_SSIZE_T_MIN INT_MIN
+#endif
+
+// This only enables runtime checks in debug builds - so we use
+// our own so we can enable it always should we desire...
+#define PyWin_SAFE_DOWNCAST Py_SAFE_DOWNCAST
+
 // Lars: for WAVEFORMATEX
 #include "mmsystem.h"
 
@@ -143,7 +157,22 @@ PYWINTYPES_EXPORT BSTR PyWin_String_AsBstr(const char *str);
 // Given a string or Unicode object, get WCHAR characters.
 PYWINTYPES_EXPORT BOOL PyWinObject_AsWCHAR(PyObject *stringObject, WCHAR **pResult, BOOL bNoneOK = FALSE, DWORD *pResultLen = NULL);
 // And free it when finished.
-PYWINTYPES_EXPORT void PyWinObject_FreeWCHAR(BSTR pResult);
+PYWINTYPES_EXPORT void PyWinObject_FreeWCHAR(WCHAR *pResult);
+
+// As of Python 2.6, Python switched to 'wchar_t' for unicode.  Some old
+// win32 structures that still use 'unsigned short' now fail from C++ with
+// VS8 so we provide a couple of helpers.
+#if PY_VERSION_HEX >= 0x02060000 && _MSC_VER > 1500
+inline BOOL PyWinObject_AsWCHAR(PyObject *stringObject, unsigned short **pResult, BOOL bNoneOK = FALSE, DWORD *pResultLen = NULL)
+{
+    return PyWinObject_AsWCHAR(stringObject, (WCHAR **)pResult, bNoneOK, pResultLen);
+}
+inline void PyWinObject_FreeWCHAR(unsigned short *pResult)
+{
+    PyWinObject_FreeWCHAR((WCHAR *)pResult);
+}
+#endif
+
 
 // Given a PyObject (string, Unicode, etc) create a "char *" with the value
 // if pResultLen != NULL, it will be set to the result size NOT INCLUDING 
@@ -202,6 +231,11 @@ PYWINTYPES_EXPORT BOOL PyWin_String_AsWCHAR(char *input, DWORD inLen, WCHAR **pR
 PYWINTYPES_EXPORT void PyWinObject_FreeString(char *str);
 PYWINTYPES_EXPORT void PyWinObject_FreeString(WCHAR *str);
 
+// Pointers.
+// Substitute for Python's inconsistent PyLong_AsVoidPtr
+PYWINTYPES_EXPORT BOOL PyWinLong_AsVoidPtr(PyObject *ob, void **pptr);
+PYWINTYPES_EXPORT PyObject *PyWinLong_FromVoidPtr(void *ptr);
+
 /*
 ** LARGE_INTEGER objects
 */
@@ -243,6 +277,22 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromULARGE_INTEGER(ULARGE_INTEGER &val);
 
 PyObject *PyLong_FromI64(__int64 ival);
 BOOL PyLong_AsI64(PyObject *val, __int64 *lval);
+
+// A DWORD_PTR and ULONG_PTR appear to mean "integer long enough to hold a pointer"
+// It is *not* actually a pointer (but is the same size as a pointer)
+inline PyObject *PyWinObject_FromULONG_PTR(ULONG_PTR v) {
+    return PyLong_FromVoidPtr((void *)v);
+}
+inline BOOL PyWinLong_AsULONG_PTR(PyObject *ob, ULONG_PTR *r) {
+    return PyWinLong_AsVoidPtr(ob, (void **)r);
+}
+
+inline PyObject *PyWinObject_FromDWORD_PTR(DWORD_PTR v) {
+    return PyLong_FromVoidPtr((void *)v);
+}
+inline BOOL PyWinLong_AsDWORD_PTR(PyObject *ob, DWORD_PTR *r) {
+    return PyWinLong_AsVoidPtr(ob, (void **)r);
+}
 
 // Some boolean helpers for Python 2.2 and earlier
 #if (PY_VERSION_HEX < 0x02030000 && !defined(PYWIN_NO_BOOL_FROM_LONG))
@@ -337,10 +387,6 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromIO_COUNTERS(PIO_COUNTERS pioc);
 // Make an array of DWORD's from a sequence of Python ints
 PYWINTYPES_EXPORT BOOL PyWinObject_AsDWORDArray(PyObject *obdwords, DWORD **pdwords, DWORD *item_cnt, BOOL bNoneOk=TRUE);
 
-// Substitute for Python's inconsistent PyLong_AsVoidPtr
-PYWINTYPES_EXPORT BOOL PyWinLong_AsVoidPtr(PyObject *ob, void **pptr);
-PYWINTYPES_EXPORT PyObject *PyWinLong_FromVoidPtr(void *ptr);
-
 // Conversion for resource id/name and class atom
 PYWINTYPES_EXPORT BOOL PyWinObject_AsResourceIdA(PyObject *ob, char **presource_id, BOOL bNoneOK = FALSE);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsResourceIdW(PyObject *ob, WCHAR **presource_id, BOOL bNoneOK = FALSE);
@@ -354,6 +400,13 @@ PYWINTYPES_EXPORT void PyWinObject_FreeResourceId(WCHAR *resource_id);
 
 // WPARAM and LPARAM conversion
 PYWINTYPES_EXPORT BOOL PyWinObject_AsPARAM(PyObject *ob, WPARAM *pparam);
+inline PyObject *PyWinObject_FromPARAM(WPARAM param) {
+    return PyWinObject_FromULONG_PTR(param);
+}
+inline PyObject *PyWinObject_FromPARAM(LPARAM param) {
+    return PyWinObject_FromULONG_PTR(param);
+}
+
 
 // RECT conversions
 // @object PyRECT|Tuple of 4 ints defining a rectangle: (left, top, right, bottom)

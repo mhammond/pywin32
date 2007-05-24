@@ -986,7 +986,7 @@ PyObject *PyACL::PySetEntriesInAcl(PyObject *self, PyObject *args)
 	ACL *new_acl=NULL;
 	PyACL *This = (PyACL *)self;
 	PyObject *obexpl=NULL, *obexpl_list=NULL;
-	unsigned long expl_cnt=0, expl_ind=0;
+	Py_ssize_t expl_cnt=0, expl_ind=0;
 	DWORD err;
 	if (!PyArg_ParseTuple(args, "O:SetEntriesInAcl", &obexpl_list))
 		return NULL;
@@ -995,7 +995,7 @@ PyObject *PyACL::PySetEntriesInAcl(PyObject *self, PyObject *args)
 		return NULL;
 		}
 	expl_cnt=PySequence_Length(obexpl_list);
-	DWORD bytes_allocated=expl_cnt*sizeof(EXPLICIT_ACCESS_W);
+	Py_ssize_t bytes_allocated=expl_cnt*sizeof(EXPLICIT_ACCESS_W);
 	pexpl_start = (PEXPLICIT_ACCESS_W)malloc(bytes_allocated);
 	ZeroMemory(pexpl_start,bytes_allocated);
 	if (pexpl_start==NULL){
@@ -1012,7 +1012,8 @@ PyObject *PyACL::PySetEntriesInAcl(PyObject *self, PyObject *args)
 		Py_DECREF(obexpl);
 		pexpl++;
 		}
-	err = ::SetEntriesInAclW(expl_cnt,pexpl_start,This->GetACL(),&new_acl);
+	err = ::SetEntriesInAclW(PyWin_SAFE_DOWNCAST(expl_cnt, Py_ssize_t, ULONG),
+	                         pexpl_start,This->GetACL(),&new_acl);
 	if (err!=ERROR_SUCCESS){
 		PyWin_SetAPIError("SetEntriesInAcl",err);
 		goto done;

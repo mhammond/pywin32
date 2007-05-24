@@ -45,7 +45,7 @@ BOOL PyWinObject_AsCREDENTIAL_ATTRIBUTE(PyObject *obattr, PCREDENTIAL_ATTRIBUTE 
 	static char *keywords[]={"Keyword","Flags","Value", NULL};
 	PyObject *obKeyword, *obValue, *args;
 	const void *value;
-	int valuelen;
+	Py_ssize_t valuelen;
 	BOOL ret;
 	ZeroMemory(attr, sizeof(CREDENTIAL_ATTRIBUTE));
 	if (!PyDict_Check(obattr)){
@@ -379,7 +379,7 @@ PyObject * PyCredMarshalCredential(PyObject *self, PyObject *args, PyObject *kwa
 	switch(credtype){
 	// @flag CertCredential|String containing the SHA1 hash of user's certificate
 		case CertCredential:{
-			int hashlen;
+			Py_ssize_t hashlen;
 			char *hash;
 			if (PyString_AsStringAndSize(obcredential, &hash, &hashlen)==-1)
 				goto done;

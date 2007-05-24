@@ -72,7 +72,7 @@ BOOL PyObject_AsFUNCDESC(PyObject *ob, FUNCDESC **ppfd)
 		}
 		fd->cScodes = (short)PySequence_Length(pyfd->scodeArray);
 		fd->lprgscode = (SCODE *)AllocMore(fd, sizeof(SCODE)*fd->cScodes);
-		for (int i=0;i<fd->cScodes;i++) {
+		for (Py_ssize_t i=0;i<fd->cScodes;i++) {
 			PyObject *sub=PySequence_GetItem(ob, i);
 			if (sub==NULL) goto done;
 			BOOL ok = PyInt_Check(sub);
@@ -219,14 +219,14 @@ int PyFUNCDESC::setattr(PyObject *self, char *name, PyObject *v)
 }
 
 // Sequence stuff to provide compatibility with tuples.
-/* static */ int PyFUNCDESC::getlength(PyObject *self)
+/* static */ Py_ssize_t PyFUNCDESC::getlength(PyObject *self)
 {
 	// NEVER CHANGE THIS - you will break all the old
 	// code written when these object were tuples!
 	return 10;
 }
 
-/* static */ PyObject *PyFUNCDESC::getitem(PyObject *self, int index)
+/* static */ PyObject *PyFUNCDESC::getitem(PyObject *self, Py_ssize_t index)
 {
 	PyFUNCDESC *p = (PyFUNCDESC *)self;
 	PyObject *rc;

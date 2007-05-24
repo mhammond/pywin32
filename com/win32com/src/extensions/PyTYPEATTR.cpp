@@ -177,14 +177,14 @@ int PyTYPEATTR::setattr(PyObject *self, char *name, PyObject *v)
 }
 
 // Sequence stuff to provide compatibility with tuples.
-/* static */ int PyTYPEATTR::getlength(PyObject *self)
+/* static */ Py_ssize_t PyTYPEATTR::getlength(PyObject *self)
 {
 	// NEVER CHANGE THIS - you will break all the old
 	// code written when these object were tuples!
 	return 16;
 }
 
-/* static */ PyObject *PyTYPEATTR::getitem(PyObject *self, int index)
+/* static */ PyObject *PyTYPEATTR::getitem(PyObject *self, Py_ssize_t index)
 {
 	PyTYPEATTR *p = (PyTYPEATTR *)self;
 	PyObject *rc;

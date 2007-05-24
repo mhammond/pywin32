@@ -902,7 +902,7 @@ py_set_clipboard_data(PyObject* self, PyObject* args)
 		// A global memory object is allocated, and the objects buffer is copied
 		// to the new memory.
 		const void * buf = NULL;
-		int bufSize = 0;
+		Py_ssize_t bufSize = 0;
 
 		if (PyObject_AsReadBuffer(obhandle,&buf,&bufSize)==-1) 
 			RETURN_TYPE_ERR("The object must support the buffer interfaces");

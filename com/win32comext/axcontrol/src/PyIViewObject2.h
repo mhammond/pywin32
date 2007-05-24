@@ -38,8 +38,8 @@ protected:
 		HDC hdcDraw,
 		LPCRECTL lprcBounds,
 		LPCRECTL lprcWBounds,
-		BOOL ( STDMETHODCALLTYPE __RPC_FAR *pfnContinue )( DWORD ),
-		DWORD dwContinue);
+		BOOL ( STDMETHODCALLTYPE __RPC_FAR *pfnContinue )( ULONG_PTR ),
+		ULONG_PTR dwContinue);
 
 	STDMETHOD(GetColorSet)(
 		DWORD dwDrawAspect,

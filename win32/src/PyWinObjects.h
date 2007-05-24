@@ -88,7 +88,7 @@ public:
 	DATE m_time;	/* the OLE type for representing date/times */
 
 	PyTime(DATE t);
-	PyTime(long t);
+	PyTime(time_t t);
 	PyTime(const SYSTEMTIME &t);
 	PyTime(const FILETIME &t);
 

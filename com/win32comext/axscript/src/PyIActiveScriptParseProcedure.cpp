@@ -106,7 +106,7 @@ STDMETHODIMP PyGActiveScriptParseProcedure::ParseProcedureText(
 		/* [in] */ LPCOLESTR pstrItemName,
 		/* [in] */ IUnknown __RPC_FAR * punkContext,
 		/* [in] */ LPCOLESTR pstrDelimiter,
-		/* [in] */ DWORD dwSourceContextCookie,
+		/* [in] */ DWORD_PTR dwSourceContextCookie,
 		/* [in] */ ULONG ulStartingLineNumber,
 		/* [in] */ DWORD dwFlags,
 		/* [out] */ IDispatch __RPC_FAR *__RPC_FAR * ppdisp)
@@ -125,14 +125,16 @@ STDMETHODIMP PyGActiveScriptParseProcedure::ParseProcedureText(
 	obpstrItemName = PyWinObject_FromOLECHAR(pstrItemName);
 	obpunkContext = PyCom_PyObjectFromIUnknown(punkContext, IID_IUnknown, TRUE);
 	obpstrDelimiter = PyWinObject_FromOLECHAR(pstrDelimiter);
+	PyObject *obContext = PyWinObject_FromDWORD_PTR(dwSourceContextCookie);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("ParseProcedureText", &result, "OOOOOOiii", obpstrCode, obpstrFormalParams, obpstrProcedureName, obpstrItemName, obpunkContext, obpstrDelimiter, dwSourceContextCookie, ulStartingLineNumber, dwFlags);
+	HRESULT hr=InvokeViaPolicy("ParseProcedureText", &result, "OOOOOOOii", obpstrCode, obpstrFormalParams, obpstrProcedureName, obpstrItemName, obpunkContext, obpstrDelimiter, obContext, ulStartingLineNumber, dwFlags);
 	Py_XDECREF(obpstrCode);
 	Py_XDECREF(obpstrFormalParams);
 	Py_XDECREF(obpstrProcedureName);
 	Py_XDECREF(obpstrItemName);
 	Py_XDECREF(obpunkContext);
 	Py_XDECREF(obpstrDelimiter);
+	Py_XDECREF(obContext);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	PyObject *obppdisp;

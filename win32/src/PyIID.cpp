@@ -21,7 +21,7 @@ PyObject *PyWinMethod_NewIID(PyObject *self, PyObject *args)
 		return NULL;
 	if (isBytes) {
 		const void *buf;
-		int cb;
+		Py_ssize_t cb;
 		if (!PyObject_CheckReadBuffer(obIID))
 			return PyErr_Format(PyExc_TypeError, "object must be a read-buffer to read the CLSID bytes");
 		if (PyObject_AsReadBuffer(obIID, &buf, &cb))
@@ -130,7 +130,7 @@ PyObject *PyWinUnicodeObject_FromIID(const IID &riid)
 	return PyWinObject_FromOLECHAR(oleRes);
 }
 
-static int getreadbuf(PyObject *self, int index, const void **ptr)
+static Py_ssize_t getreadbuf(PyObject *self, Py_ssize_t index, void **ptr)
 {
 	if ( index != 0 ) {
 		PyErr_SetString(PyExc_SystemError,
@@ -142,7 +142,7 @@ static int getreadbuf(PyObject *self, int index, const void **ptr)
 	return sizeof(IID);
 }
 
-static int getsegcount(PyObject *self, int *lenp)
+static Py_ssize_t getsegcount(PyObject *self, Py_ssize_t *lenp)
 {
 	if ( lenp )
 		*lenp = sizeof(IID);
@@ -150,10 +150,10 @@ static int getsegcount(PyObject *self, int *lenp)
 }
 
 static PyBufferProcs PyIID_as_buffer = {
-	(getreadbufferproc)getreadbuf,
-	(getwritebufferproc)0,
-	(getsegcountproc)getsegcount,
-	(getcharbufferproc)0,
+	getreadbuf,
+	0,
+	getsegcount,
+	0,
 };
 
 // @object PyIID|A Python object, representing an IID/CLSID.

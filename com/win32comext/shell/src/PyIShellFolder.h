@@ -66,9 +66,9 @@ protected:
 		void **out);
 
 	STDMETHOD(CompareIDs)(
-		long lparam,
-		const ITEMIDLIST __RPC_FAR * pidl1,
-		const ITEMIDLIST __RPC_FAR * pidl2);
+		LPARAM lparam,
+		LPCITEMIDLIST pidl1,
+		LPCITEMIDLIST pidl2);
 
 	STDMETHOD(CreateViewObject)(
 		HWND hwndOwner,
@@ -89,8 +89,8 @@ protected:
 		void ** out);
 
 	STDMETHOD(GetDisplayNameOf)(
-		const ITEMIDLIST __RPC_FAR * pidl,
-		DWORD uFlags,
+		LPCITEMIDLIST pidl,
+		SHGDNF uFlags,
 		STRRET __RPC_FAR * out);
 
 	STDMETHOD(SetNameOf)(

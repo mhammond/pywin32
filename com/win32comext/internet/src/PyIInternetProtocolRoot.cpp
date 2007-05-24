@@ -205,7 +205,7 @@ STDMETHODIMP PyGInternetProtocolRoot::Start(
 		/* [in] */ IInternetProtocolSink __RPC_FAR * pOIProtSink,
 		/* [in] */ IInternetBindInfo __RPC_FAR * pOIBindInfo,
 		/* [in] */ DWORD grfPI,
-		/* [in] */ DWORD dwReserved)
+		/* [in] */ HANDLE_PTR dwReserved)
 {
 	PY_GATEWAY_METHOD;
 	PyObject *obszUrl;
@@ -214,7 +214,7 @@ STDMETHODIMP PyGInternetProtocolRoot::Start(
 	obszUrl = MakeOLECHARToObj(szUrl);
 	obpOIProtSink = PyCom_PyObjectFromIUnknown(pOIProtSink, IID_IInternetProtocolSink, TRUE);
 	obpOIBindInfo = PyCom_PyObjectFromIUnknown(pOIBindInfo, IID_IInternetBindInfo, TRUE);
-	HRESULT hr=InvokeViaPolicy("Start", NULL, "OOOii", obszUrl, obpOIProtSink, obpOIBindInfo, grfPI, dwReserved);
+	HRESULT hr=InvokeViaPolicy("Start", NULL, "OOOiN", obszUrl, obpOIProtSink, obpOIBindInfo, grfPI, PyLong_FromVoidPtr((void *)dwReserved));
 	Py_XDECREF(obszUrl);
 	Py_XDECREF(obpOIProtSink);
 	Py_XDECREF(obpOIBindInfo);

@@ -14,11 +14,10 @@
 #include <limits.h>
 #include <string.h>
 
-#include <windows.h>
+#include <pywintypes.h>
 #include <sql.h>
 #include <sqlext.h>
 
-#include <Python.h>
 #include <import.h>
 
 #include <time.h>
@@ -27,6 +26,10 @@
 #define bool int
 #define true 1
 #define false 0
+#endif
+
+#ifdef _WIN64
+# define mktime _mktime32
 #endif
 
 /* Python 1.5.2 doesn't have PyObject_New
@@ -75,8 +78,8 @@ typedef struct _out
 
 typedef struct _in {
 	struct _in *next;
-	long len;
-	long sqlBytesAvailable;
+	SQLLEN len;
+	SQLLEN sqlBytesAvailable;
 	bool bPutData;
 	char bind_area[1];
 } InputBinding;
@@ -532,7 +535,7 @@ static void bindOutputVar
 			vtype,
 			ob->bind_area,
 			vsize,
-			&ob->rcode)))
+			(SQLLEN *)&ob->rcode)))
 		{
 			cursorError(cur, "BIND");
 		}
@@ -640,9 +643,9 @@ static void OutOfMemory()
 	PyErr_SetString(odbcError, "out of memory");
 }
 
-static long NTS = SQL_NTS;
+static SQLLEN NTS = SQL_NTS;
 
-static InputBinding *initInputBinding(cursorObject *cur, int len)
+static InputBinding *initInputBinding(cursorObject *cur, Py_ssize_t len)
 {
 	InputBinding *ib = (InputBinding *)malloc(sizeof(InputBinding) + len);
 	if (ib)
@@ -722,7 +725,7 @@ static int ibindLong(cursorObject*cur,int column, PyObject *item)
 
 static int ibindNull(cursorObject*cur, int column)
 {
-  static SDWORD nl; 
+  static SQLLEN nl; 
   /* apparently, ODBC does not read the last parameter
      until EXEC time, i.e., after this function is
      out of scope, hence nl must be static */
@@ -760,7 +763,7 @@ static int ibindDate(cursorObject*cur, int column, PyObject *item)
 		return 0;
 
 	TIMESTAMP_STRUCT *dt = (TIMESTAMP_STRUCT*) ib->bind_area ;
-	struct tm *gt = localtime(&val);
+	struct tm *gt = localtime((const time_t *)&val);
 
 	dt->year = 1900 + gt->tm_year;
 	dt->month = gt->tm_mon + 1;
@@ -792,7 +795,7 @@ static int ibindDate(cursorObject*cur, int column, PyObject *item)
 static int ibindRaw(cursorObject *cur, int column, PyObject *item)
 {
   const char *val = PyString_AsString(item);
-  int len = PyObject_Length(item);
+  Py_ssize_t len = PyObject_Length(item);
 
   InputBinding *ib = initInputBinding(cur, len);
   if (!ib)
@@ -855,7 +858,7 @@ static int ibindFloat(cursorObject *cur, int column, PyObject *item)
 static int ibindString(cursorObject *cur, int column, PyObject *item)
 {
   const char *val = PyString_AsString(item);
-  int len = strlen(val);
+  size_t len = strlen(val);
 
   InputBinding *ib = initInputBinding(cur, len);
   if (!ib)
@@ -897,9 +900,9 @@ static int ibindString(cursorObject *cur, int column, PyObject *item)
 
 static int ibindUnicode(cursorObject *cur, int column, PyObject *item)
 {
-  const WCHAR *wval = PyUnicode_AsUnicode(item);
-  int nchars = PyUnicode_GetSize(item);
-  int nbytes = nchars * sizeof(WCHAR);
+  const WCHAR *wval = (WCHAR *)PyUnicode_AsUnicode(item);
+  Py_ssize_t nchars = PyUnicode_GetSize(item);
+  Py_ssize_t nbytes = nchars * sizeof(WCHAR);
 
   InputBinding *ib = initInputBinding(cur, nbytes);
   if (!ib)
@@ -1059,7 +1062,7 @@ static int display_size(short coltype, int collen, const char *colname)
 static int bindOutput(cursorObject *cur)
 {
 	short vtype;
-	unsigned long vsize;
+	SQLULEN vsize;
 	char name[256];
 	int pos = 1;
 	short n_columns;
@@ -1223,7 +1226,8 @@ static RETCODE sendSQLInputData
 			{
 				rc = SQLPutData(cur->hstmt, pInputBinding->bind_area, 0);
 			}
-			for (size_t i = 0; i < putTimes && rc == SQL_SUCCESS; i++)
+			size_t i;
+			for (i = 0; i < putTimes && rc == SQL_SUCCESS; i++)
 			{
 				rc = SQLPutData(cur->hstmt, (void*)(&pInputBinding->bind_area[i *  1024]), 1024);
 			}
@@ -1252,9 +1256,9 @@ static PyObject *odbcCurExec(PyObject *self, PyObject *args)
 	PyObject *inputvars = 0;
 	PyObject *rv = 0;
 	PyObject *rows = 0;
-	long t;
+	SQLLEN t;
 	int n_columns = 0;
-	long n_rows = 0;
+	SQLLEN n_rows = 0;
 
 	if (attemptReconnect(cur))
 	{
@@ -1403,7 +1407,7 @@ static PyObject *odbcCurExec(PyObject *self, PyObject *args)
 		}
 	}
 	
-	rv = PyInt_FromLong(n_rows);
+	rv = PyInt_FromSsize_t(n_rows);
 Cleanup:
 	free(sqlbuf);
 	return rv;
@@ -1458,13 +1462,15 @@ static PyObject *processOutput(cursorObject *cur)
                 }
 
                 /* rc = GetData( ... , bind_area + offset, vsize - offset, &rcode ) */
+                SQLLEN rcode;
 				Py_BEGIN_ALLOW_THREADS
                 rc = SQLGetData(cur->hstmt,
                                        ob->pos,
                                        ob->vtype,
                                        (char *)ob->bind_area + cbRead,
                                        ob->vsize - cbRead,
-                                       &ob->rcode);
+                                       &rcode);
+                ob->rcode = PyWin_SAFE_DOWNCAST(rcode, SQLLEN, long);
 				Py_END_ALLOW_THREADS
 				if (unsuccessful(rc))
 				{
@@ -1670,12 +1676,12 @@ static void parseInfo(connectionObject *conn, const char *c)
 {
 	char *p;
 	char buf[255];
-	char *firstEqualsSign;
-	char *firstSlash;
+	const char *firstEqualsSign;
+	const char *firstSlash;
 	char dsn[MAX_STR];
 	char uid[MAX_STR];
 	char pwd[MAX_STR];
-	short connectionStringLength;
+	size_t connectionStringLength;
 
 	firstEqualsSign = strchr(c, '=');
 	firstSlash = strchr(c, '/');

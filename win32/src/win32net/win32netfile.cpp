@@ -37,7 +37,7 @@ PyNetFileEnum(PyObject *self, PyObject *args)
 	DWORD buff_len = 0xFFFFFFFF;
 	DWORD  dwEntriesRead= 0;
 	DWORD dwTotalEntries = 0;
-	DWORD dwResumeHandle = 0;
+	DWORD_PTR resumeHandle;
 	DWORD i;
 
 	NET_API_STATUS nStatus;
@@ -64,7 +64,7 @@ PyNetFileEnum(PyObject *self, PyObject *args)
 			do{
 			    Py_BEGIN_ALLOW_THREADS
 			    nStatus = NetFileEnum(server_name, base_path, user_name, info_lvl,
-			       (LPBYTE*)&pBuf2, buff_len, &dwEntriesRead, &dwTotalEntries, &dwResumeHandle);
+			       (LPBYTE*)&pBuf2, buff_len, &dwEntriesRead, &dwTotalEntries, &resumeHandle);
 			    Py_END_ALLOW_THREADS
 			
 			    if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA)){
@@ -97,7 +97,7 @@ PyNetFileEnum(PyObject *self, PyObject *args)
 				Py_BEGIN_ALLOW_THREADS
 				nStatus = NetFileEnum(server_name, base_path, user_name, info_lvl,
                     (LPBYTE*)&pBuf3, buff_len, &dwEntriesRead,
-                     &dwTotalEntries, &dwResumeHandle);
+                     &dwTotalEntries, &resumeHandle);
 				Py_END_ALLOW_THREADS
 
 				if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA)){

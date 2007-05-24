@@ -82,7 +82,7 @@ BOOL _IsSelfRelative(PSECURITY_DESCRIPTOR psd)
 // @pymethod <o PySECURITY_DESCRIPTOR>|pywintypes|SECURITY_DESCRIPTOR|Creates a new SECURITY_DESCRIPTOR object
 PyObject *PyWinMethod_NewSECURITY_DESCRIPTOR(PyObject *self, PyObject *args)
 {
-	int descriptor_len = SECURITY_DESCRIPTOR_MIN_LENGTH;
+	Py_ssize_t descriptor_len = SECURITY_DESCRIPTOR_MIN_LENGTH;
 	if (PyArg_ParseTuple(args, "|l:SECURITY_DESCRIPTOR", &descriptor_len)){
 		PyObject *ret=new PySECURITY_DESCRIPTOR(descriptor_len);
 		if (((PySECURITY_DESCRIPTOR *)ret)->GetSD()==NULL){
@@ -97,10 +97,11 @@ PyObject *PyWinMethod_NewSECURITY_DESCRIPTOR(PyObject *self, PyObject *args)
 	PyErr_Clear();
 	PyObject *obsd = NULL;
 	PSECURITY_DESCRIPTOR psd;
+	Py_ssize_t buf_len;
 	// @pyparmalt1 buffer|data||A buffer (eg, a string) with the raw bytes for the security descriptor.
 	if (!PyArg_ParseTuple(args, "O:SECURITY_DESCRIPTOR", &obsd))
 		return NULL;
-	if (PyObject_AsReadBuffer(obsd, (const void **)&psd, &descriptor_len)==-1){
+	if (PyObject_AsReadBuffer(obsd, (const void **)&psd, &buf_len)==-1){
 		PyErr_SetString(PyExc_TypeError,"Object has no data buffer");
 		return NULL;
 		}
@@ -698,10 +699,10 @@ static struct PyMethodDef PySECURITY_DESCRIPTOR_methods[] = {
 };
 
 static PyBufferProcs PySECURITY_DESCRIPTOR_as_buffer = {
-	(getreadbufferproc)PySECURITY_DESCRIPTOR::getreadbuf,
-	(getwritebufferproc)0,
-	(getsegcountproc)PySECURITY_DESCRIPTOR::getsegcount,
-	(getcharbufferproc)0,
+	PySECURITY_DESCRIPTOR::getreadbuf,
+	0,
+	PySECURITY_DESCRIPTOR::getsegcount,
+	0,
 };
 
 PYWINTYPES_EXPORT PyTypeObject PySECURITY_DESCRIPTORType =
@@ -735,7 +736,7 @@ PYWINTYPES_EXPORT PyTypeObject PySECURITY_DESCRIPTORType =
 	{NULL}	/* Sentinel */
 };
 
-PySECURITY_DESCRIPTOR::PySECURITY_DESCRIPTOR(unsigned cb /*= 0*/)
+PySECURITY_DESCRIPTOR::PySECURITY_DESCRIPTOR(Py_ssize_t cb /*= 0*/)
 {
 	ob_type = &PySECURITY_DESCRIPTORType;
 	_Py_NewReference(this);
@@ -785,7 +786,7 @@ int PySECURITY_DESCRIPTOR::setattr(PyObject *self, char *name, PyObject *v)
 	delete (PySECURITY_DESCRIPTOR *)ob;
 }
 
-/*static*/ int PySECURITY_DESCRIPTOR::getreadbuf(PyObject *self, int index, const void **ptr)
+/*static*/ Py_ssize_t PySECURITY_DESCRIPTOR::getreadbuf(PyObject *self, Py_ssize_t index, void **ptr)
 {
 	if ( index != 0 ) {
 		PyErr_SetString(PyExc_SystemError,
@@ -797,7 +798,7 @@ int PySECURITY_DESCRIPTOR::setattr(PyObject *self, char *name, PyObject *v)
 	return GetSecurityDescriptorLength(pysd->m_psd);
 }
 
-/*static*/ int PySECURITY_DESCRIPTOR::getsegcount(PyObject *self, int *lenp)
+/*static*/ Py_ssize_t PySECURITY_DESCRIPTOR::getsegcount(PyObject *self, Py_ssize_t *lenp)
 {
 	if ( lenp )
 		*lenp = GetSecurityDescriptorLength(((PySECURITY_DESCRIPTOR *)self)->m_psd);

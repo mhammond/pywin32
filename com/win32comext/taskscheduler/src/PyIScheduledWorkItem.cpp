@@ -486,12 +486,12 @@ PyObject *PyIScheduledWorkItem::SetWorkItemData(PyObject *self, PyObject *args)
 		return NULL;
 	// @pyparm string|Data||Character data, treated as uninterpreted bytes
 	BYTE *workitem_data=NULL;
-	WORD data_len=0;
+	Py_ssize_t data_len=0;
 	PyObject *obworkitem_data=NULL;
 	if ( !PyArg_ParseTuple(args, "O:PyIScheduledWorkItem::SetWorkItemData", &obworkitem_data))
 		return NULL;
 	if (obworkitem_data!=Py_None)
-		if (PyString_AsStringAndSize(obworkitem_data, (CHAR **)&workitem_data, (int *)&data_len)==-1)
+		if (PyString_AsStringAndSize(obworkitem_data, (CHAR **)&workitem_data, &data_len)==-1)
 			return NULL;
 		else
 			// Task Scheduler won't take an empty string for data anymore ??????
@@ -500,7 +500,8 @@ PyObject *PyIScheduledWorkItem::SetWorkItemData(PyObject *self, PyObject *args)
 
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	hr = pISWI->SetWorkItemData(data_len, workitem_data);
+	hr = pISWI->SetWorkItemData(PyWin_SAFE_DOWNCAST(data_len, Py_ssize_t, WORD),
+	                            workitem_data);
 	PY_INTERFACE_POSTCALL;
 
 	if( FAILED(hr))

@@ -550,19 +550,16 @@ STDMETHODIMP PyGShellFolder::BindToStorage(
 }
 
 STDMETHODIMP PyGShellFolder::CompareIDs(
-		/* [unique][in] */ long lparam,
-		/* [unique][in] */ const ITEMIDLIST __RPC_FAR * pidl1,
-		/* [unique][in] */ const ITEMIDLIST __RPC_FAR * pidl2)
+		/* [unique][in] */ LPARAM lparam,
+		/* [unique][in] */ LPCITEMIDLIST pidl1,
+		/* [unique][in] */ LPCITEMIDLIST pidl2)
 {
 	PY_GATEWAY_METHOD;
-	PyObject *obpidl1;
-	PyObject *obpidl2;
-	obpidl1 = PyObject_FromPIDL(pidl1, FALSE);
-	obpidl2 = PyObject_FromPIDL(pidl2, FALSE);
+	PyObject *obparam = PyWinObject_FromPARAM(lparam);
+	PyObject *obpidl1 = PyObject_FromPIDL(pidl1, FALSE);
+	PyObject *obpidl2 = PyObject_FromPIDL(pidl2, FALSE);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("CompareIDs", &result, "lOO", lparam, obpidl1, obpidl2);
-	Py_XDECREF(obpidl1);
-	Py_XDECREF(obpidl2);
+	HRESULT hr=InvokeViaPolicy("CompareIDs", &result, "NNN", obparam, obpidl1, obpidl2);
 	if (FAILED(hr)) return hr;
 	if (PyInt_Check(result))
 		hr = MAKE_HRESULT(SEVERITY_SUCCESS, 0, PyInt_AsLong(result));
@@ -643,8 +640,8 @@ STDMETHODIMP PyGShellFolder::GetUIObjectOf(
 }
 
 STDMETHODIMP PyGShellFolder::GetDisplayNameOf(
-		/* [unique][in] */ const ITEMIDLIST __RPC_FAR * pidl,
-		/* [unique][in] */ DWORD uFlags,
+		/* [unique][in] */ LPCITEMIDLIST pidl,
+		/* [unique][in] */ SHGDNF uFlags,
 		/* [out] */ STRRET __RPC_FAR * out)
 {
 	static const char *szMethodName = "GetDisplayNameOf";

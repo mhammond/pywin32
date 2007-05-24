@@ -170,7 +170,7 @@ PyObject *PyObject_FromPIDL(LPCITEMIDLIST pidl, BOOL bFreeSystemPIDL)
 }
 
 // @object PyIDL|A Python representation of an IDL.  Implemented as list of Python strings.
-BOOL PyObject_AsPIDL(PyObject *ob, ITEMIDLIST **ppidl, BOOL bNoneOK /*= FALSE*/, UINT *pcb /* = NULL */)
+BOOL PyObject_AsPIDL(PyObject *ob, LPITEMIDLIST *ppidl, BOOL bNoneOK /*= FALSE*/, UINT *pcb /* = NULL */)
 {
 	if (ob==Py_None) {
 		if (!bNoneOK) {
@@ -2135,9 +2135,15 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
 			goto done;
 	}
 	if (obhIcon) {
+// SEE_MASK_ICON is defined around 'if (NTDDI_VERSION < NTDDI_LONGHORN)' and commented as 'not used'
+#ifndef SEE_MASK_ICON
+		PyErr_SetString(PyExc_NotImplementedError, "SEE_MASK_ICON not declared on this platform");
+		goto done;
+#else
 		p->fMask |= SEE_MASK_ICON;
 		if (!PyWinObject_AsHANDLE(obhIcon, &p->hIcon))
 			goto done;
+#endif
 	}
 	if (obhMonitor) {
 		p->fMask |= SEE_MASK_HMONITOR;

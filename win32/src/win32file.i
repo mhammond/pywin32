@@ -1184,7 +1184,7 @@ static PyObject *myGetQueuedCompletionStatus(PyObject *self, PyObject *args)
 	errCode = ok ? 0 : GetLastError();
 	Py_END_ALLOW_THREADS
 	PyObject *rc = Py_BuildValue("ilNN", errCode, bytes,
-		PyWinLong_FromVoidPtr((void *)key),
+		PyWinObject_FromULONG_PTR(key),
 		PyWinObject_FromQueuedOVERLAPPED(pOverlapped));
 	return rc;
 }
@@ -3245,11 +3245,14 @@ BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_LIST(PyObject *obcert_list, PENCRYPTI
 
 		if (bSuccess){
 			obcert_member=PySequence_GetItem(obcert,2);
+			Py_ssize_t cbData;
 			if (PyString_AsStringAndSize(obcert_member, 
 					(char **)&((*ppec)->pCertBlob->pbData), 
-					(int *)  &((*ppec)->pCertBlob->cbData))==-1){
+					&cbData)==-1){
 				PyErr_SetString(PyExc_TypeError,"Third item of ENCRYPTION_CERTIFICATE must be a string containing encoded certificate data");
 				bSuccess=FALSE;
+				} else {
+					(*ppec)->pCertBlob->cbData = PyWin_SAFE_DOWNCAST(cbData, Py_ssize_t, DWORD);
 				}
 			Py_DECREF(obcert_member);
 			}
@@ -3321,11 +3324,14 @@ BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_HASH_LIST(PyObject *obhash_list, PENC
 		if (bSuccess){
 			ZeroMemory((*ppech)->pHash,sizeof(EFS_HASH_BLOB));
 			obhash_item=PySequence_GetItem(obhash,1);
+			Py_ssize_t cbData;
 			if (PyString_AsStringAndSize(obhash_item, 
 				(char **)&((*ppech)->pHash->pbData), 
-				(int *)  &((*ppech)->pHash->cbData))==-1){
+				&cbData)==-1){
 				PyErr_SetString(PyExc_TypeError,"Second item of ENCRYPTION_CERTIFICATE_HASH tuple must be a string containing encoded certificate data");
 				bSuccess=FALSE;
+				} else {
+					(*ppech)->pHash->cbData = PyWin_SAFE_DOWNCAST(cbData, Py_ssize_t, DWORD);
 				}
 			Py_DECREF(obhash_item);
 			}
@@ -3526,7 +3532,7 @@ py_BackupRead(PyObject *self, PyObject *args)
 	// @pyparm int|lpContext||Pass 0 on first call, then pass back value returned from last call thereafter
 	HANDLE h;
 	BYTE *buf;
-	int buflen;
+	Py_ssize_t buflen;
 	DWORD bytes_requested, bytes_read;
 	BOOL bAbort,bProcessSecurity;
 	LPVOID ctxt;
@@ -3615,7 +3621,7 @@ py_BackupWrite(PyObject *self, PyObject *args)
 	// @pyparm int|lpContext||Pass 0 on first call, then pass back value returned from last call thereafter
 	HANDLE h;
 	BYTE *buf;
-	int buflen;
+	Py_ssize_t buflen;
 	DWORD bytes_to_write, bytes_written;
 	BOOL bAbort, bProcessSecurity;
 	LPVOID ctxt;

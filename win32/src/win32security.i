@@ -5,7 +5,7 @@
 %module win32security // An interface to the win32 security API's
 
 %{
-#define _WIN32_WINNT 0x0500 // We are 2k specific
+#define _WIN32_WINNT 0x0501 // We are 2k specific
 %}
 
 %include "typemaps.i"

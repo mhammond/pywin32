@@ -32,8 +32,8 @@ public:
 
 	static void deallocFunc(PyObject *ob);
 
-	static PyObject *getitem(PyObject *self, int index);
-	static int getlength(PyObject *self);
+	static PyObject *getitem(PyObject *self, Py_ssize_t index);
+	static Py_ssize_t getlength(PyObject *self);
 	static PyObject *getattr(PyObject *self, char *name);
 	static int setattr(PyObject *self, char *name, PyObject *v);
 
@@ -63,8 +63,8 @@ public:
 
 	static void deallocFunc(PyObject *ob);
 
-	static PyObject *getitem(PyObject *self, int index);
-	static int getlength(PyObject *self);
+	static PyObject *getitem(PyObject *self, Py_ssize_t index);
+	static Py_ssize_t getlength(PyObject *self);
 	static PyObject *getattr(PyObject *self, char *name);
 	static int setattr(PyObject *self, char *name, PyObject *v);
 
@@ -102,8 +102,8 @@ public:
 
 	static void deallocFunc(PyObject *ob);
 
-	static PyObject *getitem(PyObject *self, int index);
-	static int getlength(PyObject *self);
+	static PyObject *getitem(PyObject *self, Py_ssize_t index);
+	static Py_ssize_t getlength(PyObject *self);
 	static PyObject *getattr(PyObject *self, char *name);
 	static int setattr(PyObject *self, char *name, PyObject *v);
 

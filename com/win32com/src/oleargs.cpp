@@ -397,12 +397,12 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
 	// (only support single segment buffers for now)
 	if (dimNo==nDims && vt==VT_UI1 && obj->ob_type->tp_as_buffer) {
 		PyBufferProcs *pb = obj->ob_type->tp_as_buffer;
-		int bufSize;
+		Py_ssize_t bufSize;
 		if (pb->bf_getreadbuffer && 
 			pb->bf_getsegcount &&
 			(*pb->bf_getsegcount)(obj, &bufSize)==1) 
 		{
-			if (bufSize != numElements) {
+			if (PyWin_SAFE_DOWNCAST(bufSize, Py_ssize_t, LONG) != numElements) {
 				OleSetTypeError("Internal error - the buffer length is not the sequence length!");
 				return FALSE;
 			}
@@ -491,10 +491,10 @@ static long PyCom_CalculatePyObjectDimension(PyObject *obItemCheck, long lDimens
 		PyObject* ppyobSize;
 		PyObject* ppyobDimensionSize;
 		PyObject* ppyobItem;
-		long      lIndex;
+		Py_ssize_t lIndex;
 		long      lMinimalDimension = -1;
 		long      lActualDimension  = -1;
-		long      lObjectSize;
+		Py_ssize_t lObjectSize;
 
 		if (PyBuffer_Check(obItemCheck))
 			// buffers are a special case - they define 1 new dimension.
@@ -508,7 +508,7 @@ static long PyCom_CalculatePyObjectDimension(PyObject *obItemCheck, long lDimens
 			PyErr_Clear();
 		}
 		if (lObjectSize != -1) { // A real sequence of size zero should be OK though.
-			ppyobSize   = PyInt_FromLong(lObjectSize);
+			ppyobSize   = PyInt_FromSsize_t(lObjectSize);
 
 			// Retrieve the stored size in this dimension 
 			ppyobDimension = PyInt_FromLong(lDimension);
@@ -520,7 +520,7 @@ static long PyCom_CalculatePyObjectDimension(PyObject *obItemCheck, long lDimens
 				PyDict_SetItem(ppyobDimensionDictionary, ppyobDimension, ppyobSize);
 			} else {
 				// Check if stored size in this dimension equals the size of the element to check
-				long lStoredSize = PyInt_AsLong(ppyobDimensionSize);
+				Py_ssize_t lStoredSize = PyInt_AsSsize_t(ppyobDimensionSize);
 				if (lStoredSize != lObjectSize) 
 				{
 					// if not the same size => no new dimension

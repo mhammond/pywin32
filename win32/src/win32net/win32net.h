@@ -31,10 +31,10 @@ void PyObject_FreeNET_STRUCT(PyNET_STRUCT *pI, BYTE *pBuf);
 BOOL FindNET_STRUCT(DWORD level, PyNET_STRUCT *pBase, PyNET_STRUCT **ppRet);
 
 // Helpers functions that take a function pointer
-typedef DWORD (__stdcall *PFNSIMPLEENUM)(LPCWSTR, DWORD, LPBYTE *, DWORD, LPDWORD, LPDWORD, LPDWORD );
+typedef DWORD (__stdcall *PFNSIMPLEENUM)(LPCWSTR, DWORD, LPBYTE *, DWORD, LPDWORD, LPDWORD, PDWORD_PTR );
 PyObject *PyDoSimpleEnum(PyObject *self, PyObject *args, PFNSIMPLEENUM pfn, char *fnname, PyNET_STRUCT *pInfos);
 
-typedef DWORD (__stdcall *PFNNAMEDENUM)(LPCWSTR, LPCWSTR, DWORD, LPBYTE *, DWORD, LPDWORD, LPDWORD, LPDWORD );
+typedef DWORD (__stdcall *PFNNAMEDENUM)(LPCWSTR, LPCWSTR, DWORD, LPBYTE *, DWORD, LPDWORD, LPDWORD, PDWORD_PTR);
 PyObject *PyDoNamedEnum(PyObject *self, PyObject *args, PFNNAMEDENUM pfn, char *fnname, PyNET_STRUCT *pInfos);
 
 typedef DWORD (__stdcall *PFNGROUPSET)(LPCWSTR, LPCWSTR, DWORD, LPBYTE, DWORD);

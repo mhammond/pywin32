@@ -199,8 +199,8 @@ PyObject *PyWinObject_FromULARGE_INTEGER(ULARGE_INTEGER &val)
 
 PyLongObject *PyLong_Normalize(register PyLongObject *v)
 {
- int j = ABS(v->ob_size);
- register int i = j;
+ Py_ssize_t j = ABS(v->ob_size);
+ register Py_ssize_t i = j;
 
  while (i > 0 && v->ob_digit[i-1] == 0)
   --i;
@@ -220,7 +220,7 @@ PyWLong_AsLongLong(PyObject *vv)
 {
 	register PyLongObject *v;
 	__int64 x, prev;
-	int i, sign;
+	Py_ssize_t i, sign;
 	
 	if (vv == NULL || !PyLong_Check(vv)) {
 		PyErr_BadInternalCall();

@@ -175,7 +175,7 @@ PyObject *PyDISPLAY_DEVICE::getattro(PyObject *self, PyObject *obname)
 int PyDISPLAY_DEVICE::setattro(PyObject *self, PyObject *obname, PyObject *obvalue)
 {
 	char *name, *value;
-	int valuelen;
+	Py_ssize_t valuelen;
 	name=PyString_AsString(obname);
 	if (name==NULL)
 		return -1;

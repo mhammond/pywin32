@@ -39,7 +39,7 @@ protected:
 		IInternetProtocolSink __RPC_FAR * pOIProtSink,
 		IInternetBindInfo __RPC_FAR * pOIBindInfo,
 		DWORD grfPI,
-		DWORD dwReserved);
+		HANDLE_PTR dwReserved);
 
 	STDMETHOD(Continue)(
 		PROTOCOLDATA __RPC_FAR * pProtocolData);

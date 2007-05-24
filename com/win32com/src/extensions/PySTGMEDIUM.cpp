@@ -47,7 +47,7 @@ PyObject *PySet(PyObject *self, PyObject *args)
 			break;
 		case TYMED_HGLOBAL: {
 			const void * buf = NULL;
-			int cb = 0;
+			Py_ssize_t cb = 0;
 			if (PyObject_AsReadBuffer(ob,&buf,&cb)==-1) 
 				return PyErr_Format(PyExc_TypeError, "tymed value of %d requires a string/unicode/buffer", tymed);
 			// size doesnt include nulls!
@@ -156,7 +156,7 @@ BOOL PySTGMEDIUM::CopyTo(STGMEDIUM *pDest)
 			pDest->hEnhMetaFile = medium.hEnhMetaFile;
 			break;
 		case TYMED_HGLOBAL: {
-			UINT cb = GlobalSize(medium.hGlobal);
+			SIZE_T cb = GlobalSize(medium.hGlobal);
 			pDest->hGlobal = GlobalAlloc(GMEM_FIXED, cb);
 			if (!pDest->hGlobal) {
 				PyErr_NoMemory();
@@ -167,7 +167,7 @@ BOOL PySTGMEDIUM::CopyTo(STGMEDIUM *pDest)
 		}
 		case TYMED_FILE:
 			if (medium.lpszFileName) {
-				int cch = wcslen(medium.lpszFileName) + 1;
+				size_t cch = wcslen(medium.lpszFileName) + 1;
 				if (!(pDest->lpszFileName = (WCHAR *)CoTaskMemAlloc(sizeof(WCHAR) * cch))) {
 					PyErr_NoMemory();
 					return FALSE;

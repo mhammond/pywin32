@@ -146,7 +146,7 @@ PyComTypeObject PyIInternetProtocol::type("PyIInternetProtocol",
 // Gateway Implementation
 
 // Std delegation
-STDMETHODIMP PyGInternetProtocol::Start(LPCWSTR szUrl,	IInternetProtocolSink __RPC_FAR * pOIProtSink, IInternetBindInfo __RPC_FAR * pOIBindInfo, DWORD grfPI, DWORD dwReserved)
+STDMETHODIMP PyGInternetProtocol::Start(LPCWSTR szUrl,	IInternetProtocolSink __RPC_FAR * pOIProtSink, IInternetBindInfo __RPC_FAR * pOIBindInfo, DWORD grfPI, HANDLE_PTR dwReserved)
 	{ return PyGInternetProtocolRoot::Start(szUrl, pOIProtSink, pOIBindInfo, grfPI, dwReserved);}
 
 STDMETHODIMP PyGInternetProtocol::Continue(PROTOCOLDATA __RPC_FAR * pProtocolData)

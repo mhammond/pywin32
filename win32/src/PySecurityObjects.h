@@ -59,7 +59,7 @@ public:
 	PSECURITY_DESCRIPTOR GetSD() {return m_psd;}
 	BOOL SetSD(PSECURITY_DESCRIPTOR psd);
 
-	PySECURITY_DESCRIPTOR(unsigned cb = 0);
+	PySECURITY_DESCRIPTOR(Py_ssize_t cb = 0);
 	PySECURITY_DESCRIPTOR(PSECURITY_DESCRIPTOR psd);
 	~PySECURITY_DESCRIPTOR(void);
 
@@ -70,8 +70,8 @@ public:
 
 	static PyObject *getattr(PyObject *self, char *name);
 	static int setattr(PyObject *self, char *name, PyObject *v);
-	static int getreadbuf(PyObject *self, int index, const void **ptr);
-	static int getsegcount(PyObject *self, int *lenp);
+	static Py_ssize_t getreadbuf(PyObject *self, Py_ssize_t index, void **ptr);
+	static Py_ssize_t getsegcount(PyObject *self, Py_ssize_t *lenp);
 
 	static PyObject *Initialize(PyObject *self, PyObject *args);
 	static PyObject *GetSecurityDescriptorOwner(PyObject *self, PyObject *args);
@@ -118,8 +118,8 @@ public:
 
 	static PyObject *getattr(PyObject *self, char *name);
 	static int setattr(PyObject *self, char *name, PyObject *v);
-	static int getreadbuf(PyObject *self, int index, const void **ptr);
-	static int getsegcount(PyObject *self, int *lenp);
+	static Py_ssize_t getreadbuf(PyObject *self, Py_ssize_t index, void **ptr);
+	static Py_ssize_t getsegcount(PyObject *self, Py_ssize_t *lenp);
 
 	static PyObject *Initialize(PyObject *self, PyObject *args);
 	static PyObject *IsValid(PyObject *self, PyObject *args);

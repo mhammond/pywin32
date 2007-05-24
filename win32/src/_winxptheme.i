@@ -299,7 +299,7 @@ HRESULT EnableThemeDialogTexture(HWND hwnd, DWORD dwFlags);
 BOOL IsThemeDialogTextureEnabled(HWND hwnd);
 
 //  @pyswig int|GetThemeAppProperties|Returns the app property flags that control theming
-long GetThemeAppProperties();
+DWORD GetThemeAppProperties();
 
 //  @pyswig |EnableTheming|Enables or disables themeing for the current user
 //  in the current and future sessions.

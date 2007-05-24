@@ -965,6 +965,11 @@ PyObject *PyConsoleScreenBuffer::PySetConsoleMode(PyObject *self, PyObject *args
 	return Py_None;
 }
 
+#ifndef _WIN32_WINNT_LONGHORN
+// 'reserved' ReadConsole param is defined as a PCONSOLE_READCONSOLE_CONTROL
+// in Vista's SDK.  If no such def exists, assume it's still 'void *'
+# define PCONSOLE_READCONSOLE_CONTROL void *
+#endif
 // @pymethod <o PyUNICODE>|PyConsoleScreenBuffer|ReadConsole|Reads characters from the console input buffer
 PyObject *PyConsoleScreenBuffer::PyReadConsole(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -979,7 +984,7 @@ PyObject *PyConsoleScreenBuffer::PyReadConsole(PyObject *self, PyObject *args, P
 	buf=(WCHAR *)malloc(nbrtoread*sizeof(WCHAR));
 	if (buf==NULL)
 		return PyErr_Format(PyExc_MemoryError, "ReadConsole: Unable to allocate buffer of %d bytes", nbrtoread*sizeof(WCHAR));
-	if (!ReadConsole(((PyConsoleScreenBuffer *)self)->m_handle, (LPVOID)buf, nbrtoread, &nbrread, reserved))
+	if (!ReadConsole(((PyConsoleScreenBuffer *)self)->m_handle, (LPVOID)buf, nbrtoread, &nbrread, (PCONSOLE_READCONSOLE_CONTROL)reserved))
 		PyWin_SetAPIError("ReadConsole");
 	else
 		ret=PyWinObject_FromWCHAR(buf, nbrread);
@@ -1172,7 +1177,7 @@ PyObject *PyConsoleScreenBuffer::PyReadConsoleOutputCharacter(PyObject *self, Py
 		return NULL;
 	if (!PyWinObject_AsCOORD(obcoord, &pcoord, FALSE))
 		return NULL;
-	buf=(WORD *)malloc(len*sizeof(WCHAR));
+	buf=(WCHAR *)malloc(len*sizeof(WCHAR));
 	if (buf==NULL)
 		return PyErr_Format(PyExc_MemoryError,"Unable to unicode buffer of %d characters", len);
 	if (!ReadConsoleOutputCharacter(((PyConsoleScreenBuffer *)self)->m_handle, buf, len, *pcoord, &nbrread))

@@ -80,8 +80,8 @@ STDMETHODIMP PyGViewObject2::Draw(
 		HDC hdcDraw,
 		LPCRECTL lprcBounds,
 		LPCRECTL lprcWBounds,
-		BOOL ( STDMETHODCALLTYPE __RPC_FAR *pfnContinue )( DWORD ),
-		DWORD dwContinue)
+		BOOL ( STDMETHODCALLTYPE __RPC_FAR *pfnContinue )( ULONG_PTR ),
+		ULONG_PTR dwContinue)
 		{ return PyGViewObject::Draw(dwDrawAspect, lindex, pvAspect, ptd, hdcTargetDev, hdcDraw, lprcBounds, lprcWBounds, pfnContinue, dwContinue); }
 
 STDMETHODIMP PyGViewObject2::GetColorSet(

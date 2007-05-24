@@ -115,13 +115,13 @@ protected:
 // Once set, this can not be changed.  You can index the index (eg, ob[2]).  The
 // object has no other (interesting) methods or attributes.
 // <nl>These objects are created via <om adsi.DSOP_SCOPE_INIT_INFOs>(size)
-int PyDSOP_SCOPE_INIT_INFOs_sq_length(PyObject *self)
+Py_ssize_t PyDSOP_SCOPE_INIT_INFOs_sq_length(PyObject *self)
 {
 	PyDSOP_SCOPE_INIT_INFOs *p = (PyDSOP_SCOPE_INIT_INFOs *)self;
 	return p->count;
 }
 
-PyObject *PyDSOP_SCOPE_INIT_INFOs_sq_item(PyObject *self, int i)
+PyObject *PyDSOP_SCOPE_INIT_INFOs_sq_item(PyObject *self, Py_ssize_t i)
 {
 	PyDSOP_SCOPE_INIT_INFOs *p =(PyDSOP_SCOPE_INIT_INFOs *)self;
 	if (i>=p->count){

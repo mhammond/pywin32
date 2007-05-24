@@ -11,7 +11,7 @@
 PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args)
 {
 	void *buf = NULL;
-	int bufSize = 32;
+	int bufSize = 32; // xxxxxx64 - should be Py_ssize_t - but passed as 'i'
 	// @pyparm int|bufSize|32|Size for the SID buffer
 	if (!PyArg_ParseTuple(args, "|i:SID", &bufSize)) {
 		PyErr_Clear();
@@ -34,7 +34,7 @@ PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args)
 				PyErr_SetString(PyExc_TypeError, "sub authorities must be a sequence of integers.");
 				return NULL;
 			}
-			int numSubs = PySequence_Length(obSubs);
+			Py_ssize_t numSubs = PySequence_Length(obSubs);
 			if (numSubs>8) {
 				PyErr_SetString(PyExc_TypeError, "sub authorities sequence size must be <= 8");
 				return NULL;
@@ -50,7 +50,7 @@ PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args)
 				return NULL;
 				}
 			PSID pNew;
-			if (!AllocateAndInitializeSid(&sid_ia, numSubs, sub0, sub1, sub2, sub3, sub4, sub5, sub6, sub7, &pNew))
+			if (!AllocateAndInitializeSid(&sid_ia, (BYTE)numSubs, sub0, sub1, sub2, sub3, sub4, sub5, sub6, sub7, &pNew))
 				return PyWin_SetAPIError("AllocateAndInitializeSid");
 			return new PySID(pNew);
 		}
@@ -190,10 +190,10 @@ static struct PyMethodDef PySID_methods[] = {
 };
 
 static PyBufferProcs PySID_as_buffer = {
-	(getreadbufferproc)PySID::getreadbuf,
-	(getwritebufferproc)0,
-	(getsegcountproc)PySID::getsegcount,
-	(getcharbufferproc)0,
+	PySID::getreadbuf,
+	0,
+	PySID::getsegcount,
+	0,
 };
 
 
@@ -277,7 +277,7 @@ int PySID::compareFunc(PyObject *ob1, PyObject *ob2)
 	delete (PySID *)ob;
 }
 
-/*static*/ int PySID::getreadbuf(PyObject *self, int index, const void **ptr)
+/*static*/ Py_ssize_t PySID::getreadbuf(PyObject *self, Py_ssize_t index, void **ptr)
 {
 	if ( index != 0 ) {
 		PyErr_SetString(PyExc_SystemError,
@@ -289,7 +289,7 @@ int PySID::compareFunc(PyObject *ob1, PyObject *ob2)
 	return GetLengthSid(pysid->m_psid);
 }
 
-/*static*/ int PySID::getsegcount(PyObject *self, int *lenp)
+/*static*/ Py_ssize_t PySID::getsegcount(PyObject *self, Py_ssize_t *lenp)
 {
 	if ( lenp )
 		*lenp = GetLengthSid(((PySID *)self)->m_psid);

@@ -278,14 +278,16 @@ PyObject *PyDoSimpleEnum(PyObject *self, PyObject *args, PFNSIMPLEENUM pfn, char
 	DWORD dwPrefLen = MAX_PREFERRED_LENGTH;
 	DWORD level;
 	BOOL ok = FALSE;
-	DWORD resumeHandle = 0;
+	DWORD_PTR resumeHandle = 0;
 	DWORD numRead, i;
-	PyObject *list;
+	PyObject *list, *obResumeHandle = Py_None;
 	BYTE *buf = NULL;
 	DWORD totalEntries = 0;
-	if (!PyArg_ParseTuple(args, "Oi|ii", &obServer, &level, &resumeHandle, &dwPrefLen))
+	if (!PyArg_ParseTuple(args, "Oi|Oi", &obServer, &level, &obResumeHandle, &dwPrefLen))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obServer, &szServer, TRUE))
+		goto done;
+	if (obResumeHandle != Py_None && !PyWinLong_AsDWORD_PTR(obResumeHandle, &resumeHandle))
 		goto done;
 
 	if (!FindNET_STRUCT(level, pInfos, &pInfo))
@@ -312,7 +314,7 @@ PyObject *PyDoSimpleEnum(PyObject *self, PyObject *args, PFNSIMPLEENUM pfn, char
 		PyList_SetItem(list, i, sub);
 	}
 	resumeHandle = err==0 ? 0 : resumeHandle;
-	ret = Py_BuildValue("Oll", list, totalEntries, resumeHandle);
+	ret = Py_BuildValue("OlN", list, totalEntries, PyWinObject_FromDWORD_PTR(resumeHandle));
 	Py_DECREF(list);
 	ok = TRUE;
 done:
@@ -335,17 +337,21 @@ PyObject *PyDoNamedEnum(PyObject *self, PyObject *args, PFNNAMEDENUM pfn, char *
 	DWORD dwPrefLen = 4096;
 	DWORD level;
 	BOOL ok = FALSE;
-	DWORD resumeHandle = 0;
+	DWORD_PTR resumeHandle = 0;
+	PyObject *obResumeHandle = Py_None;
 	DWORD numRead, i;
 	PyObject *list;
 	BYTE *buf = NULL;
 	DWORD totalEntries = 0;
-	if (!PyArg_ParseTuple(args, "OOi|ii", &obServer, &obGroup, &level, &resumeHandle, &dwPrefLen))
+	if (!PyArg_ParseTuple(args, "OOi|Oi", &obServer, &obGroup, &level, &obResumeHandle, &dwPrefLen))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obServer, &szServer, TRUE))
 		goto done;
 
 	if (!PyWinObject_AsWCHAR(obGroup, &szGroup, FALSE))
+		goto done;
+
+	if (obResumeHandle != Py_None && !PyWinLong_AsDWORD_PTR(obResumeHandle, &resumeHandle))
 		goto done;
 
 	if (!FindNET_STRUCT(level, pInfos, &pInfo))
@@ -366,7 +372,7 @@ PyObject *PyDoNamedEnum(PyObject *self, PyObject *args, PFNNAMEDENUM pfn, char *
 		PyList_SetItem(list, i, sub);
 	}
 	resumeHandle = err==0 ? 0 : resumeHandle;
-	ret = Py_BuildValue("Oll", list, totalEntries, resumeHandle);
+	ret = Py_BuildValue("OlN", list, totalEntries, PyWinObject_FromDWORD_PTR(resumeHandle));
 	Py_DECREF(list);
 	ok = TRUE;
 done:

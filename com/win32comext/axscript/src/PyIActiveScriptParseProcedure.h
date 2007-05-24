@@ -36,7 +36,7 @@ protected:
 		LPCOLESTR pstrItemName,
 		IUnknown __RPC_FAR * punkContext,
 		LPCOLESTR pstrDelimiter,
-		DWORD dwSourceContextCookie,
+		DWORD_PTR dwSourceContextCookie,
 		ULONG ulStartingLineNumber,
 		DWORD dwFlags,
 		IDispatch __RPC_FAR *__RPC_FAR * ppdisp);

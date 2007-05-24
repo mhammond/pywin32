@@ -24,7 +24,7 @@ STDMETHODIMP PyGActiveScriptParse::AddScriptlet(
             /* [in] */ LPCOLESTR pstrSubItemName,
             /* [in] */ LPCOLESTR pstrEventName,
             /* [in] */ LPCOLESTR pstrDelimiter,
-            /* [in] */ DWORD dwSourceContextCookie,
+            /* [in] */ DWORD_PTR dwSourceContextCookie,
             /* [in] */ ULONG ulStartingLineNumber,
             /* [in] */ DWORD dwFlags,
             /* [out] */ BSTR __RPC_FAR *pbstrName,
@@ -37,16 +37,17 @@ STDMETHODIMP PyGActiveScriptParse::AddScriptlet(
 	PyObject *obSubItemName = PyWinObject_FromOLECHAR(pstrSubItemName);
 	PyObject *obEventName = PyWinObject_FromOLECHAR(pstrEventName);
 	PyObject *obDelimiter = PyWinObject_FromOLECHAR(pstrDelimiter);
+	PyObject *obContext = PyWinObject_FromDWORD_PTR(dwSourceContextCookie);
 	PyObject *result;
 	HRESULT hr = InvokeGatewayViaPolicy(this, "AddScriptlet", pexcepinfo, &result,
-                                                        "NNNNNNii",
+                                                        "NNNNNNNi",
                                                         obDefaultName,
                                                         obCode,
                                                         obItemName,
                                                         obSubItemName,
                                                         obEventName,
                                                         obDelimiter,
-                                                        dwSourceContextCookie,
+                                                        obContext,
                                                         ulStartingLineNumber);
 	if (FAILED(hr)) return hr;
 	PyWinObject_AsBstr(result, pbstrName, FALSE);
@@ -59,7 +60,7 @@ STDMETHODIMP PyGActiveScriptParse::ParseScriptText(
             /* [in] */ LPCOLESTR pstrItemName,
             /* [in] */ IUnknown __RPC_FAR *punkContext,
             /* [in] */ LPCOLESTR pstrDelimiter,
-            /* [in] */ DWORD dwSourceContextCookie,
+            /* [in] */ DWORD_PTR dwSourceContextCookie,
             /* [in] */ ULONG ulStartingLineNumber,
             /* [in] */ DWORD dwFlags,
             /* [out] */ VARIANT __RPC_FAR *pvarResult,
@@ -76,14 +77,14 @@ STDMETHODIMP PyGActiveScriptParse::ParseScriptText(
 	PyObject *obCode = PyWinObject_FromOLECHAR(pstrCode);
 	PyObject *obItemName = PyWinObject_FromOLECHAR(pstrItemName);
 	PyObject *obDelimiter = PyWinObject_FromOLECHAR(pstrDelimiter);
-	
+	PyObject *obContext = PyWinObject_FromDWORD_PTR(dwSourceContextCookie);
 	HRESULT hr = InvokeGatewayViaPolicy(this, "ParseScriptText", pexcepinfo, &result,
-											"NNONiiii",
+											"NNONNiii",
 											obCode,
 											obItemName,
 											context,
 											obDelimiter,
-											dwSourceContextCookie,
+											obContext,
 											ulStartingLineNumber,
 											dwFlags,
 											bWantResult);

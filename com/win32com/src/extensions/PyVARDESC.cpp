@@ -196,14 +196,14 @@ int PyVARDESC::setattr(PyObject *self, char *name, PyObject *v)
 }
 
 // Sequence stuff to provide compatibility with tuples.
-/* static */ int PyVARDESC::getlength(PyObject *self)
+/* static */ Py_ssize_t PyVARDESC::getlength(PyObject *self)
 {
 	// NEVER CHANGE THIS - you will break all the old
 	// code written when these object were tuples!
 	return 5;
 }
 
-/* static */ PyObject *PyVARDESC::getitem(PyObject *self, int index)
+/* static */ PyObject *PyVARDESC::getitem(PyObject *self, Py_ssize_t index)
 {
 	PyVARDESC *p = (PyVARDESC *)self;
 	PyObject *rc;

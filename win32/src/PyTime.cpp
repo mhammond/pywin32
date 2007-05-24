@@ -59,13 +59,15 @@ PyObject *PyWin_NewTime(PyObject *timeOb)
 	}
 	if ( PyNumber_Check(timeOb) )
 	{
+		// XXX - should possibly check for long_long, as sizeof(time_t) > sizeof(long)
+		// on x64
 		long t = PyInt_AsLong(timeOb);
 		if ( t == -1 )
 		{
 			if ( !PyErr_Occurred() )
 				PyErr_BadArgument();
 		} else
-			result = new PyTime(t);
+			result = new PyTime((time_t)t);
 	}
 	else if ( PySequence_Check(timeOb) )
 	{
@@ -128,7 +130,7 @@ PyObject *PyWinObject_FromDATE(DATE t)
 }
 PyObject *PyWinTimeObject_FromLong(long t)
 {
-	return new PyTime(t);
+	return new PyTime((time_t)t);
 }
 
 // Converts a TimeStamp, which is in 100 nanosecond units like a FILETIME
@@ -390,7 +392,7 @@ PyTime::PyTime(DATE t)
 	m_time = t;
 }
 
-PyTime::PyTime(long t)
+PyTime::PyTime(time_t t)
 {
 	ob_type = &PyTimeType;
 	_Py_NewReference(this);

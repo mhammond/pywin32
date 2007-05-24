@@ -754,7 +754,7 @@ LRESULT CALLBACK PyWndProcHWND(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 	return rc;
 }
 
-BOOL CALLBACK PyDlgProcHDLG(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK PyDlgProcHDLG(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	BOOL rc = FALSE;
 	CEnterLeavePython _celp;
@@ -1721,10 +1721,10 @@ static PyObject *PySetWindowLong(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
 		return NULL;
 	switch (index) {
-		// @comm If index is GWL_WNDPROC, then the value parameter
+		// @comm If index is GWLP_WNDPROC, then the value parameter
 		// must be a callable object (or a dictionary) to use as the
 		// new window procedure.
-		case GWL_WNDPROC:
+		case GWLP_WNDPROC:
 		{
 			if (!PyCallable_Check(ob) && !PyDict_Check(ob)) {
 				PyErr_SetString(PyExc_TypeError, "object must be callable or a dictionary");
@@ -1732,7 +1732,7 @@ static PyObject *PySetWindowLong(PyObject *self, PyObject *args)
 			}
 
 			PyObject *key = PyWinLong_FromHANDLE(hwnd);
-			PyObject *value = Py_BuildValue("ON", ob, PyWinLong_FromVoidPtr((void *)GetWindowLongPtr(hwnd, GWL_WNDPROC)));
+			PyObject *value = Py_BuildValue("ON", ob, PyWinLong_FromVoidPtr((void *)GetWindowLongPtr(hwnd, GWLP_WNDPROC)));
 			PyDict_SetItem(g_HWNDMap, key, value);
 			Py_DECREF(value);
 			Py_DECREF(key);
@@ -1851,7 +1851,7 @@ static PyObject *PySendMessageTimeout(PyObject *self, PyObject *args)
 		return NULL;
 
 	LRESULT rc;
-	DWORD dwresult;
+	DWORD_PTR dwresult;
 	Py_BEGIN_ALLOW_THREADS
 	rc = SendMessageTimeout(hwnd, msg, wparam, lparam, flags, timeout, &dwresult);
 	Py_END_ALLOW_THREADS
@@ -1860,7 +1860,7 @@ static PyObject *PySendMessageTimeout(PyObject *self, PyObject *args)
 	// @rdesc The result is the result of the SendMessageTimeout call, plus the last 'result' param.
 	// If the timeout period expires, a pywintypes.error exception will be thrown,
 	// with zero as the error code.  See the Microsoft documentation for more information.
-	return Py_BuildValue("Ni", PyWinLong_FromVoidPtr((void *)rc), dwresult);
+	return Py_BuildValue("NN", PyWinLong_FromVoidPtr((void *)rc), PyWinObject_FromDWORD_PTR(dwresult));
 }
 %}
 %native (SendMessageTimeout) PySendMessageTimeout;
@@ -4430,28 +4430,28 @@ BOOL GetOpenFileName(OPENFILENAME *INPUT);
 
 #ifndef MS_WINCE
 
-%typemap (python, in) MENUITEMINFO *INPUT (int target_size){
+%typemap (python, in) MENUITEMINFO *INPUT (Py_ssize_t target_size){
 	if (0 != PyObject_AsReadBuffer($source, (const void **)&$target, &target_size))
 		return NULL;
 	if (sizeof MENUITEMINFO != target_size)
 		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string/buffer (got %d bytes)", sizeof MENUITEMINFO, target_size);
 }
 
-%typemap (python,in) MENUITEMINFO *BOTH(int target_size) {
+%typemap (python,in) MENUITEMINFO *BOTH(Py_ssize_t target_size) {
 	if (0 != PyObject_AsWriteBuffer($source, (void **)&$target, &target_size))
 		return NULL;
 	if (sizeof MENUITEMINFO != target_size)
 		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte buffer (got %d bytes)", sizeof MENUITEMINFO, target_size);
 }
 
-%typemap (python, in) MENUINFO *INPUT (int target_size){
+%typemap (python, in) MENUINFO *INPUT (Py_ssize_t target_size){
 	if (0 != PyObject_AsReadBuffer($source, (const void **)&$target, &target_size))
 		return NULL;
 	if (sizeof MENUINFO != target_size)
 		return PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string/buffer (got %d bytes)", sizeof MENUINFO, target_size);
 }
 
-%typemap (python,in) MENUINFO *BOTH(int target_size) {
+%typemap (python,in) MENUINFO *BOTH(Py_ssize_t target_size) {
 	if (0 != PyObject_AsWriteBuffer($source, (void **)&$target, &target_size))
 		return NULL;
 	if (sizeof MENUINFO != target_size)
@@ -4556,7 +4556,7 @@ PyObject *PySetMenuInfo(PyObject *self, PyObject *args)
 	CHECK_PFN(SetMenuInfo);
 	PyObject *obMenu, *obInfo;
 	HMENU hmenu;
-	int cbInfo;
+	Py_ssize_t cbInfo;
 	MENUINFO *pInfo;
 	BOOL result;
 	// @pyparm int|hmenu||handle to menu
@@ -4593,7 +4593,7 @@ PyObject *PyGetMenuInfo(PyObject *self, PyObject *args)
 	CHECK_PFN(GetMenuInfo);
 	PyObject *obMenu, *obInfo;
 	HMENU hmenu;
-	int cbInfo;
+	Py_ssize_t cbInfo;
 	MENUINFO *pInfo;
 	BOOL result;
 	// @pyparm int|hmenu||handle to menu

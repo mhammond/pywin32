@@ -34,7 +34,6 @@ protected:
 	PYGATEWAY_MAKE_SUPPORT(PyGViewObject, IViewObject, IID_IViewObject)
 
 
-
 	// IViewObject
 	STDMETHOD(Draw)(
 		DWORD dwDrawAspect,
@@ -45,8 +44,8 @@ protected:
 		HDC hdcDraw,
 		LPCRECTL lprcBounds,
 		LPCRECTL lprcWBounds,
-		BOOL ( STDMETHODCALLTYPE __RPC_FAR *pfnContinue )( DWORD ),
-		DWORD dwContinue);
+		BOOL ( STDMETHODCALLTYPE __RPC_FAR *pfnContinue )( ULONG_PTR ),
+		ULONG_PTR dwContinue);
 
 	STDMETHOD(GetColorSet)(
 		DWORD dwDrawAspect,
