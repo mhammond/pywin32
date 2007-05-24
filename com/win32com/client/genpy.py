@@ -506,7 +506,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
             print >> stream, '\tdef __iter__(self):'
             print >> stream, '\t\t"Return a Python iterator for this object"'
             print >> stream, '\t\tob = self._oleobj_.InvokeTypes(%d,LCID,%d,(13, 10),())' % (pythoncom.DISPID_NEWENUM, enumEntry.desc[4])
-            print >> stream, '\t\treturn win32com.client.util.Iterator(ob)'
+            print >> stream, '\t\treturn win32com.client.util.Iterator(ob, %s)' % resultCLSID
             # And 'old style' iterator support - magically used to simulate iterators
             # before Python grew them
             print >> stream, '\tdef _NewEnum(self):'

@@ -75,9 +75,10 @@ class EnumVARIANT(Enumerator):
 		return _get_good_object_(result, resultCLSID = self.resultCLSID)
 
 class Iterator:
-	def __init__(self, enum):
+	def __init__(self, enum, resultCLSID = None):
+		self.resultCLSID = resultCLSID
 		self._iter_ = iter(enum.QueryInterface(pythoncom.IID_IEnumVARIANT))
 	def __iter__(self):
 		return self
 	def next(self):
-		return _get_good_object_(self._iter_.next())
+		return _get_good_object_(self._iter_.next(), resultCLSID = self.resultCLSID)
