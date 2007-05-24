@@ -9,6 +9,7 @@ import tempfile
 # We use the DAO ODBC driver
 from win32com.client.gencache import EnsureDispatch
 from win32com.client import constants
+import pythoncom
 
 class TestStuff(unittest.TestCase):
     def setUp(self):
