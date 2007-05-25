@@ -168,7 +168,6 @@ PYWINTYPES_EXPORT PyTypeObject PyHANDLEType =
 #define OFF(e) offsetof(PyHANDLE, e)
 
 /*static*/ struct memberlist PyHANDLE::memberlist[] = {
-	{"handle",      T_INT,      OFF(m_handle)}, // @prop integer|handle|The win32 handle itself, as an integer.
 	{NULL}	/* Sentinel */
 };
 
