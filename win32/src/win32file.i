@@ -25,6 +25,61 @@
 %include "typemaps.i"
 %include "pywin32.i"
 
+%{
+// Helper functions that use DWORD for length
+BOOL PyWinObject_AsReadBuffer(PyObject *ob, void **buf, DWORD *buf_len, BOOL bNoneOk=FALSE)
+{
+	if (ob==Py_None){
+		if (bNoneOk){
+			*buf_len=0;
+			*buf=NULL;
+			return TRUE;
+			}
+		PyErr_SetString(PyExc_TypeError, "Buffer cannot be None");
+		return FALSE;
+		}
+	Py_ssize_t py_len;
+	if (PyObject_AsReadBuffer(ob, (const void **)buf, &py_len)==-1)
+		return FALSE;
+
+#ifdef _WIN64
+	if (py_len>MAXDWORD){
+		PyErr_Format(PyExc_ValueError,"Buffer length can be at most %d characters", MAXDWORD);
+		return FALSE;
+		}
+#endif
+
+	*buf_len=(DWORD)py_len;
+	return TRUE;
+}
+
+BOOL PyWinObject_AsWriteBuffer(PyObject *ob, void **buf, DWORD *buf_len, BOOL bNoneOk=FALSE)
+{
+	if (ob==Py_None){
+		if (bNoneOk){
+			*buf_len=0;
+			*buf=NULL;
+			return TRUE;
+			}
+		PyErr_SetString(PyExc_TypeError, "Buffer cannot be None");
+		return FALSE;
+		}
+	Py_ssize_t py_len;
+	if (PyObject_AsWriteBuffer(ob, buf, &py_len)==-1)
+		return FALSE;
+
+#ifdef _WIN64
+	if (py_len>MAXDWORD){
+		PyErr_Format(PyExc_ValueError,"Buffer length can be at most %d characters", MAXDWORD);
+		return FALSE;
+		}
+#endif
+
+	*buf_len=(DWORD)py_len;
+	return TRUE;
+}
+%}
+
 #define FILE_GENERIC_READ FILE_GENERIC_READ
 #define FILE_GENERIC_WRITE FILE_GENERIC_WRITE
 #define FILE_ALL_ACCESS FILE_ALL_ACCESS
@@ -300,19 +355,19 @@ BOOLAPI DeleteFileW(WCHAR *fileName);
 PyObject *MyDeviceIoControl(PyObject *self, PyObject *args)
 {
     OVERLAPPED *pOverlapped;
-    PyObject *obhFile;
+    PyObject *obhFile, *obwriteData;
     HANDLE hDevice;
     DWORD readSize;
     PyObject *obOverlapped = NULL;
 
     DWORD dwIoControlCode;
-    char *writeData;
+    void *writeData;
     DWORD writeSize;
 
-    if (!PyArg_ParseTuple(args, "Ols#l|O:DeviceIoControl", 
+    if (!PyArg_ParseTuple(args, "OlOl|O:DeviceIoControl", 
         &obhFile, // @pyparm int|hFile||Handle to the file
         &dwIoControlCode, // @pyparm int|dwIoControlCode||IOControl Code to use.
-        &writeData, &writeSize, // @pyparm string|data||The data to write.
+        &obwriteData,	// @pyparm string|data||The data to write.
         &readSize, // @pyparm int|readSize||Size of the buffer to create for the read.
         &obOverlapped)) // @pyparm <o PyOVERLAPPED>|ol|None|An overlapped structure
         return NULL;
@@ -324,8 +379,13 @@ PyObject *MyDeviceIoControl(PyObject *self, PyObject *args)
     }
     if (!PyWinObject_AsHANDLE(obhFile, &hDevice))
         return NULL;
-
+	// Some control codes call for NULL input buffer
+	if (!PyWinObject_AsReadBuffer(obwriteData, &writeData, &writeSize, TRUE))
+		return NULL;
     void *readData = malloc(readSize);
+	if (readData==NULL)
+		return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", readSize);
+
     DWORD numRead;
     BOOL ok;
     Py_BEGIN_ALLOW_THREADS
@@ -854,68 +914,64 @@ PyObject *MyAllocateReadBuffer(PyObject *self, PyObject *args)
 // You must use the OVERLAPPED API functions to determine how much of the data is valid.
 PyObject *MyReadFile(PyObject *self, PyObject *args)
 {
-	OVERLAPPED *pOverlapped;
+	OVERLAPPED *pOverlapped=NULL;
 	PyObject *obhFile;
 	HANDLE hFile;
 	DWORD bufSize;
-	PyObject *obOverlapped = NULL;
+	PyObject *obOverlapped = Py_None;
 	BOOL bBufMallocd = FALSE;
-	PyObject *obBuf;
+	PyObject *obBuf, *obRet=NULL;
 
 	if (!PyArg_ParseTuple(args, "OO|O:ReadFile", 
 		&obhFile, // @pyparm <o PyHANDLE>/int|hFile||Handle to the file
 		&obBuf, // @pyparm <o PyOVERLAPPEDReadBuffer>/int|buffer/bufSize||Size of the buffer to create for the read.  If a multi-threaded overlapped operation is performed, a buffer object can be passed.  If a buffer object is passed, the result is the buffer itself.
 		&obOverlapped))	// @pyparm <o PyOVERLAPPED>|ol|None|An overlapped structure
 		return NULL;
-	// @comm in a multi-threaded overlapped environment, it is likely to be necessary to pre-allocate the read buffer using the <om win32file.AllocateReadBuffer> method, otherwise the I/O operation may complete before you can assign to the resulting buffer.
-	if (obOverlapped==NULL)
-		pOverlapped = NULL;
-	else {
-		if (!PyWinObject_AsOVERLAPPED(obOverlapped, &pOverlapped))
-			return NULL;
-	}
 	if (!PyWinObject_AsHANDLE(obhFile, &hFile))
 		return NULL;
 
+	// @comm in a multi-threaded overlapped environment, it is likely to be necessary to pre-allocate the read buffer using the <om win32file.AllocateReadBuffer> method, otherwise the I/O operation may complete before you can assign to the resulting buffer.
+	if (obOverlapped!=Py_None){
+#ifdef MS_WINCE
+		PyErr_SetString(PyExc_NotImplementedError,"Overlapped operation is not supported on this platform");
+		return NULL;
+#else
+		if (!PyWinObject_AsOVERLAPPED(obOverlapped, &pOverlapped))
+			return NULL;
+#endif
+		}
+
 	void *buf = NULL;
-	PyObject *pORB = NULL;
 	PyBufferProcs *pb = NULL;
 
-	if (PyInt_Check(obBuf)) {
-		bufSize = PyInt_AsLong(obBuf);
-#ifndef MS_WINCE
-		if (pOverlapped) {
-			pORB = PyBuffer_New(bufSize);
-			if (pORB==NULL) {
-				PyErr_SetString(PyExc_MemoryError, "Allocating read buffer");
+	bufSize = PyLong_AsUnsignedLong(obBuf);
+	if ((bufSize!=(DWORD)-1) || !PyErr_Occurred()){
+		if (pOverlapped){	// guaranteed to be NULL on CE
+			obRet = PyBuffer_New(bufSize);
+			if (obRet==NULL)
 				return NULL;
+			pb = obRet->ob_type->tp_as_buffer;
+			(*pb->bf_getreadbuffer)(obRet, 0, &buf);
 			}
-			pb = pORB->ob_type->tp_as_buffer;
-			(*pb->bf_getreadbuffer)(pORB, 0, &buf);
-		} else {
-#endif
-			buf = malloc(bufSize);
-			bBufMallocd = TRUE;
-#ifndef MS_WINCE
+		else{
+			obRet=PyString_FromStringAndSize(NULL, bufSize);
+			if (obRet==NULL)
+				return NULL;
+			buf=PyString_AS_STRING(obRet);
+			bBufMallocd=TRUE;
+			}
 		}
-#endif
-		if (buf==NULL) {
-			PyErr_SetString(PyExc_MemoryError, "Allocating read buffer");
+	else{
+		PyErr_Clear();
+		if (!PyWinObject_AsWriteBuffer(obBuf, &buf, &bufSize,FALSE)){
+			PyErr_SetString(PyExc_TypeError, "Second param must be an integer or a buffer object");
 			return NULL;
+			}
+		if (pOverlapped){
+			obRet = obBuf;
+			Py_INCREF(obBuf);
+			}
 		}
-	} 
-#ifndef MS_WINCE
-	else if (obBuf->ob_type->tp_as_buffer){
-		pb = obBuf->ob_type->tp_as_buffer;
-		pORB = obBuf;
-		Py_INCREF(pORB);
-		bufSize = (*pb->bf_getreadbuffer)(pORB, 0, &buf);
-	}
-#endif // MS_WINCE
-	 else {
-		PyErr_SetString(PyExc_TypeError, "Second param must be an integer or a buffer object");
-		return NULL;
-	}
 
 	DWORD numRead;
 	BOOL ok;
@@ -926,23 +982,17 @@ PyObject *MyReadFile(PyObject *self, PyObject *args)
 	if (!ok) {
 		err = GetLastError();
 		if (err!=ERROR_MORE_DATA && err != ERROR_IO_PENDING) {
-			Py_XDECREF(pORB);
-			if (bBufMallocd)
-				free(buf);
+			Py_XDECREF(obRet);
 			return PyWin_SetAPIError("ReadFile", err);
 		}
 	}
-	PyObject *obRet;
-	if (pOverlapped)
-		obRet = pORB;
-	else
-		obRet = PyString_FromStringAndSize((char *)buf, numRead);
-
-	PyObject *result = Py_BuildValue("iO", err, obRet);
-	Py_XDECREF(obRet);
-	if (bBufMallocd)
-		free(buf);
-	return result;
+	if (obRet==NULL)
+		obRet=PyString_FromStringAndSize((char *)buf, numRead);
+	else if (bBufMallocd && (numRead < bufSize))
+		_PyString_Resize(&obRet, numRead);
+	if (obRet==NULL)
+		return NULL;
+	return Py_BuildValue("iN", err, obRet);
 }
 
 // @pyswig int, int|WriteFile|Writes a string to a file
@@ -958,7 +1008,7 @@ PyObject *MyWriteFile(PyObject *self, PyObject *args)
 	OVERLAPPED *pOverlapped;
 	PyObject *obhFile;
 	HANDLE hFile;
-	char *writeData;
+	void *writeData;
 	DWORD writeSize;
 	PyObject *obWriteData;
 	PyObject *obOverlapped = NULL;
@@ -969,19 +1019,9 @@ PyObject *MyWriteFile(PyObject *self, PyObject *args)
 		&obWriteData, // @pyparm string/<o PyOVERLAPPEDReadBuffer>|data||The data to write.
 		&obOverlapped))	// @pyparm <o PyOVERLAPPED>|ol|None|An overlapped structure
 		return NULL;
-	if (PyString_Check(obWriteData)) {
-		writeData = PyString_AsString(obWriteData);
-		writeSize = PyString_Size(obWriteData);
-	} 
-#ifndef MS_WINCE
-	else if (obWriteData->ob_type->tp_as_buffer) {
-		pb = obWriteData->ob_type->tp_as_buffer;
-		writeSize = (*pb->bf_getreadbuffer)(obWriteData, 0, (void **)&writeData);
-	} 
-#endif // MS_WINCE
-	else {
-		return PyErr_Format(PyExc_TypeError, "Objects of type '%s' can not be directly written to a file", obWriteData->ob_type->tp_name);
-	}
+	if (!PyWinObject_AsReadBuffer(obWriteData, &writeData, &writeSize, FALSE))
+		return NULL;
+
 	if (obOverlapped==NULL)
 		pOverlapped = NULL;
 	else {
@@ -1433,10 +1473,10 @@ static PyObject *PyReadDirectoryChangesW(PyObject *self, PyObject *args)
 		return PyErr_Format(PyExc_ValueError, "overlappedRoutine must be None");
 
 	void *buf = NULL;
-	int bufSize = 0;
+	DWORD bufSize = 0;
 	BOOL bBufMallocd = FALSE;
-	if (PyInt_Check(obBuffer)) {
-		bufSize = PyInt_AsLong(obBuffer);
+	bufSize = PyLong_AsUnsignedLong(obBuffer);
+	if ((bufSize!=(DWORD)-1) || !PyErr_Occurred()){
 		buf = malloc(bufSize);
 		if (buf==NULL) {
 			PyErr_SetString(PyExc_MemoryError, "Allocating read buffer");
@@ -1444,14 +1484,13 @@ static PyObject *PyReadDirectoryChangesW(PyObject *self, PyObject *args)
 		}
 		bBufMallocd = TRUE;
 	}
-	else if (obBuffer->ob_type->tp_as_buffer) {
-		PyBufferProcs *pb = obBuffer->ob_type->tp_as_buffer;
-		bufSize = (*pb->bf_getreadbuffer)(obBuffer, 0, &buf);
-	}
-	 else {
-		PyErr_SetString(PyExc_TypeError, "buffer param must be an integer or a buffer object");
-		goto done;
-	}
+	else{
+		PyErr_Clear();
+		if (!PyWinObject_AsReadBuffer(obBuffer, &buf, &bufSize, FALSE)){
+			PyErr_SetString(PyExc_TypeError, "buffer param must be an integer or a buffer object");
+			goto done;
+			}
+		}
 
 	// OK, have a buffer and a size.
 	Py_BEGIN_ALLOW_THREADS
@@ -1491,9 +1530,12 @@ PyObject *PyFILE_NOTIFY_INFORMATION(PyObject *self, PyObject *args)
 	// @pyparm int|size||The number of bytes to refer to.  Generally this
 	// will be smaller than the size of the buffer (and certainly never greater!)
 	// @comm See <om win32file.ReadDirectoryChangesW> for more information.
-	int bufSize, size;
-	char *buf;
-	if (!PyArg_ParseTuple(args, "s#i", &buf, &bufSize, &size))
+	DWORD bufSize, size;
+	void *buf;
+	PyObject *obbuf;
+	if (!PyArg_ParseTuple(args, "Oi", &obbuf, &size))
+		return NULL;
+	if (!PyWinObject_AsReadBuffer(obbuf, &buf, &bufSize, FALSE))
 		return NULL;
 	if (size > bufSize)
 		return PyErr_Format(PyExc_ValueError, "buffer is only %d bytes long, but %d bytes were requested",
@@ -3124,22 +3166,20 @@ PyObject *PyWinObject_FromPENCRYPTION_CERTIFICATE_LIST(PENCRYPTION_CERTIFICATE_L
 {
 	DWORD user_cnt;
 	PENCRYPTION_CERTIFICATE *user_item=NULL;
-	PyObject *obsid=NULL, *ret_item=NULL;
+	PyObject *ret_item=NULL;
 	PyObject *ret=PyTuple_New(pecl->nUsers);
-	if (!ret){
-		PyErr_SetString(PyExc_MemoryError,"PyWinObject_FromPENCRYPTION_CERTIFICATE_LIST: unable to allocate return tuple");
+	if (!ret)
 		return NULL;
-		}
 	user_item=pecl->pUsers;
 	for (user_cnt=0; user_cnt < pecl->nUsers; user_cnt++){
-		obsid=PyWinObject_FromSID((*user_item)->pUserSid);
-		ret_item=Py_BuildValue("Ns#", obsid, (*user_item)->pCertBlob->pbData,(*user_item)->pCertBlob->cbData);
+		ret_item=Py_BuildValue("NN", 
+			PyWinObject_FromSID((*user_item)->pUserSid), 
+			PyString_FromStringAndSize((char *)(*user_item)->pCertBlob->pbData, (*user_item)->pCertBlob->cbData));
 		if (!ret_item){
-			PyErr_SetString(PyExc_MemoryError,"PyWinObject_FromPENCRYPTION_CERTIFICATE_LIST: unable to allocate tuple item");
 			Py_DECREF(ret);
 			return NULL;
 			}
-		PyTuple_SetItem(ret, user_cnt, ret_item);
+		PyTuple_SET_ITEM(ret, user_cnt, ret_item);
 		user_item++;
 		}
 	return ret;
@@ -3149,27 +3189,21 @@ PyObject *PyWinObject_FromPENCRYPTION_CERTIFICATE_HASH_LIST(PENCRYPTION_CERTIFIC
 {
 	DWORD user_cnt;
 	PENCRYPTION_CERTIFICATE_HASH *user_item=NULL;
-	PyObject *obsid=NULL, *obDisplayInformation=NULL, *ret_item=NULL;
+	PyObject *ret_item=NULL;
 	PyObject *ret=PyTuple_New(pechl->nCert_Hash);
-	if (!ret){
-		PyErr_SetString(PyExc_MemoryError,"PyWinObject_FromPENCRYPTION_CERTIFICATE_HASH_LIST: unable to allocate return tuple");
+	if (!ret)
 		return NULL;
-		}
 	user_item=pechl->pUsers;
 	for (user_cnt=0; user_cnt < pechl->nCert_Hash; user_cnt++){
-		obsid=PyWinObject_FromSID((*user_item)->pUserSid);
-		obDisplayInformation=PyWinObject_FromWCHAR((*user_item)->lpDisplayInformation);
-		if (!obDisplayInformation){
-			Py_DECREF(ret);
-			return NULL;
-			}
-		ret_item=Py_BuildValue("Ns#N", obsid, (*user_item)->pHash->pbData,(*user_item)->pHash->cbData, obDisplayInformation);
+		ret_item=Py_BuildValue("NNu",
+			PyWinObject_FromSID((*user_item)->pUserSid),
+			PyString_FromStringAndSize((char *)(*user_item)->pHash->pbData, (*user_item)->pHash->cbData),
+			(*user_item)->lpDisplayInformation);
 		if (!ret_item){
-			PyErr_SetString(PyExc_MemoryError,"PyWinObject_FromPENCRYPTION_CERTIFICATE_HASH_LIST: unable to allocate tuple item");
 			Py_DECREF(ret);
 			return NULL;
 			}
-		PyTuple_SetItem(ret, user_cnt, ret_item);
+		PyTuple_SET_ITEM(ret, user_cnt, ret_item);
 		user_item++;
 		}
 	return ret;
