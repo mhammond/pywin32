@@ -1043,29 +1043,25 @@ PyTypeObject PyHH_WINTYPEType = {
   //Valid values are the same as those for the Win32 API ShowWindow function.
   {"showState", T_INT,  OFF(m_HH_WINTYPE.nShowState)},
 
+  // These params handled below...
   // HWND   hwndHelp;     
   // @prop int|hwndHelp|Specifies the handle of the window if the window has
   //been created.
-  {"hwndHelp", T_INT,  OFF(m_HH_WINTYPE.hwndHelp)},
 
   // HWND   hwndCaller;    
   // @prop int|hwndCaller|Specifies the window that will receive HTML Help
   //notification messages. Notification messages are sent via Windows
   //WM_NOTIFY messages.
-  {"hwndCaller", T_INT,  OFF(m_HH_WINTYPE.hwndCaller)},
 
   // HWND   hwndToolBar;      
   // @prop int|hwndToolBar|Specifies the handle of the toolbar.
-  {"hwndToolBar", T_INT,  OFF(m_HH_WINTYPE.hwndToolBar)},
 
   // HWND   hwndNavigation;   
   // @prop int|hwndNavigation|Specifies the handle of the Navigation pane.
-  {"hwndNavigation", T_INT,  OFF(m_HH_WINTYPE.hwndNavigation)},
 
   // HWND   hwndHTML;  
   // @prop int|hwndHTML|Specifies the handle of the Topic pane, which hosts
   //Shdocvw.dll.
-  {"hwndHTML", T_INT,  OFF(m_HH_WINTYPE.hwndHTML)},
 
   // int    iNavWidth; 
   // @prop int|navWidth|Specifies the width of the Navigation pane when the
@@ -1342,6 +1338,20 @@ PyObject *PyHH_WINTYPE::getattr(PyObject *self, char *name)
     return rc;
   }
 
+  if (strcmp("hwndHelp", name)==0)
+    return PyWinLong_FromVoidPtr(pO->m_HH_WINTYPE.hwndHelp);
+
+  if (strcmp("hwndCaller", name)==0)
+    return PyWinLong_FromVoidPtr(pO->m_HH_WINTYPE.hwndCaller);
+
+  if (strcmp("hwndToolBar", name)==0)
+    return PyWinLong_FromVoidPtr(pO->m_HH_WINTYPE.hwndToolBar);
+
+  if (strcmp("hwndNavigation", name)==0)
+    return PyWinLong_FromVoidPtr(pO->m_HH_WINTYPE.hwndNavigation);
+
+  if (strcmp("hwndHTML", name)==0)
+    return PyWinLong_FromVoidPtr(pO->m_HH_WINTYPE.hwndHTML);
   return PyMember_Get((char *)self, memberlist, name);
 }
   
@@ -1475,6 +1485,21 @@ int PyHH_WINTYPE::setattr(PyObject *self, char *name, PyObject *v)
     } else
       return -1;
   }
+  if (strcmp("hwndHelp", name)==0)
+    return PyWinLong_AsVoidPtr(v, (void **)&pO->m_HH_WINTYPE.hwndHelp) ? 0 : -1;
+
+  if (strcmp("hwndCaller", name)==0)
+    return PyWinLong_AsVoidPtr(v, (void **)&pO->m_HH_WINTYPE.hwndCaller) ? 0 : -1;
+
+  if (strcmp("hwndToolBar", name)==0)
+    return PyWinLong_AsVoidPtr(v, (void **)&pO->m_HH_WINTYPE.hwndToolBar) ? 0 : -1;
+
+  if (strcmp("hwndNavigation", name)==0)
+    return PyWinLong_AsVoidPtr(v, (void **)&pO->m_HH_WINTYPE.hwndNavigation) ? 0 : -1;
+
+  if (strcmp("hwndHTML", name)==0)
+    return PyWinLong_AsVoidPtr(v, (void **)&pO->m_HH_WINTYPE.hwndHTML) ? 0 : -1;
+
   return PyMember_Set((char *)self, memberlist, name, v);
 }
   

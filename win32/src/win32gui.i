@@ -863,11 +863,14 @@ PyTypeObject PyWNDCLASSType =
 	{"style",            T_INT,  OFF(m_WNDCLASS.style)}, // @prop integer|style|
 //	{"cbClsExtra",       T_INT,  OFF(m_WNDCLASS.cbClsExtra)}, // @prop integer|cbClsExtra|
 	{"cbWndExtra",       T_INT,  OFF(m_WNDCLASS.cbWndExtra)}, // @prop integer|cbWndExtra|
-	{"hInstance",        T_INT,  OFF(m_WNDCLASS.hInstance)}, // @prop integer|hInstance|
-	{"hIcon",            T_INT,  OFF(m_WNDCLASS.hIcon)}, // @prop integer|hIcon|
-	{"hCursor",          T_INT,  OFF(m_WNDCLASS.hCursor)}, // @prop integer|hCursor|
-	{"hbrBackground",    T_INT,  OFF(m_WNDCLASS.hbrBackground)}, // @prop integer|hbrBackground|
-	{NULL}	/* Sentinel */
+	{NULL}
+
+    // ack - these are also handled now explicitly, as T_LONGLONG is too 
+    // stupid to handle ints :(
+	// @prop integer|hInstance|
+	// @prop integer|hIcon|
+	// @prop integer|hCursor|
+	// @prop integer|hbrBackground|
 	// These 3 handled manually in PyWNDCLASS::getattr/setattr.  The pymeth below is used as an
 	// end tag, so these props will be lost if below it
 	// @prop string/<o PyUnicode>|lpszMenuName|
@@ -932,6 +935,18 @@ PyObject *PyWNDCLASS::getattr(PyObject *self, char *name)
 		Py_INCREF(ret);
 		return ret;
 	}
+	if (strcmp("hInstance", name)==0)
+		return PyWinLong_FromVoidPtr(pW->m_WNDCLASS.hInstance);
+
+	if (strcmp("hIcon", name)==0)
+		return PyWinLong_FromVoidPtr(pW->m_WNDCLASS.hIcon);
+
+	if (strcmp("hCursor", name)==0)
+		return PyWinLong_FromVoidPtr(pW->m_WNDCLASS.hCursor);
+
+	if (strcmp("hbrBackground", name)==0)
+		return PyWinLong_FromVoidPtr(pW->m_WNDCLASS.hbrBackground);
+
 	return PyMember_Get((char *)self, memberlist, name);
 }
 
@@ -982,6 +997,18 @@ int PyWNDCLASS::setattr(PyObject *self, char *name, PyObject *v)
 		Py_INCREF(v);
 		return 0;
 	}
+	if (strcmp("hInstance", name)==0)
+		return PyWinLong_AsVoidPtr(v, (void **)&pW->m_WNDCLASS.hInstance) ? 0 : -1;
+
+	if (strcmp("hIcon", name)==0)
+		return PyWinLong_AsVoidPtr(v, (void **)&pW->m_WNDCLASS.hIcon) ? 0 : -1;
+
+	if (strcmp("hCursor", name)==0)
+		return PyWinLong_AsVoidPtr(v, (void **)&pW->m_WNDCLASS.hCursor) ? 0 : -1;
+
+	if (strcmp("hbrBackground", name)==0)
+		return PyWinLong_AsVoidPtr(v, (void **)&pW->m_WNDCLASS.hbrBackground) ? 0 : -1;
+
 	return PyMember_Set((char *)self, memberlist, name, v);
 }
 
