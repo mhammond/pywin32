@@ -25,61 +25,6 @@
 %include "typemaps.i"
 %include "pywin32.i"
 
-%{
-// Helper functions that use DWORD for length
-BOOL PyWinObject_AsReadBuffer(PyObject *ob, void **buf, DWORD *buf_len, BOOL bNoneOk=FALSE)
-{
-	if (ob==Py_None){
-		if (bNoneOk){
-			*buf_len=0;
-			*buf=NULL;
-			return TRUE;
-			}
-		PyErr_SetString(PyExc_TypeError, "Buffer cannot be None");
-		return FALSE;
-		}
-	Py_ssize_t py_len;
-	if (PyObject_AsReadBuffer(ob, (const void **)buf, &py_len)==-1)
-		return FALSE;
-
-#ifdef _WIN64
-	if (py_len>MAXDWORD){
-		PyErr_Format(PyExc_ValueError,"Buffer length can be at most %d characters", MAXDWORD);
-		return FALSE;
-		}
-#endif
-
-	*buf_len=(DWORD)py_len;
-	return TRUE;
-}
-
-BOOL PyWinObject_AsWriteBuffer(PyObject *ob, void **buf, DWORD *buf_len, BOOL bNoneOk=FALSE)
-{
-	if (ob==Py_None){
-		if (bNoneOk){
-			*buf_len=0;
-			*buf=NULL;
-			return TRUE;
-			}
-		PyErr_SetString(PyExc_TypeError, "Buffer cannot be None");
-		return FALSE;
-		}
-	Py_ssize_t py_len;
-	if (PyObject_AsWriteBuffer(ob, buf, &py_len)==-1)
-		return FALSE;
-
-#ifdef _WIN64
-	if (py_len>MAXDWORD){
-		PyErr_Format(PyExc_ValueError,"Buffer length can be at most %d characters", MAXDWORD);
-		return FALSE;
-		}
-#endif
-
-	*buf_len=(DWORD)py_len;
-	return TRUE;
-}
-%}
-
 #define FILE_GENERIC_READ FILE_GENERIC_READ
 #define FILE_GENERIC_WRITE FILE_GENERIC_WRITE
 #define FILE_ALL_ACCESS FILE_ALL_ACCESS
@@ -1486,7 +1431,7 @@ static PyObject *PyReadDirectoryChangesW(PyObject *self, PyObject *args)
 	}
 	else{
 		PyErr_Clear();
-		if (!PyWinObject_AsReadBuffer(obBuffer, &buf, &bufSize, FALSE)){
+		if (!PyWinObject_AsWriteBuffer(obBuffer, &buf, &bufSize, FALSE)){
 			PyErr_SetString(PyExc_TypeError, "buffer param must be an integer or a buffer object");
 			goto done;
 			}
@@ -3566,8 +3511,7 @@ py_BackupRead(PyObject *self, PyObject *args)
 	// @pyparm int|lpContext||Pass 0 on first call, then pass back value returned from last call thereafter
 	HANDLE h;
 	BYTE *buf;
-	Py_ssize_t buflen;
-	DWORD bytes_requested, bytes_read;
+	DWORD buflen, bytes_requested, bytes_read;
 	BOOL bAbort,bProcessSecurity;
 	LPVOID ctxt;
 	PyObject *obbuf=NULL, *obbufout=NULL, *obh, *obctxt;
@@ -3582,16 +3526,16 @@ py_BackupRead(PyObject *self, PyObject *args)
 		obbufout=PyBuffer_New(bytes_requested); // ??? any way to create a writable buffer from Python level ???
 		if (obbufout==NULL)
 			return NULL;
-		if (PyObject_AsWriteBuffer(obbufout, (void **)&buf, &buflen)==-1){
+		if (!PyWinObject_AsWriteBuffer(obbufout, (void **)&buf, &buflen)){
 			Py_DECREF(obbufout);
 			return NULL;
 			}
 		}
 	else{
 		obbufout=obbuf;
-		if (PyObject_AsWriteBuffer(obbufout, (void **)&buf, &buflen)==-1)
+		if (!PyWinObject_AsWriteBuffer(obbufout, (void **)&buf, &buflen))
 			return NULL;
-		if ((DWORD)buflen < bytes_requested)
+		if (buflen < bytes_requested)
 			return PyErr_Format(PyExc_ValueError,"Buffer size (%d) less than requested read size (%d)", buflen, bytes_requested);
 		Py_INCREF(obbufout);
 		}

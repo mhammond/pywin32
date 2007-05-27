@@ -1329,12 +1329,9 @@ static PyObject *
 PyVkKeyScan(PyObject * self, PyObject * args)
 {
 	char *key;
-	int len;
 	// @pyparm chr|char||Specifies a character
-	if (!PyArg_ParseTuple(args, "s#:VkKeyScan", &key, &len))
+	if (!PyArg_ParseTuple(args, "c:VkKeyScan", &key))
 		return (NULL);
-	if (len != 1)
-		return PyErr_Format(PyExc_ValueError, "arg must be a string of length 1");
 	int ret;
 	PyW32_BEGIN_ALLOW_THREADS
 	// @pyseeapi VkKeyScan
@@ -1402,7 +1399,7 @@ static PyObject * PyGetLogicalDriveStrings (PyObject * self, PyObject *args)
 		if (!result) {
 			return ReturnAPIError("GetLogicalDriveStrings");
 		} else {
-			PyObject * retval = Py_BuildValue ("s#", buffer, result);
+			PyObject * retval = PyString_FromStringAndSize (buffer, result);
 			delete [] buffer;
 			return (retval);
 		}
@@ -1796,16 +1793,15 @@ PyWriteProfileSection(PyObject * self, PyObject * args)
 {
 	char *szSection;
 	char *data;
-	int dataSize;
 	// @pyparm string|section||The section in the INI file to retrieve a entries for.
 	// @pyparm string|data||The data to write.  This must be string, with each entry terminated with '\0', followed by another terminating '\0'
-	if (!PyArg_ParseTuple(args, "ss#:WriteProfileSection", &szSection, &data, &dataSize))
+	if (!PyArg_ParseTuple(args, "ss:WriteProfileSection", &szSection, &data))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
 	BOOL ok = WriteProfileSection(szSection, data);
 	PyW32_END_ALLOW_THREADS
 	if (!ok)
-		return ReturnAPIError("GetTempPath");
+		return ReturnAPIError("WriteProfileSection");
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -1871,6 +1867,7 @@ PyGetShortPathName(PyObject * self, PyObject * args)
 		PyW32_BEGIN_ALLOW_THREADS
 		DWORD rc = GetShortPathName(path, szOutPath, sizeof(szOutPath));
 		PyW32_END_ALLOW_THREADS
+		PyWinObject_FreeString(path);
 		if (rc==0)
 			return ReturnAPIError("GetShortPathName");
 		if (rc>=sizeof(szOutPath))
@@ -1885,6 +1882,7 @@ PyGetShortPathName(PyObject * self, PyObject * args)
 		PyW32_BEGIN_ALLOW_THREADS
 		DWORD rc = GetShortPathNameW(path, szOutPath, sizeof(szOutPath));
 		PyW32_END_ALLOW_THREADS
+		PyWinObject_FreeWCHAR(path);
 		if (rc==0)
 			return ReturnAPIError("GetShortPathNameW");
 		if (rc>=sizeof(szOutPath))
@@ -3206,7 +3204,7 @@ Reg2Py(char *retDataBuf, DWORD retDataSize, DWORD typ)
 				Py_INCREF(Py_None);
 				obData = Py_None;
 			} else
-				obData = Py_BuildValue("s#", (char *)retDataBuf, retDataSize);
+				obData = PyString_FromStringAndSize((char *)retDataBuf, retDataSize);
 			break;
 	}
 	if (obData==NULL)
@@ -4737,24 +4735,25 @@ static PyObject * PyUpdateResource(PyObject *self, PyObject *args)
 	PyObject *obType;
 	PyObject *obName;
 	PyObject *ret=NULL;
+	PyObject *obData;
 	LPVOID lpData;
 	DWORD cbData;
 	WORD wLanguage = MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL);
 	LPWSTR lpType=NULL,lpName=NULL;
 
-	if ( !PyArg_ParseTuple(args, "OOOs#|H:UpdateResource",
+	if ( !PyArg_ParseTuple(args, "OOOO|H:UpdateResource",
 						   &obhUpdate, // @pyparm <o PyHANDLE>|handle||The update-file handle.
 						   &obType, // @pyparm <o PyResourceId>|type||The type of resource to update
 						   &obName, // @pyparm <o PyResourceId>|name||The id/name of the resource to update
-						   &lpData, // @pyparm string|data||The data to place into the resource.
-						   &cbData,
+						   &obData, // @pyparm string|data||The data to place into the resource.
 						   &wLanguage // @pyparm int|language|NEUTRAL|Language to use, defaults to LANG_NEUTRAL.
 		) )
 		return NULL;
 
 	if (PyWinObject_AsHANDLE(obhUpdate, (HANDLE *)&hUpdate, FALSE)
 		&&PyWinObject_AsResourceIdW(obType, &lpType) 
-		&&PyWinObject_AsResourceIdW(obName, &lpName)){
+		&&PyWinObject_AsResourceIdW(obName, &lpName)
+		&&PyWinObject_AsReadBuffer(obData, &lpData, &cbData, FALSE)){
 		if (UpdateResourceW(hUpdate, lpType, lpName, wLanguage, lpData, cbData)){
 			Py_INCREF(Py_None);
 			ret=Py_None;

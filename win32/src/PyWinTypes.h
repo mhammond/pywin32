@@ -154,6 +154,7 @@ PYWINTYPES_EXPORT BSTR PyWin_String_AsBstr(const char *str);
 
 #endif // NO_PYWINTYPES_BSTR
 
+
 // Given a string or Unicode object, get WCHAR characters.
 PYWINTYPES_EXPORT BOOL PyWinObject_AsWCHAR(PyObject *stringObject, WCHAR **pResult, BOOL bNoneOK = FALSE, DWORD *pResultLen = NULL);
 // And free it when finished.
@@ -173,7 +174,6 @@ inline void PyWinObject_FreeWCHAR(unsigned short *pResult)
 }
 #endif
 
-
 // Given a PyObject (string, Unicode, etc) create a "char *" with the value
 // if pResultLen != NULL, it will be set to the result size NOT INCLUDING 
 // TERMINATOR (to be in line with SysStringLen, PyString_*, etc)
@@ -181,6 +181,11 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsString(PyObject *stringObject, char **pResu
 // And free it when finished.
 PYWINTYPES_EXPORT void PyWinObject_FreeString(char *pResult);
 PYWINTYPES_EXPORT void PyWinObject_FreeString(WCHAR *pResult);
+
+// Buffer functions that can be used in place of 's#' input format or PyString_AsStringAndSize
+// for 64-bit compatibility and API consistency
+PYWINTYPES_EXPORT BOOL PyWinObject_AsReadBuffer(PyObject *ob, void **buf, DWORD *buf_len, BOOL bNoneOk=FALSE);
+PYWINTYPES_EXPORT BOOL PyWinObject_AsWriteBuffer(PyObject *ob, void **buf, DWORD *buf_len, BOOL bNoneOk=FALSE);
 
 /* ANSI/Unicode Support */
 /* If UNICODE defined, will be a BSTR - otherwise a char *
