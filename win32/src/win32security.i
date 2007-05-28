@@ -151,10 +151,12 @@ typedef LARGE_INTEGER LUID;
 %{
 PyObject *PyWinObject_FromSecHandle(PSecHandle h)
 {
-	ULARGE_INTEGER ul;
-	ul.LowPart=h->dwLower;
-	ul.HighPart=h->dwUpper;
-	return PyWinObject_FromULARGE_INTEGER(ul);
+	// SecInvalidateHandle sets both parts of struct to -1.
+	// PyWinObject_FromULARGE_INTEGER which was formerly used to translate to a long returned this as -1,
+	// but _PyLong_FromByteArray returns it as a large positive integer
+	if (!SecIsValidHandle(h))
+		return PyLong_FromLong(-1);
+	return _PyLong_FromByteArray((unsigned char *)h, sizeof(*h), TRUE, FALSE);
 }
 
 #undef PyHANDLE
@@ -425,21 +427,38 @@ BOOL PyWinObject_AsLUID_AND_ATTRIBUTESArray(PyObject *obluids, PLUID_AND_ATTRIBU
 	return bsuccess;
 }
 
+BOOL PyWinObject_AsLSA_STRING(PyObject *obname, PLSA_STRING plsas)
+{
+	Py_ssize_t len;
+	if (PyString_AsStringAndSize(obname, &plsas->Buffer, &len)==-1)
+		return FALSE;
+	if (len>USHRT_MAX){
+		PyErr_Format(PyExc_ValueError,"String can be at most %d characters", USHRT_MAX);
+		return FALSE;
+		}
+	plsas->Length=(USHORT)len;
+	plsas->MaximumLength=plsas->Length;
+	return TRUE;
+}
+
 BOOL PyWinObject_AsLSA_UNICODE_STRING(PyObject *obstr, LSA_UNICODE_STRING *plsaus, BOOL bNoneOk)
 {
-	TCHAR *ret_string = NULL;
-	USHORT strlen = 0;
-	if (!PyWinObject_AsTCHAR(obstr, &ret_string, bNoneOk)) {
-		plsaus->Buffer = ret_string;
+	DWORD len = 0;
+	ZeroMemory(plsaus, sizeof(plsaus));
+	if (!PyWinObject_AsWCHAR(obstr, &plsaus->Buffer, bNoneOk, &len))
 		return FALSE;
-	}
-	if (ret_string == NULL)
-		strlen=0;
-	else
-		strlen = wcslen(ret_string);
-	plsaus->Buffer = ret_string;
-	plsaus->Length = strlen * sizeof(WCHAR);
-	plsaus->MaximumLength= (strlen+1) * sizeof(WCHAR);
+	// Length is in bytes, not characters, and does not include null terminator
+	static USHORT max_len = USHRT_MAX/sizeof(WCHAR) - 1;
+	if (len > max_len){
+		PyErr_Format(PyExc_ValueError,"String can be at most %d characters", max_len);
+		PyWinObject_FreeWCHAR(plsaus->Buffer);
+		plsaus->Buffer=NULL;
+		return FALSE;
+		}
+	if (plsaus->Buffer){
+		plsaus->Length = (USHORT)len * sizeof(WCHAR);
+		plsaus->MaximumLength=plsaus->Length+sizeof(WCHAR);
+		}
 	return TRUE;
 }
 
@@ -627,7 +646,15 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 	ADD_UNICODE_CONSTANT(SE_DENY_SERVICE_LOGON_NAME);
 	ADD_UNICODE_CONSTANT(SE_REMOTE_INTERACTIVE_LOGON_NAME);
 	ADD_UNICODE_CONSTANT(SE_DENY_REMOTE_INTERACTIVE_LOGON_NAME);
-	
+	ADD_UNICODE_CONSTANT(SE_IMPERSONATE_NAME);
+	ADD_UNICODE_CONSTANT(SE_CREATE_GLOBAL_NAME);
+	/*
+	ADD_UNICODE_CONSTANT(SE_TRUSTED_CREDMAN_ACCESS_NAME);
+	ADD_UNICODE_CONSTANT(SE_RELABEL_NAME);
+	ADD_UNICODE_CONSTANT(SE_INC_WORKING_SET_NAME);
+	ADD_UNICODE_CONSTANT(SE_TIME_ZONE_NAME);
+	ADD_UNICODE_CONSTANT(SE_CREATE_SYMBOLIC_LINK_NAME);
+	*/
 	PyDict_SetItemString(d,"MSV1_0_PACKAGE_NAME",PyString_FromString(MSV1_0_PACKAGE_NAME));
 	PyDict_SetItemString(d,"MICROSOFT_KERBEROS_NAME_A",PyString_FromString(MICROSOFT_KERBEROS_NAME_A));
 
@@ -1636,9 +1663,9 @@ static PyObject *PyGetTokenInformation(PyObject *self, PyObject *args)
 			// @flag TokenSource|(string,LUID)
 			TOKEN_SOURCE *ts = (TOKEN_SOURCE *)buf;
 			PLUID pluid = &ts->SourceIdentifier;
-			PyObject *obluid = PyWinObject_FromLARGE_INTEGER(*((LARGE_INTEGER *) pluid));
-			ret = Py_BuildValue("(s#O)",ts->SourceName,8,obluid);
-			Py_DECREF(obluid);
+			ret = Py_BuildValue("NN",
+				PyString_FromStringAndSize(ts->SourceName,8),
+				PyWinObject_FromLARGE_INTEGER(*((LARGE_INTEGER *) pluid)));
 			break;
 			}
 		case TokenDefaultDacl: {
@@ -2061,17 +2088,15 @@ static PyObject *PyLsaOpenPolicy(PyObject *self, PyObject *args)
 		&access_mask))  // @pyparm int|access_mask||Bitmask of requested access types
 		return NULL;
 	if (!PyWinObject_AsLSA_UNICODE_STRING(obsystem_name, &system_name, TRUE))
-		goto done;
+		return NULL;
 
 	ntsResult = LsaOpenPolicy(&system_name, &ObjectAttributes, access_mask, &lsahPolicyHandle);
-	if (ntsResult != STATUS_SUCCESS){
+	if (ntsResult != STATUS_SUCCESS)
 		PyWin_SetAPIError("LsaOpenPolicy",LsaNtStatusToWinError(ntsResult));
-		goto done;
-		}
-	ret = PyWinObject_FromLSA_HANDLE(lsahPolicyHandle);
-	done:
-		PyWinObject_FreeTCHAR(system_name.Buffer);
-		return ret;
+	else
+		ret = PyWinObject_FromLSA_HANDLE(lsahPolicyHandle);
+	PyWinObject_FreeWCHAR(system_name.Buffer);
+	return ret;
 }
 %}
 
@@ -2966,12 +2991,14 @@ static PyObject *PyLsaRegisterLogonProcess(PyObject *self, PyObject *args)
 	CHECK_PFN(LsaRegisterLogonProcess);
 	HANDLE lsahandle;
 	NTSTATUS err;
+	PyObject *obname;
 	LSA_STRING LogonProcessName;
 	LSA_OPERATIONAL_MODE dummy;   // sdk says this should be ignored
 	// @pyparm string|LogonProcessName||Name to use for this logon process
-	if (!PyArg_ParseTuple(args, "s#:LsaRegisterLogonProcess", &LogonProcessName.Buffer, &LogonProcessName.Length))
+	if (!PyArg_ParseTuple(args, "O:LsaRegisterLogonProcess", &obname))
 		return NULL;
-	LogonProcessName.MaximumLength=LogonProcessName.Length+1;
+	if (!PyWinObject_AsLSA_STRING(obname, &LogonProcessName))
+		return NULL;
 	err=(*pfnLsaRegisterLogonProcess)(&LogonProcessName, &lsahandle, &dummy);
 	if (err==STATUS_SUCCESS)
 		return new PyLsaLogon_HANDLE(lsahandle);
@@ -3027,17 +3054,18 @@ static PyObject *PyLsaLookupAuthenticationPackage(PyObject *self, PyObject *args
 
 	NTSTATUS err;
 	HANDLE lsahandle;
-	PyObject *obhandle;
+	PyObject *obhandle, *obname;
 	LSA_STRING packagename;
 	ULONG packageid;
 	// @pyparm <o PyLsaLogon_HANDLE>|LsaHandle||An Lsa handle as returned by <om win32security.LsaConnectUntrusted> or <om win32security.LsaRegisterLogonProcess>
 	// @pyparm string|PackageName||Name of security package to be identified
-	if (!PyArg_ParseTuple(args,"Os#:LsaLookupAuthenticationPackage", &obhandle, &packagename.Buffer, &packagename.Length))
+	if (!PyArg_ParseTuple(args,"OO:LsaLookupAuthenticationPackage",
+		&obhandle, &obname))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhandle, &lsahandle, FALSE))
 		return NULL;
-
-	packagename.MaximumLength=packagename.Length+1;
+	if (!PyWinObject_AsLSA_STRING(obname, &packagename))
+		return NULL;
 	err=(*pfnLsaLookupAuthenticationPackage)(lsahandle, &packagename, &packageid);
 	if (err!=STATUS_SUCCESS)
 		return PyWin_SetAPIError("LsaLookupAuthenticationPackage", LsaNtStatusToWinError(err)); 
