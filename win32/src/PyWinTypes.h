@@ -408,6 +408,9 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsPARAM(PyObject *ob, WPARAM *pparam);
 inline PyObject *PyWinObject_FromPARAM(WPARAM param) {
     return PyWinObject_FromULONG_PTR(param);
 }
+inline BOOL PyWinObject_AsPARAM(PyObject *ob, LPARAM *pparam) {
+    return PyWinObject_AsPARAM(ob, (WPARAM *)pparam);
+}
 inline PyObject *PyWinObject_FromPARAM(LPARAM param) {
     return PyWinObject_FromULONG_PTR(param);
 }
