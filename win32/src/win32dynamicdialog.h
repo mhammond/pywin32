@@ -102,7 +102,7 @@ class CPythonDialogTemplate
 {
 protected:
 	HGLOBAL m_h;
-	int m_alloc, m_len;
+	size_t m_alloc, m_len;
 #ifdef WIN32
 	DLGTEMPLATE *m_ptr;
 #endif

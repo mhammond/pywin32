@@ -218,7 +218,7 @@ CPythonDialogTemplate::CPythonDialogTemplate(LPCSTR cpin, DLGTEMPLATE *tmpl, WOR
 #ifdef WIN32
 	DwordAlign((PCHAR*)&ptr);
 #endif
-	int len = (BYTE*)ptr - (BYTE*)hdr;
+	ssize_t len = (BYTE*)ptr - (BYTE*)hdr;
 	ASSERT(len <= m_alloc);
 	m_len = len;
 #ifdef WIN32
@@ -244,7 +244,7 @@ BOOL CPythonDialogTemplate::Add(LPCSTR wc, DLGITEMTEMPLATE *tmpl, LPCSTR text,
 #endif
 	RESCSTR wclass = MAKERESSTR(wc);
 	RESCSTR txt = MAKERESSTR(text);
-	int len = sizeof(DLGITEMTEMPLATE) + alloclenR(wclass) + datalen + 20;
+	size_t len = sizeof(DLGITEMTEMPLATE) + alloclenR(wclass) + datalen + 20;
 	if (txt)
 	{
 		len += alloclenR(txt);
@@ -306,7 +306,7 @@ BOOL CPythonDialogTemplate::Add(BYTE wclass, DLGITEMTEMPLATE *tmpl, LPCSTR text)
 	GlobalUnlock(m_h);
 #endif
 	RESCSTR txt = MAKERESSTR(text);
-	int len = sizeof(DLGITEMTEMPLATE) + 20;
+	ssize_t len = sizeof(DLGITEMTEMPLATE) + 20;
 	if (txt)
 	{
 		len += alloclenR(txt);
@@ -418,7 +418,7 @@ static BOOL Py_GetAsDWORD(PyObject *obj, DWORD *ptr)
 
 static void FillList(PyObject *list, int n)
 {
-	int size = PyList_Size(list);
+	Py_ssize_t size = PyList_Size(list);
 	while (n > size)
 	{
 		Py_INCREF(Py_None);
@@ -603,7 +603,7 @@ static CPythonDialogTemplate *ParseDlgHdrList(PyObject *tmpl)
 {
 	if (!PyList_Check(tmpl))
 		return NULL;
-	int size = PyList_Size(tmpl);
+	Py_ssize_t size = PyList_Size(tmpl);
 	if (size < 3 || size > 7)
 		return NULL;
 
@@ -714,7 +714,7 @@ static BOOL ParseDlgItemList(CPythonDialogTemplate *dlg, PyObject *tmpl)
 {
 	if (!PyList_Check(tmpl))
 		return FALSE;
-	int size = PyList_Size(tmpl);
+	Py_ssize_t size = PyList_Size(tmpl);
 	if (size < 5 || size > 7)
 		return FALSE;
 
@@ -807,7 +807,7 @@ static BOOL ParseDlgItemList(CPythonDialogTemplate *dlg, PyObject *tmpl)
 
 	// @tupleitem 6|string|extraData|A string of bytes used as extra data for the control.  The value depends on the control.
 	BYTE *data = NULL;
-	int datalen = 0;
+	Py_ssize_t datalen = 0;
 	if (size > 6)
 	{
 		o = PyList_GetItem(tmpl, 6);
@@ -823,8 +823,9 @@ static BOOL ParseDlgItemList(CPythonDialogTemplate *dlg, PyObject *tmpl)
 	if (isBuiltin)
 		dlg->Add(bclass, &tpl, text);
 	else
-		dlg->Add(wclass, &tpl, text, datalen, data);
-
+		dlg->Add(wclass, &tpl, text,
+		         PyWin_SAFE_DOWNCAST(datalen, Py_ssize_t, int), 
+		         data);
 	return TRUE;
 }
 
@@ -835,7 +836,7 @@ PYW_EXPORT HGLOBAL MakeResourceFromDlgList(PyObject *tmpl)
 	{
 		RETURN_ERR("Passed object must be a dialog template list");
 	}
-	int size = PyList_Size(tmpl);
+	Py_ssize_t size = PyList_Size(tmpl);
 	if (size < 1)
 	{
 		RETURN_ERR("Passed object must be a dialog template list");
