@@ -863,21 +863,23 @@ static PyObject *PyEndPage(PyObject *self, PyObject *args)
 	return PyWin_SetAPIError("EndPage");
 }
 
-// @pymethod int|win32print|WritePrinter|Copies the specified bytes to the specified printer. Suitable for copying raw Postscript or HPGL files to a printer. StartDocPrinter and EndDocPrinter should be called before and after. Returns number of bytes written to printer.
+// @pymethod int|win32print|WritePrinter|Copies the specified bytes to the specified printer.
+// Suitable for copying raw Postscript or HPGL files to a printer.
+// StartDocPrinter and EndDocPrinter should be called before and after.
+// @rdesc Returns number of bytes written to printer.
 static PyObject *PyWritePrinter(PyObject *self, PyObject *args)
 {
 	HANDLE hprinter;
 	LPVOID buf;
 	DWORD buf_size;
 	DWORD bufwritten_size;
-
-	if (!PyArg_ParseTuple(args, "O&s#:WritePrinter",
-	            PyWinObject_AsPrinterHANDLE, &hprinter,  // @pyparm <o PyPrinterHANDLE>|hprinter||Handle to printer (from OpenPrinter)
-	            &buf,       // @pyparm string|buf||String to send to printer. Embedded NULL bytes are allowed.
-	            &buf_size
-	        ))
+	PyObject *obbuf;
+	if (!PyArg_ParseTuple(args, "O&O:WritePrinter",
+		PyWinObject_AsPrinterHANDLE, &hprinter,  // @pyparm <o PyPrinterHANDLE>|hprinter||Handle to printer as returned by <om win32print.OpenPrinter>.
+		&obbuf))       // @pyparm string|buf||String or buffer containing data to send to printer. Embedded NULL bytes are allowed.  
 		return NULL;
-
+	if (!PyWinObject_AsReadBuffer(obbuf, &buf, &buf_size, FALSE))
+		return NULL;
 	if (!WritePrinter(hprinter, buf, buf_size, &bufwritten_size))
 		return PyWin_SetAPIError("WritePrinter");
 	return PyLong_FromUnsignedLong(bufwritten_size);
