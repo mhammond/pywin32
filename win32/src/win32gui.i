@@ -764,7 +764,9 @@ INT_PTR CALLBACK PyDlgProcHDLG(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 		PyObject *obTuple = (PyObject *)lParam;
 		PyObject *obWndProc = PyTuple_GET_ITEM(obTuple, 0);
 		// Replace the lParam with the one the user specified.
-		lParam = PyInt_AsLong( PyTuple_GET_ITEM(obTuple, 1) );
+		lParam = 0;
+		if (PyTuple_GET_ITEM(obTuple, 1) != Py_None)
+			PyWinObject_AsPARAM( PyTuple_GET_ITEM(obTuple, 1), &lParam );
 
 		PyObject *key = PyWinLong_FromHANDLE(hWnd);
 		PyDict_SetItem(g_DLGMap, key, obWndProc);
@@ -1612,7 +1614,7 @@ static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
 {
 	PyObject *O = NULL;
 	void *addr = NULL;
-	int len = 0;
+	Py_ssize_t len = 0;
 
 	// @pyparm int|obj||the buffer object
 	if (!PyArg_ParseTuple(args, "O:PyGetBufferAddressAndLen", &O))
@@ -2082,34 +2084,43 @@ static PyObject *PyDialogBox(PyObject *self, PyObject *args)
 %{
 static PyObject *PyDialogBoxIndirect(PyObject *self, PyObject *args)
 {
-	/// XXX - todo - add support for a dialogproc!
 	HINSTANCE hinst;
 	HWND hwnd;
-	LPARAM param=0;
+	PyObject *obParam = Py_None;
 	PyObject *obhinst, *obhwnd, *obList, *obDlgProc;
 	BOOL bFreeString = FALSE;
-	
-	if (!PyArg_ParseTuple(args, "OOOO|l", 
+
+	if (!PyArg_ParseTuple(args, "OOOO|O", 
 		&obhinst,		// @pyparm <o PyHANDLE>|hInstance||Handle to module creating the dialog box
 		&obList,		// @pyparm list|controlList||List containing a <o Dialog Header Tuple>, followed by variable number of <o Dialog Item Tuple>s
 		&obhwnd,		// @pyparm <o PyHANDLE>|hWndParent||Handle to dialog's parent window
 		&obDlgProc,		// @pyparm function|DialogFunc||Dialog box procedure to process messages
-		&param))		// @pyparm int|InitParam|0|Initialization data to be passed to above procedure during WM_INITDIALOG processing
+		&obParam))		// @pyparm long|InitParam|0|Initialization data to be passed to above procedure during WM_INITDIALOG processing
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhinst, (HANDLE *)&hinst, FALSE))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
 		return NULL;
+	// We unpack the object in the dlgproc - but check validity now
+	if (obParam != Py_None && !PyInt_Check(obParam) && !PyLong_Check(obParam)) {
+		return PyErr_Format(PyExc_TypeError, "optional param must be None, or an integer (got %s)",
+		                    obParam->ob_type->tp_name);
+	}
 
 	HGLOBAL h = MakeResourceFromDlgList(obList);
 	if (h == NULL)
 		return NULL;
 
-	PyObject *obExtra = Py_BuildValue("Ol", obDlgProc, param);
+	HGLOBAL templ = (HGLOBAL) GlobalLock(h);
+	if (!templ) {
+		GlobalFree(h);
+		return PyWin_SetAPIError("GlobalLock (for template)");
+	}
+
+	PyObject *obExtra = Py_BuildValue("OO", obDlgProc, obParam);
 
 	INT_PTR rc;
     Py_BEGIN_ALLOW_THREADS
-	HGLOBAL templ = (HGLOBAL) GlobalLock(h);
 	rc = DialogBoxIndirectParam(hinst, (const DLGTEMPLATE *) templ, hwnd, PyDlgProcHDLG, (LPARAM)obExtra);
 	GlobalUnlock(h);
 	GlobalFree(h);
@@ -2377,7 +2388,7 @@ PyObject *PyGetCursorInfo(PyObject *self, PyObject *args)
 %{
 PyObject *PyCreateAcceleratorTable(PyObject *self, PyObject *args)
 {
-    int num, i;
+    Py_ssize_t num, i;
     ACCEL *accels = NULL;
     PyObject *ret = NULL;
     PyObject *obAccels;
