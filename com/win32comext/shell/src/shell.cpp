@@ -1660,7 +1660,7 @@ static PyObject *PyPIDLAsString(PyObject *self, PyObject *args)
 static PyObject *PyStringAsPIDL(PyObject *self, PyObject *args)
 {
 	char *szPIDL;
-	int pidllen;
+	Py_ssize_t pidllen;
 	// @pyparm string|pidl||The PIDL as a raw string.
 	if (!PyArg_ParseTuple(args, "s#:StringAsPIDL", &szPIDL, &pidllen))
 		return NULL;
@@ -1675,17 +1675,16 @@ static PyObject *PyAddressAsPIDL(PyObject *self, PyObject *args)
 	// @pyparm int|address||The address of the PIDL
 	if (!PyArg_ParseTuple(args, "O:AddressAsPIDL", &obpidl))
 		return NULL;
-	lpidl=(LPCITEMIDLIST)PyLong_AsVoidPtr(obpidl);
-	if (lpidl==NULL && PyErr_Occurred())
+	if (!PyWinLong_AsVoidPtr(obpidl, (void **)&lpidl))
 		return NULL;
 	return PyObject_FromPIDL(lpidl, FALSE);
-}	
+}
 
 // @pymethod <o PyIDL>, list|shell|StringAsCIDA|Given a CIDA as a raw string, return the folder PIDL and list of children
 static PyObject *PyStringAsCIDA(PyObject *self, PyObject *args)
 {
 	char *szCIDA;
-	int pidllen;
+	Py_ssize_t pidllen;
 	// @pyparm string|pidl||The PIDL as a raw string.
 	if (!PyArg_ParseTuple(args, "s#:StringAsCIDA", &szCIDA, &pidllen))
 		return NULL;
@@ -1942,7 +1941,8 @@ static PyObject *PyStringAsFILEGROUPDESCRIPTOR(PyObject *self, PyObject *args)
 	FILEGROUPDESCRIPTORA *fgd = NULL;
 	FILEGROUPDESCRIPTORW *fgdw = NULL;
 	void *buf;
-	int i, cb, size_a, size_w, num;
+	int i, num;
+	Py_ssize_t cb, size_a, size_w;
 	BOOL ok = FALSE;
 	// @pyparm buffer|buf||A string packed as either FILEGROUPDESCRIPTORW or FILEGROUPDESCRIPTORW
 	// @pyparm bool|make_unicode|-1|Should this be treated as a FILEDESCRIPTORW?  If -1
@@ -1950,7 +1950,7 @@ static PyObject *PyStringAsFILEGROUPDESCRIPTOR(PyObject *self, PyObject *args)
 	// the buffer is not the exact size of a correct FILEDESCRIPTORW or FILEDESCRIPTORA,
 	// you will need to specify this parameter.
 	int make_unicode = -1;
-	if (!PyArg_ParseTuple(args, "z#|i", &buf, &cb, make_unicode))
+	if (!PyArg_ParseTuple(args, "z#|i", &buf, &cb, &make_unicode))
 		return NULL;
 	if (!buf) {
 		Py_INCREF(Py_None);
