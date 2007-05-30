@@ -14,7 +14,7 @@
 #include <limits.h>
 #include <string.h>
 
-#include <pywintypes.h>
+#include "PyWinTypes.h"
 #include <sql.h>
 #include <sqlext.h>
 
@@ -1813,7 +1813,9 @@ static PyObject *odbcSQLDataSources(PyObject *self, PyObject *args)
 		connectionError(NULL, "SQLDataSources");
 		ret = NULL;
 	} else
-		ret = Py_BuildValue("s#s#", svr, svr_size, desc, desc_size);
+		ret = Py_BuildValue("NN",
+			PyString_FromStringAndSize((char *)svr, svr_size),
+			PyString_FromStringAndSize((char *)desc, desc_size));
 	return ret;
 }
 
