@@ -18,10 +18,10 @@ PyObject *PyWinObject_FromCREDENTIAL_ATTRIBUTEArray(PCREDENTIAL_ATTRIBUTE attrs,
 	if (ret==NULL)
 		return NULL;
 	for (DWORD attr_ind=0;attr_ind<attr_cnt;attr_ind++){
-		ret_item=Py_BuildValue("{s:u,s:k,s:s#}",
+		ret_item=Py_BuildValue("{s:u,s:k,s:N}",
 			"Keyword", attrs[attr_ind].Keyword,
 			"Flags", attrs[attr_ind].Flags,
-			"Value", attrs[attr_ind].Value, attrs[attr_ind].ValueSize);
+			"Value", PyString_FromStringAndSize((char *)attrs[attr_ind].Value, attrs[attr_ind].ValueSize));
 		if (ret_item==NULL){
 			Py_DECREF(ret);
 			ret=NULL;

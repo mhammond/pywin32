@@ -862,7 +862,9 @@ PyObject *PyCtxtHandle::QueryContextAttributes(PyObject *self, PyObject *args)
 		case SECPKG_ATTR_ISSUER_LIST_EX:
 			PSecPkgContext_IssuerListInfoEx li;
 			li=(PSecPkgContext_IssuerListInfoEx)&buf;
-			ret=Py_BuildValue("lu#", li->cIssuers, li->aIssuers->pbData, li->aIssuers->cbData);
+			ret=Py_BuildValue("lN",
+				li->cIssuers,
+				PyString_FromStringAndSize((char *)li->aIssuers->pbData, li->aIssuers->cbData));
 			(*psecurityfunctiontable->FreeContextBuffer)(li->aIssuers);
 			break;
 		// @flag SECPKG_ATTR_FLAGS|int - returns flags negotiated when context was established
