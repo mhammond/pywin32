@@ -55,12 +55,14 @@ PyObject *PyIStream::Read(PyObject *self, PyObject *args)
 // @pymethod |PyIStream|Write|Write data to a stream
 PyObject *PyIStream::Write(PyObject *self, PyObject *args)
 {
-	char *strValue;
-	int strSize;
+	void *strValue;
+	PyObject *obstrValue;
+	DWORD strSize;
 	// @pyparm string|data||The binary data to write.
-	if (!PyArg_ParseTuple(args, "s#:Read", &strValue, &strSize))
+	if (!PyArg_ParseTuple(args, "O:Write", &obstrValue))
 		return NULL;
-
+	if (!PyWinObject_AsReadBuffer(obstrValue, &strValue, &strSize, FALSE))
+		return NULL;
 	IStream *pMy = GetI(self);
 	if (pMy==NULL) return NULL;
 
