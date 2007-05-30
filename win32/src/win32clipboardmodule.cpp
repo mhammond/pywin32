@@ -961,7 +961,7 @@ py_set_clipboard_text(PyObject* self, PyObject* args)
 
   int format = CF_TEXT;
   char *text;
-  int size;
+  Py_ssize_t size;
   if (!PyArg_ParseTuple(args, "s#:SetClipboardText",
                         &text, &size)) {
     return NULL;
@@ -970,7 +970,7 @@ py_set_clipboard_text(PyObject* self, PyObject* args)
   HGLOBAL    hMem;
   LPTSTR     pszDst;
 
-  hMem = GlobalAlloc(GHND, (DWORD)(size+1));
+  hMem = GlobalAlloc(GHND, size+1);
   if (hMem == NULL) {
     return ReturnAPIError("GlobalAlloc");
   }
