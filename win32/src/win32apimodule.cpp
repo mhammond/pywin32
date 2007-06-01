@@ -1328,14 +1328,14 @@ PyGetKeyboardState(PyObject * self, PyObject * args)
 static PyObject *
 PyVkKeyScan(PyObject * self, PyObject * args)
 {
-	char *key;
+	char key;
 	// @pyparm chr|char||Specifies a character
 	if (!PyArg_ParseTuple(args, "c:VkKeyScan", &key))
 		return (NULL);
 	int ret;
 	PyW32_BEGIN_ALLOW_THREADS
 	// @pyseeapi VkKeyScan
-	ret = VkKeyScan(key[0]);
+	ret = VkKeyScan(key);
 	PyW32_END_ALLOW_THREADS
 	return PyInt_FromLong(ret);
 }

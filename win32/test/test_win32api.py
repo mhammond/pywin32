@@ -157,5 +157,13 @@ class Misc(unittest.TestCase):
             win32api.SetLastError(x)
             self.failUnlessEqual(x, win32api.GetLastError())
 
+    def testVkKeyScan(self):
+        # hopefully ' ' doesn't depend on the locale!
+        self.failUnlessEqual(win32api.VkKeyScan(' '), 32)
+
+    def testVkKeyScanEx(self):
+        # hopefully ' ' doesn't depend on the locale!
+        self.failUnlessEqual(win32api.VkKeyScanEx(' ', 0), 32)
+
 if __name__ == '__main__':
     unittest.main()
