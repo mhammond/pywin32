@@ -721,8 +721,8 @@ BOOL BuildDeps(PyObject *obDeps, TCHAR **ppDeps)
 		}
  		int numStrings = PySequence_Length(obDeps);
 		// Need to loop twice - once to get the buffer length
-		int len = 0;
-		for (int i=0;i<numStrings;i++) {
+		int i, len = 0;
+		for (i=0;i<numStrings;i++) {
 			PyObject *obString = PySequence_GetItem(obDeps, i);
 			if (obString==NULL)
 				goto cleanup;
