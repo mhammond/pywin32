@@ -62,6 +62,10 @@ class TestStrings(unittest.TestCase):
         val = unicode("test-\xe0\xf2", "mbcs")
         SetClipboardData(win32con.CF_UNICODETEXT, val)
         self.failUnlessEqual(GetClipboardData(win32con.CF_UNICODETEXT), val)
+    def test_unicode_text(self):
+        val = "test-val"
+        SetClipboardText(val)
+        self.failUnlessEqual(GetClipboardData(win32con.CF_TEXT), val)
     def test_string(self):
         val = "test"
         SetClipboardData(win32con.CF_TEXT, val)
