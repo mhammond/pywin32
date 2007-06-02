@@ -46,6 +46,9 @@ generates Windows .hlp files.
 
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
 
+// Any python API functions that use 's#' format must use Py_ssize_t for length
+#define PY_SSIZE_T_CLEAN
+
 // We should not be using this!
 #define OleSetOleError PyCom_BuildPyException
 
