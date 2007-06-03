@@ -2138,14 +2138,17 @@ ui_window_set_window_pos(PyObject *self, PyObject *args)
 	if (!pWnd)
 		return NULL;
 
-	HWND insertAfter;
 	int x,y,cx,cy;
 	int flags;
-    // @pyparm int|hWndInsertAfter||A hwnd, else one of the win32con.HWND_* constants.
+	PyObject *obAfter;
+	// @pyparm int|hWndInsertAfter||A hwnd, else one of the win32con.HWND_* constants.
 	// @pyparm (x,y,cx,cy)|position||The new position of the window.
 	// @pyparm int|flags||Window positioning flags.
-	if (!PyArg_ParseTuple(args,"i(iiii)i:SetWindowPos",
-		        (int *)(&insertAfter), &x, &y, &cx, &cy, &flags ))
+	if (!PyArg_ParseTuple(args,"O(iiii)i:SetWindowPos",
+		        &obAfter, &x, &y, &cx, &cy, &flags ))
+		return NULL;
+	HWND insertAfter;
+	if (!PyWinObject_AsHANDLE(obAfter, (HANDLE *)&insertAfter))
 		return NULL;
 	GUI_BGN_SAVE;
 	// @pyseemfc CWnd|SetWindowPos

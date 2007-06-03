@@ -204,9 +204,9 @@ BOOL CreateStructFromPyObject(LPCREATESTRUCT lpcs, PyObject *ob, const char *fnN
 	char argBuf[80];
 	if (fnName==NULL) fnName = "CREATESTRUCT value";
 	if (bFromTuple)
-		sprintf(argBuf, "(iiii(iiii)illi):%s", fnName);
+		sprintf(argBuf, "(iiii(iiii)iOOi):%s", fnName);
 	else
-		sprintf(argBuf, "iiii(iiii)illi:%s", fnName);
+		sprintf(argBuf, "iiii(iiii)iOOi:%s", fnName);
 	PyObject *obname, *obclassName;
 	BOOL ret =  PyArg_ParseTuple(ob, argBuf,
 	    &lpcs->lpCreateParams,
