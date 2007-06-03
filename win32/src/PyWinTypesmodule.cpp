@@ -556,7 +556,7 @@ BOOL PyWinLong_AsVoidPtr(PyObject *ob, void **pptr)
 	return TRUE;
 }
 
-PyObject *PyWinLong_FromVoidPtr(void *ptr)
+PyObject *PyWinLong_FromVoidPtr(const void *ptr)
 {
 #ifdef _WIN64
 	return PyLong_FromLongLong((LONG_PTR)ptr);

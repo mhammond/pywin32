@@ -187,6 +187,13 @@ PYWINTYPES_EXPORT void PyWinObject_FreeString(WCHAR *pResult);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsReadBuffer(PyObject *ob, void **buf, DWORD *buf_len, BOOL bNoneOk=FALSE);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsWriteBuffer(PyObject *ob, void **buf, DWORD *buf_len, BOOL bNoneOk=FALSE);
 
+// an 'int' version (but aren't 'int' and 'DWORD' the same size?
+// Maybe a signed-ness issue?
+inline BOOL PyWinObject_AsReadBuffer(PyObject *ob, void **buf, int *buf_len, BOOL bNoneOk=FALSE)
+{
+    return PyWinObject_AsReadBuffer(ob, buf, (DWORD *)buf_len, bNoneOk);
+}
+
 /* ANSI/Unicode Support */
 /* If UNICODE defined, will be a BSTR - otherwise a char *
    Either way - PyWinObject_FreeTCHAR() must be called
@@ -239,7 +246,7 @@ PYWINTYPES_EXPORT void PyWinObject_FreeString(WCHAR *str);
 // Pointers.
 // Substitute for Python's inconsistent PyLong_AsVoidPtr
 PYWINTYPES_EXPORT BOOL PyWinLong_AsVoidPtr(PyObject *ob, void **pptr);
-PYWINTYPES_EXPORT PyObject *PyWinLong_FromVoidPtr(void *ptr);
+PYWINTYPES_EXPORT PyObject *PyWinLong_FromVoidPtr(const void *ptr);
 
 /*
 ** LARGE_INTEGER objects
