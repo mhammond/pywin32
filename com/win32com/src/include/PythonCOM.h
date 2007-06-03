@@ -198,7 +198,13 @@ public:
 	virtual PyObject *getattr(char *name);
 	virtual int setattr(char *name, PyObject *v);
 	virtual PyObject *repr();
-	virtual int compare(PyObject *other) {return (int)this-int(other);}
+	virtual int compare(PyObject *other) {
+		if (this == other)
+			return 0;
+		if (this < other)
+			return -1;
+		return 1;
+		}
 	// These iter are a little special, in that returning NULL means
 	// use the implementation in the type
 	virtual PyObject *iter() {return NULL;}
