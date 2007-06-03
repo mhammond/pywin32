@@ -30,21 +30,27 @@ PyObject *PySet(PyObject *self, PyObject *args)
 	PySTGMEDIUM *ps = (PySTGMEDIUM *)self;
 	ps->Close(); // ensure any old data clean
 	switch (tymed) {
-		case TYMED_GDI:
-			if (!PyInt_Check(ob) || !PyLong_Check(ob))
-				return PyErr_Format(PyExc_TypeError, "tymed value of %d requires an integer handle", tymed);
-			ps->medium.hBitmap = (HBITMAP)PyInt_AsLong(ob);
+		case TYMED_GDI:{
+			HBITMAP htmp;
+			if (!PyWinObject_AsHANDLE(ob, (HANDLE *)&htmp))
+				return NULL;
+			ps->medium.hBitmap = htmp;
 			break;
-		case TYMED_MFPICT:
-			if (!PyInt_Check(ob) || !PyLong_Check(ob))
-				return PyErr_Format(PyExc_TypeError, "tymed value of %d requires an integer handle", tymed);
-			ps->medium.hMetaFilePict = (HMETAFILEPICT)PyInt_AsLong(ob);
+			}
+		case TYMED_MFPICT:{
+			HMETAFILEPICT htmp;
+			if (!PyWinObject_AsHANDLE(ob, (HANDLE *)&htmp))
+				return NULL;
+			ps->medium.hMetaFilePict = htmp;
 			break;
-		case TYMED_ENHMF:
-			if (!PyInt_Check(ob) || !PyLong_Check(ob))
-				return PyErr_Format(PyExc_TypeError, "tymed value of %d requires an integer handle", tymed);
-			ps->medium.hEnhMetaFile = (HENHMETAFILE)PyInt_AsLong(ob);
+			}
+		case TYMED_ENHMF:{
+			HENHMETAFILE htmp;
+			if (!PyWinObject_AsHANDLE(ob, (HANDLE *)&htmp))
+				return NULL;
+			ps->medium.hEnhMetaFile = htmp;
 			break;
+			}
 		case TYMED_HGLOBAL: {
 			const void * buf = NULL;
 			Py_ssize_t cb = 0;
@@ -140,13 +146,9 @@ BOOL PySTGMEDIUM::CopyTo(STGMEDIUM *pDest)
 	// caller is responsible for ensuring this is clean.
 	assert(pDest->tymed==0 && pDest->pUnkForRelease==0 && pDest->hGlobal == 0);
 	switch (medium.tymed) {
-		// we can't just copy these handles, and there is no easy way I see
-		// to generically duplicate them.  There is a CopyStgMedium function,
-		// but is part of IE, not of OLE.
 		case TYMED_GDI:
-			PyErr_SetString(PyExc_ValueError, "don't know how to copy these objects");
-			return FALSE;
-			// is it ok to just copy these handles?
+			// Receiving app that is performing Paste operation takes ownership of the handle and
+			//	is responsible for freeing it (usually by calling ReleaseStgMedium)
 			pDest->hBitmap = medium.hBitmap;
 			break;
 		case TYMED_MFPICT:
