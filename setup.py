@@ -731,6 +731,9 @@ class my_build_ext(build_ext):
             ext.extra_compile_args = ext.extra_compile_args or []
             if is_32bit:
                 ext.extra_compile_args.append("/YX"+ext.pch_header)
+            # if we are a verbose build, allow 64bit warnings
+            if self.distribution.verbose:
+                ext.extra_compile_args.append("/Wp64")
             pch_name = os.path.join(self.build_temp, ext.name) + ".pch"
             ext.extra_compile_args.append("/Fp"+pch_name)
 
