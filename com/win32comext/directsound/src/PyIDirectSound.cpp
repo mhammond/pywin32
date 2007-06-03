@@ -83,7 +83,7 @@ PyObject *PyIDirectSound::SetCooperativeLevel(PyObject *self, PyObject *args)
 		// @flag DSSCL_WRITEPRIMARY|This is the highest priority level. The application has write access to the primary sound buffers. No secondary sound buffers in any application can be played. 
 
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obHWND, (HANDLE *)&hwnd, TRUE))
+	if (!PyWinObject_AsHANDLE(obHWND, (HANDLE *)&hwnd))
 		return NULL;
 	if (hwnd == NULL)
 	{
