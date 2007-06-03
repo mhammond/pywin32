@@ -12,6 +12,9 @@ generates Windows .hlp files.
 @doc
 ***/
 
+// Any python API functions that use 's#' format must use Py_ssize_t for length
+#define PY_SSIZE_T_CLEAN
+
 #include "shell_pch.h"
 #include "EmptyVC.h"
 #include "PyIShellLink.h"
@@ -45,9 +48,6 @@ generates Windows .hlp files.
 #include "PyIExtractImage.h"
 
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
-
-// Any python API functions that use 's#' format must use Py_ssize_t for length
-#define PY_SSIZE_T_CLEAN
 
 // We should not be using this!
 #define OleSetOleError PyCom_BuildPyException
