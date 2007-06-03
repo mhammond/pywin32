@@ -387,7 +387,7 @@ STDMETHODIMP PyGShellView::CreateViewWindow(
 	Py_DECREF(obrect);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
-	if (!PyWinObject_AsHANDLE(result, (HANDLE *)phWnd, TRUE))
+	if (!PyWinObject_AsHANDLE(result, (HANDLE *)phWnd))
 		hr=MAKE_PYCOM_GATEWAY_FAILURE_CODE("CreateViewWindow");
 	Py_DECREF(result);
 	return hr;

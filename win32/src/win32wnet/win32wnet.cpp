@@ -288,7 +288,7 @@ PyWNetEnumResource(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O!|i", &PyHANDLEType, &Eob, &dwMaxCount)) // enforce the PyHANDLEType, Count is optional
 		return NULL;
 	
-	if (!PyWinObject_AsHANDLE(Eob, &hEnum, FALSE))	// shouldn't fail unless out of memory?
+	if (!PyWinObject_AsHANDLE(Eob, &hEnum))	// shouldn't fail unless out of memory?
 		return NULL;
 
 	// nothing hard & fast here, just a rough sizing..have to figure out something better later

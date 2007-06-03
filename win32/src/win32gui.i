@@ -193,11 +193,11 @@ typedef float HPEN, HBRUSH, HFONT, HRGN, HBITMAP;
 	$target = PyWinObject_FromGdiHANDLE($source);
 }
 %typemap(python,in) HPEN, HBRUSH, HFONT, HRGN, HBITMAP{
-	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target, FALSE))
+	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
 %typemap(python,in) HRGN INPUT_NULLOK, HBRUSH INPUT_NULLOK, HBITMAP INPUT_NULLOK{
-	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target, TRUE))
+	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
 
@@ -314,7 +314,7 @@ extern "C" DECLSPEC_DLLMAIN BOOL WINAPI DllMain(HINST_ARG hInstance, DWORD dwRea
 // Handles types with no specific PyHANDLE subclass, returned to Python as plain ints or longs
 typedef float HDC, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL;
 %typemap(python, in) HDC, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL{
-	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target, FALSE))
+	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
 %typemap(python, out) HDC, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL{
@@ -384,7 +384,7 @@ typedef int UINT;
             &$target->pt.x,
             &$target->pt.y))
         return NULL;
-    if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&$target->hwnd, FALSE))
+    if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&$target->hwnd))
 		return NULL;
 }
 %typemap(python,ignore) RECT *OUTPUT(RECT rect_output)
@@ -498,9 +498,9 @@ typedef int UINT;
 			&obcolor))					// @tupleitem 4|<o PyGdiHANDLE>|hbmColor|Color bitmap, may be None for black and white icon
 			return PyErr_Format(PyExc_TypeError, "%s: an ICONINFO must be a tuple of (int,int,int,HANDLE,HANDLE)", "$name");
 
-		if (!PyWinObject_AsHANDLE(obmask, (HANDLE *)&iconinfo_input.hbmMask, FALSE))
+		if (!PyWinObject_AsHANDLE(obmask, (HANDLE *)&iconinfo_input.hbmMask))
 			return NULL;
-		if (!PyWinObject_AsHANDLE(obcolor, (HANDLE *)&iconinfo_input.hbmColor, TRUE))
+		if (!PyWinObject_AsHANDLE(obcolor, (HANDLE *)&iconinfo_input.hbmColor))
 			return NULL;
 		$target = &iconinfo_input;
     } else {
@@ -588,7 +588,7 @@ typedef int UINT;
                             &lenReserved)) {
 			return NULL;
 		}
-		if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&ps_input.hdc, FALSE))
+		if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&ps_input.hdc))
 			return NULL;
         if (lenReserved != sizeof(ps_input.rgbReserved))
             return PyErr_Format(PyExc_ValueError, "%s: last element must be string of %d bytes",
@@ -608,7 +608,7 @@ typedef int UINT;
 		if (PyArg_ParseTuple($source, "lOl", &e.dwFlags, &obhwnd, &e.dwHoverTime) == 0) {
 			return PyErr_Format(PyExc_TypeError, "%s: a TRACKMOUSEEVENT must be a tuple of 3 integers", "$name");
 		}
-		if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&e.hwndTrack, FALSE))
+		if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&e.hwndTrack))
 			return NULL;
 		$target = &e;
     } else {
@@ -1319,7 +1319,7 @@ static PyObject *PyEnumFontFamilies(PyObject *self, PyObject *args)
 
 	if (!PyArg_ParseTuple(args, "OOO|O", &obdc, &obFamily, &obProc, &obExtra))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	if (!PyCallable_Check(obProc)) {
 		PyErr_SetString(PyExc_TypeError, "The 3rd argument must be callable");
@@ -1385,7 +1385,7 @@ static PyObject *PyGetObject(PyObject *self, PyObject *args)
 	// @pyparm <o PyHANDLE>|handle||Handle to the object.
 	if (!PyArg_ParseTuple(args, "O", &ob))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(ob, &hob, FALSE))
+	if (!PyWinObject_AsHANDLE(ob, &hob))
 		return NULL;
 	DWORD typ = GetObjectType(hob);
 	if (typ==0)
@@ -1435,7 +1435,7 @@ static PyObject *PyGetObjectType(PyObject *self, PyObject *args)
 	// @pyparm <o PyHANDLE>|h||A handle to a GDI object
 	if (!PyArg_ParseTuple(args, "O:GetObjectType", &ob))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(ob, &h, FALSE))
+	if (!PyWinObject_AsHANDLE(ob, &h))
 		return NULL;
 	t=GetObjectType(h);
 	if (t==0)
@@ -1701,7 +1701,7 @@ PyObject *PyFlashWindowEx(PyObject *self, PyObject *args)
 	// @pyparm int|dwTimeout||Elapsed time between flashes, in milliseconds
 	if (!PyArg_ParseTuple(args, "Oiii", &obhwnd, &f.dwFlags, &f.uCount, &f.dwTimeout))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&f.hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&f.hwnd))
 		return NULL;
     // not on NT
 	HMODULE hmod = GetModuleHandle(_T("user32"));
@@ -1747,7 +1747,7 @@ static PyObject *PySetWindowLong(PyObject *self, PyObject *args)
 		&index,		// @pyparm int|index||The index of the item to set.
 		&ob))		// @pyparm object|value||The value to set.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	switch (index) {
 		// @comm If index is GWLP_WNDPROC, then the value parameter
@@ -1797,7 +1797,7 @@ static PyObject *PyCallWindowProc(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinLong_AsVoidPtr(obwndproc, (void **)&wndproc))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	if (!PyWinObject_AsPARAM(obwparam, &wparam))
 		return NULL;
@@ -1835,7 +1835,7 @@ static PyObject *PySendMessage(PyObject *self, PyObject *args)
 	UINT msg;
 	if (!PyArg_ParseTuple(args, "Oi|OO", &obhwnd, &msg, &obwparam, &oblparam))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	WPARAM wparam;
 	LPARAM lparam;
@@ -1870,7 +1870,7 @@ static PyObject *PySendMessageTimeout(PyObject *self, PyObject *args)
 	UINT flags, timeout;
 	if (!PyArg_ParseTuple(args, "OiOOii", &obhwnd, &msg, &obwparam, &oblparam, &flags, &timeout))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	WPARAM wparam;
 	LPARAM lparam;
@@ -2010,7 +2010,7 @@ static PyObject *PyEnumChildWindows(PyObject *self, PyObject *args)
 	// @pyparm object|extra||Any python object - this is passed to the callback function as the second param (first is the hwnd).
 	if (!PyArg_ParseTuple(args, "OOO", &obhwnd, &obFunc, &obOther))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	if (!PyCallable_Check(obFunc)) {
 		PyErr_SetString(PyExc_TypeError, "First param must be a callable object");
@@ -2053,9 +2053,9 @@ static PyObject *PyDialogBox(PyObject *self, PyObject *args)
 		&obDlgProc,	// @pyparm function|DialogFunc||Dialog box procedure to process messages
 		&param))	// @pyparm int|InitParam|0|Initialization data to be passed to above procedure during WM_INITDIALOG processing
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhinst, (HANDLE *)&hinst, FALSE))
+	if (!PyWinObject_AsHANDLE(obhinst, (HANDLE *)&hinst))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	LPTSTR resid;
 	if (!PyWinObject_AsResourceId(obResId, &resid))
@@ -2097,9 +2097,9 @@ static PyObject *PyDialogBoxIndirect(PyObject *self, PyObject *args)
 		&obDlgProc,		// @pyparm function|DialogFunc||Dialog box procedure to process messages
 		&obParam))		// @pyparm long|InitParam|0|Initialization data to be passed to above procedure during WM_INITDIALOG processing
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhinst, (HANDLE *)&hinst, FALSE))
+	if (!PyWinObject_AsHANDLE(obhinst, (HANDLE *)&hinst))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	// We unpack the object in the dlgproc - but check validity now
 	if (obParam != Py_None && !PyInt_Check(obParam) && !PyLong_Check(obParam)) {
@@ -2154,9 +2154,9 @@ static PyObject *PyCreateDialogIndirect(PyObject *self, PyObject *args)
 		&obDlgProc,		// @pyparm function|DialogFunc||Dialog box procedure to process messages
 		&param))		// @pyparm int|InitParam|0|Initialization data to be passed to above procedure during WM_INITDIALOG processing
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhinst, (HANDLE *)&hinst, FALSE))
+	if (!PyWinObject_AsHANDLE(obhinst, (HANDLE *)&hinst))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 
 	HGLOBAL h = MakeResourceFromDlgList(obList);
@@ -2210,7 +2210,7 @@ static PyObject *PyGetDlgItemInt(PyObject *self, PyObject *args)
 		&id,		// @pyparm int|IDDlgItem||Identifier of one of the dialog's controls
 		&bSigned))	// @pyparm boolean|Signed||Indicates whether control value should be interpreted as signed
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhDlg, (HANDLE *)&hDlg), FALSE)
+	if (!PyWinObject_AsHANDLE(obhDlg, (HANDLE *)&hDlg))
 		return NULL;
 
 	val=GetDlgItemInt(hDlg, id, &bTranslated, bSigned);
@@ -2253,7 +2253,7 @@ static PyObject *PyGetDlgItemText(PyObject *self, PyObject *args)
 		&obhwnd,	// @pyparm <o PyHANDLE>|hDlg||Handle to a dialog window
 		&dlgitem))	// @pyparm int|IDDlgItem||The Id of a control within the dialog
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	// If text is too long for buffer, it's truncated and truncated size returned
 	// Loop until fewer characters returned than were allocated
@@ -2316,7 +2316,7 @@ static PyObject *PyGetWindowText(PyObject *self, PyObject *args)
 	// @pyparm <o PyHANDLE>|hwnd||The handle to the window
 	if (!PyArg_ParseTuple(args, "O", &obhwnd))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
     Py_BEGIN_ALLOW_THREADS
     len = GetWindowText(hwnd, buffer, sizeof(buffer)/sizeof(TCHAR));
@@ -2560,7 +2560,7 @@ static PyObject *PyDeleteObject(PyObject *self, PyObject *args)
 		return Py_None;
 		}
 	HGDIOBJ hgdiobj;
-	if (!PyWinObject_AsHANDLE(obhgdiobj, &hgdiobj, FALSE))
+	if (!PyWinObject_AsHANDLE(obhgdiobj, &hgdiobj))
 		return NULL;
 	if (!DeleteObject(hgdiobj))
 		return PyWin_SetAPIError("DeleteObject");
@@ -2648,9 +2648,9 @@ static PyObject *PyTransparentBlt(PyObject *self, PyObject *args)
 		&src_height,	// @pyparm int|HeightSrc||Height of src rect
 		&transparent))	// @pyparm int|Transparent||RGB color value that will be transparent
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdst, (HANDLE *)&dst, FALSE))
+	if (!PyWinObject_AsHANDLE(obdst, (HANDLE *)&dst))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obsrc, (HANDLE *)&src, FALSE))
+	if (!PyWinObject_AsHANDLE(obsrc, (HANDLE *)&src))
 		return NULL;
 	Py_BEGIN_ALLOW_THREADS
 	ret=(*pfnTransparentBlt)(
@@ -2692,11 +2692,11 @@ static PyObject *PyMaskBlt(PyObject *self, PyObject *args)
 		&mask_y,		// @pyparm int|yMask||Y pos in mask
 		&rop))			// @pyparm int|Rop||Foreground and background raster operations.  See MSDN docs for how to construct this value.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdst, (HANDLE *)&dst, FALSE))
+	if (!PyWinObject_AsHANDLE(obdst, (HANDLE *)&dst))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obsrc, (HANDLE *)&src, FALSE))
+	if (!PyWinObject_AsHANDLE(obsrc, (HANDLE *)&src))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obmask, (HANDLE *)&mask, FALSE))
+	if (!PyWinObject_AsHANDLE(obmask, (HANDLE *)&mask))
 		return NULL;
 	if (!(*pfnMaskBlt)(
 		dst, dst_x, dst_y, dst_width, dst_height,
@@ -2729,9 +2729,9 @@ static PyObject *PyAlphaBlend(PyObject *self, PyObject *args)
 		&src_height,	// @pyparm int|HeightSrc||Height of src rect
 		&obbl))			// @pyparm <o PyBLENDFUNCTION>|blendFunction||Alpha blending parameters
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdst, (HANDLE *)&dst, FALSE))
+	if (!PyWinObject_AsHANDLE(obdst, (HANDLE *)&dst))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obsrc, (HANDLE *)&src, FALSE))
+	if (!PyWinObject_AsHANDLE(obsrc, (HANDLE *)&src))
 		return NULL;
 	if (!PyWinObject_AsBLENDFUNCTION(obbl, &bl))
 		return NULL;
@@ -3085,7 +3085,7 @@ PySetWindowPlacement(PyObject *self, PyObject *args)
 	                      &pment.rcNormalPosition.left, &pment.rcNormalPosition.top,
 	                      &pment.rcNormalPosition.right, &pment.rcNormalPosition.bottom))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	BOOL rc;
 	Py_BEGIN_ALLOW_THREADS
@@ -3147,7 +3147,7 @@ static PyObject *PyUnregisterClass(PyObject *self, PyObject *args)
 		&obatom,		// @pyparm <o PyResourceId>|atom||The atom or classname identifying the class previously registered.
 		&obhinst))		// @pyparm <o PyHANDLE>|hinst||The handle to the instance unregistering the class, can be None
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhinst, (HANDLE *)&hinst, TRUE))
+	if (!PyWinObject_AsHANDLE(obhinst, (HANDLE *)&hinst))
 		return NULL;
 	if (!PyWinObject_AsResourceId(obatom, &atom))
 		return NULL;
@@ -3319,9 +3319,9 @@ BOOL PyObject_AsNOTIFYICONDATA(PyObject *ob, NOTIFYICONDATA *pnid)
 	pnid->cbSize = sizeof(*pnid);
 	if (!PyArg_ParseTuple(ob, "O|iiiOO:NOTIFYICONDATA tuple", &obhwnd, &pnid->uID, &pnid->uFlags, &pnid->uCallbackMessage, &obhicon, &obTip))
 		return FALSE;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&pnid->hWnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&pnid->hWnd))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhicon, (HANDLE *)&pnid->hIcon, TRUE))
+	if (!PyWinObject_AsHANDLE(obhicon, (HANDLE *)&pnid->hIcon))
 		return NULL;
 	if (obTip) {
 		TCHAR *szTip;
@@ -3353,9 +3353,9 @@ BOOL PyObject_AsNOTIFYICONDATA(PyObject *ob, NOTIFYICONDATA *pnid)
 		&obInfoTitle,	// @tupleitem 8|str|InfoTitle|Title for balloon tooltip (optional)
 		&pnid->dwInfoFlags))	// @tupleitem 9|int|InfoFlags|Combination of win32gui.NIIF_* flags (optional)
 		return FALSE;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&pnid->hWnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&pnid->hWnd))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhicon, (HANDLE *)&pnid->hIcon, TRUE))
+	if (!PyWinObject_AsHANDLE(obhicon, (HANDLE *)&pnid->hIcon))
 		return NULL;
 	if (obTip) {
 		TCHAR *szTip;
@@ -3467,7 +3467,7 @@ static PyObject *PyEdit_GetLine(PyObject *self, PyObject *args)
 	int line, size=0;
 	if (!PyArg_ParseTuple(args, "Oi|i", &obhwnd, &line, &size))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	int numChars;
 	TCHAR *buf;
@@ -3742,7 +3742,7 @@ static PyObject *PyGetTextExtentPoint32(PyObject *self, PyObject *args)
 	PyObject *obString, *obdc;
 	if (!PyArg_ParseTuple(args, "OO:GetTextExtentPoint32", &obdc, &obString))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	TCHAR *szString = NULL;
 	DWORD nchars;
@@ -3768,7 +3768,7 @@ static PyObject *PyGetTextMetrics(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:GetTextMetrics",
 		&obdc))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	if (!GetTextMetricsW(hdc, &tm))
 		return PyWin_SetAPIError("GetTextMetrics");
@@ -3804,7 +3804,7 @@ static PyObject *PyGetTextCharacterExtra(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:GetTextCharacterExtra",
 		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	ret=GetTextCharacterExtra(hdc);
 	if (ret==0x80000000)
@@ -3823,7 +3823,7 @@ static PyObject *PySetTextCharacterExtra(PyObject *self, PyObject *args)
 		&obdc,			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		&newspacing))	// @pyparm int|CharExtra||Space between adjacent chars, in logical units
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	prevspacing=SetTextCharacterExtra(hdc, newspacing);
 	if (prevspacing==0x80000000)
@@ -3841,7 +3841,7 @@ static PyObject *PyGetTextAlign(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:GetTextAlign",
 		&obdc))			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	prevalign=GetTextAlign(hdc);
 	if (prevalign==GDI_ERROR)
@@ -3860,7 +3860,7 @@ static PyObject *PySetTextAlign(PyObject *self, PyObject *args)
 		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		&newalign))	// @pyparm int|Mode||Combination of win32con.TA_* constants
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	prevalign=SetTextAlign(hdc, newalign);
 	if (prevalign==GDI_ERROR)
@@ -3879,7 +3879,7 @@ static PyObject *PyGetTextFace(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:GetTextFace",
 		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	returned_size=GetTextFaceW(hdc, 256, face);
 	if (returned_size==0)
@@ -3898,7 +3898,7 @@ static PyObject *PyGetMapMode(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:GetMapMode",
 		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	ret=GetMapMode(hdc);
 	if (ret==0)
@@ -3917,7 +3917,7 @@ static PyObject *PySetMapMode(PyObject *self, PyObject *args)
 		&obdc,			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		&newmode))		// @pyparm int|MapMode||The new mapping mode (win32con.MM_*)
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	prevmode=SetMapMode(hdc, newmode);
 	if (prevmode==0)
@@ -3935,7 +3935,7 @@ static PyObject *PyGetGraphicsMode(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:GetGraphicsMode",
 		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	ret=GetGraphicsMode(hdc);
 	if (ret==0)
@@ -3954,7 +3954,7 @@ static PyObject *PySetGraphicsMode(PyObject *self, PyObject *args)
 		&obdc,			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		&newmode))		// @pyparm int|Mode||GM_COMPATIBLE or GM_ADVANCED (from win32con)
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	prevmode=SetGraphicsMode(hdc, newmode);
 	if (prevmode==0)
@@ -3973,7 +3973,7 @@ static PyObject *PyGetLayout(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:GetLayout",
 		&obdc))			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	prevlayout=(*pfnGetLayout)(hdc);
 	if (prevlayout==GDI_ERROR)
@@ -3993,7 +3993,7 @@ static PyObject *PySetLayout(PyObject *self, PyObject *args)
 		&obdc,			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		&newlayout))	// @pyparm int|Layout||One of win32con.LAYOUT_* constants
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	prevlayout=(*pfnSetLayout)(hdc, newlayout);
 	if (prevlayout==GDI_ERROR)
@@ -4011,7 +4011,7 @@ static PyObject *PyGetPolyFillMode(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:GetPolyFillMode",
 		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	ret=GetPolyFillMode(hdc);
 	if (ret==0)
@@ -4030,7 +4030,7 @@ static PyObject *PySetPolyFillMode(PyObject *self, PyObject *args)
 		&obdc,			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		&newmode))		// @pyparm int|PolyFillMode||One of ALTERNATE or WINDING 
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	prevmode=SetPolyFillMode(hdc, newmode);
 	if (prevmode==0)
@@ -4102,7 +4102,7 @@ static PyObject *PyGetWorldTransform(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:GetWorldTransform",
 		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	if (!(*pfnGetWorldTransform)(hdc, &xform))
 		return PyWin_SetAPIError("GetWorldTransform");
@@ -4121,7 +4121,7 @@ static PyObject *PySetWorldTransform(PyObject *self, PyObject *args)
 		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		&obxform))	// @pyparm <o PyXFORM>|Xform||Matrix defining the transformation
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	if (!PyWinObject_AsXFORM(obxform, &xform))
 		return NULL;
@@ -4145,7 +4145,7 @@ static PyObject *PyModifyWorldTransform(PyObject *self, PyObject *args)
 		&obxform,	// @pyparm <o PyXFORM>|Xform||Transformation to be applied.  Ignored if Mode is MWT_IDENTITY.
 		&mode))		// @pyparm int|Mode||One of win32con.MWT_* values specifying how transformations will be combined
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	if (!PyWinObject_AsXFORM(obxform, &xform))
 		return NULL;
@@ -4225,7 +4225,7 @@ static PyObject *PyGetWindowExtEx(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:GetWindowExtEx",
 		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	if (!GetWindowExtEx(hdc, &sz))
 		return PyWin_SetAPIError("GetWindowExtEx");
@@ -4245,7 +4245,7 @@ static PyObject *PySetWindowExtEx(PyObject *self, PyObject *args)
 		&x,			// @pyparm int|XExtent||New X extent in logical units
 		&y))		// @pyparm int|YExtent||New Y extent in logical units
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	if (!SetWindowExtEx(hdc, x, y, &sz))
 		return PyWin_SetAPIError("SetWindowExtEx");
@@ -4262,7 +4262,7 @@ static PyObject *PyGetViewportExtEx(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:GetViewportExtEx",
 		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	if (!GetViewportExtEx(hdc, &sz))
 		return PyWin_SetAPIError("GetViewportExtEx");
@@ -4282,7 +4282,7 @@ static PyObject *PySetViewportExtEx(PyObject *self, PyObject *args)
 		&x,			// @pyparm int|XExtent||New X extent in logical units
 		&y))		// @pyparm int|YExtent||New Y extent in logical units
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	if (!SetViewportExtEx(hdc, x, y, &sz))
 		return PyWin_SetAPIError("SetViewportExtEx");
@@ -4435,7 +4435,7 @@ static PyObject *PyGradientFill(PyObject *self, PyObject *args)
 		&obmesh,	// @pyparm tuple|Mesh||Sequence of tuples containing either 2 or 3 ints that index into the trivertex array to define either triangles or rectangles
 		&mode))		// @pyparm int|Mode||win32con.GRADIENT_FILL_* value defining whether to fill by triangle or by rectangle
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	if (!PyWinObject_AsTRIVERTEXArray(obtvs, &ptv, &tv_cnt))
 		goto cleanup;
@@ -4602,7 +4602,7 @@ PyObject *PySetMenuInfo(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "OO", &obMenu, &obInfo))
 		return NULL;
 
-	if (!PyWinObject_AsHANDLE(obMenu, (HANDLE *)&hmenu, FALSE))
+	if (!PyWinObject_AsHANDLE(obMenu, (HANDLE *)&hmenu))
 		return NULL;
 
 	if (0 != PyObject_AsReadBuffer(obInfo, (const void **)&pInfo, &cbInfo))
@@ -4639,7 +4639,7 @@ PyObject *PyGetMenuInfo(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "OO", &obMenu, &obInfo))
 		return NULL;
 
-	if (!PyWinObject_AsHANDLE(obMenu, (HANDLE *)&hmenu, FALSE))
+	if (!PyWinObject_AsHANDLE(obMenu, (HANDLE *)&hmenu))
 		return NULL;
 
 	if (0 != PyObject_AsWriteBuffer(obInfo, (void **)&pInfo, &cbInfo))
@@ -4742,7 +4742,7 @@ static PyObject *PyAngleArc(PyObject *self, PyObject *args)
 		&startangle,	// @pyparm float|StartAngle||Angle where arc starts, in degrees
 		&sweepangle))	// @pyparm float|SweepAngle||Angle that arc covers, in degrees
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	if (!(*pfnAngleArc)(hdc, x, y, radius, startangle, sweepangle))
 		return PyWin_SetAPIError("AngleArc");
@@ -4788,7 +4788,7 @@ static PyObject *PySetPixel(PyObject *self, PyObject *args)
 		&y,			// @pyparm int|Y||Vertical pos
 		&color))	// @pyparm int|Color||RGB color to be set.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	ret=SetPixel(hdc, x, y, color);
 	if (ret==CLR_INVALID)
@@ -4808,7 +4808,7 @@ static PyObject *PyGetPixel(PyObject *self, PyObject *args)
 		&x,			// @pyparm int|XPos||Horizontal pos
 		&y))		// @pyparm int|YPos||Vertical pos
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	ret=GetPixel(hdc, x, y);
 	if (ret==CLR_INVALID)
@@ -4826,7 +4826,7 @@ static PyObject *PyGetROP2(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:GetROP2",
 		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	ret=GetROP2(hdc);
 	if (ret==0)
@@ -4845,7 +4845,7 @@ static PyObject *PySetROP2(PyObject *self, PyObject *args)
 		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		&newmode))	// @pyparm int|DrawMode||Mixing mode, one of win32con.R2_*.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	oldmode=SetROP2(hdc, newmode);
 	if (oldmode==0)
@@ -4937,7 +4937,7 @@ static PyObject *PyPolygon(PyObject *self, PyObject *args)
 		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		&obpoints))	// @pyparm [(int,int),...]|Points||Sequence of POINT tuples: ((x,y),...)
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	if (!PyWinObject_AsPOINTArray(obpoints, &points, &point_cnt))
 		return NULL;
@@ -4963,7 +4963,7 @@ static PyObject *PyPolyline(PyObject *self, PyObject *args)
 		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		&obpoints))	// @pyparm [(int,int),...]|Points||Sequence of POINT tuples: ((x,y),...)
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	if (!PyWinObject_AsPOINTArray(obpoints, &points, &point_cnt))
 		return NULL;
@@ -4989,7 +4989,7 @@ static PyObject *PyPolylineTo(PyObject *self, PyObject *args)
 		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		&obpoints))	// @pyparm [(int,int),...]|Points||Sequence of POINT tuples: ((x,y),...)
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	if (!PyWinObject_AsPOINTArray(obpoints, &points, &point_cnt))
 		return NULL;
@@ -5016,7 +5016,7 @@ static PyObject *PyPolyBezier(PyObject *self, PyObject *args)
 		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		&obpoints))	// @pyparm [(int,int),...]|Points||Sequence of POINT tuples: ((x,y),...).
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	if (!PyWinObject_AsPOINTArray(obpoints, &points, &point_cnt))
 		return NULL;
@@ -5043,7 +5043,7 @@ static PyObject *PyPolyBezierTo(PyObject *self, PyObject *args)
 		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		&obpoints))	// @pyparm [(int,int),...]|Points||Sequence of POINT tuples: ((x,y),...).
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	if (!PyWinObject_AsPOINTArray(obpoints, &points, &point_cnt))
 		return NULL;
@@ -5080,11 +5080,11 @@ static PyObject *PyPlgBlt(PyObject *self, PyObject *args)
 		&xmask,		// @pyparm int|xMask|0|x pos in mask
 		&ymask))	// @pyparm int|yMask|0|y pos in mask
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdst, (HANDLE *)&dstdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdst, (HANDLE *)&dstdc))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obsrc, (HANDLE *)&srcdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obsrc, (HANDLE *)&srcdc))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obmask, (HANDLE *)&mask, TRUE))
+	if (!PyWinObject_AsHANDLE(obmask, (HANDLE *)&mask))
 		return NULL;
 	if (!PyWinObject_AsPOINTArray(obpoints, &points, &point_cnt))
 		return NULL;
@@ -5153,7 +5153,7 @@ static PyObject *PyExtTextOut(PyObject *self, PyObject *args)
 		&strLen,
 		&widthObject))	// @pyparm (width1, width2, ...)|tuple||Optional array of values that indicate distance between origins of character cells.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	// Parse out rectangle object
 	if (rectObject != Py_None) {
@@ -5505,7 +5505,7 @@ static PyObject *PyGetPath(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:GetPath", 
 		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context containing a finalized path.  See <om win32gui.EndPath>
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
 	point_cnt=GetPath(hdc, points, types, point_cnt);
 	if (point_cnt==-1)
@@ -5792,7 +5792,7 @@ static PyObject *PySetScrollInfo(PyObject *self, PyObject *args) {
 	if (!PyArg_ParseTuple(args, "OiO|i:SetScrollInfo",
 		&obhwnd, &nBar, &obInfo, &bRedraw))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	SCROLLINFO info;
 	info.cbSize = sizeof(SCROLLINFO);
@@ -5821,7 +5821,7 @@ PyGetScrollInfo (PyObject *self, PyObject *args)
 	// @pyparm int|mask|SIF_ALL|The mask for attributes to retrieve.
 	if (!PyArg_ParseTuple(args, "Oi|i:GetScrollInfo", &obhwnd, &nBar, &fMask))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	SCROLLINFO info;
 	info.cbSize = sizeof(SCROLLINFO);
@@ -5849,7 +5849,7 @@ PyGetClassName(PyObject *self, PyObject *args)
 	// @pyparm <o PyHANDLE>|hwnd||The handle to the window
 	if (!PyArg_ParseTuple(args, "O:GetClassName", &obhwnd))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	// dont bother with lock - no callback possible.
 	int nchars = GetClassName(hwnd, buf, sizeof buf/sizeof buf[0]);
@@ -5940,7 +5940,7 @@ PyListView_SortItems(PyObject *self, PyObject *args)
 	// @pyparm object|param|None|The third param to the callback function.
 	if (!PyArg_ParseTuple(args, "OO|O:ListView_SortItems", &obhwnd, &ob, &obParam))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	if (!PyCallable_Check(ob))
 		return PyErr_Format(PyExc_TypeError,
@@ -5984,7 +5984,7 @@ PyListView_SortItemsEx(PyObject *self, PyObject *args)
 	// @pyparm object|param|None|The third param to the callback function.
 	if (!PyArg_ParseTuple(args, "OO|O:ListView_SortItemsEx", &obhwnd, &ob, &obParam))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	if (!PyCallable_Check(ob))
 		return PyErr_Format(PyExc_TypeError,
@@ -6233,8 +6233,8 @@ BOOL PyParse_OPENFILENAMEW_Args(PyObject *args, PyObject *kwargs, OPENFILENAMEW 
 	if (initfile!=NULL)
 		memcpy(pofn->lpstrFile, initfile, initfilechars*sizeof(WCHAR));
 
-	ret=PyWinObject_AsHANDLE(obOwner, (PHANDLE)&pofn->hwndOwner, TRUE) &&
-		PyWinObject_AsHANDLE(obhInstance, (PHANDLE)&pofn->hInstance, TRUE) &&
+	ret=PyWinObject_AsHANDLE(obOwner, (PHANDLE)&pofn->hwndOwner) &&
+		PyWinObject_AsHANDLE(obhInstance, (PHANDLE)&pofn->hInstance) &&
 		PyWinObject_AsWCHAR(obFilter, (WCHAR **)&pofn->lpstrFilter, TRUE) &&
 		PyWinObject_AsWCHAR(obInitialDir, (WCHAR **)&pofn->lpstrInitialDir, TRUE) &&
 		PyWinObject_AsWCHAR(obTitle, (WCHAR **)&pofn->lpstrTitle, TRUE) &&
@@ -7016,7 +7016,7 @@ PyObject *PySetLayeredWindowAttributes(PyObject *self, PyObject *args, PyObject 
 		&Alpha,		// @pyparm int|Alpha||Opacity, in the range 0-255
 		&Flags))	// @pyparm int|Flags||Combination of win32con.LWA_* values
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	if (!(*pfnSetLayeredWindowAttributes)(hwnd,Key,Alpha,Flags))
 		return PyWin_SetAPIError("SetLayeredWindowAttributes");
@@ -7044,7 +7044,7 @@ PyObject *PyGetLayeredWindowAttributes(PyObject *self, PyObject *args, PyObject 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:GetLayeredWindowAttributes", keywords,
 		&obhwnd))	// @pyparm <o PyHANDLE>|hwnd||Handle to a layered window
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	if (!(*pfnGetLayeredWindowAttributes)(hwnd, &Key, &Alpha, &Flags))
 		return PyWin_SetAPIError("GetLayeredWindowAttributes");
@@ -7084,11 +7084,11 @@ PyObject *PyUpdateLayeredWindow(PyObject *self, PyObject *args, PyObject *kwargs
 		&obblend,	// @pyparm (int, int, int, int)|blend|(0,0,255,0)|<o PyBLENDFUNCTION> specifying alpha blending parameters
 		&Flags))	// @pyparm int|Flags|0|One of the win32con.ULW_* values.  Use 0 if hdcSrc is None.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obdst, (HANDLE *)&hdcDst, TRUE))
+	if (!PyWinObject_AsHANDLE(obdst, (HANDLE *)&hdcDst))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obsrc, (HANDLE *)&hdcSrc, TRUE))
+	if (!PyWinObject_AsHANDLE(obsrc, (HANDLE *)&hdcSrc))
 		return NULL;
 	if (obblend!=Py_None)
 		if (!PyWinObject_AsBLENDFUNCTION(obblend, &blend))
@@ -7138,7 +7138,7 @@ PyObject *PyAnimateWindow(PyObject *self, PyObject *args, PyObject *kwargs)
 		&duration,	// @pyparm int|Time||Duration of animation in ms
 		&flags))	// @pyparm int|Flags||Animation type, combination of win32con.AW_* flags
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	BOOL ret;
 	Py_BEGIN_ALLOW_THREADS
@@ -7172,7 +7172,7 @@ BOOL PyWinObject_AsLOGBRUSH(PyObject *oblb, LOGBRUSH *plb)
 		&plb->lbColor,	// @prop int|Color|RGB color value.  Can also be DIB_PAL_COLORS or DIB_RGB_COLORS if Style is BS_DIBPATTERN or BS_DIBPATTERNPT=
 		&obhatch)		// @prop int/<o PyHANDLE>|Hatch|For BS_HATCH style, one of win32con.HS_*. Not used For BS_SOLID or BS_HOLLOW.
 						// For a pattern brush, this should be a handle to a bitmap
-		&&PyWinObject_AsHANDLE(obhatch, (HANDLE *)&plb->lbHatch, TRUE);
+		&&PyWinObject_AsHANDLE(obhatch, (HANDLE *)&plb->lbHatch);
 	Py_DECREF(dummy_tuple);
 	return ret;
 }
@@ -7245,7 +7245,7 @@ PyObject *PyDrawTextW(PyObject *self, PyObject *args, PyObject *kwargs)
 		&obrc,		// @pyparm <o PyRECT>|Rect||Rectangle in which to draw text
 		&fmt))		// @pyparm int|Format||Formatting flags, combination of win32con.DT_* values
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhdc, (HANDLE *)&hdc, FALSE))
+	if (!PyWinObject_AsHANDLE(obhdc, (HANDLE *)&hdc))
 		return NULL;
 	if (!PyWinObject_AsRECT(obrc, &rc))
 		return NULL;
@@ -7304,7 +7304,7 @@ PyObject *PyEnumPropsEx(PyObject *self, PyObject *args)
 		&callback,			// @pyparm function|EnumFunc||Callback function
 		&callback_data))	// @pyparm object|Param||Arbitrary object to be passed to callback function
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	if (!PyCallable_Check(callback)){
 		PyErr_SetString(PyExc_TypeError,"EnumFunc must be callable");

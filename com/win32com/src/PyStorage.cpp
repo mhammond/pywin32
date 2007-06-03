@@ -111,7 +111,7 @@ PyObject *pythoncom_CreateStreamOnHGlobal(PyObject *self, PyObject *args)
 		&obhglobal,	// @pyparm <o PyHANDLE>|hGlobal|None|Global memory handle.  If None, a new global memory object is allocated.
 		&bdelete))	// @pyparm bool|DeleteOnRelease|True|Indicates if global memory should be freed when IStream object is destroyed.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhglobal, &hglobal, TRUE))
+	if (!PyWinObject_AsHANDLE(obhglobal, &hglobal))
 		return NULL;
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = CreateStreamOnHGlobal(hglobal, bdelete, &pIStream);

@@ -245,9 +245,9 @@ PyObject *MyCreateIoCompletionPort(PyObject *self, PyObject *args)
     if (!PyWinLong_AsVoidPtr(obkey, (void **)&key))
         return NULL;
     HANDLE hFile, hExisting;
-    if (!PyWinObject_AsHANDLE(obFileHandle, &hFile, FALSE))
+    if (!PyWinObject_AsHANDLE(obFileHandle, &hFile))
         return NULL;
-    if (!PyWinObject_AsHANDLE(obExistingHandle, &hExisting, TRUE))
+    if (!PyWinObject_AsHANDLE(obExistingHandle, &hExisting))
         return NULL;
     if (hExisting) {
         obRet = obExistingHandle;
@@ -1158,7 +1158,7 @@ static PyObject *myGetQueuedCompletionStatus(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "Ol", &obHandle, &timeout))
 		return NULL;
 	HANDLE handle;
-	if (!PyWinObject_AsHANDLE(obHandle, &handle, FALSE))
+	if (!PyWinObject_AsHANDLE(obHandle, &handle))
 		return NULL;
 	DWORD bytes = 0;
 	ULONG_PTR key = 0;
@@ -1190,7 +1190,7 @@ PyObject *myPostQueuedCompletionStatus(PyObject *self, PyObject *args)
 		if (!PyWinLong_AsVoidPtr(obkey, (void **)&key))
 			return NULL;
 	HANDLE handle;
-	if (!PyWinObject_AsHANDLE(obHandle, &handle, FALSE))
+	if (!PyWinObject_AsHANDLE(obHandle, &handle))
 		return NULL;
 	OVERLAPPED *pOverlapped;
 	if (!PyWinObject_AsQueuedOVERLAPPED(obOverlapped, &pOverlapped, TRUE))
@@ -1411,7 +1411,7 @@ static PyObject *PyReadDirectoryChangesW(PyObject *self, PyObject *args)
 	if (obOverlapped && obOverlapped != Py_None)
 		if (!PyWinObject_AsOVERLAPPED(obOverlapped, &pOverlapped))
 			return NULL;
-	if (!PyWinObject_AsHANDLE(obhandle, &handle, FALSE))
+	if (!PyWinObject_AsHANDLE(obhandle, &handle))
 		return NULL;
 	// Todo: overlappedRoutine support.
 	if (obOverlappedRoutine != Py_None)
@@ -1552,7 +1552,7 @@ PyObject *MySetFilePointer(PyObject *self, PyObject *args)
 			              // @flag FILE_END|The starting point is the current end-of-file position. 
 
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obHandle, &handle, FALSE))
+	if (!PyWinObject_AsHANDLE(obHandle, &handle))
 		return NULL;
 	long offHigh;
 	unsigned offLow;
@@ -2400,7 +2400,7 @@ static PyObject *PyClearCommError(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O", &obHandle))
 		return NULL;
 	HANDLE handle;
-	if (!PyWinObject_AsHANDLE(obHandle, &handle, FALSE))
+	if (!PyWinObject_AsHANDLE(obHandle, &handle))
 		return NULL;
 	BOOL rc;
 	DWORD int_ret;
@@ -2525,7 +2525,7 @@ static PyObject *MyWaitCommEvent(PyObject *self, PyObject *args)
 			// <nl>If hFile was not opened with FILE_FLAG_OVERLAPPED, WaitCommEvent does not return until one of the specified events or an error occurs. 
 		return NULL;
 	HANDLE handle;
-	if (!PyWinObject_AsHANDLE(obHandle, &handle, FALSE))
+	if (!PyWinObject_AsHANDLE(obHandle, &handle))
 		return NULL;
 	PyOVERLAPPED *pyoverlapped;
 	if (!PyWinObject_AsPyOVERLAPPED(obOverlapped, &pyoverlapped, TRUE))
@@ -2892,7 +2892,7 @@ py_CreateHardLink(PyObject *self, PyObject *args, PyObject *kwargs)
 		&sa_obj,			// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Optional SECURITY_ATTRIBUTES object. MSDN describes this parameter as reserved, so use only None
 		&trans_obj))		// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, as returned by <om win32transaction.CreateTransaction>
 		return NULL;
-	if (!PyWinObject_AsHANDLE(trans_obj, &htrans, TRUE))
+	if (!PyWinObject_AsHANDLE(trans_obj, &htrans))
 		return NULL;
 	if (!PyWinObject_AsSECURITY_ATTRIBUTES(sa_obj, &sa, TRUE))
 		return NULL;
@@ -2941,7 +2941,7 @@ static PyObject *py_CreateSymbolicLink(PyObject *self, PyObject *args, PyObject 
 		&flags,			// @pyparm int|Flags|0|SYMLINK_FLAG_DIRECTORY is only defined flag
 		&obtrans))		// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, as returned by <om win32transaction.CreateTransaction>
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obtrans, &htrans, TRUE))
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 			return NULL;
 	if (htrans){
 		CHECK_PFN(CreateSymbolicLinkTransacted);
@@ -3518,7 +3518,7 @@ py_BackupRead(PyObject *self, PyObject *args)
 
 	if (!PyArg_ParseTuple(args, "OlOllO:BackupRead", &obh, &bytes_requested, &obbuf, &bAbort, &bProcessSecurity, &obctxt))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obh, &h, FALSE))
+	if (!PyWinObject_AsHANDLE(obh, &h))
 		return NULL;
 	if (!PyWinLong_AsVoidPtr(obctxt, &ctxt))
 		return NULL;
@@ -3565,7 +3565,7 @@ py_BackupSeek(PyObject *self, PyObject *args)
 	PyObject *obbytes_to_seek, *obh, *obctxt;
 	if (!PyArg_ParseTuple(args,"OOO:BackupSeek", &obh, &obbytes_to_seek, &obctxt))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obh, &h, FALSE))
+	if (!PyWinObject_AsHANDLE(obh, &h))
 		return NULL;
 	if (!PyWinLong_AsVoidPtr(obctxt, &ctxt))
 		return NULL;
@@ -3607,7 +3607,7 @@ py_BackupWrite(PyObject *self, PyObject *args)
 
 	if (!PyArg_ParseTuple(args, "OlOllO:BackupWrite", &obh, &bytes_to_write, &obbuf, &bAbort, &bProcessSecurity, &obctxt))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obh, &h, FALSE))
+	if (!PyWinObject_AsHANDLE(obh, &h))
 		return NULL;
 	if (!PyWinLong_AsVoidPtr(obctxt, &ctxt))
 		return NULL;
@@ -3638,7 +3638,7 @@ py_SetFileShortName(PyObject *self, PyObject *args)
 		&obh,			// @pyparm <o PyHANDLE>|hFile||Handle to a file or directory
 		&obshortname))	// @pyparm <o PyUNICODE>|ShortName||The 8.3 name to be applied to the file
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obh, &h, FALSE))
+	if (!PyWinObject_AsHANDLE(obh, &h))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obshortname, &shortname, FALSE))
 		return NULL;
@@ -3782,7 +3782,7 @@ py_CopyFileTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
 		&flags))	// @pyparm int|CopyFlags|0|Combination of COPY_FILE_* flags
 		return NULL;
 
-	if (!PyWinObject_AsHANDLE(obtrans, &htrans, FALSE))
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
 	if (obcallback!=Py_None){
 		if (!PyCallable_Check(obcallback)){
@@ -3895,7 +3895,7 @@ static PyObject *py_MoveFileTransacted(PyObject *self, PyObject *args, PyObject 
 		&obdata,		// @pyparm object|Data|None|An arbitrary object to be passed to the callback function
 		&flags))		// @pyparm int|Flags|0|Combination of MOVEFILE_* flags
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obtrans, &htransaction, FALSE))
+	if (!PyWinObject_AsHANDLE(obtrans, &htransaction))
 		return NULL;
 	if (obcallback!=Py_None){
 		if (!PyCallable_Check(obcallback)){
@@ -4210,9 +4210,9 @@ static PyObject *py_CreateFileTransacted(PyObject *self, PyObject *args, PyObjec
 
 	if (!PyWinObject_AsSECURITY_ATTRIBUTES(obsa, &psa, TRUE))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhtemplate, &htemplate, TRUE))
+	if (!PyWinObject_AsHANDLE(obhtemplate, &htemplate))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhtransaction, &htransaction, FALSE))
+	if (!PyWinObject_AsHANDLE(obhtransaction, &htransaction))
 		return NULL;
 	if (obextendedparameter!=Py_None){
 		PyErr_SetString(PyExc_TypeError,"ExtendedParameter must be None");
@@ -4255,7 +4255,7 @@ static PyObject *py_DeleteFileTransacted(PyObject *self, PyObject *args, PyObjec
 		&obfilename,		// @pyparm <o PyUnicode>|FileName||Name of file to be deleted
 		&obhtransaction))	// @pyparm <o PyHANDLE>|Transaction||Transaction handle as returned by <om win32transaction.CreateTransaction>
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhtransaction, &htransaction, FALSE))
+	if (!PyWinObject_AsHANDLE(obhtransaction, &htransaction))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obfilename, &filename, FALSE))
 		return NULL;
@@ -4292,7 +4292,7 @@ static PyObject *py_GetFileAttributesTransacted(PyObject *self, PyObject *args, 
 		&obtrans,	// @pyparm <o PyHANDLE>|Transaction||Handle to the transaction.  See <om win32transaction.CreateTransaction>.
 		&lvl))		// @pyparm int|InfoLevelId|GetFileExInfoStandard|Level of information to return (GET_FILEEX_INFO_LEVELS enum)
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obtrans, &htrans, FALSE))
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
 	switch (lvl){
 		// @flagh InfoLevelId|Information returned
@@ -4338,7 +4338,7 @@ static PyObject *py_SetFileAttributesTransacted(PyObject *self, PyObject *args, 
 		&attrs,		// @pyparm int|FileAttributes||Combination of FILE_ATTRIBUTE_* flags
 		&obtrans))	// @pyparm <o PyHANDLE>|Transaction||Handle to the transaction.  See <om win32transaction.CreateTransaction>.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obtrans, &htrans, FALSE))
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
 		return NULL;
@@ -4370,7 +4370,7 @@ static PyObject *py_CreateDirectoryTransacted(PyObject *self, PyObject *args, Py
 		&obtemplatedir,	// @pyparm <o PyUnicode>|TemplateDirectory|None|Directory to use as a template
 		&obsa))			// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Security for new directory
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obtrans, &htrans, FALSE))
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
 	if (!PyWinObject_AsSECURITY_ATTRIBUTES(obsa, &psa, TRUE))
 		return NULL;
@@ -4405,7 +4405,7 @@ static PyObject *py_RemoveDirectoryTransacted(PyObject *self, PyObject *args, Py
 		&obdirname,		// @pyparm <o PyUnicode>|PathName||Name of directory to be removed
 		&obtrans))		// @pyparm <o PyHANDLE>|Transaction||Handle to the transaction.  See <om win32transaction.CreateTransaction>.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obtrans, &htrans, FALSE))
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obdirname, &dirname, FALSE))
 		return NULL;
@@ -4436,7 +4436,7 @@ static PyObject *py_FindFilesW(PyObject *self, PyObject *args, PyObject *kwargs)
 		&obtrans))		// @pyparm <o PyHANDLE>|Transaction|None|Transaction handle as returned by <om win32transaction.CreateTransaction>.  Can be None.
 						//	If this parameter is not None, FindFirstFileTransacted will be called to perform a transacted search
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obtrans, &htrans, TRUE))
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
 	if (htrans!=NULL)
 		CHECK_PFN(FindFirstFileTransacted);
@@ -4508,7 +4508,7 @@ static PyObject *py_FindFilesIterator(PyObject *self, PyObject *args, PyObject *
 		&obtrans))		// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, can be None.
 						//	If this parameter is not None, FindFirstFileTransacted will be called to perform a transacted search
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obtrans, &htrans, TRUE))
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
 	if (htrans!=NULL)
 		CHECK_PFN(FindFirstFileTransacted);
@@ -4569,7 +4569,7 @@ static PyObject *py_FindStreams(PyObject *self, PyObject *args, PyObject *kwargs
 		&obfname,	// @pyparm <o PyUnicode>|FileName||Name of file (or directory) to operate on
 		&obtrans))	// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, can be None
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obtrans, &htrans, TRUE))
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
 	if (htrans!=NULL)
 		CHECK_PFN(FindFirstStreamTransacted);
@@ -4634,7 +4634,7 @@ static PyObject *py_FindFileNames(PyObject *self, PyObject *args, PyObject *kwar
 		&obfname,	// @pyparm <o PyUnicode>|FileName||Name of file for which to find links
 		&obtrans))	// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, can be None
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obtrans, &htrans, TRUE))
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
 	if (htrans!=NULL)
 		CHECK_PFN(FindFirstFileNameTransacted);
@@ -4731,7 +4731,7 @@ static PyObject *py_GetFinalPathNameByHandle(PyObject *self, PyObject *args, PyO
 		&obhfile,	// @pyparm <o PyHANDLE>|File||An open file handle
 		&flags))	// @pyparm int|Flags||Specifies type of path to return. (win32con.FILE_NAME_NORMALIZED,FILE_NAME_OPENED,VOLUME_NAME_DOS,VOLUME_NAME_GUID,VOLUME_NAME_NONE,VOLUME_NAME_NT)
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhfile, &hfile, FALSE))
+	if (!PyWinObject_AsHANDLE(obhfile, &hfile))
 		return NULL;
 
 	reqd_len=(*pfnGetFinalPathNameByHandle)(hfile, path, path_len, flags);
@@ -4829,7 +4829,7 @@ static PyObject *py_GetLongPathName(PyObject *self, PyObject *args, PyObject *kw
 		&obfname,	// @pyparm <o PyUnicode>|ShortPath||8.3 path to be expanded
 		&obtrans))	// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction.  If specified, GetLongPathNameTransacted will be called.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obtrans, &htrans, TRUE))
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
 	if (htrans){
 		CHECK_PFN(GetLongPathNameTransacted);
@@ -4895,7 +4895,7 @@ static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kw
 		&obpathin,	// @pyparm str/unicode|FileName||Path on which to operate
 		&obtrans))	// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction as returned by <om win32transaction.CreateTransaction>
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obtrans, &htrans, TRUE))
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
 
 	WCHAR *wpathin;

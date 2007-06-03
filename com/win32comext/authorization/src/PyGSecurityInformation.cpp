@@ -88,7 +88,7 @@ STDMETHODIMP PyGSecurityInformation::GetObjectInformation(PSI_OBJECT_INFO pObjec
 		if ((!FAILED(hr))
 			&&PyArg_ParseTuple(result, "kOOOOO", &ObjectInfo.dwFlags, &obhInstance, &obServerName,
 				&obObjectName, &obPageTitle, &obObjectType)
-			&&PyWinObject_AsHANDLE(obhInstance, (PHANDLE)&ObjectInfo.hInstance, TRUE)
+			&&PyWinObject_AsHANDLE(obhInstance, (PHANDLE)&ObjectInfo.hInstance)
 			&&PyWinObject_AsWCHAR(obServerName, &ObjectInfo.pszServerName, TRUE)
 			&&PyWinObject_AsWCHAR(obObjectName, &ObjectInfo.pszObjectName, FALSE)
 			&&PyWinObject_AsWCHAR(obPageTitle, &ObjectInfo.pszPageTitle, TRUE)

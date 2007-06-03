@@ -80,7 +80,7 @@ public:
 %typemap(python,in) HTHEME *(HTHEME temp)
 {
     $target = &temp;
-    if (!PyWinObject_AsHANDLE($source, $target, TRUE))
+    if (!PyWinObject_AsHANDLE($source, $target))
         return NULL;
 }
 

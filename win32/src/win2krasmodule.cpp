@@ -145,7 +145,7 @@ PyRasGetEapUserIdentity( PyObject *self, PyObject *args )
 						// @flag RASEAPF_Preview|Specifies that the user should be prompted for identity information before dialing. 
 			  &obhwnd))   // @pyparm <o PyHANDLE>|hwnd|None|Handle to the parent window for the UI dialog.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 
 	// @pyseeapi RasGetEapUserIdentity

@@ -1660,7 +1660,7 @@ static PyObject *pythoncom_RegisterDragDrop(PyObject *, PyObject *args)
 	PyObject *obhwnd;
 	if (!PyArg_ParseTuple(args, "OO:RegisterDragDrop", &obhwnd, &obd))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	// @pyparm <o PyHANDLE>|hwnd||Handle to a window
 	// @pyparm <o PyIDropTarget>|dropTarget||Object that implements the IDropTarget interface
@@ -1690,7 +1690,7 @@ static PyObject *pythoncom_RevokeDragDrop(PyObject *, PyObject *args)
 	// @pyparm <o PyHANDLE>|hwnd||Handle to a window registered as an OLE drop target.
 	if (!PyArg_ParseTuple(args, "O:RevokeDragDrop", &obhwnd))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	HRESULT hr;
 	Py_BEGIN_ALLOW_THREADS

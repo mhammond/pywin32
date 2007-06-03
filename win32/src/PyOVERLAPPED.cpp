@@ -174,7 +174,7 @@ int PyOVERLAPPED::setattr(PyObject *self, char *name, PyObject *v)
 		PyOVERLAPPED *pO = (PyOVERLAPPED *)self;
 		// Use an intermediate so the original isn't lost if conversion fails
 		HANDLE htmp;	
-		if (!PyWinObject_AsHANDLE(v, &htmp, FALSE))
+		if (!PyWinObject_AsHANDLE(v, &htmp))
 			return -1;
 		pO->m_overlapped.hEvent=htmp;
 		Py_XDECREF(pO->m_obHandle);

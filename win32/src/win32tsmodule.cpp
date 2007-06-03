@@ -72,7 +72,7 @@ static PyObject *PyWTSCloseServer(PyObject *self, PyObject *args, PyObject *kwar
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:WTSCloseServer", keywords,
 		&obh))	// @pyparm <o PyHANDLE>|Server||Terminal Server handle
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obh, &h, FALSE))
+	if (!PyWinObject_AsHANDLE(obh, &h))
 		return NULL;
 	WTSCloseServer(h);
 	Py_INCREF(Py_None);
@@ -262,7 +262,7 @@ static PyObject *PyWTSEnumerateSessions(PyObject *self, PyObject *args, PyObject
 		&Reserved))		// @pyparm int|Reserved|0|Reserved, use 0 if passed in
 		return NULL;
 	if (obh)
-		if (!PyWinObject_AsHANDLE(obh, &h, TRUE))
+		if (!PyWinObject_AsHANDLE(obh, &h))
 			return NULL;
 
 	if (!WTSEnumerateSessions(h,Reserved,Version, &buf, &cnt))
@@ -303,7 +303,7 @@ static PyObject *PyWTSLogoffSession(PyObject *self, PyObject *args, PyObject *kw
 		&Wait))		// @pyparm boolean|Wait||Indicates whether operation should be performed asynchronously
 		return NULL;
 
-	if (!PyWinObject_AsHANDLE(obh, &h, TRUE))
+	if (!PyWinObject_AsHANDLE(obh, &h))
 		return NULL;
 	if (!WTSLogoffSession(h, SessionId, Wait))
 		return PyWin_SetAPIError("WTSLogoffSession");
@@ -326,7 +326,7 @@ static PyObject *PyWTSDisconnectSession(PyObject *self, PyObject *args, PyObject
 		&Wait))		// @pyparm boolean|Wait||Indicates whether operation should be performed asynchronously
 		return NULL;
 
-	if (!PyWinObject_AsHANDLE(obh, &h, TRUE))
+	if (!PyWinObject_AsHANDLE(obh, &h))
 		return NULL;
 	if (!WTSDisconnectSession(h, SessionId, Wait))
 		return PyWin_SetAPIError("WTSDisconnectSession");
@@ -351,7 +351,7 @@ static PyObject *PyWTSQuerySessionInformation(PyObject *self, PyObject *args, Py
 		&WTSInfoClass))	// @pyparm int|WTSInfoClass||Type of information requested, from WTS_INFO_CLASS enum
 		return NULL;
 
-	if (!PyWinObject_AsHANDLE(obh, &h, TRUE))
+	if (!PyWinObject_AsHANDLE(obh, &h))
 		return NULL;
 	if (!WTSQuerySessionInformation(h, SessionId, WTSInfoClass, &buf, &bufsize)){
 		PyWin_SetAPIError("WTSQuerySessionInformation");
@@ -409,7 +409,7 @@ static PyObject *PyWTSEnumerateProcesses(PyObject *self, PyObject *args, PyObjec
 		&Reserved))		// @pyparm int|Reserved|0|Reserved, use 0 if passed in
 		return NULL;
 	if (obh)
-		if (!PyWinObject_AsHANDLE(obh, &h, TRUE))
+		if (!PyWinObject_AsHANDLE(obh, &h))
 			return NULL;
 
 	if (!WTSEnumerateProcesses(h,Reserved,Version, &buf, &cnt))
@@ -462,7 +462,7 @@ static PyObject *PyWTSShutdownSystem(PyObject *self, PyObject *args, PyObject *k
 		&obh,		// @pyparm <o PyHANDLE>|Server||Handle to a terminal server
 		&flags))	// @pyparm int|ShutdownFlag||One of the win32ts.WTS_WSD_* values
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obh, &h, TRUE))
+	if (!PyWinObject_AsHANDLE(obh, &h))
 		return NULL;
 	if (!WTSShutdownSystem(h, flags))
 		return PyWin_SetAPIError("WTSShutdownSystem");
@@ -482,7 +482,7 @@ static PyObject *PyWTSTerminateProcess(PyObject *self, PyObject *args, PyObject 
 		&ProcessId,	// @pyparm int|ProcessId||Id of a process as returned by <om win32ts.WTSEnumerateProcesses>
 		&ExitCode))	// @pyparm int|ExitCode||Exit code for the process
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obh, &h, TRUE))
+	if (!PyWinObject_AsHANDLE(obh, &h))
 		return NULL;
 	if (!WTSTerminateProcess(h, ProcessId, ExitCode))
 		return PyWin_SetAPIError("WTSTerminateProcess");
@@ -528,7 +528,7 @@ static PyObject *PyWTSRegisterSessionNotification(PyObject *self, PyObject *args
 		&obhwnd,	// @pyparm <o PyHANDLE>|Wnd||Window handle to receive terminal service messages
 		&flags))	// @pyparm int|Flags||NOTIFY_FOR_THIS_SESSION or NOTIFY_FOR_ALL_SESSIONS 
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	if (!(*pfnWTSRegisterSessionNotification)(hwnd, flags))
 		PyWin_SetAPIError("WTSRegisterSessionNotification");
@@ -546,7 +546,7 @@ static PyObject *PyWTSUnRegisterSessionNotification(PyObject *self, PyObject *ar
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:WTSUnRegisterSessionNotification", keywords,
 		&obhwnd))	// @pyparm <o PyHANDLE>|Wnd||Window previously registered to receive session notifications
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	if (!(*pfnWTSUnRegisterSessionNotification)(hwnd))
 		PyWin_SetAPIError("WTSUnRegisterSessionNotification");
@@ -567,7 +567,7 @@ static PyObject *PyWTSWaitSystemEvent(PyObject *self, PyObject *args, PyObject *
 		&EventMask))	// @pyparm int|EventMask|WTS_EVENT_ALL|Combination of WTS_EVENT_* values
 		return NULL;
 	if (obh)
-		if (!PyWinObject_AsHANDLE(obh, &h, TRUE))
+		if (!PyWinObject_AsHANDLE(obh, &h))
 			return NULL;
 	if (!WTSWaitSystemEvent(h, EventMask, &EventFlags))
 		return PyWin_SetAPIError("WTSWaitSystemEvent");
@@ -594,7 +594,7 @@ static PyObject *PyWTSSendMessage(PyObject *self, PyObject *args, PyObject *kwar
 		&Timeout,	// @pyparm int|Timeout||Seconds to wait before returning (only used if Wait is True)
 		&Wait))		// @pyparm boolean|Wait||Specifies if function should wait for user input before returning
 		return NULL;
-	if (PyWinObject_AsHANDLE(obh, &h, TRUE)
+	if (PyWinObject_AsHANDLE(obh, &h)
 		&&PyWinObject_AsWCHAR(obTitle, &Title, FALSE, &TitleLen)
 		&&PyWinObject_AsWCHAR(obMessage, &Message, FALSE, &MessageLen)){
 		if (WTSSendMessage(h, SessionId, Title, TitleLen*sizeof(WCHAR), Message, MessageLen*sizeof(WCHAR), Style, Timeout, &Response, Wait))

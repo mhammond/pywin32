@@ -54,7 +54,7 @@ static PyObject *dummy_tuple=NULL;
 
 // To be used in PyArg_ParseTuple with O& format 
 BOOL PyWinObject_AsPrinterHANDLE(PyObject *obhprinter, HANDLE *phprinter){
-	return PyWinObject_AsHANDLE(obhprinter, phprinter, FALSE);
+	return PyWinObject_AsHANDLE(obhprinter, phprinter);
 }
 
 // @object PyPrinterHANDLE|Handle to a printer or print server.
@@ -1205,7 +1205,7 @@ static PyObject *PyDocumentProperties(PyObject *self, PyObject *args)
 		PyWinObject_AsPrinterHANDLE, &hprinter, 
 		&devicename, &obdmoutput, &obdminput, &mode))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	if (!PyWinObject_AsDEVMODE(obdmoutput, &dmoutput, TRUE))
 		return NULL;

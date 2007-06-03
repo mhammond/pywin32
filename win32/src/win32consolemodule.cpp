@@ -1584,7 +1584,7 @@ PyObject *PyConsoleScreenBuffer::tp_new(PyTypeObject *tp, PyObject *args, PyObje
 	PyObject *obh;
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &obh))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obh, &h, FALSE))
+	if (!PyWinObject_AsHANDLE(obh, &h))
 		return NULL;
 	// Handle will be duplicated so caller is still responsible for original handle
 	return PyWinObject_FromConsoleScreenBuffer(h, TRUE);

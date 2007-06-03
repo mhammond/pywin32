@@ -95,7 +95,7 @@ static PyObject *PyRollbackTransaction(PyObject *self, PyObject *args, PyObject 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:RollbackTransaction", keywords,
 		&obtrans))	// @pyparm <o PyHANDLE>|TransactionHandle||Handle to a transaction
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obtrans, &htrans, FALSE))
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
 	Py_BEGIN_ALLOW_THREADS
 	ret=(*pfnRollbackTransaction)(htrans);
@@ -118,7 +118,7 @@ static PyObject *PyRollbackTransactionAsync(PyObject *self, PyObject *args, PyOb
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:RollbackTransactionAsync", keywords,
 		&obtrans))	// @pyparm <o PyHANDLE>|TransactionHandle||Handle to a transaction
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obtrans, &htrans, FALSE))
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
 	Py_BEGIN_ALLOW_THREADS
 	ret=(*pfnRollbackTransactionAsync)(htrans);
@@ -141,7 +141,7 @@ static PyObject *PyCommitTransaction(PyObject *self, PyObject *args, PyObject *k
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:CommitTransaction", keywords,
 		&obtrans))	// @pyparm <o PyHANDLE>|TransactionHandle||Handle to a transaction
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obtrans, &htrans, FALSE))
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
 	Py_BEGIN_ALLOW_THREADS
 	ret=(*pfnCommitTransaction)(htrans);
@@ -164,7 +164,7 @@ static PyObject *PyCommitTransactionAsync(PyObject *self, PyObject *args, PyObje
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:CommitTransactionAsync", keywords,
 		&obtrans))	// @pyparm <o PyHANDLE>|TransactionHandle||Handle to a transaction
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obtrans, &htrans, FALSE))
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
 	Py_BEGIN_ALLOW_THREADS
 	ret=(*pfnCommitTransactionAsync)(htrans);
@@ -187,7 +187,7 @@ static PyObject *PyGetTransactionId(PyObject *self, PyObject *args, PyObject *kw
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:GetTransactionId", keywords,
 		&obtrans))	// @pyparm <o PyHANDLE>|TransactionHandle||Handle to a transaction
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obtrans, &htrans, FALSE))
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
 	Py_BEGIN_ALLOW_THREADS
 	ret=(*pfnGetTransactionId)(htrans, &guid);

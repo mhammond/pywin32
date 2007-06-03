@@ -46,7 +46,7 @@ PyObject *PyIShellExtInit::Initialize(PyObject *self, PyObject *args)
 	// XXX - no IDataObject support
 	if (!PyCom_InterfaceFromPyInstanceOrObject(obpDataObject, IID_IDataObject, (void **)&pDataObject, TRUE /* bNoneOK */))
 		 bPythonIsHappy = FALSE;
-	if (!PyWinObject_AsHANDLE(obhkey, (HANDLE *)&hkey, FALSE)) bPythonIsHappy = FALSE;
+	if (!PyWinObject_AsHANDLE(obhkey, (HANDLE *)&hkey)) bPythonIsHappy = FALSE;
 	if (!bPythonIsHappy) return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;

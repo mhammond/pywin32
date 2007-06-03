@@ -480,7 +480,7 @@ PyObject *PyIActiveDesktop::AddDesktopItemWithUI(PyObject *self, PyObject *args)
 		&obcomp,	// @pyparm dict|comp||<o COMPONENT> dictionary
 		&flags))	// @pyparm int|Flags||One of shellcon.DTI_ADDUI_* flags
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	if (!PyWinObject_AsCOMPONENT(obcomp, &comp))
 		return NULL;
@@ -668,7 +668,7 @@ PyObject *PyIActiveDesktop::AddUrl(PyObject *self, PyObject *args)
 		&obcomp,	// @pyparm dict|comp||<o COMPONENT> dictionary
 		&flags))	// @pyparm int|Flags||ADDURL_SILENT, or 0
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	if (!PyWinObject_AsCOMPONENT(obcomp, &comp))
 		return NULL;

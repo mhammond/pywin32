@@ -125,7 +125,7 @@ BOOL PyWinObject_AsPROFILEINFO(PyObject *ob, LPPROFILEINFO pi)
 		&&PyWinObject_AsWCHAR(obDefaultPath, &pi->lpDefaultPath,TRUE)
 		&&PyWinObject_AsWCHAR(obServerName, &pi->lpServerName,TRUE)
 		&&PyWinObject_AsWCHAR(obPolicyPath, &pi->lpPolicyPath,TRUE)
-		&&PyWinObject_AsHANDLE(obhProfile, &pi->hProfile, TRUE);
+		&&PyWinObject_AsHANDLE(obhProfile, &pi->hProfile);
 
 	Py_DECREF(dummy_args);
 	if (!ret)
@@ -150,7 +150,7 @@ PyObject *PyLoadUserProfile(PyObject *self, PyObject *args, PyObject *kwargs)
 		&obhToken,  // @pyparm <o PyHANDLE>|hToken||Logon token as returned by <om win32security.LogonUser>, <om win32security.OpenThreadToken>, etc
 		&obPROFILEINFO))   // @pyparm <o PyPROFILEINFO>|ProfileInfo||Dictionary representing a PROFILEINFO structure
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhToken, &hToken, FALSE))
+	if (!PyWinObject_AsHANDLE(obhToken, &hToken))
 		return NULL;
 	if (!PyWinObject_AsPROFILEINFO(obPROFILEINFO, &profileinfo))
 		return NULL;
@@ -176,9 +176,9 @@ PyObject *PyUnloadUserProfile(PyObject *self, PyObject *args, PyObject *kwargs)
 		&obhProfile))	// @pyparm <o PyHKEY>|Profile||Registry handle as returned by <om win32profile.LoadUserProfile>
 		return NULL;
 
-	if (!PyWinObject_AsHANDLE(obhToken, &hToken, FALSE))
+	if (!PyWinObject_AsHANDLE(obhToken, &hToken))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhProfile, &hProfile, FALSE))
+	if (!PyWinObject_AsHANDLE(obhProfile, &hProfile))
 		return NULL;
 	if (!(*pfnUnloadUserProfile)(hToken, hProfile)){
 		PyWin_SetAPIError("UnloadUserProfile");
@@ -281,7 +281,7 @@ PyObject *PyGetUserProfileDirectory(PyObject *self, PyObject *args, PyObject *kw
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:GetUserProfileDirectory", keywords,
 		&obhToken))	// @pyparm <o PyHANDLE>|Token||User token as returned by <om win32security.LogonUser>
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhToken, &hToken, FALSE))
+	if (!PyWinObject_AsHANDLE(obhToken, &hToken))
 		return NULL;
 	(*pfnGetUserProfileDirectory)(hToken, profile_path, &bufsize);
 	if (bufsize==0)
@@ -358,7 +358,7 @@ PyObject *PyCreateEnvironmentBlock(PyObject *self, PyObject *args, PyObject *kwa
 		&obhToken,	// @pyparm <o PyHANDLE>|Token||User token as returned by <om win32security.LogonUser>, use None to retrieve system variables only
 		&inherit))	// @pyparm boolean|Inherit||Indicates if environment of current process should be inherited
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhToken, &hToken, TRUE))
+	if (!PyWinObject_AsHANDLE(obhToken, &hToken))
 		return NULL;
 	if (!CreateEnvironmentBlock(&env, hToken, inherit))
 		PyWin_SetAPIError("CreateEnvironmentBlock");
@@ -401,7 +401,7 @@ PyObject *PyExpandEnvironmentStringsForUser(PyObject *self, PyObject *args, PyOb
 		&obtoken,	// @pyparm <o PyHANDLE>|Token||The logon token for a user.  Use None for system variables.
 		&obsrc))	// @pyparm <o PyUnicode>|Src||String containing environment variables enclosed in % signs
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obtoken, &htoken, TRUE)
+	if (!PyWinObject_AsHANDLE(obtoken, &htoken)
 		|| !PyWinObject_AsWCHAR(obsrc, &src, FALSE, &bufsize))
 		return NULL;
 

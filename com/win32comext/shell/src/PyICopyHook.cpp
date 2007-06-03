@@ -49,7 +49,7 @@ PyObject *PyICopyHook::CopyCallback(PyObject *self, PyObject *args)
 	DWORD destAttribs;
 	if ( !PyArg_ParseTuple(args, "OiiOlOl:CopyCallback", &obhwnd, &wFunc, &wFlags, &obsrcFile, &srcAttribs, &obdestFile, &destAttribs) )
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
 	if (bPythonIsHappy && !PyWinObject_AsTCHAR(obsrcFile, &srcFile)) bPythonIsHappy = FALSE;

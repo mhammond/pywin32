@@ -61,9 +61,9 @@ py_change_clipboard_chain(PyObject* self, PyObject* args)
                         &obhWndRemove, &obhWndNewNext)) {
     return NULL;
   }
-  if (!PyWinObject_AsHANDLE(obhWndRemove, (HANDLE *)&hWndRemove, FALSE))
+  if (!PyWinObject_AsHANDLE(obhWndRemove, (HANDLE *)&hWndRemove))
 	  return NULL;
-  if (!PyWinObject_AsHANDLE(obhWndNewNext, (HANDLE *)&hWndNewNext, TRUE))
+  if (!PyWinObject_AsHANDLE(obhWndNewNext, (HANDLE *)&hWndNewNext))
 	  return NULL;
 
   BOOL rc;
@@ -465,7 +465,7 @@ py_get_global_memory(PyObject* self, PyObject* args)
     // @pyparm <o PyHANDLE>|hglobal||The handle to the global memory object
     if (!PyArg_ParseTuple(args, "O", &obhglobal))
         return NULL;
-    if (!PyWinObject_AsHANDLE(obhglobal, &hglobal, FALSE))
+    if (!PyWinObject_AsHANDLE(obhglobal, &hglobal))
     return NULL;
     size_t size = GlobalSize(hglobal);
     if (!size)
@@ -786,7 +786,7 @@ py_open_clipboard(PyObject* self, PyObject* args)
     &obhWnd))
     return NULL;
 
-  if (!PyWinObject_AsHANDLE(obhWnd, (HANDLE *)&hWnd, TRUE))
+  if (!PyWinObject_AsHANDLE(obhWnd, (HANDLE *)&hWnd))
 	  return NULL;
   BOOL rc;
   Py_BEGIN_ALLOW_THREADS;
@@ -895,7 +895,7 @@ py_set_clipboard_data(PyObject* self, PyObject* args)
 	if (!PyArg_ParseTuple(args, "iO:SetClipboardData",
 		&format, &obhandle))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhandle , &handle, TRUE)){
+	if (!PyWinObject_AsHANDLE(obhandle , &handle)){
 		PyErr_Clear();
 		// @pyparmalt1 int|format||Specifies a clipboard format. For a description of
 		// the standard clipboard formats, see Standard Clipboard Formats.
@@ -1016,7 +1016,7 @@ py_set_clipboard_viewer(PyObject* self, PyObject* args)
   PyObject *obhwnd;
   if (!PyArg_ParseTuple(args, "O:SetClipboardViewer", &obhwnd))
     return NULL;
-  if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hWndNewViewer, FALSE))
+  if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hWndNewViewer))
 	  return NULL;
   HWND rc;
   Py_BEGIN_ALLOW_THREADS;

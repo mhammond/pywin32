@@ -43,7 +43,7 @@ PyObject *PyIContextMenu::QueryContextMenu(PyObject *self, PyObject *args)
 		&idCmdLast,		// @pyparm int|idCmdLast||Max menu item Id
 		&uFlags))		// @pyparm int|uFlags||Combination of shellcon.CMF_* flags, can be 0
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhmenu, (HANDLE *)&hmenu, FALSE))
+	if (!PyWinObject_AsHANDLE(obhmenu, (HANDLE *)&hmenu))
 		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;

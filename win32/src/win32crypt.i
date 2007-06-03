@@ -124,7 +124,7 @@ PyObject *PyWinObject_FromDATA_BLOB(DATA_BLOB *b)
             return NULL;
         if (!PyWinObject_AsWCHAR(obPrompt, (WCHAR **)(&$target->szPrompt), TRUE))
             return NULL;
-		if (!PyWinObject_AsHANDLE(obhwndApp, (HANDLE *)&$target->hwndApp, TRUE))
+		if (!PyWinObject_AsHANDLE(obhwndApp, (HANDLE *)&$target->hwndApp))
 			return NULL;
     } else {
         PyErr_Format(PyExc_TypeError, "CRYPTPROTECT_PROMPTSTRUCT must be None or a tuple (got %s)",

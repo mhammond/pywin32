@@ -73,17 +73,17 @@ PyObject *PyObject_FromHINTERNET(HINTERNET hi)
 %}
 
 %typemap(python,in) HINTERNET {
-    if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target, FALSE))
+    if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
 
 %typemap(python,in) PyHINTERNET {
-    if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target, FALSE))
+    if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
 
 %typemap(python,in) PyHINTERNET INPUT_NULLOK {
-    if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target, TRUE))
+    if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
 
@@ -250,7 +250,7 @@ PyObject *PyInternetOpenUrl(PyObject *self, PyObject *args)
     // @pyparm int|flags||
     if (!PyArg_ParseTuple(args, "OOOi:InternetOpenUrl", &obH, &obURL, &obHeaders, &flags))
         return NULL;
-    if (!PyWinObject_AsHANDLE(obH, (HANDLE *)&hiin, FALSE))
+    if (!PyWinObject_AsHANDLE(obH, (HANDLE *)&hiin))
         goto done;
     if (!PyWinObject_AsString(obURL, &szURL, FALSE))
         goto done;
@@ -388,7 +388,7 @@ PyObject *PyInternetReadFile(PyObject *self, PyObject *args)
         PyErr_NoMemory();
         return NULL;
     }
-    if (!PyWinObject_AsHANDLE(obH, (HANDLE *)&hiin, FALSE))
+    if (!PyWinObject_AsHANDLE(obH, (HANDLE *)&hiin))
         goto done;
     Py_BEGIN_ALLOW_THREADS
     ok = InternetReadFile(hiin, buf, size, &read);

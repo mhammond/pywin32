@@ -302,25 +302,25 @@ typedef HANDLE PyHANDLE;
 %}
 
 %typemap(python,in) HANDLE {
-	if (!PyWinObject_AsHANDLE($source, &$target, TRUE))
+	if (!PyWinObject_AsHANDLE($source, &$target))
 		return NULL;
 }
 
 %typemap(python,in) PyHANDLE {
-	if (!PyWinObject_AsHANDLE($source, &$target, FALSE))
+	if (!PyWinObject_AsHANDLE($source, &$target))
 		return NULL;
 }
 %typemap(python,in) PyHKEY {
-	if (!PyWinObject_AsHKEY($source, &$target, FALSE))
+	if (!PyWinObject_AsHKEY($source, &$target))
 		return NULL;
 }
 
 %typemap(python,in) PyHANDLE INPUT_NULLOK {
-	if (!PyWinObject_AsHANDLE($source, &$target, TRUE))
+	if (!PyWinObject_AsHANDLE($source, &$target))
 		return NULL;
 }
 %typemap(python,in) PyHKEY INPUT_NULLOK {
-	if (!PyWinObject_AsHKEY($source, &$target, TRUE))
+	if (!PyWinObject_AsHKEY($source, &$target))
 		return NULL;
 }
 
@@ -386,7 +386,7 @@ typedef HANDLE PyHANDLE;
 // Has to be typedef'ed to a non-pointer type or the typemaps are ignored
 typedef float HWND;
 %typemap(python, in) HWND{
-	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target, FALSE))
+	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
 %typemap(python, out) HWND{

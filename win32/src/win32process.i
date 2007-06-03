@@ -203,7 +203,7 @@ PyObject *PySTARTUPINFO::getattr(PyObject *self, char *name)
 int sethandle(PyObject **pobHandle, HANDLE *ph, PyObject *v)
 {
 	HANDLE htmp;
-	if (!PyWinObject_AsHANDLE(v, &htmp, TRUE))
+	if (!PyWinObject_AsHANDLE(v, &htmp))
 		return -1;
 	*ph=htmp;
 	Py_XDECREF(*pobHandle);
@@ -429,7 +429,7 @@ static PyObject *myCreateRemoteThread(PyObject *self, PyObject *args)
 		&obParameter, // @pyparm int|Parameter||Arg passed to the function in the form of a void pointer
 		&flags)) // @pyparm int|flags||
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess, FALSE))
+	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess))
 		return NULL;
 	if (!PyWinLong_AsVoidPtr(obFunc, (void **)&Func))
 		return NULL;
@@ -827,7 +827,7 @@ static PyObject *PyGetProcessPriorityBoost(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:GetProcessPriorityBoost",
 		&obth))		// @pyparm <o PyHANDLE>|Process||Handle to a process
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obth, &th, FALSE))
+	if (!PyWinObject_AsHANDLE(obth, &th))
 		return NULL;
 	if (!(*pfnGetProcessPriorityBoost)(th, &ret))
 		return PyWin_SetAPIError("GetProcessPriorityBoost");
@@ -845,7 +845,7 @@ static PyObject *PySetProcessPriorityBoost(PyObject *self, PyObject *args)
 		&obth,		// @pyparm <o PyHANDLE>|Process||Handle to a process
 		&disable))	// @pyparm boolean|DisablePriorityBoost||True to disable or False to enable
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obth, &th, FALSE))
+	if (!PyWinObject_AsHANDLE(obth, &th))
 		return NULL;
 	if (!(*pfnSetProcessPriorityBoost)(th, disable))
 		return PyWin_SetAPIError("SetProcessPriorityBoost");
@@ -863,7 +863,7 @@ static PyObject *PyGetThreadPriorityBoost(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:GetThreadPriorityBoost",
 		&obth))		// @pyparm <o PyHANDLE>|Thread||Handle to a thread
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obth, &th, FALSE))
+	if (!PyWinObject_AsHANDLE(obth, &th))
 		return NULL;
 	if (!(*pfnGetThreadPriorityBoost)(th, &ret))
 		return PyWin_SetAPIError("GetThreadPriorityBoost");
@@ -881,7 +881,7 @@ static PyObject *PySetThreadPriorityBoost(PyObject *self, PyObject *args)
 		&obth,		// @pyparm <o PyHANDLE>|Thread||Handle to a thread
 		&disable))	// @pyparm boolean|DisablePriorityBoost||True to disable or False to enable
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obth, &th, FALSE))
+	if (!PyWinObject_AsHANDLE(obth, &th))
 		return NULL;
 	if (!(*pfnSetThreadPriorityBoost)(th, disable))
 		return PyWin_SetAPIError("SetThreadPriorityBoost");
@@ -899,7 +899,7 @@ static PyObject *PyGetThreadIOPendingFlag(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:GetThreadIOPendingFlag",
 		&obth))		// @pyparm <o PyHANDLE>|Thread||Handle to a thread
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obth, &th, FALSE))
+	if (!PyWinObject_AsHANDLE(obth, &th))
 		return NULL;
 	if (!(*pfnGetThreadPriorityBoost)(th, &ret))
 		return PyWin_SetAPIError("GetThreadIOPendingFlag");
@@ -916,7 +916,7 @@ static PyObject *PyGetThreadTimes(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:GetThreadTimes",
 		&obth))		// @pyparm <o PyHANDLE>|Thread||Handle to a thread
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obth, &th, FALSE))
+	if (!PyWinObject_AsHANDLE(obth, &th))
 		return NULL;
 	if (!(*pfnGetThreadTimes)(th, &ft[0], &ft[1], &ft[2], &ft[3]))
 		return PyWin_SetAPIError("GetThreadTimes");
@@ -944,7 +944,7 @@ static PyObject *PyGetProcessId(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:GetProcessId",
 		&obhprocess))	// @pyparm <o PyHANDLE>|Process||Handle to a process
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess, FALSE))
+	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess))
 		return NULL;
 	pid=(*pfnGetProcessId)(hprocess);
 	if (pid==0)
@@ -1005,7 +1005,7 @@ static PyObject *MyGetProcessAffinityMask(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:GetProcessAffinityMask",
 		&obhProcess))	// @pyparm <o PyHANDLE>|hProcess||handle to the process of interest
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess, FALSE))
+	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess))
 		return NULL;
 	if (!GetProcessAffinityMask(hProcess, &processmask, &systemmask))
 		return PyWin_SetAPIError("GetProcessAffinityMask");
@@ -1034,7 +1034,7 @@ static PyObject *MySetProcessAffinityMask(PyObject *self, PyObject *args)
 		&obhProcess,	// @pyparm <o PyHANDLE>|hProcess||handle to the process of interest
 		&dwMask))		// @pyparm int|mask||a processor affinity mask
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess, FALSE))
+	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess))
 		return NULL;
 	if (!(*pfnSetProcessAffinityMask)(hProcess, dwMask))
 		return PyWin_SetAPIError("SetProcessAffinityMask");
@@ -1059,7 +1059,7 @@ static PyObject *MySetThreadAffinityMask(PyObject *self, PyObject *args)
 		&obhThread,		// @pyparm <o PyHANDLE>|hThread||handle to the thread of interest
 		&dwMask))		// @pyparm int|ThreadAffinityMask||a processor affinity mask
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhThread, &hThread, FALSE))
+	if (!PyWinObject_AsHANDLE(obhThread, &hThread))
 		return NULL;
 	prevMask=SetThreadAffinityMask(hThread, dwMask);
 	if (prevMask==0)
@@ -1186,7 +1186,7 @@ PyObject *PyEnumProcessModules(PyObject *self, PyObject *args)
 	// @pyparm <o PyHANDLE>|hProcess||Process handle as returned by OpenProcess
 	if (!PyArg_ParseTuple(args, "O:EnumProcessModules", &obhprocess))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess, FALSE))
+	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess))
 		return NULL;
 	bytes_allocated=nbr_hmods_allocated*sizeof(HMODULE);
 	do{
@@ -1246,9 +1246,9 @@ PyObject *PyGetModuleFileNameEx(PyObject *self, PyObject *args)
 	// @pyparm <o PyHANDLE>|hModule||Module handle
 	if (!PyArg_ParseTuple(args, "OO:GetModuleFileNameEx", &obhprocess, &obhmod))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess, FALSE))
+	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhmod, (HANDLE *)&hmod, FALSE))
+	if (!PyWinObject_AsHANDLE(obhmod, (HANDLE *)&hmod))
 		return NULL;
 
 	do{
@@ -1293,7 +1293,7 @@ PyObject *PyGetProcessMemoryInfo(PyObject *self, PyObject *args)
 	// @pyparm <o PyHANDLE>|hProcess||Process handle as returned by OpenProcess
 	if (!PyArg_ParseTuple(args, "O:GetProcessMemoryInfo", &obhProcess))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess, FALSE))
+	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess))
 		return NULL;
 
 	if (!(*pfnGetProcessMemoryInfo)(hProcess, &pmc, cb)){
@@ -1326,7 +1326,7 @@ PyObject *PyGetProcessTimes(PyObject *self, PyObject *args)
 	// @pyparm <o PyHANDLE>|hProcess||Process handle as returned by OpenProcess
 	if (!PyArg_ParseTuple(args, "O:GetProcessTimes", &obhProcess))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess, FALSE))
+	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess))
 		return NULL;
 
 	if (!(*pfnGetProcessTimes)(hProcess, &CreationTime, &ExitTime, &KernelTime, &UserTime)){
@@ -1355,7 +1355,7 @@ PyObject *PyGetProcessIoCounters(PyObject *self, PyObject *args)
 	// @pyparm <o PyHANDLE>|hProcess||Process handle as returned by OpenProcess
 	if (!PyArg_ParseTuple(args, "O:GetProcessIoCounters", &obhProcess))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess, FALSE))
+	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess))
 		return NULL;
 	if (!(*pfnGetProcessIoCounters)(hProcess, &ioc)){
 		PyWin_SetAPIError("GetProcessIoCounters",GetLastError());
@@ -1390,7 +1390,7 @@ PyObject *PyGetProcessWorkingSetSize(PyObject *self, PyObject *args)
 	// @pyparm <o PyHANDLE>|hProcess||Process handle as returned by <om win32api.OpenProcess>
 	if (!PyArg_ParseTuple(args, "O:GetProcessWorkingSetSize", &obhProcess))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess, FALSE))
+	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess))
 		return NULL;
 	if (!(*pfnGetProcessWorkingSetSize)(hProcess, &MinimumWorkingSetSize, &MaximumWorkingSetSize)){
 		PyWin_SetAPIError("GetProcessWorkingSetSize",GetLastError());
@@ -1424,7 +1424,7 @@ PyObject *PySetProcessWorkingSetSize(PyObject *self, PyObject *args)
 		&MinimumWorkingSetSize,		// @pyparm int|MinimumWorkingSetSize||Minimum number of bytes to keep in physical memory
 		&MaximumWorkingSetSize))	// @pyparm int|MaximumWorkingSetSize||Maximum number of bytes to keep in physical memory
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess, FALSE))
+	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess))
 		return NULL;
 	if (!(*pfnSetProcessWorkingSetSize)(hProcess, MinimumWorkingSetSize, MaximumWorkingSetSize))
 		return PyWin_SetAPIError("SetProcessWorkingSetSize");
@@ -1486,7 +1486,7 @@ PyObject *PyGetGuiResources(PyObject *self, PyObject *args)
 	// @pyparm int|Flags||GR_GDIOBJECTS or GR_USEROBJECTS (from win32con)
 	if (!PyArg_ParseTuple(args, "Ok:GetGuiResources", &obhprocess, &flags))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess, FALSE))
+	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess))
 		return NULL;
 	handle_cnt=(*pfnGetGuiResources)(hprocess, flags);
 	// can return 0 for a non-GUI process with no error occurring

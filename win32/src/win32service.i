@@ -113,7 +113,7 @@ PyObject *PyHWINSTA::PyHWINSTA_new(PyTypeObject *tp, PyObject *args, PyObject *k
 	PyObject *obh;
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &obh))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obh, (HANDLE *)&hwinsta, FALSE))
+	if (!PyWinObject_AsHANDLE(obh, (HANDLE *)&hwinsta))
 		return NULL;
 	return new PyHWINSTA(hwinsta);
 }
@@ -217,7 +217,7 @@ PyObject *PyHDESK::PyHDESK_new(PyTypeObject *tp, PyObject *args, PyObject *kwarg
 	PyObject *obh;
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &obh))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obh, (HANDLE *)&hdesk, FALSE))
+	if (!PyWinObject_AsHANDLE(obh, (HANDLE *)&hdesk))
 		return NULL;
 	return new PyHDESK(hdesk);
 }
@@ -904,7 +904,7 @@ static PyObject *MyEnumServicesStatus(PyObject *self, PyObject *args)
 	{
 		return NULL;
 	}
-	if (!PyWinObject_AsHANDLE(obhscm, (HANDLE *)&hscm, FALSE))
+	if (!PyWinObject_AsHANDLE(obhscm, (HANDLE *)&hscm))
 		return NULL;
 	long tmp;
 	LPENUM_SERVICE_STATUS services = (LPENUM_SERVICE_STATUS)&tmp;
@@ -972,7 +972,7 @@ static PyObject *MyEnumDependentServices(PyObject *self, PyObject *args)
 	{
 		return NULL;
 	}
-	if (!PyWinObject_AsHANDLE(obhsc, (HANDLE *)&hsc, FALSE))
+	if (!PyWinObject_AsHANDLE(obhsc, (HANDLE *)&hsc))
 		return NULL;
 
 	long tmp;
@@ -1038,7 +1038,7 @@ static PyObject *MyQueryServiceConfig(PyObject *self, PyObject *args)
 	{
 		return NULL;
 	}
-	if (!PyWinObject_AsHANDLE(obhsc, (HANDLE *)&hsc, FALSE))
+	if (!PyWinObject_AsHANDLE(obhsc, (HANDLE *)&hsc))
 		return NULL;
 
 	long tmp;
@@ -1096,7 +1096,7 @@ typedef float SC_HANDLE, SERVICE_STATUS_HANDLE, SC_LOCK;	// This is just to keep
 	$target = PyWinObject_FromSC_HANDLE($source);
 }
 %typemap(python,in) SC_HANDLE, SERVICE_STATUS_HANDLE{
-	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target, FALSE))
+	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
 %typemap(python,out) SC_LOCK{
@@ -1185,7 +1185,7 @@ static PyObject *PyCloseServiceHandle(PyObject *self, PyObject *args)
 		Py_INCREF(Py_None);
 		return Py_None;
 		}
-	if (!PyWinObject_AsHANDLE(obsch, (HANDLE *)&sch, FALSE))
+	if (!PyWinObject_AsHANDLE(obsch, (HANDLE *)&sch))
 		return NULL;
 	if (!CloseServiceHandle(sch))
 		return PyWin_SetAPIError("CloseServiceHandle");
@@ -1217,7 +1217,7 @@ PyObject *MyQueryServiceStatusEx(PyObject *self, PyObject *args)
 	// @pyparm <o PySC_HANDLE>|hService||Handle to service to be queried
 	if (!PyArg_ParseTuple(args,"O:QueryServiceStatusEx",&obhService))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhService, (HANDLE *)&hService, FALSE))
+	if (!PyWinObject_AsHANDLE(obhService, (HANDLE *)&hService))
 		return NULL;
 
 	if (!(*fpQueryServiceStatusEx)(hService,InfoLevel,(BYTE *)&info,bufsize,&reqdbufsize))
@@ -1250,7 +1250,7 @@ PyObject *MySetServiceObjectSecurity(PyObject *self, PyObject *args)
 	// @pyparm <o PySECURITY_DESCRIPTOR>|SecurityDescriptor||PySECURITY_DESCRIPTOR containing infomation to set
 	if (!PyArg_ParseTuple(args,"OlO:SetServiceObjectSecurity",&obhsvc, &info, &obSD))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhsvc, (HANDLE *)&hsvc, FALSE))
+	if (!PyWinObject_AsHANDLE(obhsvc, (HANDLE *)&hsvc))
 		return NULL;
 
 	if (!PyWinObject_AsSECURITY_DESCRIPTOR(obSD,&pSD,FALSE))
@@ -1277,7 +1277,7 @@ PyObject *MyQueryServiceObjectSecurity(PyObject *self, PyObject *args)
 	// @pyparm int|SecurityInformation||Type of infomation to retrieve, combination of values from SECURITY_INFORMATION enum
 	if (!PyArg_ParseTuple(args,"Ol:QueryServiceObjectSecurity",&obhsvc, &info))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhsvc, (HANDLE *)&hsvc, FALSE))
+	if (!PyWinObject_AsHANDLE(obhsvc, (HANDLE *)&hsvc))
 		return NULL;
 
 	pSD=(PSECURITY_DESCRIPTOR)malloc(origbufsize);
@@ -1324,7 +1324,7 @@ PyObject *MyGetServiceKeyName(PyObject *self, PyObject *args)
 	PyObject *obdisplayname, *ret=NULL;
 	if (!PyArg_ParseTuple(args,"OO:GetServiceKeyName", &obh, &obdisplayname))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obh, (HANDLE *)&h, FALSE))
+	if (!PyWinObject_AsHANDLE(obh, (HANDLE *)&h))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obdisplayname, &displayname, FALSE))
 		return NULL;
@@ -1352,7 +1352,7 @@ PyObject *MyGetServiceDisplayName(PyObject *self, PyObject *args)
 	PyObject *obkeyname, *ret=NULL;
 	if (!PyArg_ParseTuple(args,"OO:GetServiceDisplayName", &obh, &obkeyname))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obh, (HANDLE *)&h, FALSE))
+	if (!PyWinObject_AsHANDLE(obh, (HANDLE *)&h))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obkeyname, &keyname, FALSE))
 		return NULL;
@@ -1432,7 +1432,7 @@ static PyObject *PyQueryServiceLockStatus(PyObject *self, PyObject *args)
 	// @pyparm <o PySC_HANDLE>|hSCManager||Handle to the SCM.
 	if (!PyArg_ParseTuple(args, "O:QueryServiceLockStatus", &obhandle))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhandle, (HANDLE *)&handle, FALSE))
+	if (!PyWinObject_AsHANDLE(obhandle, (HANDLE *)&handle))
 		return NULL;
 	DWORD bufSize;
 	QueryServiceLockStatus(handle, NULL, 0, &bufSize);
@@ -1607,7 +1607,7 @@ PyObject *PyChangeServiceConfig2(PyObject *self, PyObject *args)
 	// @pyparm object|info||For SERVICE_CONFIG_DESCRIPTION a string  For SERVICE_CONFIG_FAILURE_ACTIONS a <o SERVICE_FAILURE_ACTIONS> dictionary 
 	if (!PyArg_ParseTuple(args,"OlO:ChangeServiceConfig2", &obhService, &level, &obinfo))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhService, (HANDLE *)&hService, FALSE))
+	if (!PyWinObject_AsHANDLE(obhService, (HANDLE *)&hService))
 		return NULL;
 	switch (level){
 		case SERVICE_CONFIG_DESCRIPTION:
@@ -1651,7 +1651,7 @@ PyObject *PyQueryServiceConfig2(PyObject *self, PyObject *args)
 	// @pyparm int|InfoLevel||SERVICE_CONFIG_DESCRIPTION or SERVICE_CONFIG_FAILURE_ACTIONS
 	if (!PyArg_ParseTuple(args,"Ol:QueryServiceConfig2", &obhService, &level))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhService, (HANDLE *)&hService, FALSE))
+	if (!PyWinObject_AsHANDLE(obhService, (HANDLE *)&hService))
 		return NULL;
 	(*fpQueryServiceConfig2)(hService, level, buf, bufsize, &bytes_needed);
 	if (bytes_needed==0){

@@ -478,7 +478,7 @@ PyObject *PyIShellLink::Resolve(PyObject *self, PyObject *args)
 	DWORD fFlags;
 	if ( !PyArg_ParseTuple(args, "Ol:Resolve", &obhwnd, &fFlags) )
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;

@@ -341,8 +341,8 @@ BOOL PyWinObject_AsCREDUI_INFO(PyObject *obuiinfo, PCREDUI_INFO *puiinfo)
 			&obparent, &obmessage, &obcaption, &obbanner)
 		&&PyWinObject_AsWCHAR(obmessage, (WCHAR **)&(*puiinfo)->pszMessageText, TRUE)
 		&&PyWinObject_AsWCHAR(obcaption, (WCHAR **)&(*puiinfo)->pszCaptionText, TRUE)
-		&&PyWinObject_AsHANDLE(obparent, (HANDLE *)&(*puiinfo)->hwndParent, TRUE)
-		&&PyWinObject_AsHANDLE(obbanner, (HANDLE *)&(*puiinfo)->hbmBanner, TRUE);
+		&&PyWinObject_AsHANDLE(obparent, (HANDLE *)&(*puiinfo)->hwndParent)
+		&&PyWinObject_AsHANDLE(obbanner, (HANDLE *)&(*puiinfo)->hbmBanner);
 
 	Py_XDECREF(args);
 	if (!ret){

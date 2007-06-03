@@ -311,7 +311,7 @@ PyObject *PyIScheduledWorkItem::EditWorkItem(PyObject *self, PyObject *args)
 	DWORD dwReserved=0;
 	if (!PyArg_ParseTuple(args, "|Ol:PyIScheduledWorkItem::EditWorkItem", &obhParent, &dwReserved))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhParent, (HANDLE *)&hParent, TRUE))
+	if (!PyWinObject_AsHANDLE(obhParent, (HANDLE *)&hParent))
 		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;

@@ -12,18 +12,14 @@ PyObject *PyWinMethod_NewHANDLE(PyObject *self, PyObject *args)
 	PyObject *obhInit=Py_None;
 	if (!PyArg_ParseTuple(args, "|O:HANDLE", &obhInit))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhInit, &hInit, TRUE))
+	if (!PyWinObject_AsHANDLE(obhInit, &hInit))
 		return NULL;
 	return new PyHANDLE(hInit);
 }
 
-BOOL PyWinObject_AsHANDLE(PyObject *ob, HANDLE *pHANDLE, BOOL bNoneOK /*= TRUE*/)
+BOOL PyWinObject_AsHANDLE(PyObject *ob, HANDLE *pHANDLE)
 {
 	if (ob==Py_None) {
-		if (!bNoneOK) {
-			PyErr_SetString(PyExc_TypeError, "None is not a valid HANDLE in this context");
-			return FALSE;
-		}
 		*pHANDLE = (HANDLE)0;
 	} else if (PyHANDLE_Check(ob)) {
 		PyHANDLE *pH = (PyHANDLE *)ob;
@@ -59,9 +55,9 @@ BOOL PyWinObject_CloseHANDLE(PyObject *obHandle)
 
 	HANDLE h;
 	BOOL ok;
-	if (!PyWinObject_AsHANDLE(obHandle, &h, FALSE))
+	if (!PyWinObject_AsHANDLE(obHandle, &h))
 		return FALSE;
-	ok=::CloseHandle(h);  // This can still trigger an Invalid Handle exception in debug mode
+	ok=h==0 ? TRUE : ::CloseHandle(h);  // This can still trigger an Invalid Handle exception in debug mode
 	if (!ok)
 		PyWin_SetAPIError("CloseHandle");
 	return ok;
@@ -376,9 +372,9 @@ char *failMsg = "bad operand type";
 // A Registry handle.
 // @object PyHKEY|A Python object, representing a win32 HKEY (a HANDLE to a registry key).
 // See the <o PyHANDLE> object for more details
-BOOL PyWinObject_AsHKEY(PyObject *ob, HKEY *pRes, BOOL bNoneOK)
+BOOL PyWinObject_AsHKEY(PyObject *ob, HKEY *pRes)
 {
-	return PyWinObject_AsHANDLE(ob, (HANDLE *)pRes, bNoneOK);
+	return PyWinObject_AsHANDLE(ob, (HANDLE *)pRes);
 }
 PyObject *PyWinObject_FromHKEY(HKEY h)
 {
@@ -391,7 +387,7 @@ PyObject *PyWinMethod_NewHKEY(PyObject *self, PyObject *args)
 	PyObject *obhInit=Py_None;	// ??? hInit previously not initialized but treated as optional ???
 	if (!PyArg_ParseTuple(args, "|O:HANDLERegistry", &obhInit))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhInit, &hInit, TRUE))
+	if (!PyWinObject_AsHANDLE(obhInit, &hInit))
 		return NULL;
 	return new PyHKEY(hInit);
 }
@@ -408,7 +404,7 @@ BOOL PyWinObject_CloseHKEY(PyObject *obHandle)
 		return ((PyHKEY *)obHandle)->Close();
 		}
 	HKEY hkey;
-	if (!PyWinObject_AsHANDLE(obHandle, (HANDLE *)&hkey, FALSE))
+	if (!PyWinObject_AsHANDLE(obHandle, (HANDLE *)&hkey))
 		return FALSE;
 	long rc = ::RegCloseKey(hkey);
 	BOOL ok = (rc==ERROR_SUCCESS);

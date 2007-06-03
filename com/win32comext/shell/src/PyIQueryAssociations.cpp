@@ -43,9 +43,9 @@ PyObject *PyIQueryAssociations::Init(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obAssoc, &pszAssoc, TRUE))
         return NULL;
-	if (!PyWinObject_AsHKEY(obhkProgid, &hkProgid, TRUE))
+	if (!PyWinObject_AsHKEY(obhkProgid, &hkProgid))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;

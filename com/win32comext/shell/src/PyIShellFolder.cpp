@@ -54,7 +54,7 @@ PyObject *PyIShellFolder::ParseDisplayName(PyObject *self, PyObject *args)
 	if ( !PyArg_ParseTuple(args, "OOO|k:ParseDisplayName", &obhwndOwner, &obpbcReserved,
 						   &oblpszDisplayName, &pdwAttributes) )
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner))
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
 	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obpbcReserved, IID_IBindCtx, (void **)&pbcReserved, TRUE /* bNoneOK */))
@@ -94,7 +94,7 @@ PyObject *PyIShellFolder::EnumObjects(PyObject *self, PyObject *args)
 	IEnumIDList * ppeidl;
 	if ( !PyArg_ParseTuple(args, "|Ol:EnumObjects", &obhwndOwner, &grfFlags) )
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner))
 		return NULL;
 
 	HRESULT hr;
@@ -246,7 +246,7 @@ PyObject *PyIShellFolder::CreateViewObject(PyObject *self, PyObject *args)
 	void * out;
 	if ( !PyArg_ParseTuple(args, "OO:CreateViewObject", &obhwndOwner, &obriid) )
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner))
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
 	if (!PyWinObject_AsIID(obriid, &riid)) bPythonIsHappy = FALSE;
@@ -315,7 +315,7 @@ PyObject *PyIShellFolder::GetUIObjectOf(PyObject *self, PyObject *args)
 	void * out;
 	if ( !PyArg_ParseTuple(args, "OOOl|O:GetUIObjectOf", &obhwndOwner, &obpidl, &obriid, &rgfInOut, &obiidout) )
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner))
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
 	if (!PyWinObject_AsIID(obriid, &riid)) bPythonIsHappy = FALSE;
@@ -392,7 +392,7 @@ PyObject *PyIShellFolder::SetNameOf(PyObject *self, PyObject *args)
 
 	if ( !PyArg_ParseTuple(args, "OOOl:SetNameOf", &obhwndOwner, &obpidl, &oblpszName, &flags) )
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner))
 		return NULL;
 
 	if (PyObject_AsPIDL(obpidl, &pidl)&&

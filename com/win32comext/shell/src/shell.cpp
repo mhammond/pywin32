@@ -481,9 +481,9 @@ BOOL PyObject_AsCMINVOKECOMMANDINFO(PyObject *ob, CMINVOKECOMMANDINFO *pci)
 	                                 &obVerb, &pci->lpParameters, &pci->lpDirectory, 
 	                                 &pci->nShow, &pci->dwHotKey, &obhIcon))
 		return FALSE;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&pci->hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&pci->hwnd))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhIcon, (HANDLE *)&pci->hIcon, TRUE))
+	if (!PyWinObject_AsHANDLE(obhIcon, (HANDLE *)&pci->hIcon))
 		return NULL;
 	if (PyString_Check(obVerb)) {
 		pci->lpVerb = PyString_AsString(obVerb);
@@ -588,7 +588,7 @@ BOOL PyObject_AsMSG( PyObject *obpmsg, MSG *msg )
 {
 	PyObject *obhwnd;
 	return PyArg_ParseTuple(obpmsg, "Oiiii(ii)", &obhwnd,&msg->message,&msg->wParam,&msg->lParam,&msg->time,&msg->pt.x,&msg->pt.y)
-		&& PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&msg->hwnd, FALSE);
+		&& PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&msg->hwnd);
 }
 
 PyObject *PyObject_FromMSG(const MSG *msg)
@@ -838,7 +838,7 @@ BOOL PyObject_AsSHFILEOPSTRUCT(PyObject *ob, SHFILEOPSTRUCT *p)
 						  &obNameMappings, // @tupleitem 5|None|NameMappings|Maps input file names to their new names.  This is actually output, and must be None if passed as input. Default=None
 						  &obProgressTitle)) // @tupleitem 6|string|ProgressTitle|Title for progress dialog (flags must contain FOF_SIMPLEPROGRESS). Default=None
 		return FALSE;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&p->hwnd, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&p->hwnd))
 		return NULL;
 	if (obNameMappings != Py_None) {
 		PyErr_SetString(PyExc_TypeError, "The NameMappings value must be None");
@@ -933,7 +933,7 @@ static PyObject *PySHBrowseForFolder( PyObject *self, PyObject *args)
 			&obcb,  // @pyparm object|callback|None|A callable object to be used as the callback, or None
 			&obcbparam))   // @pyparm object|callback_data|None|An object passed to the callback function
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&bi.hwndOwner, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&bi.hwndOwner))
 		return NULL;
 	if (obcb != Py_None) {
 #if (PY_VERSION_HEX >= 0x02030000) // PyGILState only in 2.3+
@@ -1052,7 +1052,7 @@ static PyObject *PySHGetSpecialFolderPath(PyObject *self, PyObject *args)
 			&nFolder, // @pyparm int|nFolder||One of the CSIDL_* constants specifying the path.
 			&bCreate)) // @pyparm int|bCreate|0|Should the path be created.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner))
 		return NULL;
 	// @comm This method is only available in shell version 4.71.  If the 
 	// function is not available, a COM Exception with HRESULT=E_NOTIMPL 
@@ -1080,7 +1080,7 @@ static PyObject *PySHGetSpecialFolderLocation(PyObject *self, PyObject *args)
 			&obhwndOwner, // @pyparm <o PyHANDLE>|hwndOwner||Parent window, can be None (or 0)
 			&nFolder)) // @pyparm int|nFolder||One of the CSIDL_* constants specifying the path.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner))
 		return NULL;
 	LPITEMIDLIST pidl;
 	PY_INTERFACE_PRECALL;
@@ -1156,10 +1156,10 @@ static PyObject *PySHGetFolderPath(PyObject *self, PyObject *args)
 			&obHandle, // @pyparm <o PyHANDLE>|handle||An access token that can be used to represent a particular user, or None
 			&flags)) // @pyparm int|flags||Controls which path is returned.  May be SHGFP_TYPE_CURRENT or SHGFP_TYPE_DEFAULT
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner))
 		return NULL;
 	HANDLE handle;
-	if (!PyWinObject_AsHANDLE(obHandle, &handle, TRUE))
+	if (!PyWinObject_AsHANDLE(obHandle, &handle))
 		return NULL;
 
 	// @comm This method is only available with later versions of shell32.dll, or if you have shfolder.dll installed on earlier systems
@@ -1193,7 +1193,7 @@ static PyObject *PySHSetFolderPath(PyObject *self, PyObject *args)
 		&obPath,	// @pyparm str/unicode|Path||The full path to be set
 		&obToken))	// @pyparm <o PyHANDLE>|hToken|None|Handle to an access token, can be None 
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obToken, &hToken, TRUE))
+	if (!PyWinObject_AsHANDLE(obToken, &hToken))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obPath, &Path, FALSE))
 		return NULL;
@@ -1224,9 +1224,9 @@ static PyObject *PySHGetFolderLocation(PyObject *self, PyObject *args)
 			&obToken, // @pyparm <o PyHANDLE>|hToken|None|An access token that can be used to represent a particular user, or None
 			&flags)) // @pyparm int|reserved|0|Must be 0
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwndOwner, (HANDLE *)&hwndOwner))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obToken, &hToken, TRUE))
+	if (!PyWinObject_AsHANDLE(obToken, &hToken))
 		return NULL;
 	LPITEMIDLIST pidl;
 
@@ -1273,7 +1273,7 @@ static PyObject *PySHEmptyRecycleBin(PyObject *self, PyObject *args)
 			&path, // @pyparm string|path||A NULL-terminated string that contains the path of the root drive on which the recycle bin is located. This parameter can contain the address of a string formatted with the drive, folder, and subfolder names (c:\windows\system . . .). It can also contain an empty string or NULL. If this value is an empty string or NULL, all recycle bins on all drives will be emptied.
 			&flags)) // @pyparm int|flags||One of the SHERB_* values.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	// @comm This method is only available in shell version 4.71.  If the function is not available, a COM Exception with HRESULT=E_NOTIMPL will be raised.
 	if (pfnSHEmptyRecycleBin==NULL)
@@ -1517,7 +1517,7 @@ static PyObject *PySHChangeNotifyRegister(PyObject *self, PyObject *args)
 			&obPIDL,
 			&entry.fRecursive))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	if (!PyObject_AsPIDL(obPIDL, (ITEMIDLIST **)&entry.pidl, TRUE))
 		return NULL;
@@ -1564,7 +1564,7 @@ static PyObject *PyDragQueryFile(PyObject *self, PyObject *args)
 			&obhglobal, // @pyparm <o PyHANDLE>|hglobal||The HGLOBAL object - generally obtained via the 'data_handle' property of a <o PySTGMEDIUM> object.
 			&index)) // @pyparm int|index||The index to retrieve.  If -1, the result if an integer representing the valid index values.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhglobal, (HANDLE *)&hglobal, FALSE))
+	if (!PyWinObject_AsHANDLE(obhglobal, (HANDLE *)&hglobal))
 		return NULL;
 	if (index==0xFFFFFFFF) {
 		return PyInt_FromLong(DragQueryFile(hglobal, index, NULL, 0));
@@ -1590,7 +1590,7 @@ static PyObject *PyDragQueryFileW(PyObject *self, PyObject *args)
 			&obhglobal, // @pyparm <o PyHANDLE>|hglobal||The HGLOBAL object - generally obtained via the 'data_handle' property of a <o PySTGMEDIUM> object.
 			&index)) // @pyparm int|index||The index to retrieve.  If -1, the result if an integer representing the valid index values.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhglobal, (HANDLE *)&hglobal, FALSE))
+	if (!PyWinObject_AsHANDLE(obhglobal, (HANDLE *)&hglobal))
 		return NULL;
 	if (index==0xFFFFFFFF) {
 		return PyInt_FromLong(DragQueryFileW(hglobal, index, NULL, 0));
@@ -1616,7 +1616,7 @@ static PyObject *PyDragQueryPoint(PyObject *self, PyObject *args)
 	if(!PyArg_ParseTuple(args, "O:DragQueryFile", 
 			&obhglobal)) // @pyparm <o PyHANDLE>|hglobal||The HGLOBAL object - generally obtained the 'data_handle' property of a <o PySTGMEDIUM>
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhglobal, (HANDLE *)&hglobal, FALSE))
+	if (!PyWinObject_AsHANDLE(obhglobal, (HANDLE *)&hglobal))
 		return NULL;
 	POINT pt;
 	BOOL result = ::DragQueryPoint(hglobal, &pt);
@@ -2106,7 +2106,7 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
 									 &obhIcon, // @pyparm <o PyHANDLE>|hIcon||
 									 &obhMonitor)) // @pyparm <o PyHANDLE>|hMonitor||
 		goto done;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&p->hwnd, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&p->hwnd))
 		goto done;
 	if (obVerb && !PyWinObject_AsString(obVerb, (char **)&p->lpVerb))
 		goto done;

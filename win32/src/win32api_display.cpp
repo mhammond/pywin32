@@ -437,7 +437,7 @@ PyObject *PyEnumDisplayMonitors(PyObject *self, PyObject *args, PyObject *kwargs
 		&obhdc,		// @pyparm <o PyHANDLE>|hdc|None|Handle to device context, use None for virtual desktop
 		&obrect))	// @pyparm <o PyRECT>|rcClip|None|Clipping rectangle, can be None
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhdc, (HANDLE *)&hdc, TRUE))
+	if (!PyWinObject_AsHANDLE(obhdc, (HANDLE *)&hdc))
 		return NULL;
 	if (obrect==Py_None)
 		prect=NULL;
@@ -553,7 +553,7 @@ PyObject *PyMonitorFromWindow(PyObject *self, PyObject *args, PyObject *kwargs)
 		&obhwnd,		// @pyparm <o PyHANDLE>|hwnd||Handle to a window
 		&Flags))		// @pyparm int|Flags|0|Flags that determine default behaviour, one of MONITOR_DEFAULTTONEAREST,MONITOR_DEFAULTTONULL,MONITOR_DEFAULTTOPRIMARY
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	hmonitor=(*pfnMonitorFromWindow)(hwnd, Flags);
 	if (hmonitor==NULL){

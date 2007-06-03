@@ -346,7 +346,7 @@ PyObject *PyDsCrackNames(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "OlllO:DsCrackNames", &obhandle, &flags, &formatOffered,
 						  &formatDesired, &obNames))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhandle, &dshandle, TRUE))
+	if (!PyWinObject_AsHANDLE(obhandle, &dshandle))
 		return NULL;
 	if (!PyWinObject_AsWCHARArray(obNames, &names, &cnames))
 		goto done;
@@ -379,7 +379,7 @@ PyObject *PyDsListInfoForServer(PyObject *self, PyObject *args)
 	// @pyparm <o PyUnicode>|server||
 	if (!PyArg_ParseTuple(args, "OO:DsListInfoForServer", &obhandle, &obName))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhandle, &dshandle, TRUE))
+	if (!PyWinObject_AsHANDLE(obhandle, &dshandle))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obName, &name))
 		goto done;
@@ -412,7 +412,7 @@ PyObject *PyDsListServersForDomainInSite(PyObject *self, PyObject *args)
 	// @pyparm <o PyUnicode>|sute||
 	if (!PyArg_ParseTuple(args, "OOO:DsListServersForDomainInSite", &obhandle, &obName, &obSite))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhandle, &dshandle, TRUE))
+	if (!PyWinObject_AsHANDLE(obhandle, &dshandle))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obName, &name))
 		goto done;
@@ -448,7 +448,7 @@ PyObject *PyDsListServersInSite(PyObject *self, PyObject *args)
 	// @pyparm <o PyUnicode>|sute||
 	if (!PyArg_ParseTuple(args, "OO:DsListServersInSite", &obhandle, &obName))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhandle, &dshandle, TRUE))
+	if (!PyWinObject_AsHANDLE(obhandle, &dshandle))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obName, &name))
 		goto done;
@@ -478,7 +478,7 @@ PyObject *PyDsListSites(PyObject *self, PyObject *args)
 	// @pyparm int|hds||
 	if (!PyArg_ParseTuple(args, "O:DsListSites", &obhandle))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhandle, &dshandle, TRUE))
+	if (!PyWinObject_AsHANDLE(obhandle, &dshandle))
 		return NULL;
 	Py_BEGIN_ALLOW_THREADS
 	err=(*pfnDsListSites)(dshandle, &dsresult);
@@ -504,7 +504,7 @@ PyObject *PyDsListRoles(PyObject *self, PyObject *args)
 	// @pyparm int|hds||
 	if (!PyArg_ParseTuple(args, "O:DsListRoles", &obhandle))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhandle, &dshandle, TRUE))
+	if (!PyWinObject_AsHANDLE(obhandle, &dshandle))
 		return NULL;
 	Py_BEGIN_ALLOW_THREADS
 	err=(*pfnDsListRoles)(dshandle, &dsresult);
@@ -533,7 +533,7 @@ PyObject *PyDsListDomainsInSite(PyObject *self, PyObject *args)
 	// @pyparm <o PyUnicode>|site||
 	if (!PyArg_ParseTuple(args, "OO:DsListDomainsInSite", &obhandle, &obName))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhandle, &dshandle, TRUE))
+	if (!PyWinObject_AsHANDLE(obhandle, &dshandle))
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obName, &name))
 		goto done;

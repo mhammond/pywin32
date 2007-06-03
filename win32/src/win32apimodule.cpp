@@ -305,7 +305,7 @@ PyDragQueryFile( PyObject *self, PyObject *args )
 	           &obhDrop, // @pyparm int|hDrop||Handle identifying the structure containing the file names.
 	           &iFileNum)) // @pyparm int|fileNum|0xFFFFFFFF|Specifies the index of the file to query.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhDrop, (HANDLE *)&hDrop, FALSE))
+	if (!PyWinObject_AsHANDLE(obhDrop, (HANDLE *)&hDrop))
 		return NULL;
 	if (iFileNum<0)
 		return Py_BuildValue("i", ::DragQueryFile( hDrop, (UINT)-1, NULL, 0));
@@ -332,7 +332,7 @@ PyDragFinish( PyObject *self, PyObject *args )
 	// @pyparm int|hDrop||Handle identifying the structure containing the file names.
 	if (!PyArg_ParseTuple(args, "O:DragFinish", &obhDrop))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhDrop, (HANDLE *)&hDrop, FALSE))
+	if (!PyWinObject_AsHANDLE(obhDrop, (HANDLE *)&hDrop))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
 	::DragFinish( hDrop); // @pyseeapi DragFinish
@@ -550,7 +550,7 @@ PyFindNextChangeNotification(PyObject *self, PyObject *args)
 	// @pyparm <o PyHANDLE>|handle||The handle returned from <om win32api.FindFirstChangeNotification>
 	if (!PyArg_ParseTuple(args, "O:FindNextChangeNotification", &obh))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obh, &h, FALSE))
+	if (!PyWinObject_AsHANDLE(obh, &h))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
 	BOOL ok = FindNextChangeNotification(h);
@@ -570,7 +570,7 @@ PyFindCloseChangeNotification(PyObject *self, PyObject *args)
 	// @pyparm int|handle||The handle returned from <om win32api.FindFirstChangeNotification>
 	if (!PyArg_ParseTuple(args, "O:FindCloseChangeNotification", &obh))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obh, &h, FALSE))
+	if (!PyWinObject_AsHANDLE(obh, &h))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
 	BOOL ok = FindCloseChangeNotification(h);
@@ -622,7 +622,7 @@ PyFormatMessage (PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple (args, "kOkkO:FormatMessage", &flags, &obSource, &msgId, &langId, &obInserts))
 		return NULL;
 	if (flags & FORMAT_MESSAGE_FROM_HMODULE) {
-		if (!PyWinObject_AsHANDLE(obSource, (HANDLE *)&pSource, TRUE))
+		if (!PyWinObject_AsHANDLE(obSource, (HANDLE *)&pSource))
 			return NULL;
 	} else if (flags & FORMAT_MESSAGE_FROM_STRING) {
 		if ((pSource = PyString_AsString(obSource)) == NULL)
@@ -703,7 +703,7 @@ PyFormatMessageW(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple (args, "kOkkO:FormatMessageW", &flags, &obSource, &msgId, &langId, &obInserts))
 		goto cleanup;
 	if (flags & FORMAT_MESSAGE_FROM_HMODULE) {
-		if (!PyWinObject_AsHANDLE(obSource, (HANDLE *)&pSource, TRUE))
+		if (!PyWinObject_AsHANDLE(obSource, (HANDLE *)&pSource))
 			goto cleanup;
 	} else if (flags & FORMAT_MESSAGE_FROM_STRING) {
 		if (!PyWinObject_AsWCHAR(obSource, &szSource))
@@ -1123,7 +1123,7 @@ PySetCursor( PyObject *self, PyObject *args )
 	if (!PyArg_ParseTuple(args,"O:SetCursor",
 		&obhCursor)) // @pyparm <o PyHANDLE>|hCursor||The new cursor. Can be None to remove cursor.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhCursor, (HANDLE *)&hCursor, TRUE))
+	if (!PyWinObject_AsHANDLE(obhCursor, (HANDLE *)&hCursor))
 		return NULL;
 	// @pyseeapi SetCursor
 	PyW32_BEGIN_ALLOW_THREADS
@@ -1144,7 +1144,7 @@ PyLoadCursor( PyObject *self, PyObject *args )
 		&obhInstance, // @pyparm <o PyHANDLE>|hInstance||Handle to the instance to load the resource from, or None to load a standard system cursor
 		&obid)) // @pyparm <o PyResourceId>|cursorid||The ID of the cursor.  Can be a resource id or for system cursors, one of win32con.IDC_*
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhInstance, (HANDLE *)&hInstance, TRUE))
+	if (!PyWinObject_AsHANDLE(obhInstance, (HANDLE *)&hInstance))
 		return NULL;
 	if (!PyWinObject_AsResourceId(obid, &id))
 		return NULL;
@@ -1351,7 +1351,7 @@ PyVkKeyScanEx(PyObject * self, PyObject * args)
 		&key,	// @pyparm chr|char||Specifies a character
 		&obhkl))	// @pyparm <o PyHANDLE>|hkl||Handle to a keyboard layout at returned by <om win32api.LoadKeyboardLayout>
 		return (NULL);
-	if (!PyWinObject_AsHANDLE(obhkl, (HANDLE *)&hkl, FALSE))
+	if (!PyWinObject_AsHANDLE(obhkl, (HANDLE *)&hkl))
 		return NULL;
 	int ret;
 	PyW32_BEGIN_ALLOW_THREADS
@@ -1419,7 +1419,7 @@ PyGetModuleFileName(PyObject * self, PyObject * args)
 	// @pyparm <o PyHANDLE>|hModule||Specifies the handle to the module.
 	if (!PyArg_ParseTuple(args, "O:GetModuleFileName", &obhMod))
 		return (NULL);
-	if (!PyWinObject_AsHANDLE(obhMod, (HANDLE *)&hMod, TRUE))
+	if (!PyWinObject_AsHANDLE(obhMod, (HANDLE *)&hMod))
 		return NULL;
 	// @pyseeapi GetModuleFileName
 	PyW32_BEGIN_ALLOW_THREADS
@@ -1440,7 +1440,7 @@ PyGetModuleFileNameW(PyObject * self, PyObject * args)
 	// @pyparm <o PyHANDLE>|hModule||Specifies the handle to the module.
 	if (!PyArg_ParseTuple(args, "O:GetModuleFileNameW", &obhMod))
 		return (NULL);
-	if (!PyWinObject_AsHANDLE(obhMod, (HANDLE *)&hMod, TRUE))
+	if (!PyWinObject_AsHANDLE(obhMod, (HANDLE *)&hMod))
 		return NULL;
 	// @pyseeapi GetModuleFileName
 	PyW32_BEGIN_ALLOW_THREADS
@@ -1631,7 +1631,7 @@ PyLoadLibraryEx(PyObject * self, PyObject * args)
 	// @pyparm flags|handle||Specifies the action to take when loading the module.
 	if (!PyArg_ParseTuple(args, "sOl:LoadLibraryEx", &fname, &obhandle, &flags))
 		return (NULL);
-	if (!PyWinObject_AsHANDLE(obhandle, &handle, TRUE))
+	if (!PyWinObject_AsHANDLE(obhandle, &handle))
 		return NULL;
 	// @pyseeapi LoadLibraryEx
 	PyW32_BEGIN_ALLOW_THREADS
@@ -1651,7 +1651,7 @@ PyFreeLibrary(PyObject * self, PyObject * args)
 	// @pyparm <o PyHANDLE>|hModule||Specifies the handle to the module.
 	if (!PyArg_ParseTuple(args, "O:FreeLibrary", &obhandle))
 		return (NULL);
-	if (!PyWinObject_AsHANDLE(obhandle, (HANDLE *)&handle, FALSE))
+	if (!PyWinObject_AsHANDLE(obhandle, (HANDLE *)&handle))
 		return NULL;
 	// @pyseeapi FreeLibrary
 	PyW32_BEGIN_ALLOW_THREADS
@@ -1675,7 +1675,7 @@ PyGetProcAddress(PyObject * self, PyObject * args)
 		&obhandle,	// @pyparm <o PyHANDLE>|hModule||Specifies the handle to the module.
 		&obfnName))	// @pyparm <o PyResourceId>|functionName||Specifies the name of the procedure, or its ordinal value
 		return (NULL);
-	if (!PyWinObject_AsHANDLE(obhandle, (HANDLE *)&handle, FALSE))
+	if (!PyWinObject_AsHANDLE(obhandle, (HANDLE *)&handle))
 		return NULL;
 	// GetProcAddress is char only
 	if (!PyWinObject_AsResourceIdA(obfnName, &fnName))
@@ -2451,7 +2451,7 @@ PyObject *PyPostMessage(PyObject *self, PyObject *args)
 	          &obwParam,  // @pyparm int|wParam|None|The wParam for the message
 	          &oblParam)) // @pyparm int|lParam|None|The lParam for the message
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	if (!PyWinObject_AsPARAM(obwParam, &wParam))
 		return NULL;
@@ -2681,7 +2681,7 @@ static PyObject *PyRegCreateKeyTransacted(PyObject *self, PyObject *args, PyObje
 		return NULL;
 	if (PyWinObject_AsHKEY(obKey, &hKey)
 		&&PyWinObject_AsWCHAR(obsubKey, &subKey, FALSE)
-		&&PyWinObject_AsHANDLE(obtrans, &htrans, FALSE)
+		&&PyWinObject_AsHANDLE(obtrans, &htrans)
 		&&PyWinObject_AsWCHAR(obclass, &class_name, TRUE)
 		&&PyWinObject_AsSECURITY_ATTRIBUTES(obsa, &psa, TRUE)){
 		rc=(*pfnRegCreateKeyTransacted)(hKey, subKey, reserved, class_name, options,
@@ -2748,7 +2748,7 @@ static PyObject *PyRegDeleteKeyTransacted(PyObject *self, PyObject *args, PyObje
 		return NULL;
 	if (PyWinObject_AsHKEY(obKey, &hKey)
 		&&PyWinObject_AsWCHAR(obsubKey, &subKey, FALSE)
-		&&PyWinObject_AsHANDLE(obtrans, &htrans, FALSE)){
+		&&PyWinObject_AsHANDLE(obtrans, &htrans)){
 		rc=(*pfnRegDeleteKeyTransacted)(hKey, subKey, access, reserved, htrans, extparam);
 		if (rc!=ERROR_SUCCESS)
 			PyWin_SetAPIError("RegDeleteKeyTransacted", rc);
@@ -3000,7 +3000,7 @@ PyRegNotifyChangeKeyValue( PyObject *self, PyObject *args )
 		return NULL;
 	if (!PyWinObject_AsHKEY(obreghandle, &reghandle))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obevent, &hevent, TRUE)) // handle should be NULL if asynch is False
+	if (!PyWinObject_AsHANDLE(obevent, &hevent)) // handle should be NULL if asynch is False
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
 	err=RegNotifyChangeKeyValue(reghandle, subtree, filter, hevent, asynch);
@@ -3416,7 +3416,7 @@ static PyObject *PyRegOpenKeyTransacted(PyObject *self, PyObject *args, PyObject
 		return NULL;
 	if (PyWinObject_AsHKEY(obKey, &hKey)
 		&&PyWinObject_AsWCHAR(obsubKey, &subKey, TRUE)
-		&&PyWinObject_AsHANDLE(obtrans, &htrans, FALSE)){
+		&&PyWinObject_AsHANDLE(obtrans, &htrans)){
 		rc=(*pfnRegOpenKeyTransacted)(hKey, subKey, options, access, &retKey, htrans, extparam);
 		if (rc!=ERROR_SUCCESS)
 			PyWin_SetAPIError("RegOpenKeyTransacted", rc);
@@ -3934,7 +3934,7 @@ PyObject *PySendMessage(PyObject *self, PyObject *args)
 		&obwParam,		// @pyparm int/string|wParam|None|The wParam for the message
 		&oblParam))		// @pyparm int/string|lParam|None|The lParam for the message
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	if (!PyWinObject_AsPARAM(obwParam, &wParam))
 		return NULL;
@@ -4038,7 +4038,7 @@ PyShellExecute( PyObject *self, PyObject *args )
 		      &dir,  // @pyparm string|dir||The initial directory for the application.
 		      &show))// @pyparm int|bShow||Specifies whether the application is shown when it is opened. If the lpszFile parameter specifies a document file, this parameter is zero.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	if (dir==NULL)
 		dir="";
@@ -4107,7 +4107,7 @@ PyWinHelp( PyObject *self, PyObject *args )
 			  &cmd,    // @pyparm int|cmd||The type of help.  See the api for full details.
 			  &dataOb))   // @pyparm int/string|data|0|Additional data specific to the help call.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	if (dataOb==Py_None)
 		data = 0;
@@ -4212,7 +4212,7 @@ PyMessageBox(PyObject * self, PyObject * args)
   // methods supplied by the GUI (eg, <om win32ui.MessageBox> or <om PyCWnd.MessageBox>)
   if (!PyArg_ParseTuple(args, "Os|zli:MessageBox(Ex)", &obhwnd, &message, &title, &style, &langId))
     return NULL;
-  if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, TRUE))
+  if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 
   PyW32_BEGIN_ALLOW_THREADS
@@ -4254,7 +4254,7 @@ PyGetWindowLong(PyObject * self, PyObject * args)
 	// @pyparm int|offset||Specifies the zero-based byte offset of the value to change. Valid values are in the range zero through the number of bytes of extra window memory, minus four (for example, if 12 or more bytes of extra memory were specified, a value of 8 would be an index to the third long integer), or one of the GWL_ constants.
 	if (!PyArg_ParseTuple(args, "Oi:GetWindowLong", &obhwnd, &offset))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 
 	PyW32_BEGIN_ALLOW_THREADS
@@ -4277,7 +4277,7 @@ PySetWindowLong(PyObject * self, PyObject * args)
 	// @pyparm int|val||Specifies the long value to place in the window's reserved memory.
 	if (!PyArg_ParseTuple(args, "OiO:SetWindowLong", &obhwnd, &offset, &obval))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	if (!PyWinLong_AsVoidPtr(obval, (void **)&newVal))
 		return NULL;
@@ -4300,7 +4300,7 @@ PySetWindowWord(PyObject * self, PyObject * args)
 	// @pyparm int|val||Specifies the long value to place in the window's reserved memory.
 	if (!PyArg_ParseTuple(args, "OiH:SetWindowWord", &obhwnd, &offset, &newVal))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
 	long rc = ::SetWindowWord(hwnd, offset, newVal );
@@ -4322,7 +4322,7 @@ PySetClassLong(PyObject * self, PyObject * args)
 	// @pyparm int|val||Specifies the long value to place in the window's reserved memory.
 	if (!PyArg_ParseTuple(args, "OiO:SetClassLong", &obhwnd, &offset, &obval))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	if (!PyWinLong_AsVoidPtr(obval, (void **)&newVal))
 		return NULL;
@@ -4346,7 +4346,7 @@ PySetClassWord(PyObject * self, PyObject * args)
 	// @pyparm int|val||Specifies the long value to place in the window's reserved memory.
 	if (!PyArg_ParseTuple(args, "OiH:SetClassWord", &obhwnd, &offset, &newVal))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
 	long rc = ::SetClassWord(hwnd, offset, newVal );
@@ -4644,7 +4644,7 @@ static PyObject * PyLoadString(PyObject *self, PyObject *args)
 						   &stringId, // @pyparm int|stringId||The ID of the string to load.
 						   &numChars)) // @pyparm int|numChars|1024|Number of characters to allocate for the return buffer.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhModule, (HANDLE *)&hModule, FALSE))
+	if (!PyWinObject_AsHANDLE(obhModule, (HANDLE *)&hModule))
 		return NULL;
 	int numBytes = sizeof(WCHAR) * numChars;
 	WCHAR *buffer = (WCHAR *)malloc(numBytes);
@@ -4679,7 +4679,7 @@ static PyObject * PyLoadResource(PyObject *self, PyObject *args)
 			&wLanguage // @pyparm int|language|NEUTRAL|Language to use, defaults to LANG_NEUTRAL.
 		) )
 		return NULL;
-	if (PyWinObject_AsHANDLE(obhModule, (HANDLE *)&hModule, TRUE)
+	if (PyWinObject_AsHANDLE(obhModule, (HANDLE *)&hModule)
 		&&PyWinObject_AsResourceId(obType, &lpType) 
 		&&PyWinObject_AsResourceId(obName, &lpName)){
 		HRSRC hrsrc = FindResourceEx(hModule, lpType, lpName, wLanguage);
@@ -4750,7 +4750,7 @@ static PyObject * PyUpdateResource(PyObject *self, PyObject *args)
 		) )
 		return NULL;
 
-	if (PyWinObject_AsHANDLE(obhUpdate, (HANDLE *)&hUpdate, FALSE)
+	if (PyWinObject_AsHANDLE(obhUpdate, (HANDLE *)&hUpdate)
 		&&PyWinObject_AsResourceIdW(obType, &lpType) 
 		&&PyWinObject_AsResourceIdW(obName, &lpName)
 		&&PyWinObject_AsReadBuffer(obData, &lpData, &cbData, FALSE)){
@@ -4778,7 +4778,7 @@ static PyObject * PyEndUpdateResource(PyObject *self, PyObject *args)
 		&fDiscard // @pyparm int|discard||Flag to discard all writes.
 		) )
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhUpdate, (HANDLE *)&hUpdate, FALSE))
+	if (!PyWinObject_AsHANDLE(obhUpdate, (HANDLE *)&hUpdate))
 		return NULL;
 	if ( !EndUpdateResource(hUpdate, fDiscard) )
 		return ReturnAPIError("EndUpdateResource");
@@ -4816,7 +4816,7 @@ PyObject *PyEnumResourceNames(PyObject *, PyObject *args)
 		&obrestype))
 		return NULL;
 
-	if (!PyWinObject_AsHANDLE(obhmodule, (HANDLE *)&hmodule, FALSE))
+	if (!PyWinObject_AsHANDLE(obhmodule, (HANDLE *)&hmodule))
 		return NULL;
 	if (!PyWinObject_AsResourceId(obrestype, &restype))
 		return NULL;

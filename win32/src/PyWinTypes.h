@@ -494,7 +494,8 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsACL(PyObject *ob, PACL *ppACL, BOOL bNoneOK
 extern PYWINTYPES_EXPORT PyTypeObject PyHANDLEType; // the Type for PyHANDLE
 #define PyHANDLE_Check(ob)	((ob)->ob_type == &PyHANDLEType)
 
-PYWINTYPES_EXPORT BOOL PyWinObject_AsHANDLE(PyObject *ob, HANDLE *pRes, BOOL bNoneOK = FALSE);
+// Convert an object to a HANDLE - None is always OK, as are ints, etc.
+PYWINTYPES_EXPORT BOOL PyWinObject_AsHANDLE(PyObject *ob, HANDLE *pRes);
 // For handles that use PyHANDLE.
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromHANDLE(HANDLE h);
 // For handles that aren't returned as PyHANDLE or a subclass thereof (HDC, HWND, etc).
@@ -509,7 +510,7 @@ PYWINTYPES_EXPORT PyObject *PyWinMethod_NewHANDLE( PyObject *self, PyObject *arg
 // If result is FALSE, a Python error is all setup (cf PyHANDLE::Close(), which doesnt set the Python error)
 PYWINTYPES_EXPORT BOOL PyWinObject_CloseHANDLE(PyObject *obHandle);
 
-PYWINTYPES_EXPORT BOOL PyWinObject_AsHKEY(PyObject *ob, HKEY *pRes, BOOL bNoneOK = FALSE);
+PYWINTYPES_EXPORT BOOL PyWinObject_AsHKEY(PyObject *ob, HKEY *pRes);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromHKEY(HKEY h);
 PYWINTYPES_EXPORT BOOL PyWinObject_CloseHKEY(PyObject *obHandle);
 

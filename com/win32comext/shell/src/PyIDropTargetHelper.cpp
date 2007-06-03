@@ -54,7 +54,7 @@ PyObject *PyIDropTargetHelper::DragEnter(PyObject *self, PyObject *args)
 		&obpt,			// @pyparm (int, int)|pt||Coordinates where drag operation entered the window
 		&dwEffect))		// @pyparm int|dwEffect||One of shellcon.DROPEFFECT_* values
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
 	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obpDataObj, IID_IDataObject, (void **)&pDataObj, TRUE /* bNoneOK */))

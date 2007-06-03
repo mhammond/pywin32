@@ -77,9 +77,9 @@ PyObject *PyIsProcessInJob(PyObject *self, PyObject *args)
 		&obph,		// @pyparm <o PyHANDLE>|hProcess||Handle to a process
 		&objh))		// @pyparm <o PyHANDLE>|hJob||Handle to a job, use None to check if process is part of any job
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obph, &ph, FALSE))
+	if (!PyWinObject_AsHANDLE(obph, &ph))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(objh, &jh, TRUE))
+	if (!PyWinObject_AsHANDLE(objh, &jh))
 		return NULL;
 
 	if (!(*pfnIsProcessInJob)(ph, jh, &res))
@@ -128,7 +128,7 @@ PyObject *PyQueryInformationJobObject(PyObject *self, PyObject *args)
 		&objh,			// @pyparm <o PyHANDLE>|Job||Handle to a job, use None for job that calling process is part of
 		&infoclass))	// @pyparm int|JobObjectInfoClass||The type of data required, one of JobObject* values
 		return NULL;
-	if (!PyWinObject_AsHANDLE(objh, &jh, TRUE))
+	if (!PyWinObject_AsHANDLE(objh, &jh))
 		return NULL;
 	// @flagh JobObjectInfoClass|Type of information returned
 	switch (infoclass){
@@ -365,7 +365,7 @@ PyObject *PySetInformationJobObject(PyObject *self, PyObject *args)
 		&infoclass,		// @pyparm int|JobObjectInfoClass||The type of data required, one of JobObject* values
 		&PyDict_Type, &obinfo))		// @pyparm dict|JobObjectInfo||Dictionary containing info to be set, as returned by <om win32job.QueryInformationJobObject>
 		return NULL;
-	if (!PyWinObject_AsHANDLE(objh, &jh, FALSE))
+	if (!PyWinObject_AsHANDLE(objh, &jh))
 		return NULL;
 	// @flagh JobObjectInfoClass|Type of information to be set
 	switch (infoclass){

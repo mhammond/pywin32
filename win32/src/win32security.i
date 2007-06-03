@@ -221,7 +221,7 @@ BOOL PyWinObject_CloseLSA_HANDLE(PyObject *obHandle)
 
 	HANDLE lsahandle;
 	NTSTATUS err;
-	if (!PyWinObject_AsHANDLE(obHandle, &lsahandle, FALSE))
+	if (!PyWinObject_AsHANDLE(obHandle, &lsahandle))
 		return FALSE;
 	err=LsaClose(lsahandle);
 	if (err==STATUS_SUCCESS)
@@ -243,7 +243,7 @@ BOOL PyWinObject_CloseLsaLogon_HANDLE(PyObject *obHandle)
 	
 	HANDLE lsahandle;
 	NTSTATUS err;
-	if (!PyWinObject_AsHANDLE(obHandle, &lsahandle, FALSE))
+	if (!PyWinObject_AsHANDLE(obHandle, &lsahandle))
 		return FALSE;
 	// function pointer checked in PyLsaDeregisterLogonProcess
 	err=(*pfnLsaDeregisterLogonProcess)(lsahandle);
@@ -1186,7 +1186,7 @@ PyObject *SetSecurityInfo(PyObject *self, PyObject *args)
 				&obSacl))				// @pyparm <o PyACL>|Sacl||System Audit ACL to set for object, can be None
 		return NULL;
 
-	if (!PyWinObject_AsHANDLE(obHandle, &handle, FALSE ))
+	if (!PyWinObject_AsHANDLE(obHandle, &handle))
 		return NULL;
 	if (!PyWinObject_AsSID(obSidOwner, &pSidOwner, TRUE))
 		return NULL;
@@ -1223,7 +1223,7 @@ static PyObject *PyGetSecurityInfo(PyObject *self, PyObject *args)
 	// @pyparm int|SecurityInfo||Combination of SECURITY_INFORMATION constants
 	if (!PyArg_ParseTuple(args, "Oll:GetSecurityInfo",&obhandle, &object_type, &required_info))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhandle, &handle, FALSE))
+	if (!PyWinObject_AsHANDLE(obhandle, &handle))
 		return NULL;
 
 	err=GetSecurityInfo(handle, object_type, required_info, NULL, NULL, NULL, NULL, &pSD);
@@ -1524,7 +1524,7 @@ static PyObject *PyAdjustTokenGroups(PyObject *self, PyObject *args)
 		&reset,    // @pyparm boolean|ResetToDefault||Sets groups to default enabled/disabled states,
 		&obtg))     // @pyparm <o PyTOKEN_GROUPS>|NewState||Groups and attributes to be set for token
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obHandle, &th, FALSE))
+	if (!PyWinObject_AsHANDLE(obHandle, &th))
 		return NULL;
 	if (!PyWinObject_AsTOKEN_GROUPS(obtg, &newstate))
 		return NULL;
@@ -1583,7 +1583,7 @@ static PyObject *PyGetTokenInformation(PyObject *self, PyObject *args)
 		(long *)&typ)) // @pyparm int|TokenInformationClass||Specifies a value from the TOKEN_INFORMATION_CLASS enumerated type identifying the type of information the function retrieves.
 		return NULL;
 	HANDLE handle;
-	if (!PyWinObject_AsHANDLE(obHandle, &handle, FALSE))
+	if (!PyWinObject_AsHANDLE(obHandle, &handle))
 		return NULL;
 
 	PyObject *ret = NULL;
@@ -1751,11 +1751,11 @@ static PyObject *PySetThreadToken(PyObject *self, PyObject *args)
     if (obThread == Py_None)
         phThread = NULL;
     else {
-        if (!PyWinObject_AsHANDLE(obThread, &hThread, FALSE))
+        if (!PyWinObject_AsHANDLE(obThread, &hThread))
             return NULL;
         phThread = &hThread;
     }
-	if (!PyWinObject_AsHANDLE(obToken, &hToken, TRUE))
+	if (!PyWinObject_AsHANDLE(obToken, &hToken))
 		return NULL;
 	BOOL ok;
 	ok = SetThreadToken(phThread, hToken);
@@ -2018,7 +2018,7 @@ static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 		&obinfo))     // @pyparm <o PyACL>|obinfo||PyACL, PySID, or int depending on type parm
 		return NULL;
 
-	if (!PyWinObject_AsHANDLE(obth, &th, FALSE ))
+	if (!PyWinObject_AsHANDLE(obth, &th))
 		return NULL;
 
 	switch (typ) {
@@ -2731,7 +2731,7 @@ static PyObject *PyLsaRegisterPolicyChangeNotification(PyObject *self, PyObject 
 		(long *)&info_class,   // @pyparm int|InformationClass||One of POLICY_NOTIFICATION_INFORMATION_CLASS contants
 		&obHandle))            // @pyparm <o PyHANDLE>|NotificationEventHandle||Event handle to receives notification
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obHandle, &hevent, FALSE))
+	if (!PyWinObject_AsHANDLE(obHandle, &hevent))
 		return NULL;
 	err=(*pfnLsaRegisterPolicyChangeNotification)(info_class,hevent);
 	if (err==STATUS_SUCCESS)
@@ -2758,7 +2758,7 @@ static PyObject *PyLsaUnregisterPolicyChangeNotification(PyObject *self, PyObjec
 		(long *)&info_class,   // @pyparm int|InformationClass||POLICY_NOTIFICATION_INFORMATION_CLASS constant
 		&obHandle))            // @pyparm <o PyHANDLE>|NotificationEventHandle||Event handle previously registered to receive policy change events
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obHandle, &hevent, FALSE))
+	if (!PyWinObject_AsHANDLE(obHandle, &hevent))
 		return NULL;
 	err=(*pfnLsaUnregisterPolicyChangeNotification)(info_class,hevent);
 	if (err==STATUS_SUCCESS)
@@ -2904,7 +2904,7 @@ static PyObject *PyDuplicateTokenEx(PyObject *self, PyObject *args, PyObject *kw
 		&tokentype,	// @pyparm int|TokenType||Type of token to be created, TokenPrimary or TokenImpersonation
 		&obsa))		// @pyparm <o PySECURITY_ATTRIBUTES>|TokenAttributes|None|Specifies security and inheritance for the new handle.  None results in default DACL and no inheritance,
 		return NULL; 
-	if (!PyWinObject_AsHANDLE(obtoken, &htoken, FALSE))
+	if (!PyWinObject_AsHANDLE(obtoken, &htoken))
 		return NULL;
 	if (!PyWinObject_AsSECURITY_ATTRIBUTES(obsa, &psa, TRUE))
 		return NULL;
@@ -2930,7 +2930,7 @@ static PyObject *PyCheckTokenMembership(PyObject *self, PyObject *args)
 	// @pyparm <o PySID>|SidToCheck||Sid to be checked for presence in token
 	if (!PyArg_ParseTuple(args, "OO:CheckTokenMembership",&obtoken, &obsid))
 		return NULL; 
-	if (!PyWinObject_AsHANDLE(obtoken, &htoken, TRUE))
+	if (!PyWinObject_AsHANDLE(obtoken, &htoken))
 		return NULL;
 	if (!PyWinObject_AsSID(obsid, &sid, FALSE))
 		return NULL;
@@ -2963,7 +2963,7 @@ static PyObject *PyCreateRestrictedToken(PyObject *self, PyObject *args)
 		&obPrivilegesToDelete,	// @pyparm (<o PyLUID_AND_ATTRIBUTES>,...)|PrivilegesToDelete||Privilege LUIDS to remove from token (attributes are ignored), or None 
 		&obSidsToRestrict))		// @pyparm (<o PySID_AND_ATTRIBUTES>,...)|SidsToRestrict||Can be None, otherwise must be a sequence of <o PySID_AND_ATTRIBUTES> tuples (attributes must be 0)
 		return NULL;
-	if (PyWinObject_AsHANDLE(obExistingTokenHandle, &ExistingTokenHandle, FALSE))
+	if (PyWinObject_AsHANDLE(obExistingTokenHandle, &ExistingTokenHandle))
 		if (PyWinObject_AsSID_AND_ATTRIBUTESArray(obSidsToDisable, &SidsToDisable, &DisableSidCount))
 			if (PyWinObject_AsSID_AND_ATTRIBUTESArray(obSidsToRestrict, &SidsToRestrict, &RestrictedSidCount))
 				if (PyWinObject_AsLUID_AND_ATTRIBUTESArray(obPrivilegesToDelete, &PrivilegesToDelete, &DeletePrivilegeCount))
@@ -3062,7 +3062,7 @@ static PyObject *PyLsaLookupAuthenticationPackage(PyObject *self, PyObject *args
 	if (!PyArg_ParseTuple(args,"OO:LsaLookupAuthenticationPackage",
 		&obhandle, &obname))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhandle, &lsahandle, FALSE))
+	if (!PyWinObject_AsHANDLE(obhandle, &lsahandle))
 		return NULL;
 	if (!PyWinObject_AsLSA_STRING(obname, &packagename))
 		return NULL;
@@ -3433,7 +3433,7 @@ static PyObject *PyLsaCallAuthenticationPackage(PyObject *self, PyObject *args)
 	PyObject *ret=NULL, *obinputbuf;
 	if (!PyArg_ParseTuple(args, "OllO:LsaCallAuthenticationPackage", &obhandle, &pkgid, &msgtype, &obinputbuf))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhandle, &lsahandle, FALSE))
+	if (!PyWinObject_AsHANDLE(obhandle, &lsahandle))
 		return NULL;
 
 	// Message-specific input

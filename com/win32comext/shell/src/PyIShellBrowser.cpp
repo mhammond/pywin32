@@ -44,7 +44,7 @@ PyObject *PyIShellBrowser::InsertMenusSB(PyObject *self, PyObject *args)
 		&obhmenuShared,		// @pyparm <o PyHANDLE>|hmenuShared||Newly created menu that contains no items
 		&obMenuWidths))		// @pyparm <o PyLPOLEMENUGROUPWIDTHS>|lpMenuWidths||Tuple of 6 ints.  Items 0,2,and 4 are updated when the tuple is returned.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhmenuShared, (HANDLE *)&hmenuShared, FALSE))
+	if (!PyWinObject_AsHANDLE(obhmenuShared, (HANDLE *)&hmenuShared))
 		return NULL;
 	if (!PyObject_AsOLEMENUGROUPWIDTHS( obMenuWidths, &menuWidths))
 		return NULL;
@@ -72,11 +72,11 @@ PyObject *PyIShellBrowser::SetMenuSB(PyObject *self, PyObject *args)
 		&obholemenuRes,			// @pyparm <o PyHANDLE>|holemenuRes||Reserved, use only None (or 0)
 		&obhwndActiveObject))	// @pyparm <o PyHANDLE>|hwndActiveObject||Handle to the shell window
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhmenuShared, (HANDLE *)&hmenuShared, FALSE))
+	if (!PyWinObject_AsHANDLE(obhmenuShared, (HANDLE *)&hmenuShared))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obholemenuRes, (HANDLE *)&holemenuRes, TRUE))
+	if (!PyWinObject_AsHANDLE(obholemenuRes, (HANDLE *)&holemenuRes))
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwndActiveObject, (HANDLE *)&hwndActiveObject, FALSE))
+	if (!PyWinObject_AsHANDLE(obhwndActiveObject, (HANDLE *)&hwndActiveObject))
 		return NULL;
 
 	HRESULT hr;
@@ -102,7 +102,7 @@ PyObject *PyIShellBrowser::RemoveMenusSB(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O:RemoveMenusSB", 
 		&obhmenuShared))	// @pyparm <o PyHANDLE>|hmenuShared||Handle to the composite menu
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhmenuShared, (HANDLE *)&hmenuShared, FALSE))
+	if (!PyWinObject_AsHANDLE(obhmenuShared, (HANDLE *)&hmenuShared))
 		return NULL;
 
 	HRESULT hr;
@@ -503,7 +503,7 @@ STDMETHODIMP PyGShellBrowser::GetControlWindow(
 	HRESULT hr=InvokeViaPolicy("GetControlWindow", &result, "I", id);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
-	if (!PyWinObject_AsHANDLE(result, (HANDLE *)phwnd, TRUE))
+	if (!PyWinObject_AsHANDLE(result, (HANDLE *)phwnd))
 		hr = PyCom_HandlePythonFailureToCOM();
 	Py_DECREF(result);
 	return hr;
