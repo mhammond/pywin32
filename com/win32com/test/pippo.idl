@@ -30,6 +30,8 @@ import "ocidl.idl";
 	{		
 		[id(1), helpstring("method Method1")] HRESULT Method1([out, retval] IPippo **val);
 		[propget, id(2), helpstring("property MyProp1")] HRESULT MyProp1([out, retval] long *pVal);
+		[id(3), helpstring("method Method2")] HRESULT Method2([in] long in1, [in, out] long *inout1,
+		                                                      [out, retval] long *val);
 	};
 
 [

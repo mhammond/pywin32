@@ -29,6 +29,11 @@ class PippoTester(unittest.TestCase):
         if end-start > 5:
             self.fail("We lost %d references!" % (end-start,))
 
+    def testResults(self):
+        rc, out1 = self.object.Method2(123, 111)
+        self.failUnlessEqual(rc, 123)
+        self.failUnlessEqual(out1, 222)
+
     def testLeaksGencache(self):
         try:
             gtrc = sys.gettotalrefcount

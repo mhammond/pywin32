@@ -33,6 +33,9 @@ class CPippo:
     def Method1(self):
         return wrap(CPippo())
 
+    def Method2(self, in1, inout1):
+        return in1, inout1 * 2
+
 def BuildTypelib():
     from distutils.dep_util import newer
     this_dir = os.path.dirname(__file__)
