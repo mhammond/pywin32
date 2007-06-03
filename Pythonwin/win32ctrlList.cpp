@@ -487,7 +487,7 @@ PyObject *PyCListCtrl_GetItemText( PyObject *self, PyObject *args )
 	GUI_END_SAVE;
 	if (len==0)
 		RETURN_ERR("GetItemText failed");
-	return Py_BuildValue("s#",buf,len);
+	return PyString_FromStringAndSize(buf,len);
 }
 
 // @pymethod int|PyCListCtrl|SetItemText|Changes the text of a list view item or subitem.
@@ -576,7 +576,7 @@ PyObject *PyCListCtrl_SetItemData( PyObject *self, PyObject *args )
 		return NULL;
 	if (data==Py_None) data = NULL;
 	GUI_BGN_SAVE;
-	BOOL ok = pList->SetItemData(item, (DWORD)data);
+	BOOL ok = pList->SetItemData(item, (DWORD_PTR)data);
 	GUI_END_SAVE;
 	if (!ok)
 		RETURN_ERR("SetItemData failed");

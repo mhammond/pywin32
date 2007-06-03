@@ -242,7 +242,7 @@ PyObject *PyCMenu::InsertMenu(PyObject *self, PyObject *args)
 			RETURN_API_ERR("::InsertMenu");
 	} else {
 		HMENU hSubMenu = GetMenu(subMenu);
-		if (!::InsertMenu(hMenu, pos, flags, (int)hSubMenu, value))
+		if (!::InsertMenu(hMenu, pos, flags, (UINT_PTR)hSubMenu, value))
 			RETURN_API_ERR("::InsertMenu");
 	}
 	RETURN_NONE;

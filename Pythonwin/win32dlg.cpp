@@ -367,9 +367,9 @@ static PyObject *do_exchange_button( CDialog *pDlg, int id, int index, char *typ
 	// Need to check certain attributes on the window.  MFC Asserts otherwise.
 	HWND hwnd = pWnd->GetSafeHwnd();
 	DWORD dwStyle = ::GetWindowLong(hwnd, GWL_STYLE);
-	DWORD dwCode = ::SendMessage(hwnd, WM_GETDLGCODE, 0, 0L);
-	BOOL bRadio = dwCode & DLGC_RADIOBUTTON;
-	BOOL bCheck = dwStyle & BS_CHECKBOX;
+	LRESULT dwCode = ::SendMessage(hwnd, WM_GETDLGCODE, 0, 0L);
+	BOOL bRadio = (dwCode & DLGC_RADIOBUTTON) != 0;
+	BOOL bCheck = (dwStyle & BS_CHECKBOX) != 0;
 	if (!bRadio && !bCheck)
 		return set_exchange_error("only radios and checkboxes are supported for button controls", index);
 	if ((bRadio && (dwStyle & BS_AUTORADIOBUTTON)==0) || (bCheck && (dwStyle & BS_AUTOCHECKBOX)==0))
@@ -571,12 +571,12 @@ static PyObject *ui_dialog_do_modal( PyObject *self, PyObject *args )
 
 	Py_INCREF(self);	// make sure Python doesnt kill the object while in a modal call.
 					// really only for the common dialog, and other non CPythonDlg's
-	int ret;
+	INT_PTR ret;
 	GUI_BGN_SAVE;
 	ret = pDlg->DoModal(); // @pyseemfc CDialog|DoModal
 	GUI_END_SAVE;
 	DODECREF(self);
-	return Py_BuildValue("i", ret);
+	return PyWinObject_FromDWORD_PTR(ret);
 	// @rdesc The return value from the dialog.  This is the value passed to <om PyCDialog.EndDialog>.
 }
 // @pymethod |PyCDialog|CreateWindow|Create a modeless window for the dialog box.
@@ -1067,6 +1067,17 @@ static PyObject *fnname( PyObject *self, PyObject *args ) { \
 	return Py_BuildValue("i",ret); \
 }
 
+#define MAKE_INT_PTR_METH(fnname, mfcName) \
+static PyObject *fnname( PyObject *self, PyObject *args ) { \
+	CHECK_NO_ARGS2(args,mfcName); \
+	CFontDialog *pDlg = GetFontDialog(self); \
+	if (!pDlg) return NULL; \
+	GUI_BGN_SAVE; \
+	INT_PTR ret = pDlg->mfcName(); \
+	GUI_END_SAVE; \
+	return PyWinObject_FromDWORD_PTR(ret); \
+}
+
 // @pymethod string|PyCFontDialog|GetFaceName|Returns the face name of the selected font.
 // @pyseemfc CFontDialog|GetFaceName
 MAKE_CSTRING_METH(ui_font_dialog_get_face_name,GetFaceName)
@@ -1100,7 +1111,7 @@ MAKE_INT_METH(ui_font_dialog_is_italic,IsItalic)
 
 // @pymethod int|PyCFontDialog|DoModal|Displays a dialog and allows the user to make a selection.
 // @pyseemfc CFontDialog|DoModal
-MAKE_INT_METH(ui_font_dialog_do_modal,DoModal)
+MAKE_INT_PTR_METH(ui_font_dialog_do_modal,DoModal)
 
 // @pymethod int|PyCFontDialog|GetColor|Determines the color of the selected font.
 // @pyseemfc CFontDialog|GetColor
@@ -1223,7 +1234,7 @@ static PyObject *fnname( PyObject *self, PyObject *args ) { \
 
 // @pymethod int|PyCColorDialog|DoModal|Displays a dialog and allows the user to make a selection.
 // @pyseemfc CColorDialog|DoModal
-MAKE_INT_METH(ui_color_dialog_do_modal,DoModal)
+MAKE_INT_PTR_METH(ui_color_dialog_do_modal,DoModal)
 
 // @pymethod int|PyCColorDialog|GetColor|Determines the selected color.
 // @pyseemfc CColorDialog|GetColor
@@ -1280,7 +1291,7 @@ static PyObject *ui_color_dialog_set_custom_colors( PyObject *self, PyObject *ar
 	PyObject *obCols;
 	if (!PyArg_ParseTuple(args, "O", &obCols))
 		return NULL;
-	int len = PySequence_Length(obCols);
+	Py_ssize_t len = PySequence_Length(obCols);
 	if (PyErr_Occurred() || len <= 0 || len > 16) {
 		PyErr_Clear();
 		PyErr_SetString(PyExc_TypeError, "The argument must be a sequence of integers of length 1-16");

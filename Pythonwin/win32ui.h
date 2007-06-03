@@ -302,6 +302,7 @@ public:
 	BOOL retval( char * &ret );
 	BOOL retval( CString &ret );
 	BOOL retval( MSG *msg);
+	BOOL retval( HANDLE &ret );
 	BOOL retnone();
 	PyObject *GetHandler();
 private:
@@ -319,6 +320,8 @@ private:
 PYW_EXPORT PyObject *Python_do_callback(PyObject *themeth, PyObject *thearglst);
 PYW_EXPORT int Python_callback(PyObject *);
 PYW_EXPORT int Python_callback(PyObject *, int);
+PYW_EXPORT int Python_callback(PyObject *, WPARAM);
+PYW_EXPORT int Python_callback(PyObject *, LPARAM);
 PYW_EXPORT int Python_callback(PyObject *, int, int);
 PYW_EXPORT int Python_callback(PyObject *, const MSG *);
 PYW_EXPORT int Python_callback(PyObject *method, PyObject *object);
@@ -349,7 +352,7 @@ PYW_EXPORT BOOL ParseLV_COLUMNTuple( PyObject *args, LV_COLUMN *pItem);
 PYW_EXPORT BOOL ParseTV_ITEMTuple( PyObject *args, TV_ITEM *pItem);
 PYW_EXPORT PyObject *MakeTV_ITEMTuple(TV_ITEM *item);
 
-PyObject *PyWin_GetPythonObjectFromLong(long val);
+PyObject *PyWin_GetPythonObjectFromLong(LONG_PTR val);
 
 PYW_EXPORT PyObject *PyWinObject_FromRECT(RECT *p, bool bTakeCopy);
 PYW_EXPORT PyObject *PyWinObject_FromRECT(const RECT &r);

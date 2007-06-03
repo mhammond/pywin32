@@ -70,7 +70,8 @@ static PyObject *PyCFont_GetSafeHandle(PyObject *self, PyObject *args)
   CHECK_NO_ARGS2(args, "GetSafeHandle");
   CFont *pFont = PyCFont::GetFont(self);
   if (pFont==NULL) return NULL;
-  return PyInt_FromLong((long)pFont->GetSafeHandle());
+  return PyWinLong_FromHANDLE(pFont->GetSafeHandle());
+  return PyWinLong_FromHANDLE(pFont->GetSafeHandle());
 }
 
 // @object PyCFont|A windows font object.  Encapsulates an MFC <c CFont> class.

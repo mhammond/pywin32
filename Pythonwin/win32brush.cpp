@@ -80,7 +80,7 @@ static PyObject *PyCBrush_GetSafeHandle(PyObject *self, PyObject *args)
 	CHECK_NO_ARGS2(args, "GetSafeHandle");
 	CBrush *pBrush = PyCBrush::GetBrush(self);
 	if (pBrush==NULL) return NULL;
-	return PyInt_FromLong((long)pBrush->GetSafeHandle());
+	return PyWinLong_FromHANDLE(pBrush->GetSafeHandle());
 }
 
 // @object PyCBrush|An object encapsulating an MFC PyCBrush class.

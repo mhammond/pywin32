@@ -508,15 +508,18 @@ static PyObject *ui_get_to_page(PyObject * self, PyObject * args)
 // @pyseemfc CPrintDialog|m_pd.hDC
 static PyObject *ui_set_hdc(PyObject * self, PyObject * args)
 {
-  int dc;
+  PyObject *obdc;
   // @pyparm int|hdc||The DC.
-  if (!PyArg_ParseTuple(args, "i:SetHDC", &dc))
+  if (!PyArg_ParseTuple(args, "O:SetHDC", &obdc))
 	  return NULL;
+  HDC dc;
+  if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&dc))
+    return NULL;
   CPrintInfo *pInfo = ui_prinfo_object::GetPrintInfo(self);
   if (!pInfo)
     return NULL;
   pInfo->m_pPD->m_pd.Flags |= PD_RETURNDC;
-  pInfo->m_pPD->m_pd.hDC = (HDC)dc;
+  pInfo->m_pPD->m_pd.hDC = dc;
   RETURN_NONE;
 }
 
@@ -531,7 +534,7 @@ static PyObject *ui_create_printer_dc(PyObject * self, PyObject * args)
   GUI_BGN_SAVE;
   HDC hDC = pInfo->m_pPD->CreatePrinterDC();
   GUI_END_SAVE;
-  return Py_BuildValue("l", (long)hDC);
+  return PyWinLong_FromHANDLE(hDC);
 }
 
 // @pymethod |PyCPrintInfo|DoModal|Call DoModal on the dialog.
@@ -543,9 +546,9 @@ static PyObject *ui_do_modal(PyObject * self, PyObject * args)
   if (!pInfo)
     return NULL;
   GUI_BGN_SAVE;
-  int res = pInfo->m_pPD->DoModal();
+  INT_PTR res = pInfo->m_pPD->DoModal();
   GUI_END_SAVE;
-  return Py_BuildValue("i", res);
+  return PyWinObject_FromDWORD_PTR(res);
 }
 
 #undef MAKE_INT_METH
@@ -639,7 +642,7 @@ static PyObject *ui_get_printer_dc(PyObject * self, PyObject * args)
   GUI_BGN_SAVE;
   HDC hDC = pInfo->m_pPD->GetPrinterDC();
   GUI_END_SAVE;
-  return Py_BuildValue("l", (long)hDC);
+  return PyWinLong_FromHANDLE(hDC);
 }
 
 // @pymethod |PyCPrintInfo|PrintAll|Nonzero if all pages in the document are to be printed; otherwise 0, call only after DoModal finishes.
@@ -670,7 +673,7 @@ static PyObject *ui_get_hdc(PyObject * self, PyObject * args)
   if (!pInfo)
     return NULL;
   HDC hDC = pInfo->m_pPD->m_pd.hDC;
-  return Py_BuildValue("l", (long)hDC);
+  return PyWinLong_FromHANDLE(hDC);
 }
 
 // @pymethod |PyCPrintInfo|GetFlags|A set of bit flags that you can use to initialize the Print common dialog box. When the dialog box returns, it sets these flags to indicate the user's input. This member can be a combination of the following flags: PD_ALLPAGES, PD_COLLATE, PD_DISABLEPRINTTOFILE, PD_ENABLEPRINTHOOK, PD_ENABLEPRINTTEMPLATE, PD_ENABLEPRINTTEMPLATEHANDLE, PD_ENABLESETUPHOOK, PD_ENABLESETUPTEMPLATE, PD_ENABLESETUPTEMPLATEHANDLE, PD_HIDEPRINTTOFILE, PD_NONETWORKBUTTON, PD_NOPAGENUMS, PD_NOSELECTION, PD_NOWARNING, PD_PAGENUMS, PD_PRINTSETUP, PD_PRINTTOFILE, PD_RETURNDC, PD_RETURNDEFAULT, PD_RETURNIC, PD_SELECTION, PD_SHOWHELP, PD_USEDEVMODECOPIES, PD_USEDEVMODECOPIESANDCOLLATE.

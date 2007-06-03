@@ -214,17 +214,20 @@ PyCButton_set_style(PyObject *self, PyObject *args)
 static PyObject *
 PyCButton_set_bitmap(PyObject *self, PyObject *args)
 {
-	int hBitmap;
-	if (!PyArg_ParseTuple(args, "i", 
-	          &hBitmap)) // @pyparm int|hBitmap|1|Handle of the new bitmap
+	PyObject *obBitmap;
+	if (!PyArg_ParseTuple(args, "O", 
+	          &obBitmap)) // @pyparm int|hBitmap|1|Handle of the new bitmap
+		return NULL;
+	HBITMAP hBitmap;
+	if (!PyWinObject_AsHANDLE(obBitmap, (HANDLE *)&hBitmap))
 		return NULL;
 	CButton *pBut = GetButton(self);
 	if (!pBut)
 		return NULL;
 	GUI_BGN_SAVE;
-	HBITMAP rc = pBut->SetBitmap((HBITMAP) hBitmap);
+	HBITMAP rc = pBut->SetBitmap(hBitmap);
 	GUI_END_SAVE;
-	return Py_BuildValue("i", (int)rc);
+	return PyWinLong_FromHANDLE(rc);
 }
 // @pymethod int|PyCButton|GetBitmap|Get the button's bitmap
 static PyObject *
@@ -237,7 +240,7 @@ PyCButton_get_bitmap(PyObject *self, PyObject *args)
 	GUI_BGN_SAVE;
 	HBITMAP rc = pBut->GetBitmap();
 	GUI_END_SAVE;
-	return Py_BuildValue("i", (int)rc);
+	return PyWinLong_FromHANDLE(rc);
 }
 
 
@@ -430,12 +433,9 @@ PyObject *PyCListBox_GetItemData( PyObject *self, PyObject *args )
 	CListBox *pLB = GetListBox(self);
 	if (!pLB) return NULL;
 	GUI_BGN_SAVE;
-	long rc = pLB->GetItemData(item);
+	DWORD_PTR rc = pLB->GetItemData(item);
 	GUI_END_SAVE;
-	PyObject *ret = PyWin_GetPythonObjectFromLong(rc);
-	// inc ref count for return value.
-	Py_XINCREF(ret);
-	return ret;
+	return PyWinObject_FromDWORD_PTR(rc);
 }
 
 // @pymethod int|PyCListBox|GetItemValue|Retrieves the application-specific value associated with an item.
@@ -736,7 +736,7 @@ PyObject *PyCListBox_SetItemData( PyObject *self, PyObject *args )
 		return NULL;
 	if (data==Py_None) data = NULL;
 	GUI_BGN_SAVE;
-	BOOL ok = pLB->SetItemData(item, (DWORD)data);
+	BOOL ok = pLB->SetItemData(item, (DWORD_PTR)data);
 	GUI_END_SAVE;
 	if (!ok)
 		RETURN_ERR("SetItemData failed");
@@ -787,10 +787,10 @@ PyCListBox_set_tab_stops(PyObject *self, PyObject *args)
 			return NULL;
 		if (!PyList_Check(listOb))
 			RETURN_TYPE_ERR("Param must be a list object");
-		int numChildren = PyList_Size(listOb);
+		Py_ssize_t numChildren = PyList_Size(listOb);
 		int *pArray = new int[numChildren];
 		int tabVal;
-		for (int child=0;child<numChildren;child++) {
+		for (Py_ssize_t child=0;child<numChildren;child++) {
 			PyObject *obChild = PyList_GetItem(listOb, child );
 			if (!PyArg_Parse( obChild, "i", &tabVal)) {
 				delete pArray;
@@ -799,7 +799,7 @@ PyCListBox_set_tab_stops(PyObject *self, PyObject *args)
 			pArray[child] = tabVal;
 		}
 		GUI_BGN_SAVE;
-		rc = pLB->SetTabStops( numChildren, pArray );
+		rc = pLB->SetTabStops( PyWin_SAFE_DOWNCAST(numChildren, Py_ssize_t, int), pArray );
 		GUI_END_SAVE;
 		delete pArray;
 	}
@@ -1045,12 +1045,9 @@ PyObject *PyCComboBox_GetItemData( PyObject *self, PyObject *args )
 	CComboBox *pLB = GetCombo(self);
 	if (!pLB) return NULL;
 	GUI_BGN_SAVE;
-	long rc = pLB->GetItemData(item);
+	DWORD_PTR rc = pLB->GetItemData(item);
 	GUI_END_SAVE;
-	PyObject *ret = PyWin_GetPythonObjectFromLong(rc);
-	// inc ref count for return value.
-	Py_XINCREF(ret);
-	return ret;
+	return PyWinObject_FromDWORD_PTR(rc);
 }
 
 // @pymethod int|PyCComboBox|GetItemValue|Retrieves the application-specific value associated with an item.
@@ -1224,7 +1221,7 @@ PyObject *PyCComboBox_SetItemData( PyObject *self, PyObject *args )
 		return NULL;
 	if (data==Py_None) data = NULL;
 	GUI_BGN_SAVE;
-	BOOL ok = pLB->SetItemData(item, (DWORD)data);
+	BOOL ok = pLB->SetItemData(item, (DWORD_PTR)data);
 	GUI_END_SAVE;
 	if (!ok)
 		RETURN_ERR("SetItemData failed");
@@ -2260,8 +2257,8 @@ PyCStatusBarCtrl_set_min_height(PyObject *self, PyObject *args)
 static PyObject *
 PyCStatusBarCtrl_set_parts (PyObject *self, PyObject *args)
 {
-	int nParts = 0;
-	int i;
+	Py_ssize_t nParts = 0;
+	Py_ssize_t i;
 	CStatusBarCtrl *pSB = GetStatusBarCtrl(self);
 
 	if (!pSB)
@@ -2282,7 +2279,7 @@ PyCStatusBarCtrl_set_parts (PyObject *self, PyObject *args)
 	}
 
 	GUI_BGN_SAVE;
-	pSB->SetParts (nParts, pParts);
+	pSB->SetParts (PyWin_SAFE_DOWNCAST(nParts, Py_ssize_t, int), pParts);
 	GUI_END_SAVE;
 
 	delete pParts;

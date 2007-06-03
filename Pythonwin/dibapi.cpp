@@ -599,8 +599,8 @@ HANDLE WINAPI CopyHandle (HANDLE h)
 {
 	BYTE  *lpCopy;
 	BYTE  *lp;
-	HANDLE     hCopy;
-	DWORD      dwLen;
+	HANDLE hCopy;
+	SIZE_T dwLen;
 
 	if (h == NULL)
 		return NULL;

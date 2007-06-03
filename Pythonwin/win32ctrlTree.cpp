@@ -580,9 +580,9 @@ PyObject *PyCTreeCtrl_GetItemData( PyObject *self, PyObject *args )
 	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
 	GUI_BGN_SAVE;
-	long rc = pList->GetItemData(item);
+	DWORD_PTR rc = pList->GetItemData(item);
 	GUI_END_SAVE;
-	return PyInt_FromLong(rc);
+	return PyWinObject_FromDWORD_PTR(rc);
 }
 
 // @pymethod int|PyCTreeCtrl|SetItemData|Sets the item's application-specific value.

@@ -328,12 +328,12 @@ PyObject *ui_propsheet_do_modal( PyObject *self, PyObject *args )
 		return NULL;
 	Py_INCREF(self);	// make sure Python doesnt kill the object while in a modal call.
 					// really only for the common dialog(!?), and other non CPythonPropSheet's
-	int ret;
+	INT_PTR ret;
 	GUI_BGN_SAVE;
 	ret = pPS->DoModal();
 	GUI_END_SAVE;
 	DODECREF(self);
-	return Py_BuildValue("i", ret);
+	return PyWinObject_FromDWORD_PTR(ret);
 }
 
 // @pymethod |PyCPropertySheet|CreateWindow|Displays the property sheet as a modeless dialog.
@@ -753,7 +753,7 @@ PyObject *ui_proppage_on_wizard_back( PyObject *self, PyObject *args )
 	GUI_BGN_SAVE;
 	LRESULT result = pPP->CPropertyPage::OnWizardBack();
 	GUI_END_SAVE;
-	return PyInt_FromLong(result);
+	return PyWinObject_FromPARAM(result);
 }
 // @pymethod |PyCPropertyPage|OnWizardNext|Calls the default MFC OnWizardNext handler.
 PyObject *ui_proppage_on_wizard_next( PyObject *self, PyObject *args )
@@ -766,7 +766,7 @@ PyObject *ui_proppage_on_wizard_next( PyObject *self, PyObject *args )
 	GUI_BGN_SAVE;
 	LRESULT result = pPP->CPropertyPage::OnWizardNext();
 	GUI_END_SAVE;
-	return PyInt_FromLong(result);
+	return PyWinObject_FromPARAM(result);
 }
 // @pymethod |PyCPropertyPage|OnWizardFinish|Calls the default MFC OnWizardFinish handler.
 PyObject *ui_proppage_on_wizard_finish( PyObject *self, PyObject *args )

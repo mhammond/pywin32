@@ -181,7 +181,7 @@ PyCRectType PyCRect::type("PyCRect",
 // @object CREATESTRUCT|A representation of a Windows CREATESTRUCT structure.
 PyObject *PyObjectFromCreateStruct(LPCREATESTRUCT lpcs)
 {
-	return Py_BuildValue("(iiii(iiii)illi)",
+	return Py_BuildValue("(iiii(iiii)iNNi)",
 	    lpcs->lpCreateParams, // @pyparm int|createParams||
    		lpcs->hInstance, // @pyparm int|hInstance||
    		lpcs->hMenu, // @pyparm int|hMenu||
@@ -191,8 +191,8 @@ PyObject *PyObjectFromCreateStruct(LPCREATESTRUCT lpcs)
    		lpcs->y,
    		lpcs->x,
    		lpcs->style,// @pyparm int|style||
-   		(long)lpcs->lpszName,// @pyparm int|lpszName||A string cast to a long.
-   		(long)lpcs->lpszClass,// @pyparm int|lpszClass||A string cast to a long!?
+   		PyWinLong_FromVoidPtr(lpcs->lpszName),// @pyparm int|lpszName||A string cast to a long.
+   		PyWinLong_FromVoidPtr(lpcs->lpszClass),// @pyparm int|lpszClass||A string cast to a long!?
    		lpcs->dwExStyle);// @pyparm int|dwExStyle||
 
 	// @comm Note that the strings are passed as longs, which are there address
@@ -207,7 +207,7 @@ BOOL CreateStructFromPyObject(LPCREATESTRUCT lpcs, PyObject *ob, const char *fnN
 		sprintf(argBuf, "(iiii(iiii)illi):%s", fnName);
 	else
 		sprintf(argBuf, "iiii(iiii)illi:%s", fnName);
-	long name, className;
+	PyObject *obname, *obclassName;
 	BOOL ret =  PyArg_ParseTuple(ob, argBuf,
 	    &lpcs->lpCreateParams,
    		&lpcs->hInstance, 
@@ -218,12 +218,13 @@ BOOL CreateStructFromPyObject(LPCREATESTRUCT lpcs, PyObject *ob, const char *fnN
    		&lpcs->y,
    		&lpcs->x,
    		&lpcs->style,
-   		&name,
-   		&className,
+   		&obname,
+   		&obclassName,
    		&lpcs->dwExStyle);
 	// CCreateStruct
-	lpcs->lpszName = (LPCTSTR)name;
-	lpcs->lpszClass = (LPCTSTR)className;
+	if (!ret || !PyWinLong_AsVoidPtr(obname, (void **)&lpcs->lpszName) || 
+	    !PyWinLong_AsVoidPtr(obclassName, (void **)&lpcs->lpszClass))
+		return FALSE;
 	return ret;
 }
 /////////////////////////////////////////////////////////////////////
@@ -358,7 +359,7 @@ PyObject *MakeLV_ITEMTuple(LV_ITEM *item)
 		PyTuple_SET_ITEM(ret, 5, Py_None);
 	}
 	if (item->mask & LVIF_PARAM && item->lParam) {
-		PyObject *ob = PyInt_FromLong(item->lParam);
+		PyObject *ob = PyWinObject_FromPARAM(item->lParam);
 		PyTuple_SET_ITEM(ret, 6, ob);
 	} else {
 		Py_INCREF(Py_None);
@@ -382,7 +383,7 @@ BOOL ParseLV_ITEMTuple( PyObject *args, LV_ITEM *pItem)
 {
 	PyObject *ob;
 	pItem->mask = 0;
-	int len = PyTuple_Size(args);
+	Py_ssize_t len = PyTuple_Size(args);
 	if (len<2 || len > 7) {
 		PyErr_SetString(PyExc_TypeError, "LV_ITEM tuple has invalid size");
 		return FALSE;
@@ -417,7 +418,7 @@ BOOL ParseLV_ITEMTuple( PyObject *args, LV_ITEM *pItem)
 		if (!PyString_Check(ob)) RETURN_TYPE_ERR("The text item must be a string or None");
 		pItem->mask |= LVIF_TEXT;
 		pItem->pszText = PyString_AsString(ob);
-		pItem->cchTextMax = strlen(pItem->pszText)+1;
+		pItem->cchTextMax = PyWin_SAFE_DOWNCAST(strlen(pItem->pszText)+1, ssize_t, int);
 	}
 	if (len<6) return TRUE;
 	if ((ob=PyTuple_GetItem(args, 5))==NULL)
@@ -482,7 +483,7 @@ BOOL ParseLV_COLUMNTuple( PyObject *args, LV_COLUMN *pItem)
 {
 	PyObject *ob;
 	pItem->mask = 0;
-	int len = PyTuple_Size(args);
+	Py_ssize_t len = PyTuple_Size(args);
 	if (len > 4) {
 		PyErr_SetString(PyExc_TypeError, "LV_COLUMN tuple has invalid size");
 		return FALSE;
@@ -514,7 +515,7 @@ BOOL ParseLV_COLUMNTuple( PyObject *args, LV_COLUMN *pItem)
 		if (!PyString_Check(ob)) RETURN_TYPE_ERR("The text item must be a string or None");
 		pItem->mask |= LVCF_TEXT;
 		pItem->pszText = PyString_AsString(ob);
-		pItem->cchTextMax = strlen(pItem->pszText)+1;
+		pItem->cchTextMax = PyWin_SAFE_DOWNCAST(strlen(pItem->pszText)+1, ssize_t, int);
 	}
 	// 3 - subitem
 	if (len<4) return TRUE;
@@ -540,7 +541,7 @@ PyObject *MakeTV_ITEMTuple(TV_ITEM *item)
 	PyObject *ret = PyTuple_New(8);
 	if (ret==NULL) return NULL;
 	if (item->mask & TVIF_HANDLE)
-		PyTuple_SET_ITEM(ret, 0, PyInt_FromLong((long)item->hItem));
+		PyTuple_SET_ITEM(ret, 0, PyWinLong_FromHANDLE(item->hItem));
 	else {
 		Py_INCREF(Py_None);
 		PyTuple_SET_ITEM(ret, 0, Py_None);
@@ -580,7 +581,7 @@ PyObject *MakeTV_ITEMTuple(TV_ITEM *item)
 		PyTuple_SET_ITEM(ret, 6, Py_None);
 	}
 	if (item->mask & TVIF_PARAM) {
-		PyTuple_SET_ITEM(ret, 7, PyInt_FromLong(item->lParam));
+		PyTuple_SET_ITEM(ret, 7, PyWinObject_FromPARAM(item->lParam));
 	} else {
 		Py_INCREF(Py_None);
 		PyTuple_SET_ITEM(ret, 7, Py_None);
@@ -597,7 +598,7 @@ BOOL ParseTV_ITEMTuple( PyObject *args, TV_ITEM *pItem)
 	PyObject *ob;
 	PyObject *ob2;
 	pItem->mask = 0;
-	int len = PyTuple_Size(args);
+	Py_ssize_t len = PyTuple_Size(args);
 	if (len > 8) {
 		PyErr_SetString(PyExc_TypeError, "TV_ITEM tuple has invalid size");
 		return FALSE;
@@ -609,8 +610,8 @@ BOOL ParseTV_ITEMTuple( PyObject *args, TV_ITEM *pItem)
 		return FALSE;
 	if (ob != Py_None) {
 		// @tupleitem 0|int|hItem|Item handle
-		pItem->hItem = (HTREEITEM)PyInt_AsLong(ob);
-		if (PyErr_Occurred()) return FALSE;
+		if (!PyWinObject_AsHANDLE(ob, (HANDLE *)pItem->hItem))
+			return FALSE;
 		pItem->mask |= TVIF_HANDLE;
 	}
 	// 1,2 - state/stateMask
@@ -645,7 +646,7 @@ BOOL ParseTV_ITEMTuple( PyObject *args, TV_ITEM *pItem)
 		if (!PyString_Check(ob)) RETURN_TYPE_ERR("The text item must be a string or None");
 		pItem->mask |= TVIF_TEXT;
 		pItem->pszText = PyString_AsString(ob);
-		pItem->cchTextMax = strlen(pItem->pszText)+1;
+		pItem->cchTextMax = PyWin_SAFE_DOWNCAST(strlen(pItem->pszText)+1, ssize_t, int);
 	}
 	// 4 - image
 	if (len<5) return TRUE;
@@ -681,7 +682,8 @@ BOOL ParseTV_ITEMTuple( PyObject *args, TV_ITEM *pItem)
 	if (ob != Py_None) {
 		// @tupleitem 7|int|lParam|User defined integer param.
 		pItem->mask |= LVIF_PARAM;
-		pItem->lParam = PyInt_AsLong(ob);
+		if (!PyWinObject_AsPARAM(ob, &pItem->lParam))
+			return FALSE;
 	}
 	return !PyErr_Occurred();
 }
@@ -718,7 +720,7 @@ PyObject *MakeHD_ITEMTuple(HD_ITEM *item)
 	}
 	if (item->mask & HDI_BITMAP) {
 		// Should this support a bitmap object?
-		PyTuple_SET_ITEM(ret, 3, PyInt_FromLong((long)item->hbm));
+		PyTuple_SET_ITEM(ret, 3, PyWinLong_FromHANDLE(item->hbm));
 	} else {
 		Py_INCREF(Py_None);
 		PyTuple_SET_ITEM(ret, 3, Py_None);
@@ -731,7 +733,7 @@ PyObject *MakeHD_ITEMTuple(HD_ITEM *item)
 	}
 	if (item->mask & TVIF_PARAM && item->lParam) {
 		// assume lParam is an object
-		PyTuple_SET_ITEM(ret, 5, PyInt_FromLong(item->lParam));
+		PyTuple_SET_ITEM(ret, 5, PyWinObject_FromPARAM(item->lParam));
 	} else {
 		Py_INCREF(Py_None);
 		PyTuple_SET_ITEM(ret, 5, Py_None);
@@ -748,7 +750,7 @@ BOOL ParseHD_ITEMTuple( PyObject *args, HD_ITEM *pItem)
 {
 	PyObject *ob;
 	pItem->mask = 0;
-	int len = PyTuple_Size(args);
+	Py_ssize_t len = PyTuple_Size(args);
 	if (len > 6) {
 		PyErr_SetString(PyExc_TypeError, "HD_ITEM tuple has invalid size");
 		return FALSE;
@@ -786,7 +788,7 @@ BOOL ParseHD_ITEMTuple( PyObject *args, HD_ITEM *pItem)
 		if (!PyString_Check(ob)) RETURN_TYPE_ERR("The text item must be a string or None");
 		pItem->pszText = PyString_AsString(ob);
 		if (PyErr_Occurred()) return FALSE;
-		pItem->cchTextMax = strlen(pItem->pszText)+1;
+		pItem->cchTextMax = PyWin_SAFE_DOWNCAST(strlen(pItem->pszText)+1, ssize_t, int);
 		pItem->mask |= HDI_TEXT;
 	}
 	// 3 - hbm handle of item bitmap
@@ -796,8 +798,8 @@ BOOL ParseHD_ITEMTuple( PyObject *args, HD_ITEM *pItem)
 	if (ob != Py_None) {
 		// @pyparm string|text||Item text
 		pItem->mask |= HDI_BITMAP;
-		pItem->hbm = (HBITMAP)PyInt_AsLong(ob);
-		if (PyErr_Occurred()) return FALSE;
+		if (!PyWinObject_AsHANDLE(ob, (HANDLE *)&pItem->hbm))
+			return FALSE;
 	}
 	// 4 - fmt of item string
 	if (len<5) return TRUE;
@@ -831,7 +833,7 @@ BOOL ParseCharFormatTuple( PyObject *args, CHARFORMAT *pFmt)
 {
 	if (!PyTuple_Check(args))
 		RETURN_TYPE_ERR("CHARFORMAT must be a tuple");
-	int len = PyTuple_Size(args);
+	Py_ssize_t len = PyTuple_Size(args);
 	if (len>0) pFmt->dwMask = PyInt_AsLong(PyTuple_GET_ITEM(args, 0));
 	if (len>1) pFmt->dwEffects = PyInt_AsLong(PyTuple_GET_ITEM(args, 1));
 	if (len>2) pFmt->yHeight = PyInt_AsLong(PyTuple_GET_ITEM(args, 2));
@@ -891,9 +893,9 @@ BOOL ParseParaFormatTuple( PyObject *args, PARAFORMAT *pFmt)
 	if (rc && obTabStops != Py_None) {
 		if (!PySequence_Check(obTabStops))
 			RETURN_ERR("tabStops object must be None or a sequence");
-		int tabCount = PyObject_Length(obTabStops);
+		Py_ssize_t tabCount = PyObject_Length(obTabStops);
 		tabCount = min(MAX_TAB_STOPS, tabCount);
-		for (int i=0;rc && i<tabCount;i++) {
+		for (Py_ssize_t i=0;rc && i<tabCount;i++) {
 			pFmt->rgxTabs[i] = PyInt_AsLong( PySequence_GetItem(obTabStops, i) );
 			rc = PyErr_Occurred()==FALSE;
 			if (!rc) break;
@@ -942,7 +944,7 @@ PyObject *MakeParaFormatTuple(PARAFORMAT *pFmt)
 // that the object is still a valid PyObject * (ie,
 // has not been destroyed since we copied the pointer).
 // DOES NOT add a reference to the returned object.
-PyObject *PyWin_GetPythonObjectFromLong(long val)
+PyObject *PyWin_GetPythonObjectFromLong(LONG_PTR val)
 {
 	PyObject *ret = (PyObject *)val;
 	if (ret==NULL)
@@ -1084,14 +1086,14 @@ CString GetReprText( PyObject *objectUse )
 		}
 	}
 	const char *szRepr = PyString_AsString(s);
-	int len=strlen(szRepr);
+	Py_ssize_t len=strlen(szRepr);
 	if (len > 2 && strchr("\"'[(", *szRepr)) {
 		if (szRepr[len-1]==*szRepr) {
 			++szRepr;
 			len-=2;	// drop first and last chars.
 		}
 	}
-	CString csRes = CString( szRepr, len );
+	CString csRes = CString( szRepr, PyWin_SAFE_DOWNCAST(len, Py_ssize_t, int) );
 	return csRes;
 }
 

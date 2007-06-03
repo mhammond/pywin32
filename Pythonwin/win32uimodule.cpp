@@ -448,8 +448,8 @@ void PYW_EXPORT Python_addpath( const char *paths )
 			// Check if it is already on the path...
 			if (!GetFullPath(fullWorkBuf, workBuf)) // not a valid path
 				continue;	// ignore it.
-			int listLen = PyList_Size(p);
-			int itemNo;
+			Py_ssize_t listLen = PyList_Size(p);
+			Py_ssize_t itemNo;
 			for (itemNo=0;itemNo<listLen;itemNo++) {
 				char *thisPath = PyString_AsString(PyList_GetItem(p, itemNo));
 				if (thisPath==NULL) return; // Serious error!!!
@@ -809,6 +809,18 @@ int Python_do_int_callback(PyObject *themeth, PyObject *thearglst)
 #endif
 	DODECREF(result);
 	return retVal;
+}
+int Python_callback(PyObject *method, WPARAM val)
+{
+	PyObject *meth = method;
+	PyObject *thearglst = Py_BuildValue("(N)",PyWinObject_FromPARAM(val));
+	return Python_do_int_callback(meth,thearglst);
+}
+int Python_callback(PyObject *method, LPARAM val)
+{
+	PyObject *meth = method;
+	PyObject *thearglst = Py_BuildValue("(N)",PyWinObject_FromPARAM(val));
+	return Python_do_int_callback(meth,thearglst);
 }
 int Python_callback(PyObject *method, int val)
 {
@@ -1479,15 +1491,15 @@ ui_win_help( PyObject *self, PyObject *args )
 {
 	UINT cmd = HELP_CONTEXT;
 	PyObject *dataOb;
-	DWORD data;
+	ULONG_PTR data;
 	if (!PyArg_ParseTuple(args, "iO:WinHelp",
 			  &cmd,    // @pyparm int|cmd|win32con.HELP_CONTEXT|The type of help.  See the api for full details.
 			  &dataOb))   // @pyparm int/string|data||Additional data specific to the help call.
 		return NULL;
 	if (PyString_Check(dataOb))
-		data = (DWORD)PyString_AsString(dataOb);
+		data = (DWORD_PTR)PyString_AsString(dataOb);
 	else if (PyInt_Check(dataOb))
-		data = (DWORD)PyInt_AsLong(dataOb);
+		data = (DWORD_PTR)PyInt_AsLong(dataOb);
 	else {
 		RETURN_TYPE_ERR("First argument must be a string or an integer.");
 	}
@@ -1642,12 +1654,18 @@ static PyObject *
 ui_register_wnd_class(PyObject *self, PyObject *args)
 {
 	long style;
-	long hCursor = 0, hBrush = 0, hIcon = 0;
-	if (!PyArg_ParseTuple(args,"l|lll:RegisterWndClass",
+	PyObject *obCursor = Py_None, *obBrush = Py_None, *obIcon = Py_None;
+	if (!PyArg_ParseTuple(args,"l|OOO:RegisterWndClass",
 		&style, // @pyparm int|style||Specifies the Windows class style or combination of styles
-		&hCursor, // @pyparm int|hCursor|0|
-		&hBrush, // @pyparm int|hBrush|0|
-		&hIcon)) // @pyparm int|hIcon|0|
+		&obCursor, // @pyparm int|hCursor|0|
+		&obBrush, // @pyparm int|hBrush|0|
+		&obIcon)) // @pyparm int|hIcon|0|
+		return NULL;
+
+	HANDLE hCursor = 0, hBrush = 0, hIcon = 0;
+	if (!PyWinObject_AsHANDLE(obCursor, &hCursor) ||
+		!PyWinObject_AsHANDLE(obBrush, &hBrush) ||
+		!PyWinObject_AsHANDLE(obIcon, &hIcon))
 		return NULL;
 
 	GUI_BGN_SAVE;
@@ -1687,13 +1705,16 @@ ui_get_type(PyObject *self, PyObject *args)
 static PyObject *
 ui_set_afxCurrentInstanceHandle(PyObject *self, PyObject *args)
 {
-	HMODULE newVal;
+	PyObject *obMod;
 	// @pyparm int|newVal||The new value for afxCurrentInstanceHandle
-	if (!PyArg_ParseTuple(args, "l", &newVal))
+	if (!PyArg_ParseTuple(args, "O", &obMod))
+		return NULL;
+	HMODULE newVal;
+	if (!PyWinObject_AsHANDLE(obMod, (HANDLE *)&newVal))
 		return NULL;
 	HMODULE old = afxCurrentInstanceHandle;
 	afxCurrentInstanceHandle = newVal;
-	return PyInt_FromLong((long)old);
+	return PyWinLong_FromHANDLE(old);
 	// @rdesc The result is the previous value of afxCurrentInstanceHandle
 }
 
@@ -1707,21 +1728,24 @@ ui_set_afxCurrentResourceHandle(PyObject *self, PyObject *args)
 		return NULL;
 	HMODULE old = afxCurrentResourceHandle;
 	afxCurrentResourceHandle = newVal;
-	return PyInt_FromLong((long)old);
+	return PyWinLong_FromHANDLE(old);
 	// @rdesc The result is the previous value of afxCurrentResourceHandle
 }
 
 // @pymethod string|win32ui|GetBytes|Gets raw bytes from memory
 static PyObject *ui_get_bytes(PyObject *self, PyObject *args)
 {
-	long address;
+	void *address;
 	int size;
+	PyObject *obaddress;
 	// @pyparm int|address||The memory address
 	// @pyparm int|size||The size to get.
 	// @comm This method is useful to help decode unknown notify messages.
 	// You must be very carefull when using this method.
 	// @rdesc The result is a string with a length of size.
-	if (!PyArg_ParseTuple(args, "li|GetBytes", &address, &size))
+	if (!PyArg_ParseTuple(args, "Oi|GetBytes", &obaddress, &size))
+		return NULL;
+	if (!PyWinLong_AsVoidPtr(obaddress, &address))
 		return NULL;
 	return PyString_FromStringAndSize((char *)address, size);
 }
@@ -1741,10 +1765,14 @@ static PyObject *ui_get_device_caps( PyObject *, PyObject *args )
 {
 	// @pyparm int|hdc||
 	// @pyparm int|index||
-	int hdc, index;
-	if (!PyArg_ParseTuple(args, "ii", &hdc, &index))
+	int index;
+	PyObject *obdc;
+	if (!PyArg_ParseTuple(args, "Oi", &obdc, &index))
 		return NULL;
-	return PyInt_FromLong( ::GetDeviceCaps( (HDC)hdc, index) );
+	HDC hdc;
+	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
+		return NULL;
+	return PyInt_FromLong( ::GetDeviceCaps( hdc, index) );
 }
 
 // @pymethod int|win32ui|TranslateMessage|Calls the API version of TranslateMessage.
@@ -2243,7 +2271,7 @@ initwin32ui(void)
   PyObject *copyright = PyString_FromString("Copyright 1994-2007 Mark Hammond");
   PyDict_SetItemString(dict, "copyright", copyright);
   Py_XDECREF(copyright);
-  PyObject *dllhandle = PyInt_FromLong((long)hWin32uiDll);
+  PyObject *dllhandle = PyWinLong_FromHANDLE(hWin32uiDll);
   PyDict_SetItemString(dict, "dllhandle", dllhandle);
   Py_XDECREF(dllhandle);
   // Ensure we have a __file__ attribute (Python itself normally

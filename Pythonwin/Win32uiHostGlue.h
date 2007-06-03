@@ -5,6 +5,8 @@
 // be in synch!  Use a version number to check this.
 #define WIN32UIHOSTGLUE_VERSION 3
 
+#include "pywintypes.h"
+
 class Win32uiHostGlue : public CObject {
 public:
 	Win32uiHostGlue();
@@ -152,10 +154,12 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const char *cmd, const char 
 			// No Python, no win32ui :(
 			char buf[256];
 			sprintf(buf,"The application can not locate %s (or Python) (%d)\n", szWinui_Name, GetLastError()); 
-			int len = strlen(buf);
-			int bufLeft = sizeof(buf) - len;
+			Py_ssize_t len = strlen(buf);
+			Py_ssize_t bufLeft = sizeof(buf) - len;
 			FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), 
-				MAKELANGID(LANG_NEUTRAL,SUBLANG_NEUTRAL), buf+len, bufLeft, NULL);
+				MAKELANGID(LANG_NEUTRAL,SUBLANG_NEUTRAL), 
+				buf+len, PyWin_SAFE_DOWNCAST(bufLeft, Py_ssize_t, DWORD),
+				NULL);
 			AfxMessageBox(buf);
 			return FALSE;
 		}

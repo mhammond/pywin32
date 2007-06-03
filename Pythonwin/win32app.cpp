@@ -282,7 +282,7 @@ static PyObject *ui_load_cursor(PyObject *self, PyObject *args)
 	}
 	if (hc==0)
 		RETURN_API_ERR("LoadCursor");
-	return PyInt_FromLong((long)hc);
+	return PyWinLong_FromHANDLE(hc);
 }
 
 // @pymethod int|PyCWinApp|LoadStandardCursor|Loads a standard cursor.
@@ -304,7 +304,7 @@ static PyObject *ui_load_standard_cursor(PyObject *self, PyObject *args)
 	}
 	if (hc==0)
 		RETURN_API_ERR("LoadStandardCursor");
-	return PyInt_FromLong((long)hc);
+	return PyWinLong_FromHANDLE(hc);
 }
 
 // @pymethod int|PyCWinApp|LoadOEMCursor|Loads an OEM cursor.
@@ -318,7 +318,7 @@ static PyObject *ui_load_oem_cursor(PyObject *self, PyObject *args)
 	hc = GetApp()->LoadOEMCursor(cid);
 	if (hc==0)
 		RETURN_API_ERR("LoadOEMCursor");
-	return PyInt_FromLong((long)hc);
+	return PyWinLong_FromHANDLE(hc);
 }
 
 // @pymethod int|PyCWinApp|LoadIcon|Loads an icon resource.

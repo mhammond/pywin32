@@ -185,7 +185,7 @@ public:
 		// @rdesc Handle of the brush to paint the control's background.
 		// @xref <om PyCWnd.OnCtlColor>
 		CVirtualHelper helper( "OnCtlColor", this );
-		int hRet;
+		HANDLE hRet;
 		if (helper.HaveHandler() && helper.call(pDC, pWnd, nCtlColor) &&
 			helper.retval(hRet))
 			return (HBRUSH)hRet;
@@ -242,7 +242,7 @@ public:
 		CVirtualHelper helper( "OnQueryDragIcon", this );
 		if (!helper.HaveHandler())
 			return T::OnQueryDragIcon();
-		int ret;
+		HANDLE ret;
 		if (!helper.call())
 			return NULL;
 		helper.retval(ret);
@@ -860,7 +860,7 @@ public:
 
 	afx_msg LRESULT HandleInitDialog(WPARAM, LPARAM) {
                 PreInitDialog();
-		BOOL result = Default();
+		LRESULT result = Default();
 		CVirtualHelper helper( "HandleInitDialog", this );
                 BOOL hresult;
 		if (helper.HaveHandler()) {

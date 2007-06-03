@@ -56,13 +56,15 @@ PyObject *ui_bitmap::create( PyObject *self, PyObject *args )
 // @pymethod <o PyCBitMap>|win32ui|CreateBitmapFromHandle|Creates a bitmap object from a HBITMAP.
 PyObject *ui_bitmap::create_from_handle( PyObject *self, PyObject *args )
 {
-	PyObject *pObj;
-	int handle;
-	if (!PyArg_ParseTuple(args, "i", &handle))
+	PyObject *pObj, *obhandle;
+	if (!PyArg_ParseTuple(args, "O", &obhandle))
+		return NULL;
+	HBITMAP handle;
+	if (!PyWinObject_AsHANDLE(obhandle, (HANDLE *)&handle))
 		return NULL;
 	CBitmap *pBitmap = new CBitmap;
 //	if (!pBitmap->Attach((HGDIOBJ)handle)) {
-	if (!pBitmap->Attach((HBITMAP)handle)) {
+	if (!pBitmap->Attach(handle)) {
 		delete pBitmap;
 		RETURN_ERR("Attach failed!");
 	}
@@ -185,7 +187,7 @@ PyObject *ui_bitmap_load_bitmap_file( PyObject *self, PyObject *args )
 			   "object.readline() returned non-string");
 		return NULL;
 	}
-	int len = PyString_Size(result);
+	Py_ssize_t len = PyString_Size(result);
 	if (len != sizeof(BITMAPFILEHEADER)) {
 		DODECREF(seeker);
 		DODECREF(reader);
@@ -306,7 +308,7 @@ PyObject *ui_bitmap_load_ppm_file( PyObject *self, PyObject *args )
 		DODECREF(reader);
 		return NULL;
 	}
-	int lenRead = PyString_Size(result);
+	Py_ssize_t lenRead = PyString_Size(result);
 	// work out size of bitmap
 	int headerSize = sizeof(BITMAPINFOHEADER);
 	// Windows requires bitmap bits aligned to a "long", which is 32 bits!

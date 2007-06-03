@@ -566,10 +566,10 @@ PyCToolBar_SetButtons(PyObject *self, PyObject *args)
 	  RETURN_TYPE_ERR("SetButtons requires a tuple of IDs");
 
 	// convert button tuple to array
-	int num_buttons = PyTuple_Size (buttons);
+	Py_ssize_t num_buttons = PyTuple_Size (buttons);
 	UINT *button_list = new UINT[num_buttons];
 	PyObject *o;
-	for (int i = 0; i < num_buttons; i++) {
+	for (Py_ssize_t i = 0; i < num_buttons; i++) {
 		o = PyTuple_GetItem (buttons, i);
 		if (!PyInt_Check(o)) {
 			delete button_list;
@@ -577,7 +577,8 @@ PyCToolBar_SetButtons(PyObject *self, PyObject *args)
 		}
 		button_list[i] = PyInt_AsLong (o);
 	}
-	BOOL rc = pToolBar->SetButtons(button_list, num_buttons);
+	BOOL rc = pToolBar->SetButtons(button_list, 
+	                               PyWin_SAFE_DOWNCAST(num_buttons, Py_ssize_t, int));
 	delete button_list;
 	if (!rc) RETURN_API_ERR("PyCToolBar.SetButtons");
 	RETURN_NONE;
@@ -736,16 +737,19 @@ PyObject *PyCToolBar_SetBitmap( PyObject *self, PyObject *args )
 {
 	CToolBar *pToolBar = PyCToolBar::GetToolBar(self);
 	if (!pToolBar) return NULL;
-	int val;
 	// @pyparm int|hBitmap||The handle to a bitmap resource.
 	// @comm Call this method to set the bitmap image for the toolbar. For example, 
 	// call SetBitmap to change the bitmapped image after the user takes an action on 
 	// a document that changes the action of a button.
-	if (!PyArg_ParseTuple( args, "i:SetBitmap", &val))
+	PyObject *obval;
+	if (!PyArg_ParseTuple( args, "O:SetBitmap", &obval))
 		return NULL;
-	if (!IsWin32s() && ::GetObjectType((HBITMAP)val) != OBJ_BITMAP)
+	HBITMAP val;
+	if (!PyWinObject_AsHANDLE(obval, (HANDLE *)&val))
+		return NULL;
+	if (!IsWin32s() && ::GetObjectType(val) != OBJ_BITMAP)
 		RETURN_ERR("The bitmap handle is invalid");
-	if (!pToolBar->SetBitmap((HBITMAP)val))
+	if (!pToolBar->SetBitmap(val))
 		RETURN_ERR("SetBitmap failed");
 	RETURN_NONE;
 }
@@ -901,7 +905,7 @@ PyCToolBarCtrl::PyCToolBarCtrl()
 
 PyCToolBarCtrl::~PyCToolBarCtrl()
 {
-	int i, n;
+	INT_PTR i, n;
 	n = bmplist->GetSize();
 	for (i = 0; i < n; i++) {
 		PyObject *o = (PyObject *) bmplist->GetAt (i);
@@ -970,16 +974,14 @@ PyObject *PyCToolBarCtrl_AddButtons (PyObject *self, PyObject *args)
 {
 	CToolBarCtrl *pTBC = GetToolBarCtrl(self);
 	if (pTBC == NULL) return NULL;
-	int numButtons;
-
-	numButtons = PyTuple_Size (args);
+	Py_ssize_t numButtons = PyTuple_Size (args);
 
 	TBBUTTON *btn = new TBBUTTON[numButtons];
 
 	if (btn == NULL)
 		return NULL;
 
-	int i;
+	Py_ssize_t i;
 	PyObject *pButtonTuple;
 
 	for (i = 0; i < numButtons; i++) {
@@ -998,7 +1000,7 @@ PyObject *PyCToolBarCtrl_AddButtons (PyObject *self, PyObject *args)
 
 	// @pyseemfc CToolBarCtrl|AddButtons
 	GUI_BGN_SAVE;
-	int rc = pTBC->AddButtons (numButtons, btn);
+	int rc = pTBC->AddButtons (PyWin_SAFE_DOWNCAST(numButtons, Py_ssize_t, int), btn);
 	GUI_END_SAVE;
 	PyObject *ret = Py_BuildValue ("i",rc);
 	delete btn;
@@ -1014,9 +1016,9 @@ PyObject *PyCToolBarCtrl_AddStrings (PyObject *self, PyObject *args)
 	PyObject *pStringList = NULL; 
 	PyObject *pString = NULL;
 
-	int i;
-	int n = PyObject_Length(args);
-	int nchars = 0;
+	Py_ssize_t i;
+	Py_ssize_t n = PyObject_Length(args);
+	Py_ssize_t nchars = 0;
 
 	for (i = 0; i < n; i++) {
 		nchars += PyObject_Length (PyTuple_GetItem (args, i));
@@ -1571,10 +1573,10 @@ PyCStatusBar_SetIndicators(PyObject *self, PyObject *args)
 	if (!pSB)
 		return NULL;
 	// convert indicator sequence to array
-	int num_buttons = PySequence_Length (buttons);
+	Py_ssize_t num_buttons = PySequence_Length (buttons);
 	UINT *button_list = new UINT[num_buttons];
 	PyObject *o;
-	for (int i = 0; i < num_buttons; i++) {
+	for (Py_ssize_t i = 0; i < num_buttons; i++) {
 		o = PySequence_GetItem (buttons, i);
 		if (!PyInt_Check(o)) {
 			Py_XDECREF(o);
@@ -1584,7 +1586,8 @@ PyCStatusBar_SetIndicators(PyObject *self, PyObject *args)
 		button_list[i] = PyInt_AsLong (o);
 		Py_DECREF(o);
 	}
-	BOOL rc = pSB->SetIndicators(button_list, num_buttons);
+	BOOL rc = pSB->SetIndicators(button_list,
+	                             PyWin_SAFE_DOWNCAST(num_buttons, Py_ssize_t, int));
 	delete button_list;
 	if (!rc) RETURN_API_ERR("PyCStatusBar.SetIndicators");
 	RETURN_NONE;

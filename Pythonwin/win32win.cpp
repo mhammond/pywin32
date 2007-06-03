@@ -53,7 +53,7 @@ public:
 	{ return CWnd::OnCtlColor(pDC, pWnd, nCtlColor); }
 	void OnClose()
 	{ CWnd::OnClose(); }
-	UINT OnNcHitTest(CPoint point)
+	LRESULT OnNcHitTest(CPoint point)
 	{ return CWnd::OnNcHitTest(point);}
 	BOOL OnSetCursor( CWnd *pWnd, UINT ht, UINT msg)
 	{ return CWnd::OnSetCursor(pWnd, ht, msg);}
@@ -104,9 +104,9 @@ BOOL Python_check_key_message(const MSG *msg)
 // WARNING - the return ptr may be temporary.
 CWnd *GetWndPtrFromParam(PyObject *ob, ui_type_CObject &type)
 {
-	if (PyInt_Check(ob)) {
-		HWND hwnd = (HWND)PyInt_AsLong(ob);
-		if (!IsWindow(hwnd))
+	if (PyInt_Check(ob) || PyLong_Check(ob)) {
+        HWND hwnd = 0;
+        if (!PyWinObject_AsHANDLE(ob, (HANDLE *)&hwnd) || !IsWindow(hwnd))
 			RETURN_ERR(szErrMsgBadHandle);
 		CWnd *ret = CWnd::FromHandle(hwnd);
 		if (ret==NULL)
@@ -170,7 +170,7 @@ CMDIFrameWnd *GetMDIFrame(PyObject *self)
 BOOL ParseSCROLLINFOTuple( PyObject *args, SCROLLINFO *pInfo)
 {
 	PyObject *ob;
-	int len = PyTuple_Size(args);
+	Py_ssize_t len = PyTuple_Size(args);
 	if (len<1 || len > 5) {
 		PyErr_SetString(PyExc_TypeError, "SCROLLINFO tuple has invalid size");
 		return FALSE;
@@ -377,9 +377,12 @@ ui_window_create_window_ex(PyObject *self, PyObject *args)
 PyObject *
 PyCWnd::CreateWindowFromHandle(PyObject *self, PyObject *args)
 {
-	int hwnd;
-	if (!PyArg_ParseTuple(args, "i:CreateWindowFromHandle",
-		    &hwnd)) // @pyparm int|hwnd||The window handle.
+	PyObject *obhwnd;
+	if (!PyArg_ParseTuple(args, "O:CreateWindowFromHandle",
+		    &obhwnd)) // @pyparm int|hwnd||The window handle.
+		return NULL;
+	HWND hwnd;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
 	CWnd *pWnd = CWnd::FromHandle((HWND)hwnd);
 	if (pWnd==NULL)
@@ -553,15 +556,15 @@ PyCWnd::~PyCWnd()
 	DoKillAssoc(TRUE);
 }
 
-BOOL PyCWnd::check_key_stroke(UINT ch)
+BOOL PyCWnd::check_key_stroke(WPARAM ch)
 {
 	PyObject *pythonObject;
 	BOOL bCallBase = TRUE;
 	if (obKeyStrokeHandler!= NULL)
-		bCallBase = Python_callback(obKeyStrokeHandler, (int)ch);
+		bCallBase = Python_callback(obKeyStrokeHandler, ch);
 
 	if (bCallBase && pKeyHookList && pKeyHookList->Lookup((WORD)ch, (void *&)pythonObject))
-		bCallBase = Python_callback(pythonObject,(int)ch);
+		bCallBase = Python_callback(pythonObject,ch);
 	return bCallBase;
 }
 
@@ -614,7 +617,7 @@ void PyCWnd::DoKillAssoc( BOOL bDestructing /*= FALSE*/ )
 	BOOL bMadeNew = FALSE;
 	pSearch = CWnd::FromHandlePermanent(wnd);
 	// FromHandlePerm is thread specific!
-	if (pSearch==NULL && GetWindowLong(wnd, GWLP_WNDPROC)==(LONG)AfxGetAfxWndProc()) {
+	if (pSearch==NULL && GetWindowLongPtr(wnd, GWLP_WNDPROC)==(LONG_PTR)AfxGetAfxWndProc()) {
 
 /******* 
 	Windows are per thread.  This gross hack lets me get windows across
@@ -787,9 +790,9 @@ ui_window_def_window_proc(PyObject *self, PyObject *args)
 			&lparam))// @pyparm int|idCheck||The wParam for the message.
 		return NULL;
 	GUI_BGN_SAVE;
-	long rc = ((WndHack *)pWnd)->DefWindowProc(message, (WPARAM)wparam, (LPARAM)lparam);
+	LRESULT rc = ((WndHack *)pWnd)->DefWindowProc(message, (WPARAM)wparam, (LPARAM)lparam);
 	GUI_END_SAVE;
-	return Py_BuildValue("l", rc); // @pyseemfc CWnd|DefWindowProc
+	return PyWinObject_FromPARAM(rc); // @pyseemfc CWnd|DefWindowProc
 }
 
 // @pymethod |PyCWnd|DlgDirList|Fill a list box with a file or directory listing.
@@ -859,7 +862,11 @@ ui_window_dlg_dir_select(PyObject *self, PyObject *args)
 	int rc;
 	char buf[MAX_PATH];
 	GUI_BGN_SAVE;
+#if _MFC_VER >= 0x0800
+	rc = pWnd->DlgDirSelect( buf, sizeof(buf), nIDListBox);
+#else
 	rc = pWnd->DlgDirSelect( buf, nIDListBox);
+#endif
 	// @pyseemfc CWnd|DlgDirSelect
 	GUI_END_SAVE;
 	if (!rc)
@@ -882,7 +889,11 @@ ui_window_dlg_dir_select_combo(PyObject *self, PyObject *args)
 	char buf[MAX_PATH];
 	GUI_BGN_SAVE;
 	// @pyseemfc CWnd|DlgDirSelectComboBox
+#if _MFC_VER >= 0x0800
+	rc = pWnd->DlgDirSelectComboBox( buf, sizeof(buf), nIDListBox);
+#else
 	rc = pWnd->DlgDirSelectComboBox( buf, nIDListBox);
+#endif
 	GUI_END_SAVE;
 	if (!rc)
 		RETURN_ERR("DlgDirSelectComboBox failed");
@@ -1267,7 +1278,7 @@ ui_window_get_safe_hwnd(PyObject *self, PyObject *args)
 	GUI_BGN_SAVE;
 	HWND hwnd = pWnd->GetSafeHwnd();
 	GUI_END_SAVE;
-	return Py_BuildValue("l", (long)hwnd);
+	return PyWinLong_FromHANDLE(hwnd);
 }
 
 // @pymethod int|PyCWnd|GetScrollInfo|Returns information about a scroll bar
@@ -1760,7 +1771,7 @@ ui_window_on_ctl_color(PyObject *self, PyObject *args)
 	HBRUSH brush = pWnd->WndHack::OnCtlColor(pDC, pCtl, nCtlColor);
 	GUI_END_SAVE;
 	// @pyseemfc CWnd|OnCtlColor
-	return Py_BuildValue("i", (int)brush);
+	return PyWinLong_FromHANDLE(brush);
 }
 
 // @pymethod int|PyCWnd|OnEraseBkgnd|Calls the default MFC OnEraseBkgnd handler.
@@ -1798,7 +1809,7 @@ static PyObject *ui_window_on_query_drag_icon( PyObject *self, PyObject *args )
 	GUI_BGN_SAVE;
 	HICON rc = pWnd->OnQueryDragIcon();
 	GUI_END_SAVE;
-	return Py_BuildValue("i", (int)rc);
+	return PyWinLong_FromHANDLE(rc);
 }
 
 
@@ -1862,7 +1873,7 @@ ui_window_on_wnd_msg(PyObject *self, PyObject *args)
 	// @rdesc The return value is a tuple of (int, int), being the
 	// return value from the MFC function call, and the value of the
 	// lResult param.  Please see the MFC documentation for more details.
-	return Py_BuildValue("ii", rc, (int)res);
+	return Py_BuildValue("iN", rc, PyWinObject_FromPARAM(res));
 	RETURN_NONE;
 }
 
@@ -2185,19 +2196,22 @@ ui_window_send_message(PyObject *self, PyObject *args)
 		// Allow a buffer object to be passed as (size, address)
 		PyErr_Clear();
 		void *p;
-		if (!PyArg_ParseTuple(args, "is#",
+		PyObject *obParam;
+		if (!PyArg_ParseTuple(args, "iO",
 				&message, // @pyparmalt1 int|idMessage||The ID of the message to send.
-				&p, &wParam )) // @pyparmalt1 buffer|ob||A buffer whose size is passed in wParam, and address is passed in lParam
+				&obParam)) // @pyparmalt1 buffer|ob||A buffer whose size is passed in wParam, and address is passed in lParam
+			return NULL;
+		if (!PyWinObject_AsReadBuffer(obParam, &p, &wParam))
 			return NULL;
 		lp = (LPARAM)p;
 		wp = (WPARAM)wParam;
 	}
-	int rc;
+	LRESULT rc;
 	GUI_BGN_SAVE;
 	// @pyseemfc CWnd|SendMessage
 	rc = pWnd->SendMessage(message, wp, lp);
 	GUI_END_SAVE;
-	return PyInt_FromLong(rc);
+	return PyWinObject_FromPARAM(rc);
 }
 // @pymethod |PyCWnd|SendMessageToDescendants|Send a message to all descendant windows.
 PyObject *
@@ -2585,13 +2599,13 @@ PyObject *ui_window_begin_paint(PyObject *self, PyObject *args)
 	if (pTemp==NULL)
 		RETURN_ERR("BeginPaint failed");
 	PyObject *obDC = ui_assoc_object::make (ui_dc_object::type, pTemp)->GetGoodRet();
-	PyObject *obRet = Py_BuildValue("O(ii(iiii)iis#)", obDC,
+	PyObject *obRet = Py_BuildValue("O(ii(iiii)iiN)", obDC,
 		ps.hdc,
 		ps.fErase,
 		ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom,
 		ps.fRestore,
 		ps.fIncUpdate,
-		ps.rgbReserved, sizeof(ps.rgbReserved));
+		PyString_FromStringAndSize((char *)ps.rgbReserved, sizeof(ps.rgbReserved)));
 	Py_XDECREF(obDC);
 	return obRet;
 }
@@ -2796,8 +2810,8 @@ ui_window_map_window_points(PyObject *self, PyObject *args)
 		return NULL;
 
 	// Convert the list of point tuples into an array of POINT structs
-	int num = PyList_Size (point_list);
-	int i;
+	Py_ssize_t num = PyList_Size (point_list);
+	Py_ssize_t i;
 	POINT * point_array = new POINT[num];
 	for (i=0; i < num; i++) 
 		{
@@ -2834,7 +2848,7 @@ ui_window_map_window_points(PyObject *self, PyObject *args)
 	// we have an array of POINT structs, now we
 	// can finally call the mfc function.
 	GUI_BGN_SAVE;
-	pWnd->MapWindowPoints(pWndTo,point_array, num);
+	pWnd->MapWindowPoints(pWndTo,point_array, PyWin_SAFE_DOWNCAST(num, Py_ssize_t, UINT));
 	GUI_END_SAVE;
 
 	// create a list
@@ -2863,9 +2877,9 @@ ui_window_set_timer(PyObject *self, PyObject *args)
 
 	// @pyseemfc CWnd|SetTimer
 	GUI_BGN_SAVE;
-	UINT id = pWnd->SetTimer(nIDEvent,nElapse,NULL);
+	UINT_PTR id = pWnd->SetTimer(nIDEvent,nElapse,NULL);
 	GUI_END_SAVE;
-	return Py_BuildValue("i", id);
+	return PyWinObject_FromPARAM(id);
 	}
 
 // @pymethod int|PyCWnd|KillTimer|Kills a system timer
@@ -2967,9 +2981,9 @@ ui_window_on_nc_hit_test( PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "(ii):OnNcHitTest", &p.x, &p.y)) // @pyparm int, int|x, y||The point
 		return NULL;
 	GUI_BGN_SAVE;
-	UINT rc = ((WndHack *)pWnd)->OnNcHitTest(p);
+	LRESULT rc = ((WndHack *)pWnd)->OnNcHitTest(p);
 	GUI_END_SAVE;
-	return PyInt_FromLong(rc);
+	return PyWinObject_FromPARAM(rc);
 }
 
 // @pymethod int|PyCWnd|OnSetCursor|Calls the base MFC OnSetCursor function.
@@ -3198,10 +3212,10 @@ CString PyCWnd::repr()
 {
 	CString csRet;
 	char *buf = csRet.GetBuffer(40);
-	int numMsg = pMessageHookList ? pMessageHookList->GetCount() : 0;
-	int numKey = pKeyHookList ? pKeyHookList->GetCount() : 0;
+	UINT_PTR numMsg = pMessageHookList ? pMessageHookList->GetCount() : 0;
+	UINT_PTR numKey = pKeyHookList ? pKeyHookList->GetCount() : 0;
 	char *hookStr = obKeyStrokeHandler ? " (AllKeys Hook Active)" : "";
-	sprintf(buf, ", mh=%d, kh=%d%s", numMsg, numKey, hookStr);
+	sprintf(buf, ", mh=%I, kh=%I%s", numMsg, numKey, hookStr);
 	csRet.ReleaseBuffer(-1);
 	return PyCCmdTarget::repr() + csRet;
 }

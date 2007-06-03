@@ -119,33 +119,43 @@ PyObject *PyCImageList_DeleteImageList( PyObject *self, PyObject *args )
 // @pymethod int|PyCImageList|Add|Adds an image to the list.
 PyObject *PyCImageList_Add( PyObject *self, PyObject *args )
 {
-	HICON hIcon;
-	int bmp1, bmp2, mask;
+	PyObject *obbmp1, *obbmp2;
+	int mask;
 	CImageList *pList = PyCImageList::GetImageList(self);
 	int rc;
 	if (!pList)
 		return NULL;
-	if (PyArg_ParseTuple(args, "(ii)", 
-			&bmp1, &bmp2)) {// @pyparm (int,int)|bitmap, bitmapMask||2 Bitmaps to use (primary and mask)
-		if (!IsGdiHandleValid((HANDLE)bmp1) || !IsGdiHandleValid((HANDLE)bmp2))
+	if (PyArg_ParseTuple(args, "(OO)", 
+			&obbmp1, &obbmp2)) {// @pyparm (int,int)|bitmap, bitmapMask||2 Bitmaps to use (primary and mask)
+		HBITMAP bmp1, bmp2;
+		if (!PyWinObject_AsHANDLE(obbmp1, (HANDLE *)&bmp1) || !PyWinObject_AsHANDLE(obbmp2, (HANDLE *)&bmp2))
+			return NULL;
+		if (!IsGdiHandleValid(bmp1) || !IsGdiHandleValid(bmp2))
 			RETURN_ERR("One of the bitmap handles is invalid");
 		GUI_BGN_SAVE;
-		rc = pList->Add(CBitmap::FromHandle((HBITMAP)bmp1), CBitmap::FromHandle((HBITMAP)bmp2));
+		rc = pList->Add(CBitmap::FromHandle(bmp1), CBitmap::FromHandle(bmp2));
 		GUI_END_SAVE;
 	} else {
 		PyErr_Clear();
-		if (PyArg_ParseTuple(args, "ii", 
-				&bmp1, 	// @pyparmalt1 int|bitmap||Bitmap to use
+		HBITMAP bmp1;
+		if (PyArg_ParseTuple(args, "Oi", 
+				&obbmp1, 	// @pyparmalt1 int|bitmap||Bitmap to use
 				&mask)) { // @pyparmalt1 int|color||Color to use for the mask.
-			if (!IsGdiHandleValid((HANDLE)bmp1))
+			if (!PyWinObject_AsHANDLE(obbmp1, (HANDLE *)&bmp1))
+				return NULL;
+			if (!IsGdiHandleValid(bmp1))
 				RETURN_ERR("The bitmap handle is invalid");
 			GUI_BGN_SAVE;
-			rc = pList->Add(CBitmap::FromHandle((HBITMAP)bmp1), (COLORREF)mask);
+			rc = pList->Add(CBitmap::FromHandle(bmp1), (COLORREF)mask);
 			GUI_END_SAVE;
 		} else {
 			PyErr_Clear();
-			if (PyArg_ParseTuple(args, "i", 
-					&hIcon)) {// @pyparmalt2 int|hIcon||Handle of an icon to add.
+			PyObject *obIcon;
+			if (PyArg_ParseTuple(args, "O", 
+					&obIcon)) {// @pyparmalt2 int|hIcon||Handle of an icon to add.
+				HICON hIcon;
+				if (!PyWinObject_AsHANDLE(obIcon, (HANDLE *)&hIcon))
+					return NULL;
 				GUI_BGN_SAVE;
 				rc = pList->Add(hIcon);
 				GUI_END_SAVE;

@@ -14,6 +14,7 @@ generates Windows .hlp files.
 @doc
 
 */
+#define PY_SSIZE_T_CLEAN // this module is Py_ssize_t clean!
 #include "stdafx.h"
 
 #include <winspool.h>
@@ -34,7 +35,7 @@ BOOL PyObject_AsLOGPALETTE(PyObject *obLogPal, LOGPALETTE **ppLogPal)
 		PyErr_SetString(PyExc_TypeError, "LOGPALETTE must be a sequence");
 		return FALSE;
 	}
-	int n = PySequence_Length(obLogPal);
+	Py_ssize_t n = PySequence_Length(obLogPal);
 	*ppLogPal = (LOGPALETTE *)malloc(sizeof(LOGPALETTE) + n * sizeof(PALETTEENTRY));
 	LOGPALETTE *pPal = *ppLogPal;
 	if (pPal==NULL) {
@@ -43,9 +44,9 @@ BOOL PyObject_AsLOGPALETTE(PyObject *obLogPal, LOGPALETTE **ppLogPal)
 	}
 
 	pPal->palVersion = 0x300;
-	pPal->palNumEntries = n;
+	pPal->palNumEntries = PyWin_SAFE_DOWNCAST(n, Py_ssize_t, WORD);
 
-	for (int i=0;i<n;i++) {
+	for (Py_ssize_t i=0;i<n;i++) {
 		PyObject *subOb = PySequence_GetItem(obLogPal, i);
 		if (subOb==NULL)
 			goto done;
@@ -98,7 +99,7 @@ PyObject *win32uiCreatePalette(PyObject *self, PyObject *args)
 	PyObject_FreeLOGPALETTE(pLP);
 	if (hp==NULL)
 		RETURN_API_ERR("CreatePalette");
-	return PyInt_FromLong((long)hp);
+	return PyWinLong_FromHANDLE(hp);
 }
 
 // this returns a pointer that should not be stored.
@@ -245,7 +246,7 @@ ui_dc_get_safe_hdc(PyObject *self, PyObject *args)
 		return NULL;
 	// @pyseemfc CDC|GetSafeHdc
 	HDC hdc = pDC->GetSafeHdc();
-	return Py_BuildValue("l", (long)hdc);
+	return PyWinLong_FromHANDLE(hdc);
 }
 
 // @pymethod |PyCDC|GetPixel|Gets a pixel at a local in a device context
@@ -486,7 +487,8 @@ static PyObject *ui_dc_ext_text_out (PyObject *self, PyObject *args)
 	if (!pDC)
 		return NULL;
 	char *text;
-	int strLen, x, y;
+	Py_ssize_t strLen;
+	int x, y;
 	UINT options;
 	PyObject *rectObject, *widthObject = NULL;
 	RECT rect, *rectPtr;
@@ -517,10 +519,10 @@ static PyObject *ui_dc_ext_text_out (PyObject *self, PyObject *args)
 	if (widthObject) {
 		BOOL error = !PyTuple_Check(widthObject);
 		if (!error) {
-			int len = PyTuple_Size(widthObject);
+			Py_ssize_t len = PyTuple_Size(widthObject);
 			if (len == (strLen - 1)) {
 				widths = new int[len + 1];
-				for (int i = 0; i < len; i++) {
+				for (Py_ssize_t i = 0; i < len; i++) {
 					PyObject *item = PyTuple_GetItem(widthObject, i);
 					if (!PyInt_Check(item))
 						error = TRUE;
@@ -536,7 +538,9 @@ static PyObject *ui_dc_ext_text_out (PyObject *self, PyObject *args)
 	}
 
 	GUI_BGN_SAVE;
-	BOOL ret = pDC->ExtTextOut(x, y, options, rectPtr, text, strLen, widths); // @pyseemfc CDC|ExtTextOut
+	BOOL ret = pDC->ExtTextOut(x, y, options, rectPtr, text, 
+	                           PyWin_SAFE_DOWNCAST(strLen, Py_ssize_t, DWORD),
+	                           widths); // @pyseemfc CDC|ExtTextOut
 	GUI_END_SAVE;
 	delete [] widths;
 	if (!ret) {
@@ -677,9 +681,9 @@ static PyObject *ui_dc_polygon (PyObject *self, PyObject *args)
 	return NULL;
   } else {
 	// Convert the list of point tuples into an array of POINT structs
-	int num = PyList_Size (point_list);
+	Py_ssize_t num = PyList_Size (point_list);
 	POINT * point_array = new POINT[num];
-	for (int i=0; i < num; i++) {
+	for (Py_ssize_t i=0; i < num; i++) {
 	  PyObject * point_tuple = PyList_GetItem (point_list, i);
 	  if (!PyTuple_Check (point_tuple) || PyTuple_Size (point_tuple) != 2) {
 		PyErr_SetString (PyExc_ValueError,
@@ -707,7 +711,7 @@ static PyObject *ui_dc_polygon (PyObject *self, PyObject *args)
 	// we have an array of POINT structs, now we
 	// can finally draw the polygon.
 	GUI_BGN_SAVE;
-	BOOL ret = pDC->Polygon (point_array, num);
+	BOOL ret = pDC->Polygon (point_array, PyWin_SAFE_DOWNCAST(num, Py_ssize_t, int));
 	GUI_END_SAVE;
 	delete[] point_array;
 	if (!ret) {
@@ -735,7 +739,7 @@ static PyObject *ui_dc_poly_bezier (PyObject *self, PyObject *args)
 	return NULL;
   } else {
 	int index = 0;
-	int num = PyList_Size (triple_list);
+	Py_ssize_t num = PyList_Size (triple_list);
 
 #define HURL																\
 	do {																	\
@@ -747,7 +751,7 @@ static PyObject *ui_dc_poly_bezier (PyObject *self, PyObject *args)
 	while (0)
 
 	POINT * point_array = new POINT[num*3];
-	for (int i=0; i < num; i++) {
+	for (Py_ssize_t i=0; i < num; i++) {
 	  PyObject * triplet = PyList_GetItem (triple_list, i);
 	  if (!PyTuple_Check (triplet) || PyTuple_Size (triplet) != 3) {
 		HURL;
@@ -912,12 +916,13 @@ static PyObject *ui_dc_get_text_extent (PyObject *self, PyObject *args)
 	if (!pDC)
 		return NULL;
 	char *text;
-	int strLen;
+	Py_ssize_t strLen;
 	// @pyparm string|text||The text to calculate for.
 	if (!PyArg_ParseTuple (args, "s#", &text, &strLen))
 	  return NULL;
 	GUI_BGN_SAVE;
-	CSize sz = pDC->GetTextExtent(text, strLen); // @pyseemfc CFC|GetTextExtent
+	CSize sz = pDC->GetTextExtent(text, PyWin_SAFE_DOWNCAST(strLen, Py_ssize_t, DWORD));
+	// @pyseemfc CFC|GetTextExtent
 	GUI_END_SAVE;
 	return Py_BuildValue ("(ii)", sz.cx, sz.cy);
 	// @rdesc A tuple of integers with the size of the string, in logical units.
@@ -1387,7 +1392,7 @@ ui_dc_select_palette (PyObject *self, PyObject *args)
   GUI_BGN_SAVE;
   HPALETTE ret = ::SelectPalette(pDC->GetSafeHdc(), hPal, bForceBG); // @pyseemfc CDC|SelectePalette
   GUI_END_SAVE;
-  return Py_BuildValue ("i", (int)ret);
+  return PyWinLong_FromHANDLE(ret);
   // @rdesc The previous palette handle.
 }
 
@@ -1437,7 +1442,8 @@ static PyObject *ui_dc_text_out (PyObject *self, PyObject *args)
 	if (!pDC)
 		return NULL;
 	char *text;
-	int strLen, x, y;
+	Py_ssize_t strLen;
+	int x, y;
 	if (!PyArg_ParseTuple (args, "iis#", 
 	          &x,        // @pyparm x|int||The x coordinate to write the text to.
 	          &y,        // @pyparm y|int||The y coordinate to write the text to.
@@ -1445,7 +1451,8 @@ static PyObject *ui_dc_text_out (PyObject *self, PyObject *args)
 	          &strLen))
 	  return NULL;
     GUI_BGN_SAVE;
-	BOOL ret = pDC->TextOut (x, y, text, strLen); // @pyseemfc CDC|TextOut
+	BOOL ret = pDC->TextOut (x, y, text, 
+	                         PyWin_SAFE_DOWNCAST(strLen, Py_ssize_t, DWORD)); // @pyseemfc CDC|TextOut
     GUI_END_SAVE;
 	if (!ret)
 		RETURN_API_ERR("CDC::TextOut");
@@ -2054,9 +2061,9 @@ static PyObject *ui_dc_polyline (PyObject *self, PyObject *args)
 	RETURN_TYPE_ERR("Argument must be a list of points");
   } else {
 	// Convert the list of point tuples into an array of POINT structs
-	int num = PySequence_Length(point_list);
+	Py_ssize_t num = PySequence_Length(point_list);
 	POINT * point_array = new POINT[num];
-	for (int i=0; i < num; i++) {
+	for (Py_ssize_t i=0; i < num; i++) {
 	  PyObject * point_tuple = PySequence_GetItem (point_list, i);
 	  if (!PyTuple_Check (point_tuple) || PyTuple_Size (point_tuple) != 2) {
 		PyErr_SetString (PyExc_ValueError,
@@ -2084,7 +2091,7 @@ static PyObject *ui_dc_polyline (PyObject *self, PyObject *args)
 	// we have an array of POINT structs, now we
 	// can finally draw the polyline.
 	GUI_BGN_SAVE;
-	BOOL ret = pDC->Polyline(point_array, num);
+	BOOL ret = pDC->Polyline(point_array, PyWin_SAFE_DOWNCAST(num, Py_ssize_t, int));
 	GUI_END_SAVE;
 	delete[] point_array;
 	if (!ret) {

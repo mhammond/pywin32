@@ -426,7 +426,7 @@ BOOL CVirtualHelper::call(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO*
 {
 	if (!handler) return FALSE;
 	CEnterLeavePython _celp;
-	PyObject *arglst = Py_BuildValue("iill",nID, nCode, (long)pExtra, (long)pHandlerInfo);
+	PyObject *arglst = Py_BuildValue("iiNN",nID, nCode, PyWinLong_FromVoidPtr(pExtra), PyWinLong_FromVoidPtr(pHandlerInfo));
 	BOOL ret = do_call(arglst);
 	return ret;
 }
@@ -484,6 +484,23 @@ BOOL CVirtualHelper::retval( long &ret )
 	CEnterLeavePython _celp;
 	ret = PyInt_AsLong(retVal);
 	if (PyErr_Occurred()) {
+		PyErr_Clear();
+		return FALSE;
+	}
+	return TRUE;
+}
+
+BOOL CVirtualHelper::retval( HANDLE &ret )
+{
+	ASSERT(retVal);
+	if (!retVal)
+		return FALSE;	// failed - assume didnt work in non debug
+	if (retVal==Py_None) {
+		ret = 0;
+		return TRUE;
+	}
+	CEnterLeavePython _celp;
+	if (!PyWinObject_AsHANDLE(retVal, &ret)) {
 		PyErr_Clear();
 		return FALSE;
 	}

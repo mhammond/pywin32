@@ -100,7 +100,7 @@ DWORD CALLBACK PyCRichEditCallbackIn(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb,
 //			gui_print_error();
 		} else {
 			strcpy((char *)pbBuff, s);
-			*pcb = strlen(s);
+			*pcb = PyWin_SAFE_DOWNCAST(strlen(s), size_t, DWORD);
 			retval = 0;
 		}
 	}
@@ -738,7 +738,7 @@ PyCRichEditCtrl_stream_in(PyObject *self, PyObject *args)
 		RETURN_ERR("The method parameter is not callable");
 	DOINCREF(method);
 	EDITSTREAM es;
-	es.dwCookie = (DWORD)method;
+	es.dwCookie = (DWORD_PTR)method;
 	es.dwError = 0;
 	es.pfnCallback = PyCRichEditCallbackIn;
 	PyErr_Clear();
@@ -768,7 +768,7 @@ PyCRichEditCtrl_stream_out(PyObject *self, PyObject *args)
 		RETURN_ERR("The method parameter is not callable");
 	EDITSTREAM es;
 	DOINCREF(method);
-	es.dwCookie = (DWORD)method;
+	es.dwCookie = (DWORD_PTR)method;
 	es.dwError = 0;
 	es.pfnCallback = PyCRichEditCallbackOut;
 	PyErr_Clear();

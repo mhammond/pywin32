@@ -34,7 +34,7 @@ public:
 	// virtuals for Python support
 	virtual CString repr();
 
-	BOOL check_key_stroke(UINT ch);
+	BOOL check_key_stroke(WPARAM ch);
 
 	static ui_type_CObject type;
 };

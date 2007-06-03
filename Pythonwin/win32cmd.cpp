@@ -188,11 +188,11 @@ CString PyCCmdTarget::repr()
 {
 	CString csRet;
 	char *buf = csRet.GetBuffer(64);
-	int numCmd = pCommandHookList ? pCommandHookList->GetCount() : 0;
-	int numNotify = pNotifyHookList ? pNotifyHookList->GetCount() : 0;
-	int numCmdUpdate = pCommandUpdateHookList ? pCommandUpdateHookList->GetCount() : 0;
-	int numOle = pOleEventHookList ? pOleEventHookList->GetCount() : 0;
-	sprintf(buf, ", notify=%d,ch/u=%d/%d", numNotify, numCmd, numCmdUpdate);
+	ssize_t numCmd = pCommandHookList ? pCommandHookList->GetCount() : 0;
+	ssize_t numNotify = pNotifyHookList ? pNotifyHookList->GetCount() : 0;
+	ssize_t numCmdUpdate = pCommandUpdateHookList ? pCommandUpdateHookList->GetCount() : 0;
+	ssize_t numOle = pOleEventHookList ? pOleEventHookList->GetCount() : 0;
+	sprintf(buf, ", notify=%I,ch/u=%I/%I", numNotify, numCmd, numCmdUpdate);
 	csRet.ReleaseBuffer();
 	return ui_assoc_object::repr() + csRet;
 }
