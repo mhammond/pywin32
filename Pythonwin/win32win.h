@@ -115,8 +115,14 @@ PyObject *__DoBaseOnCommand(ui_type_CObject *type, PyObject *self, PyObject *arg
 		PyErr_Clear();
 		RETURN_TYPE_ERR("The object is not a Python MFC object");
 	}
-	long wparam, lparam;
-	if (!PyArg_ParseTuple(args, "ll", &wparam, &lparam))
+	PyObject *obwparam, *oblparam;
+	if (!PyArg_ParseTuple(args, "OO", &obwparam, &oblparam))
+		return NULL;
+	WPARAM wparam;
+	LPARAM lparam;
+	if (!PyWinObject_AsPARAM(obwparam, &wparam))
+		return NULL;
+	if (!PyWinObject_AsPARAM(oblparam, &lparam))
 		return NULL;
 	GUI_BGN_SAVE;
 	ClassFramework *pcf = (ClassFramework *)ob;

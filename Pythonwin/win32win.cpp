@@ -783,14 +783,20 @@ ui_window_def_window_proc(PyObject *self, PyObject *args)
 	CWnd *pWnd = GetWndPtr(self);
 	if (!pWnd)
 		return NULL;
-	int message, wparam, lparam;
-	if (!PyArg_ParseTuple(args,"iii:DefWindowProc", 
+	int message;
+	PyObject *obwparam, *oblparam;
+	if (!PyArg_ParseTuple(args,"iOO:DefWindowProc", 
 			&message, // @pyparm int|message||The Windows message.
-			&wparam,  // @pyparm int|idLast||The lParam for the message.
-			&lparam))// @pyparm int|idCheck||The wParam for the message.
+			&obwparam,  // @pyparm int|idLast||The lParam for the message.
+			&oblparam))// @pyparm int|idCheck||The wParam for the message.
+		return NULL;
+	WPARAM wparam;
+	LPARAM lparam;
+	if (!PyWinObject_AsPARAM(obwparam, &wparam) ||
+	    !PyWinObject_AsPARAM(oblparam, &lparam))
 		return NULL;
 	GUI_BGN_SAVE;
-	LRESULT rc = ((WndHack *)pWnd)->DefWindowProc(message, (WPARAM)wparam, (LPARAM)lparam);
+	LRESULT rc = ((WndHack *)pWnd)->DefWindowProc(message, wparam, lparam);
 	GUI_END_SAVE;
 	return PyWinObject_FromPARAM(rc); // @pyseemfc CWnd|DefWindowProc
 }
@@ -1885,12 +1891,17 @@ ui_window_post_message(PyObject *self, PyObject *args)
 	if (!pWnd)
 		return NULL;
 	UINT message;
+	PyObject *obwParam = Py_None, *oblParam = Py_None;
+	if (!PyArg_ParseTuple(args, "i|OO:PostMessage", 
+	          &message, // @pyparm int|idMessage||The ID of the message to post.
+	          &obwParam,  // @pyparm int|wParam|0|The wParam for the message
+	          &oblParam)) // @pyparm int|lParam|0|The lParam for the message
+		return NULL;
 	WPARAM wParam=0;
 	LPARAM lParam=0;
-	if (!PyArg_ParseTuple(args, "i|ii:PostMessage", 
-	          &message, // @pyparm int|idMessage||The ID of the message to post.
-	          &wParam,  // @pyparm int|wParam|0|The wParam for the message
-	          &lParam)) // @pyparm int|lParam|0|The lParam for the message
+	if (obwParam != Py_None && !PyWinObject_AsPARAM(obwParam, &wParam))
+		return NULL;
+	if (oblParam != Py_None && !PyWinObject_AsPARAM(oblParam, &lParam))
 		return NULL;
 	// @pyseemfc CWnd|PostMessage
 	CHECK_HWND_VALID(pWnd);
@@ -2185,17 +2196,18 @@ ui_window_send_message(PyObject *self, PyObject *args)
 	if (!pWnd)
 		return NULL;
 	int message;
-	int wParam=0;
-	int lParam=0;
-	WPARAM wp;
-	LPARAM lp;
-	if (PyArg_ParseTuple(args, "i|ii:SendMessage",
+	WPARAM wp = 0;
+	LPARAM lp = 0;
+	PyObject *obwParam = Py_None, *oblParam = Py_None;
+	BOOL ok = FALSE;
+	if (PyArg_ParseTuple(args, "i|OO:SendMessage",
 		      &message, // @pyparm int|idMessage||The ID of the message to send.
-	          &wParam,  // @pyparm int|wParam|0|The wParam for the message
-		  &lParam)) {// @pyparm int|lParam|0|The lParam for the message
-		wp = (WPARAM)wParam;
-		lp = (LPARAM)lParam;
-	} else {
+		      &obwParam,  // @pyparm int|wParam|0|The wParam for the message
+		      &oblParam)) {// @pyparm int|lParam|0|The lParam for the message
+		ok = (obwParam == Py_None || PyWinObject_AsPARAM(obwParam, &wp)) &&
+		     (oblParam == Py_None || PyWinObject_AsPARAM(oblParam, &lp));
+	}
+	if (!ok) {
 		// Allow a buffer object to be passed as (size, address)
 		PyErr_Clear();
 		void *p;
@@ -2204,6 +2216,7 @@ ui_window_send_message(PyObject *self, PyObject *args)
 				&message, // @pyparmalt1 int|idMessage||The ID of the message to send.
 				&obParam)) // @pyparmalt1 buffer|ob||A buffer whose size is passed in wParam, and address is passed in lParam
 			return NULL;
+		int wParam;
 		if (!PyWinObject_AsReadBuffer(obParam, &p, &wParam))
 			return NULL;
 		lp = (LPARAM)p;
@@ -2224,14 +2237,19 @@ ui_window_send_message_to_desc(PyObject *self, PyObject *args)
 	if (!pWnd)
 		return NULL;
 	UINT message;
+	BOOL bDeep = TRUE;
+	PyObject *obwParam = Py_None, *oblParam = Py_None;
+	if (!PyArg_ParseTuple(args, "i|OOi:SendMessageToDescendants", 
+		      &message, // @pyparm int|idMessage||The ID of the message to send.
+	          &obwParam,  // @pyparm int|wParam|0|The wParam for the message
+	          &oblParam,  // @pyparm int|lParam|0|The lParam for the message
+	          &bDeep))  // @pyparm int|bDeep|1|Indicates if the message should be recursively sent to all children
+		return NULL;
 	WPARAM wParam=0;
 	LPARAM lParam=0;
-	BOOL bDeep = TRUE;
-	if (!PyArg_ParseTuple(args, "i|iii:SendMessageToDescendants", 
-		      &message, // @pyparm int|idMessage||The ID of the message to send.
-	          &wParam,  // @pyparm int|wParam|0|The wParam for the message
-	          &lParam,  // @pyparm int|lParam|0|The lParam for the message
-	          &bDeep))  // @pyparm int|bDeep|1|Indicates if the message should be recursively sent to all children
+	if (obwParam != Py_None && !PyWinObject_AsPARAM(obwParam, &wParam))
+		return NULL;
+	if (oblParam != Py_None && !PyWinObject_AsPARAM(oblParam, &lParam))
 		return NULL;
 	GUI_BGN_SAVE;
 	// @pyseemfc CWnd|SendMessageToDescendants
@@ -2618,9 +2636,10 @@ PyObject *ui_window_end_paint(PyObject *self, PyObject *args)
 {
 	PAINTSTRUCT ps;
 	PyObject *obString;
+	PyObject *obhdc;
 	// @pyparm <o PAINTSTRUCT>|paintStruct||The object returned from <om PyCWnd.BeginPaint>
-	if (!PyArg_ParseTuple(args, "(ii(iiii)iiO)",
-		&ps.hdc,
+	if (!PyArg_ParseTuple(args, "(Oi(iiii)iiO)",
+		&obhdc,
 		&ps.fErase,
 		&ps.rcPaint.left, &ps.rcPaint.top, &ps.rcPaint.right, &ps.rcPaint.bottom,
 		&ps.fRestore,
@@ -2631,6 +2650,9 @@ PyObject *ui_window_end_paint(PyObject *self, PyObject *args)
 	if (!PyString_Check(obString) || PyString_Size(obString) != sizeof(ps.rgbReserved))
 		RETURN_TYPE_ERR("Last tuple must be a string of a specific size!");
 	memcpy(ps.rgbReserved, PyString_AsString(obString), sizeof(ps.rgbReserved));
+
+	if (!PyWinObject_AsHANDLE(obhdc, (HANDLE *)&ps.hdc))
+		return NULL;
 
 	CWnd *pWnd = GetWndPtr (self);
 	if (pWnd == NULL)
