@@ -2198,29 +2198,44 @@ ui_window_send_message(PyObject *self, PyObject *args)
 	int message;
 	WPARAM wp = 0;
 	LPARAM lp = 0;
-	PyObject *obwParam = Py_None, *oblParam = Py_None;
 	BOOL ok = FALSE;
-	if (PyArg_ParseTuple(args, "i|OO:SendMessage",
-		      &message, // @pyparm int|idMessage||The ID of the message to send.
-		      &obwParam,  // @pyparm int|wParam|0|The wParam for the message
-		      &oblParam)) {// @pyparm int|lParam|0|The lParam for the message
-		ok = (obwParam == Py_None || PyWinObject_AsPARAM(obwParam, &wp)) &&
-		     (oblParam == Py_None || PyWinObject_AsPARAM(oblParam, &lp));
-	}
-	if (!ok) {
-		// Allow a buffer object to be passed as (size, address)
-		PyErr_Clear();
+	// Old code assumes the following behaviour:
+	// (msg, buffer_ob) -> lparam==&buffer, wparam=len(buffer)
+	// (msg, [int_arg, int_arg]) - lparam and wparam cast from ints
+	// However, PyWinObject_AsPARAM() has special casing for buffer objects -
+	// their address is used, but size is discarded.  This means we must check
+	// for our special case before letting PyWinObject_AsPARAM at them.
+	// Shortcut - our special case requires exactly 2 args be passed.
+	if (args && PyTuple_Size(args)==2) {
 		void *p;
 		PyObject *obParam;
-		if (!PyArg_ParseTuple(args, "iO",
-				&message, // @pyparmalt1 int|idMessage||The ID of the message to send.
-				&obParam)) // @pyparmalt1 buffer|ob||A buffer whose size is passed in wParam, and address is passed in lParam
+		ok = PyArg_ParseTuple(args, "iO",
+			&message, // @pyparmalt1 int|idMessage||The ID of the message to send.
+			&obParam); // @pyparmalt1 buffer|ob||A buffer whose size is passed in wParam, and address is passed in lParam
+		if (ok) {
+			int wParam;
+			ok = PyWinObject_AsReadBuffer(obParam, &p, &wParam);
+			if (ok) {
+				lp = (LPARAM)p;
+				wp = (WPARAM)wParam;
+			}
+		}
+		// save unconditionally clearing it in the block below...
+		if (!ok)
+			PyErr_Clear();
+	}
+	if (!ok) {
+		// more general purpose args.
+		PyObject *obwParam = Py_None, *oblParam = Py_None;
+		if (!PyArg_ParseTuple(args, "i|OO:SendMessage",
+				  &message, // @pyparm int|idMessage||The ID of the message to send.
+				  &obwParam,  // @pyparm int|wParam|0|The wParam for the message
+				  &oblParam)) // @pyparm int|lParam|0|The lParam for the message
 			return NULL;
-		int wParam;
-		if (!PyWinObject_AsReadBuffer(obParam, &p, &wParam))
+		if (obwParam != Py_None && !PyWinObject_AsPARAM(obwParam, &wp))
 			return NULL;
-		lp = (LPARAM)p;
-		wp = (WPARAM)wParam;
+		if (oblParam != Py_None && !PyWinObject_AsPARAM(oblParam, &lp))
+			return NULL;
 	}
 	LRESULT rc;
 	GUI_BGN_SAVE;
