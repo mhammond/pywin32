@@ -293,7 +293,7 @@ BOOL PyLong_AsI64(PyObject *val, __int64 *lval);
 // A DWORD_PTR and ULONG_PTR appear to mean "integer long enough to hold a pointer"
 // It is *not* actually a pointer (but is the same size as a pointer)
 inline PyObject *PyWinObject_FromULONG_PTR(ULONG_PTR v) {
-    return PyLong_FromVoidPtr((void *)v);
+    return PyWinLong_FromVoidPtr((void *)v);
 }
 inline BOOL PyWinLong_AsULONG_PTR(PyObject *ob, ULONG_PTR *r) {
     return PyWinLong_AsVoidPtr(ob, (void **)r);
