@@ -889,7 +889,7 @@ PyObject *MyReadFile(PyObject *self, PyObject *args)
 	void *buf = NULL;
 	PyBufferProcs *pb = NULL;
 
-	bufSize = PyLong_AsUnsignedLong(obBuf);
+	bufSize = PyInt_AsLong(obBuf);
 	if ((bufSize!=(DWORD)-1) || !PyErr_Occurred()){
 		if (pOverlapped){	// guaranteed to be NULL on CE
 			obRet = PyBuffer_New(bufSize);
@@ -909,7 +909,7 @@ PyObject *MyReadFile(PyObject *self, PyObject *args)
 	else{
 		PyErr_Clear();
 		if (!PyWinObject_AsWriteBuffer(obBuf, &buf, &bufSize,FALSE)){
-			PyErr_SetString(PyExc_TypeError, "Second param must be an integer or a buffer object");
+			PyErr_SetString(PyExc_TypeError, "Second param must be an integer or writeable buffer object");
 			return NULL;
 			}
 		if (pOverlapped){
@@ -1806,10 +1806,9 @@ MyMakeSockaddr(SOCKADDR *addr, INT cbAddr)
 	default:
 		/* If we don't know the address family, don't raise an
 		   exception -- return it as a tuple. */
-		return Py_BuildValue("is#",
-				     addr->sa_family,
-				     addr->sa_data,
-				     sizeof(addr->sa_data));
+		return Py_BuildValue("iN",
+			addr->sa_family,
+			PyString_FromStringAndSize(addr->sa_data,sizeof(addr->sa_data)));
 
 	}
 }
