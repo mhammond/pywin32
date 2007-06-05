@@ -218,7 +218,7 @@ CPythonDialogTemplate::CPythonDialogTemplate(LPCSTR cpin, DLGTEMPLATE *tmpl, WOR
 #ifdef WIN32
 	DwordAlign((PCHAR*)&ptr);
 #endif
-	ssize_t len = (BYTE*)ptr - (BYTE*)hdr;
+	size_t len = (BYTE*)ptr - (BYTE*)hdr;
 	ASSERT(len <= m_alloc);
 	m_len = len;
 #ifdef WIN32
@@ -306,7 +306,7 @@ BOOL CPythonDialogTemplate::Add(BYTE wclass, DLGITEMTEMPLATE *tmpl, LPCSTR text)
 	GlobalUnlock(m_h);
 #endif
 	RESCSTR txt = MAKERESSTR(text);
-	ssize_t len = sizeof(DLGITEMTEMPLATE) + 20;
+	size_t len = sizeof(DLGITEMTEMPLATE) + 20;
 	if (txt)
 	{
 		len += alloclenR(txt);
