@@ -169,14 +169,14 @@ static int _PyPopenCreateProcess(char *cmdstring,
 	STARTUPINFO siStartInfo;
 	char *s1,*s2, *s3=" /c ";
 	const char *szConsoleSpawn = "win32popenWin9x.exe \"";
-	int i;
-	int x;
+	DWORD i;
+	size_t x;
 
 	if (i = GetEnvironmentVariable("COMSPEC",NULL,0))
     {
 		s1 = (char *)_alloca(i);
 		if (!(x = GetEnvironmentVariable("COMSPEC", s1, i)))
-			return x;
+			return FALSE;
 		if (!g_fUsingWin9x)
 		{
 			x = i + strlen(s3) + strlen(cmdstring) + 1;
@@ -207,7 +207,7 @@ static int _PyPopenCreateProcess(char *cmdstring,
 	// Could be an else here to try cmd.exe / command.com in the path
 	// Now we'll just error out..
 	else
-		return -1;
+		return FALSE;
   
 	ZeroMemory( &siStartInfo, sizeof(STARTUPINFO));
 	siStartInfo.cb = sizeof(STARTUPINFO);
@@ -309,7 +309,7 @@ static PyObject *_PyPopen(char *cmdstring, int mode, int n)
 		{
 		case _O_WRONLY | _O_TEXT:
 			// Case for writing to child Stdin in text mode.
-			fd1 = _open_osfhandle((long)hChildStdinWrDup, mode);
+			fd1 = _open_osfhandle((INT_PTR)hChildStdinWrDup, mode);
 			f1 = _fdopen(fd1, "w");
 			f = PyFile_FromFile(f1, cmdstring, "w", _PyPclose);
 			PyFile_SetBufSize(f, 0);
@@ -320,7 +320,7 @@ static PyObject *_PyPopen(char *cmdstring, int mode, int n)
 
 		case _O_RDONLY | _O_TEXT:
 			// Case for reading from child Stdout in text mode.
-			fd1 = _open_osfhandle((long)hChildStdoutRdDup, mode);
+			fd1 = _open_osfhandle((INT_PTR)hChildStdoutRdDup, mode);
 			f1 = _fdopen(fd1, "r");
 			f = PyFile_FromFile(f1, cmdstring, "r", _PyPclose);
 			PyFile_SetBufSize(f, 0);
@@ -331,7 +331,7 @@ static PyObject *_PyPopen(char *cmdstring, int mode, int n)
 
 		case _O_RDONLY | _O_BINARY:
 			// Case for readinig from child Stdout in binary mode.
-			fd1 = _open_osfhandle((long)hChildStdoutRdDup, mode);
+			fd1 = _open_osfhandle((INT_PTR)hChildStdoutRdDup, mode);
 			f1 = _fdopen(fd1, "rb");
 			f = PyFile_FromFile(f1, cmdstring, "rb", _PyPclose);
 			PyFile_SetBufSize(f, 0);
@@ -342,7 +342,7 @@ static PyObject *_PyPopen(char *cmdstring, int mode, int n)
 
 		case _O_WRONLY | _O_BINARY:
 			// Case for writing to child Stdin in binary mode.
-			fd1 = _open_osfhandle((long)hChildStdinWrDup, mode);
+			fd1 = _open_osfhandle((INT_PTR)hChildStdinWrDup, mode);
 			f1 = _fdopen(fd1, "wb");
 			f = PyFile_FromFile(f1, cmdstring, "wb", _PyPclose);
 			PyFile_SetBufSize(f, 0);
@@ -371,9 +371,9 @@ static PyObject *_PyPopen(char *cmdstring, int mode, int n)
 			m2="wb";
 		}
 
-	    fd1 = _open_osfhandle((long)hChildStdinWrDup, mode);
+	    fd1 = _open_osfhandle((INT_PTR)hChildStdinWrDup, mode);
 	    f1 = _fdopen(fd1, m2);
-	    fd2 = _open_osfhandle((long)hChildStdoutRdDup, mode);
+	    fd2 = _open_osfhandle((INT_PTR)hChildStdoutRdDup, mode);
 	    f2 = _fdopen(fd2, m1);
 	    p1 = PyFile_FromFile(f1, cmdstring, m2, _PyPclose);
 		PyFile_SetBufSize(p1, 0);
@@ -406,11 +406,11 @@ static PyObject *_PyPopen(char *cmdstring, int mode, int n)
 			m2="wb";
 		}
 
-	    fd1 = _open_osfhandle((long)hChildStdinWrDup, mode);
+	    fd1 = _open_osfhandle((INT_PTR)hChildStdinWrDup, mode);
 	    f1 = _fdopen(fd1, m2);
-		fd2 = _open_osfhandle((long)hChildStdoutRdDup, mode);
+		fd2 = _open_osfhandle((INT_PTR)hChildStdoutRdDup, mode);
 	    f2 = _fdopen(fd2, m1);
-		fd3 = _open_osfhandle((long)hChildStderrRdDup, mode);
+		fd3 = _open_osfhandle((INT_PTR)hChildStderrRdDup, mode);
 	    f3 = _fdopen(fd3, m1);
 	    p1 = PyFile_FromFile(f1, cmdstring, m2, _PyPclose);
 	    p2 = PyFile_FromFile(f2, cmdstring, m1, _PyPclose);
