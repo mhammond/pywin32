@@ -1596,10 +1596,13 @@ BOOLAPI UnlockFile(
 // File Handle / File Descriptor APIs.
 #ifndef MS_WINCE
 // @pyswig long|_get_osfhandle|Gets operating-system file handle associated with existing stream
+// @pyparm int|fd||File descriptor as returned by file.fileno()
 %name(_get_osfhandle)
 PyObject *myget_osfhandle( int filehandle );
 
 // @pyswig int|_open_osfhandle|Associates a C run-time file handle with a existing operating-system file handle.
+// @pyparm <o PyHANDLE>|osfhandle||An open file handle
+// @pyparm int|flags||O_APPEND,O_RDONLY, or O_TEXT
 %name(_open_osfhandle)
 PyObject *myopen_osfhandle ( PyHANDLE osfhandle, int flags );
 
@@ -1624,6 +1627,15 @@ PyObject *myopen_osfhandle (PyHANDLE osfhandle, int flags)
 }
 
 %}
+
+// @pyswig int|_setmaxstdio|Set the maximum allowed number of open stdio handles 
+// @rdesc Returns the number that was set, or -1 on failure.
+int _setmaxstdio(
+   int newmax	// @pyparm int|newmax||Maximum number of open stdio streams, 2048 max 
+);
+
+// @pyswig int| _getmaxstdio|Returns the maximum number of CRT io streams.
+int _getmaxstdio( void );
 
 
 // Overlapped Socket stuff
