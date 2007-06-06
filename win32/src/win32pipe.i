@@ -296,33 +296,36 @@ PyObject *MyConnectNamedPipe(PyObject *self, PyObject *args)
 // @pyswig string|CallNamedPipe|Opens and performs a transaction on a named pipe.
 PyObject *MyCallNamedPipe(PyObject *self, PyObject *args)
 {
-	PyObject *obPipeName;
-	char *data;
-	int dataSize;
+	PyObject *obPipeName, *obdata;
+	void *data;
+	DWORD dataSize;
 	DWORD timeOut;
-	int readBufSize;
+	DWORD readBufSize;
 	TCHAR *szPipeName;
-	if (!PyArg_ParseTuple(args, "Os#il:CallNamedPipe", 
-		&obPipeName, // @pyparm <o PyUNICODE>|pipeName||The name of the pipe.
-		&data, &dataSize, // @pyparm string|data||The data to write.
-		&readBufSize, // @pyparm int|bufSize||The size of the result buffer to allocate for the read.
-		&timeOut)) // @pyparm int|timeOut||Specifies the number of milliseconds to wait for the named pipe to be available. In addition to numeric values, the following special values can be specified.
+	if (!PyArg_ParseTuple(args, "OOil:CallNamedPipe", 
+		&obPipeName,	// @pyparm <o PyUNICODE>|pipeName||The name of the pipe.
+		&obdata,		// @pyparm string|data||The data to write.
+		&readBufSize,	// @pyparm int|bufSize||The size of the result buffer to allocate for the read.
+		&timeOut))		// @pyparm int|timeOut||Specifies the number of milliseconds to wait for the named pipe to be available. In addition to numeric values, the following special values can be specified.
 		// @flagh Value|Meaning 
 		// @flag win32pipe.NMPWAIT_NOWAIT|Does not wait for the named pipe. If the named pipe is not available, the function returns an error. 
 		// @flag win32pipe.NMPWAIT_WAIT_FOREVER|Waits indefinitely. 
 		// @flag win32pipe.NMPWAIT_USE_DEFAULT_WAIT|Uses the default time-out specified in a call to the CreateNamedPipe function. 
 		return NULL;
-
+	if (!PyWinObject_AsReadBuffer(obdata, &data, &dataSize, FALSE))
+		return NULL;
 	if (!PyWinObject_AsTCHAR(obPipeName, &szPipeName))
 		return NULL;
-
 	void *readBuf = malloc(readBufSize);
-
+	if (!readBuf){
+		PyWinObject_FreeTCHAR(szPipeName);
+		return PyErr_NoMemory();
+		}
 	DWORD numRead = 0;
 	BOOL ok;
-    Py_BEGIN_ALLOW_THREADS
-	ok = CallNamedPipe(szPipeName, (void *)data, dataSize, readBuf, readBufSize, &numRead, timeOut);
-    Py_END_ALLOW_THREADS
+	Py_BEGIN_ALLOW_THREADS
+	ok = CallNamedPipe(szPipeName, data, dataSize, readBuf, readBufSize, &numRead, timeOut);
+	Py_END_ALLOW_THREADS
 	if (!ok) {
 		PyWinObject_FreeTCHAR(szPipeName);
 		free(readBuf);
@@ -358,10 +361,9 @@ PyObject *MyCreatePipe(
 
 // @pyswig (int, int)|FdCreatePipe|As CreatePipe but returns file descriptors
 PyObject *FdCreatePipe(
-		    SECURITY_ATTRIBUTES *INPUT, // @pyparm <o PySECURITY_ATTRIBUTES>|sa||
-		    DWORD nSize, // @pyparm int|nSize||
-		    int mode // @pyparm int|mode||
-		    )
+	SECURITY_ATTRIBUTES *INPUT, // @pyparm <o PySECURITY_ATTRIBUTES>|sa||Specifies security and inheritance for the pipe
+	DWORD nSize,				// @pyparm int|nSize||Buffer size for pipe.  Use 0 for default size.
+	int mode)					// @pyparm int|mode||O_TEXT or O_BINARY
 {
   HANDLE hReadPipe;		// variable for read handle 
   HANDLE hWritePipe;		// variable for write handle 
@@ -376,8 +378,8 @@ PyObject *FdCreatePipe(
   if (!ok)
     return PyWin_SetAPIError("CreatePipe");
 
-  int read_fd = _open_osfhandle ((long) hReadPipe, mode);
-  int write_fd = _open_osfhandle ((long) hWritePipe, mode);
+  int read_fd = _open_osfhandle ((INT_PTR)hReadPipe, mode);
+  int write_fd = _open_osfhandle ((INT_PTR)hWritePipe, mode);
   PyObject *result = Py_BuildValue("ii", read_fd, write_fd);
   return result;
 }
@@ -442,7 +444,9 @@ PyObject *MyPeekNamedPipe(PyObject *self, PyObject *args)
 	}
 	PyObject *rc = NULL;
 	if (PeekNamedPipe(hNamedPipe, buf, size, &bytesRead, &totalAvail, &bytesLeft)) {
-		rc = Py_BuildValue("s#ii", (char *)buf, bytesRead, totalAvail, bytesLeft);
+		rc = Py_BuildValue("Nii", 
+			PyString_FromStringAndSize((char *)buf, bytesRead),
+			totalAvail, bytesLeft);
 	} else
 		PyWin_SetAPIError("PeekNamedPipe");
 	free(buf);
