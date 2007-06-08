@@ -170,8 +170,8 @@ void PyNotifyParseExtraTuple( NMHDR *ptr, PyObject *args,  char *fmt)
 			if (!bIgnore) {
 				if (!PyString_Check(ob)) MY_RET_ERR("Expected string object")
 				char *val = PyString_AsString(ob);
-				ssize_t slen = strlen(val);
-				ssize_t copylen = max(bufSize-1, slen);
+				SSIZE_T slen = strlen(val);
+				SSIZE_T copylen = max(bufSize-1, slen);
 				strncpy( pUse, val, copylen);
 				pUse[copylen] = '\0';
 			}
@@ -189,7 +189,7 @@ void PyNotifyParseExtraTuple( NMHDR *ptr, PyObject *args,  char *fmt)
 			if (!bIgnore) {
 				if (!PyString_Check(ob)) MY_RET_ERR("Expected string object")
 				char *szVal = PyString_AsString(ob);
-				ssize_t slen = strlen(szVal);
+				SSIZE_T slen = strlen(szVal);
 				mbstowcs( (wchar_t *)pUse, szVal, bufSize );
 			}
 			pUse += bufSize + sizeof(wchar_t);
