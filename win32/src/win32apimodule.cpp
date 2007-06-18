@@ -1815,7 +1815,7 @@ PyGetSystemInfo(PyObject * self, PyObject * args)
 	// @pyseeapi GetSystemInfo
 	SYSTEM_INFO info;
 	GetSystemInfo( &info );
-	return Py_BuildValue("iiNNNiii(ii)",
+	return Py_BuildValue("iiNNNiii(HH)",
 #if !defined(MAINWIN)
 						 info.dwOemId,
 #else
@@ -1830,7 +1830,7 @@ PyGetSystemInfo(PyObject * self, PyObject * args)
 						 info.wProcessorLevel, info.wProcessorRevision);
 	// @rdesc The return value is a tuple of 9 values, which corresponds
 	// to the Win32 SYSTEM_INFO structure.  The element names are:
-	// <nl>dwOemId<nl>dwPageSize<nl>lpMinimumApplicationAddress<nl>lpMaximumApplicationAddress<nl>,
+	// <nl>dwOemId<nl>dwPageSize<nl>lpMinimumApplicationAddress<nl>lpMaximumApplicationAddress<nl>
     // dwActiveProcessorMask<nl>dwNumberOfProcessors<nl>
 	// dwProcessorType<nl>dwAllocationGranularity<nl>(wProcessorLevel,wProcessorRevision)
 }
