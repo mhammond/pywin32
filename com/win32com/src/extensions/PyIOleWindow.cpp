@@ -32,19 +32,17 @@ PyObject *PyIOleWindow::GetWindow(PyObject *self, PyObject *args)
 	IOleWindow *pIOW = GetI(self);
 	if ( pIOW == NULL )
 		return NULL;
-	HWND phwnd;
+	HWND hwnd;
 	if ( !PyArg_ParseTuple(args, ":GetWindow") )
 		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	hr = pIOW->GetWindow( &phwnd );
+	hr = pIOW->GetWindow( &hwnd );
 	PY_INTERFACE_POSTCALL;
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIOW, IID_IOleWindow);
-
-	PyObject *pyretval = Py_BuildValue("i", phwnd);
-	return pyretval;
+	return PyWinLong_FromHANDLE(hwnd);
 }
 
 // @pymethod |PyIOleWindow|ContextSensitiveHelp|Description of ContextSensitiveHelp.
@@ -93,7 +91,8 @@ STDMETHODIMP PyGOleWindow::GetWindow(
 	HRESULT hr=InvokeViaPolicy("GetWindow", &result);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
-	if (!PyArg_Parse(result, "i" , phwnd)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!PyWinObject_AsHANDLE(result, (HANDLE *)phwnd))
+		hr=PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
 	Py_DECREF(result);
 	return hr;
 }
