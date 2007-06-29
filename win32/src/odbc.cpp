@@ -194,7 +194,6 @@ static void odbcPrintError
 
 		if (conn && errorType && (errorType->connected == 0))
 		{
-//			printf("Disconnected\n");
 			SQLDisconnect(conn->hdbc);
 			conn->connected = 0;
 		}
@@ -249,10 +248,12 @@ static int attemptReconnect(cursorObject *cur)
 		(cur->my_conx->connected == 0))
 	{
 		/* ie the cursor was made on an old connection */
-
-		printf("Attempting reconnect\n");
-		SQLFreeStmt(cur->hstmt, SQL_DROP);
-
+		/* Do not need to free HSTMT here, since any statements attached to the connection
+			are automatically invalidated when SQLDisconnect is called in odbcPrintError.
+			(only place where connected is set to 0) 
+			SQLFreeStmt(cur->hstmt, SQL_DROP);
+		*/
+		cur->hstmt=NULL;
 		if (cur->my_conx->connected == 0)
 		{
 			/* ie the db has not been reconnected */
@@ -375,11 +376,13 @@ static PyObject *odbcCursor(PyObject *self, PyObject *args)
 	cur->max_width = 65536L;
 	cur->my_conx = 0;
 	cur->bGetDataIsNeeded = false;
+	cur->hstmt=NULL;
+
 	if (unsuccessful(SQLAllocStmt(conn->hdbc, &cur->hstmt)))
 	{
 		connectionError(cur->my_conx, "OPEN");
-		PyObject_Del(cur);
-		return 0;
+		Py_DECREF(cur);
+		return NULL;
 	}
 	cur->my_conx = conn;
 	cur->connect_id = cur->my_conx->connect_id;
@@ -462,10 +465,10 @@ static void deleteBinding(cursorObject *cur)
 static void cursorDealloc(PyObject *self)
 {
 	cursorObject *cur = cursor(self);
-	if (SQLFreeStmt(cur->hstmt, SQL_DROP))
-	{
-		cursorError(cur, "CLOSE");
-	}
+	/* Only free HSTMT if database connection hasn't been disconnected */
+	if (cur->my_conx && cur->my_conx->connected && cur->hstmt)
+		SQLFreeHandle(SQL_HANDLE_STMT, cur->hstmt);
+
 	deleteBinding(cur);
 	if (cur->my_conx)
 	{
@@ -865,7 +868,7 @@ static int ibindString(cursorObject *cur, int column, PyObject *item)
       return 0;
 
   strcpy(ib->bind_area, val);
-  int sqlType = SQL_VARCHAR; // SQL_CHAR can cause padding in some drivers..
+  int sqlType = SQL_VARCHAR; /* SQL_CHAR can cause padding in some drivers.. */
   if (len > 255)
   {
 	  ib->sqlBytesAvailable = SQL_LEN_DATA_AT_EXEC(ib->len);
@@ -909,7 +912,7 @@ static int ibindUnicode(cursorObject *cur, int column, PyObject *item)
       return 0;
 
   wcscpy((WCHAR *)ib->bind_area, wval);
-  // See above re SQL_VARCHAR
+  /* See above re SQL_VARCHAR */
   int sqlType = SQL_WVARCHAR;
   if (nbytes > 255)
   {
@@ -1770,27 +1773,27 @@ static PyObject *odbcLogon(PyObject *self, PyObject *args)
 	if (unsuccessful(SQLAllocConnect(Env, &conn->hdbc)))
 	{
 		connectionError(conn, "ALLOCATION");
-		PyObject_Del(conn);
-		return 0;
+		Py_DECREF(conn);
+		return NULL;
 	}
 
 	parseInfo(conn, connectionString);
 
 	if (doConnect(conn))
 	{
-		PyObject_Del(conn);
-		return 0;
+		Py_DECREF(conn);
+		return NULL;
 	}
 
 	return (PyObject*)conn;
 }
 
 /* @pymethod (name, desc)/None|odbc|SQLDataSources|Enumerates ODBC data sources */
-// @rdesc The result is None when SQL_NO_DATA is returned from ODBC.
+/* @rdesc The result is None when SQL_NO_DATA is returned from ODBC. */
 static PyObject *odbcSQLDataSources(PyObject *self, PyObject *args)
 {
 	int direction;
-	// @pyparm int|direction||
+	/* @pyparm int|direction||One of SQL_FETCH_* flags indicating how to retrieve data sources */
 	if (!PyArg_ParseTuple(args, "i:SQLDataSources", &direction))
 		return NULL;
 
