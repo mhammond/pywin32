@@ -78,10 +78,8 @@ def SmartOpenService(hscm, name, access):
         if details[0] not in [winerror.ERROR_SERVICE_DOES_NOT_EXIST,
                               winerror.ERROR_INVALID_NAME]:
             raise
-        name = _GetServiceShortName(name)
-        if name is None:
-            raise
-        return win32service.OpenService(hscm, name, access)
+    name = win32service.GetServiceKeyName(hscm, name)
+    return win32service.OpenService(hscm, name, access)
 
 def LocateSpecificServiceExe(serviceName):
     # Given the name of a specific service, return the .EXE name _it_ uses
