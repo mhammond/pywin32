@@ -125,6 +125,32 @@ def RegisterCOMObjects(register = 1):
         klass = getattr(mod, klass_name)
         func(klass, **flags)
 
+def RegisterPythonwin():
+    """ Add Pythonwin to context menu for python scripts.
+        ??? Should probably also add Edit command for pys files also.
+        Also need to remove these keys on uninstall, but there's no function
+            like file_created to add registry entries to uninstall log ???
+    """
+    import _winreg, os, distutils.sysconfig
+
+    lib_dir = distutils.sysconfig.get_python_lib(plat_specific=1)
+    classes_root=get_root_hkey()
+    ## Installer executable doesn't seem to pass anything to postinstall script indicating if it's a debug build,
+    pythonwin_exe = os.path.join(lib_dir, "Pythonwin", "Pythonwin.exe")
+    pythonwin_edit_command=pythonwin_exe + ' /edit "%1"'
+
+    ## Since _winreg only uses the character Api functions, this can fail if Python
+    ##  is installed to a path containing non-ascii characters
+    pw_key = _winreg.CreateKey(classes_root, 'Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\Pythonwin.exe')
+    _winreg.SetValueEx(pw_key, None, 0, _winreg.REG_SZ, pythonwin_exe)
+    pw_key.Close()
+    pw_key = _winreg.CreateKey(classes_root, 'Software\\Classes\\Python.File\\shell\\Edit with Pythonwin\\command')
+    _winreg.SetValueEx(pw_key, None, 0, _winreg.REG_SZ, pythonwin_edit_command)
+    pw_key.Close()
+    pw_key = _winreg.CreateKey(classes_root, 'Software\\Classes\\Python.NoConFile\\shell\\Edit with Pythonwin\\command')
+    _winreg.SetValueEx(pw_key, None, 0, _winreg.REG_SZ, pythonwin_edit_command)
+    pw_key.Close()
+
 def install():
     import distutils.sysconfig
     import traceback
@@ -233,6 +259,16 @@ def install():
     else:
         print "NOTE: PyWin32.chm can not be located, so has not " \
               "been registered"
+
+    # Register Pythonwin in context menu
+    try:
+        RegisterPythonwin()
+    except:
+        print 'Failed to register pythonwin as editor'
+        traceback.print_exc()
+    else:
+        print 'Pythonwin has been registered in context menu'
+
     # Create the win32com\gen_py directory.
     make_dir = os.path.join(lib_dir, "win32com", "gen_py")
     if not os.path.isdir(make_dir):
