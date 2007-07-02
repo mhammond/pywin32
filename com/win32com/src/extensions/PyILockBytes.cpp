@@ -63,15 +63,16 @@ PyObject *PyILockBytes::WriteAt(PyObject *self, PyObject *args)
 		return NULL;
 	// @pyparm <o ULARGE_INTEGER>|ulOffset||Offset to write at.
 	// @pyparm string|data||Data to write
-	PyObject *obulOffset;
-	char *pv;
+	PyObject *obulOffset, *obpv;
+	void *pv;
 	ULONG cb;
-	if ( !PyArg_ParseTuple(args, "Os#:WriteAt", &obulOffset, &pv, &cb) )
+	if ( !PyArg_ParseTuple(args, "OO:WriteAt", &obulOffset, &obpv))
 		return NULL;
 	ULARGE_INTEGER ulOffset;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyWinObject_AsULARGE_INTEGER(obulOffset, &ulOffset)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsULARGE_INTEGER(obulOffset, &ulOffset))
+		return NULL;
+	if (!PyWinObject_AsReadBuffer(obpv, &pv, &cb, FALSE))
+		return NULL;
 	ULONG pcbWritten;
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = pILB->WriteAt( ulOffset, pv, cb, &pcbWritten );
@@ -80,8 +81,7 @@ PyObject *PyILockBytes::WriteAt(PyObject *self, PyObject *args)
 		return PyCom_BuildPyException(hr, pILB, IID_ILockBytes);
 
 	// @rdesc The result is the number of bytes actually written.
-	PyObject *pyretval = Py_BuildValue("i", pcbWritten);
-	return pyretval;
+	return PyLong_FromUnsignedLong(pcbWritten);
 }
 
 // @pymethod |PyILockBytes|Flush|Ensures that any internal buffers maintained by the byte array object are written out to the backing storage.
@@ -276,9 +276,11 @@ STDMETHODIMP PyGLockBytes::WriteAt(
 
 	PY_GATEWAY_METHOD;
 	PyObject *obulOffset = PyWinObject_FromULARGE_INTEGER(ulOffset);
+	PyObject *obbuf = PyString_FromStringAndSize((char *)pv, cb);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("WriteAt", &result, "Os#", obulOffset, (char *)pv, cb);
+	HRESULT hr=InvokeViaPolicy("WriteAt", &result, "OO", obulOffset, obbuf);
 	Py_XDECREF(obulOffset);
+	Py_XDECREF(obbuf);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	int cbWritten = PyInt_AsLong(result);
