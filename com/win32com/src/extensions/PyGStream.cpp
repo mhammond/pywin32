@@ -45,7 +45,9 @@ STDMETHODIMP PyGStream::Write(
 
 	PY_GATEWAY_METHOD;
 	PyObject *result;
-	HRESULT hr = InvokeViaPolicy("Write", &result, "s#", pv, (int)cb);
+	PyObject *obbuf=PyString_FromStringAndSize((char *)pv, cb);
+	HRESULT hr = InvokeViaPolicy("Write", &result, "O", obbuf);
+	Py_XDECREF(obbuf);
 	if ( FAILED(hr) )
 		return hr;
 
