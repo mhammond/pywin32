@@ -29,7 +29,7 @@ class Persists:
 
 
 class Stream:
-    _public_methods_ = [ 'Read', 'Write' ]
+    _public_methods_ = [ 'Read', 'Write', 'Seek' ]
     _com_interfaces_ = [ pythoncom.IID_IStream ]
 
     def __init__(self, data):
@@ -46,13 +46,38 @@ class Stream:
         self.index = 0
         return len(data)
 
+    def Seek(self, dist, origin):
+        if origin==pythoncom.STREAM_SEEK_SET:
+            self.index = dist
+        elif origin==pythoncom.STREAM_SEEK_CUR:
+            self.index = self.index + dist
+        elif origin==pythoncom.STREAM_SEEK_END:
+            self.index = len(self.data)+dist
+        else:
+            raise ValueError, 'Unknown Seek type: ' +str(origin)
+        if self.index < 0:
+            self.index = 0
+        else:
+            self.index = min(self.index, len(self.data))
+        return self.index            
+
+class BadStream(Stream):
+    """ PyGStream::Read could formerly overflow buffer if the python implementation
+        returned more data than requested.
+    """
+    def Read(self, amount):
+        return 'x'*(amount+1)
 
 class StreamTest(win32com.test.util.TestCase):
     def _readWrite(self, data, write_stream, read_stream = None):
         if read_stream is None: read_stream = write_stream
         write_stream.Write(data)
+        read_stream.Seek(0, pythoncom.STREAM_SEEK_SET)
         got = read_stream.Read(len(data))
         self.assertEqual(data, got)
+        read_stream.Seek(1, pythoncom.STREAM_SEEK_SET)
+        got = read_stream.Read(len(data)-2)
+        self.assertEqual(data[1:-1], got)
 
     def testit(self):
         mydata = 'abcdefghijklmnopqrstuvwxyz'
@@ -82,5 +107,10 @@ class StreamTest(win32com.test.util.TestCase):
         p2.Save(s2, 0)
         self.assertEqual(s.data, mydata)
 
+        ## check for buffer overflow in Read method
+        badstream = BadStream('Check for buffer overflow')
+        badstream2 = win32com.server.util.wrap(badstream, pythoncom.IID_IStream)
+        self.assertRaises(pythoncom.com_error, badstream2.Read, 10)
+        
 if __name__=='__main__':
     unittest.main()
