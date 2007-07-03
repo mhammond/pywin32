@@ -18,18 +18,18 @@ STDMETHODIMP PyGStream::Read(
 		return hr;
 
 	hr = E_FAIL;
-	int len = PyObject_Length(result);
-	if ( len != -1 )
-	{
-		const char *s = PyString_AsString(result);
-		if ( s != NULL )
-		{
-			memcpy(pv, s, len);
-			if ( pcbRead != NULL )
-				*pcbRead = len;
+	VOID *buf=NULL;
+	DWORD resultlen;
+	if (PyWinObject_AsReadBuffer(result, &buf, &resultlen, FALSE)){
+		if (resultlen > cb)
+			PyErr_SetString(PyExc_ValueError,"Returned data longer than requested");
+		else{
+			memcpy(pv, buf, resultlen);
+			if (pcbRead)
+				*pcbRead = resultlen;
 			hr = S_OK;
+			}
 		}
-	}
 
 	Py_DECREF(result);
 	return MAKE_PYCOM_GATEWAY_FAILURE_CODE("Read");
@@ -67,17 +67,16 @@ STDMETHODIMP PyGStream::Seek(
 		/* [out] */ ULARGE_INTEGER __RPC_FAR * plibNewPosition)
 {
 	PY_GATEWAY_METHOD;
-	PyObject *obdlibMove = PyWinObject_FromLARGE_INTEGER(dlibMove);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("Seek", &result, "Oi", obdlibMove, dwOrigin);
-	Py_XDECREF(obdlibMove);
+	HRESULT hr=InvokeViaPolicy("Seek", &result, "Lk", dlibMove.QuadPart, dwOrigin);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
-	PyObject *obplibNewPosition;
-	if (!PyArg_Parse(result, "O" , &obplibNewPosition)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyWinObject_AsULARGE_INTEGER(obplibNewPosition, plibNewPosition)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("Seek");
+	// Callers may pass NULL for result position if they don't require the result
+	ULARGE_INTEGER new_pos;
+	if (!PyWinObject_AsULARGE_INTEGER(result, &new_pos))
+		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("Seek");
+	else if (plibNewPosition)
+		*plibNewPosition=new_pos;
 	Py_DECREF(result);
 	return hr;
 }
