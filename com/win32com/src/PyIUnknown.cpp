@@ -37,7 +37,7 @@ PyObject * PyIUnknown::repr()
 {
 	// @comm The repr of this object displays both the object's address, and its attached IUnknown's address
 	TCHAR buf[80];
-	wsprintf(buf, _T("<%hs at 0x%0lx with obj at 0x%0lx>"),ob_type->tp_name, (long)(PyObject *)this, (long)m_obj);
+	wsprintf(buf, _T("<%hs at 0x%0lp with obj at 0x%0lp>"),ob_type->tp_name, this, m_obj);
 	return PyString_FromTCHAR(buf);
 }
 
