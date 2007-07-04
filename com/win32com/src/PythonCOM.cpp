@@ -50,6 +50,8 @@ extern PyObject *pythoncom_ReadClassStg(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_WriteClassStm(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_ReadClassStm(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_CreateStreamOnHGlobal(PyObject *self, PyObject *args);
+extern PyObject *pythoncom_CreateILockBytesOnHGlobal(PyObject *self, PyObject *args);
+
 extern PyObject *pythoncom_GetRecordFromGuids(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_GetRecordFromTypeInfo(PyObject *self, PyObject *args);
 
@@ -169,8 +171,9 @@ static PyObject *pythoncom_CoCreateInstanceEx(PyObject *self, PyObject *args)
 	MULTI_QI *mqi = NULL;
 	IUnknown *punk = NULL;
 	PyObject *result = NULL;
-	int numIIDs = 0;
-	int i;
+	ULONG numIIDs = 0;
+	ULONG i;
+	Py_ssize_t py_numIIDs;
 	if (!PyArg_ParseTuple(args, "OOiOO:CoCreateInstanceEx",
 		&obCLSID, // @pyparm <o PyIID>|clsid||Class identifier (CLSID) of the object
 		&obUnk, // @pyparm <o PyIUnknown>|unkOuter||The outer unknown, or None
@@ -205,8 +208,12 @@ static PyObject *pythoncom_CoCreateInstanceEx(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_TypeError, "IID's must be sequence of IID objects");
 		goto done;
 	}
-	numIIDs = PySequence_Length(obrgiids);
-
+	py_numIIDs = PySequence_Length(obrgiids);
+	if (py_numIIDs > ULONG_MAX){
+		PyErr_Format(PyExc_ValueError, "%u is maximum number of IIDs", ULONG_MAX);
+		goto done;
+		}
+	numIIDs=(ULONG)py_numIIDs;
 	iids = new IID[numIIDs];
 	mqi = new MULTI_QI[numIIDs];
 	if (iids==NULL || mqi==NULL) {
@@ -389,34 +396,19 @@ static PyObject *pythoncom_CoRevokeClassObject(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// I cont understand this compiler :-(
-#ifdef _MSC_VER
-#pragma optimize ("", off)
-#endif // _MSC_VER
 // @pymethod |pythoncom|CoResumeClassObjects|Called by a server that can register multiple class objects to inform the OLE SCM about all registered classes, and permits activation requests for those class objects.
 static PyObject *pythoncom_CoResumeClassObjects(PyObject *self, PyObject *args)
 {
-	// @comm This is not available on Window95.  If it is called on that platform,
-	// a E_NOTIMPLEMENTED <o com_error> is raised.
 	if (!PyArg_ParseTuple(args, ":CoResumeClassObjects"))
 		return NULL;
-	// *** AARG - NOT ON 95!
-	HMODULE hMod = GetModuleHandle("ole32.dll");
-	if (hMod==0) return PyWin_SetAPIError("GetModuleHandle(\"ole32.dll\")");
-	FARPROC fp = GetProcAddress(hMod, "CoResumeClassObjects");
-	if (fp==NULL)
-		return PyCom_BuildPyException(E_NOTIMPL);
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = (*fp)();
+	HRESULT hr = CoResumeClassObjects();
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
 		return PyCom_BuildPyException(hr);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
-#ifdef _MSC_VER
-#pragma optimize ("", on)
-#endif // _MSC_VER
 
 // @pymethod |pythoncom|CoTreatAsClass|Establishes or removes an emulation, in which objects of one class are treated as objects of a different class.
 static PyObject *pythoncom_CoTreatAsClass(PyObject *self, PyObject *args)
@@ -1794,6 +1786,8 @@ static struct PyMethodDef pythoncom_methods[]=
 	{ "CreateTypeLib2",       pythoncom_CreateTypeLib2, 1}, // @pymeth CreateTypeLib2|Provides access to a new object instance that supports the ICreateTypeLib2 interface.
 #endif // MS_WINCE
 	{ "CreateStreamOnHGlobal",   pythoncom_CreateStreamOnHGlobal, 1 }, // @pymeth CreateStreamOnHGlobal|Creates an in-memory stream storage object
+	{ "CreateILockBytesOnHGlobal",   pythoncom_CreateILockBytesOnHGlobal, 1 }, // @pymeth CreateILockBytesOnHGlobal|Creates an ILockBytes interface based on global memory
+
 	{ "EnableQuitMessage",   pythoncom_EnableQuitMessage, 1 }, // @pymeth EnableQuitMessage|Indicates the thread PythonCOM should post a WM_QUIT message to.
 	{ "FUNCDESC",            Py_NewFUNCDESC, 1}, // @pymeth FUNCDESC|Returns a new <o FUNCDESC> object.
 #ifndef MS_WINCE
