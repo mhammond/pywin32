@@ -89,6 +89,9 @@ static PFNAssocCreate pfnAssocCreate = NULL;
 typedef LRESULT (WINAPI *PFNSHShellFolderView_Message)(HWND, UINT, LPARAM);
 static PFNSHShellFolderView_Message pfnSHShellFolderView_Message = NULL;
 
+typedef BOOL (WINAPI *PFNIsUserAnAdmin)();
+static PFNIsUserAnAdmin pfnIsUserAnAdmin = NULL;
+
 void PyShell_FreeMem(void *p)
 {
 	if (p!=NULL)
@@ -2263,6 +2266,22 @@ static PyObject *PySHILCreateFromPath(PyObject *self, PyObject *args)
 	return Py_BuildValue("Nk", obpidl, flags);
 }
 
+// @pymethod bool|shell|IsUserAnAdmin|Tests whether the current user is a member of the Administrator's group.
+// @rdesc The result is true or false.
+static PyObject *PyIsUserAnAdmin(PyObject *self, PyObject *args)
+{
+	if(!PyArg_ParseTuple(args, ":IsUserAnAdmin"))
+		return NULL;
+	// @comm This method is only available with version 5 or later of the shell controls
+	if (pfnIsUserAnAdmin==NULL)
+		return OleSetOleError(E_NOTIMPL);
+	PY_INTERFACE_PRECALL;
+	BOOL r = (*pfnIsUserAnAdmin)();
+	PY_INTERFACE_POSTCALL;
+
+	return PyBool_FromLong(r);
+}
+
 
 /* List of module functions */
 // @module shell|A module, encapsulating the ActiveX Control interfaces
@@ -2272,6 +2291,7 @@ static struct PyMethodDef shell_methods[]=
     { "DragQueryFile",    PyDragQueryFile, 1 }, // @pymeth DragQueryFile|Retrieves the file names of dropped files that have resulted from a successful drag-and-drop operation.
     { "DragQueryFileW",   PyDragQueryFileW, 1 }, // @pymeth DragQueryFileW|Retrieves the file names of dropped files that have resulted from a successful drag-and-drop operation.
 	{ "DragQueryPoint",   PyDragQueryPoint, 1}, // @pymeth DragQueryPoint|Retrieves the position of the mouse pointer at the time a file was dropped during a drag-and-drop operation.
+	{ "IsUserAnAdmin", PyIsUserAnAdmin, METH_VARARGS}, // @pymeth IsUserAnAdmin|Tests whether the current user is a member of the Administrator's group.
     { "SHGetPathFromIDList",    PySHGetPathFromIDList, 1 }, // @pymeth SHGetPathFromIDList|Converts an <o PyIDL> to a path.
     { "SHGetPathFromIDListW",   PySHGetPathFromIDListW, 1 }, // @pymeth SHGetPathFromIDListW|Converts an <o PyIDL> to a unicode path.
     { "SHBrowseForFolder",    PySHBrowseForFolder, 1 }, // @pymeth SHBrowseForFolder|Displays a dialog box that enables the user to select a shell folder.
@@ -2401,6 +2421,7 @@ extern "C" __declspec(dllexport) void initshell()
 		pfnSHSetFolderPath=(PFNSHSetFolderPath)GetProcAddress(shell32, (LPCSTR)232);
 		pfnSHILCreateFromPath=(PFNSHILCreateFromPath)GetProcAddress(shell32, "SHILCreateFromPath");
 		pfnSHShellFolderView_Message=(PFNSHShellFolderView_Message)GetProcAddress(shell32, "SHShellFolderView_Message");
+		pfnIsUserAnAdmin=(PFNIsUserAnAdmin)GetProcAddress(shell32, "IsUserAnAdmin");
 	}
 	// SHGetFolderPath comes from shfolder.dll on older systems
 	if (pfnSHGetFolderPath==NULL){
