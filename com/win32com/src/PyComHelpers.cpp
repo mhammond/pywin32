@@ -265,11 +265,7 @@ HRESULT PyCom_MakeRegisteredGatewayObject(REFIID iid, PyObject *instance, PyGate
 			Py_DECREF(keyObject);
 			if ( valueObject )
 			{
-#ifdef PYWIN_NO_PYTHON_LONG_LONG
-				pfnPyGatewayConstructor ctor = (pfnPyGatewayConstructor)PyInt_AsLong(valueObject);
-#else
 				pfnPyGatewayConstructor ctor = (pfnPyGatewayConstructor)PyLong_AsVoidPtr(valueObject);
-#endif
 				// ctor takes reference count to instance.
 				hr = (*ctor)(instance, base, ppv, iid);
 			}
