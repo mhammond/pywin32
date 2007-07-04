@@ -34,24 +34,24 @@ PyObject *PyILockBytes::ReadAt(PyObject *self, PyObject *args)
 		return NULL;
 	// @pyparm <o ULARGE_INTEGER>|ulOffset||Offset to start reading
 	// @pyparm int|cb||Number of bytes to read
-	PyObject *obulOffset;
 	ULONG cb;
-	if ( !PyArg_ParseTuple(args, "Oi:ReadAt", &obulOffset, &cb) )
-		return NULL;
 	ULARGE_INTEGER ulOffset;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyWinObject_AsULARGE_INTEGER(obulOffset, &ulOffset)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
-	char *pv = (char *)malloc(cb);
-	ULONG pcbRead;
-	PY_INTERFACE_PRECALL;
-	HRESULT hr = pILB->ReadAt( ulOffset, pv, cb, &pcbRead );
-	PY_INTERFACE_POSTCALL;
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pILB, IID_ILockBytes);
+	if ( !PyArg_ParseTuple(args, "Kk:ReadAt", &ulOffset.QuadPart, &cb) )
+		return NULL;
 
+	PyObject *pyretval=PyString_FromStringAndSize(NULL, cb);
+	if (pyretval==NULL)
+		return NULL;
+	ULONG cbRead;
+	PY_INTERFACE_PRECALL;
+	HRESULT hr = pILB->ReadAt( ulOffset, PyString_AS_STRING(pyretval), cb, &cbRead );
+	PY_INTERFACE_POSTCALL;
+	if ( FAILED(hr) ){
+		Py_DECREF(pyretval);
+		return PyCom_BuildPyException(hr, pILB, IID_ILockBytes);
+		}
 	// @comm The result is a binary buffer returned in a string.
-	PyObject *pyretval = PyString_FromStringAndSize(pv, pcbRead);
+	_PyString_Resize(&pyretval, cbRead);
 	return pyretval;
 }
 
@@ -248,21 +248,23 @@ STDMETHODIMP PyGLockBytes::ReadAt(
 	HRESULT hr=InvokeViaPolicy("ReadAt", &result, "Oi", obulOffset, cb);
 	Py_XDECREF(obulOffset);
 	if (FAILED(hr)) return hr;
-	// Process the Python results, and convert back to the real params
-	hr = E_FAIL;
-	int len = PyObject_Length(result);
-	if ( len == -1 )
-		return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
-	const char *s = PyString_AsString(result);
-	if ( s == NULL )
-		return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
 
-	memcpy(pv, s, len);
-	if ( pcbRead != NULL )
-		*pcbRead = len;
-	hr = S_OK;
+	// Process the Python results, and convert back to the real params
+	// Length of returned object must fit in buffer !
+	DWORD resultlen;
+	VOID *buf;
+	if (PyWinObject_AsReadBuffer(result, &buf, &resultlen, FALSE)){
+		if (resultlen > cb)
+			PyErr_SetString(PyExc_ValueError,"Returned data longer than requested");
+		else{
+			memcpy(pv, buf, resultlen);
+			if (pcbRead)
+				*pcbRead = resultlen;
+			hr = S_OK;
+			}
+		}
 	Py_DECREF(result);
-	return PyCom_SetCOMErrorFromSimple(hr, GetIID());
+	return MAKE_PYCOM_GATEWAY_FAILURE_CODE("Read");
 }
 
 STDMETHODIMP PyGLockBytes::WriteAt(
