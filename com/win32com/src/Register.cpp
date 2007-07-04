@@ -84,11 +84,9 @@ HRESULT PyCom_RegisterGatewayObject(REFIID iid, pfnPyGatewayConstructor ctor, co
 	if (g_obPyCom_MapServerIIDToGateway==NULL) return E_OUTOFMEMORY;
 	PyObject *keyObject = PyWinObject_FromIID(iid);
 	if (!keyObject) return E_FAIL;
-#ifdef PYWIN_NO_PYTHON_LONG_LONG
-	PyObject *valueObject = PyInt_FromLong((long)ctor);
-#else
+
 	PyObject *valueObject = PyLong_FromVoidPtr((void *)ctor);
-#endif
+
 	if (!valueObject) {
 		Py_DECREF(keyObject);
 		return E_FAIL;
