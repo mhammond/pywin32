@@ -26,6 +26,12 @@
 #include <afxtempl.h> // Bit of an unusual MFC header.
 #include <afxext.h> // Also unusual - needed for CCreateContext.
 
+// For MFC8 (VS2005), we need to nominate the MFC assembly - may as well do
+// it here so its done once for all projects!
+#if _MFC_VER >= 0x0800
+# pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.VC80.MFC' version='8.0.50727.762' processorArchitecture='*'  publicKeyToken='fc8b3b9a1e18e3b' language='*'\"")
+#endif
+
 #define DOINCREF(o) Py_INCREF(o)
 #define DODECREF(o) Py_DECREF(o)
 #define XDODECREF(o) Py_XDECREF(o)
