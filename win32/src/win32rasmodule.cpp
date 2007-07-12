@@ -63,7 +63,7 @@ PyObject *ReturnRasError(char *fnName, long err = 0)
 	if (!bHaveMessage)
 		strcpy(buf,"No error message is available");
 	/* strip trailing cr/lf */
-	int end = strlen(buf)-1;
+	size_t end = strlen(buf)-1;
 	if (end>1 && (buf[end-1]=='\n' || buf[end-1]=='\r'))
 		buf[end-1] = '\0';
 	else
@@ -201,11 +201,11 @@ PyObject *PyRASDIALEXTENSIONS::getattr(PyObject *self, char *name)
 		return PyLong_FromVoidPtr( py->m_ext.hwndParent );
 	// @prop integer|reserved|
 	else if (strcmp(name, "reserved")==0)
-		return PyInt_FromLong(py->m_ext.reserved);
+		return PyWinObject_FromULONG_PTR(py->m_ext.reserved);
 #if (WINVER >= 0x500)
 	// @prop integer|reserved1|
 	else if (strcmp(name, "reserved1")==0)
-		return PyInt_FromLong( py->m_ext.reserved1);
+		return PyWinObject_FromULONG_PTR(py->m_ext.reserved1);
 	// @prop <o RASEAPINFO>|RasEapInfo|
 	else if (strcmp(name, "RasEapInfo")==0) {
 		Py_INCREF(py->m_pyeap);
@@ -299,9 +299,9 @@ BOOL PyObjectToRasDialParams( PyObject *ob, RASDIALPARAMS *p )
 		return FALSE;
 	}
 	char *dest;
-	int size = PyObject_Length(ob);
+	size_t size = PyObject_Length(ob);
 	int dest_size;
-	for (int num=0;num<size;num++) {
+	for (size_t num=0;num<size;num++) {
 		switch (num) {
 #define GET_BUF_AND_SIZE(name) dest=p->name;dest_size=sizeof(p->name)/sizeof(p->name[0])
 		case 0: GET_BUF_AND_SIZE(szEntryName); break;
@@ -355,7 +355,7 @@ VOID CALLBACK PyRasDialFunc1(
 	PyObject *handler = NULL;
 	if (obHandleMap) {
 		// NOTE:  As we hold the thread lock, assume noone else can mod this dict.
-		PyObject *key = PyInt_FromLong((long)hrasconn);
+		PyObject *key = PyWinLong_FromVoidPtr(hrasconn);
 		if (key==NULL) return;
 		handler = PyDict_GetItem( obHandleMap, key );
 		// If handler is NULL, check if None is in the map, and if so,
@@ -396,16 +396,19 @@ VOID CALLBACK PyRasDialFunc1(
 static PyObject *
 PyRasCreatePhonebookEntry( PyObject *self, PyObject *args )
 {
-	int hwnd;
 	DWORD rc;
 	LPTSTR fileName = NULL;
-	if (!PyArg_ParseTuple(args, "i|s:CreatePhoneBookEntry", 
-	          &hwnd,  // @pyparm int|hWnd||Handle to the parent window of the dialog box.
+	PyObject *obhwnd;
+	if (!PyArg_ParseTuple(args, "O|s:CreatePhoneBookEntry", 
+	          &obhwnd,  // @pyparm int|hWnd||Handle to the parent window of the dialog box.
 	          &fileName )) // @pyparm string|fileName|None|Specifies the filename of the phonebook entry.  Currently this is ignored.
 		return NULL;
-	if (hwnd != 0 && !IsWindow((HWND)hwnd))
+	HWND hwnd;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
+		return NULL;
+	if (hwnd != 0 && !IsWindow(hwnd))
 		return ReturnError("The first parameter must be a valid window handle", "<CreatePhonebookEntry param conversion>");
-	if ((rc=RasCreatePhonebookEntry((HWND)hwnd, fileName )))
+	if ((rc=RasCreatePhonebookEntry(hwnd, fileName )))
 		return ReturnRasError("RasCreatePhonebookEntry",rc);	// @pyseeapi RasCreatePhonebookEntry
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -444,7 +447,8 @@ PyRasDial( PyObject *self, PyObject *args )
 		pNotification = PyRasDialFunc1;
 		notType = 1;
 	} else if (PyInt_Check(obCallback)) {
-		pNotification = (LPVOID)PyInt_AsLong(obCallback);
+		if (!PyWinLong_AsVoidPtr(obCallback, &pNotification))
+			return NULL;
 		notType = 0xFFFFFFFF;
 	} else
 		return ReturnError("The callback object must be an integer handle, None, or a callable object", "<Dial param parsing>");
@@ -485,19 +489,22 @@ PyRasDial( PyObject *self, PyObject *args )
 static PyObject *
 PyRasEditPhonebookEntry( PyObject *self, PyObject *args )
 {
-	int hwnd;
 	DWORD rc;
 	LPTSTR fileName;
 	LPTSTR entryName;
-	if (!PyArg_ParseTuple(args, "izs:EditPhoneBookEntry", 
-	          &hwnd,  // @pyparm int|hWnd||Handle to the parent window of the dialog box.
+	PyObject *obhwnd;
+	if (!PyArg_ParseTuple(args, "Ozs:EditPhoneBookEntry", 
+	          &obhwnd,  // @pyparm int|hWnd||Handle to the parent window of the dialog box.
 	          &fileName, // @pyparm string|fileName||Specifies the filename of the phonebook entry, or None.  Currently this is ignored.
 	          &entryName )) // @pyparm string|entryName|None|Specifies the name of the phonebook entry to edit
 		return NULL;
-	if (hwnd != 0 && !IsWindow((HWND)hwnd))
+	HWND hwnd;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
+		return NULL;
+	if (hwnd != 0 && !IsWindow(hwnd))
 		return ReturnError("The first parameter must be a valid window handle", "<EditPhonebookEntry param parsing>");
 	Py_BEGIN_ALLOW_THREADS
-	rc=RasEditPhonebookEntry((HWND)hwnd, fileName, entryName );
+	rc=RasEditPhonebookEntry(hwnd, fileName, entryName );
 	Py_END_ALLOW_THREADS
 	if (rc)
 		return ReturnRasError("RasEditPhonebookEntry",rc);	// @pyseeapi RasEditPhonebookEntry
@@ -604,10 +611,13 @@ PyRasEnumEntries( PyObject *self, PyObject *args )
 static PyObject *
 PyRasGetConnectStatus( PyObject *self, PyObject *args )
 {
-	HRASCONN hras;
 	DWORD rc;
-	if (!PyArg_ParseTuple(args, "i:GetConnectStatus", 
-	          &hras ))  // @pyparm int|hrasconn||Handle to the RAS session.
+	PyObject *obras;
+	if (!PyArg_ParseTuple(args, "O:GetConnectStatus", 
+	          &obras ))  // @pyparm int|hrasconn||Handle to the RAS session.
+		return NULL;
+	HRASCONN hras;
+	if (!PyWinObject_AsHANDLE(obras, (HANDLE *)&hras))
 		return NULL;
 	RASCONNSTATUS cs;
 	// @pyseeapi RasGetConnectStatus
