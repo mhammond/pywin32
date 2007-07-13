@@ -798,5 +798,13 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsSYSTEMTIME(PyObject *ob, SYSTEMTIME *st)
 	return TRUE;
 }
 
-
 #endif // NO_PYWINTYPES_TIME
+
+PYWINTYPES_EXPORT BOOL PyWinObject_Astime_t(PyObject *ob, time_t *t)
+{
+	// We need to get smarter about 64bit time_t values...
+	*t = (time_t)PyInt_AsLong(ob);
+	if (*t == -1 && PyErr_Occurred())
+		return FALSE;
+	return TRUE;
+}

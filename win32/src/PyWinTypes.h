@@ -163,7 +163,11 @@ PYWINTYPES_EXPORT void PyWinObject_FreeWCHAR(WCHAR *pResult);
 // As of Python 2.6, Python switched to 'wchar_t' for unicode.  Some old
 // win32 structures that still use 'unsigned short' now fail from C++ with
 // VS8 so we provide a couple of helpers.
-#if _MSC_VER >= 1400
+// XXX - but, when trying to use VC2003 with x64, the SDK x64 compiler
+// reports itself as 14.00.40310.41 - so this breaks under that compiler
+// Its not clear how to resolve this, but while VS2003 is the default
+// compiler, that is what must work.
+#if 0 and _MSC_VER >= 1400
 inline BOOL PyWinObject_AsWCHAR(PyObject *stringObject, unsigned short **pResult, BOOL bNoneOK = FALSE, DWORD *pResultLen = NULL)
 {
     return PyWinObject_AsWCHAR(stringObject, (WCHAR **)pResult, bNoneOK, pResultLen);
@@ -380,6 +384,9 @@ PYWINTYPES_EXPORT PyObject *PyWinTimeObject_FromLong(long t);
 PYWINTYPES_EXPORT PyObject *PyWinMethod_NewTime( PyObject *self, PyObject *args);
 
 #endif // NO_PYWINTYPES_TIME
+
+// Convert a time object to a time_t value.
+PYWINTYPES_EXPORT BOOL PyWinObject_Astime_t(PyObject *ob, time_t *t);
 
 // functions to return WIN32_FIND_DATA tuples, used in shell, win32api, and win32file
 PYWINTYPES_EXPORT PyObject *PyObject_FromWIN32_FIND_DATAA(WIN32_FIND_DATAA *pData);
