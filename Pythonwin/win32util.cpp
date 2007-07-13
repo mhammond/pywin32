@@ -415,7 +415,10 @@ BOOL ParseLV_ITEMTuple( PyObject *args, LV_ITEM *pItem)
 	if ((ob=PyTuple_GetItem(args, 4))==NULL)
 		return FALSE;
 	if (ob != Py_None) {
-		if (!PyString_Check(ob)) RETURN_TYPE_ERR("The text item must be a string or None");
+		if (!PyString_Check(ob)) {
+			PyErr_Format(PyExc_TypeError, "The text item must be a string or None (got %s)", ob->ob_type->tp_name);
+			return FALSE;
+		}
 		pItem->mask |= LVIF_TEXT;
 		pItem->pszText = PyString_AsString(ob);
 		pItem->cchTextMax = PyWin_SAFE_DOWNCAST(strlen(pItem->pszText)+1, ssize_t, int);
@@ -512,7 +515,10 @@ BOOL ParseLV_COLUMNTuple( PyObject *args, LV_COLUMN *pItem)
 	if ((ob=PyTuple_GetItem(args, 2))==NULL)
 		return FALSE;
 	if (ob != Py_None) {
-		if (!PyString_Check(ob)) RETURN_TYPE_ERR("The text item must be a string or None");
+		if (!PyString_Check(ob)) {
+			PyErr_Format(PyExc_TypeError, "The text item must be a string or None (got %s)", ob->ob_type->tp_name);
+			return FALSE;
+		}
 		pItem->mask |= LVCF_TEXT;
 		pItem->pszText = PyString_AsString(ob);
 		pItem->cchTextMax = PyWin_SAFE_DOWNCAST(strlen(pItem->pszText)+1, ssize_t, int);
@@ -643,7 +649,10 @@ BOOL ParseTV_ITEMTuple( PyObject *args, TV_ITEM *pItem)
 		return FALSE;
 	if (ob != Py_None) {
 		// @tupleitem 3|string|text|Item text
-		if (!PyString_Check(ob)) RETURN_TYPE_ERR("The text item must be a string or None");
+		if (!PyString_Check(ob)) {
+			PyErr_Format(PyExc_TypeError, "The text item must be a string or None (got %s)", ob->ob_type->tp_name);
+			return FALSE;
+		}
 		pItem->mask |= TVIF_TEXT;
 		pItem->pszText = PyString_AsString(ob);
 		pItem->cchTextMax = PyWin_SAFE_DOWNCAST(strlen(pItem->pszText)+1, ssize_t, int);
@@ -785,7 +794,10 @@ BOOL ParseHD_ITEMTuple( PyObject *args, HD_ITEM *pItem)
 		return FALSE;
 	if (ob !=Py_None) {
 		// @pyparm string|pszText||Item text
-		if (!PyString_Check(ob)) RETURN_TYPE_ERR("The text item must be a string or None");
+		if (!PyString_Check(ob)) {
+			PyErr_Format(PyExc_TypeError, "The text item must be a string or None (got %s)", ob->ob_type->tp_name);
+			return FALSE;
+		}
 		pItem->pszText = PyString_AsString(ob);
 		if (PyErr_Occurred()) return FALSE;
 		pItem->cchTextMax = PyWin_SAFE_DOWNCAST(strlen(pItem->pszText)+1, ssize_t, int);
@@ -844,8 +856,10 @@ BOOL ParseCharFormatTuple( PyObject *args, CHARFORMAT *pFmt)
 	if (len>7) {
 		PyObject *obFont = PyTuple_GET_ITEM(args, 7);
 		if (obFont != Py_None) {
-			if (!PyString_Check(obFont))
-				RETURN_TYPE_ERR("Font name must be None or a string");
+			if (!PyString_Check(obFont)) {
+				PyErr_Format(PyExc_TypeError, "Font name must be None or a string (got %s)", obFont->ob_type->tp_name);
+				return FALSE;
+			}
 			strncpy(pFmt->szFaceName, PyString_AsString(obFont), sizeof(pFmt->szFaceName));
 		}
 	}
