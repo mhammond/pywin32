@@ -46,12 +46,52 @@ flag to the build command - eg:
 or to build and install a debug version:
   python setup.py -q build --debug install
 
-To build 64bit versions of this, you must manually setup your compiler and SDK environment
-variables, then set the environment variables 'DISTUTILS_USE_SDK' and 'MSSdk' to any value
-before running setup.  This will prevent distutils trying to sniff out the correct directories, which
-it generally fails to do these days...
+To build 64bit versions of this:
+
+* Using VS2003 - these instructions are for cross-compiling on a 32bit
+  environment.  You must install the platform SDK with 64bit versions of
+  the tools, then setup your environment with a command similar to:
+  
+    {sdk_dir}\SetEnv.Cmd /X64 /RETAIL
+
+  then:
+
+    set DISTUTILS_USE_SDK=1
+
+  Next, point at the directx SDK - eg:
+
+    set INCLUDE=%INCLUDE%;C:\Program Files\Microsoft DirectX SDK (December 2006)\Include
+    set LIB=%LIB%;C:\Program Files\Microsoft DirectX SDK (December 2006)\Lib\x64
+
+  Now it starts getting wierd - we need to execute python.exe (32bit) to
+  do the disutils build, but this build needs to find 64bit version of
+  python.lib etc.  The work-around for this is:
+  
+  * Extract a new Python source tree into a new directory
+  * Build this tree using the 64bit instructions.
+  * Set PYTHONHOME=c:\path_to_64bit_python
+  * Execute: c:\path_to_32bit_python\python.exe setup.py build
+  * un-set PYTHONHOME (set PYTHONHOME=)
+  * Execute: c:\path_to_32bit_python\python.exe setup.py bdist_msi
+
+  (Note that these instructions will have clobbered your 32bit build of
+  Python - not the install, just the copy in the 'build' directory.  Its
+  probably a good idea to clobber the build directory when switching
+  platforms so things don't get confused)
+
+
+* Using VS2005 natively in a 64bit environment: you must manually setup your
+  compiler and SDK environment variables, then set the environment variables
+  'DISTUTILS_USE_SDK' and 'MSSdk' to any value before running setup. This
+  will prevent distutils trying to sniff out the correct directories, which
+  it generally fails to do these days...
+  
 """
 # Originally by Thomas Heller, started in 2000 or so.
+import os, string, sys
+import types, glob
+import re
+import _winreg
 
 from distutils.core import setup, Extension, Command
 from distutils.command.install_lib import install_lib
@@ -63,20 +103,26 @@ from distutils import dir_util, file_util
 from distutils.sysconfig import get_python_lib
 from distutils.filelist import FileList
 from distutils.errors import DistutilsExecError
-try:
-    from distutils.msvccompiler import get_build_architecture
-except ImportError:
-    def get_build_architecture():
-        return "Intel"
+
+# when cross-compiling on a 32bit platform, the variable CPU reflects
+# the *target*.  Distutil's get_build_architecture() still reports 'Intel'
+# in this environment - so we trust the CPU variable.
+def get_build_architecture():
+    try:
+        return os.environ["CPU"]
+    except KeyError:
+        # not set - trust distutils
+        try:
+            from distutils.msvccompiler import get_build_architecture as gba
+        except ImportError:
+            # ack - early Python
+            return "Intel"
+        return gba()
 
 ARCHITECTURES_64 = ("Itanium", "AMD64")
+
 is_64bit = get_build_architecture() in ARCHITECTURES_64
 is_32bit = not is_64bit
-
-import types, glob
-import os, string, sys
-import re
-import _winreg
 
 build_id_patch = build_id
 if not "." in build_id_patch:
@@ -233,6 +279,11 @@ class WinExt (Extension):
         include_dirs = ['com/win32com/src/include',
                         'win32/src'] + include_dirs
         libraries=libraries.split()
+        # VC2003 on x64 requires this library be explicitly linked...
+        if is_64bit and msvccompiler.get_build_version() < 8.0:
+            libraries.append('bufferoverflowU')
+
+        extra_compile_args = (extra_compile_args or [])[:] # take copy
 
         if export_symbol_file:
             export_symbols = export_symbols or []
@@ -244,6 +295,9 @@ class WinExt (Extension):
         extra_link_args = extra_link_args or []
         if is_64bit:
             extra_link_args.append("/MACHINE:%s" % get_build_architecture())
+            # pyconfig.h checks for _M_X64, but it seems the SDK cross-compiler
+            # doesn't define it (no such problems with VS2005)
+            extra_compile_args.append('/D_M_X64')
         else:
             extra_link_args.append("/MACHINE:ix86")
         # Some of our swigged files behave differently in distutils vs
@@ -413,7 +467,11 @@ class my_build_ext(build_ext):
         # (Note that just having them in INCLUDE/LIB does *not* work -
         # distutils thinks it knows better, and resets those vars.
         # Note: sdk_dir is a global.
-        if sdk_dir:
+        if 'DISTUTILS_USE_SDK' in os.environ:
+            # theoretically, this means the environment is already setup
+            # appropriately - so there is no need to go sniffing!
+            pass
+        elif sdk_dir:
             extra = os.path.join(sdk_dir, 'include')
             if extra not in self.include_dirs and os.path.isdir(extra):
                 self.include_dirs.insert(0, extra)
@@ -530,6 +588,8 @@ class my_build_ext(build_ext):
             assert os.path.isdir(build_temp), build_temp
         makeargs.append("SUB_DIR_O=%s" % build_temp)
         makeargs.append("SUB_DIR_BIN=%s" % build_temp)
+        if is_64bit and msvccompiler.get_build_version() < 8.0:
+            makeargs.append("LINK=bufferoverflowU.lib")
 
         cwd = os.getcwd()
         os.chdir(path)
@@ -727,15 +787,18 @@ class my_build_ext(build_ext):
             return
         self.current_extension = ext
 
-        if not self.mingw32 and ext.pch_header:
-            ext.extra_compile_args = ext.extra_compile_args or []
-            if is_32bit:
-                ext.extra_compile_args.append("/YX"+ext.pch_header)
-            # if we are a verbose build, allow 64bit warnings
-            if self.distribution.verbose:
+        if not self.mingw32:
+            if ext.pch_header:
+                ext.extra_compile_args = ext.extra_compile_args or []
+                if is_32bit:
+                    ext.extra_compile_args.append("/YX"+ext.pch_header)
+                pch_name = os.path.join(self.build_temp, ext.name) + ".pch"
+                ext.extra_compile_args.append("/Fp"+pch_name)
+
+            # if we are a verbose build, allow 64bit warnings (but not
+            # when using VC6 - it doesn't understand that option.
+            if self.distribution.verbose and sys.version_info > (2,4):
                 ext.extra_compile_args.append("/Wp64")
-            pch_name = os.path.join(self.build_temp, ext.name) + ".pch"
-            ext.extra_compile_args.append("/Fp"+pch_name)
 
         # some source files are compiled for different extensions
         # with special defines. So we cannot use a shared
@@ -770,6 +833,22 @@ class my_build_ext(build_ext):
             # enable unwind semantics - some stuff needs it and I can't see 
             # it hurting
             ext.extra_compile_args.append("/EHsc")
+
+        # Try and find the MFC source code, so we can reach inside for
+        # some of the ActiveX support we need.  We need to do this late, so
+        # the environment is setup correctly.
+        # Only used by the win32uiole extensions, but we pass it to all
+        # extensions just to make our life easier
+        found_mfc = False
+        for incl in os.environ.get("INCLUDE", "").split(os.pathsep):
+            # first is a "standard" MSVC install, second is the Vista SDK.
+            for candidate in ("..\src\occimpl.h", "..\..\src\mfc\occimpl.h"):
+                check = os.path.join(incl, candidate)
+                if os.path.isfile(check):
+                    ext.extra_compile_args.append('/DMFC_OCC_IMPL_H=\\"%s\\"' % candidate)
+                    break
+            if found_mfc:
+                break
 
         self.swig_cpp = True
         try:
@@ -1446,6 +1525,10 @@ def convert_data_files(files):
             flist.exclude_pattern(re.compile(".*\\\\CVS\\\\"), is_regex=1)
             flist.exclude_pattern("*.pyc")
             flist.exclude_pattern("*.pyo")
+            # files with a leading dot upset bdist_msi, and '.*' doesn't
+            # work - it matches from the start of the string and we have
+            # dir names.  So any '\.' gets the boot.
+            flist.exclude_pattern(re.compile(".*\\\\\."), is_regex=1)
             if not flist.files:
                 raise RuntimeError, "No files match '%s'" % file
             files_use = flist.files
@@ -1562,6 +1645,9 @@ dist = setup(name="pywin32",
                     {"install_script": "pywin32_postinstall.py",
                      "pre_install_script": "pywin32_preinstall.py",
                      "title": "pywin32-%s" % (build_id,),
+                    },
+                 "bdist_msi":
+                    {"install_script": "pywin32_postinstall.py",
                     },
                 },
 
