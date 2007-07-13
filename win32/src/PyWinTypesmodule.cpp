@@ -544,6 +544,7 @@ Accordingly, here is our own version.
 */
 BOOL PyWinLong_AsVoidPtr(PyObject *ob, void **pptr)
 {
+	assert(!PyErr_Occurred()); // lingering exception?
 #ifdef _WIN64
 	*pptr=(void *)PyLong_AsLongLong(ob);
 #else
@@ -614,14 +615,17 @@ void PyWinObject_FreeResourceId(WCHAR *resource_id)
 
 
 // Conversion for WPARAM and LPARAM
-/* ??? WPARAM is defined as UINT_PTR, and LPARAM is defined as LONG_PTR.
-	Make separate functions to avoid cast ??? */
+// (WPARAM is defined as UINT_PTR, and LPARAM is defined as LONG_PTR - see
+// pywintypes.h for inline functions to resolve this)
 BOOL PyWinObject_AsPARAM(PyObject *ob, WPARAM *pparam)
 {
+	assert(!PyErr_Occurred()); // lingering exception?
 	if (ob==NULL || ob==Py_None){
 		*pparam=NULL;
 		return TRUE;
 		}
+// XXX - why this UNICODE block?  Can't we just do both anyway?  Maybe
+// just via the buffer interface?
 #ifdef UNICODE
 #define TCHAR_DESC "Unicode"
 	if (PyUnicode_Check(ob)){
@@ -629,20 +633,23 @@ BOOL PyWinObject_AsPARAM(PyObject *ob, WPARAM *pparam)
 		return TRUE;
 		}
 #else
-#define TCHAR_DESC "String"	
+#define TCHAR_DESC "String"
 	if (PyString_Check(ob)){
 		*pparam = (WPARAM)PyString_AS_STRING(ob);
 		return TRUE;
 		}
 #endif
-	if (PyWinLong_AsVoidPtr(ob, (void **)pparam))
-		return TRUE;
-
-	PyErr_Clear();
 	PyBufferProcs *pb = ob->ob_type->tp_as_buffer;
 	if (pb != NULL && pb->bf_getreadbuffer)
 		return pb->bf_getreadbuffer(ob,0,(VOID **)pparam)!=-1;
-	PyErr_SetString(PyExc_TypeError, "WPARAM must be a " TCHAR_DESC ", int, or buffer object");
+
+	if (PyWinLong_AsVoidPtr(ob, (void **)pparam))
+		return TRUE;
+
+	if (!PyErr_Occurred())
+		PyErr_Format(PyExc_TypeError,
+		             "WPARAM must be a " TCHAR_DESC ", int, or buffer object (got %s)",
+		             ob->ob_type->tp_name);
 	return FALSE;
 }
 
