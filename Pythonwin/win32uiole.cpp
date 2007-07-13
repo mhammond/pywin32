@@ -21,7 +21,10 @@
 // (and this source must be in "../src" relative to the MFC 
 // includes, which it is by default)
 #else
-#include "..\src\occimpl.h"
+#ifndef MFC_OCC_IMPL_H
+# error(MFC_OCC_IMPL_H must be set to the location of the MFC source code)
+#endif
+#include MFC_OCC_IMPL_H
 #endif /* _MFC_VER */
 
 extern PyObject *PyCOleClientItem_Create(PyObject *self, PyObject *args);
