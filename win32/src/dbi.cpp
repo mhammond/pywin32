@@ -11,8 +11,7 @@
 
 #include <time.h>
 
-#include "Python.h"
-#include "intobject.h"
+#include "pywintypes.h"
 
 /* Python 1.5.2 doesn't have PyObject_New
    PyObject_NEW is not *quite* as safe, but seem to work fine
@@ -25,9 +24,9 @@
 
 #include "dbi.h"
 
-#ifdef _WIN64
-# define ctime _ctime32
-#endif
+//#ifdef _WIN64
+//# define ctime _ctime32
+//#endif
 
 typedef struct
 {
@@ -94,8 +93,10 @@ static PyObject *dbiRawStr(PyObject *self)
 
 static PyObject *dateStr(PyObject *o)
 {
-	long l = PyInt_AsLong(dbiValue(o));
-	return PyString_FromStringAndSize(ctime(&l), 24); /* less \n */
+	time_t t;
+	if (!PyWinObject_Astime_t(dbiValue(o), &t))
+		return NULL;
+	return PyString_FromStringAndSize(ctime(&t), 24); /* less \n */
 }
 
 #define delg(a) dbiValue(a)->ob_type->tp_as_number
