@@ -2195,6 +2195,7 @@ ui_window_send_message(PyObject *self, PyObject *args)
 	CWnd *pWnd = GetWndPtrGoodHWnd(self);
 	if (!pWnd)
 		return NULL;
+	assert(!PyErr_Occurred()); // lingering exception?
 	int message;
 	WPARAM wp = 0;
 	LPARAM lp = 0;
