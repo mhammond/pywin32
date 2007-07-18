@@ -384,11 +384,46 @@ static PyObject *PyWTSQuerySessionInformation(PyObject *self, PyObject *args, Py
 		case WTSConnectState:			// @flag WTSConnectState|Int, from WTS_CONNECTSTATE_CLASS
 			ret=PyInt_FromLong(*(INT *)buf);
 			break;
+		case WTSClientDisplay:{			// @flag WTSClientDisplay|Dict containing client's display settings
+			WTS_CLIENT_DISPLAY *wcd=(WTS_CLIENT_DISPLAY *)buf;
+			ret=Py_BuildValue("{s:k, s:k, s:k}",
+				"HorizontalResolution", wcd->HorizontalResolution,
+				"VerticalResolution",	wcd->VerticalResolution,
+				"ColorDepth",			wcd->ColorDepth);
+			break;
+			}
+		case WTSClientAddress:{			// @flag WTSClientAddress|Dict containing type and value of client's IP address (None if console session)
+			PyObject *obaddress;
+			size_t address_cnt, address_ind;
+			WTS_CLIENT_ADDRESS *wca=(WTS_CLIENT_ADDRESS *)buf;
+			// ??? According to MSDN, buffer may be NULL for console session. (but I don't see it in practice) ???
+			if (wca==NULL){
+				Py_INCREF(Py_None);
+				ret=Py_None;
+				break;
+				}
+			address_cnt=ARRAYSIZE(wca->Address);
+			obaddress=PyTuple_New(address_cnt);
+			if (obaddress!=NULL)
+				for (address_ind=0; address_ind < address_cnt; address_ind++){
+					PyObject *obaddress_element=PyInt_FromLong(wca->Address[address_ind]);
+					if (obaddress_element==NULL){
+						Py_DECREF(obaddress);
+						obaddress=NULL;
+						break;
+						}
+					PyTuple_SET_ITEM(obaddress, address_ind, obaddress_element);
+					}
+			if (obaddress!=NULL)
+				ret=Py_BuildValue("{s:k, s:N}",
+					"AddressFamily", wca->AddressFamily,
+					"Address", obaddress);
+			break;
+			}
 		default:
 			PyErr_Format(PyExc_NotImplementedError, "InfoClass %d not yet supported", WTSInfoClass);
-		}
-		// WTSClientAddress WTS_CLIENT_ADDRESS. 
-		// WTSClientDisplay WTS_CLIENT_DISPLAY
+		} 
+		
 	cleanup:
 	if (buf)
 		WTSFreeMemory(buf);
