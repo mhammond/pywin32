@@ -1427,7 +1427,8 @@ static PyObject *PySHChangeNotify(PyObject *self, PyObject *args)
 	BOOL bsuccess=TRUE;
 	switch (datatype){
 		case SHCNF_IDLIST:
-			bsuccess=PyObject_AsPIDL(ob1, (ITEMIDLIST **)&p1, FALSE) 
+			// SHCNE_ASSOCCHANGED wants both to be NULL!
+			bsuccess=PyObject_AsPIDL(ob1, (ITEMIDLIST **)&p1, TRUE) 
 				  && PyObject_AsPIDL(ob2, (ITEMIDLIST **)&p2, TRUE);
 			break;
 		case SHCNF_DWORD:
