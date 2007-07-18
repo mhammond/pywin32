@@ -1,4 +1,4 @@
-build_id="210.1" # may optionally include a ".{patchno}" suffix.
+build_id="210.5" # may optionally include a ".{patchno}" suffix.
 # Putting buildno at the top prevents automatic __doc__ assignment, and
 # I *want* the build number at the top :)
 __doc__="""This is a distutils setup-script for the pywin32 extensions
@@ -93,16 +93,12 @@ import types, glob
 import re
 import _winreg
 
-from distutils.core import setup, Extension, Command
-from distutils.command.install_lib import install_lib
-from distutils.command.build_ext import build_ext
-from distutils.command.build import build
-from distutils.command.install_data import install_data
-from distutils.dep_util import newer_group, newer
-from distutils import dir_util, file_util
-from distutils.sysconfig import get_python_lib
-from distutils.filelist import FileList
-from distutils.errors import DistutilsExecError
+# Python version compatibility hacks
+try:
+    True; False
+except NameError:
+    True=0==0
+    False=1==0
 
 # when cross-compiling on a 32bit platform, the variable CPU reflects
 # the *target*.  Distutil's get_build_architecture() still reports 'Intel'
@@ -124,6 +120,41 @@ ARCHITECTURES_64 = ("Itanium", "AMD64")
 is_64bit = get_build_architecture() in ARCHITECTURES_64
 is_32bit = not is_64bit
 
+# More x64 hacks - all 64bit windows builds have sys.platform=='win32', and
+# this is used for the "platform" part of the file and directory names.
+# (eg, pywin32-210.1.win32-py2.5.msi) - but this is bad for us - we do
+# want a distinction.
+# so we monkey-patch distutils :(  We must do this before the main distutils
+# imports, which generall does 'from distutils.util import get_platform'
+def hacked_get_platform():
+    """getplaform monkey-patched by pywin32 setup"""
+    if is_32bit:
+        return sys.platform
+    else:
+        return get_build_architecture().lower()
+
+import distutils.util
+distutils.util.get_platform = hacked_get_platform
+
+# The rest of our imports.
+from distutils.core import setup, Extension, Command
+from distutils.command.install import install
+from distutils.command.install_lib import install_lib
+from distutils.command.build_ext import build_ext
+from distutils.command.build import build
+from distutils.command.install_data import install_data
+try:
+    from distutils.command.bdist_msi import bdist_msi
+except ImportError:
+    # py23 and earlier
+    bdist_msi = None
+from distutils.dep_util import newer_group, newer
+from distutils import dir_util, file_util
+from distutils.sysconfig import get_python_lib
+from distutils.filelist import FileList
+from distutils.errors import DistutilsExecError
+import distutils.util
+
 build_id_patch = build_id
 if not "." in build_id_patch:
     build_id_patch = build_id_patch + ".0"
@@ -131,12 +162,6 @@ pywin32_version="%d.%d.%s" % (sys.version_info[0], sys.version_info[1],
                               build_id_patch)
 print "Building pywin32", pywin32_version
 
-# Python 2.2 has no True/False
-try:
-    True; False
-except NameError:
-    True=0==0
-    False=1==0
 # nor distutils.log
 try:
     from distutils import log
@@ -1006,6 +1031,37 @@ class my_build_ext(build_ext):
 
         return new_sources
 
+class my_install(install):
+    def run(self):
+        install.run(self)
+        # Custom script we run at the end of installing - this is the same script
+        # run by bdist_wininst
+        # This child process won't be able to install the system DLLs until our
+        # process has terminated (as distutils imports win32api!), so we must use
+        # some 'no wait' executor - spawn seems fine!  We pass the PID of this
+        # process so the child will wait for us.
+        # XXX - hmm - a closer look at distutils shows it only uses win32api
+        # if _winreg fails - and this never should.  Need to revisit this!
+        if not self.dry_run and not self.skip_build:
+            # What executable to use?  This one I guess.
+            filename = os.path.join(os.path.dirname(this_file), "pywin32_postinstall.py")
+            if not os.path.isfile(filename):
+                raise RuntimeError, "Can't find '%s'" % (filename,)
+            print "Executing post install script..."
+            os.spawnl(os.P_NOWAIT, sys.executable,
+                      sys.executable, filename,
+                      "-quiet", "-wait", str(os.getpid()), "-install")
+
+if bdist_msi:
+    class my_bdist_msi(bdist_msi):
+        def get_installer_filename(self, fullname):
+            # base class hard-codes 'win32'
+            plat = distutils.util.get_platform()
+            installer_name = os.path.join(self.dist_dir,
+                                          "%s.%s-py%s.msi" %
+                                           (fullname, plat, self.target_version))
+            return installer_name
+
 # As per get_source_files, we need special handling so .mc file is
 # processed first.  It appears there was an intention to fix distutils
 # itself, but as at 2.4 that hasn't happened.  We need yet more vile
@@ -1625,6 +1681,14 @@ for name in names:
     dll_base_addresses[name] = dll_base_address
     dll_base_address += 0x30000
 
+cmdclass = { 'install': my_install,
+             'build': my_build,
+             'build_ext': my_build_ext,
+             'install_data': my_install_data,
+           }
+if bdist_msi:
+    cmdclass['bdist_msi'] = my_bdist_msi
+    
 dist = setup(name="pywin32",
       version=str(build_id),
       description="Python for Window Extensions",
@@ -1636,11 +1700,7 @@ dist = setup(name="pywin32",
       author_email = "mhammond@users.sourceforge.net",
       url="http://sourceforge.net/projects/pywin32/",
       license="PSA",
-      cmdclass = { #'install_lib': my_install_lib,
-                   'build': my_build,
-                   'build_ext': my_build_ext,
-                   'install_data': my_install_data,
-                   },
+      cmdclass = cmdclass,
       options = {"bdist_wininst":
                     {"install_script": "pywin32_postinstall.py",
                      "pre_install_script": "pywin32_preinstall.py",
@@ -1731,23 +1791,3 @@ if dist.command_obj.has_key('build_ext'):
             print "please execute this script with no arguments (or see the docstring)"
         else:
             print "All extension modules %s OK" % (what_string,)
-
-# Custom script we run at the end of installing - this is the same script
-# run by bdist_wininst, but the standard 'install' command doesn't seem
-# to have such a concept.
-# This child process won't be able to install the system DLLs until our
-# process has terminated (as distutils imports win32api!), so we must use
-# some 'no wait' executor - spawn seems fine!  We pass the PID of this
-# process so the child will wait for us.
-# XXX - hmm - a closer look at distutils shows it only uses win32api
-# if _winreg fails - and this never should.  Need to revisit this!
-if not dist.dry_run and dist.command_obj.has_key('install') \
-       and not dist.command_obj.has_key('bdist_wininst'):
-    # What executable to use?  This one I guess.
-    filename = os.path.join(os.path.dirname(this_file), "pywin32_postinstall.py")
-    if not os.path.isfile(filename):
-        raise RuntimeError, "Can't find '%s'" % (filename,)
-    print "Executing post install script..."
-    os.spawnl(os.P_NOWAIT, sys.executable,
-              sys.executable, filename,
-              "-quiet", "-wait", str(os.getpid()), "-install")
