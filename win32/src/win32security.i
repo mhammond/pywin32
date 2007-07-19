@@ -648,15 +648,66 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 	ADD_UNICODE_CONSTANT(SE_DENY_REMOTE_INTERACTIVE_LOGON_NAME);
 	ADD_UNICODE_CONSTANT(SE_IMPERSONATE_NAME);
 	ADD_UNICODE_CONSTANT(SE_CREATE_GLOBAL_NAME);
-	/*
+	// Requires Vista SDK
+	#ifdef _WIN32_WINNT_LONGHORN
 	ADD_UNICODE_CONSTANT(SE_TRUSTED_CREDMAN_ACCESS_NAME);
 	ADD_UNICODE_CONSTANT(SE_RELABEL_NAME);
 	ADD_UNICODE_CONSTANT(SE_INC_WORKING_SET_NAME);
 	ADD_UNICODE_CONSTANT(SE_TIME_ZONE_NAME);
 	ADD_UNICODE_CONSTANT(SE_CREATE_SYMBOLIC_LINK_NAME);
-	*/
+	#endif
+
 	PyDict_SetItemString(d,"MSV1_0_PACKAGE_NAME",PyString_FromString(MSV1_0_PACKAGE_NAME));
 	PyDict_SetItemString(d,"MICROSOFT_KERBEROS_NAME_A",PyString_FromString(MICROSOFT_KERBEROS_NAME_A));
+
+	// TOKEN_INFORMATION_CLASS, used with Get/SetTokenInformation
+	PyModule_AddIntConstant(m,"TokenUser", TokenUser);
+	PyModule_AddIntConstant(m,"TokenGroups", TokenGroups);
+	PyModule_AddIntConstant(m,"TokenPrivileges", TokenPrivileges);
+	PyModule_AddIntConstant(m,"TokenOwner", TokenOwner);
+	PyModule_AddIntConstant(m,"TokenPrimaryGroup", TokenPrimaryGroup);
+	PyModule_AddIntConstant(m,"TokenDefaultDacl", TokenDefaultDacl);
+	PyModule_AddIntConstant(m,"TokenSource", TokenSource);
+	PyModule_AddIntConstant(m,"TokenType", TokenType);
+	PyModule_AddIntConstant(m,"TokenImpersonationLevel", TokenImpersonationLevel);
+	PyModule_AddIntConstant(m,"TokenStatistics", TokenStatistics);
+	PyModule_AddIntConstant(m,"TokenRestrictedSids", TokenRestrictedSids);
+	PyModule_AddIntConstant(m,"TokenSessionId", TokenSessionId);
+	PyModule_AddIntConstant(m,"TokenGroupsAndPrivileges", TokenGroupsAndPrivileges);
+	PyModule_AddIntConstant(m,"TokenSessionReference", TokenSessionReference);
+	PyModule_AddIntConstant(m,"TokenSandBoxInert", TokenSandBoxInert);
+	PyModule_AddIntConstant(m,"TokenAuditPolicy", TokenAuditPolicy);
+	PyModule_AddIntConstant(m,"TokenOrigin", TokenOrigin);
+	// ??? These are defined in Vista platform SDK, but they aren't conditionally defined.
+	//	This symbol is defined in the Vista SDK, but not in earlier ones.
+	//	There's probably a better way to determine which SDK is in use. ???
+	#ifdef _WIN32_WINNT_LONGHORN
+		PyModule_AddIntConstant(m,"TokenElevationType", TokenElevationType);
+		PyModule_AddIntConstant(m,"TokenLinkedToken", TokenLinkedToken);
+		PyModule_AddIntConstant(m,"TokenElevation", TokenElevation);
+		PyModule_AddIntConstant(m,"TokenHasRestrictions", TokenHasRestrictions);
+		PyModule_AddIntConstant(m,"TokenAccessInformation", TokenAccessInformation);
+		PyModule_AddIntConstant(m,"TokenVirtualizationAllowed", TokenVirtualizationAllowed);
+		PyModule_AddIntConstant(m,"TokenVirtualizationEnabled", TokenVirtualizationEnabled);
+		PyModule_AddIntConstant(m,"TokenIntegrityLevel", TokenIntegrityLevel);
+		PyModule_AddIntConstant(m,"TokenUIAccess", TokenUIAccess);
+		PyModule_AddIntConstant(m,"TokenMandatoryPolicy", TokenMandatoryPolicy);
+		PyModule_AddIntConstant(m,"TokenLogonSid", TokenLogonSid);
+
+		// TOKEN_ELEVATION_TYPE enum
+		PyModule_AddIntConstant(m,"TokenElevationTypeDefault",TokenElevationTypeDefault);
+		PyModule_AddIntConstant(m,"TokenElevationTypeFull",TokenElevationTypeFull);
+		PyModule_AddIntConstant(m,"TokenElevationTypeLimited",TokenElevationTypeLimited);
+
+		// TOKEN_MANDATORY_POLICY enum
+		PyModule_AddIntConstant(m,"TOKEN_MANDATORY_POLICY_OFF",TOKEN_MANDATORY_POLICY_OFF);
+		PyModule_AddIntConstant(m,"TOKEN_MANDATORY_POLICY_NO_WRITE_UP",TOKEN_MANDATORY_POLICY_NO_WRITE_UP);
+		PyModule_AddIntConstant(m,"TOKEN_MANDATORY_POLICY_NEW_PROCESS_MIN",TOKEN_MANDATORY_POLICY_NEW_PROCESS_MIN);
+		PyModule_AddIntConstant(m,"TOKEN_MANDATORY_POLICY_VALID_MASK",TOKEN_MANDATORY_POLICY_VALID_MASK);
+
+		PyModule_AddIntConstant(m,"SE_GROUP_INTEGRITY", SE_GROUP_INTEGRITY);
+		PyModule_AddIntConstant(m,"SE_GROUP_INTEGRITY_ENABLED", SE_GROUP_INTEGRITY_ENABLED);
+	#endif
 
 	advapi32_dll=loadmodule(_T("Advapi32.dll"));
 	secur32_dll =loadmodule(_T("Secur32.dll"));
@@ -1573,51 +1624,55 @@ static PyObject *PyAdjustTokenGroups(PyObject *self, PyObject *args)
 static PyObject *PyGetTokenInformation(PyObject *self, PyObject *args)
 {
 	PyObject *obHandle;
-	int bufSize = 0;
+	DWORD bufSize = 0;
 	DWORD retLength = 0;
 	DWORD dwordbuf;
-	void *buf = NULL;
+	
 	TOKEN_INFORMATION_CLASS typ;
 	if (!PyArg_ParseTuple(args, "Ol:GetTokenInformation", 
-		&obHandle, // @pyparm <o PyHANDLE>|handle||The handle to query the information for.
-		(long *)&typ)) // @pyparm int|TokenInformationClass||Specifies a value from the TOKEN_INFORMATION_CLASS enumerated type identifying the type of information the function retrieves.
+		&obHandle,	// @pyparm <o PyHANDLE>|TokenHandle||Handle to an access token.
+		&typ))		// @pyparm int|TokenInformationClass||Specifies a value from the TOKEN_INFORMATION_CLASS enumerated type identifying the type of information the function retrieves.
 		return NULL;
 	HANDLE handle;
 	if (!PyWinObject_AsHANDLE(obHandle, &handle))
 		return NULL;
 
+	// null buffer call doesn't seem to work for info types that return a DWORD instead of a struct, special case them
+	switch (typ) {
+		// @rdesc The following types are supported
+		// @flagh TokenInformationClass|Return type
+		case TokenSessionId:	// @flag TokenSessionId|int - Terminal Services session id
+		case TokenSandBoxInert:	// @flag TokenSandBoxInert|Boolean
+		case TokenType:	// @flag TokenType|Value from TOKEN_TYPE enum (TokenPrimary,TokenImpersonation)
+		case TokenImpersonationLevel:	// @flag TokenImpersonationLevel|Value from SECURITY_IMPERSONATION_LEVEL enum
+		#ifdef _WIN32_WINNT_LONGHORN		// Vista info types related to UAC
+		case TokenVirtualizationEnabled:	// @flag TokenVirtualizationEnabled|Boolean
+		case TokenVirtualizationAllowed:	// @flag TokenVirtualizationAllowed|Boolean
+		case TokenHasRestrictions:	// @flag TokenHasRestrictions|Boolean
+		case TokenElevationType:	// @flag TokenElevationType|int - TokenElevation* value indicating what type of token is linked to
+		case TokenUIAccess:			// @flag TokenUIAccess|Boolean
+		#endif
+			bufSize = sizeof(DWORD);
+			if (!GetTokenInformation(handle, typ, &dwordbuf, bufSize, &retLength))
+				return PyWin_SetAPIError("GetTokenInformation");
+			return PyLong_FromUnsignedLong(dwordbuf);
+		}
+
 	PyObject *ret = NULL;
-    // null buffer call doesn't seem to work for these two (both return DWORDS, not structs), special case them
-	if ((typ==TokenSessionId) || (typ == TokenSandBoxInert)){
-		bufSize = sizeof(DWORD);
-		if (!GetTokenInformation(handle, typ, &dwordbuf, bufSize, &retLength)) {
-			PyWin_SetAPIError("GetTokenInformation");
-			goto done;
-			}
-		}
-	else{
-	    // first call with NULL in the TokenInformation buffer pointer should return the required size
-		GetTokenInformation(handle, typ, buf, bufSize, &retLength);
-		if (retLength == 0){
-			PyWin_SetAPIError("GetTokenInformation - size call");
-			goto done;
-			}
-
-		bufSize = retLength;
-		buf = malloc(retLength);
-		if (buf==NULL) {
-			PyErr_SetString(PyExc_MemoryError, "Allocating buffer for token info");
-			return NULL;
-			}
-
-		if (!GetTokenInformation(handle, typ, buf, bufSize, &retLength)) {
-			PyWin_SetAPIError("GetTokenInformation");
-			goto done;
-			}
+	void *buf = NULL;
+	// first call with NULL in the TokenInformation buffer pointer should return the required size
+	GetTokenInformation(handle, typ, buf, bufSize, &retLength);
+	if (retLength == 0)
+		return PyWin_SetAPIError("GetTokenInformation");
+	bufSize = retLength;
+	buf = malloc(retLength);
+	if (buf==NULL)
+		return PyErr_Format(PyExc_MemoryError, "Unable to allocate buffer for token info (%d bytes)", retLength);
+	if (!GetTokenInformation(handle, typ, buf, bufSize, &retLength)) {
+		PyWin_SetAPIError("GetTokenInformation");
+		goto done;
 		}
 
-	// @rdesc The following types are supported
-	// @flagh TokenInformationClass|Return type
 	switch (typ) {
 		case TokenUser: {
 			// @flag TokenUser|(<o PySID>,int)
@@ -1674,31 +1729,6 @@ static PyObject *PyGetTokenInformation(PyObject *self, PyObject *args)
 			ret = new PyACL(dacl->DefaultDacl);
 			break;
 			}
-		case TokenType: {
-			// @flag TokenType|int
-			// - returns TokenPrimary or TokenImpersonation
-			TOKEN_TYPE *tt = (TOKEN_TYPE *)buf;
-			ret=Py_BuildValue("i",*tt);
-			break;
-			}
-		case TokenImpersonationLevel: {
-			// @flag TokenImpersonationLevel|int
-			// - returns a value from SECURITY_IMPERSONATION_LEVEL enum
-			SECURITY_IMPERSONATION_LEVEL *sil = (SECURITY_IMPERSONATION_LEVEL *)buf;
-			ret=Py_BuildValue("i",*sil);
-			break;
-			}
-		case TokenSandBoxInert: {
-			// ??? I get "The parameter is incorrect" error for this one, maybe only valid for impersonation token ???
-			ret = Py_BuildValue("l",dwordbuf);
-			break;
-			}
-		case TokenSessionId: {
-			// @flag TokenSessionId|int
-			// Terminal Services session id
-			ret = Py_BuildValue("l",dwordbuf);
-			break;
-			}
 		case TokenStatistics: {
 			// @flag TokenStatistics|dict
 			// Returns a dictionary representing a TOKEN_STATISTICS structure
@@ -1716,9 +1746,70 @@ static PyObject *PyGetTokenInformation(PyObject *self, PyObject *args)
 				"ModifiedId", PyWinObject_FromLARGE_INTEGER(*((LARGE_INTEGER *)&pts->ModifiedId)));
 			break;
 			}
-		default:
-			PyErr_SetString(PyExc_TypeError, "The TokenInformationClass param is not supported yet");
+		case TokenOrigin: {
+			// @flag TokenOrigin|LUID identifying the logon session
+			TOKEN_ORIGIN *torg = (TOKEN_ORIGIN *)buf;
+			LARGE_INTEGER luid;
+			luid.HighPart=torg->OriginatingLogonSession.HighPart;
+			luid.LowPart=torg->OriginatingLogonSession.LowPart;
+			ret = PyWinObject_FromLARGE_INTEGER(luid);
 			break;
+			}
+
+		#ifdef _WIN32_WINNT_LONGHORN
+		// Vista-specific types require recent platform SDK
+		case TokenLinkedToken: {
+			// @flag TokenLinkedToken|<o PyHANDLE> - Returns handle to the access token to which token is linked
+			TOKEN_LINKED_TOKEN *tlt=(TOKEN_LINKED_TOKEN *)buf;
+			ret = PyWinObject_FromHANDLE(tlt->LinkedToken);
+			break;
+			}
+		case TokenLogonSid:
+			// @flag TokenLogonSid|<o PySID>
+			ret=PyWinObject_FromSID((PSID)buf);
+			break;
+		case TokenElevation: {
+			// @flag TokenElevation|Boolean
+			TOKEN_ELEVATION *te=(TOKEN_ELEVATION *)buf;
+			ret=PyLong_FromUnsignedLong(te->TokenIsElevated);
+			break;
+			}
+		case TokenIntegrityLevel: {
+			// @flag TokenIntegrityLevel|(<o PySID>, int)
+			TOKEN_MANDATORY_LABEL *tml=(TOKEN_MANDATORY_LABEL *)buf;
+			// Need to create function for SID_AND_ATTRIBUTES, used several places now
+			ret = Py_BuildValue("Nk",
+				PyWinObject_FromSID(tml->Label.Sid),
+				tml->Label.Attributes);
+			break;
+			}
+		case TokenMandatoryPolicy: {
+			// @flag TokenMandatoryPolicy|int (TOKEN_MANDATORY_POLICY_* flag)
+			TOKEN_MANDATORY_POLICY *tmp=(TOKEN_MANDATORY_POLICY *)buf;
+			ret=PyLong_FromUnsignedLong(tmp->Policy);
+			break;
+			}
+		/*
+		case TokenAccessInformation:
+		typedef struct _TOKEN_ACCESS_INFORMATION {
+			PSID_AND_ATTRIBUTES_HASH SidHash;
+			PSID_AND_ATTRIBUTES_HASH RestrictedSidHash;
+			PTOKEN_PRIVILEGES Privileges;
+			LUID AuthenticationId;
+			TOKEN_TYPE TokenType;
+			SECURITY_IMPERSONATION_LEVEL ImpersonationLevel;
+			TOKEN_MANDATORY_POLICY MandatoryPolicy;
+			DWORD Flags;
+		} TOKEN_ACCESS_INFORMATION
+		typedef struct _SID_AND_ATTRIBUTES_HASH {
+			DWORD SidCount;
+			PSID_AND_ATTRIBUTES SidAttr;
+			SID_HASH_ENTRY Hash[SID_HASH_SIZE];
+		} SID_AND_ATTRIBUTES_HASH
+		*/
+		#endif
+		default:
+			PyErr_Format(PyExc_NotImplementedError, "TokenInformationClass %d is not supported yet", typ);
 	}
 done:
     if (buf != NULL)
@@ -3709,22 +3800,6 @@ static PyObject *PyMapGenericMask(PyObject *self, PyObject *args)
 #define SidTypeInvalid SidTypeInvalid // Indicates an invalid SID. 
 #define SidTypeUnknown SidTypeUnknown // Indicates an unknown SID type. 
 #define SidTypeComputer SidTypeComputer // Indicates a computer SID
-
-// TokenInformationClass constatns
-#define TokenDefaultDacl TokenDefaultDacl 
-#define TokenGroups TokenGroups
-#define TokenGroupsAndPrivileges TokenGroupsAndPrivileges
-#define TokenImpersonationLevel TokenImpersonationLevel
-#define TokenOwner TokenOwner
-#define TokenPrimaryGroup TokenPrimaryGroup 
-#define TokenPrivileges TokenPrivileges 
-#define TokenRestrictedSids TokenRestrictedSids 
-#define TokenSandBoxInert TokenSandBoxInert 
-#define TokenSessionId TokenSessionId
-#define TokenSource TokenSource
-#define TokenStatistics TokenStatistics
-#define TokenType TokenType 
-#define TokenUser TokenUser 
 
 // TOKEN_TYPE constants
 #define TokenPrimary TokenPrimary
