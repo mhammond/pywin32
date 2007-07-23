@@ -66,6 +66,8 @@ typedef DWORD (WINAPI *SetThreadIdealProcessorfunc)(HANDLE, DWORD);
 static SetThreadIdealProcessorfunc pfnSetThreadIdealProcessor = NULL;
 typedef DWORD (WINAPI *SetProcessAffinityMaskfunc)(HANDLE, DWORD_PTR);
 static SetProcessAffinityMaskfunc pfnSetProcessAffinityMask = NULL;
+typedef BOOL (WINAPI *IsWow64Processfunc)(HANDLE, PBOOL);
+static IsWow64Processfunc pfnIsWow64Process = NULL;
 #endif
 
 // Support for a STARTUPINFO object.
@@ -1496,6 +1498,33 @@ PyObject *PyGetGuiResources(PyObject *self, PyObject *args)
 }
 %}
 
+// @pyswig bool|IsWow64Process|Determines whether the specified process is running under WOW64.
+// @rdesc If this function is not provided by the operating system, the
+// return value is False (ie, a NotImplemented exception will never be thrown).
+// However, if the function exists but fails, a win32process.error exception
+// is thrown as normal.
+%native(IsWow64Process) PyIsWow64Process;
+%{
+PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
+{
+	if (pfnIsWow64Process==NULL)
+		return PyBool_FromLong(FALSE);
+	PyObject *obhprocess;
+	HANDLE hprocess;
+	// @pyparm <o PyHANDLE>|Process||Handle to a process as returned by
+	// <om win32api.OpenProcess>, <om win32api.GetCurrentProcess>, etc
+	if (!PyArg_ParseTuple(args, "O:IsWow64Process", &obhprocess))
+		return NULL;
+	BOOL ret;
+	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess))
+		return NULL;
+	BOOL ok = (*pfnIsWow64Process)(hprocess, &ret);
+	if (!ok)
+		return PyWin_SetAPIError("IsWow64Process");
+	return PyBool_FromLong(ret);
+}
+%}
+
 #endif	// MS_WINCE
 
 %init %{
@@ -1534,6 +1563,7 @@ PyObject *PyGetGuiResources(PyObject *self, PyObject *args)
 		pfnSetThreadIdealProcessor=(SetThreadIdealProcessorfunc)GetProcAddress(hmodule,"SetThreadIdealProcessor");
 		pfnSetProcessAffinityMask=(SetProcessAffinityMaskfunc)GetProcAddress(hmodule,"SetProcessAffinityMask");
 		pfnGetProcessId=(GetProcessIdfunc)GetProcAddress(hmodule, "GetProcessId");
+		pfnIsWow64Process=(IsWow64Processfunc)GetProcAddress(hmodule, "IsWow64Process");
 		}
 
 	hmodule=GetModuleHandle(_T("User32.dll"));
