@@ -13,6 +13,7 @@ extern addacefunc addaccessallowedace;
 extern addacefunc addaccessdeniedace;
 extern addaceexfunc addaccessallowedaceex;
 extern addaceexfunc addaccessdeniedaceex;
+extern addaceexfunc addmandatoryace;
 extern addobjectacefunc addaccessallowedobjectace;
 extern addobjectacefunc addaccessdeniedobjectace;
 extern BOOL (WINAPI *addauditaccessaceex)(PACL, DWORD, DWORD, DWORD, PSID, BOOL, BOOL);
@@ -187,6 +188,7 @@ public:
 	static PyObject *AddAccessAllowedObjectAce(PyObject *self, PyObject *args);
 	static PyObject *AddAccessDeniedAce(PyObject *self, PyObject *args);
 	static PyObject *AddAccessDeniedAceEx(PyObject *self, PyObject *args);
+	static PyObject *AddMandatoryAce(PyObject *self, PyObject *args);
 	static PyObject *AddAccessDeniedObjectAce(PyObject *self, PyObject *args);
 	static PyObject *AddAuditAccessAce(PyObject *self, PyObject *args);
 	static PyObject *AddAuditAccessAceEx(PyObject *self, PyObject *args);

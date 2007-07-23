@@ -15,6 +15,7 @@ addacefunc addaccessallowedace=NULL;
 addacefunc addaccessdeniedace=NULL;
 addaceexfunc addaccessallowedaceex=NULL;
 addaceexfunc addaccessdeniedaceex=NULL;
+addaceexfunc addmandatoryace=NULL;
 addobjectacefunc addaccessallowedobjectace=NULL;
 addobjectacefunc addaccessdeniedobjectace=NULL;
 BOOL (WINAPI *addauditaccessaceex)(PACL, DWORD, DWORD, DWORD, PSID, BOOL, BOOL)=NULL;
@@ -559,6 +560,22 @@ PyObject *PyACL::AddAccessDeniedAceEx(PyObject *self, PyObject *args)
 		revision, aceflags, access, obSID);
 }
 
+// @pymethod |PyACL|AddMandatoryAce|Adds a mandatory integrity level ACE to a SACL
+PyObject *PyACL::AddMandatoryAce(PyObject *self, PyObject *args)
+{
+	DWORD access,revision,aceflags;
+	PyObject *obSID;
+	// @pyparm int|AceRevision||ACL_REVISION or ACL_REVISION_DS
+	// @pyparm int|AceFlags||Combination of ACE inheritance flags (CONTAINER_INHERIT_ACE,INHERIT_ONLY_ACE,INHERITED_ACE,NO_PROPAGATE_INHERIT_ACE, and OBJECT_INHERIT_ACE) 
+	// @pyparm int|MandatoryPolicy||Access policy for processes with lower integrity level, combination of SYSTEM_MANDATORY_LABEL_* flags
+	// @pyparm <o PySID>|LabelSid||Integrity level SID.  This can be created using CreateWellKnownSid with Win*LabelSid.
+	//	<nl>Also can be constructed manually using SECURITY_MANDATORY_LABEL_AUTHORITY and a SECURITY_MANDATORY_*_RID
+	if (!PyArg_ParseTuple(args, "kkkO:AddMandatoryAce", &revision, &aceflags, &access, &obSID))
+			return NULL;
+	return addaceex(addmandatoryace, "AddMandatoryAce", (PyACL *) self,
+		revision, aceflags, access, obSID);
+}
+
 PyObject * addobjectace(addobjectacefunc addfunc, CHAR *funcname, PyACL *This,
 	DWORD revision, DWORD aceflags, DWORD access,
 	PyObject *obObjectTypeGuid, PyObject *obInheritedObjectTypeGuid, PyObject *obSID)
@@ -922,7 +939,11 @@ PyObject *PyACL::GetAce(PyObject *self, PyObject *args)
 	switch (pAceHeader->AceType){
 		case ACCESS_ALLOWED_ACE_TYPE:
 		case ACCESS_DENIED_ACE_TYPE:
-		case SYSTEM_AUDIT_ACE_TYPE:{
+		case SYSTEM_AUDIT_ACE_TYPE:
+		#ifdef _WIN32_WINNT_LONGHORN
+		case SYSTEM_MANDATORY_LABEL_ACE_TYPE:
+		#endif
+			{
 			ACCESS_ALLOWED_ACE *pAce=(ACCESS_ALLOWED_ACE *)p;
 			return Py_BuildValue("(ll)lN", pAceHeader->AceType, pAceHeader->AceFlags, pAce->Mask, PyWinObject_FromSID((PSID)(&pAce->SidStart)));
 			}
@@ -1093,6 +1114,7 @@ static struct PyMethodDef PyACL_methods[] = {
 	{"AddAccessAllowedObjectAce", PyACL::AddAccessAllowedObjectAce, 1}, 	// @pymeth AddAccessAllowedObjectAce|Adds an ACCESS_ALLOWED_OBJECT_ACE to the ACL
 	{"AddAccessDeniedAce",      PyACL::AddAccessDeniedAce, 1}, 	// @pymeth AddAccessDeniedAce|Adds an access-denied ACE to an ACL object.
 	{"AddAccessDeniedAceEx",    PyACL::AddAccessDeniedAceEx, 1}, 	// @pymeth AddAccessDeniedAceEx|Adds an access-denied ACE to an ACL object
+	{"AddMandatoryAce", PyACL::AddMandatoryAce, 1}, // @pymeth AddMandatoryAce|Adds a mandatory integrity level ACE to a SACL
 	{"AddAccessDeniedObjectAce", PyACL::AddAccessDeniedObjectAce, 1}, 	// @pymeth AddAccessAllowedObjectAce|Adds an ACCESS_DENIED_OBJECT_ACE to the ACL
 	{"AddAuditAccessAce",       PyACL::AddAuditAccessAce, 1}, 	// @pymeth AddAuditAccessAce|Adds an audit entry to a system access control list (SACL)
 	{"AddAuditAccessAceEx",     PyACL::AddAuditAccessAceEx, 1}, 	// @pymeth AddAuditAccessAceEx|Adds an audit ACE to an SACL with inheritance flags

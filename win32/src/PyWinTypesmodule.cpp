@@ -887,6 +887,9 @@ BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 		fp=GetProcAddress(hmodule,"AddAccessAllowedAceEx");
 		if (fp)
 			addaccessallowedaceex=(addaceexfunc)(fp);
+		fp=GetProcAddress(hmodule,"AddMandatoryAce");
+		if (fp)
+			addmandatoryace=(addaceexfunc)(fp);
 		fp=GetProcAddress(hmodule,"AddAccessAllowedObjectAce");
 		if (fp)
 			addaccessallowedobjectace=(addobjectacefunc)(fp);
