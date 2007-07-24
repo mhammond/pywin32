@@ -11,7 +11,6 @@
 #endif
 
 // @doc - This file contains autoduck documentation
-// @object PyIEmptyVolumeCacheCallBack|Callback used by <o PyIEmptyVolumeCacheCallBack>
 // ---------------------------------------------------
 //
 // Interface Implementation
@@ -102,7 +101,7 @@ PyObject *PyIEmptyVolumeCacheCallBack::PurgeProgress(PyObject *self, PyObject *a
 	return Py_None;
 }
 
-// @object PyIEmptyVolumeCacheCallBack|Description of the interface
+// @object PyIEmptyVolumeCacheCallBack|Callback used by <o PyIEmptyVolumeCacheCallBack>
 static struct PyMethodDef PyIEmptyVolumeCacheCallBack_methods[] =
 {
 	{ "ScanProgress", PyIEmptyVolumeCacheCallBack::ScanProgress, 1 }, // @pymeth ScanProgress|Description of ScanProgress
