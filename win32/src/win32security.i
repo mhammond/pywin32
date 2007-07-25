@@ -707,6 +707,94 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 
 		PyModule_AddIntConstant(m,"SE_GROUP_INTEGRITY", SE_GROUP_INTEGRITY);
 		PyModule_AddIntConstant(m,"SE_GROUP_INTEGRITY_ENABLED", SE_GROUP_INTEGRITY_ENABLED);
+
+		// Access mask used with integrity level ACE's (SYSTEM_MANDATORY_LABEL_ACE_TYPE)
+		PyModule_AddIntConstant(m,"SYSTEM_MANDATORY_LABEL_NO_WRITE_UP", SYSTEM_MANDATORY_LABEL_NO_WRITE_UP);
+		PyModule_AddIntConstant(m,"SYSTEM_MANDATORY_LABEL_NO_READ_UP", SYSTEM_MANDATORY_LABEL_NO_READ_UP);
+		PyModule_AddIntConstant(m,"SYSTEM_MANDATORY_LABEL_NO_EXECUTE_UP", SYSTEM_MANDATORY_LABEL_NO_EXECUTE_UP);
+		PyModule_AddIntConstant(m,"SYSTEM_MANDATORY_LABEL_VALID_MASK", SYSTEM_MANDATORY_LABEL_VALID_MASK);
+	#endif
+
+	// WELL_KNOWN_SID_TYPE used with CreateWellKnownSid
+	PyModule_AddIntConstant(m,"WinNullSid", WinNullSid);
+	PyModule_AddIntConstant(m,"WinWorldSid", WinWorldSid);
+	PyModule_AddIntConstant(m,"WinLocalSid", WinLocalSid);
+	PyModule_AddIntConstant(m,"WinCreatorOwnerSid", WinCreatorOwnerSid);
+	PyModule_AddIntConstant(m,"WinCreatorGroupSid", WinCreatorGroupSid);
+	PyModule_AddIntConstant(m,"WinCreatorOwnerServerSid", WinCreatorOwnerServerSid);
+	PyModule_AddIntConstant(m,"WinCreatorGroupServerSid", WinCreatorGroupServerSid);
+	PyModule_AddIntConstant(m,"WinNtAuthoritySid", WinNtAuthoritySid);
+	PyModule_AddIntConstant(m,"WinDialupSid", WinDialupSid);
+	PyModule_AddIntConstant(m,"WinNetworkSid", WinNetworkSid);
+	PyModule_AddIntConstant(m,"WinBatchSid", WinBatchSid);
+	PyModule_AddIntConstant(m,"WinInteractiveSid", WinInteractiveSid);
+	PyModule_AddIntConstant(m,"WinServiceSid", WinServiceSid);
+	PyModule_AddIntConstant(m,"WinAnonymousSid", WinAnonymousSid);
+	PyModule_AddIntConstant(m,"WinProxySid", WinProxySid);
+	PyModule_AddIntConstant(m,"WinEnterpriseControllersSid", WinEnterpriseControllersSid);
+	PyModule_AddIntConstant(m,"WinSelfSid", WinSelfSid);
+	PyModule_AddIntConstant(m,"WinAuthenticatedUserSid", WinAuthenticatedUserSid);
+	PyModule_AddIntConstant(m,"WinRestrictedCodeSid", WinRestrictedCodeSid);
+	PyModule_AddIntConstant(m,"WinTerminalServerSid", WinTerminalServerSid);
+	PyModule_AddIntConstant(m,"WinRemoteLogonIdSid", WinRemoteLogonIdSid);
+	PyModule_AddIntConstant(m,"WinLogonIdsSid", WinLogonIdsSid);
+	PyModule_AddIntConstant(m,"WinLocalSystemSid", WinLocalSystemSid);
+	PyModule_AddIntConstant(m,"WinLocalServiceSid", WinLocalServiceSid);
+	PyModule_AddIntConstant(m,"WinNetworkServiceSid", WinNetworkServiceSid);
+	PyModule_AddIntConstant(m,"WinBuiltinDomainSid", WinBuiltinDomainSid);
+	PyModule_AddIntConstant(m,"WinBuiltinAdministratorsSid", WinBuiltinAdministratorsSid);
+	PyModule_AddIntConstant(m,"WinBuiltinUsersSid", WinBuiltinUsersSid);
+	PyModule_AddIntConstant(m,"WinBuiltinGuestsSid", WinBuiltinGuestsSid);
+	PyModule_AddIntConstant(m,"WinBuiltinPowerUsersSid", WinBuiltinPowerUsersSid);
+	PyModule_AddIntConstant(m,"WinBuiltinAccountOperatorsSid", WinBuiltinAccountOperatorsSid);
+	PyModule_AddIntConstant(m,"WinBuiltinSystemOperatorsSid", WinBuiltinSystemOperatorsSid);
+	PyModule_AddIntConstant(m,"WinBuiltinPrintOperatorsSid", WinBuiltinPrintOperatorsSid);
+	PyModule_AddIntConstant(m,"WinBuiltinBackupOperatorsSid", WinBuiltinBackupOperatorsSid);
+	PyModule_AddIntConstant(m,"WinBuiltinReplicatorSid", WinBuiltinReplicatorSid);
+	PyModule_AddIntConstant(m,"WinBuiltinPreWindows2000CompatibleAccessSid", WinBuiltinPreWindows2000CompatibleAccessSid);
+	PyModule_AddIntConstant(m,"WinBuiltinRemoteDesktopUsersSid", WinBuiltinRemoteDesktopUsersSid);
+	PyModule_AddIntConstant(m,"WinBuiltinNetworkConfigurationOperatorsSid", WinBuiltinNetworkConfigurationOperatorsSid);
+	PyModule_AddIntConstant(m,"WinAccountAdministratorSid", WinAccountAdministratorSid);
+	PyModule_AddIntConstant(m,"WinAccountGuestSid", WinAccountGuestSid);
+	PyModule_AddIntConstant(m,"WinAccountKrbtgtSid", WinAccountKrbtgtSid);
+	PyModule_AddIntConstant(m,"WinAccountDomainAdminsSid", WinAccountDomainAdminsSid);
+	PyModule_AddIntConstant(m,"WinAccountDomainUsersSid", WinAccountDomainUsersSid);
+	PyModule_AddIntConstant(m,"WinAccountDomainGuestsSid", WinAccountDomainGuestsSid);
+	PyModule_AddIntConstant(m,"WinAccountComputersSid", WinAccountComputersSid);
+	PyModule_AddIntConstant(m,"WinAccountControllersSid", WinAccountControllersSid);
+	PyModule_AddIntConstant(m,"WinAccountCertAdminsSid", WinAccountCertAdminsSid);
+	PyModule_AddIntConstant(m,"WinAccountSchemaAdminsSid", WinAccountSchemaAdminsSid);
+	PyModule_AddIntConstant(m,"WinAccountEnterpriseAdminsSid", WinAccountEnterpriseAdminsSid);
+	PyModule_AddIntConstant(m,"WinAccountPolicyAdminsSid", WinAccountPolicyAdminsSid);
+	PyModule_AddIntConstant(m,"WinAccountRasAndIasServersSid", WinAccountRasAndIasServersSid);
+	PyModule_AddIntConstant(m,"WinNTLMAuthenticationSid", WinNTLMAuthenticationSid);
+	PyModule_AddIntConstant(m,"WinDigestAuthenticationSid", WinDigestAuthenticationSid);
+	PyModule_AddIntConstant(m,"WinSChannelAuthenticationSid", WinSChannelAuthenticationSid);
+	PyModule_AddIntConstant(m,"WinThisOrganizationSid", WinThisOrganizationSid);
+	PyModule_AddIntConstant(m,"WinOtherOrganizationSid", WinOtherOrganizationSid);
+	PyModule_AddIntConstant(m,"WinBuiltinIncomingForestTrustBuildersSid", WinBuiltinIncomingForestTrustBuildersSid);
+	PyModule_AddIntConstant(m,"WinBuiltinPerfMonitoringUsersSid", WinBuiltinPerfMonitoringUsersSid);
+	PyModule_AddIntConstant(m,"WinBuiltinPerfLoggingUsersSid", WinBuiltinPerfLoggingUsersSid);	
+	// These require recent SDK
+	#ifdef _WIN32_WINNT_LONGHORN
+		PyModule_AddIntConstant(m,"WinBuiltinAuthorizationAccessSid", WinBuiltinAuthorizationAccessSid);
+		PyModule_AddIntConstant(m,"WinBuiltinTerminalServerLicenseServersSid", WinBuiltinTerminalServerLicenseServersSid);
+		PyModule_AddIntConstant(m,"WinBuiltinDCOMUsersSid", WinBuiltinDCOMUsersSid);
+		PyModule_AddIntConstant(m,"WinBuiltinIUsersSid", WinBuiltinIUsersSid);
+		PyModule_AddIntConstant(m,"WinIUserSid", WinIUserSid);
+		PyModule_AddIntConstant(m,"WinBuiltinCryptoOperatorsSid", WinBuiltinCryptoOperatorsSid);
+		PyModule_AddIntConstant(m,"WinUntrustedLabelSid", WinUntrustedLabelSid);
+		PyModule_AddIntConstant(m,"WinLowLabelSid", WinLowLabelSid);
+		PyModule_AddIntConstant(m,"WinMediumLabelSid", WinMediumLabelSid);
+		PyModule_AddIntConstant(m,"WinHighLabelSid", WinHighLabelSid);
+		PyModule_AddIntConstant(m,"WinSystemLabelSid", WinSystemLabelSid);
+		PyModule_AddIntConstant(m,"WinWriteRestrictedCodeSid", WinWriteRestrictedCodeSid);
+		PyModule_AddIntConstant(m,"WinCreatorOwnerRightsSid", WinCreatorOwnerRightsSid);
+		PyModule_AddIntConstant(m,"WinCacheablePrincipalsGroupSid", WinCacheablePrincipalsGroupSid);
+		PyModule_AddIntConstant(m,"WinNonCacheablePrincipalsGroupSid", WinNonCacheablePrincipalsGroupSid);
+		PyModule_AddIntConstant(m,"WinEnterpriseReadonlyControllersSid", WinEnterpriseReadonlyControllersSid);
+		PyModule_AddIntConstant(m,"WinAccountReadonlyControllersSid", WinAccountReadonlyControllersSid);
+		PyModule_AddIntConstant(m,"WinBuiltinEventLogReadersGroup", WinBuiltinEventLogReadersGroup);
 	#endif
 
 	advapi32_dll=loadmodule(_T("Advapi32.dll"));
@@ -2087,68 +2175,106 @@ done:
 }
 %}
 
-// @pyswig object|SetTokenInformation|Set a specified type of information in an access token
+// @pyswig |SetTokenInformation|Set a specified type of information in an access token
 %native(SetTokenInformation) PySetTokenInformation;
 %{
 static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 {
-	TOKEN_DEFAULT_DACL tdd;
-	TOKEN_OWNER towner;
-	TOKEN_PRIMARY_GROUP tpg;
-	DWORD sessionid=0;
 	PyObject *obth;
 	HANDLE th;
 	PyObject *obinfo;
-	int bufsize = 0;
+	DWORD bufsize = 0;
 	void *buf = NULL;
 	TOKEN_INFORMATION_CLASS typ;
 
 	if (!PyArg_ParseTuple(args, "OiO:SetTokenInformation", 
-		&obth,        // @pyparm <o PyHANDLE>|handle||Handle to an access token to be modified
-		(long *)&typ, // @pyparm int|TokenInformationClass||Specifies a value from the TOKEN_INFORMATION_CLASS enumerated type identifying the type of information the function retrieves.
-		&obinfo))     // @pyparm <o PyACL>|obinfo||PyACL, PySID, or int depending on type parm
+		&obth,		// @pyparm <o PyHANDLE>|TokenHandle||Handle to an access token to be modified
+		&typ,		// @pyparm int|TokenInformationClass||Specifies a value from the TOKEN_INFORMATION_CLASS enumerated type identifying the type of information to be modfied
+		&obinfo))	// @pyparm object|TokenInformation||Type is dependent on TokenInformationClass
 		return NULL;
 
 	if (!PyWinObject_AsHANDLE(obth, &th))
 		return NULL;
 
+	// @flagh TokenInformationClass|Type of input expected
 	switch (typ) {
-		case TokenOwner: {
-			if (!PyWinObject_AsSID(obinfo, &towner.Owner, FALSE))
+		case TokenOwner: {	// @flag TokenOwner|<o PySID> to be used as owner of created objects
+			bufsize=sizeof(TOKEN_OWNER);
+			buf=malloc(bufsize);
+			if (buf==NULL)
+				return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
+			if (!PyWinObject_AsSID(obinfo, &((PTOKEN_OWNER)buf)->Owner, FALSE))
 				return NULL;
-			buf = (void *)&towner;
-			bufsize = sizeof(TOKEN_OWNER);
 			break;
 			}
-		case TokenPrimaryGroup: {
-			if (!PyWinObject_AsSID(obinfo, &tpg.PrimaryGroup, FALSE))
+		case TokenPrimaryGroup: {	// @flag TokenPrimaryGroup|<o PySID>
+			bufsize=sizeof(TOKEN_PRIMARY_GROUP);
+			buf=malloc(bufsize);
+			if (buf==NULL)
+				return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
+			if (!PyWinObject_AsSID(obinfo, &((PTOKEN_PRIMARY_GROUP)buf)->PrimaryGroup, FALSE))
 				return NULL;
-			buf = (void *)&tpg;
-			bufsize = sizeof(TOKEN_PRIMARY_GROUP);
 			break;
 			}
-		case TokenDefaultDacl: {
-			if (!PyWinObject_AsACL(obinfo, &tdd.DefaultDacl, TRUE))
+		case TokenDefaultDacl: {	// @flag TokenDefaultDacl|<o PyACL> - Default permissions for created objects
+			bufsize=sizeof(TOKEN_DEFAULT_DACL);
+			buf=malloc(bufsize);
+			if (buf==NULL)
+				return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
+			if (!PyWinObject_AsACL(obinfo, &((PTOKEN_DEFAULT_DACL)buf)->DefaultDacl, TRUE))
 				return NULL;
-			buf = (void *)&tdd;
-			bufsize = sizeof(TOKEN_DEFAULT_DACL);
 			break;
 			}
-		case TokenSessionId: {
-			sessionid = PyLong_AsUnsignedLong(obinfo);
-			buf = (void *)&sessionid;
+		case TokenSessionId:				// @flag TokenSessionId|Int - Terminal services session id
+		#ifdef _WIN32_WINNT_LONGHORN		// Vista info types related to UAC
+		case TokenVirtualizationEnabled:	// @flag TokenVirtualizationEnabled|Boolean
+		case TokenVirtualizationAllowed:	// @flag TokenVirtualizationAllowed|Boolean
+		#endif
 			bufsize = sizeof(DWORD);
+			buf=malloc(bufsize);
+			if (buf==NULL)
+				return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
+			*(DWORD *)buf=PyLong_AsUnsignedLong(obinfo);
+			if (*(DWORD *)buf ==  (DWORD)-1 && PyErr_Occurred()){
+				// PyLong_AsUnsignedLong returns stupid "bad argument to internal function" error when it fails
+				PyErr_Clear();
+				PyErr_SetString(PyExc_TypeError, "Information must be an int >= 0");
+				return NULL;
+				}
 			break;
-			}
+		#ifdef _WIN32_WINNT_LONGHORN
+		case TokenIntegrityLevel:	// @flag TokenIntegrityLevel|<o PySID_AND_ATTRIBUTES> containing an integrity SID and SE_GROUP_INTEGRITY flag
+			bufsize=sizeof(TOKEN_MANDATORY_LABEL);
+			buf=malloc(bufsize);
+			if (buf==NULL)
+				return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
+			if (!PyWinObject_AsSID_AND_ATTRIBUTES(obinfo, &((PTOKEN_MANDATORY_LABEL)buf)->Label))
+				return NULL;
+			break;
+		case TokenMandatoryPolicy:	// @flag TokenMandatoryPolicy|Int. one of TOKEN_MANDATORY_POLICY_* values
+			bufsize = sizeof(TOKEN_MANDATORY_POLICY);
+			buf=malloc(bufsize);
+			if (buf==NULL)
+				return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
+			((PTOKEN_MANDATORY_POLICY)buf)->Policy=PyLong_AsUnsignedLong(obinfo);
+			if (((PTOKEN_MANDATORY_POLICY)buf)->Policy ==  (DWORD)-1 && PyErr_Occurred()){
+				// PyLong_AsUnsignedLong returns stupid "bad argument to internal function" error when it fails
+				PyErr_Clear();
+				PyErr_SetString(PyExc_TypeError, "Information must be an int >= 0");
+				return NULL;
+				}
+			break;
+		#endif
 		default:
-			PyErr_SetString(PyExc_TypeError, "Invalid TokenInformationClass parm");
-			return NULL;
+			return PyErr_Format(PyExc_NotImplementedError, "TokenInformationClass %d is not yet supported", typ);
 	}
 	if (!SetTokenInformation(th,typ,buf,bufsize)){
+		free(buf);
 		PyWin_SetAPIError("SetTokenInformation");
 		return NULL;
 		}
 
+	free(buf);
 	Py_INCREF(Py_None);
 	return Py_None;
 
@@ -3779,7 +3905,8 @@ static PyObject *PyMapGenericMask(PyObject *self, PyObject *args)
 #define OWNER_SECURITY_INFORMATION OWNER_SECURITY_INFORMATION // Indicates the owner identifier of the object is being referenced. 
 #define GROUP_SECURITY_INFORMATION GROUP_SECURITY_INFORMATION // Indicates the primary group identifier of the object is being referenced. 
 #define DACL_SECURITY_INFORMATION DACL_SECURITY_INFORMATION // Indicates the discretionary ACL of the object is being referenced. 
-#define SACL_SECURITY_INFORMATION SACL_SECURITY_INFORMATION // Indicates the system ACL of the object is being referenced. 
+#define SACL_SECURITY_INFORMATION SACL_SECURITY_INFORMATION // Indicates the system ACL of the object is being referenced.
+#define LABEL_SECURITY_INFORMATION 0x00000010
 #define PROTECTED_DACL_SECURITY_INFORMATION PROTECTED_DACL_SECURITY_INFORMATION
 #define PROTECTED_SACL_SECURITY_INFORMATION PROTECTED_SACL_SECURITY_INFORMATION
 #define UNPROTECTED_DACL_SECURITY_INFORMATION UNPROTECTED_DACL_SECURITY_INFORMATION
@@ -4031,66 +4158,3 @@ static PyObject *PyMapGenericMask(PyObject *self, PyObject *args)
 #define DS_SPN_ADD_SPN_OP DS_SPN_ADD_SPN_OP
 #define DS_SPN_REPLACE_SPN_OP DS_SPN_REPLACE_SPN_OP
 #define DS_SPN_DELETE_SPN_OP DS_SPN_DELETE_SPN_OP
-
-// WELL_KNOWN_SID_TYPE used with CreateWellKnownSid
-#define WinNullSid WinNullSid
-#define WinWorldSid WinWorldSid
-#define WinLocalSid WinLocalSid
-#define WinCreatorOwnerSid WinCreatorOwnerSid
-#define WinCreatorGroupSid WinCreatorGroupSid
-#define WinCreatorOwnerServerSid WinCreatorOwnerServerSid
-#define WinCreatorGroupServerSid WinCreatorGroupServerSid
-#define WinNtAuthoritySid WinNtAuthoritySid
-#define WinDialupSid WinDialupSid
-#define WinNetworkSid WinNetworkSid
-#define WinBatchSid WinBatchSid
-#define WinInteractiveSid WinInteractiveSid
-#define WinServiceSid WinServiceSid
-#define WinAnonymousSid WinAnonymousSid
-#define WinProxySid WinProxySid
-#define WinEnterpriseControllersSid WinEnterpriseControllersSid
-#define WinSelfSid WinSelfSid
-#define WinAuthenticatedUserSid WinAuthenticatedUserSid
-#define WinRestrictedCodeSid WinRestrictedCodeSid
-#define WinTerminalServerSid WinTerminalServerSid
-#define WinRemoteLogonIdSid WinRemoteLogonIdSid
-#define WinLogonIdsSid WinLogonIdsSid
-#define WinLocalSystemSid WinLocalSystemSid
-#define WinLocalServiceSid WinLocalServiceSid
-#define WinNetworkServiceSid WinNetworkServiceSid
-#define WinBuiltinDomainSid WinBuiltinDomainSid
-#define WinBuiltinAdministratorsSid WinBuiltinAdministratorsSid
-#define WinBuiltinUsersSid WinBuiltinUsersSid
-#define WinBuiltinGuestsSid WinBuiltinGuestsSid
-#define WinBuiltinPowerUsersSid WinBuiltinPowerUsersSid
-#define WinBuiltinAccountOperatorsSid WinBuiltinAccountOperatorsSid
-#define WinBuiltinSystemOperatorsSid WinBuiltinSystemOperatorsSid
-#define WinBuiltinPrintOperatorsSid WinBuiltinPrintOperatorsSid
-#define WinBuiltinBackupOperatorsSid WinBuiltinBackupOperatorsSid
-#define WinBuiltinReplicatorSid WinBuiltinReplicatorSid
-#define WinBuiltinPreWindows2000CompatibleAccessSid WinBuiltinPreWindows2000CompatibleAccessSid
-#define WinBuiltinRemoteDesktopUsersSid WinBuiltinRemoteDesktopUsersSid
-#define WinBuiltinNetworkConfigurationOperatorsSid WinBuiltinNetworkConfigurationOperatorsSid
-#define WinAccountAdministratorSid WinAccountAdministratorSid
-#define WinAccountGuestSid WinAccountGuestSid
-#define WinAccountKrbtgtSid WinAccountKrbtgtSid
-#define WinAccountDomainAdminsSid WinAccountDomainAdminsSid
-#define WinAccountDomainUsersSid WinAccountDomainUsersSid
-#define WinAccountDomainGuestsSid WinAccountDomainGuestsSid
-#define WinAccountComputersSid WinAccountComputersSid
-#define WinAccountControllersSid WinAccountControllersSid
-#define WinAccountCertAdminsSid WinAccountCertAdminsSid
-#define WinAccountSchemaAdminsSid WinAccountSchemaAdminsSid
-#define WinAccountEnterpriseAdminsSid WinAccountEnterpriseAdminsSid
-#define WinAccountPolicyAdminsSid WinAccountPolicyAdminsSid
-#define WinAccountRasAndIasServersSid WinAccountRasAndIasServersSid
-#define WinNTLMAuthenticationSid WinNTLMAuthenticationSid
-#define WinDigestAuthenticationSid WinDigestAuthenticationSid
-#define WinSChannelAuthenticationSid WinSChannelAuthenticationSid
-#define WinThisOrganizationSid WinThisOrganizationSid
-#define WinOtherOrganizationSid WinOtherOrganizationSid
-#define WinBuiltinIncomingForestTrustBuildersSid WinBuiltinIncomingForestTrustBuildersSid
-#define WinBuiltinPerfMonitoringUsersSid WinBuiltinPerfMonitoringUsersSid
-#define WinBuiltinPerfLoggingUsersSid WinBuiltinPerfLoggingUsersSid
-// #define WinBuiltinAuthorizationAccessSid WinBuiltinAuthorizationAccessSid
-// #define WinBuiltinTerminalServerLicenseServersSid WinBuiltinTerminalServerLicenseServersSid
