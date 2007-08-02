@@ -1,28 +1,77 @@
-import win32security
+import win32security, ntsecuritycon, winnt
+
 class Enum:
-    def __init__(self,*consts):
-        for const in consts:
-            setattr(self,const,getattr(win32security,const))
+    def __init__(self, *const_names):
+        """Accepts variable number of constant names that can be found in either
+            win32security, ntsecuritycon, or winnt."""
+        for const_name in const_names:
+            try:
+                const_val=getattr(win32security,const_name)
+            except AttributeError:
+                try:
+                    const_val=getattr(ntsecuritycon, const_name)
+                except AttributeError:
+                    try:
+                        const_val=getattr(winnt, const_name)
+                    except AttributeError:
+                        raise AttributeError, 'Constant "%s" not found in win32security, ntsecuritycon, or winnt.' %const_name 
+            setattr(self, const_name, const_val)
+
+    def lookup_name(self, const_val):
+        """Looks up the name of a particular value."""
+        for k,v in self.__dict__.items():
+            if v==const_val:
+                return k
+        raise AttributeError, 'Value %s not found in enum' %const_val
+
+    def lookup_flags(self, flags):
+        """Returns the names of all recognized flags in input, and any flags not found in the enum."""
+        flag_names=[]
+        unknown_flags=flags
+        for k,v in self.__dict__.items():
+            if flags & v == v:
+                flag_names.append(k)
+                unknown_flags = unknown_flags & ~v
+        return flag_names, unknown_flags
 
 TOKEN_INFORMATION_CLASS = Enum(
-    'TokenDefaultDacl',
+    'TokenUser',
     'TokenGroups',
-    'TokenGroupsAndPrivileges',
-    'TokenImpersonationLevel',
+    'TokenPrivileges',
     'TokenOwner',
     'TokenPrimaryGroup',
-    'TokenPrivileges',
-    'TokenRestrictedSids',
-    'TokenSandBoxInert',
-    'TokenSessionId',
+    'TokenDefaultDacl',
     'TokenSource',
+    'TokenType',
+    'TokenImpersonationLevel',
     'TokenStatistics',
-    'TokenType', 
-    'TokenUser')
+    'TokenRestrictedSids',
+    'TokenSessionId',
+    'TokenGroupsAndPrivileges',
+    'TokenSessionReference',
+    'TokenSandBoxInert',
+    'TokenAuditPolicy',
+    'TokenOrigin',
+    'TokenElevationType',
+    'TokenLinkedToken',
+    'TokenElevation',
+    'TokenHasRestrictions',
+    'TokenAccessInformation',
+    'TokenVirtualizationAllowed',
+    'TokenVirtualizationEnabled',
+    'TokenIntegrityLevel',
+    'TokenUIAccess',
+    'TokenMandatoryPolicy',
+    'TokenLogonSid')
 
 TOKEN_TYPE = Enum(
     'TokenPrimary',
     'TokenImpersonation')
+
+TOKEN_ELEVATION_TYPE = Enum(
+    'TokenElevationTypeDefault',
+    'TokenElevationTypeFull',
+    'TokenElevationTypeLimited')
 
 POLICY_AUDIT_EVENT_TYPE = Enum(
     'AuditCategorySystem', 
@@ -82,12 +131,32 @@ POLICY_AUDIT_EVENT_OPTIONS_FLAGS = Enum(
 
 # AceType in ACE_HEADER - not a real enum
 ACE_TYPE = Enum(
+    'ACCESS_MIN_MS_ACE_TYPE',
     'ACCESS_ALLOWED_ACE_TYPE',
-    'ACCESS_ALLOWED_OBJECT_ACE_TYPE',
     'ACCESS_DENIED_ACE_TYPE',
-    'ACCESS_DENIED_OBJECT_ACE_TYPE',
     'SYSTEM_AUDIT_ACE_TYPE',
-    'SYSTEM_AUDIT_OBJECT_ACE_TYPE')
+    'SYSTEM_ALARM_ACE_TYPE',
+    'ACCESS_MAX_MS_V2_ACE_TYPE',
+    'ACCESS_ALLOWED_COMPOUND_ACE_TYPE',
+    'ACCESS_MAX_MS_V3_ACE_TYPE',
+    'ACCESS_MIN_MS_OBJECT_ACE_TYPE',
+    'ACCESS_ALLOWED_OBJECT_ACE_TYPE',
+    'ACCESS_DENIED_OBJECT_ACE_TYPE',
+    'SYSTEM_AUDIT_OBJECT_ACE_TYPE',
+    'SYSTEM_ALARM_OBJECT_ACE_TYPE',
+    'ACCESS_MAX_MS_OBJECT_ACE_TYPE',
+    'ACCESS_MAX_MS_V4_ACE_TYPE',
+    'ACCESS_MAX_MS_ACE_TYPE',
+    'ACCESS_ALLOWED_CALLBACK_ACE_TYPE',
+    'ACCESS_DENIED_CALLBACK_ACE_TYPE',
+    'ACCESS_ALLOWED_CALLBACK_OBJECT_ACE_TYPE',
+    'ACCESS_DENIED_CALLBACK_OBJECT_ACE_TYPE',
+    'SYSTEM_AUDIT_CALLBACK_ACE_TYPE',
+    'SYSTEM_ALARM_CALLBACK_ACE_TYPE',
+    'SYSTEM_AUDIT_CALLBACK_OBJECT_ACE_TYPE',
+    'SYSTEM_ALARM_CALLBACK_OBJECT_ACE_TYPE',
+    'SYSTEM_MANDATORY_LABEL_ACE_TYPE',
+    'ACCESS_MAX_MS_V5_ACE_TYPE')
 
 #bit flags for AceFlags - not a real enum
 ACE_FLAGS = Enum(
@@ -137,7 +206,8 @@ SID_NAME_USE = Enum(
     'SidTypeDeletedAccount', 
     'SidTypeInvalid', 
     'SidTypeUnknown', 
-    'SidTypeComputer')
+    'SidTypeComputer',
+    'SidTypeLabel')
 
 ## bit flags, not a real enum
 TOKEN_ACCESS_PRIVILEGES = Enum(
@@ -226,3 +296,21 @@ PRIVILEGE_FLAGS = Enum(
     'SE_PRIVILEGE_ENABLED',
     'SE_PRIVILEGE_USED_FOR_ACCESS')
 
+# Group flags used with TokenGroups
+TOKEN_GROUP_ATTRIBUTES = Enum(
+    'SE_GROUP_MANDATORY',
+    'SE_GROUP_ENABLED_BY_DEFAULT',
+    'SE_GROUP_ENABLED',
+    'SE_GROUP_OWNER',
+    'SE_GROUP_USE_FOR_DENY_ONLY',
+    'SE_GROUP_INTEGRITY',
+    'SE_GROUP_INTEGRITY_ENABLED',
+    'SE_GROUP_LOGON_ID',
+    'SE_GROUP_RESOURCE')
+
+# Privilege flags returned by TokenPrivileges
+TOKEN_PRIVILEGE_ATTRIBUTES = Enum(
+    'SE_PRIVILEGE_ENABLED_BY_DEFAULT',
+    'SE_PRIVILEGE_ENABLED',
+    'SE_PRIVILEGE_REMOVED',
+    'SE_PRIVILEGE_USED_FOR_ACCESS')
