@@ -167,7 +167,7 @@ PYWINTYPES_EXPORT void PyWinObject_FreeWCHAR(WCHAR *pResult);
 // reports itself as 14.00.40310.41 - so this breaks under that compiler
 // Its not clear how to resolve this, but while VS2003 is the default
 // compiler, that is what must work.
-#if 0 and _MSC_VER >= 1400
+#if 0 // and _MSC_VER >= 1400
 inline BOOL PyWinObject_AsWCHAR(PyObject *stringObject, unsigned short **pResult, BOOL bNoneOK = FALSE, DWORD *pResultLen = NULL)
 {
     return PyWinObject_AsWCHAR(stringObject, (WCHAR **)pResult, bNoneOK, pResultLen);
