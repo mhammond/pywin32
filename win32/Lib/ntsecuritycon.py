@@ -286,6 +286,8 @@ SidTypeWellKnownGroup = 5
 SidTypeDeletedAccount = 6
 SidTypeInvalid = 7
 SidTypeUnknown = 8
+SidTypeComputer = 9
+SidTypeLabel = 10
 
 # Token types
 TokenPrimary = 1
