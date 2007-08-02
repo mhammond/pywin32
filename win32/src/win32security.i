@@ -71,6 +71,8 @@ static ConvertStringSecurityDescriptorToSecurityDescriptorfunc
 	pfnConvertStringSecurityDescriptorToSecurityDescriptor = NULL;
 typedef BOOL (WINAPI *ImpersonateAnonymousTokenfunc)(HANDLE);
 static ImpersonateAnonymousTokenfunc pfnImpersonateAnonymousToken=NULL;
+typedef BOOL (WINAPI *IsTokenRestrictedfunc)(HANDLE);
+static IsTokenRestrictedfunc pfnIsTokenRestricted = NULL;
 
 typedef PSecurityFunctionTableW (SEC_ENTRY *InitSecurityInterfacefunc)(void);
 static InitSecurityInterfacefunc pfnInitSecurityInterface=NULL;
@@ -834,6 +836,7 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 	pfnConvertStringSecurityDescriptorToSecurityDescriptor=(ConvertStringSecurityDescriptorToSecurityDescriptorfunc)
 		loadapifunc("ConvertStringSecurityDescriptorToSecurityDescriptorW", advapi32_dll);
 	pfnImpersonateAnonymousToken=(ImpersonateAnonymousTokenfunc)loadapifunc("ImpersonateAnonymousToken", advapi32_dll);
+	pfnIsTokenRestricted=(IsTokenRestrictedfunc)loadapifunc("IsTokenRestricted", advapi32_dll);
 
 	// Load InitSecurityInterface, which returns a table of pointers to the SSPI functions so they don't all have to be
 	// loaded individually - from security.dll on NT, and secur32.dll on win2k and up
@@ -987,9 +990,10 @@ BOOLAPI ImpersonateLoggedOnUser(
   PyHANDLE hToken  // @pyparm <o PyHANDLE>|handle||Handle to a token that represents a logged-on user
 ); 
 
-// @pyswig |ImpersonateAnonymousToken|Cause a thread to act in the security context of an anonymous token
 %native(ImpersonateAnonymousToken) PyImpersonateAnonymousToken;
+%native(IsTokenRestricted) PyIsTokenRestricted;
 %{
+// @pyswig |ImpersonateAnonymousToken|Cause a thread to act in the security context of an anonymous token
 static PyObject * PyImpersonateAnonymousToken(PyObject *self, PyObject *args)
 {
 	HANDLE hthread;			// @pyparm <o PyHANDLE>|ThreadHandle||Handle to thread that will 
@@ -1003,6 +1007,20 @@ static PyObject * PyImpersonateAnonymousToken(PyObject *self, PyObject *args)
 		return PyWin_SetAPIError("ImpersonateAnonymousToken");
 	Py_INCREF(Py_None);
 	return Py_None;
+}
+
+// @pyswig bool|IsTokenRestricted|Checks if a token contains restricted sids
+static PyObject * PyIsTokenRestricted(PyObject *self, PyObject *args)
+{
+	HANDLE th;			// @pyparm <o PyHANDLE>|TokenHandle||Handle to an access token 
+	PyObject *obth;
+	CHECK_PFN(IsTokenRestricted);
+	if (!PyArg_ParseTuple(args, "O:IsTokenRestricted", &obth))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obth, &th))
+		return NULL;
+	BOOL ret=(*pfnIsTokenRestricted)(th);
+	return PyBool_FromLong(ret);
 }
 %}
 
