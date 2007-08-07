@@ -58,6 +58,7 @@ PyObject *PyIStream::Write(PyObject *self, PyObject *args)
 	void *strValue;
 	PyObject *obstrValue;
 	DWORD strSize;
+	ULONG cbWritten;
 	// @pyparm string|data||The binary data to write.
 	if (!PyArg_ParseTuple(args, "O:Write", &obstrValue))
 		return NULL;
@@ -67,12 +68,11 @@ PyObject *PyIStream::Write(PyObject *self, PyObject *args)
 	if (pMy==NULL) return NULL;
 
 	PY_INTERFACE_PRECALL;
-	HRESULT hr = pMy->Write(strValue, strSize, NULL);
+	HRESULT hr = pMy->Write(strValue, strSize, &cbWritten);
 	PY_INTERFACE_POSTCALL;
 	if (FAILED(hr))
 		return PyCom_BuildPyException(hr, pMy, IID_IStream);
-	Py_INCREF(Py_None);
-	return Py_None;
+	return PyLong_FromUnsignedLong(cbWritten);
 }
 
 // @pymethod ULARGE_INTEGER|PyIStream|Seek|Changes the seek pointer to a new location.
