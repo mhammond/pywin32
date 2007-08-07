@@ -200,16 +200,21 @@ class FileStream:
 
   def Write(self, data):
     self.file.write(data)
+    return len(data)
 
   def Clone(self):
     return self._wrap(self.__class__(self.file))
 
   def CopyTo(self, dest, cb):
-    dest.Write(file.read(cb))
+    data=self.file.read(cb)
+    cbread=len(data)
+    dest.Write(data)    ## ??? Write does not currently return the length ???
+    return cbread, cbread
 
   def Seek(self, offset, origin):
     # how convient that the 'origin' values are the same as the CRT :)
     self.file.seek(offset, origin)
+    return self.file.tell()
 
   def _wrap(self, ob):
     return wrap(ob)
