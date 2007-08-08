@@ -330,40 +330,55 @@ BOOL PyWinObject_AsSID_AND_ATTRIBUTES(PyObject *obsid_attr, PSID_AND_ATTRIBUTES 
 	return bsuccess;
 }
 
+// Converts sequence into a tuple and verifies that length fits in length variable
+PyObject *PyWinSequence_Tuple(PyObject *obseq, DWORD *len)
+{
+	PyObject *obtuple=PySequence_Tuple(obseq);
+	if (obtuple==NULL)
+		return NULL;
+	Py_ssize_t py_len=PyTuple_GET_SIZE(obtuple);
+	if (py_len > MAXDWORD){
+		Py_DECREF(obtuple);
+		return PyErr_Format(PyExc_ValueError, "Sequence can contain at most %d items", MAXDWORD);
+		}
+	*len=(DWORD)py_len;
+	return obtuple;
+}
+
 BOOL PyWinObject_AsSID_AND_ATTRIBUTESArray(PyObject *obsids, PSID_AND_ATTRIBUTES *psid_attr_array, DWORD *sid_cnt)
 {
-	PyObject *obsid_attr; 
+	PyObject *obsid_attr, *sids_tuple;
 	*psid_attr_array=NULL;
 	*sid_cnt=0;
-	static char *fmt_msg="Object must be a sequence of PySID_AND_ATTRIBUTES tuples, or None";
 
 	if (obsids==Py_None)
 		return TRUE;
-	*sid_cnt=PySequence_Length(obsids);
-	if (*sid_cnt==-1){
-		PyErr_SetString(PyExc_TypeError,fmt_msg);
+	sids_tuple=PyWinSequence_Tuple(obsids, sid_cnt);
+	if (sids_tuple == NULL)
 		return FALSE;
-		}
+
+	BOOL bsuccess=TRUE;
 	*psid_attr_array=(SID_AND_ATTRIBUTES *)malloc((*sid_cnt)*sizeof(SID_AND_ATTRIBUTES));
 	if (*psid_attr_array==NULL){
 		PyErr_Format(PyExc_MemoryError,"Unable to allocate array of %d SID_AND_ATTRIBUTES structures",sid_cnt);
-		return FALSE;
+		bsuccess = FALSE;
 		}
-	BOOL bsuccess=TRUE;
-	for (DWORD sid_ind=0;sid_ind<*sid_cnt;sid_ind++){
-		obsid_attr=PySequence_GetItem(obsids,sid_ind);
-		if (obsid_attr==NULL)
-			bsuccess=FALSE;
-		else
-			bsuccess=PyWinObject_AsSID_AND_ATTRIBUTES(obsid_attr,&(*psid_attr_array)[sid_ind]);
-		Py_XDECREF(obsid_attr);
-		if (!bsuccess)
-			break;
+	else{
+		for (DWORD sid_ind=0;sid_ind<*sid_cnt;sid_ind++){
+			obsid_attr=PyTuple_GET_ITEM(sids_tuple, sid_ind);
+			bsuccess = PyWinObject_AsSID_AND_ATTRIBUTES(obsid_attr,&(*psid_attr_array)[sid_ind]);
+			if (!bsuccess)
+				break;
+			}
 		}
+
 	if (!bsuccess){
-		free(*psid_attr_array);
-		*psid_attr_array=NULL;
+		if (*psid_attr_array){
+			free(*psid_attr_array);
+			*psid_attr_array=NULL;
+			}
 		}
+	Py_DECREF(sids_tuple);
 	return bsuccess;
 }
 
@@ -393,39 +408,38 @@ BOOL PyWinObject_AsLUID_AND_ATTRIBUTES(PyObject *obluid_attr, PLUID_AND_ATTRIBUT
 
 BOOL PyWinObject_AsLUID_AND_ATTRIBUTESArray(PyObject *obluids, PLUID_AND_ATTRIBUTES *pluid_attr_array, DWORD *luid_cnt)
 {
-	PyObject *obluid_attr; 
+	PyObject *obluid_attr, *luid_attr_tuple;
 	*pluid_attr_array=NULL;
 	*luid_cnt=0;
-	static char *fmt_msg="Object must be a sequence of PyLUID_AND_ATTRIBUTES tuples, or None";
 
 	if (obluids==Py_None)
 		return TRUE;
-	*luid_cnt=PySequence_Length(obluids);
-	if (*luid_cnt==-1){
-		PyErr_SetString(PyExc_TypeError,fmt_msg);
+	luid_attr_tuple=PyWinSequence_Tuple(obluids, luid_cnt);
+	if (luid_attr_tuple == NULL)
 		return FALSE;
-		}
+
+	BOOL bsuccess=TRUE;
 	*pluid_attr_array=(LUID_AND_ATTRIBUTES *)malloc((*luid_cnt)*sizeof(LUID_AND_ATTRIBUTES));
 	if (*pluid_attr_array==NULL){
 		PyErr_Format(PyExc_MemoryError,"Unable to allocate array of %d LUID_AND_ATTRIBUTES structures",luid_cnt);
-		return FALSE;
+		bsuccess = FALSE;
 		}
-	BOOL bsuccess=TRUE;
-	for (DWORD luid_ind=0;luid_ind<*luid_cnt;luid_ind++){
-		obluid_attr=PySequence_GetItem(obluids,luid_ind);
-		if (obluid_attr==NULL)
-			bsuccess=FALSE;
-		else{
+	else{
+		for (DWORD luid_ind=0;luid_ind<*luid_cnt;luid_ind++){
+			obluid_attr=PyTuple_GET_ITEM(luid_attr_tuple,luid_ind);
 			bsuccess=PyWinObject_AsLUID_AND_ATTRIBUTES(obluid_attr,&(*pluid_attr_array)[luid_ind]);
-			Py_DECREF(obluid_attr);
+			if (!bsuccess)
+				break;
 			}
-		if (!bsuccess)
-			break;
 		}
+
 	if (!bsuccess){
-		free(*pluid_attr_array);
-		*pluid_attr_array=NULL;
+		if (*pluid_attr_array){
+			free(*pluid_attr_array);
+			*pluid_attr_array=NULL;
+			}
 		}
+	Py_DECREF(luid_attr_tuple);
 	return bsuccess;
 }
 
@@ -471,40 +485,37 @@ PyObject* PyWinObject_FromLSA_UNICODE_STRING(LSA_UNICODE_STRING lsaus)
 
 BOOL PyWinObject_AsTOKEN_GROUPS(PyObject *groups, TOKEN_GROUPS **ptg)
 {
-	BOOL ok = TRUE;
+	BOOL bsuccess = TRUE;
 	PyObject *group;
-	int groupind, groupcnt;
+	DWORD groupind, groupcnt;
 	static char *errMsg = "TOKEN_GROUPS must be a sequence of ((PySID,int),...)";
 
-	groupcnt = PySequence_Length(groups);
-	if (groupcnt==-1){
-		PyErr_SetString(PyExc_TypeError, errMsg);
+	PyObject *groups_tuple=PyWinSequence_Tuple(groups, &groupcnt);
+	if (groups_tuple==NULL)
 		return FALSE;
-		}
-	TOKEN_GROUPS *tg = (TOKEN_GROUPS *)malloc(sizeof(DWORD) + (sizeof(SID_AND_ATTRIBUTES) * groupcnt));
-	if (tg==NULL){
+
+	*ptg = (TOKEN_GROUPS *)malloc(sizeof(DWORD) + (sizeof(SID_AND_ATTRIBUTES) * groupcnt));
+	if (*ptg==NULL){
 		PyErr_Format(PyExc_MemoryError, "Unable to allocate TOKEN_GROUPS (%d Groups)", groupcnt);
-		return FALSE;
+		bsuccess = FALSE;
 		}
-	tg->GroupCount = groupcnt;
-	for (groupind=0; groupind<groupcnt; groupind++){
-		group = PySequence_GetItem(groups, groupind);
-		if (group==NULL)
-			ok=FALSE;
-		else{
-			ok=PyWinObject_AsSID_AND_ATTRIBUTES(group,&tg->Groups[groupind]);
-			Py_DECREF(group);
+	else{
+		(*ptg)->GroupCount = groupcnt;
+		for (groupind=0; groupind<groupcnt; groupind++){
+			group = PyTuple_GET_ITEM(groups_tuple, groupind);
+			bsuccess = PyWinObject_AsSID_AND_ATTRIBUTES(group,&(*ptg)->Groups[groupind]);
+			if (!bsuccess)
+				break;
 			}
-		if (!ok)
-			break;
 		}
-	if (!ok){
-		free(tg);
-		*ptg=NULL;
+	if (!bsuccess){
+		if (*ptg){
+			free(*ptg);
+			*ptg=NULL;
+			}
 		}
-	else
-		*ptg = tg;
-	return ok;
+	Py_DECREF(groups_tuple);
+	return bsuccess;
 }
 
 void PyWinObject_FreeTOKEN_GROUPS(TOKEN_GROUPS *ptg)
@@ -513,40 +524,45 @@ void PyWinObject_FreeTOKEN_GROUPS(TOKEN_GROUPS *ptg)
 		free(ptg);
 }
 
-BOOL PyWinObject_AsTOKEN_PRIVILEGES(PyObject *ob, TOKEN_PRIVILEGES **ppRest, BOOL bNoneOK /*= TRUE*/)
+BOOL PyWinObject_AsTOKEN_PRIVILEGES(PyObject *ob, TOKEN_PRIVILEGES **ppRet, BOOL bNoneOK /*= TRUE*/)
 {
+	*ppRet=NULL;
+	if (ob==Py_None){
+		if (bNoneOK)
+			return TRUE;
+		PyErr_SetString(PyExc_ValueError, "TOKEN_PRIVILEGES cannot be None");
+		return FALSE;
+		}
+
 	BOOL ok = TRUE;
-	static char *errMsg = "A TOKEN_PRIVILEGES object must be a tuple of (LARGE_INTEGER, int)";
 	PyObject *subObj = NULL;
-	int num = PySequence_Length(ob);
-	if (num==-1){
-		PyErr_SetString(PyExc_TypeError, errMsg);
+	DWORD priv_cnt;
+	PyObject *priv_tuple = PyWinSequence_Tuple(ob, &priv_cnt);
+	if (priv_tuple == NULL)
 		return FALSE;
-		}
+
 	// space for the array and the priv. count.
-	TOKEN_PRIVILEGES *pRet = (TOKEN_PRIVILEGES *)malloc((sizeof(LUID_AND_ATTRIBUTES) * num) + sizeof(DWORD));
+	TOKEN_PRIVILEGES *pRet = (TOKEN_PRIVILEGES *)malloc((sizeof(LUID_AND_ATTRIBUTES) * priv_cnt) + sizeof(DWORD));
 	if (pRet==NULL){
-		PyErr_Format(PyExc_MemoryError, "Unable to allocate TOKEN_PRIVILEGES with %d LUID_AND_ATTRIBUTES", num);
-		return FALSE;
+		PyErr_Format(PyExc_MemoryError, "Unable to allocate TOKEN_PRIVILEGES with %d LUID_AND_ATTRIBUTES", priv_cnt);
+		ok=FALSE;
 		}
-	pRet->PrivilegeCount = num;
-	for (int i =0;i<num;i++) {
-		subObj = PySequence_GetItem(ob, i);
-		if (subObj==NULL)
-			ok=FALSE;
-		else{
+	else{
+		pRet->PrivilegeCount = priv_cnt;
+		for (DWORD i =0;i<priv_cnt;i++) {
+			subObj = PyTuple_GET_ITEM(priv_tuple, i);
 			ok=PyWinObject_AsLUID_AND_ATTRIBUTES(subObj,&pRet->Privileges[i]);
-			Py_DECREF(subObj);
+			if (!ok)
+				break;
 			}
-		if (!ok)
-			break;
 		}
 	if (ok)
-		*ppRest = pRet;
+		*ppRet = pRet;
 	else{
-		free(pRet);
-		*ppRest=NULL;
+		if (pRet)
+			free(pRet);
 		}
+	Py_DECREF(priv_tuple);
 	return ok;
 }
 
@@ -555,48 +571,6 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 	free(pPriv);
 }
 %}
-
-%typemap(python,in) TOKEN_PRIVILEGES *{
-	if (!PyWinObject_AsTOKEN_PRIVILEGES($source, &$target, FALSE))
-		return NULL;
-}
-%typemap(python,freearg) TOKEN_PRIVILEGES * {
-	if ($source) PyWinObject_FreeTOKEN_PRIVILEGES($source);
-}
-
-%typemap(python,ignore) TOKEN_PRIVILEGES *OUTPUT(TOKEN_PRIVILEGES temp)
-{
-  $target = &temp;
-}
-
-%typemap(python,out) TOKEN_PRIVILEGES *{
-  if ($source==NULL)
-    $target=NULL;
-  else{
-    $target = PyWinObject_FromTOKEN_PRIVILEGES($source);
-    free($source);
-	}
-}
-
-%typemap(python,argout) TOKEN_PRIVILEGES *OUTPUT {
-    PyObject *o;
-    o = PyWinObject_FromTOKEN_PRIVILEGES(*$source);
-    if (!$target) {
-      $target = o;
-    } else if ($target == Py_None) {
-      Py_DECREF(Py_None);
-      $target = o;
-    } else {
-      if (!PyList_Check($target)) {
-	PyObject *o2 = $target;
-	$target = PyList_New(0);
-	PyList_Append($target,o2);
-	Py_XDECREF(o2);
-      }
-      PyList_Append($target,o);
-      Py_XDECREF(o);
-    }
-}
 
 
 %init %{
@@ -878,10 +852,16 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 
     // Patch up any kwarg functions - SWIG doesn't like them.
     for (PyMethodDef *pmd = win32securityMethods;pmd->ml_name;pmd++)
-        if ((strcmp(pmd->ml_name, "DsGetDcName")==0) ||
-			(strcmp(pmd->ml_name, "DuplicateTokenEx")==0)){
-            pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
-	        }
+        if   ((strcmp(pmd->ml_name, "DsGetDcName")==0)
+			||(strcmp(pmd->ml_name, "DuplicateTokenEx")==0) 
+			||(strcmp(pmd->ml_name, "AdjustTokenPrivileges")==0)
+			||(strcmp(pmd->ml_name, "AdjustTokenGroups")==0)
+			||(strcmp(pmd->ml_name, "CreateRestrictedToken")==0)
+			||(strcmp(pmd->ml_name, "LsaAddAccountRights")==0)
+			||(strcmp(pmd->ml_name, "LsaRemoveAccountRights")==0)
+			){
+			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
+			}
 %}
 
 // Autoduck for objects defined in win32security_ds.cpp
@@ -1621,18 +1601,38 @@ PyObject *LookupPrivilegeDisplayName(PyObject *self, PyObject *args)
 }
 %}
 
+%native(AdjustTokenPrivileges) pfn_PyAdjustTokenPrivileges;
+%native(AdjustTokenGroups) pfn_PyAdjustTokenGroups;
 %{
-TOKEN_PRIVILEGES *MyAdjustTokenPrivileges(
-	HANDLE TokenHandle,
-	BOOL DisableAllPrivileges,
-	TOKEN_PRIVILEGES *NewState)
+// @pyswig <o PyTOKEN_PRIVILEGES>|AdjustTokenPrivileges|Enables or disables privileges for an access token.
+// @rdesc Returns modified privileges for later restoral.  Privileges deleted from the token using
+//	SE_PRIVILEGE_REMOVED are not returned.
+// @comm Accepts keyword args.
+static PyObject *PyAdjustTokenPrivileges(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+	TOKEN_PRIVILEGES *NewState=NULL, *PreviousState=NULL;
+	HANDLE TokenHandle;
+	PyObject *obNewState, *obTokenHandle, *ret=NULL;
+	BOOL DisableAllPrivileges;
+	DWORD rc;
+	static char *keywords[]={"TokenHandle","bDisableAllPrivileges","NewState", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OlO:AdjustTokenPrivileges", keywords,
+		&obTokenHandle,			// @pyparm <o PyHANDLE>|TokenHandle||Handle to an access token
+		&DisableAllPrivileges,	// @pyparm int|bDisableAllPrivileges||Flag for disabling all privileges
+		&obNewState))			// @pyparm <o PyTOKEN_PRIVILEGES>|NewState||The new state, can be None if bDisableAllPrivileges is True
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obTokenHandle, &TokenHandle))
+		return NULL;
+	if (!PyWinObject_AsTOKEN_PRIVILEGES(obNewState, &NewState, TRUE))
+		return NULL;
+
 	DWORD origbufsize=sizeof(DWORD) + (3*sizeof(LUID_AND_ATTRIBUTES));
 	DWORD reqdbufsize=0;
-	TOKEN_PRIVILEGES *PreviousState=(TOKEN_PRIVILEGES *)malloc(origbufsize);
+	PreviousState=(TOKEN_PRIVILEGES *)malloc(origbufsize);
 	if (PreviousState==NULL){
 		PyErr_SetString(PyExc_MemoryError,"AdjustTokenPrivileges: unable to allocate return buffer");
-		return NULL;
+		goto done;
 		}
 
 	if (!AdjustTokenPrivileges(TokenHandle, DisableAllPrivileges, NewState, origbufsize, PreviousState, &reqdbufsize))
@@ -1641,33 +1641,32 @@ TOKEN_PRIVILEGES *MyAdjustTokenPrivileges(
 			PreviousState=(TOKEN_PRIVILEGES *)malloc(reqdbufsize);
 			if (PreviousState==NULL){
 				PyErr_SetString(PyExc_MemoryError,"AdjustTokenPrivileges: unable to allocate return buffer");
-				return NULL;
+				goto done;
 				}
 			AdjustTokenPrivileges(TokenHandle, DisableAllPrivileges, NewState, reqdbufsize, PreviousState, &reqdbufsize);
 			}
 	// Note that AdjustTokenPrivileges may succeed, and yet
 	// some privileges weren't actually adjusted.
 	// You've got to check GetLastError() to be sure!
-	DWORD rc = GetLastError();
+	rc = GetLastError();
 	if (rc==0 || rc==ERROR_NOT_ALL_ASSIGNED)
-		return PreviousState;
-	PyWin_SetAPIError("AdjustTokenPrivileges",rc);
-	free(PreviousState);
-	return NULL;
+		ret = PyWinObject_FromTOKEN_PRIVILEGES(PreviousState);
+	else
+		PyWin_SetAPIError("AdjustTokenPrivileges",rc);
+
+	done:
+	if (PreviousState)
+		free(PreviousState);
+	if (NewState)
+		PyWinObject_FreeTOKEN_PRIVILEGES(NewState);
+	return ret;
 }
-%}
+PyCFunction pfn_PyAdjustTokenPrivileges=(PyCFunction)PyAdjustTokenPrivileges;
 
-// @pyswig <o PyTOKEN_PRIVILEGES>|AdjustTokenPrivileges|Enables or disables privileges for an access token, returns modified privileges for later restoral
-%name(AdjustTokenPrivileges) TOKEN_PRIVILEGES *MyAdjustTokenPrivileges(
-	HANDLE TokenHandle, // @pyparm int|handle||handle to token that contains privileges
-	BOOL DisableAllPrivileges, // @pyparm int|bDisableAllPrivileges||Flag for disabling all privileges
-	TOKEN_PRIVILEGES *NewState // @pyparm <o PyTOKEN_PRIVILEGES>|NewState||The new state
-);
-
-// @pyswig <o PyTOKEN_GROUPS>|AdjustTokenGroups|Sets the groups associated to an access token,returns previous group info
-%native(AdjustTokenGroups) PyAdjustTokenGroups;
-%{
-static PyObject *PyAdjustTokenGroups(PyObject *self, PyObject *args)
+// @pyswig <o PyTOKEN_GROUPS>|AdjustTokenGroups|Sets the groups associated to an access token.
+// @rdesc Returns previous state of groups modified
+// @comm Accepts keyword args.
+static PyObject *PyAdjustTokenGroups(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	PyObject *obHandle, *obtg;
 	PyObject *ret = NULL;
@@ -1675,9 +1674,10 @@ static PyObject *PyAdjustTokenGroups(PyObject *self, PyObject *args)
 	TOKEN_GROUPS *newstate=NULL, *oldstate=NULL;
 	BOOL ok = TRUE, reset;
 	DWORD reqdbufsize=0, origgroupcnt=1, origbufsize, err;
+	static char *keywords[] = {"TokenHandle","ResetToDefault","NewState", NULL};
 
-	if (!PyArg_ParseTuple(args, "OiO:AdjustTokenGroups", 
-		&obHandle, // @pyparm <o PyHANDLE>|obHandle||The handle to access token to be modified
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OiO:AdjustTokenGroups", keywords,
+		&obHandle, // @pyparm <o PyHANDLE>|TokenHandle||The handle to access token to be modified
 		&reset,    // @pyparm boolean|ResetToDefault||Sets groups to default enabled/disabled states,
 		&obtg))     // @pyparm <o PyTOKEN_GROUPS>|NewState||Groups and attributes to be set for token
 		return NULL;
@@ -1722,6 +1722,7 @@ static PyObject *PyAdjustTokenGroups(PyObject *self, PyObject *args)
 	PyWinObject_FreeTOKEN_GROUPS(newstate);
 	return ret;
 }
+PyCFunction pfn_PyAdjustTokenGroups=(PyCFunction)PyAdjustTokenGroups;
 %}
 
 // @pyswig object|GetTokenInformation|Retrieves a specified type of information about an access token. The calling process must have appropriate access rights to obtain the information.
@@ -2487,52 +2488,49 @@ static PyObject *PyLsaSetInformationPolicy(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(obhandle, &lsah))
 		return NULL;;
 	switch (info_class){
+		// @flagh InformationClass|Type of input expected
 		case PolicyAuditEventsInformation:{
-			// input is tuple of (bool, tuple of eventauditingoptions)
-			BOOL auditing_mode;
-			unsigned long *auditing_options = NULL, *auditing_option = NULL;
-			PyObject *obauditing_options = NULL, *obauditing_option = NULL;
-			int option_ind, option_cnt;
-			POLICY_AUDIT_EVENTS_INFO info;
+			// @flag PolicyAuditEventsInformation|(boolean, (int, ...))
+			//	<nl>First member imdicates whether auditing is enabled or not.
+			//	<nl>Seconed member is a sequence of POLICY_AUDIT_EVENT_* flags specifying which events
+			//	should be audited.  See AuditCategory* values for positions of each event type.
+			PyObject *obauditing_options = NULL, *obauditing_option = NULL, *options_tuple=NULL;
+			ULONG option_ind;
+			POLICY_AUDIT_EVENTS_INFO info={0, NULL, 0};
 
-			if (!PyArg_ParseTuple(obinfo, "iO:PyLsaSetInformationPolicy", &auditing_mode, &obauditing_options)){
-				PyErr_SetString(PyExc_TypeError, "Info for PolicyAuditEventsInformation must be (int, sequence of ints)");
+			if (!PyArg_ParseTuple(obinfo, "bO:PyLsaSetInformationPolicy", &info.AuditingMode, &obauditing_options)){
+				PyErr_SetString(PyExc_TypeError, "Info for PolicyAuditEventsInformation must be (boolean, [int, ...])");
 				return NULL; 
 				}
-			if (!PySequence_Check(obauditing_options)){
-				PyErr_SetString(PyExc_TypeError, "Info for PolicyAuditEventsInformation must be (int, sequence of ints)");
+			
+			options_tuple=PyWinSequence_Tuple(obauditing_options, &info.MaximumAuditEventCount);
+			if (options_tuple==NULL){
+				PyErr_SetString(PyExc_TypeError, "Info for PolicyAuditEventsInformation must be (boolean, [int, ...])");
 				return NULL; 
 				}
+			info.EventAuditingOptions = (unsigned long *)calloc(info.MaximumAuditEventCount, sizeof(unsigned long));
+			if (info.EventAuditingOptions==NULL){
+				PyErr_NoMemory();
+				goto done;
+				}
 
-			option_cnt = PySequence_Length(obauditing_options);
-			auditing_options = (unsigned long *)calloc(option_cnt, sizeof(unsigned long));
-			auditing_option = auditing_options;
-
-			info.AuditingMode = auditing_mode;
-			info.EventAuditingOptions = auditing_options;
-			info.MaximumAuditEventCount = option_cnt;
-
-			for (option_ind=0; option_ind<option_cnt; option_ind++){
-				obauditing_option = PySequence_GetItem(obauditing_options, option_ind);
-				if(!PyInt_Check(obauditing_option)){
-					Py_DECREF(obauditing_option);
-					PyErr_SetString(PyExc_TypeError, "Info for PolicyAuditEventsInformation must be (int, sequence of ints)");
+			for (option_ind=0; option_ind<info.MaximumAuditEventCount; option_ind++){
+				obauditing_option = PyTuple_GET_ITEM(options_tuple, option_ind);
+				info.EventAuditingOptions[option_ind] = PyInt_AsLong(obauditing_option);
+				if (info.EventAuditingOptions[option_ind] == (ULONG)-1 && PyErr_Occurred())
 					goto done;
-					}
-				*auditing_option=PyInt_AsLong(obauditing_option);
-				Py_DECREF(obauditing_option);
-				auditing_option++;
 				}
 			err = LsaSetInformationPolicy(lsah, info_class, &info);
 			if (err != STATUS_SUCCESS){
 				PyWin_SetAPIError("LsaSetInformationPolicy",LsaNtStatusToWinError(err));
 				goto done;
 				}
+			Py_INCREF(Py_None);
 			ret = Py_None;
 			done:
-				if (auditing_options)
-					free (auditing_options);
-				Py_XINCREF(ret);
+				Py_DECREF(options_tuple);
+				if (info.EventAuditingOptions)
+					free (info.EventAuditingOptions);
 				return ret;
 			break;
 			}
@@ -2545,10 +2543,12 @@ static PyObject *PyLsaSetInformationPolicy(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig |LsaAddAccountRights|Adds a list of privileges to an account - account is created if it doesn't already exist
-%native(LsaAddAccountRights) PyLsaAddAccountRights;
+// @pyswig |LsaAddAccountRights|Adds a list of privileges to an account
+// @comm Account is created if it doesn't already exist.
+// @comm Accepts keyword args.
+%native(LsaAddAccountRights) pfn_PyLsaAddAccountRights;
 %{
-static PyObject *PyLsaAddAccountRights(PyObject *self, PyObject *args)
+static PyObject *PyLsaAddAccountRights(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	PyObject *privs=NULL, *priv=NULL, *policy_handle=NULL;
 	PyObject *obsid=NULL, *ret=NULL;
@@ -2557,32 +2557,34 @@ static PyObject *PyLsaAddAccountRights(PyObject *self, PyObject *args)
 	DWORD priv_cnt=0,priv_ind=0;
 	HANDLE hpolicy;
 	NTSTATUS err;
+
+	static char *keywords[] = {"PolicyHandle","AccountSid","UserRights", NULL};
 	// @pyparm <o PyLSA_HANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
 	// @pyparm <o PySID>|AccountSid||Account to which privs will be added
-	// @pyparm (str/unicode,...)|UserRights||List of privilege names (SE_*_NAME unicode constants)
-	if (!PyArg_ParseTuple(args, "OOO:LsaAddAccountRights", &policy_handle, &obsid, &privs))
+	// @pyparm (str/unicode,...)|UserRights||Sequence of privilege names (SE_*_NAME unicode constants)
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO:LsaAddAccountRights", keywords, 
+		&policy_handle, &obsid, &privs))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(policy_handle, &hpolicy))
 		return NULL;
 	if (!PyWinObject_AsSID(obsid, &psid, FALSE))
 		return NULL;
-	if (!PySequence_Check(privs)){
-		PyErr_SetString(PyExc_TypeError,"UserRights must be a sequence of unicode or string objects");
+
+	PyObject *privs_tuple = PyWinSequence_Tuple(privs, &priv_cnt);
+	if (privs_tuple==NULL)
 		return NULL;
-		}
-	priv_cnt=PySequence_Length(privs);
 	plsau_start=(PLSA_UNICODE_STRING)calloc(priv_cnt,sizeof(LSA_UNICODE_STRING));
-	if (plsau_start==NULL)
-		return PyErr_Format(PyExc_MemoryError,"LsaAddAccountRights: Unable to allocate %d bytes", priv_cnt*sizeof(LSA_UNICODE_STRING));
+	if (plsau_start==NULL){
+		PyErr_Format(PyExc_MemoryError,"LsaAddAccountRights: Unable to allocate %d bytes", priv_cnt*sizeof(LSA_UNICODE_STRING));
+		goto done;
+		}
+
 	plsau=plsau_start;
 	for (priv_ind=0; priv_ind<priv_cnt; priv_ind++){
 		plsau->Buffer=NULL;
-		priv=PySequence_GetItem(privs, priv_ind);
-		if (!PyWinObject_AsLSA_UNICODE_STRING(priv,plsau,FALSE)){
-			Py_DECREF(priv);
+		priv=PyTuple_GET_ITEM(privs_tuple, priv_ind);
+		if (!PyWinObject_AsLSA_UNICODE_STRING(priv,plsau,FALSE))
 			goto done;
-			}
-		Py_DECREF(priv);
 		plsau++;
 		}
 	err=LsaAddAccountRights(hpolicy, psid, plsau_start, priv_cnt);
@@ -2590,29 +2592,33 @@ static PyObject *PyLsaAddAccountRights(PyObject *self, PyObject *args)
 		PyWin_SetAPIError("LsaAddAccountRights",LsaNtStatusToWinError(err));
 		goto done;
 		}
+	Py_INCREF(Py_None);
 	ret=Py_None;
 
 	done:
+	Py_DECREF(privs_tuple);
 	if (plsau_start){
 		plsau=plsau_start;
 		for (priv_ind=0; priv_ind<priv_cnt; priv_ind++){
 			// in case object in privs is not a string
 			if(plsau->Buffer==NULL)
 				break;
-			PyWinObject_FreeTCHAR(plsau->Buffer);
+			PyWinObject_FreeWCHAR(plsau->Buffer);
 			plsau++;
 			}
 		free(plsau_start);
 		}
-	Py_XINCREF(ret);
 	return ret;
 }
+PyCFunction pfn_PyLsaAddAccountRights=PyCFunction(PyLsaAddAccountRights);
 %}
 
-// @pyswig |LsaRemoveAccountRights|Removes privs from an account - if AllRights parm is true, account is *deleted*
-%native(LsaRemoveAccountRights) PyLsaRemoveAccountRights;
+// @pyswig |LsaRemoveAccountRights|Removes privs from an account
+// @comm If AllRights parm is true, account is *deleted*
+// @comm Accepts keyword args.
+%native(LsaRemoveAccountRights) pfn_PyLsaRemoveAccountRights;
 %{
-static PyObject *PyLsaRemoveAccountRights(PyObject *self, PyObject *args)
+static PyObject *PyLsaRemoveAccountRights(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	PyObject *privs=NULL, *priv=NULL, *policy_handle=NULL;
 	PyObject *obsid=NULL, *ret=NULL;
@@ -2622,33 +2628,35 @@ static PyObject *PyLsaRemoveAccountRights(PyObject *self, PyObject *args)
 	DWORD priv_cnt=0,priv_ind=0;
 	HANDLE hpolicy;
 	NTSTATUS err;
+
+	static char *keywords[] = {"PolicyHandle","AccountSid","AllRights","UserRights", NULL};
 	// @pyparm <o PyLSA_HANDLE>|PolicyHandle||An LSA policy handle as returned by <om win32security.LsaOpenPolicy>
 	// @pyparm <o PySID>|AccountSid||Account whose privileges will be removed
 	// @pyparm int|AllRights||Boolean value indicating if all privs should be removed from account
 	// @pyparm (str/unicode,...)|UserRights||List of privilege names to be removed (SE_*_NAME unicode constants)
-	if (!PyArg_ParseTuple(args, "OOiO:LsaAddAccountRights", &policy_handle, &obsid,  &AllRights, &privs))
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOiO:LsaAddAccountRights", keywords, 
+		&policy_handle, &obsid,  &AllRights, &privs))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(policy_handle, &hpolicy))
 		return NULL;
 	if (!PyWinObject_AsSID(obsid, &psid, FALSE))
 		return NULL;
-	if (!PySequence_Check(privs)){
-		PyErr_SetString(PyExc_TypeError,"UserRights must be a sequence of unicode or string objects");
+
+	PyObject *privs_tuple = PyWinSequence_Tuple(privs, &priv_cnt);
+	if (privs_tuple==NULL)
 		return NULL;
-		}
-	priv_cnt=PySequence_Length(privs);
 	plsau_start=(PLSA_UNICODE_STRING)calloc(priv_cnt,sizeof(LSA_UNICODE_STRING));
-	if (plsau_start==NULL)
-		return PyErr_Format(PyExc_MemoryError,"LsaRemoveAccountRights: Unable to allocate %d bytes", priv_cnt*sizeof(LSA_UNICODE_STRING));
+	if (plsau_start==NULL){
+		PyErr_Format(PyExc_MemoryError,"LsaRemoveAccountRights: Unable to allocate %d bytes", priv_cnt*sizeof(LSA_UNICODE_STRING));
+		goto done;
+		}
+
 	plsau=plsau_start;
 	for (priv_ind=0; priv_ind<priv_cnt; priv_ind++){
 		plsau->Buffer=NULL;
-		priv=PySequence_GetItem(privs, priv_ind);
-		if (!PyWinObject_AsLSA_UNICODE_STRING(priv,plsau,FALSE)){
-			Py_DECREF(priv);
+		priv=PyTuple_GET_ITEM(privs_tuple, priv_ind);
+		if (!PyWinObject_AsLSA_UNICODE_STRING(priv,plsau,FALSE))
 			goto done;
-			}
-		Py_DECREF(priv);
 		plsau++;
 		}
 	err=LsaRemoveAccountRights(hpolicy, psid, AllRights, plsau_start, priv_cnt);
@@ -2656,23 +2664,25 @@ static PyObject *PyLsaRemoveAccountRights(PyObject *self, PyObject *args)
 		PyWin_SetAPIError("LsaRemoveAccountRights",LsaNtStatusToWinError(err));
 		goto done;
 		}
+	Py_INCREF(Py_None);
 	ret=Py_None;
 
 	done:
+	Py_DECREF(privs_tuple);
 	if (plsau_start){
 		plsau=plsau_start;
 		for (priv_ind=0; priv_ind<priv_cnt; priv_ind++){
 			// in case object in privs is not a string
 			if(plsau->Buffer==NULL)
 				break;
-			PyWinObject_FreeTCHAR(plsau->Buffer);
+			PyWinObject_FreeWCHAR(plsau->Buffer);
 			plsau++;
 			}
 		free(plsau_start);
 		}
-	Py_XINCREF(ret);
 	return ret;
 }
+PyCFunction pfn_PyLsaRemoveAccountRights=PyCFunction(PyLsaRemoveAccountRights);
 %}
 
 // @pyswig [<o PyUnicode>, ...]|LsaEnumerateAccountRights|Lists privileges held by SID
@@ -2683,7 +2693,7 @@ static PyObject *PyLsaEnumerateAccountRights(PyObject *self, PyObject *args)
 	PyObject *privs=NULL, *priv=NULL, *policy_handle=NULL;
 	PyObject *obsid=NULL, *ret=NULL;
 	PSID psid=NULL;
-	PLSA_UNICODE_STRING plsau=NULL, plsau_start=NULL;
+	PLSA_UNICODE_STRING plsau=NULL;
 	ULONG priv_cnt=0,priv_ind=0;
 	HANDLE hpolicy;
 	NTSTATUS err;
@@ -2695,21 +2705,25 @@ static PyObject *PyLsaEnumerateAccountRights(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsSID(obsid, &psid, FALSE))
 		return NULL;
-	err=LsaEnumerateAccountRights(hpolicy,psid, &plsau_start, &priv_cnt);
+	err=LsaEnumerateAccountRights(hpolicy,psid, &plsau, &priv_cnt);
 	if (err != STATUS_SUCCESS){
 		PyWin_SetAPIError("LsaEnumerateAccountRights",LsaNtStatusToWinError(err));
 		goto done;
 		}
 	privs=PyTuple_New(priv_cnt);
-	plsau=plsau_start;
-	for (priv_ind=0; priv_ind<priv_cnt; priv_ind++){
-        priv=PyWinObject_FromLSA_UNICODE_STRING(*plsau);
-		PyTuple_SetItem(privs, priv_ind, priv);
-		plsau++;
-		}
+	if (privs)
+		for (priv_ind=0; priv_ind<priv_cnt; priv_ind++){
+		    priv=PyWinObject_FromLSA_UNICODE_STRING(plsau[priv_ind]);
+			if (!priv){
+				Py_DECREF(privs);
+				privs=NULL;
+				break;
+				}
+			PyTuple_SET_ITEM(privs, priv_ind, priv);
+			}
 	done:
-	if (plsau_start)
-		LsaFreeMemory(plsau_start);
+	if (plsau)
+		LsaFreeMemory(plsau);
 	return privs;
 }
 %}
@@ -3115,7 +3129,7 @@ SECURITY_IMPERSONATION_LEVEL ImpersonationLevel
 BOOLAPI DuplicateToken(
   HANDLE ExistingTokenHandle,
   SECURITY_IMPERSONATION_LEVEL ImpersonationLevel,
-  HANDLE *OUTPUT
+  PyHANDLE *OUTPUT
 );
 
 // @pyswig <o PyHANDLE>|DuplicateTokenEx|Extended version of DuplicateToken.
@@ -3178,9 +3192,9 @@ static PyObject *PyCheckTokenMembership(PyObject *self, PyObject *args)
 %}
 
 // @pyswig <o PyHANDLE>|CreateRestrictedToken|Creates a restricted copy of an access token with reduced privs - requires win2K or higher
-%native(CreateRestrictedToken) PyCreateRestrictedToken;
+%native(CreateRestrictedToken) pfn_PyCreateRestrictedToken;
 %{
-static PyObject *PyCreateRestrictedToken(PyObject *self, PyObject *args)
+static PyObject *PyCreateRestrictedToken(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	PyObject *obExistingTokenHandle, *ret=NULL;
 	PyObject *obSidsToDisable, *obSidsToRestrict, *obPrivilegesToDelete;
@@ -3189,14 +3203,15 @@ static PyObject *PyCreateRestrictedToken(PyObject *self, PyObject *args)
 	PSID_AND_ATTRIBUTES SidsToDisable=NULL,SidsToRestrict=NULL;
 	PLUID_AND_ATTRIBUTES PrivilegesToDelete=NULL;
 	BOOL bsuccess=TRUE;
-	
+	static char *keywords[] = {"ExistingTokenHandle","Flags","SidsToDisable","PrivilegesToDelete","SidsToRestrict", NULL};
+
 	CHECK_PFN(CreateRestrictedToken);
-	if (!PyArg_ParseTuple(args,"OlOOO:CreateRestrictedToken",
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OlOOO:CreateRestrictedToken", keywords,
 		&obExistingTokenHandle,	// @pyparm <o PyHANDLE>|ExistingTokenHandle||Handle to an access token (see <om win32security.LogonUser>,<om win32security.OpenProcessToken>
 		&Flags,					// @pyparm int|Flags||Valid values are zero or a combination of DISABLE_MAX_PRIVILEGE and SANDBOX_INERT
-		&obSidsToDisable,		// @pyparm (<o PySID_AND_ATTRIBUTES>,...)|SidsToDisable||Can be None, otherwise must be a sequence of <o PySID_AND_ATTRIBUTES> tuples (attributes must be 0)
+		&obSidsToDisable,		// @pyparm (<o PySID_AND_ATTRIBUTES>,...)|SidsToDisable||Ssequence of <o PySID_AND_ATTRIBUTES> tuples, or None
 		&obPrivilegesToDelete,	// @pyparm (<o PyLUID_AND_ATTRIBUTES>,...)|PrivilegesToDelete||Privilege LUIDS to remove from token (attributes are ignored), or None 
-		&obSidsToRestrict))		// @pyparm (<o PySID_AND_ATTRIBUTES>,...)|SidsToRestrict||Can be None, otherwise must be a sequence of <o PySID_AND_ATTRIBUTES> tuples (attributes must be 0)
+		&obSidsToRestrict))		// @pyparm (<o PySID_AND_ATTRIBUTES>,...)|SidsToRestrict||Sequence of <o PySID_AND_ATTRIBUTES> tuples (attributes must be 0).  Can be None.
 		return NULL;
 	if (PyWinObject_AsHANDLE(obExistingTokenHandle, &ExistingTokenHandle))
 		if (PyWinObject_AsSID_AND_ATTRIBUTESArray(obSidsToDisable, &SidsToDisable, &DisableSidCount))
@@ -3215,6 +3230,7 @@ static PyObject *PyCreateRestrictedToken(PyObject *self, PyObject *args)
 		free(SidsToRestrict);
 	return ret;
 }
+PyCFunction pfn_PyCreateRestrictedToken = (PyCFunction)PyCreateRestrictedToken;
 %}
 
 // @pyswig <o PyLsaLogon_HANDLE>|LsaRegisterLogonProcess|Creates a trusted connection to LSA
@@ -3930,11 +3946,6 @@ static PyObject *PyMapGenericMask(PyObject *self, PyObject *args)
 #define UNPROTECTED_DACL_SECURITY_INFORMATION UNPROTECTED_DACL_SECURITY_INFORMATION
 #define UNPROTECTED_SACL_SECURITY_INFORMATION UNPROTECTED_SACL_SECURITY_INFORMATION
 
-/** if (_WIN32_WINNT >= 0x0500)
-#define SE_DS_OBJECT SE_DS_OBJECT
-#define SE_DS_OBJECT_ALL SE_DS_OBJECT_ALL
-#define SE_PROVIDER_DEFINED_OBJECT SE_PROVIDER_DEFINED_OBJECT
-**/
 
 #define SidTypeUser SidTypeUser // Indicates a user SID. 
 #define SidTypeGroup SidTypeGroup // Indicates a group SID. 
