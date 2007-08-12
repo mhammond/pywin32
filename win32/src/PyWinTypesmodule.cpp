@@ -487,9 +487,8 @@ BOOL PyWinObject_AsDWORDArray(PyObject *obdwords, DWORD **pdwords, DWORD *item_c
 		PyErr_SetString(PyExc_ValueError,"Sequence of dwords cannot be None");
 		return FALSE;
 		}
-	if ((dwords_tuple=PySequence_Tuple(obdwords))==NULL)
+	if ((dwords_tuple=PyWinSequence_Tuple(obdwords, item_cnt))==NULL)
 		return FALSE;	// last exit without cleaning up
-	*item_cnt=PyTuple_Size(dwords_tuple);
 	bufsize=*item_cnt * sizeof(DWORD);
 	*pdwords=(DWORD *)malloc(bufsize);
 	if (*pdwords==NULL){
@@ -726,6 +725,21 @@ BOOL PyWinObject_AsWriteBuffer(PyObject *ob, void **buf, DWORD *buf_len, BOOL bN
 
 	*buf_len=(DWORD)py_len;
 	return TRUE;
+}
+
+// Converts sequence into a tuple and verifies that length fits in length variable
+PyObject *PyWinSequence_Tuple(PyObject *obseq, DWORD *len)
+{
+	PyObject *obtuple=PySequence_Tuple(obseq);
+	if (obtuple==NULL)
+		return NULL;
+	Py_ssize_t py_len=PyTuple_GET_SIZE(obtuple);
+	if (py_len > MAXDWORD){
+		Py_DECREF(obtuple);
+		return PyErr_Format(PyExc_ValueError, "Sequence can contain at most %d items", MAXDWORD);
+		}
+	*len=(DWORD)py_len;
+	return obtuple;
 }
 
 

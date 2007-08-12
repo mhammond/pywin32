@@ -1088,3 +1088,91 @@ PyObject *PyWinObject_FromMultipleString(char *multistring)
 		}
 	return ret;
 }
+
+// Converts a sequence of str/unicode objects into a series of consecutive null-terminated
+//	wide character strings with extra terminating null
+BOOL PyWinObject_AsMultipleString(PyObject *ob, WCHAR **pmultistring, BOOL bNoneOK)
+{
+	DWORD numStrings, i;
+	WCHAR **wchars;
+	BOOL rc=FALSE;
+
+	*pmultistring=NULL;
+	if (!PyWinObject_AsWCHARArray(ob, &wchars, &numStrings, bNoneOK))
+		return FALSE;
+	// Shortcut for None
+	if (wchars==NULL)
+		return TRUE;
+
+	size_t len=numStrings+1;	// One null for each string plus extra terminating null
+	// Need to loop twice - once to get the buffer length
+	for (i=0;i<numStrings;i++)
+		len += wcslen(wchars[i]);
+
+	// Allocate the buffer
+	*pmultistring = (WCHAR *)malloc(len * sizeof(WCHAR));
+	if (*pmultistring == NULL)
+		PyErr_NoMemory();
+	else{
+		WCHAR *p = *pmultistring;
+		for (i=0;i<numStrings;i++) {
+			wcscpy(p, wchars[i]);
+			p += wcslen(wchars[i]);
+			*p++ = L'\0';
+			}
+		*p = L'\0'; // Add second terminator.
+		rc = TRUE;
+		}
+	PyWinObject_FreeWCHARArray(wchars, numStrings);
+	return rc;
+}
+
+void PyWinObject_FreeMultipleString(WCHAR *pmultistring)
+{
+	if (pmultistring)
+		free (pmultistring);
+}
+
+// Converts a aequence of string or unicode objects into an array of WCHAR
+void PyWinObject_FreeWCHARArray(LPWSTR *wchars, DWORD str_cnt)
+{
+	if (wchars!=NULL){
+		for (DWORD wchar_index=0; wchar_index<str_cnt; wchar_index++)
+			PyWinObject_FreeWCHAR(wchars[wchar_index]);
+		free(wchars);
+		}
+}
+
+BOOL PyWinObject_AsWCHARArray(PyObject *str_seq, LPWSTR **wchars, DWORD *str_cnt, BOOL bNoneOK)
+{
+	BOOL ret=FALSE;
+	PyObject *str_tuple=NULL, *tuple_item;
+	DWORD bufsize, tuple_index;
+	*wchars=NULL;
+	*str_cnt=0;
+
+	if (bNoneOK && str_seq==Py_None)
+		return TRUE;
+	if ((str_tuple=PyWinSequence_Tuple(str_seq, str_cnt))==NULL)
+		return FALSE;
+	bufsize=*str_cnt * sizeof(LPWSTR);
+	*wchars=(LPWSTR *)malloc(bufsize);
+	if (*wchars==NULL){
+		PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
+		goto done;
+		}
+	ZeroMemory(*wchars, bufsize);
+	for (tuple_index=0;tuple_index<*str_cnt;tuple_index++){
+		tuple_item=PyTuple_GET_ITEM(str_tuple, tuple_index);
+		if (!PyWinObject_AsWCHAR(tuple_item, &((*wchars)[tuple_index]), FALSE)){
+			PyWinObject_FreeWCHARArray(*wchars, *str_cnt);
+			*wchars=NULL;
+			*str_cnt=0;
+			goto done;
+			}
+		}
+	ret=TRUE;
+done:
+	Py_DECREF(str_tuple);
+	return ret;
+}

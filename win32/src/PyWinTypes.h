@@ -191,6 +191,10 @@ PYWINTYPES_EXPORT void PyWinObject_FreeString(WCHAR *pResult);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsReadBuffer(PyObject *ob, void **buf, DWORD *buf_len, BOOL bNoneOk=FALSE);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsWriteBuffer(PyObject *ob, void **buf, DWORD *buf_len, BOOL bNoneOk=FALSE);
 
+// For 64-bit python compatibility, convert sequence to tuple and check length fits in a DWORD
+PYWINTYPES_EXPORT PyObject *PyWinSequence_Tuple(PyObject *obseq, DWORD *len);
+
+
 // an 'int' version (but aren't 'int' and 'DWORD' the same size?
 // Maybe a signed-ness issue?
 inline BOOL PyWinObject_AsReadBuffer(PyObject *ob, void **buf, int *buf_len, BOOL bNoneOk=FALSE)
@@ -221,6 +225,14 @@ inline PyObject *PyWinObject_FromTCHAR( TCHAR *str, int numChars ) {return PyStr
 // Converts a series of consecutive null terminated strings into a list
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromMultipleString(WCHAR *multistring);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromMultipleString(char *multistring);
+// Converts a sequence of str/unicode objects into a series of consecutive null-terminated
+//	wide character strings with extra terminating null
+PYWINTYPES_EXPORT BOOL PyWinObject_AsMultipleString(PyObject *ob, WCHAR **pmultistring, BOOL bNoneOK=TRUE);
+PYWINTYPES_EXPORT void PyWinObject_FreeMultipleString(WCHAR *pmultistring);
+
+// Convert a sequence of strings to an array of WCHAR pointers
+PYWINTYPES_EXPORT void PyWinObject_FreeWCHARArray(LPWSTR *wchars, DWORD str_cnt);
+PYWINTYPES_EXPORT BOOL PyWinObject_AsWCHARArray(PyObject *str_seq, LPWSTR **wchars, DWORD *str_cnt, BOOL bNoneOK = FALSE);
 
 PYWINTYPES_EXPORT PyObject *PyString_FromUnicode( const OLECHAR *str );
 PYWINTYPES_EXPORT PyObject *PyUnicodeObject_FromString(const char *string);
