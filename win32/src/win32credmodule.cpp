@@ -44,8 +44,8 @@ BOOL PyWinObject_AsCREDENTIAL_ATTRIBUTE(PyObject *obattr, PCREDENTIAL_ATTRIBUTE 
 {
 	static char *keywords[]={"Keyword","Flags","Value", NULL};
 	PyObject *obKeyword, *obValue, *args;
-	const void *value;
-	Py_ssize_t valuelen;
+	void *value;
+	DWORD valuelen;
 	BOOL ret;
 	ZeroMemory(attr, sizeof(CREDENTIAL_ATTRIBUTE));
 	if (!PyDict_Check(obattr)){
@@ -59,7 +59,7 @@ BOOL PyWinObject_AsCREDENTIAL_ATTRIBUTE(PyObject *obattr, PCREDENTIAL_ATTRIBUTE 
 	ret=PyArg_ParseTupleAndKeywords(args, obattr, "OkO:CREDENTIAL_ATTRIBUTE", keywords,
 			&obKeyword, &attr->Flags, &obValue)
 		&&PyWinObject_AsWCHAR(obKeyword, &attr->Keyword, FALSE)
-		&&(PyObject_AsReadBuffer(obValue, &value, &valuelen)==0)
+		&&PyWinObject_AsReadBuffer(obValue, &value, &valuelen)
 		&&((attr->Value=(LPBYTE)malloc(valuelen))!=NULL);
 	if (ret){
 		memcpy(attr->Value, value, valuelen);
@@ -91,10 +91,9 @@ BOOL PyWinObject_AsCREDENTIAL_ATTRIBUTEArray(PyObject *obattrs, PCREDENTIAL_ATTR
 	// accept either None or empty tuple for no attributes
 	if (obattrs==Py_None)
 		return TRUE;
-	attr_tuple=PySequence_Tuple(obattrs);
+	attr_tuple=PyWinSequence_Tuple(obattrs, attr_cnt);
 	if (attr_tuple==NULL)
 		return FALSE;
-	*attr_cnt=PyTuple_GET_SIZE(attr_tuple);
 	if (*attr_cnt>0){
 		*attrs=(PCREDENTIAL_ATTRIBUTE)malloc(*attr_cnt * sizeof(CREDENTIAL_ATTRIBUTE));
 		if (*attrs==NULL){

@@ -61,9 +61,8 @@ BOOL PyWinObject_AsUSHORTArray(PyObject *obushorts, USHORT **pushorts, DWORD *it
 		PyErr_SetString(PyExc_ValueError,"Sequence of unsigned shorts cannot be None");
 		return FALSE;
 		}
-	if ((ushorts_tuple=PySequence_Tuple(obushorts))==NULL)
+	if ((ushorts_tuple=PyWinSequence_Tuple(obushorts, item_cnt))==NULL)
 		return FALSE;	// last exit without cleaning up
-	*item_cnt=PyTuple_Size(ushorts_tuple);
 	bufsize=*item_cnt * sizeof(USHORT);
 	*pushorts=(USHORT *)malloc(bufsize);
 	if (*pushorts==NULL){
@@ -1406,10 +1405,9 @@ PyObject *PyConsoleScreenBuffer::PyWriteConsoleInput(PyObject *self, PyObject *a
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:WriteConsoleInput", keywords,
 		&obbuf))	// @pyparm (<o PyINPUT_RECORD>,...)|Buffer||A sequence of <o PyINPUT_RECORD> objects
 		return NULL;
-	obtuple=PySequence_Tuple(obbuf);
+	obtuple=PyWinSequence_Tuple(obbuf, &nbrofrecords);
 	if (obtuple==NULL)
 		return NULL;
-	nbrofrecords=PyTuple_GET_SIZE(obtuple);
 	pinput_records=(INPUT_RECORD *)malloc(nbrofrecords *sizeof(INPUT_RECORD));
 	if (pinput_records==NULL){
 		PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", nbrofrecords *sizeof(INPUT_RECORD));
