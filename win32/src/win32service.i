@@ -710,59 +710,6 @@ PyObject *PyCreateWindowStation(PyObject *self, PyObject *args)
 %}
 
 %{
-BOOL BuildDeps(PyObject *obDeps, TCHAR **ppDeps)
-{
-	TCHAR *lpDeps = NULL;
-	BOOL rc = FALSE;
-	if (obDeps!=Py_None) {
-		if (!PySequence_Check(obDeps)) {
-			PyErr_SetString(PyExc_ValueError, "Dependencies must be None or a list of strings");
-			goto cleanup;
-		}
- 		int numStrings = PySequence_Length(obDeps);
-		// Need to loop twice - once to get the buffer length
-		int i, len = 0;
-		for (i=0;i<numStrings;i++) {
-			PyObject *obString = PySequence_GetItem(obDeps, i);
-			if (obString==NULL)
-				goto cleanup;
-			if (!PyString_Check(obString)) {
-				Py_DECREF(obString);
-				PyErr_SetString(PyExc_ValueError, "The list items for Dependencies must all be strings");
-				goto cleanup;
-			}
-			len += PyString_Size(obString) + 1;
-			Py_DECREF(obString);
-		}
-		// Allocate the buffer
-		lpDeps = new TCHAR[len+2]; // Double '\0' terminated
-		TCHAR *p = lpDeps;
-		for (i=0;i<numStrings;i++) {
-			// We know the sequence is valid.
-			PyObject *obString = PySequence_GetItem(obDeps, i);
-			BSTR pStr;
-			if (!PyWinObject_AsTCHAR(obString, &pStr)) {
-				Py_DECREF(obString);
-				goto cleanup;
-			}
-			size_t len = _tcslen(pStr);
-			_tcsncpy(p, pStr, len);
-			p += len;
-			*p++ = L'\0';
-			PyWinObject_FreeTCHAR(pStr);
-			Py_DECREF(obString);
-		}
-		*p = L'\0'; // Add second terminator.
-	}
-	*ppDeps = lpDeps;
-	rc = TRUE;
-cleanup:
-	if (!rc) {
-		delete [] lpDeps;
-	}
-	return rc;
-}
-
 PyObject *MyCreateService(
     SC_HANDLE hSCManager,	// handle to service control manager database  
     TCHAR *lpServiceName,	// pointer to name of service to start 
@@ -784,7 +731,7 @@ PyObject *MyCreateService(
 	DWORD tagID;
 	DWORD *pTagID = bFetchTag ? &tagID : NULL;
 	SC_HANDLE sh = 0;
-	if (!BuildDeps(obDeps, &lpDeps))
+	if (!PyWinObject_AsMultipleString(obDeps, &lpDeps, TRUE))
 		goto cleanup;
 
 	sh = CreateService(hSCManager,lpServiceName,lpDisplayName,dwDesiredAccess,
@@ -795,12 +742,12 @@ PyObject *MyCreateService(
 		rc = NULL;
 	} else {
 		if (bFetchTag)
-			rc = Py_BuildValue("Nl", PyWinLong_FromHANDLE(sh), tagID);
+			rc = Py_BuildValue("Nl", PyWinObject_FromSC_HANDLE(sh), tagID);
 		else
-			rc = PyWinLong_FromHANDLE(sh);
+			rc = PyWinObject_FromSC_HANDLE(sh);
 	}
 cleanup:
-	delete [] lpDeps;
+	PyWinObject_FreeMultipleString(lpDeps);
 	return rc;
 		
 }
@@ -824,7 +771,7 @@ PyObject *MyChangeServiceConfig(
 	DWORD tagID;
 	DWORD *pTagID = bFetchTag ? &tagID : NULL;
 	SC_HANDLE sh = 0;
-	if (!BuildDeps(obDeps, &lpDeps))
+	if (!PyWinObject_AsMultipleString(obDeps, &lpDeps, TRUE))
 		goto cleanup;
 
 	if (!ChangeServiceConfig(hSCManager,
@@ -839,47 +786,25 @@ PyObject *MyChangeServiceConfig(
 		Py_INCREF(rc);
 	}
 cleanup:
-	delete [] lpDeps;
+	PyWinObject_FreeMultipleString(lpDeps);
 	return rc;
 		
 }
 
 PyObject *MyStartService( SC_HANDLE scHandle, PyObject *serviceArgs )
 {
-	LPTSTR *pArgs;
+	LPWSTR *pArgs;
 	DWORD numStrings = 0;
-	if (serviceArgs==Py_None)
-		pArgs = NULL;
-	else if (!PySequence_Check(serviceArgs)) {
-		PyErr_SetString(PyExc_ValueError, "Service arguments must be list of strings.");
+	if (!PyWinObject_AsWCHARArray(serviceArgs, &pArgs, &numStrings, TRUE))
 		return NULL;
-	} else {
-		numStrings = PySequence_Length(serviceArgs);
-		pArgs = new LPTSTR [numStrings];
-		if (pArgs==NULL) {
-			PyErr_SetString(PyExc_MemoryError, "Allocating argument arrays");
-			return NULL;
-		}
-		for (DWORD i=0;i<numStrings;i++) {
-			PyObject *obString = PySequence_GetItem(serviceArgs, (int)i);
-			if (obString==NULL) {
-				delete [] pArgs;
-				return NULL;
-			}
-			pArgs[i] = NULL;
-			PyWinObject_AsTCHAR(obString, pArgs+i);
-			Py_DECREF(obString);
-		}
-	}
+
 	PyObject *rc;
-	if (StartService(scHandle, numStrings, (LPCTSTR *)pArgs)) {
+	if (StartService(scHandle, numStrings, (LPCWSTR *)pArgs)) {
 		rc = Py_None;
 		Py_INCREF(Py_None);
 	} else
 		rc = PyWin_SetAPIError("StartService");
-	for (DWORD i=0;i<numStrings;i++)
-		PyWinObject_FreeTCHAR(pArgs[i]);
-	delete [] pArgs;
+	PyWinObject_FreeWCHARArray(pArgs, numStrings);
 	return rc;
 }
 %}
@@ -1487,27 +1412,28 @@ BOOL PyWinObject_AsSC_ACTION(PyObject *obAction, SC_ACTION *Action)
 
 BOOL PyWinObject_AsSC_ACTIONS(PyObject *obActions, SC_ACTION **ppActions, LPDWORD cActions)
 {
-	static char* err="SC_ACTIONS must be a tuple of 2-tuples ((int, int),...)";
+	static char* err="SC_ACTIONS must be a sequence of 2-tuples ((int, int),...)";
 	DWORD action_ind;
 	BOOL ret=TRUE;
 	SC_ACTION *pAction;
 	if (obActions==Py_None){
+		*cActions=0;
 		*ppActions=NULL;
 		return TRUE;
 		}
-	if (!PyTuple_Check(obActions)){
-		PyErr_SetString(PyExc_TypeError,err);
+	PyObject *actions_tuple=PyWinSequence_Tuple(obActions, cActions);
+	if (actions_tuple==NULL)
 		return FALSE;
-		}
-	*cActions=PyTuple_Size(obActions);
+
 	*ppActions=(SC_ACTION *)malloc(*cActions*sizeof(SC_ACTION));
 	if (*ppActions==NULL){
+		Py_DECREF(actions_tuple);
 		PyErr_Format(PyExc_MemoryError,"Unable to allocate %d SC_ACTION structures", *cActions);
 		return FALSE;
 		}
 	pAction=*ppActions;
 	for (action_ind=0;action_ind<*cActions;action_ind++){
-		ret=PyWinObject_AsSC_ACTION(PyTuple_GET_ITEM(obActions, action_ind), pAction);
+		ret=PyWinObject_AsSC_ACTION(PyTuple_GET_ITEM(actions_tuple, action_ind), pAction);
 		if (!ret){
 			free(*ppActions);
 			*ppActions=NULL;
@@ -1516,6 +1442,7 @@ BOOL PyWinObject_AsSC_ACTIONS(PyObject *obActions, SC_ACTION **ppActions, LPDWOR
 			}
 		pAction++;
 		}
+	Py_DECREF(actions_tuple);
 	return ret;
 }
 

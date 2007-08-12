@@ -330,21 +330,6 @@ BOOL PyWinObject_AsSID_AND_ATTRIBUTES(PyObject *obsid_attr, PSID_AND_ATTRIBUTES 
 	return bsuccess;
 }
 
-// Converts sequence into a tuple and verifies that length fits in length variable
-PyObject *PyWinSequence_Tuple(PyObject *obseq, DWORD *len)
-{
-	PyObject *obtuple=PySequence_Tuple(obseq);
-	if (obtuple==NULL)
-		return NULL;
-	Py_ssize_t py_len=PyTuple_GET_SIZE(obtuple);
-	if (py_len > MAXDWORD){
-		Py_DECREF(obtuple);
-		return PyErr_Format(PyExc_ValueError, "Sequence can contain at most %d items", MAXDWORD);
-		}
-	*len=(DWORD)py_len;
-	return obtuple;
-}
-
 BOOL PyWinObject_AsSID_AND_ATTRIBUTESArray(PyObject *obsids, PSID_AND_ATTRIBUTES *psid_attr_array, DWORD *sid_cnt)
 {
 	PyObject *obsid_attr, *sids_tuple;

@@ -422,16 +422,17 @@ PyObject *PySecBuffer::getattro(PyObject *self, PyObject *obname)
 int PySecBuffer::setattro(PyObject *self, PyObject *obname, PyObject *obvalue)
 {
 	PySecBuffer *This=(PySecBuffer *)self;
-	char *name, *value;
-	Py_ssize_t valuelen;
+	char *name;
+	void *value;
+	DWORD valuelen;
 	name=PyString_AsString(obname);
 	if (name==NULL)
 		return -1;
 	if (strcmp(name,"Buffer")==0){
-		if (PyString_AsStringAndSize(obvalue, &value, &valuelen)==-1)
+		if (!PyWinObject_AsReadBuffer(obvalue, &value, &valuelen))
 			return -1;
 		PSecBuffer psecbuffer=This->GetSecBuffer();
-		if (valuelen>(Py_ssize_t)This->maxbufsize){
+		if (valuelen > This->maxbufsize){
 			PyErr_Format(PyExc_ValueError, "Data size (%d) greater than allocated buffer size (%d)",valuelen, This->maxbufsize);
 			return -1;
 			}

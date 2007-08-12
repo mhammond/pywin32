@@ -98,46 +98,6 @@ extern PyObject *PyDsUnBind(PyObject *self, PyObject *args)
 	return NULL;
 }
 
-void PyWinObject_FreeWCHARArray(LPWSTR *wchars, DWORD str_cnt)
-{
-	if (wchars!=NULL){
-		for (DWORD wchar_index=0; wchar_index<str_cnt; wchar_index++)
-			PyWinObject_FreeWCHAR(wchars[wchar_index]);
-		free(wchars);
-		}
-}
-
-BOOL PyWinObject_AsWCHARArray(PyObject *str_seq, LPWSTR **wchars, DWORD *str_cnt)
-{
-	BOOL ret=FALSE;
-	PyObject *str_tuple=NULL, *tuple_item;
-	DWORD bufsize, tuple_index;
-	*wchars=NULL;
-	*str_cnt=0;
-	if ((str_tuple=PySequence_Tuple(str_seq))==NULL)
-		return FALSE;
-	*str_cnt=PyTuple_Size(str_tuple);
-	bufsize=*str_cnt * sizeof(LPWSTR);
-	*wchars=(LPWSTR *)malloc(bufsize);
-	if (*wchars==NULL){
-		PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
-		goto done;
-		}
-	ZeroMemory(*wchars, bufsize);
-	for (tuple_index=0;tuple_index<*str_cnt;tuple_index++){
-		tuple_item=PyTuple_GET_ITEM(str_tuple, tuple_index);
-		if (!PyWinObject_AsWCHAR(tuple_item, &((*wchars)[tuple_index]), FALSE)){
-			PyWinObject_FreeWCHARArray(*wchars, *str_cnt);
-			*wchars=NULL;
-			*str_cnt=0;
-			goto done;
-			}
-		}
-	ret=TRUE;
-done:
-	Py_XDECREF(str_tuple);
-	return ret;
-}
 
 extern PyObject *PyDsGetSpn(PyObject *self, PyObject *args)
 {
