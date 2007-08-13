@@ -175,7 +175,7 @@ STDMETHODIMP PyGSecurityInformation::GetAccessRights(
 	PY_GATEWAY_METHOD;
 	HRESULT hr;
 	PyObject *result=NULL, *obObjectType=NULL;
-	PyObject *obAccesses, *fsAccesses=NULL, *obAccess, *tpAccess;
+	PyObject *obAccesses, *Accesses_tuple=NULL, *obAccess, *tpAccess;
 	PyObject *si_access_guid, *si_access_Name;
 	ULONG tuple_ind;
 
@@ -202,13 +202,12 @@ STDMETHODIMP PyGSecurityInformation::GetAccessRights(
 		hr=MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetAccessRights");
 		goto done;
 		}
-	fsAccesses=PySequence_Fast(obAccesses,"Return value must be a sequence of SI_ACCESS tuples");
-	if (fsAccesses==NULL){
+	Accesses_tuple=PyWinSequence_Tuple(obAccesses, &cAccessRights);
+	if (Accesses_tuple==NULL){
 		hr=MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetAccessRights");
 		goto done;
 		}
 
-	cAccessRights=PySequence_Fast_GET_SIZE(fsAccesses);
 	// piDefaultAccess is apparently not sanity checked, and can cause a crash in aclui.dll if
 	// greater than actual number of SI_ACCESS's.
 	if (*piDefaultAccess >= cAccessRights){
@@ -223,7 +222,7 @@ STDMETHODIMP PyGSecurityInformation::GetAccessRights(
 	ZeroMemory(AccessRights, cAccessRights * sizeof(SI_ACCESS));
 	hr=S_OK;
 	for (tuple_ind=0;tuple_ind<cAccessRights; tuple_ind++){
-		obAccess=PySequence_Fast_GET_ITEM(fsAccesses, tuple_ind);
+		obAccess=PyTuple_GET_ITEM(Accesses_tuple, tuple_ind);
 		tpAccess=PySequence_Tuple(obAccess);
 		if ((tpAccess==NULL)
 			||(!PyArg_ParseTuple(tpAccess,"OkOk", &si_access_guid, &AccessRights[tuple_ind].mask,
@@ -252,7 +251,7 @@ STDMETHODIMP PyGSecurityInformation::GetAccessRights(
 
 	Py_XDECREF(result);
 	Py_XDECREF(obObjectType);
-	Py_XDECREF(fsAccesses);
+	Py_XDECREF(Accesses_tuple);
 	return hr;
 }
 
@@ -310,7 +309,7 @@ STDMETHODIMP PyGSecurityInformation::GetInheritTypes(
 	ULONG* pcInheritTypes)
 {
 	PY_GATEWAY_METHOD;
-	PyObject *result=NULL, *fsInheritTypes=NULL, *obInheritType, *tpInheritType=NULL;
+	PyObject *result=NULL, *InheritTypes_tuple=NULL, *obInheritType, *tpInheritType=NULL;
 	PyObject *obguid, *obName;
 	ULONG tuple_ind;
 	// This can also be called repeatedly (every time you hit 'Edit' on the Advanced page)
@@ -319,12 +318,11 @@ STDMETHODIMP PyGSecurityInformation::GetInheritTypes(
 	HRESULT hr=InvokeViaPolicy("GetInheritTypes", &result, NULL);
 	if (FAILED(hr))
 		goto done;
-	fsInheritTypes=PySequence_Fast(result,"Return value must be a sequence of SI_INHERIT_TYPE tuples");
-	if (fsInheritTypes==NULL){
+	InheritTypes_tuple=PyWinSequence_Tuple(result, &cInheritTypes);
+	if (InheritTypes_tuple==NULL){
 		hr=MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetInheritTypes");
 		goto done;
 		}
-	cInheritTypes=PySequence_Fast_GET_SIZE(fsInheritTypes);
 	InheritTypes=(PSI_INHERIT_TYPE)malloc(cInheritTypes * sizeof(SI_INHERIT_TYPE));
 	if (InheritTypes==NULL){
 		hr=E_OUTOFMEMORY;
@@ -333,7 +331,7 @@ STDMETHODIMP PyGSecurityInformation::GetInheritTypes(
 	ZeroMemory(InheritTypes, cInheritTypes * sizeof(SI_INHERIT_TYPE));
 	hr=S_OK;
 	for (tuple_ind=0;tuple_ind<cInheritTypes; tuple_ind++){
-		obInheritType=PySequence_Fast_GET_ITEM(fsInheritTypes, tuple_ind);
+		obInheritType=PyTuple_GET_ITEM(InheritTypes_tuple, tuple_ind);
 		tpInheritType=PySequence_Tuple(obInheritType);
 		if ((tpInheritType==NULL)
 			||(!PyArg_ParseTuple(tpInheritType,"OkO", &obguid, &InheritTypes[tuple_ind].dwFlags, &obName))
@@ -358,7 +356,7 @@ done:
 		FreeInheritTypes();
 	*ppInheritTypes=InheritTypes;
 	*pcInheritTypes=cInheritTypes;
-	Py_XDECREF(fsInheritTypes);
+	Py_XDECREF(InheritTypes_tuple);
 	Py_XDECREF(result);
 	return hr;
 }
