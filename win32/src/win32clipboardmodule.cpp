@@ -336,38 +336,44 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
   }
 
   void * cData = NULL;
-  DWORD size;
+  size_t size;
+  DWORD dwordsize;
   switch (format) {
     case CF_HDROP:
 		hdrop = (HDROP)GlobalLock(handle);
         break;
     case CF_ENHMETAFILE:
-      size = GetEnhMetaFileBits((HENHMETAFILE)handle, 0, NULL);
-      if (!size)
+      dwordsize = GetEnhMetaFileBits((HENHMETAFILE)handle, 0, NULL);
+      if (!dwordsize)
         return ReturnAPIError("GetClipboardData:GetEnhMetafileBits(NULL)");
       // allocate a temporary buffer for enhanced metafile
-      cData = malloc(size);
+      cData = malloc(dwordsize);
       if (cData == NULL)
         return ReturnAPIError("GetClipboardData:malloc");
       // copy enhanced metafile into the temporary buffer
-      if (0 == GetEnhMetaFileBits((HENHMETAFILE)handle, size, (LPBYTE)cData)) {
+      if (0 == GetEnhMetaFileBits((HENHMETAFILE)handle, dwordsize, (LPBYTE)cData)) {
         free(cData);
         return ReturnAPIError("GetClipboardData:GetEnhMetafileBits");
       }
+	  size=dwordsize;
       break;
     case CF_METAFILEPICT:
-      size = GetMetaFileBitsEx((HMETAFILE)handle, 0, NULL);
-      if (!size)
+      // @todo CF_METAFILEPICT format returns a pointer to a METAFILEPICT struct which contains the metafile handle,
+      //	rather than returning the handle directly.  This code currently fails with
+      //	error: (6, 'GetClipboardData:GetMetafileBitsEx(NULL)', 'The handle is invalid.')
+      dwordsize = GetMetaFileBitsEx((HMETAFILE)handle, 0, NULL);
+      if (!dwordsize)
         return ReturnAPIError("GetClipboardData:GetMetafileBitsEx(NULL)");
       // allocate a temporary buffer for metafile
-      cData = malloc(size);
+      cData = malloc(dwordsize);
       if (cData == NULL)
         return ReturnAPIError("GetClipboardData:malloc");
       // copy metafile into the temporary buffer
-      if (0 == GetMetaFileBitsEx((HMETAFILE)handle, size, cData)) {
+      if (0 == GetMetaFileBitsEx((HMETAFILE)handle, dwordsize, cData)) {
         free(cData);
         return ReturnAPIError("GetClipboardData:GetMetafileBitsEx");
       }
+	  size=dwordsize;
       break;
     // All other formats simply return the data as a blob.
     default:
@@ -403,7 +409,7 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
         GlobalUnlock(handle);
         break;
     case CF_UNICODETEXT:
-      ret = PyWinObject_FromWCHAR((wchar_t *)cData, (size / sizeof(wchar_t))-1);
+      ret = PyUnicode_FromWideChar((wchar_t *)cData, (size / sizeof(wchar_t))-1);
       GlobalUnlock(handle);
       break;
     // For the text formats, strip the null!
@@ -423,6 +429,7 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
       break;
   }
   return ret;
+
   // @comm An application can enumerate the available formats in advance by
   // using the EnumClipboardFormats function.<nl>
   // The clipboard controls the handle that the GetClipboardData function
@@ -446,9 +453,10 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
   // @flagh Format|Result type
   // @flag CF_HDROP|A tuple of Unicode filenames.
   // @flag CF_UNICODETEXT|A unicode object.
-  // @flag CF_UNICODETEXT|A string object.
+  // @flag CF_OEMTEXT|A string object.
+  // @flag CF_TEXT|A string object.
   // @flag CF_ENHMETAFILE|A string with binary data obtained from GetEnhMetaFileBits
-  // @flag CF_METAFILEPICT|A string with binary data obtained from GetMetaFileBitsEx
+  // @flag CF_METAFILEPICT|A string with binary data obtained from GetMetaFileBitsEx (currently broken)
   // @flag All other formats|A string with binary data obtained directly from the 
   // global memory referenced by the handle.
 }
@@ -670,15 +678,12 @@ py_get_open_clipboard_window(PyObject* self, PyObject* args)
 
 //*****************************************************************************
 //
-// @pymethod int|win32clipboard|GetPriorityClipboardFormat|The
-// GetPriorityClipboardFormat function returns the first available clipboard
-// format in the specified list. 
-
+// @pymethod int|win32clipboard|GetPriorityClipboardFormat|Returns the first available clipboard format in the specified list.
 static PyObject *
 py_getPriority_clipboard_format(PyObject* self, PyObject* args)
 {
 
-  // @pyparm tuple|formats||Tuple of integers identifying clipboard formats,
+  // @pyparm sequence|formats||Sequence of integers identifying clipboard formats,
   // in priority order. For a description of the standard clipboard formats,
   // see Standard Clipboard Formats. 
 
@@ -688,32 +693,18 @@ py_getPriority_clipboard_format(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  if (!PyTuple_Check(formats)) {
-    RETURN_TYPE_ERR(
-       "GetPriorityClipboardFormat requires a tuple of integer formats");
-  }
-
-  int num_formats = PyTuple_Size(formats);
-  UINT *format_list = new UINT[num_formats];
-  PyObject *o;
-  for (int i = 0; i < num_formats; i++) {
-    o = PyTuple_GetItem(formats, i);
-    if (!PyInt_Check(o)) {
-      delete format_list;
-      RETURN_TYPE_ERR ("GetPriorityClipboardFormat expected integer formats.");
-    }
-    format_list[i] = PyInt_AsLong(o);
-  }
+  UINT *format_list;
+  DWORD num_formats;
+  if (!PyWinObject_AsDWORDArray(formats, (DWORD **)&format_list, &num_formats, FALSE))
+	  return NULL;
 
   int rc;
   Py_BEGIN_ALLOW_THREADS;
   rc = GetPriorityClipboardFormat(format_list, num_formats);
   Py_END_ALLOW_THREADS;
 
-  delete format_list;
-
-  return (Py_BuildValue("i", rc));
-
+  free(format_list);
+  return PyInt_FromLong(rc);
   // @pyseeapi GetPriorityClipboardFormat
   // @pyseeapi Standard Clipboard Formats
 
