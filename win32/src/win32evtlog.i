@@ -239,50 +239,24 @@ PyObject * MyReportEvent( HANDLE hEventLog,
     PyObject *obData)     // raw data
 {
 	PyObject *rc = NULL;
-	WORD numStrings = 0;
-	BSTR *pStrings = NULL;
-	int i;
+	DWORD numStrings = 0;
+	WCHAR **pStrings = NULL;
 	DWORD dataSize = 0;
-	char *pData;
+	void *pData;
 	PSID sid;
 	if (!PyWinObject_AsSID(obSID, &sid, TRUE))
 		return NULL;
-	if (obStrings==Py_None) {
-		pStrings = NULL;
-	} else if (PySequence_Check(obStrings)) {
-		numStrings = PySequence_Length(obStrings);
-		pStrings = new BSTR [numStrings];
-		if (pStrings==NULL) {
-			PyErr_SetString(PyExc_MemoryError, "Allocating string arrays");
-			goto cleanup;
-		}
-		memset(pStrings, 0, sizeof(WCHAR *)*numStrings);
-		for (i=0;i<numStrings;i++) {
-			PyObject *obString = PySequence_GetItem(obStrings, i);
-			if (obString==NULL) {
-				goto cleanup;
-			}
-			BOOL ok = PyWinObject_AsWCHAR(obString, pStrings+i);
-			Py_XDECREF(obString);
-			if (!ok)
-				goto cleanup;
-		}
-	} else {
-		PyErr_SetString(PyExc_TypeError, "strings must be None or a sequence");
-		goto cleanup;
-	}
-	if (obData==Py_None)
+	if (!PyWinObject_AsReadBuffer(obData, &pData, &dataSize, TRUE))
 		pData = NULL;
-	else if (PyString_Check(obData)){
-		pData = PyString_AsString(obData);
-		dataSize = PyString_Size(obData);
-	} else {
-		PyErr_SetString(PyExc_TypeError, "data must be None or a string");
+	if (!PyWinObject_AsWCHARArray(obStrings, &pStrings, &numStrings, TRUE))
 		return NULL;
-	}
+	if (numStrings > USHRT_MAX){
+		PyErr_Format(PyExc_ValueError, "String inserts can contain at most %d strings", USHRT_MAX);
+		goto cleanup;
+		}
 	BOOL ok;
 	Py_BEGIN_ALLOW_THREADS
-	ok = ReportEventW(hEventLog, wType, wCategory,	dwEventID, sid, numStrings, dataSize, (const WCHAR **)pStrings, pData);
+	ok = ReportEventW(hEventLog, wType, wCategory,	dwEventID, sid, (WORD)numStrings, dataSize, (const WCHAR **)pStrings, pData);
 	Py_END_ALLOW_THREADS
 
 	if (!ok) {
@@ -292,11 +266,7 @@ PyObject * MyReportEvent( HANDLE hEventLog,
 	Py_INCREF(Py_None);
 	rc = Py_None;
 cleanup:
-	if (pStrings) {
-		for (i=0;i<numStrings;i++)
-			PyWinObject_FreeWCHAR(pStrings[i]);
-		delete [] pStrings;
-	}
+	PyWinObject_FreeWCHARArray(pStrings, numStrings);
 	return rc;
 }
 
@@ -401,13 +371,13 @@ RegisterEventSourceW (
 
 // @pyswig |ReportEvent|Reports an event
 %name (ReportEvent) PyObject *MyReportEvent (
-     HANDLE     hEventLog,
-     WORD       wType,
-     WORD       wCategory,
-     DWORD      dwEventID,
-     PyObject   *pyobject,
-     PyObject   *pyobject,
-     PyObject   *pyobject
+     HANDLE     hEventLog,	// @pyparm <o PyHANDLE>|EventLog||Handle to an event log
+     WORD       wType,		// @pyparm int|Type||win32con.EVENTLOG_* value
+     WORD       wCategory,	// @pyparm int|Category||Source-specific event category
+     DWORD      dwEventID,	// @pyparm int|EventID||Source-specific event identifier
+     PyObject   *obUserSid,	// @pyparm <o PySID>|UserSid||Sid of current user, can be None 
+     PyObject   *obStrings,	// @pyparm sequence|Strings||Sequence of unicode strings to be inserted in message
+     PyObject   *obRawData	// @pyparm str|RawData||Binary data for event, can be None
     );
 
 
