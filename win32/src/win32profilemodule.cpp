@@ -61,10 +61,10 @@ PyObject * PyWinObject_FromEnvironmentBlock(WCHAR *multistring)
 			}
 		else{
 			vallen=wcslen(++eq);
-			val=PyWinObject_FromWCHAR(eq, vallen);
+			val=PyUnicode_FromWideChar(eq, vallen);
 			}
 		keylen=totallen-(vallen+1);
-		key=PyWinObject_FromWCHAR(multistring, keylen);
+		key=PyUnicode_FromWideChar(multistring, keylen);
 		if ((key==NULL) || (val==NULL) || (PyDict_SetItem(ret, key, val)==-1)){
 			Py_XDECREF(key);
 			Py_XDECREF(val);
