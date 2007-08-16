@@ -911,7 +911,7 @@ typedef struct {
 } MY_DLG_CONFIG;
 
 
-PDH_STATUS __stdcall CounterPathCallback(DWORD dwArg)
+PDH_STATUS __stdcall PyCounterPathCallback(DWORD_PTR dwArg)
 {
 	MY_DLG_CONFIG *pMy = (MY_DLG_CONFIG *)dwArg;
 	DWORD rc = PDH_INVALID_DATA;
@@ -968,7 +968,7 @@ static PyObject *PyBrowseCounters(PyObject *self, PyObject *args)
 			PyErr_SetString(PyExc_TypeError, "Flags must be None, or sequence of integers");
 			return NULL;
 		}
-		int seqLen = PySequence_Length(obFlags);
+		Py_ssize_t seqLen = PySequence_Length(obFlags);
 		if (seqLen>0) GET_IT(pcfg->bIncludeInstanceIndex, obFlags, 0);
 		if (seqLen>1) GET_IT(pcfg->bSingleCounterPerAdd, obFlags, 1);
 		if (seqLen>2) GET_IT(pcfg->bSingleCounterPerDialog, obFlags, 2);
@@ -979,8 +979,8 @@ static PyObject *PyBrowseCounters(PyObject *self, PyObject *args)
 		
 	}
 
-	pcfg->dwCallBackArg = (DWORD)&myCfg;
-	pcfg->pCallBack = CounterPathCallback;
+	pcfg->dwCallBackArg = (DWORD_PTR)&myCfg;
+	pcfg->pCallBack = PyCounterPathCallback;
 
 	pcfg->szReturnPathBuffer = (char *)malloc(1024);
 	pcfg->cchReturnPathLength = 1024;
