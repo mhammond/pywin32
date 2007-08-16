@@ -1809,10 +1809,10 @@ static PyObject *PyDeviceCapabilities(PyObject *self, PyObject *args)
 	PDEVMODE pdevmode;
 	PyObject *obdevmode=Py_None, *ret=NULL, *tuple_item;
 	DWORD result, bufsize, bufindex;
-	static size_t papernamesize=64; // same for DC_PAPERNAMES, DC_MEDIATYPENAMES, DC_MEDIAREADY, DC_FILEDEPENDENCIES
-	static size_t binnamesize=24; // DC_BINNAMES
-	static size_t personalitysize=32; // DC_PERSONALITY
-	size_t retsize;
+	static DWORD papernamesize=64; // same for DC_PAPERNAMES, DC_MEDIATYPENAMES, DC_MEDIAREADY, DC_FILEDEPENDENCIES
+	static DWORD binnamesize=24; // DC_BINNAMES
+	static DWORD personalitysize=32; // DC_PERSONALITY
+	DWORD retsize;
 
 	if (!PyArg_ParseTuple(args,"ssh|O:DeviceCapabilities", &device, &port, &capability, &obdevmode))
 		return NULL;
