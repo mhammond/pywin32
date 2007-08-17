@@ -393,11 +393,12 @@ PyDoGroupSet(PyObject *self, PyObject *args, PFNGROUPSET pfn, char *fnname, PyNE
 	WCHAR *szGroup = NULL;
 	PyObject *obServer, *obGroup, *obData;
 	PyObject *ret = NULL;
+	PyObject *members_tuple=NULL;
 	DWORD level;
 	DWORD err = 0;
 	BYTE *buf = NULL;
 	BYTE **ppTempObjects = NULL;
-	int i, numEntries;
+	DWORD i, numEntries;
 	PyNET_STRUCT *pI;
 	if (!PyArg_ParseTuple(args, "OOiO", &obServer, &obGroup, &level, &obData))
 		return NULL;
@@ -408,20 +409,18 @@ PyDoGroupSet(PyObject *self, PyObject *args, PFNGROUPSET pfn, char *fnname, PyNE
 	if (!FindNET_STRUCT(level, pInfos, &pI))
 		goto done;
 
-	if (!PySequence_Check(obData)) {
+
+	members_tuple=PyWinSequence_Tuple(obData, &numEntries);
+	if (members_tuple==NULL) {
 		PyErr_SetString(PyExc_TypeError, "Data must be a sequence of dictionaries");
 		goto done;
 	}
-	numEntries = PySequence_Length(obData);
 	ppTempObjects = new BYTE *[numEntries];
 	memset(ppTempObjects, 0, sizeof(BYTE *) * numEntries);
 	for (i=0;i<numEntries;i++) {
-		PyObject *sub = PySequence_GetItem(obData, i);
-		if (sub==NULL) goto done;
-		if (!PyObject_AsNET_STRUCT(sub, pI, ppTempObjects+i)) {
-			Py_DECREF(sub);
+		PyObject *sub = PyTuple_GET_ITEM(members_tuple, i);
+		if (!PyObject_AsNET_STRUCT(sub, pI, ppTempObjects+i))
 			goto done;
-		}
 	}
 	// OK - all objects are ok, and we are holding the buffers.
 	// copy to our own buffer
@@ -444,6 +443,7 @@ PyDoGroupSet(PyObject *self, PyObject *args, PFNGROUPSET pfn, char *fnname, PyNE
 done:
 	PyWinObject_FreeWCHAR(szServer);
 	PyWinObject_FreeWCHAR(szGroup);
+	Py_XDECREF(members_tuple);
 	if (ppTempObjects) {
 		for (i=0;i<numEntries;i++) {
 			PyObject_FreeNET_STRUCT(pI, ppTempObjects[i]);
@@ -835,9 +835,10 @@ PyDoGroupDelMembers(PyObject *self, PyObject *args)
 	WCHAR *szGroup = NULL;
 	PyObject *obServer, *obGroup, *obData;
 	PyObject *ret = NULL;
+	PyObject *members_tuple=NULL;
 	DWORD err = 0;
 	BYTE *buf = NULL;
-	int i, numEntries;
+	DWORD i, numEntries;
     DWORD level = 3;
     LOCALGROUP_MEMBERS_INFO_3 *plgrminfo;
 
@@ -848,29 +849,27 @@ PyDoGroupDelMembers(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsWCHAR(obGroup, &szGroup, FALSE))
 		goto done;
 
-	if (!PySequence_Check(obData)) {
+	members_tuple=PyWinSequence_Tuple(obData, &numEntries);
+	if (members_tuple==NULL) {
 		PyErr_SetString(PyExc_TypeError, "Data must be a sequence of dictionaries");
 		goto done;
 	}
-
-	numEntries = PySequence_Length(obData);
-    plgrminfo = new LOCALGROUP_MEMBERS_INFO_3[numEntries];
+	plgrminfo = new LOCALGROUP_MEMBERS_INFO_3[numEntries];
+	if (plgrminfo==NULL){
+		PyErr_NoMemory();
+		goto done;
+		}
 	// XXX - todo - we should allow a list of LOCALGROUP_MEMBER_INFO items *or* strings
 	memset(plgrminfo, 0, sizeof(LOCALGROUP_MEMBERS_INFO_3) * numEntries);
 	for (i = 0; i < numEntries; i++) {
-		PyObject *sub = PySequence_GetItem(obData, i);
-		if (sub==NULL)
-            goto done;
-        PyWinObject_AsWCHAR(sub, &plgrminfo[i].lgrmi3_domainandname);
-        if (!plgrminfo[i].lgrmi3_domainandname) {
-			Py_DECREF(sub);
+		PyObject *sub = PyTuple_GET_ITEM(members_tuple, i);
+		if (!PyWinObject_AsWCHAR(sub, &plgrminfo[i].lgrmi3_domainandname))
 			goto done;
-		}
 	}
 
-    Py_BEGIN_ALLOW_THREADS
-    err = NetLocalGroupDelMembers(szServer, szGroup, 3, (BYTE *)plgrminfo, numEntries);
-    Py_END_ALLOW_THREADS
+	Py_BEGIN_ALLOW_THREADS
+	err = NetLocalGroupDelMembers(szServer, szGroup, 3, (BYTE *)plgrminfo, numEntries);
+	Py_END_ALLOW_THREADS
 	if (err) {
 		ReturnNetError("NetLocalGroupDelMembers", err);
 		goto done;
@@ -882,12 +881,14 @@ PyDoGroupDelMembers(PyObject *self, PyObject *args)
 done:
 	PyWinObject_FreeWCHAR(szServer);
 	PyWinObject_FreeWCHAR(szGroup);
+	Py_XDECREF(members_tuple);
 	if (plgrminfo) {
 		for (i=0;i<numEntries;i++) {
-            if (plgrminfo[i].lgrmi3_domainandname) {
-			    PyWinObject_FreeWCHAR(plgrminfo[i].lgrmi3_domainandname);
-            }
+			if (plgrminfo[i].lgrmi3_domainandname) {
+				PyWinObject_FreeWCHAR(plgrminfo[i].lgrmi3_domainandname);
+			}
 		}
+		delete [] plgrminfo;
 	}
 	return ret;
 }
@@ -1115,7 +1116,7 @@ static struct PyMethodDef win32net_functions[] = {
 	{"NetUserDel",              PyNetUserDel,               1}, // @pymeth NetUserDel|Deletes a user.
 
 	{"NetUserModalsGet",          PyNetUserModalsGet,           1}, // @pymeth NetUserModalsGet|Retrieves global user information on a server.
-  {"NetUserModalsSet",          PyNetUserModalsSet,           1}, // @pymeth NetUserModalsSet|Sets global user information on a server.
+	{"NetUserModalsSet",          PyNetUserModalsSet,           1}, // @pymeth NetUserModalsSet|Sets global user information on a server.
 
     {"NetWkstaUserEnum",        PyNetWkstaUserEnum,         1}, // @pymeth NetWkstaUserEnum|Retrieves information about all users currently logged on to the workstation.
     {"NetWkstaGetInfo",         PyNetWkstaGetInfo,          1}, // @pymeth NetWkstaGetInfo|returns information about the configuration elements for a workstation.
