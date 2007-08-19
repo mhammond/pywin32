@@ -477,9 +477,9 @@ static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUn
 		return FALSE;
 	}
 	int i;
-	unsigned bufLen = 0;
+	size_t bufLen = 0;
 	PyObject *keys = NULL, *vals = NULL;
-	int envLength = PyMapping_Length(env);
+	Py_ssize_t envLength = PyMapping_Length(env);
 	LPVOID result = NULL;
 	WCHAR *pUCur;
 	char *pACur;
