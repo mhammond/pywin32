@@ -72,7 +72,10 @@ To build 64bit versions of this:
   * Set PYTHONHOME=c:\path_to_64bit_python
   * Execute: c:\path_to_32bit_python\python.exe setup.py build
   * un-set PYTHONHOME (set PYTHONHOME=)
-  * Execute: c:\path_to_32bit_python\python.exe setup.py bdist_msi
+  * Execute: c:\path_to_32bit_python_6\python.exe setup.py bdist_msi --skip-build
+    [Note that python 6.0 or later *must* be used for this final step.  If
+     python 6 has not been released, you must use Python as built from the
+     svn trunk]
 
   (Note that these instructions will have clobbered your 32bit build of
   Python - not the install, just the copy in the 'build' directory.  Its
@@ -126,12 +129,18 @@ is_32bit = not is_64bit
 # want a distinction.
 # so we monkey-patch distutils :(  We must do this before the main distutils
 # imports, which generall does 'from distutils.util import get_platform'
+# NOTE: Python 2.6 has the base get_platform() fixed - but there still
+# remains the cross-compile issue (ie, get_platform() needs to know the
+# *target* platform).  The values returned from this function must however
+# be in the set of values Python 2.6's get_platform() returns...
 def hacked_get_platform():
     """getplaform monkey-patched by pywin32 setup"""
-    if is_32bit:
-        return sys.platform
-    else:
-        return get_build_architecture().lower()
+    ba = get_build_architecture()
+    if ba == "AMD64":
+        return "win-x86_64"
+    if ba == "Itanium":
+        return "win-ia64"
+    return sys.platform
 
 import distutils.util
 distutils.util.get_platform = hacked_get_platform
@@ -1052,16 +1061,6 @@ class my_install(install):
                       sys.executable, filename,
                       "-quiet", "-wait", str(os.getpid()), "-install")
 
-if bdist_msi:
-    class my_bdist_msi(bdist_msi):
-        def get_installer_filename(self, fullname):
-            # base class hard-codes 'win32'
-            plat = distutils.util.get_platform()
-            installer_name = os.path.join(self.dist_dir,
-                                          "%s.%s-py%s.msi" %
-                                           (fullname, plat, self.target_version))
-            return installer_name
-
 # As per get_source_files, we need special handling so .mc file is
 # processed first.  It appears there was an intention to fix distutils
 # itself, but as at 2.4 that hasn't happened.  We need yet more vile
@@ -1686,8 +1685,6 @@ cmdclass = { 'install': my_install,
              'build_ext': my_build_ext,
              'install_data': my_install_data,
            }
-if bdist_msi:
-    cmdclass['bdist_msi'] = my_bdist_msi
     
 dist = setup(name="pywin32",
       version=str(build_id),
