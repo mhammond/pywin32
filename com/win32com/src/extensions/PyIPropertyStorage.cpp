@@ -10,61 +10,67 @@
 // @doc - This file contains autoduck documentation
 // ---------------------------------------------------
 
+// @object PROPSPEC|Identifies a property.  Can be either an int property id, or a str/unicode property name.
 BOOL PyObject_AsPROPSPECs( PyObject *ob, PROPSPEC **ppRet, ULONG *pcRet)
 {
-	if (!PySequence_Check(ob)) {
-		PyErr_SetString(PyExc_TypeError, "PROPSPECs must a sequence");
+	BOOL ret=FALSE;
+	DWORD len, i;
+	PyObject *tuple=PyWinSequence_Tuple(ob, &len);
+	if (tuple==NULL)
 		return FALSE;
-	}
+
 	// First count the items, and the total string space we need.
-	LONG cChars = 0;
-	int len = PySequence_Length(ob);
-	int i;
+	size_t cChars = 0;
 	for (i=0;i<len;i++) {
-		PyObject *sub = PySequence_GetItem(ob, i);
+		PyObject *sub = PyTuple_GET_ITEM(tuple, i);
 		if (PyUnicode_Check(sub))
 			cChars += PyUnicode_Size(sub) + 1;
 		else if (PyString_Check(sub))
 			cChars += PyString_Size(sub) + 1;
 		else if (PyInt_Check(sub))
-			;
+			;	// PROPID is a ULONG, so this may fail for values that require a python long
 		else {
-			Py_DECREF(sub);
 			PyErr_SetString(PyExc_TypeError, "PROPSPECs must be a sequence of strings or integers");
-			return FALSE;
+			goto cleanup;
 		}
-		Py_DECREF(sub);
 	}
-	size_t numBytes = (sizeof(PROPSPEC) * len) + (sizeof(WCHAR) * cChars);
-	PROPSPEC *pRet = (PROPSPEC *)malloc(numBytes);
+	size_t numBytes;
+	numBytes = (sizeof(PROPSPEC) * len) + (sizeof(WCHAR) * cChars);
+	PROPSPEC *pRet;
+	pRet = (PROPSPEC *)malloc(numBytes);
 	if (pRet==NULL) {
 		PyErr_SetString(PyExc_MemoryError, "allocating PROPSPECs");
-		return FALSE;
+		goto cleanup;
 	}
-	WCHAR *curBuf = (WCHAR *)(pRet+len);
+	WCHAR *curBuf;
+	curBuf = (WCHAR *)(pRet+len);
 	for (i=0;i<len;i++) {
-		PyObject *sub = PySequence_GetItem(ob, i);
+		PyObject *sub = PyTuple_GET_ITEM(tuple, i);
 		BSTR bstr;
 		if (PyWinObject_AsBstr(sub, &bstr)) {
 			pRet[i].ulKind = PRSPEC_LPWSTR;
 			pRet[i].lpwstr = curBuf;
 			wcscpy( curBuf, bstr);
 			curBuf += wcslen(curBuf) + 1;
+			PyWinObject_FreeBstr(bstr);
 		} else {
 			PyErr_Clear();
 			pRet[i].ulKind = PRSPEC_PROPID;
 			pRet[i].propid = PyInt_AsLong(sub);
 		}
-		Py_DECREF(sub);
 	}
+	ret=TRUE;
 	*ppRet = pRet;
 	*pcRet = len;
-	return TRUE;
+cleanup:
+	Py_DECREF(tuple);
+	return ret;
 }
 
 void PyObject_FreePROPSPECs(PROPSPEC *pFree, ULONG /*cFree*/)
 {
-	free(pFree);
+	if (pFree)
+		free(pFree);
 }
 
 PyObject *PyObject_FromPROPVARIANT( PROPVARIANT *pVar )
@@ -165,6 +171,8 @@ PyObject *PyObject_FromPROPVARIANT( PROPVARIANT *pVar )
 PyObject *PyObject_FromPROPVARIANTs( PROPVARIANT *pVars, ULONG cVars )
 {
 	PyObject *ret = PyTuple_New(cVars);
+	if (ret==NULL)
+		return NULL;
 	for (ULONG i=0;i<cVars;i++) {
 		PyObject *sub = PyObject_FromPROPVARIANT(pVars+i);
 		if (sub==NULL) {
@@ -200,72 +208,58 @@ BOOL PyObject_AsPROPVARIANT(PyObject *ob, PROPVARIANT *pVar)
 	return TRUE;
 }
 
+void PyObject_FreePROPVARIANTs(PROPVARIANT *pVars, ULONG cVars)
+{	
+	if (pVars){
+		for (ULONG i=0;i<cVars;i++)
+			PropVariantClear(pVars+i);
+		delete [] pVars;
+		}
+}
+
 BOOL PyObject_AsPROPVARIANTs(PyObject *ob, PROPVARIANT **ppRet, ULONG *pcRet)
 {
-	if (!PySequence_Check(ob)) {
-		PyErr_SetString(PyExc_TypeError, "PROPVARIANTs must a sequence");
+	BOOL ret=FALSE;
+	DWORD len, i;
+	PyObject *tuple=PyWinSequence_Tuple(ob, &len);
+	if (tuple==NULL)
 		return FALSE;
-	}
-	int len = PySequence_Length(ob);
 
 	PROPVARIANT *pRet = new PROPVARIANT[len];
-	int i;
+	if (pRet==NULL){
+		PyErr_NoMemory();
+		goto cleanup;
+		}
 	for (i=0;i<len;i++)
 		PropVariantInit(pRet+i);
 
 	for (i=0;i<len;i++) {
-		PyObject *sub = PySequence_GetItem(ob, i);
-		BOOL ok = PyObject_AsPROPVARIANT(sub, pRet+i);
-		Py_DECREF(sub);
-		if (!ok) {
-			for (int j=0;j<i;j++)
-				PropVariantClear(pRet+j);
-			delete [] pRet;
-			return FALSE;
+		PyObject *sub = PyTuple_GET_ITEM(tuple, i);
+		if (!PyObject_AsPROPVARIANT(sub, pRet+i))
+			goto cleanup;
 		}
-	}
-	*ppRet = pRet;
-	*pcRet = len;
-	return TRUE;
-}
-
-void PyObject_FreePROPVARIANTs(PROPVARIANT *pVars, ULONG cVars)
-{
-	for (ULONG i=0;i<cVars;i++)
-		PropVariantClear(pVars+i);
-	delete [] pVars;
+	ret=TRUE;
+cleanup:
+	if (ret){
+		*ppRet = pRet;
+		*pcRet = len;
+		}
+	else if (pRet)
+		PyObject_FreePROPVARIANTs(pRet, len);
+	Py_DECREF(tuple);
+	return ret;
 }
 
 BOOL PyObject_AsPROPIDs(PyObject *ob, PROPID **ppRet, ULONG *pcRet)
 {
-	if (!PySequence_Check(ob)) {
-		PyErr_SetString(PyExc_TypeError, "PROPIDs must a sequence");
-		return FALSE;
-	}
-	int len = PySequence_Length(ob);
-
-	PROPID *pRet = new PROPID[len];
-	BOOL ok = TRUE;
-	for (int i=0;ok && i<len;i++) {
-		PyObject *sub = PySequence_GetItem(ob, i);
-		ok = PyInt_Check(sub);
-		if (!ok )
-			PyErr_SetString(PyExc_TypeError, "Must be array of ints");
-		if (ok)
-			pRet[i] = PyInt_AsLong(sub);
-		Py_XDECREF(sub);
-	}
-	if (!ok) {
-		delete [] pRet;
-		return FALSE;
-	}
-	*ppRet = pRet;
-	*pcRet = len;
-	return TRUE;
+	// PROPID and DWORD are both unsigned long
+	return PyWinObject_AsDWORDArray(ob, ppRet, pcRet, FALSE);
 }
+
 void PyObject_FreePROPIDs(PROPID *pFree, ULONG)
 {
-	delete [] pFree;
+	if (pFree)
+		free(pFree);
 }
 
 //
@@ -293,7 +287,7 @@ PyObject *PyIPropertyStorage::ReadMultiple(PyObject *self, PyObject *args)
 	if ( pIPS == NULL )
 		return NULL;
 	PyObject *props;
-	// @pyparm (<o PROPSPEC>, ...)|props||The property IDs.
+	// @pyparm (<o PROPSPEC>, ...)|props||Sequence of property IDs or names.
 	if ( !PyArg_ParseTuple(args, "O:ReadMultiple", &props))
 		return NULL;
 	ULONG cProps;
@@ -331,53 +325,56 @@ PyObject *PyIPropertyStorage::ReadMultiple(PyObject *self, PyObject *args)
 	return rc;
 }
 
-// @pymethod |PyIPropertyStorage|WriteMultiple|Description of WriteMultiple.
+// @pymethod |PyIPropertyStorage|WriteMultiple|Creates or modifies properties in the property set
 PyObject *PyIPropertyStorage::WriteMultiple(PyObject *self, PyObject *args)
 {
+	PyObject *ret=NULL;
+	PROPSPEC *pProps = NULL;
+	PROPVARIANT *pVals = NULL;
+	ULONG cProps, cVals;
+
 	IPropertyStorage *pIPS = GetI(self);
 	if ( pIPS == NULL )
 		return NULL;
 	PyObject *obProps;
 	PyObject *obValues;
 	long minId = 2;
-	// @pyparm (<o PROPSPEC>, ...)|props||The property IDs.
+	// @pyparm (<o PROPSPEC>, ...)|props||Sequence containing names or integer ids of properties to write
 	// @pyparm (<o PROPVARIANT>, ...)|values||The values for the properties.
+	// @pyparm int|propidNameFirst|2|Minimum property id to be assigned to new properties specified by name
 	if ( !PyArg_ParseTuple(args, "OO|l:WriteMultiple", &obProps, &obValues, &minId))
 		return NULL;
-
-	PROPSPEC *pProps;
-	ULONG cProps;
+	
 	if (!PyObject_AsPROPSPECs( obProps, &pProps, &cProps))
-		return NULL;
-
-	PROPVARIANT *pVals;
-	ULONG cVals;
+		goto cleanup;
 	if (!PyObject_AsPROPVARIANTs( obValues, &pVals, &cVals ))
-		return NULL;
+		goto cleanup;
 
 	if (cProps != cVals) {
 		PyErr_SetString(PyExc_ValueError, "The parameters must be sequences of the same size");
-		PyObject_FreePROPSPECs(pProps, cProps);
-		PyObject_FreePROPVARIANTs(pVals, cVals);
-		return NULL;
+		goto cleanup;
 	}
 
 	HRESULT hr;
+	{
 	PY_INTERFACE_PRECALL;
 	hr = pIPS->WriteMultiple( cProps, pProps, pVals, minId );
 	PY_INTERFACE_POSTCALL;
+	}
+	if ( FAILED(hr) )
+		PyCom_BuildPyException(hr, pIPS, IID_IPropertyStorage);
+	else{
+		Py_INCREF(Py_None);
+		ret = Py_None;
+		}
 
+cleanup:
 	PyObject_FreePROPSPECs(pProps, cProps);
 	PyObject_FreePROPVARIANTs(pVals, cVals);
-
-	if ( FAILED(hr) )
-		return PyCom_BuildPyException(hr, pIPS, IID_IPropertyStorage);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+	return ret;
 }
 
-// @pymethod |PyIPropertyStorage|DeleteMultiple|Description of DeleteMultiple.
+// @pymethod |PyIPropertyStorage|DeleteMultiple|Deletes properties from the property set
 PyObject *PyIPropertyStorage::DeleteMultiple(PyObject *self, PyObject *args)
 {
 	IPropertyStorage *pIPS = GetI(self);
@@ -385,7 +382,7 @@ PyObject *PyIPropertyStorage::DeleteMultiple(PyObject *self, PyObject *args)
 		return NULL;
 
 	PyObject *props;
-	// @pyparm (<o PROPSPEC>, ...)|props||The property IDs.
+	// @pyparm (<o PROPSPEC>, ...)|props||Sequence containing names or IDs of properties to be deleted
 	if ( !PyArg_ParseTuple(args, "O:ReadMultiple", &props))
 		return NULL;
 	ULONG cProps;
@@ -414,7 +411,7 @@ PyObject *PyIPropertyStorage::ReadPropertyNames(PyObject *self, PyObject *args)
 	if ( pIPS == NULL )
 		return NULL;
 	PyObject *obProps;
-	// @pyparm (<o PROPSPEC>, ...)|props||The property IDs.
+	// @pyparm (int, ...)|props||Sequence of ints containing property IDs.
 	if ( !PyArg_ParseTuple(args, "O:ReadPropertyNames", &obProps))
 		return NULL;
 
@@ -425,22 +422,41 @@ PyObject *PyIPropertyStorage::ReadPropertyNames(PyObject *self, PyObject *args)
 
 	HRESULT hr;
 	LPWSTR *ppStrs = new LPWSTR[cProps];
+	if (ppStrs==NULL){
+		PyErr_NoMemory();
+		goto cleanup;
+		}
 	memset(ppStrs, 0, sizeof(LPWSTR)*cProps);
+	{
 	PY_INTERFACE_PRECALL;
 	hr = pIPS->ReadPropertyNames( cProps, pProps, ppStrs );
 	PY_INTERFACE_POSTCALL;
-
+	}
 	PyObject *rc;
 	if ( FAILED(hr) )
 		rc = PyCom_BuildPyException(hr, pIPS, IID_IPropertyStorage);
 	else {
 		rc = PyTuple_New(cProps);
+		if (rc==NULL)
+			goto cleanup;
+		for (ULONG i=0;i<cProps;i++){
+			PyObject *propname=PyWinObject_FromOLECHAR(ppStrs[i]);
+			if (propname==NULL){
+				Py_DECREF(rc);
+				rc=NULL;
+				goto cleanup;
+				}
+			PyTuple_SET_ITEM( rc, i, propname);
+			}
+		}
+
+cleanup:
+	if (ppStrs){
 		for (ULONG i=0;i<cProps;i++)
-			PyTuple_SET_ITEM( rc, i, PyWinObject_FromOLECHAR(ppStrs[i]) );
-	}
-	for (ULONG i=0;i<cProps;i++)
-		if (ppStrs[i]) CoTaskMemFree(ppStrs[i]);
-	delete [] ppStrs;
+			if (ppStrs[i])
+				CoTaskMemFree(ppStrs[i]);
+		delete [] ppStrs;
+		}
 	PyObject_FreePROPIDs(pProps, cProps);
 	return rc;
 }
@@ -453,34 +469,26 @@ PyObject *PyIPropertyStorage::WritePropertyNames(PyObject *self, PyObject *args)
 		return NULL;
 	PyObject *obProps;
 	PyObject *obNames;
-	// @pyparm (<o PROPSPEC>, ...)|props||The property IDs.
-	// @pyparm (string, ...)|names||The property names.
+	// @pyparm (int, ...)|props||Sequence containing the property IDs.
+	// @pyparm (string, ...)|names||Equal length sequence of property names.
 	if ( !PyArg_ParseTuple(args, "OO:WritePropertyNames", &obProps, &obNames))
 		return NULL;
 
-	ULONG cProps = 0;
+	ULONG cProps = 0, cNames=0;
 	PROPID *pProps = NULL;
 	LPWSTR *ppStrs = NULL;
 	PyObject *rc = NULL;
 
 	if (!PyObject_AsPROPIDs( obProps, &pProps, &cProps))
 		return NULL;
+	if (!PyWinObject_AsWCHARArray(obNames, &ppStrs, &cNames, FALSE))
+		goto done;
+	if (cNames != cProps) {
+		PyErr_SetString(PyExc_TypeError, "Property names must be a sequence the same size as property ids");
+		goto done;
+	}
 
-	if (!PySequence_Check(obNames) || PySequence_Length(obNames) != (int)cProps) {
-		PyErr_SetString(PyExc_TypeError, "property named must be a sequence the same size as PROPDESCs");
-		return NULL;
-	}
 	HRESULT hr;
-	ppStrs = new LPWSTR[cProps];
-	memset(ppStrs, 0, sizeof(LPWSTR)*cProps);
-	ULONG i;
-	for (i=0;i<cProps;i++) {
-		PyObject *sub = PySequence_GetItem(obNames, i);
-		BOOL ok = PyWinObject_AsBstr(sub, ppStrs+i);
-		Py_XDECREF(sub);
-		if (!ok)
-			goto done;
-	}
 	{
 	PY_INTERFACE_PRECALL;
 	hr = pIPS->WritePropertyNames( cProps, pProps, ppStrs );
@@ -488,32 +496,25 @@ PyObject *PyIPropertyStorage::WritePropertyNames(PyObject *self, PyObject *args)
 	}
 
 	if ( FAILED(hr) )
-		rc = PyCom_BuildPyException(hr, pIPS, IID_IPropertyStorage);
-	else {
-		rc = PyTuple_New(cProps);
-		for (ULONG i=0;i<cProps;i++)
-			PyTuple_SET_ITEM( rc, i, PyWinObject_FromOLECHAR(ppStrs[i]) );
-	}
-done:
-	if (pProps)
-		PyObject_FreePROPIDs(pProps, cProps);
-	if (ppStrs) {
-		for (i=0;i<cProps;i++) {
-			PyWinObject_FreeBstr(ppStrs[i]);
+		PyCom_BuildPyException(hr, pIPS, IID_IPropertyStorage);
+	else{
+		Py_INCREF(Py_None);
+		rc = Py_None;
 		}
-		delete [] ppStrs;
-	}
+done:
+	PyObject_FreePROPIDs(pProps, cProps);
+	PyWinObject_FreeWCHARArray(ppStrs, cNames);
 	return rc;
 }
 
-// @pymethod |PyIPropertyStorage|DeletePropertyNames|Description of DeletePropertyNames.
+// @pymethod |PyIPropertyStorage|DeletePropertyNames|Removes property names from specified properties.
 PyObject *PyIPropertyStorage::DeletePropertyNames(PyObject *self, PyObject *args)
 {
 	IPropertyStorage *pIPS = GetI(self);
 	if ( pIPS == NULL )
 		return NULL;
 	PyObject *obProps;
-	// @pyparm (<o PROPSPEC>, ...)|props||The property IDs.
+	// @pyparm (int, ...)|props||Sequence of ints containing property IDs.
 	if ( !PyArg_ParseTuple(args, "O:DeletePropertyNames", &obProps))
 		return NULL;
 
@@ -525,7 +526,7 @@ PyObject *PyIPropertyStorage::DeletePropertyNames(PyObject *self, PyObject *args
 	PY_INTERFACE_PRECALL;
 	hr = pIPS->DeletePropertyNames( cProps, pProps );
 	PY_INTERFACE_POSTCALL;
-
+	PyObject_FreePROPIDs(pProps, cProps);
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIPS, IID_IPropertyStorage);
 	Py_INCREF(Py_None);
@@ -533,13 +534,13 @@ PyObject *PyIPropertyStorage::DeletePropertyNames(PyObject *self, PyObject *args
 
 }
 
-// @pymethod |PyIPropertyStorage|Commit|Description of Commit.
+// @pymethod |PyIPropertyStorage|Commit|Persists the property set to its base storage
 PyObject *PyIPropertyStorage::Commit(PyObject *self, PyObject *args)
 {
 	IPropertyStorage *pIPS = GetI(self);
 	if ( pIPS == NULL )
 		return NULL;
-	// @pyparm int|grfCommitFlags||Description for grfCommitFlags
+	// @pyparm int|grfCommitFlags||Combination of STGC_* flags
 	DWORD grfCommitFlags;
 	if ( !PyArg_ParseTuple(args, "l:Commit", &grfCommitFlags) )
 		return NULL;
@@ -555,7 +556,7 @@ PyObject *PyIPropertyStorage::Commit(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIPropertyStorage|Revert|Description of Revert.
+// @pymethod |PyIPropertyStorage|Revert|Discards any changes that have been made
 PyObject *PyIPropertyStorage::Revert(PyObject *self, PyObject *args)
 {
 	IPropertyStorage *pIPS = GetI(self);
@@ -575,7 +576,7 @@ PyObject *PyIPropertyStorage::Revert(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIPropertyStorage|Enum|Description of Enum.
+// @pymethod <o PyIEnumSTATPROPSTG>|PyIPropertyStorage|Enum|Creates an enumerator for properties in the property set
 PyObject *PyIPropertyStorage::Enum(PyObject *self, PyObject *args)
 {
 	IPropertyStorage *pIPS = GetI(self);
@@ -599,15 +600,16 @@ PyObject *PyIPropertyStorage::Enum(PyObject *self, PyObject *args)
 	return pyretval;
 }
 
-// @pymethod |PyIPropertyStorage|SetTimes|Description of SetTimes.
+// @pymethod |PyIPropertyStorage|SetTimes|Sets the creation, last access, and modification time
+// @comm Some property sets do not support these times.
 PyObject *PyIPropertyStorage::SetTimes(PyObject *self, PyObject *args)
 {
 	IPropertyStorage *pIPS = GetI(self);
 	if ( pIPS == NULL )
 		return NULL;
-	// @pyparm <o PyTime>|pctime||Description for pctime
-	// @pyparm <o PyTime>|patime||Description for patime
-	// @pyparm <o PyTime>|pmtime||Description for pmtime
+	// @pyparm <o PyTime>|pctime||Creation time
+	// @pyparm <o PyTime>|patime||Last access time
+	// @pyparm <o PyTime>|pmtime||Modification time
 	PyObject *obpctime;
 	PyObject *obpatime;
 	PyObject *obpmtime;
@@ -636,7 +638,7 @@ PyObject *PyIPropertyStorage::SetTimes(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIPropertyStorage|SetClass|Description of SetClass.
+// @pymethod |PyIPropertyStorage|SetClass|Sets the GUID for the property set
 PyObject *PyIPropertyStorage::SetClass(PyObject *self, PyObject *args)
 {
 	IPropertyStorage *pIPS = GetI(self);
@@ -647,9 +649,8 @@ PyObject *PyIPropertyStorage::SetClass(PyObject *self, PyObject *args)
 	IID clsid;
 	if ( !PyArg_ParseTuple(args, "O:SetClass", &obclsid) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (!PyWinObject_AsIID(obclsid, &clsid)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsIID(obclsid, &clsid))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pIPS->SetClass( clsid );
@@ -662,7 +663,7 @@ PyObject *PyIPropertyStorage::SetClass(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIPropertyStorage|Stat|Description of Stat.
+// @pymethod |PyIPropertyStorage|Stat|Returns various infomation about the property set
 PyObject *PyIPropertyStorage::Stat(PyObject *self, PyObject *args)
 {
 	IPropertyStorage *pIPS = GetI(self);
@@ -685,17 +686,17 @@ PyObject *PyIPropertyStorage::Stat(PyObject *self, PyObject *args)
 static struct PyMethodDef PyIPropertyStorage_methods[] =
 {
 	{ "ReadMultiple", PyIPropertyStorage::ReadMultiple, 1 }, // @pymeth ReadMultiple|Reads specified properties from the current property set.
-	{ "WriteMultiple", PyIPropertyStorage::WriteMultiple, 1 }, // @pymeth WriteMultiple|Description of WriteMultiple
-	{ "DeleteMultiple", PyIPropertyStorage::DeleteMultiple, 1 }, // @pymeth DeleteMultiple|Description of DeleteMultiple
+	{ "WriteMultiple", PyIPropertyStorage::WriteMultiple, 1 }, // @pymeth WriteMultiple|Creates or modifies properties in the property set
+	{ "DeleteMultiple", PyIPropertyStorage::DeleteMultiple, 1 }, // @pymeth DeleteMultiple|Deletes properties from the property set
 	{ "ReadPropertyNames", PyIPropertyStorage::ReadPropertyNames, 1 }, // @pymeth ReadPropertyNames|Retrieves any existing string names for the specified property identifiers.
 	{ "WritePropertyNames", PyIPropertyStorage::WritePropertyNames, 1 }, // @pymeth WritePropertyNames|Assigns string names to a specified array of property IDs in the current property set.
-	{ "DeletePropertyNames", PyIPropertyStorage::DeletePropertyNames, 1 }, // @pymeth DeletePropertyNames|Description of DeletePropertyNames
-	{ "Commit", PyIPropertyStorage::Commit, 1 }, // @pymeth Commit|Description of Commit
-	{ "Revert", PyIPropertyStorage::Revert, 1 }, // @pymeth Revert|Description of Revert
-	{ "Enum", PyIPropertyStorage::Enum, 1 }, // @pymeth Enum|Description of Enum
-	{ "SetTimes", PyIPropertyStorage::SetTimes, 1 }, // @pymeth SetTimes|Description of SetTimes
-	{ "SetClass", PyIPropertyStorage::SetClass, 1 }, // @pymeth SetClass|Description of SetClass
-	{ "Stat", PyIPropertyStorage::Stat, 1 }, // @pymeth Stat|Description of Stat
+	{ "DeletePropertyNames", PyIPropertyStorage::DeletePropertyNames, 1 }, // @pymeth DeletePropertyNames|Removes property names from specified properties.
+	{ "Commit", PyIPropertyStorage::Commit, 1 }, // @pymeth Commit|Persists the property set to its base storage
+	{ "Revert", PyIPropertyStorage::Revert, 1 }, // @pymeth Revert|Discards any changes that have been made
+	{ "Enum", PyIPropertyStorage::Enum, 1 }, // @pymeth Enum|Creates an enumerator for properties in the property set
+	{ "SetTimes", PyIPropertyStorage::SetTimes, 1 }, // @pymeth SetTimes|Sets the creation, last access, and modification time
+	{ "SetClass", PyIPropertyStorage::SetClass, 1 }, // @pymeth SetClass|Sets the GUID for the property set
+	{ "Stat", PyIPropertyStorage::Stat, 1 }, // @pymeth Stat|Returns various infomation about the property set
 	{ NULL }
 };
 
