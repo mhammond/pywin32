@@ -199,7 +199,7 @@ static PyObject *PyLogMsg(PyObject *self, PyObject *args)
 	DWORD code;
 	LPCTSTR *pStrings = NULL;
 	PyObject *rc = NULL;
-	int numStrings = 0;
+	Py_ssize_t numStrings = 0;
 	BOOL ok = FALSE;
 
 	// @pyparm int|errorType||
@@ -218,7 +218,7 @@ static PyObject *PyLogMsg(PyObject *self, PyObject *args)
 			goto cleanup;
 		}
 		memset(pStrings, 0, sizeof(TCHAR *)*(numStrings+1)); // this also terminates array!
-		for (int i=0;i<numStrings;i++) {
+		for (Py_ssize_t i=0;i<numStrings;i++) {
 			PyObject *obString = PySequence_GetItem(obStrings, i);
 			if (obString==NULL) {
 				goto cleanup;
@@ -354,7 +354,7 @@ static PyObject *PyRegisterServiceCtrlHandler(PyObject *self, PyObject *args)
 		obCallback = NULL;
 		rc = PyWin_SetAPIError("RegisterServiceCtrlHandlerEx");
 	} else {
-		rc = PyInt_FromLong((long)pe->sshStatusHandle);
+		rc = PyWinLong_FromHANDLE(pe->sshStatusHandle);
 	}
 	return rc;
 	// @rdesc If the service manager is in debug mode, this returns None, indicating
