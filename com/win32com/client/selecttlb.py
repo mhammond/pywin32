@@ -7,8 +7,12 @@ class TypelibSpec:
 	def __init__(self, clsid, lcid, major, minor, flags=0):
 		self.clsid = str(clsid)
 		self.lcid = int(lcid)
-		self.major = int(major)
-		self.minor = int(minor)
+		# We avoid assuming 'major' or 'minor' are integers - when
+		# read from the registry there is some confusion about if
+		# they are base 10 or base 16 (they *should* be base 16, but
+		# how they are written is beyond our control.)
+		self.major = major
+		self.minor = minor
 		self.dll = None
 		self.desc = None
 		self.ver_desc = None
@@ -83,17 +87,17 @@ def EnumTlbs(excludeFlags = 0):
 			major_minor = string.split(version, '.', 1)
 			if len(major_minor) < 2:
 				major_minor.append('0')
-			try:
-				# For some reason, this code used to assume the values were hex.
-				# This seems to not be true - particularly for CDO 1.21
-				# *sigh* - it appears there are no rules here at all, so when we need
-				# to know the info, we must load the tlb by filename and request it.
-				# The Resolve() method on the TypelibSpec does this.
-				major = int(major_minor[0])
-				minor = int(major_minor[1])
-			except ValueError: # crap in the registry!
-				continue
-			
+			# For some reason, this code used to assume the values were hex.
+			# This seems to not be true - particularly for CDO 1.21
+			# *sigh* - it appears there are no rules here at all, so when we need
+			# to know the info, we must load the tlb by filename and request it.
+			# The Resolve() method on the TypelibSpec does this.
+			# For this reason, keep the version numbers as strings - that
+			# way we can't be wrong!  Let code that really needs an int to work
+			# out what to do.  FWIW, http://support.microsoft.com/kb/816970 is
+			# pretty clear that they *should* be hex.
+			major = major_minor[0]
+			minor = major_minor[1]
 			key3 = win32api.RegOpenKey(key2, str(version))
 			try:
 				# The "FLAGS" are at this point
