@@ -377,6 +377,10 @@ class CDispatch:
 		for i in ALL_INVOKE_TYPES:
 			try:
 				x,t = typecomp.Bind(attr,i)
+				# Support 'Get' and 'Set' properties - see
+				# bug 1587023
+				if x==0 and attr[:3] in ('Set', 'Get'):
+					x,t = typecomp.Bind(attr[3:], i)
 				if x==1:	#it's a FUNCDESC
 					r = olerepr._AddFunc_(typeinfo,t,0)
 				elif x==2:	#it's a VARDESC
