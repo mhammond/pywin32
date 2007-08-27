@@ -598,7 +598,7 @@ static PyObject *pythoncom_GetScodeString(PyObject *self, PyObject *args)
 	SCODE scode;
 	TCHAR buf[512];
 	// @pyparm int|scode||The OLE error code for the scode string requested.
-	if (!PyArg_ParseTuple(args, "i", &scode))
+	if (!PyArg_ParseTuple(args, "k", &scode))
 		return NULL;
 	GetScodeString(scode, buf, sizeof(buf));
 	return PyString_FromTCHAR(buf);
@@ -612,7 +612,7 @@ static PyObject *pythoncom_GetScodeRangeString(PyObject *self, PyObject *args)
 {
 	SCODE scode;
 	// @pyparm int|scode||An OLE error code to return the scode range string for.
-	if (!PyArg_ParseTuple(args, "i", &scode))
+	if (!PyArg_ParseTuple(args, "k", &scode))
 		return NULL;
 	return Py_BuildValue("z", GetScodeRangeString(scode) );
 }
@@ -622,7 +622,7 @@ static PyObject *pythoncom_GetSeverityString(PyObject *self, PyObject *args)
 {
 	SCODE scode;
 	// @pyparm int|scode||The OLE error code for the severity string requested.
-	if (!PyArg_ParseTuple(args, "i", &scode))
+	if (!PyArg_ParseTuple(args, "k", &scode))
 		return NULL;
 	return Py_BuildValue("z", GetSeverityString(scode) );
 }
@@ -632,7 +632,7 @@ static PyObject *pythoncom_GetFacilityString(PyObject *self, PyObject *args)
 {
 	SCODE scode;
 	// @pyparm int|scode||The OLE error code for the facility string requested.
-	if (!PyArg_ParseTuple(args, "i", &scode))
+	if (!PyArg_ParseTuple(args, "k", &scode))
 		return NULL;
 	return Py_BuildValue("z", GetFacilityString(scode) );
 }
