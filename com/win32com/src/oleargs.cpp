@@ -76,13 +76,15 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 			V_R8(var) = dval;
 		} else {
 			// 64 bits is OK - but if it fits in 32 we will
-			// use that.
-			if (lval >= 0 && lval <= ULONG_MAX) {
-				V_VT(var) = VT_UI4;
-				V_UI4(var) = (unsigned long)lval;
-			} else if (lval >= LONG_MIN && lval <= LONG_MAX) {
+			// use that.  Prefer VT_I4 if possible as VBScript
+			// etc like it better.
+			if (lval >= LONG_MIN && lval <= LONG_MAX) {
 				V_VT(var) = VT_I4;
 				V_I4(var) = (long)lval;
+			// OK, we know it must be > LONG_MAX, but zero is clearer
+			} else if (lval >= 0 && lval <= ULONG_MAX) {
+				V_VT(var) = VT_UI4;
+				V_UI4(var) = (unsigned long)lval;
 			} else {
 				V_VT(var) = VT_I8;
 				V_I8(var) = lval;
