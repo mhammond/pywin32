@@ -7,6 +7,8 @@ import pythoncom
 import winerror
 import cStringIO as StringIO
 from pythoncom import _GetInterfaceCount, _GetGatewayCount
+import win32com
+import logging
 
 def CheckClean():
     # Ensure no lingering exceptions - Python should have zero outstanding
@@ -173,6 +175,28 @@ class TestLoader(unittest.TestLoader):
             print "XXX - what is", test
         return test
 
+# Utilities to set the win32com logger to something what just captures
+# records written and doesn't print them.
+class LogHandler(logging.Handler):
+    def __init__(self):
+        self.emitted = []
+        logging.Handler.__init__(self)
+    def emit(self, record):
+        self.emitted.append(record)
+
+def setup_test_logger():
+        old_log = getattr(win32com, "logger", None)
+        win32com.logger = logging.Logger('test')
+        handler = LogHandler()
+        win32com.logger.addHandler(handler)
+        return handler.emitted, old_log
+
+def restore_test_logger(prev_logger):
+    if prev_logger is None:
+        del win32com.logger
+    else:
+        win32com.logger = prev_logger
+    
 # We used to override some of this (and may later!)
 TestCase = unittest.TestCase
 
