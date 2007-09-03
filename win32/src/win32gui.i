@@ -475,6 +475,11 @@ typedef int UINT;
 	$target = &point_input;
 }
 
+%typemap(python,in) POINT INPUT {
+	if (!PyWinObject_AsPOINT($source, &$target))
+		return NULL;
+}
+
 
 %typemap(python,in) POINT *BOTH = POINT *INPUT;
 %typemap(python,argout) POINT *BOTH = POINT *OUTPUT;
@@ -5288,6 +5293,11 @@ BOOL PtInRegion(
 	HRGN hrgn,	// @pyparm <o PyGdiHandle>|hrgn||Handle to a region
 	int X,		// @pyparm int|X||X coord
 	int Y);		// @pyparm int|Y||Y coord
+
+// @pyswig boolean|PtInRect|Determines if a rectangle contains a point
+BOOL PtInRect(
+	RECT *INPUT,	// @pyparm (int, int, int, int)|rect||The rect to check
+	POINT INPUT);      // @pyparm (int,int)|point||The point
 
 // @pyswig boolean|RectInRegion|Determines if a region and rectangle overlap at any point
 BOOL RectInRegion(
