@@ -84,6 +84,7 @@ END_COM_MAP()
 
 	// method to broadcast a call on the current connections
 	STDMETHOD(Fire)(long  nID);
+	STDMETHOD(FireWithNamedParams)(long nID, QsBoolean b, int *outVal1, int *outVal2);
 	STDMETHOD(TestOptionals)(BSTR strArg, short sarg, long larg, double darg, SAFEARRAY **pRet);
 	STDMETHOD(TestOptionals2)(double dval, BSTR strval, short sval, SAFEARRAY **pRet);
 	STDMETHOD(GetStruct)(TestStruct1 *ret);

@@ -293,6 +293,7 @@ library PyCOMTestLib
 	{
 		import "oaidl.idl";
 		HRESULT Fire([in]long nID);
+		HRESULT FireWithNamedParams([in]long nID, [in]QsBoolean b, [in, out]int *outVal, [in, out]int *outVal2);
 	};
 	[
 		uuid(b636cac0-5605-11d0-ae5f-cadd4c000000),

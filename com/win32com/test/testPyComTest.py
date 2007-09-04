@@ -66,9 +66,22 @@ class RandomEventHandler:
             self.fireds[no] = self.fireds[no] + 1
         except KeyError:
             self.fireds[no] = 0
+    def OnFireWithNamedParams(self, no, a_bool, out1, out2):
+        # This test exists mainly to help with an old bug, where named
+        # params would come in reverse.
+        # We know our impl called 'OnFire' with the same ID
+        Missing = pythoncom.Missing
+        if no is not Missing:
+            assert no in self.fireds
+            assert no+1==out1, "expecting 'out1' param to be ID+1"
+            assert no+2==out2, "expecting 'out2' param to be ID+2"
+        # The middle must be a boolean.
+        assert a_bool is Missing or type(a_bool)==bool, "middle param not a bool"
+        return out1+2, out2+2
+
     def _DumpFireds(self):
         if not self.fireds:
-            print "ERROR: Nothing was recieved!"
+            print "ERROR: Nothing was received!"
         for firedId, no in self.fireds.items():
             progress("ID %d fired %d times" % (firedId, no))
 

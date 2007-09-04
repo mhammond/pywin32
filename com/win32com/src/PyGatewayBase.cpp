@@ -11,8 +11,16 @@
 extern const GUID IID_IInternalUnwrapPythonObject = 
 	{ 0x25d29cd0, 0x9b98, 0x11d0, { 0xae, 0x79, 0x4c, 0xf1, 0xcf, 0x0, 0x0, 0x0 } };
 
+extern PyObject *g_obMissing;
+
 extern void PyCom_LogF(const char *fmt, ...);
 #define LogF PyCom_LogF
+
+#include <malloc.h>
+#if _MSC_VER < 1400
+// _malloca is the new 'safe' one
+#define _malloca _alloca
+#endif
 
 // Internal ErrorUtil helpers we reach in for.
 // Free the strings from an excep-info.
@@ -341,8 +349,8 @@ static HRESULT getids_finish(
 		return E_FAIL;
 	}
 
-	UINT count = PyObject_Length(result);
-	if ( count != cNames )
+	Py_ssize_t count = PyObject_Length(result);
+	if ( count != PyWin_SAFE_DOWNCAST(cNames, UINT, Py_ssize_t))
 	{
 		PyErr_Clear();	/* ### toss any potential exception */
 		Py_DECREF(result);
@@ -408,37 +416,78 @@ static HRESULT invoke_setup(
 	PyObject **pPyLCID
 	)
 {
-	PyObject *argList = PyTuple_New(params->cArgs);
+	HRESULT hr = S_OK;
+	PyObject * py_lcid = NULL;
+	/* Our named arg support is based on a few things.  First,
+	   GetIDsOfNames() documentation states all params are numbered 0->n.
+	   Secondly, we have always required that all args be present in the
+	   Python implementation, and the names of those args need not be
+	   identical to the names in a typelib.  Given these 2 facts, we can
+	   safely treat dispids as indexes into our arg tuple.
+	*/
+	// num args is the greatest of cArgs and all the dispIDs presented.
+	UINT i;
+	UINT numArgs = params->cArgs;
+	// handle 1 special case: 1 named arg with dispid of DISPID_PROPERTYPUT
+	// We just treat that as positional, so it ends up at the end (which is
+	// what we always did)
+	UINT numNamedArgs = params->cNamedArgs!=1 || params->rgdispidNamedArgs[0]!=DISPID_PROPERTYPUT ? params->cNamedArgs : 0;
+
+	for (i=0;i<numNamedArgs;i++) {
+		// make sure its not a special DISPID we don't understand.
+		if (params->rgdispidNamedArgs[i] < 0)
+			return DISP_E_PARAMNOTFOUND;
+		numArgs = max(numArgs, (UINT)params->rgdispidNamedArgs[i]+1);
+	}
+
+	PyObject *argList = PyTuple_New(numArgs);
 	if ( !argList )
 	{
 		PyErr_Clear();	/* ### what to do with exceptions? ... */
 		return E_OUTOFMEMORY;
 	}
+	// MUST exit from here on error via 'failed:'
 
-	PyObject *ob;
-	VARIANTARG FAR *pvarg;
-	UINT i;
-	for ( pvarg = params->rgvarg, i = params->cArgs; i--; ++pvarg )
-	{
-		ob = PyCom_PyObjectFromVariant(pvarg);
-		if ( !ob )
-		{
-			PyErr_Clear();	/* ### what to do with exceptions? ... */
-			Py_DECREF(argList);
-			return E_OUTOFMEMORY;
+	// Fill the positional args - they start at the end.
+	for ( i = params->cArgs; i != numNamedArgs; --i) {
+		PyObject *ob = PyCom_PyObjectFromVariant(params->rgvarg+i-1);
+		if ( !ob ) {
+			hr = E_OUTOFMEMORY;
+			goto failed;
 		}
-
+		Py_ssize_t pyndx = params->cArgs - i; // index in Python arg tuple.
 		/* Note: this takes our reference for us (even if it fails) */
-		if ( PyTuple_SetItem(argList, i, ob) == -1 )
-		{
-			PyErr_Clear();	/* ### what to do with exceptions? ... */
-			Py_DECREF(argList);
-			return E_FAIL;
+		if ( PyTuple_SetItem(argList, pyndx, ob) == -1 ) {
+			hr = E_FAIL;
+			goto failed;
+		}
+	}
+	// Fill the named params.
+	for (i=0;i<numNamedArgs;i++) {
+		UINT ndx = params->rgdispidNamedArgs[i];
+		assert(PyTuple_GET_ITEM(argList, ndx)==NULL); // must not have seen it before
+		PyObject *ob = PyCom_PyObjectFromVariant(params->rgvarg+i);
+		if ( !ob ) {
+			hr = E_OUTOFMEMORY;
+			goto failed;
+		}
+		/* Note: this takes our reference for us (even if it fails) */
+		if ( PyTuple_SetItem(argList, ndx, ob) == -1 ) {
+			hr = E_FAIL;
+			goto failed;
+		}
+	}
+	// and any ones missing get 'Missing' - all positional ones must
+	// have been done
+	for (i=params->cArgs-numNamedArgs;i < numArgs;i++) {
+		if (PyTuple_GET_ITEM(argList, i)==NULL) {
+			Py_INCREF(g_obMissing);
+			PyTuple_SetItem(argList, i, g_obMissing);
 		}
 	}
 
 	/* use the double stuff to keep lcid unsigned... */
-	PyObject * py_lcid = PyLong_FromDouble((double)lcid);
+	py_lcid = PyLong_FromDouble((double)lcid);
 	if ( !py_lcid )
 	{
 		PyErr_Clear();	/* ### what to do with exceptions? ... */
@@ -448,7 +497,83 @@ static HRESULT invoke_setup(
 
 	*pPyArgList = argList;
 	*pPyLCID = py_lcid;
-	return S_OK;
+	return hr;
+failed:
+	PyCom_LoggerException(NULL, "Failed to setup call into Python gateway");
+	PyErr_Clear();
+	Py_DECREF(argList);
+	assert(FAILED(hr)); // must have set this.
+	return hr;
+}
+
+// Named support for [out] args is harder - utilities for sorting
+struct NPI {
+	DISPID id;
+	VARIANT *v;
+	unsigned offset;
+};
+
+int qsort_compare( const void *arg1, const void *arg2 )
+{
+	// NOTE: We return in DESCENDING order
+	return ((NPI *)arg2)->id - ((NPI *)arg1)->id;
+}
+
+// Given the COM params, fill a caller-allocated array of indexes into the
+// params for all the BYREF's.  -1 will be set for all non-byref args.
+// The array to fill should be the same size as pDispParams->cArgs.
+// Example: if all args are positional and BYREF, pOffsets will be filled
+// with [3, 2, 1, 0] - indicating pDispParams->rgvarg[3] is the first BYREF,
+// and rgvarg[0] is the last.  Another example: only last param is BYREF,
+// pOffsets will be filled with [0, -1, -1, -1].
+// Named params are tricky - IDs could be in any order, but the tuple order
+// is fixed - so we sort the named params by their ID to work out the order.
+static void fill_byref_offsets(DISPPARAMS *pDispParams, unsigned *pOffsets, unsigned noffsets)
+{
+	// See above - special case DISPID_PROPERTYPUT.  All other negative
+	// DISPIDs have already been rejected.
+	UINT numNamedArgs = pDispParams->cNamedArgs!=1 || pDispParams->rgdispidNamedArgs[0]!=DISPID_PROPERTYPUT ? pDispParams->cNamedArgs : 0;
+	// init all.
+	memset(pOffsets, -1, noffsets * sizeof(unsigned));
+	unsigned ioffset = 0;
+	unsigned idispparam;
+	// positional args are in reverse order
+	for (idispparam=pDispParams->cArgs;
+	     idispparam > numNamedArgs && ioffset < noffsets;
+	     idispparam--) {
+		VARIANT *pv = pDispParams->rgvarg+idispparam-1;
+		// If this param is not byref, try the following one.
+		if (!V_ISBYREF(pv))
+			continue;
+		pOffsets[ioffset] = idispparam-1;
+		ioffset++;
+	}
+	// named params could have their dispid in any order - so we sort
+	// them - but only if necessary
+	if (numNamedArgs && ioffset < noffsets) {
+		//  NOTE: optimizations possible - if only 1 named param its
+		// obvious which one it is!  If 2 params its very easy to work
+		// it out - so we should only qsort for 3 or more.
+		NPI *npi = (NPI *)_malloca(sizeof(NPI) * pDispParams->cNamedArgs); // death if we fail :)
+		for (unsigned i=0;i < pDispParams->cNamedArgs;i++) {
+			npi[i].id = pDispParams->rgdispidNamedArgs[i];
+			npi[i].v = &pDispParams->rgvarg[i];
+			npi[i].offset = i;
+		}
+		qsort(npi, pDispParams->cNamedArgs, sizeof(NPI), qsort_compare);
+		// Now in descending order - we can just do the same loop again,
+		// using our sorted array instead of the original.
+		for (;
+		     idispparam > 0 && ioffset < noffsets;
+		     idispparam--) {
+			VARIANT *pv = npi[idispparam-1].v;
+			// If this param is not byref, try the following one.
+			if (!V_ISBYREF(pv))
+				continue;
+			pOffsets[ioffset] = npi[idispparam-1].offset;
+			ioffset++;
+		}
+	}
 }
 
 static HRESULT invoke_finish(
@@ -489,7 +614,7 @@ static HRESULT invoke_finish(
 		Py_DECREF(ob);
 		ob = NULL;
 
-		int count = PyObject_Length(result);
+		Py_ssize_t count = PyObject_Length(result);
 		if ( count > 0 )
 		{
 			if ( puArgErr )
@@ -522,7 +647,7 @@ static HRESULT invoke_finish(
 	// BYREF, but Python wont.  This would mean Python and VB would see different results
 	// from the same function.
 	if (PyTuple_Check(userResult)) {
-		unsigned cUserResult = PyTuple_Size(userResult);
+		unsigned cUserResult = PyWin_SAFE_DOWNCAST(PyTuple_Size(userResult), Py_ssize_t, UINT);
 		unsigned firstByRef = 0;
 		if ( pVarResult )
 		{
@@ -533,20 +658,24 @@ static HRESULT invoke_finish(
 			ob = NULL;
 			firstByRef = 1;
 		}
+		UINT max_args = min(cUserResult-firstByRef, pDispParams->cArgs);
+		UINT *offsets = (UINT *)_malloca(sizeof(UINT) * max_args);
+		// Get the offsets into our params of all BYREF args, in order.
+		fill_byref_offsets(pDispParams, offsets, max_args);
+
 		// Now loop over the params, and set any byref's
-		unsigned ituple = firstByRef;
-		unsigned idispparam;
-		// args are in reverse order
-		for (idispparam=pDispParams->cArgs;idispparam>0;idispparam--) {
-			// If we havent been given enough values, then we are done.
-			if (ituple >= cUserResult)
+		UINT i;
+		for (i=0;i<max_args;i++) {
+			UINT offset = offsets[i];
+			if (offset == (UINT)-1) {
+				// we've more args than BYREFs.
+				PyCom_LoggerWarning(NULL, "Too many results supplied - %d supplied, but only %d can be set", cUserResult, i);
 				break;
-			VARIANT *pv = pDispParams->rgvarg+idispparam-1;
-			// If this param is not byref, try the following one.
-			if (!V_ISBYREF(pv))
-				continue;
+			}
+			VARIANT *pv = pDispParams->rgvarg+offset;
+			assert(V_ISBYREF(pv));
 			// Do the conversion thang
-			ob = PyTuple_GetItem(userResult, ituple);
+			ob = PyTuple_GetItem(userResult, i + firstByRef);
 			if (!ob) goto done;
 			Py_INCREF(ob); // tuple fetch doesnt do this!
 			// Need to use the ArgHelper to get correct BYREF semantics.
@@ -554,7 +683,6 @@ static HRESULT invoke_finish(
 			arghelper.m_reqdType = V_VT(pv);
 			arghelper.m_convertDirection = POAH_CONVERT_FROM_VARIANT;
 			if (!arghelper.MakeObjToVariant(ob, pv)) goto done;
-			ituple++;
 			Py_DECREF(ob);
 			ob = NULL;
 		}
@@ -565,20 +693,19 @@ static HRESULT invoke_finish(
 			PyCom_VariantFromPyObject(userResult, pVarResult);
 			// If a Python error, it remains set for handling below...
 		} else {
-			// Single value for the first byref we find.
-			unsigned idispparam;
-			// args are in reverse order
-			for (idispparam=pDispParams->cArgs;idispparam>0;idispparam--) {
-				VARIANT *pv = pDispParams->rgvarg+idispparam-1;
-				if (!V_ISBYREF(pv))
-					continue;
-
+			// Single value for the first byref we find.  Probably
+			// only 1, but do the whole byref processing to ensure
+			// if there is more than 1, we get the right 1.
+			UINT offset;
+			fill_byref_offsets(pDispParams, &offset, 1);
+			if (offset != (UINT)-1) {
+				VARIANT *pv = pDispParams->rgvarg+offset;
+				assert(V_ISBYREF(pv));
 				PythonOleArgHelper arghelper;
 				arghelper.m_reqdType = V_VT(pv);
 				arghelper.m_convertDirection = POAH_CONVERT_FROM_VARIANT;
 				arghelper.MakeObjToVariant(userResult, pv);
 				// If a Python error, it remains set for handling below...
-				break;
 			}
 		}
 	}
@@ -615,22 +742,6 @@ STDMETHODIMP PyGatewayBase::Invoke(
 	if ( pVarResult )
 		V_VT(pVarResult) = VT_EMPTY;
 
-	/* ### for now: no named args unless it is a PUT operation,
-	   ### OR all args are named args, and have contiguous DISPIDs
-	*/
-	if ( params->cNamedArgs )
-	{
-		if ( params->cNamedArgs != 1 || params->rgdispidNamedArgs[0] != DISPID_PROPERTYPUT ) {
-			if (params->cArgs != params->cNamedArgs)
-				// Not all named args.
-				return DISP_E_NONAMEDARGS;
-			unsigned int argCheck;
-			for (argCheck=0;argCheck<params->cNamedArgs;argCheck++)
-				if (params->rgdispidNamedArgs[argCheck] != (DISPID)argCheck)
-					return DISP_E_NONAMEDARGS;
-			// OK - we will let it through.
-		}
-	}
 	PY_GATEWAY_METHOD;
 	PyObject *argList;
 	PyObject *py_lcid;
@@ -694,22 +805,6 @@ STDMETHODIMP PyGatewayBase::InvokeEx(DISPID id, LCID lcid, WORD wFlags, DISPPARA
 	if ( pVarResult )
 		V_VT(pVarResult) = VT_EMPTY;
 
-	/* ### for now: no named args unless it is a PUT operation,
-	   ### OR all args are named args, and have contiguous DISPIDs
-	*/
-	if ( params->cNamedArgs )
-	{
-		if ( params->cNamedArgs != 1 || params->rgdispidNamedArgs[0] != DISPID_PROPERTYPUT ) {
-			if (params->cArgs != params->cNamedArgs)
-				// Not all named args.
-				return DISP_E_NONAMEDARGS;
-			unsigned int argCheck;
-			for (argCheck=0;argCheck<params->cNamedArgs;argCheck++)
-				if (params->rgdispidNamedArgs[argCheck] != (DISPID)argCheck)
-					return DISP_E_NONAMEDARGS;
-			// OK - we will let it through.
-		}
-	}
 	PY_GATEWAY_METHOD;
 	PyObject *obISP = PyCom_PyObjectFromIUnknown(pspCaller, IID_IServiceProvider, TRUE);
 	if (obISP==NULL)

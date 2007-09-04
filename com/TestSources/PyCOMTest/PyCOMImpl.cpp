@@ -322,8 +322,8 @@ STDMETHODIMP CPyCOMTest::GetSimpleCounter(ISimpleCounter** counter)
 	typedef CComObject<CSimpleCounter> CCounter;
 
 	*counter = new CCounter();
-	(*counter)->AddRef();
 	if (*counter==NULL) return E_OUTOFMEMORY;
+	(*counter)->AddRef();
 	return S_OK;
 }
 
@@ -360,7 +360,118 @@ HRESULT CPyCOMTest::Fire(long nID)
 			if (SUCCEEDED(hr)) {
 				CComVariant v(nID);
 				DISPPARAMS params = { &v, NULL, 1, 0 };
-				pEvent->Invoke(dispid, IID_NULL, 0, DISPATCH_METHOD, &params, NULL, NULL, NULL);
+				hr = pEvent->Invoke(dispid, IID_NULL, 0, DISPATCH_METHOD, &params, NULL, NULL, NULL);
+			}
+			if (FAILED(hr))
+				break;
+			// call FireWithNamedParams a variety of ways.
+			// See http://msdn2.microsoft.com/en-us/library/ms221653.aspx
+			// "Passing Parameters (Component Automation)" for details.
+
+			OLECHAR *names2[] = { L"OnFireWithNamedParams" };
+			hr = pEvent->GetIDsOfNames(IID_NULL, names2, 1, 0, &dispid);
+			if (SUCCEEDED(hr)) {
+				// First call without named params - order is reversed
+				// (ie, last in array is first presented to Python.)
+				LONG out_result1 = nID+1;
+				LONG out_result2 = nID+2;
+				CComVariant v[4];
+				// the "out2" outVal;
+				V_VT(&v[0]) = VT_I4 | VT_BYREF;
+				v[0].plVal = &out_result2;
+				// the "out1" outVal;
+				V_VT(&v[1]) = VT_I4 | VT_BYREF;
+				v[1].plVal = &out_result1;
+				// the bool
+				v[2] = VARIANT_TRUE; // the bool
+				V_VT(&v[2]) = VT_BOOL;
+				// the first param.
+				v[3] = nID;
+				DISPPARAMS params = { v, NULL, 4, 0 };
+				hr = pEvent->Invoke(dispid, IID_NULL, 0, DISPATCH_METHOD, &params, NULL, NULL, NULL);
+				// all known impls return these values in the out pointer.
+				_ASSERTE(out_result1==nID+3);
+				_ASSERTE(out_result2==nID+4);
+			}
+			// Now with various combinations of named args.  Like Python, this 
+			// assumes that param DISPIDs start with zero, are sequential and
+			// in the same order as the IDL signature.
+			if (SUCCEEDED(hr)) {
+				// Call again - this time with named params.
+				LONG out_result1 = nID+1;
+				LONG out_result2 = nID+2;
+				CComVariant v[4];
+
+				// the "out2" outVal;
+				V_VT(&v[3]) = VT_I4 | VT_BYREF;
+				v[3].plVal = &out_result2;
+				// the "out1" outVal;
+				V_VT(&v[2]) = VT_I4 | VT_BYREF;
+				v[2].plVal = &out_result1;
+				// the bool
+				v[1] = VARIANT_TRUE; // the bool
+				V_VT(&v[1]) = VT_BOOL;
+				// the first param.
+				v[0] = nID;
+				// Build 210 and earlier, this was the only way params *could* be passed,
+				// which happily was the same way MSOffice did it.
+				DISPID namedIDs[4] = {0, 1, 2, 3};
+				DISPPARAMS params = { v, namedIDs, 4, 4 };
+				hr = pEvent->Invoke(dispid, IID_NULL, 0, DISPATCH_METHOD, &params, NULL, NULL, NULL);
+				// all known impls return nID+1 in the out pointer.
+				_ASSERTE(out_result1==nID+3);
+				_ASSERTE(out_result2==nID+4);
+			}
+			// Try some other funky combinations to mess with Python :)
+			if (SUCCEEDED(hr)) {
+				// First 2 positional, 2nd 2 by name.
+				LONG out_result1 = nID+1;
+				LONG out_result2 = nID+2;
+
+				CComVariant v[4];
+				// the first param.
+				v[3] = nID;
+				// 2nd positional
+				v[2] = VARIANT_TRUE; // the bool
+				V_VT(&v[2]) = VT_BOOL;
+				// named ones up front.
+
+				// the "out2" outVal (dispid=3)
+				V_VT(&v[1]) = VT_I4 | VT_BYREF;
+				v[1].plVal = &out_result2;
+				// the "out1" outVal (dispid=2)
+				V_VT(&v[0]) = VT_I4 | VT_BYREF;
+				v[0].plVal = &out_result1;
+
+				DISPID namedIDs[2] = {2, 3};
+				DISPPARAMS params = { v, namedIDs, 4, 2 };
+				hr = pEvent->Invoke(dispid, IID_NULL, 0, DISPATCH_METHOD, &params, NULL, NULL, NULL);
+				// all known impls return nID+1 in the out pointer.
+				_ASSERTE(out_result1==nID+3);
+				_ASSERTE(out_result2==nID+4);
+			}
+
+			if (SUCCEEDED(hr)) {
+				// Only pass the 2 out params - Python must ensure earlier
+				// ones are also passed.
+				LONG out_result1 = nID+1;
+				LONG out_result2 = nID+2;
+
+				CComVariant v[4];
+				// the "out2" outVal (dispid=3)
+				V_VT(&v[0]) = VT_I4 | VT_BYREF;
+				v[0].plVal = &out_result2;
+				// the "out1" outVal (dispid=2)
+				V_VT(&v[1]) = VT_I4 | VT_BYREF;
+				v[1].plVal = &out_result1;
+
+				DISPID namedIDs[2] = {3, 2};
+				DISPPARAMS params = { v, namedIDs, 2, 2 };
+
+				hr = pEvent->Invoke(dispid, IID_NULL, 0, DISPATCH_METHOD, &params, NULL, NULL, NULL);
+				// all known impls return nID+1 in the out pointer.
+				_ASSERTE(out_result1==nID+3);
+				_ASSERTE(out_result2==nID+4);
 			}
 //			IPyCOMTestEvent* pIEvent = (IPyCOMTestEvent*)*pp;
 //			hr = pIEvent->Fire(nID);
@@ -368,7 +479,18 @@ HRESULT CPyCOMTest::Fire(long nID)
 		pp++;
 	}
 	Unlock();
+	_ASSERTE(SUCCEEDED(hr));
 	return hr;
+}
+
+HRESULT CPyCOMTest::FireWithNamedParams(long nID, VARIANT_BOOL b, int *outVal1, int *outVal2)
+{
+	_ASSERTE(b==VARIANT_TRUE);
+	_ASSERTE(nID+1==*outVal1);
+	_ASSERTE(nID+2==*outVal2);
+	*outVal1 = (int)nID+3;
+	*outVal2 = (int)nID+4;
+	return S_OK;
 }
 
 HRESULT CPyCOMTest::TestOptionals(BSTR strArg, short sarg, long larg, double darg, SAFEARRAY **pRet) 

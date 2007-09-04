@@ -28,9 +28,9 @@ extern PyObject *g_obPyCom_MapIIDToType;
 extern PyObject *g_obPyCom_MapGatewayIIDToName;
 extern PyObject *g_obPyCom_MapInterfaceNameToIID;
 
-static PyObject *g_obEmpty = NULL;
-static PyObject *g_obMissing = NULL;
-static PyObject *g_obArgNotFound = NULL;
+PyObject *g_obEmpty = NULL;
+PyObject *g_obMissing = NULL;
+PyObject *g_obArgNotFound = NULL;
 
 PyObject *PyCom_InternalError = NULL;
 
