@@ -22,7 +22,7 @@ STDMETHODIMP PyGStream::Read(
 	DWORD resultlen;
 	if (PyWinObject_AsReadBuffer(result, &buf, &resultlen, FALSE)){
 		if (resultlen > cb)
-			PyErr_SetString(PyExc_ValueError,"Returned data longer than requested");
+			PyErr_SetString(PyExc_ValueError,"PyGStream::Read: returned data longer than requested");
 		else{
 			memcpy(pv, buf, resultlen);
 			if (pcbRead)

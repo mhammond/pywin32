@@ -255,7 +255,7 @@ STDMETHODIMP PyGLockBytes::ReadAt(
 	VOID *buf;
 	if (PyWinObject_AsReadBuffer(result, &buf, &resultlen, FALSE)){
 		if (resultlen > cb)
-			PyErr_SetString(PyExc_ValueError,"Returned data longer than requested");
+			PyErr_SetString(PyExc_ValueError,"PyGLockBytes::ReadAt: returned data longer than requested");
 		else{
 			memcpy(pv, buf, resultlen);
 			if (pcbRead)
