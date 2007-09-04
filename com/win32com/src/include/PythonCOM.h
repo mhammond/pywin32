@@ -319,10 +319,20 @@ PYCOM_EXPORT PyObject* PyCom_BuildInternalPyException(char *msg);
 // (or even writing to them once fetched), the message still goes to stderr.
 // NOTE: By default, win32com does *not* provide a logger, so default is that
 // all errors are written to stdout.
+// This will *not* write a record if a COM Server error is current.
 PYCOM_EXPORT void PyCom_LoggerNonServerException(PyObject *logProvider,
-											     const char *fmt, ...);
+                                                 const char *fmt, ...);
 
+// Write an error record, including exception.  This will write an error
+// record even if a COM server error is current.
 PYCOM_EXPORT void PyCom_LoggerException(PyObject *logProvider, const char *fmt, ...);
+
+// Write a warning record - in general this does *not* mean a call failed, but
+// still is something in the programmers control that they should change.
+// XXX - if an exception is pending when this is called, the traceback will
+// also be written.  This is undesirable and will be changed should this
+// start being a problem.
+PYCOM_EXPORT void PyCom_LoggerWarning(PyObject *logProvider, const char *fmt, ...);
 
 // Server related error functions
 // These are supplied so that any Python errors we detect can be

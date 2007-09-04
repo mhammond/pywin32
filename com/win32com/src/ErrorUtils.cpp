@@ -575,9 +575,9 @@ void _LogException(PyObject *exc_typ, PyObject *exc_val, PyObject *exc_tb)
 // XXX - _DoLogError() was a really bad name in retrospect, given
 // the "logger" module and my dumb choice of _DoLogger() for logger errors :)
 // Thankfully both are private.
-static void _DoLogError(const char *fmt, va_list argptr)
+static void _DoLogError(const char *prefix, const char *fmt, va_list argptr)
 {
-	PyCom_StreamMessage("pythoncom error: ");
+	PyCom_StreamMessage(prefix);
 	VLogF(fmt, argptr);
 	PyCom_StreamMessage("\n");
 	// If we have a Python exception, also log that:
@@ -597,6 +597,11 @@ static void _DoLogger(PyObject *logProvider, char *log_method, const char *fmt, 
 	PyObject *exc_typ = NULL, *exc_val = NULL, *exc_tb = NULL;
 	PyErr_Fetch( &exc_typ, &exc_val, &exc_tb);
 	PyObject *logger = NULL;
+	char prefix[128];
+	strcpy(prefix, "pythoncom ");
+	strncat(prefix, log_method, 100);
+	strncat(prefix, ": ", 2);
+
 	if (logProvider)
 		logger = PyObject_CallMethod(logProvider, "_GetLogger_", NULL);
 	if (logger == NULL) {
@@ -613,18 +618,10 @@ static void _DoLogger(PyObject *logProvider, char *log_method, const char *fmt, 
 	}
 	PyErr_Restore(exc_typ, exc_val, exc_tb);
 	if (!logger ||
-		!VLogF_Logger(logger, log_method, "pythoncom error: ", fmt, argptr))
+		!VLogF_Logger(logger, log_method, prefix, fmt, argptr))
 		// No logger, or logger error - normal stdout stream.
-		_DoLogError(fmt, argptr);
+		_DoLogError(prefix, fmt, argptr);
 	Py_XDECREF(logger);
-}
-
-PYCOM_EXPORT 
-void PyCom_LogError(const char *fmt, ...)
-{
-	va_list marker;
-	va_start(marker, fmt);
-	_DoLogger(NULL, "error", fmt, marker);
 }
 
 BOOL IsNonServerErrorCurrent() {
@@ -646,6 +643,13 @@ PYCOM_EXPORT void PyCom_LoggerException(PyObject *logProvider, const char *fmt, 
 	va_list marker;
 	va_start(marker, fmt);
 	_DoLogger(logProvider, "error", fmt, marker);
+}
+
+PYCOM_EXPORT void PyCom_LoggerWarning(PyObject *logProvider, const char *fmt, ...)
+{
+	va_list marker;
+	va_start(marker, fmt);
+	_DoLogger(logProvider, "warning", fmt, marker);
 }
 
 PYCOM_EXPORT 
