@@ -80,9 +80,13 @@ extern PSecurityFunctionTableW psecurityfunctiontable=NULL;
 
 typedef BOOL (WINAPI *TranslateNamefunc)(LPCTSTR, EXTENDED_NAME_FORMAT, EXTENDED_NAME_FORMAT, LPTSTR, PULONG);
 static TranslateNamefunc pfnTranslateName=NULL;
-
 typedef BOOL (WINAPI *CreateWellKnownSidfunc)(WELL_KNOWN_SID_TYPE, PSID, PSID, DWORD *);
 static CreateWellKnownSidfunc pfnCreateWellKnownSid=NULL;
+typedef BOOL (WINAPI *LogonUserExfunc)(LPWSTR,LPWSTR,LPWSTR,DWORD,DWORD,PHANDLE,PSID*,PVOID*,LPDWORD,PQUOTA_LIMITS);
+static LogonUserExfunc pfnLogonUserEx = NULL;
+typedef BOOL (WINAPI *LogonUserExExfunc)(LPWSTR,LPWSTR,LPWSTR,DWORD,PTOKEN_GROUPS,DWORD,PHANDLE,PSID*,PVOID*,LPDWORD,PQUOTA_LIMITS);
+static LogonUserExExfunc pfnLogonUserExEx = NULL;
+
 
 // function pointers used in win32security_sspi.cpp and win32security_ds.cpp
 extern DsBindfunc pfnDsBind=NULL;
@@ -796,6 +800,8 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 		loadapifunc("ConvertStringSecurityDescriptorToSecurityDescriptorW", advapi32_dll);
 	pfnImpersonateAnonymousToken=(ImpersonateAnonymousTokenfunc)loadapifunc("ImpersonateAnonymousToken", advapi32_dll);
 	pfnIsTokenRestricted=(IsTokenRestrictedfunc)loadapifunc("IsTokenRestricted", advapi32_dll);
+	pfnLogonUserEx=(LogonUserExfunc)loadapifunc("LogonUserExW", advapi32_dll);
+	pfnLogonUserExEx=(LogonUserExExfunc)loadapifunc("LogonUserExExW", advapi32_dll);
 
 	// Load InitSecurityInterface, which returns a table of pointers to the SSPI functions so they don't all have to be
 	// loaded individually - from security.dll on NT, and secur32.dll on win2k and up
@@ -844,6 +850,8 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 			||(strcmp(pmd->ml_name, "CreateRestrictedToken")==0)
 			||(strcmp(pmd->ml_name, "LsaAddAccountRights")==0)
 			||(strcmp(pmd->ml_name, "LsaRemoveAccountRights")==0)
+			||(strcmp(pmd->ml_name, "LogonUser")==0)
+			||(strcmp(pmd->ml_name, "LogonUserEx")==0)
 			){
 			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 			}
@@ -992,15 +1000,123 @@ static PyObject * PyIsTokenRestricted(PyObject *self, PyObject *args)
 // @pyswig |RevertToSelf|Terminates the impersonation of a client application.
 BOOLAPI RevertToSelf();
 
+%native(LogonUser) pfn_PyLogonUser;
+%native(LogonUserEx) pfn_PyLogonUserEx;
+%{
 // @pyswig <o PyHANDLE>|LogonUser|Attempts to log a user on to the local computer, that is, to the computer from which LogonUser was called. You cannot use LogonUser to log on to a remote computer.
-BOOLAPI LogonUser(
-    TCHAR *userName, // @pyparm string|userName||The name of the user account to log on to. 
-    TCHAR *INPUT_NULLOK, // @pyparm string|domain||The name of the domain, or None for the current domain
-    TCHAR *password, // @pyparm string|password||The password to use.
-    DWORD logonType, // @pyparm int|logonType||Specifies the type of logon operation to perform.  Must be a combination of the LOGON32_LOGON* constants.
-    DWORD logonProvider, // @pyparm int|logonProvider||Specifies the logon provider to use.
-    PyHANDLE *OUTPUT
-);
+// @comm Accepts keyword args
+// @comm On Windows 2000 and earlier, the calling process must have SE_TCB_NAME privilege.
+PyObject *PyLogonUser(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	DWORD logontype, logonprovider;
+	PyObject *obusername, *obdomain, *obpassword;
+	WCHAR *username=NULL, *domain=NULL, *password=NULL;
+	HANDLE htoken;
+	PyObject *ret=NULL;
+
+	static char *keywords[]={"Username","Domain","Password","LogonType","LogonProvider", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOOkk:LogonUser", keywords,
+		&obusername,	// @pyparm <o PyUnicode>|Username||The name of the user account to log on to. 
+						// This may also be a marshalled credential (see <om win32cred.CredMarshalCredential>).
+		&obdomain,		// @pyparm <o PyUnicode>|Domain||The name of the domain, or None for the current domain
+		&obpassword,	// @pyparm <o PyUnicode>|Password||User's password.  Use a blank string if Username contains a marshalled credential.
+		&logontype,		// @pyparm int|LogonType||One of LOGON32_LOGON_* values
+		&logonprovider))	// @pyparm int|LogonProvider||One of LOGON32_PROVIDER_* values
+		return NULL;
+
+	if (PyWinObject_AsWCHAR(obusername, &username, FALSE)
+		&&PyWinObject_AsWCHAR(obdomain, &domain, TRUE)
+		&&PyWinObject_AsWCHAR(obpassword, &password, FALSE)){
+		if (!LogonUser(username, domain, password, logontype, logonprovider, &htoken))
+			PyWin_SetAPIError("LogonUser");
+		else
+			ret=PyWinObject_FromHANDLE(htoken);
+		}
+
+	if (password)
+		SecureZeroMemory(password, wcslen(password)*sizeof(WCHAR));
+	PyWinObject_FreeWCHAR(username);
+	PyWinObject_FreeWCHAR(domain);
+	PyWinObject_FreeWCHAR(password);
+	return ret;
+}
+
+PyObject *PyWinObject_FromQUOTA_LIMITS(PQUOTA_LIMITS pql)
+{
+	return Py_BuildValue("{s:N, s:N, s:N, s:N, s:N, s:N}",
+		"PagedPoolLimit",			PyLong_FromUnsignedLongLong(pql->PagedPoolLimit),
+		"NonPagedPoolLimit",		PyLong_FromUnsignedLongLong(pql->NonPagedPoolLimit),
+		"MinimumWorkingSetSize",	PyLong_FromUnsignedLongLong(pql->MinimumWorkingSetSize),
+		"MaximumWorkingSetSize",	PyLong_FromUnsignedLongLong(pql->MaximumWorkingSetSize),
+		"PagefileLimit",			PyLong_FromUnsignedLongLong(pql->PagefileLimit),
+		"TimeLimit",				PyLong_FromUnsignedLongLong(pql->TimeLimit.QuadPart));
+}
+
+// @pyswig (<o PyHANDLE>, <o PySID>, str, dict)|LogonUserEx|Log a user onto the local machine,
+// @comm Requires Windows XP or later
+// @comm Accepts keyword args
+// @rdesc Returns access token, logon sid, profile buffer, and process quotas.
+//	Format of the profile buffer is not known, so returned object is subject to change.
+PyObject *PyLogonUserEx(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(LogonUserEx);
+	DWORD logontype, logonprovider, profilelen;
+	PyObject *obusername, *obdomain, *obpassword;
+	WCHAR *username=NULL, *domain=NULL, *password=NULL;
+	HANDLE htoken;
+	void *profile=NULL;
+	PSID psid=NULL;
+	QUOTA_LIMITS quota_limits;
+	PyObject *ret=NULL;
+
+	static char *keywords[]={"Username","Domain","Password","LogonType","LogonProvider", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOOkk:LogonUserEx", keywords,
+		&obusername,	// @pyparm <o PyUnicode>|Username||User account, may be specified as a UPN (user@domain.com).
+						// This may also be a marshalled credential (see <om win32cred.CredMarshalCredential>).
+		&obdomain,		// @pyparm <o PyUnicode>|Domain||User's domain. Can be None if Username is a full UPN.
+		&obpassword,	// @pyparm <o PyUnicode>|Password||User's password.  Use a blank string if Username contains a marshalled credential.
+		&logontype,		// @pyparm int|LogonType||One of LOGON32_LOGON_* values
+		&logonprovider))	// @pyparm int|LogonProvider||One of LOGON32_PROVIDER_* values
+		return NULL;
+
+	if (PyWinObject_AsWCHAR(obusername, &username, FALSE)
+		&&PyWinObject_AsWCHAR(obdomain, &domain, TRUE)
+		&&PyWinObject_AsWCHAR(obpassword, &password, FALSE)){
+		if (!LogonUserEx(username, domain, password, logontype, logonprovider, &htoken,
+			&psid, &profile, &profilelen, &quota_limits))
+			PyWin_SetAPIError("LogonUserEx");
+		else
+			ret=Py_BuildValue("NNNN",
+				PyWinObject_FromHANDLE(htoken),
+				PyWinObject_FromSID(psid),
+				PyString_FromStringAndSize((char *)profile, profilelen),
+				PyWinObject_FromQUOTA_LIMITS(&quota_limits));
+		}
+
+	// MSDN doesn't specify how the output buffers should be freed.  The docs for LsaLogonUser
+	//	reference LsaFreeReturnBuffer, but it returns an error when trying to free the sid.
+	//	LsaFreeMemory succeeds for both buffers, so use it and warn if it returns an error
+	NTSTATUS ntstatus;
+	if (profile){
+		ntstatus=LsaFreeMemory(profile);
+		if (ntstatus != ERROR_SUCCESS)
+			PyErr_Warn(PyExc_RuntimeWarning, "Profile buffer could not be freed using LsaFreeMemory");
+		}
+	if (psid){
+		ntstatus=LsaFreeMemory(psid);
+		if (ntstatus != ERROR_SUCCESS)
+			PyErr_Warn(PyExc_RuntimeWarning, "SID could not be freed using LsaFreeMemory");
+		}
+	if (password)
+		SecureZeroMemory(password, wcslen(password)*sizeof(WCHAR));
+	PyWinObject_FreeWCHAR(username);
+	PyWinObject_FreeWCHAR(domain);
+	PyWinObject_FreeWCHAR(password);
+	return ret;
+}
+PyCFunction pfn_PyLogonUser=(PyCFunction)PyLogonUser;
+PyCFunction pfn_PyLogonUserEx=(PyCFunction)PyLogonUserEx;
+%}
 
 // @pyswig <o PySID>, string, int|LookupAccountName|Accepts the name of a system and an account as input. It retrieves a security identifier (SID) for the account and the name of the domain on which the account was found.
 // @rdesc The result is a tuple of new SID object, the domain name where the account was found, and the type of account the SID is for.
@@ -1952,7 +2068,7 @@ static PyObject *PySetThreadToken(PyObject *self, PyObject *args)
 
 // @pyswig <o PySECURITY_DESCRIPTOR>|GetFileSecurity|Obtains specified information about the security of a file or directory. The information obtained is constrained by the caller's access rights and privileges.
 // @comm This function reportedly will not return the INHERITED_ACE flag on some Windows XP SP1 systems
-//       Use GetNameSecurityInfo if you encounter this problem. 
+//       Use GetNamedSecurityInfo if you encounter this problem. 
 %native(GetFileSecurity) MyGetFileSecurity;
 %{
 static PyObject *MyGetFileSecurity(PyObject *self, PyObject *args)
@@ -2186,7 +2302,7 @@ static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 {
 	PyObject *obth;
 	HANDLE th;
-	PyObject *obinfo;
+	PyObject *obinfo, *ret=NULL;
 	DWORD bufsize = 0;
 	void *buf = NULL;
 	TOKEN_INFORMATION_CLASS typ;
@@ -2208,7 +2324,7 @@ static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 			if (buf==NULL)
 				return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
 			if (!PyWinObject_AsSID(obinfo, &((PTOKEN_OWNER)buf)->Owner, FALSE))
-				return NULL;
+				goto done;
 			break;
 			}
 		case TokenPrimaryGroup: {	// @flag TokenPrimaryGroup|<o PySID>
@@ -2217,7 +2333,7 @@ static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 			if (buf==NULL)
 				return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
 			if (!PyWinObject_AsSID(obinfo, &((PTOKEN_PRIMARY_GROUP)buf)->PrimaryGroup, FALSE))
-				return NULL;
+				goto done;
 			break;
 			}
 		case TokenDefaultDacl: {	// @flag TokenDefaultDacl|<o PyACL> - Default permissions for created objects
@@ -2226,7 +2342,7 @@ static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 			if (buf==NULL)
 				return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
 			if (!PyWinObject_AsACL(obinfo, &((PTOKEN_DEFAULT_DACL)buf)->DefaultDacl, TRUE))
-				return NULL;
+				goto done;
 			break;
 			}
 		case TokenSessionId:				// @flag TokenSessionId|Int - Terminal services session id
@@ -2243,7 +2359,7 @@ static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 				// PyLong_AsUnsignedLong returns stupid "bad argument to internal function" error when it fails
 				PyErr_Clear();
 				PyErr_SetString(PyExc_TypeError, "Information must be an int >= 0");
-				return NULL;
+				goto done;
 				}
 			break;
 		#ifdef _WIN32_WINNT_LONGHORN
@@ -2253,7 +2369,7 @@ static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 			if (buf==NULL)
 				return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
 			if (!PyWinObject_AsSID_AND_ATTRIBUTES(obinfo, &((PTOKEN_MANDATORY_LABEL)buf)->Label))
-				return NULL;
+				goto done;
 			break;
 		case TokenMandatoryPolicy:	// @flag TokenMandatoryPolicy|Int. one of TOKEN_MANDATORY_POLICY_* values
 			bufsize = sizeof(TOKEN_MANDATORY_POLICY);
@@ -2265,23 +2381,25 @@ static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 				// PyLong_AsUnsignedLong returns stupid "bad argument to internal function" error when it fails
 				PyErr_Clear();
 				PyErr_SetString(PyExc_TypeError, "Information must be an int >= 0");
-				return NULL;
+				goto done;
 				}
 			break;
 		#endif
 		default:
-			return PyErr_Format(PyExc_NotImplementedError, "TokenInformationClass %d is not yet supported", typ);
+			PyErr_Format(PyExc_NotImplementedError, "TokenInformationClass %d is not yet supported", typ);
+			goto done;
 	}
-	if (!SetTokenInformation(th,typ,buf,bufsize)){
-		free(buf);
+	if (!SetTokenInformation(th,typ,buf,bufsize))
 		PyWin_SetAPIError("SetTokenInformation");
-		return NULL;
+	else{
+		Py_INCREF(Py_None);
+		ret=Py_None;
 		}
 
-	free(buf);
-	Py_INCREF(Py_None);
-	return Py_None;
-
+	done:
+	if (buf)
+		free(buf);
+	return ret;
 }
 %}
 
@@ -3956,10 +4074,14 @@ static PyObject *PyMapGenericMask(PyObject *self, PyObject *args)
 #define LOGON32_LOGON_INTERACTIVE LOGON32_LOGON_INTERACTIVE //This logon type is intended for users who will be interactively using the machine, such as a user being logged on by a terminal server, remote shell, or similar process. This logon type has the additional expense of caching logon information for disconnected operation, and is therefore inappropriate for some client/server applications, such as a mail server. 
 #define LOGON32_LOGON_SERVICE LOGON32_LOGON_SERVICE // Indicates a service-type logon. The account provided must have the service privilege enabled. 
 #define LOGON32_LOGON_NETWORK LOGON32_LOGON_NETWORK // This logon type is intended for high performance servers to authenticate clear text passwords. LogonUser does not cache credentials for this logon type. This is the fastest logon path, but there are two limitations. First, the function returns an impersonation token, not a primary token. You cannot use this token directly in the CreateProcessAsUser function. However, you can call the DuplicateTokenEx function to convert the token to a primary token, and then use it in CreateProcessAsUser. Second, if you convert the token to a primary token and use it in CreateProcessAsUser to start a process, the new process will not be able to access other network resources, such as remote servers or printers, through the redirector.
+#define LOGON32_LOGON_UNLOCK LOGON32_LOGON_UNLOCK
+#define LOGON32_LOGON_NETWORK_CLEARTEXT LOGON32_LOGON_NETWORK_CLEARTEXT
+#define LOGON32_LOGON_NEW_CREDENTIALS LOGON32_LOGON_NEW_CREDENTIALS
 
 #define LOGON32_PROVIDER_DEFAULT LOGON32_PROVIDER_DEFAULT // Use the standard logon provider for the system. This is the recommended value for the dwLogonProvider parameter. It provides maximum compatibility with current and future releases of Windows NT.  
 #define LOGON32_PROVIDER_WINNT40 LOGON32_PROVIDER_WINNT40 // Use the Windows NT 4.0 logon provider 
 #define LOGON32_PROVIDER_WINNT35 LOGON32_PROVIDER_WINNT35 // Use the Windows NT 3.5 logon provider.  
+#define LOGON32_PROVIDER_WINNT50 LOGON32_PROVIDER_WINNT50 // Use the Negotiate protocol
 
 // SECURITY_IDENTIFIER_AUTHORITY Values ??? last byte of a 6 - byte array ???
 #define SECURITY_NULL_SID_AUTHORITY         0
