@@ -43,7 +43,7 @@ class ScintillaNotification:
 
 class ScintillaControlInterface:
 	def SCIUnpackNotifyMessage(self, msg):
-		format = "iiiiPiiiiiiiii"
+		format = "iiiiPiiiPPiiii"
 		bytes = win32ui.GetBytes( msg, struct.calcsize(format) )
 		position, ch, modifiers, modificationType, text_ptr, \
 				length, linesAdded, msg, wParam, lParam, line, \
@@ -268,13 +268,23 @@ class CScintillaEditInterface(ScintillaControlInterface):
 	def Clear(self):
 		self.SendScintilla(win32con.WM_CLEAR)
 	def FindText(self, flags, range, findText):
+		""" LPARAM for EM_FINDTEXTEX:
+			typedef struct _findtextex {
+			CHARRANGE chrg;
+			LPCTSTR lpstrText;
+			CHARRANGE chrgText;} FINDTEXTEX;
+		typedef struct _charrange {
+			LONG cpMin;
+			LONG cpMax;} CHARRANGE;
+		"""
+		findtextex_fmt='llPll'
 		buff = array.array('c', findText + "\0")
 		addressBuffer = buff.buffer_info()[0]
-		ft = struct.pack('llLll', range[0], range[1], addressBuffer, 0, 0)
+		ft = struct.pack(findtextex_fmt, range[0], range[1], addressBuffer, 0, 0)
 		ftBuff = array.array('c', ft)
 		addressFtBuff = ftBuff.buffer_info()[0]
 		rc = self.SendScintilla(EM_FINDTEXTEX, flags, addressFtBuff)
-		ftUnpacked = struct.unpack('llLll', ftBuff.tostring())
+		ftUnpacked = struct.unpack(findtextex_fmt, ftBuff.tostring())
 		return rc, (ftUnpacked[3], ftUnpacked[4])
 
 	def GetSel(self):
@@ -338,7 +348,7 @@ class CScintillaEditInterface(ScintillaControlInterface):
 		initer = "=" * (end - start + 1)
 		buff = array.array('c', initer)
 		addressBuffer = buff.buffer_info()[0]
-		tr = struct.pack('llL', start, end, addressBuffer)
+		tr = struct.pack('llP', start, end, addressBuffer)
 		trBuff = array.array('c', tr)
 		addressTrBuff = trBuff.buffer_info()[0]
 		numChars = self.SendScintilla(EM_GETTEXTRANGE, 0, addressTrBuff)

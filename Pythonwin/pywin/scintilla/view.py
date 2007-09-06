@@ -636,9 +636,18 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		self._obj_.OnFilePrint()
 
 	def FormatRange(self, dc, pageStart, lengthDoc, rc, draw):
+		"""
+		typedef struct _formatrange {
+			HDC hdc;
+			HDC hdcTarget;
+			RECT rc;
+			RECT rcPage;
+			CHARRANGE chrg;} FORMATRANGE;
+		"""
+		fmt='PPIIIIIIIIll'
 		hdcRender = dc.GetHandleOutput()
 		hdcFormat = dc.GetHandleAttrib()
-		fr = struct.pack('llIIIIIIIIll', hdcRender, hdcFormat, rc[0], rc[1], rc[2], rc[3], rc[0], rc[1], rc[2], rc[3], pageStart, lengthDoc)
+		fr = struct.pack(fmt, hdcRender, hdcFormat, rc[0], rc[1], rc[2], rc[3], rc[0], rc[1], rc[2], rc[3], pageStart, lengthDoc)
 		frBuff = array.array('c', fr)
 		addressFrBuff = frBuff.buffer_info()[0]
 		nextPageStart = self.SendScintilla(EM_FORMATRANGE, draw, addressFrBuff)
