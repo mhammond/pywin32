@@ -255,7 +255,8 @@ class MainWindow:
     # Owner-draw related functions.  We only have 1 owner-draw item, but
     # we pretend we have more than that :)
     def OnMeasureItem(self, hwnd, msg, wparam, lparam):
-        fmt = "6i"
+        ## Last item of MEASUREITEMSTRUCT is a ULONG_PTR
+        fmt = "5iP"
         buf = PyMakeBuffer(struct.calcsize(fmt), lparam)
         data = struct.unpack(fmt, buf)
         ctlType, ctlID, itemID, itemWidth, itemHeight, itemData = data
@@ -283,7 +284,8 @@ class MainWindow:
         return True 
 
     def OnDrawItem(self, hwnd, msg, wparam, lparam):
-        fmt = "12i"
+        ## lparam is a DRAWITEMSTRUCT
+        fmt = "5i2P4iP"
         data = struct.unpack(fmt, PyGetString(lparam, struct.calcsize(fmt)))
         ctlType, ctlID, itemID, itemAction, itemState, hwndItem, \
                 hDC, left, top, right, bot, itemData = data

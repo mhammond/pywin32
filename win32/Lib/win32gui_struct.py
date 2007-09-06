@@ -43,7 +43,7 @@ def UnpackWMNOTIFY(lparam):
 # structures.  We also have special handling for the 'fMask' item in that
 # structure to avoid the caller needing to explicitly check validity
 # (None is used if the mask excludes/should exclude the value)
-menuitem_fmt = '9iP2i'
+menuitem_fmt = '5i5PiP'
 
 def PackMENUITEMINFO(fType=None, fState=None, wID=None, hSubMenu=None,
                      hbmpChecked=None, hbmpUnchecked=None, dwItemData=None,
@@ -96,6 +96,7 @@ def PackMENUITEMINFO(fType=None, fState=None, wID=None, hSubMenu=None,
         lptext = 0
         cch = 0
     # Create the struct.
+    # 'P' format does not accept PyHANDLE's !
     item = struct.pack(
                 menuitem_fmt,
                 struct.calcsize(menuitem_fmt), # cbSize
@@ -103,13 +104,13 @@ def PackMENUITEMINFO(fType=None, fState=None, wID=None, hSubMenu=None,
                 fType,
                 fState,
                 wID,
-                hSubMenu,
-                hbmpChecked,
-                hbmpUnchecked,
+                long(hSubMenu),
+                long(hbmpChecked),
+                long(hbmpUnchecked),
                 dwItemData,
                 lptext,
                 cch,
-                hbmpItem
+                long(hbmpItem)
                 )
     # Now copy the string to a writable buffer, so that the result
     # could be passed to a 'Get' function
