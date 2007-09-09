@@ -17,6 +17,9 @@
 typedef	BOOL (WINAPI *GetNamedPipeClientProcessIdfunc)(HANDLE, PULONG);
 static GetNamedPipeClientProcessIdfunc pfnGetNamedPipeClientProcessId = NULL;
 static GetNamedPipeClientProcessIdfunc pfnGetNamedPipeServerProcessId = NULL;
+static GetNamedPipeClientProcessIdfunc pfnGetNamedPipeClientSessionId = NULL;
+static GetNamedPipeClientProcessIdfunc pfnGetNamedPipeServerSessionId = NULL;
+
 
 // Global used to determine if Win9x win32pipe hack is necessary.
 bool g_fUsingWin9x;
@@ -122,6 +125,8 @@ static BOOL LoadModulePath(void)
 	if (hmod){
 		pfnGetNamedPipeClientProcessId = (GetNamedPipeClientProcessIdfunc)GetProcAddress(hmod, "GetNamedPipeClientProcessId");
 		pfnGetNamedPipeServerProcessId = (GetNamedPipeClientProcessIdfunc)GetProcAddress(hmod, "GetNamedPipeServerProcessId");
+		pfnGetNamedPipeClientSessionId = (GetNamedPipeClientProcessIdfunc)GetProcAddress(hmod, "GetNamedPipeClientSessionId");
+		pfnGetNamedPipeServerSessionId = (GetNamedPipeClientProcessIdfunc)GetProcAddress(hmod, "GetNamedPipeServerSessionId");
 		}
 %}
 
@@ -430,7 +435,15 @@ BOOLAPI WaitNamedPipe(
 	// @flagh Value|Meaning 
 	// @flag NMPWAIT_USE_DEFAULT_WAIT|The time-out interval is the default value specified by the server process in the CreateNamedPipe function. 
 	// @flag NMPWAIT_WAIT_FOREVER|The function does not return until an instance of the named pipe is available 
-	
+
+// @pyswig (int, int, int, int)|GetNamedPipeInfo|Returns pipe's flags, buffer sizes, and max instances
+BOOLAPI GetNamedPipeInfo(
+	HANDLE hNamedPipe,	// @pyparm <o PyHANDLE>|hNamedPipe||Handle to a named pipe
+	DWORD *OUTPUT,
+	DWORD *OUTPUT,
+	DWORD *OUTPUT,
+	DWORD *OUTPUT);
+
 %{
 
 // @pyswig (string, int, int)|PeekNamedPipe|Copies data from a named or anonymous pipe into a buffer without removing it from the pipe. It also returns information about data in the pipe.
@@ -503,7 +516,44 @@ PyObject *MyGetNamedPipeServerProcessId(PyObject *self, PyObject *args)
 		return PyWin_SetAPIError("GetNamedPipeServerProcessId");
 	return PyLong_FromUnsignedLong(pid);
 }
+
+// @pyswig int|GetNamedPipeClientSessionId|Returns the session id of client that is connected to a named pipe
+// @comm Requires Vista or later
+PyObject *MyGetNamedPipeClientSessionId(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(GetNamedPipeClientSessionId);
+	HANDLE hNamedPipe;
+	DWORD pid;
+	PyObject *obhNamedPipe;
+	// @pyparm <o PyHANDLE>|hPipe||The handle to the pipe.
+	if (!PyArg_ParseTuple(args, "O:GetNamedPipeClientSessionId", &obhNamedPipe))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
+		return NULL;
+	if (!(*pfnGetNamedPipeClientSessionId)(hNamedPipe, &pid))
+		return PyWin_SetAPIError("GetNamedPipeClientSessionId");
+	return PyLong_FromUnsignedLong(pid);
+}
+
+// @pyswig int|GetNamedPipeServerSessionId|Returns session id of server process that created a named pipe
+// @comm Requires Vista or later
+PyObject *MyGetNamedPipeServerSessionId(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(GetNamedPipeServerSessionId);
+	HANDLE hNamedPipe;
+	DWORD pid;
+	PyObject *obhNamedPipe;
+	// @pyparm <o PyHANDLE>|hPipe||The handle to the pipe.
+	if (!PyArg_ParseTuple(args, "O:GetNamedPipeServerSessionId", &obhNamedPipe))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
+		return NULL;
+	if (!(*pfnGetNamedPipeServerSessionId)(hNamedPipe, &pid))
+		return PyWin_SetAPIError("GetNamedPipeServerSessionId");
+	return PyLong_FromUnsignedLong(pid);
+}
 %}
 %native(GetNamedPipeClientProcessId) MyGetNamedPipeClientProcessId;
 %native(GetNamedPipeServerProcessId) MyGetNamedPipeServerProcessId;
-
+%native(GetNamedPipeClientSessionId) MyGetNamedPipeClientSessionId;
+%native(GetNamedPipeServerSessionId) MyGetNamedPipeServerSessionId;
