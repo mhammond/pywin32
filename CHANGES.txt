@@ -13,10 +13,12 @@ Since build 210:
 	CoMarshalInterface/CoUnmarshalInterface/CoReleaseMarshalData
 	ReadClassStm/WriteClassStm
 	CreateStreamOnHGlobal
+	CreateILockBytesOnHGlobal
 
 * win32com.shell:
 	PyIExtractImage
 	PyIEmptyVolumecache
+	IsUserAnAdmin
 
 * win32transaction: New module containing Kernel Transaction Manager (KTM) functions
 	as used with transacted NTFS and transacted registry functions
@@ -59,11 +61,13 @@ Since build 210:
 	Window class name can now be used interchangeably with class atom
 		(fixes bug #1267366)
 	Add DrawTextW (feature request #1173716)
+	PtInRect
 
 * win32process:
 	Get/SetThreadPriorityBoost and Get/SetProcessPriorityBoost
 	GetGuiResources
 	GetProcessId
+	IsWow64Process
 
 * win32print:
 	Printer handles are now returned as self-closing PyHANDLE subclass
@@ -71,12 +75,22 @@ Since build 210:
 
 * win32security:
 	Added DuplicateTokenEx
+	GetTokenInformation and SetTokenInformation support new Vista information classes
+	Add IsTokenRestricted
+	Add LogonUserEx
 
 * mmapfile:
 	Fix crash caused by reopening named mapping with excess size
 	Accept offset and view size parameters, enabling use of files larger
 		than physical memory
 	Document use in help file, and a demo script
+
+* win32pipe:
+	GetNamedPipeClientProcessId
+	GetNamedPipeServerProcessId
+	GetNamedPipeClientSessionId
+	GetNamedPipeServerSessionId
+	GetNamedPipeInfo
 
 Build 210 - Sept. 23 2006
 -------------------------
