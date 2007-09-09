@@ -13,6 +13,10 @@
 %include "pywin32.i"
 
 %{
+#define CHECK_PFN(fname)if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);
+typedef	BOOL (WINAPI *GetNamedPipeClientProcessIdfunc)(HANDLE, PULONG);
+static GetNamedPipeClientProcessIdfunc pfnGetNamedPipeClientProcessId = NULL;
+static GetNamedPipeClientProcessIdfunc pfnGetNamedPipeServerProcessId = NULL;
 
 // Global used to determine if Win9x win32pipe hack is necessary.
 bool g_fUsingWin9x;
@@ -112,6 +116,13 @@ static BOOL LoadModulePath(void)
 			g_fUsingWin9x = FALSE;
 		}
 	}
+	HMODULE hmod=GetModuleHandle("Kernel32.dll");
+	if (!hmod)
+		hmod=LoadLibrary("Kernel32.dll");
+	if (hmod){
+		pfnGetNamedPipeClientProcessId = (GetNamedPipeClientProcessIdfunc)GetProcAddress(hmod, "GetNamedPipeClientProcessId");
+		pfnGetNamedPipeServerProcessId = (GetNamedPipeClientProcessIdfunc)GetProcAddress(hmod, "GetNamedPipeServerProcessId");
+		}
 %}
 
 %{
@@ -455,3 +466,44 @@ PyObject *MyPeekNamedPipe(PyObject *self, PyObject *args)
 %}
 
 %native(PeekNamedPipe) MyPeekNamedPipe;
+
+%{
+// @pyswig int|GetNamedPipeClientProcessId|Returns the process id of client that is connected to a named pipe
+// @comm Requires Vista or later
+PyObject *MyGetNamedPipeClientProcessId(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(GetNamedPipeClientProcessId);
+	HANDLE hNamedPipe;
+	DWORD pid;
+	PyObject *obhNamedPipe;
+	// @pyparm <o PyHANDLE>|hPipe||The handle to the pipe.
+	if (!PyArg_ParseTuple(args, "O:GetNamedPipeClientProcessId", &obhNamedPipe))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
+		return NULL;
+	if (!(*pfnGetNamedPipeClientProcessId)(hNamedPipe, &pid))
+		return PyWin_SetAPIError("GetNamedPipeClientProcessId");
+	return PyLong_FromUnsignedLong(pid);
+}
+
+// @pyswig int|GetNamedPipeServerProcessId|Returns pid of server process that created a named pipe
+// @comm Requires Vista or later
+PyObject *MyGetNamedPipeServerProcessId(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(GetNamedPipeServerProcessId);
+	HANDLE hNamedPipe;
+	DWORD pid;
+	PyObject *obhNamedPipe;
+	// @pyparm <o PyHANDLE>|hPipe||The handle to the pipe.
+	if (!PyArg_ParseTuple(args, "O:GetNamedPipeServerProcessId", &obhNamedPipe))
+		return NULL;
+	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
+		return NULL;
+	if (!(*pfnGetNamedPipeServerProcessId)(hNamedPipe, &pid))
+		return PyWin_SetAPIError("GetNamedPipeServerProcessId");
+	return PyLong_FromUnsignedLong(pid);
+}
+%}
+%native(GetNamedPipeClientProcessId) MyGetNamedPipeClientProcessId;
+%native(GetNamedPipeServerProcessId) MyGetNamedPipeServerProcessId;
+
