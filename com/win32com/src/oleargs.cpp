@@ -1221,7 +1221,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 
 		if (!VALID_BYREF_MISSING(obj)) {
 			if ((obUse=PyNumber_Int(obj))==NULL) BREAK_FALSE
-			*MYBOOLREF = (VARIANT_BOOL)PyInt_AsLong(obj);
+			*MYBOOLREF = PyInt_AsLong(obj) ? VARIANT_TRUE : VARIANT_FALSE;
 		} else
 			*MYBOOLREF = 0;
 		break;
@@ -1413,13 +1413,13 @@ BOOL PyCom_MakeOlePythonCall(PyObject *handler, DISPPARAMS FAR* params, VARIANT 
 		// wishes to set some "byval" arguments.
 		// make the return type
 		PyObject *simpleRet;
-		if (PyTuple_Check(result)) {
+		if (PyTuple_Check(result) && PyTuple_Size(result)) {
 			simpleRet = PyTuple_GetItem(result, 0);
 			int retNumber = 1;
-			int retTotal = PyTuple_Size(result)-1;
+			int retTotal = PyTuple_Size(result);
 
 			// Params are reverse order - loop from the back.
-			for (unsigned int param=params->cArgs;param!=0;param--) {
+			for (unsigned int param=params->cArgs;param!=0 && retNumber < retTotal;param--) {
 				if (pHelpers[param-1].m_bIsOut) {
 					PyObject *val = PyTuple_GetItem(result, retNumber);
 					pHelpers[param-1].MakeObjToVariant(val, params->rgvarg+param-1, NULL);
