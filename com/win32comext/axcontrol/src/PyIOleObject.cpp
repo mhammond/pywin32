@@ -268,17 +268,19 @@ PyObject *PyIOleObject::DoVerb(PyObject *self, PyObject *args)
 	IOleClientSite * pActiveSite;
 	LONG lindex;
 	HWND hwndParent;
-	MSG msg;
-	LPMSG lpmsg = &msg;
+	MSG msg, *lpmsg = NULL;
+	PyObject *obMsg;
 	RECT rect;
 	LPCRECT lprcPosRect = &rect;
-	if ( !PyArg_ParseTuple(args, "iOii(iiii):DoVerb", &iVerb, &obpActiveSite, &lindex, &hwndParent,
+	if ( !PyArg_ParseTuple(args, "iOOii(iiii):DoVerb", &iVerb, &obMsg, &obpActiveSite, &lindex, &hwndParent,
 		&rect.left, &rect.top, &rect.right, &rect.bottom) )
 		return NULL;
 
-	//PyObject *arglst = Py_BuildValue("((iiiii(ii)))",msg->hwnd,msg->message,msg->wParam,msg->lParam,msg->time,msg->pt.x,msg->pt.y);
-	// TODO Handle Message Structure
-	lpmsg = NULL;
+	if (obMsg != Py_None) {
+		lpmsg = &msg;
+		if (!PyWinObject_AsMSG(obMsg, &msg))
+			return NULL;
+	}
 
 	BOOL bPythonIsHappy = TRUE;
 	if (!PyCom_InterfaceFromPyInstanceOrObject(obpActiveSite, IID_IOleClientSite, (void **)&pActiveSite, TRUE /* bNoneOK */))

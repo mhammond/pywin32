@@ -291,6 +291,34 @@ done:
 	return ret;
 }
 
+// @pymethod |axcontrol|OleSetContainedObject|Notifies an object embedded in an OLE container to ensure correct reference.
+static PyObject *axcontrol_OleSetContainedObject(PyObject *, PyObject *args)
+{
+	PyObject *ret = NULL;
+	PyObject *obunk;
+	int fContained;
+	if (!PyArg_ParseTuple(args, "Oi",
+		&obunk, // @pyparm <o PyIUnknown>|unk||The object
+		&fContained))  // @pyparm int|fContained||
+		return NULL;
+
+	IUnknown *punk = NULL;
+	HRESULT hr;
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obunk, IID_IUnknown, (void **)&punk, FALSE))
+		goto done;
+
+	Py_BEGIN_ALLOW_THREADS
+	hr = ::OleSetContainedObject(punk, fContained);
+	Py_END_ALLOW_THREADS
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	ret = Py_None;
+	Py_INCREF(Py_None);
+done:
+	return ret;
+}
 
 
 /* List of module functions */
@@ -300,6 +328,9 @@ static struct PyMethodDef axcontrol_methods[]=
     { "OleCreate",    axcontrol_OleCreate, 1 }, // @pymeth OleCreate|Creates a new embedded object identified by a CLSID.
 	{ "OleLoadPicture",      axcontrol_OleLoadPicture, 1 },      // @pymeth OleLoadPicture|Creates a new picture object and initializes it from the contents of a stream.
 	{ "OleLoadPicturePath",  axcontrol_OleLoadPicturePath, 1},   // @pymeth OleLoadPicturePath|Creates a new picture object and initializes it from the contents of a stream.
+	{ "OleSetContainedObject", axcontrol_OleSetContainedObject, 1}, // @pymeth OleSetContainedObject|Notifies an object embedded in an OLE container to ensure correct reference.
+
+
 	{ NULL, NULL },
 };
 
@@ -362,4 +393,16 @@ extern "C" __declspec(dllexport) void initaxcontrol()
 	ADD_CONSTANT(OLECMDF_LATCHED); // @const axcontrol|OLECMDF_LATCHED|
 	ADD_CONSTANT(OLECMDF_NINCHED); // @const axcontrol|OLECMDF_NINCHED|
 
+	ADD_CONSTANT(OLEIVERB_PRIMARY);
+	ADD_CONSTANT(OLEIVERB_SHOW);
+	ADD_CONSTANT(OLEIVERB_OPEN);
+	ADD_CONSTANT(OLEIVERB_HIDE);
+	ADD_CONSTANT(OLEIVERB_UIACTIVATE);
+	ADD_CONSTANT(OLEIVERB_INPLACEACTIVATE);
+	ADD_CONSTANT(OLEIVERB_DISCARDUNDOSTATE);
+	ADD_CONSTANT(EMBDHLP_INPROC_HANDLER);
+	ADD_CONSTANT(EMBDHLP_INPROC_SERVER);
+	ADD_CONSTANT(EMBDHLP_CREATENOW);
+	ADD_CONSTANT(EMBDHLP_DELAYCREATE);
+	ADD_CONSTANT(OLECREATE_LEAVERUNNING);
 }

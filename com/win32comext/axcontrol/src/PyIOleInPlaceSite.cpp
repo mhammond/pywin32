@@ -311,22 +311,27 @@ STDMETHODIMP PyGOleInPlaceSite::GetWindowContext(
 	if (ppFrame==NULL) return E_POINTER;
 	if (ppDoc==NULL) return E_POINTER;
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetWindowContext", &result, "");
+	HRESULT hr=InvokeViaPolicy("GetWindowContext", &result);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	PyObject *obppFrame;
 	PyObject *obppDoc;
-	PyObject *obNone;
-	if (!PyArg_ParseTuple(result, "OO(llll)(llll)O" , &obppFrame, &obppDoc,
+	PyObject *obFrame;
+	PyObject *obAccel;
+	if (!PyArg_ParseTuple(result, "OO(llll)(llll)(iOOi)" , &obppFrame, &obppDoc,
 		&lprcPosRect->left, &lprcPosRect->top, &lprcPosRect->right, &lprcPosRect->bottom,
 		&lprcClipRect->left, &lprcClipRect->top, &lprcClipRect->right, &lprcClipRect->bottom,
-		&obNone))
+		&lpFrameInfo->fMDIApp, &obFrame, &obAccel, &lpFrameInfo->cAccelEntries))
 		return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
 	BOOL bPythonIsHappy = TRUE;
 	if (!PyCom_InterfaceFromPyInstanceOrObject(obppFrame, IID_IOleInPlaceFrame, (void **)ppFrame, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
+		bPythonIsHappy = FALSE;
 	if (!PyCom_InterfaceFromPyInstanceOrObject(obppDoc, IID_IOleInPlaceUIWindow, (void **)ppDoc, TRUE /* bNoneOK */))
-		 bPythonIsHappy = FALSE;
+		bPythonIsHappy = FALSE;
+	if (bPythonIsHappy && !PyWinObject_AsHANDLE(obFrame, (HANDLE *)&lpFrameInfo->hwndFrame))
+		bPythonIsHappy = FALSE;
+	if (bPythonIsHappy && !PyWinObject_AsHANDLE(obAccel, (HANDLE *)&lpFrameInfo->haccel))
+		bPythonIsHappy = FALSE;
 	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
 	Py_DECREF(result);
 	return hr;
@@ -376,7 +381,7 @@ STDMETHODIMP PyGOleInPlaceSite::OnPosRectChange(
 		/* [in] */ LPCRECT pr)
 {
 	PY_GATEWAY_METHOD;
-	HRESULT hr=InvokeViaPolicy("OnPosRectChange", NULL, "(llll)", pr->left, pr->top, pr->right, pr->bottom);
+	HRESULT hr=InvokeViaPolicy("OnPosRectChange", NULL, "((llll))", pr->left, pr->top, pr->right, pr->bottom);
 	return hr;
 }
 
