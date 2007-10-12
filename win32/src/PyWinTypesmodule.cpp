@@ -742,6 +742,35 @@ PyObject *PyWinSequence_Tuple(PyObject *obseq, DWORD *len)
 	return obtuple;
 }
 
+BOOL PyWinObject_AsMSG(PyObject *ob, MSG *pMsg)
+{
+	PyObject *obhwnd;
+	if (!PyArg_ParseTuple(ob, "Oiiii(ii):MSG param",
+			&obhwnd,
+			&pMsg->message,
+			&pMsg->wParam,
+			&pMsg->lParam,
+			&pMsg->time,
+			&pMsg->pt.x,
+			&pMsg->pt.y))
+		return FALSE;
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&pMsg->hwnd))
+		return FALSE;
+	return TRUE;
+}
+
+PyObject *PyWinObject_FromMSG(MSG *pMsg)
+{
+	return Py_BuildValue("Niiii(ii)",
+				PyWinLong_FromHANDLE(pMsg->hwnd),
+				pMsg->message,
+				pMsg->wParam,
+				pMsg->lParam,
+				pMsg->time,
+				pMsg->pt.x,
+				pMsg->pt.y);
+}
+
 
 /* List of functions exported by this module */
 // @module pywintypes|A module which supports common Windows types.

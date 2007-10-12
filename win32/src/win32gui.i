@@ -346,15 +346,7 @@ typedef int UINT;
 }
 
 %typemap(python,argout) MSG *OUTPUT{
-    PyObject *o;
-    o = Py_BuildValue("Niiii(ii)",
-					PyWinLong_FromHANDLE($source->hwnd),
-					$source->message,
-					$source->wParam,
-					$source->lParam,
-					$source->time,
-					$source->pt.x,
-					$source->pt.y);
+    PyObject *o = PyWinObject_FromMSG($source);
     if (!$target) {
       $target = o;
     } else if ($target == Py_None) {
@@ -373,19 +365,9 @@ typedef int UINT;
 }
 
 %typemap(python,in) MSG *INPUT {
-	PyObject *obhwnd;
     $target = (MSG *)_alloca(sizeof(MSG));
-    if (!PyArg_ParseTuple($source, "Oiiii(ii):MSG param for $name",
-			&obhwnd,
-            &$target->message,
-            &$target->wParam,
-            &$target->lParam,
-            &$target->time,
-            &$target->pt.x,
-            &$target->pt.y))
+    if (!PyWinObject_AsMSG($source, $target))
         return NULL;
-    if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&$target->hwnd))
-		return NULL;
 }
 %typemap(python,ignore) RECT *OUTPUT(RECT rect_output)
 {

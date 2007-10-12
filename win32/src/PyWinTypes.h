@@ -533,6 +533,10 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsHKEY(PyObject *ob, HKEY *pRes);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromHKEY(HKEY h);
 PYWINTYPES_EXPORT BOOL PyWinObject_CloseHKEY(PyObject *obHandle);
 
+// MSG structure keeps coming up...
+PYWINTYPES_EXPORT BOOL PyWinObject_AsMSG(PyObject *ob, MSG *pMsg);
+PYWINTYPES_EXPORT PyObject *PyWinObject_FromMSG(const MSG *pMsg);
+
 #include "winsock.h"
 /*
 ** SOCKET support.
