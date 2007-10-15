@@ -5,6 +5,7 @@ import sys
 from win32com.axcontrol import axcontrol
 from win32com.server.exception import COMException
 from win32com.server.util import wrap
+from win32com.client import Dispatch
 
 import pythoncom
 import win32con
@@ -15,9 +16,10 @@ import win32api
 # Set to True to see debug output in the 'trace collector' window.
 debugging = False
 
-# generate the Dispatchable interfaces we use (IWebBrowser2, etc)
-from win32com.client import gencache, Dispatch
-ie_mod = gencache.EnsureModule('{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}', 0, 1, 1)
+# If you wanted events or better type info, you'd probably do:
+# gencache.EnsureModule('{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}', 0, 1, 1)
+# which is the "Microsoft Internet Controls" typelib defining interfaces
+# such as IWebBrowser2 and the associated events.
 
 IOleClientSite_methods = """SaveObject GetMoniker GetContainer ShowObject
                             OnShowWindow RequestNewObjectLayout""".split()
@@ -185,7 +187,7 @@ class IEHost:
         axcontrol.OleSetContainedObject(self.browser, True)
         rect = win32gui.GetWindowRect(self.hwnd)
         browser.DoVerb(axcontrol.OLEIVERB_SHOW, None, site, -1, self.hwnd, rect)
-        b2 = ie_mod.IWebBrowser2(browser.QueryInterface(pythoncom.IID_IDispatch))
+        b2 = Dispatch(browser.QueryInterface(pythoncom.IID_IDispatch))
         self.browser2 = b2
         b2.Left = 0
         b2.Top = 0
@@ -214,5 +216,3 @@ if __name__=='__main__':
         h.browser2.Navigate2(sys.argv[1])
 
     win32gui.PumpMessages()
-
-
