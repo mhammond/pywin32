@@ -23,6 +23,31 @@ generates Windows .hlp files.
 #include "PyIInternetPriority.h"
 #include "PyIInternetBindInfo.h"
 
+// Check a function pointer that is supplied by a specific IE version (ie,
+// we require an IE version later than what is installed)
+#define CHECK_IE_PFN(fname) if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available with this Internet Explorer version", #fname);
+
+typedef HRESULT (WINAPI *CoInternetSetFeatureEnabled_func)(INTERNETFEATURELIST FeatureEntry, DWORD dwFlags, BOOL fEnable);
+static CoInternetSetFeatureEnabled_func pfnCoInternetSetFeatureEnabled=NULL;
+
+typedef HRESULT (WINAPI *CoInternetIsFeatureEnabled_func)(INTERNETFEATURELIST FeatureEntry, DWORD dwFlags);
+static CoInternetIsFeatureEnabled_func pfnCoInternetIsFeatureEnabled=NULL;
+
+HMODULE loadmodule(TCHAR *dllname)
+{
+	HMODULE hmodule = GetModuleHandle(dllname);
+	if (hmodule==NULL)
+		hmodule = LoadLibrary(dllname);
+	return hmodule;
+}
+
+FARPROC loadapifunc(char *funcname, HMODULE hmodule)
+{
+	if (hmodule==NULL)
+		return NULL;
+	return GetProcAddress(hmodule, funcname);
+}
+
 
 //////////////////////////////////////////////////////////////
 //
@@ -124,13 +149,47 @@ PyObject *PyObject_FromBINDINFO(BINDINFO *pPD)
 //
 // The methods
 //
+// @pyswig bool|CoInternetIsFeatureEnabled|
+// @rdesc Returns true for S_OK, False for other non-error hresults, or
+// raises a com_error.
+static PyObject *PyCoInternetIsFeatureEnabled(PyObject *self, PyObject *args)
+{
+	CHECK_IE_PFN(CoInternetIsFeatureEnabled);
+	int featureEntry, flags;
+	if (!PyArg_ParseTuple(args, "ii",
+			      &featureEntry, // &pyparm int|featureEntry||
+			      &flags)) // @pyparm int|flags||
+		return NULL;
+	HRESULT hr = (*pfnCoInternetIsFeatureEnabled)((INTERNETFEATURELIST)featureEntry, flags);
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	PyObject *rc = (hr==S_OK) ? Py_True : Py_False;
+	Py_INCREF(rc);
+	return rc;
+}
 
+static PyObject *PyCoInternetSetFeatureEnabled(PyObject *self, PyObject *args)
+{
+	CHECK_IE_PFN(CoInternetSetFeatureEnabled);
+	int featureEntry, flags, enable;
+	if (!PyArg_ParseTuple(args, "iii",
+			      &featureEntry, // &pyparm int|featureEntry||
+			      &flags, // @pyparm int|flags||
+			      &enable)) // @pyparm bool|enable||
+		return NULL;
+	HRESULT hr = (*pfnCoInternetSetFeatureEnabled)((INTERNETFEATURELIST)featureEntry, flags, enable);
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	return PyInt_FromLong(hr);
+}
 
 
 /* List of module functions */
 // @module internet|A module, encapsulating the ActiveX Internet interfaces
 static struct PyMethodDef internet_methods[]=
 {
+	{ "CoInternetIsFeatureEnabled", PyCoInternetIsFeatureEnabled},
+	{ "CoInternetSetFeatureEnabled", PyCoInternetSetFeatureEnabled},
 	{ NULL, NULL },
 };
 
@@ -172,6 +231,50 @@ extern "C" __declspec(dllexport) void initinternet()
 
 	// Register all of our interfaces, gateways and IIDs.
 	PyCom_RegisterExtensionSupport(dict, g_interfaceSupportData, sizeof(g_interfaceSupportData)/sizeof(PyCom_InterfaceSupportInfo));
+
+	// load up our function pointers for stuff we can't rely on being
+	// there at runtime
+	HMODULE urlmon_dll=loadmodule(_T("urlmon.dll"));
+	pfnCoInternetSetFeatureEnabled=(CoInternetSetFeatureEnabled_func)loadapifunc("CoInternetSetFeatureEnabled", urlmon_dll);
+	pfnCoInternetIsFeatureEnabled=(CoInternetIsFeatureEnabled_func)loadapifunc("CoInternetIsFeatureEnabled", urlmon_dll);
+
+	ADD_CONSTANT(FEATURE_OBJECT_CACHING); // @const internet|FEATURE_OBJECT_CACHING|
+	ADD_CONSTANT(FEATURE_ZONE_ELEVATION); // @const internet|FEATURE_ZONE_ELEVATION|
+	ADD_CONSTANT(FEATURE_MIME_HANDLING); // @const internet|FEATURE_MIME_HANDLING|
+	ADD_CONSTANT(FEATURE_MIME_SNIFFING); // @const internet|FEATURE_MIME_SNIFFING|
+	ADD_CONSTANT(FEATURE_WINDOW_RESTRICTIONS); // @const internet|FEATURE_WINDOW_RESTRICTIONS|
+	ADD_CONSTANT(FEATURE_WEBOC_POPUPMANAGEMENT); // @const internet|FEATURE_WEBOC_POPUPMANAGEMENT|
+	ADD_CONSTANT(FEATURE_BEHAVIORS); // @const internet|FEATURE_BEHAVIORS|
+	ADD_CONSTANT(FEATURE_DISABLE_MK_PROTOCOL); // @const internet|FEATURE_DISABLE_MK_PROTOCOL|
+	ADD_CONSTANT(FEATURE_LOCALMACHINE_LOCKDOWN); // @const internet|FEATURE_LOCALMACHINE_LOCKDOWN|
+	ADD_CONSTANT(FEATURE_SECURITYBAND); // @const internet|FEATURE_SECURITYBAND|
+	ADD_CONSTANT(FEATURE_RESTRICT_ACTIVEXINSTALL); // @const internet|FEATURE_RESTRICT_ACTIVEXINSTALL|
+	ADD_CONSTANT(FEATURE_VALIDATE_NAVIGATE_URL); // @const internet|FEATURE_VALIDATE_NAVIGATE_URL|
+	ADD_CONSTANT(FEATURE_RESTRICT_FILEDOWNLOAD); // @const internet|FEATURE_RESTRICT_FILEDOWNLOAD|
+	ADD_CONSTANT(FEATURE_ADDON_MANAGEMENT); // @const internet|FEATURE_ADDON_MANAGEMENT|
+	ADD_CONSTANT(FEATURE_PROTOCOL_LOCKDOWN); // @const internet|FEATURE_PROTOCOL_LOCKDOWN|
+	ADD_CONSTANT(FEATURE_HTTP_USERNAME_PASSWORD_DISABLE); // @const internet|FEATURE_HTTP_USERNAME_PASSWORD_DISABLE|
+	ADD_CONSTANT(FEATURE_SAFE_BINDTOOBJECT); // @const internet|FEATURE_SAFE_BINDTOOBJECT|
+	ADD_CONSTANT(FEATURE_UNC_SAVEDFILECHECK); // @const internet|FEATURE_UNC_SAVEDFILECHECK|
+	ADD_CONSTANT(FEATURE_GET_URL_DOM_FILEPATH_UNENCODED); // @const internet|FEATURE_GET_URL_DOM_FILEPATH_UNENCODED|
+	ADD_CONSTANT(FEATURE_ENTRY_COUNT); // @const internet|FEATURE_ENTRY_COUNT|
+
+	ADD_CONSTANT(SET_FEATURE_ON_THREAD); // @const internet|SET_FEATURE_ON_THREAD|
+	ADD_CONSTANT(SET_FEATURE_ON_PROCESS ); // @const internet|SET_FEATURE_ON_PROCESS|
+	ADD_CONSTANT(SET_FEATURE_IN_REGISTRY ); // @const internet|SET_FEATURE_IN_REGISTRY|
+	ADD_CONSTANT(SET_FEATURE_ON_THREAD_LOCALMACHINE ); // @const internet|SET_FEATURE_ON_THREAD_LOCALMACHINE|
+	ADD_CONSTANT(SET_FEATURE_ON_THREAD_INTRANET ); // @const internet|SET_FEATURE_ON_THREAD_INTRANET|
+	ADD_CONSTANT(SET_FEATURE_ON_THREAD_TRUSTED ); // @const internet|SET_FEATURE_ON_THREAD_TRUSTED|
+	ADD_CONSTANT(SET_FEATURE_ON_THREAD_INTERNET ); // @const internet|SET_FEATURE_ON_THREAD_INTERNET|
+	ADD_CONSTANT(SET_FEATURE_ON_THREAD_RESTRICTED ); // @const internet|SET_FEATURE_ON_THREAD_RESTRICTED|
+	ADD_CONSTANT(GET_FEATURE_FROM_THREAD ); // @const internet|GET_FEATURE_FROM_THREAD|
+	ADD_CONSTANT(GET_FEATURE_FROM_PROCESS ); // @const internet|GET_FEATURE_FROM_PROCESS|
+	ADD_CONSTANT(GET_FEATURE_FROM_REGISTRY ); // @const internet|GET_FEATURE_FROM_REGISTRY|
+	ADD_CONSTANT(GET_FEATURE_FROM_THREAD_LOCALMACHINE ); // @const internet|GET_FEATURE_FROM_THREAD_LOCALMACHINE|
+	ADD_CONSTANT(GET_FEATURE_FROM_THREAD_INTRANET ); // @const internet|GET_FEATURE_FROM_THREAD_INTRANET|
+	ADD_CONSTANT(GET_FEATURE_FROM_THREAD_TRUSTED ); // @const internet|GET_FEATURE_FROM_THREAD_TRUSTED|
+	ADD_CONSTANT(GET_FEATURE_FROM_THREAD_INTERNET ); // @const internet|GET_FEATURE_FROM_THREAD_INTERNET|
+	ADD_CONSTANT(GET_FEATURE_FROM_THREAD_RESTRICTED ); // @const internet|GET_FEATURE_FROM_THREAD_RESTRICTED|
 
 //	ADD_CONSTANT(); // @const internet||
 }
