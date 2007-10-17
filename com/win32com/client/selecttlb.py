@@ -143,6 +143,10 @@ def SelectTlb(title="Select Library", excludeFlags = 0):
 	"""
 	import pywin.dialogs.list
 	items = EnumTlbs(excludeFlags)
+	# fixup versions - we assume hex (see __init__ above)
+	for i in items:
+		i.major = int(i.major, 16)
+		i.minor = int(i.minor, 16)
 	items.sort()
 	rc = pywin.dialogs.list.SelectFromLists(title, items, ["Type Library"])
 	if rc is None:
