@@ -759,7 +759,7 @@ BOOL PyWinObject_AsMSG(PyObject *ob, MSG *pMsg)
 	return TRUE;
 }
 
-PyObject *PyWinObject_FromMSG(MSG *pMsg)
+PyObject *PyWinObject_FromMSG(const MSG *pMsg)
 {
 	return Py_BuildValue("Niiii(ii)",
 				PyWinLong_FromHANDLE(pMsg->hwnd),
