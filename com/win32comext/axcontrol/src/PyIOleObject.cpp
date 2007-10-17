@@ -256,13 +256,11 @@ PyObject *PyIOleObject::DoVerb(PyObject *self, PyObject *args)
 	if ( pIOO == NULL )
 		return NULL;
 	// @pyparm int|iVerb||Description for iVerb
-// *** The input argument lpmsg of type "LPMSG" was not processed ***
-//     The type 'LPMSG' (lpmsg) is unknown.
+	// @pyparm <o PyMSG>|msg||MSG tuple, a-la win32gui etc.
 	// @pyparm <o PyIOleClientSite>|pActiveSite||Description for pActiveSite
 	// @pyparm int|lindex||Description for lindex
 	// @pyparm HWND|hwndParent||Description for hwndParent
-// *** The input argument lprcPosRect of type "LPCRECT" was not processed ***
-//     The type 'LPCRECT' (lprcPosRect) is unknown.
+	// @pyparm (int, int, int, int)|rect||
 	PyObject *obpActiveSite;
 	LONG iVerb;
 	IOleClientSite * pActiveSite;
