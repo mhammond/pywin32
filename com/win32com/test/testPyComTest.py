@@ -69,9 +69,9 @@ class RandomEventHandler:
     def OnFireWithNamedParams(self, no, a_bool, out1, out2):
         # This test exists mainly to help with an old bug, where named
         # params would come in reverse.
-        # We know our impl called 'OnFire' with the same ID
         Missing = pythoncom.Missing
         if no is not Missing:
+            # We know our impl called 'OnFire' with the same ID
             assert no in self.fireds
             assert no+1==out1, "expecting 'out1' param to be ID+1"
             assert no+2==out2, "expecting 'out2' param to be ID+2"
