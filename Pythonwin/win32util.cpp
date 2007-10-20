@@ -421,7 +421,7 @@ BOOL ParseLV_ITEMTuple( PyObject *args, LV_ITEM *pItem)
 		}
 		pItem->mask |= LVIF_TEXT;
 		pItem->pszText = PyString_AsString(ob);
-		pItem->cchTextMax = PyWin_SAFE_DOWNCAST(strlen(pItem->pszText)+1, ssize_t, int);
+		pItem->cchTextMax = PyWin_SAFE_DOWNCAST(strlen(pItem->pszText)+1, size_t, int);
 	}
 	if (len<6) return TRUE;
 	if ((ob=PyTuple_GetItem(args, 5))==NULL)
@@ -521,7 +521,7 @@ BOOL ParseLV_COLUMNTuple( PyObject *args, LV_COLUMN *pItem)
 		}
 		pItem->mask |= LVCF_TEXT;
 		pItem->pszText = PyString_AsString(ob);
-		pItem->cchTextMax = PyWin_SAFE_DOWNCAST(strlen(pItem->pszText)+1, ssize_t, int);
+		pItem->cchTextMax = PyWin_SAFE_DOWNCAST(strlen(pItem->pszText)+1, size_t, int);
 	}
 	// 3 - subitem
 	if (len<4) return TRUE;
@@ -655,7 +655,7 @@ BOOL ParseTV_ITEMTuple( PyObject *args, TV_ITEM *pItem)
 		}
 		pItem->mask |= TVIF_TEXT;
 		pItem->pszText = PyString_AsString(ob);
-		pItem->cchTextMax = PyWin_SAFE_DOWNCAST(strlen(pItem->pszText)+1, ssize_t, int);
+		pItem->cchTextMax = PyWin_SAFE_DOWNCAST(strlen(pItem->pszText)+1, size_t, int);
 	}
 	// 4 - image
 	if (len<5) return TRUE;
@@ -800,7 +800,7 @@ BOOL ParseHD_ITEMTuple( PyObject *args, HD_ITEM *pItem)
 		}
 		pItem->pszText = PyString_AsString(ob);
 		if (PyErr_Occurred()) return FALSE;
-		pItem->cchTextMax = PyWin_SAFE_DOWNCAST(strlen(pItem->pszText)+1, ssize_t, int);
+		pItem->cchTextMax = PyWin_SAFE_DOWNCAST(strlen(pItem->pszText)+1, size_t, int);
 		pItem->mask |= HDI_TEXT;
 	}
 	// 3 - hbm handle of item bitmap
