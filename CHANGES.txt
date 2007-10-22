@@ -29,6 +29,9 @@ Since build 210:
   pythonwin/win32ui/MFC.  Includes a demo of embedding Internet Explorer 
   inside a win32gui window.
 
+- win32com.internet:
+  * Add CoInternetIsFeatureEnabled and CoInternetSetFeatureEnabled
+
 - pythoncom:
   * event handlers implemented in Python that were called with named params 
     may have presented the arguments to Python in the incorrect order - this 
