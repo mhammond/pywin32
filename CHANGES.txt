@@ -1,89 +1,138 @@
 A changelog for recent builds as pasted into the sourceforge page.
 
 Generally created by hand after running:
-   cvs -z5 log -rb20x: > log.out
-   {py_dir}\Tools\scripts\logmerge.py -t < log.out > log.out2
+   cvs -z5 log -rb2xx: > log.out
+   {py_dir}\Tools\scripts\logmerge.py -t < log.out > log2.out
 However contributors are encouraged to add their own entries for their work.
 
 Since build 210:
 ----------------
-* makepy accepts a program id to process its typelib
 
-* pythoncom:
-	CoMarshalInterface/CoUnmarshalInterface/CoReleaseMarshalData
-	ReadClassStm/WriteClassStm
-	CreateStreamOnHGlobal
-	CreateILockBytesOnHGlobal
+* Available for AMD64 versions of Windows.  Note that this requires the 
+  x86-64 version of Python 2.5.2, which was not yet available as build 211 
+  was released, but was expected shortly.  Lots of help from Roger, Steve Yin,
+  and Sidnei da Silva.
 
-* win32com.shell:
-	PyIExtractImage
-	PyIEmptyVolumecache
-	IsUserAnAdmin
+* com related changes:
 
-* win32transaction: New module containing Kernel Transaction Manager (KTM) functions
-	as used with transacted NTFS and transacted registry functions
+- makepy accepts a program id to process its typelib and generates long 
+  integer literals for constants > sys.maxint.  The way typelibs are generated
+  also changes slightly, fixing a bug with certain hex version numbers in 
+  the registry.  Fix a bug [1548903] that could cause incomplete generated 
+  files when a typelib was missing
+
+- win32com.client: Fix a bug [1587023] that prevented Get and Set properties
+  working for ITypeComp implementing objects.  Add automatic "cast" to an
+  interface when using iterators [1707700]
+
+- win32com.axcontrol: Module for using ActiveX controls independently of
+  pythonwin/win32ui/MFC.  Includes a demo of embedding Internet Explorer 
+  inside a win32gui window.
+
+- pythoncom:
+  * event handlers implemented in Python that were called with named params 
+    may have presented the arguments to Python in the incorrect order - this 
+    has been fixed.  
+  * Always return -1 (VARIANT_TRUE), rather than 1, when a VARIANT_BOOL is 
+    requested.
+  * When passing a Python integer, always use VT_I4 when possible, VT_UI4 
+    otherwise (previous versions did VT_I4 only, 209 did VT_UI4 only)
+  * New functions CoMarshalInterface, CoUnmarshalInterface, 
+    CoReleaseMarshalData, ReadClassStm, WriteClassStm, CreateStreamOnHGlobal,
+    CreateILockBytesOnHGlobal.
+  * Fix possible buffer overflow using IStream.
+
+- win32com.shell:
+  * PyIExtractImage by Steven James.
+  * PyIEmptyVolumecache, IEmptyVolumeCache2, IEmptyVolumeCacheCallBack by 
+    Sidnei da Silva from Enfold.
+  * IsUserAnAdmin
+  * More coverage of the shell interfaces and demos.
+
+* win32transaction: New module containing Kernel Transaction Manager (KTM) 
+  functions as used with transacted NTFS and transacted registry functions
 
 * win32api:
-	Transacted registry functions added
-	RegCopyTree and RegDeleteTree
-	RegSaveKeyEx and RegRestoreKey
-	Get/SetSystemFileCacheSize
-	GlobalMemoryStatus and GlobalMemoryStatusEx
-	RegCreateKeyEx, RegQueryInfoKeyW, and RegEnumKeyExW
+  - Transacted registry functions and demos from Roger
+  - New functions RegCopyTree, RegDeleteTree, RegSaveKeyEx, 
+    RegRestoreKey, RegCreateKeyEx, RegQueryInfoKeyW, 
+    RegEnumKeyExWGet/SetSystemFileCacheSize, GlobalMemoryStatus,
+    GlobalMemoryStatusEx
+  - Fix memory leak in GetShortPathName
+  - Fix VkKeyScan arg handling
 
 * win32file:
-	Fixed bug in ReadDirectoryChanges that ignored 1 char filenames.
-		(from Niki Spahiev)
-	Transactional NTFS functions added
-	FindFiles and FindFilesIterator now accept an optional transaction handle to
-		perform a transacted search
-	FindStreams function that calls FindFirstStream and FindNextStream to enumerate
-		a file's data streams
-	CreateSymbolicLink and other new Vista API functions
-	System file checker (Sfc) functions
-	DuplicateEncryptionInfoFile
-	GetVolumePathNamesForVolumeName
-	GetFinalPathNameByHandle
-	FindFileNames using FindFirstFileName, FindFirstFileNameTransacted, and FindNextFileName
+  - Fixed bug in ReadDirectoryChanges that ignored 1 char filenames.
+    (from Niki Spahiev)
+    Added Transactional NTFS functions, CreateSymbolicLink and other new 
+    Vista API functions, System file checker (Sfc) functions, 
+    DuplicateEncryptionInfoFile, GetVolumePathNamesForVolumeName, 
+    GetFinalPathNameByHandle
+  - FindFiles and FindFilesIterator now accept an optional transaction handle
+    to perform a transacted search
+  - FindStreams function that calls FindFirstStream and FindNextStream to 
+    enumerate a file's data streams.
+  - FindFileNames using FindFirstFileName, FindFirstFileNameTransacted, and FindNextFileName
 
 * win32service:
-	Service and service control manager handles are now returned
-		as self-closing PySC_HANDLEs instead of plain int handles
-	Service dependencies are returned as list of Unicode strings instead
-		of a single string, which lost multiple dependencies (could break
-		code)
+  - Service and service control manager handles are now returned as 
+    self-closing PySC_HANDLEs instead of plain int handles
+  - Service dependencies are returned as list of Unicode strings instead
+    of a single string, which lost multiple dependencies (could break
+    code, but old handling was insane)
 
 * win32gui:
-	GDI object handles (bitmaps, fonts, regions, pens, brushes) are returned
-		as another PyHANDLE subclass (PyGdiHandle)
-	A large number of new text drawing, line and curve drawing, region, path,
-		and coordinate space functions
-	Window class name can now be used interchangeably with class atom
-		(fixes bug #1267366)
-	Add DrawTextW (feature request #1173716)
-	PtInRect
+  - GDI object handles (bitmaps, fonts, regions, pens, brushes) are returned
+    as another PyHANDLE subclass (PyGdiHandle)
+  - A large number of new text drawing, line and curve drawing, region, path,
+    and coordinate space functions
+  - Window class name can now be used interchangeably with class atom
+    (fixes bug #1267366)
+  - Add DrawTextW (feature request #1173716), PtInRect, EnumPropsEx,
+    DrawTextW, SetMenuInfo, GetMenuInfo, ExtCreatePen, CreateBrushIndirect,
+    lots of other GDI functions.
+
+* win32pipe:
+    Add GetNamedPipeClientSessionId, GetNamedPipeServerSessionId, 
+    GetNamedPipeInfo, GetNamedPipeClientProcessId, GetNamedPipeServerProcessId
 
 * win32process:
-	Get/SetThreadPriorityBoost and Get/SetProcessPriorityBoost
-	GetGuiResources
-	GetProcessId
-	IsWow64Process
+    New functions Get/SetThreadPriorityBoost, Get/SetProcessPriorityBoost,
+    GetGuiResources, GetProcessId, IsWow64Process
 
 * win32print:
-	Printer handles are now returned as self-closing PyHANDLE subclass
-	FlushPrinter, GetDefaultPrinterW, and SetDefaultPrinterW
+  - Printer handles are now returned as self-closing PyHANDLE subclass
+  - FlushPrinter, GetDefaultPrinterW, and SetDefaultPrinterW
 
 * win32security:
-	Added DuplicateTokenEx
-	GetTokenInformation and SetTokenInformation support new Vista information classes
-	Add IsTokenRestricted
-	Add LogonUserEx
+  - Added DuplicateTokenEx, AddMandatoryAce, IsTokenRestricted, LogonUserEx
+  - GetTokenInformation and SetTokenInformation support new Vista 
+    information classes
+
+* win32trace works better on Vista
 
 * mmapfile:
-	Fix crash caused by reopening named mapping with excess size
-	Accept offset and view size parameters, enabling use of files larger
-		than physical memory
-	Document use in help file, and a demo script
+  - Fix crash caused by reopening named mapping with excess size
+  - Accept offset and view size parameters, enabling use of files larger
+    than physical memory
+  - Document use in help file, and a demo script
+
+* win32timezone: support Vista and 2007 timezones.
+
+* pythonwin:
+  - Refcounting / GIL problems fixed by kxroberto.
+  - Background pychecker plugin by kxroberto
+  - Fix COM browser
+
+* isapi:
+  - Handle server variables > 8k in length and also handle IIS6 'UNICODE_'
+    variables.
+  - TransmitFile, MapURLToPath, IsKeepConn, DisableNotifications
+  - New FilterContext attribute can be used to store arbitrary Python
+    objects in an ECB.
+  - Filter and Extension errors that happen during initialization are
+    written to the Windows Event Log to help diagnose them.  A couple
+    of potential deadlocks during init errors also fixed.
 
 * win32pipe:
 	GetNamedPipeClientProcessId
