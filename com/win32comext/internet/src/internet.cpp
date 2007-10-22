@@ -149,7 +149,7 @@ PyObject *PyObject_FromBINDINFO(BINDINFO *pPD)
 //
 // The methods
 //
-// @pyswig bool|CoInternetIsFeatureEnabled|
+// @pymethod bool|internet|CoInternetIsFeatureEnabled|
 // @rdesc Returns true for S_OK, False for other non-error hresults, or
 // raises a com_error.
 static PyObject *PyCoInternetIsFeatureEnabled(PyObject *self, PyObject *args)
@@ -168,6 +168,7 @@ static PyObject *PyCoInternetIsFeatureEnabled(PyObject *self, PyObject *args)
 	return rc;
 }
 
+// @pymethod int|internet|CoInternetSetFeatureEnabled|
 static PyObject *PyCoInternetSetFeatureEnabled(PyObject *self, PyObject *args)
 {
 	CHECK_IE_PFN(CoInternetSetFeatureEnabled);
@@ -188,8 +189,8 @@ static PyObject *PyCoInternetSetFeatureEnabled(PyObject *self, PyObject *args)
 // @module internet|A module, encapsulating the ActiveX Internet interfaces
 static struct PyMethodDef internet_methods[]=
 {
-	{ "CoInternetIsFeatureEnabled", PyCoInternetIsFeatureEnabled},
-	{ "CoInternetSetFeatureEnabled", PyCoInternetSetFeatureEnabled},
+	{ "CoInternetIsFeatureEnabled", PyCoInternetIsFeatureEnabled}, // @pymeth CoInternetIsFeatureEnabled|
+	{ "CoInternetSetFeatureEnabled", PyCoInternetSetFeatureEnabled}, // @pymeth CoInternetSetFeatureEnabled|
 	{ NULL, NULL },
 };
 
