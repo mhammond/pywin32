@@ -1,3 +1,4 @@
+import sys
 import unittest
 import pywintypes
 import win32api
@@ -66,6 +67,27 @@ class PyHandleTestCase(unittest.TestCase):
     def testInvalid(self):
         h=pywintypes.HANDLE(-2)
         self.assertRaises(win32api.error, h.Close)
+
+    def testOtherHandle(self):
+        h=pywintypes.HANDLE(1)
+        h2=pywintypes.HANDLE(h)
+        self.failUnlessEqual(h, h2)
+        # but the above doesn't really test everything - we want a way to
+        # pass the handle directly into PyWinLong_AsVoidPtr.  One way to
+        # to that is to abuse win32api.GetProcAddress() - the 2nd param
+        # is passed to PyWinLong_AsVoidPtr() if its not a string.
+        # passing a handle value of '1' should work - there is something
+        # at that ordinal
+        win32api.GetProcAddress(sys.dllhandle, h)
+
+    def testLong(self):
+        # sys.maxint+1 should always be a 'valid' handle, treated as an
+        # unsigned int, even though it is a long. Although pywin32 should not
+        # directly create such longs, using struct.unpack() with a P format
+        # may well return them. eg:
+        # >>> struct.unpack("P", struct.pack("P", -1))
+        # (4294967295L,)
+        pywintypes.HANDLE(sys.maxint+1)
 
     def testGC(self):
         # This used to provoke:

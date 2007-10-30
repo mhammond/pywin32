@@ -544,15 +544,28 @@ Accordingly, here is our own version.
 BOOL PyWinLong_AsVoidPtr(PyObject *ob, void **pptr)
 {
 	assert(!PyErr_Occurred()); // lingering exception?
+	// PyInt_AsLong (and PyLong_AsLongLong on x64) handle objects
+	// with tp_number slots, and longs that fit in 32bits - but *not*
+	// longs that fit in 32bits if they are treated as unsigned - eg,
+	// eg, the result of:
+	// struct.unpack("P", struct.pack("P", -1)) -> (4294967295L,)
+	// So, we do the PyInt_AsLong thing first, then fall back to the
+	// *_AsUnsignedLong[Long] versions.
 #ifdef _WIN64
-	*pptr=(void *)PyLong_AsLongLong(ob);
+#	define SIGNED_CONVERTER PyLong_AsLongLong
+#	define UNSIGNED_CONVERTER PyLong_AsUnsignedLongLong
 #else
-	*pptr=(void *)PyInt_AsLong(ob);
+#	define SIGNED_CONVERTER PyInt_AsLong
+#	define UNSIGNED_CONVERTER PyLong_AsUnsignedLong
 #endif
-	if (*pptr==(void *)-1 && PyErr_Occurred()){
-		PyErr_Format(PyExc_TypeError,"Unable to convert %s to pointer-sized value", ob->ob_type->tp_name);
-		return FALSE;
+	*pptr=(void *)SIGNED_CONVERTER(ob);
+	if (*pptr==(void *)-1 && PyErr_Occurred()) {
+		*pptr=(void *)UNSIGNED_CONVERTER(ob);
+		if (*pptr==(void *)-1 && PyErr_Occurred()) {
+			PyErr_Format(PyExc_TypeError,"Unable to convert %s to pointer-sized value", ob->ob_type->tp_name);
+			return FALSE;
 		}
+	}
 	return TRUE;
 }
 
