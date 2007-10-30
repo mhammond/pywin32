@@ -45,6 +45,9 @@ class MainWindow:
                 0, 0, hinst, None)
         UpdateWindow(self.hwnd)
         iconPathName = os.path.abspath(os.path.join( sys.prefix, "pyc.ico" ))
+        # py2.5 includes the .ico files in the DLLs dir for some reason.
+        if not os.path.isfile(iconPathName):
+            iconPathName = os.path.abspath(os.path.join( os.path.split(sys.executable)[0], "DLLs", "pyc.ico" ))
         if not os.path.isfile(iconPathName):
             # Look in the source tree.
             iconPathName = os.path.abspath(os.path.join( os.path.split(sys.executable)[0], "..\\PC\\pyc.ico" ))

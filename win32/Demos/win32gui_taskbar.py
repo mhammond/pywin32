@@ -35,6 +35,9 @@ class MainWindow:
         hinst =  GetModuleHandle(None)
         iconPathName = os.path.abspath(os.path.join( os.path.split(sys.executable)[0], "pyc.ico" ))
         if not os.path.isfile(iconPathName):
+            # Look in DLLs dir, a-la py 2.5
+            iconPathName = os.path.abspath(os.path.join( os.path.split(sys.executable)[0], "DLLs", "pyc.ico" ))
+        if not os.path.isfile(iconPathName):
             # Look in the source tree.
             iconPathName = os.path.abspath(os.path.join( os.path.split(sys.executable)[0], "..\\PC\\pyc.ico" ))
         if os.path.isfile(iconPathName):
