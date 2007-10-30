@@ -381,12 +381,13 @@ class FileSystemView:
         self.browser = browser
         self._CreateMainWindow(prev, settings, browser, rect)
         self._CreateChildWindow(prev)
+        return self.hwnd
 
     def _CreateMainWindow(self, prev, settings, browser, rect):
         # Creates a parent window that hosts the view window.  This window
         # gets the control notifications etc sent from the child.
         style = win32con.WS_CHILD | win32con.WS_VISIBLE #
-        wclass_name = "EnfoldDesktop_DefView"
+        wclass_name = "ShellViewDemo_DefView"
         # Register the Window class.
         wc = win32gui.WNDCLASS()
         wc.hInstance = win32gui.dllhandle
@@ -404,8 +405,9 @@ class FileSystemView:
                 win32con.WM_COMMAND: self.OnCommand,
                 win32con.WM_NOTIFY:  self.OnNotify,
                 win32con.WM_CONTEXTMENU: self.OnContextMenu,
+                win32con.WM_SIZE: self.OnSize,
         }
-    
+
         self.hwnd = win32gui.CreateWindow( wclass_name, "", style, \
                 rect[0], rect[1], rect[2]-rect[0], rect[3]-rect[1],
                 self.hwnd_parent, 0, win32gui.dllhandle, None)
@@ -415,7 +417,6 @@ class FileSystemView:
 
     def _CreateChildWindow(self, prev):
         # Creates the list view window.
-        print "_CreateChildWindow"
         assert self.hwnd_child is None, "already have a window"
         assert self.cur_foldersettings is not None, "no settings"
         style = win32con.WS_CHILD | win32con.WS_VISIBLE | win32con.WS_BORDER | \
@@ -681,6 +682,15 @@ class FileSystemView:
             ci = 0, self.hwnd_parent, sel-id_cmd_first, None, None, 0, 0, 0
             cm.InvokeCommand(ci)
 
+    def OnSize(self, hwnd, msg, wparam, lparam):
+        # hrm - this doesn't seem to be called on XP, but is on Vista
+        # (and is *necessary* on Vista, as it seems to create windows with
+        # a zero client-rect, then moves it)
+        #print "OnSize", self.hwnd_child, win32api.LOWORD(lparam), win32api.HIWORD(lparam)
+        if self.hwnd_child is not None:
+            x = win32api.LOWORD(lparam)
+            y = win32api.HIWORD(lparam)
+            win32gui.MoveWindow(self.hwnd_child, 0, 0, x, y, False)
 
 # This uses scintilla to display a filename, and optionally jump to a line
 # number.
@@ -696,6 +706,10 @@ class ScintillaShellView:
         self.hwnd = None
     def _SendSci(self, msg, wparam=0, lparam=0):
         return win32gui.SendMessage(self.hwnd, msg, wparam, lparam)
+
+    def GetWindow(self):
+        return self.hwnd
+
    # IShellView
     def CreateViewWindow(self, prev, settings, browser, rect):
         print "CreateViewWindow", prev, settings, browser, rect
@@ -720,6 +734,12 @@ class ScintillaShellView:
         self.hwnd = win32gui.CreateWindow("Scintilla", "Scintilla", style,
                               rect[0], rect[1], rect[2]-rect[0], rect[3]-rect[1], 
                               self.hwnd_parent, 1000, 0, None)
+
+        message_map = {
+                win32con.WM_SIZE: self.OnSize,
+        }
+        win32gui.SetWindowLong(self.hwnd, win32con.GWL_WNDPROC, message_map)
+
         file_data = file(self.filename, "U").read()
 
         self._SetupLexer()
@@ -768,6 +788,14 @@ class ScintillaShellView:
 
     def TranslateAccelerator(self, msg):
         return winerror.S_FALSE
+
+    def UIActivate(self, activate_state):
+        print "Scintilla OnActivate"
+
+    def OnSize(self, hwnd, msg, wparam, lparam):
+        x = win32api.LOWORD(lparam)
+        y = win32api.HIWORD(lparam)
+        win32gui.MoveWindow(self.hwnd, 0, 0, x, y, False)
 
 def DllRegisterServer():
     import _winreg
