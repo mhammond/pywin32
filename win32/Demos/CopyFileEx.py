@@ -27,4 +27,4 @@ f.write('zzzzzzzzzzzzzzzz\n'*32768)
 f.close()
 
 operation_desc='Copying '+fsrc+' to '+fdst
-win32file.CopyFileEx(fsrc, fdst, ProgressRoutine, operation_desc, False, win32file.COPY_FILE_RESTARTABLE)
+win32file.CopyFileEx(fsrc, fdst, ProgressRoutine, Data=operation_desc, Cancel=False, CopyFlags=win32file.COPY_FILE_RESTARTABLE, Transaction=None)
