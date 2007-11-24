@@ -1117,8 +1117,8 @@ END
 STRINGTABLE PRELOAD DISCARDABLE 
 BEGIN
     IDR_MAINFRAME           "Pythonwin"
-    IDR_PYTHONTYPE          "\nScript\nPython Script\nPython scripts (*.py)\n.py\nPythonScript\nPython Script"
-    IDR_TEXTTYPE            "\nScript\nPython Script\nPython Script (*.py)\n.py\nTEXT Document\nText Files (*.txt)\n.txt\nTextFileType\nTEXT File Type"
+    IDR_PYTHONTYPE          "\nScript\nPython Script\nPython scripts (*.py, *.pyw, *.pys)\n.py;*.pyw;*.pys\nPythonScript\nPython Script"
+    IDR_TEXTTYPE            "\nScript\nPython Script\nPython Scripts (*.py, *.pyw, *.pys)\n.py;*.pyw;*.pys\nTEXT Document\nText Files (*.txt)\n.txt\nTextFileType\nTEXT File Type"
     IDR_DEBUGGER            "Pythonwin Debugger"
 END
 
