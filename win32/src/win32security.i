@@ -1082,7 +1082,7 @@ PyObject *PyLogonUserEx(PyObject *self, PyObject *args, PyObject *kwargs)
 	if (PyWinObject_AsWCHAR(obusername, &username, FALSE)
 		&&PyWinObject_AsWCHAR(obdomain, &domain, TRUE)
 		&&PyWinObject_AsWCHAR(obpassword, &password, FALSE)){
-		if (!LogonUserEx(username, domain, password, logontype, logonprovider, &htoken,
+		if (!(*pfnLogonUserEx)(username, domain, password, logontype, logonprovider, &htoken,
 			&psid, &profile, &profilelen, &quota_limits))
 			PyWin_SetAPIError("LogonUserEx");
 		else
