@@ -275,6 +275,31 @@ PyObject *MyCreateIoCompletionPort(PyObject *self, PyObject *args)
 
 %native (CreateIoCompletionPort) MyCreateIoCompletionPort;
 
+// @pyswig <o PyHANDLE>|CreateMailslot|Creates a mailslot on the local machine
+// @pyseeapi CreateMailslot
+PyHANDLE CreateMailslot(
+	LPCTSTR Name,		// @pyparm str|Name||Name of the mailslot, of the form \\.\mailslot\[path]name
+	DWORD MaxMessageSize,	// @pyparm int|MaxMessageSize||Largest message size.  Use 0 for unlimited.
+	DWORD ReadTimeout,		// @pyparm int|ReadTimeout||Timeout in milliseconds.  Use -1 for no timeout.
+	SECURITY_ATTRIBUTES *INPUT_NULLOK	// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes||Determines if returned handle is inheritable, can be None
+);
+
+// @pyswig (int,int,int,int)|GetMailslotInfo|Retrieves information about a mailslot
+// @rdesc Returns (maximum message size, next message size, message count, timeout)
+// @pyseeapi GetMailslotInfo
+BOOLAPI GetMailslotInfo(
+	HANDLE Mailslot,	// @pyparm <o PyHANDLE>|Mailslot||Handle to a mailslot
+	DWORD *OUTPUT,
+	DWORD *OUTPUT,
+	DWORD *OUTPUT,
+	DWORD *OUTPUT);
+
+// @pyswig |SetMailslotInfo|Sets a mailslot's timeout
+// @pyseeapi SetMailslotInfo
+BOOLAPI SetMailslotInfo(
+	HANDLE Mailslot,	// @pyparm <o PyHANDLE>|Mailslot||Handle to a mailslot
+	DWORD ReadTimeout);	// @pyparm int|ReadTimeout||Timeout in milliseconds, use -1 for no timeout
+
 // @pyswig |DefineDosDevice|Lets an application define, redefine, or delete MS-DOS device names. 
 BOOLAPI DefineDosDevice(
     DWORD dwFlags,	// @pyparm int|flags||flags specifying aspects of device definition  
