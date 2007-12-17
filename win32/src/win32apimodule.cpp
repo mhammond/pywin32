@@ -51,6 +51,10 @@ typedef BOOL (WINAPI *GetSystemFileCacheSizefunc)(PSIZE_T,PSIZE_T,PDWORD);
 static GetSystemFileCacheSizefunc pfnGetSystemFileCacheSize = NULL;
 typedef BOOL (WINAPI *SetSystemFileCacheSizefunc)(SIZE_T,SIZE_T,DWORD);
 static SetSystemFileCacheSizefunc pfnSetSystemFileCacheSize = NULL;
+typedef DWORD (WINAPI *GetDllDirectoryfunc)(DWORD,LPWSTR);
+static GetDllDirectoryfunc pfnGetDllDirectory = NULL;
+typedef BOOL (WINAPI *SetDllDirectoryfunc)(LPCWSTR);
+static SetDllDirectoryfunc pfnSetDllDirectory = NULL;
 
 // from secur32.dll
 typedef BOOLEAN (WINAPI *GetUserNameExfunc)(EXTENDED_NAME_FORMAT,LPWSTR,PULONG);
@@ -1414,41 +1418,85 @@ static PyObject *
 PyGetModuleFileName(PyObject * self, PyObject * args)
 {
 	HMODULE hMod;
-	PyObject *obhMod;
-	char buf[_MAX_PATH];
+	PyObject *obhMod, *ret=NULL;
+	char *buf=NULL;
+	DWORD bufsize, reqdsize=MAX_PATH;
 	// @pyparm <o PyHANDLE>|hModule||Specifies the handle to the module.
 	if (!PyArg_ParseTuple(args, "O:GetModuleFileName", &obhMod))
 		return (NULL);
 	if (!PyWinObject_AsHANDLE(obhMod, (HANDLE *)&hMod))
 		return NULL;
 	// @pyseeapi GetModuleFileName
-	PyW32_BEGIN_ALLOW_THREADS
-	long rc = ::GetModuleFileName(hMod, buf, sizeof(buf));
-	PyW32_END_ALLOW_THREADS
-	if (rc==0)
-		return ReturnAPIError("GetModuleFileName");
-	return PyString_FromString(buf);
+	while (true){
+		if (buf)
+			free(buf);
+		buf=(char *)malloc(reqdsize);
+		if (buf==NULL){
+			PyErr_NoMemory();
+			break;
+			}
+
+		bufsize=reqdsize;
+		PyW32_BEGIN_ALLOW_THREADS
+		reqdsize=GetModuleFileName(hMod, buf, bufsize);
+		PyW32_END_ALLOW_THREADS
+
+		if (reqdsize==0){
+			PyWin_SetAPIError("GetModuleFileName");
+			break;
+			}
+		if (reqdsize < bufsize){
+			ret=PyString_FromString(buf);
+			break;
+			}
+		reqdsize++;
+		}
+	if (buf)
+		free(buf);
+	return ret;
 }
 
-// @pymethod unicode|win32api|GetModuleFileNameW|Retrieves the unicode filename of the specified module.
+// @pymethod <o PyUnicode>|win32api|GetModuleFileNameW|Retrieves the unicode filename of the specified module.
 static PyObject *
 PyGetModuleFileNameW(PyObject * self, PyObject * args)
 {
 	HMODULE hMod;
-	PyObject *obhMod;
-	wchar_t buf[_MAX_PATH];
+	PyObject *obhMod, *ret=NULL;
+	WCHAR *buf=NULL;
+	DWORD bufsize, reqdsize=MAX_PATH;
 	// @pyparm <o PyHANDLE>|hModule||Specifies the handle to the module.
 	if (!PyArg_ParseTuple(args, "O:GetModuleFileNameW", &obhMod))
 		return (NULL);
 	if (!PyWinObject_AsHANDLE(obhMod, (HANDLE *)&hMod))
 		return NULL;
 	// @pyseeapi GetModuleFileName
-	PyW32_BEGIN_ALLOW_THREADS
-	long rc = ::GetModuleFileNameW(hMod, buf, sizeof(buf));
-	PyW32_END_ALLOW_THREADS
-	if (rc==0)
-		return ReturnAPIError("GetModuleFileNameW");
-	return PyUnicode_FromUnicode(buf, wcslen(buf));
+	while (true){
+		if (buf)
+			free(buf);
+		buf=(WCHAR *)malloc(reqdsize * sizeof(WCHAR));
+		if (buf==NULL){
+			PyErr_NoMemory();
+			break;
+			}
+
+		bufsize=reqdsize;
+		PyW32_BEGIN_ALLOW_THREADS
+		reqdsize=GetModuleFileNameW(hMod, buf, bufsize);
+		PyW32_END_ALLOW_THREADS
+
+		if (reqdsize==0){
+			PyWin_SetAPIError("GetModuleFileNameW");
+			break;
+			}
+		if (reqdsize < bufsize){
+			ret=PyUnicode_FromUnicode(buf, reqdsize);
+			break;
+			}
+		reqdsize++;
+		}
+	if (buf)
+		free(buf);
+	return ret;
 }
 
 // @pymethod int|win32api|GetModuleHandle|Returns the handle of an already loaded DLL.
@@ -1686,6 +1734,59 @@ PyGetProcAddress(PyObject * self, PyObject * args)
 		return ReturnAPIError("GetProcAddress");
 	// @pyseeapi GetProcAddress
 	return PyWinLong_FromVoidPtr(proc);
+}
+
+// @pymethod <o PyUnicode>|win32api|GetDllDirectory|Returns the DLL search path
+// @pyseeapi GetDllDirectory
+static PyObject *PyGetDllDirectory(PyObject * self, PyObject * args)
+{
+	CHECK_PFN(GetDllDirectory);
+	WCHAR *dirs=NULL;
+	DWORD bufsize=0, reqdsize=256;
+	PyObject *ret=NULL;
+	while (true){
+		if (dirs)
+			free(dirs);
+		dirs=(WCHAR *)malloc(reqdsize * sizeof(WCHAR));
+		if (dirs==NULL){
+			PyErr_NoMemory();
+			break;
+			}
+		bufsize=reqdsize;
+		reqdsize=(*pfnGetDllDirectory)(bufsize, dirs);
+		if (reqdsize==0){
+			PyWin_SetAPIError("GetDllDirectory");
+			break;
+			}
+		if (reqdsize <= bufsize){
+			ret=PyWinObject_FromWCHAR(dirs, reqdsize);
+			break;
+			}
+	}
+	if (dirs)
+		free(dirs);
+	return ret;
+}
+
+// @pymethod |win32api|SetDllDirectory|Modifies the application-specific DLL search path
+// @pyseeapi SetDllDirectory
+static PyObject *PySetDllDirectory(PyObject * self, PyObject * args)
+{
+	CHECK_PFN(SetDllDirectory);
+	PyObject *obdirname;
+	WCHAR *dirname;
+
+	// @pyparm <o PyUnicode>|PathName||Directory to be added to search path, can be None to restore defaults
+	if (!PyArg_ParseTuple(args, "O:SetDllDirectory", &obdirname))
+		return NULL;
+	if (!PyWinObject_AsWCHAR(obdirname, &dirname, TRUE))
+		return NULL;
+	BOOL bsuccess=(*pfnSetDllDirectory)(dirname);
+	PyWinObject_FreeWCHAR(dirname);
+	if (!bsuccess)
+		return PyWin_SetAPIError("SetDllDirectory");
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 // @pymethod int/string|win32api|GetProfileVal|Retrieves entries from a windows INI file.  This method encapsulates GetProfileString, GetProfileInt, GetPrivateProfileString and GetPrivateProfileInt.
@@ -5543,6 +5644,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetDateFormat",       PyGetDateFormat, 1}, // @pymeth GetDateFormat|Formats a date as a date string for a specified locale.
 	{"GetDiskFreeSpace",	PyGetDiskFreeSpace, 1}, // @pymeth GetDiskFreeSpace|Retrieves information about a disk.
 	{"GetDiskFreeSpaceEx",	PyGetDiskFreeSpaceEx, 1}, // @pymeth GetDiskFreeSpaceEx|Retrieves information about a disk.
+	{"GetDllDirectory",		PyGetDllDirectory, METH_NOARGS}, // @pymeth GetDllDirectory|Retrieves the DLL search path
 	{"GetDomainName",		PyGetDomainName, 1}, 	// @pymeth GetDomainName|Returns the current domain name
 	{"GetEnvironmentVariable", PyGetEnvironmentVariable, 1}, // @pymeth GetEnvironmentVariable|Retrieves the value of an environment variable.
 	{"GetFileAttributes",   PyGetFileAttributes,1}, // @pymeth GetFileAttributes|Retrieves the attributes for the named file.
@@ -5650,6 +5752,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"SetConsoleCtrlHandler",PySetConsoleCtrlHandler, 1}, // @pymeth SetConsoleCtrlHandler|Adds or removes an application-defined HandlerRoutine function from the list of handler functions for the calling process.
 	{"SetConsoleTitle",     PySetConsoleTitle, 1}, // @pymeth SetConsoleTitle|Sets the title for the current console.
 	{"SetCursorPos",		PySetCursorPos,1}, // @pymeth SetCursorPos|The SetCursorPos function moves the cursor to the specified screen coordinates.
+ 	{"SetDllDirectory",		PySetDllDirectory, 1}, // @pymeth SetDllDirectory|Modifies the application-specific DLL search path
 	{"SetErrorMode",        PySetErrorMode, 1}, // @pymeth SetErrorMode|Controls whether the system will handle the specified types of serious errors, or whether the process will handle them.
 	{"SetFileAttributes",   PySetFileAttributes,1}, // @pymeth SetFileAttributes|Sets the named file's attributes.
 	{"SetLastError",        PySetLastError,     1}, // @pymeth SetLastError|Sets the last error code known for the current thread.
@@ -5776,6 +5879,8 @@ initwin32api(void)
     pfnGlobalMemoryStatusEx=(GlobalMemoryStatusExfunc)GetProcAddress(hmodule,"GlobalMemoryStatusEx");
 	pfnGetSystemFileCacheSize=(GetSystemFileCacheSizefunc)GetProcAddress(hmodule,"GetSystemFileCacheSize");
 	pfnSetSystemFileCacheSize=(SetSystemFileCacheSizefunc)GetProcAddress(hmodule,"SetSystemFileCacheSize");
+	pfnGetDllDirectory=(GetDllDirectoryfunc)GetProcAddress(hmodule,"GetDllDirectoryW");
+	pfnSetDllDirectory=(SetDllDirectoryfunc)GetProcAddress(hmodule,"SetDllDirectoryW");
   }
 
   hmodule = GetModuleHandle("user32.dll");
