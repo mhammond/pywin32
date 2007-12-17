@@ -59,8 +59,9 @@ Since build 210:
   - Transacted registry functions and demos from Roger
   - New functions RegCopyTree, RegDeleteTree, RegSaveKeyEx, 
     RegRestoreKey, RegCreateKeyEx, RegQueryInfoKeyW, 
-    RegEnumKeyExWGet/SetSystemFileCacheSize, GlobalMemoryStatus,
-    GlobalMemoryStatusEx
+    RegEnumKeyExW, Get/SetSystemFileCacheSize, GlobalMemoryStatus,
+    GlobalMemoryStatusEx, GetDllDirectory, SetDllDirectory
+
   - Fix memory leak in GetShortPathName
   - Fix VkKeyScan arg handling
 
@@ -70,7 +71,9 @@ Since build 210:
     Added Transactional NTFS functions, CreateSymbolicLink and other new 
     Vista API functions, System file checker (Sfc) functions, 
     DuplicateEncryptionInfoFile, GetVolumePathNamesForVolumeName, 
-    GetFinalPathNameByHandle
+    GetFinalPathNameByHandle,
+    CreateMailslot, GetMailslotInfo, SetMailslotInfo
+
   - FindFiles and FindFilesIterator now accept an optional transaction handle
     to perform a transacted search
   - FindStreams function that calls FindFirstStream and FindNextStream to 
