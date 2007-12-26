@@ -278,7 +278,7 @@ PyObject *MyCreateIoCompletionPort(PyObject *self, PyObject *args)
 // @pyswig <o PyHANDLE>|CreateMailslot|Creates a mailslot on the local machine
 // @pyseeapi CreateMailslot
 PyHANDLE CreateMailslot(
-	LPCTSTR Name,		// @pyparm str|Name||Name of the mailslot, of the form \\.\mailslot\[path]name
+	TCHAR  *Name,		// @pyparm str|Name||Name of the mailslot, of the form \\.\mailslot\[path]name
 	DWORD MaxMessageSize,	// @pyparm int|MaxMessageSize||Largest message size.  Use 0 for unlimited.
 	DWORD ReadTimeout,		// @pyparm int|ReadTimeout||Timeout in milliseconds.  Use -1 for no timeout.
 	SECURITY_ATTRIBUTES *INPUT_NULLOK	// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes||Determines if returned handle is inheritable, can be None
@@ -1217,13 +1217,16 @@ BOOLAPI MoveFileExW(
 %{
 static PyObject *MyQueryDosDevice(PyObject *self, PyObject *args)
 {
-	PyObject *ret=NULL;
-	char *devicename, *targetpath=NULL;
+	PyObject *obdevicename, *ret=NULL;
+	TCHAR *devicename, *targetpath=NULL;
 	DWORD retlen, buflen, err;
 	// @pyparm string|DeviceName||Name of device to query, or None to return all defined devices
 	// @rdesc Returns a string containing substrings separated by NULLs with 2 terminating NULLs
-	if (!PyArg_ParseTuple(args, "z:QueryDosDevice", &devicename))
+	if (!PyArg_ParseTuple(args, "O:QueryDosDevice", &obdevicename))
 		return NULL;
+	if (!PyWinObject_AsTCHAR(obdevicename, &devicename, TRUE))
+		return NULL;
+		
 	if (devicename==NULL)	// this returns a huge string
 		buflen=8192;	
 	else
@@ -1234,12 +1237,14 @@ static PyObject *MyQueryDosDevice(PyObject *self, PyObject *args)
 			free(targetpath);
 			buflen*=2;
 			}
-		targetpath=(char *)malloc(buflen);
-		if (targetpath==NULL)
-			return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", buflen);
+		targetpath=(TCHAR *)malloc(buflen *sizeof(TCHAR));
+		if (targetpath==NULL){
+			PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", buflen);
+			break;
+			}
 		retlen=QueryDosDevice(devicename, targetpath, buflen);
 		if (retlen!=0){
-			ret=PyString_FromStringAndSize(targetpath, retlen);
+			ret=PyWinObject_FromTCHAR(targetpath, retlen);
 			break;
 			}
 		err=GetLastError();
@@ -1248,6 +1253,7 @@ static PyObject *MyQueryDosDevice(PyObject *self, PyObject *args)
 			break;
 			}
 		}
+	PyWinObject_FreeTCHAR(devicename);
 	if (targetpath)
 		free(targetpath);
 	return ret;
@@ -3033,6 +3039,7 @@ PyObject *PyWinObject_FromPENCRYPTION_CERTIFICATE_LIST(PENCRYPTION_CERTIFICATE_L
 		ret_item=Py_BuildValue("NN", 
 			PyWinObject_FromSID((*user_item)->pUserSid), 
 			PyString_FromStringAndSize((char *)(*user_item)->pCertBlob->pbData, (*user_item)->pCertBlob->cbData));
+		// ??? This doesn't return EFS_CERTIFICATE_BLOB.dwCertEncodingType ???
 		if (!ret_item){
 			Py_DECREF(ret);
 			return NULL;
@@ -4257,7 +4264,11 @@ static PyObject *py_GetFileAttributesExA(PyObject *self, PyObject *args, PyObjec
 	return py_GetFileAttributesEx(self, args, kwargs, FALSE);
 }
 PyCFunction pfnpy_GetFileAttributesExW=(PyCFunction)py_GetFileAttributesExW;
-PyCFunction pfnpy_GetFileAttributesExA=(PyCFunction)py_GetFileAttributesExA;
+#ifdef UNICODE
+PyCFunction pfnpy_GetFileAttributesEx=(PyCFunction)py_GetFileAttributesExW;
+#else
+PyCFunction pfnpy_GetFileAttributesEx=(PyCFunction)py_GetFileAttributesExA;
+#endif
 
 // @pyswig |SetFileAttributesW|Sets a file's attributes
 // @pyseeapi SetFileAttributes
@@ -4973,7 +4984,7 @@ PyCFunction pfnpy_GetFullPathName=(PyCFunction)py_GetFullPathName;
 %native (CloseEncryptedFileRaw) py_CloseEncryptedFileRaw;
 %native (CreateFileW) pfnpy_CreateFileW;
 %native (DeleteFileW) pfnpy_DeleteFileW;
-%native (GetFileAttributesEx) pfnpy_GetFileAttributesExA;
+%native (GetFileAttributesEx) pfnpy_GetFileAttributesEx;
 %native (GetFileAttributesExW) pfnpy_GetFileAttributesExW;
 %native (SetFileAttributesW) pfnpy_SetFileAttributesW;
 %native (CreateDirectoryExW) pfnpy_CreateDirectoryExW;
@@ -5023,9 +5034,9 @@ PyCFunction pfnpy_GetFullPathName=(PyCFunction)py_GetFullPathName;
 			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 
 	HMODULE hmodule;
-	hmodule=GetModuleHandle("AdvAPI32.dll");
+	hmodule=GetModuleHandle(TEXT("AdvAPI32.dll"));
 	if (hmodule==NULL)
-		hmodule=LoadLibrary("AdvAPI32.dll");
+		hmodule=LoadLibrary(TEXT("AdvAPI32.dll"));
 	if (hmodule){
 		pfnEncryptFile=(EncryptFilefunc)GetProcAddress(hmodule, "EncryptFileW");
 		pfnDecryptFile=(DecryptFilefunc)GetProcAddress(hmodule, "DecryptFileW");
@@ -5044,9 +5055,9 @@ PyCFunction pfnpy_GetFullPathName=(PyCFunction)py_GetFullPathName;
 		pfnCloseEncryptedFileRaw=(CloseEncryptedFileRawfunc)GetProcAddress(hmodule, "CloseEncryptedFileRaw");
 		}
 
-	hmodule=GetModuleHandle("kernel32.dll");
+	hmodule=GetModuleHandle(TEXT("kernel32.dll"));
 	if (hmodule==NULL)
-		hmodule=LoadLibrary("kernel32.dll");
+		hmodule=LoadLibrary(TEXT("kernel32.dll"));
 	if (hmodule){
 		pfnSetVolumeMountPoint=(SetVolumeMountPointfunc)GetProcAddress(hmodule, "SetVolumeMountPointW");
 		pfnDeleteVolumeMountPoint=(DeleteVolumeMountPointfunc)GetProcAddress(hmodule, "DeleteVolumeMountPointW");
@@ -5089,9 +5100,9 @@ PyCFunction pfnpy_GetFullPathName=(PyCFunction)py_GetFullPathName;
 		// pfnGetFileInformationByHandleEx=(GetFileInformationByHandleExfunc)GetProcAddress(hmodule, "GetFileInformationByHandleEx");
 		}
 
-	hmodule=GetModuleHandle("sfc.dll");
+	hmodule=GetModuleHandle(TEXT("sfc.dll"));
 	if (hmodule==NULL)
-		hmodule=LoadLibrary("sfc.dll");
+		hmodule=LoadLibrary(TEXT("sfc.dll"));
 	if (hmodule){
 		pfnSfcGetNextProtectedFile=(SfcGetNextProtectedFilefunc)GetProcAddress(hmodule, "SfcGetNextProtectedFile");
 		pfnSfcIsFileProtected=(SfcIsFileProtectedfunc)GetProcAddress(hmodule, "SfcIsFileProtected");
