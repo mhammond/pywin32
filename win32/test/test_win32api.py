@@ -55,6 +55,29 @@ class Registry(unittest.TestCase):
                 win32api.RegDeleteKey(win32con.HKEY_CURRENT_USER, self.key_name)
         except ZeroDivisionError:
             pass
+
+    def testValues(self):
+        key_name = r'PythonTestHarness\win32api'
+        ## tuples containing value name, value type, data
+        values=(
+            (None, win32con.REG_SZ, 'This is default unnamed value'),
+            ('REG_SZ', win32con.REG_SZ,'REG_SZ text data'),
+            ('REG_EXPAND_SZ', win32con.REG_EXPAND_SZ, '%systemdir%'),
+            ## REG_MULTI_SZ value needs to be a list since strings are returned as a list
+            ('REG_MULTI_SZ', win32con.REG_MULTI_SZ, ['string 1','string 2','string 3','string 4']),
+            ('REG_DWORD', win32con.REG_DWORD, 666),
+            ('REG_BINARY', win32con.REG_BINARY, '\x00\x01\x02\x03\x04\x05\x06\x07\x08\x01\x00'),
+            )
+
+        hkey = win32api.RegCreateKey(win32con.HKEY_CURRENT_USER, key_name)
+        for value_name, reg_type, data in values:
+            win32api.RegSetValueEx(hkey, value_name, None, reg_type, data)
+
+        for value_name, orig_type, orig_data in values:
+            data, typ=win32api.RegQueryValueEx(hkey, value_name)
+            self.assertEqual(typ, orig_type)
+            self.assertEqual(data, orig_data)
+
     def testNotifyChange(self):
         def change():
             hkey = win32api.RegCreateKey(win32con.HKEY_CURRENT_USER, self.key_name)
