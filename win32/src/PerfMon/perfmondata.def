@@ -1,4 +1,0 @@
-EXPORTS
-	OpenPerformanceData
-	CollectPerformanceData
-	ClosePerformanceData
