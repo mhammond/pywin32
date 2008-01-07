@@ -61,6 +61,8 @@ from pywin.scintilla import scintillacon
 # Set this to 1 to cause debug version to be registered and used.  A debug
 # version will spew output to win32traceutil.
 debug=0
+if debug:
+    import win32traceutil
 
 # markh is toying with an implementation that allows auto reload of a module
 # if this attribute exists.
@@ -269,8 +271,7 @@ class ShellFolderFile(ShellFolderBase):
         return ret
 
     def CreateViewObject(self, hwnd, iid):
-        return wrap(ScintillaShellView(hwnd, self.path), useDispatcher=debug>0)
-
+        return wrap(ScintillaShellView(hwnd, self.path), iid, useDispatcher=debug>0)
 # A ShellFolder for our Python objects
 class ShellFolderObject(ShellFolderBase):
     def __init__(self, details):
@@ -287,8 +288,9 @@ class ShellFolderObject(ShellFolderBase):
             lineno = object.lineno
         else:
             lineno = object.methods[self.method_name]
-        return wrap(ScintillaShellView(hwnd, self.path, lineno),
-                    useDispatcher=debug>0)
+            return wrap(ScintillaShellView(hwnd, self.path, lineno),
+                        iid, useDispatcher=debug>0)
+
     def EnumObjects(self, hwndOwner, flags):
         assert self.method_name is None, "Should not be enuming methods!"
         mod_objects = get_clbr_for_file(self.path)
@@ -336,7 +338,7 @@ class ShellFolderRoot(ShellFolderFileSystem):
         #print "Initialize called with pidl", repr(pidl)
         self.pidl = pidl
     def CreateViewObject(self, hwnd, iid):
-        return wrap(FileSystemView(self, hwnd), useDispatcher=debug>0)
+        return wrap(FileSystemView(self, hwnd), iid, useDispatcher=debug>0)
 
     def EnumObjects(self, hwndOwner, flags):
         items = [ ["directory\0" + p] for p in sys.path if os.path.isdir(p)]
@@ -376,12 +378,11 @@ class FileSystemView:
 
    # IShellView
     def CreateViewWindow(self, prev, settings, browser, rect):
-        print "CreateViewWindow", prev, settings, browser, rect
+        print "FileSystemView.CreateViewWindow", prev, settings, browser, rect
         self.cur_foldersettings = settings
         self.browser = browser
         self._CreateMainWindow(prev, settings, browser, rect)
         self._CreateChildWindow(prev)
-        return self.hwnd
 
     def _CreateMainWindow(self, prev, settings, browser, rect):
         # Creates a parent window that hosts the view window.  This window
@@ -526,7 +527,6 @@ class FileSystemView:
         self.children = []
         # Enumerate and store the child PIDLs
         for cid in self.folder.EnumObjects(self.hwnd, 0):
-            print "Have CID"
             self.children.append(cid)
             
         for row_index, data in enumerate(self.children):
@@ -583,7 +583,7 @@ class FileSystemView:
 
     def OnNotify(self, hwnd, msg, wparam, lparam):
         hwndFrom, idFrom, code = win32gui_struct.UnpackWMNOTIFY(lparam)
-        print "OnNotify code=0x%x (0x%x, 0x%x)" % (code, wparam, lparam)
+        #print "OnNotify code=0x%x (0x%x, 0x%x)" % (code, wparam, lparam)
         if code == commctrl.NM_SETFOCUS:
             # Control got focus - Explorer may not know - tell it
             if self.browser is not None:
@@ -612,11 +612,12 @@ class FileSystemView:
                     break
                 sel.append(self.children[n][-1:])
             print "Selection is", sel
-            # Get the IContextMenu for the items.
-            inout, cm = self.folder.GetUIObjectOf(self.hwnd_parent, sel,
-                                                  shell.IID_IContextMenu, 0)
             hmenu = win32gui.CreateMenu()
             try:
+                # Get the IContextMenu for the items.
+                inout, cm = self.folder.GetUIObjectOf(self.hwnd_parent, sel,
+                                                  shell.IID_IContextMenu, 0)
+
                 # As per 'Q179911', we need to determine if the default operation
                 # should be 'open' or 'explore'
                 flags = shellcon.CMF_DEFAULTONLY
@@ -625,15 +626,35 @@ class FileSystemView:
                     flags |= shellcon.CMF_EXPLORE
                 except pythoncom.com_error:
                     pass
-                id_cmd_first = 1 # TrackPopupMenu makes it hard to use 0
-                cm.QueryContextMenu(hmenu, 0, id_cmd_first, -1, flags)
-                # Find the default item in the returned menu.
-                cmd = win32gui.GetMenuDefaultItem(hmenu, False, 0)
-                if cmd == -1:
-                    print "Oops: _doDefaultActionFor found no default menu"
+                # *sob* - delegating to the shell does work - but lands us
+                # in the original location.  Q179911 also shows that
+                # ShellExecuteEx should work - but I can't make it work as
+                # described (XP: function call succeeds, but another thread
+                # shows a dialog with text of E_INVALID_PARAM, and new
+                # Explorer window opens with desktop view. Vista: function
+                # call succeeds, but no window created at all.
+                # On Vista, I'd love to get an IExplorerBrowser interface
+                # from the shell, but a QI fails, and although the
+                # IShellBrowser does appear to support IServiceProvider, I
+                # still can't get it
+                if 0:
+                    id_cmd_first = 1 # TrackPopupMenu makes it hard to use 0
+                    cm.QueryContextMenu(hmenu, 0, id_cmd_first, -1, flags)
+                    # Find the default item in the returned menu.
+                    cmd = win32gui.GetMenuDefaultItem(hmenu, False, 0)
+                    if cmd == -1:
+                        print "Oops: _doDefaultActionFor found no default menu"
+                    else:
+                        ci = 0, self.hwnd_parent, cmd-id_cmd_first, None, None, 0, 0, 0
+                        cm.InvokeCommand(ci)
                 else:
-                    ci = 0, self.hwnd_parent, cmd-id_cmd_first, None, None, 0, 0, 0
-                    cm.InvokeCommand(ci)
+                    rv = shell.ShellExecuteEx(
+                                hwnd = self.hwnd_parent,
+                                nShow=win32con.SW_NORMAL,
+                                lpClass="folder", 
+                                lpVerb="explore", 
+                                lpIDList=sel[0])
+                    print "ShellExecuteEx returned", rv
             finally:
                 win32gui.DestroyMenu(hmenu)
 
@@ -683,9 +704,6 @@ class FileSystemView:
             cm.InvokeCommand(ci)
 
     def OnSize(self, hwnd, msg, wparam, lparam):
-        # hrm - this doesn't seem to be called on XP, but is on Vista
-        # (and is *necessary* on Vista, as it seems to create windows with
-        # a zero client-rect, then moves it)
         #print "OnSize", self.hwnd_child, win32api.LOWORD(lparam), win32api.HIWORD(lparam)
         if self.hwnd_child is not None:
             x = win32api.LOWORD(lparam)
@@ -706,13 +724,9 @@ class ScintillaShellView:
         self.hwnd = None
     def _SendSci(self, msg, wparam=0, lparam=0):
         return win32gui.SendMessage(self.hwnd, msg, wparam, lparam)
-
-    def GetWindow(self):
-        return self.hwnd
-
    # IShellView
     def CreateViewWindow(self, prev, settings, browser, rect):
-        print "CreateViewWindow", prev, settings, browser, rect
+        print "ScintillaShellView.CreateViewWindow", prev, settings, browser, rect
         # Make sure scintilla.dll is loaded.  If not, find it on sys.path
         # (which it generally is for Pythonwin)
         try:
@@ -738,12 +752,12 @@ class ScintillaShellView:
         message_map = {
                 win32con.WM_SIZE: self.OnSize,
         }
-        win32gui.SetWindowLong(self.hwnd, win32con.GWL_WNDPROC, message_map)
+#        win32gui.SetWindowLong(self.hwnd, win32con.GWL_WNDPROC, message_map)
 
         file_data = file(self.filename, "U").read()
 
         self._SetupLexer()
-        self._SendSci(scintillacon.SCI_SETTEXT, 0, file_data)
+        self._SendSci(scintillacon.SCI_ADDTEXT, len(file_data), file_data)
         if self.lineno != None:
             self._SendSci(scintillacon.SCI_GOTOLINE, self.lineno)
         print "Scintilla's hwnd is", self.hwnd
@@ -781,6 +795,13 @@ class ScintillaShellView:
                 self._SendSci(scintillacon.SCI_STYLESETBACK, stylenum, bg)
             self._SendSci(scintillacon.SCI_STYLESETEOLFILLED, stylenum, 1) # Only needed for unclosed strings.
 
+    # IOleWindow
+    def GetWindow(self):
+        return self.hwnd
+
+    def UIActivate(self, activate_state):
+        print "OnActivate"
+
     def DestroyViewWindow(self):
         win32gui.DestroyWindow(self.hwnd)
         self.hwnd = None
@@ -788,9 +809,6 @@ class ScintillaShellView:
 
     def TranslateAccelerator(self, msg):
         return winerror.S_FALSE
-
-    def UIActivate(self, activate_state):
-        print "Scintilla OnActivate"
 
     def OnSize(self, hwnd, msg, wparam, lparam):
         x = win32api.LOWORD(lparam)
