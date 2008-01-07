@@ -17,6 +17,8 @@
 
 #define PY_SSIZE_T_CLEAN // this should be Py_ssize_t clean!
 
+// #define UNICODE
+// #define _UNICODE // CRT function (_tcs*) switch based on this
 #include "windows.h"
 #include "Python.h"
 #include "pywintypes.h"
@@ -310,8 +312,11 @@ py_get_clipboard_data(PyObject* self, PyObject* args)
 
   // @pyparm int|format|CF_TEXT|Specifies a clipboard format. For a description of
   // the standard clipboard formats, see Standard Clipboard Formats.
-
+#ifdef UNICODE
+  int format = CF_UNICODETEXT;
+#else
   int format = CF_TEXT;
+#endif
   if (!PyArg_ParseTuple(args, "|i:GetClipboardData:",
                         &format)) {
     return NULL;
@@ -506,7 +511,7 @@ py_get_clipboard_formatName(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  char buf[256];
+  TCHAR buf[256];
   int rc;
   Py_BEGIN_ALLOW_THREADS;
   rc = GetClipboardFormatName((UINT)format, buf, 255);
@@ -515,8 +520,7 @@ py_get_clipboard_formatName(PyObject* self, PyObject* args)
   if (!rc) {
     return ReturnAPIError("GetClipboardFormatName");
   }
-
-  return Py_BuildValue("s", buf);
+  return PyWinObject_FromTCHAR(buf);
 
   // @pyseeapi GetClipboardFormatName
 
@@ -579,7 +583,7 @@ py_get_clipboard_sequence_number(PyObject* self, PyObject* args)
   typedef HRESULT (WINAPI * PFNGetClipboardSequenceNumber)();
 
   // @comm This method is not available on some early Windows (eg 95) machines.
-  HMODULE hmod = LoadLibrary("user32.dll");
+  HMODULE hmod = LoadLibrary(TEXT("user32.dll"));
   PFNGetClipboardSequenceNumber pfnGetClipboardSequenceNumber = NULL;
   if (hmod) pfnGetClipboardSequenceNumber=(PFNGetClipboardSequenceNumber)GetProcAddress(hmod, "GetClipboardSequenceNumber");
   if (pfnGetClipboardSequenceNumber==NULL) {
@@ -814,25 +818,21 @@ py_open_clipboard(PyObject* self, PyObject* args)
 static PyObject *
 py_register_clipboard_format(PyObject* self, PyObject* args)
 {
-
-  // @pyparm string|name||String that names the new format.
-
-  char *name;
-  if (!PyArg_ParseTuple(args, "s:RegisterClipboardFormat",
-                        &name)) {
-    return NULL;
-  }
-
-  UINT rc;
-  Py_BEGIN_ALLOW_THREADS;
-  rc = RegisterClipboardFormat(name);
-  Py_END_ALLOW_THREADS;
-
-  if (!rc) {
-    return ReturnAPIError("RegisterClipboardFormat");
-  }
-
-  return (Py_BuildValue("i", (int)rc));
+	TCHAR *name;
+	PyObject *obname;
+	if (!PyArg_ParseTuple(args, "O:RegisterClipboardFormat",
+		&obname))	 // @pyparm string|name||String that names the new format.
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obname, &name, FALSE))
+		return NULL;
+	UINT rc;
+	Py_BEGIN_ALLOW_THREADS;
+	rc = RegisterClipboardFormat(name);
+	Py_END_ALLOW_THREADS;
+	PyWinObject_FreeTCHAR(name);
+	if (!rc)
+	    return ReturnAPIError("RegisterClipboardFormat");
+	return PyInt_FromLong(rc);
 
   // @comm If a registered format with the specified name already exists, a
   // new format is not registered and the return value identifies the existing
@@ -948,44 +948,48 @@ py_set_clipboard_data(PyObject* self, PyObject* args)
 static PyObject *
 py_set_clipboard_text(PyObject* self, PyObject* args)
 {
+#ifdef UNICODE
+	int format = CF_UNICODETEXT;
+#else
+	int format = CF_TEXT;
+#endif
+	TCHAR *text;
+	PyObject *obtext, *ret=NULL;
+	DWORD size;
+	if (!PyArg_ParseTuple(args, "O:SetClipboardText",
+		&obtext))		// @pyparm str/unicode|text||The text to place on the clipboard.
+		return NULL;
 
-  // @pyparm string|text||The text to place on the clipboard.
+	if (!PyWinObject_AsTCHAR(obtext, &text, FALSE, &size))
+		return NULL;
+	HGLOBAL    hMem;
+	LPTSTR     pszDst=NULL;
 
-  int format = CF_TEXT;
-  char *text;
-  Py_ssize_t size;
-  if (!PyArg_ParseTuple(args, "s#:SetClipboardText",
-                        &text, &size)) {
-    return NULL;
-  }
+	hMem = GlobalAlloc(GHND, (size+1) * sizeof(TCHAR));
+	if (hMem == NULL)
+		PyWin_SetAPIError("GlobalAlloc");
+	else{
+		pszDst = (TCHAR *)GlobalLock(hMem);
+		_tcscpy(pszDst, text);
+		pszDst[size] = 0;
+		GlobalUnlock(hMem);
+		HANDLE data;
+		Py_BEGIN_ALLOW_THREADS;
+		data = SetClipboardData((UINT)format, hMem);
+		Py_END_ALLOW_THREADS;
+		if (!data)
+			PyWin_SetAPIError("SetClipboardText");
+		else
+			ret = PyWinLong_FromHANDLE(data);
+		}
+	PyWinObject_FreeTCHAR(text);
+	return ret;
+	// @pyseeapi SetClipboardData
 
-  HGLOBAL    hMem;
-  LPTSTR     pszDst;
-
-  hMem = GlobalAlloc(GHND, size+1);
-  if (hMem == NULL) {
-    return ReturnAPIError("GlobalAlloc");
-  }
-  pszDst = (char*)GlobalLock(hMem);
-  lstrcpy(pszDst, text);
-  pszDst[size] = 0;
-  GlobalUnlock(hMem);
-
-  HANDLE data;
-  Py_BEGIN_ALLOW_THREADS;
-  data = SetClipboardData((UINT)format, hMem);
-  Py_END_ALLOW_THREADS;
-
-  if (!data)
-    return ReturnAPIError("SetClipboardText");
-  return PyWinLong_FromHANDLE(data);
-
-  // @pyseeapi SetClipboardData
-
-  // @rdesc If the function succeeds, the return value is integer handle
-  // of the data.<nl>
-  // If the function fails, win32api.error is raised with the GetLastError
-  // info.
+	// @rdesc If the function succeeds, the return value is integer handle
+	// of the data.<nl>
+	// If the function fails, win32api.error is raised with the GetLastError
+	// info.
 
 }
 
