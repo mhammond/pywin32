@@ -25,7 +25,7 @@ PyIShellView::~PyIShellView()
 	return (IShellView *)PyIOleWindow::GetI(self);
 }
 
-// @pymethod |PyIShellView|TranslateAccelerator|Description of TranslateAccelerator.
+// @pymethod int|PyIShellView|TranslateAccelerator|Description of TranslateAccelerator.
 PyObject *PyIShellView::TranslateAccelerator(PyObject *self, PyObject *args)
 {
 	IShellView *pISV = GetI(self);
@@ -45,6 +45,7 @@ PyObject *PyIShellView::TranslateAccelerator(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pISV, IID_IShellView );
+	// @rdesc The result is the HRESULT from the underlying TranslateAccelerator call
 	return PyInt_FromLong(hr);
 }
 
@@ -106,7 +107,7 @@ PyObject *PyIShellView::Refresh(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @pymethod |PyIShellView|CreateViewWindow|Description of CreateViewWindow.
+// @pymethod int|PyIShellView|CreateViewWindow|Description of CreateViewWindow.
 PyObject *PyIShellView::CreateViewWindow(PyObject *self, PyObject *args)
 {
 	IShellView *pISV = GetI(self);
@@ -143,6 +144,7 @@ PyObject *PyIShellView::CreateViewWindow(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pISV, IID_IShellView );
+	// @rdesc The result is an integer handle to the new window.
 	return PyWinLong_FromHANDLE(hWnd);
 }
 
@@ -164,7 +166,7 @@ PyObject *PyIShellView::DestroyViewWindow(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @pymethod |PyIShellView|GetCurrentInfo|Description of GetCurrentInfo.
+// @pymethod <o PyFOLDERSETTINGS>|PyIShellView|GetCurrentInfo|Description of GetCurrentInfo.
 PyObject *PyIShellView::GetCurrentInfo(PyObject *self, PyObject *args)
 {
 	IShellView *pISV = GetI(self);
@@ -264,7 +266,7 @@ PyObject *PyIShellView::SelectItem(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-// @pymethod |PyIShellView|GetItemObject|Description of GetItemObject.
+// @pymethod <o PyIUnknown>|PyIShellView|GetItemObject|Description of GetItemObject.
 PyObject *PyIShellView::GetItemObject(PyObject *self, PyObject *args)
 {
 	IShellView *pISV = GetI(self);
