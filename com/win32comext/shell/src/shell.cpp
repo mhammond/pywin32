@@ -20,6 +20,7 @@ generates Windows .hlp files.
 #include "PyIShellLink.h"
 #include "PyIContextMenu.h"
 #include "PyIExtractIcon.h"
+#include "PyIExtractIconW.h"
 #include "PyIShellExtInit.h"
 #include "PyIShellFolder.h"
 #include "PyIEmptyVolumeCache.h"
@@ -46,11 +47,25 @@ generates Windows .hlp files.
 #include "PyIUniformResourceLocator.h"
 #include "PyIActiveDesktop.h"
 #include "PyIExtractImage.h"
+#include "PyIExplorerBrowser.h"
+#include "PyIExplorerBrowserEvents.h"
+#include "PyIExplorerCommand.h"
+#include "PyIShellItem.h"
+#include "PyIShellItemArray.h"
 
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
 
 // We should not be using this!
 #define OleSetOleError PyCom_BuildPyException
+
+#if (WINVER < 0x600)
+const IID IID_IExplorerBrowser = __uuidof(IExplorerBrowser);
+const IID IID_IExplorerBrowserEvents = __uuidof(IExplorerBrowserEvents);
+const IID IID_IExplorerCommand = __uuidof(IExplorerCommand);
+const IID IID_IShellItemArray = __uuidof(IShellItemArray);
+const IID IID_IEnumExplorerCommand = __uuidof(IEnumExplorerCommand);
+const IID IID_IEnumShellItems = __uuidof(IEnumShellItems);
+#endif
 
 static HMODULE shell32 = NULL;
 static HMODULE shfolder = NULL;
@@ -861,6 +876,27 @@ error:
 	return FALSE;
 }
 
+BOOL PyObject_AsEXPLORER_BROWSER_OPTIONS(PyObject *ob, EXPLORER_BROWSER_OPTIONS *ret)
+{
+	*ret = PyLong_AsUnsignedLongMask(ob);
+	return *ret != -1 || !PyErr_Occurred();
+}
+
+PyObject *PyObject_FromEXPLORER_BROWSER_OPTIONS(EXPLORER_BROWSER_OPTIONS val)
+{
+	return PyLong_FromUnsignedLong(val);
+}
+
+BOOL PyObject_AsEXPLORER_BROWSER_FILL_FLAGS(PyObject *ob, EXPLORER_BROWSER_FILL_FLAGS *ret)
+{
+	*ret = PyLong_AsUnsignedLongMask(ob);
+	return *ret != -1 || !PyErr_Occurred();
+}
+PyObject *PyObject_FromEXPLORER_BROWSER_FILL_FLAGS(EXPLORER_BROWSER_FILL_FLAGS val)
+{
+	return PyLong_FromUnsignedLong(val);
+}
+
 #if (PY_VERSION_HEX >= 0x02030000) // PyGILState only in 2.3+
 
 // Callback for BrowseForFolder
@@ -1432,12 +1468,10 @@ static PyObject *PySHChangeNotify(PyObject *self, PyObject *args)
 				  && PyObject_AsPIDL(ob2, (ITEMIDLIST **)&p2, TRUE);
 			break;
 		case SHCNF_DWORD:
-			p1 = (void *)PyInt_AsLong(ob1);
-			if (p1==(VOID *)-1 && PyErr_Occurred())
+			if (!PyWinLong_AsVoidPtr(ob1, &p1))
 				bsuccess=FALSE;
 			else if (ob2!=Py_None){
-				p2 = (void *)PyInt_AsLong(ob2);
-				if (p2==(void *)-1 && PyErr_Occurred())
+				if (!PyWinLong_AsVoidPtr(ob2, &p2))
 					bsuccess=FALSE;
 				}
 			break;
@@ -2076,12 +2110,9 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
 {
 	PyObject *ret = NULL;
 	BOOL ok;
-	SHELLEXECUTEINFO *p = (SHELLEXECUTEINFO *)malloc(sizeof(*p));
-	if (!p)
-		return PyErr_NoMemory();
-
-	memset(p, 0, sizeof(*p));
-	p->cbSize = sizeof(*p);
+	SHELLEXECUTEINFO info;
+	memset(&info, 0, sizeof(info));
+	info.cbSize = sizeof(info);
 
 	static char *kw_items[]= {
 		"fMask","hwnd","lpVerb","lpFile", "lpParameters", "lpDirectory",
@@ -2092,17 +2123,16 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
 	PyObject *obDirectory = NULL, *obIDList = NULL, *obClass = NULL;
 	PyObject *obhkeyClass = NULL, *obHotKey = NULL, *obhIcon = NULL;
 	PyObject *obhMonitor = NULL;
+	// @pyparm int|fMask|0|The default mask for the structure.  Other
+	// masks may be added based on what paramaters are supplied.
 	if (!PyArg_ParseTupleAndKeywords(args, kw, "|lOOOOOlOOOOOO", kw_items,
-							// @pyparm int|fMask|0|The default mask for the
-							// structure.  Other masks may be added based on
-							// what paramaters are supplied.
-		                             &p->fMask, 
+									&info.fMask, 
 									 &obhwnd, // @pyparm <o PyHANDLE>|hwnd|0|
 									 &obVerb, // @pyparm string|lpVerb||
 									 &obFile, // @pyparm string|lpFile||
 									 &obParams, // @pyparm string|lpParams||
 									 &obDirectory, // @pyparm string|lpDirectory||
-									 &p->nShow, // @pyparm int|nShow|0|
+									 &info.nShow, // @pyparm int|nShow|0|
 									 &obIDList, // @pyparm <o PyIDL>|lpIDList||
 									 &obClass, // @pyparm string|obClass||
 									 &obhkeyClass, // @pyparm int|hkeyClass||
@@ -2110,34 +2140,34 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
 									 &obhIcon, // @pyparm <o PyHANDLE>|hIcon||
 									 &obhMonitor)) // @pyparm <o PyHANDLE>|hMonitor||
 		goto done;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&p->hwnd))
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&info.hwnd))
 		goto done;
-	if (obVerb && !PyWinObject_AsString(obVerb, (char **)&p->lpVerb))
+	if (obVerb && !PyWinObject_AsString(obVerb, (char **)&info.lpVerb))
 		goto done;
-	if (obFile && !PyWinObject_AsString(obFile, (char **)&p->lpFile))
+	if (obFile && !PyWinObject_AsString(obFile, (char **)&info.lpFile))
 		goto done;
-	if (obParams && !PyWinObject_AsString(obParams, (char **)&p->lpParameters))
+	if (obParams && !PyWinObject_AsString(obParams, (char **)&info.lpParameters))
 		goto done;
-	if (obDirectory && !PyWinObject_AsString(obDirectory, (char **)&p->lpDirectory))
+	if (obDirectory && !PyWinObject_AsString(obDirectory, (char **)&info.lpDirectory))
 		goto done;
 	if (obIDList) {
-		p->fMask |= SEE_MASK_IDLIST;
-		if (!PyObject_AsPIDL(obIDList, (ITEMIDLIST **)&p->lpIDList))
+		info.fMask |= SEE_MASK_IDLIST;
+		if (!PyObject_AsPIDL(obIDList, (ITEMIDLIST **)&info.lpIDList))
 			goto done;
 	}
 	if (obClass) {
-		p->fMask |= SEE_MASK_CLASSNAME;
-		if (!PyWinObject_AsString(obClass, (char **)&p->lpClass))
+		info.fMask |= SEE_MASK_CLASSNAME;
+		if (!PyWinObject_AsString(obClass, (char **)&info.lpClass))
 			goto done;
 	}
 	if (obhkeyClass) {
-		p->fMask |= SEE_MASK_CLASSKEY;
-		if (!PyWinObject_AsHKEY(obhkeyClass, &p->hkeyClass))
+		info.fMask |= SEE_MASK_CLASSKEY;
+		if (!PyWinObject_AsHKEY(obhkeyClass, &info.hkeyClass))
 			goto done;
 	}
 	if (obHotKey) {
-		p->fMask |= SEE_MASK_HOTKEY;
-		p->dwHotKey = PyInt_AsLong(obHotKey);
+		info.fMask |= SEE_MASK_HOTKEY;
+		info.dwHotKey = PyInt_AsLong(obHotKey);
 		if (PyErr_Occurred())
 			goto done;
 	}
@@ -2147,37 +2177,37 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
 		PyErr_SetString(PyExc_NotImplementedError, "SEE_MASK_ICON not declared on this platform");
 		goto done;
 #else
-		p->fMask |= SEE_MASK_ICON;
-		if (!PyWinObject_AsHANDLE(obhIcon, &p->hIcon))
+		info.fMask |= SEE_MASK_ICON;
+		if (!PyWinObject_AsHANDLE(obhIcon, &info.hIcon))
 			goto done;
 #endif
 	}
 	if (obhMonitor) {
-		p->fMask |= SEE_MASK_HMONITOR;
-		if (!PyWinObject_AsHANDLE(obhMonitor, &p->hMonitor))
+		info.fMask |= SEE_MASK_HMONITOR;
+		if (!PyWinObject_AsHANDLE(obhMonitor, &info.hMonitor))
 			goto done;
 	}
 	{ // new scope to avoid warnings about the goto
 	PY_INTERFACE_PRECALL;
-	ok = ShellExecuteEx(p);
+	ok = ShellExecuteEx(&info);
 	PY_INTERFACE_POSTCALL;
 	}
 	if (ok) {
 		ret = Py_BuildValue("{s:l,s:N}",
-							"hInstApp", p->hInstApp,
-							"hProcess", PyWinObject_FromHANDLE(p->hProcess));
+							"hInstApp", info.hInstApp,
+							"hProcess", PyWinObject_FromHANDLE(info.hProcess));
 		// @rdesc The result is a dictionary based on documented result values
 		// in the structure.  Currently this is "hInstApp" and "hProcess"
 	} else
 		PyWin_SetAPIError("ShellExecuteEx");
 	
 done:
-	PyWinObject_FreeString((char *)p->lpVerb);
-	PyWinObject_FreeString((char *)p->lpFile);
-	PyWinObject_FreeString((char *)p->lpParameters);
-	PyWinObject_FreeString((char *)p->lpDirectory);
-	PyWinObject_FreeString((char *)p->lpClass);
-	PyObject_FreePIDL((ITEMIDLIST *)p->lpIDList);
+	PyWinObject_FreeString((char *)info.lpVerb);
+	PyWinObject_FreeString((char *)info.lpFile);
+	PyWinObject_FreeString((char *)info.lpParameters);
+	PyWinObject_FreeString((char *)info.lpDirectory);
+	PyWinObject_FreeString((char *)info.lpClass);
+	PyObject_FreePIDL((ITEMIDLIST *)info.lpIDList);
 	return ret;
 }
 
@@ -2337,8 +2367,8 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL(AsyncOperation),
 	PYCOM_INTERFACE_FULL(ContextMenu),
 	PYCOM_INTERFACE_FULL(ExtractIcon),
+	PYCOM_INTERFACE_FULL(ExtractIconW),
 	PYCOM_INTERFACE_CLIENT_ONLY		(ExtractImage),
-	PYCOM_INTERFACE_IID_ONLY		  (ExtractIconW),
 	PYCOM_INTERFACE_FULL(ShellExtInit),
 	PYCOM_INTERFACE_FULL(ShellFolder),
 	PYCOM_INTERFACE_FULL(ShellIcon),
@@ -2358,9 +2388,14 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_SERVER_ONLY(DockingWindow),
 	PYCOM_INTERFACE_SERVER_ONLY(EmptyVolumeCache),
 	PYCOM_INTERFACE_SERVER_ONLY(EmptyVolumeCache2),
+	PYCOM_INTERFACE_CLIENT_ONLY(ExplorerBrowser),
+	PYCOM_INTERFACE_FULL(ExplorerBrowserEvents),
+	PYCOM_INTERFACE_FULL(ExplorerCommand),
 	// IID_ICopyHook doesn't exist - hack it up
 	{ &IID_IShellCopyHook, "IShellCopyHook", "IID_IShellCopyHook", &PyICopyHook::type, GET_PYGATEWAY_CTOR(PyGCopyHook) },
 	{ &IID_IShellCopyHook, "ICopyHook", "IID_ICopyHook", NULL, NULL  },
+	PYCOM_INTERFACE_FULL(ShellItem),
+	PYCOM_INTERFACE_FULL(ShellItemArray),
 	PYCOM_INTERFACE_CLIENT_ONLY(ShellLinkDataList),
 	PYCOM_INTERFACE_CLIENT_ONLY(UniformResourceLocator),
 	PYCOM_INTERFACE_CLIENT_ONLY (ActiveDesktop),
@@ -2456,6 +2491,7 @@ extern "C" __declspec(dllexport) void initshell()
 	ADD_CONSTANT(HOTKEYF_CONTROL);
 	ADD_CONSTANT(HOTKEYF_EXT);
 	ADD_CONSTANT(HOTKEYF_SHIFT);
+
 	ADD_IID(CLSID_ShellLink);
 	ADD_IID(CLSID_ShellDesktop);
 	ADD_IID(CLSID_NetworkPlaces);
@@ -2508,7 +2544,7 @@ extern "C" __declspec(dllexport) void initshell()
 	ADD_IID(FMTID_SummaryInformation);
 	ADD_IID(FMTID_MediaFileSummaryInformation);
 	ADD_IID(FMTID_ImageSummaryInformation);
-
+	ADD_IID(IID_CDefView);
 #else
 #	pragma message("Please update your SDK headers - IE5 features missing!")
 #endif

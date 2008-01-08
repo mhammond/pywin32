@@ -1424,9 +1424,13 @@ com_extensions += [
                         %(shell)s/PyIDockingWindow.cpp
                         %(shell)s/PyIDropTargetHelper.cpp
                         %(shell)s/PyIEnumIDList.cpp
-                        %(shell)s/PyIExtractIcon.cpp
                         %(shell)s/PyIEmptyVolumeCache.cpp
                         %(shell)s/PyIEmptyVolumeCacheCallBack.cpp
+                        %(shell)s/PyIExplorerBrowser.cpp
+                        %(shell)s/PyIExplorerBrowserEvents.cpp
+                        %(shell)s/PyIExplorerCommand.cpp
+                        %(shell)s/PyIExtractIcon.cpp
+                        %(shell)s/PyIExtractIconW.cpp
                         %(shell)s/PyIExtractImage.cpp
                         %(shell)s/PyIInputObject.cpp
                         %(shell)s/PyIPersistFolder.cpp
@@ -1438,6 +1442,8 @@ com_extensions += [
                         %(shell)s/PyIShellIconOverlay.cpp
                         %(shell)s/PyIShellIconOverlayIdentifier.cpp
                         %(shell)s/PyIShellIconOverlayManager.cpp
+                        %(shell)s/PyIShellItem.cpp
+                        %(shell)s/PyIShellItemArray.cpp
                         %(shell)s/PyIShellLink.cpp
                         %(shell)s/PyIShellLinkDataList.cpp
                         %(shell)s/PyIShellView.cpp

@@ -34,3 +34,38 @@ PyObject *PyObject_FromFOLDERSETTINGS( const FOLDERSETTINGS *pf);
 
 BOOL PyObject_AsRECT( PyObject *ob, RECT *r);
 PyObject *PyObject_FromRECT(const RECT *r);
+
+// For the Vista IExplorer* interfaces
+#include "PyIExplorerInterfaces.h"
+
+BOOL PyObject_AsEXPLORER_BROWSER_OPTIONS(PyObject *, EXPLORER_BROWSER_OPTIONS *);
+PyObject *PyObject_FromEXPLORER_BROWSER_OPTIONS(EXPLORER_BROWSER_OPTIONS);
+
+BOOL PyObject_AsEXPLORER_BROWSER_FILL_FLAGS(PyObject *, EXPLORER_BROWSER_FILL_FLAGS *);
+PyObject *PyObject_FromEXPLORER_BROWSER_FILL_FLAGS(EXPLORER_BROWSER_FILL_FLAGS);
+
+extern void *PyShell_AllocMem(ULONG cb);
+
+// Vista has new spellings for PIDL.
+inline BOOL PyObject_AsPCUIDLIST_RELATIVE(PyObject *ob, PCUIDLIST_RELATIVE *ppidl, BOOL bNoneOK = FALSE, UINT *pcb = NULL)
+{
+	return PyObject_AsPIDL(ob, (LPITEMIDLIST *)ppidl, bNoneOK, pcb);
+}
+inline void PyObject_FreePCUIDLIST_RELATIVE(PCUIDLIST_RELATIVE pidl)
+{
+	return PyObject_FreePIDL((LPCITEMIDLIST)pidl);
+}
+
+inline BOOL PyObject_AsPCIDLIST_ABSOLUTE(PyObject *ob, PCUIDLIST_ABSOLUTE *ppidl, BOOL bNoneOK = FALSE, UINT *pcb = NULL)
+{
+	return PyObject_AsPIDL(ob, (LPITEMIDLIST *)ppidl, bNoneOK, pcb);
+}
+inline void PyObject_FreePCIDLIST_ABSOLUTE(PCIDLIST_ABSOLUTE pidl)
+{
+	return PyObject_FreePIDL((LPCITEMIDLIST)pidl);
+}
+
+inline PyObject *PyObject_FromPCIDLIST_ABSOLUTE(PCUIDLIST_ABSOLUTE pidl, BOOL bFreeSystemPIDL)
+{
+	return PyObject_FromPIDL((LPITEMIDLIST)pidl, bFreeSystemPIDL);
+}
