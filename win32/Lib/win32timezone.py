@@ -23,7 +23,7 @@ the TimeZoneInfo object to the datetime constructor.  For example,
 
 >>> import win32timezone, datetime
 >>> assert 'Mountain Standard Time' in win32timezone.GetTimeZoneNames()
->>> tzi = TimeZoneInfo( 'Mountain Standard Time' )
+>>> tzi = win32timezone.TimeZoneInfo( 'Mountain Standard Time' )
 >>> now = datetime.datetime.now( tzi )
 
 	The now object is now a time-zone aware object, and daylight savings-
