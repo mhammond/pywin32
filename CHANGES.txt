@@ -7,6 +7,11 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 210:
 ----------------
+* adodbapi added to pywin32 package CVS tree:
+- this pure python package is a fully dbapi 2.0 compliant database access
+  method. This is a copy of the code from the adodbapi sourceforge project,
+  which will eventually become obsolete in favor of this site. Inclusion here
+  and maintenance of the package are by Vernon Cole.
 
 * Available for AMD64 versions of Windows.  Note that this requires the 
   x86-64 version of Python 2.5.2, which was not yet available as build 211 
