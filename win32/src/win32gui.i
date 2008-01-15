@@ -6132,7 +6132,11 @@ static PyObject *PyGetSaveFileNameW(PyObject *self, PyObject *args, PyObject *kw
 	if (!PyParse_OPENFILENAMEW_Args(args, kwargs, &ofn))
 		return NULL;
 
-	if (!GetSaveFileNameW(&ofn))
+	BOOL ok;
+	Py_BEGIN_ALLOW_THREADS;
+	ok = GetSaveFileNameW(&ofn);
+	Py_END_ALLOW_THREADS;
+	if (!ok)
 		PyWin_SetAPIError("GetSaveFileNameW", CommDlgExtendedError());
 	else
 		ret=PyReturn_OPENFILENAMEW_Output(&ofn);
@@ -6155,7 +6159,11 @@ static PyObject *PyGetOpenFileNameW(PyObject *self, PyObject *args, PyObject *kw
 	if (!PyParse_OPENFILENAMEW_Args(args, kwargs, &ofn))
 		return NULL;
 
-	if (!GetOpenFileNameW(&ofn))
+	BOOL ok;
+	Py_BEGIN_ALLOW_THREADS;
+	ok = GetOpenFileNameW(&ofn);
+	Py_END_ALLOW_THREADS;
+	if (!ok)
 		PyWin_SetAPIError("GetOpenFileNameW", CommDlgExtendedError());
 	else
 		ret=PyReturn_OPENFILENAMEW_Output(&ofn);
