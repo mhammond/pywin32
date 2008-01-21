@@ -7323,3 +7323,8 @@ PyObject *PyEnumPropsEx(PyObject *self, PyObject *args)
 }
 %}
 %native(EnumPropsEx) PyEnumPropsEx;
+
+#ifdef WINXPGUI
+// strictly available in win2kpro, but this will do for now...
+HWND GetConsoleWindow();
+#endif
