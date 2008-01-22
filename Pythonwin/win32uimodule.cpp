@@ -2273,7 +2273,7 @@ initwin32ui(void)
   PyDict_SetItemString(dict, "error", ui_module_error);
   // drop email addy - too many ppl use it for support requests for other
   // tools that simply embed Pythonwin...
-  PyObject *copyright = PyString_FromString("Copyright 1994-2007 Mark Hammond");
+  PyObject *copyright = PyString_FromString("Copyright 1994-2008 Mark Hammond");
   PyDict_SetItemString(dict, "copyright", copyright);
   Py_XDECREF(copyright);
   PyObject *dllhandle = PyWinLong_FromHANDLE(hWin32uiDll);
