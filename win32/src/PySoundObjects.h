@@ -2,7 +2,7 @@
 #define __PYSOUNDOBJECTS_H__
 
 #include <windows.h>
-#include <dsound.h>
+#include <mmsystem.h>
 
 class PYWINTYPES_EXPORT PyWAVEFORMATEX : public PyObject
 {
