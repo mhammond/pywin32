@@ -207,7 +207,7 @@ BOOL PyCom_InterfaceFromPyObject(PyObject *ob, REFIID iid, LPVOID *ppv, BOOL bNo
 	{
 		// don't overwrite an error message
 		if ( !PyErr_Occurred() )
-			PyErr_SetString(PyExc_TypeError, "The Python object is invalid");
+			PyErr_SetString(PyExc_TypeError, "The Python object is NULL and no error occurred");
 		return FALSE;
 	}
 	if ( ob == Py_None )
