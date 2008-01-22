@@ -1313,9 +1313,9 @@ static void ReportAPIError(DWORD msgCode, DWORD errCode /*= 0*/)
 			buf[end]=L'\0';
 
 	TCHAR cvtBuf[20];
-	_stprintf(cvtBuf, L"%d", errCode);
-    LPTSTR  lpszStrings[] = {cvtBuf, buf, L'\0'};
-    ReportError(msgCode, (LPCTSTR *)lpszStrings);
+	wsprintf(cvtBuf, L"%d", errCode);
+	LPTSTR  lpszStrings[] = {cvtBuf, buf, L'\0'};
+	ReportError(msgCode, (LPCTSTR *)lpszStrings);
 }
 
 #define GPEM_ERROR(what) {errorMsg = "<Error getting traceback - " ## what ## ">";goto done;}
