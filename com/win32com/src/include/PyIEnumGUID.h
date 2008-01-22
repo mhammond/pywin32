@@ -1,6 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
 // class PyIEnumGUID
 #ifndef NO_PYCOM_IENUMGUID
+
+#include "PythonCOM.h"
+#include "PythonCOMServer.h"
+
 class PyIEnumGUID : public PyIUnknown
 {
 public:
@@ -17,6 +21,34 @@ protected:
 	PyIEnumGUID(IUnknown *);
 	~PyIEnumGUID();
 };
+
+// ---------------------------------------------------
+//
+// Gateway Declaration
+
+class PyGEnumGUID : public PyGatewayBase, public IEnumGUID
+{
+protected:
+	PyGEnumGUID(PyObject *instance) : PyGatewayBase(instance) { ; }
+	PYGATEWAY_MAKE_SUPPORT(PyGEnumGUID, IEnumGUID, IID_IEnumGUID)
+
+	// IEnumGUID
+	STDMETHOD(Next)(
+		ULONG celt,
+		GUID __RPC_FAR * rgelt,
+		ULONG __RPC_FAR * pceltFetched);
+
+	STDMETHOD(Skip)(
+		ULONG celt);
+
+	STDMETHOD(Reset)(
+		void);
+
+	STDMETHOD(Clone)(
+		IEnumGUID __RPC_FAR *__RPC_FAR * ppenum);
+
+};
+
 #endif // NO_PYCOM_IENUMGUID
 
 /////////////////////////////////////////////////////////////////////////////

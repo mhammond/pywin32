@@ -241,7 +241,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL       ( EnumConnections),
 	PYCOM_INTERFACE_FULL       ( EnumFORMATETC),
 #ifndef NO_PYCOM_IENUMGUID
-	PYCOM_INTERFACE_CLIENT_ONLY( EnumGUID),
+	PYCOM_INTERFACE_FULL( EnumGUID),
 #endif // NO_PYCOM_IENUMGUID
 	PYCOM_INTERFACE_CLIENT_ONLY( EnumMoniker),
 #ifndef NO_PYCOM_ENUMSTATPROPSTG
