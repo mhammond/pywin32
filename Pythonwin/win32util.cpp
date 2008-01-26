@@ -316,11 +316,11 @@ BOOL DictToLogFont(PyObject *font_props, LOGFONT *pLF)
 	  RETURN_ERR ("Expected integer value for font weight property");
 
   v = PyDict_GetItemString (font_props, (char *)szFontItalic);
-  if (v != NULL && v != Py_None)
+  if (v != NULL && PyObject_IsTrue(v))
 	pLF->lfItalic = TRUE;
 
   v = PyDict_GetItemString (font_props, (char *)szFontUnderline);
-  if (v != NULL && v != Py_None)
+  if (v != NULL && PyObject_IsTrue(v))
 	pLF->lfUnderline = TRUE;
   return TRUE;
 }
