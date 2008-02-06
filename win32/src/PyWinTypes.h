@@ -215,8 +215,22 @@ inline BOOL PyWinObject_AsReadBuffer(PyObject *ob, void **buf, int *buf_len, BOO
 #else /* not UNICODE */
 #define PyWinObject_AsTCHAR PyWinObject_AsString
 #define PyWinObject_FreeTCHAR PyWinObject_FreeString
-inline PyObject *PyWinObject_FromTCHAR( TCHAR *str ) {return PyString_FromString(str);}
-inline PyObject *PyWinObject_FromTCHAR( TCHAR *str, int numChars ) {return PyString_FromStringAndSize(str, numChars);}
+inline PyObject *PyWinObject_FromTCHAR( TCHAR *str )
+{
+	if (str==NULL){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	return PyString_FromString(str);
+}
+inline PyObject *PyWinObject_FromTCHAR( TCHAR *str, int numChars )
+{
+	if (str==NULL){
+		Py_INCREF(Py_None);
+		return Py_None;
+		}
+	return PyString_FromStringAndSize(str, numChars);
+}
 #define PyString_FromTCHAR PyString_FromString
 #endif
 
@@ -227,12 +241,21 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromMultipleString(WCHAR *multistring);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromMultipleString(char *multistring);
 // Converts a sequence of str/unicode objects into a series of consecutive null-terminated
 //	wide character strings with extra terminating null
-PYWINTYPES_EXPORT BOOL PyWinObject_AsMultipleString(PyObject *ob, WCHAR **pmultistring, BOOL bNoneOK=TRUE);
+PYWINTYPES_EXPORT BOOL PyWinObject_AsMultipleString(PyObject *ob, WCHAR **pmultistring, BOOL bNoneOK=TRUE, DWORD *chars_returned=NULL);
 PYWINTYPES_EXPORT void PyWinObject_FreeMultipleString(WCHAR *pmultistring);
+
+// Converts a sequence of str/unicode objects into a series of consecutive character strings
+//	terminated by double null
+PYWINTYPES_EXPORT BOOL PyWinObject_AsMultipleString(PyObject *ob, char **pmultistring, BOOL bNoneOK=TRUE, DWORD *chars_returned=NULL);
+PYWINTYPES_EXPORT void PyWinObject_FreeMultipleString(char *pmultistring);
 
 // Convert a sequence of strings to an array of WCHAR pointers
 PYWINTYPES_EXPORT void PyWinObject_FreeWCHARArray(LPWSTR *wchars, DWORD str_cnt);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsWCHARArray(PyObject *str_seq, LPWSTR **wchars, DWORD *str_cnt, BOOL bNoneOK = FALSE);
+
+// Convert a sequence of string or unicode objects to an array of char *
+PYWINTYPES_EXPORT void PyWinObject_FreeCharArray(char **pchars, DWORD str_cnt);
+PYWINTYPES_EXPORT BOOL PyWinObject_AsCharArray(PyObject *str_seq, char ***pchars, DWORD *str_cnt, BOOL bNoneOK = FALSE);
 
 PYWINTYPES_EXPORT PyObject *PyString_FromUnicode( const OLECHAR *str );
 PYWINTYPES_EXPORT PyObject *PyUnicodeObject_FromString(const char *string);
@@ -453,12 +476,15 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromRECT(LPRECT prect);
 extern PYWINTYPES_EXPORT PyTypeObject PySECURITY_ATTRIBUTESType;
 #define PySECURITY_ATTRIBUTES_Check(ob)		((ob)->ob_type == &PySECURITY_ATTRIBUTESType)
 extern PYWINTYPES_EXPORT PyTypeObject PyDEVMODEType;
+extern PYWINTYPES_EXPORT PyTypeObject PyDEVMODEWType;
 
 PYWINTYPES_EXPORT PyObject *PyWinMethod_NewSECURITY_ATTRIBUTES(PyObject *self, PyObject *args);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsSECURITY_ATTRIBUTES(PyObject *ob, SECURITY_ATTRIBUTES **ppSECURITY_ATTRIBUTES, BOOL bNoneOK = TRUE);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromSECURITY_ATTRIBUTES(const SECURITY_ATTRIBUTES &sa);
-PYWINTYPES_EXPORT BOOL PyWinObject_AsDEVMODE(PyObject *ob, PDEVMODE * ppDEVMODE, BOOL bNoneOK = TRUE);
-PYWINTYPES_EXPORT PyObject *PyWinObject_FromDEVMODE(PDEVMODE);
+PYWINTYPES_EXPORT BOOL PyWinObject_AsDEVMODE(PyObject *ob, PDEVMODEA * ppDEVMODE, BOOL bNoneOK = TRUE);
+PYWINTYPES_EXPORT BOOL PyWinObject_AsDEVMODE(PyObject *ob, PDEVMODEW * ppDEVMODE, BOOL bNoneOK);
+PYWINTYPES_EXPORT PyObject *PyWinObject_FromDEVMODE(PDEVMODEA);
+PYWINTYPES_EXPORT PyObject *PyWinObject_FromDEVMODE(PDEVMODEW);
 
 /*
 ** WAVEFORMATEX support

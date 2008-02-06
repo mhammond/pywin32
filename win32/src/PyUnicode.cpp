@@ -1091,13 +1091,57 @@ PyObject *PyWinObject_FromMultipleString(char *multistring)
 
 // Converts a sequence of str/unicode objects into a series of consecutive null-terminated
 //	wide character strings with extra terminating null
-BOOL PyWinObject_AsMultipleString(PyObject *ob, WCHAR **pmultistring, BOOL bNoneOK)
+BOOL PyWinObject_AsMultipleString(PyObject *ob, char **pmultistring, BOOL bNoneOK, DWORD *chars_returned)
+{
+	DWORD numStrings, i;
+	char **pchars;
+	BOOL rc=FALSE;
+
+	*pmultistring=NULL;
+	if (chars_returned)
+		*chars_returned=0;
+	if (!PyWinObject_AsCharArray(ob, &pchars, &numStrings, bNoneOK))
+		return FALSE;
+	// Shortcut for None
+	if (pchars==NULL)
+		return TRUE;
+
+	size_t len=numStrings+1;	// One null for each string plus extra terminating null
+	// Need to loop twice - once to get the buffer length
+	for (i=0;i<numStrings;i++)
+		len += strlen(pchars[i]);
+
+	// Allocate the buffer
+	*pmultistring = (char *)malloc(len * sizeof(char));
+	if (*pmultistring == NULL)
+		PyErr_NoMemory();
+	else{
+		char *p = *pmultistring;
+		for (i=0;i<numStrings;i++) {
+			strcpy(p, pchars[i]);
+			p += strlen(pchars[i]);
+			*p++ = '\0';
+			}
+		*p = '\0'; // Add second terminator.
+		rc = TRUE;
+		if (chars_returned)
+			*chars_returned=len;
+		}
+	PyWinObject_FreeCharArray(pchars, numStrings);
+	return rc;
+}
+
+// Converts a sequence of str/unicode objects into a series of consecutive null-terminated
+//	char strings with extra terminating null
+BOOL PyWinObject_AsMultipleString(PyObject *ob, WCHAR **pmultistring, BOOL bNoneOK, DWORD *chars_returned)
 {
 	DWORD numStrings, i;
 	WCHAR **wchars;
 	BOOL rc=FALSE;
 
 	*pmultistring=NULL;
+	if (chars_returned)
+		*chars_returned=0;
 	if (!PyWinObject_AsWCHARArray(ob, &wchars, &numStrings, bNoneOK))
 		return FALSE;
 	// Shortcut for None
@@ -1122,12 +1166,20 @@ BOOL PyWinObject_AsMultipleString(PyObject *ob, WCHAR **pmultistring, BOOL bNone
 			}
 		*p = L'\0'; // Add second terminator.
 		rc = TRUE;
+		if (chars_returned)
+			*chars_returned=len;
 		}
 	PyWinObject_FreeWCHARArray(wchars, numStrings);
 	return rc;
 }
 
 void PyWinObject_FreeMultipleString(WCHAR *pmultistring)
+{
+	if (pmultistring)
+		free (pmultistring);
+}
+
+void PyWinObject_FreeMultipleString(char *pmultistring)
 {
 	if (pmultistring)
 		free (pmultistring);
@@ -1167,6 +1219,50 @@ BOOL PyWinObject_AsWCHARArray(PyObject *str_seq, LPWSTR **wchars, DWORD *str_cnt
 		if (!PyWinObject_AsWCHAR(tuple_item, &((*wchars)[tuple_index]), FALSE)){
 			PyWinObject_FreeWCHARArray(*wchars, *str_cnt);
 			*wchars=NULL;
+			*str_cnt=0;
+			goto done;
+			}
+		}
+	ret=TRUE;
+done:
+	Py_DECREF(str_tuple);
+	return ret;
+}
+
+// Converts a aequence of string or unicode objects into an array of char pointers
+void PyWinObject_FreeCharArray(char **pchars, DWORD str_cnt)
+{
+	if (pchars!=NULL){
+		for (DWORD pchar_index=0; pchar_index<str_cnt; pchar_index++)
+			PyWinObject_FreeString(pchars[pchar_index]);
+		free(pchars);
+		}
+}
+
+BOOL PyWinObject_AsCharArray(PyObject *str_seq, char ***pchars, DWORD *str_cnt, BOOL bNoneOK)
+{
+	BOOL ret=FALSE;
+	PyObject *str_tuple=NULL, *tuple_item;
+	DWORD bufsize, tuple_index;
+	*pchars=NULL;
+	*str_cnt=0;
+
+	if (bNoneOK && str_seq==Py_None)
+		return TRUE;
+	if ((str_tuple=PyWinSequence_Tuple(str_seq, str_cnt))==NULL)
+		return FALSE;
+	bufsize=*str_cnt * sizeof(char *);
+	*pchars=(char **)malloc(bufsize);
+	if (*pchars==NULL){
+		PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
+		goto done;
+		}
+	ZeroMemory(*pchars, bufsize);
+	for (tuple_index=0;tuple_index<*str_cnt;tuple_index++){
+		tuple_item=PyTuple_GET_ITEM(str_tuple, tuple_index);
+		if (!PyWinObject_AsString(tuple_item, &((*pchars)[tuple_index]), FALSE)){
+			PyWinObject_FreeCharArray(*pchars, *str_cnt);
+			*pchars=NULL;
 			*str_cnt=0;
 			goto done;
 			}
