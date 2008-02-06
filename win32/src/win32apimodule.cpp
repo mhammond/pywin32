@@ -11,7 +11,7 @@ generates Windows .hlp files.
 @doc
 
 ******************************************************************/
-
+// #define UNICODE
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include "win32api_display.h"
@@ -243,7 +243,7 @@ PyCopyFile( PyObject *self, PyObject *args )
 	          &obDest, // @pyparm string/<o PyUnicode>|dest||Name of file to copy to.
 	          &failOnExist)) // @pyparm int|bFailOnExist|0|Indicates if the operation should fail if the file exists.
 		return NULL;
-	char *src, *dest;
+	TCHAR *src, *dest;
 	if (!PyWinObject_AsTCHAR(obSrc, &src, FALSE))
 		return NULL;
 	if (!PyWinObject_AsTCHAR(obDest, &dest, FALSE)) {
@@ -301,7 +301,7 @@ PyDeleteFile(PyObject * self, PyObject * args)
 static PyObject *
 PyDragQueryFile( PyObject *self, PyObject *args )
 {
-	char buf[MAX_PATH];
+	TCHAR buf[MAX_PATH];
 	HDROP hDrop;
 	PyObject *obhDrop;
 	int iFileNum = 0xFFFFFFFF;
@@ -315,12 +315,12 @@ PyDragQueryFile( PyObject *self, PyObject *args )
 		return Py_BuildValue("i", ::DragQueryFile( hDrop, (UINT)-1, NULL, 0));
 	else { // @pyseeapi DragQueryFile
 		PyW32_BEGIN_ALLOW_THREADS
-		int ret = ::DragQueryFile( hDrop, iFileNum, buf, sizeof(buf));
+		int ret = ::DragQueryFile( hDrop, iFileNum, buf, sizeof(buf)/sizeof(buf[0]));
 		PyW32_END_ALLOW_THREADS
 		if (ret <=0)
 			return ReturnAPIError("DragQueryFile");
 		else
-			return Py_BuildValue("s", buf);
+			return PyWinObject_FromTCHAR(buf);
 	}
 // @rdesc If the fileNum parameter is 0xFFFFFFFF (the default) then the return value
 // is an integer with the count of files dropped.  If fileNum is between 0 and Count, 
@@ -346,28 +346,37 @@ PyDragFinish( PyObject *self, PyObject *args )
 }
 
 // @pymethod string|win32api|GetEnvironmentVariable|Retrieves the value of an environment variable.
+// @comm Returns None if environment variable is not found
 static PyObject *
 PyGetEnvironmentVariable( PyObject *self, PyObject *args )
 {
-	char *szVar;
-	if (!PyArg_ParseTuple(args, "s:GetEnvironmentVariable", 
-	           &szVar)) // @pyparm string|variable||The variable to get
+	TCHAR *szVar;
+	PyObject *obVar, *ret=NULL;
+	if (!PyArg_ParseTuple(args, "O:GetEnvironmentVariable", 
+	           &obVar)) // @pyparm string|variable||The variable to get
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obVar, &szVar, FALSE))
 		return NULL;
 	// @pyseeapi GetEnvironmentVariable
 	PyW32_BEGIN_ALLOW_THREADS
 	DWORD size = GetEnvironmentVariable(szVar, NULL, 0);
-	char *pResult = NULL;
-	if (size) {
-		pResult = (char *)malloc(sizeof(char) * size);
-		GetEnvironmentVariable(szVar, pResult, size);
-	}
-	PyW32_END_ALLOW_THREADS
-	PyObject *ret;
-	if (pResult==NULL) {
+	TCHAR *pResult = NULL;
+	if (!size){
 		Py_INCREF(Py_None);
 		ret = Py_None;
-	} else
-		ret = PyString_FromString(pResult);
+		}
+	else{
+		pResult = (TCHAR *)malloc(sizeof(TCHAR) * size);
+		if (pResult==NULL)
+			PyErr_NoMemory();	// ??? does this need to hold thread lock ???
+		else{
+			GetEnvironmentVariable(szVar, pResult, size);
+			ret = PyWinObject_FromTCHAR(pResult);
+			}
+		}
+	PyW32_END_ALLOW_THREADS
+
+	PyWinObject_FreeTCHAR(szVar);
 	if (pResult)
 		free(pResult);
 	return ret;
@@ -402,58 +411,71 @@ PySetEnvironmentVariable(PyObject *self, PyObject *args)
 static PyObject *
 PyExpandEnvironmentStrings( PyObject *self, PyObject *args )
 {
-	char *in;
-	if (!PyArg_ParseTuple(args, "s:ExpandEnvironmentStrings", 
-	           &in)) // @pyparm string|in||String to expand
+	TCHAR *in;
+	PyObject *obin, *rc=NULL;
+	if (!PyArg_ParseTuple(args, "O:ExpandEnvironmentStrings", 
+	           &obin)) // @pyparm string|in||String to expand
 		return NULL;
+	if (!PyWinObject_AsTCHAR(obin, &in, FALSE))
+		return NULL;
+
 	// @pyseeapi ExpandEnvironmentStrings
 	DWORD size;
-	OSVERSIONINFO osvi;
-	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-	GetVersionEx(&osvi);
-	// @comm On Windows 95, the string is limited to 1024 bytes.
-	// On other platforms, there is no (practical) limit
-	if (osvi.dwPlatformId==VER_PLATFORM_WIN32_WINDOWS && osvi.dwMinorVersion==0)
-		 /* Default to 1024 for Windows 95, as the size request fails! */
-		size = 1024;
-	else
-		size = ExpandEnvironmentStrings(in, NULL, 0);
-	char *result = (char *)malloc(size);
-	PyObject *rc;
-	PyW32_BEGIN_ALLOW_THREADS
-	long lrc = ExpandEnvironmentStrings(in, result, size);
-	PyW32_END_ALLOW_THREADS
-	if (lrc==0) {
-		rc = ReturnAPIError("ExpandEnvironmentStrings");
-	} else {
-		rc = PyString_FromString(result);
-	}
-	free(result);
+	size = ExpandEnvironmentStrings(in, NULL, 0);
+	TCHAR *result = (TCHAR *)malloc(size * sizeof(TCHAR));
+	if (!result)
+		PyErr_NoMemory();
+	else{
+		PyW32_BEGIN_ALLOW_THREADS
+		long lrc = ExpandEnvironmentStrings(in, result, size);
+		PyW32_END_ALLOW_THREADS
+		if (lrc==0)
+			rc = ReturnAPIError("ExpandEnvironmentStrings");
+		else
+			rc = PyWinObject_FromTCHAR(result);
+		}
+	PyWinObject_FreeTCHAR(in);
+	if (result)
+		free(result);
 	return rc;
 }
 
 // @pymethod (int, string)|win32api|FindExecutable|Retrieves the name and handle of the executable (.EXE) file associated with the specified filename.
+// @pyseeapi FindExecutable
 static PyObject *
 PyFindExecutable( PyObject *self, PyObject *args )
 {
-	char *file, *dir="";
-	char res[MAX_PATH];
-
-	if (!PyArg_ParseTuple(args, "s|s:FindExecutable", 
-	           &file, // @pyparm string|filename||A file name.  This can be either a document or executable file.
-	           &dir)) // @pyparm string|dir||The default directory.
+	TCHAR *file=NULL, *dir=NULL;
+	TCHAR res[MAX_PATH];
+	PyObject *obfile, *obdir=Py_None, *ret=NULL;
+	BOOL freedir=TRUE;
+	if (!PyArg_ParseTuple(args, "O|O:FindExecutable", 
+	           &obfile, // @pyparm string|filename||A file name.  This can be either a document or executable file.
+	           &obdir)) // @pyparm string|dir||The default directory.
 		return NULL;
-	HINSTANCE rc;
-	// @pyseeapi FixedExecutable
-	PyW32_BEGIN_ALLOW_THREADS
-	rc=::FindExecutable(file, dir, res);
-	PyW32_END_ALLOW_THREADS
-	if (rc<=(HINSTANCE)32) {
-		if (rc==(HINSTANCE)31) 
-			return ReturnError("There is no association for the file");
-		return ReturnAPIError("FindExecutable", (int)rc );
-	}
-	return Py_BuildValue("(Ns)", PyWinLong_FromHANDLE(rc), res );
+	if (PyWinObject_AsTCHAR(obfile, &file, FALSE) &&
+		PyWinObject_AsTCHAR(obdir, &dir, TRUE)){
+		if (dir==NULL){
+			dir=TEXT("");
+			freedir=FALSE;
+			}
+		HINSTANCE rc;
+		PyW32_BEGIN_ALLOW_THREADS
+		rc=::FindExecutable(file, dir, res);
+		PyW32_END_ALLOW_THREADS
+		if (rc<=(HINSTANCE)32) {
+			if (rc==(HINSTANCE)31)
+				PyErr_SetString(PyWinExc_ApiError, "FindExecutable: There is no association for the file");
+			else
+				PyWin_SetAPIError("FindExecutable", (int)rc);
+			}
+		else
+			ret=Py_BuildValue("(NN)", PyWinLong_FromHANDLE(rc), PyWinObject_FromTCHAR(res));
+		}
+	PyWinObject_FreeTCHAR(file);
+	if (freedir)
+		PyWinObject_FreeTCHAR(dir);
+	return ret;
 	// @rdesc The return value is a tuple of (integer, string)<nl>
 	// The integer is the instance handle of the executable file associated
 	// with the specified filename. (This handle could also be the handle of
@@ -467,29 +489,36 @@ PyFindExecutable( PyObject *self, PyObject *args )
 static PyObject *
 PyFindFiles(PyObject *self, PyObject *args)
 {
-	char *fileSpec;
+	TCHAR *fileSpec;
+	PyObject *obfileSpec;
 	// @pyparm string|fileSpec||A string that specifies a valid directory or path and filename, which can contain wildcard characters (* and ?).
-	if (!PyArg_ParseTuple (args, "s:FindFiles", &fileSpec))
+	if (!PyArg_ParseTuple (args, "O:FindFiles", &obfileSpec))
 		return NULL;
-	WIN32_FIND_DATA findData;
-	// @pyseeapi FindFirstFile
-	HANDLE hFind;
+	if (!PyWinObject_AsTCHAR(obfileSpec, &fileSpec, FALSE))
+		return NULL;
 
+	WIN32_FIND_DATA findData;
+	HANDLE hFind=INVALID_HANDLE_VALUE;
+	BOOL ok = TRUE;
+	PyObject *retList = PyList_New(0);
+	if (!retList){
+		ok=FALSE;
+		goto done;
+		}
+
+	// @pyseeapi FindFirstFile
 	hFind =  ::FindFirstFile(fileSpec, &findData);
 	if (hFind==INVALID_HANDLE_VALUE) {
-		if (::GetLastError()==ERROR_FILE_NOT_FOUND) {	// this is OK
-			return PyList_New(0);
+		DWORD rc=::GetLastError();
+		if (rc!=ERROR_FILE_NOT_FOUND) { // this is OK
+			ok=FALSE;
+			PyWin_SetAPIError("FindFirstFile", rc);
+			}
+		goto done;
 		}
-		return ReturnAPIError("FindFirstFile");
-	}
-	PyObject *retList = PyList_New(0);
-	if (!retList) {
-		::FindClose(hFind);
-		return NULL;
-	}
-	BOOL ok = TRUE;
+
 	while (1) {
-		PyObject *newItem = PyObject_FromWIN32_FIND_DATAA(&findData);
+		PyObject *newItem = PyObject_FromWIN32_FIND_DATA(&findData);
 		if (newItem==NULL || PyList_Append(retList, newItem)==-1)
 			ok=FALSE;
 		Py_XDECREF(newItem);
@@ -504,10 +533,13 @@ PyFindFiles(PyObject *self, PyObject *args)
 			}
 		}
 
+	done:
+	PyWinObject_FreeTCHAR(fileSpec);
 	// @pyseeapi FindClose
-	::FindClose(hFind);
+	if (hFind!=INVALID_HANDLE_VALUE)
+		::FindClose(hFind);
 	if (!ok) {
-		Py_DECREF(retList);
+		Py_XDECREF(retList);
 		retList=NULL;
 	}
 	return retList;
@@ -588,11 +620,11 @@ PyFindCloseChangeNotification(PyObject *self, PyObject *args)
 
 // @pymethod string|win32api|FormatMessage|Returns an error message from the system error file.
 static PyObject *
-PyFormatMessage (PyObject *self, PyObject *args)
+PyFormatMessageA(PyObject *self, PyObject *args)
 {
 	int errCode=0;
 	// @pyparm int|errCode|0|The error code to return the message for,  If this value is 0, then GetLastError() is called to determine the error code.
-	if (PyArg_ParseTuple (args, "|k:FormatMessage", &errCode)) {
+	if (PyArg_ParseTuple (args, "|k:FormatMessageA", &errCode)) {
 		if (errCode==0)
 			// @pyseeapi GetLastError
 			errCode = GetLastError();
@@ -603,9 +635,9 @@ PyFormatMessage (PyObject *self, PyObject *args)
 		if (hmodule)
 			flags |= FORMAT_MESSAGE_FROM_HMODULE;
 		// @pyseeapi FormatMessage
-		if (::FormatMessage(flags, hmodule, errCode, 0, buf, bufSize, NULL )<=0)
+		if (::FormatMessageA(flags, hmodule, errCode, 0, buf, bufSize, NULL )<=0)
 			return ReturnAPIError("FormatMessage");
-		return Py_BuildValue("s", buf);
+		return PyString_FromString(buf);
 	}
 	PyErr_Clear();
 	// Support for "full" argument list
@@ -619,64 +651,78 @@ PyFormatMessage (PyObject *self, PyObject *args)
 	// @pyparmalt1 [string,...]/None|inserts||The string inserts to insert.
 	DWORD  flags, msgId, langId;
 	PyObject *obSource;
-	PyObject *obInserts;
-
-	char **pInserts;
+	PyObject *obInserts, *Inserts_tuple=NULL;
+	char *szSource = NULL;
+	char **pInserts = NULL;
 	void *pSource;
-	if (!PyArg_ParseTuple (args, "kOkkO:FormatMessage", &flags, &obSource, &msgId, &langId, &obInserts))
-		return NULL;
+	PyObject *rc = NULL;
+	char *resultBuf=NULL;
+	long lrc;
+	BOOL baccessviolation=FALSE;
+	if (!PyArg_ParseTuple (args, "kOkkO:FormatMessageA", &flags, &obSource, &msgId, &langId, &obInserts))
+		goto cleanup;
 	if (flags & FORMAT_MESSAGE_FROM_HMODULE) {
 		if (!PyWinObject_AsHANDLE(obSource, (HANDLE *)&pSource))
-			return NULL;
+			goto cleanup;
 	} else if (flags & FORMAT_MESSAGE_FROM_STRING) {
-		if ((pSource = PyString_AsString(obSource)) == NULL)
-			return NULL;
+		if (!PyWinObject_AsString(obSource, &szSource))
+			goto cleanup;
+		pSource = (void *)szSource;
 	} else
 		pSource = NULL;
 
-	if (obInserts==NULL || obInserts==Py_None) {
-		pInserts = NULL;
-	} else if (PySequence_Check(obInserts)) {
-		int len = PySequence_Length(obInserts);
-		pInserts = (char **)malloc(sizeof(char *) * (len+1));
+	DWORD numInserts, i;
+	if (obInserts!=Py_None){
+		if ((Inserts_tuple=PyWinSequence_Tuple(obInserts, &numInserts))==NULL)
+			goto cleanup;
+		/* Allocate 2 extra pointers, in case string inserts are missing.
+			This can still cause an access violation if 3 or more are missing.
+			This should also accept numeric values, but that would require actually
+			parsing the message format to see what inserts are expected.
+		*/
+		pInserts = (char **)malloc(sizeof(char *) * (numInserts+2));
 		if (pInserts==NULL) {
-			PyErr_SetString(PyExc_MemoryError, "Allocating buffer for inserts");
-			return NULL;
+			PyErr_NoMemory();
+			goto cleanup;
 		}
-		int i;
-		for (i=0;i<len;i++) {
-			PyObject *subObject = PySequence_GetItem(obInserts, i);
-			if (subObject==NULL) {
-				free(pInserts);
-				return NULL;
+		for (i=0; i<numInserts+2; i++)	// Make sure clean for cleanup
+			pInserts[i] = NULL;
+		for (i=0;i<numInserts;i++) {
+			PyObject *subObject = PyTuple_GET_ITEM(Inserts_tuple, i);
+			if (!PyWinObject_AsString(subObject, pInserts+i))
+				goto cleanup;
 			}
-			if (!PyString_Check(subObject)) {
-				free(pInserts);
-				PyErr_SetString(PyExc_TypeError, "Inserts must be sequence of strings");
-				return NULL;
-			}
-			if ((pInserts[i] = PyString_AsString(subObject))==NULL) {
-				free(pInserts);
-				return NULL;
-			}
-			Py_DECREF(subObject);
 		}
-		pInserts[i] = NULL;
-	} else {
-			PyErr_SetString(PyExc_TypeError, "Inserts must be sequence or None");
-			return NULL;
-	}
-	char *buf;
 	flags |= (FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_ARGUMENT_ARRAY);
+	
+	{
 	PyW32_BEGIN_ALLOW_THREADS
-	long lrc = ::FormatMessage(flags, pSource, msgId, langId, (LPTSTR)&buf, 0, pInserts );
+	__try{
+		lrc = ::FormatMessageA(flags, pSource, msgId, langId, (LPSTR)&resultBuf, 0, (va_list *)pInserts );
+		}
+	__except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH){
+		baccessviolation=TRUE;
+		}
 	PyW32_END_ALLOW_THREADS
-	if (lrc<=0)
-			return ReturnAPIError("FormatMessage");
-	PyObject *rc = PyString_FromString(buf);
-	LocalFree(buf);
-	if (pInserts)
+	}
+
+	if (baccessviolation)
+		PyErr_SetString(PyExc_SystemError, "Access violation (probably due to missing string inserts)");
+	else if (lrc<=0)
+		PyWin_SetAPIError("FormatMessageA");
+	else
+		rc = PyString_FromString(resultBuf);
+
+cleanup:
+	if (pInserts) {
+		for (i=0;i<numInserts;i++)
+			PyWinObject_FreeString(pInserts[i]);
 		free(pInserts);
+	}
+	PyWinObject_FreeString(szSource);
+	if (resultBuf)
+		LocalFree(resultBuf);
+	Py_XDECREF(Inserts_tuple);
 	return rc;
 }
 
@@ -684,26 +730,45 @@ PyFormatMessage (PyObject *self, PyObject *args)
 static PyObject *
 PyFormatMessageW(PyObject *self, PyObject *args)
 {
-	// Only support for "full" argument list
-	//
-	// @pyparm int|flags||Flags for the call.  Note that FORMAT_MESSAGE_ALLOCATE_BUFFER and FORMAT_MESSAGE_ARGUMENT_ARRAY will always be added.
-	// @pyparm int/<o PyUnicode>|source||The source object.  If flags contain FORMAT_MESSAGE_FROM_HMODULE it should be an int or <o PyHANDLE>;
+	int errCode=0;
+	// Accept just the error code
+	// @pyparm int|errCode|0|The error code to return the message for,  If this value is 0,
+	//	then GetLastError() is called to determine the error code.
+	if (PyArg_ParseTuple (args, "|k:FormatMessageW", &errCode)) {
+		if (errCode==0)
+			// @pyseeapi GetLastError
+			errCode = GetLastError();
+		const int bufSize = 512;
+		WCHAR buf[bufSize];
+		DWORD flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
+		HMODULE hmodule = PyWin_GetErrorMessageModule(errCode);
+		if (hmodule)
+			flags |= FORMAT_MESSAGE_FROM_HMODULE;
+		// @pyseeapi FormatMessage
+		if (::FormatMessageW(flags, hmodule, errCode, 0, buf, bufSize, NULL )<=0)
+			return ReturnAPIError("FormatMessageW");
+		return PyWinObject_FromWCHAR(buf);
+	}
+	PyErr_Clear();
+
+	// Full parameter list
+	// @pyparmalt1 int|flags||Flags for the call.  Note that FORMAT_MESSAGE_ALLOCATE_BUFFER and FORMAT_MESSAGE_ARGUMENT_ARRAY will always be added.
+	// @pyparmalt1 int/<o PyUnicode>|source||The source object.  If flags contain FORMAT_MESSAGE_FROM_HMODULE it should be an int or <o PyHANDLE>;
 	//		if flags contain FORMAT_MESSAGE_FROM_STRING it should be a unicode string;
 	//		otherwise it is ignored.
-	// @pyparm int|messageId||The message ID.
-	// @pyparm int|languageID||The language ID.
-	// @pyparm [<o PyUnicode>,...]/None|inserts||The string inserts to insert.
+	// @pyparmalt1 int|messageId||The message ID.
+	// @pyparmalt1 int|languageID||The language ID.
+	// @pyparmalt1 [<o PyUnicode>,...]/None|inserts||The string inserts to insert.
 	DWORD  flags, msgId, langId;
 	PyObject *obSource;
-	PyObject *obInserts;
+	PyObject *obInserts, *Inserts_tuple=NULL;
 	WCHAR *szSource = NULL;
 	WCHAR **pInserts = NULL;
-	int numInserts = 0;
 	void *pSource;
 	PyObject *rc = NULL;
 	WCHAR *resultBuf=NULL;
-	int i;
 	long lrc;
+	BOOL baccessviolation=FALSE;
 	if (!PyArg_ParseTuple (args, "kOkkO:FormatMessageW", &flags, &obSource, &msgId, &langId, &obInserts))
 		goto cleanup;
 	if (flags & FORMAT_MESSAGE_FROM_HMODULE) {
@@ -716,47 +781,48 @@ PyFormatMessageW(PyObject *self, PyObject *args)
 	} else
 		pSource = NULL;
 
-	if (obInserts==NULL || obInserts==Py_None) {
-		; // do nothing - already NULL
-	} else if (PySequence_Check(obInserts)) {
-		numInserts = PySequence_Length(obInserts);
-		pInserts = (WCHAR **)malloc(sizeof(WCHAR *) * (numInserts+1));
+	DWORD numInserts, i;
+	if (obInserts!=Py_None){
+		if ((Inserts_tuple=PyWinSequence_Tuple(obInserts, &numInserts))==NULL)
+			goto cleanup;
+		/* Allocate 2 extra pointers, in case string inserts are missing.
+			This can still cause an access violation if 3 or more are missing.
+			This should also accept numeric values, but that would require actually
+			parsing the message format to see what inserts are expected.
+		*/
+		pInserts = (WCHAR **)malloc(sizeof(WCHAR *) * (numInserts+2));
 		if (pInserts==NULL) {
-			PyErr_SetString(PyExc_MemoryError, "Allocating buffer for inserts");
+			PyErr_NoMemory();
 			goto cleanup;
 		}
-		for (i=0;i<numInserts;i++)	// Make sure clean for cleanup
+		for (i=0; i<numInserts+2; i++)	// Make sure clean for cleanup
 			pInserts[i] = NULL;
 		for (i=0;i<numInserts;i++) {
-			PyObject *subObject = PySequence_GetItem(obInserts, i);
-			if (subObject==NULL) {
+			PyObject *subObject = PyTuple_GET_ITEM(Inserts_tuple, i);
+			if (!PyWinObject_AsWCHAR(subObject, pInserts+i))
 				goto cleanup;
 			}
-			if (!PyUnicode_Check(subObject)) {
-				PyErr_SetString(PyExc_TypeError, "Inserts must be sequence of UnicodeObjects");
-				goto cleanup;
-			}
-			if (!PyWinObject_AsWCHAR(subObject, pInserts+i)) {
-				goto cleanup;
-			}
-			Py_DECREF(subObject);
 		}
-		pInserts[i] = NULL;	// One beyond end - seems necessary if inserts dont match. 
-	} else {
-			PyErr_SetString(PyExc_TypeError, "Inserts must be sequence or None");
-			goto cleanup;
-	}
 	flags |= (FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_ARGUMENT_ARRAY);
+
 	{
 	PyW32_BEGIN_ALLOW_THREADS
-	lrc = ::FormatMessageW(flags, pSource, msgId, langId, (LPWSTR)&resultBuf, 0, (va_list *)pInserts );
+	__try{
+		lrc = ::FormatMessageW(flags, pSource, msgId, langId, (LPWSTR)&resultBuf, 0, (va_list *)pInserts );
+		}
+	__except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH){
+		baccessviolation=TRUE;
+		}
 	PyW32_END_ALLOW_THREADS
 	}
-	if (lrc<=0) {
-			ReturnAPIError("FormatMessage");
-			goto cleanup;
-	}
-	rc = PyWinObject_FromWCHAR(resultBuf);
+
+	if (baccessviolation)
+		PyErr_SetString(PyExc_SystemError, "Access violation (probably due to missing string inserts)");
+	else if (lrc<=0)
+		PyWin_SetAPIError("FormatMessageW");
+	else
+		rc = PyWinObject_FromWCHAR(resultBuf);
+
 cleanup:
 	if (pInserts) {
 		for (i=0;i<numInserts;i++)
@@ -766,6 +832,7 @@ cleanup:
 	PyWinObject_FreeWCHAR(szSource);
 	if (resultBuf)
 		LocalFree(resultBuf);
+	Py_XDECREF(Inserts_tuple);
 	return rc;
 }
 
@@ -804,19 +871,36 @@ PyGetLogicalDrives (PyObject *self, PyObject *args)
 }
 
 // @pymethod string|win32api|GetConsoleTitle|Returns the title for the current console.
-static PyObject *
-PyGetConsoleTitle (PyObject *self, PyObject *args)
+static PyObject *PyGetConsoleTitle(PyObject *self, PyObject *args)
 {
-	if (!PyArg_ParseTuple (args, ":GetConsoleTitle"))
+	TCHAR *title=NULL;
+	DWORD chars_allocated=64, chars_returned;
+	PyObject *ret=NULL;
+	if (!PyArg_ParseTuple(args, ":GetConsoleTitle"))
 		return NULL;
-	char title[128] = "";
-	// @pyseeapi GetConsoleTitle
-	::SetLastError(0); // sigh - stale errors can hang around.
-	if (GetConsoleTitle(title, sizeof(title))==0 && ::GetLastError() != 0)
-		return ReturnAPIError("GetConsoleTitle");
-	return Py_BuildValue("s", title);
-	// @rdesc The title for the current console window.  This function will
-	// raise an exception if the current application does not have a console.
+
+	// if buffer is too small, function still copies as much of title as will fit,
+	//  so loop until fewer characters returned than were allocated
+	while (TRUE){
+		if (title!=NULL){
+			free(title);
+			chars_allocated*=2;
+			}
+		title=(TCHAR *)malloc(chars_allocated*sizeof(TCHAR));
+		if (title==NULL)
+			return PyErr_Format(PyExc_MemoryError, "GetConsoleTitle: unable to allocate %d bytes", chars_allocated*sizeof(TCHAR));
+		chars_returned=GetConsoleTitle(title, chars_allocated);
+		if (chars_returned==0){
+			PyWin_SetAPIError("GetConsoleTitle");
+			break;
+			}
+		if ((chars_returned+1)<chars_allocated){   // returned length does *not* includes the NULL terminator
+			ret=PyWinObject_FromTCHAR(title);
+			break;
+			}
+		}
+	free(title);
+	return ret;
 }
 
 
@@ -827,11 +911,11 @@ PyGetComputerName (PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple (args, ":GetComputerName"))
 		return NULL;
 	// @pyseeapi GetComputerName
-	char buf[MAX_COMPUTERNAME_LENGTH + 1];
-	DWORD size = sizeof(buf);
+	TCHAR buf[MAX_COMPUTERNAME_LENGTH + 1];
+	DWORD size = sizeof(buf) / sizeof(buf[0]);
 	if (GetComputerName(buf, &size)==0)
 		return ReturnAPIError("GetComputerName");
-	return Py_BuildValue("s", buf);
+	return PyWinObject_FromTCHAR(buf, size);
 }
 
 // @pymethod string|win32api|GetComputerNameEx|Retrieves a NetBIOS or DNS name associated with the local computer
@@ -916,11 +1000,12 @@ PyGetUserName (PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple (args, ":GetUserName"))
 		return NULL;
 	// @pyseeapi GetUserName
-	char buf[MAX_PATH + 1];
-	DWORD size = sizeof(buf);
-	if (GetUserName(buf, &size)==0)
+	TCHAR buf[MAX_PATH + 1];
+	// Should actually use UNLEN (256), but requires an extra header
+	DWORD size = sizeof(buf) / sizeof(buf[0]);
+	if (!GetUserName(buf, &size))
 		return ReturnAPIError("GetUserName");
-	return Py_BuildValue("s", buf);
+	return PyWinObject_FromTCHAR(buf);
 }
  
 // @pymethod string|win32api|GetUserNameEx|Returns the current user name in format from EXTENDED_NAME_FORMAT enum
@@ -965,7 +1050,7 @@ PyGetUserNameEx (PyObject *self, PyObject *args)
 static PyObject *
 PyGetDomainName (PyObject *self, PyObject *args)
 {
-	if (!PyArg_ParseTuple (args, ":GetUserName"))
+	if (!PyArg_ParseTuple (args, ":GetDomainName"))
 		return NULL;
     HANDLE hToken;
     #define MY_BUFSIZE 512  // highly unlikely to exceed 512 bytes
@@ -996,10 +1081,10 @@ PyGetDomainName (PyObject *self, PyObject *args)
     if(!bSuccess)
        	return ReturnAPIError("GetTokenInformation");
 
-	char UserName[256];
-	DWORD cchUserName = sizeof(UserName);
-	char DomainName[256];
-	DWORD cchDomainName = sizeof(DomainName);
+	TCHAR UserName[256];
+	DWORD cchUserName = sizeof(UserName) / sizeof(UserName[0]);
+	TCHAR DomainName[256];
+	DWORD cchDomainName = sizeof(DomainName) / sizeof(DomainName[0]);
     if (!LookupAccountSid(
         NULL,
         ((PTOKEN_USER)InfoBuffer)->User.Sid,
@@ -1010,7 +1095,7 @@ PyGetDomainName (PyObject *self, PyObject *args)
         &snu
         ))
        	return ReturnAPIError("LookupAccountSid");
-    return PyString_FromString(DomainName);
+    return PyWinObject_FromTCHAR(DomainName);
 }
 
 // @pymethod int|win32api|GetCurrentThread|Returns a pseudohandle for the current thread.
@@ -1167,53 +1252,63 @@ PyGetCommandLine (PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple (args, ":GetCommandLine"))
 		return NULL;
-	return Py_BuildValue("s", ::GetCommandLine());
+	return PyWinObject_FromTCHAR(::GetCommandLine());
 	// @pyseeapi GetCommandLine
 }
 
 // @pymethod tuple|win32api|GetDiskFreeSpace|Retrieves information about the specified disk, including the amount of free space available.
 PyObject *PyGetDiskFreeSpace (PyObject *self, PyObject *args)
 {
-  char *path = NULL;
-  // @pyparm string|rootPath||Specifies the root directory of the disk to return information about. If rootPath is None, the method uses the root of the current directory. 
-  if (!PyArg_ParseTuple (args, "|z:GetDiskFreeSpace", &path))
-	return NULL;
-  DWORD spc, bps, fc, c;
-  // @pyseeapi GetDiskFreeSpace
-  PyW32_BEGIN_ALLOW_THREADS
-  BOOL ok = ::GetDiskFreeSpace(path, &spc, &bps, &fc, &c);
-  PyW32_END_ALLOW_THREADS
-  if (!ok)
-	return ReturnAPIError("GetDiskSpaceFree");
-  return Py_BuildValue ("(iiii)",  spc, bps, fc, c);
-  // @rdesc The return value is a tuple of 4 integers, containing
-  // the number of sectors per cluster, the number of bytes per sector,
-  // the total number of free clusters on the disk and the total number of clusters on the disk.
-  // <nl>If the function fails, an error is returned.
+	TCHAR *path = NULL;
+	PyObject *obpath=Py_None;
+	// @pyparm string|rootPath||Specifies the root directory of the disk to return information about. If rootPath is None, the method uses the root of the current directory. 
+	if (!PyArg_ParseTuple (args, "|O:GetDiskFreeSpace", &obpath))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obpath, &path, TRUE))
+		return NULL;
+
+	DWORD spc, bps, fc, c;
+	// @pyseeapi GetDiskFreeSpace
+	PyW32_BEGIN_ALLOW_THREADS
+	BOOL ok = ::GetDiskFreeSpace(path, &spc, &bps, &fc, &c);
+	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeTCHAR(path);
+	if (!ok)
+		return ReturnAPIError("GetDiskSpaceFree");
+	return Py_BuildValue ("(iiii)",  spc, bps, fc, c);
+	// @rdesc The return value is a tuple of 4 integers, containing
+	// the number of sectors per cluster, the number of bytes per sector,
+	// the total number of free clusters on the disk and the total number of clusters on the disk.
+	// <nl>If the function fails, an error is returned.
 }
 
 // @pymethod tuple|win32api|GetDiskFreeSpaceEx|Retrieves information about the specified disk, including the amount of free space available.
 PyObject *PyGetDiskFreeSpaceEx (PyObject *self, PyObject *args)
 {
-  char *path = NULL;
-  // @pyparm string|rootPath||Specifies the root directory of the disk to return information about. If rootPath is None, the method uses the root of the current directory. 
-  if (!PyArg_ParseTuple (args, "|z:GetDiskFreeSpaceEx", &path))
-	return NULL;
-  ULARGE_INTEGER freeBytes, totalBytes, totalFree;
-  // @pyseeapi GetDiskFreeSpaceEx
-  PyW32_BEGIN_ALLOW_THREADS
-  BOOL ok = ::GetDiskFreeSpaceEx(path, &freeBytes, &totalBytes, &totalFree);
-  PyW32_END_ALLOW_THREADS
-  if (!ok)
-	return ReturnAPIError("GetDiskSpaceFreeEx");
-  return Py_BuildValue ("LLL",  freeBytes, totalBytes, totalFree);
-  // @rdesc The return value is a tuple of 3 integers, containing
-  // the number of free bytes available
-  // the total number of bytes available on disk
-  // the total number of free bytes on disk
-  // the above values may be less, if user-quotas are in effect
-  // <nl>If the function fails, an error is returned.
+	TCHAR *path = NULL;
+	PyObject *obpath=Py_None;
+	// @pyparm string|rootPath||Specifies the root directory of the disk to return information about. If rootPath is None, the method uses the root of the current directory. 
+	if (!PyArg_ParseTuple (args, "|O:GetDiskFreeSpaceEx", &obpath))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obpath, &path, TRUE))
+		return NULL;
+	ULARGE_INTEGER freeBytes, totalBytes, totalFree;
+	// @pyseeapi GetDiskFreeSpaceEx
+	PyW32_BEGIN_ALLOW_THREADS
+	BOOL ok = ::GetDiskFreeSpaceEx(path, &freeBytes, &totalBytes, &totalFree);
+	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeTCHAR(path);
+	if (!ok)
+		return ReturnAPIError("GetDiskSpaceFreeEx");
+	return Py_BuildValue ("LLL",  freeBytes, totalBytes, totalFree);
+	// @rdesc The return value is a tuple of 3 integers, containing
+	// the number of free bytes available
+	// the total number of bytes available on disk
+	// the total number of free bytes on disk
+	// the above values may be less, if user-quotas are in effect
+	// <nl>If the function fails, an error is returned.
 }
+
 // @pymethod int|win32api|GetAsyncKeyState|Retrieves the status of the specified key.
 static PyObject *
 PyGetAsyncKeyState(PyObject * self, PyObject * args)
@@ -1261,9 +1356,16 @@ PyGetFileAttributes (PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple (args, "O:GetFileAttributes", &obPathName))
 		return NULL;
 	DWORD rc;
+#ifdef UNICODE
+	WCHAR *PathName;
+	if (!PyWinObject_AsWCHAR(obPathName, &PathName, FALSE))
+		return NULL;
+	rc = ::GetFileAttributesW(PathName);
+	PyWinObject_FreeWCHAR(PathName);
+#else
 	if (PyString_Check(obPathName)) {
 		PyW32_BEGIN_ALLOW_THREADS
-		rc = ::GetFileAttributes(PyString_AS_STRING(obPathName));
+		rc = ::GetFileAttributesA(PyString_AS_STRING(obPathName));
 		PyW32_END_ALLOW_THREADS
 	} else if (PyUnicode_Check(obPathName)) {
 		PyW32_BEGIN_ALLOW_THREADS
@@ -1271,7 +1373,7 @@ PyGetFileAttributes (PyObject *self, PyObject *args)
 		PyW32_END_ALLOW_THREADS
 	} else
 		return PyErr_Format(PyExc_TypeError, "pathName arg must be string or unicode");
-
+#endif
 	if (rc==(DWORD)0xFFFFFFFF)
 		return ReturnAPIError("GetFileAttributes");
 	return Py_BuildValue("i", rc);
@@ -1398,15 +1500,11 @@ static PyObject * PyGetLogicalDriveStrings (PyObject * self, PyObject *args)
 	if (!result) {
 		return ReturnAPIError("GetLogicalDriveStrings");
 	} else {
-		char * buffer = new char[result];
+		TCHAR * buffer = (TCHAR *)_alloca(result * sizeof(TCHAR));
 		result = ::GetLogicalDriveStrings (result, buffer);
-		if (!result) {
+		if (!result)
 			return ReturnAPIError("GetLogicalDriveStrings");
-		} else {
-			PyObject * retval = PyString_FromStringAndSize (buffer, result);
-			delete [] buffer;
-			return (retval);
-		}
+		return PyWinObject_FromTCHAR(buffer, result);
 	}
 	// @rdesc The return value is a single string, with each drive
 	// letter NULL terminated.
@@ -1438,7 +1536,7 @@ PyGetModuleFileName(PyObject * self, PyObject * args)
 
 		bufsize=reqdsize;
 		PyW32_BEGIN_ALLOW_THREADS
-		reqdsize=GetModuleFileName(hMod, buf, bufsize);
+		reqdsize=GetModuleFileNameA(hMod, buf, bufsize);
 		PyW32_END_ALLOW_THREADS
 
 		if (reqdsize==0){
@@ -1503,12 +1601,16 @@ PyGetModuleFileNameW(PyObject * self, PyObject * args)
 static PyObject *
 PyGetModuleHandle(PyObject * self, PyObject * args)
 {
-	char *fname = NULL;
+	TCHAR *fname = NULL;
+	PyObject *obfname=Py_None;
 	// @pyparm string|fileName|None|Specifies the file name of the module to load.
-	if (!PyArg_ParseTuple(args, "|z:GetModuleHandle", &fname))
+	if (!PyArg_ParseTuple(args, "|O:GetModuleHandle", &obfname))
 		return (NULL);
+	if (!PyWinObject_AsTCHAR(obfname, &fname, TRUE))
+		return NULL;
 	// @pyseeapi GetModuleHandle
 	HINSTANCE hInst = ::GetModuleHandle(fname);
+	PyWinObject_FreeTCHAR(fname);
 	if (hInst==NULL)
 		return ReturnAPIError("GetModuleHandle");
 	return PyWinLong_FromHANDLE(hInst);
@@ -1586,8 +1688,8 @@ PyInitiateSystemShutdown(PyObject * self, PyObject * args)
 	// @pyparm int|bRebootAfterShutdown||Specifies whether the computer is to restart immediately after shutting down. If this parameter is TRUE, the computer is to restart. If this parameter is FALSE, the system flushes all caches to disk, clears the screen, and displays a message indicating that it is safe to power down.
 	if (!PyArg_ParseTuple(args, "OOlll:InitiateSystemShutdown", &obName, &obMessage, &dwTimeOut, &bForceClosed, &bRebootAfter))
 		return (NULL);
-	char *cname;
-	char *message;
+	TCHAR *cname;
+	TCHAR *message;
 	if (!PyWinObject_AsTCHAR(obName, &cname, TRUE))
 		return NULL;
 	if (!PyWinObject_AsTCHAR(obMessage, &message, TRUE)) {
@@ -1653,14 +1755,18 @@ PyExitWindowsEx(PyObject * self, PyObject * args)
 static PyObject *
 PyLoadLibrary(PyObject * self, PyObject * args)
 {
-	char *fname;
+	TCHAR *fname;
+	PyObject *obfname;
 	// @pyparm string|fileName||Specifies the file name of the module to load.
-	if (!PyArg_ParseTuple(args, "s:LoadLibrary", &fname))
+	if (!PyArg_ParseTuple(args, "O:LoadLibrary", &obfname))
 		return (NULL);
+	if (!PyWinObject_AsTCHAR(obfname, &fname, FALSE))
+		return NULL;
 	// @pyseeapi LoadLibrary
 	PyW32_BEGIN_ALLOW_THREADS
 	HINSTANCE hInst = ::LoadLibrary(fname);
 	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeTCHAR(fname);
 	if (hInst==NULL)
 		return ReturnAPIError("LoadLibrary");
 	return PyWinLong_FromHANDLE(hInst);
@@ -1670,21 +1776,24 @@ PyLoadLibrary(PyObject * self, PyObject * args)
 static PyObject *
 PyLoadLibraryEx(PyObject * self, PyObject * args)
 {
-	char *fname;
+	TCHAR *fname;
 	HANDLE handle;
-	PyObject *obhandle;
+	PyObject *obhandle, *obfname;
 	DWORD flags;
 	// @pyparm string|fileName||Specifies the file name of the module to load.
 	// @pyparm <o PyHANDLE>|handle||Reserved - must be zero
 	// @pyparm flags|handle||Specifies the action to take when loading the module.
-	if (!PyArg_ParseTuple(args, "sOl:LoadLibraryEx", &fname, &obhandle, &flags))
+	if (!PyArg_ParseTuple(args, "OOl:LoadLibraryEx", &obfname, &obhandle, &flags))
 		return (NULL);
 	if (!PyWinObject_AsHANDLE(obhandle, &handle))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obfname, &fname, FALSE))
 		return NULL;
 	// @pyseeapi LoadLibraryEx
 	PyW32_BEGIN_ALLOW_THREADS
 	HINSTANCE hInst = ::LoadLibraryEx(fname, handle, flags);
 	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeTCHAR(fname);
 	if (hInst==NULL)
 		return ReturnAPIError("LoadLibraryEx");
 	return PyWinLong_FromHANDLE(hInst);
@@ -1790,49 +1899,63 @@ static PyObject *PySetDllDirectory(PyObject * self, PyObject * args)
 }
 
 // @pymethod int/string|win32api|GetProfileVal|Retrieves entries from a windows INI file.  This method encapsulates GetProfileString, GetProfileInt, GetPrivateProfileString and GetPrivateProfileInt.
+// @comm This function is obsolete, applications should use the registry instead.
 static PyObject *
 PyGetProfileVal(PyObject *self, PyObject *args)
 {
-	char *sect, *entry, *strDef, *iniName=NULL;
+	TCHAR *sect=NULL, *entry=NULL, *strDef=NULL, *iniName=NULL;
+	PyObject *obsect, *obentry, *obDef, *obiniName=Py_None, *ret=NULL;
 	int intDef;
 	BOOL bHaveInt = TRUE;
-	if (!PyArg_ParseTuple(args, "ssi|s", 
-	          &sect,  // @pyparm string|section||The section in the INI file to retrieve a value for.
-	          &entry, // @pyparm string|entry||The entry within the section in the INI file to retrieve a value for.
-	          &intDef, // @pyparm int/string|defValue||The default value.  The type of this parameter determines the methods return type.
-	          &iniName)) { // @pyparm string|iniName|None|The name of the INI file.  If None, the system INI file is used.
-		bHaveInt = FALSE;
+	if (!PyArg_ParseTuple(args, "OOO|O", 
+		&obsect,		// @pyparm string|section||The section in the INI file to retrieve a value for.
+		&obentry,		// @pyparm string|entry||The entry within the section in the INI file to retrieve a value for.
+		&obDef,			// @pyparm int/string|defValue||The default value.  The type of this parameter determines the methods return type.
+		&obiniName))	// @pyparm string|iniName|None|The name of the INI file.  If None, the system INI file is used.
+		return NULL;
+	intDef=PyInt_AsLong(obDef);
+	if (intDef==-1 && PyErr_Occurred()){
 		PyErr_Clear();
-		if (!PyArg_ParseTuple(args, "sss|z", &sect, &entry, &strDef, &iniName)) {
-			// set my own error
+		bHaveInt = FALSE;
+		if (!PyWinObject_AsTCHAR(obDef, &strDef, TRUE)){
 			PyErr_Clear();
-			PyErr_SetString(PyExc_TypeError, "GetProfileVal must have format (ssi|s) or (sss|s)");
+			PyErr_SetString(PyExc_TypeError, "Default value must be a string or int");
 			return NULL;
+			}
 		}
-	}
-
-	if (iniName) {	
-		if (bHaveInt)
-			return Py_BuildValue("i",::GetPrivateProfileInt(sect, entry, intDef, iniName));
+	if (PyWinObject_AsTCHAR(obsect, &sect, TRUE)
+		&&PyWinObject_AsTCHAR(obentry, &entry, TRUE)
+		&&PyWinObject_AsTCHAR(obiniName, &iniName, TRUE)){
+		if (iniName) {	
+			if (bHaveInt)
+				ret = Py_BuildValue("i",::GetPrivateProfileInt(sect, entry, intDef, iniName));
+			else {
+				TCHAR resBuf[2046];
+				DWORD retlen;
+				PyW32_BEGIN_ALLOW_THREADS
+				retlen=::GetPrivateProfileString(sect, entry, strDef, resBuf, sizeof(resBuf) / sizeof(resBuf[0]), iniName);
+				PyW32_END_ALLOW_THREADS
+				ret = PyWinObject_FromTCHAR(resBuf, retlen);
+				}
+			}
 		else {
-			char resBuf[2046];
-			PyW32_BEGIN_ALLOW_THREADS
-			::GetPrivateProfileString(sect, entry, strDef, resBuf, sizeof(resBuf), iniName);
-			PyW32_END_ALLOW_THREADS
-			return Py_BuildValue("s",resBuf);
+			if (bHaveInt)
+				ret = Py_BuildValue("i",::GetProfileInt(sect, entry, intDef));
+			else {
+				TCHAR resBuf[2046];
+				DWORD retlen;
+				PyW32_BEGIN_ALLOW_THREADS
+				retlen=::GetProfileString(sect, entry, strDef, resBuf, sizeof(resBuf) / sizeof (resBuf[0]));
+				PyW32_END_ALLOW_THREADS
+				ret = PyWinObject_FromTCHAR(resBuf, retlen);
+				}
+			}
 		}
-	}
-	else {
-		if (bHaveInt)
-			return Py_BuildValue("i",::GetProfileInt(sect, entry, intDef));
-		else {
-			char resBuf[2046];
-			PyW32_BEGIN_ALLOW_THREADS
-			::GetProfileString(sect, entry, strDef, resBuf, sizeof(resBuf));
-			PyW32_END_ALLOW_THREADS
-			return Py_BuildValue("s",resBuf);
-		}
-	}
+	PyWinObject_FreeTCHAR(sect);
+	PyWinObject_FreeTCHAR(entry);
+	PyWinObject_FreeTCHAR(strDef);
+	PyWinObject_FreeTCHAR(iniName);
+	return ret;
 	// @pyseeapi GetProfileString
 	// @pyseeapi GetProfileInt
 	// @pyseeapi GetPrivateProfileString
@@ -1840,71 +1963,95 @@ PyGetProfileVal(PyObject *self, PyObject *args)
 	// @rdesc The return value is the same type as the default parameter.
 }
 // @pymethod list|win32api|GetProfileSection|Retrieves all entries from a section in an INI file.
+// @comm This function is obsolete, applications should use the registry instead.
+// @pyseeapi GetProfileSection
 static PyObject *
 PyGetProfileSection(PyObject * self, PyObject * args)
 {
-	char *szSection;
-	char *iniName = NULL;
+	TCHAR *szSection=NULL, *iniName = NULL;
+	TCHAR *szRetBuf = NULL;
+	PyObject *obSection, *obiniName=Py_None, *ret=NULL;
 	// @pyparm string|section||The section in the INI file to retrieve a entries for.
 	// @pyparm string|iniName|None|The name of the INI file.  If None, the system INI file is used.
-	if (!PyArg_ParseTuple(args, "s|z:GetProfileSection", &szSection, &iniName))
+	if (!PyArg_ParseTuple(args, "O|O:GetProfileSection", &obSection, &obiniName))
 		return (NULL);
-	int size=0;
-	int retVal = 0;
-	char *szRetBuf = NULL;
-	while (retVal >= size-2) {
-		if (szRetBuf)
-			delete szRetBuf;
-		size=size?size*2:256;
-		szRetBuf = new char[size]; /* cant fail - may raise exception */
-		if (szRetBuf==NULL) {
-			PyErr_SetString(PyExc_MemoryError, "Error allocating space for return buffer");
-			return NULL;
+	if (PyWinObject_AsTCHAR(obSection, &szSection, FALSE)
+		&&PyWinObject_AsTCHAR(obiniName, &iniName, TRUE)){
+		DWORD size=256;
+		DWORD retVal = 0;
+		while (TRUE) {
+			if (szRetBuf){
+				delete szRetBuf;
+				size *= 2;
+				}
+			szRetBuf = new TCHAR[size]; /* cant fail - may raise exception */
+			if (szRetBuf==NULL) {
+				PyErr_SetString(PyExc_MemoryError, "Error allocating space for return buffer");
+				break;
+				}
+			PyW32_BEGIN_ALLOW_THREADS
+			if (iniName)
+				retVal = GetPrivateProfileSection(szSection, szRetBuf, size, iniName);
+			else
+				retVal = GetProfileSection(szSection, szRetBuf, size);
+			PyW32_END_ALLOW_THREADS
+			if (retVal < (size-2)){
+				ret=PyWinObject_FromMultipleString(szRetBuf);
+				break;
+				}
+			}
 		}
-		PyW32_BEGIN_ALLOW_THREADS
-		if (iniName)
-			retVal = GetPrivateProfileSection(szSection, szRetBuf, size, iniName);
-		else
-			retVal = GetProfileSection(szSection, szRetBuf, size);
-		PyW32_END_ALLOW_THREADS
-	}
-	PyObject *retList = PyList_New(0);
-	char *sz = szRetBuf;
-	char *szLast = szRetBuf;
-	while (*szLast!='\0') {
-		for (;*sz;sz++)
-			;
-		PyObject *newItem = Py_BuildValue("s", szLast);
-		PyList_Append(retList, newItem );
-		sz++;
-		szLast = sz;
-	}
-	// @pyseeapi GetProfileString
-	// @pyseeapi GetProfileInt
-	// @pyseeapi GetPrivateProfileString
-	// @pyseeapi GetPrivateProfileInt
-	delete szRetBuf;
-	return retList;
+	PyWinObject_FreeTCHAR(szSection);
+	PyWinObject_FreeTCHAR(iniName);
+	if (szRetBuf)
+		delete szRetBuf;
+	return ret;
 	// @rdesc The return value is a list of strings.
 }
 
 // @pymethod list|win32api|WriteProfileSection|Writes a complete section to an INI file or registry.
+// @pyseeapi WriteProfileSection
+// @pyseeapi WritePrivateProfileSection
+// @comm This function is obsolete, applications should use the registry instead.
 static PyObject *
 PyWriteProfileSection(PyObject * self, PyObject * args)
 {
-	char *szSection;
-	char *data;
-	// @pyparm string|section||The section in the INI file to retrieve a entries for.
-	// @pyparm string|data||The data to write.  This must be string, with each entry terminated with '\0', followed by another terminating '\0'
-	if (!PyArg_ParseTuple(args, "ss:WriteProfileSection", &szSection, &data))
+	TCHAR *szSection=NULL, *iniName=NULL;
+	TCHAR *data=NULL;
+	PyObject *obSection, *obdata, *obiniName=Py_None, *ret=NULL;
+	DWORD datalen;	// Data will contain nulls, so need length
+	// @pyparm string|section||The section in the INI file to be written.
+	// @pyparm string|data||The data to write.  Can be None to delete the section.  Otherwise, must be string,
+	//	with each entry terminated with '\0', followed by another terminating '\0'
+	// @pyparm string|iniName|None|Name of INI file.  If specified, WritePrivateProfileSection will be called.
+	if (!PyArg_ParseTuple(args, "OO|O:WriteProfileSection", &obSection, &obdata, &obiniName))
 		return NULL;
-	PyW32_BEGIN_ALLOW_THREADS
-	BOOL ok = WriteProfileSection(szSection, data);
-	PyW32_END_ALLOW_THREADS
-	if (!ok)
-		return ReturnAPIError("WriteProfileSection");
-	Py_INCREF(Py_None);
-	return Py_None;
+	if (PyWinObject_AsTCHAR(obSection, &szSection, TRUE)
+		&&PyWinObject_AsTCHAR(obdata, &data, TRUE, &datalen)
+		&&PyWinObject_AsTCHAR(obiniName, &iniName, TRUE)){
+		// Make sure buffer is terminated by double null, since function doesn't take a buffer length 
+		if (data && (datalen < 2 || data[datalen-1]!=0 || data[datalen-2]!=0))
+			PyErr_SetString(PyExc_ValueError, "Section data must be terminated by double null");
+		else{
+			BOOL ok;
+			PyW32_BEGIN_ALLOW_THREADS
+			if (iniName)
+				ok = WritePrivateProfileSection(szSection, data, iniName);
+			else
+				ok = WriteProfileSection(szSection, data);
+			PyW32_END_ALLOW_THREADS
+			if (!ok)
+				PyWin_SetAPIError("WriteProfileSection");
+			else{
+				Py_INCREF(Py_None);
+				ret = Py_None;
+				}
+			}
+		}
+	PyWinObject_FreeTCHAR(szSection);
+	PyWinObject_FreeTCHAR(data);
+	PyWinObject_FreeTCHAR(iniName);
+	return ret;
 }
 
 // @pymethod tuple|win32api|GetSystemInfo|Retrieves information about the current system.
@@ -1958,15 +2105,16 @@ PyGetShortPathName(PyObject * self, PyObject * args)
 	// GetShortPathNameW will be called and a unicode object returned.
 	if (!PyArg_ParseTuple(args, "O:GetShortPathName", &obPath))
 		return NULL;
+#ifndef UNICODE
 	if (PyString_Check(obPath)) {
 		char *path;
 		if (!PyWinObject_AsString(obPath, &path))
 			return NULL;
 
-		char szOutPath[_MAX_PATH];
+		char szOutPath[_MAX_PATH + 1];
 		// @pyseeapi GetShortPathName
 		PyW32_BEGIN_ALLOW_THREADS
-		DWORD rc = GetShortPathName(path, szOutPath, sizeof(szOutPath));
+		DWORD rc = GetShortPathNameA(path, szOutPath, sizeof(szOutPath));
 		PyW32_END_ALLOW_THREADS
 		PyWinObject_FreeString(path);
 		if (rc==0)
@@ -1974,27 +2122,27 @@ PyGetShortPathName(PyObject * self, PyObject * args)
 		if (rc>=sizeof(szOutPath))
 			return ReturnError("The pathname would be too big!!!");
 		return Py_BuildValue("s", szOutPath);
-	} else {
-		WCHAR *path;
-		if (!PyWinObject_AsWCHAR(obPath, &path))
-			return NULL;
-		WCHAR szOutPath[_MAX_PATH];
-		// @pyseeapi GetShortPathName
-		PyW32_BEGIN_ALLOW_THREADS
-		DWORD rc = GetShortPathNameW(path, szOutPath, sizeof(szOutPath));
-		PyW32_END_ALLOW_THREADS
-		PyWinObject_FreeWCHAR(path);
-		if (rc==0)
-			return ReturnAPIError("GetShortPathNameW");
-		if (rc>=sizeof(szOutPath))
-			return ReturnError("The (unicode) pathname would be too big!!!");
-		return Py_BuildValue("u", szOutPath);
-	}
+		}
+#endif
+	WCHAR *path;
+	if (!PyWinObject_AsWCHAR(obPath, &path))
+		return NULL;
+	WCHAR szOutPath[_MAX_PATH + 1];
+	// @pyseeapi GetShortPathName
+	PyW32_BEGIN_ALLOW_THREADS
+	DWORD rc = GetShortPathNameW(path, szOutPath, sizeof(szOutPath)/sizeof(szOutPath[0]));
+	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeWCHAR(path);
+	if (rc==0)
+		return ReturnAPIError("GetShortPathNameW");
+	if (rc >= sizeof(szOutPath)/sizeof(szOutPath[0]))
+		return ReturnError("The (unicode) pathname would be too big!!!");
+	return Py_BuildValue("u", szOutPath);
 	// @comm The short path name is an 8.3 compatible file name.  As the input path does
 	// not need to be absolute, the returned name may be longer than the input path.
-	return PyErr_Format(PyExc_RuntimeError, "not reached!?");
 }
 
+#ifndef UNICODE
 // @pymethod string|win32api|GetLongPathName|Converts the specified path to its long form.
 static PyObject *
 PyGetLongPathNameA (PyObject *self, PyObject *args)
@@ -2033,6 +2181,7 @@ PyGetLongPathNameA (PyObject *self, PyObject *args)
 	free(pathBuf);
 	return ret;
 }
+#endif
 
 // @pymethod <o PyUnicode>|win32api|GetLongPathNameW|Converts the specified path to its long form.
 static PyObject *
@@ -2107,38 +2256,46 @@ PyGetTickCount(PyObject * self, PyObject * args)
 static PyObject *
 PyGetTempPath(PyObject * self, PyObject * args)
 {
-	char buf[MAX_PATH];
+	TCHAR buf[MAX_PATH + 1];
 	if (!PyArg_ParseTuple (args, ":GetTempPath"))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
-	BOOL ok = GetTempPath(sizeof(buf), buf);
+	BOOL ok = GetTempPath(sizeof(buf) / sizeof(buf[0]), buf);
 	PyW32_END_ALLOW_THREADS
 	if (!ok)
 		return ReturnAPIError("GetTempPath");
-	return Py_BuildValue("s",buf);
+	return PyWinObject_FromTCHAR(buf);
 }
 // @pymethod tuple|win32api|GetTempFileName|Returns creates a temporary filename of the following form: path\\preuuuu.tmp.
 static PyObject *
 PyGetTempFileName(PyObject * self, PyObject * args)
 {
-	char *path, *prefix;
+	TCHAR *path=NULL, *prefix=NULL;
+	PyObject *obpath, *obprefix, *ret=NULL;
 	int n = 0;
-	if (!PyArg_ParseTuple(args,"ss|i:GetTempFileName", 
-	          &path,  // @pyparm string|path||Specifies the path where the method creates the temporary filename.
+	if (!PyArg_ParseTuple(args,"OO|i:GetTempFileName", 
+	          &obpath,  // @pyparm string|path||Specifies the path where the method creates the temporary filename.
 	                  // Applications typically specify a period (.) or the result of the GetTempPath function for this parameter.
-	          &prefix,// @pyparm string|prefix||Specifies the temporary filename prefix.
+	          &obprefix,// @pyparm string|prefix||Specifies the temporary filename prefix.
 	          &n))    // @pyparm int|nUnique||Specifies an nteger used in creating the temporary filename.
 	                  // If this parameter is nonzero, it is appended to the temporary filename.
 	                  // If this parameter is zero, Windows uses the current system time to create a number to append to the filename.
 		return NULL;
 
-    char buf[MAX_PATH];
-	PyW32_BEGIN_ALLOW_THREADS
-	UINT rc=GetTempFileName(path, prefix, n, buf);
-	PyW32_END_ALLOW_THREADS
-    if (!rc) // @pyseeapi GetTempFileName
-		return ReturnAPIError("GetTempFileName");
-	return Py_BuildValue("(si)",buf,rc);
+	if (PyWinObject_AsTCHAR(obpath, &path, FALSE) &&
+		PyWinObject_AsTCHAR(obprefix, &prefix, FALSE)){
+		TCHAR buf[MAX_PATH + 1];
+		PyW32_BEGIN_ALLOW_THREADS
+		UINT rc=GetTempFileName(path, prefix, n, buf);
+		PyW32_END_ALLOW_THREADS
+		if (!rc) // @pyseeapi GetTempFileName
+			PyWin_SetAPIError("GetTempFileName");
+		else
+			ret=Py_BuildValue("(Ni)", PyWinObject_FromTCHAR(buf), rc);
+		}
+	PyWinObject_FreeTCHAR(path);
+	PyWinObject_FreeTCHAR(prefix);
+	return ret;
 	// @rdesc The return value is a tuple of (string, int), where string is the
 	// filename, and rc is the unique number used to generate the filename.
 }
@@ -2201,12 +2358,13 @@ static PyObject *PyGetDateFormat(PyObject *self, PyObject *args)
 {
 	int locale, flags;
 	PyObject *obTime;
-	char *szFormat = NULL;
-	if (!PyArg_ParseTuple(args, "iiO|z:GetDateFormat",
+	TCHAR *szFormat = NULL;
+	PyObject *obFormat=Py_None;
+	if (!PyArg_ParseTuple(args, "iiO|O:GetDateFormat",
 						  &locale, // @pyparm int|locale||
 						  &flags, // @pyparm int|flags||
 						  &obTime, // @pyparm <o PyTime>|time||The time to use, or None to use the current time.
-						  &szFormat)) // @pyparm string|format||May be None
+						  &obFormat)) // @pyparm string|format||May be None
 		return NULL;
 	SYSTEMTIME st, *pst = NULL;
 	if (obTime != Py_None) {
@@ -2214,11 +2372,15 @@ static PyObject *PyGetDateFormat(PyObject *self, PyObject *args)
 			return NULL;
 		pst = &st;
 	}
-	char buf[512];
+	if (!PyWinObject_AsTCHAR(obFormat, &szFormat, TRUE))
+		return NULL;
+
+	TCHAR buf[512];
 	int nchars = ::GetDateFormat(locale, flags, pst, szFormat, buf, sizeof(buf)/sizeof(buf)[0]);
+	PyWinObject_FreeTCHAR(szFormat);
 	if (nchars==0)
 		return PyWin_SetAPIError("GetDateFormat");
-	return PyString_FromStringAndSize(buf, nchars-1);
+	return PyWinObject_FromTCHAR(buf, nchars-1);
 }
 
 // @pymethod string|win32api|GetTimeFormat|Formats a time as a time string for a specified locale. The function formats either a specified time or the local system time.
@@ -2226,24 +2388,30 @@ static PyObject *PyGetTimeFormat(PyObject *self, PyObject *args)
 {
 	int locale, flags;
 	PyObject *obTime;
-	char *szFormat = NULL;
-	if (!PyArg_ParseTuple(args, "iiO|z:GetTimeFormat",
+	TCHAR *szFormat = NULL;
+	PyObject *obFormat=Py_None;
+	if (!PyArg_ParseTuple(args, "iiO|O:GetTimeFormat",
 						  &locale, // @pyparm int|locale||
 						  &flags, // @pyparm int|flags||
 						  &obTime, // @pyparm <o PyTime>|time||The time to use, or None to use the current time.
-						  &szFormat)) // @pyparm string|format||May be None
+						  &obFormat)) // @pyparm string|format||May be None
 		return NULL;
+
 	SYSTEMTIME st, *pst = NULL;
 	if (obTime != Py_None) {
 		if (!PyWinObject_AsSYSTEMTIME(obTime, &st))
 			return NULL;
 		pst = &st;
 	}
-	char buf[512];
+	if (!PyWinObject_AsTCHAR(obFormat, &szFormat, TRUE))
+		return NULL;
+
+	TCHAR buf[512];
 	int nchars = ::GetTimeFormat(locale, flags, pst, szFormat, buf, sizeof(buf)/sizeof(buf)[0]);
+	PyWinObject_FreeTCHAR(szFormat);
 	if (nchars==0)
 		return PyWin_SetAPIError("GetTimeFormat");
-	return PyString_FromStringAndSize(buf, nchars-1);
+	return PyWinObject_FromTCHAR(buf, nchars-1);
 }
 
 // @pymethod int|win32api|GetSysColor|Returns the current system color for the specified element.
@@ -2332,14 +2500,14 @@ static PyObject *PySetSysColors(PyObject *self, PyObject *args)
 static PyObject *
 PyGetSystemDirectory (PyObject *self, PyObject *args)
 {
-	char buf[MAX_PATH];
+	TCHAR buf[MAX_PATH + 1];
 	if (!PyArg_ParseTuple (args, ":GetSystemDirectory"))
 	// @pyseeapi GetSystemDirectory
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
-	::GetSystemDirectory(buf, sizeof(buf));
+	::GetSystemDirectory(buf, sizeof(buf)/sizeof(buf[0]));
 	PyW32_END_ALLOW_THREADS
-	return Py_BuildValue("s", buf);
+	return PyWinObject_FromTCHAR(buf);
 }
 
 // @pymethod tuple|win32api|GetSystemFileCacheSize|Returns the amount of memory reserved for file cache
@@ -2410,30 +2578,30 @@ PyGetVersionEx(PyObject * self, PyObject * args)
 		ver.dwOSVersionInfoSize = sizeof(ver);
 		if (!::GetVersionEx(&ver))
 			return ReturnAPIError("GetVersionEx");
-		return Py_BuildValue("iiiis",
-		// @rdesc The return value is a tuple with the following information.<nl>
-				 ver.dwMajorVersion, // @tupleitem 0|int|majorVersion|Identifies the major version number of the operating system.<nl>
-					 ver.dwMinorVersion, //	@tupleitem 1|int|minorVersion|Identifies the minor version number of the operating system.<nl>
-					 ver.dwBuildNumber,  //	@tupleitem 2|int|buildNumber|Identifies the build number of the operating system in the low-order word. (The high-order word contains the major and minor version numbers.)<nl>
-					 ver.dwPlatformId, // @tupleitem 3|int|platformId|Identifies the platform supported by the operating system.  May be one of VER_PLATFORM_WIN32s, VER_PLATFORM_WIN32_WINDOWS or VER_PLATFORM_WIN32_NT<nl>
-					 ver.szCSDVersion); // @tupleitem 4|string|version|Contains arbitrary additional information about the operating system.
+		return Py_BuildValue("iiiiN",
+			// @rdesc The return value is a tuple with the following information.<nl>
+			ver.dwMajorVersion, // @tupleitem 0|int|majorVersion|Identifies the major version number of the operating system.<nl>
+			ver.dwMinorVersion, //	@tupleitem 1|int|minorVersion|Identifies the minor version number of the operating system.<nl>
+			ver.dwBuildNumber,  //	@tupleitem 2|int|buildNumber|Identifies the build number of the operating system in the low-order word. (The high-order word contains the major and minor version numbers.)<nl>
+			ver.dwPlatformId, // @tupleitem 3|int|platformId|Identifies the platform supported by the operating system.  May be one of VER_PLATFORM_WIN32s, VER_PLATFORM_WIN32_WINDOWS or VER_PLATFORM_WIN32_NT<nl>
+			PyWinObject_FromTCHAR(ver.szCSDVersion)); // @tupleitem 4|string|version|Contains arbitrary additional information about the operating system.
 	} else if (format == 1) {
 		OSVERSIONINFOEX ver;
 		ver.dwOSVersionInfoSize = sizeof(ver);
 		if (!::GetVersionEx((LPOSVERSIONINFO)&ver))
 			return ReturnAPIError("GetVersionEx");
-		return Py_BuildValue("iiiisiiiii",
+		return Py_BuildValue("iiiiNiiiii",
 		// @rdesc or if the format param is 1, the return value is a tuple with:<nl>
-				 ver.dwMajorVersion, // @tupleitem 0|int|majorVersion|Identifies the major version number of the operating system.<nl>
-					 ver.dwMinorVersion, //	@tupleitem 1|int|minorVersion|Identifies the minor version number of the operating system.<nl>
-					 ver.dwBuildNumber,  //	@tupleitem 2|int|buildNumber|Identifies the build number of the operating system in the low-order word. (The high-order word contains the major and minor version numbers.)<nl>
-					 ver.dwPlatformId, // @tupleitem 3|int|platformId|Identifies the platform supported by the operating system.  May be one of VER_PLATFORM_WIN32s, VER_PLATFORM_WIN32_WINDOWS or VER_PLATFORM_WIN32_NT<nl>
-					 ver.szCSDVersion, // @tupleitem 4|string|version|Contains arbitrary additional information about the operating system.
-					 ver.wServicePackMajor, // @tupleitem 5|int|wServicePackMajor|Major version number of the latest Service Pack installed on the system. For example, for Service Pack 3, the major version number is 3. If no Service Pack has been installed, the value is zero. 
-					 ver.wServicePackMinor, // @tupleitem 6|int|wServicePackMinor|Minor version number of the latest Service Pack installed on the system. For example, for Service Pack 3, the minor version number is 0.
-					 ver.wSuiteMask, // @tupleitem 7|int|wSuiteMask|Bit flags that identify the product suites available on the system. This member can be a combination of the VER_SUITE_* values. 
-					 ver.wProductType, // @tupleitem 8|int|wProductType|Additional information about the system. This member can be one of the VER_NT_* values.
-					 ver.wReserved); // @tupleitem 9|int|wReserved|
+			ver.dwMajorVersion, // @tupleitem 0|int|majorVersion|Identifies the major version number of the operating system.<nl>
+			ver.dwMinorVersion, //	@tupleitem 1|int|minorVersion|Identifies the minor version number of the operating system.<nl>
+			ver.dwBuildNumber,  //	@tupleitem 2|int|buildNumber|Identifies the build number of the operating system in the low-order word. (The high-order word contains the major and minor version numbers.)<nl>
+			ver.dwPlatformId, // @tupleitem 3|int|platformId|Identifies the platform supported by the operating system.  May be one of VER_PLATFORM_WIN32s, VER_PLATFORM_WIN32_WINDOWS or VER_PLATFORM_WIN32_NT<nl>
+			PyWinObject_FromTCHAR(ver.szCSDVersion), // @tupleitem 4|string|version|Contains arbitrary additional information about the operating system.
+			ver.wServicePackMajor, // @tupleitem 5|int|wServicePackMajor|Major version number of the latest Service Pack installed on the system. For example, for Service Pack 3, the major version number is 3. If no Service Pack has been installed, the value is zero. 
+			ver.wServicePackMinor, // @tupleitem 6|int|wServicePackMinor|Minor version number of the latest Service Pack installed on the system. For example, for Service Pack 3, the minor version number is 0.
+			ver.wSuiteMask, // @tupleitem 7|int|wSuiteMask|Bit flags that identify the product suites available on the system. This member can be a combination of the VER_SUITE_* values. 
+			ver.wProductType, // @tupleitem 8|int|wProductType|Additional information about the system. This member can be one of the VER_NT_* values.
+			ver.wReserved); // @tupleitem 9|int|wReserved|
 
 	}
 	return PyErr_Format(PyExc_ValueError, "format must be 0 or 1 (got %d)", format);
@@ -2443,21 +2611,31 @@ PyGetVersionEx(PyObject * self, PyObject * args)
 static PyObject *
 PyGetVolumeInformation(PyObject * self, PyObject * args)
 {
-	char *pathName;
+	TCHAR *pathName;
+	PyObject *obpathName;
 	// @pyparm string|path||The root path of the volume on which information is being requested.
-	if (!PyArg_ParseTuple(args, "s:GetVolumeInformation", &pathName))
+	if (!PyArg_ParseTuple(args, "O:GetVolumeInformation", &obpathName))
 		return NULL;
-	char szVolName[_MAX_PATH];
+	if (!PyWinObject_AsTCHAR(obpathName, &pathName, FALSE))
+		return NULL;
+	TCHAR szVolName[MAX_PATH + 1];
 	DWORD serialNo;
 	DWORD maxCompLength;
 	DWORD sysFlags;
-	char szSysName[50];
+	TCHAR szSysName[MAX_PATH + 1];
 	PyW32_BEGIN_ALLOW_THREADS
-	BOOL ok = ::GetVolumeInformation( pathName, szVolName, sizeof(szVolName), &serialNo, &maxCompLength, &sysFlags, szSysName, sizeof(szSysName));
+	BOOL ok = ::GetVolumeInformation( pathName, 
+		szVolName, sizeof(szVolName) / sizeof(szVolName[0]), 
+		&serialNo, &maxCompLength, &sysFlags,
+		szSysName, sizeof(szSysName) / sizeof(szSysName[0]));
 	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeTCHAR(pathName);
 	if (!ok)
 		return ReturnAPIError("GetVolumeInformation");
-	return Py_BuildValue("sllls", szVolName, (long)serialNo, (long)maxCompLength, (long)sysFlags, szSysName );
+	return Py_BuildValue("NlllN", 
+		PyWinObject_FromTCHAR(szVolName),
+		(long)serialNo, (long)maxCompLength, (long)sysFlags,
+		PyWinObject_FromTCHAR(szSysName));
 	// @rdesc The return is a tuple of:
 	// <nl>string - Volume Name
 	// <nl>long - Volume serial number.
@@ -2470,74 +2648,99 @@ PyGetVolumeInformation(PyObject * self, PyObject * args)
 static PyObject *
 PyGetFullPathName (PyObject *self, PyObject *args)
 {
-	char pathBuf[MAX_PATH];
-	char *fileName;
+	TCHAR pathBuf[MAX_PATH];
+	TCHAR *fileName;
+	PyObject *obfileName;
 	// @pyparm string|fileName||The file name.
-	if (!PyArg_ParseTuple (args, "s:GetFullPathName", &fileName))
+	if (!PyArg_ParseTuple (args, "O:GetFullPathName", &obfileName))
 		return NULL;
-	char *temp;
+	if (!PyWinObject_AsTCHAR(obfileName, &fileName, FALSE))
+		return NULL;
+	TCHAR *temp;
 	PyW32_BEGIN_ALLOW_THREADS
-	BOOL ok = GetFullPathName(fileName, sizeof(pathBuf), pathBuf, &temp);
+	BOOL ok = GetFullPathName(fileName, sizeof(pathBuf)/sizeof(pathBuf[0]), pathBuf, &temp);
 	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeTCHAR(fileName);
 	if (!ok)
 		return ReturnAPIError("GetFullPathName");
-	return Py_BuildValue("s", pathBuf);
+	return PyWinObject_FromTCHAR(pathBuf);
 }
 
 // @pymethod string|win32api|GetWindowsDirectory|Returns the path of the Windows directory.
 static PyObject *
 PyGetWindowsDirectory (PyObject *self, PyObject *args)
 {
-	char buf[MAX_PATH];
+	TCHAR buf[MAX_PATH];
 	if (!PyArg_ParseTuple (args, ":GetWindowsDirectory"))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
 	::GetWindowsDirectory(buf, sizeof(buf));
 	PyW32_END_ALLOW_THREADS
-	return Py_BuildValue("s", buf);
+	return PyWinObject_FromTCHAR(buf);
 }
+
 // @pymethod |win32api|MoveFile|Renames a file, or a directory (including its children).
 static PyObject *
 PyMoveFile( PyObject *self, PyObject *args )
 {
-	char *src, *dest;
+	TCHAR *src=NULL, *dest=NULL;
+	PyObject *obsrc, *obdest, *ret=NULL;
 	// @pyparm string|srcName||The name of the source file.
 	// @pyparm string|destName||The name of the destination file.
 	// @comm This method can not move files across volumes.
-	if (!PyArg_ParseTuple(args, "ss:MoveFile", &src, &dest))
+	if (!PyArg_ParseTuple(args, "OO:MoveFile", &obsrc, &obdest))
 		return NULL;
 	// @pyseeapi MoveFile.
-	PyW32_BEGIN_ALLOW_THREADS
-	BOOL ok = ::MoveFile(src, dest);
-	PyW32_END_ALLOW_THREADS
-	if (!ok)
-		return ReturnAPIError("MoveFile");
-	Py_INCREF(Py_None);
-	return Py_None;
+	if (PyWinObject_AsTCHAR(obsrc, &src, FALSE) &&
+		PyWinObject_AsTCHAR(obdest, &dest, FALSE)){
+		PyW32_BEGIN_ALLOW_THREADS
+		BOOL ok = ::MoveFile(src, dest);
+		PyW32_END_ALLOW_THREADS
+		if (!ok)
+			PyWin_SetAPIError("MoveFile");
+		else{
+			Py_INCREF(Py_None);
+			ret = Py_None;
+			}
+		}
+	PyWinObject_FreeTCHAR(src);
+	PyWinObject_FreeTCHAR(dest);
+	return ret;
 }
+
 // @pymethod |win32api|MoveFileEx|Renames a file.
 static PyObject *
 PyMoveFileEx( PyObject *self, PyObject *args )
 {
 	int flags;
-	char *src, *dest;
+	TCHAR *src=NULL, *dest=NULL;
+	PyObject *obsrc, *obdest=Py_None, *ret=NULL;
 	// @pyparm string|srcName||The name of the source file.
 	// @pyparm string|destName||The name of the destination file.  May be None.
 	// @pyparm int|flag||Flags indicating how the move is to be performed.  See the API for full details.
 	// @comm This method can move files across volumes.<nl>
 	// If destName is None, and flags contains win32con.MOVEFILE_DELAY_UNTIL_REBOOT, the
 	// file will be deleted next reboot.
-	if (!PyArg_ParseTuple(args, "szi:MoveFileEx", &src, &dest, &flags))
+	if (!PyArg_ParseTuple(args, "OOi:MoveFileEx", &obsrc, &obdest, &flags))
 		return NULL;
-	// @pyseeapi MoveFileEx
-	PyW32_BEGIN_ALLOW_THREADS
+	if (PyWinObject_AsTCHAR(obsrc, &src, FALSE) &&
+		PyWinObject_AsTCHAR(obdest, &dest, TRUE)){
+		// @pyseeapi MoveFileEx
+		PyW32_BEGIN_ALLOW_THREADS
 		BOOL ok = ::MoveFileEx(src, dest, flags);
-	PyW32_END_ALLOW_THREADS
-	if (!ok)
-		return ReturnAPIError("MoveFileEx");
-	Py_INCREF(Py_None);
-	return Py_None;
+		PyW32_END_ALLOW_THREADS
+		if (!ok)
+			PyWin_SetAPIError("MoveFileEx");
+		else{
+			Py_INCREF(Py_None);
+			ret = Py_None;
+			}
+		}
+	PyWinObject_FreeTCHAR(src);
+	PyWinObject_FreeTCHAR(dest);
+	return ret;
 }
+
 // @pymethod |win32api|PostMessage|Post a message to a window.
 PyObject *PyPostMessage(PyObject *self, PyObject *args)
 {
@@ -2631,18 +2834,21 @@ static PyObject *
 PyRegConnectRegistry( PyObject *self, PyObject *args )
 {
 	HKEY hKey;
-	PyObject *obKey;
-	char *szCompName = NULL;
+	PyObject *obKey, *obCompName;
+	TCHAR *szCompName = NULL;
 	HKEY retKey;
 	long rc;
 	// @pyparm string|computerName||The name of the remote computer, of the form \\\\computername.  If None, the local computer is used.
 	// @pyparm int|key||The predefined handle.  May be win32con.HKEY_LOCAL_MACHINE or win32con.HKEY_USERS.
-	if (!PyArg_ParseTuple(args, "zO:RegConnectRegistry", &szCompName, &obKey))
+	if (!PyArg_ParseTuple(args, "OO:RegConnectRegistry", &obCompName, &obKey))
 		return NULL;
 	if (!PyWinObject_AsHKEY(obKey, &hKey))
 		return NULL;
+	if (!PyWinObject_AsTCHAR(obCompName, &szCompName, TRUE))
+		return NULL;
 	// @pyseeapi RegConnectRegistry
 	rc=RegConnectRegistry(szCompName, hKey, &retKey);
+	PyWinObject_FreeTCHAR(szCompName);
 	if (rc!=ERROR_SUCCESS)
 		return ReturnAPIError("RegConnectRegistry", rc);
 	return PyWinObject_FromHKEY(retKey);
@@ -2687,8 +2893,8 @@ static PyObject *
 PyRegCreateKey( PyObject *self, PyObject *args )
 {
 	HKEY hKey;
-	PyObject *obKey;
-	char *subKey;
+	PyObject *obKey, *obsubKey=Py_None;
+	TCHAR *subKey=NULL;
 	HKEY retKey;
 	long rc;
 	// @pyparm <o PyHKEY>/int|key||An already open key, or any one of the following win32con constants:<nl>HKEY_CLASSES_ROOT<nl>HKEY_CURRENT_USER<nl>HKEY_LOCAL_MACHINE<nl>HKEY_USERS
@@ -2696,12 +2902,15 @@ PyRegCreateKey( PyObject *self, PyObject *args )
 	// This key must be a subkey of the key identified by the key parameter.
 	// If key is one of the predefined keys, subKey may be None. In that case,
 	// the handle returned is the same hkey handle passed in to the function.
-	if (!PyArg_ParseTuple(args, "Oz:RegCreateKey", &obKey, &subKey ))
+	if (!PyArg_ParseTuple(args, "OO:RegCreateKey", &obKey, &obsubKey ))
 		return NULL;
 	if (!PyWinObject_AsHKEY(obKey, &hKey))
 		return NULL;
+	if (!PyWinObject_AsTCHAR(obsubKey, &subKey, TRUE))
+		return NULL;
 	// @pyseeapi RegCreateKey
 	rc=RegCreateKey(hKey, subKey, &retKey);
+	PyWinObject_FreeTCHAR(subKey);
 	if (rc!=ERROR_SUCCESS)
 		return ReturnAPIError("RegCreateKey", rc);
 	return PyWinObject_FromHKEY(retKey);
@@ -2804,18 +3013,22 @@ PyRegDeleteKey( PyObject *self, PyObject *args )
 {
 	HKEY hKey;
 	PyObject *obKey;
-	char *subKey;
+	TCHAR *subKey=NULL;
+	PyObject *obsubKey;
 	long rc;
 	// @pyparm <o PyHKEY>/int|key||An already open key, or any one of the following win32con constants:<nl>HKEY_CLASSES_ROOT<nl>HKEY_CURRENT_USER<nl>HKEY_LOCAL_MACHINE<nl>HKEY_USERS
 	// @pyparm string|subKey||The name of the key to delete.
 	// This key must be a subkey of the key identified by the key parameter.
 	// This value must not be None, and the key may not have subkeys.
-	if (!PyArg_ParseTuple(args, "Os:RegDeleteKey", &obKey, &subKey))
+	if (!PyArg_ParseTuple(args, "OO:RegDeleteKey", &obKey, &obsubKey))
 		return NULL;
 	if (!PyWinObject_AsHKEY(obKey, &hKey))
 		return NULL;
+	if (!PyWinObject_AsTCHAR(obsubKey, &subKey, FALSE))
+		return NULL;
 	// @pyseeapi RegDeleteKey
 	rc=RegDeleteKey(hKey, subKey );
+	PyWinObject_FreeTCHAR(subKey);
 	if (rc!=ERROR_SUCCESS)
 		return ReturnAPIError("RegDeleteKey", rc);
 	Py_INCREF(Py_None);
@@ -2897,19 +3110,22 @@ static PyObject *
 PyRegDeleteValue( PyObject *self, PyObject *args )
 {
 	HKEY hKey;
-	PyObject *obKey;
-	char *subKey;
+	PyObject *obKey, *obsubKey=Py_None;
+	TCHAR *subKey=NULL;
 	long rc;
 	// @pyparm <o PyHKEY>/int|key||An already open key, or any one of the following win32con constants:<nl>HKEY_CLASSES_ROOT<nl>HKEY_CURRENT_USER<nl>HKEY_LOCAL_MACHINE<nl>HKEY_USERS
 	// @pyparm string|value||The name of the value to remove.
-	if (!PyArg_ParseTuple(args, "Oz:RegDeleteValue", &obKey, &subKey))
+	if (!PyArg_ParseTuple(args, "OO:RegDeleteValue", &obKey, &obsubKey))
 		return NULL;
 	if (!PyWinObject_AsHKEY(obKey, &hKey))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obsubKey, &subKey, TRUE))
 		return NULL;
 	// @pyseeapi RegDeleteValue
 	PyW32_BEGIN_ALLOW_THREADS
 	rc=RegDeleteValue(hKey, subKey);
 	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeTCHAR(subKey);
 	if (rc!=ERROR_SUCCESS)
 		return ReturnAPIError("RegDeleteValue", rc);
 	Py_INCREF(Py_None);
@@ -2923,7 +3139,7 @@ PyRegEnumKey( PyObject *self, PyObject *args )
 	PyObject *obKey;
 	int index;
 	long rc;
-	char *retBuf;
+	TCHAR *retBuf;
     DWORD len;
     
 	// @pyparm <o PyHKEY>/int|key||An already open key, or any one of the following win32con constants:<nl>HKEY_CLASSES_ROOT<nl>HKEY_CURRENT_USER<nl>HKEY_LOCAL_MACHINE<nl>HKEY_USERS
@@ -2937,12 +3153,12 @@ PyRegEnumKey( PyObject *self, PyObject *args )
 		                           NULL, NULL, NULL, NULL, NULL, NULL))!=ERROR_SUCCESS)
 		return ReturnAPIError("RegQueryInfoKey", rc);
 	++len;	// include null terminator
-	retBuf=(char *)alloca(len);
+	retBuf=(TCHAR *)alloca(len * sizeof(TCHAR));
 
 	// @pyseeapi RegEnumKey
 	if ((rc=RegEnumKey(hKey, index, retBuf, len))!=ERROR_SUCCESS)
 		return ReturnAPIError("RegEnumKey", rc);
-	return Py_BuildValue("s", retBuf);
+	return PyWinObject_FromTCHAR(retBuf);
 }
 
 // @pymethod tuple|win32api|RegEnumKeyEx|Lists subkeys of a registry key
@@ -2986,7 +3202,7 @@ PyRegEnumKeyEx( PyObject *self, PyObject *args )
 		for (key_ind=0;key_ind<nbr_keys;key_ind++){
 			key_len=max_key_len;
 			class_len=max_class_len;
-			err=RegEnumKeyEx(reghandle, key_ind, key_name, &key_len, NULL, class_name, &class_len, &timestamp);
+			err=RegEnumKeyExA(reghandle, key_ind, key_name, &key_len, NULL, class_name, &class_len, &timestamp);
 			if (err!=ERROR_SUCCESS){
 				Py_DECREF(ret);
 				ret=NULL;
@@ -3114,151 +3330,95 @@ PyRegNotifyChangeKeyValue( PyObject *self, PyObject *args )
 	return ret;
 }
 
-
-// Note that fixupMultiSZ and countString have both had changes
-// made to support "incorrect strings".  The registry specification
-// calls for strings to be terminated with 2 null bytes.  It seems
-// some commercial packages install strings whcich dont conform,
-// causing this code to fail - however, "regedit" etc still work 
-// with these strings (ie only we dont!).
-static void
-fixupMultiSZ(char **str, char *data, int len)
+void PyWinObject_FreeRegistryValue(DWORD typ, BYTE *buf)
 {
-	char *P;
-	int i;
-	char    *Q;
-
-
-	Q = data + len;
-	for(P=data, i=0; P < Q && *P!='\0'; P++, i++)
-	{
-		str[i]=P;
-		for(; *P!='\0'; P++)
-			;
+	if (!buf)
+		return;
+	switch (typ) {
+		case REG_DWORD:
+			PyMem_Free(buf);
+			break;
+		case REG_SZ:
+		case REG_EXPAND_SZ:
+			PyWinObject_FreeTCHAR((TCHAR *)buf);
+			break;
+		case REG_MULTI_SZ:
+			PyWinObject_FreeMultipleString((WCHAR *)buf);
+			break;
+		// REG_BINARY and any others use object's internal buffer
+		default:
+			break;
 	}
-}
-
-static int
-countStrings(char *data, int len)
-{
-	int strings;
-	char *P;
-	char *Q = data + len;
-
-	for (P=data, strings=0; P < Q && *P!='\0'; P++, strings++)
-		for(; P < Q && *P!='\0'; P++)
-			;
-
-	return strings;
 }
 
 /* Convert PyObject into Registry data. 
    Allocates space as needed. */
-static bool
-Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataSize)
+static BOOL
+PyWinObject_AsRegistryValue(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataSize)
 {
-	int i,j;
 	switch (typ) {
 		case REG_DWORD:
-			if (value!=Py_None && !PyInt_Check(value))
-				return false;
-			*retDataBuf = (BYTE *)PyMem_NEW(DWORD, sizeof(DWORD));
-			if (*retDataBuf==NULL){
-				PyErr_NoMemory();
-				return false;
-			}
 			*retDataSize=sizeof(DWORD);
-			if (value==Py_None) {
-				DWORD zero = 0;
-				memcpy(*retDataBuf, &zero, sizeof(DWORD));
-			} 
-			else
-				memcpy(*retDataBuf, &PyInt_AS_LONG((PyIntObject *)value), sizeof(DWORD));
-			break;
-		case REG_SZ:
-		case REG_EXPAND_SZ:
-			if (value==Py_None)
-				*retDataSize=1;
-			else {
-				if (!PyString_Check(value))
-					return false;
-				*retDataSize=strlen(PyString_AS_STRING((PyStringObject *)value))+1;
-			}
-			*retDataBuf=(BYTE *)PyMem_NEW(DWORD, *retDataSize);
+			*retDataBuf = (BYTE *)PyMem_MALLOC(*retDataSize);
 			if (*retDataBuf==NULL){
 				PyErr_NoMemory();
 				return false;
 			}
-			if (value==Py_None)
-				strcpy((char *)*retDataBuf, "");
-			else
-				strcpy((char *)*retDataBuf, PyString_AS_STRING((PyStringObject *)value));
-			break;
-		case REG_MULTI_SZ:
-			{
-				DWORD size=0;
-				PyObject *t;
-
-				if (value==Py_None)
-					i = 0;
-				else {
-					if (!PyList_Check(value))
-						return false;
-					i=PyList_Size(value);
+			if (value==Py_None){
+				*(DWORD *)*retDataBuf=0;
+				return true;
 				}
-				for(j=0; j<i; j++)
-				{
-					t=PyList_GET_ITEM((PyListObject *)value,j);
-					if (!PyString_Check(t))
-						return 0;
-					size=size+strlen(PyString_AS_STRING((PyStringObject *)t))+1;
-				}
-			
-				*retDataSize=size+1;
-				*retDataBuf=(BYTE *)PyMem_NEW(char, *retDataSize);
-				if (*retDataBuf==NULL){
-					PyErr_NoMemory();
+			* (int *)*retDataBuf=PyInt_AsLong(value);
+			if (* (int *)*retDataBuf == -1 && PyErr_Occurred()){
+				PyErr_Clear();
+				* (DWORD *)*retDataBuf=PyLong_AsUnsignedLong(value);
+				if (* (int *)*retDataBuf == -1 && PyErr_Occurred()){
+					PyMem_Free(*retDataBuf);
+					*retDataBuf=NULL;
 					return false;
+					}
 				}
-				char *P=(char *)*retDataBuf;
-
-				for(j=0; j<i; j++)
-				{
-					t=PyList_GET_ITEM((PyListObject *)value,j);
-					strcpy(P,PyString_AS_STRING((PyStringObject *)t));
-					P=P+strlen(PyString_AS_STRING((PyStringObject *)t))+1;
+			return true;
+		case REG_SZ:
+		case REG_EXPAND_SZ:{
+			*retDataBuf=NULL;
+			PyObject *strvalue;
+			BOOL bsuccess;
+			if (value==Py_None){
+				strvalue=PyWinObject_FromTCHAR(TEXT(""));
+				if (!strvalue)
+					return FALSE;
 				}
-				// And doubly-terminate the list...
-				*P = '\0';
-				break;
+			else{
+				strvalue=value;
+				Py_INCREF(value);
+				}
+			bsuccess=PyWinObject_AsTCHAR(strvalue, (TCHAR **)retDataBuf, FALSE, retDataSize);
+			// Data size is in bytes, and includes null terminator
+			if (bsuccess){
+				(*retDataSize)++;
+				(*retDataSize) *= sizeof(TCHAR);	// ??? could overflow ???
+				}
+			Py_DECREF(strvalue);
+			return bsuccess;
 			}
+		case REG_MULTI_SZ:
+			if (PyWinObject_AsMultipleString(value, (TCHAR **)retDataBuf, TRUE, retDataSize)){
+				(*retDataSize) *= sizeof(TCHAR);
+				return TRUE;
+				}
+			return FALSE;
 		case REG_BINARY:
 		// ALSO handle ALL unknown data types here.  Even if we cant support
 		// it natively, we should handle the bits.
-		default: 
-			if (value==Py_None)
-				*retDataSize = 0;
-			else {
-				if (!PyString_Check(value))
-					return false;
-				*retDataSize=PyString_Size(value);
-				*retDataBuf=(BYTE *)PyMem_NEW(char, *retDataSize);
-				if (*retDataBuf==NULL){
-					PyErr_NoMemory();
-					return false;
-				}
-				memcpy(*retDataBuf,PyString_AS_STRING((PyStringObject *)value),*retDataSize);
-			}
-			break;
+		default:
+			return PyWinObject_AsReadBuffer(value, (void **)retDataBuf, retDataSize, TRUE);
 	}
-
-	return 1;
-
 }
 
 /* Convert Registry data into PyObject*/
 static PyObject *
-Reg2Py(char *retDataBuf, DWORD retDataSize, DWORD typ)
+PyWinObject_FromRegistryValue(BYTE *retDataBuf, DWORD retDataSize, DWORD typ)
 {
 	PyObject *obData;
 
@@ -3270,32 +3430,49 @@ Reg2Py(char *retDataBuf, DWORD retDataSize, DWORD typ)
 				obData = Py_BuildValue("i", *(int *)retDataBuf);
 			break;
 		case REG_SZ:
-		case REG_EXPAND_SZ:
+		case REG_EXPAND_SZ:{
+			DWORD charcount;
+			if (retDataSize==0){
+				obData=PyWinObject_FromTCHAR(TEXT(""));
+				break;
+				}
 			// retDataBuf may or may not have a trailing NULL in
 			// the buffer.
-			if (retDataSize && retDataBuf[retDataSize-1]=='\0')
-				--retDataSize;
-			if (retDataSize==0)
-				retDataBuf = "";
-			obData = PyString_FromStringAndSize(retDataBuf, retDataSize);
+			charcount=retDataSize/sizeof(TCHAR);	// ??? Can this have a remainder ???
+			if (((TCHAR *)retDataBuf)[charcount-1] == 0)
+				charcount--;
+			obData = PyWinObject_FromTCHAR((TCHAR *)retDataBuf, charcount);
 			break;
-		case REG_MULTI_SZ:
-			if (retDataSize==0)
-				obData = PyList_New(0);
-			else
-			{
-				int index=0;
-				int s=countStrings(retDataBuf, retDataSize);
-				char **str=(char **)alloca(sizeof(char *)*s);
-
-				fixupMultiSZ(str, retDataBuf, retDataSize);
-				obData = PyList_New(s);
-				for(index=0; index < s; index++)
-				{
-					PyList_SetItem(obData, index, Py_BuildValue("s", (char *)str[index]));
-				}
-		
+			}
+		case REG_MULTI_SZ:{
+			obData = PyList_New(0);
+			if ((obData==NULL) || (retDataSize==0))
 				break;
+			TCHAR *curr_str, *curr_char, *end_char;
+			curr_str=(TCHAR *)retDataBuf;
+			curr_char=curr_str;
+			end_char=curr_str + ((retDataSize/sizeof(TCHAR))-1);
+			while(true){
+				if ((*curr_char!=0) && (curr_char!=end_char)){
+					curr_char++;
+					continue;
+					}
+				PyObject *obstr=PyWinObject_FromTCHAR(curr_str, curr_char-curr_str);
+				if ((obstr==NULL) || (PyList_Append(obData, obstr)==-1)){
+					Py_XDECREF(obstr);
+					Py_DECREF(obData);
+					obData=NULL;
+					break;
+					}
+				Py_DECREF(obstr);
+				if (curr_char==end_char)
+					break;
+				++curr_char;
+				if (*curr_char==0)
+						break;
+				curr_str=curr_char;
+				}
+			break;
 			}
 		case REG_BINARY:
 		// ALSO handle ALL unknown data types here.  Even if we cant support
@@ -3308,10 +3485,7 @@ Reg2Py(char *retDataBuf, DWORD retDataSize, DWORD typ)
 				obData = PyString_FromStringAndSize((char *)retDataBuf, retDataSize);
 			break;
 	}
-	if (obData==NULL)
-		return NULL;
-	else
-		return obData;
+	return obData;
 }
 
 // @pymethod (string,object,type)|win32api|RegEnumValue|Enumerates values of the specified open registry key. The function retrieves the name of one subkey each time it is called.
@@ -3322,8 +3496,8 @@ PyRegEnumValue( PyObject *self, PyObject *args )
 	PyObject *obKey;
 	int index;
 	long rc;
-	char *retValueBuf;
-	char *retDataBuf;
+	TCHAR *retValueBuf;
+	BYTE *retDataBuf;
 	DWORD retValueSize;
 	DWORD retDataSize;
 	DWORD typ;
@@ -3341,19 +3515,22 @@ PyRegEnumValue( PyObject *self, PyObject *args )
 		return ReturnAPIError("RegQueryInfoKey", rc);
 	++retValueSize;	// include null terminators
 	++retDataSize;
-	retValueBuf=(char *)alloca(retValueSize);
-	retDataBuf=(char *)alloca(retDataSize);
-
+	retValueBuf=(TCHAR *)alloca(retValueSize *sizeof(TCHAR));
+	retDataBuf=(BYTE *)alloca(retDataSize);
+	if ((retValueBuf==NULL) || (retDataBuf==NULL)){
+		PyErr_NoMemory();
+		return NULL;
+		}
 	// @pyseeapi PyRegEnumValue
 	PyW32_BEGIN_ALLOW_THREADS
-	rc=RegEnumValue(hKey, index, retValueBuf, &retValueSize, NULL, &typ, (BYTE *)retDataBuf, &retDataSize);
+	rc=RegEnumValue(hKey, index, retValueBuf, &retValueSize, NULL, &typ, retDataBuf, &retDataSize);
 	PyW32_END_ALLOW_THREADS
 	if (rc!=ERROR_SUCCESS)
 		return ReturnAPIError("PyRegEnumValue", rc);
-	PyObject *obData=Reg2Py(retDataBuf, retDataSize, typ);
+	PyObject *obData=PyWinObject_FromRegistryValue(retDataBuf, retDataSize, typ);
 	if (obData==NULL)
 		return NULL;
-	PyObject *retVal = Py_BuildValue("sOi", retValueBuf, obData, typ);
+	PyObject *retVal = Py_BuildValue("NOi", PyWinObject_FromTCHAR(retValueBuf), obData, typ);
 	Py_DECREF(obData);
 	return retVal;
 	// @comm This function is typically called repeatedly, until an exception is raised, indicating no more values.
@@ -3392,9 +3569,9 @@ PyRegLoadKey( PyObject *self, PyObject *args )
 {
 	HKEY hKey;
 	PyObject *obKey;
-	char *subKey;
-	char *fileName;
-
+	TCHAR *subKey=NULL;
+	TCHAR *fileName=NULL;
+	PyObject *obsubKey, *obfileName, *ret=NULL;
 	long rc;
 	// @pyparm <o PyHKEY>/int|key||An already open key, or any one of the following win32con constants:<nl>HKEY_CLASSES_ROOT<nl>HKEY_CURRENT_USER<nl>HKEY_LOCAL_MACHINE<nl>HKEY_USERS
 	// @pyparm string|subKey||The name of the key to delete.
@@ -3403,18 +3580,25 @@ PyRegLoadKey( PyObject *self, PyObject *args )
 	// @pyparm string|filename||The name of the file to load registry data from.
 	//  This file must have been created with the <om win32api.RegSaveKey> function.
 	// Under the file allocation table (FAT) file system, the filename may not have an extension.
-	if (!PyArg_ParseTuple(args, "Oss:RegLoadKey", &obKey, &subKey, &fileName))
+	if (!PyArg_ParseTuple(args, "OOO:RegLoadKey", &obKey, &obsubKey, &obfileName))
 		return NULL;
-	if (!PyWinObject_AsHKEY(obKey, &hKey))
-		return NULL;
-	// @pyseeapi RegLoadKey
-	PyW32_BEGIN_ALLOW_THREADS
-	rc=RegLoadKey(hKey, subKey, fileName );
-	PyW32_END_ALLOW_THREADS
-	if (rc!=ERROR_SUCCESS)
-		return ReturnAPIError("RegLoadKey", rc);
-	Py_INCREF(Py_None);
-	return Py_None;
+	if (PyWinObject_AsHKEY(obKey, &hKey)
+		&&PyWinObject_AsTCHAR(obsubKey, &subKey, FALSE)
+		&&PyWinObject_AsTCHAR(obfileName, &fileName, FALSE)){
+		// @pyseeapi RegLoadKey
+		PyW32_BEGIN_ALLOW_THREADS
+		rc=RegLoadKey(hKey, subKey, fileName );
+		PyW32_END_ALLOW_THREADS
+		if (rc!=ERROR_SUCCESS)
+			PyWin_SetAPIError("RegLoadKey", rc);
+		else{
+			Py_INCREF(Py_None);
+			ret = Py_None;
+			}
+		}
+	PyWinObject_FreeTCHAR(subKey);
+	PyWinObject_FreeTCHAR(fileName);
+	return ret;
 	// @comm A call to RegLoadKey fails if the calling process does not have the SE_RESTORE_PRIVILEGE privilege.
 	// <nl>If hkey is a handle returned by <om win32api.RegConnectRegistry>, then the path specified in fileName is relative to the remote computer. 
 }
@@ -3424,22 +3608,25 @@ static PyObject *
 PyRegUnLoadKey( PyObject *self, PyObject *args )
 {
 	HKEY hKey;
-	PyObject *obKey;
-	char *subKey;
+	PyObject *obKey, *obsubKey;
+	TCHAR *subKey=NULL;
 
 	long rc;
 	// @pyparm <o PyHKEY>/int|key||An already open key, or any one of the following win32con constants:<nl>HKEY_USERS<nl>HKEY_LOCAL_MACHINE
 	// @pyparm string|subKey||The name of the key to unload.
 	// This key must be a subkey of the key identified by the key parameter.
 	// This value must not be None.
-	if (!PyArg_ParseTuple(args, "Os:RegUnLoadKey", &obKey, &subKey))
+	if (!PyArg_ParseTuple(args, "OO:RegUnLoadKey", &obKey, &obsubKey))
 		return NULL;
 	if (!PyWinObject_AsHKEY(obKey, &hKey))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obsubKey, &subKey, FALSE))
 		return NULL;
 	// @pyseeapi RegUnLoadKey
 	PyW32_BEGIN_ALLOW_THREADS
 	rc=RegUnLoadKey(hKey, subKey);
 	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeTCHAR(subKey);
 	if (rc!=ERROR_SUCCESS)
 		return ReturnAPIError("RegUnLoadKey", rc);
 	Py_INCREF(Py_None);
@@ -3456,9 +3643,8 @@ static PyObject *
 PyRegOpenKey( PyObject *self, PyObject *args )
 {
 	HKEY hKey;
-	PyObject *obKey;
-
-	char *subKey;
+	PyObject *obKey, *obsubKey;
+	TCHAR *subKey=NULL;
 	int res = 0;
 	HKEY retKey;
 	long rc;
@@ -3471,15 +3657,17 @@ PyRegOpenKey( PyObject *self, PyObject *args )
 	// @pyparm int|reserved|0|Reserved.  Must be zero.
 	// @pyparm int|sam|KEY_READ|Specifies an access mask that describes the desired security access for the new key. This parameter can be a combination of the following win32con constants:
 	// <nl>KEY_ALL_ACCESS<nl>KEY_CREATE_LINK<nl>KEY_CREATE_SUB_KEY<nl>KEY_ENUMERATE_SUB_KEYS<nl>KEY_EXECUTE<nl>KEY_NOTIFY<nl>KEY_QUERY_VALUE<nl>KEY_READ<nl>KEY_SET_VALUE<nl>KEY_WRITE<nl>
-	if (!PyArg_ParseTuple(args, "Oz|ii:RegOpenKey", &obKey, &subKey, &res, &sam ))
+	if (!PyArg_ParseTuple(args, "OO|ii:RegOpenKey", &obKey, &obsubKey, &res, &sam ))
 		return NULL;
 	// @pyseeapi RegOpenKeyEx
 	if (!PyWinObject_AsHKEY(obKey, &hKey))
 		return NULL;
-
+	if (!PyWinObject_AsTCHAR(obsubKey, &subKey, TRUE))
+		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
 	rc=RegOpenKeyEx(hKey, subKey, res, sam, &retKey);
 	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeTCHAR(subKey);
 	if (rc!=ERROR_SUCCESS)
 		return ReturnAPIError("RegOpenKeyEx", rc);
 	return PyWinObject_FromHKEY(retKey);
@@ -3626,27 +3814,37 @@ static PyObject *
 PyRegQueryValue( PyObject *self, PyObject *args )
 {
 	HKEY hKey;
-	PyObject *obKey;
-	char *subKey;
+	PyObject *obKey, *obsubKey, *ret=NULL;
+	TCHAR *subKey=NULL;
 
 	long rc;
-	char *retBuf;
+	TCHAR *retBuf=NULL;
 	long bufSize = 0;
 	// @pyparm <o PyHKEY>/int|key||An already open key, or any one of the following win32con constants:<nl>HKEY_CLASSES_ROOT<nl>HKEY_CURRENT_USER<nl>HKEY_LOCAL_MACHINE<nl>HKEY_USERS
 	// @pyparm string|subKey||The name of the subkey with which the value is associated.
 	// If this parameter is None or empty, the function retrieves the value set by the <om win32api.RegSetValue> method for the key identified by key. 
-	if (!PyArg_ParseTuple(args, "Oz:RegQueryValue", &obKey, &subKey))
+	if (!PyArg_ParseTuple(args, "OO:RegQueryValue", &obKey, &obsubKey))
 		return NULL;
 	// @pyseeapi RegQueryValue
 	
-	if (!PyWinObject_AsHKEY(obKey, &hKey))
-		return NULL;
-	if ((rc=RegQueryValue(hKey, subKey, NULL, &bufSize))!=ERROR_SUCCESS)
-		return ReturnAPIError("RegQueryValue", rc);
-	retBuf=(char *)alloca(bufSize);
-	if ((rc=RegQueryValue(hKey, subKey, retBuf, &bufSize))!=ERROR_SUCCESS)
-		return ReturnAPIError("RegQueryValue", rc);
-	return Py_BuildValue("s", retBuf);
+	if (PyWinObject_AsHKEY(obKey, &hKey)
+		&&PyWinObject_AsTCHAR(obsubKey, &subKey, TRUE)){
+		if ((rc=RegQueryValue(hKey, subKey, NULL, &bufSize))!=ERROR_SUCCESS)
+			PyWin_SetAPIError("RegQueryValue", rc);
+		else{
+			retBuf=(TCHAR *)alloca(bufSize);	// Buffer size is bytes, *not* TCHARS
+			if (!retBuf)
+				PyErr_NoMemory();
+			else
+				if ((rc=RegQueryValue(hKey, subKey, retBuf, &bufSize))!=ERROR_SUCCESS)
+					PyWin_SetAPIError("RegQueryValue", rc);
+				else
+					ret = PyWinObject_FromTCHAR(retBuf);
+			}
+		}
+	PyWinObject_FreeTCHAR(subKey);
+	return ret;
+	
 	// @comm Values in the registry have name, type, and data components. This method
 	// retrieves the data for a key's first value that has a NULL name.
 	// But the underlying API call doesn't return the type, Lame Lame Lame, DONT USE THIS!!!
@@ -3657,33 +3855,56 @@ static PyObject *
 PyRegQueryValueEx( PyObject *self, PyObject *args )
 {
 	HKEY hKey;
-	PyObject *obKey;
-	char *valueName;
-
+	PyObject *obKey, *obvalueName, *ret=NULL;
+	TCHAR *valueName=NULL;
 	long rc;
-	char *retBuf;
-	DWORD bufSize = 0;
+	BYTE *retBuf=NULL;
+	DWORD bufSize = 0, requiredSize = 0;
 	DWORD typ;
 
 	// @pyparm <o PyHKEY>/int|key||An already open key, or any one of the following win32con constants:<nl>HKEY_CLASSES_ROOT<nl>HKEY_CURRENT_USER<nl>HKEY_LOCAL_MACHINE<nl>HKEY_USERS
 	// @pyparm string|valueName||The name of the value to query.
-	if (!PyArg_ParseTuple(args, "Oz:RegQueryValueEx", &obKey, &valueName))
+	if (!PyArg_ParseTuple(args, "OO:RegQueryValueEx", &obKey, &obvalueName))
 		return NULL;
 	// @pyseeapi RegQueryValueEx
 	
 	if (!PyWinObject_AsHKEY(obKey, &hKey))
 		return NULL;
-	if ((rc=RegQueryValueEx(hKey, valueName, NULL, NULL, NULL, &bufSize))!=ERROR_SUCCESS)
-		return ReturnAPIError("RegQueryValueEx", rc);
-	retBuf=(char *)alloca(bufSize);
-	if ((rc=RegQueryValueEx(hKey, valueName, NULL, &typ, (BYTE *)retBuf, &bufSize))!=ERROR_SUCCESS)
-		return ReturnAPIError("RegQueryValueEx", rc);
-	PyObject *obData=Reg2Py(retBuf, bufSize, typ);
-	if (obData==NULL)
+	if (!PyWinObject_AsTCHAR(obvalueName, &valueName, TRUE))
 		return NULL;
-	PyObject *result = Py_BuildValue("Oi", obData, typ);
-	Py_DECREF(obData);
-	return result;
+
+	while (true){
+		rc=RegQueryValueEx(hKey, valueName, NULL, &typ, retBuf, &requiredSize);
+		if (rc==ERROR_SUCCESS){
+			if (retBuf!=NULL){	// second call with allocated buffer
+				ret=Py_BuildValue("Ni", PyWinObject_FromRegistryValue(retBuf, requiredSize, typ), typ);
+				break;
+				}
+			}
+		else if (rc==ERROR_MORE_DATA){
+			// HKEY_PERFORMANCE_DATA returns this code, but does not set the buffer size
+			if (retBuf==NULL)
+				bufSize = 8192;	// allocate large buffer to reduce nbr of calls
+			else
+				bufSize *= 2;
+			requiredSize=bufSize;
+			}
+		else{
+			PyWin_SetAPIError("RegQueryValueEx", rc);
+			break;
+			}
+		if (retBuf)
+			free (retBuf);
+		retBuf=(BYTE *)malloc(requiredSize);
+		if (!retBuf){
+			PyErr_NoMemory();
+			break;
+			}
+		}
+	if (retBuf)
+		free(retBuf);
+	PyWinObject_FreeTCHAR(valueName);
+	return ret;
 	// @comm Values in the registry have name, type, and data components. This method
 	// retrieves the data for the given value.
 }
@@ -3726,26 +3947,29 @@ static PyObject *
 PyRegSaveKey( PyObject *self, PyObject *args )
 {
 	HKEY hKey;
-	PyObject *obKey;
+	PyObject *obKey, *obfileName;
 	PyObject *obSA = Py_None;
-	char *fileName;
+	TCHAR *fileName=NULL;
 
 	long rc;
 	// @pyparm <o PyHKEY>/int|key||An already open key, or any one of the following win32con constants:<nl>HKEY_CLASSES_ROOT<nl>HKEY_CURRENT_USER<nl>HKEY_LOCAL_MACHINE<nl>HKEY_USERS
 	// @pyparm string|filename||The name of the file to save registry data to.
 	// This file cannot already exist. If this filename includes an extension, it cannot be used on file allocation table (FAT) file systems by the <om win32api.RegLoadKey>, <om win32api.RegReplaceKey>, or <om win32api.RegRestoreKey> methods. 
 	// @pyparm <o PySECURITY_ATTRIBUTES>|sa|None|The security attributes of the created file.
-	if (!PyArg_ParseTuple(args, "Os|O:RegSaveKey", &obKey, &fileName, &obSA))
+	if (!PyArg_ParseTuple(args, "OO|O:RegSaveKey", &obKey, &obfileName, &obSA))
 		return NULL;
 	if (!PyWinObject_AsHKEY(obKey, &hKey))
 		return NULL;
 	LPSECURITY_ATTRIBUTES pSA;
 	if (!PyWinObject_AsSECURITY_ATTRIBUTES(obSA, &pSA, TRUE))
 		return NULL;
+	if (!PyWinObject_AsTCHAR(obfileName, &fileName, FALSE))
+		return NULL;
 	// @pyseeapi RegSaveKey
 	PyW32_BEGIN_ALLOW_THREADS
 	rc=RegSaveKey(hKey, fileName, pSA );
 	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeTCHAR(fileName);
 	if (rc!=ERROR_SUCCESS)
 		return ReturnAPIError("RegSaveKey", rc);
 	Py_INCREF(Py_None);
@@ -3794,20 +4018,19 @@ static PyObject *
 PyRegSetValue( PyObject *self, PyObject *args )
 {
 	HKEY hKey;
-	PyObject *obKey;
-	char *subKey;
-	char *str;
+	PyObject *obKey, *obsubKey;
+	TCHAR *subKey=NULL;
+	TCHAR *str=NULL;
 	DWORD typ;
 	DWORD len;
 	long rc;
 	PyObject *obStrVal;
-	PyObject *obSubKey;
 	// @pyparm <o PyHKEY>/int|key||An already open key, or any one of the following win32con constants:<nl>HKEY_CLASSES_ROOT<nl>HKEY_CURRENT_USER<nl>HKEY_LOCAL_MACHINE<nl>HKEY_USERS
 	// @pyparm string|subKey||The name of the subkey with which the value is associated.
 	// This parameter can be None or empty, in which case the value will be added to the key identified by the key parameter. 
 	// @pyparm int|type||Type of data. Must be win32con.REG_SZ
 	// @pyparm string|value||The value to associate with the key.
-	if (!PyArg_ParseTuple(args, "OOiO:RegSetValue", &obKey, &obSubKey, &typ, &obStrVal))
+	if (!PyArg_ParseTuple(args, "OOiO:RegSetValue", &obKey, &obsubKey, &typ, &obStrVal))
 		return NULL;
 	if (!PyWinObject_AsHKEY(obKey, &hKey))
 		return NULL;
@@ -3815,19 +4038,20 @@ PyRegSetValue( PyObject *self, PyObject *args )
 		PyErr_SetString(PyExc_TypeError, "Type must be win32con.REG_SZ");
 		return NULL;
 	}
-	if (!PyWinObject_AsString(obStrVal, &str, FALSE, &len))
+	if (!PyWinObject_AsTCHAR(obStrVal, &str, FALSE, &len))
 		return NULL;
-	if (!PyWinObject_AsString(obSubKey, &subKey, TRUE)) {
-		PyWinObject_FreeString(str);
+	if (!PyWinObject_AsTCHAR(obsubKey, &subKey, TRUE)) {
+		PyWinObject_FreeTCHAR(str);
 		return NULL;
 	}
 
 	// @pyseeapi RegSetValue
 	PyW32_BEGIN_ALLOW_THREADS
-	rc=RegSetValue(hKey, subKey, REG_SZ, str, len+1 );
+	// length is in bytes, and doesn't include terminating NULL
+	rc=RegSetValue(hKey, subKey, REG_SZ, str, len * sizeof(TCHAR));
 	PyW32_END_ALLOW_THREADS
-	PyWinObject_FreeString(str);
-	PyWinObject_FreeString(subKey);
+	PyWinObject_FreeTCHAR(str);
+	PyWinObject_FreeTCHAR(subKey);
 	if (rc!=ERROR_SUCCESS)
 		return ReturnAPIError("RegSetValue", rc);
 	Py_INCREF(Py_None);
@@ -3842,11 +4066,11 @@ static PyObject *
 PyRegSetValueEx( PyObject *self, PyObject *args )
 {
 	HKEY hKey;
-	PyObject *obKey;
-	char *valueName;
+	PyObject *obKey, *obvalueName, *ret=NULL;
+	TCHAR *valueName=NULL;
 	PyObject *obRes;
 	PyObject *value;
-	BYTE *data;
+	BYTE *data=NULL;
 	DWORD len;
 	DWORD typ;
 
@@ -3874,22 +4098,23 @@ PyRegSetValueEx( PyObject *self, PyObject *args )
  
 
 	// @pyparm registry data|value||The value to be stored with the specified value name.
-	if (!PyArg_ParseTuple(args, "OzOiO:RegSetValueEx", &obKey, &valueName, &obRes, &typ, &value))
+	if (!PyArg_ParseTuple(args, "OOOiO:RegSetValueEx", &obKey, &obvalueName, &obRes, &typ, &value))
 		return NULL;
 	if (!PyWinObject_AsHKEY(obKey, &hKey))
 		return NULL;
 	// @pyseeapi RegSetValueEx
-	if (!Py2Reg(value, typ, &data, &len))
-	{
-		if (!PyErr_Occurred())
-			PyErr_SetString(PyExc_ValueError, 
-		                	"Could not convert the data to the specified type.");
+	if (!PyWinObject_AsRegistryValue(value, typ, &data, &len))
 		return NULL;
-	}
+	if (!PyWinObject_AsTCHAR(obvalueName, &valueName, TRUE)){
+		PyWinObject_FreeRegistryValue(typ, data);
+		return NULL;
+		}
+
 	PyW32_BEGIN_ALLOW_THREADS
 	rc=RegSetValueEx(hKey, valueName, NULL, typ, data, len );
 	PyW32_END_ALLOW_THREADS
-	PyMem_Free((char *)data);
+	PyWinObject_FreeRegistryValue(typ, data);
+	PyWinObject_FreeTCHAR(valueName);	
 	if (rc!=ERROR_SUCCESS)
 		return ReturnAPIError("RegSetValueEx", rc);
 	Py_INCREF(Py_None);
@@ -3913,7 +4138,7 @@ static PyObject *PyRegSetKeySecurity(PyObject *self, PyObject *args)
 	PSECURITY_DESCRIPTOR psd;
 	if (!PyArg_ParseTuple(args, "OlO:RegSetKeySecurity", 
 		&obKey, // @pyparm <o PyHKEY>/int|key||Handle to an open key for which the security descriptor is set.
-		&si, //@pyparm int|security_info||] Specifies the components of the security descriptor to set. The value can be a combination of the *_SECURITY_INFORMATION constants.
+		&si, //@pyparm int|security_info||Specifies the components of the security descriptor to set. The value can be a combination of the *_SECURITY_INFORMATION constants.
 		&obSD)) // @pyparm <o PySECURITY_DESCRIPTOR>|sd||The new security descriptor for the key
 		return NULL;
 	if (!PyWinObject_AsHKEY(obKey, &hKey))
@@ -3971,19 +4196,23 @@ static PyObject *PyRegGetKeySecurity(PyObject *self, PyObject *args)
 static PyObject *
 PyRegisterWindowMessage( PyObject *self, PyObject *args )
 {
-	char *msgString;
+	TCHAR *msgString;
+	PyObject *obmsgString;
 	UINT msgID;
 
 	// @pyparm string|msgString||The name of the message to register.
 	// All applications that register this message string will get the same message.
 	// ID back.  It will be unique in the system and suitable for applications to 
 	// use to exchange messages.
-	if (!PyArg_ParseTuple(args, "s:RegisterWindowMessage", &msgString))
+	if (!PyArg_ParseTuple(args, "O:RegisterWindowMessage", &obmsgString))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obmsgString, &msgString, FALSE))
 		return NULL;
 	// @pyseeapi RegisterWindowMessage
 	PyW32_BEGIN_ALLOW_THREADS
 	msgID=RegisterWindowMessage(msgString);
 	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeTCHAR(msgString);
 	if (msgID==0)
 		return ReturnAPIError("RegisterWindowMessage", msgID);
 	return Py_BuildValue("i",msgID);
@@ -3999,24 +4228,36 @@ PyRegisterWindowMessage( PyObject *self, PyObject *args )
 static PyObject *
 PySearchPath (PyObject *self, PyObject *args)
 {
-	char *szPath, *szFileName, *szExt = NULL;
-	char retBuf[512], *szBase;
+	TCHAR *szPath=NULL, *szFileName=NULL, *szExt = NULL;
+	PyObject *obPath, *obFileName, *obExt=Py_None, *ret=NULL;
+	TCHAR retBuf[512], *szBase;
 	// @pyparm string|path||The path to search.  If None, searches the standard paths.
 	// @pyparm string|fileName||The name of the file to search for.
 	// @pyparm string|fileExt|None|specifies an extension to be added to the filename when searching for the file.
 	// The first character of the filename extension must be a period (.).
 	// The extension is added only if the specified filename does not end with an extension.
 	// If a filename extension is not required or if the filename contains an extension, this parameter can be None.
-	if (!PyArg_ParseTuple (args, "zs|z:SearchPath", &szPath, &szFileName, &szExt))
+	if (!PyArg_ParseTuple (args, "OO|O:SearchPath", &obPath, &obFileName, &obExt))
 		return NULL;
-	DWORD rc;
-	PyW32_BEGIN_ALLOW_THREADS
-	// @pyseeapi SearchPath
-	rc = ::SearchPath(szPath, szFileName, szExt, sizeof(retBuf), retBuf, &szBase );
-	PyW32_END_ALLOW_THREADS
-	if (rc==0)
-		return ReturnAPIError("SearchPath");
-	return Py_BuildValue("si", retBuf, (szBase-retBuf) );
+	if (PyWinObject_AsTCHAR(obPath, &szPath, TRUE)
+		&&PyWinObject_AsTCHAR(obFileName, &szFileName, FALSE)
+		&&PyWinObject_AsTCHAR(obExt, &szExt, TRUE)){
+		DWORD rc;
+		PyW32_BEGIN_ALLOW_THREADS
+		// @pyseeapi SearchPath
+		rc = ::SearchPath(szPath, szFileName, szExt, sizeof(retBuf)/sizeof(retBuf[0]), retBuf, &szBase );
+		PyW32_END_ALLOW_THREADS
+		if (rc==0)
+			PyWin_SetAPIError("SearchPath");
+		else
+			ret=Py_BuildValue("NN", 
+				PyWinObject_FromTCHAR(retBuf),
+				PyWinLong_FromVoidPtr((void *)(szBase-retBuf)));
+		}
+	PyWinObject_FreeTCHAR(szPath);
+	PyWinObject_FreeTCHAR(szFileName);
+	PyWinObject_FreeTCHAR(szExt);
+	return ret;
 	// @rdesc The return value is a tuple of (string, int).  string is the full
 	// path name located.  int is the offset in the string of the base name
 	// of the file.
@@ -4053,14 +4294,18 @@ PyObject *PySendMessage(PyObject *self, PyObject *args)
 static PyObject *
 PySetConsoleTitle( PyObject *self, PyObject *args )
 {
-	char *title;
+	TCHAR *title;
+	PyObject *obtitle;
 	// @pyparm string|title||The new title
-	if (!PyArg_ParseTuple(args, "s:SetConsoleTitle", &title))
+	if (!PyArg_ParseTuple(args, "O:SetConsoleTitle", &obtitle))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obtitle, &title, FALSE))
 		return NULL;
 	// @pyseeapi SetConsoleTitle
 	PyW32_BEGIN_ALLOW_THREADS
 	BOOL ok = ::SetConsoleTitle(title);
 	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeTCHAR(title);
 	if (!ok)
 		return ReturnAPIError("SetConsoleTitle");
 	Py_INCREF(Py_None);
@@ -4129,28 +4374,42 @@ PyShellExecute( PyObject *self, PyObject *args )
 {
 	HWND hwnd;
 	PyObject *obhwnd;
-	char *op, *file, *params, *dir;
+	TCHAR *op=NULL, *file=NULL, *params=NULL, *dir=NULL;
+	PyObject *obop, *obfile, *obparams, *obdir, *ret=NULL;
 	int show;
-	if (!PyArg_ParseTuple(args, "Ozszzi:ShellExecute", 
+	BOOL bfreedir=TRUE;
+	if (!PyArg_ParseTuple(args, "OOOOOi:ShellExecute", 
 		      &obhwnd, // @pyparm <o PyHANDLE>|hwnd||The handle of the parent window, or 0 for no parent.  This window receives any message boxes an application produces (for example, for error reporting).
-		      &op,   // @pyparm string|op||The operation to perform.  May be "open", "print", or None, which defaults to "open".
-		      &file, // @pyparm string|file||The name of the file to open.
-		      &params,// @pyparm string|params||The parameters to pass, if the file name contains an executable.  Should be None for a document file.
-		      &dir,  // @pyparm string|dir||The initial directory for the application.
+		      &obop,   // @pyparm string|op||The operation to perform.  May be "open", "print", or None, which defaults to "open".
+		      &obfile, // @pyparm string|file||The name of the file to open.
+		      &obparams,// @pyparm string|params||The parameters to pass, if the file name contains an executable.  Should be None for a document file.
+		      &obdir,  // @pyparm string|dir||The initial directory for the application.
 		      &show))// @pyparm int|bShow||Specifies whether the application is shown when it is opened. If the lpszFile parameter specifies a document file, this parameter is zero.
 		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
-		return NULL;
-	if (dir==NULL)
-		dir="";
-	PyW32_BEGIN_ALLOW_THREADS
-	HINSTANCE rc=::ShellExecute(hwnd, op, file, params, dir, show);
-	PyW32_END_ALLOW_THREADS
-	// @pyseeapi ShellExecute
-	if (rc <= (HINSTANCE)32) {
-		return ReturnAPIError("ShellExecute", (int)rc );
-	}
-	return PyWinLong_FromVoidPtr(rc);
+	if (PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd)
+		&&PyWinObject_AsTCHAR(obop, &op, TRUE)
+		&&PyWinObject_AsTCHAR(obfile, &file, FALSE)
+		&&PyWinObject_AsTCHAR(obparams, &params, TRUE)
+		&&PyWinObject_AsTCHAR(obdir, &dir, TRUE)){
+		if (dir==NULL){
+			dir=TEXT("");
+			bfreedir=FALSE;
+			}
+		PyW32_BEGIN_ALLOW_THREADS
+		HINSTANCE rc=::ShellExecute(hwnd, op, file, params, dir, show);
+		PyW32_END_ALLOW_THREADS
+		// @pyseeapi ShellExecute
+		if (rc <= (HINSTANCE)32)
+			PyWin_SetAPIError("ShellExecute", (int)rc );
+		else
+			ret = PyWinLong_FromVoidPtr(rc);
+		}
+	PyWinObject_FreeTCHAR(op);
+	PyWinObject_FreeTCHAR(file);
+	PyWinObject_FreeTCHAR(params);
+	if (bfreedir)
+		PyWinObject_FreeTCHAR(dir);
+	return ret;
 	// @rdesc The instance handle of the application that was run. (This handle could also be the handle of a dynamic data exchange [DDE] server application.)
 	// If there is an error, the method raises an exception.
 }
@@ -4198,13 +4457,13 @@ PyWinHelp( PyObject *self, PyObject *args )
 {
 	HWND hwnd;
 	PyObject *obhwnd;
-	char *hlpFile;
+	TCHAR *hlpFile;
 	UINT cmd;
-	PyObject *dataOb = Py_None;
+	PyObject *dataOb = Py_None, *obhlpFile;
 	ULONG_PTR data;
-	if (!PyArg_ParseTuple(args, "Osi|O:WinHelp",
+	if (!PyArg_ParseTuple(args, "OOi|O:WinHelp",
 		      &obhwnd,   // @pyparm int|hwnd||The handle of the window requesting help.
-			  &hlpFile,// @pyparm string|hlpFile||The name of the help file.
+			  &obhlpFile,// @pyparm string|hlpFile||The name of the help file.
 			  &cmd,    // @pyparm int|cmd||The type of help.  See the api for full details.
 			  &dataOb))   // @pyparm int/string|data|0|Additional data specific to the help call.
 		return NULL;
@@ -4217,10 +4476,12 @@ PyWinHelp( PyObject *self, PyObject *args )
 	else
 		if (!PyWinLong_AsVoidPtr(dataOb, (void **)&data))
 			return NULL;
-		
+	if (!PyWinObject_AsTCHAR(obhlpFile, &hlpFile, FALSE))
+		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
 	BOOL ok = ::WinHelp(hwnd, hlpFile, cmd, data);
 	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeTCHAR(hlpFile);
 	if (!ok) // @pyseeapi WinHelp
 		return ReturnAPIError("WinHelp");
 	Py_INCREF(Py_None);
@@ -4230,46 +4491,67 @@ PyWinHelp( PyObject *self, PyObject *args )
 
 
 // @pymethod |win32api|WriteProfileVal|Writes a value to a Windows INI file.
+// @comm This function is obsolete, applications should use the registry instead.
 static PyObject *
 PyWriteProfileVal(PyObject *self, PyObject *args)
 {
-	char *sect, *entry, *strVal, *iniFile=NULL;
+	TCHAR *sect=NULL, *entry=NULL, *strVal=NULL, *iniFile=NULL;
+	PyObject *obsect, *obentry, *obVal, *obiniFile=Py_None, *ret=NULL;
 	int intVal;
 	BOOL bHaveInt = TRUE;
 
-	if (!PyArg_ParseTuple(args, "ssi|s:WriteProfileVal", 
-	          &sect,  // @pyparm string|section||The section in the INI file to write to.
-	          &entry, // @pyparm string|entry||The entry within the section in the INI file to write to.
-	          &intVal, // @pyparm int/string|value||The value to write.
-	          &iniFile)) { // @pyparm string|iniName|None|The name of the INI file.  If None, the system INI file is used.
-		bHaveInt = FALSE;
+	if (!PyArg_ParseTuple(args, "OOO|O:WriteProfileVal", 
+		&obsect,		// @pyparm string|section||The section in the INI file to write to.
+		&obentry,		// @pyparm string|entry||The entry within the section in the INI file to write to.
+		&obVal,			// @pyparm int/string|value||The value to write.
+		&obiniFile))	// @pyparm string|iniName|None|The name of the INI file.  If None, the system INI file is used.
+		return NULL;
+	intVal=PyInt_AsLong(obVal);
+	if (intVal==-1 && PyErr_Occurred()){
 		PyErr_Clear();
-		if (!PyArg_ParseTuple(args, "ssz|s", &sect, &entry, &strVal, &iniFile)) {
+		bHaveInt = FALSE;
+		if (!PyWinObject_AsTCHAR(obVal, &strVal, TRUE)){
 			PyErr_Clear();
-			PyErr_SetString(PyExc_TypeError, "WriteProfileVal must have format (ssi|s) or (ssz|s)");
+			PyErr_SetString(PyExc_TypeError, "Value must be a string or int");
 			return NULL;
+			}
 		}
-	}
-	BOOL rc;
-	char intBuf[20];
-	if (bHaveInt) {
-		itoa( intVal, intBuf, 10 );
-		strVal = intBuf;
-	}
+	if (PyWinObject_AsTCHAR(obsect, &sect, FALSE)
+		&&PyWinObject_AsTCHAR(obentry, &entry, FALSE)
+		&&PyWinObject_AsTCHAR(obiniFile, &iniFile, TRUE)){
+		BOOL rc;
+		TCHAR intBuf[35];
+		if (bHaveInt) {
+			// Doesn't appear to be a TCHAR version of this routine
+			#ifdef UNICODE
+				_itow( intVal, intBuf, 10 );
+			#else
+				_itoa( intVal, intBuf, 10 );
+			#endif
+			strVal = intBuf;
+			}
+		// @pyseeapi WritePrivateProfileString
+		// @pyseeapi WriteProfileString
+		PyW32_BEGIN_ALLOW_THREADS
+		if (iniFile)
+			rc = ::WritePrivateProfileString( sect, entry, strVal, iniFile );
+		else
+			rc = ::WriteProfileString( sect, entry, strVal );
+		PyW32_END_ALLOW_THREADS
+		if (!rc)
+			PyWin_SetAPIError("Write[Private]ProfileString");
+		else{
+			Py_INCREF(Py_None);
+			return Py_None;
+			}
+		}
 
-	// @pyseeapi WritePrivateProfileString
-	// @pyseeapi WriteProfileString
-	PyW32_BEGIN_ALLOW_THREADS
-	if (iniFile)
-		rc = ::WritePrivateProfileString( sect, entry, strVal, iniFile );
-	else
-		rc = ::WriteProfileString( sect, entry, strVal );
-	PyW32_END_ALLOW_THREADS
-
-	if (!rc)
-		return ReturnAPIError("Write[Private]ProfileString");
-	Py_INCREF(Py_None);
-	return Py_None;
+	PyWinObject_FreeTCHAR(sect);
+	PyWinObject_FreeTCHAR(entry);
+	if (!bHaveInt)
+		PyWinObject_FreeTCHAR(strVal);
+	PyWinObject_FreeTCHAR(iniFile);
+	return ret;
 }
 
 // @pymethod int|win32api|MessageBeep|Plays a predefined waveform sound.
@@ -4297,11 +4579,11 @@ PyMessageBeep(PyObject *self, PyObject *args)
 static PyObject *
 PyMessageBox(PyObject * self, PyObject * args)
 {
-  char *message;
+  TCHAR *message=NULL;
   long style = MB_OK;
-  const char *title = NULL;
+  TCHAR *title = NULL;
   HWND hwnd = NULL;
-  PyObject *obhwnd;
+  PyObject *obhwnd, *obmessage, *obtitle=Py_None, *ret=NULL;
   WORD langId = MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT);
   // @pyparm <o PyHANDLE>|hwnd||The handle of the parent window.  See the comments section.
   // @pyparm string|message||The message to be displayed in the message box.
@@ -4311,15 +4593,19 @@ PyMessageBox(PyObject * self, PyObject * args)
 
   // @comm Normally, a program in a GUI environment will use one of the MessageBox
   // methods supplied by the GUI (eg, <om win32ui.MessageBox> or <om PyCWnd.MessageBox>)
-  if (!PyArg_ParseTuple(args, "Os|zli:MessageBox(Ex)", &obhwnd, &message, &title, &style, &langId))
-    return NULL;
-  if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
+	if (!PyArg_ParseTuple(args, "OO|Oli:MessageBox(Ex)", &obhwnd, &obmessage, &obtitle, &style, &langId))
 		return NULL;
-
-  PyW32_BEGIN_ALLOW_THREADS
-  int rc = ::MessageBoxEx(hwnd, message, title, style, langId);
-  PyW32_END_ALLOW_THREADS
-  return Py_BuildValue("i",rc);
+	if (PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd)
+		&&PyWinObject_AsTCHAR(obmessage, &message, FALSE)
+		&&PyWinObject_AsTCHAR(obtitle, &title, TRUE)){
+		PyW32_BEGIN_ALLOW_THREADS
+		int rc = ::MessageBoxEx(hwnd, message, title, style, langId);
+		PyW32_END_ALLOW_THREADS
+		ret = Py_BuildValue("i",rc);
+		}
+	PyWinObject_FreeTCHAR(message);
+	PyWinObject_FreeTCHAR(title);
+	return ret;
   // @rdesc An integer identifying the button pressed to dismiss the dialog.
 }
 
@@ -4328,15 +4614,19 @@ PyMessageBox(PyObject * self, PyObject * args)
 static PyObject *
 PySetFileAttributes(PyObject * self, PyObject * args)
 {
-	char *pathName;
+	TCHAR *pathName;
+	PyObject *obpathName;
 	int attrs;
 	// @pyparm string|pathName||The name of the file.
 	// @pyparm int|attrs||The attributes to set.  Must be a combination of the win32con.FILE_ATTRIBUTE_* constants.
-	if (!PyArg_ParseTuple(args, "si:SetFileAttributes", &pathName, &attrs))
+	if (!PyArg_ParseTuple(args, "Oi:SetFileAttributes", &obpathName, &attrs))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obpathName, &pathName, FALSE))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
 	BOOL ok = SetFileAttributes(pathName, attrs);
 	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeTCHAR(pathName);
 	if (!ok)
 		return ReturnAPIError("SetFileAttributes");
 	Py_INCREF(Py_None);
@@ -4680,13 +4970,17 @@ PyGetThreadLocale(PyObject *self, PyObject *args)
 static PyObject *
 PyOutputDebugString(PyObject *self, PyObject *args)
 {
-	char *msg;
+	TCHAR *msg;
+	PyObject *obmsg;
 	// @pyparm string|msg||The string to write.
-	if (!PyArg_ParseTuple(args, "s:OutputDebugString", &msg))
+	if (!PyArg_ParseTuple(args, "O:OutputDebugString", &obmsg))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obmsg, &msg, FALSE))
 		return NULL;
 	PyW32_BEGIN_ALLOW_THREADS
 	OutputDebugString(msg);
 	PyW32_END_ALLOW_THREADS;
+	PyWinObject_FreeTCHAR(msg);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -4812,16 +5106,19 @@ static PyObject * PyLoadResource(PyObject *self, PyObject *args)
 // @pymethod <o PyHANDLE>|win32api|BeginUpdateResource|Begins an update cycle for a PE file.
 static PyObject * PyBeginUpdateResource(PyObject *self, PyObject *args)
 {
-	const char *szFileName;
+	TCHAR *szFileName;
+	PyObject *obFileName;
 	int bDeleteExistingResources;
 
-	if ( !PyArg_ParseTuple(args, "si:BeginUpdateResource",
-						   &szFileName, // @pyparm string|filename||File in which to update resources.
+	if ( !PyArg_ParseTuple(args, "Oi:BeginUpdateResource",
+						   &obFileName, // @pyparm string|filename||File in which to update resources.
 						   &bDeleteExistingResources // @pyparm int|delete||Flag to indicate that all existing resources should be deleted.
 		) )
 		return NULL;
-
+	if (!PyWinObject_AsTCHAR(obFileName, &szFileName, FALSE))
+		return NULL;
 	HANDLE h = BeginUpdateResource(szFileName, bDeleteExistingResources);
+	PyWinObject_FreeTCHAR(szFileName);
 	if ( h == NULL )
 		return ReturnAPIError("BeginUpdateResource");
 
@@ -4888,13 +5185,13 @@ static PyObject * PyEndUpdateResource(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-BOOL CALLBACK EnumResProc(HMODULE module, LPCSTR type, LPSTR name, PyObject *ret)
+BOOL CALLBACK EnumResProc(HMODULE module, LPTSTR type, LPTSTR name, PyObject *ret)
 {
 	PyObject *obname;
 	if (IS_INTRESOURCE(name))
 		obname=PyWinLong_FromVoidPtr(name);
 	else
-		obname=PyString_FromString(name);
+		obname=PyWinObject_FromTCHAR(name);
 	if ((obname==NULL) || (PyList_Append(ret, obname)==-1)){
 		Py_XDECREF(obname);
 		return FALSE;
@@ -4908,7 +5205,7 @@ PyObject *PyEnumResourceNames(PyObject *, PyObject *args)
 {
 	HMODULE hmodule;
 	PyObject *obhmodule, *obrestype;
-	char *restype=NULL;
+	TCHAR *restype=NULL;
 	// @pyparm <o PyHANDLE>|hmodule||The handle to the module to enumerate.
 	// @pyparm <o PyResourceId>|resType||The type of resource to enumerate. (win32con.RT_*).
 	//	If passed as a string, form is '#' sign followed by decimal number. eg RT_ANICURSOR would be '#21'
@@ -5039,22 +5336,7 @@ PyObject *PyEnumResourceLanguages(PyObject *self, PyObject *args)
 // @pymethod <o PyUnicode>|win32api|Unicode|Creates a new Unicode object
 PYWINTYPES_EXPORT PyObject *PyWin_NewUnicode(PyObject *self, PyObject *args);
 
-/****** Now uses pywintypes version!
-static PyObject *Py_Unicode(PyObject *self, PyObject *args)
-{
-	PyObject *obString;
-	// @pyparm string|str||The string to convert.
-	if (!PyArg_ParseTuple(args, "O", &obString))
-		return NULL;
 
-	PyUnicode *result = new PyUnicode(obString);
-	if ( result->m_bstrValue )
-		return result;
-	Py_DECREF(result);
-	// an error should have been raised 
-	return NULL;
-}
-*****/
 ///////////////////
 //
 // Win32 Exception Handler.
@@ -5523,12 +5805,15 @@ PyObject *PyGetKeyboardLayoutList(PyObject *self, PyObject *args)
 // @rdesc Returns the numeric locale id that was loaded
 PyObject *PyLoadKeyboardLayout(PyObject *self, PyObject *args)
 {	
-	char *lcid_str;
+	TCHAR *lcid_str;
+	PyObject *oblcid_str;
 	HKL lcid;
 	UINT flags=0;
-	if (!PyArg_ParseTuple(args, "s|k:LoadKeyboardLayout",
-		&lcid_str,		// @pyparm string|KLID||Hex string containing a locale id, eg "00000409"
+	if (!PyArg_ParseTuple(args, "O|k:LoadKeyboardLayout",
+		&oblcid_str,	// @pyparm string|KLID||Hex string containing a locale id, eg "00000409"
 		&flags))		// @pyparm int|Flags|0|Combination of win32con.KLF_* constants
+		return NULL;
+	if (!PyWinObject_AsTCHAR(oblcid_str, &lcid_str, FALSE))
 		return NULL;
 	lcid=LoadKeyboardLayout(lcid_str, flags);
 	if (lcid==NULL)
@@ -5620,7 +5905,12 @@ static struct PyMethodDef win32api_functions[] = {
 	{"FindNextChangeNotification", PyFindNextChangeNotification, 1}, // @pymeth FindNextChangeNotification|Requests that the operating system signal a change notification handle the next time it detects an appropriate change.
 	{"FindCloseChangeNotification", PyFindCloseChangeNotification, 1}, // @pymeth FindCloseChangeNotification|Closes the change notification handle.
 	{"FindExecutable",		PyFindExecutable,   1}, // @pymeth FindExecutable|Find an executable associated with a document.
-	{"FormatMessage",		PyFormatMessage,    1}, // @pymeth FormatMessage|Return an error message string.
+	// @pymeth FormatMessage|Return an error message string.
+#ifdef UNICODE
+	{"FormatMessage",		PyFormatMessageW,    1},
+#else
+	{"FormatMessage",		PyFormatMessageA,    1},
+#endif
 	{"FormatMessageW",		PyFormatMessageW,    1}, // @pymeth FormatMessageW|Return an error message string (as a Unicode object).
 	{"FreeLibrary",			PyFreeLibrary,1},       // @pymeth FreeLibrary|Decrements the reference count of the loaded dynamic-link library (DLL) module.
 #ifndef DONT_HAVE_GENERATE_CONSOLE_CTRL_EVENT
@@ -5657,11 +5947,21 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetKeyState",			PyGetKeyState,      1}, // @pymeth GetKeyState|Retrives the last known key state for a key.
 	{"GetLastError",		PyGetLastError,     1}, // @pymeth GetLastError|Retrieves the last error code known by the system.
 	{"GetLocalTime",         PyGetLocalTime,      1},  // @pymeth GetLocalTime|Returns the current local time.
-	{"GetLongPathName",     PyGetLongPathNameA, 1}, // @pymeth GetLongPathName|Converts the specified path to its long form.
+	// @pymeth GetLongPathName|Converts the specified path to its long form.
+#ifdef UNICODE
+	{"GetLongPathName",     PyGetLongPathNameW, 1}, 
+#else
+	{"GetLongPathName",     PyGetLongPathNameA, 1}, 
+#endif
 	{"GetLongPathNameW",    PyGetLongPathNameW, 1}, // @pymeth GetLongPathNameW|Converts the specified path to its long form.
 	{"GetLogicalDrives",	PyGetLogicalDrives,     1}, // @pymeth GetLogicalDrives|Returns a bitmask representing the currently available disk drives.
 	{"GetLogicalDriveStrings",	PyGetLogicalDriveStrings,     1}, // @pymeth GetLogicalDriveStrings|Returns a list of strings for all the drives.
-	{"GetModuleFileName",	PyGetModuleFileName,1}, // @pymeth GetModuleFileName|Retrieves the filename of the specified module.
+	// @pymeth GetModuleFileName|Retrieves the filename of the specified module.
+#ifdef UNICODE
+	{"GetModuleFileName",	PyGetModuleFileNameW,1}, 
+#else
+	{"GetModuleFileName",	PyGetModuleFileName,1}, 
+#endif
 	{"GetModuleFileNameW",	PyGetModuleFileNameW,1}, // @pymeth GetModuleFileNameW|Retrieves the unicode filename of the specified module.
 	{"GetModuleHandle",     PyGetModuleHandle,1},   // @pymeth GetModuleHandle|Returns the handle of an already loaded DLL.
 	{"GetProfileSection",	PyGetProfileSection,1}, // @pymeth GetProfileSection|Returns a list of entries in an INI file.
@@ -5725,7 +6025,12 @@ static struct PyMethodDef win32api_functions[] = {
 	{"RegDeleteTree",		(PyCFunction)PyRegDeleteTree, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegDeleteTree|Recursively deletes a key's subkeys and values
 	{"RegDeleteValue",      PyRegDeleteValue, 1}, // @pymeth RegDeleteValue|Removes a named value from the specified registry key.
 	{"RegEnumKey",          PyRegEnumKey, 1}, // @pymeth RegEnumKey|Enumerates subkeys of the specified open registry key.
-	{"RegEnumKeyEx",        PyRegEnumKeyEx, 1}, // @pymeth RegEnumKeyEx|Enumerates subkeys of the specified open registry key.
+	// @pymeth RegEnumKeyEx|Enumerates subkeys of the specified open registry key.
+#ifdef UNICODE
+	{"RegEnumKeyEx",        PyRegEnumKeyExW, 1}, 
+#else
+	{"RegEnumKeyEx",        PyRegEnumKeyEx, 1}, 
+#endif
 	{"RegEnumKeyExW",       PyRegEnumKeyExW, 1}, // @pymeth RegEnumKeyExW|Unicode version of RegEnumKeyEx
 	{"RegEnumValue",        PyRegEnumValue, 1}, // @pymeth RegEnumValue|Enumerates values of the specified open registry key.
 	{"RegFlushKey",	        PyRegFlushKey, 1}, // @pymeth RegFlushKey|Writes all the attributes of the specified key to the registry.
@@ -5859,17 +6164,17 @@ initwin32api(void)
   PyModule_AddIntConstant(module, "VS_FF_PRIVATEBUILD",VS_FF_PRIVATEBUILD);
   PyModule_AddIntConstant(module, "VS_FF_SPECIALBUILD",VS_FF_SPECIALBUILD);
 
-  HMODULE hmodule = GetModuleHandle("secur32.dll");
+  HMODULE hmodule = GetModuleHandle(TEXT("secur32.dll"));
   if (hmodule==NULL)
-    hmodule=LoadLibrary("secur32.dll");
+    hmodule=LoadLibrary(TEXT("secur32.dll"));
   if (hmodule!=NULL){
     pfnGetUserNameEx=(GetUserNameExfunc)GetProcAddress(hmodule,"GetUserNameExW");
     pfnGetComputerObjectName=(GetUserNameExfunc)GetProcAddress(hmodule,"GetComputerObjectNameW");
   }
 
-  hmodule = GetModuleHandle("kernel32.dll");
+  hmodule = GetModuleHandle(TEXT("kernel32.dll"));
   if (hmodule==NULL)
-	  hmodule=LoadLibrary("kernel32.dll");
+	  hmodule=LoadLibrary(TEXT("kernel32.dll"));
   if (hmodule!=NULL){
     pfnGetComputerNameEx=(GetComputerNameExfunc)GetProcAddress(hmodule,"GetComputerNameExW");
     pfnGetLongPathNameA=(GetLongPathNameAfunc)GetProcAddress(hmodule,"GetLongPathNameA");
@@ -5883,23 +6188,23 @@ initwin32api(void)
 	pfnSetDllDirectory=(SetDllDirectoryfunc)GetProcAddress(hmodule,"SetDllDirectoryW");
   }
 
-  hmodule = GetModuleHandle("user32.dll");
+  hmodule = GetModuleHandle(TEXT("user32.dll"));
   if (hmodule==NULL)
-    hmodule=LoadLibrary("user32.dll");
+    hmodule=LoadLibrary(TEXT("user32.dll"));
   if (hmodule!=NULL){
 	pfnEnumDisplayMonitors=(EnumDisplayMonitorsfunc)GetProcAddress(hmodule, "EnumDisplayMonitors");
-	pfnEnumDisplayDevices=(EnumDisplayDevicesfunc)GetProcAddress(hmodule, "EnumDisplayDevicesA");
-	pfnChangeDisplaySettingsEx=(ChangeDisplaySettingsExfunc)GetProcAddress(hmodule,"ChangeDisplaySettingsExA");
+	pfnEnumDisplayDevices=(EnumDisplayDevicesfunc)GetProcAddress(hmodule, "EnumDisplayDevices" A_OR_W);
+	pfnChangeDisplaySettingsEx=(ChangeDisplaySettingsExfunc)GetProcAddress(hmodule, "ChangeDisplaySettingsEx" A_OR_W);
 	pfnMonitorFromWindow=(MonitorFromWindowfunc)GetProcAddress(hmodule,"MonitorFromWindow");
 	pfnMonitorFromRect=(MonitorFromRectfunc)GetProcAddress(hmodule,"MonitorFromRect");
 	pfnMonitorFromPoint=(MonitorFromPointfunc)GetProcAddress(hmodule,"MonitorFromPoint");
-	pfnGetMonitorInfo=(GetMonitorInfofunc)GetProcAddress(hmodule,"GetMonitorInfoA");
-	pfnEnumDisplaySettingsEx=(EnumDisplaySettingsExfunc)GetProcAddress(hmodule,"EnumDisplaySettingsExA");
+	pfnGetMonitorInfo=(GetMonitorInfofunc)GetProcAddress(hmodule, "GetMonitorInfo" A_OR_W);
+	pfnEnumDisplaySettingsEx=(EnumDisplaySettingsExfunc)GetProcAddress(hmodule, "EnumDisplaySettingsEx" A_OR_W);
   }
 
-  hmodule = GetModuleHandle("Advapi32.dll");
+  hmodule = GetModuleHandle(TEXT("Advapi32.dll"));
   if (hmodule==NULL)
-    hmodule=LoadLibrary("Advapi32.dll");
+    hmodule=LoadLibrary(TEXT("Advapi32.dll"));
   if (hmodule!=NULL){
 	pfnRegRestoreKey=(RegRestoreKeyfunc)GetProcAddress(hmodule, "RegRestoreKeyW");
 	pfnRegSaveKeyEx=(RegSaveKeyExfunc)GetProcAddress(hmodule, "RegSaveKeyExW");

@@ -12,6 +12,8 @@
 %endif
 
 %{
+// #define UNICODE
+// #define _UNICODE // for CRT string functions
 #define _WIN32_IE 0x0501 // to enable balloon notifications in Shell_NotifyIcon
 #define _WIN32_WINNT 0x0501
 #ifdef WINXPGUI
@@ -246,9 +248,9 @@ for (PyMethodDef *pmd = win32guiMethods; pmd->ml_name; pmd++)
 		)
 		pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 
-HMODULE hmodule=GetModuleHandle("user32.dll");
+HMODULE hmodule=GetModuleHandle(TEXT("user32.dll"));
 if (hmodule==NULL)
-	hmodule=LoadLibrary("user32.dll");
+	hmodule=LoadLibrary(TEXT("user32.dll"));
 if (hmodule){
 	pfnSetLayeredWindowAttributes=(SetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"SetLayeredWindowAttributes");
 	pfnGetLayeredWindowAttributes=(GetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"GetLayeredWindowAttributes");
@@ -259,9 +261,9 @@ if (hmodule){
 	pfnDrawTextW=(DrawTextWfunc)GetProcAddress(hmodule, "DrawTextW");
 	}
 
-hmodule=GetModuleHandle("gdi32.dll");
+hmodule=GetModuleHandle(TEXT("gdi32.dll"));
 if (hmodule==NULL)
-	hmodule=LoadLibrary("gdi32.dll");
+	hmodule=LoadLibrary(TEXT("gdi32.dll"));
 if (hmodule){
 	pfnAngleArc=(AngleArcfunc)GetProcAddress(hmodule,"AngleArc");
 	pfnPlgBlt=(PlgBltfunc)GetProcAddress(hmodule,"PlgBlt");
@@ -274,9 +276,9 @@ if (hmodule){
 	pfnSetLayout=(SetLayoutfunc)GetProcAddress(hmodule,"SetLayout");
 	}
 
-hmodule=GetModuleHandle("msimg32.dll");
+hmodule=GetModuleHandle(TEXT("msimg32.dll"));
 if (hmodule==NULL)
-	hmodule=LoadLibrary("msimg32.dll");
+	hmodule=LoadLibrary(TEXT("msimg32.dll"));
 if (hmodule){
 	pfnGradientFill=(GradientFillfunc)GetProcAddress(hmodule,"GradientFill");
 	pfnTransparentBlt=(TransparentBltfunc)GetProcAddress(hmodule,"TransparentBlt");
@@ -529,14 +531,13 @@ typedef int UINT;
 
 %typemap(python,argout) PAINTSTRUCT *OUTPUT {
     PyObject *o;
-    o = Py_BuildValue("(Nl(iiii)lls#)",
+    o = Py_BuildValue("(Nl(iiii)llN)",
                 PyWinLong_FromHANDLE($source->hdc),
                 $source->fErase,
                 $source->rcPaint.left, $source->rcPaint.top, $source->rcPaint.right, $source->rcPaint.bottom,
                 $source->fRestore,
                 $source->fIncUpdate,
-                (char *)$source->rgbReserved,
-                sizeof($source->rgbReserved));
+                PyString_FromStringAndSize((char *)$source->rgbReserved,sizeof($source->rgbReserved)));
     if (!$target) {
       $target = o;
     } else if ($target == Py_None) {
@@ -561,21 +562,21 @@ typedef int UINT;
 
 %typemap(python,in) PAINTSTRUCT *INPUT(PAINTSTRUCT ps_input) {
     char *szReserved;
-    int lenReserved;
-	PyObject *obdc;
+    Py_ssize_t lenReserved;
+	PyObject *obdc, *obReserved;
 	if (PyTuple_Check($source)) {
 		if (!PyArg_ParseTuple($source,
-                             "Ol(iiii)lls#",
-                            &obdc,
-                            &ps_input.fErase,
-                            &ps_input.rcPaint.left, &ps_input.rcPaint.top, &ps_input.rcPaint.right, &ps_input.rcPaint.bottom,
-                            &ps_input.fRestore,
-                            &ps_input.fIncUpdate,
-                            &szReserved,
-                            &lenReserved)) {
+			"Ol(iiii)llO",
+			&obdc,
+			&ps_input.fErase,
+			&ps_input.rcPaint.left, &ps_input.rcPaint.top, &ps_input.rcPaint.right, &ps_input.rcPaint.bottom,
+			&ps_input.fRestore,
+			&ps_input.fIncUpdate,
+			&obReserved))
 			return NULL;
-		}
 		if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&ps_input.hdc))
+			return NULL;
+		if (PyString_AsStringAndSize(obReserved, &szReserved, &lenReserved)==-1)
 			return NULL;
         if (lenReserved != sizeof(ps_input.rgbReserved))
             return PyErr_Format(PyExc_ValueError, "%s: last element must be string of %d bytes",
@@ -1533,19 +1534,18 @@ static PyObject *PySetString(PyObject *self, PyObject *args)
 static PyObject *PySetMemory(PyObject *self, PyObject *args)
 {
 	void *addr;
-	char *src;
-	size_t nbytes;
-#ifdef _WIN64
-	static char *input_fmt="Ls#:PySetMemory";
-#else
-	static char *input_fmt="ls#:PySetMemory";
-#endif
+	const void *src;
+	PyObject *obaddr, *obsrc;
+	Py_ssize_t nbytes;
 
 	// @pyparm int|addr||Address of the memory to reference 
 	// @pyparm string or buffer|String||The string to copy
-	if (!PyArg_ParseTuple(args, input_fmt, &addr,&src,&nbytes))
+	if (!PyArg_ParseTuple(args, "OO:PySetMemory", &obaddr, &obsrc))
 		return NULL;
-
+	if (!PyWinLong_AsVoidPtr(obaddr, &addr))
+		return NULL;
+	if (PyObject_AsReadBuffer(obsrc, &src, &nbytes)==-1)
+		return NULL;
 	if (IsBadWritePtr(addr, nbytes)) {
 		PyErr_SetString(PyExc_ValueError,
 		                "The value is not a valid address for writing");
@@ -1566,7 +1566,7 @@ static PyObject *PyGetArraySignedLong(PyObject *self, PyObject *args)
 {
 	PyObject *ob;
 	int offset;
-	int maxlen;
+	Py_ssize_t maxlen;
 
 	// @pyparm array|array||array object to use
 	// @pyparm int|index||index of offset
@@ -2375,19 +2375,18 @@ PyObject *PyGetCursorInfo(PyObject *self, PyObject *args)
 %{
 PyObject *PyCreateAcceleratorTable(PyObject *self, PyObject *args)
 {
-    Py_ssize_t num, i;
+    DWORD num, i;
     ACCEL *accels = NULL;
     PyObject *ret = NULL;
-    PyObject *obAccels;
+    PyObject *obAccels, *Accels_tuple;
     HACCEL ha;
     // @pyparm ( (int, int, int), ...)|accels||A sequence of (fVirt, key, cmd),
     // as per the Win32 ACCEL structure.
     if (!PyArg_ParseTuple(args, "O:CreateAcceleratorTable", &obAccels))
         return NULL;
-    if (!PySequence_Check(obAccels))
-        return PyErr_Format(PyExc_TypeError, "accels must be a sequence of tuples (got '%s')",
-                            obAccels->ob_type->tp_name);
-    num = PySequence_Length(obAccels);
+    if ((Accels_tuple=PyWinSequence_Tuple(obAccels, &num)) == NULL)
+		return NULL;
+
     if (num==0) {
         PyErr_SetString(PyExc_ValueError, "Can't create an accelerator with zero items");
         goto done;
@@ -2399,13 +2398,9 @@ PyObject *PyCreateAcceleratorTable(PyObject *self, PyObject *args)
     }
     for (i=0;i<num;i++) {
         ACCEL *p = accels+i;
-        PyObject *ob = PySequence_GetItem(obAccels, i);
-        if (!ob) goto done;
-        if (!PyArg_ParseTuple(ob, "BHH:ACCEL", &p->fVirt, &p->key, &p->cmd)) {
-            Py_DECREF(ob);
+        PyObject *ob = PyTuple_GET_ITEM(Accels_tuple, i);
+        if (!PyArg_ParseTuple(ob, "BHH:ACCEL", &p->fVirt, &p->key, &p->cmd))
             goto done;
-        }
-        Py_DECREF(ob);
     }
     ha = ::CreateAcceleratorTable(accels, num);
     if (ha)
@@ -2413,6 +2408,7 @@ PyObject *PyCreateAcceleratorTable(PyObject *self, PyObject *args)
     else
         PyWin_SetAPIError("CreateAcceleratorTable");
 done:
+	Py_DECREF(Accels_tuple);
     if (accels)
         free(accels);
     return ret;
@@ -2489,13 +2485,16 @@ static PyObject *PyCreateIconFromResource(PyObject *self, PyObject *args)
 	// @pyparm int|ver|0x00030000|Specifies the version number of the icon or cursor
 	// format for the resource bits pointed to by the presbits parameter.
 	// This parameter can be 0x00030000.
-	char *bits;
-	int nBits;
+	PBYTE bits;
+	DWORD nBits;
 	int isIcon;
-	int ver = 0x00030000;
-	if (!PyArg_ParseTuple(args, "s#i|i", &bits, &nBits, &isIcon, &ver))
+	DWORD ver = 0x00030000;
+	PyObject *obbits;
+	if (!PyArg_ParseTuple(args, "Oi|i", &obbits, &isIcon, &ver))
 		return NULL;
-	HICON ret = CreateIconFromResource((PBYTE)bits, nBits, isIcon, ver);
+	if (!PyWinObject_AsReadBuffer(obbits, (void **)&bits, &nBits, FALSE))
+		return NULL;
+	HICON ret = CreateIconFromResource(bits, nBits, isIcon, ver);
 	if (!ret)
 	    return PyWin_SetAPIError("CreateIconFromResource");
 	return PyWinLong_FromHANDLE(ret);
@@ -4313,9 +4312,8 @@ BOOL PyWinObject_AsTRIVERTEXArray(PyObject *obtvs, TRIVERTEX **ptvs, DWORD *item
 	*ptvs=NULL;
 	*item_cnt=0;
 
-	if ((trivertex_tuple=PySequence_Tuple(obtvs))==NULL)
+	if ((trivertex_tuple=PyWinSequence_Tuple(obtvs, item_cnt))==NULL)
 		return FALSE;
-	*item_cnt=PyTuple_GET_SIZE(trivertex_tuple);
 	bufsize=*item_cnt * sizeof(TRIVERTEX);
 	*ptvs=(TRIVERTEX *)malloc(bufsize);
 	if (*ptvs==NULL){
@@ -4348,9 +4346,8 @@ BOOL PyWinObject_AsMeshArray(PyObject *obmesh, ULONG mode, void **pmesh, DWORD *
 	*pmesh=NULL;
 	*item_cnt=0;
 
-	if ((mesh_tuple=PySequence_Tuple(obmesh))==NULL)
+	if ((mesh_tuple=PyWinSequence_Tuple(obmesh, item_cnt))==NULL)
 		return FALSE;
-	*item_cnt=PyTuple_GET_SIZE(mesh_tuple);
 	switch (mode){
 		case GRADIENT_FILL_TRIANGLE:
 			bufsize=*item_cnt * sizeof(GRADIENT_TRIANGLE);
@@ -4886,9 +4883,9 @@ BOOL PyWinObject_AsPOINTArray(PyObject *obpoints, POINT **ppoints, DWORD *item_c
 	*ppoints=NULL;
 	*item_cnt=0;
 
-	if ((points_tuple=PySequence_Tuple(obpoints))==NULL)
+	if ((points_tuple=PyWinSequence_Tuple(obpoints, item_cnt))==NULL)
 		return FALSE;
-	*item_cnt=PyTuple_GET_SIZE(points_tuple);
+
 	bufsize=*item_cnt * sizeof(POINT);
 	*ppoints=(POINT *)malloc(bufsize);
 	if (*ppoints==NULL){
@@ -5123,21 +5120,21 @@ static PyObject *PyCreatePolygonRgn(PyObject *self, PyObject *args)
 //@pyswig int|ExtTextOut|Writes text to a DC.
 static PyObject *PyExtTextOut(PyObject *self, PyObject *args)
 {
-	char *text;
-	int strLen, x, y;
+	TCHAR *text=NULL;
+	int x, y;
+	DWORD strLen;
 	UINT options;
-	PyObject *obdc, *rectObject, *widthObject = NULL;
+	PyObject *obdc, *rectObject, *obtext, *widthObject = Py_None;
 	RECT rect, *rectPtr;
 	int *widths = NULL;
 	HDC hdc;
-	if (!PyArg_ParseTuple (args, "OiiiOs#|O:ExtTextOut",
-		&obdc,
+	if (!PyArg_ParseTuple (args, "OiiiOO|O:ExtTextOut",
+		&obdc,	// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		&x,		// @pyparm x|int||The x coordinate to write the text to.
 		&y,		// @pyparm y|int||The y coordinate to write the text to.
 		&options,	// @pyparm nOptions|int||Specifies the rectangle type. This parameter can be one, both, or neither of ETO_CLIPPED and ETO_OPAQUE
 		&rectObject,	// @pyparm <o PyRECT>|rect||Specifies the text's bounding rectangle.  (Can be None.)
-		&text,	// @pyparm text|string||The text to write.
-		&strLen,
+		&obtext,	// @pyparm text|string||The text to write.
 		&widthObject))	// @pyparm (width1, width2, ...)|tuple||Optional array of values that indicate distance between origins of character cells.
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
@@ -5152,11 +5149,14 @@ static PyObject *PyExtTextOut(PyObject *self, PyObject *args)
 	else
 		rectPtr = NULL;
 
+	if (!PyWinObject_AsTCHAR(obtext, &text, FALSE, &strLen))
+		return NULL;
+
 	// Parse out widths
-	if (widthObject) {
+	if (widthObject != Py_None) {
 		BOOL error = !PyTuple_Check(widthObject);
 		if (!error) {
-			int len = PyTuple_Size(widthObject);
+			Py_ssize_t len = PyTuple_Size(widthObject);
 			if (len == (strLen - 1)) {
 				widths = new int[len + 1];
 				for (int i = 0; i < len; i++) {
@@ -5169,6 +5169,7 @@ static PyObject *PyExtTextOut(PyObject *self, PyObject *args)
 			}
 		}
 		if (error) {
+			PyWinObject_FreeTCHAR(text);
 			delete [] widths;
 			return PyErr_Format(PyExc_TypeError,
 			                    "The width param must be a tuple of integers with a length one less than that of the string");
@@ -5180,6 +5181,7 @@ static PyObject *PyExtTextOut(PyObject *self, PyObject *args)
 	// @pyseeapi ExtTextOut
 	ok = ExtTextOut(hdc, x, y, options, rectPtr, text, strLen, widths);
 	Py_END_ALLOW_THREADS;
+	PyWinObject_FreeTCHAR(text);
 	delete [] widths;
 	if (!ok)
 		return PyWin_SetAPIError("ExtTextOut");
@@ -5699,7 +5701,7 @@ BOOL ParseSCROLLINFOTuple( PyObject *args, SCROLLINFO *pInfo)
 {
 	static char *err_msg="SCROLLINFO must be a tuple of 1-6 ints";
 	PyObject *obMin=Py_None, *obMax=Py_None, *obPage=Py_None, *obPos=Py_None, *obTrackPos=Py_None;
-	int len = PyTuple_Size(args);
+	Py_ssize_t len = PyTuple_Size(args);
 	if (len<1 || len > 6) {
 		PyErr_SetString(PyExc_TypeError, err_msg);
 		return FALSE;
@@ -6028,7 +6030,7 @@ static PyObject *PyCreateDC(PyObject *self, PyObject *args)
 	PDEVMODE pdevmode;
 	PyObject *obdevmode=NULL;
 	PyObject *obdriver, *obdevice;
-	char *driver, *device, *dummyoutput=NULL;
+	TCHAR *driver, *device, *dummyoutput=NULL;
 	HDC hdc;
 	if (!PyArg_ParseTuple(args, "OOO", &obdriver, &obdevice, &obdevmode))
 		return NULL;

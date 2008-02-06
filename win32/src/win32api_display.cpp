@@ -1,5 +1,5 @@
 // @doc - This file contains autoduck documentation
-
+// #define UNICODE
 #include "PyWinTypes.h"
 #include "structmember.h"
 #include "PyWinObjects.h"
@@ -147,89 +147,103 @@ PyObject *PyDISPLAY_DEVICE::getattro(PyObject *self, PyObject *obname)
 		return NULL;
 	if (strcmp(name,"DeviceName")==0)
 		if (pdisplay_device->DeviceName[31]==0)  // in case DeviceName fills space and has no trailing NULL
-			return PyString_FromString((char *)&pdisplay_device->DeviceName);
+			return PyWinObject_FromTCHAR(pdisplay_device->DeviceName);
 		else
-			return PyString_FromStringAndSize((char *)&pdisplay_device->DeviceName, 32);
+			return PyWinObject_FromTCHAR(pdisplay_device->DeviceName, 32);
 
 	if (strcmp(name,"DeviceString")==0)
 		if (pdisplay_device->DeviceString[127]==0)  // in case DeviceString fills space and has no trailing NULL
-			return PyString_FromString((char *)&pdisplay_device->DeviceString);
+			return PyWinObject_FromTCHAR(pdisplay_device->DeviceString);
 		else
-			return PyString_FromStringAndSize((char *)&pdisplay_device->DeviceString, 128);
+			return PyWinObject_FromTCHAR(pdisplay_device->DeviceString, 128);
 
 	if (strcmp(name,"DeviceID")==0)
 		if (pdisplay_device->DeviceID[127]==0)  // in case DeviceID fills space and has no trailing NULL
-			return PyString_FromString((char *)&pdisplay_device->DeviceID);
+			return PyWinObject_FromTCHAR(pdisplay_device->DeviceID);
 		else
-			return PyString_FromStringAndSize((char *)&pdisplay_device->DeviceID, 128);
+			return PyWinObject_FromTCHAR(pdisplay_device->DeviceID, 128);
 
 	if (strcmp(name,"DeviceKey")==0)
 		if (pdisplay_device->DeviceKey[127]==0)  // in case DeviceKey fills space and has no trailing NULL
-			return PyString_FromString((char *)&pdisplay_device->DeviceKey);
+			return PyWinObject_FromTCHAR(pdisplay_device->DeviceKey);
 		else
-			return PyString_FromStringAndSize((char *)&pdisplay_device->DeviceKey, 128);
+			return PyWinObject_FromTCHAR(pdisplay_device->DeviceKey, 128);
 
 	return PyObject_GenericGetAttr(self,obname);
 }
 
 int PyDISPLAY_DEVICE::setattro(PyObject *self, PyObject *obname, PyObject *obvalue)
 {
-	char *name, *value;
-	Py_ssize_t valuelen;
+	char *name;
+	TCHAR *value=NULL;
+	DWORD valuelen;
 	name=PyString_AsString(obname);
 	if (name==NULL)
 		return -1;
 	if (strcmp(name,"DeviceName")==0){
-		if (PyString_AsStringAndSize(obvalue, &value, &valuelen)==-1)
+		PDISPLAY_DEVICE pdisplay_device=&((PyDISPLAY_DEVICE *)self)->display_device;
+		DWORD cch_max=sizeof(pdisplay_device->DeviceName)/sizeof(TCHAR);
+		if (!PyWinObject_AsTCHAR(obvalue, &value, FALSE, &valuelen))
 			return -1;
-		if (valuelen > 32){
-			PyErr_Format(PyExc_ValueError,"DeviceName must be a string of length %d or less", 32);
+		if (valuelen > cch_max){
+			PyErr_Format(PyExc_ValueError,"DeviceName must be a string of length %d or less", cch_max);
+			PyWinObject_FreeTCHAR(value);
 			return -1;
 			}
-		PDISPLAY_DEVICE pdisplay_device=&((PyDISPLAY_DEVICE *)self)->display_device;
-		ZeroMemory(&pdisplay_device->DeviceName, 32);
-		memcpy(&pdisplay_device->DeviceName, value, valuelen);
+		ZeroMemory(&pdisplay_device->DeviceName, sizeof(pdisplay_device->DeviceName));
+		memcpy(&pdisplay_device->DeviceName, value, valuelen * sizeof(TCHAR));
+		PyWinObject_FreeTCHAR(value);
 		return 0;
 		}
 	if (strcmp(name,"DeviceString")==0){
-		if (PyString_AsStringAndSize(obvalue, &value, &valuelen)==-1)
+		PDISPLAY_DEVICE pdisplay_device=&((PyDISPLAY_DEVICE *)self)->display_device;
+		DWORD cch_max=sizeof(pdisplay_device->DeviceString)/sizeof(TCHAR);
+		if (!PyWinObject_AsTCHAR(obvalue, &value, FALSE, &valuelen))
 			return -1;
-		if (valuelen > 128){
-			PyErr_Format(PyExc_ValueError,"DeviceString must be a string of length %d or less", 128);
+		if (valuelen > cch_max){
+			PyErr_Format(PyExc_ValueError,"DeviceString must be a string of length %d or less", cch_max);
+			PyWinObject_FreeTCHAR(value);
 			return -1;
 			}
-		PDISPLAY_DEVICE pdisplay_device=&((PyDISPLAY_DEVICE *)self)->display_device;
-		ZeroMemory(&pdisplay_device->DeviceString, 128);
-		memcpy(&pdisplay_device->DeviceString, value, valuelen);
+		
+		ZeroMemory(&pdisplay_device->DeviceString, sizeof(pdisplay_device->DeviceString));
+		memcpy(&pdisplay_device->DeviceString, value, valuelen * sizeof(TCHAR));
+		PyWinObject_FreeTCHAR(value);
 		return 0;
 		}
 	if (strcmp(name,"DeviceID")==0){
-		if (PyString_AsStringAndSize(obvalue, &value, &valuelen)==-1)
+		PDISPLAY_DEVICE pdisplay_device=&((PyDISPLAY_DEVICE *)self)->display_device;
+		DWORD cch_max=sizeof(pdisplay_device->DeviceID)/sizeof(TCHAR);
+		if (!PyWinObject_AsTCHAR(obvalue, &value, FALSE, &valuelen))
 			return -1;
-		if (valuelen > 128){
-			PyErr_Format(PyExc_ValueError,"DeviceID must be a string of length %d or less", 128);
+		if (valuelen > cch_max){
+			PyErr_Format(PyExc_ValueError,"DeviceID must be a string of length %d or less", cch_max);
+			PyWinObject_FreeTCHAR(value);
 			return -1;
 			}
-		PDISPLAY_DEVICE pdisplay_device=&((PyDISPLAY_DEVICE *)self)->display_device;
-		ZeroMemory(&pdisplay_device->DeviceID, 128);
-		memcpy(&pdisplay_device->DeviceID, value, valuelen);
+		
+		ZeroMemory(&pdisplay_device->DeviceID, sizeof(pdisplay_device->DeviceID));
+		memcpy(&pdisplay_device->DeviceID, value, valuelen * sizeof(TCHAR));
+		PyWinObject_FreeTCHAR(value);
 		return 0;
 		}
 	if (strcmp(name,"DeviceKey")==0){
-		if (PyString_AsStringAndSize(obvalue, &value, &valuelen)==-1)
+		PDISPLAY_DEVICE pdisplay_device=&((PyDISPLAY_DEVICE *)self)->display_device;
+		DWORD cch_max=sizeof(pdisplay_device->DeviceKey)/sizeof(TCHAR);
+		if (!PyWinObject_AsTCHAR(obvalue, &value, FALSE, &valuelen))
 			return -1;
-		if (valuelen > 128){
-			PyErr_Format(PyExc_ValueError,"DeviceKey must be a string of length %d or less", 128);
+		if (valuelen > cch_max){
+			PyErr_Format(PyExc_ValueError,"DeviceKey must be a string of length %d or less", cch_max);
+			PyWinObject_FreeTCHAR(value);
 			return -1;
 			}
-		PDISPLAY_DEVICE pdisplay_device=&((PyDISPLAY_DEVICE *)self)->display_device;
-		ZeroMemory(&pdisplay_device->DeviceKey, 128);
-		memcpy(&pdisplay_device->DeviceKey, value, valuelen);
+		ZeroMemory(&pdisplay_device->DeviceKey, sizeof(pdisplay_device->DeviceKey));
+		memcpy(&pdisplay_device->DeviceKey, value, valuelen * sizeof(TCHAR));
+		PyWinObject_FreeTCHAR(value);
 		return 0;
 		}
 
-	int ret=PyObject_GenericSetAttr(self, obname, obvalue);
-	return ret;
+	return PyObject_GenericSetAttr(self, obname, obvalue);
 }
 
 PyObject *PyDISPLAY_DEVICE::tp_new(PyTypeObject *typ, PyObject *args, PyObject *kwargs)
@@ -305,22 +319,24 @@ PyObject *PyChangeDisplaySettingsEx(PyObject *self, PyObject *args, PyObject *kw
 	static char *keywords[]={"DeviceName","DevMode","Flags", NULL};
 
 	DWORD Flags=0;
-	char *DeviceName=NULL;
+	TCHAR *DeviceName=NULL;
 	PDEVMODE pdevmode;
-	PyObject *obdevmode=Py_None;
+	PyObject *obDeviceName=Py_None, *obdevmode=Py_None;
 	long ret;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|zOk:ChangeDisplaySettingsEx", keywords,
-		&DeviceName,	// @pyparm str|DeviceName|None|Name of device as returned by <om win32api.EnumDisplayDevices>, use None for default display device
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOk:ChangeDisplaySettingsEx", keywords,
+		&obDeviceName,	// @pyparm str|DeviceName|None|Name of device as returned by <om win32api.EnumDisplayDevices>, use None for default display device
 		&obdevmode,		// @pyparm <o PyDEVMODE>|DevMode|None|A PyDEVMODE object as returned from <om win32api.EnumDisplaySettings>, or None to reset to default settings from registry
 		&Flags))		// @pyparm int|Flags|0|One of the win32con.CDS_* constants, or 0
 		return NULL;
 
 	if (!PyWinObject_AsDEVMODE(obdevmode, &pdevmode, TRUE))
 		return NULL;
-
+	if (!PyWinObject_AsTCHAR(obDeviceName, &DeviceName, TRUE))
+		return NULL;
 	// DISP_CHANGE_* errors don't translate as win32 error codes, just return it
 	ret=(*pfnChangeDisplaySettingsEx)(DeviceName, pdevmode, (HWND) NULL, Flags, (LPVOID) NULL);
+	PyWinObject_FreeTCHAR(DeviceName);
 	return PyLong_FromLong(ret);
 }
 
@@ -330,7 +346,8 @@ PyObject *PyEnumDisplayDevices(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	CHECK_PFN(EnumDisplayDevices);
 	static char *keywords[]={"Device", "DevNum", "Flags", NULL};
-	char *Device=NULL;
+	TCHAR *Device=NULL;
+	PyObject *obDevice = Py_None, *ret=NULL;
 	DWORD DevNum=0;
 	DWORD Flags=0;
 	DISPLAY_DEVICE display_device;
@@ -338,17 +355,19 @@ PyObject *PyEnumDisplayDevices(PyObject *self, PyObject *args, PyObject *kwargs)
 	// @pyparm string|Device|None|Name of device, use None to obtain information for the display adapter(s) on the machine, based on DevNum
 	// @pyparm int|DevNum|0|Index of device of interest, starting with zero
 	// @pyparm int|Flags|0|Reserved, use 0 if passed in
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|zkk:EnumDisplayDevices", keywords, 
-		&Device, &DevNum, &Flags))
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|Okk:EnumDisplayDevices", keywords, 
+		&obDevice, &DevNum, &Flags))
 		return NULL;
-
+	if (!PyWinObject_AsTCHAR(obDevice, &Device, TRUE))
+		return NULL;
 	ZeroMemory(&display_device,sizeof(DISPLAY_DEVICE));
 	display_device.cb=sizeof(DISPLAY_DEVICE);
-	if (!(*pfnEnumDisplayDevices)(Device, DevNum, &display_device, Flags)){
+	if (!(*pfnEnumDisplayDevices)(Device, DevNum, &display_device, Flags))
 		PyWin_SetAPIError("EnumDisplayDevices");
-		return NULL;
-		}
-	return PyWinObject_FromDISPLAY_DEVICE(&display_device);
+	else
+		ret = PyWinObject_FromDISPLAY_DEVICE(&display_device);
+	PyWinObject_FreeTCHAR(Device);
+	return ret;
 }
 
 // @pymethod <o PyDEVMODE>|win32api|EnumDisplaySettings|List available modes for specified display device
@@ -356,23 +375,26 @@ PyObject *PyEnumDisplayDevices(PyObject *self, PyObject *args, PyObject *kwargs)
 PyObject *PyEnumDisplaySettings(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	static char *keywords[]={"DeviceName","ModeNum",NULL};
-	char *DeviceName=NULL;
+	TCHAR *DeviceName=NULL;
+	PyObject *obDeviceName=Py_None, *ret=NULL;
 	DWORD ModeNum=0;
 	DEVMODE devmode;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|zk:EnumDisplaySettings", keywords,
-		&DeviceName,	// @pyparm string|DeviceName|None|Name of device as returned by <om win32api.EnumDisplayDevices>, use None for default display device
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|Ok:EnumDisplaySettings", keywords,
+		&obDeviceName,	// @pyparm string|DeviceName|None|Name of device as returned by <om win32api.EnumDisplayDevices>, use None for default display device
 		&ModeNum))		// @pyparm int|ModeNum|0|Index of setting to return, or one of ENUM_CURRENT_SETTINGS, ENUM_REGISTRY_SETTINGS 
 		return NULL;
-
+	if (!PyWinObject_AsTCHAR(obDeviceName, &DeviceName, TRUE))
+		return NULL;
 	ZeroMemory(&devmode,sizeof(DEVMODE));
 	devmode.dmSize=sizeof(DEVMODE);
-	if (!EnumDisplaySettings(DeviceName, ModeNum, &devmode)){
+	if (!EnumDisplaySettings(DeviceName, ModeNum, &devmode))
 		// msdn says GetLastError should return something on win2k and up, I get 0
 		PyWin_SetAPIError("EnumDisplaySettings");
-		return NULL;
-		}
-	return PyWinObject_FromDEVMODE(&devmode);
+	else
+		ret = PyWinObject_FromDEVMODE(&devmode);
+	PyWinObject_FreeTCHAR(DeviceName);
+	return ret;
 }
 
 // @pymethod <o PyDEVMODE>|win32api|EnumDisplaySettingsEx|Lists available modes for a display device, with optional flags
@@ -381,23 +403,27 @@ PyObject *PyEnumDisplaySettingsEx(PyObject *self, PyObject *args, PyObject *kwar
 {
 	CHECK_PFN(EnumDisplaySettingsEx);
 	static char *keywords[]={"DeviceName","ModeNum","Flags", NULL};
-	char *DeviceName=NULL;
+	TCHAR *DeviceName=NULL;
+	PyObject *obDeviceName=Py_None, *ret=NULL;
 	DWORD ModeNum=0;
 	DEVMODE devmode;
 	DWORD Flags=0;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|zkk:EnumDisplaySettingsEx", keywords,
-		&DeviceName,	// @pyparm string|DeviceName|None|Name of device as returned by <om win32api.EnumDisplayDevices>. Can be None for default display
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|Okk:EnumDisplaySettingsEx", keywords,
+		&obDeviceName,	// @pyparm string|DeviceName|None|Name of device as returned by <om win32api.EnumDisplayDevices>. Can be None for default display
 		&ModeNum,		// @pyparm int|ModeNum||Index of setting to return, or one of ENUM_CURRENT_SETTINGS, ENUM_REGISTRY_SETTINGS
 		&Flags))		// @pyparm int|Flags|0|EDS_RAWMODE (2) is only defined flag
 		return NULL;
+	if (!PyWinObject_AsTCHAR(obDeviceName, &DeviceName, TRUE))
+		return NULL;
 	ZeroMemory(&devmode,sizeof(DEVMODE));
 	devmode.dmSize=sizeof(DEVMODE);
-	if (!(*pfnEnumDisplaySettingsEx)(DeviceName, ModeNum, &devmode, Flags)){
+	if (!(*pfnEnumDisplaySettingsEx)(DeviceName, ModeNum, &devmode, Flags))
 		PyWin_SetAPIError("EnumDisplaySettingsEx");
-		return NULL;
-		}
-	return PyWinObject_FromDEVMODE(&devmode);
+	else
+		ret = PyWinObject_FromDEVMODE(&devmode);
+	PyWinObject_FreeTCHAR(DeviceName);
+	return ret;
 }
 
 
@@ -478,11 +504,11 @@ PyObject *PyGetMonitorInfo(PyObject *self, PyObject *args, PyObject *kwargs)
 		PyWin_SetAPIError("GetMonitorInfo");
 		return NULL;
 		}
-	return Py_BuildValue("{s:O&,s:O&,s:k,s:s}",
+	return Py_BuildValue("{s:O&,s:O&,s:k,s:N}",
 		"Monitor", PyWinObject_FromRECT, &mi.rcMonitor,
 		"Work", PyWinObject_FromRECT, &mi.rcWork,
 		"Flags", mi.dwFlags,
-		"Device", mi.szDevice);
+		"Device", PyWinObject_FromTCHAR(mi.szDevice));
 }
 
 // @pymethod <o PyHANDLE>|win32api|MonitorFromPoint|Finds monitor that contains a point
