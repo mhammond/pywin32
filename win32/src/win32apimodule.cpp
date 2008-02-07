@@ -78,7 +78,8 @@ typedef LONG (WINAPI *RegCopyTreefunc)(HKEY,LPWSTR,HKEY);
 static RegCopyTreefunc pfnRegCopyTree = NULL;
 typedef LONG (WINAPI *RegDeleteTreefunc)(HKEY,LPWSTR);
 static RegDeleteTreefunc pfnRegDeleteTree = NULL;
-
+typedef LONG (WINAPI *RegOpenCurrentUserfunc)(REGSAM,PHKEY);
+static RegOpenCurrentUserfunc pfnRegOpenCurrentUser = NULL;
 
 /* error helper */
 PyObject *ReturnError(char *msg, char *fnName = NULL)
@@ -2922,82 +2923,48 @@ PyRegCreateKey( PyObject *self, PyObject *args )
 // @rdesc Returns registry handle and flag indicating if key was opened or created (REG_CREATED_NEW_KEY or REG_OPENED_EXISTING_KEY)
 // @pyseeapi RegCreateKeyEx
 // @comm Implemented only as Unicode (RegCreateKeyExW).  Accepts keyword arguments.
+// @comm If a transaction handle is passed in, RegCreateKeyTransacted will be called (requires Vista or later)
+// @pyseeapi RegCreateKeyTransacted
 static PyObject *PyRegCreateKeyEx(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	static char *keywords[]={"Key","SubKey","samDesired","Class","Options","SecurityAttributes", NULL};
+	static char *keywords[]={"Key","SubKey","samDesired","Class","Options","SecurityAttributes","Transaction", NULL};
 	HKEY hKey;
-	PyObject *obKey, *obsubKey, *obclass=Py_None, *obsa=Py_None, *ret=NULL;
+	PyObject *obKey, *obsubKey, *obclass=Py_None, *obsa=Py_None, *obtrans=Py_None, *ret=NULL;
 	WCHAR *subKey=NULL, *class_name=NULL;
 	PSECURITY_ATTRIBUTES psa;
 	DWORD access, disp, options=REG_OPTION_NON_VOLATILE, reserved=NULL;
 	HKEY retKey;
 	long rc;
-	
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOk|OkO:RegCreateKeyEx", keywords, 
+	HANDLE htrans;
+	PVOID extparam=NULL;	// Documented as Reserved
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOk|OkOO:RegCreateKeyEx", keywords, 
 		&obKey,		// @pyparm <o PyHKEY>/int|Key||Registry key or one of win32con.HKEY_* values
 		&obsubKey,	// @pyparm <o PyUnicode>|SubKey||Name of subkey to open or create.
 		&access,	// @pyparm int|samDesired||Access allowed to handle, combination of win32con.KEY_* constants.  Can also contain
 					//	standard access rights such as DELETE, WRITE_OWNER, etc.
 		&obclass,	// @pyparm <o PyUnicode>|Class|None|Name of registry key class
 		&options,	// @pyparm int|Options|REG_OPTION_NON_VOLATILE|One of the winnt.REG_OPTION_* values
-		&obsa))		// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Specifies security for key and handle inheritance
+		&obsa,		// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Specifies security for key and handle inheritance
+		&obtrans))	// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction as returned by <om win32transaction.CreateTransaction>
 		return NULL;
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
+		return NULL;
+	if (htrans!=NULL)
+		CHECK_PFN(RegCreateKeyTransacted);
+
 	if (PyWinObject_AsHKEY(obKey, &hKey)
 		&&PyWinObject_AsWCHAR(obsubKey, &subKey, TRUE)
 		&&PyWinObject_AsWCHAR(obclass, &class_name, TRUE)
 		&&PyWinObject_AsSECURITY_ATTRIBUTES(obsa, &psa, TRUE)){
-		rc=RegCreateKeyExW(hKey, subKey, reserved, class_name, options,
-			access, psa, &retKey, &disp);
+		if (htrans!=NULL)
+			rc=(*pfnRegCreateKeyTransacted)(hKey, subKey, reserved, class_name, options,
+				access, psa, &retKey, &disp, htrans, extparam);
+		else
+			rc=RegCreateKeyExW(hKey, subKey, reserved, class_name, options,
+				access, psa, &retKey, &disp);
 		if (rc!=ERROR_SUCCESS)
 			PyWin_SetAPIError("RegCreateKeyEx", rc);
-		else
-			ret=Py_BuildValue("Nk", PyWinObject_FromHKEY(retKey), disp);
-		}
-
-	PyWinObject_FreeWCHAR(subKey);
-	PyWinObject_FreeWCHAR(class_name);
-	return ret;
-}
-
-// @pymethod <o PyHKEY>, int|win32api|RegCreateKeyTransacted|Creates a registry key as part of a transaction
-// @rdesc Returns a transacted handle and disposition flag (winnt.REG_CREATED_NEW_KEY or winnt.REG_OPENED_EXISTING_KEY)
-// @pyseeapi RegCreateKeyTransacted
-// @comm Accepts keyword args.
-// @comm Requires Vista or later.
-static PyObject *PyRegCreateKeyTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-	CHECK_PFN(RegCreateKeyTransacted);
-	HKEY hKey;
-	PyObject *obKey, *obsubKey, *obtrans, *obclass=Py_None, *obsa=Py_None, *ret=NULL;
-	WCHAR *subKey=NULL, *class_name=NULL;
-	PSECURITY_ATTRIBUTES psa;
-	REGSAM access;
-	DWORD disp, options=REG_OPTION_NON_VOLATILE, reserved=0;
-	PVOID extparam=NULL;	// Documented as Reserved
-	HKEY retKey;
-	HANDLE htrans;
-	long rc;
-	static char *keywords[]={"Key","SubKey","samDesired","Transaction","Class","Options","SecurityAttributes", NULL};
-
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOkO|OkO:RegCreateKeyTransacted", keywords, 
-		&obKey,		// @pyparm <o PyHKEY>/int|Key||Registry key or one of win32con.HKEY_* values
-		&obsubKey,	// @pyparm <o PyUnicode>|SubKey||Name of subkey to open or create.
-		&access,	// @pyparm int|samDesired||Access allowed to handle, combination of win32con.KEY_* constants.  Can also contain
-					//	standard access rights such as DELETE, WRITE_OWNER, etc.
-		&obtrans,	// @pyparm <o PyHANDLE>|Transaction||Handle to a transaction as returned by <om win32transaction.CreateTransaction>
-		&obclass,	// @pyparm <o PyUnicode>|Class|None|Name of registry key class
-		&options,	// @pyparm int|Options|REG_OPTION_NON_VOLATILE|One of the winnt.REG_OPTION_* values
-		&obsa))		// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Specifies security for key and handle inheritance
-		return NULL;
-	if (PyWinObject_AsHKEY(obKey, &hKey)
-		&&PyWinObject_AsWCHAR(obsubKey, &subKey, FALSE)
-		&&PyWinObject_AsHANDLE(obtrans, &htrans)
-		&&PyWinObject_AsWCHAR(obclass, &class_name, TRUE)
-		&&PyWinObject_AsSECURITY_ATTRIBUTES(obsa, &psa, TRUE)){
-		rc=(*pfnRegCreateKeyTransacted)(hKey, subKey, reserved, class_name, options,
-			access, psa, &retKey, &disp, htrans, extparam);
-		if (rc!=ERROR_SUCCESS)
-			PyWin_SetAPIError("RegCreateKeyTransacted", rc);
 		else
 			ret=Py_BuildValue("Nk", PyWinObject_FromHKEY(retKey), disp);
 		}
@@ -3633,6 +3600,25 @@ PyRegUnLoadKey( PyObject *self, PyObject *args )
 	return Py_None;
 	// @comm A call to RegUnLoadKey fails if the calling process does not have the SE_RESTORE_PRIVILEGE privilege.
 	// <nl>If hkey is a handle returned by <om win32api.RegConnectRegistry>, then the path specified in fileName is relative to the remote computer.
+}
+
+// @pymethod <o PyHKEY>|win32api|RegOpenCurrentUser|Opens HKEY_CURRENT_USER for impersonated user
+// @pyseeapi RegOpenCurrentUser
+static PyObject *PyRegOpenCurrentUser(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(RegOpenCurrentUser);
+	long rc;
+	HKEY retKey;
+	REGSAM sam = MAXIMUM_ALLOWED;
+	// @pyparm int|samDesired|MAXIMUM_ALLOWED|Desired access, combination of win32con.KEY_*
+	if (!PyArg_ParseTuple(args, "|k:RegOpenCurrentUser", &sam))
+		return NULL;
+	PyW32_BEGIN_ALLOW_THREADS
+	rc=(*pfnRegOpenCurrentUser)(sam, &retKey);
+	PyW32_END_ALLOW_THREADS
+	if (rc!=ERROR_SUCCESS)
+		return ReturnAPIError("RegOpenCurrentUser", rc);
+	return PyWinObject_FromHKEY(retKey);
 }
 
 // @pymethod <o PyHKEY>|win32api|RegOpenKey|Opens the specified key.
@@ -6019,7 +6005,6 @@ static struct PyMethodDef win32api_functions[] = {
 	{"RegCopyTree",			(PyCFunction)PyRegCopyTree, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegCopyTree|Copies an entire registry key to another location
 	{"RegCreateKey",        PyRegCreateKey, 1}, // @pymeth RegCreateKey|Creates the specified key, or opens the key if it already exists.
 	{"RegCreateKeyEx",      (PyCFunction)PyRegCreateKeyEx, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegCreateKeyEx|Extended version of RegCreateKey
-	{"RegCreateKeyTransacted",(PyCFunction)PyRegCreateKeyTransacted, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegCreateKeyTransacted|Creates a registry key as part of a transaction
 	{"RegDeleteKey",        PyRegDeleteKey, 1}, // @pymeth RegDeleteKey|Deletes the specified key.
 	{"RegDeleteKeyTransacted",(PyCFunction)PyRegDeleteKeyTransacted, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegDeleteKeyTransacted|Deletes a registry key as part of a transaction
 	{"RegDeleteTree",		(PyCFunction)PyRegDeleteTree, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegDeleteTree|Recursively deletes a key's subkeys and values
@@ -6036,6 +6021,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"RegFlushKey",	        PyRegFlushKey, 1}, // @pymeth RegFlushKey|Writes all the attributes of the specified key to the registry.
 	{"RegGetKeySecurity",   PyRegGetKeySecurity, 1}, // @pymeth RegGetKeySecurity|Retrieves the security on the specified registry key.
 	{"RegLoadKey",          PyRegLoadKey, 1}, // @pymeth RegLoadKey|Creates a subkey under HKEY_USER or HKEY_LOCAL_MACHINE and stores registration information from a specified file into that subkey.
+	{"RegOpenCurrentUser",  PyRegOpenCurrentUser, 1}, // @pymeth RegOpenCurrentUser|Opens HKEY_CURRENT_USER for impersonated user
 	{"RegOpenKey",          PyRegOpenKey, 1}, // @pymeth RegOpenKey|Alias for <om win32api.RegOpenKeyEx>
 	{"RegOpenKeyEx",        PyRegOpenKey, 1}, // @pymeth RegOpenKeyEx|Opens the specified key.
 	{"RegOpenKeyTransacted",(PyCFunction)PyRegOpenKeyTransacted, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegOpenKeyTransacted|Opens a registry key as part of a transaction.
@@ -6213,6 +6199,7 @@ initwin32api(void)
 	pfnRegDeleteKeyTransacted=(RegDeleteKeyTransactedfunc)GetProcAddress(hmodule, "RegDeleteKeyTransactedW");
 	pfnRegCopyTree=(RegCopyTreefunc)GetProcAddress(hmodule, "RegCopyTreeW");
 	pfnRegDeleteTree=(RegDeleteTreefunc)GetProcAddress(hmodule, "RegDeleteTreeW");
+	pfnRegOpenCurrentUser=(RegOpenCurrentUserfunc)GetProcAddress(hmodule, "RegOpenCurrentUser");
   }
 
 }  
