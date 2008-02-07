@@ -93,6 +93,8 @@ Since build 210:
   - Service dependencies are returned as list of Unicode strings instead
     of a single string, which lost multiple dependencies (could break
     code, but old handling was insane)
+  - Allow for services to handle additional events and the data that comes
+    with them - see win32\demos\service\serviceEvents.py.
 
 * win32gui:
   - GDI object handles (bitmaps, fonts, regions, pens, brushes) are returned
