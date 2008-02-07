@@ -82,6 +82,8 @@ typedef LONG (WINAPI *RegDeleteTreefunc)(HKEY,LPWSTR);
 static RegDeleteTreefunc pfnRegDeleteTree = NULL;
 typedef LONG (WINAPI *RegOpenCurrentUserfunc)(REGSAM,PHKEY);
 static RegOpenCurrentUserfunc pfnRegOpenCurrentUser = NULL;
+typedef LONG (WINAPI *RegOverridePredefKeyfunc)(HKEY,HKEY);
+static RegOverridePredefKeyfunc pfnRegOverridePredefKey = NULL;
 
 /* error helper */
 PyObject *ReturnError(char *msg, char *fnName = NULL)
@@ -3717,6 +3719,32 @@ static PyObject *PyRegOpenKeyTransacted(PyObject *self, PyObject *args, PyObject
 	return ret;
 }
 
+// @pymethod |win32api|RegOverridePredefKey|Redirects one of the predefined keys to different key
+// @pyseeapi RegOverridePredefKey
+// @comm Requires Windows 2000 or later.
+static PyObject *PyRegOverridePredefKey(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	CHECK_PFN(RegOverridePredefKey);
+	HKEY predef_key, new_key;
+	PyObject *obpredef_key, *obnew_key;
+	long rc;
+	static char *keywords[]={"Key","NewKey", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO:RegOverridePredefKey", keywords,
+		&obpredef_key,	// @pyparm <o PyHKEY>|Key||One of the predefined registry keys (win32con.HKEY_*)
+		&obnew_key))	// @pyparm <o PyHKEY>|NewKey||Registry key to which it will be redirected.  Pass None to restore original key.
+		return NULL;
+	if (!PyWinObject_AsHKEY(obpredef_key, &predef_key))
+		return NULL;
+	if (!PyWinObject_AsHKEY(obnew_key, &new_key))
+		return NULL;
+	rc=(*pfnRegOverridePredefKey)(predef_key, new_key);
+	if (rc!=ERROR_SUCCESS)
+		return PyWin_SetAPIError("RegOverridePredefKey", rc);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 // @pymethod (int, int, long)|win32api|RegQueryInfoKey|Returns the number of 
 // subkeys, the number of values a key has, 
 // and if available the last time the key was modified as
@@ -6040,6 +6068,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"RegOpenKey",          PyRegOpenKey, 1}, // @pymeth RegOpenKey|Alias for <om win32api.RegOpenKeyEx>
 	{"RegOpenKeyEx",        PyRegOpenKey, 1}, // @pymeth RegOpenKeyEx|Opens the specified key.
 	{"RegOpenKeyTransacted",(PyCFunction)PyRegOpenKeyTransacted, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegOpenKeyTransacted|Opens a registry key as part of a transaction.
+	{"RegOverridePredefKey",(PyCFunction)PyRegOverridePredefKey, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegOverridePredefKey|Redirects one of the predefined keys to different key.
 	{"RegQueryValue",       PyRegQueryValue, 1}, // @pymeth RegQueryValue|Retrieves the value associated with the unnamed value for a specified key in the registry.
 	{"RegQueryValueEx",		PyRegQueryValueEx, 1}, // @pymeth RegQueryValueEx|Retrieves the type and data for a specified value name associated with an open registry key. 
 	{"RegQueryInfoKey",		PyRegQueryInfoKey, 1}, // @pymeth RegQueryInfoKey|Returns information about the specified key.
@@ -6216,6 +6245,7 @@ initwin32api(void)
 	pfnRegCopyTree=(RegCopyTreefunc)GetProcAddress(hmodule, "RegCopyTreeW");
 	pfnRegDeleteTree=(RegDeleteTreefunc)GetProcAddress(hmodule, "RegDeleteTreeW");
 	pfnRegOpenCurrentUser=(RegOpenCurrentUserfunc)GetProcAddress(hmodule, "RegOpenCurrentUser");
+	pfnRegOverridePredefKey=(RegOverridePredefKeyfunc)GetProcAddress(hmodule, "RegOverridePredefKey");
   }
 
 }  
