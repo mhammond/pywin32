@@ -70,6 +70,8 @@ static RegSaveKeyExfunc pfnRegSaveKeyEx=NULL;
 typedef LONG (WINAPI *RegCreateKeyTransactedfunc)(HKEY,LPWSTR,DWORD,LPWSTR,DWORD,
 	REGSAM,LPSECURITY_ATTRIBUTES,PHKEY,LPDWORD,HANDLE,PVOID);
 static RegCreateKeyTransactedfunc pfnRegCreateKeyTransacted=NULL;
+typedef LONG (WINAPI *RegDeleteKeyExfunc)(HKEY,LPWSTR,REGSAM,DWORD);
+static RegDeleteKeyExfunc pfnRegDeleteKeyEx = NULL;
 typedef LONG (WINAPI *RegDeleteKeyTransactedfunc)(HKEY,LPWSTR,REGSAM,DWORD,HANDLE,PVOID);
 static RegDeleteKeyTransactedfunc pfnRegDeleteKeyTransacted = NULL;
 typedef LONG (WINAPI *RegOpenKeyTransactedfunc)(HKEY,LPWSTR,DWORD,REGSAM,PHKEY,HANDLE,PVOID);
@@ -3004,35 +3006,48 @@ PyRegDeleteKey( PyObject *self, PyObject *args )
 	// If the method fails, and exception is raised.
 }
 
-// @pymethod |win32api|RegDeleteKeyTransacted|Deletes a registry key as part of a transaction
+// @pymethod |win32api|RegDeleteKeyEx|Deletes a registry key from 32 or 64 bit registry view
+// @pyseeapi RegDeleteKeyEx
 // @comm Accepts keyword args.
-// @comm Requires Vista or later.
+// @comm Requires 64-bit XP, Vista, or later.
 // @comm Key to be deleted cannot contain subkeys
-static PyObject *PyRegDeleteKeyTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
+// @comm If a transaction handle is specified, RegDeleteKeyTransacted is called
+// @pyseeapi RegDeleteKeyTransacted
+static PyObject *PyRegDeleteKeyEx(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	CHECK_PFN(RegDeleteKeyTransacted);
 	HKEY hKey;
-	PyObject *obKey, *obsubKey, *obtrans, *ret=NULL;
+	PyObject *obKey, *obsubKey, *obtrans=Py_None, *ret=NULL;
 	PVOID extparam=NULL;	// Reserved, ignore for now
 	WCHAR *subKey=NULL;
 	REGSAM access=0;
 	DWORD reserved=0;
 	HANDLE htrans;
 	long rc;
-	static char *keywords[]={"Key","SubKey","Transaction","samDesired", NULL};
+	static char *keywords[]={"Key","SubKey","samDesired","Transaction", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO|k:RegDeleteKeyTransacted", keywords,
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|kO:RegDeleteKeyEx", keywords,
 		&obKey,		// @pyparm <o PyHKEY>/int|Key||Registry key or one of win32con.HKEY_* values
 		&obsubKey,	// @pyparm <o PyUnicode>|SubKey||Name of subkey to be deleted.
-		&obtrans,	// @pyparm <o PyHANDLE>|Transaction||Handle to a transaction as returned by <om win32transaction.CreateTransaction>
-		&access))	// @pyparm int|samDesired|0|Can be KEY_WOW64_32KEY or KEY_WOW64_64KEY to specify alternate registry view
+		&access,	// @pyparm int|samDesired|0|Can be KEY_WOW64_32KEY or KEY_WOW64_64KEY to specify alternate registry view
+		&obtrans))	// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction as returned by <om win32transaction.CreateTransaction>
 		return NULL;
+
+	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
+		return NULL;
+	if (htrans!=NULL){
+		CHECK_PFN(RegDeleteKeyTransacted);
+		}
+	else{
+		CHECK_PFN(RegDeleteKeyEx);
+		}
 	if (PyWinObject_AsHKEY(obKey, &hKey)
-		&&PyWinObject_AsWCHAR(obsubKey, &subKey, FALSE)
-		&&PyWinObject_AsHANDLE(obtrans, &htrans)){
-		rc=(*pfnRegDeleteKeyTransacted)(hKey, subKey, access, reserved, htrans, extparam);
+		&&PyWinObject_AsWCHAR(obsubKey, &subKey, FALSE)){
+		if (htrans!=NULL)
+			rc=(*pfnRegDeleteKeyTransacted)(hKey, subKey, access, reserved, htrans, extparam);
+		else
+			rc=(*pfnRegDeleteKeyEx)(hKey, subKey, access, reserved);
 		if (rc!=ERROR_SUCCESS)
-			PyWin_SetAPIError("RegDeleteKeyTransacted", rc);
+			PyWin_SetAPIError("RegDeleteKeyEx", rc);
 		else{
 			Py_INCREF(Py_None);
 			ret=Py_None;
@@ -6006,7 +6021,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"RegCreateKey",        PyRegCreateKey, 1}, // @pymeth RegCreateKey|Creates the specified key, or opens the key if it already exists.
 	{"RegCreateKeyEx",      (PyCFunction)PyRegCreateKeyEx, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegCreateKeyEx|Extended version of RegCreateKey
 	{"RegDeleteKey",        PyRegDeleteKey, 1}, // @pymeth RegDeleteKey|Deletes the specified key.
-	{"RegDeleteKeyTransacted",(PyCFunction)PyRegDeleteKeyTransacted, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegDeleteKeyTransacted|Deletes a registry key as part of a transaction
+	{"RegDeleteKeyEx",		(PyCFunction)PyRegDeleteKeyEx, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegDeleteKeyEx|Deletes a registry key from 32 or 64 bit registry view
 	{"RegDeleteTree",		(PyCFunction)PyRegDeleteTree, METH_KEYWORDS|METH_VARARGS}, // @pymeth RegDeleteTree|Recursively deletes a key's subkeys and values
 	{"RegDeleteValue",      PyRegDeleteValue, 1}, // @pymeth RegDeleteValue|Removes a named value from the specified registry key.
 	{"RegEnumKey",          PyRegEnumKey, 1}, // @pymeth RegEnumKey|Enumerates subkeys of the specified open registry key.
@@ -6196,6 +6211,7 @@ initwin32api(void)
 	pfnRegSaveKeyEx=(RegSaveKeyExfunc)GetProcAddress(hmodule, "RegSaveKeyExW");
 	pfnRegCreateKeyTransacted=(RegCreateKeyTransactedfunc)GetProcAddress(hmodule, "RegCreateKeyTransactedW");
 	pfnRegOpenKeyTransacted=(RegOpenKeyTransactedfunc)GetProcAddress(hmodule, "RegOpenKeyTransactedW");
+	pfnRegDeleteKeyEx=(RegDeleteKeyExfunc)GetProcAddress(hmodule, "RegDeleteKeyExW");
 	pfnRegDeleteKeyTransacted=(RegDeleteKeyTransactedfunc)GetProcAddress(hmodule, "RegDeleteKeyTransactedW");
 	pfnRegCopyTree=(RegCopyTreefunc)GetProcAddress(hmodule, "RegCopyTreeW");
 	pfnRegDeleteTree=(RegDeleteTreefunc)GetProcAddress(hmodule, "RegDeleteTreeW");
