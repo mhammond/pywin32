@@ -8,9 +8,6 @@
 // ---------------------------------------------------
 //
 // Interface Implementation
-extern BOOL PyObject_AsSHCOLUMNID(PyObject *ob, SHCOLUMNID *p);
-extern PyObject *PyObject_FromSHCOLUMNID(LPCSHCOLUMNID p);
-
 
 PyIShellItemArray::PyIShellItemArray(IUnknown *pdisp):
 	PyIUnknown(pdisp)
@@ -109,7 +106,7 @@ PyObject *PyIShellItemArray::GetPropertyDescriptionList(PyObject *self, PyObject
 	if (!bPythonIsHappy) return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	hr = pISIA->GetPropertyDescriptionList( &keyType, riid, &pv );
+	hr = pISIA->GetPropertyDescriptionList( keyType, riid, &pv );
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pISIA, IID_IShellItemArray );
@@ -280,10 +277,7 @@ STDMETHODIMP PyGShellItemArray::GetPropertyDescriptionList(
 		/* [iid_is][out] */ void ** ppv)
 {
 	PY_GATEWAY_METHOD;
-// *** The input argument keyType of type "REFPROPERTYKEY" was not processed ***
-//   - Please ensure this conversion function exists, and is appropriate
-//   - The type 'REFPROPERTYKEY' (keyType) is unknown.
-	PyObject *obkeyType = PyObject_FromSHCOLUMNID(keyType);
+	PyObject *obkeyType = PyObject_FromSHCOLUMNID(&keyType);
 	if (obkeyType==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetPropertyDescriptionList");
 	PyObject *obriid;
 	obriid = PyWinObject_FromIID(riid);

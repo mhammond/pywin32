@@ -1,6 +1,6 @@
 // shell_pch.h : header file for PCH generation for the shell COM extension
 
-#define _WIN32_IE 0x0601
+#define _WIN32_IE _WIN32_IE_IE70
 #include <windows.h>
 #include <oleauto.h>
 #include <ocidl.h> // Used to be <multinfo.h>
@@ -35,14 +35,27 @@ PyObject *PyObject_FromFOLDERSETTINGS( const FOLDERSETTINGS *pf);
 BOOL PyObject_AsRECT( PyObject *ob, RECT *r);
 PyObject *PyObject_FromRECT(const RECT *r);
 
-// For the Vista IExplorer* interfaces
-#include "PyIExplorerInterfaces.h"
-
 BOOL PyObject_AsEXPLORER_BROWSER_OPTIONS(PyObject *, EXPLORER_BROWSER_OPTIONS *);
 PyObject *PyObject_FromEXPLORER_BROWSER_OPTIONS(EXPLORER_BROWSER_OPTIONS);
 
 BOOL PyObject_AsEXPLORER_BROWSER_FILL_FLAGS(PyObject *, EXPLORER_BROWSER_FILL_FLAGS *);
 PyObject *PyObject_FromEXPLORER_BROWSER_FILL_FLAGS(EXPLORER_BROWSER_FILL_FLAGS);
+
+BOOL PyObject_AsSHCOLUMNID(PyObject *ob, SHCOLUMNID *p);
+PyObject *PyObject_FromSHCOLUMNID(LPCSHCOLUMNID p);
+
+BOOL PyObject_AsSHCOLUMNINIT(PyObject *, SHCOLUMNINIT *);
+PyObject *PyObject_FromSHCOLUMNINIT(LPCSHCOLUMNINIT);
+
+BOOL PyObject_AsSHCOLUMNINFO(PyObject *, SHCOLUMNINFO *);
+PyObject *PyObject_FromSHCOLUMNINFO(LPCSHCOLUMNINFO);
+
+BOOL PyObject_AsSHCOLUMNDATA(PyObject *, SHCOLUMNDATA *);
+void PyObject_FreeSHCOLUMNDATA(SHCOLUMNDATA *p);
+PyObject *PyObject_FromSHCOLUMNDATA(LPCSHCOLUMNDATA);
+
+PyObject *PyObject_FromFOLDERSETTINGS( const FOLDERSETTINGS *pf);
+BOOL PyObject_AsFOLDERSETTINGS( PyObject *ob, FOLDERSETTINGS *pf);
 
 extern void *PyShell_AllocMem(ULONG cb);
 

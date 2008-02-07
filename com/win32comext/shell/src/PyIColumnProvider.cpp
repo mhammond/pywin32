@@ -4,20 +4,6 @@
 #include "shell_pch.h"
 #include "PyIColumnProvider.h"
 
-extern BOOL PyObject_AsSHCOLUMNINIT(PyObject *, SHCOLUMNINIT *);
-extern PyObject *PyObject_FromSHCOLUMNINIT(LPCSHCOLUMNINIT);
-
-extern BOOL PyObject_AsSHCOLUMNINFO(PyObject *, SHCOLUMNINFO *);
-extern PyObject *PyObject_FromSHCOLUMNINFO(LPCSHCOLUMNINFO);
-
-extern BOOL PyObject_AsSHCOLUMNID(PyObject *, SHCOLUMNID *);
-extern PyObject *PyObject_FromSHCOLUMNID(LPCSHCOLUMNID);
-
-extern BOOL PyObject_AsSHCOLUMNDATA(PyObject *, SHCOLUMNDATA *);
-void PyObject_FreeSHCOLUMNDATA(SHCOLUMNDATA *p);
-
-extern PyObject *PyObject_FromSHCOLUMNDATA(LPCSHCOLUMNDATA);
-
 // @doc - This file contains autoduck documentation
 // ---------------------------------------------------
 //

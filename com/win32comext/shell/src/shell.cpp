@@ -18,13 +18,18 @@ generates Windows .hlp files.
 #include "shell_pch.h"
 #include "EmptyVC.h"
 #include "PyIShellLink.h"
+#include "PyICategorizer.h"
+#include "PyICategoryProvider.h"
 #include "PyIContextMenu.h"
+#include "PyIDefaultExtractIconInit.h"
 #include "PyIExtractIcon.h"
 #include "PyIExtractIconW.h"
 #include "PyIShellExtInit.h"
 #include "PyIShellFolder.h"
+#include "PyIShellFolder2.h"
 #include "PyIEmptyVolumeCache.h"
 #include "PyIEmptyVolumeCacheCallBack.h"
+#include "PyIEnumExplorerCommand.h"
 #include "PyIEnumIDList.h"
 #include "PyICopyHook.h"
 #include "PyIOleWindow.h"
@@ -50,6 +55,7 @@ generates Windows .hlp files.
 #include "PyIExplorerBrowser.h"
 #include "PyIExplorerBrowserEvents.h"
 #include "PyIExplorerCommand.h"
+#include "PyIExplorerCommandProvider.h"
 #include "PyIShellItem.h"
 #include "PyIShellItemArray.h"
 
@@ -57,15 +63,6 @@ generates Windows .hlp files.
 
 // We should not be using this!
 #define OleSetOleError PyCom_BuildPyException
-
-#if (WINVER < 0x600)
-const IID IID_IExplorerBrowser = __uuidof(IExplorerBrowser);
-const IID IID_IExplorerBrowserEvents = __uuidof(IExplorerBrowserEvents);
-const IID IID_IExplorerCommand = __uuidof(IExplorerCommand);
-const IID IID_IShellItemArray = __uuidof(IShellItemArray);
-const IID IID_IEnumExplorerCommand = __uuidof(IEnumExplorerCommand);
-const IID IID_IEnumShellItems = __uuidof(IEnumShellItems);
-#endif
 
 static HMODULE shell32 = NULL;
 static HMODULE shfolder = NULL;
@@ -101,16 +98,48 @@ static PFNSHILCreateFromPath pfnSHILCreateFromPath = NULL;
 typedef HRESULT (WINAPI * PFNAssocCreate)(CLSID, REFIID, LPVOID);
 static PFNAssocCreate pfnAssocCreate = NULL;
 
+typedef HRESULT (WINAPI * PFNAssocCreateForClasses)(const ASSOCIATIONELEMENT *, ULONG cClasses, REFIID riid, void **ppv);
+static PFNAssocCreateForClasses pfnAssocCreateForClasses = NULL;
+
 typedef LRESULT (WINAPI *PFNSHShellFolderView_Message)(HWND, UINT, LPARAM);
 static PFNSHShellFolderView_Message pfnSHShellFolderView_Message = NULL;
 
 typedef BOOL (WINAPI *PFNIsUserAnAdmin)();
 static PFNIsUserAnAdmin pfnIsUserAnAdmin = NULL;
 
+typedef BOOL (WINAPI *PFNSHGetNameFromIDList)(PCIDLIST_ABSOLUTE, SIGDN, PWSTR *);
+static PFNSHGetNameFromIDList pfnSHGetNameFromIDList = NULL;
+
+typedef BOOL (WINAPI *PFNSHCreateShellFolderView)(const SFV_CREATE *, IShellView **ppsv);
+static PFNSHCreateShellFolderView pfnSHCreateShellFolderView = NULL;
+
+typedef BOOL (WINAPI *PFNSHCreateDefaultExtractIcon)(REFIID riid, void **ppv);
+static PFNSHCreateDefaultExtractIcon pfnSHCreateDefaultExtractIcon = NULL;
+
+typedef BOOL (WINAPI *PFNSHCreateDataObject)(PCIDLIST_ABSOLUTE, UINT, PCUITEMID_CHILD_ARRAY, IDataObject *, REFIID, void **);
+static PFNSHCreateDataObject pfnSHCreateDataObject = NULL;
+
+typedef BOOL (WINAPI *PFNSHCreateShellItemArray)(PCIDLIST_ABSOLUTE, IShellFolder *, UINT, PCUITEMID_CHILD_ARRAY, IShellItemArray **);
+static PFNSHCreateShellItemArray pfnSHCreateShellItemArray = NULL;
+
+typedef BOOL (WINAPI *PFNSHCreateShellItemArrayFromDataObject)(IDataObject *pdo, REFIID, void **);
+static PFNSHCreateShellItemArrayFromDataObject pfnSHCreateShellItemArrayFromDataObject = NULL;
+
+typedef BOOL (WINAPI *PFNSHCreateShellItemArrayFromIDLists)(UINT, PCIDLIST_ABSOLUTE_ARRAY, IShellItemArray **);
+static PFNSHCreateShellItemArrayFromIDLists pfnSHCreateShellItemArrayFromIDLists = NULL;
+
+typedef BOOL (WINAPI *PFNSHCreateShellItemArrayFromShellItem)(IShellItem *, REFIID riid, void **);
+static PFNSHCreateShellItemArrayFromShellItem pfnSHCreateShellItemArrayFromShellItem = NULL;
+
+typedef BOOL (WINAPI *PFNSHCreateDefaultContextMenu)(const DEFCONTEXTMENU *, REFIID, void **);
+static PFNSHCreateDefaultContextMenu pfnSHCreateDefaultContextMenu = NULL;
+
 void PyShell_FreeMem(void *p)
 {
-	if (p!=NULL)
-		CoTaskMemFree(p);
+	// NOTE: CoTaskMemFree documents NULL is an OK param - so we no
+	// longer check for that - and given the new 'propsys' module, these
+	// are screaming to become macros (and/or die!)
+	CoTaskMemFree(p);
 }
 
 void *PyShell_AllocMem(ULONG cb)
@@ -784,6 +813,61 @@ PyObject *PyObject_FromSHFILEINFO(SHFILEINFO *p)
 	                              obDisplayName, obTypeName);
 }
 
+// Note - 'cleanup' as we don't free the object itself, just a couple of
+// pointers inside it.
+void PyObject_CleanupDEFCONTEXTMENU(DEFCONTEXTMENU *dcm)
+{
+	PY_INTERFACE_PRECALL; // so all ->Releases() happen with GIL released.
+	if (dcm->pcmcb)
+		dcm->pcmcb->Release();
+	if (dcm->psf)
+		dcm->psf->Release();
+	if (dcm->punkAssociationInfo)
+		dcm->punkAssociationInfo->Release();
+	if (dcm->pidlFolder)
+		PyObject_FreePIDL(dcm->pidlFolder);
+	if (dcm->apidl)
+		PyObject_FreePIDLArray(dcm->cidl, dcm->apidl);
+	PY_INTERFACE_POSTCALL
+}
+
+// @object DEFCONTENTMENU|A tuple representing a DEFCONTEXTMENU structure.
+BOOL PyObject_AsDEFCONTEXTMENU(PyObject *ob, DEFCONTEXTMENU *dcm)
+{
+	BOOL ok = FALSE;
+	memset(dcm, 0, sizeof(*dcm));
+	PyObject *obhwnd, *obcb, *obpidlFolder, *obsf, *obpidlChildren, *obai=Py_None, *obkeys=Py_None;
+	if (!PyArg_ParseTuple(ob, "OOOOO|OO", &obhwnd, &obcb, &obpidlFolder, &obsf, &obpidlChildren, &obai, &obkeys))
+		return NULL;
+	// @pyparm <o PyHANDLE>|hwnd||
+	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&dcm->hwnd))
+		goto done;
+	// @pyparm <o PyIContextMenuCB>|callback||May be None
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obcb, IID_IContextMenuCB, (void **)&dcm->pcmcb, TRUE/* bNoneOK */))
+		goto done;
+	// @pyparm <o PIDL>|pidlFolder||May be None
+	if (!PyObject_AsPIDL(obpidlFolder, (LPITEMIDLIST *)&dcm->pidlFolder, TRUE))
+		goto done;
+	// @pyparm <o PyIShellFolder>|sf||The Shell data source object that is the parent of the child items specified in children. If parent is specified, this parameter can be NULL.
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obsf, IID_IShellFolder, (void **)&dcm->psf, TRUE/* bNoneOK */))
+		goto done;
+	// @pyparm [<o PIDL>, ...]|children||
+	if (!PyObject_AsPIDLArray(obpidlChildren, &dcm->cidl, &dcm->apidl))
+		goto done;
+	// @pyparm <o PyIUnknown>|unkAssocInfo||May be None
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obsf, IID_IUnknown, (void **)&dcm->punkAssociationInfo, TRUE/* bNoneOK */))
+		goto done;
+	if (obkeys != Py_None) {
+		PyErr_SetString(PyExc_ValueError, "Only None is supported for obKeys");
+		goto done;
+	}
+	ok = TRUE;
+done:
+	if (!ok)
+		PyObject_CleanupDEFCONTEXTMENU(dcm);
+	return ok;
+}
+
 // @object PyLPOLEMENUGROUPWIDTHS|Tuple containing 6 ints indicating nbr of options in each menu group
 BOOL PyObject_AsOLEMENUGROUPWIDTHS( PyObject *oblpMenuWidths, OLEMENUGROUPWIDTHS *pWidths)
 {
@@ -895,6 +979,54 @@ BOOL PyObject_AsEXPLORER_BROWSER_FILL_FLAGS(PyObject *ob, EXPLORER_BROWSER_FILL_
 PyObject *PyObject_FromEXPLORER_BROWSER_FILL_FLAGS(EXPLORER_BROWSER_FILL_FLAGS val)
 {
 	return PyLong_FromUnsignedLong(val);
+}
+
+void PyObject_FreeASSOCIATIONELEMENTs(ULONG celems, ASSOCIATIONELEMENT *a)
+{
+	for(ULONG i=0;i<celems;i++)
+		if (a[i].pszClass)
+			PyWinObject_FreeWCHAR((PWSTR)a[i].pszClass);
+	free(a);
+}
+
+BOOL PyObject_AsASSOCIATIONELEMENTs(PyObject *ob, ULONG *num, ASSOCIATIONELEMENT **ret)
+{
+	BOOL ok = FALSE;
+	if (!PySequence_Check(ob)) {
+		PyErr_Format(PyExc_TypeError, "ASSOCIATIONELEMENTs arg must be a sequence of tuples");
+		return FALSE;
+	}
+	*num = (ULONG)PySequence_Length(ob);
+	ASSOCIATIONELEMENT *elts;
+	elts = *ret = (ASSOCIATIONELEMENT *)malloc(*num * sizeof(ASSOCIATIONELEMENT));
+	if (!elts) {
+		PyErr_NoMemory();
+		return FALSE;
+	}
+	memset(elts, 0, *num * sizeof(ASSOCIATIONELEMENT));
+	PyObject *klass = NULL;
+	for (ULONG i=0;i<*num;i++) {
+		Py_XDECREF(klass); // for prev time around the loop
+		klass = PySequence_GetItem(ob, i);
+		PyObject *obname, *obhk;
+		if (!klass)
+			goto done;
+		if (!PyArg_ParseTuple(klass, "kOO", &elts[i].ac, &obhk, &obname))
+			goto done;
+		if (!PyWinObject_AsHKEY(obhk, &elts[i].hkClass))
+			goto done;
+		if (!PyWinObject_AsWCHAR(obname, (PWSTR *)&elts[i].pszClass, TRUE))
+			goto done;
+	}
+	ok = TRUE;
+done:
+	Py_XDECREF(klass);
+	if (!ok && elts) {
+		PyObject_FreeASSOCIATIONELEMENTs(*num, elts);
+		*ret = NULL;
+		*num = 0;
+	}
+	return ok;
 }
 
 #if (PY_VERSION_HEX >= 0x02030000) // PyGILState only in 2.3+
@@ -2130,7 +2262,7 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
 									 &obhwnd, // @pyparm <o PyHANDLE>|hwnd|0|
 									 &obVerb, // @pyparm string|lpVerb||
 									 &obFile, // @pyparm string|lpFile||
-									 &obParams, // @pyparm string|lpParams||
+									 &obParams, // @pyparm string|lpParameters||
 									 &obDirectory, // @pyparm string|lpDirectory||
 									 &info.nShow, // @pyparm int|nShow|0|
 									 &obIDList, // @pyparm <o PyIDL>|lpIDList||
@@ -2230,6 +2362,41 @@ static PyObject *PyAssocCreate(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(pRet, IID_IQueryAssociations, FALSE);
 }
 
+// @pymethod <o PyIUnknown>|shell|AssocCreateForClasses|Retrieves an object that implements an IQueryAssociations interface.
+static PyObject *PyAssocCreateForClasses(PyObject *self, PyObject *args)
+{
+	// @comm This function is only available on Vista and later; a
+	// COM exception with E_NOTIMPL will be thrown if the function can't be located.
+	if (pfnAssocCreateForClasses==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+
+	PyObject *ret = NULL;
+	PyObject *obClasses, *obiid;
+	if (!PyArg_ParseTuple(args, "OO:AssocCreateForClasses", &obClasses, &obiid))
+		return NULL;
+	ASSOCIATIONELEMENT *elts = NULL;
+	ULONG nclasses = 0;
+	IID iid;
+	if (!PyWinObject_AsIID(obiid, &iid))
+		goto done;
+	if (!PyObject_AsASSOCIATIONELEMENTs(obClasses, &nclasses, &elts))
+		goto done;
+	HRESULT hr;
+	void *v;
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnAssocCreateForClasses)(elts, nclasses, iid, &v);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	ret = PyCom_PyObjectFromIUnknown((IUnknown *)v, iid, FALSE);
+done:
+	if (elts)
+		PyObject_FreeASSOCIATIONELEMENTs(nclasses, elts);
+	return ret;
+}
+
 // @pymethod <o PyIPropertyBag>|shell|SHGetViewStatePropertyBag|Retrieves an interface for the view state of a folder
 // @comm This function will also return IPropertyBag2, but we don't have a python implementation of this interface yet
 static PyObject *PySHGetViewStatePropertyBag(PyObject *self, PyObject *args)
@@ -2313,16 +2480,387 @@ static PyObject *PyIsUserAnAdmin(PyObject *self, PyObject *args)
 	return PyBool_FromLong(r);
 }
 
+// @pymethod (o PyIShellView|shell|SHCreateShellFolderView|
+static PyObject *PySHCreateShellFolderView(PyObject *self, PyObject *args)
+{
+	if (pfnSHCreateShellFolderView==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+
+	PyObject *ret = NULL;
+	PyObject *obsf;
+	PyObject *obouter = Py_None;
+	PyObject *obevents = Py_None;
+	// @pyparm <o PyIShellFolder>|sf||
+	// @pyparm <o PyIShellView>|viewOuter|None|
+	// @pyparm <o PyIShellFolderViewCB>|callbacks|None|
+	if(!PyArg_ParseTuple(args, "O|OO:SHCreateShellFolderView", &obsf, &obouter, &obevents))
+		return NULL;
+	SFV_CREATE create;
+	memset(&create, 0, sizeof(create));
+	create.cbSize = sizeof(create);
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obsf, IID_IShellFolder, (void **)&create.pshf, FALSE/* bNoneOK */))
+		goto done;
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obouter, IID_IShellView, (void **)&create.psvOuter, TRUE/* bNoneOK */))
+		goto done;
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obevents, IID_IShellFolderViewCB, (void **)&create.psfvcb, TRUE/* bNoneOK */))
+		goto done;
+	IShellView *view = NULL;
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnSHCreateShellFolderView)(&create, &view);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		PyCom_BuildPyException(hr);
+	else
+		ret = PyCom_PyObjectFromIUnknown(view, IID_IShellView, FALSE);
+		// ref on view consumed by ret object.
+done:
+	{
+	PY_INTERFACE_PRECALL;
+	if (create.pshf) create.pshf->Release();
+	if (create.psvOuter) create.psvOuter->Release();
+	if (create.psfvcb) create.psfvcb->Release();
+	PY_INTERFACE_POSTCALL;
+	}
+	return ret;
+}
+
+// @pymethod <o PyIDefaultExtractIconInit>|shell|SHCreateDefaultExtractIcon|Creates a standard icon extractor, whose defaults can be further configured via the IDefaultExtractIconInit interface.
+static PyObject *PySHCreateDefaultExtractIcon(PyObject *self, PyObject *args)
+{
+	// @comm This function is only available on Vista and later; a
+	// COM exception with E_NOTIMPL will be thrown if the function can't be located.
+	if (pfnSHCreateDefaultExtractIcon==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+
+	// be lazy - don't take IID as a param!
+	if(!PyArg_ParseTuple(args, ":SHCreateDefaultExtractIcon"))
+		return NULL;
+	IDefaultExtractIconInit *ret = NULL;
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnSHCreateDefaultExtractIcon)(IID_IDefaultExtractIconInit, (void **)&ret);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	// ref on view consumed by ret object.
+	return PyCom_PyObjectFromIUnknown(ret, IID_IDefaultExtractIconInit, FALSE);
+}
+
+// @pymethod <o PyIUnknown>|shell|SHCreateDataObject|
+static PyObject *PySHCreateDataObject(PyObject *self, PyObject *args)
+{
+	// @comm This function is only available on Vista and later; a
+	// COM exception with E_NOTIMPL will be thrown if the function can't be located.
+	if (pfnSHCreateDataObject==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+
+	PyObject *ret = NULL;
+	PyObject *obParent;
+	PyObject *obChildren;
+	PyObject *obdo;
+	PyObject *obiid = Py_None;
+	PIDLIST_ABSOLUTE parent = NULL;
+	PCUITEMID_CHILD_ARRAY children = NULL;
+	IDataObject *do_inner = NULL;
+	void *do_ret = NULL;
+	IID iid = IID_IDataObject;
+	UINT nchildren;
+	if(!PyArg_ParseTuple(args, "OOO|O:SHCreateDataObject", &obParent, &obChildren, &obdo, &obiid))
+		return NULL;
+	// @pyparm PIDL|parent||
+	if (!PyObject_AsPIDL(obParent, &parent))
+		goto done;
+	// @pyparm [PIDL, ...]|children||
+	if (!PyObject_AsPIDLArray(obChildren, &nchildren, &children))
+		goto done;
+	// @pyparm <o PyIDataObject>|do_inner||The inner data object, or None
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obdo, IID_IDataObject, (void **)&do_inner, TRUE/* bNoneOK */))
+		goto done;
+	// @pyparm <o PyIID>|iid|IID_IDataObject|The IID to query for
+	if (obiid != Py_None && !PyWinObject_AsIID(obiid, &iid))
+		goto done;
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnSHCreateDataObject)(parent, nchildren, children, do_inner, iid, &do_ret);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	// ref on view consumed by ret object.
+	ret = PyCom_PyObjectFromIUnknown((IUnknown *)do_ret, iid, FALSE);
+done:
+	if (parent)
+		PyObject_FreePIDL(parent);
+	if (children)
+		PyObject_FreePIDLArray(nchildren, children);
+	if (do_inner) {
+		PY_INTERFACE_PRECALL;
+		do_inner->Release();
+		PY_INTERFACE_POSTCALL;
+	}
+	return ret;
+}
+
+// @pymethod <o PyIUnknown>|shell|SHCreateDefaultContextMenu|
+static PyObject *PySHCreateDefaultContextMenu(PyObject *self, PyObject *args)
+{
+	// @comm This function is only available on Vista and later; a
+	// COM exception with E_NOTIMPL will be thrown if the function can't be located.
+	if (pfnSHCreateDefaultContextMenu==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+
+	PyObject *ret = NULL;
+	PyObject *obdcm, *obiid;
+	IID iid = IID_IContextMenu;
+	if(!PyArg_ParseTuple(args, "O|O:SHCreateDefaultContextMenu", &obdcm, &obiid))
+		return NULL;
+	void *iret = NULL;
+	DEFCONTEXTMENU dcm;
+	// @pyparm <o DEFAULTCONTEXTMENU>|dcm||
+	if (!PyObject_AsDEFCONTEXTMENU(obdcm, &dcm))
+		goto done;
+	// @pyparm <o PyIID>|iid|IID_IContextMenu|The IID to query for
+	if (obiid != Py_None && !PyWinObject_AsIID(obiid, &iid))
+		goto done;
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnSHCreateDefaultContextMenu)(&dcm, iid, &iret);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	// ref on view consumed by ret object.
+	ret = PyCom_PyObjectFromIUnknown((IUnknown *)iret, iid, FALSE);
+done:
+	PyObject_CleanupDEFCONTEXTMENU(&dcm);
+	return ret;
+}
+
+// @pymethod unicode|shell|SHGetNameFromIDList|Retrieves the display name of an item from an ID list.
+static PyObject *PySHGetNameFromIDList(PyObject *self, PyObject *args)
+{
+	// @comm This function is only available on Vista and later; a
+	// COM exception with E_NOTIMPL will be thrown if the function can't be located.
+	if (pfnSHGetNameFromIDList==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+	PyObject *ret = NULL;
+	PyObject *obpidl;
+	SIGDN flags;
+	WCHAR *strret = NULL;
+	PIDLIST_ABSOLUTE pidl = NULL;
+	if(!PyArg_ParseTuple(args, "Ok:SHGetNameFromIDList", &obpidl, &flags))
+		return NULL;
+	// @pyparm PIDL|parent||
+	// @pyparm int|flags||
+	if (!PyObject_AsPIDL(obpidl, &pidl))
+		goto done;
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnSHGetNameFromIDList)(pidl, flags, &strret);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	// ref on view consumed by ret object.
+	ret = PyWinObject_FromWCHAR(strret);
+done:
+	if (pidl)
+		PyObject_FreePIDL(pidl);
+	if (strret)
+		CoTaskMemFree(strret);
+	return ret;
+}
+
+// @pymethod <o PyIShellItemArray>|shell|SHCreateShellItemArray|
+static PyObject *PySHCreateShellItemArray(PyObject *self, PyObject *args)
+{
+	// @comm This function is only available on Vista and later; a
+	// COM exception with E_NOTIMPL will be thrown if the function can't be located.
+	if (pfnSHCreateShellItemArray==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+
+	PyObject *ret = NULL;
+	PyObject *obParent;
+	PyObject *obChildren;
+	PyObject *obsf;
+	PIDLIST_ABSOLUTE parent = NULL;
+	PCUITEMID_CHILD_ARRAY children = NULL;
+	UINT nchildren;
+	IShellFolder *sf = NULL;
+	IShellItemArray *sia_ret = NULL;
+	if(!PyArg_ParseTuple(args, "OOO:SHCreateShellItemArray", &obParent, &obsf, &obChildren))
+		return NULL;
+	// @pyparm PIDL|parent||
+	if (!PyObject_AsPIDL(obParent, &parent, TRUE))
+		goto done;
+	// @pyparm <o PyIShellFolder>|sf||The Shell data source object that is the parent of the child items specified in children. If parent is specified, this parameter can be NULL.
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obsf, IID_IShellFolder, (void **)&sf, TRUE/* bNoneOK */))
+		goto done;
+	// @pyparm [PIDL, ...]|children||
+	if (!PyObject_AsPIDLArray(obChildren, &nchildren, &children))
+		goto done;
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnSHCreateShellItemArray)(parent, sf, nchildren, children, &sia_ret);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	// ref on view consumed by ret object.
+	ret = PyCom_PyObjectFromIUnknown(sia_ret, IID_IShellItemArray, FALSE);
+done:
+	if (parent)
+		PyObject_FreePIDL(parent);
+	if (children)
+		PyObject_FreePIDLArray(nchildren, children);
+	if (sf) {
+		PY_INTERFACE_PRECALL;
+		sf->Release();
+		PY_INTERFACE_POSTCALL;
+	}
+	return ret;
+}
+
+// @pymethod <o PyIUnknown>|shell|SHCreateShellItemArray|
+static PyObject *PySHCreateShellItemArrayFromDataObject(PyObject *self, PyObject *args)
+{
+	// @comm This function is only available on Vista and later; a
+	// COM exception with E_NOTIMPL will be thrown if the function can't be located.
+	if (pfnSHCreateShellItemArrayFromDataObject==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+
+	PyObject *ret = NULL;
+	PyObject *obdo;
+	PyObject *obiid = Py_None;
+	IID iid = IID_IShellItemArray;
+	IDataObject *ido = NULL;
+	void *iret = NULL;
+	if(!PyArg_ParseTuple(args, "O|O:SHCreateShellItemArrayFromDataObject", &obdo, &obiid))
+		return NULL;
+	// @pyparm <o PyIDataObject>|do||
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obdo, IID_IDataObject, (void **)&ido, FALSE/* bNoneOK */))
+		goto done;
+	// @pyparm <o PyIID>|iid|IID_IDataObject|The IID to query for
+	if (obiid != Py_None && !PyWinObject_AsIID(obiid, &iid))
+		goto done;
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnSHCreateShellItemArrayFromDataObject)(ido, iid, &iret);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	// ref on view consumed by ret object.
+	ret = PyCom_PyObjectFromIUnknown((IUnknown *)iret, iid, FALSE);
+done:
+	if (ido) {
+		PY_INTERFACE_PRECALL;
+		ido->Release();
+		PY_INTERFACE_POSTCALL;
+	}
+	return ret;
+}
+
+// @pymethod <o PyIShellItemArray>|shell|SHCreateShellItemArrayFromIDLists|
+static PyObject *PySHCreateShellItemArrayFromIDLists(PyObject *self, PyObject *args)
+{
+	// @comm This function is only available on Vista and later; a
+	// COM exception with E_NOTIMPL will be thrown if the function can't be located.
+	if (pfnSHCreateShellItemArrayFromIDLists==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+
+	PyObject *ret = NULL;
+	PyObject *obpidls;
+	PCIDLIST_ABSOLUTE_ARRAY pidls = NULL;
+	UINT npidls;
+	if(!PyArg_ParseTuple(args, "O:SHCreateShellItemArray", &obpidls))
+		return NULL;
+	// @pyparm [PIDL, ...]|pidls||
+	if (!PyObject_AsPIDLArray(obpidls, &npidls, &pidls))
+		goto done;
+	HRESULT hr;
+	IShellItemArray *iret = NULL;
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnSHCreateShellItemArrayFromIDLists)(npidls, pidls, &iret);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	// ref on view consumed by ret object.
+	ret = PyCom_PyObjectFromIUnknown(iret, IID_IShellItemArray, FALSE);
+done:
+	if (pidls)
+		PyObject_FreePIDLArray(npidls, pidls);
+	return ret;
+}
+
+// @pymethod <o PyIUnknown>|shell|SHCreateShellItemArrayFromShellItem|
+static PyObject *PySHCreateShellItemArrayFromShellItem(PyObject *self, PyObject *args)
+{
+	// @comm This function is only available on Vista and later; a
+	// COM exception with E_NOTIMPL will be thrown if the function can't be located.
+	if (pfnSHCreateShellItemArrayFromShellItem==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+
+	PyObject *ret = NULL;
+	PyObject *obsi;
+	PyObject *obiid = Py_None;
+	IShellItem *isi = NULL;
+	IID iid = IID_IShellItemArray;
+	void *iret = NULL;
+	if(!PyArg_ParseTuple(args, "O|O:SHCreateShellItemArrayFromShellItem", &obsi, &obiid))
+		return NULL;
+	// @pyparm <o PyIDataObject>|do||
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obsi, IID_IShellItem, (void **)&isi, FALSE/* bNoneOK */))
+		goto done;
+	// @pyparm <o PyIID>|iid|IID_IShellItem|The IID to query for
+	if (obiid != Py_None && !PyWinObject_AsIID(obiid, &iid))
+		goto done;
+	HRESULT hr;
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnSHCreateShellItemArrayFromShellItem)(isi, iid, &iret);
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	// ref on view consumed by ret object.
+	ret = PyCom_PyObjectFromIUnknown((IUnknown *)iret, iid, FALSE);
+done:
+	if (isi) {
+		PY_INTERFACE_PRECALL;
+		isi->Release();
+		PY_INTERFACE_POSTCALL;
+	}
+	return ret;
+}
+
 
 /* List of module functions */
 // @module shell|A module, encapsulating the ActiveX Control interfaces
 static struct PyMethodDef shell_methods[]=
 {
     { "AssocCreate",    PyAssocCreate, 1 }, // @pymeth AssocCreate|Creates a <o PyIQueryAssociations> object
+    { "AssocCreateForClasses", PyAssocCreateForClasses, 1}, // @pymeth AssocCreateForClasses|Retrieves an object that implements an IQueryAssociations interface."}
     { "DragQueryFile",    PyDragQueryFile, 1 }, // @pymeth DragQueryFile|Retrieves the file names of dropped files that have resulted from a successful drag-and-drop operation.
     { "DragQueryFileW",   PyDragQueryFileW, 1 }, // @pymeth DragQueryFileW|Retrieves the file names of dropped files that have resulted from a successful drag-and-drop operation.
 	{ "DragQueryPoint",   PyDragQueryPoint, 1}, // @pymeth DragQueryPoint|Retrieves the position of the mouse pointer at the time a file was dropped during a drag-and-drop operation.
 	{ "IsUserAnAdmin", PyIsUserAnAdmin, METH_VARARGS}, // @pymeth IsUserAnAdmin|Tests whether the current user is a member of the Administrator's group.
+    { "SHCreateDataObject", PySHCreateDataObject, 1}, // @pymeth SHCreateDataObject|Creates a data object in a parent folder.
+    { "SHCreateDefaultContextMenu", PySHCreateDefaultContextMenu, 1}, // @pymeth SHCreateDefaultContextMenu|
+    { "SHCreateDefaultExtractIcon", PySHCreateDefaultExtractIcon, 1}, // @pymeth SHCreateDefaultExtractIcon|Creates a standard icon extractor, whose defaults can be further configured via the IDefaultExtractIconInit interface.
+    { "SHCreateShellFolderView", PySHCreateShellFolderView, 1}, // @pymeth SHCreateShellFolderView|
+    { "SHCreateShellItemArray", PySHCreateShellItemArray, 1}, // @pymeth SHCreateShellItemArray|
+    { "SHCreateShellItemArrayFromDataObject", PySHCreateShellItemArrayFromDataObject, 1}, // @pymeth SHCreateShellItemArrayFromDataObject|
+    { "SHCreateShellItemArrayFromIDLists", PySHCreateShellItemArrayFromIDLists, 1}, // @pymeth SHCreateShellItemArrayFromIDLists|
+    { "SHCreateShellItemArrayFromShellItem", PySHCreateShellItemArrayFromIDLists, 1}, // @pymeth SHCreateShellItemArrayFromIDLists|
     { "SHGetPathFromIDList",    PySHGetPathFromIDList, 1 }, // @pymeth SHGetPathFromIDList|Converts an <o PyIDL> to a path.
     { "SHGetPathFromIDListW",   PySHGetPathFromIDListW, 1 }, // @pymeth SHGetPathFromIDListW|Converts an <o PyIDL> to a unicode path.
     { "SHBrowseForFolder",    PySHBrowseForFolder, 1 }, // @pymeth SHBrowseForFolder|Displays a dialog box that enables the user to select a shell folder.
@@ -2330,6 +2868,7 @@ static struct PyMethodDef shell_methods[]=
     { "SHGetFolderPath", PySHGetFolderPath, 1 }, // @pymeth SHGetFolderPath|Retrieves the path of a folder.
     { "SHSetFolderPath", PySHSetFolderPath, 1 }, // @pymeth SHSetFolderPath|Sets the location of a special folder
 	{ "SHGetFolderLocation", PySHGetFolderLocation, 1 }, // @pymeth SHGetFolderLocation|Retrieves the <o PyIDL> of a folder.
+	{ "SHGetNameFromIDList", PySHGetNameFromIDList, 1}, // @pymeth SHGetNameFromIDList|Retrieves the display name of an item from an ID list.
     { "SHGetSpecialFolderPath", PySHGetSpecialFolderPath, 1 }, // @pymeth SHGetSpecialFolderPath|Retrieves the path of a special folder.
     { "SHGetSpecialFolderLocation", PySHGetSpecialFolderLocation, 1 }, // @pymeth SHGetSpecialFolderLocation|Retrieves the <o PyIDL> of a special folder.
     { "SHAddToRecentDocs", PySHAddToRecentDocs, 1 }, // @pymeth SHAddToRecentDocs|Adds a document to the shell's list of recently used documents or clears all documents from the list. The user gains access to the list through the Start menu of the Windows taskbar.
@@ -2371,6 +2910,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_CLIENT_ONLY		(ExtractImage),
 	PYCOM_INTERFACE_FULL(ShellExtInit),
 	PYCOM_INTERFACE_FULL(ShellFolder),
+	PYCOM_INTERFACE_FULL(ShellFolder2),
 	PYCOM_INTERFACE_FULL(ShellIcon),
 	PYCOM_INTERFACE_FULL(ShellIconOverlay),
 	PYCOM_INTERFACE_FULL(ShellIconOverlayIdentifier),
@@ -2378,9 +2918,14 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL(ShellView),
 	PYCOM_INTERFACE_FULL(ShellBrowser),
 	PYCOM_INTERFACE_FULL(EnumIDList),
+	PYCOM_INTERFACE_FULL(EnumExplorerCommand),
 	PYCOM_INTERFACE_FULL(BrowserFrameOptions),
 	PYCOM_INTERFACE_FULL(PersistFolder),
+	PYCOM_INTERFACE_FULL(PersistFolder2),
+	PYCOM_INTERFACE_SERVER_ONLY(Categorizer),
+	PYCOM_INTERFACE_FULL(CategoryProvider),
 	PYCOM_INTERFACE_FULL(ColumnProvider),
+	PYCOM_INTERFACE_CLIENT_ONLY(DefaultExtractIconInit),
 	PYCOM_INTERFACE_FULL(DropTargetHelper),
 	PYCOM_INTERFACE_CLIENT_ONLY(EmptyVolumeCacheCallBack),
 	PYCOM_INTERFACE_CLIENT_ONLY(QueryAssociations),
@@ -2391,6 +2936,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_CLIENT_ONLY(ExplorerBrowser),
 	PYCOM_INTERFACE_FULL(ExplorerBrowserEvents),
 	PYCOM_INTERFACE_FULL(ExplorerCommand),
+	PYCOM_INTERFACE_SERVER_ONLY(ExplorerCommandProvider),
 	// IID_ICopyHook doesn't exist - hack it up
 	{ &IID_IShellCopyHook, "IShellCopyHook", "IID_IShellCopyHook", &PyICopyHook::type, GET_PYGATEWAY_CTOR(PyGCopyHook) },
 	{ &IID_IShellCopyHook, "ICopyHook", "IID_ICopyHook", NULL, NULL  },
@@ -2458,6 +3004,16 @@ extern "C" __declspec(dllexport) void initshell()
 		pfnSHILCreateFromPath=(PFNSHILCreateFromPath)GetProcAddress(shell32, "SHILCreateFromPath");
 		pfnSHShellFolderView_Message=(PFNSHShellFolderView_Message)GetProcAddress(shell32, "SHShellFolderView_Message");
 		pfnIsUserAnAdmin=(PFNIsUserAnAdmin)GetProcAddress(shell32, "IsUserAnAdmin");
+		pfnSHCreateShellFolderView=(PFNSHCreateShellFolderView)GetProcAddress(shell32, "SHCreateShellFolderView");
+		pfnSHCreateDefaultExtractIcon=(PFNSHCreateDefaultExtractIcon)GetProcAddress(shell32, "SHCreateDefaultExtractIcon");
+		pfnSHGetNameFromIDList=(PFNSHGetNameFromIDList)GetProcAddress(shell32, "SHGetNameFromIDList");
+		pfnAssocCreateForClasses=(PFNAssocCreateForClasses)GetProcAddress(shell32, "AssocCreateForClasses");
+		pfnSHCreateShellItemArray=(PFNSHCreateShellItemArray)GetProcAddress(shell32, "SHCreateShellItemArray");
+		pfnSHCreateShellItemArrayFromDataObject=(PFNSHCreateShellItemArrayFromDataObject)GetProcAddress(shell32, "SHCreateShellItemArrayFromDataObject");
+		pfnSHCreateShellItemArrayFromIDLists=(PFNSHCreateShellItemArrayFromIDLists)GetProcAddress(shell32, "SHCreateShellItemArrayFromIDLists");
+		pfnSHCreateShellItemArrayFromShellItem=(PFNSHCreateShellItemArrayFromShellItem)GetProcAddress(shell32, "SHCreateShellItemArrayFromShellItem");
+		pfnSHCreateDefaultContextMenu=(PFNSHCreateDefaultContextMenu)GetProcAddress(shell32, "SHCreateDefaultContextMenu");
+		pfnSHCreateDataObject=(PFNSHCreateDataObject)GetProcAddress(shell32, "SHCreateDataObject");
 	}
 	// SHGetFolderPath comes from shfolder.dll on older systems
 	if (pfnSHGetFolderPath==NULL){
