@@ -489,8 +489,13 @@ STDMETHODIMP PyGShellFolder::EnumObjects(
 	HRESULT hr=InvokeViaPolicy("EnumObjects", &result, "Nl", PyWinLong_FromHANDLE(hwndOwner), grfFlags);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
-	PyCom_InterfaceFromPyInstanceOrObject(result, IID_IEnumIDList, (void **)ppeidl, FALSE /* bNoneOK */);
-	hr = PyCom_SetAndLogCOMErrorFromPyException("EnumObjects", IID_IShellFolder);
+	if (result==Py_None) {
+		hr = S_FALSE;
+		*ppeidl = NULL;
+	} else {
+		PyCom_InterfaceFromPyInstanceOrObject(result, IID_IEnumIDList, (void **)ppeidl, FALSE /* bNoneOK */);
+		hr = PyCom_SetAndLogCOMErrorFromPyException("EnumObjects", IID_IShellFolder);
+	}
 	Py_DECREF(result);
 	return hr;
 }
@@ -627,14 +632,21 @@ STDMETHODIMP PyGShellFolder::GetUIObjectOf(
 	Py_XDECREF(obriid);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
-	PyObject *obout;
-	UINT inout;
-	if (!PyArg_ParseTuple(result, "lO" , &inout, &obout)) return PyCom_SetAndLogCOMErrorFromPyException(szMethodName, IID_IShellFolder);
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obout, riid, ppRet, FALSE/* bNoneOK */))
-		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_SetAndLogCOMErrorFromPyException(szMethodName, IID_IShellFolder);
-	if (rgfInOut) *rgfInOut = inout;
+	// the 'inout' param appears unused - allow either.
+	if (PyTuple_Check(result)) {
+		PyObject *obout;
+		UINT inout;
+		if (!PyArg_ParseTuple(result, "lO" , &inout, &obout))
+			hr = PyCom_SetAndLogCOMErrorFromPyException(szMethodName, IID_IShellFolder);
+		else {
+			if (rgfInOut) *rgfInOut = inout;
+			if (!PyCom_InterfaceFromPyInstanceOrObject(obout, riid, ppRet, FALSE/* bNoneOK */))
+				hr = PyCom_SetAndLogCOMErrorFromPyException(szMethodName, IID_IShellFolder);
+		}
+	} else {
+		if (!PyCom_InterfaceFromPyInstanceOrObject(result, riid, ppRet, FALSE/* bNoneOK */))
+			hr = PyCom_SetAndLogCOMErrorFromPyException(szMethodName, IID_IShellFolder);
+	}
 	Py_DECREF(result);
 	return hr;
 }
