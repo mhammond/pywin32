@@ -1085,3 +1085,90 @@ EVCF_DONTSHOWIFZERO = 0x0010
 EVCF_SETTINGSMODE = 0x0020
 EVCF_OUTOFDISKSPACE = 0x0040
 EVCCBF_LASTNOTIFICATION = 0x0001
+
+# ShObjIdl.h IExplorer* related
+EBO_NONE	= 0
+EBO_NAVIGATEONCE	= 0x1
+EBO_SHOWFRAMES	= 0x2
+EBO_ALWAYSNAVIGATE	= 0x4
+EBO_NOTRAVELLOG	= 0x8
+EBO_NOWRAPPERWINDOW	= 0x10
+EBF_NONE	= 0
+EBF_SELECTFROMDATAOBJECT	= 0x100
+EBF_NODROPTARGET	= 0x200
+ECS_ENABLED	= 0
+ECS_DISABLED	= 0x1
+ECS_HIDDEN	= 0x2
+ECS_CHECKBOX	= 0x4
+ECS_CHECKED	= 0x8
+
+ECF_HASSUBCOMMANDS	= 0x1
+ECF_HASSPLITBUTTON	= 0x2
+ECF_HIDELABEL	= 0x4
+ECF_ISSEPARATOR	= 0x8
+ECF_HASLUASHIELD	= 0x10
+
+SIATTRIBFLAGS_AND	= 0x1
+SIATTRIBFLAGS_OR	= 0x2
+SIATTRIBFLAGS_APPCOMPAT	= 0x3
+SIATTRIBFLAGS_MASK	= 0x3
+
+SIGDN_NORMALDISPLAY	= 0
+SIGDN_PARENTRELATIVEPARSING	= -2147385343 ## 0x80018001
+SIGDN_DESKTOPABSOLUTEPARSING	= -2147319808 ## 0x80028000
+SIGDN_PARENTRELATIVEEDITING	= -2147282943 ## 0x80031001
+SIGDN_DESKTOPABSOLUTEEDITING	= -2147172352 ## 0x8004c000
+SIGDN_FILESYSPATH	= -2147123200 ## 0x80058000
+SIGDN_URL	= -2147057664 ## 0x80068000
+SIGDN_PARENTRELATIVEFORADDRESSBAR	= -2146975743 ## 0x8007c001,
+SIGDN_PARENTRELATIVE	= -2146959359 ## 0x80080001
+
+SICHINT_DISPLAY	= 0,
+SICHINT_ALLFIELDS	= -2147483648 ## 0x80000000
+SICHINT_CANONICAL	= 0x10000000
+
+ASSOCCLASS_SHELL_KEY = 0
+ASSOCCLASS_PROGID_KEY = 1 # hkeyClass
+ASSOCCLASS_PROGID_STR = 2 # pszClass (HKCR\pszClass)
+ASSOCCLASS_CLSID_KEY = 3 # hkeyClass
+ASSOCCLASS_CLSID_STR = 4 #  pszClass (HKCR\CLSID\pszClass)
+ASSOCCLASS_APP_KEY = 5 # hkeyClass
+ASSOCCLASS_APP_STR = 6 # pszClass (HKCR\Applications\PathFindFileName(pszClass))
+ASSOCCLASS_SYSTEM_STR = 7 # pszClass
+ASSOCCLASS_FOLDER = 8 # none
+ASSOCCLASS_STAR = 9 # none
+
+CLSID_ExplorerBrowser = "{71f96385-ddd6-48d3-a0c1-ae06e8b055fb}"
+
+# Names of the methods of many shell interfaces; used by implementation of
+# the interfaces.
+IBrowserFrame_Methods = ["GetFrameOptions"]
+ICategorizer_Methods = ["GetDescription", "GetCategory",
+                        "GetCategoryInfo", "CompareCategory"]
+ICategoryProvider_Methods = ["CanCategorizeOnSCID", "GetDefaultCategory",
+                             "GetCategoryForSCID", "EnumCategories",
+                             "GetCategoryName", "CreateCategory"]
+IContextMenu_Methods = ["QueryContextMenu", "InvokeCommand", "GetCommandString"]
+IExplorerCommand_Methods = ["GetTitle", "GetIcon", "GetToolTip",
+                            "GetCanonicalName", "GetState", "Invoke",
+                            "GetFlags", "EnumSubCommands"]
+IExplorerCommandProvider_Methods = ["GetCommand", "GetCommands"]
+IOleWindow_Methods = ["GetWindow", "ContextSensitiveHelp"] # XXX - this should be somewhere in win32com
+IPersist_Methods = ["GetClassID"]
+IPersistFolder_Methods = IPersist_Methods + ["Initialize"]
+IPersistFolder2_Methods = IPersistFolder_Methods + ["GetCurFolder"]
+IShellExtInit_Methods = ["Initialize"]
+IShellView_Methods = IOleWindow_Methods + \
+                     ["TranslateAccelerator", "EnableModeless", "UIActivate",
+                      "Refresh", "CreateViewWindow", "DestroyViewWindow",
+                      "GetCurrentInfo", "AddPropertySheetPages",
+                      "SaveViewState", "SelectItem", "GetItemObject"]
+
+IShellFolder_Methods = ["ParseDisplayName", "EnumObjects", "BindToObject",
+                        "BindToStorage", "CompareIDs", "CreateViewObject",
+                        "GetAttributesOf", "GetUIObjectOf",
+                        "GetDisplayNameOf", "SetNameOf"]
+IShellFolder2_Methods = IShellFolder_Methods + \
+                        ["GetDefaultSearchGUID", "EnumSearches",
+                         "GetDefaultColumn", "GetDefaultColumnState",
+                         "GetDetailsEx", "GetDetailsOf", "MapColumnToSCID"]
