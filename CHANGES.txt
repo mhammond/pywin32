@@ -55,7 +55,8 @@ Since build 210:
   * PyIEmptyVolumecache, IEmptyVolumeCache2, IEmptyVolumeCacheCallBack by 
     Sidnei da Silva from Enfold.
   * IsUserAnAdmin
-  * More coverage of the shell interfaces and demos.
+  * More coverage of the shell interfaces and demos, including many Vista 
+    specific functions and interfaces (see win32comext\shell\demos)
 
 * win32transaction: New module containing Kernel Transaction Manager (KTM) 
   functions as used with transacted NTFS and transacted registry functions
