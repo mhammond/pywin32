@@ -14,7 +14,7 @@ for subk in win32api.RegEnumKeyExW(key):
 ## reopen key in transacted mode
 transacted_key=win32api.RegOpenKeyTransacted(Key=win32con.HKEY_CURRENT_USER, SubKey=keyname,
     Transaction=trans, samDesired=win32con.KEY_ALL_ACCESS)
-subkey, disp=win32api.RegCreateKeyTransacted(transacted_key, subkeyname, Transaction=trans,
+subkey, disp=win32api.RegCreateKeyEx(transacted_key, subkeyname, Transaction=trans,
     samDesired=win32con.KEY_ALL_ACCESS, Class=classname)
 
 ## Newly created key should not be visible from non-transacted handle
@@ -31,7 +31,7 @@ assert subkeyname in subkeys
 
 ## test transacted delete
 del_trans=win32transaction.CreateTransaction(Description='test RegDeleteKeyTransacted')
-win32api.RegDeleteKeyTransacted(key, subkeyname, Transaction=del_trans)
+win32api.RegDeleteKeyEx(key, subkeyname, Transaction=del_trans)
 ## subkey should still show up for non-transacted handle
 subkeys=[s[0] for s in win32api.RegEnumKeyExW(key)]
 assert subkeyname in subkeys
