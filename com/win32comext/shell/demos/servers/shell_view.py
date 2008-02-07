@@ -96,22 +96,6 @@ def get_clbr_for_file(path):
     return objects
 
 # Our COM interfaces.
-IOleWindow_Methods = "GetWindow ContextSensitiveHelp".split()
-IShellView_Methods = IOleWindow_Methods + \
-                    """TranslateAccelerator EnableModeless UIActivate
-                       Refresh CreateViewWindow DestroyViewWindow
-                       GetCurrentInfo AddPropertySheetPages SaveViewState
-                       SelectItem GetItemObject""".split()
-
-IShellFolder_Methods = """ParseDisplayName EnumObjects BindToObject
-                          BindToStorage CompareIDs CreateViewObject
-                          GetAttributesOf GetUIObjectOf GetDisplayNameOf
-                          SetNameOf""".split()
-
-IBrowserFrame_Methods = ["GetFrameOptions"]
-
-IPersist_Methods = ["GetClassID"]
-IPersistFolder_Methods = IPersist_Methods + ["Initialize"]
 
 # Base class for a shell folder.
 # All child classes use a simple PIDL of the form:
@@ -123,9 +107,9 @@ class ShellFolderBase:
                         shell.IID_IShellFolder,
                         ]
 
-    _public_methods_ = IBrowserFrame_Methods + \
-                       IPersistFolder_Methods + \
-                       IShellFolder_Methods
+    _public_methods_ = shellcon.IBrowserFrame_Methods + \
+                       shellcon.IPersistFolder_Methods + \
+                       shellcon.IShellFolder_Methods
 
     def GetFrameOptions(self, mask):
         #print "GetFrameOptions", self, mask
@@ -166,7 +150,7 @@ class ShellFolderFileSystem(ShellFolderBase):
         return cmp(id1, id2)
     def GetUIObjectOf(self, hwndOwner, pidls, iid, inout):
         # delegate to the shell.
-        assert len(pidls)==1, "oops - arent expecting more than one!)"
+        assert len(pidls)==1, "oops - arent expecting more than one!"
         pidl = pidls[0]
         folder, child_pidl = self._GetFolderAndPIDLForPIDL(pidl)
         try:
@@ -355,7 +339,7 @@ class ShellFolderRoot(ShellFolderFileSystem):
 # Uses a builtin listview control to display simple lists of directories
 # or filenames.
 class FileSystemView:
-    _public_methods_ = IShellView_Methods
+    _public_methods_ = shellcon.IShellView_Methods
     _com_interfaces_ = [pythoncom.IID_IOleWindow,
                         shell.IID_IShellView,
                         ]
@@ -713,7 +697,7 @@ class FileSystemView:
 # This uses scintilla to display a filename, and optionally jump to a line
 # number.
 class ScintillaShellView:
-    _public_methods_ = IShellView_Methods
+    _public_methods_ = shellcon.IShellView_Methods
     _com_interfaces_ = [pythoncom.IID_IOleWindow,
                         shell.IID_IShellView,
                         ]

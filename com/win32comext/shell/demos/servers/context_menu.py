@@ -13,15 +13,12 @@ from win32com.shell import shell, shellcon
 import win32gui
 import win32con
 
-IContextMenu_Methods = ["QueryContextMenu", "InvokeCommand", "GetCommandString"]
-IShellExtInit_Methods = ["Initialize"]
-
 class ShellExtension:
     _reg_progid_ = "Python.ShellExtension.ContextMenu"
     _reg_desc_ = "Python Sample Shell Extension (context menu)"
     _reg_clsid_ = "{CED0336C-C9EE-4a7f-8D7F-C660393C381F}"
     _com_interfaces_ = [shell.IID_IShellExtInit, shell.IID_IContextMenu]
-    _public_methods_ = IContextMenu_Methods + IShellExtInit_Methods
+    _public_methods_ = shellcon.IContextMenu_Methods + shellcon.IShellExtInit_Methods
 
     def Initialize(self, folder, dataobj, hkey):
         print "Init", folder, dataobj, hkey
