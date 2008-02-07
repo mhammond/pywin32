@@ -65,7 +65,8 @@ Since build 210:
   - New functions RegCopyTree, RegDeleteTree, RegSaveKeyEx, 
     RegRestoreKey, RegCreateKeyEx, RegQueryInfoKeyW, 
     RegEnumKeyExW, Get/SetSystemFileCacheSize, GlobalMemoryStatus,
-    GlobalMemoryStatusEx, GetDllDirectory, SetDllDirectory
+    GlobalMemoryStatusEx, GetDllDirectory, SetDllDirectory,
+    RegDeleteKeyEx, RegOpenCurrentUser, RegOverridePredefKey
 
   - Fix memory leak in GetShortPathName
   - Fix VkKeyScan arg handling
