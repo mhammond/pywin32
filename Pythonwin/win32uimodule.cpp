@@ -47,7 +47,6 @@ extern "C" __declspec(dllimport) int PyCallable_Check(PyObject *);	// python - o
 extern DWORD DebuggerThreadFunc( LPDWORD lpdwWhatever );
 
 static char BASED_CODE uiModName[] = "win32ui";
-static char BASED_CODE errorName[] = "win32ui";
 
 // We can't init exceptionHandler in initwin32ui because the application using
 // us could have called SetExceptionHandler earlier. We do a forward declaration
@@ -2269,7 +2268,8 @@ initwin32ui(void)
     return;
   dict = PyModule_GetDict(module);
   if (!dict) return; /* Another serious error!*/
-  ui_module_error = PyString_FromString(errorName);
+  ui_module_error = PyErr_NewException("win32ui.error", NULL, NULL);
+  if (!ui_module_error) return; /* Another serious error!*/
   PyDict_SetItemString(dict, "error", ui_module_error);
   // drop email addy - too many ppl use it for support requests for other
   // tools that simply embed Pythonwin...
