@@ -92,6 +92,7 @@ typedef struct {
 	PyObject *klass; // The Python class we instantiate as the service.
 	SERVICE_STATUS_HANDLE   sshStatusHandle; // the handle for this service.
 	PyObject *obServiceCtrlHandler; // The Python control handler for the service.
+	BOOL bUseEx; // does this handler expect the extra args?
 } PY_SERVICE_TABLE_ENTRY;
 
 // Globals
@@ -316,9 +317,11 @@ static PyObject *PySetEventSourceName(PyObject *self, PyObject *args)
 static PyObject *PyRegisterServiceCtrlHandler(PyObject *self, PyObject *args)
 {
 	PyObject *nameOb, *obCallback;
+	BOOL bUseEx = FALSE;
 	// @pyparm <o PyUnicode>|serviceName||The name of the service.  This is provided in args[0] of the service class __init__ method.
 	// @pyparm object|callback||The Python function that performs as the control function.  This will be called with an integer status argument.
-	if (!PyArg_ParseTuple(args, "OO", &nameOb, &obCallback))
+	// @pyparm bool|extra_args|False|Is this callback expecting the additional 2 args passed by HandlerEx?
+	if (!PyArg_ParseTuple(args, "OO|i", &nameOb, &obCallback, &bUseEx))
 		return NULL;
 	if (!PyCallable_Check(obCallback)) {
 		PyErr_SetString(PyExc_TypeError, "Second argument must be a callable object");
@@ -335,18 +338,19 @@ static PyObject *PyRegisterServiceCtrlHandler(PyObject *self, PyObject *args)
 	}
 	Py_XDECREF(pe->obServiceCtrlHandler);
 	pe->obServiceCtrlHandler = obCallback;
+	pe->bUseEx = bUseEx;
 	Py_INCREF(obCallback);
 	if (bServiceDebug) { // If debugging, get out now, and give None back.
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
-        if (g_RegisterServiceCtrlHandlerEx) {
-            // Use 2K/XP extended registration if available
-            pe->sshStatusHandle = g_RegisterServiceCtrlHandlerEx(szName, service_ctrl_ex, pe);
-        } else {
-            // Otherwise fall back to NT
-            pe->sshStatusHandle = RegisterServiceCtrlHandler(szName, service_ctrl);
-        }
+	if (g_RegisterServiceCtrlHandlerEx) {
+		// Use 2K/XP extended registration if available
+		pe->sshStatusHandle = g_RegisterServiceCtrlHandlerEx(szName, service_ctrl_ex, pe);
+	} else {
+		// Otherwise fall back to NT
+		pe->sshStatusHandle = RegisterServiceCtrlHandler(szName, service_ctrl);
+	}
 	PyWinObject_FreeWCHAR(szName);
 	PyObject *rc;
 	if (pe->sshStatusHandle==0) {
@@ -705,6 +709,7 @@ BOOL PythonService_PrepareToHostSingle(PyObject *klass)
 	Py_XINCREF(klass);
 	PythonServiceTable[0].sshStatusHandle = 0;
 	PythonServiceTable[0].obServiceCtrlHandler = NULL;
+	PythonServiceTable[0].bUseEx = 0;
 	return TRUE;
 }
 
@@ -749,6 +754,7 @@ BOOL PythonService_PrepareToHostMultiple(const TCHAR *service_name, PyObject *kl
 	Py_INCREF(klass);
 	PythonServiceTable[i].sshStatusHandle = 0;
 	PythonServiceTable[i].obServiceCtrlHandler = NULL;
+	PythonServiceTable[i].bUseEx = 0;
 	return TRUE;
 }
 
@@ -909,7 +915,8 @@ cleanup:
 // or service_ctrl_ex are used as entry points depending on whether
 // we are running on NT or 2K/XP.
 
-DWORD WINAPI dispatchServiceCtrl(DWORD dwCtrlCode,
+DWORD WINAPI dispatchServiceCtrl(DWORD dwCtrlCode, DWORD dwEventType,
+                                 LPVOID eventData,
                                  PY_SERVICE_TABLE_ENTRY *pse)
 {
 	if (pse->obServiceCtrlHandler==NULL) { // Python is in error.
@@ -920,7 +927,34 @@ DWORD WINAPI dispatchServiceCtrl(DWORD dwCtrlCode,
 	// Ensure we have a context for our thread.
 	DWORD dwResult;
 	CEnterLeavePython celp;
-	PyObject *args = Py_BuildValue("(l)", dwCtrlCode);
+	PyObject *args;
+	if (pse->bUseEx) {
+		PyObject *sub;
+		switch (dwEventType) {
+			case SERVICE_CONTROL_DEVICEEVENT:
+				sub = PyWinObject_FromPARAM((LPARAM)eventData);
+				break;
+			case SERVICE_CONTROL_POWEREVENT: {
+				POWERBROADCAST_SETTING *pbs = (POWERBROADCAST_SETTING *)eventData;
+				sub = Py_BuildValue("NN",
+						    PyWinObject_FromIID(pbs->PowerSetting),
+						    PyString_FromStringAndSize((char *)pbs->Data, pbs->DataLength));
+				break;
+			}
+			case SERVICE_CONTROL_SESSIONCHANGE: {
+				WTSSESSION_NOTIFICATION *sn = (WTSSESSION_NOTIFICATION *)eventData;
+				sub = Py_BuildValue("(i)", sn->dwSessionId);
+				break;
+			}
+			default:
+				sub = Py_None;
+				Py_INCREF(sub);
+				break;
+		}
+		args = Py_BuildValue("(llN)", dwCtrlCode, dwEventType, sub);
+	} else {
+		args = Py_BuildValue("(l)", dwCtrlCode);
+	}
 	PyObject *result = PyObject_CallObject(pse->obServiceCtrlHandler, args);
 	Py_XDECREF(args);
 	if (result==NULL) {
@@ -943,14 +977,14 @@ DWORD WINAPI service_ctrl_ex(
 	  )
 {
 	PY_SERVICE_TABLE_ENTRY *pse = (PY_SERVICE_TABLE_ENTRY *)lpContext;
-        return dispatchServiceCtrl(dwCtrlCode, pse);
+        return dispatchServiceCtrl(dwCtrlCode, dwEventType, lpEventData, pse);
 }
 
 VOID WINAPI service_ctrl(
 	  DWORD dwCtrlCode     // requested control code
 	  )
 {
-    dispatchServiceCtrl(dwCtrlCode, &PythonServiceTable[0]);
+    dispatchServiceCtrl(dwCtrlCode, 0, NULL, &PythonServiceTable[0]);
 }
 
 

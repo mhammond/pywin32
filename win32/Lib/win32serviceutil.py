@@ -588,7 +588,14 @@ def HandleCommandLine(cls, serviceClassString = None, argv = None, customInstall
             # non-frozen services use pythonservice.exe which handles a
             # -debug option
             svcArgs = string.join(args[1:])
-            exeName = LocateSpecificServiceExe(serviceName)
+            try:
+                exeName = LocateSpecificServiceExe(serviceName)
+            except win32api.error, exc:
+                if exc[0] == winerror.ERROR_FILE_NOT_FOUND:
+                    print "The service does not appear to be installed."
+                    print "Please install the service before debugging it."
+                    sys.exit(1)
+                raise
             try:
                 os.system("%s -debug %s %s" % (exeName, serviceName, svcArgs))
             # ^C is used to kill the debug service.  Sometimes Python also gets
@@ -720,12 +727,14 @@ class ServiceFramework:
 
     def __init__(self, args):
         import servicemanager
-        self.ssh = servicemanager.RegisterServiceCtrlHandler(args[0], self.ServiceCtrlHandler)
+        self.ssh = servicemanager.RegisterServiceCtrlHandler(args[0], self.ServiceCtrlHandlerEx, True)
         servicemanager.SetEventSourceName(self._svc_name_)
         self.checkPoint = 0
 
     def GetAcceptedControls(self):
-        # Setup the service controls we accept based on our attributes
+        # Setup the service controls we accept based on our attributes. Note
+        # that if you need to handle controls via SvcOther[Ex](), you must
+        # override this.
         accepted = 0
         if hasattr(self, "SvcStop"): accepted = accepted | win32service.SERVICE_ACCEPT_STOP
         if hasattr(self, "SvcPause") and hasattr(self, "SvcContinue"):
@@ -762,9 +771,22 @@ class ServiceFramework:
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
     def SvcOther(self, control):
-        print "Unknown control status - %d" % control
+        try:
+            print "Unknown control status - %d" % control
+        except IOError:
+            # services may not have a valid stdout!
+            pass
 
     def ServiceCtrlHandler(self, control):
+        self.ServiceCtrlHandlerEx(control, 0, None)
+
+    # The 'Ex' functions, which take additional params
+    def SvcOtherEx(self, control, event_type, data):
+        # The default here is to call self.SvcOther as that is the old behaviour.
+        # If you want to take advantage of the extra data, override this method
+        self.SvcOther(control)
+
+    def ServiceCtrlHandlerEx(self, control, event_type, data):
         if control==win32service.SERVICE_CONTROL_STOP:
             self.SvcStop()
         elif control==win32service.SERVICE_CONTROL_PAUSE:
@@ -776,7 +798,7 @@ class ServiceFramework:
         elif control==win32service.SERVICE_CONTROL_SHUTDOWN:
             self.SvcShutdown()
         else:
-            self.SvcOther(control)
+            self.SvcOtherEx(control, event_type, data)
 
     def SvcRun(self):
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
