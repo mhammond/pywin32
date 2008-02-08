@@ -66,7 +66,7 @@ inline BOOL PyObject_AsPCUIDLIST_RELATIVE(PyObject *ob, PCUIDLIST_RELATIVE *ppid
 }
 inline void PyObject_FreePCUIDLIST_RELATIVE(PCUIDLIST_RELATIVE pidl)
 {
-	return PyObject_FreePIDL((LPCITEMIDLIST)pidl);
+	PyObject_FreePIDL((LPCITEMIDLIST)pidl);
 }
 
 inline BOOL PyObject_AsPCIDLIST_ABSOLUTE(PyObject *ob, PCUIDLIST_ABSOLUTE *ppidl, BOOL bNoneOK = FALSE, UINT *pcb = NULL)
@@ -75,7 +75,7 @@ inline BOOL PyObject_AsPCIDLIST_ABSOLUTE(PyObject *ob, PCUIDLIST_ABSOLUTE *ppidl
 }
 inline void PyObject_FreePCIDLIST_ABSOLUTE(PCIDLIST_ABSOLUTE pidl)
 {
-	return PyObject_FreePIDL((LPCITEMIDLIST)pidl);
+	PyObject_FreePIDL((LPCITEMIDLIST)pidl);
 }
 
 inline PyObject *PyObject_FromPCIDLIST_ABSOLUTE(PCUIDLIST_ABSOLUTE pidl, BOOL bFreeSystemPIDL)

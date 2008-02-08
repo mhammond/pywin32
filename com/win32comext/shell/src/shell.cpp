@@ -2383,9 +2383,11 @@ static PyObject *PyAssocCreateForClasses(PyObject *self, PyObject *args)
 		goto done;
 	HRESULT hr;
 	void *v;
+	{
 	PY_INTERFACE_PRECALL;
 	hr = (*pfnAssocCreateForClasses)(elts, nclasses, iid, &v);
 	PY_INTERFACE_POSTCALL;
+	}
 	if (FAILED(hr)) {
 		PyCom_BuildPyException(hr);
 		goto done;
@@ -2496,6 +2498,7 @@ static PyObject *PySHCreateShellFolderView(PyObject *self, PyObject *args)
 	if(!PyArg_ParseTuple(args, "O|OO:SHCreateShellFolderView", &obsf, &obouter, &obevents))
 		return NULL;
 	SFV_CREATE create;
+	IShellView *view = NULL;
 	memset(&create, 0, sizeof(create));
 	create.cbSize = sizeof(create);
 	if (!PyCom_InterfaceFromPyInstanceOrObject(obsf, IID_IShellFolder, (void **)&create.pshf, FALSE/* bNoneOK */))
@@ -2504,11 +2507,12 @@ static PyObject *PySHCreateShellFolderView(PyObject *self, PyObject *args)
 		goto done;
 	if (!PyCom_InterfaceFromPyInstanceOrObject(obevents, IID_IShellFolderViewCB, (void **)&create.psfvcb, TRUE/* bNoneOK */))
 		goto done;
-	IShellView *view = NULL;
 	HRESULT hr;
+	{
 	PY_INTERFACE_PRECALL;
 	hr = (*pfnSHCreateShellFolderView)(&create, &view);
 	PY_INTERFACE_POSTCALL;
+	}
 	if (FAILED(hr))
 		PyCom_BuildPyException(hr);
 	else
@@ -2581,9 +2585,11 @@ static PyObject *PySHCreateDataObject(PyObject *self, PyObject *args)
 	if (obiid != Py_None && !PyWinObject_AsIID(obiid, &iid))
 		goto done;
 	HRESULT hr;
+	{
 	PY_INTERFACE_PRECALL;
 	hr = (*pfnSHCreateDataObject)(parent, nchildren, children, do_inner, iid, &do_ret);
 	PY_INTERFACE_POSTCALL;
+	}
 	if (FAILED(hr)) {
 		PyCom_BuildPyException(hr);
 		goto done;
@@ -2625,9 +2631,11 @@ static PyObject *PySHCreateDefaultContextMenu(PyObject *self, PyObject *args)
 	if (obiid != Py_None && !PyWinObject_AsIID(obiid, &iid))
 		goto done;
 	HRESULT hr;
+	{
 	PY_INTERFACE_PRECALL;
 	hr = (*pfnSHCreateDefaultContextMenu)(&dcm, iid, &iret);
 	PY_INTERFACE_POSTCALL;
+	}
 	if (FAILED(hr)) {
 		PyCom_BuildPyException(hr);
 		goto done;
@@ -2658,9 +2666,11 @@ static PyObject *PySHGetNameFromIDList(PyObject *self, PyObject *args)
 	if (!PyObject_AsPIDL(obpidl, &pidl))
 		goto done;
 	HRESULT hr;
+	{
 	PY_INTERFACE_PRECALL;
 	hr = (*pfnSHGetNameFromIDList)(pidl, flags, &strret);
 	PY_INTERFACE_POSTCALL;
+	}
 	if (FAILED(hr)) {
 		PyCom_BuildPyException(hr);
 		goto done;
@@ -2704,9 +2714,11 @@ static PyObject *PySHCreateShellItemArray(PyObject *self, PyObject *args)
 	if (!PyObject_AsPIDLArray(obChildren, &nchildren, &children))
 		goto done;
 	HRESULT hr;
+	{
 	PY_INTERFACE_PRECALL;
 	hr = (*pfnSHCreateShellItemArray)(parent, sf, nchildren, children, &sia_ret);
 	PY_INTERFACE_POSTCALL;
+	}
 	if (FAILED(hr)) {
 		PyCom_BuildPyException(hr);
 		goto done;
@@ -2749,9 +2761,11 @@ static PyObject *PySHCreateShellItemArrayFromDataObject(PyObject *self, PyObject
 	if (obiid != Py_None && !PyWinObject_AsIID(obiid, &iid))
 		goto done;
 	HRESULT hr;
+	{
 	PY_INTERFACE_PRECALL;
 	hr = (*pfnSHCreateShellItemArrayFromDataObject)(ido, iid, &iret);
 	PY_INTERFACE_POSTCALL;
+	}
 	if (FAILED(hr)) {
 		PyCom_BuildPyException(hr);
 		goto done;
@@ -2778,6 +2792,7 @@ static PyObject *PySHCreateShellItemArrayFromIDLists(PyObject *self, PyObject *a
 	PyObject *ret = NULL;
 	PyObject *obpidls;
 	PCIDLIST_ABSOLUTE_ARRAY pidls = NULL;
+	IShellItemArray *iret = NULL;
 	UINT npidls;
 	if(!PyArg_ParseTuple(args, "O:SHCreateShellItemArray", &obpidls))
 		return NULL;
@@ -2785,10 +2800,12 @@ static PyObject *PySHCreateShellItemArrayFromIDLists(PyObject *self, PyObject *a
 	if (!PyObject_AsPIDLArray(obpidls, &npidls, &pidls))
 		goto done;
 	HRESULT hr;
-	IShellItemArray *iret = NULL;
+
+	{
 	PY_INTERFACE_PRECALL;
 	hr = (*pfnSHCreateShellItemArrayFromIDLists)(npidls, pidls, &iret);
 	PY_INTERFACE_POSTCALL;
+	}
 	if (FAILED(hr)) {
 		PyCom_BuildPyException(hr);
 		goto done;
@@ -2824,9 +2841,11 @@ static PyObject *PySHCreateShellItemArrayFromShellItem(PyObject *self, PyObject 
 	if (obiid != Py_None && !PyWinObject_AsIID(obiid, &iid))
 		goto done;
 	HRESULT hr;
+	{
 	PY_INTERFACE_PRECALL;
 	hr = (*pfnSHCreateShellItemArrayFromShellItem)(isi, iid, &iret);
 	PY_INTERFACE_POSTCALL;
+	}
 	if (FAILED(hr)) {
 		PyCom_BuildPyException(hr);
 		goto done;

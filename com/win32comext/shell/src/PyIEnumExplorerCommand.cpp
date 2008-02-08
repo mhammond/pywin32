@@ -179,13 +179,14 @@ STDMETHODIMP PyGEnumExplorerCommand::Next(
 {
 	PY_GATEWAY_METHOD;
 	PyObject *result;
+	Py_ssize_t len;
 	HRESULT hr = InvokeViaPolicy("Next", &result, "i", celt);
 	if ( FAILED(hr) )
 		return hr;
 
 	if ( !PySequence_Check(result) )
 		goto error;
-	Py_ssize_t len = PyObject_Length(result);
+	len = PyObject_Length(result);
 	if ( len == -1 )
 		goto error;
 	if ( len > (int)celt)
