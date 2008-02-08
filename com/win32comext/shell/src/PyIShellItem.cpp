@@ -30,7 +30,7 @@ PyObject *PyIShellItem::BindToHandler(PyObject *self, PyObject *args)
 	IShellItem *pISI = GetI(self);
 	if ( pISI == NULL )
 		return NULL;
-	// @pyparm <o PyIBindCtx *>|pbc||Description for pbc
+	// @pyparm <o PyIBindCtx>|pbc||Description for pbc
 	// @pyparm <o PyIID>|bhid||Description for bhid
 	// @pyparm <o PyIID>|riid||Description for riid
 	PyObject *obpbc;
@@ -130,7 +130,7 @@ PyObject *PyIShellItem::Compare(PyObject *self, PyObject *args)
 	IShellItem *pISI = GetI(self);
 	if ( pISI == NULL )
 		return NULL;
-	// @pyparm <o PyIShellItem *>|psi||Description for psi
+	// @pyparm <o PyIShellItem>|psi||Description for psi
 	SICHINTF hint;
 	// @pyparm int|hint||Description for hint
 	PyObject *obpsi;

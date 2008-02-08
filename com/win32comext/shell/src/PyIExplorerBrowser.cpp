@@ -36,7 +36,7 @@ PyObject *PyIExplorerBrowser::Initialize(PyObject *self, PyObject *args)
 	// @pyparm <o PyRECT>|prc||Description for prc
 	FOLDERSETTINGS fs;
 	PyObject *obpfs;
-	// @pyparm <o PyFOLDERSETTINGS *>|pfs||Description for pfs
+	// @pyparm <o PyFOLDERSETTINGS>|pfs||Description for pfs
 	HWND hwndParent;
 	PyObject *obhwnd;
 	if ( !PyArg_ParseTuple(args, "OOO:Initialize", &obhwnd, &obprc, &obpfs) )
@@ -87,7 +87,7 @@ PyObject *PyIExplorerBrowser::SetRect(PyObject *self, PyObject *args)
 		return NULL;
 	HDWP hdwp;
 	PyObject *obphdwp;
-	// @pyparm <o PyHDWP *>|phdwp||Description for phdwp
+	// @pyparm <o PyHDWP>|hdwp||Description for phdwp
 	RECT rcBrowser;
 	PyObject *obrcBrowser;
 	// @pyparm <o PyRECT>|rcBrowser||Description for rcBrowser
@@ -171,7 +171,7 @@ PyObject *PyIExplorerBrowser::SetFolderSettings(PyObject *self, PyObject *args)
 		return NULL;
 	FOLDERSETTINGS fs;
 	PyObject *obpfs;
-	// @pyparm <o PyFOLDERSETTINGS *>|pfs||Description for pfs
+	// @pyparm <o PyFOLDERSETTINGS>|pfs||Description for pfs
 	if ( !PyArg_ParseTuple(args, "O:SetFolderSettings", &obpfs) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
@@ -195,8 +195,7 @@ PyObject *PyIExplorerBrowser::Advise(PyObject *self, PyObject *args)
 	IExplorerBrowser *pIEB = GetI(self);
 	if ( pIEB == NULL )
 		return NULL;
-	// @pyparm <o PyIExplorerBrowserEvents *>|psbe||Description for psbe
-	// @pyparm <o PyDWORD *>|pdwCookie||Description for pdwCookie
+	// @pyparm <o PyIExplorerBrowserEvents>|psbe||Description for psbe
 	PyObject *obpsbe;
 	IExplorerBrowserEvents *psbe;
 	if ( !PyArg_ParseTuple(args, "O:Advise", &obpsbe) )
@@ -272,7 +271,7 @@ PyObject *PyIExplorerBrowser::GetOptions(PyObject *self, PyObject *args)
 		return NULL;
 	EXPLORER_BROWSER_OPTIONS dwFlag;
 	PyObject *obpdwFlag;
-	// @pyparm <o PyEXPLORER_BROWSER_OPTIONS *>|pdwFlag||Description for pdwFlag
+	// @pyparm <o PyEXPLORER_BROWSER_OPTIONS>|pdwFlag||Description for pdwFlag
 	if ( !PyArg_ParseTuple(args, "O:GetOptions", &obpdwFlag) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
@@ -323,7 +322,7 @@ PyObject *PyIExplorerBrowser::BrowseToObject(PyObject *self, PyObject *args)
 	IExplorerBrowser *pIEB = GetI(self);
 	if ( pIEB == NULL )
 		return NULL;
-	// @pyparm <o PyIUnknown *>|punk||Description for punk
+	// @pyparm <o PyIUnknown>|punk||Description for punk
 	// @pyparm int|uFlags||Description for uFlags
 	PyObject *obpunk;
 	IUnknown *punk;
@@ -354,7 +353,7 @@ PyObject *PyIExplorerBrowser::FillFromObject(PyObject *self, PyObject *args)
 	IExplorerBrowser *pIEB = GetI(self);
 	if ( pIEB == NULL )
 		return NULL;
-	// @pyparm <o PyIUnknown *>|punk||Description for punk
+	// @pyparm <o PyIUnknown>|punk||Description for punk
 	EXPLORER_BROWSER_FILL_FLAGS dwFlags;
 	PyObject *obdwFlags;
 	// @pyparm <o PyEXPLORER_BROWSER_FILL_FLAGS>|dwFlags||Description for dwFlags

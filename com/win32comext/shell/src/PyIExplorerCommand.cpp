@@ -30,7 +30,7 @@ PyObject *PyIExplorerCommand::GetTitle(PyObject *self, PyObject *args)
 	IExplorerCommand *pIEC = GetI(self);
 	if ( pIEC == NULL )
 		return NULL;
-	// @pyparm <o PyIShellItemArray *>|psiItemArray||Description for psiItemArray
+	// @pyparm <o PyIShellItemArray>|psiItemArray||Description for psiItemArray
 	PyObject *obpsiItemArray;
 	IShellItemArray * psiItemArray;
 	if ( !PyArg_ParseTuple(args, "O:GetTitle", &obpsiItemArray) )
@@ -59,7 +59,7 @@ PyObject *PyIExplorerCommand::GetIcon(PyObject *self, PyObject *args)
 	IExplorerCommand *pIEC = GetI(self);
 	if ( pIEC == NULL )
 		return NULL;
-	// @pyparm <o PyIShellItemArray *>|psiItemArray||Description for psiItemArray
+	// @pyparm <o PyIShellItemArray>|psiItemArray||Description for psiItemArray
 	PyObject *obpsiItemArray;
 	IShellItemArray * psiItemArray;
 	if ( !PyArg_ParseTuple(args, "O:GetIcon", &obpsiItemArray) )
@@ -88,7 +88,7 @@ PyObject *PyIExplorerCommand::GetToolTip(PyObject *self, PyObject *args)
 	IExplorerCommand *pIEC = GetI(self);
 	if ( pIEC == NULL )
 		return NULL;
-	// @pyparm <o PyIShellItemArray *>|psiItemArray||Description for psiItemArray
+	// @pyparm <o PyIShellItemArray>|psiItemArray||Description for psiItemArray
 	PyObject *obpsiItemArray;
 	IShellItemArray * psiItemArray;
 	if ( !PyArg_ParseTuple(args, "O:GetToolTip", &obpsiItemArray) )
@@ -136,7 +136,7 @@ PyObject *PyIExplorerCommand::GetState(PyObject *self, PyObject *args)
 	IExplorerCommand *pIEC = GetI(self);
 	if ( pIEC == NULL )
 		return NULL;
-	// @pyparm <o PyIShellItemArray *>|psiItemArray||Description for psiItemArray
+	// @pyparm <o PyIShellItemArray>|psiItemArray||Description for psiItemArray
 	// @pyparm int|fOkToBeSlow||Description for fOkToBeSlow
 	PyObject *obpsiItemArray;
 	IShellItemArray* psiItemArray;
@@ -165,8 +165,8 @@ PyObject *PyIExplorerCommand::Invoke(PyObject *self, PyObject *args)
 	IExplorerCommand *pIEC = GetI(self);
 	if ( pIEC == NULL )
 		return NULL;
-	// @pyparm <o PyIShellItemArray *>|psiItemArray||Description for psiItemArray
-	// @pyparm <o PyIBindCtx *>|pbc||Description for pbc
+	// @pyparm <o PyIShellItemArray>|psiItemArray||Description for psiItemArray
+	// @pyparm <o PyIBindCtx>|pbc||Description for pbc
 	PyObject *obpsiItemArray;
 	PyObject *obpbc;
 	IShellItemArray *psiItemArray;

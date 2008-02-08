@@ -30,7 +30,7 @@ PyObject *PyIShellItemArray::BindToHandler(PyObject *self, PyObject *args)
 	IShellItemArray *pISIA = GetI(self);
 	if ( pISIA == NULL )
 		return NULL;
-	// @pyparm <o PyIBindCtx *>|pbc||Description for pbc
+	// @pyparm <o PyIBindCtx>|pbc||Description for pbc
 	// @pyparm <o PyIID>|rbhid||Description for rbhid
 	// @pyparm <o PyIID>|riid||Description for riid
 	PyObject *obpbc;
@@ -120,9 +120,9 @@ PyObject *PyIShellItemArray::GetAttributes(PyObject *self, PyObject *args)
 	if ( pISIA == NULL )
 		return NULL;
 	SIATTRIBFLAGS dwAttribFlags;
-	// @pyparm <o PySIATTRIBFLAGS>|dwAttribFlags||Description for dwAttribFlags
+	// @pyparm int|dwAttribFlags||Description for dwAttribFlags
 	SFGAOF sfgaoMask;
-	// @pyparm <o PySFGAOF>|sfgaoMask||Description for sfgaoMask
+	// @pyparm int|sfgaoMask||Description for sfgaoMask
 	if ( !PyArg_ParseTuple(args, "kk:GetAttributes", &dwAttribFlags, &sfgaoMask) )
 		return NULL;
 	SFGAOF result;

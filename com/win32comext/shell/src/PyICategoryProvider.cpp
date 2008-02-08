@@ -32,7 +32,7 @@ PyObject *PyICategoryProvider::CanCategorizeOnSCID(PyObject *self, PyObject *arg
 		return NULL;
 	SHCOLUMNID scid;
 	PyObject *obpscid;
-	// @pyparm <o Py__RPC__in const SHCOLUMNID *>|pscid||Description for pscid
+	// @pyparm <o SHCOLUMNID>|pscid||Description for pscid
 	if ( !PyArg_ParseTuple(args, "O:CanCategorizeOnSCID", &obpscid) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
@@ -121,7 +121,7 @@ PyObject *PyICategoryProvider::GetCategoryName(PyObject *self, PyObject *args)
 	PyObject *obpguid;
 	// @comm The buffer is always 1024 chars long
 	WCHAR buffer[1024];
-	// @pyparm <o GUID>|pguid||Description for pguid
+	// @pyparm <o PyIID>|guid||Description for pguid
 	if ( !PyArg_ParseTuple(args, "O:GetCategoryName", &obpguid) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
@@ -144,10 +144,10 @@ PyObject *PyICategoryProvider::CreateCategory(PyObject *self, PyObject *args)
 		return NULL;
 	GUID guid;
 	PyObject *obpguid;
-	// @pyparm <o GUID>|pguid||Description for pguid
+	// @pyparm <o PyIID>|guid||Description for pguid
 	IID riid;
 	PyObject *obriid;
-	// @pyparm <o REFIID>|riid||Description for riid
+	// @pyparm <o PyIID>|riid||Description for riid
 	if ( !PyArg_ParseTuple(args, "OO:CreateCategory", &obpguid, &obriid) )
 		return NULL;
 	if (!PyWinObject_AsIID(obpguid, &guid ) || !PyWinObject_AsIID(obriid, &riid))

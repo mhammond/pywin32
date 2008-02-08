@@ -53,15 +53,13 @@ PyObject *PyIExtractImage::GetLocation(PyObject *self, PyObject *args)
 	if ( pIEI == NULL )
 		return NULL;
 	DWORD dwPriority;
-	//PyObject *obdwPriority;
-	// @pyparm <o PyDWORD *>|dwPriority||Description for dwPriority
+	// @pyparm int|dwPriority||Description for dwPriority
 	SIZE rgSize;
 	PyObject *obrgSize;
-	// @pyparm <o Pyconst SIZE *>|prgSize||Description for prgSize
+	// @pyparm (int, int)|size||Description for prgSize
 	// @pyparm int|dwRecClrDepth||Description for dwRecClrDepth
 	DWORD dwFlags;
-	//PyObject *obdwFlags;
-	// @pyparm <o PyDWORD *>|pdwFlags||Description for pdwFlags
+	// @pyparm int|pdwFlags||Description for pdwFlags
 	WCHAR pszPathBuffer[255];
 	DWORD dwRecClrDepth;
 	if ( !PyArg_ParseTuple(args, "lOll:GetLocation", &dwPriority, &obrgSize, &dwRecClrDepth, &dwFlags) )

@@ -32,7 +32,7 @@ PyObject *PyIShellFolder2::GetDefaultSearchGUID(PyObject *self, PyObject *args)
 	if ( pISF2 == NULL )
 		return NULL;
 	GUID guid;
-	// @pyparm <o PyGUID *>|pguid||Description for pguid
+	// @pyparm <o PyIID>|pguid||Description for pguid
 	if ( !PyArg_ParseTuple(args, ":GetDefaultSearchGUID") )
 		return NULL;
 	HRESULT hr;
@@ -113,7 +113,7 @@ PyObject *PyIShellFolder2::GetDetailsEx(PyObject *self, PyObject *args)
 	// @pyparm <o PyIDL>|pidl||Description for pidl
 	SHCOLUMNID scid;
 	PyObject *obpscid;
-	// @pyparm <o Pyconst SHCOLUMNID *>|pscid||Description for pscid
+	// @pyparm <o SHCOLUMNID>|pscid||Description for pscid
 	PyObject *obpidl;
 	LPITEMIDLIST pidl;
 	if ( !PyArg_ParseTuple(args, "OO:GetDetailsEx", &obpidl, &obpscid) )

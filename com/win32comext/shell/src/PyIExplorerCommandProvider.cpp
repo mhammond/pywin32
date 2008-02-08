@@ -7,6 +7,8 @@
 // @doc - This file contains autoduck documentation
 // ---------------------------------------------------
 //
+// @object PyIExplorerCommandProvider|This is a gateway only interface.
+
 // Gateway Implementation
 STDMETHODIMP PyGExplorerCommandProvider::GetCommands(
 		/* [in] */ __RPC__in_opt IUnknown * punkSite,

@@ -58,7 +58,7 @@ PyObject *PyIExplorerBrowserEvents::OnViewCreated(PyObject *self, PyObject *args
 	IExplorerBrowserEvents *pIEBE = GetI(self);
 	if ( pIEBE == NULL )
 		return NULL;
-	// @pyparm <o PyIShellView *>|psv||Description for psv
+	// @pyparm <o PyIShellView>|psv||Description for psv
 	PyObject *obpsv;
 	IShellView * psv;
 	if ( !PyArg_ParseTuple(args, "O:OnViewCreated", &obpsv) )

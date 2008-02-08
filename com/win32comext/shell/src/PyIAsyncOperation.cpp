@@ -72,7 +72,7 @@ PyObject *PyIAsyncOperation::StartOperation(PyObject *self, PyObject *args)
 	IAsyncOperation *pIAO = GetI(self);
 	if ( pIAO == NULL )
 		return NULL;
-	// @pyparm <o PyIBindCtx *>|pbcReserved||Description for pbcReserved
+	// @pyparm <o PyIBindCtx>|pbcReserved||Description for pbcReserved
 	PyObject *obpbcReserved;
 	IBindCtx *pbcReserved;
 	if ( !PyArg_ParseTuple(args, "O:StartOperation", &obpbcReserved) )
@@ -121,7 +121,7 @@ PyObject *PyIAsyncOperation::EndOperation(PyObject *self, PyObject *args)
 	if ( pIAO == NULL )
 		return NULL;
 	// @pyparm int|hResult||Description for hResult
-	// @pyparm <o PyIBindCtx *>|pbcReserved||Description for pbcReserved
+	// @pyparm <o PyIBindCtx>|pbcReserved||Description for pbcReserved
 	// @pyparm int|dwEffects||Description for dwEffects
 	PyObject *obpbcReserved;
 	HRESULT hResult;

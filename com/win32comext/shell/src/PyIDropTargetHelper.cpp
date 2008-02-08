@@ -127,7 +127,7 @@ PyObject *PyIDropTargetHelper::Drop(PyObject *self, PyObject *args)
 	IDropTargetHelper *pIDT = GetI(self);
 	if ( pIDT == NULL )
 		return NULL;
-	// @pyparm <o PyIDataObject *>|pDataObj||Description for pDataObj
+	// @pyparm <o PyIDataObject>|pDataObj||Description for pDataObj
 	POINT pt;
 	PyObject *obpt;
 	// @pyparm (int, int)|pt||Description for pt
