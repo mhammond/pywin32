@@ -2,3 +2,23 @@ Just run MAKE.BAT to build the documentation.
 
 Main focus these days is on the .chm file - a single .chm
 provides the best documentation solution.
+
+
+Note: Jan-2008: We seem to have hit a hhc wall.  Trial and error shows
+that once at the point shown below, adding a single new '@pymeth' anywhere 
+will cause death (a single @pymeth seems to create 4 new 'local links')
+
+The max successful build I got was:
+
+9,609   Topics
+30,629  Local links
+836     Internet links
+
+I've removed the win32ui module from the autoduck build and we
+are now at the figures below - so the problem still appears to
+loom...
+
+Compile time: 1 minute, 21 seconds
+7,860   Topics
+23,712  Local links
+830     Internet links

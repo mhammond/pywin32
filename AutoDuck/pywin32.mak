@@ -88,8 +88,11 @@ WIN32COM_SOURCE = \
 	  $(GENDIR)\PyIDirectorySearch.d \
 	  $(GENDIR)\PyIDsObjectPicker.d \
 
+# ack - have hit some kind of htmlhelp wall, so we drop win32ui docs - see README for more.
+#PYTHONWIN_SOURCE = \
+#	  $(PYTHONWIN_DIR)\contents.d $(PYTHONWIN_DIR)\*.cpp $(PYTHONWIN_DIR)\*.h
 PYTHONWIN_SOURCE = \
-	  $(PYTHONWIN_DIR)\contents.d $(PYTHONWIN_DIR)\*.cpp $(PYTHONWIN_DIR)\*.h
+	  $(PYTHONWIN_DIR)\contents.d
 
 ISAPI_SOURCE = \
     $(ISAPI_SOURCE_DIR)\*.cpp $(ISAPI_SOURCE_DIR)\*.h $(GENDIR)\isapi_modules.d
