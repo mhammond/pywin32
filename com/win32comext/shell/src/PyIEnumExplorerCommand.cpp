@@ -152,7 +152,7 @@ static struct PyMethodDef PyIEnumExplorerCommand_methods[] =
 	{ NULL }
 };
 
-PyComTypeObject PyIEnumExplorerCommand::type("PyIEnumExplorerCommand",
+PyComEnumTypeObject PyIEnumExplorerCommand::type("PyIEnumExplorerCommand",
 		&PyIUnknown::type,
 		sizeof(PyIEnumExplorerCommand),
 		PyIEnumExplorerCommand_methods,
