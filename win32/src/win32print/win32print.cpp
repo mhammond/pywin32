@@ -12,11 +12,6 @@ generates Windows .hlp files.
 
 ******************************************************************/
 
-// #define UNICODE
-// #define _UNICODE	// _tcs functions require this
-#include "windows.h"
-
-#include "Python.h"
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include <stdarg.h>
