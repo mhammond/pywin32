@@ -691,6 +691,8 @@ class my_build_ext(build_ext):
                 if self.windows_h_version is not None:
                     break
             else:
+                # XXX - the below can probably go now - the problem was the
+                # sdkddkver.h issue already solved above.
                 if is_64bit:
                     # *sob*
                     print "x64 build - assuming winver == 0x600"
@@ -758,6 +760,7 @@ class my_build_ext(build_ext):
             assert os.path.isdir(build_temp), build_temp
         makeargs.append("SUB_DIR_O=%s" % build_temp)
         makeargs.append("SUB_DIR_BIN=%s" % build_temp)
+        makeargs.append("DIR_PYTHON=%s" % sys.prefix)
         if is_64bit and get_build_version() < 8.0:
             makeargs.append("LINK=bufferoverflowU.lib")
 
