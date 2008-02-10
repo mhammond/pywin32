@@ -2,7 +2,7 @@
 /** @file StyleContext.cxx
  ** Lexer infrastructure.
  **/
-// Copyright 1998-2001 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2004 by Neil Hodgson <neilh@scintilla.org>
 // This file is in the public domain.
 
 #include <stdlib.h>
@@ -15,6 +15,10 @@
 #include "PropSet.h"
 #include "Accessor.h"
 #include "StyleContext.h"
+
+#ifdef SCI_NAMESPACE
+using namespace Scintilla;
+#endif
 
 static void getRange(unsigned int start,
 		unsigned int end,

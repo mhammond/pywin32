@@ -19,12 +19,20 @@
 #include "KeyWords.h"
 #include "Scintilla.h"
 #include "SciLexer.h"
+#include "StyleContext.h"
 
+#ifdef SCI_NAMESPACE
+using namespace Scintilla;
+#endif
+
+#define SCE_LISP_CHARACTER 29
+#define SCE_LISP_MACRO 30
+#define SCE_LISP_MACRO_DISPATCH 31
 
 static inline bool isLispoperator(char ch) {
 	if (isascii(ch) && isalnum(ch))
 		return false;
-	if (ch == '\'' || ch == '(' || ch == ')' )
+	if (ch == '\'' || ch == '`' || ch == '(' || ch == ')' )
 		return true;
 	return false;
 }
@@ -35,7 +43,7 @@ static inline bool isLispwordstart(char ch) {
 }
 
 
-static void classifyWordLisp(unsigned int start, unsigned int end, WordList &keywords, Accessor &styler) {
+static void classifyWordLisp(unsigned int start, unsigned int end, WordList &keywords, WordList &keywords_kw, Accessor &styler) {
 	PLATFORM_ASSERT(end >= start);
 	char s[100];
 	unsigned int i;
@@ -51,6 +59,11 @@ static void classifyWordLisp(unsigned int start, unsigned int end, WordList &key
 	else {
 		if (keywords.InList(s)) {
 			chAttr = SCE_LISP_KEYWORD;
+		} else if (keywords_kw.InList(s)) {
+			chAttr = SCE_LISP_KEYWORD_KW;
+		} else if ((s[0] == '*' && s[i-1] == '*') ||
+			   (s[0] == '+' && s[i-1] == '+')) {
+			chAttr = SCE_LISP_SPECIAL;
 		}
 	}
 	styler.ColourTo(end, chAttr);
@@ -62,13 +75,11 @@ static void ColouriseLispDoc(unsigned int startPos, int length, int initStyle, W
                             Accessor &styler) {
 
 	WordList &keywords = *keywordlists[0];
+	WordList &keywords_kw = *keywordlists[1];
 
 	styler.StartAt(startPos);
 
-	int state = initStyle;
-	if (state == SCE_LISP_STRINGEOL)	// Does not leak onto next line
-		state = SCE_LISP_DEFAULT;
-	char chPrev = ' ';
+	int state = initStyle, radix = -1;
 	char chNext = styler[startPos];
 	unsigned int lengthDoc = startPos + length;
 	styler.StartSegment(startPos);
@@ -77,25 +88,19 @@ static void ColouriseLispDoc(unsigned int startPos, int length, int initStyle, W
 		chNext = styler.SafeGetCharAt(i + 1);
 
 		bool atEOL = (ch == '\r' && chNext != '\n') || (ch == '\n');
-		if (atEOL) {
-			// Trigger on CR only (Mac style) or either on LF from CR+LF (Dos/Win) or on LF alone (Unix)
-			// Avoid triggering two times on Dos/Win
-			// End of line
-			if (state == SCE_LISP_STRINGEOL) {
-				styler.ColourTo(i, state);
-				state = SCE_LISP_DEFAULT;
-			}
-		}
 
 		if (styler.IsLeadByte(ch)) {
 			chNext = styler.SafeGetCharAt(i + 2);
-			chPrev = ' ';
 			i += 1;
 			continue;
 		}
 
 		if (state == SCE_LISP_DEFAULT) {
-			if (isLispwordstart(ch)) {
+			if (ch == '#') {
+				styler.ColourTo(i - 1, state);
+				radix = -1;
+				state = SCE_LISP_MACRO_DISPATCH;
+			} else if (isLispwordstart(ch)) {
 				styler.ColourTo(i - 1, state);
 				state = SCE_LISP_IDENTIFIER;
 			}
@@ -106,45 +111,118 @@ static void ColouriseLispDoc(unsigned int startPos, int length, int initStyle, W
 			else if (isLispoperator(ch) || ch=='\'') {
 				styler.ColourTo(i - 1, state);
 				styler.ColourTo(i, SCE_LISP_OPERATOR);
+				if (ch=='\'' && isLispwordstart(chNext)) {
+					state = SCE_LISP_SYMBOL;
+				}
 			}
-
 			else if (ch == '\"') {
-					state = SCE_LISP_STRING;
+				styler.ColourTo(i - 1, state);
+				state = SCE_LISP_STRING;
 			}
-		} else if (state == SCE_LISP_IDENTIFIER) {
+		} else if (state == SCE_LISP_IDENTIFIER || state == SCE_LISP_SYMBOL) {
 			if (!isLispwordstart(ch)) {
-				classifyWordLisp(styler.GetStartSegment(), i - 1, keywords, styler);
+				if (state == SCE_LISP_IDENTIFIER) {
+					classifyWordLisp(styler.GetStartSegment(), i - 1, keywords, keywords_kw, styler);
+				} else {
+					styler.ColourTo(i - 1, state);
+				}
 				state = SCE_LISP_DEFAULT;
 			} /*else*/
 			if (isLispoperator(ch) || ch=='\'') {
 				styler.ColourTo(i - 1, state);
 				styler.ColourTo(i, SCE_LISP_OPERATOR);
+				if (ch=='\'' && isLispwordstart(chNext)) {
+					state = SCE_LISP_SYMBOL;
+				}
 			}
-
+		} else if (state == SCE_LISP_MACRO_DISPATCH) {
+			if (!isdigit(ch)) {
+				if (ch != 'r' && ch != 'R' && (i - styler.GetStartSegment()) > 1) {
+					state = SCE_LISP_DEFAULT;
+				} else {
+					switch (ch) {
+						case '|': state = SCE_LISP_MULTI_COMMENT; break;
+						case 'o':
+						case 'O': radix = 8; state = SCE_LISP_MACRO; break;
+						case 'x':
+						case 'X': radix = 16; state = SCE_LISP_MACRO; break;
+						case 'b':
+						case 'B': radix = 2; state = SCE_LISP_MACRO; break;
+						case '\\': state = SCE_LISP_CHARACTER; break;
+						case ':':
+						case '-':
+						case '+': state = SCE_LISP_MACRO; break;
+						case '\'': if (isLispwordstart(chNext)) {
+								   state = SCE_LISP_SPECIAL;
+							   } else {
+								   styler.ColourTo(i - 1, SCE_LISP_DEFAULT);
+								   styler.ColourTo(i, SCE_LISP_OPERATOR);
+								   state = SCE_LISP_DEFAULT;
+							   }
+							   break;
+						default: if (isLispoperator(ch)) {
+								 styler.ColourTo(i - 1, SCE_LISP_DEFAULT);
+								 styler.ColourTo(i, SCE_LISP_OPERATOR);
+							 }
+							 state = SCE_LISP_DEFAULT;
+							 break;
+					}
+				}
+			}
+		} else if (state == SCE_LISP_MACRO) {
+			if (isLispwordstart(ch) && (radix == -1 || IsADigit(ch, radix))) {
+				state = SCE_LISP_SPECIAL;
+			} else {
+				state = SCE_LISP_DEFAULT;
+			}
+		} else if (state == SCE_LISP_CHARACTER) {
+			if (isLispoperator(ch)) {
+				styler.ColourTo(i, SCE_LISP_SPECIAL);
+				state = SCE_LISP_DEFAULT;
+			} else if (isLispwordstart(ch)) {
+				styler.ColourTo(i, SCE_LISP_SPECIAL);
+				state = SCE_LISP_SPECIAL;
+			} else {
+				state = SCE_LISP_DEFAULT;
+			}
+		} else if (state == SCE_LISP_SPECIAL) {
+			if (!isLispwordstart(ch) || (radix != -1 && !IsADigit(ch, radix))) {
+				styler.ColourTo(i - 1, state);
+				state = SCE_LISP_DEFAULT;
+			}
+			if (isLispoperator(ch) || ch=='\'') {
+				styler.ColourTo(i - 1, state);
+				styler.ColourTo(i, SCE_LISP_OPERATOR);
+				if (ch=='\'' && isLispwordstart(chNext)) {
+					state = SCE_LISP_SYMBOL;
+				}
+			}
 		} else {
 			if (state == SCE_LISP_COMMENT) {
 				if (atEOL) {
 					styler.ColourTo(i - 1, state);
 					state = SCE_LISP_DEFAULT;
 				}
+			} else if (state == SCE_LISP_MULTI_COMMENT) {
+				if (ch == '|' && chNext == '#') {
+					i++;
+					chNext = styler.SafeGetCharAt(i + 1);
+					styler.ColourTo(i, state);
+					state = SCE_LISP_DEFAULT;
+				}
 			} else if (state == SCE_LISP_STRING) {
 				if (ch == '\\') {
 					if (chNext == '\"' || chNext == '\'' || chNext == '\\') {
 						i++;
-						ch = chNext;
 						chNext = styler.SafeGetCharAt(i + 1);
 					}
 				} else if (ch == '\"') {
 					styler.ColourTo(i, state);
 					state = SCE_LISP_DEFAULT;
-				} else if ((chNext == '\r' || chNext == '\n') && (chPrev != '\\')) {
-					styler.ColourTo(i - 1, SCE_LISP_STRINGEOL);
-					state = SCE_LISP_STRINGEOL;
 				}
 			}
 		}
 
-		chPrev = ch;
 	}
 	styler.ColourTo(lengthDoc - 1, state);
 }
@@ -193,6 +271,7 @@ static void FoldLispDoc(unsigned int startPos, int length, int /* initStyle */, 
 }
 
 static const char * const lispWordListDesc[] = {
+	"Functions and special operators",
 	"Keywords",
 	0
 };

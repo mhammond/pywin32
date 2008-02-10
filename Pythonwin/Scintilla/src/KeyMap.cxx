@@ -11,6 +11,10 @@
 
 #include "KeyMap.h"
 
+#ifdef SCI_NAMESPACE
+using namespace Scintilla;
+#endif
+
 KeyMap::KeyMap() : kmap(0), len(0), alloc(0) {
 	for (int i = 0; MapDefault[i].key; i++) {
 		AssignCmdKey(MapDefault[i].key,
@@ -140,7 +144,7 @@ const KeyToCommand KeyMap::MapDefault[] = {
     {'L', 			SCI_CSHIFT,	SCI_LINEDELETE},
     {'T', 			SCI_CSHIFT,	SCI_LINECOPY},
     {'T', 			SCI_CTRL,	SCI_LINETRANSPOSE},
-    {'D', 			SCI_CTRL,	SCI_LINEDUPLICATE},
+    {'D', 			SCI_CTRL,	SCI_SELECTIONDUPLICATE},
     {'U', 			SCI_CTRL,	SCI_LOWERCASE},
     {'U', 			SCI_CSHIFT,	SCI_UPPERCASE},
     {0,0,0},

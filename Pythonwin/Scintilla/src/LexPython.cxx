@@ -20,7 +20,12 @@
 #include "Scintilla.h"
 #include "SciLexer.h"
 
+#ifdef SCI_NAMESPACE
+using namespace Scintilla;
+#endif
+
 enum kwType { kwOther, kwClass, kwDef, kwImport };
+static const int indicatorWhitespace = 1;
 
 static bool IsPyComment(Accessor &styler, int pos, int len) {
 	return len > 0 && styler[pos] == '#';
@@ -109,6 +114,7 @@ static void ColourisePyDoc(unsigned int startPos, int length, int initStyle,
 	}
 
 	WordList &keywords = *keywordlists[0];
+	WordList &keywords2 = *keywordlists[1];
 
 	const int whingeLevel = styler.GetPropertyInt("tab.timmy.whinge.level");
 
@@ -122,26 +128,29 @@ static void ColourisePyDoc(unsigned int startPos, int length, int initStyle,
 	styler.IndentAmount(lineCurrent, &spaceFlags, IsPyComment);
 	bool hexadecimal = false;
 
-	// Python uses a different mask because bad indentation is marked by oring with 32
-	StyleContext sc(startPos, endPos - startPos, initStyle, styler, 0x7f);
+	StyleContext sc(startPos, endPos - startPos, initStyle, styler);
+
+	bool indentGood = true;
+	int startIndicator = sc.currentPos;
 
 	for (; sc.More(); sc.Forward()) {
 
 		if (sc.atLineStart) {
-			const char chBad = static_cast<char>(64);
-			const char chGood = static_cast<char>(0);
-			char chFlags = chGood;
+			styler.IndentAmount(lineCurrent, &spaceFlags, IsPyComment);
+			indentGood = true;
 			if (whingeLevel == 1) {
-				chFlags = (spaceFlags & wsInconsistent) ? chBad : chGood;
+				indentGood = (spaceFlags & wsInconsistent) == 0;
 			} else if (whingeLevel == 2) {
-				chFlags = (spaceFlags & wsSpaceTab) ? chBad : chGood;
+				indentGood = (spaceFlags & wsSpaceTab) == 0;
 			} else if (whingeLevel == 3) {
-				chFlags = (spaceFlags & wsSpace) ? chBad : chGood;
+				indentGood = (spaceFlags & wsSpace) == 0;
 			} else if (whingeLevel == 4) {
-				chFlags = (spaceFlags & wsTab) ? chBad : chGood;
+				indentGood = (spaceFlags & wsTab) == 0;
 			}
-			sc.SetState(sc.state);
-			styler.SetFlags(chFlags, static_cast<char>(sc.state));
+			if (!indentGood) {
+				styler.IndicatorFill(startIndicator, sc.currentPos, indicatorWhitespace, 0);
+				startIndicator = sc.currentPos;
+			}
 		}
 
 		if (sc.atLineEnd) {
@@ -153,7 +162,6 @@ static void ColourisePyDoc(unsigned int startPos, int length, int initStyle,
 				sc.SetState(sc.state);
 			}
 			lineCurrent++;
-			styler.IndentAmount(lineCurrent, &spaceFlags, IsPyComment);
 			if ((sc.state == SCE_P_STRING) || (sc.state == SCE_P_CHARACTER)) {
 				sc.ChangeState(SCE_P_STRINGEOL);
 				sc.ForwardSetState(SCE_P_DEFAULT);
@@ -186,6 +194,8 @@ static void ColourisePyDoc(unsigned int startPos, int length, int initStyle,
 					style = SCE_P_CLASSNAME;
 				} else if (kwLast == kwDef) {
 					style = SCE_P_DEFNAME;
+				} else if (keywords2.InList(s)) {
+					style = SCE_P_WORD2;
 				}
 				sc.ChangeState(style);
 				sc.SetState(SCE_P_DEFAULT);
@@ -198,14 +208,16 @@ static void ColourisePyDoc(unsigned int startPos, int length, int initStyle,
 						kwLast = kwImport;
 					else
 						kwLast = kwOther;
-				} else if (style == SCE_P_CLASSNAME) {
-					kwLast = kwOther;
-				} else if (style == SCE_P_DEFNAME) {
+				} else {
 					kwLast = kwOther;
 				}
 			}
 		} else if ((sc.state == SCE_P_COMMENTLINE) || (sc.state == SCE_P_COMMENTBLOCK)) {
 			if (sc.ch == '\r' || sc.ch == '\n') {
+				sc.SetState(SCE_P_DEFAULT);
+			}
+		} else if (sc.state == SCE_P_DECORATOR) {
+			if (!IsAWordChar(sc.ch)) {
 				sc.SetState(SCE_P_DEFAULT);
 			}
 		} else if ((sc.state == SCE_P_STRING) || (sc.state == SCE_P_CHARACTER)) {
@@ -241,6 +253,12 @@ static void ColourisePyDoc(unsigned int startPos, int length, int initStyle,
 			}
 		}
 
+		if (!indentGood && !IsASpaceOrTab(sc.ch)) {
+			styler.IndicatorFill(startIndicator, sc.currentPos, indicatorWhitespace, 1);
+			startIndicator = sc.currentPos;
+			indentGood = true;
+		}
+
 		// State exit code may have moved on to end of line
 		if (needEOLCheck && sc.atLineEnd) {
 			lineCurrent++;
@@ -262,10 +280,12 @@ static void ColourisePyDoc(unsigned int startPos, int length, int initStyle,
 				sc.SetState(SCE_P_OPERATOR);
 			} else if (sc.ch == '#') {
 				sc.SetState(sc.chNext == '#' ? SCE_P_COMMENTBLOCK : SCE_P_COMMENTLINE);
+			} else if (sc.ch == '@') {
+				sc.SetState(SCE_P_DECORATOR);
 			} else if (IsPyStringStart(sc.ch, sc.chNext, sc.GetRelative(2))) {
 				unsigned int nextIndex = 0;
 				sc.SetState(GetPyStringState(styler, sc.currentPos, &nextIndex));
-				while (nextIndex > (sc.currentPos + 1)) {
+				while (nextIndex > (sc.currentPos + 1) && sc.More()) {
 					sc.Forward();
 				}
 			} else if (IsAWordStart(sc.ch)) {
@@ -273,6 +293,7 @@ static void ColourisePyDoc(unsigned int startPos, int length, int initStyle,
 			}
 		}
 	}
+	styler.IndicatorFill(startIndicator, sc.currentPos, indicatorWhitespace, 0);
 	sc.Complete();
 }
 
@@ -432,6 +453,7 @@ static void FoldPyDoc(unsigned int startPos, int length, int /*initStyle - unuse
 
 static const char * const pythonWordListDesc[] = {
 	"Keywords",
+	"Highlighted identifiers",
 	0
 };
 

@@ -13,12 +13,20 @@
 #include "Platform.h"
 
 #include "PropSet.h"
-#include "SVector.h"
 #include "Accessor.h"
 #include "DocumentAccessor.h"
+#include "SplitVector.h"
+#include "Partitioning.h"
+#include "RunStyles.h"
 #include "CellBuffer.h"
 #include "Scintilla.h"
+#include "CharClassify.h"
+#include "Decoration.h"
 #include "Document.h"
+
+#ifdef SCI_NAMESPACE
+using namespace Scintilla;
+#endif
 
 DocumentAccessor::~DocumentAccessor() {
 }
@@ -58,7 +66,8 @@ bool DocumentAccessor::Match(int pos, const char *s) {
 }
 
 char DocumentAccessor::StyleAt(int position) {
-	return pdoc->StyleAt(position);
+	// Mask off all bits which aren't in the 'mask'.
+	return static_cast<char>(pdoc->StyleAt(position) & mask);
 }
 
 int DocumentAccessor::GetLine(int position) {
@@ -88,6 +97,8 @@ int DocumentAccessor::SetLineState(int line, int state) {
 }
 
 void DocumentAccessor::StartAt(unsigned int start, char chMask) {
+	// Store the mask specified for use with StyleAt.
+	mask = chMask;
 	pdoc->StartStyling(start, chMask);
 	startPosStyling = start;
 }
@@ -99,8 +110,9 @@ void DocumentAccessor::StartSegment(unsigned int pos) {
 void DocumentAccessor::ColourTo(unsigned int pos, int chAttr) {
 	// Only perform styling if non empty range
 	if (pos != startSeg - 1) {
+		PLATFORM_ASSERT(pos >= startSeg);
 		if (pos < startSeg) {
-			Platform::DebugPrintf("Bad colour positions %d - %d\n", startSeg, pos);
+			return;
 		}
 
 		if (validLen + (pos - startSeg + 1) >= bufferSize)
@@ -181,3 +193,7 @@ int DocumentAccessor::IndentAmount(int line, int *flags, PFNIsCommentLeader pfnI
 		return indent;
 }
 
+void DocumentAccessor::IndicatorFill(int start, int end, int indicator, int value) {
+	pdoc->decorations.SetCurrentIndicator(indicator);
+	pdoc->DecorationFillRange(start, value, end - start);
+}

@@ -10,6 +10,10 @@
 #include "Scintilla.h"
 #include "Indicator.h"
 
+#ifdef SCI_NAMESPACE
+using namespace Scintilla;
+#endif
+
 void Indicator::Draw(Surface *surface, const PRectangle &rc, const PRectangle &rcLine) {
 	surface->PenColour(fore.allocated);
 	int ymid = (rc.bottom + rc.top) / 2;
@@ -63,6 +67,12 @@ void Indicator::Draw(Surface *surface, const PRectangle &rc, const PRectangle &r
 		surface->LineTo(rc.right, rcLine.top+1);
 		surface->LineTo(rc.left, rcLine.top+1);
 		surface->LineTo(rc.left, ymid+1);
+	} else if (style == INDIC_ROUNDBOX) {
+		PRectangle rcBox = rcLine;
+		rcBox.top = rcLine.top + 1;
+		rcBox.left = rc.left;
+		rcBox.right = rc.right;
+		surface->AlphaRectangle(rcBox, 1, fore.allocated, 30, fore.allocated, 50, 0);
 	} else {	// Either INDIC_PLAIN or unknown
 		surface->MoveTo(rc.left, ymid);
 		surface->LineTo(rc.right, ymid);

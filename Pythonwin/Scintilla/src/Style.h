@@ -8,6 +8,10 @@
 #ifndef STYLE_H
 #define STYLE_H
 
+#ifdef SCI_NAMESPACE
+namespace Scintilla {
+#endif
+
 /**
  */
 class Style {
@@ -44,13 +48,17 @@ public:
 	void Clear(ColourDesired fore_, ColourDesired back_,
 	           int size_,
 	           const char *fontName_, int characterSet_,
-	           bool bold_, bool italic_, bool eolFilled_, 
-	           bool underline_, ecaseForced caseForce_, 
+	           bool bold_, bool italic_, bool eolFilled_,
+	           bool underline_, ecaseForced caseForce_,
 		   bool visible_, bool changeable_, bool hotspot_);
 	void ClearTo(const Style &source);
 	bool EquivalentFontTo(const Style *other) const;
-	void Realise(Surface &surface, int zoomLevel, Style *defaultStyle = 0);
+	void Realise(Surface &surface, int zoomLevel, Style *defaultStyle = 0, bool extraFontFlag = false);
 	bool IsProtected() const { return !(changeable && visible);};
 };
+
+#ifdef SCI_NAMESPACE
+}
+#endif
 
 #endif

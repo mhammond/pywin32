@@ -8,6 +8,10 @@
 #ifndef SCINTILLABASE_H
 #define SCINTILLABASE_H
 
+#ifdef SCI_NAMESPACE
+namespace Scintilla {
+#endif
+
 /**
  */
 class ScintillaBase : public Editor {
@@ -37,7 +41,10 @@ protected:
 	CallTip ct;
 
 	int listType;			///< 0 is an autocomplete list
-	SString userListSelected;	///< Receives listbox selected string
+	SString listSelected;	///< Receives listbox selected string
+	int maxListWidth;		/// Maximum width of list, in average character widths
+
+	bool performingStyle;	///< Prevent reentrance
 
 #ifdef SCI_LEXER
 	int lexLanguage;
@@ -65,6 +72,7 @@ protected:
 	void AutoCompleteStart(int lenEntered, const char *list);
 	void AutoCompleteCancel();
 	void AutoCompleteMove(int delta);
+	int AutoCompleteGetCurrent();
 	void AutoCompleteCharacterAdded(char ch);
 	void AutoCompleteCharacterDeleted();
 	void AutoCompleteCompleted();
@@ -85,5 +93,9 @@ public:
 	// Public so scintilla_send_message can use it
 	virtual sptr_t WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam);
 };
+
+#ifdef SCI_NAMESPACE
+}
+#endif
 
 #endif

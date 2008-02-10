@@ -2,8 +2,12 @@
 /** @file StyleContext.cxx
  ** Lexer infrastructure.
  **/
-// Copyright 1998-2002 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2004 by Neil Hodgson <neilh@scintilla.org>
 // This file is in the public domain.
+
+#ifdef SCI_NAMESPACE
+namespace Scintilla {
+#endif
 
 // All languages handled so far can treat all characters >= 0x80 as one class
 // which just continues the current token or starts an identifier if in default.
@@ -45,7 +49,7 @@ public:
 		currentPos(startPos),
 		atLineStart(true),
 		atLineEnd(false),
-		state(initStyle),
+		state(initStyle & chMask), // Mask off all bits which aren't in the chMask.
 		chPrev(0),
 		ch(0),
 		chNext(0) {
@@ -104,19 +108,21 @@ public:
 		return currentPos - styler.GetStartSegment();
 	}
 	int GetRelative(int n) {
-		return styler.SafeGetCharAt(currentPos+n);
+		return static_cast<unsigned char>(styler.SafeGetCharAt(currentPos+n));
 	}
 	bool Match(char ch0) {
-		return ch == ch0;
+		return ch == static_cast<unsigned char>(ch0);
 	}
 	bool Match(char ch0, char ch1) {
-		return (ch == ch0) && (chNext == ch1);
+		return (ch == static_cast<unsigned char>(ch0)) && (chNext == static_cast<unsigned char>(ch1));
 	}
 	bool Match(const char *s) {
-		if (ch != *s)
+		if (ch != static_cast<unsigned char>(*s))
 			return false;
 		s++;
-		if (chNext != *s)
+		if (!*s)
+			return true;
+		if (chNext != static_cast<unsigned char>(*s))
 			return false;
 		s++;
 		for (int n=2; *s; n++) {
@@ -127,14 +133,15 @@ public:
 		return true;
 	}
 	bool MatchIgnoreCase(const char *s) {
-		if (tolower(ch) != *s)
+		if (tolower(ch) != static_cast<unsigned char>(*s))
 			return false;
 		s++;
-		if (tolower(chNext) != *s)
+		if (tolower(chNext) != static_cast<unsigned char>(*s))
 			return false;
 		s++;
 		for (int n=2; *s; n++) {
-			if (*s != tolower((styler.SafeGetCharAt(currentPos+n))))
+			if (static_cast<unsigned char>(*s) !=
+				tolower(static_cast<unsigned char>(styler.SafeGetCharAt(currentPos+n))))
 				return false;
 			s++;
 		}
@@ -144,6 +151,10 @@ public:
 	void GetCurrent(char *s, unsigned int len);
 	void GetCurrentLowered(char *s, unsigned int len);
 };
+
+#ifdef SCI_NAMESPACE
+}
+#endif
 
 inline bool IsASpace(unsigned int ch) {
     return (ch == ' ') || ((ch >= 0x09) && (ch <= 0x0d));
@@ -155,4 +166,14 @@ inline bool IsASpaceOrTab(unsigned int ch) {
 
 inline bool IsADigit(unsigned int ch) {
 	return (ch >= '0') && (ch <= '9');
+}
+
+inline bool IsADigit(unsigned int ch, unsigned int base) {
+	if (base <= 10) {
+		return (ch >= '0') && (ch < '0' + base);
+	} else {
+		return ((ch >= '0') && (ch <= '9')) ||
+		       ((ch >= 'A') && (ch < 'A' + base - 10)) ||
+		       ((ch >= 'a') && (ch < 'a' + base - 10));
+	}
 }

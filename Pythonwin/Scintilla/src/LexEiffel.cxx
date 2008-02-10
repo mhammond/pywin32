@@ -10,7 +10,6 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <fcntl.h>
 
 #include "Platform.h"
 
@@ -20,6 +19,10 @@
 #include "KeyWords.h"
 #include "Scintilla.h"
 #include "SciLexer.h"
+
+#ifdef SCI_NAMESPACE
+using namespace Scintilla;
+#endif
 
 static inline bool isEiffelOperator(unsigned int ch) {
 	// '.' left out as it is used to make up numbers
@@ -33,7 +36,7 @@ static inline bool isEiffelOperator(unsigned int ch) {
 }
 
 static inline bool IsAWordChar(unsigned int  ch) {
-	return (ch < 0x80) && (isalnum(ch) || ch == '.' || ch == '_');
+	return (ch < 0x80) && (isalnum(ch) || ch == '_');
 }
 
 static inline bool IsAWordStart(unsigned int ch) {

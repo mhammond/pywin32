@@ -6,6 +6,10 @@
 // Copyright 1998-2001 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
+#ifdef SCI_NAMESPACE
+namespace Scintilla {
+#endif
+
 class Document;
 
 /**
@@ -27,6 +31,7 @@ protected:
 	char chWhile;
 	unsigned int startSeg;
 	int startPosStyling;
+	int mask;
 
 	bool InternalIsLeadByte(char ch);
 	void Fill(int position);
@@ -35,7 +40,8 @@ public:
 	DocumentAccessor(Document *pdoc_, PropSet &props_, WindowID id_=0) : 
 		Accessor(), pdoc(pdoc_), props(props_), id(id_),
 		lenDoc(-1), validLen(0), chFlags(0), chWhile(0), 
-		startSeg(0), startPosStyling(0) {
+		startSeg(0), startPosStyling(0),
+		mask(127) { // Initialize the mask to be big enough for any lexer.
 	}
 	~DocumentAccessor();
 	bool Match(int pos, const char *s);
@@ -62,4 +68,9 @@ public:
 	void ColourTo(unsigned int pos, int chAttr);
 	void SetLevel(int line, int level);
 	int IndentAmount(int line, int *flags, PFNIsCommentLeader pfnIsCommentLeader = 0);
+	void IndicatorFill(int start, int end, int indicator, int value);
 };
+
+#ifdef SCI_NAMESPACE
+}
+#endif

@@ -13,6 +13,10 @@ bool EqualCaseInsensitive(const char *a, const char *b);
 
 bool isprefix(const char *target, const char *prefix);
 
+#ifdef SCI_NAMESPACE
+namespace Scintilla {
+#endif
+
 struct Property {
 	unsigned int hash;
 	char *key;
@@ -38,24 +42,26 @@ protected:
 		}
 		return ret;
 	}
-	static bool IncludesVar(const char *value, const char *key);
+
 public:
 	PropSet *superPS;
 	PropSet();
 	~PropSet();
 	void Set(const char *key, const char *val, int lenKey=-1, int lenVal=-1);
 	void Set(const char *keyVal);
+	void Unset(const char *key, int lenKey=-1);
 	void SetMultiple(const char *s);
-	SString Get(const char *key);
-	SString GetExpanded(const char *key);
-	SString Expand(const char *withVars, int maxExpands=100);
-	int GetInt(const char *key, int defaultValue=0);
-	SString GetWild(const char *keybase, const char *filename);
-	SString GetNewExpand(const char *keybase, const char *filename="");
+	SString Get(const char *key) const;
+	SString GetExpanded(const char *key) const;
+	SString Expand(const char *withVars, int maxExpands=100) const;
+	int GetInt(const char *key, int defaultValue=0) const;
 	void Clear();
-	char *ToString();	// Caller must delete[] the return value
-	bool GetFirst(char **key, char **val);
-	bool GetNext(char **key, char **val);
+	char *ToString() const;	// Caller must delete[] the return value
+
+private:
+	// copy-value semantics not implemented
+	PropSet(const PropSet &copy);
+	void operator=(const PropSet &assign);
 };
 
 /**
@@ -64,30 +70,35 @@ class WordList {
 public:
 	// Each word contains at least one character - a empty word acts as sentinel at the end.
 	char **words;
-	char **wordsNoCase;
 	char *list;
 	int len;
 	bool onlyLineEnds;	///< Delimited by any white space or only line ends
 	bool sorted;
 	int starts[256];
 	WordList(bool onlyLineEnds_ = false) :
-		words(0), wordsNoCase(0), list(0), len(0), onlyLineEnds(onlyLineEnds_), sorted(false) {}
+		words(0), list(0), len(0), onlyLineEnds(onlyLineEnds_),
+		sorted(false)
+		{}
 	~WordList() { Clear(); }
 	operator bool() { return len ? true : false; }
-	char *operator[](int ind) { return words[ind]; }
 	void Clear();
 	void Set(const char *s);
-	char *Allocate(int size);
-	void SetFromAllocated();
 	bool InList(const char *s);
-	const char *GetNearestWord(const char *wordStart, int searchLen = -1,
-		bool ignoreCase = false, SString wordCharacters="", int wordIndex = -1);
-	char *GetNearestWords(const char *wordStart, int searchLen=-1,
-		bool ignoreCase=false, char otherSeparator='\0');
+	bool InListAbbreviated(const char *s, const char marker);
 };
 
 inline bool IsAlphabetic(unsigned int ch) {
 	return ((ch >= 'A') && (ch <= 'Z')) || ((ch >= 'a') && (ch <= 'z'));
 }
+
+#ifdef SCI_NAMESPACE
+}
+#endif
+
+#ifdef _MSC_VER
+// Visual C++ doesn't like the private copy idiom for disabling
+// the default copy constructor and operator=, but it's fine.
+#pragma warning(disable: 4511 4512)
+#endif
 
 #endif

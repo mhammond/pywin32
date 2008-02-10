@@ -8,11 +8,15 @@
 #ifndef VIEWSTYLE_H
 #define VIEWSTYLE_H
 
+#ifdef SCI_NAMESPACE
+namespace Scintilla {
+#endif
+
 /**
  */
 class MarginStyle {
 public:
-	bool symbol;
+	int style;
 	int width;
 	int mask;
 	bool sensitive;
@@ -23,7 +27,8 @@ public:
  */
 class FontNames {
 private:
-	char *names[STYLE_MAX + 1];
+	char **names;
+	int size;
 	int max;
 
 public:
@@ -33,6 +38,8 @@ public:
 	const char *Save(const char *name);
 };
 
+enum IndentView {ivNone, ivReal, ivLookForward, ivLookBoth};
+
 enum WhiteSpaceVisibility {wsInvisible=0, wsVisibleAlways=1, wsVisibleAfterIndent=2};
 
 /**
@@ -40,7 +47,8 @@ enum WhiteSpaceVisibility {wsInvisible=0, wsVisibleAlways=1, wsVisibleAfterInden
 class ViewStyle {
 public:
 	FontNames fontNames;
-	Style styles[STYLE_MAX + 1];
+	size_t stylesSize;
+	Style *styles;
 	LineMarker markers[MARKER_MAX + 1];
 	Indicator indicators[INDIC_MAX + 1];
 	int lineHeight;
@@ -53,6 +61,8 @@ public:
 	bool selbackset;
 	ColourPair selbackground;
 	ColourPair selbackground2;
+	int selAlpha;
+	bool selEOLFilled;
 	bool whitespaceForegroundSet;
 	ColourPair whitespaceForeground;
 	bool whitespaceBackgroundSet;
@@ -70,7 +80,7 @@ public:
 	bool hotspotUnderline;
 	bool hotspotSingleLine;
 	/// Margins are ordered: Line Numbers, Selection Margin, Spacing Margin
-	enum { margins=3 };
+	enum { margins=5 };
 	int leftMarginWidth;	///< Spacing margin on left of text
 	int rightMarginWidth;	///< Spacing margin on left of text
 	bool symbolMargin;
@@ -79,27 +89,36 @@ public:
 	int fixedColumnWidth;
 	int zoomLevel;
 	WhiteSpaceVisibility viewWhitespace;
-	bool viewIndentationGuides;
+	IndentView viewIndentationGuides;
 	bool viewEOL;
 	bool showMarkedLines;
 	ColourPair caretcolour;
 	bool showCaretLineBackground;
 	ColourPair caretLineBackground;
+	int caretLineAlpha;
 	ColourPair edgecolour;
 	int edgeState;
+	int caretStyle;
 	int caretWidth;
 	bool someStylesProtected;
+	bool extraFontFlag;
 
 	ViewStyle();
 	ViewStyle(const ViewStyle &source);
 	~ViewStyle();
-	void Init();
+	void Init(size_t stylesSize_=64);
 	void RefreshColourPalette(Palette &pal, bool want);
 	void Refresh(Surface &surface);
+	void AllocStyles(size_t sizeNew);
+	void EnsureStyle(size_t index);
 	void ResetDefaultStyle();
 	void ClearStyles();
 	void SetStyleFontName(int styleIndex, const char *name);
 	bool ProtectionActive() const;
 };
+
+#ifdef SCI_NAMESPACE
+}
+#endif
 
 #endif

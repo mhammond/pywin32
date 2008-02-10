@@ -16,6 +16,7 @@
 
 #define PLAT_GTK 0
 #define PLAT_GTK_WIN32 0
+#define PLAT_MACOSX 0
 #define PLAT_WIN 0
 #define PLAT_WX  0
 #define PLAT_FOX 0
@@ -32,10 +33,14 @@
 #undef PLAT_GTK
 #define PLAT_GTK 1
 
-#ifdef _MSC_VER
+#if defined(__WIN32__) || defined(_MSC_VER)
 #undef PLAT_GTK_WIN32
 #define PLAT_GTK_WIN32 1
 #endif
+
+#elif defined(MACOSX)
+#undef PLAT_MACOSX
+#define PLAT_MACOSX 1
 
 #else
 #undef PLAT_WIN
@@ -43,6 +48,9 @@
 
 #endif
 
+#ifdef SCI_NAMESPACE
+namespace Scintilla {
+#endif
 
 // Underlying the implementation of the platform classes are platform specific types.
 // Sometimes these need to be passed around by client code so they are defined here
@@ -64,7 +72,7 @@ public:
 	int x;
 	int y;
 
-	Point(int x_=0, int y_=0) : x(x_), y(y_) {
+	explicit Point(int x_=0, int y_=0) : x(x_), y(y_) {
 	}
 
 	// Other automatically defined methods (assignment, copy constructor, destructor) are fine
@@ -114,6 +122,9 @@ public:
 	}
 	int Width() { return right - left; }
 	int Height() { return bottom - top; }
+	bool Empty() {
+		return (Height() <= 0) || (Width() <= 0);
+	}
 };
 
 /**
@@ -236,12 +247,15 @@ class Window;	// Forward declaration for Palette
  */
 class Palette {
 	int used;
-	enum {numEntries = 100};
-	ColourPair entries[numEntries];
+	int size;
+	ColourPair *entries;
 #if PLAT_GTK
 	void *allocatedPalette; // GdkColor *
 	int allocatedLen;
 #endif
+	// Private so Palette objects can not be copied
+	Palette(const Palette &) {}
+	Palette &operator=(const Palette &) { return *this; }
 public:
 #if PLAT_WIN
 	void *hpal;
@@ -279,13 +293,15 @@ public:
 	Font();
 	virtual ~Font();
 
-	virtual void Create(const char *faceName, int characterSet, int size, bool bold, bool italic);
+	virtual void Create(const char *faceName, int characterSet, int size,
+		bool bold, bool italic, bool extraFontFlag=false);
 	virtual void Release();
 
 	FontID GetID() { return id; }
 	// Alias another font - caller guarantees not to Release
 	void SetID(FontID id_) { id = id_; }
 	friend class Surface;
+        friend class SurfaceImpl;
 };
 
 /**
@@ -317,6 +333,8 @@ public:
 	virtual void FillRectangle(PRectangle rc, ColourAllocated back)=0;
 	virtual void FillRectangle(PRectangle rc, Surface &surfacePattern)=0;
 	virtual void RoundedRectangle(PRectangle rc, ColourAllocated fore, ColourAllocated back)=0;
+	virtual void AlphaRectangle(PRectangle rc, int cornerSize, ColourAllocated fill, int alphaFill,
+		ColourAllocated outline, int alphaOutline, int flags)=0;
 	virtual void Ellipse(PRectangle rc, ColourAllocated fore, ColourAllocated back)=0;
 	virtual void Copy(PRectangle rc, Point from, Surface &surfaceSource)=0;
 
@@ -353,9 +371,23 @@ typedef void (*CallBackAction)(void*);
 class Window {
 protected:
 	WindowID id;
+#if PLAT_MACOSX
+	void *windowRef;
+	void *control;
+#endif
 public:
-	Window() : id(0), cursorLast(cursorInvalid) {}
-	Window(const Window &source) : id(source.id), cursorLast(cursorInvalid) {}
+	Window() : id(0), cursorLast(cursorInvalid) {
+#if PLAT_MACOSX
+	  windowRef = 0;
+	  control = 0;
+#endif
+	}
+	Window(const Window &source) : id(source.id), cursorLast(cursorInvalid) {
+#if PLAT_MACOSX
+	  windowRef = 0;
+	  control = 0;
+#endif
+	}
 	virtual ~Window();
 	Window &operator=(WindowID id_) {
 		id = id_;
@@ -376,6 +408,11 @@ public:
 	enum Cursor { cursorInvalid, cursorText, cursorArrow, cursorUp, cursorWait, cursorHoriz, cursorVert, cursorReverseArrow, cursorHand };
 	void SetCursor(Cursor curs);
 	void SetTitle(const char *s);
+	PRectangle GetMonitorRect(Point pt);
+#if PLAT_MACOSX
+	void SetWindow(void *ref) { windowRef = ref; };
+	void SetControl(void *_control) { control = _control; };
+#endif
 private:
 	Cursor cursorLast;
 };
@@ -391,9 +428,10 @@ public:
 	static ListBox *Allocate();
 
 	virtual void SetFont(Font &font)=0;
-	virtual void Create(Window &parent, int ctrlID, int lineHeight_, bool unicodeMode_)=0;
+	virtual void Create(Window &parent, int ctrlID, Point location, int lineHeight_, bool unicodeMode_)=0;
 	virtual void SetAverageCharWidth(int width)=0;
 	virtual void SetVisibleRows(int rows)=0;
+	virtual int GetVisibleRows() const=0;
 	virtual PRectangle GetDesiredRect()=0;
 	virtual int CaretFromEdge()=0;
 	virtual void Clear()=0;
@@ -406,6 +444,7 @@ public:
 	virtual void RegisterImage(int type, const char *xpm_data)=0;
 	virtual void ClearRegisteredImages()=0;
 	virtual void SetDoubleClickAction(CallBackAction, void *)=0;
+	virtual void SetList(const char* list, char separator, char typesep)=0;
 };
 
 /**
@@ -497,7 +536,15 @@ public:
 #ifdef  NDEBUG
 #define PLATFORM_ASSERT(c) ((void)0)
 #else
+#ifdef SCI_NAMESPACE
+#define PLATFORM_ASSERT(c) ((c) ? (void)(0) : Scintilla::Platform::Assert(#c, __FILE__, __LINE__))
+#else
 #define PLATFORM_ASSERT(c) ((c) ? (void)(0) : Platform::Assert(#c, __FILE__, __LINE__))
+#endif
+#endif
+
+#ifdef SCI_NAMESPACE
+}
 #endif
 
 // Shut up annoying Visual C++ warnings:
