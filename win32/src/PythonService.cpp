@@ -930,7 +930,7 @@ DWORD WINAPI dispatchServiceCtrl(DWORD dwCtrlCode, DWORD dwEventType,
 	PyObject *args;
 	if (pse->bUseEx) {
 		PyObject *sub;
-		switch (dwEventType) {
+		switch (dwCtrlCode) {
 			case SERVICE_CONTROL_DEVICEEVENT:
 				sub = PyWinObject_FromPARAM((LPARAM)eventData);
 				break;
