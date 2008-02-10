@@ -8,6 +8,12 @@
 #	undef _POSIX_C_SOURCE
 #endif
 
+// early msvc versions complain about pragma #s it doesn't understand
+// C:\mssdk\VC\INCLUDE\string.h(142) : warning C4616: #pragma warning : warning number '6059' out of range, must be between '4001' and '4999'
+// and:
+// C:\mssdk\include\wingdi.h(4340) : warning C4068: unknown pragma
+// I doubt we ever care about that warning, so unconditionally nuke em!
+#pragma warning( disable:4616 4068 )
 // Python.h and Windows.h both protect themselves from multiple
 // includes - so it is safe to do here (and provides a handy
 // choke point for #include vagaries
@@ -24,6 +30,10 @@ typedef int Py_ssize_t;
 #define PY_SSIZE_T_MIN INT_MIN
 #endif
 
+#if PY_VERSION_HEX < 0x02030000
+#define PyLong_AsUnsignedLongMask PyLong_AsUnsignedLong
+#endif
+
 // This only enables runtime checks in debug builds - so we use
 // our own so we can enable it always should we desire...
 #define PyWin_SAFE_DOWNCAST Py_SAFE_DOWNCAST
@@ -31,16 +41,8 @@ typedef int Py_ssize_t;
 // Lars: for WAVEFORMATEX
 #include "mmsystem.h"
 
-// Do we want to use the builtin Unicode object?
-// If defined, we use the standard builtin type.
-// If not define, we have our own Unicode type
-// (but that doesnt work seamlessly with PyString objects)
-
-// For 1.6+ builds, this will be ON.
-// For 1.5 builds, this will be OFF
-#if (PY_VERSION_HEX >= 0x01060000)
+// This can be removed once we are confident noone else uses it...
 #define PYWIN_USE_PYUNICODE
-#endif
 
 // *** NOTE *** FREEZE_PYWINTYPES is deprecated.  It used to be used
 // by the 'freeze' tool, but now py2exe etc do a far better job, and 
@@ -66,27 +68,6 @@ typedef int Py_ssize_t;
 #endif // FREEZE_PYWINTYPES
 
 #include <tchar.h>
-#ifdef MS_WINCE
-// These macros caused grief on CE once (do they still?)
-#	ifndef IN
-#		define IN
-#	endif
-#	ifdef OUT
-#		undef OUT
-#	endif
-#	ifndef OUT
-#		define OUT
-#	endif
-// Having trouble making these work for Palm PCs??
-// NOTE: These are old - for Windows CE 1 devices, and well
-// before the PPC platform.  It is unlikely recent CE toolkits
-// still need all this magic.
-#	ifndef PYWIN_HPC /* Palm PC */
-#		define NO_PYWINTYPES_TIME
-#		define NO_PYWINTYPES_IID
-#		define NO_PYWINTYPES_BSTR
-#	endif
-#endif // MS_WINCE
 /*
 ** Error/Exception handling
 */
@@ -141,7 +122,6 @@ extern PYWINTYPES_EXPORT PyTypeObject PyUnicodeType; // the Type for PyUnicode
 
 extern PYWINTYPES_EXPORT int PyUnicode_Size(PyObject *op);
 
-#ifndef NO_PYWINTYPES_BSTR
 // Given a PyObject (string, Unicode, etc) create a "BSTR" with the value
 PYWINTYPES_EXPORT BOOL PyWinObject_AsBstr(PyObject *stringObject, BSTR *pResult, BOOL bNoneOK = FALSE, DWORD *pResultLen = NULL);
 // And free it when finished.
@@ -152,22 +132,20 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromBstr(const BSTR bstr, BOOL takeOwner
 // Convert a "char *" to a BSTR - free via ::SysFreeString()
 PYWINTYPES_EXPORT BSTR PyWin_String_AsBstr(const char *str);
 
-#endif // NO_PYWINTYPES_BSTR
-
-
 // Given a string or Unicode object, get WCHAR characters.
 PYWINTYPES_EXPORT BOOL PyWinObject_AsWCHAR(PyObject *stringObject, WCHAR **pResult, BOOL bNoneOK = FALSE, DWORD *pResultLen = NULL);
 // And free it when finished.
 PYWINTYPES_EXPORT void PyWinObject_FreeWCHAR(WCHAR *pResult);
 
-// As of Python 2.6, Python switched to 'wchar_t' for unicode.  Some old
+// As of Python 2.6, Python switched to 'wchar_t' for unicode, so old
 // win32 structures that still use 'unsigned short' now fail from C++ with
 // VS8 so we provide a couple of helpers.
 // XXX - but, when trying to use VC2003 with x64, the SDK x64 compiler
 // reports itself as 14.00.40310.41 - so this breaks under that compiler
 // Its not clear how to resolve this, but while VS2003 is the default
 // compiler, that is what must work.
-#if 0 // and _MSC_VER >= 1400
+// py2.5 on x64 also needs it, and that is min x64 we support
+#if (PY_VERSION_HEX >= 0x02060000) || defined(_WIN64)
 inline BOOL PyWinObject_AsWCHAR(PyObject *stringObject, unsigned short **pResult, BOOL bNoneOK = FALSE, DWORD *pResultLen = NULL)
 {
     return PyWinObject_AsWCHAR(stringObject, (WCHAR **)pResult, bNoneOK, pResultLen);
@@ -262,7 +240,6 @@ PYWINTYPES_EXPORT PyObject *PyUnicodeObject_FromString(const char *string);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromOLECHAR(const OLECHAR * str);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromOLECHAR(const OLECHAR * str, int numChars);
 
-#ifndef MS_WINCE
 // String support for buffers allocated via a function of your choice.
 PYWINTYPES_EXPORT BOOL PyWinObject_AsPfnAllocatedWCHAR(PyObject *stringObject, 
                                                   void *(*pfnAllocator)(ULONG), 
@@ -273,7 +250,6 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsPfnAllocatedWCHAR(PyObject *stringObject,
 // String support for buffers allocated via CoTaskMemAlloc and CoTaskMemFree
 PYWINTYPES_EXPORT BOOL PyWinObject_AsTaskAllocatedWCHAR(PyObject *stringObject, WCHAR **ppResult, BOOL bNoneOK /*= FALSE*/,DWORD *pResultLen /*= NULL*/);
 PYWINTYPES_EXPORT void PyWinObject_FreeTaskAllocatedWCHAR(WCHAR * str);
-#endif // MS_WINCE
 // String conversion - These must also be freed with PyWinObject_FreeString
 PYWINTYPES_EXPORT BOOL PyWin_WCHAR_AsString(WCHAR *input, DWORD inLen, char **pResult);
 PYWINTYPES_EXPORT BOOL PyWin_Bstr_AsString(BSTR input, char **pResult);
@@ -290,18 +266,6 @@ PYWINTYPES_EXPORT PyObject *PyWinLong_FromVoidPtr(const void *ptr);
 /*
 ** LARGE_INTEGER objects
 */
-#ifdef LONG_LONG
-	// Python got its own support for 64 bit ints as of Python 1.5.2.
-	// However, for 1.5.2 we stick without it - we use it for 1.6 and on.
-#	if (PY_VERSION_HEX < 0x01060000)
-#		define PYWIN_NO_PYTHON_LONG_LONG
-#	endif
-#else
-	// If LONG_LONG is undefined, we are still building pre 1.5.2, so
-	// we have no choice but to define it.
-#	define PYWIN_NO_PYTHON_LONG_LONG
-#endif
-
 // These need to be renamed.  For now, the old names still appear in the DLL.
 PYWINTYPES_EXPORT BOOL PyLong_AsTwoInts(PyObject *ob, int *hiint, unsigned *loint);
 PYWINTYPES_EXPORT PyObject *PyLong_FromTwoInts(int hidword, unsigned lodword);
@@ -500,8 +464,6 @@ extern PYWINTYPES_EXPORT PyTypeObject PyWAVEFORMATEXType;
 /*
 ** SECURITY_DESCRIPTOR support
 */
-#ifndef MS_WINCE /* These are not available on Windows CE */
-
 extern PYWINTYPES_EXPORT PyTypeObject PySECURITY_DESCRIPTORType;
 #define PySECURITY_DESCRIPTOR_Check(ob)		((ob)->ob_type == &PySECURITY_DESCRIPTORType)
 
@@ -530,8 +492,6 @@ extern PYWINTYPES_EXPORT PyTypeObject PyACLType;
 
 PYWINTYPES_EXPORT PyObject *PyWinMethod_NewACL(PyObject *self, PyObject *args);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsACL(PyObject *ob, PACL *ppACL, BOOL bNoneOK = FALSE);
-
-#endif /* MS_WINCE */
 
 /*
 ** Win32 HANDLE wrapper - any handle closable by "CloseHandle()"
@@ -583,7 +543,6 @@ BOOL PySocket_AsSOCKET
 /*
 ** Other Utilities
 */
-#ifndef NO_PYWINTYPES_BSTR
 // ----------------------------------------------------------------------
 // WARNING - NEVER EVER USE new() ON THIS CLASS
 // This class can be used as a local variable, typically in a Python/C
@@ -618,7 +577,6 @@ inline BOOL PyWinObject_AsAutoFreeBstr(PyObject *stringObject, PyWin_AutoFreeBst
 	pResult->SetBstr(bs);
 	return TRUE;
 }
-#endif // NO_PYWINTYPES_BSTR
 
 // ----------------------------------------------------------------------
 //
