@@ -263,7 +263,7 @@ ui_window_create(PyObject *self, PyObject *args)
 {
 	CHECK_NO_ARGS(args);
 	CWnd *pWnd = new CPythonWndFramework< CWnd >();
-	PyCWnd *pRet = (PyCWnd *)ui_assoc_object::make( PyCWnd::type, pWnd );
+	PyCWnd *pRet = (PyCWnd *)ui_assoc_object::make( PyCWnd::type, pWnd, TRUE );
 	// We explicitly created this CWnd, so we must explicitly nuke it!
 	if (pRet) {
 		pRet->bManualDelete = TRUE;
@@ -3300,7 +3300,7 @@ ui_create_frame(PyObject *self, PyObject *args)
 	GUI_BGN_SAVE;
 	CPythonFrameWnd* pFrame = new CPythonFrameWnd;
 	GUI_END_SAVE;
-	return ui_assoc_object::make(PyCFrameWnd::type, pFrame)->GetGoodRet();
+	return ui_assoc_object::make(PyCFrameWnd::type, pFrame, TRUE)->GetGoodRet();
 	// @rdesc The window object (not the OS window) created.  An exception is raised if an error occurs.
 }
 
