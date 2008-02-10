@@ -11,7 +11,27 @@
 // PyWinTypes.h pulls in Python.h and windows.h.
 #include <Filter.h>
 #include <Filterr.h>
+
+#define MISSING_PROPSTG
+#ifdef MISSING_PROPSTG
+// Ack - NTQuery.h is failing with the Vista SDK - pull in what we need
+// Problem is missing propstg.h, and all the work-arounds are uglier than
+// just these 3 prototypes.
+// See http://forums.microsoft.com/MSDN/ShowPost.aspx?PostID=508254&SiteID=1
+
+STDAPI LoadIFilter( PCWSTR pwcsPath,
+                    __in IUnknown * pUnkOuter,
+                    __deref_out void ** ppIUnk );
+STDAPI BindIFilterFromStorage(__in IStorage * pStg,
+                              __in IUnknown * pUnkOuter,
+                              __deref_out void ** ppIUnk );
+
+STDAPI BindIFilterFromStream(__in IStream * pStm,
+                             __in IUnknown * pUnkOuter,
+                             __deref_out void ** ppIUnk );
+#else
 #include <ntquery.h>
+#endif
 
 #include <windows.h>
 #include <oleauto.h>
