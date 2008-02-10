@@ -28,51 +28,6 @@
 #define __int64 long long
 #endif
 
-#ifdef PYWIN_NO_PYTHON_LONG_LONG
-/* If we either dont have, or dont want to use, Python's native
-   64bit integer support.
-*/
-PyLongObject *PyLong_Normalize(register PyLongObject *v);
-PyLongObject *alloclongobject(int size);
-static __int64 PyWLong_AsLongLong(PyObject *vv);
-#define PyLong_AsLongLong PyWLong_AsLongLong
-
-static unsigned __int64 PyWLong_AsUnsignedLongLong(PyObject *vv);
-#define PyLong_AsUnsignedLongLong PyWLong_AsUnsignedLongLong
-
-
-PyObject *PyLong_FromI64(__int64 ival)
-{
- int i;
-
- /* A 64-bit value should fit in 5 'digits' */
- int n = 5;
- PyLongObject *v = alloclongobject(n);
- if (v == NULL)
-  return NULL;
-
- if (ival < 0)
- {
-  ival = -ival;
-  v->ob_size = -(v->ob_size);
- }
-
- unsigned __int64 uval = (unsigned __int64)ival;
- for (i = 0; i < n; i++)
- {
-  v->ob_digit[i] = (unsigned short)(uval & MASK);
-  uval = (uval >> SHIFT);
- }
- v = PyLong_Normalize(v);
-
- return (PyObject*)v;
-}
-
-// ### the hack already does unsigned(!)
-#define PyLong_FromUI64(x)	PyLong_FromI64(x)
-
-#else // PYWIN_NO_PYTHON_LONG_LONG
-// We have native support - use it.
 PyObject *PyLong_FromI64(__int64 ival)
 {
 	return PyLong_FromLongLong(ival);
@@ -81,8 +36,6 @@ PyObject *PyLong_FromUI64(unsigned __int64 ival)
 {
 	return PyLong_FromUnsignedLongLong(ival);
 }
-
-#endif // PYWIN_NO_PYTHON_LONG_LONG
 
 BOOL PyLong_AsI64(PyObject *val, __int64 *lval)
 {
@@ -190,70 +143,3 @@ PyObject *PyWinObject_FromULARGE_INTEGER(ULARGE_INTEGER &val)
 	else
 		return PyLong_FromUI64(val.QuadPart);
 }
-
-#ifdef PYWIN_NO_PYTHON_LONG_LONG
-// Our own hacks for 64bit support.
-#include <longintrepr.h>
-
-#define ABS(x) ((x) < 0 ? -(x) : (x))
-
-PyLongObject *PyLong_Normalize(register PyLongObject *v)
-{
- Py_ssize_t j = ABS(v->ob_size);
- register Py_ssize_t i = j;
-
- while (i > 0 && v->ob_digit[i-1] == 0)
-  --i;
- if (i != j)
-  v->ob_size = (v->ob_size < 0) ? -(i) : i;
- return v;
-}
-
-PyLongObject *alloclongobject(int size)
-{
- return PyObject_NEW_VAR(PyLongObject, &PyLong_Type, size);
-}
-
-
-__int64
-PyWLong_AsLongLong(PyObject *vv)
-{
-	register PyLongObject *v;
-	__int64 x, prev;
-	Py_ssize_t i, sign;
-	
-	if (vv == NULL || !PyLong_Check(vv)) {
-		PyErr_BadInternalCall();
-		return -1;
-	}
-
-	v = (PyLongObject *)vv;
-	i = v->ob_size;
-	sign = 1;
-	x = 0;
-
-	if (i < 0) {
-		sign = -1;
-		i = -(i);
-	}
-
-	while (--i >= 0) {
-		prev = x;
-		x = (x << SHIFT) + v->ob_digit[i];
-		if ((x >> SHIFT) != prev) {
-			PyErr_SetString(PyExc_OverflowError,
-				"long int too long to convert");
-			return -1;
-		}
-	}
-
-	return x * sign;
-}
-
-// ### hack this dumb thing for now
-unsigned __int64
-PyWLong_AsUnsignedLongLong(PyObject *vv)
-{
-	return (unsigned __int64)PyLong_AsLongLong(vv);
-}
-#endif
