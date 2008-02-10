@@ -477,13 +477,58 @@ def UseCommandLine(*classes, **flags):
   unregister = '--unregister' in sys.argv
   flags['quiet'] = flags.get('quiet',0) or '--quiet' in sys.argv
   flags['debug'] = flags.get('debug',0) or '--debug' in sys.argv
+  flags['unattended'] = flags.get('unattended',0) or '--unattended' in sys.argv
   if unregisterInfo:
     return UnregisterInfoClasses(*classes, **flags)
-  if unregister:
-    UnregisterClasses(*classes, **flags)
-  else:
-    RegisterClasses(*classes, **flags)
+  try:
+    if unregister:
+      UnregisterClasses(*classes, **flags)
+    else:
+      RegisterClasses(*classes, **flags)
+  except win32api.error, exc:
+    # If we are on xp+ and have "access denied", retry using
+    # ShellExecuteEx with 'runas' verb to force elevation (vista) and/or
+    # admin login dialog (vista/xp)
+    if flags['unattended'] or exc[0] != winerror.ERROR_ACCESS_DENIED \
+       or sys.getwindowsversion()[0] < 5:
+      raise
+    from win32com.shell.shell import ShellExecuteEx
+    from win32com.shell import shellcon
+    import win32process, win32event
+    import winxpgui # we've already checked we are running XP above
 
+    if not flags['quiet']:
+      print "Requesting elevation and retrying..."
+    new_params = " ".join(['"' + a + '"' for a in sys.argv])
+    # specifying the parent means the dialog is centered over our window,
+    # which is a good usability clue.
+    # hwnd is unlikely on the command-line, but flags may come from elsewhere
+    hwnd = flags.get('hwnd', None)
+    if hwnd is None:
+      try:
+        hwnd = winxpgui.GetConsoleWindow()
+      except winxpgui.error:
+        hwnd = 0
+    rc = ShellExecuteEx(hwnd=hwnd,
+                        fMask=shellcon.SEE_MASK_NOCLOSEPROCESS,
+                        lpVerb="runas",
+                        lpFile=win32api.GetShortPathName(sys.executable),
+                        lpParameters=new_params,
+                        lpDirectory=os.getcwd(),
+                        nShow=win32con.SW_SHOW)
+    # Output is lost to the new console which opens, so the
+    # best we can do is get the exit code of the process.
+    hproc = rc['hProcess']
+    win32event.WaitForSingleObject(hproc, win32event.INFINITE)
+    exit_code = win32process.GetExitCodeProcess(hproc)
+    if exit_code:
+      # Even if quiet you get to see this error.
+      print "Error: registration failed (exit code %s)." % exit_code
+      print "Please re-execute this command from an elevated command-prompt"
+      print "to see details about the error."
+    else:
+      if not flags['quiet']:
+        print "Elevated process succeeded."
 
 def RegisterPyComCategory():
   """ Register the Python COM Server component category.
