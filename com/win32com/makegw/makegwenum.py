@@ -177,7 +177,7 @@ static struct PyMethodDef PyIEnum%(enumtype)s_methods[] =
 	{ NULL }
 };
 
-PyComTypeObject PyIEnum%(enumtype)s::type("PyIEnum%(enumtype)s",
+PyComEnumTypeObject PyIEnum%(enumtype)s::type("PyIEnum%(enumtype)s",
 		&PyIUnknown::type,
 		sizeof(PyIEnum%(enumtype)s),
 		PyIEnum%(enumtype)s_methods,
