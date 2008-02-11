@@ -2482,7 +2482,7 @@ static PyObject *PyIsUserAnAdmin(PyObject *self, PyObject *args)
 	return PyBool_FromLong(r);
 }
 
-// @pymethod (o PyIShellView|shell|SHCreateShellFolderView|
+// @pymethod <o PyIShellView>|shell|SHCreateShellFolderView|Creates a new instance of the default Shell folder view object.
 static PyObject *PySHCreateShellFolderView(PyObject *self, PyObject *args)
 {
 	if (pfnSHCreateShellFolderView==NULL)
@@ -2685,7 +2685,7 @@ done:
 	return ret;
 }
 
-// @pymethod <o PyIShellItemArray>|shell|SHCreateShellItemArray|
+// @pymethod <o PyIShellItemArray>|shell|SHCreateShellItemArray|Creates a Shell item array object.
 static PyObject *PySHCreateShellItemArray(PyObject *self, PyObject *args)
 {
 	// @comm This function is only available on Vista and later; a
@@ -2875,8 +2875,8 @@ static struct PyMethodDef shell_methods[]=
     { "SHCreateDataObject", PySHCreateDataObject, 1}, // @pymeth SHCreateDataObject|Creates a data object in a parent folder.
     { "SHCreateDefaultContextMenu", PySHCreateDefaultContextMenu, 1}, // @pymeth SHCreateDefaultContextMenu|
     { "SHCreateDefaultExtractIcon", PySHCreateDefaultExtractIcon, 1}, // @pymeth SHCreateDefaultExtractIcon|Creates a standard icon extractor, whose defaults can be further configured via the IDefaultExtractIconInit interface.
-    { "SHCreateShellFolderView", PySHCreateShellFolderView, 1}, // @pymeth SHCreateShellFolderView|
-    { "SHCreateShellItemArray", PySHCreateShellItemArray, 1}, // @pymeth SHCreateShellItemArray|
+    { "SHCreateShellFolderView", PySHCreateShellFolderView, 1}, // @pymeth SHCreateShellFolderView|Creates a new instance of the default Shell folder view object.
+    { "SHCreateShellItemArray", PySHCreateShellItemArray, 1}, // @pymeth SHCreateShellItemArray|Creates a Shell item array object.
     { "SHCreateShellItemArrayFromDataObject", PySHCreateShellItemArrayFromDataObject, 1}, // @pymeth SHCreateShellItemArrayFromDataObject|
     { "SHCreateShellItemArrayFromIDLists", PySHCreateShellItemArrayFromIDLists, 1}, // @pymeth SHCreateShellItemArrayFromIDLists|
     { "SHCreateShellItemArrayFromShellItem", PySHCreateShellItemArrayFromIDLists, 1}, // @pymeth SHCreateShellItemArrayFromIDLists|
