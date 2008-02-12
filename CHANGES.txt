@@ -20,6 +20,12 @@ Since build 210:
 
 * com related changes:
 
+- win32com.bits: Sidnei da Silva from Enfold Systems added support for
+  BITS (Background Intelligent Transfer Service). Not fully complete
+  (missing Ranges-related APIs and a couple others) but the basic
+  functionality is in place. See the demos in
+  win32comext/bits/test/*.py
+
 - makepy accepts a program id to process its typelib and generates long 
   integer literals for constants > sys.maxint.  The way typelibs are generated
   also changes slightly, fixing a bug with certain hex version numbers in 
@@ -53,7 +59,7 @@ Since build 210:
 - win32com.shell:
   * PyIExtractImage by Steven James.
   * PyIEmptyVolumecache, IEmptyVolumeCache2, IEmptyVolumeCacheCallBack by 
-    Sidnei da Silva from Enfold.
+    Sidnei da Silva from Enfold Systems.
   * IsUserAnAdmin
   * More coverage of the shell interfaces and demos, including many Vista 
     specific functions and interfaces (see win32comext\shell\demos)

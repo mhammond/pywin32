@@ -1426,6 +1426,7 @@ dirs = {
     'mapi' : 'com/win32comext/mapi/src',
     'authorization' : 'com/win32comext/authorization/src',
     'taskscheduler' : 'com/win32comext/taskscheduler/src',
+    'bits' : 'com/win32comext/bits/src',
 }
 
 # The COM modules.
@@ -1571,6 +1572,21 @@ com_extensions += [
                         %(taskscheduler)s/PyITask.cpp
                         %(taskscheduler)s/PyITaskScheduler.cpp
                         %(taskscheduler)s/PyITaskTrigger.cpp
+
+                        """ % dirs).split()),
+    WinExt_win32com('bits', libraries='Bits', pch_header="bits_pch.h",
+                    sources=("""
+                        %(bits)s/bits.cpp
+                        %(bits)s/PyIBackgroundCopyManager.cpp
+                        %(bits)s/PyIBackgroundCopyCallback.cpp
+                        %(bits)s/PyIBackgroundCopyError.cpp
+                        %(bits)s/PyIBackgroundCopyJob.cpp
+                        %(bits)s/PyIBackgroundCopyJob2.cpp
+                        %(bits)s/PyIBackgroundCopyJob3.cpp
+                        %(bits)s/PyIBackgroundCopyFile.cpp
+                        %(bits)s/PyIBackgroundCopyFile2.cpp
+                        %(bits)s/PyIEnumBackgroundCopyJobs.cpp
+                        %(bits)s/PyIEnumBackgroundCopyFiles.cpp
 
                         """ % dirs).split()),
     WinExt_win32com('ifilter', libraries='ntquery'),
@@ -1760,7 +1776,8 @@ packages=['win32com',
           'win32comext.taskscheduler',
           'win32comext.directsound',
           'win32comext.authorization',
-
+          'win32comext.bits',
+          
           'pythonwin.pywin',
           'pythonwin.pywin.debugger',
           'pythonwin.pywin.dialogs',
@@ -1868,6 +1885,7 @@ dist = setup(name="pywin32",
                 'com/win32comext/taskscheduler/test/*.py',
                 'com/win32comext/ifilter/demo/*.py',
                 'com/win32comext/authorization/demos/*.py',
+                'com/win32comext/bits/test/*.py',
                 'isapi/*.txt',
                 'isapi/samples/*.py',
                 'isapi/samples/*.txt',
