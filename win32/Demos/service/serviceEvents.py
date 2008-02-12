@@ -31,15 +31,15 @@ class EventDemoService(win32serviceutil.ServiceFramework):
         # docs for "HandlerEx callback" for more info.
         # XXX can't do SERVICE_CONTROL_DEVICEEVENT until we wrap RegisterDeviceNotification.
         if control == win32service.SERVICE_CONTROL_HARDWAREPROFILECHANGE:
-            msg = "A hardware profile changed: change type %d" % (event_type,)
+            msg = "A hardware profile changed: type=%s, data=%s" % (event_type, data)
         elif control == win32service.SERVICE_CONTROL_POWEREVENT:
-            msg = "A power event: setting guid=%d, raw_data=%s" % data
+            msg = "A power event: setting %s" % data
         elif control == win32service.SERVICE_CONTROL_SESSIONCHANGE:
             # data is a single elt tuple, but this could potentially grow
             # in the future if the win32 struct does
-            msg = "Session event: session ID=%d" % data[:1]
+            msg = "Session event: type=%s, data=%s" % (event_type, data)
         else:
-            msg = "Other event: code=%d, event_type=%d, data=%s" \
+            msg = "Other event: code=%d, type=%s, data=%s" \
                   % (control, event_type, data)
 
         servicemanager.LogMsg(
