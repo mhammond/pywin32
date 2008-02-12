@@ -560,6 +560,7 @@ BOOL PyWinLong_AsVoidPtr(PyObject *ob, void **pptr)
 #endif
 	*pptr=(void *)SIGNED_CONVERTER(ob);
 	if (*pptr==(void *)-1 && PyErr_Occurred()) {
+		PyErr_Clear();
 		*pptr=(void *)UNSIGNED_CONVERTER(ob);
 		if (*pptr==(void *)-1 && PyErr_Occurred()) {
 			PyErr_Format(PyExc_TypeError,"Unable to convert %s to pointer-sized value", ob->ob_type->tp_name);
