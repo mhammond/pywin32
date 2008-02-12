@@ -326,9 +326,9 @@ typedef float HDC, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL
 %apply COLORREF {long};
 typedef long COLORREF
 
-typedef long WPARAM;
-typedef long LPARAM;
-typedef long LRESULT;
+typedef HANDLE WPARAM;
+typedef HANDLE LPARAM;
+typedef HANDLE LRESULT;
 typedef int UINT;
 
 %typedef void *NULL_ONLY
@@ -665,7 +665,8 @@ BOOL PyWndProc_Call(PyObject *obFuncOrMap, HWND hWnd, UINT uMsg, WPARAM wParam, 
 		return FALSE;
 
 	// We are dispatching to Python...
-	PyObject *args = Py_BuildValue("Nlll", PyWinLong_FromHANDLE(hWnd), uMsg, wParam, lParam);
+	PyObject *args = Py_BuildValue("NlNN", PyWinLong_FromHANDLE(hWnd), uMsg, 
+		PyWinObject_FromPARAM(wParam), PyWinObject_FromPARAM(lParam));
 	if (args==NULL){
 		HandleError("Error building argument tuple for python callback");
 		return FALSE;
@@ -673,11 +674,11 @@ BOOL PyWndProc_Call(PyObject *obFuncOrMap, HWND hWnd, UINT uMsg, WPARAM wParam, 
 	PyObject *ret = PyObject_CallObject(obFunc, args);
 	Py_DECREF(args);
 	LRESULT rc = 0;
-	if (ret) {
-		if (ret != Py_None) // can remain zero for that!
-			rc = PyInt_AsLong(ret);
+	if (ret){
+		if (!PyWinObject_AsPARAM(ret, (LPARAM *)&rc))
+			HandleError("WNDPROC return value cannot be converted to LRESULT");
 		Py_DECREF(ret);
-	}
+		}
 	else
 		HandleError("Python WNDPROC handler failed");
 	*prc = rc;
@@ -1902,7 +1903,7 @@ BOOLAPI ReplyMessage(int lResult); // @pyparm int|result||Specifies the result o
 
 // @pyswig int|RegisterWindowMessage|Defines a new window message that is guaranteed to be unique throughout the system. The message value can be used when sending or posting messages.
 // @pyparm string/unicode|name||The string
-LRESULT RegisterWindowMessage(TCHAR *lpString);
+UINT RegisterWindowMessage(TCHAR *lpString);
 
 // @pyswig int|DefWindowProc|
 // @pyparm int|hwnd||The handle to the Window
@@ -3552,7 +3553,7 @@ HMENU CreatePopupMenu();
 // @pyparm hwnd|hwnd||owner window
 // @pyparm <o PyRECT>|prcRect||Pointer to rec (can be None)
 
-LRESULT TrackPopupMenu(HMENU hmenu, UINT flags, int x, int y, int reserved, HWND hwnd, const RECT *INPUT_NULLOK);
+BOOL TrackPopupMenu(HMENU hmenu, UINT flags, int x, int y, int reserved, HWND hwnd, const RECT *INPUT_NULLOK);
 
 #define	TPM_CENTERALIGN	TPM_CENTERALIGN
 #define	TPM_LEFTALIGN	TPM_LEFTALIGN
