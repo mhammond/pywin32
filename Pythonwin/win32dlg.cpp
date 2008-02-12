@@ -88,7 +88,7 @@ PyObject *ui_get_dialog_resource( PyObject *, PyObject *args )
 		RETURN_API_ERR("LoadResource");
 
 	CDialog *pDlg = new CPythonDlg();
-	PyCDialog *ret = (PyCDialog *)ui_assoc_object::make( PyCDialog::type, pDlg);
+	PyCDialog *ret = (PyCDialog *)ui_assoc_object::make( PyCDialog::type, pDlg, TRUE);
 	if (ret) {
 		ret->hTemplate = hGlob;
 		ret->hInstance = hMod;
@@ -489,7 +489,7 @@ PyObject *PyCDialog::create( PyObject *self, PyObject *args )
 	GUI_BGN_SAVE;
 	CDialog *pDlg = new CPythonDlg();
 	GUI_END_SAVE;
-	PyCDialog *ret = (PyCDialog *)ui_assoc_object::make( PyCDialog::type, pDlg);
+	PyCDialog *ret = (PyCDialog *)ui_assoc_object::make( PyCDialog::type, pDlg, TRUE);
 	if (ret) {
 		ret->hTemplate = hGlob;
 		ret->hInstance = hMod;
@@ -509,7 +509,7 @@ PyObject *PyCDialog::createIndirect( PyObject *, PyObject *args )
 	if (h == NULL)
 		return NULL;
 	CDialog *pDlg = new CPythonDlg();
-	PyCDialog *ret = (PyCDialog *)ui_assoc_object::make( PyCDialog::type, pDlg);
+	PyCDialog *ret = (PyCDialog *)ui_assoc_object::make( PyCDialog::type, pDlg, TRUE);
 	if (ret)
 	{
 		ret->hSaved = h;
@@ -794,7 +794,7 @@ PyObject *PyCFileDialog::ui_file_dialog_create( PyObject * /*self*/, PyObject *a
 	if (!pDlg)
 		RETURN_ERR("Creating CFileDialog failed"); // pyseemfc CFileCialog|CFileDialog
 	PyCFileDialog *newObj = 
-		(PyCFileDialog *)ui_assoc_object::make( PyCFileDialog::type, pDlg);
+		(PyCFileDialog *)ui_assoc_object::make( PyCFileDialog::type, pDlg, TRUE);
 //	if (newObj)
 //		newObj->bManualDelete = TRUE;
 	return newObj;
@@ -1037,7 +1037,7 @@ PyObject *PyCFontDialog::ui_font_dialog_create( PyObject * /*self*/, PyObject *a
 		RETURN_ERR("Creating CFontDialog failed"); // pyseemfc CFontDialog|CFontDialog
 	}
 	PyCFontDialog *newObj = 
-		(PyCFontDialog *)ui_assoc_object::make( PyCFontDialog::type, pDlg);
+		(PyCFontDialog *)ui_assoc_object::make( PyCFontDialog::type, pDlg, TRUE);
 	if (newObj && pFont)
 		newObj->pInitLogFont = pFont;
 	else
@@ -1216,7 +1216,7 @@ PyObject *PyCColorDialog::create( PyObject * /*self*/, PyObject *args )
 		RETURN_ERR("Creating CColorDialog failed"); // pyseemfc CColorDialog|CColorDialog
 	}
 	PyCColorDialog *newObj = 
-		(PyCColorDialog *)ui_assoc_object::make( PyCColorDialog::type, pDlg);
+		(PyCColorDialog *)ui_assoc_object::make( PyCColorDialog::type, pDlg, TRUE);
 	return newObj;
 }
 
@@ -1407,7 +1407,7 @@ PyObject *PyCPrintDialog::create( PyObject *self, PyObject *args )
 	GUI_BGN_SAVE;
 	CPrintDialog *pDlg = new CPythonPrtDlg(bPrintSetupOnly, dwFlags, pParentWnd);
 	GUI_END_SAVE;
-	PyCPrintDialog *ret = (PyCPrintDialog *)ui_assoc_object::make( PyCPrintDialog::type, pDlg);
+	PyCPrintDialog *ret = (PyCPrintDialog *)ui_assoc_object::make( PyCPrintDialog::type, pDlg, TRUE);
 	if (ret) {
 		ret->hTemplate = hGlob;
 		ret->hInstance = hMod;
