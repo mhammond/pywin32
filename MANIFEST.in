@@ -55,11 +55,15 @@ include com/win32comext/adsi/demos/*.py
 include com/win32comext/authorization/demos/*.py
 include com/win32comext/authorization/src/*.h
 include com/win32comext/axcontrol/src/*.h
+include com/win32comext/bits/src/*.h
+include com/win32comext/bits/test/*.py
 include com/win32comext/internet/src/*.h
 include com/win32comext/mapi/src/*.h
-include com/win32comext/shell/src/*.h
 include com/win32comext/mapi/demos/*.py
+include com/win32comext/propsys/test/*.py
+include com/win32comext/shell/src/*.h
 include com/win32comext/shell/demos/servers/*.py
+include com/win32comext/shell/demos/servers/*.propdesc
 include com/win32comext/shell/demos/*.py
 include com/win32comext/shell/test/*.py
 include com/win32comext/taskscheduler/src/*.h
@@ -110,6 +114,11 @@ include isapi/test/*.py
 include isapi/test/*.txt
 
 include isapi/src/*.h
+
+# adodbapi
+include adodbapi/*.txt
+include adodbapi/tests/*.py
+include adodbapi/tests/*.bat
 
 # Other tools
 include SWIG/swig.exe
