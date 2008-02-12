@@ -667,8 +667,11 @@ class my_build_ext(build_ext):
             include_dirs = self.compiler.include_dirs + \
                            os.environ.get("INCLUDE", "").split(os.pathsep)
             for d in include_dirs:
-                # new platform SDKs stick the version in sdkddkver.h
-                for header in ('WINDOWS.H', 'SDKDDKVER.H'):
+                # We look for _WIN32_WINNT instead of WINVER as the Vista
+                # SDK defines _WIN32_WINNT as WINVER and we aren't that clever
+                # * Windows Server 2003 SDK sticks this version in WinResrc.h
+                # * Vista SDKs stick the version in sdkddkver.h
+                for header in ('WINDOWS.H', 'SDKDDKVER.H', "WinResrc.h"):
                     look = os.path.join(d, header)
                     if os.path.isfile(look):
                         # read the fist 100 lines, looking for #define WINVER 0xNN
@@ -730,7 +733,7 @@ class my_build_ext(build_ext):
         # axdebug struggles under debug builds - worry about that when I care :)
         if sys.hexversion < 0x2040000 and ext.name == 'axdebug' and self.debug:
             return "axdebug doesn't build in VC6 debug builds (irony!)"
-        
+
         # We update the .libraries list with the resolved library name.
         # This is really only so "_d" works.
         ext.libraries = patched_libs
@@ -1790,6 +1793,7 @@ packages=['win32com',
           'pythonwin.pywin.scintilla',
           'pythonwin.pywin.tools',
           'isapi',
+          'adodbapi',
           ]
 
 # Python 2.2 distutils can't handle py_modules *and* packages,
@@ -1892,6 +1896,8 @@ dist = setup(name="pywin32",
                 'isapi/doc/*.html',
                 'isapi/test/*.py',
                 'isapi/test/*.txt',
+                'adodbapi/*.txt',
+                'adodbapi/tests/*.py',
                  ]) +
                 # The headers and .lib files
                 [
