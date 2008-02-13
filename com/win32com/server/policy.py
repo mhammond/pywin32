@@ -491,7 +491,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
       self._name_to_dispid_[string.lower(name)]=dispid
       if invkind == DISPATCH_METHOD:
           self._dispid_to_func_[dispid] = name
-      elif invkind == DISPATCH_PROPERTYPUT:
+      elif invkind in (DISPATCH_PROPERTYPUT, DISPATCH_PROPERTYPUTREF):
           self._dispid_to_put_[dispid] = name
       elif invkind == DISPATCH_PROPERTYGET:
           self._dispid_to_get_[dispid] = name
