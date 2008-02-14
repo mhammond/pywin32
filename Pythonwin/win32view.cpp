@@ -425,7 +425,7 @@ PyObject * PyCScrollView::create(PyObject *self, PyObject *args)
 	CPythonView *pView = new CPythonView();
 	((CProtectedView *)pView)->SetDocument(pDoc);
 	GUI_END_SAVE;
-	return ui_assoc_object::make( PyCScrollView::type, pView );
+	return ui_assoc_object::make( PyCScrollView::type, pView, TRUE );
 }
 
 // @pymethod <o PyCDC>|PyCScrollView|GetDC|Gets the view's current DC.
@@ -654,7 +654,7 @@ PyObject * PyCCtrlView::create(PyObject *self, PyObject *args)
 	pView = new CPythonCtrlView(szClass, style);
 	((CProtectedView *)pView)->SetDocument(pDoc);
 	GUI_END_SAVE;
-	return ui_assoc_object::make( PyCCtrlView::type, pView );
+	return ui_assoc_object::make( PyCCtrlView::type, pView, TRUE );
 }
 
 // @pymethod |PyCCtrlView|OnCommand|Calls the standard Python framework OnCommand handler
@@ -713,7 +713,7 @@ PyObject * PyCEditView::create(PyObject *self, PyObject *args)
 	CDocument *pDoc = PyCDocument::GetDoc( doc );
 	CPythonEditView *pView = new CPythonEditView();
 	((CProtectedView *)pView)->SetDocument(pDoc);
-	return ui_assoc_object::make( PyCEditView::type, pView );
+	return ui_assoc_object::make( PyCEditView::type, pView, TRUE );
 }
 
 
@@ -939,7 +939,7 @@ PyObject * PyCListView::create(PyObject *self, PyObject *args)
 	CListView *pView = new CPythonListView();
 	((CProtectedView *)pView)->SetDocument(pDoc);
 	GUI_END_SAVE;
-	return ui_assoc_object::make( PyCListView::type, pView );
+	return ui_assoc_object::make( PyCListView::type, pView, TRUE );
 }
 
 // @pymethod tuple|PyCListView|PreCreateWindow|Calls the underlying MFC PreCreateWindow method.
@@ -1021,7 +1021,7 @@ PyObject * PyCTreeView::create(PyObject *self, PyObject *args)
 	CTreeView *pView = new CPythonTreeView();
 	((CProtectedView *)pView)->SetDocument(pDoc);
 	GUI_END_SAVE;
-	return ui_assoc_object::make( PyCTreeView::type, pView );
+	return ui_assoc_object::make( PyCTreeView::type, pView, TRUE );
 }
 // @pymethod tuple|PyCTreeView|PreCreateWindow|Calls the underlying MFC PreCreateWindow method.
 PyObject *
@@ -1119,7 +1119,7 @@ PyObject * PyCFormView::create(PyObject *self, PyObject *args)
 		pView = new CPythonFormView(iTemplate);
 	((CProtectedView *)pView)->SetDocument(pDoc);
 	GUI_END_SAVE;
-	return ui_assoc_object::make( PyCFormView::type, pView );
+	return ui_assoc_object::make( PyCFormView::type, pView, TRUE );
 }
 
 // @pymethod |PyCFormView|OnCommand|Calls the standard Python framework OnCommand handler
