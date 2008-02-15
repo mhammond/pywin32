@@ -190,7 +190,7 @@ CProtectedWinThread *GetCProtectedWinThreadPtr(PyObject *self)
 	return (CProtectedWinThread *)ui_assoc_object::GetGoodCppObject( self, &PyCWinThread::type);
 }
 
-// @pymethod win32ui|win32ui|CreateThread|Creates a new <o PyCWinThread> object
+// @pymethod <o PyCWinThread>|win32ui|CreateThread|Creates a new <o PyCWinThread> object
 PyObject *PyCWinThread::create(PyObject *self, PyObject *args)
 {
 	CPythonWinThread *pThread;
@@ -213,7 +213,7 @@ PyObject *PyCWinThread::create(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_TypeError, "Must pass no arguments, or a function and optional arguments");
 		return NULL;
 	}
-	return ui_assoc_object::make( PyCWinThread::type, pThread );
+	return ui_assoc_object::make( PyCWinThread::type, pThread, TRUE);
 }
 
 
