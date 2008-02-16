@@ -38,6 +38,7 @@ public:
 	~CPythonWinThread() {
 		Py_XDECREF(obFunc);
 		Py_XDECREF(obArgs);
+		Python_delete_assoc(this);
 	}
 	virtual BOOL PreTranslateMessage( MSG *pMsg ) {
 		if (Win32uiPreTranslateMessage(pMsg))
