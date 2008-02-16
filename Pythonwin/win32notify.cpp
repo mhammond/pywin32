@@ -104,6 +104,11 @@ PyObject *PyNotifyMakeExtraTuple( NMHDR *ptr, char *fmt)
 			break;
 			}
 			*/
+		case 'V':{	// Pointer-sized number, also used for HANDLE's
+			ob = bIgnore ? NULL : PyWinLong_FromVoidPtr(*(void **)pUse);
+			pUse += (sizeof(void *));
+			break;
+			}
 		default:
 			ASSERT(FALSE);
 			Py_DECREF(ret);
@@ -217,8 +222,11 @@ Python_OnNotify (CWnd *pFrom, WPARAM, LPARAM lParam, LRESULT *pResult)
 	CEnterLeavePython _celp;
 	PyCCmdTarget *pPyWnd = (PyCCmdTarget *) ui_assoc_CObject::GetPyObject(pFrom);
 	NMHDR *pHdr = (NMHDR *)lParam;
-	if (pHdr==NULL) return FALSE; // bad data passed?
+
+	if (pHdr==NULL)
+		return FALSE; // bad data passed?
 	UINT code = pHdr->code;
+
 	if (pPyWnd==NULL) return FALSE; // no object.
 	if (!pPyWnd->is_uiobject (&PyCWnd::type)) return FALSE; // unexpected object type.
 	PyObject *method;
@@ -228,99 +236,137 @@ Python_OnNotify (CWnd *pFrom, WPARAM, LPARAM lParam, LRESULT *pResult)
 		return FALSE; // no hook installed.
 
 	// have method to call.  Build arguments.
-	PyObject *ob1 = Py_BuildValue("iii", pHdr->hwndFrom, pHdr->idFrom, pHdr->code);
+	PyObject *ob1 = Py_BuildValue("Nii",
+		PyWinLong_FromHANDLE(pHdr->hwndFrom),
+		pHdr->idFrom, pHdr->code);
+	if (ob1==NULL){
+		gui_print_error();
+		return FALSE;
+		}
 	char *fmt;
 	/*
-	if (code >= LVN_LAST && code <= LVN_FIRST) // These are negative, hence the reversal.
-		fmt = "iiiiiPi";						//this is a NM_LISTVIEW
-	else if (code >= TVN_LAST && code <= TVN_FIRST) // These are negative, hence the reversal.
-		fmt = "iTTP";							//this is NM_TREEVIEW
-	else if (code==TTN_NEEDTEXTA)
-		fmt = "-zs80ii";
-	else if (code==TTN_NEEDTEXTW)
-		fmt = "-ZS80ii";
-	else
-		fmt = NULL;
+	NMTOOLBAR format needs to be adjusted for 64-bit, and already doesn't work
+	for 32-bit since PyNotifyMakeExtraTuple doesn't have a case for 'b'
+	typedef struct tagNMTOOLBAR {
+	    NMHDR hdr;
+		int iItem;
+		TBBUTTON tbButton;
+		int cchText;
+		LPTSTR pszText;
+		RECT rcButton;} NMTOOLBAR
+
+	typedef struct _TBBUTTON {
+		int         iBitmap; 
+		int         idCommand; 
+		BYTE     fsState; 
+		BYTE     fsStyle; 
+		#ifdef _WIN64
+			BYTE     bReserved[6]     // padding for alignment
+		#elif defined(_WIN32)
+			BYTE     bReserved[2]     // padding for alignment
+		#endif
+		DWORD_PTR   dwData; 
+		INT_PTR          iString;} TBBUTTON
 	*/
+
+	PyObject *ob2=Py_None;	// Use None so we can catch NULL for error.
 	if (code >= UDN_LAST && code <= UDN_FIRST)
-		fmt = "ii";		//NM_UPDOWN
+		fmt = "ii";		// NMUPDOWN
 	else if (code == TBN_GETBUTTONINFOW) 
-		fmt = "iiibbiiiZ";		//TBNOTIFY
+		fmt = "iiibbiiiZ";		// NMTOOLBAR
 	else if (code == TBN_QUERYDELETE || code == TBN_QUERYINSERT || (code >= TBN_ENDDRAG && code <= TBN_FIRST ))
 		fmt = "iiibbiiiz";
 	else if (code == TBN_CUSTHELP || code == TBN_TOOLBARCHANGE || (code >= TBN_RESET && code <= TBN_BEGINADJUST))
 		fmt = NULL;		//NMHDR only
 	else if (code >= TCN_LAST && code <= TCN_SELCHANGE)
-		fmt = "i";		//HWND
+		fmt = "V";		//HWND
 	else if (code == TCN_KEYDOWN)
-		fmt = "ii";		//TC_KEYDOWN
+		fmt = "ii";		// NMTCKEYDOWN - ??? First element is a WORD, may work due to alignment ???
 	else if (code == TTN_NEEDTEXTW)
 		fmt = "-ZS80ii";	//TOOLTIPTEXT
 	else if (code == TTN_POP || code == TTN_SHOW)
 		fmt = NULL;		//NMHDR only
 	else if (code == TTN_NEEDTEXTA)
-		fmt = "-zs80ii";	//TOOLTIPTEXT
+		fmt = "-zs80Vi";	// NMTTDISPINFO - Third element is HINSTANCE
 	else if (code == TVN_ENDLABELEDITW || code == TVN_BEGINLABELEDITW || code == TVN_SETDISPINFOW
 			|| code == TVN_GETDISPINFOW || code == TVN_ENDLABELEDITA || code == TVN_BEGINLABELEDITA
 			|| code == TVN_SETDISPINFOA || code == TVN_GETDISPINFOA)
 		fmt = "T";		//TV_DISPINFO
 	else if (code == TVN_KEYDOWN)
-		fmt = "ii";		//TV_KEYDOWN
-	else if (code >= TVN_LAST && code <= TVN_FIRST)
-		fmt = "iTTP";	//NM_TREEVIEW
+		fmt = "ii";		// NMTVKEYDOWN ??? First element is a WORD ???
+	else if (code >= TVN_LAST && code <= TVN_FIRST){
+		/* NM_TREEVIEW
+			On 64-bit, struct alignment prevents the size-based unpacking in PyNotifyMakeExtraTuple
+			from correctly converting this struct.
+		*/
+		fmt=NULL;
+		NMTREEVIEW *nmtv=(NMTREEVIEW *)pHdr;
+		ob2=Py_BuildValue("INN(ll)",
+			nmtv->action,
+			MakeTV_ITEMTuple(&nmtv->itemOld),
+			MakeTV_ITEMTuple(&nmtv->itemNew),
+			nmtv->ptDrag.x, nmtv->ptDrag.y);
+		}
 	else if (code == HDN_ITEMDBLCLICKW || code == HDN_ITEMDBLCLICKA)
 		fmt = NULL;		//NMHDR only
 	else if (code >= HDN_LAST && code <= HDN_FIRST)
 		fmt = "iiH";	//HD_NOTIFY
 	else if (code == LVN_KEYDOWN)
-		fmt = "ii";		//LV_KEYDOWN
+		fmt = "ii";		// NMLVKEYDOWN ??? First element is a WORD ???
 	else if ((code >= LVN_LAST && code <= LVN_GETDISPINFOW) || code == LVN_ENDLABELEDITA || code == LVN_BEGINLABELEDITA)
-		fmt = "L";		//LV_DISPINFO
+		fmt = "L";		// NMLVDISPINFO
 	else if (code >= LVN_BEGINRDRAG && code <= LVN_FIRST)
-		fmt = "iiiiiPi";		//NM_LISTVIEW
+		fmt = "iiiiiPV";		// NMLISTVIEW - Last item is an LPARAM
 	else
 		fmt = NULL;
 	
-	PyObject *ob2;
-	if (fmt==NULL)
-		ob2 = PyWinLong_FromVoidPtr(pHdr + 1);
-	else
-		ob2 = PyNotifyMakeExtraTuple(pHdr, fmt);
-	if (ob2==NULL) {
+	if (ob2==Py_None){
+		if (fmt==NULL)
+			ob2 = PyWinLong_FromVoidPtr(pHdr + 1);
+		else
+			ob2 = PyNotifyMakeExtraTuple(pHdr, fmt);
+		}
+	if (ob2==NULL){
 		gui_print_error();
 		return FALSE;
-	}
+		}
 
 	// make the call with my params.
-	PyObject *args = Py_BuildValue("OO", ob1, ob2);
-	Py_DECREF(ob1);
-	Py_DECREF(ob2);
-	int rc = 0;
+	PyObject *args = Py_BuildValue("NN", ob1, ob2);
+	if (args==NULL){
+		gui_print_error();
+		return FALSE;
+		}
+
+	LRESULT rc = 0;
 	BOOL bPassOn = FALSE;
 	PyObject *obOther;
 	PyObject *result = Python_do_callback(method, args);
 	if (result==NULL) {
-		PyErr_SetString(ui_module_error, "Exception in OnNotify() handler");
+		PyErr_Warn(ui_module_error, "Exception in OnNotify() handler");
 		gui_print_error();
-	} else if (result==Py_None)	// allow for None "dont pass on", else result to windows
+		}
+	else if (result==Py_None)	// allow for None "dont pass on", else result to windows
 		bPassOn = TRUE;
-	else if (PyInt_Check(result)) {
-		// Simple integer return val
-		rc = PyInt_AsLong(result);
-	} else if (PyArg_ParseTuple(result, "iO", &rc, &obOther)) {
-		// parse off obOther
-		PyErr_Clear();
-		PyNotifyParseExtraTuple( pHdr, obOther, fmt);
-		if (PyErr_Occurred()) {
+	else if PyTuple_Check(result){
+		// Result should be a tuple of the LRESULT and a tuple to fill the appropriate
+		//	struct for this particular message
+		// ??? What to do if fmt is still NULL at this point ???
+		if (PyArg_ParseTuple(result, "O&O", PyWinLong_AsVoidPtr, &rc, &obOther))
+			PyNotifyParseExtraTuple( pHdr, obOther, fmt);
+		if (PyErr_Occurred()){
 			gui_print_error();
 			PyErr_SetString(ui_module_error, "Error parsing OnNotify() extra return info");
 			gui_print_error();
+			}
 		}
-	} else {
-		PyErr_SetString(ui_module_error, "Unable to parse result from OnNotify()");
+	// Otherwise result is just the LRESULT, which can be anything that fits in pointer size
+	else if (!PyWinObject_AsPARAM(result, (LPARAM *)&rc)){
+		gui_print_error();
+		PyErr_SetString(ui_module_error, "OnNotify did not return an LRESULT, or a tuple of (LRESULT, notify info tuple)");
 		gui_print_error();
 		rc = 0;
-	}
+		}
 	Py_XDECREF(result);
 	*pResult = rc;
 	return !bPassOn;
