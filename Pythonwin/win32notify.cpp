@@ -131,6 +131,11 @@ void PyNotifyParseExtraTuple( NMHDR *ptr, PyObject *args,  char *fmt)
 	char *pUse = (char *)(ptr+1);
 	BOOL bIgnore;
 	int argNum = 0;
+	if (fmt==NULL){
+		PyErr_Format(PyExc_ValueError, "Notify code %d not expected to return data", ptr->code);
+		return;
+		}
+
 	while (*fmt) {
 		PyObject *ob = PyTuple_GetItem(args, argNum);
 		if (ob==NULL) return;
@@ -351,7 +356,6 @@ Python_OnNotify (CWnd *pFrom, WPARAM, LPARAM lParam, LRESULT *pResult)
 	else if PyTuple_Check(result){
 		// Result should be a tuple of the LRESULT and a tuple to fill the appropriate
 		//	struct for this particular message
-		// ??? What to do if fmt is still NULL at this point ???
 		if (PyArg_ParseTuple(result, "O&O", PyWinLong_AsVoidPtr, &rc, &obOther))
 			PyNotifyParseExtraTuple( pHdr, obOther, fmt);
 		if (PyErr_Occurred()){
