@@ -306,7 +306,7 @@ Python_OnNotify (CWnd *pFrom, WPARAM, LPARAM lParam, LRESULT *pResult)
 		*/
 		fmt=NULL;
 		NMTREEVIEW *nmtv=(NMTREEVIEW *)pHdr;
-		ob2=Py_BuildValue("INN(ll)",
+		ob2=Py_BuildValue("iNN(ll)",
 			nmtv->action,
 			MakeTV_ITEMTuple(&nmtv->itemOld),
 			MakeTV_ITEMTuple(&nmtv->itemNew),
