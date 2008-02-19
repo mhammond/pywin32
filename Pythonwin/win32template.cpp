@@ -101,7 +101,7 @@ PyCDocTemplate::create(PyObject *self, PyObject *args)
 		return NULL;
 
 	CPythonDocTemplate *pMFCTemplate = new CPythonDocTemplate(idResource);
-	return ui_assoc_object::make(PyCDocTemplate::type, pMFCTemplate);
+	return ui_assoc_object::make(PyCDocTemplate::type, pMFCTemplate, TRUE);
 }
 
 PyObject *
@@ -177,7 +177,7 @@ PyCDocTemplate::CreateNewFrame(PyObject *self, PyObject *args)
 	GUI_BGN_SAVE;
 	CFrameWnd *pFrame = new CPythonMDIChildWnd();
 	GUI_END_SAVE;
-	return ui_assoc_object::make(PyCMDIChildWnd::type, pFrame );
+	return ui_assoc_object::make(PyCMDIChildWnd::type, pFrame, TRUE );
 }
 
 static BOOL AFXAPI PyAfxComparePath(LPCTSTR lpszPath1, LPCTSTR lpszPath2)
