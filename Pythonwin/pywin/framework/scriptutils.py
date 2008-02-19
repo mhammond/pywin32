@@ -400,10 +400,15 @@ def ImportFile():
 	win32ui.SetStatusText(string.capitalize(what)+'ing module...',1)
 	win32ui.DoWaitCursor(1)
 #	win32ui.GetMainFrame().BeginWaitCursor()
+
 	try:
 		# always do an import, as it is cheap is already loaded.  This ensures
 		# it is in our name space.
 		codeObj = compile('import '+modName,'<auto import>','exec')
+	except SyntaxError:
+		win32ui.SetStatusText('Invalid filename for import: "' +modName+'"')
+		return
+	try:
 		exec codeObj in __main__.__dict__
 		if bNeedReload:
 			reload(sys.modules[modName])
