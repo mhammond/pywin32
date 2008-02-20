@@ -498,7 +498,6 @@ class Debugger(debugger_parent):
 		SetInteractiveContext(None, None)
 
 		frame = win32ui.GetMainFrame()
-		frame.SaveBarState("ToolbarDebugging")
 		# Hide the debuger toolbars (as they wont normally form part of the main toolbar state.
 		for id, klass, float in DebuggerDialogInfos:
 			try:
@@ -509,12 +508,6 @@ class Debugger(debugger_parent):
 			except win32ui.error:
 				pass
 
-		# Restore the standard toolbar config
-		try:
-			frame.LoadBarState("ToolbarDefault")
-		except win32ui.error, msg: # When once created toolbars no longer exist.
-			pass
-#			print msg # LoadBarState failed (with win32 exception!)
 		self._UnshowCurrentLine()
 		self.set_quit()
 		return 1
@@ -784,11 +777,6 @@ class Debugger(debugger_parent):
 		for id, klass, float in DebuggerDialogInfos:
 			w = frame.GetControlBar(id).dialog
 			w.Init(self)
-
-		try:
-			frame.LoadBarState("ToolbarDebugging")
-		except win32ui.error, details:
-			print "LoadBarState failed - %s" % details
 
 		# ALWAYS show debugging toolbar, regardless of saved state
 		tb = frame.GetControlBar(win32ui.ID_VIEW_TOOLBAR_DBG)

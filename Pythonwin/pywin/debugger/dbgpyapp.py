@@ -45,15 +45,3 @@ class DebuggerPythonApp(intpyapp.InteractivePythonApp):
 
 #		win32ui.CreateDebuggerThread()
 		win32ui.EnableControlContainer()
-
-		# Load the ToolBar state near the end of the init process, as
-		# there may be Toolbar IDs created by the user or other modules.
-		# By now all these modules should be loaded, so all the toolbar IDs loaded.
-		try:
-			self.frame.LoadBarState("ToolbarDefault")
-		except win32ui.error:
-			# MFC sucks.  It does essentially "GetDlgItem(x)->Something", so if the
-			# toolbar with ID x does not exist, MFC crashes!  Pythonwin has a trap for this
-			# but I need to investigate more how to prevent it (AFAIK, ensuring all the
-			# toolbars are created by now _should_ stop it!)
-			pass
