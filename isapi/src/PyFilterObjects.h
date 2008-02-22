@@ -63,6 +63,7 @@ public:
 	// class methods
 	static PyObject * GetData(PyObject *self, PyObject *args); 
 	static PyObject * WriteClient(PyObject *self, PyObject *args); 
+	static PyObject * AddResponseHeaders(PyObject *self, PyObject *args); 
 	static PyObject * GetServerVariable(PyObject *self, PyObject *args);
 	// ServerSupportFunction implemented functions.
 	static PyObject * SendResponseHeader(PyObject *self, PyObject *args);

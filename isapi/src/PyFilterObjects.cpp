@@ -211,6 +211,31 @@ PyObject * PyHFC::WriteClient(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod |HTTP_FILTER_CONTEXT|AddResponseHeaders|
+PyObject * PyHFC::AddResponseHeaders(PyObject *self, PyObject *args)
+{
+	BOOL bRes = FALSE;
+	char * buffer = NULL;
+	int reserved = 0;
+
+	PyHFC * phfc = (PyHFC *) self;
+	// @pyparm string|data||
+	// @pyparm int|reserverd|0|
+	if (!PyArg_ParseTuple(args, "s|l:WriteClient", &buffer, &reserved))
+		return NULL;
+
+	if (phfc->m_pfc){
+		Py_BEGIN_ALLOW_THREADS
+		bRes = phfc->m_pfc->AddResponseHeaders(buffer, reserved);
+		Py_END_ALLOW_THREADS
+		if (!bRes)
+			return SetPyHFCError("AddResponseHeaders");
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 // @pymethod string|HTTP_FILTER_CONTEXT|GetServerVariable|
 PyObject * PyHFC::GetServerVariable(PyObject *self, PyObject *args)
 {
@@ -325,6 +350,7 @@ static struct PyMethodDef PyHFC_methods[] = {
 	{"GetData",                 PyHFC::GetData, 1},	 // @pymeth GetData|
 	{"GetServerVariable",       PyHFC::GetServerVariable, 1}, // @pymeth GetServerVariable|
 	{"WriteClient",             PyHFC::WriteClient, 1},  // @pymeth WriteClient|
+	{"AddResponseHeaders",      PyHFC::AddResponseHeaders, 1}, // @pymeth AddResponseHeaders|Specifies a response header for IIS to send to the client.
 	{"write",				    PyHFC::WriteClient, 1},			 // @pymeth write|A synonym for WriteClient, this allows you to 'print >> fc'
 	{"SendResponseHeader",      PyHFC::SendResponseHeader, 1}, // @pymeth SendResponseHeader|
 	{"DisableNotifications",    PyHFC::DisableNotifications, 1}, // @pymeth DisableNotifications|

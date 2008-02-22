@@ -43,6 +43,12 @@ public:
 		return dwBufLen;
 	}
 
+	BOOL AddResponseHeaders(LPSTR headers, const int reserved=0)
+	{
+		return m_pHFC->AddResponseHeaders(m_pHFC, headers, reserved);
+	}
+
+
 	bool GetServerVariable(LPCTSTR varName, LPSTR lpBuff, DWORD *pBuffSize)
 	{
 		BOOL bOK = m_pHFC->GetServerVariable(m_pHFC,(LPSTR) varName,lpBuff,pBuffSize);
