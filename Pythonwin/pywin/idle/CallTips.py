@@ -143,11 +143,18 @@ def get_arg_text(ob):
             except:
                 pass
         # See if we can use the docstring
-        if hasattr(ob, "__doc__") and ob.__doc__:
-            pos = string.find(ob.__doc__, "\n")
-            if pos<0 or pos>70: pos=70
-            if argText: argText = argText + "\n"
-            argText = argText + ob.__doc__[:pos]
+        if hasattr(ob, "__doc__"):
+            doc=ob.__doc__
+            try:
+                pos = doc.find("\n")
+            except AttributeError:
+                ## New style classes may have __doc__ slot without actually
+                ## having a string assigned to it
+                pass
+            else:
+                if pos<0 or pos>70: pos=70
+                if argText: argText = argText + "\n"
+                argText = argText + doc[:pos]
 
     return argText
 
