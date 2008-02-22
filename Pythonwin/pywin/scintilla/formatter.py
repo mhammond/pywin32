@@ -78,7 +78,7 @@ class FormatterBase:
 		if bg != -1:
 			self.default_background = bg
 		if self.default_background is None:
-			self.default_background = win32api.RGB( 0xff, 0xff, 0xff )
+			self.default_background = win32api.GetSysColor(win32con.COLOR_WINDOW)
 
 	def GetDefaultBackground( self ):
 		return self.default_background
