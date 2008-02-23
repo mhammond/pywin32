@@ -356,7 +356,7 @@ class CScintillaEditInterface(ScintillaControlInterface):
 		
 	def ReplaceSel(self, str):
 		buff = array.array('c', str + "\0")
-		self.SendScintilla(win32con.EM_REPLACESEL, 0, buff.buffer_info()[0]);
+		self.SendScintilla(SCI_REPLACESEL, 0, buff.buffer_info()[0]);
 		buff = None
 	
 	def GetLine(self, line=-1):
