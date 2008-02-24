@@ -187,13 +187,11 @@ void PyCCmdTarget::DoKillAssoc( BOOL bDestructing /*= FALSE*/ )
 CString PyCCmdTarget::repr()
 {
 	CString csRet;
-	char *buf = csRet.GetBuffer(64);
 	SSIZE_T numCmd = pCommandHookList ? pCommandHookList->GetCount() : 0;
 	SSIZE_T numNotify = pNotifyHookList ? pNotifyHookList->GetCount() : 0;
 	SSIZE_T numCmdUpdate = pCommandUpdateHookList ? pCommandUpdateHookList->GetCount() : 0;
 	SSIZE_T numOle = pOleEventHookList ? pOleEventHookList->GetCount() : 0;
-	sprintf(buf, ", notify=%I,ch/u=%I/%I", numNotify, numCmd, numCmdUpdate);
-	csRet.ReleaseBuffer();
+	csRet.Format(", notify=%Iu,ch/u=%Iu/%Iu", numNotify, numCmd, numCmdUpdate);
 	return ui_assoc_object::repr() + csRet;
 }
 /////////////////////////////////////////////////////////////////////

@@ -294,10 +294,9 @@ PyObject *ui_assoc_object::GetGoodRet()
 CString ui_assoc_object::repr()
 {
 	CString csRet;
-	char *buf = csRet.GetBuffer(128);
 	PyObject *vi_repr = virtualInst ? PyObject_Repr(virtualInst) : NULL;
-	sprintf(buf, " - assoc is %p, vi=%s", assoc, vi_repr ? PyString_AsString(vi_repr) : "<None>" );
-	csRet.ReleaseBuffer();
+	// sprintf(buf, " - assoc is %p, vi=%s", assoc, vi_repr ? PyString_AsString(vi_repr) : "<None>" );
+	csRet.Format(" - assoc is %p, vi=%s", assoc, vi_repr ? PyString_AsString(vi_repr) : "<None>" );
 	Py_XDECREF(vi_repr);
 	return ui_base_class::repr() + csRet;
 }

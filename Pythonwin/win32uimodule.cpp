@@ -310,14 +310,12 @@ ui_base_class::sui_repr( PyObject *op )
 {
 	ui_base_class* w = (ui_base_class *)op;
 	CString ret = w->repr();
-	return Py_BuildValue("s",(const char *)ret);
+	return PyString_FromString(ret);
 }
 CString ui_base_class::repr()
 {
 	CString csRet;
-	char *buf = csRet.GetBuffer(50);
-	sprintf(buf, "object '%s'", ob_type->tp_name);
-	csRet.ReleaseBuffer();
+	csRet.Format("object '%s'", ob_type->tp_name);
 	return csRet;
 }
 void ui_base_class::cleanup()
