@@ -3252,13 +3252,12 @@ static struct PyMethodDef PyCWnd_methods[] = {
 CString PyCWnd::repr()
 {
 	CString csRet;
-	char *buf = csRet.GetBuffer(40);
+	CString base_repr = PyCCmdTarget::repr();
 	UINT_PTR numMsg = pMessageHookList ? pMessageHookList->GetCount() : 0;
 	UINT_PTR numKey = pKeyHookList ? pKeyHookList->GetCount() : 0;
 	char *hookStr = obKeyStrokeHandler ? " (AllKeys Hook Active)" : "";
-	sprintf(buf, ", mh=%I, kh=%I%s", numMsg, numKey, hookStr);
-	csRet.ReleaseBuffer(-1);
-	return PyCCmdTarget::repr() + csRet;
+	csRet.Format("%s, mh=%Iu, kh=%Iu%s", (const char *)base_repr, numMsg, numKey, hookStr);
+	return csRet;
 }
 
 ui_type_CObject PyCWnd::type("PyCWnd", 
