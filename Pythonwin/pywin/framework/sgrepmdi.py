@@ -389,7 +389,7 @@ class GrepView(docview.RichEditView):
 		dlg.SetOFNTitle("Save Results As")
 		if dlg.DoModal() == win32con.IDOK:
 			pn = dlg.GetPathName()
-			self._obj_.SaveFile(pn)
+			self._obj_.SaveTextFile(pn)
 		return 0
 		
 	def Append(self, strng):
