@@ -59,8 +59,18 @@ class EditorFrame(pywin.framework.window.MDIChildWnd):
     def GetBrowserView(self):
         # XXX - should fix this :-)
         return self.GetActiveDocument().GetAllViews()[1]
+
     def OnClose(self):
+        doc=self.GetActiveDocument()
+        if not doc.SaveModified():              
+            ## Cancel button selected from Save dialog, do not actually close
+            ## print 'close cancelled'
+            return 0
+        ## So the 'Save' dialog doesn't come up twice
+        doc._obj_.SetModifiedFlag(False)
+
         # Must force the module browser to close itself here (OnDestroy for the view itself is too late!)
         self.sub_splitter = None # ensure no circles!
         self.GetBrowserView().DestroyBrowser()
         return self._obj_.OnClose()
+    
