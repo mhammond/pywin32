@@ -188,21 +188,14 @@ class FormatterBase:
 		for style in self.styles.values():
 			if style.aliased is None:
 				self.SavePreference(style.name, str(style.format))
-				if style.background is not None:
-					bg_name = style.name + " background"
-					self.SavePreference(bg_name, style.background) # May be None
+				bg_name = style.name + " background"
+				self.SavePreference(bg_name, style.background) # May be None
 					
 	def SavePreference(self, name, value):
+		## LoadPreference uses -1 to indicate default
 		if value is None:
-			hkey = win32ui.GetAppRegistryKey()
-			try:
-				subkey = win32api.RegOpenKey(hkey, "Format", 0, win32con.KEY_SET_VALUE)
-			except win32api.error, (rc, fn, msg):
-				if rc != winerror.ERROR_FILE_NOT_FOUND:
-					raise
-			subkey.Close()
-		else:
-			win32ui.WriteProfileVal("Format", name, value)
+			value=-1
+		win32ui.WriteProfileVal("Format", name, value)
 
 # An abstract formatter
 # For all formatters we actually implement here.
