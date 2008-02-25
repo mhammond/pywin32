@@ -94,7 +94,9 @@ class EditorPropertyPage(dialog.PropertyPage):
 		self.GetDlgItem(win32ui.IDC_RADIO2).SetCheck(not butMarginEnabled)
 
 		self.edgeColor = self.initialEdgeColor = GetEditorOption("Right Edge Color", win32api.RGB(0xef, 0xef, 0xef))
-
+		for spinner_id in (win32ui.IDC_SPIN1, win32ui.IDC_SPIN2, win32ui.IDC_SPIN3):
+			spinner=self.GetDlgItem(spinner_id)
+			spinner.SetRange(0,100)
 		self.UpdateUIForState()
 
 		return rc
