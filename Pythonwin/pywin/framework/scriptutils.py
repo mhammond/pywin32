@@ -133,15 +133,15 @@ def GetActiveEditControl():
 		pass
 
 def GetActiveEditorDocument():
-	"""Returns the active editor document, or None if no
+	"""Returns the active editor document and view, or (None,None) if no
 	active document or its not an editor document.
 	"""
 	view = GetActiveView()
-	if view is None: return None
+	if view is None: return (None, None)
 	doc = view.GetDocument()
 	if hasattr(doc, "MarkerAdd"): # Is it an Editor document?
-		return doc
-	return None
+		return doc, view
+	return (None, None)
 
 def GetActiveFileName(bAutoSave = 1):
 	"""Gets the file name for the active frame, saving it if necessary.

@@ -5,7 +5,8 @@
 # imported
 import win32ui, win32con
 import scriptutils
-
+import warnings
+			
 IdToBarNames = {
 	win32ui.IDC_DBG_STACK : ("Stack",0),
 	win32ui.IDC_DBG_BREAKPOINTS : ("Breakpoints",0),
@@ -88,11 +89,17 @@ class DebuggerCommandHandler:
 			cmdui.Enable(0)
 
 	def OnAdd(self, msg, code):
-		doc = scriptutils.GetActiveEditorDocument()
+		doc, view = scriptutils.GetActiveEditorDocument()
 		if doc is None:
-			win32ui.MessageBox('There is no active window - no breakpoint can be added')
+			## Don't do a messagebox, as this could be triggered from the app's
+			## idle loop whenever the debug toolbar is visible, giving a never-ending
+			## series of dialogs.  This can happen when the OnUpdate handler
+			## for the toolbar button IDC_DBG_ADD fails, since MFC falls back to
+			## sending a normal command if the UI update command fails.
+			## win32ui.MessageBox('There is no active window - no breakpoint can be added')
+			warnings.warn('There is no active window - no breakpoint can be added')
+			return None
 		pathName = doc.GetPathName()
-		view = doc.GetFirstView()
 		lineNo = view.LineFromChar(view.GetSel()[0])+1
 		# If I have a debugger, then tell it, otherwise just add a marker
 		d=self._GetDebugger()
@@ -129,12 +136,11 @@ class DebuggerCommandHandler:
 		cmdui.Enable(ok)
 
 	def OnUpdateAddBreakpoints(self, cmdui):
-		doc = scriptutils.GetActiveEditorDocument()
+		doc, view = scriptutils.GetActiveEditorDocument()
 		if doc is None:
 			enabled = 0
 		else:
 			enabled = 1
-			view = doc.GetFirstView()
 			lineNo = view.LineFromChar(view.GetSel()[0])+1
 			import pywin.framework.editor.color.coloreditor
 			cmdui.SetCheck(doc.MarkerAtLine(lineNo, pywin.framework.editor.color.coloreditor.MARKER_BREAKPOINT) != 0)
