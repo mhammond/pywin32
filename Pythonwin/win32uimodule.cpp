@@ -2091,7 +2091,8 @@ int AddConstants(PyObject *dict)
 
 	ADD_CONSTANT(IDC_SPIN1); // @const win32ui|IDC_SPIN1|
 	ADD_CONSTANT(IDC_SPIN2); // @const win32ui|IDC_SPIN2|
-	
+	ADD_CONSTANT(IDC_SPIN3); // @const win32ui|IDC_SPIN3|
+
 	ADD_CONSTANT(IDC_TAB_SIZE);// @const win32ui|IDC_TAB_SIZE|
 	ADD_CONSTANT(IDC_USE_TABS);// @const win32ui|IDC_USE_TABS|
 	ADD_CONSTANT(IDC_USE_SMART_TABS);// @const win32ui|IDC_USE_SMART_TABS|
