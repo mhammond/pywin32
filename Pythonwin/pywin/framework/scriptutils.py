@@ -8,6 +8,7 @@ import win32api
 import win32con
 import __main__
 from pywin.mfc import dialog
+from pywin.mfc.docview import TreeView
 import os
 import string
 import traceback
@@ -137,7 +138,8 @@ def GetActiveEditorDocument():
 	active document or its not an editor document.
 	"""
 	view = GetActiveView()
-	if view is None: return (None, None)
+	if view is None or isinstance(view, TreeView):
+		return (None, None)
 	doc = view.GetDocument()
 	if hasattr(doc, "MarkerAdd"): # Is it an Editor document?
 		return doc, view
