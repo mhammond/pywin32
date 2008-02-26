@@ -267,6 +267,9 @@ TypeMap = { ClassType : HLIClass,
             FrameType : HLIFrame,
             TracebackType : HLITraceback,
             StringType : HLIString,
+            IntType: HLIPythonObject,
+            LongType: HLIPythonObject,
+            FloatType: HLIPythonObject,
            }
 try:
     TypeMap[UnicodeType] = HLIString
