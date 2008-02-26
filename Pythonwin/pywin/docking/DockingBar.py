@@ -51,6 +51,7 @@ class DockingBar(window.Wnd):
 		self.cCaptionSize = win32api.GetSystemMetrics(win32con.SM_CYSMCAPTION)
 		self.cMinWidth = win32api.GetSystemMetrics(win32con.SM_CXMIN)
 		self.cMinHeight = win32api.GetSystemMetrics(win32con.SM_CYMIN)
+		self.rectUndock = (0,0,0,0)
 
 	def OnUpdateCmdUI(self, target, bDisableIfNoHndler):
 		return self.UpdateDialogControls(target, bDisableIfNoHndler)
