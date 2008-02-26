@@ -526,7 +526,7 @@ def test():
 	global bar
 	bar = DockingBar()
 	creator = EditCreator
-	bar.CreateWindow(win32ui.GetMainFrame(), creator, "Coolbar Demo")
+	bar.CreateWindow(win32ui.GetMainFrame(), creator, "Coolbar Demo",0xfffff)
 #	win32ui.GetMainFrame().ShowControlBar(bar, 1, 0)
 	bar.SetBarStyle( bar.GetBarStyle()|afxres.CBRS_TOOLTIPS|afxres.CBRS_FLYBY|afxres.CBRS_SIZE_DYNAMIC)
 	bar.EnableDocking(afxres.CBRS_ALIGN_ANY)
