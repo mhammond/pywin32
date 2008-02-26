@@ -2158,13 +2158,20 @@ ui_window_set_window_pos(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args,"O(iiii)i:SetWindowPos",
 		        &obAfter, &x, &y, &cx, &cy, &flags ))
 		return NULL;
+	// It appears we took the easy way above, and assume a handle rather
+	// than either int or PyWnd object.  So we jump hoops to convert back
+	// to a CWnd, so we can call CWnd::SetWindowPos rather than
+	// ::SetWindowPos
 	HWND insertAfter;
 	if (!PyWinObject_AsHANDLE(obAfter, (HANDLE *)&insertAfter))
 		return NULL;
+	CWnd wndInsertAfter;
+	wndInsertAfter.Attach(insertAfter);
 	GUI_BGN_SAVE;
 	// @pyseemfc CWnd|SetWindowPos
-	BOOL ok = ::SetWindowPos( pWnd->GetSafeHwnd(), insertAfter, x, y, cx, cy, flags);
+	BOOL ok = pWnd->SetWindowPos( &wndInsertAfter, x, y, cx, cy, flags);
 	GUI_END_SAVE;
+	wndInsertAfter.Detach();
 	if (!ok)
 		RETURN_ERR("SetWindowPos failed");
 	RETURN_NONE;
