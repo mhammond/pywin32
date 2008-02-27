@@ -1513,7 +1513,7 @@ static PyObject * PyGetLogicalDriveStrings (PyObject * self, PyObject *args)
 	}
 	// @rdesc The return value is a single string, with each drive
 	// letter NULL terminated.
-	// <nl>Use "string.splitfields (s, '\\000')" to split into components.
+	// <nl>Use "s.split('\0')" to split into components.
 }
 
 // @pymethod string|win32api|GetModuleFileName|Retrieves the filename of the specified module.
