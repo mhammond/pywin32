@@ -348,7 +348,7 @@ Python_OnNotify (CWnd *pFrom, WPARAM, LPARAM lParam, LRESULT *pResult)
 	PyObject *obOther;
 	PyObject *result = Python_do_callback(method, args);
 	if (result==NULL) {
-		PyErr_Warn(ui_module_error, "Exception in OnNotify() handler");
+		PyErr_Warn(PyExc_Warning, "Exception in OnNotify() handler");
 		gui_print_error();
 		}
 	else if (result==Py_None)	// allow for None "dont pass on", else result to windows
