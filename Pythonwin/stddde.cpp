@@ -956,6 +956,7 @@ void CALLBACK _target_proc(int BARF) {
 //
 // Gaah - it took me two days to realize that I need "offset" here
 //
+#ifdef _CALLHACK_
 __declspec ( naked ) void _template() {
 	__asm {
 		pop eax  // save the return addr
@@ -1025,7 +1026,7 @@ BOOL make_template(CBTEMPLATE *code, DWORD param, void *target) {
 // END of crude hack.
 //
 //////////////////////////////////////////////////////////////////////
-
+#endif // _CALLHACK_
 
 BOOL CDDEServer::Create(const char* pszServiceName,
                         DWORD dwFilterFlags/* = 0 */,
