@@ -89,6 +89,11 @@ def __import_pywin32_system_module__(modname, globs):
             if os.path.isfile(os.path.join(sys.prefix, filename)):
                 found = os.path.join(sys.prefix, filename)
         if found is None:
+            # Not in the Python directory?  Maybe we were installed via
+            # easy_install...
+            if os.path.isfile(os.path.join(os.path.dirname(__file__), filename)):
+                found = os.path.join(os.path.dirname(__file__), filename)
+        if found is None:
             # give up in disgust.
             raise ImportError, \
                   "No system module '%s' (%s)" % (modname, filename)
