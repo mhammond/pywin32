@@ -356,7 +356,7 @@ HRESULT CPyCOMTest::Fire(long nID)
 			CComQIPtr<IDispatch> pEvent = *pp;
 			DISPID dispid;
 			OLECHAR *names[] = { L"OnFire" };
-			HRESULT hr = pEvent->GetIDsOfNames(IID_NULL, names, 1, 0, &dispid);
+			hr = pEvent->GetIDsOfNames(IID_NULL, names, 1, 0, &dispid);
 			if (SUCCEEDED(hr)) {
 				CComVariant v(nID);
 				DISPPARAMS params = { &v, NULL, 1, 0 };
