@@ -394,8 +394,8 @@ AFX_DATADEF const AFX_MSGMAP CPythonWndFramework<T>::messageMap =
 	{ &CPythonWndFramework<T>::_GetBaseMessageMap, &CPythonWndFramework<T>::_messageEntries[0] 
 };
 
-// ack - compile error in MFC9, and only for ON_WM_NCHITTEST!
-#if _MFC_VER >= 0x0900
+// ack - compile error in MFC9 (and not x64), and only for ON_WM_NCHITTEST!
+#if _MFC_VER >= 0x0900 && !defined( _WIN64)
 #undef ON_WM_NCHITTEST
 // from afxmsg_.h - the UINT was originally LRESULT
 #define ON_WM_NCHITTEST() \
