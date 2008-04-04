@@ -43,7 +43,7 @@ CXXNDEBUG=-O1 -MT -DNDEBUG
 NAME=-Fo
 # If you have problems with lexers being linked, try removing -OPT:REF and replacing with -OPT:NOREF
 LDFLAGS=-OPT:NOWIN98 -OPT:REF
-LDDEBUG=
+LDDEBUG= /DEBUG
 LIBS=KERNEL32.lib USER32.lib GDI32.lib IMM32.lib OLE32.LIB
 NOLOGO=-nologo
 
