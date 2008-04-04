@@ -53,11 +53,6 @@ formatInput =  (-402653169, 0, 200, 0, 0, 0, 49, 'Courier New')
 formatOutput =  (-402653169, 0, 200, 0, 8421376, 0, 49, 'Courier New')
 formatOutputError = (-402653169, 0, 200, 0, 255, 0, 49, 'Courier New')
 
-# couple of exceptions defined for this module
-excNoValidCommand = 'No Valid Command'
-excEmptyCommand = 'Empty Command'
-excContinueCommand = 'Continue Command'
-
 try:
 	sys.ps1
 except AttributeError:
