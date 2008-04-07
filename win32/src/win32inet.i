@@ -393,7 +393,7 @@ PyObject *PyInternetGetCookie(PyObject *self, PyObject *args)
     if (!ok)
         PyWin_SetAPIError("InternetGetCookie");
     else
-		ret=PyWinObject_FromTCHAR(buf, cb);
+		ret=PyWinObject_FromTCHAR(buf, cb-1);
 done:
 	if (buf) free(buf);
     if (szUrl) PyWinObject_FreeTCHAR(szUrl);
