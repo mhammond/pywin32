@@ -1747,6 +1747,7 @@ PyObject *PyCommitUrlCacheEntry(PyObject *self, PyObject *args, PyObject *kwargs
 	PyWinObject_FreeTCHAR(UrlName);
 	PyWinObject_FreeTCHAR(LocalFileName);
 	PyWinObject_FreeTCHAR(OriginalUrl);
+	PyWinObject_FreeTCHAR((TCHAR *)HeaderInfo);
 	return ret;
 };
 
