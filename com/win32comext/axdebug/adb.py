@@ -237,7 +237,7 @@ class Adb(bdb.Bdb,gateways.RemoteDebugApplicationEvents):
             tracev("resume action is stop out")
             self.set_return(frame)
         else:
-            assert(0, "unknown resume action flags")
+            raise ValueError("unknown resume action flags")
         self.breakReason = None
 
     def set_trace(self):
