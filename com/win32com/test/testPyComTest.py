@@ -11,7 +11,7 @@ from util import RegisterPythonServer
 
 importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 
-error = "testPyCOMTest error"
+error = Exception
 
 # This test uses a Python implemented COM server - ensure correctly registered.
 RegisterPythonServer(os.path.join(os.path.dirname(__file__), '..', "servers", "test_pycomtest.py"))
@@ -149,6 +149,11 @@ def TestDynamic():
     o.CurrencyProp = decimal.Decimal("1234.5678")
     if o.CurrencyProp != decimal.Decimal("1234.5678"):
         raise error, "got %r" % (o.CurrencyProp,)
+    v1 = decimal.Decimal("1234.5678")
+    # can't do "DoubleCurrencyByVal" in dynamic files.
+    TestApplyResult(o.DoubleCurrency, (v1,), v1*2)
+    v2 = decimal.Decimal("9012.3456")
+    TestApplyResult(o.AddCurrencies, (v1, v2), v1+v2)
 
     # damn - props with params don't work for dynamic objects :(
     # o.SetParamProp(0, 1)
@@ -311,6 +316,11 @@ def TestGenerated():
         o.CurrencyProp = decimal.Decimal(val)
         if o.CurrencyProp != decimal.Decimal(val):
             raise error, "%s got %r" % (val, o.CurrencyProp)
+    v1 = decimal.Decimal("1234.5678")
+    TestApplyResult(o.DoubleCurrency, (v1,), v1*2)
+    TestApplyResult(o.DoubleCurrencyByVal, (v1,), v1*2)
+    v2 = decimal.Decimal("9012.3456")
+    TestApplyResult(o.AddCurrencies, (v1, v2), v1+v2)
 
     o.SetParamProp(0, 1)
     if o.ParamProp(0) != 1:

@@ -709,6 +709,7 @@ public:
 		SAFEARRAY *m_arrayBuf;
 		VARIANT *m_varBuf;
 		DATE m_dateBuf;
+		CY m_cyBuf;
 	};
 };
 

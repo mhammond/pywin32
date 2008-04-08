@@ -741,6 +741,24 @@ exit:
 }
 
 
+HRESULT CPyCOMTest::DoubleCurrencyByVal(CY *v)
+{
+	v->int64 *= 2;
+	return S_OK;
+}
+
+HRESULT CPyCOMTest::DoubleCurrency(CY v, CY *ret)
+{
+	ret->int64 = v.int64 * 2;
+	return S_OK;
+}
+
+HRESULT CPyCOMTest::AddCurrencies(CY v1, CY v2, CY *pret)
+{
+	pret->int64 = v1.int64 + v2.int64;
+	return S_OK;
+}
+
 HRESULT CPyCOMTest::NotScriptable(int *val)
 {
 	(*val) ++;

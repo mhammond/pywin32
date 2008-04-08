@@ -81,6 +81,9 @@ END_COM_MAP()
 
 	STDMETHOD(SetVarArgs)(SAFEARRAY *);
 	STDMETHOD(GetLastVarArgs)(SAFEARRAY **);
+	STDMETHOD(DoubleCurrency)(CY, CY *);
+	STDMETHOD(DoubleCurrencyByVal)(CY *);
+	STDMETHOD(AddCurrencies)(CY v1, CY v2, CY *);
 
 	// method to broadcast a call on the current connections
 	STDMETHOD(Fire)(long  nID);

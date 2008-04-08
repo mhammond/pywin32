@@ -1328,11 +1328,23 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 	case VT_RECORD:
 		rc = PyObject_AsVARIANTRecordInfo(obj, var);
 		break;
+	case VT_CY:
+		rc = PyObject_AsCurrency(obj, &V_CY(var));
+		break;
+	case VT_CY | VT_BYREF:
+		if (bCreateBuffers)
+			V_CYREF(var) = &m_cyBuf;
+		if (!VALID_BYREF_MISSING(obj)) {
+			if (!PyObject_AsCurrency(obj, V_CYREF(var)))
+				BREAK_FALSE;
+		} else
+			V_CYREF(var)->int64 = 0;
+		break;
 	default:
 		// could try default, but this error indicates we need to
 		// beef up the VARIANT support, rather than default.
 		TCHAR buf[200];
-		wsprintf(buf, _T("The VARIANT type is unknown (%08lx)"), m_reqdType);
+		wsprintf(buf, _T("The VARIANT type is unknown (0x%08lx)"), m_reqdType);
 		OleSetTypeErrorT(buf);
 		rc = FALSE;
 		break;

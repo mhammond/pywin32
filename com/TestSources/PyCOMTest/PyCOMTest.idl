@@ -238,6 +238,13 @@ library PyCOMTestLib
 						[out, retval] Date* pResult);
 
 		HRESULT TestQueryInterface();
+		HRESULT AddCurrencies(
+						[in] CY v1,
+						[in] CY v2,
+						[out, retval] CY* pResult);
+		HRESULT DoubleCurrency([in] CY v,
+		                       [out, retval] CY *ret );
+		HRESULT DoubleCurrencyByVal([in, out] CY *v);
 		// Some test properties
 		[propget] HRESULT LongProp([out, retval] long* retval);
 		[propput] HRESULT LongProp([in] long val);
