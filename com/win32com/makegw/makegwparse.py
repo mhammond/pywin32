@@ -11,12 +11,17 @@
  See the @win32com.makegw@ module for information in building a COM
  interface
 """
-import regex
+import re
 import traceback
 import string
 
-error_not_found = "The requested item could not be found"
-error_not_supported = "The required functionality is not supported"
+class error_not_found(Exception):
+	def __init__(self, msg="The requested item could not be found"):
+		super(error_not_found, self).__init__(msg)
+
+class error_not_supported(Exception):
+	def __init__(self, msg="The required functionality is not supported"):
+		super(error_not_supported, self).__init__(msg)
 
 VERBOSE=0
 DEBUG=0
@@ -474,7 +479,7 @@ ConvertSimpleTypes = {"BOOL":("BOOL", "int", "i"),
 					  "QUERYOPTION": ("int", "int", "i"),
 					  "PARSEACTION": ("int", "int", "i"),
 }
-	
+
 class ArgFormatterSimple(ArgFormatter):
 	"""An arg formatter for simple integer etc types"""
 	def GetFormatChar(self):
@@ -555,7 +560,7 @@ def make_arg_converter(arg):
 
 		raise error_not_supported, "The type '%s' (%s) is unknown." % (arg.type, arg.name)
 
-		
+
 #############################################################
 #
 # The instances that represent the args, methods and interface
@@ -568,7 +573,7 @@ class Argument:
 	"""
 #									  in,out					  type			  name			 [	]
 #								   --------------				--------	  ------------		------
-	regex = regex.compile('/\\* \\[\\([^\\]]*.*\\)] \\*/[ \t]\\(.*[\\* ]\\)\\([a-zA-Z0-9]+\\)\\(\\[ *]\\)?[),]')
+	regex = re.compile(r'/\* \[([^\]]*.*?)] \*/[ \t](.*[* ]+)(\w+)(\[ *])?[\),]')
 	def __init__(self, good_interface_names):
 		self.good_interface_names = good_interface_names
 		self.inout = self.name = self.type = None
@@ -582,27 +587,29 @@ class Argument:
 		is raised.
 		"""
 		line = file.readline()
-		if self.regex.search(line)<0:
+		mo = self.regex.search(line)
+		if not mo:
 			raise error_not_found
-		self.name = self.regex.group(3)
-		self.inout = string.split(self.regex.group(1),'][')
-		typ = string.strip(self.regex.group(2))
+		self.name = mo.group(3)
+		self.inout = mo.group(1).split('][')
+		typ = mo.group(2).strip()
 		self.raw_type = typ
 		self.indirectionLevel = 0
-		if self.regex.group(4): # Has "[ ]" decl
+		if mo.group(4): # Has "[ ]" decl
 			self.arrayDecl = 1
 			try:
-				pos = string.rindex(typ, "__RPC_FAR")
+				pos = typ.rindex("__RPC_FAR")
 				self.indirectionLevel = self.indirectionLevel + 1
-				typ = string.strip(typ[:pos])
+				typ = typ[:pos].strip()
 			except ValueError:
 				pass
-		
+
+		typ = typ.replace("__RPC_FAR", "")
 		while 1:
 			try:
-				pos = string.rindex(typ, "__RPC_FAR *")
+				pos = typ.rindex("*")
 				self.indirectionLevel = self.indirectionLevel + 1
-				typ = string.strip(typ[:pos])
+				typ = typ[:pos].strip()
 			except ValueError:
 				break
 		self.type = typ
@@ -637,8 +644,8 @@ class Method:
 	"""
 #										 options	 ret type callconv	 name
 #								   ----------------- -------- -------- --------
-	regex = regex.compile('virtual \\(/\\*.*\\*/ \\)?\\(.*\\) \\(.*\\) \\(.*\\)(\w?')
-	def __init__(self, good_interface_names ):
+	regex = re.compile(r'virtual (/\*.*?\*/ )?(.*?) (.*?) (.*?)\(\w?')
+	def __init__(self, good_interface_names):
 		self.good_interface_names = good_interface_names
 		self.name = self.result = self.callconv = None
 		self.args = []
@@ -649,11 +656,12 @@ class Method:
 		description.  If not a valid method line, an error_not_found exception
 		is raised.
 		"""
-		str = file.readline()
-		if self.regex.search(str, 0) == -1:
+		line = file.readline()
+		mo = self.regex.search(line)
+		if not mo:
 			raise error_not_found
-		self.name = self.regex.group(4)
-		self.result = self.regex.group(2)
+		self.name = mo.group(4)
+		self.result = mo.group(2)
 		if self.result != "HRESULT":
 			if self.result=="DWORD": # DWORD is for old old stuff?
 				print "Warning: Old style interface detected - compilation errors likely!"
@@ -677,11 +685,11 @@ class Interface:
 	"""
 #									  name				 base
 #									 --------		   --------
-	regex = regex.compile("\\(interface\\|\\) \\([^ ]*\\) : public \\(.*\\)$")
-	def __init__(self):
+	regex = re.compile("(interface|) ([^ ]*) : public (.*)$")
+	def __init__(self, mo):
 		self.methods = []
-		self.name = self.regex.group(2)
-		self.base = self.regex.group(3)
+		self.name = mo.group(2)
+		self.base = mo.group(3)
 		if VERBOSE:
 			print "Interface %s : public %s" % (self.name, self.base)
 
@@ -696,7 +704,7 @@ class Interface:
 				self.methods.append(method)
 			except error_not_found:
 				break
-	
+
 def find_interface(interfaceName, file):
 	"""Find and return an interface in a file
 	
@@ -705,18 +713,23 @@ def find_interface(interfaceName, file):
 	Upon return, the interface itself has been built, 
 	but not the methods.
 	"""
-
+	interface = None
 	line = file.readline()
 	while line:
-		if Interface.regex.search(line, 0) >=0:
-			name = Interface.regex.group(2)
+		mo = Interface.regex.search(line)
+		if mo:
+			name = mo.group(2)
 			print name
+			AllConverters[name] = (ArgFormatterInterface, 0, 1)
 			if name==interfaceName:
-				return Interface()
+				interface = Interface(mo)
+				interface.BuildMethods(file)
 		line = file.readline()
+	if interface:
+		return interface
 	raise error_not_found
 
-	
+
 def parse_interface_info(interfaceName, file):
 	"""Find, parse and return an interface in a file
 	
@@ -725,10 +738,8 @@ def parse_interface_info(interfaceName, file):
 	Upon return, the interface itself is fully built,
 	"""
 	try:
-		interface = find_interface(interfaceName, file)
-		interface.BuildMethods(file)
-		return interface
-	except regex.error:
+		return find_interface(interfaceName, file)
+	except re.error:
 		traceback.print_exc()
 		print "The interface could not be built, as the regular expression failed!"
 def test():
@@ -744,4 +755,3 @@ def test_regex(r,text):
 		print "** Not found"
 	else:
 		print "%d\n%s\n%s\n%s\n%s" % (res, r.group(1), r.group(2), r.group(3), r.group(4))
-
