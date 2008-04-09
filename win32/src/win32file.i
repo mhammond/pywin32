@@ -319,68 +319,118 @@ BOOLAPI DeleteFile(TCHAR *fileName);
 // @pyparm <o PyUnicode>|fileName||The filename to delete
 
 %{
-// @pyswig string|DeviceIoControl|Call DeviceIoControl
-PyObject *MyDeviceIoControl(PyObject *self, PyObject *args)
+// @pyswig str/buffer|DeviceIoControl|Sends a control code to a device or file system driver
+// @comm Accepts keyword args
+// @rdesc If a preallocated output buffer is passed in, the returned object
+//	may be the original buffer, or a view of the buffer with only the actual
+//	size of the retrieved data.
+//	<nl>If OutBuffer is a buffer size and the operation is synchronous (ie no
+//	Overlapped is passed in), returns a plain string containing the retrieved
+//	data.  For an async operation, a new writeable buffer is returned.
+PyObject *py_DeviceIoControl(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    OVERLAPPED *pOverlapped;
-    PyObject *obhFile, *obwriteData;
-    HANDLE hDevice;
-    DWORD readSize;
-    PyObject *obOverlapped = NULL;
+	OVERLAPPED *pOverlapped;
+	PyObject *obhFile, *obInBuffer, *obOutBuffer, *ret=NULL;
+	HANDLE hDevice;
+	PyObject *obOverlapped = Py_None;
 
-    DWORD dwIoControlCode;
-    void *writeData;
-    DWORD writeSize;
-
-    if (!PyArg_ParseTuple(args, "OlOl|O:DeviceIoControl", 
-        &obhFile, // @pyparm int|hFile||Handle to the file
-        &dwIoControlCode, // @pyparm int|dwIoControlCode||IOControl Code to use.
-        &obwriteData,	// @pyparm string|data||The data to write.
-        &readSize, // @pyparm int|readSize||Size of the buffer to create for the read.
-        &obOverlapped)) // @pyparm <o PyOVERLAPPED>|ol|None|An overlapped structure
-        return NULL;
-    if (obOverlapped==NULL)
-        pOverlapped = NULL;
-    else {
-        if (!PyWinObject_AsOVERLAPPED(obOverlapped, &pOverlapped))
-            return NULL;
-    }
-    if (!PyWinObject_AsHANDLE(obhFile, &hDevice))
-        return NULL;
-	// Some control codes call for NULL input buffer
-	if (!PyWinObject_AsReadBuffer(obwriteData, &writeData, &writeSize, TRUE))
+	DWORD dwIoControlCode;
+	void *InBuffer=NULL, *OutBuffer=NULL;
+	DWORD InBufferSize=0, OutBufferSize=0;
+	BOOL bBuffer=FALSE;
+	
+	static char *keywords[]={"Device","IoControlCode","InBuffer","OutBuffer","Overlapped", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OkOO|O:DeviceIoControl", keywords,
+		&obhFile,			// @pyparm <o PyHANDLE>|Device||Handle to a file, device, or volume
+		&dwIoControlCode,	// @pyparm int|IoControlCode||IOControl Code to use, from winioctlcon
+		&obInBuffer,		// @pyparm str/buffer|InBuffer||The input data for the operation, can be None for some operations.
+		&obOutBuffer,		// @pyparm int/buffer|OutBuffer||Size of the buffer to allocate for output, or a writeable buffer
+							//	as returned by <om win32file.AllocateReadBuffer>.
+		&obOverlapped))		// @pyparm <o PyOVERLAPPED>|Overlapped|None|An overlapped object for async operations.  Device
+							//	handle must have been opened with FILE_FLAG_OVERLAPPED.
 		return NULL;
-    void *readData = malloc(readSize);
-	if (readData==NULL)
-		return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", readSize);
 
-    DWORD numRead;
-    BOOL ok;
-    Py_BEGIN_ALLOW_THREADS
+	if (!PyWinObject_AsHANDLE(obhFile, &hDevice))
+		return NULL;
+	if (!PyWinObject_AsReadBuffer(obInBuffer, &InBuffer, &InBufferSize, TRUE))
+		return NULL;
+	if (!PyWinObject_AsOVERLAPPED(obOverlapped, &pOverlapped, TRUE))
+		return NULL;
 
-    ok = DeviceIoControl(hDevice,
+	OutBufferSize=PyLong_AsLong(obOutBuffer);
+	if (OutBufferSize!=(DWORD)-1 || !PyErr_Occurred()){
+		// Return a writable buffer in asynch mode, otherwise a plain string
+		//	for backward compatibility
+		if (pOverlapped != NULL){
+			ret=PyBuffer_New(OutBufferSize);
+			if (ret==NULL)
+				return NULL;
+			(*ret->ob_type->tp_as_buffer->bf_getwritebuffer)(ret, 0, &OutBuffer);
+			bBuffer=TRUE;
+			}
+		else{
+			ret = PyString_FromStringAndSize(NULL, OutBufferSize);
+			if (ret==NULL)
+				return NULL;
+			OutBuffer=PyString_AS_STRING(ret);
+			}
+		}
+	else{
+		PyErr_Clear();
+		if (PyWinObject_AsWriteBuffer(obOutBuffer, &OutBuffer, &OutBufferSize, TRUE)){
+			Py_INCREF(obOutBuffer);
+			ret=obOutBuffer;
+			bBuffer=TRUE;
+			}
+		else{
+			PyErr_Clear();
+			return PyErr_Format(PyExc_TypeError,
+				"OutBuffer must be either a buffer size or writeable buffer object, not %s",
+				obOutBuffer->ob_type->tp_name); 
+			}
+		}
+
+	DWORD numRead;
+	BOOL ok;
+	Py_BEGIN_ALLOW_THREADS
+
+	ok = DeviceIoControl(hDevice,
                          dwIoControlCode,
-                         writeData,
-                         writeSize,
-                         readData, 
-                         readSize, 
+                         InBuffer,
+                         InBufferSize,
+                         OutBuffer, 
+                         OutBufferSize,
                          &numRead,
                          pOverlapped);
+	Py_END_ALLOW_THREADS
 
-    Py_END_ALLOW_THREADS
-    if (!ok) {
-        free(readData);
-        return PyWin_SetAPIError("DeviceIoControl");
-    }
-    
-    PyObject *result = PyString_FromStringAndSize((char *)readData, numRead);
-    free(readData);
-    return result;
+    if (!ok){
+		DWORD err=GetLastError();
+		// This error code is returned for a pending overlapped operation.
+		if (err==ERROR_IO_PENDING)
+			return ret;
+		Py_DECREF(ret);
+		return PyWin_SetAPIError("DeviceIoControl", err);
+		}
+
+	// If returned size less than requested buffer size, return only length of valid data
+	if (numRead < OutBufferSize){
+		if (bBuffer){
+			// Create a view of existing buffer with actual output size
+			PyObject *resized=PyBuffer_FromReadWriteObject(ret, 0, numRead);
+			Py_DECREF(ret);
+			ret=resized;
+			}
+		else
+			_PyString_Resize(&ret, numRead);
+		}
+	return ret;
 }
+PyCFunction pfnpy_DeviceIoControl=(PyCFunction)py_DeviceIoControl;
 %}
 
 %native (OVERLAPPED) PyWinMethod_NewOVERLAPPED;
-%native(DeviceIoControl) MyDeviceIoControl;
+%native(DeviceIoControl) pfnpy_DeviceIoControl;
 
 
 //FileIOCompletionRoutine	
@@ -5030,6 +5080,7 @@ PyCFunction pfnpy_GetFullPathName=(PyCFunction)py_GetFullPathName;
 			||(strcmp(pmd->ml_name, "GetLongPathName")==0)
 			||(strcmp(pmd->ml_name, "GetFullPathName")==0)
 			||(strcmp(pmd->ml_name, "GetFileInformationByHandleEx")==0)	// not impl yet
+			||(strcmp(pmd->ml_name, "DeviceIoControl")==0)
 			)
 			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 
