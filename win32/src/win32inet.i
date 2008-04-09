@@ -1923,9 +1923,13 @@ BOOLAPI DeleteUrlCacheEntry(TCHAR *lpszUrlName);
 %{
 extern void init_win32inetstuff();
 extern PyObject *PyWinHttpGetIEProxyConfigForCurrentUser(PyObject *, PyObject *);
+extern PyObject *PyWinHttpGetProxyForUrl(PyObject *, PyObject *);
+extern PyObject *PyWinHttpOpen(PyObject *, PyObject *);
 %}
 
 %native(WinHttpGetIEProxyConfigForCurrentUser) PyWinHttpGetIEProxyConfigForCurrentUser;
+%native(WinHttpGetProxyForUrl) PyWinHttpGetProxyForUrl;
+%native(WinHttpOpen) PyWinHttpOpen;
 
 %init %{
 	PyDict_SetItemString(d,	"error", PyWinExc_ApiError);
