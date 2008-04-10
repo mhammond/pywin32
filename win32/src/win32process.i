@@ -1590,6 +1590,8 @@ PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
 #define THREAD_PRIORITY_LOWEST THREAD_PRIORITY_LOWEST // Indicates 2 points below normal priority for the priority class. 
 #define THREAD_PRIORITY_NORMAL THREAD_PRIORITY_NORMAL // Indicates normal priority for the priority class. 
 #define THREAD_PRIORITY_TIME_CRITICAL THREAD_PRIORITY_TIME_CRITICAL // Indicates a base priority level of 15 for IDLE_PRIORITY_CLASS, NORMAL_PRIORITY_CLASS, or HIGH_PRIORITY_CLASS processes, and a base priority level of 31 for REALTIME_PRIORITY_CLASS processes. 
+#define THREAD_MODE_BACKGROUND_BEGIN THREAD_MODE_BACKGROUND_BEGIN
+#define THREAD_MODE_BACKGROUND_END THREAD_MODE_BACKGROUND_END
 
 #ifndef MS_WINCE
 #define CREATE_DEFAULT_ERROR_MODE CREATE_DEFAULT_ERROR_MODE // The new process does not inherit the error mode of the calling process. Instead, CreateProcess gives the new process the current default error mode. An application sets the current default error mode by calling SetErrorMode.
