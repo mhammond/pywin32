@@ -221,7 +221,7 @@ PyObject * PyHFC::AddResponseHeaders(PyObject *self, PyObject *args)
 	PyHFC * phfc = (PyHFC *) self;
 	// @pyparm string|data||
 	// @pyparm int|reserverd|0|
-	if (!PyArg_ParseTuple(args, "s|l:WriteClient", &buffer, &reserved))
+	if (!PyArg_ParseTuple(args, "s|l:AddResponseHeaders", &buffer, &reserved))
 		return NULL;
 
 	if (phfc->m_pfc){
