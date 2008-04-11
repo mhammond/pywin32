@@ -12,25 +12,25 @@ to build and install into your current Python installation.
 These extensions require a number of libraries to build, some of which may
 require you to install special SDKs or toolkits.  This script will attempt
 to build as many as it can, and at the end of the build will report any 
-extension modules that could not be built and why.  Early versions of
-certain Windows headers will also cause certain modules to be skipped (in
-general, the latest "Platform SDK" from:
-  http://www.microsoft.com/msdownload/platformsdk/sdkupdate
-should be used.
+extension modules that could not be built and why.
+Currently, the Vista SDK and DirectX SDK are required to successfully build
+all extension modules - note that using the Vista SDK doesn't force you to
+use Vista as your build environment.  Please use google to find the SDK -
+links to microsoft.com seem to only stay current for a short time.
 
-If you don't use the extensions that fail to build, you can ignore these
-warnings; if you do use them, you must install the correct libraries.
+Early versions of certain Windows headers/SDK versions will also cause
+certain modules to be skipped. If you don't use the extensions that fail to
+build, you can ignore these warnings; if you do use them, you must install
+the correct libraries.
 
-The 'mapi' and 'exchange' extensions require the Exchange 2000 SDK from:
-  http://www.microsoft.com/downloads/details.aspx?FamilyID={guid}
-    where guid is 4afe3504-c209-4a73-ac5d-ff2a4a3b48b7
-Just install it - this setup script will automatically locate it.
-(updated for build 205: mapi just seems to require the platform SDK, whereas
-the exchange SDK appears missing in action, so these extensions don't build)
+The 'exchange' extensions require headers that are no longer in any current
+SDKs, so these fail to build, but the 'mapi' extension should still build.
+Also, 'axdebug' once worked with recent Platform SDKs, with no
+additional software was needed - but currently this extension is known to not
+build.
 
-Note: 'axdebug' appears to work with recent Platform SDKs, with no
-additional software needed.  It is probably necessary to select an appropriate
-"sub" SDK, but its not clear exactly which one yet (I just grabbed them all!)
+Building:
+---------
 
 To install the pywin32 extensions, execute:
   python setup.py -q install
@@ -48,49 +48,20 @@ or to build and install a debug version:
 
 To build 64bit versions of this:
 
-* py2.5 and earlier, using VS2003 and earlier:
-  These instructions are for cross-compiling on a 32bit environment.
-  You must install the platform SDK with 64bit versions of the tools, then
-  setup your environment with a command similar to:
-  
-    {sdk_dir}\bin\SetEnv.Cmd /X64 /Release
+* py2.5 and earlier - sorry, I've given up in disgust.  Using VS2003 with
+  the Vista SDK is just too painful to make work, and VS2005 is not used for
+  any released versions of Python. See revision 1.69 of this file for the
+  last version that attempted to support and document this process.
 
-  then:
+*  2.6 and later: On a 64bit OS, just build as you would on a 32bit platform.
+   On a 32bit platform (ie, to cross-compile), you must use VS2008 to
+   cross-compile Python itself. Note that by default, the 64bit tools are not
+   installed with VS2008, so you may need to adjust your VS2008 setup. Then
+   use:
 
-    set DISTUTILS_USE_SDK=1
+      setup.py build --plat-name=win-amd64
 
-  Next, point at the directx SDK - eg:
-
-    set INCLUDE=%INCLUDE%;C:\Program Files\Microsoft DirectX SDK (December 2006)\Include
-    set LIB=%LIB%;C:\Program Files\Microsoft DirectX SDK (December 2006)\Lib\x64
-
-  Now it starts getting wierd - we need to execute python.exe (32bit) to
-  do the distutils build, but this build needs to find 64bit version of
-  python.lib etc.  The work-around for this (on a 32 bit machine) is:
-  
-  * Extract a new Python source tree into a new directory
-  * Build this tree using the 64bit instructions.
-  * set PYTHONHOME=c:\path_to_64bit_python
-  * Execute: c:\path_to_32bit_python\python.exe c:\path_to\pywin32\setup.py build
-  * un-set PYTHONHOME (set PYTHONHOME=)
-  * Execute: c:\path_to_32bit_python_6\python.exe setup.py bdist_msi --skip-build
-    [Note that python 6.0 or later *must* be used for this final step.  If
-     python 6 has not been released, you must use Python as built from the
-     svn trunk]
-    [XXX - the above is a little wrong, as python 2.6 has moved to vs2008 and
-    the trunk currently builds to a different structure.  This is still under
-    discussion on python-dev]
-
-  (Note that these instructions will have clobbered your 32bit build of
-  Python - not the install, just the copy in the 'build' directory.  Its
-  probably a good idea to clobber the build directory when switching
-  platforms so things don't get confused)
-
-* py2.6 and later - tdb
-
-* Using VS2005 is not supported; either use the official py25 and earlier
-  instructions for cross-compiling, or the new official py26+ instructions
-  (using VS2008+)  
+   see the distutils cross-compilation documentation for more details.
 """
 # Originally by Thomas Heller, started in 2000 or so.
 import os, string, sys
@@ -104,55 +75,6 @@ try:
 except NameError:
     True=0==0
     False=1==0
-
-# when cross-compiling on a 32bit platform, the variable CPU reflects
-# the *target*.  Distutil's get_build_architecture() still reports 'Intel'
-# in this environment - so we trust the CPU variable (or in Vista+ SDKs,
-# the TARGET_CPU variable)
-def get_build_architecture():
-    # *sob* - Vista's SDK sets TARGET_CPU to 'x64' and doesn't set CPU at all
-    # presumably will need something similar for itanium
-    if os.environ.get("TARGET_CPU") == 'x64':
-        return "AMD64"
-    elif os.environ.get("TARGET_CPU") == 'x86':
-        return "Intel"
-    try:
-        return os.environ["CPU"]
-    except KeyError:
-        # not set - trust distutils
-        try:
-            from distutils.msvccompiler import get_build_architecture as gba
-        except ImportError:
-            # ack - early Python
-            return "Intel"
-        return gba()
-
-ARCHITECTURES_64 = ("Itanium", "AMD64")
-
-is_64bit = get_build_architecture() in ARCHITECTURES_64
-is_32bit = not is_64bit
-
-# More x64 hacks - all 64bit windows builds have sys.platform=='win32', and
-# this is used for the "platform" part of the file and directory names.
-# (eg, pywin32-210.1.win32-py2.5.msi) - but this is bad for us - we do
-# want a distinction.
-# so we monkey-patch distutils :(  We must do this before the main distutils
-# imports, which does 'from distutils.util import get_platform'
-# NOTE: Python 2.6 has the base get_platform() fixed - but there still
-# remains the cross-compile issue (ie, get_platform() needs to know the
-# *target* platform).  The values returned from this function must however
-# be in the set of values Python 2.6's get_platform() returns...
-def hacked_get_platform():
-    """getplaform monkey-patched by pywin32 setup"""
-    ba = get_build_architecture()
-    if ba == "AMD64":
-        return "win-x86_64"
-    if ba == "Itanium":
-        return "win-ia64"
-    return sys.platform
-
-import distutils.util
-distutils.util.get_platform = hacked_get_platform
 
 # The rest of our imports.
 from distutils.core import setup, Extension, Command
@@ -172,6 +94,18 @@ except ImportError:
     # py22
     def get_build_version():
         return 6.0
+# nor distutils.log
+try:
+    from distutils import log
+except ImportError:
+    class Log:
+        def debug(self, msg, *args):
+            print msg % args
+        def info(self, msg, *args):
+            print msg % args
+    log = Log()
+
+
 from distutils.dep_util import newer_group, newer
 from distutils import dir_util, file_util
 from distutils.sysconfig import get_python_lib
@@ -185,17 +119,6 @@ if not "." in build_id_patch:
 pywin32_version="%d.%d.%s" % (sys.version_info[0], sys.version_info[1],
                               build_id_patch)
 print "Building pywin32", pywin32_version
-
-# nor distutils.log
-try:
-    from distutils import log
-except ImportError:
-    class Log:
-        def debug(self, msg, *args):
-            print msg % args
-        def info(self, msg, *args):
-            print msg % args
-    log = Log()
 
 try:
     this_file = __file__
@@ -323,18 +246,13 @@ class WinExt (Extension):
                   optional_headers=[],
                   base_address = None,
                   depends=None,
+                  platforms=None, # none means 'all platforms'
                  ):
         assert dsp_file or sources, "Either dsp_file or sources must be specified"
         libary_dirs = library_dirs,
         include_dirs = ['com/win32com/src/include',
                         'win32/src'] + include_dirs
         libraries=libraries.split()
-        # VC2003 on x64 requires this library be explicitly linked...
-        # (well - apparently it used to :) Vista SDK fails if we do this...
-        #if is_64bit and msvccompiler.get_build_version() < 8.0:
-        #    libraries.append('bufferoverflowU')
-
-        extra_compile_args = (extra_compile_args or [])[:] # take copy
 
         if export_symbol_file:
             export_symbols = export_symbols or []
@@ -343,14 +261,6 @@ class WinExt (Extension):
         if dsp_file:
             sources = sources or []
             sources.extend(self.get_source_files(dsp_file))
-        extra_link_args = extra_link_args or []
-        if is_64bit:
-            extra_link_args.append("/MACHINE:%s" % get_build_architecture())
-            # pyconfig.h checks for _M_X64, but it seems the SDK cross-compiler
-            # doesn't define it (no such problems with VS2005)
-            extra_compile_args.append('/D_M_X64')
-        else:
-            extra_link_args.append("/MACHINE:ix86")
         # Some of our swigged files behave differently in distutils vs
         # MSVC based builds.  Always define DISTUTILS_BUILD so they can tell.
         define_macros = define_macros or []
@@ -361,6 +271,7 @@ class WinExt (Extension):
         self.optional_headers = optional_headers
         self.is_regular_dll = is_regular_dll
         self.base_address = base_address
+        self.platforms = platforms
         Extension.__init__ (self, name, sources,
                             include_dirs,
                             define_macros,
@@ -415,17 +326,27 @@ class WinExt (Extension):
         if not build_ext.mingw32:
             if self.pch_header:
                 self.extra_compile_args = self.extra_compile_args or []
-                # /YX doesn't work in vs2008
-                if is_32bit and get_build_version() < 9.0:
+                # /YX doesn't work in vs2008 or vs2003/64
+                if build_ext.plat_name == 'win32' and get_build_version() < 9.0:
                     self.extra_compile_args.append("/YX"+self.pch_header)
                 pch_name = os.path.join(build_ext.build_temp, self.name) + ".pch"
                 self.extra_compile_args.append("/Fp"+pch_name)
 
-            # Put our DLL base address in.
-            base = self.base_address
-            if not base:
-                base = dll_base_addresses[self.name]
-            self.extra_link_args.append("/BASE:0x%x" % (base,))
+            # bugger - add this to python!
+            if build_ext.plat_name=="win32":
+                self.extra_link_args.append("/MACHINE:x86")
+            else:
+                self.extra_link_args.append("/MACHINE:%s" % build_ext.plat_name[4:])
+            # Old vs2003 needs this defined (Python itself uses it)
+            if get_build_version() < 9.0 and build_ext.plat_name=="win-amd64":
+                self.extra_compile_args.append('/D_M_X64')
+
+            # Put our DLL base address in (but not for our executables!)
+            if self not in W32_exe_files:
+                base = self.base_address
+                if not base:
+                    base = dll_base_addresses[self.name]
+                self.extra_link_args.append("/BASE:0x%x" % (base,))
 
             # like Python, always use debug info, even in release builds
             # (note the compiler doesn't include debug info, so you only get
@@ -571,6 +492,9 @@ class my_build_ext(build_ext):
 
         self.excluded_extensions = [] # list of (ext, why)
         self.swig_cpp = True # hrm - deprecated - should use swig_opts=-c++??
+        if not hasattr(self, 'plat_name'):
+            # Old Python version that doesn't support cross-compile
+            self.plat_name = distutils.util.get_platform()
 
     def _fixup_sdk_dirs(self):
         # Adjust paths etc for the platform SDK - this prevents the user from
@@ -611,46 +535,56 @@ class my_build_ext(build_ext):
         # build_ext.include_dirs should 'win' over the compiler's dirs.
         assert self.compiler.initialized # if not, our env changes will be lost!
 
-        if 'DISTUTILS_USE_SDK' in os.environ:
-            # theoretically, this means the environment is already setup
-            # appropriately - so there is no need to go sniffing!
-            pass
-        elif sdk_dir:
-            extra = os.path.join(sdk_dir, 'include')
-            # should not be possible for the SDK dirs to already be in our
-            # include_dirs - they may be in the registry etc from MSVC, but
-            # those aren't reflected here...
-            assert extra not in self.include_dirs
-            # and we will not work as expected if the dirs don't exist
+        is_64bit = self.plat_name == 'win-amd64'
+        extra = os.path.join(sdk_dir, 'include')
+        # should not be possible for the SDK dirs to already be in our
+        # include_dirs - they may be in the registry etc from MSVC, but
+        # those aren't reflected here...
+        assert extra not in self.include_dirs
+        # and we will not work as expected if the dirs don't exist
+        assert os.path.isdir(extra), "%s doesn't exist!" % (extra,)
+        self.compiler.add_include_dir(extra)
+        # and again for lib dirs.
+        extra = os.path.join(sdk_dir, 'lib')
+        if is_64bit:
+            extra = os.path.join(extra, 'x64')
+            assert os.path.isdir(extra), extra
+        assert extra not in self.library_dirs # see above
+        assert os.path.isdir(extra), "%s doesn't exist!" % (extra,)
+        self.compiler.add_library_dir(extra)
+        # directx sdk sucks - how to locate it automatically?
+        # Must manually set DIRECTX_SDK_DIR for now.
+        dxsdk_dir = os.environ.get("DIRECTX_SDK_DIR")
+        if dxsdk_dir:
+            extra = os.path.join(dxsdk_dir, 'include')
             assert os.path.isdir(extra), "%s doesn't exist!" % (extra,)
             self.compiler.add_include_dir(extra)
-            # and again for lib dirs.
-            extra = os.path.join(sdk_dir, 'lib')
             if is_64bit:
-                extra = os.path.join(extra, 'x64')
-                assert os.path.isdir(extra), extra
-            assert extra not in self.library_dirs # see above
+                tail = 'x64'
+            else:
+                tail = 'x86'
+            extra = os.path.join(dxsdk_dir, 'lib', tail)
             assert os.path.isdir(extra), "%s doesn't exist!" % (extra,)
             self.compiler.add_library_dir(extra)
-            log.debug("After SDK processing, includes are %s", self.compiler.include_dirs)
-            log.debug("After SDK processing, libs are %s", self.compiler.library_dirs)
 
-            # Vista SDKs have a 'VC' directory with headers and libs for older
-            # compilers.  We need to hack the support in here so that the
-            # directories are after the compiler's own.  As noted above, the
-            # only way to ensure they are after the compiler's is to put them
-            # in the environment, which has the nice side-effect of working
-            # for the rc executable.
-            # We know its not needed on vs9...
-            if get_build_version() < 9.0:
-                if os.path.isdir(os.path.join(sdk_dir, 'VC', 'INCLUDE')):
-                    os.environ["INCLUDE"] += ";" + os.path.join(sdk_dir, 'VC', 'INCLUDE')
-                    log.debug("Vista SDK found: %%INCLUDE%% now %s", os.environ["INCLUDE"])
-                if os.path.isdir(os.path.join(sdk_dir, 'VC', 'LIB')):
-                    os.environ["LIB"] += ";" + os.path.join(sdk_dir, 'VC', 'LIB')
-                    log.debug("Vista SDK found: %%LIB%% now %s", os.environ["LIB"])
-        else:
-            print "Warning - can't find an installed platform SDK"
+        log.debug("After SDK processing, includes are %s", self.compiler.include_dirs)
+        log.debug("After SDK processing, libs are %s", self.compiler.library_dirs)
+
+        # Vista SDKs have a 'VC' directory with headers and libs for older
+        # compilers.  We need to hack the support in here so that the
+        # directories are after the compiler's own.  As noted above, the
+        # only way to ensure they are after the compiler's is to put them
+        # in the environment, which has the nice side-effect of working
+        # for the rc executable.
+        # We know its not needed on vs9...
+        if get_build_version() < 9.0:
+            if os.path.isdir(os.path.join(sdk_dir, 'VC', 'INCLUDE')):
+                os.environ["INCLUDE"] += ";" + os.path.join(sdk_dir, 'VC', 'INCLUDE')
+                log.debug("Vista SDK found: %%INCLUDE%% now %s", os.environ["INCLUDE"])
+            if os.path.isdir(os.path.join(sdk_dir, 'VC', 'LIB')):
+                os.environ["LIB"] += ";" + os.path.join(sdk_dir, 'VC', 'LIB')
+                log.debug("Vista SDK found: %%LIB%% now %s", os.environ["LIB"])
+
         if sys.hexversion < 0x02030000:
             # Python 2.2 distutils doesn't handle the 'PC'/PCBuild directory for
             # us (it only exists if building from the source tree)
@@ -663,9 +597,9 @@ class my_build_ext(build_ext):
 
     def _why_cant_build_extension(self, ext):
         # Return None, or a reason it can't be built.
+        include_dirs = self.compiler.include_dirs + \
+                       os.environ.get("INCLUDE", "").split(os.pathsep)
         if self.windows_h_version is None:
-            include_dirs = self.compiler.include_dirs + \
-                           os.environ.get("INCLUDE", "").split(os.pathsep)
             for d in include_dirs:
                 # We look for _WIN32_WINNT instead of WINVER as the Vista
                 # SDK defines _WIN32_WINNT as WINVER and we aren't that clever
@@ -694,20 +628,13 @@ class my_build_ext(build_ext):
                 if self.windows_h_version is not None:
                     break
             else:
-                # XXX - the below can probably go now - the problem was the
-                # sdkddkver.h issue already solved above.
-                if is_64bit:
-                    # *sob*
-                    print "x64 build - assuming winver == 0x600"
-                    self.windows_h_version = 0x600
-                else:
-                    raise RuntimeError, "Can't find a version in Windows.h"
+                raise RuntimeError, "Can't find a version in Windows.h"
         if ext.windows_h_version > self.windows_h_version:
             return "WINDOWS.H with version 0x%x is required, but only " \
                    "version 0x%x is installed." \
                    % (ext.windows_h_version, self.windows_h_version)
 
-        look_dirs = self.include_dirs
+        look_dirs = include_dirs
         for h in ext.optional_headers:
             for d in look_dirs:
                 if os.path.isfile(os.path.join(d, h)):
@@ -734,6 +661,9 @@ class my_build_ext(build_ext):
         if sys.hexversion < 0x2040000 and ext.name == 'axdebug' and self.debug:
             return "axdebug doesn't build in VC6 debug builds (irony!)"
 
+        if ext.platforms and self.plat_name not in ext.platforms:
+            return "Only available on platforms %s" % (ext.platforms,)
+
         # We update the .libraries list with the resolved library name.
         # This is really only so "_d" works.
         ext.libraries = patched_libs
@@ -742,11 +672,13 @@ class my_build_ext(build_ext):
     def _build_scintilla(self):
         path = 'pythonwin\\Scintilla'
         makefile = 'makefile_pythonwin'
-        makeargs = ["QUIET=1"]
+        makeargs = []
+
         if self.debug:
             makeargs.append("DEBUG=1")
         if not self.verbose:
             makeargs.append("/C") # nmake: /C Suppress output messages
+            makeargs.append("QUIET=1")
         # We build the DLL into our own temp directory, then copy it to the
         # real directory - this avoids the generated .lib/.exp
         build_temp = os.path.abspath(os.path.join(self.build_temp, "scintilla"))
@@ -764,8 +696,6 @@ class my_build_ext(build_ext):
         makeargs.append("SUB_DIR_O=%s" % build_temp)
         makeargs.append("SUB_DIR_BIN=%s" % build_temp)
         makeargs.append("DIR_PYTHON=%s" % sys.prefix)
-        if is_64bit and get_build_version() < 8.0:
-            makeargs.append("LINK=bufferoverflowU.lib")
 
         cwd = os.getcwd()
         os.chdir(path)
@@ -794,8 +724,8 @@ class my_build_ext(build_ext):
             # 2.3 and earlier initialized at construction
             self.compiler.initialized = True
         else:
-            assert not self.compiler.initialized
-            self.compiler.initialize()
+            if not self.compiler.initialized:
+                self.compiler.initialize()
 
         self._fixup_sdk_dirs()
 
@@ -811,6 +741,14 @@ class my_build_ext(build_ext):
             self.build_extension(ext)
 
         for ext in W32_exe_files:
+            ext.finalize_options(self)
+            why = self._why_cant_build_extension(ext)
+            if why is not None:
+                self.excluded_extensions.append((ext, why))
+                assert why, "please give a reason, or None"
+                print "Skipping %s: %s" % (ext.name, why)
+                continue
+
             try:
                 self.package = ext.get_pywin32_dir()
             except AttributeError:
@@ -958,7 +896,7 @@ class my_build_ext(build_ext):
         if why is not None:
             self.excluded_extensions.append((ext, why))
             assert why, "please give a reason, or None"
-            print "Skipping", ext.name, why
+            print "Skipping %s: %s" % (ext.name, why)
             return
         self.current_extension = ext
 
@@ -1005,27 +943,22 @@ class my_build_ext(build_ext):
 
     def get_ext_filename(self, name):
         # The pywintypes and pythoncom extensions have special names
+        extra_dll = self.debug and "_d.dll" or ".dll"
+        extra_exe = self.debug and "_d.exe" or ".exe"
         if name == "pywin32_system32.pywintypes":
-            extra = self.debug and "_d.dll" or ".dll"
-            return r"pywin32_system32\pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
+            return r"pywin32_system32\pywintypes%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
         elif name == "pywin32_system32.pythoncom":
-            extra = self.debug and "_d.dll" or ".dll"
-            return r"pywin32_system32\pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra)
+            return r"pywin32_system32\pythoncom%d%d%s" % (sys.version_info[0], sys.version_info[1], extra_dll)
         elif name.endswith("win32.perfmondata"):
-            extra = self.debug and "_d.dll" or ".dll"
-            return r"win32\perfmondata" + extra
+            return r"win32\perfmondata" + extra_dll
         elif name.endswith("win32.win32popenWin9x"):
-            extra = self.debug and "_d.exe" or ".exe"
-            return r"win32\win32popenWin9x" + extra
+            return r"win32\win32popenWin9x" + extra_exe
         elif name.endswith("win32.pythonservice"):
-            extra = self.debug and "_d.exe" or ".exe"
-            return r"win32\pythonservice" + extra
+            return r"win32\pythonservice" + extra_exe
         elif name.endswith("pythonwin.Pythonwin"):
-            extra = self.debug and "_d.exe" or ".exe"
-            return r"pythonwin\Pythonwin" + extra
+            return r"pythonwin\Pythonwin" + extra_exe
         elif name.endswith("isapi.PyISAPI_loader"):
-            extra = self.debug and "_d.dll" or ".dll"
-            return r"isapi\PyISAPI_loader" + extra
+            return r"isapi\PyISAPI_loader" + extra_dll
         return build_ext.get_ext_filename(self, name)
 
     def get_export_symbols(self, ext):
@@ -1336,7 +1269,7 @@ for info in (
             win32/src/win32security.i       win32/src/win32securitymodule.cpp
             win32/src/win32security_sspi.cpp win32/src/win32security_ds.cpp
             """),
-        ("win32service", "advapi32 oleaut32 user32", True, 0x0500),
+        ("win32service", "advapi32 oleaut32 user32", True, 0x0501),
         ("win32trace", "advapi32", False),
         ("win32wnet", "netapi32 mpr", False),
         ("win32inet", "wininet", False, 0x500, """
@@ -1515,6 +1448,7 @@ com_extensions += [
                                   %(mapi)s/exchdapi.i         %(mapi)s/exchdapi.cpp
                                   """ % dirs).split()),
     WinExt_win32com('shell', libraries='shell32', pch_header="shell_pch.h",
+                    windows_h_version = 0x600,
                     sources=("""
                         %(shell)s/PyIActiveDesktop.cpp
                         %(shell)s/PyIAsyncOperation.cpp
@@ -1609,14 +1543,10 @@ pythonwin_extensions = [
                      depends=["Pythonwin/stdafx.h", "Pythonwin/win32uiExt.h"]),
     WinExt_pythonwin("win32uiole", pch_header="stdafxole.h",
                      windows_h_version = 0x500),
-]
-if is_32bit:
-    pythonwin_extensions += [
-        WinExt_pythonwin("dde", pch_header="stdafxdde.h"),
+    WinExt_pythonwin("dde", pch_header="stdafxdde.h", platforms=['win32']),
     ]
 # win32ui is large, so we reserve more bytes than normal
 dll_base_address += 0x100000
-
 
 other_extensions = []
 if sys.hexversion >= 0x2030000:
@@ -1627,6 +1557,11 @@ if sys.hexversion >= 0x2030000:
                    """PyExtensionObjects.cpp PyFilterObjects.cpp
                       pyISAPI.cpp pyISAPI_messages.mc
                       PythonEng.cpp StdAfx.cpp Utils.cpp
+                   """.split()],
+           depends=[os.path.join("isapi", "src", s) for s in
+                   """ControlBlock.h FilterContext.h PyExtensionObjects.h
+                      PyFilterObjects.h pyISAPI.h pyISAPI_messages.h
+                      PythonEng.h StdAfx.h Utils.h
                    """.split()],
            pch_header = "StdAfx.h",
            is_regular_dll = 1,
@@ -1641,7 +1576,8 @@ if sys.hexversion >= 0x2030000:
 
 W32_exe_files = [
     WinExt_win32("win32popenWin9x",
-                 libraries = "user32"),
+                 libraries = "user32",
+                 platforms = ["win32"]),
     WinExt_win32("pythonservice",
                  dsp_file = "win32/PythonService EXE.dsp",
                  extra_compile_args = ['-DUNICODE', '-D_UNICODE', '-DWINNT'],
@@ -1836,12 +1772,12 @@ dist = setup(name="pywin32",
       author="Mark Hammond (et al)",
       author_email = "mhammond@users.sourceforge.net",
       url="http://sourceforge.net/projects/pywin32/",
-      license="PSA",
+      license="PSF",
       cmdclass = cmdclass,
       options = {"bdist_wininst":
                     {"install_script": "pywin32_postinstall.py",
-                     "pre_install_script": "pywin32_preinstall.py",
                      "title": "pywin32-%s" % (build_id,),
+#                     "user_access_control": "auto",
                     },
                  "bdist_msi":
                     {"install_script": "pywin32_postinstall.py",
