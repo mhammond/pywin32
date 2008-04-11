@@ -40,10 +40,10 @@ generated, unless standard time is always used)
 datetime.timedelta(-1, 61200)
 
 >>> aug2 = datetime.datetime( 2003, 8, 2, tzinfo = tzi )
->>> aug2.utctimetuple()
+>>> tuple(aug2.utctimetuple())
 (2003, 8, 2, 6, 0, 0, 5, 214, 0)
 >>> nov2 = datetime.datetime( 2003, 11, 25, tzinfo = tzi )
->>> nov2.utctimetuple()
+>>> tuple(nov2.utctimetuple())
 (2003, 11, 25, 7, 0, 0, 1, 329, 0)
 
 To convert from one timezone to another, just use the astimezone method.
