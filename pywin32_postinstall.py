@@ -390,6 +390,9 @@ def install():
             file_created(dst)
             if verbose:
                 print "Shortcut to documentation created"
+        else:
+            if verbose:
+                print "Can't install shortcuts - %r is not a folder" % (fldr,)
     except Exception, details:
         print details
 
