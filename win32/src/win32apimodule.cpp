@@ -5542,7 +5542,9 @@ PyObject *PyGetFileVersionInfo(PyObject *self, PyObject *args)
 		goto done;
 	if (!PyWinObject_AsWCHAR(obinfo, &info, FALSE))
 		goto done;
+	Py_BEGIN_ALLOW_THREADS
 	buf_len=GetFileVersionInfoSizeW(file_name, &dwHandle); //handle is ignored
+	Py_END_ALLOW_THREADS
 	if (buf_len==0){
 		PyWin_SetAPIError("GetFileVersionInfo:GetFileVersionInfoSize",GetLastError());
 		goto done;
@@ -5552,8 +5554,11 @@ PyObject *PyGetFileVersionInfo(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_MemoryError, "GetFileVersionInfo");
 		goto done;
 		}
-	if (!GetFileVersionInfoW(file_name, dwHandle, buf_len, buf)){
-		PyWin_SetAPIError("GetFileVersionInfo",GetLastError());
+	Py_BEGIN_ALLOW_THREADS
+	success=GetFileVersionInfoW(file_name, dwHandle, buf_len, buf);
+	Py_END_ALLOW_THREADS
+	if (!success){
+		PyWin_SetAPIError("GetFileVersionInfo");
 		goto done;
 		}
 	success=VerQueryValueW(buf, info, &value, &value_len);
