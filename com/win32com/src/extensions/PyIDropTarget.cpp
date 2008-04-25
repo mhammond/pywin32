@@ -36,22 +36,23 @@ PyIDropTarget::~PyIDropTarget()
 	return (IDropTarget *)PyIUnknown::GetI(self);
 }
 
-// @pymethod |PyIDropTarget|DragEnter|Description of DragEnter.
+// @pymethod int|PyIDropTarget|DragEnter|Called when an object is initially dragged into a window
+// @rdesc Your implementation of this function should return a shellcon.DROPEFFECT_* value indicating if the object can be accepted
 PyObject *PyIDropTarget::DragEnter(PyObject *self, PyObject *args)
 {
 	IDropTarget *pIDT = GetI(self);
 	if ( pIDT == NULL )
 		return NULL;
-	// @pyparm <o PyIDataObject *>|pDataObj||Description for pDataObj
-	// @pyparm int|grfKeyState||Description for grfKeyState
+	// @pyparm <o PyIDataObject>|pDataObj||IDataObject interface that contains the object being dragged
+	// @pyparm int|grfKeyState||Combination of win32con.MK_* flags containing keyboard modifier state
 	POINTL pt;
 	PyObject *obpt;
-	// @pyparm (int, int)|pt||Description for pt
+	// @pyparm (int, int)|pt||(x,y) Screen coordinates of cursor
 	PyObject *obpDataObj;
 	IDataObject *pDataObj;
 	DWORD grfKeyState;
         DWORD dwEffect;
-	// @pyparm int|pdwEffect||Description for pdwEffect
+	// @pyparm int|pdwEffect||shellcon.DROPEFFECT_* value
 	if ( !PyArg_ParseTuple(args, "OlOl:DragEnter", &obpDataObj, &grfKeyState, &obpt, &dwEffect) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
@@ -70,18 +71,20 @@ PyObject *PyIDropTarget::DragEnter(PyObject *self, PyObject *args)
 	return PyInt_FromLong(dwEffect);
 }
 
-// @pymethod |PyIDropTarget|DragOver|Description of DragOver.
+// @pymethod int|PyIDropTarget|DragOver|Called as the dragged object moves over the window
+// @rdesc Your implementation of this function should return a shellcon.DROPEFFECT_* value indicating if the
+//	object can be accepted at the current position
 PyObject *PyIDropTarget::DragOver(PyObject *self, PyObject *args)
 {
 	IDropTarget *pIDT = GetI(self);
 	if ( pIDT == NULL )
 		return NULL;
-	// @pyparm int|grfKeyState||Description for grfKeyState
+	// @pyparm int|grfKeyState||Combination of win32con.MK_* flags containing keyboard modifier state
 	POINTL pt;
 	PyObject *obpt;
-	// @pyparm (int, int)|pt||Description for pt
+	// @pyparm (int, int)|pt||(x,y) Screen coordinates of cursor
 	DWORD dwEffect;
-	// @pyparm int|pdwEffect||Description for pdwEffect
+	// @pyparm int|pdwEffect||shellcon.DROPEFFECT_* value
 	DWORD grfKeyState;
 	if ( !PyArg_ParseTuple(args, "lOl:DragOver", &grfKeyState, &obpt, &dwEffect) )
 		return NULL;
@@ -98,7 +101,7 @@ PyObject *PyIDropTarget::DragOver(PyObject *self, PyObject *args)
 	return PyInt_FromLong(dwEffect);
 }
 
-// @pymethod |PyIDropTarget|DragLeave|Description of DragLeave.
+// @pymethod |PyIDropTarget|DragLeave|Called as the object is dragged back out of the window
 PyObject *PyIDropTarget::DragLeave(PyObject *self, PyObject *args)
 {
 	IDropTarget *pIDT = GetI(self);
@@ -119,19 +122,20 @@ PyObject *PyIDropTarget::DragLeave(PyObject *self, PyObject *args)
 
 }
 
-// @pymethod |PyIDropTarget|Drop|Description of Drop.
+// @pymethod int|PyIDropTarget|Drop|Called when the object is dropped onto the window
+// @rdesc Your implementation of this function should return one of the shellcon.DROPEFFECT_* values
 PyObject *PyIDropTarget::Drop(PyObject *self, PyObject *args)
 {
 	IDropTarget *pIDT = GetI(self);
 	if ( pIDT == NULL )
 		return NULL;
-	// @pyparm <o PyIDataObject *>|pDataObj||Description for pDataObj
-	// @pyparm int|grfKeyState||Description for grfKeyState
+	// @pyparm <o PyIDataObject>|pDataObj||IDataObject interface containing the dropped object
+	// @pyparm int|grfKeyState||Combination of win32con.MK_* flags containing keyboard modifier state
 	POINTL pt;
 	PyObject *obpt;
-	// @pyparm (int, int)|pt||Description for pt
+	// @pyparm (int, int)|pt||(x,y) Screen coordinates of cursor
 	DWORD dwEffect;
-	// @pyparm int|dwEffect||Description for dwEffect
+	// @pyparm int|dwEffect||shellcon.DROPEFFECT_* value
 	PyObject *obpDataObj;
 	IDataObject * pDataObj;
 	DWORD grfKeyState;
@@ -154,13 +158,13 @@ PyObject *PyIDropTarget::Drop(PyObject *self, PyObject *args)
 
 }
 
-// @object PyIDropTarget|Description of the interface
+// @object PyIDropTarget|Interface that acts as a target of OLE drag and drop operations
 static struct PyMethodDef PyIDropTarget_methods[] =
 {
-	{ "DragEnter", PyIDropTarget::DragEnter, 1 }, // @pymeth DragEnter|Description of DragEnter
-	{ "DragOver", PyIDropTarget::DragOver, 1 }, // @pymeth DragOver|Description of DragOver
-	{ "DragLeave", PyIDropTarget::DragLeave, 1 }, // @pymeth DragLeave|Description of DragLeave
-	{ "Drop", PyIDropTarget::Drop, 1 }, // @pymeth Drop|Description of Drop
+	{ "DragEnter", PyIDropTarget::DragEnter, 1 }, // @pymeth DragEnter|Called when an object is initially dragged into a window
+	{ "DragOver", PyIDropTarget::DragOver, 1 }, // @pymeth DragOver|Called as the dragged object moves over the window
+	{ "DragLeave", PyIDropTarget::DragLeave, 1 }, // @pymeth DragLeave|Called as the object is dragged back out of the window
+	{ "Drop", PyIDropTarget::Drop, 1 }, // @pymeth Drop|Called when the object is dropped onto the window
 	{ NULL }
 };
 

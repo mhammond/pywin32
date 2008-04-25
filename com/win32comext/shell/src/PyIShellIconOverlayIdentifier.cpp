@@ -24,14 +24,15 @@ PyIShellIconOverlayIdentifier::~PyIShellIconOverlayIdentifier()
 	return (IShellIconOverlayIdentifier *)PyIUnknown::GetI(self);
 }
 
-// @pymethod |PyIShellIconOverlayIdentifier|IsMemberOf|Description of IsMemberOf.
+// @pymethod int|PyIShellIconOverlayIdentifier|IsMemberOf|Determines if a shell object should have an icon overlay
+// @rdesc Implementation of this function should return winerror.S_OK to display the overlay, S_FALSE if not, or E_FAIL on error
 PyObject *PyIShellIconOverlayIdentifier::IsMemberOf(PyObject *self, PyObject *args)
 {
 	IShellIconOverlayIdentifier *pISIOI = GetI(self);
 	if ( pISIOI == NULL )
 		return NULL;
-	// @pyparm string/<o unicode>|path||Description for path
-	// @pyparm int|attrib||Description for attrib
+	// @pyparm <o PyUnicode>|path||Fully qualified path of the shell object
+	// @pyparm int|attrib||Shell attributes, combination of shellcon.SFGAO_* flags
 	PyObject *obpath;
 	LPWSTR path;
 	DWORD attrib;
@@ -54,7 +55,9 @@ PyObject *PyIShellIconOverlayIdentifier::IsMemberOf(PyObject *self, PyObject *ar
 
 }
 
-// @pymethod |PyIShellIconOverlayIdentifier|GetOverlayInfo|Description of GetOverlayInfo.
+// @pymethod (<o PyUnicode>, int, int)|PyIShellIconOverlayIdentifier|GetOverlayInfo|Retrieves the path to the overlay icon
+// @rdesc Returns the path to the icon file, the index of icon within the file, and Flags containing
+//	combination of shellcon.ISIOI_ICON* flags
 PyObject *PyIShellIconOverlayIdentifier::GetOverlayInfo(PyObject *self, PyObject *args)
 {
 	IShellIconOverlayIdentifier *pISIOI = GetI(self);
@@ -78,7 +81,8 @@ PyObject *PyIShellIconOverlayIdentifier::GetOverlayInfo(PyObject *self, PyObject
 	return pyretval;
 }
 
-// @pymethod |PyIShellIconOverlayIdentifier|GetPriority|Description of GetPriority.
+// @pymethod int|PyIShellIconOverlayIdentifier|GetPriority|Retrieves the relative priority of the overlay
+// @rdesc Implementation of this function should return a number in the range 0-100 (0 is highest priority)
 PyObject *PyIShellIconOverlayIdentifier::GetPriority(PyObject *self, PyObject *args)
 {
 	IShellIconOverlayIdentifier *pISIOI = GetI(self);
@@ -99,12 +103,12 @@ PyObject *PyIShellIconOverlayIdentifier::GetPriority(PyObject *self, PyObject *a
 	return pyretval;
 }
 
-// @object PyIShellIconOverlayIdentifier|Description of the interface
+// @object PyIShellIconOverlayIdentifier|Interface that supplies icon overlay information to the shell
 static struct PyMethodDef PyIShellIconOverlayIdentifier_methods[] =
 {
-	{ "IsMemberOf", PyIShellIconOverlayIdentifier::IsMemberOf, 1 }, // @pymeth IsMemberOf|Description of IsMemberOf
-	{ "GetOverlayInfo", PyIShellIconOverlayIdentifier::GetOverlayInfo, 1 }, // @pymeth GetOverlayInfo|Description of GetOverlayInfo
-	{ "GetPriority", PyIShellIconOverlayIdentifier::GetPriority, 1 }, // @pymeth GetPriority|Description of GetPriority
+	{ "IsMemberOf", PyIShellIconOverlayIdentifier::IsMemberOf, 1 }, // @pymeth IsMemberOf|Determines if a shell object should have an icon overlay
+	{ "GetOverlayInfo", PyIShellIconOverlayIdentifier::GetOverlayInfo, 1 }, // @pymeth GetOverlayInfo|Retrieves the path to the overlay icon
+	{ "GetPriority", PyIShellIconOverlayIdentifier::GetPriority, 1 }, // @pymeth GetPriority|Retrieves the relative priority of the overlay
 	{ NULL }
 };
 
