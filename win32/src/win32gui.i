@@ -31,6 +31,7 @@
 #include "winuser.h"
 #include "commctrl.h"
 #include "windowsx.h" // For edit control hacks.
+#include "Dbt.h" // device notification
 #include "malloc.h"
 
 #ifdef MS_WINCE
@@ -172,8 +173,10 @@ public:
 PyObject *PyWinObject_FromGdiHANDLE(HGDIOBJ h)
 {
 	PyObject *ret=new PyGdiHANDLE(h);
-	if (ret==NULL)
-		PyErr_NoMemory();
+	if (ret==NULL) {
+            DeleteObject(h);
+	    PyErr_NoMemory();
+        }
 	return ret;
 }
 %}
@@ -214,6 +217,39 @@ typedef float HPEN, HBRUSH, HFONT, HRGN, HBITMAP;
 		return PyWin_SetAPIError("$name");
 		}
 }
+
+%{
+// @object PyHDEVNOTIFY|A handle returned by RegisterDeviceNotifications which
+//      automatically calls UnregisterDeviceNotification on destruction.
+//	Inherits the methods and properties of <o PyHANDLE>.
+class PyHDEVNOTIFY: public PyHANDLE
+{
+public:
+	PyHDEVNOTIFY(HANDLE hInit) : PyHANDLE(hInit) {}
+	virtual BOOL Close(void){
+		BOOL ret=UnregisterDeviceNotification(m_handle);
+		if (!ret)
+			PyWin_SetAPIError("UnregisterDeviceNotification");
+		m_handle = 0;
+		return ret;
+		}
+	virtual const char *GetTypeName(){
+		return "PyHDEVNOTIFY";
+		}
+};
+
+PyObject *PyWinObject_FromHDEVNOTIFY(HGDIOBJ h)
+{
+	PyObject *ret=new PyHDEVNOTIFY(h);
+	if (ret==NULL) {
+            UnregisterDeviceNotification(h);
+	    PyErr_NoMemory();
+        }
+	return ret;
+}
+%}
+// TODO: SWIG support for PyHDEVNOTIFY - but SWIG currently doesn't use it.
+
 
 // Written to the module init function.
 %init %{
@@ -1446,14 +1482,24 @@ static PyObject *PyMakeBuffer(PyObject *self, PyObject *args)
 	static char *input_fmt="l|l:PyMakeBuffer";
 #endif
 	// @pyparm int|len||length of the buffer object
-	// @pyparm int|addr||Address of the memory to reference
+	// @pyparm int|addr||Address of the memory to reference.  If zero or not
+	// specified, a new buffer object is created with the specified size.
+	// @todo We should consider deprecating and dropping the behaviour when
+	// the address is zero - it leads to unexpected bugs, as passing NULL
+	// appears to return a reference to what was valid memory.
 	if (!PyArg_ParseTuple(args, input_fmt, &len,&addr))
 		return NULL;
 
 	if(NULL == addr) 
 		return PyBuffer_New(len);
-	else
+	else {
+		if (IsBadReadPtr(addr, len)) {
+			PyErr_SetString(PyExc_ValueError,
+							"The value is not a valid address for reading");
+			return NULL;
+		}
 		return PyBuffer_FromMemory(addr, len);
+	}
 }
 %}
 %native (PyMakeBuffer) PyMakeBuffer;
@@ -1476,15 +1522,15 @@ static PyObject *PyGetString(PyObject *self, PyObject *args)
 		return NULL;
 
 	if (len==-1)
-		len = _tcslen(addr);
+		len = strlen(addr);
 
-    if (len == 0) return PyUnicodeObject_FromString("");
+    if (len == 0) return PyString_FromString("");
     if (IsBadReadPtr(addr, len)) {
         PyErr_SetString(PyExc_ValueError,
                         "The value is not a valid address for reading");
         return NULL;
     }
-    return PyWinObject_FromTCHAR(addr, len);
+    return PyString_FromStringAndSize(addr, len);
 }
 %}
 %native (PyGetString) PyGetString;
@@ -7331,3 +7377,42 @@ PyObject *PyEnumPropsEx(PyObject *self, PyObject *args)
 // strictly available in win2kpro, but this will do for now...
 HWND GetConsoleWindow();
 #endif
+
+%{
+// @pyswig <o PyHDEVNOTIFY>|RegisterDeviceNotification|Registers the device or type of device for which a window will receive notifications.
+PyObject *PyRegisterDeviceNotification(PyObject *self, PyObject *args)
+{
+	unsigned int flags;
+	PyObject *obh, *obFilter;
+	if (!PyArg_ParseTuple(args, "OOk:RegisterDeviceNotification",
+			      &obh, // @pyparm <o PyHANDLE>|handle||The handle to a window or a service
+			      &obFilter, // @pyparm buffer|filter||A buffer laid out like one of the DEV_BROADCAST_* structures, generally built by one of the win32gui_struct helpers.
+			      &flags)) // @pyparm int|flags||
+		return NULL;
+	HANDLE handle;
+	if (!PyWinObject_AsHANDLE(obh, &handle))
+		return NULL;
+	const void *filter;
+	Py_ssize_t nbytes;
+	if (PyObject_AsReadBuffer(obFilter, &filter, &nbytes)==-1)
+		return NULL;
+	// basic sanity check.
+	Py_ssize_t struct_bytes = ((DEV_BROADCAST_HDR *)filter)->dbch_size;
+	if (nbytes != struct_bytes)
+		return PyErr_Format(PyExc_ValueError,
+				"buffer isn't a DEV_BROADCAST_* structure: "
+				"structure says it has %d bytes, but %d was provided",
+				(int)struct_bytes, (int)nbytes);
+	// @pyseeapi RegisterDeviceNotification
+	HDEVNOTIFY not = RegisterDeviceNotification(handle, (void *)filter, flags);
+	if (not == NULL)
+		return PyWin_SetAPIError("RegisterDeviceNotification");
+	return PyWinObject_FromHDEVNOTIFY(not);
+}
+%}
+%native(RegisterDeviceNotification) PyRegisterDeviceNotification;
+
+// @pyswig |UnregisterDeviceNotification|Unregisters a Device Notification handle.
+// It is generally not necessary to call this function manually, but in some cases,
+// handle values may be extracted via the struct module and need to be closed explicitly.
+BOOLAPI UnregisterDeviceNotification(HANDLE);

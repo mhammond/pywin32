@@ -7,6 +7,10 @@ However contributors are encouraged to add their own entries for their work.
 
 Since build 210:
 ----------------
+* Support for RegisterDeviceNotification in win32gui and for packing and
+  unpacking the various structures in win32gui_struct.  Demos in 
+  win32\Demos\win32gui_devicenotify.py and service\serviceEvents.py
+
 * adodbapi added to pywin32 package CVS tree:
 - this pure python package is a fully dbapi 2.0 compliant database access
   method. This is a copy of the code from the adodbapi sourceforge project,

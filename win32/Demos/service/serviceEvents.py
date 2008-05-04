@@ -1,8 +1,21 @@
 # A Demo of a service that takes advantage of the additional notifications
 # available in later Windows versions.
+
+# Note that all output is written as event log entries - so you must install
+# and start the service, then look at the event log for messages as events
+# are generated.
+
+# Events are generated for USB device insertion and removal, power state
+# changes and hardware profile events - so try putting your computer to
+# sleep and waking it, inserting a memory stick, etc then check the event log
+
 import win32serviceutil, win32service
 import win32event
 import servicemanager
+
+# Most event notification support lives around win32gui
+import win32gui, win32gui_struct, win32con
+GUID_DEVINTERFACE_USB_DEVICE = "{A5DCBF10-6530-11D2-901F-00C04FB951ED}"
 
 class EventDemoService(win32serviceutil.ServiceFramework):
     _svc_name_ = "PyServiceEventDemo"
@@ -12,6 +25,12 @@ class EventDemoService(win32serviceutil.ServiceFramework):
     def __init__(self, args):
         win32serviceutil.ServiceFramework.__init__(self, args)
         self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
+        # register for a device notification - we pass our service handle
+        # instead of a window handle.
+        filter = win32gui_struct.PackDEV_BROADCAST_DEVICEINTERFACE(
+                                        GUID_DEVINTERFACE_USB_DEVICE)
+        self.hdn = win32gui.RegisterDeviceNotification(self.ssh, filter,
+                                    win32con.DEVICE_NOTIFY_SERVICE_HANDLE)
 
     # Override the base class so we can accept additional events.
     def GetAcceptedControls(self):
@@ -19,6 +38,7 @@ class EventDemoService(win32serviceutil.ServiceFramework):
         rc = win32serviceutil.ServiceFramework.GetAcceptedControls(self)
         rc |= win32service.SERVICE_ACCEPT_PARAMCHANGE \
               | win32service.SERVICE_ACCEPT_NETBINDCHANGE \
+              | win32service.SERVICE_CONTROL_DEVICEEVENT \
               | win32service.SERVICE_ACCEPT_HARDWAREPROFILECHANGE \
               | win32service.SERVICE_ACCEPT_POWEREVENT \
               | win32service.SERVICE_ACCEPT_SESSIONCHANGE
@@ -29,8 +49,10 @@ class EventDemoService(win32serviceutil.ServiceFramework):
     def SvcOtherEx(self, control, event_type, data):
         # This is only showing a few of the extra events - see the MSDN
         # docs for "HandlerEx callback" for more info.
-        # XXX can't do SERVICE_CONTROL_DEVICEEVENT until we wrap RegisterDeviceNotification.
-        if control == win32service.SERVICE_CONTROL_HARDWAREPROFILECHANGE:
+        if control == win32service.SERVICE_CONTROL_DEVICEEVENT:
+            info = win32gui_struct.UnpackDEV_BROADCAST(data)
+            msg = "A device event occurred: %x - %s" % (event_type, info)
+        elif control == win32service.SERVICE_CONTROL_HARDWAREPROFILECHANGE:
             msg = "A hardware profile changed: type=%s, data=%s" % (event_type, data)
         elif control == win32service.SERVICE_CONTROL_POWEREVENT:
             msg = "A power event: setting %s" % data

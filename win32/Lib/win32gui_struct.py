@@ -23,12 +23,16 @@
 # support 'attributes' etc - however, ctypes already has a good structure
 # mechanism - I think it makes more sense to support ctype structures
 # at the win32gui level, then there will be no need for this module at all.
+# XXX - the above makes sense in terms of what is built and passed to
+# win32gui (ie, the Pack* functions) - but doesn't make as much sense for
+# the Unpack* functions, where the aim is user convenience.
 
 import win32gui
 import win32con
 import struct
 import array
 import commctrl
+import pywintypes
 
 # Generic WM_NOTIFY unpacking
 def UnpackWMNOTIFY(lparam):
@@ -555,3 +559,67 @@ def PackHDITEM(cxy = None, text = None, hbm = None, fmt = None,
                       mask, cxy, text_addr, hbm, text_len,
                       fmt, param, image, order, 0, 0)
     return array.array("c", buf), extra
+
+# Device notification stuff
+
+# Generic function for packing a DEV_BROADCAST_* structure - generally used
+# by the other PackDEV_BROADCAST_* functions in this module.
+def PackDEV_BROADCAST(devicetype, rest_fmt, rest_data, extra_data=''):
+    # It seems a requirement is 4 byte alignment, even for the 'BYTE data[1]'
+    # field (eg, that would make DEV_BROADCAST_HANDLE 41 bytes, but we must
+    # be 44.
+    extra_data += '\0' * (4-len(extra_data)%4)
+    format = "iii" + rest_fmt
+    full_size = struct.calcsize(format) + len(extra_data)
+    data = (full_size, devicetype, 0) + rest_data
+    return struct.pack(format, *data) + extra_data
+
+def PackDEV_BROADCAST_HANDLE(handle, hdevnotify=0, guid="\0"*16, name_offset=0, data="\0"):
+    return PackDEV_BROADCAST(win32con.DBT_DEVTYP_HANDLE, "PP16sl",
+                             (long(handle), long(hdevnotify), str(buffer(guid)), name_offset),
+                             data)
+
+def PackDEV_BROADCAST_DEVICEINTERFACE(classguid, name=""):
+    rest_fmt = "16s%ds" % len(name)
+    # str(buffer(iid)) hoops necessary to get the raw IID bytes.
+    rest_data = (str(buffer(pywintypes.IID(classguid))), name)
+    return PackDEV_BROADCAST(win32con.DBT_DEVTYP_DEVICEINTERFACE, rest_fmt, rest_data)
+
+# An object returned by UnpackDEV_BROADCAST.
+class DEV_BROADCAST_INFO:
+    def __init__(self, devicetype, **kw):
+        self.devicetype = devicetype
+        self.__dict__.update(kw)
+    def __str__(self):
+        return "DEV_BROADCAST_INFO:" + str(self.__dict__)
+
+# Support for unpacking the 'lparam'    
+def UnpackDEV_BROADCAST(lparam):
+    # guard for 0 here, otherwise PyMakeBuffer will create a new buffer.
+    if lparam == 0:
+        return None
+    hdr_size = struct.calcsize("iii")
+    hdr_buf = win32gui.PyMakeBuffer(hdr_size, lparam)
+    size, devtype, reserved = struct.unpack("iii", hdr_buf)
+    rest = win32gui.PyMakeBuffer(size-hdr_size, lparam+hdr_size)
+
+    extra = x = {}
+    if devtype == win32con.DBT_DEVTYP_HANDLE:
+        # 2 handles, a GUID, a LONG and possibly an array following...
+        fmt = "PP16sl"
+        x['handle'], x['hdevnotify'], guid_bytes, x['nameoffset'] = \
+            struct.unpack(fmt, rest[:struct.calcsize(fmt)])
+        x['eventguid'] = pywintypes.IID(guid_bytes, True)
+    elif devtype == win32con.DBT_DEVTYP_DEVICEINTERFACE:
+        # guid, null-terminated name
+        x['classguid'] = pywintypes.IID(rest[:16], 1)
+        name = rest[16:]
+        if '\0' in name:
+            name = name.split('\0', 1)[0]
+        x['name'] = name
+    elif devtype == win32con.DBT_DEVTYP_VOLUME:
+        # int mask and flags
+        x['unitmask'], x['flags'] = struct.unpack("II", rest[:struct.calcsize("II")])
+    else:
+        raise NotImplementedError("unknown device type %d" % (devtype,))
+    return DEV_BROADCAST_INFO(devtype, **extra)
