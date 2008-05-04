@@ -325,7 +325,7 @@ static struct PyMethodDef PyITask_methods[] =
 };
 
 PyComTypeObject PyITask::type("PyITask",
-		&PyIScheduledWorkItem::type,
+		&PyIScheduledWorkItem::type,	// @base PyITask|PyIScheduledWorkItem
 		sizeof(PyITask),
 		PyITask_methods,
 		GET_PYCOM_CTOR(PyITask));
