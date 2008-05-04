@@ -435,7 +435,7 @@ PyCFunction pfnpy_DeviceIoControl=(PyCFunction)py_DeviceIoControl;
 
 //FileIOCompletionRoutine	
 
-// @pyswig |FindClose|Closes a handle opened with <om win32file.FindOpen>
+// @pyswig |FindClose|Closes a find handle.
 BOOLAPI FindClose(HANDLE hFindFile);	// @pyparm int|hFindFile||file search handle
 
 #ifndef MS_WINCE 
