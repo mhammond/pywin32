@@ -364,13 +364,14 @@ $(def1)$3$(par)
 .format=<A HREF="#2_int.html">$2</A>$(par)
 .if=exists($2_int), tagexists(interface)
 
+
+; Bases for COM interfaces and objects
 .tag=base, html, 2, 1
 .pre=$(rmh)Based On$(rmhe)
-.format=$(cb)$2$(cbe)$(par)
-.if=tagexists(interface)
+.format=<A HREF="#2.html">$2</A>
+.if=tagexists(object)
 
-.tag=base, html, 2, 1
-.format=
+
 ; Return value
 .tag=rvalue, html, 2, 1
 .pre=<TABLE>
