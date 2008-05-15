@@ -38,27 +38,6 @@ public:
 		strncpy(m_pECB->lpszLogData, msg, HSE_LOG_BUFFER_LEN);
 	}
 
-	DWORD WriteHeaders(LPCTSTR szStatus, LPCTSTR szHeader, const bool bKeepAlive=true)
-	{
-		//  NOTE we must send Content-Length header with correct byte count
-		//  in order for keep-alive to work, the bKeepAlive flag is not enough
-		//  by itself..
-
-		HSE_SEND_HEADER_EX_INFO  SendHeaderExInfo;
-	    DWORD cchStatus = lstrlen(szStatus);
-		DWORD cchHeader = lstrlen(szHeader);
-
-		//  Populate SendHeaderExInfo struct
-	    SendHeaderExInfo.pszStatus = szStatus;
-		SendHeaderExInfo.pszHeader = szHeader;
-		SendHeaderExInfo.cchStatus = cchStatus;
-		SendHeaderExInfo.cchHeader = cchHeader;
-        SendHeaderExInfo.fKeepConn = (bKeepAlive) ? TRUE:FALSE;
-
-		//  Send header
-		return m_pECB->ServerSupportFunction(m_pECB->ConnID, HSE_REQ_SEND_RESPONSE_HEADER_EX, &SendHeaderExInfo, NULL,NULL);
-	}
-
 	DWORD WriteStream(LPCTSTR buffer, const int buffLen, const int reserved=0)
 	{
 		DWORD dwBufLen = buffLen;	

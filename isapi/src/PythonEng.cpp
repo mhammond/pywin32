@@ -367,7 +367,14 @@ void ExtensionError(CControlBlock *pcb, LPCTSTR errmsg)
 	
 		pcb->SetStatus(HSE_STATUS_ERROR);
 		pcb->SetLogMessage(errmsg);
-		pcb->WriteHeaders(_T("200 OK"), _T("Content-type: text/html\r\n\r\n"), false);
+		HSE_SEND_HEADER_EX_INFO SendHeaderExInfo;
+		SendHeaderExInfo.pszStatus = "200 OK";
+		SendHeaderExInfo.cchStatus = strlen(SendHeaderExInfo.pszStatus);
+		SendHeaderExInfo.pszHeader = "Content-type: text/html\r\n\r\n";
+		SendHeaderExInfo.cchHeader = strlen(SendHeaderExInfo.pszHeader);
+		SendHeaderExInfo.fKeepConn = FALSE;
+		EXTENSION_CONTROL_BLOCK * ecb = pcb->GetECB();
+		ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_SEND_RESPONSE_HEADER_EX, &SendHeaderExInfo, NULL,NULL);
 		pcb->WriteStream(htmlStream, strlen(htmlStream));
 		if (windows_error) {
 			static char *chunk = "<br>Last Windows error:";

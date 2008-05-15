@@ -147,6 +147,7 @@ static struct PyMethodDef PyECB_methods[] = {
 	{"GetServerVariable",		PyECB::GetServerVariable, 1},	 // @pymeth GetServerVariable|
 	{"ReadClient",				PyECB::ReadClient, 1},			 // @pymeth ReadClient|
 	{"SendResponseHeaders",	    PyECB::SendResponseHeaders, 1},  // @pymeth SendResponseHeaders|
+	{"SetFlushFlag",	    PyECB::SetFlushFlag, 1},  // @pymeth SetFlushFlag|
 	{"TransmitFile",	    PyECB::TransmitFile, 1},  // @pymeth TransmitFile|
 	{"MapURLToPath",	    PyECB::MapURLToPath, 1},  // @pymeth MapURLToPath|
 	
@@ -451,20 +452,61 @@ PyObject * PyECB::SendResponseHeaders(PyObject *self, PyObject * args)
 	PyECB * pecb = (PyECB *) self;
 	if (!pecb || !pecb->Check()) return NULL;
 
+	HSE_SEND_HEADER_EX_INFO SendHeaderExInfo;
 	// @pyparm string|reply||
 	// @pyparm string|headers||
 	// @pyparm bool|keepAlive|False|
-	if (!PyArg_ParseTuple(args, "ss|i:SendResponseHeaders", &reply, &headers, &bKeepAlive))
+	if (!PyArg_ParseTuple(args, "s#s#|i:SendResponseHeaders",
+			            &SendHeaderExInfo.pszStatus, &SendHeaderExInfo.cchStatus,
+				    &SendHeaderExInfo.pszHeader, &SendHeaderExInfo.cchHeader,
+				    &bKeepAlive))
+		return NULL;
+
+	SendHeaderExInfo.fKeepConn = (bKeepAlive) ? TRUE:FALSE;
+	if (pecb->m_pcb){
+		Py_BEGIN_ALLOW_THREADS
+		//  NOTE we must send Content-Length header with correct byte count
+		//  in order for keep-alive to work, the bKeepAlive flag is not enough
+		//  by itself..
+		//  Send header
+		EXTENSION_CONTROL_BLOCK * ecb = pecb->m_pcb->GetECB();
+		bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_SEND_RESPONSE_HEADER_EX, &SendHeaderExInfo, NULL,NULL);
+		Py_END_ALLOW_THREADS
+		if (!bRes)
+			return SetPyECBError("ServerSupportFunction(HSE_REQ_SEND_RESPONSE_HEADER_EX)");
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+#ifndef HSE_REQ_SET_FLUSH_FLAG
+// *sigh* - need a better strategy here - maybe just insist on later SDK and
+// #error with a helpful message?
+#pragma message("You don't appear to have a late platform SDK that supports IIS7")
+#define   HSE_REQ_SET_FLUSH_FLAG                   (HSE_REQ_END_RESERVED+43)
+#endif
+
+// @pymethod |EXTENSION_CONTROL_BLOCK|SetFlushFlag|Calls ServerSupportFunction with HSE_REQ_SET_FLUSH_FLAG.
+PyObject * PyECB::SetFlushFlag(PyObject *self, PyObject * args)
+{
+	int f;
+	PyECB * pecb = (PyECB *) self;
+	if (!pecb || !pecb->Check()) return NULL;
+
+	// @pyparm bool|flag||
+	if (!PyArg_ParseTuple(args, "i:SetFlushFlag", &f))
 		return NULL;
 
 	if (pecb->m_pcb){
+		BOOL bRes;
 		Py_BEGIN_ALLOW_THREADS
-		bRes = pecb->m_pcb->WriteHeaders(reply,headers,(bKeepAlive!=0)?true:false);
+		EXTENSION_CONTROL_BLOCK * ecb = pecb->m_pcb->GetECB();
+		bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_SET_FLUSH_FLAG, (LPVOID)f, NULL,NULL);
 		Py_END_ALLOW_THREADS
 		if (!bRes)
-			return SetPyECBError("SendResponseHeaders");
+			return SetPyECBError("ServerSupportFunction(HSE_REQ_SET_FLUSH_FLAG)");
 	}
-
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -487,7 +529,7 @@ PyObject * PyECB::Redirect(PyObject *self, PyObject * args)
 		bRes = pecb->m_pcb->Redirect(url);
 		Py_END_ALLOW_THREADS
 		if (!bRes)
-			return SetPyECBError("Redirect");
+			return SetPyECBError("ServerSupportFunction(HSE_REQ_SEND_URL_REDIRECT_RESP)");
 	}
 
 	Py_INCREF(Py_None);
@@ -508,7 +550,7 @@ PyObject * PyECB::GetImpersonationToken(PyObject *self, PyObject *args)
 	bRes = pecb->m_pcb->GetImpersonationToken(&handle);
 	Py_END_ALLOW_THREADS
 	if (!bRes)
-			return SetPyECBError("GetImpersonationToken");
+			return SetPyECBError("ServerSupportFunction(HSE_REQ_GET_IMPERSONATION_TOKEN)");
 	return PyLong_FromVoidPtr(handle);
 }
 
@@ -525,7 +567,7 @@ PyObject * PyECB::IsKeepConn(PyObject *self, PyObject *args)
 	bRes = pecb->m_pcb->IsKeepConn(&bIs);
 	Py_END_ALLOW_THREADS
 	if (!bRes)
-		return SetPyECBError("IsKeepCon");
+		return SetPyECBError("ServerSupportFunction(HSE_REQ_IS_KEEP_CONN)");
 	return PyBool_FromLong(bIs);
 }
 
@@ -619,7 +661,7 @@ PyObject * PyECB::TransmitFile(PyObject *self, PyObject *args)
 	if (!bRes) {
 		// ack - the completion routine will not be called - clean up!
 		context->Cleanup();
-		return SetPyECBError("TransmitFile");
+		return SetPyECBError("ServerSupportFunction(HSE_REQ_TRANSMIT_FILE)");
 	}
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -647,7 +689,7 @@ PyObject * PyECB::IsKeepAlive(PyObject *self, PyObject * args)
 	return PyInt_FromLong((bKeepAlive)?1:0);
 }
 
-// @pymethod |EXTENSION_CONTROL_BLOCK|MapURLToPath|
+// @pymethod |EXTENSION_CONTROL_BLOCK|MapURLToPath|Calls ServerSupportFunction with HSE_REQ_MAP_URL_TO_PATH
 PyObject * PyECB::MapURLToPath(PyObject *self, PyObject * args)
 {
 	PyECB * pecb = (PyECB *) self;
@@ -667,7 +709,7 @@ PyObject * PyECB::MapURLToPath(PyObject *self, PyObject * args)
 	ok = pecb->m_pcb->MapURLToPath(buffer, &bufSize);
 	Py_END_ALLOW_THREADS
 	if (!ok)
-		return SetPyECBError("MapURLToPath");
+		return SetPyECBError("ServerSupportFunction(HSE_REQ_MAP_URL_TO_PATH)");
 	return PyString_FromString(buffer);
 }
 
