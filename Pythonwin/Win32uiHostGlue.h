@@ -114,12 +114,12 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const char *cmd, const char 
 	char *szWinui_Name = "win32ui.pyd";
 #endif
 	// god damn - this all should die.
-	// The problem is finding the correct Python.
-	// If we can get win32ui loaded, we can get the version from that.
-	// Otherwise, we can try and find a Python.dll in the current directory.
+	// The problem is finding the correct win32ui.pyd and the correct
+	// Python.
+	// If we can get win32ui loaded, we can get Python from that.
+	// Otherwise, we can try and find a Python.dll in various directories,
+	// then try again.
 	// Otherwise we give up in disgust.
-	// (A brutal search trying a LoadLibrary on *all* Pythons we find is very
-	// unlikely to come up with the right one.
 	char app_dir[MAX_PATH];
 	strcpy(app_dir, "\0");
 	GetModuleFileName(NULL, app_dir, sizeof(app_dir));
@@ -131,54 +131,68 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const char *cmd, const char 
 	char fname[MAX_PATH*2];
 
 	HMODULE hModCore = NULL;
-	int i;
+	// There are 2 cases we care about: 
+	// * pythonwin.exe next to win32ui, in lib\site-packages\pythonwin
+	// * pythonwin.exe next to python.exe, in sys.home - this is for
+	//   older style installs and for custom layouts.
+	// * a kind-of sub-case - handle the PCBuild directory
+	char *py_dll_candidates[] = {
+			"..\\..\\..", // lib\site-packages\pythonwin
+#ifdef _M_X64
+			"..\\..\\..\\PCBuild\\amd64",
+#else
+			"..\\..\\..\\PCBuild",
+#endif
+			// and relative to the root of the py dir.
+			"",
+#ifdef _M_X64
+			"PCBuild\\amd64",
+#else
+			"PCBuild",
+#endif
+	};
+	char py_dll[20];
+#ifdef _DEBUG
+	wsprintf(py_dll, "Python%d%d_d.dll", PY_MAJOR_VERSION, PY_MINOR_VERSION);
+#else
+	wsprintf(py_dll, "Python%d%d.dll", PY_MAJOR_VERSION, PY_MINOR_VERSION);
+#endif
+	// try it simple - if we can load the module we are done.
 	HMODULE hModWin32ui = LoadLibrary(szWinui_Name);
 	if (hModWin32ui==NULL) {
-		// try an installed version
+		// try an installed version (old versions installed pythonwin.exe next
+		// to python.exe - but we shouldn't get here if pythonwin.exe is next
+		// to win32ui)
 		wsprintf(fname, "%s\\%s\\%s", app_dir, "lib\\site-packages\\pythonwin", szWinui_Name);
 		hModWin32ui = LoadLibrary(fname);
 	}
 	if (hModWin32ui==NULL) {
-		// Still no need to give up - try a local Python.
-		for (i=15;i<40;i++) {
-#ifdef _DEBUG
-			wsprintf(fname, "%s\\Python%d_d.dll", app_dir, i);
-#else
-			wsprintf(fname, "%s\\Python%d.dll", app_dir, i);
-#endif
+		// 2 main reasons we get here: can't load MFC, or can't load
+		// Python itself.  We try and handle the latter now...
+		int i;
+		const int ncandidates = sizeof(py_dll_candidates)/sizeof(py_dll_candidates[0]);
+		for (i=0;i<ncandidates && hModCore==0;i++) {
+			wsprintf(fname, "%s\\%s\\%s", app_dir, py_dll_candidates[i], py_dll);
 			hModCore = LoadLibrary(fname);
-			if (hModCore)
-				break;
 		}
-		if (!hModCore) {
-			// No Python, no win32ui :(
-			char buf[256];
-			sprintf(buf,"The application can not locate %s (or Python) (%d)\n", szWinui_Name, GetLastError()); 
-			Py_ssize_t len = strlen(buf);
-			Py_ssize_t bufLeft = sizeof(buf) - len;
-			FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), 
-				MAKELANGID(LANG_NEUTRAL,SUBLANG_NEUTRAL), 
-				buf+len, PyWin_SAFE_DOWNCAST(bufLeft, Py_ssize_t, DWORD),
-				NULL);
-			AfxMessageBox(buf);
-			return FALSE;
+		if (hModCore) {
+				hModWin32ui = LoadLibrary(szWinui_Name);
 		}
+	} else {
+		hModCore = GetModuleHandle(py_dll);
+		ASSERT(hModCore); // loaded win32ui, how can I not have a handle to python?
 	}
 	if (!hModCore) {
-		for (i=15;i<40;i++) {
-			char fname[20];
-	#ifdef _DEBUG
-			wsprintf(fname, "Python%d_d.dll", i);
-	#else
-			wsprintf(fname, "Python%d.dll", i);
-	#endif
-			hModCore = GetModuleHandle(fname);
-			if (hModCore)
-				break;
-		}
-	}
-	if (hModCore==NULL) {
-		AfxMessageBox("Can not locate the Python DLL");
+		// No Python, no win32ui :(
+		char buf[256];
+		sprintf(buf,"The application can not locate %s (or Python) (%d)\n", szWinui_Name, GetLastError()); 
+		Py_ssize_t len = strlen(buf);
+		Py_ssize_t bufLeft = sizeof(buf) - len;
+		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), 
+			MAKELANGID(LANG_NEUTRAL,SUBLANG_NEUTRAL), 
+			buf+len, PyWin_SAFE_DOWNCAST(bufLeft, Py_ssize_t, DWORD),
+			NULL);
+		AfxMessageBox(buf);
 		return FALSE;
 	}
 	// Now the modules are loaded, call the Python init functions.
