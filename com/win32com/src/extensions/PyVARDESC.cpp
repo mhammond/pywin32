@@ -56,6 +56,9 @@ BOOL PyObject_AsVARDESC(PyObject *ob, VARDESC *v, void *pMore)
 			return NULL;
 		v->lpvarValue = pVar;
 	}
+	else {
+		PyCom_LoggerWarning(NULL, "PyObject_AsVARDESC has unknown varkind (%d) - None will be used", v->varkind);
+	}
 	// else ignore value.
 	return TRUE;
 }
@@ -141,9 +144,9 @@ PyVARDESC::PyVARDESC(const VARDESC *pVD)
 	wVarFlags = pVD->wVarFlags;
 	varkind = pVD->varkind;
 
-	if (pVD->varkind == VAR_PERINSTANCE)
+	if (varkind == VAR_PERINSTANCE)
 		value = PyInt_FromLong(pVD->oInst);
-	else if (pVD->varkind == VAR_CONST) {
+	else if (varkind == VAR_CONST) {
 		VARIANT varValue;
 
 		// Cast the variant type here to the correct value for this constant
@@ -158,6 +161,7 @@ PyVARDESC::PyVARDESC(const VARDESC *pVD)
 
 		VariantClear(&varValue);
 	} else {
+		PyCom_LoggerWarning(NULL, "PyVARDESC ctor has unknown varkind (%d) - returning None", varkind);
 		value = Py_None;
 		Py_INCREF(Py_None);
 	}
