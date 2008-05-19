@@ -98,7 +98,11 @@ def _ListAllHelpFilesInRoot(root):
 def SelectAndRunHelpFile():
 	from pywin.dialogs import list
 	helpFiles = ListAllHelpFiles()
-	index = list.SelectFromLists("Select Help file", helpFiles, ["Title"])
+	if len(helpFiles)==1:
+		# only 1 help file registered - probably ours - no point asking
+		index = 0
+	else:
+		index = list.SelectFromLists("Select Help file", helpFiles, ["Title"])
 	if index is not None:
 		OpenHelpFile(helpFiles[index][1])
 
