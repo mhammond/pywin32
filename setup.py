@@ -727,7 +727,8 @@ class my_build_ext(build_ext):
             if not self.compiler.initialized:
                 self.compiler.initialize()
 
-        self._fixup_sdk_dirs()
+        if sdk_dir:
+            self._fixup_sdk_dirs()
 
         # Here we hack a "pywin32" directory (one of 'win32', 'win32com',
         # 'pythonwin' etc), as distutils doesn't seem to like the concept
