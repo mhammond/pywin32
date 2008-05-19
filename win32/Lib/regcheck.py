@@ -3,7 +3,7 @@
 
 import warnings
 warnings.warn("The regcheck module has been pending deprecation since build 210",
-	      category=warnings.PendingDeprecationWarning)
+	      category=PendingDeprecationWarning)
 
 import win32con
 import regutil
