@@ -401,8 +401,10 @@ def install():
     # Unfortunately, this is quite likely on Windows XP and MFC71.dll
     if sys.hexversion < 0x2040000:
         mfc_dll = "mfc42.dll"
-    else:
+    elif sys.hexversion < 0x2060000:
         mfc_dll = "mfc71.dll"
+    else:
+        mfc_dll = "mfc90.dll"
     try:
         win32api.SearchPath(None, mfc_dll)
     except win32api.error:
