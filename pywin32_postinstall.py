@@ -242,6 +242,23 @@ def get_shortcuts_folder():
         install_group = "Python %d.%d" % (vi[0], vi[1])
     return os.path.join(fldr, install_group)
 
+# Get the system directory, which may be the Wow64 directory if we are a 32bit
+# python on a 64bit OS.
+def get_system_dir():
+    import win32api # we assume this exists.
+    try:
+        import pythoncom
+        import win32process
+        from win32com.shell import shell, shellcon
+        try:
+            if win32process.IsWow64Process():
+                return shell.SHGetSpecialFolderPath(0,shellcon.CSIDL_SYSTEMX86)
+            return shell.SHGetSpecialFolderPath(0,shellcon.CSIDL_SYSTEM)
+        except (pythoncom.com_error, win32process.error):
+            return win32api.GetSystemDirectory().encode('mbcs')
+    except ImportError:
+        return win32api.GetSystemDirectory().encode('mbcs')
+
 def install():
     import distutils.sysconfig
     import traceback
@@ -278,7 +295,7 @@ def install():
         raise RuntimeError, "No system files to copy!!"
     # Try the system32 directory first - if that fails due to "access denied",
     # it implies a non-admin user, and we use sys.prefix
-    for dest_dir in [win32api.GetSystemDirectory(), sys.prefix]:
+    for dest_dir in [get_system_dir(), sys.prefix]:
         # and copy some files over there
         worked = 0
         try:
@@ -477,8 +494,7 @@ def uninstall():
     # Try the system32 directory first - if that fails due to "access denied",
     # it implies a non-admin user, and we use sys.prefix
     try:
-        import win32api
-        for dest_dir in [win32api.GetSystemDirectory(), sys.prefix]:
+        for dest_dir in [get_system_dir(), sys.prefix]:
             # and copy some files over there
             worked = 0
             for fname in files:
