@@ -423,7 +423,9 @@ def install():
     else:
         mfc_dll = "mfc90.dll"
     try:
-        win32api.SearchPath(None, mfc_dll)
+        # It might be next to pythonwin itself.
+        if not os.path.isfile(os.path.join(lib_dir, "pythonwin", mfc_dll):
+            win32api.SearchPath(None, mfc_dll)
     except win32api.error:
         print "*" * 20, "WARNING", "*" * 20
         print "It appears that the MFC DLL '%s' is not installed" % (mfc_dll,)

@@ -16,7 +16,10 @@ extension modules that could not be built and why.
 Currently, the Vista SDK and DirectX SDK are required to successfully build
 all extension modules - note that using the Vista SDK doesn't force you to
 use Vista as your build environment.  Please use google to find the SDK -
-links to microsoft.com seem to only stay current for a short time.
+links to microsoft.com seem to only stay current for a short time.  Also note
+that the SDK that comes with VS2008 is not good enough to compile earlier
+versions.  If you installed VS2008 after the Vista SDK, try doing a 'repair'
+on your SDK install.
 
 Early versions of certain Windows headers/SDK versions will also cause
 certain modules to be skipped. If you don't use the extensions that fail to
@@ -772,6 +775,45 @@ class my_build_ext(build_ext):
             fname = clib_file[1] % suffix
             self.copy_file(
                     os.path.join(self.build_temp, fname), target_dir)
+        # The MFC DLLs.
+        try:
+            target_dir = os.path.join(self.build_lib, "pythonwin")
+            if sys.hexversion < 0x2040000:
+                pass # don't do anything for these early versions.
+            elif sys.hexversion < 0x2060000:
+                # hrm - there doesn't seem to be a 'redist' directory for this
+                # compiler (even the installation CDs only seem to have the MFC
+                # DLLs in the "win\system" directory - just grab it from
+                # system32 (but we can't even use win32api for that!)
+                src = os.path.join(os.environ.get('SystemRoot'), 'System32', 'mfc71.dll')
+                if not os.path.isfile(src):
+                    raise RuntimeError, "Can't find %r" % (src,)
+                self.copy_file(src, target_dir)
+            else:
+                # On a 64bit host, the value we are looking for is actually in
+                # SysWow64Node - but that is only available on xp and later.
+                access = _winreg.KEY_READ
+                if sys.getwindowsversion()[0] >= 5:
+                    access = access | 512 # KEY_WOW64_32KEY
+                if self.plat_name == 'win-amd64':
+                    plat_dir = "amd64"
+                else:
+                    plat_dir = "x86"
+                # Find the redist directory.
+                vckey = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+                                        r"SOFTWARE\Microsoft\VisualStudio\9.0\Setup\VC",
+                                        access)
+                val, val_typ = _winreg.QueryValueEx(vckey, "ProductDir")
+                mfc_dir = os.path.join(val, "redist", plat_dir, "Microsoft.VC90.MFC")
+                if not os.path.isdir(mfc_dir):
+                    raise RuntimeError, "Can't find the redist dir at %r" % (mfc_dir)
+                files = "mfc90.dll mfc90u.dll mfcm90.dll mfcm90u.dll Microsoft.VC90.MFC.manifest".split()
+                for f in files:
+                    self.copy_file(
+                            os.path.join(mfc_dir, f), target_dir)
+        except (EnvironmentError, RuntimeError), exc:
+            print "Can't find an installed VC for the MFC DLLs:", exc
+
 
     def build_exefile(self, ext):
         from types import ListType, TupleType
