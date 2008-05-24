@@ -17,10 +17,9 @@ Since build 210:
   which will eventually become obsolete in favor of this site. Inclusion here
   and maintenance of the package are by Vernon Cole.
 
-* Available for AMD64 versions of Windows.  Note that this requires the 
-  x86-64 version of Python 2.5.2, which was not yet available as build 211 
-  was released, but was expected shortly.  Lots of help from Roger, Steve Yin,
-  and Sidnei da Silva.
+* Available for AMD64 versions of Windows for Python 2.6 and later (support
+  for Python 2.5 is just too hard, sorry).  Lots of help from Roger, 
+  Steve Yin and Sidnei da Silva.
 
 * com related changes:
 
@@ -148,6 +147,9 @@ Since build 210:
   - Refcounting / GIL problems fixed by kxroberto.
   - Background pychecker plugin by kxroberto
   - Fix COM browser
+  - Problems calling SetWindowPost on an ActiveX control.
+  - Upgrade to scintilla 1.75
+  - Fix problems locating the Python DLL at startup.
 
 * isapi:
   - Handle server variables > 8k in length and also handle IIS6 'UNICODE_'
