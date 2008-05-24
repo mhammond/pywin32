@@ -1509,14 +1509,17 @@ PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
 {
 	if (pfnIsWow64Process==NULL)
 		return PyBool_FromLong(FALSE);
-	PyObject *obhprocess;
+	PyObject *obhprocess = Py_None;
 	HANDLE hprocess;
-	// @pyparm <o PyHANDLE>|Process||Handle to a process as returned by
-	// <om win32api.OpenProcess>, <om win32api.GetCurrentProcess>, etc
-	if (!PyArg_ParseTuple(args, "O:IsWow64Process", &obhprocess))
+	// @pyparm <o PyHANDLE>|Process|None|Handle to a process as returned by
+	// <om win32api.OpenProcess>, <om win32api.GetCurrentProcess>, etc, or
+	// will use the current process handle if None (the default) is passed.
+	if (!PyArg_ParseTuple(args, "|O:IsWow64Process", &obhprocess))
 		return NULL;
 	BOOL ret;
-	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess))
+	if (obhprocess == Py_None)
+		hprocess = ::GetCurrentProcess();
+	else if (!PyWinObject_AsHANDLE(obhprocess, &hprocess))
 		return NULL;
 	BOOL ok = (*pfnIsWow64Process)(hprocess, &ret);
 	if (!ok)
