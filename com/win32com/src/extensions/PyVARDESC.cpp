@@ -151,15 +151,30 @@ PyVARDESC::PyVARDESC(const VARDESC *pVD)
 
 		// Cast the variant type here to the correct value for this constant
 		// so that the correct Python type will be created below.
-		//
-		// I am not sure why is there a difference between the variant data
-		// passed in from the type library and the exported type...
-		VariantInit(&varValue);
-		VariantChangeType(&varValue, pVD->lpvarValue, 0, pVD->elemdescVar.tdesc.vt);
+		// The problem seems to exist for unsigned types (the variant has
+		// a signed type, but the typelib has an unsigned one).  However,
+		// doing this unconditionally has side-effects, as the typelib
+		// has VT_LPWSTR for the type of strings - and VariantChangeType
+		// returns a VT_EMPTY variant in that case.
+		// So we only perform this conversion for types known to be a problem:
+		switch (pVD->elemdescVar.tdesc.vt) {
+		case VT_UI1:
+		case VT_UI2:
+		case VT_UI4:
+		case VT_UI8:
+		case VT_UINT:
+		case VT_UINT_PTR:
+			VariantInit(&varValue);
+			VariantChangeType(&varValue, pVD->lpvarValue, 0, pVD->elemdescVar.tdesc.vt);
 
-		value  = PyCom_PyObjectFromVariant(&varValue);
+			value  = PyCom_PyObjectFromVariant(&varValue);
 
-		VariantClear(&varValue);
+			VariantClear(&varValue);
+			break;
+		default:
+			value  = PyCom_PyObjectFromVariant(pVD->lpvarValue);
+			break;
+		}
 	} else {
 		PyCom_LoggerWarning(NULL, "PyVARDESC ctor has unknown varkind (%d) - returning None", varkind);
 		value = Py_None;

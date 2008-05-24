@@ -55,7 +55,7 @@ def TestConstant(constName, pyConst):
     except:
         raise error, "Constant %s missing" % (constName,)
     if comConst != pyConst:
-        raise error, "Constant value wrong for %s - got %d, wanted %d" % (constName, comConst, pyConst)
+        raise error, "Constant value wrong for %s - got %s, wanted %s" % (constName, comConst, pyConst)
 
 # Simple handler class.  This demo only fires one event.
 class RandomEventHandler:
@@ -276,6 +276,7 @@ def TestGenerated():
     TestConstant("LongTest2", 0x7FFFFFFFL)
     TestConstant("UCharTest", 255)
     TestConstant("CharTest", -1)
+    TestConstant("StringTest", "Hello Loraine")
 
     now = pythoncom.MakeTime(time.gmtime(time.time()))
     later = pythoncom.MakeTime(time.gmtime(time.time()+1))

@@ -69,6 +69,7 @@ library PyCOMTestLib
 		const long LongTest2 = 0x7FFFFFFFL;
 		const unsigned char UCharTest = 255;
 		const char CharTest = -1;
+		const LPWSTR StringTest = L"Hello Loraine";
 	};
 
 	enum TestAttributes3{ // Note missing the enum name.
