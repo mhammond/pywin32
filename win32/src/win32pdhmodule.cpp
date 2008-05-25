@@ -1013,7 +1013,7 @@ static PyObject *PyConnectMachine(PyObject *self, PyObject *args)
 	          &obPath))   // @pyparm string|machineName||The machine name.
 		return NULL;
 	TCHAR *path;
-	if (!PyWinObject_AsTCHAR(obPath, &path, FALSE))
+	if (!PyWinObject_AsTCHAR(obPath, &path, TRUE))
 		return NULL;
 
 	CHECK_PDH_PTR(pPdhConnectMachine);
