@@ -140,7 +140,7 @@ public:
 		sMyOverlapped() {obState=NULL;dwValue=0;isArtificialReference=0;}
 		sMyOverlapped(const OVERLAPPED &o) : OVERLAPPED(o) {obState=NULL;dwValue=0;}
 	};
-
+	PyObject *obDummy;
 	OVERLAPPED *GetOverlapped() {return &m_overlapped;}
 
 	PyOVERLAPPED(void);

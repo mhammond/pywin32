@@ -18,6 +18,7 @@ PyObject *PyWinMethod_NewOVERLAPPED(PyObject *self, PyObject *args)
 // @comm Typically you create a PyOVERLAPPED object, and set its hEvent property.
 // The object can then be passed to any function which takes an OVERLAPPED object, and
 // the object attributes will be automatically updated.
+
 PYWINTYPES_EXPORT BOOL PyWinObject_AsOVERLAPPED(PyObject *ob, OVERLAPPED **ppOverlapped, BOOL bNoneOK /*= TRUE*/)
 {
 	PyOVERLAPPED *po = NULL;
@@ -85,14 +86,17 @@ PYWINTYPES_EXPORT PyTypeObject PyOVERLAPPEDType =
 #define OFF(e) offsetof(PyOVERLAPPED, e)
 
 /*static*/ struct memberlist PyOVERLAPPED::memberlist[] = {
-	{"Internal",    T_INT,      OFF(m_overlapped.Internal)}, // @prop integer|Internal|Reserved for operating system use.
-	{"InternalHigh",T_INT,      OFF(m_overlapped.InternalHigh)}, // @prop integer|InternalHigh|Reserved for operating system use.
-	{"Offset",      T_INT,      OFF(m_overlapped.Offset)}, // @prop integer|Offset|Specifies a file position at which to start the transfer. The file position is a byte offset from the start of the file. The calling process sets this member before calling the ReadFile or WriteFile function. This member is ignored when reading from or writing to named pipes and communications devices.
-	{"OffsetHigh",  T_INT,      OFF(m_overlapped.OffsetHigh)}, // @prop integer|OffsetHigh|Specifies the high word of the byte offset at which to start the transfer.
+	{"Offset",		T_ULONG,	OFF(m_overlapped.Offset)},		// @prop integer|Offset|Specifies a file position at which to start the transfer. The file position is a byte offset from the start of the file. The calling process sets this member before calling the ReadFile or WriteFile function. This member is ignored when reading from or writing to named pipes and communications devices.
+	{"OffsetHigh",	T_ULONG,	OFF(m_overlapped.OffsetHigh)},	// @prop integer|OffsetHigh|Specifies the high word of the byte offset at which to start the transfer.
+	{"object",		T_OBJECT,	OFF(m_overlapped.obState)},		// @prop object|object|Any python object that you want to attach to your overlapped I/O request.
+	{"dword",		T_ULONG,	OFF(m_overlapped.dwValue)},		// @prop int|dword|An integer buffer that may be used by overlapped functions (eg, <om win32file.WaitCommEvent>)
+
+	// These are handled by PyOVERLAPPED::getattr, included here so they show up as attributes
+	{"hEvent",		T_OBJECT,	OFF(obDummy)},					// @prop <o PyHANDLE>|hEvent|Identifies an event set to the signaled state when the transfer has been completed. The calling process sets this member before calling the <om win32file.ReadFile>, <om win32file.WriteFile>, <om win32pipe.ConnectNamedPipe>, or <om win32pipe.TransactNamedPipe> function.
+	{"Internal",	T_OBJECT,	OFF(obDummy)},					// @prop integer|Internal|Reserved for operating system use. (pointer-sized value)
+	{"InternalHigh",T_OBJECT,	OFF(obDummy)},					// @prop integer|InternalHigh|Reserved for operating system use. (pointer-sized value)
 	{NULL}
 };
-// @prop integer/<o PyHANDLE>|hEvent|Identifies an event set to the signaled state when the transfer has been completed. The calling process sets this member before calling the <om win32file.ReadFile>, <om win32file.WriteFile>, <om win32pipe.ConnectNamedPipe>, or <om win32pipe.TransactNamedPipe> function.
-// @prop object|object|Any python object that you want to attach to your overlapped I/O request.
 
 PyOVERLAPPED::PyOVERLAPPED(void)
 {
@@ -100,6 +104,7 @@ PyOVERLAPPED::PyOVERLAPPED(void)
 	_Py_NewReference(this);
 	memset(&m_overlapped, 0, sizeof(m_overlapped));
 	m_obHandle = NULL;
+	obDummy = NULL;
 }
 
 PyOVERLAPPED::PyOVERLAPPED(const sMyOverlapped *pO)
@@ -133,7 +138,6 @@ int PyOVERLAPPED::compareFunc(PyObject *ob1, PyObject *ob2)
 
 PyObject *PyOVERLAPPED::getattr(PyObject *self, char *name)
 {
-	// @prop integer/<o PyHANDLE>|hEvent|Identifies an event set to the signaled state when the transfer has been completed. The calling process sets this member before calling the <om win32file.ReadFile>, <om win32file.WriteFile>, <om win32pipe.ConnectNamedPipe>, or <om win32pipe.TransactNamedPipe> function.
 	if (strcmp("hEvent", name)==0) {
 		PyOVERLAPPED *pO = (PyOVERLAPPED *)self;
 		if (pO->m_obHandle) {
@@ -142,24 +146,13 @@ PyObject *PyOVERLAPPED::getattr(PyObject *self, char *name)
 		}
 		return PyWinLong_FromHANDLE(pO->m_overlapped.hEvent);
 	}
-// @prop object|object|Any python object that you want to attach to your overlapped I/O request.
-	else if (strcmp("object", name) == 0)
-	{
+	if (strcmp("Internal", name) == 0){
 		PyOVERLAPPED *pO = (PyOVERLAPPED *)self;
-			
-		if (pO->m_overlapped.obState)
-		{
-			Py_INCREF(pO->m_overlapped.obState);
-			return pO->m_overlapped.obState;
-		}
-		Py_INCREF(Py_None);
-		return Py_None;
+		return PyWinObject_FromULONG_PTR(pO->m_overlapped.Internal);
 	}
-// @prop int|dword|An integer buffer that may be used by overlapped functions (eg, <om win32file.WaitCommEvent>)
-	else if (strcmp("dword", name) == 0)
-	{
+	if (strcmp("InternalHigh", name) == 0){
 		PyOVERLAPPED *pO = (PyOVERLAPPED *)self;
-		return PyInt_FromLong(pO->m_overlapped.dwValue);
+		return PyWinObject_FromULONG_PTR(pO->m_overlapped.InternalHigh);
 	}
 	return PyMember_Get((char *)self, memberlist, name);
 }
@@ -186,21 +179,20 @@ int PyOVERLAPPED::setattr(PyObject *self, char *name, PyObject *v)
 			pO->m_obHandle = NULL;
 		return 0;
 	}
-	else if (strcmp("object", name) == 0)
-	{
+	if (strcmp("Internal", name)==0){
 		PyOVERLAPPED *pO = (PyOVERLAPPED *)self;
-		Py_XDECREF(pO->m_overlapped.obState);
-		Py_INCREF(v);
-		pO->m_overlapped.obState = v;
+		ULONG_PTR ul_tmp;
+		if (!PyWinLong_AsULONG_PTR(v, &ul_tmp))
+			return -1;
+		pO->m_overlapped.Internal=ul_tmp;
 		return 0;
 	}
-	else if (strcmp("dword", name) == 0)
-	{
+	if (strcmp("InternalHigh", name)==0){
 		PyOVERLAPPED *pO = (PyOVERLAPPED *)self;
-		DWORD dwordtmp=PyInt_AsLong(v);
-		if ((dwordtmp==(DWORD)-1) && PyErr_Occurred())
+		ULONG_PTR ul_tmp;
+		if (!PyWinLong_AsULONG_PTR(v, &ul_tmp))
 			return -1;
-		pO->m_overlapped.dwValue=dwordtmp;
+		pO->m_overlapped.InternalHigh=ul_tmp;
 		return 0;
 	}
 	return PyMember_Set((char *)self, memberlist, name, v);
