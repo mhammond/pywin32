@@ -1114,7 +1114,11 @@ class my_install(install):
         # process so the child will wait for us.
         # XXX - hmm - a closer look at distutils shows it only uses win32api
         # if _winreg fails - and this never should.  Need to revisit this!
-        if not self.dry_run and not self.skip_build:
+        # If self.root has a value, it means we are being "installed" into
+        # some other directory than Python itself (eg, into a temp directory
+        # for bdist_wininst to use) - in which case we must *not* run our
+        # installer
+        if not self.dry_run and not self.skip_build and not self.root:
             # What executable to use?  This one I guess.
             filename = os.path.join(os.path.dirname(this_file), "pywin32_postinstall.py")
             if not os.path.isfile(filename):
@@ -1820,7 +1824,7 @@ dist = setup(name="pywin32",
       options = {"bdist_wininst":
                     {"install_script": "pywin32_postinstall.py",
                      "title": "pywin32-%s" % (build_id,),
-#                     "user_access_control": "auto",
+                     "user_access_control": "auto",
                     },
                  "bdist_msi":
                     {"install_script": "pywin32_postinstall.py",
