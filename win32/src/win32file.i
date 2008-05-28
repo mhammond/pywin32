@@ -1681,12 +1681,14 @@ static PyObject *MyAcceptEx
 		return NULL;
 	}
 
-	if (obBuf->ob_type->tp_as_buffer)
+	if (obBuf->ob_type->tp_as_buffer && obBuf->ob_type->tp_as_buffer->bf_getwritebuffer)
 	{
 		pORB = obBuf;
 		Py_INCREF(pORB);
 		pb = pORB->ob_type->tp_as_buffer;
-		dwBufSize = (*pb->bf_getreadbuffer)(pORB, 0, &buf);
+		dwBufSize = (*pb->bf_getwritebuffer)(pORB, 0, &buf);
+		if (dwBufSize==(DWORD)-1 && PyErr_Occurred())
+			goto Error;
 		if (dwBufSize < (DWORD)iMinBufferSize )
 		{
 			PyErr_Format(
@@ -1838,12 +1840,14 @@ PyObject *MyGetAcceptExSockaddrs
 	}
 	iMinBufferSize = (wsProtInfo.iMaxSockAddr + 16) * 2;
 
-	if (obBuf->ob_type->tp_as_buffer)
+	if (obBuf->ob_type->tp_as_buffer && obBuf->ob_type->tp_as_buffer->bf_getreadbuffer)
 	{
 		pORB = obBuf;
 		Py_INCREF(pORB);
 		pb = pORB->ob_type->tp_as_buffer;
 		dwBufSize = (*pb->bf_getreadbuffer)(pORB, 0, &buf);
+		if (dwBufSize==(DWORD)-1 && PyErr_Occurred())
+			goto Error;
 		if (dwBufSize < (DWORD)iMinBufferSize )
 		{
 			PyErr_Format(
@@ -2035,11 +2039,13 @@ PyObject *MyWSASend
 		wsBuf.buf = PyString_AS_STRING(obBuf);
 		wsBuf.len = PyString_GET_SIZE(obBuf);
 	}
-	else if (obBuf->ob_type->tp_as_buffer)
+	else if (obBuf->ob_type->tp_as_buffer && obBuf->ob_type->tp_as_buffer->bf_getreadbuffer)
 	{
 		Py_INCREF(obBuf);
 		pb = obBuf->ob_type->tp_as_buffer;
 		wsBuf.len = (*pb->bf_getreadbuffer)(obBuf, 0, (void **)&wsBuf.buf);
+		if (wsBuf.len==(u_long)-1 && PyErr_Occurred())
+			return NULL;
 	}
 	else
 	{
@@ -2140,11 +2146,13 @@ PyObject *MyWSARecv
 		return NULL;
 	}
 
-	if (obBuf->ob_type->tp_as_buffer)
+	if (obBuf->ob_type->tp_as_buffer && obBuf->ob_type->tp_as_buffer->bf_getwritebuffer)
 	{
 		Py_INCREF(obBuf);
 		pb = obBuf->ob_type->tp_as_buffer;
-		wsBuf.len = (*pb->bf_getreadbuffer)(obBuf, 0, (void **)&wsBuf.buf);
+		wsBuf.len = (*pb->bf_getwritebuffer)(obBuf, 0, (void **)&wsBuf.buf);
+		if (wsBuf.len==(u_long)-1 && PyErr_Occurred())
+			return NULL;
 	}
 	else
 	{

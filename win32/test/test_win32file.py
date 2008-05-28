@@ -8,6 +8,7 @@ import sets
 import threading
 import time
 import shutil
+import socket
 
 class TestSimpleOps(unittest.TestCase):
     def testSimpleFiles(self):
@@ -154,8 +155,6 @@ class TestOverlapped(unittest.TestCase):
     def testCompletionPortsMultiple(self):
         # Mainly checking that we can "associate" an existing handle.  This
         # failed in build 203.
-        import socket
-
         ioport = win32file.CreateIoCompletionPort(win32file.INVALID_HANDLE_VALUE,
                                                   0, 0, 0)
         socks = []
@@ -251,6 +250,66 @@ class TestOverlapped(unittest.TestCase):
         overlapped = pywintypes.OVERLAPPED()
         d = {}
         d[overlapped] = "hello"
+
+class TestSocketExtensions(unittest.TestCase):
+    def acceptWorker(self, port, running_event, stopped_event):
+        listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        listener.bind(('', port))
+        listener.listen(200)
+
+        # create accept socket
+        accepter = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # An overlapped
+        overlapped = pywintypes.OVERLAPPED()
+        overlapped.hEvent = win32event.CreateEvent(None, 0, 0, None)
+        # accept the connection.
+        # We used to allow strings etc to be passed here, and they would be
+        # modified!  Obviously this is evil :)
+        buffer = " " * 1024 # EVIL - SHOULD NOT BE ALLOWED.
+        self.assertRaises(TypeError, win32file.AcceptEx, listener, accepter, buffer, overlapped)
+
+        # This is the correct way to allocate the buffer...
+        buffer = win32file.AllocateReadBuffer(1024)
+        rc = win32file.AcceptEx(listener, accepter, buffer, overlapped)
+        self.failUnlessEqual(rc, winerror.ERROR_IO_PENDING)
+        # Set the event to say we are all ready
+        running_event.set()
+        # and wait for the connection.
+        rc = win32event.WaitForSingleObject(overlapped.hEvent, 2000)
+        if rc == win32event.WAIT_TIMEOUT:
+            self.fail("timed out waiting for a connection")
+        nbytes = win32file.GetOverlappedResult(listener.fileno(), overlapped, False)
+        #fam, loc, rem = win32file.GetAcceptExSockaddrs(accepter, buffer)
+        accepter.send(buffer[:nbytes])
+        # NOT set in a finally - this means *successfully* stopped!
+        stopped_event.set()
+
+    def testAcceptEx(self):
+        port = 4680
+        running = threading.Event()
+        stopped = threading.Event()
+        t = threading.Thread(target=self.acceptWorker, args=(port, running,stopped))
+        t.start()
+        running.wait(2)
+        if not running.isSet():
+            self.fail("AcceptEx Worker thread failed to start")
+        s = socket.create_connection(('127.0.0.1', port), 10)
+        win32file.WSASend(s, "hello", None)
+        overlapped = pywintypes.OVERLAPPED()
+        overlapped.hEvent = win32event.CreateEvent(None, 0, 0, None)
+        # Like above - WSARecv used to allow strings as the receive buffer!!
+        buffer = " " * 10
+        self.assertRaises(TypeError, win32file.WSARecv, s, buffer, overlapped)
+        # This one should work :)
+        buffer = win32file.AllocateReadBuffer(10)
+        win32file.WSARecv(s, buffer, overlapped)
+        nbytes = win32file.GetOverlappedResult(s.fileno(), overlapped, True)
+        got = buffer[:nbytes]
+        self.failUnlessEqual(got, "hello")
+        # thread should have stopped
+        stopped.wait(2)
+        if not stopped.isSet():
+            self.fail("AcceptEx Worker thread failed to successfully stop")
 
 class TestFindFiles(unittest.TestCase):
     def testIter(self):
