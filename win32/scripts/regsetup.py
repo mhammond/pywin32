@@ -1,6 +1,7 @@
 # A tool to setup the Python registry.
 
-error = "Registry Setup Error"
+class error(Exception):
+    pass
 
 import sys # at least we can count on this!
 
