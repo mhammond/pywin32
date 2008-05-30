@@ -58,51 +58,31 @@ BOOL PySocket_AsSOCKET
 	PyObject *o = NULL;
 	PyObject *out = NULL;
 
-	if (PyInt_Check(obSocket))
-	{
-		*ps = (SOCKET)PyInt_AS_LONG(obSocket);
-	}
-	else
-	{
-		o = PyObject_GetAttrString(obSocket, "fileno");
-		if (o == NULL)
-		{
-			PyErr_Clear();
-			PyErr_SetString(PyExc_TypeError, "socket instance does not have the socket in the 'fileno' attribute");
-			return FALSE;
+	// Most common case, a python socket object (which apparently has no public C API)
+	o = PyObject_GetAttrString(obSocket, "fileno");
+	if (o == NULL){
+		// Not a socket object, attempt direct conversion to integer handle
+		PyErr_Clear();
+		out=obSocket;
+		Py_INCREF(out);
 		}
-		if (PyInt_Check(o))
-		{
-			*ps = (SOCKET)PyInt_AS_LONG(o);
-		}
-		else if (PyCallable_Check(o))
-		{
-			out = PyObject_CallObject(o, NULL);
-			if (out == NULL)
-			{
-				Py_DECREF(o);
-				return FALSE;
-			}
-			if (PyInt_Check(out))
-			{
-				*ps = (SOCKET)PyInt_AS_LONG(out);
-			}
-			else
-			{
-				Py_DECREF(o);
-				PyErr_SetString(PyExc_TypeError, "socket instance's 'fileno' attribute is not a socket");
-				return FALSE;
-			}
-		}
-		else
-		{
-			Py_DECREF(o);
-			PyErr_SetString(PyExc_TypeError, "socket instance's 'fileno' attribute is not a socket");
-			return FALSE;
-		}
+	else if (PyCallable_Check(o)){
+		// Normal socket object, whose fileno() method returns the integer handle
+		out = PyObject_CallObject(o, NULL);
 		Py_DECREF(o);
-	}
-	return TRUE;
+		if (out==NULL)
+			return FALSE;
+		}
+	else	// ??? fileno may be a number, rather than a method that returns a number ???
+		out=o;
+
+	BOOL bsuccess=PyWinLong_AsVoidPtr(out, (void **)ps);
+	Py_DECREF(out);
+	if (!bsuccess){
+		PyErr_Clear();
+		PyErr_SetString(PyExc_TypeError, "Expected a socket object or numeric socket handle");
+		}
+	return bsuccess;
 }
 
 
