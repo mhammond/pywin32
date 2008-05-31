@@ -25,7 +25,10 @@ PyIShellIconOverlayIdentifier::~PyIShellIconOverlayIdentifier()
 }
 
 // @pymethod int|PyIShellIconOverlayIdentifier|IsMemberOf|Determines if a shell object should have an icon overlay
-// @rdesc Implementation of this function should return winerror.S_OK to display the overlay, S_FALSE if not, or E_FAIL on error
+// @rdesc The gateway implementation of this function should return winerror.S_OK to
+// display the overlay, S_FALSE if not, or throw a COM exception with E_FAIL on error.
+// <nl>The client implementation of this function returns the same values - ie,
+// Python's True and False should not be used, as S_OK==0==False.
 PyObject *PyIShellIconOverlayIdentifier::IsMemberOf(PyObject *self, PyObject *args)
 {
 	IShellIconOverlayIdentifier *pISIOI = GetI(self);
@@ -50,9 +53,7 @@ PyObject *PyIShellIconOverlayIdentifier::IsMemberOf(PyObject *self, PyObject *ar
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pISIOI, IID_IShellIconOverlayIdentifier );
-	Py_INCREF(Py_None);
-	return Py_None;
-
+	return PyLong_FromLong(hr);
 }
 
 // @pymethod (<o PyUnicode>, int, int)|PyIShellIconOverlayIdentifier|GetOverlayInfo|Retrieves the path to the overlay icon
