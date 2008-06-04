@@ -1060,6 +1060,7 @@ extern PyObject * PyNetFileEnum(PyObject *self, PyObject *args);
 extern PyObject * PyNetFileClose(PyObject *self, PyObject *args);
 extern PyObject * PyNetFileGetInfo(PyObject *self, PyObject *args);
 extern PyObject * PyNetValidateName(PyObject *self, PyObject *args);
+extern PyObject * PyNetValidatePasswordPolicy(PyObject *self, PyObject *args);
 
 extern PyObject * PyNetServerComputerNameAdd(PyObject *self, PyObject *args);
 extern PyObject * PyNetServerComputerNameDel(PyObject *self, PyObject *args);
@@ -1145,6 +1146,7 @@ static struct PyMethodDef win32net_functions[] = {
 	{"NetServerComputerNameDel",PyNetServerComputerNameDel,1}, // @pymeth NetServerComputerNameDel|Deletes an emulated computer name created by <om win32net.PyNetServerComputerNameAdd>
 #if WINVER >= 0x0500
 	{"NetValidateName",			PyNetValidateName,		   1}, // @pymeth NetValidateName|Verify that computer/domain name is valid for given context
+	{"NetValidatePasswordPolicy", PyNetValidatePasswordPolicy, 1}, // @pymeth NetValidatePasswordPolicy|Allows an application to check password compliance against an application-provided account database.
 #endif
 	{NULL,			NULL}
 };
@@ -1184,6 +1186,8 @@ initwin32net(void)
   if (hmodule!=NULL) {
 	  pfnNetValidateName=(NetValidateNamefunc)GetProcAddress(hmodule,"NetValidateName");
 	  pfnNetGetJoinInformation=(NetGetJoinInformationfunc)GetProcAddress(hmodule,"NetGetJoinInformation");
+	  pfnNetValidatePasswordPolicy=(NetValidatePasswordPolicyfunc)GetProcAddress(hmodule, "NetValidatePasswordPolicy");
+	  pfnNetValidatePasswordPolicyFree=(NetValidatePasswordPolicyFreefunc)GetProcAddress(hmodule, "NetValidatePasswordPolicyFree");
   }
 #endif
 }

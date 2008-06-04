@@ -1340,6 +1340,7 @@ extern "C" NetValidateNamefunc pfnNetValidateName=NULL;
 // @pymethod |win32net|NetValidateName|Checks that domain/machine/workgroup name is valid for given context
 // @rdesc Returns none if valid, exception if not
 // @comm If Account and Password aren't passed, current logon credentials are used
+// @comm Will raise NotImplementedError if not available on this platform.
 PyObject *
 PyNetValidateName(PyObject *self, PyObject *args)
 {
@@ -1379,4 +1380,240 @@ PyNetValidateName(PyObject *self, PyObject *args)
 	Py_XINCREF(ret);
 	return ret;
 }
+
+extern "C" NetValidatePasswordPolicyfunc pfnNetValidatePasswordPolicy=NULL;
+extern "C" NetValidatePasswordPolicyFreefunc pfnNetValidatePasswordPolicyFree=NULL;
+
+static void PyObject_CleanupAUTH_INPUT(NET_VALIDATE_AUTHENTICATION_INPUT_ARG *p)
+{
+	// Don't accept NET_VALIDATE_PERSISTED_FIELDS for input yet.
+	//PyObject_CleanupNET_VALIDATE_PERSISTED_FIELDS(&p->InputPersistedFields);
+}
+
+// @object PyNET_VALIDATE_AUTHENTICATION_INPUT_ARG|A dictionary or tuple passed as input to <om win32net.NetValidatePasswordPolicy>
+static BOOL PyObject_AsAUTH_INPUT(PyObject *ob, NET_VALIDATE_AUTHENTICATION_INPUT_ARG *p)
+{
+	// NOTE: We assume the caller (a) has initialized to 0 and (b) will call
+	// PyObject_CleanupAUTH_INPUT() even on failure.
+	static char *keywords[]={"InputPersistedFields","PasswordMatched", NULL};
+	PyObject *obipf = Py_None, *obPassword = Py_None, *obAcct = Py_None;
+	PyObject *kw, *args;
+	BOOL decref_args = FALSE;
+	if (PyDict_Check(ob)) {
+		kw = ob;
+		args = PyTuple_New(0);
+		BOOL decref_args = (args != 0);
+	} else if PyTuple_Check(ob) {
+		kw = NULL;
+		args = ob;
+	} else {
+		PyErr_SetString(PyExc_TypeError, "Must be tuple or dict");
+		return FALSE;
+	}
+
+	int rc = PyArg_ParseTupleAndKeywords(args, kw, "|Oi:NET_VALIDATE_AUTHENTICATION_INPUT_ARG", keywords,
+		&obipf,	// @pyparm <o NET_VALIDATE_PERSISTED_FIELDS>|InputPersistedFields|None|
+		&p->PasswordMatched);	// @pyparm int|PasswordMatched|0|
+
+	if (decref_args)
+		Py_DECREF(args);
+	if (!rc)
+		return FALSE;
+
+	if (obipf != Py_None) {
+		PyErr_SetString(PyExc_ValueError, "InputPersistedFiles not yet implemented for input");
+		return FALSE;
+	}
+	return TRUE;
+}
+
+static void PyObject_CleanupCHANGE_INPUT(NET_VALIDATE_PASSWORD_CHANGE_INPUT_ARG *p)
+{
+	// Don't accept NET_VALIDATE_PERSISTED_FIELDS for input yet.
+	//PyObject_CleanupNET_VALIDATE_PERSISTED_FIELDS(&p->InputPersistedFields);
+	if (p->ClearPassword)
+		PyWinObject_FreeWCHAR(p->ClearPassword);
+	if (p->UserAccountName)
+		PyWinObject_FreeWCHAR(p->UserAccountName);
+	// hashed-password is pointing at a Python buffer, so don't touch!
+}
+
+// @object PyNET_VALIDATE_PASSWORD_CHANGE_INPUT_ARG|A dictionary or tuple passed as input to <om win32net.NetValidatePasswordPolicy>
+static BOOL PyObject_AsCHANGE_INPUT(PyObject *ob, NET_VALIDATE_PASSWORD_CHANGE_INPUT_ARG *p)
+{
+	// NOTE: We assume the caller (a) has initialized to 0 and (b) will call
+	// PyObject_CleanupCHANGE_INPUT() even on failure.
+	static char *keywords[]={"InputPersistedFields","ClearPassword","UserAccountName","HashedPassword", "PasswordMatch", NULL};
+	PyObject *obipf = Py_None, *obPassword = Py_None, *obAcct = Py_None;
+
+	PyObject *kw, *args;
+	BOOL decref_args = FALSE;
+	if (PyDict_Check(ob)) {
+		kw = ob;
+		args = PyTuple_New(0);
+		BOOL decref_args = (args != 0);
+	} else if PyTuple_Check(ob) {
+		kw = NULL;
+		args = ob;
+	} else {
+		PyErr_SetString(PyExc_TypeError, "Must be tuple or dict");
+		return FALSE;
+	}
+
+	int rc = PyArg_ParseTupleAndKeywords(args, kw, "|OOOz#i:NET_VALIDATE_PASSWORD_CHANGE_INPUT_ARG", keywords,
+		&obipf,	// @pyparm <o NET_VALIDATE_PERSISTED_FIELDS>|InputPersistedFields|None|
+		&obPassword,	// @pyparm <o PyUnicode>|ClearPassword|None|
+		&obAcct,	// @pyparm <o PyUnicode>|UserAccountName|None|
+		&p->HashedPassword.Hash, // @pyparm buffer|HashedPassword|None|A string or anything else holding bytes.
+		&p->HashedPassword.Length,
+		&p->PasswordMatch);	// @pyparm int|PasswordMatch|0|Note MSDN incorrectly documents this member as PasswordMatched
+
+	if (decref_args)
+		Py_DECREF(args);
+	if (!rc)
+		return FALSE;
+
+	if (obipf != Py_None) {
+		PyErr_SetString(PyExc_ValueError, "InputPersistedFiles not yet implemented for input");
+		return FALSE;
+	}
+
+	if (!PyWinObject_AsWCHAR(obPassword, &p->ClearPassword, TRUE))
+		return FALSE;
+
+	if (!PyWinObject_AsWCHAR(obAcct, &p->UserAccountName, TRUE))
+		return FALSE;
+
+	return TRUE;
+}
+
+#define SAFE_INSERT_NEW_REF(dict, name, ob) {\
+	PyObject *tmp=(ob); \
+	if (!tmp) { Py_DECREF(dict); return NULL; } \
+	PyDict_SetItemString(dict, name, tmp); \
+	Py_DECREF(tmp); \
+	}
+
+// @object PyNET_VALIDATE_PERSISTED_FIELDS|A dictionary returned by <om win32net.NetValidatePasswordPolicy>
+static PyObject *PyObject_FromNET_VALIDATE_PERSISTED_FIELDS(NET_VALIDATE_PERSISTED_FIELDS *f)
+{
+	// @comm Note that these fields will only appear if the PresentFields
+	// structure element indicates the fields are valid.  Thus, the result
+	// dictionary may contain none, all, or any combination of these.
+	PyObject *ret = PyDict_New();
+	if (!ret)
+		return NULL;
+	// @pyparm <o PyTime>|PasswordLastSet||
+	if (f->PresentFields & NET_VALIDATE_PASSWORD_LAST_SET)
+		SAFE_INSERT_NEW_REF(ret, "PasswordLastSet", PyWinObject_FromFILETIME(f->PasswordLastSet));
+	// @pyparm <o PyTime>|BadPasswordTime||
+	if (f->PresentFields & NET_VALIDATE_BAD_PASSWORD_TIME)
+		SAFE_INSERT_NEW_REF(ret, "BadPasswordTime", PyWinObject_FromFILETIME(f->BadPasswordTime));
+	// @pyparm <o PyTime>|LockoutTime||
+	if (f->PresentFields & NET_VALIDATE_LOCKOUT_TIME)
+		SAFE_INSERT_NEW_REF(ret, "LockoutTime", PyWinObject_FromFILETIME(f->LockoutTime));
+	// @pyparm int|BadPasswordCount||
+	if (f->PresentFields & NET_VALIDATE_BAD_PASSWORD_COUNT)
+		SAFE_INSERT_NEW_REF(ret, "BadPasswordCount", PyLong_FromUnsignedLong(f->BadPasswordCount));
+	// @pyparm int|PasswordHistoryLength||
+	if (f->PresentFields & NET_VALIDATE_PASSWORD_HISTORY_LENGTH)
+		SAFE_INSERT_NEW_REF(ret, "PasswordHistoryLength", PyLong_FromUnsignedLong(f->PasswordHistoryLength));
+	// @pyparm None/string|PasswordHistory||
+	if (f->PresentFields & NET_VALIDATE_PASSWORD_HISTORY) {
+		if (f->PasswordHistory) {
+			SAFE_INSERT_NEW_REF(ret, "PasswordHistory", PyString_FromStringAndSize((char *)f->PasswordHistory->Hash, f->PasswordHistory->Length));
+		} else
+			PyDict_SetItemString(ret, "PasswordHistory", Py_None);
+	}
+	return ret;
+}
+
+// @pymethod |win32net|NetValidatePasswordPolicy|Allows an application to check
+// password compliance against an application-provided account database and
+// verify that passwords meet the complexity, aging, minimum length, and
+// history reuse requirements of a password policy.
+// @rdesc Returns a tuple of (<o PyNET_VALIDATE_PERSISTED_FIELDS>, int) with
+// the integer being the ValidationResult.
+// @comm Will raise NotImplementedError if not available on this platform, or
+// raise win32net.error if the function fails.
+PyObject *
+PyNetValidatePasswordPolicy(PyObject *self, PyObject *args)
+{
+	// @pyparm string/<o PyUnicode>|Server||Name of server on which to execute (None or blank uses local)
+	// @pyparm None|Qualifier||Reserved, must be None
+	// @pyparm int|ValidationType||The type of password validation to perform
+	// @pyparm dict/tuple|arg||Depends on the ValidationType param - either
+	// a <o PyNET_VALIDATE_AUTHENTICATION_INPUT_ARG>,  <o PyNET_VALIDATE_PASSWORD_CHANGE_INPUT_ARG>
+	// or <o PyNET_VALIDATE_PASSWORD_RESET_INPUT_ARG> tuple or dict.
+	PyObject *obServer, *obQualifier, *obArg;
+	int valType = -1;
+	WCHAR *Server=NULL;
+	PyObject *ret = NULL;
+	NET_API_STATUS err;
+	NET_VALIDATE_OUTPUT_ARG *out_arg = NULL;
+
+	// We only use one of these
+	union ALL_INS {
+		NET_VALIDATE_AUTHENTICATION_INPUT_ARG auth;
+		NET_VALIDATE_PASSWORD_CHANGE_INPUT_ARG change;
+		NET_VALIDATE_PASSWORD_RESET_INPUT_ARG reset;
+	};
+	ALL_INS in_arg;
+	memset(&in_arg, 0, sizeof(in_arg));
+
+	if (pfnNetValidateName==NULL || pfnNetValidatePasswordPolicyFree==NULL){
+		PyErr_SetString(PyExc_NotImplementedError,"NetValidatePasswordPolicy does not exist on this platform");
+		return NULL;
+	}
+	if (!PyArg_ParseTuple(args, "OOiO",&obServer, &obQualifier, &valType, &obArg))
+		return NULL;
+	if (obQualifier != Py_None)
+		return PyErr_Format(PyExc_ValueError, "The Qualifier arg must be None");
+
+	if (!PyWinObject_AsWCHAR(obServer, &Server, TRUE))
+		goto done;
+
+	switch (valType) {
+		case NetValidateAuthentication:
+			if (!PyObject_AsAUTH_INPUT(obArg, &in_arg.auth))
+				goto done;
+			break;
+		case NetValidatePasswordChange:
+			if (!PyObject_AsCHANGE_INPUT(obArg, &in_arg.change))
+				goto done;
+			break;
+//		case NetValidatePasswordReset:
+//			break;
+		default:
+			PyErr_Format(PyExc_ValueError, "Unknown validation type (%d)", valType);
+			goto done;
+	}
+	Py_BEGIN_ALLOW_THREADS
+	err = (*pfnNetValidatePasswordPolicy)(Server, NULL, (NET_VALIDATE_PASSWORD_TYPE)valType, &in_arg, (void **)&out_arg);
+	Py_END_ALLOW_THREADS
+	if (NERR_Success != err) {
+		ReturnNetError("NetValidatePasswordPolicy", err);
+		goto done;
+	}
+	ret = Py_BuildValue("Ni", PyObject_FromNET_VALIDATE_PERSISTED_FIELDS(&out_arg->ChangedPersistedFields), out_arg->ValidationStatus);
+done:
+	if (Server)
+		PyWinObject_FreeWCHAR(Server);
+	switch (valType) {
+		case NetValidateAuthentication:
+			PyObject_CleanupAUTH_INPUT(&in_arg.auth);
+			break;
+		case NetValidatePasswordChange:
+			PyObject_CleanupCHANGE_INPUT(&in_arg.change);
+			break;
+//		case NetValidatePasswordReset:
+//			break;
+		default:
+			break;
+	}
+	if (out_arg)
+		(*pfnNetValidatePasswordPolicyFree)(( void **) &out_arg);
+	return ret;
+}
+
 #endif // WINVER

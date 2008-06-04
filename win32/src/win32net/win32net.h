@@ -66,4 +66,11 @@ extern NetValidateNamefunc pfnNetValidateName;
 
 typedef NET_API_STATUS (NET_API_FUNCTION *NetGetJoinInformationfunc)(LPCWSTR, LPWSTR *, PNETSETUP_JOIN_STATUS);
 extern NetGetJoinInformationfunc pfnNetGetJoinInformation;
+
+typedef NET_API_STATUS (NET_API_FUNCTION *NetValidatePasswordPolicyfunc)(LPCWSTR, LPVOID, NET_VALIDATE_PASSWORD_TYPE, LPVOID, LPVOID *);
+extern NetValidatePasswordPolicyfunc pfnNetValidatePasswordPolicy;
+
+typedef NET_API_STATUS (NET_API_FUNCTION *NetValidatePasswordPolicyFreefunc)(LPVOID *);
+extern NetValidatePasswordPolicyFreefunc pfnNetValidatePasswordPolicyFree;
+
 #endif // WINVER

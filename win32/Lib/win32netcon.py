@@ -650,3 +650,6 @@ NetSetupUnjoined = 1
 NetSetupWorkgroupName = 2
 NetSetupDomainName = 3
 
+NetValidateAuthentication = 1
+NetValidatePasswordChange = 2
+NetValidatePasswordReset = 3
