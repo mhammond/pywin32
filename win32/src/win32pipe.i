@@ -155,6 +155,8 @@ extern PyObject *PyPopen4(PyObject *self, PyObject  *args);
 
 %native(ConnectNamedPipe) MyConnectNamedPipe;
 
+%native(TransactNamedPipe) MyTransactNamedPipe;
+
 %native(CallNamedPipe) MyCallNamedPipe;
 
 %name(CreatePipe)
@@ -307,6 +309,97 @@ PyObject *MyConnectNamedPipe(PyObject *self, PyObject *args)
 	if (!ok && rc != ERROR_IO_PENDING && rc != ERROR_PIPE_CONNECTED)
 		return PyWin_SetAPIError("ConnectNamedPipe");
 	return PyInt_FromLong(rc);
+}
+
+// @pyswig string/buffer|TransactNamedPipe|Combines the functions that write a
+// message to and read a message from the specified named pipe into a single
+// network operation.
+// @comm This function is modelled on <om win32file.ReadFile> - for overlapped
+// operations you are expected to provide a buffer which will be filled
+// asynchronously.
+PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
+{
+	PyObject *obHandle, *obWriteData, *obReadData, *obOverlapped = Py_None;
+	void *writeData;
+	DWORD cbWriteData;
+	void *readData;
+	DWORD cbReadData;
+	HANDLE handle;
+	OVERLAPPED *pOverlapped = NULL;
+	if (!PyArg_ParseTuple(args, "OOO|O:TransactNamedPipe", 
+		&obHandle,	// @pyparm <o PyUNICODE>|pipeName||The name of the pipe.
+		&obWriteData,   // @pyparm string/buffer|writeData||The data to write to the pipe.
+		// @pyparm <o PyOVERLAPPEDReadBuffer>/int|buffer/bufSize||Size of the buffer to create for the result,
+		// or a buffer to fill with the result. If a buffer object and overlapped is passed, the result is
+		// the buffer itself.  If a buffer but no overlapped is passed, the result is a new string object,
+		// built from the buffer, but with a length that reflects the data actually read.
+		&obReadData,
+		&obOverlapped))		// @pyparm <o PyOVERLAPPED>|overlapped|None|An overlapped structure or None
+		return NULL;
+
+	if (!PyWinObject_AsHANDLE(obHandle, &handle))
+		return NULL;
+
+	if (!PyWinObject_AsReadBuffer(obWriteData, &writeData, &cbWriteData, FALSE))
+		return NULL;
+
+	if (obOverlapped!=Py_None && !PyWinObject_AsOVERLAPPED(obOverlapped, &pOverlapped))
+		return NULL;
+
+	BOOL bIsNewString=FALSE;
+	PyObject *obRet = NULL;
+	// process the tricky read buffer.
+	cbReadData = PyInt_AsLong(obReadData);
+	if ((cbReadData!=(DWORD)-1) || !PyErr_Occurred()){
+		if (pOverlapped){	// guaranteed to be NULL on CE
+			PyBufferProcs *pb = NULL;
+			obRet = PyBuffer_New(cbReadData);
+			if (obRet==NULL)
+				return NULL;
+			pb = obRet->ob_type->tp_as_buffer;
+			(*pb->bf_getwritebuffer)(obRet, 0, &readData);
+		} else {
+			obRet=PyString_FromStringAndSize(NULL, cbReadData);
+			if (obRet==NULL)
+				return NULL;
+			readData=PyString_AS_STRING(obRet);
+			bIsNewString=TRUE;
+		}
+	} else {
+		PyErr_Clear();
+		if (!PyWinObject_AsWriteBuffer(obReadData, &readData, &cbReadData,FALSE)){
+			PyErr_SetString(PyExc_TypeError, "Third param must be an integer or writeable buffer object");
+			return NULL;
+			}
+		// If they didn't pass an overlapped, then we can't return the
+		// original buffer as they have no way to know how many bytes
+		// were read - so leave obRet NULL and the ret will be a new
+		// string object, built from buffer, but the correct length.
+		if (pOverlapped){
+			obRet = obReadData;
+			Py_INCREF(obRet);
+		}
+	}
+	BOOL ok;
+	DWORD numRead = 0;
+	Py_BEGIN_ALLOW_THREADS
+	ok = TransactNamedPipe(handle, writeData, cbWriteData, readData, cbReadData, &numRead, pOverlapped);
+	Py_END_ALLOW_THREADS
+	DWORD err = 0;
+	if (!ok) {
+		err = GetLastError();
+		if (err!=ERROR_MORE_DATA && err != ERROR_IO_PENDING) {
+			Py_XDECREF(obRet);
+			return PyWin_SetAPIError("TransactNamedPipe", err);
+		}
+	}
+	if (obRet==NULL)
+		obRet=PyString_FromStringAndSize((char *)readData, numRead);
+	else if (bIsNewString && (numRead < cbReadData))
+		_PyString_Resize(&obRet, numRead);
+	if (obRet==NULL)
+		return NULL;
+	return Py_BuildValue("iN", err, obRet);
 }
 
 // @pyswig string|CallNamedPipe|Opens and performs a transaction on a named pipe.

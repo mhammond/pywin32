@@ -8,6 +8,10 @@ However contributors are encouraged to add their own entries for their work.
 Since build 211:
 ----------------
 
+* Add win32net.NetValidatePasswordPolicy, including a demo.
+
+* Add win32pipe.TransactNamedPipe, including tests.
+
 Since build 210:
 ----------------
 * Support for RegisterDeviceNotification in win32gui and for packing and
