@@ -829,8 +829,12 @@ PyObject *MyReadFile(PyObject *self, PyObject *args)
 
 	if (!PyArg_ParseTuple(args, "OO|O:ReadFile", 
 		&obhFile, // @pyparm <o PyHANDLE>/int|hFile||Handle to the file
-		&obBuf, // @pyparm <o PyOVERLAPPEDReadBuffer>/int|buffer/bufSize||Size of the buffer to create for the read.  If a multi-threaded overlapped operation is performed, a buffer object can be passed.  If a buffer object is passed, the result is the buffer itself.
-		&obOverlapped))	// @pyparm <o PyOVERLAPPED>|ol|None|An overlapped structure
+		// @pyparm <o PyOVERLAPPEDReadBuffer>/int|buffer/bufSize||Size of the buffer to create for the result,
+		// or a buffer to fill with the result. If a buffer object and overlapped is passed, the result is
+		// the buffer itself.  If a buffer but no overlapped is passed, the result is a new string object,
+		// built from the buffer, but with a length that reflects the data actually read.
+		&obBuf, 
+		&obOverlapped))	// @pyparm <o PyOVERLAPPED>|overlapped|None|An overlapped structure
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhFile, &hFile))
 		return NULL;
@@ -872,6 +876,10 @@ PyObject *MyReadFile(PyObject *self, PyObject *args)
 			PyErr_SetString(PyExc_TypeError, "Second param must be an integer or writeable buffer object");
 			return NULL;
 			}
+		// If they didn't pass an overlapped, then we can't return the
+		// original buffer as they have no way to know how many bytes
+		// were read - so leave obRet NULL and the ret will be a new
+		// string object, built from buffer, but the correct length.
 		if (pOverlapped){
 			obRet = obBuf;
 			Py_INCREF(obBuf);
