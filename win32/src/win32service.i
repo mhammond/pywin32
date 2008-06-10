@@ -1514,7 +1514,7 @@ PyObject *PyWinObject_FromSERVICE_FAILURE_ACTIONS(LPSERVICE_FAILURE_ACTIONSW psf
 
 %}
 
-// @pyswig |ChangeServiceConfig2|Modifies service parameters that were introduced in Windows 2000
+// @pyswig |ChangeServiceConfig2|Modifies advanced service parameters
 %native (ChangeServiceConfig2) PyChangeServiceConfig2;
 %{
 PyObject *PyChangeServiceConfig2(PyObject *self, PyObject *args)
@@ -1527,32 +1527,81 @@ PyObject *PyChangeServiceConfig2(PyObject *self, PyObject *args)
 	PyObject *obhService;
 	DWORD level;
 	BOOL bsuccess;
-	SERVICE_DESCRIPTIONW description_buf;
-	SERVICE_FAILURE_ACTIONSW failure_actions_buf;
+
 	PyObject *obinfo;
 	// @pyparm <o PySC_HANDLE>|hService||Service handle as returned by <om win32service.OpenService>
-	// @pyparm int|InfoLevel||Indicates type of config parameters being set, one of SERVICE_CONFIG_DESCRIPTION or SERVICE_CONFIG_FAILURE_ACTIONS
-	// @pyparm object|info||For SERVICE_CONFIG_DESCRIPTION a string  For SERVICE_CONFIG_FAILURE_ACTIONS a <o SERVICE_FAILURE_ACTIONS> dictionary 
+	// @pyparm int|InfoLevel||One of win32service.SERVICE_CONFIG_* values
+	// @pyparm object|info||Type depends on InfoLevel
 	if (!PyArg_ParseTuple(args,"OlO:ChangeServiceConfig2", &obhService, &level, &obinfo))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhService, (HANDLE *)&hService))
 		return NULL;
+
 	switch (level){
-		case SERVICE_CONFIG_DESCRIPTION:
-			if (!PyWinObject_AsWCHAR(obinfo,&description_buf.lpDescription,TRUE))
+		// @flagh InfoLevel|Input value
+		// @flag SERVICE_CONFIG_DESCRIPTION|Unicode string
+		case SERVICE_CONFIG_DESCRIPTION:{
+			SERVICE_DESCRIPTIONW buf;
+			if (!PyWinObject_AsWCHAR(obinfo, &buf.lpDescription, TRUE))
 				return NULL;
-			bsuccess=(*fpChangeServiceConfig2)(hService,level, (LPVOID)&description_buf);
-			PyWinObject_FreeWCHAR(description_buf.lpDescription);
+			bsuccess=(*fpChangeServiceConfig2)(hService, level, (LPVOID)&buf);
+			PyWinObject_FreeWCHAR(buf.lpDescription);
 			break;
-		case SERVICE_CONFIG_FAILURE_ACTIONS:
-			if (!PyWinObject_AsSERVICE_FAILURE_ACTIONS(obinfo, &failure_actions_buf))
+			}
+		// @flag SERVICE_CONFIG_FAILURE_ACTIONS|Dict representing a SERVICE_FAILURE_ACTIONS struct
+		case SERVICE_CONFIG_FAILURE_ACTIONS:{
+			SERVICE_FAILURE_ACTIONSW buf;
+			if (!PyWinObject_AsSERVICE_FAILURE_ACTIONS(obinfo, &buf))
 				return NULL;
-			bsuccess=(*fpChangeServiceConfig2)(hService,level, (LPVOID)&failure_actions_buf);
-			PyWinObject_FreeSERVICE_FAILURE_ACTIONS(&failure_actions_buf);
+			bsuccess=(*fpChangeServiceConfig2)(hService, level, (LPVOID)&buf);
+			PyWinObject_FreeSERVICE_FAILURE_ACTIONS(&buf);
 			break;
+			}
+		// @flag SERVICE_CONFIG_DELAYED_AUTO_START_INFO|Boolean
+		case SERVICE_CONFIG_DELAYED_AUTO_START_INFO:{
+			SERVICE_DELAYED_AUTO_START_INFO buf;
+			buf.fDelayedAutostart=PyObject_IsTrue(obinfo);
+			bsuccess=(*fpChangeServiceConfig2)(hService,level, (LPVOID)&buf);
+			break;
+			}
+		// @flag SERVICE_CONFIG_FAILURE_ACTIONS_FLAG|Boolean
+		case SERVICE_CONFIG_FAILURE_ACTIONS_FLAG:{
+			SERVICE_FAILURE_ACTIONS_FLAG buf;
+			buf.fFailureActionsOnNonCrashFailures=PyObject_IsTrue(obinfo);
+			bsuccess=(*fpChangeServiceConfig2)(hService,level, (LPVOID)&buf);
+			break;
+			}
+		// @flag SERVICE_CONFIG_PRESHUTDOWN_INFO|int (shutdown timeout in milliseconds)
+		case SERVICE_CONFIG_PRESHUTDOWN_INFO:{
+			SERVICE_PRESHUTDOWN_INFO buf;
+			buf.dwPreshutdownTimeout = PyLong_AsUnsignedLong(obinfo);
+			if (buf.dwPreshutdownTimeout==(DWORD)-1 && PyErr_Occurred())
+				return NULL;
+			bsuccess=(*fpChangeServiceConfig2)(hService, level, (LPVOID)&buf);
+			break;
+			}
+		// @flag SERVICE_CONFIG_SERVICE_SID_INFO|int (SERVICE_SID_TYPE_*)
+		case SERVICE_CONFIG_SERVICE_SID_INFO:{
+			SERVICE_SID_INFO buf;
+			buf.dwServiceSidType=PyLong_AsUnsignedLong(obinfo);
+			if (buf.dwServiceSidType==(DWORD)-1 && PyErr_Occurred())
+				return NULL;
+			bsuccess=(*fpChangeServiceConfig2)(hService, level, (LPVOID)&buf);
+			break;
+			}
+		// @flag SERVICE_CONFIG_REQUIRED_PRIVILEGES_INFO|Sequence of unicode strings
+		case SERVICE_CONFIG_REQUIRED_PRIVILEGES_INFO:{
+			SERVICE_REQUIRED_PRIVILEGES_INFO buf;
+			if (!PyWinObject_AsMultipleString(obinfo, &buf.pmszRequiredPrivileges))
+				return NULL;
+			bsuccess=(*fpChangeServiceConfig2)(hService, level, (LPVOID)&buf);
+			PyWinObject_FreeMultipleString(buf.pmszRequiredPrivileges);
+			break;
+			}
 		default:
 			return PyErr_Format(PyExc_ValueError,"Info type %d is not supported",level);
 		}
+
 	if (!bsuccess)
 		return PyWin_SetAPIError("ChangeServiceConfig2");
 	Py_INCREF(Py_None);
@@ -1560,8 +1609,8 @@ PyObject *PyChangeServiceConfig2(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig |QueryServiceConfig2|Retrieves advanced service configuration options
-// @rdesc Returns a unicode string for SERVICE_CONFIG_DESCRIPTION, or a <o SERVICE_FAILURE_ACTIONS> dict for SERVICE_CONFIG_FAILURE_ACTIONS
+// @pyswig object|QueryServiceConfig2|Retrieves advanced service configuration options
+// @rdesc Type of returned object depends on InfoLevel
 %native (QueryServiceConfig2) PyQueryServiceConfig2;
 %{
 PyObject *PyQueryServiceConfig2(PyObject *self, PyObject *args)
@@ -1576,7 +1625,7 @@ PyObject *PyQueryServiceConfig2(PyObject *self, PyObject *args)
 	LPBYTE buf=NULL;
 	PyObject *ret=NULL;
 	// @pyparm <o PySC_HANDLE>|hService||Service handle as returned by <om win32service.OpenService>
-	// @pyparm int|InfoLevel||SERVICE_CONFIG_DESCRIPTION or SERVICE_CONFIG_FAILURE_ACTIONS
+	// @pyparm int|InfoLevel||One of win32service.SERVICE_CONFIG_* values
 	if (!PyArg_ParseTuple(args,"Ol:QueryServiceConfig2", &obhService, &level))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhService, (HANDLE *)&hService))
@@ -1590,13 +1639,37 @@ PyObject *PyQueryServiceConfig2(PyObject *self, PyObject *args)
 	if (buf==NULL)
 		return PyErr_Format(PyExc_MemoryError,"QueryServiceConfig2: Unable to allocate buffer of %d bytes",bytes_needed);
 	bufsize=bytes_needed;
+
 	if ((*fpQueryServiceConfig2)(hService, level, buf, bufsize, &bytes_needed))
 		switch(level){
+			// @flagh InfoLevel|Type of value returned
+			// @flag SERVICE_CONFIG_DESCRIPTION|Unicode string
 			case SERVICE_CONFIG_DESCRIPTION:
 				ret=PyWinObject_FromWCHAR(((SERVICE_DESCRIPTIONW *)buf)->lpDescription);
 				break;
+			// @flag SERVICE_CONFIG_FAILURE_ACTIONS|Dict representing a SERVICE_FAILURE_ACTIONS struct
 			case SERVICE_CONFIG_FAILURE_ACTIONS:
 				ret=PyWinObject_FromSERVICE_FAILURE_ACTIONS((LPSERVICE_FAILURE_ACTIONSW)buf);
+				break;
+			// @flag SERVICE_CONFIG_DELAYED_AUTO_START_INFO|Boolean
+			case SERVICE_CONFIG_DELAYED_AUTO_START_INFO:
+				ret=PyBool_FromLong(((SERVICE_DELAYED_AUTO_START_INFO *)buf)->fDelayedAutostart);
+				break;
+			// @flag SERVICE_CONFIG_FAILURE_ACTIONS_FLAG|Boolean
+			case SERVICE_CONFIG_FAILURE_ACTIONS_FLAG:
+				ret=PyBool_FromLong(((SERVICE_FAILURE_ACTIONS_FLAG *)buf)->fFailureActionsOnNonCrashFailures);
+				break;
+			// @flag SERVICE_CONFIG_PRESHUTDOWN_INFO|int (shutdown timeout in milliseconds)
+			case SERVICE_CONFIG_PRESHUTDOWN_INFO:
+				ret=PyLong_FromUnsignedLong(((SERVICE_PRESHUTDOWN_INFO *)buf)->dwPreshutdownTimeout);
+				break;
+			// @flag SERVICE_CONFIG_SERVICE_SID_INFO|int (SERVICE_SID_TYPE_*)
+			case SERVICE_CONFIG_SERVICE_SID_INFO:
+				ret=PyLong_FromUnsignedLong(((SERVICE_SID_INFO *)buf)->dwServiceSidType);
+				break;
+			// @flag SERVICE_CONFIG_REQUIRED_PRIVILEGES_INFO|List of unicode strings
+			case SERVICE_CONFIG_REQUIRED_PRIVILEGES_INFO:
+				ret=PyWinObject_FromMultipleString(((SERVICE_REQUIRED_PRIVILEGES_INFO *)buf)->pmszRequiredPrivileges);
 				break;
 			default:
 				PyErr_Format(PyExc_NotImplementedError,"QueryServiceConfig2: Level %d is not supported", level);
@@ -1762,8 +1835,22 @@ PyObject *PyQueryServiceConfig2(PyObject *self, PyObject *args)
 #define DF_ALLOWOTHERACCOUNTHOOK DF_ALLOWOTHERACCOUNTHOOK
 // #define CWF_CREATE_ONLY CWF_CREATE_ONLY 
 
+// Types of info used with QueryServiceConfig2
 #define SERVICE_CONFIG_DESCRIPTION SERVICE_CONFIG_DESCRIPTION
 #define SERVICE_CONFIG_FAILURE_ACTIONS SERVICE_CONFIG_FAILURE_ACTIONS
+// These require Vista or above
+#define SERVICE_CONFIG_DELAYED_AUTO_START_INFO SERVICE_CONFIG_DELAYED_AUTO_START_INFO
+#define SERVICE_CONFIG_FAILURE_ACTIONS_FLAG SERVICE_CONFIG_FAILURE_ACTIONS_FLAG
+#define SERVICE_CONFIG_PRESHUTDOWN_INFO SERVICE_CONFIG_PRESHUTDOWN_INFO
+#define SERVICE_CONFIG_REQUIRED_PRIVILEGES_INFO SERVICE_CONFIG_REQUIRED_PRIVILEGES_INFO
+#define SERVICE_CONFIG_SERVICE_SID_INFO SERVICE_CONFIG_SERVICE_SID_INFO
+
+// Used with SERVICE_CONFIG_SERVICE_SID_INFO
+#define SERVICE_SID_TYPE_NONE SERVICE_SID_TYPE_NONE 
+#define SERVICE_SID_TYPE_RESTRICTED SERVICE_SID_TYPE_RESTRICTED
+#define SERVICE_SID_TYPE_UNRESTRICTED SERVICE_SID_TYPE_UNRESTRICTED
+
+// Service failure actions
 #define SC_ACTION_NONE SC_ACTION_NONE
 #define SC_ACTION_REBOOT SC_ACTION_REBOOT
 #define SC_ACTION_RESTART SC_ACTION_RESTART
