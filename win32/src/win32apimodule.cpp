@@ -55,6 +55,8 @@ typedef DWORD (WINAPI *GetDllDirectoryfunc)(DWORD,LPWSTR);
 static GetDllDirectoryfunc pfnGetDllDirectory = NULL;
 typedef BOOL (WINAPI *SetDllDirectoryfunc)(LPCWSTR);
 static SetDllDirectoryfunc pfnSetDllDirectory = NULL;
+typedef BOOL (WINAPI *SetSystemPowerStatefunc)(BOOL, BOOL);
+static SetSystemPowerStatefunc pfnSetSystemPowerState = NULL;
 
 // from secur32.dll
 typedef BOOLEAN (WINAPI *GetUserNameExfunc)(EXTENDED_NAME_FORMAT,LPWSTR,PULONG);
@@ -5900,6 +5902,30 @@ PyObject *PyGlobalMemoryStatusEx(PyObject *self, PyObject *args)
 		"AvailExtendedVirtual", ms.ullAvailExtendedVirtual);
 }
 
+// @pymethod |win32api|SetSystemPowerState|Initiates low power mode to make system sleep or hibernate
+// @pyseeapi SetSystemPowerState
+// @comm Requires Win2k or later.
+// @comm SE_SHUTDOWN_NAME privilege must be enabled.
+PyObject *PySetSystemPowerState(PyObject *self, PyObject *args)
+{
+	CHECK_PFN(SetSystemPowerState);
+	PyObject *obSuspend, *obForce;
+	BOOL bSuspend, bForce, bsuccess;
+	if (!PyArg_ParseTuple(args, "OO:SetSystemPowerState",
+		&obSuspend,		// @pyparm boolean|Suspend||True - system is suspended. False - initiates hibernation.
+		&obForce))		// @pyparm boolean|Force||True - power state occurs unconditionally. False - applications are queried for permission.
+		return NULL;
+	bSuspend=PyObject_IsTrue(obSuspend);
+	bForce=PyObject_IsTrue(obForce);
+	Py_BEGIN_ALLOW_THREADS
+	bsuccess=(*pfnSetSystemPowerState)(bSuspend, bForce);
+	Py_END_ALLOW_THREADS
+	if (!bsuccess)
+		return PyWin_SetAPIError("SetSystemPowerState");
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 
 /* List of functions exported by this module */
 // @module win32api|A module, encapsulating the Windows Win32 API.
@@ -6106,6 +6132,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"SetEnvironmentVariable", PySetEnvironmentVariable,1}, // @pymeth SetEnvironmentVariable|Creates, deletes, or changes the value of an environment variable.
 	{"SetHandleInformation",	PySetHandleInformation,1}, // @pymeth SetHandleInformation|Sets a handles's flags
 	{"SetStdHandle",	PySetStdHandle,	1}, // @pymeth SetStdHandle|Sets a handle for the standard input, standard output, or standard error device
+	{"SetSystemPowerState",	PySetSystemPowerState,	1}, // @pymeth SetSystemPowerState|Powers machine down to a suspended state
 	{"SetThreadLocale",     PySetThreadLocale, 1}, // @pymeth SetThreadLocale|Sets the current thread's locale.
 	{"SetWindowLong",       PySetWindowLong,1}, // @pymeth SetWindowLong|Places a long value at the specified offset into the extra window memory of the given window.
 	{"ShellExecute",		PyShellExecute,		1}, // @pymeth ShellExecute|Executes an application.
@@ -6221,6 +6248,7 @@ initwin32api(void)
 	pfnSetSystemFileCacheSize=(SetSystemFileCacheSizefunc)GetProcAddress(hmodule,"SetSystemFileCacheSize");
 	pfnGetDllDirectory=(GetDllDirectoryfunc)GetProcAddress(hmodule,"GetDllDirectoryW");
 	pfnSetDllDirectory=(SetDllDirectoryfunc)GetProcAddress(hmodule,"SetDllDirectoryW");
+	pfnSetSystemPowerState=(SetSystemPowerStatefunc)GetProcAddress(hmodule,"SetSystemPowerState");
   }
 
   hmodule = GetModuleHandle(TEXT("user32.dll"));
