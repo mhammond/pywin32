@@ -347,6 +347,9 @@ class SyntEditView(SyntEditViewParent):
 		pywin.framework.interact.ShowInteractiveWindow()
 
 	def FoldTopLevelEvent(self, event = None):
+		if not self.bFolding:
+			return 1
+
 		win32ui.DoWaitCursor(1)
 		try:
 			self.Colorize()
@@ -373,8 +376,7 @@ class SyntEditView(SyntEditViewParent):
 
 	def FoldExpandEvent(self, event):
 		if not self.bFolding:
-			win32api.MessageBeep()
-			return
+			return 1
 		win32ui.DoWaitCursor(1)
 		lineno = self.LineFromChar(self.GetSel()[0])
 		if self.SCIGetFoldLevel(lineno) & SC_FOLDLEVELHEADERFLAG and \
@@ -384,8 +386,7 @@ class SyntEditView(SyntEditViewParent):
 
 	def FoldExpandAllEvent(self, event):
 		if not self.bFolding:
-			win32api.MessageBeep()
-			return
+			return 1
 		win32ui.DoWaitCursor(1)
 		for lineno in xrange(0, self.GetLineCount()):
 			if self.SCIGetFoldLevel(lineno) & SC_FOLDLEVELHEADERFLAG and \
@@ -395,8 +396,7 @@ class SyntEditView(SyntEditViewParent):
 
 	def FoldCollapseEvent(self, event):
 		if not self.bFolding:
-			win32api.MessageBeep()
-			return
+			return 1
 		win32ui.DoWaitCursor(1)
 		lineno = self.LineFromChar(self.GetSel()[0])
 		if self.SCIGetFoldLevel(lineno) & SC_FOLDLEVELHEADERFLAG and \
@@ -406,8 +406,7 @@ class SyntEditView(SyntEditViewParent):
 
 	def FoldCollapseAllEvent(self, event):
 		if not self.bFolding:
-			win32api.MessageBeep()
-			return
+			return 1
 		win32ui.DoWaitCursor(1)
 		self.Colorize()
 		for lineno in xrange(0, self.GetLineCount()):
