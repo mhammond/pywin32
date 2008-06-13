@@ -369,10 +369,62 @@ class SyntEditView(SyntEditViewParent):
 	#			print lineSeek, level_no, is_header
 				if level_no == 0 and is_header:
 					if (expanding and not self.SCIGetFoldExpanded(lineSeek)) or \
-					   (not expanding and self.SCIGetFoldExpanded(lineSeek)):
+						(not expanding and self.SCIGetFoldExpanded(lineSeek)):
 						self.SCIToggleFold(lineSeek)
 		finally:
 			win32ui.DoWaitCursor(-1)
+
+	def FoldExpandSecondLevelEvent(self, event):
+		if not self.bFolding:
+			return 1
+		win32ui.DoWaitCursor(1)
+		## I think this is needed since Scintilla may not have
+		## already formatted parts of file outside visible window.
+		self.Colorize()
+		levels=[SC_FOLDLEVELBASE]
+		## Scintilla's level number is based on amount of whitespace indentation
+		for lineno in xrange(self.GetLineCount()):
+			level = self.SCIGetFoldLevel(lineno)
+			if not level & SC_FOLDLEVELHEADERFLAG:
+				continue
+			curr_level = level & SC_FOLDLEVELNUMBERMASK
+			if curr_level > levels[-1]:
+				levels.append(curr_level)
+			try:
+				level_ind=levels.index(curr_level)
+			except ValueError:
+				## probably syntax error in source file, bail
+				break
+			levels=levels[:level_ind+1]
+			if level_ind == 1 and not self.SCIGetFoldExpanded(lineno):
+				self.SCIToggleFold(lineno)
+		win32ui.DoWaitCursor(-1)
+
+	def FoldCollapseSecondLevelEvent(self, event):
+		if not self.bFolding:
+			return 1
+		win32ui.DoWaitCursor(1)
+		## I think this is needed since Scintilla may not have
+		## already formatted parts of file outside visible window.
+		self.Colorize()
+		levels=[SC_FOLDLEVELBASE]
+		## Scintilla's level number is based on amount of whitespace indentation
+		for lineno in xrange(self.GetLineCount()):
+			level = self.SCIGetFoldLevel(lineno)
+			if not level & SC_FOLDLEVELHEADERFLAG:
+				continue
+			curr_level = level & SC_FOLDLEVELNUMBERMASK
+			if curr_level > levels[-1]:
+				levels.append(curr_level)
+			try:
+				level_ind=levels.index(curr_level)
+			except ValueError:
+				## probably syntax error in source file, bail
+				break
+			levels=levels[:level_ind+1]
+			if level_ind == 1 and self.SCIGetFoldExpanded(lineno):
+				self.SCIToggleFold(lineno)
+		win32ui.DoWaitCursor(-1)
 
 	def FoldExpandEvent(self, event):
 		if not self.bFolding:
