@@ -299,6 +299,10 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		self.SetSel(-1)
 
 	def KeyDotEvent(self, event):
+		## Don't trigger autocomplete if any text is selected
+		s,e = self.GetSel()
+		if s!=e:
+			return 1
 		self.SCIAddText(".")
 		if self.bAutoCompleteAttributes:
 			self._AutoComplete()
