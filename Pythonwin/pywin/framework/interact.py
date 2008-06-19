@@ -4,12 +4,13 @@
 ## Interactive Shell Window
 ##
 
-import sys
+import sys, os
 import code
 import string
 
 import win32ui
 import win32api
+import win32clipboard
 import win32con
 import traceback
 import afxres
@@ -20,6 +21,10 @@ import pywin.scintilla.formatter
 import pywin.scintilla.control
 import pywin.scintilla.IDLEenvironment
 import pywin.framework.app
+
+## sequential after ID_GOTO_LINE defined in editor.py
+ID_EDIT_COPY_CODE = 0xe2002
+ID_EDIT_EXEC_CLIPBOARD = 0x2003
 
 trace=pywin.scintilla.formatter.trace
 
@@ -348,6 +353,8 @@ class InteractiveCore:
 	def HookHandlers(self):
 		# Hook menu command (executed when a menu item with that ID is selected from a menu/toolbar
 		self.HookCommand(self.OnSelectBlock, win32ui.ID_EDIT_SELECT_BLOCK)
+		self.HookCommand(self.OnEditCopyCode, ID_EDIT_COPY_CODE)
+		self.HookCommand(self.OnEditExecClipboard, ID_EDIT_EXEC_CLIPBOARD)
 		mod = pywin.scintilla.IDLEenvironment.GetIDLEModule("IdleHistory")
 		if mod is not None:
 			self.history = mod.History(self.idle.text, "\n" + sys.ps2)
@@ -517,6 +524,41 @@ class InteractiveCore:
 			endIndex = -2	# self.Length()
 		self.SetSel(startIndex,endIndex)
 
+	def OnEditCopyCode(self, command, code):
+		""" Sanitizes code from interactive window, removing prompts and output,
+			and inserts it in the clipboard."""
+		code=self.GetSelText()
+		lines=code.splitlines()
+		out_lines=[]
+		for line in lines:
+			if line.startswith(sys.ps1):
+				line=line[len(sys.ps1):]
+				out_lines.append(line)
+			elif line.startswith(sys.ps2):
+				line=line[len(sys.ps2):]
+				out_lines.append(line)
+		out_code=os.linesep.join(out_lines)
+		win32clipboard.OpenClipboard()
+		try:
+			win32clipboard.SetClipboardData(win32clipboard.CF_UNICODETEXT, unicode(out_code))
+		finally:
+			win32clipboard.CloseClipboard()
+
+	def OnEditExecClipboard(self, command, code):
+		""" Executes python code directly from the clipboard."""
+		win32clipboard.OpenClipboard()
+		try:
+			code=win32clipboard.GetClipboardData(win32clipboard.CF_UNICODETEXT)
+		finally:
+			win32clipboard.CloseClipboard()
+
+		code=code.replace('\r\n','\n')+'\n'
+		try:
+			o=compile(code, '<clipboard>', 'exec')
+			exec o in __main__.__dict__
+		except:
+			traceback.print_exc()
+
 	def GetRightMenuItems(self):
 		# Just override parents
 		ret = []
@@ -525,6 +567,13 @@ class InteractiveCore:
 		ret.append(win32con.MF_SEPARATOR)
 		ret.append((flags, win32ui.ID_EDIT_CUT, 'Cu&t'))
 		ret.append((flags, win32ui.ID_EDIT_COPY, '&Copy'))
+
+		start, end=self.GetSel()
+		if start!=end:
+			ret.append((flags, ID_EDIT_COPY_CODE, 'Copy code without prompts'))
+		if win32clipboard.IsClipboardFormatAvailable(win32clipboard.CF_UNICODETEXT):
+			ret.append((flags, ID_EDIT_EXEC_CLIPBOARD, 'Execute python code from clipboard'))
+
 		ret.append((flags, win32ui.ID_EDIT_PASTE, '&Paste'))
 		ret.append(win32con.MF_SEPARATOR)
 		ret.append((flags, win32ui.ID_EDIT_SELECT_ALL, '&Select all'))
