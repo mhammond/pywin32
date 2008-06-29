@@ -504,7 +504,7 @@ def _BuildArgList(fdesc, names):
         names[i] = names[i] + "\n\t\t\t"
     return "," + string.join(names, ", ")
 
-valid_identifier_chars = string.letters + string.digits + "_"
+valid_identifier_chars = string.ascii_letters + string.digits + "_"
 
 def demunge_leading_underscores(className):
 	i = 0
