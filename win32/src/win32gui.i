@@ -4528,20 +4528,23 @@ BOOL GetOpenFileName(OPENFILENAME *INPUT);
 }
 
 // @pyswig |InsertMenuItem|Inserts a menu item
-// @pyparm int|hMenu||
-// @pyparm int|fByPosition||
+// @pyparm int|hMenu||Handle to the menu
+// @pyparm int|uItem||The menu item identifier or the menu item position. 
+// @pyparm int|fByPosition||Boolean value of True if uItem is set to a menu item position. This parameter is set to False if uItem is set to a menu item identifier.
 // @pyparm buffer|menuItem||A string or buffer in the format of a <o MENUITEMINFO> structure.
 BOOLAPI InsertMenuItem(HMENU hMenu, UINT uItem, BOOL fByPosition, MENUITEMINFO *INPUT);
 
 // @pyswig |SetMenuItemInfo|Sets menu information
-// @pyparm int|hMenu||
-// @pyparm int|fByPosition||
+// @pyparm int|hMenu||Handle to the menu
+// @pyparm int|uItem||The menu item identifier or the menu item position. 
+// @pyparm int|fByPosition||Boolean value of True if uItem is set to a menu item position. This parameter is set to False if uItem is set to a menu item identifier.
 // @pyparm buffer|menuItem||A string or buffer in the format of a <o MENUITEMINFO> structure.
 BOOLAPI SetMenuItemInfo(HMENU hMenu, UINT uItem, BOOL fByPosition, MENUITEMINFO *INPUT);
 
 // @pyswig |GetMenuItemInfo|Gets menu information
-// @pyparm int|hMenu||
-// @pyparm int|fByPosition||
+// @pyparm int|hMenu||Handle to the menu
+// @pyparm int|uItem||The menu item identifier or the menu item position. 
+// @pyparm int|fByPosition||Boolean value of True if uItem is set to a menu item position. This parameter is set to False if uItem is set to a menu item identifier.
 // @pyparm buffer|menuItem||A string or buffer in the format of a <o MENUITEMINFO> structure.
 BOOLAPI GetMenuItemInfo(HMENU hMenu, UINT uItem, BOOL fByPosition, MENUITEMINFO *BOTH);
 
@@ -4549,18 +4552,31 @@ BOOLAPI GetMenuItemInfo(HMENU hMenu, UINT uItem, BOOL fByPosition, MENUITEMINFO 
 
 #ifndef MS_WINCE
 // @pyswig int|GetMenuItemCount|
+// @pyparm int|hMenu||Handle to the menu
 int GetMenuItemCount(HMENU hMenu);
 
-// @pyswig int|GetMenuItemRect|
+// @pyswig (int, int, int, int)|GetMenuItemRect|
+// @pyparm int|hWnd||
+// @pyparm int|hMenu||Handle to the menu
+// @pyparm int|uItem||
 int GetMenuItemRect(HWND hWnd, HMENU hMenu, UINT uItem, RECT *OUTPUT);
 
 // @pyswig int|GetMenuState|
+// @pyparm int|hMenu||Handle to the menu
+// @pyparm int|uID||
+// @pyparm int|flags||
 int GetMenuState(HMENU hMenu, UINT uID, UINT flags);
 
 // @pyswig |SetMenuDefaultItem|
+// @pyparm int|hMenu||Handle to the menu
+// @pyparm int|uItem||
+// @pyparm int|fByPos||
 BOOLAPI SetMenuDefaultItem(HMENU hMenu, UINT flags, UINT fByPos);
 
-// @pyswig |GetMenuDefaultItem|
+// @pyswig int|GetMenuDefaultItem|
+// @pyparm int|hMenu||Handle to the menu
+// @pyparm int|fByPos||
+// @pyparm int|flags||
 int GetMenuDefaultItem(HMENU hMenu, UINT fByPos, UINT flags);
 #endif	/* not MS_WINCE */
 
@@ -4577,6 +4593,8 @@ BOOL EnableMenuItem(HMENU hMenu, UINT uIDEnableItem, UINT uEnable);
 int CheckMenuItem(HMENU hMenu, UINT uIDCheckItem, UINT uCheck);
 
 // @pyswig HMENU|GetSubMenu|
+// @pyparm int|hMenu||Handle to the menu
+// @pyparm int|nPos||
 HMENU GetSubMenu(HMENU hMenu, int nPos);
 
 #ifndef MS_WINCE

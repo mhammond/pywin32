@@ -595,12 +595,12 @@ BOOLAPI GetDiskFreeSpaceEx(
 
 // @pyswig int|GetDriveType|Determines whether a disk drive is a removable, fixed, CD-ROM, RAM disk, or network drive. 
 long GetDriveType(
-    TCHAR *rootPathName
+    TCHAR *rootPathName // @pyparm string|rootPathName||
 // @rdesc The result is one of the DRIVE_* constants.
 );
 // @pyswig int|GetDriveTypeW|Determines whether a disk drive is a removable, fixed, CD-ROM, RAM disk, or network drive. (NT/2000 Unicode specific version).
 long GetDriveTypeW(
-    WCHAR *rootPathName
+    WCHAR *rootPathName // @pyparm string|rootPathName||
 // @rdesc The result is one of the DRIVE_* constants.
 );
 

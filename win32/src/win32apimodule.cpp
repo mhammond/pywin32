@@ -2246,7 +2246,7 @@ PyGetLongPathNameW (PyObject *self, PyObject *args)
 	return obLongPathNameW;
 }
 
-// @pymethod string|win32api|GetTickCount|Returns the number of milliseconds since windows started.
+// @pymethod int|win32api|GetTickCount|Returns the number of milliseconds since windows started.
 static PyObject *
 PyGetTickCount(PyObject * self, PyObject * args)
 {
