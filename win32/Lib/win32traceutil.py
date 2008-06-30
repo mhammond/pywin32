@@ -19,7 +19,7 @@
 # And the output will appear in the first collector process.
 
 # Note - the client or the collector can be started first.
-# There is a 64k buffer.  If this gets full, it is reset, and new
+# There is a 0x20000 byte buffer.  If this gets full, it is reset, and new
 # output appended from the start.
 
 import win32trace
@@ -33,10 +33,12 @@ def RunAsCollector():
 		pass # Oh well!
 	win32trace.InitRead()
 	print "Collecting Python Trace Output..."
-#	import win32api;win32api.DebugBreak()
-	while 1:
-#		print win32trace.blockingread()
-		sys.stdout.write(win32trace.blockingread())
+	try:
+		while 1:
+			# a short timeout means ctrl+c works next time we wake...
+			sys.stdout.write(win32trace.blockingread(500))
+	except KeyboardInterrupt:
+		print "Ctrl+C"
 
 
 def SetupForPrint():
