@@ -7,7 +7,7 @@ from win32com.client import gencache, constants
 import pythoncom
 import os
 
-ammodule = gencache.EnsureModule('{3FA7DEA7-6438-101B-ACC1-00AA00423326}', 0, 1, 1)
+ammodule = None # was the generated module!
 
 def GetDefaultProfileName():
     import win32api, win32con
@@ -32,7 +32,15 @@ def DumpFolder(folder, indent = 0):
         folder = folders.GetNext()
 
 def DumpFolders(session):
-    infostores = session.InfoStores
+    try:
+        infostores = session.InfoStores
+    except AttributeError:
+        # later outlook?
+        store = session.DefaultStore
+        folder = store.GetRootFolder()
+        DumpFolder(folder)
+        return
+
     print infostores
     print "There are %d infostores" % infostores.Count
     for i in range(infostores.Count):
@@ -64,8 +72,8 @@ def TestAddress(session):
 
 def TestUser(session):
     ae = session.CurrentUser
-    fields = ae.Fields
-    print "User has %d fields" % fields.Count
+    fields = getattr(ae, "Fields", [])
+    print "User has %d fields" % len(fields)
     for f in range(len(fields)):
         field = fields[f+1]
         try:
@@ -75,18 +83,20 @@ def TestUser(session):
         print "%s/%s=%s" % (field.Name, id, field.Value)
 
 def test():
-    if not ammodule:
-        print "MAPI does not appear to be installed on this machine - skipping."
-        return
-
     import win32com.client
     oldcwd = os.getcwd()
-    session = win32com.client.Dispatch("MAPI.Session")
     try:
-        session.Logon(GetDefaultProfileName())
-    except pythoncom.com_error, details:
-        print "Could not log on to MAPI:", details
-        return
+        session = gencache.EnsureDispatch("MAPI.Session")
+        try:
+            session.Logon(GetDefaultProfileName())
+        except pythoncom.com_error, details:
+            print "Could not log on to MAPI:", details
+            return
+    except pythoncom.error:
+        # no mapi.session - let's try outlook
+        app = gencache.EnsureDispatch("Outlook.Application")
+        session = app.Session
+
     try:
         TestUser(session)
         TestAddress(session)
