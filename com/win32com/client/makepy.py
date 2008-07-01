@@ -67,6 +67,7 @@ Examples:
 """
 
 import genpy, string, sys, os, types, pythoncom
+import codecs
 import selecttlb
 import gencache
 from win32com.client import NeedUnicodeConversions, Dispatch
@@ -265,7 +266,11 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 				outputName = os.path.join(full_name, "__init__.py")
 			else:
 				outputName = full_name + ".py"
-			fileUse = open(outputName, "wt")
+			# generate to a temp file (so errors don't leave a 1/2
+			# generated file) and one which can handle unicode!
+			encoding = 'mbcs' # could make this a param.
+			fileUse = codecs.open(outputName + ".temp", "wt",
+			                      encoding)
 			progress.LogBeginGenerate(outputName)
 		else:
 			fileUse = file
@@ -276,6 +281,7 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 		
 		if file is None:
 			fileUse.close()
+			os.rename(outputName + ".temp", outputName)
 		
 		if bToGenDir:
 			progress.SetDescription("Importing module")
