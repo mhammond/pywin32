@@ -138,7 +138,6 @@ class HierList(object.Object):
 
 	def AddItem(self, parentHandle, item, hInsertAfter = commctrl.TVI_LAST):
 		text = self.GetText(item)
-#			hitem = self.list.InsertItem(text, 0, 1)
 		if self.IsExpandable(item):
 			cItems = 1 # Trick it !!
 		else:
@@ -146,6 +145,8 @@ class HierList(object.Object):
 		bitmapCol = self.GetBitmapColumn(item)
 		bitmapSel = self.GetSelectedBitmapColumn(item)
 		if bitmapSel is None: bitmapSel = bitmapCol
+		if type(text) is unicode:
+			text = text.encode("mbcs")
 		hitem = self.list.InsertItem(parentHandle, hInsertAfter, (None, None, None, text, bitmapCol, bitmapSel, cItems, 0))
 		self.itemHandleMap[hitem] = item
 		return hitem
