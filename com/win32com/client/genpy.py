@@ -23,7 +23,7 @@ import pythoncom
 import build
 
 error = "makepy.error"
-makepy_version = "0.4.97" # Written to generated file.
+makepy_version = "0.4.98" # Written to generated file.
 
 GEN_FULL="full"
 GEN_DEMAND_BASE = "demand(base)"
@@ -213,7 +213,7 @@ class EnumerationItem(build.OleItem, WritableItem):
           else:
             use = hex(val)
         else:
-          use = repr(str(val))
+          use = repr(val)
         print >> stream, "\t%-30s=%-10s # from enum %s" % \
                       (build.MakePublicAttributeName(name, True), use, enumName)
 
@@ -782,8 +782,9 @@ class Generator:
     self.bHaveWrittenDispatchBaseClass = 0
     self.bHaveWrittenCoClassBaseClass = 0
     self.bHaveWrittenEventBaseClass = 0
+    encoding = self.file.encoding or "mbcs"
 
-    print >> self.file, '# -*- coding: mbcs -*-' # Is this always correct?
+    print >> self.file, '# -*- coding: %s -*-' % (encoding,)
     print >> self.file, '# Created by makepy.py version %s' % (makepy_version,)
     print >> self.file, '# By python version %s' % \
                         (sys.version.replace("\n", "-"),)
