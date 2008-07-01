@@ -268,6 +268,10 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 				outputName = full_name + ".py"
 			# generate to a temp file (so errors don't leave a 1/2
 			# generated file) and one which can handle unicode!
+			try:
+				os.unlink(outputName)
+			except os.error:
+				pass
 			encoding = 'mbcs' # could make this a param.
 			fileUse = codecs.open(outputName + ".temp", "wt",
 			                      encoding)
