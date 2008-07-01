@@ -55,8 +55,10 @@ BOOL PyObject_AsVARDESC(PyObject *ob, VARDESC *v, void *pMore)
 		if (!PyCom_VariantFromPyObject(pyv->value, pVar))
 			return NULL;
 		v->lpvarValue = pVar;
-	}
-	else {
+	}  else if (v->varkind == VAR_DISPATCH) {
+		// nothing to do - memid is all that is needed by the caller.
+		;
+	} else {
 		PyCom_LoggerWarning(NULL, "PyObject_AsVARDESC has unknown varkind (%d) - None will be used", v->varkind);
 	}
 	// else ignore value.
@@ -175,6 +177,10 @@ PyVARDESC::PyVARDESC(const VARDESC *pVD)
 			value  = PyCom_PyObjectFromVariant(pVD->lpvarValue);
 			break;
 		}
+	} else if (varkind == VAR_DISPATCH) {
+		// all caller needs is memid, which is already setup.
+		value = Py_None;
+		Py_INCREF(Py_None);
 	} else {
 		PyCom_LoggerWarning(NULL, "PyVARDESC ctor has unknown varkind (%d) - returning None", varkind);
 		value = Py_None;
