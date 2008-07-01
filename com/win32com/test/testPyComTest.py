@@ -276,7 +276,8 @@ def TestGenerated():
     TestConstant("LongTest2", 0x7FFFFFFFL)
     TestConstant("UCharTest", 255)
     TestConstant("CharTest", -1)
-    TestConstant("StringTest", "Hello Loraine")
+    # 'Hello Loraine', but the 'r' is the "Registered" sign (\xae)
+    TestConstant("StringTest", u"Hello Lo\xaeaine") 
 
     now = pythoncom.MakeTime(time.gmtime(time.time()))
     later = pythoncom.MakeTime(time.gmtime(time.time()+1))
