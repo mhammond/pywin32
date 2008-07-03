@@ -237,6 +237,9 @@ PyObject * PyHFC::AddResponseHeaders(PyObject *self, PyObject *args)
 }
 
 // @pymethod string|HTTP_FILTER_CONTEXT|GetServerVariable|
+// @rdesc The result is a string object, unless the server variable name
+// begins with 'UNICODE_', in which case it is a unicode object - see the
+// ISAPI docs for more details.
 PyObject * PyHFC::GetServerVariable(PyObject *self, PyObject *args)
 {
 	BOOL bRes = FALSE;
