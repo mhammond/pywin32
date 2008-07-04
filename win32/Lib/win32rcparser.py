@@ -111,6 +111,9 @@ class StringDef:
         self.idNum = idNum
         self.value = value
 
+    def __repr__(self):
+        return "StringDef(%r, %r, %r)" % (self.id, self.idNum, self.value)
+
 class RCParser:
     next_id = 1001
     dialogs = {}
@@ -490,7 +493,8 @@ class RCParser:
 
 def ParseStreams(rc_file, h_file):
     rcp = RCParser()
-    rcp.parseH(h_file)
+    if h_file:
+        rcp.parseH(h_file)
     try:
         rcp.load(rc_file)
     except:
@@ -543,6 +547,15 @@ def GenerateFrozenResource(rc_name, output_name, h_name = None):
     out.write("#This is a generated file. Please edit %s instead.\n" % rc_name)
     out.write("__version__=%r\n" % __version__)
     out.write("_rc_size_=%d\n_rc_mtime_=%d\n" % (in_stat[stat.ST_SIZE], in_stat[stat.ST_MTIME]))
+
+    out.write("class StringDef:\n")
+    out.write("\tdef __init__(self, id, idNum, value):\n")
+    out.write("\t\tself.id = id\n")
+    out.write("\t\tself.idNum = idNum\n")
+    out.write("\t\tself.value = value\n")
+    out.write("\tdef __repr__(self):\n")
+    out.write("\t\treturn \"StringDef(%r, %r, %r)\" % (self.id, self.idNum, self.value)\n")
+
     out.write("class FakeParser:\n")
 
     for name in "dialogs", "ids", "names", "bitmaps", "icons", "stringTable":

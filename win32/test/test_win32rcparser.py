@@ -2,6 +2,7 @@ import sys, os
 import unittest
 import win32rcparser
 import win32con
+import tempfile
 
 class TestParser(unittest.TestCase):
     def setUp(self):
@@ -43,6 +44,23 @@ class TestParser(unittest.TestCase):
                 self.failUnlessEqual(style & win32con.WS_TABSTOP, 0)
                 num_ok += 1
         self.failUnlessEqual(num_ok, len(tabstop_ids) + len(notabstop_ids))
+
+class TestGenerated(TestParser):
+    def setUp(self):
+        # don't call base!
+        rc_file = os.path.join(os.path.dirname(__file__), "win32rcparser", "test.rc")
+        py_file = tempfile.mktemp('test_win32rcparser.py')
+        try:
+            win32rcparser.GenerateFrozenResource(rc_file, py_file)
+            py_source = open(py_file).read()
+        finally:
+            if os.path.isfile(py_file):
+                os.unlink(py_file)
+            
+        # poor-man's import :)
+        globs = {}
+        exec py_source in globs, globs
+        self.resources = globs["FakeParser"]()
 
 if __name__=='__main__':
     unittest.main()
