@@ -14,6 +14,7 @@ generates Windows .hlp files.
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
 #include "PyFactory.h"
+#include "OleAcc.h" // for ObjectFromLresult proto...
 
 // keep a reference to pythoncom'm __dict__ so the COM currency format can be looked up dynamically
 extern PyObject *pythoncom_dict=NULL;
@@ -90,6 +91,8 @@ HRESULT (STDAPICALLTYPE *pfnCoWaitForMultipleHandles)(DWORD dwFlags,
   LPDWORD  lpdwindex
 ) = NULL;
 
+// typedefs for the function pointers are in OleAcc.h
+LPFNOBJECTFROMLRESULT pfnObjectFromLresult = NULL;
 
 BOOL PyCom_HasDCom()
 {
@@ -1744,6 +1747,50 @@ static PyObject *pythoncom_OleInitialize(PyObject *, PyObject *args)
 	return Py_None;
 }
 
+// @pymethod <o PyIUnknown>|pythoncom|ObjectFromLresult|Retrieves a requested
+// interface pointer for an object based on a previously generated object reference.
+static PyObject *pythoncom_ObjectFromLresult(PyObject *self, PyObject *args)
+{
+	PyObject *oblresult;
+	PyObject *obIID = NULL;
+	PyObject *obwparam;
+	// @pyparam int|lresult||
+	// @pyparm <o PyIID>|iid||The IID to query
+	// @pyparm int|wparm||
+	LRESULT lresult;
+	WPARAM wparam;
+	IID iid;
+	if (!PyArg_ParseTuple(args, "OOO", &oblresult, &obIID, &obwparam))
+		return NULL;
+	if (!PyWinLong_AsULONG_PTR(oblresult, (ULONG_PTR *)&lresult))
+		return NULL;
+	if (!PyWinLong_AsULONG_PTR(obwparam, (ULONG_PTR *)&wparam))
+		return NULL;
+	if (obIID && !PyWinObject_AsIID(obIID, &iid))
+		return NULL;
+
+	// GIL protects us from races here.
+	if (pfnObjectFromLresult==NULL) {
+		HMODULE hmod = LoadLibrary("oleacc.dll");
+		if (hmod)
+			pfnObjectFromLresult = (LPFNOBJECTFROMLRESULT)
+				GetProcAddress(hmod, "ObjectFromLresult");
+	}
+	if (pfnObjectFromLresult==NULL)
+		return PyErr_Format(PyExc_NotImplementedError,
+				    "Not available on this platform");
+	
+	HRESULT hr;
+	void *ret = 0;
+	Py_BEGIN_ALLOW_THREADS
+	hr = (*pfnObjectFromLresult)(lresult, iid, wparam, &ret);
+	Py_END_ALLOW_THREADS
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		return NULL;
+	}
+	return PyCom_PyObjectFromIUnknown((IUnknown *)ret, iid, FALSE);
+}
 
 /* List of module functions */
 // @module pythoncom|A module, encapsulating the OLE automation API
@@ -1814,6 +1861,7 @@ static struct PyMethodDef pythoncom_methods[]=
 #endif // MS_WINCE
 	{ "new",                 pythoncom_new, 1 },
 	{ "New",                 pythoncom_new, 1 },                 // @pymeth New|Create a new instance of an OLE automation server.
+	{ "ObjectFromLresult",   pythoncom_ObjectFromLresult, 1 },   // @pymeth ObjectFromLresult|Returns a COM object given its address in memory.
 	{ "OleInitialize",       pythoncom_OleInitialize, 1},      // @pymeth OleInitialize|
 	{ "OleGetClipboard",     pythoncom_OleGetClipboard, 1},      // @pymeth OleGetClipboard|Retrieves a data object that you can use to access the contents of the clipboard.
 	{ "OleFlushClipboard",   pythoncom_OleFlushClipboard, 1},   // @pymeth OleFlushClipboard|Carries out the clipboard shutdown sequence. It also releases the IDataObject pointer that was placed on the clipboard by the <om pythoncom.OleSetClipboard> function.

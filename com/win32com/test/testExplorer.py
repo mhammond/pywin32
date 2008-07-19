@@ -4,7 +4,10 @@ import string
 import sys
 import os
 import win32com.client.dynamic
+from win32com.client import Dispatch
 import win32api
+import win32gui
+import win32con
 import glob
 import pythoncom
 import time
@@ -36,19 +39,32 @@ def TestExplorerEvents():
     ie = None
     print "IE Event tests worked."
 
-
+def TestObjectFromWindow():
+    # Check we can use ObjectFromLresult to get the COM object from the
+    # HWND - see KB Q249232
+    # Locating the HWND is different than the KB says...
+    hwnd = win32gui.FindWindow('IEFrame', None)
+    for child_class in ['TabWindowClass', 'Shell DocObject View',
+                        'Internet Explorer_Server']:
+        hwnd = win32gui.FindWindowEx(hwnd, 0, child_class, None)
+        assert hwnd, "Couldn't find '%s" % (child_class,)
+    # But here is the point - once you have an 'Internet Explorer_Server',
+    # you can send a message and use ObjectFromLresult to get it back.
+    msg = win32gui.RegisterWindowMessage("WM_HTML_GETOBJECT")
+    rc, result = win32gui.SendMessageTimeout(hwnd, msg, 0, 0, win32con.SMTO_ABORTIFHUNG, 1000)
+    ob = pythoncom.ObjectFromLresult(result, pythoncom.IID_IDispatch, 0)
+    doc = Dispatch(ob)
+    # just to prove it works, set the background color of the document.
+    for color in "red green blue orange white".split():
+        doc.bgColor = color
+        time.sleep(0.2)
+    
 def TestExplorer(iexplore):
     if not iexplore.Visible: iexplore.Visible = -1
-    try:
-        iexplore.Navigate(win32api.GetFullPathName('..\\readme.htm'))
-    except pythoncom.com_error, details:
-        print "Warning - could not open the test HTML file", details
-#       for fname in glob.glob("..\\html\\*.html"):
-#               print "Navigating to", fname
-#               while iexplore.Busy:
-#                       win32api.Sleep(100)
-#               iexplore.Navigate(win32api.GetFullPathName(fname))
-    win32api.Sleep(4000)
+    iexplore.Navigate(win32api.GetFullPathName('..\\readme.htm'))
+    win32api.Sleep(1000)
+    TestObjectFromWindow()
+    win32api.Sleep(3000)
     try:
         iexplore.Quit()
     except (AttributeError, pythoncom.com_error):
