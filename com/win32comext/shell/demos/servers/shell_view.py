@@ -368,6 +368,16 @@ class FileSystemView:
         self._CreateMainWindow(prev, settings, browser, rect)
         self._CreateChildWindow(prev)
 
+        # This isn't part of the sample, but the most convenient place to
+        # test/demonstrate how you can get an IShellBrowser from a HWND
+        # (but ONLY when you are in the same process as the IShellBrowser!)
+        # Obviously it is not necessary here - we already have the browser!
+        browser_ad = win32gui.SendMessage(self.hwnd_parent, win32con.WM_USER+7, 0, 0)
+        browser_ob = pythoncom.ObjectFromAddress(browser_ad, shell.IID_IShellBrowser)
+        assert browser==browser_ob
+        # and make a call on the object to prove it doesn't die :)
+        assert browser.QueryActiveShellView()==browser_ob.QueryActiveShellView()
+
     def _CreateMainWindow(self, prev, settings, browser, rect):
         # Creates a parent window that hosts the view window.  This window
         # gets the control notifications etc sent from the child.

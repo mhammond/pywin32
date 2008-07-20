@@ -1435,7 +1435,6 @@ static PyObject *pythoncom_CreateTypeLib2(PyObject *self, PyObject *args)
 	return PyCom_PyObjectFromIUnknown(pcti, IID_ICreateTypeLib2, FALSE);
 }
 
-
 // @pymethod int|pythoncom|PumpWaitingMessages|Pumps all waiting messages for the current thread.
 // @comm It is sometimes necessary for a COM thread to have a message loop.  This function
 // can be used with <om win32event.MsgWaitForMultipleObjects> to pump all messages
@@ -1789,8 +1788,54 @@ static PyObject *pythoncom_ObjectFromLresult(PyObject *self, PyObject *args)
 		PyCom_BuildPyException(hr);
 		return NULL;
 	}
+	// docs for ObjectFromLresult don't mention reference counting, but
+	// it does say that you can't call this twice on the same object, and
+	// it has a signature that implies normal reference counting.  So
+	// we assume this call has already added a reference to the result.
 	return PyCom_PyObjectFromIUnknown((IUnknown *)ret, iid, FALSE);
 }
+
+// @pymethod <o PyIUnknown>|pythoncom|ObjectFromAddress|Returns a COM object given its address in memory.
+// @rdesc This method is useful for applications which return objects via non-standard
+// mechanisms - eg, Windows Explorer allows you to send a specific message to the
+// explorer window and the result will be the address of an object Explorer implements.
+// This method allows you to recover the object from that address.
+static PyObject *pythoncom_ObjectFromAddress(PyObject *self, PyObject *args)
+{
+	IID iid = IID_IUnknown;
+	void *addr;
+	PyObject *obAddr;
+	PyObject *obIID = NULL;
+	// @pyparam int|address||The address which holds a COM object
+	// @pyparm <o PyIID>|iid|IUnknown|The IID to query
+	if (!PyArg_ParseTuple(args, "O|O", &obAddr, &obIID))
+		return NULL;
+	if (!PyWinLong_AsVoidPtr(obAddr, &addr))
+		return NULL;
+	if (obIID && !PyWinObject_AsIID(obIID, &iid))
+		return NULL;
+
+	HRESULT hr;
+	IUnknown *ret = 0;
+	PyThreadState *_save = PyEval_SaveThread();
+	PYWINTYPES_TRY
+	{
+		hr = ((IUnknown *)addr)->QueryInterface(iid, (void **)&ret);
+		PyEval_RestoreThread(_save);
+	}
+	PYWINTYPES_EXCEPT
+	{
+		PyEval_RestoreThread(_save);
+		return PyErr_Format(PyExc_ValueError, "Address is not a valid COM object (win32 exception attempting to retrieve it!)");
+	}
+	if (FAILED(hr) || ret==0) {
+		PyCom_BuildPyException(hr);
+		return NULL;
+	}
+	// We've added a reference via the QI above.
+	return PyCom_PyObjectFromIUnknown(ret, iid, FALSE);
+}
+
 
 /* List of module functions */
 // @module pythoncom|A module, encapsulating the OLE automation API
@@ -1861,7 +1906,8 @@ static struct PyMethodDef pythoncom_methods[]=
 #endif // MS_WINCE
 	{ "new",                 pythoncom_new, 1 },
 	{ "New",                 pythoncom_new, 1 },                 // @pymeth New|Create a new instance of an OLE automation server.
-	{ "ObjectFromLresult",   pythoncom_ObjectFromLresult, 1 },   // @pymeth ObjectFromLresult|Returns a COM object given its address in memory.
+	{ "ObjectFromAddress",   pythoncom_ObjectFromAddress, 1 },   // @pymeth ObjectFromAddress|Returns a COM object given its address in memory.
+	{ "ObjectFromLresult",   pythoncom_ObjectFromLresult, 1 },   // @pymeth ObjectFromLresult|Retrieves a requested interface pointer for an object based on a previously generated object reference.
 	{ "OleInitialize",       pythoncom_OleInitialize, 1},      // @pymeth OleInitialize|
 	{ "OleGetClipboard",     pythoncom_OleGetClipboard, 1},      // @pymeth OleGetClipboard|Retrieves a data object that you can use to access the contents of the clipboard.
 	{ "OleFlushClipboard",   pythoncom_OleFlushClipboard, 1},   // @pymeth OleFlushClipboard|Carries out the clipboard shutdown sequence. It also releases the IDataObject pointer that was placed on the clipboard by the <om pythoncom.OleSetClipboard> function.
