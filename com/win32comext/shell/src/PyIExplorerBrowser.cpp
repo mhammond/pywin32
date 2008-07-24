@@ -270,21 +270,15 @@ PyObject *PyIExplorerBrowser::GetOptions(PyObject *self, PyObject *args)
 	if ( pIEB == NULL )
 		return NULL;
 	EXPLORER_BROWSER_OPTIONS dwFlag;
-	PyObject *obpdwFlag;
-	// @pyparm <o PyEXPLORER_BROWSER_OPTIONS>|pdwFlag||Description for pdwFlag
-	if ( !PyArg_ParseTuple(args, "O:GetOptions", &obpdwFlag) )
+	if ( !PyArg_ParseTuple(args, ":GetOptions"))
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyObject_AsEXPLORER_BROWSER_OPTIONS( obpdwFlag, &dwFlag )) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pIEB->GetOptions( &dwFlag );
 	PY_INTERFACE_POSTCALL;
-
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIEB, IID_IExplorerBrowser );
-	return PyInt_FromLong(dwFlag);
+	return PyLong_FromUnsignedLong(dwFlag);
 }
 
 // @pymethod |PyIExplorerBrowser|BrowseToIDList|Description of BrowseToIDList.
