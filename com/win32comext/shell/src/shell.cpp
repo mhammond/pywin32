@@ -56,6 +56,7 @@ generates Windows .hlp files.
 #include "PyIExplorerBrowserEvents.h"
 #include "PyIExplorerCommand.h"
 #include "PyIExplorerCommandProvider.h"
+#include "PyIExplorerPaneVisibility.h"
 #include "PyIShellItem.h"
 #include "PyIShellItemArray.h"
 
@@ -2956,6 +2957,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL(ExplorerBrowserEvents),
 	PYCOM_INTERFACE_FULL(ExplorerCommand),
 	PYCOM_INTERFACE_SERVER_ONLY(ExplorerCommandProvider),
+	PYCOM_INTERFACE_CLIENT_ONLY(ExplorerPaneVisibility),
 	// IID_ICopyHook doesn't exist - hack it up
 	{ &IID_IShellCopyHook, "IShellCopyHook", "IID_IShellCopyHook", &PyICopyHook::type, GET_PYGATEWAY_CTOR(PyGCopyHook) },
 	{ &IID_IShellCopyHook, "ICopyHook", "IID_ICopyHook", NULL, NULL  },
@@ -3093,6 +3095,8 @@ extern "C" __declspec(dllexport) void initshell()
 #if (_WIN32_IE >= 0x0400)
 	ADD_IID(CGID_ShellServiceObject);
 	ADD_IID(CGID_ExplorerBarDoc);
+	ADD_IID(CGID_ShellServiceObject);
+	ADD_IID(CGID_ExplorerBarDoc);
 	ADD_IID(SID_SShellDesktop);
 	ADD_IID(SID_SUrlHistory);
 	ADD_IID(SID_SInternetExplorer);
@@ -3120,6 +3124,15 @@ extern "C" __declspec(dllexport) void initshell()
 	ADD_IID(FMTID_MediaFileSummaryInformation);
 	ADD_IID(FMTID_ImageSummaryInformation);
 	ADD_IID(IID_CDefView);
+
+	ADD_IID(EP_NavPane);
+	ADD_IID(EP_Commands);
+	ADD_IID(EP_Commands_Organize);
+	ADD_IID(EP_Commands_View);
+	ADD_IID(EP_DetailsPane);
+	ADD_IID(EP_PreviewPane);
+	ADD_IID(EP_QueryPane);
+	ADD_IID(EP_AdvQueryPane);
 #else
 #	pragma message("Please update your SDK headers - IE5 features missing!")
 #endif

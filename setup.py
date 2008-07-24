@@ -1517,6 +1517,7 @@ com_extensions += [
                         %(shell)s/PyIExplorerBrowserEvents.cpp
                         %(shell)s/PyIExplorerCommand.cpp
                         %(shell)s/PyIExplorerCommandProvider.cpp
+                        %(shell)s/PyIExplorerPaneVisibility.cpp
                         %(shell)s/PyIExtractIcon.cpp
                         %(shell)s/PyIExtractIconW.cpp
                         %(shell)s/PyIExtractImage.cpp
