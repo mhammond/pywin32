@@ -165,7 +165,7 @@ class MainWindow:
         SelectObject(hdcBitmap, hbmOld)
         DeleteDC(hdcBitmap)
         item, extras = PackMENUITEMINFO(text="Menu with icon",
-                                        hbmpItem=hbm,
+                                        hbmpItem=hbm.Detach(),
                                         wID=1011)
         InsertMenuItem(menu, 0, 1, item)
 
