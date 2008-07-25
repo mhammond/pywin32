@@ -1892,6 +1892,9 @@ static PyObject *PyGetConsoleAliasExes(PyObject *self, PyObject *args)
 }
 
 // @pymethod int|win32console|GetConsoleWindow|Returns a handle to the console's window, or 0 if none exists
+// @rdesc This function may raise NotImplementedError if it does not exist on
+// the platform, or a <o PyHANDLE> object with a value of 0.  It will never
+// raise a win32 exception.
 static PyObject *PyGetConsoleWindow(PyObject *self, PyObject *args)
 {
 	HWND h;
