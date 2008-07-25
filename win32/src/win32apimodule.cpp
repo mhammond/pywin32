@@ -881,13 +881,17 @@ PyGetLogicalDrives (PyObject *self, PyObject *args)
 static PyObject *PyGetConsoleTitle(PyObject *self, PyObject *args)
 {
 	TCHAR *title=NULL;
-	DWORD chars_allocated=64, chars_returned;
+	DWORD chars_allocated=1024, chars_returned;
 	PyObject *ret=NULL;
 	if (!PyArg_ParseTuple(args, ":GetConsoleTitle"))
 		return NULL;
 
-	// if buffer is too small, function still copies as much of title as will fit,
-	//  so loop until fewer characters returned than were allocated
+	// We used to rely on that if buffer is too small, function still copies
+	// as much of title as will fit, so loop until fewer characters returned
+	// than were allocated.
+	// Latest MSDN now says "If the buffer is not large enough to store
+	// the title, the return value is zero and GetLastError returns
+	// ERROR_SUCCESS."
 	while (TRUE){
 		if (title!=NULL){
 			free(title);
@@ -897,10 +901,10 @@ static PyObject *PyGetConsoleTitle(PyObject *self, PyObject *args)
 		if (title==NULL)
 			return PyErr_Format(PyExc_MemoryError, "GetConsoleTitle: unable to allocate %d bytes", chars_allocated*sizeof(TCHAR));
 		chars_returned=GetConsoleTitle(title, chars_allocated);
-		if (chars_returned==0){
+		if (chars_returned==0 && GetLastError() != ERROR_SUCCESS){
 			PyWin_SetAPIError("GetConsoleTitle");
 			break;
-			}
+		}
 		if ((chars_returned+1)<chars_allocated){   // returned length does *not* includes the NULL terminator
 			ret=PyWinObject_FromTCHAR(title);
 			break;
