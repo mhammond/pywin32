@@ -55,7 +55,8 @@ PyObject *PyIExtractIconW::Extract(PyObject *self, PyObject *args)
 		return PyCom_BuildPyException(hr, pIEI, IID_IExtractIconW );
 	if (hr==S_FALSE)
 		return Py_BuildValue("OO", Py_None, Py_None);
-	return Py_BuildValue("ii", hiconLarge, hiconSmall);
+	return Py_BuildValue("NN", PyWinLong_FromHANDLE(hiconLarge),
+			           PyWinLong_FromHANDLE(hiconSmall));
 	// @rdesc The result is (hicon_large, hicon_small), or
 	// (None,None) if the underlying function returns S_FALSE, indicating
 	// the calling application should extract it.
@@ -124,7 +125,13 @@ STDMETHODIMP PyGExtractIconW::Extract(
 	if (PyInt_Check(result) || PyLong_Check(result))
 		hr = PyInt_AsLong(result);
 	else {
-		PyArg_ParseTuple(result, "ii", phiconLarge, phiconSmall);
+		PyObject *oblarge, *obsmall;
+		if (PyArg_ParseTuple(result, "OO", &oblarge, &obsmall) &&
+		    PyWinObject_AsHANDLE(oblarge, (HANDLE *)phiconLarge) &&
+		    PyWinObject_AsHANDLE(obsmall, (HANDLE *)phiconSmall)) {
+			// we worked - no error should be present!
+			assert(!PyErr_Occurred());
+		}
 		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("Extract");
 	}
 	Py_DECREF(result);
