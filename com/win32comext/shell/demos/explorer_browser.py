@@ -2,6 +2,7 @@
 # Currently doesn't quite work:
 # * CPU sits at 100% while running.
 
+import sys
 import pythoncom
 from win32com.shell import shell, shellcon
 import win32gui, win32con, win32api
@@ -60,8 +61,34 @@ class MainWindow:
         # Set the flags such that the folders autoarrange and non web view is presented
         flags = (shellcon.FVM_LIST, shellcon.FWF_AUTOARRANGE | shellcon.FWF_NOWEBVIEW)
         eb.Initialize(self.hwnd, rect, (0, shellcon.FVM_DETAILS))
-        # And start browsing at the root of the namespace.
-        eb.BrowseToIDList([], shellcon.SBSP_ABSOLUTE)
+        if len(sys.argv)==2:
+            # If an arg was specified, ask the desktop parse it.
+            # You can pass anything explorer accepts as its '/e' argument -
+            # eg, "::{guid}\::{guid}" etc.
+            # "::{20D04FE0-3AEA-1069-A2D8-08002B30309D}" is "My Computer"
+            pidl = shell.SHGetDesktopFolder().ParseDisplayName(0, None, sys.argv[1])[1]
+        else:
+            # And start browsing at the root of the namespace.
+            pidl = []
+        eb.BrowseToIDList(pidl, shellcon.SBSP_ABSOLUTE)
+        # and for some reason the "Folder" view in the navigator pane doesn't
+        # magically synchronize itself - so let's do that ourself.
+        # Get the tree control.
+        sp = eb.QueryInterface(pythoncom.IID_IServiceProvider)
+        try:
+            tree = sp.QueryService(shell.IID_INameSpaceTreeControl,
+                                   shell.IID_INameSpaceTreeControl)
+        except pythoncom.com_error, exc:
+            # this should really only fail if no "nav" frame exists...
+            print "Strange - failed to get the tree control even though " \
+                  "we asked for a EBO_SHOWFRAMES"
+            print exc
+        else:
+            # get the IShellItem for the selection.
+            si = shell.SHCreateItemFromIDList(pidl, shell.IID_IShellItem)
+            # set it to selected.
+            tree.SetItemState(si, shellcon.NSTCIS_SELECTED, shellcon.NSTCIS_SELECTED)
+
         #eb.FillFromObject(None, shellcon.EBF_NODROPTARGET); 
         #eb.SetEmptyText("No known folders yet...");  
         self.eb = eb

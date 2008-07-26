@@ -59,6 +59,7 @@ generates Windows .hlp files.
 #include "PyIExplorerPaneVisibility.h"
 #include "PyIShellItem.h"
 #include "PyIShellItemArray.h"
+#include "PyINameSpaceTreeControl.h"
 
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
 
@@ -134,6 +135,25 @@ static PFNSHCreateShellItemArrayFromShellItem pfnSHCreateShellItemArrayFromShell
 
 typedef BOOL (WINAPI *PFNSHCreateDefaultContextMenu)(const DEFCONTEXTMENU *, REFIID, void **);
 static PFNSHCreateDefaultContextMenu pfnSHCreateDefaultContextMenu = NULL;
+
+typedef HRESULT (WINAPI *PFNSHCreateItemFromIDList)(PCIDLIST_ABSOLUTE, REFIID, void **);
+static PFNSHCreateItemFromIDList pfnSHCreateItemFromIDList = NULL;
+
+typedef HRESULT (WINAPI *PFNSHCreateItemFromParsingName)(PCWSTR, IBindCtx *, REFIID, void **);
+static PFNSHCreateItemFromParsingName pfnSHCreateItemFromParsingName = NULL;
+
+typedef HRESULT (WINAPI *PFNSHCreateItemFromRelativeName)(IShellItem *, PCWSTR, IBindCtx *, REFIID, void **);
+static PFNSHCreateItemFromRelativeName pfnSHCreateItemFromRelativeName = NULL;
+
+typedef HRESULT (WINAPI *PFNSHCreateItemInKnownFolder)(REFKNOWNFOLDERID, DWORD, PCWSTR, REFIID, void **);
+static PFNSHCreateItemInKnownFolder pfnSHCreateItemInKnownFolder = NULL;
+
+typedef HRESULT (WINAPI *PFNSHCreateItemWithParent)(PCIDLIST_ABSOLUTE, IShellFolder *, PCUITEMID_CHILD, REFIID, void **);
+static PFNSHCreateItemWithParent pfnSHCreateItemWithParent = NULL;
+
+typedef HRESULT (WINAPI *PFNSHGetIDListFromObject)(IUnknown *, PIDLIST_ABSOLUTE *);
+static PFNSHGetIDListFromObject pfnSHGetIDListFromObject = NULL;
+
 
 void PyShell_FreeMem(void *p)
 {
@@ -2862,6 +2882,309 @@ done:
 	return ret;
 }
 
+// @pymethod |shell|SHCreateItemFromIDList|Creates and initializes a Shell item
+// object from a PIDL. The resulting shell item object supports the IShellItem interface.
+static PyObject *PySHCreateItemFromIDList(PyObject *self, PyObject *args)
+{
+	// @comm This function is only available on Vista and later; a
+	// COM exception with E_NOTIMPL will be thrown if the function can't be located.
+	if (pfnSHCreateItemFromIDList==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+	PyObject *ret = NULL;
+	PyObject *obiid;
+	PyObject *obpidl;
+	if(!PyArg_ParseTuple(args, "OO:SHCreateItemFromIDList", &obpidl, &obiid))
+		return NULL;
+	PIDLIST_ABSOLUTE pidl;
+	IID iid;
+	// @pyparm PIDL|parent||
+	if (!PyObject_AsPIDL(obpidl, &pidl))
+		goto done;
+	// @pyparm <o PyIID>|iid||
+	if (!PyWinObject_AsIID(obiid, &iid))
+		goto done;
+	HRESULT hr;
+	void *out;
+	{
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnSHCreateItemFromIDList)(pidl, iid, &out);
+	PY_INTERFACE_POSTCALL;
+	}
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	ret = PyCom_PyObjectFromIUnknown((IUnknown *)out, iid, FALSE);
+done:
+	if (pidl)
+		PyObject_FreePIDL(pidl);
+	return ret;
+}
+
+// @pymethod |shell|SHCreateItemFromParsingName|Creates and initializes a Shell item object from a parsing name.
+static PyObject *PySHCreateItemFromParsingName(PyObject *self, PyObject *args)
+{
+	// @comm This function is only available on Vista and later; a
+	// COM exception with E_NOTIMPL will be thrown if the function can't be located.
+	if (pfnSHCreateItemFromParsingName==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+
+	PyObject *ret = NULL;
+	PyObject *obname, *obctx, *obiid;
+	// @pyparm unicode|name||
+	// @pyparm <i PyIBindCtx>|ctx||
+	// @pyparm <o PyIID>|iid||
+
+	if(!PyArg_ParseTuple(args, "OOO:SHCreateItemFromParsingName", &obname, &obctx, &obiid))
+		return NULL;
+
+	IBindCtx *ctx = NULL;
+	IID iid;
+	WCHAR *name = NULL;
+	void *out = NULL;
+	HRESULT hr;
+
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obctx, IID_IBindCtx, (void **)&ctx, TRUE /* bNoneOK */))
+		goto done;
+
+	if (!PyWinObject_AsIID(obiid, &iid))
+		goto done;
+
+	if (!PyWinObject_AsWCHAR(obname, &name))
+		goto done;
+
+	{
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnSHCreateItemFromParsingName)(name, ctx, iid, &out);
+	PY_INTERFACE_POSTCALL;
+	}
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	ret = PyCom_PyObjectFromIUnknown((IUnknown *)out, iid, FALSE);
+
+done:
+	if (ctx) {
+		PY_INTERFACE_PRECALL;
+		ctx->Release();
+		PY_INTERFACE_POSTCALL;
+	}
+	if (name)
+		PyWinObject_FreeWCHAR(name);
+
+	return ret;
+}
+
+// @pymethod |shell|SHCreateItemFromRelativeName|Creates and initializes a Shell item object from a relative parsing name.
+static PyObject *PySHCreateItemFromRelativeName(PyObject *self, PyObject *args)
+{
+	// @comm This function is only available on Vista and later; a
+	// COM exception with E_NOTIMPL will be thrown if the function can't be located.
+	if (pfnSHCreateItemFromRelativeName==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+
+	PyObject *ret = NULL;
+	PyObject *obname, *obctx, *obiid, *obparent;
+	// @pyparm <o PyIShellItem>|parent||
+	// @pyparm unicode|name||
+	// @pyparm <i PyIBindCtx>|ctx||
+	// @pyparm <o PyIID>|iid||
+
+	if(!PyArg_ParseTuple(args, "OOOO:SHCreateItemFromRelativeName", &obparent, &obname, &obctx, &obiid))
+		return NULL;
+
+	IBindCtx *ctx = NULL;
+	IShellItem *parent = NULL;
+	IID iid;
+	WCHAR *name = NULL;
+	void *out = NULL;
+	HRESULT hr;
+
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obparent, IID_IShellItem, (void **)&parent, FALSE/* bNoneOK */))
+		goto done;
+
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obctx, IID_IBindCtx, (void **)&ctx, TRUE /* bNoneOK */))
+		goto done;
+
+	if (!PyWinObject_AsIID(obiid, &iid))
+		goto done;
+
+	if (!PyWinObject_AsWCHAR(obname, &name))
+		goto done;
+
+	{
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnSHCreateItemFromRelativeName)(parent, name, ctx, iid, &out);
+	PY_INTERFACE_POSTCALL;
+	}
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	ret = PyCom_PyObjectFromIUnknown((IUnknown *)out, iid, FALSE);
+
+done:
+	if (ctx || parent) {
+		PY_INTERFACE_PRECALL;
+		if (ctx)
+			ctx->Release();
+		if (parent)
+			parent->Release();
+		PY_INTERFACE_POSTCALL;
+	}
+	if (name)
+		PyWinObject_FreeWCHAR(name);
+
+	return ret;
+}
+
+// @pymethod |shell|SHCreateItemInKnownFolder|Creates a Shell item object for a single file that exists inside a known folder.
+static PyObject *PySHCreateItemInKnownFolder(PyObject *self, PyObject *args)
+{
+	// @comm This function is only available on Vista and later; a
+	// COM exception with E_NOTIMPL will be thrown if the function can't be located.
+	if (pfnSHCreateItemInKnownFolder==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+
+	PyObject *ret = NULL;
+	DWORD flags;
+	PyObject *obname, *obiid, *obguid;
+	// @pyparm unicode|name||
+	// @pyparm <i PyIBindCtx>|ctx||
+	// @pyparm <o PyIID>|iid||
+
+	if(!PyArg_ParseTuple(args, "OkOO:SHCreateItemInKnownFolder", &obguid, &flags, &obname, &obiid))
+		return NULL;
+
+	IID iid;
+	GUID guid;
+	WCHAR *name = NULL;
+	void *out = NULL;
+	HRESULT hr;
+
+	if (!PyWinObject_AsIID(obguid, &guid))
+		goto done;
+
+	if (!PyWinObject_AsIID(obiid, &iid))
+		goto done;
+
+	if (!PyWinObject_AsWCHAR(obname, &name, TRUE))
+		goto done;
+
+	{
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnSHCreateItemInKnownFolder)(guid, flags, name, iid, &out);
+	PY_INTERFACE_POSTCALL;
+	}
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	ret = PyCom_PyObjectFromIUnknown((IUnknown *)out, iid, FALSE);
+done:
+	if (name)
+		PyWinObject_FreeWCHAR(name);
+
+	return ret;
+}
+
+// @pymethod |shell|SHCreateItemWithParent|Create a Shell item, given a parent folder and a child item ID.
+static PyObject *PySHCreateItemWithParent(PyObject *self, PyObject *args)
+{
+	// @comm This function is only available on Vista and later; a
+	// COM exception with E_NOTIMPL will be thrown if the function can't be located.
+	if (pfnSHCreateItemWithParent==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+	PyObject *ret = NULL;
+	PyObject *obpidlparent, *obsfparent, *obpidl, *obiid;
+	if(!PyArg_ParseTuple(args, "OOOO:SHCreateItemWithParent", &obpidlparent, &obsfparent, &obpidl, &obiid))
+		return NULL;
+	IID iid;
+	PIDLIST_ABSOLUTE parentpidl;
+	PUITEMID_CHILD pidl;
+	IShellFolder *sfparent;
+
+	// @pyparm PIDL|parent||
+	// @pyparm <o PyIShellFolder>|parent||
+	// @pyparm PIDL|child||
+	// @pyparm <o PyIID>|iid||
+	if (!PyObject_AsPIDL(obpidlparent, &parentpidl, TRUE))
+		goto done;
+	if (!PyObject_AsPIDL(obpidl, &pidl))
+		goto done;
+	if (!PyWinObject_AsIID(obiid, &iid))
+		goto done;
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obsfparent, IID_IShellFolder, (void **)&sfparent, TRUE /* bNoneOK */))
+		goto done;
+
+	HRESULT hr;
+	void *out;
+	{
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnSHCreateItemWithParent)(parentpidl, sfparent, pidl, iid, &out);
+	PY_INTERFACE_POSTCALL;
+	}
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	ret = PyCom_PyObjectFromIUnknown((IUnknown *)out, iid, FALSE);
+done:
+	if (parentpidl)
+		PyObject_FreePIDL(parentpidl);
+	if (pidl)
+		PyObject_FreePIDL(pidl);
+	if (sfparent) {
+		PY_INTERFACE_PRECALL;
+		sfparent->Release();
+		PY_INTERFACE_POSTCALL;
+	}
+
+	return ret;
+}
+
+// @pymethod |shell|SHGetIDListFromObject|Retrieves the PIDL of an object.
+static PyObject *PySHGetIDListFromObject(PyObject *self, PyObject *args)
+{
+	// @comm This function is only available on Vista and later; a
+	// COM exception with E_NOTIMPL will be thrown if the function can't be located.
+	if (pfnSHGetIDListFromObject==NULL)
+		return PyCom_BuildPyException(E_NOTIMPL);
+
+	PyObject *ret = NULL;
+	PyObject *ob;
+
+	// @pyparm <o PyIUnknown>|unk||
+
+	if(!PyArg_ParseTuple(args, "O:SHGetIDListFromObject", &ob))
+		return NULL;
+
+	IUnknown *unk;
+	PIDLIST_ABSOLUTE pidl;
+	HRESULT hr;
+	if (!PyCom_InterfaceFromPyInstanceOrObject(ob, IID_IUnknown, (void **)&unk, FALSE/* bNoneOK */))
+		goto done;
+
+	{
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnSHGetIDListFromObject)(unk, &pidl);
+	PY_INTERFACE_POSTCALL;
+	}
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	ret = PyObject_FromPIDL(pidl, TRUE);
+done:
+	if (unk) {
+		PY_INTERFACE_PRECALL;
+		unk->Release();
+		PY_INTERFACE_POSTCALL;
+	}
+	return ret;
+}
+
 
 /* List of module functions */
 // @module shell|A module, encapsulating the ActiveX Control interfaces
@@ -2900,6 +3223,12 @@ static struct PyMethodDef shell_methods[]=
     { "SHChangeNotify", PySHChangeNotify, 1}, // @pymeth SHChangeNotify|Notifies the system of an event that an application has performed.
 	{ "SHChangeNotifyRegister", PySHChangeNotifyRegister, 1}, // @pymeth SHChangeNotifyRegister|Registers a window that receives notifications from the file system or shell.
 	{ "SHChangeNotifyDeregister", PySHChangeNotifyDeregister, 1}, // @pymeth SHChangeNotifyDeregister|Unregisters the client's window process from receiving notification events
+	{ "SHCreateItemFromIDList", PySHCreateItemFromIDList, 1}, // @pymeth SHCreateItemFromIDList|Creates and initializes a Shell item object.
+	{ "SHCreateItemFromParsingName", PySHCreateItemFromParsingName, 1}, // @pymeth SHCreateItemFromParsingName|Creates and initializes a Shell item object from a parsing name.
+	{ "SHCreateItemFromRelativeName", PySHCreateItemFromRelativeName, 1}, // @pymeth SHCreateItemFromRelativeName|Creates and initializes a Shell item object from a relative parsing name.
+	{ "SHCreateItemInKnownFolder", PySHCreateItemInKnownFolder, 1}, // @pymeth SHCreateItemInKnownFolder|Creates a Shell item object for a single file that exists inside a known folder.
+	{ "SHCreateItemWithParent", PySHCreateItemWithParent, 1}, // @pymeth SHCreateItemWithParent|Create a Shell item, given a parent folder and a child item ID.
+	{ "SHGetIDListFromObject", PySHGetIDListFromObject, 1}, // @pymeth SHGetIDListFromObject|Retrieves the PIDL of an object.
 	{ "SHGetInstanceExplorer", PySHGetInstanceExplorer, 1}, // @pymeth SHGetInstanceExplorer|Allows components that run in a Web browser (Iexplore.exe) or a nondefault Windows® Explorer (Explorer.exe) process to hold a reference to the process. The components can use the reference to prevent the process from closing prematurely.
 	{ "SHFileOperation", PySHFileOperation, 1}, // @pymeth SHFileOperation|Copies, moves, renames, or deletes a file system object.
 	{ "StringAsCIDA", PyStringAsCIDA, 1}, // @pymeth StringAsCIDA|Given a CIDA as a raw string, return pidl_folder, [pidl_children, ...]
@@ -2958,6 +3287,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_FULL(ExplorerCommand),
 	PYCOM_INTERFACE_SERVER_ONLY(ExplorerCommandProvider),
 	PYCOM_INTERFACE_CLIENT_ONLY(ExplorerPaneVisibility),
+	PYCOM_INTERFACE_CLIENT_ONLY(NameSpaceTreeControl),
 	// IID_ICopyHook doesn't exist - hack it up
 	{ &IID_IShellCopyHook, "IShellCopyHook", "IID_IShellCopyHook", &PyICopyHook::type, GET_PYGATEWAY_CTOR(PyGCopyHook) },
 	{ &IID_IShellCopyHook, "ICopyHook", "IID_ICopyHook", NULL, NULL  },
@@ -3035,6 +3365,13 @@ extern "C" __declspec(dllexport) void initshell()
 		pfnSHCreateShellItemArrayFromShellItem=(PFNSHCreateShellItemArrayFromShellItem)GetProcAddress(shell32, "SHCreateShellItemArrayFromShellItem");
 		pfnSHCreateDefaultContextMenu=(PFNSHCreateDefaultContextMenu)GetProcAddress(shell32, "SHCreateDefaultContextMenu");
 		pfnSHCreateDataObject=(PFNSHCreateDataObject)GetProcAddress(shell32, "SHCreateDataObject");
+		pfnSHCreateItemFromIDList =(PFNSHCreateItemFromIDList)GetProcAddress(shell32, "SHCreateItemFromIDList");
+		pfnSHCreateItemFromParsingName =(PFNSHCreateItemFromParsingName)GetProcAddress(shell32, "SHCreateItemFromParsingName");
+		pfnSHCreateItemFromRelativeName =(PFNSHCreateItemFromRelativeName)GetProcAddress(shell32, "SHCreateItemFromRelativeName");
+		pfnSHCreateItemInKnownFolder =(PFNSHCreateItemInKnownFolder)GetProcAddress(shell32, "SHCreateItemInKnownFolder");
+		pfnSHCreateItemWithParent =(PFNSHCreateItemWithParent)GetProcAddress(shell32, "SHCreateItemWithParent");
+		pfnSHGetIDListFromObject =(PFNSHGetIDListFromObject)GetProcAddress(shell32, "SHGetIDListFromObject");
+
 	}
 	// SHGetFolderPath comes from shfolder.dll on older systems
 	if (pfnSHGetFolderPath==NULL){
