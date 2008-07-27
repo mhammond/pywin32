@@ -2932,7 +2932,7 @@ static PyObject *PySHCreateItemFromParsingName(PyObject *self, PyObject *args)
 	PyObject *ret = NULL;
 	PyObject *obname, *obctx, *obiid;
 	// @pyparm unicode|name||
-	// @pyparm <i PyIBindCtx>|ctx||
+	// @pyparm <o PyIBindCtx>|ctx||
 	// @pyparm <o PyIID>|iid||
 
 	if(!PyArg_ParseTuple(args, "OOO:SHCreateItemFromParsingName", &obname, &obctx, &obiid))
@@ -2988,7 +2988,7 @@ static PyObject *PySHCreateItemFromRelativeName(PyObject *self, PyObject *args)
 	PyObject *obname, *obctx, *obiid, *obparent;
 	// @pyparm <o PyIShellItem>|parent||
 	// @pyparm unicode|name||
-	// @pyparm <i PyIBindCtx>|ctx||
+	// @pyparm <o PyIBindCtx>|ctx||
 	// @pyparm <o PyIID>|iid||
 
 	if(!PyArg_ParseTuple(args, "OOOO:SHCreateItemFromRelativeName", &obparent, &obname, &obctx, &obiid))
@@ -3051,7 +3051,7 @@ static PyObject *PySHCreateItemInKnownFolder(PyObject *self, PyObject *args)
 	DWORD flags;
 	PyObject *obname, *obiid, *obguid;
 	// @pyparm unicode|name||
-	// @pyparm <i PyIBindCtx>|ctx||
+	// @pyparm <o PyIBindCtx>|ctx||
 	// @pyparm <o PyIID>|iid||
 
 	if(!PyArg_ParseTuple(args, "OkOO:SHCreateItemInKnownFolder", &obguid, &flags, &obname, &obiid))

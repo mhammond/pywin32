@@ -1753,7 +1753,7 @@ static PyObject *pythoncom_ObjectFromLresult(PyObject *self, PyObject *args)
 	PyObject *oblresult;
 	PyObject *obIID = NULL;
 	PyObject *obwparam;
-	// @pyparam int|lresult||
+	// @pyparm int|lresult||
 	// @pyparm <o PyIID>|iid||The IID to query
 	// @pyparm int|wparm||
 	LRESULT lresult;
@@ -1806,7 +1806,7 @@ static PyObject *pythoncom_ObjectFromAddress(PyObject *self, PyObject *args)
 	void *addr;
 	PyObject *obAddr;
 	PyObject *obIID = NULL;
-	// @pyparam int|address||The address which holds a COM object
+	// @pyparm int|address||The address which holds a COM object
 	// @pyparm <o PyIID>|iid|IUnknown|The IID to query
 	if (!PyArg_ParseTuple(args, "O|O", &obAddr, &obIID))
 		return NULL;
