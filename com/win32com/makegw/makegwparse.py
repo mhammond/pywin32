@@ -56,7 +56,7 @@ class ArgFormatter:
 		elif dif==1:
 		  return "*"
 		else:
-		  return "??"
+		  return "?? (%d)" % (dif,)
 		  raise error_not_supported, "Can't indirect this far - please fix me :-)"
 	def GetIndirectedArgName(self, indirectFrom, indirectionTo):
 		#print 'get:',self.arg.name, indirectFrom,self._GetDeclaredIndirection() + self.builtinIndirection, indirectionTo, self.arg.indirectionLevel
@@ -238,6 +238,34 @@ class ArgFormatterShort(ArgFormatter):
 		s = s + self.arg.name
 		s = s + " = i%s;\n" % self.arg.name
 		return s
+
+# for types which are 64bits on AMD64 - eg, HWND
+class ArgFormatterLONG_PTR(ArgFormatter):
+	def GetFormatChar(self):
+		return "O"
+	def DeclareParseArgTupleInputConverter(self):
+		# Declare a PyObject variable
+		return "\tPyObject *ob%s;\n" % self.arg.name
+	def GetParseTupleArg(self):
+		return "&ob"+self.arg.name
+	def _GetPythonTypeDesc(self):
+		return "int/long"
+	def GetBuildValueArg(self):
+		return "ob" + self.arg.name
+	def GetBuildForInterfacePostCode(self):
+		return "\tPy_XDECREF(ob%s);\n" % self.arg.name
+	def DeclareParseArgTupleInputConverter(self):
+		# Declare a PyObject variable
+		return "\tPyObject *ob%s;\n" % self.arg.name
+
+	def GetParsePostCode(self):
+		return "\tif (bPythonIsHappy && !PyWinLong_AsULONG_PTR(ob%s, (ULONG_PTR *)%s)) bPythonIsHappy = FALSE;\n" % (self.arg.name, self.GetIndirectedArgName(None, 2))
+	def GetBuildForInterfacePreCode(self):
+		notdirected = self.GetIndirectedArgName(None, 1)
+		return "\tob%s = PyWinObject_FromULONG_PTR(%s);\n" % \
+			   (self.arg.name, notdirected)
+	def GetBuildForGatewayPostCode(self):
+		return "\tPy_XDECREF(ob%s);\n" % self.arg.name
 
 class ArgFormatterPythonCOM(ArgFormatter):
 	"""An arg formatter for types exposed in the PythonCOM module"""
@@ -462,11 +490,6 @@ ConvertSimpleTypes = {"BOOL":("BOOL", "int", "i"),
 					  "LONG": ("LONG", "int", "l"),
 					  "int": ("int", "int", "i"),
 					  "long": ("long", "int", "l"),
-					  "HWND": ("HWND", "HWND", "l"),
-					  "HDC": ("HDC", "HDC", "l"),
-					  "LPARAM" : ("LPARAM", "long", "l"),
-					  "LRESULT" : ("LRESULT", "long", "l"),
-					  "WPARAM" : ("LPARAM", "int", "i"),
 					  "DISPID": ("DISPID", "long", "l"),
 					  "APPBREAKFLAGS": ("int", "int", "i"),
 					  "BREAKRESUMEACTION": ("int", "int", "i"),
@@ -523,10 +546,14 @@ AllConverters = {"const OLECHAR":	(ArgFormatterOLECHAR, 0, 1),
 				 "short":			(ArgFormatterShort, 0),
 				 "WORD":			(ArgFormatterShort, 0),
 				 "VARIANT_BOOL":	(ArgFormatterShort, 0),
-				 "HWND":			(ArgFormatterShort, 0),
-				 "HMENU":			(ArgFormatterShort, 0),
-				 "HOLEMENU":			(ArgFormatterShort, 0),
-				 "HICON":			(ArgFormatterShort, 0),
+				 "HWND":            (ArgFormatterLONG_PTR, 1),
+				 "HMENU":			(ArgFormatterLONG_PTR, 1),
+				 "HOLEMENU":		(ArgFormatterLONG_PTR, 1),
+				 "HICON":			(ArgFormatterLONG_PTR, 1),
+				 "HDC":				(ArgFormatterLONG_PTR, 1),
+				 "LPARAM":			(ArgFormatterLONG_PTR, 1),
+				 "WPARAM":			(ArgFormatterLONG_PTR, 1),
+				 "LRESULT":			(ArgFormatterLONG_PTR, 1),
 				 "UINT":			(ArgFormatterShort, 0),
 				 "SVSIF":			(ArgFormatterShort, 0),
 				 "Control":			(ArgFormatterInterface, 0, 1),
