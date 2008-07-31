@@ -8,9 +8,34 @@ However contributors are encouraged to add their own entries for their work.
 Since build 211:
 ----------------
 
-* Add win32net.NetValidatePasswordPolicy, including a demo.
+* Remove warning about VARDESCs in obscure circumstances when using
+  COM objects.
 
-* Add win32pipe.TransactNamedPipe, including tests.
+* Add winapi.SetSystemPowerState(), win32pipe.TransactNamedPipe(),
+  win32net.NetValidatePasswordPolicy(), 
+
+* win32api.GetConsoleTitle() could raise win32api.error with an error
+  code of 0 when the title was > 64 characters.  It now returns the
+  full title.
+
+* New IExplorerPaneVisibility interface, minor shell bugfixes.
+
+* Fix a couple of makepy related unicode issues, and generate to
+  a .temp file so an error doesn't leave a 1/2 generated module.
+
+* Fix so makepy works in IDLE in non-English locales.
+
+* Pythonwin changes from Roger:
+  - Right-click menu gets "Copy code without prompts" and "Execute 
+    code from clipboard" options.
+  - If text is selected when period key is pressed, replace text
+    instead of doing autocomplete
+  - Add a keyboard shortcut to fold up second level indents
+  - Allow keypad keys to perform original function when folding 
+    is disabled (feature req 1798328)
+
+* Add some extra service configuration parameters introduced with Vista
+
 
 Since build 210:
 ----------------
