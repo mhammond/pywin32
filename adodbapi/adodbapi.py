@@ -1,4 +1,4 @@
-"""adodbapi v2.1 -  A python DB API 2.0 interface to Microsoft ADO
+"""adodbapi v2.1.1 -  A python DB API 2.0 interface to Microsoft ADO
     
     Copyright (C) 2002  Henrik Ekelund
     Email: <http://sourceforge.net/sendmessage.php?touser=618411>
@@ -245,9 +245,9 @@ def connect(connstr, timeout=30):               #v2.1 Simons
     "Connection string as in the ADO documentation, SQL timeout in seconds"
     global verbose
     try:
-        conn=Dispatch('ADODB.Connection')
         if win32:
-            pythoncom.CoInitialize()                 #v2.1 Paj
+            pythoncom.CoInitialize()             #v2.1 Paj
+        conn=Dispatch('ADODB.Connection') #connect _after_ CoIninialize v2.1.1 adamvan
     except:
         raise InterfaceError #Probably COM Error
     try:
@@ -501,9 +501,10 @@ class Cursor:
                 retLst.append(pyObject)
         return retLst
 
-    def _makeDescriptionFromRS(self,rs):        
+    def _makeDescriptionFromRS(self,rs):
+        self.rs = rs        #v2.1.1 bkline
         if (rs == None) or (rs.State == adStateClosed): 
-            self.rs=None
+            ##self.rs=None  #removed v2.1.1 bkline
             self.description=None
         else:
             #self.rowcount=rs.RecordCount
@@ -515,7 +516,7 @@ class Cursor:
             # Switching to client-side cursors will force a static cursor,
             # and rowcount will then be set accurately [Cole]
             self.rowcount = -1
-            self.rs=rs
+            ##self.rs=rs #removed v2.1.1 bkline
             nOfFields=rs.Fields.Count
             self.description=[]
             for i in range(nOfFields):
@@ -541,7 +542,7 @@ class Cursor:
         self.conn = None    #this will make all future method calls on me throw an exception
         if self.rs and self.rs.State != adStateClosed: # rs exists and is open      #v2.1 Rose
             self.rs.Close()                                                         #v2.1 Rose
-            self.rs = None  #let go of the recordset os ADO will let it be disposed #v2.1 Rose
+            self.rs = None  #let go of the recordset so ADO will let it be disposed #v2.1 Rose
 
 # ------------------------
 # a note about Strategies:
@@ -740,7 +741,7 @@ class Cursor:
         if self.conn == None:
             self._raiseCursorError(Error,None)
             return
-        if rs == None:
+        if rs == None or rs.State == adStateClosed: #v2.1.1 bkline
             self._raiseCursorError(Error,None)
             return
         else:

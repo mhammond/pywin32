@@ -4,13 +4,15 @@ import adodbapi
 
 doAccessTest = True
 doSqlServerTest = True
+doMySqlTest = True
+
 try: #If mx extensions are installed, use mxDateTime
     import mx.DateTime
     doMxDateTimeTest=True
 except: 
     doMxDateTimeTest=False #Requires eGenixMXExtensions
-doAS400Test = False
-doMySqlTest = False
+
+
 import sys
 if float(sys.version[:3])>2.29:
     doDateTimeTest=True #Requires Python 2.3 Alpha2
@@ -81,10 +83,10 @@ if doSqlServerTest:
         doSqlServerTest = False
 
 if doMySqlTest:
-    _computername='5.128.134.143'
+    _computername='10.100.5.249'
     _databasename='test'
    
-    connStrMySql = 'Driver={MySQL ODBC 3.51 Driver};Server=%s;Port=3306;Database=%s;Option=3;' % \
+    connStrMySql = 'Driver={MySQL ODBC 5.1 Driver};Server=%s;Port=3306;Database=%s;Option=3;' % \
                    (_computername,_databasename)
     print '    ...Testing MySql login...'
     try:
@@ -94,20 +96,4 @@ if doMySqlTest:
         print inst.args[0][2]    # should be the error message
         doMySqlTest = False
 
-if doAS400Test:
-    #OLE DB -> "PROVIDER=IBMDA400; DATA SOURCE=MY_SYSTEM_NAME;USER ID=myUserName;PASSWORD=myPwd;DEFAULT COLLECTION=MY_LIBRARY;"
-    connStrAS400skl = "Provider=IBMDA400; DATA SOURCE=%s;DEFAULT COLLECTION=%s;User ID=%s;Password=%s"
-    # NOTE! user's PC must have OLE support installed in IBM Client Access Express
-    _computername='PEPPER'
-    _databasename="DPDAN"
-    _username = raw_input('  AS400 User ID for data retrieval [%s]:' % defaultUser)
-    _password =  getpass.getpass('  AS400 password:') #read the password
-    connStrAS400 = connStrAS400skl % (_computername,_databasename,_username,_password) #build the connection string
-    print '    ...Testing AS400 login...'
-    try:
-        s = adodbapi.connect(connStrAS400) #connect to server
-        s.close()
-    except adodbapi.DatabaseError, inst:
-        print inst.args[0][2]    # should be the AS400 error message
-        doAS400Test = False
-    
+  

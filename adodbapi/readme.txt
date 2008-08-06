@@ -18,6 +18,11 @@ Prerequisites:
 * Python 2.3 or higher. 
 * (this version included within) Mark Hammond's win32all python for windows extensions. 
 
+
+Whats new in version 2.1.1?
+1. Bugfix so nextset() will work even if a rowset is empty [ Bob Kline ]
+2. Bugfix to call CoInitailize() before calling Dispatch() [ Adam Vandenberg ]
+
 Whats new in version 2.1?
 1. Use of Decimal.decimal data type for currency and numeric data. [ Cole ]
 2. add optional timeout parameter to the connect method i.e.: 
@@ -63,7 +68,6 @@ License
 -------
 LGPL, see http://www.opensource.org/licenses/lgpl-license.php
 
-
 Documentation
 -------------
 Start with:
@@ -74,15 +78,12 @@ and look at the test cases in adodbapi/test directory.
 Mailing lists
 -------------
 The adodbapi mailing lists have been deactivated. Submit comments to the 
-bug tracker.
+pywin32 lists.
 
-Contribute
-----------
-Use the sourceforge bug tracking system to submit bugs, feature requests
-and comments.
 
 Relase history
 --------------
+2.1.1	Bugfix to CoIninialize() and nextset()
 2.1	Python 2.4 version
 2.0     See what's new above.
 1.0.1   Bug fix: Null values for numeric fields. Thanks to Tim Golden. 

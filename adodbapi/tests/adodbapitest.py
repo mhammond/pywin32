@@ -20,6 +20,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
     Updated for decimal data and version 2.1 by Vernon Cole
+    AS400 tests removed v 2.1.1 - Vernon Cole
 """
 
 import unittest
@@ -387,9 +388,10 @@ class CommonDBTests(unittest.TestCase):
         crsr=conn.cursor()
         crsr.execute(tabdef)
         
-        for multiplier in (1,decimal.Decimal('2.5'),78,9999,999999,7007):
+        for multiplier in (1,decimal.Decimal('2.5'),78,9999,99999,7007):
             crsr.execute("DELETE FROM tblTemp")
-            crsr.execute("INSERT INTO tblTemp(fldCurr) VALUES (12.50*%f)" % multiplier)
+            correct = decimal.Decimal('12.50') * multiplier
+            crsr.execute("INSERT INTO tblTemp(fldCurr) VALUES (?)",[correct])
 
             sql="SELECT fldCurr FROM tblTemp "
             try:
@@ -398,7 +400,6 @@ class CommonDBTests(unittest.TestCase):
                 conn.printADOerrors()
                 print sql
             fldcurr=crsr.fetchone()[0]
-            correct = decimal.Decimal('12.50') * multiplier
             self.assertEquals( fldcurr,correct)
 
     def testErrorConnect(self):
@@ -534,6 +535,17 @@ class TestADOwithAccessDB(CommonDBTests):
             self.fail('SetUpError: Can not connect to the testdatabase, all other tests will fail...\nAdo error:%s' % adoConn.Errors(0))
         self.engine = 'ACCESS'
 
+    def tearDown(self):
+        try:
+            self.conn.rollback()
+        except:
+            pass
+        try:
+            self.conn.close()
+        except:
+            pass
+        self.conn=None
+ 
     def getConnection(self):
         return adodbapi.connect(adodbapitestconfig.connStrAccess)
 
@@ -560,26 +572,6 @@ class TestADOwithMySql(CommonDBTests):
         c=adodbapi.connect(adodbapitestconfig.connStrMySql)
         assert c != None
         
-class TestADOwithAS400DB(CommonDBTests):
-    def setUp(self):
-        try:
-            adoConn=win32com.client.Dispatch("ADODB.Connection")
-        except:
-            self.fail('SetUpError: Is MDAC installed?')
-        try:
-            adoConn.Open(adodbapitestconfig.connStrAS400)
-        except:
-            self.fail('SetUpError: Can not connect to the testdatabase, all other tests will fail...\nAdo error:%s' % adoConn.Errors(0))
-        self.engine = 'IBMDA400'
-
-    def getConnection(self):
-        return adodbapi.connect(adodbapitestconfig.connStrAS400)
-
-    def testOkConnect(self):
-        c=adodbapi.connect(adodbapitestconfig.connStrAS400)
-        assert c != None
-
-
 class TimeConverterInterfaceTest(unittest.TestCase):
     def testIDate(self):
         assert self.tc.Date(1990,2,2)
@@ -731,8 +723,7 @@ if adodbapitestconfig.doSqlServerTest:
     suites.append( unittest.makeSuite(TestADOwithSQLServer,'test'))
 if adodbapitestconfig.doMySqlTest:
     suites.append( unittest.makeSuite(TestADOwithMySql,'test'))
-if adodbapitestconfig.doAS400Test:
-    suites.append( unittest.makeSuite(TestADOwithAS400DB,'test'))
+
 suite=unittest.TestSuite(suites)
 if __name__ == '__main__':       
     defaultDateConverter=adodbapi.dateconverter
