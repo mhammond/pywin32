@@ -146,6 +146,7 @@ STDMETHODIMP PyGContextMenu::QueryContextMenu(
 	if (FAILED(hr)) return hr;
 	if (PyInt_Check(ret))
 		hr = MAKE_HRESULT(SEVERITY_SUCCESS, 0, PyInt_AsLong(ret));
+	Py_DECREF(ret);
 	return hr;
 }
 
