@@ -10,6 +10,8 @@ Since build 212:
 
 * MAPI gets support for IMAPIAdviseSink
 
+* win32com.shell gets support for IContextMenu2 and IContextMenu3
+
 Since build 211:
 ----------------
 

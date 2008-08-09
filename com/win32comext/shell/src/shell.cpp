@@ -21,6 +21,8 @@ generates Windows .hlp files.
 #include "PyICategorizer.h"
 #include "PyICategoryProvider.h"
 #include "PyIContextMenu.h"
+#include "PyIContextMenu2.h"
+#include "PyIContextMenu3.h"
 #include "PyIDefaultExtractIconInit.h"
 #include "PyIExtractIcon.h"
 #include "PyIExtractIconW.h"
@@ -3254,6 +3256,8 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_IID_ONLY		  (ShellLinkW),
 	PYCOM_INTERFACE_FULL(AsyncOperation),
 	PYCOM_INTERFACE_FULL(ContextMenu),
+	PYCOM_INTERFACE_SERVER_ONLY(ContextMenu2),
+	PYCOM_INTERFACE_SERVER_ONLY(ContextMenu3),
 	PYCOM_INTERFACE_FULL(ExtractIcon),
 	PYCOM_INTERFACE_FULL(ExtractIconW),
 	PYCOM_INTERFACE_CLIENT_ONLY		(ExtractImage),

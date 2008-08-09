@@ -1505,6 +1505,8 @@ com_extensions += [
                         %(shell)s/PyICategoryProvider.cpp
                         %(shell)s/PyIColumnProvider.cpp
                         %(shell)s/PyIContextMenu.cpp
+                        %(shell)s/PyIContextMenu2.cpp
+                        %(shell)s/PyIContextMenu3.cpp
                         %(shell)s/PyICopyHook.cpp
                         %(shell)s/PyIDefaultExtractIconInit.cpp
                         %(shell)s/PyIDeskBand.cpp

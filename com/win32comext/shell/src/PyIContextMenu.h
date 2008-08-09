@@ -3,6 +3,7 @@
 // ---------------------------------------------------
 //
 // Interface Declaration
+#pragma once
 
 class PyIContextMenu : public PyIUnknown
 {
