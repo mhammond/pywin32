@@ -41,9 +41,9 @@ class DIBDemo:
 				print "The file is not a PBM format file"
 				raise "Failed"
 			# check magic?
-			rowcollist=string.split(f.readline())
-			cols=string.atoi(rowcollist[0])
-			rows=string.atoi(rowcollist[1])
+			rowcollist=f.readline().split()
+			cols=int(rowcollist[0])
+			rows=int(rowcollist[1])
 			f.readline()	# whats this one?
 			dib.LoadPBMData(f,(cols,rows))
 		else:

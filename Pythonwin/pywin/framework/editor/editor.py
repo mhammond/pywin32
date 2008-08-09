@@ -103,7 +103,7 @@ class EditorDocument(ParentEditorDocument):
 	def TranslateLoadedData(self, data):
 		"""Given raw data read from a file, massage it suitable for the edit window"""
 		# if a CR in the first 250 chars, then perform the expensive translate
-		if string.find(data[:250],'\r')==-1:
+		if data[:250].find('\r')==-1:
 			win32ui.SetStatusText("Translating from Unix file format - please wait...",1)
 			return re.sub('\r*\n','\r\n',data)
 		else:
@@ -303,7 +303,7 @@ class EditorView(ParentEditorView):
 	def GotoLine(self, lineNo = None):
 		try:
 			if lineNo is None:
-				lineNo = string.atoi(raw_input("Enter Line Number"))
+				lineNo = int(raw_input("Enter Line Number"))
 		except (ValueError, KeyboardInterrupt):
 			return 0
 		self.GetLineCount() # Seems to be needed when file first opened???
@@ -334,7 +334,7 @@ class EditorView(ParentEditorView):
 		menu = win32ui.CreatePopupMenu()
 		
 		# look for a module name
-		line=string.strip(self._obj_.GetLine())
+		line=self._obj_.GetLine().strip()
 		flags=win32con.MF_STRING|win32con.MF_ENABLED
 		if patImport.match(line)==len(line):
 			menu.AppendMenu(flags, ID_LOCATE_FILE, "&Locate %s.py"%patImport.group('name'))
@@ -375,7 +375,7 @@ class EditorView(ParentEditorView):
 		# If the current line indicates the next should be indented,
 		# then copy the current indentation to this line.
 		res = patIndent.match(curLine,0)
-		if res>0 and string.strip(curLine):
+		if res>0 and curLine.strip():
 			curIndent = patIndent.group(1)
 			self._obj_.ReplaceSel(curIndent)
 		return 0	# dont pass on

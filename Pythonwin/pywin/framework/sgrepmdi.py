@@ -41,17 +41,17 @@ def getsubdirs(d):
 
 class dirpath:
 	def __init__(self, str, recurse=0):
-		dp = string.split(str, ';')
+		dp = str.split(';')
 		dirs = {}
 		for d in dp:
 			if os.path.isdir(d):
-				d = string.lower(d)
+				d = d.lower()
 				if not dirs.has_key(d):
 					dirs[d] = None
 					if recurse:
 						subdirs = getsubdirs(d)
 						for sd in subdirs:
-							sd = string.lower(sd)
+							sd = sd.lower()
 							if not dirs.has_key(sd):
 								dirs[sd] = None
 			elif os.path.isfile(d):
@@ -61,13 +61,13 @@ class dirpath:
 				if os.environ.has_key(d):
 					x = dirpath(os.environ[d])
 				elif d[:5] == 'HKEY_':
-					keystr = string.split(d,'\\')
+					keystr = d.split('\\')
 					try:
 						root = eval('win32con.'+keystr[0])
 					except:
 						win32ui.MessageBox("Can't interpret registry key name '%s'" % keystr[0])
 					try:
-						subkey = string.join(keystr[1:], '\\')
+						subkey = '\\'.join(keystr[1:])
 						val = win32api.RegQueryValue(root, subkey)
 						if val:
 							x = dirpath(val)
@@ -84,7 +84,7 @@ class dirpath:
 							if recurse:
 								subdirs = getsubdirs(xd)
 								for sd in subdirs:
-									sd = string.lower(sd)
+									sd = sd.lower()
 									if not dirs.has_key(sd):
 										dirs[sd] = None
 		self.dirs = []
@@ -136,7 +136,7 @@ class GrepTemplate(docview.RichEditDocTemplate):
 	def MatchDocType(self, fileName, fileType):
 		doc = self.FindOpenDocument(fileName)
 		if doc: return doc
-		ext = string.lower(os.path.splitext(fileName)[1])
+		ext = os.path.splitext(fileName)[1].lower()
 		if ext =='.grep': 
 			return win32ui.CDocTemplate_Confidence_yesAttemptNative
 		return win32ui.CDocTemplate_Confidence_noAttempt
@@ -190,7 +190,7 @@ class GrepDocument(docview.RichEditDoc):
 	def setInitParams(self, paramstr):
 		if paramstr is None:
 			paramstr = win32ui.GetProfileVal("Grep", "Params", '\t\t\t1\t0\t0')
-		params = string.split(paramstr, '\t')
+		params = paramstr.split('\t')
 		if len(params) < 3:
 			params = params + ['']*(3-len(params))
 		if len(params) < 6:
@@ -236,7 +236,7 @@ class GrepDocument(docview.RichEditDoc):
 			self.GetFirstView().Append('#   ='+`self.dp.dirs`+'\n')
 		self.GetFirstView().Append('# Files '+self.filpattern+'\n')
 		self.GetFirstView().Append('#   For '+self.greppattern+'\n')
-		self.fplist = string.split(self.filpattern,';')
+		self.fplist = self.filpattern.split(';')
 		if self.casesensitive:
 			self.pat = re.compile(self.greppattern)
 		else:
@@ -326,7 +326,7 @@ class GrepView(docview.RichEditView):
 		regexGrepResult = regexGrep.match(line)
 		if regexGrepResult:
 			fname = regexGrepResult.group(1)
-			line = string.atoi(regexGrepResult.group(2))
+			line = int(regexGrepResult.group(2))
 			scriptutils.JumpToDocument(fname, line)
 			return 0	# dont pass on
 		return 1	# pass it on by default.
@@ -339,7 +339,7 @@ class GrepView(docview.RichEditView):
 		regexGrepResult = regexGrep.match(line)
 		if regexGrepResult:
 			self.fnm = regexGrepResult.group(1)
-			self.lnnum = string.atoi(regexGrepResult.group(2))
+			self.lnnum = int(regexGrepResult.group(2))
 			menu.AppendMenu(flags, ID_OPEN_FILE, "&Open "+self.fnm)
 			menu.AppendMenu(win32con.MF_SEPARATOR)
 		menu.AppendMenu(flags, ID_TRYAGAIN, "&Try Again")
@@ -365,16 +365,16 @@ class GrepView(docview.RichEditView):
 			vw = doc.GetFirstView()
 			#hope you have an editor that implements GotoLine()!
 			try:
-				vw.GotoLine(string.atoi(self.lnnum))
+				vw.GotoLine(int(self.lnnum))
 			except:
 				pass
 		return 0
 
 	def OnCmdGrep(self, cmd, code):
 		curparamsstr = self.GetDocument().GetParams()
-		params = string.split(curparamsstr,'\t')
+		params = curparamsstr.split('\t')
 		params[2] = self.sel
-		greptemplate.setParams(string.join(params,'\t'))
+		greptemplate.setParams('\t'.join(params))
 		greptemplate.OpenDocumentFile()
 		return 0
 	
@@ -446,10 +446,10 @@ class GrepDialog(dialog.Dialog):
 		secitems = win32api.GetProfileSection(section, ini)
 		items = []
 		for secitem in secitems:
-			items.append(string.split(secitem,'=')[1])
+			items.append(secitem.split('=')[1])
 		dlg = GrepParamsDialog(items)
 		if dlg.DoModal() == win32con.IDOK:
-			itemstr = string.join(dlg.getItems(),';')
+			itemstr = ';'.join(dlg.getItems())
 			self._obj_.data[key] = itemstr
 			#update the ini file with dlg.getNew()
 			i = 0

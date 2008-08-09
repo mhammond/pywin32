@@ -18,7 +18,7 @@ def ParseArgs( str ):
 		if str[pos]=='"':
 			pos=pos+1
 			try:
-				endPos = string.index(str, '"', pos)-1
+				endPos = str.index('"', pos)-1
 				nextPos = endPos+2
 			except ValueError:
 				endPos=length
@@ -27,7 +27,7 @@ def ParseArgs( str ):
 			endPos = pos
 			while endPos<length and not str[endPos] in string.whitespace: endPos = endPos+1
 			nextPos=endPos+1
-		ret.append(string.strip(str[pos:endPos+1]))
+		ret.append(str[pos:endPos+1].strip())
 		pos = nextPos
 	return ret
 

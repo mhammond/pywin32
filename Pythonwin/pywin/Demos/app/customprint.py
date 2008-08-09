@@ -174,7 +174,7 @@ class ImagePrintDialog(dialog.PrintDialog):
         dialog.PrintDialog.OnOK(self)
         strMag = self.magCtl.GetWindowText()
         try:
-            self['mag'] = string.atoi(strMag)
+            self['mag'] = int(strMag)
         except:
             pass
         win32ui.WriteProfileVal(self.sectionPos,

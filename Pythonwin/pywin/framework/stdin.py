@@ -69,7 +69,7 @@ class Stdin:
         maximum_result_size = self.__get_lines(size, lambda buffer: '\n' in buffer)
 
         if '\n' in self.buffer[:maximum_result_size]:
-            result_size = string.find(self.buffer, '\n', 0, maximum_result_size) + 1
+            result_size = self.buffer.find('\n', 0, maximum_result_size) + 1
             assert(result_size > 0)
         else:
             result_size = maximum_result_size
@@ -154,7 +154,7 @@ Sell you soul to the devil, baby
         if '\n' not in test_input:
             end_of_line_pos = len(test_input)
         else:
-            end_of_line_pos = string.find(test_input, '\n')
+            end_of_line_pos = test_input.find('\n')
         result = test_input[:end_of_line_pos]
         test_input = test_input[end_of_line_pos + 1:]
         if len(result) == 0 or result[0] == '~':

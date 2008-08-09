@@ -50,7 +50,7 @@ def FindVssProjectInfo(fullfname):
 	if not project:
 		win32ui.MessageBox("%s\r\n\r\nThis directory is not configured for Python/VSS" % origPath)
 		return
-	return project, string.join(retPaths, "/"), database
+	return project, "/".join(retPaths), database
 		
 	
 def CheckoutFile(fileName):

@@ -84,7 +84,7 @@ class TimerManager:
 		sys.stdout = self.oldOut
 		sys.stderr = self.oldErr
 	def write(self, str):
-		s = string.strip(str)
+		s = str.strip()
 		if len(s):
 			if self.bHaveSetPrompt1:
 				dest = self.dlg.prompt3

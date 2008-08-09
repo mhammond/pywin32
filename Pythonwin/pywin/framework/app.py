@@ -232,12 +232,12 @@ class CApp(thread.WinApp):
 	def SetApplicationPaths(self):
 		# Load the users/application paths
 		new_path = []
-		apppath=string.splitfields(win32ui.GetProfileVal('Python','Application Path',''),';')
+		apppath=win32ui.GetProfileVal('Python','Application Path','').split(';')
 		for path in apppath:
 			if len(path)>0:
 				new_path.append(win32ui.FullPath(path))
 		for extra_num in range(1,11):
-			apppath=string.splitfields(win32ui.GetProfileVal('Python','Application Path %d'%extra_num,''),';')
+			apppath=win32ui.GetProfileVal('Python','Application Path %d'%extra_num,'').split(';')
 			if len(apppath) == 0:
 				break
 			for path in apppath:

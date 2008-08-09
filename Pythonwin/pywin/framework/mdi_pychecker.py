@@ -51,17 +51,17 @@ def getsubdirs(d):
 
 class dirpath:
     def __init__(self, str, recurse=0):
-        dp = string.split(str, ';')
+        dp = str.split(';')
         dirs = {}
         for d in dp:
             if os.path.isdir(d):
-                d = string.lower(d)
+                d = d.lower()
                 if not dirs.has_key(d):
                     dirs[d] = None
                     if recurse:
                         subdirs = getsubdirs(d)
                         for sd in subdirs:
-                            sd = string.lower(sd)
+                            sd = sd.lower()
                             if not dirs.has_key(sd):
                                 dirs[sd] = None
             elif os.path.isfile(d):
@@ -71,13 +71,13 @@ class dirpath:
                 if os.environ.has_key(d):
                     x = dirpath(os.environ[d])
                 elif d[:5] == 'HKEY_':
-                    keystr = string.split(d,'\\')
+                    keystr = d.split('\\')
                     try:
                         root = eval('win32con.'+keystr[0])
                     except:
                         win32ui.MessageBox("Can't interpret registry key name '%s'" % keystr[0])
                     try:
-                        subkey = string.join(keystr[1:], '\\')
+                        subkey = '\\'.join(keystr[1:])
                         val = win32api.RegQueryValue(root, subkey)
                         if val:
                             x = dirpath(val)
@@ -94,7 +94,7 @@ class dirpath:
                             if recurse:
                                 subdirs = getsubdirs(xd)
                                 for sd in subdirs:
-                                    sd = string.lower(sd)
+                                    sd = sd.lower()
                                     if not dirs.has_key(sd):
                                         dirs[sd] = None
         self.dirs = []
@@ -146,7 +146,7 @@ class TheTemplate(docview.RichEditDocTemplate):
     def MatchDocType(self, fileName, fileType):
         doc = self.FindOpenDocument(fileName)
         if doc: return doc
-        ext = string.lower(os.path.splitext(fileName)[1])
+        ext = os.path.splitext(fileName)[1].lower()
         if ext =='.pychecker': 
             return win32ui.CDocTemplate_Confidence_yesAttemptNative
         return win32ui.CDocTemplate_Confidence_noAttempt
@@ -200,7 +200,7 @@ class TheDocument(docview.RichEditDoc):
     def setInitParams(self, paramstr):
         if paramstr is None:
             paramstr = win32ui.GetProfileVal("Pychecker", "Params", '\t\t\t1\t0\t0')
-        params = string.split(paramstr, '\t')
+        params = paramstr.split('\t')
         if len(params) < 3:
             params = params + ['']*(3-len(params))
         if len(params) < 6:
@@ -250,7 +250,7 @@ class TheDocument(docview.RichEditDoc):
             self.GetFirstView().Append('#   ='+`self.dp.dirs`+'\n')
         self.GetFirstView().Append('# Files   '+self.filpattern+'\n')
         self.GetFirstView().Append('# Options '+self.greppattern+'\n')
-        self.fplist = string.split(self.filpattern,';')
+        self.fplist = self.filpattern.split(';')
         self.GetFirstView().Append('# Running...  ( double click on result lines in order to jump to the source code ) \n')
         win32ui.SetStatusText("Pychecker running.  Please wait...", 0)
         self.dpndx = self.fpndx = 0
@@ -394,7 +394,7 @@ class TheView(docview.RichEditView):
         regexGrepResult = regexGrep.match(line)
         if regexGrepResult:
             fname = regexGrepResult.group(1)
-            line = string.atoi(regexGrepResult.group(2))
+            line = int(regexGrepResult.group(2))
             scriptutils.JumpToDocument(fname, line)
             return 0    # dont pass on
         return 1    # pass it on by default.
@@ -408,7 +408,7 @@ class TheView(docview.RichEditView):
         charstart, charend = self._obj_.GetSel()
         if regexGrepResult:
             self.fnm = regexGrepResult.group(1)
-            self.lnnum = string.atoi(regexGrepResult.group(2))
+            self.lnnum = int(regexGrepResult.group(2))
             menu.AppendMenu(flags, ID_OPEN_FILE, "&Open "+self.fnm)
             menu.AppendMenu(flags, ID_ADDCOMMENT, "&Add to source: Comment Tag/#$pycheck_no ..")
             menu.AppendMenu(flags, ID_ADDPYCHECKNO2, "&Add to source: Specific #$pycheck_no=%(errtext)s ..")
@@ -443,7 +443,7 @@ class TheView(docview.RichEditView):
                         return 0
                 ##import pywin.debugger;pywin.debugger.set_trace()
                 fname = m.group(1)
-                line = string.atoi(m.group(2))
+                line = int(m.group(2))
                 view = scriptutils.JumpToDocument(fname,line)
                 pos=view.LineIndex(line)-1
                 if view.GetTextRange(pos-1,pos) in ('\r','\n'):
@@ -464,16 +464,16 @@ class TheView(docview.RichEditView):
             vw = doc.GetFirstView()
             #hope you have an editor that implements GotoLine()!
             try:
-                vw.GotoLine(string.atoi(self.lnnum))
+                vw.GotoLine(int(self.lnnum))
             except:
                 pass
         return 0
 
     def OnCmdThe(self, cmd, code):
         curparamsstr = self.GetDocument().GetParams()
-        params = string.split(curparamsstr,'\t')
+        params = curparamsstr.split('\t')
         params[2] = self.sel
-        greptemplate.setParams(string.join(params,'\t'))
+        greptemplate.setParams('\t'.join(params))
         greptemplate.OpenDocumentFile()
         return 0
     
@@ -545,10 +545,10 @@ class TheDialog(dialog.Dialog):
         secitems = win32api.GetProfileSection(section, ini)
         items = []
         for secitem in secitems:
-            items.append(string.split(secitem,'=')[1])
+            items.append(secitem.split('=')[1])
         dlg = TheParamsDialog(items)
         if dlg.DoModal() == win32con.IDOK:
-            itemstr = string.join(dlg.getItems(),';')
+            itemstr = ';'.join(dlg.getItems())
             self._obj_.data[key] = itemstr
             #update the ini file with dlg.getNew()
             i = 0

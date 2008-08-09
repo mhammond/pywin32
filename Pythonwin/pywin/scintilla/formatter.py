@@ -15,7 +15,7 @@ if debugging:
 	# the printing itself will trigger again trigger a trace.
 	import sys, win32traceutil, win32trace 
 	def trace(*args):
-		win32trace.write(string.join(map(str, args), " ") + "\n")
+		win32trace.write(' '.join(map(str, args)) + "\n")
 else:
 	trace = lambda *args: None
 
@@ -515,17 +515,17 @@ class PythonSourceFormatter(Formatter):
 
 # These taken from the SciTE properties file.
 source_formatter_extensions = [
-	( string.split(".py .pys .pyw"), scintillacon.SCLEX_PYTHON ),
-	( string.split(".html .htm .asp .shtml"), scintillacon.SCLEX_HTML ),
-	( string.split("c .cc .cpp .cxx .h .hh .hpp .hxx .idl .odl .php3 .phtml .inc .js"),scintillacon.SCLEX_CPP ),
-	( string.split(".vbs .frm .ctl .cls"), scintillacon.SCLEX_VB ),
-	( string.split(".pl .pm .cgi .pod"), scintillacon.SCLEX_PERL ),
-	( string.split(".sql .spec .body .sps .spb .sf .sp"), scintillacon.SCLEX_SQL ),
-	( string.split(".tex .sty"), scintillacon.SCLEX_LATEX ),
-	( string.split(".xml .xul"), scintillacon.SCLEX_XML ),
-	( string.split(".err"), scintillacon.SCLEX_ERRORLIST ),
-	( string.split(".mak"), scintillacon.SCLEX_MAKEFILE ),
-	( string.split(".bat .cmd"), scintillacon.SCLEX_BATCH ),
+	( ".py .pys .pyw".split(), scintillacon.SCLEX_PYTHON ),
+	( ".html .htm .asp .shtml".split(), scintillacon.SCLEX_HTML ),
+	( "c .cc .cpp .cxx .h .hh .hpp .hxx .idl .odl .php3 .phtml .inc .js".split(), scintillacon.SCLEX_CPP ),
+	( ".vbs .frm .ctl .cls".split(), scintillacon.SCLEX_VB ),
+	( ".pl .pm .cgi .pod".split(), scintillacon.SCLEX_PERL ),
+	( ".sql .spec .body .sps .spb .sf .sp".split(), scintillacon.SCLEX_SQL ),
+	( ".tex .sty".split(), scintillacon.SCLEX_LATEX ),
+	( ".xml .xul".split(), scintillacon.SCLEX_XML ),
+	( ".err".split(), scintillacon.SCLEX_ERRORLIST ),
+	( ".mak".split(), scintillacon.SCLEX_MAKEFILE ),
+	( ".bat .cmd".split(), scintillacon.SCLEX_BATCH ),
 ]
 
 class BuiltinSourceFormatter(FormatterBase):
@@ -555,7 +555,7 @@ class BuiltinSourceFormatter(FormatterBase):
 		else:
 			formatter_use = scintillacon.SCLEX_PYTHON
 		sc.SendScintilla(scintillacon.SCI_SETLEXER, formatter_use)
-		keywords = string.join(kwlist)
+		keywords = ' '.join(kwlist)
 		sc.SCISetKeywords(keywords)
 
 class BuiltinPythonSourceFormatter(BuiltinSourceFormatter):

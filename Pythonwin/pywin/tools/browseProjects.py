@@ -122,7 +122,7 @@ def MakePathSubList(path):
 		if os.path.isdir(filename) and os.path.isfile(os.path.join(filename, "__init__.py")):
 			ret.append(HLIDirectoryItem(filename, os.path.split(filename)[1]))
 		else:
-			if string.lower(os.path.splitext(filename)[1]) in ['.py', '.pyw']:
+			if os.path.splitext(filename)[1].lower() in ['.py', '.pyw']:
 				ret.append(HLIModuleItem(filename))
 	return ret
 
@@ -161,7 +161,7 @@ class HLIProjectRoot(hierlist.HierListItem):
 		return 1
 	def GetSubList(self):
 		paths = regutil.GetRegisteredNamedPath(self.projectName)
-		pathList = string.split(paths,";")
+		pathList = paths.split(";")
 		if len(pathList)==1: # Single dir - dont bother putting the dir in
 			ret = MakePathSubList(pathList[0])
 		else:

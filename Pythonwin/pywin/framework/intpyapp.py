@@ -232,7 +232,7 @@ class InteractivePythonApp(app.CApp):
 		try:
 			if args[0] and args[0][0]!='/':
 				argStart = 0
-				argType = string.lower(win32ui.GetProfileVal("Python","Default Arg Type","/edit"))
+				argType = win32ui.GetProfileVal("Python","Default Arg Type","/edit").lower()
 			else:
 				argStart = 1
 				argType = args[0]
@@ -247,16 +247,16 @@ class InteractivePythonApp(app.CApp):
 					win32ui.GetApp().OpenDocumentFile(args[argStart])
 			elif argType=="/rundlg":
 				if dde:
-					dde.Exec("import scriptutils;scriptutils.RunScript('%s', '%s', 1)" % (args[argStart], string.join(args[argStart+1:])))
+					dde.Exec("import scriptutils;scriptutils.RunScript('%s', '%s', 1)" % (args[argStart], ' '.join(args[argStart+1:])))
 				else:
 					import scriptutils
-					scriptutils.RunScript(args[argStart], string.join(args[argStart+1:]))
+					scriptutils.RunScript(args[argStart], ' '.join(args[argStart+1:]))
 			elif argType=="/run":
 				if dde:
-					dde.Exec("import scriptutils;scriptutils.RunScript('%s', '%s', 0)" % (args[argStart], string.join(args[argStart+1:])))
+					dde.Exec("import scriptutils;scriptutils.RunScript('%s', '%s', 0)" % (args[argStart], ' '.join(args[argStart+1:])))
 				else:
 					import scriptutils
-					scriptutils.RunScript(args[argStart], string.join(args[argStart+1:]), 0)
+					scriptutils.RunScript(args[argStart], ' '.join(args[argStart+1:]), 0)
 			elif argType=="/app":
 				raise RuntimeError, "/app only supported for new instances of Pythonwin.exe"
 			elif argType=='/new': # Allow a new instance of Pythonwin
@@ -288,7 +288,7 @@ class InteractivePythonApp(app.CApp):
 
 	def DoLoadModules(self, moduleNames): # ", sep string of module names.
 		if not moduleNames: return
-		modules = string.splitfields(moduleNames,",")
+		modules = moduleNames.split(",")
 		for module in modules:
 			try:
 				exec "import "+module
@@ -363,9 +363,10 @@ class InteractivePythonApp(app.CApp):
 				break
 			lastLocateFileName = name
 			# if ".py" supplied, rip it off!
-			if string.lower(lastLocateFileName[-3:])=='.py':
+			# should also check for .pys and .pyw
+			if lastLocateFileName[-3:].lower()=='.py':
 				lastLocateFileName = lastLocateFileName[:-3]
-			lastLocateFileName = string.translate(lastLocateFileName, string.maketrans(".","\\"))
+			lastLocateFileName = lastLocateFileName.replace(".","\\")
 			newName = scriptutils.LocatePythonFile(lastLocateFileName)
 			if newName is None:
 				win32ui.MessageBox("The file '%s' can not be located" % lastLocateFileName)

@@ -22,10 +22,10 @@ RS_DEBUGGER_STEP=1 # Start stepping under the debugger
 RS_DEBUGGER_GO=2 # Just run under the debugger, stopping only at break-points.
 RS_DEBUGGER_PM=3 # Dont run under debugger, but do post-mortem analysis on exception.
 
-debugging_options = string.split("""No debugging
+debugging_options = """No debugging
 Step-through in the debugger
 Run in the debugger
-Post-Mortem of unhandled exceptions""", "\n")
+Post-Mortem of unhandled exceptions""".split("\n")
 
 # A dialog box for the "Run Script" command.
 class DlgRunScript(dialog.Dialog):
@@ -98,12 +98,12 @@ def GetPackageModuleName(fileName):
 			modBits.append(modBit)
 			# If on path, _and_ existing package of that name loaded.
 			if IsOnPythonPath(path) and sys.modules.has_key(modBit) and \
-			   ( os.path.exists(os.path.join(path, '__init__.py')) or \
-			     os.path.exists(os.path.join(path, '__init__.pyc')) or \
-			     os.path.exists(os.path.join(path, '__init__.pyo')) \
-			   ):
+				( os.path.exists(os.path.join(path, '__init__.py')) or \
+				os.path.exists(os.path.join(path, '__init__.pyc')) or \
+				os.path.exists(os.path.join(path, '__init__.pyo')) \
+				):
 				modBits.reverse()
-				return string.join(modBits, ".") + "." + fname, newPathReturn
+				return ".".join(modBits) + "." + fname, newPathReturn
 			# Not found - look a level higher
 		else:
 			newPathReturn = origPath
@@ -362,7 +362,7 @@ def ImportFile():
 		pathName = None
 
 	if pathName is not None:
-		if string.lower(os.path.splitext(pathName)[1]) <> ".py":
+		if os.path.splitext(pathName)[1].lower() <> ".py":
 			pathName = None
 
 	if pathName is None:
@@ -382,7 +382,7 @@ def ImportFile():
 		if hasattr(mod, '__file__'):
 			fname = mod.__file__
 			base, ext = os.path.splitext(fname)
-			if string.lower(ext) in ['.pyo', '.pyc']:
+			if ext.lower() in ['.pyo', '.pyc']:
 				ext = '.py'
 			fname = base + ext
 			if win32ui.ComparePath(fname, pathName):
@@ -399,7 +399,7 @@ def ImportFile():
 		what = "import"
 		bNeedReload = 0
 	
-	win32ui.SetStatusText(string.capitalize(what)+'ing module...',1)
+	win32ui.SetStatusText(what.capitalize()+'ing module...',1)
 	win32ui.DoWaitCursor(1)
 #	win32ui.GetMainFrame().BeginWaitCursor()
 
@@ -431,7 +431,7 @@ def CheckFile():
 		return
 
 	what = "check"	
-	win32ui.SetStatusText(string.capitalize(what)+'ing module...',1)
+	win32ui.SetStatusText(what.capitalize()+'ing module...',1)
 	win32ui.DoWaitCursor(1)
 	try:
 		f = open(pathName)
@@ -472,7 +472,7 @@ def RunTabNanny(filename):
 	data = newout.getvalue()
 	if data:
 		try:
-			lineno = string.split(data)[1]
+			lineno = data.split()[1]
 			lineno = int(lineno)
 			_JumpToPosition(filename, lineno)
 			try: # Try and display whitespace

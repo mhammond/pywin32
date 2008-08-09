@@ -124,7 +124,7 @@ class HLIDocString(HLIPythonObject):
 	def GetHLIType(self):
 		return "DocString"
 	def GetText(self):
-		return string.strip(self.myobject)
+		return self.myobject.strip()
 	def IsExpandable(self):
 		return 0
 	def GetBitmapColumn(self):

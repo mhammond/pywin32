@@ -331,7 +331,7 @@ class InteractiveCore:
 			return
 		terms = (["\n" + sys.ps2] * (len(bufLines)-1)) + ['']
 		for bufLine, term in map(None, bufLines, terms):
-			if string.strip(bufLine):
+			if bufLine.strip():
 				self.write( bufLine + term )
 		self.flush()
 
@@ -472,7 +472,7 @@ class InteractiveCore:
 		else:
 			self.SetSel(-2)
 			self.ReplaceSel("\n")
-			source = string.join(lines, '\n')
+			source = '\n'.join(lines)
 			while source and source[-1] in '\t ':
 				source = source[:-1]
 			self.OutputGrab()	# grab the output for the command exec.

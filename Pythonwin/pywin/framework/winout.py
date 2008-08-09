@@ -124,7 +124,7 @@ class WindowOutputViewImpl:
 			# and try and locate a help file.
 			try:
 				import win32api, win32con
-				det = eval(string.strip(line[string.find(line,":")+1:]))
+				det = eval(line[line.find(":")+1:].strip())
 				win32ui.SetStatusText("Opening help file on OLE error...");
 				import help
 				help.OpenHelpFile(det[2][3],win32con.HELP_CONTEXT, det[2][4])
@@ -163,7 +163,7 @@ class WindowOutputViewImpl:
 					return 1
 
 				win32ui.SetStatusText("Jumping to line "+lineNoString+" of file "+fileName,1)
-				if not scriptutils.JumpToDocument(fileName, string.atoi(lineNoString)):
+				if not scriptutils.JumpToDocument(fileName, int(lineNoString)):
 					win32ui.SetStatusText("Could not open %s" % fileName)
 					return 1	# still was an error message.
 				return 1
@@ -455,7 +455,7 @@ class WindowOutput(docview.DocTemplate):
 				debug(":Recreate failed!\n")
 				return 1 # In trouble - so say we have nothing to do.
 			win32ui.PumpWaitingMessages() # Pump paint messages
-			self.currentView.dowrite(string.join(items,''))
+			self.currentView.dowrite(''.join(items))
 		return rc
 
 	def HandleOutput(self,message):
@@ -465,7 +465,7 @@ class WindowOutput(docview.DocTemplate):
 			pass
 #			debug("not my thread - ignoring queue options!\n")
 		elif self.writeQueueing==flags.WQ_LINE:
-			pos = string.rfind(message, '\n')
+			pos = message.rfind('\n')
 			if pos>=0:
 #				debug("Line queueing - forcing flush\n")
 				self.QueueFlush()

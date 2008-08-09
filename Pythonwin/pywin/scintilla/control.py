@@ -64,7 +64,7 @@ class ScintillaControlInterface:
 		# assumed to apply to the entire string.
 		if style is not None:
 			text = map(lambda char, style=style: char+chr(style), text)
-			text = string.join(text, '')
+			text = ''.join(text)
 		self.SendMessage(SCI_ADDSTYLEDTEXT, buffer(text))
 	def SCIInsertText(self, text, pos=-1):
 		sma = array.array('c', text+"\0")
@@ -178,7 +178,7 @@ class ScintillaControlInterface:
 	# AutoComplete
 	def SCIAutoCShow(self, text):
 		if type(text) in [type([]), type(())]:
-			text = string.join(text)
+			text = ' '.join(text)
 		buff = array.array('c', text + "\0")
 		addressBuffer = buff.buffer_info()[0]
 		return self.SendScintilla(SCI_AUTOCSHOW, 0, addressBuffer)

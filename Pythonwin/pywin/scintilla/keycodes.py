@@ -2,7 +2,7 @@ import string
 import win32con
 
 char_ranges = [
-    (string.lowercase, -32),
+    (string.ascii_lowercase, -32),
     (string.digits, 0),
     ("?><:[]\\", 128),
     (";", 127),
@@ -32,7 +32,7 @@ def _fillmap():
     # Pull the VK_names from win32con
     names = filter(lambda entry: entry[:3]=="VK_", win32con.__dict__.keys())
     for name in names:
-        n = string.lower(name[3:])
+        n = name[3:].lower()
         val = getattr(win32con, name)
         key_name_to_code[n] = val
         key_code_to_name[val] = n
@@ -49,7 +49,7 @@ def _fillmap():
 _fillmap()
 
 def get_scan_code(chardesc):
-    return key_name_to_code.get(string.lower(chardesc))
+    return key_name_to_code.get(chardesc.lower())
 
 modifiers = {
     "alt" : win32con.LEFT_ALT_PRESSED | win32con.RIGHT_ALT_PRESSED, 
@@ -74,7 +74,7 @@ def parse_key_name(name):
     scancode = None
     while pos<max:
         if name[pos] in "+-":
-            tok = string.lower(name[start:pos])
+            tok = name[start:pos].lower()
             mod = modifiers.get(tok)
             if mod is None:
                 # Its a key name
@@ -121,7 +121,7 @@ def make_key_name(scancode, flags):
         parts.append( "<Unknown scan code %s>" % scancode )
     sep = "+"
     if sep in parts: sep = "-"
-    return string.join(map(string.capitalize, parts), sep)
+    return sep.join([p.capitalize() for p in parts])
 
 def _psc(char):
     sc = get_scan_code(char)

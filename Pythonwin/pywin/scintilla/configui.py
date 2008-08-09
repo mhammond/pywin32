@@ -48,9 +48,9 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 
 			colorizer = self.scintilla._GetColorizer()
 			text = colorizer.GetSampleText()
-			items = string.split(text, '|', 2)
+			items = text.split('|', 2)
 			pos = len(items[0])
-			self.scintilla.SCIAddText(string.join(items,''))
+			self.scintilla.SCIAddText(''.join(items))
 			self.scintilla.SetSel(pos, pos)
 			self.scintilla.ApplyFormattingStyles()
 			self.styles = self.scintilla._GetColorizer().styles

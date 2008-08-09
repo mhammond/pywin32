@@ -76,7 +76,7 @@ class CallTips:
         return "" #so the event is handled normally.
 
     def get_object_at_cursor(self,
-                             wordchars="._" + string.uppercase + string.lowercase + string.digits):
+                             wordchars="._" + string.ascii_uppercase + string.ascii_lowercase + string.digits):
         # XXX - This needs to be moved to a better place
         # so the "." attribute lookup code can also use it.
         text = self.text
@@ -138,7 +138,7 @@ def get_arg_text(ob):
                     items.append("...")
                 if fob.func_code.co_flags & 0x8:
                     items.append("***")
-                argText = string.join(items , ", ")
+                argText = ", ".join(items)
                 argText = "(%s)" % argText
             except:
                 pass

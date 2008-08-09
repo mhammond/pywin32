@@ -9,7 +9,7 @@ import sys
 
 from pywin.mfc.dialog import GetSimpleInput
 
-wordchars = string.uppercase + string.lowercase + string.digits
+wordchars = string.ascii_uppercase + string.ascii_lowercase + string.digits
 
 class TextError(Exception): # When a TclError would normally be raised.
 	pass
@@ -43,7 +43,7 @@ def fast_readline(self):
 		return ""
 	if not self.__dict__.has_key("_scint_lines"):
 		# XXX - note - assumes this is only called once the file is loaded!
-		self._scint_lines = string.split(self.text.edit.GetTextRange(), "\n")
+		self._scint_lines = self.text.edit.GetTextRange().split("\n")
 	sl = self._scint_lines
 	i = self.i = self.i + 1
 	if i >= len(sl):
@@ -85,7 +85,7 @@ class IDLEEditorWindow:
 		# Find and bind all the events defined in the extension.
 		events = filter(lambda item: item[-6:]=="_event", dir(klass))
 		for event in events:
-			name = "<<%s>>" % (string.replace(event[:-6], "_", "-"), )
+			name = "<<%s>>" % (event[:-6].replace("_", "-"), )
 			self.edit.bindings.bind(name, getattr(ext, event))
 		return ext
 
@@ -98,8 +98,8 @@ class IDLEEditorWindow:
 			for name, items in menudefs:
 				if name == menu_name:
 					for text, event in filter(lambda item: item is not None, items):
-						text = string.replace(text, "&", "&&")
-						text = string.replace(text, "_", "&")
+						text = text.replace("&", "&&")
+						text = text.replace("_", "&")
 						ret.append((text, event))
 		return ret
 
@@ -202,9 +202,9 @@ def _NextTok(str, pos):
 def TkIndexToOffset(bm, edit, marks):
 	base, nextTokPos = _NextTok(bm, 0)
 	if base is None: raise ValueError, "Empty bookmark ID!"
-	if string.find(base,".")>0:
+	if base.find(".")>0:
 		try:
-			line, col = string.split(base, ".", 2)
+			line, col = base.split(".", 2)
 			if col=="first" or col=="last":
 				# Tag name
 				if line != "sel": raise ValueError, "Tags arent here!"
@@ -338,7 +338,7 @@ class TkText:
 		ret = self.edit.GetTextRange(start, end)
 		# pretend a trailing '\n' exists if necessary.
 		if checkEnd and (not ret or ret[-1] != '\n'): ret = ret + '\n'
-		return string.replace(ret, "\r", "")
+		return ret.replace("\r", "")
 	def index(self, spec):
 		try:
 			return self._getindex(self._getoffset(spec))
@@ -351,7 +351,7 @@ class TkText:
 			raise TextError, "Empty range"
 		self.edit.SetSel((pos, pos))
 		# IDLE only deals with "\n" - we will be nicer
-		bits = string.split(text, '\n')
+		bits = text.split('\n')
 		self.edit.SCIAddText(bits[0])
 		for bit in bits[1:]:
 			self.edit.SCINewline()

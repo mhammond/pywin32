@@ -24,31 +24,31 @@ debugging = 0
 if debugging:
     import win32traceutil # Some trace statements fire before the interactive window is open.
     def trace(*args):
-        sys.stderr.write(string.join(map(str, args), " ") + "\n")
+        sys.stderr.write(" ".join(map(str, args)) + "\n")
 else:
     trace = lambda *args: None
 
 compiled_config_version = 2
 
 def split_line(line, lineno):
-    comment_pos = string.find(line, "#")
+    comment_pos = line.find("#")
     if comment_pos>=0: line = line[:comment_pos]
-    sep_pos = string.rfind(line, "=")
+    sep_pos = line.rfind("=")
     if sep_pos == -1:
-        if string.strip(line):
+        if line.strip():
             print "Warning: Line %d: %s is an invalid entry" % (lineno, `line`)
             return None, None
         return "", ""
-    return string.strip(line[:sep_pos]), string.strip(line[sep_pos+1:])
+    return line[:sep_pos].strip(), line[sep_pos+1:].strip()
 
 def get_section_header(line):
     # Returns the section if the line is a section header, else None
     if line[0] == "[":
-        end = string.find(line, "]")
+        end = line.find("]")
         if end==-1: end=len(line)
-        rc = string.lower(line[1:end])
+        rc = line[1:end].lower()
         try:
-            i = string.index(rc, ":")
+            i = rc.index(":")
             return rc[:i], rc[i+1:]
         except ValueError:
             return rc, ""
@@ -221,7 +221,7 @@ class ConfigManager:
         if line:
             bBreak = get_section_header(line)[0] is not None # A new section is starting
             if bStripComments and not bBreak:
-                pos = string.find(line, "#")
+                pos = line.find("#")
                 if pos>=0: line=line[:pos]+"\n"
         else:
             bBreak=1
@@ -242,7 +242,7 @@ class ConfigManager:
 
             key, val = split_line(line, lineno)
             if not key: continue
-            key = string.lower(key)
+            key = key.lower()
             l = map.get(key, [])
             l.append(val)
             map[key]=l
@@ -277,7 +277,7 @@ class ConfigManager:
             if bBreak: break
             lines.append(line)
         try:
-            c = compile(string.join(lines, ""), self.filename, "exec")
+            c = compile("".join(lines), self.filename, "exec")
             self._save_data("extension code", c)
         except SyntaxError, details:
             msg = details[0]
@@ -293,7 +293,7 @@ class ConfigManager:
         while 1:
             line, lineno, bBreak = self._readline(fp, lineno)
             if bBreak: break
-            line = string.strip(line)
+            line = line.strip()
             if line:
                 extensions.append(line)
         extension_map[sub_section] = extensions

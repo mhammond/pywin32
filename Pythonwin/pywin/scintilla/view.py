@@ -25,7 +25,7 @@ PRINTDLGORD = 1538
 IDC_PRINT_MAG_EDIT = 1010
 EM_FORMATRANGE = win32con.WM_USER+57
 
-wordbreaks = "._" + string.uppercase + string.lowercase + string.digits
+wordbreaks = "._" + string.ascii_uppercase + string.ascii_lowercase + string.digits
 
 patImport=re.compile('import (?P<name>.*)')
 
@@ -66,9 +66,9 @@ event_commands = []
 def _CreateEvents():
 	for name in _event_commands:
 		val = eval(name)
-		name_parts = string.split(name, "_")[1:]
-		name_parts = map(string.capitalize, name_parts)
-		event  =string.join(name_parts,'')
+		name_parts = name.split("_")[1:]
+		name_parts = [p.capitalize() for p in name_parts]
+		event = ''.join(name_parts)
 		event_commands.append((event, val))
 	for name, id in _extra_event_commands:
 		event_commands.append((name, id))
@@ -359,7 +359,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		find.ShowReplaceDialog()
 
 	def OnCmdFileLocate(self, cmd, id):
-		line=string.strip(self.GetLine())
+		line = self.GetLine().strip()
 		import pywin.framework.scriptutils
 		m = patImport.match(line)
 		if m:
@@ -378,7 +378,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
 	def OnCmdGotoLine(self, cmd, id):
 		try:
-			lineNo = string.atoi(raw_input("Enter Line Number"))-1
+			lineNo = int(raw_input("Enter Line Number"))-1
 		except (ValueError, KeyboardInterrupt):
 			return 0
 		self.SCIEnsureVisible(lineNo)
@@ -580,7 +580,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 			if char not in wordbreaks_use: break
 			after.append(char)
 			index=index+1
-		return string.join(before,''), string.join(after,'')
+		return ''.join(before), ''.join(after)
 
 	def OnPrepareDC (self, dc, pInfo):
 #		print "OnPrepareDC for page", pInfo.GetCurPage(), "of", pInfo.GetFromPage(), "to", pInfo.GetToPage(), ", starts=", self.starts

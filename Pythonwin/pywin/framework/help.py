@@ -33,7 +33,7 @@ def OpenHelpFile(fileName, helpCmd = None, helpArg = None):
 	win32ui.DoWaitCursor(1)
 	try:
 		if helpCmd is None: helpCmd = win32con.HELP_CONTENTS
-		ext = string.lower(os.path.splitext(fileName)[1])
+		ext = os.path.splitext(fileName)[1].lower()
 		if ext == ".hlp":
 			win32api.WinHelp( win32ui.GetMainFrame().GetSafeHwnd(), fileName, helpCmd, helpArg)
 		# XXX - using the htmlhelp API wreaks havoc with keyboard shortcuts

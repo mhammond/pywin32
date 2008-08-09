@@ -103,7 +103,7 @@ class BitmapTemplate(docview.DocTemplate):
 	def MatchDocType(self, fileName, fileType):
 		doc = self.FindOpenDocument(fileName)
 		if doc: return doc
-		ext = string.lower(os.path.splitext(fileName)[1])
+		ext = os.path.splitext(fileName)[1].lower()
 		if ext =='.bmp': # removed due to PIL! or ext=='.ppm':
 			return win32ui.CDocTemplate_Confidence_yesAttemptNative
 		return win32ui.CDocTemplate_Confidence_maybeAttemptForeign

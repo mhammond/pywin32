@@ -255,7 +255,7 @@ class DebuggerListViewWindow(DebuggerWindow):
 	def OnKeyDown(self, msg):
 		key = msg[2]
 		# If someone starts typing, they probably are trying to edit the text!
-		if chr(key) in string.uppercase:
+		if chr(key) in string.ascii_uppercase:
 			self.EditSelected()
 			return 0
 		return DebuggerWindow.OnKeyDown(self, msg)
@@ -307,7 +307,7 @@ class DebuggerBreakpointsWindow(DebuggerListViewWindow):
 		for bplist in Breakpoint.bplist.values():
 			for bp in bplist:
 				if id(bp)==item_id:
-					if string.lower(string.strip(text))=="none":
+					if text.strip().lower()=="none":
 						text = None
 					bp.cond = text
 					break
@@ -346,7 +346,7 @@ class DebuggerWatchWindow(DebuggerListViewWindow):
 
 	def CreateWindow(self, parent):
 		DebuggerListViewWindow.CreateWindow(self, parent)
-		items = string.split(win32ui.GetProfileVal("Debugger Windows\\" + self.title, "Items", ""), "\t")
+		items = win32ui.GetProfileVal("Debugger Windows\\" + self.title, "Items", "").split("\t")
 		index = -1
 		for item in items:
 			if item:
@@ -357,7 +357,7 @@ class DebuggerWatchWindow(DebuggerListViewWindow):
 		items = []
 		for i in range(self.GetItemCount()-1):
 			items.append(self.GetItemText(i,0))
-		win32ui.WriteProfileVal("Debugger Windows\\" + self.title, "Items", string.join(items,"\t"))
+		win32ui.WriteProfileVal("Debugger Windows\\" + self.title, "Items", "\t".join(items))
 		return 1
 
 	def OnListEndLabelEdit(self, std, extra):
@@ -398,7 +398,7 @@ class DebuggerWatchWindow(DebuggerListViewWindow):
 					val = "Syntax Error"
 				except:
 					t, v, tb = sys.exc_info()
-					val = string.strip(traceback.format_exception_only(t, v)[0])
+					val = traceback.format_exception_only(t, v)[0].strip()
 					tb = None # prevent a cycle.
 			self.SetItemText(i, 1, val)
 
@@ -535,7 +535,7 @@ class Debugger(debugger_parent):
 		self.RespondDebuggerState(DBGSTATE_NOT_DEBUGGING)
 		self.close()
 	def canonic(self, fname):
-		return string.lower(os.path.abspath(fname))
+		return os.path.abspath(fname).lower()
 	def reset(self):
 		debugger_parent.reset(self)
 		self.userbotframe = None
@@ -949,7 +949,7 @@ class Debugger(debugger_parent):
 			# Can't find the source file - linecache may have it?
 			import linecache
 			line = linecache.getline(filename, lineno)
-			print "%s(%d): %s" % (os.path.basename(filename), lineno, string.expandtabs(line[:-1],4))
+			print "%s(%d): %s" % (os.path.basename(filename), lineno, line[:-1].expandtabs(4))
 			return 0
 
 def _doexec(cmd, globals, locals):

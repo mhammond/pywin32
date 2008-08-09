@@ -98,7 +98,7 @@ class BindingsManager:
 	def _get_IDLE_handler(self, ext, handler):
 		try:
 			instance = self.parent_view.idle.IDLEExtension(ext)
-			name = string.replace(handler, "-", "_") + "_event"
+			name = handler.replace("-", "_") + "_event"
 			return getattr(instance, name)
 		except (ImportError, AttributeError):
 			msg = "Can not find event '%s' in IDLE extension '%s'" % (handler, ext)

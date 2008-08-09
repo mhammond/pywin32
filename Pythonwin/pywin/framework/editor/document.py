@@ -227,7 +227,7 @@ class EditorDocumentBase(ParentEditorDocument):
 		if self.scModule is None:
 			try:
 				self.scModule = __import__(self.scModuleName)
-				for part in string.split(self.scModuleName,'.')[1:]:
+				for part in self.scModuleName.split('.')[1:]:
 					self.scModule = getattr(self.scModule, part)
 			except:
 				traceback.print_exc()
