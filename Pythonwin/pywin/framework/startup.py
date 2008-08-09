@@ -10,7 +10,6 @@
 
 import sys
 import win32ui
-import strop
 
 # You may wish to redirect error output somewhere useful if you have startup errors.
 # eg, 'import win32traceutil' will do this for you.
@@ -38,7 +37,7 @@ moduleName = "intpyapp"
 sys.appargvoffset = 0
 sys.appargv = sys.argv[:]
 # Must check for /app param here.
-if len(sys.argv)>=2 and strop.lower(sys.argv[0])=='/app': 
+if len(sys.argv)>=2 and sys.argv[0].lower()=='/app':
 	import cmdline
 	moduleName = cmdline.FixArgFileName(sys.argv[1])
 	sys.appargvoffset = 2
