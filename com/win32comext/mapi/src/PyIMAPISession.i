@@ -148,6 +148,63 @@ PyObject *PyIMAPISession::QueryIdentity(PyObject *self, PyObject *args)
 }
 %}
 
+// @pyswig int|Advise|
+// @rdesc The result is an integer which should be passed to
+// <om PyIMAPISession.Unadvise>
+%native(Advise) Advise;
+%{
+PyObject *PyIMAPISession::Advise(PyObject *self, PyObject *args)
+{
+	IMAPISession *_swig_self;
+	if ((_swig_self=GetI(self))==NULL) return NULL;
+
+	// @pyparm string|entryId||The entryID of the object
+	// @pyparm int|mask||
+	// @pyparm <o PyIMAPIAdviseSink>|sink||
+	PyObject *obEntry, *obSink;
+	int mask;
+	if(!PyArg_ParseTuple(args,"OkO:Advise",&obEntry, &mask, &obSink))
+		return NULL;
+	char *entryString;
+	Py_ssize_t entryStrLen;
+	if (obEntry==Py_None) {
+		entryString = NULL;
+		entryStrLen = 0;
+	} else if PyString_Check(obEntry) {
+		entryString = PyString_AsString(obEntry);
+		entryStrLen = PyString_Size(obEntry);
+	} else {
+		PyErr_SetString(PyExc_TypeError, "EntryID must be a string or None");
+		return NULL;
+	}
+	IMAPIAdviseSink *psink = NULL;
+	if (!PyCom_InterfaceFromPyObject(obSink, IID_IMAPIAdviseSink, (void **)&psink, FALSE))
+		return NULL;
+	unsigned long connection;
+	HRESULT _result;
+	PyObject *rc;
+	Py_BEGIN_ALLOW_THREADS
+	_result = _swig_self->Advise(entryStrLen, (LPENTRYID)entryString,
+	                             mask, psink, &connection); 
+	Py_END_ALLOW_THREADS
+	if (FAILED(_result))
+		rc = OleSetOleError(_result);
+	else
+		rc = PyLong_FromUnsignedLong(connection);
+	{
+	Py_BEGIN_ALLOW_THREADS
+	psink->Release();
+	Py_END_ALLOW_THREADS
+	}
+	return rc;
+}
+%}
+
+// @pyswig |Unadvise|
+// @pyparm int|connection||Value returned from <om PyIMAPISession.Advise>
+HRESULT Unadvise(unsigned long connection); 
+
+
 // @pyswig int|CompareEntryIDs|Compares two entry identifiers belonging to a particular address book provider to determine if they refer to the same address book object
 // @rdesc The result is set to TRUE if the two entry identifiers refer to the same object, and FALSE otherwise. 
 %native(CompareEntryIDs) CompareEntryIDs;

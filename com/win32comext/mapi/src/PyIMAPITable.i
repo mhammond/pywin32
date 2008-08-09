@@ -125,11 +125,12 @@ HRESULT SortTable(
 	unsigned long flags // @pyparm int|flags||
 );
 
+// @pyswig |Unadvise|Cancels the sending of notifications previously set up with a call to the IMAPITable::Advise method. 
+HRESULT Unadvise(
+	unsigned long handle); // @pyparm int|handle||Handle returned from <om PyIMAPITable.Advise>
+
+
 /*
-Unadvise|Cancels the sending of notifications previously set up with a call to the IMAPITable::Advise method. 
-
-
-
 
 QuerySortOrder|Retrieves the current sort order for a table. 
 

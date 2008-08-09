@@ -53,6 +53,39 @@ PyObject *PyMAPIObject_FromTypedUnknown( ULONG typ, IUnknown *pUnk, BOOL bAddRef
     return PyCom_PyObjectFromIUnknown(pUnk, *pIID, bAddRef );
 }
 
+PyObject *PyObject_FromMAPIERROR(MAPIERROR *e, BOOL bIsUnicode, BOOL free_buffer)
+{
+	PyObject *obError;
+	if (e->lpszError)
+		obError = bIsUnicode ? PyWinObject_FromWCHAR((const WCHAR *)e->lpszError) :
+					PyString_FromString((const char *)e->lpszError);
+		
+	else {
+		obError = Py_None;
+		Py_INCREF(Py_None);
+	}
+	PyObject *obComp;
+	if (e->lpszComponent)
+		obComp = bIsUnicode ? PyWinObject_FromWCHAR((const WCHAR *)e->lpszComponent) :
+					PyString_FromString((const char *)e->lpszComponent);
+	else {
+		obComp = Py_None;
+		Py_INCREF(Py_None);
+	}
+
+	PyObject *ret = Py_BuildValue("lOOll", 
+		e->ulVersion,
+		obError,
+		obComp,
+		e->ulLowLevelError,
+		e->ulContext);
+	Py_XDECREF(obError);
+	Py_XDECREF(obComp);
+	if (free_buffer)
+		MAPIFreeBuffer(e);
+	return ret;
+}
+
 BOOL AllocMVBuffer(PyObject *seq, size_t itemSize, void *pAllocMoreLinkBlock, void **pbuf, ULONG *pLen)
 {
 	if (!PySequence_Check(seq))
@@ -486,6 +519,23 @@ PyObject *PyMAPIObject_FromSPropValue(SPropValue *pv)
 	PyTuple_SET_ITEM(rc, 0, PyInt_FromLong(pv->ulPropTag));
 	PyTuple_SET_ITEM(rc, 1, val);
 	return rc;
+}
+
+PyObject *PyMAPIObject_FromSPropValueArray(SPropValue *pv, ULONG nvalues)
+{
+	PyObject *ret = PyList_New(nvalues);
+	if (!ret)
+		return NULL;
+	ULONG i;
+	for (i=0;i<nvalues;i++) {
+		PyObject *sub = PyMAPIObject_FromSPropValue(pv+i);
+		if (!sub) {
+			Py_DECREF(ret);
+			return NULL;
+		}
+		PyList_SET_ITEM(ret, i, sub);
+	}
+	return ret;
 }
 
 // @object PySPropValueArray|A sequence of <o PySPropValue>, as passed to many MAPI functions.

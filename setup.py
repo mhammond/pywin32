@@ -1482,6 +1482,7 @@ com_extensions += [
                         %(mapi)s/PyIMsgStore.i          %(mapi)s/PyIMsgStore.cpp
                         %(mapi)s/PyIProfAdmin.i         %(mapi)s/PyIProfAdmin.cpp
                         %(mapi)s/PyIProfSect.i          %(mapi)s/PyIProfSect.cpp
+                        %(mapi)s/PyIMAPIAdviseSink.cpp
 
                         %(mapi)s/mapiutil.cpp
                         %(mapi)s/mapiguids.cpp

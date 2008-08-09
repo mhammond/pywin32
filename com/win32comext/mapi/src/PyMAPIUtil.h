@@ -7,6 +7,8 @@
 
 PyObject *PyMAPIObject_FromTypedUnknown( ULONG typ, IUnknown *pUnk, BOOL bAddRef);
 
+PyObject *PyObject_FromMAPIERROR(MAPIERROR *e, BOOL bIsUnicode, BOOL free_buffer);
+
 /* Create (and free) a SBinaryArray from a PyObject */
 BOOL PyMAPIObject_AsSBinaryArray(PyObject *ob, SBinaryArray *pv);
 void PyMAPIObject_FreeSBinaryArray(SBinaryArray *pv);
@@ -16,8 +18,10 @@ void PyMAPIObject_FreeSBinaryArray(SBinaryArray *pv);
 BOOL PyMAPIObject_AsSPropValue(PyObject *ob, SPropValue *pv, void *pAllocMoreLinkBlock);
 PyObject *PyMAPIObject_FromSPropValue(SPropValue *pv);
 
-/* Create a PyObject from a SPropValue Array*/
+/* Create a PyObject to/from a SPropValue Array*/
 BOOL PyMAPIObject_AsSPropValueArray(PyObject *ob, SPropValue **ppv, ULONG *pcValues);
+PyObject *PyMAPIObject_FromSPropValueArray(SPropValue *pv, ULONG nvalues);
+
 
 /* Create a PyObject from a SRow/SRowSet */
 PyObject *PyMAPIObject_FromSRow(SRow *pr);

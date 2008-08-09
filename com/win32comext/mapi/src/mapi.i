@@ -43,6 +43,7 @@
 #include "PyIABContainer.h"
 #include "PyIProfSect.h"
 #include "PyIMsgServiceAdmin.h"
+#include "PyIMAPIAdviseSink.h"
 
 #include "MAPISPI.H"
 #include "MAPISPI.H"
@@ -171,7 +172,9 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 
 	if ( PyCom_RegisterClientType(&PyIMsgServiceAdmin::type, &IID_IMsgServiceAdmin) != 0 ) return;
 	ADD_IID(IID_IMsgServiceAdmin);
-	
+
+        if ( PyCom_RegisterGatewayObject(IID_IMAPIAdviseSink, GET_PYGATEWAY_CTOR(PyGMAPIAdviseSink), "IMAPIAdviseSink") != 0) return;
+	ADD_IID(IID_IMAPIAdviseSink);
 
 	ADD_IID(PS_PUBLIC_STRINGS);
 	ADD_IID(PS_MAPI);

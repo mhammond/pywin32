@@ -468,31 +468,7 @@ typedef unsigned long BOOKMARK;
 }
 
 %typemap(python,argout) MAPIERROR **OUTPUT {
-	PyObject *obError;
-	if ((*$source)->lpszError)
-		obError = PyWinObject_FromTCHAR((*$source)->lpszError);
-	else {
-		obError = Py_None;
-		Py_INCREF(Py_None);
-	}
-	PyObject *obComp;
-	if ((*$source)->lpszComponent)
-		obComp = PyWinObject_FromTCHAR((*$source)->lpszComponent);
-	else {
-		obComp = Py_None;
-		Py_INCREF(Py_None);
-	}
-
-	Py_DECREF($target);
-	$target = Py_BuildValue("lOOll", 
-		(*$source)->ulVersion,
-		obError,
-		obComp,
-		(*$source)->ulLowLevelError,
-		(*$source)->ulContext);
-	Py_XDECREF(obError);
-	Py_XDECREF(obComp);
-	MAPIFreeBuffer(*$source);
+	PyObject_FromMAPIERROR(*$source, TRUE, TRUE);
 }
 
 %typemap(python,ignore) MAPIINIT_0 *OUTPUT (MAPIINIT_0 temp) {
