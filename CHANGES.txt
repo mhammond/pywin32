@@ -12,6 +12,8 @@ Since build 212:
 
 * win32com.shell gets support for IContextMenu2 and IContextMenu3
 
+* add win32api.GetNativeSystemInfo()
+
 Since build 211:
 ----------------
 

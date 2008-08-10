@@ -57,6 +57,8 @@ typedef BOOL (WINAPI *SetDllDirectoryfunc)(LPCWSTR);
 static SetDllDirectoryfunc pfnSetDllDirectory = NULL;
 typedef BOOL (WINAPI *SetSystemPowerStatefunc)(BOOL, BOOL);
 static SetSystemPowerStatefunc pfnSetSystemPowerState = NULL;
+typedef BOOL (WINAPI *GetNativeSystemInfofunc)(LPSYSTEM_INFO);
+static GetNativeSystemInfofunc pfnGetNativeSystemInfo = NULL;
 
 // from secur32.dll
 typedef BOOLEAN (WINAPI *GetUserNameExfunc)(EXTENDED_NAME_FORMAT,LPWSTR,PULONG);
@@ -2075,11 +2077,7 @@ PyGetSystemInfo(PyObject * self, PyObject * args)
 	SYSTEM_INFO info;
 	GetSystemInfo( &info );
 	return Py_BuildValue("iiNNNiii(HH)",
-#if !defined(MAINWIN)
-						 info.dwOemId,
-#else
-						 0,
-#endif // MAINWIN
+						 info.wProcessorArchitecture,
 						 info.dwPageSize, 
                          PyWinLong_FromVoidPtr(info.lpMinimumApplicationAddress),
 						 PyWinLong_FromVoidPtr(info.lpMaximumApplicationAddress),
@@ -2089,10 +2087,37 @@ PyGetSystemInfo(PyObject * self, PyObject * args)
 						 info.wProcessorLevel, info.wProcessorRevision);
 	// @rdesc The return value is a tuple of 9 values, which corresponds
 	// to the Win32 SYSTEM_INFO structure.  The element names are:
-	// <nl>dwOemId<nl>dwPageSize<nl>lpMinimumApplicationAddress<nl>lpMaximumApplicationAddress<nl>
+	// <nl>wProcessorArchitecture<nl>dwPageSize<nl>lpMinimumApplicationAddress<nl>lpMaximumApplicationAddress<nl>
     // dwActiveProcessorMask<nl>dwNumberOfProcessors<nl>
 	// dwProcessorType<nl>dwAllocationGranularity<nl>(wProcessorLevel,wProcessorRevision)
 }
+
+// @pymethod tuple|win32api|GetNativeSystemInfo|Retrieves information about the current system for a Wow64 process.
+static PyObject *
+PyGetNativeSystemInfo(PyObject * self, PyObject * args)
+{
+	CHECK_PFN(SetSystemPowerState);
+	if (!PyArg_ParseTuple(args, ":GetNativeSystemInfo"))
+		return NULL;
+	// @pyseeapi GetNativeSystemInfo
+	SYSTEM_INFO info;
+	(*pfnGetNativeSystemInfo)( &info );
+	return Py_BuildValue("iiNNNiii(HH)",
+						 info.wProcessorArchitecture,
+						 info.dwPageSize, 
+                         PyWinLong_FromVoidPtr(info.lpMinimumApplicationAddress),
+						 PyWinLong_FromVoidPtr(info.lpMaximumApplicationAddress),
+                         PyLong_FromUnsignedLongLong(info.dwActiveProcessorMask),
+						 info.dwNumberOfProcessors,
+                         info.dwProcessorType, info.dwAllocationGranularity,
+						 info.wProcessorLevel, info.wProcessorRevision);
+	// @rdesc The return value is a tuple of 9 values, which corresponds
+	// to the Win32 SYSTEM_INFO structure.  The element names are:
+	// <nl>wProcessorArchitecture<nl>dwPageSize<nl>lpMinimumApplicationAddress<nl>lpMaximumApplicationAddress<nl>
+    // dwActiveProcessorMask<nl>dwNumberOfProcessors<nl>
+	// dwProcessorType<nl>dwAllocationGranularity<nl>(wProcessorLevel,wProcessorRevision)
+}
+
 
 // @pymethod int|win32api|GetSystemMetrics|Retrieves various system metrics and system configuration settings. 
 static PyObject *
@@ -6040,6 +6065,7 @@ static struct PyMethodDef win32api_functions[] = {
 	{"GetSystemFileCacheSize", PyGetSystemFileCacheSize,METH_NOARGS},	// @pymeth GetSystemFileCacheSize|Returns the amount of memory reserved for file cache
 	{"SetSystemFileCacheSize", (PyCFunction)PySetSystemFileCacheSize, METH_KEYWORDS|METH_VARARGS},	// @pymeth SetSystemFileCacheSize|Sets the amount of memory reserved for file cache
 	{"GetSystemInfo",		PyGetSystemInfo, 1},    // @pymeth GetSystemInfo|Retrieves information about the current system.
+	{"GetNativeSystemInfo",		PyGetNativeSystemInfo, 1}, // @pymeth GetNativeSystemInfo|Retrieves information about the current system for a Wow64 process.
 	{"GetSystemMetrics",	PyGetSystemMetrics, 1}, // @pymeth GetSystemMetrics|Returns the specified system metrics.
 	{"GetSystemTime",		PyGetSystemTime,	1},	// @pymeth GetSystemTime|Returns the current system time.
 	{"GetTempFileName",		PyGetTempFileName,  1}, // @pymeth GetTempFileName|Creates a temporary file.
@@ -6253,6 +6279,7 @@ initwin32api(void)
 	pfnGetDllDirectory=(GetDllDirectoryfunc)GetProcAddress(hmodule,"GetDllDirectoryW");
 	pfnSetDllDirectory=(SetDllDirectoryfunc)GetProcAddress(hmodule,"SetDllDirectoryW");
 	pfnSetSystemPowerState=(SetSystemPowerStatefunc)GetProcAddress(hmodule,"SetSystemPowerState");
+	pfnGetNativeSystemInfo=(GetNativeSystemInfofunc)GetProcAddress(hmodule,"GetNativeSystemInfo");
   }
 
   hmodule = GetModuleHandle(TEXT("user32.dll"));
