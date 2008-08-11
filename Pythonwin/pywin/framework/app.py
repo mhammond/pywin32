@@ -374,13 +374,6 @@ def Win32Input(prompt=None):
 sys.modules['__builtin__'].raw_input=Win32RawInput
 sys.modules['__builtin__'].input=Win32Input
 
-try:
-	# LocatePythonFile used to be here.
-	# THIS WILL BE DELETED SOON.
-	from scriptutils import LocatePythonFile
-except:
-	pass
-
 def HaveGoodGUI():
 	"""Returns true if we currently have a good gui available.
 	"""

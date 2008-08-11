@@ -1,7 +1,6 @@
 """
 Various utilities for running/importing a script
 """
-import app
 import sys
 import win32ui
 import win32api
@@ -252,7 +251,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog = 1, debuggingType=None):
 			os.stat(fnameonly) # See if it is OK as is...
 			script = fnameonly
 		except os.error:
-			fullScript = app.LocatePythonFile(script)
+			fullScript = LocatePythonFile(script)
 			if fullScript is None:
 				win32ui.MessageBox("The file '%s' can not be located" % script )
 				return
