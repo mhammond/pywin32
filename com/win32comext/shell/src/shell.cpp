@@ -3446,6 +3446,29 @@ extern "C" __declspec(dllexport) void initshell()
 	ADD_IID(SID_LinkSite);
 	ADD_IID(SID_ShellFolderViewCB);
 	ADD_IID(SID_SShellBrowser);
+	ADD_IID(SID_DefView);
+	ADD_IID(CGID_DefView);
+	ADD_IID(SID_STopLevelBrowser);
+	ADD_IID(SID_STopWindow);
+	ADD_IID(SID_SGetViewFromViewDual);
+	ADD_IID(SID_CtxQueryAssociations);
+	ADD_IID(SID_SMenuBandChild);
+	ADD_IID(SID_SMenuBandParent);
+	ADD_IID(SID_SMenuPopup);
+	ADD_IID(SID_SMenuBandBottomSelected);
+	ADD_IID(SID_SMenuBandBottom);
+	ADD_IID(SID_MenuShellFolder);
+	ADD_IID(SID_SMenuBandContextMenuModifier);
+	ADD_IID(SID_SMenuBandBKContextMenu);
+	ADD_IID(SID_SMenuBandTop);
+	ADD_IID(SID_SCommDlgBrowser);
+	ADD_IID(VID_LargeIcons);
+	ADD_IID(VID_SmallIcons);
+	ADD_IID(VID_List);
+	ADD_IID(VID_Details);
+	ADD_IID(VID_Tile);
+	ADD_IID(VID_Thumbnails);
+	ADD_IID(VID_ThumbStrip);
 #else
 #	pragma message("Please update your SDK headers - IE5 features missing!")
 #endif
