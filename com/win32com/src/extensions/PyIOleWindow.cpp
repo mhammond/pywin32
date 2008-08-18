@@ -86,13 +86,14 @@ PyComTypeObject PyIOleWindow::type("PyIOleWindow",
 STDMETHODIMP PyGOleWindow::GetWindow(
 		/* [out] */ HWND __RPC_FAR * phwnd)
 {
+	static const char *method_name = "GetWindow";
 	PY_GATEWAY_METHOD;
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetWindow", &result);
+	HRESULT hr=InvokeViaPolicy(method_name, &result);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	if (!PyWinObject_AsHANDLE(result, (HANDLE *)phwnd))
-		hr=PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+		hr=MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	Py_DECREF(result);
 	return hr;
 }

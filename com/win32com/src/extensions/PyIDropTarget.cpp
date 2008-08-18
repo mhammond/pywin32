@@ -182,13 +182,14 @@ STDMETHODIMP PyGDropTarget::DragEnter(
 		/* [in] */ POINTL pt,
 		/* [out][in] */ DWORD * pdwEffect)
 {
+	static const char *method_name = "DragEnter";
 	PY_GATEWAY_METHOD;
 	PyObject *obpt = PyObject_FromPOINTL(pt);
-	if (obpt==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (obpt==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	PyObject *obpDataObj;
 	obpDataObj = PyCom_PyObjectFromIUnknown(pDataObj, IID_IDataObject, TRUE);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("DragEnter", &result, "OlOl", obpDataObj, grfKeyState, obpt, *pdwEffect);
+	HRESULT hr=InvokeViaPolicy(method_name, &result, "OlOl", obpDataObj, grfKeyState, obpt, *pdwEffect);
 	Py_XDECREF(obpDataObj);
 	Py_DECREF(obpt);
 	if (FAILED(hr)) return hr;
@@ -203,11 +204,12 @@ STDMETHODIMP PyGDropTarget::DragOver(
 		/* [in] */ POINTL pt,
 		/* [out][in] */ DWORD * pdwEffect)
 {
+	static const char *method_name = "DragOver";
 	PY_GATEWAY_METHOD;
 	PyObject *obpt = PyObject_FromPOINTL(pt);
-	if (obpt==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (obpt==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("DragOver", &result, "lOl", grfKeyState, obpt, *pdwEffect);
+	HRESULT hr=InvokeViaPolicy(method_name, &result, "lOl", grfKeyState, obpt, *pdwEffect);
 	Py_DECREF(obpt);
 	if (FAILED(hr)) return hr;
 	if (result && PyInt_Check(result))
@@ -230,13 +232,14 @@ STDMETHODIMP PyGDropTarget::Drop(
 		/* [in] */ POINTL pt,
 		/* [out][in] */ DWORD * pdwEffect)
 {
+	static const char *method_name = "Drop";
 	PY_GATEWAY_METHOD;
 	PyObject *obpt = PyObject_FromPOINTL(pt);
-	if (obpt==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (obpt==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	PyObject *obpDataObj;
 	obpDataObj = PyCom_PyObjectFromIUnknown(pDataObj, IID_IDataObject, TRUE);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("Drop", &result, "OlOl", obpDataObj, grfKeyState, obpt, *pdwEffect);
+	HRESULT hr=InvokeViaPolicy(method_name, &result, "OlOl", obpDataObj, grfKeyState, obpt, *pdwEffect);
 	Py_XDECREF(obpDataObj);
 	Py_DECREF(obpt);
 	if (FAILED(hr)) return hr;

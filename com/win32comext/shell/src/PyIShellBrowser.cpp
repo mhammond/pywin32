@@ -401,11 +401,12 @@ STDMETHODIMP PyGShellBrowser::InsertMenusSB(
 		/* [in] */ HMENU hmenuShared,
 		/* [out][in] */ LPOLEMENUGROUPWIDTHS lpMenuWidths)
 {
+	static const char *method_name = "InsertMenusSB";
 	PY_GATEWAY_METHOD;
 	PyObject *oblpMenuWidths = PyObject_FromOLEMENUGROUPWIDTHS(lpMenuWidths);
-	if (oblpMenuWidths==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (oblpMenuWidths==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("InsertMenusSB", &result, "NO", PyWinLong_FromHANDLE(hmenuShared), oblpMenuWidths);
+	HRESULT hr=InvokeViaPolicy(method_name, &result, "NO", PyWinLong_FromHANDLE(hmenuShared), oblpMenuWidths);
 	Py_DECREF(oblpMenuWidths);
 	if (FAILED(hr)) return hr;
 	PyObject_AsOLEMENUGROUPWIDTHS(result, lpMenuWidths);
@@ -455,10 +456,11 @@ STDMETHODIMP PyGShellBrowser::TranslateAcceleratorSB(
 		/* [in] */ MSG * pmsg,
 		/* [in] */ WORD wID)
 {
+	static const char *method_name = "TranslateAcceleratorSB";
 	PY_GATEWAY_METHOD;
 	PyObject *obpmsg = PyObject_FromMSG(pmsg);
-	if (obpmsg==NULL) return PyCom_HandlePythonFailureToCOM();
-	HRESULT hr=InvokeViaPolicy("TranslateAcceleratorSB", NULL, "OH", obpmsg, wID);
+	if (obpmsg==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
+	HRESULT hr=InvokeViaPolicy(method_name, NULL, "OH", obpmsg, wID);
 	Py_DECREF(obpmsg);
 	return hr;
 }
@@ -479,17 +481,18 @@ STDMETHODIMP PyGShellBrowser::GetViewStateStream(
 		/* [in] */ DWORD grfMode,
 		/* [out] */ IStream ** ppStrm)
 {
+	static const char *method_name = "GetViewStateStream";
 	PY_GATEWAY_METHOD;
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetViewStateStream", &result, "l", grfMode);
+	HRESULT hr=InvokeViaPolicy(method_name, &result, "l", grfMode);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	PyObject *obppStrm;
-	if (!PyArg_Parse(result, "O" , &obppStrm)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!PyArg_Parse(result, "O" , &obppStrm)) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	BOOL bPythonIsHappy = TRUE;
 	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obppStrm, IID_IStream, (void **)ppStrm, TRUE /* bNoneOK */))
 		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	Py_DECREF(result);
 	return hr;
 }
@@ -498,13 +501,14 @@ STDMETHODIMP PyGShellBrowser::GetControlWindow(
 		/* [in] */ UINT id,
 		/* [out] */ HWND * phwnd)
 {
+	static const char *method_name = "GetControlWindow";
 	PY_GATEWAY_METHOD;
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetControlWindow", &result, "I", id);
+	HRESULT hr=InvokeViaPolicy(method_name, &result, "I", id);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	if (!PyWinObject_AsHANDLE(result, (HANDLE *)phwnd))
-		hr = PyCom_HandlePythonFailureToCOM();
+		hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	Py_DECREF(result);
 	return hr;
 }
@@ -528,17 +532,18 @@ STDMETHODIMP PyGShellBrowser::SendControlMsg(
 STDMETHODIMP PyGShellBrowser::QueryActiveShellView(
 		/* [out] */ IShellView ** ppshv)
 {
+	static const char *method_name = "QueryActiveShellView";
 	PY_GATEWAY_METHOD;
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("QueryActiveShellView", &result);
+	HRESULT hr=InvokeViaPolicy(method_name, &result);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	PyObject *obppshv;
-	if (!PyArg_Parse(result, "O" , &obppshv)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!PyArg_Parse(result, "O" , &obppshv)) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	BOOL bPythonIsHappy = TRUE;
 	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obppshv, IID_IShellView, (void **)ppshv, TRUE /* bNoneOK */))
 		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	Py_DECREF(result);
 	return hr;
 }
@@ -559,14 +564,15 @@ STDMETHODIMP PyGShellBrowser::SetToolbarItems(
 		/* [in] */ UINT nButtons,
 		/* [in] */ UINT uFlags)
 {
+	static const char *method_name = "SetToolbarItems";
 	PY_GATEWAY_METHOD;
 // *** The input argument lpButtons of type "LPTBBUTTONSB" was not processed ***
 //   - Please ensure this conversion function exists, and is appropriate
 //   - The type 'LPTBBUTTONSB' (lpButtons) is unknown.
 	PyObject *oblpButtons = Py_None; //PyObject_FromLPTBBUTTONSB(lpButtons);
 	Py_INCREF(Py_None);
-	if (oblpButtons==NULL) return PyCom_HandlePythonFailureToCOM();
-	HRESULT hr=InvokeViaPolicy("SetToolbarItems", NULL, "Oii", oblpButtons, nButtons, uFlags);
+	if (oblpButtons==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
+	HRESULT hr=InvokeViaPolicy(method_name, NULL, "Oii", oblpButtons, nButtons, uFlags);
 	Py_DECREF(oblpButtons);
 	return hr;
 }

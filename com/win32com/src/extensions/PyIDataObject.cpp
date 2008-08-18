@@ -326,11 +326,12 @@ STDMETHODIMP PyGDataObject::GetData(
 		/* [unique][in] */ FORMATETC * pformatetcIn,
 		/* [out] */ STGMEDIUM * pmedium)
 {
+	static const char *method_name = "GetData";
 	if (!pmedium)
 		return E_POINTER;
 	PY_GATEWAY_METHOD;
 	PyObject *obpformatetcIn = PyObject_FromFORMATETC(pformatetcIn);
-	if (obpformatetcIn==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (obpformatetcIn==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	PyObject *result;
 	HRESULT hr=InvokeViaPolicy("GetData", &result, "(O)", obpformatetcIn);
 	Py_DECREF(obpformatetcIn);
@@ -343,7 +344,7 @@ STDMETHODIMP PyGDataObject::GetData(
 		memset(pmedium, 0, sizeof(*pmedium));
 		pym->CopyTo(pmedium);
 	}
-	hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	Py_DECREF(result);
 	return hr;
 }
@@ -352,11 +353,12 @@ STDMETHODIMP PyGDataObject::GetDataHere(
 		/* [unique][in] */ FORMATETC * pformatetc,
 		/* [out][in] */ STGMEDIUM * pmedium)
 {
+	static const char *method_name = "GetDataHere";
 	PY_GATEWAY_METHOD;
 	PyObject *obpformatetc = PyObject_FromFORMATETC(pformatetc);
-	if (obpformatetc==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (obpformatetc==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetDataHere", &result, "(O)", obpformatetc);
+	HRESULT hr=InvokeViaPolicy(method_name, &result, "(O)", obpformatetc);
 	Py_DECREF(obpformatetc);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
@@ -365,7 +367,7 @@ STDMETHODIMP PyGDataObject::GetDataHere(
 		memcpy(pmedium, &pym->medium, sizeof(STGMEDIUM));
 		pym->DropOwnership();
 	}
-	hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	Py_DECREF(result);
 	return hr;
 }
@@ -373,10 +375,11 @@ STDMETHODIMP PyGDataObject::GetDataHere(
 STDMETHODIMP PyGDataObject::QueryGetData(
 		/* [unique][in] */ FORMATETC * pformatetc)
 {
+	static const char *method_name = "QueryGetData";
 	PY_GATEWAY_METHOD;
 	PyObject *obpformatetc = PyObject_FromFORMATETC(pformatetc);
-	if (obpformatetc==NULL) return PyCom_HandlePythonFailureToCOM();
-	HRESULT hr=InvokeViaPolicy("QueryGetData", NULL, "(O)", obpformatetc);
+	if (obpformatetc==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
+	HRESULT hr=InvokeViaPolicy(method_name, NULL, "(O)", obpformatetc);
 	Py_DECREF(obpformatetc);
 	return hr;
 }
@@ -385,11 +388,12 @@ STDMETHODIMP PyGDataObject::GetCanonicalFormatEtc(
 		/* [unique][in] */ FORMATETC * pformatectIn,
 		/* [out] */ FORMATETC * pformatetcOut)
 {
+	static const char *method_name = "GetCanonicalFormatEtc";
 	PY_GATEWAY_METHOD;
 	PyObject *obpformatectIn = PyObject_FromFORMATETC(pformatectIn);
-	if (obpformatectIn==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (obpformatectIn==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("GetCanonicalFormatEtc", &result, "(O)", obpformatectIn);
+	HRESULT hr=InvokeViaPolicy(method_name, &result, "(O)", obpformatectIn);
 	Py_DECREF(obpformatectIn);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
@@ -403,14 +407,15 @@ STDMETHODIMP PyGDataObject::SetData(
 		/* [unique][in] */ STGMEDIUM * pmedium,
 		/* [in] */ BOOL fRelease)
 {
+	static const char *method_name = "SetData";
 	PY_GATEWAY_METHOD;
 	PyObject *obpformatetc = PyObject_FromFORMATETC(pformatetc);
-	if (obpformatetc==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (obpformatetc==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	PySTGMEDIUM *obmedium = PyObject_FromSTGMEDIUM(pmedium);
-	if (obmedium==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (obmedium==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
         // PySTGMEDIUM should be the exact same pointer as PyObject
         assert((void *)(PyObject *)obmedium==(void *)obmedium);
-	HRESULT hr=InvokeViaPolicy("SetData", NULL, "OOi", obpformatetc, (PyObject *)obmedium, fRelease);
+	HRESULT hr=InvokeViaPolicy(method_name, NULL, "OOi", obpformatetc, (PyObject *)obmedium, fRelease);
 	if (!fRelease)
 		obmedium->DropOwnership();
 	Py_DECREF(obpformatetc);
@@ -422,17 +427,18 @@ STDMETHODIMP PyGDataObject::EnumFormatEtc(
 		/* [in] */ DWORD dwDirection,
 		/* [out] */ IEnumFORMATETC ** ppenumFormatEtc)
 {
+	static const char *method_name = "EnumFormatEtc";
 	PY_GATEWAY_METHOD;
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("EnumFormatEtc", &result, "l", dwDirection);
+	HRESULT hr=InvokeViaPolicy(method_name, &result, "l", dwDirection);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	PyObject *obppenumFormatEtc;
-	if (!PyArg_Parse(result, "O" , &obppenumFormatEtc)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!PyArg_Parse(result, "O" , &obppenumFormatEtc)) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	BOOL bPythonIsHappy = TRUE;
 	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obppenumFormatEtc, IID_IEnumFORMATETC, (void **)ppenumFormatEtc, TRUE /* bNoneOK */))
 		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	Py_DECREF(result);
 	return hr;
 }
@@ -443,13 +449,14 @@ STDMETHODIMP PyGDataObject::DAdvise(
 		/* [unique][in] */ IAdviseSink * pAdvSink,
 		/* [out] */ DWORD * pdwConnection)
 {
+	static const char *method_name = "DAdvise";
 	PY_GATEWAY_METHOD;
 	PyObject *obpformatetc = PyObject_FromFORMATETC(pformatetc);
-	if (obpformatetc==NULL) return PyCom_HandlePythonFailureToCOM();
+	if (obpformatetc==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	PyObject *obpAdvSink;
 	obpAdvSink = PyCom_PyObjectFromIUnknown(pAdvSink, IID_IAdviseSink, TRUE);
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("DAdvise", &result, "OlO", obpformatetc, advf, obpAdvSink);
+	HRESULT hr=InvokeViaPolicy(method_name, &result, "OlO", obpformatetc, advf, obpAdvSink);
 	Py_DECREF(obpformatetc);
 	Py_XDECREF(obpAdvSink);
 	if (FAILED(hr)) return hr;
@@ -469,17 +476,18 @@ STDMETHODIMP PyGDataObject::DUnadvise(
 STDMETHODIMP PyGDataObject::EnumDAdvise(
 		/* [out] */ IEnumSTATDATA ** ppenumAdvise)
 {
+	static const char *method_name = "EnumDAdvise";
 	PY_GATEWAY_METHOD;
 	PyObject *result;
-	HRESULT hr=InvokeViaPolicy("EnumDAdvise", &result);
+	HRESULT hr=InvokeViaPolicy(method_name, &result);
 	if (FAILED(hr)) return hr;
 	// Process the Python results, and convert back to the real params
 	PyObject *obppenumAdvise;
-	if (!PyArg_Parse(result, "O" , &obppenumAdvise)) return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!PyArg_Parse(result, "O" , &obppenumAdvise)) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	BOOL bPythonIsHappy = TRUE;
 	if (bPythonIsHappy && !PyCom_InterfaceFromPyInstanceOrObject(obppenumAdvise, IID_IEnumSTATDATA, (void **)ppenumAdvise, TRUE /* bNoneOK */))
 		 bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
+	if (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 	Py_DECREF(result);
 	return hr;
 }
