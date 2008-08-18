@@ -12,7 +12,10 @@ def DumpLink(fname):
 	persistFile.Load(fname,STGM_READ)
 	shellLink.Resolve(0, shell.SLR_ANY_MATCH | shell.SLR_NO_UI)
 	fname, findData = shellLink.GetPath(0)
-	print "Filename", fname, ", UNC=", shellLink.GetPath(shell.SLGP_UNCPRIORITY)[0]
+	print "Filename:", fname, ", UNC=", shellLink.GetPath(shell.SLGP_UNCPRIORITY)[0]
+	print "Description:", shellLink.GetDescription()
+	print "Working Directory:", shellLink.GetWorkingDirectory()
+	print "Icon:", shellLink.GetIconLocation()
 
 def FavDumper(nothing, path, names):
 	# called by os.path.walk
