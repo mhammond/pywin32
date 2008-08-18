@@ -65,26 +65,27 @@ PyComTypeObject PyIServiceProvider::type("PyIServiceProvider",
 
 STDMETHODIMP PyGServiceProvider::QueryService(REFGUID guidService, REFIID riid, void **ppv)
 {
+    static const char *method_name = "QueryService";
     if (ppv==NULL) return E_POINTER;
     *ppv = NULL;
 	PY_GATEWAY_METHOD;
     PyObject *obGUID = PyWinObject_FromIID(guidService);
-    if (obGUID==NULL) PyCom_HandlePythonFailureToCOM();
+    if (obGUID==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 
     PyObject *obIID = PyWinObject_FromIID(riid);
     if (obIID==NULL) {
         Py_DECREF(obGUID);
-        PyCom_HandlePythonFailureToCOM();
+        return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
     }
 	PyObject *result;
-	HRESULT hr = InvokeViaPolicy("QueryService", &result, "OO", obGUID, obIID);
+	HRESULT hr = InvokeViaPolicy(method_name, &result, "OO", obGUID, obIID);
     Py_DECREF(obIID);
     Py_DECREF(obGUID);
     if (FAILED(hr)) return hr;
 
     PyCom_InterfaceFromPyInstanceOrObject(result, riid, ppv, TRUE);
     Py_XDECREF(result);
-	return PyCom_HandlePythonFailureToCOM();
+	return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 }
 
 #endif // NO_PYCOM_ISERVICEPROVIDER
