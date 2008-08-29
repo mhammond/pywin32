@@ -1,6 +1,6 @@
 Project
 -------
-adodbapi -- win32 inclusion version
+adodbapi
 
 A Python DB-API 2.0 module that makes it easy to use Microsoft ADO 
 for connecting with databases and other data sources.
@@ -15,9 +15,22 @@ Features:
 * Supports eGenix mxDateTime, Python 2.3 datetime module and Python time module.
 
 Prerequisites:
-* Python 2.3 or higher. 
-* (this version included within) Mark Hammond's win32all python for windows extensions. 
+* C Python 2.3 or higher
+ and pywin32 (Mark Hammond's python for windows extensions.)
+ Note: as of 2.1.1, adodbapi is included in pywin32 versions 211 and later. 
+or
+ Iron Python 2.0b4 or higher. 
 
+Whats new in version 2.2
+1. Runs on Iron Python 2.0b4 with a few restrictions. It will not handle Longs or BLOB correcly, 
+   and has some date/time problems (using the "time" module as opposed to "datetime").
+   Bug reports have been submitted to Iron Python, which, if fixed, will remove all restrictions.
+2. More agressive at making sure to retrieve Numeric and Currency colums as decimal.Decimal.
+3. Has a new conversion module. To make Numerics retrieve as strings, execute:
+       adodbapi.variantConversions[adodbapi.adNumeric] = adodbapi.cvtString
+4. Switch to new-style classes and eliminate string exceptions.
+5. Lots of cleanup in the code and the unit test.
+6. More agressive at determining .rowcount after an operation.
 
 Whats new in version 2.1.1?
 1. Bugfix so nextset() will work even if a rowset is empty [ Bob Kline ]
