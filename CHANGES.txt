@@ -16,6 +16,10 @@ Since build 212:
 
 Since build 211:
 ----------------
+* adodbapi updated to version 2.2. Supports Iron Python. Better
+  logic for .rowcount. New .cvtString convertion method. Multiple
+  result sets work correctly. Code cleanup and eliminate classic
+  classes and string exceptions. Fix CoInitialize bug.
 
 * Remove warning about VARDESCs in obscure circumstances when using
   COM objects.
