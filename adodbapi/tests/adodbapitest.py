@@ -24,12 +24,17 @@
 """
 
 import unittest
-import win32com.client
+
+try:
+    import win32com.client
+    win32 = True
+except ImportError:
+    win32 = False
 
 import adodbapi
 import adodbapitestconfig
 
-#adodbapi.verbose = True
+#adodbapi.adodbapi.verbose = True
 
 import types
 try:
@@ -407,14 +412,6 @@ class CommonDBTests(unittest.TestCase):
 
 class TestADOwithSQLServer(CommonDBTests):
     def setUp(self):
-        try:
-            conn=win32com.client.Dispatch("ADODB.Connection")
-        except:
-            self.fail('SetUpError: Is MDAC installed?')
-        try:
-            conn.Open(adodbapitestconfig.connStrSQLServer)
-        except:
-            self.fail('SetUpError: Can not connect to the testdatabase, all other tests will fail...\nAdo error:%s' % conn.Errors(0))
         self.conn=adodbapi.connect(adodbapitestconfig.connStrSQLServer)
         self.engine = 'MSSQL'
 
@@ -524,15 +521,7 @@ class TestADOwithSQLServer(CommonDBTests):
  
 class TestADOwithAccessDB(CommonDBTests):
     def setUp(self):
-        try:
-            adoConn=win32com.client.Dispatch("ADODB.Connection")
-        except:
-            self.fail('SetUpError: Is MDAC installed?')
-
-        try:
-            adoConn.Open(adodbapitestconfig.connStrAccess)
-        except:
-            self.fail('SetUpError: Can not connect to the testdatabase, all other tests will fail...\nAdo error:%s' % adoConn.Errors(0))
+        self.conn = adodbapi.connect(adodbapitestconfig.connStrAccess)
         self.engine = 'ACCESS'
 
     def tearDown(self):
@@ -545,28 +534,33 @@ class TestADOwithAccessDB(CommonDBTests):
         except:
             pass
         self.conn=None
- 
+            
     def getConnection(self):
-        return adodbapi.connect(adodbapitestconfig.connStrAccess)
+        return self.conn
 
     def testOkConnect(self):
         c=adodbapi.connect(adodbapitestconfig.connStrAccess)
         assert c != None
+        c.close()
         
 class TestADOwithMySql(CommonDBTests):
     def setUp(self):
-        try:
-            adoConn=win32com.client.Dispatch("ADODB.Connection")
-        except:
-            self.fail('SetUpError: Is MDAC installed?')
-        try:
-            adoConn.Open(adodbapitestconfig.connStrMySql)
-        except:
-            self.fail('SetUpError: Can not connect to the testdatabase, all other tests will fail...\nAdo error:%s' % adoConn.Errors(0))
+        self.conn = adodbapi.connect(adodbapitestconfig.connStrMySql)
         self.engine = 'MySQL'
 
+    def tearDown(self):
+        try:
+            self.conn.rollback()
+        except:
+            pass
+        try:
+            self.conn.close()
+        except:
+            pass
+        self.conn=None
+
     def getConnection(self):
-        return adodbapi.connect(adodbapitestconfig.connStrMySql)
+        return self.conn
 
     def testOkConnect(self):
         c=adodbapi.connect(adodbapitestconfig.connStrMySql)
@@ -648,16 +642,16 @@ class TestPythonTimeConverter(TimeConverterInterfaceTest):
         self.tc=adodbapi.pythonTimeConverter()
     
     def testCOMDate(self):
-        t=time.localtime(time.mktime((2002,6,28,18,15,01, 4,31+28+31+30+31+28,-1)))
+        mk = time.mktime((2002,6,28,18,15,01, 4,31+28+31+30+31+28,-1))
+        t=time.localtime(mk)
         # Fri, 28 Jun 2002 18:15:01 +0000
         cmd=self.tc.COMDate(t)
-        assert abs(cmd - 37435.7604282) < 1.0/24,"more than an hour wrong"
+        assert abs(cmd - 37435.7604282) < 1.0/24,"%f more than an hour wrong" % cmd
 
-    
     def testDateObjectFromCOMDate(self):
         cmd=self.tc.DateObjectFromCOMDate(37435.7604282)
-        t1=time.localtime(time.mktime((2002,6,28,18,14,01, 4,31+28+31+30+31+28,-1)))
-        t2=time.localtime(time.mktime((2002,6,28,18,16,01, 4,31+28+31+30+31+28,-1)))
+        t1=time.gmtime(time.mktime((2002,6,28,12,14,01, 4,31+28+31+30+31+28,-1)))
+        t2=time.gmtime(time.mktime((2002,6,28,12,16,01, 4,31+28+31+30+31+28,-1)))
         assert t1<cmd<t2,cmd
     
     def testDate(self):
@@ -686,8 +680,7 @@ class TestPythonDateTimeConverter(TimeConverterInterfaceTest):
         # Fri, 28 Jun 2002 18:15:01 +0000
         cmd=self.tc.COMDate(t)
         assert abs(cmd - 37435.7604282) < 1.0/24,"more than an hour wrong"
-
-    
+        
     def testDateObjectFromCOMDate(self):
         cmd=self.tc.DateObjectFromCOMDate(37435.7604282)
         t1=datetime.datetime(2002,6,28,18,14,01)
