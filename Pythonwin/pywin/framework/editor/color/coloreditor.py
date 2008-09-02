@@ -18,14 +18,10 @@ MARKER_BOOKMARK = 0
 MARKER_BREAKPOINT = 1
 MARKER_CURRENT = 2
 
-# XXX - copied from debugger\dbgcon.py
-DBGSTATE_NOT_DEBUGGING = 0
-DBGSTATE_RUNNING = 1
-DBGSTATE_BREAK = 2
-
+from pywin.debugger import dbgcon
 from pywin.scintilla.document import CScintillaDocument
 from pywin.framework.editor.document import EditorDocumentBase
-from pywin.scintilla.scintillacon import * # For the marker definitions
+from pywin.scintilla import scintillacon	# For the marker definitions
 import pywin.scintilla.view
 
 class SyntEditDocument(EditorDocumentBase):
@@ -61,41 +57,41 @@ class SyntEditView(SyntEditViewParent):
 
 		# Define the markers
 #		self.SCIMarkerDeleteAll()
-		self.SCIMarkerDefineAll(MARKER_BOOKMARK, SC_MARK_ROUNDRECT, win32api.RGB(0x0, 0x0, 0x0), win32api.RGB(0, 0xff, 0xff))
+		self.SCIMarkerDefineAll(MARKER_BOOKMARK, scintillacon.SC_MARK_ROUNDRECT, win32api.RGB(0x0, 0x0, 0x0), win32api.RGB(0, 0xff, 0xff))
 
-		self.SCIMarkerDefine(MARKER_CURRENT, SC_MARK_ARROW)
+		self.SCIMarkerDefine(MARKER_CURRENT, scintillacon.SC_MARK_ARROW)
 		self.SCIMarkerSetBack(MARKER_CURRENT, win32api.RGB(0xff, 0xff, 0x00))
 
 		# Define the folding markers
 		if 1: #traditional markers
-			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDEROPEN, SC_MARK_MINUS, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
-			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDER, SC_MARK_PLUS, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
-			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDERSUB, SC_MARK_EMPTY, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
-			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDERTAIL, SC_MARK_EMPTY, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
-			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDEREND, SC_MARK_EMPTY, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
-			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDEROPENMID, SC_MARK_EMPTY, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
-			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_EMPTY, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(scintillacon.SC_MARKNUM_FOLDEROPEN, scintillacon.SC_MARK_MINUS, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(scintillacon.SC_MARKNUM_FOLDER, scintillacon.SC_MARK_PLUS, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(scintillacon.SC_MARKNUM_FOLDERSUB, scintillacon.SC_MARK_EMPTY, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(scintillacon.SC_MARKNUM_FOLDERTAIL, scintillacon.SC_MARK_EMPTY, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(scintillacon.SC_MARKNUM_FOLDEREND, scintillacon.SC_MARK_EMPTY, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(scintillacon.SC_MARKNUM_FOLDEROPENMID, scintillacon.SC_MARK_EMPTY, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(scintillacon.SC_MARKNUM_FOLDERMIDTAIL, scintillacon.SC_MARK_EMPTY, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
 		else: # curved markers
-			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDEROPEN, SC_MARK_CIRCLEMINUS, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
-			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDER, SC_MARK_CIRCLEPLUS, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
-			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
-			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDERTAIL, SC_MARK_LCORNERCURVE, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
-			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDEREND, SC_MARK_CIRCLEPLUSCONNECTED, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
-			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDEROPENMID, SC_MARK_CIRCLEMINUSCONNECTED, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
-			self.SCIMarkerDefineAll(SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNERCURVE, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(scintillacon.SC_MARKNUM_FOLDEROPEN, scintillacon.SC_MARK_CIRCLEMINUS, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(scintillacon.SC_MARKNUM_FOLDER, scintillacon.SC_MARK_CIRCLEPLUS, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(scintillacon.SC_MARKNUM_FOLDERSUB, scintillacon.SC_MARK_VLINE, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(scintillacon.SC_MARKNUM_FOLDERTAIL, scintillacon.SC_MARK_LCORNERCURVE, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(scintillacon.SC_MARKNUM_FOLDEREND, scintillacon.SC_MARK_CIRCLEPLUSCONNECTED, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(scintillacon.SC_MARKNUM_FOLDEROPENMID, scintillacon.SC_MARK_CIRCLEMINUSCONNECTED, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
+			self.SCIMarkerDefineAll(scintillacon.SC_MARKNUM_FOLDERMIDTAIL, scintillacon.SC_MARK_TCORNERCURVE, win32api.RGB(0xff, 0xff, 0xff), win32api.RGB(0, 0, 0))
 		
-		self.SCIMarkerDefine(MARKER_BREAKPOINT, SC_MARK_CIRCLE)
+		self.SCIMarkerDefine(MARKER_BREAKPOINT, scintillacon.SC_MARK_CIRCLE)
 		# Marker background depends on debugger state
 		self.SCIMarkerSetFore(MARKER_BREAKPOINT, win32api.RGB(0x0, 0, 0))
 		# Get the current debugger state.
 		try:
 			import pywin.debugger
 			if pywin.debugger.currentDebugger is None:
-				state = DBGSTATE_NOT_DEBUGGING
+				state = dbgcon.DBGSTATE_NOT_DEBUGGING
 			else:
 				state = pywin.debugger.currentDebugger.debuggerState
 		except ImportError:
-			state = DBGSTATE_NOT_DEBUGGING
+			state = dbgcon.DBGSTATE_NOT_DEBUGGING
 		self.OnDebuggerStateChange(state)
 
 	def _GetSubConfigNames(self):
@@ -114,9 +110,9 @@ class SyntEditView(SyntEditViewParent):
 		self.SCISetIndentationGuides( GetEditorOption("View Indentation Guides", 0) )
 
 		if GetEditorOption("Right Edge Enabled", 0):
-			mode = EDGE_BACKGROUND
+			mode = scintillacon.EDGE_BACKGROUND
 		else:
-			mode = EDGE_NONE
+			mode = scintillacon.EDGE_NONE
 		self.SCISetEdgeMode(mode)
 		self.SCISetEdgeColumn( GetEditorOption("Right Edge Column", 75) )
 		self.SCISetEdgeColor( GetEditorOption("Right Edge Color", win32api.RGB(0xef, 0xef, 0xef)))
@@ -129,7 +125,7 @@ class SyntEditView(SyntEditViewParent):
 		self.SCISetMarginWidthN(0, width)
 		self.bFolding = GetEditorOption("Enable Folding", 1)
 		fold_flags = 0
-		self.SendScintilla(SCI_SETMODEVENTMASK, SC_MOD_CHANGEFOLD);
+		self.SendScintilla(scintillacon.SCI_SETMODEVENTMASK, scintillacon.SC_MOD_CHANGEFOLD);
 		if self.bFolding:
 			if GetEditorOption("Fold Lines", 1):
 				fold_flags = 16
@@ -138,7 +134,7 @@ class SyntEditView(SyntEditViewParent):
 		self.SCISetFoldFlags(fold_flags)
 
 		tt_color = GetEditorOption("Tab Timmy Color", win32api.RGB(0xff, 0, 0))
-		self.SendScintilla(SCI_INDICSETFORE, 1, tt_color)
+		self.SendScintilla(scintillacon.SCI_INDICSETFORE, 1, tt_color)
 
 		tt_use = GetEditorOption("Use Tab Timmy", 1)
 		if tt_use:
@@ -182,7 +178,7 @@ class SyntEditView(SyntEditViewParent):
 		self.SCISetTabWidth(tabSize)
 
 	def OnDebuggerStateChange(self, state):
-		if state == DBGSTATE_NOT_DEBUGGING:
+		if state == dbgcon.DBGSTATE_NOT_DEBUGGING:
 			# Indicate breakpoints arent really usable.
 			# Not quite white - useful when no marker margin, so set as background color.
 			self.SCIMarkerSetBack(MARKER_BREAKPOINT, win32api.RGB(0xef, 0xef, 0xef))
@@ -217,7 +213,7 @@ class SyntEditView(SyntEditViewParent):
 		if notify.margin==2: # Our fold margin
 			line_click = self.LineFromChar(notify.position)
 #			max_line = self.GetLineCount()
-			if self.SCIGetFoldLevel(line_click) & SC_FOLDLEVELHEADERFLAG:
+			if self.SCIGetFoldLevel(line_click) & scintillacon.SC_FOLDLEVELHEADERFLAG:
 				# If a fold point.
 				self.SCIToggleFold(line_click)
 		return 1
@@ -282,7 +278,7 @@ class SyntEditView(SyntEditViewParent):
 		else:
 			enable = 0
 			lineno = self.LineFromChar(self.GetSel()[0])
-			foldable = self.SCIGetFoldLevel(lineno) & SC_FOLDLEVELHEADERFLAG
+			foldable = self.SCIGetFoldLevel(lineno) & scintillacon.SC_FOLDLEVELHEADERFLAG
 			is_expanded = self.SCIGetFoldExpanded(lineno)
 			if id == win32ui.ID_VIEW_FOLD_EXPAND:
 				if foldable and not is_expanded:
@@ -356,7 +352,7 @@ class SyntEditView(SyntEditViewParent):
 			maxLine = self.GetLineCount()
 			# Find the first line, and check out its state.
 			for lineSeek in xrange(maxLine):
-				if self.SCIGetFoldLevel(lineSeek) & SC_FOLDLEVELHEADERFLAG:
+				if self.SCIGetFoldLevel(lineSeek) & scintillacon.SC_FOLDLEVELHEADERFLAG:
 					expanding = not self.SCIGetFoldExpanded(lineSeek)
 					break
 			else:
@@ -364,8 +360,8 @@ class SyntEditView(SyntEditViewParent):
 				return
 			for lineSeek in xrange(lineSeek, maxLine):
 				level = self.SCIGetFoldLevel(lineSeek)
-				level_no = level & SC_FOLDLEVELNUMBERMASK - SC_FOLDLEVELBASE
-				is_header = level & SC_FOLDLEVELHEADERFLAG
+				level_no = level & scintillacon.SC_FOLDLEVELNUMBERMASK - scintillacon.SC_FOLDLEVELBASE
+				is_header = level & scintillacon.SC_FOLDLEVELHEADERFLAG
 	#			print lineSeek, level_no, is_header
 				if level_no == 0 and is_header:
 					if (expanding and not self.SCIGetFoldExpanded(lineSeek)) or \
@@ -381,13 +377,13 @@ class SyntEditView(SyntEditViewParent):
 		## I think this is needed since Scintilla may not have
 		## already formatted parts of file outside visible window.
 		self.Colorize()
-		levels=[SC_FOLDLEVELBASE]
+		levels=[scintillacon.SC_FOLDLEVELBASE]
 		## Scintilla's level number is based on amount of whitespace indentation
 		for lineno in xrange(self.GetLineCount()):
 			level = self.SCIGetFoldLevel(lineno)
-			if not level & SC_FOLDLEVELHEADERFLAG:
+			if not level & scintillacon.SC_FOLDLEVELHEADERFLAG:
 				continue
-			curr_level = level & SC_FOLDLEVELNUMBERMASK
+			curr_level = level & scintillacon.SC_FOLDLEVELNUMBERMASK
 			if curr_level > levels[-1]:
 				levels.append(curr_level)
 			try:
@@ -407,13 +403,13 @@ class SyntEditView(SyntEditViewParent):
 		## I think this is needed since Scintilla may not have
 		## already formatted parts of file outside visible window.
 		self.Colorize()
-		levels=[SC_FOLDLEVELBASE]
+		levels=[scintillacon.SC_FOLDLEVELBASE]
 		## Scintilla's level number is based on amount of whitespace indentation
 		for lineno in xrange(self.GetLineCount()):
 			level = self.SCIGetFoldLevel(lineno)
-			if not level & SC_FOLDLEVELHEADERFLAG:
+			if not level & scintillacon.SC_FOLDLEVELHEADERFLAG:
 				continue
-			curr_level = level & SC_FOLDLEVELNUMBERMASK
+			curr_level = level & scintillacon.SC_FOLDLEVELNUMBERMASK
 			if curr_level > levels[-1]:
 				levels.append(curr_level)
 			try:
@@ -431,7 +427,7 @@ class SyntEditView(SyntEditViewParent):
 			return 1
 		win32ui.DoWaitCursor(1)
 		lineno = self.LineFromChar(self.GetSel()[0])
-		if self.SCIGetFoldLevel(lineno) & SC_FOLDLEVELHEADERFLAG and \
+		if self.SCIGetFoldLevel(lineno) & scintillacon.SC_FOLDLEVELHEADERFLAG and \
 				not self.SCIGetFoldExpanded(lineno):
 			self.SCIToggleFold(lineno)
 		win32ui.DoWaitCursor(-1)
@@ -441,7 +437,7 @@ class SyntEditView(SyntEditViewParent):
 			return 1
 		win32ui.DoWaitCursor(1)
 		for lineno in xrange(0, self.GetLineCount()):
-			if self.SCIGetFoldLevel(lineno) & SC_FOLDLEVELHEADERFLAG and \
+			if self.SCIGetFoldLevel(lineno) & scintillacon.SC_FOLDLEVELHEADERFLAG and \
 					not self.SCIGetFoldExpanded(lineno):
 				self.SCIToggleFold(lineno)
 		win32ui.DoWaitCursor(-1)
@@ -451,7 +447,7 @@ class SyntEditView(SyntEditViewParent):
 			return 1
 		win32ui.DoWaitCursor(1)
 		lineno = self.LineFromChar(self.GetSel()[0])
-		if self.SCIGetFoldLevel(lineno) & SC_FOLDLEVELHEADERFLAG and \
+		if self.SCIGetFoldLevel(lineno) & scintillacon.SC_FOLDLEVELHEADERFLAG and \
 				self.SCIGetFoldExpanded(lineno):
 			self.SCIToggleFold(lineno)
 		win32ui.DoWaitCursor(-1)
@@ -462,7 +458,7 @@ class SyntEditView(SyntEditViewParent):
 		win32ui.DoWaitCursor(1)
 		self.Colorize()
 		for lineno in xrange(0, self.GetLineCount()):
-			if self.SCIGetFoldLevel(lineno) & SC_FOLDLEVELHEADERFLAG and \
+			if self.SCIGetFoldLevel(lineno) & scintillacon.SC_FOLDLEVELHEADERFLAG and \
 					self.SCIGetFoldExpanded(lineno):
 				self.SCIToggleFold(lineno)
 		win32ui.DoWaitCursor(-1)
