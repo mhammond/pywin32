@@ -12,7 +12,7 @@ import array
 import struct
 import string
 import os
-from scintillacon import *
+import scintillacon
 
 # Load Scintilla.dll to get access to the control.
 # We expect to find this in the same directory as win32ui.pyd
@@ -31,6 +31,7 @@ if dllid is None:
 	# Still not there - lets see if Windows can find it by searching?
 	dllid = win32api.LoadLibrary("Scintilla.DLL")
 
+## These are from Richedit.h - need to add to win32con or commctrl
 EM_GETTEXTRANGE = 1099
 EM_EXLINEFROMCHAR = 1078
 EM_FINDTEXTEX = 1103
@@ -57,7 +58,7 @@ class ScintillaControlInterface:
 									 margin = margin)
 
 	def SCIAddText(self, text):
-		self.SendMessage(SCI_ADDTEXT, buffer(text))
+		self.SendMessage(scintillacon.SCI_ADDTEXT, buffer(text))
 	def SCIAddStyledText(self, text, style = None):
 		# If style is None, text is assumed to be a "native" Scintilla buffer.
 		# If style is specified, text is a normal string, and the style is
@@ -65,137 +66,137 @@ class ScintillaControlInterface:
 		if style is not None:
 			text = map(lambda char, style=style: char+chr(style), text)
 			text = ''.join(text)
-		self.SendMessage(SCI_ADDSTYLEDTEXT, buffer(text))
+		self.SendMessage(scintillacon.SCI_ADDSTYLEDTEXT, buffer(text))
 	def SCIInsertText(self, text, pos=-1):
 		sma = array.array('c', text+"\0")
 		(a,l) = sma.buffer_info()
-		self.SendScintilla(SCI_INSERTTEXT, pos, a)
+		self.SendScintilla(scintillacon.SCI_INSERTTEXT, pos, a)
 	def SCISetSavePoint(self):
-		self.SendScintilla(SCI_SETSAVEPOINT)
+		self.SendScintilla(scintillacon.SCI_SETSAVEPOINT)
 	def SCISetUndoCollection(self, collectFlag):
-		self.SendScintilla(SCI_SETUNDOCOLLECTION, collectFlag)
+		self.SendScintilla(scintillacon.SCI_SETUNDOCOLLECTION, collectFlag)
 	def SCIBeginUndoAction(self):
-		self.SendScintilla(SCI_BEGINUNDOACTION)
+		self.SendScintilla(scintillacon.SCI_BEGINUNDOACTION)
 	def SCIEndUndoAction(self):
-		self.SendScintilla(SCI_ENDUNDOACTION)
+		self.SendScintilla(scintillacon.SCI_ENDUNDOACTION)
 
 	def SCIGetCurrentPos(self):
-		return self.SendScintilla(SCI_GETCURRENTPOS)
+		return self.SendScintilla(scintillacon.SCI_GETCURRENTPOS)
 	def SCIGetCharAt(self, pos):
 		# Must ensure char is unsigned!
-		return chr(self.SendScintilla(SCI_GETCHARAT, pos) & 0xFF)
+		return chr(self.SendScintilla(scintillacon.SCI_GETCHARAT, pos) & 0xFF)
 	def SCIGotoLine(self, line):
-		self.SendScintilla(SCI_GOTOLINE, line)
+		self.SendScintilla(scintillacon.SCI_GOTOLINE, line)
 	def SCIBraceMatch(self, pos, maxReStyle):
-		return self.SendScintilla(SCI_BRACEMATCH, pos, maxReStyle)
+		return self.SendScintilla(scintillacon.SCI_BRACEMATCH, pos, maxReStyle)
 	def SCIBraceHighlight(self, pos, posOpposite):
-		return self.SendScintilla(SCI_BRACEHIGHLIGHT, pos, posOpposite)
+		return self.SendScintilla(scintillacon.SCI_BRACEHIGHLIGHT, pos, posOpposite)
 	def SCIBraceBadHighlight(self, pos):
-		return self.SendScintilla(SCI_BRACEBADLIGHT, pos)
+		return self.SendScintilla(scintillacon.SCI_BRACEBADLIGHT, pos)
 
 	####################################
 	# Styling
 #	def SCIColourise(self, start=0, end=-1):
 #   NOTE - dependent on of we use builtin lexer, so handled below.		
 	def SCIGetEndStyled(self):
-		return self.SendScintilla(SCI_GETENDSTYLED)
+		return self.SendScintilla(scintillacon.SCI_GETENDSTYLED)
 	def SCIStyleSetFore(self, num, v):
-		return self.SendScintilla(SCI_STYLESETFORE, num, v)
+		return self.SendScintilla(scintillacon.SCI_STYLESETFORE, num, v)
 	def SCIStyleSetBack(self, num, v):
-		return self.SendScintilla(SCI_STYLESETBACK, num, v)
+		return self.SendScintilla(scintillacon.SCI_STYLESETBACK, num, v)
 	def SCIStyleSetEOLFilled(self, num, v):
-		return self.SendScintilla(SCI_STYLESETEOLFILLED, num, v)
+		return self.SendScintilla(scintillacon.SCI_STYLESETEOLFILLED, num, v)
 	def SCIStyleSetFont(self, num, name, characterset=0):
 		buff = array.array('c', name + "\0")
 		addressBuffer = buff.buffer_info()[0]
-		self.SendScintilla(SCI_STYLESETFONT, num, addressBuffer)
-		self.SendScintilla(SCI_STYLESETCHARACTERSET, num, characterset)
+		self.SendScintilla(scintillacon.SCI_STYLESETFONT, num, addressBuffer)
+		self.SendScintilla(scintillacon.SCI_STYLESETCHARACTERSET, num, characterset)
 	def SCIStyleSetBold(self, num, bBold):
-		self.SendScintilla(SCI_STYLESETBOLD, num, bBold)
+		self.SendScintilla(scintillacon.SCI_STYLESETBOLD, num, bBold)
 	def SCIStyleSetItalic(self, num, bItalic):
-		self.SendScintilla(SCI_STYLESETITALIC, num, bItalic)
+		self.SendScintilla(scintillacon.SCI_STYLESETITALIC, num, bItalic)
 	def SCIStyleSetSize(self, num, size):
-		self.SendScintilla(SCI_STYLESETSIZE, num, size)
+		self.SendScintilla(scintillacon.SCI_STYLESETSIZE, num, size)
 	def SCIGetViewWS(self):
-		return self.SendScintilla(SCI_GETVIEWWS)
+		return self.SendScintilla(scintillacon.SCI_GETVIEWWS)
 	def SCISetViewWS(self, val):
-		self.SendScintilla(SCI_SETVIEWWS, not (val==0))
+		self.SendScintilla(scintillacon.SCI_SETVIEWWS, not (val==0))
 		self.InvalidateRect()
 	def SCISetIndentationGuides(self, val):
-		self.SendScintilla(SCI_SETINDENTATIONGUIDES, val)
+		self.SendScintilla(scintillacon.SCI_SETINDENTATIONGUIDES, val)
 	def SCIGetIndentationGuides(self):
-		return self.SendScintilla(SCI_GETINDENTATIONGUIDES)
+		return self.SendScintilla(scintillacon.SCI_GETINDENTATIONGUIDES)
 	def SCISetIndent(self, val):
-		self.SendScintilla(SCI_SETINDENT, val)
+		self.SendScintilla(scintillacon.SCI_SETINDENT, val)
 	def SCIGetIndent(self, val):
-		return self.SendScintilla(SCI_GETINDENT)
+		return self.SendScintilla(scintillacon.SCI_GETINDENT)
 
 	def SCIGetViewEOL(self):
-		return self.SendScintilla(SCI_GETVIEWEOL)
+		return self.SendScintilla(scintillacon.SCI_GETVIEWEOL)
 	def SCISetViewEOL(self, val):
-		self.SendScintilla(SCI_SETVIEWEOL, not(val==0))
+		self.SendScintilla(scintillacon.SCI_SETVIEWEOL, not(val==0))
 		self.InvalidateRect()
 	def SCISetTabWidth(self, width):
-		self.SendScintilla(SCI_SETTABWIDTH, width, 0)
+		self.SendScintilla(scintillacon.SCI_SETTABWIDTH, width, 0)
 	def SCIStartStyling(self, pos, mask):
-		self.SendScintilla(SCI_STARTSTYLING, pos, mask)
+		self.SendScintilla(scintillacon.SCI_STARTSTYLING, pos, mask)
 	def SCISetStyling(self, pos, attr):
-		self.SendScintilla(SCI_SETSTYLING, pos, attr)
+		self.SendScintilla(scintillacon.SCI_SETSTYLING, pos, attr)
 	def SCISetStylingEx(self, ray): # ray is an array.
 		address, length = ray.buffer_info()
-		self.SendScintilla(SCI_SETSTYLINGEX, length, address)
+		self.SendScintilla(scintillacon.SCI_SETSTYLINGEX, length, address)
 	def SCIGetStyleAt(self, pos):
-		return self.SendScintilla(SCI_GETSTYLEAT, pos)
+		return self.SendScintilla(scintillacon.SCI_GETSTYLEAT, pos)
 	def SCISetMarginWidth(self, width):
-		self.SendScintilla(SCI_SETMARGINWIDTHN, 1, width)
+		self.SendScintilla(scintillacon.SCI_SETMARGINWIDTHN, 1, width)
 	def SCISetMarginWidthN(self, n, width):
-		self.SendScintilla(SCI_SETMARGINWIDTHN, n, width)
+		self.SendScintilla(scintillacon.SCI_SETMARGINWIDTHN, n, width)
 	def SCISetFoldFlags(self, flags):
-		self.SendScintilla(SCI_SETFOLDFLAGS, flags)
+		self.SendScintilla(scintillacon.SCI_SETFOLDFLAGS, flags)
 	# Markers
 	def SCIMarkerDefineAll(self, markerNum, markerType, fore, back):
 		self.SCIMarkerDefine(markerNum, markerType)
 		self.SCIMarkerSetFore(markerNum, fore)
 		self.SCIMarkerSetBack(markerNum, back)
 	def SCIMarkerDefine(self, markerNum, markerType):
-		self.SendScintilla(SCI_MARKERDEFINE, markerNum, markerType)
+		self.SendScintilla(scintillacon.SCI_MARKERDEFINE, markerNum, markerType)
 	def SCIMarkerSetFore(self, markerNum, fore):
-		self.SendScintilla(SCI_MARKERSETFORE, markerNum, fore)
+		self.SendScintilla(scintillacon.SCI_MARKERSETFORE, markerNum, fore)
 	def SCIMarkerSetBack(self, markerNum, back):
-		self.SendScintilla(SCI_MARKERSETBACK, markerNum, back)
+		self.SendScintilla(scintillacon.SCI_MARKERSETBACK, markerNum, back)
 	def SCIMarkerAdd(self, lineNo, markerNum):
-		self.SendScintilla(SCI_MARKERADD, lineNo, markerNum)
+		self.SendScintilla(scintillacon.SCI_MARKERADD, lineNo, markerNum)
 	def SCIMarkerDelete(self, lineNo, markerNum):
-		self.SendScintilla(SCI_MARKERDELETE, lineNo, markerNum)
+		self.SendScintilla(scintillacon.SCI_MARKERDELETE, lineNo, markerNum)
 	def SCIMarkerDeleteAll(self, markerNum=-1):
-		self.SendScintilla(SCI_MARKERDELETEALL, markerNum)
+		self.SendScintilla(scintillacon.SCI_MARKERDELETEALL, markerNum)
 	def SCIMarkerGet(self, lineNo):
-		return self.SendScintilla(SCI_MARKERGET, lineNo)
+		return self.SendScintilla(scintillacon.SCI_MARKERGET, lineNo)
 	def SCIMarkerNext(self, lineNo, markerNum):
-		return self.SendScintilla(SCI_MARKERNEXT, lineNo, markerNum)
+		return self.SendScintilla(scintillacon.SCI_MARKERNEXT, lineNo, markerNum)
 	def SCICancel(self):
-		self.SendScintilla(SCI_CANCEL)
+		self.SendScintilla(scintillacon.SCI_CANCEL)
 	# AutoComplete
 	def SCIAutoCShow(self, text):
 		if type(text) in [type([]), type(())]:
 			text = ' '.join(text)
 		buff = array.array('c', text + "\0")
 		addressBuffer = buff.buffer_info()[0]
-		return self.SendScintilla(SCI_AUTOCSHOW, 0, addressBuffer)
+		return self.SendScintilla(scintillacon.SCI_AUTOCSHOW, 0, addressBuffer)
 	def SCIAutoCCancel(self):
-		self.SendScintilla(SCI_AUTOCCANCEL)
+		self.SendScintilla(scintillacon.SCI_AUTOCCANCEL)
 	def SCIAutoCActive(self):
-		return self.SendScintilla(SCI_AUTOCACTIVE)
+		return self.SendScintilla(scintillacon.SCI_AUTOCACTIVE)
 	def SCIAutoCComplete(self):
-		return self.SendScintilla(SCI_AUTOCCOMPLETE)
+		return self.SendScintilla(scintillacon.SCI_AUTOCCOMPLETE)
 	def SCIAutoCStops(self, stops):
 		buff = array.array('c', stops + "\0")
 		addressBuffer = buff.buffer_info()[0]
-		self.SendScintilla(SCI_AUTOCSTOPS, 0, addressBuffer)
+		self.SendScintilla(scintillacon.SCI_AUTOCSTOPS, 0, addressBuffer)
 	def SCIAutoCSetAutoHide(self, hide):
-		self.SendScintilla(SCI_AUTOCSETAUTOHIDE, hide)
+		self.SendScintilla(scintillacon.SCI_AUTOCSETAUTOHIDE, hide)
 	def SCIAutoCSetFillups(self, fillups):
-		self.SendScintilla(SCI_AUTOCSETFILLUPS, fillups)
+		self.SendScintilla(scintillacon.SCI_AUTOCSETFILLUPS, fillups)
 	# Call tips
 	def SCICallTipShow(self, text, pos=-1):
 		if pos==-1: pos = self.GetSel()[0]
@@ -206,59 +207,59 @@ class ScintillaControlInterface:
 			text = text.encode("mbcs")
 		buff = array.array('c', text + "\0")
 		addressBuffer = buff.buffer_info()[0]
-		self.SendScintilla(SCI_CALLTIPSHOW, pos, addressBuffer)
+		self.SendScintilla(scintillacon.SCI_CALLTIPSHOW, pos, addressBuffer)
 	def SCICallTipCancel(self):
-		self.SendScintilla(SCI_CALLTIPCANCEL)
+		self.SendScintilla(scintillacon.SCI_CALLTIPCANCEL)
 	def SCICallTipActive(self):
-		return self.SendScintilla(SCI_CALLTIPACTIVE)
+		return self.SendScintilla(scintillacon.SCI_CALLTIPACTIVE)
 	def SCICallTipPosStart(self):
-		return self.SendScintilla(SCI_CALLTIPPOSSTART)
+		return self.SendScintilla(scintillacon.SCI_CALLTIPPOSSTART)
 	def SCINewline(self):
-		self.SendScintilla(SCI_NEWLINE)
+		self.SendScintilla(scintillacon.SCI_NEWLINE)
 	# Lexer etc
 	def SCISetKeywords(self, keywords, kw_list_no = 0):
 		ar = array.array('c', keywords+"\0")
 		(a,l) = ar.buffer_info()
-		self.SendScintilla(SCI_SETKEYWORDS, kw_list_no, a)
+		self.SendScintilla(scintillacon.SCI_SETKEYWORDS, kw_list_no, a)
 	def SCISetProperty(self, name, value):
 		name_buff = array.array('c', name + "\0")
 		val_buff = array.array("c", str(value) + "\0")
 		address_name_buffer = name_buff.buffer_info()[0]
 		address_val_buffer = val_buff.buffer_info()[0]
-		self.SendScintilla(SCI_SETPROPERTY, address_name_buffer, address_val_buffer)
+		self.SendScintilla(scintillacon.SCI_SETPROPERTY, address_name_buffer, address_val_buffer)
 	def SCISetStyleBits(self, nbits):
-		self.SendScintilla(SCI_SETSTYLEBITS, nbits)
+		self.SendScintilla(scintillacon.SCI_SETSTYLEBITS, nbits)
 	# Folding
 	def SCIGetFoldLevel(self, lineno):
-		return self.SendScintilla(SCI_GETFOLDLEVEL, lineno)
+		return self.SendScintilla(scintillacon.SCI_GETFOLDLEVEL, lineno)
 	def SCIToggleFold(self, lineno):
-		return self.SendScintilla(SCI_TOGGLEFOLD, lineno)
+		return self.SendScintilla(scintillacon.SCI_TOGGLEFOLD, lineno)
 	def SCIEnsureVisible(self, lineno):
-		self.SendScintilla(SCI_ENSUREVISIBLE, lineno)
+		self.SendScintilla(scintillacon.SCI_ENSUREVISIBLE, lineno)
 	def SCIGetFoldExpanded(self, lineno):
-		return self.SendScintilla(SCI_GETFOLDEXPANDED, lineno)
+		return self.SendScintilla(scintillacon.SCI_GETFOLDEXPANDED, lineno)
 	# right edge
 	def SCISetEdgeColumn(self, edge):
-		self.SendScintilla(SCI_SETEDGECOLUMN, edge)
+		self.SendScintilla(scintillacon.SCI_SETEDGECOLUMN, edge)
 	def SCIGetEdgeColumn(self):
-		return self.SendScintilla(SCI_GETEDGECOLUMN)
+		return self.SendScintilla(scintillacon.SCI_GETEDGECOLUMN)
 	def SCISetEdgeMode(self, mode):
-		self.SendScintilla(SCI_SETEDGEMODE, mode)
+		self.SendScintilla(scintillacon.SCI_SETEDGEMODE, mode)
 	def SCIGetEdgeMode(self):
-		return self.SendScintilla(SCI_GETEDGEMODE)
+		return self.SendScintilla(scintillacon.SCI_GETEDGEMODE)
 	def SCISetEdgeColor(self, color):
-		self.SendScintilla(SCI_SETEDGECOLOUR, color)
+		self.SendScintilla(scintillacon.SCI_SETEDGECOLOUR, color)
 	def SCIGetEdgeColor(self):
-		return self.SendScintilla(SCI_GETEDGECOLOR)
+		return self.SendScintilla(scintillacon.SCI_GETEDGECOLOR)
 	# Multi-doc
 	def SCIGetDocPointer(self):
-		return self.SendScintilla(SCI_GETDOCPOINTER)
+		return self.SendScintilla(scintillacon.SCI_GETDOCPOINTER)
 	def SCISetDocPointer(self, p):
-		return self.SendScintilla(SCI_SETDOCPOINTER, 0, p)
+		return self.SendScintilla(scintillacon.SCI_SETDOCPOINTER, 0, p)
 	def SCISetWrapMode(self, mode):
-		return self.SendScintilla(SCI_SETWRAPMODE, mode)
+		return self.SendScintilla(scintillacon.SCI_SETWRAPMODE, mode)
 	def SCIGetWrapMode(self):
-		return self.SendScintilla(SCI_GETWRAPMODE)
+		return self.SendScintilla(scintillacon.SCI_GETWRAPMODE)
 
 class CScintillaEditInterface(ScintillaControlInterface):
 	def close(self):
@@ -288,8 +289,8 @@ class CScintillaEditInterface(ScintillaControlInterface):
 		return rc, (ftUnpacked[3], ftUnpacked[4])
 
 	def GetSel(self):
-		currentPos = self.SendScintilla(SCI_GETCURRENTPOS)
-		anchorPos = self.SendScintilla(SCI_GETANCHOR)
+		currentPos = self.SendScintilla(scintillacon.SCI_GETCURRENTPOS)
+		anchorPos = self.SendScintilla(scintillacon.SCI_GETANCHOR)
 		if currentPos < anchorPos:
 			return (currentPos, anchorPos)
 		else:
@@ -356,7 +357,7 @@ class CScintillaEditInterface(ScintillaControlInterface):
 		
 	def ReplaceSel(self, str):
 		buff = array.array('c', str + "\0")
-		self.SendScintilla(SCI_REPLACESEL, 0, buff.buffer_info()[0]);
+		self.SendScintilla(scintillacon.SCI_REPLACESEL, 0, buff.buffer_info()[0]);
 		buff = None
 	
 	def GetLine(self, line=-1):
