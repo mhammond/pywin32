@@ -4,7 +4,7 @@ import control
 import IDLEenvironment # IDLE emulation.
 from pywin.mfc import docview
 from pywin.mfc import dialog
-from scintillacon import *
+import scintillacon
 import win32con
 import win32ui
 import afxres
@@ -78,12 +78,12 @@ del _event_commands; del _extra_event_commands
 
 command_reflectors = [
 	(win32ui.ID_EDIT_UNDO, win32con.WM_UNDO),
-	(win32ui.ID_EDIT_REDO, SCI_REDO),
+	(win32ui.ID_EDIT_REDO, scintillacon.SCI_REDO),
 	(win32ui.ID_EDIT_CUT, win32con.WM_CUT),
 	(win32ui.ID_EDIT_COPY, win32con.WM_COPY),
 	(win32ui.ID_EDIT_PASTE, win32con.WM_PASTE),
 	(win32ui.ID_EDIT_CLEAR, win32con.WM_CLEAR),
-	(win32ui.ID_EDIT_SELECT_ALL, SCI_SELECTALL),
+	(win32ui.ID_EDIT_SELECT_ALL, scintillacon.SCI_SELECTALL),
 ]
 
 def DoBraceMatch(control):
@@ -195,13 +195,13 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
 		# Enable Unicode if we can
 		if is_platform_unicode:
-			self.SendScintilla(SCI_SETCODEPAGE, SC_CP_UTF8, 0)
+			self.SendScintilla(scintillacon.SCI_SETCODEPAGE, scintillacon.SC_CP_UTF8, 0)
 		# Create margins
-		self.SendScintilla(SCI_SETMARGINTYPEN, 1, SC_MARGIN_SYMBOL);
-		self.SendScintilla(SCI_SETMARGINMASKN, 1, 0xF);
-		self.SendScintilla(SCI_SETMARGINTYPEN, 2, SC_MARGIN_SYMBOL);
-		self.SendScintilla(SCI_SETMARGINMASKN, 2, SC_MASK_FOLDERS);
-		self.SendScintilla(SCI_SETMARGINSENSITIVEN, 2, 1);
+		self.SendScintilla(scintillacon.SCI_SETMARGINTYPEN, 1, scintillacon.SC_MARGIN_SYMBOL);
+		self.SendScintilla(scintillacon.SCI_SETMARGINMASKN, 1, 0xF);
+		self.SendScintilla(scintillacon.SCI_SETMARGINTYPEN, 2, scintillacon.SC_MARGIN_SYMBOL);
+		self.SendScintilla(scintillacon.SCI_SETMARGINMASKN, 2, scintillacon.SC_MASK_FOLDERS);
+		self.SendScintilla(scintillacon.SCI_SETMARGINSENSITIVEN, 2, 1);
 
 		self.GetDocument().HookViewNotifications(self) # is there an MFC way to grab this?
 		self.HookHandlers()
@@ -322,13 +322,13 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		cmdui.SetCheck(self.SCIGetIndentationGuides())
 		cmdui.Enable()
 	def OnCmdViewRightEdge(self, cmd, code): # Handle the menu command
-		if self.SCIGetEdgeMode() == EDGE_NONE:
-			mode = EDGE_BACKGROUND
+		if self.SCIGetEdgeMode() == scintillacon.EDGE_NONE:
+			mode = scintillacon.EDGE_BACKGROUND
 		else:
-			mode = EDGE_NONE
+			mode = scintillacon.EDGE_NONE
 		self.SCISetEdgeMode(mode)
 	def OnUpdateViewRightEdge(self, cmdui): # Update the tick on the UI.
-		cmdui.SetCheck(self.SCIGetEdgeMode() != EDGE_NONE)
+		cmdui.SetCheck(self.SCIGetEdgeMode() != scintillacon.EDGE_NONE)
 		cmdui.Enable()
 	def OnCmdViewEOL(self, cmd, code): # Handle the menu command
 		viewEOL = self.SCIGetViewEOL()
