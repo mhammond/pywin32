@@ -4,7 +4,7 @@ import win32con
 import win32ui
 import copy
 import string
-from scintillacon import *
+import scintillacon
 
 ######################################################
 # Property Page for syntax formatting options
@@ -41,7 +41,7 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
 			# Convert the rect size
 			rect = self.MapDialogRect( (5, 5, 120, 75))
 			self.scintilla.CreateWindow(style, rect, self, 111)
-			self.HookNotify(self.OnBraceMatch, SCN_CHECKBRACE)
+			self.HookNotify(self.OnBraceMatch, scintillacon.SCN_CHECKBRACE)
 			self.scintilla.HookKeyStroke(self.OnEsc, 27)
 			self.scintilla.SCISetViewWS(1)
 			self.pos_bstart = self.pos_bend = self.pos_bbad = 0
