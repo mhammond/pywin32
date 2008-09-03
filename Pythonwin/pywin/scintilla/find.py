@@ -214,7 +214,7 @@ class FindDialog(FindReplaceDialog):
 		style = win32con.DS_MODALFRAME | win32con.WS_POPUP | win32con.WS_VISIBLE | win32con.WS_CAPTION | win32con.WS_SYSMENU | win32con.DS_SETFONT
 		visible = win32con.WS_CHILD | win32con.WS_VISIBLE
 		dt = [
-			["Find", (0, 2, 240, 75), style, None, (8, "MS Sans Serif")],
+			["Find", (0, 2, 240, 75), style, 0, (8, "MS Sans Serif")],
 			["Static", "Fi&nd What:", 101, (5, 8, 40, 10), visible],
 			["Edit", "", 102, (50, 7, 120, 12), visible | win32con.WS_BORDER | win32con.WS_TABSTOP | win32con.ES_AUTOHSCROLL],
 			["Button", "Match &whole word only", 105, (5, 23, 100, 10), visible | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
@@ -232,7 +232,7 @@ class ReplaceDialog(FindReplaceDialog):
 		style = win32con.DS_MODALFRAME | win32con.WS_POPUP | win32con.WS_VISIBLE | win32con.WS_CAPTION | win32con.WS_SYSMENU | win32con.DS_SETFONT
 		visible = win32con.WS_CHILD | win32con.WS_VISIBLE
 		dt = [
-			["Replace", (0, 2, 240, 95), style, None, (8, "MS Sans Serif")],
+			["Replace", (0, 2, 240, 95), style, 0, (8, "MS Sans Serif")],
 			["Static", "Fi&nd What:", 101, (5, 8, 40, 10), visible],
 			["Edit", "", 102, (60, 7, 110, 12), visible | win32con.WS_BORDER | win32con.WS_TABSTOP | win32con.ES_AUTOHSCROLL],
 			["Static", "Re&place with:", 103, (5, 25, 50, 10), visible],
