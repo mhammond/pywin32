@@ -55,7 +55,7 @@ class HierFrameItem(HierListItem):
 		if not name or name == '?' :
 			# See if locals has a '__name__' (ie, a module)
 			if self.myobject.f_locals.has_key('__name__'):
-				name = self.myobject.f_locals['__name__'] + " module"
+				name = str(self.myobject.f_locals['__name__']) + " module"
 			else:
 				name = '<Debugger Context>'
 
