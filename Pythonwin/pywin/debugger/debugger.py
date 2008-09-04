@@ -184,6 +184,7 @@ class DebuggerStackWindow(DebuggerWindow):
 	def SaveState(self):
 		self.list.DeleteAllItems()
 		self.listOK = 0
+		win32ui.WriteProfileVal("Debugger Windows\\" + self.title, "Visible", self.IsWindowVisible())
 	def CreateWindow(self, parent):
 		style = win32con.WS_CHILD | win32con.WS_VISIBLE | win32con.WS_BORDER | commctrl.TVS_HASLINES | commctrl.TVS_LINESATROOT | commctrl.TVS_HASBUTTONS
 		self._obj_.CreateWindow(style, self.GetDefRect(), parent, win32ui.IDC_LIST1)
@@ -294,7 +295,13 @@ class DebuggerBreakpointsWindow(DebuggerListViewWindow):
 	columns = [ ("Condition", 70), ("Location", 1024)]
 
 	def SaveState(self):
-		pass
+		items = []
+		for i in range(self.GetItemCount()):
+			items.append(self.GetItemText(i,0))
+			items.append(self.GetItemText(i,1))
+		win32ui.WriteProfileVal("Debugger Windows\\" + self.title, "BreakpointList", "\t".join(items))
+		win32ui.WriteProfileVal("Debugger Windows\\" + self.title, "Visible", self.IsWindowVisible())
+		return 1
 
 	def OnListEndLabelEdit(self, std, extra):
 		item = extra[0]
@@ -358,6 +365,7 @@ class DebuggerWatchWindow(DebuggerListViewWindow):
 		for i in range(self.GetItemCount()-1):
 			items.append(self.GetItemText(i,0))
 		win32ui.WriteProfileVal("Debugger Windows\\" + self.title, "Items", "\t".join(items))
+		win32ui.WriteProfileVal("Debugger Windows\\" + self.title, "Visible", self.IsWindowVisible())
 		return 1
 
 	def OnListEndLabelEdit(self, std, extra):
@@ -443,7 +451,7 @@ def PrepareControlBars(frame):
 		else:
 			frame.FloatControlBar(bar, float, afxres.CBRS_ALIGN_ANY)
 
-		frame.ShowControlBar(bar, 0, 1)
+		## frame.ShowControlBar(bar, 0, 1)
 
 
 SKIP_NONE=0
@@ -614,7 +622,7 @@ class Debugger(debugger_parent):
 			self.reset()
 			self.prep_run(cmd)
 			sys.settrace(self.trace_dispatch)
-			if type(cmd) <> types.CodeType:
+			if type(cmd) != types.CodeType:
 				cmd = cmd+'\n'
 			try:
 				try:
@@ -683,9 +691,9 @@ class Debugger(debugger_parent):
 				fname = os.path.split(frame.f_code.co_filename)[1]
 			else:
 				fname = "??"
-			print `name`, fname, frame.f_lineno, frame
+			print repr(name), fname, frame.f_lineno, frame
 		else:
-			print `name`, "None"
+			print repr(name), "None"
 
 	def set_trace(self):
 		# Start debugging from _2_ levels up!
@@ -775,8 +783,12 @@ class Debugger(debugger_parent):
 
 		# Ensure the debugger windows are attached to the debugger.
 		for id, klass, float in DebuggerDialogInfos:
-			w = frame.GetControlBar(id).dialog
-			w.Init(self)
+			w = frame.GetControlBar(id)
+			w.dialog.Init(self)
+			# Show toolbar if it was visible during last debug session
+			# This would be better done using a CDockState, but that class is not wrapped yet
+			if win32ui.GetProfileVal("Debugger Windows\\" + w.dialog.title, "Visible", 0):
+				frame.ShowControlBar(w, 1, 1)
 
 		# ALWAYS show debugging toolbar, regardless of saved state
 		tb = frame.GetControlBar(win32ui.ID_VIEW_TOOLBAR_DBG)
