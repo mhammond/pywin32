@@ -21,6 +21,9 @@ Prerequisites:
 or
  Iron Python 2.0b4 or higher. 
 
+Whats new in version 2.2.1
+1. Bugfix for v2.1 item 6: but do not correct the string length if the output column is not a string.
+
 Whats new in version 2.2
 1. Runs on Iron Python 2.0b4 with a few restrictions. It will not handle Longs or BLOB correcly, 
    and has some date/time problems (using the "time" module as opposed to "datetime").

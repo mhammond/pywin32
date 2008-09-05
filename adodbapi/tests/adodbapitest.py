@@ -34,7 +34,7 @@ except ImportError:
 import adodbapi
 import adodbapitestconfig
 
-#adodbapi.adodbapi.verbose = True
+#adodbapi.adodbapi.verbose = 3
 
 import types
 try:
@@ -162,9 +162,7 @@ class CommonDBTests(unittest.TestCase):
             CREATE TABLE tblTemp (
                 fldId integer NOT NULL,
                 fldData """ + sqlDataTypeString + ")\n"
-            ##    """  NULL
-            ##)
-            ##"""
+
         crsr.execute(tabdef)
         
         #Test Null values mapped to None
@@ -180,15 +178,15 @@ class CommonDBTests(unittest.TestCase):
         assert descTuple[0] == 'fldData'
 
         if DBAPIDataTypeString=='STRING':
-            assert descTuple[1] == adodbapi.STRING
+            assert descTuple[1] == adodbapi.STRING, 'was "%s"'%descTuple[1]
         elif DBAPIDataTypeString == 'NUMBER':
-            assert descTuple[1] == adodbapi.NUMBER
+            assert descTuple[1] == adodbapi.NUMBER, 'was "%s"'%descTuple[1]
         elif DBAPIDataTypeString == 'BINARY':
-            assert descTuple[1] == adodbapi.BINARY
+            assert descTuple[1] == adodbapi.BINARY, 'was "%s"'%descTuple[1]
         elif DBAPIDataTypeString == 'DATETIME':
-            assert descTuple[1] == adodbapi.DATETIME
+            assert descTuple[1] == adodbapi.DATETIME, 'was "%s"'%descTuple[1]
         elif DBAPIDataTypeString == 'ROWID':
-            assert descTuple[1] == adodbapi.ROWID
+            assert descTuple[1] == adodbapi.ROWID, 'was "%s"'%descTuple[1]
         else:
             raise "DBAPIDataTypeString not provided"
 
@@ -204,13 +202,16 @@ class CommonDBTests(unittest.TestCase):
                 crsr.execute("INSERT INTO tblTemp (fldId,fldData) VALUES (?,?)", (fldId,pyData))
             except:
                 conn.printADOerrors()
-
+                raise
             crsr.execute("SELECT fldData FROM tblTemp WHERE ?=fldID", [fldId])
             rs=crsr.fetchone()
             if allowedReturnValues:
-                self.assertEquals(type(rs[0]),type(allowedReturnValues[0]) )
+                allowedTypes = tuple([type(aRV) for aRV in allowedReturnValues])
+                assert isinstance(rs[0],allowedTypes), \
+                       'result type "%s" must be one of %s'%(type(rs[0]),allowedTypes)
             else:
-                self.assertEquals( type(rs[0]) ,type(pyData))
+                assert isinstance(rs[0] ,type(pyData)), \
+                       'result type "%s" must be instance of %s'%(type(rs[0]),type(pyData))
 
             if compareAlmostEqual and DBAPIDataTypeString == 'DATETIME':
                 iso1=adodbapi.dateconverter.DateObjectToIsoFormatString(rs[0])
@@ -228,22 +229,22 @@ class CommonDBTests(unittest.TestCase):
                     assert ok
                 else:                
                     self.assertEquals(rs[0] , pyData)
-
         self.helpRollbackTblTemp()
           
     def testDataTypeFloat(self):       
         self.helpTestDataType("real",'NUMBER',3.45,compareAlmostEqual=1)
         self.helpTestDataType("float",'NUMBER',1.79e37,compareAlmostEqual=1)
 
-        #v2.1 Cole -- use decimal for money
+    def testDataTypeMoney(self):    #v2.1 Cole -- use decimal for money
         if self.getEngine() != 'MySQL':
             self.helpTestDataType("smallmoney",'NUMBER',decimal.Decimal('214748.02'))        
             self.helpTestDataType("money",'NUMBER',decimal.Decimal('-922337203685477.5808'))
         
-    def testDataTypeInt(self):              
+    def testDataTypeInt(self):
         self.helpTestDataType("tinyint",'NUMBER',115)
         self.helpTestDataType("smallint",'NUMBER',-32768)
-        self.helpTestDataType("int",'NUMBER',2147483647)
+        self.helpTestDataType("int",'NUMBER',2147483647,
+                              pyDataInputAlternatives='2137483647')
         if self.getEngine() != 'ACCESS':
             self.helpTestDataType("bit",'NUMBER',1) #Does not work correctly with access        
             self.helpTestDataType("bigint",'NUMBER',3000000000L) 
@@ -392,23 +393,20 @@ class CommonDBTests(unittest.TestCase):
         conn=self.getConnection()
         crsr=conn.cursor()
         crsr.execute(tabdef)
-        
         for multiplier in (1,decimal.Decimal('2.5'),78,9999,99999,7007):
             crsr.execute("DELETE FROM tblTemp")
             correct = decimal.Decimal('12.50') * multiplier
             crsr.execute("INSERT INTO tblTemp(fldCurr) VALUES (?)",[correct])
-
             sql="SELECT fldCurr FROM tblTemp "
             try:
                 crsr.execute(sql)
             except:
                 conn.printADOerrors()
-                print sql
             fldcurr=crsr.fetchone()[0]
             self.assertEquals( fldcurr,correct)
-
+        
     def testErrorConnect(self):
-        self.assertRaises(adodbapi.DatabaseError,adodbapi.connect,'not a valid connect string')
+         self.assertRaises(adodbapi.DatabaseError,adodbapi.connect,'not a valid connect string')
 
 class TestADOwithSQLServer(CommonDBTests):
     def setUp(self):
@@ -430,21 +428,24 @@ class TestADOwithSQLServer(CommonDBTests):
         return self.conn
 
     def testSQLServerDataTypes(self):
-        self.helpTestDataType("decimal(18,2)",'NUMBER',3.45, allowedReturnValues=[u'3.45',u'3,45'])
-        self.helpTestDataType("numeric(18,2)",'NUMBER',3.45, allowedReturnValues=[u'3.45',u'3,45'])
+        self.helpTestDataType("decimal(18,2)",'NUMBER',3.45,
+                              allowedReturnValues=[u'3.45',u'3,45',decimal.Decimal('3.45')])
+        self.helpTestDataType("numeric(18,2)",'NUMBER',3.45,
+                              allowedReturnValues=[u'3.45',u'3,45',decimal.Decimal('3.45')])
 
     def testUserDefinedConversionForExactNumericTypes(self):
-        # By default decimal and numbers are returned as strings.
-        # (see testSQLServerDataTypes method)
+        # By default decimal and numbers are returned as decimals.
         # Instead, make them return as  floats
-        oldconverter=adodbapi.variantConversions[adodbapi.adoExactNumericTypes]
-        
-        adodbapi.variantConversions[adodbapi.adoExactNumericTypes]=adodbapi.cvtFloat
+        oldconverter=adodbapi.variantConversions[adodbapi.adNumeric]
+        adodbapi.variantConversions[adodbapi.adNumeric]=adodbapi.cvtFloat
         self.helpTestDataType("decimal(18,2)",'NUMBER',3.45,compareAlmostEqual=1)
         self.helpTestDataType("numeric(18,2)",'NUMBER',3.45,compareAlmostEqual=1)        
-     
-        adodbapi.variantConversions[adodbapi.adoExactNumericTypes]=oldconverter #Restore
-        
+        # now strings
+        adodbapi.variantConversions[adodbapi.adNumeric]=adodbapi.cvtString
+        self.helpTestDataType("numeric(18,2)",'NUMBER','3.45')
+        # now the way they were
+        adodbapi.variantConversions[adodbapi.adNumeric]=oldconverter #Restore
+        self.helpTestDataType("numeric(18,2)",'NUMBER',decimal.Decimal('3.45'))
 
     def testVariableReturningStoredProcedure(self):
         crsr=self.conn.cursor()
@@ -476,26 +477,28 @@ class TestADOwithSQLServer(CommonDBTests):
         self.helpCreateAndPopulateTableTemp(crsr)
         
         spdef= """
-            CREATE PROCEDURE sp_DeleteMeOnlyForTesting
+            CREATE PROCEDURE sp_DeleteMe_OnlyForTesting
             AS
                 SELECT fldData FROM tblTemp ORDER BY fldData ASC
+                SELECT fldData From tblTemp where fldData = -9999
                 SELECT fldData FROM tblTemp ORDER BY fldData DESC
                     """
         try:
-            crsr.execute("DROP PROCEDURE sp_DeleteMeOnlyForTesting")
+            crsr.execute("DROP PROCEDURE sp_DeleteMe_OnlyForTesting")
             self.conn.commit()
         except: #Make sure it is empty
             pass
         crsr.execute(spdef)
 
-        retvalues=crsr.callproc('sp_DeleteMeOnlyForTesting')
+        retvalues=crsr.callproc('sp_DeleteMe_OnlyForTesting')
         row=crsr.fetchone()
         self.assertEquals(row[0], 0) 
-        assert crsr.nextset()
+        assert crsr.nextset() == True, 'Operation should succede'
+        assert not crsr.fetchall(), 'Should be an empty second set'
+        assert crsr.nextset() == True, 'third set should be present'
         rowdesc=crsr.fetchall()
         self.assertEquals(rowdesc[0][0],8) 
-        s=crsr.nextset()
-        assert s== None,'No more return sets, should return None'
+        assert crsr.nextset() == None,'No more return sets, should return None'
 
         self.helpRollbackTblTemp()
 
@@ -652,7 +655,7 @@ class TestPythonTimeConverter(TimeConverterInterfaceTest):
         cmd=self.tc.DateObjectFromCOMDate(37435.7604282)
         t1=time.gmtime(time.mktime((2002,6,28,12,14,01, 4,31+28+31+30+31+28,-1)))
         t2=time.gmtime(time.mktime((2002,6,28,12,16,01, 4,31+28+31+30+31+28,-1)))
-        assert t1<cmd<t2,cmd
+        assert t1<cmd<t2,repr(cmd)+' should be about 2002-6-28 12:15:01'
     
     def testDate(self):
         t1=time.mktime((2002,6,28,18,15,01, 4,31+28+31+30+31+30,0))

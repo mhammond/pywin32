@@ -1,4 +1,4 @@
-"""adodbapi v2.2 -  A python DB API 2.0 interface to Microsoft ADO
+"""adodbapi v2.2.1 -  A python DB API 2.0 interface to Microsoft ADO
     
     Copyright (C) 2002  Henrik Ekelund
     Email: <http://sourceforge.net/sendmessage.php?touser=618411>
@@ -627,7 +627,7 @@ class Cursor(object):
                     if verbose > 2:
                         print 'Parameter %d ADOtype %d, python %s' % (parmIndx,p.Type,type(elem))
                     if p.Direction in [adParamInput,adParamInputOutput,adParamUnknown]:
-                        tp = type(elem)
+                        tp = type(elem) # python type
                         if tp in dateconverter.types:
                             if not defaultParameterList and p.Type in adoDateTimeTypes:
                                 p.Value=dateconverter.COMDate(elem)
@@ -643,8 +643,11 @@ class Cursor(object):
                             if defaultParameterList:
                                 p.Value = elem
                             else:
-                                L = min(L,p.Size) #v2.1 Cole limit data to defined size
-                                p.Value = elem[:L]       #v2.1 Jevon & v2.1 Cole
+                                if p.Type in adoStringTypes: #v2.2.1 Cole
+                                    L = min(L,p.Size) #v2.1 Cole limit data to defined size
+                                    p.Value = elem[:L]       #v2.1 Jevon & v2.1 Cole
+                                else:
+                                    p.Value = elem    # dont limit if db column is numeric
                             if L>0:   #v2.1 Cole something does not like p.Size as Zero
                                 p.Size = L           #v2.1 Jevon
                         elif tp == types.BufferType: #v2.1 Cole -- ADO BINARY
