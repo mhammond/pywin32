@@ -57,7 +57,7 @@ class TestStuff(unittest.TestCase):
                     userid varchar(5),  username varchar(25),
                     bitfield bit,       intfield integer,
                     floatfield float,
-                    datefield date,
+                    datefield date
                 )"""),-1)
 
     def tearDown(self):
@@ -138,7 +138,7 @@ class TestStuff(unittest.TestCase):
             (1800, 12, 25, 23, 59,),
             ):
             d = datetime.datetime(*v)
-            self._test_val('datefield', 'd')
+            self._test_val('datefield', d)
 
     def test_set_nonzero_length(self):
         self.assertEqual(self.cur.execute("insert into pywin32test_users (userid,username) "
