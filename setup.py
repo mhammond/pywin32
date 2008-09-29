@@ -802,7 +802,7 @@ class my_build_ext(build_ext):
                 # Find the redist directory.
                 vckey = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
                                         r"SOFTWARE\Microsoft\VisualStudio\9.0\Setup\VC",
-                                        access)
+                                        0, access)
                 val, val_typ = _winreg.QueryValueEx(vckey, "ProductDir")
                 mfc_dir = os.path.join(val, "redist", plat_dir, "Microsoft.VC90.MFC")
                 if not os.path.isdir(mfc_dir):
