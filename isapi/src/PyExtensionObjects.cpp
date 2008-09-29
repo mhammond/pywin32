@@ -157,6 +157,7 @@ static struct PyMethodDef PyECB_methods[] = {
 	{"IsKeepAlive",				PyECB::IsKeepAlive,1},           // @pymeth IsKeepAlive|
 	{"GetImpersonationToken",   PyECB::GetImpersonationToken, 1}, // @pymeth GetImpersonationToken|
 	{"IsKeepConn",              PyECB::IsKeepConn, 1}, // @pymeth IsKeepConn|Calls ServerSupportFunction with HSE_REQ_IS_KEEP_CONN
+	{"ExecURLInfo",             PyECB::ExecURLInfo, 1}, // @pymeth ExecURLInfo|Calls ServerSupportFunction with HSE_REQ_EXEC_URL
 	{NULL}
 };
 
@@ -571,6 +572,37 @@ PyObject * PyECB::IsKeepConn(PyObject *self, PyObject *args)
 	Py_END_ALLOW_THREADS
 	if (!bRes)
 		return SetPyECBError("ServerSupportFunction(HSE_REQ_IS_KEEP_CONN)");
+	return PyBool_FromLong(bIs);
+}
+
+// @pymethod int|EXTENSION_CONTROL_BLOCK|ExecURLInfo|Calls ServerSupportFunction with HSE_REQ_EXEC_URL
+PyObject * PyECB::ExecURLInfo(PyObject *self, PyObject *args)
+{
+	PyObject *obInfo, *obEntity;
+	HSE_EXEC_URL_INFO i;
+	if (!PyArg_ParseTuple(args, "zzzOOi:ExecURLInfo",
+			      &i.pszUrl, // @pyparm string|url||
+			      &i.pszMethod, // @pyparm string|method||
+			      &i.pszChildHeaders, // @pyparm string|clientHeaders||
+			      &obInfo, // @pyparm object|info||Must be None
+			      &obEntity, // @pyparm object|entity||Must be None
+			      &i.dwExecUrlFlags)) // @pyparm int|flags||
+		return NULL;
+
+	if (obInfo != Py_None || obEntity != Py_None)
+		return PyErr_Format(PyExc_ValueError, "info and entity params must be None");
+
+	i.pUserInfo = NULL;
+	i.pEntity = NULL;
+	PyECB * pecb = (PyECB *) self;
+	EXTENSION_CONTROL_BLOCK *ecb = pecb->m_pcb->GetECB();
+	if (!pecb || !pecb->Check()) return NULL;
+	BOOL bRes, bIs;
+	Py_BEGIN_ALLOW_THREADS
+	bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_EXEC_URL, &i, NULL,NULL);
+	Py_END_ALLOW_THREADS
+	if (!bRes)
+			return SetPyECBError("ServerSupportFunction(HSE_REQ_EXEC_URL)");
 	return PyBool_FromLong(bIs);
 }
 

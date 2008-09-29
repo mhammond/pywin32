@@ -100,6 +100,7 @@ public:
 	static PyObject * MapURLToPath(PyObject *self, PyObject * args); // HSE_REQ_MAP_URL_TO_PATH
 	static PyObject * IsKeepConn(PyObject *self, PyObject * args); // HSE_REQ_IS_KEEP_CONN
 	static PyObject * SetFlushFlag(PyObject *self, PyObject * args); // HSE_REQ_SET_FLUSH_FLAG
+	static PyObject * ExecURLInfo(PyObject *self, PyObject * args); // HSE_REQ_EXEC_URL
 
 	static PyObject * IsSessionActive(PyObject *self, PyObject * args);
 protected:
