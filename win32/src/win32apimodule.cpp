@@ -894,6 +894,11 @@ static PyObject *PyGetConsoleTitle(PyObject *self, PyObject *args)
 	// Latest MSDN now says "If the buffer is not large enough to store
 	// the title, the return value is zero and GetLastError returns
 	// ERROR_SUCCESS."
+	// However, even on Vista, markh can observe this failing with an
+	// apparently stale error code - as if GetConsoleTitle assumes the
+	// error code is already 0 in that case.  So we clear the error to
+	// solve that.
+	SetLastError(0);
 	while (TRUE){
 		if (title!=NULL){
 			free(title);
