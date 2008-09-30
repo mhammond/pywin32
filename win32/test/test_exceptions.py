@@ -45,6 +45,25 @@ class TestAPISimple(TestBase):
             expected_msg = win32api.FormatMessage(winerror.ERROR_INVALID_HANDLE).rstrip()
             self.failUnlessEqual(msg, expected_msg)
 
+    def testAsStr(self):
+        exc = self._getInvalidHandleException()
+        err_msg = win32api.FormatMessage(winerror.ERROR_INVALID_HANDLE).rstrip()
+        # early on the result actually *was* a tuple - it must always look like one
+        err_tuple = (winerror.ERROR_INVALID_HANDLE, 'CloseHandle', err_msg)
+        self.failUnlessEqual(str(exc), str(err_tuple))
+
+    def testAsTuple(self):
+        exc = self._getInvalidHandleException()
+        err_msg = win32api.FormatMessage(winerror.ERROR_INVALID_HANDLE).rstrip()
+        # early on the result actually *was* a tuple - it must be able to be one
+        err_tuple = (winerror.ERROR_INVALID_HANDLE, 'CloseHandle', err_msg)
+        self.failUnlessEqual(tuple(exc), err_tuple)
+
+    def testClassName(self):
+        exc = self._getInvalidHandleException()
+        # The error class has always been named 'error'.  That's not ideal :(
+        self.failUnlessEqual(exc.__class__.__name__, "error")
+
 class TestCOMSimple(TestBase):
     def _getException(self):
         try:
@@ -67,6 +86,24 @@ class TestCOMSimple(TestBase):
         exc = self._getException()
         expected = win32api.FormatMessage(winerror.STG_E_INVALIDFLAG).rstrip()
         self._testExceptionIndex(exc, 1, expected)
+
+    def testAsStr(self):
+        exc = self._getException()
+        err_msg = win32api.FormatMessage(winerror.STG_E_INVALIDFLAG).rstrip()
+        # early on the result actually *was* a tuple - it must always look like one
+        err_tuple = (winerror.STG_E_INVALIDFLAG, err_msg, None, None)
+        self.failUnlessEqual(str(exc), str(err_tuple))
+
+    def testAsTuple(self):
+        exc = self._getException()
+        err_msg = win32api.FormatMessage(winerror.STG_E_INVALIDFLAG).rstrip()
+        # early on the result actually *was* a tuple - it must be able to be one
+        err_tuple = (winerror.STG_E_INVALIDFLAG, err_msg, None, None)
+        self.failUnlessEqual(tuple(exc), err_tuple)
+
+    def testClassName(self):
+        exc = self._getException()
+        self.failUnlessEqual(exc.__class__.__name__, "com_error")
 
 if __name__ == '__main__':
     unittest.main()
