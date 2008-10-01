@@ -418,7 +418,6 @@ void ui_base_class::Dump( CDumpContext &dc ) const
 // Helpers for the application.  Avoid pulling python headers everywhere.
 //
 /////////////////////////////////////////////////////////////////////
-extern "C" __declspec(dllimport) void	PySys_SetPath(char *);
 void PYW_EXPORT Python_addpath( const char *paths )
 {
 	char workBuf[MAX_PATH+20];
