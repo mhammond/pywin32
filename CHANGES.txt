@@ -8,6 +8,10 @@ However contributors are encouraged to add their own entries for their work.
 Since build 212:
 ----------------
 
+* pywintypes.error and com_error get support for attributes as
+  well as indexing (ie, exc.winerror can now be used in place of exc[0].)
+  See the help file for details on the attribute names.
+
 * MAPI gets support for IMAPIAdviseSink
 
 * win32com.shell gets support for IContextMenu2 and IContextMenu3
