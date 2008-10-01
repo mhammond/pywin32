@@ -15,7 +15,7 @@ import sys
 FlashModule = gencache.EnsureModule("{D27CDB6B-AE6D-11CF-96B8-444553540000}", 0, 1, 0)
 
 if FlashModule is None:
- raise ImportError, "Flash does not appear to be installed."
+ raise ImportError("Flash does not appear to be installed.")
 
 class MyFlashComponent(activex.Control, FlashModule.ShockwaveFlash):
  def __init__(self):
