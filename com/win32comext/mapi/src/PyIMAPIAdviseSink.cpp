@@ -16,7 +16,7 @@ PyObject *PyObject_FromNOTIFICATION(NOTIFICATION *n)
 	PyObject *ret = NULL;
 	switch (n->ulEventType) {
 		case fnevCriticalError: {
-			ERROR_NOTIFICATION &err(n->info.err);
+			ERROR_NOTIFICATION &err = n->info.err;
 			ret = Py_BuildValue("k(s#iiN)",
 					    n->ulEventType,
 					    err.lpEntryID, err.cbEntryID,
@@ -26,13 +26,13 @@ PyObject *PyObject_FromNOTIFICATION(NOTIFICATION *n)
 			break;
 		}
 		case fnevExtended: {
-			EXTENDED_NOTIFICATION &ext(n->info.ext);
+			EXTENDED_NOTIFICATION &ext = n->info.ext;
 			ret = Py_BuildValue("k(ks#)", n->ulEventType, ext.ulEvent,
 					    ext.pbEventParameters, ext.cb);
 			break;
 		}
 		case fnevNewMail: {
-			NEWMAIL_NOTIFICATION &newmail(n->info.newmail);
+			NEWMAIL_NOTIFICATION &newmail = n->info.newmail;
 			PyObject *msg_class = newmail.ulFlags&MAPI_UNICODE?
 					PyWinObject_FromWCHAR((const WCHAR *)newmail.lpszMessageClass) :
 					PyString_FromString((const char *)newmail.lpszMessageClass);
@@ -53,7 +53,7 @@ PyObject *PyObject_FromNOTIFICATION(NOTIFICATION *n)
 		case fnevObjectModified: 
 		case fnevObjectMoved:
 		case fnevSearchComplete: {
-			OBJECT_NOTIFICATION &obj(n->info.obj);
+			OBJECT_NOTIFICATION &obj = n->info.obj;
 			PyObject *obArray = PyMAPIObject_FromSPropTagArray(obj.lpPropTagArray);
 			if (!obArray)
 				return NULL;
@@ -68,7 +68,7 @@ PyObject *PyObject_FromNOTIFICATION(NOTIFICATION *n)
 			break;
 		}
 		case fnevTableModified: {
-			TABLE_NOTIFICATION &tab(n->info.tab);
+			TABLE_NOTIFICATION &tab = n->info.tab;
 			ret = Py_BuildValue("k(kiNNN)",
 					    n->ulEventType,
 					    tab.ulTableEvent,
@@ -79,7 +79,7 @@ PyObject *PyObject_FromNOTIFICATION(NOTIFICATION *n)
 			break;
 		}
 		case fnevStatusObjectModified: {
-			STATUS_OBJECT_NOTIFICATION &statobj(n->info.statobj);
+			STATUS_OBJECT_NOTIFICATION &statobj = n->info.statobj;
 			ret = Py_BuildValue("k(s#N)",
 					    n->ulEventType,
 					    statobj.lpEntryID, statobj.cbEntryID,
