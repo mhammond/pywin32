@@ -1,4 +1,4 @@
-# encoding: latin-1
+# -*- coding: latin-1 -*-
 
 # PyWin32 Internet Explorer Toolbar
 #
