@@ -3,7 +3,10 @@
 # copies PyWinTypesxx.dll and PythonCOMxx.dll into the system directory,
 # and creates a pth file
 import os, sys, glob, shutil, time
-import _winreg
+try:
+    import _winreg as winreg
+except ImportError:
+    import winreg
 
 # Send output somewhere so it can be found if necessary...
 import tempfile
@@ -51,13 +54,13 @@ except NameError:
         pass
     def get_root_hkey():
         try:
-            _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
-                            root_key_name, _winreg.KEY_CREATE_SUB_KEY)
-            return _winreg.HKEY_LOCAL_MACHINE
+            winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                           root_key_name, winreg.KEY_CREATE_SUB_KEY)
+            return winreg.HKEY_LOCAL_MACHINE
         except OSError, details:
             # Either not exist, or no permissions to create subkey means
             # must be HKCU
-            return _winreg.HKEY_CURRENT_USER
+            return winreg.HKEY_CURRENT_USER
 
 try:
     create_shortcut
@@ -107,17 +110,16 @@ def CopyTo(desc, src, dest):
             win32api.CopyFile(src, dest, 0)
             return
         except win32api.error, details:
-            if details[0]==5: # access denied - user not admin.
+            if details.winerror==5: # access denied - user not admin.
                 raise
             if silent:
                 # Running silent mode - just re-raise the error.
                 raise
-            err_msg = details[2]
             tb = None
             full_desc = "Error %s\n\n" \
                         "If you have any Python applications running, " \
                         "please close them now\nand select 'Retry'\n\n%s" \
-                        % (desc, err_msg)
+                        % (desc, details.strerror)
             rc = win32api.MessageBox(0,
                                      full_desc,
                                      "Installation Error",
@@ -152,11 +154,11 @@ def LoadSystemModule(lib_dir, modname):
 
 def SetPyKeyVal(key_name, value_name, value):
     root_hkey = get_root_hkey()
-    root_key = _winreg.OpenKey(root_hkey, root_key_name)
+    root_key = winreg.OpenKey(root_hkey, root_key_name)
     try:
-        my_key = _winreg.CreateKey(root_key, key_name)
+        my_key = winreg.CreateKey(root_key, key_name)
         try:
-            _winreg.SetValueEx(my_key, value_name, 0, _winreg.REG_SZ, value)
+            winreg.SetValueEx(my_key, value_name, 0, winreg.REG_SZ, value)
         finally:
             my_key.Close()
     finally:
@@ -187,7 +189,7 @@ def RegisterPythonwin(register=True):
         Also need to remove these keys on uninstall, but there's no function
             like file_created to add registry entries to uninstall log ???
     """
-    import _winreg, os, distutils.sysconfig
+    import os, distutils.sysconfig
 
     lib_dir = distutils.sysconfig.get_python_lib(plat_specific=1)
     classes_root=get_root_hkey()
@@ -204,19 +206,20 @@ def RegisterPythonwin(register=True):
     try:
         if register:
             for key, sub_key, val in keys_vals:
-                ## Since _winreg only uses the character Api functions, this can fail if Python
+                ## Since winreg only uses the character Api functions, this can fail if Python
                 ##  is installed to a path containing non-ascii characters
-                hkey = _winreg.CreateKey(classes_root, key)
+                hkey = winreg.CreateKey(classes_root, key)
                 if sub_key:
-                    hkey = _winreg.CreateKey(hkey, sub_key)
-                _winreg.SetValueEx(hkey, None, 0, _winreg.REG_SZ, val)
+                    hkey = winreg.CreateKey(hkey, sub_key)
+                winreg.SetValueEx(hkey, None, 0, winreg.REG_SZ, val)
                 hkey.Close()
         else:
             for key, sub_key, val in keys_vals:
                 try:
-                    _winreg.DeleteKey(classes_root, key)
+                    winreg.DeleteKey(classes_root, key)
                 except OSError, why:
-                    if why.errno != 2: # file not found
+                    winerror = getattr(why, 'winerror', why.errno)
+                    if winerror != 2: # file not found
                         raise
     finally:
         # tell windows about the change
@@ -224,7 +227,7 @@ def RegisterPythonwin(register=True):
         shell.SHChangeNotify(shellcon.SHCNE_ASSOCCHANGED, shellcon.SHCNF_IDLIST, None, None)
 
 def get_shortcuts_folder():
-    if get_root_hkey()==_winreg.HKEY_LOCAL_MACHINE:
+    if get_root_hkey()==winreg.HKEY_LOCAL_MACHINE:
         try:
             fldr = get_special_folder_path("CSIDL_COMMON_PROGRAMS")
         except OSError:
@@ -235,7 +238,7 @@ def get_shortcuts_folder():
         fldr = get_special_folder_path("CSIDL_PROGRAMS")
 
     try:
-        install_group = _winreg.QueryValue(get_root_hkey(),
+        install_group = winreg.QueryValue(get_root_hkey(),
                                            root_key_name + "\\InstallPath\\InstallGroup")
     except OSError:
         vi = sys.version_info
@@ -255,9 +258,9 @@ def get_system_dir():
                 return shell.SHGetSpecialFolderPath(0,shellcon.CSIDL_SYSTEMX86)
             return shell.SHGetSpecialFolderPath(0,shellcon.CSIDL_SYSTEM)
         except (pythoncom.com_error, win32process.error):
-            return win32api.GetSystemDirectory().encode('mbcs')
+            return win32api.GetSystemDirectory()
     except ImportError:
-        return win32api.GetSystemDirectory().encode('mbcs')
+        return win32api.GetSystemDirectory()
 
 def install():
     import distutils.sysconfig
@@ -277,13 +280,13 @@ def install():
     # entries hurt us.
     for name in "pythoncom pywintypes".split():
         keyname = "Software\\Python\\PythonCore\\" + sys.winver + "\\Modules\\" + name
-        for root in _winreg.HKEY_LOCAL_MACHINE, _winreg.HKEY_CURRENT_USER:
+        for root in winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER:
             try:
-                _winreg.DeleteKey(root, keyname + "\\Debug")
+                winreg.DeleteKey(root, keyname + "\\Debug")
             except WindowsError:
                 pass
             try:
-                _winreg.DeleteKey(root, keyname)
+                winreg.DeleteKey(root, keyname)
             except WindowsError:
                 pass
     LoadSystemModule(lib_dir, "pywintypes")
@@ -319,7 +322,7 @@ def install():
             if worked:
                 break
         except win32api.error, details:
-            if details[0]==5:
+            if details.winerror==5:
                 # access denied - user not admin - try sys.prefix dir,
                 # but first check that a version doesn't already exist
                 # in that place - otherwise that one will still get used!
@@ -356,7 +359,7 @@ def install():
 
     # There may be no main Python key in HKCU if, eg, an admin installed
     # python itself.
-    _winreg.CreateKey(get_root_hkey(), root_key_name)
+    winreg.CreateKey(get_root_hkey(), root_key_name)
 
     # Register the .chm help file.
     chm_file = os.path.join(lib_dir, "PyWin32.chm")
