@@ -247,7 +247,7 @@ PyObject * MyReportEvent( HANDLE hEventLog,
 	if (!PyWinObject_AsSID(obSID, &sid, TRUE))
 		return NULL;
 	if (!PyWinObject_AsReadBuffer(obData, &pData, &dataSize, TRUE))
-		pData = NULL;
+		return NULL;
 	if (!PyWinObject_AsWCHARArray(obStrings, &pStrings, &numStrings, TRUE))
 		return NULL;
 	if (numStrings > USHRT_MAX){
