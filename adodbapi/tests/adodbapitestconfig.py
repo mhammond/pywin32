@@ -54,7 +54,7 @@ if doAccessTest:
             except:
                 pass
         else:
-            raise RuntimeError, "Can't find a DB engine"
+            raise RuntimeError("Can't find a DB engine")
         print '    ...Creating ACCESS db at',_accessdatasource    
         if win32:
             workspace = dbe.Workspaces(0)

@@ -166,7 +166,7 @@ def SetInfo(userName=None):
         win32net.NetUserSetInfo(server, userName, 3, d)
         new = win32net.NetUserGetInfo(server, userName, 3)['usr_comment']
         if  str(new) != "Test comment":
-            raise RuntimeError, "Could not read the same comment back - got %s" % new
+            raise RuntimeError("Could not read the same comment back - got %s" % new)
         print "Changed the data for the user"
     finally:
         win32net.NetUserSetInfo(server, userName, 3, oldData)

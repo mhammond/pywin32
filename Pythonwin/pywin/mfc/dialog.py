@@ -18,7 +18,7 @@ def dllFromDll(dllid):
 		try:
 			dllid.GetFileName()
 		except AttributeError:
-			raise TypeError, "DLL parameter must be None, a filename or a dll object"
+			raise TypeError("DLL parameter must be None, a filename or a dll object")
 		return dllid
 	
 class Dialog(window.Wnd):
@@ -82,7 +82,7 @@ class PrintDialog(Dialog):
                      dllid=None):
 		self.dll=dllFromDll(dllid)
 		if type(dlgID)==type([]):	# a template
-			raise TypeError, "dlgID parameter must be an integer resource ID"
+			raise TypeError("dlgID parameter must be an integer resource ID")
 		dlg=win32ui.CreatePrintDialog(dlgID, printSetupOnly,
                                               flags, parent,
                                               self.dll)

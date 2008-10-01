@@ -163,7 +163,7 @@ def run(cmd, mSec=None, stdin=None, stdout=None, stderr=None, **kw):
     child = Process(cmd, **kw)
     if child.wait(mSec) != win32event.WAIT_OBJECT_0:
         child.kill()
-        raise WindowsError, 'process timeout exceeded'
+        raise WindowsError('process timeout exceeded')
     return child.exitCode()
 
 

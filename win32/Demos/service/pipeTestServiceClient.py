@@ -42,9 +42,9 @@ def CallPipe(fn, args):
                 win32api.Sleep(5000)
                 continue
             else:
-                raise win32api.error, (rc, fnerr, msg)
+                raise win32api.error(rc, fnerr, msg)
 
-    raise RuntimeError, "Could not make a connection to the server"
+    raise RuntimeError("Could not make a connection to the server")
 
 def testClient(server,msg):
     if verbose:

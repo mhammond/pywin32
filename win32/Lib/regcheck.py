@@ -69,7 +69,7 @@ def CheckHelpFiles(verbose):
 	except win32api.error, (code, fn, details):
 		import winerror
 		if code!=winerror.ERROR_FILE_NOT_FOUND:
-			raise win32api.error, (code, fn, details)
+			raise win32api.error(code, fn, details)
 		return
 		
 	try:
@@ -89,7 +89,7 @@ def CheckHelpFiles(verbose):
 			except win32api.error, (code, fn, desc):
 				import winerror
 				if code!=winerror.ERROR_NO_MORE_ITEMS:
-					raise win32api.error, (code, fn, desc)
+					raise win32api.error(code, fn, desc)
 				break
 	finally:
 		win32api.RegCloseKey(key)
@@ -103,7 +103,7 @@ def CheckRegisteredModules(verbose):
 	except win32api.error, (code, fn, details):
 		import winerror
 		if code!=winerror.ERROR_FILE_NOT_FOUND:
-			raise win32api.error, (code, fn, details)
+			raise win32api.error(code, fn, details)
 		return
 
 def CheckRegistry(verbose=0):

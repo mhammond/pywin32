@@ -30,7 +30,10 @@ import traceback
 
 from dbgcon import *
 
-error = "pywin.debugger.error"
+class DebuggerException(Exception):
+	"""A Pythonwin debugger exception"""
+
+error = DebuggerException
 
 def SetInteractiveContext(globs, locs):
 	if interact.edit is not None and interact.edit.currentView is not None:
@@ -535,7 +538,7 @@ class Debugger(debugger_parent):
 		try:
 			return self.options[option]
 		except KeyError:
-			raise error, "Option %s is not a valid option" % option
+			raise error("Option %s is not a valid option" % option)
 
 	def prep_run(self, cmd):
 		pass
@@ -607,7 +610,7 @@ class Debugger(debugger_parent):
 
 	def run(self, cmd,globals=None, locals=None, start_stepping = 1):
 		if type(cmd) not in [types.StringType, types.CodeType]:
-			raise TypeError, "Only strings can be run"
+			raise TypeError("Only strings can be run")
 		self.last_cmd_debugged = cmd
 		if start_stepping:
 			self.isInitialBreakpoint = 0
@@ -754,7 +757,7 @@ class Debugger(debugger_parent):
 			else:
 				title = " - break"
 		else:
-			raise error, "Invalid debugger state passed!"
+			raise error("Invalid debugger state passed!")
 		win32ui.GetMainFrame().SetWindowText(win32ui.LoadString(win32ui.IDR_MAINFRAME) + title)
 		if self.debuggerState == DBGSTATE_QUITTING and state != DBGSTATE_NOT_DEBUGGING:
 			print "Ignoring state change cos Im trying to stop!", state

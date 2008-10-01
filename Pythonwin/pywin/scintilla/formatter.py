@@ -84,7 +84,7 @@ class FormatterBase:
 		return self.default_background
 
 	def HookFormatter(self, parent = None):
-		raise NotImplementedError
+		raise NotImplementedError()
 
 	# Used by the IDLE extensions to quickly determine if a character is a string.
 	def GetStringStyle(self, pos):
@@ -106,7 +106,7 @@ class FormatterBase:
 		self.styles_by_id[stylenum] = style
 
 	def SetStyles(self):
-		raise NotImplementedError
+		raise NotImplementedError()
 
 	def GetSampleText(self):
 		return "Sample Text for the Format Dialog"
@@ -235,7 +235,7 @@ class Formatter(FormatterBase):
 		FormatterBase.RegisterStyle(self, style, stylenum)
 
 	def ColorizeString(self, str, charStart, styleStart):
-		raise RuntimeError, "You must override this method"
+		raise RuntimeError("You must override this method")
 
 	def Colorize(self, start=0, end=-1):
 		scintilla = self.scintilla

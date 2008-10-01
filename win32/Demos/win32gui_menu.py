@@ -232,7 +232,7 @@ class MainWindow:
             # Our 'checkbox' and 'radio' items
             state = GetMenuState(self.sub_menu, id, win32con.MF_BYCOMMAND)
             if state==-1:
-                raise RuntimeError, "No item found"
+                raise RuntimeError("No item found")
             if state & win32con.MF_CHECKED:
                 check_flags = win32con.MF_UNCHECKED
                 print "Menu was checked - unchecking"
@@ -256,7 +256,7 @@ class MainWindow:
                 dwItemData, text, hbmpItem = UnpackMENUITEMINFO(buf)
 
             if fState & win32con.MF_CHECKED != check_flags:
-                raise RuntimeError, "The new item didn't get the new checked state!"
+                raise RuntimeError("The new item didn't get the new checked state!")
         else:
             print "OnCommand for ID", id
 

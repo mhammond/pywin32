@@ -37,7 +37,7 @@ def SetRegistryDefaultValue(subKey, value, rootkey = None):
 	elif type(value)==types.IntType:
 		typeId = win32con.REG_DWORD
 	else:
-		raise TypeError, "Value must be string or integer - was passed " + str(value)
+		raise TypeError("Value must be string or integer - was passed " + str(value))
 
 	win32api.RegSetValue(rootkey, subKey, typeId ,value)
 	
@@ -72,7 +72,7 @@ def RegisterPythonExe(exeFullPath, exeAlias = None, exeAppPath = None):
 	"""
 	# Note - Dont work on win32s (but we dont care anymore!)
 	if exeAppPath:
-		raise error, "Do not support exeAppPath argument currently"
+		raise error("Do not support exeAppPath argument currently")
 	if exeAlias is None:
 		exeAlias = os.path.basename(exeFullPath)
 	win32api.RegSetValue(GetRootKey(), GetAppPathsKey() + "\\" + exeAlias, win32con.REG_SZ, exeFullPath)
@@ -90,7 +90,7 @@ def UnregisterPythonExe(exeAlias):
 	except win32api.error, (code, fn, details):
 		import winerror
 		if code!=winerror.ERROR_FILE_NOT_FOUND:
-			raise win32api.error, (code, fn, desc)
+			raise win32api.error(code, fn, desc)
 		return
 
 def RegisterNamedPath(name, path):
@@ -109,7 +109,7 @@ def UnregisterNamedPath(name):
 	except win32api.error, (code, fn, details):
 		import winerror
 		if code!=winerror.ERROR_FILE_NOT_FOUND:
-			raise win32api.error, (code, fn, desc)
+			raise win32api.error(code, fn, desc)
 		return
 
 def GetRegisteredNamedPath(name):
@@ -122,7 +122,7 @@ def GetRegisteredNamedPath(name):
 	except win32api.error, (code, fn, details):
 		import winerror
 		if code!=winerror.ERROR_FILE_NOT_FOUND:
-			raise win32api.error, (code, fn, details)
+			raise win32api.error(code, fn, details)
 		return None
 
 
@@ -154,7 +154,7 @@ def UnregisterModule(modName):
 	except win32api.error, (code, fn, desc):
 		import winerror
 		if code!=winerror.ERROR_FILE_NOT_FOUND:
-			raise win32api.error, (code, fn, desc)
+			raise win32api.error(code, fn, desc)
 
 def GetRegisteredHelpFile(helpDesc):
 	"""Given a description, return the registered entry.
@@ -184,7 +184,7 @@ def RegisterHelpFile(helpFile, helpPath, helpDesc = None, bCheckFile = 1):
 	try:
 		if bCheckFile: os.stat(fullHelpFile)
 	except os.error:
-		raise ValueError, "Help file does not exist"
+		raise ValueError("Help file does not exist")
 	# Now register with Python itself.
 	win32api.RegSetValue(GetRootKey(), 
 	                     BuildDefaultPythonKey() + "\\Help\\%s" % helpDesc, win32con.REG_SZ, fullHelpFile)
@@ -202,7 +202,7 @@ def UnregisterHelpFile(helpFile, helpDesc = None):
 		except win32api.error, (code, fn, desc):
 			import winerror
 			if code!=winerror.ERROR_FILE_NOT_FOUND:
-				raise win32api.error, (code, fn, desc)
+				raise win32api.error(code, fn, desc)
 	finally:
 		win32api.RegCloseKey(key)
 	
@@ -214,7 +214,7 @@ def UnregisterHelpFile(helpFile, helpDesc = None):
 	except win32api.error, (code, fn, desc):
 		import winerror
 		if code!=winerror.ERROR_FILE_NOT_FOUND:
-			raise win32api.error, (code, fn, desc)
+			raise win32api.error(code, fn, desc)
 
 def RegisterCoreDLL(coredllName = None):
 	"""Registers the core DLL in the registry.

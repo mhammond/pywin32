@@ -52,7 +52,7 @@ class CommonDBTests(unittest.TestCase):
         return self.engine
     
     def getConnection(self):
-        raise "This method must be overriden by a subclass"  
+        raise Exception("This method must be overriden by a subclass")
 
     def getCursor(self):
         return self.getConnection().cursor()
@@ -188,7 +188,7 @@ class CommonDBTests(unittest.TestCase):
         elif DBAPIDataTypeString == 'ROWID':
             assert descTuple[1] == adodbapi.ROWID, 'was "%s"'%descTuple[1]
         else:
-            raise "DBAPIDataTypeString not provided"
+            raise Exception("DBAPIDataTypeString not provided")
 
         #Test data binding
         inputs=[pyData]

@@ -20,11 +20,11 @@ class Object:
 				# Python may be calling __len__, __nonzero__, etc, so
 				# we dont want this exception
 				if attr[0]!= '_' and attr[-1] != '_':
-					raise win32ui.error, "The MFC object has died."
+					raise win32ui.error("The MFC object has died.")
 			except KeyError:
 				# No _obj_ at all - dont report MFC object died when there isnt one!
 				pass
-		raise AttributeError, attr
+		raise AttributeError(attr)
 
 	def OnAttachedObjectDeath(self):
 #		print "object", self.__class__.__name__, "dieing"

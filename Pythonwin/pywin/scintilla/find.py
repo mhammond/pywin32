@@ -26,7 +26,7 @@ class SearchParams:
 	# Helper so we cant misspell attributes :-)
 	def __setattr__(self, attr, val):
 		if not hasattr(self, attr):
-			raise AttributeError, attr
+			raise AttributeError(attr)
 		self.__dict__[attr]=val
 
 curDialog = None

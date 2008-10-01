@@ -226,7 +226,7 @@ class dynamic_browser (dialog.Dialog):
 def BrowseDialog():
     root = HLIRoot()
     if not root.IsExpandable():
-        raise TypeError, "Browse() argument must have __dict__ attribute, or be a Browser supported type"
+        raise TypeError("Browse() argument must have __dict__ attribute, or be a Browser supported type")
         
     dlg = dynamic_browser (root)
     dlg.CreateWindow()

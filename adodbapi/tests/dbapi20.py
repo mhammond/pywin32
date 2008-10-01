@@ -19,6 +19,10 @@ import unittest
 import time
 
 # $Log$
+# Revision 1.1.1.1  2008/01/04 18:49:10  kf7xm
+# Import of the adodbapi package into pywin32.
+# Documentation is in readme.txt and the tests directory.
+#
 # Revision 1.10  2003/10/09 03:14:14  zenzen
 # Add test for DB API 2.0 optional extension, where database exceptions
 # are exposed as attributes on the Connection object.
@@ -703,7 +707,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             that returns two result sets, first the 
 	    number of rows in booze then "name from booze"
         '''
-        raise NotImplementedError,'Helper not implemented'
+        raise NotImplementedError('Helper not implemented')
         #sql="""
         #    create procedure deleteme as
         #    begin
@@ -715,7 +719,7 @@ class DatabaseAPI20Test(unittest.TestCase):
 
     def help_nextset_tearDown(self,cur):
         'If cleaning up is needed after nextSetTest'
-        raise NotImplementedError,'Helper not implemented'
+        raise NotImplementedError('Helper not implemented')
         #cur.execute("drop procedure deleteme")
 
     def test_nextset(self):
@@ -748,7 +752,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             con.close()
 
     def test_nextset(self):
-        raise NotImplementedError,'Drivers need to override this test'
+        raise NotImplementedError('Drivers need to override this test')
 
     def test_arraysize(self):
         # Not much here - rest of the tests for this are in test_fetchmany
@@ -783,7 +787,7 @@ class DatabaseAPI20Test(unittest.TestCase):
 
     def test_setoutputsize(self):
         # Real test for setoutputsize is driver dependant
-        raise NotImplementedError,'Driver need to override this test'
+        raise NotImplementedError('Driver need to override this test')
 
     def test_None(self):
         con = self._connect()

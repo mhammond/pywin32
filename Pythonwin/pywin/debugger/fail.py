@@ -38,7 +38,7 @@ def c():
 def d():
 	d=1
 	e(d)
-	raise ValueError, "Hi"
+	raise ValueError("Hi")
 
 def e(arg):
 	e=1

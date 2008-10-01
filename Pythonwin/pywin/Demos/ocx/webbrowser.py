@@ -10,7 +10,7 @@ import sys
 
 WebBrowserModule = gencache.EnsureModule("{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}", 0, 1, 1)
 if WebBrowserModule is None:
-	raise ImportError, "IE4 does not appear to be installed."
+	raise ImportError("IE4 does not appear to be installed.")
 
 class MyWebBrowser(activex.Control, WebBrowserModule.WebBrowser):
 	def OnBeforeNavigate2(self, pDisp, URL, Flags, TargetFrameName, PostData, Headers, Cancel):
