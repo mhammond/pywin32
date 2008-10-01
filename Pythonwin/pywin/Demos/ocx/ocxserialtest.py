@@ -18,7 +18,7 @@ win32ui.DoWaitCursor(1)
 serialModule = gencache.EnsureModule("{648A5603-2C6E-101B-82B6-000000000014}", 0, 1, 1)
 win32ui.DoWaitCursor(0)
 if serialModule is None:
-	raise ImportError, "MS COMM Control does not appear to be installed on the PC"
+	raise ImportError("MS COMM Control does not appear to be installed on the PC")
 
 
 def MakeDlgTemplate():
