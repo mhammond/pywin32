@@ -65,7 +65,7 @@ class FontWindow(window.Wnd):
 			left, top, right, bottom = self.GetClientRect()
 			self.width = right - left
 			self.height = bottom - top
-		x, y = self.width / 2, self.height / 2
+		x, y = self.width // 2, self.height // 2
 		dc.TextOut (x, y, self.text[:self.index])
 		self.EndPaint(paintStruct)
 
@@ -95,6 +95,7 @@ class FontFrame(window.MDIChildWnd):
 		style = win32con.WS_CHILD | win32con.WS_VISIBLE | win32con.WS_OVERLAPPEDWINDOW
 		self._obj_ = win32ui.CreateMDIChild()
 		self._obj_.AttachObject(self)
+
 		self._obj_.CreateWindow(None, title, style, rect, parent)
 		rect = self.GetClientRect()
 		rect = (0,0,rect[2]-rect[0], rect[3]-rect[1])
@@ -110,6 +111,7 @@ class TestThread(thread.WinThread):
 	def InitInstance(self):
 		rect = self.parentWindow.GetClientRect()
 		rect = (0,0,rect[2]-rect[0], rect[3]-rect[1])
+
 		self.child = FontWindow()
 		self.child.Create("FontDemo", win32con.WS_CHILD | win32con.WS_VISIBLE, rect, self.parentWindow)
 		self.SetMainFrame(self.child)
@@ -149,7 +151,7 @@ def Demo():
 
 def ThreadedDemo():
 	rect = win32ui.GetMainFrame().GetMDIClient().GetClientRect()
-	rect = rect[0], rect[3]*3/4, rect[2]/4, rect[3]
+	rect = rect[0], int(rect[3]*3/4), int(rect[2]/4), rect[3]
 	incr = rect[2]
 	for i in range(4):
 		if i==0:

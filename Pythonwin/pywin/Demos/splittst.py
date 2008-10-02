@@ -17,8 +17,8 @@ class SplitterFrame(window.MDIChildWnd):
 		doc = context.doc
 		frame_rect = self.GetWindowRect()
 		size = ((frame_rect[2] - frame_rect[0]),
-		        (frame_rect[3] - frame_rect[1])/2)
-		sub_size = (size[0]/2, size[1])
+		        (frame_rect[3] - frame_rect[1])//2)
+		sub_size = (size[0]//2, size[1])
 		splitter.CreateStatic (self, 2, 1)
 		self.v1 = win32ui.CreateEditView(doc)
 		self.v2 = fontdemo.FontView(doc)
