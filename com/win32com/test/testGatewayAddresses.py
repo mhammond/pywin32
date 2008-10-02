@@ -22,7 +22,7 @@
 # 2) symmetric: if you QI an interface for that interface, it succeeds
 # 3) reflexive: if you QI against A for B, the new pointer must succeed
 #   for a QI for A
-# 4) transitive: if you QI for B, then QI that for C, then QI’ing A for C
+# 4) transitive: if you QI for B, then QI that for C, then QI'ing A for C
 #   must succeed
 #
 #
