@@ -490,7 +490,7 @@ def usage():
         fname = sys.argv[0]
     print "Usage: '%s [options] install|update|remove|start [...]|stop|restart [...]|debug [...]'" % fname
     print "Options for 'install' and 'update' commands only:"
-    print " --username domain\username : The Username the service is to run under"
+    print " --username domain\\username : The Username the service is to run under"
     print " --password password : The password for the username"
     print " --startup [manual|auto|disabled] : How the service starts, default = manual"
     print " --interactive : Allow the service to interact with the desktop."

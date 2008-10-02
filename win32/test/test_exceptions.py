@@ -6,8 +6,9 @@ import winerror
 
 class TestBase(unittest.TestCase):
     def _testExceptionIndex(self, exc, index, expected):
-        # check the exception itself can be indexed.
-        self.failUnlessEqual(exc[index], expected)
+        # check the exception itself can be indexed if not py3k
+        if sys.version_info < (3,):
+            self.failUnlessEqual(exc[index], expected)
         # and that exception.args can is the same.
         self.failUnlessEqual(exc.args[index], expected)
 
@@ -57,7 +58,10 @@ class TestAPISimple(TestBase):
         err_msg = win32api.FormatMessage(winerror.ERROR_INVALID_HANDLE).rstrip()
         # early on the result actually *was* a tuple - it must be able to be one
         err_tuple = (winerror.ERROR_INVALID_HANDLE, 'CloseHandle', err_msg)
-        self.failUnlessEqual(tuple(exc), err_tuple)
+        if sys.version_info < (3,):
+            self.failUnlessEqual(tuple(exc), err_tuple)
+        else:
+            self.failUnlessEqual(exc.args, err_tuple)
 
     def testClassName(self):
         exc = self._getInvalidHandleException()
@@ -113,7 +117,10 @@ class TestCOMSimple(TestBase):
         err_msg = win32api.FormatMessage(winerror.STG_E_INVALIDFLAG).rstrip()
         # early on the result actually *was* a tuple - it must be able to be one
         err_tuple = (winerror.STG_E_INVALIDFLAG, err_msg, None, None)
-        self.failUnlessEqual(tuple(exc), err_tuple)
+        if sys.version_info < (3,):
+            self.failUnlessEqual(tuple(exc), err_tuple)
+        else:
+            self.failUnlessEqual(exc.args, err_tuple)
 
     def testClassName(self):
         exc = self._getException()

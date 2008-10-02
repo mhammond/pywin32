@@ -1,12 +1,12 @@
 # General utilities for MAPI and MAPI objects.
-from types import TupleType, ListType, IntType, StringType
+# We used to use these old names from the 'types' module...
+TupleType=tuple
+ListType=list
+IntType=int
+StringType=str
 from pywintypes import UnicodeType, TimeType
 import pythoncom
 import mapi, mapitags
-
-# Pre 2.2.1 compat.
-try: True, False
-except NameError: True = 1==1; False = 1==0
 
 prTable = {}
 def GetPropTagName(pt):
