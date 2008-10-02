@@ -73,10 +73,10 @@ def _ListAllHelpFilesInRoot(root):
 	retList = []
 	try:
 		key = win32api.RegOpenKey(root, regutil.BuildDefaultPythonKey() + "\\Help", 0, win32con.KEY_READ)
-	except win32api.error, (code, fn, details):
+	except win32api.error, exc:
 		import winerror
-		if code!=winerror.ERROR_FILE_NOT_FOUND:
-			raise win32api.error, (code, fn, details)
+		if exc.winerror!=winerror.ERROR_FILE_NOT_FOUND:
+			raise
 		return retList
 	try:
 		keyNo = 0
@@ -86,10 +86,10 @@ def _ListAllHelpFilesInRoot(root):
 				helpFile = win32api.RegQueryValue(key, helpDesc)
 				retList.append((helpDesc, helpFile))
 				keyNo = keyNo + 1
-			except win32api.error, (code, fn, desc):
+			except win32api.error, exc:
 				import winerror
-				if code!=winerror.ERROR_NO_MORE_ITEMS:
-					raise win32api.error, (code, fn, desc)
+				if exc.winerror!=winerror.ERROR_NO_MORE_ITEMS:
+					raise
 				break
 	finally:
 		win32api.RegCloseKey(key)

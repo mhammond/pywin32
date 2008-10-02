@@ -7,10 +7,10 @@ import string
 
 def SafeApply( fn, args, err_desc = "" ):
 	try:
-		apply(fn, args)
+		fn(*args)
 		return 1
-	except win32api.error, (rc, fn, msg):
-		msg = "Error " + err_desc + "\r\n\r\n" + msg
+	except win32api.error, exc:
+		msg = "Error " + err_desc + "\r\n\r\n" + exc.strerror
 		win32ui.MessageBox(msg)
 		return 0
 
@@ -40,7 +40,8 @@ class SplitterFrame(window.MDIChildWnd):
 
 		return 1
 
-	def OnItemDoubleClick(self,(hwndFrom, idFrom, code), extra):
+	def OnItemDoubleClick(self, info, extra):
+		(hwndFrom, idFrom, code) = info
 		if idFrom==win32ui.AFX_IDW_PANE_FIRST:
 			# Tree control
 			return None
@@ -217,8 +218,8 @@ class RegistryValueView(docview.ListView):
 		if d.DoModal()==win32con.IDOK:
 			try:
 				self.SetItemsCurrentValue(item, keyVal, d.newvalue)
-			except win32api.error, (rc, fn, desc):
-				win32ui.MessageBox("Error setting value\r\n\n%s" % desc)
+			except win32api.error, exc:
+				win32ui.MessageBox("Error setting value\r\n\n%s" % exc.strerror)
 			self.UpdateForRegItem(item)
 
 	def GetItemsCurrentValue(self, item, valueName):
@@ -226,7 +227,7 @@ class RegistryValueView(docview.ListView):
 		try:
 			val, type = win32api.RegQueryValueEx(hkey, valueName)
 			if type != win32con.REG_SZ:
-				raise TypeError, "Only strings can be edited"
+				raise TypeError("Only strings can be edited")
 			return val
 		finally:
 			win32api.RegCloseKey(hkey)
@@ -271,7 +272,7 @@ class RegDocument (docview.Document):
 		self.SetTitle("Registry Editor: " + subkey)
 
 	def OnOpenDocument (self, name):
-		raise TypeError, "This template can not open files"
+		raise TypeError("This template can not open files")
 		return 0
 		
 

@@ -16,12 +16,14 @@ clrBtnShadow = win32api.GetSysColor(win32con.COLOR_BTNSHADOW)
 def CenterPoint(rect):
 	width = rect[2]-rect[0]
 	height = rect[3]-rect[1]
-	return rect[0] + width/2, rect[1] + height/2
+	return rect[0] + width//2, rect[1] + height//2
 
-def OffsetRect(rect, (x, y) ):
+def OffsetRect(rect, point):
+	(x, y) = point
 	return rect[0]+x, rect[1]+y, rect[2]+x, rect[3]+y
 
-def DeflateRect(rect, (x,y) ):
+def DeflateRect(rect, point):
+	(x, y) = point
 	return rect[0]+x, rect[1]+y, rect[2]-x, rect[3]-y
 
 def PtInRect(rect, pt):
@@ -69,7 +71,7 @@ class DockingBar(window.Wnd):
 		self._obj_.CreateWindow(wndClass, title, style, (0,0,0,0), parent, id)
 
 		# Create the child dialog
-		self.dialog = apply(childCreator, (self,) + childCreatorArgs)
+		self.dialog = childCreator(*(self,) + childCreatorArgs)
 
 		# use the dialog dimensions as default base dimensions
 		assert self.dialog.IsWindow(), "The childCreator function %s did not create a window!" % childCreator
@@ -291,7 +293,8 @@ class DockingBar(window.Wnd):
 
 #	def OnBarStyleChange(self, old, new):
 
-	def OnNcCalcSize(self, bCalcValid, (rc0, rc1, rc2, pos)):
+	def OnNcCalcSize(self, bCalcValid, size_info):
+		(rc0, rc1, rc2, pos) = size_info
 		self.rectBorder = self.GetWindowRect()
 		self.rectBorder = OffsetRect( self.rectBorder, (-self.rectBorder[0], -self.rectBorder[1]) )
 
