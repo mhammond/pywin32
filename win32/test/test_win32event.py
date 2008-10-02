@@ -20,5 +20,28 @@ class TestWaitableTimer(unittest.TestCase):
         rc = win32event.WaitForSingleObject(h, 10) # 10 ms.
         self.failUnlessEqual(rc, win32event.WAIT_TIMEOUT)
 
+class TestWaitFunctions(unittest.TestCase):
+    def testMsgWaitForMultipleObjects(self):
+        # this function used to segfault when called with an empty list
+        res = win32event.MsgWaitForMultipleObjects([], 0, 0, 0)
+        self.assertEquals(res, win32event.WAIT_TIMEOUT)
+
+    def testMsgWaitForMultipleObjects2(self):
+        # test with non-empty list
+        event = win32event.CreateEvent(None, 0, 0, None)
+        res = win32event.MsgWaitForMultipleObjects([event], 0, 0, 0)
+        self.assertEquals(res, win32event.WAIT_TIMEOUT)
+
+    def testMsgWaitForMultipleObjectsEx(self):
+        # this function used to segfault when called with an empty list
+        res = win32event.MsgWaitForMultipleObjectsEx([], 0, 0, 0)
+        self.assertEquals(res, win32event.WAIT_TIMEOUT)
+
+    def testMsgWaitForMultipleObjectsEx2(self):
+        # test with non-empty list
+        event = win32event.CreateEvent(None, 0, 0, None)
+        res = win32event.MsgWaitForMultipleObjectsEx([event], 0, 0, 0)
+        self.assertEquals(res, win32event.WAIT_TIMEOUT)
+
 if __name__=='__main__':
     unittest.main()

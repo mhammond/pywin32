@@ -218,7 +218,6 @@ static PyObject * MyMsgWaitForMultipleObjects(
 // @pyswig int|MsgWaitForMultipleObjectsEx|Returns when a message arrives of an event is signalled
 %name(MsgWaitForMultipleObjectsEx) PyObject *MyMsgWaitForMultipleObjectsEx(
     PyObject *obHandleList, // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
-    BOOL fWaitAll,	// @pyparm int|fWaitAll||wait for all or wait for one 
     DWORD dwMilliseconds,	// @pyparm int|milliseconds||time-out interval in milliseconds 
     DWORD dwWakeMask, 	// @pyparm int|wakeMask||type of input events to wait for 
     DWORD dwFlags 	// @pyparm int|waitFlags||wait flags
@@ -227,7 +226,6 @@ static PyObject * MyMsgWaitForMultipleObjects(
 %{
 static PyObject * MyMsgWaitForMultipleObjectsEx(
     PyObject *handleList,
-    BOOL fWaitAll,	// wait for all or wait for one 
     DWORD dwMilliseconds,	// time-out interval in milliseconds 
     DWORD dwWakeMask,
     DWORD dwFlags 	// wait flags
@@ -240,18 +238,10 @@ static PyObject * MyMsgWaitForMultipleObjectsEx(
 	DWORD rc;
 
 	// Do a LoadLibrary, as the Ex version does not exist on NT3.x, Win95
-	// @comm This method does not exist on NT3.5x or Win95.  If there
-	// is an attempt to use it on these platforms, a COM error with
-	// E_NOTIMPL will be raised.
-	HMODULE hMod = GetModuleHandle("user32.dll");
-	if (hMod==0) return PyWin_SetBasicCOMError(E_HANDLE);
-	FARPROC fp = GetProcAddress(hMod, "MsgWaitForMultipleObjectsEx");
-	if (fp==NULL) return PyWin_SetBasicCOMError(E_NOTIMPL);
-
-	DWORD (*mypfn)(DWORD, LPHANDLE, DWORD, DWORD, DWORD);
-	mypfn = (DWORD (*)(DWORD, LPHANDLE, DWORD, DWORD, DWORD))fp;
+	// @comm This method will no longer raise a COM E_NOTIMPL exception
+        // as it is no longer dynamically loaded.
 	Py_BEGIN_ALLOW_THREADS
-	rc = (*mypfn)(numItems, pItems, dwMilliseconds, dwWakeMask, dwFlags);
+	rc = MsgWaitForMultipleObjectsEx(numItems, pItems, dwMilliseconds, dwWakeMask, dwFlags);
 	Py_END_ALLOW_THREADS
 	PyObject *obrc;
 	if (rc==(DWORD)0xFFFFFFFF)
