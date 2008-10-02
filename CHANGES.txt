@@ -8,6 +8,9 @@ However contributors are encouraged to add their own entries for their work.
 Since build 212:
 ----------------
 
+* MsgWaitForMultipleObjectsEx() would crash in all cases.  Fix from 
+  Ziga Seilnacht via [2141368].
+
 * pywintypes.error and com_error get support for attributes as
   well as indexing (ie, exc.winerror can now be used in place of exc[0].)
   See the help file for details on the attribute names.
