@@ -22,7 +22,14 @@ class MainWindow:
         wc.hCursor = LoadCursor( 0, win32con.IDC_ARROW )
         wc.hbrBackground = win32con.COLOR_WINDOW
         wc.lpfnWndProc = message_map # could also specify a wndproc.
-        classAtom = RegisterClass(wc)
+
+        # Don't blow up if class already registered to make testing easier
+        try:
+            classAtom = win32gui.RegisterClass(wc)
+        except win32gui.error, err_info:
+            if err_info.winerror!=winerror.ERROR_CLASS_ALREADY_EXISTS:
+                raise
+
         # Create the Window.
         style = win32con.WS_OVERLAPPED | win32con.WS_SYSMENU
         self.hwnd = CreateWindow( classAtom, "Taskbar Demo", style, \

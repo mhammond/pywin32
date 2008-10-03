@@ -144,7 +144,7 @@ class FileNames(unittest.TestCase):
         try:
             win32file.CreateDirectoryW(fname, None)
         except win32api.error, details:
-            if details[0]!=winerror.ERROR_ALREADY_EXISTS:
+            if details.winerror!=winerror.ERROR_ALREADY_EXISTS:
                 raise
         try:
             # GetFileAttributes automatically calls GetFileAttributesW when
@@ -152,7 +152,7 @@ class FileNames(unittest.TestCase):
             try:
                 attr = win32api.GetFileAttributes(fname)
             except win32api.error, details:
-                if details[0] != winerror.ERROR_FILENAME_EXCED_RANGE:
+                if details.winerror != winerror.ERROR_FILENAME_EXCED_RANGE:
                     raise
         
             attr = win32api.GetFileAttributes(unicode(fname))

@@ -420,7 +420,7 @@ class DispatchBaseClass:
 				# Some stupid objects fail here, even tho it is _already_ IDispatch!!??
 				# Eg, Lotus notes.
 				# So just let it use the existing object if E_NOINTERFACE
-				if details[0] != winerror.E_NOINTERFACE:
+				if details.hresult != winerror.E_NOINTERFACE:
 					raise
 				oobj = oobj._oleobj_
 		self.__dict__["_oleobj_"] = oobj # so we dont call __setattr__

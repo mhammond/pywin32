@@ -175,8 +175,8 @@ class TestOverlapped(unittest.TestCase):
         try:
             win32file.CloseHandle(hv)
             raise RuntimeError, "Expected close to fail!"
-        except win32file.error, (hr, func, msg):
-            self.failUnlessEqual(hr, winerror.ERROR_INVALID_HANDLE)
+        except win32file.error, details:
+            self.failUnlessEqual(details.winerror, winerror.ERROR_INVALID_HANDLE)
 
     def testCompletionPortsQueued(self):
         class Foo: pass
@@ -488,7 +488,7 @@ class TestEncrypt(unittest.TestCase):
             try:
                 win32file.EncryptFile(fname)
             except win32file.error, details:
-                if details[0] != winerror.ERROR_ACCESS_DENIED:
+                if details.winerror != winerror.ERROR_ACCESS_DENIED:
                     raise
                 print "It appears this is not NTFS - cant encrypt/decrypt"
             win32file.DecryptFile(fname)
