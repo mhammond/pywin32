@@ -1,6 +1,7 @@
 # No cancel button.
 
-from pywin.mfc import dialog, thread
+from pywin.mfc import dialog
+from pywin.mfc.thread import WinThread
 import threading
 import win32ui
 import win32con
@@ -152,14 +153,14 @@ class CThreadedStatusProcessDialog(CStatusProgressDialog):
 		self.max = max
 		self._Send(MYWM_SET)
 
-class ProgressThread(thread.WinThread):
+class ProgressThread(WinThread):
 	def __init__(self,  title, msg = "", maxticks = 100, tickincr = 1):
 		self.title = title
 		self.msg = msg
 		self.maxticks = maxticks
 		self.tickincr = tickincr
 		self.dialog = None
-		thread.WinThread.__init__(self)
+		WinThread.__init__(self)
 		self.createdEvent = threading.Event()
 
 	def InitInstance(self):
@@ -170,7 +171,7 @@ class ProgressThread(thread.WinThread):
 		except win32ui.error:
 			pass
 		self.createdEvent.set()
-		return thread.WinThread.InitInstance(self)
+		return WinThread.InitInstance(self)
 
 	def ExitInstance(self):
 		return 0
