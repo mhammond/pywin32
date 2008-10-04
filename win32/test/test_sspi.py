@@ -9,9 +9,9 @@ class TestSSPI(unittest.TestCase):
     def assertRaisesHRESULT(self, hr, func, *args):
         try:
             return func(*args)
-            raise RuntimeError, "expecting %s failure" % (hr,)
-        except win32security.error, (hr_got, func, msg):
-            self.failUnlessEqual(hr_got, hr)
+            raise RuntimeError("expecting %s failure" % (hr,))
+        except win32security.error, exc:
+            self.failUnlessEqual(exc.winerror, hr)
 
     def _doAuth(self, pkg_name):
         sspiclient=sspi.ClientAuth(pkg_name,targetspn=win32api.GetUserName())
