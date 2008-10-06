@@ -57,7 +57,8 @@ class TestStuff(unittest.TestCase):
                     userid varchar(5),  username varchar(25),
                     bitfield bit,       intfield integer,
                     floatfield float,
-                    datefield date
+                    datefield date,
+                    rawfield varbinary(100)
                 )"""),-1)
 
     def tearDown(self):
@@ -131,6 +132,16 @@ class TestStuff(unittest.TestCase):
 
     def testVarchar(self, ):
         self._test_val('username', 'foo')
+
+    def testRaw(self):
+        ## Test binary data
+        self._test_val('rawfield', buffer('\1\2\3\4\0\5\6\7\8'))
+
+    def test_widechar(self):
+        """Test a unicode character that would be mangled if bound as plain character.
+            For example, previously the below was returned as ascii 'a'
+        """
+        self._test_val('username', u'\u0101')
 
     def testDates(self):
         import datetime
