@@ -3,7 +3,6 @@ import sys
 import os
 import unittest
 import odbc
-import dbi
 import tempfile
 
 # We use the DAO ODBC driver
@@ -49,7 +48,7 @@ class TestStuff(unittest.TestCase):
         self.cur = self.conn.cursor()
         try:
             self.cur.execute("""drop table pywin32test_users""")
-        except (odbc.error, dbi.progError):
+        except (odbc.error, odbc.progError):
             pass
         
         self.assertEqual(self.cur.execute(
@@ -65,7 +64,7 @@ class TestStuff(unittest.TestCase):
         if self.cur is not None:
             try:
                 self.cur.execute("""drop table pywin32test_users""")
-            except (odbc.error, dbi.progError), why:
+            except (odbc.error, odbc.progError), why:
                 print "Failed to delete test table:", why
 
             self.cur.close()
@@ -89,7 +88,7 @@ class TestStuff(unittest.TestCase):
         # (but for now ignore a warning about the value being truncated)
         try:
             self.test_insert_select(userid='Frank' * 200, username='Frank Millman' * 200)
-        except dbi.noError:
+        except odbc.noError:
             pass
 
     def test_insert_select_unicode(self, userid=u'Frank', username=u"Frank Millman"):
