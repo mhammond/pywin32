@@ -30,7 +30,7 @@ PythonImageList::~PythonImageList()
 void PythonImageList::Dump( CDumpContext &dc ) const
 {
 	CImageList::Dump(dc);
-	DumpAssocPyObject(dc, (void *)this);
+	// DumpAssocPyObject(dc, (void *)this);
 }
 #endif
 
