@@ -828,18 +828,27 @@ void PyWinGlobals_Ensure()
 			Py_DECREF(bimod);
 		}
 		// Note using 'super()' doesn't work as expected on py23...
+		// Need to be careful to support "insane" args...
 		PyRun_String("class error(Exception):\n"
 			     "  def __init__(self, *args, **kw):\n"
-			     "    self.winerror, self.funcname, self.strerror = args[:3]\n"
+			     "    nargs = len(args)\n"
+			     "    if nargs > 0: self.winerror = args[0]\n"
+			     "    else: self.winerror = None\n"
+			     "    if nargs > 1: self.funcname = args[1]\n"
+			     "    else: self.funcname = None\n"
+			     "    if nargs > 2: self.strerror = args[2]\n"
+			     "    else: self.strerror = None\n"
 			     "    Exception.__init__(self, *args, **kw)\n"
 			     "class com_error(Exception):\n"
 			     "  def __init__(self, *args, **kw):\n"
-			     "    self.hresult = args[0]\n"
-			     "    if len(args)>1: self.strerror = args[1]\n"
+			     "    nargs = len(args)\n"
+			     "    if nargs > 0: self.hresult = args[0]\n"
+			     "    else: self.hresult = None\n"
+			     "    if nargs > 1: self.strerror = args[1]\n"
 			     "    else: self.strerror = None\n"
-			     "    if len(args)>2: self.excepinfo = args[2]\n"
+			     "    if nargs > 2: self.excepinfo = args[2]\n"
 			     "    else: self.excepinfo = None\n"
-			     "    if len(args)>3: self.argerror = args[3]\n"
+			     "    if nargs > 3: self.argerror = args[3]\n"
 			     "    else: self.argerror = None\n"
 			     "    Exception.__init__(self, *args, **kw)\n"
 			     ,

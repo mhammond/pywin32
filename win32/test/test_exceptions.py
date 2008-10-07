@@ -1,4 +1,5 @@
 """Test pywin32's error semantics"""
+import sys
 import unittest
 import win32api, win32file, pywintypes
 import pythoncom
@@ -82,6 +83,39 @@ class TestAPISimple(TestBase):
         self.failUnlessEqual(exc.strerror, err_msg)
         self.failUnlessEqual(exc.funcname, 'CloseHandle')
 
+    # some tests for 'insane' args.
+    def testStrangeArgsNone(self):
+        try:
+            raise pywintypes.error()
+            self.fail("Expected exception")
+        except pywintypes.error, exc:
+            self.failUnlessEqual(exc.args, ())
+            self.failUnlessEqual(exc.winerror, None)
+            self.failUnlessEqual(exc.funcname, None)
+            self.failUnlessEqual(exc.strerror, None)
+
+    def testStrangeArgsNotEnough(self):
+        try:
+            raise pywintypes.error("foo")
+            self.fail("Expected exception")
+        except pywintypes.error, exc:
+            assert exc.args[0] == "foo"
+            # 'winerror' always args[0]
+            self.failUnlessEqual(exc.winerror, "foo")
+            self.failUnlessEqual(exc.funcname, None)
+            self.failUnlessEqual(exc.strerror, None)
+
+    def testStrangeArgsTooMany(self):
+        try:
+            raise pywintypes.error("foo", "bar", "you", "never", "kn", 0)
+            self.fail("Expected exception")
+        except pywintypes.error, exc:
+            self.failUnlessEqual(exc.args[0], "foo")
+            self.failUnlessEqual(exc.args[-1], 0)
+            self.failUnlessEqual(exc.winerror, "foo")
+            self.failUnlessEqual(exc.funcname, "bar")
+            self.failUnlessEqual(exc.strerror, "you")
+
 class TestCOMSimple(TestBase):
     def _getException(self):
         try:
@@ -141,6 +175,40 @@ class TestCOMSimple(TestBase):
         self.failUnlessEqual(exc.strerror, err_msg)
         self.failUnlessEqual(exc.argerror, None)
         self.failUnlessEqual(exc.excepinfo, None)
-        
+
+    def testStrangeArgsNone(self):
+        try:
+            raise pywintypes.com_error()
+            self.fail("Expected exception")
+        except pywintypes.com_error, exc:
+            self.failUnlessEqual(exc.args, ())
+            self.failUnlessEqual(exc.hresult, None)
+            self.failUnlessEqual(exc.strerror, None)
+            self.failUnlessEqual(exc.argerror, None)
+            self.failUnlessEqual(exc.excepinfo, None)
+
+    def testStrangeArgsNotEnough(self):
+        try:
+            raise pywintypes.com_error("foo")
+            self.fail("Expected exception")
+        except pywintypes.com_error, exc:
+            self.failUnlessEqual(exc.args[0], "foo")
+            self.failUnlessEqual(exc.hresult, "foo")
+            self.failUnlessEqual(exc.strerror, None)
+            self.failUnlessEqual(exc.excepinfo, None)
+            self.failUnlessEqual(exc.argerror, None)
+
+    def testStrangeArgsTooMany(self):
+        try:
+            raise pywintypes.com_error("foo", "bar", "you", "never", "kn", 0)
+            self.fail("Expected exception")
+        except pywintypes.com_error, exc:
+            self.failUnlessEqual(exc.args[0], "foo")
+            self.failUnlessEqual(exc.args[-1], 0)
+            self.failUnlessEqual(exc.hresult, "foo")
+            self.failUnlessEqual(exc.strerror, "bar")
+            self.failUnlessEqual(exc.excepinfo, "you")
+            self.failUnlessEqual(exc.argerror, "never")
+
 if __name__ == '__main__':
     unittest.main()
