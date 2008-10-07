@@ -1902,7 +1902,7 @@ static PyObject *PyGetConsoleWindow(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args,":GetConsoleWindow"))
 		return NULL;
 	h=(*pfnGetConsoleWindow)();
-	return PyWinObject_FromHANDLE(h);
+	return PyWinLong_FromHANDLE(h);
 }
 
 // @pymethod int|win32console|GetNumberOfConsoleFonts|Returns the number of fonts available to the console
