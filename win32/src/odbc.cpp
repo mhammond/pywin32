@@ -626,10 +626,11 @@ static PyObject *doubleCopy(const void *v, int sz)
 static PyObject *dateCopy(const void *v, int sz)
 {
 	const TIMESTAMP_STRUCT  *dt = (const TIMESTAMP_STRUCT *) v;
-	return PyObject_CallFunction(datetime_class, "hhhhhhl",
+	// Units for fraction is billionths, python datetime uses microseconds
+	unsigned long usec=dt->fraction/1000;
+	return PyObject_CallFunction(datetime_class, "hhhhhhk",
 		dt->year, dt->month, dt->day,
-		dt->hour, dt->minute, dt->second, dt->fraction);
-	// ??? Not sure what units fraction uses ???
+		dt->hour, dt->minute, dt->second, usec);
 }
 
 static PyObject *rawCopy(const void *v, int sz)
@@ -838,6 +839,24 @@ static int ibindNull(cursorObject*cur, int column)
   return 1;
 }
 
+// Class to hold a temporary reference that decrements itself
+class TmpPyObject
+{
+public:
+	PyObject *tmp;
+	TmpPyObject() { tmp=NULL; }
+	TmpPyObject(PyObject *ob) { tmp=ob; }
+	PyObject * operator= (PyObject *ob){
+		Py_XDECREF(tmp);
+		tmp=ob;
+		return tmp;
+		}
+
+	boolean operator== (PyObject *ob) { return tmp==ob; }
+	operator PyObject *() { return tmp; }
+	~TmpPyObject() { Py_XDECREF(tmp); }
+};
+
 static int ibindDate(cursorObject*cur, int column, PyObject *item) 
 {
 	int len = sizeof(TIMESTAMP_STRUCT);
@@ -845,7 +864,7 @@ static int ibindDate(cursorObject*cur, int column, PyObject *item)
 	if (!ib)
 		return 0;
 	TIMESTAMP_STRUCT *dt = (TIMESTAMP_STRUCT*) ib->bind_area ;
-	ZeroMemory(dt, sizeof(*dt));
+	ZeroMemory(dt, len);
 	// Accept either a PyTime or datetime object
 	if (PyTime_Check(item)){
 		SYSTEMTIME st;
@@ -857,31 +876,35 @@ static int ibindDate(cursorObject*cur, int column, PyObject *item)
 		dt->hour = st.wHour;
 		dt->minute = st.wMinute;
 		dt->second = st.wSecond;
-		dt->fraction = st.wMilliseconds;
-		// ??? Not sure what units fraction is in ???
+		// Fraction is in nanoseconds
+		dt->fraction = st.wMilliseconds * 1000000;
 		}
 	else{
 		// Python 2.3 doesn't have C Api for datetime
-		PyObject *timeseq = PyObject_CallMethod(item, "timetuple", NULL);
+		TmpPyObject timeseq = PyObject_CallMethod(item, "timetuple", NULL);
 		if (timeseq==NULL)
 			return 0;
-		PyObject *timetuple=PySequence_Tuple(timeseq);
-		if (timetuple==NULL){
-			Py_DECREF(timeseq);
+		timeseq=PySequence_Tuple(timeseq);
+		if (timeseq==NULL)
 			return 0;
-			}
-		// Last 3 items are ignored.  Need to figure out how to get fractional seconds also.
+		// Last 3 items are ignored.
 		PyObject *obwday, *obyday, *obdst;
-		if (!PyArg_ParseTuple(timetuple, "hhh|hhhOOO:TIMESTAMP_STRUCT",
+		if (!PyArg_ParseTuple(timeseq, "hhh|hhhOOO:TIMESTAMP_STRUCT",
 			&dt->year, &dt->month, &dt->day,
 			&dt->hour, &dt->minute, &dt->second,
-			&obwday, &obyday, &obdst)){
-			Py_DECREF(timeseq);
-			Py_DECREF(timetuple);
+			&obwday, &obyday, &obdst))
 			return 0;
+
+		TmpPyObject usec=PyObject_GetAttrString(item, "microsecond");
+		if (usec != NULL){
+			dt->fraction=PyLong_AsUnsignedLong(usec);
+			if (dt->fraction == -1 && PyErr_Occurred())
+				return 0;
+			// Convert to nanoseconds
+			dt->fraction *= 1000;
 			}
-		Py_DECREF(timeseq);
-		Py_DECREF(timetuple);
+		else
+			PyErr_Clear();
 		}
 
 	if (unsuccessful(SQLBindParameter(
@@ -891,7 +914,7 @@ static int ibindDate(cursorObject*cur, int column, PyObject *item)
 		SQL_C_TIMESTAMP,
 		SQL_TIMESTAMP,
 		len,
-		0, 
+		9,	// Decimal digits of precision, appears to be ignored for datetime
 		ib->bind_area,
 		len,
 		&ib->len)))
@@ -1013,17 +1036,17 @@ static int ibindString(cursorObject *cur, int column, PyObject *item)
 static int ibindUnicode(cursorObject *cur, int column, PyObject *item)
 {
   const WCHAR *wval = (WCHAR *)PyUnicode_AsUnicode(item);
-  Py_ssize_t nchars = PyUnicode_GetSize(item) + 1;
+  Py_ssize_t nchars = PyUnicode_GetSize(item);
   Py_ssize_t nbytes = nchars * sizeof(WCHAR);
 
   InputBinding *ib = initInputBinding(cur, nbytes);
   if (!ib)
       return 0;
 
-  wcsncpy((WCHAR *)ib->bind_area, wval, nchars);
+  memcpy(ib->bind_area, wval, nbytes);
   /* See above re SQL_VARCHAR */
   int sqlType = SQL_WVARCHAR;
-  if (nbytes > 255)
+  if (nchars > 255)
   {
 	  ib->sqlBytesAvailable = SQL_LEN_DATA_AT_EXEC(ib->len);
 	  sqlType = SQL_WLONGVARCHAR;
@@ -1041,7 +1064,7 @@ static int ibindUnicode(cursorObject *cur, int column, PyObject *item)
 	  SQL_PARAM_INPUT,
 	  SQL_C_WCHAR, 
 	  sqlType,
-	  nbytes,
+	  nchars,
 	  0, 
 	  ib->bind_area,
 	  nbytes,
@@ -1203,7 +1226,7 @@ static int bindOutput(cursorObject *cur)
 		long dsize;
 		unsigned long prec;
 		short nullok;
-		short nsize = sizeof(nsize);
+		short nsize;
 		short scale = 0;
 		SQLDescribeCol(
 			cur->hstmt,
@@ -1212,7 +1235,7 @@ static int bindOutput(cursorObject *cur)
 			sizeof(name)/sizeof(name[0]),
 			&nsize,
 			&vtype,
-			&vsize,
+			&vsize,	// This is column size in characters
 			&scale,
 			&nullok);
 		name[nsize] = 0;
@@ -1255,7 +1278,7 @@ static int bindOutput(cursorObject *cur)
 				cur,
 				dateCopy,
 				SQL_C_TIMESTAMP,
-				sizeof(TIMESTAMP_STRUCT),
+				vsize,
 				pos,
 				false);
 			typeOf = DbiDate;
@@ -1284,6 +1307,9 @@ static int bindOutput(cursorObject *cur)
 			break;
 		case SQL_VARCHAR:
 		case SQL_WVARCHAR:
+			bindOutputVar(cur, wcharCopy, SQL_C_WCHAR, (vsize+1)*sizeof(WCHAR), pos, false);
+			typeOf = DbiString;
+			break;
 		case SQL_LONGVARCHAR:
 		case SQL_WLONGVARCHAR:
 			bindOutputVar(cur, wcharCopy, SQL_C_WCHAR, cur->max_width, pos, true);
