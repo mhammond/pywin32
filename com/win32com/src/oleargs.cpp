@@ -162,7 +162,8 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
 	else if (PyTime_Check(obj) || PyObject_HasAttrString(obj, "timetuple"))
 	{
 		V_VT(var) = VT_DATE;
-		PyWinObject_AsDATE(obj, &(V_DATE(var)));
+		if (!PyWinObject_AsDATE(obj, &(V_DATE(var))))
+			return FALSE;
 	}
 	else if (PyBuffer_Check(obj)) {
 		// We have a buffer object - convert to safe array of VT_UI1
