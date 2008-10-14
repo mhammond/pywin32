@@ -155,7 +155,7 @@ PyObject *PyIScheduledWorkItem::GetRunTimes(PyObject *self, PyObject *args)
 
 	PyObject *ret=NULL, *run_time_obj=NULL;
 	PyObject *obstart_time=NULL, *obend_time=NULL;
-	if (!PyArg_ParseTuple(args, "l|OO:GetRunTimes", &wCount, &obstart_time, &obend_time))
+	if (!PyArg_ParseTuple(args, "h|OO:GetRunTimes", &wCount, &obstart_time, &obend_time))
 		return NULL;
 	if ((obstart_time==NULL)||(obstart_time==Py_None))
 		GetLocalTime(&start_time);
@@ -388,13 +388,13 @@ PyObject *PyIScheduledWorkItem::SetComment(PyObject *self, PyObject *args)
 	LPWSTR pwszComment;
 	if ( !PyArg_ParseTuple(args, "O:SetComment", &obpwszComment) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyWinObject_AsBstr(obpwszComment, &pwszComment)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+
+	if (!PyWinObject_AsWCHAR(obpwszComment, &pwszComment))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISWI->SetComment( pwszComment );
-	SysFreeString(pwszComment);
+	PyWinObject_FreeWCHAR(pwszComment);
 
 	PY_INTERFACE_POSTCALL;
 
@@ -438,13 +438,12 @@ PyObject *PyIScheduledWorkItem::SetCreator(PyObject *self, PyObject *args)
 	LPWSTR pwszCreator;
 	if ( !PyArg_ParseTuple(args, "O:SetCreator", &obpwszCreator) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyWinObject_AsBstr(obpwszCreator, &pwszCreator)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsWCHAR(obpwszCreator, &pwszCreator))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pISWI->SetCreator( pwszCreator );
-	SysFreeString(pwszCreator);
+	PyWinObject_FreeWCHAR(pwszCreator);
 
 	PY_INTERFACE_POSTCALL;
 
