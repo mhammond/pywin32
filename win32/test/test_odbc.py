@@ -12,6 +12,7 @@ import pythoncom
 
 class TestStuff(unittest.TestCase):
     def setUp(self):
+        self.tablename = "pywin32test_users"
         self.db_filename = None
         self.conn = self.cur = None
         try:
@@ -19,9 +20,7 @@ class TestStuff(unittest.TestCase):
             conn_str = os.environ['TEST_ODBC_CONNECTION_STRING']
         except KeyError:
             # Create a local MSAccess DB for testing.
-            self.db_filename = os.path.join(tempfile.gettempdir(), "test_odbc.mdb")
-            if os.path.isfile(self.db_filename):
-                os.unlink(self.db_filename)
+            self.db_filename = tempfile.NamedTemporaryFile().name + '.mdb'
     
             # Create a brand-new database - what is the story with these?
             for suffix in (".36", ".35", ".30"):
@@ -31,7 +30,7 @@ class TestStuff(unittest.TestCase):
                 except pythoncom.com_error:
                     pass
             else:
-                raise RuntimeError, "Can't find a DB engine"
+                raise RuntimeError("Can't find a DB engine")
     
             workspace = dbe.Workspaces(0)
     
@@ -43,29 +42,38 @@ class TestStuff(unittest.TestCase):
     
             conn_str = "Driver={Microsoft Access Driver (*.mdb)};dbq=%s;Uid=;Pwd=;" \
                        % (self.db_filename,)
+        ## print ('Connection string:', conn_str)
         self.conn = odbc.odbc(conn_str)
         # And we expect a 'users' table for these tests.
         self.cur = self.conn.cursor()
+        ## self.cur.setoutputsize(1000)
         try:
-            self.cur.execute("""drop table pywin32test_users""")
+            self.cur.execute("""drop table %s""" %self.tablename)
         except (odbc.error, odbc.progError):
             pass
-        
+
+        ## This needs to be adjusted for sql server syntax for unicode fields
+        ##  - memo -> TEXT
+        ##  - varchar -> nvarchar
         self.assertEqual(self.cur.execute(
-            """create table pywin32test_users (
-                    userid varchar(5),  username varchar(25),
-                    bitfield bit,       intfield integer,
+            """create table %s (
+                    userid varchar(25),
+                    username varchar(25),
+                    bitfield bit,
+                    intfield integer,
                     floatfield float,
-                    datefield date,
-                    rawfield varbinary(100)
-                )"""),-1)
+                    datefield datetime,
+                    rawfield varbinary(100),
+                    longtextfield memo,
+                    longbinaryfield image
+            )""" %self.tablename),-1)
 
     def tearDown(self):
         if self.cur is not None:
             try:
-                self.cur.execute("""drop table pywin32test_users""")
+                self.cur.execute("""drop table %s""" %self.tablename)
             except (odbc.error, odbc.progError), why:
-                print "Failed to delete test table:", why
+                print ("Failed to delete test table %s" %self.tablename, why)
 
             self.cur.close()
             self.cur = None
@@ -73,31 +81,26 @@ class TestStuff(unittest.TestCase):
             self.conn.close()
             self.conn = None
         if self.db_filename is not None:
-            os.unlink(self.db_filename)
+            try:
+                os.unlink(self.db_filename)
+            except OSError:
+                pass
 
     def test_insert_select(self, userid='Frank', username='Frank Millman'):
-        self.assertEqual(self.cur.execute("insert into pywin32test_users (userid, username) \
-            values (?,?)", [userid, username]),1)
-        self.assertEqual(self.cur.execute("select * from pywin32test_users \
-            where userid = ?", [userid.lower()]),0)
-        self.assertEqual(self.cur.execute("select * from pywin32test_users \
-            where username = ?", [username.lower()]),0)
-
-    def test_insert_select_large(self):
-        # hard-coded 256 limit in ODBC to trigger large value support
-        # (but for now ignore a warning about the value being truncated)
-        try:
-            self.test_insert_select(userid='Frank' * 200, username='Frank Millman' * 200)
-        except odbc.noError:
-            pass
+        self.assertEqual(self.cur.execute("insert into %s (userid, username) \
+            values (?,?)" %self.tablename, [userid, username]),1)
+        self.assertEqual(self.cur.execute("select * from %s \
+            where userid = ?" %self.tablename, [userid.lower()]),0)
+        self.assertEqual(self.cur.execute("select * from %s \
+            where username = ?" %self.tablename, [username.lower()]),0)
 
     def test_insert_select_unicode(self, userid=u'Frank', username=u"Frank Millman"):
-        self.assertEqual(self.cur.execute("insert into pywin32test_users (userid, username)\
-            values (?,?)", [userid, username]),1)
-        self.assertEqual(self.cur.execute("select * from pywin32test_users \
-            where userid = ?", [userid.lower()]),0)
-        self.assertEqual(self.cur.execute("select * from pywin32test_users \
-            where username = ?", [username.lower()]),0)
+        self.assertEqual(self.cur.execute("insert into %s (userid, username)\
+            values (?,?)" %self.tablename, [userid, username]),1)
+        self.assertEqual(self.cur.execute("select * from %s \
+            where userid = ?" %self.tablename, [userid.lower()]),0)
+        self.assertEqual(self.cur.execute("select * from %s \
+            where username = ?" %self.tablename, [username.lower()]),0)
 
     def test_insert_select_unicode_ext(self):
         userid = unicode("t-\xe0\xf2", "mbcs")
@@ -105,16 +108,17 @@ class TestStuff(unittest.TestCase):
         self.test_insert_select_unicode(userid, username)
 
     def _test_val(self, fieldName, value):
-        self.cur.execute("delete from pywin32test_users where userid='Frank'")
-        self.assertEqual(self.cur.execute(
-            "insert into pywin32test_users (userid, %s) values (?,?)" % fieldName,
-            ["Frank", value]), 1)
-        self.cur.execute("select %s from pywin32test_users where userid = ?" % fieldName,
-                         ["Frank"])
-        rows = self.cur.fetchmany()
-        self.failUnlessEqual(1, len(rows))
-        row = rows[0]
-        self.failUnlessEqual(row[0], value)
+        for x in range(100):
+            self.cur.execute("delete from %s where userid='Frank'" %self.tablename)
+            self.assertEqual(self.cur.execute(
+                "insert into %s (userid, %s) values (?,?)" % (self.tablename, fieldName),
+                ["Frank", value]), 1)
+            self.cur.execute("select %s from %s where userid = ?" % (fieldName, self.tablename),
+                             ["Frank"])
+            rows = self.cur.fetchmany()
+            self.failUnlessEqual(1, len(rows))
+            row = rows[0]
+            self.failUnlessEqual(row[0], value)
 
     def testBit(self):
         self._test_val('bitfield', 1)
@@ -124,13 +128,21 @@ class TestStuff(unittest.TestCase):
         self._test_val('intfield', 1)
         self._test_val('intfield', 0)
         self._test_val('intfield', sys.maxint)
-
+        
     def testFloat(self):
         self._test_val('floatfield', 1.01)
         self._test_val('floatfield', 0)
 
     def testVarchar(self, ):
         self._test_val('username', 'foo')
+
+    def testLongVarchar(self):
+        """ Test a long text field in excess of internal cursor data size (65536)"""
+        self._test_val('longtextfield', 'abc' * 70000)
+
+    def testLongBinary(self):
+        """ Test a long raw field in excess of internal cursor data size (65536)"""
+        self._test_val('longbinaryfield', buffer('\0\1\2' * 70000))
 
     def testRaw(self):
         ## Test binary data
@@ -145,29 +157,29 @@ class TestStuff(unittest.TestCase):
     def testDates(self):
         import datetime
         for v in (
-            (1800, 12, 25, 23, 59,),
+            (1900, 12, 25, 23, 39, 59),
             ):
             d = datetime.datetime(*v)
             self._test_val('datefield', d)
 
     def test_set_nonzero_length(self):
-        self.assertEqual(self.cur.execute("insert into pywin32test_users (userid,username) "
-            "values (?,?)",['Frank', 'Frank Millman']),1)
-        self.assertEqual(self.cur.execute("update pywin32test_users set username = ?",
+        self.assertEqual(self.cur.execute("insert into %s (userid,username) "
+            "values (?,?)" %self.tablename, ['Frank', 'Frank Millman']),1)
+        self.assertEqual(self.cur.execute("update %s set username = ?" %self.tablename,
             ['Frank']),1)
-        self.assertEqual(self.cur.execute("select * from pywin32test_users"),0)
+        self.assertEqual(self.cur.execute("select * from %s" %self.tablename), 0)
         self.assertEqual(len(self.cur.fetchone()[1]),5)
 
     def test_set_zero_length(self):
-        self.assertEqual(self.cur.execute("insert into pywin32test_users (userid,username) "
-            "values (?,?)",['Frank', '']),1)
-        self.assertEqual(self.cur.execute("select * from pywin32test_users"),0)
+        self.assertEqual(self.cur.execute("insert into %s (userid,username) "
+            "values (?,?)" %self.tablename, ['Frank', '']),1)
+        self.assertEqual(self.cur.execute("select * from %s" %self.tablename), 0)
         self.assertEqual(len(self.cur.fetchone()[1]),0)
 
     def test_set_zero_length_unicode(self):
-        self.assertEqual(self.cur.execute("insert into pywin32test_users (userid,username) "
-            "values (?,?)",[u'Frank', u'']),1)
-        self.assertEqual(self.cur.execute("select * from pywin32test_users"),0)
+        self.assertEqual(self.cur.execute("insert into %s (userid,username) "
+            "values (?,?)" %self.tablename, [u'Frank', u'']),1)
+        self.assertEqual(self.cur.execute("select * from %s" %self.tablename), 0)
         self.assertEqual(len(self.cur.fetchone()[1]),0)
 
 if __name__ == '__main__':
