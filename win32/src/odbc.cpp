@@ -63,7 +63,7 @@ static connectionObject *connection(PyObject *o)
 	return  (connectionObject *) o;
 }
 
-typedef PyObject * (* CopyFcn)(const void *, int);
+typedef PyObject * (* CopyFcn)(const void *, SQLLEN);
 
 typedef struct _out
 {
@@ -549,7 +549,7 @@ static BOOL bindOutputVar
 	cursorObject *cur,
 	CopyFcn fcn,
 	short vtype,
-	long vsize,
+	SQLLEN vsize,
 	int pos,
 	bool bUseGet
 )
@@ -609,29 +609,29 @@ static BOOL bindOutputVar
 	return TRUE;
 }
 
-static PyObject *wcharCopy(const void *v, int sz)
+static PyObject *wcharCopy(const void *v, SQLLEN sz)
 {
 	return PyWinObject_FromWCHAR((WCHAR *)v, sz/sizeof(WCHAR));
 }
 
-static PyObject *stringCopy(const void *v, int sz)
+static PyObject *stringCopy(const void *v, SQLLEN sz)
 {
 	return PyString_FromStringAndSize((char *)v, sz);
 }
 
-static PyObject *longCopy(const void *v, int sz)
+static PyObject *longCopy(const void *v, SQLLEN sz)
 {
 	return PyInt_FromLong(*(unsigned long *)v);
 }
 
-static PyObject *doubleCopy(const void *v, int sz)
+static PyObject *doubleCopy(const void *v, SQLLEN sz)
 {
 	double d = *(double *)v;
 
 	return (d == floor(d)) ? PyLong_FromDouble(d) : PyFloat_FromDouble(d);
 }
 
-static PyObject *dateCopy(const void *v, int sz)
+static PyObject *dateCopy(const void *v, SQLLEN sz)
 {
 	const TIMESTAMP_STRUCT  *dt = (const TIMESTAMP_STRUCT *) v;
 	// Units for fraction is billionths, python datetime uses microseconds
@@ -641,7 +641,7 @@ static PyObject *dateCopy(const void *v, int sz)
 		dt->hour, dt->minute, dt->second, usec);
 }
 
-static PyObject *rawCopy(const void *v, int sz)
+static PyObject *rawCopy(const void *v, SQLLEN sz)
 {
 	PyObject *ret = PyBuffer_New(sz);
 	if (!ret)
@@ -849,7 +849,19 @@ static int ibindNull(cursorObject*cur, int column)
 
 static int ibindDate(cursorObject*cur, int column, PyObject *item) 
 {
-	int len = sizeof(TIMESTAMP_STRUCT);
+	/* Sql server apparently determines the precision and type of date based
+		on length of input, according to the character size required for column
+		storage.  This is completely bogus when passing a TIMESTAMP_STRUCT, whose
+		length is always 16.  This apparently causes Sql Server to treat it as a
+		SMALLDATETIME, and truncates seconds as well as fraction of second, and
+		also limits the range of acceptable dates.
+		Tell it we have enough room for 3 decimals, since this is all that
+		SYSTEMTIME affords, and all that Sql Server 2005 will accept.
+		Sql Server 2008 has a datetime2 with up to 7 decimals.
+		Might need to use SqlDescribeCol to get length and precision to support this.
+	*/
+	SQLLEN len = 23;	// length of character storage for yyyy-mm-dd hh:mm:ss.ddd
+	assert(len >= sizeof(TIMESTAMP_STRUCT));
 	InputBinding *ib = initInputBinding(cur, len);
 	if (!ib)
 		return 0;
@@ -910,7 +922,7 @@ static int ibindDate(cursorObject*cur, int column, PyObject *item)
 		SQL_C_TIMESTAMP,
 		SQL_TIMESTAMP,
 		len,
-		9,	// Decimal digits of precision, appears to be ignored for datetime
+		3,	// Decimal digits of precision, appears to be ignored for datetime
 		ib->bind_area,
 		len,
 		&ib->len)))
