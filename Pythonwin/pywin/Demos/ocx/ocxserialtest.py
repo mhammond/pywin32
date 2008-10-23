@@ -47,7 +47,7 @@ class MySerialControl(activex.Control, serialModule.MSComm):
 
 class TestSerDialog(dialog.Dialog):
 	def __init__(self, *args):
-		apply( dialog.Dialog.__init__, (self,)+args )
+		dialog.Dialog.__init__(*(self,)+args)
 		self.olectl = None
 	def OnComm(self):
 		event = self.olectl.CommEvent
@@ -79,7 +79,7 @@ class TestSerDialog(dialog.Dialog):
 			try:
 				self.olectl.PortOpen = 1
 			except pythoncom.com_error, details:
-				print "Could not open the specified serial port - %s" % (details[2][2])
+				print "Could not open the specified serial port - %s" % (details.excepinfo[2])
 				self.EndDialog(win32con.IDCANCEL)
 		return rc
 
