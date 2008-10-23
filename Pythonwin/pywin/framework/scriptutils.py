@@ -262,8 +262,8 @@ def RunScript(defName=None, defArgs=None, bShowDialog = 1, debuggingType=None):
 
 	try:
 		f = open(script)
-	except IOError, (code, msg):
-		win32ui.MessageBox("The file could not be opened - %s (%d)" % (msg, code))
+	except IOError, exc:
+		win32ui.MessageBox("The file could not be opened - %s (%d)" % (exc.strerror, exc.errno))
 		return
 
 	# Remember and hack sys.argv for the script.
