@@ -36,12 +36,8 @@ def RegisterCLSIDsFromDict( dict ):
 	
 	Typically called by makepy generated modules at import time.
 	"""
-	try:
-		mapCLSIDToClass.update(dict)
-	except AttributeError: # Python 1.4?
-		for clsid, pythonClass in dict.items():
-			mapCLSIDToClass[clsid] = pythonClass
-		
+	mapCLSIDToClass.update(dict)
+
 def GetClass(clsid):
 	"""Given a CLSID, return the globally associated class.
 	
