@@ -232,6 +232,6 @@ def GetSimpleInput(prompt, defValue='', title=None ):
 			return Dialog.OnInitDialog(self)
 			
 	dlg=DlgSimpleInput( prompt, defValue, title)
-	if dlg.DoModal() <> win32con.IDOK:
+	if dlg.DoModal() != win32con.IDOK:
 		return None
 	return dlg['result']

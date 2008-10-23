@@ -87,4 +87,4 @@ def GetEditorFontOption(option, default = None):
 def SetEditorFontOption(option, newValue):
 	SetEditorOption(option, str(newValue))
 
-from pywin.framework.editor.color.coloreditor import *
+from pywin.framework.editor.color.coloreditor import editorTemplate

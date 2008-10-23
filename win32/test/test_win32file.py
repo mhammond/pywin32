@@ -174,7 +174,7 @@ class TestOverlapped(unittest.TestCase):
         # Check that.
         try:
             win32file.CloseHandle(hv)
-            raise RuntimeError, "Expected close to fail!"
+            raise RuntimeError("Expected close to fail!")
         except win32file.error, details:
             self.failUnlessEqual(details.winerror, winerror.ERROR_INVALID_HANDLE)
 

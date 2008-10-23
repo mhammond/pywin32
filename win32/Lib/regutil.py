@@ -87,10 +87,10 @@ def UnregisterPythonExe(exeAlias):
 	"""
 	try:
 		win32api.RegDeleteKey(GetRootKey(), GetAppPathsKey() + "\\" + exeAlias)
-	except win32api.error, (code, fn, details):
+	except win32api.error, exc:
 		import winerror
-		if code!=winerror.ERROR_FILE_NOT_FOUND:
-			raise win32api.error(code, fn, desc)
+		if exc.winerror!=winerror.ERROR_FILE_NOT_FOUND:
+			raise
 		return
 
 def RegisterNamedPath(name, path):
@@ -106,10 +106,10 @@ def UnregisterNamedPath(name):
 	keyStr = BuildDefaultPythonKey() + "\\PythonPath\\" + name
 	try:
 		win32api.RegDeleteKey(GetRootKey(), keyStr)
-	except win32api.error, (code, fn, details):
+	except win32api.error, exc:
 		import winerror
-		if code!=winerror.ERROR_FILE_NOT_FOUND:
-			raise win32api.error(code, fn, desc)
+		if exc.winerror!=winerror.ERROR_FILE_NOT_FOUND:
+			raise
 		return
 
 def GetRegisteredNamedPath(name):
@@ -119,10 +119,10 @@ def GetRegisteredNamedPath(name):
 	if name: keyStr = keyStr + "\\" + name
 	try:
 		return win32api.RegQueryValue(GetRootKey(), keyStr)
-	except win32api.error, (code, fn, details):
+	except win32api.error, exc:
 		import winerror
-		if code!=winerror.ERROR_FILE_NOT_FOUND:
-			raise win32api.error(code, fn, details)
+		if exc.winerror!=winerror.ERROR_FILE_NOT_FOUND:
+			raise
 		return None
 
 
@@ -151,10 +151,10 @@ def UnregisterModule(modName):
 	try:
 		win32api.RegDeleteKey(GetRootKey(), 
 		                     BuildDefaultPythonKey() + "\\Modules\\%s" % modName)
-	except win32api.error, (code, fn, desc):
+	except win32api.error, exc:
 		import winerror
-		if code!=winerror.ERROR_FILE_NOT_FOUND:
-			raise win32api.error(code, fn, desc)
+		if exc.winerror!=winerror.ERROR_FILE_NOT_FOUND:
+			raise
 
 def GetRegisteredHelpFile(helpDesc):
 	"""Given a description, return the registered entry.
@@ -199,10 +199,10 @@ def UnregisterHelpFile(helpFile, helpDesc = None):
 	try:
 		try:
 			win32api.RegDeleteValue(key, helpFile)
-		except win32api.error, (code, fn, desc):
+		except win32api.error, exc:
 			import winerror
-			if code!=winerror.ERROR_FILE_NOT_FOUND:
-				raise win32api.error(code, fn, desc)
+			if exc.winerror!=winerror.ERROR_FILE_NOT_FOUND:
+				raise
 	finally:
 		win32api.RegCloseKey(key)
 	
@@ -211,10 +211,10 @@ def UnregisterHelpFile(helpFile, helpDesc = None):
 	try:
 		win32api.RegDeleteKey(GetRootKey(), 
 		                     BuildDefaultPythonKey() + "\\Help\\%s" % helpDesc)	
-	except win32api.error, (code, fn, desc):
+	except win32api.error, exc:
 		import winerror
-		if code!=winerror.ERROR_FILE_NOT_FOUND:
-			raise win32api.error(code, fn, desc)
+		if exc.winerror!=winerror.ERROR_FILE_NOT_FOUND:
+			raise
 
 def RegisterCoreDLL(coredllName = None):
 	"""Registers the core DLL in the registry.

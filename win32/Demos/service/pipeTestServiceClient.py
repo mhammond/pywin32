@@ -36,13 +36,13 @@ def CallPipe(fn, args):
     while retryCount < 8:   # Keep looping until user cancels.
         retryCount = retryCount + 1
         try:
-            return apply(fn, args)
-        except win32api.error, (rc, fnerr, msg):
-            if rc==winerror.ERROR_PIPE_BUSY:
+            return fn(*args)
+        except win32api.error, exc:
+            if exc.winerror==winerror.ERROR_PIPE_BUSY:
                 win32api.Sleep(5000)
                 continue
             else:
-                raise win32api.error(rc, fnerr, msg)
+                raise
 
     raise RuntimeError("Could not make a connection to the server")
 

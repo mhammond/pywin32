@@ -26,7 +26,7 @@ def _doDumpHandle(handle, level = 0):
 						_doDumpHandle(k, level + 1)
 						win32wnet.WNetCloseEnum(k) # could do k.Close(), but this is a good test!
 				except win32wnet.error, details:
-					print indent + "Couldn't enumerate this resource: " + details[2]
+					print indent + "Couldn't enumerate this resource: " + details.strerror
 
 def TestOpenEnum():
 	print "Enumerating all resources on the network - this may take some time..."
@@ -48,7 +48,7 @@ def TestConnection():
 		try:
 			win32wnet.WNetAddConnection2(share.dwType, localName, share.lpRemoteName)
 		except win32wnet.error, details:
-			print "Couldn't connect: " + details[2]
+			print "Couldn't connect: " + details.strerror
 			continue
 		# Have a connection.
 		try:
@@ -56,7 +56,7 @@ def TestConnection():
 			try:
 				print "Universal name of '%s' is '%s'" % (fname, win32wnet.WNetGetUniversalName(fname))
 			except win32wnet.error, details:
-				print "Couldn't get universal name of '%s': %s" % (fname, details[2])
+				print "Couldn't get universal name of '%s': %s" % (fname, details.strerror)
 			print "User name for this connection is", win32wnet.WNetGetUser(localName)
 		finally:
 			win32wnet.WNetCancelConnection2(localName, 0, 0)

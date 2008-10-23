@@ -32,8 +32,8 @@ def CheckPythonPaths(verbose):
 	if verbose: print "\tCore Path:",
 	try:
 		appPath = win32api.RegQueryValue(regutil.GetRootKey(), regutil.BuildDefaultPythonKey() + "\\PythonPath")
-	except win32api.error, (code, fn, desc):
-		print "** does not exist - ", desc
+	except win32api.error, exc:
+		print "** does not exist - ", exc.strerror
 	problem = CheckPathString(appPath)
 	if problem:
 		print problem
@@ -66,10 +66,10 @@ def CheckHelpFiles(verbose):
 	if verbose: print "Help Files:"
 	try:
 		key = win32api.RegOpenKey(regutil.GetRootKey(), regutil.BuildDefaultPythonKey() + "\\Help", 0, win32con.KEY_READ)
-	except win32api.error, (code, fn, details):
+	except win32api.error, exc:
 		import winerror
-		if code!=winerror.ERROR_FILE_NOT_FOUND:
-			raise win32api.error(code, fn, details)
+		if exc.winerror!=winerror.ERROR_FILE_NOT_FOUND:
+			raise
 		return
 		
 	try:
@@ -86,10 +86,10 @@ def CheckHelpFiles(verbose):
 				except os.error:
 					print "** Help file %s does not exist" % helpFile
 				keyNo = keyNo + 1
-			except win32api.error, (code, fn, desc):
+			except win32api.error, exc:
 				import winerror
-				if code!=winerror.ERROR_NO_MORE_ITEMS:
-					raise win32api.error(code, fn, desc)
+				if exc.winerror!=winerror.ERROR_NO_MORE_ITEMS:
+					raise
 				break
 	finally:
 		win32api.RegCloseKey(key)
@@ -100,15 +100,15 @@ def CheckRegisteredModules(verbose):
 	try:
 		keyhandle = win32api.RegOpenKey(regutil.GetRootKey(), k)
 		print "WARNING: 'Modules' registry entry is deprectated and evil!"
-	except win32api.error, (code, fn, details):
+	except win32api.error, exc:
 		import winerror
-		if code!=winerror.ERROR_FILE_NOT_FOUND:
-			raise win32api.error(code, fn, details)
+		if exc.winerror!=winerror.ERROR_FILE_NOT_FOUND:
+			raise
 		return
 
 def CheckRegistry(verbose=0):
 	# check the registered modules
-	if verbose and os.environ.has_key('pythonpath'):
+	if verbose and 'pythonpath' in os.environ:
 		print "Warning - PythonPath in environment - please check it!"
 	# Check out all paths on sys.path
 	

@@ -81,7 +81,6 @@ class TestPage(dialog.PropertyPage):
 		# Windows WM_NOTIFY messages.
 		# In this case, we are interested in BN_CLICKED messages.
 		self.HookNotify(self.OnNotify, win32con.BN_CLICKED)
-		
 	def OnNotify(self, std, extra):
 		print "OnNotify", std, extra
 
