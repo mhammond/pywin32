@@ -39,7 +39,7 @@ See - I told you the implementation was simple :-)
 
 
 
-const size_t BUFFER_SIZE = 0x20000; // Includes size integer.
+const unsigned long BUFFER_SIZE = 0x20000; // Includes size integer.
 const char *MAP_OBJECT_NAME = "Global\\PythonTraceOutputMapping";
 const char *MUTEX_OBJECT_NAME = "Global\\PythonTraceOutputMutex";
 const char *EVENT_OBJECT_NAME = "Global\\PythonTraceOutputEvent";
@@ -336,8 +336,9 @@ BOOL PyTraceObject::WriteData(const char *data, unsigned len)
         unsigned len_this = min(len, BUFFER_SIZE/2);
         BOOL ok = GetMyMutex();
         if (ok) {
-            size_t *pLen = (size_t *)pMapBaseWrite;
-            size_t sizeLeft = (BUFFER_SIZE-sizeof(size_t)) - *pLen;
+            // must use types with identical size on win32 and win64
+            unsigned long *pLen = (unsigned long *)pMapBaseWrite;
+            unsigned long sizeLeft = (BUFFER_SIZE-sizeof(unsigned long)) - *pLen;
             // If less than double we need left, wait for it to empty, or .1 sec.
             if (sizeLeft < len_this * 2) {
                 ReleaseMyMutex();
@@ -347,10 +348,10 @@ BOOL PyTraceObject::WriteData(const char *data, unsigned len)
             }
         }
         if (ok) {
-            size_t *pLen = (size_t *)pMapBaseWrite;
-            char *buffer = (char *)(((size_t *)pMapBaseWrite)+1);
+            unsigned long *pLen = (unsigned long *)pMapBaseWrite;
+            char *buffer = (char *)(((unsigned long *)pMapBaseWrite)+1);
 
-            size_t sizeLeft = (BUFFER_SIZE-sizeof(size_t)) - *pLen;
+            unsigned long sizeLeft = (BUFFER_SIZE-sizeof(unsigned long)) - *pLen;
             if (sizeLeft<len_this)
                 *pLen = 0;
             memcpy(buffer+(*pLen), data_this, len_this);
@@ -385,9 +386,9 @@ BOOL PyTraceObject::ReadData(char **ppResult, int *retSize, int waitMilliseconds
     char *result = NULL;
     Py_BEGIN_ALLOW_THREADS
     if (GetMyMutex()) {
-
-	size_t *pLen = (size_t *)pMapBaseRead;
-	char *buffer = (char *)(((size_t *)pMapBaseRead)+1);
+        // must use sizes that are identical on win32 and win64
+	unsigned long*pLen = (unsigned long *)pMapBaseRead;
+	char *buffer = (char *)(((unsigned long *)pMapBaseRead)+1);
 
 	result = (char *)malloc(*pLen + 1);
 	if (result) {
