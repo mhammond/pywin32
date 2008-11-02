@@ -218,11 +218,6 @@ static PyObject *PyCoInternetCreateSecurityManager(PyObject *self, PyObject *arg
 	
 }
 
-STDAPI CoInternetCreateSecurityManager(IServiceProvider *pSP, IInternetSecurityManager **ppSM, DWORD dwReserved);
-
-STDAPI CoInternetCreateZoneManager(IServiceProvider *pSP, IInternetZoneManager **ppZM, DWORD dwReserved);
-
-
 /* List of module functions */
 // @module internet|A module, encapsulating the ActiveX Internet interfaces
 static struct PyMethodDef internet_methods[]=
