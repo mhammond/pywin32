@@ -10,6 +10,10 @@
 //
 // Interface Implementation
 
+extern BOOL PyObject_AsOLEINPLACEFRAMEINFO(PyObject *ob, OLEINPLACEFRAMEINFO *pfi);
+extern PyObject *PyObject_FromOLEINPLACEFRAMEINFO(const OLEINPLACEFRAMEINFO *pfi);
+
+
 PyIOleInPlaceSite::PyIOleInPlaceSite(IUnknown *pdisp):
 	PyIOleWindow(pdisp)
 {
@@ -106,17 +110,15 @@ PyObject *PyIOleInPlaceSite::GetWindowContext(PyObject *self, PyObject *args)
 	if ( FAILED(hr) )
 		return OleSetOleError(hr);
 
-// *** The output argument lpFrameInfo of type "LPOLEINPLACEFRAMEINFO" was not processed ***
-//     The type 'LPOLEINPLACEFRAMEINFO' (lpFrameInfo) is unknown.
 	PyObject *obppFrame;
 	PyObject *obppDoc;
 
 	obppFrame = PyCom_PyObjectFromIUnknown(ppFrame, IID_IOleInPlaceFrame, FALSE);
 	obppDoc = PyCom_PyObjectFromIUnknown(ppDoc, IID_IOleInPlaceUIWindow, FALSE);
-	PyObject *pyretval = Py_BuildValue("OO(llll)(llll)O", obppFrame, obppDoc,
+	PyObject *pyretval = Py_BuildValue("OO(llll)(llll)N", obppFrame, obppDoc,
 		posRect.left, posRect.top, posRect.right, posRect.bottom,
 		clipRect.left, clipRect.top, clipRect.right, clipRect.bottom,
-		Py_None);
+		PyObject_FromOLEINPLACEFRAMEINFO(&fi));
 	Py_XDECREF(obppFrame);
 	Py_XDECREF(obppDoc);
 	return pyretval;
@@ -316,21 +318,18 @@ STDMETHODIMP PyGOleInPlaceSite::GetWindowContext(
 	// Process the Python results, and convert back to the real params
 	PyObject *obppFrame;
 	PyObject *obppDoc;
-	PyObject *obFrame;
-	PyObject *obAccel;
-	if (!PyArg_ParseTuple(result, "OO(llll)(llll)(iOOi)" , &obppFrame, &obppDoc,
+	PyObject *obfi;
+	if (!PyArg_ParseTuple(result, "OO(llll)(llll)O" , &obppFrame, &obppDoc,
 		&lprcPosRect->left, &lprcPosRect->top, &lprcPosRect->right, &lprcPosRect->bottom,
 		&lprcClipRect->left, &lprcClipRect->top, &lprcClipRect->right, &lprcClipRect->bottom,
-		&lpFrameInfo->fMDIApp, &obFrame, &obAccel, &lpFrameInfo->cAccelEntries))
+		&obfi))
 		return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
 	BOOL bPythonIsHappy = TRUE;
 	if (!PyCom_InterfaceFromPyInstanceOrObject(obppFrame, IID_IOleInPlaceFrame, (void **)ppFrame, TRUE /* bNoneOK */))
 		bPythonIsHappy = FALSE;
 	if (!PyCom_InterfaceFromPyInstanceOrObject(obppDoc, IID_IOleInPlaceUIWindow, (void **)ppDoc, TRUE /* bNoneOK */))
 		bPythonIsHappy = FALSE;
-	if (bPythonIsHappy && !PyWinObject_AsHANDLE(obFrame, (HANDLE *)&lpFrameInfo->hwndFrame))
-		bPythonIsHappy = FALSE;
-	if (bPythonIsHappy && !PyWinObject_AsHANDLE(obAccel, (HANDLE *)&lpFrameInfo->haccel))
+	if (bPythonIsHappy && !PyObject_AsOLEINPLACEFRAMEINFO(obfi, lpFrameInfo))
 		bPythonIsHappy = FALSE;
 	if (!bPythonIsHappy) hr = PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
 	Py_DECREF(result);

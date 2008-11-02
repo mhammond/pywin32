@@ -1440,8 +1440,11 @@ com_extensions += [
                         """ % dirs).split()),
     WinExt_win32com('axcontrol', pch_header="axcontrol_pch.h",
                     sources=("""
-                        %(axcontrol)s/AXControl.cpp              %(axcontrol)s/PyIOleControl.cpp
+                        %(axcontrol)s/AXControl.cpp
+                        %(axcontrol)s/PyIOleControl.cpp          %(axcontrol)s/PyIOleControlSite.cpp
+                        %(axcontrol)s/PyIOleInPlaceActiveObject.cpp
                         %(axcontrol)s/PyIOleInPlaceSiteEx.cpp    %(axcontrol)s/PyISpecifyPropertyPages.cpp
+                        %(axcontrol)s/PyIOleInPlaceUIWindow.cpp  %(axcontrol)s/PyIOleInPlaceFrame.cpp
                         %(axcontrol)s/PyIObjectWithSite.cpp      %(axcontrol)s/PyIOleInPlaceObject.cpp
                         %(axcontrol)s/PyIOleInPlaceSiteWindowless.cpp  %(axcontrol)s/PyIViewObject.cpp
                         %(axcontrol)s/PyIOleClientSite.cpp       %(axcontrol)s/PyIOleInPlaceSite.cpp

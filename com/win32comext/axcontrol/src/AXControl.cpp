@@ -26,12 +26,41 @@ generates Windows .hlp files.
 #include "PyIViewObject.h"
 #include "PyIViewObject2.h"
 #include "PyIOleControl.h"
+#include "PyIOleControlSite.h"
+#include "PyIOleInPlaceActiveObject.h"
 #include "PyIOleInPlaceSite.h"
 #include "PyIOleInPlaceSiteEx.h"
 #include "PyIOleInPlaceSiteWindowless.h"
 #include "PyISpecifyPropertyPages.h"
 #include "PyIObjectWithSite.h"
 #include "PyIOleCommandTarget.h"
+#include "PyIOleInPlaceUIWindow.h"
+#include "PyIOleInPlaceFrame.h"
+
+BOOL PyObject_AsOLEINPLACEFRAMEINFO(PyObject *ob, OLEINPLACEFRAMEINFO *pfi)
+{
+	PyObject *obFrame, *obAccel;
+	if (!PyArg_ParseTuple(ob, "iOOi:OLEINPLACEFRAMEINFO tuple",
+			      &pfi->fMDIApp,
+			      &obFrame,
+			      &obAccel,
+			      &pfi->cAccelEntries))
+		return FALSE;
+	if (!PyWinObject_AsHANDLE(obFrame, (HANDLE *)&pfi->hwndFrame))
+		return FALSE;
+	if (!PyWinObject_AsHANDLE(obAccel, (HANDLE *)&pfi->haccel))
+		return FALSE;
+	return TRUE;
+}
+
+PyObject *PyObject_FromOLEINPLACEFRAMEINFO(const OLEINPLACEFRAMEINFO *pfi)
+{
+	return Py_BuildValue("iNNi",
+			     pfi->fMDIApp,
+			     PyWinLong_FromHANDLE(pfi->hwndFrame),
+			     PyWinLong_FromHANDLE(pfi->haccel),
+			     pfi->cAccelEntries);
+}
 
 BOOL PyObject_AsLOGPALETTE(PyObject *pbLogPal, LOGPALETTE **ppLogPal)
 {
@@ -87,7 +116,7 @@ BOOL PyObject_AsDVTARGETDEVICE( PyObject *ob, DVTARGETDEVICE **ppTD)
 
 	DVTARGETDEVICE *pTD = *ppTD;
 	BOOL ok = FALSE;
-	if (!PyArg_ParseTuple(ob, "OOOO", &obDriverName, &obDeviceName, &obPortName, &obExtDevmodeOffset))
+	if (!PyArg_ParseTuple(ob, "OOOO:DVTARGETDEVICE tuple", &obDriverName, &obDeviceName, &obPortName, &obExtDevmodeOffset))
 		return NULL;
 	if (!PyWinObject_AsBstr(obDriverName, &bstrDriverName))
 		goto done;
@@ -317,9 +346,45 @@ static PyObject *axcontrol_OleSetContainedObject(PyObject *, PyObject *args)
 	ret = Py_None;
 	Py_INCREF(Py_None);
 done:
+	if (punk)
+		punk->Release();
 	return ret;
 }
 
+// @pymethod |axcontrol|OleTranslateAccelerator|Called by the object application, allows an object's container to translate accelerators according to the container's accelerator table.
+static PyObject *axcontrol_OleTranslateAccelerator(PyObject *, PyObject *args)
+{
+	PyObject *ret = NULL;
+	PyObject *obframe, *obinfo, *obmsg;
+	if (!PyArg_ParseTuple(args, "OOO:OleTranslateAccelerator",
+		&obframe, // @pyparm <o PyIOleInPlaceFrame>|frame||frame to send keystrokes to.
+		&obinfo,  // @pyparm <o PyOLEINPLACEFRAMEINFO>|frame_info||
+		&obmsg)) // @pyparm <o PyMSG>|msg||
+		return NULL;
+
+	IOleInPlaceFrame *pframe;
+	HRESULT hr;
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obframe, IID_IOleInPlaceFrame, (void **)&pframe, FALSE))
+		goto done;
+	OLEINPLACEFRAMEINFO info;
+	if (!PyObject_AsOLEINPLACEFRAMEINFO(obinfo, &info))
+		goto done;
+	MSG msg;
+	if (!PyWinObject_AsMSG(obmsg, &msg))
+		goto done;
+	Py_BEGIN_ALLOW_THREADS
+	hr = ::OleTranslateAccelerator(pframe, &info, &msg);
+	Py_END_ALLOW_THREADS
+	if (FAILED(hr)) {
+		PyCom_BuildPyException(hr);
+		goto done;
+	}
+	ret = PyInt_FromLong(hr);
+done:
+	if (pframe)
+		pframe->Release();
+	return ret;
+}
 
 /* List of module functions */
 // @module axcontrol|A module, encapsulating the ActiveX Control interfaces
@@ -329,6 +394,7 @@ static struct PyMethodDef axcontrol_methods[]=
 	{ "OleLoadPicture",      axcontrol_OleLoadPicture, 1 },      // @pymeth OleLoadPicture|Creates a new picture object and initializes it from the contents of a stream.
 	{ "OleLoadPicturePath",  axcontrol_OleLoadPicturePath, 1},   // @pymeth OleLoadPicturePath|Creates a new picture object and initializes it from the contents of a stream.
 	{ "OleSetContainedObject", axcontrol_OleSetContainedObject, 1}, // @pymeth OleSetContainedObject|Notifies an object embedded in an OLE container to ensure correct reference.
+	{ "OleTranslateAccelerator", axcontrol_OleTranslateAccelerator, 1}, // @pymeth OleTranslateAccelerator|Called by the object application, allows an object's container to translate accelerators according to the container's accelerator table.
 
 
 	{ NULL, NULL },
@@ -351,15 +417,19 @@ static int AddConstant(PyObject *dict, const char *key, long value)
 static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 {
 	PYCOM_INTERFACE_FULL       (OleControl),
+	PYCOM_INTERFACE_FULL       (OleControlSite),
 	PYCOM_INTERFACE_FULL       (OleClientSite),
 	PYCOM_INTERFACE_FULL       (OleObject),
 	PYCOM_INTERFACE_IID_ONLY   (OleLink),
 	PYCOM_INTERFACE_FULL       (OleInPlaceObject),
 	PYCOM_INTERFACE_FULL       (ViewObject),
 	PYCOM_INTERFACE_FULL       (ViewObject2),
+	PYCOM_INTERFACE_FULL       (OleInPlaceActiveObject),
+	PYCOM_INTERFACE_FULL       (OleInPlaceFrame),
 	PYCOM_INTERFACE_FULL       (OleInPlaceSite),
 	PYCOM_INTERFACE_FULL       (OleInPlaceSiteEx),
 	PYCOM_INTERFACE_FULL       (OleInPlaceSiteWindowless),
+	PYCOM_INTERFACE_FULL       (OleInPlaceUIWindow),
 	PYCOM_INTERFACE_FULL       (SpecifyPropertyPages),
 	PYCOM_INTERFACE_FULL       (ObjectWithSite),
 	PYCOM_INTERFACE_FULL       (OleCommandTarget),

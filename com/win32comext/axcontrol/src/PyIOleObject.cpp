@@ -754,22 +754,12 @@ STDMETHODIMP PyGOleObject::DoVerb(
 		/* [unique][in] */ LPCRECT lprcPosRect)
 {
 	PY_GATEWAY_METHOD;
-// *** The input argument lpmsg of type "LPMSG" was not processed ***
-//   - None will always be passed to the Python function as a placeholder
-//   - The type 'LPMSG' (lpmsg) is unknown.
-// *** The input argument lprcPosRect of type "LPCRECT" was not processed ***
-//   - None will always be passed to the Python function as a placeholder
-//   - The type 'LPCRECT' (lprcPosRect) is unknown.
-
-// TODO:
-
-	PyObject *obpActiveSite;
-	obpActiveSite = PyCom_PyObjectFromIUnknown(pActiveSite, IID_IOleClientSite, TRUE);
-
-	HRESULT hr=InvokeViaPolicy("DoVerb", NULL, "izOiiz", iVerb, NULL, obpActiveSite, lindex, hwndParent, NULL);
-
-	Py_XDECREF(obpActiveSite);
-	return hr;
+	return InvokeViaPolicy("DoVerb", NULL, "iNNii(iiii)",
+	                       iVerb,
+	                       PyWinObject_FromMSG(lpmsg),
+	                       PyCom_PyObjectFromIUnknown(pActiveSite, IID_IOleClientSite, TRUE),
+	                       lindex, hwndParent,
+	                       lprcPosRect->left, lprcPosRect->top, lprcPosRect->right, lprcPosRect->bottom);
 }
 
 STDMETHODIMP PyGOleObject::EnumVerbs(
