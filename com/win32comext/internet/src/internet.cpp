@@ -13,15 +13,19 @@ generates Windows .hlp files.
 ***/
 
 #include "internet_pch.h"
+#include "MsHtmHst.h"
 #include "stddef.h" // for offsetof
 #include "PythonCOMRegister.h" // For simpler registration of IIDs etc.
 
+#include "PyIDocHostUIHandler.h"
+#include "PyIHTMLOMWindowServices.h"
 #include "PyIInternetProtocolRoot.h"
 #include "PyIInternetProtocol.h"
 #include "PyIInternetProtocolInfo.h"
 #include "PyIInternetProtocolSink.h"
 #include "PyIInternetPriority.h"
 #include "PyIInternetBindInfo.h"
+#include "PyIInternetSecurityManager.h"
 
 // Check a function pointer that is supplied by a specific IE version (ie,
 // we require an IE version later than what is installed)
@@ -32,6 +36,11 @@ static CoInternetSetFeatureEnabled_func pfnCoInternetSetFeatureEnabled=NULL;
 
 typedef HRESULT (WINAPI *CoInternetIsFeatureEnabled_func)(INTERNETFEATURELIST FeatureEntry, DWORD dwFlags);
 static CoInternetIsFeatureEnabled_func pfnCoInternetIsFeatureEnabled=NULL;
+
+typedef HRESULT (WINAPI *CoInternetCreateSecurityManager_func)(IServiceProvider *pSP, IInternetSecurityManager **ppSM, DWORD dwReserved);
+static CoInternetCreateSecurityManager_func pfnCoInternetCreateSecurityManager=NULL;
+
+// STDAPI CoInternetCreateZoneManager(IServiceProvider *pSP, IInternetZoneManager **ppZM, DWORD dwReserved);
 
 HMODULE loadmodule(TCHAR *dllname)
 {
@@ -184,11 +193,41 @@ static PyObject *PyCoInternetSetFeatureEnabled(PyObject *self, PyObject *args)
 	return PyInt_FromLong(hr);
 }
 
+// @pymethod <o PyIInternetSecurityManager>|internet|CoInternetCreateSecurityManager|
+static PyObject *PyCoInternetCreateSecurityManager(PyObject *self, PyObject *args)
+{
+	CHECK_IE_PFN(CoInternetCreateSecurityManager);
+	PyObject *obprov;
+	DWORD reserved;
+	if (!PyArg_ParseTuple(args, "Oi",
+			      &obprov, // &pyparm <o PyIServiceProvider>|serviceProvider||
+			      &reserved)) // @pyparm int|reserved||
+		return NULL;
+	IServiceProvider *prov;
+	if (!PyCom_InterfaceFromPyInstanceOrObject(obprov, IID_IServiceProvider, (void **)&prov, TRUE /* bNoneOK */))
+		return NULL;
+	HRESULT hr;
+	IInternetSecurityManager *sm = 0;
+	PY_INTERFACE_PRECALL;
+	hr = (*pfnCoInternetCreateSecurityManager)(prov, &sm, reserved);
+	prov->Release();
+	PY_INTERFACE_POSTCALL;
+	if (FAILED(hr))
+		return PyCom_BuildPyException(hr);
+	return PyCom_PyObjectFromIUnknown(sm, IID_IInternetSecurityManager, FALSE);
+	
+}
+
+STDAPI CoInternetCreateSecurityManager(IServiceProvider *pSP, IInternetSecurityManager **ppSM, DWORD dwReserved);
+
+STDAPI CoInternetCreateZoneManager(IServiceProvider *pSP, IInternetZoneManager **ppZM, DWORD dwReserved);
+
 
 /* List of module functions */
 // @module internet|A module, encapsulating the ActiveX Internet interfaces
 static struct PyMethodDef internet_methods[]=
 {
+	{ "CoInternetCreateSecurityManager", PyCoInternetCreateSecurityManager}, // @pymeth CoInternetCreateSecurityManager|
 	{ "CoInternetIsFeatureEnabled", PyCoInternetIsFeatureEnabled}, // @pymeth CoInternetIsFeatureEnabled|
 	{ "CoInternetSetFeatureEnabled", PyCoInternetSetFeatureEnabled}, // @pymeth CoInternetSetFeatureEnabled|
 	{ NULL, NULL },
@@ -210,12 +249,15 @@ static int AddConstant(PyObject *dict, const char *key, long value)
 
 static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 {
+	PYCOM_INTERFACE_FULL       (DocHostUIHandler),
+	PYCOM_INTERFACE_SERVER_ONLY(HTMLOMWindowServices),
 	PYCOM_INTERFACE_FULL       (InternetProtocolRoot),
 	PYCOM_INTERFACE_FULL       (InternetProtocol),
 	PYCOM_INTERFACE_FULL       (InternetProtocolInfo),
 	PYCOM_INTERFACE_FULL       (InternetProtocolSink),
 	PYCOM_INTERFACE_FULL       (InternetPriority),
 	PYCOM_INTERFACE_FULL       (InternetBindInfo),
+	PYCOM_INTERFACE_FULL       (InternetSecurityManager),
 };
 
 /* Module initialisation */
@@ -238,6 +280,7 @@ extern "C" __declspec(dllexport) void initinternet()
 	HMODULE urlmon_dll=loadmodule(_T("urlmon.dll"));
 	pfnCoInternetSetFeatureEnabled=(CoInternetSetFeatureEnabled_func)loadapifunc("CoInternetSetFeatureEnabled", urlmon_dll);
 	pfnCoInternetIsFeatureEnabled=(CoInternetIsFeatureEnabled_func)loadapifunc("CoInternetIsFeatureEnabled", urlmon_dll);
+	pfnCoInternetCreateSecurityManager=(CoInternetCreateSecurityManager_func)loadapifunc("CoInternetCreateSecurityManager", urlmon_dll);
 
 	ADD_CONSTANT(FEATURE_OBJECT_CACHING); // @const internet|FEATURE_OBJECT_CACHING|
 	ADD_CONSTANT(FEATURE_ZONE_ELEVATION); // @const internet|FEATURE_ZONE_ELEVATION|

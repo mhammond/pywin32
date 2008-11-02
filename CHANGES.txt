@@ -8,9 +8,13 @@ However contributors are encouraged to add their own entries for their work.
 Since build 212:
 ----------------
 
-* win32com.axcontrol gets support for interfaces OleControlSite,
-  OleInPlaceActiveObject, OleInPlaceFrame and OleInPlaceUIWindow interfaces
-  and OleTranslateAccelerator function.
+* win32com.internet gets support for IDocHostUIHandler, IHTMLOMWindowServices
+  and IInternetSecurityManager interfaces, and CoInternetCreateSecurityManager
+  function.
+
+* win32com.axcontrol gets support for IOleControlSite, 
+  IOleInPlaceActiveObject, IOleInPlaceFrame and IOleInPlaceUIWindow 
+  interfaces, and OleTranslateAccelerator function.
 
 * MsgWaitForMultipleObjectsEx() would crash in all cases.  Fix from 
   Ziga Seilnacht via [2141368].

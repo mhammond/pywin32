@@ -98,6 +98,14 @@ SOURCE=.\win32comext\internet\src\internet.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\win32comext\internet\src\PyIDocHostUIHandler.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32comext\internet\src\PyIHTMLOMWindowServices.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\win32comext\internet\src\PyIInternetBindInfo.cpp
 # End Source File
 # Begin Source File
@@ -119,6 +127,10 @@ SOURCE=.\win32comext\internet\src\PyIInternetProtocolRoot.cpp
 # Begin Source File
 
 SOURCE=.\win32comext\internet\src\PyIInternetProtocolSink.cpp
+# End Source File
+# End Group
+
+SOURCE=.\win32comext\internet\src\PyIInternetSecurityManager.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
