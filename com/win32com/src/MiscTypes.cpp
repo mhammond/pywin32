@@ -1,4 +1,5 @@
 // MiscTypes.cpp - misc Python types.
+// @doc
 #include "stdafx.h"
 #include "PythonCOM.h"
 
@@ -291,5 +292,27 @@ PyTypeObject PyOleArgNotFoundType =
 	0,                      /*tp_as_sequence*/
 	0,                      /*tp_as_mapping*/
 };
+
+// These aren't really types, but may be some day :)
+// @object PyOLEMENUGROUPWIDTHS|Tuple containing 6 ints indicating nbr of options in each menu group
+BOOL PyObject_AsOLEMENUGROUPWIDTHS( PyObject *oblpMenuWidths, OLEMENUGROUPWIDTHS *pWidths)
+{
+	return PyArg_ParseTuple(oblpMenuWidths, "iiiiii",
+							&pWidths->width[0], &pWidths->width[1],
+							&pWidths->width[2], &pWidths->width[3],
+							&pWidths->width[4], &pWidths->width[5]) != NULL;
+}
+
+PyObject *PyObject_FromOLEMENUGROUPWIDTHS(const OLEMENUGROUPWIDTHS *pWidths)
+{
+	if (!pWidths) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+	return Py_BuildValue("(iiiiii)",
+						 pWidths->width[0], pWidths->width[1],
+						 pWidths->width[2], pWidths->width[3],
+						 pWidths->width[4], pWidths->width[5]);
+}
 
 ////////////////////////////////

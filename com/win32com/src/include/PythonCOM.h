@@ -286,6 +286,10 @@ PYCOM_EXPORT PyObject *PyCom_PyObjectFromSTATPROPSETSTG(STATPROPSETSTG *pStat);
 PYCOM_EXPORT PyObject *PyObject_FromCurrency(CURRENCY &cy);
 PYCOM_EXPORT BOOL PyObject_AsCurrency(PyObject *ob, CURRENCY *pcy);
 
+// OLEMENUGROUPWIDTHS are used by axcontrol, shell, etc
+PYCOM_EXPORT BOOL PyObject_AsOLEMENUGROUPWIDTHS( PyObject *oblpMenuWidths, OLEMENUGROUPWIDTHS *pWidths);
+PYCOM_EXPORT PyObject *PyObject_FromOLEMENUGROUPWIDTHS(const OLEMENUGROUPWIDTHS *pWidths);
+
 /* Functions for Initializing COM, and also letting the core know about it!
 */
 PYCOM_EXPORT HRESULT PyCom_CoInitializeEx(LPVOID reserved, DWORD dwInit);

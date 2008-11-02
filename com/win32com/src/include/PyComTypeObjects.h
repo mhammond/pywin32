@@ -1,5 +1,5 @@
 
-// Out public converters.
+// Our public converters.
 PyObject *PyObject_FromFUNCDESC(FUNCDESC *desc);
 PyObject *PyObject_FromTYPEATTR(TYPEATTR *desc);
 PyObject *PyObject_FromELEMDESC(const ELEMDESC *ed);

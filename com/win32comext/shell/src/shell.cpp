@@ -891,27 +891,6 @@ done:
 	return ok;
 }
 
-// @object PyLPOLEMENUGROUPWIDTHS|Tuple containing 6 ints indicating nbr of options in each menu group
-BOOL PyObject_AsOLEMENUGROUPWIDTHS( PyObject *oblpMenuWidths, OLEMENUGROUPWIDTHS *pWidths)
-{
-	return PyArg_ParseTuple(oblpMenuWidths, "iiiiii",
-							&pWidths->width[0], &pWidths->width[1],
-							&pWidths->width[2], &pWidths->width[3],
-							&pWidths->width[4], &pWidths->width[5]) != NULL;
-}
-
-PyObject *PyObject_FromOLEMENUGROUPWIDTHS(OLEMENUGROUPWIDTHS *pWidths)
-{
-	if (!pWidths) {
-		Py_INCREF(Py_None);
-		return Py_None;
-	}
-	return Py_BuildValue("(iiiiii)",
-						 pWidths->width[0], pWidths->width[1],
-						 pWidths->width[2], pWidths->width[3],
-						 pWidths->width[4], pWidths->width[5]);
-}
-
 static BOOL MakeDoubleTerminatedStringList(PyObject *ob, TCHAR **ret)
 {
 	if (ob==Py_None) {

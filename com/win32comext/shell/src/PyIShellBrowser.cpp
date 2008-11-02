@@ -8,9 +8,6 @@
 // @doc - This file contains autoduck documentation
 // ---------------------------------------------------
 //
-extern BOOL PyObject_AsOLEMENUGROUPWIDTHS( PyObject *oblpMenuWidths, OLEMENUGROUPWIDTHS *pWidths);
-PyObject *PyObject_FromOLEMENUGROUPWIDTHS(OLEMENUGROUPWIDTHS *p);
-
 extern BOOL PyObject_AsTBBUTTONs( PyObject *ob, TBBUTTON **ppButtons, UINT *nButtons );
 extern void PyObject_FreeTBBUTTONs(TBBUTTON *);
 
@@ -31,7 +28,7 @@ PyIShellBrowser::~PyIShellBrowser()
 	return (IShellBrowser *)PyIOleWindow::GetI(self);
 }
 
-// @pymethod <o PyLPOLEMENUGROUPWIDTHS>|PyIShellBrowser|InsertMenusSB|Updates a composite menu with container's options
+// @pymethod <o PyOLEMENUGROUPWIDTHS>|PyIShellBrowser|InsertMenusSB|Updates a composite menu with container's options
 PyObject *PyIShellBrowser::InsertMenusSB(PyObject *self, PyObject *args)
 {
 	IShellBrowser *pISB = GetI(self);
@@ -42,7 +39,7 @@ PyObject *PyIShellBrowser::InsertMenusSB(PyObject *self, PyObject *args)
 	HMENU hmenuShared;
 	if ( !PyArg_ParseTuple(args, "OO:InsertMenusSB",
 		&obhmenuShared,		// @pyparm <o PyHANDLE>|hmenuShared||Newly created menu that contains no items
-		&obMenuWidths))		// @pyparm <o PyLPOLEMENUGROUPWIDTHS>|lpMenuWidths||Tuple of 6 ints.  Items 0,2,and 4 are updated when the tuple is returned.
+		&obMenuWidths))		// @pyparm <o PyOLEMENUGROUPWIDTHS>|lpMenuWidths||Tuple of 6 ints.  Items 0,2,and 4 are updated when the tuple is returned.
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhmenuShared, (HANDLE *)&hmenuShared))
 		return NULL;
