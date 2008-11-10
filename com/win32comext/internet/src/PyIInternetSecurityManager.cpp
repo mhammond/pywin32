@@ -362,7 +362,7 @@ STDMETHODIMP PyGInternetSecurityManager::ProcessUrlAction(
 		obContext = Py_None;
 		Py_INCREF(Py_None);
 	} else if (cbContext==sizeof(GUID))
-		obContext = PyWinObject_FromIID(*((IID *)*pContext));
+		obContext = PyWinObject_FromIID(*((IID *)pContext));
 	else {
 		PyCom_LoggerWarning(NULL, "PyGInternetSecurityManager::ProcessUrlAction has %d bytes for context - what is that?", cbContext);
 		obContext = Py_None;
