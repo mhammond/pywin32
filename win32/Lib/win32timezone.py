@@ -12,7 +12,7 @@ and not Windows 95/98/Me.
 	This module may be tested using the doctest module.
 
 	Written by Jason R. Coombs (jaraco@jaraco.com).
-	Copyright © 2003-2007.
+	Copyright © 2003-2008.
 	All Rights Reserved.
 
 	This module is licenced for use in Mark Hammond's pywin32
@@ -22,7 +22,7 @@ library under the same terms as the pywin32 library.
 the TimeZoneInfo object to the datetime constructor.  For example,
 
 >>> import win32timezone, datetime
->>> assert 'Mountain Standard Time' in win32timezone.GetTimeZoneNames()
+>>> assert 'Mountain Standard Time' in win32timezone.TimeZoneInfo.get_sorted_time_zone_names()
 >>> tzi = win32timezone.TimeZoneInfo('Mountain Standard Time')
 >>> now = datetime.datetime.now(tzi)
 
@@ -64,6 +64,12 @@ u'(GMT-05:00) Eastern Time (US & Canada)'
 >>> gmt = win32timezone.TimeZoneInfo('GMT Standard Time', True)
 >>> gmt.displayName
 u'(GMT) Greenwich Mean Time : Dublin, Edinburgh, Lisbon, London'
+
+To get the complete list of available time zone keys,
+>>> zones = win32timezone.TimeZoneInfo.get_all_time_zones()
+
+If you want to get them in an order that's sorted longitudinally
+>>> zones = win32timezone.TimeZoneInfo.get_sorted_time_zones()
 
 TimeZoneInfo now supports being pickled and comparison
 >>> import pickle
@@ -121,7 +127,15 @@ __version__ = '$Revision$'[11:-2]
 __sccauthor__ = '$Author$'[9:-2]
 __date__ = '$Date$'[10:-2]
 
-import os, _winreg, struct, datetime, win32api, re, sys, operator
+import os
+import _winreg
+import struct
+import datetime
+import win32api
+import re
+import sys
+import operator
+import warnings
 
 import logging
 log = logging.getLogger(__file__)
@@ -211,7 +225,7 @@ class TimeZoneInfo(datetime.tzinfo):
 		"""Find the registry key for the time zone name (self.timeZoneName)."""
 		# for multi-language compatability, match the time zone name in the
 		# "Std" key of the time zone key.
-		zoneNames = dict(GetIndexedTimeZoneNames('Std'))
+		zoneNames = dict(self._get_indexed_time_zone_keys('Std'))
 		# Also match the time zone key name itself, to be compatible with
 		# English-based hard-coded time zones.
 		timeZoneName = zoneNames.get(self.timeZoneName, self.timeZoneName)
@@ -329,6 +343,58 @@ class TimeZoneInfo(datetime.tzinfo):
 	def __cmp__(self, other):
 		return cmp(self.__dict__, other.__dict__)
 
+	# helper methods for accessing the timezone info from the registry
+	def _get_time_zone_key(subkey=None):
+		"Return the registry key that stores time zone details"
+		key = _winreg.OpenKeyEx(_winreg.HKEY_LOCAL_MACHINE, TimeZoneInfo.tzRegKey)
+		if subkey:
+			key = _winreg.OpenKeyEx(key, subkey)
+		return key
+	_get_time_zone_key = staticmethod(_get_time_zone_key)
+
+	def _get_time_zone_key_names():
+		"Returns the names of the (registry keys of the) time zones"
+		return _RegKeyEnumerator(TimeZoneInfo._get_time_zone_key())
+	_get_time_zone_key_names = staticmethod(_get_time_zone_key_names)
+
+	def _get_indexed_time_zone_keys(index_key='Index'):
+		"""
+		Get the names of the registry keys indexed by a value in that key.
+		"""
+		key_names = tuple(TimeZoneInfo._get_time_zone_key_names())
+		def get_index_value(key_name):
+			key = TimeZoneInfo._get_time_zone_key(key_name)
+			value, type = _winreg.QueryValueEx(key, index_key)
+			return value
+		values = map(get_index_value, key_names)
+		return zip(values, key_names)
+	_get_indexed_time_zone_keys = staticmethod(_get_indexed_time_zone_keys)
+
+	def get_sorted_time_zone_names():
+		"Return a list of time zone names that can be used to initialize TimeZoneInfo instances"
+		tzs = TimeZoneInfo.get_sorted_time_zones()
+		get_standard_name = lambda tzi: tzi.standardName
+		return map(get_standard_name, tzs)
+	get_sorted_time_zone_names = staticmethod(get_sorted_time_zone_names)
+
+	def get_all_time_zones():
+		return map(TimeZoneInfo, TimeZoneInfo._get_time_zone_key_names())
+	get_all_time_zones = staticmethod(get_all_time_zones)
+
+	def get_sorted_time_zones(key=None):
+		"""
+		Return the time zones sorted by some key.
+		key must be a function that takes a TimeZoneInfo object and returns
+		 a value suitable for sorting on.
+		The key defaults to the bias (descending), as is done in Windows
+		(see http://blogs.msdn.com/michkap/archive/2006/12/22/1350684.aspx)
+		"""
+		key = key or (lambda tzi: -tzi.staticInfo.bias)
+		zones = TimeZoneInfo.get_all_time_zones()
+		zones.sort(key=key)
+		return zones
+	get_sorted_time_zones = staticmethod(get_sorted_time_zones)
+
 def _RegKeyEnumerator(key):
 	return _RegEnumerator(key, _winreg.EnumKey)
 
@@ -349,27 +415,24 @@ def _RegKeyDict(key):
 	values = tuple(values)
 	return dict(map(lambda (name,value,type): (name,value), values))
 
-def GetTimeZoneNames():
-	"Returns the names of the time zones as defined in the registry"
-	key = _winreg.OpenKeyEx(_winreg.HKEY_LOCAL_MACHINE, TimeZoneInfo.tzRegKey)
-	return _RegKeyEnumerator(key)
+# for backward compatibility
+def deprecated(func, name='Unknown'):
+	"""This is a decorator which can be used to mark functions
+	as deprecated. It will result in a warning being emmitted
+	when the function is used."""
+	def newFunc(*args, **kwargs):
+		warnings.warn("Call to deprecated function %s." % name,
+					  category=DeprecationWarning)
+		return func(*args, **kwargs)
+	newFunc.__name__ = func.__name__
+	newFunc.__doc__ = func.__doc__
+	newFunc.__dict__.update(func.__dict__)
+	return newFunc
 
-def GetIndexedTimeZoneNames(index_key = 'Index'):
-	"""Returns the names of the time zones as defined in the registry, but
-	includes an index by which they may be sorted.  Default index is "Index"
-	by which they may be sorted longitudinally."""
-	for timeZoneName in GetTimeZoneNames():
-		tzRegKeyPath = os.path.join(TimeZoneInfo.tzRegKey, timeZoneName)
-		key = _winreg.OpenKeyEx(_winreg.HKEY_LOCAL_MACHINE, tzRegKeyPath)
-		tzIndex, type = _winreg.QueryValueEx(key, index_key)
-		yield (tzIndex, timeZoneName)
-
-def GetSortedTimeZoneNames():
-	""" Uses GetIndexedTimeZoneNames to return the time zone names sorted
-	longitudinally."""
-	tzs = list(GetIndexedTimeZoneNames())
-	tzs.sort()
-	return zip(*tzs)[1]
+GetTimeZoneNames = deprecated(TimeZoneInfo._get_time_zone_key_names, 'GetTimeZoneNames')
+GetIndexedTimeZoneNames = deprecated(TimeZoneInfo._get_indexed_time_zone_keys, 'GetIndexedTimeZoneNames')
+GetSortedTimeZoneNames = deprecated(TimeZoneInfo.get_sorted_time_zone_names, 'GetSortedTimeZoneNames')
+# end backward compatibility
 
 def GetLocalTimeZone():
 	"""Returns the local time zone as defined by the operating system in the
@@ -408,11 +471,9 @@ def __TimeZoneKeyNameWorkaround(name):
 	"""It may be a bug in Vista, but in standard Windows Vista install
 	(both 32-bit and 64-bit), it appears the TimeZoneKeyName returns a
 	string with extraneous characters."""
-	try:
-		return name[:name.index('\x00')]
-	except ValueError:
-		#null character not found
-		return name
+	# remove anything after and including the first null character.
+	value, garbage = name.split('\x00',1)
+	return value
 
 def GetTZCapabilities():
 	"""Run a few known tests to determine the capabilities of the time zone database
