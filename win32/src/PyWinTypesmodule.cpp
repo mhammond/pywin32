@@ -736,16 +736,17 @@ PyObject *PyWinSequence_Tuple(PyObject *obseq, DWORD *len)
 	return obtuple;
 }
 
+// @object PyMSG|A tuple representing a win32 MSG structure.
 BOOL PyWinObject_AsMSG(PyObject *ob, MSG *pMsg)
 {
 	PyObject *obhwnd;
 	if (!PyArg_ParseTuple(ob, "Oiiii(ii):MSG param",
-			&obhwnd,
-			&pMsg->message,
-			&pMsg->wParam,
-			&pMsg->lParam,
-			&pMsg->time,
-			&pMsg->pt.x,
+			&obhwnd, // @tupleitem 0|<o PyHANDLE>|hwnd|Handle to the window whose window procedure receives the message.
+			&pMsg->message, // @tupleitem 1|int|message|Specifies the message identifier.
+			&pMsg->wParam, // @tupleitem 2|int|wParam|Specifies additional information about the message.
+			&pMsg->lParam, // @tupleitem 3|int|lParam|Specifies additional information about the message.
+			&pMsg->time, // @tupleitem 4|int|time|Specifies the time at which the message was posted (retrieved via GetTickCount()).
+			&pMsg->pt.x, // @tupleitem 5|(int, int)|point|Specifies the cursor position, in screen coordinates, when the message was posted.
 			&pMsg->pt.y))
 		return FALSE;
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&pMsg->hwnd))
