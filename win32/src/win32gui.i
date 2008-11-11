@@ -7379,8 +7379,11 @@ PyObject *PyEnumPropsEx(PyObject *self, PyObject *args)
 		}
 	callback_objects[0]=callback;
 	callback_objects[1]=callback_data;
-
-	if (!EnumPropsExW(hwnd, PyEnumPropsExCallback, (LPARAM)callback_objects)){
+	BOOL ok;
+	Py_BEGIN_ALLOW_THREADS
+	ok = EnumPropsExW(hwnd, PyEnumPropsExCallback, (LPARAM)callback_objects);
+	Py_END_ALLOW_THREADS
+	if (!ok){
 		if (!PyErr_Occurred())
 			PyWin_SetAPIError("EnumPropsEx");
 		return NULL;
@@ -7422,7 +7425,10 @@ PyObject *PyRegisterDeviceNotification(PyObject *self, PyObject *args)
 				"structure says it has %d bytes, but %d was provided",
 				(int)struct_bytes, (int)nbytes);
 	// @pyseeapi RegisterDeviceNotification
-	HDEVNOTIFY not = RegisterDeviceNotification(handle, (void *)filter, flags);
+	HDEVNOTIFY not;
+	Py_BEGIN_ALLOW_THREADS
+	not = RegisterDeviceNotification(handle, (void *)filter, flags);
+	Py_END_ALLOW_THREADS
 	if (not == NULL)
 		return PyWin_SetAPIError("RegisterDeviceNotification");
 	return PyWinObject_FromHDEVNOTIFY(not);
