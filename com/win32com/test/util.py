@@ -22,7 +22,7 @@ def CheckClean():
         print "Warning - %d com gateway objects still alive" % c
 
 def RegisterPythonServer(filename, verbose=0):
-    cmd = '%s "%s" > nul 2>&1' % (win32api.GetModuleFileName(0), filename)
+    cmd = '%s "%s" --unattended > nul 2>&1' % (win32api.GetModuleFileName(0), filename)
     if verbose:
         print "Registering engine", filename
 #       print cmd
