@@ -1,8 +1,8 @@
 print "This module depends on the dbapi20 compliance tests created by Stuart Bishop"
 print "(see db-sig mailing list history for info)"
-print "Tested with dbapi20 version 1.8"
 
 import dbapi20
+print "Tested with dbapi20 %s" % dbapi20.__version__
 import unittest
 import popen2
 

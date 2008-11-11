@@ -1,4 +1,4 @@
-""" Unit tests for adodbapi"""
+""" Unit tests for adodbapi version 2.2.2"""
 """
     adodbapi - A python DB API 2.0 interface to Microsoft ADO
     
@@ -31,8 +31,8 @@ try:
 except ImportError:
     win32 = False
 
+import adodbapitestconfig #will find (parent?) adodbpai
 import adodbapi
-import adodbapitestconfig
 
 #adodbapi.adodbapi.verbose = 3
 
@@ -52,7 +52,7 @@ class CommonDBTests(unittest.TestCase):
         return self.engine
     
     def getConnection(self):
-        raise Exception("This method must be overriden by a subclass")
+        raise "This method must be overriden by a subclass"  
 
     def getCursor(self):
         return self.getConnection().cursor()
@@ -188,7 +188,7 @@ class CommonDBTests(unittest.TestCase):
         elif DBAPIDataTypeString == 'ROWID':
             assert descTuple[1] == adodbapi.ROWID, 'was "%s"'%descTuple[1]
         else:
-            raise Exception("DBAPIDataTypeString not provided")
+            raise "DBAPIDataTypeString not provided"
 
         #Test data binding
         inputs=[pyData]
@@ -434,17 +434,27 @@ class TestADOwithSQLServer(CommonDBTests):
                               allowedReturnValues=[u'3.45',u'3,45',decimal.Decimal('3.45')])
 
     def testUserDefinedConversionForExactNumericTypes(self):
+        # variantConversions is a dictionary of convertion functions
+        # held internally in adodbapi
+        
         # By default decimal and numbers are returned as decimals.
         # Instead, make them return as  floats
-        oldconverter=adodbapi.variantConversions[adodbapi.adNumeric]
-        adodbapi.variantConversions[adodbapi.adNumeric]=adodbapi.cvtFloat
+
+        oldconverter = adodbapi.variantConversions[adodbapi.adNumeric] #keep old function to restore later
+
+        adodbapi.variantConversions[adodbapi.adNumeric] = adodbapi.cvtFloat
         self.helpTestDataType("decimal(18,2)",'NUMBER',3.45,compareAlmostEqual=1)
         self.helpTestDataType("numeric(18,2)",'NUMBER',3.45,compareAlmostEqual=1)        
-        # now strings
-        adodbapi.variantConversions[adodbapi.adNumeric]=adodbapi.cvtString
+        # now return strings
+        adodbapi.variantConversions[adodbapi.adNumeric] = adodbapi.cvtString
         self.helpTestDataType("numeric(18,2)",'NUMBER','3.45')
-        # now the way they were
-        adodbapi.variantConversions[adodbapi.adNumeric]=oldconverter #Restore
+        # now a completly weird user defined convertion
+        adodbapi.variantConversions[adodbapi.adNumeric] = lambda x: u'!!This function returns a funny unicode string %s!!'%x
+        self.helpTestDataType("numeric(18,2)",'NUMBER','3.45',
+                              allowedReturnValues=[u'!!This function returns a funny unicode string 3.45!!'])
+
+        # now reset the converter to its original function
+        adodbapi.variantConversions[adodbapi.adNumeric]=oldconverter #Restore the original convertion function
         self.helpTestDataType("numeric(18,2)",'NUMBER',decimal.Decimal('3.45'))
 
     def testVariableReturningStoredProcedure(self):
@@ -655,7 +665,7 @@ class TestPythonTimeConverter(TimeConverterInterfaceTest):
         cmd=self.tc.DateObjectFromCOMDate(37435.7604282)
         t1=time.gmtime(time.mktime((2002,6,28,12,14,01, 4,31+28+31+30+31+28,-1)))
         t2=time.gmtime(time.mktime((2002,6,28,12,16,01, 4,31+28+31+30+31+28,-1)))
-        assert t1<cmd<t2,repr(cmd)+' should be about 2002-6-28 12:15:01'
+        assert t1<cmd<t2, '"%s" should be about 2002-6-28 12:15:01'%repr(cmd)
     
     def testDate(self):
         t1=time.mktime((2002,6,28,18,15,01, 4,31+28+31+30+31+30,0))
@@ -724,10 +734,6 @@ suite=unittest.TestSuite(suites)
 if __name__ == '__main__':       
     defaultDateConverter=adodbapi.dateconverter
     print __doc__
-    try:
-        print adodbapi.version # show version
-    except:
-        print '"adodbapi.version()" not present or not working.'
     print "Default Date Converter is %s" %(defaultDateConverter,)
     unittest.TextTestRunner().run(suite)
     if adodbapitestconfig.iterateOverTimeTests:

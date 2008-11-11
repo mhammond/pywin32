@@ -6,7 +6,7 @@ adodbapi.adodbapi.verbose = True # adds details to the sample printout
 _computername="franklin" #or name of computer with SQL Server
 _databasename="Northwind" #or something else
 _username="guest"
-_password='xxxxx'
+_password='12345678'
 
 _table_name= 'Products'
 

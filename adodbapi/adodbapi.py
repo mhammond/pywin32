@@ -1,4 +1,4 @@
-"""adodbapi v2.2.1 -  A python DB API 2.0 interface to Microsoft ADO
+"""adodbapi v2.2.2 -  A python DB API 2.0 interface to Microsoft ADO
     
     Copyright (C) 2002  Henrik Ekelund
     Email: <http://sourceforge.net/sendmessage.php?touser=618411>
@@ -17,10 +17,15 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    version 2.1 by Vernon Cole -- update for Decimal data type
+    version 2.1 (and later) by Vernon Cole -- update for Decimal data type
     (requires Python 2.4 or above or or Python 2.3 with "import win32com.decimal_23")
     all uses of "verbose" below added by Cole for v2.1
 """
+# N.O.T.E.:...
+# if you have been using an older version of adodbapi and are getting errors because
+# numeric and monitary data columns are now returned as Decimal data,
+# try adding the following line to get that data as strings: ...
+#adodbapi.variantConversions[adodbapi.adoExactNumericTypes]=adodbapi.cvtString # get currency as strings
 
 import string
 import exceptions
@@ -44,7 +49,8 @@ try:
     DBNull = types.NoneType
     DateTime = types.NotImplementedType #impossible value
 except ImportError:  # implies running on IronPython
-    from System import Activator, Type, DBNull, DateTime
+    from System import Activator, Type, DBNull, DateTime, Array, Byte
+    from System import Decimal as SystemDecimal
     from clr import Reference
     def Dispatch(dispatch):
         type = Type.GetTypeFromProgID(dispatch)
@@ -314,14 +320,25 @@ defaultCursorLocation=adUseServer                       #v2.1 Rose
 #   It may be one of the above
 
 class Connection(object):
+    from adodbapi import Warning, Error, InterfaceError, DataError, \
+     DatabaseError, OperationalError, IntegrityError, InternalError, \
+     NotSupportedError, ProgrammingError #required by api definition
     def __init__(self,adoConn):       
         self.adoConn=adoConn
         self.supportsTransactions=False
-        for indx in range(adoConn.Properties.Count):
-            if adoConn.Properties[indx].Name == 'Transaction DDL':
-                if adoConn.Properties[indx].Value != 0:        #v2.1 Albrecht
-                    self.supportsTransactions=True
-                break
+        if win32:
+            for indx in range(adoConn.Properties.Count):
+                if adoConn.Properties[indx].Name == 'Transaction DDL':
+                    if adoConn.Properties[indx].Value != 0:        #v2.1 Albrecht
+                        self.supportsTransactions=True
+                    break
+        else: # Iron Python
+            for indx in range(adoConn.Properties.Count):
+                name = adoConn.Properties.Item[indx].Name
+                if name == 'Transaction DDL':
+                    if adoConn.Properties.Item[indx].Value != 0:        #v2.1 Albrecht
+                        self.supportsTransactions=True
+                    break
         self.adoConn.CursorLocation = defaultCursorLocation #v2.1 Rose
         if self.supportsTransactions:
             self.adoConn.IsolationLevel=defaultIsolationLevel
@@ -441,7 +458,6 @@ class Connection(object):
             pass
         self.adoConn=None
 
-    
 class Cursor(object):
     description=None
 ##    This read-only attribute is a sequence of 7-item sequences.
@@ -499,8 +515,11 @@ class Cursor(object):
 
     def _returnADOCommandParameters(self,adoCommand):
         retLst=[]
-        for i in range(adoCommand.Parameters.Count):                
-            p=adoCommand.Parameters[i]
+        for i in range(adoCommand.Parameters.Count):
+            if win32:
+                p=adoCommand.Parameters[i]
+            else:
+                p=adoCommand.Parameters.Item[i]
             if verbose > 2:
                 print 'return', p.Name, p.Type, p.Direction, repr(p.Value)
             type_code=p.Type 
@@ -527,7 +546,10 @@ class Cursor(object):
             nOfFields=rs.Fields.Count
             self.description=[]
             for i in range(nOfFields):
-                f=rs.Fields[i]
+                if win32:
+                    f = rs.Fields[i]
+                else: # Iron Python
+                    f=rs.Fields.Item[i]
                 name=f.Name
                 type_code=f.Type 
                 if not(rs.EOF or rs.BOF):
@@ -616,14 +638,21 @@ class Cursor(object):
                     cnt=self.cmd.Parameters.Count
                     if cnt<>len(parameters):
                         for i in range(cnt):
-                            if self.cmd.Parameters[i].Direction == adParamReturnValue:
+                            if win32:
+                                dir = self.cmd.Parameters[i].Direction
+                            else:
+                                dir = self.cmd.Parameters.Item[i].Direction   
+                            if dir == adParamReturnValue:
                                 returnValueIndex=i
                                 break
                 for elem in parameters:
                     parmIndx+=1
                     if parmIndx == returnValueIndex:
                         parmIndx+=1
-                    p=self.cmd.Parameters[parmIndx]
+                    if win32:
+                        p=self.cmd.Parameters[parmIndx]
+                    else: # Iron Python
+                        p=self.cmd.Parameters.Item[parmIndx]   
                     if verbose > 2:
                         print 'Parameter %d ADOtype %d, python %s' % (parmIndx,p.Type,type(elem))
                     if p.Direction in [adParamInput,adParamInputOutput,adParamUnknown]:
@@ -656,6 +685,9 @@ class Cursor(object):
                             s = str(elem)
                             p.Value = s
                             p.Size = len(s)
+                        elif isinstance(elem, long) and not win32: # Iron Python Long
+                            s = SystemDecimal(elem)
+                            p.Value = s
                         else:
                             p.Value=elem
                         if verbose > 2:
@@ -1214,6 +1246,12 @@ def cvtFloat(variant):
     except:
         raise
 
+def cvtBuffer(variant):
+    return buffer(variant)
+
+def cvtUnicode(variant):
+    return unicode(variant) 
+
 def identity(x): return x
 
 class VariantConversionMap(dict):
@@ -1236,10 +1274,10 @@ class VariantConversionMap(dict):
             return identity
 
 def convertVariantToPython(variant, adType):
-    #if verbose > 2:
-    #   print 'Converting type_code=%s, val=%s'%(adType,repr(variant))
-    #   print '                               str=%s'%str(variant)
-    #   print 'conversion=',repr(variantConversions[adType])
+    if verbose > 3:
+       print 'Converting type_code=%s, val=%s'%(adType,repr(variant))
+       print 'conversion function=',repr(variantConversions[adType])
+       print '                     output=%s'%repr(variantConversions[adType](variant))
     if isinstance(variant,DBNull):
         return None
     return variantConversions[adType](variant)
@@ -1254,6 +1292,5 @@ variantConversions = VariantConversionMap( {
     adoIntegerTypes: int,
     adoRowIdTypes: int,
     adoStringTypes: identity,
-    adoBinaryTypes: identity,
-    adoRemainingTypes: identity
-})
+    adoBinaryTypes: cvtBuffer,
+    adoRemainingTypes: identity })

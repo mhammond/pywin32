@@ -19,7 +19,23 @@ Prerequisites:
  and pywin32 (Mark Hammond's python for windows extensions.)
  Note: as of 2.1.1, adodbapi is included in pywin32 versions 211 and later. 
 or
- Iron Python 2.0b4 or higher. 
+ Iron Python 2.0 or higher. 
+
+NOTE: ...........
+If you do not like the new default operation of returning Numeric columns as decimal.Decimal,
+you can select other options by the user defined convertion feature. 
+Try:
+        adodbapi.variantConversions[adodbapi.adNumeric] = adodbapi.cvtString
+or:
+        adodbapi.variantConversions[adodbapi.adNumeric] = adodbapi.cvtFloat
+or:
+	adodbapi.variantConversions[adodbapi.adNumeric] = my_convertion_function
+............
+
+whats new in version 2.2.2
+1. Works with Iron Python 2.0RC1 (passes all tests except BINARY columns and old python time date conversion.)
+2. Passes all dbapi20 tests (All errors and warnings are now defined for the connection object.)
+3. Adds predefined conversion functions cvtBuffer and cvtUnicode if you want to use them.
 
 Whats new in version 2.2.1
 1. Bugfix for v2.1 item 6: but do not correct the string length if the output column is not a string.
@@ -76,7 +92,7 @@ Henrik Ekelund,
 Jim Abrams.
 Bjorn Pettersen.
 
-Authors (version 2.1)
+Author (version 2.1 and later)
 -------
 Vernon Cole
 
@@ -99,6 +115,9 @@ pywin32 lists.
 
 Relase history
 --------------
+2.2.2   Iron Python support complete.
+2.2.1   Bugfix for string truncation
+2.2     Code cleanup. added feature: "adodbapi.variantConversions[adodbapi.adNumeric] = adodbapi.cvtString"
 2.1.1	Bugfix to CoIninialize() and nextset()
 2.1	Python 2.4 version
 2.0     See what's new above.
