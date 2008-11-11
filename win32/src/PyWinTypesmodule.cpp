@@ -739,28 +739,28 @@ PyObject *PyWinSequence_Tuple(PyObject *obseq, DWORD *len)
 // @object PyMSG|A tuple representing a win32 MSG structure.
 BOOL PyWinObject_AsMSG(PyObject *ob, MSG *pMsg)
 {
-	PyObject *obhwnd;
-	if (!PyArg_ParseTuple(ob, "Oiiii(ii):MSG param",
+	PyObject *obhwnd, *obwParam, *oblParam;
+	if (!PyArg_ParseTuple(ob, "OiOOi(ii):MSG param",
 			&obhwnd, // @tupleitem 0|<o PyHANDLE>|hwnd|Handle to the window whose window procedure receives the message.
 			&pMsg->message, // @tupleitem 1|int|message|Specifies the message identifier.
-			&pMsg->wParam, // @tupleitem 2|int|wParam|Specifies additional information about the message.
-			&pMsg->lParam, // @tupleitem 3|int|lParam|Specifies additional information about the message.
+			&obwParam, // @tupleitem 2|int|wParam|Specifies additional information about the message.
+			&oblParam, // @tupleitem 3|int|lParam|Specifies additional information about the message.
 			&pMsg->time, // @tupleitem 4|int|time|Specifies the time at which the message was posted (retrieved via GetTickCount()).
 			&pMsg->pt.x, // @tupleitem 5|(int, int)|point|Specifies the cursor position, in screen coordinates, when the message was posted.
 			&pMsg->pt.y))
 		return FALSE;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&pMsg->hwnd))
-		return FALSE;
-	return TRUE;
+	return PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&pMsg->hwnd)
+		&&PyWinObject_AsPARAM(obwParam, &pMsg->wParam)
+		&&PyWinObject_AsPARAM(oblParam, &pMsg->lParam);
 }
 
 PyObject *PyWinObject_FromMSG(const MSG *pMsg)
 {
-	return Py_BuildValue("Niiii(ii)",
+	return Py_BuildValue("NiNNi(ii)",
 				PyWinLong_FromHANDLE(pMsg->hwnd),
 				pMsg->message,
-				pMsg->wParam,
-				pMsg->lParam,
+				PyWinObject_FromPARAM(pMsg->wParam),
+				PyWinObject_FromPARAM(pMsg->lParam),
 				pMsg->time,
 				pMsg->pt.x,
 				pMsg->pt.y);
