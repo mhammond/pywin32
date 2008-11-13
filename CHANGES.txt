@@ -8,6 +8,11 @@ However contributors are encouraged to add their own entries for their work.
 Since build 212:
 ----------------
 
+* win32gui: RegisterDeviceNotification and EnumPropsExW didn't release the 
+  GIL, which could cause a deadlock in multi-threaded Python apps.
+
+* Fix bug in win32timezone.GetSortedTimeZoneNames() on WinNT.
+
 * win32com.internet gets support for IDocHostUIHandler, IHTMLOMWindowServices
   and IInternetSecurityManager interfaces, and CoInternetCreateSecurityManager
   function.
