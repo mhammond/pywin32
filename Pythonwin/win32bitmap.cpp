@@ -57,7 +57,7 @@ PyObject *ui_bitmap::create( PyObject *self, PyObject *args )
 PyObject *ui_bitmap::create_from_handle( PyObject *self, PyObject *args )
 {
 	PyObject *pObj, *obhandle;
-	if (!PyArg_ParseTuple(args, "O", &obhandle))
+	if (!PyArg_ParseTuple(args, "O:CreateBitmapFromHandle", &obhandle))
 		return NULL;
 	HBITMAP handle;
 	if (!PyWinObject_AsHANDLE(obhandle, (HANDLE *)&handle))
@@ -85,7 +85,7 @@ static PyObject *ui_bitmap_load_bitmap( PyObject *self, PyObject *args )
 	HINSTANCE hModLoad;
 	PyObject *obDLL = NULL;
 	ui_bitmap *pUIBitmap = (ui_bitmap *)self;
-	if (!PyArg_ParseTuple(args,"i|O", 
+	if (!PyArg_ParseTuple(args,"i|O:LoadBitmap",
 		&idRes, 	// @pyparm int|idRes||The resource ID of the bitmap
 		&obDLL))	// @pyparm <o PyDLL>|obDLL|None|The DLL object to load from.
 		return NULL;
@@ -125,7 +125,7 @@ static PyObject *ui_bitmap_create_compatible_bitmap( PyObject *self, PyObject *a
 	int width, height;
 	PyObject *obDC;
 
-	if (!PyArg_ParseTuple(args,"Oii", 
+	if (!PyArg_ParseTuple(args,"Oii:CreateCompatibleBitmap", 
 		&obDC,      // @pyparm <o PyCDC>|dc||Specifies the device context.
 		&width, 	// @pyparm int|width||The width (in bits) of the bitmap
 		&height))	// @pyparm int|height||The height (in bits) of the bitmap.
@@ -382,7 +382,7 @@ static PyObject *ui_bitmap_get_handle( PyObject *self, PyObject *args )
 //	ui_bitmap *pDIB = (ui_bitmap *)self;
 //	return Py_BuildValue("i", (HBITMAP)pDIB);
 	CBitmap *pBitmap = ui_bitmap::GetBitmap( self );
-	return Py_BuildValue ("i", (HBITMAP) *pBitmap);
+	return PyWinLong_FromHANDLE((HBITMAP)*pBitmap);
 }
 
 // @pymethod |PyCBitmap|Paint|Paint a bitmap.
@@ -397,7 +397,7 @@ static PyObject *ui_bitmap_paint( PyObject *self, PyObject *args )
 	CRect rSrc = CFrameWnd::rectDefault;
 	DWORD dwROP = SRCCOPY;
 	PyObject *dcobject;
-	if (!PyArg_ParseTuple(args,"O|(iiii)(iiii)i", 
+	if (!PyArg_ParseTuple(args,"O|(iiii)(iiii)i:Paint", 
 						  // @pyparm <o PyCDC>|dcObject||The DC object to paint the bitmap to.
 						  &dcobject, 
 						  // @pyparm (left,top,right,bottom)|rectDest|(0,0,0,0)|The destination rectangle to paint to.
@@ -441,7 +441,7 @@ static PyObject *ui_bitmap_paint( PyObject *self, PyObject *args )
 // @pymethod dict|PyCBitmap|GetInfo|Returns the BITMAP structure info
 static PyObject *ui_bitmap_info( PyObject *self, PyObject *args )
 {
-	if (!PyArg_ParseTuple(args,""))
+	if (!PyArg_ParseTuple(args,":GetInfo"))
 		return NULL;
   	CBitmap *pBitmap = ui_bitmap::GetBitmap( self );
 	BITMAP bm;
@@ -466,7 +466,7 @@ static PyObject *ui_get_bitmap_bits( PyObject *self, PyObject *args )
 	// @pyparm int|asString|0|If False, the result is a tuple of
 	// integers, if True, the result is a Python string
 	int asString = 0;
-	if (!PyArg_ParseTuple(args,"|i", &asString))
+	if (!PyArg_ParseTuple(args,"|i:GetBitmapBits", &asString))
 		return NULL;
   	CBitmap *pBitmap = ui_bitmap::GetBitmap( self );
 	BITMAP bm;
@@ -499,10 +499,11 @@ static PyObject *ui_get_bitmap_bits( PyObject *self, PyObject *args )
 static PyObject *ui_bitmap_save_bitmap_file( PyObject *self, PyObject *args )
 {
   PyObject *dcobject;
-  const char *pszFile;
-  if (!PyArg_ParseTuple(args,"Os", 
+  TCHAR *pszFile;
+  PyObject *obFile;
+  if (!PyArg_ParseTuple(args,"OO:SaveBitmapFile",
                         &dcobject, // @pyparm <o PyCDC>|dcObject||The DC object that has rendered the bitmap.
-                        &pszFile))    // @pyparm string|Filename||The file to save the bitmap to
+                        &obFile))    // @pyparm string|Filename||The file to save the bitmap to
     return NULL;
   CDC *pDC = ui_dc_object::GetDC(dcobject);
   if (pDC==NULL)
@@ -595,13 +596,16 @@ static PyObject *ui_bitmap_save_bitmap_file( PyObject *self, PyObject *args )
     }
 
   // Create the .BMP file. 
+  if (!PyWinObject_AsTCHAR(obFile, &pszFile, FALSE))
+	  return NULL;
   hf = CreateFile(pszFile, 
                   GENERIC_READ | GENERIC_WRITE, 
                   (DWORD) 0, 
                   NULL, 
                   CREATE_ALWAYS, 
                   FILE_ATTRIBUTE_NORMAL, 
-                  (HANDLE) NULL); 
+                  (HANDLE) NULL);
+  PyWinObject_FreeTCHAR(pszFile);
   if (hf == INVALID_HANDLE_VALUE) 
     RETURN_ERR("CreateFile"); 
   hdr.bfType = 0x4d42;        // 0x42 = "B" 0x4d = "M" 
@@ -642,7 +646,7 @@ static PyObject *ui_bitmap_save_bitmap_file( PyObject *self, PyObject *args )
 
   // Free memory. 
   GlobalFree((HGLOBAL)lpBits);
-
+  Py_INCREF(Py_None);
   return Py_None;  
 }
 

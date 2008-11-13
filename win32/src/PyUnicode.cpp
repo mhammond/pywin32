@@ -80,13 +80,15 @@ void PyWinObject_FreeTaskAllocatedWCHAR(WCHAR * str)
 }
 
 /* Implement our Windows Unicode API using the Python widestring object */
-PyObject *PyUnicodeObject_FromString(const char *string)
+PyObject *PyUnicodeObject_FromString(const char *string, Py_ssize_t len /* = -1 */)
 {
 	if (string==NULL) {
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
-	return (PyObject *)PyUnicode_DecodeMBCS(string, strlen(string), NULL);
+	if (len==(Py_ssize_t)-1)
+		len = strlen(string);
+	return (PyObject *)PyUnicode_DecodeMBCS(string, len, NULL);
 }
 
 // Convert a WCHAR string to "char *"
@@ -226,28 +228,6 @@ PyObject *PyWinObject_FromOLECHAR(const OLECHAR * str)
 	return PyUnicode_FromWideChar( (OLECHAR *)str, wcslen(str) );
 }
 
-PyObject *PyString_FromUnicode( const OLECHAR *str )
-{
-	if (str==NULL) {
-		Py_INCREF(Py_None);
-		return Py_None;
-	}
-	PyObject *uo = PyWinObject_FromOLECHAR(str);
-	if (uo==NULL) return NULL;
-	PyObject *ret = PyUnicode_EncodeMBCS(PyUnicode_AS_UNICODE(uo), PyUnicode_GET_SIZE(uo), NULL);
-	Py_DECREF(uo);
-	return ret;
-}
-
-int PyUnicode_Size(PyObject *op)
-{
-	if (!PyUnicode_Check(op)) {
-		PyErr_BadInternalCall();
-		return -1;
-	}
-	return PyUnicode_GET_SIZE(op);
-}
-
 PyObject *PyWinObject_FromBstr(const BSTR bstr, BOOL takeOwnership /*=FALSE*/)
 {
 	if (bstr==NULL) {
@@ -382,7 +362,7 @@ BOOL PyWinObject_AsWCHAR(PyObject *stringObject, WCHAR **pResult, BOOL bNoneOK /
 	}
 	else if (PyUnicode_Check(stringObject))
 	{
-		resultLen = PyUnicode_Size(stringObject);
+		resultLen = PyUnicode_GET_SIZE(stringObject);
 		size_t cb = sizeof(WCHAR) * (resultLen+1);
 		*pResult = (WCHAR *)PyMem_Malloc(cb);
 		if (*pResult==NULL) {
@@ -650,4 +630,21 @@ BOOL PyWinObject_AsCharArray(PyObject *str_seq, char ***pchars, DWORD *str_cnt, 
 done:
 	Py_DECREF(str_tuple);
 	return ret;
+}
+
+// Copy s null terminated string so that it can be deallocated with PyWinObject_FreeString
+WCHAR *PyWin_CopyString(const WCHAR *input){
+	size_t len=wcslen(input);
+	WCHAR *output=(WCHAR *)PyMem_Malloc((len+1) * sizeof(WCHAR));
+	if (output==NULL)
+		return NULL;
+	return wcsncpy(output, input, len+1);
+}
+
+char *PyWin_CopyString(const char *input){
+	size_t len=strlen(input);
+	char *output=(char *)PyMem_Malloc((len+1) * sizeof(char));
+	if (output==NULL)
+		return NULL;
+	return strncpy(output, input, len+1);
 }

@@ -28,12 +28,12 @@ CVirtualHelper::CVirtualHelper(const char *iname, const void *iassoc, EnumVirtua
 	ui_assoc_object *py_bob = ui_assoc_object::handleMgr.GetAssocObject( iassoc );
 	if (bInFatalShutdown || py_bob==NULL)
 		return;
+	CEnterLeavePython _celp;
 	if (!py_bob->is_uiobject( &ui_assoc_object::type)) {
 		TRACE("CVirtualHelper::CVirtualHelper Error: Call object is not of required type\n");
 		return;
 	}
 	// ok - have the python data type - now see if it has an override.
-	CEnterLeavePython _celp;
 	if (py_bob->virtualInst) {
 		PyObject *t, *v, *tb;
 		PyErr_Fetch(&t,&v,&tb);
@@ -72,6 +72,7 @@ PyObject *CVirtualHelper::GetHandler()
 }
 BOOL CVirtualHelper::do_call(PyObject *args)
 {
+	USES_CONVERSION;
 	XDODECREF(retVal);	// our old one.
 	retVal = NULL;
 	ASSERT(handler);	// caller must trap this.
@@ -86,9 +87,20 @@ BOOL CVirtualHelper::do_call(PyObject *args)
 			// this will probably fail if we are already inside the exception handler
 			PyObject *obRepr = PyObject_Repr(handler);
 			char *szRepr = "<no representation (PyObject_Repr failed)>";
-			if (obRepr)
-				szRepr = PyString_AsString(obRepr);
-			wsprintf(msg, "%s() virtual handler (%s) raised an exception", (const char *)csHandlerName, szRepr);
+			if (obRepr){
+				if (PyString_Check(obRepr))
+					szRepr = PyString_AS_STRING(obRepr);
+				else if (PyUnicode_Check(obRepr))
+					szRepr=W2A(PyUnicode_AS_UNICODE(obRepr));
+				}
+			else
+				PyErr_Clear();
+
+			LPTSTR HandlerName=csHandlerName.GetBuffer(csHandlerName.GetLength());
+			snprintf(msg, sizeof(msg)/sizeof(msg[0]),  "%s() virtual handler (%s) raised an exception", 
+				T2A(HandlerName),
+				szRepr);
+			csHandlerName.ReleaseBuffer();
 			Py_XDECREF(obRepr);
 			PyErr_SetString(ui_module_error, msg);
 			// send to the debugger
@@ -176,6 +188,15 @@ BOOL CVirtualHelper::call(const char *val)
 	PyObject *arglst = Py_BuildValue("(z)",val);
 	return do_call(arglst);
 }
+
+BOOL CVirtualHelper::call(const WCHAR *val)
+{
+	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
+	PyObject *arglst = Py_BuildValue("(u)",val);
+	return do_call(arglst);
+}
+
 BOOL CVirtualHelper::call(const char *val, int ival)
 {
 	if (!handler) return FALSE;
@@ -183,6 +204,15 @@ BOOL CVirtualHelper::call(const char *val, int ival)
 	PyObject *arglst = Py_BuildValue("(zi)",val,ival);
 	return do_call(arglst);
 }
+
+BOOL CVirtualHelper::call(const WCHAR *val, int ival)
+{
+	if (!handler) return FALSE;
+	CEnterLeavePython _celp;
+	PyObject *arglst = Py_BuildValue("(ui)",val,ival);
+	return do_call(arglst);
+}
+
 BOOL CVirtualHelper::call(PyObject *ob)
 {
 	if (!handler) return FALSE;
@@ -417,7 +447,9 @@ BOOL CVirtualHelper::call(const MSG *msg)
 {
 	if (!handler) return FALSE;
 	CEnterLeavePython _celp;
-	PyObject *arglst = Py_BuildValue("((iiiii(ii)))",msg->hwnd,msg->message,msg->wParam,msg->lParam,msg->time,msg->pt.x,msg->pt.y);
+	PyObject *arglst = Py_BuildValue("(N)", PyWinObject_FromMSG(msg));
+	if (!arglst)
+		return FALSE;
 	BOOL ret = do_call(arglst);
 	return ret;
 }
@@ -453,8 +485,8 @@ BOOL CVirtualHelper::retval( MSG *msg )
 	if (!retVal)
 		return FALSE;	// failed - assume didnt work in non debug
 	CEnterLeavePython _celp;
-	if (!PyArg_ParseTuple(retVal, "(iiiii(ii))", &msg->hwnd,&msg->message,&msg->wParam,&msg->lParam,&msg->time,&msg->pt.x,&msg->pt.y)) {
-		PyErr_Clear();
+	if (!PyWinObject_AsMSG(retVal, msg)){
+		gui_print_error();
 		return FALSE;
 	}
 	return TRUE;
@@ -470,8 +502,13 @@ BOOL CVirtualHelper::retval( int &ret )
 	}
 	CEnterLeavePython _celp;
 	ret = PyInt_AsLong(retVal);
-	return !PyErr_Occurred();
+	if (ret == -1 && PyErr_Occurred()){
+		gui_print_error();
+		return FALSE;
+		}
+	return TRUE;
 }
+
 BOOL CVirtualHelper::retval( long &ret )
 {
 	ASSERT(retVal);
@@ -484,7 +521,7 @@ BOOL CVirtualHelper::retval( long &ret )
 	CEnterLeavePython _celp;
 	ret = PyInt_AsLong(retVal);
 	if (PyErr_Occurred()) {
-		PyErr_Clear();
+		gui_print_error();
 		return FALSE;
 	}
 	return TRUE;
@@ -501,7 +538,7 @@ BOOL CVirtualHelper::retval( HANDLE &ret )
 	}
 	CEnterLeavePython _celp;
 	if (!PyWinObject_AsHANDLE(retVal, &ret)) {
-		PyErr_Clear();
+		gui_print_error();
 		return FALSE;
 	}
 	return TRUE;
@@ -518,8 +555,22 @@ BOOL CVirtualHelper::retval( char *&ret )
 	}
 	CEnterLeavePython _celp;
 	ret = PyString_AsString(retVal);
-	if (PyErr_Occurred()) {
-		PyErr_Clear();
+	if (ret == NULL) {
+		gui_print_error();
+		return FALSE;
+	}
+	return TRUE;
+}
+
+BOOL CVirtualHelper::retval(WCHAR *&ret )
+{
+	ASSERT(retVal);
+	if (!retVal)
+		return FALSE;	// failed - assume didnt work in non debug
+	CEnterLeavePython _celp;
+	// ??? This leaks memory, but this overload is not actually used anywhere ???
+	if (!PyWinObject_AsWCHAR(retVal, &ret, TRUE)){
+		gui_print_error();
 		return FALSE;
 	}
 	return TRUE;
@@ -535,11 +586,13 @@ BOOL CVirtualHelper::retval( CString &ret )
 		return TRUE;
 	}
 	CEnterLeavePython _celp;
-	ret = PyString_AsString(retVal);
-	if (PyErr_Occurred()) {
-		PyErr_Clear();
+	TCHAR *tchar_val;
+	if (!PyWinObject_AsTCHAR(retVal, &tchar_val, FALSE)){
+		gui_print_error();
 		return FALSE;
-	}
+		}
+	ret = tchar_val;
+	PyWinObject_FreeTCHAR(tchar_val);
 	return TRUE;
 }
 
@@ -561,17 +614,19 @@ BOOL CVirtualHelper::retval( _object* &ret )
 
 BOOL CVirtualHelper::retval( CREATESTRUCT &cs )
 {
+	USES_CONVERSION;
 	ASSERT(retVal);
 	if (!retVal || retVal==Py_None)
 		return FALSE;	// failed - assume didnt work in non debug
 	CEnterLeavePython _celp;
 	if (!CreateStructFromPyObject(&cs, retVal)) {
-		char msgBuf[128];
-
 		gui_print_error();
-		wsprintf(msgBuf, "virtual %s: The return value can not be converted from a CREATESTRUCT tuple",
-				(const char *)csHandlerName );
-		PyErr_SetString(PyExc_TypeError, msgBuf);
+		CString msgBuf;
+		msgBuf.Format(_T("virtual %s: The return value can not be converted from a CREATESTRUCT tuple"),
+			(const TCHAR *)csHandlerName );
+		LPTSTR msg=msgBuf.GetBuffer(msgBuf.GetLength());
+		PyErr_SetString(PyExc_TypeError, T2A(msg));
+		msgBuf.ReleaseBuffer();
 		gui_print_error();
 		return FALSE;
 	}

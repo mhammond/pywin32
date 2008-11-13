@@ -153,7 +153,7 @@ static PyObject *win32uiole_AfxOleInit(PyObject *self, PyObject *args)
 }
 
 // @module win32uiole|A module, encapsulating the Microsoft Foundation Classes OLE functionality.
-static struct PyMethodDef uiole_functions[] = {
+static struct PyMethodDef win32uiole_functions[] = {
 	{"AfxOleInit",   win32uiole_AfxOleInit, 1}, // @pymeth AfxOleInit|
 	{"CreateInsertDialog",   PyCOleInsertDialog::create, 1}, // @pymeth CreateInsertDialog|Creates a InsertObject dialog.
 	{"CreateOleClientItem",  PyCOleClientItem_Create, 1}, // @pymeth CreateOleClientItem|Creates a <o PyCOleClientItem> object.
@@ -168,27 +168,11 @@ static struct PyMethodDef uiole_functions[] = {
 	{NULL,			NULL}
 };
 
-#define ADD_CONSTANT(tok) if (rc=AddConstant(dict,#tok, tok)) return rc
-#define ADD_ENUM(parta, partb) if (rc=AddConstant(dict,#parta "_" #partb, parta::partb)) return rc
+#define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok)==-1) return -1
+#define ADD_ENUM(parta, partb) if (PyModule_AddIntConstant(module, #parta "_" #partb, parta::partb)==-1) return -1
 
-static int AddConstant(PyObject *dict, char *key, long value)
+int AddConstants(PyObject *module)
 {
-	PyObject *okey = PyString_FromString(key);
-	PyObject *oval = PyInt_FromLong(value);
-	if (!okey || !oval) {
-		XDODECREF(okey);
-		XDODECREF(oval);
-		return 1;
-	}
-	int rc = PyDict_SetItem(dict,okey, oval);
-	DODECREF(okey);
-	DODECREF(oval);
-	return rc;
-}
-
-int AddConstants(PyObject *dict)
-{
-  int rc;
   ADD_ENUM(COleClientItem, emptyState);// @const win32uiole|COleClientItem_emptyState|
   ADD_ENUM(COleClientItem, loadedState);// @const win32uiole|COleClientItem_loadedState|
   ADD_ENUM(COleClientItem, openState);// @const win32uiole|COleClientItem_openState|
@@ -206,10 +190,10 @@ int AddConstants(PyObject *dict)
 extern "C" __declspec(dllexport) void
 initwin32uiole(void)
 {
-  PyObject *module = Py_InitModule("win32uiole", uiole_functions);
+  PyObject *module = Py_InitModule("win32uiole", win32uiole_functions);
   if (!module) /* Eeek - some serious error! */
     return;
   PyObject *dict = PyModule_GetDict(module);
   if (!dict) return; /* Another serious error!*/
-  AddConstants(dict);
- }
+  AddConstants(module);
+}

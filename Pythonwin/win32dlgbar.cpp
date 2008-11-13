@@ -40,24 +40,16 @@ PyObject *PyCDialogBar::create(PyObject *self, PyObject *args)
 // @pymethod |PyCDialogBar|CreateWindow|Creates the window for the <o PyCDialogBar> object.
 static PyObject *PyCDialogBar_CreateWindow(PyObject *self, PyObject *args)
 {
-    BOOL bHaveSz = TRUE;
-	char *szTemplate;
-	UINT style, id, idTemplate;
-	PyObject *obParent;
+	TCHAR *szTemplate;
+	UINT style, id;
+	PyObject *obParent, *obTemplate;
 	// @pyparm <o PyCWnd>|parent||The parent window
-	// @pyparm string|template||The template to load the resource from
+	// @pyparm <o PyResourceId>|template||Template name or integer resource id
 	// @pyparm int|style||The style for the window
 	// @pyparm int|id||The ID of the window
-    if (!PyArg_ParseTuple(args, "Osii", &obParent, &szTemplate, &style, &id)) {
-        PyErr_Clear();
-		// @pyparmalt1 <o PyCWnd>|parent||The parent window
-		// @pyparmalt1 int|resourceId||The resource ID to load the resource from
-		// @pyparmalt1 int|style||The style for the window
-		// @pyparmalt1 int|id||The ID of the window
-        if (!PyArg_ParseTuple(args, "Oiii", &obParent, &idTemplate, &style, &id))
-            RETURN_TYPE_ERR("CreateWindow arguments must have format of either 'Osii' or 'Oiii'");
-        bHaveSz = FALSE;
-    }
+    if (!PyArg_ParseTuple(args, "OOii", &obParent, &obTemplate, &style, &id))
+		return NULL;
+
     CDialogBar *pDialog = PyCDialogBar::GetDialogBar(self);
     if (pDialog==NULL) return NULL;
 	CWnd *pParent = NULL;
@@ -66,12 +58,17 @@ static PyObject *PyCDialogBar_CreateWindow(PyObject *self, PyObject *args)
 		if (pParent==NULL)
 			RETURN_TYPE_ERR("The parent window is not a valid PyCWnd");
 	}
+	if (!PyWinObject_AsResourceId(obTemplate, &szTemplate, FALSE))
+		return NULL;
+	BOOL rc;
     GUI_BGN_SAVE;
-    BOOL rc = bHaveSz ?
-        pDialog->Create(pParent, szTemplate, style, id) :
-        pDialog->Create(pParent, idTemplate, style, id);
+    if (IS_INTRESOURCE(szTemplate))
+		rc=pDialog->Create(pParent, MAKEINTRESOURCE(szTemplate), style, id);
+	else
+        rc=pDialog->Create(pParent, szTemplate, style, id);
     GUI_END_SAVE;
-    if (!rc)
+	PyWinObject_FreeResourceId(szTemplate);
+	if (!rc)
         RETURN_ERR("CDialogBar::Create failed");
     RETURN_NONE;
 }

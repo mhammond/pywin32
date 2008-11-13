@@ -133,9 +133,8 @@ PyObject *PyICatInformation::GetCategoryDesc(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if (S_OK!=hr) // S_OK only acceptable
 		return PyCom_BuildPyException(hr, pMy, IID_ICatInformation);
-	// @comm The return type is a true PyString, not a Uniocode object.
-	// @todo Upgrade the return type to be Unicode.
-	PyObject *rc = PyString_FromUnicode(pResult);
+	PyObject *rc = PyWinObject_FromWCHAR(pResult);
+	// @comm The return type is a unicode object.
 	CoTaskMemFree(pResult);
 	return rc;
 }

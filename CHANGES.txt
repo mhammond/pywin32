@@ -8,6 +8,21 @@ However contributors are encouraged to add their own entries for their work.
 Since build 212:
 ----------------
 
+* Lots of work to better support unicode, py3k and 64bits from Roger.
+  Most of these changes will be invisible, and those that are not
+  are detailed elsewhere.
+
+* ODBC module - todo - add more about this.
+
+* pythoncom.__future_currency__ is no longer supported - the decimal
+  module is now used unconditionally when returning 'currency' variants.
+  See the win32com readme for more.
+
+* If you *implement* (not use) any of the following interfaces, take note:
+  IErrorLog, IPropertyBag, ICatInformation and IStorage have been upgraded 
+  to have unicode passed instead of strings as args to the implementation
+  methods.
+
 * win32gui: RegisterDeviceNotification and EnumPropsExW didn't release the 
   GIL, which could cause a deadlock in multi-threaded Python apps.
 

@@ -291,7 +291,7 @@ PyObject *PyWin_SetBasicCOMError(HRESULT hr)
 {
 
 	TCHAR buf[255];
-	int bufSize = sizeof(buf);
+	int bufSize = sizeof(buf)/sizeof(TCHAR);
 	int numCopied = ::FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, hr, 0, buf, bufSize, NULL );
 	if (numCopied>0) {
 		if (numCopied<bufSize) {
@@ -302,9 +302,7 @@ PyObject *PyWin_SetBasicCOMError(HRESULT hr)
 	} else {
 		wsprintf(buf, _T("COM Error 0x%x"), hr);
 	}
-	PyObject *obBuf = PyString_FromTCHAR(buf);
-	PyObject *evalue = Py_BuildValue("iOzz", hr, obBuf, NULL, NULL);
-	Py_XDECREF(obBuf);
+	PyObject *evalue = Py_BuildValue("iNzz", hr, PyWinObject_FromTCHAR(buf), NULL, NULL);
 	PyErr_SetObject(PyWinExc_COMError, evalue);
 	Py_XDECREF(evalue);
 	return NULL;
@@ -313,24 +311,11 @@ PyObject *PyWin_SetBasicCOMError(HRESULT hr)
 // @pymethod <o PyUnicode>|pywintypes|Unicode|Creates a new Unicode object
 PYWINTYPES_EXPORT PyObject *PyWin_NewUnicode(PyObject *self, PyObject *args)
 {
-#ifdef PYWIN_USE_PYUNICODE
 	char *string;
 	int slen;
 	if (!PyArg_ParseTuple(args, "t#", &string, &slen))
 		return NULL;
     return PyUnicode_DecodeMBCS(string, slen, NULL);
-#else
-	PyObject *obString;
-	// @pyparm string|str||The string to convert.
-	if (!PyArg_ParseTuple(args, "O", &obString))
-		return NULL;
-	PyUnicode *result = new PyUnicode(obString);
-	if ( result->m_bstrValue )
-		return result;
-	Py_DECREF(result);
-	/* an error should have been raised */
-	return NULL;
-#endif
 }
 
 // @pymethod <o PyUnicode>|pywintypes|UnicodeFromRaw|Creates a new Unicode object from raw binary data
@@ -342,17 +327,7 @@ static PyObject *PyWin_NewUnicodeFromRaw(PyObject *self, PyObject *args)
 	// @pyparm string|str||The string containing the binary data.
 	if (!PyArg_ParseTuple(args, "s#", &value, &numBytes))
 		return NULL;
-
-#ifdef PYWIN_USE_PYUNICODE
 	return PyWinObject_FromOLECHAR( (OLECHAR *)value, numBytes/sizeof(OLECHAR) );
-#else
-	PyUnicode *result = new PyUnicode(value, numBytes);
-	if ( result->m_bstrValue )
-		return result;
-	Py_DECREF(result);
-	/* an error should have been raised */
-	return NULL;
-#endif
 }
 
 #ifndef MS_WINCE /* This code is not available on Windows CE */
@@ -395,7 +370,7 @@ static PyObject *PyWin_DosDateTimeToTime(PyObject *self, PyObject *args)
 	FILETIME fd;
 	if (!DosDateTimeToFileTime(wFatDate, wFatTime, &fd))
 		return PyWin_SetAPIError("DosDateTimeToFileTime");
-	return new PyTime(fd);
+	return PyWinObject_FromFILETIME(fd);
 }
 #endif /* MS_WINCE */
 
@@ -632,17 +607,17 @@ BOOL PyWinObject_AsPARAM(PyObject *ob, WPARAM *pparam)
 		return TRUE;
 		}
 #endif
-	PyBufferProcs *pb = ob->ob_type->tp_as_buffer;
-	if (pb != NULL && pb->bf_getreadbuffer)
-		return pb->bf_getreadbuffer(ob,0,(VOID **)pparam)!=-1;
+	DWORD bufsize;
+	if (PyWinObject_AsReadBuffer(ob, (VOID **)pparam, &bufsize))
+		return TRUE;
 
+	PyErr_Clear();
 	if (PyWinLong_AsVoidPtr(ob, (void **)pparam))
 		return TRUE;
 
-	if (!PyErr_Occurred())
-		PyErr_Format(PyExc_TypeError,
-		             "WPARAM must be a " TCHAR_DESC ", int, or buffer object (got %s)",
-		             ob->ob_type->tp_name);
+	PyErr_Format(PyExc_TypeError,
+		"WPARAM must be a " TCHAR_DESC ", int, or buffer object (got %s)",
+		ob->ob_type->tp_name);
 	return FALSE;
 }
 
@@ -803,7 +778,7 @@ static struct PyMethodDef pywintypes_functions[] = {
 	{NULL,			NULL}
 };
 
-void PyWinGlobals_Ensure()
+int PyWinGlobals_Ensure()
 {
 	PyEval_InitThreads();
 	PyWinInterpreterState_Ensure();
@@ -814,23 +789,32 @@ void PyWinGlobals_Ensure()
 		// defined in regular .py code - because the are!
 		PyObject *d = PyDict_New();
 		if (!d)
-			return;
-		PyObject *name = PyString_FromString("pywintypes");
+			return -1;
+		PyObject *name = PyWinCoreString_FromString("pywintypes");
 		if (!name) {
 			Py_DECREF(d);
-			return;
+			return -1;
 		}
 		PyDict_SetItemString(d, "Exception", PyExc_Exception);
 		PyDict_SetItemString(d, "__name__", name);
 		Py_DECREF(name);
-		PyObject *bimod = PyImport_ImportModule("__builtin__");
-		if (bimod) {
-			PyDict_SetItemString(d, "__builtins__", bimod);
-			Py_DECREF(bimod);
-		}
+		PyObject *bimod = PyImport_ImportModule(
+#if PY_VERSION_HEX >= 0x03000000
+							"builtins");
+#else
+							"__builtin__");
+#endif
+		if ((bimod == NULL)
+			||PyDict_SetItemString(d, "__builtins__", bimod) == -1){
+			Py_XDECREF(bimod);
+			return -1;
+			}			
+		Py_DECREF(bimod);
+
 		// Note using 'super()' doesn't work as expected on py23...
 		// Need to be careful to support "insane" args...
-		PyRun_String("class error(Exception):\n"
+		PyObject *res=PyRun_String(
+			     "class error(Exception):\n"
 			     "  def __init__(self, *args, **kw):\n"
 			     "    nargs = len(args)\n"
 			     "    if nargs > 0: self.winerror = args[0]\n"
@@ -854,6 +838,10 @@ void PyWinGlobals_Ensure()
 			     "    Exception.__init__(self, *args, **kw)\n"
 			     ,
 			     Py_file_input, d, d);
+		if (res==NULL)
+			return -1;
+		Py_DECREF(res);
+
 		PyWinExc_ApiError = PyDict_GetItemString(d, "error");
 		Py_XINCREF(PyWinExc_ApiError);
 		PyWinExc_COMError = PyDict_GetItemString(d, "com_error");
@@ -920,19 +908,13 @@ void PyWin_ReleaseGlobalLock(void)
 	LeaveCriticalSection(&g_csMain);
 }
 
-static int AddConstant(PyObject *dict, const char *key, long value)
-{
-	PyObject *oval = PyInt_FromLong(value);
-	if (!oval)
-	{
-		return 1;
-	}
-	int rc = PyDict_SetItemString(dict, (char*)key, oval);
-	Py_DECREF(oval);
-	return rc;
-}
 
-#define ADD_CONSTANT(tok) AddConstant(dict, #tok, tok)
+#define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok) == -1) RETURN_ERROR;
+
+#define ADD_TYPE(type_name)	\
+	if (PyType_Ready(&Py##type_name)==-1		\
+		|| PyDict_SetItemString(dict, #type_name, (PyObject *)&Py##type_name) == -1)	\
+		RETURN_ERROR;
 
 extern "C" __declspec(dllexport)
 void initpywintypes(void)
@@ -942,6 +924,9 @@ void initpywintypes(void)
 
   // Note we assume the Python global lock has been acquired for us already.
   PyObject *dict, *module;
+
+#define RETURN_ERROR return; // path to py3k...
+
   module = Py_InitModule("pywintypes", pywintypes_functions);
   if (!module) /* Eeek - some serious error! */
     return;
@@ -966,7 +951,7 @@ void initpywintypes(void)
 #ifndef NO_PYWINTYPES_IID
   PyDict_SetItemString(dict, "IIDType", (PyObject *)&PyIIDType);
 #endif // NO_PYWINTYPES_IID
-  PyDict_SetItemString(dict, "UnicodeType", (PyObject *)&PyUnicodeType);
+  PyDict_SetItemString(dict, "UnicodeType", (PyObject *)&PyUnicode_Type);
 #ifndef NO_PYWINTYPES_SECURITY
   PyDict_SetItemString(dict, "SECURITY_ATTRIBUTESType", (PyObject *)&PySECURITY_ATTRIBUTESType);
   PyDict_SetItemString(dict, "SIDType", (PyObject *)&PySIDType);
@@ -988,9 +973,9 @@ BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 #ifndef NO_PYWINTYPES_SECURITY
 	FARPROC fp;
 	// dll usually will already be loaded
-	HMODULE hmodule=GetModuleHandle("AdvAPI32.dll");
+	HMODULE hmodule=GetModuleHandle(_T("AdvAPI32.dll"));
 	if (hmodule==NULL)
-		hmodule=LoadLibrary("AdvAPI32.dll");
+		hmodule=LoadLibrary(_T("AdvAPI32.dll"));
 	if (hmodule){
 		fp=GetProcAddress(hmodule,"AddAccessAllowedAce");
 		if (fp)
@@ -1079,5 +1064,100 @@ BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 			break;
 	}
 	return TRUE;    // ok
+}
+
+// Function to format a python traceback into a character string.
+#define GPEM_ERROR(what) {errorMsg = "<Error getting traceback - " ## what ## ">";goto done;}
+char *GetPythonTraceback(PyObject *exc_type, PyObject *exc_value, PyObject *exc_tb)
+{
+	// Sleep (30000); // Time enough to attach the debugger (barely)
+	char *result = NULL;
+	char *errorMsg = NULL;
+	PyObject *modStringIO = NULL;
+	PyObject *modTB = NULL;
+	PyObject *obFuncStringIO = NULL;
+	PyObject *obStringIO = NULL;
+	PyObject *obFuncTB = NULL;
+	PyObject *argsTB = NULL;
+	PyObject *obResult = NULL;
+
+	/* Import the modules we need - cStringIO and traceback */
+#if (PY_VERSION_HEX < 0x03000000)
+	modStringIO = PyImport_ImportModule("cStringIO");
+#else
+	// In py3k, cStringIO is in "io"
+	modStringIO = PyImport_ImportModule("io");
+#endif
+
+	if (modStringIO==NULL) GPEM_ERROR("cant import cStringIO");
+	modTB = PyImport_ImportModule("traceback");
+	if (modTB==NULL) GPEM_ERROR("cant import traceback");
+
+	/* Construct a cStringIO object */
+	obFuncStringIO = PyObject_GetAttrString(modStringIO, "StringIO");
+	if (obFuncStringIO==NULL) GPEM_ERROR("cant find cStringIO.StringIO");
+	obStringIO = PyObject_CallObject(obFuncStringIO, NULL);
+	if (obStringIO==NULL) GPEM_ERROR("cStringIO.StringIO() failed");
+
+	/* Get the traceback.print_exception function, and call it. */
+	obFuncTB = PyObject_GetAttrString(modTB, "print_exception");
+	if (obFuncTB==NULL) GPEM_ERROR("cant find traceback.print_exception");
+	argsTB = Py_BuildValue("OOOOO"
+#if (PY_VERSION_HEX >= 0x03000000)
+		"i"		
+		// Py3k has added an undocumented 'chain' argument which defaults to True
+		//	and causes all kinds of exceptions while trying to print a goddam exception
+#endif
+		,
+		exc_type ? exc_type : Py_None,
+		exc_value ? exc_value : Py_None,
+		exc_tb  ? exc_tb  : Py_None,
+		Py_None,	// limit
+		obStringIO
+#if (PY_VERSION_HEX >= 0x03000000)
+		,0	// Goddam undocumented 'chain' param, which defaults to True
+#endif
+		);
+	if (argsTB==NULL) GPEM_ERROR("cant make print_exception arguments");
+
+	obResult = PyObject_CallObject(obFuncTB, argsTB);
+	if (obResult==NULL){
+		// Chain parameter when True causes traceback.print_exception to fail, leaving no
+		//	way to see what the original problem is, or even what error print_exc raises
+		// PyObject *t, *v, *tb;
+		// PyErr_Fetch(&t, &v, &tb);
+		// PyUnicodeObject *uo=(PyUnicodeObject *)v;
+		// DebugBreak();
+		GPEM_ERROR("traceback.print_exception() failed");
+		}
+	/* Now call the getvalue() method in the StringIO instance */
+	Py_DECREF(obFuncStringIO);
+	obFuncStringIO = PyObject_GetAttrString(obStringIO, "getvalue");
+	if (obFuncStringIO==NULL) GPEM_ERROR("cant find getvalue function");
+	Py_DECREF(obResult);
+	obResult = PyObject_CallObject(obFuncStringIO, NULL);
+	if (obResult==NULL) GPEM_ERROR("getvalue() failed.");
+
+	/* And it should be a string all ready to go - duplicate it. */
+	if (PyString_Check(obResult))
+		result = strdup(PyString_AsString(obResult));
+#if (PY_VERSION_HEX >= 0x03000000)
+	else if (PyUnicode_Check(obResult))
+		result = strdup(_PyUnicode_AsString(obResult));
+#endif
+	else
+		GPEM_ERROR("getvalue() did not return a string");
+
+done:
+	if (result==NULL && errorMsg != NULL)
+		result = strdup(errorMsg);
+	Py_XDECREF(modStringIO);
+	Py_XDECREF(modTB);
+	Py_XDECREF(obFuncStringIO);
+	Py_XDECREF(obStringIO);
+	Py_XDECREF(obFuncTB);
+	Py_XDECREF(argsTB);
+	Py_XDECREF(obResult);
+	return result;
 }
 

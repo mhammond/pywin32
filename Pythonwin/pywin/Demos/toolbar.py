@@ -14,6 +14,10 @@ class GenericFrame(window.MDIChildWnd):
 		# handlers for toolbar buttons
 		self.HookCommand (self.OnPrevious, 401)
 		self.HookCommand (self.OnNext, 402)
+		# Its not necessary for us to hook both of these - the
+		# common controls should fall-back all by themselves.
+		# Indeed, given we hook TTN_NEEDTEXTW, commctrl.TTN_NEEDTEXTA
+		# will not be called.
 		self.HookNotify(self.GetTTText, commctrl.TTN_NEEDTEXT)
 		self.HookNotify(self.GetTTText, commctrl.TTN_NEEDTEXTW)
 	
@@ -46,7 +50,11 @@ class GenericFrame(window.MDIChildWnd):
 		if flags & commctrl.TTF_IDISHWND:
 			return # Not handled
 		if (idFrom==win32ui.ID_APP_ABOUT):
-			return 0, ("It works!", idFrom, code)
+			# our 'extra' return value needs to be the following
+			# entries from a NMTTDISPINFO[W] struct:
+			# (szText, hinst, uFlags).  None means 'don't change
+			# the value'
+			return 0, ("It works!", None, None)
 		return None # not handled.
 			
 	def GetMessageString(self, id):

@@ -2,6 +2,21 @@
 #include "PythonCOM.h"
 
 // @doc
+
+// A refugee from pywintypes and should die
+PyObject *PyString_FromUnicode( const OLECHAR *str )
+{
+	if (str==NULL) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+	PyObject *uo = PyWinObject_FromOLECHAR(str);
+	if (uo==NULL) return NULL;
+	PyObject *ret = PyUnicode_EncodeMBCS(PyUnicode_AS_UNICODE(uo), PyUnicode_GET_SIZE(uo), NULL);
+	Py_DECREF(uo);
+	return ret;
+}
+
 #ifdef LINK_AGAINST_RECORDINFO
 // Helpers to avoid linking directly to these newer functions
 static const IID g_IID_IRecordInfo = IID_IRecordInfo;
@@ -9,9 +24,9 @@ HRESULT PySafeArrayGetRecordInfo( SAFEARRAY *  psa, IRecordInfo **  prinfo )
 {
 	return SafeArrayGetRecordInfo(psa, prinfo);
 }
-HRESULT PyGetRecordInfoFromGuids( REFGUID g, ULONG maj, ULONG min, LCID lcid, REFGUID gti, IRecordInfo **ppr)
+HRESULT PyGetRecordInfoFromGuids( REFGUID g, ULONG major, ULONG minor, LCID lcid, REFGUID gti, IRecordInfo **ppr)
 {
-	return GetRecordInfoFromGuids( g, maj, min, lcid, gti, ppr);
+	return GetRecordInfoFromGuids( g, major, minor, lcid, gti, ppr);
 }
 #else
 
@@ -23,7 +38,7 @@ HRESULT PySafeArrayGetRecordInfo( SAFEARRAY *  psa, IRecordInfo **  prinfo )
 {
 	static HRESULT (STDAPICALLTYPE *pfnSAGRI)(SAFEARRAY *, IRecordInfo **) = NULL;
 	if (pfnSAGRI==NULL) {
-		HMODULE hmod = GetModuleHandle("oleaut32.dll");
+		HMODULE hmod = GetModuleHandle(_T("oleaut32.dll"));
 		if (hmod==NULL)
 			return E_NOTIMPL;
 		pfnSAGRI = (HRESULT (STDAPICALLTYPE *)(SAFEARRAY *, IRecordInfo **))
@@ -33,11 +48,11 @@ HRESULT PySafeArrayGetRecordInfo( SAFEARRAY *  psa, IRecordInfo **  prinfo )
 	}
 	return (*pfnSAGRI)(psa, prinfo);
 }
-HRESULT PyGetRecordInfoFromGuids( REFGUID g, ULONG maj, ULONG min, LCID lcid, REFGUID gti, IRecordInfo **ppr)
+HRESULT PyGetRecordInfoFromGuids( REFGUID g, ULONG major, ULONG minor, LCID lcid, REFGUID gti, IRecordInfo **ppr)
 {
 	static HRESULT (STDAPICALLTYPE *pfnGRIFG)(REFGUID, ULONG, ULONG, LCID, REFGUID, IRecordInfo **) = NULL;
 	if (pfnGRIFG==NULL) {
-		HMODULE hmod = GetModuleHandle("oleaut32.dll");
+		HMODULE hmod = GetModuleHandle(_T("oleaut32.dll"));
 		if (hmod==NULL)
 			return E_NOTIMPL;
 		pfnGRIFG = (HRESULT (STDAPICALLTYPE *)(REFGUID, ULONG, ULONG, LCID, REFGUID, IRecordInfo **))
@@ -45,7 +60,7 @@ HRESULT PyGetRecordInfoFromGuids( REFGUID g, ULONG maj, ULONG min, LCID lcid, RE
 		if (pfnGRIFG==NULL)
 			return E_NOTIMPL;
 	}
-	return (*pfnGRIFG)(g, maj, min, lcid, gti, ppr);
+	return (*pfnGRIFG)(g, major, minor, lcid, gti, ppr);
 }
 #endif // LINK_AGAINST_RECORDINFO
 
@@ -209,17 +224,19 @@ PyObject *PyObject_FromRecordInfo(IRecordInfo *ri, void *data, ULONG cbData)
 // @pymethod <o PyRecord>|pythoncom|GetRecordFromGuids|Creates a new record object from the given GUIDs
 PyObject *pythoncom_GetRecordFromGuids(PyObject *self, PyObject *args)
 {
-	char *data = NULL;
-	PyObject *obGuid, *obInfoGuid;
-	int maj, min, lcid;
+	void *data = NULL;
+	PyObject *obGuid, *obInfoGuid, *obdata=Py_None;
+	int major, minor, lcid;
 	int cb = 0;
-	if (!PyArg_ParseTuple(args, "OiiiO|z#:GetRecordFromGuids", 
+	if (!PyArg_ParseTuple(args, "OiiiO|O:GetRecordFromGuids", 
 		&obGuid, // @pyparm <o PyIID>|iid||The GUID of the type library
-		&maj, // @pyparm int|verMajor||The major version number of the type lib.
-		&min, // @pyparm int|verMinor||The minor version number of the type lib.
+		&major, // @pyparm int|verMajor||The major version number of the type lib.
+		&minor, // @pyparm int|verMinor||The minor version number of the type lib.
 		&lcid, // @pyparm int|lcid||The LCID of the type lib.
 		&obInfoGuid, // @pyparm <o PyIID>|infoIID||The GUID of the record info in the library
-		&data, &cb)) // @pyparm string|data|None|The raw data to initialize the record with.
+		&obdata)) // @pyparm string or buffer|data|None|The raw data to initialize the record with.
+		return NULL;
+	if (!PyWinObject_AsReadBuffer(obdata, &data, &cb, TRUE))
 		return NULL;
 	GUID guid, infoGuid;
 	if (!PyWinObject_AsIID(obGuid, &guid))
@@ -227,7 +244,7 @@ PyObject *pythoncom_GetRecordFromGuids(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsIID(obInfoGuid, &infoGuid))
 		return NULL;
 	IRecordInfo *i = NULL;
-	HRESULT hr = PyGetRecordInfoFromGuids(guid, maj, min, lcid, infoGuid, &i);
+	HRESULT hr = PyGetRecordInfoFromGuids(guid, major, minor, lcid, infoGuid, &i);
 	if (FAILED(hr))
 		return PyCom_BuildPyException(hr);
 	PyObject *ret = PyObject_FromRecordInfo(i, data, cb);
@@ -341,18 +358,15 @@ static PyObject *PyRecord_reduce(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_RuntimeError, "pythoncom.GetRecordFromGuids() can't be located!");
 		goto done;
 	}
-	{ // scope for locals avoiding goto
-	PyObject *obtlbguid = PyWinObject_FromIID(pta->guid);
-	PyObject *obstructguid = PyWinObject_FromIID(structguid);
-	ret = Py_BuildValue("O(NiiiNs#)",
+	ret = Py_BuildValue("O(NHHiNN)",
 						obFunc,
-						obtlbguid,
+						PyWinObject_FromIID(pta->guid),
 						pta->wMajorVerNum,
 						pta->wMinorVerNum,
 						pta->lcid,
-						obstructguid,
-						pyrec->pdata, cb);
-	} // end scope
+						PyWinObject_FromIID(structguid),
+						PyString_FromStringAndSize((char *)pyrec->pdata, cb));
+
 done:
 	if (pta&& pti)
 		pti->ReleaseTypeAttr(pta);
@@ -361,6 +375,7 @@ done:
 	// obModDict and obFunc have no new reference.
 	return ret;
 }
+
 // The object itself.
 // Any method names should be "__blah__", as they override
 // structure names!
@@ -399,6 +414,7 @@ static void _FreeFieldNames(BSTR *strings, ULONG num_names)
 		SysFreeString(strings[i]);
 	delete[] strings;
 }
+
 PyObject *PyRecord::tp_repr(PyObject *self)
 {
 	ULONG i;
@@ -478,14 +494,19 @@ PyObject *PyRecord::tp_getattr(PyObject *self, char *name)
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = pyrec->pri->GetFieldNoCopy(pyrec->pdata, wname, &vret, &sub_data);
 	PY_INTERFACE_POSTCALL;
-	PyWinObject_FreeString(wname);
+
 	if (FAILED(hr)) {
-		if (hr == TYPE_E_FIELDNOTFOUND)
-			return PyErr_Format(PyExc_AttributeError,
-				"This record has no field named '%s'", name);
+		if (hr == TYPE_E_FIELDNOTFOUND){
+			PyErr_Format(PyExc_AttributeError,
+				"This record has no field named '%s'", wname);
+			PyWinObject_FreeString(wname);
+			return NULL;
+			}
+		PyWinObject_FreeString(wname);
 		return PyCom_BuildPyException(hr, pyrec->pri, g_IID_IRecordInfo);
 	}
 
+	PyWinObject_FreeString(wname);
 	// Short-circuit sub-structs and arrays here, so we dont allocate a new chunk
 	// of memory and copy it - we need sub-structs to persist.
 	if (V_VT(&vret)==(VT_BYREF | VT_RECORD))
@@ -584,10 +605,12 @@ int PyRecord::tp_compare(PyObject *self, PyObject *other)
 					ret = PyObject_Compare(self_sub, other_sub);
 					Py_DECREF(other_sub);
 				}
+				Py_DECREF(self_sub);
 			}
-			Py_XDECREF(self_sub);
 			PyWinObject_FreeString(name);
 		}
+		else
+			PyErr_Clear();
 		if (ret != 0)
 			break;
 	}

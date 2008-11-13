@@ -185,8 +185,9 @@ PyCView_on_activate_view(PyObject *self, PyObject *args)
 	if (view == NULL)
 		return NULL;
 
-	PyErr_Clear();
 	CView	*pActivate = obActivate==Py_None ? NULL : PyCView::GetViewPtr (obActivate);
+	if (PyErr_Occurred())
+		return NULL;
 	CView	*pDevactive = obDeactivate==Py_None ? NULL : PyCView::GetViewPtr (obDeactivate);
 	if (PyErr_Occurred())
 		return NULL;
@@ -639,21 +640,25 @@ ui_type_CObject PyCScrollView::type("PyCScrollView",
 PyObject * PyCCtrlView::create(PyObject *self, PyObject *args)
 {
 	PyObject *doc;
-	char *szClass;
+	TCHAR *szClass;
+	PyObject *obClass;
 	int style=0;
 	// @pyparm <o PyCDocument>|doc||The document.
 	// @pyparm string|className||The class name of the control
 	// @pyparm int|style|0|Additional style bits
-	if (!PyArg_ParseTuple(args, "Os|i:CreateCtrlView", &doc, &szClass, &style))
+	if (!PyArg_ParseTuple(args, "OO|i:CreateCtrlView", &doc, &obClass, &style))
 		return NULL;
 	if (!ui_base_class::is_uiobject(doc, &PyCDocument::type))
 		RETURN_TYPE_ERR("Argument must be a PyCDocument");
 	CDocument *pDoc = PyCDocument::GetDoc( doc );
 	CCtrlView *pView;
+	if (!PyWinObject_AsTCHAR(obClass, &szClass, FALSE))
+		return NULL;
 	GUI_BGN_SAVE;
 	pView = new CPythonCtrlView(szClass, style);
 	((CProtectedView *)pView)->SetDocument(pDoc);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(szClass);
 	return ui_assoc_object::make( PyCCtrlView::type, pView, TRUE );
 }
 
@@ -765,26 +770,35 @@ ui_edit_window_is_modified(PyObject *self, PyObject *args)
 static PyObject *
 ui_edit_window_load_file(PyObject *self, PyObject *args)
 {
-	char *fileName;
+	USES_CONVERSION;
+	TCHAR *fileName;
+	PyObject *obfileName;
 	// @pyparm string|fileName||The name of the file to be loaded.
-	if (!PyArg_ParseTuple(args, "s:LoadFile", &fileName))
+	if (!PyArg_ParseTuple(args, "O:LoadFile", &obfileName))
 		return NULL;
 
 	CPythonEditView *pView;
 	if (!(pView=GetEditViewPtr(self)))
 		return NULL;
-
+	if (!PyWinObject_AsTCHAR(obfileName, &fileName, FALSE))
+		return NULL;
 	CFile file;
 	CFileException fe;
 	if (!file.Open(fileName, CFile::modeRead | CFile::shareDenyWrite, &fe)) {
+		PyWinObject_FreeTCHAR(fileName);
 		long errCode = fe.m_lOsError;
 		CString csMessage = GetAPIErrorString(errCode);
-		if (csMessage.GetLength())
-			PyErr_SetString(PyExc_IOError, (char *)(const char *)csMessage);
+		if (csMessage.GetLength()){
+			LPTSTR msg=csMessage.GetBuffer(csMessage.GetLength());
+			PyErr_SetString(PyExc_IOError, T2A(msg));
+			csMessage.ReleaseBuffer();
+		}
 		else
 			PyErr_SetString(PyExc_IOError, "Unknown IO error?");
 		return NULL;
 	}
+	PyWinObject_FreeTCHAR(fileName);
+
 	GUI_BGN_SAVE;
 	pView->DeleteContents();
 	CArchive loadArchive(&file, CArchive::load | CArchive::bNoFlushOnDelete);
@@ -818,24 +832,30 @@ ui_edit_window_load_file(PyObject *self, PyObject *args)
 static PyObject *
 ui_edit_window_save_file(PyObject *self, PyObject *args)
 {
-	char *fileName;
+	USES_CONVERSION;
+	TCHAR *fileName;
+	PyObject *obfileName;
 	// @pyparm string|fileName||The name of the file to be written.
-	if (!PyArg_ParseTuple(args, "s:SaveFile", &fileName))
+	if (!PyArg_ParseTuple(args, "O:SaveFile", &obfileName))
 		return NULL;
 
 	CPythonEditView *pView;
 	if (!(pView=GetEditViewPtr(self)))
 		return NULL;
 
+	if (!PyWinObject_AsTCHAR(obfileName, &fileName, FALSE))
+		return NULL;
 	CFile file;
 	CFileException fe;
-
 	if (!file.Open(fileName, CFile::modeCreate |
 	  CFile::modeReadWrite | CFile::shareExclusive, &fe)) {
   		long errCode = fe.m_lOsError;
 		CString csMessage = GetAPIErrorString(errCode);
-		if (csMessage.GetLength())
-			PyErr_SetString(PyExc_IOError, (char *)(const char *)csMessage);
+		if (csMessage.GetLength()){
+			LPTSTR msg=csMessage.GetBuffer(csMessage.GetLength());
+			PyErr_SetString(PyExc_IOError, T2A(msg));
+			csMessage.ReleaseBuffer();
+			}
 		else
 			PyErr_SetString(PyExc_IOError, "Unknown IO error?");
 		return NULL;
@@ -864,6 +884,7 @@ ui_edit_window_save_file(PyObject *self, PyObject *args)
 	CDocument *pDocument = pView->GetDocument();
 	if (pDocument)
 		pDocument->SetModifiedFlag(FALSE);     // start off with unmodified
+	PyWinObject_FreeTCHAR(fileName);
 	GUI_END_SAVE;
 	RETURN_NONE;
 }
@@ -996,7 +1017,7 @@ static struct PyMethodDef ui_list_view_methods[] = {
 
 PyCCtrlView_Type PyCListView::type("PyCListView", 
 								   &PyCCtrlView::type, // @base PyCListView|PyCCtrlView
-								   &PyCListCtrl::type, 
+								   &PyCListCtrl::type,
 								   RUNTIME_CLASS(CListView), 
 								   sizeof(PyCListView), 
 								   ui_list_view_methods, 
@@ -1095,30 +1116,28 @@ PyCCtrlView_Type PyCTreeView::type("PyCTreeView",
 // @pymethod <o PyCFormView>|win32ui|CreateFormView|Creates a form view object.
 PyObject * PyCFormView::create(PyObject *self, PyObject *args)
 {
-	PyObject *doc;
-	char *szTemplate = NULL;
-	int iTemplate;
+	PyObject *doc, *obTemplate;
+	TCHAR *szTemplate = NULL;
 	// @pyparm <o PyCDocument>|doc||The document to use with the view.
-	// @pyparm int|iTemplate||The ID of the dialog control.
-	if (!PyArg_ParseTuple(args, "Oi:CreateFormView", &doc, &iTemplate)) {
-		PyErr_Clear();
-		// @pyparmalt1 <o PyCDocument>|doc||The document to use with the view.
-		// @pyparmalt1 string|template||The ID of the dialog control.
-		if (!PyArg_ParseTuple(args, "Os:CreateFormView", &doc, &szTemplate))
-			return NULL;
-	}
+	// @pyparm int/str|Template||Name or ID of the dialog template resource
+	if (!PyArg_ParseTuple(args, "OO:CreateFormView", &doc, &obTemplate))
+		return NULL;
+
 	if (!ui_base_class::is_uiobject(doc, &PyCDocument::type))
 		RETURN_TYPE_ERR("Argument must be a PyCDocument");
 	CDocument *pDoc = PyCDocument::GetDoc( doc );
 	CFormView *pView;
-	GUI_BGN_SAVE;
+	if (!PyWinObject_AsResourceId(obTemplate, &szTemplate))
+		return NULL;
 
-	if (szTemplate)
-		pView = new CPythonFormView(szTemplate);
+	GUI_BGN_SAVE;
+	if (IS_INTRESOURCE(szTemplate))
+		pView = new CPythonFormView(MAKEINTRESOURCE(szTemplate));
 	else
-		pView = new CPythonFormView(iTemplate);
+		pView = new CPythonFormView(szTemplate);
 	((CProtectedView *)pView)->SetDocument(pDoc);
 	GUI_END_SAVE;
+	PyWinObject_FreeResourceId(szTemplate);
 	return ui_assoc_object::make( PyCFormView::type, pView, TRUE );
 }
 

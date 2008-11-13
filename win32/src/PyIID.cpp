@@ -10,7 +10,7 @@
 // @pymethod <o PyIID>|pywintypes|IID|Creates a new IID object
 PyObject *PyWinMethod_NewIID(PyObject *self, PyObject *args)
 {
-	BSTR bstrIID;
+	WCHAR *bstrIID;
 	PyObject *obIID;
 	IID iid;
 
@@ -38,7 +38,7 @@ PyObject *PyWinMethod_NewIID(PyObject *self, PyObject *args)
 		Py_INCREF(obIID);
 		return obIID;
 	}
-	if (!PyWinObject_AsBstr(obIID, &bstrIID))
+	if (!PyWinObject_AsWCHAR(obIID, &bstrIID))
 		return NULL;
 
 	HRESULT hr = CLSIDFromString(bstrIID, &iid);
@@ -49,14 +49,14 @@ PyObject *PyWinMethod_NewIID(PyObject *self, PyObject *args)
 		if ( FAILED(hr) )
 		{
 #endif
-			PyWinObject_FreeBstr(bstrIID);
+			PyWinObject_FreeWCHAR(bstrIID);
 			PyWin_SetBasicCOMError(hr);
 			return NULL;
 #ifndef MS_WINCE
 		}
 #endif
 	}
-	PyWinObject_FreeBstr(bstrIID);
+	PyWinObject_FreeWCHAR(bstrIID);
 	/* iid -> PyObject */
 	return PyWinObject_FromIID(iid);
 }
@@ -103,7 +103,7 @@ PyObject *PyWinObject_FromIID(const IID &riid)
 	return rc;
 }
 
-PyObject *PyWinStringObject_FromIID(const IID &riid)
+PyObject *PyWinCoreString_FromIID(const IID &riid)
 {
 	OLECHAR oleRes[128];
 	if (StringFromGUID2(riid, oleRes, sizeof(oleRes))==0) {
@@ -111,24 +111,9 @@ PyObject *PyWinStringObject_FromIID(const IID &riid)
 		PyErr_SetString(PyExc_ValueError, "The string is too long");
 		return NULL;
 	}
-	char *szResult;
-	if (!PyWin_WCHAR_AsString(oleRes, (DWORD)-1, &szResult))
-		return NULL;
-	PyObject *rc = PyString_FromString(szResult);
-	PyWinObject_FreeString(szResult);
-	return rc;
+	return PyWinCoreString_FromString(oleRes);
 }
 
-PyObject *PyWinUnicodeObject_FromIID(const IID &riid)
-{
-	OLECHAR oleRes[128];
-	if (StringFromGUID2(riid, oleRes, sizeof(oleRes))==0) {
-		// Should never happen - 128 should be heaps big enough.
-		PyErr_SetString(PyExc_ValueError, "The string is too long");
-		return NULL;
-	}
-	return PyWinObject_FromOLECHAR(oleRes);
-}
 
 static Py_ssize_t getreadbuf(PyObject *self, Py_ssize_t index, void **ptr)
 {
@@ -231,16 +216,16 @@ long PyIID::hash(void)
 
 PyObject *PyIID::str(void)
 {
-	return PyWinStringObject_FromIID(m_iid);
+	return PyWinCoreString_FromIID(m_iid);
 }
 
 PyObject *PyIID::repr(void)
 {
 	OLECHAR oleRes[128];
 	StringFromGUID2(m_iid, oleRes, sizeof(oleRes));
-	TCHAR buf[128];
-	wsprintf(buf, _T("IID('%ws')"), oleRes);
-	return PyString_FromString(buf);
+	WCHAR buf[128];
+	wsprintfW(buf, L"IID('%ws')", oleRes);
+	return PyWinCoreString_FromString(buf);
 }
 
 /*static*/ void PyIID::deallocFunc(PyObject *ob)

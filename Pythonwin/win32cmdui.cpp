@@ -20,11 +20,11 @@ inline void*GetPythonOleProcAddress(const char *procName)
 {
 	HMODULE hMod = NULL;
 	for (int i=15;hMod==NULL && i<40;i++) {
-		char buf[20];
+		TCHAR buf[20];
 #ifdef _DEBUG
-		wsprintf(buf, "PythonCOM%d_d.dll", i);
+		wsprintf(buf, _T("PythonCOM%d_d.dll"), i);
 #else
-		wsprintf(buf, "PythonCOM%d.dll", i);
+		wsprintf(buf, _T("PythonCOM%d.dll"), i);
 #endif
 		hMod = GetModuleHandle(buf);
 	}
@@ -105,7 +105,7 @@ Python_OnCmdMsg (CCmdTarget *obj, UINT nID, int nCode,
 				// create a PyCCmdUI object.
 				PyObject *ob = ui_assoc_object::make( PyCCmdUI::type, pUI );
 				if (ob==NULL) {
-					OutputDebugString("Could not make object for CCmdUI handler");
+					OutputDebugString(_T("Could not make object for CCmdUI handler"));
 					return FALSE;
 				}
 				{
@@ -138,9 +138,9 @@ Python_OnCmdMsg (CCmdTarget *obj, UINT nID, int nCode,
 					// perform the callback.
 				CEnterLeavePython _celp;
 				rc = Python_callback (method, nID, nCode);
-				if (rc==-1) {	// if any Python exception, pretend it was OK
+				if (rc==-1 && PyErr_Occurred()) {	// if any Python exception, print it
 					char buf[128];
-					wsprintf(buf, "Error in Command Message handler for command ID %u, Code %d", nID, nCode);
+					sprintf(buf, "Error in Command Message handler for command ID %u, Code %d", nID, nCode);
 					PyErr_SetString(ui_module_error, buf);
 					gui_print_error();
 					rc = TRUE;			// to avoid other code handling it.
@@ -220,16 +220,20 @@ PyCCmdUI_SetRadio(PyObject *self, PyObject *args)
 static PyObject *
 PyCCmdUI_SetText(PyObject *self, PyObject *args)
 {
-	char *txt;
-	if (!PyArg_ParseTuple(args,"s:SetText", &txt)) // @pyparm string|text||The text for the interface element.
+	TCHAR *txt;
+	PyObject *obtxt;
+	if (!PyArg_ParseTuple(args,"O:SetText", &obtxt)) // @pyparm string|text||The text for the interface element.
 		return NULL;
 
 	CCmdUI *pCU = PyCCmdUI::GetCCmdUIPtr(self);
 	if (!pCU)
 		return NULL;
+	if (!PyWinObject_AsTCHAR(obtxt, &txt, FALSE))
+		return NULL;
 	GUI_BGN_SAVE;
 	pCU->SetText(txt);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(txt);
 	RETURN_NONE;
 }
 

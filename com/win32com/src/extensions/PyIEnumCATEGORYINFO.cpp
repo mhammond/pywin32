@@ -63,7 +63,7 @@ PyObject *PyIEnumCATEGORYINFO::Next(PyObject *self, PyObject *args)
 		for ( i = celtFetched; i--; )
 		{
 			PyObject *obNewIID = PyWinObject_FromIID(rgVar[i].catid);
-			PyObject *ob = Py_BuildValue("OiN", obNewIID, rgVar[i].lcid, PyString_FromUnicode(rgVar[i].szDescription));
+			PyObject *ob = Py_BuildValue("OiN", obNewIID, rgVar[i].lcid, PyWinObject_FromWCHAR(rgVar[i].szDescription));
 			Py_XDECREF(obNewIID);
 			if ( ob == NULL )
 			{

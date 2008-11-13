@@ -11,15 +11,19 @@ PythonDDEStringItem *PyDDEStringItem::GetItem (PyObject *self)
 // @pymethod |PyDDEStringItem|SetData|Sets an items data, and causes any underlying notification.
 PyObject *PyDDEStringItem_SetData(PyObject *self, PyObject *args)
 {
-	char *val;
+	TCHAR *val;
+	PyObject *obval;
 	PythonDDEStringItem *pItem = PyDDEStringItem::GetItem(self);
 	if (!pItem) return NULL;
 	// @pyparm string|data||The data to set.
-	if (!PyArg_ParseTuple(args, "s:SetData", &val))
+	if (!PyArg_ParseTuple(args, "O:SetData", &obval))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obval, &val, FALSE))
 		return NULL;
 	GUI_BGN_SAVE;
 	pItem->SetData(val);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(val);
 	RETURN_NONE;
 }
 

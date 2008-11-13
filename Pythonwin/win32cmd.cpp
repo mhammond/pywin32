@@ -191,7 +191,7 @@ CString PyCCmdTarget::repr()
 	SSIZE_T numNotify = pNotifyHookList ? pNotifyHookList->GetCount() : 0;
 	SSIZE_T numCmdUpdate = pCommandUpdateHookList ? pCommandUpdateHookList->GetCount() : 0;
 	SSIZE_T numOle = pOleEventHookList ? pOleEventHookList->GetCount() : 0;
-	csRet.Format(", notify=%Iu,ch/u=%Iu/%Iu", numNotify, numCmd, numCmdUpdate);
+	csRet.Format(_T(", notify=%Iu,ch/u=%Iu/%Iu"), numNotify, numCmd, numCmdUpdate);
 	return ui_assoc_object::repr() + csRet;
 }
 /////////////////////////////////////////////////////////////////////

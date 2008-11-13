@@ -153,8 +153,10 @@ PySTARTUPINFO::PySTARTUPINFO(const STARTUPINFO *pSI)
 	_Py_NewReference(this);
 	memcpy(&m_startupinfo, pSI, sizeof(m_startupinfo));
 	m_obStdIn = m_obStdOut = m_obStdErr = NULL;
-	m_obDesktop = pSI->lpDesktop ? PyWinObject_FromTCHAR(pSI->lpDesktop) : NULL;
-	m_obTitle = pSI->lpTitle ? PyWinObject_FromTCHAR(pSI->lpTitle) : NULL;
+	if (pSI->lpDesktop)
+		m_startupinfo.lpDesktop = PyWin_CopyString(pSI->lpDesktop);
+	if (pSI->lpTitle)
+		m_startupinfo.lpTitle = PyWin_CopyString(pSI->lpTitle);
 }
 
 PySTARTUPINFO::~PySTARTUPINFO(void)
@@ -162,8 +164,8 @@ PySTARTUPINFO::~PySTARTUPINFO(void)
 	Py_XDECREF(m_obStdIn);
 	Py_XDECREF(m_obStdOut);
 	Py_XDECREF(m_obStdErr);
-	Py_XDECREF(m_obDesktop);
-	Py_XDECREF(m_obTitle);
+	PyWinObject_FreeTCHAR(m_startupinfo.lpDesktop);
+	PyWinObject_FreeTCHAR(m_startupinfo.lpTitle);
 }
 
 PyObject *gethandle(PyObject *obHandle, HANDLE h)
@@ -498,7 +500,7 @@ static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUn
 				bufLen += PyString_Size(key) + 1;
 			} else if (PyUnicode_Check(key)) {
 				bIsUnicode = TRUE;
-				bufLen += PyUnicode_Size(key) + 1;
+				bufLen += PyUnicode_GET_SIZE(key) + 1;
 			} else {
 				PyErr_SetString(PyExc_TypeError, "dictionary must have keys and values as strings or unicode objects.");
 				goto done;
@@ -509,7 +511,7 @@ static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUn
 					PyErr_SetString(PyExc_TypeError, "All dictionary items must be strings, or all must be unicode");
 					goto done;
 				}
-				bufLen += PyUnicode_Size(key) + 1;
+				bufLen += PyUnicode_GET_SIZE(key) + 1;
 			}
 			else {
 				if (!PyString_Check(key)) {
@@ -525,7 +527,7 @@ static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUn
 				PyErr_SetString(PyExc_TypeError, "All dictionary items must be strings, or all must be unicode");
 				goto done;
 			}
-			bufLen += PyUnicode_Size(val) + 2; // For the '=' and '\0'
+			bufLen += PyUnicode_GET_SIZE(val) + 2; // For the '=' and '\0'
 		}
 		else {
 			if (!PyString_Check(val)) {

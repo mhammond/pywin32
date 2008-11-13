@@ -9,7 +9,7 @@ class PythonDDEServer : public CDDEServer
 public:
 	PythonDDEServer() : m_obSystemTopic(NULL) {;}
     virtual BOOL OnCreate();
-	virtual void Status(const char* pszFormat, ...);
+	virtual void Status(const TCHAR* pszFormat, ...);
 	virtual CDDEServerSystemTopic *CreateSystemTopic();
 	PyObject *m_obSystemTopic;
 };
@@ -31,34 +31,34 @@ public:
 	~PythonDDETopicFramework() {Python_delete_assoc(this);}
     virtual BOOL Exec(void* pData, DWORD dwSize)
 	{
-		PyObject *args = Py_BuildValue("(s)", pData);
+		PyObject *args = Py_BuildValue("(N)", PyWinObject_FromTCHAR((TCHAR *)pData));
 		BOOL rc = TRUE;
 		CVirtualHelper helper("Exec", this);
 		if (helper.call_args(args) )
 			helper.retval(rc);
 		return !rc;
 	}
-    virtual BOOL NSRequest(const char * szItem, void** ppData, DWORD* dwSize)
+    virtual BOOL NSRequest(const TCHAR * szItem, void** ppData, DWORD* dwSize)
 	{
-		PyObject *args = Py_BuildValue("(s)", szItem);
+		PyObject *args = Py_BuildValue("(N)", PyWinObject_FromTCHAR(szItem));
 		BOOL rc = TRUE;
 		CVirtualHelper helper("Request", this);
 		if (helper.call_args(args) ) {
-			char * strret ;
+			TCHAR * strret ;
 			if (helper.retval(strret)) {
 				PyObject * look ;
 				helper.retval(look) ;
 				*dwSize = PyObject_Length(look)+1 ; 
-				*ppData = (void*)(const char*)strret ;
+				*ppData = (void*)strret ;
 				return TRUE ;
 			}
 		}
 		return !rc;
 	}
 
-    virtual BOOL NSPoke(const char * szItem, void* pData, DWORD dwSize)
+    virtual BOOL NSPoke(const TCHAR * szItem, void* pData, DWORD dwSize)
 	{
-		PyObject *args = Py_BuildValue("(sz#)", szItem, pData, dwSize);
+		PyObject *args = Py_BuildValue("(Nz#)", PyWinObject_FromTCHAR(szItem), pData, dwSize);
 		BOOL rc = TRUE;
 		CVirtualHelper helper("Poke", this);
 		if (helper.call_args(args) ) {
@@ -116,3 +116,4 @@ public:
 	static PythonDDEConv *GetConv (PyObject *self);
 	MAKE_PY_CTOR(PyDDEConv);
 };
+

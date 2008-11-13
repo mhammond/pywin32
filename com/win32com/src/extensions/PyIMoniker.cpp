@@ -298,16 +298,8 @@ PyObject *PyIMoniker::GetDisplayName(PyObject *self, PyObject *args)
 	PY_INTERFACE_POSTCALL;
 	if (S_OK!=hr) // S_OK only acceptable
 		return PyCom_BuildPyException(hr, pMy, IID_IMoniker);
-	PyObject *obResult = PyString_FromUnicode(result);
-
-	IMalloc *pMalloc = NULL;
-#ifndef MS_WINCE // So how do I fix this leak on CE?
-	CoGetMalloc(1, &pMalloc);
-#endif
-	if (pMalloc) {
-		pMalloc->Free(result);
-		pMalloc->Release();
-	}
+	PyObject *obResult = PyWinObject_FromWCHAR(result);
+	CoTaskMemFree(result);
 	return obResult;
 }
 

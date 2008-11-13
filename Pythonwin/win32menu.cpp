@@ -98,16 +98,22 @@ PyObject *PyCMenu::AppendMenu(PyObject *self, PyObject *args)
 	HMENU hMenu = GetMenu( self );
 	if (!hMenu)
 		return NULL;
-	char *value = NULL;
+	TCHAR *value = NULL;
+	PyObject *obvalue=Py_None;
 	int id=0;
 	int flags;
-	if (!PyArg_ParseTuple(args,"i|iz", 
+	if (!PyArg_ParseTuple(args,"i|iO", 
 	                      &flags,  // @pyparm int|flags||Specifies information about the state of the new menu item when it is added to the menu.  May be a combination of the win32con.MF_* values.
 	                      &id, // @pyparm int|id|0|Specifies either the command ID of the new menu item.
-	                      &value)) // @pyparm string/None|value|None|Specifies the content of the new menu item.  If used, flags must contain win32con.MF_STRING.
+	                      &obvalue)) // @pyparm string/None|value|None|Specifies the content of the new menu item.  If used, flags must contain win32con.MF_STRING.
 		return NULL;
-	if (!::AppendMenu( hMenu, flags, id, value))
+	if (!PyWinObject_AsTCHAR(obvalue, &value, TRUE))
+		return NULL;
+	if (!::AppendMenu( hMenu, flags, id, value)){
+		PyWinObject_FreeTCHAR(value);
 		RETURN_API_ERR("::AppendMenu");
+	}
+	PyWinObject_FreeTCHAR(value);
 	RETURN_NONE;
 }
 
@@ -190,11 +196,12 @@ PyObject *PyCMenu::GetMenuString(PyObject *self, PyObject *args)
 	                      &id, // @pyparm int|id||The id of the item being requested.
 	                      &flags)) // @pyparm int|flags|win32con.MF_BYCOMMAND|Specifies how the id parameter is interpreted. It must be one of win32con.MF_BYCOMMAND or win32con.MF_BYPOSITION.
 		return NULL;
-	char buf[128];
-	if (::GetMenuString(hMenu, id, buf, sizeof(buf), flags)==0)
-		buf[0] = '\0';
-	return Py_BuildValue("s",buf);
+	TCHAR buf[128];
+	if (::GetMenuString(hMenu, id, buf, sizeof(buf)/sizeof(TCHAR), flags)==0)
+		buf[0] = 0;
+	return PyWinObject_FromTCHAR(buf);
 }
+
 // @pymethod <o PyCMenu>|PyCMenu|GetSubMenu|Returns a submenu.
 PyObject *PyCMenu::GetSubMenu(PyObject *self, PyObject *args)
 {
@@ -216,35 +223,38 @@ PyObject *PyCMenu::InsertMenu(PyObject *self, PyObject *args)
 	HMENU hMenu = GetMenu( self );
 	if (!hMenu)
 		return NULL;
-	char *value = NULL;
+	TCHAR *value = NULL;
 	int id=0;
 	int flags;
 	int pos;
-	BOOL bHaveInt = TRUE;
-	PyObject *subMenu;
-	if (!PyArg_ParseTuple(args,"ii|iz", 
-	                      &pos, 	// @pyparm int|pos||The position (zero-based) the item should be inserted.
-	                      &flags,   // @pyparm int|flags||Flags for the new item.
-	                      &id,      // @pyparm int|id|0|The ID for the new item.
-						  &value)) { // @pyparm string/None|value|None|A string for the menu item.
-		bHaveInt = FALSE;
-		value = NULL; // Probably not necessary, but just incase.
-		PyErr_Clear();
-		if (!PyArg_ParseTuple(args,"iiO|z", 
-		                          &pos, // @pyparmalt1 int|pos||The position (zero-based) the item should be inserted.
-		                          &flags, // @pyparmalt1 int|flags||Flags for the new item.
-		                          &subMenu, // @pyparmalt1 int|id|0|The ID for the new item.
-		                          &value)) // @pyparmalt1 string/None|value|None|A string for the menu item.
-			return NULL;
+	BOOL rc, bHaveInt = TRUE;
+	PyObject *obsubMenu=NULL, *obvalue=Py_None;
+	if (!PyArg_ParseTuple(args,"ii|OO:InsertMenu",
+		&pos,			// @pyparm int|pos||The position (zero-based) the item should be inserted.
+		&flags,			// @pyparm int|flags||Flags for the new item.
+		&obsubMenu,		// @pyparm int/<o PyCMenu>|id|0|The ID for a new menu item, or handle to a submenu
+		&obvalue))		// @pyparm string/None|value|None|A string for the menu item.
+		return NULL;
+
+	if (obsubMenu){
+		id=PyInt_AsLong(obsubMenu);
+		if (id==-1 && PyErr_Occurred()){
+			PyErr_Clear();
+			bHaveInt=FALSE;
+			}
+		}
+	if (!PyWinObject_AsTCHAR(obvalue, &value, TRUE))
+		return NULL;
+
+	if (bHaveInt)
+		rc=::InsertMenu( hMenu, pos, flags, id, value);
+	else {
+		HMENU hsubMenu = GetMenu(obsubMenu);
+		rc=::InsertMenu(hMenu, pos, flags, (UINT_PTR)hsubMenu, value);
 	}
-	if (bHaveInt) {
-		if (!::InsertMenu( hMenu, pos, flags, id, value))
-			RETURN_API_ERR("::InsertMenu");
-	} else {
-		HMENU hSubMenu = GetMenu(subMenu);
-		if (!::InsertMenu(hMenu, pos, flags, (UINT_PTR)hSubMenu, value))
-			RETURN_API_ERR("::InsertMenu");
-	}
+	PyWinObject_FreeTCHAR(value);
+	if (!rc)
+		RETURN_API_ERR("::InsertMenu");
 	RETURN_NONE;
 }
 
@@ -254,20 +264,25 @@ PyObject *PyCMenu::ModifyMenu(PyObject *self, PyObject *args)
 	HMENU hMenu = GetMenu( self );
 	if (!hMenu)
 		return NULL;
-	char *value = NULL;
+	TCHAR *value = NULL;
+	PyObject *obvalue=Py_None;
 	int id=0;
 	int flags;
 	int pos;
-	if (!PyArg_ParseTuple(args,"ii|iz", 
+	if (!PyArg_ParseTuple(args,"ii|iO", 
 	                      &pos, 	// @pyparm int|pos||The position (zero-based) the item to be changed.
 	                      &flags,   // @pyparm int|flags||Flags for the item.
 	                      &id,      // @pyparm int|id|0|The ID for the item.
-	                      &value))  // @pyparm string/None|value|None|A string for the menu item.
+	                      &obvalue))  // @pyparm string/None|value|None|A string for the menu item.
           {
             return NULL;
           }
-        if (!::ModifyMenu( hMenu, pos, flags, id, value))
-          RETURN_API_ERR("::ModifyMenu");
+	if (!PyWinObject_AsTCHAR(obvalue, &value, TRUE))
+		return NULL;
+	BOOL rc=::ModifyMenu( hMenu, pos, flags, id, value);
+	PyWinObject_FreeTCHAR(value);
+	if (!rc)
+		RETURN_API_ERR("::ModifyMenu");
 	RETURN_NONE;
 }
 // @pymethod |PyCMenu|TrackPopupMenu|Creates a popup menu anywhere on the screen.

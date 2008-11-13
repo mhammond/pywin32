@@ -550,7 +550,7 @@ STDMETHODIMP PyGStorage::CreateStream(
 	PY_GATEWAY_METHOD;
 	if (ppstm==NULL) return E_POINTER;
 	PyObject *result;
-	PyObject *obName = PyString_FromUnicode(pwcsName);
+	PyObject *obName = PyWinObject_FromWCHAR(pwcsName);
 	HRESULT hr=InvokeViaPolicy("CreateStream", &result, "Oiii", obName, grfMode, reserved1, reserved2);
 	Py_XDECREF(obName);
 	if (FAILED(hr)) return hr;
@@ -576,7 +576,7 @@ STDMETHODIMP PyGStorage::OpenStream(
 	PY_GATEWAY_METHOD;
 	if (ppstm==NULL) return E_POINTER;
 	PyObject *result;
-	PyObject *obName = PyString_FromUnicode(pwcsName);
+	PyObject *obName = PyWinObject_FromWCHAR(pwcsName);
 	HRESULT hr=InvokeViaPolicy("OpenStream", &result, "Ozii", obName, NULL, grfMode, reserved2);
 	Py_XDECREF(obName);
 	if (FAILED(hr)) return hr;
@@ -602,7 +602,7 @@ STDMETHODIMP PyGStorage::CreateStorage(
 	PY_GATEWAY_METHOD;
 	if (ppstg==NULL) return E_POINTER;
 	PyObject *result;
-	PyObject *obName = PyString_FromUnicode(pwcsName);
+	PyObject *obName = PyWinObject_FromWCHAR(pwcsName);
 	HRESULT hr=InvokeViaPolicy("CreateStorage", &result, "Oiii", obName, grfMode, dwStgFmt, reserved2);
 	Py_XDECREF(obName);
 	if (FAILED(hr)) return hr;
@@ -633,7 +633,7 @@ STDMETHODIMP PyGStorage::OpenStorage(
 	if (ppstg==NULL) return E_POINTER;
 	PyObject *obpstgPriority = PyCom_PyObjectFromIUnknown(pstgPriority, IID_IStorage, TRUE);
 	PyObject *result;
-	PyObject *obName = PyString_FromUnicode(pwcsName);
+	PyObject *obName = PyWinObject_FromWCHAR(pwcsName);
 	HRESULT hr=InvokeViaPolicy("OpenStorage", &result, "OOizi", obName, obpstgPriority, grfMode, NULL, reserved);
 	Py_XDECREF(obName);
 	Py_XDECREF(obpstgPriority);
@@ -676,8 +676,8 @@ STDMETHODIMP PyGStorage::MoveElementTo(
 {
 	PY_GATEWAY_METHOD;
 	PyObject *obpstgDest = PyCom_PyObjectFromIUnknown(pstgDest, IID_IStorage, TRUE);
-	PyObject *obName = PyString_FromUnicode(pwcsName);
-	PyObject *obNewName = PyString_FromUnicode(pwcsNewName);
+	PyObject *obName = PyWinObject_FromWCHAR(pwcsName);
+	PyObject *obNewName = PyWinObject_FromWCHAR(pwcsNewName);
 	HRESULT hr=InvokeViaPolicy("MoveElementTo", NULL, "OOOi", obName, obpstgDest, obNewName, grfFlags);
 	Py_XDECREF(obpstgDest);
 	Py_XDECREF(obName);
@@ -728,7 +728,7 @@ STDMETHODIMP PyGStorage::DestroyElement(
 		/* [string][in] */ const OLECHAR __RPC_FAR * pwcsName)
 {
 	PY_GATEWAY_METHOD;
-	PyObject *obName = PyString_FromUnicode(pwcsName);
+	PyObject *obName = PyWinObject_FromWCHAR(pwcsName);
 	HRESULT hr=InvokeViaPolicy("DestroyElement", NULL, "O", obName);
 	Py_XDECREF(obName);
 	return hr;
@@ -739,8 +739,8 @@ STDMETHODIMP PyGStorage::RenameElement(
 		/* [string][in] */ const OLECHAR __RPC_FAR * pwcsNewName)
 {
 	PY_GATEWAY_METHOD;
-	PyObject *obOldName = PyString_FromUnicode(pwcsOldName);
-	PyObject *obNewName = PyString_FromUnicode(pwcsNewName);
+	PyObject *obOldName = PyWinObject_FromWCHAR(pwcsOldName);
+	PyObject *obNewName = PyWinObject_FromWCHAR(pwcsNewName);
 	HRESULT hr=InvokeViaPolicy("RenameElement", NULL, "OO", obOldName, obNewName);
 	Py_XDECREF(obOldName);
 	Py_XDECREF(obNewName);
@@ -754,10 +754,10 @@ STDMETHODIMP PyGStorage::SetElementTimes(
 		/* [in] */ const FILETIME __RPC_FAR * pmtime)
 {
 	PY_GATEWAY_METHOD;
-	PyObject *obpctime = new PyTime(*pctime);
-	PyObject *obpatime = new PyTime(*patime);
-	PyObject *obpmtime = new PyTime(*pmtime);
-	PyObject *obName = PyString_FromUnicode(pwcsName);
+	PyObject *obpctime = PyWinObject_FromFILETIME(*pctime);
+	PyObject *obpatime = PyWinObject_FromFILETIME(*patime);
+	PyObject *obpmtime = PyWinObject_FromFILETIME(*pmtime);
+	PyObject *obName = PyWinObject_FromWCHAR(pwcsName);
 	HRESULT hr=InvokeViaPolicy("SetElementTimes", NULL, "OOOO", obName, obpctime, obpatime, obpmtime);
 	Py_XDECREF(obpctime);
 	Py_XDECREF(obpatime);

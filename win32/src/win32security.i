@@ -2504,7 +2504,7 @@ static PyObject *PyLsaQueryInformationPolicy(PyObject *self, PyObject *args)
 			PyObject *domain_name =     PyWinObject_FromLSA_UNICODE_STRING(info->Name);
 			PyObject *dns_domain_name = PyWinObject_FromLSA_UNICODE_STRING(info->DnsDomainName);
 			PyObject *dns_forest_name = PyWinObject_FromLSA_UNICODE_STRING(info->DnsForestName);
-			PyObject *domain_guid = PyWinUnicodeObject_FromIID(info->DomainGuid);
+			PyObject *domain_guid = PyWinCoreString_FromIID(info->DomainGuid);
 			PyObject *domain_sid = PyWinObject_FromSID(info->Sid);
 			ret = Py_BuildValue("(OOOOO)",domain_name,dns_domain_name,dns_forest_name,domain_guid,domain_sid);
 			Py_DECREF(domain_name);

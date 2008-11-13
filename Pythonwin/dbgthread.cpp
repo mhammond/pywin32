@@ -69,7 +69,7 @@ static void AddIcons(HWND hwndDebug)
 	HICON hIcon = AfxGetApp()->LoadIcon( MAKEINTRESOURCE(IDR_MAINFRAME) );
 	DWORD flags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
 	NOTIFYICONDATA nid = { sizeof(NOTIFYICONDATA), hwndDebug, 0, flags, WM_USER+20, hIcon };
-	_tcscpy(nid.szTip, "Pythonwin");
+	_tcscpy(nid.szTip, _T("Pythonwin"));
 	Shell_NotifyIcon(NIM_ADD, &nid);
 }
 
@@ -118,7 +118,7 @@ DWORD DebuggerThreadFunc( LPDWORD lpdwWhatever )
 	LPCTSTR cls = AfxRegisterWndClass( 0 );
 
 	WNDCLASS wc;
-	const char *className = "PythonDebugThreadClass";
+	const TCHAR *className = _T("PythonDebugThreadClass");
 	wc.lpszClassName = className;
 	wc.lpfnWndProc = DebuggerWndProc;
 	wc.style = /*CS_OWNDC |*/ CS_VREDRAW | CS_HREDRAW;
@@ -130,7 +130,7 @@ DWORD DebuggerThreadFunc( LPDWORD lpdwWhatever )
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	RegisterClass( &wc );
-	hwndDebug = ::CreateWindowEx( 0, className, "Python", WS_OVERLAPPEDWINDOW, 
+	hwndDebug = ::CreateWindowEx( 0, className, _T("Python"), WS_OVERLAPPEDWINDOW, 
 				14, 8, 70, 60, 
 				NULL, NULL, AfxGetInstanceHandle(),   NULL );
 

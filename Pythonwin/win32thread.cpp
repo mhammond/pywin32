@@ -164,7 +164,7 @@ unsigned int ThreadWorkerEntryPoint( LPVOID lpvoid )
 		if (PyErr_Occurred() == PyExc_SystemExit)
 			PyErr_Clear();
 		else {
-			ExceptionHandler(EHA_PRINT_ERROR, "Unhandled exception in thread");
+			ExceptionHandler(EHA_PRINT_ERROR, _T("Unhandled exception in thread"));
 		}
 	}
 	else
@@ -258,7 +258,7 @@ static PyObject *
 ui_thread_set_thread_priority(PyObject *self, PyObject *args)
 {
 	int priority;
-	if (!PyArg_ParseTuple(args, "i:SetMainFrame",
+	if (!PyArg_ParseTuple(args, "i:SetThreadPriority",
 	                       &priority )) // @pyparm <o PyCWnd>|priority||The threads priority.
 		return NULL;
 	CWinThread *pThread = GetCWinThreadPtr(self);

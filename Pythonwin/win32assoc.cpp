@@ -27,10 +27,10 @@ CAssocManager::CAssocManager()
 CAssocManager::~CAssocManager()
 {
 #ifdef _DEBUG
-	char buf[256];
+	TCHAR buf[256];
 	if (cacheLookups) {
 		// cant use TRACE, as CWinApp may no longer be valid.
-		wsprintf(buf, "AssocManager cache hit ratio is %d percent\n", cacheHits * 100 / cacheLookups);
+		wsprintf(buf, _T("AssocManager cache hit ratio is %d percent\n"), cacheHits * 100 / cacheLookups);
 		OutputDebugString(buf);
 	}
 #endif
@@ -106,11 +106,8 @@ ui_assoc_object *CAssocManager::GetAssocObject(const void * handle)
 	// this is to support a Python class instance being passed in,
 	// and auto-convert it to the classes AttachedObject.
 	if (ui_type_check && !is_uiobject(self, ui_type_check)) {
-		CString csRet = "object is not a ";
-		csRet += ui_type_check->tp_name;
 		TRACE("GetGoodCppObject fails RTTI\n");
-		const char *ret = csRet;
-		RETURN_TYPE_ERR((char *)ret);
+		return PyErr_Format(PyExc_TypeError, "object is not a %s", ui_type_check->tp_name);
 	}
 	ui_assoc_object *s = (ui_assoc_object *)self;
 	if (s->assoc==NULL)
@@ -294,12 +291,28 @@ PyObject *ui_assoc_object::GetGoodRet()
 CString ui_assoc_object::repr()
 {
 	CString csRet;
-	PyObject *vi_repr = virtualInst ? PyObject_Repr(virtualInst) : NULL;
-	// sprintf(buf, " - assoc is %p, vi=%s", assoc, vi_repr ? PyString_AsString(vi_repr) : "<None>" );
-	csRet.Format(" - assoc is %p, vi=%s", assoc, vi_repr ? PyString_AsString(vi_repr) : "<None>" );
-	Py_XDECREF(vi_repr);
+	static TCHAR *no_repr=_T("<None>");
+	TCHAR *py_repr=NULL;
+	BOOL bfree_repr=FALSE;
+
+	if (virtualInst == NULL)
+		py_repr=no_repr;
+	else{
+		PyObject *vi_repr=PyObject_Str(virtualInst);
+		if (vi_repr==NULL || !PyWinObject_AsTCHAR(vi_repr, &py_repr, FALSE)){
+			PyErr_Clear();
+			py_repr=no_repr;
+			}
+		else
+			bfree_repr=TRUE;
+		Py_XDECREF(vi_repr);
+		}
+	csRet.Format(_T(" - assoc is %p, vi=%s"), assoc, py_repr);
+	if (bfree_repr)
+		PyWinObject_FreeTCHAR(py_repr);
 	return ui_base_class::repr() + csRet;
 }
+
 #ifdef _DEBUG
 void ui_assoc_object::Dump( CDumpContext &dc ) const
 {

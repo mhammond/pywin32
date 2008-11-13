@@ -123,10 +123,11 @@ PyObject *PyCPropertySheet::create( PyObject *self, PyObject *args )
 {
 	PyObject 	*obParent = NULL,
 			*obCaption;
+	TCHAR *Caption;
 	CWnd *pParent = NULL;
 	int iSelect = 0;
 	if (!PyArg_ParseTuple(args,"O|Oi", 
-	          &obCaption, // @pyparm string|caption||The caption for the property sheet.
+	          &obCaption, // @pyparm <o PyResourceId>|caption||The caption for the property sheet, or id of the caption
 	          &obParent,  // @pyparm <o PyCWnd>|parent|None|The parent window of the property sheet.
 	          &iSelect))  // @pyparm int|select|0|The index of the first page to be selected.
 		return NULL;
@@ -136,20 +137,20 @@ PyObject *PyCPropertySheet::create( PyObject *self, PyObject *args )
   		pParent = (CWnd *)PyCWnd::GetPythonGenericWnd(obParent);
 	}
 	CPythonPropertySheet *pPS;
-	if (PyInt_Check(obCaption)) {
-		int id = (int)PyInt_AsLong(obCaption);
+	if (!PyWinObject_AsResourceId(obCaption, &Caption, FALSE))
+		return NULL;
+
+	if (IS_INTRESOURCE(Caption)){
 		GUI_BGN_SAVE;
-		pPS = new CPythonPropertySheet(id, pParent, iSelect);
+		pPS = new CPythonPropertySheet(MAKEINTRESOURCE(Caption), pParent, iSelect);
 		GUI_END_SAVE;
 	}
-	else if (PyString_Check(obCaption)) {
-		char *value = PyString_AsString(obCaption);
+	else{
 		GUI_BGN_SAVE;
-		pPS = new CPythonPropertySheet(value, pParent, iSelect);
+		pPS = new CPythonPropertySheet(Caption, pParent, iSelect);
 		GUI_END_SAVE;
 	}
-	else
-		RETURN_TYPE_ERR("parameter 1 must be an integer or string object");
+	PyWinObject_FreeResourceId(Caption);
 	PyCPropertySheet *ret = (PyCPropertySheet *)ui_assoc_object::make( PyCPropertySheet::type, pPS);
 	return ret;
 }
@@ -422,15 +423,19 @@ PyObject *ui_propsheet_remove_page( PyObject *self, PyObject *args )
 // @pymethod |PyCPropertySheet|SetTitle|Sets the caption for the property sheet.
 PyObject *ui_propsheet_set_title( PyObject *self, PyObject *args )
 {
-	char *caption;
+	TCHAR *caption;
+	PyObject *obcaption;
 	// @pyparm string|title||The new caption
-	if (!PyArg_ParseTuple(args, "s:SetTitle", &caption))
+	if (!PyArg_ParseTuple(args, "O:SetTitle", &obcaption))
 		return NULL;
 	CPythonPropertySheet *pPS = GetPythonPropSheet(self);
 	if (!pPS) return NULL;
+	if (!PyWinObject_AsTCHAR(obcaption, &caption, FALSE))
+		return NULL;
 	GUI_BGN_SAVE;
 	pPS->SetTitle(caption);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(caption);
 	RETURN_NONE;
 }
 
@@ -488,13 +493,17 @@ PyObject *ui_propsheet_set_finish_text( PyObject *self, PyObject *args )
 {
 	CPropertySheet *pPS = pPS=GetPropSheet(self);
 	if (!pPS) return NULL;
-	char *text;
+	TCHAR *text;
+	PyObject *obtext;
 	// @pyparm string|text||The next for the button
-	if (!PyArg_ParseTuple( args, "s", &text))
+	if (!PyArg_ParseTuple( args, "O", &obtext))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obtext, &text, FALSE))
 		return NULL;
 	GUI_BGN_SAVE;
 	pPS->SetFinishText(text);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(text);
 	RETURN_NONE;
 }
 
@@ -591,31 +600,32 @@ PyCPropertyPage::~PyCPropertyPage()
 // @pymethod <o PyCPropertyPage>|win32ui|CreatePropertyPage|Creates a property page object.
 PyObject *PyCPropertyPage::create( PyObject *self, PyObject *args )
 {
+	TCHAR *Template=NULL;
 	PyObject *obTemplate = NULL;
 	int idCaption = 0;
 	if (!PyArg_ParseTuple(args,"O|i", 
-	          &obTemplate, // @pyparm int/string|resource||The resource ID to use for the page.
-	          &idCaption)) // @pyparm int|caption|0|The ID if the string resource to use for the caption.
+		&obTemplate, // @pyparm <o PyResourceId>|resource||String template name or inteter resource ID to use for the page.
+		&idCaption)) // @pyparm int|caption|0|The ID if the string resource to use for the caption.
 		return NULL;
 	CPythonPropertyPage *pPP;
-	if (PyInt_Check(obTemplate)) {
-		int id = (int)PyInt_AsLong(obTemplate);
-		if (!PropSheetCheckForPageCreate(id))
+	if (!PyWinObject_AsResourceId(obTemplate, &Template, FALSE))
+		return NULL;
+
+	if (IS_INTRESOURCE(Template)){
+		if (!PropSheetCheckForPageCreate((UINT)Template))
 			return NULL;
 		GUI_BGN_SAVE;
-		pPP = new CPythonPropertyPage(id, idCaption);
+		pPP = new CPythonPropertyPage((UINT)Template, idCaption);
 		GUI_END_SAVE;
-	}
-	else if (PyString_Check(obTemplate)) {
-		char *value = PyString_AsString(obTemplate);
-		if (!PropSheetCheckForPageCreate(value))
+		}
+	else{
+		if (!PropSheetCheckForPageCreate(Template))
 			return NULL;
 		GUI_BGN_SAVE;
-		pPP = new CPythonPropertyPage(value, idCaption);
+		pPP = new CPythonPropertyPage(Template, idCaption);
 		GUI_END_SAVE;
 	}
-	else
-		RETURN_TYPE_ERR("parameter 1 must be an integer or string object");
+	PyWinObject_FreeResourceId(Template);
 	PyCPropertyPage *ret = (PyCPropertyPage *)ui_assoc_object::make( PyCPropertyPage::type, pPP);
 	return ret;
 }
@@ -625,7 +635,7 @@ PyObject *PyCPropertyPage::createIndirect(PyObject *, PyObject *args)
 {
 	PyObject *obTemplate = NULL;
 	int idCaption = 0;
-	// @pyparm list|resourceList||A list of [<o Dialog Header Tuple>, <o Dialog Item Tuple>, ...], which describe the page to be created.
+	// @pyparm <o PyDialogTemplate>|resourceList||Definition of the page to be created.
 	// @pyparm int|caption|0|The ID if the string resource to use for the caption.
 	if (!PyArg_ParseTuple(args, "O|i", &obTemplate, &idCaption))
 		return NULL;

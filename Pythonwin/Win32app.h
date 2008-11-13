@@ -52,7 +52,7 @@ public:
 	// Get main window - usually (but not always!) a CMDIFrameWnd
 	CWnd *GetMainFrame () {return m_pMainWnd;}
 	void SetMainFrame (CWnd *pWnd) {m_pMainWnd = pWnd;}
-	CDocument *FindOpenDocument (const char *lpszFileName);
+	CDocument *FindOpenDocument (const TCHAR *lpszFileName);
 // warning C4996: 'xxx' was declared deprecated
 #pragma warning( disable : 4996 )
 #ifndef _AFX_NO_CTL3D_SUPPORT

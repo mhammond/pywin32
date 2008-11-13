@@ -117,7 +117,7 @@ bool CheckGoodWinApp()
 //	BOOL hasSymbol = (GetProcAddress(hModule, "NoCreateWinApp") != NULL);
 	if (AfxGetApp()==NULL) { // && !hasSymbol) {
 		// shared initialization
-		pCreatedApp = new CInProcApp("win32ui module");
+		pCreatedApp = new CInProcApp(_T("win32ui module"));
 
 		// As we are looking for a WinApp, we are likely to be creating the
 		// application object itself.  Trick MFC into thinking we are not
@@ -126,7 +126,7 @@ bool CheckGoodWinApp()
 
 		// Do the WinMain thang...
 		// AFX internal initialization
-		if (!AfxWinInit(hWin32uiDll, NULL, "", SW_NORMAL))
+		if (!AfxWinInit(hWin32uiDll, NULL, _T(""), SW_NORMAL))
 			return 0;
 
 		// App global initializations (rare)
@@ -143,7 +143,7 @@ bool CheckGoodWinApp()
 		}
 		ASSERT_VALID(pCreatedApp);
 		if (AfxGetApp()==NULL)
-			OutputDebugString("Warning - still no CWinApp I can use!");
+			OutputDebugString(_T("Warning - still no CWinApp I can use!"));
 	}
 	return TRUE;
 }
@@ -179,8 +179,8 @@ extern "C" __declspec(dllexport) int __stdcall DllMainwin32ui(HINSTANCE hInstanc
 //		GetVersionEx(&ver);
 //		PyWin_bIsWin32s = ver.dwPlatformId == VER_PLATFORM_WIN32s;
 
-		char path[_MAX_PATH];
-		GetModuleFileName(hInstance, path, sizeof(path));
+		TCHAR path[_MAX_PATH];
+		GetModuleFileName(hInstance, path, sizeof(path)/sizeof(TCHAR));
 #ifndef FREEZE_WIN32UI
 		// Normal win32ui.pyd initialization
 #ifdef _DEBUG
@@ -239,8 +239,8 @@ HWND GetConsoleHwnd(void)
 {
     #define MY_BUFSIZE 1024 // buffer size for console window titles
     HWND hwndFound;         // this is what is returned to the caller
-    char pszNewWindowTitle[MY_BUFSIZE]; // contains fabricated WindowTitle
-    char pszOldWindowTitle[MY_BUFSIZE]; // contains original WindowTitle
+    TCHAR pszNewWindowTitle[MY_BUFSIZE]; // contains fabricated WindowTitle
+    TCHAR pszOldWindowTitle[MY_BUFSIZE]; // contains original WindowTitle
  
     // fetch current window title
     if (GetConsoleTitle(pszOldWindowTitle, MY_BUFSIZE)==0)
@@ -248,7 +248,7 @@ HWND GetConsoleHwnd(void)
 
  
     // format a "unique" NewWindowTitle
-    wsprintf(pszNewWindowTitle,"%d/%d",
+    wsprintf(pszNewWindowTitle, _T("%d/%d"),
                 GetTickCount(),
                 GetCurrentProcessId());
  

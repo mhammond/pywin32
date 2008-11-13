@@ -49,51 +49,49 @@ CImageList *PyCImageList::GetImageList(PyObject *self)
 // @pymethod int|win32ui|CreateImageList|Creates an image list.
 PyObject *PyCImageList_Create( PyObject *self, PyObject *args )
 {
-	BOOL bRet;
-	int cx, cy, nInitial, nGrow, nBitmap;
-	char *strBitmap;
+	int cx, cy, nInitial, nGrow;
 	COLORREF crMask;
 	BOOL bMask;
 	CImageList *pList = new PythonImageList();
+
 	if (PyArg_ParseTuple(args, "iiiii", 
 			&cx, // @pyparm int|cx||Dimension of each image, in pixels.
 			&cy, // @pyparm int|cy||Dimension of each image, in pixels.
 			&bMask, // @pyparm int|mask||TRUE if the image contains a mask; otherwise FALSE.
 			&nInitial, // @pyparm int|initial||Number of images that the image list initially contains.
-			&nGrow)) // @pyparm int|grow||Number of images by which the image list can grow when the system needs to resize the list to make room for new images. This parameter represents the number of new images the resized image list can contain.
-		bRet = pList->Create(cx, cy, bMask, nInitial, nGrow);
-	else {
-		PyErr_Clear();
-		if (PyArg_ParseTuple(args, "iiii", 
-				&nBitmap, // @pyparmalt1 int|bitmapId||Resource ID of the bitmap to be associated with the image list.
-				&cx, // @pyparmalt1 int|cx||Dimension of each image, in pixels.
-				&nGrow, // @pyparmalt1 int|grow||Number of images by which the image list can grow when the system needs to resize the list to make room for new images. This parameter represents the number of new images the resized image list can contain.
-				&crMask)) // @pyparmalt1 int|crMask||Color used to generate a mask. Each pixel of this color in the specified bitmap is changed to black, and the corresponding bit in the mask is set to one.
-			bRet = pList->Create(nBitmap,cx,nGrow,crMask);
-		else {
-			PyErr_Clear();
-			if (PyArg_ParseTuple(args, "siii", 
-					&strBitmap, // @pyparmalt2 int|bitmapId||Resource ID of the bitmap to be associated with the image list.
-					&cx, // @pyparmalt2 int|cx||Dimension of each image, in pixels.
-					&nGrow, // @pyparmalt2 int|grow||Number of images by which the image list can grow when the system needs to resize the list to make room for new images. This parameter represents the number of new images the resized image list can contain.
-					&crMask)) // @pyparmalt2 int|crMask||Color used to generate a mask. Each pixel of this color in the specified bitmap is changed to black, and the corresponding bit in the mask is set to one.
-				bRet = pList->Create(strBitmap,cx,nGrow,crMask);
-			else {
-				PyErr_Clear();
-				GUI_BGN_SAVE;
-				delete pList;
-				GUI_END_SAVE;
-				RETURN_ERR("PyCImageList::Create() - bad argument list");
-			}
-		}
-	}
-	if (!bRet) {
+			&nGrow)){ // @pyparm int|grow||Number of images by which the image list can grow when the system needs to resize the list to make room for new images. This parameter represents the number of new images the resized image list can contain.
+		if (pList->Create(cx, cy, bMask, nInitial, nGrow))
+			return ui_assoc_object::make( PyCImageList::type, pList )->GetGoodRet();
 		GUI_BGN_SAVE;
 		delete pList;
 		GUI_END_SAVE;
 		RETURN_ERR("PyCImage::Create failed");
-	}
-	return ui_assoc_object::make( PyCImageList::type, pList )->GetGoodRet();
+		}
+
+	PyErr_Clear();
+	BOOL bRet;
+	PyObject *obID;
+	TCHAR *bitmapID=NULL;
+	if (PyArg_ParseTuple(args, "Oiii", 
+			&obID, // @pyparmalt1 <o PyResourceId>|bitmapId||Resource name or ID of the bitmap to be associated with the image list.
+			&cx, // @pyparmalt1 int|cx||Dimension of each image, in pixels.
+			&nGrow, // @pyparmalt1 int|grow||Number of images by which the image list can grow when the system needs to resize the list to make room for new images. This parameter represents the number of new images the resized image list can contain.
+			&crMask) // @pyparmalt1 int|crMask||Color used to generate a mask. Each pixel of this color in the specified bitmap is changed to black, and the corresponding bit in the mask is set to one.
+		&&PyWinObject_AsResourceId(obID, &bitmapID, FALSE)){
+		if (IS_INTRESOURCE(bitmapID))
+			bRet = pList->Create(MAKEINTRESOURCE(bitmapID),cx,nGrow,crMask);
+		else
+			bRet = pList->Create(bitmapID,cx,nGrow,crMask);
+		PyWinObject_FreeResourceId(bitmapID);
+		if (bRet)
+			return ui_assoc_object::make( PyCImageList::type, pList )->GetGoodRet();
+		else
+			PyErr_SetString(ui_module_error, "PyCImage::Create failed");
+		}
+	GUI_BGN_SAVE;
+	delete pList;
+	GUI_END_SAVE;
+	return NULL;
 }
 
 // @pymethod |PyCImageList|DeleteImageList|Deletes an image list.

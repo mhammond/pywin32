@@ -91,12 +91,12 @@ PyCButton_create(PyObject *self, PyObject *args)
 static PyObject *
 PyCButton_create_window(PyObject *self, PyObject *args)
 {
-	char *caption;
+	TCHAR *caption;
 	int style, id;
-	PyObject *obParent;
+	PyObject *obParent, *obcaption;
 	RECT rect;
-	if (!PyArg_ParseTuple(args, "si(iiii)Oi:CreateWindow", 
-		       &caption, // @pyparm string|caption||The caption (text) for the button.
+	if (!PyArg_ParseTuple(args, "Oi(iiii)Oi:CreateWindow", 
+		       &obcaption, // @pyparm string|caption||The caption (text) for the button.
 			   &style, // @pyparm int|style||The style for the button.  Use any of the win32con.BS_* constants.
 			   &rect.left,&rect.top,&rect.right,&rect.bottom,
 			   // @pyparm (left, top, right, bottom)|rect||The size and position of the button.
@@ -112,11 +112,13 @@ PyCButton_create_window(PyObject *self, PyObject *args)
 	CButton *pBut = GetButton(self);
 	if (!pBut)
 		return NULL;
-
+	if (!PyWinObject_AsTCHAR(obcaption, &caption, FALSE))
+		return NULL;
 	BOOL ok;
 	GUI_BGN_SAVE;
 	ok = pBut->Create(caption, style, rect, pParent, id );
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(caption);
 	if (!ok)
 		RETURN_ERR("CButton::Create");
 	RETURN_NONE;
@@ -325,17 +327,21 @@ static PyObject *
 PyCListBox_dir(PyObject *self, PyObject *args)
 {
 	int attr;
-	char *szWild;
-	if (!PyArg_ParseTuple(args,"is",
+	TCHAR *szWild;
+	PyObject *obWild;
+	if (!PyArg_ParseTuple(args,"iO",
 	          &attr,    // @pyparm int|attr||The attributes of the files to locate
-	          &szWild)) // @pyparm string|wild||A file specification string - eg, *.*
+	          &obWild)) // @pyparm string|wild||A file specification string - eg, *.*
 		return NULL;
 	CListBox *pLB = GetListBox(self);
 	if (!pLB)
 		return NULL;
+	if (!PyWinObject_AsTCHAR(obWild, &szWild, FALSE))
+		return NULL;
 	GUI_BGN_SAVE;
 	int rc=pLB->Dir(attr, szWild);	// @pyseemfc CListBox|Dir
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(szWild);
 	if (IS_LB_ERR(rc))
 		RETURN_ERR("PyCListBox.Dir failed");
 	return Py_BuildValue("i", rc);
@@ -562,7 +568,11 @@ PyCListBox_get_sel_text_items(PyObject *self, PyObject *args)
 		GUI_BGN_SAVE;
 		pLB->GetText(rgItems[i], value); // @pyseemfc CListBox|GetText
 		GUI_END_SAVE;
-		PyList_SetItem( list, i, Py_BuildValue("s", value));
+		if (PyList_SetItem( list, i, PyWinObject_FromTCHAR(value)) == -1){
+			Py_DECREF(list);
+			list=NULL;
+			break;
+			}
 	}
 
 	delete rgItems;
@@ -590,8 +600,9 @@ PyCListBox_get_text(PyObject *self, PyObject *args)
 	pLB->GetText(pos, cs.GetBufferSetLength(len));
 	cs.ReleaseBuffer();
 	GUI_END_SAVE;
-    return Py_BuildValue("s", (const char *)cs);
+    return PyWinObject_FromTCHAR(cs);
 }
+
 // @pymethod int|PyCListBox|GetTextLen|Returns the length of the string for a specified item.
 static PyObject *
 PyCListBox_get_text_len(PyObject *self, PyObject *args)
@@ -630,15 +641,19 @@ PyCListBox_select_string(PyObject *self, PyObject *args)
 	CListBox *pLB = GetListBox(self);
 	if (!pLB)
 		return NULL;
-	char *string;
+	TCHAR *string;
+	PyObject *obstring;
 	int after;
-	if (!PyArg_ParseTuple(args,"is",
+	if (!PyArg_ParseTuple(args,"iO",
 	          &after, 	// @pyparm int|after||Contains the zero-based index of the item before the first item to be searched, or -1 for the entire listbox.
-	          &string)) // @pyparm string|string||The string to search for.
+	          &obstring)) // @pyparm string|string||The string to search for.
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obstring, &string, FALSE))
 		return NULL;
 	GUI_BGN_SAVE;
 	int rc = pLB->SelectString(after, string);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(string);
 	if (rc==LB_ERR) // @pyseemfc CListBox|SelectString
 		RETURN_ERR("The string does not exist");
 	RETURN_NONE;
@@ -923,17 +938,21 @@ static PyObject *
 PyCComboBox_dir(PyObject *self, PyObject *args)
 {
 	int attr;
-	char *szWild;
-	if (!PyArg_ParseTuple(args,"is",
+	TCHAR *szWild;
+	PyObject *obWild;
+	if (!PyArg_ParseTuple(args,"iO",
 	          &attr,    // @pyparm int|attr||The attributes of the files to locate
-	          &szWild))	// @pyparm string|wild||A file specification string - eg, *.*
+	          &obWild))	// @pyparm string|wild||A file specification string - eg, *.*
 		return NULL;
 	CComboBox *pLB = GetCombo(self);
 	if (!pLB)
 		return NULL;
+	if (!PyWinObject_AsTCHAR(obWild, &szWild, FALSE))
+		return NULL;
 	GUI_BGN_SAVE;
 	int rc = pLB->Dir(attr, szWild);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(szWild);
 	return Py_BuildValue("i", rc); // @pyseemfc CComboBox|Dir
 	// @rdesc The index of the last file name added to the list.
 }
@@ -1087,7 +1106,7 @@ PyCComboBox_get_lb_text(PyObject *self, PyObject *args)
 	GUI_END_SAVE;
 	if (IS_CB_ERR(size))
 		RETURN_ERR("GetLBText failed - invalid index");
-    return Py_BuildValue("s", (const char *)cs);
+    return PyWinObject_FromTCHAR(cs);
 	// @rdesc The requested string. If index does 
 	// not specify a valid index, no exception is raised.
 }
@@ -1134,15 +1153,19 @@ PyCComboBox_select_string(PyObject *self, PyObject *args)
 	CComboBox *pLB = GetCombo(self);
 	if (!pLB)
 		return NULL;
-	char *string;
+	TCHAR *string;
+	PyObject *obstring;
 	int after;
-	if (!PyArg_ParseTuple(args,"is",
+	if (!PyArg_ParseTuple(args,"iO",
 	          &after, 	 // @pyparm int|after||Contains the zero-based index of the item before the first item to be searched, or -1 for the entire combobox.
-	          &string))	 // @pyparm string|string||The string to search for.
+	          &obstring))	 // @pyparm string|string||The string to search for.
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obstring, &string, FALSE))
 		return NULL;
 	GUI_BGN_SAVE;
 	long rc = pLB->SelectString(after, string);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(string);
 	if (rc==CB_ERR) // @pyseemfc CComboBoxBox|SelectString
 		RETURN_ERR("The string does not exist");
 	RETURN_NONE;
@@ -2165,11 +2188,13 @@ PyCStatusBarCtrl_get_text (PyObject *self, PyObject *args)
 		RETURN_ERR ("CStatusBarCtrl::GetTextLength");
 	}
 
-	char *buf = new char[len];
+	TCHAR *buf = new TCHAR[len];
 	pSB->GetText (buf, nPane, &attr);
 	GUI_END_SAVE;
-
-	return Py_BuildValue ("s", buf);
+	
+	PyObject *ret=PyWinObject_FromTCHAR(buf);
+	delete buf;
+	return ret;
 }
 
 // @pymethod int|PyCStatusBarCtrl|GetTextAttr|Retrieve the attributes of the text in the given part of a status bar control.
@@ -2322,7 +2347,8 @@ PyCStatusBarCtrl_set_simple (PyObject *self, PyObject *args)
 PyObject *
 PyCStatusBarCtrl_set_text(PyObject *self, PyObject *args)
 {
-	char *buf;
+	TCHAR *buf;
+	PyObject *obbuf;
 	int nPane, nType;
 
 	CStatusBarCtrl *pSB = GetStatusBarCtrl(self);
@@ -2342,14 +2368,15 @@ PyCStatusBarCtrl_set_text(PyObject *self, PyObject *args)
 	// higher than the plane of the status bar.
 
 	if (!PyArg_ParseTuple(args,
-			      "sii:SetText", &buf, &nPane, &nType))
+			      "Oii:SetText", &obbuf, &nPane, &nType))
 		return NULL;
-
+	if (!PyWinObject_AsTCHAR(obbuf, &buf, FALSE))
+		return NULL;
 	BOOL ok;
 	GUI_BGN_SAVE;
 	ok = pSB->SetText (buf, nPane, nType);
 	GUI_END_SAVE;
-
+	PyWinObject_FreeTCHAR(buf);
 	if (!ok) {
 		RETURN_ERR ("CStatusBarCtrl::SetText");
 	}
@@ -2363,8 +2390,8 @@ PyObject *
 PyCStatusBarCtrl_set_tip_text(PyObject *self, PyObject *args)
 {
 	int nPane;
-	char *buf;
-
+	TCHAR *buf;
+	PyObject *obbuf;
 	CStatusBarCtrl *pSB = GetStatusBarCtrl(self);
 
 	if (!pSB)
@@ -2379,13 +2406,14 @@ PyCStatusBarCtrl_set_tip_text(PyObject *self, PyObject *args)
 	// <nl>To make the tooltip appear even if the text is not truncated, you could add additional spaces to the end of the pane text.
 
 	if (!PyArg_ParseTuple(args,
-				  "is:SetTipText", &nPane, &buf))
+				  "iO:SetTipText", &nPane, &obbuf))
 		return NULL;
-
+	if (!PyWinObject_AsTCHAR(obbuf, &buf, FALSE))
+		return NULL;
 	GUI_BGN_SAVE;
 	pSB->SetTipText (nPane, buf);  // @pyseemfc CStatusBarCtrl|SetTipText
 	GUI_END_SAVE;
-
+	PyWinObject_FreeTCHAR(buf);
 	RETURN_NONE;
 }
 

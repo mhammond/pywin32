@@ -111,10 +111,8 @@ template <class ClassFramework>
 PyObject *__DoBaseOnCommand(ui_type_CObject *type, PyObject *self, PyObject *args)
 {
 	CObject *ob = (CObject *)ui_assoc_CObject::GetGoodCppObject( self, type );
-	if (ob==NULL) {
-		PyErr_Clear();
-		RETURN_TYPE_ERR("The object is not a Python MFC object");
-	}
+	if (ob==NULL)
+		return NULL;
 	PyObject *obwparam, *oblparam;
 	if (!PyArg_ParseTuple(args, "OO", &obwparam, &oblparam))
 		return NULL;
@@ -137,10 +135,8 @@ template <class ClassFramework>
 PyObject *__DoBaseOnClose(ui_type_CObject *type, PyObject *self, PyObject *args)
 {
 	CObject *ob = (CObject *)ui_assoc_CObject::GetGoodCppObject( self, type );
-	if (ob==NULL) {
-		PyErr_Clear();
-		RETURN_TYPE_ERR("The object is not a Python MFC object");
-	}
+	if (ob==NULL)
+		return NULL;
 	if (!PyArg_ParseTuple(args, "")) return NULL;
 	GUI_BGN_SAVE;
 	ClassFramework *pcf = (ClassFramework *)ob;

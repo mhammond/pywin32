@@ -413,16 +413,17 @@ PyObject *PyCTreeCtrl_InsertItem( PyObject *self, PyObject *args )
 	HTREEITEM ret = NULL;
 	UINT mask;
 	int image, selImage, state, stateMask;
+	PyObject *obParent, *obInsertAfter;
 	LPARAM lParam;
-	PyObject *obParent=Py_None, *obInsertAfter=Py_None;
 	HTREEITEM hParent, hInsertAfter;
-	char *text;
+	TCHAR *text=NULL;
+	PyObject *obtext=Py_None;
 	if (!(pList=GetTreeCtrl(self)))
 		return NULL;
 
-	if (PyArg_ParseTuple(args, "iziiiiOOO:InsertItem", 
+	if (PyArg_ParseTuple(args, "iOiiiiOOO:InsertItem", 
 						&mask, // @pyparmalt1 int|mask||Integer specifying which attributes to set
-						&text, // @pyparmalt1 string|text||The text of the item.
+						&obtext, // @pyparmalt1 string|text||The text of the item.
 						&image, // @pyparmalt1 int|image||The index of the image to use.
 						&selImage, // @pyparmalt1 int|selectedImage||The index of the items selected image.
 						&state, // @pyparmalt1 int|state||The initial state of the item.
@@ -434,70 +435,68 @@ PyObject *PyCTreeCtrl_InsertItem( PyObject *self, PyObject *args )
 			return NULL;
 		if (!PyWinObject_AsHANDLE(obInsertAfter, (HANDLE *)&hInsertAfter))
 			return NULL;
+		if (!PyWinObject_AsTCHAR(obtext, &text, TRUE))
+			return NULL;
 		GUI_BGN_SAVE;
 		ret = pList->InsertItem(mask, text, image, selImage, state, stateMask, lParam, hParent, hInsertAfter);
 	 	GUI_END_SAVE;
-	} else {
-		PyErr_Clear();
-		hParent = TVI_ROOT;
-		hInsertAfter = TVI_LAST;
-		if (PyArg_ParseTuple(args, "sii|OO:InsertItem", 
-		                 &text, // @pyparmalt2 string|text||The text for the item.
-						 &image, // @pyparmalt2 int|image||The index of the image to use.
-						 &selImage, // @pyparmalt2 int|selectedImage||The index of the items selected image.
-						 &obParent, // @pyparmalt2 HTREEITEM|parent|commctrl.TVI_ROOT|The parent of the item.
-						 &obInsertAfter)) { // @pyparmalt2 HTREEITEM|insertAfter|commctrl.TVI_LAST|The item to insert the new item after, or TVI_FIRST, TVI_LAST or TVI_SORT
-			if (obParent!=Py_None)
-				if (!PyWinObject_AsHANDLE(obParent, (HANDLE *)&hParent))
-					return NULL;
-			if (obInsertAfter!=Py_None)
-				if (!PyWinObject_AsHANDLE(obInsertAfter, (HANDLE *)&hInsertAfter))
-					return NULL;			 
-			GUI_BGN_SAVE;
-			ret = pList->InsertItem(text, image, selImage, hParent, hInsertAfter);
-		 	GUI_END_SAVE;
-		} else {
-			PyErr_Clear();
-			hParent = TVI_ROOT;
-			hInsertAfter = TVI_LAST;
-			if (PyArg_ParseTuple(args, "s|OO:InsertItem", 
-						&text, // @pyparmalt3 string|text||The text for the item.
-						&obParent, // @pyparmalt3 HTREEITEM|parent|commctrl.TVI_ROOT|The parent of the item.
-						&obInsertAfter)) {// @pyparmalt3 HTREEITEM|parent|commctrl.TVI_LAST|The parent of the item.
-				if (obParent!=Py_None)
-					if (!PyWinObject_AsHANDLE(obParent, (HANDLE *)&hParent))
-						return NULL;
-				if (obInsertAfter!=Py_None)
-					if (!PyWinObject_AsHANDLE(obInsertAfter, (HANDLE *)&hInsertAfter))
-						return NULL;			 
-			 	GUI_BGN_SAVE;
-				ret = pList->InsertItem(text, hParent, hInsertAfter);
-			 	GUI_END_SAVE;
-			} else {
-				PyObject *obTVItem;
-				TV_INSERTSTRUCT tvItem;
-				PyErr_Clear();
-				if (PyArg_ParseTuple(args, "OOO:InsertItem",
-								 &obParent, // @pyparm HTREEITEM|hParent||The parent item.  If commctrl.TVI_ROOT or 0, it is added to the root.
-								 &obInsertAfter, // @pyparm HTREEITEM|hInsertAfter||The item to insert after.  Can be an item or TVI_FIRST, TVI_LAST or TVI_SORT
-								 &obTVItem)) { // @pyparm <om PyCTreeCtrl.TV_ITEM tuple>|item||A tuple describing the new item.
-
-					if (!PyWinObject_AsHANDLE(obParent, (HANDLE *)&tvItem.hParent))
-						return NULL;
-					if (!PyWinObject_AsHANDLE(obInsertAfter, (HANDLE *)&tvItem.hInsertAfter))
-						return NULL;
-					if (!ParseTV_ITEMTuple(obTVItem, &tvItem.item))
-						return NULL;
-					GUI_BGN_SAVE;
-					ret = pList->InsertItem(&tvItem);
-				 	GUI_END_SAVE;
-				} else {
-					PyErr_Clear();
-					RETURN_ERR("InsertItem could not parse the params.");
-				}
-			}
+		goto done;
 		}
-	}
+
+	PyErr_Clear();
+	hParent = TVI_ROOT;
+	hInsertAfter = TVI_LAST;
+	if (PyArg_ParseTuple(args, "Oii|O&O&:InsertItem", 
+			&obtext, // @pyparmalt2 string|text||The text for the item.
+			&image, // @pyparmalt2 int|image||The index of the image to use.
+			&selImage, // @pyparmalt2 int|selectedImage||The index of the items selected image.
+			PyWinObject_AsHANDLE, &hParent,	// @pyparmalt2 HTREEITEM|parent|commctrl.TVI_ROOT|The parent of the item.
+			PyWinObject_AsHANDLE, &hInsertAfter)	// @pyparmalt2 HTREEITEM|insertAfter|commctrl.TVI_LAST|The item to insert the new item after, or TVI_FIRST, TVI_LAST or TVI_SORT
+		&& PyWinObject_AsTCHAR(obtext, &text, FALSE)){
+		GUI_BGN_SAVE;
+		ret = pList->InsertItem(text, image, selImage, hParent, hInsertAfter);
+		GUI_END_SAVE;
+		goto done;
+		}
+
+	// This arg format conflicts with the above.  Handle's can be parsed as ints, so if both optional items are
+	//	passed, they will be caught by the above and never get here !
+	PyErr_Clear();
+	hParent = TVI_ROOT;
+	hInsertAfter = TVI_LAST;
+	if (PyArg_ParseTuple(args, "O|O&O&:InsertItem", 
+			&obtext,	// @pyparmalt3 string|text||The text for the item.
+			PyWinObject_AsHANDLE, &hParent,	// @pyparmalt3 HTREEITEM|parent|commctrl.TVI_ROOT|The parent of the item.
+			PyWinObject_AsHANDLE, &hInsertAfter)	// @pyparmalt3 HTREEITEM|parent|commctrl.TVI_LAST|The parent of the item.
+		&& PyWinObject_AsTCHAR(obtext, &text, FALSE)){	
+		GUI_BGN_SAVE;
+		ret = pList->InsertItem(text, hParent, hInsertAfter);
+		GUI_END_SAVE;
+		goto done;
+		}
+
+	PyErr_Clear();
+	PyObject *obTVItem;
+	TV_INSERTSTRUCT tvItem;
+	if (PyArg_ParseTuple(args, "O&O&O:InsertItem",
+			PyWinObject_AsHANDLE, &tvItem.hParent, // @pyparm HTREEITEM|hParent||The parent item.  If commctrl.TVI_ROOT or 0, it is added to the root.
+			PyWinObject_AsHANDLE, &tvItem.hInsertAfter, // @pyparm HTREEITEM|hInsertAfter||The item to insert after.  Can be an item or TVI_FIRST, TVI_LAST or TVI_SORT
+			&obTVItem)) { // @pyparm <o TV_ITEM>|item||A tuple describing the new item.
+		if (!PyWinObject_AsTV_ITEM(obTVItem, &tvItem.item))
+			return NULL;
+		GUI_BGN_SAVE;
+		ret = pList->InsertItem(&tvItem);
+		GUI_END_SAVE;
+		PyWinObject_FreeTV_ITEM(&tvItem.item);
+		goto done;
+		}
+
+	PyErr_Clear();
+	RETURN_ERR("InsertItem could not parse the params.");
+	// And you will beat your brains out determining why ...
+
+done:
+	PyWinObject_FreeTCHAR(text);
 	if (ret==NULL)
 		RETURN_ERR("InsertItem failed");
 	return PyWinLong_FromHANDLE(ret);
@@ -511,14 +510,15 @@ PyObject *PyCTreeCtrl_SetItem( PyObject *self, PyObject *args )
 	if (!(pList=GetTreeCtrl(self)))
 		return NULL;
 	if (!PyArg_ParseTuple(args, "O:SetItem",
-		                 &obTVItem)) // @pyparm <om PyCTreeCtrl.TV_ITEM tuple>|item||A tuple describing the new item.
+		                 &obTVItem)) // @pyparm <o TV_ITEM>|item||A tuple describing the new item.
 		return NULL;
 	TV_ITEM tvItem;
-	if (!ParseTV_ITEMTuple(obTVItem, &tvItem))
+	if (!PyWinObject_AsTV_ITEM(obTVItem, &tvItem))
 		return NULL;
  	GUI_BGN_SAVE;
 	BOOL ok = pList->SetItem(&tvItem);
  	GUI_END_SAVE;
+	PyWinObject_FreeTV_ITEM(&tvItem);
 	if (!ok)
 		RETURN_ERR("SetItem failed");
 	RETURN_NONE;
@@ -546,7 +546,7 @@ PyObject *PyCTreeCtrl_SetImageList( PyObject *self, PyObject *args )
 	return ui_assoc_object::make( PyCImageList::type, pOldList )->GetGoodRet();
 }
 
-// @pymethod <om PyCTreeCtrl.TV_ITEM tuple>|PyCTreeCtrl|GetItem|Retrieves the details of an items attributes.
+// @pymethod <o TV_ITEM>|PyCTreeCtrl|GetItem|Retrieves the details of an items attributes.
 PyObject *PyCTreeCtrl_GetItem( PyObject *self, PyObject *args )
 {
 	HTREEITEM item;
@@ -559,18 +559,18 @@ PyObject *PyCTreeCtrl_GetItem( PyObject *self, PyObject *args )
 
 	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
-	char textBuf[256];
+	TCHAR textBuf[256];
 	TV_ITEM tvItem;
 	tvItem.hItem = item;
 	tvItem.pszText = textBuf;
-	tvItem.cchTextMax = sizeof(textBuf);
+	tvItem.cchTextMax = sizeof(textBuf)/sizeof(TCHAR);
 	tvItem.mask = mask;
  	GUI_BGN_SAVE;
 	BOOL ok = pList->GetItem( &tvItem);
  	GUI_END_SAVE;
 	if (!ok)
 		RETURN_ERR("GetItem failed");
-	return MakeTV_ITEMTuple(&tvItem);
+	return PyWinObject_FromTV_ITEM(&tvItem);
 }
 
 // @pymethod int|PyCTreeCtrl|GetItemText|Retrieves the text of a list view item or subitem.
@@ -585,7 +585,7 @@ PyObject *PyCTreeCtrl_GetItemText( PyObject *self, PyObject *args )
  	GUI_BGN_SAVE;
 	CString csText = pList->GetItemText(item);
  	GUI_END_SAVE;
-	return PyString_FromString((char *)(const char *)csText);
+	return PyWinObject_FromTCHAR(csText);
 }
 
 // @pymethod int|PyCTreeCtrl|SetItemText|Changes the text of a list view item or subitem.
@@ -594,15 +594,19 @@ PyObject *PyCTreeCtrl_SetItemText( PyObject *self, PyObject *args )
 	CTreeCtrl *pList = GetTreeCtrl(self);
 	if (!pList) return NULL;
 	HTREEITEM item;
-	char *text;
-	if (!PyArg_ParseTuple( args, "is:SetItemText", 
+	TCHAR *text;
+	PyObject *obtext;
+	if (!PyArg_ParseTuple( args, "iO:SetItemText", 
 	                   &item, // @pyparm HTREEITEM|item||The item whose text is to be retrieved.
-					   &text)) // @pyparm string|text||String that contains the new item text.
+					   &obtext)) // @pyparm string|text||String that contains the new item text.
 
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obtext, &text, FALSE))
 		return NULL;
  	GUI_BGN_SAVE;
 	BOOL ok = pList->SetItemText(item, text);
  	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(text);
 	if (!ok)
 		RETURN_ERR("SetItemText failed");
 	RETURN_NONE;

@@ -27,16 +27,10 @@ choice, but the alternative was never clear.  Now Python ships with the
 module, the alternative has arrived!
 </p>
 <p>
-To ease the transition, from pywin32 build 205 a FutureWarning will be issued
-when your code fetches a COM currency object - but a tuple will still be
-returned.  However, if your code sets <code>pythoncom.__future_currency__ = True</code>,
-a warning will not be issued, and a decimal module object will be returned.
-At some undetermined point in the future (but not before build 208) the
-new behaviour will be the default.
-</p>
-<p>
-When supplying a COM currency object, you can supply either a decimal object
-or a tuple.  This issue only applies when pythoncom passes you a currency value
+Up until build 212, code could set <code>pythoncom.__future_currency__ = True</code>
+to force use of the decimal module, with a warning issued otherwise.  In 
+builds 213 and later, the decimal module is unconditionally used when
+pythoncon returns you a currency value.
 </p>
 <p>
 Python 2.3 does not ship with a decimal module.  For this reason,
@@ -54,6 +48,13 @@ something similar to:
 </p>
 
 <h3>Recent Changes</h3>
+
+<h4>Lost of internal changes on the road to py3k</h4>
+
+<h4>win32com.axcontrol and win2con.internet</h4>
+Many more interfaces for hosting AX controls and the interfaces
+used by Internet Explorer.
+
 <h4>win32com.shell</h4>
 The shell interfaces have undergone a number of enhancements and changes.
 A couple of methods have changed signature between the first build with shell support (200) and later builds.  

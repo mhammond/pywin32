@@ -24,7 +24,7 @@ BOOL PyObject_AsPROPSPECs( PyObject *ob, PROPSPEC **ppRet, ULONG *pcRet)
 	for (i=0;i<len;i++) {
 		PyObject *sub = PyTuple_GET_ITEM(tuple, i);
 		if (PyUnicode_Check(sub))
-			cChars += PyUnicode_Size(sub) + 1;
+			cChars += PyUnicode_GET_SIZE(sub) + 1;
 		else if (PyString_Check(sub))
 			cChars += PyString_Size(sub) + 1;
 		else if (PyInt_Check(sub))

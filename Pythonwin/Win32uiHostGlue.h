@@ -14,12 +14,12 @@ public:
 
 #ifndef LINK_WITH_WIN32UI
 	// This will dynamically attach to win32ui.pyd.
-	BOOL DynamicApplicationInit(const char *cmd = NULL, const char *additionalPaths = NULL);
+	BOOL DynamicApplicationInit(const TCHAR *cmd = NULL, const TCHAR *additionalPaths = NULL);
 #else
-	BOOL ApplicationInit(const char *cmd = NULL, const char *additionalPaths = NULL);
+	BOOL ApplicationInit(const TCHAR *cmd = NULL, const TCHAR *additionalPaths = NULL);
 #endif
 	// placeholder in case application want to provide custom status text.
-	virtual void SetStatusText(const char * /*cmd*/, int /*bForce*/) {return;}
+	virtual void SetStatusText(const TCHAR * /*cmd*/, int /*bForce*/) {return;}
 	// Helper class, to register _any_ HMODULE as a module name.
 	// This allows modules built into .EXE's, or in differently
 	// named DLL's etc.  This requires admin priveliges on some machines, so
@@ -106,12 +106,12 @@ inline HKEY Win32uiHostGlue::GetRegistryRootKey()
 
 
 #ifndef LINK_WITH_WIN32UI
-inline BOOL Win32uiHostGlue::DynamicApplicationInit(const char *cmd, const char *additionalPaths)
+inline BOOL Win32uiHostGlue::DynamicApplicationInit(const TCHAR *cmd, const TCHAR *additionalPaths)
 {
 #ifdef _DEBUG
-	char *szWinui_Name = "win32ui_d.pyd";
+	TCHAR *szWinui_Name = _T("win32ui_d.pyd");
 #else
-	char *szWinui_Name = "win32ui.pyd";
+	TCHAR *szWinui_Name = _T("win32ui.pyd");
 #endif
 	// god damn - this all should die.
 	// The problem is finding the correct win32ui.pyd and the correct
@@ -120,15 +120,15 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const char *cmd, const char 
 	// Otherwise, we can try and find a Python.dll in various directories,
 	// then try again.
 	// Otherwise we give up in disgust.
-	char app_dir[MAX_PATH];
-	strcpy(app_dir, "\0");
-	GetModuleFileName(NULL, app_dir, sizeof(app_dir));
-	char *p = app_dir + strlen(app_dir);
+	TCHAR app_dir[MAX_PATH];
+	_tcscpy(app_dir, _T("\0"));
+	GetModuleFileName(NULL, app_dir, sizeof(app_dir)/sizeof(TCHAR));
+	TCHAR *p = app_dir + _tcslen(app_dir);
 	while (p>app_dir && *p != '\\')
 		p--;
 	*p = '\0';
 
-	char fname[MAX_PATH*2];
+	TCHAR fname[MAX_PATH*2];
 
 	HMODULE hModCore = NULL;
 	// There are 2 cases we care about: 
@@ -136,26 +136,26 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const char *cmd, const char 
 	// * pythonwin.exe next to python.exe, in sys.home - this is for
 	//   older style installs and for custom layouts.
 	// * a kind-of sub-case - handle the PCBuild directory
-	char *py_dll_candidates[] = {
-			"..\\..\\..", // lib\site-packages\pythonwin
+	TCHAR *py_dll_candidates[] = {
+			_T("..\\..\\.."), // lib\site-packages\pythonwin
 #ifdef _M_X64
-			"..\\..\\..\\PCBuild\\amd64",
+			_T("..\\..\\..\\PCBuild\\amd64"),
 #else
-			"..\\..\\..\\PCBuild",
+			_T("..\\..\\..\\PCBuild"),
 #endif
 			// and relative to the root of the py dir.
-			"",
+			_T(""),
 #ifdef _M_X64
-			"PCBuild\\amd64",
+			_T("PCBuild\\amd64"),
 #else
-			"PCBuild",
+			_T("PCBuild"),
 #endif
 	};
-	char py_dll[20];
+	TCHAR py_dll[20];
 #ifdef _DEBUG
-	wsprintf(py_dll, "Python%d%d_d.dll", PY_MAJOR_VERSION, PY_MINOR_VERSION);
+	wsprintf(py_dll, _T("Python%d%d_d.dll"), PY_MAJOR_VERSION, PY_MINOR_VERSION);
 #else
-	wsprintf(py_dll, "Python%d%d.dll", PY_MAJOR_VERSION, PY_MINOR_VERSION);
+	wsprintf(py_dll, _T("Python%d%d.dll"), PY_MAJOR_VERSION, PY_MINOR_VERSION);
 #endif
 	// try it simple - if we can load the module we are done.
 	HMODULE hModWin32ui = LoadLibrary(szWinui_Name);
@@ -163,7 +163,7 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const char *cmd, const char 
 		// try an installed version (old versions installed pythonwin.exe next
 		// to python.exe - but we shouldn't get here if pythonwin.exe is next
 		// to win32ui)
-		wsprintf(fname, "%s\\%s\\%s", app_dir, "lib\\site-packages\\pythonwin", szWinui_Name);
+		wsprintf(fname, _T("%s\\%s\\%s"), app_dir, _T("lib\\site-packages\\pythonwin"), szWinui_Name);
 		hModWin32ui = LoadLibrary(fname);
 	}
 	if (hModWin32ui==NULL) {
@@ -172,7 +172,7 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const char *cmd, const char 
 		int i;
 		const int ncandidates = sizeof(py_dll_candidates)/sizeof(py_dll_candidates[0]);
 		for (i=0;i<ncandidates && hModCore==0;i++) {
-			wsprintf(fname, "%s\\%s\\%s", app_dir, py_dll_candidates[i], py_dll);
+			wsprintf(fname, _T("%s\\%s\\%s"), app_dir, py_dll_candidates[i], py_dll);
 			hModCore = LoadLibrary(fname);
 		}
 		if (hModCore) {
@@ -184,10 +184,10 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const char *cmd, const char 
 	}
 	if (!hModCore) {
 		// No Python, no win32ui :(
-		char buf[256];
-		sprintf(buf,"The application can not locate %s (or Python) (%d)\n", szWinui_Name, GetLastError()); 
-		Py_ssize_t len = strlen(buf);
-		Py_ssize_t bufLeft = sizeof(buf) - len;
+		TCHAR buf[256];
+		wsprintf(buf, _T("The application can not locate %s (or Python) (%d)\n"), szWinui_Name, GetLastError()); 
+		Py_ssize_t len = _tcslen(buf);
+		Py_ssize_t bufLeft = sizeof(buf)/sizeof(TCHAR) - len;
 		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), 
 			MAKELANGID(LANG_NEUTRAL,SUBLANG_NEUTRAL), 
 			buf+len, PyWin_SAFE_DOWNCAST(bufLeft, Py_ssize_t, DWORD),
@@ -224,29 +224,29 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const char *cmd, const char 
 			pfnPyRun_SimpleString("import win32ui");
 		hModWin32ui = GetModuleHandle(szWinui_Name);
 		if (!hModWin32ui)
-			AfxMessageBox("Still can't get my hands on win32ui");
+			AfxMessageBox(_T("Still can't get my hands on win32ui"));
 	}
 
-	BOOL (__cdecl *pfnWin32uiInit)(Win32uiHostGlue *, char *, const char *);
+	BOOL (__cdecl *pfnWin32uiInit)(Win32uiHostGlue *, TCHAR *, const TCHAR *);
 
-	pfnWin32uiInit = (BOOL (__cdecl *)(Win32uiHostGlue *, char *, const char *))GetProcAddress(hModWin32ui, "Win32uiApplicationInit");
+	pfnWin32uiInit = (BOOL (__cdecl *)(Win32uiHostGlue *, TCHAR *, const TCHAR *))GetProcAddress(hModWin32ui, "Win32uiApplicationInit");
 	BOOL rc;
 	if (pfnWin32uiInit)
-		rc = (*pfnWin32uiInit)(this, (char *)cmd, additionalPaths);
+		rc = (*pfnWin32uiInit)(this, (TCHAR *)cmd, (TCHAR *)additionalPaths);
 	else {
-		OutputDebugString("WARNING - win32uiHostGlue could not load the entry point for ApplicationInit\n");
+		OutputDebugString(_T("WARNING - win32uiHostGlue could not load the entry point for ApplicationInit\n"));
 		rc = FALSE;
 	}
 	// We must not free the win32ui module, as we
 	// still hold function pointers to it!
 	return rc;
 }
-#else
+#else	// LINK_WITH_WIN32UI defined
 
-extern "C" __declspec(dllimport) BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, char *cmd, const char *addnPaths);
+extern "C" __declspec(dllimport) BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, TCHAR *cmd, const TCHAR *addnPaths);
 extern "C" void initwin32ui();
 
-inline BOOL Win32uiHostGlue::ApplicationInit(const char *cmd, const char *additionalPaths)
+inline BOOL Win32uiHostGlue::ApplicationInit(const TCHAR *cmd, const TCHAR *additionalPaths)
 {
 	if (!Py_IsInitialized()) {
 		bShouldFinalizePython = TRUE;
@@ -254,8 +254,9 @@ inline BOOL Win32uiHostGlue::ApplicationInit(const char *cmd, const char *additi
 	}
 	// Make sure the statically linked win32ui is the one Python sees
 	// (and doesnt go searching for a new one)
+
 	initwin32ui();
-	return Win32uiApplicationInit(this, (char *)cmd,additionalPaths);
+	return Win32uiApplicationInit(this, cmd, additionalPaths);
 }
 
 #endif

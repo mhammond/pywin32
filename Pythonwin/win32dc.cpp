@@ -142,7 +142,8 @@ PyObject *ui_dc_object::create_dc( PyObject *self, PyObject *args )
 PyObject *ui_create_dc_from_handle (PyObject *self, PyObject *args)
 {
 	HDC hDC;
-	if (!PyArg_ParseTuple(args,"i",&hDC))
+	if (!PyArg_ParseTuple(args,"O&:CreateDCFromHandle",
+		PyWinObject_AsHANDLE, &hDC))
 		return NULL;
 
 	CDC* pDC = CDC::FromHandle(hDC);
@@ -352,10 +353,12 @@ PyObject *ui_dc_object::create_printer_dc( PyObject *self, PyObject *args )
 	CDC *pDC = ui_dc_object::GetDC(self);
 	if (!pDC)
 		return NULL;
-	char *printerName = NULL;
-	if (!PyArg_ParseTuple(args, "|z:CreatePrinterDC", &printerName ))
+	TCHAR *printerName = NULL;
+	PyObject *obprinterName=Py_None;
+	if (!PyArg_ParseTuple(args, "|O:CreatePrinterDC", &obprinterName ))
 		return NULL; // @pyparm string|printerName|None|The printer name, or None for the default printer
-
+	if (!PyWinObject_AsTCHAR(obprinterName, &printerName, TRUE))
+		return NULL;
 	BOOL result;
 	if (printerName == NULL)
 	{
@@ -383,9 +386,11 @@ PyObject *ui_dc_object::create_printer_dc( PyObject *self, PyObject *args )
 		HANDLE hPrinter;
 		if (!::OpenPrinter(printerName, &hPrinter, NULL))
 		{
+			PyWinObject_FreeTCHAR(printerName);
 			RETURN_ERR("Unable to open printer");
 			return NULL;
 		}
+		PyWinObject_FreeTCHAR(printerName);
 
 		DWORD len;
 		unsigned char buf;
@@ -440,11 +445,13 @@ ui_dc_draw_icon (PyObject *self, PyObject *args)
   if (!pDC)
 	return NULL;
 
-  // @pyparm (x,y)|point||The point coordinate to draw to.
-  // @pyparm int|hIcon||The handle of the icon to draw.
+  
+  
   int x, y;
   HICON hIcon;
-  if (!PyArg_ParseTuple (args, "(ii)i", &x, &y, &hIcon))
+  if (!PyArg_ParseTuple (args, "(ii)O&:DrawIcon",
+	  &x, &y,	// @pyparm (x,y)|point||The point coordinate to draw to.
+	  PyWinObject_AsHANDLE, &hIcon))	// @pyparm <o PyHANDLE>|hIcon||The handle of the icon to draw.
     return NULL;
   
   GUI_BGN_SAVE;
@@ -486,20 +493,19 @@ static PyObject *ui_dc_ext_text_out (PyObject *self, PyObject *args)
 	CDC *pDC = ui_dc_object::GetDC(self);
 	if (!pDC)
 		return NULL;
-	char *text;
-	Py_ssize_t strLen;
+	TCHAR *text;
+	DWORD strLen;
 	int x, y;
 	UINT options;
-	PyObject *rectObject, *widthObject = NULL;
+	PyObject *obtext, *rectObject, *widthObject = NULL;
 	RECT rect, *rectPtr;
 	int *widths = NULL;
-	if (!PyArg_ParseTuple (args, "iiiOs#|O", 
+	if (!PyArg_ParseTuple (args, "iiiOO|O:ExtTextOut", 
 		&x,		// @pyparm x|int||The x coordinate to write the text to.
 		&y,		// @pyparm y|int||The y coordinate to write the text to.
 		&options,	// @pyparm nOptions|int||Specifies the rectangle type. This parameter can be one, both, or neither of ETO_CLIPPED and ETO_OPAQUE
 		&rectObject,// @pyparm (left, top, right, bottom)|rect||Specifies the text's bounding rectangle.  (Can be None.)
-		&text,	// @pyparm text|string||The text to write.
-		&strLen,
+		&obtext,	// @pyparm text|string||The text to write.
 		&widthObject))	// @pyparm (width1, width2, ...)|tuple||Optional array of values that indicate distance between origins of character cells.
 	{
 		return NULL;
@@ -514,6 +520,9 @@ static PyObject *ui_dc_ext_text_out (PyObject *self, PyObject *args)
 	}
 	else
 		rectPtr = NULL;
+
+	if (!PyWinObject_AsTCHAR(obtext, &text, FALSE, &strLen))
+		return NULL;
 
 	// Parse out widths
 	if (widthObject) {
@@ -533,15 +542,16 @@ static PyObject *ui_dc_ext_text_out (PyObject *self, PyObject *args)
 		}
 		if (error) {
 			delete [] widths;
+			PyWinObject_FreeTCHAR(text);
 			RETURN_TYPE_ERR("The width param must be a tuple of integers with a length one less than that of the string");
 		}
 	}
 
 	GUI_BGN_SAVE;
-	BOOL ret = pDC->ExtTextOut(x, y, options, rectPtr, text, 
-	                           PyWin_SAFE_DOWNCAST(strLen, Py_ssize_t, DWORD),
-	                           widths); // @pyseemfc CDC|ExtTextOut
+	BOOL ret = pDC->ExtTextOut(x, y, options, rectPtr, text, strLen, widths);
+	// @pyseemfc CDC|ExtTextOut
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(text);
 	delete [] widths;
 	if (!ret) {
 		RETURN_API_ERR("CDC::TextOut");
@@ -558,7 +568,7 @@ static PyObject *ui_dc_rect_visible( PyObject *self, PyObject *args )
 		return NULL;
 	CRect rect;
     // @pyparm (left, top, right, bottom)|rect||The coordinates of the reactangle to be checked.
-	if (!PyArg_ParseTuple(args,"(iiii)", &rect.left, &rect.top, &rect.right, &rect.bottom))
+	if (!PyArg_ParseTuple(args,"(iiii):RectVisible", &rect.left, &rect.top, &rect.right, &rect.bottom))
 		return NULL;
 	GUI_BGN_SAVE;
 	int rc = pDC->RectVisible(&rect);
@@ -915,15 +925,19 @@ static PyObject *ui_dc_get_text_extent (PyObject *self, PyObject *args)
 	CDC *pDC = ui_dc_object::GetDC(self);
 	if (!pDC)
 		return NULL;
-	char *text;
-	Py_ssize_t strLen;
+	TCHAR *text;
+	PyObject *obtext;
+	DWORD strLen;
 	// @pyparm string|text||The text to calculate for.
-	if (!PyArg_ParseTuple (args, "s#", &text, &strLen))
-	  return NULL;
+	if (!PyArg_ParseTuple (args, "O:GetTextExtent", &obtext))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obtext, &text, FALSE, &strLen))
+		return NULL;
 	GUI_BGN_SAVE;
-	CSize sz = pDC->GetTextExtent(text, PyWin_SAFE_DOWNCAST(strLen, Py_ssize_t, DWORD));
+	CSize sz = pDC->GetTextExtent(text, strLen);
 	// @pyseemfc CFC|GetTextExtent
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(text);
 	return Py_BuildValue ("(ii)", sz.cx, sz.cy);
 	// @rdesc A tuple of integers with the size of the string, in logical units.
 }
@@ -1441,19 +1455,22 @@ static PyObject *ui_dc_text_out (PyObject *self, PyObject *args)
 	CDC *pDC = ui_dc_object::GetDC(self);
 	if (!pDC)
 		return NULL;
-	char *text;
-	Py_ssize_t strLen;
+	TCHAR *text;
+	PyObject *obtext;
+	DWORD strLen;
 	int x, y;
-	if (!PyArg_ParseTuple (args, "iis#", 
+	if (!PyArg_ParseTuple (args, "iiO:TextOut", 
 	          &x,        // @pyparm x|int||The x coordinate to write the text to.
 	          &y,        // @pyparm y|int||The y coordinate to write the text to.
-	          &text,     // @pyparm text|string||The text to write.
-	          &strLen))
-	  return NULL;
+	          &obtext))     // @pyparm text|string||The text to write.
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obtext, &text, FALSE, &strLen))
+		return NULL;
     GUI_BGN_SAVE;
-	BOOL ret = pDC->TextOut (x, y, text, 
-	                         PyWin_SAFE_DOWNCAST(strLen, Py_ssize_t, DWORD)); // @pyseemfc CDC|TextOut
+	BOOL ret = pDC->TextOut (x, y, text, strLen); 
+	// @pyseemfc CDC|TextOut
     GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(text);
 	if (!ret)
 		RETURN_API_ERR("CDC::TextOut");
 	RETURN_NONE;
@@ -1514,10 +1531,10 @@ ui_dc_get_text_face (PyObject *self, PyObject *args)
   if (!pDC)
 	return NULL;
 
-  if (!PyArg_ParseTuple (args, ""))
+  if (!PyArg_ParseTuple (args, ":GetTextFace"))
 	return NULL;
 
-  char buf[LF_FACESIZE];
+  TCHAR buf[LF_FACESIZE];
 
   GUI_BGN_SAVE;
   int ret = pDC->GetTextFace (LF_FACESIZE, buf); // @pyseemfc CDC|GetTextFace
@@ -1525,7 +1542,7 @@ ui_dc_get_text_face (PyObject *self, PyObject *args)
   if (ret == 0)
 	buf[0] = '\0';
 
-  return Py_BuildValue ("s", buf);
+  return PyWinObject_FromTCHAR(buf);
 }
 
 
@@ -1964,10 +1981,16 @@ static PyObject *ui_dc_start_doc(PyObject * self, PyObject * args)
 
 	// @pyparm string|docName||The document name
 	// @pyparm string|outputFile||The output file name. Use this to spool to a file. Omit to send to the printer.
-	char *docName, *outputFile = NULL;
-	if (!PyArg_ParseTuple(args, "s|z:StartDoc", &docName, &outputFile))
+	TCHAR *docName=NULL, *outputFile = NULL;
+	PyObject *obdocName, *oboutputFile=Py_None;
+	if (!PyArg_ParseTuple(args, "O|O:StartDoc", &obdocName, &oboutputFile))
 		return NULL;
-
+	if (!PyWinObject_AsTCHAR(obdocName, &docName, FALSE))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(oboutputFile, &outputFile, TRUE)){
+		PyWinObject_FreeTCHAR(docName);
+		return NULL;
+		}
 	DOCINFO info;
 	info.cbSize = sizeof(DOCINFO);
 	memset(&info, 0, sizeof(DOCINFO));
@@ -1977,6 +2000,8 @@ static PyObject *ui_dc_start_doc(PyObject * self, PyObject * args)
 	GUI_BGN_SAVE;
 	int rc = pDC->StartDoc(&info);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(docName);
+	PyWinObject_FreeTCHAR(outputFile);
 	if ( rc < 0)
 	{
 		RETURN_ERR("StartDoc failed");

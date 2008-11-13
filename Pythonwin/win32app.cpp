@@ -73,14 +73,14 @@ PyObject *CProtectedWinApp::MakePyDocTemplateList()
 
 // FindOpenDocument - if the C++ framework has a document with this name open,
 // then return a pointer to it, else NULL.
-CDocument *CProtectedWinApp::FindOpenDocument(const char *lpszFileName)
+CDocument *CProtectedWinApp::FindOpenDocument(const TCHAR *lpszFileName)
 {
 	POSITION posTempl = m_pDocManager->GetFirstDocTemplatePosition();
 	CDocument* pOpenDocument = NULL;
 
-	char szPath[_MAX_PATH];
-	if (!GetFullPath(szPath, lpszFileName))
-		strcpy(szPath, lpszFileName);
+	TCHAR szPath[_MAX_PATH];
+	if (!AfxFullPath(szPath, lpszFileName))
+		_tcscpy(szPath, lpszFileName);
 
 	while (posTempl) {
 		CDocTemplate* pTemplate = m_pDocManager->GetNextDocTemplate(posTempl);
@@ -188,9 +188,12 @@ ui_init_mdi_instance(PyObject *self, PyObject *args)
 static PyObject *
 ui_open_document_file(PyObject *self, PyObject *args)
 {
-	char *fileName;
-	if (!PyArg_ParseTuple(args, "s:OpenDocumentFile",
-	                       &fileName )) // @pyparm string|fileName||The name of the document to open.
+	TCHAR *fileName;
+	PyObject *obfileName;
+	if (!PyArg_ParseTuple(args, "O:OpenDocumentFile",
+	                       &obfileName )) // @pyparm string|fileName||The name of the document to open.
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obfileName, &fileName))
 		return NULL;
 	CWinApp *pApp = GetApp();
 	if (!pApp) return NULL;
@@ -201,6 +204,7 @@ ui_open_document_file(PyObject *self, PyObject *args)
 	GUI_BGN_SAVE;
 	CDocument *pDoc = pApp->OpenDocumentFile(fileName);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(fileName);
 	if (PyErr_Occurred())
 		return NULL;
 	if (pDoc==NULL)
@@ -212,16 +216,21 @@ ui_open_document_file(PyObject *self, PyObject *args)
 static PyObject *
 ui_find_open_document(PyObject *self, PyObject *args)
 {
-	char *fileName;
+	TCHAR *fileName;
+	PyObject *obfileName;
 	// @pyparm string|fileName||The fully qualified filename to search for.
-	if (!PyArg_ParseTuple(args,"s", &fileName))
+	if (!PyArg_ParseTuple(args,"O", &obfileName))
 		return NULL;
 	CProtectedWinApp *pApp = GetProtectedApp();
 	if (!pApp) return NULL;
+
+	if (!PyWinObject_AsTCHAR(obfileName, &fileName, FALSE))
+		return NULL;
 	// Let MFC framework search for a filename for us.
 	GUI_BGN_SAVE;
 	CDocument *pDoc=pApp->FindOpenDocument(fileName);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(fileName);
 	if (pDoc==NULL)
 		RETURN_NONE;
 	return ui_assoc_object::make(PyCDocument::type, pDoc)->GetGoodRet();
@@ -266,20 +275,19 @@ ui_on_file_open(PyObject *self, PyObject *args)
 // @pymethod int|PyCWinApp|LoadCursor|Loads a cursor.
 static PyObject *ui_load_cursor(PyObject *self, PyObject *args)
 {
-	UINT cid;
-	char *csid;
+	TCHAR *csid;
 	HCURSOR hc;
-	if ( PyArg_ParseTuple(args, "i",
-						   &cid)) // @pyparm int|cursorId||The ID of the cursor to load.
-		hc = GetApp()->LoadCursor(cid);
-	else {
-		PyErr_Clear();
-		if (PyArg_ParseTuple(args, "s",
-						   &csid)) // @pyparmalt1 string|cursorId||The ID of the cursor to load.
-			hc = GetApp()->LoadCursor(csid);
-		else
-			RETURN_TYPE_ERR("The first param must be an integer or a string");
-	}
+	PyObject *obid;
+	if (!PyArg_ParseTuple(args, "O:LoadCursor",
+		&obid)) // @pyparm <o PyResourceId>|cursorId||The resource id or name of the cursor to load.
+		return NULL;
+	if (!PyWinObject_AsResourceId(obid, &csid, TRUE))
+		return NULL;
+	if (IS_INTRESOURCE(csid))
+		hc = GetApp()->LoadCursor((UINT)csid);
+	else
+		hc = GetApp()->LoadCursor(csid);
+	PyWinObject_FreeResourceId(csid);
 	if (hc==0)
 		RETURN_API_ERR("LoadCursor");
 	return PyWinLong_FromHANDLE(hc);
@@ -288,20 +296,16 @@ static PyObject *ui_load_cursor(PyObject *self, PyObject *args)
 // @pymethod int|PyCWinApp|LoadStandardCursor|Loads a standard cursor.
 static PyObject *ui_load_standard_cursor(PyObject *self, PyObject *args)
 {
-	UINT cid;
-	char *csid;
+	PyObject *obid;
+	TCHAR *csid;
 	HCURSOR hc;
-	if ( PyArg_ParseTuple(args, "i",
-						   &cid)) // @pyparm int|cursorId||The ID of the cursor to load.
-		hc = GetApp()->LoadStandardCursor(MAKEINTRESOURCE(cid));
-	else {
-		PyErr_Clear();
-		if (PyArg_ParseTuple(args, "s", // @pyparmalt1 string|cursorId||The ID of the cursor to load.
-						   &csid))
-			hc = GetApp()->LoadStandardCursor(csid);
-		else
-			RETURN_TYPE_ERR("The first param must be an integer or a string");
-	}
+	if (!PyArg_ParseTuple(args, "O:LoadStandardCursor",
+		&obid)) // @pyparm <o PyResourceId>|cursorId||The resource ID or name of the cursor to load.
+		return NULL;
+	if (!PyWinObject_AsResourceId(obid, &csid, TRUE))
+		return NULL;
+	hc = GetApp()->LoadStandardCursor(csid);
+	PyWinObject_FreeResourceId(csid);
 	if (hc==0)
 		RETURN_API_ERR("LoadStandardCursor");
 	return PyWinLong_FromHANDLE(hc);
@@ -312,7 +316,7 @@ static PyObject *ui_load_oem_cursor(PyObject *self, PyObject *args)
 {
 	UINT cid;
 	HCURSOR hc;
-	if ( !PyArg_ParseTuple(args, "i",
+	if ( !PyArg_ParseTuple(args, "i:LoadOEMCursor",
 						   &cid)) // @pyparm int|cursorId||The ID of the cursor to load.
 		return NULL;
 	hc = GetApp()->LoadOEMCursor(cid);
@@ -331,22 +335,28 @@ ui_load_icon(PyObject *self, PyObject *args)
 		return NULL;
 	CWinApp *pApp = GetApp();
 	if (!pApp) return NULL;
-	return Py_BuildValue("i", pApp->LoadIcon(idResource));
+	return PyWinLong_FromHANDLE(pApp->LoadIcon(idResource));
 }
 
 // @pymethod int|PyCWinApp|LoadStandardIcon|Loads an icon resource.
 static PyObject *
 ui_load_standard_icon(PyObject *self, PyObject *args)
 {
-	char *resName;
-	// @pyparm string|resourceName||The name of the standard icon to load.
-	if (!PyArg_ParseTuple(args,"s:LoadStandardIcon", &resName))
+	TCHAR *resName;
+	PyObject *obName;
+	// @pyparm <o PyResourceId>|resourceName||The resource name or id of the standard icon to load.
+	if (!PyArg_ParseTuple(args,"O:LoadStandardIcon", &obName))
 		return NULL;
 	CWinApp *pApp = GetApp();
 	if (!pApp) return NULL;
-	return Py_BuildValue("i", pApp->LoadStandardIcon(resName));
+	if (!PyWinObject_AsResourceId(obName, &resName, FALSE))
+		return NULL;
+	HICON hicon = pApp->LoadStandardIcon(resName);
+	PyWinObject_FreeResourceId(resName);
+	if (hicon==0)
+		RETURN_API_ERR("LoadStandardIcon");
+	return PyWinLong_FromHANDLE(hicon);
 }
-
 
 // @pymethod int|PyCWinApp|Run|Starts the message pump.  Advanced users only
 static PyObject *

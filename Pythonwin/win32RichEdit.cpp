@@ -165,14 +165,18 @@ static PyObject *
 PyCRichEditView_save_text_file(PyObject *self, PyObject *args)
 {
 	// Ported from Python code!
-	char *fileName;
-	if (!PyArg_ParseTuple(args, "s:SaveTextFile", &fileName))
+	TCHAR *fileName;
+	PyObject *obfileName;
+	if (!PyArg_ParseTuple(args, "O:SaveTextFile",
+		&obfileName))	// @pyparm str|FileName||Name of file to save
 		return NULL;
-
+	if (!PyWinObject_AsTCHAR(obfileName, &fileName, FALSE))
+		return NULL;
 	// Changing mode here allows us to save Unix or PC
-	FILE *f = fopen(fileName,"wb");
+	FILE *f = _tfopen(fileName, _T("wb"));
 	if (f==NULL) {
 		PyErr_SetFromErrno(PyExc_IOError);
+		PyWinObject_FreeTCHAR(fileName);
 		return NULL;
 	}
 	CProtectedRichEditView *pView = (CProtectedRichEditView *)GetRichEditViewPtr(self);
@@ -183,7 +187,7 @@ PyCRichEditView_save_text_file(PyObject *self, PyObject *args)
 	for (long i=0;i<lineCount;i++) {
 		int size = 1024;
 		CString csBuffer;			// use dynamic mem for buffer
-		char *buf;
+		TCHAR *buf;
 		int bytesCopied;
 		// loop if buffer too small, increasing each time.
 		while (size<0x7FFF)			// reasonable line size max? - maxuint on 16 bit.
@@ -201,13 +205,14 @@ PyCRichEditView_save_text_file(PyObject *self, PyObject *args)
 		}
 		if (bytesCopied==size)	// hit max.
 			--bytesCopied;	// so NULL doesnt overshoot.
-		buf[bytesCopied] = '\0';
+		buf[bytesCopied] = 0;
 		if (i<lineCount-1)
-			fwrite(buf, sizeof(char), bytesCopied, f);
+			fwrite(buf, sizeof(TCHAR), bytesCopied, f);
 		else
-			fwrite(buf, sizeof(char), bytesCopied-2, f);
+			fwrite(buf, sizeof(TCHAR), bytesCopied-2, f);
 	}
 	fclose(f);
+	PyWinObject_FreeTCHAR(fileName);
 	GUI_END_SAVE;
 	RETURN_NONE;
 }

@@ -6,6 +6,7 @@
 #include "pywintypes.h"
 // @doc
 
+// XXX - is this actually used?????????
 class OLEUIINSERTOBJECTHelper
 {
 public:
@@ -14,7 +15,7 @@ public:
 	BOOL ParseDict(PyObject *dict);
 	BOOL BuildDict(PyObject *dict);
 private:
-	char fileNameBuf[MAX_PATH];
+	TCHAR fileNameBuf[MAX_PATH];
 	OLEUIINSERTOBJECT *pConv;
 };
 
@@ -24,60 +25,114 @@ OLEUIINSERTOBJECTHelper::OLEUIINSERTOBJECTHelper( OLEUIINSERTOBJECT *pCon )
 	memset(pCon, 0, sizeof( OLEUIINSERTOBJECT ) );
 	pCon->cbStruct = sizeof( OLEUIINSERTOBJECT );
 	pCon->lpszFile = fileNameBuf;
-	pCon->cchFile = sizeof(fileNameBuf);
+	pCon->cchFile = sizeof(fileNameBuf)/sizeof(fileNameBuf[0]);
 	pConv = pCon;
 }
 OLEUIINSERTOBJECTHelper::~OLEUIINSERTOBJECTHelper()
 {
+	if (pConv->lpszCaption)
+		PyWinObject_FreeTCHAR((TCHAR *)pConv->lpszCaption);
+	if (pConv->lpszTemplate)
+		PyWinObject_FreeTCHAR((TCHAR *)pConv->lpszTemplate);
 }
 
 BOOL OLEUIINSERTOBJECTHelper::ParseDict( PyObject *obDict )
 {
+	// ??? This code used to leave a lot of exceptions hanging, py3k is much more sensitive to this
+	//	than earlier version.  Changes to build for py3k are untested. ???
 	PyObject *ob;
 	ob = PyObject_GetAttrString(obDict, "Flags");
-	if (ob) pConv->dwFlags = PyInt_AsLong(ob);
+	if (ob){
+		pConv->dwFlags = PyInt_AsLong(ob);
+		if (pConv->dwFlags == (DWORD) -1 && PyErr_Occurred())
+			return FALSE;
+		}
+	else
+		PyErr_Clear();
+
 	ob = PyObject_GetAttrString(obDict, "WndOwner");
 	if (ob) {
-		if (PyInt_Check(ob))
-			pConv->hWndOwner = (HWND)PyInt_AsLong(ob);
-		else {
+		if (!PyWinObject_AsHANDLE(ob, (HANDLE *)&pConv->hWndOwner)){
 			CWnd *pParent = (CWnd *)PyCWnd::GetPythonGenericWnd(ob);
 			if (pParent==NULL) {
-				PyErr_SetString(PyExc_TypeError, "The WndOwner element must be a integer HWND or a window object");
+				PyErr_Clear();		// py3k doesn't like it when you overwrite an existing exception
+				PyErr_SetString(PyExc_TypeError, "The WndOwner element must be a HWND (PyHANDLE or int) or a PyCWnd object");
 				return FALSE;
 			}
 			pConv->hWndOwner = pParent->GetSafeHwnd();
 		}
 	}
+	else
+		PyErr_Clear();
 
 	ob = PyObject_GetAttrString(obDict, "Caption");
-	if (ob) pConv->lpszCaption = PyString_AsString(PyObject_Str(ob));
+	if (ob){
+		// Need cast since lpszCaption is const.  Free'd in object dtor
+		if (!PyWinObject_AsTCHAR(ob, (TCHAR **)&pConv->lpszCaption, FALSE))
+			return FALSE;
+		}
+	else
+		PyErr_Clear();
+
 	// Hook not implemented
 	// CustData not implemented
 	ob = PyObject_GetAttrString(obDict, "Instance");
-	if (ob) pConv->hInstance = (HINSTANCE)PyInt_AsLong(ob);
+	if (ob){
+		if (!PyWinObject_AsHANDLE(ob, (HANDLE *)&pConv->hInstance))
+			return FALSE;
+		}
+	else
+		PyErr_Clear();
+
 	ob = PyObject_GetAttrString(obDict, "Template");
-	if (ob) pConv->lpszTemplate = PyString_AsString(PyObject_Str(ob));
+	if (ob){
+		// Need cast since lpszTemplate is const.  Free'd in object dtor
+		if (!PyWinObject_AsTCHAR(ob, (TCHAR **)&pConv->lpszTemplate, FALSE))
+			return FALSE;
+		}
+	else
+		PyErr_Clear();
+
 	ob = PyObject_GetAttrString(obDict, "Resource");
-	if (ob) pConv->hResource = (HRSRC)PyInt_AsLong(ob);
+	if (ob){
+		if (!PyWinObject_AsHANDLE(ob, (HANDLE *)&pConv->hResource))
+			return FALSE;
+		}
+	else
+		PyErr_Clear();
 
 	// OLEUIINSERTOBJECT specifics
 	// CLSID is out.
 	ob = PyObject_GetAttrString(obDict, "File");
 	if (ob) {
-		char *szTemp = PyString_AsString(PyObject_Str(ob));
-		if (szTemp==NULL) return FALSE;
-		strncpy(fileNameBuf, szTemp, sizeof(fileNameBuf));
+		TCHAR *szTemp;
+		if (!PyWinObject_AsTCHAR(ob, &szTemp, FALSE))
+			return FALSE;
+		_tcsncpy(fileNameBuf, szTemp, sizeof(fileNameBuf)/sizeof(fileNameBuf[0]));
 		fileNameBuf[sizeof(fileNameBuf)-1]='\0';
-	}
+		PyWinObject_FreeTCHAR(szTemp);
+		}
+	else
+		PyErr_Clear();
+
 	// CLSIDExcludeList not yet supported.
 	ob = PyObject_GetAttrString(obDict, "iid");
 	if (ob) {
 		if (!PyWinObject_AsIID(ob, &pConv->iid))
 			return FALSE;
-	}
+		}
+	else
+		PyErr_Clear();
+
 	ob = PyObject_GetAttrString(obDict, "oleRender");
-	if (ob) pConv->oleRender = PyInt_AsLong(ob);
+	if (ob){
+		pConv->oleRender = PyInt_AsLong(ob);
+		if (pConv->oleRender == -1 && PyErr_Occurred())
+			return FALSE;
+		}
+	else
+		PyErr_Clear();
+
 	// lpFormatEtc not supported.
 	// lpIOleCloientSite not supported.
 	// lpIStorage not supported
@@ -144,7 +199,7 @@ PyObject *PyCOleInsertDialog_GetPathName( PyObject * self, PyObject *args )
 	GUI_BGN_SAVE;
 	CString ret = pDlg->GetPathName();
 	GUI_END_SAVE;
-	return PyString_FromString((char *)(const char *)ret);
+	return PyWinObject_FromTCHAR(ret);
 	// @comm Do not call this if the selection type is createNewItem,
 }
 

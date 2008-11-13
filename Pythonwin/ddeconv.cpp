@@ -13,17 +13,27 @@ PyObject *PyDDEConv_ConnectTo(PyObject *self, PyObject *args)
 {
 	PythonDDEConv *pConv = PyDDEConv::GetConv(self);
 	if (!pConv) return NULL;
-	char *szService, *szTopic;
+	TCHAR *szService=NULL, *szTopic=NULL;
+	PyObject *obService, *obTopic, *ret=NULL;
 	// @pyparm string|service||The service to connect to
 	// @pyparm string|topic||The topic to connect to
-	if (!PyArg_ParseTuple(args, "ss:ConnectTo", &szService, &szTopic))
+	if (!PyArg_ParseTuple(args, "OO:ConnectTo", &obService, &obTopic))
 		return NULL;
-	GUI_BGN_SAVE;
-	BOOL ok = pConv->ConnectTo(szService, szTopic);
-	GUI_END_SAVE;
-	if (!ok)
-		RETURN_DDE_ERR("ConnectTo failed");
-	RETURN_NONE;
+	if (PyWinObject_AsTCHAR(obService, &szService, FALSE)
+		&&PyWinObject_AsTCHAR(obTopic, &szTopic, FALSE)){
+		GUI_BGN_SAVE;
+		BOOL ok = pConv->ConnectTo(szService, szTopic);
+		GUI_END_SAVE;
+		if (!ok)
+			PyErr_SetString(dde_module_error, "ConnectTo failed");
+		else{
+			Py_INCREF(Py_None);
+			ret = Py_None;
+			}
+		}
+	PyWinObject_FreeTCHAR(szService);
+	PyWinObject_FreeTCHAR(szTopic);
+	return ret;
 }
 
 // @pymethod |PyDDEConv|Connected|Determines if the conversation is connected.
@@ -44,14 +54,17 @@ PyObject *PyDDEConv_Exec(PyObject *self, PyObject *args)
 {
 	PythonDDEConv *pConv = PyDDEConv::GetConv(self);
 	if (!pConv) return NULL;
-	char *szCmd;
-	// @pyparm string|service||The service to connect to
-	// @pyparm string|topic||The topic to connect to
-	if (!PyArg_ParseTuple(args, "s:Exec", &szCmd))
+	TCHAR *szCmd;
+	PyObject *obCmd;
+	// @pyparm string|Cmd||The Python statement to execute
+	if (!PyArg_ParseTuple(args, "O:Exec", &obCmd))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obCmd, &szCmd, FALSE))
 		return NULL;
 	GUI_BGN_SAVE;
 	BOOL ok = pConv->Exec(szCmd);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(szCmd);
 	if (!ok)
 		RETURN_DDE_ERR("Exec failed");
 	RETURN_NONE;
@@ -62,17 +75,21 @@ PyObject *PyDDEConv_Request(PyObject *self, PyObject *args)
 {
 	PythonDDEConv *pConv = PyDDEConv::GetConv(self);
 	if (!pConv) return NULL;
-	char *szCmd;
-	if (!PyArg_ParseTuple(args, "s:Request", &szCmd))
+	TCHAR *szCmd;
+	PyObject *obCmd;
+	if (!PyArg_ParseTuple(args, "O:Request", &obCmd))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obCmd, &szCmd, FALSE))
 		return NULL;
 	GUI_BGN_SAVE;
 	void *ppData ;
 	DWORD pdwSize ;
 	BOOL ok = pConv->Request(szCmd, &ppData, &pdwSize);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(szCmd);
 	if (!ok)
 		RETURN_DDE_ERR("Request failed");
-	PyObject * result = PyString_FromStringAndSize((char *)ppData, pdwSize) ;
+	PyObject * result = PyWinObject_FromTCHAR((TCHAR *)ppData);
 	free(ppData) ;
 	return result ;
 }
@@ -82,14 +99,18 @@ PyObject *PyDDEConv_Poke(PyObject *self, PyObject *args)
 {
 	PythonDDEConv *pConv = PyDDEConv::GetConv(self);
 	if (!pConv) return NULL;
-	char *szCmd;
+	TCHAR *szCmd;
+	PyObject *obCmd;
 	void *pData = NULL;  // may be empty, as for Netscape's use of Poke
 	DWORD dwSize = 0;
-	if (!PyArg_ParseTuple(args, "s|z#:Poke", &szCmd, &pData, &dwSize))
+	if (!PyArg_ParseTuple(args, "O|z#:Poke", &obCmd, &pData, &dwSize))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obCmd, &szCmd, FALSE))
 		return NULL;
 	GUI_BGN_SAVE;
 	BOOL ok = pConv->Poke(szCmd, pData, dwSize);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(szCmd);
 	if (!ok)
 		RETURN_DDE_ERR("Poke failed");
 	RETURN_NONE;

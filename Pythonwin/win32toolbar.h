@@ -39,6 +39,8 @@ public:
   MAKE_PY_CTOR(PyCToolBarCtrl)
   static ui_type_CObject type;
   CPtrArray *bmplist;
+  // Array of pointers, each holding the result of one call to
+  // PyWinObject_AsMultipleString()
   CPtrArray *strlist;
 protected:
   PyCToolBarCtrl();

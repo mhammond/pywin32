@@ -25,7 +25,7 @@ STDMETHODIMP PyGPropertyBag::Read(
 		obLog = Py_None;
 	}
 
-	PyObject *obName = PyString_FromUnicode(pszPropName); // keep with string for b/w compat.
+	PyObject *obName = PyWinObject_FromWCHAR(pszPropName);
 	PyObject *result;
 	HRESULT hr = InvokeViaPolicy("Read",
 									&result,
@@ -56,7 +56,7 @@ STDMETHODIMP PyGPropertyBag::Write(
 	if ( !value )
 		return PyCom_SetCOMErrorFromPyException(GetIID());
 
-	PyObject *obName = PyString_FromUnicode(pszPropName); // keep with string for b/w compat.
+	PyObject *obName = PyWinObject_FromWCHAR(pszPropName);
 	HRESULT hr = InvokeViaPolicy("Write",
 									NULL,
 									"OO",

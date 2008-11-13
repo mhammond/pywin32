@@ -888,28 +888,24 @@ public:
 		// done via <om PyCPrintDialog.OnOK>.
 		// @xref <om PyCDialogDialog.OnOK>
 
-                CString csText;
-                int val;
+        CString csText;
 
 		CWnd* ctl = GetDlgItem(IDC_PRINT_FROM);
                 ctl->GetWindowText(csText);
-                sscanf(csText, "%d", &val);
-                m_pd.nFromPage = val;
+                m_pd.nFromPage = _ttoi(csText);
 
                 ctl = GetDlgItem(IDC_PRINT_TO);
                 ctl->GetWindowText(csText);
-                sscanf(csText, "%d", &val);
-                m_pd.nToPage = val;
+                m_pd.nToPage = _ttoi(csText);
 
                 ctl = GetDlgItem(IDC_PRINT_COPIES);
                 ctl->GetWindowText( csText );
-                sscanf(csText, "%d", &val);
                 if (m_pd.Flags&PD_USEDEVMODECOPIES) {
                   LPDEVMODE devMode = (LPDEVMODE)::GlobalLock((HGLOBAL)m_pd.hDevMode);
-                  devMode->dmCopies = val;
+                  devMode->dmCopies =_ttoi(csText);
                   ::GlobalUnlock((HGLOBAL)m_pd.hDevMode);
                 }
-                m_pd.nCopies = val;
+                m_pd.nCopies = _ttoi(csText);
 
 		CVirtualHelper helper( "OnOK", this );
 		if (helper.HaveHandler()) {

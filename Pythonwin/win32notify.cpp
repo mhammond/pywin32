@@ -86,13 +86,13 @@ PyObject *PyNotifyMakeExtraTuple( NMHDR *ptr, char *fmt)
 			break;
 		case 'T': {// TV_ITEM structure
 			TV_ITEM *ptv = (TV_ITEM *)pUse;
-			ob = bIgnore ? NULL : MakeTV_ITEMTuple(ptv);
+			ob = bIgnore ? NULL : PyWinObject_FromTV_ITEM(ptv);
 			pUse += (sizeof(TV_ITEM));
 			break;
 			}
 		case 'L': {// LV_ITEM structure
 			LV_ITEM *plv = (LV_ITEM *)pUse;
-			ob = bIgnore ? NULL : MakeLV_ITEMTuple(plv);
+			ob = bIgnore ? NULL : PyWinObject_FromLV_ITEM(plv);
 			pUse += (sizeof(LV_ITEM));
 			break;
 			}
@@ -129,7 +129,8 @@ PyObject *PyNotifyMakeExtraTuple( NMHDR *ptr, char *fmt)
 void PyNotifyParseExtraTuple( NMHDR *ptr, PyObject *args,  char *fmt)
 {
 	char *pUse = (char *)(ptr+1);
-	BOOL bIgnore;
+	BOOL bIgnoreFormat;
+	BOOL bIgnoreValue;
 	int argNum = 0;
 	if (fmt==NULL){
 		PyErr_Format(PyExc_ValueError, "Notify code %d not expected to return data", ptr->code);
@@ -139,7 +140,10 @@ void PyNotifyParseExtraTuple( NMHDR *ptr, PyObject *args,  char *fmt)
 	while (*fmt) {
 		PyObject *ob = PyTuple_GetItem(args, argNum);
 		if (ob==NULL) return;
-		bIgnore = *fmt=='-';
+		bIgnoreFormat = *fmt=='-';
+		// The user can specify 'None' to say 'leave the value alone'
+		bIgnoreValue = (ob == Py_None);
+		BOOL bIgnore = bIgnoreFormat || bIgnoreValue;
 		if (bIgnore) ++fmt;
 		switch (*fmt) {
 		case 'i':
@@ -155,6 +159,14 @@ void PyNotifyParseExtraTuple( NMHDR *ptr, PyObject *args,  char *fmt)
 			}
 		case 'T': { // TV_ITEM
 			ASSERT(FALSE);
+			break;
+			}
+		case 'V':{// Pointer-sized number, also used for HANDLEs, LPARAMS, etc
+			if (!bIgnore) {
+				if (!PyWinLong_AsVoidPtr(ob, (void **)pUse))
+					return;
+			}
+			pUse += (sizeof(void *));
 			break;
 			}
 		case 'z': // string pointer
@@ -188,21 +200,24 @@ void PyNotifyParseExtraTuple( NMHDR *ptr, PyObject *args,  char *fmt)
 			pUse += bufSize;
 			break;
 			}
-		case 'S': // string buffer
+		case 'S': // Fixed size unicode buffer
 			{
-			int bufSize = 0;
+			DWORD bufSize = 0;
 			while (fmt[1] && isdigit(fmt[1])) {
 				bufSize = bufSize * 10 + (fmt[1]-'0');
 				fmt++;
 			}
 			ASSERT(bufSize);
 			if (!bIgnore) {
-				if (!PyString_Check(ob)) MY_RET_ERR("Expected string object")
-				char *szVal = PyString_AsString(ob);
-				SSIZE_T slen = strlen(szVal);
-				mbstowcs( (wchar_t *)pUse, szVal, bufSize );
+				WCHAR *wchar_buf=NULL;
+				DWORD wchar_cnt;
+				if (!PyWinObject_AsWCHAR(ob, &wchar_buf, FALSE, &wchar_cnt))
+					return;
+				ZeroMemory(pUse, bufSize * sizeof(wchar_t));
+				wcsncpy((WCHAR *)pUse, wchar_buf, min(wchar_cnt, bufSize-1));
+				PyWinObject_FreeWCHAR(wchar_buf);
 			}
-			pUse += bufSize + sizeof(wchar_t);
+			pUse += bufSize * sizeof(wchar_t);
 			break;
 			}
 		case 'O': // object with no reference count maintained
@@ -213,7 +228,7 @@ void PyNotifyParseExtraTuple( NMHDR *ptr, PyObject *args,  char *fmt)
 			MY_RET_ERR("Bad format char in internal WM_NOTIFY tuple conversion");
 		}
 		fmt++;
-		if (!bIgnore)
+		if (!bIgnoreFormat)
 			argNum ++;
 	}
 	return;
@@ -287,12 +302,12 @@ Python_OnNotify (CWnd *pFrom, WPARAM, LPARAM lParam, LRESULT *pResult)
 		fmt = "V";		//HWND
 	else if (code == TCN_KEYDOWN)
 		fmt = "ii";		// NMTCKEYDOWN - ??? First element is a WORD, may work due to alignment ???
+	else if (code == TTN_NEEDTEXTA)
+		fmt = "-zs80Vi";	// TOOLTIPTEXTA - ie, NMTTDISPINFOA
 	else if (code == TTN_NEEDTEXTW)
-		fmt = "-ZS80ii";	//TOOLTIPTEXT
+		fmt = "-ZS80Vi";	// TOOLTIPTEXTW - ie, NMTTDISPINFOW
 	else if (code == TTN_POP || code == TTN_SHOW)
 		fmt = NULL;		//NMHDR only
-	else if (code == TTN_NEEDTEXTA)
-		fmt = "-zs80Vi";	// NMTTDISPINFO - Third element is HINSTANCE
 	else if (code == TVN_ENDLABELEDITW || code == TVN_BEGINLABELEDITW || code == TVN_SETDISPINFOW
 			|| code == TVN_GETDISPINFOW || code == TVN_ENDLABELEDITA || code == TVN_BEGINLABELEDITA
 			|| code == TVN_SETDISPINFOA || code == TVN_GETDISPINFOA)
@@ -308,8 +323,8 @@ Python_OnNotify (CWnd *pFrom, WPARAM, LPARAM lParam, LRESULT *pResult)
 		NMTREEVIEW *nmtv=(NMTREEVIEW *)pHdr;
 		ob2=Py_BuildValue("iNN(ll)",
 			nmtv->action,
-			MakeTV_ITEMTuple(&nmtv->itemOld),
-			MakeTV_ITEMTuple(&nmtv->itemNew),
+			PyWinObject_FromTV_ITEM(&nmtv->itemOld),
+			PyWinObject_FromTV_ITEM(&nmtv->itemNew),
 			nmtv->ptDrag.x, nmtv->ptDrag.y);
 		}
 	else if (code == HDN_ITEMDBLCLICKW || code == HDN_ITEMDBLCLICKA)
@@ -318,7 +333,7 @@ Python_OnNotify (CWnd *pFrom, WPARAM, LPARAM lParam, LRESULT *pResult)
 		fmt = "iiH";	//HD_NOTIFY
 	else if (code == LVN_KEYDOWN)
 		fmt = "ii";		// NMLVKEYDOWN ??? First element is a WORD ???
-	else if ((code >= LVN_LAST && code <= LVN_GETDISPINFOW) || code == LVN_ENDLABELEDITA || code == LVN_BEGINLABELEDITA)
+	else if ((code >= LVN_LAST && code <= LVN_GETDISPINFOW) || code == LVN_ENDLABELEDIT || code == LVN_BEGINLABELEDIT)
 		fmt = "L";		// NMLVDISPINFO
 	else if (code >= LVN_BEGINRDRAG && code <= LVN_FIRST)
 		fmt = "iiiiiPV";		// NMLISTVIEW - Last item is an LPARAM
@@ -347,10 +362,8 @@ Python_OnNotify (CWnd *pFrom, WPARAM, LPARAM lParam, LRESULT *pResult)
 	BOOL bPassOn = FALSE;
 	PyObject *obOther;
 	PyObject *result = Python_do_callback(method, args);
-	if (result==NULL) {
+	if (result==NULL)
 		PyErr_Warn(PyExc_Warning, "Exception in OnNotify() handler");
-		gui_print_error();
-		}
 	else if (result==Py_None)	// allow for None "dont pass on", else result to windows
 		bPassOn = TRUE;
 	else if PyTuple_Check(result){
@@ -360,7 +373,7 @@ Python_OnNotify (CWnd *pFrom, WPARAM, LPARAM lParam, LRESULT *pResult)
 			PyNotifyParseExtraTuple( pHdr, obOther, fmt);
 		if (PyErr_Occurred()){
 			gui_print_error();
-			PyErr_SetString(ui_module_error, "Error parsing OnNotify() extra return info");
+			PyErr_Format(ui_module_error, "Error parsing OnNotify() extra return info for code %d, fmt='%s'", code, fmt);
 			gui_print_error();
 			}
 		}

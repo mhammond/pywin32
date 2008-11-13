@@ -665,22 +665,22 @@ static PyObject *
 PyCToolBar_LoadBitmap (PyObject *self, PyObject *args)
 {
 	BOOL rc;
-	int id;
+	TCHAR *szId;
+	PyObject *obId;
 	CToolBar *pToolBar = PyCToolBar::GetToolBar(self);
 	if (!pToolBar)
 		return NULL;
-	if (PyArg_ParseTuple(args,"i", 
-	          &id )) // @pyparm int|id||The bitmap ID.
-		rc = pToolBar->LoadBitmap(id);
-	else {
-		char *szId;
-		PyErr_Clear();
-		if (PyArg_ParseTuple(args,"i:LoadBitmap", 
-	          &szId )) // @pyparmalt1 string|id||The bitmap ID.
-			rc = pToolBar->LoadBitmap(szId);
-		else
-			RETURN_ERR("LoadBitmap requires an integer or string argument");
-	}
+	if (!PyArg_ParseTuple(args,"O:LoadBitmap",
+		&obId )) // @pyparm <o PyResourceId>|id||Name or id of the resource that contains the bitmap.
+		return NULL;
+	if (!PyWinObject_AsResourceId(obId, &szId, FALSE))
+		return NULL;
+
+	if (IS_INTRESOURCE(szId))
+		rc = pToolBar->LoadBitmap(MAKEINTRESOURCE(szId));
+	else
+		rc = pToolBar->LoadBitmap(szId);
+	PyWinObject_FreeResourceId(szId);
 
 	if (!rc)
 		RETURN_ERR("LoadBitmap failed");
@@ -694,25 +694,25 @@ static PyObject *
 PyCToolBar_LoadToolBar (PyObject *self, PyObject *args)
 {
 	BOOL rc;
-	int id;
+	TCHAR *szId;
+	PyObject *obId;
 	CToolBar *pToolBar = PyCToolBar::GetToolBar(self);
 	if (!pToolBar)
 		return NULL;
-	if (PyArg_ParseTuple(args,"i", 
-	          &id )) // @pyparm int|id||The bitmap ID.
-		rc = pToolBar->LoadToolBar(id);
-	else {
-		char *szId;
-		PyErr_Clear();
-		if (PyArg_ParseTuple(args,"i:LoadBitmap", 
-	          &szId )) // @pyparmalt1 string|id||The bitmap ID.
-			rc = pToolBar->LoadToolBar(szId);
-		else
-			RETURN_ERR("LoadToolBar requires an integer or string argument");
-	}
+	if (!PyArg_ParseTuple(args,"O:LoadToolBar",
+		&obId )) // @pyparm <o PyResourceId>|id||Name or resource id of the resource
+		return NULL;
 
+	if (!PyWinObject_AsResourceId(obId, &szId, FALSE))
+		return NULL;
+
+	if (IS_INTRESOURCE(szId))
+		rc = pToolBar->LoadToolBar(MAKEINTRESOURCE(szId));
+	else
+		rc = pToolBar->LoadToolBar(szId);
+	PyWinObject_FreeResourceId(szId);
 	if (!rc)
-		RETURN_ERR("LoadBitmap failed");
+		RETURN_ERR("LoadToolBar failed");
 	// @comm The bitmap should contain one image for each toolbar button. If the 
 	// images are not of the standard size (16 pixels wide and 15 pixels high), 
 	// call <om PyCToolBar.SetSizes> to set the button sizes and their images.
@@ -797,7 +797,7 @@ PyObject *PyCToolBar_GetButtonText( PyObject *self, PyObject *args )
 	// @pyparm int|index||Index of the item whose text is to be retrieved.
 	if (!PyArg_ParseTuple( args, "i:GetButtonText", &index))
 		return NULL;
-	return Py_BuildValue("s", (const char *)pToolBar->GetButtonText(index));
+	return PyWinObject_FromTCHAR(pToolBar->GetButtonText(index));
 }
 
 // @pymethod |PyCToolBar|SetButtonText|Sets the text for a button.
@@ -805,15 +805,19 @@ static PyObject *
 PyCToolBar_SetButtonText(PyObject *self, PyObject *args)
 {
 	int index;
-	char *text;
+	TCHAR *text;
+	PyObject *obtext;
 	CToolBar *pToolBar = PyCToolBar::GetToolBar(self);
 	if (!pToolBar)
 		return NULL;
-	if (!PyArg_ParseTuple(args,"is", 
+	if (!PyArg_ParseTuple(args,"iO", 
 			&index, // @pyparm int|index||Index of the item whose style is to be set
-			&text))// @pyparm string|text||The new text
+			&obtext))// @pyparm string|text||The new text
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obtext, &text, FALSE))
 		return NULL;
 	pToolBar->SetButtonText(index, text);
+	PyWinObject_FreeTCHAR(text);
 	RETURN_NONE;
 }
 
@@ -915,7 +919,7 @@ PyCToolBarCtrl::~PyCToolBarCtrl()
 
 	n = strlist->GetSize();
 	for (i = 0; i < n; i++)
-		delete strlist->GetAt (i);
+		PyWinObject_FreeMultipleString((TCHAR *)strlist->GetAt(i));
 	delete strlist;
 }
 
@@ -1013,54 +1017,22 @@ PyObject *PyCToolBarCtrl_AddStrings (PyObject *self, PyObject *args)
 {
 	CToolBarCtrl *pTBC = GetToolBarCtrl(self);
 	if (pTBC == NULL) return NULL;
-	PyObject *pStringList = NULL; 
-	PyObject *pString = NULL;
+	TCHAR *strings;
+	DWORD charcnt;
 
-	Py_ssize_t i;
-	Py_ssize_t n = PyObject_Length(args);
-	Py_ssize_t nchars = 0;
+	if (!PyWinObject_AsMultipleString(args, &strings, FALSE, &charcnt))
+		return NULL;
 
-	for (i = 0; i < n; i++) {
-		nchars += PyObject_Length (PyTuple_GetItem (args, i));
-	}
-
-	char *buf = new char[nchars + n + 1];
-	char *pbuf = buf;
-	((PyCToolBarCtrl *) self)->strlist->Add (buf);
+	// Add string pointer to list of things to be cleaned up at the end.
+	// (XXX - is this really necessary?  It seems surprising the control
+	// doesn't take its own copy???)
+	((PyCToolBarCtrl *) self)->strlist->Add(strings);
 	
 	// @pyparm string...|strings||Strings to add. Can give more than one string.
-
-	/*
-	 * Okay, so this is REALLY ugly... Blame Microsoft in this case.
-	 * They actually require that you pass in a bunch of strings,
-	 * separated by NULL bytes, and terminated by TWO NULL bytes.
-	 * I'm going to go wash my hands now...
-	 */
-
-	for (i = 0; i < n; i++) {
-		PyObject *o;
-
-		o = PyTuple_GetItem (args, i);
-			       
-		if (!PyArg_Parse (o, "s", &pbuf)) {
-			delete buf;
-			return NULL;
-		}
-
-		pbuf += strlen (pbuf);
-		pbuf++;		// Tack on another NULL byte
-	}
-
-	*pbuf = '\0';		// Tack on ANOTHER NULL byte
-
-	// @pyseemfc CToolBarCtrl|AddStrings
 	GUI_BGN_SAVE;
-	int rc = pTBC->AddStrings (buf);
+	int rc = pTBC->AddStrings(strings);
 	GUI_END_SAVE;
-
-	PyObject *ret = Py_BuildValue ("i", rc);
-	delete buf;
-	return ret;
+	return PyInt_FromLong(rc);
 }
 
 // @pymethod |PyCToolBarCtrl|AutoSize|Resize the entire toolbar control

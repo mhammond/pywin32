@@ -41,8 +41,6 @@ typedef int Py_ssize_t;
 // Lars: for WAVEFORMATEX
 #include "mmsystem.h"
 
-// This can be removed once we are confident noone else uses it...
-#define PYWIN_USE_PYUNICODE
 
 // *** NOTE *** FREEZE_PYWINTYPES is deprecated.  It used to be used
 // by the 'freeze' tool, but now py2exe etc do a far better job, and 
@@ -67,6 +65,9 @@ typedef int Py_ssize_t;
 #	endif // BUILD_PYWINTYPES
 #endif // FREEZE_PYWINTYPES
 
+// Formats a python traceback into a character string - result must be free()ed
+PYWINTYPES_EXPORT char *GetPythonTraceback(PyObject *exc_type, PyObject *exc_value, PyObject *exc_tb);
+
 #include <tchar.h>
 /*
 ** Error/Exception handling
@@ -90,37 +91,6 @@ PYWINTYPES_EXPORT PyObject *PyWin_SetAPIError(char *fnName, long err = 0);
 */
 extern PYWINTYPES_EXPORT PyObject *PyWinExc_COMError;
 PYWINTYPES_EXPORT PyObject *PyWin_SetBasicCOMError(HRESULT hr);
-
-/*
-** String/UniCode support
-*/
-#ifdef PYWIN_USE_PYUNICODE
-	/* Python has built-in Unicode String support */
-#define PyUnicodeType PyUnicode_Type
-// PyUnicode_Check is defined.
-
-#else
-
-/* If a Python Unicode object exists, disable it. */
-#ifdef PyUnicode_Check
-#undef PyUnicode_Check
-#define PyUnicode_Check(ob)	((ob)->ob_type == &PyUnicodeType)
-#endif /* PyUnicode_Check */
-
-	/* Need our custom Unicode object */
-extern PYWINTYPES_EXPORT PyTypeObject PyUnicodeType; // the Type for PyUnicode
-#define PyUnicode_Check(ob)	((ob)->ob_type == &PyUnicodeType)
-
-
-// PyUnicode_AsUnicode clashes with the standard Python name - 
-// so if we are not using Python Unicode objects, we hide the
-// name with a #define.
-#define PyUnicode_AsUnicode(op) (((PyUnicode *)op)->m_bstrValue)
-//extern PYWINTYPES_EXPORT WCHAR *PyUnicode_AsUnicode(PyObject *op);
-
-#endif /* PYWIN_USE_PYUNICODE */
-
-extern PYWINTYPES_EXPORT int PyUnicode_Size(PyObject *op);
 
 // Given a PyObject (string, Unicode, etc) create a "BSTR" with the value
 PYWINTYPES_EXPORT BOOL PyWinObject_AsBstr(PyObject *stringObject, BSTR *pResult, BOOL bNoneOK = FALSE, DWORD *pResultLen = NULL);
@@ -185,32 +155,34 @@ inline BOOL PyWinObject_AsReadBuffer(PyObject *ob, void **buf, int *buf_len, BOO
    Either way - PyWinObject_FreeTCHAR() must be called
 */
 
-#ifdef UNICODE
-#define PyWinObject_AsTCHAR PyWinObject_AsWCHAR
-#define PyWinObject_FreeTCHAR PyWinObject_FreeWCHAR
-#define PyWinObject_FromTCHAR PyWinObject_FromOLECHAR
-#define PyString_FromTCHAR PyString_FromUnicode
-#else /* not UNICODE */
-#define PyWinObject_AsTCHAR PyWinObject_AsString
-#define PyWinObject_FreeTCHAR PyWinObject_FreeString
-inline PyObject *PyWinObject_FromTCHAR( TCHAR *str )
+// Helpers with py3k in mind: the result object is always a "core string"
+// object; ie, a string in py2k and unicode in py3k.  Mainly to be used for
+// objects that *must* be that type - tp_str slots, __dict__ items, etc. If
+// Python doesn't *insist* the result be this type, consider using a function
+// that always returns a unicode object (ie, most of the "PyWinObject_From*CHAR"
+// functions)
+// XXX - move these from being inlines...
+inline PyObject *PyWinCoreString_FromString(const char *str, Py_ssize_t len=(Py_ssize_t)-1)
 {
-	if (str==NULL){
-		Py_INCREF(Py_None);
-		return Py_None;
-		}
-	return PyString_FromString(str);
-}
-inline PyObject *PyWinObject_FromTCHAR( TCHAR *str, int numChars )
-{
-	if (str==NULL){
-		Py_INCREF(Py_None);
-		return Py_None;
-		}
-	return PyString_FromStringAndSize(str, numChars);
-}
-#define PyString_FromTCHAR PyString_FromString
+    if (len==(Py_ssize_t)-1)
+        len = strlen(str);
+#if (PY_VERSION_HEX < 0x03000000)
+    return PyString_FromStringAndSize(str, len);
+#else
+    return PyUnicode_DecodeMBCS(str, len, "ignore");
 #endif
+}
+
+inline PyObject *PyWinCoreString_FromString(const WCHAR *str, Py_ssize_t len=(Py_ssize_t)-1)
+{
+    if (len==(Py_ssize_t)-1)
+        len = wcslen(str);
+#if (PY_VERSION_HEX < 0x03000000)
+    return PyUnicode_EncodeMBCS(str, len, "ignore");
+#else
+    return PyUnicode_FromWideChar(str, len);
+#endif
+}
 
 #define PyWinObject_FromWCHAR PyWinObject_FromOLECHAR
 
@@ -235,8 +207,7 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsWCHARArray(PyObject *str_seq, LPWSTR **wcha
 PYWINTYPES_EXPORT void PyWinObject_FreeCharArray(char **pchars, DWORD str_cnt);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsCharArray(PyObject *str_seq, char ***pchars, DWORD *str_cnt, BOOL bNoneOK = FALSE);
 
-PYWINTYPES_EXPORT PyObject *PyString_FromUnicode( const OLECHAR *str );
-PYWINTYPES_EXPORT PyObject *PyUnicodeObject_FromString(const char *string);
+PYWINTYPES_EXPORT PyObject *PyUnicodeObject_FromString(const char *string, Py_ssize_t len=(Py_ssize_t)-1);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromOLECHAR(const OLECHAR * str);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromOLECHAR(const OLECHAR * str, int numChars);
 
@@ -246,6 +217,37 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsPfnAllocatedWCHAR(PyObject *stringObject,
                                                   WCHAR **ppResult, 
                                                   BOOL bNoneOK = FALSE,
                                                   DWORD *pResultLen = NULL);
+
+#ifdef UNICODE
+// XXX - "AsTCHAR" functions should all die - the type of the Python object
+// being returned should not depend on UNICODE or not.
+#define PyWinObject_AsTCHAR PyWinObject_AsWCHAR
+#define PyWinObject_FreeTCHAR PyWinObject_FreeWCHAR
+#define PyWinObject_FromTCHAR PyWinObject_FromOLECHAR
+#else /* not UNICODE */
+#define PyWinObject_AsTCHAR PyWinObject_AsString
+#define PyWinObject_FreeTCHAR PyWinObject_FreeString
+
+inline PyObject *PyWinObject_FromTCHAR(const char *str, Py_ssize_t len=(Py_ssize_t)-1)
+{
+    if (str==NULL) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+// PyWinObject_FromTCHAR in a non-unicode build still depends on py3k or not:
+// py2x a string object is returned (no conversions).  py3x a unicode object
+// is returned (ie, the string is decoded)
+#if (PY_VERSION_HEX < 0x03000000)
+    if (len==(Py_ssize_t)-1)
+        return PyString_FromString(str);
+    else
+        return PyString_FromStringAndSize(str, len);
+#else   
+    return PyUnicodeObject_FromString(str, len);
+#endif
+}
+#define PyString_FromTCHAR PyString_FromString
+#endif
 
 // String support for buffers allocated via CoTaskMemAlloc and CoTaskMemFree
 PYWINTYPES_EXPORT BOOL PyWinObject_AsTaskAllocatedWCHAR(PyObject *stringObject, WCHAR **ppResult, BOOL bNoneOK /*= FALSE*/,DWORD *pResultLen /*= NULL*/);
@@ -257,6 +259,11 @@ PYWINTYPES_EXPORT BOOL PyWin_String_AsWCHAR(char *input, DWORD inLen, WCHAR **pR
 
 PYWINTYPES_EXPORT void PyWinObject_FreeString(char *str);
 PYWINTYPES_EXPORT void PyWinObject_FreeString(WCHAR *str);
+
+// Copy null terminated string with same allocator as PyWinObject_AsWCHAR, etc
+PYWINTYPES_EXPORT WCHAR *PyWin_CopyString(const WCHAR *input);
+PYWINTYPES_EXPORT char *PyWin_CopyString(const char *input);
+
 
 // Pointers.
 // Substitute for Python's inconsistent PyLong_AsVoidPtr
@@ -274,13 +281,11 @@ PYWINTYPES_EXPORT PyObject *PyLong_FromTwoInts(int hidword, unsigned lodword);
 inline BOOL PyLong_AsTwoI32(PyObject *ob, int *hiint, unsigned *loint) {return PyLong_AsTwoInts(ob, hiint, loint);}
 inline PyObject *PyLong_FromTwoI32(int hidword, unsigned lodword) {return PyLong_FromTwoInts(hidword, lodword);}
 
-//AsLARGE_INTEGER takes either PyInteger, PyLong, (PyInteger, PyInteger)
+//AsLARGE_INTEGER takes either int or long
 PYWINTYPES_EXPORT BOOL PyWinObject_AsLARGE_INTEGER(PyObject *ob, LARGE_INTEGER *pResult);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsULARGE_INTEGER(PyObject *ob, ULARGE_INTEGER *pResult);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromLARGE_INTEGER(LARGE_INTEGER &val);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromULARGE_INTEGER(ULARGE_INTEGER &val);
-#define PyLong_FromLARGE_INTEGER PyWinObject_FromLARGE_INTEGER
-#define PyLong_FromULARGE_INTEGER PyWinObject_FromULARGE_INTEGER
 // Helpers that take a Py_LONG_LONG, but (a) have pywin32 consistent signatures
 // and (b) handle int *and* long (where Python only starts doing that in the
 // PyLong_* APIs post 2.4)
@@ -348,8 +353,7 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsIID(PyObject *obCLSID, CLSID *clsid);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromIID(const IID &riid);
 
 // return a string/Unicode object representing an IID
-PYWINTYPES_EXPORT PyObject *PyWinStringObject_FromIID(const IID &riid);
-PYWINTYPES_EXPORT PyObject *PyWinUnicodeObject_FromIID(const IID &riid);
+PYWINTYPES_EXPORT PyObject *PyWinCoreString_FromIID(const IID &riid);
 
 // A global function that can work as a module method for making an IID object.
 PYWINTYPES_EXPORT PyObject *PyWinMethod_NewIID( PyObject *self, PyObject *args);
@@ -643,7 +647,7 @@ extern PYWINTYPES_EXPORT void PyWinThreadState_Clear();
 extern PYWINTYPES_EXPORT void PyWinInterpreterLock_Acquire();
 extern PYWINTYPES_EXPORT void PyWinInterpreterLock_Release();
 
-extern PYWINTYPES_EXPORT void PyWinGlobals_Ensure();
+extern PYWINTYPES_EXPORT int PyWinGlobals_Ensure();
 extern PYWINTYPES_EXPORT void PyWinGlobals_Free();
 #else
 #define PyWinThreadState_Ensure PyThreadState_Ensure

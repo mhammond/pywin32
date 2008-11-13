@@ -215,7 +215,7 @@ PyCDialog::getattr(char *name)
 static PyObject *set_exchange_error(const char *msg, int index)
 {
 	static char errBuf[256];
-	wsprintf(errBuf, "Data exchange list index %d - %s", index, msg);
+	snprintf(errBuf, 256, "Data exchange list index %d - %s", index, msg);
 	PyErr_SetString(PyExc_TypeError,errBuf);
 	return NULL;
 }
@@ -241,10 +241,16 @@ static PyObject *do_exchange_edit( int id, int index, char *type, PyObject *oldV
 			break;
 		}
 		case 's': {
-			char *strVal = NULL;
-			if (oldVal && PyString_Check(oldVal))
-				strVal = PyString_AsString(oldVal);
-			CString csVal(strVal?strVal:"");
+			CString csVal;
+			TCHAR *strVal = NULL;
+			if (PyWinObject_AsTCHAR(oldVal, &strVal, TRUE)){
+				csVal=strVal;
+				PyWinObject_FreeTCHAR(strVal);
+				}
+			else{
+				PyErr_Clear();
+				csVal=_T("");
+				}
 			GUI_BGN_SAVE;
 			DDX_Text(pDX, id, csVal);
 			GUI_END_SAVE;
@@ -254,7 +260,7 @@ static PyObject *do_exchange_edit( int id, int index, char *type, PyObject *oldV
 				else
 					return set_exchange_error("Edit - must be tuple of control_id, key, 's', maxLength", index);
 			}
-			newOb = Py_BuildValue("s", (const char *)csVal);
+			newOb = PyWinObject_FromTCHAR(csVal);
 			break;
 		}
 		default:
@@ -289,48 +295,48 @@ static PyObject *do_exchange_list_combo( int id, int index, char *type, PyObject
 			break;
 		}
 		case 's': {
-			char *strVal = NULL;
-			if (oldVal && oldVal != Py_None) {
-				if (!PyString_Check(oldVal)) return set_exchange_error("'s' format requires strings", index);
-				strVal = PyString_AsString(oldVal);
-			}
-			CString csVal(strVal?strVal:"");
+			TCHAR *strVal = NULL;
+			if (!PyWinObject_AsTCHAR(oldVal, &strVal, TRUE))
+				return set_exchange_error("'s' format requires strings", index);
+			CString csVal(strVal ? strVal : _T(""));
+			PyWinObject_FreeTCHAR(strVal);
+
 			GUI_BGN_SAVE;
 			if (bList)
 				DDX_LBString(pDX, id, csVal);
 			else
 				DDX_CBString(pDX, id, csVal);
 			GUI_END_SAVE;
-			newOb = Py_BuildValue("s", (const char *)csVal);
+			newOb = PyWinObject_FromTCHAR(csVal);
 			break;
 		}
 		case 'S': {
-			char *strVal = NULL;
-			if (oldVal && oldVal != Py_None) {
-				if (!PyString_Check(oldVal)) return set_exchange_error("'S' format requires strings", index);
-				strVal = PyString_AsString(oldVal);
-			}
-			CString csVal(strVal?strVal:"");
+			TCHAR *strVal = NULL;
+			if (!PyWinObject_AsTCHAR(oldVal, &strVal, TRUE))
+				return set_exchange_error("'S' format requires strings", index);
+			CString csVal(strVal ? strVal : _T(""));
+			PyWinObject_FreeTCHAR(strVal);
 			GUI_BGN_SAVE;
 			if (bList)
 				DDX_LBStringExact(pDX, id, csVal);
 			else
 				DDX_CBStringExact(pDX, id, csVal);
 			GUI_END_SAVE;
-			newOb = Py_BuildValue("s", (const char *)csVal);
+			newOb = PyWinObject_FromTCHAR(csVal);
 			break;
 		}
 		case 'l': {
-			char buf[128];
 			HWND hWndCtrl = pDX->PrepareCtrl(id);
 			if (pDX->m_bSaveAndValidate) {
+				// ??? Needs to use LB_GETTEXTLEN to get length instead of fixed buffer size ???
+				TCHAR buf[512];
 				int count = (int)::SendMessage(hWndCtrl, bList?LB_GETCOUNT:CB_GETCOUNT, 0, 0L);
 				newOb = PyList_New(count);
 				for (int i=0;i<count;i++) {
 					GUI_BGN_SAVE;
-					::SendMessage(hWndCtrl, bList?LB_GETTEXT:CB_GETLBTEXT, i, (LPARAM)(LPVOID)buf);
+					::SendMessage(hWndCtrl, bList?LB_GETTEXT:CB_GETLBTEXT, i, (LPARAM)buf);
 					GUI_END_SAVE;
-					PyList_SetItem(newOb, i, Py_BuildValue("s", buf));
+					PyList_SET_ITEM(newOb, i, PyWinObject_FromTCHAR(buf));
 				}
 			}
 			else {
@@ -340,10 +346,12 @@ static PyObject *do_exchange_list_combo( int id, int index, char *type, PyObject
 					GUI_END_SAVE;
 					for (int i=0;i<PyList_Size(oldVal);i++) {
 						PyObject *ob = PyList_GetItem(oldVal, i);
-						if (ob && PyString_Check(ob)) {
+						TCHAR *val;
+						if (ob && PyWinObject_AsTCHAR(ob, &val, FALSE)) {
 							GUI_BGN_SAVE;
-							::SendMessage(hWndCtrl, bList?LB_ADDSTRING:CB_ADDSTRING, 0, (LPARAM)(LPVOID)PyString_AsString(ob));
+							::SendMessage(hWndCtrl, bList?LB_ADDSTRING:CB_ADDSTRING, 0, (LPARAM)val);
 							GUI_END_SAVE;
+							PyWinObject_FreeTCHAR(val);
 						}
 					}
 				}
@@ -421,17 +429,17 @@ void Python_do_exchange(CDialog *pDlg, CDataExchange *pDX)
 		}
 
 		PyObject *oldOb = PyDict_GetItem(dob->dddict, obAttr);
-		char szClassName[64];
-		::GetClassName( pDlg->GetDlgItem(id)->GetSafeHwnd(), szClassName, sizeof(szClassName));
+		TCHAR szClassName[64];
+		::GetClassName( pDlg->GetDlgItem(id)->GetSafeHwnd(), szClassName, sizeof(szClassName)/sizeof(TCHAR));
 		PyObject *newOb = NULL;
 		try {
-			if (strcmp(szClassName, "Edit")==0 || strcmp(szClassName, "Static")==0)
+			if (_tcscmp(szClassName, _T("Edit"))==0 || _tcscmp(szClassName, _T("Static"))==0)
 				newOb = do_exchange_edit(id, i, szType, oldOb, o1, o2, pDX);
-			else if (strcmp(szClassName, "ListBox")==0)
+			else if (_tcscmp(szClassName, _T("ListBox"))==0)
 				newOb = do_exchange_list_combo(id, i, szType, oldOb, o1, o2, pDX, TRUE);
-			else if (strcmp(szClassName, "ComboBox")==0)
+			else if (_tcscmp(szClassName, _T("ComboBox"))==0)
 				newOb = do_exchange_list_combo(id, i, szType, oldOb, o1, o2, pDX, FALSE);
-			else if (strcmp(szClassName, "Button")==0)
+			else if (_tcscmp(szClassName, _T("Button"))==0)
 				newOb = do_exchange_button(pDlg, id, i, szType, oldOb, o1, o2, pDX);
 			if (newOb) {
 				PyDict_SetItem(dob->dddict,obAttr, newOb);
@@ -752,12 +760,15 @@ ui_type_CObject PyCCommonDialog::type("PyCCommonDialog",
 //////////////////////////////////////////////////////////////////////
 PyCFileDialog::PyCFileDialog()
 {
-	pObTitle = pObInitialDir = NULL;
 }
+
 PyCFileDialog::~PyCFileDialog()
 {
-	Py_XDECREF(pObTitle);
-	Py_XDECREF(pObInitialDir);
+	CFileDialog *pDlg = GetFileDialog(this);
+	if (pDlg){
+		PyWinObject_FreeTCHAR((TCHAR *)pDlg->m_ofn.lpstrTitle);
+		PyWinObject_FreeTCHAR((TCHAR *)pDlg->m_ofn.lpstrInitialDir);
+		}
 }
 
 // @pymethod <o PyCFileDialog>|win32ui|CreateFileDialog|Creates a File Open/Save/etc Common Dialog.
@@ -765,16 +776,17 @@ PyObject *PyCFileDialog::ui_file_dialog_create( PyObject * /*self*/, PyObject *a
 {
 	int bFileOpen;
 	DWORD flags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-	char *szDefExt = NULL, *szFileName=NULL, *szFilter = NULL;
+	TCHAR *szDefExt = NULL, *szFileName=NULL, *szFilter = NULL;
+	PyObject *obDefExt = Py_None, *obFileName=Py_None, *obFilter = Py_None;
 	CWnd *pParent = NULL; 		// should mean same as GetApp()->m_pMainWnd
 	PyObject *obParent = Py_None;
 
-	if (!PyArg_ParseTuple(args, "i|zzizO:CreateFileDialog", 
+	if (!PyArg_ParseTuple(args, "i|OOiOO:CreateFileDialog", 
 	          &bFileOpen, // @pyparm int|bFileOpen||A flag indicating if the Dialog is a FileOpen or FileSave dialog.
-	          &szDefExt,  // @pyparm string|defExt|None|The default file extension for saved files. If None, no extension is supplied.
-	          &szFileName, // @pyparm string|fileName|None|The initial filename that appears in the filename edit box. If None, no filename initially appears.
+	          &obDefExt,  // @pyparm string|defExt|None|The default file extension for saved files. If None, no extension is supplied.
+	          &obFileName, // @pyparm string|fileName|None|The initial filename that appears in the filename edit box. If None, no filename initially appears.
 	          &flags,     // @pyparm int|flags|win32con.OFN_HIDEREADONLY\|win32con.OFN_OVERWRITEPROMPT|The flags for the dialog.  See the API documentation for full details.
-	          &szFilter, // @pyparm string|filter|None|A series of string pairs that specify filters you can apply to the file. 
+	          &obFilter, // @pyparm string|filter|None|A series of string pairs that specify filters you can apply to the file. 
 	                        // If you specify file filters, only selected files will appear 
 	                        // in the Files list box. The first string in the string pair describes 
 	                        // the filter; the second string indicates the file extension to use. 
@@ -790,11 +802,21 @@ PyObject *PyCFileDialog::ui_file_dialog_create( PyObject * /*self*/, PyObject *a
 			return NULL;
 	}
 
-	CFileDialog *pDlg = new CFileDialog( bFileOpen, szDefExt, szFileName, flags, szFilter, pParent );
-	if (!pDlg)
-		RETURN_ERR("Creating CFileDialog failed"); // pyseemfc CFileCialog|CFileDialog
-	PyCFileDialog *newObj = 
-		(PyCFileDialog *)ui_assoc_object::make( PyCFileDialog::type, pDlg, TRUE);
+	CFileDialog *pDlg;
+	PyCFileDialog *newObj=NULL;
+	if (PyWinObject_AsTCHAR(obDefExt, &szDefExt, TRUE)
+		&&PyWinObject_AsTCHAR(obFileName, &szFileName, TRUE)
+		&&PyWinObject_AsTCHAR(obFilter, &szFilter)){
+		pDlg = new CFileDialog( bFileOpen, szDefExt, szFileName, flags, szFilter, pParent );
+		if (!pDlg){
+			PyErr_SetString(ui_module_error, "Creating CFileDialog failed"); // pyseemfc CFileCialog|CFileDialog
+			PyWinObject_FreeTCHAR(szDefExt);
+			PyWinObject_FreeTCHAR(szFileName);
+			PyWinObject_FreeTCHAR(szFilter);
+			}
+		else
+			newObj = (PyCFileDialog *)ui_assoc_object::make( PyCFileDialog::type, pDlg, TRUE);
+		}
 //	if (newObj)
 //		newObj->bManualDelete = TRUE;
 	return newObj;
@@ -809,7 +831,7 @@ static PyObject *ui_file_dialog_get_path_name( PyObject *self, PyObject *args )
 	GUI_BGN_SAVE;
 	CString cs = pDlg->GetPathName();
 	GUI_END_SAVE;
-	return Py_BuildValue("s",(const char *)cs);// @pyseemfc CFileDialog|GetPathName
+	return PyWinObject_FromTCHAR(cs);	// @pyseemfc CFileDialog|GetPathName
 }
 // @pymethod string|PyCFileDialog|GetFileName|Retrives the file name from the file dialog.
 static PyObject *ui_file_dialog_get_file_name( PyObject *self, PyObject *args )
@@ -821,7 +843,7 @@ static PyObject *ui_file_dialog_get_file_name( PyObject *self, PyObject *args )
 	GUI_BGN_SAVE;
 	CString cs = pDlg->GetFileName();
 	GUI_END_SAVE;
-	return Py_BuildValue("s",(const char *)cs);// @pyseemfc CFileDialog|GetFileName
+	return PyWinObject_FromTCHAR(cs);	// @pyseemfc CFileDialog|GetFileName
 }
 
 // @pymethod string|PyCFileDialog|GetPathNames|Retrieves the list of path names from the file dialog.
@@ -837,6 +859,8 @@ static PyObject *ui_file_dialog_get_path_names( PyObject *self, PyObject *args )
 		return NULL;
         
 	PyObject *newOb = PyList_New(0);
+	if (!newOb)
+		return NULL;
 	GUI_BGN_SAVE;
 	pos = pDlg->GetStartPosition();
 	GUI_END_SAVE;
@@ -845,7 +869,7 @@ static PyObject *ui_file_dialog_get_path_names( PyObject *self, PyObject *args )
 		GUI_BGN_SAVE;
 		str = pDlg->GetNextPathName(pos);
 		GUI_END_SAVE;
-		PyList_Append(newOb, Py_BuildValue("s",(const char *)str));
+		PyList_Append(newOb, PyWinObject_FromTCHAR(str));
 	}
     return newOb;// @pyseemfc CFileDialog|GetPathNames
 }
@@ -861,7 +885,7 @@ static PyObject *ui_file_dialog_get_file_ext( PyObject *self, PyObject *args )
 	GUI_BGN_SAVE;
 	CString csRet = pDlg->GetFileExt();
 	GUI_END_SAVE;
-	return Py_BuildValue("s",(const char *)csRet); // @pyseemfc CFileDialog|GetFileExt
+	return PyWinObject_FromTCHAR(csRet); // @pyseemfc CFileDialog|GetFileExt
 }
 // @pymethod string|PyCFileDialog|GetFileTitle|Retrives the file title from the file dialog.
 static PyObject *ui_file_dialog_get_file_title( PyObject *self, PyObject *args )
@@ -873,7 +897,7 @@ static PyObject *ui_file_dialog_get_file_title( PyObject *self, PyObject *args )
 	GUI_BGN_SAVE;
 	CString csRet = pDlg->GetFileTitle();
 	GUI_END_SAVE;
-	return Py_BuildValue("s",(const char *)csRet);// @pyseemfc CFileDialog|GetFileTitle
+	return PyWinObject_FromTCHAR(csRet);// @pyseemfc CFileDialog|GetFileTitle
 }
 // @pymethod int|PyCFileDialog|GetReadOnlyPref|Retrives the value of the "Read Only" checkbox on the file dialog.
 static PyObject *ui_file_dialog_get_ro_pref( PyObject *self, PyObject *args )
@@ -885,34 +909,24 @@ static PyObject *ui_file_dialog_get_ro_pref( PyObject *self, PyObject *args )
 	GUI_BGN_SAVE;
 	BOOL bRet = pDlg->GetReadOnlyPref(); // @pyseemfc CFileDialog|GetReadOnlyPref
 	GUI_END_SAVE;
-	return Py_BuildValue("i",bRet);
+	return PyBool_FromLong(bRet);
 }
 
 // @pymethod |PyCFileDialog|SetOFNTitle|Sets the Title for the dialog.
 static PyObject *ui_file_dialog_set_ofn_title( PyObject *self, PyObject *args )
 {
 	PyObject *ob;
+	TCHAR *title;
 	// @pyparm string|title||The title for the dialog box.  May be None.
 	if (!PyArg_ParseTuple(args, "O:SetOFNTitle", &ob))
 		return NULL;
 	CFileDialog *pDlg = GetFileDialog(self);
 	if (!pDlg)
 		return NULL;
-
-	if (ob!=Py_None && !PyString_Check(ob))
-		RETURN_TYPE_ERR("Argument must be a string, or None");
-
-	PyCFileDialog *fdo = (PyCFileDialog *)self;
-	Py_XDECREF(fdo->pObTitle);
-	if (ob!=Py_None) {
-		fdo->pObTitle = ob;
-		Py_INCREF(fdo->pObTitle);
-		pDlg->m_ofn.lpstrTitle = PyString_AsString(ob);
-	} else {
-		fdo->pObTitle = NULL;
-		pDlg->m_ofn.lpstrTitle = NULL;
-	}
-
+	if (!PyWinObject_AsTCHAR(ob, &title, TRUE))
+		return NULL;
+	PyWinObject_FreeTCHAR((TCHAR *)pDlg->m_ofn.lpstrTitle);
+	pDlg->m_ofn.lpstrTitle = title;
 	RETURN_NONE;
 }
 
@@ -920,26 +934,17 @@ static PyObject *ui_file_dialog_set_ofn_title( PyObject *self, PyObject *args )
 static PyObject *ui_file_dialog_set_ofn_initialdir( PyObject *self, PyObject *args )
 {
 	PyObject *ob;
+	TCHAR *initialdir;
 	// @pyparm string|title||The initial directory for the dialog box.  May be None.
 	if (!PyArg_ParseTuple(args, "O:SetOFNInitialDir", &ob))
 		return NULL;
 	CFileDialog *pDlg = GetFileDialog(self);
 	if (!pDlg)
 		return NULL;
-
-	if (ob!=Py_None && !PyString_Check(ob))
-		RETURN_TYPE_ERR("Argument must be a string, or None");
-
-	PyCFileDialog *fdo = (PyCFileDialog *)self;
-	Py_XDECREF(fdo->pObInitialDir);
-	if (ob!=Py_None) {
-		fdo->pObInitialDir = ob;
-		Py_INCREF(fdo->pObInitialDir);
-		pDlg->m_ofn.lpstrInitialDir = PyString_AsString(ob);
-	} else {
-		fdo->pObInitialDir = NULL;
-		pDlg->m_ofn.lpstrInitialDir = NULL;
-	}
+	if (!PyWinObject_AsTCHAR(ob, &initialdir, TRUE))
+		return NULL;
+	PyWinObject_FreeTCHAR((TCHAR *)pDlg->m_ofn.lpstrInitialDir);
+	pDlg->m_ofn.lpstrInitialDir = initialdir;
 	RETURN_NONE;
 }
 
@@ -1053,7 +1058,7 @@ static PyObject *fnname( PyObject *self, PyObject *args ) { \
 	GUI_BGN_SAVE; \
 	CString ret = pDlg->mfcName(); \
 	GUI_END_SAVE; \
-	return Py_BuildValue("s",(const char *)ret); \
+	return PyWinObject_FromTCHAR(ret); \
 }
 
 #define MAKE_INT_METH(fnname, mfcName) \
@@ -1064,7 +1069,7 @@ static PyObject *fnname( PyObject *self, PyObject *args ) { \
 	GUI_BGN_SAVE; \
 	int ret = pDlg->mfcName(); \
 	GUI_END_SAVE; \
-	return Py_BuildValue("i",ret); \
+	return PyInt_FromLong(ret); \
 }
 
 #define MAKE_INT_PTR_METH(fnname, mfcName) \

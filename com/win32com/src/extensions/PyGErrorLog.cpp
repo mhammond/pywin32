@@ -15,8 +15,7 @@ STDMETHODIMP PyGErrorLog::AddError(
 	if ( !obExcepInfo )
 		return PyCom_SetCOMErrorFromPyException(GetIID());
 
-	// We use a string object for B/W compatibility.
-	PyObject *obName = PyString_FromUnicode(pszPropName);
+	PyObject *obName = PyWinObject_FromWCHAR(pszPropName);
 	HRESULT hr = InvokeViaPolicy("AddError",
 									 NULL,
 									 "OO",

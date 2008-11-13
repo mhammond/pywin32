@@ -28,17 +28,22 @@ dll_object::~dll_object()
 PyObject *
 dll_object::create (PyObject *self, PyObject *args)
 {
-	char *file;
+	TCHAR *file;
+	PyObject *obfile;
 	int flags=0;
 	// @pyparm string|fileName||The name of the DLL file to load.
-	if (!PyArg_ParseTuple(args, "s|i", &file, &flags ))
+	if (!PyArg_ParseTuple(args, "O|i", &obfile, &flags ))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obfile, &file, FALSE))
 		return NULL;
 	BOOL bDidLoadLib = FALSE;
 	// must convert to full path, else GetModuleHandle may fail.
-	char fullPath[MAX_PATH];
-	if (!GetFullPath(fullPath, file ))
+	TCHAR fullPath[MAX_PATH];
+	if (!AfxFullPath(fullPath, file )){
+		PyWinObject_FreeTCHAR(file);
 		RETURN_ERR("The filename is invalid");
-
+	}
+	PyWinObject_FreeTCHAR(file);
 	HINSTANCE dll = ::GetModuleHandle(fullPath);
 	if (dll==NULL) {
 		bDidLoadLib = TRUE;
@@ -107,10 +112,10 @@ dll_object_get_file_name( PyObject *self, PyObject *args )
   if (hInst==NULL)
   	RETURN_ERR("There is no DLL attached to the object");
   CString csFileName;
-  char *buf = csFileName.GetBuffer(MAX_PATH);
+  TCHAR *buf = csFileName.GetBuffer(MAX_PATH);
   ::GetModuleFileName(hInst, buf, MAX_PATH);
   csFileName.ReleaseBuffer();
-  return Py_BuildValue("s", (const char *)csFileName );
+  return PyWinObject_FromTCHAR(csFileName);
 }
 
 // @pymethod string|PyDLL|__repr__|Returns the HINSTANCE and filename of the DLL.
@@ -119,8 +124,8 @@ dll_object::repr()
 {
   HINSTANCE dll = GetDll();
   CString csRet;
-  char *buf = csRet.GetBuffer(256);
-  sprintf (buf, " HINSTANCE 0x%X, file = ", dll);
+  TCHAR *buf = csRet.GetBuffer(256);
+  wsprintf (buf, _T(" HINSTANCE 0x%X, file = "), dll);
   csRet.ReleaseBuffer();
 
   CString csFileName;
@@ -128,7 +133,7 @@ dll_object::repr()
   if (dll) 
   	::GetModuleFileName(dll, buf, MAX_PATH); // @pyseeapi GetModuleFileName
   else
-	strcpy(buf, "<None>");
+	_tcscpy(buf, _T("<None>"));
   csFileName.ReleaseBuffer();
 
   return ui_base_class::repr() + csRet + csFileName;

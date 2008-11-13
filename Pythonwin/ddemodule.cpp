@@ -99,12 +99,16 @@ PyObject *PyDDE_CreateServer(PyObject *s, PyObject *args)
 
 PyObject *PyDDE_CreateTopic(PyObject *s, PyObject *args)
 {
-	char *name;
-	if (!PyArg_ParseTuple(args,"s:CreateTopic", &name)) return NULL;
+	TCHAR *name;
+	PyObject *obname;
+	if (!PyArg_ParseTuple(args,"O:CreateTopic", &obname)) return NULL;
+	if (!PyWinObject_AsTCHAR(obname, &name, FALSE))
+		return NULL;
 	GUI_BGN_SAVE;
 	PythonDDETopic *pNew = new PythonDDETopic;
 	pNew->Create(name);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(name);
 	return ui_assoc_object::make(PyDDETopic::type, pNew);
 }
 
@@ -131,17 +135,21 @@ PyObject *PyDDE_CreateConversation(PyObject *s, PyObject *args)
 
 PyObject *PyDDE_CreateStringItem(PyObject *s, PyObject *args)
 {
-	char *name;
-	if (!PyArg_ParseTuple(args,"s:CreateStringItem", &name)) return NULL;
+	TCHAR *name;
+	PyObject *obname;
+	if (!PyArg_ParseTuple(args,"O:CreateStringItem", &obname)) return NULL;
+	if (!PyWinObject_AsTCHAR(obname, &name, FALSE))
+		return NULL;
 	GUI_BGN_SAVE;
 	PythonDDEStringItem *pNew = new PythonDDEStringItem;
 	pNew->Create(name);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(name);
 	return ui_assoc_object::make(PyDDEStringItem::type, pNew);
 }
 
-// @module dde|A module for DDE support
-static struct PyMethodDef dde_methods[] =
+// @module dde|A module for Dynamic Data Exchange support
+static struct PyMethodDef dde_functions[] =
 {
 	{"CreateConversation", PyDDE_CreateConversation, 1},
 	{"CreateServer", PyDDE_CreateServer, 1},
@@ -151,35 +159,56 @@ static struct PyMethodDef dde_methods[] =
 	{NULL,  NULL}
 };
 
-static int AddConstant(PyObject *dict, char *key, long value)
-{
-	PyObject *okey = PyString_FromString(key);
-	PyObject *oval = PyLong_FromLong(value);
-	if (!okey || !oval) {
-		XDODECREF(okey);
-		XDODECREF(oval);
-		return 1;
-	}
-	int rc = PyDict_SetItem(dict,okey, oval);
-	DODECREF(okey);
-	DODECREF(oval);
-	return rc;
-}
-#define ADD_CONSTANT(tok) if (AddConstant(dict,#tok, tok)) return;
 
-extern "C" void __declspec(dllexport) initdde(void)
+#if (PY_VERSION_HEX < 0x03000000)
+#define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok)) return;
+#else
+#define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok)) return NULL;
+#endif
+
+extern "C" __declspec(dllexport)
+#if (PY_VERSION_HEX < 0x03000000)
+void initdde(void)
+#else
+PyObject *PyInit_dde(void)
+#endif
 {
-	PyObject *dict, *module;
 	if (AfxGetApp()==NULL) {
 		PyErr_SetString(PyExc_ImportError, "This must be an MFC application - try loading win32ui first");
+#if (PY_VERSION_HEX < 0x03000000)
 		return;
+#else
+		return NULL;
+#endif
 	}
-	module = Py_InitModule(szModName, dde_methods);
-	if (!module) /* Eeek - some serious error! */
+
+	PyObject *dict, *module;
+	PyWinGlobals_Ensure();
+
+#if (PY_VERSION_HEX < 0x03000000)
+	module = Py_InitModule("dde", dde_functions);
+	if (!module)
 		return;
 	dict = PyModule_GetDict(module);
-	if (!dict) return; /* Another serious error!*/
-	dde_module_error = PyString_FromString(errorName);
+	if (!dict)
+		return;
+#else
+	static PyModuleDef dde_def = {
+		PyModuleDef_HEAD_INIT,
+		"dde",
+		"A module for Dynamic Data Exchange support",
+		-1,
+		dde_functions
+		};
+	module = PyModule_Create(&dde_def);
+	if (!module)
+		return NULL;
+	dict = PyModule_GetDict(module);
+	if (!dict)
+		return NULL;
+#endif
+
+	dde_module_error = PyErr_NewException("dde.error", NULL, NULL);
 	PyDict_SetItemString(dict, "error", dde_module_error);
 
 	ADD_CONSTANT(APPCLASS_MONITOR); // Makes it possible for the application to monitor DDE activity in the system. This flag is for use by DDE monitoring applications. The application specifies the types of DDE activity to monitor by combining one or more monitor flags with the APPCLASS_MONITOR flag. For details, see the following Remarks section. 
@@ -206,4 +235,7 @@ extern "C" void __declspec(dllexport) initdde(void)
 	ADD_CONSTANT(MF_POSTMSGS); // Notifies the callback function whenever the system or an application posts a DDE message. 
 	ADD_CONSTANT(MF_SENDMSGS); // Notifies the callback function whenever the system or an application sends a DDE message. 
 
+#if (PY_VERSION_HEX >= 0x03000000)
+	return module;
+#endif
 }

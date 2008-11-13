@@ -73,6 +73,8 @@ BOOL Python_check_message(const MSG *msg)	// TRUE if fully processed.
 	ui_assoc_object *pObj;
 	PyObject *method;
 	CWnd *pWnd = bInFatalShutdown ? NULL : CWnd::FromHandlePermanent(msg->hwnd);
+	// is_uiobjects calls python methods, must already hold lock
+	CEnterLeavePython _celp;
 	if (pWnd &&
 		(pObj=ui_assoc_object::GetPyObject(pWnd)) && 
 		pObj->is_uiobject( &PyCWnd::type ) &&
@@ -83,7 +85,7 @@ BOOL Python_check_message(const MSG *msg)	// TRUE if fully processed.
 		TRACE("Message callback: message %04X, object %s (hwnd %p) (%p)\n",msg->message, (const char *)GetReprText(pObj), pWnd, pWnd->GetSafeHwnd());
 #endif
 		// Our Python convention is TRUE means "pass it on"
-		CEnterLeavePython _celp;
+		// CEnterLeavePython _celp;
 		return Python_callback(method, msg)==0;
 	}
 	return FALSE;	// dont want it.
@@ -116,7 +118,7 @@ CWnd *GetWndPtrFromParam(PyObject *ob, ui_type_CObject &type)
 		return (CWnd *)PyCWnd::GetPythonGenericWnd(ob, &type);
 	} else {
 		char buf[128];
-		wsprintf(buf,"Argument must be a %s object, or integer containing a HWND", type.tp_name);
+		snprintf(buf, sizeof(buf), "Argument must be a %s object, or integer containing a HWND", type.tp_name);
 		RETURN_ERR(buf);
 	}
 }
@@ -175,7 +177,7 @@ BOOL ParseSCROLLINFOTuple( PyObject *args, SCROLLINFO *pInfo)
 		PyErr_SetString(PyExc_TypeError, "SCROLLINFO tuple has invalid size");
 		return FALSE;
 	}
-	PyErr_Clear(); // clear any errors, so I can detect my own.
+	assert (!PyErr_Occurred());		//	PyErr_Clear(); // clear any errors, so I can detect my own.
 	// 0 - mask.
 	if ((ob=PyTuple_GetItem(args, 0))==NULL)
 		return FALSE;
@@ -277,13 +279,14 @@ ui_window_create_window(PyObject *self, PyObject *args)
 	int style, id;
 	PyObject *obParent;
 	RECT rect;
-	const char *szClass, *szWndName;
+	TCHAR *szClass=NULL, *szWndName=NULL;
+	PyObject *obClass, *obWndName, *ret=NULL;
 	CCreateContext *pCCPass = NULL;
 	PythonCreateContext cc;
 	PyObject *contextObject = Py_None;
-	if (!PyArg_ParseTuple(args, "zzi(iiii)Oi|O:CreateWindow",
-	          &szClass,   // @pyparm string|classId||The class ID for the window, or None
-	          &szWndName, // @pyparm string|windowName||The title for the window, or None
+	if (!PyArg_ParseTuple(args, "OOi(iiii)Oi|O:CreateWindow",
+	          &obClass,   // @pyparm string|classId||The class ID for the window, or None
+	          &obWndName, // @pyparm string|windowName||The title for the window, or None
 			   &style, // @pyparm int|style||The style for the window.
 			   &rect.left,&rect.top,&rect.right,&rect.bottom,
 			   // @pyparm (left, top, right, bottom)|rect||The size and position of the window.
@@ -309,14 +312,23 @@ ui_window_create_window(PyObject *self, PyObject *args)
 	if (!pWnd)
 		return NULL;
 
-	BOOL ok;
-	GUI_BGN_SAVE;
-	// @pyseemfc CWnd|Create
-	ok = pWnd->Create(szClass, szWndName, style, rect, pParent, id, pCCPass);
-	GUI_END_SAVE;
-	if (!ok)
-		RETURN_ERR("CWnd::Create");
-	RETURN_NONE;
+	if (PyWinObject_AsTCHAR(obClass, &szClass, TRUE)&&
+		PyWinObject_AsTCHAR(obWndName, &szWndName, TRUE)){
+		BOOL ok;
+		GUI_BGN_SAVE;
+		// @pyseemfc CWnd|Create
+		ok = pWnd->Create(szClass, szWndName, style, rect, pParent, id, pCCPass);
+		GUI_END_SAVE;
+		if (!ok)
+			PyErr_SetString(ui_module_error, "CWnd::Create");
+		else{
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		}
+	PyWinObject_FreeTCHAR(szClass);
+	PyWinObject_FreeTCHAR(szWndName);
+	return ret;
 }
 
 // @pymethod |PyCWnd|CreateWindowEx|Creates the actual window using extended capabilities.
@@ -326,13 +338,14 @@ ui_window_create_window_ex(PyObject *self, PyObject *args)
 	int style, id;
 	PyObject *obParent;
 	RECT rect;
-	const char *szClass, *szWndName;
+	TCHAR *szClass=NULL, *szWndName=NULL;
+	PyObject *obClass, *obWndName;
 	DWORD dwStyleEx;
 	PyObject *csObject = Py_None;
-	if (!PyArg_ParseTuple(args, "iszi(iiii)Oi|O:CreateWindowEx",
+	if (!PyArg_ParseTuple(args, "iOOi(iiii)Oi|O:CreateWindowEx",
 	          &dwStyleEx, // @pyparm int|styleEx||The extended style of the window being created.
-	          &szClass,   // @pyparm string|classId||The class ID for the window.  May not be None.
-	          &szWndName, // @pyparm string|windowName||The title for the window, or None
+	          &obClass,   // @pyparm string|classId||The class ID for the window.  May not be None.
+	          &obWndName, // @pyparm string|windowName||The title for the window, or None
 			  &style, // @pyparm int|style||The style for the window.
 			  &rect.left,&rect.top,&rect.right,&rect.bottom,
 			  // @pyparm (left, top, right, bottom)|rect||The size and position of the window.
@@ -363,11 +376,19 @@ ui_window_create_window_ex(PyObject *self, PyObject *args)
 	if (!pWnd)
 		return NULL;
 
+	if (!PyWinObject_AsTCHAR(obClass, &szClass, FALSE))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obWndName, &szWndName, TRUE)){
+		PyWinObject_FreeTCHAR(szClass);
+		return NULL;
+		}
 	BOOL ok;
 	GUI_BGN_SAVE;
 	// @pyseemfc CWnd|CreateEx
 	ok = pWnd->CreateEx(dwStyleEx, szClass, szWndName, style, rect, pParent, id, pcs);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(szClass);
+	PyWinObject_FreeTCHAR(szWndName);
 	if (!ok)
 		RETURN_ERR("CWnd::CreateEx");
 	RETURN_NONE;
@@ -395,18 +416,18 @@ PyCWnd::CreateWindowFromHandle(PyObject *self, PyObject *args)
 PyObject *
 PyCWnd::CreateControl(PyObject *self, PyObject *args)
 {
-	USES_CONVERSION;
 	PyObject *parent = Py_None;
 	int id;
 	int style;
 	CRect rect(0,0,0,0);
 	PyObject *obPersist = Py_None;
 	int bStorage = FALSE;
-	const char *szClass, *szWndName;
+	TCHAR *szClass=NULL, *szWndName=NULL;
+	PyObject *obClass, *obWndName;
 	PyObject *obLicKey = Py_None;
-	if (!PyArg_ParseTuple(args, "szi(iiii)Oi|OiO", 
-	          &szClass,   // @pyparm string|classId||The class ID for the window.
-	          &szWndName, // @pyparm string|windowName||The title for the window.
+	if (!PyArg_ParseTuple(args, "OOi(iiii)Oi|OiO:CreateControl", 
+	          &obClass,   // @pyparm string|classId||The class ID for the window.
+	          &obWndName, // @pyparm string|windowName||The title for the window.
 	          &style,     // @pyparm int|style||The style for the control.
 			  // @pyparm (left, top, right, bottom)|rect||The default position of the window.
 	          &rect.left, &rect.top, &rect.right, &rect.bottom,
@@ -417,8 +438,11 @@ PyCWnd::CreateControl(PyObject *self, PyObject *args)
 			  &obLicKey ))// @pyparm string|licKey|None|The licence key for the control.
 		return NULL;
 
+	if (!PyWinObject_AsTCHAR(obClass, &szClass, FALSE))
+		return NULL;
 	CLSID clsid;
 	HRESULT hr = AfxGetClassIDFromString(szClass, &clsid);
+	PyWinObject_FreeTCHAR(szClass);
 	if (FAILED(hr))
 		RETURN_ERR("The CLSID is invalid");
 
@@ -435,10 +459,13 @@ PyCWnd::CreateControl(PyObject *self, PyObject *args)
 	// This will cause MFC to die after dumping a message to the debugger!
 	if (afxOccManager == NULL)
 		RETURN_ERR("win32ui.EnableControlContainer() has not been called yet.");
+	if (!PyWinObject_AsTCHAR(obWndName, &szWndName, TRUE))
+		return NULL;
 	BOOL ok;
 	GUI_BGN_SAVE;
 	ok = pWnd->CreateControl(clsid, szWndName, style, rect, pWndParent, id, NULL, bStorage, bstrLicKey);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(szWndName);
 	if (!ok)
 		RETURN_ERR("CreateControl failed");
 	return PyCWnd::make( UITypeFromCObject(pWnd), pWnd)->GetGoodRet();
@@ -492,15 +519,24 @@ PyCWnd::GetFocus(PyObject *self, PyObject *args)
 PyObject *
 PyCWnd::FindWindow(PyObject *self, PyObject *args)
 {
-	char *szClassName;
-	char *szWndName;
-	if (!PyArg_ParseTuple(args, "zz:FindWindow",
-		    &szClassName, // @pyparm string|className||The window class name to find, else None
-		    &szWndName)) // @pyparm string|windowName||The window name (ie, title) to find, else None
+	TCHAR *szClassName=NULL;
+	TCHAR *szWndName=NULL;
+	PyObject *obClassName, *obWndName;
+	if (!PyArg_ParseTuple(args, "OO:FindWindow",
+		    &obClassName, // @pyparm string|className||The window class name to find, else None
+		    &obWndName)) // @pyparm string|windowName||The window name (ie, title) to find, else None
 		return NULL;
+	if (!PyWinObject_AsTCHAR(obClassName, &szClassName, TRUE))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obWndName, &szWndName, TRUE)){
+		PyWinObject_FreeTCHAR(szClassName);
+		return NULL;
+		}
 	GUI_BGN_SAVE;
 	CWnd *pWnd = CWnd::FindWindow( szClassName, szWndName );
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(szClassName);
+	PyWinObject_FreeTCHAR(szWndName);
 	if (pWnd==NULL)
 		RETURN_ERR("No window can be found.");
 	return PyCWnd::make( UITypeFromCObject(pWnd), pWnd)->GetGoodRet();
@@ -511,15 +547,16 @@ PyCWnd::FindWindow(PyObject *self, PyObject *args)
 PyObject *
 PyCWnd::FindWindowEx(PyObject *self, PyObject *args)
 {
-	char *szClassName;
-	char *szWndName;
+	TCHAR *szClassName=NULL;
+	TCHAR *szWndName=NULL;
+	PyObject *obClassName, *obWndName, *ret=NULL;
 	PyObject *obParent;
 	PyObject *obChildAfter;
-	if (!PyArg_ParseTuple(args, "OOzz:FindWindowEx",
+	if (!PyArg_ParseTuple(args, "OOOO:FindWindowEx",
 			&obParent, // @pyparm <o PyCWnd>|parentWindow||The parent whose children will be searched.  If None, the desktops window will be used.
 			&obChildAfter, // @pyparm <o PyCWnd>|childAfter||The search begins with the next window in the Z order.  If None, all children are searched.
-		    &szClassName, // @pyparm string|className||The window class name to find, else None
-		    &szWndName)) // @pyparm string|windowName||The window name (ie, title) to find, else None
+		    &obClassName, // @pyparm string|className||The window class name to find, else None
+		    &obWndName)) // @pyparm string|windowName||The window name (ie, title) to find, else None
 		return NULL;
 	CWnd *pParent = NULL;
 	if (obParent != Py_None)
@@ -529,13 +566,20 @@ PyCWnd::FindWindowEx(PyObject *self, PyObject *args)
 	if (obChildAfter != Py_None)
 		if ((pChildAfter=GetWndPtrFromParam(obChildAfter, PyCWnd::type))==NULL)
 			return NULL;
-	GUI_BGN_SAVE;
-	HWND hwnd = ::FindWindowEx(pParent->GetSafeHwnd(), pChildAfter->GetSafeHwnd(),
+	if (PyWinObject_AsTCHAR(obClassName, &szClassName, TRUE)
+		&&PyWinObject_AsTCHAR(obWndName, &szWndName, TRUE)){
+		GUI_BGN_SAVE;
+		HWND hwnd = ::FindWindowEx(pParent->GetSafeHwnd(), pChildAfter->GetSafeHwnd(),
 				szClassName, szWndName);
-	GUI_END_SAVE;
-	if (hwnd==NULL)
-		RETURN_ERR("No window can be found.");
-	return PyCWnd::make( PyCWnd::type, NULL, hwnd)->GetGoodRet();
+		GUI_END_SAVE;
+		if (hwnd==NULL)
+			PyErr_SetString(ui_module_error, "FindWindowEx: No window can be found.");
+		else
+			ret = PyCWnd::make( PyCWnd::type, NULL, hwnd)->GetGoodRet();
+		}
+	PyWinObject_FreeTCHAR(szClassName);
+	PyWinObject_FreeTCHAR(szWndName);
+	return ret;
 	// @rdesc The result is a <o PyCWnd> (or derived) object, or a win32ui.error exception is raised.
 }
 
@@ -808,23 +852,27 @@ ui_window_dlg_dir_list(PyObject *self, PyObject *args)
 	CWnd *pWnd = GetWndPtr(self);
 	if (!pWnd)
 		return NULL;
-	char *defPath;
+	TCHAR *defPath;
+	PyObject *obdefPath;
 	int nIDListBox, nIDStaticPath, nFileType;
-	if (!PyArg_ParseTuple(args,"siii:DlgDirList", 
-			&defPath,        // @pyparm string|defPath||The file spec to fill the list box with
+	if (!PyArg_ParseTuple(args,"Oiii:DlgDirList", 
+			&obdefPath,        // @pyparm string|defPath||The file spec to fill the list box with
 			&nIDListBox,     // @pyparm int|idListbox||The Id of the listbox control to fill.
 			&nIDStaticPath,  // @pyparm int|idStaticPath||The Id of the static control used to display the current drive and directory. If idStaticPath is 0, it is assumed that no such control exists.
 			&nFileType))	 // @pyparm int|fileType||Specifies the attributes of the files to be displayed. 
 			                 // It can be any combination of DDL_READWRITE, DDL_READONLY, DDL_HIDDEN, DDL_SYSTEM, DDL_DIRECTORY, DDL_ARCHIVE, DDL_POSTMSGS, DDL_DRIVES or DDL_EXCLUSIVE
 		return NULL;
-	char pathBuf[MAX_PATH+1];
-	strncpy(pathBuf, defPath, MAX_PATH);
+	if (!PyWinObject_AsTCHAR(obdefPath, &defPath, FALSE))
+		return NULL;
+	TCHAR pathBuf[MAX_PATH+1];
+	_tcsncpy(pathBuf, defPath, MAX_PATH);
 	pathBuf[MAX_PATH] = '\0';
 	int rc;
 	GUI_BGN_SAVE;
 	// @pyseemfc CWnd|DlgDirList
 	rc = pWnd->DlgDirList( pathBuf, nIDListBox, nIDStaticPath, nFileType);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(defPath);
 	if (!rc)
 		RETURN_ERR("DlgDirList failed");
 	RETURN_NONE;
@@ -836,12 +884,15 @@ ui_window_dlg_dir_list_combo(PyObject *self, PyObject *args)
 	CWnd *pWnd = GetWndPtrGoodHWnd(self);
 	if (!pWnd)
 		return NULL;
-	char *defPath;
+	TCHAR *defPath;
+	PyObject *obdefPath;
 	int nIDListBox, nIDStaticPath, nFileType;
-	if (!PyArg_ParseTuple(args,"siii:DlgDirListComboBox", &defPath, &nIDListBox, &nIDStaticPath, &nFileType))
+	if (!PyArg_ParseTuple(args,"Oiii:DlgDirListComboBox", &obdefPath, &nIDListBox, &nIDStaticPath, &nFileType))
 		return NULL;
-	char pathBuf[MAX_PATH+1];
-	strncpy(pathBuf, defPath, MAX_PATH);
+	if (!PyWinObject_AsTCHAR(obdefPath, &defPath, FALSE))
+		return NULL;
+	TCHAR pathBuf[MAX_PATH+1];
+	_tcsncpy(pathBuf, defPath, MAX_PATH);
 	pathBuf[MAX_PATH] = '\0';
 	int rc;
 	GUI_BGN_SAVE;
@@ -849,6 +900,7 @@ ui_window_dlg_dir_list_combo(PyObject *self, PyObject *args)
 	// @pyseemfc CWnd|DlgDirListComboBox
 
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(defPath);
 	if (!rc)
 		RETURN_ERR("DlgDirListComboBox failed");
 	RETURN_NONE;
@@ -866,10 +918,10 @@ ui_window_dlg_dir_select(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args,"i:DlgDirSelect", &nIDListBox))
 		return NULL;
 	int rc;
-	char buf[MAX_PATH];
+	TCHAR buf[MAX_PATH];
 	GUI_BGN_SAVE;
 #if _MFC_VER >= 0x0800
-	rc = pWnd->DlgDirSelect( buf, sizeof(buf), nIDListBox);
+	rc = pWnd->DlgDirSelect( buf, sizeof(buf)/sizeof(TCHAR), nIDListBox);
 #else
 	rc = pWnd->DlgDirSelect( buf, nIDListBox);
 #endif
@@ -877,8 +929,9 @@ ui_window_dlg_dir_select(PyObject *self, PyObject *args)
 	GUI_END_SAVE;
 	if (!rc)
 		RETURN_ERR("DlgDirSelect failed");
-	return Py_BuildValue("s", buf);
+	return PyWinObject_FromTCHAR(buf);
 }
+
 // @pymethod string|PyCWnd|DlgDirSelectComboBox|
 // Retrieves the current selection from the list box of a combo box. It assumes that the list box has been filled by the <om PyCWnd.DlgDirListComboBox> member function and that the selection is a drive letter, a file, or a directory name. 
 static PyObject *
@@ -892,18 +945,18 @@ ui_window_dlg_dir_select_combo(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args,"i:DlgDirSelectComboBox", &nIDListBox))
 		return NULL;
 	int rc;
-	char buf[MAX_PATH];
+	TCHAR buf[MAX_PATH];
 	GUI_BGN_SAVE;
 	// @pyseemfc CWnd|DlgDirSelectComboBox
 #if _MFC_VER >= 0x0800
-	rc = pWnd->DlgDirSelectComboBox( buf, sizeof(buf), nIDListBox);
+	rc = pWnd->DlgDirSelectComboBox( buf, sizeof(buf)/sizeof(TCHAR), nIDListBox);
 #else
 	rc = pWnd->DlgDirSelectComboBox( buf, nIDListBox);
 #endif
 	GUI_END_SAVE;
 	if (!rc)
 		RETURN_ERR("DlgDirSelectComboBox failed");
-	return Py_BuildValue("s", buf);
+	return PyWinObject_FromTCHAR(buf);
 }
 
 // @pymethod |PyCWnd|DragAcceptFiles|Indicates that the window and children supports files dropped from file manager
@@ -1019,17 +1072,21 @@ static PyObject *
 ui_window_set_dlg_item_text(PyObject *self, PyObject *args)
 {
 	int id;
-	char *szText;
+	TCHAR *szText;
+	PyObject *obText;
 	// @pyparm int|idControl||The Id of the control
 	// @pyparm string|text||The new text
-	if (!PyArg_ParseTuple(args, "is:SetDlgItemText", &id, &szText ))
+	if (!PyArg_ParseTuple(args, "iO:SetDlgItemText", &id, &obText ))
 		return NULL;
 	CWnd *pWnd = GetWndPtrGoodHWnd(self);
 	if (!pWnd)
 		return NULL;
+	if (!PyWinObject_AsTCHAR(obText, &szText, FALSE))
+		return NULL;
 	GUI_BGN_SAVE;
 	pWnd->SetDlgItemText(id, szText);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(szText);
 	RETURN_NONE;
 	// @pyseemfc CWnd|SetDlgItemText
 }
@@ -1073,7 +1130,7 @@ ui_window_get_dlg_item_text(PyObject *self, PyObject *args)
 	GUI_BGN_SAVE;
 	pWnd->GetDlgItemText(id, csRet);
 	GUI_END_SAVE;
-	return PyString_FromString((char *)(const char *)csRet);
+	return PyWinObject_FromTCHAR(csRet);
 	// @pyseemfc CWnd|GetDlgItemText
 }
 
@@ -1475,7 +1532,7 @@ ui_window_get_window_text(PyObject *self, PyObject *args)
 	GUI_BGN_SAVE;
 	pWnd->GetWindowText( csText );
 	GUI_END_SAVE;
-	return Py_BuildValue("s",(const char *)csText);
+	return PyWinObject_FromTCHAR(csText);
 }
 // @pymethod object|PyCWnd|HookKeyStroke|Hook a key stroke handler
 static PyObject *
@@ -1640,24 +1697,31 @@ ui_window_is_window_enabled(PyObject *self, PyObject *args)
 static PyObject *
 ui_window_message_box(PyObject * self, PyObject * args)
 {
-  char *message;
+  TCHAR *message, *title=NULL;
+  PyObject *obmessage, *obtitle=Py_None;
   long style = MB_OK;
-  const char *title = NULL;
-
 	
-  if (!PyArg_ParseTuple(args, "s|zl:MessageBox", 
-            &message, // @pyparm string|message||The message to be displayed in the message box.
-            &title,   // @pyparm string/None|title|None|The title for the message box.  If None, the applications title will be used.
+  if (!PyArg_ParseTuple(args, "O|Ol:MessageBox", 
+            &obmessage, // @pyparm string|message||The message to be displayed in the message box.
+            &obtitle,   // @pyparm string/None|title|None|The title for the message box.  If None, the applications title will be used.
             &style))  // @pyparm int|style|win32con.MB_OK|The style of the message box.
     return NULL;
   CWnd *pWnd = GetWndPtr(self);
   if (!pWnd)
     return NULL;
+  if (!PyWinObject_AsTCHAR(obmessage, &message, FALSE))
+	  return NULL;
+  if (!PyWinObject_AsTCHAR(obtitle, &title, TRUE)){
+	  PyWinObject_FreeTCHAR(message);
+      return NULL;
+  }
   int rc;
   GUI_BGN_SAVE;
   // @pyseemfc CWnd|MessageBox
 
   rc = pWnd->MessageBox(message, title, style);
+  PyWinObject_FreeTCHAR(message);
+  PyWinObject_FreeTCHAR(title);
   GUI_END_SAVE;
   return Py_BuildValue("i",rc);
   // @rdesc An integer identifying the button pressed to dismiss the dialog.
@@ -1860,17 +1924,24 @@ static PyObject *
 ui_window_on_wnd_msg(PyObject *self, PyObject *args)
 {
 	LRESULT res;
-	int msg, wParam, lParam;
+	int msg;
+	WPARAM wParam;
+	LPARAM lParam;
+	PyObject *obwParam, *oblParam;
 	CRect rect;
 	BOOL bRepaint= TRUE;
-	if (!PyArg_ParseTuple(args, "iii:OnWndMsg", 
+	if (!PyArg_ParseTuple(args, "iOO:OnWndMsg", 
 	          &msg, // @pyparm int|msg||The message
-			  (int *)&wParam, // @pyparm int|wParam||The wParam for the message
-			  (int *)&lParam)) // @pyparm int|lParam||The lParam for the message
+			  &obwParam, // @pyparm int|wParam||The wParam for the message
+			  &oblParam)) // @pyparm int|lParam||The lParam for the message
 		return NULL;
 
 	WndHack *pWnd = (WndHack *)GetWndPtr(self);
 	if (!pWnd)
+		return NULL;
+	if (!PyWinObject_AsPARAM(obwParam, &wParam))
+		return NULL;
+	if (!PyWinObject_AsPARAM(oblParam, &lParam))
 		return NULL;
 	GUI_BGN_SAVE;
 	BOOL rc = pWnd->WndHack::OnWndMsg(msg, wParam, lParam, &res );
@@ -2184,14 +2255,18 @@ ui_window_set_window_text(PyObject *self, PyObject *args)
 	CWnd *pWnd = GetWndPtr(self);
 	if (!pWnd)
 		return NULL;
-	char *msg;
+	TCHAR *msg;
+	PyObject *obmsg;
 	// @pyparm string|text||The windows text.
-	if (!PyArg_ParseTuple(args, "s:SetWindowText", &msg))
+	if (!PyArg_ParseTuple(args, "O:SetWindowText", &obmsg))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obmsg, &msg, FALSE))
 		return NULL;
 	// @pyseemfc CWnd|SetWindowText
 	GUI_BGN_SAVE;
 	pWnd->SetWindowText(msg);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(msg);
 	RETURN_NONE;
 }
 
@@ -3262,8 +3337,8 @@ CString PyCWnd::repr()
 	CString base_repr = PyCCmdTarget::repr();
 	UINT_PTR numMsg = pMessageHookList ? pMessageHookList->GetCount() : 0;
 	UINT_PTR numKey = pKeyHookList ? pKeyHookList->GetCount() : 0;
-	char *hookStr = obKeyStrokeHandler ? " (AllKeys Hook Active)" : "";
-	csRet.Format("%s, mh=%Iu, kh=%Iu%s", (const char *)base_repr, numMsg, numKey, hookStr);
+	TCHAR *hookStr = obKeyStrokeHandler ? _T(" (AllKeys Hook Active)") : _T("");
+	csRet.Format(_T("%s, mh=%Iu, kh=%Iu%s"), (const TCHAR *)base_repr, numMsg, numKey, hookStr);
 	return csRet;
 }
 
@@ -3323,12 +3398,13 @@ PyCFrameWnd_CreateWindow(PyObject *self, PyObject *args)
 	PyObject *obParent = Py_None;
 	PyObject *obContext = Py_None;
 	PyObject *obMenuID = Py_None;
-	char *szClass=NULL, *szTitle=NULL;
+	TCHAR *szClass = NULL, *szTitle = NULL, *szMenuName = NULL;
+	PyObject *obClass, *obTitle, *ret=NULL;
 	DWORD styleEx=0;
 	DWORD style = WS_VISIBLE | WS_OVERLAPPEDWINDOW;
-	if(!PyArg_ParseTuple(args, "zs|lOOOOl:Create",
-		&szClass, // @pyparm string|wndClass||The window class name, or None
-		&szTitle, // @pyparm string|title||The window title
+	if(!PyArg_ParseTuple(args, "OO|lOOOOl:Create",
+		&obClass, // @pyparm string|wndClass||The window class name, or None
+		&obTitle, // @pyparm string|title||The window title
 		&style, // @pyparm int|style| WS_VISIBLE \| WS_OVERLAPPEDWINDOW|The window style
 		&obRect, // @pyparm int, int, int, int|rect|None|The default rectangle
 		&obParent, // @pyparm parent|<o PyCWnd>|None|The parent window
@@ -3343,14 +3419,12 @@ PyCFrameWnd_CreateWindow(PyObject *self, PyObject *args)
 		cc.SetPythonObject(obContext);
 		pContext = &cc;
 		}
-	if (obRect != Py_None) 
-		{
-		if (!PyArg_ParseTuple(obRect, "iiii", &rect.left,  &rect.top,  &rect.right,&rect.bottom)) 
-			{
-			PyErr_Clear();
-			RETURN_TYPE_ERR("Rect must be None or a tuple of (iiii)");
-			}
+
+	if (obRect != Py_None){
+		if (!PyArg_ParseTuple(obRect, "iiii:RECT", &rect.left,  &rect.top,  &rect.right,&rect.bottom)) 
+			return NULL;
 		}
+
 	CFrameWnd *pParent = NULL;
 	if (obParent != Py_None) 
 		{
@@ -3358,24 +3432,26 @@ PyCFrameWnd_CreateWindow(PyObject *self, PyObject *args)
 		if (pParent==NULL)
 			RETURN_TYPE_ERR("The parent window is not a valid PyFrameWnd");
 		}
-	char *szMenuName = NULL;
-	if (obMenuID != Py_None)
-		{
-		if (PyInt_Check(obMenuID))
-			szMenuName = MAKEINTRESOURCE(PyInt_AsLong(obMenuID));
-		else if (PyString_Check(obMenuID))
-			szMenuName = PyString_AsString(obMenuID);
-		else
-			RETURN_TYPE_ERR("The menu id must be an integer or string");
-		}
 
-	GUI_BGN_SAVE;
-	// @pyseemfc CFrameWnd|Create
-	BOOL ok = pFrame->Create(szClass, szTitle, style, rect,pParent,szMenuName,styleEx,pContext);
-	GUI_END_SAVE;
-	if (!ok)
-		RETURN_ERR("CFrameWnd::Create failed");
-	RETURN_NONE;
+	if (PyWinObject_AsTCHAR(obClass, &szClass, TRUE)
+		&&PyWinObject_AsTCHAR(obTitle, &szTitle, FALSE)
+		&&PyWinObject_AsResourceId(obMenuID, &szMenuName, TRUE)){
+		BOOL ok;
+		GUI_BGN_SAVE;
+		// @pyseemfc CFrameWnd|Create
+		ok = pFrame->Create(szClass, szTitle, style, rect,pParent,szMenuName,styleEx,pContext);
+		GUI_END_SAVE;
+		if (!ok)
+			PyErr_SetString(ui_module_error, "CFrameWnd::Create failed");
+		else{
+			Py_INCREF(Py_None);
+			ret=Py_None;
+			}
+		}
+	PyWinObject_FreeTCHAR(szClass);
+	PyWinObject_FreeTCHAR(szTitle);
+	PyWinObject_FreeResourceId(szMenuName);
+	return ret;
 }
 
 // @pymethod tuple|PyCFrameWnd|PreCreateWindow|Calls the underlying MFC PreCreateWindow method.
@@ -3415,20 +3491,19 @@ PyCFrameWnd_LoadAccelTable(PyObject *self, PyObject *args)
 	PyObject *obID;
 	if (!PyArg_ParseTuple(args, "O", &obID))
 		return NULL;
-	char *res;
-	if (PyInt_Check(obID))
-		res = MAKEINTRESOURCE(PyInt_AsLong(obID));
-	else if (PyString_Check(obID))
-		res = PyString_AsString(obID);
-	else
-		RETURN_TYPE_ERR("The param must be an integer or string");
+	// @pyparm <o PyResourceId>|id||Name or id of the resource that contains the table
+	TCHAR *res;
+	if (!PyWinObject_AsResourceId(obID, &res, FALSE))
+		return NULL;
 	GUI_BGN_SAVE;
 	BOOL ok = pFrame->LoadAccelTable(res);
 	GUI_END_SAVE;
+	PyWinObject_FreeResourceId(res);
 	if (!ok)
 		RETURN_ERR("LoadAccelTable failed");
 	RETURN_NONE;
 }
+
 // @pymethod |PyCFrameWnd|LoadFrame|Loads a Windows frame window and associated resources
 static PyObject *
 ui_frame_load_frame(PyObject *self, PyObject *args)
@@ -3602,13 +3677,17 @@ PyCFrameWnd_SaveBarState(PyObject *self, PyObject *args)
 	CFrameWnd *pFrame = GetFramePtr(self);
 	if (!pFrame)
 		return NULL;
-	char *profileName;
-	if (!PyArg_ParseTuple(args,"s:SaveBarState", 
-		       &profileName)) // @pyparm string|profileName||Name of a section in the initialization file or a key in the Windows registry where state information is stored.
+	TCHAR *profileName;
+	PyObject *obprofileName;
+	if (!PyArg_ParseTuple(args,"O:SaveBarState", 
+		       &obprofileName)) // @pyparm string|profileName||Name of a section in the initialization file or a key in the Windows registry where state information is stored.
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obprofileName, &profileName, FALSE))
 		return NULL;
 	GUI_BGN_SAVE;
 	pFrame->SaveBarState(profileName); // @pyseemfc CFrameWnd|SaveBarState
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(profileName);
 	RETURN_NONE;
 }
 
@@ -3619,9 +3698,12 @@ PyCFrameWnd_LoadBarState(PyObject *self, PyObject *args)
 	CFrameWnd *pFrame = GetFramePtr(self);
 	if (!pFrame)
 		return NULL;
-	char *profileName;
-	if (!PyArg_ParseTuple(args,"s:LoadBarState", 
-		       &profileName)) // @pyparm string|profileName||Name of a section in the initialization file or a key in the Windows registry where state information is stored.
+	TCHAR *profileName;
+	PyObject *obprofileName;
+	if (!PyArg_ParseTuple(args,"O:LoadBarState", 
+		       &obprofileName)) // @pyparm string|profileName||Name of a section in the initialization file or a key in the Windows registry where state information is stored.
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obprofileName, &profileName, FALSE))
 		return NULL;
 	GUI_BGN_SAVE;
 	try {
@@ -3629,9 +3711,11 @@ PyCFrameWnd_LoadBarState(PyObject *self, PyObject *args)
 	}
 	catch (...) {
 		GUI_BLOCK_THREADS;
+		PyWinObject_FreeTCHAR(profileName);
 		RETURN_ERR("LoadBarState failed (with win32 exception!)");
 	}
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(profileName);
 	RETURN_NONE;
 }
 
@@ -3705,7 +3789,7 @@ PyCFrameWnd_GetMessageString( PyObject *self, PyObject *args)
 	GUI_BGN_SAVE;
 	pFrame->CFrameWnd::GetMessageString(id, csRet);
 	GUI_END_SAVE;
-	return Py_BuildValue("s", (const char *)csRet);
+	return PyWinObject_FromTCHAR(csRet);
 }
 
 // @pymethod <o PyCControlBar>|PyCFrameWnd|GetControlBar|Retrieves the specified control bar.
@@ -4095,11 +4179,12 @@ ui_mdi_child_window_create_window(PyObject *self, PyObject *args)
 	PyObject *obRect = Py_None;
 	PyObject *obParent = Py_None;
 	PyObject *obContext = Py_None;
-	char *szClass, *szTitle;
+	TCHAR *szClass=NULL, *szTitle=NULL;
+	PyObject *obClass, *obTitle;
 	DWORD style = WS_CHILD | WS_VISIBLE | WS_OVERLAPPEDWINDOW;
-	if (!PyArg_ParseTuple(args, "zs|lOOO:CreateWindow",
-		&szClass, // @pyparm string|wndClass||The window class name, or None
-		&szTitle, // @pyparm string|title||The window title
+	if (!PyArg_ParseTuple(args, "OO|lOOO:CreateWindow",
+		&obClass, // @pyparm string|wndClass||The window class name, or None
+		&obTitle, // @pyparm string|title||The window title
 		&style, // @pyparm int|style|WS_CHILD \| WS_VISIBLE \| WS_OVERLAPPEDWINDOW|The window style
 		&obRect, // @pyparm int, int, int, int|rect|None|The default rectangle
 		&obParent, // @pyparm parent|<o PyCWnd>|None|The parent window
@@ -4112,11 +4197,9 @@ ui_mdi_child_window_create_window(PyObject *self, PyObject *args)
 		pContext = &cc;
 	}
 	if (obRect != Py_None) {
-		if (!PyArg_ParseTuple(obRect, "iiii", &rect.left,  &rect.top,  &rect.right,  &rect.bottom)) {
-			PyErr_Clear();
-			RETURN_TYPE_ERR("Rect must be None or a tuple of (iiii)");
+		if (!PyArg_ParseTuple(obRect, "iiii:RECT", &rect.left, &rect.top, &rect.right, &rect.bottom))
+			return NULL;
 		}
-	}
 	CMDIFrameWnd *pParent = NULL;
 	if (obParent != Py_None) {
 		pParent = GetMDIFrame( obParent );
@@ -4124,9 +4207,18 @@ ui_mdi_child_window_create_window(PyObject *self, PyObject *args)
 			RETURN_TYPE_ERR("The parent window is not a valid PyCMDIFrameWnd");
 	}
 
+	if (!PyWinObject_AsTCHAR(obClass, &szClass, TRUE))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(obTitle, &szTitle, FALSE)){
+		PyWinObject_FreeTCHAR(szClass);
+		return NULL;
+		}
+
 	GUI_BGN_SAVE;
 	BOOL ok = pWnd->Create(szClass, szTitle, style, rect, pParent, pContext);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(szClass);
+	PyWinObject_FreeTCHAR(szTitle);
 	if (!ok)
 		RETURN_ERR("CMDIChildWnd::Create");
 	RETURN_NONE;

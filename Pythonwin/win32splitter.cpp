@@ -345,5 +345,5 @@ void CPythonSplitter::OnSize( UINT nType, int cx, int cy )
 	if (bHaveAllChildren)
 		CSplitterWnd::OnSize(nType, cx, cy);
 	else
-		OutputDebugString("Warning - Ignoring OnSize for splitter, due to missing children\n");
+		OutputDebugString(_T("Warning - Ignoring OnSize for splitter, due to missing children\n"));
 }

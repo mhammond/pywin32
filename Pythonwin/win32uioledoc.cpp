@@ -2,19 +2,20 @@
 #include "win32app.h"
 #include "win32uioledoc.h"
 #include "win32template.h"
+#include "pywintypes.h"
 //
 // OLE Document Object
 //
 // @doc
 
-#define PyObject_FromPOSITION PyInt_FromLong
-#define POSITION_CAST long
+// POSITION is pointer-sized value
+#define PyObject_FromPOSITION PyWinLong_FromVoidPtr
 #define POSITION_FORMATCHAR "l"
 
 class CProtectedDocument : public CDocument
 {
 public:
-	void SetPathName( const char *pathName ) {m_strPathName = pathName;}
+	void SetPathName( const TCHAR *pathName ) {m_strPathName = pathName;}
 };
 
 /*static*/COleDocument *PyCOleDocument::GetDoc(PyObject *self)
@@ -25,14 +26,16 @@ public:
 // @pymethod <o PyCOleDocument>|win32uiole|CreateOleDocument|Creates an OLE document.
 PyObject *PyCOleDocument::Create(PyObject *self, PyObject *args)
 {
-	char *fileName = NULL;	// default, untitled document
-	PyObject *obTemplate;
+	TCHAR *fileName = NULL;	// default, untitled document
+	PyObject *obTemplate, *obfileName=Py_None;
 	// @pyparm <o PyCDocTemplate>|template||The template to be attached to this document.
 	// @pyparm string|fileName|None|The filename for the document.
-	if (!PyArg_ParseTuple(args, "O|z", &obTemplate, &fileName))
+	if (!PyArg_ParseTuple(args, "O|O", &obTemplate, &obfileName))
 		return NULL;
 	if (!PyCOleDocument::is_uiobject(obTemplate, &PyCDocTemplate::type))
 		RETURN_TYPE_ERR("First param must be a document template");
+	if (!PyWinObject_AsTCHAR(obfileName, &fileName, TRUE))
+		return NULL;
 
 	COleDocument *pDoc = NULL;
 	if (fileName) {
@@ -60,6 +63,7 @@ PyObject *PyCOleDocument::Create(PyObject *self, PyObject *args)
 		if (fileName)
 			((CProtectedDocument *)pDoc)->SetPathName(fileName);
 	}
+	PyWinObject_FreeTCHAR(fileName);	// ??? This leaks from error returns above ???
 	return ui_assoc_object::make(PyCOleDocument::type, pDoc);
 }
 
@@ -109,7 +113,7 @@ static PyObject *PyCOleDocument_GetStartPosition(PyObject *self, PyObject *args)
 	GUI_BGN_SAVE;
 	POSITION pos = pDoc->GetStartPosition();
 	GUI_END_SAVE;
-	return PyObject_FromPOSITION((POSITION_CAST)pos);
+	return PyWinLong_FromVoidPtr((void *)pos);
 }
 
 // @pymethod (POSITION, <o PyCOleClientItem>)|PyCOleDocument|GetNextItem|Call this function repeatedly to access each of the items in your document.
@@ -126,8 +130,7 @@ static PyObject *PyCOleDocument_GetNextItem(PyObject *self, PyObject *args)
 	GUI_END_SAVE;
 	PyObject *obDocItem = ui_assoc_object::make( UITypeFromCObject(pRet), pRet )->GetGoodRet();
 	if (obDocItem==NULL) return NULL;
-	PyObject *ret = Py_BuildValue("O" POSITION_FORMATCHAR, obDocItem, (POSITION_CAST)position);
-	Py_DECREF(obDocItem);
+	PyObject *ret = Py_BuildValue("NN", obDocItem, PyObject_FromPOSITION(position));
 	return ret;
 }
 

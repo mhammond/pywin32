@@ -41,8 +41,6 @@ class PyCFileDialog : public PyCCommonDialog {
 public:
 	MAKE_PY_CTOR(PyCFileDialog)
 	static PyObject *ui_file_dialog_create( PyObject *self, PyObject *args );// create an actual object.
-	PyObject *pObTitle;
-	PyObject *pObInitialDir;
 	static ui_type_CObject type;
 protected:
 	PyCFileDialog();

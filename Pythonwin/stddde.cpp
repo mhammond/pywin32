@@ -8,6 +8,10 @@
 
 #include "stdafxdde.h"
 
+// ?? where does this come from?
+#ifndef DDE_STRING_CODEPAGE
+#define DDE_STRING_CODEPAGE CP_WINANSI
+#endif
 //
 // Constants
 //
@@ -113,13 +117,14 @@ CHSZ::CHSZ()
     m_dwDDEInstance = 0;
 }
 
-CHSZ::CHSZ(CDDEServer* pServer, const char* szName)
+CHSZ::CHSZ(CDDEServer* pServer, const TCHAR* szName)
 {
     m_dwDDEInstance = pServer->m_dwDDEInstance;
     m_hsz = ::DdeCreateStringHandle(m_dwDDEInstance,
-                                    (char*)szName,
-                                    CP_WINANSI);
+                                    szName,
+                                    DDE_STRING_CODEPAGE);
     ASSERT(m_hsz);
+/*
 #ifdef _DEBUG
 	if (m_hsz==NULL) {
 		char buf[128];
@@ -127,17 +132,18 @@ CHSZ::CHSZ(CDDEServer* pServer, const char* szName)
 		OutputDebugString(buf);
 	}
 #endif
-}
+*/
+	}
 
-void CHSZ::Create(CDDEServer* pServer, const char* szName)
+void CHSZ::Create(CDDEServer* pServer, const TCHAR* szName)
 {
     if (m_hsz) {
         ::DdeFreeStringHandle(pServer->m_dwDDEInstance, m_hsz);
     }    
     m_dwDDEInstance = pServer->m_dwDDEInstance;
     m_hsz = ::DdeCreateStringHandle(m_dwDDEInstance,
-                                    (char*)szName,
-                                    CP_WINANSI);
+                                    szName,
+                                    DDE_STRING_CODEPAGE);
     ASSERT(m_hsz);
 }
 
@@ -170,7 +176,7 @@ CDDEItem::~CDDEItem()
 {
 }
 
-void CDDEItem::Create(const char* pszName)
+void CDDEItem::Create(const TCHAR* pszName)
 {
     m_strName = pszName;
 }
@@ -181,7 +187,7 @@ BOOL CDDEItem::Request(UINT wFmt, void** ppData, DWORD* pdwSize)
 }
 
 //CT BEGIN
-BOOL CDDEItem::NSRequest(const char* szItem, void** ppData, DWORD* pdwSize)
+BOOL CDDEItem::NSRequest(const TCHAR* szItem, void** ppData, DWORD* pdwSize)
 {
     return FALSE;
 }
@@ -198,7 +204,7 @@ BOOL CDDEItem::Poke(void* pData, DWORD dwSize)
     return FALSE;
 }
 
-BOOL CDDEItem::NSPoke(const char* szItem, void* pData, DWORD dwSize)
+BOOL CDDEItem::NSPoke(const TCHAR* szItem, void* pData, DWORD dwSize)
 {
     return FALSE;
 }
@@ -241,7 +247,7 @@ BOOL CDDEStringItem::Request(UINT wFmt, void** ppData, DWORD* pdwSize)
 {
     ASSERT(wFmt == CF_TEXT);
     ASSERT(ppData);
-    *ppData = (void*)(const char*)m_strData;
+    *ppData = (void*)(const TCHAR*)m_strData;
     *pdwSize = m_strData.GetLength() + 1; // allow for the null
     return TRUE;
 }
@@ -250,12 +256,12 @@ BOOL CDDEStringItem::Poke(UINT wFmt, void* pData, DWORD dwSize)
 {
     ASSERT(wFmt == CF_TEXT);
     ASSERT(pData);
-    m_strData = (char*)pData;
+    m_strData = (TCHAR*)pData;
     OnPoke();
     return TRUE;
 }
 
-void CDDEStringItem::SetData(const char* pszData)
+void CDDEStringItem::SetData(const TCHAR* pszData)
 {
     ASSERT(pszData);
     m_strData = pszData;
@@ -290,7 +296,7 @@ CDDETopic::~CDDETopic()
 {
 }
 
-void CDDETopic::Create(const char* pszName)
+void CDDETopic::Create(const TCHAR* pszName)
 {
     m_strName = pszName;
 }
@@ -316,7 +322,7 @@ BOOL CDDETopic::AddItem(CDDEItem* pNewItem)
     return TRUE;
 }
 
-BOOL CDDETopic::Request(UINT wFmt, const char* pszItem,
+BOOL CDDETopic::Request(UINT wFmt, const TCHAR* pszItem,
                             void** ppData, DWORD* pdwSize)
 {
     //
@@ -336,13 +342,13 @@ BOOL CDDETopic::Request(UINT wFmt, const char* pszItem,
 }
 
 //CT BEGIN
-BOOL CDDETopic::NSRequest(const char * szItem, void** ppData, DWORD* dwsize)
+BOOL CDDETopic::NSRequest(const TCHAR * szItem, void** ppData, DWORD* dwsize)
 {
 	return FALSE ;
 }
 //CT END
 
-BOOL CDDETopic::Poke(UINT wFmt, const char* pszItem,
+BOOL CDDETopic::Poke(UINT wFmt, const TCHAR* pszItem,
                      void* pData, DWORD dwSize)
 {
     //
@@ -363,14 +369,14 @@ BOOL CDDETopic::Poke(UINT wFmt, const char* pszItem,
 
 //CT BEGIN
 
-BOOL CDDETopic::Poke(const char* pszItem,
+BOOL CDDETopic::Poke(const TCHAR* pszItem,
                      void* pData, DWORD dwSize)
 {
 	return Poke(CF_TEXT, pszItem, pData, dwSize) ;
 }
 
 
-BOOL CDDETopic::NSPoke(const char * szItem, void* pData, DWORD dwSize)
+BOOL CDDETopic::NSPoke(const TCHAR * szItem, void* pData, DWORD dwSize)
 {
 	return FALSE ;
 }
@@ -381,7 +387,7 @@ BOOL CDDETopic::Exec(void* pData, DWORD dwSize)
     return FALSE;
 }
 
-CDDEItem* CDDETopic::FindItem(const char* pszItem)
+CDDEItem* CDDETopic::FindItem(const TCHAR* pszItem)
 {
     POSITION pos = m_ItemList.GetHeadPosition();
     while (pos) {
@@ -398,7 +404,7 @@ CDDEItem* CDDETopic::FindItem(const char* pszItem)
     return NULL;
 }
 
-BOOL CDDETopic::CanAdvise(UINT wFmt, const char* pszItem)
+BOOL CDDETopic::CanAdvise(UINT wFmt, const TCHAR* pszItem)
 {
     //
     // See if we have this item
@@ -488,7 +494,7 @@ BOOL CDDEConv::Terminate()
     return FALSE; // wasn't active
 }
 
-BOOL CDDEConv::ConnectTo(const char* pszService, const char* pszTopic)
+BOOL CDDEConv::ConnectTo(const TCHAR* pszService, const TCHAR* pszTopic)
 {
     ASSERT(pszService);
     ASSERT(pszTopic);
@@ -518,9 +524,9 @@ BOOL CDDEConv::ConnectTo(const char* pszService, const char* pszTopic)
     if (!m_hConv) {
 
         DWORD dwErr = GetLastError();
-        m_pServer->Status("Failed to connect to %s|%s. Error %u",
-                          (const char*) pszService,
-                          (const char*) pszTopic,
+        m_pServer->Status(_T("Failed to connect to %s|%s. Error %u"),
+                          (const TCHAR*) pszService,
+                          (const TCHAR*) pszTopic,
                           dwErr);
         return FALSE;
     }
@@ -533,13 +539,13 @@ BOOL CDDEConv::ConnectTo(const char* pszService, const char* pszTopic)
     return TRUE;
 }
 
-BOOL CDDEConv::AdviseData(UINT wFmt, const char* pszTopic, const char* pszItem,
+BOOL CDDEConv::AdviseData(UINT wFmt, const TCHAR* pszTopic, const TCHAR* pszItem,
                           void* pData, DWORD dwSize)
 {
     return FALSE;
 }
 
-BOOL CDDEConv::Request(const char* pszItem, void** ppData, DWORD* pdwSize)
+BOOL CDDEConv::Request(const TCHAR* pszItem, void** ppData, DWORD* pdwSize)
 {
     ASSERT(m_pServer);
     ASSERT(pszItem);
@@ -578,7 +584,7 @@ BOOL CDDEConv::Request(const char* pszItem, void** ppData, DWORD* pdwSize)
     return TRUE;
 }
 
-BOOL CDDEConv::Advise(const char* pszItem)
+BOOL CDDEConv::Advise(const TCHAR* pszItem)
 {
     ASSERT(m_pServer);
     ASSERT(pszItem);
@@ -600,14 +606,14 @@ BOOL CDDEConv::Advise(const char* pszItem)
     return TRUE;
 }
 
-BOOL CDDEConv::Exec(const char* pszCmd)
+BOOL CDDEConv::Exec(const TCHAR* pszCmd)
 {
     //
     // Send the command
     //
 
     HDDEDATA hData = ::DdeClientTransaction((BYTE*)pszCmd,
-                                            strlen(pszCmd) + 1,
+                                            (_tcslen(pszCmd) + 1) * sizeof(TCHAR),
                                             m_hConv,
                                             0,
                                             CF_TEXT,
@@ -622,7 +628,7 @@ BOOL CDDEConv::Exec(const char* pszCmd)
     return TRUE;
 }
 
-BOOL CDDEConv::Poke(UINT wFmt, const char* pszItem, void* pData, DWORD dwSize)
+BOOL CDDEConv::Poke(UINT wFmt, const TCHAR* pszItem, void* pData, DWORD dwSize)
 {
     //
     // Send the command
@@ -646,7 +652,7 @@ BOOL CDDEConv::Poke(UINT wFmt, const char* pszItem, void* pData, DWORD dwSize)
 }
 
 //CT BEGIN
-BOOL CDDEConv::Poke(const char* pszItem, void* pData, DWORD dwSize)
+BOOL CDDEConv::Poke(const TCHAR* pszItem, void* pData, DWORD dwSize)
 {
     //
     // format-less version for Netscape defaults to text
@@ -726,7 +732,7 @@ BOOL CDDESystemItem_TopicList::Request(UINT wFmt, void** ppData, DWORD* pdwSize)
     // Set up the return info
     //
 
-    *ppData = (void*)(const char*)strTopics;
+    *ppData = (void*)(const TCHAR*)strTopics;
     *pdwSize = strTopics.GetLength() + 1; // include room for the NULL
     return TRUE;
 }
@@ -767,7 +773,7 @@ BOOL CDDESystemItem_ItemList::Request(UINT wFmt, void** ppData, DWORD* pdwSize)
     // Set up the return info
     //
 
-    *ppData = (void*)(const char*)strItems;
+    *ppData = (void*)(const TCHAR*)strItems;
     *pdwSize = strItems.GetLength() + 1; // include room for the NULL
     return TRUE;
 }
@@ -848,17 +854,17 @@ BOOL CDDESystemItem_FormatList::Request(UINT wFmt, void** ppData, DWORD* pdwSize
     // Set up the return info
     //
 
-    *ppData = (void*)(const char*)strFormats;
+    *ppData = (void*)(const TCHAR*)strFormats;
     *pdwSize = strFormats.GetLength() + 1; // include romm for the NULL
     return TRUE;
 }
 
 IMPLEMENT_DYNCREATE(CDDEServerSystemTopic, CDDETopic);
 
-BOOL CDDEServerSystemTopic::Request(UINT wFmt, const char* pszItem,
+BOOL CDDEServerSystemTopic::Request(UINT wFmt, const TCHAR* pszItem,
                                     void** ppData, DWORD* pdwSize)
 {
-    m_pServer->Status("System topic request: %s", pszItem);
+    m_pServer->Status(_T("System topic request: %s"), pszItem);
     return CDDETopic::Request(wFmt, pszItem, ppData, pdwSize);
 }
 
@@ -1028,7 +1034,7 @@ BOOL make_template(CBTEMPLATE *code, DWORD param, void *target) {
 //////////////////////////////////////////////////////////////////////
 #endif // _CALLHACK_
 
-BOOL CDDEServer::Create(const char* pszServiceName,
+BOOL CDDEServer::Create(const TCHAR* pszServiceName,
                         DWORD dwFilterFlags/* = 0 */,
                         DWORD* pdwDDEInst/* = NULL */)
 {
@@ -1243,7 +1249,7 @@ HDDEDATA CALLBACK CDDEServer::DynDDECallback(
         // Add a new conversation to the list
         //
 
-        pServ->Status("Connect to %s", (const char*)pServ->StringFromHsz(hsz1));
+        pServ->Status(_T("Connect to %s"), (const TCHAR*)pServ->StringFromHsz(hsz1));
         pServ->AddConversation(hConv, hsz1);
         break;
 
@@ -1263,7 +1269,7 @@ HDDEDATA CALLBACK CDDEServer::DynDDECallback(
         // Remove a conversation from the list
         //
 
-        pServ->Status("Disconnect");
+        pServ->Status(_T("Disconnect"));
         pServ->RemoveConversation(hConv);
         break;
 
@@ -1277,7 +1283,7 @@ HDDEDATA CALLBACK CDDEServer::DynDDECallback(
         if ((hsz2 == NULL)
         || !::DdeCmpStringHandles(hsz2, pServ->m_hszServiceName)) {
 
-            pServ->Status("Wild connect to %s", (const char*)pServ->StringFromHsz(hsz1));
+            pServ->Status(_T("Wild connect to %s"), (const TCHAR*)pServ->StringFromHsz(hsz1));
             return pServ->DoWildConnect(hsz1);
 
         }
@@ -1424,7 +1430,7 @@ HDDEDATA CDDEServer::DoWildConnect(HSZ hszTopic)
     //
 
     if (!iTopics) {
-        Status("Wild connect to %s refused", (const char*)strTopic);
+        Status(_T("Wild connect to %s refused"), (const TCHAR*)strTopic);
         return (HDDEDATA) NULL;
     }
 
@@ -1464,11 +1470,11 @@ HDDEDATA CDDEServer::DoWildConnect(HSZ hszTopic)
 
             CDDETopic* pTopic = m_TopicList.GetNext(pos);
             pHszPair->hszSvc = ::DdeCreateStringHandle(m_dwDDEInstance,
-                                                       (char*)(const char*)m_strServiceName,
-                                                       CP_WINANSI);
+                                                       (TCHAR*)(const TCHAR*)m_strServiceName,
+                                                       DDE_STRING_CODEPAGE);
             pHszPair->hszTopic = ::DdeCreateStringHandle(m_dwDDEInstance,
-                                                         (char*)(const char*)pTopic->m_strName,
-                                                         CP_WINANSI);
+                                                         (TCHAR*)(const TCHAR*)pTopic->m_strName,
+                                                         DDE_STRING_CODEPAGE);
 
             pHszPair++;
         }
@@ -1506,7 +1512,7 @@ HDDEDATA CDDEServer::DoWildConnect(HSZ hszTopic)
     return hData;
 }
 
-CDDETopic* CDDEServer::FindTopic(const char* pszTopic)
+CDDETopic* CDDEServer::FindTopic(const TCHAR* pszTopic)
 {
     POSITION pos = m_TopicList.GetHeadPosition();
     while (pos) {
@@ -1540,7 +1546,7 @@ BOOL CDDEServer::DoCallback(WORD wType,
         // Call the exec function to process it
         //
 
-        Status("Exec");
+        Status(_T("Exec"));
         DWORD dwLength = 0;
         void* pData = ::DdeAccessData(hData, &dwLength);
         BOOL b = Exec(strTopic, pData, dwLength);
@@ -1557,7 +1563,7 @@ BOOL CDDEServer::DoCallback(WORD wType,
         // Either no handler or it didn't get handled by the function
         //
 
-        Status("Exec failed");
+        Status(_T("Exec failed"));
         *phReturnData = (HDDEDATA) DDE_FNOTPROCESSED;
         return FALSE;
     }
@@ -1598,7 +1604,7 @@ BOOL CDDEServer::DoCallback(WORD wType,
 
         if (!CanAdvise(wFmt, strTopic, strItem)) {
 
-            Status("Can't advise on %s|%s", (const char*)strTopic, (const char*)strItem);
+            Status(_T("Can't advise on %s|%s"), (const TCHAR*)strTopic, (const TCHAR*)strItem);
             return FALSE;
         }
 
@@ -1626,7 +1632,7 @@ BOOL CDDEServer::DoCallback(WORD wType,
             // Maybe its not a supported item or format
             //
 
-            Status("Poke %s|%s failed", (const char*)strTopic, (const char*)strItem); 
+            Status(_T("Poke %s|%s failed"), (const TCHAR*)strTopic, (const TCHAR*)strItem); 
             return FALSE;
 
         }
@@ -1674,7 +1680,7 @@ BOOL CDDEServer::DoCallback(WORD wType,
             // Maybe its not of interrest
             //
 
-            Status("AdviseData %s|%s failed", (const char*)strTopic, (const char*)strItem); 
+            Status(_T("AdviseData %s|%s failed"), (const TCHAR*)strTopic, (const TCHAR*)strItem); 
             *phReturnData = (HDDEDATA) DDE_FNOTPROCESSED;
 
         } else {
@@ -1692,7 +1698,7 @@ BOOL CDDEServer::DoCallback(WORD wType,
         // a generic one for the topic
         //
 
-        Status("Request %s|%s", (const char*)strTopic, (const char*)strItem); 
+        Status(_T("Request %s|%s"), (const TCHAR*)strTopic, (const TCHAR*)strItem); 
         dwLength = 0;
         if (!Request(wFmt, strTopic, strItem, &pData, &dwLength)) {
 
@@ -1701,7 +1707,7 @@ BOOL CDDEServer::DoCallback(WORD wType,
             // Maybe unsupported topic/item or bad format
             //
 
-            Status("Request %s|%s failed", (const char*)strTopic, (const char*)strItem); 
+            Status(_T("Request %s|%s failed"), (LPCTSTR)strTopic, (LPCTSTR)strItem); 
             *phReturnData = NULL;
             return FALSE;
 
@@ -1769,7 +1775,7 @@ CString CDDEServer::StringFromHsz(HSZ hsz)
                                    hsz,
                                    NULL,
                                    0,
-                                   CP_WINANSI);
+                                   DDE_STRING_CODEPAGE);
 
     if (dwLen == 0) return str;
 
@@ -1777,7 +1783,7 @@ CString CDDEServer::StringFromHsz(HSZ hsz)
     // get the text
     //
 
-    char* pBuf = str.GetBufferSetLength(dwLen+1);
+    TCHAR* pBuf = str.GetBufferSetLength(dwLen+1);
     ASSERT(pBuf);
 
     //
@@ -1788,7 +1794,7 @@ CString CDDEServer::StringFromHsz(HSZ hsz)
                                  hsz,
                                  pBuf,
                                  dwLen+1,
-                                 CP_WINANSI);
+                                 DDE_STRING_CODEPAGE);
 
     //
     // Tidy up
@@ -1801,7 +1807,7 @@ CString CDDEServer::StringFromHsz(HSZ hsz)
     return str;
 }
 
-BOOL CDDEServer::Request(UINT wFmt, const char* pszTopic, const char* pszItem,
+BOOL CDDEServer::Request(UINT wFmt, const TCHAR* pszTopic, const TCHAR* pszItem,
                          void** ppData, DWORD* pdwSize)
 {
     //
@@ -1814,7 +1820,7 @@ BOOL CDDEServer::Request(UINT wFmt, const char* pszTopic, const char* pszItem,
     return pTopic->Request(wFmt, pszItem, ppData, pdwSize);
 }
 
-BOOL CDDEServer::Poke(UINT wFmt, const char* pszTopic, const char* pszItem,
+BOOL CDDEServer::Poke(UINT wFmt, const TCHAR* pszTopic, const TCHAR* pszItem,
                       void* pData, DWORD dwSize)
 {
     //
@@ -1827,7 +1833,7 @@ BOOL CDDEServer::Poke(UINT wFmt, const char* pszTopic, const char* pszItem,
     return pTopic->Poke(wFmt, pszItem, pData, dwSize);
 }
 
-BOOL CDDEServer::Exec(const char* pszTopic, void* pData, DWORD dwSize)
+BOOL CDDEServer::Exec(const TCHAR* pszTopic, void* pData, DWORD dwSize)
 {
     //
     // See if we have a topic that matches
@@ -1839,7 +1845,7 @@ BOOL CDDEServer::Exec(const char* pszTopic, void* pData, DWORD dwSize)
     return pTopic->Exec(pData, dwSize);
 }
 
-BOOL CDDEServer::CanAdvise(UINT wFmt, const char* pszTopic, const char* pszItem)
+BOOL CDDEServer::CanAdvise(UINT wFmt, const TCHAR* pszTopic, const TCHAR* pszItem)
 {
     //
     // See if we have a topic that matches
@@ -1858,11 +1864,11 @@ void CDDEServer::PostAdvise(CDDETopic* pTopic, CDDEItem* pItem)
 
     ::DdePostAdvise(m_dwDDEInstance,
                     ::DdeCreateStringHandle(m_dwDDEInstance,
-                                            (char*)(const char*)pTopic->m_strName,
-                                            CP_WINANSI),
+                                            (TCHAR*)(const TCHAR *)pTopic->m_strName,
+                                            DDE_STRING_CODEPAGE),
                     ::DdeCreateStringHandle(m_dwDDEInstance,
-                                            (char*)(const char*)pItem->m_strName,
-                                            CP_WINANSI));
+                                            (TCHAR*)(const TCHAR*)pItem->m_strName,
+                                            DDE_STRING_CODEPAGE));
 
 }
 
@@ -1888,8 +1894,8 @@ CString GetFormatName(WORD wFmt)
     // See if it's a registered one
     //
 
-    char buf[256];
-    if (::GetClipboardFormatName(wFmt, buf, sizeof(buf))) {
+    TCHAR buf[256];
+    if (::GetClipboardFormatName(wFmt, buf, sizeof(buf)/sizeof(buf[0]))) {
         strName = buf;
     }
 
@@ -1909,7 +1915,7 @@ CDDEConv* CDDEServer::FindConversation(HCONV hConv)
 }
 
 BOOL CDDEServer::AdviseData(UINT wFmt, HCONV hConv,
-                            const char* pszTopic, const char* pszItem,
+                            const TCHAR* pszTopic, const TCHAR* pszItem,
                             void* pData, DWORD dwSize)
 {
     //

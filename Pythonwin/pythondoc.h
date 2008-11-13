@@ -24,8 +24,8 @@ public:
 protected:
 	virtual BOOL OnCmdMsg( UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO*pHandlerInfo );
 	virtual BOOL 	SaveModified();
-	virtual BOOL 	OnOpenDocument( const char *);
-	virtual BOOL 	OnSaveDocument( const char *);
+	virtual BOOL 	OnOpenDocument( const TCHAR *);
+	virtual BOOL 	OnSaveDocument( const TCHAR *);
 	virtual void 	OnCloseDocument();
 	virtual void 	DeleteContents();
 	virtual	BOOL	OnNewDocument();
@@ -105,7 +105,7 @@ BOOL CPythonDocTemp<P>::DoFileSave()
 }
 
 template <class P>
-BOOL CPythonDocTemp<P>::OnSaveDocument(const char *fileName)
+BOOL CPythonDocTemp<P>::OnSaveDocument(const TCHAR *fileName)
 {
 	// @pyvirtual int|PyCDocument|OnSaveDocument|Called by the MFC architecture.
 	// @pyparm string|fileName||The name of the file being saved.
@@ -113,7 +113,7 @@ BOOL CPythonDocTemp<P>::OnSaveDocument(const char *fileName)
 	// @comm If a handler is defined for this function, the base (MFC) function will not
 	// be called.  If necessary, the handler must call this function explicitely.
 	CVirtualHelper helper( "OnSaveDocument", this );
-	if (helper.call((char *)fileName)) {
+	if (helper.call(fileName)) {
 		int ret;
 		// @rdesc TRUE if the document could be saved, else FALSE.
         if (helper.retval(ret))
@@ -125,7 +125,7 @@ BOOL CPythonDocTemp<P>::OnSaveDocument(const char *fileName)
 }
 
 template <class P>
-BOOL CPythonDocTemp<P>::OnOpenDocument(const char *fileName)
+BOOL CPythonDocTemp<P>::OnOpenDocument(const TCHAR *fileName)
 {
 	// @pyvirtual int|PyCDocument|OnOpenDocument|Called by the MFC architecture.
 	// @xref <om PyCDocument.OnOpenDocument>
@@ -139,7 +139,7 @@ BOOL CPythonDocTemp<P>::OnOpenDocument(const char *fileName)
 		return FALSE;
 	}
 	// @pyparm string|fileName||The name of the file being opened.
-	if (helper.call((char *)fileName)) {
+	if (helper.call(fileName)) {
 		int ret;
 		// @rdesc TRUE if the document could be opened, else FALSE.
         if (helper.retval(ret))

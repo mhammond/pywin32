@@ -11,9 +11,9 @@ BOOL PythonDDEServer::OnCreate()
 		return TRUE;
 }
 
-void PythonDDEServer::Status(const char* pszFormat, ...)
+void PythonDDEServer::Status(const TCHAR* pszFormat, ...)
 {
-	char buf[1024];
+	TCHAR buf[1024];
 	va_list marker;
 	va_start( marker, pszFormat );
 	wvsprintf(buf, pszFormat, marker);
@@ -47,16 +47,21 @@ CDDEServerSystemTopic *PythonDDEServer::CreateSystemTopic()
 // @pymethod |PyDDEServer|Create|Create a server
 PyObject *PyDDEServer_Create(PyObject *self, PyObject *args)
 {
-	char *serviceName; DWORD flags = 0;
+	TCHAR *serviceName;
+	DWORD flags = 0;
+	PyObject *observiceName;
 	PythonDDEServer *pServer = PyDDEServer::GetServer(self);
 	if (!pServer) return NULL;
 	// @pyparm string|name||Name of the server to start.
 	// @pyparm int|filterFlags|0|Filter flags.
-	if (!PyArg_ParseTuple(args, "s|i:Create", &serviceName, &flags))
+	if (!PyArg_ParseTuple(args, "O|i:Create", &observiceName, &flags))
+		return NULL;
+	if (!PyWinObject_AsTCHAR(observiceName, &serviceName, FALSE))
 		return NULL;
 	GUI_BGN_SAVE;
 	BOOL ok = pServer->Create(serviceName, flags);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(serviceName);
 	if (!ok)
 		RETURN_DDE_ERR("The server could not be created");
 	RETURN_NONE;

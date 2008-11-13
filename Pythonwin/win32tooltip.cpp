@@ -80,10 +80,11 @@ static PyObject *
 PyCToolTipCtrl_update_tip_text(PyObject *self, PyObject *args)
 	{
 	PyObject *obWnd;
-	char *pszText;
+	TCHAR *pszText;
+	PyObject *obText;
 	UINT nIDTool;
-	if (!PyArg_ParseTuple(args, "sOi:UpdateTipText", 
-			   &pszText,// @pyparm string|text||The text for the tool.
+	if (!PyArg_ParseTuple(args, "OOi:UpdateTipText", 
+			   &obText,// @pyparm string|text||The text for the tool.
 			   &obWnd, // @pyparm <o PyCWnd>|wnd||The window of the tool.
 			   &nIDTool// @pyparm int|id||The id of the tool
 			   )) 
@@ -101,10 +102,12 @@ PyCToolTipCtrl_update_tip_text(PyObject *self, PyObject *args)
 
 	CToolTipCtrl *pTTC = GetToolTipCtrl(self);
 	if (!pTTC)return NULL;
-
+	if (!PyWinObject_AsTCHAR(obText, &pszText, FALSE))
+		return NULL;
 	GUI_BGN_SAVE;
 	pTTC->UpdateTipText(pszText,pWndToolOwner,nIDTool);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(pszText);
 	RETURN_NONE;
 	}
 
@@ -115,11 +118,12 @@ static PyObject *
 PyCToolTipCtrl_add_tool(PyObject *self, PyObject *args)
 	{
 	PyObject *obWnd,*obRect;
-	char *pszText;
+	TCHAR *pszText;
+	PyObject *obText;
 	UINT nIDTool;
-	if (!PyArg_ParseTuple(args, "OsOi:CreateWindow", 
+	if (!PyArg_ParseTuple(args, "OOOi:CreateWindow", 
 			   &obWnd, // @pyparm <o PyCWnd>|wnd||The window of the tool.
-			   &pszText,// @pyparm string|text||The text for the tool.
+			   &obText,// @pyparm string|text||The text for the tool.
 			   &obRect, // @pyparm int, int, int, int|rect|None|The default rectangle
 			   &nIDTool// @pyparm int|id||The id of the tool
 			   )) 
@@ -150,10 +154,12 @@ PyCToolTipCtrl_add_tool(PyObject *self, PyObject *args)
 
 	CToolTipCtrl *pTTC = GetToolTipCtrl(self);
 	if (!pTTC)return NULL;
-
+	if (!PyWinObject_AsTCHAR(obText, &pszText, FALSE))
+		return NULL;
 	GUI_BGN_SAVE;
 	BOOL ok=pTTC->AddTool(pWnd,pszText,pRectTool,nIDTool);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(pszText);
 	if (!ok)
 		RETURN_ERR("CToolTipCtrl::AddTool");
 	RETURN_NONE;

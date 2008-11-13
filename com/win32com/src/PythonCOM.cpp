@@ -14,10 +14,8 @@ generates Windows .hlp files.
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
 #include "PyFactory.h"
+#include "PyComTypeObjects.h"
 #include "OleAcc.h" // for ObjectFromLresult proto...
-
-// keep a reference to pythoncom'm __dict__ so the COM currency format can be looked up dynamically
-extern PyObject *pythoncom_dict=NULL;
 
 extern int PyCom_RegisterCoreIIDs(PyObject *dict);
 
@@ -75,9 +73,9 @@ PyObject *Py_NewVARDESC(PyObject *self, PyObject *args);
 
 // Error related functions
 void GetScodeString(SCODE sc, TCHAR *buf, int bufSize);
-LPCSTR GetScodeRangeString(SCODE sc);
-LPCSTR GetSeverityString(SCODE sc);
-LPCSTR GetFacilityString(SCODE sc);
+LPCTSTR GetScodeRangeString(SCODE sc);
+LPCTSTR GetSeverityString(SCODE sc);
+LPCTSTR GetFacilityString(SCODE sc);
 
 /* Debug/Test helpers */
 extern LONG _PyCom_GetInterfaceCount(void);
@@ -99,7 +97,7 @@ BOOL PyCom_HasDCom()
 #ifndef MS_WINCE
 	static BOOL bHaveDCOM = -1;
 	if (bHaveDCOM==-1) {
-		HMODULE hMod = GetModuleHandle("ole32.dll");
+		HMODULE hMod = GetModuleHandle(_T("ole32.dll"));
 		if (hMod) {
 			FARPROC fp = GetProcAddress(hMod, "CoInitializeEx");
 			bHaveDCOM = (fp!=NULL);
@@ -237,7 +235,7 @@ static PyObject *pythoncom_CoCreateInstanceEx(PyObject *self, PyObject *args)
 	// Jump hoops in case the platform doesnt have it.
 	{ // scoping
 	HRESULT (STDAPICALLTYPE *mypfn)(REFCLSID, IUnknown *, DWORD, COSERVERINFO *, ULONG, MULTI_QI *);
-	HMODULE hMod = GetModuleHandle("ole32.dll");
+	HMODULE hMod = GetModuleHandle(_T("ole32.dll"));
 	if (hMod==0) {
 		PyCom_BuildInternalPyException("Can not load ole32.dll");
 		goto done;
@@ -320,7 +318,7 @@ static PyObject *pythoncom_CoInitializeSecurity(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_TypeError, "obAuthSvc must be None or an empty sequence.");
 		return NULL;
 	}
-	HMODULE hMod = GetModuleHandle("ole32.dll");
+	HMODULE hMod = GetModuleHandle(_T("ole32.dll"));
 	if (hMod==0) return PyCom_BuildInternalPyException("Can not load ole32.dll");
 	FARPROC fp = GetProcAddress(hMod, "CoInitializeSecurity");
 	if (fp==NULL) return PyCom_BuildPyException(E_NOTIMPL);
@@ -603,8 +601,8 @@ static PyObject *pythoncom_GetScodeString(PyObject *self, PyObject *args)
 	// @pyparm int|scode||The OLE error code for the scode string requested.
 	if (!PyArg_ParseTuple(args, "k", &scode))
 		return NULL;
-	GetScodeString(scode, buf, sizeof(buf));
-	return PyString_FromTCHAR(buf);
+	GetScodeString(scode, buf, sizeof(buf)/sizeof(buf[0]));
+	return PyWinObject_FromTCHAR(buf);
 	// @comm This will obtain the COM Error message for a given HRESULT.
 	// Internally, PythonCOM uses this function to obtain the description
 	// when a <o com_error> COM Exception is raised.
@@ -617,7 +615,7 @@ static PyObject *pythoncom_GetScodeRangeString(PyObject *self, PyObject *args)
 	// @pyparm int|scode||An OLE error code to return the scode range string for.
 	if (!PyArg_ParseTuple(args, "k", &scode))
 		return NULL;
-	return Py_BuildValue("z", GetScodeRangeString(scode) );
+	return PyWinObject_FromTCHAR(GetScodeRangeString(scode));
 }
 
 // @pymethod string|pythoncom|GetSeverityString|Returns the severity string, given an OLE scode.
@@ -627,7 +625,7 @@ static PyObject *pythoncom_GetSeverityString(PyObject *self, PyObject *args)
 	// @pyparm int|scode||The OLE error code for the severity string requested.
 	if (!PyArg_ParseTuple(args, "k", &scode))
 		return NULL;
-	return Py_BuildValue("z", GetSeverityString(scode) );
+	return PyWinObject_FromTCHAR(GetSeverityString(scode));
 }
 
 // @pymethod string|pythoncom|GetFacilityString|Returns the facility string, given an OLE scode.
@@ -637,7 +635,7 @@ static PyObject *pythoncom_GetFacilityString(PyObject *self, PyObject *args)
 	// @pyparm int|scode||The OLE error code for the facility string requested.
 	if (!PyArg_ParseTuple(args, "k", &scode))
 		return NULL;
-	return Py_BuildValue("z", GetFacilityString(scode) );
+	return PyWinObject_FromTCHAR(GetFacilityString(scode));
 }
 
 // @pymethod <o PyIDispatch>|pythoncom|UnwrapObject|Unwraps a Python instance in a gateway object.
@@ -1770,7 +1768,7 @@ static PyObject *pythoncom_ObjectFromLresult(PyObject *self, PyObject *args)
 
 	// GIL protects us from races here.
 	if (pfnObjectFromLresult==NULL) {
-		HMODULE hmod = LoadLibrary("oleacc.dll");
+		HMODULE hmod = LoadLibrary(_T("oleacc.dll"));
 		if (hmod)
 			pfnObjectFromLresult = (LPFNOBJECTFROMLRESULT)
 				GetProcAddress(hmod, "ObjectFromLresult");
@@ -2010,7 +2008,6 @@ extern "C" __declspec(dllexport) void initpythoncom()
 
 	PyObject *dict = PyModule_GetDict(oModule);
 	if (!dict) return; /* Another serious error!*/
-	pythoncom_dict=dict;
 
 	PyDict_SetItemString(dict, "TypeIIDs", g_obPyCom_MapIIDToType);
 	PyDict_SetItemString(dict, "ServerInterfaces", g_obPyCom_MapGatewayIIDToName);
@@ -2064,10 +2061,10 @@ extern "C" __declspec(dllexport) void initpythoncom()
 	// New code should use the functions in pywintypes.
 	PyDict_SetItemString(dict, "PyTimeType", (PyObject *)&PyTimeType);
 	PyDict_SetItemString(dict, "PyIIDType", (PyObject *)&PyIIDType);
-	PyDict_SetItemString(dict, "PyUnicodeType", (PyObject *)&PyUnicodeType);
+	PyDict_SetItemString(dict, "PyUnicodeType", (PyObject *)&PyUnicode_Type);
 
 	// Load function pointers.
-	HMODULE hModOle32 = GetModuleHandle("ole32.dll");
+	HMODULE hModOle32 = GetModuleHandle(_T("ole32.dll"));
 	pfnCoWaitForMultipleHandles = \
 	   (HRESULT (STDAPICALLTYPE *)(DWORD, DWORD, ULONG, LPHANDLE, LPDWORD)) \
 	   GetProcAddress(hModOle32, "CoWaitForMultipleHandles");

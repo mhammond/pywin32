@@ -77,19 +77,23 @@ ui_doc_do_save(PyObject *self, PyObject *args)
 {
 	// @comm If invalid or no filename, will prompt for a name, else
 	// will perform the actual saving of the document.
-	char *fileName;
+	TCHAR *fileName;
+	PyObject *obfileName;
 	int bReplace = TRUE;
-	if (!PyArg_ParseTuple(args,"s|i", 
-			&fileName, 	// @pyparm string|fileName||The name of the file to save to.
+	if (!PyArg_ParseTuple(args,"O|i", 
+			&obfileName, 	// @pyparm string|fileName||The name of the file to save to.
 			&bReplace)) // @pyparm int|bReplace|1|Should an existing file be silently replaced?.
 		return NULL;
 	CDocument *pDoc;
 	if (!(pDoc=PyCDocument::GetDoc(self)))
 		return NULL;
+	if (!PyWinObject_AsTCHAR(obfileName, &fileName, FALSE))
+		return NULL;
 	// @xref <vm PyCDocument.DoSave>
 	GUI_BGN_SAVE;
 	BOOL rc = pDoc->CDocument::DoSave(fileName, bReplace); // @pyundocmfc CDocument|DoSave
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(fileName);
 	if (rc==FALSE)
 		RETURN_ERR("DoSave failed");
 	RETURN_NONE;
@@ -159,7 +163,7 @@ ui_doc_get_path_name(PyObject *self, PyObject *args)
 	GUI_BGN_SAVE;
 	CString path = pDoc->GetPathName(); // @pyseemfc CDocument|GetPathName
 	GUI_END_SAVE;
-	return Py_BuildValue("s", (const char *)path);
+	return PyWinObject_FromTCHAR(path);
 }
 // @pymethod <o PyCDocTemplate>|PyCDocument|GetDocTemplate|Returns the template for the document.
 PyObject *
@@ -188,7 +192,7 @@ ui_doc_get_title(PyObject *self, PyObject *args)
 	GUI_BGN_SAVE;
 	CString path = pDoc->GetTitle(); // @pyseemfc CDocument|GetTitle
 	GUI_END_SAVE;
-	return Py_BuildValue("s", (const char *)path);
+	return PyWinObject_FromTCHAR(path);
 }
 // @pymethod int|PyCDocument|IsModified|Return a flag indicating if the document has been modified.
 PyObject *
@@ -246,15 +250,19 @@ ui_doc_on_new(PyObject *self, PyObject *args)
 static PyObject *
 ui_doc_on_open(PyObject *self, PyObject *args)
 {
-	char *pathName;
-	if (!PyArg_ParseTuple(args, "s", &pathName)) // @pyparm string|pathName||The full path of the file to open.
+	TCHAR *pathName;
+	PyObject *obpathName;
+	if (!PyArg_ParseTuple(args, "O", &obpathName)) // @pyparm string|pathName||The full path of the file to open.
 		return NULL;
 	CDocument *pDoc;
 	if (!(pDoc=PyCDocument::GetDoc(self)))
 		return NULL;
+	if (!PyWinObject_AsTCHAR(obpathName, &pathName, FALSE))
+		return NULL;
 	GUI_BGN_SAVE;
 	BOOL ok = pDoc->OnOpenDocument(pathName);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(pathName);
 	if (!ok) // @pyseemfc CDocument|OnOpenDocument
 		RETURN_ERR("OnOpenDocument failed");
 	RETURN_NONE;
@@ -266,15 +274,19 @@ ui_doc_on_open(PyObject *self, PyObject *args)
 static PyObject *
 ui_doc_on_save(PyObject *self, PyObject *args)
 {
-	char *pathName;
-	if (!PyArg_ParseTuple(args, "s", &pathName)) // @pyparm string|pathName||The full path of the file to save.
+	TCHAR *pathName;
+	PyObject *obpathName;
+	if (!PyArg_ParseTuple(args, "O", &obpathName)) // @pyparm string|pathName||The full path of the file to save.
 		return NULL;
 	CDocument *pDoc;
 	if (!(pDoc=PyCDocument::GetDoc(self)))
 		return NULL;
+	if (!PyWinObject_AsTCHAR(obpathName, &pathName, FALSE))
+		return NULL;
 	GUI_BGN_SAVE;
 	BOOL ok = pDoc->OnSaveDocument(pathName);
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(pathName);
 	if (!ok) // @pyseemfc CDocument|OnSaveDocument
 		RETURN_ERR("OnSaveDocument failed");
 	RETURN_NONE;
@@ -317,17 +329,20 @@ ui_doc_set_modified_flag(PyObject *self, PyObject *args)
 PyObject *
 ui_doc_set_path_name(PyObject *self, PyObject *args)
 {
-	char *path;
-	if (!PyArg_ParseTuple(args, "s:SetPathName", &path)) // @pyparm string|path||The full path of the file.
+	TCHAR *path;
+	PyObject *obpath;
+	if (!PyArg_ParseTuple(args, "O:SetPathName", &obpath)) // @pyparm string|path||The full path of the file.
 		return NULL;
 
 	CDocument *pDoc;
 	if (!(pDoc=PyCDocument::GetDoc(self)))
 		return NULL;
-
+	if (!PyWinObject_AsTCHAR(obpath, &path, FALSE))
+		return NULL;
 	GUI_BGN_SAVE;
 	pDoc->SetPathName(path); // @pyseemfc CDocument|SetPathName
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(path);
 	RETURN_NONE;
 }
 
@@ -336,16 +351,19 @@ ui_doc_set_path_name(PyObject *self, PyObject *args)
 static PyObject *
 ui_doc_set_title(PyObject *self, PyObject *args)
 {
-	char *title;
-	if (!PyArg_ParseTuple(args, "s", &title)) // @pyparm string|title||The new title.
+	TCHAR *title;
+	PyObject *obtitle;
+	if (!PyArg_ParseTuple(args, "O", &obtitle)) // @pyparm string|title||The new title.
 		return NULL;
-
+	if (!PyWinObject_AsTCHAR(obtitle, &title, FALSE))
+		return NULL;
 	CDocument *pDoc;
 	if (!(pDoc=PyCDocument::GetDoc(self)))
 		return NULL;
 	GUI_BGN_SAVE;
 	pDoc->SetTitle(title); // @pyseemfc CDocument|SetTitle
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(title);
 	RETURN_NONE;
 }
 

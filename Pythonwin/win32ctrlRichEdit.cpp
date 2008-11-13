@@ -423,7 +423,7 @@ PyCRichEditCtrl_get_line(PyObject *self, PyObject *args)
 					// god damn it - try and write a fairly efficient normal case,
 					// and handle worst case, and look what happens!
 	CString csBuffer;			// use dynamic mem for buffer
-	char *buf;
+	TCHAR *buf;
 	int bytesCopied;
 	// this TRACE _always_ returns the length of the first line - hence the
 	// convaluted code below.
@@ -449,7 +449,7 @@ PyCRichEditCtrl_get_line(PyObject *self, PyObject *args)
 //	if (buf[bytesCopied-1]=='\r' || buf[bytesCopied-1]=='\n')	// kill newlines.
 //		--bytesCopied;
 	buf[bytesCopied] = '\0';
-	return Py_BuildValue("s",buf);
+	return PyWinObject_FromTCHAR(buf);
 }
 
 // @pymethod |PyCRichEditCtrl|Paste|Pastes the contents of the clipboard into the control.
@@ -469,13 +469,17 @@ static PyObject *PyCRichEditCtrl_paste(PyObject *self, PyObject *args)
 static PyObject *PyCRichEditCtrl_replace_sel(PyObject *self, PyObject *args)
 {
 	CRichEditCtrl *pEdit = GetRichEditCtrl(self);
-	char *msg;
+	TCHAR *msg;
+	PyObject *obmsg;
 	// @pyparm string|text||The text to replace the selection with.
-	if (!pEdit || !PyArg_ParseTuple(args, "s:ReplaceSel", &msg))
+	if (!pEdit
+		|| !PyArg_ParseTuple(args, "O:ReplaceSel", &obmsg)
+		|| !PyWinObject_AsTCHAR(obmsg, &msg, FALSE))
 		return NULL;
 	GUI_BGN_SAVE;
 	pEdit->ReplaceSel(msg); // @pyseemfc CRichEditCtrl|ReplaceSel
 	GUI_END_SAVE;
+	PyWinObject_FreeTCHAR(msg);
 	RETURN_NONE;
 }
 

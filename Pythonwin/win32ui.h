@@ -37,6 +37,11 @@
 #define DODECREF(o) Py_DECREF(o)
 #define XDODECREF(o) Py_XDECREF(o)
 
+inline PyObject *PyWinObject_FromTCHAR(CString *str )
+{
+	return PyWinObject_FromTCHAR((const TCHAR *)str);
+}
+
 // we cant use these memory operators - must use make and python handles delete
 #undef NEWOBJ
 #undef DEL
@@ -57,7 +62,7 @@ inline BOOL IsGdiHandleValid(HANDLE hobject) \
 	{return hobject == NULL || IsWin32s() || ::GetObjectType(hobject) != 0;}
 
 
-CString GetAPIErrorString(char *fnName);
+CString GetAPIErrorString(const char *fnName);
 CString GetAPIErrorString(DWORD dwCode);
 
 // The do/while clauses wrapped around these macro bodies are a cpp
@@ -250,9 +255,9 @@ enum EnumExceptionHandlerAction {
 	EHA_DISPLAY_DIALOG
 };
 
-typedef void (*ExceptionHandlerFunc)(int action, const char *context, const char *extraTitleMsg);
+typedef void (*ExceptionHandlerFunc)(int action, const TCHAR *context, const TCHAR *extraTitleMsg);
 
-PYW_EXPORT void ExceptionHandler(int action, const char *context=NULL, const char *extraTitleMsg=NULL);
+PYW_EXPORT void ExceptionHandler(int action, const TCHAR *context=NULL, const TCHAR *extraTitleMsg=NULL);
 PYW_EXPORT ExceptionHandlerFunc SetExceptionHandler(ExceptionHandlerFunc handler);
 
 // A helper class for calling "virtual methods" - ie, given a C++ object
@@ -281,7 +286,9 @@ public:
 	BOOL call(long);
 	BOOL call(UINT_PTR);
 	BOOL call(const char *);
+	BOOL call(const WCHAR *);
 	BOOL call(const char *, int);
+	BOOL call(const WCHAR *val, int ival);
 	BOOL call(CDC *, CPrintInfo *);
 	BOOL call(CPrintInfo *);
 	BOOL call(CDC *);
@@ -307,6 +314,7 @@ public:
 	BOOL retval( PyObject* &ret );
 	BOOL retval( CREATESTRUCT &cs );
 	BOOL retval( char * &ret );
+	BOOL retval( WCHAR *&ret );
 	BOOL retval( CString &ret );
 	BOOL retval( MSG *msg);
 	BOOL retval( HANDLE &ret );
@@ -332,7 +340,7 @@ PYW_EXPORT int Python_callback(PyObject *, LPARAM);
 PYW_EXPORT int Python_callback(PyObject *, int, int);
 PYW_EXPORT int Python_callback(PyObject *, const MSG *);
 PYW_EXPORT int Python_callback(PyObject *method, PyObject *object);
-int Python_run_command_with_log(const char *command, const char * logFileName);
+int Python_run_command_with_log(const char *command);
 PYW_EXPORT BOOL Python_check_message(const MSG *pMsg);	// TRUE if fully processed.
 PYW_EXPORT BOOL Python_check_key_message(const MSG *pMsg);	// TRUE if fully processed.
 PYW_EXPORT BOOL Python_OnCmdMsg(CCmdTarget *, UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO*pHandlerInfo );// TRUE if fully processed.
@@ -350,14 +358,17 @@ PYW_EXPORT PyObject *MakeCharFormatTuple(CHARFORMAT *pFmt);
 PYW_EXPORT BOOL ParseParaFormatTuple( PyObject *args, PARAFORMAT *pFmt);
 PYW_EXPORT PyObject *MakeParaFormatTuple(PARAFORMAT *pFmt);
 
-PYW_EXPORT PyObject *MakeLV_ITEMTuple(LV_ITEM *item);
-PYW_EXPORT BOOL ParseLV_ITEMTuple( PyObject *args, LV_ITEM *pItem);
+PYW_EXPORT PyObject *PyWinObject_FromLV_ITEM(LV_ITEM *pItem);
+PYW_EXPORT BOOL PyWinObject_AsLV_ITEM( PyObject *args, LV_ITEM *pItem);
+PYW_EXPORT void PyWinObject_FreeLV_ITEM(LV_ITEM *pItem);
 
-PYW_EXPORT PyObject *MakeLV_COLUMNTuple(LV_COLUMN *item);
-PYW_EXPORT BOOL ParseLV_COLUMNTuple( PyObject *args, LV_COLUMN *pItem);
+PYW_EXPORT PyObject *PyWinObject_FromLV_COLUMN(LV_COLUMN *pCol);
+PYW_EXPORT BOOL PyWinObject_AsLV_COLUMN( PyObject *args, LV_COLUMN *pCol);
+PYW_EXPORT void PyWinObject_FreeLV_COLUMN(LV_COLUMN *pCol);
 
-PYW_EXPORT BOOL ParseTV_ITEMTuple( PyObject *args, TV_ITEM *pItem);
-PYW_EXPORT PyObject *MakeTV_ITEMTuple(TV_ITEM *item);
+PYW_EXPORT BOOL PyWinObject_AsTV_ITEM( PyObject *args, TV_ITEM *pItem);
+PYW_EXPORT PyObject *PyWinObject_FromTV_ITEM(TV_ITEM *pItem);
+PYW_EXPORT void PyWinObject_FreeTV_ITEM(TV_ITEM *pItem);
 
 PyObject *PyWin_GetPythonObjectFromLong(LONG_PTR val);
 
@@ -371,15 +382,9 @@ PYW_EXPORT void Python_do_exchange(CDialog *pDlg, CDataExchange *pDX);
 // call when an external object dies.
 PYW_EXPORT void Python_delete_assoc( void *ob );
 
-PYW_EXPORT void Python_addpath( const char *paths );
-
-// Use an internal MFC function.  Pretty easy to remove should the need arise.
-extern BOOL PASCAL AfxFullPath(LPSTR lpszPathOut, LPCSTR lpszFileIn);
-// but make it easier to!
-inline BOOL GetFullPath(LPSTR lpszPathOut, LPCSTR lpszFileIn)
-	{ return AfxFullPath(lpszPathOut, lpszFileIn);}
+PYW_EXPORT void Python_addpath( const TCHAR *paths );
 
 BOOL AFXAPI PyAfxComparePath(LPCTSTR lpszPath1, LPCTSTR lpszPath2);
-
+extern BOOL PASCAL AfxFullPath(LPTSTR lpszPathOut, LPCTSTR lpszFileIn);
 #endif // __filename_h__
 

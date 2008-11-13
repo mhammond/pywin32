@@ -4,16 +4,6 @@
 #include "PythonCOM.h"
 // @doc
 
-class PyCOleClientItem : public PyCCmdTarget {
-protected:
-	PyCOleClientItem() {;}
-	~PyCOleClientItem() {;}
-public:
-	static COleClientItem *GetOleClientItem(PyObject *self);
-
-	MAKE_PY_CTOR(PyCOleClientItem);
-	static ui_type_CObject type;
-};
 
 class PythonOleClientItem : public COleClientItem
 {
