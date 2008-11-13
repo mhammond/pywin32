@@ -253,7 +253,7 @@ PyObject *pythoncom_StgOpenStorageEx(PyObject *self, PyObject *args)
 	if (myStgOpenStorageEx==NULL) { // Haven't tried to fetch it yet.
 		myStgOpenStorageEx = (PFNStgOpenStorageEx)-1;
 		if (ole32==NULL)
-			ole32=GetModuleHandle("Ole32.dll");
+			ole32=GetModuleHandle(_T("Ole32.dll"));
 		if (ole32!=NULL){
 			FARPROC fp = GetProcAddress(ole32,"StgOpenStorageEx");
 			if (fp!=NULL)
@@ -314,7 +314,7 @@ PyObject *pythoncom_FmtIdToPropStgName(PyObject *self, PyObject *args)
 	static BOOL pfnchecked=FALSE;
 	if (!pfnchecked){
 		if (ole32==NULL)
-			ole32=GetModuleHandle("Ole32.dll");
+			ole32=GetModuleHandle(_T("Ole32.dll"));
 		if (ole32!=NULL)
 			pfnFmtIdToPropStgName = (PFNFmtIdToPropStgName)GetProcAddress(ole32, "FmtIdToPropStgName");
 		pfnchecked=TRUE;
@@ -351,7 +351,7 @@ PyObject *pythoncom_PropStgNameToFmtId(PyObject *self, PyObject *args)
 	static BOOL pfnchecked=FALSE;
 	if (!pfnchecked){
 		if (ole32==NULL)
-			ole32=GetModuleHandle("Ole32.dll");
+			ole32=GetModuleHandle(_T("Ole32.dll"));
 		if (ole32!=NULL)
 			pfnPropStgNameToFmtId = (PFNPropStgNameToFmtId)GetProcAddress(ole32, "PropStgNameToFmtId");
 		pfnchecked=TRUE;

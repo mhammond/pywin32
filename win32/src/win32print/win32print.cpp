@@ -1029,14 +1029,11 @@ PyObject *JobtoPy(DWORD level, LPBYTE buf)
 	JOB_INFO_1 *job1;
 	JOB_INFO_2 *job2;
 	JOB_INFO_3 *job3;
-	SYSTEMTIME localSubmitted;
-	PyObject *pylocalsubmitted, *ret;
+	PyObject *ret;
 	switch (level){
 		case 1:{
 			job1= (JOB_INFO_1 *)buf;
-			SystemTimeToTzSpecificLocalTime(NULL, &(job1->Submitted), &localSubmitted);
-			pylocalsubmitted= new PyTime(localSubmitted);
-			ret= Py_BuildValue("{s:k, s:N, s:N, s:N, s:N, s:N, s:N, s:k, s:k, s:k, s:k, s:k, s:O}",
+			ret= Py_BuildValue("{s:k, s:N, s:N, s:N, s:N, s:N, s:N, s:k, s:k, s:k, s:k, s:k, s:N}",
 					"JobId", job1->JobId,
 					"pPrinterName", PyWinObject_FromTCHAR(job1->pPrinterName),
 					"pMachineName", PyWinObject_FromTCHAR(job1->pMachineName),
@@ -1049,15 +1046,12 @@ PyObject *JobtoPy(DWORD level, LPBYTE buf)
 					"Position", job1->Position,
 					"TotalPages", job1->TotalPages,
 					"PagesPrinted", job1->PagesPrinted,
-					"Submitted", pylocalsubmitted);
-			Py_XDECREF(pylocalsubmitted);
+					"Submitted", PyWinObject_FromSYSTEMTIME(job1->Submitted));
 			return ret;
 			}
 		case 2:{
 			job2=(JOB_INFO_2 *)buf;
-			SystemTimeToTzSpecificLocalTime(NULL, &(job2->Submitted), &localSubmitted);
-			pylocalsubmitted= new PyTime(localSubmitted);
-			ret= Py_BuildValue("{s:k, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:k, s:k, s:k, s:k, s:k, s:k, s:k, s:O, s:k, s:k}",
+			ret= Py_BuildValue("{s:k, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:N, s:k, s:k, s:k, s:k, s:k, s:k, s:k, s:N, s:k, s:k}",
 					"JobId", job2->JobId,
 					"pPrinterName", PyWinObject_FromTCHAR(job2->pPrinterName),
 					"pMachineName", PyWinObject_FromTCHAR(job2->pMachineName),
@@ -1078,10 +1072,9 @@ PyObject *JobtoPy(DWORD level, LPBYTE buf)
 					"UntilTime", job2->UntilTime,
 					"TotalPages", job2->TotalPages,
 					"Size", job2->Size,
-					"Submitted", pylocalsubmitted,
+					"Submitted", PyWinObject_FromSYSTEMTIME(job2->Submitted),
 					"Time", job2->Time,
 					"PagesPrinted", job2->PagesPrinted);
-			Py_XDECREF(pylocalsubmitted);
 			return ret;
 			}
 	   	case 3:{
@@ -2584,7 +2577,7 @@ static PyObject *PyFlushPrinter(PyObject *self, PyObject *args)
 
 
 /* List of functions exported by this module */
-// @module win32print|A module, encapsulating the Windows Win32 API.
+// @module win32print|A module encapsulating the Windows printing API.
 static struct PyMethodDef win32print_functions[] = {
 	{"OpenPrinter",				PyOpenPrinter, 1}, // @pymeth OpenPrinter|Retrieves a handle to a printer.
 	{"GetPrinter",				PyGetPrinter       ,1}, // @pymeth GetPrinter|Retrieves information about a printer
@@ -2836,4 +2829,3 @@ initwin32print(void)
   }
   dummy_tuple=PyTuple_New(0);
 }
-

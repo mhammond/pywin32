@@ -874,6 +874,7 @@ int PyWinGlobals_Ensure()
 		// @tupleitem 2|None/tuple|excepinfo|An optional EXCEPINFO tuple.
 		// @tupleitem 3|None/int|argerror|The index of the argument in error, or (usually) None or -1
 	}
+	return 0;
 }
 
 void PyWinGlobals_Free()

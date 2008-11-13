@@ -206,7 +206,7 @@ static PyObject *SetThreadStateTrace(PyObject *self, PyObject *args)
 	return Py_None;
 }
 /* List of module functions */
-// @module axdebug|A module, encapsulating the ActiveX Debugging
+// @module axdebug|A module, encapsulating the ActiveX Debugging interfaces
 static struct PyMethodDef axdebug_methods[]=
 {
 	{ "GetStackAddress", GetStackAddress, 1},
@@ -215,19 +215,6 @@ static struct PyMethodDef axdebug_methods[]=
 	{ NULL, NULL }
 };
 
-static int AddConstant(PyObject *dict, const char *key, long value)
-{
-	PyObject *oval = PyInt_FromLong(value);
-	if (!oval)
-	{
-		return 1;
-	}
-	int rc = PyDict_SetItemString(dict, (char*)key, oval);
-	Py_DECREF(oval);
-	return rc;
-}
-
-#define ADD_CONSTANT(tok) AddConstant(dict, #tok, tok)
 
 // The list of interfaces and gateways we support.
 static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
@@ -292,6 +279,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_CLSID_ONLY (DefaultDebugSessionProvider), // @const axdebug|CLSID_DefaultDebugSessionProvider|An IID object
 };
 
+#define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok) == -1) RETURN_ERROR;
 
 /* Module initialisation */
 extern "C" __declspec(dllexport) void initaxdebug()
@@ -307,13 +295,10 @@ extern "C" __declspec(dllexport) void initaxdebug()
 	PyObject *dict = PyModule_GetDict(oModule);
 	if (!dict) return; /* Another serious error!*/
 
-	// Add some symbolic constants to the module   
-	axdebug_Error = PyString_FromString("error");
+	// Add some symbolic constants to the module
+	axdebug_Error = PyErr_NewException("axdebug.error", NULL, NULL);
 	if (axdebug_Error == NULL || PyDict_SetItemString(dict, "error", axdebug_Error) != 0)
-	{
-		PyErr_SetString(PyExc_MemoryError, "can't define error");
-		return;
-	}
+		RETURN_ERROR;
 
 	// AX-Debugging interface registration
 	PyCom_RegisterExtensionSupport(dict, g_interfaceSupportData, sizeof(g_interfaceSupportData)/sizeof(PyCom_InterfaceSupportInfo));
@@ -399,7 +384,4 @@ extern "C" __declspec(dllexport) void initaxdebug()
 
 	ADD_CONSTANT(TEXT_DOC_ATTR_READONLY); // @const axdebug|TEXT_DOC_ATTR_READONLY|Indicates that the document is read-only.
 
-
-//	ADD_CONSTANT();
-	
 }

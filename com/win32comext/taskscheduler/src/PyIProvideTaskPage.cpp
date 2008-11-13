@@ -35,7 +35,7 @@ PyObject *PyIProvideTaskPage::GetPage(PyObject *self, PyObject *args)
 	// @pyparm int|tpType||Type of page to retreive (TASKPAGE_TASK,TASKPAGE_SCHEDULE,TASKPAGE_SETTINGS)
 	// @pyparm bool|PersistChanges||Indicates if changes should be saved automatically
 	HPROPSHEETPAGE phPage;
-	BOOL bPersistChanges=FALSE;
+	BOOL bPersistChanges;
 	if ( !PyArg_ParseTuple(args, "ii:GetPage", &tpType, &bPersistChanges))
 		return NULL;
 
@@ -46,7 +46,7 @@ PyObject *PyIProvideTaskPage::GetPage(PyObject *self, PyObject *args)
 
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIPTP, IID_IProvideTaskPage );
-	return new PyHANDLE(phPage);
+	return PyWinLong_FromHANDLE(phPage);
 }
 
 // @object PyIProvideTaskPage|Description of the interface

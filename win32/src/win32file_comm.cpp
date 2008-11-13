@@ -18,7 +18,7 @@
 // @tupleitem 4|int|WriteTotalTimeoutConstant| 
 PyObject *PyWinObject_FromCOMMTIMEOUTS( COMMTIMEOUTS *p)
 {
-	return Py_BuildValue("iiiii",
+	return Py_BuildValue("kkkkk",
 		p->ReadIntervalTimeout,
 		p->ReadTotalTimeoutMultiplier,
 		p->ReadTotalTimeoutConstant,
@@ -28,7 +28,7 @@ PyObject *PyWinObject_FromCOMMTIMEOUTS( COMMTIMEOUTS *p)
 
 BOOL PyWinObject_AsCOMMTIMEOUTS( PyObject *ob, COMMTIMEOUTS *p)
 {
-	return PyArg_ParseTuple(ob, "iiiii",
+	return PyArg_ParseTuple(ob, "kkkkk",
 		&p->ReadIntervalTimeout,
 		&p->ReadTotalTimeoutMultiplier,
 		&p->ReadTotalTimeoutConstant,

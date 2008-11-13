@@ -24,7 +24,6 @@ QueryServiceConfig2func fpQueryServiceConfig2=NULL;
 
 %init %{
 	// All errors raised by this module are of this type.
-	Py_INCREF(PyWinExc_ApiError);
 	PyDict_SetItemString(d, "error", PyWinExc_ApiError);
 	PyDict_SetItemString(d, "HWINSTAType", (PyObject *)&PyHWINSTAType);
 	PyDict_SetItemString(d, "HDESKType", (PyObject *)&PyHDESKType);

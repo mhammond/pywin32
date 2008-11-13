@@ -85,7 +85,7 @@ PyObject *PyUnloadPerfCounterTextStrings(PyObject *self, PyObject *args)
 }
 
 /* List of functions exported by this module */
-// @module perfmon|A module which supports common Windows types.
+// @module perfmon|A module which wraps Performance Monitor functions.
 static struct PyMethodDef perfmon_functions[] = {
 	{"LoadPerfCounterTextStrings",     PyLoadPerfCounterTextStrings, 1}, 	// @pymeth LoadPerfCounterTextStrings|
 	{"UnloadPerfCounterTextStrings",   PyUnloadPerfCounterTextStrings, 1}, 	// @pymeth UnloadPerfCounterTextStrings|

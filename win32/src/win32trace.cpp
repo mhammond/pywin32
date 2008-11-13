@@ -40,10 +40,10 @@ See - I told you the implementation was simple :-)
 
 
 const unsigned long BUFFER_SIZE = 0x20000; // Includes size integer.
-const char *MAP_OBJECT_NAME = "Global\\PythonTraceOutputMapping";
-const char *MUTEX_OBJECT_NAME = "Global\\PythonTraceOutputMutex";
-const char *EVENT_OBJECT_NAME = "Global\\PythonTraceOutputEvent";
-const char *EVENT_EMPTY_OBJECT_NAME = "Global\\PythonTraceOutputEmptyEvent";
+const TCHAR *MAP_OBJECT_NAME = _T("Global\\PythonTraceOutputMapping");
+const TCHAR *MUTEX_OBJECT_NAME = _T("Global\\PythonTraceOutputMutex");
+const TCHAR *EVENT_OBJECT_NAME = _T("Global\\PythonTraceOutputEvent");
+const TCHAR *EVENT_EMPTY_OBJECT_NAME = _T("Global\\PythonTraceOutputEmptyEvent");
 
 // Global\\ etc goodness:
 // On NT4/9x, 'Global\\' is not understood and will fail.
@@ -71,10 +71,10 @@ const char *EVENT_EMPTY_OBJECT_NAME = "Global\\PythonTraceOutputEmptyEvent";
 // This behavior is controlled by a global variable set at mutex creation time.
 BOOL use_global_namespace = FALSE;
 
-static const char *FixupObjectName(const char *global_name)
+static const TCHAR *FixupObjectName(const TCHAR *global_name)
 {
     if (!use_global_namespace)
-        return strchr(global_name, '\\')+1;
+        return _tcschr(global_name, '\\')+1;
     // global prefix is ok.
     return global_name;
 }
@@ -174,7 +174,7 @@ static PyObject* PyTraceObject_isatty(PyObject *self, PyObject *args)
 
 
 static PyMethodDef PyTraceObject_methods[] = {
-    {"blockingread", PyTraceObject_blockingread, METH_VARARGS}, // @pytmeth blockingread
+    {"blockingread", PyTraceObject_blockingread, METH_VARARGS}, // @pymeth blockingread
     {"read",    PyTraceObject_read, METH_VARARGS }, // @pymeth read|    
     {"write",   PyTraceObject_write, METH_VARARGS }, // @pymeth write|
     {"flush",   PyTraceObject_flush, METH_VARARGS }, // @pymeth flush|Does nothing, but included to better emulate file semantics.
@@ -610,11 +610,11 @@ initwin32trace(void)
     PyWinGlobals_Ensure();
     PyObject *dict;
     PyObject* pModMe = Py_InitModule("win32trace", win32trace_functions);
+#define RETURN_ERROR return // towards py3k
     if (!pModMe) return;
     dict = PyModule_GetDict(pModMe);
     if (!dict) return;
 
-    Py_INCREF(PyWinExc_ApiError);
     PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
 
     // Allocate memory for the security descriptor.
@@ -670,18 +670,18 @@ initwin32trace(void)
     hMutex = CreateMutex(&sa, FALSE, FixupObjectName(MUTEX_OBJECT_NAME));
     if (hMutex==NULL) {
         PyWin_SetAPIError("CreateMutex");
-        return ;
+        RETURN_ERROR ;
     }
     assert (hEvent==NULL);
     hEvent = CreateEvent(&sa, FALSE, FALSE, FixupObjectName(EVENT_OBJECT_NAME));
     if (hEvent==NULL) {
         PyWin_SetAPIError("CreateEvent");
-        return ;
+        RETURN_ERROR;
     }
     assert (hEventEmpty==NULL);
     hEventEmpty = CreateEvent(&sa, FALSE, FALSE, FixupObjectName(EVENT_EMPTY_OBJECT_NAME));
     if (hEventEmpty==NULL) {
         PyWin_SetAPIError("CreateEvent");
-        return ;
+        RETURN_ERROR ;
     }
 }

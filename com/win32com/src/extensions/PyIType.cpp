@@ -403,11 +403,10 @@ static PyObject *typeinfo_getvardesc(PyObject *self, PyObject *args)
 static PyObject *typeinfo_getidsofnames(PyObject *self, PyObject *args)
 {
 	// XXX - todo - merge this code with PyIDispatch::GetIDsOfNames
+	ITypeInfo *pti = PyITypeInfo::GetI(self);
+	if (pti==NULL) return NULL;
 	UINT i;
-
-	int argc = PyObject_Length(args);
-	if ( argc == -1 )
-		return NULL;
+	int argc = PyTuple_GET_SIZE(args);
 	if ( argc < 1 ) {
 		PyErr_SetString(PyExc_TypeError, "At least one argument must be supplied");
 		return NULL;
@@ -416,16 +415,14 @@ static PyObject *typeinfo_getidsofnames(PyObject *self, PyObject *args)
 	UINT offset = 0;
 	if ( argc > 1 )
 	{
-		PyObject *ob = PySequence_GetItem(args, 0);
-		if ( !ob )
-			return NULL;
-		if ( PyInt_Check(ob) )
-		{
-			lcid = PyInt_AS_LONG((PyIntObject *)ob);
-			if ( lcid == -1 )
-				return NULL;
+		PyObject *ob = PyTuple_GET_ITEM(args, 0);
+		lcid=PyLong_AsLong(ob);
+		if (lcid==-1 && PyErr_Occurred()){
+			PyErr_Clear();
+			lcid=LOCALE_SYSTEM_DEFAULT;
+			}
+		else
 			offset = 1;
-		}
 	}
 
 	UINT cNames = argc - offset;
@@ -433,35 +430,28 @@ static PyObject *typeinfo_getidsofnames(PyObject *self, PyObject *args)
 
 	for ( i = 0 ; i < cNames; ++i )
 	{
-		PyObject *ob = PySequence_GetItem(args, i + offset);
-		if ( !ob )
-		{
-			for (;i>0;i--)
-				PyWinObject_FreeBstr(rgszNames[i-1]);
-			delete [] rgszNames;
-			return NULL;
-		}
+		PyObject *ob = PyTuple_GET_ITEM(args, i + offset);
 		if (!PyWinObject_AsBstr(ob, rgszNames+i)) {
 			for (;i>0;i--)
 				PyWinObject_FreeBstr(rgszNames[i-1]);
 			delete [] rgszNames;
 			return NULL;
 		}
-		Py_DECREF(ob);
 	}
 
 	DISPID FAR* rgdispid = new DISPID[cNames];
-	ITypeInfo *pti = PyITypeInfo::GetI(self);
-	if (pti==NULL) return NULL;
 	PY_INTERFACE_PRECALL;
 	HRESULT hr = pti->GetIDsOfNames(rgszNames, cNames, rgdispid);
 	PY_INTERFACE_POSTCALL;
 
+	for (i=0;i<cNames;i++)
+		PyWinObject_FreeBstr(rgszNames[i]);
 	delete [] rgszNames;
 
-	if ( FAILED(hr) )
+	if ( FAILED(hr) ){
+		delete [] rgdispid;
 		return PyCom_BuildPyException(hr, pti, IID_ITypeInfo);
-
+		}
 	PyObject *result;
 
 	/* if we have just one name, then return a single DISPID (int) */

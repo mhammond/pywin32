@@ -55,26 +55,22 @@ PyObject *PyIDispatch::GetIDsOfNames(PyObject *self, PyObject *args)
 	// @pyparm string|name||A name to query for
 	// @pyparmalt1 [string, ...]|[name, ...]||A sequence of string names to query
 	// @comm Currently the LCID can not be specified, and  LOCALE_SYSTEM_DEFAULT is used.
-	int argc = PyObject_Length(args);
-	if ( argc == -1 )
-		return NULL;
+	int argc = PyTuple_GET_SIZE(args);
 	if ( argc < 1 )
 		return PyErr_Format(PyExc_TypeError, "At least one argument must be supplied");
 
 	LCID lcid = LOCALE_SYSTEM_DEFAULT;
 	UINT offset = 0;
-	if ( argc > 1 )
-	{
-		PyObject *ob = PySequence_GetItem(args, 0);
-		if ( !ob )
-			return NULL;
-		if ( PyInt_Check(ob) )
-		{
-			lcid = PyInt_AS_LONG((PyIntObject *)ob);
+	if ( argc > 1 ){
+		PyObject *ob = PyTuple_GET_ITEM(args, 0);
+		lcid=PyLong_AsLong(ob);
+		if (lcid==-1 && PyErr_Occurred()){
+			PyErr_Clear();
+			lcid=LOCALE_SYSTEM_DEFAULT;
+			}
+		else
 			offset = 1;
 		}
-		Py_DECREF(ob);
-	}
 
 	UINT cNames = argc - offset;
 	OLECHAR FAR* FAR* rgszNames = new LPOLESTR[cNames];

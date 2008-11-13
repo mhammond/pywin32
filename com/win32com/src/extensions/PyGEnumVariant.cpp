@@ -3,9 +3,6 @@
 #include "PythonCOMServer.h"
 #include "PyIEnumVARIANT.h"
 
-extern void PyCom_LogF(const TCHAR *fmt, ...);
-#define LogF PyCom_LogF
-
 STDMETHODIMP PyGEnumVARIANT::Next( 
             /* [in] */ ULONG celt,
             /* [length_is][size_is][out] */ VARIANT __RPC_FAR *rgVar,
@@ -51,7 +48,7 @@ STDMETHODIMP PyGEnumVARIANT::Next(
 
   error:
 	PyErr_Clear();	// just in case
-	LogF(_T("PyGEnumVariant::Next got a bad return value"));
+	PyCom_LogF("PyGEnumVariant::Next got a bad return value");
 	Py_DECREF(result);
 	return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumVARIANT, "Next() did not return a sequence of objects");
 }

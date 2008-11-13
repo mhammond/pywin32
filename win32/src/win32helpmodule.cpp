@@ -21,7 +21,6 @@ generates Windows .hlp files.
 #include "structmember.h"
 #include "PyWinTypes.h"
 
-
 #define DllExport _declspec(dllexport)
 
 
@@ -44,55 +43,49 @@ PyObject *ReturnAPIError(char *fnName, long err = 0)
 
 static PyObject *PyWinHelp(PyObject *self, PyObject *args)
 {
-      
-  // @pyparm int|hwnd||The handle of the window requesting help.
-  // @pyparm string|hlpFile||The name of the help file.
-  // @pyparm int|cmd||The type of help.  See the api for full details.
-  // @pyparm None/int/string|data|0|Additional data specific to the help call.
-      
-  HWND hwnd;
-  char *hlpFile;
-  UINT cmd;
-  PyObject *dataOb = Py_None;
-  DWORD data;
+	// @pyparm int|hwnd||The handle of the window requesting help.
+	// @pyparm string|hlpFile||The name of the help file.
+	// @pyparm int|cmd||The type of help.  See the api for full details.
+	// @pyparm None/int/string|data|None|Additional data specific to the help call. Can be a buffer or pointer-sized int.      
+	HWND hwnd;
+	TCHAR *hlpFile=NULL;
+	PyObject *obhlpFile;
+	UINT cmd;
+	PyObject *obData = Py_None;
+	ULONG_PTR data;
 
-  if (!PyArg_ParseTuple(args, "isi|O:WinHelp",
-                        &hwnd,
-                        &hlpFile,
+	if (!PyArg_ParseTuple(args, "O&Oi|O:WinHelp",
+                        PyWinObject_AsHANDLE, &hwnd,
+                        &obhlpFile,
                         &cmd,
-                        &dataOb))
-    return NULL;
+                        &obData))
+		return NULL;
 
-  if (dataOb==Py_None)
-    data = 0;
-  else if (PyString_Check(dataOb))
-    data = (DWORD)PyString_AsString(dataOb);
-  else if (PyInt_Check(dataOb))
-    data = (DWORD)PyInt_AsLong(dataOb);
-  else {
-    PyErr_SetString(PyExc_TypeError,
-                    "4th argument must be a None, string or an integer.");
-    return NULL;
-  }
-      
-  PyW32_BEGIN_ALLOW_THREADS
-    BOOL ok = ::WinHelp(hwnd, hlpFile, cmd, data);
-  PyW32_END_ALLOW_THREADS
-    if (!ok)
-      return ReturnAPIError("WinHelp");
-  Py_INCREF(Py_None);
-  return Py_None;
-      
-  // @pyseeapi WinHelp
-
-  // @rdesc The method raises an exception if an error occurs.
-      
+	DWORD data_len;
+	if (!PyWinObject_AsReadBuffer(obData, (void **)&data, &data_len, TRUE)){
+		PyErr_Clear();
+		if (!PyWinLong_AsULONG_PTR(obData, &data)){
+			PyErr_SetString(PyExc_TypeError, "Data must be a buffer, None, or pointer-sized number");
+			return NULL;
+			}
+		}
+	if (!PyWinObject_AsTCHAR(obhlpFile, &hlpFile, FALSE))
+		return NULL;
+	PyW32_BEGIN_ALLOW_THREADS
+	BOOL ok = ::WinHelp(hwnd, hlpFile, cmd, data);
+	PyW32_END_ALLOW_THREADS
+	PyWinObject_FreeTCHAR(hlpFile);
+	if (!ok)
+		return ReturnAPIError("WinHelp");
+	Py_INCREF(Py_None);
+	return Py_None;
+  
+	// @pyseeapi WinHelp
+	// @rdesc The method raises an exception if an error occurs.  
 }
 
 
 // Support for an HH_AKLINK object.
-
-
 class PyHH_AKLINK : public PyObject {
 
 public:
@@ -100,7 +93,7 @@ public:
   HH_AKLINK *GetAKLINK() {return &m_HH_AKLINK;}
 
   PyHH_AKLINK(void);
-  PyHH_AKLINK(const HH_AKLINK *pAKLINK);
+  // PyHH_AKLINK(const HH_AKLINK *pAKLINK);
   ~PyHH_AKLINK();
 
   /* Python support */
@@ -193,24 +186,24 @@ PyTypeObject PyHH_AKLINKType = {
   // LPCTSTR       pszKeywords;
   // @prop string|keywords|Specifies one or more ALink names or KLink
   //keywords to look up. Multiple entries are delimited by a semicolon. 
-  {"keywords", T_STRING,  OFF(m_HH_AKLINK.pszKeywords)},
+  {"keywords", T_OBJECT,  OFF(m_pszKeywords)},
 
   // LPCTSTR       pszUrl;
   // @prop string|url|Specifies the topic file to navigate to if the lookup
   //fails. url refers to a valid topic within the specified compiled help
   //(.chm) file and does not support Internet protocols that point to an
   //HTML file. 
-  {"url", T_STRING,  OFF(m_HH_AKLINK.pszUrl)},
+  {"url", T_OBJECT,  OFF(m_pszUrl)},
 
   // LPCTSTR       pszMsgText;
   // @prop string|msgText|Specifies the text to display in a message box if
   //the lookup fails and indexOnFail is FALSE and url is NULL. 
-  {"msgText", T_STRING,  OFF(m_HH_AKLINK.pszMsgText)},
+  {"msgText", T_OBJECT,  OFF(m_pszMsgText)},
 
   // LPCTSTR       pszMsgTitle;
   // @prop string|msgTitle|Specifies the caption of the message box in which
   //the msgText parameter appears.
-  {"msgTitle", T_STRING,  OFF(m_HH_AKLINK.pszMsgTitle)},
+  {"msgTitle", T_OBJECT,  OFF(m_pszMsgTitle)},
 
   // LPCTSTR       pszWindow;
   // @prop string|window|Specifies the name of the window type in which to
@@ -221,7 +214,7 @@ PyTypeObject PyHH_AKLINKType = {
   //in url.<nl>
   //<nl>
   //The Index tab, if the lookup fails and indexOnFail is specified as TRUE. 
-  {"window", T_STRING,  OFF(m_HH_AKLINK.pszWindow)},
+  {"window", T_OBJECT,  OFF(m_pszWindow)},
   //**************************************************************************
   //**************************************************************************
 
@@ -239,6 +232,9 @@ PyHH_AKLINK::PyHH_AKLINK()
   m_pszMsgTitle = m_pszWindow = NULL; 
 }
 
+/* This is not necessary, as HH_AKLINK is not used as output
+	from any functions.  Plus, it never actually copies the
+	strings into the Python object
 PyHH_AKLINK::PyHH_AKLINK(const HH_AKLINK *pAKLINK)
 {
   ob_type = &PyHH_AKLINKType;
@@ -261,6 +257,7 @@ PyHH_AKLINK::PyHH_AKLINK(const HH_AKLINK *pAKLINK)
     ? PyWinObject_FromTCHAR((TCHAR*)pAKLINK->pszWindow) 
     : NULL; 
 }
+*/
 
 PyHH_AKLINK::~PyHH_AKLINK(void)
 {
@@ -270,7 +267,7 @@ PyHH_AKLINK::~PyHH_AKLINK(void)
   Py_XDECREF(m_pszMsgTitle);
   Py_XDECREF(m_pszWindow);
 }
-  
+
 PyObject *PyHH_AKLINK::getattr(PyObject *self, char *name)
 {
   PyHH_AKLINK *pO = (PyHH_AKLINK *)self;
@@ -381,7 +378,8 @@ BOOL PyWinObject_AsHH_AKLINK(PyObject *ob, HH_AKLINK **ppAKLINK, BOOL bNoneOK)
   }
   return TRUE;
 }
-  
+
+/* This struct is only used as input, and constructor does not copy string members correctly anyway
 PyObject *PyWinObject_FromHH_AKLINK(const HH_AKLINK *pAKLINK)
 {
   if (pAKLINK==NULL) {
@@ -393,6 +391,8 @@ PyObject *PyWinObject_FromHH_AKLINK(const HH_AKLINK *pAKLINK)
     PyErr_SetString(PyExc_MemoryError, "PyHH_AKLINK");
   return ret;
 }
+*/
+
 
 //*****************************************************************************
 //
@@ -944,18 +944,6 @@ public:
 
 protected:
   HH_WINTYPE m_HH_WINTYPE;
-  PyObject *m_pszType;         // LPCTSTR       pszType;
-  PyObject *m_pszCaption;      // LPCTSTR       pszCaption;
-  PyObject *m_rcWindowPos;     // RECT          rcWindowPos;
-  PyObject *m_rcHTML;          // RECT          rcHTML;
-  PyObject *m_pszToc;          // LPCTSTR       pszToc;
-  PyObject *m_pszIndex;        // LPCTSTR       pszIndex;
-  PyObject *m_pszFile;         // LPCTSTR       pszFile;
-  PyObject *m_pszHome;         // LPCTSTR       pszHome;
-  PyObject *m_pszJump1;        // LPCTSTR       pszJump1;
-  PyObject *m_pszJump2;        // LPCTSTR       pszJump2;
-  PyObject *m_pszUrlJump1;     // LPCTSTR       pszUrlJump1;
-  PyObject *m_pszUrlJump2;     // LPCTSTR       pszUrlJump2;
 };
 
 #define PyHH_WINTYPE_Check(ob)  ((ob)->ob_type == &PyHH_WINTYPEType)
@@ -1163,343 +1151,213 @@ PyHH_WINTYPE::PyHH_WINTYPE()
   ob_type = &PyHH_WINTYPEType;
   _Py_NewReference(this);
   memset(&m_HH_WINTYPE, 0, sizeof(m_HH_WINTYPE));
-
   m_HH_WINTYPE.cbStruct = sizeof(m_HH_WINTYPE);
-  m_pszType = NULL;
-  m_pszCaption = NULL;
-  m_rcWindowPos = NULL;
-  m_rcHTML = NULL;
-  m_pszToc = NULL;
-  m_pszIndex = NULL;
-  m_pszFile = NULL;
-  m_pszHome = NULL;
-  m_pszJump1 = NULL;
-  m_pszJump2 = NULL;
-  m_pszUrlJump1 = NULL;
-  m_pszUrlJump2 = NULL;
 }
 
 PyHH_WINTYPE::PyHH_WINTYPE(const HH_WINTYPE *pWINTYPE)
 {
-  ob_type = &PyHH_WINTYPEType;
-  _Py_NewReference(this);
-  memcpy(&m_HH_WINTYPE, pWINTYPE, sizeof(m_HH_WINTYPE));
+	ob_type = &PyHH_WINTYPEType;
+	_Py_NewReference(this);
+	memcpy(&m_HH_WINTYPE, pWINTYPE, sizeof(m_HH_WINTYPE));
 
-  // as the API doc says: Deep copy the structure to which dwData points
-  // before modifying the structure.
-
-  if (pWINTYPE->pszType)
-    strcpy((char *)pWINTYPE->pszType, m_HH_WINTYPE.pszType);
-  if (pWINTYPE->pszCaption)
-    strcpy((char *)pWINTYPE->pszCaption, m_HH_WINTYPE.pszCaption);
-  if (pWINTYPE->pszToc)
-    strcpy((char *)pWINTYPE->pszToc, m_HH_WINTYPE.pszToc);
-  if (pWINTYPE->pszIndex)
-    strcpy((char *)pWINTYPE->pszIndex, m_HH_WINTYPE.pszIndex);
-  if (pWINTYPE->pszFile)
-    strcpy((char *)pWINTYPE->pszFile, m_HH_WINTYPE.pszFile);
-  if (pWINTYPE->pszHome)
-    strcpy((char *)pWINTYPE->pszHome, m_HH_WINTYPE.pszHome);
-  if (pWINTYPE->pszJump1)
-    strcpy((char *)pWINTYPE->pszJump1, m_HH_WINTYPE.pszJump1);
-  if (pWINTYPE->pszJump2)
-    strcpy((char *)pWINTYPE->pszJump2, m_HH_WINTYPE.pszJump2);
-  if (pWINTYPE->pszUrlJump1)
-    strcpy((char *)pWINTYPE->pszUrlJump1, m_HH_WINTYPE.pszUrlJump1);
-  if (pWINTYPE->pszUrlJump2)
-    strcpy((char *)pWINTYPE->pszUrlJump2, m_HH_WINTYPE.pszUrlJump2);
-
-  m_pszType = pWINTYPE->pszType
-    ? PyWinObject_FromTCHAR((TCHAR*)pWINTYPE->pszType) 
-    : NULL;    
-  m_pszCaption = pWINTYPE->pszCaption
-    ? PyWinObject_FromTCHAR((TCHAR*)pWINTYPE->pszCaption) 
-    : NULL;    
-  m_pszToc = pWINTYPE->pszToc
-    ? PyWinObject_FromTCHAR((TCHAR*)pWINTYPE->pszToc) 
-    : NULL;    
-  m_pszIndex = pWINTYPE->pszIndex
-    ? PyWinObject_FromTCHAR((TCHAR*)pWINTYPE->pszIndex) 
-    : NULL;    
-  m_pszFile = pWINTYPE->pszFile
-    ? PyWinObject_FromTCHAR((TCHAR*)pWINTYPE->pszFile) 
-    : NULL;    
-  m_pszHome = pWINTYPE->pszHome
-    ? PyWinObject_FromTCHAR((TCHAR*)pWINTYPE->pszHome) 
-    : NULL;    
-  m_pszJump1 = pWINTYPE->pszJump1
-    ? PyWinObject_FromTCHAR((TCHAR*)pWINTYPE->pszJump1) 
-    : NULL;    
-  m_pszJump2 = pWINTYPE->pszJump2
-    ? PyWinObject_FromTCHAR((TCHAR*)pWINTYPE->pszJump2) 
-    : NULL;    
-  m_pszUrlJump1 = pWINTYPE->pszUrlJump1
-    ? PyWinObject_FromTCHAR((TCHAR*)pWINTYPE->pszUrlJump1) 
-    : NULL;    
-  m_pszUrlJump2 = pWINTYPE->pszUrlJump2
-    ? PyWinObject_FromTCHAR((TCHAR*)pWINTYPE->pszUrlJump2) 
-    : NULL;    
-
-  m_rcWindowPos = PyTuple_New(4);
-  PyTuple_SetItem(m_rcWindowPos, 0,
-                  PyInt_FromLong(pWINTYPE->rcWindowPos.left));
-  PyTuple_SetItem(m_rcWindowPos, 1,
-                  PyInt_FromLong(pWINTYPE->rcWindowPos.right));
-  PyTuple_SetItem(m_rcWindowPos, 2,
-                  PyInt_FromLong(pWINTYPE->rcWindowPos.top));
-  PyTuple_SetItem(m_rcWindowPos, 3,
-                  PyInt_FromLong(pWINTYPE->rcWindowPos.bottom));
-
-  m_rcHTML = PyTuple_New(4);
-  PyTuple_SetItem(m_rcHTML, 0, PyInt_FromLong(pWINTYPE->rcHTML.left));
-  PyTuple_SetItem(m_rcHTML, 1, PyInt_FromLong(pWINTYPE->rcHTML.right));
-  PyTuple_SetItem(m_rcHTML, 2, PyInt_FromLong(pWINTYPE->rcHTML.top));
-  PyTuple_SetItem(m_rcHTML, 3, PyInt_FromLong(pWINTYPE->rcHTML.bottom));
+	// as the API doc says: Deep copy the structure to which dwData points
+	// before modifying the structure.
+	// ??? This used to copy the string right back to itself ???
+	if (pWINTYPE->pszType)
+		m_HH_WINTYPE.pszType=PyWin_CopyString(pWINTYPE->pszType);
+	if (pWINTYPE->pszCaption)
+		m_HH_WINTYPE.pszCaption=PyWin_CopyString(pWINTYPE->pszCaption);
+	if (pWINTYPE->pszToc)
+		m_HH_WINTYPE.pszToc=PyWin_CopyString(pWINTYPE->pszToc);
+	if (pWINTYPE->pszIndex)
+		m_HH_WINTYPE.pszIndex=PyWin_CopyString(pWINTYPE->pszIndex);
+	if (pWINTYPE->pszFile)
+		m_HH_WINTYPE.pszFile=PyWin_CopyString(pWINTYPE->pszFile);
+	if (pWINTYPE->pszHome)
+		m_HH_WINTYPE.pszHome=PyWin_CopyString(pWINTYPE->pszHome);
+	if (pWINTYPE->pszJump1)
+		m_HH_WINTYPE.pszJump1=PyWin_CopyString(pWINTYPE->pszJump1);
+	if (pWINTYPE->pszJump2)
+		m_HH_WINTYPE.pszJump2=PyWin_CopyString(pWINTYPE->pszJump2);
+	if (pWINTYPE->pszUrlJump1)
+		m_HH_WINTYPE.pszUrlJump1=PyWin_CopyString(pWINTYPE->pszUrlJump1);
+	if (pWINTYPE->pszUrlJump2)
+		m_HH_WINTYPE.pszUrlJump2=PyWin_CopyString(pWINTYPE->pszUrlJump2);
 }
 
 PyHH_WINTYPE::~PyHH_WINTYPE(void)
 {
-  Py_XDECREF(m_pszType);
-  Py_XDECREF(m_pszCaption);
-  Py_XDECREF(m_rcWindowPos);
-  Py_XDECREF(m_rcHTML);
-  Py_XDECREF(m_pszToc);
-  Py_XDECREF(m_pszIndex);
-  Py_XDECREF(m_pszFile);
-  Py_XDECREF(m_pszHome);
-  Py_XDECREF(m_pszJump1);
-  Py_XDECREF(m_pszJump2);
-  Py_XDECREF(m_pszUrlJump1);
-  Py_XDECREF(m_pszUrlJump2);
+	PyWinObject_FreeTCHAR((TCHAR *)m_HH_WINTYPE.pszType);
+	PyWinObject_FreeTCHAR((TCHAR *)m_HH_WINTYPE.pszCaption);
+	PyWinObject_FreeTCHAR((TCHAR *)m_HH_WINTYPE.pszToc);
+	PyWinObject_FreeTCHAR((TCHAR *)m_HH_WINTYPE.pszIndex);
+	PyWinObject_FreeTCHAR((TCHAR *)m_HH_WINTYPE.pszFile);
+	PyWinObject_FreeTCHAR((TCHAR *)m_HH_WINTYPE.pszHome);
+	PyWinObject_FreeTCHAR((TCHAR *)m_HH_WINTYPE.pszJump1);
+	PyWinObject_FreeTCHAR((TCHAR *)m_HH_WINTYPE.pszJump2);
+	PyWinObject_FreeTCHAR((TCHAR *)m_HH_WINTYPE.pszUrlJump1);
+	PyWinObject_FreeTCHAR((TCHAR *)m_HH_WINTYPE.pszUrlJump2);
 }
   
 PyObject *PyHH_WINTYPE::getattr(PyObject *self, char *name)
 {
-  PyHH_WINTYPE *pO = (PyHH_WINTYPE *)self;
-      
-  if (strcmp("typeName", name)==0) {
-    PyObject *rc = pO->m_pszType ? pO->m_pszType : Py_None;
-    Py_INCREF(rc);
-    return rc;
-  }
-  if (strcmp("caption", name)==0) {
-    PyObject *rc = pO->m_pszCaption ? pO->m_pszCaption : Py_None;
-    Py_INCREF(rc);
-    return rc;
-  }
-  if (strcmp("toc", name)==0) {
-    PyObject *rc = pO->m_pszToc ? pO->m_pszToc : Py_None;
-    Py_INCREF(rc);
-    return rc;
-  }
-  if (strcmp("index", name)==0) {
-    PyObject *rc = pO->m_pszIndex ? pO->m_pszIndex : Py_None;
-    Py_INCREF(rc);
-    return rc;
-  }
-  if (strcmp("file", name)==0) {
-    PyObject *rc = pO->m_pszFile ? pO->m_pszFile : Py_None;
-    Py_INCREF(rc);
-    return rc;
-  }
-  if (strcmp("home", name)==0) {
-    PyObject *rc = pO->m_pszHome ? pO->m_pszHome : Py_None;
-    Py_INCREF(rc);
-    return rc;
-  }
-  if (strcmp("jump1", name)==0) {
-    PyObject *rc = pO->m_pszJump1 ? pO->m_pszJump1 : Py_None;
-    Py_INCREF(rc);
-    return rc;
-  }
-  if (strcmp("jump2", name)==0) {
-    PyObject *rc = pO->m_pszJump2 ? pO->m_pszJump2 : Py_None;
-    Py_INCREF(rc);
-    return rc;
-  }
-  if (strcmp("urlJump1", name)==0) {
-    PyObject *rc = pO->m_pszUrlJump1 ? pO->m_pszUrlJump1 : Py_None;
-    Py_INCREF(rc);
-    return rc;
-  }
-  if (strcmp("urlJump2", name)==0) {
-    PyObject *rc = pO->m_pszUrlJump2 ? pO->m_pszUrlJump2 : Py_None;
-    Py_INCREF(rc);
-    return rc;
-  }
-  if (strcmp("windowPos", name)==0) {
-    PyObject *rc = pO->m_rcWindowPos ? pO->m_rcWindowPos : Py_None;
-    Py_INCREF(rc);
-    return rc;
-  }
-  if (strcmp("HTMLPos", name)==0) {
-    PyObject *rc = pO->m_rcHTML ? pO->m_rcHTML : Py_None;
-    Py_INCREF(rc);
-    return rc;
-  }
+	PyHH_WINTYPE *pO = (PyHH_WINTYPE *)self;
 
-  if (strcmp("hwndHelp", name)==0)
-    return PyWinLong_FromVoidPtr(pO->m_HH_WINTYPE.hwndHelp);
+	if (strcmp("typeName", name)==0)
+		return PyWinObject_FromTCHAR(pO->m_HH_WINTYPE.pszType);
+	if (strcmp("caption", name)==0)
+		return PyWinObject_FromTCHAR(pO->m_HH_WINTYPE.pszCaption);
+	if (strcmp("toc", name)==0)
+		return PyWinObject_FromTCHAR(pO->m_HH_WINTYPE.pszToc);
+	if (strcmp("index", name)==0)
+		return PyWinObject_FromTCHAR(pO->m_HH_WINTYPE.pszIndex);
+	if (strcmp("file", name)==0)
+		return PyWinObject_FromTCHAR(pO->m_HH_WINTYPE.pszFile);
+	if (strcmp("home", name)==0)
+		return PyWinObject_FromTCHAR(pO->m_HH_WINTYPE.pszHome);
+	if (strcmp("jump1", name)==0)
+		return PyWinObject_FromTCHAR(pO->m_HH_WINTYPE.pszJump1);
+	if (strcmp("jump2", name)==0)
+		return PyWinObject_FromTCHAR(pO->m_HH_WINTYPE.pszJump2);
+	if (strcmp("urlJump1", name)==0)
+		return PyWinObject_FromTCHAR(pO->m_HH_WINTYPE.pszUrlJump1);
+	if (strcmp("urlJump2", name)==0)
+		return PyWinObject_FromTCHAR(pO->m_HH_WINTYPE.pszUrlJump2);
 
-  if (strcmp("hwndCaller", name)==0)
-    return PyWinLong_FromVoidPtr(pO->m_HH_WINTYPE.hwndCaller);
+	if (strcmp("windowPos", name)==0)
+		return PyWinObject_FromRECT(&pO->m_HH_WINTYPE.rcWindowPos);
+	if (strcmp("HTMLPos", name)==0)
+		return PyWinObject_FromRECT(&pO->m_HH_WINTYPE.rcHTML);
 
-  if (strcmp("hwndToolBar", name)==0)
-    return PyWinLong_FromVoidPtr(pO->m_HH_WINTYPE.hwndToolBar);
-
-  if (strcmp("hwndNavigation", name)==0)
-    return PyWinLong_FromVoidPtr(pO->m_HH_WINTYPE.hwndNavigation);
-
-  if (strcmp("hwndHTML", name)==0)
-    return PyWinLong_FromVoidPtr(pO->m_HH_WINTYPE.hwndHTML);
+	if (strcmp("hwndHelp", name)==0)
+		return PyWinLong_FromHANDLE(pO->m_HH_WINTYPE.hwndHelp);
+	if (strcmp("hwndCaller", name)==0)
+		return PyWinLong_FromHANDLE(pO->m_HH_WINTYPE.hwndCaller);
+	if (strcmp("hwndToolBar", name)==0)
+		return PyWinLong_FromHANDLE(pO->m_HH_WINTYPE.hwndToolBar);
+	if (strcmp("hwndNavigation", name)==0)
+		return PyWinLong_FromHANDLE(pO->m_HH_WINTYPE.hwndNavigation);
+	if (strcmp("hwndHTML", name)==0)
+		return PyWinLong_FromHANDLE(pO->m_HH_WINTYPE.hwndHTML);
   return PyMember_Get((char *)self, memberlist, name);
 }
-  
+
 int PyHH_WINTYPE::setattr(PyObject *self, char *name, PyObject *v)
 {
-  if (v == NULL) {
-    PyErr_SetString(PyExc_AttributeError, 
-                    "can't delete HH_WINTYPE attributes");
-    return -1;
-  }
+	if (v == NULL) {
+		PyErr_SetString(PyExc_AttributeError, "can't delete HH_WINTYPE attributes");
+		return -1;
+		}
 
-  PyHH_WINTYPE *pO = (PyHH_WINTYPE *)self;
+	PyHH_WINTYPE *pO = (PyHH_WINTYPE *)self;
 
-  if (strcmp("typeName", name)==0) {
-    if (PyWinObject_AsTCHAR(v, (TCHAR**)&pO->m_HH_WINTYPE.pszType)) {
-      Py_XDECREF(pO->m_pszType);
-      pO->m_pszType = v;
-      Py_INCREF(v);
-      return 0;
-    } else
-      return -1;
-  }
-  if (strcmp("caption", name)==0) {
-    if (PyWinObject_AsTCHAR(v, (TCHAR**)&pO->m_HH_WINTYPE.pszCaption)){
-      Py_XDECREF(pO->m_pszCaption);
-      pO->m_pszCaption = v;
-      Py_INCREF(v);
-      return 0;
-    } else
-      return -1;
-  }
-  if (strcmp("toc", name)==0) {
-    if (PyWinObject_AsTCHAR(v, (TCHAR**)&pO->m_HH_WINTYPE.pszToc)) {
-      Py_XDECREF(pO->m_pszToc);
-      pO->m_pszToc = v;
-      Py_INCREF(v);
-      return 0;
-    } else
-      return -1;
-  }
-  if (strcmp("index", name)==0) {
-    if (PyWinObject_AsTCHAR(v, (TCHAR**)&pO->m_HH_WINTYPE.pszIndex)) {
-      Py_XDECREF(pO->m_pszIndex);
-      pO->m_pszIndex = v;
-      Py_INCREF(v);
-      return 0;
-    } else
-      return -1;
-  }
-  if (strcmp("file", name)==0) {
-    if (PyWinObject_AsTCHAR(v, (TCHAR**)&pO->m_HH_WINTYPE.pszFile)) {
-      Py_XDECREF(pO->m_pszFile);
-      pO->m_pszFile = v;
-      Py_INCREF(v);
-      return 0;
-    } else
-      return -1;
-  }
-  if (strcmp("home", name)==0) {
-    if (PyWinObject_AsTCHAR(v, (TCHAR**)&pO->m_HH_WINTYPE.pszHome)) {
-      Py_XDECREF(pO->m_pszHome);
-      pO->m_pszHome = v;
-      Py_INCREF(v);
-      return 0;
-    } else
-      return -1;
-  }
-  if (strcmp("jump1", name)==0) {
-    if (PyWinObject_AsTCHAR(v, (TCHAR**)&pO->m_HH_WINTYPE.pszJump1)){
-      Py_XDECREF(pO->m_pszJump1);
-      pO->m_pszJump1 = v;
-      Py_INCREF(v);
-      return 0;
-    } else
-      return -1;
-  }
-  if (strcmp("jump2", name)==0) {
-    if (PyWinObject_AsTCHAR(v, (TCHAR**)&pO->m_HH_WINTYPE.pszJump2)){
-      Py_XDECREF(pO->m_pszJump2);
-      pO->m_pszJump2 = v;
-      Py_INCREF(v);
-      return 0;
-    } else
-      return -1;
-  }
-  if (strcmp("urlJump1", name)==0) {
-    if (PyWinObject_AsTCHAR(v, (TCHAR**)&pO->m_HH_WINTYPE.pszUrlJump1)) {
-      Py_XDECREF(pO->m_pszUrlJump1);
-      pO->m_pszUrlJump1 = v;
-      Py_INCREF(v);
-      return 0;
-    } else
-      return -1;
-  }
-  if (strcmp("urlJump2", name)==0) {
-    if (PyWinObject_AsTCHAR(v, (TCHAR**)&pO->m_HH_WINTYPE.pszUrlJump2)) {
-      Py_XDECREF(pO->m_pszUrlJump2);
-      pO->m_pszUrlJump2 = v;
-      Py_INCREF(v);
-      return 0;
-    } else
-      return -1;
-  }
-  if (strcmp("windowPos", name)==0) {
-    int left, top, right, bottom;
-    if (PyArg_ParseTuple(v, "iiii",
-                         &left, &top, &right, &bottom)) {
-      Py_XDECREF(pO->m_rcWindowPos);
-      pO->m_rcWindowPos = v;
-      Py_INCREF(v);
-      pO->m_HH_WINTYPE.rcWindowPos.left = left;
-      pO->m_HH_WINTYPE.rcWindowPos.top = top;
-      pO->m_HH_WINTYPE.rcWindowPos.right = top;
-      pO->m_HH_WINTYPE.rcWindowPos.bottom = top;
-      return 0;
-    } else
-      return -1;
-  }
-  if (strcmp("HTMLPos", name)==0) {
-    int left, top, right, bottom;
-    if (PyArg_ParseTuple(v, "iiii",
-                         &left, &top, &right, &bottom)) {
-      Py_XDECREF(pO->m_rcHTML);
-      pO->m_rcHTML = v;
-      Py_INCREF(v);
-      pO->m_HH_WINTYPE.rcHTML.left = left;
-      pO->m_HH_WINTYPE.rcHTML.top = top;
-      pO->m_HH_WINTYPE.rcHTML.right = top;
-      pO->m_HH_WINTYPE.rcHTML.bottom = top;
-      return 0;
-    } else
-      return -1;
-  }
-  if (strcmp("hwndHelp", name)==0)
-    return PyWinLong_AsVoidPtr(v, (void **)&pO->m_HH_WINTYPE.hwndHelp) ? 0 : -1;
+	TCHAR *tchar_val;
+	HANDLE hwnd_val;
+	if (strcmp("typeName", name)==0) {
+		if (!PyWinObject_AsTCHAR(v, &tchar_val))
+			return -1;
+		pO->m_HH_WINTYPE.pszType=tchar_val;
+		return 0;
+		}
+	if (strcmp("caption", name)==0) {
+		if (!PyWinObject_AsTCHAR(v, &tchar_val))
+			return -1;
+		pO->m_HH_WINTYPE.pszCaption=tchar_val;
+		return 0;
+		}
+	if (strcmp("toc", name)==0) {
+		if (!PyWinObject_AsTCHAR(v, &tchar_val))
+			return -1;
+		pO->m_HH_WINTYPE.pszToc=tchar_val;
+		return 0;
+		}
+	if (strcmp("index", name)==0) {
+		if (!PyWinObject_AsTCHAR(v, &tchar_val))
+			return -1;
+		pO->m_HH_WINTYPE.pszIndex=tchar_val;
+		return 0;
+		}
+	if (strcmp("file", name)==0) {
+		if (!PyWinObject_AsTCHAR(v, &tchar_val))
+			return -1;
+		pO->m_HH_WINTYPE.pszFile=tchar_val;
+		return 0;
+		}
+	if (strcmp("home", name)==0) {
+		if (!PyWinObject_AsTCHAR(v, &tchar_val))
+			return -1;
+		pO->m_HH_WINTYPE.pszHome=tchar_val;
+		return 0;
+		}
+	if (strcmp("jump1", name)==0) {
+		if (!PyWinObject_AsTCHAR(v, &tchar_val))
+			return -1;
+		pO->m_HH_WINTYPE.pszJump1=tchar_val;
+		return 0;
+		}
+	if (strcmp("jump2", name)==0) {
+		if (!PyWinObject_AsTCHAR(v, &tchar_val))
+			return -1;
+		pO->m_HH_WINTYPE.pszJump2=tchar_val;
+		return 0;
+		}
+	if (strcmp("urlJump1", name)==0) {
+		if (!PyWinObject_AsTCHAR(v, &tchar_val))
+			return -1;
+		pO->m_HH_WINTYPE.pszUrlJump1=tchar_val;
+		return 0;
+	}
+	if (strcmp("urlJump2", name)==0) {
+		if (!PyWinObject_AsTCHAR(v, &tchar_val))
+			return -1;
+		pO->m_HH_WINTYPE.pszUrlJump2=tchar_val;
+		return 0;
+		}
+	if (strcmp("windowPos", name)==0) {
+		RECT rc;
+		if (!PyWinObject_AsRECT(v, &rc))
+			return -1;
+		pO->m_HH_WINTYPE.rcWindowPos=rc;
+		return 0;
+		}
+	if (strcmp("HTMLPos", name)==0) {
+		RECT rc;
+		if (!PyWinObject_AsRECT(v, &rc))
+			return -1;
+		pO->m_HH_WINTYPE.rcHTML=rc;
+		return 0;
+		}
 
-  if (strcmp("hwndCaller", name)==0)
-    return PyWinLong_AsVoidPtr(v, (void **)&pO->m_HH_WINTYPE.hwndCaller) ? 0 : -1;
-
-  if (strcmp("hwndToolBar", name)==0)
-    return PyWinLong_AsVoidPtr(v, (void **)&pO->m_HH_WINTYPE.hwndToolBar) ? 0 : -1;
-
-  if (strcmp("hwndNavigation", name)==0)
-    return PyWinLong_AsVoidPtr(v, (void **)&pO->m_HH_WINTYPE.hwndNavigation) ? 0 : -1;
-
-  if (strcmp("hwndHTML", name)==0)
-    return PyWinLong_AsVoidPtr(v, (void **)&pO->m_HH_WINTYPE.hwndHTML) ? 0 : -1;
-
+	if (strcmp("hwndHelp", name)==0){
+		if (!PyWinObject_AsHANDLE(v, &hwnd_val))
+			return -1;
+		pO->m_HH_WINTYPE.hwndHelp=(HWND)hwnd_val;
+		return 0;
+		}
+	if (strcmp("hwndCaller", name)==0){
+		if (!PyWinObject_AsHANDLE(v, &hwnd_val))
+			return -1;
+		pO->m_HH_WINTYPE.hwndCaller=(HWND)hwnd_val;
+		return 0;
+		}
+	if (strcmp("hwndToolBar", name)==0){
+		if (!PyWinObject_AsHANDLE(v, &hwnd_val))
+			return -1;
+		pO->m_HH_WINTYPE.hwndToolBar=(HWND)hwnd_val;
+		return 0;
+		}
+	if (strcmp("hwndNavigation", name)==0){
+		if (!PyWinObject_AsHANDLE(v, &hwnd_val))
+			return -1;
+		pO->m_HH_WINTYPE.hwndNavigation=(HWND)hwnd_val;
+		return 0;
+		}
+	if (strcmp("hwndHTML", name)==0){
+		if (!PyWinObject_AsHANDLE(v, &hwnd_val))
+			return -1;
+		pO->m_HH_WINTYPE.hwndHTML=(HWND)hwnd_val;
+		return 0;
+		}
   return PyMember_Set((char *)self, memberlist, name, v);
 }
   
@@ -1616,7 +1474,8 @@ PyTypeObject PyNMHDRType = {
 /*static*/ struct memberlist PyNMHDR::memberlist[] = {
 
   // HWND hwndFrom; 
-  // @prop int|hwndFrom|Window handle to the control sending a message. 
+  // @prop int|hwndFrom|Window handle to the control sending a message.
+  // ??? 64-bit problem here ???
   {"hwndFrom", T_INT,  OFF(m_NMHDR.hwndFrom)},
 
   // UINT idFrom; 
@@ -1824,7 +1683,7 @@ PyHHN_NOTIFY::PyHHN_NOTIFY(const HHN_NOTIFY *pN_NOTIFY)
   memcpy(&m_HHN_NOTIFY, pN_NOTIFY, sizeof(m_HHN_NOTIFY));
 
   m_hdr = new PyNMHDR(&pN_NOTIFY->hdr);
-
+  // ??? This doesn't copy the string into the new struct ???
   m_pszUrl = pN_NOTIFY->pszUrl
     ? PyWinObject_FromTCHAR((TCHAR*)pN_NOTIFY->pszUrl) 
     : NULL; 
@@ -2403,11 +2262,11 @@ static PyObject *PyHtmlHelp( PyObject *self, PyObject *args )
   //data|0|Additional data specific to the help call.
 
   HWND hwnd;
-  char *file;
+  TCHAR *file;
   UINT cmd;
   PyObject *fileOb;
   PyObject *dataOb = Py_None;
-  DWORD data;
+  DWORD_PTR data;
   HH_AKLINK *pAKLink;
   HH_FTS_QUERY *pFTS_Query;
   HH_POPUP *pPopup;
@@ -2416,31 +2275,21 @@ static PyObject *PyHtmlHelp( PyObject *self, PyObject *args )
   DWORD *ctlIDs = NULL;
   int i;
   BOOL error = FALSE;
-  int len;
+  DWORD len;
   PyObject *item = NULL;
 
-  if (!PyArg_ParseTuple(args, "iOi|O:HtmlHelp",
-                        &hwnd,
+  if (!PyArg_ParseTuple(args, "O&Oi|O:HtmlHelp",
+                        PyWinObject_AsHANDLE, &hwnd,
                         &fileOb,
                         &cmd,
                         &dataOb))
     return NULL;
 
-  if (PyString_Check(fileOb)) {
-    /* The API function will crash with a huge filename, and that could
-      open an exploit hole */
-    if (PyString_Size(fileOb) >= _MAX_PATH)
-      return PyErr_Format(PyExc_ValueError,
-                          "string of length %d is too large for this function",
-                          PyString_Size(fileOb) );
-    file = PyString_AsString(fileOb);
-  } else if (fileOb == Py_None) {
-    file = NULL;
-  } else {
-      PyErr_SetString(PyExc_TypeError,
-                      "file must be a string or None");
-      return NULL;
-  }
+	if (!PyWinObject_AsTCHAR(fileOb, &file, TRUE, &len))
+		return NULL;
+	if (len >= _MAX_PATH)
+		return PyErr_Format(PyExc_ValueError,
+			"string of length %d is too large for this function", len);
 
   switch (cmd) {
 
@@ -2587,21 +2436,21 @@ in the Html Help engine yet.");
   case HH_TP_HELP_WM_HELP:
     if (!file) {
       PyErr_SetString(PyExc_TypeError,
-                      "HH_TP_HELP_CONTEXTMENU and HH_TP_HELP_WM_HELP \
-file must be a string");
+           "HH_TP_HELP_CONTEXTMENU and HH_TP_HELP_WM_HELP "
+           "file must be a string");
       return NULL;
     }
     if (!PyTuple_Check(dataOb)) {
       PyErr_SetString(PyExc_TypeError,
-                      "HH_TP_HELP_CONTEXTMENU and HH_TP_HELP_WM_HELP \
-data must be a tuple");
+           "HH_TP_HELP_CONTEXTMENU and HH_TP_HELP_WM_HELP "
+           "data must be a tuple");
       return NULL;
     }
     len = PyTuple_Size(dataOb);
     if ((len % 2) != 0) {
       PyErr_SetString(PyExc_TypeError,
-                      "HH_TP_HELP_CONTEXTMENU and HH_TP_HELP_WM_HELP \
-data tuple length must be even");
+           "HH_TP_HELP_CONTEXTMENU and HH_TP_HELP_WM_HELP "
+           "data tuple length must be even");
       return NULL;
     }
     ctlIDs = new DWORD[len + 1];
@@ -2696,26 +2545,9 @@ data tuple items must be integers");
 
 
 // Module constants:
+#define ADD_CONSTANT(tok) if (rc=PyModule_AddIntConstant(module, #tok, tok)) return rc
 
-
-static int AddConstant(PyObject *dict, char *key, long value)
-{
-  PyObject *okey = PyString_FromString(key);
-  PyObject *oval = PyInt_FromLong(value);
-  if (!okey || !oval) {
-    Py_XDECREF(okey);
-    Py_XDECREF(oval);
-    return 1;
-  }
-  int rc = PyDict_SetItem(dict, okey, oval);
-  Py_DECREF(okey);
-  Py_DECREF(oval);
-  return rc;
-}
-
-#define ADD_CONSTANT(tok) if (rc=AddConstant(dict,#tok, tok)) return rc
-
-int AddConstants(PyObject *dict)
+int AddConstants(PyObject *module)
 {
   int rc;
 
@@ -3311,7 +3143,7 @@ initwin32help(void)
     return;
   dict = PyModule_GetDict(module);
   if (!dict) return; /* Another serious error!*/
-  AddConstants(dict);
+  AddConstants(module);
   PyDict_SetItemString(dict, "__version__", 
                        PyString_FromString("$Revision$"));
 }

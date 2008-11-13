@@ -84,15 +84,14 @@ public:
         return NULL;
 }
 
-%apply long {HTHEME};
-typedef long HTHEME;
+%apply HANDLE {HTHEME};
+typedef HANDLE HTHEME;
 
-
-%apply HWND {long};
-typedef long HWND
-
-%apply HDC {long};
-typedef long HDC
+typedef float HDC;
+%typemap(python, in) HDC{
+	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
+		return NULL;
+}
 
 %typemap(python,ignore) RECT *OUTPUT(RECT temp)
 {

@@ -184,7 +184,7 @@ HRESULT PyCom_CoInitializeEx(LPVOID reserved, DWORD dwInit)
 #ifndef MS_WINCE
 	// Do a LoadLibrary, as the Ex version may not always exist
 	// on Win95.
-	HMODULE hMod = GetModuleHandle("ole32.dll");
+	HMODULE hMod = GetModuleHandle(_T("ole32.dll"));
 	if (hMod==0) return E_HANDLE;
 	FARPROC fp = GetProcAddress(hMod, "CoInitializeEx");
 	if (fp==NULL) return E_NOTIMPL;

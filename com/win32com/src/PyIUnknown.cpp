@@ -5,9 +5,6 @@
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
 
-extern void PyCom_LogF(const char *fmt, ...);
-#define LogF PyCom_LogF
-
 char *PyIUnknown::szErrMsgObjectReleased = "The COM object has been released.";
 
 static LONG cUnknowns=0;
@@ -36,16 +33,20 @@ PyIUnknown::~PyIUnknown()
 PyObject * PyIUnknown::repr()
 {
 	// @comm The repr of this object displays both the object's address, and its attached IUnknown's address
-	TCHAR buf[80];
-	wsprintf(buf, _T("<%hs at 0x%0lp with obj at 0x%0lp>"),ob_type->tp_name, this, m_obj);
-	return PyString_FromTCHAR(buf);
+	char buf[256];
+	_snprintf(buf, 256, "<%hs at 0x%0lp with obj at 0x%0lp>", ob_type->tp_name, this, m_obj);
+#if (PY_VERSION_HEX < 0x03000000)
+	return PyString_FromString(buf);
+#else
+	return PyUnicode_FromString(buf);
+#endif
 }
 
 /*static void PyIUnknown::CleanupTrackList()
 {
 #ifdef _DEBUG
 	int numInMap = m_obTrackList ? PyMapping_Length(m_obTrackList) : 0;
-	LogF("Cleaning up %d COM objects...", numInMap);
+	PyCom_LogF("Cleaning up %d COM objects...", numInMap);
 	OLECHAR FAR *pythonOb = L"pythonObject";
 #endif
 	if (m_obTrackList) {
@@ -59,7 +60,7 @@ PyObject * PyIUnknown::repr()
 				if (pLook) {
 #ifdef NOPE_DEBUG
 					const char *relDesc = pLook->m_obj ? "NOT RELEASED" : "released";
-					LogF(" object <%s> at 0x%0lx, m_obj at 0x%0lx, ob_refcnt=%d, %s", pLook->ob_type->tp_name, pLook, pLook->m_obj, pLook->ob_refcnt, relDesc);
+					PyCom_LogF(" object <%s> at 0x%0lx, m_obj at 0x%0lx, ob_refcnt=%d, %s", pLook->ob_type->tp_name, pLook, pLook->m_obj, pLook->ob_refcnt, relDesc);
 					if ( pLook->m_obj )
 					{
 						IDispatch *pdisp;
@@ -79,11 +80,11 @@ PyObject * PyIUnknown::repr()
 									PyObject *ob = (PyObject *)V_I4(&result);
 									if ( PyInstance_Check(ob) )
 									{
-										LogF("   object is a Python class instance of: %s", PyString_AsString(((PyInstanceObject *)ob)->in_class->cl_name));
+										PyCom_LogF("   object is a Python class instance of: %s", PyString_AsString(((PyInstanceObject *)ob)->in_class->cl_name));
 									}
 									else
 									{
-										LogF("   object is a Python object of type: %s", ob->ob_type->tp_name);
+										PyCom_LogF("   object is a Python object of type: %s", ob->ob_type->tp_name);
 									}
 								}
 							}
@@ -105,7 +106,7 @@ PyObject * PyIUnknown::repr()
 		FreeThreadState();
 	}
 #ifdef _DEBUG
-	LogF("COM object cleanup complete.");
+	PyCom_LogF("COM object cleanup complete.");
 #endif
 }
 */
@@ -139,14 +140,14 @@ PyObject * PyIUnknown::repr()
 			PyEval_RestoreThread(_save);
 
 #ifdef _DEBUG_LIFETIMES
-			LogF(buf, "   SafeRelease(%ld) -> %s at 0x%0lx, IUnknown at 0x%0lx - Release() returned %ld",GetCurrentThreadId(), ob->ob_type->tp_name,ob, ob->m_obj,rcnt);
+			PyCom_LogF(buf, "   SafeRelease(%ld) -> %s at 0x%0lx, IUnknown at 0x%0lx - Release() returned %ld",GetCurrentThreadId(), ob->ob_type->tp_name,ob, ob->m_obj,rcnt);
 #endif
 			ob->m_obj = NULL;
 		}
 		PYWINTYPES_EXCEPT
 		{
 			PyEval_RestoreThread(_save);
-			LogF(_T("Win32 exception occurred releasing IUnknown at 0x%08x"), ob->m_obj);
+			PyCom_LogF("Win32 exception occurred releasing IUnknown at 0x%08x", ob->m_obj);
 			ob->m_obj = NULL;
 #ifdef _DEBUG
 			DebugBreak();
@@ -181,7 +182,7 @@ int PyIUnknown::compare(PyObject *other)
 PyObject *PyIUnknown::QueryInterface(PyObject *self, PyObject *args)
 {
 	PyObject *obiid;
-	PyObject *obUseIID = NULL;
+	PyObject *obUseIID = Py_None;
 	// @pyparm IID|iid||The IID requested.
 	// @pyparm IID|useIID|None|If provided and not None, will return an
 	// interface for the specified IID if (and only if) a native interface can not be supported.
@@ -207,22 +208,13 @@ PyObject *PyIUnknown::QueryInterface(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsIID(obiid, &iid))
 		return NULL;
 
-	IID useIID;	/* used if obUseIID != NULL */
+	IID useIID;	/* used if obUseIID != Py_None */
 
-	if ( obUseIID != NULL )
-	{
-		if ( obUseIID == Py_None )
-			obUseIID = NULL;
-		else if ( PyInt_Check(obUseIID) )
-		{
-			if ( PyInt_AS_LONG((PyIntObject *)obUseIID) )
-				useIID = IID_IUnknown;
-			else
-				obUseIID = NULL;
-		}
-		else if ( !PyWinObject_AsIID(obUseIID, &useIID) )
+	// This used to allow an int, with 1 indicating IUnknown
+	// Doesn't seem to be used anywhere, so it has been removed
+	if (obUseIID != Py_None)
+		if ( !PyWinObject_AsIID(obUseIID, &useIID) )
 			return NULL;
-	}
 
 	IUnknown *pMyUnknown = GetI(self);
 	if (pMyUnknown==NULL) return NULL;
@@ -243,7 +235,10 @@ PyObject *PyIUnknown::QueryInterface(PyObject *self, PyObject *args)
 	PyObject *rc = PyCom_PyObjectFromIUnknown(punk, iid, TRUE);
 
 	/* we may have been asked to use a different interface */
-	if ( rc == NULL && obUseIID != NULL )
+	/* ??? useIID will be ignored if interface successfully created ???
+	  Apparently true and relies on a final QI somewhere? :()
+	*/
+	if ( rc == NULL && obUseIID != Py_None)
 	{
 		PyErr_Clear();
 		rc = PyCom_PyObjectFromIUnknown(punk, useIID, TRUE);

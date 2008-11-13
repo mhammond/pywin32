@@ -400,19 +400,8 @@ static struct PyMethodDef axcontrol_methods[]=
 	{ NULL, NULL },
 };
 
-static int AddConstant(PyObject *dict, const char *key, long value)
-{
-	PyObject *oval = PyInt_FromLong(value);
-	if (!oval)
-	{
-		return 1;
-	}
-	int rc = PyDict_SetItemString(dict, (char*)key, oval);
-	Py_DECREF(oval);
-	return rc;
-}
 
-#define ADD_CONSTANT(tok) AddConstant(dict, #tok, tok)
+#define ADD_CONSTANT(tok) if (PyModule_AddIntConstant(module, #tok, tok) == -1) RETURN_ERROR;
 
 static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 {
@@ -439,12 +428,13 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 extern "C" __declspec(dllexport) void initaxcontrol()
 {
 	char *modName = "axcontrol";
-	PyObject *oModule;
+	PyObject *module;
 	// Create the module and add the functions
-	oModule = Py_InitModule(modName, axcontrol_methods);
-	if (!oModule) /* Eeek - some serious error! */
+	module = Py_InitModule(modName, axcontrol_methods);
+#define RETURN_ERROR return // towards py3k
+	if (!module) /* Eeek - some serious error! */
 		return;
-	PyObject *dict = PyModule_GetDict(oModule);
+	PyObject *dict = PyModule_GetDict(module);
 	if (!dict) return; /* Another serious error!*/
 
 	// Register all of our interfaces, gateways and IIDs.

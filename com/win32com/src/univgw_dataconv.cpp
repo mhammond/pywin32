@@ -190,9 +190,9 @@ PyObject * dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 	VARTYPE vtArgType;
 	BYTE *pbArgs;
 	BYTE *pbArg;
-	UINT cArgs;
+	Py_ssize_t cArgs;
 	UINT uiIndirectionLevel = 0;
-	UINT i;
+	Py_ssize_t i;
 	
 	if (!PyArg_ParseTuple(args, "OOO:WriteFromOutTuple", &obRetValues, &obArgTypes, &obPtr))
 		return NULL;
@@ -614,7 +614,7 @@ PyObject * dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
 	PyObject *obPtr;
 	BYTE *pb;
 	BYTE *pbArg;
-	UINT cArgs, i;
+	Py_ssize_t cArgs, i;
 	PyObject *obArgs = NULL;
 	PyObject *obArg;
 	VARTYPE vtArgType;

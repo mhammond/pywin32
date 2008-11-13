@@ -14,38 +14,59 @@ See pywintypes.py for more information.
 // GetModuleHandle and GetModuleFilename rolled into 1
 static PyObject *PyGetModuleFilename(PyObject *self, PyObject *args)
 {
-    char *modName;
-    if (!PyArg_ParseTuple(args, "s", &modName))
+	// For py3k, will be built with UNICODE defined
+#ifdef UNICODE
+	static char *fmt="u";
+#else
+	static char *fmt="s";
+#endif
+
+	TCHAR *modName=NULL;
+    if (!PyArg_ParseTuple(args, fmt, &modName))
         return NULL;
     HINSTANCE hinst = GetModuleHandle(modName);
-    if (hinst == NULL) {
+	if (hinst == NULL) {
         Py_INCREF(Py_None);
         return Py_None;
     }
-    char buf[_MAX_PATH];
-    if (GetModuleFileName(hinst, buf, sizeof(buf))==0) {
+    TCHAR buf[_MAX_PATH];
+    if (GetModuleFileName(hinst, buf, sizeof(buf)/sizeof(buf[0]))==0) {
         Py_INCREF(Py_None);
         return Py_None;
     }
-    return PyString_FromString(buf);
+#ifdef UNICODE
+    return PyUnicode_FromUnicode(buf, wcslen(buf));
+#else
+	return PyString_FromString(buf);
+#endif
 }
 
 static PyObject *PyLoadModule(PyObject *self, PyObject *args)
 {
-    char *modName;
-    if (!PyArg_ParseTuple(args, "s", &modName))
+#ifdef UNICODE
+	static char *fmt="u";
+#else
+	static char *fmt="s";
+#endif
+    TCHAR *modName=NULL;
+    if (!PyArg_ParseTuple(args, fmt, &modName))
         return NULL;
     HINSTANCE hinst = LoadLibrary(modName);
+
     if (hinst == NULL) {
         Py_INCREF(Py_None);
         return Py_None;
     }
-    char buf[_MAX_PATH];
-    if (GetModuleFileName(hinst, buf, sizeof(buf))==0) {
+    TCHAR buf[_MAX_PATH];
+    if (GetModuleFileName(hinst, buf, sizeof(buf)/sizeof(buf[0]))==0) {
         Py_INCREF(Py_None);
         return Py_None;
     }
-    return PyString_FromString(buf);
+#ifdef UNICODE
+    return PyUnicode_FromUnicode(buf, wcslen(buf));
+#else
+	return PyString_FromString(buf);
+#endif
 }
 
 static struct PyMethodDef functions[] = {

@@ -237,9 +237,8 @@ static PyObject * MyMsgWaitForMultipleObjectsEx(
 		return NULL;
 	DWORD rc;
 
-	// Do a LoadLibrary, as the Ex version does not exist on NT3.x, Win95
 	// @comm This method will no longer raise a COM E_NOTIMPL exception
-        // as it is no longer dynamically loaded.
+	// as it is no longer dynamically loaded.
 	Py_BEGIN_ALLOW_THREADS
 	rc = MsgWaitForMultipleObjectsEx(numItems, pItems, dwMilliseconds, dwWakeMask, dwFlags);
 	Py_END_ALLOW_THREADS
@@ -252,7 +251,6 @@ static PyObject * MyMsgWaitForMultipleObjectsEx(
 	return obrc;
 }
 %}
-
 
 // @pyswig <o PyHANDLE>|OpenEvent|Returns a handle of an existing named event object. 
 PyHANDLE OpenEvent(

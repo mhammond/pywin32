@@ -13,9 +13,9 @@ static const WCHAR *szBadStringObject = L"<Bad String Object>";
 extern PyObject *PyCom_InternalError;
 
 void GetScodeString(SCODE sc, TCHAR *buf, int bufSize);
-LPCSTR GetScodeRangeString(SCODE sc);
-LPCSTR GetSeverityString(SCODE sc);
-LPCSTR GetFacilityString(SCODE sc);
+LPCTSTR GetScodeRangeString(SCODE sc);
+LPCTSTR GetSeverityString(SCODE sc);
+LPCTSTR GetFacilityString(SCODE sc);
 
 static PyObject *PyCom_PyObjectFromIErrorInfo(IErrorInfo *, HRESULT errorhr);
 
@@ -464,7 +464,7 @@ done:
 void PyCom_StreamMessage(const char *pszMessageText)
 {
 #ifndef MS_WINCE
-	OutputDebugString(pszMessageText);
+	OutputDebugStringA(pszMessageText);
 #else
 	NKDbgPrintfW(pszMessageText);
 #endif
@@ -480,16 +480,16 @@ void PyCom_StreamMessage(const char *pszMessageText)
 			fprintf(stdout, "%s", pszMessageText);
 	PyErr_Restore(typ, val, tb);
 }
+
 BOOL VLogF_Logger(PyObject *logger, const char *log_method,
-				  const TCHAR *prefix, const TCHAR *fmt, va_list argptr)
+				  const char *prefix, const char *fmt, va_list argptr)
 {
 	// Protected by Python lock
-	static TCHAR buff[8196];
-	int buf_len = sizeof(buff) / sizeof(buff[0]);
-	int prefix_len = strlen(prefix);
-	assert(prefix_len<100);
-	strcpy(buff, prefix);
-	wvsprintf(buff+prefix_len, fmt, argptr);
+	static char buff[8196];
+	size_t buf_len = sizeof(buff) / sizeof(buff[0]);
+	size_t prefix_len = strlen(prefix);
+	strncpy(buff, prefix, buf_len);
+	vsnprintf(buff+prefix_len, buf_len-prefix_len, fmt, argptr);
 
 	PyObject *exc_typ = NULL, *exc_val = NULL, *exc_tb = NULL;
 	PyErr_Fetch( &exc_typ, &exc_val, &exc_tb);
@@ -524,16 +524,16 @@ BOOL VLogF_Logger(PyObject *logger, const char *log_method,
 	return rc;
 }
 
-void VLogF(const TCHAR *fmt, va_list argptr)
+void VLogF(const char *fmt, va_list argptr)
 {
-	static TCHAR buff[8196]; // protected by Python lock
+	static char buff[8196]; // protected by Python lock
 
-	wvsprintf(buff, fmt, argptr);
+	vsnprintf(buff, 8196, fmt, argptr);
 
 	PyCom_StreamMessage(buff);
 }
 
-PYCOM_EXPORT void PyCom_LogF(const TCHAR *fmt, ...)
+void PyCom_LogF(const char *fmt, ...)
 {
 	va_list marker;
 
@@ -704,7 +704,7 @@ PyObject *PyCom_BuildPyException(HRESULT errorhr, IUnknown *pUnk /* = NULL */, R
 		obEI = Py_None;
 		Py_INCREF(Py_None);
 	}
-	PyObject *evalue = Py_BuildValue("isOO", errorhr, scodeStringBuf, obEI, Py_None);
+	PyObject *evalue = Py_BuildValue("iNOO", errorhr, PyWinObject_FromTCHAR(scodeStringBuf), obEI, Py_None);
 	Py_DECREF(obEI);
 
 	PyErr_SetObject(PyWinExc_COMError, evalue);
@@ -719,7 +719,7 @@ PyObject* PyCom_BuildPyExceptionFromEXCEPINFO(HRESULT hr, EXCEPINFO *pexcepInfo 
 {
 	TCHAR buf[512];
 	GetScodeString(hr, buf, sizeof(buf)/sizeof(TCHAR));
-	PyObject *obScodeString = PyString_FromTCHAR(buf);
+	PyObject *obScodeString = PyWinObject_FromTCHAR(buf);
 	PyObject *evalue;
 	PyObject *obArg;
 
@@ -1180,7 +1180,7 @@ void GetScodeString(HRESULT hr, LPTSTR buf, int bufSize)
 		}
 		return;
 	}
-	// Next see if this particular error code is registerd as being supplied
+	// Next see if this particular error code is registered as being supplied
 	// by a specific DLL.
 	HINSTANCE hi = PyWin_GetErrorMessageModule(hr);
 	if (hi) {
@@ -1207,17 +1207,17 @@ void GetScodeString(HRESULT hr, LPTSTR buf, int bufSize)
 	wsprintf(buf, _T("OLE error 0x%08x"), hr);
 }
 
-LPCSTR GetScodeRangeString(HRESULT hr)
+LPCTSTR GetScodeRangeString(HRESULT hr)
 {
 	struct RANGE_ENTRY
 	{
 		HRESULT hrFirst;
 		HRESULT hrLast;
-		LPCSTR lpszName;
+		LPCTSTR lpszName;
 	};
 	#define MAKE_RANGE_ENTRY(hrRange) \
 		{ hrRange##_FIRST, hrRange##_LAST, \
-			#hrRange "_FIRST..." #hrRange "_LAST" }
+			_T(#hrRange) _T("_FIRST...") _T(#hrRange) _T("_LAST") }
 
 	static const RANGE_ENTRY hrRangeTable[] =
 	{
@@ -1268,47 +1268,47 @@ LPCSTR GetScodeRangeString(HRESULT hr)
 	return NULL;    // not found
 }
 
-LPCSTR GetSeverityString(HRESULT hr)
+LPCTSTR GetSeverityString(HRESULT hr)
 {
-	static LPCSTR rgszSEVERITY[] =
+	static LPCTSTR rgszSEVERITY[] =
 	{
-		"SEVERITY_SUCCESS",
-		"SEVERITY_ERROR",
+		_T("SEVERITY_SUCCESS"),
+		_T("SEVERITY_ERROR"),
 	};
 	return rgszSEVERITY[HRESULT_SEVERITY(hr)];
 }
 
-LPCSTR GetFacilityString(HRESULT hr)
+LPCTSTR GetFacilityString(HRESULT hr)
 {
-	static LPCSTR rgszFACILITY[] =
+	static LPCTSTR rgszFACILITY[] =
 	{
-		"FACILITY_NULL",
-		"FACILITY_RPC",
-		"FACILITY_DISPATCH",
-		"FACILITY_STORAGE",
-		"FACILITY_ITF",
-		"FACILITY_ADSI",
-		"FACILITY_0x06",
-		"FACILITY_WIN32",
-		"FACILITY_WINDOWS",
-		"FACILITY_SSPI/FACILITY_MQ", // SSPI from ADSERR.H, MQ from mq.h
-		"FACILITY_CONTROL",
-		"FACILITY_EDK",
-		"FACILITY_INTERNET",
-		"FACILITY_MEDIASERVER",
-		"FACILITY_MSMQ",
-		"FACILITY_SETUPAPI",
+		_T("FACILITY_NULL"),
+		_T("FACILITY_RPC"),
+		_T("FACILITY_DISPATCH"),
+		_T("FACILITY_STORAGE"),
+		_T("FACILITY_ITF"),
+		_T("FACILITY_ADSI"),
+		_T("FACILITY_0x06"),
+		_T("FACILITY_WIN32"),
+		_T("FACILITY_WINDOWS"),
+		_T("FACILITY_SSPI/FACILITY_MQ"), // SSPI from ADSERR.H, MQ from mq.h
+		_T("FACILITY_CONTROL"),
+		_T("FACILITY_EDK"),
+		_T("FACILITY_INTERNET"),
+		_T("FACILITY_MEDIASERVER"),
+		_T("FACILITY_MSMQ"),
+		_T("FACILITY_SETUPAPI"),
 	};
 	if (HRESULT_FACILITY(hr) >= _countof(rgszFACILITY))
 		switch (HRESULT_FACILITY(hr)) {
 			case 0x7FF:
-				return "FACILITY_BACKUP";
+				return _T("FACILITY_BACKUP");
 			case 0x800:
-				return "FACILITY_EDB";
+				return _T("FACILITY_EDB");
 			case 0x900:
-				return "FACILITY_MDSI";
+				return _T("FACILITY_MDSI");
 			default:
-				return "<Unknown Facility>";
+				return _T("<Unknown Facility>");
 		}
 	return rgszFACILITY[HRESULT_FACILITY(hr)];
 }

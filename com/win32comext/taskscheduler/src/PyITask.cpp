@@ -34,13 +34,12 @@ PyObject *PyITask::SetApplicationName(PyObject *self, PyObject *args)
 	LPWSTR pwszApplicationName;
 	if ( !PyArg_ParseTuple(args, "O:SetApplicationName", &obpwszApplicationName) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyWinObject_AsBstr(obpwszApplicationName, &pwszApplicationName)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsWCHAR(obpwszApplicationName, &pwszApplicationName))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pIT->SetApplicationName( pwszApplicationName );
-	SysFreeString(pwszApplicationName);
+	PyWinObject_FreeWCHAR(pwszApplicationName);
 
 	PY_INTERFACE_POSTCALL;
 
@@ -86,13 +85,12 @@ PyObject *PyITask::SetParameters(PyObject *self, PyObject *args)
 	LPWSTR pwszParameters;
 	if ( !PyArg_ParseTuple(args, "O:SetParameters", &obpwszParameters) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyWinObject_AsBstr(obpwszParameters, &pwszParameters)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsWCHAR(obpwszParameters, &pwszParameters))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pIT->SetParameters( pwszParameters );
-	SysFreeString(pwszParameters);
+	PyWinObject_FreeWCHAR(pwszParameters);
 
 	PY_INTERFACE_POSTCALL;
 
@@ -138,13 +136,12 @@ PyObject *PyITask::SetWorkingDirectory(PyObject *self, PyObject *args)
 	LPWSTR pwszWorkingDirectory;
 	if ( !PyArg_ParseTuple(args, "O:SetWorkingDirectory", &obpwszWorkingDirectory) )
 		return NULL;
-	BOOL bPythonIsHappy = TRUE;
-	if (bPythonIsHappy && !PyWinObject_AsBstr(obpwszWorkingDirectory, &pwszWorkingDirectory)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsWCHAR(obpwszWorkingDirectory, &pwszWorkingDirectory))
+		return NULL;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
 	hr = pIT->SetWorkingDirectory( pwszWorkingDirectory );
-	SysFreeString(pwszWorkingDirectory);
+	PyWinObject_FreeWCHAR(pwszWorkingDirectory);
 
 	PY_INTERFACE_POSTCALL;
 

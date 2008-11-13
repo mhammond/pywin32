@@ -13,11 +13,11 @@ extern const GUID IID_IInternalUnwrapPythonObject =
 
 extern PyObject *g_obMissing;
 
-extern void PyCom_LogF(const char *fmt, ...);
-#define LogF PyCom_LogF
-
 #include <malloc.h>
-#if _MSC_VER < 1400
+// When building with the 2003 Platform SDK 64-bit compiloer, _MSC_VER is 1400,
+// but _malloca is not defined
+// #if _MSC_VER < 1400
+#ifndef _malloca
 // _malloca is the new 'safe' one
 #define _malloca _alloca
 #endif
@@ -96,7 +96,7 @@ PyGatewayBase::PyGatewayBase(PyObject *instance)
 	PyCom_DLLAddRef();
 
 #ifdef DEBUG_FULL
-	LogF("PyGatewayBase: created %s", m_pPyObject ? m_pPyObject->ob_type->tp_name : "<NULL>");
+	PyCom_LogF("PyGatewayBase: created %s", m_pPyObject ? m_pPyObject->ob_type->tp_name : "<NULL>");
 #endif
 }
 
@@ -104,7 +104,7 @@ PyGatewayBase::~PyGatewayBase()
 {
 	InterlockedDecrement(&cGateways);
 #ifdef DEBUG_FULL
-	LogF("PyGatewayBase: deleted %s", m_pPyObject ? m_pPyObject->ob_type->tp_name : "<NULL>");
+	PyCom_LogF("PyGatewayBase: deleted %s", m_pPyObject ? m_pPyObject->ob_type->tp_name : "<NULL>");
 #endif
 
 	if ( m_pPyObject )
@@ -135,7 +135,7 @@ STDMETHODIMP PyGatewayBase::QueryInterface(
 		StringFromGUID2(iid, oleRes, sizeof(oleRes));
 		// Only for a special debug build, don't worry about error checking
 		WideCharToMultiByte(CP_ACP, 0, oleRes, -1, cRes, 256, NULL, NULL);
-		LogF("PyGatewayBase::QueryInterface: %s", cRes);
+		PyCom_LogF("PyGatewayBase::QueryInterface: %s", cRes);
 	}
 #endif
 
@@ -387,7 +387,7 @@ STDMETHODIMP PyGatewayBase::GetIDsOfNames(
 	)
 {
 #ifdef DEBUG_FULL
-	LogF("PyGatewayBase::GetIDsOfNames");
+	PyCom_LogF("PyGatewayBase::GetIDsOfNames");
 #endif
 
 	HRESULT hr;
@@ -734,7 +734,7 @@ STDMETHODIMP PyGatewayBase::Invoke(
 	)
 {
 #ifdef DEBUG_FULL
-	LogF("PyGatewayBase::Invoke; dispid=%ld", dispid);
+	PyCom_LogF("PyGatewayBase::Invoke; dispid=%ld", dispid);
 #endif
 
 	HRESULT hr;
@@ -774,7 +774,7 @@ STDMETHODIMP PyGatewayBase::Invoke(
 STDMETHODIMP PyGatewayBase::GetDispID(BSTR bstrName, DWORD grfdex, DISPID *pid)
 {
 #ifdef DEBUG_FULL
-	LogF("PyGatewayBase::GetDispID");
+	PyCom_LogF("PyGatewayBase::GetDispID");
 #endif
 	PY_GATEWAY_METHOD;
 	PyObject *obName = PyWinObject_FromBstr(bstrName, FALSE);
@@ -797,7 +797,7 @@ STDMETHODIMP PyGatewayBase::GetDispID(BSTR bstrName, DWORD grfdex, DISPID *pid)
 STDMETHODIMP PyGatewayBase::InvokeEx(DISPID id, LCID lcid, WORD wFlags, DISPPARAMS *params, VARIANT *pVarResult, EXCEPINFO *pexcepinfo, IServiceProvider *pspCaller)
 {
 #ifdef DEBUG_FULL
-	LogF("PyGatewayBase::InvokeEx; dispid=%ld", id);
+	PyCom_LogF("PyGatewayBase::InvokeEx; dispid=%ld", id);
 #endif
 
 	HRESULT hr;
@@ -839,7 +839,7 @@ STDMETHODIMP PyGatewayBase::InvokeEx(DISPID id, LCID lcid, WORD wFlags, DISPPARA
 STDMETHODIMP PyGatewayBase::DeleteMemberByName(BSTR bstr, DWORD grfdex)
 {
 #ifdef DEBUG_FULL
-	LogF("PyGatewayBase::DeleteMemberByName");
+	PyCom_LogF("PyGatewayBase::DeleteMemberByName");
 #endif
 	PY_GATEWAY_METHOD;
 	PyObject *obName = PyWinObject_FromBstr(bstr, FALSE);
@@ -857,7 +857,7 @@ STDMETHODIMP PyGatewayBase::DeleteMemberByName(BSTR bstr, DWORD grfdex)
 STDMETHODIMP PyGatewayBase::DeleteMemberByDispID(DISPID id)
 {
 #ifdef DEBUG_FULL
-	LogF("PyGatewayBase::DeleteMemberByDispID");
+	PyCom_LogF("PyGatewayBase::DeleteMemberByDispID");
 #endif
 	PY_GATEWAY_METHOD;
 	PyObject *result = PyObject_CallMethod(m_pPyObject,
@@ -871,7 +871,7 @@ STDMETHODIMP PyGatewayBase::DeleteMemberByDispID(DISPID id)
 STDMETHODIMP PyGatewayBase::GetMemberProperties(DISPID id, DWORD grfdexFetch, DWORD *pgrfdex)
 {
 #ifdef DEBUG_FULL
-	LogF("PyGatewayBase::GetMemberProperties");
+	PyCom_LogF("PyGatewayBase::GetMemberProperties");
 #endif
 	PY_GATEWAY_METHOD;
 	PyObject *result = PyObject_CallMethod(m_pPyObject,
@@ -891,7 +891,7 @@ STDMETHODIMP PyGatewayBase::GetMemberProperties(DISPID id, DWORD grfdexFetch, DW
 STDMETHODIMP PyGatewayBase::GetMemberName(DISPID id, BSTR *pbstrName)
 {
 #ifdef DEBUG_FULL
-	LogF("PyGatewayBase::GetMemberName");
+	PyCom_LogF("PyGatewayBase::GetMemberName");
 #endif
 	PY_GATEWAY_METHOD;
 	PyObject *result = PyObject_CallMethod(m_pPyObject,
@@ -908,7 +908,7 @@ STDMETHODIMP PyGatewayBase::GetMemberName(DISPID id, BSTR *pbstrName)
 STDMETHODIMP PyGatewayBase::GetNextDispID(DWORD grfdex, DISPID id, DISPID *pid)
 {
 #ifdef DEBUG_FULL
-	LogF("PyGatewayBase::GetNextDispID");
+	PyCom_LogF("PyGatewayBase::GetNextDispID");
 #endif
 	PY_GATEWAY_METHOD;
 	PyObject *result = PyObject_CallMethod(m_pPyObject,
@@ -928,7 +928,7 @@ STDMETHODIMP PyGatewayBase::GetNextDispID(DWORD grfdex, DISPID id, DISPID *pid)
 STDMETHODIMP PyGatewayBase::GetNameSpaceParent(IUnknown **ppunk)
 {
 #ifdef DEBUG_FULL
-	LogF("PyGatewayBase::GetNameSpaceParent");
+	PyCom_LogF("PyGatewayBase::GetNameSpaceParent");
 #endif
 	PY_GATEWAY_METHOD;
 	PyObject *result = PyObject_CallMethod(m_pPyObject,

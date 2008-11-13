@@ -95,7 +95,6 @@ PyTypeObject PyRASEAPUSERIDENTITY::type =
 	0,	/*tp_as_buffer*/
 };
 
-
 PyRASEAPUSERIDENTITY::PyRASEAPUSERIDENTITY(RASEAPUSERIDENTITY *identity)
 {
 	ob_type = &type;
@@ -131,32 +130,38 @@ PyObject *PyRASEAPUSERIDENTITY::getattr(PyObject *self, char *name)
 static PyObject *
 PyRasGetEapUserIdentity( PyObject *self, PyObject *args )
 {
-	char *phoneBook, *entry;
+	TCHAR *phoneBook=NULL, *entry=NULL;
+	PyObject *obphoneBook, *obentry;
 	int flags;
-	HWND hwnd;
-	PyObject *obhwnd=Py_None;
-	if (!PyArg_ParseTuple(args, "zsi|O:GetEapUserIdentity", 
-			  &phoneBook, // @pyparm string|phoneBook||string containing the full path of the phone-book (PBK) file. If this parameter is None, the function will use the system phone book.
-			  &entry,// @pyparm string|entry||string containing an existing entry name.
+	HWND hwnd=NULL;
+	PyObject *ret=NULL;
+	if (!PyArg_ParseTuple(args, "OOi|O&:GetEapUserIdentity", 
+			  &obphoneBook, // @pyparm string|phoneBook||string containing the full path of the phone-book (PBK) file. If this parameter is None, the function will use the system phone book.
+			  &obentry,// @pyparm string|entry||string containing an existing entry name.
 			  &flags,  // @pyparm int|flags||Specifies zero or more of the following flags that qualify the authentication process.
 						// @flagh Flag|Description 
 						// @flag RASEAPF_NonInteractive|Specifies that the authentication protocol should not bring up a graphical user-interface. If this flag is not present, it is okay for the protocol to display a user interface. 
 						// @flag RASEAPF_Logon|Specifies that the user data is obtained from Winlogon. 
 						// @flag RASEAPF_Preview|Specifies that the user should be prompted for identity information before dialing. 
-			  &obhwnd))   // @pyparm <o PyHANDLE>|hwnd|None|Handle to the parent window for the UI dialog.
-		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
+			  PyWinObject_AsHANDLE, &hwnd))   // @pyparm <o PyHANDLE>|hwnd|None|Handle to the parent window for the UI dialog.
 		return NULL;
 
-	// @pyseeapi RasGetEapUserIdentity
-	DWORD rc;
-	RASEAPUSERIDENTITY *identity;
-	Py_BEGIN_ALLOW_THREADS
-	rc = RasGetEapUserIdentity(phoneBook, entry, flags, hwnd, &identity);
-	Py_END_ALLOW_THREADS
-	if (rc != 0)
-		return ReturnRasError("RasGetEapUserIdentity",rc);
-	return PyWinObject_FromRASEAPUSERIDENTITY(identity);
+	if (PyWinObject_AsTCHAR(obphoneBook, &phoneBook, TRUE)
+		&& PyWinObject_AsTCHAR(obentry, &entry, FALSE)){
+		// @pyseeapi RasGetEapUserIdentity
+		DWORD rc;
+		RASEAPUSERIDENTITY *identity;
+		Py_BEGIN_ALLOW_THREADS
+		rc = RasGetEapUserIdentity(phoneBook, entry, flags, hwnd, &identity);
+		Py_END_ALLOW_THREADS
+		if (rc != 0)
+			ReturnRasError("RasGetEapUserIdentity",rc);
+		else
+			ret = PyWinObject_FromRASEAPUSERIDENTITY(identity);
+		}
+	PyWinObject_FreeTCHAR(phoneBook);
+	PyWinObject_FreeTCHAR(entry);
+	return ret;
 }
 
 /* List of functions exported by this module */
@@ -166,24 +171,10 @@ static struct PyMethodDef win2kras_functions[] = {
 	{NULL,			NULL}
 };
 
-int AddConstant(PyObject *dict, char *key, long value)
-{
-	PyObject *okey = PyString_FromString(key);
-	PyObject *oval = PyInt_FromLong(value);
-	if (!okey || !oval) {
-		Py_XDECREF(okey);
-		Py_XDECREF(oval);
-		return 1;
-	}
-	int rc = PyDict_SetItem(dict,okey, oval);
-	Py_XDECREF(okey);
-	Py_XDECREF(oval);
-	return rc;
-}
 
-#define ADD_CONSTANT(tok) if (rc=AddConstant(dict,#tok, tok)) return rc
+#define ADD_CONSTANT(tok) if (rc=PyModule_AddIntConstant(module, #tok, tok)) return rc
 
-static int AddConstants(PyObject *dict)
+static int AddConstants(PyObject *module)
 {
 	int rc;
 	ADD_CONSTANT(RASEAPF_NonInteractive); // @const win2kras|RASEAPF_NonInteractive|Specifies that the authentication protocol should not bring up a graphical user-interface. If this flag is not present, it is okay for the protocol to display a user interface.
@@ -197,16 +188,17 @@ initwin2kras(void)
 {
 	PyWinGlobals_Ensure();
 	PyObject *dict, *module;
+#define RETURN_ERROR return // towards py3k
 	module = Py_InitModule("win2kras", win2kras_functions);
 	if (!module) /* Eeek - some serious error! */
 		return;
 	dict = PyModule_GetDict(module);
 	if (!dict) return; /* Another serious error!*/
-	AddConstants(dict);
+	AddConstants(module);
 #ifdef _DEBUG
-	const char *modName = "win32ras_d.pyd";
+	const TCHAR *modName = _T("win32ras_d.pyd");
 #else
-	const char *modName = "win32ras.pyd";
+	const TCHAR *modName = _T("win32ras.pyd");
 #endif
 	// We insist on win32ras being imported - but the least we
 	// can do is attempt the import ourselves!
@@ -218,12 +210,12 @@ initwin2kras(void)
 	}
 	if (hmod==NULL) {
 		PyErr_SetString(PyExc_RuntimeError, "You must import 'win32ras' before importing this module");
-		return;
+		RETURN_ERROR;
 	}
 	FARPROC fp = GetProcAddress(hmod, "ReturnRasError");
 	if (fp==NULL) {
 		PyErr_SetString(PyExc_RuntimeError, "Could not locate 'ReturnRasError' in 'win32ras'");
-		return;
+		RETURN_ERROR;
 	}
 	pfnReturnRasError = (PFNReturnRasError)fp;
 }

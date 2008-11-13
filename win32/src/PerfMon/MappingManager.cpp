@@ -59,7 +59,7 @@ BOOL MappingManager::Init(const TCHAR *szServiceName, const TCHAR *szMappingName
 
 	_tcscat(szGlobalMapping, szMappingName);
 
-	m_hMappedObject = CreateFileMapping((HANDLE)0xFFFFFFFF,
+	m_hMappedObject = CreateFileMapping(INVALID_HANDLE_VALUE,
 						NULL,
 						PAGE_READWRITE,
 						0,

@@ -282,7 +282,7 @@ static int AddIID(PyObject *dict, const char *key, REFGUID guid)
 #define ADD_CONSTANT(tok) AddConstant(dict, #tok, tok)
 #define ADD_IID(tok) AddIID(dict, #tok, tok)
 
-// @object PyIFilter|Description of the interface
+// @object PyIFilter|Wraps the interfaces used with Indexing Service filtering
 static struct PyMethodDef PyIFilter_methods[] =
 {
 	{ "Init", PyIFilter::Init, 1 }, // @pymeth Init|Description of Init
@@ -333,7 +333,7 @@ extern "C" __declspec(dllexport) void initifilter()
 
 	// Tell pywintypes that IFilter error messages can be extracted from
 	// query.dll
-	HMODULE hmod = GetModuleHandle("query.dll");
+	HMODULE hmod = GetModuleHandle(_T("query.dll"));
 	if (hmod)
 		// According to FiltErr.h, "Codes 0x1700-0x172F are reserved for FILTER"
 		PyWin_RegisterErrorMessageModule(0x80041700, 0x8004172F, hmod);

@@ -190,17 +190,11 @@ PyObject *PySTARTUPINFO::getattr(PyObject *self, char *name)
 	if (strcmp("hStdError", name)==0)
 		return gethandle(pO->m_obStdErr, pO->m_startupinfo.hStdError);
 	// @prop string/None|lpDesktop|
-	if (strcmp("lpDesktop", name)==0) {
-		PyObject *rc = pO->m_obDesktop ? pO->m_obDesktop : Py_None;
-		Py_INCREF(rc);
-		return rc;
-	}
+	if (strcmp("lpDesktop", name)==0)
+		return PyWinObject_FromTCHAR(pO->m_startupinfo.lpDesktop);
 	// @prop string/None|lpTitle|
-	if (strcmp("lpTitle", name)==0) {
-		PyObject *rc = pO->m_obTitle ? pO->m_obTitle : Py_None;
-		Py_INCREF(rc);
-		return rc;
-	}
+	if (strcmp("lpTitle", name)==0)
+		return PyWinObject_FromTCHAR(pO->m_startupinfo.lpTitle);
 	return PyMember_Get((char *)self, memberlist, name);
 }
 
@@ -237,23 +231,22 @@ int PySTARTUPINFO::setattr(PyObject *self, char *name, PyObject *v)
 		return sethandle( &pO->m_obStdErr, &pO->m_startupinfo.hStdError, v);
 
 	if (strcmp("lpDesktop", name)==0) {
-		if (PyWinObject_AsTCHAR(v, &pO->m_startupinfo.lpDesktop, TRUE)) {
-			Py_XDECREF(pO->m_obDesktop);
-			pO->m_obDesktop = v;
-			Py_INCREF(v);
-			return 0;
-		} else
+		TCHAR *val;
+		if (!PyWinObject_AsTCHAR(v, &val, TRUE))
 			return -1;
-	}
+		PyWinObject_FreeTCHAR(pO->m_startupinfo.lpDesktop);
+		pO->m_startupinfo.lpDesktop = val;
+		return 0;
+		}
+
 	if (strcmp("lpTitle", name)==0) {
-		if (PyWinObject_AsTCHAR(v, &pO->m_startupinfo.lpTitle, TRUE)) {
-			Py_XDECREF(pO->m_obTitle);
-			pO->m_obTitle = v;
-			Py_INCREF(v);
-			return 0;
-		} else
+		TCHAR *val;
+		if (!PyWinObject_AsTCHAR(v, &val, TRUE))
 			return -1;
-	}
+		PyWinObject_FreeTCHAR(pO->m_startupinfo.lpTitle);
+		pO->m_startupinfo.lpTitle=val;
+		return 0;
+		}
 	return PyMember_Set((char *)self, memberlist, name, v);
 }
 

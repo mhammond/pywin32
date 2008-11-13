@@ -105,7 +105,7 @@ PyObject *PySID::IsValid(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, ":IsValid"))
 		return NULL;
 	PySID *This = (PySID *)self;
-	return PyInt_FromLong( IsValidSid(This->GetSID()) );
+	return PyBool_FromLong( IsValidSid(This->GetSID()) );
 }
 
 // @pymethod int|PySID|GetSubAuthority|Returns specified subauthority from SID
@@ -174,7 +174,7 @@ PyObject *PySID::GetSidIdentifierAuthority (PyObject *self, PyObject *args)
 
 	SID_IDENTIFIER_AUTHORITY *psia;  //wtf is this thing ?  Give it back to the user, let *him* figure it out
 	psia = ::GetSidIdentifierAuthority(This->GetSID());
-    return Py_BuildValue("(iiiiii)",psia->Value[0],psia->Value[1],psia->Value[2],psia->Value[3],psia->Value[4],psia->Value[5]);
+    return Py_BuildValue("(BBBBBB)",psia->Value[0],psia->Value[1],psia->Value[2],psia->Value[3],psia->Value[4],psia->Value[5]);
 }
 
 // @object PySID|A Python object, representing a SID structure
@@ -390,12 +390,12 @@ BOOL GetTextualSid(
 		return PyString_FromString("PySID: Invalid SID");
 	}
 	// Space for the "PySID:" prefix.
-	const char *prefix = "PySID:";
-	char *buf = (char *)malloc(strlen(prefix)+bufSize);
+	TCHAR *prefix = _T("PySID:");
+	TCHAR *buf = (TCHAR *)malloc((_tcslen(prefix)+bufSize) * sizeof(TCHAR));
 	if (buf==NULL) return PyErr_NoMemory();
-	strcpy(buf, prefix);
-	GetTextualSid(psid, buf+strlen(prefix), &bufSize);
-	PyObject *ret = PyString_FromString(buf);
+	_tcscpy(buf, prefix);
+	GetTextualSid(psid, buf+_tcslen(prefix), &bufSize);
+	PyObject *ret = PyWinObject_FromTCHAR(buf);
 	free(buf);
 	return ret;
 }

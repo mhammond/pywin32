@@ -207,9 +207,9 @@ mmapfile_write_byte_method (mmapfile_object * self,
 	char value;
 
 	CHECK_VALID;
-	if (!PyArg_ParseTuple (args, "c",
+	if (!PyArg_ParseTuple (args, "c:write_byte",
 		&value))	// @pyparm str|char||Single byte to be placed in buffer
-		return(NULL);
+		return NULL;
 
 	// read and write methods can leave pos = size, technically past end of buffer
 	if (self->pos < self->size){
@@ -499,8 +499,8 @@ static PyObject *
 new_mmapfile_object (PyObject * self, PyObject * args, PyObject *kwargs)
 {
 	mmapfile_object * m_obj;
-	char * filename;
-	PyObject *obtagname, *obview_size=Py_None;
+	TCHAR * filename;
+	PyObject *obfilename, *obtagname, *obview_size=Py_None;
 	PSECURITY_ATTRIBUTES psa=NULL; // Not accepted as a parameter yet
 
 	m_obj = PyObject_New (mmapfile_object, &mmapfile_object_type);
@@ -517,8 +517,8 @@ new_mmapfile_object (PyObject * self, PyObject * args, PyObject *kwargs)
 	m_obj->creation_status = 0;
 
 	static char *keywords[]={"File", "Name", "MaximumSize", "FileOffset", "NumberOfBytesToMap", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "zO|KKO", keywords,
-		&filename,	// @pyparm str|File||Name of file.  Use None or '' when opening an existing named mapping, or to use system pagefile.
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|KKO", keywords,
+		&obfilename,	// @pyparm str|File||Name of file.  Use None or '' when opening an existing named mapping, or to use system pagefile.
 		&obtagname,	// @pyparm str|Name||Name of mapping object to create or open, can be None
 		&m_obj->mapping_size.QuadPart,	// @pyparm int|MaximumSize|0|Size of file mapping to create, should be specified as a multiple
 				// of system page size (see <om win32api.GetSystemInfo>).  Defaults to size of existing file if 0.
@@ -535,24 +535,31 @@ new_mmapfile_object (PyObject * self, PyObject * args, PyObject *kwargs)
 		Py_DECREF(m_obj);
 		return NULL;
 		}
+	if (!PyWinObject_AsTCHAR(obfilename, &filename, TRUE)){
+		Py_DECREF(m_obj);
+		return NULL;
+		}
 	if (obview_size!=Py_None){
 		m_obj->size=PyInt_AsSsize_t(obview_size);
 		if (m_obj->size==-1 && PyErr_Occurred()){
 			Py_DECREF(m_obj);
+			PyWinObject_FreeTCHAR(filename);
 			return NULL;
 			}
 		}
 
 	// if an actual filename has been specified
-	if (filename && strlen(filename)){
+	if (filename && _tcslen(filename)){
 		m_obj->file_handle = CreateFile (filename, GENERIC_READ|GENERIC_WRITE,
 			FILE_SHARE_READ|FILE_SHARE_WRITE, psa, OPEN_ALWAYS, 0, NULL);
 		if (m_obj->file_handle == INVALID_HANDLE_VALUE){
 			Py_DECREF(m_obj);
+			PyWinObject_FreeTCHAR(filename);
 			return PyWin_SetAPIError("CreateFile");
 			}
 		}
-	
+	PyWinObject_FreeTCHAR(filename);
+
 	// If mapping size was not specified, use existing file size
 	if ((!m_obj->mapping_size.QuadPart) && (m_obj->file_handle != INVALID_HANDLE_VALUE)){
 		m_obj->mapping_size.LowPart = GetFileSize (m_obj->file_handle, &m_obj->mapping_size.HighPart);

@@ -740,4 +740,6 @@ PYCOM_EXPORT PyObject *MakeOLECHARToObj(const OLECHAR * str, int numChars);
 // No size info avail.
 PYCOM_EXPORT PyObject *MakeOLECHARToObj(const OLECHAR * str);
 
+PYCOM_EXPORT void PyCom_LogF(const char *fmt, ...);
+
 #endif // __PYTHONCOM_H__
