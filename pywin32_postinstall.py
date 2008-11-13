@@ -262,6 +262,27 @@ def get_system_dir():
     except ImportError:
         return win32api.GetSystemDirectory()
 
+def fixup_dbi():
+    # We used to have a dbi.pyd with our .pyd files, but now have a .py file.
+    # If the user didn't uninstall, they will find the .pyd which will cause
+    # problems - so handle that.
+    import win32api, win32con
+    pyd_name = os.path.join(os.path.dirname(win32api.__file__), "dbi.pyd")
+    pyd_d_name = os.path.join(os.path.dirname(win32api.__file__), "dbi_d.pyd")
+    py_name = os.path.join(os.path.dirname(win32con.__file__), "dbi.py")
+    for this_pyd in (pyd_name, pyd_d_name):
+        this_dest = this_pyd + ".old"
+        if os.path.isfile(this_pyd) and os.path.isfile(py_name):
+            try:
+                if os.path.isfile(this_dest):
+                    print "Old dbi '%s' already exists - deleting '%s'" % (this_dest, this_pyd)
+                    os.remove(this_pyd)
+                else:
+                    os.rename(this_pyd, this_dest)
+                    print "renamed '%s'->'%s.old'" % (this_pyd, this_pyd)
+            except os.error, exc:
+                print "FAILED to rename '%s': %s" % (this_pyd, exc)
+
 def install():
     import distutils.sysconfig
     import traceback
@@ -370,6 +391,9 @@ def install():
     else:
         print "NOTE: PyWin32.chm can not be located, so has not " \
               "been registered"
+
+    # misc other fixups.
+    fixup_dbi()
 
     # Register Pythonwin in context menu
     try:
@@ -482,6 +506,17 @@ def uninstall():
         pywin_dir = os.path.join(lib_dir, "Pythonwin", "pywin")
         for fname in glob.glob(os.path.join(pywin_dir, "*.cfc")):
             os.remove(fname)
+
+        # The dbi.pyd.old files we may have created.
+        try:
+            os.remove(os.path.join(lib_dir, "win32", "dbi.pyd.old"))
+        except os.error:
+            pass
+        try:
+            os.remove(os.path.join(lib_dir, "win32", "dbi_d.pyd.old"))
+        except os.error:
+            pass
+        
     except Exception, why:
         print "Failed to remove misc files:", why
 
