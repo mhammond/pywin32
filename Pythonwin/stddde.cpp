@@ -8,10 +8,6 @@
 
 #include "stdafxdde.h"
 
-// ?? where does this come from?
-#ifndef DDE_STRING_CODEPAGE
-#define DDE_STRING_CODEPAGE CP_WINANSI
-#endif
 //
 // Constants
 //

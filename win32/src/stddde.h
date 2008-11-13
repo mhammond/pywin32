@@ -70,9 +70,9 @@ class CHSZ : public CObject
     DECLARE_DYNCREATE(CHSZ);
 public:
     CHSZ();
-    CHSZ(CDDEServer* pServer, const char* szName);
+    CHSZ(CDDEServer* pServer, const TCHAR* szName);
     virtual ~CHSZ();
-    void Create(CDDEServer* pServer, const char* szName);
+    void Create(CDDEServer* pServer, const TCHAR* szName);
 	void Destroy();
     operator HSZ() {return m_hsz;}
 
@@ -94,12 +94,12 @@ class CDDEItem : public CObject
 public:
     CDDEItem();
     virtual ~CDDEItem();
-    void Create(const char* pszName);
+    void Create(const TCHAR* pszName);
     void PostAdvise();
     virtual BOOL Request(UINT wFmt, void** ppData, DWORD* pdwSize);
 //CT BEGIN
-	virtual BOOL NSRequest(const char* szItem, void** ppData, DWORD* pdwSize);
-	virtual BOOL NSPoke(const char* szItem, void* pData, DWORD dwSize);
+	virtual BOOL NSRequest(const TCHAR* szItem, void** ppData, DWORD* pdwSize);
+	virtual BOOL NSPoke(const TCHAR* szItem, void* pData, DWORD dwSize);
 	virtual BOOL Poke(void* pData, DWORD dwSize);
 //CT END
 	virtual BOOL Poke(UINT wFmt, void* pData, DWORD dwSize);
@@ -123,11 +123,11 @@ class CDDEStringItem : public CDDEItem
     DECLARE_DYNCREATE(CDDEStringItem);
 public:
     virtual void OnPoke(){;}
-    virtual void SetData(const char* pszData);
-    virtual const char* GetData()
-        {return (const char*)m_strData;}
-    operator const char*()
-        {return (const char*)m_strData;}
+    virtual void SetData(const TCHAR* pszData);
+    virtual const TCHAR* GetData()
+        {return (const TCHAR*)m_strData;}
+    operator const TCHAR*()
+        {return (const TCHAR*)m_strData;}
 
 protected:
     virtual BOOL Request(UINT wFmt, void** ppData, DWORD* pdwSize);
@@ -164,21 +164,21 @@ class CDDETopic : public CObject
 public:
     CDDETopic();
     virtual ~CDDETopic();
-    void Create(const char* pszName);
+    void Create(const TCHAR* pszName);
     BOOL AddItem(CDDEItem* pItem);
-    virtual BOOL Request(UINT wFmt, const char* pszItem,
+    virtual BOOL Request(UINT wFmt, const TCHAR* pszItem,
                          void** ppData, DWORD* pdwSize);
 //CT BEGIN
-	virtual BOOL NSRequest(const char * szItem, void** ppData, DWORD* pdwSize);
-	virtual BOOL NSPoke(const char * szItem, void* pData, DWORD dwSize);
-    virtual BOOL Poke(const char* pszItem,
+	virtual BOOL NSRequest(const TCHAR * szItem, void** ppData, DWORD* pdwSize);
+	virtual BOOL NSPoke(const TCHAR * szItem, void* pData, DWORD dwSize);
+    virtual BOOL Poke(const TCHAR* pszItem,
                       void* pData, DWORD dwSize);
 //CT END
-    virtual BOOL Poke(UINT wFmt, const char* pszItem,
+    virtual BOOL Poke(UINT wFmt, const TCHAR* pszItem,
                       void* pData, DWORD dwSize);
     virtual BOOL Exec(void* pData, DWORD dwSize);
-    virtual CDDEItem* FindItem(const char* pszItem);
-    virtual BOOL CanAdvise(UINT wFmt, const char* pszItem);
+    virtual CDDEItem* FindItem(const TCHAR* pszItem);
+    virtual BOOL CanAdvise(UINT wFmt, const TCHAR* pszItem);
     void PostAdvise(CDDEItem* pItem);
 
     CString m_strName;          // name of this topic
@@ -218,16 +218,16 @@ public:
     CDDEConv(CDDEServer* pServer, HCONV hConv, HSZ hszTopic);
 	BOOL Connected() {return (m_hConv != NULL);}
     virtual ~CDDEConv();
-    virtual BOOL ConnectTo(const char* pszService, const char* pszTopic);
+    virtual BOOL ConnectTo(const TCHAR* pszService, const TCHAR* pszTopic);
     virtual BOOL Terminate();
-    virtual BOOL AdviseData(UINT wFmt, const char* pszTopic, const char* pszItem,
+    virtual BOOL AdviseData(UINT wFmt, const TCHAR* pszTopic, const TCHAR* pszItem,
                             void* pData, DWORD dwSize);
-    virtual BOOL Request(const char* pszItem, void** ppData, DWORD* pdwSize);
-    virtual BOOL Advise(const char* pszItem);
-    virtual BOOL Exec(const char* pszCmd);
-    virtual BOOL Poke(UINT wFmt, const char* pszItem, void* pData, DWORD dwSize);
+    virtual BOOL Request(const TCHAR* pszItem, void** ppData, DWORD* pdwSize);
+    virtual BOOL Advise(const TCHAR* pszItem);
+    virtual BOOL Exec(const TCHAR* pszCmd);
+    virtual BOOL Poke(UINT wFmt, const TCHAR* pszItem, void* pData, DWORD dwSize);
 //CT BEGIN
-    virtual BOOL Poke(const char* pszItem, void* pData, DWORD dwSize);
+    virtual BOOL Poke(const TCHAR* pszItem, void* pData, DWORD dwSize);
 //CT END
     CDDEServer* m_pServer;
     HCONV   m_hConv;            // Conversation handle
@@ -289,7 +289,7 @@ class CDDEServerSystemTopic : public CDDETopic
 {
     DECLARE_DYNCREATE(CDDEServerSystemTopic);
 protected:
-    virtual BOOL Request(UINT wFmt, const char* pszItem,
+    virtual BOOL Request(UINT wFmt, const TCHAR* pszItem,
                          void** ppData, DWORD* pdwSize);
 
 };
@@ -307,7 +307,7 @@ class CDDEServer : public CObject
 public:
     CDDEServer();
     virtual ~CDDEServer();
-    BOOL Create(const char* pszServiceName,
+    BOOL Create(const TCHAR* pszServiceName,
                 DWORD dwFilterFlags = 0,
                 DWORD* pdwDDEInst = NULL);
 	virtual CDDEServerSystemTopic *CreateSystemTopic() {return new CDDEServerSystemTopic();}
@@ -325,17 +325,17 @@ public:
                                     DWORD dwData2)
         {return NULL;}
 
-    virtual BOOL Request(UINT wFmt, const char* pszTopic, const char* pszItem,
+    virtual BOOL Request(UINT wFmt, const TCHAR* pszTopic, const TCHAR* pszItem,
                          void** ppData, DWORD* pdwSize);
-    virtual BOOL Poke(UINT wFmt, const char* pszTopic, const char* pszItem,
+    virtual BOOL Poke(UINT wFmt, const TCHAR* pszTopic, const TCHAR* pszItem,
                       void* pData, DWORD dwSize);
-    virtual BOOL AdviseData(UINT wFmt, HCONV hConv, const char* pszTopic, const char* pszItem,
+    virtual BOOL AdviseData(UINT wFmt, HCONV hConv, const TCHAR* pszTopic, const TCHAR* pszItem,
                       void* pData, DWORD dwSize);
-    virtual BOOL Exec(const char* pszTopic, void* pData, DWORD dwSize);
-    virtual void Status(const char* pszFormat, ...) {;}
+    virtual BOOL Exec(const TCHAR* pszTopic, void* pData, DWORD dwSize);
+    virtual void Status(const TCHAR* pszFormat, ...) {;}
     virtual BOOL AddTopic(CDDETopic* pTopic);
     CString StringFromHsz(HSZ hsz);
-    virtual BOOL CanAdvise(UINT wFmt, const char* pszTopic, const char* pszItem);
+    virtual BOOL CanAdvise(UINT wFmt, const TCHAR* pszTopic, const TCHAR* pszItem);
     void PostAdvise(CDDETopic* pTopic, CDDEItem* pItem);
     CDDEConv*  AddConversation(HCONV hConv, HSZ hszTopic);
     CDDEConv* AddConversation(CDDEConv* pNewConv);
@@ -359,7 +359,7 @@ protected:
                 HSZ hsz2,
                 HDDEDATA hData,
                 HDDEDATA *phReturnData);
-    CDDETopic* FindTopic(const char* pszTopic);
+    CDDETopic* FindTopic(const TCHAR* pszTopic);
 
 private:
 //CT BEGIN
@@ -406,5 +406,10 @@ private:
     CDDESystemItem_FormatList m_SystemItemFormats;
 };          
 
+#ifdef UNICODE
+#define DDE_STRING_CODEPAGE CP_WINUNICODE
+#else
+#define DDE_STRING_CODEPAGE CP_WINANSI
+#endif
 
 #endif // _STDDDE_
