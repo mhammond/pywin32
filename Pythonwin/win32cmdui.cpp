@@ -112,6 +112,9 @@ Python_OnCmdMsg (CCmdTarget *obj, UINT nID, int nCode,
 					CEnterLeavePython _celp;
 					Python_callback (method, ob);
 					if (PyErr_Occurred())	// if any Python exception, pretend it was OK
+						// XXX - Python_callback always calls
+						// gui_print_error() on failure, which
+						// clears the error - so we can't get here?
 						gui_print_error();
 					// object is no longer valid.
 					GUI_BGN_SAVE;
@@ -138,7 +141,11 @@ Python_OnCmdMsg (CCmdTarget *obj, UINT nID, int nCode,
 					// perform the callback.
 				CEnterLeavePython _celp;
 				rc = Python_callback (method, nID, nCode);
-				if (rc==-1 && PyErr_Occurred()) {	// if any Python exception, print it
+				// This is dodgy - we have to rely on -1 and can't check PyErr_Occurred(),
+				// as Python_callback will have called gui_print_error() which clears
+				// the error.
+				if (rc==-1) {
+					// Raise a *new* exception then print that too.
 					char buf[128];
 					sprintf(buf, "Error in Command Message handler for command ID %u, Code %d", nID, nCode);
 					PyErr_SetString(ui_module_error, buf);
