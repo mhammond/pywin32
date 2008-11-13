@@ -268,6 +268,7 @@ class WinExt (Extension):
         # MSVC based builds.  Always define DISTUTILS_BUILD so they can tell.
         define_macros = define_macros or []
         define_macros.append(("DISTUTILS_BUILD", None))
+        define_macros.append(("_CRT_SECURE_NO_WARNINGS", None))
         self.pch_header = pch_header
         self.extra_swig_commands = extra_swig_commands or []
         self.windows_h_version = windows_h_version
