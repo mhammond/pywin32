@@ -56,7 +56,7 @@ class HLICLBRClass(HLICLBRItem):
 		 ret = []
 		 for c in self.super:
 			 ret.append(HLICLBRClass(c, " (Parent class)"))
-		 for meth, lineno in self.methods.items():
+		 for meth, lineno in self.methods.iteritems():
 			 ret.append(HLICLBRMethod(meth, self.file, lineno, " (method)"))
 		 return ret
 	def IsExpandable(self):
@@ -103,7 +103,7 @@ class HLIModuleItem(hierlist.HierListItem):
 			data = reader(mod, [path])
 			if data:
 				ret = []
-				for item in data.values():
+				for item in data.itervalues():
 					if item.__class__ != pyclbr.Class: # ie, it is a pyclbr Function instance (only introduced post 1.5.2)
 						ret.append(HLICLBRFunction( item, " (function)" ) )
 					else:
@@ -165,7 +165,7 @@ class HLIProjectRoot(hierlist.HierListItem):
 		if len(pathList)==1: # Single dir - dont bother putting the dir in
 			ret = MakePathSubList(pathList[0])
 		else:
-			ret = map( HLIDirectoryItem, pathList )
+			ret = list(map( HLIDirectoryItem, pathList ))
 		return ret
 
 class HLIRoot(hierlist.HierListItem):

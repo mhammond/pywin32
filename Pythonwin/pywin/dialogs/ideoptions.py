@@ -87,7 +87,7 @@ class OptionsPropPage(dialog.PropertyPage):
 		return 1
 	def ChangeFormat(self, fmtAttribute, fmt):
 		dlg = win32ui.CreateFontDialog(fmt)
-		if dlg.DoModal() <> win32con.IDOK: return None
+		if dlg.DoModal() != win32con.IDOK: return None
 		return dlg.GetCharFormat()
 
 	def OnFormatTitle(self, command, code):

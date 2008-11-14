@@ -142,7 +142,7 @@ def SetHelpMenuOtherHelp(mainMenu):
 		otherMenu.DeleteMenu(0, win32con.MF_BYPOSITION)
 	
 	if helpIDMap:
-		for id, (desc, fname) in helpIDMap.items():
+		for id, (desc, fname) in helpIDMap.iteritems():
 			otherMenu.AppendMenu(win32con.MF_ENABLED|win32con.MF_STRING,id, desc)
 	else:
 		helpMenu.EnableMenuItem(otherHelpMenuPos, win32con.MF_BYPOSITION | win32con.MF_GRAYED)

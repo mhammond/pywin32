@@ -54,7 +54,7 @@ class DialogApp(app.CApp):
 		self.dlg = self.frame = self.CreateDialog()
 	
 		if self.frame is None:
-			raise error, "No dialog was created by CreateDialog()"
+			raise error("No dialog was created by CreateDialog()")
 			return
 
 		self._obj_.InitDlgInstance(self.dlg)

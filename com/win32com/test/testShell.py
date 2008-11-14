@@ -3,6 +3,11 @@ import struct
 import unittest
 import copy
 
+try:
+    sys_maxsize = sys.maxsize # 2.6 and later - maxsize != maxint on 64bits
+except AttributeError:
+    sys_maxsize = sys.maxint
+
 import win32con
 import pythoncom
 from win32com.shell import shell
@@ -97,9 +102,9 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
         fd2 = fd2.copy()
         
         # The returned objects *always* have dwFlags and cFileName.
-        if not fd.has_key('dwFlags'):
+        if 'dwFlags' not in fd:
             del fd2['dwFlags']
-        if not fd.has_key('cFileName'):
+        if 'cFileName' not in fd:
             self.assertEqual(fd2['cFileName'], '')
             del fd2['cFileName']
 
@@ -129,7 +134,7 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
                  ftCreationTime=pythoncom.MakeTime(10),
                  ftLastAccessTime=pythoncom.MakeTime(11),
                  ftLastWriteTime=pythoncom.MakeTime(12),
-                 nFileSize=sys.maxint + 1)
+                 nFileSize=sys_maxsize + 1)
         self._testRT(d)
 
     def testUnicode(self):
@@ -137,22 +142,22 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
         if sys.hexversion < 0x2030000:
             # no kw-args to dict in 2.2 - not worth converting!
             return
-        d = [dict(cFileName=u"foo.txt",
+        d = [dict(cFileName="foo.txt",
                  sizel=(1,2),
                  pointl=(3,4),
                  dwFileAttributes = win32con.FILE_ATTRIBUTE_NORMAL,
                  ftCreationTime=pythoncom.MakeTime(10),
                  ftLastAccessTime=pythoncom.MakeTime(11),
                  ftLastWriteTime=pythoncom.MakeTime(12),
-                 nFileSize=sys.maxint + 1),
-            dict(cFileName=u"foo2.txt",
+                 nFileSize=sys_maxsize + 1),
+            dict(cFileName="foo2.txt",
                  sizel=(1,2),
                  pointl=(3,4),
                  dwFileAttributes = win32con.FILE_ATTRIBUTE_NORMAL,
                  ftCreationTime=pythoncom.MakeTime(10),
                  ftLastAccessTime=pythoncom.MakeTime(11),
                  ftLastWriteTime=pythoncom.MakeTime(12),
-                 nFileSize=sys.maxint + 1),
+                 nFileSize=sys_maxsize + 1),
             dict(cFileName=u"foo\xa9.txt",
                  sizel=(1,2),
                  pointl=(3,4),
@@ -160,7 +165,7 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
                  ftCreationTime=pythoncom.MakeTime(10),
                  ftLastAccessTime=pythoncom.MakeTime(11),
                  ftLastWriteTime=pythoncom.MakeTime(12),
-                 nFileSize=sys.maxint + 1),
+                 nFileSize=sys_maxsize + 1),
             ]
         s = shell.FILEGROUPDESCRIPTORAsString(d, 1)
         d2 = shell.StringAsFILEGROUPDESCRIPTOR(s)

@@ -65,7 +65,7 @@ class HLIPythonObject(hierlist.HierListItem):
 	def GetSubList(self):
 		ret = []
 		try:
-			for (key, ob) in self.myobject.__dict__.items():
+			for (key, ob) in self.myobject.__dict__.iteritems():
 				if key not in special_names:
 					ret.append(MakeHLI( ob, key ) )
 		except (AttributeError, TypeError):
@@ -94,7 +94,7 @@ class HLIPythonObject(hierlist.HierListItem):
 		if hasattr(self.myobject, '__doc__'):
 			return 1
 		try:
-			for key in self.myobject.__dict__.keys():
+			for key in self.myobject.__dict__.iterkeys():
 				if key not in special_names:
 					return 1
 		except (AttributeError, TypeError):
@@ -242,7 +242,7 @@ class HLIDict(HLIPythonObject):
 			return len(self.myobject) > 0
 	def GetSubList(self):
 		ret = []
-		keys = self.myobject.keys()
+		keys = list(self.myobject.keys())
 		keys.sort()
 		for key in keys:
 			ob = self.myobject[key]
@@ -364,7 +364,7 @@ def Browse (ob=__main__):
     " Browse the argument, or the main dictionary "
     root = MakeHLI (ob, 'root')
     if not root.IsExpandable():
-        raise TypeError, "Browse() argument must have __dict__ attribute, or be a Browser supported type"
+        raise TypeError("Browse() argument must have __dict__ attribute, or be a Browser supported type")
         
     dlg = dynamic_browser (root)
     dlg.CreateWindow()
@@ -397,7 +397,7 @@ class BrowserDocument (docview.Document):
 		self.root = root
 		self.SetTitle("Browser: " + root.name)
 	def OnOpenDocument (self, name):
-		raise TypeError, "This template can not open files"
+		raise TypeError("This template can not open files")
 		return 0
 
 class BrowserView(docview.TreeView):
@@ -422,7 +422,7 @@ def BrowseMDI(ob=__main__):
 	MakeTemplate()
 	root = MakeHLI(ob, repr(ob))
 	if not root.IsExpandable():
-		raise TypeError, "Browse() argument must have __dict__ attribute, or be a Browser supported type"
+		raise TypeError("Browse() argument must have __dict__ attribute, or be a Browser supported type")
 		
 	template.OpenObject(root)
 

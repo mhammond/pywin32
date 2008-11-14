@@ -21,7 +21,10 @@ import string
 
 true = 1
 false = 0
-get_input_line = raw_input
+try:
+    get_input_line = raw_input # py2x
+except NameError:
+    get_input_line = input # py3k
 
 class Stdin:
     def __init__(self):
@@ -119,7 +122,7 @@ class Stdin:
         (possibly after rounding up to an internal buffer size) are read.
         """
         if self.closed:
-            return apply(self.real_file.readlines, sizehint)
+            return self.real_file.readlines(*sizehint)
         
         result = []
         total_read = 0

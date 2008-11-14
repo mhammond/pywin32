@@ -51,3 +51,6 @@ def t():
 	ps=RegistrySheet('Registry Settings')
 	ps.AddPage(RegistryPage())
 	ps.DoModal()
+
+if __name__=='__main__':
+	t()

@@ -56,6 +56,6 @@ except (AttributeError, win32ui.error):
 	# by the host .EXE).  In this case, we do the "old style" init...
 	import app
 	if app.AppBuilder is None:
-		raise TypeError, "No application object has been registered"
+		raise TypeError("No application object has been registered")
 
 	app.App = app.AppBuilder()

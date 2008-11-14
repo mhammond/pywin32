@@ -13,7 +13,7 @@
 # choice.  However, you should investigate using the tree control directly
 # to provide maximum flexibility (but with extra work).
 
-
+import sys
 import win32ui 
 import win32con
 import win32api
@@ -48,7 +48,7 @@ class HierDialog(dialog.Dialog):
 
 class HierList(object.Object):
 	def __init__(self, root, bitmapID = win32ui.IDB_HIERFOLDERS, listBoxId = None, bitmapMask = None): # used to create object.
-		self.list = None
+		self.listControl = None
 		self.bitmapID = bitmapID
 		self.root = root
 		self.listBoxId = listBoxId
@@ -56,13 +56,13 @@ class HierList(object.Object):
 		self.filledItemHandlesMap = {}
 		self.bitmapMask = bitmapMask
 	def __getattr__(self, attr):
-		l = self.__dict__['list']
+		l = self.__dict__['listControl']
 		if l is not None:
 			return getattr(l, attr)
 	def ItemFromHandle(self, handle):
 		return self.itemHandleMap[handle]
 	def SetStyle(self, newStyle):
-		hwnd = self.list.GetSafeHwnd()
+		hwnd = self.listControl.GetSafeHwnd()
 		style = win32api.GetWindowLong(hwnd, win32con.GWL_STYLE);
 		win32api.SetWindowLong(hwnd, win32con.GWL_STYLE, (style | newStyle) )
 
@@ -76,16 +76,23 @@ class HierList(object.Object):
 		self.imageList = win32ui.CreateImageList(self.bitmapID, 16, 0, bitmapMask)
 		if listControl is None:
 			if self.listBoxId is None: self.listBoxId = win32ui.IDC_LIST1
-			self.list = parent.GetDlgItem(self.listBoxId)
+			self.listControl = parent.GetDlgItem(self.listBoxId)
 		else:
-			self.list = listControl
+			self.listControl = listControl
 			lbid = listControl.GetDlgCtrlID()
 			assert self.listBoxId is None or self.listBoxId == lbid, "An invalid listbox control ID has been specified (specified as %s, but exists as %s)" % (self.listBoxId, lbid)
 			self.listBoxId = lbid
-		self.list.SetImageList(self.imageList, commctrl.LVSIL_NORMAL)
+		self.listControl.SetImageList(self.imageList, commctrl.LVSIL_NORMAL)
 #		self.list.AttachObject(self)
-		parent.HookNotify(self.OnTreeItemExpanding, commctrl.TVN_ITEMEXPANDING)
-		parent.HookNotify(self.OnTreeItemSelChanged, commctrl.TVN_SELCHANGED)
+
+		## ??? Need a better way to do this - either some way to detect if it's compiled with UNICODE
+		##  defined, and/or a way to switch the constants based on UNICODE ???
+		if sys.version_info[0] < 3:
+			parent.HookNotify(self.OnTreeItemExpanding, commctrl.TVN_ITEMEXPANDINGA)
+			parent.HookNotify(self.OnTreeItemSelChanged, commctrl.TVN_SELCHANGEDA)
+		else:
+			parent.HookNotify(self.OnTreeItemExpanding, commctrl.TVN_ITEMEXPANDINGW)
+			parent.HookNotify(self.OnTreeItemSelChanged, commctrl.TVN_SELCHANGEDW)
 		parent.HookNotify(self.OnTreeItemDoubleClick, commctrl.NM_DBLCLK)
 		self.notify_parent = parent
 
@@ -93,7 +100,7 @@ class HierList(object.Object):
 			self.AcceptRoot(self.root)
 
 	def DeleteAllItems(self):
-		self.list.DeleteAllItems()
+		self.listControl.DeleteAllItems()
 		self.root = None
 		self.itemHandleMap = {}
 		self.filledItemHandlesMap = {}
@@ -101,17 +108,22 @@ class HierList(object.Object):
 	def HierTerm(self):
 		# Dont want notifies as we kill the list.
 		parent = self.notify_parent # GetParentFrame()
-		parent.HookNotify(None, commctrl.TVN_ITEMEXPANDING)
-		parent.HookNotify(None, commctrl.TVN_SELCHANGED)
+		if sys.version_info[0] < 3:
+			parent.HookNotify(None, commctrl.TVN_ITEMEXPANDINGA)
+			parent.HookNotify(None, commctrl.TVN_SELCHANGEDA)
+		else:
+			parent.HookNotify(None, commctrl.TVN_ITEMEXPANDINGW)
+			parent.HookNotify(None, commctrl.TVN_SELCHANGEDW)		
 		parent.HookNotify(None, commctrl.NM_DBLCLK)
+
 		self.DeleteAllItems()
-		self.list = None
+		self.listControl = None
 		self.notify_parent = None # Break a possible cycle
 
 	def OnTreeItemDoubleClick(self, info, extra):
 		(hwndFrom, idFrom, code) = info
 		if idFrom != self.listBoxId: return None
-		item = self.itemHandleMap[self.list.GetSelectedItem()]
+		item = self.itemHandleMap[self.listControl.GetSelectedItem()]
 		self.TakeDefaultAction(item)
 		return 1
 
@@ -120,7 +132,7 @@ class HierList(object.Object):
 		if idFrom != self.listBoxId: return None
 		action, itemOld, itemNew, pt = extra
 		itemHandle = itemNew[0]
-		if not self.filledItemHandlesMap.has_key(itemHandle):
+		if itemHandle not in self.filledItemHandlesMap:
 			item = self.itemHandleMap[itemHandle]
 			self.AddSubList(itemHandle, self.GetSubList(item))
 			self.filledItemHandlesMap[itemHandle] = None
@@ -148,19 +160,19 @@ class HierList(object.Object):
 		bitmapCol = self.GetBitmapColumn(item)
 		bitmapSel = self.GetSelectedBitmapColumn(item)
 		if bitmapSel is None: bitmapSel = bitmapCol
-		if type(text) is unicode:
-			text = text.encode("mbcs")
-		hitem = self.list.InsertItem(parentHandle, hInsertAfter, (None, None, None, text, bitmapCol, bitmapSel, cItems, 0))
+		## if type(text) is str:
+		##	text = text.encode("mbcs")
+		hitem = self.listControl.InsertItem(parentHandle, hInsertAfter, (None, None, None, text, bitmapCol, bitmapSel, cItems, 0))
 		self.itemHandleMap[hitem] = item
 		return hitem
 
 	def _GetChildHandles(self, handle):
 		ret = []
 		try:
-			handle = self.list.GetChildItem(handle)
+			handle = self.listControl.GetChildItem(handle)
 			while 1:
 				ret.append(handle)
-				handle = self.list.GetNextItem(handle, commctrl.TVGN_NEXT)
+				handle = self.listControl.GetNextItem(handle, commctrl.TVGN_NEXT)
 		except win32ui.error:
 			# out of children
 			pass
@@ -172,12 +184,12 @@ class HierList(object.Object):
 		# Attempt to refresh the given item's sub-entries, but maintain the tree state
 		# (ie, the selected item, expanded items, etc)
 		if hparent is None: hparent = commctrl.TVI_ROOT
-		if not self.filledItemHandlesMap.has_key(hparent):
+		if hparent not in self.filledItemHandlesMap:
 			# This item has never been expanded, so no refresh can possibly be required.
 			return
 		root_item = self.itemHandleMap[hparent]
 		old_handles = self._GetChildHandles(hparent)
-		old_items = map( self.ItemFromHandle, old_handles )
+		old_items = list(map( self.ItemFromHandle, old_handles ))
 		new_items = self.GetSubList(root_item)
 		# Now an inefficient technique for synching the items.
 		inew = 0
@@ -200,7 +212,7 @@ class HierList(object.Object):
 				inew = inewlook + 1
 				# And recursively refresh iold
 				hold = old_handles[iold]
-				if self.filledItemHandlesMap.has_key(hold):
+				if hold in self.filledItemHandlesMap:
 					self.Refresh(hold)
 			else:
 				# Remove the deleted items.
@@ -209,16 +221,16 @@ class HierList(object.Object):
 				# First recurse and remove the children from the map.
 				for hchild in self._GetChildHandles(hdelete):
 					del self.itemHandleMap[hchild]
-					if self.filledItemHandlesMap.has_key(hchild):
+					if hchild in self.filledItemHandlesMap:
 						del self.filledItemHandlesMap[hchild]
-				self.list.DeleteItem(hdelete)
+				self.listControl.DeleteItem(hdelete)
 			hAfter = old_handles[iold]
 		# Fill any remaining new items:
 		for newItem in new_items[inew:]:
 #			print "Inserting new item", newItem
 			self.AddItem(hparent, newItem)
 	def AcceptRoot(self, root):
-		self.list.DeleteAllItems()
+		self.listControl.DeleteAllItems()
 		self.itemHandleMap = {commctrl.TVI_ROOT : root}
 		self.filledItemHandlesMap = {commctrl.TVI_ROOT : root}
 		subItems = self.GetSubList(root)
@@ -236,7 +248,7 @@ class HierList(object.Object):
 		return 0
 
 	def CheckChangedChildren(self):
-		return self.list.CheckChangedChildren()
+		return self.listControl.CheckChangedChildren()
 	def GetText(self,item):
 		return GetItemText(item)
 	def PerformItemSelected(self, item):

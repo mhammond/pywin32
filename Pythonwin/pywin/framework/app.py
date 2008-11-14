@@ -10,9 +10,12 @@ import win32ui
 import sys
 import string
 import os
-from pywin.mfc import window, dialog, thread, afxres
+from pywin.mfc import window, dialog, afxres
+from pywin.mfc.thread import WinApp
 import traceback
-from pywin.framework import scriptutils
+import regutil
+
+import scriptutils
 
 ## NOTE: App and AppBuild should NOT be used - instead, you should contruct your
 ## APP class manually whenever you like (just ensure you leave these 2 params None!)
@@ -112,11 +115,11 @@ class MainFrame(window.MDIFrameWnd):
 			SaveWindowSize(self.sectionPos, rectNow)
 		return 0
 
-class CApp(thread.WinApp):
+class CApp(WinApp):
 	" A class for the application "
 	def __init__(self):
 		self.oldCallbackCaller = None
-		thread.WinApp.__init__(self, win32ui.GetApp() )
+		WinApp.__init__(self, win32ui.GetApp() )
 		self.idleHandlers = []
 		
 	def InitInstance(self):
@@ -168,7 +171,7 @@ class CApp(thread.WinApp):
 				try:
 					thisRet = handler(handler, count)
 				except:
-					print "Idle handler %s failed" % (`handler`)
+					print "Idle handler %s failed" % (repr(handler))
 					traceback.print_exc()
 					print "Idle handler removed from list"
 					try:
@@ -195,7 +198,6 @@ class CApp(thread.WinApp):
 
 	def OnHelp(self,id, code):
 		try:
-			import regutil
 			if id==win32ui.ID_HELP_GUI_REF:
 				helpFile = regutil.GetRegisteredHelpFile("Pythonwin Reference")
 				helpCmd = win32con.HELP_CONTENTS
@@ -364,20 +366,26 @@ def Win32RawInput(prompt=None):
 	if prompt is None: prompt = ""
 	ret=dialog.GetSimpleInput(prompt)
 	if ret==None:
-		raise KeyboardInterrupt, "operation cancelled"
+		raise KeyboardInterrupt("operation cancelled")
 	return ret
 
 def Win32Input(prompt=None):
 	"Provide input() for gui apps"
-	return eval(raw_input(prompt))
+	return eval(input(prompt))
 
-sys.modules['__builtin__'].raw_input=Win32RawInput
-sys.modules['__builtin__'].input=Win32Input
+try:
+	raw_import
+	# must be py2x...
+	sys.modules['__builtin__'].raw_input=Win32RawInput
+except NameError:
+	# must be py3k
+	import code
+	code.InteractiveConsole.input=Win32Input
 
 def HaveGoodGUI():
 	"""Returns true if we currently have a good gui available.
 	"""
-	return sys.modules.has_key("pywin.framework.startup")
+	return "pywin.framework.startup" in sys.modules
 
 def CreateDefaultGUI( appClass = None):
 	"""Creates a default GUI environment

@@ -193,9 +193,8 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 	def OnInitialUpdate(self):
 		doc = self.GetDocument()
 
-		# Enable Unicode if we can
-		if is_platform_unicode:
-			self.SendScintilla(scintillacon.SCI_SETCODEPAGE, scintillacon.SC_CP_UTF8, 0)
+		# Enable Unicode
+		self.SendScintilla(scintillacon.SCI_SETCODEPAGE, scintillacon.SC_CP_UTF8, 0)
 		# Create margins
 		self.SendScintilla(scintillacon.SCI_SETMARGINTYPEN, 1, scintillacon.SC_MARGIN_SYMBOL);
 		self.SendScintilla(scintillacon.SCI_SETMARGINMASKN, 1, 0xF);
@@ -388,10 +387,10 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 	def SaveTextFile(self, filename):
 		doc = self.GetDocument()
 		s = self.GetTextRange()
-		if is_platform_unicode:
-			s = unicode(s,"utf-8").encode("mbcs")
+		# Save in binary mode so line endings are not translated.
+		# Edit control uses '\r\n', and universal newlines mode replaces ALL '\r' with '\r\n'.
 		f  = open(filename, 'wb')
-		f.write(s)
+		f.write(s.encode('mbcs'))
 		f.close()
 		doc.SetModifiedFlag(0)
 		return 1
@@ -438,17 +437,17 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 							for iFun in xrange(0,typeAttr.cFuncs):
 								funDesc = typeInfo.GetFuncDesc(iFun)
 								funName = typeInfo.GetNames(funDesc.memid)[0]
-								if not items_dict.has_key(funName):
+								if funName not in items_dict:
 									items_dict[funName] = None
 					except:
 						pass
 			except:
-				win32ui.SetStatusText("Error attempting to get object attributes - %s" % (`sys.exc_info()[0]`,))
+				win32ui.SetStatusText("Error attempting to get object attributes - %s" % (repr(sys.exc_info()[0]),))
 
-		# ensure all keys are strings.		
-		items = map(str, items_dict.keys())
+		# ensure all keys are strings.
+		items = [str(k) for k in items_dict.keys()]
 		# All names that start with "_" go!
-		items = filter(lambda word: word[0]!='_', items)
+		items = [k for k in items if not k.startswith('_')]
 
 		if not items:
 			# Heuristics a-la AutoExpand
@@ -465,20 +464,20 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 			endpos = self.LineIndex(maxline)
 			text = self.GetTextRange(self.LineIndex(minline),endpos)
 			try:
-				list = re.findall(r"\b"+left+"\.\w+",text)
+				l = re.findall(r"\b"+left+"\.\w+",text)
 			except re.error:
 				# parens etc may make an invalid RE, but this code wouldnt
 				# benefit even if the RE did work :-)
-				list = []
+				l = []
 			prefix = len(left)+1
 			unique = {}
-			for li in list:
+			for li in l:
 				unique[li[prefix:]] = 1
 			# Assuming traditional usage of self...
 			if curclass and left=="self":
 				self._UpdateWithClassMethods(unique,curclass)
 
-			items = filter(lambda word: word[:2]!='__' or word[-2:]!='__', unique.keys())
+			items = [word for word in unique.keys() if word[:2]!='__' or word[-2:]!='__']
 			# Ignore the word currently to the right of the dot - probably a red-herring.
 			try:
 				items.remove(right[1:])
@@ -529,7 +528,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 		curline = self.LineFromChar(pos)
 		curclass = None
 		# Find out which class we are in
-		for item in clbrdata.values():
+		for item in clbrdata.itervalues():
 			if item.module==curmodule:
 				item_lineno = item.lineno - 1 # Scintilla counts lines from 0, whereas pyclbr - from 1
 				if minline < item_lineno <= curline:

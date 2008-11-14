@@ -5,7 +5,9 @@ import unittest
 # here are not suitable for unattended testing.
 ui_demos = """GetSaveFileName print_desktop win32cred_demo win32gui_demo
               win32gui_dialog win32gui_menu win32gui_taskbar
-              win32rcparser_demo winprocess win32console_demo""".split()
+              win32rcparser_demo winprocess win32console_demo
+              win32gui_devicenotify
+              NetValidatePasswordPolicy""".split()
 # Other demos known as 'bad' (or at least highly unlikely to work)
 # cerapi: no CE module is built (CE via pywin32 appears dead)
 # desktopmanager: hangs (well, hangs for 60secs or so...)

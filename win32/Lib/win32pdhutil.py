@@ -18,7 +18,7 @@ Example:
   the easiest way is often to simply use PerfMon to find out the names.
 """
 
-import win32pdh, string, time
+import win32pdh, time
 
 error = win32pdh.error
 
@@ -33,7 +33,7 @@ def find_pdh_counter_localized_name(english_name, machine_name = None):
         counter_reg_value = win32api.RegQueryValueEx(win32con.HKEY_PERFORMANCE_DATA,
                                                      "Counter 009")
         counter_list = counter_reg_value[0]
-        for i in range(0, len(counter_list) - 1, 2):
+        for i in xrange(0, len(counter_list) - 1, 2):
             try:
                 counter_id = int(counter_list[i])
             except ValueError:
@@ -78,7 +78,7 @@ def FindPerformanceAttributesByName(instanceName, object = None,
     if counter is None: counter = find_pdh_counter_localized_name("ID Process", machine)
     if bRefresh: # PDH docs say this is how you do a refresh.
         win32pdh.EnumObjects(None, machine, 0, 1)
-    instanceName = string.lower(instanceName)
+    instanceName = instanceName.lower()
     items, instances = win32pdh.EnumObjectItems(None,None,object, -1)
     # Track multiple instances.
     instance_dict = {}
@@ -89,9 +89,9 @@ def FindPerformanceAttributesByName(instanceName, object = None,
             instance_dict[instance] = 0
 
     ret = []
-    for instance, max_instances in instance_dict.items():
+    for instance, max_instances in instance_dict.iteritems():
         for inum in xrange(max_instances+1):
-            if string.lower(instance) == instanceName:
+            if instance.lower() == instanceName:
                 ret.append(GetPerformanceAttributes(object, counter,
                                                     instance, inum, format,
                                                     machine))
@@ -111,8 +111,8 @@ def ShowAllProcesses():
 
     # Bit of a hack to get useful info.
     items = [find_pdh_counter_localized_name("ID Process")] + items[:5]
-    print "Process Name", string.join(items,",")
-    for instance, max_instances in instance_dict.items():
+    print "Process Name", ",".join(items)
+    for instance, max_instances in instance_dict.iteritems():
         for inum in xrange(max_instances+1):
             hq = win32pdh.OpenQuery()
             hcs = []
@@ -133,6 +133,8 @@ def ShowAllProcesses():
             print
             win32pdh.CloseQuery(hq)
 
+# NOTE: This BrowseCallback doesn't seem to work on Vista for markh.
+# XXX - look at why!?
 def BrowseCallBackDemo(counter):
     machine, object, instance, parentInstance, index, counterName = \
             win32pdh.ParseCounterPath(counter)

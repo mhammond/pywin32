@@ -8,11 +8,13 @@ import win32con
 import sys
 
 from pywin.mfc.dialog import GetSimpleInput
+from pywin import default_scintilla_encoding
 
 wordchars = string.ascii_uppercase + string.ascii_lowercase + string.digits
 
 class TextError(Exception): # When a TclError would normally be raised.
 	pass
+
 
 class EmptyRange(Exception): # Internally raised.
 	pass
@@ -41,14 +43,14 @@ def GetIDLEModule(module):
 def fast_readline(self):
 	if self.finished:
 		return ""
-	if not self.__dict__.has_key("_scint_lines"):
+	if "_scint_lines" not in self.__dict__:
 		# XXX - note - assumes this is only called once the file is loaded!
 		self._scint_lines = self.text.edit.GetTextRange().split("\n")
 	sl = self._scint_lines
 	i = self.i = self.i + 1
 	if i >= len(sl):
 		return ""
-	return sl[i]+"\n"
+	return (sl[i]+"\n").encode(default_scintilla_encoding)
 
 try:
 	GetIDLEModule("AutoIndent").IndentSearcher.readline = fast_readline
@@ -68,7 +70,7 @@ class IDLEEditorWindow:
 		self.edit = self.text = None
 		self.extension_menus = None
 		try:
-			for ext in self.extensions.values():
+			for ext in self.extensions.itervalues():
 				closer = getattr(ext, "close", None)
 				if closer is not None:
 					closer()
@@ -83,7 +85,7 @@ class IDLEEditorWindow:
 		klass = getattr(mod, extension)
 		ext = self.extensions[extension] = klass(self)
 		# Find and bind all the events defined in the extension.
-		events = filter(lambda item: item[-6:]=="_event", dir(klass))
+		events = [item for item in dir(klass) if item[-6:]=="_event"]
 		for event in events:
 			name = "<<%s>>" % (event[:-6].replace("_", "-"), )
 			self.edit.bindings.bind(name, getattr(ext, event))
@@ -93,11 +95,11 @@ class IDLEEditorWindow:
 		# Get all menu items for the menu name (eg, "edit")
 		bindings = self.edit.bindings
 		ret = []
-		for ext in self.extensions.values():
+		for ext in self.extensions.itervalues():
 			menudefs = getattr(ext, "menudefs", [])
 			for name, items in menudefs:
 				if name == menu_name:
-					for text, event in filter(lambda item: item is not None, items):
+					for text, event in [item for item in items if item is not None]:
 						text = text.replace("&", "&&")
 						text = text.replace("_", "&")
 						ret.append((text, event))
@@ -201,13 +203,13 @@ def _NextTok(str, pos):
 
 def TkIndexToOffset(bm, edit, marks):
 	base, nextTokPos = _NextTok(bm, 0)
-	if base is None: raise ValueError, "Empty bookmark ID!"
+	if base is None: raise ValueError("Empty bookmark ID!")
 	if base.find(".")>0:
 		try:
 			line, col = base.split(".", 2)
 			if col=="first" or col=="last":
 				# Tag name
-				if line != "sel": raise ValueError, "Tags arent here!"
+				if line != "sel": raise ValueError("Tags arent here!")
 				sel = edit.GetSel()
 				if sel[0]==sel[1]:
 					raise EmptyRange
@@ -225,7 +227,7 @@ def TkIndexToOffset(bm, edit, marks):
 					if pos==-1: pos = edit.GetTextLength()
 					pos = pos + int(col)
 		except (ValueError, IndexError):
-			raise ValueError, "Unexpected literal in '%s'" % base 
+			raise ValueError("Unexpected literal in '%s'" % base) 
 	elif base == 'insert':
 		pos = edit.GetSel()[0]
 	elif base=='end':
@@ -237,17 +239,17 @@ def TkIndexToOffset(bm, edit, marks):
 		try:
 			pos = marks[base]
 		except KeyError:
-			raise ValueError, "Unsupported base offset or undefined mark '%s'" % base
+			raise ValueError("Unsupported base offset or undefined mark '%s'" % base)
 
 	while 1:
 		word, nextTokPos = _NextTok(bm, nextTokPos)
 		if word is None: break
 		if word in ['+','-']:
 			num, nextTokPos = _NextTok(bm, nextTokPos)
-			if num is None: raise ValueError, "+/- operator needs 2 args"
+			if num is None: raise ValueError("+/- operator needs 2 args")
 			what, nextTokPos = _NextTok(bm, nextTokPos)
-			if what is None: raise ValueError, "+/- operator needs 2 args"
-			if what[0] <> "c": raise ValueError, "+/- only supports chars"
+			if what is None: raise ValueError("+/- operator needs 2 args")
+			if what[0] != "c": raise ValueError("+/- only supports chars")
 			if word=='+':
 				pos = pos + int(num)
 			else:
@@ -267,7 +269,7 @@ def TkIndexToOffset(bm, edit, marks):
 			while pos < end and edit.SCIGetCharAt(pos) not in '\n\r':
 				pos = pos + 1
 		else:
-			raise ValueError, "Unsupported relative offset '%s'" % word
+			raise ValueError("Unsupported relative offset '%s'" % word)
 	return max(pos, 0) # Tkinter is tollerant of -ve indexes - we aren't
 
 # A class that resembles an IDLE (ie, a Tk) text widget.
@@ -348,9 +350,10 @@ class TkText:
 		try:
 			pos = self._getoffset(pos)
 		except EmptyRange:
-			raise TextError, "Empty range"
+			raise TextError("Empty range")
 		self.edit.SetSel((pos, pos))
 		# IDLE only deals with "\n" - we will be nicer
+
 		bits = text.split('\n')
 		self.edit.SCIAddText(bits[0])
 		for bit in bits[1:]:
@@ -362,7 +365,7 @@ class TkText:
 			start = self._getoffset(start)
 			if end is not None: end = self._getoffset(end)
 		except EmptyRange:
-			raise TextError, "Empty range"
+			raise TextError("Empty range")
 		# If end is specified and == start, then we must delete nothing.
 		if start==end: return
 		# If end is not specified, delete one char
@@ -395,24 +398,24 @@ class TkText:
 		try:
 			pos = self._getoffset(pos)
 		except EmptyRange:
-			raise TextError, "Empty range '%s'" % pos
+			raise TextError("Empty range '%s'" % pos)
 		if name == "insert":
 			self.edit.SetSel( pos )
 		else:
 			self.marks[name]=pos
 
 	def tag_add(self, name, start, end):
-		if name != "sel": raise ValueError, "Only sel tag is supported"
+		if name != "sel": raise ValueError("Only sel tag is supported")
 		try:
 			start = self._getoffset(start)
 			end = self._getoffset(end)
 		except EmptyRange:
-			raise TextError, "Empty range"
+			raise TextError("Empty range")
 		self.edit.SetSel( start, end )
 
 	def tag_remove(self, name, start, end):
 		if name !="sel" or start != "1.0" or end != "end":
-			raise ValueError, "Cant remove this tag"
+			raise ValueError("Cant remove this tag")
 		# Turn the sel into a cursor
 		self.edit.SetSel(self.edit.GetSel()[0])
 

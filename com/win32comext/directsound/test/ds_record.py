@@ -1,6 +1,7 @@
 import pywintypes
 import struct
-import win32event
+import win32event, win32api
+import os
 import win32com.directsound.directsound as ds
 
 def wav_header_pack(wfx, datasize):
@@ -37,6 +38,8 @@ win32event.WaitForSingleObject(event, -1)
 
 data = buffer.Update(0, 352800)
 
-f = open('recording.wav', 'wb')
+fname=os.path.join(win32api.GetTempPath(), 'test_directsound_record.wav')
+f = open(fname, 'wb')
 f.write(wav_header_pack(sdesc.lpwfxFormat, 352800))
 f.write(data)
+f.close()

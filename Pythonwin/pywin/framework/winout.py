@@ -23,7 +23,6 @@
 import sys, string, re
 from pywin.mfc import docview
 from pywin.framework import app, window
-from pywintypes import UnicodeType
 import win32ui, win32api, win32con
 import Queue
 
@@ -108,7 +107,7 @@ class WindowOutputViewImpl:
 		for appendParams in paramsList:
 			if type(appendParams)!=type(()):
 				appendParams = (appendParams,)
-			apply(menu.AppendMenu, appendParams)
+			menu.AppendMenu(*appendParams)
 		menu.TrackPopupMenu(params[5]) # track at mouse position.
 		return 0
 
@@ -130,11 +129,7 @@ class WindowOutputViewImpl:
 				help.OpenHelpFile(det[2][3],win32con.HELP_CONTEXT, det[2][4])
 				return 1
 			except win32api.error, details:
-				try:
-					msg = details[2]
-				except:
-					msg = str(details)
-				win32ui.SetStatusText("The help file could not be opened - %s" % msg)
+				win32ui.SetStatusText("The help file could not be opened - %s" % details.strerror)
 				return 1
 			except:
 				win32ui.SetStatusText("Line is a COM error, but no WinHelp details can be parsed");
@@ -427,29 +422,21 @@ class WindowOutput(docview.DocTemplate):
 				return 1
 		return 0
 
-	def QueueFlush(self, max = sys.maxint):
+	def QueueFlush(self, max = None):
 		# Returns true if the queue is empty after the flush
 #		debug("Queueflush - %d, %d\n" % (max, self.outputQueue.qsize()))
 		if self.bCreating: return 1
 		items = []
 		rc = 0
-		while max > 0:
+		while max is None or max > 0:
 			try:
 				item = self.outputQueue.get_nowait()
-				if is_platform_unicode:
-					# Note is_platform_unicode is never true any more!
-					if not isinstance(item, UnicodeType):
-						item = unicode(item, default_platform_encoding)
-					item = item.encode(default_scintilla_encoding) # What scintilla uses.
-				else:
-					# try and display using mbcs encoding
-					if isinstance(item, UnicodeType):
-						item = item.encode("mbcs")
 				items.append(item)
 			except Queue.Empty:
 				rc = 1
 				break
-			max = max - 1
+			if max is not None:
+				max = max - 1
 		if len(items) != 0:
 			if not self.CheckRecreateWindow():
 				debug(":Recreate failed!\n")
@@ -497,7 +484,7 @@ class WindowOutput(docview.DocTemplate):
 
 def RTFWindowOutput(*args, **kw):
 	kw['makeView'] = WindowOutputViewRTF
-	return apply( WindowOutput, args, kw )
+	return WindowOutput(*args, **kw)
 
 
 def thread_test(o):
@@ -508,10 +495,10 @@ def thread_test(o):
 def test():
 	w = WindowOutput(queueing=flags.WQ_IDLE)
 	w.write("First bit of text\n")
-	import thread
+	import _thread
 	for i in range(5):
 		w.write("Hello from the main thread\n")
-		thread.start_new(thread_test, (w,))
+		_thread.start_new(thread_test, (w,))
 	for i in range(2):
 		w.write("Hello from the main thread\n")
 		win32api.Sleep(50)

@@ -9,8 +9,7 @@ import win32ui
 import win32api, win32con
 from pywin.mfc import object
 from dde import *
-import traceback
-import string
+import sys, traceback
 
 class DDESystemTopic(object.Object):
 	def __init__(self, app):
@@ -21,9 +20,10 @@ class DDESystemTopic(object.Object):
 #			print "Executing", cmd
 			self.app.OnDDECommand(data)
 		except:
+			t,v,tb = sys.exc_info()
 			# The DDE Execution failed.
 			print "Error executing DDE command."
-			traceback.print_exc()
+			traceback.print_exception(t,v,tb)
 			return 0
 
 class DDEServer(object.Object):

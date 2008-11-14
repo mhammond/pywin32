@@ -50,4 +50,4 @@ def HasClass(clsid):
 	
 	clsid -- the string CLSID to check
 	"""
-	return mapCLSIDToClass.has_key(clsid)
+	return clsid in mapCLSIDToClass

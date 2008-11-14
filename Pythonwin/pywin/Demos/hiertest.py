@@ -16,7 +16,7 @@ class DirHierList(hierlist.HierList):
 		return os.path.basename(item)
 	def GetSubList(self, item):
 		if os.path.isdir(item):
-			ret = map(lambda path, base=item: os.path.join(base, path), os.listdir(item))
+			ret = [os.path.join(item, fname) for fname in os.listdir(item)]
 		else:
 			ret = None
 		return ret

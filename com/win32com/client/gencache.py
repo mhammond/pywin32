@@ -20,7 +20,7 @@ Hacks, to do, etc
   Currently just uses a pickled dictionary, but should used some sort of indexed file.
   Maybe an OLE2 compound file, or a bsddb file?
 """
-import pywintypes, os, string, sys
+import pywintypes, os, sys
 import pythoncom
 import win32com, win32com.client
 import glob
@@ -48,6 +48,11 @@ is_readonly = hasattr(win32com, "__loader__")
 # Keyed by usual clsid, lcid, major, minor
 demandGeneratedTypeLibraries = {}
 
+try:
+	import cPickle as pickle
+except ImportError:
+	import pickle
+
 def __init__():
 	# Initialize the module.  Called once explicitly at module import below.
 	try:
@@ -58,22 +63,23 @@ def __init__():
 pickleVersion = 1
 def _SaveDicts():
 	if is_readonly:
-		raise RuntimeError, "Trying to write to a readonly gencache ('%s')!" \
-		                    % win32com.__gen_path__
-	import cPickle
+		raise RuntimeError("Trying to write to a readonly gencache ('%s')!" \
+		                    % win32com.__gen_path__)
 	f = open(os.path.join(GetGeneratePath(), "dicts.dat"), "wb")
 	try:
-		p = cPickle.Pickler(f)
+		p = pickle.Pickler(f)
 		p.dump(pickleVersion)
 		p.dump(clsidToTypelib)
 	finally:
 		f.close()
 
 def _LoadDicts():
-	import cPickle
 	# Load the dictionary from a .zip file if that is where we live.
 	if hasattr(win32com, "__loader__"):
-		import cStringIO
+		try:
+			import cStringIO as io
+		except ImportError:
+			import io
 		loader = win32com.__loader__
 		arc_path = loader.archive
 		dicts_path = os.path.join(win32com.__gen_path__, "dicts.dat")
@@ -100,12 +106,12 @@ def _LoadDicts():
 			# for these apps is to call EnsureModule, rather than freezing
 			# the dict)
 			return
-		f = cStringIO.StringIO(data)
+		f = io.StringIO(data)
 	else:
 		# NOTE: IOError on file open must be caught by caller.
 		f = open(os.path.join(win32com.__gen_path__, "dicts.dat"), "rb")
 	try:
-		p = cPickle.Unpickler(f)
+		p = pickle.Unpickler(f)
 		version = p.load()
 		global clsidToTypelib
 		clsidToTypelib = p.load()
@@ -117,12 +123,12 @@ def GetGeneratedFileName(clsid, lcid, major, minor):
 	"""Given the clsid, lcid, major and  minor for a type lib, return
 	the file name (no extension) providing this support.
 	"""
-	return string.upper(str(clsid))[1:-1] + "x%sx%sx%s" % (lcid, major, minor)
+	return str(clsid).upper()[1:-1] + "x%sx%sx%s" % (lcid, major, minor)
 
 def SplitGeneratedFileName(fname):
 	"""Reverse of GetGeneratedFileName()
 	"""
-	return tuple(string.split(fname,'x',4))
+	return tuple(fname.split('x',4))
 	
 def GetGeneratePath():
 	"""Returns the name of the path to generate to.
@@ -234,7 +240,7 @@ def GetModuleForCLSID(clsid):
 				info = typelibCLSID, lcid, major, minor
 				# Force the generation.  If this typelibrary has explicitly been added,
 				# use it (it may not be registered, causing a lookup by clsid to fail)
-				if demandGeneratedTypeLibraries.has_key(info):
+				if info in demandGeneratedTypeLibraries:
 					info = demandGeneratedTypeLibraries[info]
 				import makepy
 				makepy.GenerateChildFromTypeLibSpec(sub_mod, info)
@@ -258,9 +264,9 @@ def GetModuleForTypelib(typelibCLSID, lcid, major, minor):
 	mod = _GetModule(modName)
 	# If the import worked, it doesn't mean we have actually added this
 	# module to our cache though - check that here.
-	if not mod.__dict__.has_key("_in_gencache_"):
+	if "_in_gencache_" not in mod.__dict__:
 		AddModuleToCache(typelibCLSID, lcid, major, minor)
-		assert mod.__dict__.has_key("_in_gencache_")
+		assert "_in_gencache_" in mod.__dict__
 	return mod
 
 def MakeModuleForTypelib(typelibCLSID, lcid, major, minor, progressInstance = None, bGUIProgress = None, bForDemand = bForDemandDefault, bBuildHidden = 1):
@@ -361,7 +367,7 @@ def ForgetAboutTypelibInterface(typelib_ob):
 		# Not worth raising an exception - maybe they dont know we only remember for demand generated, etc.
 		print "ForgetAboutTypelibInterface:: Warning - type library with info %s is not being remembered!" % (info,)
 	# and drop any version redirects to it
-	for key, val in versionRedirectMap.items():
+	for key, val in list(versionRedirectMap.items()):
 		if val==info:
 			del versionRedirectMap[key]
 
@@ -540,7 +546,7 @@ def EnsureDispatch(prog_id, bForDemand = 1): # New fn, so we default the new dem
 			disp_class = CLSIDToClass.GetClass(str(disp_clsid))
 			disp = disp_class(disp._oleobj_)
 		except pythoncom.com_error:
-			raise TypeError, "This COM object can not automate the makepy process - please run makepy manually for this object"
+			raise TypeError("This COM object can not automate the makepy process - please run makepy manually for this object")
 	return disp
 
 def AddModuleToCache(typelibclsid, lcid, major, minor, verbose = 1, bFlushNow = not is_readonly):
@@ -553,23 +559,23 @@ def AddModuleToCache(typelibclsid, lcid, major, minor, verbose = 1, bFlushNow = 
 	mod._in_gencache_ = 1
 	dict = mod.CLSIDToClassMap
 	info = str(typelibclsid), lcid, major, minor
-	for clsid, cls in dict.items():
+	for clsid, cls in dict.iteritems():
 		clsidToTypelib[clsid] = info
 
 	dict = mod.CLSIDToPackageMap
-	for clsid, name in dict.items():
+	for clsid, name in dict.iteritems():
 		clsidToTypelib[clsid] = info
 
 	dict = mod.VTablesToClassMap
-	for clsid, cls in dict.items():
+	for clsid, cls in dict.iteritems():
 		clsidToTypelib[clsid] = info
 
 	dict = mod.VTablesToPackageMap
-	for clsid, cls in dict.items():
+	for clsid, cls in dict.iteritems():
 		clsidToTypelib[clsid] = info
 
 	# If this lib was previously redirected, drop it
-	if versionRedirectMap.has_key(info):
+	if info in versionRedirectMap:
 		del versionRedirectMap[info]
 	if bFlushNow:
 		_SaveDicts()
@@ -577,7 +583,7 @@ def AddModuleToCache(typelibclsid, lcid, major, minor, verbose = 1, bFlushNow = 
 def GetGeneratedInfos():
 	zip_pos = win32com.__gen_path__.find(".zip\\")
 	if zip_pos >= 0:
-		import zipfile, cStringIO
+		import zipfile
 		zip_file = win32com.__gen_path__[:zip_pos+4]
 		zip_path = win32com.__gen_path__[zip_pos+5:].replace("\\", "/")
 		zf = zipfile.ZipFile(zip_file)
@@ -599,7 +605,7 @@ def GetGeneratedInfos():
 				continue
 			infos[(iid, lcid, major, minor)] = 1
 		zf.close()
-		return infos.keys()
+		return list(infos.keys())
 	else:
 		# on the file system
 		files = glob.glob(win32com.__gen_path__+ "\\*")
@@ -609,7 +615,7 @@ def GetGeneratedInfos():
 				continue
 			name = os.path.splitext(os.path.split(file)[1])[0]
 			try:
-				iid, lcid, major, minor = string.split(name, "x")
+				iid, lcid, major, minor = name.split("x")
 				iid = pywintypes.IID("{" + iid + "}")
 				lcid = int(lcid)
 				major = int(major)
@@ -652,9 +658,9 @@ def _Dump():
 	print "Cache is in directory", win32com.__gen_path__
 	# Build a unique dir
 	d = {}
-	for clsid, (typelibCLSID, lcid, major, minor) in clsidToTypelib.items():
+	for clsid, (typelibCLSID, lcid, major, minor) in clsidToTypelib.iteritems():
 		d[typelibCLSID, lcid, major, minor] = None
-	for typelibCLSID, lcid, major, minor in d.keys():
+	for typelibCLSID, lcid, major, minor in d.iterkeys():
 		mod = GetModuleForTypelib(typelibCLSID, lcid, major, minor)
 		print "%s - %s" % (mod.__doc__, typelibCLSID)
 

@@ -63,7 +63,7 @@ def runeval(expression, globals=None, locals=None):
 	return _GetCurrentDebugger().runeval(expression, globals, locals)
 
 def runcall(*args):
-	return apply(_GetCurrentDebugger().runcall, args)
+	return _GetCurrentDebugger().runcall(*args)
 
 def set_trace():
 	import sys
@@ -99,7 +99,7 @@ def post_mortem(t=None):
 	# No idea why I need to settrace to None - it should have been reset by now?
 	sys.settrace(None)
 	p.reset()
-	while t.tb_next <> None: t = t.tb_next
+	while t.tb_next != None: t = t.tb_next
 	p.bAtPostMortem = 1
 	p.prep_run(None)
 	try:

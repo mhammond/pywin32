@@ -28,7 +28,7 @@ class Control(window.Wnd):
 
 	def HookOleEvents(self):
 		dict = self._GetEventMap()
-		for dispid, methodName in dict.items():
+		for dispid, methodName in dict.iteritems():
 			if hasattr(self, methodName):
 				self._obj_.HookOleEvent( getattr(self, methodName), dispid )
 

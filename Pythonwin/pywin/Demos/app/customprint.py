@@ -33,7 +33,7 @@ class PrintDemoView(docview.ScrollView):
                        'Yellow' : (0xff<<0) + (0xff<<8) + (0x00<<16),
                        }
         self.pens = {}
-        for name, color in self.colors.items():
+        for name, color in self.colors.iteritems():
             self.pens[name] = win32ui.CreatePen(win32con.PS_SOLID,
                                                  5, color)
         self.pen = None
@@ -48,7 +48,7 @@ class PrintDemoView(docview.ScrollView):
         oldPen = None
         x,y = self.size
         delta = 2
-        colors = self.colors.keys()
+        colors = list(self.colors.keys())
         colors.sort()
         colors = colors*2
         for color in colors:
@@ -168,7 +168,7 @@ class ImagePrintDialog(dialog.PrintDialog):
 
     def OnInitDialog(self):
         self.magCtl = self.GetDlgItem(IDC_PRINT_MAG_EDIT)
-        self.magCtl.SetWindowText(`self['mag']`)
+        self.magCtl.SetWindowText(repr(self['mag']))
         return dialog.PrintDialog.OnInitDialog(self)
     def OnOK(self):
         dialog.PrintDialog.OnOK(self)

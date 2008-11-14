@@ -3,7 +3,8 @@ import struct
 import sys
 import os
 import pywintypes
-import win32event
+import win32event, win32api
+import os
 import win32com.directsound.directsound as ds
 # next two lines are for for debugging:
 # import win32com
@@ -23,7 +24,7 @@ def wav_header_unpack(data):
     if fmtsize != 16 or fmt != 'fmt ' or data != 'data':
         # fmt chuck is not first chunk, directly followed by data chuck
         # It is nowhere required that they are, it is just very common
-        raise ValueError, 'cannot understand wav header'
+        raise ValueError('cannot understand wav header')
 
     wfx = pywintypes.WAVEFORMATEX()
     wfx.wFormatTag = format
@@ -328,8 +329,8 @@ class DirectSoundCaptureTest(unittest.TestCase):
         event.Close()
 
         data = buffer.Update(0, 352800)
-
-        f = open('recording.wav', 'wb')
+        fname=os.path.join(win32api.GetTempPath(), 'test_directsound_record.wav')
+        f = open(fname, 'wb')
         f.write(wav_header_pack(sdesc.lpwfxFormat, 352800))
         f.write(data)
         f.close()

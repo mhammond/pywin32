@@ -1,7 +1,7 @@
 """Utilities for selecting and enumerating the Type Libraries installed on the system
 """
 
-import win32api, win32con, string, pythoncom
+import win32api, win32con, pythoncom
 
 class TypelibSpec:
 	def __init__(self, clsid, lcid, major, minor, flags=0):
@@ -21,11 +21,11 @@ class TypelibSpec:
 	def __getitem__(self, item):
 		if item==0:
 			return self.ver_desc
-		raise IndexError, "Cant index me!"
+		raise IndexError("Cant index me!")
 	def __cmp__(self, other):
-		rc = cmp(string.lower(self.ver_desc or ""), string.lower(other.ver_desc or ""))
+		rc = cmp((self.ver_desc or "").lower(), (other.ver_desc or "").lower())
 		if rc==0:
-			rc = cmp(string.lower(self.desc), string.lower(other.desc))
+			rc = cmp(self.desc.lower(), other.desc.lower())
 		if rc==0:
 			rc = cmp(self.major, other.major)
 		if rc==0:
@@ -84,7 +84,7 @@ def EnumTlbs(excludeFlags = 0):
 			# A few good reasons for this, including "access denied".
 			continue
 		for version, tlbdesc in EnumKeys(key2):
-			major_minor = string.split(version, '.', 1)
+			major_minor = version.split('.', 1)
 			if len(major_minor) < 2:
 				major_minor.append('0')
 			# For some reason, this code used to assume the values were hex.

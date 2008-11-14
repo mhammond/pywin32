@@ -120,7 +120,7 @@ class DispatchItem(OleItem):
 				deleteExisting = 0 # This one is still OK
 			else:
 				deleteExisting = 1 # No good to us
-				if self.mapFuncs.has_key(key) or self.propMapGet.has_key(key):
+				if key in self.mapFuncs or key in self.propMapGet:
 					newKey = "Set" + key
 				else:
 					newKey = key
@@ -137,7 +137,7 @@ class DispatchItem(OleItem):
 				deleteExisting = 0 # This one is still OK
 			else:
 				deleteExisting = 1 # No good to us
-				if self.mapFuncs.has_key(key):
+				if key in self.mapFuncs:
 					newKey = "Get" + key
 				else:
 					newKey = key
@@ -256,22 +256,22 @@ class DispatchItem(OleItem):
 		self.bIsDispatch = (attr.wTypeFlags & pythoncom.TYPEFLAG_FDISPATCHABLE) != 0
 		if typeinfo is None: return
 		# Loop over all methods
-		for j in xrange(attr[6]):
+		for j in range(attr[6]):
 			fdesc = typeinfo.GetFuncDesc(j)
 			self._AddFunc_(typeinfo,fdesc,bForUser)
 
 		# Loop over all variables (ie, properties)
-		for j in xrange(attr[7]):
+		for j in range(attr[7]):
 			fdesc = typeinfo.GetVarDesc(j)
 			self._AddVar_(typeinfo,fdesc,bForUser)
 		
 		# Now post-process the maps.  For any "Get" or "Set" properties
 		# that have arguments, we must turn them into methods.  If a method
 		# of the same name already exists, change the name.
-		for key, item in self.propMapGet.items():
+		for key, item in list(self.propMapGet.items()):
 			self._propMapGetCheck_(key,item)
 					
-		for key, item in self.propMapPut.items():
+		for key, item in list(self.propMapPut.items()):
 			self._propMapPutCheck_(key,item)
 
 	def CountInOutOptArgs(self, argTuple):
@@ -315,6 +315,7 @@ class DispatchItem(OleItem):
 			defUnnamedArg = "pythoncom.Missing"
 		defOutArg = "pythoncom.Missing"
 		id = fdesc[0]
+
 		s = linePrefix + 'def ' + name + '(self' + BuildCallList(fdesc, names, defNamedOptArg, defNamedNotOptArg, defUnnamedArg, defOutArg) + '):'
 		ret.append(s)
 		if doc and doc[1]:
@@ -329,20 +330,20 @@ class DispatchItem(OleItem):
 			resclsid = 'None'
 		# Strip the default values from the arg desc
 		retDesc = fdesc[8][:2]
-		argsDesc = tuple(map(lambda what: what[:2], fdesc[2]))
+		argsDesc = tuple([what[:2] for what in fdesc[2]])
 		# The runtime translation of the return types is expensive, so when we know the
 		# return type of the function, there is no need to check the type at runtime.
 		# To qualify, this function must return a "simple" type, and have no byref args.
 		# Check if we have byrefs or anything in the args which mean we still need a translate.
-		param_flags = map(lambda what: what[1], fdesc[2])
-		bad_params = filter(lambda flag: flag & (pythoncom.PARAMFLAG_FOUT | pythoncom.PARAMFLAG_FRETVAL)!=0, param_flags)
+		param_flags = [what[1] for what in fdesc[2]]
+		bad_params = [flag for flag in param_flags if flag & (pythoncom.PARAMFLAG_FOUT | pythoncom.PARAMFLAG_FRETVAL)!=0]
 		s = None
 		if len(bad_params)==0 and len(retDesc)==2 and retDesc[1]==0:
 			rd = retDesc[0]
-			if NoTranslateMap.has_key(rd):
+			if rd in NoTranslateMap:
 				s = '%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, argsDesc, _BuildArgList(fdesc, names))
 			elif rd in [pythoncom.VT_DISPATCH, pythoncom.VT_UNKNOWN]:
-				s = '%s\tret = self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)\n' % (linePrefix, id, fdesc[4], retDesc, `argsDesc`, _BuildArgList(fdesc, names))
+				s = '%s\tret = self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)\n' % (linePrefix, id, fdesc[4], retDesc, repr(argsDesc), _BuildArgList(fdesc, names))
 				s = s + '%s\tif ret is not None:\n' % (linePrefix,)
 				if rd == pythoncom.VT_UNKNOWN:
 					s = s + "%s\t\t# See if this IUnknown is really an IDispatch\n" % (linePrefix,)
@@ -350,18 +351,18 @@ class DispatchItem(OleItem):
 					s = s + "%s\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n" % (linePrefix,)
 					s = s + "%s\t\texcept pythoncom.error:\n" % (linePrefix,)
 					s = s + "%s\t\t\treturn ret\n" % (linePrefix,)
-				s = s + '%s\t\tret = Dispatch(ret, %s, %s, UnicodeToString=%d)\n' % (linePrefix,`name`, resclsid, NeedUnicodeConversions) 
+				s = s + '%s\t\tret = Dispatch(ret, %s, %s, UnicodeToString=%d)\n' % (linePrefix,repr(name), resclsid, NeedUnicodeConversions) 
 				s = s + '%s\treturn ret' % (linePrefix)
 			elif rd == pythoncom.VT_BSTR:
 				if NeedUnicodeConversions:
 					s = "%s\t# Result is a Unicode object - perform automatic string conversion\n" % (linePrefix,)
-					s = s + '%s\treturn str(self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s))' % (linePrefix, id, fdesc[4], retDesc, `argsDesc`, _BuildArgList(fdesc, names))
+					s = s + '%s\treturn str(self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s))' % (linePrefix, id, fdesc[4], retDesc, repr(argsDesc), _BuildArgList(fdesc, names))
 				else:
 					s = "%s\t# Result is a Unicode object - return as-is for this version of Python\n" % (linePrefix,)
-					s = s + '%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, `argsDesc`, _BuildArgList(fdesc, names))
+					s = s + '%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, repr(argsDesc), _BuildArgList(fdesc, names))
 			# else s remains None
 		if s is None:
-			s = '%s\treturn self._ApplyTypes_(%d, %s, %s, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, argsDesc, `name`, resclsid, _BuildArgList(fdesc, names))
+			s = '%s\treturn self._ApplyTypes_(%d, %s, %s, %s, %s, %s%s)' % (linePrefix, id, fdesc[4], retDesc, argsDesc, repr(name), resclsid, _BuildArgList(fdesc, names))
 
 		ret.append(s)
 		ret.append("")
@@ -397,7 +398,7 @@ class VTableItem(DispatchItem):
 		def cmp_vtable_off(m1, m2):
 			return cmp(m1.desc[7], m2.desc[7])
 
-		meth_list = self.mapFuncs.values() + self.propMapGet.values() + self.propMapPut.values()
+		meth_list = list(self.mapFuncs.values()) + list(self.propMapGet.values()) + list(self.propMapPut.values())
 
 		meth_list.sort( cmp_vtable_off )
 		# Now turn this list into the run-time representation
@@ -424,7 +425,7 @@ typeSubstMap = {
 def _ResolveType(typerepr, itypeinfo):
 	# Resolve VT_USERDEFINED (often aliases or typed IDispatches)
 
-	if type(typerepr)==types.TupleType:
+	if type(typerepr)==tuple:
 		indir_vt, subrepr = typerepr
 		if indir_vt == pythoncom.VT_PTR:
 			# If it is a VT_PTR to a VT_USERDEFINED that is an IDispatch/IUnknown,
@@ -434,7 +435,7 @@ def _ResolveType(typerepr, itypeinfo):
 			# eg, (VT_PTR, (VT_USERDEFINED, somehandle)) needs to become VT_DISPATCH
 			# only when "somehandle" is an object.
 			# but (VT_PTR, (VT_USERDEFINED, otherhandle)) doesnt get the indirection dropped.
-			was_user = type(subrepr)==types.TupleType and subrepr[0]==pythoncom.VT_USERDEFINED
+			was_user = type(subrepr)==tuple and subrepr[0]==pythoncom.VT_USERDEFINED
 			subrepr, sub_clsid, sub_doc = _ResolveType(subrepr, itypeinfo)
 			if was_user and subrepr in [pythoncom.VT_DISPATCH, pythoncom.VT_UNKNOWN, pythoncom.VT_RECORD]:
 				# Drop the VT_PTR indirection
@@ -492,7 +493,7 @@ def _BuildArgList(fdesc, names):
     while None in names:
     	i = names.index(None)
     	names[i] = "arg%d" % (i,)
-    names = map(MakePublicAttributeName, names[1:])
+    names = list(map(MakePublicAttributeName, names[1:]))
     name_num = 0
     while len(names) < numArgs:
         names.append("arg%d" % (len(names),))
@@ -501,7 +502,7 @@ def _BuildArgList(fdesc, names):
     # here but don't exist in 2.2
     for i in range(0, len(names), 5):
         names[i] = names[i] + "\n\t\t\t"
-    return "," + string.join(names, ", ")
+    return "," + ", ".join(names)
 
 valid_identifier_chars = string.ascii_letters + string.digits + "_"
 
@@ -525,12 +526,12 @@ def MakePublicAttributeName(className, is_global = False):
 	if className[:2]=='__':
 		return demunge_leading_underscores(className)
 	elif iskeyword(className): # all keywords are lower case
-		return string.capitalize(className)
+		return className.capitalize()
 	elif className == 'None':
 		# assign to None is evil (and SyntaxError in 2.4) - note
 		# that if it was a global it would get picked up below
 		className = 'NONE'
-	elif is_global and __builtins__.has_key(className):
+	elif is_global and hasattr(__builtins__, className):
 		# builtins may be mixed case.  If capitalizing it doesn't change it,
 		# force to all uppercase (eg, "None", "True" become "NONE", "TRUE"
 		ret = className.capitalize()
@@ -538,7 +539,7 @@ def MakePublicAttributeName(className, is_global = False):
 			ret = ret.upper()
 		return ret
 	# Strip non printable chars
-	return filter( lambda char: char in valid_identifier_chars, className)
+	return ''.join([char for char in className if char in valid_identifier_chars])
 
 # Given a default value passed by a type library, return a string with
 # an appropriate repr() for the type.

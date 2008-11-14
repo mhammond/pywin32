@@ -96,7 +96,7 @@ def GetPackageModuleName(fileName):
 			path, modBit = os.path.split(path)
 			modBits.append(modBit)
 			# If on path, _and_ existing package of that name loaded.
-			if IsOnPythonPath(path) and sys.modules.has_key(modBit) and \
+			if IsOnPythonPath(path) and modBit in sys.modules and \
 				( os.path.exists(os.path.join(path, '__init__.py')) or \
 				os.path.exists(os.path.join(path, '__init__.pyc')) or \
 				os.path.exists(os.path.join(path, '__init__.pyo')) \
@@ -158,9 +158,9 @@ def GetActiveFileName(bAutoSave = 1):
 		pathName = doc.GetPathName()
 
 		if bAutoSave and \
-		   (len(pathName)>0 or \
-		    doc.GetTitle()[:8]=="Untitled" or \
-		    doc.GetTitle()[:6]=="Script"): # if not a special purpose window
+			(len(pathName)>0 or \
+			doc.GetTitle()[:8]=="Untitled" or \
+			doc.GetTitle()[:6]=="Script"): # if not a special purpose window
 			if doc.IsModified():
 				try:
 					doc.OnSaveDocument(pathName)
@@ -361,7 +361,7 @@ def ImportFile():
 		pathName = None
 
 	if pathName is not None:
-		if os.path.splitext(pathName)[1].lower() <> ".py":
+		if os.path.splitext(pathName)[1].lower() != ".py":
 			pathName = None
 
 	if pathName is None:
@@ -377,7 +377,7 @@ def ImportFile():
 	path, modName = os.path.split(pathName)
 	modName, modExt = os.path.splitext(modName)
 	newPath = None
-	for key, mod in sys.modules.items():
+	for key, mod in sys.modules.iteritems():
 		if hasattr(mod, '__file__'):
 			fname = mod.__file__
 			base, ext = os.path.splitext(fname)
@@ -391,7 +391,7 @@ def ImportFile():
 		modName, newPath = GetPackageModuleName(pathName)
 		if newPath: sys.path.append(newPath)
 
-	if sys.modules.has_key(modName):
+	if modName in sys.modules:
 		bNeedReload = 1
 		what = "reload"
 	else:
@@ -403,7 +403,7 @@ def ImportFile():
 #	win32ui.GetMainFrame().BeginWaitCursor()
 
 	try:
-		# always do an import, as it is cheap is already loaded.  This ensures
+		# always do an import, as it is cheap if it's already loaded.  This ensures
 		# it is in our name space.
 		codeObj = compile('import '+modName,'<auto import>','exec')
 	except SyntaxError:
@@ -453,14 +453,17 @@ def CheckFile():
 	win32ui.DoWaitCursor(0)
 
 def RunTabNanny(filename):
-	import cStringIO
+	try:
+		import cStringIO as io
+	except ImportError:
+		import io
 	tabnanny = FindTabNanny()
 	if tabnanny is None:
 		win32ui.MessageBox("The TabNanny is not around, so the children can run amok!" )
 		return
 		
 	# Capture the tab-nanny output
-	newout = cStringIO.StringIO()
+	newout = io.StringIO()
 	old_out = sys.stderr, sys.stdout
 	sys.stderr = sys.stdout = newout
 	try:

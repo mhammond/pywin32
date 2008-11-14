@@ -17,12 +17,6 @@ import win32security, sspicon
 
 error = win32security.error
 
-try:
-    True, False
-except NameError:
-    False = 1==0
-    True = not False
-
 class _BaseAuth(object):
     def __init__(self):
         self.reset()

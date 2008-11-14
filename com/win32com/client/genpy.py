@@ -15,7 +15,6 @@ The makepy command line etc handling is also getting large enough in its own rig
 # This will be done once the new "demand" mechanism gets a good workout.
 import os
 import sys
-import string
 import time
 import win32com
 
@@ -77,7 +76,7 @@ def MakeDefaultArgsForPropertyPut(argsDesc):
 
 def MakeMapLineEntry(dispid, wFlags, retType, argTypes, user, resultCLSID):
     # Strip the default value
-    argTypes = tuple(map(lambda what: what[:2], argTypes))
+    argTypes = tuple([what[:2] for what in argTypes])
     return '(%s, %d, %s, %s, "%s", %s)' % \
         (dispid, wFlags, retType[:2], argTypes, user, resultCLSID)
 
@@ -104,7 +103,7 @@ class WritableItem:
         if ret==0 and self.doc: ret = cmp(self.doc[0], other.doc[0])
         return ret
     def __repr__(self):
-        return "OleItem: doc=%s, order=%d" % (`self.doc`, self.order)
+        return "OleItem: doc=%s, order=%d" % (repr(self.doc), self.order)
 
 
 class RecordItem(build.OleItem, WritableItem):
@@ -128,7 +127,7 @@ class RecordItem(build.OleItem, WritableItem):
 # Given an enum, write all aliases for it.
 # (no longer necessary for new style code, but still used for old code.
 def WriteAliasesForItem(item, aliasItems, stream):
-  for alias in aliasItems.values():
+  for alias in aliasItems.itervalues():
     if item.doc and alias.aliasDoc and (alias.aliasDoc[0]==item.doc[0]):
       alias.WriteAliasItem(aliasItems, stream)
       
@@ -158,7 +157,7 @@ class AliasItem(build.OleItem, WritableItem):
 
     if self.aliasDoc:
       depName = self.aliasDoc[0]
-      if aliasDict.has_key(depName):
+      if depName in aliasDict:
         aliasDict[depName].WriteAliasItem(aliasDict, stream)
       print >> stream, self.doc[0] + " = " + depName
     else:
@@ -198,7 +197,7 @@ class EnumerationItem(build.OleItem, WritableItem):
   def WriteEnumerationItems(self, stream):
     enumName = self.doc[0]
     # Write in name alpha order
-    names = self.mapVars.keys()
+    names = list(self.mapVars.keys())
     names.sort()
     for name in names:
       entry = self.mapVars[name]
@@ -382,8 +381,8 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 specialItems["_newenum"] = (entry, entry.desc[4], None)
                 continue # Dont build this one now!
             else:
-                lkey = string.lower(name)
-            if specialItems.has_key(lkey) and specialItems[lkey] is None: # remember if a special one.
+                lkey = name.lower()
+            if lkey in specialItems and specialItems[lkey] is None: # remember if a special one.
                 specialItems[lkey] = (entry, entry.desc[4], None)
             if generator.bBuildHidden or not entry.hidden:
                 if entry.GetResultName():
@@ -401,7 +400,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 resultName = entry.GetResultName()
                 if resultName:
                     print >> stream, "\t\t# Property '%s' is an object of type '%s'" % (key, resultName)
-                lkey = string.lower(key)
+                lkey = key.lower()
                 details = entry.desc
                 resultDesc = details[2]
                 argDesc = ()
@@ -412,8 +411,8 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 elif entry.desc[0]==pythoncom.DISPID_NEWENUM:
                     lkey = "_newenum"
                 else:
-                    lkey = string.lower(key)
-                if specialItems.has_key(lkey) and specialItems[lkey] is None: # remember if a special one.
+                    lkey = key.lower()
+                if lkey in specialItems and specialItems[lkey] is None: # remember if a special one.
                     specialItems[lkey] = (entry, pythoncom.DISPATCH_PROPERTYGET, mapEntry)
                     # All special methods, except _newenum, are written
                     # "normally".  This is a mess!
@@ -428,7 +427,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 if entry.GetResultName():
                     print >> stream, "\t\t# Method '%s' returns object of type '%s'" % (key, entry.GetResultName())
                 details = entry.desc
-                lkey = string.lower(key)
+                lkey = key.lower()
                 argDesc = details[2]
                 resultDesc = details[8]
                 mapEntry = MakeMapLineEntry(details[0], pythoncom.DISPATCH_PROPERTYGET, resultDesc, argDesc, key, entry.GetResultCLSIDStr())
@@ -437,8 +436,8 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 elif entry.desc[0]==pythoncom.DISPID_NEWENUM:
                     lkey = "_newenum"
                 else:
-                    lkey = string.lower(key)
-                if specialItems.has_key(lkey) and specialItems[lkey] is None: # remember if a special one.
+                    lkey = key.lower()
+                if lkey in specialItems and specialItems[lkey] is None: # remember if a special one.
                     specialItems[lkey]=(entry, pythoncom.DISPATCH_PROPERTYGET, mapEntry)
                     # All special methods, except _newenum, are written
                     # "normally".  This is a mess!
@@ -450,11 +449,11 @@ class DispatchItem(build.DispatchItem, WritableItem):
 
         print >> stream, "\t_prop_map_put_ = {"
         # These are "Invoke" args
-        names = self.propMap.keys(); names.sort()
+        names = list(self.propMap.keys()); names.sort()
         for key in names:
             entry = self.propMap[key]
             if generator.bBuildHidden or not entry.hidden:
-                lkey=string.lower(key)
+                lkey=key.lower()
                 details = entry.desc
                 # If default arg is None, write an empty tuple
                 defArgDesc = build.MakeDefaultArgRepr(details[2])
@@ -464,7 +463,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     defArgDesc = defArgDesc + ","
                 print >> stream, '\t\t"%s" : ((%s, LCID, %d, 0),(%s)),' % (build.MakePublicAttributeName(key), details[0], pythoncom.DISPATCH_PROPERTYPUT, defArgDesc)
 
-        names = self.propMapPut.keys(); names.sort()
+        names = list(self.propMapPut.keys()); names.sort()
         for key in names:
             entry = self.propMapPut[key]
             if generator.bBuildHidden or not entry.hidden:
@@ -500,7 +499,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
             enumEntry, invoketype, propArgs = specialItems["_newenum"]
             resultCLSID = enumEntry.GetResultCLSIDStr()
             # If we dont have a good CLSID for the enum result, assume it is the same as the Item() method.
-            if resultCLSID == "None" and self.mapFuncs.has_key("Item"):
+            if resultCLSID == "None" and "Item" in self.mapFuncs:
                 resultCLSID = self.mapFuncs["Item"].GetResultCLSIDStr()
             # "Native" Python iterator support
             print >> stream, '\tdef __iter__(self):'
@@ -684,7 +683,7 @@ class Generator:
         if refAttr.typekind == pythoncom.TKIND_DISPATCH or \
            (refAttr.typekind == pythoncom.TKIND_INTERFACE and refAttr[11] & pythoncom.TYPEFLAG_FDISPATCHABLE):
           clsid = refAttr[0]
-          if oleItems.has_key(clsid):
+          if clsid in oleItems:
             dispItem = oleItems[clsid]
           else:
             dispItem = DispatchItem(refType, refAttr, doc)
@@ -696,14 +695,14 @@ class Generator:
           else:
             interfaces[dispItem.clsid] = (dispItem, flags)
           # If dual interface, make do that too.
-          if not vtableItems.has_key(clsid) and refAttr[11] & pythoncom.TYPEFLAG_FDUAL:
+          if clsid not in vtableItems and refAttr[11] & pythoncom.TYPEFLAG_FDUAL:
             refType = refType.GetRefTypeInfo(refType.GetRefTypeOfImplType(-1))
             refAttr = refType.GetTypeAttr()
             assert refAttr.typekind == pythoncom.TKIND_INTERFACE, "must be interface bynow!"
             vtableItem = VTableItem(refType, refAttr, doc)
             vtableItems[clsid] = vtableItem
-    coclass.sources = sources.values()
-    coclass.interfaces = interfaces.values()
+    coclass.sources = list(sources.values())
+    coclass.interfaces = list(interfaces.values())
 
   def _Build_Interface(self, type_info_tuple):
     info, infotype, doc, attr = type_info_tuple
@@ -741,7 +740,7 @@ class Generator:
       # We never hide interfaces (MSAccess, for example, nominates interfaces as
       # hidden, assuming that you only ever use them via the CoClass)
       elif infotype in [pythoncom.TKIND_DISPATCH, pythoncom.TKIND_INTERFACE]:
-        if not oleItems.has_key(clsid):
+        if clsid not in oleItems:
           oleItem, vtableItem = self._Build_Interface(type_info_tuple)
           oleItems[clsid] = oleItem # Even "None" goes in here.
           if vtableItem is not None:

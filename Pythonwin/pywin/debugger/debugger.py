@@ -57,7 +57,7 @@ class HierFrameItem(HierListItem):
 		name = self.myobject.f_code.co_name
 		if not name or name == '?' :
 			# See if locals has a '__name__' (ie, a module)
-			if self.myobject.f_locals.has_key('__name__'):
+			if '__name__' in self.myobject.f_locals:
 				name = str(self.myobject.f_locals['__name__']) + " module"
 			else:
 				name = '<Debugger Context>'
@@ -314,7 +314,7 @@ class DebuggerBreakpointsWindow(DebuggerListViewWindow):
 		item_id = self.GetItem(item[0])[6]
 
 		from bdb import Breakpoint
-		for bplist in Breakpoint.bplist.values():
+		for bplist in Breakpoint.bplist.itervalues():
 			for bp in bplist:
 				if id(bp)==item_id:
 					if text.strip().lower()=="none":
@@ -328,7 +328,7 @@ class DebuggerBreakpointsWindow(DebuggerListViewWindow):
 			num = self.GetNextItem(-1, commctrl.LVNI_SELECTED)
 			item_id = self.GetItem(num)[6]
 			from bdb import Breakpoint
-			for bplist in Breakpoint.bplist.values():
+			for bplist in Breakpoint.bplist.itervalues():
 				for bp in bplist:
 					if id(bp)==item_id:
 						self.debugger.clear_break(bp.file, bp.line)
@@ -338,17 +338,17 @@ class DebuggerBreakpointsWindow(DebuggerListViewWindow):
 		self.RespondDebuggerData()
 
 	def RespondDebuggerData(self):
-		list = self
-		list.DeleteAllItems()
+		l = self
+		l.DeleteAllItems()
 		index = -1
 		from bdb import Breakpoint
-		for bplist in Breakpoint.bplist.values():
+		for bplist in Breakpoint.bplist.itervalues():
 			for bp in bplist:
 				baseName = os.path.split(bp.file)[1]
 				cond = bp.cond
 				item = index+1, 0, 0, 0, str(cond), 0, id(bp)
-				index = list.InsertItem(item)
-				list.SetItemText(index, 1, "%s: %s" % (baseName, bp.line))
+				index = l.InsertItem(item)
+				l.SetItemText(index, 1, "%s: %s" % (baseName, bp.line))
 
 class DebuggerWatchWindow(DebuggerListViewWindow):
 	title = "Watch"
@@ -582,9 +582,10 @@ class Debugger(debugger_parent):
 		frame.f_locals['__return__'] = return_value
 		self.interaction(frame, None)
 
-	def user_exception(self, frame, (exc_type, exc_value, exc_traceback)):
+	def user_exception(self, frame, exc_info):
 		# This function is called if an exception occurs,
 		# but only if we are to stop at or just below this level
+		(exc_type, exc_value, exc_traceback) = exc_info
 		if self.get_option(OPT_STOP_EXCEPTIONS):
 			frame.f_locals['__exception__'] = exc_type, exc_value
 			print "Unhandled exception while debugging..."
@@ -710,7 +711,7 @@ class Debugger(debugger_parent):
 			# scriptutils.py creates a local variable with name
 			# '_debugger_stop_frame_', and we dont go past it
 			# (everything above this is Pythonwin framework code)
-			if frame.f_locals.has_key("_debugger_stop_frame_"):
+			if "_debugger_stop_frame_" in frame.f_locals:
 				self.userbotframe = frame
 				break
 

@@ -30,7 +30,7 @@ class Object:
 #		print "object", self.__class__.__name__, "dieing"
 		self._obj_ = None
 	def close(self):
-		if self.__dict__.has_key('_obj_'):
+		if '_obj_' in self.__dict__:
 			if self._obj_ is not None:
 				self._obj_.AttachObject(None)
 				self._obj_ = None

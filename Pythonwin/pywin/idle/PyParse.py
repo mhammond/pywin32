@@ -2,13 +2,8 @@ import string
 import re
 import sys
 
-try:
-    from types import UnicodeType
-except ImportError:
-    from pywintypes import UnicodeType
-
 # Reason last stmt is continued (or C_NONE if it's not).
-C_NONE, C_BACKSLASH, C_STRING, C_BRACKET = range(4)
+C_NONE, C_BACKSLASH, C_STRING, C_BRACKET = list(range(4))
 
 if 0:   # for throwaway debugging output
     def dump(*stuff):
@@ -118,19 +113,6 @@ class Parser:
 
     def set_str(self, str):
         assert len(str) == 0 or str[-1] == '\n', "Oops - have str %r" % (str,)
-        if type(str) == UnicodeType:
-            # The parse functions have no idea what to do with Unicode, so
-            # replace all Unicode characters with "x".  This is "safe"
-            # so long as the only characters germane to parsing the structure
-            # of Python are 7-bit ASCII.  It's *necessary* because Unicode
-            # strings don't have a .translate() method that supports
-            # deletechars.
-            uniphooey = str
-            str = []
-            push = str.append
-            for raw in map(ord, uniphooey):
-                push(raw < 127 and chr(raw) or "x")
-            str = "".join(str)
         self.str = str
         self.study_level = 0
 
