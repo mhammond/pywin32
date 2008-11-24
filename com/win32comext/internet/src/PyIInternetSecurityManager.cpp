@@ -131,24 +131,24 @@ PyObject *PyIInternetSecurityManager::ProcessUrlAction(PyObject *self, PyObject 
 		return NULL;
 	// @pyparm <o unicode>|pwszUrl||Description for pwszUrl
 	// @pyparm int|dwAction||Description for dwAction
+	// @pyparm bytes|context||
 	// @pyparm int|dwFlags||Description for dwFlags
 	PyObject *obpwszUrl;
 	LPWSTR pwszUrl;
 	DWORD dwAction;
-	PyObject *obContext;
+	char *context;
+	Py_ssize_t cbcontext;
 	DWORD dwFlags;
-	if ( !PyArg_ParseTuple(args, "OlOl:ProcessUrlAction", &obpwszUrl, &dwAction, &obContext, &dwFlags) )
+	if ( !PyArg_ParseTuple(args, "Olz#l:ProcessUrlAction", &obpwszUrl, &dwAction, &context, &cbcontext, &dwFlags) )
 		return NULL;
 	BOOL bPythonIsHappy = TRUE;
-	IID context;
-	if (bPythonIsHappy && !PyWinObject_AsBstr(obpwszUrl, &pwszUrl)) bPythonIsHappy = FALSE;
-	if (bPythonIsHappy && !PyWinObject_AsIID(obContext, &context)) bPythonIsHappy = FALSE;
-	if (!bPythonIsHappy) return NULL;
+	if (!PyWinObject_AsWCHAR(obpwszUrl, &pwszUrl))
+		return NULL;
 	DWORD dwPolicy = 0;
 	HRESULT hr;
 	PY_INTERFACE_PRECALL;
-	hr = pIISM->ProcessUrlAction( pwszUrl, dwAction, (BYTE *)&dwPolicy, sizeof(dwPolicy), (BYTE *)&context, sizeof(context), dwFlags, 0);
-	SysFreeString(pwszUrl);
+	hr = pIISM->ProcessUrlAction( pwszUrl, dwAction, (BYTE *)&dwPolicy, sizeof(dwPolicy), (BYTE *)context, cbcontext, dwFlags, 0);
+	PyWinObject_FreeWCHAR(pwszUrl);
 	PY_INTERFACE_POSTCALL;
 	if ( FAILED(hr) )
 		return PyCom_BuildPyException(hr, pIISM, IID_IInternetSecurityManager);
@@ -358,16 +358,14 @@ STDMETHODIMP PyGInternetSecurityManager::ProcessUrlAction(
 	PyObject *obpwszUrl;
 	PyObject *obContext;
 	obpwszUrl = MakeOLECHARToObj(pwszUrl);
-	if (cbContext==0 || pContext==NULL) {
+	// pContext is documented as being a GUID - but markh has seen IE
+	// call this with 78 and 54 bytes in some unusual cases.  So
+	// just use 'bytes' and the Python code must use magic to get a GUID.
+	if (pContext==NULL) {
 		obContext = Py_None;
 		Py_INCREF(Py_None);
-	} else if (cbContext==sizeof(GUID))
-		obContext = PyWinObject_FromIID(*((IID *)pContext));
-	else {
-		PyCom_LoggerWarning(NULL, "PyGInternetSecurityManager::ProcessUrlAction has %d bytes for context - what is that?", cbContext);
-		obContext = Py_None;
-		Py_INCREF(Py_None);
-	}
+	} else
+		obContext = PyString_FromStringAndSize((char *)pContext, cbContext);
 	PyObject *result;
 	HRESULT hr=InvokeViaPolicy("ProcessUrlAction", &result, "OlOll", obpwszUrl, dwAction, obContext, dwFlags, dwReserved);
 	Py_XDECREF(obpwszUrl);
