@@ -3271,9 +3271,14 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] =
 	PYCOM_INTERFACE_SERVER_ONLY(ExplorerCommandProvider),
 	PYCOM_INTERFACE_CLIENT_ONLY(ExplorerPaneVisibility),
 	PYCOM_INTERFACE_CLIENT_ONLY(NameSpaceTreeControl),
-	// IID_ICopyHook doesn't exist - hack it up
-	{ &IID_IShellCopyHook, "IShellCopyHook", "IID_IShellCopyHook", &PyICopyHook::type, GET_PYGATEWAY_CTOR(PyGCopyHook) },
-	{ &IID_IShellCopyHook, "ICopyHook", "IID_ICopyHook", NULL, NULL  },
+	PYCOM_INTERFACE_FULL(ExplorerCommand),
+	PYCOM_INTERFACE_FULL(CopyHookA),
+	PYCOM_INTERFACE_FULL(CopyHookW),
+	// For b/w compat, Add IID_ICopyHook as IID_CopyHookA
+	{ &IID_ICopyHookA, "ICopyHook", "IID_ICopyHook", NULL, NULL  },
+	PYCOM_INTERFACE_IID_ONLY(ShellCopyHookA),
+	PYCOM_INTERFACE_IID_ONLY(ShellCopyHookW),
+	PYCOM_INTERFACE_IID_ONLY(ShellCopyHook),
 	PYCOM_INTERFACE_FULL(ShellItem),
 	PYCOM_INTERFACE_FULL(ShellItemArray),
 	PYCOM_INTERFACE_CLIENT_ONLY(ShellLinkDataList),
