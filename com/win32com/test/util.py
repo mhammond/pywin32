@@ -1,4 +1,5 @@
 import sys, os
+import _winreg
 import win32api
 import tempfile
 import unittest
@@ -21,7 +22,51 @@ def CheckClean():
     if c:
         print "Warning - %d com gateway objects still alive" % c
 
-def RegisterPythonServer(filename, verbose=0):
+def RegisterPythonServer(filename, progids=None, verbose=0):
+    if progids:
+        if isinstance(progids, basestring):
+            progids = [progids]
+        # we know the CLSIDs we need, but we might not be an admin user
+        # and otherwise unable to register them.  So as long as the progids
+        # exist and the DLL points at our version, assume it already is.
+        why_not = None
+        for progid in progids:
+            try:
+                clsid = pythoncom.MakeIID(progid)
+            except pythoncom.com_error:
+                # no progid - not registered.
+                break
+            # have a CLSID - open it.
+            try:
+                hk = _winreg.OpenKey(_winreg.HKEY_CLASSES_ROOT, "CLSID\\%s" % clsid)
+                dll = _winreg.QueryValue(hk, "InprocServer32")
+            except WindowsError:
+                # no CLSID or InProcServer32 - not good!
+                break
+            if os.path.basename(dll) != os.path.basename(pythoncom.__file__):
+                why_not = "%r is registered against a different Python version (%s)" % (progid, dll)
+                break
+        else:
+            #print "Skipping registration of '%s' - already registered" % filename
+            return
+    # needs registration - see if its likely!
+    try:
+        from win32com.shell.shell import IsUserAnAdmin
+    except ImportError:
+        print "Can't import win32com.shell - no idea if you are an admin or not?"
+        is_admin = False
+    else:
+        try:
+            is_admin = IsUserAnAdmin()
+        except pythoncom.com_error:
+            # old, less-secure OS - assume *is* admin.
+            is_admin = True
+    if not is_admin:
+        msg = "%r isn't registered, but I'm not an administrator who can register it." % progids[0]
+        if why_not:
+            msg += "\n(registration check failed as %s)" % why_not
+        raise RuntimeError(msg)
+    # so theoretically we are able to register it.
     cmd = '%s "%s" --unattended > nul 2>&1' % (win32api.GetModuleFileName(0), filename)
     if verbose:
         print "Registering engine", filename

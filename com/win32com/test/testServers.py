@@ -10,9 +10,9 @@ def TestConnections():
 class InterpCase(win32com.test.util.TestCase):
     def setUp(self):
         # Ensure the correct version registered.
-        from win32com.servers.interp import Interpreter
-        import win32com.server.register
-        win32com.server.register.RegisterClasses(Interpreter, quiet=1)
+        from win32com.test.util import RegisterPythonServer
+        from win32com.servers import interp
+        RegisterPythonServer(interp.__file__, "Python.Interpreter")
 
     def _testInterp(self, interp):
         self.assertEquals(interp.Eval("1+1"), 2)
