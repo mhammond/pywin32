@@ -92,10 +92,14 @@ PyObject *PyIContextMenu::GetCommandString(PyObject *self, PyObject *args)
 	// @pyparm int|idCmd||Id of the command
 	// @pyparm int|uType||One of the shellcon.GCS_* constants
 	// @pyparm int|cchMax|2048|Size of buffer to create for returned string
-	UINT idCmd;
+	PyObject *obCmd;
 	UINT uType;
 	UINT cchMax = 2048;
-	if ( !PyArg_ParseTuple(args, "II|I:GetCommandString", &idCmd, &uType, &cchMax) )
+	if ( !PyArg_ParseTuple(args, "OI|I:GetCommandString", &obCmd, &uType, &cchMax) )
+		return NULL;
+
+	UINT_PTR idCmd;
+	if (!PyWinLong_AsULONG_PTR(obCmd, (ULONG_PTR *)&idCmd))
 		return NULL;
 
 	char *buf = (char *)malloc(cchMax);
