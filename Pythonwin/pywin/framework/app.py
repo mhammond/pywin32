@@ -374,7 +374,7 @@ def Win32Input(prompt=None):
 	return eval(input(prompt))
 
 try:
-	raw_import
+	raw_input
 	# must be py2x...
 	sys.modules['__builtin__'].raw_input=Win32RawInput
 except NameError:
