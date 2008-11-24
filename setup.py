@@ -1613,9 +1613,13 @@ if sys.hexversion >= 0x2030000:
                       pyISAPI.cpp pyISAPI_messages.mc
                       PythonEng.cpp StdAfx.cpp Utils.cpp
                    """.split()],
+           # We keep pyISAPI_messages.h out of the depends list, as it is
+           # generated and we aren't smart enough to say *only* the .cpp etc
+           # depend on it - so the generated .h says the .mc needs to be
+           # rebuilt, which re-creates the .h...
            depends=[os.path.join("isapi", "src", s) for s in
                    """ControlBlock.h FilterContext.h PyExtensionObjects.h
-                      PyFilterObjects.h pyISAPI.h pyISAPI_messages.h
+                      PyFilterObjects.h pyISAPI.h
                       PythonEng.h StdAfx.h Utils.h
                    """.split()],
            pch_header = "StdAfx.h",
