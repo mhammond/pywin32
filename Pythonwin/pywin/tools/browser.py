@@ -6,7 +6,6 @@
 # or
 # >>> browser.Browse(your_module)
 import __main__
-import string
 import win32ui
 from pywin.mfc import dialog
 
