@@ -45,7 +45,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_WINDLL" /D "_MBCS" /Yu"stdafx.h" /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_USRDLL" /D "_WINDLL" /D "_AFXDLL" /D "_MBCS" /Yu"preconn.h" /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_USRDLL" /D "_WINDLL" /D "_AFXDLL" /D "_MBCS" /Yu"preconn.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -59,8 +59,8 @@ LINK32=link.exe
 # SUBTRACT LINK32 /debug
 # Begin Custom Build
 OutDir=.\..\Build\Release
-TargetPath=\src\pythonex\com\TestSources\Build\Release\PyCOMTest.dll
-InputPath=\src\pythonex\com\TestSources\Build\Release\PyCOMTest.dll
+TargetPath=\src\pywin32\com\TestSources\Build\Release\PyCOMTest.dll
+InputPath=\src\pywin32\com\TestSources\Build\Release\PyCOMTest.dll
 SOURCE="$(InputPath)"
 
 "$(OutDir)\regsvr32.trg" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -82,7 +82,7 @@ SOURCE="$(InputPath)"
 # PROP Intermediate_Dir "..\Build\Temp\Debug\PyCOMTest"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_WINDLL" /D "_MBCS" /Yu"stdafx.h" /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_USRDLL" /D "_WINDLL" /D "_AFXDLL" /D "_MBCS" /Yu"preconn.h" /FD /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_USRDLL" /D "_WINDLL" /D "_AFXDLL" /D "_MBCS" /Yu"preconn.h" /FD /c
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -95,8 +95,8 @@ LINK32=link.exe
 # ADD LINK32 /nologo /subsystem:windows /dll /debug /machine:I386
 # Begin Custom Build
 OutDir=.\..\Build\Debug
-TargetPath=\src\pythonex\com\TestSources\Build\Debug\PyCOMTest.dll
-InputPath=\src\pythonex\com\TestSources\Build\Debug\PyCOMTest.dll
+TargetPath=\src\pywin32\com\TestSources\Build\Debug\PyCOMTest.dll
+InputPath=\src\pywin32\com\TestSources\Build\Debug\PyCOMTest.dll
 SOURCE="$(InputPath)"
 
 "$(OutDir)\regsvr32.trg" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -131,8 +131,8 @@ LINK32=link.exe
 # ADD LINK32 /nologo /subsystem:windows /dll /machine:I386
 # Begin Custom Build
 OutDir=.\..\Build\ReleaseU
-TargetPath=\src\pythonex\com\TestSources\Build\ReleaseU\PyCOMTest.dll
-InputPath=\src\pythonex\com\TestSources\Build\ReleaseU\PyCOMTest.dll
+TargetPath=\src\pywin32\com\TestSources\Build\ReleaseU\PyCOMTest.dll
+InputPath=\src\pywin32\com\TestSources\Build\ReleaseU\PyCOMTest.dll
 SOURCE="$(InputPath)"
 
 "$(OutDir)\regsvr32.trg" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -167,8 +167,8 @@ LINK32=link.exe
 # ADD LINK32 /nologo /subsystem:windows /dll /debug /machine:I386
 # Begin Custom Build
 OutDir=.\..\Build\DebugU
-TargetPath=\src\pythonex\com\TestSources\Build\DebugU\PyCOMTest.dll
-InputPath=\src\pythonex\com\TestSources\Build\DebugU\PyCOMTest.dll
+TargetPath=\src\pywin32\com\TestSources\Build\DebugU\PyCOMTest.dll
+InputPath=\src\pywin32\com\TestSources\Build\DebugU\PyCOMTest.dll
 SOURCE="$(InputPath)"
 
 "$(OutDir)\regsvr32.trg" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
