@@ -516,12 +516,15 @@ class IndentSearcher:
 
     def readline(self):
         if self.finished:
-            return ""
-        i = self.i = self.i + 1
-        mark = `i` + ".0"
-        if self.text.compare(mark, ">=", "end"):
-            return ""
-        return self.text.get(mark, mark + " lineend+1c")
+            val = ""
+        else:
+            i = self.i = self.i + 1
+            mark = repr(i) + ".0"
+            if self.text.compare(mark, ">=", "end"):
+                val = ""
+            else:
+                val = self.text.get(mark, mark + " lineend+1c")
+        return val.encode(default_scintilla_encoding)
 
     def tokeneater(self, type, token, start, end, line,
                    INDENT=_tokenize.INDENT,

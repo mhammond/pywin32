@@ -42,15 +42,18 @@ def GetIDLEModule(module):
 # without indents (and even small files with indents :-) it was pretty slow!
 def fast_readline(self):
 	if self.finished:
-		return ""
-	if "_scint_lines" not in self.__dict__:
-		# XXX - note - assumes this is only called once the file is loaded!
-		self._scint_lines = self.text.edit.GetTextRange().split("\n")
-	sl = self._scint_lines
-	i = self.i = self.i + 1
-	if i >= len(sl):
-		return ""
-	return (sl[i]+"\n").encode(default_scintilla_encoding)
+		val = ""
+	else:
+		if "_scint_lines" not in self.__dict__:
+			# XXX - note - assumes this is only called once the file is loaded!
+			self._scint_lines = self.text.edit.GetTextRange().split("\n")
+		sl = self._scint_lines
+		i = self.i = self.i + 1
+		if i >= len(sl):
+			val = ""
+		else:
+			val = sl[i]+"\n"
+	return val.encode(default_scintilla_encoding)
 
 try:
 	GetIDLEModule("AutoIndent").IndentSearcher.readline = fast_readline
