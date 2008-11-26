@@ -33,7 +33,7 @@ class TestBitmap(unittest.TestCase):
         this_dir = os.path.dirname(__file__)
         self.bmp_name = os.path.join(os.path.abspath(this_dir),
                                      "..", "Demos", "images", "smiley.bmp")
-        self.failUnless(os.path.isfile(self.bmp_name))
+        self.failUnless(os.path.isfile(self.bmp_name), self.bmp_name)
         flags = win32con.LR_DEFAULTSIZE | win32con.LR_LOADFROMFILE
         self.bmp_handle = win32gui.LoadImage(0, self.bmp_name,
                                              win32con.IMAGE_BITMAP,
@@ -59,15 +59,20 @@ class TestStrings(unittest.TestCase):
     def tearDown(self):
         CloseClipboard()
     def test_unicode(self):
-        val = unicode("test-\xe0\xf2", "mbcs")
+        val = u"test-\a9har"
         SetClipboardData(win32con.CF_UNICODETEXT, val)
         self.failUnlessEqual(GetClipboardData(win32con.CF_UNICODETEXT), val)
     def test_unicode_text(self):
         val = "test-val"
         SetClipboardText(val)
-        self.failUnlessEqual(GetClipboardData(win32con.CF_TEXT), val)
+        # GetClipboardData doesn't to auto string conversions - so on py3k,
+        # CF_TEXT returns bytes.
+        expected = val.encode("ascii")
+        self.failUnlessEqual(GetClipboardData(win32con.CF_TEXT), expected)
+        SetClipboardText(val, win32con.CF_UNICODETEXT)
+        self.failUnlessEqual(GetClipboardData(win32con.CF_UNICODETEXT), val)
     def test_string(self):
-        val = "test"
+        val = "test".encode("ascii")
         SetClipboardData(win32con.CF_TEXT, val)
         self.failUnlessEqual(GetClipboardData(win32con.CF_TEXT), val)
 
@@ -77,18 +82,20 @@ class TestGlobalMemory(unittest.TestCase):
     def tearDown(self):
         CloseClipboard()
     def test_mem(self):
-        val = "test"
+        val = "test".encode("ascii")
+        expected = "test\0".encode("ascii")
         SetClipboardData(win32con.CF_TEXT, val)
         # Get the raw data - this will include the '\0'
         raw_data = GetGlobalMemory(GetClipboardDataHandle(win32con.CF_TEXT))
-        self.failUnlessEqual(val + '\0', raw_data)
+        self.failUnlessEqual(expected, raw_data)
     def test_bad_mem(self):
-        if sys.getwindowsversion()[0] > 5:
-            print "skipping test_bad_mem - fails on Vista (x64 at least - not sure about x32...)"
-            return
         self.failUnlessRaises(pywintypes.error, GetGlobalMemory, 0)
-        self.failUnlessRaises(pywintypes.error, GetGlobalMemory, 1)
         self.failUnlessRaises(pywintypes.error, GetGlobalMemory, -1)
+        if sys.getwindowsversion()[0] <= 5:
+            # For some reason, the value '1' dies from a 64bit process, but
+            # "works" (ie, gives the correct exception) from a 32bit process.
+            # just silently skip this value on Vista.
+            self.failUnlessRaises(pywintypes.error, GetGlobalMemory, 1)
     def test_custom_mem(self):
         test_data = "hello\x00\xff"
         test_buffer = array.array("c", test_data)
