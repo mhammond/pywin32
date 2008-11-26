@@ -82,10 +82,7 @@ def CheckoutFile(fileName):
 		item.Checkout(None, fileName)
 		ok = 1
 	except pythoncom.com_error, exc:
-		msg = exc.strerror
-		if exc:
-			msg = exc[2]
-		win32ui.MessageBox(msg, "Error checking out file")
+		win32ui.MessageBox(exc.strerror, "Error checking out file")
 	except:
 		typ, val, tb = sys.exc_info()
 		traceback.print_exc()

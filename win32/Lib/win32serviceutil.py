@@ -9,7 +9,7 @@
 import win32service, win32api, win32con, winerror
 import sys, string, pywintypes, os
 
-error = "Python Service Utility Error"
+error = RuntimeError
 
 def LocatePythonServiceExe(exeName = None):
     if not exeName and hasattr(sys, "frozen"):
@@ -31,9 +31,9 @@ def LocatePythonServiceExe(exeName = None):
                                          "Software\\Python\\%s\\%s" % (baseName, sys.winver))
         if os.path.isfile(exeName):
             return exeName
-        raise RuntimeError, "The executable '%s' is registered as the Python " \
-                            "service exe, but it does not exist as specified" \
-                            % exeName
+        raise RuntimeError("The executable '%s' is registered as the Python " \
+                           "service exe, but it does not exist as specified" \
+                           % exeName)
     except win32api.error:
         # OK - not there - lets go a-searchin'
         for path in [sys.prefix] + sys.path:
@@ -45,7 +45,7 @@ def LocatePythonServiceExe(exeName = None):
             return win32api.SearchPath(None, exeName)[0]
         except win32api.error:
             msg = "%s is not correctly registered\nPlease locate and run %s, and it will self-register\nThen run this service registration process again." % (exeName, exeName)
-            raise error, msg
+            raise error(msg)
 
 def _GetServiceShortName(longName):
     # looks up a services name
@@ -104,7 +104,7 @@ def InstallPerfmonForService(serviceName, iniName, dllName = None):
             # Frozen app? - anyway, can't find it!
             pass
     if not dllName:
-        raise ValueError, "The name of the performance DLL must be available"
+        raise ValueError("The name of the performance DLL must be available")
     dllName = win32api.GetFullPathName(dllName)
     # Now setup all the required "Performance" entries.
     hkey = win32api.RegOpenKey(win32con.HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Services\\%s" % (serviceName), 0, win32con.KEY_ALL_ACCESS)
@@ -348,21 +348,21 @@ def WaitForServiceStatus(serviceName, status, waitSecs, machine=None):
             break
         win32api.Sleep(250)
     else:
-        raise pywintypes.error, (winerror.ERROR_SERVICE_REQUEST_TIMEOUT, "QueryServiceStatus", win32api.FormatMessage(winerror.ERROR_SERVICE_REQUEST_TIMEOUT)[:-2])
+        raise pywintypes.error(winerror.ERROR_SERVICE_REQUEST_TIMEOUT, "QueryServiceStatus", win32api.FormatMessage(winerror.ERROR_SERVICE_REQUEST_TIMEOUT)[:-2])
     
 def __StopServiceWithTimeout(hs, waitSecs = 30):
     try:
         status = win32service.ControlService(hs, win32service.SERVICE_CONTROL_STOP)
     except pywintypes.error, (hr, name, msg):
         if hr!=winerror.ERROR_SERVICE_NOT_ACTIVE:
-            raise win32service.error, (hr, name, msg)
+            raise win32service.error(hr, name, msg)
     for i in range(waitSecs):
         status = win32service.QueryServiceStatus(hs)
         if status[1] == win32service.SERVICE_STOPPED:
             break
         win32api.Sleep(1000)
     else:
-        raise pywintypes.error, (winerror.ERROR_SERVICE_REQUEST_TIMEOUT, "ControlService", win32api.FormatMessage(winerror.ERROR_SERVICE_REQUEST_TIMEOUT)[:-2])
+        raise pywintypes.error(winerror.ERROR_SERVICE_REQUEST_TIMEOUT, "ControlService", win32api.FormatMessage(winerror.ERROR_SERVICE_REQUEST_TIMEOUT)[:-2])
 
 
 def StopServiceWithDeps(serviceName, machine = None, waitSecs = 30):
@@ -409,7 +409,7 @@ def RestartService(serviceName, args = None, waitSeconds = 30, machine = None):
     except pywintypes.error, (hr, name, msg):
         # Allow only "service not running" error
         if hr!=winerror.ERROR_SERVICE_NOT_ACTIVE:
-            raise win32service.error, (hr, name, msg)
+            raise win32service.error(hr, name, msg)
     # Give it a few goes, as the service may take time to stop
     for i in range(waitSeconds):
         try:
@@ -466,7 +466,7 @@ def GetServiceClassString(cls, argv = None):
             # Get the long name
             fname = os.path.join(path, win32api.FindFiles(fname)[0][8])
         except win32api.error:
-            raise error, "Could not resolve the path name '%s' to a full path" % (argv[0])
+            raise error("Could not resolve the path name '%s' to a full path" % (argv[0]))
         modName = os.path.splitext(fname)[0]
     return modName + "." + cls.__name__
 

@@ -10,7 +10,8 @@
 NeedUnicodeConversions = False
 
 import pythoncom
-import dynamic, gencache
+import dynamic
+import gencache
 import sys
 import pywintypes
 
@@ -257,11 +258,16 @@ def DispatchWithEvents(clsid, user_event_class):
   # If the clsid was an object, get the clsid
   clsid = disp_class.CLSID
   # Create a new class that derives from 3 classes - the dispatch class, the event sink class and the user class.
-  import new
+  # XXX - we are still "classic style" classes in py2x, so we need can't yet
+  # use 'type()' everywhere - revisit soon, as py2x will move to new-style too...
+  try:
+    from types import ClassType as new_type
+  except ImportError:
+    new_type = type # py3k
   events_class = getevents(clsid)
   if events_class is None:
     raise ValueError("This COM object does not support events.")
-  result_class = new.classobj("COMEventClass", (disp_class, events_class, user_event_class), {"__setattr__" : _event_setattr_})
+  result_class = new_type("COMEventClass", (disp_class, events_class, user_event_class), {"__setattr__" : _event_setattr_})
   instance = result_class(disp._oleobj_) # This only calls the first base class __init__.
   events_class.__init__(instance, instance)
   if hasattr(user_event_class, "__init__"):

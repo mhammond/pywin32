@@ -316,7 +316,7 @@ def install():
     # and now we can get the system directory:
     files = glob.glob(os.path.join(lib_dir, "pywin32_system32\\*.*"))
     if not files:
-        raise RuntimeError, "No system files to copy!!"
+        raise RuntimeError("No system files to copy!!")
     # Try the system32 directory first - if that fails due to "access denied",
     # it implies a non-admin user, and we use sys.prefix
     for dest_dir in [get_system_dir(), sys.prefix]:
@@ -353,12 +353,12 @@ def install():
                           "reinstall this software as an Administrator" \
                           % dst
                     print msg
-                    raise RuntimeError, msg
+                    raise RuntimeError(msg)
                 continue
             raise
     else:
-        raise RuntimeError, \
-              "You don't have enough permissions to install the system files"
+        raise RuntimeError(
+              "You don't have enough permissions to install the system files")
 
     # Pythonwin 'compiles' config files - record them for uninstall.
     pywin_dir = os.path.join(lib_dir, "Pythonwin", "pywin")

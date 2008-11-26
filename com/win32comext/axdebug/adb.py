@@ -203,9 +203,9 @@ class Adb(bdb.Bdb,gateways.RemoteDebugApplicationEvents):
 #               traceenter("user_return",_dumpf(frame),return_value)
         bdb.Bdb.user_return(self, frame, return_value)
 
-    def user_exception(self, frame, (exc_type, exc_value, exc_traceback)):
+    def user_exception(self, frame, exc_info):
 #               traceenter("user_exception")
-        bdb.Bdb.user_exception(self, frame, (exc_type, exc_value, exc_traceback))
+        bdb.Bdb.user_exception(self, frame, exc_info)
 
 
     def _HandleBreakPoint(self, frame, tb, reason):

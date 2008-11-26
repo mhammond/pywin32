@@ -16,7 +16,7 @@ useDispatcher = None
 ##  import win32com.server.dispatcher
 ##  useDispatcher = win32com.server.dispatcher.DefaultDebugDispatcher
 
-error = "VB Test Error"
+error = RuntimeError
 
 # Set up a COM object that VB will do some callbacks on.  This is used
 # to test byref params for gateway IDispatch.
@@ -60,25 +60,25 @@ class TestObject:
 def TestVB( vbtest, bUseGenerated ):
     vbtest.LongProperty = -1
     if vbtest.LongProperty != -1:
-        raise error, "Could not set the long property correctly."
+        raise error("Could not set the long property correctly.")
     vbtest.IntProperty = 10
     if vbtest.IntProperty != 10:
-        raise error, "Could not set the integer property correctly."
+        raise error("Could not set the integer property correctly.")
     vbtest.VariantProperty = 10
     if vbtest.VariantProperty != 10:
-        raise error, "Could not set the variant integer property correctly."
+        raise error("Could not set the variant integer property correctly.")
     vbtest.VariantProperty = buffer('raw\0data')
     if vbtest.VariantProperty != buffer('raw\0data'):
-        raise error, "Could not set the variant buffer property correctly."
+        raise error("Could not set the variant buffer property correctly.")
     vbtest.StringProperty = "Hello from Python"
     if vbtest.StringProperty != "Hello from Python":
-        raise error, "Could not set the string property correctly."
+        raise error("Could not set the string property correctly.")
     vbtest.VariantProperty = "Hello from Python"
     if vbtest.VariantProperty != "Hello from Python":
-        raise error, "Could not set the variant string property correctly."
+        raise error("Could not set the variant string property correctly.")
     vbtest.VariantProperty = (1.0, 2.0, 3.0)
     if vbtest.VariantProperty != (1.0, 2.0, 3.0):
-        raise error, "Could not set the variant property to an array of floats correctly - '%s'." % (vbtest.VariantProperty,)
+        raise error("Could not set the variant property to an array of floats correctly - '%s'." % (vbtest.VariantProperty,))
 
     TestArrays(vbtest, bUseGenerated)
     TestStructs(vbtest)
@@ -95,7 +95,7 @@ def TestVB( vbtest, bUseGenerated ):
         # A property that only has PUTREF defined.
         vbtest.VariantPutref = vbtest
         if vbtest.VariantPutref._oleobj_!= vbtest._oleobj_:
-            raise error, "Could not set the VariantPutref property correctly."
+            raise error("Could not set the VariantPutref property correctly.")
         # Cant test further types for this VariantPutref, as only
         # COM objects can be stored ByRef.
 
@@ -104,24 +104,24 @@ def TestVB( vbtest, bUseGenerated ):
         # could later build support in for.
 #               vbtest.CollectionProperty = NewCollection((1,2,"3", "Four"))
 #               if vbtest.CollectionProperty != (1,2,"3", "Four"):
-#                       raise error, "Could not set the Collection property correctly - got back " + str(vbtest.CollectionProperty)
+#                       raise error("Could not set the Collection property correctly - got back " + str(vbtest.CollectionProperty))
 
         # These are sub's that have a single byref param
         # Result should be just the byref.
         if vbtest.IncrementIntegerParam(1) != 2:
-            raise error, "Could not pass an integer byref"
+            raise error("Could not pass an integer byref")
 
 # Sigh - we cant have *both* "ommited byref" and optional args
 # We really have to opt that args nominated as optional work as optional
 # rather than simply all byrefs working as optional.
 #               if vbtest.IncrementIntegerParam() != 1:
-#                       raise error, "Could not pass an omitted integer byref"
+#                       raise error("Could not pass an omitted integer byref")
 
         if vbtest.IncrementVariantParam(1) != 2:
-            raise error, "Could not pass an int VARIANT byref:"+str(vbtest.IncrementVariantParam(1))
+            raise error("Could not pass an int VARIANT byref:"+str(vbtest.IncrementVariantParam(1)))
 
         if vbtest.IncrementVariantParam(1.5) != 2.5:
-            raise error, "Could not pass a float VARIANT byref"
+            raise error("Could not pass a float VARIANT byref")
 
         # Can't test IncrementVariantParam with the param omitted as it
         # it not declared in the VB code as "Optional"
@@ -130,7 +130,7 @@ def TestVB( vbtest, bUseGenerated ):
 
     ret = vbtest.PassIntByVal(1)
     if ret != 2:
-        raise error, "Could not increment the integer - "+str(ret)
+        raise error("Could not increment the integer - "+str(ret))
 
     TestVBInterface(vbtest)
     # Python doesnt support byrefs without some sort of generated support.
@@ -139,12 +139,12 @@ def TestVB( vbtest, bUseGenerated ):
         # Hence 2 return values - function and byref.
         ret = vbtest.PassIntByRef(1)
         if ret != (1,2):
-            raise error, "Could not increment the integer - "+str(ret)
+            raise error("Could not increment the integer - "+str(ret))
         # Check you can leave a byref arg blank.
 # see above
 #               ret = vbtest.PassIntByRef()
 #               if ret != (0,1):
-#                       raise error, "Could not increment the integer with default arg- "+str(ret)
+#                       raise error("Could not increment the integer with default arg- "+str(ret))
 
 def _DoTestCollection(vbtest, col_name, expected):
     # It sucks that some objects allow "Count()", but others "Count"
@@ -158,38 +158,38 @@ def _DoTestCollection(vbtest, col_name, expected):
     for item in c:
         check.append(item)
     if check != list(expected):
-        raise error, "Collection %s didn't have %r (had %r)" % (col_name, expected, check)
+        raise error("Collection %s didn't have %r (had %r)" % (col_name, expected, check))
     # Just looping over the collection again works (ie, is restartable)
     check = []
     for item in c:
         check.append(item)
     if check != list(expected):
-        raise error, "Collection 2nd time around %s didn't have %r (had %r)" % (col_name, expected, check)
+        raise error("Collection 2nd time around %s didn't have %r (had %r)" % (col_name, expected, check))
     # Check we can get it via iter()
     i = iter(getattr(vbtest, col_name))
     check = []
     for item in i:
         check.append(item)
     if check != list(expected):
-        raise error, "Collection iterator %s didn't have %r 2nd time around (had %r)" % (col_name, expected, check)
+        raise error("Collection iterator %s didn't have %r 2nd time around (had %r)" % (col_name, expected, check))
     # but an iterator is not restartable
     check = []
     for item in i:
         check.append(item)
     if check != []:
-        raise error, "2nd time around Collection iterator %s wasn't empty (had %r)" % (col_name, check)
+        raise error("2nd time around Collection iterator %s wasn't empty (had %r)" % (col_name, check))
 
     # Check len()==Count()
     c = getattr(vbtest, col_name)
     if len(c) != _getcount(c):
-        raise error, "Collection %s __len__(%r) wasn't==Count(%r)" % (col_name, len(c), _getcount(c))
+        raise error("Collection %s __len__(%r) wasn't==Count(%r)" % (col_name, len(c), _getcount(c)))
     # Check we can do it with zero based indexing.
     c = getattr(vbtest, col_name)
     check = []
     for i in range(_getcount(c)):
         check.append(c[i])
     if check != list(expected):
-        raise error, "Collection %s didn't have %r (had %r)" % (col_name, expected, check)
+        raise error("Collection %s didn't have %r (had %r)" % (col_name, expected, check))
 
     # Check we can do it with our old "Skip/Next" methods.
     c = getattr(vbtest, col_name)._NewEnum()
@@ -200,13 +200,13 @@ def _DoTestCollection(vbtest, col_name, expected):
             break
         check.append(n[0])
     if check != list(expected):
-        raise error, "Collection %s didn't have %r (had %r)" % (col_name, expected, check)
+        raise error("Collection %s didn't have %r (had %r)" % (col_name, expected, check))
 
 def TestCollections(vbtest):
     _DoTestCollection(vbtest, "CollectionProperty", [1,"Two", "3"])
     # zero based indexing works for simple VB collections.
     if vbtest.CollectionProperty[0] != 1:
-        raise error, "The CollectionProperty[0] element was not the default value"
+        raise error("The CollectionProperty[0] element was not the default value")
 
     _DoTestCollection(vbtest, "EnumerableCollectionProperty", [])
     vbtest.EnumerableCollectionProperty.Add(1)
@@ -218,14 +218,14 @@ def _DoTestArray(vbtest, data, expected_exception = None):
     try:
         vbtest.ArrayProperty = data
         if expected_exception is not None:
-            raise error, "Expected '%s'" % expected_exception
+            raise error("Expected '%s'" % expected_exception)
     except expected_exception:
         return
     got = vbtest.ArrayProperty
     if got != data:
-        raise error, \
-              "Could not set the array data correctly - got %r, expected %r" \
-              % (got, data)
+        raise error(
+              "Could not set the array data correctly - got %r, expected %r"
+              % (got, data))
 
 def TestArrays(vbtest, bUseGenerated):
     # Try and use a safe array (note that the VB code has this declared as a VARIANT
@@ -296,9 +296,9 @@ def TestArrays(vbtest, bUseGenerated):
             resultData = map(str, resultData)
             byRefParam = map(str, byRefParam)
         if testData != list(resultData):
-            raise error, "The safe array data was not what we expected - got " + str(resultData)
+            raise error("The safe array data was not what we expected - got " + str(resultData))
         if testData != list(byRefParam):
-            raise error, "The safe array data was not what we expected - got " + str(byRefParam)
+            raise error("The safe array data was not what we expected - got " + str(byRefParam))
         testData = [1.0, 2.0, 3.0]
         resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
         assert testData == list(byRefParam)
@@ -318,48 +318,48 @@ def TestArrays(vbtest, bUseGenerated):
 def TestStructs(vbtest):
     try:
         vbtest.IntProperty = "One"
-        raise error, "Should have failed by now"
+        raise error("Should have failed by now")
     except pythoncom.com_error, (hr, desc, exc, argErr):
         if hr != winerror.DISP_E_TYPEMISMATCH:
-            raise error, "Expected DISP_E_TYPEMISMATCH"
+            raise error("Expected DISP_E_TYPEMISMATCH")
 
     s = vbtest.StructProperty
     if s.int_val != 99 or str(s.str_val) != "hello":
-        raise error, "The struct value was not correct"
+        raise error("The struct value was not correct")
     s.str_val = "Hi from Python"
     s.int_val = 11
     if s.int_val != 11 or str(s.str_val) != "Hi from Python":
-        raise error, "The struct value didnt persist!"
+        raise error("The struct value didnt persist!")
 
     if s.sub_val.int_val != 66 or str(s.sub_val.str_val) != "sub hello":
-        raise error, "The sub-struct value was not correct"
+        raise error("The sub-struct value was not correct")
     sub = s.sub_val
     sub.int_val = 22
     if sub.int_val != 22:
         print sub.int_val
-        raise error, "The sub-struct value didnt persist!"
+        raise error("The sub-struct value didnt persist!")
 
     if s.sub_val.int_val != 22:
         print s.sub_val.int_val
-        raise error, "The sub-struct value (re-fetched) didnt persist!"
+        raise error("The sub-struct value (re-fetched) didnt persist!")
 
     if s.sub_val.array_val[0].int_val != 0 or str(s.sub_val.array_val[0].str_val) != "zero":
         print s.sub_val.array_val[0].int_val
-        raise error, "The array element wasnt correct"
+        raise error("The array element wasnt correct")
     s.sub_val.array_val[0].int_val = 99
     s.sub_val.array_val[1].int_val = 66
     if s.sub_val.array_val[0].int_val != 99 or \
        s.sub_val.array_val[1].int_val != 66:
         print s.sub_val.array_val[0].int_val
-        raise error, "The array element didnt persist."
+        raise error("The array element didnt persist.")
     # Now pass the struct back to VB
     vbtest.StructProperty = s
     # And get it back again
     s = vbtest.StructProperty
     if s.int_val != 11 or str(s.str_val) != "Hi from Python":
-        raise error, "After sending to VB, the struct value didnt persist!"
+        raise error("After sending to VB, the struct value didnt persist!")
     if s.sub_val.array_val[0].int_val != 99:
-        raise error, "After sending to VB, the struct array value didnt persist!"
+        raise error("After sending to VB, the struct array value didnt persist!")
 
     # Now do some object equality tests.
     assert s==s
@@ -397,7 +397,7 @@ def TestStructs(vbtest):
     # Some error type checks.
     try:
         s.bad_attribute
-        raise RuntimeError, "Could get a bad attribute"
+        raise RuntimeError("Could get a bad attribute")
     except AttributeError:
         pass
     m = s.__members__
@@ -409,10 +409,10 @@ def TestStructs(vbtest):
 def TestVBInterface(ob):
     t = ob.GetInterfaceTester(2)
     if t.getn() != 2:
-        raise error, "Initial value wrong"
+        raise error("Initial value wrong")
     t.setn(3)
     if t.getn() != 3:
-        raise error, "New value wrong"
+        raise error("New value wrong")
 
 def DoTestAll():
     o = win32com.client.Dispatch("PyCOMVBTest.Tester")
@@ -427,7 +427,7 @@ def TestAll():
     win32com.client.gencache.EnsureDispatch("PyCOMVBTest.Tester")
 
     if not __debug__:
-        raise RuntimeError, "This must be run in debug mode - we use assert!"
+        raise RuntimeError("This must be run in debug mode - we use assert!")
     try:
         DoTestAll()
         print "All tests appear to have worked!"

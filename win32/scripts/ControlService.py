@@ -162,7 +162,7 @@ class ServiceDlg(dialog.Dialog):
 		self.OnListEvent(self.IDC_LIST, win32con.LBN_SELCHANGE)
 		self.listCtrl.SetRedraw(1)
 
- 	def OnListEvent(self, id, code):
+	def OnListEvent(self, id, code):
 		if code == win32con.LBN_SELCHANGE or code == win32con.LBN_SELCANCEL:
 			pos = self.listCtrl.GetCurSel()
 			if pos >= 0:
@@ -183,7 +183,7 @@ class ServiceDlg(dialog.Dialog):
 		pos = self.listCtrl.GetItemData(pos)
 		return self.data[pos][-2:]
 
- 	def OnStartCmd(self, id, code):
+	def OnStartCmd(self, id, code):
 		service = self.GetSelService()
 		if not service:
 			return
@@ -192,7 +192,7 @@ class ServiceDlg(dialog.Dialog):
 		win32service.CloseServiceHandle(s)
 		self.ReloadData()
 
- 	def OnStopCmd(self, id, code):
+	def OnStopCmd(self, id, code):
 		service = self.GetSelService()
 		if not service:
 			return
@@ -201,7 +201,7 @@ class ServiceDlg(dialog.Dialog):
 		win32service.CloseServiceHandle(s)
 		self.ReloadData()
 
- 	def OnPauseCmd(self, id, code):
+	def OnPauseCmd(self, id, code):
 		service = self.GetSelService()
 		if not service:
 			return
@@ -210,7 +210,7 @@ class ServiceDlg(dialog.Dialog):
 		win32service.CloseServiceHandle(s)
 		self.ReloadData()
 
- 	def OnContinueCmd(self, id, code):
+	def OnContinueCmd(self, id, code):
 		service = self.GetSelService()
 		if not service:
 			return
@@ -219,7 +219,7 @@ class ServiceDlg(dialog.Dialog):
 		win32service.CloseServiceHandle(s)
 		self.ReloadData()
 
- 	def OnStartupCmd(self, id, code):
+	def OnStartupCmd(self, id, code):
 		service = self.GetSelService()
 		if not service:
 			return

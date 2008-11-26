@@ -111,4 +111,4 @@ class Dispatcher(win32com.server.policy.DispatcherWin32trace):
             typ, val, tb = sys.exc_info()
             import traceback
             traceback.print_exception(typ, val, tb)
-            raise typ, val, tb
+            raise

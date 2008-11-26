@@ -43,7 +43,7 @@ class WorkerThread(threading.Thread):
             # Let the parent extension handle the command.
             dispatcher = self.extension.dispatch_map.get(key)
             if dispatcher is None:
-                raise RuntimeError, "Bad request '%s'" % (key,)
+                raise RuntimeError("Bad request '%s'" % (key,))
             
             dispatcher(errCode, bytes, key, overlapped)
 
@@ -128,7 +128,7 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
         
         There is no default implementation - sub-classes must implement this.
         """
-        raise NotImplementedError, "sub-classes should override Dispatch"
+        raise NotImplementedError("sub-classes should override Dispatch")
 
     def HandleDispatchError(self, ecb):
         """Handles errors in the Dispatch method.

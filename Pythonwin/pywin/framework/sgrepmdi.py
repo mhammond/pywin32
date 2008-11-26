@@ -46,19 +46,19 @@ class dirpath:
 		for d in dp:
 			if os.path.isdir(d):
 				d = d.lower()
-				if not dirs.has_key(d):
+				if d not in dirs:
 					dirs[d] = None
 					if recurse:
 						subdirs = getsubdirs(d)
 						for sd in subdirs:
 							sd = sd.lower()
-							if not dirs.has_key(sd):
+							if d not in dirs:
 								dirs[sd] = None
 			elif os.path.isfile(d):
 				pass
 			else:
 				x = None
-				if os.environ.has_key(d):
+				if d in os.environ:
 					x = dirpath(os.environ[d])
 				elif d[:5] == 'HKEY_':
 					keystr = d.split('\\')
@@ -79,13 +79,13 @@ class dirpath:
 					win32ui.MessageBox("Directory '%s' not found" % d)
 				if x:
 					for xd in x:
-						if not dirs.has_key(xd):
+						if xd not in dirs:
 							dirs[xd] = None
 							if recurse:
 								subdirs = getsubdirs(xd)
 								for sd in subdirs:
 									sd = sd.lower()
-									if not dirs.has_key(sd):
+									if sd not in dirs:
 										dirs[sd] = None
 		self.dirs = []
 		for d in dirs.keys():

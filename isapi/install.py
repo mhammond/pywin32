@@ -150,8 +150,8 @@ def FindWebServer(options, server_desc):
                 server = sub.AdsPath
                 break
         else:
-            raise ItemNotFound, \
-                  "No web sites match the description '%s'" % (server_desc,)
+            raise ItemNotFound(
+                  "No web sites match the description '%s'" % (server_desc,))
     # Check it is good.
     try:
         GetObject(server)
@@ -159,14 +159,14 @@ def FindWebServer(options, server_desc):
         hr, msg, exc, arg_err = details
         if exc and exc[2]:
             msg = exc[2]
-        raise ItemNotFound, \
-              "WebServer %s: %s" % (server, msg)
+        raise ItemNotFound(
+              "WebServer %s: %s" % (server, msg))
     return server
 
 def CreateDirectory(params, options):
     _CallHook(params, "PreInstall", options)
     if not params.Name:
-        raise ConfigurationError, "No Name param"
+        raise ConfigurationError("No Name param")
     slash = params.Name.rfind("/")
     if slash >= 0:
         parent = params.Name[:slash]
@@ -237,8 +237,8 @@ def CreateDirectory(params, options):
             if item not in newDir.ScriptMaps:
                 newDir.ScriptMaps = (item,) + newDir.ScriptMaps
     else:
-        raise ConfigurationError, \
-              "Unknown ScriptMapUpdate option '%s'" % (params.ScriptMapUpdate,)
+        raise ConfigurationError(
+              "Unknown ScriptMapUpdate option '%s'" % (params.ScriptMapUpdate,))
     newDir.SetInfo()
     _CallHook(params, "PostInstall", options, newDir)
     log(1, "Configured Virtual Directory: %s" % (params.Name,))
@@ -369,8 +369,8 @@ def CheckLoaderModule(dll_name):
     template = os.path.join(this_dir,
                             "PyISAPI_loader" + suffix + ".dll")
     if not os.path.isfile(template):
-        raise ConfigurationError, \
-              "Template loader '%s' does not exist" % (template,)
+        raise ConfigurationError(
+              "Template loader '%s' does not exist" % (template,))
     # We can't do a simple "is newer" check, as the DLL is specific to the
     # Python version.  So we check the date-time and size are identical,
     # and skip the copy in that case.
@@ -449,7 +449,7 @@ def Uninstall(params, options):
 def _PatchParamsModule(params, dll_name, file_must_exist = True):
     if file_must_exist:
         if not os.path.isfile(dll_name):
-            raise ConfigurationError, "%s does not exist" % (dll_name,)
+            raise ConfigurationError("%s does not exist" % (dll_name,))
 
     # Patch up all references to the DLL.
     for f in params.Filters:
@@ -487,7 +487,7 @@ def InstallModule(conf_module_name, params, options):
     if not hasattr(sys, "frozen"):
         conf_module_name = os.path.abspath(conf_module_name)
         if not os.path.isfile(conf_module_name):
-            raise ConfigurationError, "%s does not exist" % (conf_module_name,)
+            raise ConfigurationError("%s does not exist" % (conf_module_name,))
 
     loader_dll = GetLoaderModuleName(conf_module_name)
     _PatchParamsModule(params, loader_dll)

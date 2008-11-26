@@ -60,9 +60,9 @@ PyObject *PyIShellLink::GetPath(PyObject *self, PyObject *args)
 		free(pszFile);
 		return OleSetOleError(hr);
 	}
-	PyObject *obFD = PyObject_FromWIN32_FIND_DATAA(&fd);
-	PyObject *obFile = PyWinObject_FromTCHAR(pszFile);
-	PyObject *ret = Py_BuildValue("NN", obFile, obFD);
+	PyObject *ret = Py_BuildValue("NN",
+		PyWinObject_FromTCHAR(pszFile),
+		PyObject_FromWIN32_FIND_DATA(&fd));
 	free(pszFile);
 	return ret;
 }

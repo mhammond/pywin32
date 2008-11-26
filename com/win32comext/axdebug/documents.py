@@ -14,7 +14,7 @@ import win32api, winerror, os, string, sys
 #       pass
 
 def GetGoodFileName(fname):
-    if fname[0] <> "<":
+    if fname[0] != "<":
         return win32api.GetFullPathName(fname)
     return fname
 

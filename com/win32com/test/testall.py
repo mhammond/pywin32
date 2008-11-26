@@ -1,9 +1,9 @@
 import sys, os, string, re
 import pythoncom
 import win32com.client
-from win32com.test.util import (CheckClean, TestCase,
-                                CapturingFunctionTestCase, ShellTestCase,
-                                TestLoader, TestRunner, RegisterPythonServer)
+from win32com.test.util import CheckClean, TestCase,  \
+            CapturingFunctionTestCase, ShellTestCase, \
+            TestLoader, TestRunner, RegisterPythonServer
 import traceback
 import getopt
 

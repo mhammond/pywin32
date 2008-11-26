@@ -125,12 +125,12 @@ class CScintillaDocument(ParentScintillaDocument):
 	def _ApplyToViews(self, funcName, *args):
 		for view in self.GetAllViews():
 			func = getattr(view, funcName)
-			apply(func, args)
+			func(*args)
 	def _ApplyOptionalToViews(self, funcName, *args):
 		for view in self.GetAllViews():
 			func = getattr(view, funcName, None)
 			if func is not None:
-				apply(func, args)
+				func(*args)
 	def GetEditorView(self):
 		# Find the first frame with a view,
 		# then ask it to give the editor view
@@ -150,7 +150,7 @@ class ViewNotifyDelegate:
 		(hwndFrom, idFrom, code) = std
 		for v in self.doc.GetAllViews():
 			if v.GetSafeHwnd() == hwndFrom:
-				return apply(getattr(v, self.name), (std, extra))
+				return getattr(v, self.name)(*(std, extra))
 
 # Delegate to the document, but only from a single view (as each view sends it seperately)
 class DocumentNotifyDelegate:
@@ -160,4 +160,4 @@ class DocumentNotifyDelegate:
 	def __call__(self, std, extra):
 		(hwndFrom, idFrom, code) = std
 		if hwndFrom == self.doc.GetEditorView().GetSafeHwnd():
-				apply(self.delegate, (std, extra))
+				self.delegate(*(std, extra))

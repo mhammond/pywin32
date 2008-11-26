@@ -37,7 +37,7 @@ class ScriptDispatch:
 			try:
 				func = getattr(self.scriptNamespace, name)
 				if not _is_callable(func):
-					raise AttributeError, name # Not a function.
+					raise AttributeError(name) # Not a function.
 				realArgs = []
 				for arg in args:
 					if type(arg)==PyIDispatchType:
@@ -58,7 +58,7 @@ class ScriptDispatch:
 			try:
 				ret =  getattr(self.scriptNamespace, name)
 				if _is_callable(ret):
-					raise AttributeError, name # Not a property.
+					raise AttributeError(name) # Not a property.
 			except AttributeError:
 				raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
 			except COMException, instance:

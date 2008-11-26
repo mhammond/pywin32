@@ -33,7 +33,7 @@ class Stdin:
         """Forward most functions to the real sys.stdin for absolute realism.
         """
         if self.real_file is None:
-            raise AttributeError, name
+            raise AttributeError(name)
         return getattr(self.real_file, name)
     
     def isatty(self):

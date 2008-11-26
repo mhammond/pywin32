@@ -53,10 +53,10 @@ class AXScriptAttribute:
 		self.__dict__['_scriptEngine_'] = engine
 	def __getattr__(self, attr):
 		if attr[1]=="_" and attr[:-1]=="_":
-			raise AttributeError, attr
+			raise AttributeError(attr)
 		rc = self._FindAttribute_(attr)
 		if rc is None:
-			raise AttributeError, attr
+			raise AttributeError(attr)
 		return rc
 	def _Close_(self):
 		self.__dict__['_scriptEngine_'] = None
@@ -72,7 +72,7 @@ class AXScriptAttribute:
 				return self._DoFindAttribute_(item, attr)
 			except AttributeError:
 				pass
-		raise AttributeError, attr
+		raise AttributeError(attr)
 
 	def _FindAttribute_(self, attr):
 		for item in self._scriptEngine_.subItems.values():
@@ -83,7 +83,7 @@ class AXScriptAttribute:
 		# All else fails, see if it is a global
 		# (mainly b/w compat)
 		return getattr(self._scriptEngine_.globalNameSpaceModule, attr)
-#		raise AttributeError, attr
+#		raise AttributeError(attr)
 
 class NamedScriptAttribute:
 	"An explicitely named object in an objects namespace"
@@ -103,7 +103,7 @@ class NamedScriptAttribute:
 			# Otherwise see if the dispatch can give it to us
 			if self._scriptItem_.dispatchContainer:
 				return getattr(self._scriptItem_.dispatchContainer,attr)
-		raise AttributeError, attr
+		raise AttributeError(attr)
 	def __setattr__(self, attr, value):
 		# XXX - todo - if a known item, then should call its default
 		# dispatch method.
@@ -113,7 +113,7 @@ class NamedScriptAttribute:
 				return setattr(self._scriptItem_.dispatchContainer,attr, value)
 			except AttributeError:
 				pass
-		raise AttributeError, attr
+		raise AttributeError(attr)
 	def _Close_(self):
 		self.__dict__['_scriptItem_'] = None
 

@@ -61,7 +61,7 @@ class Dialog(window.Wnd):
 		self._obj_.datalist.append(args)
 	# Make a dialog object look like a dictionary for the DDX support
 	def __nonzero__(self):
-		return 1
+		return True
 	def __len__(self): return len(self.data)
 	def __getitem__(self, key): return self.data[key]
 	def __setitem__(self, key, item): self._obj_.data[key] = item# self.UpdateData(0)

@@ -11,8 +11,5 @@ class Exception:
 	def __init__(self, activeScriptError):
 		self.activeScriptError = activeScriptError
 	def __getattr__(self, attr):
-		try:
-			return getattr(self.activeScriptError, attr)
-		except AttributeError:
-			raise AttributeError, attr
+		return getattr(self.activeScriptError, attr)
 

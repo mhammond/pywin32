@@ -233,7 +233,7 @@ class TimeZoneInfo(datetime.tzinfo):
 		try:
 			key = _winreg.OpenKeyEx(_winreg.HKEY_LOCAL_MACHINE, tzRegKeyPath)
 		except:
-			raise ValueError, 'Timezone Name %s not found.' % timeZoneName
+			raise ValueError('Timezone Name %s not found.' % timeZoneName)
 		return key
 
 	def __getinitargs__(self):
@@ -575,7 +575,7 @@ class RangeMap(dict):
 		else:
 			key = self._find_first_match_(sortedKeys, item)
 			result = dict.__getitem__(self, key)
-			if isinstance(result, RangeValueUndefined): raise KeyError, key
+			if isinstance(result, RangeValueUndefined): raise KeyError(key)
 		return result
 
 	def _find_first_match_(self, keys, item):

@@ -56,9 +56,11 @@ class HierList(object.Object):
 		self.filledItemHandlesMap = {}
 		self.bitmapMask = bitmapMask
 	def __getattr__(self, attr):
-		l = self.__dict__['listControl']
-		if l is not None:
-			return getattr(l, attr)
+		try:
+			return getattr(self.listControl, attr)
+		except AttributeError:
+			return getattr(self, attr)
+
 	def ItemFromHandle(self, handle):
 		return self.itemHandleMap[handle]
 	def SetStyle(self, newStyle):

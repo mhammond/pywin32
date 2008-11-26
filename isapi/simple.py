@@ -27,7 +27,7 @@ class SimpleExtension:
         
         sub-classes must provide an implementation for this method.
         """
-        raise NotImplementedError, "sub-classes should override HttpExtensionProc"
+        raise NotImplementedError("sub-classes should override HttpExtensionProc")
 
     def TerminateExtension(self, status):
         """Called by the ISAPI framework as the extension terminates.
@@ -49,7 +49,7 @@ class SimpleFilter:
         must specify filter_flags in your class.
         """
         if self.filter_flags is None:
-            raise RuntimeError, "You must specify the filter flags"
+            raise RuntimeError("You must specify the filter flags")
         # nod to our reload capability - fv is None when we are reloaded.
         if fv is not None:
             fv.Flags = self.filter_flags
@@ -60,7 +60,7 @@ class SimpleFilter:
         
         sub-classes must provide an implementation for this method.
         """
-        raise NotImplementedError, "sub-classes should override HttpExtensionProc"
+        raise NotImplementedError("sub-classes should override HttpExtensionProc")
 
     def TerminateFilter(self, status):
         """Called by the ISAPI framework as the filter terminates.

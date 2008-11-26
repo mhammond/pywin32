@@ -237,12 +237,12 @@ class InteractivePythonApp(app.CApp):
 				argStart = 1
 				argType = args[0]
 			if argStart >= len(args):
-				raise TypeError, "The command line requires an additional arg."
+				raise TypeError("The command line requires an additional arg.")
 			if argType=="/edit":
 				# Load up the default application.
 				if dde:
 					fname = win32api.GetFullPathName(args[argStart])
-					dde.Exec("win32ui.GetApp().OpenDocumentFile(%s)" % (`fname`))
+					dde.Exec("win32ui.GetApp().OpenDocumentFile(%s)" % (repr(fname)))
 				else:
 					win32ui.GetApp().OpenDocumentFile(args[argStart])
 			elif argType=="/rundlg":
@@ -258,7 +258,7 @@ class InteractivePythonApp(app.CApp):
 					import scriptutils
 					scriptutils.RunScript(args[argStart], ' '.join(args[argStart+1:]), 0)
 			elif argType=="/app":
-				raise RuntimeError, "/app only supported for new instances of Pythonwin.exe"
+				raise RuntimeError("/app only supported for new instances of Pythonwin.exe")
 			elif argType=='/new': # Allow a new instance of Pythonwin
 				return 1
 			elif argType=='/dde': # Send arbitary command
@@ -267,12 +267,12 @@ class InteractivePythonApp(app.CApp):
 				else:
 					win32ui.MessageBox("The /dde command can only be used\r\nwhen Pythonwin is already running")
 			else:
-				raise TypeError, "Command line arguments not recognised"
+				raise TypeError("Command line arguments not recognised")
 		except:
 			typ, val, tb = sys.exc_info()
 			print "There was an error processing the command line args"
 			traceback.print_exception(typ, val, tb, None, sys.stdout)
-			win32ui.OutputDebug("There was a problem with the command line args - %s: %s" % (`typ`,`val`))
+			win32ui.OutputDebug("There was a problem with the command line args - %s: %s" % (repr(typ),repr(val)))
 			tb = None # Prevent a cycle
 
 
@@ -302,7 +302,6 @@ class InteractivePythonApp(app.CApp):
 	# DDE Callback
 	#
 	def OnDDECommand(self, command):
-#		print "DDE Executing", `command`
 		try:
 			exec command + "\n"
 		except:
@@ -430,9 +429,12 @@ class InteractivePythonApp(app.CApp):
 	def OnFileSaveAll(self, id, code):
 		# Only attempt to save editor documents.
 		from pywin.framework.editor import editorTemplate
-		docs = filter(lambda doc: doc.IsModified() and doc.GetPathName(), editorTemplate.GetDocumentList())
-		map(lambda doc: doc.OnSaveDocument(doc.GetPathName()), docs)
-		win32ui.SetStatusText("%d documents saved" % len(docs), 1)
+		num = 0
+		for doc in editorTemplate.GetDocumentList():
+			if doc.IsModified() and doc.GetPathName():
+				num = num = 1
+				doc.OnSaveDocument(doc.GetPathName())
+		win32ui.SetStatusText("%d documents saved" % num, 1)
 
 	def OnViewToolbarDbg(self, id, code):
 		if code==0:
