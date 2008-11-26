@@ -7,20 +7,21 @@ either double-click on it, or run "python.exe pyscript.py" from the
 command line.
 """
 
-import framework
 import winerror
 import win32com
 import win32api
 import pythoncom
-from win32com.axscript import axscript
-import win32com.server.register
 import sys
 import traceback
-import scriptdispatch
 import re
 import win32com.client.dynamic
+from win32com.axscript.client import framework, scriptdispatch
+from win32com.axscript import axscript
+import win32com.server.register
 
-from framework import RaiseAssert, trace, Exception, SCRIPTTEXT_FORCEEXECUTION, SCRIPTTEXT_ISEXPRESSION, SCRIPTTEXT_ISPERSISTENT
+from win32com.axscript.client.framework import \
+	RaiseAssert, trace, Exception, SCRIPTTEXT_FORCEEXECUTION, \
+	SCRIPTTEXT_ISEXPRESSION, SCRIPTTEXT_ISPERSISTENT
 
 PyScript_CLSID = "{DF630910-1C1D-11d0-AE36-8C0F5E000000}"
 
@@ -39,44 +40,6 @@ def AddCR(text):
 class AXScriptCodeBlock(framework.AXScriptCodeBlock):
 	def GetDisplayName(self):
 		return "PyScript - " + framework.AXScriptCodeBlock.GetDisplayName(self)
-
-#
-# Restricted execution model.
-#
-import rexec
-class AXRExec(rexec.RExec):
-	ok_builtin_modules = rexec.RExec.ok_builtin_modules + ('win32trace',)
-
-	def __init__(self, pretendMain, hooks = None, verbose = 0):
-		self.pretendMain = pretendMain
-		rexec.RExec.__init__(self, hooks, verbose)
-#		mods = list(self.ok_dynamic_modules)
-#		mods.append("win32trace")
-#		mods = tuple(mods)
-#		self.ok_dynamic_modules = mods
-	def make_main(self):
-		if not self.modules.has_key('__main__'):
-			self.modules['__main__'] = self.pretendMain
-			self.pretendMain.__builtins__ = self.modules['__builtin__']
-			m = self.add_module('__main__')
-
-# Classes that looks and behaves like RExec, but isnt really!
-import ihooks
-class AXNotRHooks(ihooks.Hooks):
-	pass
-
-class AXNotRExec:
-	def __init__(self, pretendMain, hooks = None, verbose = 0):
-		self.pretendMain = pretendMain
-		self.hooks = hooks or AXNotRHooks(verbose)
-		self.modules = {'__main__': self.pretendMain}
-
-	def add_module(self, mname):
-		if self.modules.has_key(mname):
-			return self.modules[mname]
-		self.modules[mname] = m = self.hooks.new_module(mname)
-#		m.__builtins__ = self.modules['__builtin__']
-		return m
 
 # There is only ever _one_ ax object - it exists in the global namespace
 # for all script items.
@@ -223,7 +186,6 @@ class PyScript(framework.COMScript):
 		self.scriptDispatch = None
 		self.globalNameSpaceModule = imp.new_module("__ax_main__")
 		self.globalNameSpaceModule.__dict__['ax'] = AXScriptAttribute(self)
-		self.rexec_env = None # will be created first time around.
 		
 		self.codeBlocks = []
 		self.persistedCodeBlocks = []
@@ -251,17 +213,6 @@ class PyScript(framework.COMScript):
 		return self.codeBlockCounter
 		
 	def RegisterNamedItem(self, item):
-		if self.rexec_env is None:
-			# RExec is not available in 2.2+.  If we get here for IE, the
-			# user has explicitly run axscript_rexec, so is choosing to
-			# take this risk.
-#			if self.safetyOptions & (axscript.INTERFACESAFE_FOR_UNTRUSTED_DATA | axscript.INTERFACESAFE_FOR_UNTRUSTED_CALLER):
-#				# Use RExec.
-#				self.rexec_env = AXRExec(self.globalNameSpaceModule)
-#			else:
-				# DONT use RExec.
-				self.rexec_env = AXNotRExec(self.globalNameSpaceModule)
-
 		wasReg = item.isRegistered
 		framework.COMScript.RegisterNamedItem(self, item)
 		if not wasReg:
@@ -400,8 +351,6 @@ class PyScript(framework.COMScript):
 			except AttributeError:
 				pass # ???
 			globalNameSpaceModule = None
-			
-		self.rexec_env = None
 
 def DllRegisterServer():
 	klass=PyScript
