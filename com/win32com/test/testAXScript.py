@@ -31,4 +31,4 @@ class AXScript(win32com.test.util.TestCase):
         win32com.test.util.ExecuteShellCommand(cmd, self)
 
 if __name__=='__main__':
-    unittest.main()
+    win32com.test.util.testmain()

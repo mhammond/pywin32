@@ -7,7 +7,7 @@ from win32com.client.gencache import EnsureDispatch
 class PippoTester(unittest.TestCase):
     def setUp(self):
         from win32com.test.util import RegisterPythonServer
-        import pippo_server
+        from win32com.test import pippo_server
         RegisterPythonServer(pippo_server.__file__, "Python.Test.Pippo")
         # create it.
         self.object = Dispatch("Python.Test.Pippo")

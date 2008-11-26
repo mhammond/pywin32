@@ -1,6 +1,5 @@
 import pythoncom
 import win32com.server.util
-import util
 import time
 
 import win32com, sys, string, win32api, traceback

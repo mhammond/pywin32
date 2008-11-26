@@ -1,7 +1,7 @@
 # Originally contributed by Stefan Schukat as part of this arbitrary-sized
 # arrays patch.
 from win32com.client import gencache
-import util
+from win32com.test import util
 import unittest
 
 ZeroD = 0
