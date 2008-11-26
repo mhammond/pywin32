@@ -72,7 +72,7 @@ def test(verbose=0):
 	CheckEvent(server, client, "Hello", verbose)
 	CheckEvent(server, client, "Here is a null>"+chr(0)+"<", verbose)
 	CheckEvent(server, client, u"Here is a null>"+unichr(0)+"<", verbose)
-	val = unicode("test-\xe0\xf2", "latin-1") # 2 latin characters.
+	val = u"test-\xe0\xf2" # 2 extended characters.
 	CheckEvent(server, client, val, verbose)
 	if verbose:
 		print "Everything seemed to work!"
