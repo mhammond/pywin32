@@ -2469,7 +2469,7 @@ static PyObject *PySHILCreateFromPath(PyObject *self, PyObject *args)
 }
 
 // @pymethod bool|shell|IsUserAnAdmin|Tests whether the current user is a member of the Administrator's group.
-// @rdesc The result is true or false.
+// @rdesc The result is true or false, or a com_error with E_NOTIMPL is raised.
 static PyObject *PyIsUserAnAdmin(PyObject *self, PyObject *args)
 {
 	if(!PyArg_ParseTuple(args, ":IsUserAnAdmin"))
