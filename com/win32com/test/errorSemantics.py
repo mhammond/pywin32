@@ -31,17 +31,18 @@ class TestServer:
         raise COMException("Not today", scode=winerror.E_UNEXPECTED)
 
     def Commit(self, flags):
-        raise "foo"
+        raise Exception("foo")
 
 def test():
     # Call via a native interface.
     com_server = wrap(TestServer(), pythoncom.IID_IStream)
     try:
         com_server.Clone()
+        raise error("Expecting this call to fail!")
     except pythoncom.com_error, com_exc:
-        hr, desc, exc, argErr = com_exc
-        if hr != winerror.E_UNEXPECTED:
+        if com_exc.hresult != winerror.E_UNEXPECTED:
             raise error("Calling the object natively did not yield the correct scode", com_exc)
+        exc = com_exc.excepinfo
         if not exc or exc[-1] != winerror.E_UNEXPECTED:
             raise error("The scode element of the exception tuple did not yield the correct scode", com_exc)
         if exc[2] != "Not today":
@@ -53,11 +54,11 @@ def test():
             com_server.Commit(0)
         finally:
             cap.release()
+        raise error("Expecting this call to fail!")
     except pythoncom.com_error, com_exc:
-        hr, desc, exc, argErr = com_exc
-        if hr != winerror.E_FAIL:
+        if com_exc.hresult != winerror.E_FAIL:
             raise error("The hresult was not E_FAIL for an internal error", com_exc)
-        if exc[1] != "Python COM Server Internal Error":
+        if com_exc.excepinfo[1] != "Python COM Server Internal Error":
             raise error("The description in the exception tuple did not yield the correct string", com_exc)
     # Check we saw a traceback in stderr
     if cap.get_captured().find("Traceback")<0:
@@ -67,10 +68,11 @@ def test():
     com_server = Dispatch(wrap(TestServer()))
     try:
         com_server.Clone()
+        raise error("Expecting this call to fail!")
     except pythoncom.com_error, com_exc:
-        hr, desc, exc, argErr = com_exc
-        if hr != winerror.DISP_E_EXCEPTION:
+        if com_exc.hresult != winerror.DISP_E_EXCEPTION:
             raise error("Calling the object via IDispatch did not yield the correct scode", com_exc)
+        exc = com_exc.excepinfo
         if not exc or exc[-1] != winerror.E_UNEXPECTED:
             raise error("The scode element of the exception tuple did not yield the correct scode", com_exc)
         if exc[2] != "Not today":
@@ -83,10 +85,11 @@ def test():
             com_server.Commit(0)
         finally:
             cap.release()
+        raise error("Expecting this call to fail!")
     except pythoncom.com_error, com_exc:
-        hr, desc, exc, argErr = com_exc
-        if hr != winerror.DISP_E_EXCEPTION:
+        if com_exc.hresult != winerror.DISP_E_EXCEPTION:
             raise error("Calling the object via IDispatch did not yield the correct scode", com_exc)
+        exc = com_exc.excepinfo
         if not exc or exc[-1] != winerror.E_FAIL:
             raise error("The scode element of the exception tuple did not yield the correct scode", com_exc)
         if exc[1] != "Python COM Server Internal Error":
