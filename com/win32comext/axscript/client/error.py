@@ -153,22 +153,35 @@ class AXScriptException(win32com.server.exception.COMException):
 			depth = None
 			tb_top = tb
 			
-		list = ['Traceback (most recent call last):\n']
-		list = list + traceback.format_list(format_items)
+		bits = ['Traceback (most recent call last):\n']
+		bits.extend(traceback.format_list(format_items))
 		if exc_type==pythoncom.com_error:
 			desc = "%s (0x%x)" % (value[1], value[0])
 			if value[0]==winerror.DISP_E_EXCEPTION and value[2] and value[2][2]:
 				desc = value[2][2]
-			list.append("COM Error: "+desc)
+			bits.append("COM Error: "+desc)
 		else:
-			list = list + traceback.format_exception_only(exc_type, value)
+			bits.extend(traceback.format_exception_only(exc_type, value))
+
+		# XXX - this block appears completely bogus???  The UTF8
+		# comment below is from well before py3k, so utf8 doesn't have
+		# any special status in py2k.  Most likely is that this was
+		# simply an artifact of an invalid test (which remains - it
+		# raises a RuntimeError with a *string* with extended
+		# characters.)
+		# Sadly, the test still fails in the same way if you raise a
+		# Unicode string with an extended char.  This block keeps the
+		# tests passing, so it remains.
+		# XXX - todo - read the above, and fix below!
+
 		# all items in the list are utf8 courtesy of Python magically
 		# converting unicode to utf8 before compilation.
-		for i in range(len(list)):
-			if type(list[i]) is str:
-			#assert type(list[i]) is str, type(list[i])
-				list[i] = list[i].decode('utf8')
-		self.description = ExpandTabs(u''.join(list))
+		for i in xrange(len(bits)):
+			if type(bits[i]) is str:
+			#assert type(bits[i]) is str, type(bits[i])
+				bits[i] = bits[i].decode('utf8')
+
+		self.description = ExpandTabs(u''.join(bits))
 		# Clear tracebacks etc.
 		tb = tb_top = tb_look = None
 
