@@ -17,10 +17,7 @@ the way they were, simply use this magic incantation:
     sys.stdin = sys.stdin.real_file
 """
 import sys
-import string
 
-true = 1
-false = 0
 try:
     get_input_line = raw_input # py2x
 except NameError:
@@ -28,12 +25,15 @@ except NameError:
 
 class Stdin:
     def __init__(self):
-        self.real_file = sys.stdin
+        self.real_file = sys.stdin # NOTE: Likely to be None in py3k
         self.buffer = ""
+        self.closed = False
 
     def __getattr__(self, name):
         """Forward most functions to the real sys.stdin for absolute realism.
         """
+        if self.real_file is None:
+            raise AttributeError, name
         return getattr(self.real_file, name)
     
     def isatty(self):
@@ -49,12 +49,8 @@ class Stdin:
         returned as a string object. An empty string is returned when
         EOF is encountered immediately. (For certain files, like ttys,
         it makes sense to continue reading after an EOF is hit.)"""
-        if self.closed:
-            return self.real_file.read(size)
-        
         result_size = self.__get_lines(size)
         return self.__extract_from_buffer(result_size)
-            
 
     def readline(self, size = -1):
         """Read one entire line from the file. A trailing newline
@@ -66,9 +62,6 @@ class Stdin:
         the returned string contains null characters ('\0') if they occurred
         in the input.
         """
-        if self.closed:
-            return self.real_file.readline(size)
-        
         maximum_result_size = self.__get_lines(size, lambda buffer: '\n' in buffer)
 
         if '\n' in self.buffer[:maximum_result_size]:
@@ -87,7 +80,7 @@ class Stdin:
         self.buffer = self.buffer[character_count:]
         return result
     
-    def __get_lines(self, desired_size, done_reading = lambda buffer: false):
+    def __get_lines(self, desired_size, done_reading = lambda buffer: False):
         """Keep adding lines to our internal buffer until done_reading(self.buffer)
         is true or EOF has been reached or we have desired_size bytes in the buffer.
         If desired_size < 0, we are never satisfied until we reach EOF. If done_reading
@@ -100,9 +93,9 @@ class Stdin:
                                                  or len(self.buffer) < desired_size):
             try:
                 self.__get_line()
-            except: # deal with cancellation of get_input_line dialog
+            except EOFError: # deal with cancellation of get_input_line dialog
                 desired_size = len(self.buffer) # Be satisfied!
-                pass
+
         if desired_size < 0:
             return len(self.buffer)
         else:
@@ -121,9 +114,6 @@ class Stdin:
         reading up to EOF, whole lines totalling approximately sizehint bytes
         (possibly after rounding up to an internal buffer size) are read.
         """
-        if self.closed:
-            return self.real_file.readlines(*sizehint)
-        
         result = []
         total_read = 0
         while sizehint == () or total_read < sizehint[0]:
