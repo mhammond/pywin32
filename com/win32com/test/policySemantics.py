@@ -22,7 +22,7 @@ class PythonSemanticClass:
         return self.list
     def _Evaluate(self):
         # return the sum
-        return reduce(lambda a,b: a+b, self.list, 0)
+        return sum(self.list)
     def In(self, value):
         return value in self.list
     def Add(self, value):
