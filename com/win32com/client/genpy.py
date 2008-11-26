@@ -97,11 +97,17 @@ def WriteSinkEventMap(obj, stream):
 # MI is used to join my writable helpers, and the OLE
 # classes.
 class WritableItem:
+    # __cmp__ used for sorting in py2x...
     def __cmp__(self, other):
         "Compare for sorting"   
         ret = cmp(self.order, other.order)
         if ret==0 and self.doc: ret = cmp(self.doc[0], other.doc[0])
         return ret
+    # ... but not used in py3k - __lt__ minimum needed there
+    def __lt__(self, other): # py3k variant
+        if self.order == other.order:
+            return self.doc < other.doc
+        return self.order < other.order
     def __repr__(self):
         return "OleItem: doc=%s, order=%d" % (repr(self.doc), self.order)
 
@@ -204,7 +210,7 @@ class EnumerationItem(build.OleItem, WritableItem):
       vdesc = entry.desc
       if vdesc[4] == pythoncom.VAR_CONST:
         val = vdesc[1]
-        if type(val) in (type(0), type(0L)):
+        if sys.version_info <= (2,4) and (isinstance(val, int) or isinstance(val, long)):
           if val==0x80000000L: # special case
             use = "0x80000000L" # 'L' for future warning
           elif val > 0x80000000L or val < 0: # avoid a FutureWarning
@@ -359,7 +365,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
     def WriteClassBody(self, generator):
         stream = generator.file
         # Write in alpha order.
-        names = self.mapFuncs.keys()
+        names = list(self.mapFuncs.keys())
         names.sort()
         specialItems = {"count":None, "item":None,"value":None,"_newenum":None} # If found, will end up with (entry, invoke_tupe)
         itemCount = None
@@ -760,6 +766,33 @@ class Generator:
   
     return oleItems, enumItems, recordItems, vtableItems
 
+  def open_writer(self, filename, encoding="mbcs"):
+    # A place to put code to open a file with the appropriate encoding.
+    # Does *not* set self.file - just opens and returns a file.
+    # Actually *deletes* the filename asked for and returns a handle to a
+    # temp file - finish_writer then puts everything back in place.  This
+    # is so errors don't leave a 1/2 generated file around causing bizarre
+    # errors later.
+    # Could be a classmethod one day...
+    try:
+      os.unlink(filename)
+    except os.error:
+      pass
+    filename = filename + ".temp"
+    if sys.version_info > (3,0):
+      ret = open(filename, "wt", encoding=encoding)
+    else:
+      import codecs # not available in py3k.
+      ret = codecs.open(filename, "wt", encoding)
+    return ret
+
+  def finish_writer(self, filename, f, worked):
+    f.close()
+    if worked:
+        os.rename(filename + ".temp", filename)
+    else:
+        os.unlink(filename + ".temp")
+
   def generate(self, file, is_for_demand = 0):
     if is_for_demand:
       self.generate_type = GEN_DEMAND_BASE
@@ -781,7 +814,11 @@ class Generator:
     self.bHaveWrittenDispatchBaseClass = 0
     self.bHaveWrittenCoClassBaseClass = 0
     self.bHaveWrittenEventBaseClass = 0
-    encoding = self.file.encoding or "mbcs"
+    # You must provide a file correctly configured for writing unicode.
+    # We assert this is it may indicate somewhere in pywin32 that needs
+    # upgrading.
+    assert self.file.encoding, self.file
+    encoding = self.file.encoding # or "mbcs"
 
     print >> self.file, '# -*- coding: %s -*-' % (encoding,)
     print >> self.file, '# Created by makepy.py version %s' % (makepy_version,)
@@ -794,10 +831,7 @@ class Generator:
     print >> self.file, '"""' + docDesc + '"""'
 
     print >> self.file, 'makepy_version =', `makepy_version`
-    try:
-        print >> self.file, 'python_version = 0x%x' % (sys.hexversion,)
-    except AttributeError:
-        print >> self.file, 'python_version = 0x0 # Presumably Python 1.5.2 - 0x0 is not a problem'
+    print >> self.file, 'python_version = 0x%x' % (sys.hexversion,)
     print >> self.file
     print >> self.file, 'import win32com.client.CLSIDToClass, pythoncom'
     print >> self.file, 'import win32com.client.util'
@@ -835,32 +869,31 @@ class Generator:
     # Generate the constants and their support.
     if enumItems:
         print >> stream, "class constants:"
-        list = enumItems.values()
-        list.sort()
-        for oleitem in list:
+        items = enumItems.values()
+        items.sort()
+        for oleitem in items:
             oleitem.WriteEnumerationItems(stream)
             self.progress.Tick()
         print >> stream
 
     if self.generate_type == GEN_FULL:
-      list = oleItems.values()
-      list = filter(lambda l: l is not None, list)
-      list.sort()
-      for oleitem in list:
+      items = oleItems.values()
+      items = [l for l in items if l is not None]
+      items.sort()
+      for oleitem in items:
         self.progress.Tick()
         oleitem.WriteClass(self)
 
-      list = vtableItems.values()
-      list.sort()
-      for oleitem in list:
+      items = vtableItems.values()
+      items.sort()
+      for oleitem in items:
         self.progress.Tick()
         oleitem.WriteClass(self)
     else:
         self.progress.Tick(len(oleItems)+len(vtableItems))
 
     print >> stream, 'RecordMap = {'
-    list = recordItems.values()
-    for record in list:
+    for record in recordItems.itervalues():
         if str(record.clsid) == pythoncom.IID_NULL:
             print >> stream, "\t###%s: %s, # Typedef disabled because it doesn't have a non-null GUID" % (`record.doc[0]`, `str(record.clsid)`)
         else:
@@ -980,15 +1013,20 @@ class Generator:
       for oleitem, vtableitem in items.values():
         an_item = oleitem or vtableitem
         assert not self.file, "already have a file?"
-        self.file = open(os.path.join(dir, an_item.python_name) + ".py", "w")
+        # like makepy.py, we gen to a .temp file so failure doesn't
+        # leave a 1/2 generated mess.
+        out_name = os.path.join(dir, an_item.python_name) + ".py"
+        worked = False
+        self.file = self.open_writer(out_name)
         try:
           if oleitem is not None:
             self.do_gen_child_item(oleitem)
           if vtableitem is not None:
             self.do_gen_child_item(vtableitem)
           self.progress.Tick()
+          worked = True
         finally:
-          self.file.close()
+          self.finish_writer(out_name, self.file, worked)
           self.file = None
     finally:
       self.progress.Finished()

@@ -66,10 +66,8 @@ Examples:
 
 """
 
-import genpy, string, sys, os, types, pythoncom
-import codecs
-import selecttlb
-import gencache
+import sys, os, pythoncom
+from win32com.client import genpy, selecttlb, gencache
 from win32com.client import NeedUnicodeConversions, Dispatch
 
 bForDemandDefault = 0 # Default value of bForDemand - toggle this to change the world - see also gencache.py
@@ -253,6 +251,8 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 	bToGenDir = (file is None)
 
 	for typelib, info in typelibs:
+		gen = genpy.Generator(typelib, info.dll, progress, bUnicodeToString=bUnicodeToString, bBuildHidden=bBuildHidden)
+
 		if file is None:
 			this_name = gencache.GetGeneratedFileName(info.clsid, info.lcid, info.major, info.minor)
 			full_name = os.path.join(gencache.GetGeneratePath(), this_name)
@@ -268,26 +268,18 @@ def GenerateFromTypeLibSpec(typelibInfo, file = None, verboseLevel = None, progr
 				outputName = os.path.join(full_name, "__init__.py")
 			else:
 				outputName = full_name + ".py"
-			# generate to a temp file (so errors don't leave a 1/2
-			# generated file) and one which can handle unicode!
-			try:
-				os.unlink(outputName)
-			except os.error:
-				pass
-			encoding = 'mbcs' # could make this a param.
-			fileUse = codecs.open(outputName + ".temp", "wt",
-			                      encoding)
+			fileUse = gen.open_writer(outputName)
 			progress.LogBeginGenerate(outputName)
 		else:
 			fileUse = file
 
-		gen = genpy.Generator(typelib, info.dll, progress, bUnicodeToString=bUnicodeToString, bBuildHidden=bBuildHidden)
-
-		gen.generate(fileUse, bForDemand)
-		
-		if file is None:
-			fileUse.close()
-			os.rename(outputName + ".temp", outputName)
+		worked = False
+		try:
+			gen.generate(fileUse, bForDemand)
+			worked = True
+		finally:
+			if file is None:
+				gen.finish_writer(outputName, fileUse, worked)
 		if bToGenDir:
 			progress.SetDescription("Importing module")
 			gencache.AddModuleToCache(info.clsid, info.lcid, info.major, info.minor)
