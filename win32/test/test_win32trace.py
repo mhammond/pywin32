@@ -17,8 +17,8 @@ def CheckNoOtherReaders():
         # Reset everything so following tests still fail with this error!S
         win32trace.TermRead()
         win32trace.TermWrite()
-        raise RuntimeError, "An existing win32trace reader appears to be " \
-                            "running - please stop this process and try again"
+        raise RuntimeError("An existing win32trace reader appears to be " \
+                            "running - please stop this process and try again")
 
 class TestInitOps(unittest.TestCase):
     def setUp(self):

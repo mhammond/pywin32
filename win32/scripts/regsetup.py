@@ -53,7 +53,7 @@ def FindPackagePath(packageName, knownFileName, searchPaths):
             # Found it
             ret = os.path.abspath(pathLook)
             return ret, ret
-    raise error, "The package %s can not be located" % packageName
+    raise error("The package %s can not be located" % packageName)
 
 def FindHelpPath(helpFile, helpDesc, searchPaths):
     # See if the current registry entry is OK
@@ -77,7 +77,7 @@ def FindHelpPath(helpFile, helpDesc, searchPaths):
         pathLook = os.path.join(pathLook, "Help")
         if FileExists(os.path.join( pathLook, helpFile)):
             return os.path.abspath(pathLook)
-    raise error, "The help file %s can not be located" % helpFile
+    raise error("The help file %s can not be located" % helpFile)
 
 def FindAppPath(appName, knownFileName, searchPaths):
     """Find an application.
@@ -97,7 +97,7 @@ def FindAppPath(appName, knownFileName, searchPaths):
         if FileExists(os.path.join(pathLook, knownFileName)):
             # Found it
             return os.path.abspath(pathLook)
-    raise error, "The file %s can not be located for application %s" % (knownFileName, appName)
+    raise error("The file %s can not be located for application %s" % (knownFileName, appName))
 
 def FindPythonExe(exeAlias, possibleRealNames, searchPaths):
     """Find an exe.
@@ -160,7 +160,7 @@ def LocateFileName(fileNamesString, searchPaths):
         try:
             import win32ui, win32con
         except ImportError:
-            raise error, "Need to locate the file %s, but the win32ui module is not available\nPlease run the program again, passing as a parameter the path to this file." % fileName
+            raise error("Need to locate the file %s, but the win32ui module is not available\nPlease run the program again, passing as a parameter the path to this file." % fileName)
         # Display a common dialog to locate the file.
         flags=win32con.OFN_FILEMUSTEXIST
         ext = os.path.splitext(fileName)[1]
@@ -168,7 +168,7 @@ def LocateFileName(fileNamesString, searchPaths):
         dlg = win32ui.CreateFileDialog(1,None,fileName,flags,filter,None)
         dlg.SetOFNTitle("Locate " + fileName)
         if dlg.DoModal() <> win32con.IDOK:
-            raise KeyboardInterrupt, "User cancelled the process"
+            raise KeyboardInterrupt("User cancelled the process")
         retPath = dlg.GetPathName()
     return os.path.abspath(retPath)
 
@@ -214,7 +214,7 @@ def LocatePythonCore(searchPaths):
     if libPath is None and searchPaths is not None:
         libPath = LocatePath("os.py", searchPaths)
     if libPath is None:
-        raise error, "The core Python library could not be located."
+        raise error("The core Python library could not be located.")
 
     corePath = None
     suffix = IsDebug()
@@ -225,7 +225,7 @@ def LocatePythonCore(searchPaths):
     if corePath is None and searchPaths is not None:
         corePath = LocatePath("unicodedata%s.pyd" % suffix, searchPaths)
     if corePath is None:
-        raise error, "The core Python path could not be located."
+        raise error("The core Python path could not be located.")
 
     installPath = os.path.abspath(os.path.join(libPath, ".."))
     return installPath, [libPath, corePath]
@@ -241,7 +241,7 @@ def FindRegisterPackage(packageName, knownFile, searchPaths, registryAppName = N
        may later be uninstalled.  This should not happen with the core)
     """
     import regutil, string
-    if not packageName: raise error, "A package name must be supplied"
+    if not packageName: raise error("A package name must be supplied")
     corePaths = string.split(regutil.GetRegisteredNamedPath(None),";")
     if not searchPaths: searchPaths = corePaths
     registryAppName = registryAppName or packageName
@@ -497,7 +497,7 @@ if __name__=='__main__':
                 regutil.RegisterNamedPath(a,path)
             if o=='-c':
                 if not len(searchPaths):
-                    raise error, "-c option must provide at least one additional path"
+                    raise error("-c option must provide at least one additional path")
                 import win32api, regutil
                 currentPaths = string.split(regutil.GetRegisteredNamedPath(None),";")
                 oldLen = len(currentPaths)

@@ -33,7 +33,7 @@ class TestRunner:
         rc = ferr.close()
         if rc:
             base = os.path.basename(self.argv[1])
-            raise AssertionError, "%s failed with exit code %s.  Output is:\n%s" % (base, rc, output)
+            raise AssertionError("%s failed with exit code %s.  Output is:\n%s" % (base, rc, output))
 
 def get_demo_tests():
     import win32api

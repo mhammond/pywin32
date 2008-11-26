@@ -45,12 +45,12 @@ class _WIN32MASKEDSTRUCT:
                 full_fmt += fmt
         for name, val in kw.items():
             if not self.__dict__.has_key(name):
-                raise ValueError, "LVITEM structures do not have an item '%s'" % (name,)
+                raise ValueError("LVITEM structures do not have an item '%s'" % (name,))
             self.__dict__[name] = val
 
     def __setattr__(self, attr, val):
         if not attr.startswith("_") and not self.__dict__.has_key(attr):
-            raise AttributeError, attr
+            raise AttributeError(attr)
         self.__dict__[attr] = val
 
     def toparam(self):

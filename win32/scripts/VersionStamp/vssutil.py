@@ -90,7 +90,7 @@ def VssLog(project, linePrefix = "", noLabels = 5, maxItems=150):
 def SubstituteVSSInFile(projectName, inName, outName):
 	import win32api
 	if win32api.GetFullPathName(inName)==win32api.GetFullPathName(outName):
-		raise RuntimeError, "The input and output filenames can not be the same"
+		raise RuntimeError("The input and output filenames can not be the same")
 	sourceSafe=GetSS()
 	project = sourceSafe.VSSItem(projectName)
 	# Find the last label
@@ -149,7 +149,7 @@ def MakeNewBuildNo(project, buildDesc = None, auto=0, bRebrand = 0):
 			if not bRebrand: buildNo = buildNo + 1
 			buildNo = str(buildNo)
 		except ValueError:
-			raise error, "The previous label could not be incremented: %s" % (oldBuild)
+			raise error("The previous label could not be incremented: %s" % (oldBuild))
 
 	if not auto:
 		from pywin.mfc import dialog
