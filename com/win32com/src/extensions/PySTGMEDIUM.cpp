@@ -54,17 +54,22 @@ PyObject *PySet(PyObject *self, PyObject *args)
 		case TYMED_HGLOBAL: {
 			const void * buf = NULL;
 			Py_ssize_t cb = 0;
-			if (PyObject_AsReadBuffer(ob,&buf,&cb)==-1) 
-				return PyErr_Format(PyExc_TypeError, "tymed value of %d requires a string/unicode/buffer", tymed);
-			// size doesnt include nulls!
+			// In py3k, unicode objects don't support the buffer
+			// protocol, so explicitly check string types first.
 			// We need to include the NULL for strings and unicode, as the
 			// Windows clipboard functions will assume it is there for
 			// text related formats (eg, CF_TEXT).
-			if (PyString_Check(ob))
-				cb += 1;
-			else if (PyUnicode_Check(ob))
-				cb += sizeof(wchar_t);
-			// else assume buffer needs no terminator...
+			if (PyString_Check(ob)) {
+				cb = PyString_GET_SIZE(ob) + 1; // for the NULL
+				buf = (void *)PyString_AS_STRING(ob);
+			} else if (PyUnicode_Check(ob)) {
+				cb = PyUnicode_GET_DATA_SIZE(ob) + sizeof(Py_UNICODE);
+				buf = (void *)PyUnicode_AS_UNICODE(ob);
+			} else {
+				if (PyObject_AsReadBuffer(ob,&buf,&cb)==-1) 
+					return PyErr_Format(PyExc_TypeError, "tymed value of %d requires a string/unicode/buffer", tymed);
+				// no extra nulls etc needed here.
+			}
 			ps->medium.hGlobal = GlobalAlloc(GMEM_FIXED, cb);
 			if (!ps->medium.hGlobal)
 				return PyErr_NoMemory();
