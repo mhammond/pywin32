@@ -52,23 +52,14 @@ void PyCom_ExcepInfoFromPyException(EXCEPINFO *pExcepInfo)
 		// not the one we are interested in!
 		PyErr_Clear();
 		// Not a special exception object - do the best we can.
-		PyObject *obException = PyObject_Str(exception);
-		PyObject *obValue = PyObject_Str(v);
-		char *szException = PyString_AsString(obException);
-		char *szValue = PyString_AsString(obValue);
 		char *szBaseMessage = "Unexpected Python Error: ";
-		if (szException==NULL) szException = "<bad exception>";
-		if (szValue==NULL) szValue = "<bad exception value>";
-		int len = strlen(szBaseMessage) + strlen(szException) + 2 + strlen(szValue) + 1;
-			// 2 for ": "
-		// message could be quite long - be safe.
+		char *szException = GetPythonTraceback(exception, v, tb);
+		size_t len = strlen(szBaseMessage) + strlen(szException) + 1;
 		char *tempBuf = new char[len];
 		if (tempBuf) {
-			strcpy(tempBuf, szBaseMessage);
-			strcat(tempBuf, szException);
-			strcat(tempBuf, ": ");
-			strcat(tempBuf, szValue);
+			snprintf(tempBuf, len, "%s%s", szBaseMessage, szException);
 			pExcepInfo->bstrDescription = PyWin_String_AsBstr(tempBuf);
+			delete [] tempBuf;
 		} else
 			pExcepInfo->bstrDescription = SysAllocString(L"memory error allocating exception buffer!");
 		pExcepInfo->bstrSource = SysAllocString(L"Python COM Server Internal Error");
@@ -81,14 +72,10 @@ void PyCom_ExcepInfoFromPyException(EXCEPINFO *pExcepInfo)
 		else
 			// Any other common Python exceptions we should map?
 			pExcepInfo->scode = E_FAIL;
-
-		delete [] tempBuf;
-		Py_XDECREF(obException);
-		Py_XDECREF(obValue);
 	}
-	Py_XDECREF(tb);
 	Py_XDECREF(exception);
 	Py_XDECREF(v);
+	Py_XDECREF(tb);
 	PyErr_Clear();
 }
 
@@ -196,10 +183,8 @@ BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *ph
 	// Explicit check for client.
 	// Note that with class based exceptions, a simple pointer check fails.
 	// Any class sub-classed from the client is considered a server error,
-	// so we need to check the class explicitely.
-	if (v==PyWinExc_COMError || // String exceptions
-	      (PyInstance_Check(v) && // Class exceptions
-		  (PyObject *)(((PyInstanceObject *)v)->in_class)==PyWinExc_COMError) )  {
+	// so we need to check the class explicitly.
+	if ((PyObject *)v->ob_type==PyWinExc_COMError) {
 		// Client side error
 		// Clear the state of the excep info.
 		// use abstract API to get at details.
@@ -368,99 +353,6 @@ PYCOM_EXPORT HRESULT PyCom_SetAndLogCOMErrorFromPyExceptionEx(PyObject *provider
 	return PyCom_SetCOMErrorFromPyException(riid);
 }
 
-////////////////////////////////////////////////////////////////////////
-// Some logging functions
-////////////////////////////////////////////////////////////////////////
-/* Obtains a string from a Python traceback.
-   This is the exact same string as "traceback.print_exc" would return.
-
-   Pass in a Python traceback object (probably obtained from PyErr_Fetch())
-   Result is a string which must be free'd using PyMem_Free()
-*/
-#define TRACEBACK_FETCH_ERROR(what) {errMsg = what; goto done;}
-
-char *PyTraceback_AsString(PyObject *exc_tb)
-{
-	char *errMsg = NULL; /* holds a local error message */
-	char *result = NULL; /* a valid, allocated result. */
-	PyObject *modStringIO = NULL;
-	PyObject *modTB = NULL;
-	PyObject *obFuncStringIO = NULL;
-	PyObject *obStringIO = NULL;
-	PyObject *obFuncTB = NULL;
-	PyObject *argsTB = NULL;
-	PyObject *obResult = NULL;
-
-	/* Import the modules we need - cStringIO and traceback */
-	modStringIO = PyImport_ImportModule("cStringIO");
-	if (modStringIO==NULL)
-		TRACEBACK_FETCH_ERROR("cant import cStringIO\n");
-
-	modTB = PyImport_ImportModule("traceback");
-	if (modTB==NULL)
-		TRACEBACK_FETCH_ERROR("cant import traceback\n");
-	/* Construct a cStringIO object */
-	obFuncStringIO = PyObject_GetAttrString(modStringIO, "StringIO");
-	if (obFuncStringIO==NULL)
-		TRACEBACK_FETCH_ERROR("cant find cStringIO.StringIO\n");
-	obStringIO = PyObject_CallObject(obFuncStringIO, NULL);
-	if (obStringIO==NULL)
-		TRACEBACK_FETCH_ERROR("cStringIO.StringIO() failed\n");
-	/* Get the traceback.print_exception function, and call it. */
-	obFuncTB = PyObject_GetAttrString(modTB, "print_tb");
-	if (obFuncTB==NULL)
-		TRACEBACK_FETCH_ERROR("cant find traceback.print_tb\n");
-
-	argsTB = Py_BuildValue("OOO", 
-			exc_tb  ? exc_tb  : Py_None,
-			Py_None, 
-			obStringIO);
-	if (argsTB==NULL) 
-		TRACEBACK_FETCH_ERROR("cant make print_tb arguments\n");
-
-	obResult = PyObject_CallObject(obFuncTB, argsTB);
-	if (obResult==NULL) 
-		TRACEBACK_FETCH_ERROR("traceback.print_tb() failed\n");
-	/* Now call the getvalue() method in the StringIO instance */
-	Py_DECREF(obFuncStringIO);
-	obFuncStringIO = PyObject_GetAttrString(obStringIO, "getvalue");
-	if (obFuncStringIO==NULL)
-		TRACEBACK_FETCH_ERROR("cant find getvalue function\n");
-	Py_DECREF(obResult);
-	obResult = PyObject_CallObject(obFuncStringIO, NULL);
-	if (obResult==NULL) 
-		TRACEBACK_FETCH_ERROR("getvalue() failed.\n");
-
-	/* And it should be a string all ready to go - duplicate it. */
-	if (!PyString_Check(obResult))
-			TRACEBACK_FETCH_ERROR("getvalue() did not return a string\n");
-
-	{ // a temp scope so I can use temp locals.
-	char *tempResult = PyString_AsString(obResult);
-	result = (char *)PyMem_Malloc(strlen(tempResult)+1);
-	if (result==NULL)
-		TRACEBACK_FETCH_ERROR("memory error duplicating the traceback string\n");
-
-	strcpy(result, tempResult);
-	} // end of temp scope.
-done:
-	/* All finished - first see if we encountered an error */
-	if (result==NULL && errMsg != NULL) {
-		result = (char *)PyMem_Malloc(strlen(errMsg)+1);
-		if (result != NULL)
-			/* if it does, not much we can do! */
-			strcpy(result, errMsg);
-	}
-	Py_XDECREF(modStringIO);
-	Py_XDECREF(modTB);
-	Py_XDECREF(obFuncStringIO);
-	Py_XDECREF(obStringIO);
-	Py_XDECREF(obFuncTB);
-	Py_XDECREF(argsTB);
-	Py_XDECREF(obResult);
-	return result;
-}
-
 void PyCom_StreamMessage(const char *pszMessageText)
 {
 #ifndef MS_WINCE
@@ -544,32 +436,9 @@ void PyCom_LogF(const char *fmt, ...)
 
 void _LogException(PyObject *exc_typ, PyObject *exc_val, PyObject *exc_tb)
 {
-	if (exc_tb) {
-		const char *szTraceback = PyTraceback_AsString(exc_tb);
-		if (szTraceback == NULL)
-			PyCom_StreamMessage("Can't get the traceback info!");
-		else {
-			PyCom_StreamMessage(traceback_prefix);
-			PyCom_StreamMessage(szTraceback);
-			PyMem_Free((void *)szTraceback);
-		}
-	}
-	PyObject *temp = PyObject_Str(exc_typ);
-	if (temp) {
-		PyCom_StreamMessage(PyString_AsString(temp));
-		Py_DECREF(temp);
-	} else
-		PyCom_StreamMessage("Can't convert exception to a string!");
-	PyCom_StreamMessage(": ");
-	if (exc_val != NULL) {
-		temp = PyObject_Str(exc_val);
-		if (temp) {
-			PyCom_StreamMessage(PyString_AsString(temp));
-			Py_DECREF(temp);
-		} else
-			PyCom_StreamMessage("Can't convert exception value to a string!");
-	}
-	PyCom_StreamMessage("\n");
+	char *szTraceback = GetPythonTraceback(exc_typ, exc_val, exc_tb);
+	PyCom_StreamMessage(szTraceback);
+	free(szTraceback);
 }
 
 // XXX - _DoLogError() was a really bad name in retrospect, given
@@ -624,15 +493,20 @@ static void _DoLogger(PyObject *logProvider, char *log_method, const char *fmt, 
 	Py_XDECREF(logger);
 }
 
-BOOL IsNonServerErrorCurrent() {
+// Is the current exception a "server" exception? - ie, one explicitly
+// thrown by Python code to indicate an error.  This is defined as
+// any exception whose type is a subclass of com_error (a plain
+// com_error probably means an unhandled exception from someone
+// calling an interface)
+BOOL IsServerErrorCurrent() {
 	BOOL rc = FALSE;
 	PyObject *exc_typ = NULL, *exc_val = NULL, *exc_tb = NULL;
 	PyErr_Fetch( &exc_typ, &exc_val, &exc_tb);
+	assert(exc_typ); // we should only be called with an exception current.
 	if (exc_typ) {
 		PyErr_NormalizeException( &exc_typ, &exc_val, &exc_tb);
-		rc = (!PyErr_GivenExceptionMatches(exc_val, PyWinExc_COMError) ||
-		     ((PyInstance_Check(exc_val) && 
-		      (PyObject *)(((PyInstanceObject *)exc_val)->in_class)==PyWinExc_COMError)));
+		// so it must "match" a com_error, but not be *exactly* a COM error.
+		rc = PyErr_GivenExceptionMatches(exc_val, PyWinExc_COMError) && exc_typ != PyWinExc_COMError;
 	}
 	PyErr_Restore(exc_typ, exc_val, exc_tb);
 	return rc;
@@ -655,7 +529,7 @@ PYCOM_EXPORT void PyCom_LoggerWarning(PyObject *logProvider, const char *fmt, ..
 PYCOM_EXPORT 
 void PyCom_LoggerNonServerException(PyObject *logProvider, const char *fmt, ...)
 {
-	if (!IsNonServerErrorCurrent())
+	if (IsServerErrorCurrent())
 		return;
 	va_list marker;
 	va_start(marker, fmt);
@@ -854,7 +728,9 @@ static PyObject *PyCom_PyObjectFromIErrorInfo(IErrorInfo *pEI, HRESULT errorhr)
 // Error string helpers - get SCODE, FACILITY etc strings
 //
 ////////////////////////////////////////////////////////////////////////
+#ifndef _countof
 #define _countof(array) (sizeof(array)/sizeof(array[0]))
+#endif
 
 void GetScodeString(HRESULT hr, LPTSTR buf, int bufSize)
 {
