@@ -88,7 +88,7 @@ class TestSerDialog(dialog.Dialog):
 			try:
 				self.olectl.PortOpen = 0
 			except pythoncom.com_error, details:
-				print "Error closing port - %s" % (details[2][2])
+				print "Error closing port - %s" % (details.excepinfo[2])
 		return dialog.Dialog.OnDestroy(self, msg)
 
 def test():

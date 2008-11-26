@@ -30,10 +30,7 @@ import traceback
 
 from dbgcon import *
 
-class DebuggerException(Exception):
-	"""A Pythonwin debugger exception"""
-
-error = DebuggerException
+error = "pywin.debugger.error"
 
 def SetInteractiveContext(globs, locs):
 	if interact.edit is not None and interact.edit.currentView is not None:
